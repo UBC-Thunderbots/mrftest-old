@@ -77,7 +77,7 @@
 #define IOPIN_MOTOR1A       18
 #define IOPIN_MOTOR1B       19
 #define IOPIN_MOTOR2A       20
-#define IOPIN_MOTOR2B       21 
+#define IOPIN_MOTOR2B       21
 #define IOPIN_MOTOR3A       22
 #define IOPIN_MOTOR3B       23
 #define IOPIN_COUNTER_RESET 24

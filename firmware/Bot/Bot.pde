@@ -126,7 +126,7 @@ void setup() {
   analogWrite(PWMPIN_KICKER, 0);
 
   // Configure the IO port where counter values are read from as an input.
-  portMode(IOPORT_COUNTER_DATA, INPUT); 
+  portMode(IOPORT_COUNTER_DATA, INPUT);
   
   // Configure the CPU-busy pin as an output.
   pinMode(IOPIN_CPU_BUSY, OUTPUT);
@@ -143,7 +143,7 @@ void setup() {
   // 100Hz PWM is too slow. Increase frequency to 1kHz by tweaking timer prescalers.
   // DIV64 = 120Hz
   // DIV8  = 1kHz
-  // DIV1  = 8kHz 
+  // DIV1  = 8kHz
   TCCR1B = (TCCR1B & ~TIMER_PRESCALE_MASK) | TIMER_CLK_DIV8;
   TCCR3B = (TCCR3B & ~TIMER_PRESCALE_MASK) | TIMER_CLK_DIV8;
   
