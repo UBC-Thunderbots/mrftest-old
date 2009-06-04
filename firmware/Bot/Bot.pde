@@ -12,8 +12,8 @@
 #include "./Accelerometer.h"
 
 // The setpoint filters for the linear velocity setpoints.
-static const double setpointFilterA[] = {-1.9440, 0.9455};
-static const double setpointFilterB[] = {0.1945, 0.0, -0.1945};
+static const double setpointFilterA[] = {0.0, 0.0};
+static const double setpointFilterB[] = {1.0, 0.0, 0.0};
 static Filter<2> setpointXFilter(setpointFilterA, setpointFilterB);
 static Filter<2> setpointYFilter(setpointFilterA, setpointFilterB);
 
@@ -208,20 +208,25 @@ void updateDriveTrain() {
   double vySetpoint = XBee::rxdata.vy / 127.0 * MAX_SP_VY;
   double vtSetpoint = XBee::rxdata.vt / 127.0 * MAX_SP_VT;
   
+  if(XBee::rxdata.vxMeasured != -128 && XBee::rxdata.vyMeasured != -128){
+    accelerometerX.velSet(XBee::rxdata.vxMeasured /127.0 * MAX_SP_VX);
+    accelerometerY.velSet(XBee::rxdata.vyMeasured /127.0 * MAX_SP_VY);
+  }
+  
   // Differentiate the linear setpoints.
-  double axSetpoint = setpointXFilter.process(vxSetpoint);
-  double aySetpoint = setpointYFilter.process(vySetpoint);
+  double vxFilteredSetpoint = setpointXFilter.process(vxSetpoint);
+  double vyFilteredSetpoint = setpointYFilter.process(vySetpoint);
   
   // Read the current angular velocity.
   double vt = readGyro();
   
   // Read the current linear accelerations.
-  double ax = accelerometerX.read(vt);
-  double ay = accelerometerY.read(vt);
+  double vx = accelerometerX.read(vt);
+  double vy = accelerometerY.read(vt);
   
   // Process errors through controllers to generate actuator levels.
-  double actx = accelerationXController.process(axSetpoint - ax);
-  double acty = accelerationYController.process(aySetpoint - ay);
+  double actx = accelerationXController.process(vxFilteredSetpoint - vx);
+  double acty = accelerationYController.process(vyFilteredSetpoint - vy);
   double actt = vtController.process(vtSetpoint - vt) + feedforwardController.process(actx);
 
   // Drive wheels.
