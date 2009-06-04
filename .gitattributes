@@ -1,4 +1,5 @@
 * text=auto !eol
+firmware/Bot/Accelerometer.h -text
 firmware/Bot/Bot.pde -text
 firmware/Bot/Constants.h -text
 firmware/Bot/Filter.h -text

@@ -7,7 +7,7 @@ namespace XBee {
   struct RXData {
     char vx;
     char vy;
-    char vtheta;
+    char vt;
     byte dribble;
     byte kick;
     byte emergency;
@@ -18,10 +18,8 @@ namespace XBee {
   } __attribute__((packed));
   
   struct TXData {
-    byte vGreenHigh;
-    byte vGreenLow;
-    byte vMotorHigh;
-    byte vMotorLow;
+    byte vGreen[2];
+    byte vMotor[2];
   } __attribute__((packed));
   
   void init();

@@ -9,6 +9,7 @@
 #include "./XBee.h"
 #include "./Filter.h"
 #include "./Wheel.h"
+#include "./Accelerometer.h"
 
 // The setpoint filters for the linear velocity setpoints.
 static const double setpointFilterA[] = {-1.9440, 0.9455};
@@ -23,33 +24,27 @@ static Filter<1> accelerationXController(accelerationControllerA, accelerationCo
 static Filter<1> accelerationYController(accelerationControllerA, accelerationControllerB);
 
 // The angular velocity controller.
-static const double vthetaControllerA[] = {-1.9724, 0.9724};
-static const double vthetaControllerB[] = {0.0406, -0.0806, 0.0400};
-static Filter<2> vthetaController(vthetaControllerA, vthetaControllerB);
+static const double vtControllerA[] = {-1.9724, 0.9724};
+static const double vtControllerB[] = {0.0406, -0.0806, 0.0400};
+static Filter<2> vtController(vtControllerA, vtControllerB);
 
 // The feedforward controller.
 static const double feedforwardControllerA[] = {0.0};
 static const double feedforwardControllerB[] = {3.0/16.0, 0.0};
 static Filter<1> feedforwardController(feedforwardControllerA, feedforwardControllerB);
 
-// The acceleration filters for the accelerometers.
-static const double accelFilterA[] = {-0.9608};
-static const double accelFilterB[] = {0.0196, 0.0196};
-static Filter<1> accelXFilter(accelFilterA, accelFilterB);
-static Filter<1> accelYFilter(accelFilterA, accelFilterB);
-
 // The wheels.
 static const double rpmFilterA[] = {-0.777778};
 static const double rpmFilterB[] = {0.111111, 0.111111};
 static const double wheelControllerA[] = {-1.7967, 0.7967};
 static const double wheelControllerB[] = {1.2369, -2.0521, 0.8397};
-static const double m[4][3] = {
+static const double m[][3] = {
   {-0.2588,  0.9659, 1.0},
   {-0.2588, -0.9659, 1.0},
   { 0.7071, -0.7071, 1.0},
   { 0.7071,  0.7071, 1.0}
 };
-static Wheel wheels[4] = {
+static Wheel wheels[] = {
   Wheel(rpmFilterA, rpmFilterB, wheelControllerA, wheelControllerB,
     IOPIN_COUNTER0_OE, IOPIN_MOTOR0A, IOPIN_MOTOR0B, PWMPIN_MOTOR0, m[0]),
   Wheel(rpmFilterA, rpmFilterB, wheelControllerA, wheelControllerB,
@@ -60,7 +55,30 @@ static Wheel wheels[4] = {
     IOPIN_COUNTER3_OE, IOPIN_MOTOR3A, IOPIN_MOTOR3B, PWMPIN_MOTOR3, m[3]),
 };
 
-// Print a floating-point number with a fix for the negative-number bug.
+// The accelerometers.
+static const double accelerometerFilterA[] = {-0.9608};
+static const double accelerometerFilterB[] = {0.0196, 0.0196};
+static Accelerometer accelerometerX(accelerometerFilterA, accelerometerFilterB, ADCPIN_ACCEL1Y,  6.5);
+static Accelerometer accelerometerY(accelerometerFilterA, accelerometerFilterB, ADCPIN_ACCEL2Y, -4.5);
+
+// The gyro's zero point.
+static double gyroZero;
+
+// Record the time of the last received message.
+static long lastReceivedMessageTime;
+
+// Record the time the last kick was started.
+static long kickStartTime;
+
+// Record the time the loop last ran.
+static long lastLoopTime;
+
+// Record the time we last transmitted battery data.
+static long lastBatteryTime;
+
+
+
+// Prints a floating-point number with a fix for the negative-number bug.
 static void print(double num) {
   if(num<0) {
     Serial.print('-');
@@ -69,6 +87,10 @@ static void print(double num) {
     Serial.print(static_cast<float>(num));
   }
 }
+
+
+
+// Prints a floating-point number with a fix for the negative-number bug, followed by a newline.
 static void println(double num) {
   print(num);
   Serial.println();
@@ -76,79 +98,27 @@ static void println(double num) {
 
 
 
+// Zeroes the gyro.
+static void initGyro() {
+  int accumulator = 0;
+  for (byte i = 0; i < GYRO_ZERO_SAMPLES; i++)
+    accumulator += analogRead(ADCPIN_GYRO_DATA) - analogRead(ADCPIN_GYRO_VREF);
+  gyroZero = static_cast<double>(accumulator) / GYRO_ZERO_SAMPLES;
+}
 
 
 
-
-// Desired Velocity points from the Bot from XBee or Other
-double VelocityXSetPoint=0.0;
-double VelocityYSetPoint=0.0;
-double VelocityThetaSetPoint=0.0;
-double AccelerationXSetPoint=0.0;
-double AccelerationYSetPoint=0.0;
-
-//These are the actual velocity values that the robot thinks its
-//travelling
-double VelocityTheta;
-double AccelerationX;
-double AccelerationY;
-
-//This is to keep track of the loop timing
-unsigned long PrevTime=0;
-
-//This holds the difference of the setPoints from measured
-double AxError;
-double AyError;
-double VThetaError;
-
-//These are the values produced by the controller and feed into 
-//the prescalling matrix
-double AxActuator=0;
-double AyActuator=0;
-double VThetaActuator=0;
+// Reads from the gyro.
+static double readGyro() {
+  return GYRO_TO_RADS * (analogRead(ADCPIN_GYRO_DATA) - analogRead(ADCPIN_GYRO_VREF) - gyroZero);
+}
 
 
-//This is the time of the last XBee message for heart beat
-unsigned long LastMessage = 0;
-
-//The last time we sent a battery voltage.
-unsigned long LastBatteryTime = 0;
-
-double xAccelZeroPoint;
-double yAccelZeroPoint;
-double gyroZeroPoint;
-
-unsigned long KickTime=0;
-
-// -------------------------------------------------------------------------------------------- //
-// ###################################### INITIAL SETUP####################################### //
-
-//Converts RPMs to Velocity Approximations
-inline void GetCurrentVelocities(void);
-
-//Use the Gyro the get the angular Velocity
-inline void GetGyro();                         //Gyro and Accelerometer integration
-
-//Use the Accelerometers and the angular_velocity
-//to integrate the linear velocity
-inline void GetAccel();
-
-//This is the function to trigger the kicker (its busted)
-inline void kick(int kickSpeed);
-
-//Control the dribbler speed
-inline void dribbler(int dribble);
-
-//Subtracts Velocitys from setpoints
-inline void ComputeError(void);
-
-//tests to see how long a kick has been on for and shuts if off if too long
-inline void clearKick();
 
 // Configures the microcontroller.
 void setup() {
   // Initialize the per-wheel ports.
-  for (byte i = 0; i < 4; i++)
+  for (byte i = 0; i < sizeof(wheels) / sizeof(*wheels); i++)
     wheels[i].init();
 
   // Initialize the kicker and dribbler.
@@ -157,6 +127,9 @@ void setup() {
 
   // Configure the IO port where counter values are read from as an input.
   portMode(IOPORT_COUNTER_DATA, INPUT); 
+  
+  // Configure the CPU-busy pin as an output.
+  pinMode(IOPIN_CPU_BUSY, OUTPUT);
 
   // Reset the counters.
   pinMode(IOPIN_COUNTER_RESET, OUTPUT);
@@ -164,8 +137,8 @@ void setup() {
   digitalWrite(IOPIN_COUNTER_RESET, HIGH);
 
   // Initialize the serial ports.
-  Serial.begin(9600);
-  Serial1.begin(9600);
+  Serial.begin(BAUD_RATE_USB);
+  Serial1.begin(BAUD_RATE_XBEE);
 
   // 100Hz PWM is too slow. Increase frequency to 1kHz by tweaking timer prescalers.
   // DIV64 = 120Hz
@@ -173,148 +146,139 @@ void setup() {
   // DIV1  = 8kHz 
   TCCR1B = (TCCR1B & ~TIMER_PRESCALE_MASK) | TIMER_CLK_DIV8;
   TCCR3B = (TCCR3B & ~TIMER_PRESCALE_MASK) | TIMER_CLK_DIV8;
-
-  // Sample the analog Gyro and Accelerometers 50 times.
-  // Average the result to get a good zero bias.
-  for (byte i = 0; i < 50; i++) {
-    xAccelZeroPoint += analogRead(ADCPIN_ACCEL1Y) / 50.0;
-    yAccelZeroPoint += analogRead(ADCPIN_ACCEL2Y) / 50.0;
-    gyroZeroPoint += (analogRead(ADCPIN_GYRO_DATA) - analogRead(ADCPIN_GYRO_VREF)) / 50.0;
-  }
+  
+  // Zero the accelerometers.
+  accelerometerX.init();
+  accelerometerY.init();
+    
+  // Zero the gyro.
+  initGyro();
 
   // Configure the XBee module.
   XBee::init();
+  
+  // Set all timestamps such that the first loop iteration will start everything up.
+  lastReceivedMessageTime = millis();
+  kickStartTime           = millis();
+  lastLoopTime            = millis() - LOOP_TIME - 1;
+  lastBatteryTime         = millis() - TIMEOUT_BATTERY - 1;
 
   // Tell the user we're good.
   Serial.println("Bot: initialized.");
-  
-  // Record the current time as the last loop time.
-  PrevTime = millis();
 }
+
+
 
 // Zeroes everything.
 static void nuke() {
-  VelocityXSetPoint = 0;
-  VelocityYSetPoint = 0;
-  VelocityThetaSetPoint = 0;
-  kick(0);
-  dribbler(0);
-  for (byte i = 0; i < 4; i++)
+  analogWrite(PWMPIN_KICKER, 0);
+  analogWrite(PWMPIN_DRIBBLER, 0);
+  for (byte i = 0; i < sizeof(wheels) / sizeof(*wheels); i++)
     wheels[i].nuke();
   setpointXFilter.nuke();
   setpointYFilter.nuke();
   accelerationXController.nuke();
   accelerationYController.nuke();
-  vthetaController.nuke();
+  vtController.nuke();
   feedforwardController.nuke();
-  accelXFilter.nuke();
-  accelYFilter.nuke();
+  accelerometerX.nuke();
+  accelerometerY.nuke();
+  digitalWrite(IOPIN_COUNTER_RESET, LOW);
+  digitalWrite(IOPIN_COUNTER_RESET, HIGH);
 }
+
+
+
+// Updates the drive train appropriately to the compiled operating mode.
+#if MANUAL_ACTUATOR
+void updateDriveTrain() {
+  // Compute actuator levels directly from received data.
+  double actx = XBee::rxdata.vx / 127.0 * MANUAL_ACTUATOR_MOTOR_MAX;
+  double acty = XBee::rxdata.vy / 127.0 * MANUAL_ACTUATOR_MOTOR_MAX;
+  double actt = XBee::rxdata.vt / 127.0 * MANUAL_ACTUATOR_MOTOR_MAX;
+  
+  // Drive wheels directly.
+  for (byte i = 0; i < sizeof(wheels) / sizeof(*wheels); i++)
+    wheels[i].update(actx, acty, actt);
+}
+#else
+void updateDriveTrain() {
+  // Extract setpoints from most-recently-received packet.
+  double vxSetpoint = XBee::rxdata.vx / 127.0 * MAX_SP_VX;
+  double vySetpoint = XBee::rxdata.vy / 127.0 * MAX_SP_VY;
+  double vtSetpoint = XBee::rxdata.vt / 127.0 * MAX_SP_VT;
+  
+  // Differentiate the linear setpoints.
+  double axSetpoint = setpointXFilter.process(vxSetpoint);
+  double aySetpoint = setpointYFilter.process(vySetpoint);
+  
+  // Read the current angular velocity.
+  double vt = readGyro();
+  
+  // Read the current linear accelerations.
+  double ax = accelerometerX.read(vt);
+  double ay = accelerometerY.read(vt);
+  
+  // Process errors through controllers to generate actuator levels.
+  double actx = accelerationXController.process(axSetpoint - ax);
+  double acty = accelerationYController.process(aySetpoint - ay);
+  double actt = vtController.process(vtSetpoint - vt) + feedforwardController.process(actx);
+
+  // Drive wheels.
+  for (byte i = 0; i < sizeof(wheels) / sizeof(*wheels); i++)
+    wheels[i].update(actx, acty, actt);
+}
+#endif
+
+
 
 // Runs repeatedly to perform control.
 void loop() {
+  // Spin until we reach the next loop time.
+  digitalWrite(IOPIN_CPU_BUSY, LOW);
+  while (millis() - lastLoopTime < LOOP_TIME);
+  lastLoopTime += LOOP_TIME;
+  digitalWrite(IOPIN_CPU_BUSY, HIGH);
+
   // See if there's data to receive on the XBee.
   if (XBee::receive()) {
-    VelocityXSetPoint = XBee::rxdata.vx/127.0*10.0; //copy the packet data to the setpoints
-    VelocityYSetPoint = XBee::rxdata.vy/127.0*2.0; 
-    VelocityThetaSetPoint = XBee::rxdata.vtheta/127.0*4.0;
-    kick(XBee::rxdata.kick); //did we want a kick
-    dribbler(XBee::rxdata.dribble); //start the dribbler
-    LastMessage = millis();
+    // Record the timestamp.
+    lastReceivedMessageTime = millis();
+    
+    // Start a kick, if this packet requested it.
+    if (XBee::rxdata.kick) {
+      analogWrite(PWMPIN_KICKER, XBee::rxdata.kick * 1023UL / 255UL);
+      kickStartTime = millis();
+    }
+    
+    // Set the speed of the dribbler.
+    analogWrite(PWMPIN_DRIBBLER, XBee::rxdata.dribble * 1023UL / 255UL);
   }
   
   // Check if we're in emergency stop mode.
-  if (XBee::rxdata.emergency || millis() - LastMessage > 200) {
+  if (XBee::rxdata.emergency || millis() - lastReceivedMessageTime > TIMEOUT_RECEIVE) {
+    // Carefully set lastReceivedMessageTime such that even if millis() wraps we won't have a small time region where we're alive.
+    lastReceivedMessageTime = millis() - TIMEOUT_RECEIVE - 1;
     nuke();
     return;
   }
-
-  clearKick(); //Kick timer function to shut the kicker off after KICK_TIME ms
-  digitalWrite(25,LOW);
-  while(millis()<PrevTime+LOOP_TIME); //This allows us to keep the loop time constant
-  PrevTime+=LOOP_TIME;
-  digitalWrite(25,HIGH);
-
-  AccelerationXSetPoint = setpointXFilter.process(VelocityXSetPoint);
-  AccelerationYSetPoint = setpointYFilter.process(VelocityYSetPoint);
-
-  GetGyro();  //Compute VelocityTheta from Gyro
-
-    GetAccel(); //Compute AcclerationX and Y from acclerometers
-
-  //GetCurrentVelocities();    //Compute X,Y,Theta Velocities from RPM and performs Accel reset etc         
-
-  ComputeError();            //Subtract Actual Velocity from set points
-
-  AxActuator = accelerationXController.process(AxError);
-  AyActuator = accelerationYController.process(AyError);
-  VThetaActuator = vthetaController.process(VThetaError);  
-
-#if MANUAL_ACTUATOR              //Use this flag if you want to give constant voltages to the motors and bypass the controllers
-  AxActuator=VelocityXSetPoint * 0.015;
-  AyActuator=VelocityYSetPoint * 0.075;
-  VThetaActuator=VelocityThetaSetPoint * 0.05357;
-#endif
-
-  VThetaActuator += feedforwardController.process(AxActuator);
-
-  for (byte i = 0; i < 4; i++)
-    wheels[i].update(AxActuator, AyActuator, VThetaActuator);
+  
+  // Check whether to shut off kicker.
+  if (millis() - kickStartTime > KICK_TIME)
+    analogWrite(PWMPIN_KICKER, 0);
+    
+  // Update drive train.
+  updateDriveTrain();
 
   // Send battery voltage every 2000 milliseconds.
-  if (millis() - LastBatteryTime >= 2000) {
+  if (millis() - lastBatteryTime > TIMEOUT_BATTERY) {
     unsigned int val = analogRead(ADCPIN_GREEN_BATTERY);
-    XBee::txdata.vGreenHigh = val / 256;
-    XBee::txdata.vGreenLow = val % 256;
+    XBee::txdata.vGreen[0] = val / 256;
+    XBee::txdata.vGreen[1] = val % 256;
     val = analogRead(ADCPIN_MOTOR_BATTERY);
-    XBee::txdata.vMotorHigh = val / 256;
-    XBee::txdata.vMotorLow = val % 256;
+    XBee::txdata.vMotor[0] = val / 256;
+    XBee::txdata.vMotor[1] = val % 256;
     XBee::send();
-    LastBatteryTime = millis();
+    lastBatteryTime = millis();
   }
-}
-
-
-inline void GetGyro()
-{
-  VelocityTheta = GYRO_TO_RADS * (analogRead(ADCPIN_GYRO_DATA) - analogRead(ADCPIN_GYRO_VREF) - gyroZeroPoint);
-}
-
-inline void GetAccel()
-{
-  static double angular_squared; 
-
-  //angular acceleration due to rotation
-  angular_squared=VelocityTheta*VelocityTheta;
-
-  //Get Acceleration
-  AccelerationX = accelXFilter.process(-1*ACCELEROMETER_TO_CM*(analogRead(ADCPIN_ACCEL1Y)-xAccelZeroPoint)+angular_squared*ACCEL_1_RADIUS);
-  AccelerationY = accelYFilter.process(-1*ACCELEROMETER_TO_CM*(analogRead(ADCPIN_ACCEL2Y)-yAccelZeroPoint)-angular_squared*ACCEL_2_RADIUS);
-}
-
-inline void ComputeError(void){
-  //Compute the Error off the Velocity Setpoints
-  AxError=AccelerationXSetPoint-AccelerationX;
-  AyError=AccelerationYSetPoint-AccelerationY;
-  VThetaError=VelocityThetaSetPoint-VelocityTheta;
-
-}
-
-inline void kick(int kickSpeed){
-  if(kickSpeed)
-  {
-    analogWrite(PWMPIN_KICKER, kickSpeed*1023.0/255.0);
-    KickTime=millis();
-  }
-}
-
-inline void clearKick()
-{
-  if((millis()-KickTime)>KICK_TIME)
-    analogWrite(PWMPIN_KICKER,0);
-}
-
-//dribbler function
-inline void dribbler(int dribble){
-  analogWrite(PWMPIN_DRIBBLER, dribble*1023.0/255.0);
 }

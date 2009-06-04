@@ -42,7 +42,7 @@ namespace {
 }
 
 XBee::RXData XBee::rxdata = {0, 0, 0, 0, 0, 0xFF, -128, -128, -128, -128};
-XBee::TXData XBee::txdata = {0xFF, 0xFF, 0xFF, 0xFF};
+XBee::TXData XBee::txdata = {{0xFF, 0xFF}, {0xFF, 0xFF}};
 
 void XBee::init() {
   DBGPRINT("XBee: Initializing...");

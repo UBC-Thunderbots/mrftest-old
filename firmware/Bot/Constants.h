@@ -4,6 +4,14 @@
 // Bypass the controller and apply the velocity setpoints to the M (Pre-Scaler) matrix to allow direct control of motor power
 #define MANUAL_ACTUATOR 0
 
+// The maximum motor percentage that can be applied in manual actuator mode.
+#define MANUAL_ACTUATOR_MOTOR_MAX 0.15
+
+// Maximum representable values for the setpoints.
+#define MAX_SP_VX 10.0
+#define MAX_SP_VY  2.0
+#define MAX_SP_VT  4.0
+
 // Maximum motor power (0-1023)
 #define MOTOR_CAP 300
 
@@ -19,17 +27,27 @@
 // Scaler radians/second per ADC unit
 #define GYRO_TO_RADS 0.0127768
 
+// Number of samples to take while zeroing the gyro.
+#define GYRO_ZERO_SAMPLES 50
+
 // Scaler cm/second^2 per ADC unit
 #define ACCELEROMETER_TO_CM 4.785156
 
-// Distance of accerometer 1 from centroid (cm)
-#define ACCEL_1_RADIUS 6.5
-
-// Distance of accerometer 2 from centroid (cm)
-#define ACCEL_2_RADIUS 4.5
+// Number of samples to take while zeroing the accelerometers.
+#define ACCELEROMETER_ZERO_SAMPLES 50
 
 // How long to fire the kicker for (ms)
 #define KICK_TIME 200
+
+// Baud rates to run the serial ports at.
+#define BAUD_RATE_USB  9600
+#define BAUD_RATE_XBEE 9600
+
+// Timeout for receiving a data packet before nuking (ms).
+#define TIMEOUT_RECEIVE 200
+
+// Interval between sending battery voltage updates.
+#define TIMEOUT_BATTERY 2000
 
 // PWM pin numbers
 #define PWMPIN_MOTOR0   0
@@ -63,6 +81,7 @@
 #define IOPIN_MOTOR3A       22
 #define IOPIN_MOTOR3B       23
 #define IOPIN_COUNTER_RESET 24
+#define IOPIN_CPU_BUSY      25
 
 // IO port numbers (check for conflict with IO pins above if changing!)
 #define IOPORT_COUNTER_DATA 1
