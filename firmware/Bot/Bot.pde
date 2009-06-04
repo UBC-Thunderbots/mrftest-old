@@ -248,6 +248,13 @@ void loop() {
   
   // See if there's data to receive on the XBee.
   if (XBee::receive()) {
+    // Check if we're supposed to be rebooting.
+    if (XBee::rxdata.reboot) {
+      nuke();
+      WDTCR |= 1 << WDE;
+      for (;;);
+    }
+    
     // Record the timestamp.
     lastReceivedMessageTime = millis();
     

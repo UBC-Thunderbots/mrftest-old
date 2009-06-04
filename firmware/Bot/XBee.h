@@ -13,8 +13,8 @@ namespace XBee {
     byte emergency;
     char vxMeasured;
     char vyMeasured;
-    char extra1;
-    char extra2;
+    unsigned char reboot;
+    char extra;
   } __attribute__((packed));
   
   struct TXData {
