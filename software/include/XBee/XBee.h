@@ -32,9 +32,11 @@ namespace XBee {
 		// Vision-measured forward-reverse velocity (-128=not available).
 		char vyMeasured;
 
-		// Extra controls (-128=not available).
-		char extra1;
-		char extra2;
+		// Nonzero to reboot the robot.
+		unsigned char reboot;
+
+		// Extra control (-128=not available).
+		char extra;
 	} __attribute__((packed));
 
 	//

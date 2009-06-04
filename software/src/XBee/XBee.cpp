@@ -378,8 +378,8 @@ void XBee::init() {
 		out[i].emergency  = 0;
 		out[i].vxMeasured = -128;
 		out[i].vyMeasured = -128;
-		out[i].extra1     = -128;
-		out[i].extra2     = -128;
+		out[i].reboot     = 0;
+		out[i].extra      = -128;
 		in[i].vGreen[0]   = 0xFF;
 		in[i].vGreen[1]   = 0xFF;
 		in[i].vMotor[0]   = 0xFF;

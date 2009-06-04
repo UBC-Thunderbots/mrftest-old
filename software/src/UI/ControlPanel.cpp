@@ -5,6 +5,7 @@
 #include "XBee/XBee.h"
 
 #include <tr1/memory>
+#include <gtkmm/button.h>
 #include <gtkmm/drawingarea.h>
 #include <gtkmm/label.h>
 #include <gtkmm/progressbar.h>
@@ -121,9 +122,30 @@ namespace {
 		bool old;
 	};
 
+	class RebootButton : public Gtk::Button {
+	public:
+		RebootButton(unsigned int id) : Gtk::Button("Reboot"), id(id), pending(false) {
+			XBee::out[id].reboot = 0;
+		}
+
+		void update() {
+			XBee::out[id].reboot = pending ? 0xFF : 0;
+			pending = false;
+		}
+
+	protected:
+		virtual void on_clicked() {
+			pending = true;
+		}
+
+	private:
+		const unsigned int id;
+		bool pending;
+	};
+
 	class RobotControls {
 	public:
-		RobotControls(unsigned int id, Gtk::Table &tbl) : commStatusLight(id), runSwitch(id), greenVoltage(XBee::in[id].vGreen, SmallBattDisCurve), motorVoltage(XBee::in[id].vMotor, LargeBattDisCurve) {
+		RobotControls(unsigned int id, Gtk::Table &tbl) : commStatusLight(id), runSwitch(id), rebootButton(id), greenVoltage(XBee::in[id].vGreen, SmallBattDisCurve), motorVoltage(XBee::in[id].vMotor, LargeBattDisCurve) {
 			std::ostringstream oss;
 			oss << id;
 			label.set_text(oss.str());
@@ -131,13 +153,15 @@ namespace {
 			tbl.attach(label,           id + 1, id + 2, 0, 1);
 			tbl.attach(commStatusLight, id + 1, id + 2, 1, 2);
 			tbl.attach(runSwitch,       id + 1, id + 2, 2, 3);
-			tbl.attach(greenVoltage,    id + 1, id + 2, 3, 4);
-			tbl.attach(motorVoltage,    id + 1, id + 2, 4, 5);
+			tbl.attach(rebootButton,    id + 1, id + 2, 3, 4);
+			tbl.attach(greenVoltage,    id + 1, id + 2, 4, 5);
+			tbl.attach(motorVoltage,    id + 1, id + 2, 5, 6);
 		}
 
 		void update() {
 			commStatusLight.update();
 			runSwitch.update();
+			rebootButton.update();
 			greenVoltage.update();
 			motorVoltage.update();
 		}
@@ -146,6 +170,7 @@ namespace {
 		Gtk::Label label;
 		CommStatusLight commStatusLight;
 		RunSwitch runSwitch;
+		RebootButton rebootButton;
 		Voltage greenVoltage;
 		Voltage motorVoltage;
 	};
@@ -173,22 +198,24 @@ public:
 	ControlPanelImpl(Gtk::Table &tbl) : controlArray(tbl) {
 	}
 
-	Gtk::Label robotIdLabel, commStatusLabel, runLabel, greenLabel, motorLabel;
+	Gtk::Label robotIdLabel, commStatusLabel, runLabel, rebootLabel, greenLabel, motorLabel;
 	RobotControlArray controlArray;
 };
 
-ControlPanel::ControlPanel() : Gtk::Table(5, 6, false), impl(new ControlPanelImpl(*this)) {
+ControlPanel::ControlPanel() : Gtk::Table(6, 6, false), impl(new ControlPanelImpl(*this)) {
 	impl->robotIdLabel.set_text("Robot:");
 	impl->commStatusLabel.set_text("Comm Status:");
 	impl->runLabel.set_text("Run Switch:");
+	impl->rebootLabel.set_text("Reboot:");
 	impl->greenLabel.set_text("Green Battery:");
 	impl->motorLabel.set_text("Motor Battery:");
 
 	attach(impl->robotIdLabel,    0, 1, 0, 1);
 	attach(impl->commStatusLabel, 0, 1, 1, 2);
 	attach(impl->runLabel,        0, 1, 2, 3);
-	attach(impl->greenLabel,      0, 1, 3, 4);
-	attach(impl->motorLabel,      0, 1, 4, 5);
+	attach(impl->rebootLabel,     0, 1, 3, 4);
+	attach(impl->greenLabel,      0, 1, 4, 5);
+	attach(impl->motorLabel,      0, 1, 5, 6);
 }
 
 void ControlPanel::update() {

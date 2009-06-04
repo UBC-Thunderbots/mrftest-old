@@ -59,7 +59,7 @@ namespace {
 
 	class Scales : public Gtk::Frame {
 	public:
-		Scales(unsigned int id) : Gtk::Frame("Controls"), id(id), hBox(false, 5), vBox1(true, 0), vBox2(true, 0), vxLabel("Vx:"), vyLabel("Vy:"), vthetaLabel("Vtheta:"), dribbleLabel("Dribble:"), kickLabel("Kick:"), extra1Label("Extra #1:"), extra2Label("Extra #2:"), kickBox(false, 0) {
+		Scales(unsigned int id) : Gtk::Frame("Controls"), id(id), hBox(false, 5), vBox1(true, 0), vBox2(true, 0), vxLabel("Vx:"), vyLabel("Vy:"), vthetaLabel("Vtheta:"), dribbleLabel("Dribble:"), kickLabel("Kick:"), extraLabel("Extra:"), kickBox(false, 0) {
 			kickBox.pack_start(kickLevel, true, true);
 			kickBox.pack_start(kickFire, false, false);
 
@@ -68,16 +68,14 @@ namespace {
 			vBox1.pack_start(vthetaLabel, false, false);
 			vBox1.pack_start(dribbleLabel, false, false);
 			vBox1.pack_start(kickLabel, false, false);
-			vBox1.pack_start(extra1Label, false, false);
-			vBox1.pack_start(extra2Label, false, false);
+			vBox1.pack_start(extraLabel, false, false);
 
 			vBox2.pack_start(vx, true, true);
 			vBox2.pack_start(vy, true, true);
 			vBox2.pack_start(vtheta, true, true);
 			vBox2.pack_start(dribble, true, true);
 			vBox2.pack_start(kickBox, true, true);
-			vBox2.pack_start(extra1, true, true);
-			vBox2.pack_start(extra2, true, true);
+			vBox2.pack_start(extra, true, true);
 
 			hBox.pack_start(vBox1, false, false);
 			hBox.pack_start(vBox2, true, true);
@@ -96,8 +94,7 @@ namespace {
 			} else {
 				XBee::out[id].kick = 0;
 			}
-			XBee::out[id].extra1 = extra1.value();
-			XBee::out[id].extra2 = extra2.value();
+			XBee::out[id].extra = extra.value();
 		}
 
 		void zero() {
@@ -110,8 +107,8 @@ namespace {
 		const unsigned int id;
 		Gtk::HBox hBox;
 		Gtk::VBox vBox1, vBox2;
-		Gtk::Label vxLabel, vyLabel, vthetaLabel, dribbleLabel, kickLabel, extra1Label, extra2Label;
-		SignedCharScale vx, vy, vtheta, extra1, extra2;
+		Gtk::Label vxLabel, vyLabel, vthetaLabel, dribbleLabel, kickLabel, extraLabel;
+		SignedCharScale vx, vy, vtheta, extra;
 		UnsignedCharScale dribble, kickLevel;
 		KickButton kickFire;
 		Gtk::HBox kickBox;
