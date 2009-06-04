@@ -117,6 +117,10 @@ static double readGyro() {
 
 // Configures the microcontroller.
 void setup() {
+  // Initialize the serial ports.
+  Serial.begin(BAUD_RATE_USB);
+  Serial1.begin(BAUD_RATE_XBEE);
+
   // Initialize the per-wheel ports.
   for (byte i = 0; i < sizeof(wheels) / sizeof(*wheels); i++)
     wheels[i].init();
@@ -135,10 +139,6 @@ void setup() {
   pinMode(IOPIN_COUNTER_RESET, OUTPUT);
   digitalWrite(IOPIN_COUNTER_RESET, LOW);
   digitalWrite(IOPIN_COUNTER_RESET, HIGH);
-
-  // Initialize the serial ports.
-  Serial.begin(BAUD_RATE_USB);
-  Serial1.begin(BAUD_RATE_XBEE);
 
   // 100Hz PWM is too slow. Increase frequency to 1kHz by tweaking timer prescalers.
   // DIV64 = 120Hz
@@ -234,6 +234,18 @@ void updateDriveTrain() {
 
 // Runs repeatedly to perform control.
 void loop() {
+  // Send battery voltage every 2000 milliseconds.
+  if (millis() - lastBatteryTime > TIMEOUT_BATTERY) {
+    unsigned int val = analogRead(ADCPIN_GREEN_BATTERY);
+    XBee::txdata.vGreen[0] = val / 256;
+    XBee::txdata.vGreen[1] = val % 256;
+    val = analogRead(ADCPIN_MOTOR_BATTERY);
+    XBee::txdata.vMotor[0] = val / 256;
+    XBee::txdata.vMotor[1] = val % 256;
+    XBee::send();
+    lastBatteryTime = millis();
+  }
+  
   // See if there's data to receive on the XBee.
   if (XBee::receive()) {
     // Record the timestamp.
@@ -269,16 +281,4 @@ void loop() {
 
   // Update drive train.
   updateDriveTrain();
-
-  // Send battery voltage every 2000 milliseconds.
-  if (millis() - lastBatteryTime > TIMEOUT_BATTERY) {
-    unsigned int val = analogRead(ADCPIN_GREEN_BATTERY);
-    XBee::txdata.vGreen[0] = val / 256;
-    XBee::txdata.vGreen[1] = val % 256;
-    val = analogRead(ADCPIN_MOTOR_BATTERY);
-    XBee::txdata.vMotor[0] = val / 256;
-    XBee::txdata.vMotor[1] = val % 256;
-    XBee::send();
-    lastBatteryTime = millis();
-  }
 }

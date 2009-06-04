@@ -2,7 +2,7 @@
 #define CONSTANTS_H
 
 // Bypass the controller and apply the velocity setpoints to the M (Pre-Scaler) matrix to allow direct control of motor power
-#define MANUAL_ACTUATOR 0
+#define MANUAL_ACTUATOR 1
 
 // The maximum motor percentage that can be applied in manual actuator mode.
 #define MANUAL_ACTUATOR_MOTOR_MAX 0.15
@@ -40,7 +40,7 @@
 #define KICK_TIME 200
 
 // Baud rates to run the serial ports at.
-#define BAUD_RATE_USB  9600
+#define BAUD_RATE_USB  115200
 #define BAUD_RATE_XBEE 9600
 
 // Timeout for receiving a data packet before nuking (ms).
