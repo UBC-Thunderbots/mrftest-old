@@ -234,12 +234,6 @@ void updateDriveTrain() {
 
 // Runs repeatedly to perform control.
 void loop() {
-  // Spin until we reach the next loop time.
-  digitalWrite(IOPIN_CPU_BUSY, LOW);
-  while (millis() - lastLoopTime < LOOP_TIME);
-  lastLoopTime += LOOP_TIME;
-  digitalWrite(IOPIN_CPU_BUSY, HIGH);
-
   // See if there's data to receive on the XBee.
   if (XBee::receive()) {
     // Record the timestamp.
@@ -267,6 +261,12 @@ void loop() {
   if (millis() - kickStartTime > KICK_TIME)
     analogWrite(PWMPIN_KICKER, 0);
     
+  // Spin until we reach the next loop time.
+  digitalWrite(IOPIN_CPU_BUSY, LOW);
+  while (millis() - lastLoopTime < LOOP_TIME);
+  lastLoopTime += LOOP_TIME;
+  digitalWrite(IOPIN_CPU_BUSY, HIGH);
+
   // Update drive train.
   updateDriveTrain();
 
