@@ -13,7 +13,7 @@
 #define MAX_SP_VT  4.0
 
 // Maximum motor power (0-1023)
-#define MOTOR_CAP 300
+#define MOTOR_CAP 1023
 
 // This RPM is considered 100%
 #define MOTOR_MAX_RPM 5200.0
