@@ -1,1 +1,12 @@
 * text=auto !eol
+firmware/Bot/Bot.pde -text
+firmware/Bot/Constants.h -text
+firmware/Bot/Filter.h -text
+firmware/Bot/Wheel.h -text
+firmware/Bot/XBee.cpp -text
+firmware/Bot/XBee.h -text
+firmware/BotTestBench/BotTestBench.pde -text
+firmware/BotTestBench/Filter.cpp -text
+firmware/BotTestBench/Filter.h -text
+firmware/EStopBtn/EStopBtn.pde -text
+firmware/WheelTestBench/WheelTestBench.pde -text
