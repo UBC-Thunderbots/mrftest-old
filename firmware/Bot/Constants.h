@@ -24,6 +24,12 @@
 // Scaler that converts Motor counts to RPM
 #define ENCODER_COUNTS_TO_RPM 166.67
 
+#define GREEN_BATTERY_CONVERSION 0.015577712
+#define GREEN_BATTERY_LOW 10.8
+
+#define MOTOR_BATTERY_CONVERSION 0.020932551
+#define MOTOR_BATTERY_LOW 14.4
+
 // Scaler radians/second per ADC unit
 #define GYRO_TO_RADS 0.0127768
 

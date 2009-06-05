@@ -242,12 +242,18 @@ void updateDriveTrain() {
 
 // Runs repeatedly to perform control.
 void loop() {
+  unsigned char lowBattery=0;
+  
   // Send battery voltage every 2000 milliseconds.
   if (millis() - lastBatteryTime > TIMEOUT_BATTERY) {
     unsigned int val = analogRead(ADCPIN_GREEN_BATTERY);
+    if(val*GREEN_BATTERY_CONVERSION < GREEN_BATTERY_LOW)
+          lowBattery|=1;
     XBee::txdata.vGreen[0] = val / 256;
     XBee::txdata.vGreen[1] = val % 256;
     val = analogRead(ADCPIN_MOTOR_BATTERY);
+    if(val*MOTOR_BATTERY_CONVERSION < MOTOR_BATTERY_LOW)
+          lowBattery|=1;
     XBee::txdata.vMotor[0] = val / 256;
     XBee::txdata.vMotor[1] = val % 256;
     XBee::send();
@@ -279,7 +285,7 @@ void loop() {
   }
   
   // Check if we're in emergency stop mode.
-  if (XBee::rxdata.emergency || millis() - lastReceivedMessageTime > TIMEOUT_RECEIVE) {
+  if (XBee::rxdata.emergency || millis() - lastReceivedMessageTime > TIMEOUT_RECEIVE || lowBattery) {
     // Carefully set lastReceivedMessageTime such that even if millis() wraps we won't have a small time region where we're alive.
     lastReceivedMessageTime = millis() - TIMEOUT_RECEIVE - 1;
     nuke();
