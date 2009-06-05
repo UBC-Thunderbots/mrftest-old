@@ -18,10 +18,13 @@ static Filter<2> setpointXFilter(setpointFilterA, setpointFilterB);
 static Filter<2> setpointYFilter(setpointFilterA, setpointFilterB);
 
 // The linear acceleration controllers.
-static const double accelerationControllerA[] = {0.0};
-static const double accelerationControllerB[] = {0.000, 0.000};
-static Filter<1> accelerationXController(accelerationControllerA, accelerationControllerB);
-static Filter<1> accelerationYController(accelerationControllerA, accelerationControllerB);
+static const double vxControllerA[] = {0.0};
+static const double vxControllerB[] = {0.000, 0.000};
+static Filter<1> vxController(vxControllerA, vxControllerB);
+
+static const double vyControllerA[] = {0.0};
+static const double vyControllerB[] = {0.000, 0.000};
+static Filter<1> vyController(vyControllerA, vyControllerB);
 
 // The angular velocity controller.
 static const double vtControllerA[] = {-1.9724, 0.9724};
@@ -177,8 +180,8 @@ static void nuke() {
     wheels[i].nuke();
   setpointXFilter.nuke();
   setpointYFilter.nuke();
-  accelerationXController.nuke();
-  accelerationYController.nuke();
+  vxController.nuke();
+  vyController.nuke();
   vtController.nuke();
   feedforwardController.nuke();
   accelerometerX.nuke();

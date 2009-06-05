@@ -1,11 +1,10 @@
 #ifndef ACCELEROMETER_H
 #define ACCELEROMETER_H
 
-#include "Constants.h"
 
 class Accelerometer {
 public:
-  Accelerometer(const Filter<2>::A &filterA, const Filter<2>::B &filterB, byte adcPin, double radius) : filter(filterA, filterB), adcPin(adcPin), radius(radius), zero(0.0) {
+  Accelerometer(const Filter<2>::A &filterA, const Filter<2>::B &filterB, byte adcPin, double radius) : filter(filterA, filterB), adcPin(adcPin), radius(radius), velocity(0.0), zero(0.0) {
   }
   
   void init() {
@@ -25,8 +24,8 @@ public:
     velocity=0;
   }
   
-  void velSet(double Velocity){
-    this->velocity=Velocity;
+  void velSet(double velocity){
+    this->velocity=velocity;
   }
   
 private:
