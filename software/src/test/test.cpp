@@ -1,9 +1,11 @@
 #include "datapool/EmergencyStopButton.h"
 #include "Log/Log.h"
 #include "UI/ControlPanel.h"
+#include "UI/Joystick.h"
 #include "XBee/XBee.h"
 
 #include <algorithm>
+#include <vector>
 #include <cstring>
 #include <gtkmm/accelkey.h>
 #include <gtkmm/adjustment.h>
@@ -12,12 +14,19 @@
 #include <gtkmm/frame.h>
 #include <gtkmm/label.h>
 #include <gtkmm/main.h>
+#include <gtkmm/menu.h>
+#include <gtkmm/menubar.h>
+#include <gtkmm/menuitem.h>
 #include <gtkmm/notebook.h>
+#include <gtkmm/radiobuttongroup.h>
+#include <gtkmm/radiomenuitem.h>
 #include <gtkmm/scale.h>
 #include <gtkmm/window.h>
 #include <time.h>
 
 namespace {
+	std::tr1::shared_ptr<Joystick> joystick;
+
 	template<typename T, T min, T max>
 	class TypedScale : public Gtk::HScale {
 	public:
@@ -136,11 +145,78 @@ namespace {
 		ControlPanel cp;
 	};
 
+	class SlidersMenuItem : public Gtk::RadioMenuItem {
+	public:
+		SlidersMenuItem(Gtk::RadioButtonGroup &grp) : Gtk::RadioMenuItem(grp, "Sliders") {
+		}
+
+	protected:
+		virtual void on_activate() {
+			if (!get_active())
+				joystick.reset();
+			Gtk::RadioMenuItem::on_activate();
+		}
+	};
+
+	class JoystickMenuItem : public Gtk::RadioMenuItem {
+	public:
+		JoystickMenuItem(Gtk::RadioButtonGroup &grp, const std::string &filename) : Gtk::RadioMenuItem(grp, filename), filename(filename) {
+		}
+
+	protected:
+		virtual void on_activate() {
+			if (!get_active()) {
+				try {
+					std::tr1::shared_ptr<Joystick> js(new Joystick(filename));
+					joystick = js;
+					Gtk::RadioMenuItem::on_activate();
+				} catch (...) {
+					joystick.reset();
+				}
+			} else {
+				Gtk::RadioMenuItem::on_activate();
+			}
+		}
+
+	private:
+		const std::string filename;
+	};
+
+	class InputDeviceMenuItem : public Gtk::MenuItem {
+	public:
+		InputDeviceMenuItem() : Gtk::MenuItem("Input Device") {
+			subMenu.append(*new SlidersMenuItem(group));
+
+			const std::vector<std::string> &joys = Joystick::list();
+			for (unsigned int i = 0; i < joys.size(); i++)
+				subMenu.append(*new JoystickMenuItem(group, joys[i]));
+
+			set_submenu(subMenu);
+		}
+
+	private:
+		Gtk::RadioButtonGroup group;
+		Gtk::Menu subMenu;
+		std::vector<std::tr1::shared_ptr<Gtk::MenuItem> > items;
+	};
+
+	class MainMenuBar : public Gtk::MenuBar {
+	public:
+		MainMenuBar() {
+			append(inputDeviceMenuItem);
+		}
+
+	private:
+		InputDeviceMenuItem inputDeviceMenuItem;
+	};
+
 	class MainWindow : public Gtk::Window {
 	public:
-		MainWindow() {
+		MainWindow() : vbox(false, 1) {
 			set_title("Thunderbots Tester");
-			add(mc);
+			vbox.pack_start(mb, true, true);
+			vbox.pack_start(mc, true, true);
+			add(vbox);
 		}
 
 		bool update() {
@@ -165,6 +241,8 @@ namespace {
 		}
 
 	private:
+		Gtk::VBox vbox;
+		MainMenuBar mb;
 		MainContainer mc;
 	};
 }
