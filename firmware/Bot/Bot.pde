@@ -267,9 +267,11 @@ void loop() {
     lastReceivedMessageTime = millis();
     
     // Start a kick, if this packet requested it.
-    if (XBee::rxdata.kick) {
+    if (XBee::rxdata.kick && !kickStartTime) {
       analogWrite(PWMPIN_KICKER, XBee::rxdata.kick * 1023UL / 255UL);
       kickStartTime = millis();
+      if (!kickStartTime)
+        kickStartTime = 1;
     }
     
     // Set the speed of the dribbler.
@@ -285,8 +287,10 @@ void loop() {
   }
   
   // Check whether to shut off kicker.
-  if (millis() - kickStartTime > KICK_TIME)
+  if (kickStartTime && millis() - kickStartTime > KICK_TIME) {
     analogWrite(PWMPIN_KICKER, 0);
+    kickStartTime = 0;
+  }
     
   // Spin until we reach the next loop time.
   digitalWrite(IOPIN_CPU_BUSY, LOW);
