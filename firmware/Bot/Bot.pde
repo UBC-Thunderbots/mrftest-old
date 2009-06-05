@@ -79,6 +79,9 @@ static long lastLoopTime;
 // Record the time we last transmitted battery data.
 static long lastBatteryTime;
 
+// Whether the battery voltage is low.
+bool lowBattery;
+
 
 
 // Prints a floating-point number with a fix for the negative-number bug.
@@ -165,6 +168,9 @@ void setup() {
   kickStartTime           = millis();
   lastLoopTime            = millis() - LOOP_TIME - 1;
   lastBatteryTime         = millis() - TIMEOUT_BATTERY - 1;
+  
+  // Clear low-battery flag.
+  lowBattery = false;
 
   // Tell the user we're good.
   Serial.println("Bot: initialized.");
@@ -242,8 +248,6 @@ void updateDriveTrain() {
 
 // Runs repeatedly to perform control.
 void loop() {
-  bool lowBattery = false;
-  
   // Send battery voltage every 2000 milliseconds.
   if (millis() - lastBatteryTime > TIMEOUT_BATTERY) {
     unsigned int val = analogRead(ADCPIN_GREEN_BATTERY);
