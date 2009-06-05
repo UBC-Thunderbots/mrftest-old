@@ -42,10 +42,10 @@ static const double rpmFilterB[] = {0.111111, 0.111111};
 static const double wheelControllerA[] = {-1.7967, 0.7967};
 static const double wheelControllerB[] = {1.2369, -2.0521, 0.8397};
 static const double m[][3] = {
-  {-0.2588,  0.9659, 1.0},
-  {-0.2588, -0.9659, 1.0},
-  { 0.7071, -0.7071, 1.0},
-  { 0.7071,  0.7071, 1.0}
+  {-0.0028,  0.0007, 0.0065},
+  {-0.0028, -0.0007, 0.0065},
+  { 0.0010, -0.0010, 0.0065},
+  { 0.0010,  0.0010, 0.0065}
 };
 static Wheel wheels[] = {
   Wheel(rpmFilterA, rpmFilterB, wheelControllerA, wheelControllerB,
