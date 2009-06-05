@@ -1,10 +1,10 @@
 #include "UI/ControlPanel.h"
 #include "datapool/EmergencyStopButton.h"
-#include "datapool/LargeBatt.h"
-#include "datapool/SmallBatt.h"
 #include "XBee/XBee.h"
 
+#include <iostream>
 #include <tr1/memory>
+#include <ctime>
 #include <gtkmm/button.h>
 #include <gtkmm/drawingarea.h>
 #include <gtkmm/label.h>
@@ -12,7 +12,28 @@
 #include <gtkmm/table.h>
 #include <gtkmm/togglebutton.h>
 
+#define MOTOR_BATTERY_CONVERSION_FACTOR 0.020932551
+#define MOTOR_BATTERY_MAX_VOLTAGE       16.75
+#define MOTOR_BATTERY_MIN_VOLTAGE       14.40
+#define MOTOR_BATTERY_WARNING_VOLTAGE   14.60
+
+#define GREEN_BATTERY_CONVERSION_FACTOR 0.015577712
+#define GREEN_BATTERY_MAX_VOLTAGE       12.50
+#define GREEN_BATTERY_MIN_VOLTAGE        9.00
+#define GREEN_BATTERY_WARNING_VOLTAGE    9.90
+
 namespace {
+	void beep() {
+		static std::time_t lastTime = 0;
+		std::time_t now;
+		std::time(&now);
+		if (now != lastTime) {
+			lastTime = now;
+			std::cerr << '\a';
+			std::cerr.flush();
+		}
+	}
+
 	class CommStatusLight : public Gtk::DrawingArea {
 	public:
 		CommStatusLight(unsigned int id) : id(id), old(XBee::STATUS_OK) {
@@ -64,29 +85,41 @@ namespace {
 
 	class Voltage : public Gtk::ProgressBar {
 	public:
-		Voltage(const unsigned char *data, const double *lut) : data(data), lut(lut), old(UINT_MAX) {
+		Voltage(const unsigned char *data, double factor, double min, double max, double warn) : data(data), factor(factor), min(min), max(max), warn(warn), old(UINT_MAX) {
 			set_text("---");
 		}
 
 		void update() {
 			unsigned int level = data[0] * 256 + data[1];
-			if (level == old)
-				return;
 			if (level > 1023) {
 				set_text("---");
 			} else {
-				double percent = lut[level];
-				std::ostringstream oss;
-				oss << static_cast<unsigned int>(percent * 100 + 0.1) << "% [" << level << ']';
-				set_text(oss.str());
-				set_fraction(percent);
+				double voltage = level * factor;
+				if (voltage <= warn) beep();
+				
+				if (level != old) {
+					std::ostringstream oss;
+					oss.setf(std::ios_base::fixed, std::ios_base::floatfield);
+					oss.precision(2);
+					oss << voltage << "V [" << level << ']';
+					set_text(oss.str());
+					if (voltage < min)
+						set_fraction(0);
+					else if (voltage > max)
+						set_fraction(1);
+					else
+						set_fraction((voltage - min) / (max - min));
+
+					Gdk::Color clr(voltage <= warn ? "red" : "green");
+					modify_bg(Gtk::STATE_PRELIGHT, clr);
+					old = level;
+				}
 			}
-			old = level;
 		}
 
 	private:
 		const unsigned char *data;
-		const double *lut;
+		const double factor, min, max, warn;
 		unsigned int old;
 	};
 
@@ -139,7 +172,7 @@ namespace {
 
 	class RobotControls {
 	public:
-		RobotControls(unsigned int id, Gtk::Table &tbl) : commStatusLight(id), runSwitch(id), rebootButton(id), greenVoltage(XBee::in[id].vGreen, SmallBattDisCurve), motorVoltage(XBee::in[id].vMotor, LargeBattDisCurve) {
+		RobotControls(unsigned int id, Gtk::Table &tbl) : commStatusLight(id), runSwitch(id), rebootButton(id), greenVoltage(XBee::in[id].vGreen, GREEN_BATTERY_CONVERSION_FACTOR, GREEN_BATTERY_MIN_VOLTAGE, GREEN_BATTERY_MAX_VOLTAGE, GREEN_BATTERY_WARNING_VOLTAGE), motorVoltage(XBee::in[id].vMotor, MOTOR_BATTERY_CONVERSION_FACTOR, MOTOR_BATTERY_MIN_VOLTAGE, MOTOR_BATTERY_MAX_VOLTAGE, MOTOR_BATTERY_WARNING_VOLTAGE) {
 			std::ostringstream oss;
 			oss << id;
 			label.set_text(oss.str());

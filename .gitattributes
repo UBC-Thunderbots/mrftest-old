@@ -34,14 +34,12 @@ software/include/datapool/Ball.h -text
 software/include/datapool/DataSource.h -text
 software/include/datapool/EmergencyStopButton.h -text
 software/include/datapool/Field.h -text
-software/include/datapool/LargeBatt.h -text
 software/include/datapool/Object.h -text
 software/include/datapool/Plan.h -text
 software/include/datapool/PlayType.h -text
 software/include/datapool/Player.h -text
 software/include/datapool/PredictableObject.h -text
 software/include/datapool/RefBox.h -text
-software/include/datapool/SmallBatt.h -text
 software/include/datapool/Team.h -text
 software/include/datapool/Vector2.h -text
 software/include/datapool/World.h -text
