@@ -21,11 +21,11 @@ public:
   
   void nuke() {
     filter.nuke();
-    velocity=0;
+    velocity = 0;
   }
   
-  void velSet(double velocity){
-    this->velocity=velocity;
+  void velSet(double velocity) {
+    this->velocity = velocity;
   }
   
 private:
@@ -34,7 +34,6 @@ private:
   const double radius;
   double velocity;
   double zero;
-  
 };
 
 #endif

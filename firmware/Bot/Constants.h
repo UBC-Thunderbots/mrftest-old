@@ -2,7 +2,7 @@
 #define CONSTANTS_H
 
 // Bypass the controller and apply the velocity setpoints to the M (Pre-Scaler) matrix to allow direct control of motor power
-#define MANUAL_ACTUATOR 1
+#define MANUAL_ACTUATOR 0
 
 // The maximum motor percentage that can be applied in manual actuator mode.
 #define MANUAL_ACTUATOR_MOTOR_MAX 0.15

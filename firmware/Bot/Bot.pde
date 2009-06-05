@@ -83,7 +83,7 @@ static long lastBatteryTime;
 
 // Prints a floating-point number with a fix for the negative-number bug.
 static void print(double num) {
-  if(num<0) {
+  if (num < 0) {
     Serial.print('-');
     Serial.print(static_cast<float>(-num));
   } else {
@@ -228,8 +228,8 @@ void updateDriveTrain() {
   double vy = accelerometerY.read(vt);
   
   // Process errors through controllers to generate actuator levels.
-  double actx = accelerationXController.process(vxFilteredSetpoint - vx);
-  double acty = accelerationYController.process(vyFilteredSetpoint - vy);
+  double actx = vxController.process(vxFilteredSetpoint - vx);
+  double acty = vyController.process(vyFilteredSetpoint - vy);
   double actt = vtController.process(vtSetpoint - vt) + feedforwardController.process(actx);
 
   // Drive wheels.
