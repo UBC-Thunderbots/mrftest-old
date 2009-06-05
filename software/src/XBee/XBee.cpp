@@ -28,6 +28,8 @@
 #define ACK_TIMEOUT 100  // milliseconds (for packet ACKs during normal run)
 #define RCV_TIMEOUT 5000 // milliseconds (for feedback data from the bot)
 #define TX_MAXERR   4    // maximum # errors on transmit before reporting error
+#define KICK_TIME   150  // length of time to send kicker-active packets before clearing
+#define REBOOT_TIME 1000 // length of time to send reboot packets before clearing
 
 namespace {
 	/*
@@ -351,6 +353,12 @@ namespace {
 
 	// The timestamp when a frame was last received from a particular bot (0 if none received yet).
 	unsigned long rxTimestamp[Team::SIZE];
+
+	// The timestamp when a robot's kicker was first told to be activated (0 if not activated yet).
+	unsigned long kickTimestamp[Team::SIZE];
+
+	// The timestamp when a robot was told to reboot.
+	unsigned long rebootTimestamp[Team::SIZE];
 }
 
 XBee::CommStatus XBee::commStatus[Team::SIZE];
@@ -366,24 +374,26 @@ void XBee::init() {
 
 	// Clear buffers.
 	for (unsigned int i = 0; i < Team::SIZE; i++) {
-		txTimestamp[i]    = 0;
-		txErrors[i]       = 0;
-		rxTimestamp[i]    = 0;
-		commStatus[i]     = STATUS_FAILED;
-		out[i].vx         = 0;
-		out[i].vy         = 0;
-		out[i].vtheta     = 0;
-		out[i].dribble    = 0;
-		out[i].kick       = 0;
-		out[i].emergency  = 0;
-		out[i].vxMeasured = -128;
-		out[i].vyMeasured = -128;
-		out[i].reboot     = 0;
-		out[i].extra      = -128;
-		in[i].vGreen[0]   = 0xFF;
-		in[i].vGreen[1]   = 0xFF;
-		in[i].vMotor[0]   = 0xFF;
-		in[i].vMotor[1]   = 0xFF;
+		txTimestamp[i]     = 0;
+		txErrors[i]        = 0;
+		rxTimestamp[i]     = 0;
+		kickTimestamp[i]   = 0;
+		rebootTimestamp[i] = 0;
+		commStatus[i]      = STATUS_FAILED;
+		out[i].vx          = 0;
+		out[i].vy          = 0;
+		out[i].vt          = 0;
+		out[i].dribble     = 0;
+		out[i].kick        = 0;
+		out[i].emergency   = 0;
+		out[i].vxMeasured  = -128;
+		out[i].vyMeasured  = -128;
+		out[i].reboot      = 0;
+		out[i].extra       = -128;
+		in[i].vGreen[0]    = 0xFF;
+		in[i].vGreen[1]    = 0xFF;
+		in[i].vMotor[0]    = 0xFF;
+		in[i].vMotor[1]    = 0xFF;
 	}
 
 	// Load configuration file.
@@ -629,24 +639,48 @@ void XBee::update() {
 		}
 	}
 
-	{
-		// Check for packets that want to be transmitted where there is nothing outstanding.
-		for (unsigned int i = 0; i < Team::SIZE; i++) {
-			if (!txTimestamp[i] && botAddresses[i]) {
-				packet pkt(sizeof(out[i]) + 11);
-				pkt[0] = 0x00;
-				pkt[1] = i + 1;
-				for (unsigned int j = 0; j < 8; j++)
-					pkt[j + 2] = botAddresses[i] >> ((7 - j) * 8);
-				pkt[10] = 0x00;
-				const unsigned char *dptr = reinterpret_cast<const unsigned char *>(&out[i]);
-				for (unsigned int j = 0; j < sizeof(out[i]); j++)
-					pkt[j + 11] = dptr[j];
-				pkt.prewrite();
+	// Check if we need to start any one-shot operations.
+	for (unsigned int i = 0; i < Team::SIZE; i++) {
+		if (!kickTimestamp[i] && out[i].kick)
+			kickTimestamp[i] = millis();
+		if (!rebootTimestamp[i] && out[i].reboot)
+			rebootTimestamp[i] = millis();
+	}
 
-				writeFully(pkt.data(), pkt.dataSize());
-				txTimestamp[i] = millis();
-			}
+	// Check if we need to clear any one-shot operations.
+	for (unsigned int i = 0; i < Team::SIZE; i++) {
+		if (kickTimestamp[i] && millis() - kickTimestamp[i] > KICK_TIME) {
+			out[i].kick = 0;
+			kickTimestamp[i] = 0;
+		}
+		if (rebootTimestamp[i] && millis() - rebootTimestamp[i] > REBOOT_TIME) {
+			out[i].reboot = 0;
+			rebootTimestamp[i] = 0;
+		}
+	}
+
+	// Check for packets that want to be transmitted where there is nothing outstanding.
+	for (unsigned int i = 0; i < Team::SIZE; i++) {
+		if (!txTimestamp[i] && botAddresses[i]) {
+			packet pkt(sizeof(out[i]) + 11);
+			pkt[0] = 0x00;
+			pkt[1] = i + 1;
+			for (unsigned int j = 0; j < 8; j++)
+				pkt[j + 2] = botAddresses[i] >> ((7 - j) * 8);
+			pkt[10] = 0x00;
+			const unsigned char *dptr = reinterpret_cast<const unsigned char *>(&out[i]);
+			for (unsigned int j = 0; j < sizeof(out[i]); j++)
+				pkt[j + 11] = dptr[j];
+			pkt.prewrite();
+
+			writeFully(pkt.data(), pkt.dataSize());
+			txTimestamp[i] = millis();
+
+			// Check if we need to update either of the one-shot timestamps.
+			if (out[i].kick && !kickTimestamp[i])
+				kickTimestamp[i] = millis();
+			if (out[i].reboot && !rebootTimestamp[i])
+				rebootTimestamp[i] = millis();
 		}
 	}
 }

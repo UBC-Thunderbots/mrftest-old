@@ -15,7 +15,7 @@ namespace XBee {
 		char vy;
 
 		// Desired rotational velocity.
-		char vtheta;
+		char vt;
 
 		// Power level to dribbler.
 		unsigned char dribble;

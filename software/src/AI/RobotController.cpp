@@ -144,7 +144,7 @@ namespace {
 			diff = cur.angle() - tgt.angle();
 			while (diff >= 180)  diff -= 360;
 			while (diff <= -180) diff += 360;
-			XBee::out[index].vtheta = clamp<signed char, -127, 127>(rotPIDs[index].process(-diff / 180));
+			XBee::out[index].vt = clamp<signed char, -127, 127>(rotPIDs[index].process(-diff / 180));
 		}
 		XBee::out[index].dribble    = dribble;
 		XBee::out[index].kick       = kick;

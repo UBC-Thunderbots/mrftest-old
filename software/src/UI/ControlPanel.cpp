@@ -124,23 +124,17 @@ namespace {
 
 	class RebootButton : public Gtk::Button {
 	public:
-		RebootButton(unsigned int id) : Gtk::Button("Reboot"), id(id), pending(false) {
+		RebootButton(unsigned int id) : Gtk::Button("Reboot"), id(id) {
 			XBee::out[id].reboot = 0;
-		}
-
-		void update() {
-			XBee::out[id].reboot = pending ? 0xFF : 0;
-			pending = false;
 		}
 
 	protected:
 		virtual void on_clicked() {
-			pending = true;
+			XBee::out[id].reboot = 0xFF;
 		}
 
 	private:
 		const unsigned int id;
-		bool pending;
 	};
 
 	class RobotControls {
@@ -161,7 +155,6 @@ namespace {
 		void update() {
 			commStatusLight.update();
 			runSwitch.update();
-			rebootButton.update();
 			greenVoltage.update();
 			motorVoltage.update();
 		}

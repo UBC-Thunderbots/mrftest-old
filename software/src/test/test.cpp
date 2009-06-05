@@ -18,48 +18,42 @@
 #include <time.h>
 
 namespace {
-	class SignedCharScale : public Gtk::HScale {
+	template<typename T, T min, T max>
+	class TypedScale : public Gtk::HScale {
 	public:
-		SignedCharScale() : Gtk::HScale(-127, 127, 1) {
-			set_value(0);
+		TypedScale(T &value) : Gtk::HScale(min, max, 1), value(value) {
+			set_value(value);
 			get_adjustment()->set_page_size(0);
 		}
 
-		char value() const {
-			return static_cast<char>(get_value() + 0.1);
+	protected:
+		virtual void on_value_changed() {
+			value = static_cast<T>(get_value() + 0.1);
 		}
 
-		void zero() {
-			set_value(0);
-		}
-	};
-
-	class UnsignedCharScale : public Gtk::HScale {
-	public:
-		UnsignedCharScale() : Gtk::HScale(0, 255, 1) {
-			get_adjustment()->set_page_size(0);
-		}
-
-		unsigned char value() const {
-			return static_cast<unsigned char>(get_value() + 0.1);
-		}
+	private:
+		T &value;
 	};
 
 	class KickButton : public Gtk::Button {
 	public:
-		KickButton() : Gtk::Button("Fire"), pending(false) {
+		KickButton(unsigned char &value) : Gtk::Button("Fire"), level(0), value(value) {
 		}
 
+		unsigned char level;
+
+	protected:
 		virtual void on_clicked() {
-			pending = true;
+			value = level;
 		}
 
-		bool pending;
+	private:
+		unsigned char &value;
 	};
 
 	class Scales : public Gtk::Frame {
 	public:
-		Scales(unsigned int id) : Gtk::Frame("Controls"), id(id), hBox(false, 5), vBox1(true, 0), vBox2(true, 0), vxLabel("Vx:"), vyLabel("Vy:"), vthetaLabel("Vtheta:"), dribbleLabel("Dribble:"), kickLabel("Kick:"), extraLabel("Extra:"), kickBox(false, 0) {
+		Scales(unsigned int id) : Gtk::Frame("Controls"), id(id), hBox(false, 5), vBox1(true, 0), vBox2(true, 0), vxLabel("Vx:"), vyLabel("Vy:"), vthetaLabel("Vtheta:"), dribbleLabel("Dribble:"), kickLabel("Kick:"), extraLabel("Extra:"), kickFire(XBee::out[id].kick), vx(XBee::out[id].vx), vy(XBee::out[id].vy), vt(XBee::out[id].vt), extra(XBee::out[id].extra), dribble(XBee::out[id].dribble), kickLevel(kickFire.level), kickBox(false, 0) {
 			kickBox.pack_start(kickLevel, true, true);
 			kickBox.pack_start(kickFire, false, false);
 
@@ -72,7 +66,7 @@ namespace {
 
 			vBox2.pack_start(vx, true, true);
 			vBox2.pack_start(vy, true, true);
-			vBox2.pack_start(vtheta, true, true);
+			vBox2.pack_start(vt, true, true);
 			vBox2.pack_start(dribble, true, true);
 			vBox2.pack_start(kickBox, true, true);
 			vBox2.pack_start(extra, true, true);
@@ -83,24 +77,10 @@ namespace {
 			add(hBox);
 		}
 
-		void update() {
-			XBee::out[id].vx = vx.value();
-			XBee::out[id].vy = vy.value();
-			XBee::out[id].vtheta = vtheta.value();
-			XBee::out[id].dribble = dribble.value();
-			if (kickFire.pending) {
-				XBee::out[id].kick = kickLevel.value();
-				kickFire.pending = false;
-			} else {
-				XBee::out[id].kick = 0;
-			}
-			XBee::out[id].extra = extra.value();
-		}
-
 		void zero() {
-			vx.zero();
-			vy.zero();
-			vtheta.zero();
+			vx.set_value(0);
+			vy.set_value(0);
+			vt.set_value(0);
 		}
 
 	private:
@@ -108,9 +88,9 @@ namespace {
 		Gtk::HBox hBox;
 		Gtk::VBox vBox1, vBox2;
 		Gtk::Label vxLabel, vyLabel, vthetaLabel, dribbleLabel, kickLabel, extraLabel;
-		SignedCharScale vx, vy, vtheta, extra;
-		UnsignedCharScale dribble, kickLevel;
 		KickButton kickFire;
+		TypedScale<char, -127, 127> vx, vy, vt, extra;
+		TypedScale<unsigned char, 0, 255> dribble, kickLevel;
 		Gtk::HBox kickBox;
 	};
 
@@ -122,14 +102,6 @@ namespace {
 			append_page(robot2, "Robot 2");
 			append_page(robot3, "Robot 3");
 			append_page(robot4, "Robot 4");
-		}
-
-		void update() {
-			robot0.update();
-			robot1.update();
-			robot2.update();
-			robot3.update();
-			robot4.update();
 		}
 
 		void zero() {
@@ -152,7 +124,6 @@ namespace {
 		}
 
 		void update() {
-			rt.update();
 			cp.update();
 		}
 
