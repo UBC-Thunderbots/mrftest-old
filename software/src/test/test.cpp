@@ -175,6 +175,8 @@ int main(int argc, char **argv) {
 		Log::setLevel(Log::LEVEL_DEBUG);
 	}
 	XBee::init();
+	for (unsigned int i = 0; i < Team::SIZE; i++)
+		XBee::out[i].extra = 0;
 	EmergencyStopButton::init();
 	MainWindow mw;
 	sigc::connection timer = Glib::signal_timeout().connect(sigc::bind(sigc::mem_fun(&MainWindow::update), &mw), 33);
