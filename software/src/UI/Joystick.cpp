@@ -27,6 +27,8 @@ std::vector<std::string> Joystick::list() {
 
 	closedir(dir);
 
+	sort(lst.begin(), lst.end());
+
 	return lst;
 }
 
