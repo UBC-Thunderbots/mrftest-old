@@ -242,18 +242,18 @@ void updateDriveTrain() {
 
 // Runs repeatedly to perform control.
 void loop() {
-  unsigned char lowBattery=0;
+  bool lowBattery = false;
   
   // Send battery voltage every 2000 milliseconds.
   if (millis() - lastBatteryTime > TIMEOUT_BATTERY) {
     unsigned int val = analogRead(ADCPIN_GREEN_BATTERY);
-    if(val*GREEN_BATTERY_CONVERSION < GREEN_BATTERY_LOW)
-          lowBattery|=1;
+    if (val < GREEN_BATTERY_LOW / GREEN_BATTERY_CONVERSION)
+      lowBattery = true;
     XBee::txdata.vGreen[0] = val / 256;
     XBee::txdata.vGreen[1] = val % 256;
     val = analogRead(ADCPIN_MOTOR_BATTERY);
-    if(val*MOTOR_BATTERY_CONVERSION < MOTOR_BATTERY_LOW)
-          lowBattery|=1;
+    if (val < MOTOR_BATTERY_LOW / MOTOR_BATTERY_CONVERSION)
+      lowBattery = true;
     XBee::txdata.vMotor[0] = val / 256;
     XBee::txdata.vMotor[1] = val % 256;
     XBee::send();
