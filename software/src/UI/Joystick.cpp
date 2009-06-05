@@ -69,6 +69,8 @@ Joystick::Joystick(const std::string &filename) {
 
 	std::fill(buttons, buttons + NUM_BTNS, false);
 	std::fill(axes, axes + NUM_AXES, 0);
+
+	Log::log(Log::LEVEL_INFO, "Joystick") << "Opened device " << filename << '\n';
 }
 
 Joystick::~Joystick() {
