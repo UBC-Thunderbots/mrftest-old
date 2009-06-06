@@ -13,41 +13,6 @@
 #define MAX_VELOCITY 750.0
 #define BALL_ACCELERATION 577.0
 
-// TODO: Put this code somewhere! It came from CSU.
-#if 0	
-	if (World::get().isSimulation()) {
-		// Set the ball to the middle:
-		w.getBall()->setPosition(field.getCenterCircle());
-		w.getBall()->setVelocity(*new Vector2 (0,0));
-		
-		// Make sure no one steals the ball:
-		for (int i = 0; i < 10; i++)
-			w.getPlayer(i).setPossession(false);
-			
-		int numRobots = 10;
-		
-		// Determine if the players are ready:
-		bool ready = true;
-		for (int i = 0; i < numRobots; i++)
-		{
-			Vector2 pos = w.getPlayer(i).getPosition();
-			if (w.getPlayer(i).getPlan()->getAttr1() - pos.x > 3 ||
-				w.getPlayer(i).getPlan()->getAttr1() - pos.x < -3 ||
-				w.getPlayer(i).getPlan()->getAttr2() - pos.y > 3 ||
-				w.getPlayer(i).getPlan()->getAttr2() - pos.y < -3 )
-			{
-				ready = false;
-				break;
-			}			
-		}
-		
-		if (ready)
-		{
-			w.setPlayType(PlayType::play);
-		}
-	}
-#endif
-
 Simulator::Simulator() {
 	RobotController::setSimulation(true);
 
