@@ -10,7 +10,7 @@ public:
 
 	Joystick(const std::string &filename);
 	~Joystick();
-	void update();
+	bool update();
 
 	enum Button {
 		BTN_A,

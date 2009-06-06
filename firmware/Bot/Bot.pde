@@ -28,7 +28,7 @@ static Filter<1> vyController(vyControllerA, vyControllerB);
 
 // The angular velocity controller.
 static const double vtControllerA[] = {-1.9724, 0.9724};
-static const double vtControllerB[] = {0.0406, -0.0806, 0.0400};
+static const double vtControllerB[] = {6.2131, -12.3272, 6.1145};
 static Filter<2> vtController(vtControllerA, vtControllerB);
 
 // The feedforward controller.
@@ -199,18 +199,6 @@ static void nuke() {
 
 
 // Updates the drive train appropriately to the compiled operating mode.
-#if MANUAL_ACTUATOR
-void updateDriveTrain() {
-  // Compute actuator levels directly from received data.
-  double actx = XBee::rxdata.vx / 127.0 * MANUAL_ACTUATOR_MOTOR_MAX;
-  double acty = XBee::rxdata.vy / 127.0 * MANUAL_ACTUATOR_MOTOR_MAX;
-  double actt = XBee::rxdata.vt / 127.0 * MANUAL_ACTUATOR_MOTOR_MAX;
-  
-  // Drive wheels directly.
-  for (byte i = 0; i < sizeof(wheels) / sizeof(*wheels); i++)
-    wheels[i].update(actx, acty, actt);
-}
-#else
 void updateDriveTrain() {
   // Extract setpoints from most-recently-received packet.
   double vxSetpoint = XBee::rxdata.vx / 127.0 * MAX_SP_VX;
@@ -234,15 +222,32 @@ void updateDriveTrain() {
   double vy = accelerometerY.read(vt);
   
   // Process errors through controllers to generate actuator levels.
+#if X_CONTROLLER_ENABLED
   double actx = vxController.process(vxFilteredSetpoint - vx);
+#else
+   double actx = vxFilteredSetpoint;
+#endif
+ 
+#if Y_CONTROLLER_ENABLED
   double acty = vyController.process(vyFilteredSetpoint - vy);
-  double actt = vtController.process(vtSetpoint - vt) + feedforwardController.process(actx);
+#else
+  double acty = vyFilteredSetpoint;
+#endif
+ 
+#if T_CONTROLLER_ENABLED
+  double actt = vtController.process(vtSetpoint - vt);
+#else
+  double actt = vtSetpoint;
+#endif
+
+#if F_CONTROLLER_ENABLED
+   actt += feedforwardController.process(actx);
+#endif
 
   // Drive wheels.
   for (byte i = 0; i < sizeof(wheels) / sizeof(*wheels); i++)
     wheels[i].update(actx, acty, actt);
 }
-#endif
 
 
 

@@ -77,27 +77,29 @@ Joystick::~Joystick() {
 	close(fd);
 }
 
-void Joystick::update() {
+bool Joystick::update() {
 	struct js_event events[32];
-
+	bool retval = false;
 	for (;;) {
 		ssize_t ret = read(fd, &events, sizeof(events));
 		if (ret > 0) {
 			for (unsigned int i = 0; i < ret / sizeof(*events); i++) {
 				events[i].type &= ~JS_EVENT_INIT;
 				if (events[i].type == JS_EVENT_BUTTON) {
-					buttons[events[i].number] = !!events[i].number;
+					buttons[events[i].number] = !!events[i].value;
 				} else if (events[i].type == JS_EVENT_AXIS) {
 					axes[events[i].number] = events[i].value;
 				}
 			}
+			retval |= true;
 		} else if (errno == EAGAIN || errno == EWOULDBLOCK) {
-			return;
+			break;
 		} else {
 			int err = errno;
 			Log::log(Log::LEVEL_ERROR, "Joystick") << "Error reading from device: " << std::strerror(err) << '\n';
-			return;
+			break;
 		}
 	}
+	return retval;
 }
 
