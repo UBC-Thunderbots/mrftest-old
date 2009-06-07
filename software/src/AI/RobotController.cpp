@@ -10,7 +10,6 @@
 #include <climits>
 
 namespace {
-	bool xbeeInitialized = false;
 	bool simulation = false;
 
 	void simulateWorld(PPlayer robot, Vector2 acc, double rotate, unsigned char dribble, unsigned char kick) {
@@ -100,11 +99,6 @@ namespace {
 				index = i;
 		assert(index != UINT_MAX);
 
-		if (!xbeeInitialized) {
-			XBee::init();
-			xbeeInitialized = true;
-		}
-
 		// Rotate X and Y to be relative to the robot, not the world!
 		//
 		// AI works in GTK+ coordinates: +X is east, +Y is south
@@ -148,7 +142,6 @@ namespace {
 		}
 		XBee::out[index].dribble    = dribble;
 		XBee::out[index].kick       = kick;
-		XBee::out[index].emergency  = (RobotController::localEStop || EmergencyStopButton::state) ? 0xFF : 0;
 		XBee::out[index].vxMeasured = clamp<signed char, -127, 127>(mrotate.x * 127);
 		XBee::out[index].vyMeasured = clamp<signed char, -127, 127>(mrotate.y * 127);
 
@@ -158,8 +151,6 @@ namespace {
 		XBee::update();
 	}
 }
-
-bool RobotController::localEStop = false;
 
 void RobotController::setSimulation(bool sim) {
 	simulation = sim;

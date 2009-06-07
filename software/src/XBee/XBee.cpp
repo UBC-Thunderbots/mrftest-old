@@ -385,7 +385,7 @@ void XBee::init() {
 		out[i].vt          = 0;
 		out[i].dribble     = 0;
 		out[i].kick        = 0;
-		out[i].emergency   = 0;
+		out[i].emergency   = 0xFF;
 		out[i].vxMeasured  = -128;
 		out[i].vyMeasured  = -128;
 		out[i].reboot      = 0;

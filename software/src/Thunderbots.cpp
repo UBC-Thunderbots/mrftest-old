@@ -5,6 +5,7 @@
 using namespace std;
 
 #include <gtkmm/main.h>
+#include <gtkmm/window.h>
 
 #include "datapool/EmergencyStopButton.h"
 #include "datapool/RefBox.h"
@@ -14,6 +15,26 @@ using namespace std;
 #include "AI/Simulator.h"
 #include "AI/Visualizer.h"
 #include "IR/ImageRecognition.h"
+#include "UI/ControlPanel.h"
+#include "XBee/XBee.h"
+
+namespace {
+	class ControlPanelWindow : public Gtk::Window {
+	public:
+		ControlPanelWindow() {
+			set_title("Thunderbots Control Panel");
+			add(cp);
+			show_all();
+		}
+
+		void update() {
+			cp.update();
+		}
+
+	private:
+		ControlPanel cp;
+	};
+}
 
 int main(int argc, char **argv) {
 	// Initialize random number generator
@@ -37,18 +58,20 @@ int main(int argc, char **argv) {
 	}
 
 	// Create objects.
+	Gtk::Main kit(0, 0);
 	auto_ptr<DataSource> ds;
+	auto_ptr<ControlPanelWindow> cp;
 	if (useSim)
 		ds.reset(new Simulator);
 	else {
+		XBee::init();
 		EmergencyStopButton::init();
 		ds.reset(new ImageRecognition);
+		cp.reset(new ControlPanelWindow);
 	}
 
-	auto_ptr<Gtk::Main> kit;
 	auto_ptr<Visualizer> vis;
 	if (useVis) {
-		kit.reset(new Gtk::Main(0, 0));
 		vis.reset(new Visualizer);
 	}
 
@@ -62,6 +85,8 @@ int main(int argc, char **argv) {
 		World::get().update();
 		if (useVis)
 			vis->update();
+		if (!useSim)
+			cp->update();
 	}
 }
 

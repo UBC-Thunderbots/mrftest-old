@@ -7,7 +7,6 @@
 namespace RobotController {
 	void setSimulation(bool simulation);
 	void sendCommand(PPlayer robot, Vector2 acc, double rotate, unsigned char dribble, unsigned char kick);
-	extern bool localEStop;
 }
 
 #endif
