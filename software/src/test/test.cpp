@@ -6,17 +6,18 @@
 
 #include <algorithm>
 #include <vector>
+#include <string>
+#include <map>
 #include <cstring>
+#include <cmath>
 #include <gtkmm/accelkey.h>
 #include <gtkmm/adjustment.h>
 #include <gtkmm/box.h>
 #include <gtkmm/button.h>
+#include <gtkmm/comboboxtext.h>
 #include <gtkmm/frame.h>
 #include <gtkmm/label.h>
 #include <gtkmm/main.h>
-#include <gtkmm/menu.h>
-#include <gtkmm/menubar.h>
-#include <gtkmm/menuitem.h>
 #include <gtkmm/notebook.h>
 #include <gtkmm/radiobuttongroup.h>
 #include <gtkmm/radiomenuitem.h>
@@ -25,7 +26,7 @@
 #include <time.h>
 
 namespace {
-	std::tr1::shared_ptr<Joystick> joystick;
+	std::vector<std::tr1::shared_ptr<Joystick> > joysticks;
 
 	template<typename T, T min, T max>
 	class TypedScale : public Gtk::HScale {
@@ -60,9 +61,18 @@ namespace {
 		unsigned char &value;
 	};
 
-	class Scales : public Gtk::Frame {
+	class InputDevice : public Gtk::Frame {
 	public:
-		Scales(unsigned int id) : Gtk::Frame("Controls"), id(id), hBox(false, 5), vBox1(true, 0), vBox2(true, 0), vxLabel("Vx:"), vyLabel("Vy:"), vthetaLabel("Vtheta:"), dribbleLabel("Dribble:"), kickLabel("Kick:"), extraLabel("Extra:"), kickFire(XBee::out[id].kick), vx(XBee::out[id].vx), vy(XBee::out[id].vy), vt(XBee::out[id].vt), extra(XBee::out[id].extra), dribble(XBee::out[id].dribble), kickLevel(kickFire.level), kickBox(false, 0) {
+		InputDevice() : Gtk::Frame("Controls") {
+		}
+
+		virtual void update() = 0;
+		virtual void zero() = 0;
+	};
+
+	class Scales : public InputDevice {
+	public:
+		Scales(unsigned int id) : id(id), hBox(false, 5), vBox1(true, 0), vBox2(true, 0), vxLabel("Vx:"), vyLabel("Vy:"), vthetaLabel("Vtheta:"), dribbleLabel("Dribble:"), kickLabel("Kick:"), extraLabel("Extra:"), kickFire(XBee::out[id].kick), vx(XBee::out[id].vx), vy(XBee::out[id].vy), vt(XBee::out[id].vt), extra(XBee::out[id].extra), dribble(XBee::out[id].dribble), kickLevel(kickFire.level), kickBox(false, 0) {
 			kickBox.pack_start(kickLevel, true, true);
 			kickBox.pack_start(kickFire, false, false);
 
@@ -86,10 +96,13 @@ namespace {
 			add(hBox);
 		}
 
-		void zero() {
+		virtual void zero() {
 			vx.set_value(0);
 			vy.set_value(0);
 			vt.set_value(0);
+		}
+
+		virtual void update() {
 		}
 
 	private:
@@ -101,6 +114,78 @@ namespace {
 		TypedScale<char, -127, 127> vx, vy, vt, extra;
 		TypedScale<unsigned char, 0, 255> dribble, kickLevel;
 		Gtk::HBox kickBox;
+	};
+
+	class JoystickInput : public InputDevice {
+	public:
+		JoystickInput(unsigned int id, std::tr1::shared_ptr<Joystick> joystick) : id(id), joystick(joystick), label("Joystick active") {
+			add(label);
+		}
+
+		virtual void zero() {
+		}
+
+		virtual void update() {
+			XBee::out[id].vx = 0;//joystick->axes[Joystick::AXIS_RX] / 256;
+			XBee::out[id].vy = curve(-joystick->axes[Joystick::AXIS_RY] / 32767.0) * 127;
+			XBee::out[id].vt = curve(-joystick->axes[Joystick::AXIS_LX] / 32767.0) * 127;
+			XBee::out[id].dribble = (joystick->axes[Joystick::AXIS_LT] + 32767) / 256;
+			XBee::out[id].kick = joystick->buttons[Joystick::BTN_A] ? 255 : 0;
+			XBee::out[id].reboot = joystick->buttons[Joystick::BTN_START] ? 255 : 0;
+		}
+
+	private:
+		const unsigned int id;
+		std::tr1::shared_ptr<Joystick> joystick;
+		Gtk::Label label;
+
+		static double curve(double x) {
+			return std::fabs(x) * std::fabs(x) * (x < 0 ? -1 : 1);
+		}
+	};
+
+	class RobotTab : public Gtk::VBox {
+	public:
+		RobotTab(unsigned int id) : Gtk::VBox(false, 1), id(id), input(new Scales(id)) {
+			inputDeviceSelector.append_text("Sliders");
+			for (unsigned int i = 0; i < joysticks.size(); i++)
+				inputDeviceSelector.append_text(joysticks[i]->name());
+			inputDeviceSelector.set_active_text("Sliders");
+			inputDeviceSelector.signal_changed().connect(sigc::mem_fun(this, &RobotTab::inputDeviceChanged));
+
+			pack_start(inputDeviceSelector, false, false);
+			pack_start(*input, true, true);
+		}
+
+		void inputDeviceChanged() {
+			if (input)
+				remove(*input);
+			const std::string &cur = inputDeviceSelector.get_active_text();
+			if (cur == "Sliders") {
+				input.reset(new Scales(id));
+			} else {
+				for (unsigned int i = 0; i < joysticks.size(); i++)
+					if (joysticks[i]->name() == cur) {
+						Log::log(Log::LEVEL_INFO, "test") << "Using joystick " << i << '\n';
+						input.reset(new JoystickInput(id, joysticks[i]));
+					}
+			}
+			pack_start(*input, true, true);
+			input->show_all();
+		}
+
+		void zero() {
+			input->zero();
+		}
+
+		void update() {
+			input->update();
+		}
+
+	private:
+		const unsigned int id;
+		Gtk::ComboBoxText inputDeviceSelector;
+		std::tr1::shared_ptr<InputDevice> input;
 	};
 
 	class RobotTabs : public Gtk::Notebook {
@@ -121,8 +206,16 @@ namespace {
 			robot4.zero();
 		}
 
+		void update() {
+			robot0.update();
+			robot1.update();
+			robot2.update();
+			robot3.update();
+			robot4.update();
+		}
+
 	private:
-		Scales robot0, robot1, robot2, robot3, robot4;
+		RobotTab robot0, robot1, robot2, robot3, robot4;
 	};
 
 	class MainContainer : public Gtk::VBox {
@@ -134,6 +227,7 @@ namespace {
 
 		void update() {
 			cp.update();
+			rt.update();
 		}
 
 		void zero() {
@@ -145,81 +239,16 @@ namespace {
 		ControlPanel cp;
 	};
 
-	class SlidersMenuItem : public Gtk::RadioMenuItem {
-	public:
-		SlidersMenuItem(Gtk::RadioButtonGroup &grp) : Gtk::RadioMenuItem(grp, "Sliders") {
-		}
-
-	protected:
-		virtual void on_activate() {
-			if (!get_active())
-				joystick.reset();
-			Gtk::RadioMenuItem::on_activate();
-		}
-	};
-
-	class JoystickMenuItem : public Gtk::RadioMenuItem {
-	public:
-		JoystickMenuItem(Gtk::RadioButtonGroup &grp, const std::string &filename) : Gtk::RadioMenuItem(grp, filename), filename(filename) {
-		}
-
-	protected:
-		virtual void on_activate() {
-			if (!get_active()) {
-				try {
-					std::tr1::shared_ptr<Joystick> js(new Joystick(filename));
-					joystick = js;
-					Gtk::RadioMenuItem::on_activate();
-				} catch (...) {
-					joystick.reset();
-				}
-			} else {
-				Gtk::RadioMenuItem::on_activate();
-			}
-		}
-
-	private:
-		const std::string filename;
-	};
-
-	class InputDeviceMenuItem : public Gtk::MenuItem {
-	public:
-		InputDeviceMenuItem() : Gtk::MenuItem("Input Device") {
-			subMenu.append(*new SlidersMenuItem(group));
-
-			const std::vector<std::string> &joys = Joystick::list();
-			for (unsigned int i = 0; i < joys.size(); i++)
-				subMenu.append(*new JoystickMenuItem(group, joys[i]));
-
-			set_submenu(subMenu);
-		}
-
-	private:
-		Gtk::RadioButtonGroup group;
-		Gtk::Menu subMenu;
-		std::vector<std::tr1::shared_ptr<Gtk::MenuItem> > items;
-	};
-
-	class MainMenuBar : public Gtk::MenuBar {
-	public:
-		MainMenuBar() {
-			append(inputDeviceMenuItem);
-		}
-
-	private:
-		InputDeviceMenuItem inputDeviceMenuItem;
-	};
-
 	class MainWindow : public Gtk::Window {
 	public:
-		MainWindow() : vbox(false, 1) {
+		MainWindow() {
 			set_title("Thunderbots Tester");
-			vbox.pack_start(mb, true, true);
-			vbox.pack_start(mc, true, true);
-			add(vbox);
+			add(mc);
 		}
 
 		bool update() {
+			for (unsigned int i = 0; i < joysticks.size(); i++)
+				joysticks[i]->update();
 			EmergencyStopButton::update();
 			mc.update();
 			XBee::update();
@@ -241,8 +270,6 @@ namespace {
 		}
 
 	private:
-		Gtk::VBox vbox;
-		MainMenuBar mb;
 		MainContainer mc;
 	};
 }
@@ -251,6 +278,15 @@ int main(int argc, char **argv) {
 	Gtk::Main kit(argc, argv);
 	if (argc > 1 && strcmp(argv[1], "-d") == 0) {
 		Log::setLevel(Log::LEVEL_DEBUG);
+	}
+	const std::vector<std::string> &stickNames = Joystick::list();
+	for (unsigned int i = 0; i < stickNames.size(); i++) {
+		try {
+			std::tr1::shared_ptr<Joystick> ptr(new Joystick(stickNames[i]));
+			joysticks.push_back(ptr);
+		} catch (...) {
+			// Swallow.
+		}
 	}
 	XBee::init();
 	for (unsigned int i = 0; i < Team::SIZE; i++)
