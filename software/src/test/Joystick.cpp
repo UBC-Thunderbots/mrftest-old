@@ -32,7 +32,7 @@ std::vector<std::string> Joystick::list() {
 	return lst;
 }
 
-Joystick::Joystick(const std::string &filename) {
+Joystick::Joystick(const std::string &filename) : filename(filename) {
 	fd = open(filename.c_str(), O_RDONLY | O_NONBLOCK);
 	if (fd < 0) {
 		int err = errno;
@@ -96,7 +96,7 @@ bool Joystick::update() {
 			break;
 		} else {
 			int err = errno;
-			Log::log(Log::LEVEL_ERROR, "Joystick") << "Error reading from device: " << std::strerror(err) << '\n';
+			Log::log(Log::LEVEL_ERROR, "Joystick") << "Error reading from joystick device " << filename << ": " << std::strerror(err) << '\n';
 			break;
 		}
 	}

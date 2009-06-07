@@ -12,6 +12,10 @@ public:
 	~Joystick();
 	bool update();
 
+	const std::string &name() const {
+		return filename;
+	}
+
 	enum Button {
 		BTN_A,
 		BTN_B,
@@ -47,6 +51,7 @@ public:
 private:
 	Joystick(const Joystick &copyref); // Inhibit copying.
 	int fd;
+	const std::string filename;
 };
 
 #endif
