@@ -118,7 +118,7 @@ namespace {
 
 	class JoystickInput : public InputDevice {
 	public:
-		JoystickInput(unsigned int id, std::tr1::shared_ptr<Joystick> joystick) : id(id), joystick(joystick), label("Joystick active") {
+		JoystickInput(unsigned int id, std::tr1::shared_ptr<Joystick> joystick) : id(id), joystick(joystick), label("Joystick active"), kicking(false) {
 			add(label);
 		}
 
@@ -130,14 +130,20 @@ namespace {
 			XBee::out[id].vy = curve(-joystick->axes[Joystick::AXIS_RY] / 32767.0) * 127;
 			XBee::out[id].vt = curve(-joystick->axes[Joystick::AXIS_LX] / 32767.0) * 127;
 			XBee::out[id].dribble = (joystick->axes[Joystick::AXIS_LT] + 32767) / 256;
-			XBee::out[id].kick = joystick->buttons[Joystick::BTN_A] ? 255 : 0;
 			XBee::out[id].reboot = joystick->buttons[Joystick::BTN_START] ? 255 : 0;
+			if (joystick->buttons[Joystick::BTN_A] && !kicking) {
+				XBee::out[id].kick = (joystick->axes[Joystick::AXIS_RT] + 32767) / 256;
+				kicking = true;
+			} else if (!joystick->buttons[Joystick::BTN_A] && kicking) {
+				kicking = false;
+			}
 		}
 
 	private:
 		const unsigned int id;
 		std::tr1::shared_ptr<Joystick> joystick;
 		Gtk::Label label;
+		bool kicking;
 
 		static double curve(double x) {
 			return std::fabs(x) * std::fabs(x) * (x < 0 ? -1 : 1);
