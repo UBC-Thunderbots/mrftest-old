@@ -1,7 +1,7 @@
 #include "datapool/EmergencyStopButton.h"
 #include "Log/Log.h"
+#include "test/Joystick.h"
 #include "UI/ControlPanel.h"
-#include "UI/Joystick.h"
 #include "XBee/XBee.h"
 
 #include <algorithm>

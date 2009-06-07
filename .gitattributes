@@ -29,7 +29,6 @@ software/include/AI/Visualizer.h -text
 software/include/IR/ImageRecognition.h -text
 software/include/Log/Log.h -text
 software/include/UI/ControlPanel.h -text
-software/include/UI/Joystick.h -text
 software/include/XBee/XBee.h -text
 software/include/datapool/Ball.h -text
 software/include/datapool/DataSource.h -text
@@ -44,6 +43,7 @@ software/include/datapool/RefBox.h -text
 software/include/datapool/Team.h -text
 software/include/datapool/Vector2.h -text
 software/include/datapool/World.h -text
+software/include/test/Joystick.h -text
 software/src/AI/AITeam.cpp -text
 software/src/AI/CMakeLists.txt -text
 software/src/AI/CentralAnalyzingUnit.cpp -text
@@ -69,7 +69,6 @@ software/src/Log/Log.cpp -text
 software/src/Thunderbots.cpp -text
 software/src/UI/CMakeLists.txt -text
 software/src/UI/ControlPanel.cpp -text
-software/src/UI/Joystick.cpp -text
 software/src/XBee/CMakeLists.txt -text
 software/src/XBee/XBee.cpp -text
 software/src/datapool/Ball.cpp -text
@@ -115,6 +114,7 @@ software/src/leastsquares/svd.h -text
 software/src/leastsquares/tests/llstestunit.cpp -text
 software/src/leastsquares/tests/llstestunit.h -text
 software/src/test/CMakeLists.txt -text
+software/src/test/Joystick.cpp -text
 software/src/test/test.cpp -text
 software/src/xbeewipe/CMakeLists.txt -text
 software/src/xbeewipe/xbeewipe.cpp -text
