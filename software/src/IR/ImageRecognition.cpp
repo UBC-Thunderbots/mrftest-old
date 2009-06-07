@@ -194,7 +194,7 @@ void ImageRecognition::update() {
 
 			for (unsigned int i = 0; i < det.robots_blue_size(); i++) {
 				const SSL_DetectionRobot &bot = det.robots_blue(i);
-				World::get().enemyTeam()->player(i)->position(Vector2(bot.x(), bot.y()));
+				World::get().enemyTeam()->player(i)->position(Vector2(bot.x(), -bot.y()));
 			}
 		}
 	}
