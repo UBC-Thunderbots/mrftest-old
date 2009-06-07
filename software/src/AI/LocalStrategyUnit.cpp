@@ -10,10 +10,6 @@
 #include <cstdlib>
 #include <cmath>
 
-#include <iostream>
-using namespace std;
-
-
 LocalStrategyUnit::LocalStrategyUnit(AITeam &team) : team(team) {
 }
 
