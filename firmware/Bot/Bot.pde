@@ -61,8 +61,8 @@ static Wheel wheels[] = {
 // The accelerometers.
 static const double accelerometerFilterA[] = {-1.8229, 0.8374};
 static const double accelerometerFilterB[] = {0.0036, 0.0072, 0.0036};
-static Accelerometer accelerometerX(accelerometerFilterA, accelerometerFilterB, ADCPIN_ACCEL1Y,  6.5);
-static Accelerometer accelerometerY(accelerometerFilterA, accelerometerFilterB, ADCPIN_ACCEL2Y, -4.5);
+static Accelerometer accelerometerX(accelerometerFilterA, accelerometerFilterB, ADCPIN_ACCEL1Y,  6.5,false);
+static Accelerometer accelerometerY(accelerometerFilterA, accelerometerFilterB, ADCPIN_ACCEL2Y, -4.5,true);
 
 // The gyro's zero point.
 static double gyroZero;
