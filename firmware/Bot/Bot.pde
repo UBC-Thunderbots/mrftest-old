@@ -205,7 +205,9 @@ void updateDriveTrain() {
   double vySetpoint = XBee::rxdata.vy / 127.0 * MAX_SP_VY;
   double vtSetpoint = XBee::rxdata.vt / 127.0 * MAX_SP_VT;
   
-  if(XBee::rxdata.vxMeasured != -128 && XBee::rxdata.vyMeasured != -128){
+ // Resets the accelerometer integrator to the measured camera velocity
+ // if available
+ if(XBee::rxdata.vxMeasured != -128 && XBee::rxdata.vyMeasured != -128){
     accelerometerX.velSet(XBee::rxdata.vxMeasured /127.0 * MAX_SP_VX);
     accelerometerY.velSet(XBee::rxdata.vyMeasured /127.0 * MAX_SP_VY);
   }
@@ -222,6 +224,7 @@ void updateDriveTrain() {
   double vy = accelerometerY.read(vt);
   
   // Process errors through controllers to generate actuator levels.
+  // If controller is disabled pass setpoint through to actuators
 #if X_CONTROLLER_ENABLED
   double actx = vxController.process(vxFilteredSetpoint - vx);
 #else
@@ -240,11 +243,13 @@ void updateDriveTrain() {
   double actt = vtSetpoint;
 #endif
 
+// Feed forward corrects theta actuator and used x actuator as input
+// Therefore this can be shut off entirely if not used
 #if F_CONTROLLER_ENABLED
    actt += feedforwardController.process(actx);
 #endif
 
-  // Drive wheels.
+  // Drive wheels. (prescaling matrix is stored internally in wheel class
   for (byte i = 0; i < sizeof(wheels) / sizeof(*wheels); i++)
     wheels[i].update(actx, acty, actt);
 }
