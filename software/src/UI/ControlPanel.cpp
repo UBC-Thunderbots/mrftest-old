@@ -16,11 +16,13 @@
 #define MOTOR_BATTERY_MAX_VOLTAGE       16.75
 #define MOTOR_BATTERY_MIN_VOLTAGE       14.40
 #define MOTOR_BATTERY_WARNING_VOLTAGE   14.60
+#define MOTOR_BATTERY_ZERO_VOLTAGE       1.50
 
 #define GREEN_BATTERY_CONVERSION_FACTOR 0.015577712
 #define GREEN_BATTERY_MAX_VOLTAGE       12.50
 #define GREEN_BATTERY_MIN_VOLTAGE        9.00
 #define GREEN_BATTERY_WARNING_VOLTAGE    9.90
+#define GREEN_BATTERY_ZERO_VOLTAGE       1.50
 
 namespace {
 	void beep() {
@@ -85,7 +87,7 @@ namespace {
 
 	class Voltage : public Gtk::ProgressBar {
 	public:
-		Voltage(const unsigned char *data, double factor, double min, double max, double warn) : data(data), factor(factor), min(min), max(max), warn(warn), old(UINT_MAX) {
+		Voltage(const unsigned char *data, double factor, double min, double max, double warn, double zero) : data(data), factor(factor), min(min), max(max), warn(warn), zero(zero), old(UINT_MAX) {
 			set_text("---");
 		}
 
@@ -95,7 +97,7 @@ namespace {
 				set_text("---");
 			} else {
 				double voltage = level * factor;
-				if (voltage <= warn) beep();
+				if (voltage <= warn && voltage >= zero) beep();
 				
 				if (level != old) {
 					std::ostringstream oss;
@@ -119,7 +121,7 @@ namespace {
 
 	private:
 		const unsigned char *data;
-		const double factor, min, max, warn;
+		const double factor, min, max, warn, zero;
 		unsigned int old;
 	};
 
@@ -172,7 +174,7 @@ namespace {
 
 	class RobotControls {
 	public:
-		RobotControls(unsigned int id, Gtk::Table &tbl) : commStatusLight(id), runSwitch(id), rebootButton(id), greenVoltage(XBee::in[id].vGreen, GREEN_BATTERY_CONVERSION_FACTOR, GREEN_BATTERY_MIN_VOLTAGE, GREEN_BATTERY_MAX_VOLTAGE, GREEN_BATTERY_WARNING_VOLTAGE), motorVoltage(XBee::in[id].vMotor, MOTOR_BATTERY_CONVERSION_FACTOR, MOTOR_BATTERY_MIN_VOLTAGE, MOTOR_BATTERY_MAX_VOLTAGE, MOTOR_BATTERY_WARNING_VOLTAGE) {
+		RobotControls(unsigned int id, Gtk::Table &tbl) : commStatusLight(id), runSwitch(id), rebootButton(id), greenVoltage(XBee::in[id].vGreen, GREEN_BATTERY_CONVERSION_FACTOR, GREEN_BATTERY_MIN_VOLTAGE, GREEN_BATTERY_MAX_VOLTAGE, GREEN_BATTERY_WARNING_VOLTAGE, GREEN_BATTERY_ZERO_VOLTAGE), motorVoltage(XBee::in[id].vMotor, MOTOR_BATTERY_CONVERSION_FACTOR, MOTOR_BATTERY_MIN_VOLTAGE, MOTOR_BATTERY_MAX_VOLTAGE, MOTOR_BATTERY_WARNING_VOLTAGE, MOTOR_BATTERY_ZERO_VOLTAGE) {
 			std::ostringstream oss;
 			oss << id;
 			label.set_text(oss.str());
