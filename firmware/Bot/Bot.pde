@@ -61,8 +61,8 @@ static Wheel wheels[] = {
 // The accelerometers.
 static const double accelerometerFilterA[] = {-1.8229, 0.8374};
 static const double accelerometerFilterB[] = {0.0036, 0.0072, 0.0036};
-static Accelerometer accelerometerX(accelerometerFilterA, accelerometerFilterB, ADCPIN_ACCEL1Y,  6.5,false);
-static Accelerometer accelerometerY(accelerometerFilterA, accelerometerFilterB, ADCPIN_ACCEL2Y, -4.5,true);
+static Accelerometer accelerometerX(accelerometerFilterA, accelerometerFilterB, ADCPIN_ACCEL1Y,  6.5, false);
+static Accelerometer accelerometerY(accelerometerFilterA, accelerometerFilterB, ADCPIN_ACCEL2Y, -4.5, true);
 
 // The gyro's zero point.
 static double gyroZero;
@@ -205,11 +205,10 @@ void updateDriveTrain() {
   double vySetpoint = XBee::rxdata.vy / 127.0 * MAX_SP_VY;
   double vtSetpoint = XBee::rxdata.vt / 127.0 * MAX_SP_VT;
   
- // Resets the accelerometer integrator to the measured camera velocity
- // if available
- if(XBee::rxdata.vxMeasured != -128 && XBee::rxdata.vyMeasured != -128){
-    accelerometerX.velSet(XBee::rxdata.vxMeasured /127.0 * MAX_SP_VX);
-    accelerometerY.velSet(XBee::rxdata.vyMeasured /127.0 * MAX_SP_VY);
+  // Reset the accelerometer integrator to the measured camera velocity if available.
+  if (XBee::rxdata.vxMeasured != -128 && XBee::rxdata.vyMeasured != -128) {
+    accelerometerX.velSet(XBee::rxdata.vxMeasured / 127.0 * MAX_SP_VX);
+    accelerometerY.velSet(XBee::rxdata.vyMeasured / 127.0 * MAX_SP_VY);
   }
   
   // Differentiate the linear setpoints.
@@ -224,11 +223,11 @@ void updateDriveTrain() {
   double vy = accelerometerY.read(vt);
   
   // Process errors through controllers to generate actuator levels.
-  // If controller is disabled pass setpoint through to actuators
+  // If controller is disabled pass setpoint through to actuators.
 #if X_CONTROLLER_ENABLED
   double actx = vxController.process(vxFilteredSetpoint - vx);
 #else
-   double actx = vxFilteredSetpoint;
+  double actx = vxFilteredSetpoint;
 #endif
  
 #if Y_CONTROLLER_ENABLED
@@ -243,13 +242,13 @@ void updateDriveTrain() {
   double actt = vtSetpoint;
 #endif
 
-// Feed forward corrects theta actuator and used x actuator as input
-// Therefore this can be shut off entirely if not used
+  // Feed forward corrects theta actuator and uses X actuator as input.
+  // Therefore this can be shut off entirely if not used.
 #if F_CONTROLLER_ENABLED
-   actt += feedforwardController.process(actx);
+  actt += feedforwardController.process(actx);
 #endif
 
-  // Drive wheels. (prescaling matrix is stored internally in wheel class
+  // Drive wheels. Prescaling matrix is stored internally in wheel class.
   for (byte i = 0; i < sizeof(wheels) / sizeof(*wheels); i++)
     wheels[i].update(actx, acty, actt);
 }
