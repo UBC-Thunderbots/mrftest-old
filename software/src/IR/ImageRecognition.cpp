@@ -75,47 +75,23 @@ ImageRecognition::ImageRecognition() {
 	World &w = World::get();
 
 	//Set the player properties:
-	w.player(0)->position(Vector2(40, 235));
-	w.player(0)->velocity(Vector2(0, 0));
-	w.player(0)->acceleration(Vector2(0, 0));
-	w.player(0)->radius(90);
-	w.player(1)->position(Vector2(177, 130));
-	w.player(1)->velocity(Vector2(0, 0));
-	w.player(1)->acceleration(Vector2(0, 0));
-	w.player(1)->radius(90);
-	w.player(2)->position(Vector2(177, 340));
-	w.player(2)->velocity(Vector2(0, 0));
-	w.player(2)->acceleration(Vector2(0, 0));
-	w.player(2)->radius(90);
-	w.player(3)->position(Vector2(177, 235));
-	w.player(3)->velocity(Vector2(0, 0));
-	w.player(3)->acceleration(Vector2(0, 0));
-	w.player(3)->radius(90);
-	w.player(4)->position(Vector2(300, 235));
-	w.player(4)->velocity(Vector2(0, 0));
-	w.player(4)->acceleration(Vector2(0, 0));
-	w.player(4)->radius(90);
+	w.player(0)->position(Vector2(400, 235));
+	w.player(1)->position(Vector2(1070, 130));
+	w.player(2)->position(Vector2(1070, 740));
+	w.player(3)->position(Vector2(1070, -235));
+	w.player(4)->position(Vector2(2500, 235));
+	w.player(5)->position(Vector2(5150, -235));
+	w.player(6)->position(Vector2(4030, 730));
+	w.player(7)->position(Vector2(4030, -340));
+	w.player(8)->position(Vector2(4030, 235));
+	w.player(9)->position(Vector2(3000, -235));
 
-	w.player(5)->position(Vector2(615, 235));
-	w.player(5)->velocity(Vector2(0, 0));
-	w.player(5)->acceleration(Vector2(0, 0));
-	w.player(5)->radius(90);
-	w.player(6)->position(Vector2(503, 130));
-	w.player(6)->velocity(Vector2(0, 0));
-	w.player(6)->acceleration(Vector2(0, 0));
-	w.player(6)->radius(90);
-	w.player(7)->position(Vector2(503, 340));
-	w.player(7)->velocity(Vector2(0, 0));
-	w.player(7)->acceleration(Vector2(0, 0));
-	w.player(7)->radius(90);
-	w.player(8)->position(Vector2(503, 235));
-	w.player(8)->velocity(Vector2(0, 0));
-	w.player(8)->acceleration(Vector2(0, 0));
-	w.player(8)->radius(90);
-	w.player(9)->position(Vector2(400, 235));
-	w.player(9)->velocity(Vector2(0, 0));
-	w.player(9)->acceleration(Vector2(0, 0));
-	w.player(9)->radius(90);
+	for (int i = 0; i < 10; i++) {
+		w.player(i)->velocity(Vector2(0, 0));
+		w.player(i)->acceleration(Vector2(0, 0));
+		w.player(i)->radius(90);
+
+	}
 
 	//Set the ball properties:
 	w.ball()->position(Vector2(330, 235));
