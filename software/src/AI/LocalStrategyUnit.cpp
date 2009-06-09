@@ -317,7 +317,7 @@ void LocalStrategyUnit::goalie(PPlayer robot) {
 
 	Vector2 center; // The center position of the goal.
 	if (west)
-		center = Vector2(field->west(), field->height() / 2.0);
+		center = Vector2(field->west(), (field->westGoal()->south.y + field->westGoal()->north.y) / 2.0);
 	else
 		center = Vector2(field->east(), field->height() / 2.0);
 
@@ -340,9 +340,9 @@ void LocalStrategyUnit::goalie(PPlayer robot) {
 	vec = pos - center;
 	Vector2 des;
 	if (vec.length() <= 3.0 * rad) {
-		des = center + vec * (rad / vec.length());
+		des = center + 2.0 * vec * (rad / vec.length());
 	} else {
-		des = center + vec * (rad/ R);
+		des = center + 2.0 * vec * (rad/ R);
 	}
 	if (World::get().playType() == PlayType::preparePenaltyKick || World::get().playType() == PlayType::penaltyKick){
 		if (team.side()){
