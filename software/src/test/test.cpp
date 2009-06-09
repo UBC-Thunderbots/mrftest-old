@@ -126,7 +126,7 @@ namespace {
 		}
 
 		virtual void update() {
-			XBee::out[id].vx = 0;//joystick->axes[Joystick::AXIS_RX] / 256;
+			XBee::out[id].vx = curve(joystick->axes[Joystick::AXIS_RX] / 32767.0) * 127;
 			XBee::out[id].vy = curve(-joystick->axes[Joystick::AXIS_RY] / 32767.0) * 127;
 			XBee::out[id].vt = curve(-joystick->axes[Joystick::AXIS_LX] / 32767.0) * 127;
 			XBee::out[id].dribble = (joystick->axes[Joystick::AXIS_LT] + 32767) / 256;
