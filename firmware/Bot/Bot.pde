@@ -1,8 +1,8 @@
 // UBC Thunderbots
 // DATE: Feb 20 2009
 // Last Modified: May 20, 2009
-// For more information about the code, please contact bahador.mousavi@gmail.com
-// Main authors: Bahador Moosavi zadeh, George Stelle, Jon Fraser
+// For more information about the code, please contact Bahador Moosavi at bahador.mousavi@gmail.com
+// Main authors: Jon Fraser, George Stelle, Christopher Head
 
 #include "HardwareSerial.h"
 #include "./Constants.h"
