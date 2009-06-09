@@ -84,13 +84,29 @@ namespace {
 	};
 
 	void sendWireless(PPlayer robot, Vector2 acc, double rotate, unsigned char dribble, unsigned char kick) {
-		static const double rotKp = 35, rotKi = 1, rotKd = 0, rotDecay = 0.97;
+		static const double rotKp = 100, rotKi = 1, rotKd = 0, rotDecay = 0.97;
 		static PID rotPIDs[Team::SIZE] = {
 			PID(rotKp, rotKi, rotKd, rotDecay),
 			PID(rotKp, rotKi, rotKd, rotDecay),
 			PID(rotKp, rotKi, rotKd, rotDecay),
 			PID(rotKp, rotKi, rotKd, rotDecay),
 			PID(rotKp, rotKi, rotKd, rotDecay),
+		};
+		static const double vxKp = 10, vxKi = 0, vxKd = 0, vxDecay = 0.97;
+		static PID vxPIDs[Team::SIZE] = {
+			PID(vxKp, vxKi, vxKd, vxDecay),
+			PID(vxKp, vxKi, vxKd, vxDecay),
+			PID(vxKp, vxKi, vxKd, vxDecay),
+			PID(vxKp, vxKi, vxKd, vxDecay),
+			PID(vxKp, vxKi, vxKd, vxDecay),
+		};
+		static const double vyKp = 15, vyKi = 0, vyKd = 0, vyDecay = 0.97;
+		static PID vyPIDs[Team::SIZE] = {
+			PID(vyKp, vyKi, vyKd, vyDecay),
+			PID(vyKp, vyKi, vyKd, vyDecay),
+			PID(vyKp, vyKi, vyKd, vyDecay),
+			PID(vyKp, vyKi, vyKd, vyDecay),
+			PID(vyKp, vyKi, vyKd, vyDecay),
 		};
 
 		unsigned int index = UINT_MAX;
@@ -123,14 +139,14 @@ namespace {
 		double rot = robot->orientation() * M_PI / 180.0;
 		Vector2 rotated(acc.x * std::sin(rot) + acc.y * std::cos(rot), acc.x * std::cos(rot) + acc.y * -std::sin(rot));
 		if (rotated.length())
-			rotated /= rotated.length();
+			rotated /= rotated.length() * 2.0;
 		Vector2 mea(robot->velocity());
 		Vector2 mrotate(mea.x * std::sin(rot) + mea.y * std::cos(rot), mea.x * std::cos(rot) + mea.y * -std::sin(rot));
 		mrotate.x = World::get().field()->convertCoordToMm(mrotate.x) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
 		mrotate.y = World::get().field()->convertCoordToMm(mrotate.y) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
 
-		XBee::out[index].vx = clamp<signed char, -127, 127>(40 * rotated.x);
-		XBee::out[index].vy = clamp<signed char, -127, 127>(40 * rotated.y);
+		XBee::out[index].vx = clamp<signed char, -127, 127>(vxPIDs[index].process(rotated.x));
+		XBee::out[index].vy = clamp<signed char, -127, 127>(vyPIDs[index].process(rotated.y));
 		double diff;
 		{
 			Vector2 cur(robot->orientation());
