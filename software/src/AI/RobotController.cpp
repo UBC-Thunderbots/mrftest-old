@@ -157,6 +157,8 @@ void RobotController::setSimulation(bool sim) {
 }
 
 void RobotController::sendCommand(PPlayer robot, Vector2 acc, double rotate, unsigned char dribble, unsigned char kick) {
+	robot->requestedVelocity(acc);
+
 	if (simulation)
 		simulateWorld(robot, acc, rotate, dribble, kick);
 	else

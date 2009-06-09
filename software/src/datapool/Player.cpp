@@ -88,3 +88,12 @@ bool Player::allowedInside() const {
 void Player::allowedInside(bool val) {
 	allowedIn = val;
 }
+
+const Vector2 &Player::requestedVelocity() const {
+	return reqVelocity;
+}
+
+void Player::requestedVelocity(const Vector2 &rv) {
+	reqVelocity = rv;
+}
+

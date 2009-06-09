@@ -149,11 +149,17 @@ bool Visualizer::on_expose_event(GdkEventExpose *event) {
 			cr->set_source_rgb(TEAM_COLOURS[i][0], TEAM_COLOURS[i][1], TEAM_COLOURS[i][2]);
 			cr->arc(offsetX+scaling*player->position().x, offsetY+scaling*player->position().y, scaling*player->radius(), 0.0, 2.0 * M_PI);    	
 			cr->fill();
+
 			cr->move_to(offsetX+scaling*player->position().x, offsetY+scaling*player->position().y);
 			cr->set_source_rgb(1.0, 1.0, 1.0);
 			Vector2 angle = player->orientation();
 			angle *= player->radius();
 			cr->line_to(offsetX+scaling*(angle.x + player->position().x), offsetY+scaling*(angle.y + player->position().y));
+			cr->stroke();
+
+			cr->move_to(offsetX + scaling * player->position().x, offsetY + scaling * player->position().y);
+			cr->set_source_rgb(1.0, 1.0, 0.0);
+			cr->line_to(offsetX + scaling * (player->position().x + player->requestedVelocity().x * 10), offsetY + scaling * (player->position().y + player->requestedVelocity().y * 10));
 			cr->stroke();
 		}
 

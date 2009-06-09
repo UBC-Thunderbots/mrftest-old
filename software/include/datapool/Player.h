@@ -72,6 +72,12 @@ public:
 	const Vector2 &destination() const;
 	void destination(const Vector2 &dest);
 
+	/*
+	 * The most recently requested velocity.
+	 */
+	const Vector2 &requestedVelocity() const;
+	void requestedVelocity(const Vector2 &rv);
+
 private:
 	Player(PTeam team);
 	Player(const Player &copyref); // Prohibit copying.
@@ -84,6 +90,7 @@ private:
 	PTeam tm;                //which team the player is on
 	PPlayer other;           //which player I'm passing to or guarding
 	Vector2 dest;            //where I'm trying to get to
+	Vector2 reqVelocity;     //the last requested velocity
 };
 
 #endif
