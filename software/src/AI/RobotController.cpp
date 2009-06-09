@@ -92,7 +92,7 @@ namespace {
 			PID(rotKp, rotKi, rotKd, rotDecay),
 			PID(rotKp, rotKi, rotKd, rotDecay),
 		};
-		static const double vxKp = 10, vxKi = 0, vxKd = 0, vxDecay = 0.97;
+		static const double vxKp = 20, vxKi = 0, vxKd = 0, vxDecay = 0.97;
 		static PID vxPIDs[Team::SIZE] = {
 			PID(vxKp, vxKi, vxKd, vxDecay),
 			PID(vxKp, vxKi, vxKd, vxDecay),
@@ -100,7 +100,7 @@ namespace {
 			PID(vxKp, vxKi, vxKd, vxDecay),
 			PID(vxKp, vxKi, vxKd, vxDecay),
 		};
-		static const double vyKp = 15, vyKi = 0, vyKd = 0, vyDecay = 0.97;
+		static const double vyKp = 30, vyKi = 0, vyKd = 0, vyDecay = 0.97;
 		static PID vyPIDs[Team::SIZE] = {
 			PID(vyKp, vyKi, vyKd, vyDecay),
 			PID(vyKp, vyKi, vyKd, vyDecay),
