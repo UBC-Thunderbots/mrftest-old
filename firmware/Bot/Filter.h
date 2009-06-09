@@ -5,7 +5,7 @@ template<byte asize>
 class Filter {
 public:
   // The types of the parameter arrays.
-  typedef double A[asize];
+  typedef double A[asize + 1];
   typedef double B[asize + 1];
 
   // Construct a new filter with no data in it.
@@ -16,11 +16,11 @@ public:
   // Adds a value to the filter and returns its current output.
   double process(double input) {
     for (byte i = 0; i < asize; i++)
-      input -= a[i] * delayed[i];
+      input -= a[i + 1] * delayed[i] / a[0];
       
     double output = b[0] * input;
     for (byte i = 0; i < asize; i++)
-      output += b[i + 1] * delayed[i];
+      output += b[i + 1] * delayed[i] / a[0];
 
     for (byte i = asize - 1; i; --i)
       delayed[i] = delayed[i - 1];

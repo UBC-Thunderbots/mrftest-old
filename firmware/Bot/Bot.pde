@@ -12,34 +12,34 @@
 #include "./Accelerometer.h"
 
 // The setpoint filters for the linear velocity setpoints.
-static const double setpointFilterA[] = {0.0, 0.0};
+static const double setpointFilterA[] = {1.0, 0.0, 0.0};
 static const double setpointFilterB[] = {1.0, 0.0, 0.0};
 static Filter<2> setpointXFilter(setpointFilterA, setpointFilterB);
 static Filter<2> setpointYFilter(setpointFilterA, setpointFilterB);
 
 // The linear acceleration controllers.
-static const double vxControllerA[] = {0.0};
+static const double vxControllerA[] = {1.0, 0.0};
 static const double vxControllerB[] = {0.000, 0.000};
 static Filter<1> vxController(vxControllerA, vxControllerB);
 
-static const double vyControllerA[] = {0.0};
+static const double vyControllerA[] = {1.0, 0.0};
 static const double vyControllerB[] = {0.000, 0.000};
 static Filter<1> vyController(vyControllerA, vyControllerB);
 
 // The angular velocity controller.
-static const double vtControllerA[] = {-1.9724, 0.9724};
+static const double vtControllerA[] = {1.0, -1.9724, 0.9724};
 static const double vtControllerB[] = {6.2131, -12.3272, 6.1145};
 static Filter<2> vtController(vtControllerA, vtControllerB);
 
 // The feedforward controller.
-static const double feedforwardControllerA[] = {0.0};
+static const double feedforwardControllerA[] = {1.0, 0.0};
 static const double feedforwardControllerB[] = {3.0/16.0, 0.0};
 static Filter<1> feedforwardController(feedforwardControllerA, feedforwardControllerB);
 
 // The wheels.
-static const double rpmFilterA[] = {-0.777778};
+static const double rpmFilterA[] = {1.0, -0.777778};
 static const double rpmFilterB[] = {0.111111, 0.111111};
-static const double wheelControllerA[] = {-1.7967, 0.7967};
+static const double wheelControllerA[] = {1.0, -1.7967, 0.7967};
 static const double wheelControllerB[] = {1.2369, -2.0521, 0.8397};
 static const double m[][3] = {
   {-0.0028,  0.0007, 0.0065},
@@ -59,7 +59,7 @@ static Wheel wheels[] = {
 };
 
 // The accelerometers.
-static const double accelerometerFilterA[] = {-1.8229, 0.8374};
+static const double accelerometerFilterA[] = {1.0, -1.8229, 0.8374};
 static const double accelerometerFilterB[] = {0.0036, 0.0072, 0.0036};
 static Accelerometer accelerometerX(accelerometerFilterA, accelerometerFilterB, ADCPIN_ACCEL1Y,  6.5, false);
 static Accelerometer accelerometerY(accelerometerFilterA, accelerometerFilterB, ADCPIN_ACCEL2Y, -4.5, true);
