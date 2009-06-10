@@ -26,6 +26,10 @@ firmware/ChrisBot/pwmpins.c -text
 firmware/ChrisBot/pwmpins.h -text
 firmware/ChrisBot/rtc.c -text
 firmware/ChrisBot/rtc.h -text
+firmware/ChrisBot/wheel.c -text
+firmware/ChrisBot/wheel.h -text
+firmware/ChrisBot/xbee.c -text
+firmware/ChrisBot/xbee.h -text
 firmware/EStopBtn/EStopBtn.pde -text
 firmware/WheelTestBench/WheelTestBench.pde -text
 software/CMakeLists.txt -text

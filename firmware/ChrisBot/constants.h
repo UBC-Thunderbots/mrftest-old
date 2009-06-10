@@ -12,7 +12,7 @@
 
 // Parameters for the debug port.
 #define DEBUG_BAUD 115200UL
-#define DEBUG_BUFSIZE 64
+#define DEBUG_BUFSIZE 128
 
 // The maximum motor percentage that can be applied in manual actuator mode.
 #define MANUAL_ACTUATOR_MOTOR_MAX 4.0
@@ -55,8 +55,11 @@
 // How long to fire the kicker for (ms)
 #define KICK_TIME 200
 
-// Baud rates to run the serial ports at.
-#define BAUD_RATE_XBEE 9600UL
+// XBee configuration.
+#define XBEE_BAUD 9600UL
+#define XBEE_POWER_LEVEL "0"
+#define XBEE_CHANNEL "E"
+#define XBEE_PAN "6666"
 
 // Timeout for receiving a data packet before nuking (ms).
 #define TIMEOUT_RECEIVE 200

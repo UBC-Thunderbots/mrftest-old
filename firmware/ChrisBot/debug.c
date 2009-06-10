@@ -1,6 +1,5 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <util/delay.h>
 
 #include "constants.h"
 #include "debug.h"
@@ -49,6 +48,20 @@ void debug_puti(int32_t i) {
 		i /= 10;
 	} while (i);
 	debug_puts(p + 1);
+}
+
+void debug_puth(uint32_t i) {
+	static const char HEX_DIGITS[16] = "0123456789ABCDEF";
+	char str[9];
+	char *p;
+
+	str[8] = '\0';
+	p = &str[8];
+	do {
+		*--p = HEX_DIGITS[i % 16];
+		i /= 16;
+	} while (p != str);
+	debug_puts(str);
 }
 
 void debug_putf(double f) {

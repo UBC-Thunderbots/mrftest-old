@@ -3,10 +3,10 @@
 
 #include "rtc.h"
 
-volatile unsigned long millis;
+volatile unsigned long rtc_counter;
 
 ISR(TIMER0_COMP_vect, ISR_BLOCK) {
-	millis++;
+	rtc_counter++;
 }
 
 void rtc_init(void) {
@@ -16,6 +16,7 @@ void rtc_init(void) {
 	// NOTE: We're using the primary 16MHz crystal here.
 	// Should we use the 32768Hz crystal on TOsc?
 	// It's probably a precision crystal, but it would give worse theoretical results (not exactly 1ms)!
+	rtc_counter = 1;
 	TCCR0 = _BV(WGM01) | _BV(CS02) | _BV(CS00);
 	OCR0 = F_CPU / 128 / 1000;
 	TIMSK |= _BV(OCIE0);

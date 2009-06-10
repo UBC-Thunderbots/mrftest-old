@@ -24,6 +24,11 @@ void debug_puts(const char *str);
 void debug_puti(int32_t i);
 
 /*
+ * Outputs an integer in hex.
+ */
+void debug_puth(uint32_t i);
+
+/*
  * Outputs a floating-point number.
  */
 void debug_putf(double f);
