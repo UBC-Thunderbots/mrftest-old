@@ -2,10 +2,11 @@
 #define CONSTANTS_H
 
 //Allows bypassing various controllers and running in open loop
-#define T_CONTROLLER_ENABLED 1
+#define T_CONTROLLER_ENABLED 0
 #define X_CONTROLLER_ENABLED 0
 #define Y_CONTROLLER_ENABLED 0
 #define F_CONTROLLER_ENABLED 0
+#define W_CONTROLLER_ENABLED 0
 
 // The maximum motor percentage that can be applied in manual actuator mode.
 #define MANUAL_ACTUATOR_MOTOR_MAX 4.0

@@ -35,7 +35,11 @@ public:
     double curRPM = rpmFilter.process(ENCODER_COUNTS_TO_RPM / LOOP_TIME * diff);
     
     // Pass the error in motor percentage through the controller.
+    #if W_CONTROLLER_ENABLED
     double power = wheelController.process(setpoint - curRPM / MOTOR_MAX_RPM);
+    #else
+    double power = setpoint;
+    #endif
     
     // Drive the motor.
     if (power > 0.0) {
