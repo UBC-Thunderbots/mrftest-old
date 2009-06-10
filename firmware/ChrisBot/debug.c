@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <util/delay.h>
 
 #include "constants.h"
 #include "debug.h"
@@ -7,19 +8,20 @@
 static volatile char buffer[DEBUG_BUFSIZE];
 static volatile uint8_t wptr, rptr;
 
-ISR(USART1_UDRE_vect, ISR_BLOCK) {
-	UDR1 = buffer[rptr];
+ISR(USART0_UDRE_vect, ISR_BLOCK) {
+	UDR0 = buffer[rptr];
 	rptr = (rptr + 1) % DEBUG_BUFSIZE;
 	if (rptr == wptr)
-		UCSR1B &= ~_BV(UDRIE1);
+		UCSR0B &= ~_BV(UDRIE0);
 }
 
 void debug_init(void) {
-	UBRR1H = ((F_CPU + 4 * DEBUG_BAUD) / (8 * DEBUG_BAUD) - 1) / 256;
-	UBRR1L = ((F_CPU + 4 * DEBUG_BAUD) / (8 * DEBUG_BAUD) - 1) % 256;
-	UCSR1A = _BV(U2X1);
-	UCSR1B = _BV(TXEN1);
-	UCSR1C = _BV(USBS1) | _BV(UCSZ11) | _BV(UCSZ10);
+#define DEBUG_BAUD_DIVISOR (((F_CPU + 4UL * DEBUG_BAUD) / (8UL * DEBUG_BAUD)) - 1UL)
+	UBRR0H = DEBUG_BAUD_DIVISOR / 256UL;
+	UBRR0L = DEBUG_BAUD_DIVISOR % 256UL;
+	UCSR0A = _BV(U2X0);
+	UCSR0B = _BV(TXEN0);
+	UCSR0C = _BV(USBS0) | _BV(UCSZ01) | _BV(UCSZ00);
 }
 
 void debug_putc(char ch) {
@@ -27,7 +29,7 @@ void debug_putc(char ch) {
 	if (new_wptr != rptr) {
 		buffer[wptr] = ch;
 		wptr = new_wptr;
-		UCSR1B |= _BV(UDRIE1);
+		UCSR0B |= _BV(UDRIE0);
 	}
 }
 
@@ -50,17 +52,22 @@ void debug_puti(int32_t i) {
 }
 
 void debug_putf(double f) {
-	uint8_t i;
+	uint8_t i, elem;
 
-	debug_puti((int) f);
-	f -= (int) f;
+	elem = f;
+	debug_puti(elem);
+	f -= elem;
 	if (f < 0)
 		f = -f;
+
+	debug_putc('.');
 
 	i = 6;
 	do {
 		f *= 10;
-		debug_putc((int) f + '0');
+		elem = f;
+		debug_putc(elem + '0');
+		f -= elem;
 	} while (--i);
 }
 

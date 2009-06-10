@@ -9,6 +9,7 @@
 #include "rtc.h"
 #include "filter.h"
 #include "led.h"
+#include "gyro.h"
 
 // The setpoint filters for the linear velocity setpoints.
 static const double setpoint_filter_a[3] = {1.0, 0.0, 0.0};
@@ -53,9 +54,6 @@ static const double accelerometer_filter_a[3] = {1.0, -1.8229, 0.8374};
 static const double accelerometer_filter_b[3] = {0.0036, 0.0072, 0.0036};
 static struct filter accelerometer_x_filter, accelerometer_y_filter;
 
-// The gyro's zero point.
-static double gyro_zero;
-
 // Record the time of the last received message.
 static unsigned long last_message_time;
 
@@ -70,28 +68,6 @@ static unsigned long last_battery_time;
 
 // Whether the battery voltage is low.
 static uint8_t low_battery;
-
-/*
- * Zeroes the gyroscope.
- */
-static void init_gyro(void) {
-	int accumulator = 0;
-	uint8_t i;
-
-	i = GYRO_ZERO_SAMPLES;
-	do {
-		_delay_ms(2);
-		accumulator += adc_results[ADCPIN_GYRO_DATA] - adc_results[ADCPIN_GYRO_VREF];
-	} while (--i);
-	gyro_zero = (double) accumulator / GYRO_ZERO_SAMPLES;
-}
-
-/*
- * Reads the gyroscope.
- */
-static double read_gyro(void) {
-	return adc_results[ADCPIN_GYRO_DATA] - adc_results[ADCPIN_GYRO_VREF] - gyro_zero;
-}
 
 /*
  * Application entry point.
@@ -160,16 +136,30 @@ int main(void) {
 	filter_init(&accelerometer_x_filter, accelerometer_filter_a, accelerometer_filter_b);
 	filter_init(&accelerometer_y_filter, accelerometer_filter_a, accelerometer_filter_b);
 
+	// Initialize the XBee.
+	xbee_init();
+
 	// Initialize the gyroscope.
 	init_gyro();
 
 	// Initialization complete.
 	debug_puts("Bot: Initialized.\n");
+	debug_puti(1234);
+	debug_putc('\n');
+	debug_putf(1.2345);
+	debug_putc('\n');
 	iopin_write(IOPIN_CPU_BUSY, 0);
 	led_off();
 
 	// Begin iterating.
+	unsigned long last = millis;
 	for (;;) {
+		while (millis - last < 1000UL);
+		led_on();
+		last = millis;
+		while (millis - last < 1000UL);
+		last = millis;
+		led_off();
 	}
 }
 

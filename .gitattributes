@@ -17,6 +17,8 @@ firmware/ChrisBot/debug.c -text
 firmware/ChrisBot/debug.h -text
 firmware/ChrisBot/filter.c -text
 firmware/ChrisBot/filter.h -text
+firmware/ChrisBot/gyro.c -text
+firmware/ChrisBot/gyro.h -text
 firmware/ChrisBot/iopins.h -text
 firmware/ChrisBot/led.h -text
 firmware/ChrisBot/main.c -text
