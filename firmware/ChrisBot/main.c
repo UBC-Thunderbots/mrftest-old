@@ -98,6 +98,9 @@ static double read_gyro(void) {
  */
 int main(void) __attribute__((__noreturn__));
 int main(void) {
+	// Turn on interrupts.
+	sei();
+
 	// Initialize modules.
 	led_init();
 	led_on();
