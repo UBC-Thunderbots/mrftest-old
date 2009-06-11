@@ -23,7 +23,7 @@
 #include <unistd.h>
 #include <time.h>
 
-#define POWER_LEVEL "0"
+#define POWER_LEVEL "4"
 #define TIMEOUT     1000 // milliseconds (for serial reads)
 #define ACK_TIMEOUT 100  // milliseconds (for packet ACKs during normal run)
 #define RCV_TIMEOUT 5000 // milliseconds (for feedback data from the bot)
