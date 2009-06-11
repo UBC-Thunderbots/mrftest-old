@@ -211,7 +211,6 @@ static void loop_untimed(void) {
 	}
 
 	// Check if we're in ESTOP mode.
-	low_battery = 0;
 	estop = xbee_rxdata.emergency || rtc_millis() - xbee_rxtimestamp > TIMEOUT_RECEIVE || !xbee_rxtimestamp || low_battery;
 	if (estop) {
 		nuke();
