@@ -247,6 +247,7 @@ int main(void) {
 	// Display a message.
 	debug_puts("Bot: Initializing...\n");
 	CPU_INUSE();
+	led_on();
 
 	// Configure IO pins.
 	iopin_write(IOPIN_CPU_BUSY, 1);
@@ -315,6 +316,11 @@ int main(void) {
 		last_loop_time += LOOP_TIME;
 		loop_timed();
 		loop_untimed();
+
+		if (rtc_millis() / 250 % 2)
+			led_on();
+		else
+			led_off();
 	}
 }
 
