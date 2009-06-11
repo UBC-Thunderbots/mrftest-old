@@ -14,7 +14,7 @@ void gyro_init(void) {
 
 	i = GYRO_ZERO_SAMPLES;
 	do {
-		_delay_ms(5);
+		adc_sample();
 		accumulator += adc_read(ADCPIN_GYRO_DATA) - adc_read(ADCPIN_GYRO_VREF);
 	} while (--i);
 	zero = (double) accumulator / GYRO_ZERO_SAMPLES;
