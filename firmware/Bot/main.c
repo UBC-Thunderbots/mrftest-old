@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <avr/sleep.h>
 #include <util/delay.h>
 
 #include "constants.h"
@@ -305,6 +306,9 @@ int main(void) {
 	// Initialize the gyroscope.
 	gyro_init();
 
+	// Initialize CPU sleep mode.
+	set_sleep_mode(SLEEP_MODE_IDLE);
+
 	// Initialize timestamps.
 	kick_time = last_loop_time = last_battery_time = rtc_millis();
 
@@ -314,7 +318,20 @@ int main(void) {
 	// Begin iterating.
 	for (;;) {
 		iopin_write(IOPIN_CPU_BUSY, 0);
-		while (rtc_millis() - last_loop_time < LOOP_TIME);
+
+		// Wait for the next time point.
+		while (rtc_millis() - last_loop_time < LOOP_TIME) {
+			// VERY CAREFULLY go to sleep while avoiding race conditions with interrupts!
+			cli();
+			if (rtc_millis() - last_loop_time < LOOP_TIME) {
+				sleep_enable();
+				sei();       // These are taken as two consecutive machine instructions.
+				sleep_cpu(); // SEI will not allow interrupts until SLEEP has executed.
+				sleep_disable();
+			}
+			sei();
+		}
+
 		iopin_write(IOPIN_CPU_BUSY, 1);
 
 		last_loop_time += LOOP_TIME;
