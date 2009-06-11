@@ -217,7 +217,7 @@ static void loop_untimed(void) {
 	}
 
 	// Drive the dribbler.
-	pwm_write(PWMPIN_DRIBBLER, xbee_rxdata.dribble);
+	pwm_write(PWMPIN_DRIBBLER, xbee_rxdata.dribble * 1023UL / 255UL);
 }
 
 /*
