@@ -51,7 +51,7 @@
 #define ACCELEROMETER_TO_CM 4.785156
 
 // Number of samples to take while zeroing the accelerometers.
-#define ACCELEROMETER_ZERO_SAMPLES 50
+#define ACCELEROMETER_ZERO_SAMPLES 500
 
 // How long to fire the kicker for (ms)
 #define KICK_TIME 200
@@ -67,6 +67,9 @@
 
 // Interval between sending battery voltage updates.
 #define TIMEOUT_BATTERY 2000
+
+// Number of microseconds to delay before starting an ADC to allow the channel to settle.
+#define ADC_SETTLE_DELAY 3
 
 // PWM pin numbers
 #define PWMPIN_MOTOR0   0
