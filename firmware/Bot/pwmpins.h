@@ -10,6 +10,7 @@ void pwm_init(void);
 
 /*
  * Sets the level on a PWM output pin.
+ * Note: pins 0 through 5 accept 0-1023; pin 6 accepts 0-255.
  */
 #define pwm_write(pin, level)               \
 	do {                                    \
@@ -21,6 +22,7 @@ void pwm_init(void);
 			case 3: OCR1C = (level); break; \
 			case 4: OCR1B = (level); break; \
 			case 5: OCR1A = (level); break; \
+			case 6: OCR0  = (level); break; \
 		}                                   \
 		sei();                              \
 	} while (0)
