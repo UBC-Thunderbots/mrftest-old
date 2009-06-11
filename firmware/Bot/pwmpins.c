@@ -1,6 +1,8 @@
 #include <avr/io.h>
 
+#include "constants.h"
 #include "pwmpins.h"
+#include "iopins.h"
 
 void pwm_init(void) {
 	// 10-bit phase-correct PWM mode, TOP fixed at 0x3FF, non-inverted output, clock to FOSC/8.
@@ -13,8 +15,12 @@ void pwm_init(void) {
 	TCCR0 = _BV(WGM00) | _BV(COM01) | _BV(CS01);
 
 	// Outputs.
-	DDRB |= _BV(7) | _BV(6) | _BV(5);
-	DDRE |= _BV(5) | _BV(4) | _BV(3);
-	DDRB |= _BV(4);
+	iopin_configure_output(IOPIN_PWM0);
+	iopin_configure_output(IOPIN_PWM1);
+	iopin_configure_output(IOPIN_PWM2);
+	iopin_configure_output(IOPIN_PWM3);
+	iopin_configure_output(IOPIN_PWM4);
+	iopin_configure_output(IOPIN_PWM5);
+	iopin_configure_output(IOPIN_PWM6);
 }
 
