@@ -22,6 +22,9 @@ firmware/Bot/xbee.h -text
 firmware/BotTestBench/BotTestBench.pde -text
 firmware/BotTestBench/Filter.cpp -text
 firmware/BotTestBench/Filter.h -text
+firmware/Counter4/18f2550.lkr -text
+firmware/Counter4/Makefile -text
+firmware/Counter4/counter4.asm -text
 firmware/EStopBtn/EStopBtn.pde -text
 firmware/WheelTestBench/WheelTestBench.pde -text
 software/CMakeLists.txt -text
