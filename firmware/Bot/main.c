@@ -317,6 +317,7 @@ int main(void) {
 
 	// Begin iterating.
 	for (;;) {
+		// Indicate that the CPU is idle.
 		iopin_write(IOPIN_CPU_BUSY, 0);
 
 		// Wait for the next time point.
@@ -332,12 +333,19 @@ int main(void) {
 			sei();
 		}
 
+		// Indicate that the CPU is busy.
 		iopin_write(IOPIN_CPU_BUSY, 1);
 
+		// Mark the advancement of time for the loop.
 		last_loop_time += LOOP_TIME;
+
+		// Execute those operations that need very precise timing.
 		loop_timed();
+
+		// Execute the operations whose timing requirements are loose.
 		loop_untimed();
 
+		// Blink the LED at 2Hz.
 		iopin_write(IOPIN_LED, rtc_millis() / 250 % 2);
 	}
 }
