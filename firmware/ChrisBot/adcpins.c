@@ -3,7 +3,7 @@
 
 #include "adcpins.h"
 
-volatile uint16_t adc_results[8];
+volatile int16_t adc_results[8];
 static uint8_t current_pin;
 
 ISR(ADC_vect, ISR_BLOCK) {
