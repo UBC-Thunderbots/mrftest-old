@@ -154,7 +154,9 @@ static void init_command(const char *cmd) {
 		init_write(cmd);
 		init_write("\r");
 	} while (!init_read_ok());
+#if XBEE_DEBUG
 	debug_puts(" OK.\n");
+#endif
 }
 
 void xbee_init(void) {
