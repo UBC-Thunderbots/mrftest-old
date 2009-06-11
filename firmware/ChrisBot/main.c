@@ -296,12 +296,15 @@ int main(void) {
 
 	// Initialization complete.
 	debug_puts("Bot: Initialized.\n");
-	iopin_write(IOPIN_CPU_BUSY, 0);
-	led_off();
 
 	// Begin iterating.
 	for (;;) {
+		led_off();
+		iopin_write(IOPIN_CPU_BUSY, 0);
 		while (rtc_millis() - last_loop_time < LOOP_TIME);
+		led_on();
+		iopin_write(IOPIN_CPU_BUSY, 1);
+
 		last_loop_time += LOOP_TIME;
 		loop_timed();
 		loop_untimed();
