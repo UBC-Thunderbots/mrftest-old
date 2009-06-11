@@ -8,7 +8,7 @@ bot.hex : bot.elf
 
 # Rule to link an ELF file from a bunch of O files.
 bot.elf : $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $+
+	$(CC) $(CFLAGS) -o $@ $+ -lm
 
 # Dependencies of O files on headers.
 main.o : constants.h debug.h iopins.h pwmpins.h adcpins.h rtc.h filter.h led.h gyro.h xbee.h wheel.h cpuusage.h
