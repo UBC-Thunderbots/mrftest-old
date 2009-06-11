@@ -236,6 +236,11 @@ int main(void) {
 	// Turn on interrupts.
 	sei();
 
+	// Disable peripherals we don't need that start out enabled.
+	MCUCSR |= _BV(JTD); // JTAG debug interface
+	MCUCSR |= _BV(JTD); // (timed sequence, write twice)
+	ACSR = _BV(ACD);    // Analog comparator
+
 	// Initialize modules.
 	debug_init();
 	rtc_init();
