@@ -441,8 +441,8 @@ void XBee::init() {
 
 	bool commandModeOK = false;
 	while (!commandModeOK) {
-		static const speed_t BAUDS[] = {B57600, B9600, B1200, B2400, B4800, B19200, B38400, B115200};
-		static const unsigned int BAUDNAMES[] = {57600, 9600, 1200, 2400, 4800, 19200, 38400, 115200};
+		static const speed_t BAUDS[] = {B115200, B9600, B1200, B2400, B4800, B19200, B38400, B57600};
+		static const unsigned int BAUDNAMES[] = {115200, 9600, 1200, 2400, 4800, 19200, 38400, 57600};
 		for (unsigned int baudidx = 0; baudidx < sizeof(BAUDS)/sizeof(*BAUDS) && !commandModeOK; baudidx++) {
 			Log::log(Log::LEVEL_DEBUG, "XBee") << "Connecting at " << BAUDNAMES[baudidx] << " baud...\n";
 
@@ -512,7 +512,7 @@ void XBee::init() {
 
 	// Set baud rate.
 	do {
-		writeFully("ATBD6\r");
+		writeFully("ATBD7\r");
 	} while (!readOK());
 
 	// Switch out of command mode by sending ATCN\r
@@ -534,8 +534,8 @@ void XBee::init() {
 		tios.c_lflag = 0;
 		tios.c_cc[VMIN] = 1;
 		tios.c_cc[VTIME] = 0;
-		cfsetispeed(&tios, B57600);
-		cfsetospeed(&tios, B57600);
+		cfsetispeed(&tios, B115200);
+		cfsetospeed(&tios, B115200);
 		if (tcsetattr(serialPort, TCSAFLUSH, &tios) < 0) {
 			Log::log(Log::LEVEL_ERROR, "XBee") << "tcsetattr() failed\n";
 			std::exit(1);
