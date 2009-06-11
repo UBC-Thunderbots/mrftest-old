@@ -19,9 +19,9 @@
 #define MANUAL_ACTUATOR_MOTOR_MAX 4.0
 
 // Maximum representable values for the setpoints.
-#define MAX_SP_VX 500.0
-#define MAX_SP_VY  200.0
-#define MAX_SP_VT  4.0
+#define MAX_SP_VX 200.0
+#define MAX_SP_VY 500.0
+#define MAX_SP_VT   4.0
 
 // Maximum motor power (0-1023)
 #define MOTOR_CAP 1023

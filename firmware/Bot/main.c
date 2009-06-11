@@ -35,7 +35,7 @@ static struct filter vt_controller;
 
 // The feedforward controller.
 static const double ff_controller_a[3] = {1.0, 0.0, 0.0};
-static const double ff_controller_b[3] = {3.0/16.0, 0.0, 0.0};
+static const double ff_controller_b[3] = {0.2733, 0.0, 0.0};
 static struct filter ff_controller;
 
 // The wheels.
@@ -111,12 +111,12 @@ static void loop_timed(void) {
 	double vx_filtered_setpoint, vy_filtered_setpoint;
 	double vx_actuator, vy_actuator, vt_actuator;
 
+	// Perform ADC sampling.
+	adc_sample();
+
 	// Check for estop case.
 	if (estop)
 		return;
-
-	// Perform ADC sampling.
-	adc_sample();
 
 	// Read data from sensors.
 	vt = gyro_read();
@@ -211,6 +211,7 @@ static void loop_untimed(void) {
 	}
 
 	// Check if we're in ESTOP mode.
+	low_battery = 0;
 	estop = xbee_rxdata.emergency || rtc_millis() - xbee_rxtimestamp > TIMEOUT_RECEIVE || !xbee_rxtimestamp || low_battery;
 	if (estop) {
 		nuke();
