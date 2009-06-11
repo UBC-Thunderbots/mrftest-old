@@ -8,7 +8,7 @@
 #define T_CONTROLLER_ENABLED 1
 #define X_CONTROLLER_ENABLED 0
 #define Y_CONTROLLER_ENABLED 0
-#define F_CONTROLLER_ENABLED 0
+#define F_CONTROLLER_ENABLED 1
 #define W_CONTROLLER_ENABLED 1
 
 // Parameters for the debug port.
