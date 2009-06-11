@@ -58,7 +58,7 @@
 
 // XBee configuration.
 #define XBEE_BAUD 9600UL
-#define XBEE_POWER_LEVEL "0"
+#define XBEE_POWER_LEVEL "4"
 #define XBEE_CHANNEL "E"
 #define XBEE_PAN "6666"
 
