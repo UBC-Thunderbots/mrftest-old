@@ -41,6 +41,11 @@ void debug_puti(int32_t i) {
 	char str[11];
 	char *p;
 
+	if (i < 0) {
+		debug_putc('-');
+		i = -i;
+	}
+
 	str[10] = '\0';
 	p = &str[9];
 	do {
@@ -65,7 +70,8 @@ void debug_puth(uint32_t i) {
 }
 
 void debug_putf(double f) {
-	uint8_t i, elem;
+	uint8_t i;
+	int32_t elem;
 
 	elem = f;
 	debug_puti(elem);
