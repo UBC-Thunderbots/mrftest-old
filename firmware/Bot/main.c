@@ -8,11 +8,9 @@
 #include "adcpins.h"
 #include "rtc.h"
 #include "filter.h"
-#include "led.h"
 #include "gyro.h"
 #include "xbee.h"
 #include "wheel.h"
-#include "cpuusage.h"
 
 // The setpoint filters for the linear velocity setpoints.
 static const double setpoint_filter_a[3] = {1.0, 0.0, 0.0};
@@ -207,6 +205,7 @@ static void loop_untimed(void) {
 	}
 
 	// Check if we're in ESTOP mode.
+	low_battery = 0;
 	estop = xbee_rxdata.emergency || rtc_millis() - xbee_rxtimestamp > TIMEOUT_RECEIVE || !xbee_rxtimestamp || low_battery;
 	if (estop) {
 		nuke();
@@ -238,7 +237,6 @@ int main(void) {
 	sei();
 
 	// Initialize modules.
-	led_init();
 	debug_init();
 	rtc_init();
 	adc_init();
@@ -246,10 +244,11 @@ int main(void) {
 
 	// Display a message.
 	debug_puts("Bot: Initializing...\n");
-	CPU_INUSE();
-	led_on();
 
 	// Configure IO pins.
+	iopin_write(IOPIN_LED, 1);
+	iopin_configure_output(IOPIN_LED);
+
 	iopin_write(IOPIN_CPU_BUSY, 1);
 	iopin_configure_output(IOPIN_CPU_BUSY);
 
@@ -309,18 +308,15 @@ int main(void) {
 
 	// Begin iterating.
 	for (;;) {
-		CPU_IDLE();
+		iopin_write(IOPIN_CPU_BUSY, 0);
 		while (rtc_millis() - last_loop_time < LOOP_TIME);
-		CPU_INUSE();
+		iopin_write(IOPIN_CPU_BUSY, 1);
 
 		last_loop_time += LOOP_TIME;
 		loop_timed();
 		loop_untimed();
 
-		if (rtc_millis() / 250 % 2)
-			led_on();
-		else
-			led_off();
+		iopin_write(IOPIN_LED, rtc_millis() / 250 % 2);
 	}
 }
 

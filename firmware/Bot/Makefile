@@ -11,9 +11,9 @@ bot.elf : $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $+ -lm
 
 # Dependencies of O files on headers.
-main.o : constants.h debug.h iopins.h pwmpins.h adcpins.h rtc.h filter.h led.h gyro.h xbee.h wheel.h cpuusage.h
+main.o : constants.h debug.h iopins.h pwmpins.h adcpins.h rtc.h filter.h gyro.h xbee.h wheel.h
 debug.o : constants.h debug.h
-pwmpins.o : pwmpins.h
+pwmpins.o : pwmpins.h iopins.h constants.h
 adcpins.o : adcpins.h
 rtc.o : rtc.h
 filter.o : filter.h

@@ -3,7 +3,6 @@ firmware/Bot/Makefile -text
 firmware/Bot/adcpins.c -text
 firmware/Bot/adcpins.h -text
 firmware/Bot/constants.h -text
-firmware/Bot/cpuusage.h -text
 firmware/Bot/debug.c -text
 firmware/Bot/debug.h -text
 firmware/Bot/filter.c -text
@@ -11,7 +10,6 @@ firmware/Bot/filter.h -text
 firmware/Bot/gyro.c -text
 firmware/Bot/gyro.h -text
 firmware/Bot/iopins.h -text
-firmware/Bot/led.h -text
 firmware/Bot/main.c -text
 firmware/Bot/pwmpins.c -text
 firmware/Bot/pwmpins.h -text
