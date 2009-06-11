@@ -8,5 +8,9 @@ void pwm_init(void) {
 	TCCR1B = _BV(CS11);
 	TCCR3A = _BV(COM3A1) | _BV(COM3B1) | _BV(COM3C1) | _BV(WGM31) | _BV(WGM30);
 	TCCR3B = _BV(CS31);
+
+	// Outputs.
+	DDRB |= _BV(7) | _BV(6) | _BV(5);
+	DDRE |= _BV(5) | _BV(4) | _BV(3);
 }
 
