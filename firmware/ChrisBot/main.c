@@ -291,6 +291,9 @@ int main(void) {
 	// Initialize the gyroscope.
 	gyro_init();
 
+	// Initialize timestamps.
+	kick_time = last_loop_time = last_battery_time = rtc_millis();
+
 	// Initialization complete.
 	debug_puts("Bot: Initialized.\n");
 	iopin_write(IOPIN_CPU_BUSY, 0);
