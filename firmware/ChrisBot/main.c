@@ -12,6 +12,7 @@
 #include "gyro.h"
 #include "xbee.h"
 #include "wheel.h"
+#include "cpuusage.h"
 
 // The setpoint filters for the linear velocity setpoints.
 static const double setpoint_filter_a[3] = {1.0, 0.0, 0.0};
@@ -230,7 +231,6 @@ int main(void) {
 
 	// Initialize modules.
 	led_init();
-	led_on();
 	debug_init();
 	rtc_init();
 	adc_init();
@@ -238,6 +238,7 @@ int main(void) {
 
 	// Display a message.
 	debug_puts("Bot: Initializing...\n");
+	CPU_INUSE();
 
 	// Configure IO pins.
 	iopin_write(IOPIN_CPU_BUSY, 1);
@@ -299,11 +300,9 @@ int main(void) {
 
 	// Begin iterating.
 	for (;;) {
-		led_off();
-		iopin_write(IOPIN_CPU_BUSY, 0);
+		CPU_IDLE();
 		while (rtc_millis() - last_loop_time < LOOP_TIME);
-		led_on();
-		iopin_write(IOPIN_CPU_BUSY, 1);
+		CPU_INUSE();
 
 		last_loop_time += LOOP_TIME;
 		loop_timed();

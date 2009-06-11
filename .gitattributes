@@ -13,6 +13,7 @@ firmware/ChrisBot/Makefile -text
 firmware/ChrisBot/adcpins.c -text
 firmware/ChrisBot/adcpins.h -text
 firmware/ChrisBot/constants.h -text
+firmware/ChrisBot/cpuusage.h -text
 firmware/ChrisBot/debug.c -text
 firmware/ChrisBot/debug.h -text
 firmware/ChrisBot/filter.c -text
