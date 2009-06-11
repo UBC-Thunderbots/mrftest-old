@@ -18,6 +18,19 @@
 	processor 18F2550
 #include <p18f2550.inc>
 
+	__config _CONFIG1L, _PLLDIV_5_1L & _CPUDIV_OSC1_PLL2_1L & _USBDIV_1_1L
+	__config _CONFIG1H, _FOSC_HSPLL_HS_1H & _FCMEM_OFF_1H & _IESO_OFF_1H
+	__config _CONFIG2L, _PWRT_ON_2L & _BOR_OFF_2L & _BORV_0_2L & _VREGEN_OFF_2L
+	__config _CONFIG2H, _WDT_OFF_2H & _WDTPS_1_2H
+	__config _CONFIG3H, _MCLRE_ON_3H & _LPT1OSC_ON_3H & _PBADEN_OFF_3H & _CCP2MX_OFF_3H
+	__config _CONFIG4L, _STVREN_ON_4L & _LVP_OFF_4L & _XINST_OFF_4L & _DEBUG_OFF_4L
+	__config _CONFIG5L, _CP0_OFF_5L & _CP1_OFF_5L & _CP2_OFF_5L & _CP3_OFF_5L
+	__config _CONFIG5H, _CPB_OFF_5H & _CPD_OFF_5H
+	__config _CONFIG6L, _WRT0_OFF_6L & _WRT1_OFF_6L & _WRT2_OFF_6L & _WRT3_OFF_6L
+	__config _CONFIG6H, _WRTB_OFF_6H & _WRTC_OFF_6H & _WRTD_OFF_6H
+	__config _CONFIG7L, _EBTR0_OFF_7L & _EBTR1_OFF_7L & _EBTR2_OFF_7L & _EBTR3_OFF_7L
+	__config _CONFIG7H, _EBTRB_OFF_7H
+
 
 
 	udata_acs
@@ -90,6 +103,11 @@ PROCESS_COUNTER macro COUNTER_INDEX
 
 	code
 entry:
+	; Kill unwanted peripherals.
+	clrf T0CON
+	movlw (1 << PCFG3) | (1 << PCFG2) | (1 << PCFG1) | (1 << PCFG0)
+	movwf ADCON1
+
 	; Set up ports.
 	clrf LATA
 	clrf LATB
