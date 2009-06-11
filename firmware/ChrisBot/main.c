@@ -190,6 +190,14 @@ static void loop_untimed(void) {
 	// Try receiving data from the XBee.
 	xbee_receive();
 
+	// Check if we're asked to reboot.
+	if (xbee_rxdata.reboot) {
+		debug_puts("Bot: Reboot\n");
+		nuke();
+		WDTCR = _BV(WDE) | _BV(WDP2);
+		for (;;);
+	}
+
 	// Check if we're in ESTOP mode.
 	if (xbee_rxdata.emergency || rtc_millis() - xbee_rxtimestamp > TIMEOUT_RECEIVE || !xbee_rxtimestamp || low_battery) {
 		nuke();
