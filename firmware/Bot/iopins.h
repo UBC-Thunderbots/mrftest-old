@@ -14,6 +14,8 @@
 			case 2: DDRA = 0; break; \
 			case 3: DDRB = 0; break; \
 			case 4: DDRE = 0; break; \
+			case 5: DDRF = 0; break; \
+			case 6: DDRG = 0; break; \
 		}                            \
 	} while (0)
 
@@ -28,6 +30,8 @@
 			case 2: DDRA = 0xFF; break; \
 			case 3: DDRB = 0xFF; break; \
 			case 4: DDRE = 0xFF; break; \
+			case 5: DDRF = 0xFF; break; \
+			case 6: DDRG = 0xFF; break; \
 		}                               \
 	} while (0)
 
@@ -42,6 +46,8 @@
 			case 2: PORTA = (value); break; \
 			case 3: PORTB = (value); break; \
 			case 4: PORTE = (value); break; \
+			case 5: PORTF = (value); break; \
+			case 6: PORTG = (value); break; \
 		}                                   \
 	} while (0)
 
@@ -50,11 +56,13 @@
  */
 #define ioport_read(port) \
 	(                     \
-	(port) == 0 ? PIND : \
-	(port) == 1 ? PINC : \
-	(port) == 2 ? PINA : \
-	(port) == 3 ? PINB : \
-	PINE)
+	(port) == 0 ? PIND :  \
+	(port) == 1 ? PINC :  \
+	(port) == 2 ? PINA :  \
+	(port) == 3 ? PINB :  \
+	(port) == 4 ? PINE :  \
+	(port) == 5 ? PINF :  \
+	PING)
 
 /*
  * Configures the specified pin as an input.
@@ -67,6 +75,8 @@
 			case 2: DDRA &= ~_BV((pin) % 8); break; \
 			case 3: DDRB &= ~_BV((pin) % 8); break; \
 			case 4: DDRE &= ~_BV((pin) % 8); break; \
+			case 5: DDRF &= ~_BV((pin) % 8); break; \
+			case 6: DDRG &= ~_BV((pin) % 8); break; \
 		}                                           \
 	} while (0)
 
@@ -81,6 +91,8 @@
 			case 2: DDRA |= _BV((pin) % 8); break; \
 			case 3: DDRB |= _BV((pin) % 8); break; \
 			case 4: DDRE |= _BV((pin) % 8); break; \
+			case 5: DDRF |= _BV((pin) % 8); break; \
+			case 6: DDRG |= _BV((pin) % 8); break; \
 		}                                          \
 	} while (0)
 
@@ -95,6 +107,8 @@
 			case 2: PORTA |= _BV((pin) % 8); break; \
 			case 3: PORTB |= _BV((pin) % 8); break; \
 			case 4: PORTE |= _BV((pin) % 8); break; \
+			case 5: PORTF |= _BV((pin) % 8); break; \
+			case 6: PORTG |= _BV((pin) % 8); break; \
 		}                                           \
 	} while (0)
 
@@ -109,6 +123,8 @@
 			case 2: PORTA &= ~_BV((pin) % 8); break; \
 			case 3: PORTB &= ~_BV((pin) % 8); break; \
 			case 4: PORTE &= ~_BV((pin) % 8); break; \
+			case 5: PORTF &= ~_BV((pin) % 8); break; \
+			case 6: PORTG &= ~_BV((pin) % 8); break; \
 		}                                            \
 	} while (0)
 
