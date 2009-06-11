@@ -8,7 +8,7 @@
 #include "rtc.h"
 #include "debug.h"
 
-#define XBEE_DEBUG 1
+#define XBEE_DEBUG 0
 #define XBEE_MAX_PACKET 32
 
 static void memcpy_volatile_to_volatile(volatile void *dest, const volatile void *src, uint8_t len) __attribute__((__always_inline__));
@@ -195,6 +195,9 @@ void xbee_init(void) {
 
 	// Exit command mode.
 	init_command("ATCN");
+
+	// Enable receive interrupts.
+	UCSR1B |= _BV(RXCIE1);
 }
 
 void xbee_receive(void) {
@@ -224,6 +227,7 @@ void xbee_send(void) {
 		txptr = 0;
 		txlen = 14 + sizeof(xbee_txdata) + 1;
 		sei();
+		UCSR1B |= _BV(UDRIE1);
 	}
 }
 
