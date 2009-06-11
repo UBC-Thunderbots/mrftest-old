@@ -1,5 +1,7 @@
 * text=auto !eol
 firmware/Bot/Makefile -text
+firmware/Bot/accelerometer.c -text
+firmware/Bot/accelerometer.h -text
 firmware/Bot/adcpins.c -text
 firmware/Bot/adcpins.h -text
 firmware/Bot/constants.h -text
