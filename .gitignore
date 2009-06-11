@@ -1,4 +1,4 @@
 /build
-firmware/ChrisBot/bot.elf
-firmware/ChrisBot/bot.hex
+firmware/Bot/bot.elf
+firmware/Bot/bot.hex
 firmware/EStopBtn/applet
