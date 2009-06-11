@@ -30,6 +30,7 @@ void wheel_clear(struct wheel *w) {
 
 void wheel_update_rpm(struct wheel *w) {
 	write_pin(w->counter_oe_pin, 0);
+	w->last_count = w->cur_count;
 	w->cur_count = ioport_read(IOPORT_COUNTER_DATA);
 	write_pin(w->counter_oe_pin, 1);
 }
