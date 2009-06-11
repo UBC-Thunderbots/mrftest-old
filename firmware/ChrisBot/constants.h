@@ -5,11 +5,11 @@
 #define F_CPU 16000000UL
 
 // Allows bypassing various controllers and running in open loop.
-#define T_CONTROLLER_ENABLED 0
+#define T_CONTROLLER_ENABLED 1
 #define X_CONTROLLER_ENABLED 0
 #define Y_CONTROLLER_ENABLED 0
 #define F_CONTROLLER_ENABLED 0
-#define W_CONTROLLER_ENABLED 0
+#define W_CONTROLLER_ENABLED 1
 
 // Parameters for the debug port.
 #define DEBUG_BAUD 115200UL

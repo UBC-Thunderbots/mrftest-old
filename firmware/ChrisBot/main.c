@@ -68,6 +68,9 @@ static unsigned long last_battery_time;
 // Whether the battery voltage is low.
 static uint8_t low_battery;
 
+// Whether to estop.
+static uint8_t estop;
+
 /*
  * Zeroes everything.
  */
@@ -106,6 +109,10 @@ static void loop_timed(void) {
 	double vt_setpoint, vx_setpoint, vy_setpoint;
 	double vx_filtered_setpoint, vy_filtered_setpoint;
 	double vx_actuator, vy_actuator, vt_actuator;
+
+	// Check for estop case.
+	if (estop)
+		return;
 
 	// Read data from sensors.
 	vt = gyro_read();
@@ -200,7 +207,8 @@ static void loop_untimed(void) {
 	}
 
 	// Check if we're in ESTOP mode.
-	if (xbee_rxdata.emergency || rtc_millis() - xbee_rxtimestamp > TIMEOUT_RECEIVE || !xbee_rxtimestamp || low_battery) {
+	estop = xbee_rxdata.emergency || rtc_millis() - xbee_rxtimestamp > TIMEOUT_RECEIVE || !xbee_rxtimestamp || low_battery;
+	if (estop) {
 		nuke();
 		return;
 	}

@@ -21,6 +21,6 @@ void gyro_init(void) {
 }
 
 double gyro_read(void) {
-	return adc_read(ADCPIN_GYRO_DATA) - adc_read(ADCPIN_GYRO_VREF) - zero;
+	return GYRO_TO_RADS * (adc_read(ADCPIN_GYRO_DATA) - adc_read(ADCPIN_GYRO_VREF) - zero);
 }
 
