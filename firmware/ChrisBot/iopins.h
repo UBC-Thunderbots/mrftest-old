@@ -50,11 +50,11 @@
  */
 #define ioport_read(port) \
 	(                     \
-	(port) == 0 ? PORTD : \
-	(port) == 1 ? PORTC : \
-	(port) == 2 ? PORTA : \
-	(port) == 3 ? PORTB : \
-	PORTE)
+	(port) == 0 ? PIND : \
+	(port) == 1 ? PINC : \
+	(port) == 2 ? PINA : \
+	(port) == 3 ? PINB : \
+	PINE)
 
 /*
  * Configures the specified pin as an input.
