@@ -87,10 +87,20 @@
 #define ADCPIN_GREEN_BATTERY 7
 
 // IO pin numbers (check for conflicts with IO ports below if changing!)
+#define IOPIN_XBEE_RXD      2
+#define IOPIN_XBEE_TXD      3
 #define IOPIN_COUNTER0_OE   4
 #define IOPIN_COUNTER1_OE   5
 #define IOPIN_COUNTER2_OE   6
 #define IOPIN_COUNTER3_OE   7
+#define IOPIN_COUNTER_DATA0 8
+#define IOPIN_COUNTER_DATA1 9
+#define IOPIN_COUNTER_DATA2 10
+#define IOPIN_COUNTER_DATA3 11
+#define IOPIN_COUNTER_DATA4 12
+#define IOPIN_COUNTER_DATA5 13
+#define IOPIN_COUNTER_DATA6 14
+#define IOPIN_COUNTER_DATA7 15
 #define IOPIN_MOTOR0A       16
 #define IOPIN_MOTOR0B       17
 #define IOPIN_MOTOR1A       18
@@ -101,6 +111,26 @@
 #define IOPIN_MOTOR3B       23
 #define IOPIN_COUNTER_RESET 24
 #define IOPIN_CPU_BUSY      25
+#define IOPIN_PWM6          28
+#define IOPIN_PWM0          29
+#define IOPIN_PWM1          30
+#define IOPIN_PWM2          31
+#define IOPIN_USB_RXD       32
+#define IOPIN_USB_TXD       33
+#define IOPIN_PWM3          35
+#define IOPIN_PWM4          36
+#define IOPIN_PWM5          37
+#define IOPIN_ADC0          40
+#define IOPIN_ADC1          41
+#define IOPIN_ADC2          42
+#define IOPIN_ADC3          43
+#define IOPIN_ADC4          44
+#define IOPIN_ADC5          45
+#define IOPIN_ADC6          46
+#define IOPIN_ADC7          47
+#define IOPIN_LED           48
+#define IOPIN_TOSC1         51
+#define IOPIN_TOSC2         52
 
 // IO port numbers (check for conflict with IO pins above if changing!)
 #define IOPORT_COUNTER_DATA 1
