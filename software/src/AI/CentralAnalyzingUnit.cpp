@@ -4,17 +4,35 @@
 #include "datapool/World.h"
 
 bool CentralAnalyzingUnit::checkVector(Vector2 rayOrigin, Vector2 rayEnd, PPlayer entity, unsigned int timeOffset, PPlayer passee) {
+	
+	Vector2 rayDiff = rayEnd - rayOrigin;	
+	
+	Vector2 rayOrthagonal(rayDiff.angle()+90);
+	
+	Vector2 rayOrigin1 = rayOrigin + rayOrthagonal;
+	Vector2 rayOrigin2 = rayOrigin + rayOrthagonal;
+	
+	rayOrthagonal *= entity->radius();
+
 	for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
 		PPlayer p = World::get().player(i);
 		if (p != entity && p != passee) {
 			//initially only considering one frame ahead, should be possible to check certain amounts depending on how long the vector is
 			Vector2 circlePos = p->futurePosition(timeOffset);
 			double circleRadius = DEFAULT_MAX_ACC * 1 + p->radius() * 2;
-			Vector2 rayDiff = rayEnd - rayOrigin;
-			Vector2 circleDiff = circlePos - rayOrigin;
-			double u = circleDiff.dot(rayDiff) / rayDiff.dot(rayDiff);
+			
+			Vector2 circleDiff1 = circlePos - rayOrigin1;
+			Vector2 circleDiff2 = circlePos - rayOrigin2;
+			
+			double u = circleDiff1.dot(rayDiff) / rayDiff.dot(rayDiff);
 	
-			if(u < 1 && u >= 0 &&(rayOrigin + (rayDiff * u) - circlePos).length() < circleRadius) {
+			if(u < 1 && u >= 0 && (rayOrigin1 + (rayDiff * u) - circlePos).length() < circleRadius) {
+				return true;
+			}
+			
+			u = circleDiff2.dot(rayDiff) / rayDiff.dot(rayDiff);
+			
+			if(u < 1 && u >= 0 && (rayOrigin2 + (rayDiff * u) - circlePos).length() < circleRadius) {
 				return true;
 			}
 		}
