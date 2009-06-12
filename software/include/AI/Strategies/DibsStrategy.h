@@ -13,7 +13,7 @@ public:
 private:
 	DibsStrategy(const DibsStrategy &copyref); // Prohibit copying.
 	bool attackerWaiting;
-	int oldAttacker;
+	unsigned int oldAttacker;
 	int waitingCounter;
 	void goalie(PPlayer robot);
 	void attacker(PPlayer attacker, PPlayer supporter);

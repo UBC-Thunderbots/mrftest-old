@@ -22,7 +22,7 @@ namespace {
 		}
 
 	protected:
-		virtual int_type overflow(int_type c) {
+		virtual int_type overflow(__attribute__((__unused__)) int_type c) {
 			setp(buffer, buffer + sizeof(buffer));
 			return 0;
 		}

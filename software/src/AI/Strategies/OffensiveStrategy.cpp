@@ -23,8 +23,6 @@ OffensiveStrategy::~OffensiveStrategy() {
 }
 
 void OffensiveStrategy::update() {
-	World &w = World::get();
-		
 	team.player(2)->plan(Plan::move);
 	if (team.player(2)->destination().x != defenseRange)
 		team.player(2)->destination(Vector2(defenseRange, 270));

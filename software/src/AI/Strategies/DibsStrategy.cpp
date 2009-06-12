@@ -50,7 +50,7 @@ void DibsStrategy::update() {
 	// The closest player to the upper corner gets to be defenderTop.
 	len = field->width() * 2.0;
 	closest = 0;
-	for (int id = 1; id < Team::SIZE; id++) {
+	for (unsigned int id = 1; id < Team::SIZE; id++) {
 		if (!dibs[id]) {
 			Vector2 corner;
 			corner.y = field->north();
@@ -72,7 +72,7 @@ void DibsStrategy::update() {
 	// The closest player to the lower corner gets to be defenderBottom.
 	len = field->width() * 2.0;
 	closest = 0;
-	for (int id = 1; id < Team::SIZE; id++) {
+	for (unsigned int id = 1; id < Team::SIZE; id++) {
 		if (!dibs[id]) {
 			Vector2 corner;
 			corner.y = field->south();

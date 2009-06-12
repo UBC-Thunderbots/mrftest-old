@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
 	// Read options.
 	bool useSim = false;
 	bool useVis = false;
-	for (unsigned int i = 1; i < argc; i++) {
+	for (int i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-s") == 0) {
 			useSim = true;
 		} else if (strcmp(argv[i], "-v") == 0) {

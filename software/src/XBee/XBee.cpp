@@ -76,7 +76,7 @@ namespace {
 			bool verify() {
 				if (buffer[0] != 0x7E)
 					return false;
-				if (buffer.size() - 4 != buffer[1] * 256 + buffer[2])
+				if (buffer.size() - 4 != buffer[1] * 256U + buffer[2])
 					return false;
 				unsigned char checksum = 0;
 				for (unsigned int i = 3; i < buffer.size(); i++)

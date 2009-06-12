@@ -17,7 +17,7 @@ PField Field::create(int width, int height, int west, int east, int north, int s
 	return field;
 }
 
-Field::Field(int width, int height, int west, int east, int north, int south, const Vector2 &centerCircle, unsigned int centerCircleRadius, PGoal westGoal, PGoal eastGoal) : width_(width), height_(height), west_(west), east_(east), north_(north), south_(south), centerCircle_(centerCircle), centerCircleRadius_(centerCircleRadius), westGoal_(westGoal), eastGoal_(eastGoal) {
+Field::Field(int width, int height, int west, int east, int north, int south, const Vector2 &centerCircle, unsigned int centerCircleRadius, PGoal westGoal, PGoal eastGoal) : centerCircle_(centerCircle), centerCircleRadius_(centerCircleRadius), westGoal_(westGoal), eastGoal_(eastGoal), west_(west), east_(east), north_(north), south_(south), width_(width), height_(height) {
 }
 
 Vector2 Field::centerCircle() const {

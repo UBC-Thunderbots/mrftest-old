@@ -19,7 +19,7 @@ std::vector<std::string> Joystick::list() {
 		return lst;
 
 	struct dirent *de;
-	while (de = readdir(dir)) {
+	while ((de = readdir(dir))) {
 		if (de->d_name[0] == 'j' && de->d_name[1] == 's') {
 			lst.push_back(std::string("/dev/input/") + de->d_name);
 		}

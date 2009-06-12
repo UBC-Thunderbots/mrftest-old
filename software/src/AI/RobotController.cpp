@@ -12,7 +12,7 @@
 namespace {
 	bool simulation = false;
 
-	void simulateWorld(PPlayer robot, Vector2 acc, double rotate, unsigned char dribble, unsigned char kick) {
+	void simulateWorld(PPlayer robot, Vector2 acc, double rotate, unsigned char kick) {
 		robot->acceleration(acc);
 
 		double angle = robot->orientation();
@@ -178,7 +178,7 @@ void RobotController::sendCommand(PPlayer robot, Vector2 acc, double rotate, uns
 	robot->requestedVelocity(acc);
 
 	if (simulation)
-		simulateWorld(robot, acc, rotate, dribble, kick);
+		simulateWorld(robot, acc, rotate, kick);
 	else
 		sendWireless(robot, acc, rotate, dribble, kick);
 }
