@@ -1,3 +1,5 @@
 file(GLOB LEASTSQUARES_SRC *.cpp)
 include_directories(.)
 add_library(leastsquares ${LEASTSQUARES_SRC})
+set(CMAKE_C_FLAGS "-march=native -mfpmath=sse")
+set(CMAKE_CXX_FLAGS "-march=native -mfpmath=sse")
