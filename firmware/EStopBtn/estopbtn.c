@@ -40,6 +40,11 @@ ISR(USART0_TX_vect, ISR_BLOCK) {
 
 int main(void) __attribute__((__noreturn__));
 int main(void) {
+	// Disable peripherals we don't need that start out enabled.
+	MCUCSR |= _BV(JTD); // JTAG debug interface
+	MCUCSR |= _BV(JTD); // (timed sequence, write twice)
+	ACSR = _BV(ACD);    // Analog comparator
+
 	// Configure the serial port.
 	UBRR0H = BAUD_DIVISOR / 256UL;
 	UBRR0L = BAUD_DIVISOR % 256UL;
