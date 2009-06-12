@@ -510,6 +510,16 @@ void XBee::init() {
 		writeFully("ATMYFFFF\r");
 	} while (!readOK());
 
+	// Set coordinator options.
+	do {
+		writeFully("ATA24\r");
+	} while (!readOK());
+
+	// Enable coordinator mode.
+	do {
+		writeFully("ATCE1\r");
+	} while (!readOK());
+
 	// Set baud rate.
 	do {
 		writeFully("ATBD7\r");
