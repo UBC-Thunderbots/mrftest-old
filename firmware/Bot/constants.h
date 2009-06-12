@@ -60,13 +60,13 @@
 #define XBEE_BAUD 9600UL
 #define XBEE_POWER_LEVEL "4"
 #define XBEE_CHANNEL "E"
-#define XBEE_PAN "6666"
+#define XBEE_PAN "7495"
 
 // Timeout for receiving a data packet before nuking (ms).
 #define TIMEOUT_RECEIVE 200
 
 // Interval between sending battery voltage updates.
-#define TIMEOUT_BATTERY 2000
+#define TIMEOUT_BATTERY 1000
 
 // Number of microseconds to delay before starting an ADC to allow the channel to settle.
 #define ADC_SETTLE_DELAY 3
