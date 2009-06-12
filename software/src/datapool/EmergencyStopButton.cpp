@@ -15,7 +15,7 @@
 #include <unistd.h>
 #include <time.h>
 
-#define TIMEOUT 500
+#define TIMEOUT 1100
 
 namespace {
 	/*
@@ -84,8 +84,8 @@ std::tr1::shared_ptr<Button> Button::create(const std::string &device) {
 	tios.c_lflag = 0;
 	tios.c_cc[VMIN] = 1;
 	tios.c_cc[VTIME] = 0;
-	cfsetispeed(&tios, B9600);
-	cfsetospeed(&tios, B9600);
+	cfsetispeed(&tios, B115200);
+	cfsetospeed(&tios, B115200);
 	if (tcsetattr(serialPort, TCSAFLUSH, &tios) < 0) {
 		int err = errno;
 		Log::log(Log::LEVEL_ERROR, "EStop") << "tcsetattr(" << device << "): " << std::strerror(err) << '\n';
