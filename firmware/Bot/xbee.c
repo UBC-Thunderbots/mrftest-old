@@ -186,14 +186,14 @@ void xbee_init(void) {
 	// Power level.
 	init_command("ATPL" XBEE_POWER_LEVEL);
 
-	// Channel.
-	init_command("ATCH" XBEE_CHANNEL);
-
 	// PAN.
 	init_command("ATID" XBEE_PAN);
 
 	// Local address (none).
 	init_command("ATMYFFFF");
+
+	// Configure coordination.
+	init_command("ATA16");
 
 	// Exit command mode.
 	init_command("ATCN");
