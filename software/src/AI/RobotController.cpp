@@ -109,6 +109,10 @@ namespace {
 			PID(vyKp, vyKi, vyKd, vyDecay),
 		};
 
+		// Cap magnitude of acc.
+		if (acc.length() > 1)
+			acc /= acc.length();
+
 		unsigned int index = UINT_MAX;
 		for (unsigned int i = 0; i < Team::SIZE; i++)
 			if (robot == World::get().friendlyTeam()->player(i))
