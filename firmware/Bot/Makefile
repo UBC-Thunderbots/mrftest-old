@@ -1,6 +1,7 @@
 CC := avr-gcc
 CFLAGS := -Wall -Wextra -Os -mmcu=atmega128 -DF_CPU=16000000UL
 OBJS := main.o debug.o pwmpins.o adcpins.o rtc.o filter.o gyro.o xbee.o wheel.o accelerometer.o
+USBDEV := /dev/ttyUSB0
 
 # Rule to build a HEX file from an ELF file.
 bot.hex : bot.elf
@@ -30,4 +31,4 @@ clean :
 # Rule to upload the firmware.
 .PHONY : burn
 burn : bot.hex
-	avrdude -p atmega128 -c stk500v2 -P /dev/ttyUSB0 -U $<
+	avrdude -p atmega128 -c stk500v2 -P $(USBDEV) -U $<
