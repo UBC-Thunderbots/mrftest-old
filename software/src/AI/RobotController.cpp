@@ -138,8 +138,6 @@ namespace {
 		//   World Y ->  Robot Y
 		double rot = robot->orientation() * M_PI / 180.0;
 		Vector2 rotated(acc.x * std::sin(rot) + acc.y * std::cos(rot), acc.x * std::cos(rot) + acc.y * -std::sin(rot));
-		if (rotated.length())
-			rotated /= rotated.length() * 2.0;
 		Vector2 mea(robot->velocity());
 		Vector2 mrotate(mea.x * std::sin(rot) + mea.y * std::cos(rot), mea.x * std::cos(rot) + mea.y * -std::sin(rot));
 		mrotate.x = World::get().field()->convertCoordToMm(mrotate.x) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
