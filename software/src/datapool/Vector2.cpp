@@ -20,6 +20,10 @@ including MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 Vector2::Vector2(double direction)
 {
+	while(direction > 360) direction -= 360;
+	
+	while(direction < 0) direction += 360;
+	
 	if (direction<90)
 	{
 		direction = (direction/180.0)*M_PI;
