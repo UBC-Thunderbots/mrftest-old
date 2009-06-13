@@ -20,10 +20,14 @@ including MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 Vector2::Vector2(double direction)
 {
-	while(direction > 360) direction -= 360;
-	
-	while(direction < 0) direction += 360;
-	
+	direction=direction/180.0)*M_PI;
+	x=std::cos(direction);
+	y=-std::sin(direction);
+
+	/*
+	while(direction > 360) direction-=360;
+	while(direction < 0) direction+=360;
+
 	if (direction<90)
 	{
 		direction = (direction/180.0)*M_PI;
@@ -47,11 +51,11 @@ Vector2::Vector2(double direction)
 		direction = ((direction-270)/180.0)*M_PI;
 		x = 1*std::sin(direction);
 		y = 1*std::cos(direction);
-	}
+	}*/
 }
 
 double Vector2::angle() const {
-	double angle = 0;
+	/*double angle = 0;
 	if (x>=0 && y<=0)
 		angle = (std::atan(-y/x)/M_PI)*180;
 	else if (x<0 && y<0)
@@ -61,5 +65,7 @@ double Vector2::angle() const {
 	else
 		angle = 270+((std::atan(x/y)/M_PI)*180);
 	return angle;
+	*/
+	return std::atan2(x,-y)*180.0/M_PI+180;
 }
 
