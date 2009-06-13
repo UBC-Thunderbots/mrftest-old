@@ -161,8 +161,8 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos) {
 	pos = curPos + diff;
 
 	// Create a buffer zone to stop the robot:
-	if (diff.length() < field->convertMmToCoord(1000)) {
-		diff /= field->convertMmToCoord(1000);
+	if (diff.length() < field->convertMmToCoord(2000)) {
+		diff /= field->convertMmToCoord(2000);
 	} else {
 		diff /= diff.length();
 	}
@@ -199,10 +199,10 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos) {
 	if (avoid) {
 		if (!probRight) {
 			diff = diffR;
-			avoidOffset = -85;
+			avoidOffset = -45;
 		} else if (!probLeft) {
 			diff = diffL;
-			avoidOffset = 85;
+			avoidOffset = 45;
 		}
 		diff = Vector2(diff.angle() + avoidOffset) * diff.length();
 	}
