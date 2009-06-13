@@ -16,6 +16,8 @@
 #include <netinet/ip.h>
 #include <arpa/inet.h>
 
+static bool seenBallFromCamera[2] = {false, false};
+
 ImageRecognition::ImageRecognition() {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -151,9 +153,12 @@ void ImageRecognition::update() {
 		if (pkt.has_detection()) {
 			const SSL_DetectionFrame &det = pkt.detection();
 			if (det.balls_size()) {
+				seenBallFromCamera[det.camera_id()] = true;
 				const SSL_DetectionBall &ball = det.balls(0);
 				if (ball.confidence() > 0.01)
 					World::get().ball()->position(Vector2(ball.x(), -ball.y()));
+			} else {
+				seenBallFromCamera[det.camera_id()] = false;
 			}
 
 			for (int i = 0; i < det.robots_yellow_size(); i++) {
@@ -171,6 +176,25 @@ void ImageRecognition::update() {
 			for (int i = 0; i < det.robots_blue_size(); i++) {
 				const SSL_DetectionRobot &bot = det.robots_blue(i);
 				World::get().enemyTeam()->player(i)->position(Vector2(bot.x(), -bot.y()));
+			}
+
+			World::get().isBallVisible(seenBallFromCamera[0] || seenBallFromCamera[1]);
+		}
+
+		if (World::get().isBallVisible()) {
+			std::vector<PPlayer> possessors;
+			for (unsigned int i = 0; i < Team::SIZE; i++) {
+				PPlayer pl = World::get().friendlyTeam()->players()[i];
+				if ((World::get().ball()->position() - (pl->position() + 80 * Vector2(pl->orientation()))).length() < 90) {
+					possessors.push_back(pl);
+				}
+			}
+			if (!possessors.empty()) {
+				PPlayer pl = possessors[0];
+				pl->hasBall(true);
+			} else {
+				for (unsigned int i = 0; i < Team::SIZE; i++)
+					World::get().friendlyTeam()->players()[i]->hasBall(false);
 			}
 		}
 	}
