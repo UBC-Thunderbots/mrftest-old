@@ -64,10 +64,10 @@ int main(void) {
 	set_sleep_mode(SLEEP_MODE_PWR_SAVE);
 
 	// Configure IO pins.
-	// PB0 = switch
-	// PB1 = positive
-	// PB2 = negative
-	PORTB = _BV(1);
+	// PB0 = switch   (connected to input pin with internal pullup)
+	// PB1 = positive (external pullup resistor; obsolete but harmless)
+	// PB2 = negative (switch connects this to PB0 when in ON position)
+	PORTB = _BV(1) | _BV(0);
 	DDRB = _BV(1) | _BV(2);
 
 	// Enable interrupts.
