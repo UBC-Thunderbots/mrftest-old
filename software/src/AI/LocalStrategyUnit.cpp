@@ -157,51 +157,57 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos) {
 	Vector2 curPos = robot->position();
 	Vector2 curVel = robot->velocity();
 	Vector2 diff = pos - curPos;
-
-	// If the destination is far away, consider a closer destination.
-	int maxLength = field->height();
-	if (diff.length() > maxLength)
-		diff *= maxLength / diff.length();
+	
 	pos = curPos + diff;
-	int iter = 0;
-	bool unclear = true;		
-	Vector2 tmpdiff = diff;
 
-	//checks vectors, rotates acceleration randomly to the left or right of the object until vector is clear (60 degrees each direction)
-	while (CentralAnalyzingUnit::checkVector(curPos, pos, robot, 1) && iter < 25) {
-		unclear = false;
-		diff = tmpdiff;
-		double u1 = static_cast<double>(std::rand()) / RAND_MAX;
-		double u2 = static_cast<double>(std::rand()) / RAND_MAX;
-		double theta = std::sqrt(-2 * std::log(u1)) * std::sin(2 * M_PI * u2) * .5; //box muller transform
-		diff.x = std::cos(theta) * diff.x - std::sin(theta) * diff.y;
-		diff.y = std::sin(theta) * diff.x + std::cos(theta) * diff.y;
-
-		pos = curPos + diff;
-		iter++;
-	}
-
-	// Scale by the maximum acceleration:
-	if (diff.length() > DEFAULT_MAX_ACC) {
-		double factor = DEFAULT_MAX_ACC / diff.length();
-		diff *= factor;
+	// Create a buffer zone to stop the robot:
+	if (diff.length() < field->convertMmToCoord(1000)) {
+		diff /= field->convertMmToCoord(1000);
+	} else {
+		diff /= diff.length();
 	}
 
 	// Avoid obstacles if not goalie:
 	bool west = team.side();
 	double fuzzyFactor = curPos.x / field->width();
-	Vector2 velPos;
-	if (west) velPos = curPos + diff * (20 * fuzzyFactor       + 5);
-	else      velPos = curPos + diff * (20 * (1 - fuzzyFactor) + 5);
-	if (CentralAnalyzingUnit::checkVector(curPos, velPos, robot, 1)) {
+	Vector2 velPosL;
+	Vector2 velPosR;
+	
+	Vector2 diffL = Vector2(diff.angle()) * diff.length();	
+	Vector2 diffR = Vector2(diff.angle()) * diff.length();
+	
+	velPosL = curPos + diff * 2000;
+	velPosR = curPos + diff * 2000;
+	
+	int maxTurn = 360;
+	bool avoid = false;
+	
+	int avoidOffset = 0;
+	
+	bool probRight;
+	bool probLeft;
+	
+	while (((probRight = CentralAnalyzingUnit::checkVector(curPos, velPosR, robot, 1)) && (probLeft = CentralAnalyzingUnit::checkVector(curPos, velPosL, robot, 1))) && maxTurn > 0) {
+		avoid = true;
 		// Move around the obstacle by going left:
-		diff.x = (diff.x * std::cos(M_PI / 2.0)) - (diff.y * std::sin(M_PI / 2.0));
-		diff.y = (diff.x * std::sin(M_PI / 2.0)) + (diff.y * std::cos(M_PI / 2.0));
-		//diff.x = (diff.x * std::cos(90)) - (diff.y * std::sin(90));
-		//diff.y = (diff.x * std::sin(90)) + (diff.y * std::cos(90));
+		diffL = Vector2(diffL.angle() + 5) * diffL.length();
+		diffR = Vector2(diffR.angle() - 5) * diffR.length();
+		velPosL = curPos + diffL * 2000;
+		velPosR = curPos + diffR * 2000;
+		maxTurn -= 5;
+	}
+	if (avoid) {
+		if (!probRight) {
+			diff = diffR;
+			avoidOffset = -85;
+		} else if (!probLeft) {
+			diff = diffL;
+			avoidOffset = 85;
+		}
+		diff = Vector2(diff.angle() + avoidOffset) * diff.length();
 	}
 
-	if (!robot->allowedInside()) {
+	/*if (!robot->allowedInside()) {
 		// The robots can not move within 500mm of the ball when it is not play mode.
 		pos = curPos + diff;
 		Vector2 ballPos = World::get().ball()->position();
@@ -215,7 +221,7 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos) {
 			pos = ballPos + ballDis;
 			diff = pos - curPos;
 		}
-	}
+	} */
 
 	double angle = robot->orientation();
 
