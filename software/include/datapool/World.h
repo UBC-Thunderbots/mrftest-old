@@ -71,6 +71,9 @@ public:
 	 */
 	PBall ball();
 	const PBall ball() const;
+	
+	bool isBallVisible() const;
+	void isBallVisible(bool newVal);
 
 private:
 	World(PTeam friendlyTeam, PTeam enemyTeam, PField field);
@@ -81,6 +84,7 @@ private:
 	PField field_;
 	PBall ball_;
 	std::vector<PPlayer> everyone;
+	bool ballVisible;
 };
 
 #endif

@@ -95,3 +95,11 @@ const PBall World::ball() const {
 	return ball_;
 }
 
+bool World::isBallVisible() const {
+	return ballVisible;
+}
+
+void World::isBallVisible(bool newVal) {
+	ballVisible = newVal;
+}
+
