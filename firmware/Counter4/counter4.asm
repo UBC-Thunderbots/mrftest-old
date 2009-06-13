@@ -107,15 +107,17 @@ entry:
 	clrf T0CON
 	movlw (1 << PCFG3) | (1 << PCFG2) | (1 << PCFG1) | (1 << PCFG0)
 	movwf ADCON1
+	movlw (1 << UTRDIS)
+	movwf UCFG
 
 	; Set up ports.
 	clrf LATA
 	clrf LATB
 	clrf LATC
-	movlw (1 << 5) | (1 << 4) | (1 << 1) | (1 << 5)
+	movlw (1 << 5) | (1 << 4) | (1 << 1) | (1 << 0)
 	movwf TRISA
 	clrf TRISB
-	movlw (1 << 7) | (1 << 2) | (1 << 1) | (1 << 0)
+	movlw (1 << 7) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0)
 	movwf TRISC
 
 	; Clear prevstates.
