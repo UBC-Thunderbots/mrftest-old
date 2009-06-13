@@ -5,27 +5,28 @@
 #include "adcpins.h"
 #include "debug.h"
 
-void accelerometer_init(struct accelerometer *a, const double *filter_a, const double *filter_b, uint8_t adc_pin, double radius) {
+#if ACCELEROMETER_ZERO_SAMPLES
+static void zero(struct accelerometer *a) {
 	int32_t accumulator;
 	uint16_t i;
-
-	filter_init(&a->filter, filter_a, filter_b);
-	a->adc_pin = adc_pin;
-	a->radius = radius;
-
-	debug_puts("Radius="); debug_putf(a->radius); debug_putc('\n');
 
 	accumulator = 0;
 	i = ACCELEROMETER_ZERO_SAMPLES;
 	do {
 		adc_sample();
-		accumulator += (int32_t) adc_read(adc_pin);
+		accumulator += (int32_t) adc_read(a->adc_pin);
 	} while (--i);
 	a->zero = (double) accumulator / ACCELEROMETER_ZERO_SAMPLES;
-	debug_puts("Zero=");
-	debug_putf(a->zero);
-	debug_putc('\n');
+}
+#else
+#define zero(a) do {} while (0)
+#endif
 
+void accelerometer_init(struct accelerometer *a, const double *filter_a, const double *filter_b, uint8_t adc_pin, double radius) {
+	filter_init(&a->filter, filter_a, filter_b);
+	a->adc_pin = adc_pin;
+	a->radius = radius;
+	zero(a);
 	accelerometer_clear(a);
 }
 

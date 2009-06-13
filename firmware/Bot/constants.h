@@ -51,7 +51,11 @@
 #define ACCELEROMETER_TO_CM 4.785156
 
 // Number of samples to take while zeroing the accelerometers.
+#if X_CONTROLLER_ENABLED || Y_CONTROLLER_ENABLED
 #define ACCELEROMETER_ZERO_SAMPLES 50
+#else
+#define ACCELEROMETER_ZERO_SAMPLES 0
+#endif
 
 // How long to fire the kicker for (ms)
 #define KICK_TIME 200
