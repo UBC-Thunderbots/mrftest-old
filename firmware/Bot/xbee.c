@@ -36,9 +36,7 @@ static void memcpy_from_volatile(void *dest, const volatile void *src, uint8_t l
 }
 
 unsigned long xbee_rxtimestamp;
-struct xbee_rxdata xbee_rxdata = {
-	.emergency = 0xFF,
-};
+struct xbee_rxdata xbee_rxdata;
 struct xbee_txdata xbee_txdata;
 
 static volatile uint8_t host_address[8];
@@ -197,6 +195,9 @@ void xbee_init(void) {
 
 	// Exit command mode.
 	init_command("ATCN");
+
+	// Initialize receive buffer to a safe value.
+	xbee_rxdata.emergency = 0xFF;
 
 	// Enable receive interrupts.
 	UCSR1B |= _BV(RXCIE1);
