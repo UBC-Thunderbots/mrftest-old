@@ -84,6 +84,15 @@ static void nuke(void) {
 	pwm_write(PWMPIN_MOTOR2, 0);
 	pwm_write(PWMPIN_MOTOR3, 0);
 
+	iopin_write(IOPIN_MOTOR0A, 0);
+	iopin_write(IOPIN_MOTOR0B, 0);
+	iopin_write(IOPIN_MOTOR1A, 0);
+	iopin_write(IOPIN_MOTOR1B, 0);
+	iopin_write(IOPIN_MOTOR2A, 0);
+	iopin_write(IOPIN_MOTOR2B, 0);
+	iopin_write(IOPIN_MOTOR3A, 0);
+	iopin_write(IOPIN_MOTOR3B, 0);
+
 	for (i = 0; i < 4; i++)
 		wheel_clear(&wheels[i]);
 
