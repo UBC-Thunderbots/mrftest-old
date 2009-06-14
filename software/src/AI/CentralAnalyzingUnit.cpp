@@ -1,4 +1,5 @@
 #include <cassert>
+#include <cmath>
 #include <algorithm>
 #include "AI/CentralAnalyzingUnit.h"
 #include "datapool/World.h"
@@ -59,5 +60,26 @@ PPlayer CentralAnalyzingUnit::closestRobot(PPlayer robot, TEAM team, bool includ
 		}
 	}
 	return closest;
+}
+
+Vector2 CentralAnalyzingUnit::lcIntersection(Vector2 start, Vector2 end, Vector2 centre, double radius) {
+	// Normalize everything so the circle centres at the origin.
+	start -= centre;
+	end -= centre;
+	// This algorithm came from Wolfram Mathworld.
+	const double dx = end.x - start.x;
+	const double dy = end.y - start.y;
+	const double dr = std::sqrt(dx * dx + dy * dy);
+	const double D = start.cross(end);
+	const double discrim = radius * radius * dr * dr - D * D;
+	if (discrim < 0)
+		return end + centre;
+	const double x1 = (D * dy + (dy < 0 ? -1 : 1) * dx * std::sqrt(discrim)) / (dr * dr);
+	const double x2 = (D * dy - (dy < 0 ? -1 : 1) * dx * std::sqrt(discrim)) / (dr * dr);
+	const double y1 = (-D * dx + std::fabs(dy) * std::sqrt(discrim)) / (dr * dr);
+	const double y2 = (-D * dx - std::fabs(dy) * std::sqrt(discrim)) / (dr * dr);
+	Vector2 p1(x1, y1);
+	Vector2 p2(x2, y2);
+	return ((p1 - start).length() < (p2 - start).length() ? p1 : p2) + centre;
 }
 

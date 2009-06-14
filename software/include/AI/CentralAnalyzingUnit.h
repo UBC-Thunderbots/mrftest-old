@@ -22,6 +22,11 @@ namespace CentralAnalyzingUnit {
 		TEAM_OPPOSITE
 	};
 	PPlayer closestRobot(PPlayer robot, TEAM team, bool includeGoalie);
+
+	// Finds the point of intersection between a line segment and a circle.
+	// If the segment [start,end] does not intersect the circle, returns end.
+	// If it does intersect, returns the closer of the two intersection points to start.
+	Vector2 lcIntersection(Vector2 start, Vector2 end, Vector2 centre, double radius);
 }
 
 #endif
