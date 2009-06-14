@@ -43,10 +43,10 @@ namespace XBee {
 	// The format of an inbound packet from robot to host.
 	//
 	struct RXData {
-		// Green battery voltage (0-1023), high and low order bits (65536 if no data yet).
+		// Green battery voltage (0-1023), high and low order bits (65535 if no data yet).
 		unsigned char vGreen[2];
 
-		// Motor battery voltage (0-1023), high and low order bits (65536 if no data yet).
+		// Motor battery voltage (0-1023), high and low order bits (65535 if no data yet).
 		unsigned char vMotor[2];
 	} __attribute__((packed));
 
