@@ -188,7 +188,7 @@ void ImageRecognition::update() {
 			std::vector<PPlayer> possessors;
 			for (unsigned int i = 0; i < Team::SIZE; i++) {
 				PPlayer pl = World::get().friendlyTeam()->players()[i];
-				if ((World::get().ball()->position() - (pl->position() + OFFSET_FROM_ROBOT_TO_BALL * Vector2(pl->orientation()))).length() < 90) {
+				if ((World::get().ball()->position() - (pl->position() + OFFSET_FROM_ROBOT_TO_BALL * Vector2(pl->orientation()))).length() < 17) {
 					possessors.push_back(pl);
 				}
 			}
