@@ -24,7 +24,7 @@ wheel.o : constants.h wheel.h pwmpins.h iopins.h filter.h
 accelerometer.o : constants.h accelerometer.h filter.h adcpins.h
 
 # Rule to build the version number header.
-version.h : mkversion.sh *.c $(subst version.h,,$(wildcard *.h))
+version.h : mkversion.sh *.c $(subst version.h,,$(wildcard *.h)) .svn
 	./mkversion.sh
 
 # Rule to delete intermediate and output files.
