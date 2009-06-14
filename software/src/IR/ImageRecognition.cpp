@@ -9,6 +9,7 @@
 #include "datapool/Team.h"
 #include "datapool/World.h"
 
+#include <algorithm>
 #include <cerrno>
 #include <cstring>
 #include <sys/socket.h>
@@ -163,7 +164,7 @@ void ImageRecognition::update() {
 				seenBallFromCamera[det.camera_id()] = false;
 			}
 
-			for (int i = 0; i < det.robots_yellow_size(); i++) {
+			for (int i = 0; i < std::min(det.robots_yellow_size(), static_cast<int>(Team::SIZE)); i++) {
 				const SSL_DetectionRobot &bot = det.robots_yellow(i);
 				if (bot.has_robot_id()) {
 					PPlayer player(World::get().friendlyTeam()->player(bot.robot_id()));
@@ -175,7 +176,7 @@ void ImageRecognition::update() {
 				}
 			}
 
-			for (int i = 0; i < det.robots_blue_size(); i++) {
+			for (int i = 0; i < std::min(det.robots_blue_size(), static_cast<int>(Team::SIZE)); i++) {
 				const SSL_DetectionRobot &bot = det.robots_blue(i);
 				World::get().enemyTeam()->player(i)->position(Vector2(bot.x(), -bot.y()));
 			}
