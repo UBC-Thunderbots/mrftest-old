@@ -7,6 +7,7 @@
 #include <ctime>
 #include <gtkmm/button.h>
 #include <gtkmm/drawingarea.h>
+#include <gtkmm/entry.h>
 #include <gtkmm/label.h>
 #include <gtkmm/progressbar.h>
 #include <gtkmm/table.h>
@@ -174,7 +175,7 @@ namespace {
 
 	class RobotControls {
 	public:
-		RobotControls(unsigned int id, Gtk::Table &tbl) : commStatusLight(id), runSwitch(id), rebootButton(id), greenVoltage(XBee::in[id].vGreen, GREEN_BATTERY_CONVERSION_FACTOR, GREEN_BATTERY_MIN_VOLTAGE, GREEN_BATTERY_MAX_VOLTAGE, GREEN_BATTERY_WARNING_VOLTAGE, GREEN_BATTERY_ZERO_VOLTAGE), motorVoltage(XBee::in[id].vMotor, MOTOR_BATTERY_CONVERSION_FACTOR, MOTOR_BATTERY_MIN_VOLTAGE, MOTOR_BATTERY_MAX_VOLTAGE, MOTOR_BATTERY_WARNING_VOLTAGE, MOTOR_BATTERY_ZERO_VOLTAGE) {
+		RobotControls(unsigned int id, Gtk::Table &tbl) : id(id), commStatusLight(id), runSwitch(id), rebootButton(id), greenVoltage(XBee::in[id].vGreen, GREEN_BATTERY_CONVERSION_FACTOR, GREEN_BATTERY_MIN_VOLTAGE, GREEN_BATTERY_MAX_VOLTAGE, GREEN_BATTERY_WARNING_VOLTAGE, GREEN_BATTERY_ZERO_VOLTAGE), motorVoltage(XBee::in[id].vMotor, MOTOR_BATTERY_CONVERSION_FACTOR, MOTOR_BATTERY_MIN_VOLTAGE, MOTOR_BATTERY_MAX_VOLTAGE, MOTOR_BATTERY_WARNING_VOLTAGE, MOTOR_BATTERY_ZERO_VOLTAGE), oldVersion(UINT_MAX) {
 			std::ostringstream oss;
 			oss << id;
 			label.set_text(oss.str());
@@ -185,6 +186,7 @@ namespace {
 			tbl.attach(rebootButton,    id + 1, id + 2, 3, 4);
 			tbl.attach(greenVoltage,    id + 1, id + 2, 4, 5);
 			tbl.attach(motorVoltage,    id + 1, id + 2, 5, 6);
+			tbl.attach(firmware,        id + 1, id + 2, 6, 7);
 		}
 
 		void update() {
@@ -192,15 +194,29 @@ namespace {
 			runSwitch.update();
 			greenVoltage.update();
 			motorVoltage.update();
+			unsigned int ver = XBee::in[id].firmware[0] * 256 + XBee::in[id].firmware[1];
+			if (ver != oldVersion) {
+				if (ver == 65535) {
+					firmware.set_text("---");
+				} else {
+					std::ostringstream oss;
+					oss << ver;
+					firmware.set_text(oss.str());
+				}
+				oldVersion = ver;
+			}
 		}
 
 	private:
+		unsigned int id;
 		Gtk::Label label;
 		CommStatusLight commStatusLight;
 		RunSwitch runSwitch;
 		RebootButton rebootButton;
 		Voltage greenVoltage;
 		Voltage motorVoltage;
+		Gtk::Entry firmware;
+		unsigned int oldVersion;
 	};
 
 	class RobotControlArray {
@@ -226,17 +242,18 @@ public:
 	ControlPanelImpl(Gtk::Table &tbl) : controlArray(tbl) {
 	}
 
-	Gtk::Label robotIdLabel, commStatusLabel, runLabel, rebootLabel, greenLabel, motorLabel;
+	Gtk::Label robotIdLabel, commStatusLabel, runLabel, rebootLabel, greenLabel, motorLabel, firmwareLabel;
 	RobotControlArray controlArray;
 };
 
-ControlPanel::ControlPanel() : Gtk::Table(6, 6, false), impl(new ControlPanelImpl(*this)) {
+ControlPanel::ControlPanel() : Gtk::Table(7, 6, false), impl(new ControlPanelImpl(*this)) {
 	impl->robotIdLabel.set_text("Robot:");
 	impl->commStatusLabel.set_text("Comm Status:");
 	impl->runLabel.set_text("Run Switch:");
 	impl->rebootLabel.set_text("Reboot:");
 	impl->greenLabel.set_text("Green Battery:");
 	impl->motorLabel.set_text("Motor Battery:");
+	impl->firmwareLabel.set_text("Firmware:");
 
 	attach(impl->robotIdLabel,    0, 1, 0, 1);
 	attach(impl->commStatusLabel, 0, 1, 1, 2);
@@ -244,6 +261,7 @@ ControlPanel::ControlPanel() : Gtk::Table(6, 6, false), impl(new ControlPanelImp
 	attach(impl->rebootLabel,     0, 1, 3, 4);
 	attach(impl->greenLabel,      0, 1, 4, 5);
 	attach(impl->motorLabel,      0, 1, 5, 6);
+	attach(impl->firmwareLabel,   0, 1, 6, 7);
 }
 
 void ControlPanel::update() {
