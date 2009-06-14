@@ -16,6 +16,8 @@
 #include <netinet/ip.h>
 #include <arpa/inet.h>
 
+#define OFFSET_FROM_ROBOT_TO_BALL 80
+
 static bool seenBallFromCamera[2] = {false, false};
 
 ImageRecognition::ImageRecognition() {
@@ -185,7 +187,7 @@ void ImageRecognition::update() {
 			std::vector<PPlayer> possessors;
 			for (unsigned int i = 0; i < Team::SIZE; i++) {
 				PPlayer pl = World::get().friendlyTeam()->players()[i];
-				if ((World::get().ball()->position() - (pl->position() + 80 * Vector2(pl->orientation()))).length() < 90) {
+				if ((World::get().ball()->position() - (pl->position() + OFFSET_FROM_ROBOT_TO_BALL * Vector2(pl->orientation()))).length() < 90) {
 					possessors.push_back(pl);
 				}
 			}
@@ -194,7 +196,15 @@ void ImageRecognition::update() {
 				pl->hasBall(true);
 			} else {
 				for (unsigned int i = 0; i < Team::SIZE; i++)
-					World::get().friendlyTeam()->players()[i]->hasBall(false);
+					World::get().friendlyTeam()->player(i)->hasBall(false);
+			}
+		} else {
+			for (unsigned int i = 0; i < Team::SIZE; i++) {
+				PPlayer pl = World::get().friendlyTeam()->player(i);
+				if (pl->hasBall()) {
+					World::get().ball()->position(pl->position() + OFFSET_FROM_ROBOT_TO_BALL * Vector2(pl->orientation()));
+					break;
+				}
 			}
 		}
 	}
