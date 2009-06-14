@@ -238,6 +238,8 @@ static void loop_untimed(void) {
  */
 int main(void) __attribute__((__noreturn__));
 int main(void) {
+	unsigned long now;
+
 	// Turn on interrupts.
 	sei();
 
@@ -314,7 +316,10 @@ int main(void) {
 	set_sleep_mode(SLEEP_MODE_IDLE);
 
 	// Initialize timestamps.
-	kick_time = last_loop_time = last_battery_time = rtc_millis();
+	now = rtc_millis();
+	kick_time = 0;
+	last_loop_time = now < LOOP_TIME ? 0 : now - LOOP_TIME;
+	last_battery_time = now < TIMEOUT_BATTERY ? 0 : now - TIMEOUT_BATTERY;
 
 	// Initialization complete.
 	debug_puts("Bot: Initialized.\n");
