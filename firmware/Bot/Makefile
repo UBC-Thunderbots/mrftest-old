@@ -12,7 +12,7 @@ bot.elf : $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $+ -lm
 
 # Dependencies of O files on headers.
-main.o : constants.h debug.h iopins.h pwmpins.h adcpins.h rtc.h filter.h gyro.h xbee.h wheel.h accelerometer.h
+main.o : constants.h debug.h iopins.h pwmpins.h adcpins.h rtc.h filter.h gyro.h xbee.h wheel.h accelerometer.h version.h
 debug.o : constants.h debug.h
 pwmpins.o : pwmpins.h iopins.h constants.h
 adcpins.o : constants.h adcpins.h iopins.h
@@ -23,10 +23,14 @@ xbee.o : constants.h xbee.h rtc.h debug.h
 wheel.o : constants.h wheel.h pwmpins.h iopins.h filter.h
 accelerometer.o : constants.h accelerometer.h filter.h adcpins.h
 
+# Rule to build the version number header.
+version.h : mkversion.sh *.c $(subst version.h,,$(wildcard *.h))
+	./mkversion.sh
+
 # Rule to delete intermediate and output files.
 .PHONY : clean
 clean :
-	-rm -f $(OBJS) bot.hex bot.elf
+	-rm -f $(OBJS) bot.hex bot.elf version.h
 
 # Rule to upload the firmware.
 .PHONY : burn

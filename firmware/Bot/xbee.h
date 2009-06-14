@@ -17,6 +17,7 @@ struct xbee_rxdata {
 struct xbee_txdata {
 	uint8_t v_green[2];
 	uint8_t v_motor[2];
+	uint8_t firmware_version[2];
 } __attribute__((packed));
 
 void xbee_init(void);

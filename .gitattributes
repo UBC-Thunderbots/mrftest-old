@@ -13,6 +13,7 @@ firmware/Bot/gyro.c -text
 firmware/Bot/gyro.h -text
 firmware/Bot/iopins.h -text
 firmware/Bot/main.c -text
+firmware/Bot/mkversion.sh -text
 firmware/Bot/pwmpins.c -text
 firmware/Bot/pwmpins.h -text
 firmware/Bot/rtc.c -text

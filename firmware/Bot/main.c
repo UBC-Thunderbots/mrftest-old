@@ -13,6 +13,7 @@
 #include "xbee.h"
 #include "wheel.h"
 #include "accelerometer.h"
+#include "version.h"
 
 // The setpoint filters for the linear velocity setpoints.
 static const double setpoint_filter_a[3] = {1.0, 0.0, 0.0};
@@ -204,6 +205,9 @@ static void loop_untimed(void) {
 		xbee_txdata.v_motor[0] = battery_level / 256;
 		xbee_txdata.v_motor[1] = battery_level % 256;
 
+		xbee_txdata.firmware_version[0] = FIRMWARE_REVISION / 256;
+		xbee_txdata.firmware_version[1] = FIRMWARE_REVISION % 256;
+
 		xbee_send();
 		last_battery_time += TIMEOUT_BATTERY;
 	}
@@ -264,7 +268,9 @@ int main(void) {
 	pwm_init();
 
 	// Display a message.
-	debug_puts("Bot: Initializing...\n");
+	debug_puts("Bot: Initializing firmware revision ");
+	debug_puti(FIRMWARE_REVISION);
+	debug_puts("...\n");
 
 	// Configure IO pins.
 	iopin_write(IOPIN_LED, 1);

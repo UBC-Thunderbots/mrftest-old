@@ -1,6 +1,7 @@
 /build
 firmware/Bot/bot.elf
 firmware/Bot/bot.hex
+firmware/Bot/version.h
 firmware/Counter4/counter4.cod
 firmware/Counter4/counter4.hex
 firmware/Counter4/counter4.lst

@@ -48,6 +48,9 @@ namespace XBee {
 
 		// Motor battery voltage (0-1023), high and low order bits (65535 if no data yet).
 		unsigned char vMotor[2];
+
+		// Firmware version, high and low order bits (65535 if no data yet).
+		unsigned char firmware[2];
 	} __attribute__((packed));
 
 	//

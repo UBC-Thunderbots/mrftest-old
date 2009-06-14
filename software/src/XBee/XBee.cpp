@@ -394,6 +394,8 @@ void XBee::init() {
 		in[i].vGreen[1]    = 0xFF;
 		in[i].vMotor[0]    = 0xFF;
 		in[i].vMotor[1]    = 0xFF;
+		in[i].firmware[0]  = 0xFF;
+		in[i].firmware[1]  = 0xFF;
 	}
 
 	// Load configuration file.
