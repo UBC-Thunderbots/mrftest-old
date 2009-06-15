@@ -43,11 +43,7 @@ void LocalStrategyUnit::update() {
 				case Plan::goalie:
 					goalie(player);
 					break;
-				
-				default:
-					//if plan unknown stop robot
-					stop(player);
-					break;
+
 			}
 	}
 }

@@ -93,7 +93,8 @@ void Simulator::update() {
 		Vector2 vel = player->velocity();
 		Vector2 acc = player->acceleration();
 		
-		double maxacc = field->convertMmToCoord(MAX_ACCELERATION) / (CentralAnalyzingUnit::FRAMES_PER_SECOND * CentralAnalyzingUnit::FRAMES_PER_SECOND);
+		//We may need this later but suppress warning for now
+		//double maxacc = field->convertMmToCoord(MAX_ACCELERATION) / (CentralAnalyzingUnit::FRAMES_PER_SECOND * CentralAnalyzingUnit::FRAMES_PER_SECOND);
 		double maxvel = field->convertMmToCoord(MAX_VELOCITY) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
 		/*if (acc.length() > maxacc){
 			acc = acc / acc.length() * maxacc;
