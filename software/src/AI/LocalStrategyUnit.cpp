@@ -43,6 +43,11 @@ void LocalStrategyUnit::update() {
 				case Plan::goalie:
 					goalie(player);
 					break;
+				
+				default:
+					//if plan unknown stop robot
+					stop(player);
+					break;
 			}
 	}
 }
@@ -168,8 +173,8 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos) {
 	}
 
 	// Avoid obstacles if not goalie:
-	bool west = team.side();
-	double fuzzyFactor = curPos.x / field->width();
+	//bool west = team.side();
+	//double fuzzyFactor = curPos.x / field->width();
 	Vector2 velPosL;
 	Vector2 velPosR;
 	
