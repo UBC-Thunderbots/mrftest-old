@@ -1,22 +1,22 @@
 CC := avr-gcc
 CFLAGS := -Wall -Wextra -Os -mmcu=atmega128 -DF_CPU=16000000UL
-OBJS := estopbtn.o
-USBDEV := /dev/ttyUSB0
+OBJS := hwrunswitch.o
+USBDEV := /dev/hwrunswitch
 
 # Rule to build a HEX file from an ELF file.
-estopbtn.hex : estopbtn.elf
+hwrunswitch.hex : hwrunswitch.elf
 	avr-objcopy -Oihex $< $@
 
 # Rule to link an ELF file from a bunch of O files.
-estopbtn.elf : $(OBJS)
+hwrunswitch.elf : $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $+ -lm
 
 # Rule to delete intermediate and output files.
 .PHONY : clean
 clean :
-	-rm -f $(OBJS) estopbtn.hex estopbtn.elf
+	-rm -f $(OBJS) hwrunswitch.hex hwrunswitch.elf
 
 # Rule to upload the firmware.
 .PHONY : burn
-burn : estopbtn.hex
+burn : hwrunswitch.hex
 	avrdude -p atmega128 -c stk500v2 -P $(USBDEV) -U $<

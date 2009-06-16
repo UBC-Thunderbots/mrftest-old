@@ -28,8 +28,8 @@ firmware/BotTestBench/Filter.h -text
 firmware/Counter4/18f2550.lkr -text
 firmware/Counter4/Makefile -text
 firmware/Counter4/counter4.asm -text
-firmware/EStopBtn/Makefile -text
-firmware/EStopBtn/estopbtn.c -text
+firmware/HWRunSwitch/Makefile -text
+firmware/HWRunSwitch/hwrunswitch.c -text
 firmware/WheelTestBench/WheelTestBench.pde -text
 software/CMakeLists.txt -text
 software/include/AI/AITeam.h -text

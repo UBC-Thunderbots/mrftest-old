@@ -7,13 +7,14 @@
 #define BAUD_DIVISOR (((F_CPU + 4UL * BAUD) / (8UL * BAUD)) - 1UL)
 
 static uint8_t ticks_since_last_send;
+static uint8_t ticks_since_last_flash;
 static uint8_t last_pin_state;
 
 ISR(TIMER0_COMP_vect, ISR_BLOCK) {
 	uint8_t cur_pin_state;
 
 	// Check if pin state has changed.
-	cur_pin_state = PINB & _BV(0);
+	cur_pin_state = PINB & _BV(1);
 	if (cur_pin_state != last_pin_state || ticks_since_last_send == 50) {
 		// Either the switch was changed or else it's been half a second since the last message.
 		// Send a message now and reset the tick counter.
@@ -31,6 +32,12 @@ ISR(TIMER0_COMP_vect, ISR_BLOCK) {
 
 	// Remember the current pin state.
 	last_pin_state = cur_pin_state;
+
+	// Blink the LED if it's time to.
+	if (++ticks_since_last_flash == 10) {
+		ticks_since_last_flash = 0;
+		PORTG ^= _BV(0);
+	}
 }
 
 ISR(USART0_TX_vect, ISR_BLOCK) {
@@ -64,11 +71,12 @@ int main(void) {
 	set_sleep_mode(SLEEP_MODE_PWR_SAVE);
 
 	// Configure IO pins.
-	// PB0 = switch   (connected to input pin with internal pullup)
-	// PB1 = positive (external pullup resistor; obsolete but harmless)
-	// PB2 = negative (switch connects this to PB0 when in ON position)
-	PORTB = _BV(1) | _BV(0);
-	DDRB = _BV(1) | _BV(2);
+	// The switch is across PB0:1. The LED is on PG0.
+	// Enable pullup resistors everywhere to prevent mid-level voltages causing high current draw.
+	PORTA = PORTB = PORTC = PORTD = PORTE = PORTF = PORTG = 0xFF;
+	DDRB = _BV(0);
+	PORTB &= ~_BV(0);
+	DDRG = _BV(0);
 
 	// Enable interrupts.
 	sei();
