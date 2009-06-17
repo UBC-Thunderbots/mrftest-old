@@ -13,8 +13,6 @@ namespace {
 void World::init(PTeam friendlyTeam, PTeam enemyTeam, PField field) {
 	assert(!instance);
 	instance = new World(friendlyTeam, enemyTeam, field);
-	instance->setNumActiveFriendlyPlayers(Team::SIZE);
-	instance->setNumActiveEnemyPlayers(Team::SIZE);
 }
 
 World &World::get() {
@@ -22,7 +20,7 @@ World &World::get() {
 	return *instance;
 }
 
-World::World(PTeam friendlyTeam, PTeam enemyTeam, PField field) : play(PlayType::play), field_(field), ball_(Ball::create()) {
+World::World(PTeam friendlyTeam, PTeam enemyTeam, PField field) : play(PlayType::play), field_(field), ball_(Ball::create()), ballVisible(false), numActiveFriendlyPlayers(Team::SIZE), numActiveEnemyPlayers(Team::SIZE) {
 	teams[0] = friendlyTeam;
 	teams[1] = enemyTeam;
 	for (unsigned int i = 0; i < 2; i++)
@@ -105,17 +103,19 @@ void World::isBallVisible(bool newVal) {
 	ballVisible = newVal;
 }
 
-int World::getNumActiveFriendlyPlayers() const {
+unsigned int World::activeFriendlyPlayers() const {
 	return numActiveFriendlyPlayers;
 }
-int World::getNumActiveEnemyPlayers() const {
+
+void World::activeFriendlyPlayers(unsigned int n) {
+	numActiveFriendlyPlayers = n;
+}
+
+unsigned int World::activeEnemyPlayers() const {
 	return numActiveEnemyPlayers;
 }
 
-void World::setNumActiveFriendlyPlayers(int n) {
-	numActiveFriendlyPlayers = n;
-}
-void World::setNumActiveEnemyPlayers(int n) {
+void World::activeEnemyPlayers(unsigned int n) {
 	numActiveEnemyPlayers = n;
 }
 
