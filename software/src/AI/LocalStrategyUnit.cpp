@@ -127,6 +127,11 @@ void LocalStrategyUnit::chaseBall(PPlayer robot) {
 		shoot(robot);
 	} else {
 		// Chases ball, using move function
+		
+		Vector2 v = World::get().ball()->position() - robot->position();
+		Vector2 m_v = v - Vector2(v.angle()) * World::get().field()->convertMmToCoord(80);
+		
+		move(robot, robot->position() + m_v);
 		move(robot, World::get().ball()->position());
 	}
 }
@@ -177,8 +182,8 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos) {
 	Vector2 diffL = Vector2(diff.angle()) * diff.length();	
 	Vector2 diffR = Vector2(diff.angle()) * diff.length();
 	
-	velPosL = curPos + diff * 2000;
-	velPosR = curPos + diff * 2000;
+	velPosL = curPos + diff * field->convertMmToCoord(2000);
+	velPosR = curPos + diff * field->convertMmToCoord(2000);
 	
 	int maxTurn = 360;
 	bool avoid = false;
@@ -193,8 +198,8 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos) {
 		// Move around the obstacle by going left:
 		diffL = Vector2(diffL.angle() + 5) * diffL.length();
 		diffR = Vector2(diffR.angle() - 5) * diffR.length();
-		velPosL = curPos + diffL * 2000;
-		velPosR = curPos + diffR * 2000;
+		velPosL = curPos + diffL * field->convertMmToCoord(2000);
+		velPosR = curPos + diffR * field->convertMmToCoord(2000);
 		maxTurn -= 5;
 	}
 	if (avoid) {
@@ -207,22 +212,30 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos) {
 		}
 		diff = Vector2(diff.angle() + avoidOffset) * diff.length();
 	}
+	
+	int dribble = 255;
 
-	/*if (!robot->allowedInside()) {
+	if (!robot->allowedInside()) {
+		for (unsigned int i = 0; i < Team::SIZE; i++)
+		
+		dribble = 0;
 		// The robots can not move within 500mm of the ball when it is not play mode.
 		pos = curPos + diff;
 		Vector2 ballPos = World::get().ball()->position();
-		Vector2 ballDis = pos - ballPos;
-		double mm500 = field->convertMmToCoord(600);
+		Vector2 ballDis = curPos - ballPos;
+		double mm500 = field->convertMmToCoord(800);
 		if (ballDis.length() < mm500) {
-			// Set the new destination to be outside of the ball's range.
-			if (ballDis.length() == 0)
-				ballDis = curPos - ballPos;
-			ballDis *= mm500 / ballDis.length();
-			pos = ballPos + ballDis;
-			diff = pos - curPos;
+			Vector2 interceptPoint = CentralAnalyzingUnit::lcIntersection(curPos,pos,ballPos,mm500);
+			diff = interceptPoint - pos;
+			
+			// Create a buffer zone to stop the robot:
+			if (diff.length() < field->convertMmToCoord(1500)) {
+				diff /= field->convertMmToCoord(1500);
+			} else {
+				diff /= diff.length();
+			}
 		}
-	} */
+	}
 
 	double angle = robot->orientation();
 
@@ -232,17 +245,18 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos) {
 		Vector2 vec = friendly->position() - robot->position();
 		angle = vec.angle();
 	} else if (robot->hasBall()) {
-		// Orient away from the closest enemy player:
-		PPlayer enemy = CentralAnalyzingUnit::closestRobot(robot, CentralAnalyzingUnit::TEAM_OPPOSITE, true);
-		Vector2 vec = robot->position() - enemy->position();
-		angle = vec.angle();
+		// Orient towards the destination. If the robot's orientation is not correct, pivot around the ball.
+		angle = diff.angle();
+		if (abs ( robot->orientation() - angle) > 5) {
+			diff = Vector2 (robot->orientation()+90);
+		}
 	} else {
 		// Always orient towards the ball:
 		Vector2 orientation = World::get().ball()->position() - robot->position();
 		angle = orientation.angle();
 	}
 
-	RobotController::sendCommand(robot, diff, angle, 255, 0);
+	RobotController::sendCommand(robot, diff, angle, dribble, 0);
 }
 
 void LocalStrategyUnit::shoot(PPlayer robot) {
@@ -260,9 +274,9 @@ void LocalStrategyUnit::shoot(PPlayer robot) {
 	Vector2 pos = robot->position();
 
 	if (!west)
-		des = Vector2(field->west(), field->height() / 2.0);
+		des = Vector2(field->west(), (field->westGoal()->south.y + field->westGoal()->north.y) / 2.0);
 	else
-		des = Vector2(field->east(), field->height() / 2.0);
+		des = Vector2(field->east(), (field->westGoal()->south.y + field->westGoal()->north.y) / 2.0);
 
 	// Check the vector between the robot and the center of the goal:
 	if (CentralAnalyzingUnit::checkVector(pos, des, robot, 0)) {
@@ -306,6 +320,13 @@ void LocalStrategyUnit::shoot(PPlayer robot) {
 	}
 
 	double angle = orientation.angle();
+	
+	if (abs(robot->orientation() - angle) > 5) {
+		// Get into the correct orientation for the shot:
+		move(robot, des); // Goal is too far away, so move closer.
+		return;
+	}
+	
 	RobotController::sendCommand(robot, Vector2(0, 0), angle, 255, 255);
 }
 
@@ -326,7 +347,7 @@ void LocalStrategyUnit::goalie(PPlayer robot) {
 	if (west)
 		center = Vector2(field->west(), (field->westGoal()->south.y + field->westGoal()->north.y) / 2.0);
 	else
-		center = Vector2(field->east(), field->height() / 2.0);
+		center = Vector2(field->east(), (field->westGoal()->south.y + field->westGoal()->north.y) / 2.0);
 
 	Vector2 vec = pos - center; // Vector between the ball and the goal.
 
