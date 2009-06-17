@@ -159,7 +159,7 @@ bool Visualizer::on_expose_event(GdkEventExpose *event) {
 
 			cr->move_to(offsetX + scaling * player->position().x, offsetY + scaling * player->position().y);
 			cr->set_source_rgb(1.0, 1.0, 0.0);
-			cr->line_to(offsetX + scaling * (player->position().x + player->requestedVelocity().x * 500), offsetY + scaling * (player->position().y + player->requestedVelocity().y * 500));
+			cr->line_to(offsetX + scaling * (player->position().x + player->requestedVelocity().x * field->convertMmToCoord(500)), offsetY + scaling * (player->position().y + player->requestedVelocity().y * field->convertMmToCoord(500)));
 			cr->stroke();
 		}
 

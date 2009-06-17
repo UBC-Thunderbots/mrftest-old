@@ -44,7 +44,7 @@ namespace {
 		if (kick && angle == rotate) {
 			robot->hasBall(false);
 			Vector2 vel = rotate;
-			vel *= 20;
+			vel *= 5;
 			World::get().ball()->velocity(vel);
 		}
 	}
@@ -109,10 +109,6 @@ namespace {
 			PID(vyKp, vyKi, vyKd, vyDecay),
 		};
 
-		// Cap magnitude of acc.
-		if (acc.length() > 1)
-			acc /= acc.length();
-
 		unsigned int index = UINT_MAX;
 		for (unsigned int i = 0; i < Team::SIZE; i++)
 			if (robot == World::get().friendlyTeam()->player(i))
@@ -175,6 +171,10 @@ void RobotController::setSimulation(bool sim) {
 }
 
 void RobotController::sendCommand(PPlayer robot, Vector2 acc, double rotate, unsigned char dribble, unsigned char kick) {
+	// Cap magnitude of acc.
+	if (acc.length() > 1)
+		acc /= acc.length();
+
 	robot->requestedVelocity(acc);
 
 	if (simulation)
