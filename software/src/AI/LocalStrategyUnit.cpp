@@ -137,7 +137,7 @@ void LocalStrategyUnit::chaseBall(PPlayer robot) {
 	}
 }
 
-void LocalStrategyUnit::move(PPlayer robot, Vector2 pos) {
+void LocalStrategyUnit::move(PPlayer robot, Vector2 pos, double speed) {
 	// Do not go outside the bounds of the field:
 	PField field = World::get().field();
 	if (pos.x > field->east())
@@ -224,9 +224,9 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos) {
 		pos = curPos + diff;
 		Vector2 ballPos = World::get().ball()->position();
 		Vector2 ballDis = curPos - ballPos;
-		double mm500 = field->convertMmToCoord(800);
-		if (ballDis.length() < mm500) {
-			Vector2 interceptPoint = CentralAnalyzingUnit::lcIntersection(curPos,pos,ballPos,mm500);
+		double boundary = field->convertMmToCoord(800);
+		if (ballDis.length() < boundary) {
+			Vector2 interceptPoint = CentralAnalyzingUnit::lcIntersection(curPos,pos,ballPos,boundary);
 			diff = interceptPoint - pos;
 			
 			// Create a buffer zone to stop the robot:

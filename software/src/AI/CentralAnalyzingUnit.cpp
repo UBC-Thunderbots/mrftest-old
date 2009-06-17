@@ -4,16 +4,18 @@
 #include "AI/CentralAnalyzingUnit.h"
 #include "datapool/World.h"
 
-bool CentralAnalyzingUnit::checkVector(Vector2 rayOrigin, Vector2 rayEnd, PPlayer entity, unsigned int timeOffset, PPlayer passee) {
+bool CentralAnalyzingUnit::checkVector(Vector2 rayOrigin, Vector2 rayEnd, PPlayer entity, unsigned int timeOffset, PPlayer passee, double radius) {
+	
+	if (radius == -1) radius = entity->radius();
 	
 	Vector2 rayDiff = rayEnd - rayOrigin;	
 	
 	Vector2 rayOrthagonal(rayDiff.angle()+90);
 	
+	rayOrthagonal *= radius;
+	
 	Vector2 rayOrigin1 = rayOrigin + rayOrthagonal;
 	Vector2 rayOrigin2 = rayOrigin + rayOrthagonal;
-	
-	rayOrthagonal *= entity->radius();
 
 	for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
 		PPlayer p = World::get().player(i);
@@ -38,6 +40,29 @@ bool CentralAnalyzingUnit::checkVector(Vector2 rayOrigin, Vector2 rayEnd, PPlaye
 			}
 		}
 	}
+	
+	// If the robot is not allowed close to the ball, consider its radius an obstacle:
+	if (!entity->allowedInside()) {
+		//initially only considering one frame ahead, should be possible to check certain amounts depending on how long the vector is
+		Vector2 circlePos = World::get().ball()->position();
+		double circleRadius = World::get().field()->convertMmToCoord(800);
+		
+		Vector2 circleDiff1 = circlePos - rayOrigin1;
+		Vector2 circleDiff2 = circlePos - rayOrigin2;
+		
+		double u = circleDiff1.dot(rayDiff) / rayDiff.dot(rayDiff);
+
+		if(u < 1 && u >= 0 && (rayOrigin1 + (rayDiff * u) - circlePos).length() < circleRadius) {
+			return true;
+		}
+		
+		u = circleDiff2.dot(rayDiff) / rayDiff.dot(rayDiff);
+		
+		if(u < 1 && u >= 0 && (rayOrigin2 + (rayDiff * u) - circlePos).length() < circleRadius) {
+			return true;
+		}
+	}
+	
 	return false;
 }
 

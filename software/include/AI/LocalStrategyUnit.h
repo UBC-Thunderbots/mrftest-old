@@ -22,7 +22,7 @@ private:
 	void passee(PPlayer robot);
 	void chaseBall(PPlayer robot);
 	void dribble(PPlayer robot);
-	void move(PPlayer robot, Vector2 pos);
+	void move(PPlayer robot, Vector2 pos, double speed = 0); // speed is between 0 and 1 (0 = slow, 1 = fast)
 	void goalie(PPlayer robot);
 };
 

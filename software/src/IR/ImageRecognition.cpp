@@ -70,10 +70,10 @@ ImageRecognition::ImageRecognition() {
 	PField field = Field::create(660, 470, 25, 635, 25, 445, Vector2(330, 235), 50, goalW, goalE);
 
 	PTeam friendlyTeam = AITeam::create(0);
-	friendlyTeam->side(true);
+	friendlyTeam->side(false);
 
 	PTeam enemyTeam = Team::create(1);
-	enemyTeam->side(false);
+	enemyTeam->side(true);
 
 	World::init(friendlyTeam, enemyTeam, field);
 

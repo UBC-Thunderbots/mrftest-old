@@ -13,7 +13,7 @@ namespace CentralAnalyzingUnit {
 	//Checks to see if there is an intersecting robot between two points.
 	//Passe will be ignored.
 	//Returns true if there is an intersecting robot, and false otherwise.
-	bool checkVector(Vector2 rayOrigin, Vector2 rayEnd, PPlayer entity, unsigned int timeOffset, PPlayer passee = PPlayer());
+	bool checkVector(Vector2 rayOrigin, Vector2 rayEnd, PPlayer entity, unsigned int timeOffset, PPlayer passee = PPlayer(), double radius = -1);
 
 	//Find the closest robot to the specified robot.
 	enum TEAM {
