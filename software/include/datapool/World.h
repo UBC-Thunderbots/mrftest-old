@@ -75,6 +75,12 @@ public:
 	bool isBallVisible() const;
 	void isBallVisible(bool newVal);
 
+	int getNumActiveFriendlyPlayers() const;
+	int getNumActiveEnemyPlayers() const;
+
+	void setNumActiveFriendlyPlayers(int n);
+	void setNumActiveEnemyPlayers(int n);
+
 private:
 	World(PTeam friendlyTeam, PTeam enemyTeam, PField field);
 	World(const World &copyref); // Prohibit copying.
@@ -85,6 +91,8 @@ private:
 	PBall ball_;
 	std::vector<PPlayer> everyone;
 	bool ballVisible;
+	int numActiveFriendlyPlayers;
+	int numActiveEnemyPlayers;
 };
 
 #endif

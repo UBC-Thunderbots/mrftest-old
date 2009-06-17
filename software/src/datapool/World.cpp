@@ -13,6 +13,8 @@ namespace {
 void World::init(PTeam friendlyTeam, PTeam enemyTeam, PField field) {
 	assert(!instance);
 	instance = new World(friendlyTeam, enemyTeam, field);
+	instance->setNumActiveFriendlyPlayers(Team::SIZE);
+	instance->setNumActiveEnemyPlayers(Team::SIZE);
 }
 
 World &World::get() {
@@ -101,5 +103,19 @@ bool World::isBallVisible() const {
 
 void World::isBallVisible(bool newVal) {
 	ballVisible = newVal;
+}
+
+int World::getNumActiveFriendlyPlayers() const {
+	return numActiveFriendlyPlayers;
+}
+int World::getNumActiveEnemyPlayers() const {
+	return numActiveEnemyPlayers;
+}
+
+void World::setNumActiveFriendlyPlayers(int n) {
+	numActiveFriendlyPlayers = n;
+}
+void World::setNumActiveEnemyPlayers(int n) {
+	numActiveEnemyPlayers = n;
 }
 

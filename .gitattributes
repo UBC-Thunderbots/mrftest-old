@@ -40,6 +40,7 @@ software/include/AI/LocalStrategyUnit.h -text
 software/include/AI/RobotController.h -text
 software/include/AI/Simulator.h -text
 software/include/AI/Strategies/ChaseStrategy.h -text
+software/include/AI/Strategies/DefenseStrategy.h -text
 software/include/AI/Strategies/DibsStrategy.h -text
 software/include/AI/Strategies/LazyStrategy.h -text
 software/include/AI/Strategies/OffensiveStrategy.h -text
@@ -73,6 +74,7 @@ software/src/AI/LocalStrategyUnit.cpp -text
 software/src/AI/RobotController.cpp -text
 software/src/AI/Simulator.cpp -text
 software/src/AI/Strategies/ChaseStrategy.cpp -text
+software/src/AI/Strategies/DefenseStrategy.cpp -text
 software/src/AI/Strategies/DibsStrategy.cpp -text
 software/src/AI/Strategies/LazyStrategy.cpp -text
 software/src/AI/Strategies/OffensiveStrategy.cpp -text
