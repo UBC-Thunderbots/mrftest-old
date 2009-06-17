@@ -217,8 +217,6 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos, double speed) {
 	uint8_t dribble = 255;
 
 	if (!robot->allowedInside()) {
-		for (unsigned int i = 0; i < Team::SIZE; i++)
-		
 		dribble = 0;
 		// The robots can not move within 500mm of the ball when it is not play mode.
 		pos = curPos + diff;
