@@ -7,6 +7,7 @@
 #include "AI/Strategies/TestStrategy.h"
 #include "AI/Strategies/OffensiveStrategy.h"
 #include "AI/Strategies/LazyStrategy.h"
+#include "AI/Strategies/DefenseStrategy.h"
 #include "AI/Strategies/DibsStrategy.h"
 
 #include <cassert>
