@@ -37,6 +37,7 @@ software/include/AI/CentralAnalyzingUnit.h -text
 software/include/AI/CentralStrategyUnit.h -text
 software/include/AI/DecisionUnit.h -text
 software/include/AI/LocalStrategyUnit.h -text
+software/include/AI/RobotAlgorithmUtils.h -text
 software/include/AI/RobotController.h -text
 software/include/AI/Simulator.h -text
 software/include/AI/Strategies/ChaseStrategy.h -text
@@ -71,6 +72,7 @@ software/src/AI/CentralAnalyzingUnit.cpp -text
 software/src/AI/CentralStrategyUnit.cpp -text
 software/src/AI/DecisionUnit.cpp -text
 software/src/AI/LocalStrategyUnit.cpp -text
+software/src/AI/RobotAlgorithmUtils.cpp -text
 software/src/AI/RobotController.cpp -text
 software/src/AI/Simulator.cpp -text
 software/src/AI/Strategies/ChaseStrategy.cpp -text

@@ -47,6 +47,22 @@ namespace {
 	Vector2 operator * (const double scalar, const Vector2 &vector) {
 		return vector * scalar;
 	}
+
+	Vector2 operator / (const double scalar, const Vector2 &vector) {
+		return vector / scalar;
+	}
+
+	inline double dot (const Vector2& vector1, const Vector2 &vector2) {
+		return vector1.dot(vector2);
+	}
+
+	inline double cross (const Vector2& vector1, const Vector2 &vector2) {
+		return vector1.cross(vector2);
+	}
+
+	inline double length (const Vector2& vector) {
+		return vector.length();
+	}
 }
 
 #endif
