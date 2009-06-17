@@ -9,6 +9,7 @@
 
 #include <cstdlib>
 #include <cmath>
+#include <stdint.h>
 
 LocalStrategyUnit::LocalStrategyUnit(AITeam &team) : team(team) {
 }
@@ -213,7 +214,7 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos) {
 		diff = Vector2(diff.angle() + avoidOffset) * diff.length();
 	}
 	
-	int dribble = 255;
+	uint8_t dribble = 255;
 
 	if (!robot->allowedInside()) {
 		for (unsigned int i = 0; i < Team::SIZE; i++)
@@ -247,9 +248,8 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos) {
 	} else if (robot->hasBall()) {
 		// Orient towards the destination. If the robot's orientation is not correct, pivot around the ball.
 		angle = diff.angle();
-		if (abs ( robot->orientation() - angle) > 5) {
-			diff = Vector2 (robot->orientation()+90);
-		}
+		if (std::fabs(robot->orientation() - angle) > 5)
+			diff = Vector2(robot->orientation() + 90);
 	} else {
 		// Always orient towards the ball:
 		Vector2 orientation = World::get().ball()->position() - robot->position();
@@ -321,7 +321,7 @@ void LocalStrategyUnit::shoot(PPlayer robot) {
 
 	double angle = orientation.angle();
 	
-	if (abs(robot->orientation() - angle) > 5) {
+	if (std::fabs(robot->orientation() - angle) > 5) {
 		// Get into the correct orientation for the shot:
 		move(robot, des); // Goal is too far away, so move closer.
 		return;
