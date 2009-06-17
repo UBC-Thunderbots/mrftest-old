@@ -20,7 +20,7 @@ World &World::get() {
 	return *instance;
 }
 
-World::World(PTeam friendlyTeam, PTeam enemyTeam, PField field) : play(PlayType::play), field_(field), ball_(Ball::create()), ballVisible(false), numActiveFriendlyPlayers(Team::SIZE), numActiveEnemyPlayers(Team::SIZE) {
+World::World(PTeam friendlyTeam, PTeam enemyTeam, PField field) : play(PlayType::play), field_(field), ball_(Ball::create()), ballVisible(false) {
 	teams[0] = friendlyTeam;
 	teams[1] = enemyTeam;
 	for (unsigned int i = 0; i < 2; i++)
@@ -101,21 +101,5 @@ bool World::isBallVisible() const {
 
 void World::isBallVisible(bool newVal) {
 	ballVisible = newVal;
-}
-
-unsigned int World::activeFriendlyPlayers() const {
-	return numActiveFriendlyPlayers;
-}
-
-void World::activeFriendlyPlayers(unsigned int n) {
-	numActiveFriendlyPlayers = n;
-}
-
-unsigned int World::activeEnemyPlayers() const {
-	return numActiveEnemyPlayers;
-}
-
-void World::activeEnemyPlayers(unsigned int n) {
-	numActiveEnemyPlayers = n;
 }
 

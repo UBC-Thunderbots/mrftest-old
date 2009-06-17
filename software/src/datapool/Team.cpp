@@ -10,7 +10,7 @@ PTeam Team::create(unsigned int id) {
 	return team;
 }
 
-Team::Team(unsigned int id) : robots(SIZE), west(false), special(false), points(0), id(id) {
+Team::Team(unsigned int id) : robots(SIZE), west(false), special(false), points(0), id(id), activePl(SIZE) {
 }
 
 Team::~Team() {
@@ -63,5 +63,14 @@ PTeam Team::other() {
 
 const PTeam Team::other() const {
 	return World::get().team(!id);
+}
+
+unsigned int Team::activePlayers() const {
+	return activePl;
+}
+
+void Team::activePlayers(unsigned int n) {
+	assert(n <= SIZE);
+	activePl = n;
 }
 

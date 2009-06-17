@@ -1,27 +1,40 @@
-#include "AI/Strategies/DefenseStrategy.h"
 #include "AI/AITeam.h"
-#include "datapool/World.h"
-#include "AI/RobotController.h"
+#include "AI/Strategies/DefenseStrategy.h"
 #include "AI/RobotAlgorithmUtils.h"
-#include <cstring>
+#include "AI/RobotController.h"
+#include "datapool/World.h"
 
 #include <iostream>
+#include <algorithm>
+#include <cstring>
 
-DefenseStrategy::DefenseStrategy(AITeam &team) : Strategy(team) {
-	World & w = World::get();
-	field = w.field();
-	//pTeam = PTeam(team);
-	pOther = team.other();
-	pBall = w.ball();
-	for (unsigned int i = 0; i < Team::SIZE; i++) isUsed[i] = true;
+namespace {
+	//
+	// A comparator that sorts by values in a table.
+	//
+	template<typename T>
+	class SortByTable {
+	public:
+		SortByTable(const T *tbl) : tbl(tbl) {
+		}
+
+		bool operator()(unsigned int x, unsigned int y) {
+			return tbl[x] < tbl[y];
+		}
+
+	private:
+		const T *tbl;
+	};
 }
 
-DefenseStrategy::~DefenseStrategy() {
+DefenseStrategy::DefenseStrategy(AITeam &team) : Strategy(team) {
+	for (unsigned int i = 0; i < Team::SIZE; i++)
+		isUsed[i] = true;
 }
 
 void DefenseStrategy::init() {
-	World & w = World::get();
-	for (int i = w.getNumActiveFriendlyPlayers() - 1; i >= 0; --i) isUsed[i] = false;
+	for (unsigned int i = 0; i < team.activePlayers(); i++)
+		isUsed[i] = false;
 }
 
 // A = friendly team goal north
@@ -33,8 +46,8 @@ void DefenseStrategy::defense() {
 	bool isWest = team.side();
 	
 	const World &w = World::get();
-	const PField& field = w.field();
-	PGoal goal;
+	const PField field = w.field();
+	PGoal goal = isWest ? field->westGoal() : field->eastGoal();
 
 	// assign as goalie for now
 	// do dynamic role later on
@@ -42,37 +55,23 @@ void DefenseStrategy::defense() {
 	PPlayer defender1 = team.player(1);
 	PPlayer defender2 = team.player(2);
 	
-	if (isWest) goal = field->westGoal();
-	else goal = field->eastGoal();
-	
 	// goalpost north and south
 	const Vector2& goalpost1 = goal->north;
 	const Vector2& goalpost2 = goal->south;
 	Vector2 goalpost = (goalpost1 + goalpost2) * 0.5;
 
-	// ball position
-	const Vector2& ball = w.ball()->position();
-
 	// find the enemy player with the ball, if exist
 
 	// rank the enemies based on distance
-	int distOrder[Team::SIZE];
+	unsigned int distOrder[Team::SIZE];
 	double dist[Team::SIZE];
 	Vector2 enemyPosition[Team::SIZE];
 	for (unsigned int i = 0; i < Team::SIZE; i++) {
-		enemyPosition[i] = pOther->player(i)->position();
-		dist[i] = length(enemyPosition[i] - goalpost);
+		enemyPosition[i] = team.other()->player(i)->position();
+		dist[i] = (enemyPosition[i] - goalpost).length();
 		distOrder[i] = i;
 	}
-
-	// do stupid bubble sort
-	for (unsigned int i = 0; i < Team::SIZE; i++) {
-		for (unsigned int j = i + 1; j < Team::SIZE; j++) {
-			if(dist[distOrder[i]] > dist[distOrder[j]]) {
-				std::swap(distOrder[i], distOrder[j]);
-			}
-		}
-	}
+	std::sort(distOrder, distOrder + sizeof(distOrder) / sizeof(*distOrder), SortByTable<double>(dist));
 
 	// the first 2 enemies will shoot out rays to the goal post
 	// find the region intersected by the 2 rays
@@ -128,8 +127,7 @@ void DefenseStrategy::defense() {
 	// move the defender
 	goalie->plan(Plan::move);
 	goalie->destination(blockPosition);
-	if(length(blockPosition1 - defender1->position()) <
-			length(blockPosition1 - defender2->position())) {
+	if ((blockPosition1 - defender1->position()).length() < (blockPosition1 - defender2->position()).length()) {
 		defender1->plan(Plan::move);
 		defender1->destination(blockPosition1);
 		defender2->plan(Plan::move);
@@ -144,7 +142,6 @@ void DefenseStrategy::defense() {
 
 void DefenseStrategy::update() {
 	init();
-
 	defense();
 }
 

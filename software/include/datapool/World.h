@@ -78,18 +78,6 @@ public:
 	bool isBallVisible() const;
 	void isBallVisible(bool newVal);
 
-	//
-	// The number of friendly players visible on the cameras.
-	//
-	unsigned int activeFriendlyPlayers() const;
-	void activeFriendlyPlayers(unsigned int n);
-
-	//
-	// The number of enemy players visible on the cameras.
-	//
-	unsigned int activeEnemyPlayers() const;
-	void activeEnemyPlayers(unsigned int n);
-
 private:
 	World(PTeam friendlyTeam, PTeam enemyTeam, PField field);
 	World(const World &copyref); // Prohibit copying.
@@ -100,8 +88,6 @@ private:
 	PBall ball_;
 	std::vector<PPlayer> everyone;
 	bool ballVisible;
-	unsigned int numActiveFriendlyPlayers;
-	unsigned int numActiveEnemyPlayers;
 };
 
 #endif

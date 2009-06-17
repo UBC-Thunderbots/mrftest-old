@@ -69,6 +69,12 @@ public:
 	PTeam other();
 	const PTeam other() const;
 
+	//
+	// The number of players actually seen by the camera for this team.
+	//
+	unsigned int activePlayers() const;
+	void activePlayers(unsigned int n);
+
 protected:
 	Team(unsigned int id);
 	std::vector<PPlayer> robots;
@@ -79,6 +85,7 @@ private:
 	bool special;
 	unsigned int points;
 	unsigned int id;
+	unsigned int activePl;
 };
 
 #endif
