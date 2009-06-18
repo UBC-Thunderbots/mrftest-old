@@ -12,7 +12,6 @@
 #include "gyro.h"
 #include "xbee.h"
 #include "wheel.h"
-#include "accelerometer.h"
 #include "version.h"
 
 // The setpoint filters for the linear velocity setpoints.
@@ -51,11 +50,6 @@ static const double m[4][3] = {
 	{ 0.0010,  0.0010, 0.0065}
 };
 static struct wheel wheels[4];
-
-// The accelerometers.
-static const double accelerometer_filter_a[3] = {1.0, -1.8229, 0.8374};
-static const double accelerometer_filter_b[3] = {0.0036, 0.0072, 0.0036};
-static struct accelerometer accelerometer_x, accelerometer_y;
 
 // Record the time the last kick was started.
 static unsigned long kick_time;
@@ -104,9 +98,6 @@ static void nuke(void) {
 	filter_clear(&vt_controller);
 	filter_clear(&ff_controller);
 
-	accelerometer_clear(&accelerometer_x);
-	accelerometer_clear(&accelerometer_y);
-
 	iopin_write(IOPIN_COUNTER_RESET, 0);
 	_delay_us(100);
 	iopin_write(IOPIN_COUNTER_RESET, 1);
@@ -116,7 +107,7 @@ static void nuke(void) {
  * All the stuff that needs critical timing.
  */
 static void loop_timed(void) {
-	double vt, vx, vy;
+	double vt;
 	double vt_setpoint, vx_setpoint, vy_setpoint;
 	double vx_filtered_setpoint, vy_filtered_setpoint;
 	double vx_actuator, vy_actuator, vt_actuator;
@@ -130,8 +121,6 @@ static void loop_timed(void) {
 
 	// Read data from sensors.
 	vt = gyro_read();
-	vx = accelerometer_update(&accelerometer_x, vt);
-	vy = accelerometer_update(&accelerometer_y, vt);
 	wheel_update_rpm(&wheels[0]);
 	wheel_update_rpm(&wheels[1]);
 	wheel_update_rpm(&wheels[2]);
@@ -142,29 +131,13 @@ static void loop_timed(void) {
 	vy_setpoint = xbee_rxdata.vy / 127.0 * MAX_SP_VY;
 	vt_setpoint = xbee_rxdata.vt / 127.0 * MAX_SP_VT;
 
-	// Reset the accelerometer integrator to the measured camera velocity if available.
-	if (xbee_rxdata.vx_measured != -128 && xbee_rxdata.vy_measured != -128 && rtc_millis() - xbee_rxtimestamp < LOOP_TIME) {
-		accelerometer_set(&accelerometer_x, xbee_rxdata.vx_measured / 127.0 * MAX_SP_VX);
-		accelerometer_set(&accelerometer_y, xbee_rxdata.vy_measured / 127.0 * MAX_SP_VY);
-	}
-
 	// Filter the linear setpoints.
 	vx_filtered_setpoint = filter_process(&setpoint_x_filter, vx_setpoint);
 	vy_filtered_setpoint = filter_process(&setpoint_y_filter, vy_setpoint);
 
-	// Process errors through controllers to generate actuator levels.
-	// If controller is disabled pass setpoint through to actuators.
-#if X_CONTROLLER_ENABLED
-	vx_actuator = filter_process(&vx_controller, vx_filtered_setpoint - vx);
-#else
+	// Pass setpoint through to actuators.
 	vx_actuator = vx_filtered_setpoint;
-#endif
-
-#if Y_CONTROLLER_ENABLED
-	vy_actuator = filter_process(&vy_controller, vy_filtered_setpoint - vy);
-#else
 	vy_actuator = vy_filtered_setpoint;
-#endif
 
 #if T_CONTROLLER_ENABLED
 	vt_actuator = filter_process(&vt_controller, vt_setpoint - vt);
@@ -199,7 +172,10 @@ static void loop_untimed(void) {
 		xbee_txdata.v_green[0] = battery_level / 256;
 		xbee_txdata.v_green[1] = battery_level % 256;
 
-		battery_level = adc_read(ADCPIN_MOTOR_BATTERY);
+		if (iopin_read(IOPIN_BATHACK_2))
+			battery_level = adc_read(ADCPIN_MOTOR_BATTERY);
+		else
+			battery_level = adc_read(ADCPIN_MOTOR_BATTERY_HACKED);
 		if (battery_level < MOTOR_BATTERY_LOW / MOTOR_BATTERY_CONVERSION)
 			low_battery = 1;
 		xbee_txdata.v_motor[0] = battery_level / 256;
@@ -276,6 +252,11 @@ int main(void) {
 	iopin_write(IOPIN_LED, 1);
 	iopin_configure_output(IOPIN_LED);
 
+	iopin_write(IOPIN_BATHACK_1, 0);
+	iopin_write(IOPIN_BATHACK_2, 1);
+	iopin_configure_output(IOPIN_BATHACK_1);
+	iopin_configure_input(IOPIN_BATHACK_2);
+
 	iopin_write(IOPIN_CPU_BUSY, 1);
 	iopin_configure_output(IOPIN_CPU_BUSY);
 
@@ -318,8 +299,6 @@ int main(void) {
 	wheel_init(&wheels[1], IOPIN_COUNTER1_OE, IOPIN_MOTOR1A, IOPIN_MOTOR1B, PWMPIN_MOTOR1, m[1], rpm_filter_a, rpm_filter_b, wheel_controller_a, wheel_controller_b);
 	wheel_init(&wheels[2], IOPIN_COUNTER2_OE, IOPIN_MOTOR2A, IOPIN_MOTOR2B, PWMPIN_MOTOR2, m[2], rpm_filter_a, rpm_filter_b, wheel_controller_a, wheel_controller_b);
 	wheel_init(&wheels[3], IOPIN_COUNTER3_OE, IOPIN_MOTOR3A, IOPIN_MOTOR3B, PWMPIN_MOTOR3, m[3], rpm_filter_a, rpm_filter_b, wheel_controller_a, wheel_controller_b);
-	accelerometer_init(&accelerometer_x, accelerometer_filter_a, accelerometer_filter_b, ADCPIN_ACCEL1Y,  6.5);
-	accelerometer_init(&accelerometer_y, accelerometer_filter_a, accelerometer_filter_b, ADCPIN_ACCEL2Y, -4.5);
 
 	// Initialize the XBee.
 	xbee_init();

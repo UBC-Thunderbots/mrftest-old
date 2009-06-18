@@ -1,6 +1,6 @@
 CC := avr-gcc
 CFLAGS := -Wall -Wextra -Os -mmcu=atmega128 -DF_CPU=16000000UL
-OBJS := main.o debug.o pwmpins.o adcpins.o rtc.o filter.o gyro.o xbee.o wheel.o accelerometer.o
+OBJS := main.o debug.o pwmpins.o adcpins.o rtc.o filter.o gyro.o xbee.o wheel.o
 USBDEV := /dev/ttyUSB0
 
 # Rule to build a HEX file from an ELF file.
@@ -12,7 +12,7 @@ bot.elf : $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $+ -lm
 
 # Dependencies of O files on headers.
-main.o : constants.h debug.h iopins.h pwmpins.h adcpins.h rtc.h filter.h gyro.h xbee.h wheel.h accelerometer.h version.h
+main.o : constants.h debug.h iopins.h pwmpins.h adcpins.h rtc.h filter.h gyro.h xbee.h wheel.h version.h
 debug.o : constants.h debug.h
 pwmpins.o : pwmpins.h iopins.h constants.h
 adcpins.o : constants.h adcpins.h iopins.h
@@ -21,7 +21,6 @@ filter.o : filter.h
 gyro.o : constants.h gyro.h adcpins.h
 xbee.o : constants.h xbee.h rtc.h debug.h
 wheel.o : constants.h wheel.h pwmpins.h iopins.h filter.h
-accelerometer.o : constants.h accelerometer.h filter.h adcpins.h
 
 # Rule to build the version number header.
 version.h : mkversion.sh *.c $(subst version.h,,$(wildcard *.h)) .svn

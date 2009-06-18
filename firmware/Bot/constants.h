@@ -6,8 +6,6 @@
 
 // Allows bypassing various controllers and running in open loop.
 #define T_CONTROLLER_ENABLED 1
-#define X_CONTROLLER_ENABLED 0
-#define Y_CONTROLLER_ENABLED 0
 #define F_CONTROLLER_ENABLED 1
 #define W_CONTROLLER_ENABLED 1
 
@@ -84,16 +82,15 @@
 #define PWMPIN_KICKER   5
 
 // ADC pin numbers
-#define ADCPIN_ACCEL1Y       0
-#define ADCPIN_ACCEL1X       1
-#define ADCPIN_ACCEL2Y       2
-#define ADCPIN_ACCEL2X       3
-#define ADCPIN_GYRO_DATA     4
-#define ADCPIN_GYRO_VREF     5
-#define ADCPIN_MOTOR_BATTERY 6
-#define ADCPIN_GREEN_BATTERY 7
+#define ADCPIN_MOTOR_BATTERY_HACKED 0
+#define ADCPIN_GYRO_DATA            4
+#define ADCPIN_GYRO_VREF            5
+#define ADCPIN_MOTOR_BATTERY        6
+#define ADCPIN_GREEN_BATTERY        7
 
 // IO pin numbers (check for conflicts with IO ports below if changing!)
+#define IOPIN_BATHACK_1     0
+#define IOPIN_BATHACK_2     1
 #define IOPIN_XBEE_RXD      2
 #define IOPIN_XBEE_TXD      3
 #define IOPIN_COUNTER0_OE   4
