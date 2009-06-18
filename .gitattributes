@@ -41,6 +41,7 @@ software/include/AI/RobotAlgorithmUtils.h -text
 software/include/AI/RobotController.h -text
 software/include/AI/Simulator.h -text
 software/include/AI/Strategies/ChaseStrategy.h -text
+software/include/AI/Strategies/CheaterStrategy.h -text
 software/include/AI/Strategies/DefenseStrategy.h -text
 software/include/AI/Strategies/DibsStrategy.h -text
 software/include/AI/Strategies/LazyStrategy.h -text
@@ -76,6 +77,7 @@ software/src/AI/RobotAlgorithmUtils.cpp -text
 software/src/AI/RobotController.cpp -text
 software/src/AI/Simulator.cpp -text
 software/src/AI/Strategies/ChaseStrategy.cpp -text
+software/src/AI/Strategies/CheaterStrategy.cpp -text
 software/src/AI/Strategies/DefenseStrategy.cpp -text
 software/src/AI/Strategies/DibsStrategy.cpp -text
 software/src/AI/Strategies/LazyStrategy.cpp -text

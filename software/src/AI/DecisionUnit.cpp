@@ -4,6 +4,7 @@
 #include "AI/Strategies/DibsStrategy.h"
 #include "AI/Strategies/DefenseStrategy.h"
 #include "AI/Strategies/ChaseStrategy.h"
+#include "AI/Strategies/CheaterStrategy.h"
 #include "AI/AITeam.h"
 #include "datapool/World.h"
 
@@ -15,9 +16,9 @@ void DecisionUnit::update() {
 		return;
 	PStrategy strat;
 	if (&team == World::get().friendlyTeam().get())
-		strat.reset(new DibsStrategy(team));
+		strat.reset(new CheaterStrategy(team));
 	else
-		strat.reset(new DefenseStrategy(team));
+		strat.reset(new DibsStrategy(team));
 	team.getCSU().strategy(strat);
 }
 
