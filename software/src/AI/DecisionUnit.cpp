@@ -15,9 +15,9 @@ void DecisionUnit::update() {
 		return;
 	PStrategy strat;
 	if (&team == World::get().friendlyTeam().get())
-		strat.reset(new ChaseStrategy(team));
+		strat.reset(new DibsStrategy(team));
 	else
-		strat.reset(new ChaseStrategy(team));
+		strat.reset(new DefenseStrategy(team));
 	team.getCSU().strategy(strat);
 }
 
