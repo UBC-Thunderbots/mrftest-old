@@ -26,6 +26,10 @@ public:
 	double dot   (const Vector2& vector) const { return x * vector.x + y * vector.y; }
 	double cross (const Vector2& vector) const { return x * vector.y - y * vector.x; }
 	double angle () const;
+
+	// rotates counter clockwise
+	Vector2 rotate(double angle) const;
+
 };
 
 namespace {
