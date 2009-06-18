@@ -9,8 +9,8 @@
 
 #define FRICTION_CONST 0.7
 
-#define MAX_ACCELERATION 500.0
-#define MAX_VELOCITY 750.0
+#define MAX_ACCELERATION 2000.0
+#define MAX_VELOCITY 2000.0
 #define BALL_ACCELERATION 577.0
 
 Simulator::Simulator() {
@@ -105,10 +105,10 @@ void Simulator::update() {
 		vel += acc;
 		
 		
-		if (vel.length() > maxvel)
-			vel = vel / vel.length() * maxvel;
+		//if (vel.length() > maxvel)
+		//	vel = vel / vel.length() * maxvel;
 	
-		vel *= FRICTION_CONST;
+		//vel *= FRICTION_CONST;
 		pos += vel/2.0;
 		player->position(pos);
 		player->velocity(vel);
