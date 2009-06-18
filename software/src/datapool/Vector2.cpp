@@ -33,7 +33,7 @@ double Vector2::angle() const {
 
 Vector2 Vector2::rotate(double angle) const {
 	angle /= 180 * M_PI;
-	return Vector2(x * std::sin(angle) + y * std::cos(angle),
-			x * std::cos(angle) - y * std::sin(angle));
+	return Vector2(x * std::cos(angle) - y * std::sin(angle),
+			x * std::sin(angle) + y * std::cos(angle));
 }
 
