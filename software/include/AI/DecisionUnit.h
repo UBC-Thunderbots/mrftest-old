@@ -2,8 +2,8 @@
 //Decides on the type of strategy that needs to be generated.
 //Receives commands from the Referee Box.
 
-#ifndef TB_DECISIONUNIT_H
-#define TB_DECISIONUNIT_H
+#ifndef AI_DECISIONUNIT_H
+#define AI_DECISIONUNIT_H
 
 class AITeam;
 class DecisionUnit {

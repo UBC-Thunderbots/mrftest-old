@@ -1,5 +1,5 @@
-#ifndef TB_ROBOTCONTROLLER_H
-#define TB_ROBOTCONTROLLER_H
+#ifndef AI_ROBOTCONTROLLER_H
+#define AI_ROBOTCONTROLLER_H
 
 #include "datapool/Player.h"
 #include "datapool/Vector2.h"

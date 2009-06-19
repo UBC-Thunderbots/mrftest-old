@@ -2,11 +2,13 @@
 class Strategy;
 typedef std::tr1::shared_ptr<Strategy> PStrategy;
 
-#ifndef TB_STRATEGY_H
-#define TB_STRATEGY_H
+#ifndef AI_STRATEGIES_STRATEGY_H
+#define AI_STRATEGIES_STRATEGY_H
+
+#include "datapool/Noncopyable.h"
 
 class AITeam;
-class Strategy {
+class Strategy : private virtual Noncopyable {
 public:
 	Strategy(AITeam &team) : team(team) {}
 	virtual ~Strategy() {}
@@ -14,9 +16,6 @@ public:
 
 protected:
 	AITeam &team;
-
-private:
-	Strategy(const Strategy &copyref); // Prohibit copying.
 };
 
 #endif

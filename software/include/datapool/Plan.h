@@ -1,5 +1,5 @@
-#ifndef TB_PLAN_H
-#define TB_PLAN_H
+#ifndef DATAPOOL_PLAN_H
+#define DATAPOOL_PLAN_H
 
 namespace Plan {  
 	enum Behavior {

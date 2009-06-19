@@ -1,14 +1,14 @@
-#ifndef DEFENSESTRATEGY_H_
-#define DEFENSESTRATEGY_H_
-
-#include "AI/Strategies/Strategy.h"
+#ifndef AI_STRATEGIES_DEFENSESTRATEGY_H
+#define AI_STRATEGIES_DEFENSESTRATEGY_H
 
 #include "AI/AITeam.h"
-#include "datapool/World.h"
 #include "AI/RobotController.h"
+#include "AI/Strategies/Strategy.h"
+#include "datapool/Noncopyable.h"
+#include "datapool/World.h"
 
 
-class DefenseStrategy : public Strategy {
+class DefenseStrategy : public Strategy, private virtual Noncopyable {
 public:
 	DefenseStrategy(AITeam &team);	
 	virtual void update();
@@ -16,9 +16,9 @@ public:
 private:
 	bool isUsed[5];
 
-	DefenseStrategy(const DefenseStrategy &copyref); // Prohibit copying.
 	void init();
 	void defense();
 };
 
-#endif /*DEFENSESTRATEGY_H_*/
+#endif
+

@@ -1,5 +1,5 @@
-#ifndef TB_LOG_H
-#define TB_LOG_H
+#ifndef LOG_LOG_H
+#define LOG_LOG_H
 
 #include <ostream>
 #include <string>

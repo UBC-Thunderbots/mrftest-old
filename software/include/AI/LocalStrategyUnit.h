@@ -2,19 +2,19 @@
 //Used for path finding, obstacle avoidance, and carrying out robot commands
 //Communicates robot actions to the controllers.
 
-#ifndef TB_LOCALSTRATEGYUNIT_H
-#define TB_LOCALSTRATEGYUNIT_H
+#ifndef AI_LOCALSTRATEGYUNIT_H
+#define AI_LOCALSTRATEGYUNIT_H
 
+#include "datapool/Noncopyable.h"
 #include "datapool/Player.h"
 
 class AITeam;
-class LocalStrategyUnit {
+class LocalStrategyUnit : private virtual Noncopyable {
 public:
 	LocalStrategyUnit(AITeam &team);
 	void update();
 
 private:
-	LocalStrategyUnit(const LocalStrategyUnit &copyref); // Prohibit copying.
 	AITeam &team;
 	void stop(PPlayer robot);
 	void shoot(PPlayer robot);

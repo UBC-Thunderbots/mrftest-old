@@ -1,10 +1,9 @@
-#include <tr1/memory>
 class AITeam;
-typedef std::tr1::shared_ptr<AITeam> PAITeam;
 
-#ifndef TB_AITEAM_H
-#define TB_AITEAM_H
+#ifndef AI_AITEAM_H
+#define AI_AITEAM_H
 
+#include "datapool/Noncopyable.h"
 #include "datapool/Team.h"
 #include "AI/DecisionUnit.h"
 #include "AI/CentralStrategyUnit.h"
@@ -13,17 +12,12 @@ typedef std::tr1::shared_ptr<AITeam> PAITeam;
 /*
  * A team that is controlled by the local AI.
  */
-class AITeam : public Team {
+class AITeam : public Team, private virtual Noncopyable {
 public:
 	/*
 	 * Constructs a new AITeam.
 	 */
-	static PAITeam create(unsigned int id);
-
-	/*
-	 * Destroys the team.
-	 */
-	virtual ~AITeam();
+	AITeam(unsigned int id);
 
 	/*
 	 * Runs a frame of AI updates.
@@ -49,8 +43,6 @@ public:
 	const LocalStrategyUnit &getLSU() const;
 
 private:
-	AITeam(unsigned int id);
-	AITeam(const AITeam &copyref); // Prohibit copying.
 	DecisionUnit du;
 	CentralStrategyUnit csu;
 	LocalStrategyUnit lsu;

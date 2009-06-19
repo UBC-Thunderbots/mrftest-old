@@ -13,20 +13,17 @@
 #define MAX_VELOCITY 2000.0
 #define BALL_ACCELERATION 577.0
 
-Simulator::Simulator() {
+Simulator::Simulator() : friendly(0), enemy(1) {
 	RobotController::setSimulation(true);
 
 	PGoal goalW = Goal::create(Vector2(25, 200),  Vector2(25, 270),  Vector2(75, 217.5),  Vector2(75, 252.5),  16, Vector2(70, 235));
 	PGoal goalE = Goal::create(Vector2(635, 200), Vector2(635, 270), Vector2(585, 217.5), Vector2(585, 252.5), 16, Vector2(590, 235));
 	PField field = Field::create(660, 470, 25, 635, 25, 445, Vector2(330, 235), 50, goalW, goalE);
 
-	PTeam friendlyTeam = AITeam::create(0);
-	friendlyTeam->side(true);
+	friendly.side(true);
+	enemy.side(false);
 
-	PTeam enemyTeam = AITeam::create(1);
-	enemyTeam->side(false);
-
-	World::init(friendlyTeam, enemyTeam, field);
+	World::init(friendly, enemy, field);
 	
 	World &w = World::get();
 	
@@ -147,10 +144,10 @@ void Simulator::update() {
 	if (pos.x < field->west()) {	
 		if (pos.y > field->westGoal()->north.y &&
 			pos.y < field->westGoal()->south.y) {
-			if (world.friendlyTeam()->side())
-				world.enemyTeam()->score(world.enemyTeam()->score() + 1);
+			if (world.friendlyTeam().side())
+				world.enemyTeam().score(world.enemyTeam().score() + 1);
 			else
-				world.friendlyTeam()->score(world.friendlyTeam()->score() + 1);
+				world.friendlyTeam().score(world.friendlyTeam().score() + 1);
 		}
 		world.playType(PlayType::start);
 		pos = Vector2(field->centerCircle());
@@ -170,10 +167,10 @@ void Simulator::update() {
 	} else if (pos.x > field->east()) {
 		if (pos.y > field->eastGoal()->north.y &&
 			pos.y < field->eastGoal()->south.y) {
-			if (world.friendlyTeam()->side())
-				world.friendlyTeam()->score(world.friendlyTeam()->score() + 1);
+			if (world.friendlyTeam().side())
+				world.friendlyTeam().score(world.friendlyTeam().score() + 1);
 			else
-				world.enemyTeam()->score(world.enemyTeam()->score() + 1);
+				world.enemyTeam().score(world.enemyTeam().score() + 1);
 		}
 		world.playType(PlayType::start);
 		pos = Vector2(field->centerCircle());
@@ -194,9 +191,10 @@ void Simulator::update() {
 
 	switch(world.playType()){
 		case PlayType::preparePenaltyKick:
-			if (world.team(0)->specialPossession())
+			if (world.team(0).specialPossession())
 				pos = Vector2(field->eastGoal()->penalty);
-			else pos = Vector2(field->westGoal()->penalty);
+			else
+				pos = Vector2(field->westGoal()->penalty);
 			vel = Vector2(0,0);
 			acc = Vector2(0,0);
 			break;

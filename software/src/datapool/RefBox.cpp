@@ -2,7 +2,7 @@
 #include "datapool/World.h"
 #include "Log/Log.h"
 
-#include <iostream>
+#include <cstdlib>
 #include <cerrno>
 #include <cstring>
 #include <stdint.h>
@@ -10,10 +10,9 @@
 #include <sys/socket.h>
 #include <netinet/ip.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 
 namespace {
-	int sock = -1;
-	int lastCounter = -1;
 	struct GameStatePacket {
 		char cmd;                      // current referee command
 		unsigned char cmd_counter;     // increments each time new command is set
@@ -23,21 +22,20 @@ namespace {
 	} __attribute__((packed));
 }
 
-void RefBox::init() {
-	sock = ::socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (sock < 0) {
+RefBox::RefBox() : fd(-1), last_count(-1) {
+	fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (fd < 0) {
 		int err = errno;
-		std::cerr << "Cannot create referee box socket: " << std::strerror(err) << '\n';
-		return;
+		Log::log(Log::LEVEL_ERROR, "RefBox") << "Cannot create socket: " << std::strerror(err) << '\n';
+		std::exit(1);
 	}
 
 	int ival = 1;
-	if (::setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &ival, sizeof(ival)) < 0) {
+	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &ival, sizeof(ival)) < 0) {
 		int err = errno;
-		std::cerr << "Cannot set SO_REUSEADDR: " << std::strerror(err) << '\n';
-		::close(sock);
-		sock = -1;
-		return;
+		Log::log(Log::LEVEL_ERROR, "RefBox") << "Cannot set SO_REUSEADDR: " << std::strerror(err) << '\n';
+		close(fd);
+		std::exit(1);
 	}
 
 	union {
@@ -48,36 +46,42 @@ void RefBox::init() {
 	sa.in.sin_addr.s_addr = htonl(INADDR_ANY);
 	sa.in.sin_port = htons(10001);
 	memset(&sa.in.sin_zero, 0, sizeof(sa.in.sin_zero));
-	if (::bind(sock, &sa.sa, sizeof(sa.in)) < 0) {
+	if (bind(fd, &sa.sa, sizeof(sa.in)) < 0) {
 		int err = errno;
-		std::cerr << "Cannot bind referee box socket: " << std::strerror(err) << '\n';
-		::close(sock);
-		sock = -1;
-		return;
+		Log::log(Log::LEVEL_ERROR, "RefBox") << "Cannot bind socket: " << std::strerror(err) << '\n';
+		close(fd);
+		std::exit(1);
 	}
 
 	ip_mreqn req;
 	req.imr_multiaddr.s_addr = inet_addr("224.5.23.1");
 	req.imr_address.s_addr = htonl(INADDR_ANY);
 	req.imr_ifindex = 0;
-	if (::setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &req, sizeof(req)) < 0) {
+	if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &req, sizeof(req)) < 0) {
 		int err = errno;
-		std::cerr << "Cannot join multicast group: " << std::strerror(err) << '\n';
-		::close(sock);
-		sock = -1;
-		return;
+		Log::log(Log::LEVEL_ERROR, "RefBox") << "Cannot join multicast group: " << std::strerror(err) << '\n';
+		close(fd);
+		std::exit(1);
 	}
+
+	Glib::signal_io().connect(sigc::mem_fun(*this, &RefBox::onIO), fd, Glib::IO_IN);
 }
 
-void RefBox::update() {
-	if (sock < 0)
-		return;
+RefBox::~RefBox() {
+	close(fd);
+}
+
+bool RefBox::onIO(Glib::IOCondition cond) {
+	if (cond & (Glib::IO_ERR | Glib::IO_NVAL | Glib::IO_HUP)) {
+		Log::log(Log::LEVEL_ERROR, "RefBox") << "Error detected on socket\n";
+		return false;
+	}
 
 	GameStatePacket pkt;
-	ssize_t ret = ::recv(sock, &pkt, sizeof(pkt), MSG_DONTWAIT | MSG_TRUNC);
+	ssize_t ret = recv(fd, &pkt, sizeof(pkt), MSG_DONTWAIT | MSG_TRUNC);
 	if (ret == sizeof(pkt)) {
-		if (pkt.cmd_counter != lastCounter) {
-			lastCounter = pkt.cmd_counter;
+		if (pkt.cmd_counter != last_count) {
+			last_count = pkt.cmd_counter;
 			switch (pkt.cmd) {
 				case 'H':
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Halt\n";
@@ -122,62 +126,62 @@ void RefBox::update() {
 				case 'k':
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Kickoff Yellow\n";
 					World::get().playType(PlayType::prepareKickoff);
-					World::get().team(0)->specialPossession(true);
-					World::get().team(1)->specialPossession(false);
+					World::get().team(0).specialPossession(true);
+					World::get().team(1).specialPossession(false);
 					break;
 				case 'K':
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Kickoff Blue\n";
 					World::get().playType(PlayType::prepareKickoff);
-					World::get().team(0)->specialPossession(false);
-					World::get().team(1)->specialPossession(true);
+					World::get().team(0).specialPossession(false);
+					World::get().team(1).specialPossession(true);
 					break;
 				case 'p':
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Penalty Yellow\n";
 					World::get().playType(PlayType::preparePenaltyKick);
-					World::get().team(0)->specialPossession(true);
-					World::get().team(1)->specialPossession(false);
+					World::get().team(0).specialPossession(true);
+					World::get().team(1).specialPossession(false);
 					break;
 				case 'P':
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Penalty Blue\n";
 					World::get().playType(PlayType::preparePenaltyKick);
-					World::get().team(0)->specialPossession(false);
-					World::get().team(1)->specialPossession(true);
+					World::get().team(0).specialPossession(false);
+					World::get().team(1).specialPossession(true);
 					break;
 				case 'f':
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Direct Free Kick Yellow\n";
 					World::get().playType(PlayType::directFreeKick);
-					World::get().team(0)->specialPossession(true);
-					World::get().team(1)->specialPossession(false);
+					World::get().team(0).specialPossession(true);
+					World::get().team(1).specialPossession(false);
 					break;
 				case 'F':
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Direct Free Kick Blue\n";
 					World::get().playType(PlayType::directFreeKick);
-					World::get().team(0)->specialPossession(false);
-					World::get().team(1)->specialPossession(true);
+					World::get().team(0).specialPossession(false);
+					World::get().team(1).specialPossession(true);
 					break;
 				case 'i':
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Indiriect Free Kick Yellow\n";
-					World::get().team(0)->specialPossession(true);
-					World::get().team(1)->specialPossession(false);
+					World::get().team(0).specialPossession(true);
+					World::get().team(1).specialPossession(false);
 					World::get().playType(PlayType::indirectFreeKick);
 					break;
 				case 'I':
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Indirect Free Kick Blue\n";
-					World::get().team(0)->specialPossession(false);
-					World::get().team(1)->specialPossession(true);
+					World::get().team(0).specialPossession(false);
+					World::get().team(1).specialPossession(true);
 					World::get().playType(PlayType::indirectFreeKick);
 					break;
 				case 't':
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Timeout Yellow\n";
 					World::get().playType(PlayType::doNothing);
-					World::get().team(0)->specialPossession(true);
-					World::get().team(1)->specialPossession(false);
+					World::get().team(0).specialPossession(true);
+					World::get().team(1).specialPossession(false);
 					break;
 				case 'T':
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Timeout Blue\n";
 					World::get().playType(PlayType::doNothing);
-					World::get().team(0)->specialPossession(false);
-					World::get().team(1)->specialPossession(true);
+					World::get().team(0).specialPossession(false);
+					World::get().team(1).specialPossession(true);
 					break;
 				case 'z':
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Timeout End\n";
@@ -210,5 +214,7 @@ void RefBox::update() {
 			}
 		}
 	}
+
+	return true;
 }
 

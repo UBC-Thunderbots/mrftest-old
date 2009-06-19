@@ -19,9 +19,6 @@ OffensiveStrategy::OffensiveStrategy(AITeam &team) : Strategy(team) {
 	team.player(0)->plan(Plan::goalie);
 }
 
-OffensiveStrategy::~OffensiveStrategy() {
-}
-
 void OffensiveStrategy::update() {
 	team.player(2)->plan(Plan::move);
 	if (team.player(2)->destination().x != defenseRange)

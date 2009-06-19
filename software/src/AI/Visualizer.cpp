@@ -2,12 +2,14 @@
 #include "datapool/World.h"
 
 #include <sstream>
-#include <cairomm/context.h> 
-#include <gtkmm/main.h>
+#include <sigc++/sigc++.h>
+#include <gtkmm.h>
+#include <cairomm/cairomm.h>
 
 Visualizer::Visualizer() {
-	win.set_title("Thunderbots Simulator");
+	win.set_title("Thunderbots Visualizer");
 	win.set_size_request(660, 470);
+	win.signal_delete_event().connect(sigc::mem_fun(*this, &Visualizer::on_close));
 	win.add(*this);
 	show();
 	win.show();
@@ -109,8 +111,8 @@ bool Visualizer::on_expose_event(GdkEventExpose *event) {
 	// score
 	cr->set_font_size(50.0);
 	std::ostringstream ss;
-	ss << w.friendlyTeam()->score();
-	if (w.friendlyTeam()->side())
+	ss << w.friendlyTeam().score();
+	if (w.friendlyTeam().side())
 		cr->move_to(150.0, 100.0);
 	else
 		cr->move_to(470.0, 100.0);
@@ -122,8 +124,8 @@ bool Visualizer::on_expose_event(GdkEventExpose *event) {
 	cr->stroke();
 
 	ss.str("");
-	ss << w.enemyTeam()->score();
-	if (w.enemyTeam()->side())
+	ss << w.enemyTeam().score();
+	if (w.enemyTeam().side())
 		cr->move_to(150.0, 100.0);
 	else
 		cr->move_to(470.0, 100.0);
@@ -145,7 +147,7 @@ bool Visualizer::on_expose_event(GdkEventExpose *event) {
 	};
 	for (unsigned int i = 0; i < 2; i++)
 		for (unsigned int j = 0; j < Team::SIZE; j++) {
-			PPlayer player = w.team(i)->player(j);
+			PPlayer player = w.team(i).player(j);
 			cr->set_source_rgb(TEAM_COLOURS[i][0], TEAM_COLOURS[i][1], TEAM_COLOURS[i][2]);
 			cr->arc(offsetX+scaling*player->position().x, offsetY+scaling*player->position().y, scaling*player->radius(), 0.0, 2.0 * M_PI);    	
 			cr->fill();
@@ -177,5 +179,10 @@ void Visualizer::update(void) {
 	// Dispatch some events.
 	while (Gtk::Main::events_pending())
 		Gtk::Main::iteration(false);
+}
+
+bool Visualizer::on_close(GdkEventAny *event __attribute__((__unused__))) {
+	Gtk::Main::quit();
+	return true;
 }
 

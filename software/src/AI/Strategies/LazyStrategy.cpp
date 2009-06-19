@@ -5,9 +5,6 @@
 LazyStrategy::LazyStrategy(AITeam &team) : Strategy(team) {	
 }
 
-LazyStrategy::~LazyStrategy() {
-}
-
 void LazyStrategy::update() {
 	team.player(0)->plan(Plan::goalie);
 	for (unsigned int i = 1; i < Team::SIZE; i++)

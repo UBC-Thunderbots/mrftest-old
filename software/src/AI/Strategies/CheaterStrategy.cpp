@@ -104,9 +104,6 @@ void CheaterStrategy::update() {
 	supporter(supporterP, attackerP);
 }
 
-CheaterStrategy::~CheaterStrategy() {
-}
-
 void CheaterStrategy::goalie(PPlayer robot) {
 	if (robot->hasBall()) {
 		PPlayer passee = CentralAnalyzingUnit::closestRobot(robot, CentralAnalyzingUnit::TEAM_SAME, false);

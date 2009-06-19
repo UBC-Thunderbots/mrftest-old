@@ -4,8 +4,8 @@ typedef std::tr1::shared_ptr<Goal> PGoal;
 class Field;
 typedef std::tr1::shared_ptr<Field> PField;
 
-#ifndef TB_FIELD_H
-#define TB_FIELD_H
+#ifndef DATAPOOL_FIELD_H
+#define DATAPOOL_FIELD_H
 
 #include "datapool/Vector2.h"
 

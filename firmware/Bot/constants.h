@@ -33,10 +33,11 @@
 // Scaler that converts Motor counts to RPM
 #define ENCODER_COUNTS_TO_RPM 166.67
 
-#define GREEN_BATTERY_CONVERSION 0.015577712
+// Conversion factors from ADC reading to battery voltage.
+#define GREEN_BATTERY_CONVERSION(x) (((x) / 1024.0 * 5.0) / 10.0 * 32.0)
 #define GREEN_BATTERY_LOW 9.0
 
-#define MOTOR_BATTERY_CONVERSION 0.020932551
+#define MOTOR_BATTERY_CONVERSION(x) (((x) / 1024.0 * 5.0) / 10.0 * 43.0)
 #define MOTOR_BATTERY_LOW 14.4
 
 // Scaler radians/second per ADC unit
@@ -59,16 +60,12 @@
 #define KICK_TIME 200
 
 // XBee configuration.
-#define XBEE_BAUD 9600UL
+#define XBEE_BAUD 38400UL
 #define XBEE_POWER_LEVEL "4"
-#define XBEE_CHANNEL "E"
 #define XBEE_PAN "7495"
 
 // Timeout for receiving a data packet before nuking (ms).
-#define TIMEOUT_RECEIVE 200
-
-// Interval between sending battery voltage updates.
-#define TIMEOUT_BATTERY 1000
+#define TIMEOUT_RECEIVE 500
 
 // Number of microseconds to delay before starting an ADC to allow the channel to settle.
 #define ADC_SETTLE_DELAY 3

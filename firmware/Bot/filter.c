@@ -6,6 +6,14 @@ void filter_init(struct filter *f, const double *a, const double *b) {
 	filter_clear(f);
 }
 
+void filter_init2(struct filter *f, const double *a, const double *b, double init) {
+	f->a = a;
+	f->b = b;
+	init /= b[0] + b[1] + b[2];
+	f->delayed[0] = init;
+	f->delayed[1] = init;
+}
+
 void filter_clear(struct filter *f) {
 	f->delayed[0] = 0;
 	f->delayed[1] = 0;

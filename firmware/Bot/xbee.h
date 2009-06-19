@@ -1,17 +1,19 @@
 #ifndef XBEE_H
 #define XBEE_H
 
+enum xbee_rxflags {
+	XBEE_RXFLAG_RUN    = 0,
+	XBEE_RXFLAG_REBOOT = 1,
+	XBEE_RXFLAG_REPORT = 2,
+};
+
 struct xbee_rxdata {
 	int8_t vx;
 	int8_t vy;
 	int8_t vt;
 	uint8_t dribble;
 	uint8_t kick;
-	uint8_t emergency;
-	int8_t vx_measured;
-	int8_t vy_measured;
-	uint8_t reboot;
-	int8_t extra;
+	uint8_t flags;
 } __attribute__((packed));
 
 struct xbee_txdata {

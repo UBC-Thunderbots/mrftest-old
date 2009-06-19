@@ -70,7 +70,7 @@ void DefenseStrategy::defense() {
 	double dist[Team::SIZE];
 	Vector2 enemyPosition[Team::SIZE];
 	for (unsigned int i = 0; i < Team::SIZE; i++) {
-		enemyPosition[i] = team.other()->player(i)->position();
+		enemyPosition[i] = team.other().player(i)->position();
 		dist[i] = (enemyPosition[i] - goalpost).length();
 		distOrder[i] = i;
 	}

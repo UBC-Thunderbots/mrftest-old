@@ -57,8 +57,10 @@ static unsigned long kick_time;
 // Record the time the loop last ran.
 static unsigned long last_loop_time;
 
-// Record the time we last transmitted battery data.
-static unsigned long last_battery_time;
+// Filters battery voltage readings over time.
+static const double batt_filter_a[3] = {1.0, -0.998, 0.0};
+static const double batt_filter_b[3] = {0.000999, 0.000999, 0.0};
+static struct filter green_batt_filter, motor_batt_filter;
 
 // Whether the battery voltage is low.
 static uint8_t low_battery;
@@ -158,41 +160,60 @@ static void loop_timed(void) {
 	wheel_update_drive(&wheels[3], vx_actuator, vy_actuator, vt_actuator);
 }
 
+//
+// Reads the voltage from the green battery.
+//
+static double read_green_voltage(void) {
+	return GREEN_BATTERY_CONVERSION(adc_read(ADCPIN_GREEN_BATTERY));
+}
+
+//
+// Reads the voltage from the motor battery.
+//
+static double read_motor_voltage(void) {
+	if (iopin_read(IOPIN_BATHACK_2))
+		return MOTOR_BATTERY_CONVERSION(adc_read(ADCPIN_MOTOR_BATTERY));
+	else
+		return MOTOR_BATTERY_CONVERSION(adc_read(ADCPIN_MOTOR_BATTERY_HACKED));
+}
+
 /*
  * All the stuff that does NOT need critical timing.
  */
 static void loop_untimed(void) {
-	uint16_t battery_level;
+	double green_battery_voltage, motor_battery_voltage;
+	uint16_t battery_send_level;
 
-	// Send battery voltage.
-	if (rtc_millis() - last_battery_time > TIMEOUT_BATTERY) {
-		battery_level = adc_read(ADCPIN_GREEN_BATTERY);
-		if (battery_level < GREEN_BATTERY_LOW / GREEN_BATTERY_CONVERSION)
-			low_battery = 1;
-		xbee_txdata.v_green[0] = battery_level / 256;
-		xbee_txdata.v_green[1] = battery_level % 256;
+	// Fold battery reading through filters.
+	green_battery_voltage = filter_process(&green_batt_filter, read_green_voltage());
+	motor_battery_voltage = filter_process(&motor_batt_filter, read_motor_voltage());
 
-		if (iopin_read(IOPIN_BATHACK_2))
-			battery_level = adc_read(ADCPIN_MOTOR_BATTERY);
-		else
-			battery_level = adc_read(ADCPIN_MOTOR_BATTERY_HACKED);
-		if (battery_level < MOTOR_BATTERY_LOW / MOTOR_BATTERY_CONVERSION)
-			low_battery = 1;
-		xbee_txdata.v_motor[0] = battery_level / 256;
-		xbee_txdata.v_motor[1] = battery_level % 256;
+	// Send data report if instructed to do so.
+	if (xbee_rxdata.flags & _BV(XBEE_RXFLAG_REPORT)) {
+		battery_send_level = green_battery_voltage * 100.0;
+		xbee_txdata.v_green[0] = battery_send_level / 256;
+		xbee_txdata.v_green[1] = battery_send_level % 256;
+
+		battery_send_level = motor_battery_voltage * 100.0;
+		xbee_txdata.v_motor[0] = battery_send_level / 256;
+		xbee_txdata.v_motor[1] = battery_send_level % 256;
 
 		xbee_txdata.firmware_version[0] = FIRMWARE_REVISION / 256;
 		xbee_txdata.firmware_version[1] = FIRMWARE_REVISION % 256;
 
 		xbee_send();
-		last_battery_time += TIMEOUT_BATTERY;
+		xbee_rxdata.flags &= ~_BV(XBEE_RXFLAG_REPORT);
 	}
+
+	// Check for low battery state.
+	if (green_battery_voltage < GREEN_BATTERY_LOW || motor_battery_voltage < MOTOR_BATTERY_LOW)
+		low_battery = 1;
 
 	// Try receiving data from the XBee.
 	xbee_receive();
 
 	// Check if we're asked to reboot.
-	if (xbee_rxdata.reboot) {
+	if (xbee_rxdata.flags & _BV(XBEE_RXFLAG_REBOOT)) {
 		debug_puts("Bot: Reboot\n");
 		nuke();
 		WDTCR = _BV(WDE) | _BV(WDP2);
@@ -200,7 +221,7 @@ static void loop_untimed(void) {
 	}
 
 	// Check if we're in ESTOP mode.
-	estop = xbee_rxdata.emergency || rtc_millis() - xbee_rxtimestamp > TIMEOUT_RECEIVE || !xbee_rxtimestamp || low_battery;
+	estop = !(xbee_rxdata.flags & _BV(XBEE_RXFLAG_RUN)) || rtc_millis() - xbee_rxtimestamp > TIMEOUT_RECEIVE || !xbee_rxtimestamp || low_battery;
 	if (estop) {
 		nuke();
 		return;
@@ -288,6 +309,9 @@ int main(void) {
 
 	ioport_configure_input(IOPORT_COUNTER_DATA);
 
+	// Take an ADC sample.
+	adc_sample();
+
 	// Initialize the filters and controllers with their coefficients.
 	filter_init(&setpoint_x_filter, setpoint_filter_a, setpoint_filter_b);
 	filter_init(&setpoint_y_filter, setpoint_filter_a, setpoint_filter_b);
@@ -295,6 +319,8 @@ int main(void) {
 	filter_init(&vy_controller, vy_controller_a, vy_controller_b);
 	filter_init(&vt_controller, vt_controller_a, vt_controller_b);
 	filter_init(&ff_controller, ff_controller_a, ff_controller_b);
+	filter_init2(&green_batt_filter, batt_filter_a, batt_filter_b, read_green_voltage());
+	filter_init2(&motor_batt_filter, batt_filter_a, batt_filter_b, read_motor_voltage());
 	wheel_init(&wheels[0], IOPIN_COUNTER0_OE, IOPIN_MOTOR0A, IOPIN_MOTOR0B, PWMPIN_MOTOR0, m[0], rpm_filter_a, rpm_filter_b, wheel_controller_a, wheel_controller_b);
 	wheel_init(&wheels[1], IOPIN_COUNTER1_OE, IOPIN_MOTOR1A, IOPIN_MOTOR1B, PWMPIN_MOTOR1, m[1], rpm_filter_a, rpm_filter_b, wheel_controller_a, wheel_controller_b);
 	wheel_init(&wheels[2], IOPIN_COUNTER2_OE, IOPIN_MOTOR2A, IOPIN_MOTOR2B, PWMPIN_MOTOR2, m[2], rpm_filter_a, rpm_filter_b, wheel_controller_a, wheel_controller_b);
@@ -313,7 +339,6 @@ int main(void) {
 	now = rtc_millis();
 	kick_time = 0;
 	last_loop_time = now < LOOP_TIME ? 0 : now - LOOP_TIME;
-	last_battery_time = now < TIMEOUT_BATTERY ? 0 : now - TIMEOUT_BATTERY;
 
 	// Initialization complete.
 	debug_puts("Bot: Initialized.\n");

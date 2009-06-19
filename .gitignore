@@ -1,4 +1,3 @@
-/build
 firmware/Bot/bot.elf
 firmware/Bot/bot.hex
 firmware/Bot/version.h
@@ -8,3 +7,4 @@ firmware/Counter4/counter4.lst
 firmware/Counter4/counter4.map
 firmware/HWRunSwitch/hwrunswitch.elf
 firmware/HWRunSwitch/hwrunswitch.hex
+software/build

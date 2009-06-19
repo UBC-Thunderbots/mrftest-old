@@ -72,8 +72,8 @@ PPlayer CentralAnalyzingUnit::closestRobot(PPlayer robot, TEAM team, bool includ
 
 	const std::vector<PPlayer> &robots =
 		team == TEAM_ANY ? World::get().players() :
-		team == TEAM_SAME ? robot->team()->players() :
-		robot->team()->other()->players();
+		team == TEAM_SAME ? robot->team().players() :
+		robot->team().other().players();
 
 	for (unsigned int i = 0; i < robots.size(); i++) {
 		if (robots[i] != robot && (includeGoalie || (i != 0 && i != Team::SIZE))) {

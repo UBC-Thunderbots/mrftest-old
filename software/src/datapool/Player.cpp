@@ -1,15 +1,12 @@
 #include "datapool/Player.h"
 #include "datapool/World.h"
 
-PPlayer Player::create(PTeam team) {
-	PPlayer player(new Player(team));
+PPlayer Player::create(Team &team, unsigned int id) {
+	PPlayer player(new Player(team, id));
 	return player;
 }
 
-Player::Player(PTeam team) : orient(0), possession(false), receiving(false), tm(team) {
-}
-
-Player::~Player() {
+Player::Player(Team &team, unsigned int id) : idx(id), orient(0), possession(false), receiving(false), tm(team) {
 }
 
 Plan::Behavior Player::plan() const {
@@ -49,15 +46,15 @@ void Player::receivingPass(bool pass) {
 
 	// Make sure all the other players on the team are no longer receiving passes.
 	for (unsigned int i = 0; i < Team::SIZE; i++)
-		if (tm->player(i).get() != this && tm->player(i)->receivingPass())
-			tm->player(i)->receivingPass(false);
+		if (tm.player(i)->id() != id() && tm.player(i)->receivingPass())
+			tm.player(i)->receivingPass(false);
 }
 
-PTeam Player::team() {
+Team &Player::team() {
 	return tm;
 }
 
-const PTeam Player::team() const {
+const Team &Player::team() const {
 	return tm;
 }
 
@@ -95,5 +92,9 @@ const Vector2 &Player::requestedVelocity() const {
 
 void Player::requestedVelocity(const Vector2 &rv) {
 	reqVelocity = rv;
+}
+
+unsigned int Player::id() const {
+	return idx;
 }
 

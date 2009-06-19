@@ -1,7 +1,7 @@
 class CentralStrategyUnit;
 
-#ifndef TB_CENTRALSTRATEGYUNIT_H
-#define TB_CENTRALSTRATEGYUNIT_H
+#ifndef AI_CENTRALSTRATEGYUNIT_H
+#define AI_CENTRALSTRATEGYUNIT_H
 
 #include "Strategies/Strategy.h"
 

@@ -1,18 +1,17 @@
-#include <tr1/memory>
 class Team;
-typedef std::tr1::shared_ptr<Team> PTeam;
 
-#ifndef TB_TEAM_H
-#define TB_TEAM_H
+#ifndef DATAPOOL_TEAM_H
+#define DATAPOOL_TEAM_H
 
-#include "Player.h"
+#include "datapool/Noncopyable.h"
+#include "datapool/Player.h"
 #include <cstddef>
 #include <vector>
 
 /*
  * A team of robots, which does not itself have any intelligence.
  */
-class Team {
+class Team : private virtual Noncopyable {
 public:
 	/*
 	 * The number of robots on a team.
@@ -22,12 +21,7 @@ public:
 	/*
 	 * Constructs a new team. The team's robots will be numbered from 0 to SIZE-1.
 	 */
-	static PTeam create(unsigned int id);
-
-	/*
-	 * Destroys the team.
-	 */
-	virtual ~Team();
+	Team(unsigned int id);
 
 	/*
 	 * Runs any updates needed on a per-frame basis. In this class there are none, but subclasses may add some.
@@ -66,8 +60,8 @@ public:
 	/*
 	 * The other team.
 	 */
-	PTeam other();
-	const PTeam other() const;
+	Team &other();
+	const Team &other() const;
 
 	//
 	// The number of players actually seen by the camera for this team.
@@ -75,12 +69,15 @@ public:
 	unsigned int activePlayers() const;
 	void activePlayers(unsigned int n);
 
+	//
+	// The index of this team (friendly=0, enemy=1).
+	//
+	unsigned int index() const;
+
 protected:
-	Team(unsigned int id);
 	std::vector<PPlayer> robots;
 
 private:
-	Team(const Team &copyref); // Prohibit copying.
 	bool west;
 	bool special;
 	unsigned int points;

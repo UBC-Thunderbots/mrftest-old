@@ -1,5 +1,5 @@
-#ifndef TB_WORLD_H
-#define TB_WORLD_H
+#ifndef DATAPOOL_WORLD_H
+#define DATAPOOL_WORLD_H
 
 #include "PlayType.h"
 #include "Team.h"
@@ -13,7 +13,7 @@ public:
 	/*
 	 * Initializes the singleton world.
 	 */
-	static void init(PTeam friendlyTeam, PTeam enemyTeam, PField field);
+	static void init(Team &friendlyTeam, Team &enemyTeam, PField field);
 
 	/*
 	 * Returns the singleton world.
@@ -23,20 +23,20 @@ public:
 	/*
 	 * Gets the friendly team.
 	 */
-	PTeam friendlyTeam();
-	const PTeam friendlyTeam() const;
+	Team &friendlyTeam();
+	const Team &friendlyTeam() const;
 
 	/*
 	 * Gets the enemy team.
 	 */
-	PTeam enemyTeam();
-	const PTeam enemyTeam() const;
+	Team &enemyTeam();
+	const Team &enemyTeam() const;
 
 	/*
 	 * Gets a team by index.
 	 */
-	PTeam team(unsigned int id);
-	const PTeam team(unsigned int id) const;
+	Team &team(unsigned int id);
+	const Team &team(unsigned int id) const;
 
 	/*
 	 * Gets the field.
@@ -79,11 +79,12 @@ public:
 	void isBallVisible(bool newVal);
 
 private:
-	World(PTeam friendlyTeam, PTeam enemyTeam, PField field);
+	World(Team &friendlyTeam, Team &enemyTeam, PField field);
 	World(const World &copyref); // Prohibit copying.
 
 	PlayType::Type play;
-	PTeam teams[2];
+	Team &friendly;
+	Team &enemy;
 	PField field_;
 	PBall ball_;
 	std::vector<PPlayer> everyone;

@@ -10,7 +10,7 @@ namespace {
 	World *instance = 0;
 }
 
-void World::init(PTeam friendlyTeam, PTeam enemyTeam, PField field) {
+void World::init(Team &friendlyTeam, Team &enemyTeam, PField field) {
 	assert(!instance);
 	instance = new World(friendlyTeam, enemyTeam, field);
 }
@@ -20,38 +20,37 @@ World &World::get() {
 	return *instance;
 }
 
-World::World(PTeam friendlyTeam, PTeam enemyTeam, PField field) : play(PlayType::play), field_(field), ball_(Ball::create()), ballVisible(false) {
-	teams[0] = friendlyTeam;
-	teams[1] = enemyTeam;
-	for (unsigned int i = 0; i < 2; i++)
-		for (unsigned int j = 0; j < Team::SIZE; j++)
-			everyone.push_back(teams[i]->player(j));
+World::World(Team &friendlyTeam, Team &enemyTeam, PField field) : play(PlayType::play), friendly(friendlyTeam), enemy(enemyTeam), field_(field), ball_(Ball::create()), ballVisible(false) {
+	for (unsigned int j = 0; j < Team::SIZE; j++)
+		everyone.push_back(friendly.player(j));
+	for (unsigned int j = 0; j < Team::SIZE; j++)
+		everyone.push_back(enemy.player(j));
 }
 
-PTeam World::friendlyTeam() {
-	return teams[0];
+Team &World::friendlyTeam() {
+	return friendly;
 }
 
-const PTeam World::friendlyTeam() const {
-	return teams[0];
+const Team &World::friendlyTeam() const {
+	return friendly;
 }
 
-PTeam World::enemyTeam() {
-	return teams[1];
+Team &World::enemyTeam() {
+	return enemy;
 }
 
-const PTeam World::enemyTeam() const {
-	return teams[1];
+const Team &World::enemyTeam() const {
+	return enemy;
 }
 
-PTeam World::team(unsigned int id) {
+Team &World::team(unsigned int id) {
 	assert(id < 2);
-	return teams[id];
+	return id == 0 ? friendly : enemy;
 }
 
-const PTeam World::team(unsigned int id) const {
+const Team &World::team(unsigned int id) const {
 	assert(id < 2);
-	return teams[id];
+	return id == 0 ? friendly : enemy;
 }
 
 PField World::field() {
@@ -63,8 +62,8 @@ const PField World::field() const {
 }
 
 void World::update() {
-	for (unsigned int i = 0; i < sizeof(teams)/sizeof(*teams); i++)
-		teams[i]->update();
+	friendly.update();
+	enemy.update();
 }
 
 PlayType::Type World::playType() const {
@@ -76,11 +75,17 @@ void World::playType(PlayType::Type type) {
 }
 
 PPlayer World::player(unsigned int idx) {
-	return teams[idx / Team::SIZE]->player(idx % Team::SIZE);
+	if (idx >= Team::SIZE)
+		return enemy.player(idx - Team::SIZE);
+	else
+		return friendly.player(idx);
 }
 
 const PPlayer World::player(unsigned int idx) const {
-	return teams[idx / Team::SIZE]->player(idx % Team::SIZE);
+	if (idx >= Team::SIZE)
+		return enemy.player(idx - Team::SIZE);
+	else
+		return friendly.player(idx);
 }
 
 const std::vector<PPlayer> &World::players() {

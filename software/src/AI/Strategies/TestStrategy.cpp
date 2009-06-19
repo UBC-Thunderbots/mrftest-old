@@ -16,9 +16,6 @@ TestStrategy::TestStrategy(AITeam &team) : Strategy(team) {
 	team.player(4)->destination(Vector2(550,230));
 }
 
-TestStrategy::~TestStrategy() {
-}
-
 void TestStrategy::update() {
 	team.player(4)->plan(Plan::move);
 	if (team.player(4)->destination().y != 230)

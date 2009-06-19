@@ -278,7 +278,7 @@ void LocalStrategyUnit::shoot(PPlayer robot) {
 
 	// Check the vector between the robot and the center of the goal:
 	if (CentralAnalyzingUnit::checkVector(pos, des, robot, 0)) {
-		if (team.other()->player(0)->position().y > field->centerCircle().y) {
+		if (team.other().player(0)->position().y > field->centerCircle().y) {
 			// The shot is not clear, so check a point further north:
 			double height = field->eastGoal()->south.y - field->eastGoal()->north.y;
 			des.y -= height / 3.0;

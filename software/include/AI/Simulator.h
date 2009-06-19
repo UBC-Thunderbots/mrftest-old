@@ -1,15 +1,16 @@
-#ifndef TB_SIMULATOR_H
-#define TB_SIMULATOR_H
+#ifndef AI_SIMULATOR_H
+#define AI_SIMULATOR_H
 
-#include "datapool/DataSource.h"
+#include "AI/AITeam.h"
+#include "datapool/Noncopyable.h"
 
-class Simulator : public DataSource {
+class Simulator : private virtual Noncopyable {
 public:
 	Simulator();
 	void update();
 
 private:
-	Simulator(const Simulator &copyref); // Prohibit copying.
+	AITeam friendly, enemy;
 };
 
 #endif

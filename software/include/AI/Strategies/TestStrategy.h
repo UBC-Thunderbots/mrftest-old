@@ -1,12 +1,12 @@
-#ifndef TB_TESTSTRATEGY_H
-#define TB_TESTSTRATEGY_H
+#ifndef AI_STRATEGIES_TESTSTRATEGY_H
+#define AI_STRATEGIES_TESTSTRATEGY_H
 
 #include "AI/Strategies/Strategy.h"
+#include "datapool/Noncopyable.h"
 
-class TestStrategy : public Strategy {
+class TestStrategy : public Strategy, private virtual Noncopyable {
 public:
 	TestStrategy(AITeam &team);	
-	virtual ~TestStrategy();
 	virtual void update();
 };
 

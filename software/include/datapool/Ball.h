@@ -2,8 +2,8 @@
 class Ball;
 typedef std::tr1::shared_ptr<Ball> PBall;
 
-#ifndef TB_BALL_H
-#define TB_BALL_H
+#ifndef DATAPOOL_BALL_H
+#define DATAPOOL_BALL_H
 
 #include "datapool/PredictableObject.h"
 

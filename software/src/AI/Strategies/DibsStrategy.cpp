@@ -104,9 +104,6 @@ void DibsStrategy::update() {
 	supporter(supporterP, attackerP);
 }
 
-DibsStrategy::~DibsStrategy() {
-}
-
 void DibsStrategy::goalie(PPlayer robot) {
 	if (robot->hasBall()) {
 		PPlayer passee = CentralAnalyzingUnit::closestRobot(robot, CentralAnalyzingUnit::TEAM_SAME, false);

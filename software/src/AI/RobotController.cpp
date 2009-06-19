@@ -1,10 +1,11 @@
 #include "AI/CentralAnalyzingUnit.h"
 #include "AI/RobotController.h"
-#include "datapool/EmergencyStopButton.h"
+#include "datapool/HWRunSwitch.h"
+#include "datapool/RobotMap.h"
 #include "datapool/World.h"
-#include "XBee/XBee.h"
+#include "XBee/XBeeBot.h"
 
-#include <tr1/memory>
+#include <vector>
 #include <cmath>
 #include <cassert>
 #include <climits>
@@ -123,37 +124,15 @@ namespace {
 		bool hasPrev;
 	};
 
-	void sendWireless(PPlayer robot, Vector2 acc, double rotate, unsigned char dribble, unsigned char kick) {
-		static const double rotKp = 100, rotKi = 1, rotKd = 0, rotDecay = 0.97;
-		static PID rotPIDs[Team::SIZE] = {
-			PID(rotKp, rotKi, rotKd, rotDecay),
-			PID(rotKp, rotKi, rotKd, rotDecay),
-			PID(rotKp, rotKi, rotKd, rotDecay),
-			PID(rotKp, rotKi, rotKd, rotDecay),
-			PID(rotKp, rotKi, rotKd, rotDecay),
-		};
-		static const double vxKp = 20, vxKi = 0, vxKd = 0, vxDecay = 0.97;
-		static PID vxPIDs[Team::SIZE] = {
-			PID(vxKp, vxKi, vxKd, vxDecay),
-			PID(vxKp, vxKi, vxKd, vxDecay),
-			PID(vxKp, vxKi, vxKd, vxDecay),
-			PID(vxKp, vxKi, vxKd, vxDecay),
-			PID(vxKp, vxKi, vxKd, vxDecay),
-		};
-		static const double vyKp = 30, vyKi = 0, vyKd = 0, vyDecay = 0.97;
-		static PID vyPIDs[Team::SIZE] = {
-			PID(vyKp, vyKi, vyKd, vyDecay),
-			PID(vyKp, vyKi, vyKd, vyDecay),
-			PID(vyKp, vyKi, vyKd, vyDecay),
-			PID(vyKp, vyKi, vyKd, vyDecay),
-			PID(vyKp, vyKi, vyKd, vyDecay),
-		};
+	void sendWireless(PPlayer robot, Vector2 acc, double rotate, double dribble, double kick) {
+		static const double rotKp = 0.78740157, rotKi = 1, rotKd = 0, rotDecay = 0.97;
+		static std::vector<PID> rotPIDs(2 * Team::SIZE, PID(rotKp, rotKi, rotKd, rotDecay));
+		static const double vxKp = 0.15748031, vxKi = 0, vxKd = 0, vxDecay = 0.97;
+		static std::vector<PID> vxPIDs(2 * Team::SIZE, PID(vxKp, vxKi, vxKd, vxDecay));
+		static const double vyKp = 0.23622047, vyKi = 0, vyKd = 0, vyDecay = 0.97;
+		static std::vector<PID> vyPIDs(2 * Team::SIZE, PID(vyKp, vyKi, vyKd, vyDecay));
 
-		unsigned int index = UINT_MAX;
-		for (unsigned int i = 0; i < Team::SIZE; i++)
-			if (robot == World::get().friendlyTeam()->player(i))
-				index = i;
-		assert(index != UINT_MAX);
+		unsigned int index = RobotMap::instance().l2p(robot);
 
 		// Rotate X and Y to be relative to the robot, not the world!
 		//
@@ -183,8 +162,9 @@ namespace {
 		mrotate.x = World::get().field()->convertCoordToMm(mrotate.x) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
 		mrotate.y = World::get().field()->convertCoordToMm(mrotate.y) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
 
-		XBee::out[index].vx = clamp<signed char, -127, 127>(vxPIDs[index].process(rotated.x));
-		XBee::out[index].vy = clamp<signed char, -127, 127>(vyPIDs[index].process(rotated.y));
+		Glib::RefPtr<XBeeBot> bot = XBeeBotSet::instance()[index];
+		bot->vx(vxPIDs[robot->id()].process(rotated.x));
+		bot->vy(vyPIDs[robot->id()].process(rotated.y));
 		double diff;
 		{
 			Vector2 cur(robot->orientation());
@@ -192,17 +172,17 @@ namespace {
 			diff = cur.angle() - tgt.angle();
 			while (diff >= 180)  diff -= 360;
 			while (diff <= -180) diff += 360;
-			XBee::out[index].vt = clamp<signed char, -127, 127>(rotPIDs[index].process(-diff / 180));
+			bot->vt(rotPIDs[robot->id()].process(-diff / 180));
 		}
-		XBee::out[index].dribble    = dribble;
-		XBee::out[index].kick       = kick;
-		XBee::out[index].vxMeasured = clamp<signed char, -127, 127>(mrotate.x * 127);
-		XBee::out[index].vyMeasured = clamp<signed char, -127, 127>(mrotate.y * 127);
+		bot->dribbler(dribble);
+		if (kick)
+			bot->kick(kick);
 
-		if (XBee::out[index].emergency)
-			rotPIDs[index].clear();
-
-		XBee::update();
+		if (!bot->run()) {
+			rotPIDs[robot->id()].clear();
+			vxPIDs[robot->id()].clear();
+			vyPIDs[robot->id()].clear();
+		}
 	}
 }
 

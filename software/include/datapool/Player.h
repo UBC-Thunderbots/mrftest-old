@@ -2,26 +2,22 @@
 class Player;
 typedef std::tr1::shared_ptr<Player> PPlayer;
 
-#ifndef TB_PLAYER_H
-#define TB_PLAYER_H
+#ifndef DATAPOOL_PLAYER_H
+#define DATAPOOL_PLAYER_H
 
+#include "datapool/Noncopyable.h"
 #include "datapool/PredictableObject.h"
 #include "datapool/Plan.h"
 #include "datapool/Team.h"
 
 #define DEFAULT_MAX_ACC    2
 
-class Player : public PredictableObject {
+class Player : public PredictableObject, private virtual Noncopyable {
 public:
 	/*
 	 * Creates a new player.
 	 */
-	static PPlayer create(PTeam team);
-
-	/*
-	 * Destroys a player.
-	 */
-	virtual ~Player();
+	static PPlayer create(Team &team, unsigned int id);
 
 	/*
 	 * Gets or sets the current plan.
@@ -56,8 +52,8 @@ public:
 	/*
 	 * Gets the team the player belongs to.
 	 */
-	PTeam team();
-	const PTeam team() const;
+	Team &team();
+	const Team &team() const;
 
 	/*
 	 * The player this player is passing to or guarding.
@@ -78,16 +74,21 @@ public:
 	const Vector2 &requestedVelocity() const;
 	void requestedVelocity(const Vector2 &rv);
 
-private:
-	Player(PTeam team);
-	Player(const Player &copyref); // Prohibit copying.
+	//
+	// The logical ID number of the robot, from 0 to 2 * Team:SIZE - 1.
+	//
+	unsigned int id() const;
 
+private:
+	Player(Team &team, unsigned int id);
+
+	unsigned int idx;        //logical ID, from 0 to 2 * Team::SIZE - 1
 	double orient;           //orientation double from 0-360
 	bool possession;         //true: has the ball, false: doesn't have the ball
 	Plan::Behavior behavior; //used to store robot behavior in CSU.
 	bool receiving;          //true if the robot is currently receiving a pass.
 	bool allowedIn;		 	 //true if the robot is allowed inside the ball's radius during special plays.
-	PTeam tm;                //which team the player is on
+	Team &tm;                //which team the player is on
 	PPlayer other;           //which player I'm passing to or guarding
 	Vector2 dest;            //where I'm trying to get to
 	Vector2 reqVelocity;     //the last requested velocity

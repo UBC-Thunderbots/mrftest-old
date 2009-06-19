@@ -43,6 +43,7 @@ static volatile uint8_t host_address[8];
 
 static uint8_t rxbuf[XBEE_MAX_PACKET];
 static uint8_t rxptr;
+static volatile uint8_t rxpending;
 static volatile struct xbee_rxdata rxdata_dbuf;
 static volatile unsigned long rxtimestamp_dbuf;
 ISR(USART1_RX_vect, ISR_BLOCK) {
@@ -102,7 +103,61 @@ ISR(USART1_RX_vect, ISR_BLOCK) {
 			memcpy_to_volatile(&host_address[0], &rxbuf[4], sizeof(host_address));
 			memcpy_to_volatile(&rxdata_dbuf, &rxbuf[4 + 8 + 1 + 1], sizeof(rxdata_dbuf));
 			rxtimestamp_dbuf = rtc_millis();
+			rxpending = 1;
 		}
+#if XBEE_DEBUG
+	} else if (rxbuf[3] == 0x8A) {
+		// Modem status.
+		switch (rxbuf[4]) {
+			case 0:
+				debug_puts("XBee: Hardware Reset\n");
+				break;
+
+			case 1:
+				debug_puts("XBee: WDT Reset\n");
+				break;
+
+			case 2:
+				debug_puts("XBee: Associated\n");
+				break;
+
+			case 3:
+				debug_puts("XBee: Disassociated\n");
+				break;
+
+			case 4:
+				debug_puts("XBee: Synchronization Lost\n");
+				break;
+
+			case 5:
+				debug_puts("XBee: Coordinator Realignment\n");
+				break;
+
+			case 6:
+				debug_puts("XBee: Coordination Started\n");
+				break;
+		}
+	} else if (rxbuf[3] == 0x89) {
+		// Transmit status.
+		if (rxbuf[4] == 1 && rxbuf[5] != 0) {
+			// Transmit failed.
+			debug_puts("Transmission failed: ");
+			switch (rxbuf[5]) {
+				case 1:
+					debug_puts("No ACK\n");
+					break;
+				case 2:
+					debug_puts("No CC\n");
+					break;
+				case 3:
+					debug_puts("Purged\n");
+					break;
+				default:
+					debug_puts("Unknown reason\n");
+					break;
+			}
+		}
+#endif
 	}
 
 	// Clear the buffer.
@@ -158,22 +213,39 @@ static void init_command(const char *cmd) {
 }
 
 void xbee_init(void) {
-#define XBEE_BAUD_DIVISOR (((F_CPU + 8UL * XBEE_BAUD) / (16UL * XBEE_BAUD)) - 1UL)
-	UBRR1H = XBEE_BAUD_DIVISOR / 256UL;
-	UBRR1L = XBEE_BAUD_DIVISOR % 256UL;
+#define XBEE_BAUD_RUN_DIVISOR (((F_CPU + 8UL * XBEE_BAUD) / (16UL * XBEE_BAUD)) - 1UL)
+#define XBEE_BAUD_INIT_DIVISOR (((F_CPU + 8UL * 9600UL) / (16UL * 9600UL)) - 1UL)
 	UCSR1A = 0;
-	UCSR1B = _BV(RXEN1) | _BV(TXEN1);
 	UCSR1C = _BV(USBS1) | _BV(UCSZ11) | _BV(UCSZ10);
 
 	// Send +++, receive OK.
+	for (;;) {
 #if XBEE_DEBUG
-	debug_puts("XBee: +++\n");
+		debug_puts("XBee: +++ at high baud\n");
 #endif
-	do {
+		UCSR1B = 0;
+		UBRR1H = XBEE_BAUD_RUN_DIVISOR / 256UL;
+		UBRR1L = XBEE_BAUD_RUN_DIVISOR % 256UL;
+		UCSR1B = _BV(RXEN1) | _BV(TXEN1);
 		_delay_ms(1100);
 		init_write("+++");
+		_delay_ms(400);
+		if (init_read_ok())
+			break;
+
+#if XBEE_DEBUG
+		debug_puts("XBee: +++ at 9600 baud\n");
+#endif
+		UCSR1B = 0;
+		UBRR1H = XBEE_BAUD_INIT_DIVISOR / 256UL;
+		UBRR1L = XBEE_BAUD_INIT_DIVISOR % 256UL;
+		UCSR1B = _BV(RXEN1) | _BV(TXEN1);
 		_delay_ms(1100);
-	} while (!init_read_ok());
+		init_write("+++");
+		_delay_ms(400);
+		if (init_read_ok())
+			break;
+	}
 
 	// Factory reset.
 	init_command("ATRE");
@@ -193,21 +265,34 @@ void xbee_init(void) {
 	// Configure coordination.
 	init_command("ATA16");
 
+	// Baud rate.
+	init_command("ATBD5");
+
 	// Exit command mode.
 	init_command("ATCN");
 
 	// Initialize receive buffer to a safe value.
-	xbee_rxdata.emergency = 0xFF;
+	xbee_rxdata.flags = 0;
+
+	// Switch to final baud rate.
+	while (!(UCSR1A & _BV(TXC1)));
+	UCSR1B = 0;
+	UBRR1H = XBEE_BAUD_RUN_DIVISOR / 256UL;
+	UBRR1L = XBEE_BAUD_RUN_DIVISOR % 256UL;
+	UCSR1B = _BV(RXEN1) | _BV(TXEN1);
 
 	// Enable receive interrupts.
 	UCSR1B |= _BV(RXCIE1);
 }
 
 void xbee_receive(void) {
-	cli();
-	memcpy_from_volatile(&xbee_rxdata, &rxdata_dbuf, sizeof(xbee_rxdata));
-	xbee_rxtimestamp = rxtimestamp_dbuf;
-	sei();
+	if (rxpending) {
+		cli();
+		memcpy_from_volatile(&xbee_rxdata, &rxdata_dbuf, sizeof(xbee_rxdata));
+		xbee_rxtimestamp = rxtimestamp_dbuf;
+		rxpending = 0;
+		sei();
+	}
 }
 
 void xbee_send(void) {
@@ -220,7 +305,7 @@ void xbee_send(void) {
 		txbuf[3] = 0x00;
 		txbuf[4] = 0x00;
 		memcpy_volatile_to_volatile(&txbuf[5], &host_address[0], sizeof(host_address));
-		txbuf[13] = 0x01;
+		txbuf[13] = 0x00;
 		memcpy_to_volatile(&txbuf[14], &xbee_txdata, sizeof(xbee_txdata));
 		checksum = 0xFF;
 		for (i = 3; i < 3 + 1 + 1 + 8 + 1 + sizeof(xbee_txdata); i++)

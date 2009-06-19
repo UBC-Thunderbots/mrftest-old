@@ -1,16 +1,14 @@
-#ifndef CHASESTRATEGY_H_
-#define CHASESTRATEGY_H_
+#ifndef AI_STRATEGIES_CHASESTRATEGY_H
+#define AI_STRATEGIES_CHASESTRATEGY_H
 
 #include "AI/Strategies/Strategy.h"
+#include "datapool/Noncopyable.h"
 
-class ChaseStrategy : public Strategy {
+class ChaseStrategy : public Strategy, private virtual Noncopyable {
 public:
 	ChaseStrategy(AITeam &team);	
-	virtual ~ChaseStrategy();
 	virtual void update();
-
-private:
-	ChaseStrategy(const ChaseStrategy &copyref); // Prohibit copying.
 };
 
-#endif /*CHASESTRATEGY_H_*/
+#endif
+

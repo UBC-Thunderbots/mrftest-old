@@ -4,8 +4,8 @@
 class Object;
 typedef std::tr1::shared_ptr<Object> PObject;
 
-#ifndef TB_OBJECT_H
-#define TB_OBJECT_H
+#ifndef DATAPOOL_OBJECT_H
+#define DATAPOOL_OBJECT_H
 
 #include "datapool/Vector2.h"
 

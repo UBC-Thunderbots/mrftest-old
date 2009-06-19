@@ -3,17 +3,9 @@
 
 #include <cassert>
 
-PTeam Team::create(unsigned int id) {
-	PTeam team(new Team(id));
-	for (unsigned int i = 0; i < SIZE; i++)
-		team->robots[i] = Player::create(team);
-	return team;
-}
-
 Team::Team(unsigned int id) : robots(SIZE), west(false), special(false), points(0), id(id), activePl(SIZE) {
-}
-
-Team::~Team() {
+	for (unsigned int i = 0; i < SIZE; i++)
+		robots[i] = Player::create(*this, id * Team::SIZE + i);
 }
 
 void Team::update() {
@@ -57,11 +49,11 @@ void Team::score(unsigned int pts) {
 	points = pts;
 }
 
-PTeam Team::other() {
+Team &Team::other() {
 	return World::get().team(!id);
 }
 
-const PTeam Team::other() const {
+const Team &Team::other() const {
 	return World::get().team(!id);
 }
 
@@ -72,5 +64,9 @@ unsigned int Team::activePlayers() const {
 void Team::activePlayers(unsigned int n) {
 	assert(n <= SIZE);
 	activePl = n;
+}
+
+unsigned int Team::index() const {
+	return id;
 }
 

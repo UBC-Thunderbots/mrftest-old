@@ -1,17 +1,16 @@
-#ifndef TB_CHEATERSTRATEGY_H
-#define TB_CHEATERSTRATEGY_H
+#ifndef AI_CHEATERSTRATEGY_H
+#define AI_CHEATERSTRATEGY_H
 
 #include "AI/Strategies/Strategy.h"
+#include "datapool/Noncopyable.h"
 #include "datapool/Player.h"
 
-class CheaterStrategy : public Strategy {
+class CheaterStrategy : public Strategy, private virtual Noncopyable {
 public:
 	CheaterStrategy(AITeam &team);	
-	virtual ~CheaterStrategy();
 	virtual void update();
 
 private:
-	CheaterStrategy(const CheaterStrategy &copyref); // Prohibit copying.
 	bool attackerWaiting;
 	unsigned int oldAttacker;
 	int waitingCounter;

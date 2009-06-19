@@ -1,7 +1,7 @@
 //Generic 2D Vector class
 
-#ifndef TB_VECTOR2_H
-#define TB_VECTOR2_H
+#ifndef DATAPOOL_VECTOR2_H
+#define DATAPOOL_VECTOR2_H
 
 #include <cmath>
 

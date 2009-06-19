@@ -1,18 +1,17 @@
-#ifndef TB_CONTROLPANEL_H
-#define TB_CONTROLPANEL_H
+#ifndef UI_CONTROLPANEL_H
+#define UI_CONTROLPANEL_H
 
-#include <tr1/memory>
-#include <gtkmm/table.h>
+#include "datapool/Noncopyable.h"
+
+#include <memory>
 
 class ControlPanelImpl;
-
-class ControlPanel : public Gtk::Table {
+class ControlPanel : private virtual Noncopyable {
 public:
 	ControlPanel();
-	void update();
 
 private:
-	std::tr1::shared_ptr<ControlPanelImpl> impl;
+	std::auto_ptr<ControlPanelImpl> impl;
 };
 
 #endif

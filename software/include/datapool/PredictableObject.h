@@ -2,8 +2,8 @@
 class PredictableObject;
 typedef std::tr1::shared_ptr<PredictableObject> PPredictableObject;
 
-#ifndef TB_PREDICTABLEOBJECT_H
-#define TB_PREDICTABLEOBJECT_H
+#ifndef DATAPOOL_PREDICTABLEOBJECT_H
+#define DATAPOOL_PREDICTABLEOBJECT_H
 
 #include "datapool/Object.h"
 #include "../src/leastsquares/ap.h"

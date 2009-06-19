@@ -9,9 +9,6 @@ using namespace std;
 ChaseStrategy::ChaseStrategy(AITeam &team) : Strategy(team) {	
 }
 
-ChaseStrategy::~ChaseStrategy() {
-}
-
 void ChaseStrategy::update() {
 	for (unsigned int i = 0; i < Team::SIZE; i++) {
 		Vector2 orientation = World::get().ball()->position() - team.player(i)->position();

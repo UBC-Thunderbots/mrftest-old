@@ -1,55 +1,54 @@
+#include "datapool/HWRunSwitch.h"
 #include "UI/ControlPanel.h"
-#include "datapool/EmergencyStopButton.h"
-#include "XBee/XBee.h"
+#include "XBee/XBeeBot.h"
 
 #include <iostream>
-#include <tr1/memory>
-#include <ctime>
-#include <gtkmm/button.h>
-#include <gtkmm/drawingarea.h>
-#include <gtkmm/entry.h>
-#include <gtkmm/label.h>
-#include <gtkmm/progressbar.h>
-#include <gtkmm/table.h>
-#include <gtkmm/togglebutton.h>
+#include <cassert>
 
-#define MOTOR_BATTERY_CONVERSION_FACTOR 0.020932551
-#define MOTOR_BATTERY_MAX_VOLTAGE       16.75
-#define MOTOR_BATTERY_MIN_VOLTAGE       14.40
-#define MOTOR_BATTERY_WARNING_VOLTAGE   14.60
-#define MOTOR_BATTERY_ZERO_VOLTAGE       2.00
+#include <gtkmm.h>
 
-#define GREEN_BATTERY_CONVERSION_FACTOR 0.015577712
 #define GREEN_BATTERY_MAX_VOLTAGE       12.50
 #define GREEN_BATTERY_MIN_VOLTAGE        9.00
 #define GREEN_BATTERY_WARNING_VOLTAGE    9.90
 #define GREEN_BATTERY_ZERO_VOLTAGE       2.00
 
+#define MOTOR_BATTERY_MAX_VOLTAGE       16.75
+#define MOTOR_BATTERY_MIN_VOLTAGE       14.40
+#define MOTOR_BATTERY_WARNING_VOLTAGE   14.60
+#define MOTOR_BATTERY_ZERO_VOLTAGE       2.00
+
 namespace {
-	void beep() {
-		static std::time_t lastTime = 0;
-		std::time_t now;
-		std::time(&now);
-		if (now != lastTime) {
-			lastTime = now;
-			std::cerr << '\a';
-			std::cerr.flush();
-		}
-	}
-
-	class CommStatusLight : public Gtk::DrawingArea {
+	class Beeper : public virtual sigc::trackable {
 	public:
-		CommStatusLight(unsigned int id) : id(id), old(XBee::STATUS_OK) {
-			set_size_request(32, 32);
+		Beeper() {
+			Glib::signal_timeout().connect_seconds(sigc::mem_fun(*this, &Beeper::onTimeout), 1);
 		}
 
-		void update() {
-			if (XBee::commStatus[id] == old)
-				return;
-			Glib::RefPtr<Gdk::Window> win(get_window());
-			const Gdk::Rectangle &r(get_allocation());
-			if (win)
-				win->invalidate_rect(Gdk::Rectangle(0, 0, r.get_width(), r.get_height()), false);
+	private:
+		bool onTimeout() {
+			bool shouldBeep = false;
+			XBeeBotSet &bots = XBeeBotSet::instance();
+			for (unsigned int i = 0; i < bots.size(); i++) {
+				double green = bots[i]->property_greenVoltage();
+				double motor = bots[i]->property_motorVoltage();
+				if (green > GREEN_BATTERY_ZERO_VOLTAGE && green < GREEN_BATTERY_WARNING_VOLTAGE)
+					shouldBeep = true;
+				if (motor > MOTOR_BATTERY_ZERO_VOLTAGE && motor < MOTOR_BATTERY_WARNING_VOLTAGE)
+					shouldBeep = true;
+			}
+			if (shouldBeep) {
+				std::cerr << '\a';
+				std::cerr.flush();
+			}
+			return true;
+		}
+	};
+
+	class CommStatusLight : public Gtk::DrawingArea, private virtual sigc::trackable {
+	public:
+		CommStatusLight(Glib::RefPtr<XBeeBot> bot) : bot(bot) {
+			set_size_request(32, 32);
+			bot->property_commStatus().signal_changed().connect(sigc::mem_fun(*this, &CommStatusLight::onChange));
 		}
 
 	protected:
@@ -67,204 +66,193 @@ namespace {
 			const Gdk::Rectangle &r(get_allocation());
 			double w = r.get_width();
 			double h = r.get_height();
-			if (XBee::commStatus[id] == XBee::STATUS_OK)
-				ctx->set_source_rgb(0, 1, 0);
-			else if (XBee::commStatus[id] == XBee::STATUS_NO_RECV)
-				ctx->set_source_rgb(1, 1, 0);
-			else
-				ctx->set_source_rgb(1, 0, 0);
+			switch (bot->property_commStatus()) {
+				case XBeeBot::STATUS_OK:
+					ctx->set_source_rgb(0, 1, 0);
+					break;
+
+				case XBeeBot::STATUS_NO_RECV:
+					ctx->set_source_rgb(1, 1, 0);
+					break;
+
+				case XBeeBot::STATUS_NO_ACK:
+					ctx->set_source_rgb(1, 0, 0);
+					break;
+			}
 			ctx->arc(w / 2, h / 2, std::min(w, h) / 2, 0, 2 * M_PI);
 			ctx->fill();
-
-			old = XBee::commStatus[id];
 
 			return true;
 		}
 
 	private:
-		const unsigned int id;
-		XBee::CommStatus old;
+		Glib::RefPtr<XBeeBot> bot;
+
+		void onChange() {
+			Glib::RefPtr<Gdk::Window> win(get_window());
+			const Gdk::Rectangle &r(get_allocation());
+			if (win)
+				win->invalidate_rect(Gdk::Rectangle(0, 0, r.get_width(), r.get_height()), false);
+		}
 	};
 
-	class Voltage : public Gtk::ProgressBar {
+	class Voltage : public Gtk::ProgressBar, private virtual sigc::connection {
 	public:
-		Voltage(const unsigned char *data, double factor, double min, double max, double warn, double zero) : data(data), factor(factor), min(min), max(max), warn(warn), zero(zero), old(UINT_MAX) {
-			set_text("---");
-		}
-
-		void update() {
-			unsigned int level = data[0] * 256 + data[1];
-			if (level > 1023) {
-				set_text("---");
-			} else {
-				double voltage = level * factor;
-				if (voltage <= warn && voltage >= zero) beep();
-				
-				if (level != old) {
-					std::ostringstream oss;
-					oss.setf(std::ios_base::fixed, std::ios_base::floatfield);
-					oss.precision(2);
-					oss << voltage << "V [" << level << ']';
-					set_text(oss.str());
-					if (voltage < min)
-						set_fraction(0);
-					else if (voltage > max)
-						set_fraction(1);
-					else
-						set_fraction((voltage - min) / (max - min));
-
-					Gdk::Color clr(voltage <= warn ? "red" : "green");
-					modify_bg(Gtk::STATE_PRELIGHT, clr);
-					old = level;
-				}
-			}
+		Voltage(Glib::PropertyProxy<double> voltage, double min, double max, double warn) : voltage(voltage), min(min), max(max), warn(warn) {
+			voltage.signal_changed().connect(sigc::mem_fun(*this, &Voltage::onChange));
 		}
 
 	private:
-		const unsigned char *data;
-		const double factor, min, max, warn, zero;
-		unsigned int old;
+		Glib::PropertyProxy<double> voltage;
+		const double min, max, warn;
+
+		void onChange() {
+			std::ostringstream oss;
+			oss.setf(std::ios_base::fixed, std::ios_base::floatfield);
+			oss.precision(2);
+			oss << voltage << 'V';
+			set_text(oss.str());
+			if (voltage < min)
+				set_fraction(0);
+			else if (voltage > max)
+				set_fraction(1);
+			else
+				set_fraction((voltage - min) / (max - min));
+
+			Gdk::Color clr(voltage <= warn ? "red" : "green");
+			modify_bg(Gtk::STATE_PRELIGHT, clr);
+		}
 	};
 
-	class RunSwitch : public Gtk::ToggleButton {
+	class RunSwitch : public Gtk::ToggleButton, public virtual sigc::trackable {
 	public:
-		RunSwitch(unsigned int id) : Gtk::ToggleButton("Run"), id(id), old(true) {
-			set_active(false);
-			set_sensitive(false);
-			XBee::out[id].emergency = 0xFF;
-		}
-
-		void update() {
-			if (old == EmergencyStopButton::state)
-				return;
-			if (EmergencyStopButton::state) {
-				set_active(false);
-				set_sensitive(false);
-			} else {
-				set_sensitive(true);
-			}
-
-			XBee::out[id].emergency = get_active() ? 0 : 0xFF;
-			old = EmergencyStopButton::state;
+		RunSwitch(Glib::RefPtr<XBeeBot> bot) : Gtk::ToggleButton("Run"), bot(bot) {
+			HWRunSwitch::instance().property_state().signal_changed().connect(sigc::mem_fun(*this, &RunSwitch::onChange));
+			set_sensitive(HWRunSwitch::instance().property_state());
 		}
 
 	protected:
 		virtual void on_toggled() {
-			XBee::out[id].emergency = get_active() ? 0 : 0xFF;
+			bot->run(get_active());
 		}
 
 	private:
-		unsigned int id;
-		bool old;
+		Glib::RefPtr<XBeeBot> bot;
+
+		void onChange() {
+			if (HWRunSwitch::instance().property_state()) {
+				set_sensitive(true);
+			} else {
+				set_active(false);
+				set_sensitive(false);
+			}
+		}
 	};
 
 	class RebootButton : public Gtk::Button {
 	public:
-		RebootButton(unsigned int id) : Gtk::Button("Reboot"), id(id) {
-			XBee::out[id].reboot = 0;
+		RebootButton(Glib::RefPtr<XBeeBot> bot) : Gtk::Button("Reboot"), bot(bot) {
 		}
 
 	protected:
 		virtual void on_clicked() {
-			XBee::out[id].reboot = 0xFF;
+			bot->reboot();
 		}
 
 	private:
-		const unsigned int id;
+		Glib::RefPtr<XBeeBot> bot;
 	};
 
-	class RobotControls {
+	class FirmwareVersion : public Gtk::Entry, public virtual sigc::trackable {
 	public:
-		RobotControls(unsigned int id, Gtk::Table &tbl) : id(id), commStatusLight(id), runSwitch(id), rebootButton(id), greenVoltage(XBee::in[id].vGreen, GREEN_BATTERY_CONVERSION_FACTOR, GREEN_BATTERY_MIN_VOLTAGE, GREEN_BATTERY_MAX_VOLTAGE, GREEN_BATTERY_WARNING_VOLTAGE, GREEN_BATTERY_ZERO_VOLTAGE), motorVoltage(XBee::in[id].vMotor, MOTOR_BATTERY_CONVERSION_FACTOR, MOTOR_BATTERY_MIN_VOLTAGE, MOTOR_BATTERY_MAX_VOLTAGE, MOTOR_BATTERY_WARNING_VOLTAGE, MOTOR_BATTERY_ZERO_VOLTAGE), oldVersion(UINT_MAX) {
+		FirmwareVersion(Glib::RefPtr<XBeeBot> bot) : bot(bot) {
+			set_sensitive(false);
+			bot->property_firmwareVersion().signal_changed().connect(sigc::mem_fun(*this, &FirmwareVersion::onChange));
+		}
+
+	private:
+		Glib::RefPtr<XBeeBot> bot;
+
+		void onChange() {
+			unsigned int fwv = bot->property_firmwareVersion();
 			std::ostringstream oss;
-			oss << id;
-			label.set_text(oss.str());
-
-			tbl.attach(label,           id + 1, id + 2, 0, 1);
-			tbl.attach(commStatusLight, id + 1, id + 2, 1, 2);
-			tbl.attach(runSwitch,       id + 1, id + 2, 2, 3);
-			tbl.attach(rebootButton,    id + 1, id + 2, 3, 4);
-			tbl.attach(greenVoltage,    id + 1, id + 2, 4, 5);
-			tbl.attach(motorVoltage,    id + 1, id + 2, 5, 6);
-			tbl.attach(firmware,        id + 1, id + 2, 6, 7);
+			oss << fwv;
+			set_text(oss.str());
 		}
-
-		void update() {
-			commStatusLight.update();
-			runSwitch.update();
-			greenVoltage.update();
-			motorVoltage.update();
-			unsigned int ver = XBee::in[id].firmware[0] * 256 + XBee::in[id].firmware[1];
-			if (ver != oldVersion) {
-				if (ver == 65535) {
-					firmware.set_text("---");
-				} else {
-					std::ostringstream oss;
-					oss << ver;
-					firmware.set_text(oss.str());
-				}
-				oldVersion = ver;
-			}
-		}
-
-	private:
-		unsigned int id;
-		Gtk::Label label;
-		CommStatusLight commStatusLight;
-		RunSwitch runSwitch;
-		RebootButton rebootButton;
-		Voltage greenVoltage;
-		Voltage motorVoltage;
-		Gtk::Entry firmware;
-		unsigned int oldVersion;
 	};
 
-	class RobotControlArray {
+	class ControlPanelWindow : public Gtk::Window {
 	public:
-		RobotControlArray(Gtk::Table &tbl) : r0(0, tbl), r1(1, tbl), r2(2, tbl), r3(3, tbl), r4(4, tbl) {
+		ControlPanelWindow() : tbl(7, XBeeBotSet::instance().size() + 1, false) {
+			set_title("Thunderbots Control Panel");
+
+			robotIdLabel.set_text("Robot:");
+			commStatusLabel.set_text("Comm Status:");
+			runLabel.set_text("Run Switch:");
+			rebootLabel.set_text("Reboot:");
+			greenLabel.set_text("Green Battery:");
+			motorLabel.set_text("Motor Battery:");
+			firmwareLabel.set_text("Firmware:");
+
+			tbl.attach(robotIdLabel,    0, 1, 0, 1);
+			tbl.attach(commStatusLabel, 0, 1, 1, 2);
+			tbl.attach(runLabel,        0, 1, 2, 3);
+			tbl.attach(rebootLabel,     0, 1, 3, 4);
+			tbl.attach(greenLabel,      0, 1, 4, 5);
+			tbl.attach(motorLabel,      0, 1, 5, 6);
+			tbl.attach(firmwareLabel,   0, 1, 6, 7);
+
+			for (unsigned int i = 0; i < XBeeBotSet::instance().size(); i++) {
+				Glib::RefPtr<XBeeBot> bot = XBeeBotSet::instance()[i];
+
+				std::ostringstream oss;
+				oss << i;
+
+				tbl.attach(*Gtk::manage(new Gtk::Label(oss.str())), i + 1, i + 2, 0, 1);
+				tbl.attach(*Gtk::manage(new CommStatusLight(bot)), i + 1, i + 2, 1, 2);
+				tbl.attach(*Gtk::manage(new RunSwitch(bot)), i + 1, i + 2, 2, 3);
+				tbl.attach(*Gtk::manage(new RebootButton(bot)), i + 1, i + 2, 3, 4);
+				tbl.attach(*Gtk::manage(new Voltage(bot->property_greenVoltage(), GREEN_BATTERY_MIN_VOLTAGE, GREEN_BATTERY_MAX_VOLTAGE, GREEN_BATTERY_WARNING_VOLTAGE)), i + 1, i + 2, 4, 5);
+				tbl.attach(*Gtk::manage(new Voltage(bot->property_motorVoltage(), MOTOR_BATTERY_MIN_VOLTAGE, MOTOR_BATTERY_MAX_VOLTAGE, MOTOR_BATTERY_WARNING_VOLTAGE)), i + 1, i + 2, 5, 6);
+				tbl.attach(*Gtk::manage(new FirmwareVersion(bot)), i + 1, i + 2, 6, 7);
+			}
+
+			add(tbl);
 		}
 
-		void update() {
-			r0.update();
-			r1.update();
-			r2.update();
-			r3.update();
-			r4.update();
+		~ControlPanelWindow() {
+			remove();
+			std::cerr << "Deleted\n";
+		}
+
+	protected:
+		virtual bool on_delete_event(GdkEventAny *evt) {
+			Gtk::Window::on_delete_event(evt);
+			Gtk::Main::quit();
+			return true;
 		}
 
 	private:
-		RobotControls r0, r1, r2, r3, r4;
+		Gtk::Table tbl;
+		Gtk::Label robotIdLabel, commStatusLabel, runLabel, rebootLabel, greenLabel, motorLabel, firmwareLabel;
 	};
 }
 
-class ControlPanelImpl {
+class ControlPanelImpl : private Noncopyable {
 public:
-	ControlPanelImpl(Gtk::Table &tbl) : controlArray(tbl) {
+	ControlPanelImpl() {
+		cp.show_all();
 	}
 
-	Gtk::Label robotIdLabel, commStatusLabel, runLabel, rebootLabel, greenLabel, motorLabel, firmwareLabel;
-	RobotControlArray controlArray;
+	~ControlPanelImpl() {
+		std::cerr << "Deleting it.\n";
+	}
+
+private:
+	ControlPanelWindow cp;
+	Beeper beeper;
 };
 
-ControlPanel::ControlPanel() : Gtk::Table(7, 6, false), impl(new ControlPanelImpl(*this)) {
-	impl->robotIdLabel.set_text("Robot:");
-	impl->commStatusLabel.set_text("Comm Status:");
-	impl->runLabel.set_text("Run Switch:");
-	impl->rebootLabel.set_text("Reboot:");
-	impl->greenLabel.set_text("Green Battery:");
-	impl->motorLabel.set_text("Motor Battery:");
-	impl->firmwareLabel.set_text("Firmware:");
-
-	attach(impl->robotIdLabel,    0, 1, 0, 1);
-	attach(impl->commStatusLabel, 0, 1, 1, 2);
-	attach(impl->runLabel,        0, 1, 2, 3);
-	attach(impl->rebootLabel,     0, 1, 3, 4);
-	attach(impl->greenLabel,      0, 1, 4, 5);
-	attach(impl->motorLabel,      0, 1, 5, 6);
-	attach(impl->firmwareLabel,   0, 1, 6, 7);
-}
-
-void ControlPanel::update() {
-	impl->controlArray.update();
+ControlPanel::ControlPanel() : impl(new ControlPanelImpl) {
 }
 

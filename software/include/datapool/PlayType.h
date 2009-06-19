@@ -1,5 +1,5 @@
-#ifndef TB_PLAYTYPE_H
-#define TB_PLAYTYPE_H
+#ifndef DATAPOOL_PLAYTYPE_H
+#define DATAPOOL_PLAYTYPE_H
 
 namespace PlayType {
 	enum Type {

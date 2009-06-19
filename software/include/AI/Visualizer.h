@@ -1,10 +1,10 @@
-#ifndef TB_VISUALIZER_H
-#define TB_VISUALIZER_H
+#ifndef AI_VISUALIZER_H
+#define AI_VISUALIZER_H
 
-#include <gtkmm/window.h>
-#include <gtkmm/drawingarea.h>
+#include <sigc++/sigc++.h>
+#include <gtkmm.h>
 
-class Visualizer : public Gtk::DrawingArea {
+class Visualizer : public Gtk::DrawingArea, public virtual sigc::trackable {
 public:
 	Visualizer();
 	void update(void);
@@ -12,6 +12,7 @@ public:
 private:
 	Gtk::Window win;
 	bool on_expose_event(GdkEventExpose *event);
+	bool on_close(GdkEventAny *event);
 };
 
 #endif

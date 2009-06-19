@@ -1,39 +1,59 @@
 #include "Log/Log.h"
-#include "test/Joystick.h"
+#include "Test/Joystick.h"
 
 #include <algorithm>
+#include <string>
+#include <vector>
 #include <cerrno>
 #include <cstring>
+
+#include <sigc++/sigc++.h>
+#include <glibmm.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <dirent.h>
 #include <linux/joystick.h>
 
-std::vector<std::string> Joystick::list() {
-	std::vector<std::string> lst;
+namespace {
+	bool initialized = false;
+	std::vector<Glib::RefPtr<Joystick> > sticks;
 
-	DIR *dir = opendir("/dev/input");
-	if (!dir)
-		return lst;
-
-	struct dirent *de;
-	while ((de = readdir(dir))) {
-		if (de->d_name[0] == 'j' && de->d_name[1] == 's') {
-			lst.push_back(std::string("/dev/input/") + de->d_name);
-		}
+	bool joystickComparator(Glib::RefPtr<Joystick> x, Glib::RefPtr<Joystick> y) {
+		return x->name() < y->name();
 	}
 
-	closedir(dir);
-
-	sort(lst.begin(), lst.end());
-
-	return lst;
+	void initialize() {
+		Glib::Dir dir("/dev/input");
+		for (Glib::Dir::const_iterator i = dir.begin(), iend = dir.end(); i != iend; ++i) {
+			std::string file = *i;
+			if (file[0] == 'j' && file[1] == 's') {
+				Glib::RefPtr<Joystick> js = Joystick::create("/dev/input/" + file);
+				if (js)
+					sticks.push_back(js);
+			}
+		}
+		sort(sticks.begin(), sticks.end(), &joystickComparator);
+		initialized = true;
+	}
 }
 
-Joystick::Joystick(const std::string &filename) : filename(filename) {
-	fd = open(filename.c_str(), O_RDONLY | O_NONBLOCK);
+sigc::signal<void> &Joystick::signal_changed() {
+	return sig_changed;
+}
+
+const std::string &Joystick::name() const {
+	return filename;
+}
+
+const std::vector<Glib::RefPtr<Joystick> > Joystick::all() {
+	if (!initialized)
+		initialize();
+	return sticks;
+}
+
+Glib::RefPtr<Joystick> Joystick::create(const std::string &filename) {
+	int fd = open(filename.c_str(), O_RDONLY | O_NONBLOCK);
 	if (fd < 0) {
 		int err = errno;
 		Log::log(Log::LEVEL_ERROR, "Joystick") << "Cannot open joystick device " << filename << ": " << std::strerror(err) << '\n';
@@ -67,19 +87,34 @@ Joystick::Joystick(const std::string &filename) : filename(filename) {
 		throw;
 	}
 
-	std::fill(buttons, buttons + NUM_BTNS, false);
-	std::fill(axes, axes + NUM_AXES, 0);
+	Glib::RefPtr<Joystick> js(new Joystick(fd, filename));
+	return js;
+}
 
-	Log::log(Log::LEVEL_INFO, "Joystick") << "Opened device " << filename << '\n';
+void Joystick::reference() {
+	refs++;
+}
+
+void Joystick::unreference() {
+	if (!--refs)
+		delete this;
+}
+
+Joystick::Joystick(int fd, const std::string &device) : fd(fd), filename(device), refs(1) {
+	ioConnection = Glib::signal_io().connect(sigc::mem_fun(*this, &Joystick::onIO), fd, Glib::IO_IN);
 }
 
 Joystick::~Joystick() {
-	close(fd);
+	ioConnection.disconnect();
 }
 
-bool Joystick::update() {
+bool Joystick::onIO(Glib::IOCondition cond) {
+	if (cond & (Glib::IO_ERR | Glib::IO_HUP | Glib::IO_NVAL)) {
+		Log::log(Log::LEVEL_ERROR, "Joystick") << "Device " << filename << " is broken.\n";
+		return false;
+	}
+
 	struct js_event events[32];
-	bool retval = false;
 	for (;;) {
 		ssize_t ret = read(fd, &events, sizeof(events));
 		if (ret > 0) {
@@ -91,7 +126,7 @@ bool Joystick::update() {
 					axes[events[i].number] = events[i].value;
 				}
 			}
-			retval |= true;
+			sig_changed();
 		} else if (errno == EAGAIN || errno == EWOULDBLOCK) {
 			break;
 		} else {
@@ -100,6 +135,7 @@ bool Joystick::update() {
 			break;
 		}
 	}
-	return retval;
+
+	return true;
 }
 

@@ -1,16 +1,6 @@
 #include "AI/AITeam.h"
 
-PAITeam AITeam::create(unsigned int id) {
-	PAITeam team(new AITeam(id));
-	for (unsigned int i = 0; i < SIZE; i++)
-		team->robots[i] = Player::create(team);
-	return team;
-}
-
 AITeam::AITeam(unsigned int id) : Team(id), du(*this), csu(*this), lsu(*this) {
-}
-
-AITeam::~AITeam() {
 }
 
 void AITeam::update() {

@@ -1,17 +1,19 @@
+#include "AI/AITeam.h"
+#include "datapool/Field.h"
+#include "datapool/Player.h"
+#include "datapool/RobotMap.h"
+#include "datapool/Team.h"
+#include "datapool/World.h"
 #include "IR/ImageRecognition.h"
 #include "IR/messages_robocup_ssl_detection.pb.h"
 #include "IR/messages_robocup_ssl_geometry.pb.h"
 #include "IR/messages_robocup_ssl_wrapper.pb.h"
-#include "AI/AITeam.h"
 #include "Log/Log.h"
-#include "datapool/Field.h"
-#include "datapool/Player.h"
-#include "datapool/Team.h"
-#include "datapool/World.h"
 
 #include <algorithm>
 #include <cerrno>
 #include <cstring>
+#include <glibmm.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/ip.h>
@@ -21,7 +23,7 @@
 
 static bool seenBallFromCamera[2] = {false, false};
 
-ImageRecognition::ImageRecognition() {
+ImageRecognition::ImageRecognition() : fd(-1), friendly(0), enemy(1) {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
 	fd = ::socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -69,13 +71,9 @@ ImageRecognition::ImageRecognition() {
 	PGoal goalE = Goal::create(Vector2(635, 200), Vector2(635, 270), Vector2(585, 217.5), Vector2(585, 252.5), 16, Vector2(590, 235));
 	PField field = Field::create(660, 470, 25, 635, 25, 445, Vector2(330, 235), 50, goalW, goalE);
 
-	PTeam friendlyTeam = AITeam::create(0);
-	friendlyTeam->side(false);
-
-	PTeam enemyTeam = Team::create(1);
-	enemyTeam->side(true);
-
-	World::init(friendlyTeam, enemyTeam, field);
+	friendly.side(false);
+	enemy.side(true);
+	World::init(friendly, enemy, field);
 
 	World &w = World::get();
 
@@ -91,11 +89,10 @@ ImageRecognition::ImageRecognition() {
 	w.player(8)->position(Vector2(4030, 235));
 	w.player(9)->position(Vector2(3000, -235));
 
-	for (int i = 0; i < 10; i++) {
+	for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
 		w.player(i)->velocity(Vector2(0, 0));
 		w.player(i)->acceleration(Vector2(0, 0));
 		w.player(i)->radius(90);
-
 	}
 
 	//Set the ball properties:
@@ -103,111 +100,122 @@ ImageRecognition::ImageRecognition() {
 	w.ball()->velocity(Vector2(0, 0));
 	w.ball()->acceleration(Vector2(0, 0));
 	w.ball()->radius(21.5);
+
+	// Register for IO.
+	Glib::signal_io().connect(sigc::mem_fun(*this, &ImageRecognition::onIO), fd, Glib::IO_IN);
 }
 
-ImageRecognition::~ImageRecognition() {
-}
+bool ImageRecognition::onIO(Glib::IOCondition cond) {
+	if (fd < 0)
+		return false;
 
-void ImageRecognition::update() {
-	if (fd >= 0) {
-		char buffer[65536];
-		ssize_t ret;
-		do {
-			ret = ::recv(fd, buffer, sizeof(buffer), 0);
-		} while (ret < 0 && errno == EINTR);
-		if (ret < 0) {
-			int err = errno;
-			Log::log(Log::LEVEL_ERROR, "IR") << "Cannot receive data: " << std::strerror(err) << '\n';
-			return;
-		}
+	if (cond & (Glib::IO_ERR | Glib::IO_NVAL | Glib::IO_HUP)) {
+		Log::log(Log::LEVEL_ERROR, "IR") << "Error polling SSL-Vision socket.\n";
+		return true;
+	}
 
-		SSL_WrapperPacket pkt;
-		pkt.ParseFromArray(buffer, ret);
-		if (pkt.has_geometry()) {
-			const SSL_GeometryFieldSize &fData = pkt.geometry().field();
+	if (!(cond & Glib::IO_IN))
+		return true;
 
-			PGoal goalW = World::get().field()->westGoal();
-			goalW->north = Vector2(-fData.field_length() / 2.0, -fData.goal_width() / 2.0);
-			goalW->south = Vector2(-fData.field_length() / 2.0, fData.goal_width() / 2.0);
-			goalW->defenseN = Vector2(-fData.field_length() / 2.0 + fData.defense_radius(), -fData.defense_stretch() / 2.0);
-			goalW->defenseS = Vector2(-fData.field_length() / 2.0 + fData.defense_radius(), fData.defense_stretch() / 2.0);
-			goalW->height = 160;
-			goalW->penalty = Vector2(-fData.field_length() / 2.0 + 450, 0);
+	char buffer[65536];
+	ssize_t ret;
+	ret = recv(fd, buffer, sizeof(buffer), 0);
+	if (ret < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+		return true;
+	} else if (ret < 0) {
+		int err = errno;
+		Log::log(Log::LEVEL_ERROR, "IR") << "Cannot receive data: " << std::strerror(err) << '\n';
+		return true;
+	}
 
-			PGoal goalE = World::get().field()->eastGoal();
-			goalE->north = Vector2(fData.field_length() / 2.0, -fData.goal_width() / 2.0);
-			goalE->south = Vector2(fData.field_length() / 2.0, fData.goal_width() / 2.0);
-			goalE->defenseN = Vector2(fData.field_length() / 2.0 - fData.defense_radius(), -fData.defense_stretch() / 2.0);
-			goalE->defenseS = Vector2(fData.field_length() / 2.0 - fData.defense_radius(), fData.defense_stretch() / 2.0);
-			goalE->height = 160;
-			goalE->penalty = Vector2(fData.field_length() / 2.0 - 450, 0);
+	SSL_WrapperPacket pkt;
+	pkt.ParseFromArray(buffer, ret);
+	if (pkt.has_geometry()) {
+		const SSL_GeometryFieldSize &fData = pkt.geometry().field();
 
-			PField f = World::get().field();
-			f->width(fData.field_length());
-			f->height(fData.field_width());
-			f->west(-fData.field_length() / 2.0);
-			f->east(fData.field_length() / 2.0);
-			f->north(-fData.field_width() / 2.0);
-			f->south(fData.field_width() / 2.0);
-			f->centerCircle(Vector2(0, 0));
-			f->centerCircleRadius(fData.center_circle_radius());
-		}
+		PGoal goalW = World::get().field()->westGoal();
+		goalW->north = Vector2(-fData.field_length() / 2.0, -fData.goal_width() / 2.0);
+		goalW->south = Vector2(-fData.field_length() / 2.0, fData.goal_width() / 2.0);
+		goalW->defenseN = Vector2(-fData.field_length() / 2.0 + fData.defense_radius(), -fData.defense_stretch() / 2.0);
+		goalW->defenseS = Vector2(-fData.field_length() / 2.0 + fData.defense_radius(), fData.defense_stretch() / 2.0);
+		goalW->height = 160;
+		goalW->penalty = Vector2(-fData.field_length() / 2.0 + 450, 0);
 
-		if (pkt.has_detection()) {
-			const SSL_DetectionFrame &det = pkt.detection();
-			if (det.balls_size()) {
-				seenBallFromCamera[det.camera_id()] = true;
-				const SSL_DetectionBall &ball = det.balls(0);
-				if (ball.confidence() > 0.01)
-					World::get().ball()->position(Vector2(ball.x(), -ball.y()));
-			} else {
-				seenBallFromCamera[det.camera_id()] = false;
-			}
+		PGoal goalE = World::get().field()->eastGoal();
+		goalE->north = Vector2(fData.field_length() / 2.0, -fData.goal_width() / 2.0);
+		goalE->south = Vector2(fData.field_length() / 2.0, fData.goal_width() / 2.0);
+		goalE->defenseN = Vector2(fData.field_length() / 2.0 - fData.defense_radius(), -fData.defense_stretch() / 2.0);
+		goalE->defenseS = Vector2(fData.field_length() / 2.0 - fData.defense_radius(), fData.defense_stretch() / 2.0);
+		goalE->height = 160;
+		goalE->penalty = Vector2(fData.field_length() / 2.0 - 450, 0);
 
-			for (int i = 0; i < std::min(det.robots_yellow_size(), static_cast<int>(Team::SIZE)); i++) {
-				const SSL_DetectionRobot &bot = det.robots_yellow(i);
-				if (bot.has_robot_id()) {
-					PPlayer player(World::get().friendlyTeam()->player(bot.robot_id()));
-					player->position(Vector2(bot.x(), -bot.y()));
-					if (bot.has_orientation()) {
-						// SSL-Vision gives us radians; AI wants degrees.
-						player->orientation(bot.orientation() / M_PI * 180.0);
-					}
-				}
-			}
+		PField f = World::get().field();
+		f->width(fData.field_length());
+		f->height(fData.field_width());
+		f->west(-fData.field_length() / 2.0);
+		f->east(fData.field_length() / 2.0);
+		f->north(-fData.field_width() / 2.0);
+		f->south(fData.field_width() / 2.0);
+		f->centerCircle(Vector2(0, 0));
+		f->centerCircleRadius(fData.center_circle_radius());
+	}
 
-			for (int i = 0; i < std::min(det.robots_blue_size(), static_cast<int>(Team::SIZE)); i++) {
-				const SSL_DetectionRobot &bot = det.robots_blue(i);
-				World::get().enemyTeam()->player(i)->position(Vector2(bot.x(), -bot.y()));
-			}
-
-			World::get().isBallVisible(seenBallFromCamera[0] || seenBallFromCamera[1]);
-		}
-
-		if (World::get().isBallVisible()) {
-			std::vector<PPlayer> possessors;
-			for (unsigned int i = 0; i < Team::SIZE; i++) {
-				PPlayer pl = World::get().friendlyTeam()->players()[i];
-				if ((World::get().ball()->position() - (pl->position() + OFFSET_FROM_ROBOT_TO_BALL * Vector2(pl->orientation()))).length() < 17) {
-					possessors.push_back(pl);
-				}
-			}
-			if (!possessors.empty()) {
-				PPlayer pl = possessors[0];
-				pl->hasBall(true);
-			} else {
-				for (unsigned int i = 0; i < Team::SIZE; i++)
-					World::get().friendlyTeam()->player(i)->hasBall(false);
-			}
+	if (pkt.has_detection()) {
+		const SSL_DetectionFrame &det = pkt.detection();
+		if (det.balls_size()) {
+			seenBallFromCamera[det.camera_id()] = true;
+			const SSL_DetectionBall &ball = det.balls(0);
+			if (ball.confidence() > 0.01)
+				World::get().ball()->position(Vector2(ball.x(), -ball.y()));
 		} else {
-			for (unsigned int i = 0; i < Team::SIZE; i++) {
-				PPlayer pl = World::get().friendlyTeam()->player(i);
-				if (pl->hasBall()) {
-					World::get().ball()->position(pl->position() + OFFSET_FROM_ROBOT_TO_BALL * Vector2(pl->orientation()));
-					break;
+			seenBallFromCamera[det.camera_id()] = false;
+		}
+
+		for (int i = 0; i < std::min(det.robots_yellow_size(), static_cast<int>(Team::SIZE)); i++) {
+			const SSL_DetectionRobot &bot = det.robots_yellow(i);
+			if (bot.has_robot_id()) {
+				PPlayer player = RobotMap::instance().p2l(bot.robot_id());
+				player->position(Vector2(bot.x(), -bot.y()));
+				if (bot.has_orientation()) {
+					// SSL-Vision gives us radians; AI wants degrees.
+					player->orientation(bot.orientation() / M_PI * 180.0);
 				}
+			}
+		}
+
+		for (int i = 0; i < std::min(det.robots_blue_size(), static_cast<int>(Team::SIZE)); i++) {
+			const SSL_DetectionRobot &bot = det.robots_blue(i);
+			World::get().enemyTeam().player(i)->position(Vector2(bot.x(), -bot.y()));
+		}
+
+		World::get().isBallVisible(seenBallFromCamera[0] || seenBallFromCamera[1]);
+	}
+
+	if (World::get().isBallVisible()) {
+		std::vector<PPlayer> possessors;
+		for (unsigned int i = 0; i < Team::SIZE; i++) {
+			PPlayer pl = World::get().friendlyTeam().players()[i];
+			if ((World::get().ball()->position() - (pl->position() + OFFSET_FROM_ROBOT_TO_BALL * Vector2(pl->orientation()))).length() < 17) {
+				possessors.push_back(pl);
+			}
+		}
+		if (!possessors.empty()) {
+			PPlayer pl = possessors[0];
+			pl->hasBall(true);
+		} else {
+			for (unsigned int i = 0; i < Team::SIZE; i++)
+				World::get().friendlyTeam().player(i)->hasBall(false);
+		}
+	} else {
+		for (unsigned int i = 0; i < Team::SIZE; i++) {
+			PPlayer pl = World::get().friendlyTeam().player(i);
+			if (pl->hasBall()) {
+				World::get().ball()->position(pl->position() + OFFSET_FROM_ROBOT_TO_BALL * Vector2(pl->orientation()));
+				break;
 			}
 		}
 	}
+
+	return true;
 }
 
