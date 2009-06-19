@@ -8,6 +8,7 @@
 #include "datapool/IntervalTimer.h"
 #include "datapool/Noncopyable.h"
 #include "datapool/RefBox.h"
+#include "datapool/RobotMap.h"
 #include "datapool/Team.h"
 #include "datapool/World.h"
 #include "AI/AITeam.h"
@@ -87,6 +88,7 @@ int main(int argc, char **argv) {
 	std::auto_ptr<Simulator> sim;
 	std::auto_ptr<ImageRecognition> ir;
 	std::auto_ptr<ControlPanel> cp;
+	std::auto_ptr<RobotMap> mapping;
 	if (useSim)
 		sim.reset(new Simulator);
 	else {
@@ -94,6 +96,7 @@ int main(int argc, char **argv) {
 		runSwitch.reset(new HWRunSwitch);
 		ir.reset(new ImageRecognition);
 		cp.reset(new ControlPanel);
+		mapping.reset(new RobotMap);
 	}
 
 	std::auto_ptr<Visualizer> vis;
