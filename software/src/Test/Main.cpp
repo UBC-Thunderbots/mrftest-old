@@ -1,3 +1,4 @@
+#include "datapool/Config.h"
 #include "datapool/HWRunSwitch.h"
 #include "Log/Log.h"
 #include "Test/Joystick.h"
@@ -270,6 +271,9 @@ int main(int argc, char **argv) {
 		usage(argv[0]);
 		return 1;
 	}
+
+	// Load the config file.
+	Config config;
 
 	// Initialize the hardware run switch.
 	HWRunSwitch hwrs;

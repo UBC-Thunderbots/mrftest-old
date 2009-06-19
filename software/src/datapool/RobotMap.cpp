@@ -1,3 +1,4 @@
+#include "datapool/Config.h"
 #include "datapool/RobotMap.h"
 #include "datapool/Team.h"
 #include "datapool/World.h"
@@ -14,21 +15,7 @@ RobotMap::RobotMap() {
 	// Only one instance can exist at a time.
 	assert(!inst);
 
-	// Load configuration file.
-	std::string homeDir = Glib::getenv("HOME");
-	if (homeDir == "") {
-		Log::log(Log::LEVEL_ERROR, "Robot Map") << "Environment variable $HOME is not set!\n";
-		std::exit(1);
-	}
-	std::string configFileName = homeDir + "/.thunderbots/thunderbots.conf";
-	Glib::KeyFile configFile;
-	configFile.load_from_file(configFileName, Glib::KEY_FILE_NONE);
-
 	// Initialize the mapping.
-	if (!configFile.has_group("Mapping")) {
-		Log::log(Log::LEVEL_ERROR, "Robot Map") << "The configuration file does not contain a [Mapping] section.\n";
-		std::exit(1);
-	}
 	static const std::string teamPrefixes[2] = {"Friendly", "Enemy"};
 	log2phys.resize(2 * Team::SIZE, UINT_MAX);
 	for (unsigned int t = 0; t < 2; t++)
@@ -36,8 +23,8 @@ RobotMap::RobotMap() {
 			std::ostringstream oss;
 			oss << teamPrefixes[t] << i;
 			std::string key = oss.str();
-			if (configFile.has_key("Mapping", key)) {
-				unsigned int phys = configFile.get_integer("Mapping", key);
+			if (Config::instance().hasKey("Mapping", key)) {
+				unsigned int phys = Config::instance().getInteger<unsigned int>("Mapping", key, 10);
 				if (phys2log.size() <= phys)
 					phys2log.resize(phys + 1, UINT_MAX);
 				phys2log[phys] = t * Team::SIZE + i;

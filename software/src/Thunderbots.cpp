@@ -1,9 +1,4 @@
-#include <iostream>
-#include <memory>
-
-#include <gtkmm.h>
-#include <getopt.h>
-
+#include "datapool/Config.h"
 #include "datapool/HWRunSwitch.h"
 #include "datapool/IntervalTimer.h"
 #include "datapool/Noncopyable.h"
@@ -18,6 +13,11 @@
 #include "Log/Log.h"
 #include "UI/ControlPanel.h"
 #include "XBee/XBeeBot.h"
+
+#include <iostream>
+#include <memory>
+#include <gtkmm.h>
+#include <getopt.h>
 
 namespace {
 	void usage(const char *app) {
@@ -83,6 +83,7 @@ int main(int argc, char **argv) {
 	}
 
 	// Create objects.
+	Config config;
 	std::auto_ptr<XBeeBotSet> xbee;
 	std::auto_ptr<HWRunSwitch> runSwitch;
 	std::auto_ptr<Simulator> sim;

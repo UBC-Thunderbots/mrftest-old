@@ -1,3 +1,4 @@
+#include "datapool/Config.h"
 #include "Log/Log.h"
 #include "XBee/XBeeBot.h"
 #include "XBee/XBeeModem.h"
@@ -415,37 +416,18 @@ XBeeBotSet::XBeeBotSet() : nextSender(0), nextReporter(0) {
 	// Register for modem status packets.
 	modem.connect_packet_received(XBeeModem::PACKET_MODEM_STATUS, sigc::mem_fun(*this, &XBeeBotSet::modemStatus));
 
-	// Load configuration file.
-	std::string homeDir = Glib::getenv("HOME");
-	if (homeDir == "") {
-		Log::log(Log::LEVEL_ERROR, "XBee") << "Environment variable $HOME is not set!\n";
-		std::exit(1);
-	}
-	std::string configFileName = homeDir + "/.thunderbots/thunderbots.conf";
-	Glib::KeyFile configFile;
-	configFile.load_from_file(configFileName, Glib::KEY_FILE_NONE);
-	if (!configFile.has_group("XBee")) {
-		Log::log(Log::LEVEL_ERROR, "XBee") << "The configuration file does not contain an [XBee] section.\n";
-		std::exit(1);
-	}
-
 	// Initialize the modem more.
-	unsigned int channel;
-	{
-		std::istringstream iss(configFile.get_value("XBee", "Channel"));
-		iss.setf(std::ios_base::hex, std::ios_base::basefield);
-		iss >> channel;
-	}
+	unsigned int channel = Config::instance().getInteger<unsigned int>("XBee", "Channel", 16);
 	const struct init_command {
 		std::string command;
 		uint32_t parameter;
 	} init_commands[] = {
-		{"PL", configFile.get_integer("XBee", "Power")}, // Power level
-		{"CH", channel},                                 // Channel number
-		{"ID", PAN_ID},                                  // PAN ID
-		{"MY", 0xFFFF},                                  // Local 16-bit address
-		{"A2", 4},                                       // Coordinator parameters
-		{"CE", 1},                                       // Coordinator enable
+		{"PL", Config::instance().getInteger<unsigned int>("XBee", "Power", 10)}, // Power level
+		{"CH", channel},                                                          // Channel number
+		{"ID", PAN_ID},                                                           // PAN ID
+		{"MY", 0xFFFF},                                                           // Local 16-bit address
+		{"A2", 4},                                                                // Coordinator parameters
+		{"CE", 1},                                                                // Coordinator enable
 	};
 	for (unsigned int i = 0; i < sizeof(init_commands) / sizeof(*init_commands); i++) {
 		ATCommand cmd(init_commands[i].command, init_commands[i].parameter, modem);
@@ -456,13 +438,9 @@ XBeeBotSet::XBeeBotSet() : nextSender(0), nextReporter(0) {
 	for (unsigned int i = 0; ; i++) {
 		std::ostringstream oss;
 		oss << "Bot" << i;
-		std::string key = oss.str();
-		if (configFile.has_key("XBee", key)) {
-			std::string value = configFile.get_value("XBee", key);
-			std::istringstream iss(value);
-			iss.setf(std::ios_base::hex, std::ios_base::basefield);
-			uint64_t address;
-			iss >> address;
+		const std::string &key = oss.str();
+		if (Config::instance().hasKey("XBee", key)) {
+			uint64_t address = Config::instance().getInteger<uint64_t>("XBee", key, 16);
 			Glib::RefPtr<XBeeBot> bot(new XBeeBot(address, modem, *this));
 			bots.push_back(bot);
 		} else {

@@ -54,6 +54,7 @@ software/include/UI/ControlPanel.h -text
 software/include/XBee/XBeeBot.h -text
 software/include/XBee/XBeeModem.h -text
 software/include/datapool/Ball.h -text
+software/include/datapool/Config.h -text
 software/include/datapool/Field.h -text
 software/include/datapool/HWRunSwitch.h -text
 software/include/datapool/IntervalTimer.h -text
@@ -104,6 +105,7 @@ software/src/XBee/XBeeBot.cpp -text
 software/src/XBee/XBeeModem.cpp -text
 software/src/datapool/Ball.cpp -text
 software/src/datapool/CMakeLists.txt -text
+software/src/datapool/Config.cpp -text
 software/src/datapool/Field.cpp -text
 software/src/datapool/HWRunSwitch.cpp -text
 software/src/datapool/IntervalTimer.cpp -text

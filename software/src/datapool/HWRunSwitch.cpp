@@ -1,3 +1,4 @@
+#include "datapool/Config.h"
 #include "datapool/HWRunSwitch.h"
 #include "Log/Log.h"
 
@@ -189,27 +190,14 @@ HWRunSwitch::HWRunSwitch() : Glib::ObjectBase(typeid(HWRunSwitch)), prop_state(*
 	// Only one instance should exist at a time.
 	assert(!inst);
 
-	// Load configuration file.
-	std::string homeDir = Glib::getenv("HOME");
-	if (homeDir == "") {
-		Log::log(Log::LEVEL_ERROR, "Run Switch") << "Environment variable $HOME is not set!\n";
-		std::exit(1);
-	}
-	std::string configFileName = homeDir + "/.thunderbots/thunderbots.conf";
-	Glib::KeyFile configFile;
-	configFile.load_from_file(configFileName, Glib::KEY_FILE_NONE);
-	if (!configFile.has_group("HWRunSwitch")) {
-		Log::log(Log::LEVEL_ERROR, "Run Switch") << "The configuration file does not contain an [HWRunSwitch] section.\n";
-		std::exit(1);
-	}
+	// Use device names from config file..
 	for (unsigned int i = 0; ; i++) {
 		std::ostringstream oss;
 		oss << "Device" << i;
 		std::string key = oss.str();
-		if (!configFile.has_key("HWRunSwitch", key))
+		if (!Config::instance().hasKey("HWRunSwitch", key))
 			break;
-		std::string value = configFile.get_value("HWRunSwitch", key);
-		PDevice dev = Device::create(value);
+		PDevice dev = Device::create(Config::instance().getString("HWRunSwitch", key));
 		if (dev) {
 			dev->property_state().signal_changed().connect(sigc::mem_fun(*this, &HWRunSwitch::onChange));
 			switches.push_back(dev);

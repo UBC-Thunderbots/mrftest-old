@@ -1,3 +1,4 @@
+#include "datapool/Config.h"
 #include "Log/Log.h"
 #include "XBee/XBeeModem.h"
 
@@ -106,26 +107,8 @@ namespace {
 }
 
 XBeeModem::XBeeModem() : rxBufPtr(0) {
-	// Load configuration file.
-	std::string homeDir = Glib::getenv("HOME");
-	if (homeDir == "") {
-		Log::log(Log::LEVEL_ERROR, "XBee") << "Environment variable $HOME is not set!\n";
-		std::exit(1);
-	}
-	std::string configFileName = homeDir + "/.thunderbots/thunderbots.conf";
-	Glib::KeyFile configFile;
-	configFile.load_from_file(configFileName, Glib::KEY_FILE_NONE);
-
-	if (!configFile.has_group("XBee")) {
-		Log::log(Log::LEVEL_ERROR, "XBee") << "The configuration file does not contain an [XBee] section.\n";
-		std::exit(1);
-	}
-
-	if (!configFile.has_key("XBee", "Device")) {
-		Log::log(Log::LEVEL_ERROR, "XBee") << "The [XBee] section does not contain a Device directive.\n";
-		std::exit(1);
-	}
-	std::string device = configFile.get_value("XBee", "Device");
+	// Get the device path from the config file.
+	const std::string &device = Config::instance().getString("XBee", "Device");
 
 	// Open serial port.
 	fd = open(device.c_str(), O_RDWR | O_NOCTTY);
