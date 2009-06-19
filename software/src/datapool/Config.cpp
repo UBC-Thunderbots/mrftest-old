@@ -24,6 +24,9 @@ Config::Config() {
 
 	// Load the file.
 	kf.load_from_file(configFileName, Glib::KEY_FILE_NONE);
+
+	// Save the instance.
+	inst = this;
 }
 
 Config::~Config() {
