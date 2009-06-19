@@ -57,6 +57,7 @@ software/include/datapool/Ball.h -text
 software/include/datapool/Config.h -text
 software/include/datapool/Field.h -text
 software/include/datapool/HWRunSwitch.h -text
+software/include/datapool/Hungarian.h -text
 software/include/datapool/IntervalTimer.h -text
 software/include/datapool/Noncopyable.h -text
 software/include/datapool/Object.h -text
@@ -108,6 +109,7 @@ software/src/datapool/CMakeLists.txt -text
 software/src/datapool/Config.cpp -text
 software/src/datapool/Field.cpp -text
 software/src/datapool/HWRunSwitch.cpp -text
+software/src/datapool/Hungarian.cpp -text
 software/src/datapool/IntervalTimer.cpp -text
 software/src/datapool/Object.cpp -text
 software/src/datapool/Player.cpp -text
