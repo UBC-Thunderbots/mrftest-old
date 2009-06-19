@@ -133,6 +133,8 @@ namespace {
 		static std::vector<PID> vyPIDs(2 * Team::SIZE, PID(vyKp, vyKi, vyKd, vyDecay));
 
 		unsigned int index = RobotMap::instance().l2p(robot);
+		if (index == UINT_MAX)
+			return;
 
 		// Rotate X and Y to be relative to the robot, not the world!
 		//

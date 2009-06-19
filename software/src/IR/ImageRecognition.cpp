@@ -175,10 +175,12 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 			const SSL_DetectionRobot &bot = det.robots_yellow(i);
 			if (bot.has_robot_id()) {
 				PPlayer player = RobotMap::instance().p2l(bot.robot_id());
-				player->position(Vector2(bot.x(), -bot.y()));
-				if (bot.has_orientation()) {
-					// SSL-Vision gives us radians; AI wants degrees.
-					player->orientation(bot.orientation() / M_PI * 180.0);
+				if (player) {
+					player->position(Vector2(bot.x(), -bot.y()));
+					if (bot.has_orientation()) {
+						// SSL-Vision gives us radians; AI wants degrees.
+						player->orientation(bot.orientation() / M_PI * 180.0);
+					}
 				}
 			}
 		}

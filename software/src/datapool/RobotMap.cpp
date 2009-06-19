@@ -65,9 +65,12 @@ unsigned int RobotMap::l2p(PPlayer plr) {
 }
 
 PPlayer RobotMap::p2l(unsigned int pid) {
-	assert(pid < phys2log.size());
-	unsigned int lid = phys2log[pid];
-	return World::get().team(lid / Team::SIZE).player(lid % Team::SIZE);
+	if (pid < phys2log.size()) {
+		unsigned int lid = phys2log[pid];
+		return World::get().team(lid / Team::SIZE).player(lid % Team::SIZE);
+	} else {
+		return PPlayer();
+	}
 }
 
 RobotMap *RobotMap::inst;
