@@ -12,9 +12,9 @@
 // Maximum representable values for the setpoints.
 // copied from constants.h
 #define MAX_SP_VX 2000.0 // speed sideways
-#define MAX_SP_VY 2000.0 // speed forward
-#define MAX_SP_AX 2000.0 // acceleration sideways
-#define MAX_SP_AY 2000.0 // acceleration forward
+#define MAX_SP_VY 5000.0 // speed forward
+#define MAX_SP_AX 4000.0 // acceleration sideways
+#define MAX_SP_AY 10000.0 // acceleration forward
 #define MAX_SP_VT   4.0
 const double EPS = 1E-9;
 
@@ -56,7 +56,8 @@ namespace {
 
 		double angle = robot->orientation();
 
-		int rotationSpeed = 10;
+		double rotationSpeed = MAX_SP_VT * 180.0 / M_PI / CentralAnalyzingUnit::FRAMES_PER_SECOND;
+		//int rotationSpeed = 10;
 
 		if (std::fabs(angle - rotate) < rotationSpeed) {
 			angle = rotate;
@@ -217,7 +218,7 @@ void RobotController::sendCommand(PPlayer robot, Vector2 acc, double rotate, uns
 	robot->requestedVelocity(acc);
 
 	if (simulation)
-		simulateWorld(robot, acc, rotate, kick, true);
+		simulateWorld(robot, acc, rotate, kick, false);
 	else
 		sendWireless(robot, acc, rotate, dribble, kick);
 }
