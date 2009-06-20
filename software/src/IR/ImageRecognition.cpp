@@ -195,7 +195,7 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 					for (int i = 0; i < data.size(); i++) {
 						const SSL_DetectionRobot &bot = data.Get(i);
 						if (bot.has_robot_id()) {
-							unsigned int irid = bot.has_robot_id();
+							unsigned int irid = bot.robot_id();
 							std::ostringstream oss;
 							oss << colourSets[clr].colour << irid;
 							const std::string &key = oss.str();
