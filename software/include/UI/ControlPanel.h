@@ -3,15 +3,14 @@
 
 #include "datapool/Noncopyable.h"
 
-#include <memory>
-
 class ControlPanelImpl;
 class ControlPanel : private virtual Noncopyable {
 public:
 	ControlPanel();
+	~ControlPanel();
 
 private:
-	std::auto_ptr<ControlPanelImpl> impl;
+	ControlPanelImpl *impl;
 };
 
 #endif

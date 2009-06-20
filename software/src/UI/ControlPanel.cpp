@@ -256,3 +256,7 @@ private:
 ControlPanel::ControlPanel() : impl(new ControlPanelImpl) {
 }
 
+ControlPanel::~ControlPanel() {
+	delete impl;
+}
+
