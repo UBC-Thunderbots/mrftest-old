@@ -112,8 +112,8 @@ namespace {
 		std::vector<double> ka, kb;
 		static const double KA[] = {1.0, 1.0050, 0.0050};
 		static const double KB[] = {18.7674, 7.2493, 2.4120};
-		ka.insert(ka.begin(), KA, KA + 3);
-		kb.insert(ka.begin(), KB, KB + 3);
+		ka.insert(ka.begin(), KA, KA + sizeof(KA) / sizeof(*KA));
+		kb.insert(kb.begin(), KB, KB + sizeof(KB) / sizeof(*KB));
 		for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
 			rotFilter[i].reset(new PID(rotKp, rotKi, rotKd, rotDecay));
 			vxFilter[i].reset(new MoveFilter(ka, kb));
