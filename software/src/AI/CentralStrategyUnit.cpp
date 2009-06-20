@@ -25,10 +25,10 @@ Vector2 ballpos;
 void CentralStrategyUnit::update() {
 	for (unsigned int id = 0; id < Team::SIZE; id++) {
 		PPlayer robot = team.player(id);
-		if (World::get().playType() != PlayType::play)
-			robot->allowedInside(false);
-		else
+		if (World::get().playType() == PlayType::play || World::get().playType() == PlayType::prepareKickoff)
 			robot->allowedInside(true);
+		else
+			robot->allowedInside(false);
 	}
 	
 	switch (World::get().playType()) {
