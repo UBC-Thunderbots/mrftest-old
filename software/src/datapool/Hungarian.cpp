@@ -5,7 +5,7 @@
 #include <cmath>
 
 namespace {
-	const double EPS = 10e-9;
+	const double EPS = 1e-9;
 
 	bool equal(double x, double y) {
 		return std::fabs(x - y) < EPS;
