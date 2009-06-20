@@ -265,27 +265,27 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 			}
 		}
 
-		if (World::get().isBallVisible()) {
-			const Vector2 &ballPos = World::get().ball()->position();
-			std::vector<PPlayer> possessors;
-			for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
-				PPlayer pl = World::get().player(i);
-				Vector2 playerPoint = pl->position();
-				if (pl->hasDefiniteOrientation()) {
-					playerPoint += OFFSET_FROM_ROBOT_TO_BALL * Vector2(pl->orientation());
-				}
-				if ((ballPos - playerPoint).length() < 17) {
-					possessors.push_back(pl);
-				}
+		const Vector2 &ballPos = World::get().ball()->position();
+		std::vector<PPlayer> possessors;
+		for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
+			PPlayer pl = World::get().player(i);
+			Vector2 playerPoint = pl->position();
+			if (pl->hasDefiniteOrientation()) {
+				playerPoint += OFFSET_FROM_ROBOT_TO_BALL * Vector2(pl->orientation());
 			}
-			if (!possessors.empty()) {
-				PPlayer pl = possessors[0];
-				pl->hasBall(true);
-			} else {
-				for (unsigned int i = 0; i < 2 * Team::SIZE; i++)
-					World::get().player(i)->hasBall(false);
+			if ((ballPos - playerPoint).length() < 17) {
+				possessors.push_back(pl);
 			}
+		}
+		if (!possessors.empty()) {
+			PPlayer pl = possessors[0];
+			pl->hasBall(true);
 		} else {
+			for (unsigned int i = 0; i < 2 * Team::SIZE; i++)
+				World::get().player(i)->hasBall(false);
+		}
+
+		if (!World::get().isBallVisible()) {
 			for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
 				PPlayer pl = World::get().player(i);
 				if (pl->hasBall()) {
