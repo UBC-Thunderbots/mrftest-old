@@ -23,6 +23,7 @@
 #include <arpa/inet.h>
 
 #define OFFSET_FROM_ROBOT_TO_BALL 80
+#define INFINITE_DISTANCE 1.0e9
 
 namespace {
 	SSL_DetectionFrame detections[2];
@@ -83,18 +84,8 @@ ImageRecognition::ImageRecognition() : fd(-1), friendly(0), enemy(1) {
 	World &w = World::get();
 
 	//Set the player properties:
-	w.player(0)->position(Vector2(400, 235));
-	w.player(1)->position(Vector2(1070, 130));
-	w.player(2)->position(Vector2(1070, 740));
-	w.player(3)->position(Vector2(1070, -235));
-	w.player(4)->position(Vector2(2500, 235));
-	w.player(5)->position(Vector2(5150, -235));
-	w.player(6)->position(Vector2(4030, 730));
-	w.player(7)->position(Vector2(4030, -340));
-	w.player(8)->position(Vector2(4030, 235));
-	w.player(9)->position(Vector2(3000, -235));
-
 	for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
+		w.player(i)->position(Vector2(INFINITE_DISTANCE, INFINITE_DISTANCE));
 		w.player(i)->velocity(Vector2(0, 0));
 		w.player(i)->acceleration(Vector2(0, 0));
 		w.player(i)->radius(90);
