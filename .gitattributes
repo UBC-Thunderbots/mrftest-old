@@ -33,6 +33,7 @@ software/CMakeLists.txt -text
 software/include/AI/AITeam.h -text
 software/include/AI/CentralAnalyzingUnit.h -text
 software/include/AI/CentralStrategyUnit.h -text
+software/include/AI/ControlFilter.h -text
 software/include/AI/DecisionUnit.h -text
 software/include/AI/LocalStrategyUnit.h -text
 software/include/AI/RobotAlgorithmUtils.h -text
@@ -73,6 +74,7 @@ software/src/AI/AITeam.cpp -text
 software/src/AI/CMakeLists.txt -text
 software/src/AI/CentralAnalyzingUnit.cpp -text
 software/src/AI/CentralStrategyUnit.cpp -text
+software/src/AI/ControlFilter.cpp -text
 software/src/AI/DecisionUnit.cpp -text
 software/src/AI/LocalStrategyUnit.cpp -text
 software/src/AI/RobotAlgorithmUtils.cpp -text
