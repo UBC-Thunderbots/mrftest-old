@@ -257,7 +257,7 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 						}
 					}
 					hung.execute();
-					for (unsigned int x = 0; x < hung.size(); x++) {
+					for (unsigned int x = 0; x < unidentified[clr].size(); x++) {
 						unsigned int y = hung.matchX(x);
 						if (y != UINT_MAX) {
 							const SSL_DetectionRobot &bot = *unidentified[clr][x];
