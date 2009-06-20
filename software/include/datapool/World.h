@@ -7,9 +7,10 @@
 #include "datapool/Player.h"
 #include "datapool/PlayType.h"
 #include "datapool/Team.h"
+#include "datapool/Updateable.h"
 
 // class to keep track of everything in the world.
-class World : private virtual Noncopyable {
+class World : private virtual Noncopyable, public virtual Updateable {
 public:
 	/*
 	 * Initializes the singleton world.

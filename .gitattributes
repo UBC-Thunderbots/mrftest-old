@@ -68,6 +68,7 @@ software/include/datapool/Player.h -text
 software/include/datapool/PredictableObject.h -text
 software/include/datapool/RefBox.h -text
 software/include/datapool/Team.h -text
+software/include/datapool/Updateable.h -text
 software/include/datapool/Vector2.h -text
 software/include/datapool/World.h -text
 software/src/AI/AITeam.cpp -text
