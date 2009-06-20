@@ -6,7 +6,7 @@ MoveFilter::MoveFilter(
 	delayed.resize(a.size() - 1, 0);
 }
 
-void MoveFilter::clear(struct filter *f) {
+void MoveFilter::clear() {
 	for (unsigned int i = 0; i < delayed.size(); i++) {
 		delayed[i] = 0;
 	}

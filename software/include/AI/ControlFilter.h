@@ -14,17 +14,17 @@ public:
 	virtual void clear() = 0;
 
 private:
-	ControlFilter(const ControlFilter &copyref); // Prohibit copying.
+	//ControlFilter(const ControlFilter &copyref); // Prohibit copying.
 };
 
 class MoveFilter : ControlFilter {
 public:
 	MoveFilter(const std::vector<double>& ka, const std::vector<double>& kb);
-	void clear(struct filter *f);
+	void clear();
 	double process(double input);
 
 private:
-	MoveFilter(const MoveFilter &copyref); // Prohibit copying.
+	//MoveFilter(const MoveFilter &copyref); // Prohibit copying.
 	const std::vector<double> a;
 	const std::vector<double> b;
 	std::vector<double> delayed;
