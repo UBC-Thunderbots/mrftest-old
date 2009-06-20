@@ -61,7 +61,7 @@ namespace {
 
 	class Scales : public InputDevice {
 	public:
-		Scales(Glib::RefPtr<XBeeBot> bot) : hBox(false, 5), vBox1(true, 0), vBox2(true, 0), vxLabel("Vx:"), vyLabel("Vy:"), vthetaLabel("Vtheta:"), dribbleLabel("Dribble:"), kickLabel("Kick:"), vx(-1, 1, bot, &XBeeBot::vx), vy(-1, 1, bot, &XBeeBot::vy), vt(-1, 1, bot, &XBeeBot::vt), dribble(0, 1, bot, &XBeeBot::dribbler), kickLevel(0, 1.01, 0.1), kickFire(bot, kickLevel), kickBox(false, 0) {
+		Scales(Glib::RefPtr<XBeeBot> bot) : hBox(false, 5), vBox1(true, 0), vBox2(true, 0), vxLabel("Vx:"), vyLabel("Vy:"), vthetaLabel("Vtheta:"), dribbleLabel("Dribble:"), kickLabel("Kick:"), vx(-1, 1, bot, &XBeeBot::vx), vy(-1, 1, bot, &XBeeBot::vy), vt(-1, 1, bot, &XBeeBot::vt), dribble(0, 1, bot, &XBeeBot::dribbler), kickLevel(0, 1.01, 0.01), kickFire(bot, kickLevel), kickBox(false, 0) {
 			kickBox.pack_start(kickLevel, true, true);
 			kickBox.pack_start(kickFire, false, false);
 
