@@ -1,5 +1,3 @@
-#include "AI/AITeam.h"
-#include "AI/CentralAnalyzingUnit.h"
 #include "datapool/Config.h"
 #include "datapool/Field.h"
 #include "datapool/Hungarian.h"
@@ -28,7 +26,7 @@ namespace {
 	SSL_DetectionFrame detections[2];
 }
 
-ImageRecognition::ImageRecognition() : fd(-1), friendly(0), enemy(1) {
+ImageRecognition::ImageRecognition(Team &friendly, Team &enemy) : fd(-1) {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
 	fd = ::socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);

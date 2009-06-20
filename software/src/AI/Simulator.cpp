@@ -1,5 +1,4 @@
 #include "AI/Simulator.h"
-#include "AI/AITeam.h"
 #include "AI/CentralAnalyzingUnit.h"
 #include "AI/RobotController.h"
 #include "datapool/Vector2.h"
@@ -13,7 +12,7 @@
 #define MAX_VELOCITY 2000.0
 #define BALL_ACCELERATION 577.0
 
-Simulator::Simulator() : friendly(0), enemy(1) {
+Simulator::Simulator(Team &friendly, Team &enemy) {
 	RobotController::setSimulation(true);
 
 	PGoal goalW = Goal::create(Vector2(25, 200),  Vector2(25, 270),  Vector2(75, 217.5),  Vector2(75, 252.5),  16, Vector2(70, 235));
