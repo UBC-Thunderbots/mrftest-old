@@ -243,7 +243,7 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 							if (x < unidentified[clr].size() && y < unusedAIIDs[team].size()) {
 								Vector2 oldPos = World::get().team(team).player(unusedAIIDs[team][y])->position();
 								Vector2 newPos = Vector2(unidentified[clr][x]->x(), -unidentified[clr][x]->y());
-								hung.weight(x, y) = (newPos - oldPos).length();
+								hung.weight(x, y) = INFINITE_DISTANCE - (newPos - oldPos).length();
 							}
 						}
 					}
