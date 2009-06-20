@@ -163,6 +163,15 @@ bool Visualizer::on_expose_event(GdkEventExpose *event) {
 			cr->set_source_rgb(1.0, 1.0, 0.0);
 			cr->line_to(offsetX + scaling * (player->position().x + player->requestedVelocity().x), offsetY + scaling * (player->position().y + player->requestedVelocity().y));
 			cr->stroke();
+
+			cr->set_font_size(16.0);
+			std::ostringstream ss;
+			ss << (i * Team::SIZE + j);
+			cr->move_to(offsetX + scaling * (player->position().x + 10.0), offsetY + scaling * (player->position().y + 10.0));
+			cr->text_path(ss.str());
+			cr->set_source_rgba(0.0, 0.0, 0.0, 1.0);
+			cr->fill();
+
 		}
 
 	return true;
