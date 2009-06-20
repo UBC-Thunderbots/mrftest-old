@@ -271,7 +271,7 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 			if (pl->hasDefiniteOrientation()) {
 				playerPoint += OFFSET_FROM_ROBOT_TO_BALL * Vector2(pl->orientation());
 			}
-			if ((ballPos - playerPoint).length() < 17) {
+			if ((ballPos - playerPoint).length() < 27) {
 				possessors.push_back(pl);
 			}
 		}
