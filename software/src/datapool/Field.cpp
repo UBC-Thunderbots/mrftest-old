@@ -100,13 +100,21 @@ void Field::west(int w) {
 	west_ = w;
 }
 
-double Field::convertMmToCoord (double mm) const {
+double Field::convertMmToCoord(double mm) const {
 	// Use the official width of the field as a conversion factor.
 	return (mm * width()) / 6050.0;
 }
 
 double Field::convertCoordToMm(double coord) const {
 	return coord * 6050.0 / width();
+}
+
+Vector2 Field::convertMmToCoord(const Vector2 &mm) const {
+	return Vector2(convertMmToCoord(mm.x), convertMmToCoord(mm.y));
+}
+
+Vector2 Field::convertCoordToMm(const Vector2 &coord) const {
+	return Vector2(convertCoordToMm(coord.x), convertCoordToMm(coord.y));
 }
 
 double Field::infinity() const {

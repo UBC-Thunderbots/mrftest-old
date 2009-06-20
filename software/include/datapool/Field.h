@@ -77,6 +77,8 @@ public:
 	void height(int h);
 	double convertMmToCoord(double mm) const;
 	double convertCoordToMm(double coord) const;
+	Vector2 convertMmToCoord(const Vector2 &mm) const;
+	Vector2 convertCoordToMm(const Vector2 &coord) const;
 	double infinity() const;
 	bool isInfinity(double v) const;
 
