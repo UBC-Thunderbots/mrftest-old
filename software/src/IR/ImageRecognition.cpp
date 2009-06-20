@@ -88,10 +88,10 @@ ImageRecognition::ImageRecognition(Team &friendly, Team &enemy) : fd(-1) {
 	}
 
 	//Set the ball properties:
-	w.ball()->position(Vector2(330, 235));
-	w.ball()->velocity(Vector2(0, 0));
-	w.ball()->acceleration(Vector2(0, 0));
-	w.ball()->radius(21.5);
+	w.ball().position(Vector2(330, 235));
+	w.ball().velocity(Vector2(0, 0));
+	w.ball().acceleration(Vector2(0, 0));
+	w.ball().radius(21.5);
 
 	// Register for IO.
 	Glib::signal_io().connect(sigc::mem_fun(*this, &ImageRecognition::onIO), fd, Glib::IO_IN);
@@ -167,7 +167,7 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 			}
 
 			if (best) {
-				World::get().ball()->position(Vector2(best->x(), -best->y()));
+				World::get().ball().position(Vector2(best->x(), -best->y()));
 				World::get().isBallVisible(true);
 			} else {
 				World::get().isBallVisible(false);
@@ -261,7 +261,7 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 			}
 		}
 
-		const Vector2 &ballPos = World::get().ball()->position();
+		const Vector2 &ballPos = World::get().ball().position();
 		std::vector<PPlayer> possessors;
 		for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
 			PPlayer pl = World::get().player(i);
@@ -289,7 +289,7 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 					if (pl->hasDefiniteOrientation()) {
 						ballPos += OFFSET_FROM_ROBOT_TO_BALL * Vector2(pl->orientation());
 					}
-					World::get().ball()->position(ballPos);
+					World::get().ball().position(ballPos);
 					break;
 				}
 			}

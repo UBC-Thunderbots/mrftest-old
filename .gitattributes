@@ -106,7 +106,6 @@ software/src/UI/ControlPanel.cpp -text
 software/src/XBee/CMakeLists.txt -text
 software/src/XBee/XBeeBot.cpp -text
 software/src/XBee/XBeeModem.cpp -text
-software/src/datapool/Ball.cpp -text
 software/src/datapool/CMakeLists.txt -text
 software/src/datapool/Config.cpp -text
 software/src/datapool/Field.cpp -text

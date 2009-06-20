@@ -1,7 +1,3 @@
-#include <tr1/memory>
-class PredictableObject;
-typedef std::tr1::shared_ptr<PredictableObject> PPredictableObject;
-
 #ifndef DATAPOOL_PREDICTABLEOBJECT_H
 #define DATAPOOL_PREDICTABLEOBJECT_H
 

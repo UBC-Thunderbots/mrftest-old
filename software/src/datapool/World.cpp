@@ -20,7 +20,7 @@ World &World::get() {
 	return *instance;
 }
 
-World::World(Team &friendlyTeam, Team &enemyTeam, PField field) : play(PlayType::play), friendly(friendlyTeam), enemy(enemyTeam), field_(field), ball_(Ball::create()), ballVisible(false) {
+World::World(Team &friendlyTeam, Team &enemyTeam, PField field) : play(PlayType::play), friendly(friendlyTeam), enemy(enemyTeam), field_(field), ballVisible(false) {
 	for (unsigned int j = 0; j < Team::SIZE; j++)
 		everyone.push_back(friendly.player(j));
 	for (unsigned int j = 0; j < Team::SIZE; j++)
@@ -92,11 +92,11 @@ const std::vector<PPlayer> &World::players() {
 	return everyone;
 }
 
-PBall World::ball() {
+Ball &World::ball() {
 	return ball_;
 }
 
-const PBall World::ball() const {
+const Ball &World::ball() const {
 	return ball_;
 }
 

@@ -137,7 +137,7 @@ bool Visualizer::on_expose_event(GdkEventExpose *event) {
 
 	// ball:
 	cr->set_source_rgb(1, 1, 1);
-	cr->arc(offsetX+scaling*w.ball()->position().x, offsetY+scaling*w.ball()->position().y, scaling*w.ball()->radius(), 0.0, 2.0 * M_PI);
+	cr->arc(offsetX + scaling * w.ball().position().x, offsetY + scaling * w.ball().position().y, scaling * w.ball().radius(), 0.0, 2.0 * M_PI);
 	cr->fill();
 
 	// players:

@@ -31,7 +31,7 @@ void CheaterStrategy::update() {
 	unsigned int closest = 0;
 	for (unsigned int id = 1; id < Team::SIZE; id++) {
 		if (!dibs[id]) {
-			Vector2 dis = w.ball()->position() - team.player(id)->position();
+			Vector2 dis = w.ball().position() - team.player(id)->position();
 			if (dis.length() < len) {
 				closest = id;
 				len = dis.length();
@@ -178,7 +178,7 @@ void CheaterStrategy::defenderTop(PPlayer robot) {
 	World &w = World::get();
 	PField field = w.field();
 
-	Vector2 pos = w.ball()->position();
+	Vector2 pos = w.ball().position();
 	double rad; // The size of the goal.
 	if (team.side())
 		rad = field->westGoal()->south.y - field->westGoal()->north.y;
@@ -195,7 +195,7 @@ void CheaterStrategy::defenderTop(PPlayer robot) {
 
 	Vector2 vec = pos - center; // Vector between the ball and the goal.
 
-	Vector2 target = w.ball()->velocity();
+	Vector2 target = w.ball().velocity();
 	target *= (1.0 / target.length()); // get the unit vector.
 	target *= vec.length();
 	if (target.x != 0 && target.y != 0)
@@ -225,7 +225,7 @@ void CheaterStrategy::defenderTop(PPlayer robot) {
 void CheaterStrategy::defenderBottom(PPlayer robot) {
 	World &w = World::get();
 	PField field = w.field();
-	Vector2 pos = w.ball()->position();
+	Vector2 pos = w.ball().position();
 	double rad; // The size of the goal.
 	if (team.side())
 		rad = field->westGoal()->south.y - field->westGoal()->north.y;
@@ -242,7 +242,7 @@ void CheaterStrategy::defenderBottom(PPlayer robot) {
 
 	Vector2 vec = pos - center; // Vector between the ball and the goal.
 
-	Vector2 target = w.ball()->velocity();
+	Vector2 target = w.ball().velocity();
 	target *= (1.0 / target.length()); // get the unit vector.
 	target *= vec.length();
 	if (target.x != 0 && target.y != 0)

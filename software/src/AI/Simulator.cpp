@@ -66,11 +66,12 @@ Simulator::Simulator(Team &friendly, Team &enemy) {
 	w.player(9)->acceleration(Vector2(0, 0));
 	w.player(9)->radius(9);
 	
-	//Set the ball properties:
-	w.ball()->position(Vector2(330, 235));
-	w.ball()->velocity(Vector2(0, 0));
-	w.ball()->acceleration(Vector2(0, 0));
-	w.ball()->radius(2.15);
+	// Set the ball properties:
+	Ball &ball = w.ball();
+	ball.position(Vector2(330, 235));
+	ball.velocity(Vector2(0, 0));
+	ball.acceleration(Vector2(0, 0));
+	ball.radius(2.15);
 }
 
 void Simulator::update() {	
@@ -119,10 +120,10 @@ void Simulator::update() {
 		}
 	}
 
-	PBall ball = world.ball();
-	Vector2 pos = ball->position();
-	Vector2 vel = ball->velocity();
-	Vector2 acc = ball->acceleration();
+	Ball &ball = world.ball();
+	Vector2 pos = ball.position();
+	Vector2 vel = ball.velocity();
+	Vector2 acc = ball.acceleration();
 
 	if (vel.length() < 1E-9) acc = Vector2(0,0);
 	else{
@@ -196,17 +197,17 @@ void Simulator::update() {
 			break;
 	}
 	
-	ball->acceleration(acc);
-	ball->position(pos);
-	ball->velocity(vel);			
+	ball.acceleration(acc);
+	ball.position(pos);
+	ball.velocity(vel);			
 	
 	// Keep track if there are multiple robots fighting over the ball
 	// with one (first robot) and two (second robot).
 	PPlayer one, two;
 	for (unsigned int i = 0; i < 10; i++) {
 		PPlayer cur = world.player(i);
-		Vector2 diff = ball->position() - cur->position();
-		if (diff.length() <= cur->radius() + ball->radius()) {
+		Vector2 diff = ball.position() - cur->position();
+		if (diff.length() <= cur->radius() + ball.radius()) {
 			if (!one)      one = cur;
 			else if (!two) two = cur;
 		}
@@ -225,8 +226,8 @@ void Simulator::update() {
 			double direction = winner->orientation();	
 			Vector2 ballPos = direction;
 			ballPos *= winner->radius();
-			ball->position(winner->position() + ballPos);
-			ball->velocity(winner->velocity());
+			ball.position(winner->position() + ballPos);
+			ball.velocity(winner->velocity());
 		}
 	}
 

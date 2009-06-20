@@ -71,8 +71,8 @@ public:
 	/*
 	 * Gets the ball.
 	 */
-	PBall ball();
-	const PBall ball() const;
+	Ball &ball();
+	const Ball &ball() const;
 	
 	//
 	// Whether or not the ball is visible on the cameras.
@@ -87,7 +87,7 @@ private:
 	Team &friendly;
 	Team &enemy;
 	PField field_;
-	PBall ball_;
+	Ball ball_;
 	std::vector<PPlayer> everyone;
 	bool ballVisible;
 };

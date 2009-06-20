@@ -87,7 +87,7 @@ void CentralStrategyUnit::directFreeKick(){
 		double len = field->width() * 2.0;
 		unsigned int closest = 0;
 		for (unsigned int id = 1; id < Team::SIZE; id++) {
-			Vector2 dis = w.ball()->position() - team.player(id)->position();
+			Vector2 dis = w.ball().position() - team.player(id)->position();
 			if (dis.length() < len) {
 				closest = id;
 				len = dis.length();
@@ -115,14 +115,14 @@ void CentralStrategyUnit::preparePenaltyKick(){
 		
 	World &w = World::get();
 	PField field = w.field();
-	ballpos = w.ball()->position();
+	ballpos = w.ball().position();
 	if (team.specialPossession()) {
 		
 		// Find closest player to ball.
 		double len = field->width() * 2.0;
 		unsigned int closest = 0;
 		for (unsigned int id = 1; id < Team::SIZE; id++) {
-			Vector2 dis = w.ball()->position() - team.player(id)->position();
+			Vector2 dis = w.ball().position() - team.player(id)->position();
 			if (dis.length() < len) {
 				closest = id;
 				len = dis.length();
@@ -135,12 +135,12 @@ void CentralStrategyUnit::preparePenaltyKick(){
 		for (unsigned int id = 1; id < Team::SIZE; id++)
 			if (id != closest){
 				if (ballpos.x >= field->centerCircle().x){
-					double maxx = w.ball()->position().x - 2*team.player(id)->radius() - field->convertMmToCoord(PENALTY_DISTANCE);
+					double maxx = w.ball().position().x - 2 * team.player(id)->radius() - field->convertMmToCoord(PENALTY_DISTANCE);
 					//if(team.player(id)->destination().x > maxx)
 						team.player(id)->destination(Vector2(maxx, team.player(id)->destination().y));
 				}
 				else{
-					double minx = w.ball()->position().x + 2*team.player(id)->radius() + field->convertMmToCoord(PENALTY_DISTANCE);
+					double minx = w.ball().position().x + 2 * team.player(id)->radius() + field->convertMmToCoord(PENALTY_DISTANCE);
 					//if(team.player(id)->destination().x < minx)
 						team.player(id)->destination(Vector2(minx, team.player(id)->destination().y));
 				}
@@ -151,12 +151,12 @@ void CentralStrategyUnit::preparePenaltyKick(){
         else {
 		for (unsigned int id = 1; id < Team::SIZE; id++){
 			if (ballpos.x < field->centerCircle().x){
-				double minx = w.ball()->position().x + 2*team.player(id)->radius() + field->convertMmToCoord(PENALTY_DISTANCE);
+				double minx = w.ball().position().x + 2*team.player(id)->radius() + field->convertMmToCoord(PENALTY_DISTANCE);
 				//if(team.player(id)->destination().x < minx)
 					team.player(id)->destination(Vector2(minx, team.player(id)->destination().y));
 			}
 			else{
-				double maxx = w.ball()->position().x - 2*team.player(id)->radius() - field->convertMmToCoord(PENALTY_DISTANCE);
+				double maxx = w.ball().position().x - 2*team.player(id)->radius() - field->convertMmToCoord(PENALTY_DISTANCE);
 				//if(team.player(id)->destination().x > maxx)
 					team.player(id)->destination(Vector2(maxx, team.player(id)->destination().y));
 			}
@@ -186,7 +186,7 @@ strat->update();
 		
 	World &w = World::get();
 	PField field = w.field();
-	if ((w.ball()->position()-ballpos).length() > field->convertMmToCoord(10.0)){
+	if ((w.ball().position()-ballpos).length() > field->convertMmToCoord(10.0)){
 		w.playType(PlayType::play);
 		return;	
 	}
@@ -196,7 +196,7 @@ strat->update();
 		double len = field->width() * 2.0;
 		unsigned int closest = 0;
 		for (unsigned int id = 1; id < Team::SIZE; id++) {
-			Vector2 dis = w.ball()->position() - team.player(id)->position();
+			Vector2 dis = w.ball().position() - team.player(id)->position();
 			if (dis.length() < len) {
 				closest = id;
 				len = dis.length();
@@ -209,12 +209,12 @@ strat->update();
                 for (unsigned int id = 1; id < Team::SIZE; id++)
 			if (id != closest){
 				if (ballpos.x >= field->centerCircle().x){
-					double maxx = w.ball()->position().x - 2*team.player(id)->radius() - field->convertMmToCoord(PENALTY_DISTANCE);
+					double maxx = w.ball().position().x - 2*team.player(id)->radius() - field->convertMmToCoord(PENALTY_DISTANCE);
 					//if(team.player(id)->destination().x > maxx)
 						team.player(id)->destination(Vector2(maxx, team.player(id)->destination().y));
 				}
 				else{
-					double minx = w.ball()->position().x + 2*team.player(id)->radius() + field->convertMmToCoord(PENALTY_DISTANCE);
+					double minx = w.ball().position().x + 2*team.player(id)->radius() + field->convertMmToCoord(PENALTY_DISTANCE);
 					//if(team.player(id)->destination().x < minx)
 						team.player(id)->destination(Vector2(minx, team.player(id)->destination().y));
 				}
@@ -225,12 +225,12 @@ strat->update();
         else {
 		for (unsigned int id = 1; id < Team::SIZE; id++){
 			if (ballpos.x < field->centerCircle().x){
-				double minx = w.ball()->position().x + 2*team.player(id)->radius() + field->convertMmToCoord(PENALTY_DISTANCE);
+				double minx = w.ball().position().x + 2*team.player(id)->radius() + field->convertMmToCoord(PENALTY_DISTANCE);
 				//if(team.player(id)->destination().x < minx)
 					team.player(id)->destination(Vector2(minx, team.player(id)->destination().y));
 			}
 			else{
-				double maxx = w.ball()->position().x - 2*team.player(id)->radius() - field->convertMmToCoord(PENALTY_DISTANCE);
+				double maxx = w.ball().position().x - 2*team.player(id)->radius() - field->convertMmToCoord(PENALTY_DISTANCE);
 				//if(team.player(id)->destination().x > maxx)
 					team.player(id)->destination(Vector2(maxx, team.player(id)->destination().y));
 			}
@@ -264,7 +264,7 @@ void CentralStrategyUnit::prepareKickoff(){
 		double len = field->width() * 2.0;
 		unsigned int closest = 0;
 		for (unsigned int id = 1; id < Team::SIZE; id++) {
-			Vector2 dis = w.ball()->position() - team.player(id)->position();
+			Vector2 dis = w.ball().position() - team.player(id)->position();
 			if (dis.length() < len) {
 				closest = id;
 				len = dis.length();
@@ -281,7 +281,7 @@ void CentralStrategyUnit::kickoff() {
 	strat->update();
 	World &w = World::get();
 	PField field = w.field();
-	if ((w.ball()->position()-field->centerCircle()).length() > field->convertMmToCoord(10.0)){
+	if ((w.ball().position()-field->centerCircle()).length() > field->convertMmToCoord(10.0)){
 		w.playType(PlayType::play);
 		return;	
 	}
@@ -291,7 +291,7 @@ void CentralStrategyUnit::kickoff() {
 		double len = field->width() * 2.0;
 		unsigned int closest = 0;
 		for (unsigned int id = 1; id < Team::SIZE; id++) {
-			Vector2 dis = w.ball()->position() - team.player(id)->position();
+			Vector2 dis = w.ball().position() - team.player(id)->position();
 			if (dis.length() < len) {
 				closest = id;
 				len = dis.length();
@@ -329,7 +329,7 @@ void CentralStrategyUnit::stop(){
 		double len = field->width() * 2.0;
 		unsigned int closest = 0;
 		for (unsigned int id = 1; id < Team::SIZE; id++) {
-			Vector2 dis = w.ball()->position() - team.player(id)->position();
+			Vector2 dis = w.ball().position() - team.player(id)->position();
 			if (dis.length() < len) {
 				closest = id;
 				len = dis.length();
@@ -339,7 +339,7 @@ void CentralStrategyUnit::stop(){
 		
 		kicker->plan(Plan::chase);
 		
-		ballpos = w.ball()->position();
+		ballpos = w.ball().position();
 	}
 	
 }
@@ -348,7 +348,7 @@ void CentralStrategyUnit::indirectFreeKick() {
 	strat->update();
 	World &w = World::get();
 	PField field = w.field();
-	if ((w.ball()->position()-ballpos).length() > field->convertMmToCoord(10.0)){
+	if ((w.ball().position()-ballpos).length() > field->convertMmToCoord(10.0)){
 		w.playType(PlayType::play);
 		return;	
 	}
@@ -358,7 +358,7 @@ void CentralStrategyUnit::indirectFreeKick() {
 		double len = field->width() * 2.0;
 		unsigned int closest = 0;
 		for (unsigned int id = 1; id < Team::SIZE; id++) {
-			Vector2 dis = w.ball()->position() - team.player(id)->position();
+			Vector2 dis = w.ball().position() - team.player(id)->position();
 			if (dis.length() < len) {
 				closest = id;
 				len = dis.length();

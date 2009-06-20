@@ -1,9 +1,5 @@
 //Object:  VIRTUAL BASE CLASS
 //CONTAINS ALL BASIC FUNCTIONS THAT BALL AND PLAYER CLASSES SHARE
-#include <tr1/memory>
-class Object;
-typedef std::tr1::shared_ptr<Object> PObject;
-
 #ifndef DATAPOOL_OBJECT_H
 #define DATAPOOL_OBJECT_H
 

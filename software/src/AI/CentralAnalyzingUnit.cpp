@@ -44,7 +44,7 @@ bool CentralAnalyzingUnit::checkVector(Vector2 rayOrigin, Vector2 rayEnd, PPlaye
 	// If the robot is not allowed close to the ball, consider its radius an obstacle:
 	if (!entity->allowedInside()) {
 		//initially only considering one frame ahead, should be possible to check certain amounts depending on how long the vector is
-		Vector2 circlePos = World::get().ball()->position();
+		Vector2 circlePos = World::get().ball().position();
 		double circleRadius = World::get().field()->convertMmToCoord(800);
 		
 		Vector2 circleDiff1 = circlePos - rayOrigin1;

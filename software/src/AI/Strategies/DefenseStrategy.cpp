@@ -129,12 +129,12 @@ void DefenseStrategy::defense() {
 	
 	// find the ball position
 	w.ball();	
-	if((w.ball()->position() - goalpost1).length() >
-		(w.ball()->position() - goalpost2).length()) {
+	if((w.ball().position() - goalpost1).length() >
+		(w.ball().position() - goalpost2).length()) {
 		std::swap(goalpost2, goalpost1);
 	}
 
-	Vector2 blockPosition = calcBlockGoalie(goalpost1, goalpost2, w.ball()->position(), GoalieRadius, radius);
+	Vector2 blockPosition = calcBlockGoalie(goalpost1, goalpost2, w.ball().position(), GoalieRadius, radius);
 
 	//Vector2 blockPosition1 = defenderBlocksGoalPost(goalpost1, goalpost2, w.ball()->position(), blockPosition, radius);
 

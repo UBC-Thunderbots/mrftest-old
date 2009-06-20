@@ -94,7 +94,7 @@ namespace {
 			robot->hasBall(false);
 			Vector2 vel = rotate;
 			vel *= 5;
-			World::get().ball()->velocity(vel);
+			World::get().ball().velocity(vel);
 		}
 	}
 
@@ -119,6 +119,7 @@ namespace {
 			vxFilter[i].reset(new MoveFilter(ka, kb));
 			vyFilter[i].reset(new MoveFilter(ka, kb));
 		}
+		return true;
 	}
 
 	void sendWireless(PPlayer robot, Vector2 acc, double rotate, double dribble, double kick) {
