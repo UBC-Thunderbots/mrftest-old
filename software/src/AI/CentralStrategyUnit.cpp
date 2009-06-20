@@ -134,7 +134,7 @@ void CentralStrategyUnit::preparePenaltyKick(){
 
 		for (unsigned int id = 1; id < Team::SIZE; id++)
 			if (id != closest){
-				if (team.side()){
+				if (ballpos.x >= field->centerCircle().x){
 					double maxx = w.ball()->position().x - 2*team.player(id)->radius() - field->convertMmToCoord(PENALTY_DISTANCE);
 					//if(team.player(id)->destination().x > maxx)
 						team.player(id)->destination(Vector2(maxx, team.player(id)->destination().y));
@@ -150,7 +150,7 @@ void CentralStrategyUnit::preparePenaltyKick(){
 	}   
         else {
 		for (unsigned int id = 1; id < Team::SIZE; id++){
-			if (team.side()){
+			if (ballpos.x < field->centerCircle().x){
 				double minx = w.ball()->position().x + 2*team.player(id)->radius() + field->convertMmToCoord(PENALTY_DISTANCE);
 				//if(team.player(id)->destination().x < minx)
 					team.player(id)->destination(Vector2(minx, team.player(id)->destination().y));
@@ -165,7 +165,7 @@ void CentralStrategyUnit::preparePenaltyKick(){
 		}
 		PPlayer goalie = team.player(0);
 		goalie->allowedInside(true);
-		if (team.side()){
+		if (ballpos.x < field->centerCircle().x){
 			double maxx = field->west() + goalie->radius() / 2;
 			if(goalie->destination().x > maxx)
 				goalie->destination(Vector2(maxx, goalie->destination().y));
@@ -208,7 +208,7 @@ strat->update();
 
                 for (unsigned int id = 1; id < Team::SIZE; id++)
 			if (id != closest){
-				if (team.side()){
+				if (ballpos.x >= field->centerCircle().x){
 					double maxx = w.ball()->position().x - 2*team.player(id)->radius() - field->convertMmToCoord(PENALTY_DISTANCE);
 					//if(team.player(id)->destination().x > maxx)
 						team.player(id)->destination(Vector2(maxx, team.player(id)->destination().y));
@@ -224,7 +224,7 @@ strat->update();
 	}   
         else {
 		for (unsigned int id = 1; id < Team::SIZE; id++){
-			if (team.side()){
+			if (ballpos.x < field->centerCircle().x){
 				double minx = w.ball()->position().x + 2*team.player(id)->radius() + field->convertMmToCoord(PENALTY_DISTANCE);
 				//if(team.player(id)->destination().x < minx)
 					team.player(id)->destination(Vector2(minx, team.player(id)->destination().y));
@@ -239,7 +239,7 @@ strat->update();
 		}
 		PPlayer goalie = team.player(0);
 		goalie->allowedInside(true);
-		if (team.side()){
+		if (ballpos.x < field->centerCircle().x){
 			double maxx = field->west() + goalie->radius() / 2;
 			if(goalie->destination().x > maxx)
 				goalie->destination(Vector2(maxx, goalie->destination().y));
