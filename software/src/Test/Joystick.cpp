@@ -22,8 +22,18 @@ namespace {
 	bool joystickComparator(Glib::RefPtr<Joystick> x, Glib::RefPtr<Joystick> y) {
 		return x->name() < y->name();
 	}
+}
 
-	void initialize() {
+sigc::signal<void> &Joystick::signal_changed() {
+	return sig_changed;
+}
+
+const std::string &Joystick::name() const {
+	return filename;
+}
+
+const std::vector<Glib::RefPtr<Joystick> > Joystick::all() {
+	if (!initialized) {
 		Glib::Dir dir("/dev/input");
 		for (Glib::Dir::const_iterator i = dir.begin(), iend = dir.end(); i != iend; ++i) {
 			std::string file = *i;
@@ -36,19 +46,6 @@ namespace {
 		sort(sticks.begin(), sticks.end(), &joystickComparator);
 		initialized = true;
 	}
-}
-
-sigc::signal<void> &Joystick::signal_changed() {
-	return sig_changed;
-}
-
-const std::string &Joystick::name() const {
-	return filename;
-}
-
-const std::vector<Glib::RefPtr<Joystick> > Joystick::all() {
-	if (!initialized)
-		initialize();
 	return sticks;
 }
 
@@ -101,11 +98,11 @@ void Joystick::unreference() {
 }
 
 Joystick::Joystick(int fd, const std::string &device) : fd(fd), filename(device), refs(1) {
-	ioConnection = Glib::signal_io().connect(sigc::mem_fun(*this, &Joystick::onIO), fd, Glib::IO_IN);
+	Glib::signal_io().connect(sigc::mem_fun(*this, &Joystick::onIO), fd, Glib::IO_IN);
 }
 
 Joystick::~Joystick() {
-	ioConnection.disconnect();
+	close(fd);
 }
 
 bool Joystick::onIO(Glib::IOCondition cond) {

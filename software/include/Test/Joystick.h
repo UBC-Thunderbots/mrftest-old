@@ -1,20 +1,18 @@
 #ifndef TEST_JOYSTICK_H
 #define TEST_JOYSTICK_H
 
+#include "datapool/Noncopyable.h"
+
 #include <string>
 #include <vector>
-
 #include <sigc++/sigc++.h>
 #include <glibmm.h>
 
-class Joystick {
+class Joystick : private virtual Noncopyable, public virtual sigc::trackable {
 public:
 	sigc::signal<void> &signal_changed();
 	const std::string &name() const;
 	static const std::vector<Glib::RefPtr<Joystick> > all();
-	static Glib::RefPtr<Joystick> create(const std::string &device);
-	void reference();
-	void unreference();
 
 	enum Button {
 		BTN_A,
@@ -52,13 +50,16 @@ private:
 	int fd;
 	const std::string filename;
 	sigc::signal<void> sig_changed;
-	sigc::connection ioConnection;
 	unsigned int refs;
 
 	Joystick(int fd, const std::string &device);
-	Joystick(const Joystick &copyref); // Inhibit copying.
 	~Joystick();
+	static Glib::RefPtr<Joystick> create(const std::string &device);
 	bool onIO(Glib::IOCondition cond);
+	void reference();
+	void unreference();
+
+	friend class Glib::RefPtr<Joystick>;
 };
 
 #endif

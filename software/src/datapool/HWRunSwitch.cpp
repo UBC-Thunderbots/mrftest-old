@@ -1,4 +1,5 @@
 #include "datapool/Config.h"
+#include "datapool/Noncopyable.h"
 #include "datapool/HWRunSwitch.h"
 #include "Log/Log.h"
 
@@ -9,7 +10,6 @@
 #include <cerrno>
 #include <cstdlib>
 #include <cassert>
-
 #include <glibmm.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -27,7 +27,7 @@ namespace {
 	class Device;
 	typedef Glib::RefPtr<Device> PDevice;
 	typedef std::vector<PDevice> VDevice;
-	class Device : public Glib::Object {
+	class Device : public Glib::Object, private virtual Noncopyable {
 	public:
 		//
 		// The states the switch can be in.
@@ -59,7 +59,6 @@ namespace {
 		sigc::connection ioConnection, timeoutConnection;
 
 		Device(const std::string &device, int fd);
-		Device(const Device &copyref); // Prohibit copying.
 		~Device();
 		bool ioReady(Glib::IOCondition cond);
 		bool timeout();
