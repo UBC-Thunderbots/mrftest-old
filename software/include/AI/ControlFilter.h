@@ -17,7 +17,7 @@ private:
 	//ControlFilter(const ControlFilter &copyref); // Prohibit copying.
 };
 
-class MoveFilter : ControlFilter {
+class MoveFilter : public ControlFilter {
 public:
 	MoveFilter(const std::vector<double>& ka, const std::vector<double>& kb);
 	void clear();
