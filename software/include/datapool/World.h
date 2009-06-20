@@ -1,11 +1,11 @@
 #ifndef DATAPOOL_WORLD_H
 #define DATAPOOL_WORLD_H
 
-#include "PlayType.h"
-#include "Team.h"
-#include "Player.h"
-#include "Field.h"
-#include "Ball.h"
+#include "datapool/Ball.h"
+#include "datapool/Field.h"
+#include "datapool/Player.h"
+#include "datapool/PlayType.h"
+#include "datapool/Team.h"
 
 // class to keep track of everything in the world.
 class World {
