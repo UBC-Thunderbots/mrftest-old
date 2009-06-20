@@ -19,6 +19,9 @@ CentralStrategyUnit::CentralStrategyUnit(AITeam &team) : team(team) {
 // temporary storage for ball position, used in special plays
 Vector2 ballpos;
 
+// distance to stay back from when a penalty kick is being taken
+#define PENALTY_DISTANCE 1000.0 // normal value should be 400.0
+
 void CentralStrategyUnit::update() {
 	for (unsigned int id = 0; id < Team::SIZE; id++) {
 		PPlayer robot = team.player(id);
@@ -40,7 +43,7 @@ void CentralStrategyUnit::update() {
 		case PlayType::penaltyKickoff:	penaltyKickoff(); break;
 		case PlayType::victoryDance:    victoryDance(); break;
 		case PlayType::doNothing:		doNothing(); break;
-		case PlayType::prepareKickoff:	prepareKickoff(); break;
+		case PlayType::prepareKickoff:	startingPositions(); break;//prepareKickoff(); break;
 		default:                 		assert(false);
 	}
 }
@@ -62,13 +65,13 @@ void CentralStrategyUnit::startingPositions() {
 	int heightOffset = field->north();
 	int fieldHeight = field->south() - field->north();
 
-	static const double DIVISORS[2][5][2] = {
-		{{1.07, 2}, {1.31, 4}, {1.31, 1.3}, {1.31, 2}, {1.63, 2}},
-		{{15, 2}, {4, 4}, {4, 1.3}, {4, 2}, {2.6, 2}}
+	static const double MULTIPLES[2][5][2] = {
+		{{0.9754, 0.5}, {0.55, 0.35}, {0.55, 0.65}, {0.75, 0.5}, {0.62, 0.5}},
+		{{0.0246, 0.5}, {0.45, 0.35}, {0.45, 0.65}, {0.25, 0.5}, {0.38, 0.5}}
 	};
 	for (unsigned int i = 0; i < Team::SIZE; i++) {
 		team.player(i)->plan(Plan::move);
-		team.player(i)->destination(Vector2(widthOffset + fieldWidth / DIVISORS[team.side()][i][0], heightOffset + fieldHeight / DIVISORS[team.side()][i][1]));
+		team.player(i)->destination(Vector2(widthOffset + fieldWidth * MULTIPLES[team.side()][i][0], heightOffset + fieldHeight * MULTIPLES[team.side()][i][1]));
 		team.player(i)->hasBall(false);
 	}
 }
@@ -131,12 +134,12 @@ void CentralStrategyUnit::preparePenaltyKick(){
 		for (unsigned int id = 1; id < Team::SIZE; id++)
 			if (id != closest){
 				if (team.side()){
-					double maxx = w.ball()->position().x - 2*team.player(id)->radius() - field->convertMmToCoord(400.0);
+					double maxx = w.ball()->position().x - 2*team.player(id)->radius() - field->convertMmToCoord(PENALTY_DISTANCE);
 					//if(team.player(id)->destination().x > maxx)
 						team.player(id)->destination(Vector2(maxx, team.player(id)->destination().y));
 				}
 				else{
-					double minx = w.ball()->position().x + 2*team.player(id)->radius() + field->convertMmToCoord(400.0);
+					double minx = w.ball()->position().x + 2*team.player(id)->radius() + field->convertMmToCoord(PENALTY_DISTANCE);
 					//if(team.player(id)->destination().x < minx)
 						team.player(id)->destination(Vector2(minx, team.player(id)->destination().y));
 				}
@@ -147,12 +150,12 @@ void CentralStrategyUnit::preparePenaltyKick(){
         else {
 		for (unsigned int id = 1; id < Team::SIZE; id++){
 			if (team.side()){
-				double minx = w.ball()->position().x + 2*team.player(id)->radius() + field->convertMmToCoord(400.0);
+				double minx = w.ball()->position().x + 2*team.player(id)->radius() + field->convertMmToCoord(PENALTY_DISTANCE);
 				//if(team.player(id)->destination().x < minx)
 					team.player(id)->destination(Vector2(minx, team.player(id)->destination().y));
 			}
 			else{
-				double maxx = w.ball()->position().x - 2*team.player(id)->radius() - field->convertMmToCoord(400.0);
+				double maxx = w.ball()->position().x - 2*team.player(id)->radius() - field->convertMmToCoord(PENALTY_DISTANCE);
 				//if(team.player(id)->destination().x > maxx)
 					team.player(id)->destination(Vector2(maxx, team.player(id)->destination().y));
 			}
