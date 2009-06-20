@@ -23,12 +23,15 @@ const double EPS = 1E-9;
 namespace {
 	bool simulation = false;
 
-	const double rotKp = 100, rotKi = 1, rotKd = 0, rotDecay = 0.97;
-	
 	// both friendly and enemy team because simulation needs it
-	PControlFilter vxFilter[2 * Team::SIZE];
-	PControlFilter vyFilter[2 * Team::SIZE];
-	PControlFilter rotFilter[2 * Team::SIZE];
+	const double rotKp = 100, rotKi = 1, rotKd = 0, rotDecay = 0.97;
+	const double moveKAData[] = {1.0, 1.0050, 0.0050};
+	const double moveKBData[] = {18.7674, 7.2493, 2.4120};
+	const std::vector<double> moveKA(moveKAData, moveKAData + sizeof(moveKAData) / sizeof(*moveKAData));
+	const std::vector<double> moveKB(moveKBData, moveKBData + sizeof(moveKBData) / sizeof(*moveKBData));
+	std::vector<PID> rotFilter(2 * Team::SIZE, PID(rotKp, rotKi, rotKd, rotDecay));
+	std::vector<MoveFilter> vxFilter(2 * Team::SIZE, MoveFilter(moveKA, moveKB));
+	std::vector<MoveFilter> vyFilter(2 * Team::SIZE, MoveFilter(moveKA, moveKB));
 
 	void simulateWorld(PPlayer robot, Vector2 acc, double rotate, unsigned char kick, bool equalSpeed /*circular speed profile if true*/) {
 		if (acc.length() > 1) acc /= acc.length();
@@ -108,30 +111,7 @@ namespace {
 			return static_cast<ret>(in);
 	}
 
-	bool init() {
-		std::vector<double> ka, kb;
-		static const double KA[] = {1.0, 1.0050, 0.0050};
-		static const double KB[] = {18.7674, 7.2493, 2.4120};
-		ka.insert(ka.begin(), KA, KA + sizeof(KA) / sizeof(*KA));
-		kb.insert(kb.begin(), KB, KB + sizeof(KB) / sizeof(*KB));
-		for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
-			rotFilter[i].reset(new PID(rotKp, rotKi, rotKd, rotDecay));
-			vxFilter[i].reset(new MoveFilter(ka, kb));
-			vyFilter[i].reset(new MoveFilter(ka, kb));
-		}
-		return true;
-	}
-
 	void sendWireless(PPlayer robot, Vector2 acc, double rotate, double dribble, double kick) {
-		static const bool initialized = init();
-
-		//static const double rotKp = 0.78740157, rotKi = 1, rotKd = 0, rotDecay = 0.97;
-		//static std::vector<PID> rotFilter(2 * Team::SIZE, PID(rotKp, rotKi, rotKd, rotDecay));
-		//static const double vxKp = 0.15748031, vxKi = 0, vxKd = 0, vxDecay = 0.97;
-		//static std::vector<PID> vxFilter(2 * Team::SIZE, PID(vxKp, vxKi, vxKd, vxDecay));
-		//static const double vyKp = 0.23622047, vyKi = 0, vyKd = 0, vyDecay = 0.97;
-		//static std::vector<PID> vyFilter(2 * Team::SIZE, PID(vyKp, vyKi, vyKd, vyDecay));
-
 		std::ostringstream oss;
 		oss << "AI" << robot->id();
 		const std::string &key = oss.str();
@@ -168,8 +148,8 @@ namespace {
 		mrotate.y = World::get().field()->convertCoordToMm(mrotate.y) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
 
 		Glib::RefPtr<XBeeBot> bot = XBeeBotSet::instance()[index];
-		bot->vx(vxFilter[robot->id()]->process(rotated.x));
-		bot->vy(vyFilter[robot->id()]->process(rotated.y));
+		bot->vx(vxFilter[robot->id()].process(rotated.x));
+		bot->vy(vyFilter[robot->id()].process(rotated.y));
 		double diff;
 		{
 			Vector2 cur(robot->orientation());
@@ -177,16 +157,16 @@ namespace {
 			diff = cur.angle() - tgt.angle();
 			while (diff >= 180)  diff -= 360;
 			while (diff <= -180) diff += 360;
-			bot->vt(rotFilter[robot->id()]->process(-diff / 180));
+			bot->vt(rotFilter[robot->id()].process(-diff / 180));
 		}
 		bot->dribbler(dribble);
 		if (kick)
 			bot->kick(kick);
 
 		if (!bot->run()) {
-			rotFilter[robot->id()]->clear();
-			vxFilter[robot->id()]->clear();
-			vyFilter[robot->id()]->clear();
+			rotFilter[robot->id()].clear();
+			vxFilter[robot->id()].clear();
+			vyFilter[robot->id()].clear();
 		}
 	}
 }

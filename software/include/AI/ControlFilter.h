@@ -1,20 +1,13 @@
-#include <tr1/memory>
-class ControlFilter;
-typedef std::tr1::shared_ptr<ControlFilter> PControlFilter;
-
-#include <vector>
-
 #ifndef TB_CONTROLFILTER_H
 #define TB_CONTROLFILTER_H
+
+#include <vector>
 
 class ControlFilter {
 public:
 	ControlFilter() {}
 	virtual double process(double error) = 0;
 	virtual void clear() = 0;
-
-private:
-	//ControlFilter(const ControlFilter &copyref); // Prohibit copying.
 };
 
 class MoveFilter : public ControlFilter {
@@ -24,7 +17,6 @@ public:
 	double process(double input);
 
 private:
-	//MoveFilter(const MoveFilter &copyref); // Prohibit copying.
 	const std::vector<double> a;
 	const std::vector<double> b;
 	std::vector<double> delayed;

@@ -1,5 +1,7 @@
 #include "AI/ControlFilter.h"
 
+#include <algorithm>
+
 MoveFilter::MoveFilter(
 		const std::vector<double>& ka,
 		const std::vector<double>& kb) : a(ka), b(kb) {
@@ -7,9 +9,7 @@ MoveFilter::MoveFilter(
 }
 
 void MoveFilter::clear() {
-	for (unsigned int i = 0; i < delayed.size(); i++) {
-		delayed[i] = 0;
-	}
+	std::fill(delayed.begin(), delayed.end(), 0);
 }
 
 double MoveFilter::process(double input) {
@@ -21,9 +21,7 @@ double MoveFilter::process(double input) {
 	for (unsigned int i = 0; i < n; i++) {
 		output += b[i+1] * delayed[i] / a[0];
 	}
-	for (unsigned int i = n - 1; i > 0; i--) {
-		delayed[i] = delayed[i-1];
-	}
+	std::copy_backward(&delayed[0], &delayed[n - 1], &delayed[1]);
 	delayed[0] = input;
 	return output;
 }
