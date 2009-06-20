@@ -24,10 +24,7 @@ double MoveFilter::process(double input) {
 	for (unsigned int i = n - 1; i > 0; i--) {
 		delayed[i] = delayed[i-1];
 	}
-	//input = input - a[1] * delayed[0] / a[0] - a[2] * delayed[1] / a[0];
-	//output = b[0] * input + b[1] * delayed[0] / a[0] + b[2] * delayed[1] / a[0];
-	//delayed[1] = delayed[0];
-	//delayed[0] = input;
+	delayed[0] = input;
 	return output;
 }
 
