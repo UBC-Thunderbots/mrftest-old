@@ -32,6 +32,11 @@ public:
 	void orientation(double o);
 
 	/*
+	 * Indicates whether or not the orientation is known definitely.
+	 */
+	bool hasDefiniteOrientation() const;
+
+	/*
 	 * Checks or sets whether the player has the ball.
 	 */
 	bool hasBall() const;

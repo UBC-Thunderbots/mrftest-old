@@ -1,7 +1,7 @@
 #include "AI/CentralAnalyzingUnit.h"
 #include "AI/RobotController.h"
+#include "datapool/Config.h"
 #include "datapool/HWRunSwitch.h"
-#include "datapool/RobotMap.h"
 #include "datapool/World.h"
 #include "XBee/XBeeBot.h"
 
@@ -132,9 +132,12 @@ namespace {
 		static const double vyKp = 0.23622047, vyKi = 0, vyKd = 0, vyDecay = 0.97;
 		static std::vector<PID> vyPIDs(2 * Team::SIZE, PID(vyKp, vyKi, vyKd, vyDecay));
 
-		unsigned int index = RobotMap::instance().l2p(robot);
-		if (index == UINT_MAX)
+		std::ostringstream oss;
+		oss << "AI" << robot->id();
+		const std::string &key = oss.str();
+		if (!Config::instance().hasKey("AI2XBee", key))
 			return;
+		unsigned int index = Config::instance().getInteger<unsigned int>("AI2XBee", key, 10);
 
 		// Rotate X and Y to be relative to the robot, not the world!
 		//

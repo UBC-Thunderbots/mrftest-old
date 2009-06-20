@@ -15,6 +15,13 @@ public:
 	Hungarian(unsigned int size);
 
 	//
+	// Returns the dimension of the Hungarian matrix.
+	//
+	unsigned int size() {
+		return weights.size();
+	}
+
+	//
 	// Gets or sets a pairwise weight of matching X-node "x" with Y-node "y".
 	//
 	double &weight(unsigned int x, unsigned int y) {

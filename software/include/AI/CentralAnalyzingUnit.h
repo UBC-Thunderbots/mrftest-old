@@ -8,7 +8,7 @@
 #include "datapool/Vector2.h"
 
 namespace CentralAnalyzingUnit {
-	const int FRAMES_PER_SECOND = 30;
+	const int FRAMES_PER_SECOND = 14;
 	
 	//Checks to see if there is an intersecting robot between two points.
 	//Passe will be ignored.

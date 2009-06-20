@@ -1,7 +1,9 @@
 #include "AI/AITeam.h"
+#include "AI/CentralAnalyzingUnit.h"
+#include "datapool/Config.h"
 #include "datapool/Field.h"
+#include "datapool/Hungarian.h"
 #include "datapool/Player.h"
-#include "datapool/RobotMap.h"
 #include "datapool/Team.h"
 #include "datapool/World.h"
 #include "IR/ImageRecognition.h"
@@ -11,6 +13,7 @@
 #include "Log/Log.h"
 
 #include <algorithm>
+#include <limits>
 #include <cerrno>
 #include <cstring>
 #include <glibmm.h>
@@ -21,7 +24,9 @@
 
 #define OFFSET_FROM_ROBOT_TO_BALL 80
 
-static bool seenBallFromCamera[2] = {false, false};
+namespace {
+	SSL_DetectionFrame detections[2];
+}
 
 ImageRecognition::ImageRecognition() : fd(-1), friendly(0), enemy(1) {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -161,59 +166,145 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 	}
 
 	if (pkt.has_detection()) {
-		const SSL_DetectionFrame &det = pkt.detection();
-		if (det.balls_size()) {
-			seenBallFromCamera[det.camera_id()] = true;
-			const SSL_DetectionBall &ball = det.balls(0);
-			if (ball.confidence() > 0.01)
-				World::get().ball()->position(Vector2(ball.x(), -ball.y()));
-		} else {
-			seenBallFromCamera[det.camera_id()] = false;
+		detections[pkt.detection().camera_id()] = pkt.detection();
+
+		// Handle the ball.
+		{
+			const SSL_DetectionBall *best = 0;
+			for (unsigned int i = 0; i < sizeof(detections) / sizeof(*detections); i++) {
+				for (int j = 0; j < detections[i].balls_size(); j++) {
+					const SSL_DetectionBall &b = detections[i].balls(j);
+					if (!best && b.confidence() > best->confidence())
+						best = &b;
+				}
+			}
+
+			if (best) {
+				World::get().ball()->position(Vector2(best->x(), -best->y()));
+				World::get().isBallVisible(true);
+			} else {
+				World::get().isBallVisible(false);
+			}
 		}
 
-		for (int i = 0; i < std::min(det.robots_yellow_size(), static_cast<int>(Team::SIZE)); i++) {
-			const SSL_DetectionRobot &bot = det.robots_yellow(i);
-			if (bot.has_robot_id()) {
-				PPlayer player = RobotMap::instance().p2l(bot.robot_id());
-				if (player) {
-					player->position(Vector2(bot.x(), -bot.y()));
-					if (bot.has_orientation()) {
-						// SSL-Vision gives us radians; AI wants degrees.
-						player->orientation(bot.orientation() / M_PI * 180.0);
+		// Handle the robots.
+		const struct ColourSet {
+			char colour;
+			const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> &(SSL_DetectionFrame::*data)() const;
+		} colourSets[2] = {
+			{'B', &SSL_DetectionFrame::robots_blue},
+			{'Y', &SSL_DetectionFrame::robots_yellow}
+		};
+		{
+			const SSL_DetectionRobot *bestByID[2 * Team::SIZE] = {};
+			std::vector<const SSL_DetectionRobot *> unidentified[2];
+			for (unsigned int clr = 0; clr < 2; clr++) {
+				for (unsigned int cam = 0; cam < 2; cam++) {
+					const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> &data = (detections[cam].*colourSets[clr].data)();
+					for (int i = 0; i < data.size(); i++) {
+						const SSL_DetectionRobot &bot = data.Get(i);
+						if (bot.has_robot_id()) {
+							unsigned int irid = bot.has_robot_id();
+							std::ostringstream oss;
+							oss << colourSets[clr].colour << irid;
+							const std::string &key = oss.str();
+							if (Config::instance().hasKey("IR2AI", key)) {
+								unsigned int aiid = Config::instance().getInteger<unsigned int>("IR2AI", key, 10);
+								if (!bestByID[aiid] || bestByID[aiid]->confidence() < bot.confidence())
+									bestByID[aiid] = &bot;
+							}
+						} else {
+							unidentified[clr].push_back(&bot);
+						}
+					}
+				}
+			}
+
+			// Now:
+			// bestByID has the highest-confidence pattern for each AI ID where patterns are provided, or null if none.
+			// unidentified has all the detections that don't have known patterns.
+			//
+			// The bots whose positions we know can be updated immediately. The others go into a bipartite matching.
+			std::vector<unsigned int> unusedAIIDs[2];
+			for (unsigned int i = 0; i < 2 * Team::SIZE; i++)
+				if (bestByID[i]) {
+					PPlayer plr = World::get().player(i);
+					plr->position(Vector2(bestByID[i]->x(), -bestByID[i]->y()));
+					if (bestByID[i]->has_orientation()) {
+						plr->orientation(bestByID[i]->orientation() / M_PI * 180.0);
+					} else {
+						plr->orientation(std::numeric_limits<double>::quiet_NaN());
+					}
+				} else {
+					unusedAIIDs[i / Team::SIZE].push_back(i % Team::SIZE);
+				}
+
+			// Do bipartite matchings.
+			for (unsigned int clr = 0; clr < 2; clr++) {
+				if (!unidentified[clr].empty()) {
+					std::ostringstream oss;
+					oss << colourSets[clr].colour << 'H';
+					const std::string &key = oss.str();
+					unsigned int team = Config::instance().getInteger<unsigned int>("IR2AI", key, 10);
+					Hungarian hung(std::max(unusedAIIDs[team].size(), unidentified[clr].size()));
+					for (unsigned int x = 0; x < hung.size(); x++) {
+						for (unsigned int y = 0; y < hung.size(); y++) {
+							if (x < unidentified[clr].size() && y < unusedAIIDs[team].size()) {
+								Vector2 oldPos = World::get().team(team).player(unusedAIIDs[team][y])->position();
+								Vector2 newPos = Vector2(unidentified[clr][x]->x(), -unidentified[clr][y]->y());
+								hung.weight(x, y) = (newPos - oldPos).length();
+							}
+						}
+					}
+					hung.execute();
+					for (unsigned int x = 0; x < hung.size(); x++) {
+						unsigned int y = hung.matchX(x);
+						if (y != UINT_MAX) {
+							const SSL_DetectionRobot &bot = *unidentified[clr][x];
+							PPlayer plr = World::get().team(team).player(unusedAIIDs[team][y]);
+							plr->position(Vector2(bot.x(), -bot.y()));
+							if (bot.has_orientation()) {
+								plr->orientation(bot.orientation() / M_PI * 180.0);
+							} else {
+								plr->orientation(std::numeric_limits<double>::quiet_NaN());
+							}
+						}
 					}
 				}
 			}
 		}
 
-		for (int i = 0; i < std::min(det.robots_blue_size(), static_cast<int>(Team::SIZE)); i++) {
-			const SSL_DetectionRobot &bot = det.robots_blue(i);
-			World::get().enemyTeam().player(i)->position(Vector2(bot.x(), -bot.y()));
-		}
-
-		World::get().isBallVisible(seenBallFromCamera[0] || seenBallFromCamera[1]);
-	}
-
-	if (World::get().isBallVisible()) {
-		std::vector<PPlayer> possessors;
-		for (unsigned int i = 0; i < Team::SIZE; i++) {
-			PPlayer pl = World::get().friendlyTeam().players()[i];
-			if ((World::get().ball()->position() - (pl->position() + OFFSET_FROM_ROBOT_TO_BALL * Vector2(pl->orientation()))).length() < 17) {
-				possessors.push_back(pl);
+		if (World::get().isBallVisible()) {
+			const Vector2 &ballPos = World::get().ball()->position();
+			std::vector<PPlayer> possessors;
+			for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
+				PPlayer pl = World::get().player(i);
+				Vector2 playerPoint = pl->position();
+				if (pl->hasDefiniteOrientation()) {
+					playerPoint += OFFSET_FROM_ROBOT_TO_BALL * Vector2(pl->orientation());
+				}
+				if ((ballPos - playerPoint).length() < 17) {
+					possessors.push_back(pl);
+				}
 			}
-		}
-		if (!possessors.empty()) {
-			PPlayer pl = possessors[0];
-			pl->hasBall(true);
+			if (!possessors.empty()) {
+				PPlayer pl = possessors[0];
+				pl->hasBall(true);
+			} else {
+				for (unsigned int i = 0; i < 2 * Team::SIZE; i++)
+					World::get().player(i)->hasBall(false);
+			}
 		} else {
-			for (unsigned int i = 0; i < Team::SIZE; i++)
-				World::get().friendlyTeam().player(i)->hasBall(false);
-		}
-	} else {
-		for (unsigned int i = 0; i < Team::SIZE; i++) {
-			PPlayer pl = World::get().friendlyTeam().player(i);
-			if (pl->hasBall()) {
-				World::get().ball()->position(pl->position() + OFFSET_FROM_ROBOT_TO_BALL * Vector2(pl->orientation()));
-				break;
+			for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
+				PPlayer pl = World::get().player(i);
+				if (pl->hasBall()) {
+					Vector2 ballPos = pl->position();
+					if (pl->hasDefiniteOrientation()) {
+						ballPos += OFFSET_FROM_ROBOT_TO_BALL * Vector2(pl->orientation());
+					}
+					World::get().ball()->position(ballPos);
+					break;
+				}
 			}
 		}
 	}

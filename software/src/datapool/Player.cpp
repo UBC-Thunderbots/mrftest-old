@@ -18,7 +18,14 @@ void Player::plan(Plan::Behavior plan) {
 }
 
 double Player::orientation() const {
-	return orient;
+	if (hasDefiniteOrientation()) {
+		return orient;
+	} else {
+		const Vector2 &pos = position();
+		const PGoal goal = tm.other().side() ? World::get().field()->westGoal() : World::get().field()->eastGoal();
+		const Vector2 gpos((goal->north.x + goal->south.x) / 2, (goal->north.y + goal->south.y) / 2);
+		return (gpos - pos).angle();
+	}
 }
 
 void Player::orientation(double o) {
@@ -27,6 +34,10 @@ void Player::orientation(double o) {
 	while (o < 0)
 		o += 360;
 	orient = o;
+}
+
+bool Player::hasDefiniteOrientation() const {
+	return orient == orient;
 }
 
 bool Player::hasBall() const {

@@ -66,7 +66,6 @@ software/include/datapool/PlayType.h -text
 software/include/datapool/Player.h -text
 software/include/datapool/PredictableObject.h -text
 software/include/datapool/RefBox.h -text
-software/include/datapool/RobotMap.h -text
 software/include/datapool/Team.h -text
 software/include/datapool/Vector2.h -text
 software/include/datapool/World.h -text
@@ -115,7 +114,6 @@ software/src/datapool/Object.cpp -text
 software/src/datapool/Player.cpp -text
 software/src/datapool/PredictableObject.cpp -text
 software/src/datapool/RefBox.cpp -text
-software/src/datapool/RobotMap.cpp -text
 software/src/datapool/Team.cpp -text
 software/src/datapool/Vector2.cpp -text
 software/src/datapool/World.cpp -text
