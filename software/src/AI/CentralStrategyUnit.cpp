@@ -115,6 +115,7 @@ void CentralStrategyUnit::preparePenaltyKick(){
 		
 	World &w = World::get();
 	PField field = w.field();
+	ballpos = w.ball()->position();
 	if (team.specialPossession()) {
 		
 		// Find closest player to ball.
@@ -179,8 +180,77 @@ void CentralStrategyUnit::preparePenaltyKick(){
               
 }
 
-void CentralStrategyUnit::penaltyKick(){ //TODO: implement
+void CentralStrategyUnit::penaltyKick(){
 
+strat->update();
+		
+	World &w = World::get();
+	PField field = w.field();
+	if ((w.ball()->position()-ballpos).length() > field->convertMmToCoord(10.0)){
+		w.playType(PlayType::play);
+		return;	
+	}
+	if (team.specialPossession()) {
+		
+		// Find closest player to ball.
+		double len = field->width() * 2.0;
+		unsigned int closest = 0;
+		for (unsigned int id = 1; id < Team::SIZE; id++) {
+			Vector2 dis = w.ball()->position() - team.player(id)->position();
+			if (dis.length() < len) {
+				closest = id;
+				len = dis.length();
+			}
+		}
+		PPlayer kicker = team.player(closest);
+		kicker->plan(Plan::shoot);
+		kicker->allowedInside(true);
+
+                for (unsigned int id = 1; id < Team::SIZE; id++)
+			if (id != closest){
+				if (team.side()){
+					double maxx = w.ball()->position().x - 2*team.player(id)->radius() - field->convertMmToCoord(PENALTY_DISTANCE);
+					//if(team.player(id)->destination().x > maxx)
+						team.player(id)->destination(Vector2(maxx, team.player(id)->destination().y));
+				}
+				else{
+					double minx = w.ball()->position().x + 2*team.player(id)->radius() + field->convertMmToCoord(PENALTY_DISTANCE);
+					//if(team.player(id)->destination().x < minx)
+						team.player(id)->destination(Vector2(minx, team.player(id)->destination().y));
+				}
+				team.player(id)->plan(Plan::move);
+				team.player(id)->receivingPass(false);
+			}
+	}   
+        else {
+		for (unsigned int id = 1; id < Team::SIZE; id++){
+			if (team.side()){
+				double minx = w.ball()->position().x + 2*team.player(id)->radius() + field->convertMmToCoord(PENALTY_DISTANCE);
+				//if(team.player(id)->destination().x < minx)
+					team.player(id)->destination(Vector2(minx, team.player(id)->destination().y));
+			}
+			else{
+				double maxx = w.ball()->position().x - 2*team.player(id)->radius() - field->convertMmToCoord(PENALTY_DISTANCE);
+				//if(team.player(id)->destination().x > maxx)
+					team.player(id)->destination(Vector2(maxx, team.player(id)->destination().y));
+			}
+			team.player(id)->plan(Plan::move);
+			team.player(id)->receivingPass(false);
+		}
+		PPlayer goalie = team.player(0);
+		goalie->allowedInside(true);
+		if (team.side()){
+			double maxx = field->west() + goalie->radius() / 2;
+			if(goalie->destination().x > maxx)
+				goalie->destination(Vector2(maxx, goalie->destination().y));
+		}
+		else{
+			double minx = field->east() - goalie->radius() / 2;
+			if(goalie->destination().x < minx)
+				goalie->destination(Vector2(minx, goalie->destination().y));
+		}
+		goalie->plan(Plan::goalie);
+        }
 }
 
 void CentralStrategyUnit::prepareKickoff(){
