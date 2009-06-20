@@ -50,7 +50,7 @@ public:
 	/*
 	 * Creates a new field.
 	 */
-	static PField create(int width, int height, int west, int east, int north, int south, const Vector2 &centerCircle, unsigned int centerCircleRadius, PGoal westGoal, PGoal eastGoal);
+	static PField create(int width, int height, int west, int east, int north, int south, const Vector2 &centerCircle, unsigned int centerCircleRadius, PGoal westGoal, PGoal eastGoal, double infinity);
 	
 	/*
 	 * Returns information about the field.
@@ -77,9 +77,11 @@ public:
 	void height(int h);
 	double convertMmToCoord(double mm) const;
 	double convertCoordToMm(double coord) const;
+	double infinity() const;
+	bool isInfinity(double v) const;
 
 private:
-	Field(int width, int height, int west, int east, int north, int south, const Vector2 &centerCircle, unsigned int centerCircleRadius, PGoal westGoal, PGoal eastGoal);
+	Field(int width, int height, int west, int east, int north, int south, const Vector2 &centerCircle, unsigned int centerCircleRadius, PGoal westGoal, PGoal eastGoal, double infinity);
 	Field(const Field &copyref); // Prohibit copying.
 
 	Vector2 centerCircle_;
@@ -88,6 +90,7 @@ private:
 	PGoal eastGoal_;
 	int west_, east_, north_, south_; //pixel coordinates of sidelines distances from X = 0, Y = 0;
 	int width_, height_;
+	double infinity_;
 };
 
 #endif

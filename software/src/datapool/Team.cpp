@@ -57,15 +57,6 @@ const Team &Team::other() const {
 	return World::get().team(!id);
 }
 
-unsigned int Team::activePlayers() const {
-	return activePl;
-}
-
-void Team::activePlayers(unsigned int n) {
-	assert(n <= SIZE);
-	activePl = n;
-}
-
 unsigned int Team::index() const {
 	return id;
 }

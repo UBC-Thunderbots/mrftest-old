@@ -64,12 +64,6 @@ public:
 	const Team &other() const;
 
 	//
-	// The number of players actually seen by the camera for this team.
-	//
-	unsigned int activePlayers() const;
-	void activePlayers(unsigned int n);
-
-	//
 	// The index of this team (friendly=0, enemy=1).
 	//
 	unsigned int index() const;

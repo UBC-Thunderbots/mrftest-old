@@ -12,12 +12,12 @@ Goal::Goal(const Vector2 &north, const Vector2 &south, const Vector2 &defenseN, 
 
 
 
-PField Field::create(int width, int height, int west, int east, int north, int south, const Vector2 &centerCircle, unsigned int centerCircleRadius, PGoal westGoal, PGoal eastGoal) {
-	PField field(new Field(width, height, west, east, north, south, centerCircle, centerCircleRadius, westGoal, eastGoal));
+PField Field::create(int width, int height, int west, int east, int north, int south, const Vector2 &centerCircle, unsigned int centerCircleRadius, PGoal westGoal, PGoal eastGoal, double infinity) {
+	PField field(new Field(width, height, west, east, north, south, centerCircle, centerCircleRadius, westGoal, eastGoal, infinity));
 	return field;
 }
 
-Field::Field(int width, int height, int west, int east, int north, int south, const Vector2 &centerCircle, unsigned int centerCircleRadius, PGoal westGoal, PGoal eastGoal) : centerCircle_(centerCircle), centerCircleRadius_(centerCircleRadius), westGoal_(westGoal), eastGoal_(eastGoal), west_(west), east_(east), north_(north), south_(south), width_(width), height_(height) {
+Field::Field(int width, int height, int west, int east, int north, int south, const Vector2 &centerCircle, unsigned int centerCircleRadius, PGoal westGoal, PGoal eastGoal, double infinity) : centerCircle_(centerCircle), centerCircleRadius_(centerCircleRadius), westGoal_(westGoal), eastGoal_(eastGoal), west_(west), east_(east), north_(north), south_(south), width_(width), height_(height), infinity_(infinity) {
 }
 
 Vector2 Field::centerCircle() const {
@@ -107,5 +107,13 @@ double Field::convertMmToCoord (double mm) const {
 
 double Field::convertCoordToMm(double coord) const {
 	return coord * 6050.0 / width();
+}
+
+double Field::infinity() const {
+	return infinity_;
+}
+
+bool Field::isInfinity(double v) const {
+	return v >= 0.99 * infinity_;
 }
 

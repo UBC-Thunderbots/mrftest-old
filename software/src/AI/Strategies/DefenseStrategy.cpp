@@ -38,8 +38,13 @@ DefenseStrategy::DefenseStrategy(AITeam &team) : Strategy(team) {
 }
 
 void DefenseStrategy::init() {
-	for (unsigned int i = 0; i < team.activePlayers(); i++)
-		isUsed[i] = false;
+	PField fld = World::get().field();
+	for (unsigned int i = 0; i < Team::SIZE; i++) {
+		PPlayer plr = team.player(i);
+		const Vector2 &pos = plr->position();
+		if (!fld->isInfinity(pos.x) && !fld->isInfinity(pos.y))
+			isUsed[i] = false;
+	}
 }
 
 // A = friendly team goal north

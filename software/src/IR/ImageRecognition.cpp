@@ -23,7 +23,6 @@
 #include <arpa/inet.h>
 
 #define OFFSET_FROM_ROBOT_TO_BALL 80
-#define INFINITE_DISTANCE 1.0e9
 
 namespace {
 	SSL_DetectionFrame detections[2];
@@ -75,7 +74,7 @@ ImageRecognition::ImageRecognition() : fd(-1), friendly(0), enemy(1) {
 
 	PGoal goalW = Goal::create(Vector2(25, 200),  Vector2(25, 270),  Vector2(75, 217.5),  Vector2(75, 252.5),  16, Vector2(70, 235));
 	PGoal goalE = Goal::create(Vector2(635, 200), Vector2(635, 270), Vector2(585, 217.5), Vector2(585, 252.5), 16, Vector2(590, 235));
-	PField field = Field::create(660, 470, 25, 635, 25, 445, Vector2(330, 235), 50, goalW, goalE);
+	PField field = Field::create(660, 470, 25, 635, 25, 445, Vector2(330, 235), 50, goalW, goalE, 1e9);
 
 	friendly.side(false);
 	enemy.side(true);
@@ -84,8 +83,9 @@ ImageRecognition::ImageRecognition() : fd(-1), friendly(0), enemy(1) {
 	World &w = World::get();
 
 	//Set the player properties:
+	const double infinity = World::get().field()->infinity();
 	for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
-		w.player(i)->position(Vector2(INFINITE_DISTANCE, INFINITE_DISTANCE));
+		w.player(i)->position(Vector2(infinity, infinity));
 		w.player(i)->velocity(Vector2(0, 0));
 		w.player(i)->acceleration(Vector2(0, 0));
 		w.player(i)->radius(90);
@@ -243,7 +243,7 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 							if (x < unidentified[clr].size() && y < unusedAIIDs[team].size()) {
 								Vector2 oldPos = World::get().team(team).player(unusedAIIDs[team][y])->position();
 								Vector2 newPos = Vector2(unidentified[clr][x]->x(), -unidentified[clr][x]->y());
-								hung.weight(x, y) = INFINITE_DISTANCE - (newPos - oldPos).length();
+								hung.weight(x, y) = World::get().field()->infinity() - (newPos - oldPos).length();
 							}
 						}
 					}
