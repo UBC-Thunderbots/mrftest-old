@@ -3,12 +3,13 @@
 
 #include "datapool/Ball.h"
 #include "datapool/Field.h"
+#include "datapool/Noncopyable.h"
 #include "datapool/Player.h"
 #include "datapool/PlayType.h"
 #include "datapool/Team.h"
 
 // class to keep track of everything in the world.
-class World {
+class World : private virtual Noncopyable {
 public:
 	/*
 	 * Initializes the singleton world.
@@ -80,7 +81,6 @@ public:
 
 private:
 	World(Team &friendlyTeam, Team &enemyTeam, PField field);
-	World(const World &copyref); // Prohibit copying.
 
 	PlayType::Type play;
 	Team &friendly;
