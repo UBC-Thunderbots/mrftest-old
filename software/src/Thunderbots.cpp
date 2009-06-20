@@ -1,3 +1,6 @@
+#include "AI/AITeam.h"
+#include "AI/Simulator.h"
+#include "AI/Visualizer.h"
 #include "datapool/Config.h"
 #include "datapool/HWRunSwitch.h"
 #include "datapool/IntervalTimer.h"
@@ -5,9 +8,6 @@
 #include "datapool/RefBox.h"
 #include "datapool/Team.h"
 #include "datapool/World.h"
-#include "AI/AITeam.h"
-#include "AI/Simulator.h"
-#include "AI/Visualizer.h"
 #include "IR/ImageRecognition.h"
 #include "Log/Log.h"
 #include "UI/ControlPanel.h"
@@ -15,6 +15,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cstdlib>
 #include <gtkmm.h>
 #include <getopt.h>
 
@@ -74,6 +75,20 @@ namespace {
 	}
 	
 	void execute(bool useSim, bool useVis, Team &friendly, Team &enemy) {
+		// Set team play sides.
+		const std::string &val = Config::instance().getString("Game", "FriendlySide");
+		if (val == "East") {
+			friendly.side(false);
+			enemy.side(true);
+		} else if (val == "West") {
+			friendly.side(true);
+			enemy.side(false);
+		} else {
+			Log::log(Log::LEVEL_ERROR, "Main") << "Configuration file directive [Game]/FriendlySide must be either \"West\" or \"East\".\n";
+			std::exit(1);
+		}
+
+		// Create world-interaction objects depending on simulation-vs-real-world mode.
 		std::vector<Updateable *> updateables;
 		if (useSim) {
 			Simulator sim(friendly, enemy);
@@ -89,9 +104,11 @@ namespace {
 	}
 
 	void execute(bool useSim, bool useVis, bool useEnemyAI) {
+		// Create shared objects.
 		Config config;
 		RefBox refBox;
 
+		// Create teams, depending on whether the enemy should be AI or not.
 		AITeam friendly(0);
 		if (useEnemyAI) {
 			AITeam enemy(1);

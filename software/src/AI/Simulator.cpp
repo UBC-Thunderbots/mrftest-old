@@ -19,9 +19,6 @@ Simulator::Simulator(Team &friendly, Team &enemy) {
 	PGoal goalE = Goal::create(Vector2(635, 200), Vector2(635, 270), Vector2(585, 217.5), Vector2(585, 252.5), 16, Vector2(590, 235));
 	PField field = Field::create(660, 470, 25, 635, 25, 445, Vector2(330, 235), 50, goalW, goalE, 1e9);
 
-	friendly.side(true);
-	enemy.side(false);
-
 	World::init(friendly, enemy, field);
 	
 	World &w = World::get();
