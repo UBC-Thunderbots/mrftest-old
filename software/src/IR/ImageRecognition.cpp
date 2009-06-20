@@ -174,7 +174,7 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 			for (unsigned int i = 0; i < sizeof(detections) / sizeof(*detections); i++) {
 				for (int j = 0; j < detections[i].balls_size(); j++) {
 					const SSL_DetectionBall &b = detections[i].balls(j);
-					if (!best && b.confidence() > best->confidence())
+					if (!best || b.confidence() > best->confidence())
 						best = &b;
 				}
 			}
