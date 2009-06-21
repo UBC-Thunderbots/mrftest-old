@@ -364,6 +364,13 @@ int main(void) {
 	// Initialization complete.
 	debug_puts("Bot: Initialized.\n");
 
+#if TEST_MODE
+	// If data is pending, dump it.
+	if (test_has_run()) {
+		test_dump();
+	}
+#endif
+
 	// Begin iterating.
 	for (;;) {
 		// Indicate that the CPU is idle.
@@ -400,6 +407,12 @@ int main(void) {
 #if TEST_MODE
 		// Take a sample of test data.
 		test_sample();
+
+		// If the test buffer is full, save the data to EEPROM and halt.
+		if (test_full()) {
+			nuke();
+			test_save();
+		}
 #endif
 	}
 }

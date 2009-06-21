@@ -21,7 +21,7 @@ filter.o : filter.h
 gyro.o : constants.h gyro.h adcpins.h
 xbee.o : constants.h xbee.h rtc.h debug.h
 wheel.o : constants.h wheel.h pwmpins.h iopins.h filter.h
-test.o : test.h debug.h
+test.o : constants.h test.h debug.h iopins.h
 
 # Rule to build the version number header.
 version.h : mkversion.sh *.c $(subst version.h,,$(wildcard *.h)) .svn
