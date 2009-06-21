@@ -90,3 +90,7 @@ void debug_putf(double f) {
 	} while (--i);
 }
 
+void debug_flush(void) {
+	while (wptr != rptr);
+}
+

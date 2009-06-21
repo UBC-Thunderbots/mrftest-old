@@ -33,5 +33,10 @@ void debug_puth(uint32_t i);
  */
 void debug_putf(double f);
 
+/*
+ * Waits until the output buffer is empty.
+ */
+void debug_flush(void);
+
 #endif
 

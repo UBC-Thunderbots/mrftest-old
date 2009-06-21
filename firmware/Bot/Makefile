@@ -1,6 +1,6 @@
 CC := avr-gcc
 CFLAGS := -Wall -Wextra -Os -mmcu=atmega128 -DF_CPU=16000000UL
-OBJS := main.o debug.o pwmpins.o adcpins.o rtc.o filter.o gyro.o xbee.o wheel.o
+OBJS := main.o debug.o pwmpins.o adcpins.o rtc.o filter.o gyro.o xbee.o wheel.o test.o
 USBDEV := /dev/ttyUSB0
 
 # Rule to build a HEX file from an ELF file.
@@ -21,6 +21,7 @@ filter.o : filter.h
 gyro.o : constants.h gyro.h adcpins.h
 xbee.o : constants.h xbee.h rtc.h debug.h
 wheel.o : constants.h wheel.h pwmpins.h iopins.h filter.h
+test.o : test.h debug.h
 
 # Rule to build the version number header.
 version.h : mkversion.sh *.c $(subst version.h,,$(wildcard *.h)) .svn

@@ -16,6 +16,8 @@ firmware/Bot/pwmpins.c -text
 firmware/Bot/pwmpins.h -text
 firmware/Bot/rtc.c -text
 firmware/Bot/rtc.h -text
+firmware/Bot/test.c -text
+firmware/Bot/test.h -text
 firmware/Bot/wheel.c -text
 firmware/Bot/wheel.h -text
 firmware/Bot/xbee.c -text
