@@ -38,7 +38,6 @@ void test_dump(void) {
 
 	// Shut down the CPU.
 	for (;;) {
-		set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 		sleep_mode();
 	}
 }
