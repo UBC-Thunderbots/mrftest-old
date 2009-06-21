@@ -228,10 +228,30 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos, double speed) {
 			diff = interceptPoint - pos;
 			
 			// Create a buffer zone to stop the robot:
-			if (diff.length() < field->convertMmToCoord(1500)) {
-				diff /= field->convertMmToCoord(1500);
+			if (diff.length() < field->convertMmToCoord(1200)) {
+				diff /= field->convertMmToCoord(1200);
 			} else {
 				diff /= diff.length();
+			}
+		}
+		// The robots can not move within 200mm of the enemy's defense area when it is not play mode.
+		if(robot->team().specialPossession()){
+			pos = curPos + diff;
+			Vector2 goalPos;
+			if (robot->team().side()) goalPos = Vector2(field->east(), field->centerCircle().y);
+			else goalPos = Vector2(field->west(), field->centerCircle().y);
+			Vector2 goalDis = curPos - ballPos;
+			boundary = field->convertMmToCoord(1000);
+			if (goalDis.length() < boundary) {
+				Vector2 interceptPoint = CentralAnalyzingUnit::lcIntersection(curPos,pos,goalPos,boundary);
+				diff = interceptPoint - pos;
+				
+				// Create a buffer zone to stop the robot:
+				if (diff.length() < field->convertMmToCoord(1250)) {
+					diff /= field->convertMmToCoord(1250);
+				} else {
+					diff /= diff.length();
+				}
 			}
 		}
 	}

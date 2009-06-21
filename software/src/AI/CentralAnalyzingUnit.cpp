@@ -26,6 +26,7 @@ bool CentralAnalyzingUnit::checkVector(Vector2 rayOrigin, Vector2 rayEnd, PPlaye
 			
 			Vector2 circleDiff1 = circlePos - rayOrigin1;
 			Vector2 circleDiff2 = circlePos - rayOrigin2;
+			if (circleDiff1.length() <= circleRadius || circleDiff2.length() <= circleRadius) return true;
 			
 			double u = circleDiff1.dot(rayDiff) / rayDiff.dot(rayDiff);
 	
@@ -49,17 +50,20 @@ bool CentralAnalyzingUnit::checkVector(Vector2 rayOrigin, Vector2 rayEnd, PPlaye
 		
 		Vector2 circleDiff1 = circlePos - rayOrigin1;
 		Vector2 circleDiff2 = circlePos - rayOrigin2;
-		
-		double u = circleDiff1.dot(rayDiff) / rayDiff.dot(rayDiff);
+		if (circleDiff1.length() <= circleRadius || circleDiff2.length() <= circleRadius) return true;
+		if (rayDiff.length() >= 1E-9 && circleDiff1.dot(rayDiff) > 0 && circleDiff2.dot(rayDiff) < 0 && (circleDiff1 - rayDiff*(circleDiff1.dot(rayDiff)/(rayDiff.length()*rayDiff.length()))).length() <= circleRadius) return true;
 
-		if(u < 1 && u >= 0 && (rayOrigin1 + (rayDiff * u) - circlePos).length() < circleRadius) {
-			return true;
-		}
-		
-		u = circleDiff2.dot(rayDiff) / rayDiff.dot(rayDiff);
-		
-		if(u < 1 && u >= 0 && (rayOrigin2 + (rayDiff * u) - circlePos).length() < circleRadius) {
-			return true;
+		if(entity->team().specialPossession()){
+			Vector2 goalPos;
+			PField field = World::get().field();
+			if (entity->team().side()) goalPos = Vector2(field->east(), field->centerCircle().y);
+			else goalPos = Vector2(field->west(), field->centerCircle().y);
+			double goalRadius = World::get().field()->convertMmToCoord(800);	
+
+			Vector2 goalDiff1 = goalPos - rayOrigin1;
+			Vector2 goalDiff2 = goalPos - rayOrigin2;
+			if (goalDiff1.length() <= goalRadius || goalDiff2.length() <= goalRadius) return true;
+			if (rayDiff.length() >= 1E-9 && goalDiff1.dot(rayDiff) > 0 && goalDiff2.dot(rayDiff) < 0 && (goalDiff1 - rayDiff*(goalDiff1.dot(rayDiff)/(rayDiff.length()*rayDiff.length()))).length() <= goalRadius) return true;
 		}
 	}
 	

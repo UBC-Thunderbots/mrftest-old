@@ -16,7 +16,7 @@ void DecisionUnit::update() {
 		return;
 	PStrategy strat;
 	if (team.index() == 0)
-		strat.reset(new CheaterStrategy(team));
+		strat.reset(new DibsStrategy(team));
 	else
 		strat.reset(new DibsStrategy(team));
 	team.getCSU().strategy(strat);

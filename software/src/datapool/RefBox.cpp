@@ -90,6 +90,8 @@ bool RefBox::onIO(Glib::IOCondition cond) {
 				case 'S':
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Stop\n";
 					World::get().playType(PlayType::stop);
+					World::get().team(0).specialPossession(false);
+					World::get().team(1).specialPossession(false);
 					break;
 				case ' ': // normal start
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Ready\n";
