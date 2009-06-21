@@ -106,6 +106,20 @@ static void nuke(void) {
 	iopin_write(IOPIN_COUNTER_RESET, 1);
 }
 
+#if TEST_MODE
+/*
+ * Sets xbee_rxdata and xbee_rxtimestamp to simulate an input when in TEST_MODE.
+ */
+static void test_set_packet(void) {
+}
+
+/*
+ * Captures data and sends it to the test dumper when in TEST_MODE.
+ */
+static void test_sample(void) {
+}
+#endif
+
 /*
  * All the stuff that needs critical timing.
  */
@@ -210,8 +224,12 @@ static void loop_untimed(void) {
 	if (green_battery_voltage < GREEN_BATTERY_LOW || motor_battery_voltage < MOTOR_BATTERY_LOW)
 		low_battery = 1;
 
+#if TEST_MODE
+	test_set_packet();
+#else
 	// Try receiving data from the XBee.
 	xbee_receive();
+#endif
 
 	// Check if we're asked to reboot.
 	if (xbee_rxdata.flags & _BV(XBEE_RXFLAG_REBOOT)) {
@@ -328,7 +346,9 @@ int main(void) {
 	wheel_init(&wheels[3], IOPIN_COUNTER3_OE, IOPIN_MOTOR3A, IOPIN_MOTOR3B, PWMPIN_MOTOR3, m[3], rpm_filter_a, rpm_filter_b, wheel_controller_a, wheel_controller_b);
 
 	// Initialize the XBee.
+#if !TEST_MODE
 	xbee_init();
+#endif
 
 	// Initialize the gyroscope.
 	gyro_init();
@@ -376,6 +396,11 @@ int main(void) {
 
 		// Blink the LED at 2Hz.
 		iopin_write(IOPIN_LED, rtc_millis() / 250 % 2);
+
+#if TEST_MODE
+		// Take a sample of test data.
+		test_sample();
+#endif
 	}
 }
 

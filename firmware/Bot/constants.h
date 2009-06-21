@@ -9,6 +9,9 @@
 #define F_CONTROLLER_ENABLED 1
 #define W_CONTROLLER_ENABLED 1
 
+// Allows ignoring wireless data and using a locally-configured test instead.
+#define TEST_MODE 0
+
 // Parameters for the debug port.
 #define DEBUG_BAUD 115200UL
 #define DEBUG_BUFSIZE 128
