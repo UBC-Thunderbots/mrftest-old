@@ -203,6 +203,17 @@ static void loop_untimed(void) {
 	green_battery_voltage = filter_process(&green_batt_filter, read_green_voltage());
 	motor_battery_voltage = filter_process(&motor_batt_filter, read_motor_voltage());
 
+	// Check for low battery state.
+	if (green_battery_voltage < GREEN_BATTERY_LOW || motor_battery_voltage < MOTOR_BATTERY_LOW)
+		low_battery = 1;
+
+#if TEST_MODE
+	test_set_packet();
+#else
+	// Try receiving data from the XBee.
+	xbee_receive();
+#endif
+
 	// Send data report if instructed to do so.
 	if (xbee_rxdata.flags & _BV(XBEE_RXFLAG_REPORT)) {
 		battery_send_level = green_battery_voltage * 100.0;
@@ -219,17 +230,6 @@ static void loop_untimed(void) {
 		xbee_send();
 		xbee_rxdata.flags &= ~_BV(XBEE_RXFLAG_REPORT);
 	}
-
-	// Check for low battery state.
-	if (green_battery_voltage < GREEN_BATTERY_LOW || motor_battery_voltage < MOTOR_BATTERY_LOW)
-		low_battery = 1;
-
-#if TEST_MODE
-	test_set_packet();
-#else
-	// Try receiving data from the XBee.
-	xbee_receive();
-#endif
 
 	// Check if we're asked to reboot.
 	if (xbee_rxdata.flags & _BV(XBEE_RXFLAG_REBOOT)) {
