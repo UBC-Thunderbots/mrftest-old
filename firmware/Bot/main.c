@@ -13,6 +13,7 @@
 #include "xbee.h"
 #include "wheel.h"
 #include "version.h"
+#include "test.h"
 
 // The setpoint filters for the linear velocity setpoints.
 static const double setpoint_filter_a[3] = {1.0, 0.0, 0.0};
