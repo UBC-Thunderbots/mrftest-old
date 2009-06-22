@@ -350,8 +350,10 @@ int main(void) {
 	xbee_init();
 #endif
 
-	// Initialize the gyroscope.
+	// Initialize the gyroscope. Turn off LED to get better ADC precision!
+	iopin_write(IOPIN_LED, 0);
 	gyro_init();
+	iopin_write(IOPIN_LED, 1);
 
 	// Initialize CPU sleep mode.
 	set_sleep_mode(SLEEP_MODE_IDLE);
@@ -363,6 +365,7 @@ int main(void) {
 
 	// Initialization complete.
 	debug_puts("Bot: Initialized.\n");
+	iopin_write(IOPIN_LED, 0);
 
 #if TEST_MODE
 	// If data is pending, dump it.
@@ -400,9 +403,6 @@ int main(void) {
 
 		// Execute the operations whose timing requirements are loose.
 		loop_untimed();
-
-		// Blink the LED at 2Hz.
-		iopin_write(IOPIN_LED, rtc_millis() / 250 % 2);
 
 #if TEST_MODE
 		// Take a sample of test data.
