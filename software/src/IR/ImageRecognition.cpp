@@ -246,7 +246,7 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 					hung.execute();
 					for (unsigned int x = 0; x < unidentified[clr].size(); x++) {
 						unsigned int y = hung.matchX(x);
-						if (y < Team::SIZE) {
+						if (y < unusedAIIDs[team].size() && unusedAIIDs[team][y] < Team::SIZE) {
 							const SSL_DetectionRobot &bot = *unidentified[clr][x];
 							PPlayer plr = World::get().team(team).player(unusedAIIDs[team][y]);
 							plr->position(Vector2(bot.x(), -bot.y()));
