@@ -14,8 +14,10 @@
 #include "XBee/XBeeBot.h"
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <cstdlib>
+#include <ctime>
 #include <gtkmm.h>
 #include <getopt.h>
 
@@ -58,11 +60,41 @@ namespace {
 		}
 	};
 
+	class PositionLogger : public virtual Noncopyable, public Updateable {
+	public:
+		PositionLogger() {
+			ofs.exceptions(std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
+
+			const std::string &homeDir = Glib::getenv("HOME");
+			if (homeDir == "") {
+				Log::log(Log::LEVEL_ERROR, "XBee") << "Environment variable $HOME is not set!\n";
+				std::exit(1);
+			}
+
+			const std::string &logFile = homeDir + "/.thunderbots/match.log";
+			ofs.open(logFile.c_str(), std::ios_base::app | std::ios_base::out);
+			ofs.precision(10);
+			ofs << "STARTUP\t" << std::time(0) << '\n';
+		}
+
+		void update() {
+			ofs << "DATA";
+			for (unsigned int i = 0; i < 2 * Team::SIZE; i++)
+				ofs << '\t' << World::get().player(i)->position().x << '\t' << World::get().player(i)->position().y;
+			ofs << '\t' << World::get().ball().position().x << '\t' << World::get().ball().position().y << '\n';
+		}
+
+	private:
+		std::ofstream ofs;
+	};
+
 	void execute(std::vector<Updateable *> &updateables) {
 		updateables.insert(updateables.begin(), &World::get());
 		for (unsigned int i = 0; i < 2 * Team::SIZE; i++)
 			updateables.push_back(World::get().player(i).get());
 		updateables.push_back(&World::get().ball());
+		PositionLogger plg;
+		updateables.push_back(&plg);
 		AIUpdater updater(updateables);
 		Gtk::Main::run();
 	}
