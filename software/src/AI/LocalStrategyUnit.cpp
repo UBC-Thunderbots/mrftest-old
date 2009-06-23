@@ -64,7 +64,7 @@ void LocalStrategyUnit::pass(PPlayer passer) {
 		return;
 	}
 
-	if (passee->velocity().length() > 0.5) { // Wait until the passee is not moving:
+	if (passee->predictedVelocity().length() > 0.5) { // Wait until the passee is not moving:
 		Vector2 vec = passee->position() - passer->position();
 		double angle = vec.angle();
 		// Orient towards the passee:
@@ -103,7 +103,7 @@ void LocalStrategyUnit::passee(PPlayer robot) {
 		if (!possessed) {
 			// Make sure the ball is headed towards the passee:
 			Vector2 diff = robot->position() - World::get().ball().position();
-			Vector2 vel = World::get().ball().velocity();
+			Vector2 vel = World::get().ball().predictedVelocity();
 
 			// If the ball is not moving, pass unsuccessful:
 			if (vel.length() == 0)
@@ -162,7 +162,6 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos, double speed) {
 	}
 
 	Vector2 curPos = robot->position();
-	Vector2 curVel = robot->velocity();
 	Vector2 diff = pos - curPos;
 	
 	pos = curPos + diff;
@@ -369,7 +368,7 @@ void LocalStrategyUnit::goalie(PPlayer robot) {
 
 	Vector2 vec = pos - center; // Vector between the ball and the goal.
 
-	Vector2 target = World::get().ball().velocity();
+	Vector2 target = World::get().ball().predictedVelocity();
 	target *= (1.0 / target.length()); // get the unit vector.
 	target *= vec.length();
 	if (target.x != 0 && target.y != 0)

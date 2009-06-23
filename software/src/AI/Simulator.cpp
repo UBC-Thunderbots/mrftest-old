@@ -25,52 +25,52 @@ Simulator::Simulator(Team &friendly, Team &enemy) {
 	
 	//Set the player properties:
 	w.player(0)->position(Vector2(40, 235));
-	w.player(0)->velocity(Vector2(0, 0));
-	w.player(0)->acceleration(Vector2(0, 0));
+	w.player(0)->simulatedVelocity(Vector2(0, 0));
+	w.player(0)->simulatedAcceleration(Vector2(0, 0));
 	w.player(0)->radius(9);
 	w.player(1)->position(Vector2(177, 130));
-	w.player(1)->velocity(Vector2(0, 0));
-	w.player(1)->acceleration(Vector2(0, 0));
+	w.player(1)->simulatedVelocity(Vector2(0, 0));
+	w.player(1)->simulatedAcceleration(Vector2(0, 0));
 	w.player(1)->radius(9);
 	w.player(2)->position(Vector2(177, 340));
-	w.player(2)->velocity(Vector2(0, 0));
-	w.player(2)->acceleration(Vector2(0, 0));
+	w.player(2)->simulatedVelocity(Vector2(0, 0));
+	w.player(2)->simulatedAcceleration(Vector2(0, 0));
 	w.player(2)->radius(9);
 	w.player(3)->position(Vector2(177, 235));
-	w.player(3)->velocity(Vector2(0, 0));
-	w.player(3)->acceleration(Vector2(0, 0));
+	w.player(3)->simulatedVelocity(Vector2(0, 0));
+	w.player(3)->simulatedAcceleration(Vector2(0, 0));
 	w.player(3)->radius(9);
 	w.player(4)->position(Vector2(300, 235));
-	w.player(4)->velocity(Vector2(0, 0));
-	w.player(4)->acceleration(Vector2(0, 0));
+	w.player(4)->simulatedVelocity(Vector2(0, 0));
+	w.player(4)->simulatedAcceleration(Vector2(0, 0));
 	w.player(4)->radius(9);
 	
 	w.player(5)->position(Vector2(615, 235));
-	w.player(5)->velocity(Vector2(0, 0));
-	w.player(5)->acceleration(Vector2(0, 0));
+	w.player(5)->simulatedVelocity(Vector2(0, 0));
+	w.player(5)->simulatedAcceleration(Vector2(0, 0));
 	w.player(5)->radius(9);
 	w.player(6)->position(Vector2(503, 130));
-	w.player(6)->velocity(Vector2(0, 0));
-	w.player(6)->acceleration(Vector2(0, 0));
+	w.player(6)->simulatedVelocity(Vector2(0, 0));
+	w.player(6)->simulatedAcceleration(Vector2(0, 0));
 	w.player(6)->radius(9);
 	w.player(7)->position(Vector2(503, 340));
-	w.player(7)->velocity(Vector2(0, 0));
-	w.player(7)->acceleration(Vector2(0, 0));
+	w.player(7)->simulatedVelocity(Vector2(0, 0));
+	w.player(7)->simulatedAcceleration(Vector2(0, 0));
 	w.player(7)->radius(9);
 	w.player(8)->position(Vector2(503, 235));
-	w.player(8)->velocity(Vector2(0, 0));
-	w.player(8)->acceleration(Vector2(0, 0));
+	w.player(8)->simulatedVelocity(Vector2(0, 0));
+	w.player(8)->simulatedAcceleration(Vector2(0, 0));
 	w.player(8)->radius(9);
 	w.player(9)->position(Vector2(400, 235));
-	w.player(9)->velocity(Vector2(0, 0));
-	w.player(9)->acceleration(Vector2(0, 0));
+	w.player(9)->simulatedVelocity(Vector2(0, 0));
+	w.player(9)->simulatedAcceleration(Vector2(0, 0));
 	w.player(9)->radius(9);
 	
 	// Set the ball properties:
 	Ball &ball = w.ball();
 	ball.position(Vector2(330, 235));
-	ball.velocity(Vector2(0, 0));
-	ball.acceleration(Vector2(0, 0));
+	ball.simulatedVelocity(Vector2(0, 0));
+	ball.simulatedAcceleration(Vector2(0, 0));
 	ball.radius(2.15);
 }
 
@@ -84,15 +84,15 @@ void Simulator::update() {
 		PPlayer player = world.player(i);
 
 		Vector2 pos = player->position();
-		Vector2 vel = player->velocity();
-		Vector2 acc = player->acceleration();
+		Vector2 vel = player->simulatedVelocity();
+		Vector2 acc = player->simulatedAcceleration();
 		
 		//We may need this later but suppress warning for now
 		//double maxacc = field->convertMmToCoord(MAX_ACCELERATION) / (CentralAnalyzingUnit::FRAMES_PER_SECOND * CentralAnalyzingUnit::FRAMES_PER_SECOND);
 		double maxvel = field->convertMmToCoord(MAX_VELOCITY) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
 		/*if (acc.length() > maxacc){
 			acc = acc / acc.length() * maxacc;
-			player->acceleration(acc);	
+			player->simulatedAcceleration(acc);	
 		}*/
 
 		pos += vel/2.0;
@@ -105,7 +105,7 @@ void Simulator::update() {
 		//vel *= FRICTION_CONST;
 		pos += vel/2.0;
 		player->position(pos);
-		player->velocity(vel);
+		player->simulatedVelocity(vel);
 		
 		// Make sure they are not overlapping each other:
 		PPlayer closest = CentralAnalyzingUnit::closestRobot(player, CentralAnalyzingUnit::TEAM_ANY, true);
@@ -122,8 +122,8 @@ void Simulator::update() {
 
 	Ball &ball = world.ball();
 	Vector2 pos = ball.position();
-	Vector2 vel = ball.velocity();
-	Vector2 acc = ball.acceleration();
+	Vector2 vel = ball.simulatedVelocity();
+	Vector2 acc = ball.simulatedAcceleration();
 
 	if (vel.length() < 1E-9) acc = Vector2(0,0);
 	else{
@@ -197,9 +197,9 @@ void Simulator::update() {
 			break;
 	}
 	
-	ball.acceleration(acc);
+	ball.simulatedAcceleration(acc);
 	ball.position(pos);
-	ball.velocity(vel);			
+	ball.simulatedVelocity(vel);			
 	
 	// Keep track if there are multiple robots fighting over the ball
 	// with one (first robot) and two (second robot).
@@ -227,7 +227,7 @@ void Simulator::update() {
 			Vector2 ballPos = direction;
 			ballPos *= winner->radius();
 			ball.position(winner->position() + ballPos);
-			ball.velocity(winner->velocity());
+			ball.simulatedVelocity(winner->simulatedVelocity());
 		}
 	}
 

@@ -3,41 +3,64 @@
 #ifndef DATAPOOL_OBJECT_H
 #define DATAPOOL_OBJECT_H
 
+#include "datapool/Noncopyable.h"
 #include "datapool/Vector2.h"
 
-class Object {
+class Object : public virtual Noncopyable {
 public:
-	void radius(double r);
-	double radius() const;
+	/*
+	 * The radius of the (assumed-circular) object.
+	 */
+	void radius(double r) {
+		rad = r;
+	}
+	double radius() const {
+		return rad;
+	}
 
-	virtual void position(const Vector2 &pos);
-	const Vector2 &position() const;
+	/*
+	 * The position of the object.
+	 */
+	void position(const Vector2 &p) {
+		pos = p;
+	}
+	const Vector2 &position() const {
+		return pos;
+	}
 
-	void velocity(const Vector2 &vel);
-	const Vector2 &velocity() const;
+	/*
+	 * The velocity the object is moving, according to the simulator. Not used in IR mode.
+	 */
+	void simulatedVelocity(const Vector2 &v) {
+		simVel = v;
+	}
+	const Vector2 &simulatedVelocity() const {
+		return simVel;
+	}
 
-	void acceleration(const Vector2 &acc);
-	const Vector2 &acceleration() const;
+	/*
+	 * The acceleration of the object, according to the simulator. Not used in IR mode.
+	 */
+	void simulatedAcceleration(const Vector2 &a) {
+		simAcc = a;
+	}
+	const Vector2 &simulatedAcceleration() const {
+		return simAcc;
+	}
 
 protected:
 	/*
 	 * Creates a new object.
 	 */
-	Object();
-
-	/*
-	 * Destroys the object.
-	 */
-	virtual ~Object();
+	Object() : rad(0), pos(), simVel(), simAcc() {
+	}
 
 private:
-	Object(const Object &copyref); // Prohibit copying.
-
-	double r; //assuming all objects are circular
+	double rad; //assuming all objects are circular
 
 	Vector2 pos;
-	Vector2 vel;
-	Vector2 acc;
+	Vector2 simVel;
+	Vector2 simAcc;
 };
 
 #endif

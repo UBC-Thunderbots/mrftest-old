@@ -114,7 +114,6 @@ software/src/datapool/Field.cpp -text
 software/src/datapool/HWRunSwitch.cpp -text
 software/src/datapool/Hungarian.cpp -text
 software/src/datapool/IntervalTimer.cpp -text
-software/src/datapool/Object.cpp -text
 software/src/datapool/Player.cpp -text
 software/src/datapool/PredictableObject.cpp -text
 software/src/datapool/RefBox.cpp -text

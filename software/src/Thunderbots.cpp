@@ -60,6 +60,9 @@ namespace {
 
 	void execute(std::vector<Updateable *> &updateables) {
 		updateables.insert(updateables.begin(), &World::get());
+		for (unsigned int i = 0; i < 2 * Team::SIZE; i++)
+			updateables.push_back(World::get().player(i).get());
+		updateables.push_back(&World::get().ball());
 		AIUpdater updater(updateables);
 		Gtk::Main::run();
 	}

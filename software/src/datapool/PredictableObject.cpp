@@ -7,7 +7,7 @@
 #define NUM_OLD_POSITIONS 6
 #define VELOCITY_THRESHOLD 20000
 
-PredictableObject::PredictableObject() {
+PredictableObject::PredictableObject() : predVel(), predAcc() {
 	// Fill history data with zeroes.
 	xhistory.setlength(NUM_OLD_POSITIONS);
 	yhistory.setlength(NUM_OLD_POSITIONS);
@@ -32,14 +32,11 @@ PredictableObject::PredictableObject() {
 	approxy.setlength(MAX_DEGREE + 1);
 }
 
-PredictableObject::~PredictableObject() {
-}
-
-void PredictableObject::position(const Vector2 &pos) {
-	if ((pos - Object::position()).length() > World::get().field()->convertMmToCoord(VELOCITY_THRESHOLD) / CentralAnalyzingUnit::FRAMES_PER_SECOND){
+void PredictableObject::update() {
+	if ((Object::position() - Vector2(xhistory(0), yhistory(0))).length() > World::get().field()->convertMmToCoord(VELOCITY_THRESHOLD) / CentralAnalyzingUnit::FRAMES_PER_SECOND) {
 		for (unsigned int i = 0; i < NUM_OLD_POSITIONS; i++) {
-			xhistory(i) = pos.x;
-			yhistory(i) = pos.y;
+			xhistory(i) = Object::position().x;
+			yhistory(i) = Object::position().y;
 		}
 	}
 	// Add new position data to history list.
@@ -48,15 +45,19 @@ void PredictableObject::position(const Vector2 &pos) {
 			xhistory(i) = xhistory(i - 1);
 			yhistory(i) = yhistory(i - 1);
 		}
-		xhistory(0) = pos.x;
-		yhistory(0) = pos.y;
+		xhistory(0) = Object::position().x;
+		yhistory(0) = Object::position().y;
 	}
-	// Set actual position of object.
-	Object::position(pos);
 
 	// Perform the regressions.
 	buildgeneralleastsquares(xhistory, weights, fmatrix, NUM_OLD_POSITIONS, MAX_DEGREE + 1, approxx);
 	buildgeneralleastsquares(yhistory, weights, fmatrix, NUM_OLD_POSITIONS, MAX_DEGREE + 1, approxy);
+
+	// TODO: Cedric: set predVel and predAcc vectors!
+	// predVel.x = ?
+	// predVel.y = ?
+	// predAcc.x = ?
+	// predAcc.y = ?
 }
 
 Vector2 PredictableObject::futurePosition(unsigned int timeOffset) {

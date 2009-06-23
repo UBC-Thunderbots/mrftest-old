@@ -195,7 +195,7 @@ void CheaterStrategy::defenderTop(PPlayer robot) {
 
 	Vector2 vec = pos - center; // Vector between the ball and the goal.
 
-	Vector2 target = w.ball().velocity();
+	Vector2 target = w.ball().predictedVelocity();
 	target *= (1.0 / target.length()); // get the unit vector.
 	target *= vec.length();
 	if (target.x != 0 && target.y != 0)
@@ -242,7 +242,7 @@ void CheaterStrategy::defenderBottom(PPlayer robot) {
 
 	Vector2 vec = pos - center; // Vector between the ball and the goal.
 
-	Vector2 target = w.ball().velocity();
+	Vector2 target = w.ball().predictedVelocity();
 	target *= (1.0 / target.length()); // get the unit vector.
 	target *= vec.length();
 	if (target.x != 0 && target.y != 0)

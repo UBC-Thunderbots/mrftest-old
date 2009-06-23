@@ -82,15 +82,11 @@ ImageRecognition::ImageRecognition(Team &friendly, Team &enemy) : fd(-1) {
 	const double infinity = World::get().field()->infinity();
 	for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
 		w.player(i)->position(Vector2(infinity, infinity));
-		w.player(i)->velocity(Vector2(0, 0));
-		w.player(i)->acceleration(Vector2(0, 0));
 		w.player(i)->radius(90);
 	}
 
 	//Set the ball properties:
 	w.ball().position(Vector2(330, 235));
-	w.ball().velocity(Vector2(0, 0));
-	w.ball().acceleration(Vector2(0, 0));
 	w.ball().radius(21.5);
 
 	// Register for IO.

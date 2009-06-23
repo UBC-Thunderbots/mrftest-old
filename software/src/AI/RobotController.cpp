@@ -42,7 +42,7 @@ namespace {
 		if (acc.length() > 1) acc /= acc.length();
 		if (equalSpeed){
 			acc *= World::get().field()->convertMmToCoord(MAX_SP_VX) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
-			Vector2 currvel = robot->velocity();
+			Vector2 currvel = robot->simulatedVelocity();
 			Vector2 newacc = acc - currvel;
 			Vector2 newaccperp = acc*currvel.length()/(acc.length()+EPS) - currvel;
 			Vector2 newaccpar = newacc - newaccperp;
@@ -50,7 +50,7 @@ namespace {
 			if (newacc.length() > newacclen){
 				newacc = newacc / newacc.length() * newacclen;
 			}
-			robot->acceleration(newacc);
+			robot->simulatedAcceleration(newacc);
 		}
 		else{
 			double rot = robot->orientation() * M_PI / 180.0;
@@ -58,7 +58,7 @@ namespace {
 			double rotatedangle = rotated.angle() * M_PI / 180.0;
 			rotated *= World::get().field()->convertMmToCoord(std::min(MAX_SP_VY/(std::abs(std::cos(rotatedangle))+ EPS),MAX_SP_VX/(std::abs(std::sin(rotatedangle))+ EPS))) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
 
-			Vector2 currvel = robot->velocity();
+			Vector2 currvel = robot->simulatedVelocity();
 			Vector2 velrotated(currvel.x * std::cos(rot) + currvel.y * std::sin(rot), currvel.x * -std::sin(rot) + currvel.y * std::cos(rot));
 			Vector2 accrotated = rotated - velrotated;
 			double accrotatedangle = accrotated.angle() * M_PI / 180.0;
@@ -68,7 +68,7 @@ namespace {
 			}
 
 			Vector2 newacc(accrotated.x * std::cos(-rot) + accrotated.y * std::sin(-rot), accrotated.x * -std::sin(-rot) + accrotated.y * std::cos(-rot));
-			robot->acceleration(newacc);
+			robot->simulatedAcceleration(newacc);
 		}
 
 		double angle = robot->orientation();
@@ -102,7 +102,7 @@ namespace {
 			robot->hasBall(false);
 			Vector2 vel = rotate;
 			vel *= 5;
-			World::get().ball().velocity(vel);
+			World::get().ball().simulatedVelocity(vel);
 		}
 	}
 
