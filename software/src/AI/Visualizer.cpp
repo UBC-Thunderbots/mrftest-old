@@ -41,70 +41,70 @@ bool Visualizer::on_expose_event(GdkEventExpose *event) {
 	cr->restore();
 
 	World &w = World::get();
-	PField field = w.field();
+	const Field &field = w.field();
 
 	// lines:
 	cr->set_source_rgb (1, 1, 1);
 	
-	double scaling = 660.0 / field->width();
-	double offsetX = (-field->west() + 25) * scaling;
-	double offsetY = (-field->north() + 25) * scaling;
+	double scaling = 660.0 / field.width();
+	double offsetX = (-field.west() + 25) * scaling;
+	double offsetY = (-field.north() + 25) * scaling;
 
 	// north:
-	cr->move_to(offsetX+scaling*field->west(), offsetY+scaling*field->north());
-	cr->line_to(offsetX+scaling*field->east(), offsetY+scaling*field->north());
+	cr->move_to(offsetX+scaling*field.west(), offsetY+scaling*field.north());
+	cr->line_to(offsetX+scaling*field.east(), offsetY+scaling*field.north());
 
 	// west:
-	cr->move_to(offsetX+scaling*field->west(), offsetY+scaling*field->north());
-	cr->line_to(offsetX+scaling*field->west(), offsetY+scaling*field->south());
+	cr->move_to(offsetX+scaling*field.west(), offsetY+scaling*field.north());
+	cr->line_to(offsetX+scaling*field.west(), offsetY+scaling*field.south());
 
 	// south:
-	cr->move_to(offsetX+scaling*field->west(), offsetY+scaling*field->south());
-	cr->line_to(offsetX+scaling*field->east(), offsetY+scaling*field->south());
+	cr->move_to(offsetX+scaling*field.west(), offsetY+scaling*field.south());
+	cr->line_to(offsetX+scaling*field.east(), offsetY+scaling*field.south());
 
 	// east:
-	cr->move_to(offsetX+scaling*field->east(), offsetY+scaling*field->north());
-	cr->line_to(offsetX+scaling*field->east(), offsetY+scaling*field->south());
+	cr->move_to(offsetX+scaling*field.east(), offsetY+scaling*field.north());
+	cr->line_to(offsetX+scaling*field.east(), offsetY+scaling*field.south());
 
 	// center:
-	cr->move_to(offsetX+scaling*field->centerCircle().x, offsetY+scaling*field->north());
-	cr->line_to(offsetX+scaling*field->centerCircle().x, offsetY+scaling*field->south());
+	cr->move_to(offsetX+scaling*field.centerCircle().x, offsetY+scaling*field.north());
+	cr->line_to(offsetX+scaling*field.centerCircle().x, offsetY+scaling*field.south());
 
 	// west goal:
-	cr->move_to(offsetX+scaling*field->westGoal()->north.x,      offsetY+scaling*field->westGoal()->north.y);
-	cr->line_to(offsetX+scaling*(field->westGoal()->north.x - 10), offsetY+scaling*field->westGoal()->north.y);
-	cr->move_to(offsetX+scaling*(field->westGoal()->north.x - 10), offsetY+scaling*field->westGoal()->north.y);
-	cr->line_to(offsetX+scaling*(field->westGoal()->south.x - 10), offsetY+scaling*field->westGoal()->south.y);
-	cr->move_to(offsetX+scaling*(field->westGoal()->south.x - 10), offsetY+scaling*field->westGoal()->south.y);
-	cr->line_to(offsetX+scaling*field->westGoal()->south.x,      offsetY+scaling*field->westGoal()->south.y);
+	cr->move_to(offsetX+scaling*field.westGoal().north.x,      offsetY+scaling*field.westGoal().north.y);
+	cr->line_to(offsetX+scaling*(field.westGoal().north.x - 10), offsetY+scaling*field.westGoal().north.y);
+	cr->move_to(offsetX+scaling*(field.westGoal().north.x - 10), offsetY+scaling*field.westGoal().north.y);
+	cr->line_to(offsetX+scaling*(field.westGoal().south.x - 10), offsetY+scaling*field.westGoal().south.y);
+	cr->move_to(offsetX+scaling*(field.westGoal().south.x - 10), offsetY+scaling*field.westGoal().south.y);
+	cr->line_to(offsetX+scaling*field.westGoal().south.x,      offsetY+scaling*field.westGoal().south.y);
 
 	// east goal:
-	cr->move_to(offsetX+scaling*field->eastGoal()->north.x,      offsetY+scaling*field->eastGoal()->north.y);
-	cr->line_to(offsetX+scaling*(field->eastGoal()->north.x + 10), offsetY+scaling*field->eastGoal()->north.y);
-	cr->move_to(offsetX+scaling*(field->eastGoal()->north.x + 10), offsetY+scaling*field->eastGoal()->north.y);
-	cr->line_to(offsetX+scaling*(field->eastGoal()->south.x + 10), offsetY+scaling*field->eastGoal()->south.y);
-	cr->move_to(offsetX+scaling*(field->eastGoal()->south.x + 10), offsetY+scaling*field->eastGoal()->south.y);
-	cr->line_to(offsetX+scaling*field->eastGoal()->south.x,      offsetY+scaling*field->eastGoal()->south.y);
+	cr->move_to(offsetX+scaling*field.eastGoal().north.x,      offsetY+scaling*field.eastGoal().north.y);
+	cr->line_to(offsetX+scaling*(field.eastGoal().north.x + 10), offsetY+scaling*field.eastGoal().north.y);
+	cr->move_to(offsetX+scaling*(field.eastGoal().north.x + 10), offsetY+scaling*field.eastGoal().north.y);
+	cr->line_to(offsetX+scaling*(field.eastGoal().south.x + 10), offsetY+scaling*field.eastGoal().south.y);
+	cr->move_to(offsetX+scaling*(field.eastGoal().south.x + 10), offsetY+scaling*field.eastGoal().south.y);
+	cr->line_to(offsetX+scaling*field.eastGoal().south.x,      offsetY+scaling*field.eastGoal().south.y);
 
 	// west defense area:
-	double rad = scaling*(field->westGoal()->defenseN.x - field->west());
-	cr->move_to(offsetX+scaling*field->west(), offsetY+scaling*(field->westGoal()->defenseN.y) - rad);
-	cr->arc(offsetX+scaling*field->west(), offsetY+scaling*field->westGoal()->defenseN.y, rad, 1.5 * M_PI, 0.0);
-	cr->line_to(offsetX+scaling*field->westGoal()->defenseS.x, offsetY+scaling*field->westGoal()->defenseS.y);
-	cr->arc(offsetX+scaling*field->west(), offsetY+scaling*field->westGoal()->defenseS.y, rad, 0.0, M_PI / 2.0); 
+	double rad = scaling*(field.westGoal().defenseN.x - field.west());
+	cr->move_to(offsetX+scaling*field.west(), offsetY+scaling*(field.westGoal().defenseN.y) - rad);
+	cr->arc(offsetX+scaling*field.west(), offsetY+scaling*field.westGoal().defenseN.y, rad, 1.5 * M_PI, 0.0);
+	cr->line_to(offsetX+scaling*field.westGoal().defenseS.x, offsetY+scaling*field.westGoal().defenseS.y);
+	cr->arc(offsetX+scaling*field.west(), offsetY+scaling*field.westGoal().defenseS.y, rad, 0.0, M_PI / 2.0); 
 
 	// east defense area:
-	rad = scaling*(field->east() - field->eastGoal()->defenseN.x);
+	rad = scaling*(field.east() - field.eastGoal().defenseN.x);
 
-	cr->move_to(offsetX+scaling*field->east(), offsetY+scaling*field->eastGoal()->defenseS.y + rad);
-	cr->arc(offsetX+scaling*field->east(), offsetY+scaling*field->eastGoal()->defenseS.y, rad, M_PI / 2.0, M_PI);
-	cr->line_to(offsetX+scaling*field->eastGoal()->defenseN.x, offsetY+scaling*field->eastGoal()->defenseN.y);
-	cr->arc(offsetX+scaling*field->east(), offsetY+scaling*field->eastGoal()->defenseN.y, rad, M_PI, 1.5 * M_PI);
+	cr->move_to(offsetX+scaling*field.east(), offsetY+scaling*field.eastGoal().defenseS.y + rad);
+	cr->arc(offsetX+scaling*field.east(), offsetY+scaling*field.eastGoal().defenseS.y, rad, M_PI / 2.0, M_PI);
+	cr->line_to(offsetX+scaling*field.eastGoal().defenseN.x, offsetY+scaling*field.eastGoal().defenseN.y);
+	cr->arc(offsetX+scaling*field.east(), offsetY+scaling*field.eastGoal().defenseN.y, rad, M_PI, 1.5 * M_PI);
 
 	cr->stroke();
 
 	// center circle:
-	cr->arc(offsetX+scaling*field->centerCircle().x, offsetY+scaling*field->centerCircle().y, scaling*field->centerCircleRadius(), 0.0, 2.0 * M_PI);
+	cr->arc(offsetX+scaling*field.centerCircle().x, offsetY+scaling*field.centerCircle().y, scaling*field.centerCircleRadius(), 0.0, 2.0 * M_PI);
 
 	cr->stroke();
 

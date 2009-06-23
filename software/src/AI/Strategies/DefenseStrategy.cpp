@@ -38,11 +38,11 @@ DefenseStrategy::DefenseStrategy(AITeam &team) : Strategy(team) {
 }
 
 void DefenseStrategy::init() {
-	PField fld = World::get().field();
+	const Field &field = World::get().field();
 	for (unsigned int i = 0; i < Team::SIZE; i++) {
 		PPlayer plr = team.player(i);
 		const Vector2 &pos = plr->position();
-		if (!fld->isInfinity(pos.x) && !fld->isInfinity(pos.y))
+		if (!field.isInfinity(pos.x) && !field.isInfinity(pos.y))
 			isUsed[i] = false;
 	}
 }
@@ -56,8 +56,8 @@ void DefenseStrategy::defense() {
 	bool isWest = team.side();
 
 	const World &w = World::get();
-	const PField field = w.field();
-	PGoal goal = isWest ? field->westGoal() : field->eastGoal();
+	const Field &field = w.field();
+	const Goal &goal = isWest ? field.westGoal() : field.eastGoal();
 
 	// assign as goalie for now
 	// do dynamic role later on
@@ -66,8 +66,8 @@ void DefenseStrategy::defense() {
 	//PPlayer defender2 = team.player(2);
 
 	// goalpost north and south
-	Vector2 goalpost1 = goal->north;
-	Vector2 goalpost2 = goal->south;
+	Vector2 goalpost1 = goal.north;
+	Vector2 goalpost2 = goal.south;
 	Vector2 goalpost = (goalpost1 + goalpost2) * 0.5;
 
 	// rank the enemies based on distance

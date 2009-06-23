@@ -41,12 +41,14 @@ bool CentralAnalyzingUnit::checkVector(Vector2 rayOrigin, Vector2 rayEnd, PPlaye
 			}
 		}
 	}
+
+	const Field &field = World::get().field();
 	
 	// If the robot is not allowed close to the ball, consider its radius an obstacle:
 	if (!entity->allowedInside()) {
 		//initially only considering one frame ahead, should be possible to check certain amounts depending on how long the vector is
 		Vector2 circlePos = World::get().ball().position();
-		double circleRadius = World::get().field()->convertMmToCoord(800);
+		double circleRadius = field.convertMmToCoord(800);
 		
 		Vector2 circleDiff1 = circlePos - rayOrigin1;
 		Vector2 circleDiff2 = circlePos - rayOrigin2;
@@ -55,10 +57,9 @@ bool CentralAnalyzingUnit::checkVector(Vector2 rayOrigin, Vector2 rayEnd, PPlaye
 
 		if(entity->team().specialPossession()){
 			Vector2 goalPos;
-			PField field = World::get().field();
-			if (entity->team().side()) goalPos = Vector2(field->east(), field->centerCircle().y);
-			else goalPos = Vector2(field->west(), field->centerCircle().y);
-			double goalRadius = World::get().field()->convertMmToCoord(800);	
+			if (entity->team().side()) goalPos = Vector2(field.east(), field.centerCircle().y);
+			else goalPos = Vector2(field.west(), field.centerCircle().y);
+			double goalRadius = field.convertMmToCoord(800);	
 
 			Vector2 goalDiff1 = goalPos - rayOrigin1;
 			Vector2 goalDiff2 = goalPos - rayOrigin2;

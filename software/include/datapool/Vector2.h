@@ -3,6 +3,8 @@
 #ifndef DATAPOOL_VECTOR2_H
 #define DATAPOOL_VECTOR2_H
 
+#include <istream>
+#include <ostream>
 #include <cmath>
 
 class Vector2 {
@@ -30,6 +32,19 @@ public:
 	// rotates counter clockwise
 	Vector2 rotate(double angle) const;
 
+	//
+	// Compares two vectors for equality.
+	//
+	bool operator==(const Vector2 &other) const {
+		return x == other.x && y == other.y;
+	}
+
+	//
+	// Compares two vectors for inequality.
+	//
+	bool operator!=(const Vector2 &other) const {
+		return !(*this == other);
+	}
 };
 
 namespace {
@@ -59,6 +74,14 @@ namespace {
 
 	Vector2 operator / (const Vector2 &vector, const double scalar) {
 		return Vector2(vector.x / scalar, vector.y / scalar);
+	}
+
+	std::ostream &operator<<(std::ostream &stream, const Vector2 &v) {
+		return stream << v.x << ' ' << v.y;
+	}
+
+	std::istream &operator>>(std::istream &stream, Vector2 &v) {
+		return stream >> v.x >> v.y;
 	}
 }
 

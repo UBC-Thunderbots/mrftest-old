@@ -33,7 +33,7 @@ PredictableObject::PredictableObject() : predVel(), predAcc() {
 }
 
 void PredictableObject::update() {
-	if ((Object::position() - Vector2(xhistory(0), yhistory(0))).length() > World::get().field()->convertMmToCoord(VELOCITY_THRESHOLD) / CentralAnalyzingUnit::FRAMES_PER_SECOND) {
+	if ((Object::position() - Vector2(xhistory(0), yhistory(0))).length() > World::get().field().convertMmToCoord(VELOCITY_THRESHOLD) / CentralAnalyzingUnit::FRAMES_PER_SECOND) {
 		for (unsigned int i = 0; i < NUM_OLD_POSITIONS; i++) {
 			xhistory(i) = Object::position().x;
 			yhistory(i) = Object::position().y;

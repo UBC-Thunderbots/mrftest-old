@@ -35,6 +35,10 @@ namespace {
 			"  --visualizer\n"
 			"    Turns on the visualizer. By default, no visualization is shown.\n"
 			"\n"
+			"  -r\n"
+			"  --replay\n"
+			"    Runs a replay of a match in the log instead of running a real match.\n"
+			"\n"
 			"  -d\n"
 			"  --debug\n"
 			"    Enables debugging output. By default, only informational, warning, and error messages are output.\n"
@@ -63,6 +67,8 @@ namespace {
 	class PositionLogger : public virtual Noncopyable, public Updateable {
 	public:
 		PositionLogger() {
+			static const unsigned int FORMAT_VERSION = 1;
+
 			ofs.exceptions(std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
 
 			const std::string &homeDir = Glib::getenv("HOME");
@@ -74,19 +80,26 @@ namespace {
 			const std::string &logFile = homeDir + "/.thunderbots/match.log";
 			ofs.open(logFile.c_str(), std::ios_base::app | std::ios_base::out);
 			ofs.precision(10);
-			ofs << "STARTUP\t" << std::time(0) << '\n';
+			ofs << "I " << FORMAT_VERSION << ' ' << std::time(0) << '\n';
 		}
 
 		void update() {
-			ofs << "DATA";
+			const Field &field = World::get().field();
+			if (field != lastSeenField) {
+				ofs << "F " << field << '\n';
+				lastSeenField = field;
+			}
+
+			ofs << "D";
 			for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
 				PPlayer pl = World::get().player(i);
-				ofs << '\t' << pl->position().x << '\t' << pl->position().y << '\t' << pl->orientation();
+				ofs << ' ' << pl->position().x << ' ' << pl->position().y << ' ' << pl->orientation();
 			}
-			ofs << '\t' << World::get().ball().position().x << '\t' << World::get().ball().position().y << '\n';
+			ofs << ' ' << World::get().ball().position().x << ' ' << World::get().ball().position().y << '\n';
 		}
 
 	private:
+		Field lastSeenField;
 		std::ofstream ofs;
 	};
 

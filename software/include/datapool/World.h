@@ -15,7 +15,7 @@ public:
 	/*
 	 * Initializes the singleton world.
 	 */
-	static void init(Team &friendlyTeam, Team &enemyTeam, PField field);
+	static void init(Team &friendlyTeam, Team &enemyTeam, const Field &field);
 
 	/*
 	 * Returns the singleton world.
@@ -43,8 +43,8 @@ public:
 	/*
 	 * Gets the field.
 	 */
-	PField field();
-	const PField field() const;
+	Field &field();
+	const Field &field() const;
 
 	/*
 	 * Runs the AI.
@@ -81,12 +81,12 @@ public:
 	void isBallVisible(bool newVal);
 
 private:
-	World(Team &friendlyTeam, Team &enemyTeam, PField field);
+	World(Team &friendlyTeam, Team &enemyTeam, const Field &field);
 
 	PlayType::Type play;
 	Team &friendly;
 	Team &enemy;
-	PField field_;
+	Field field_;
 	Ball ball_;
 	std::vector<PPlayer> everyone;
 	bool ballVisible;

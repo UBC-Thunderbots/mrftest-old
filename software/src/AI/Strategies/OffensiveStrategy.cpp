@@ -4,12 +4,12 @@
 #include "datapool/World.h"
 
 OffensiveStrategy::OffensiveStrategy(AITeam &team) : Strategy(team) {	
-	PField field = World::get().field();
+	const Field &field = World::get().field();
 
 	if (team.side())
-		defenseRange = field->west() + field->width() / 5.0;
+		defenseRange = field.west() + field.width() / 5.0;
 	else
-		defenseRange = field->east() - field->width() / 5.0;
+		defenseRange = field.east() - field.width() / 5.0;
 
 	team.player(2)->plan(Plan::move);
 	team.player(2)->destination(Vector2(defenseRange, 270));

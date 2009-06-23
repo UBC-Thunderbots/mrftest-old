@@ -1,23 +1,19 @@
 #include "datapool/Field.h"
 
-
-
-PGoal Goal::create(const Vector2 &north, const Vector2 &south, const Vector2 &defenseN, const Vector2 &defenseS, unsigned int height, const Vector2 &penalty) {
-	PGoal g(new Goal(north, south, defenseN, defenseS, height, penalty));
-	return g;
+Goal::Goal() : height(0) {
 }
 
-Goal::Goal(const Vector2 &north, const Vector2 &south, const Vector2 &defenseN, const Vector2 &defenseS, unsigned int height, const Vector2 &penalty) : north(north), south(south), defenseN(defenseN), defenseS(defenseS), height(height), penalty(penalty) {
+std::ostream &operator<<(std::ostream &stream, const Goal &goal) {
+	return stream << goal.north << ' ' << goal.south << ' ' << goal.defenseN << ' ' << goal.defenseS << ' ' << goal.height << ' ' << goal.penalty;
+}
+
+std::istream &operator>>(std::istream &stream, Goal &goal) {
+	return stream >> goal.north >> goal.south >> goal.defenseN >> goal.defenseS >> goal.height >> goal.penalty;
 }
 
 
 
-PField Field::create(int width, int height, int west, int east, int north, int south, const Vector2 &centerCircle, unsigned int centerCircleRadius, PGoal westGoal, PGoal eastGoal, double infinity) {
-	PField field(new Field(width, height, west, east, north, south, centerCircle, centerCircleRadius, westGoal, eastGoal, infinity));
-	return field;
-}
-
-Field::Field(int width, int height, int west, int east, int north, int south, const Vector2 &centerCircle, unsigned int centerCircleRadius, PGoal westGoal, PGoal eastGoal, double infinity) : centerCircle_(centerCircle), centerCircleRadius_(centerCircleRadius), westGoal_(westGoal), eastGoal_(eastGoal), west_(west), east_(east), north_(north), south_(south), width_(width), height_(height), infinity_(infinity) {
+Field::Field() : centerCircleRadius_(0), west_(0), east_(0), north_(0), south_(0), width_(0), height_(0), infinity_(0) {
 }
 
 Vector2 Field::centerCircle() const {
@@ -52,19 +48,19 @@ void Field::height(int h) {
 	height_ = h;
 }
 
-PGoal Field::westGoal() {
+Goal &Field::westGoal() {
 	return westGoal_;
 }
 
-const PGoal Field::westGoal() const {
+const Goal &Field::westGoal() const {
 	return westGoal_;
 }
 
-PGoal Field::eastGoal() {
+Goal &Field::eastGoal() {
 	return eastGoal_;
 }
 
-const PGoal Field::eastGoal() const {
+const Goal &Field::eastGoal() const {
 	return eastGoal_;
 }
 
@@ -121,7 +117,19 @@ double Field::infinity() const {
 	return infinity_;
 }
 
+void Field::infinity(double inf) {
+	infinity_ = inf;
+}
+
 bool Field::isInfinity(double v) const {
 	return v >= 0.99 * infinity_;
+}
+
+std::ostream &operator<<(std::ostream &stream, const Field &fld) {
+	return stream << fld.centerCircle_ << ' ' << fld.centerCircleRadius_ << ' ' << fld.westGoal_ << ' ' << fld.eastGoal_ << ' ' << fld.west_ << ' ' << fld.east_ << ' ' << fld.north_ << ' ' << fld.south_ << ' ' << fld.width_ << ' ' << fld.height_ << ' ' << fld.infinity_;
+}
+
+std::istream &operator>>(std::istream &stream, Field &fld) {
+	return stream >> fld.centerCircle_ >> fld.centerCircleRadius_ >> fld.westGoal_ >> fld.eastGoal_ >> fld.west_ >> fld.east_ >> fld.north_ >> fld.south_ >> fld.width_ >> fld.height_ >> fld.infinity_;
 }
 

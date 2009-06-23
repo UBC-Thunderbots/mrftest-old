@@ -15,9 +15,40 @@
 Simulator::Simulator(Team &friendly, Team &enemy) {
 	RobotController::setSimulation(true);
 
-	PGoal goalW = Goal::create(Vector2(25, 200),  Vector2(25, 270),  Vector2(75, 217.5),  Vector2(75, 252.5),  16, Vector2(70, 235));
-	PGoal goalE = Goal::create(Vector2(635, 200), Vector2(635, 270), Vector2(585, 217.5), Vector2(585, 252.5), 16, Vector2(590, 235));
-	PField field = Field::create(660, 470, 25, 635, 25, 445, Vector2(330, 235), 50, goalW, goalE, 1e9);
+	Field field;
+	field.width(660);
+	field.height(470);
+	field.west(25);
+	field.east(635);
+	field.north(25);
+	field.south(445);
+	field.centerCircle(Vector2(330, 235));
+	field.centerCircleRadius(50);
+	field.infinity(1e9);
+
+	field.westGoal().north.x = 25;
+	field.westGoal().north.y = 200;
+	field.westGoal().south.x = 25;
+	field.westGoal().south.y = 270;
+	field.westGoal().defenseN.x = 75;
+	field.westGoal().defenseN.y = 217.5;
+	field.westGoal().defenseS.x = 75;
+	field.westGoal().defenseS.y = 252.5;
+	field.westGoal().height = 16;
+	field.westGoal().penalty.x = 70;
+	field.westGoal().penalty.y = 235;
+
+	field.eastGoal().north.x = 635;
+	field.eastGoal().north.y = 200;
+	field.eastGoal().south.x = 635;
+	field.eastGoal().south.y = 270;
+	field.eastGoal().defenseN.x = 585;
+	field.eastGoal().defenseN.y = 217.5;
+	field.eastGoal().defenseS.x = 585;
+	field.eastGoal().defenseS.y = 252.5;
+	field.eastGoal().height = 16;
+	field.eastGoal().penalty.x = 590;
+	field.eastGoal().penalty.y = 235;
 
 	World::init(friendly, enemy, field);
 	
@@ -78,7 +109,7 @@ void Simulator::update() {
 	usleep(10000);
 
 	World &world = World::get();
-	PField field = world.field();
+	const Field &field = world.field();
 
 	for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
 		PPlayer player = world.player(i);
@@ -88,8 +119,8 @@ void Simulator::update() {
 		Vector2 acc = player->simulatedAcceleration();
 		
 		//We may need this later but suppress warning for now
-		//double maxacc = field->convertMmToCoord(MAX_ACCELERATION) / (CentralAnalyzingUnit::FRAMES_PER_SECOND * CentralAnalyzingUnit::FRAMES_PER_SECOND);
-		double maxvel = field->convertMmToCoord(MAX_VELOCITY) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
+		//double maxacc = field.convertMmToCoord(MAX_ACCELERATION) / (CentralAnalyzingUnit::FRAMES_PER_SECOND * CentralAnalyzingUnit::FRAMES_PER_SECOND);
+		double maxvel = field.convertMmToCoord(MAX_VELOCITY) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
 		/*if (acc.length() > maxacc){
 			acc = acc / acc.length() * maxacc;
 			player->simulatedAcceleration(acc);	
@@ -128,7 +159,7 @@ void Simulator::update() {
 	if (vel.length() < 1E-9) acc = Vector2(0,0);
 	else{
 		acc = vel / (-vel.length());
-		acc *= field->convertMmToCoord(BALL_ACCELERATION) / (CentralAnalyzingUnit::FRAMES_PER_SECOND * CentralAnalyzingUnit::FRAMES_PER_SECOND);
+		acc *= field.convertMmToCoord(BALL_ACCELERATION) / (CentralAnalyzingUnit::FRAMES_PER_SECOND * CentralAnalyzingUnit::FRAMES_PER_SECOND);
 	}
 	pos += vel/2.0;
 	vel += acc;
@@ -138,47 +169,47 @@ void Simulator::update() {
 	pos += vel/2.0;
 
 	// Make sure the ball does not go out of bounds:
-	if (pos.x < field->west()) {	
-		if (pos.y > field->westGoal()->north.y &&
-			pos.y < field->westGoal()->south.y) {
+	if (pos.x < field.west()) {	
+		if (pos.y > field.westGoal().north.y &&
+			pos.y < field.westGoal().south.y) {
 			if (world.friendlyTeam().side())
 				world.enemyTeam().score(world.enemyTeam().score() + 1);
 			else
 				world.friendlyTeam().score(world.friendlyTeam().score() + 1);
 		}
 		world.playType(PlayType::start);
-		pos = Vector2(field->centerCircle());
+		pos = Vector2(field.centerCircle());
 		vel = Vector2(0, 0);
 		acc = Vector2(0, 0);
 		for (unsigned int i = 0; i < 10; i++)
 			if (world.player(i)->hasBall())
 				world.player(i)->hasBall(false);
-	} else if (pos.y < field->north()) {
+	} else if (pos.y < field.north()) {
 		world.playType(PlayType::start);
-		pos = Vector2(field->centerCircle());
+		pos = Vector2(field.centerCircle());
 		vel = Vector2(0, 0);
 		acc = Vector2(0, 0);
 		for (unsigned int i = 0; i < 10; i++)
 			if (world.player(i)->hasBall())
 				world.player(i)->hasBall(false);
-	} else if (pos.x > field->east()) {
-		if (pos.y > field->eastGoal()->north.y &&
-			pos.y < field->eastGoal()->south.y) {
+	} else if (pos.x > field.east()) {
+		if (pos.y > field.eastGoal().north.y &&
+			pos.y < field.eastGoal().south.y) {
 			if (world.friendlyTeam().side())
 				world.friendlyTeam().score(world.friendlyTeam().score() + 1);
 			else
 				world.enemyTeam().score(world.enemyTeam().score() + 1);
 		}
 		world.playType(PlayType::start);
-		pos = Vector2(field->centerCircle());
+		pos = Vector2(field.centerCircle());
 		vel = Vector2(0, 0);
 		acc = Vector2(0, 0);
 		for (unsigned int i = 0; i < 10; i++)
 			if (world.player(i)->hasBall())
 				world.player(i)->hasBall(false);
-	} else if (pos.y > field->south()) {
+	} else if (pos.y > field.south()) {
 		world.playType(PlayType::start);
-		pos = Vector2(field->centerCircle());
+		pos = Vector2(field.centerCircle());
 		vel = Vector2(0, 0);
 		acc = Vector2(0, 0);
 		for (unsigned int i = 0; i < 10; i++)
@@ -189,9 +220,9 @@ void Simulator::update() {
 	switch(world.playType()){
 		case PlayType::preparePenaltyKick:
 			if (world.team(0).specialPossession())
-				pos = Vector2(field->eastGoal()->penalty);
+				pos = Vector2(field.eastGoal().penalty);
 			else
-				pos = Vector2(field->westGoal()->penalty);
+				pos = Vector2(field.westGoal().penalty);
 			vel = Vector2(0,0);
 			acc = Vector2(0,0);
 			break;

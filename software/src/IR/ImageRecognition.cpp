@@ -70,16 +70,47 @@ ImageRecognition::ImageRecognition(Team &friendly, Team &enemy) : fd(-1) {
 		return;
 	}
 
-	PGoal goalW = Goal::create(Vector2(25, 200),  Vector2(25, 270),  Vector2(75, 217.5),  Vector2(75, 252.5),  16, Vector2(70, 235));
-	PGoal goalE = Goal::create(Vector2(635, 200), Vector2(635, 270), Vector2(585, 217.5), Vector2(585, 252.5), 16, Vector2(590, 235));
-	PField field = Field::create(660, 470, 25, 635, 25, 445, Vector2(330, 235), 50, goalW, goalE, 1e9);
+	Field field;
+	field.width(660);
+	field.height(470);
+	field.west(25);
+	field.east(635);
+	field.north(25);
+	field.south(445);
+	field.centerCircle(Vector2(330, 235));
+	field.centerCircleRadius(50);
+	field.infinity(1e9);
+
+	field.westGoal().north.x = 25;
+	field.westGoal().north.y = 200;
+	field.westGoal().south.x = 25;
+	field.westGoal().south.y = 270;
+	field.westGoal().defenseN.x = 75;
+	field.westGoal().defenseN.y = 217.5;
+	field.westGoal().defenseS.x = 75;
+	field.westGoal().defenseS.y = 252.5;
+	field.westGoal().height = 16;
+	field.westGoal().penalty.x = 70;
+	field.westGoal().penalty.y = 235;
+
+	field.eastGoal().north.x = 635;
+	field.eastGoal().north.y = 200;
+	field.eastGoal().south.x = 635;
+	field.eastGoal().south.y = 270;
+	field.eastGoal().defenseN.x = 585;
+	field.eastGoal().defenseN.y = 217.5;
+	field.eastGoal().defenseS.x = 585;
+	field.eastGoal().defenseS.y = 252.5;
+	field.eastGoal().height = 16;
+	field.eastGoal().penalty.x = 590;
+	field.eastGoal().penalty.y = 235;
 
 	World::init(friendly, enemy, field);
 
 	World &w = World::get();
 
 	//Set the player properties:
-	const double infinity = World::get().field()->infinity();
+	const double infinity = World::get().field().infinity();
 	for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
 		w.player(i)->position(Vector2(infinity, infinity));
 		w.player(i)->radius(90);
@@ -121,31 +152,31 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 	if (pkt.has_geometry()) {
 		const SSL_GeometryFieldSize &fData = pkt.geometry().field();
 
-		PGoal goalW = World::get().field()->westGoal();
-		goalW->north = Vector2(-fData.field_length() / 2.0, -fData.goal_width() / 2.0);
-		goalW->south = Vector2(-fData.field_length() / 2.0, fData.goal_width() / 2.0);
-		goalW->defenseN = Vector2(-fData.field_length() / 2.0 + fData.defense_radius(), -fData.defense_stretch() / 2.0);
-		goalW->defenseS = Vector2(-fData.field_length() / 2.0 + fData.defense_radius(), fData.defense_stretch() / 2.0);
-		goalW->height = 160;
-		goalW->penalty = Vector2(-fData.field_length() / 2.0 + 450, 0);
+		Goal &goalW = World::get().field().westGoal();
+		goalW.north = Vector2(-fData.field_length() / 2.0, -fData.goal_width() / 2.0);
+		goalW.south = Vector2(-fData.field_length() / 2.0, fData.goal_width() / 2.0);
+		goalW.defenseN = Vector2(-fData.field_length() / 2.0 + fData.defense_radius(), -fData.defense_stretch() / 2.0);
+		goalW.defenseS = Vector2(-fData.field_length() / 2.0 + fData.defense_radius(), fData.defense_stretch() / 2.0);
+		goalW.height = 160;
+		goalW.penalty = Vector2(-fData.field_length() / 2.0 + 450, 0);
 
-		PGoal goalE = World::get().field()->eastGoal();
-		goalE->north = Vector2(fData.field_length() / 2.0, -fData.goal_width() / 2.0);
-		goalE->south = Vector2(fData.field_length() / 2.0, fData.goal_width() / 2.0);
-		goalE->defenseN = Vector2(fData.field_length() / 2.0 - fData.defense_radius(), -fData.defense_stretch() / 2.0);
-		goalE->defenseS = Vector2(fData.field_length() / 2.0 - fData.defense_radius(), fData.defense_stretch() / 2.0);
-		goalE->height = 160;
-		goalE->penalty = Vector2(fData.field_length() / 2.0 - 450, 0);
+		Goal &goalE = World::get().field().eastGoal();
+		goalE.north = Vector2(fData.field_length() / 2.0, -fData.goal_width() / 2.0);
+		goalE.south = Vector2(fData.field_length() / 2.0, fData.goal_width() / 2.0);
+		goalE.defenseN = Vector2(fData.field_length() / 2.0 - fData.defense_radius(), -fData.defense_stretch() / 2.0);
+		goalE.defenseS = Vector2(fData.field_length() / 2.0 - fData.defense_radius(), fData.defense_stretch() / 2.0);
+		goalE.height = 160;
+		goalE.penalty = Vector2(fData.field_length() / 2.0 - 450, 0);
 
-		PField f = World::get().field();
-		f->width(fData.field_length());
-		f->height(fData.field_width());
-		f->west(-fData.field_length() / 2.0);
-		f->east(fData.field_length() / 2.0);
-		f->north(-fData.field_width() / 2.0);
-		f->south(fData.field_width() / 2.0);
-		f->centerCircle(Vector2(0, 0));
-		f->centerCircleRadius(fData.center_circle_radius());
+		Field &field = World::get().field();
+		field.width(fData.field_length());
+		field.height(fData.field_width());
+		field.west(-fData.field_length() / 2.0);
+		field.east(fData.field_length() / 2.0);
+		field.north(-fData.field_width() / 2.0);
+		field.south(fData.field_width() / 2.0);
+		field.centerCircle(Vector2(0, 0));
+		field.centerCircleRadius(fData.center_circle_radius());
 	}
 
 	if (pkt.has_detection()) {
@@ -235,7 +266,7 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 							if (x < unidentified[clr].size() && y < unusedAIIDs[team].size()) {
 								Vector2 oldPos = World::get().team(team).player(unusedAIIDs[team][y])->position();
 								Vector2 newPos = Vector2(unidentified[clr][x]->x(), -unidentified[clr][x]->y());
-								hung.weight(x, y) = World::get().field()->infinity() - (newPos - oldPos).length();
+								hung.weight(x, y) = World::get().field().infinity() - (newPos - oldPos).length();
 							}
 						}
 					}

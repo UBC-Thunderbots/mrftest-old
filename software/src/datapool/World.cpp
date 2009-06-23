@@ -10,7 +10,7 @@ namespace {
 	World *instance = 0;
 }
 
-void World::init(Team &friendlyTeam, Team &enemyTeam, PField field) {
+void World::init(Team &friendlyTeam, Team &enemyTeam, const Field &field) {
 	assert(!instance);
 	instance = new World(friendlyTeam, enemyTeam, field);
 }
@@ -20,7 +20,7 @@ World &World::get() {
 	return *instance;
 }
 
-World::World(Team &friendlyTeam, Team &enemyTeam, PField field) : play(PlayType::play), friendly(friendlyTeam), enemy(enemyTeam), field_(field), ballVisible(false) {
+World::World(Team &friendlyTeam, Team &enemyTeam, const Field &field) : play(PlayType::play), friendly(friendlyTeam), enemy(enemyTeam), field_(field), ballVisible(false) {
 	for (unsigned int j = 0; j < Team::SIZE; j++)
 		everyone.push_back(friendly.player(j));
 	for (unsigned int j = 0; j < Team::SIZE; j++)
@@ -53,11 +53,11 @@ const Team &World::team(unsigned int id) const {
 	return id == 0 ? friendly : enemy;
 }
 
-PField World::field() {
+Field &World::field() {
 	return field_;
 }
 
-const PField World::field() const {
+const Field &World::field() const {
 	return field_;
 }
 

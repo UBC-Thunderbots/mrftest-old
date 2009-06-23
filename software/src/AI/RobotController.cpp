@@ -41,12 +41,12 @@ namespace {
 	void simulateWorld(PPlayer robot, Vector2 acc, double rotate, unsigned char kick, bool equalSpeed /*circular speed profile if true*/) {
 		if (acc.length() > 1) acc /= acc.length();
 		if (equalSpeed){
-			acc *= World::get().field()->convertMmToCoord(MAX_SP_VX) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
+			acc *= World::get().field().convertMmToCoord(MAX_SP_VX) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
 			Vector2 currvel = robot->simulatedVelocity();
 			Vector2 newacc = acc - currvel;
 			Vector2 newaccperp = acc*currvel.length()/(acc.length()+EPS) - currvel;
 			Vector2 newaccpar = newacc - newaccperp;
-			double newacclen = World::get().field()->convertMmToCoord(MAX_SP_AX) /	(CentralAnalyzingUnit::FRAMES_PER_SECOND*CentralAnalyzingUnit::FRAMES_PER_SECOND);
+			double newacclen = World::get().field().convertMmToCoord(MAX_SP_AX) /	(CentralAnalyzingUnit::FRAMES_PER_SECOND*CentralAnalyzingUnit::FRAMES_PER_SECOND);
 			if (newacc.length() > newacclen){
 				newacc = newacc / newacc.length() * newacclen;
 			}
@@ -56,13 +56,13 @@ namespace {
 			double rot = robot->orientation() * M_PI / 180.0;
 			Vector2 rotated(acc.x * std::cos(rot) + acc.y * std::sin(rot), -acc.x * std::sin(rot) + acc.y * std::cos(rot));
 			double rotatedangle = rotated.angle() * M_PI / 180.0;
-			rotated *= World::get().field()->convertMmToCoord(std::min(MAX_SP_VY/(std::abs(std::cos(rotatedangle))+ EPS),MAX_SP_VX/(std::abs(std::sin(rotatedangle))+ EPS))) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
+			rotated *= World::get().field().convertMmToCoord(std::min(MAX_SP_VY/(std::abs(std::cos(rotatedangle))+ EPS),MAX_SP_VX/(std::abs(std::sin(rotatedangle))+ EPS))) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
 
 			Vector2 currvel = robot->simulatedVelocity();
 			Vector2 velrotated(currvel.x * std::cos(rot) + currvel.y * std::sin(rot), currvel.x * -std::sin(rot) + currvel.y * std::cos(rot));
 			Vector2 accrotated = rotated - velrotated;
 			double accrotatedangle = accrotated.angle() * M_PI / 180.0;
-			double newacclen = World::get().field()->convertMmToCoord(std::min(MAX_SP_AY/(std::abs(std::cos(accrotatedangle))+ EPS),MAX_SP_AX/(std::abs(std::sin(accrotatedangle))+ EPS))) /(CentralAnalyzingUnit::FRAMES_PER_SECOND*CentralAnalyzingUnit::FRAMES_PER_SECOND);
+			double newacclen = World::get().field().convertMmToCoord(std::min(MAX_SP_AY/(std::abs(std::cos(accrotatedangle))+ EPS),MAX_SP_AX/(std::abs(std::sin(accrotatedangle))+ EPS))) /(CentralAnalyzingUnit::FRAMES_PER_SECOND*CentralAnalyzingUnit::FRAMES_PER_SECOND);
 			if (accrotated.length() > newacclen){
 				accrotated = accrotated / accrotated.length() * newacclen;
 			}
@@ -117,7 +117,7 @@ namespace {
 	}
 
 	void sendWireless(PPlayer robot, Vector2 error, double rotate, double dribble, double kick) {
-		Vector2 convertedError = World::get().field()->convertCoordToMm(error);
+		Vector2 convertedError = World::get().field().convertCoordToMm(error);
 		
 		std::ostringstream oss;
 		oss << "AI" << robot->id();
@@ -208,8 +208,8 @@ void RobotController::setSimulation(bool sim) {
 void RobotController::sendCommand(PPlayer robot, Vector2 acc, double rotate, unsigned char dribble, unsigned char kick) {
 	// Cap magnitude of acc.
 	Vector2 error = acc - robot->position();
-	if(error.length() > World::get().field()->convertMmToCoord(1000))
-		error = error / error.length() * World::get().field()->convertMmToCoord(1000);
+	if(error.length() > World::get().field().convertMmToCoord(1000))
+		error = error / error.length() * World::get().field().convertMmToCoord(1000);
 
 	robot->requestedVelocity(error);
 

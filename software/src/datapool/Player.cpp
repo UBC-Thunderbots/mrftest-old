@@ -22,8 +22,8 @@ double Player::orientation() const {
 		return orient;
 	} else {
 		const Vector2 &pos = position();
-		const PGoal goal = tm.other().side() ? World::get().field()->westGoal() : World::get().field()->eastGoal();
-		const Vector2 gpos((goal->north.x + goal->south.x) / 2, (goal->north.y + goal->south.y) / 2);
+		const Goal &goal = tm.other().side() ? World::get().field().westGoal() : World::get().field().eastGoal();
+		const Vector2 gpos((goal.north.x + goal.south.x) / 2, (goal.north.y + goal.south.y) / 2);
 		return (gpos - pos).angle();
 	}
 }

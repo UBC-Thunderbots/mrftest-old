@@ -1,12 +1,8 @@
-#include <tr1/memory>
-class Goal;
-typedef std::tr1::shared_ptr<Goal> PGoal;
-class Field;
-typedef std::tr1::shared_ptr<Field> PField;
-
 #ifndef DATAPOOL_FIELD_H
 #define DATAPOOL_FIELD_H
 
+#include <istream>
+#include <ostream>
 #include "datapool/Vector2.h"
 
 /*
@@ -14,6 +10,11 @@ typedef std::tr1::shared_ptr<Field> PField;
  */
 class Goal {
 public:
+	/*
+	 * Creates a new Goal.
+	 */
+	Goal();
+
 	/*
 	 * North and south edges of the goal.
 	 */
@@ -32,13 +33,29 @@ public:
 	Vector2 penalty;
 
 	/*
-	 * Creates a new Goal object.
+	 * Compares two goals for equality.
 	 */
-	static PGoal create(const Vector2 &north, const Vector2 &south, const Vector2 &defenseN, const Vector2 &defenseS, unsigned int height, const Vector2 &penalty);
+	bool operator==(const Goal &other) const {
+		return north == other.north && south == other.south && defenseN == other.defenseN && defenseS == other.defenseS && height == other.height && penalty == other.penalty;
+	}
 
-private:
-	Goal(const Vector2 &north, const Vector2 &south, const Vector2 &defenseN, const Vector2 &defenseS, unsigned int height, const Vector2 &penalty);
+	/*
+	 * Compares two goals for inequality.
+	 */
+	bool operator!=(const Goal &other) const {
+		return !(*this == other);
+	}
 };
+
+/*
+ * Writes a text representation of a goal to a match log.
+ */
+std::ostream &operator<<(std::ostream &stream, const Goal &goal);
+
+/*
+ * Reads a text representation of a goal from a match log.
+ */
+std::istream &operator>>(std::istream &stream, Goal &goal);
 
 
 
@@ -50,15 +67,15 @@ public:
 	/*
 	 * Creates a new field.
 	 */
-	static PField create(int width, int height, int west, int east, int north, int south, const Vector2 &centerCircle, unsigned int centerCircleRadius, PGoal westGoal, PGoal eastGoal, double infinity);
+	Field();
 	
 	/*
 	 * Returns information about the field.
 	 */
-	PGoal eastGoal();
-	const PGoal eastGoal() const;
-	PGoal westGoal();
-	const PGoal westGoal() const;
+	Goal &eastGoal();
+	const Goal &eastGoal() const;
+	Goal &westGoal();
+	const Goal &westGoal() const;
 	int north() const;
 	void north(int n);
 	int south() const;
@@ -80,20 +97,45 @@ public:
 	Vector2 convertMmToCoord(const Vector2 &mm) const;
 	Vector2 convertCoordToMm(const Vector2 &coord) const;
 	double infinity() const;
+	void infinity(double inf);
 	bool isInfinity(double v) const;
 
-private:
-	Field(int width, int height, int west, int east, int north, int south, const Vector2 &centerCircle, unsigned int centerCircleRadius, PGoal westGoal, PGoal eastGoal, double infinity);
-	Field(const Field &copyref); // Prohibit copying.
+	//
+	// Compares two fields for equality.
+	//
+	bool operator==(const Field &other) const {
+		return centerCircle_ == other.centerCircle_ && centerCircleRadius_ == other.centerCircleRadius_ && westGoal_ == other.westGoal_ && eastGoal_ == other.eastGoal_ && west_ == other.west_ && east_ == other.east_ && north_ == other.north_ && south_ == other.south_ && width_ == other.width_ && height_ == other.height_ && infinity_ == other.infinity_;
+	}
 
+	//
+	// Compares two fields for inequality.
+	//
+	bool operator!=(const Field &other) const {
+		return !(*this == other);
+	}
+
+private:
 	Vector2 centerCircle_;
 	unsigned int centerCircleRadius_;
-	PGoal westGoal_;
-	PGoal eastGoal_;
+	Goal westGoal_;
+	Goal eastGoal_;
 	int west_, east_, north_, south_; //pixel coordinates of sidelines distances from X = 0, Y = 0;
 	int width_, height_;
 	double infinity_;
+
+	friend std::ostream &operator<<(std::ostream &stream, const Field &fld);
+	friend std::istream &operator>>(std::istream &stream, Field &fld);
 };
+
+/*
+ * Writes a text representation of the field to a match log.
+ */
+std::ostream &operator<<(std::ostream &stream, const Field &fld);
+
+/*
+ * Reads a text representation of the field from a match log.
+ */
+std::istream &operator>>(std::istream &stream, Field &fld);
 
 #endif
 

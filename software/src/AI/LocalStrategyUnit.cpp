@@ -130,7 +130,7 @@ void LocalStrategyUnit::chaseBall(PPlayer robot) {
 		// Chases ball, using move function
 		
 		Vector2 v = World::get().ball().position() - robot->position();
-		Vector2 m_v = v - Vector2(v.angle()) * World::get().field()->convertMmToCoord(80);
+		Vector2 m_v = v - Vector2(v.angle()) * World::get().field().convertMmToCoord(80);
 		
 		move(robot, robot->position() + m_v);
 		move(robot, World::get().ball().position());
@@ -139,26 +139,26 @@ void LocalStrategyUnit::chaseBall(PPlayer robot) {
 
 void LocalStrategyUnit::move(PPlayer robot, Vector2 pos, double speed) {
 	// Do not go outside the bounds of the field:
-	PField field = World::get().field();
-	if (pos.x > field->east())
-		pos.x = field->east();
-	if (pos.x < field->west())
-		pos.x = field->west();
-	if (pos.y > field->south())
-		pos.y = field->south();
-	if (pos.y < field->north())
-		pos.y = field->north();
+	const Field &field = World::get().field();
+	if (pos.x > field.east())
+		pos.x = field.east();
+	if (pos.x < field.west())
+		pos.x = field.west();
+	if (pos.y > field.south())
+		pos.y = field.south();
+	if (pos.y < field.north())
+		pos.y = field.north();
 
 	// If the robot has the ball, stay even further from the boundary:
 	if (robot->hasBall()) {
-		if (pos.x > field->east()  - field->width() / 20.0)
-			pos.x = field->east()  - field->width() / 20.0;
-		if (pos.x < field->west()  + field->width() / 20.0)
-			pos.x = field->west()  + field->width() / 20.0;
-		if (pos.y > field->south() - field->width() / 20.0)
-			pos.y = field->south() - field->width() / 20.0;
-		if (pos.y < field->north() + field->width() / 20.0)
-			pos.y = field->north() + field->width() / 20.0;
+		if (pos.x > field.east()  - field.width() / 20.0)
+			pos.x = field.east()  - field.width() / 20.0;
+		if (pos.x < field.west()  + field.width() / 20.0)
+			pos.x = field.west()  + field.width() / 20.0;
+		if (pos.y > field.south() - field.width() / 20.0)
+			pos.y = field.south() - field.width() / 20.0;
+		if (pos.y < field.north() + field.width() / 20.0)
+			pos.y = field.north() + field.width() / 20.0;
 	}
 
 	Vector2 curPos = robot->position();
@@ -167,23 +167,23 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos, double speed) {
 	pos = curPos + diff;
 
 	// Create a buffer zone to stop the robot:
-	if (diff.length() < field->convertMmToCoord(2000)) {
-		diff /= field->convertMmToCoord(2000);
+	if (diff.length() < field.convertMmToCoord(2000)) {
+		diff /= field.convertMmToCoord(2000);
 	} else {
 		diff /= diff.length();
 	}
 
 	// Avoid obstacles if not goalie:
 	//bool west = team.side();
-	//double fuzzyFactor = curPos.x / field->width();
+	//double fuzzyFactor = curPos.x / field.width();
 	Vector2 velPosL;
 	Vector2 velPosR;
 	
 	Vector2 diffL = Vector2(diff.angle()) * diff.length();	
 	Vector2 diffR = Vector2(diff.angle()) * diff.length();
 	
-	velPosL = curPos + diff * field->convertMmToCoord(2000);
-	velPosR = curPos + diff * field->convertMmToCoord(2000);
+	velPosL = curPos + diff * field.convertMmToCoord(2000);
+	velPosR = curPos + diff * field.convertMmToCoord(2000);
 	
 	int maxTurn = 360;
 	bool avoid = false;
@@ -198,8 +198,8 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos, double speed) {
 		// Move around the obstacle by going left:
 		diffL = Vector2(diffL.angle() + 5) * diffL.length();
 		diffR = Vector2(diffR.angle() - 5) * diffR.length();
-		velPosL = curPos + diffL * field->convertMmToCoord(2000);
-		velPosR = curPos + diffR * field->convertMmToCoord(2000);
+		velPosL = curPos + diffL * field.convertMmToCoord(2000);
+		velPosR = curPos + diffR * field.convertMmToCoord(2000);
 		maxTurn -= 5;
 	}
 	if (avoid) {
@@ -221,14 +221,14 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos, double speed) {
 		pos = curPos + diff;
 		Vector2 ballPos = World::get().ball().position();
 		Vector2 ballDis = curPos - ballPos;
-		double boundary = field->convertMmToCoord(800);
+		double boundary = field.convertMmToCoord(800);
 		if (ballDis.length() < boundary) {
 			Vector2 interceptPoint = CentralAnalyzingUnit::lcIntersection(curPos,pos,ballPos,boundary);
 			diff = interceptPoint - pos;
 			
 			// Create a buffer zone to stop the robot:
-			if (diff.length() < field->convertMmToCoord(1200)) {
-				diff /= field->convertMmToCoord(1200);
+			if (diff.length() < field.convertMmToCoord(1200)) {
+				diff /= field.convertMmToCoord(1200);
 			} else {
 				diff /= diff.length();
 			}
@@ -237,17 +237,17 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos, double speed) {
 		if(robot->team().specialPossession()){
 			pos = curPos + diff;
 			Vector2 goalPos;
-			if (robot->team().side()) goalPos = Vector2(field->east(), field->centerCircle().y);
-			else goalPos = Vector2(field->west(), field->centerCircle().y);
+			if (robot->team().side()) goalPos = Vector2(field.east(), field.centerCircle().y);
+			else goalPos = Vector2(field.west(), field.centerCircle().y);
 			Vector2 goalDis = curPos - ballPos;
-			boundary = field->convertMmToCoord(1000);
+			boundary = field.convertMmToCoord(1000);
 			if (goalDis.length() < boundary) {
 				Vector2 interceptPoint = CentralAnalyzingUnit::lcIntersection(curPos,pos,goalPos,boundary);
 				diff = interceptPoint - pos;
 				
 				// Create a buffer zone to stop the robot:
-				if (diff.length() < field->convertMmToCoord(1250)) {
-					diff /= field->convertMmToCoord(1250);
+				if (diff.length() < field.convertMmToCoord(1250)) {
+					diff /= field.convertMmToCoord(1250);
 				} else {
 					diff /= diff.length();
 				}
@@ -285,21 +285,21 @@ void LocalStrategyUnit::shoot(PPlayer robot) {
 
 	bool west = team.side();
 
-	PField field = World::get().field();
+	const Field &field = World::get().field();
 
 	Vector2 des;
 	Vector2 pos = robot->position();
 
 	if (!west)
-		des = Vector2(field->west(), (field->westGoal()->south.y + field->westGoal()->north.y) / 2.0);
+		des = Vector2(field.west(), (field.westGoal().south.y + field.westGoal().north.y) / 2.0);
 	else
-		des = Vector2(field->east(), (field->westGoal()->south.y + field->westGoal()->north.y) / 2.0);
+		des = Vector2(field.east(), (field.westGoal().south.y + field.westGoal().north.y) / 2.0);
 
 	// Check the vector between the robot and the center of the goal:
 	if (CentralAnalyzingUnit::checkVector(pos, des, robot, 0)) {
-		if (team.other().player(0)->position().y > field->centerCircle().y) {
+		if (team.other().player(0)->position().y > field.centerCircle().y) {
 			// The shot is not clear, so check a point further north:
-			double height = field->eastGoal()->south.y - field->eastGoal()->north.y;
+			double height = field.eastGoal().south.y - field.eastGoal().north.y;
 			des.y -= height / 3.0;
 			if (CentralAnalyzingUnit::checkVector(pos, des, robot, 0)) {
 				// The shot is not clear, so check a point further south:
@@ -313,7 +313,7 @@ void LocalStrategyUnit::shoot(PPlayer robot) {
 			}
 		} else {
 			// The shot is not clear, so check a point further south:
-			double height = field->eastGoal()->south.y - field->eastGoal()->north.y;
+			double height = field.eastGoal().south.y - field.eastGoal().north.y;
 			des.y += height / 3.0;
 			if (CentralAnalyzingUnit::checkVector(pos, des, robot, 0)) {
 				// The shot is not clear, so check a point further north:
@@ -331,7 +331,7 @@ void LocalStrategyUnit::shoot(PPlayer robot) {
 	// A clear shot has been found:
 	Vector2 orientation = des - pos;
 
-	if (orientation.length() > field->width() / 5.0) {
+	if (orientation.length() > field.width() / 5.0) {
 		move(robot, des); // Goal is too far away, so move closer.
 		return;
 	}
@@ -350,21 +350,21 @@ void LocalStrategyUnit::shoot(PPlayer robot) {
 void LocalStrategyUnit::goalie(PPlayer robot) {
 	bool west = team.side();
 
-	PField field = World::get().field();
+	const Field &field = World::get().field();
 	Vector2 pos = World::get().ball().position();
 	double rad; // The size of the goal.
 	if (west)
-		rad = field->westGoal()->south.y - field->westGoal()->north.y;
+		rad = field.westGoal().south.y - field.westGoal().north.y;
 	else
-		rad = field->eastGoal()->south.y - field->eastGoal()->north.y;
+		rad = field.eastGoal().south.y - field.eastGoal().north.y;
 
 	rad *= 0.5;
 
 	Vector2 center; // The center position of the goal.
 	if (west)
-		center = Vector2(field->west(), (field->westGoal()->south.y + field->westGoal()->north.y) / 2.0);
+		center = Vector2(field.west(), (field.westGoal().south.y + field.westGoal().north.y) / 2.0);
 	else
-		center = Vector2(field->east(), (field->westGoal()->south.y + field->westGoal()->north.y) / 2.0);
+		center = Vector2(field.east(), (field.westGoal().south.y + field.westGoal().north.y) / 2.0);
 
 	Vector2 vec = pos - center; // Vector between the ball and the goal.
 
@@ -374,14 +374,14 @@ void LocalStrategyUnit::goalie(PPlayer robot) {
 	if (target.x != 0 && target.y != 0)
 		target += pos;
 
-	if (target.y < field->eastGoal()->south.y && 
-			target.y > field->eastGoal()->north.y) {
+	if (target.y < field.eastGoal().south.y && 
+			target.y > field.eastGoal().north.y) {
 		// If the ball is headed towards the goal, change the "center" of the goal to the ball's path.
 		center.y = target.y;
 	}
 
 	// Find the destination point for the goalie to move towards.
-	double R = field->width() / 2.0;
+	double R = field.width() / 2.0;
 	vec = pos - center;
 	Vector2 des;
 	if (vec.length() <= 3.0 * rad) {
@@ -391,12 +391,12 @@ void LocalStrategyUnit::goalie(PPlayer robot) {
 	}
 	if (World::get().playType() == PlayType::preparePenaltyKick || World::get().playType() == PlayType::penaltyKick){
 		if (team.side()){
-			double maxx = field->west() + robot->radius() / 2;
+			double maxx = field.west() + robot->radius() / 2;
 			if(des.x > maxx)
 				des.x = maxx;
 		}
 		else{
-			double minx = field->east() - robot->radius() / 2;
+			double minx = field.east() - robot->radius() / 2;
 			if(des.x < minx)
 				des.x = minx;
 		}
