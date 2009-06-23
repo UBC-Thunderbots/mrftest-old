@@ -79,8 +79,10 @@ namespace {
 
 		void update() {
 			ofs << "DATA";
-			for (unsigned int i = 0; i < 2 * Team::SIZE; i++)
-				ofs << '\t' << World::get().player(i)->position().x << '\t' << World::get().player(i)->position().y;
+			for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
+				PPlayer pl = World::get().player(i);
+				ofs << '\t' << pl->position().x << '\t' << pl->position().y << '\t' << pl->orientation();
+			}
 			ofs << '\t' << World::get().ball().position().x << '\t' << World::get().ball().position().y << '\n';
 		}
 
