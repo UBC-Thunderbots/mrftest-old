@@ -15,12 +15,12 @@ Config::Config() {
 	assert(!inst);
 
 	// Build the name of the config file.
-	std::string homeDir = Glib::getenv("HOME");
+	const std::string &homeDir = Glib::getenv("HOME");
 	if (homeDir == "") {
 		Log::log(Log::LEVEL_ERROR, "XBee") << "Environment variable $HOME is not set!\n";
 		std::exit(1);
 	}
-	std::string configFileName = homeDir + "/.thunderbots/thunderbots.conf";
+	const std::string &configFileName = homeDir + "/.thunderbots/thunderbots.conf";
 
 	// Load the file.
 	kf.load_from_file(configFileName, Glib::KEY_FILE_NONE);
