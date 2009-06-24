@@ -28,6 +28,8 @@ namespace {
 			bool shouldBeep = false;
 			XBeeBotSet &bots = XBeeBotSet::instance();
 			for (unsigned int i = 0; i < bots.size(); i++) {
+				if (bots[i]->property_commStatus() == XBeeBot::STATUS_NO_ACK)
+					continue;
 				double green = bots[i]->property_greenVoltage();
 				double motor = bots[i]->property_motorVoltage();
 				if (green > GREEN_BATTERY_ZERO_VOLTAGE && green < GREEN_BATTERY_WARNING_VOLTAGE)
