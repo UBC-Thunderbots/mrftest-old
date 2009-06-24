@@ -1,5 +1,6 @@
 #include "AI/Visualizer.h"
 #include "datapool/World.h"
+#include "Log/Log.h"
 
 #include <sstream>
 #include <sigc++/sigc++.h>
@@ -184,10 +185,6 @@ void Visualizer::update(void) {
 		Gdk::Rectangle r(0, 0, get_allocation().get_width(), get_allocation().get_height());
 		win->invalidate_rect(r, false);
 	}
-
-	// Dispatch some events.
-	while (Gtk::Main::events_pending())
-		Gtk::Main::iteration(false);
 }
 
 bool Visualizer::on_close(GdkEventAny *event __attribute__((__unused__))) {
