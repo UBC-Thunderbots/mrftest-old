@@ -53,11 +53,11 @@ void PredictableObject::update() {
 	buildgeneralleastsquares(xhistory, weights, fmatrix, NUM_OLD_POSITIONS, MAX_DEGREE + 1, approxx);
 	buildgeneralleastsquares(yhistory, weights, fmatrix, NUM_OLD_POSITIONS, MAX_DEGREE + 1, approxy);
 
-	// TODO: Cedric: set predVel and predAcc vectors!
-	// predVel.x = ?
-	// predVel.y = ?
-	// predAcc.x = ?
-	// predAcc.y = ?
+	// Set predicted velocity and acceleration.
+	predVel.x = approxx(1);
+	predVel.y = approxy(1);
+	predAcc.x = 2 * approxx(2);
+	predAcc.y = 2 * approxy(2);
 }
 
 Vector2 PredictableObject::futurePosition(unsigned int timeOffset) {
