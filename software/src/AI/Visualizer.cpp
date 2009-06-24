@@ -1,6 +1,5 @@
 #include "AI/Visualizer.h"
 #include "datapool/World.h"
-#include "Log/Log.h"
 
 #include <sstream>
 #include <sigc++/sigc++.h>
