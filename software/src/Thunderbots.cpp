@@ -153,20 +153,21 @@ namespace {
 		if (useSim) {
 			Simulator sim(friendly, enemy);
 			updateables.push_back(&sim);
+			RefBox refBox;
 			execute(useVis, updateables);
 		} else {
 			XBeeBotSet xbee;
 			HWRunSwitch runSwitch;
 			ControlPanel cp;
 			ImageRecognition ir(friendly, enemy);
+			RefBox refBox;
 			execute(useVis, updateables);
 		}
 	}
 
 	void execute(bool useSim, bool useVis, bool useEnemyAI) {
-		// Create shared objects.
+		// Create shared object.
 		Config config;
-		RefBox refBox;
 
 		// Create teams, depending on whether the enemy should be AI or not.
 		AITeam friendly(0);
