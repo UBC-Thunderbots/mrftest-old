@@ -4,7 +4,6 @@
 
 #include <iostream>
 #include <cassert>
-
 #include <gtkmm.h>
 
 #define GREEN_BATTERY_MAX_VOLTAGE       12.50
@@ -222,7 +221,6 @@ namespace {
 
 		~ControlPanelWindow() {
 			remove();
-			std::cerr << "Deleted\n";
 		}
 
 	protected:
@@ -242,10 +240,6 @@ class ControlPanelImpl : private Noncopyable {
 public:
 	ControlPanelImpl() {
 		cp.show_all();
-	}
-
-	~ControlPanelImpl() {
-		std::cerr << "Deleting it.\n";
 	}
 
 private:
