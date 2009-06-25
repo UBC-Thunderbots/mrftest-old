@@ -18,9 +18,12 @@ private:
 
 	void init();
 	void defense();
-
 	void nearDefense();
 	void farDefense();
+
+	// assign n defenders to n positions
+	// n! runtime
+	void assignDefenders(const Vector2* blockPosition, int n);
 };
 
 #endif
