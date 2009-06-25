@@ -23,7 +23,8 @@ private:
 
 	// assign n defenders to n positions
 	// n! runtime
-	void assignDefenders(const Vector2* blockPosition, int n);
+	// will modify blockPosition if the distance is too close to goal radius
+	void assignDefenders(Vector2* blockPosition, int n);
 };
 
 #endif
