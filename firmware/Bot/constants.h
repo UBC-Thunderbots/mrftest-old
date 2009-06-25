@@ -16,8 +16,8 @@
 #define DEBUG_BAUD 115200UL
 #define DEBUG_BUFSIZE 128
 
-// The maximum motor percentage that can be applied in manual actuator mode.
-#define MANUAL_ACTUATOR_MOTOR_MAX 4.0
+// The scaling factor applied to the setpoint to convert to a motor power when W_CONTROLLER_ENABLED == 0.
+#define MANUAL_ACTUATOR_MOTOR_SCALE 8.0
 
 // Maximum representable values for the setpoints.
 #define MAX_SP_VX 200.0

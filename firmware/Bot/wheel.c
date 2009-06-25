@@ -49,7 +49,7 @@ void wheel_update_drive(struct wheel *w, double vx, double vy, double vt) {
 #if W_CONTROLLER_ENABLED
 	power = filter_process(&w->controller, setpoint - cur_rpm / MOTOR_MAX_RPM);
 #else
-	power = setpoint;
+	power = setpoint * MANUAL_ACTUATOR_MOTOR_SCALE;
 #endif
 
 	// Drive the motor.
