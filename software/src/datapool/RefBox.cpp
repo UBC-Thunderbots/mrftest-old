@@ -123,7 +123,6 @@ bool RefBox::onIO(Glib::IOCondition cond) {
 					break;
 				case 'a':
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Penalty Shootout\n";
-					World::get().playType(PlayType::penaltyKickoff);
 					break;
 				case 'k':
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Kickoff Yellow\n";

@@ -47,12 +47,10 @@ void DefenseStrategy::init() {
 	}
 }
 
-// A = friendly team goal north
-// B = friendly team goal south
-// C = ball 
-// Computes G, goalie position 
-//          D, second defender position if needed to cover the goal from direct score of the ball current location.
-void DefenseStrategy::defense() {
+void DefenseStrategy::nearDefense() {
+}
+
+void DefenseStrategy::farDefense() {
 	bool isWest = team.side();
 
 	const World &w = World::get();
@@ -179,6 +177,29 @@ void DefenseStrategy::defense() {
 		defender1->plan(Plan::move);
 		defender1->destination(blockPosition2);
 	}
+
+}
+
+// A = friendly team goal north
+// B = friendly team goal south
+// C = ball 
+// Computes G, goalie position 
+//          D, second defender position if needed to cover the goal from direct score of the ball current location.
+void DefenseStrategy::defense() {
+	const bool isWest = team.side();
+	// const PGoal goal = isWest ? field->westGoal() : field->eastGoal();
+	/*j
+
+	// criteria for determining to invoke near or far mode of defence
+	// - determine where the ball is, whether it is on our or enemy half
+	w.ball()->position();
+	if(isWest) {
+		if(abs(w.ball()->position() - field->westGoal())) < (w.ball()->position() - field->eastGoal()) {
+		} else {
+		}
+	} else {
+	}
+	*/
 }
 
 void DefenseStrategy::update() {

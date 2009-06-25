@@ -25,7 +25,7 @@ Vector2 ballpos;
 void CentralStrategyUnit::update() {
 	for (unsigned int id = 0; id < Team::SIZE; id++) {
 		PPlayer robot = team.player(id);
-		if (World::get().playType() == PlayType::play || World::get().playType() == PlayType::prepareKickoff)
+		if (World::get().playType() == PlayType::play/* || World::get().playType() == PlayType::prepareKickoff*/)
 			robot->allowedInside(true);
 		else
 			robot->allowedInside(false);
@@ -33,7 +33,7 @@ void CentralStrategyUnit::update() {
 	
 	switch (World::get().playType()) {
 		case PlayType::start:    		startingPositions(); break;
-		case PlayType::stop:			stop(); break;
+		case PlayType::stop:			strat->update(); break;
 		case PlayType::play:     		strat->update(); break;
 		case PlayType::directFreeKick:  directFreeKick(); break;
 		case PlayType::indirectFreeKick:indirectFreeKick(); break;
@@ -129,7 +129,13 @@ void CentralStrategyUnit::preparePenaltyKick(){
 			}
 		}
 		PPlayer kicker = team.player(closest);
-		kicker->plan(Plan::chase);
+		kicker->plan(Plan::move);
+		if (ballpos.x >= field.centerCircle().x){
+			kicker->destination(w.ball().position()-Vector2(field.convertMmToCoord(200.0),0));
+		}
+		else{
+			kicker->destination(w.ball().position()+Vector2(field.convertMmToCoord(200.0),0));
+		}
 		kicker->allowedInside(true);
 
 		for (unsigned int id = 1; id < Team::SIZE; id++)
@@ -186,7 +192,7 @@ strat->update();
 		
 	World &w = World::get();
 	const Field &field = w.field();
-	if ((w.ball().position()-ballpos).length() > field.convertMmToCoord(10.0)){
+	if ((w.ball().position()-ballpos).length() > field.convertMmToCoord(50.0)){
 		w.playType(PlayType::play);
 		return;	
 	}
@@ -281,7 +287,7 @@ void CentralStrategyUnit::kickoff() {
 	strat->update();
 	World &w = World::get();
 	const Field &field = w.field();
-	if ((w.ball().position()-field.centerCircle()).length() > field.convertMmToCoord(10.0)){
+	if ((w.ball().position()-field.centerCircle()).length() > field.convertMmToCoord(50.0)){
 		w.playType(PlayType::play);
 		return;	
 	}
@@ -315,7 +321,8 @@ void CentralStrategyUnit::kickoff() {
 }
 
 void CentralStrategyUnit::stop(){
-	strat->update();
+	//strat->update();
+/*
 	for (unsigned int id = 1; id < Team::SIZE; id++){
 		team.player(id)->hasBall(false);
 
@@ -340,7 +347,7 @@ void CentralStrategyUnit::stop(){
 		kicker->plan(Plan::chase);
 		
 		ballpos = w.ball().position();
-	}
+	*/
 	
 }
 
@@ -348,7 +355,7 @@ void CentralStrategyUnit::indirectFreeKick() {
 	strat->update();
 	World &w = World::get();
 	const Field &field = w.field();
-	if ((w.ball().position()-ballpos).length() > field.convertMmToCoord(10.0)){
+	if ((w.ball().position()-ballpos).length() > field.convertMmToCoord(50.0)){
 		w.playType(PlayType::play);
 		return;	
 	}

@@ -4,13 +4,11 @@
 namespace Plan {  
 	enum Behavior {
 		stop,
-      	passer, 	// to player index i
-      	shoot,
-      	chase,
-      	move,		// to position x,y
-      	goalie,
-      	defender,
-      	guard		// player i
+	      	passer, 	// to player index i
+	      	shoot,
+	      	chase,
+	      	move,		// to position x,y
+	      	goalie
    	};
 }
 

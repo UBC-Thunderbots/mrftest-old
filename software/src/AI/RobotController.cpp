@@ -19,25 +19,37 @@
 #define MAX_SP_AX 4000.0 // acceleration sideways
 #define MAX_SP_AY 10000.0 // acceleration forward
 #define MAX_SP_VT   4.0
+#define MAX_DIST 1000.0
 const double EPS = 1E-9;
 
 namespace {
 	bool simulation = false;
 
 	// both friendly and enemy team because simulation needs it
-	const double rotKp = 0.78740157, rotKi = 1/127.0, rotKd = 0, rotDecay = 0.97;
-	//const double vxKp = 0.15748031, vxKi = 0, vxKd = 0, vxDecay = 0.97;
-	//const double vyKp = 0.23622047, vyKi = 0, vyKd = 0, vyDecay = 0.97;
-	const double moveKAData[] = {1.0, 1.0050, 0.0050};
-	const double moveKBData[] = {18.7674, 7.2493, 2.4120};
+	//const double rotKp = 0.78740157, rotKi = 1/127.0, rotKd = 0, rotDecay = 0.97;
+	const double rotKp = 2.0, rotKi = 2/127.0, rotKd = 0.0, rotDecay = 0.97;
+	//const double vxKp = 0.15748031, vxKi = 0, vxKd = 0.01, vxDecay = 0.97;
+	//const double vyKp = 0.23622047, vyKi = 0, vyKd = 0.01, vyDecay = 0.97;
+	const double vxKp = 0.285714, vxKi = 1/127.0, vxKd = 0, vxDecay = 0.97;
+	const double vyKp = 0.71428, vyKi = 1/127.0, vyKd = 0, vyDecay = 0.97;
+	//const double fastMoveYAData[] = {1.0, -0.2234};
+	//const double fastMoveYBData[] = {0.0213, -0.0208};
+	//const double slowMoveYAData[] = {1.0, -0.8530};
+	//const double slowMoveYBData[] = {5.0377e-4 -4.9289e-4};
 	//static const double TA[] = {1.0, 0.4566, -0.5434};
 	//static const double TB[] = {443.1705, -669.386, 270.312};
-	const std::vector<double> moveKA(moveKAData, moveKAData + sizeof(moveKAData) / sizeof(*moveKAData));
-	const std::vector<double> moveKB(moveKBData, moveKBData + sizeof(moveKBData) / sizeof(*moveKBData));
+	//const std::vector<double> fastMoveYA(fastMoveYAData, fastMoveYAData + sizeof(fastMoveYAData) / sizeof(*fastMoveYAData));
+	//const std::vector<double> fastMoveYB(fastMoveYBData, fastMoveYBData + sizeof(fastMoveYBData) / sizeof(*fastMoveYBData));
+	//const std::vector<double> slowMoveYA(slowMoveYAData, slowMoveYAData + sizeof(slowMoveYAData) / sizeof(*slowMoveYAData));
+	//const std::vector<double> slowMoveYB(slowMoveYBData, slowMoveYBData + sizeof(slowMoveYBData) / sizeof(*slowMoveYBData));
 	std::vector<PID> rotFilter(2 * Team::SIZE, PID(rotKp, rotKi, rotKd, rotDecay));
-	std::vector<MoveFilter> vxFilter(2 * Team::SIZE, MoveFilter(moveKA, moveKB));
-	std::vector<MoveFilter> vyFilter(2 * Team::SIZE, MoveFilter(moveKA, moveKB));
-
+	std::vector<PID> vxFilter(2 * Team::SIZE, PID(vxKp, vxKi, vxKd, vxDecay));
+	std::vector<PID> vyFilter(2 * Team::SIZE, PID(vyKp, vyKi, vyKd, vyDecay));
+	//std::vector<MoveFilter> vxFilter(2 * Team::SIZE, MoveFilter(moveKA, moveKB));
+	//std::vector<MoveFilter> vyFastFilter(2 * Team::SIZE, MoveFilter(fastMoveYA,fastMoveYB));
+	//std::vector<MoveFilter> vySlowFilter(2 * Team::SIZE, MoveFilter(slowMoveYA,slowMoveYB));
+	
+	//acc.length() should always be less than 1
 	void simulateWorld(PPlayer robot, Vector2 acc, double rotate, unsigned char kick, bool equalSpeed /*circular speed profile if true*/) {
 		if (acc.length() > 1) acc /= acc.length();
 		if (equalSpeed){
@@ -119,6 +131,8 @@ namespace {
 	void sendWireless(PPlayer robot, Vector2 error, double rotate, double dribble, double kick) {
 		Vector2 convertedError = World::get().field().convertCoordToMm(error);
 		
+		
+		
 		std::ostringstream oss;
 		oss << "AI" << robot->id();
 		const std::string &key = oss.str();
@@ -147,6 +161,8 @@ namespace {
 		//   Orientation = 270
 		//   World X -> -Robot X
 		//   World Y ->  Robot Y
+
+		
 		double rot = robot->orientation() * M_PI / 180.0;
 		Vector2 rotated(convertedError.x * std::sin(rot) + convertedError.y * std::cos(rot), convertedError.x * std::cos(rot) + convertedError.y * -std::sin(rot));
 		//Vector2 mea(robot->velocity());
@@ -155,21 +171,28 @@ namespace {
 		//mrotate.y = World::get().field()->convertCoordToMm(mrotate.y) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
 
 		Glib::RefPtr<XBeeBot> bot = XBeeBotSet::instance()[index];
-		bot->vx(rotated.x / MAX_SP_VX * 0.5);
-		bot->vy(rotated.y / MAX_SP_VY * 0.5);
-		
-		//bot->vx(vxFilter[robot->id()].process( rotated.x) / MAX_SP_VX);
-		//bot->vy(vyFilter[robot->id()].process( rotated.y) / MAX_SP_VY);
-		// bot->vx(0.0);
-		// bot->vy(0.0);
-		
-		double diff;
 
+		bot->vx(vxFilter[robot->id()].process( rotated.x ) / MAX_SP_VX);
+		bot->vy(vyFilter[robot->id()].process( rotated.y ) / MAX_SP_VY);
+		
+		//bot->vx(rotated.x / MAX_SP_VX * 0.5);
+		//bot->vy(rotated.y / MAX_SP_VY * 0.5);
 
-		diff = rotate - robot->orientation();
+		
+		double diff = rotate - robot->orientation();
 		while (diff >= 180)  diff -= 360;
 		while (diff <= -180) diff += 360;
 		bot->vt(rotFilter[robot->id()].process(diff / 180.0 * M_PI) / MAX_SP_VT);
+		
+		
+		//bot->vt(0);
+		/*if (robot->id() == 0) {
+			Vector2 position = World::get().field()->convertMmToCoord(robot->position());
+			std::cout << "" << position.x << "\t" << position.y << "\t" << robot->orientation() << std::endl;
+			//bot->vt(0);
+			bot->vx(-0.1);
+			bot->vy(0);
+		}*/
 		
 		//double out = rotFilter[robot->id()].process(-diff / 180.0 * M_PI) / MAX_SP_VT;
 		//bot->vt(out);
@@ -208,13 +231,13 @@ void RobotController::setSimulation(bool sim) {
 void RobotController::sendCommand(PPlayer robot, Vector2 acc, double rotate, unsigned char dribble, unsigned char kick) {
 	// Cap magnitude of acc.
 	Vector2 error = acc - robot->position();
-	if(error.length() > World::get().field().convertMmToCoord(1000))
-		error = error / error.length() * World::get().field().convertMmToCoord(1000);
-
+	if(error.length() > World::get().field().convertMmToCoord(MAX_DIST))
+		error = error / error.length() * World::get().field().convertMmToCoord(MAX_DIST);
+	
 	robot->requestedVelocity(error);
 
 	if (simulation)
-		simulateWorld(robot, error, rotate, kick, false);
+		simulateWorld(robot, error/World::get().field().convertMmToCoord(MAX_DIST), rotate, kick, false);
 	else
 		sendWireless(robot, error, rotate, dribble, kick);
 }

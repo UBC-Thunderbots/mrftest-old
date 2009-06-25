@@ -45,10 +45,10 @@ bool CentralAnalyzingUnit::checkVector(Vector2 rayOrigin, Vector2 rayEnd, PPlaye
 	const Field &field = World::get().field();
 	
 	// If the robot is not allowed close to the ball, consider its radius an obstacle:
-	if (!entity->allowedInside()) {
+	/*if (!entity->allowedInside()) {
 		//initially only considering one frame ahead, should be possible to check certain amounts depending on how long the vector is
 		Vector2 circlePos = World::get().ball().position();
-		double circleRadius = field.convertMmToCoord(800);
+		double circleRadius = field.convertMmToCoord(1000);
 		
 		Vector2 circleDiff1 = circlePos - rayOrigin1;
 		Vector2 circleDiff2 = circlePos - rayOrigin2;
@@ -59,21 +59,21 @@ bool CentralAnalyzingUnit::checkVector(Vector2 rayOrigin, Vector2 rayEnd, PPlaye
 			Vector2 goalPos;
 			if (entity->team().side()) goalPos = Vector2(field.east(), field.centerCircle().y);
 			else goalPos = Vector2(field.west(), field.centerCircle().y);
-			double goalRadius = field.convertMmToCoord(800);	
+			double goalRadius = field.convertMmToCoord(1000);	
 
 			Vector2 goalDiff1 = goalPos - rayOrigin1;
 			Vector2 goalDiff2 = goalPos - rayOrigin2;
 			if (goalDiff1.length() <= goalRadius || goalDiff2.length() <= goalRadius) return true;
 			if (rayDiff.length() >= 1E-9 && goalDiff1.dot(rayDiff) > 0 && goalDiff2.dot(rayDiff) < 0 && (goalDiff1 - rayDiff*(goalDiff1.dot(rayDiff)/(rayDiff.length()*rayDiff.length()))).length() <= goalRadius) return true;
 		}
-	}
+	}*/
 	
 	return false;
 }
 
 PPlayer CentralAnalyzingUnit::closestRobot(PPlayer robot, TEAM team, bool includeGoalie) {
 	PPlayer closest;
-	double closestDist = 1000000000;
+	double closestDist = 10000000000.0;
 
 	const std::vector<PPlayer> &robots =
 		team == TEAM_ANY ? World::get().players() :

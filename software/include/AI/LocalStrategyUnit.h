@@ -24,6 +24,7 @@ private:
 	void dribble(PPlayer robot);
 	void move(PPlayer robot, Vector2 pos, double speed = 0); // speed is between 0 and 1 (0 = slow, 1 = fast)
 	void goalie(PPlayer robot);
+	void pivot(PPlayer robot, bool left);
 };
 
 #endif

@@ -5,6 +5,7 @@
 #include "AI/Strategies/DefenseStrategy.h"
 #include "AI/Strategies/ChaseStrategy.h"
 #include "AI/Strategies/CheaterStrategy.h"
+#include "AI/Strategies/LazyStrategy.h"
 #include "AI/AITeam.h"
 #include "datapool/World.h"
 
@@ -16,9 +17,9 @@ void DecisionUnit::update() {
 		return;
 	PStrategy strat;
 	if (team.index() == 0)
-		strat.reset(new DibsStrategy(team));
+		strat.reset(new ChaseStrategy(team));
 	else
-		strat.reset(new DibsStrategy(team));
+		strat.reset(new ChaseStrategy(team));
 	team.getCSU().strategy(strat);
 }
 

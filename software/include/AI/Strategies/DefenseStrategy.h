@@ -18,6 +18,9 @@ private:
 
 	void init();
 	void defense();
+
+	void nearDefense();
+	void farDefense();
 };
 
 #endif

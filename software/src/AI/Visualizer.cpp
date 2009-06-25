@@ -172,6 +172,21 @@ bool Visualizer::on_expose_event(GdkEventExpose *event) {
 			cr->set_source_rgba(0.0, 0.0, 0.0, 1.0);
 			cr->fill();
 
+			// draw to goal post
+			if(i == 1) {
+				cr->move_to(offsetX + scaling * player->position().x, offsetY + scaling * player->position().y);
+				cr->set_source_rgb(0.0, 1.0, 0.0);
+				cr->line_to(offsetX + scaling * field.westGoal().north.x, offsetY + scaling * field.westGoal().north.y);
+				cr->stroke();
+
+				cr->move_to(offsetX + scaling * player->position().x, offsetY + scaling * player->position().y);
+				cr->set_source_rgb(0.0, 1.0, 0.0);
+				cr->line_to(offsetX + scaling * field.westGoal().south.x, offsetY + scaling * field.westGoal().south.y);
+				cr->stroke();
+
+			}
+
+
 		}
 
 	return true;

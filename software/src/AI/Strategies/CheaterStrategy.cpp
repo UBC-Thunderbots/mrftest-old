@@ -121,56 +121,10 @@ void CheaterStrategy::goalie(PPlayer robot) {
 }
 
 void CheaterStrategy::attacker(PPlayer attacker, PPlayer supporter) {
-	/*
-	World &w = World::get();
-	Vector2 len = attacker->position();
-	if (team.side())
-		len -= w.field()->eastGoal().penalty;
-	else
-		len -= w.field()->westGoal().penalty;
-
-	if (attacker->hasBall() && len.length() < 100.0) {
-		attacker->plan(Plan::shoot);
-	} else if (attacker->hasBall() && attackerWaiting) {
-		attacker->plan(Plan::move);
-		attacker->destination(attacker->position());
-		waitingCounter++;
-		if (waitingCounter == 30){
-			waitingCounter = 0;
-			attackerWaiting = false;
-		}
-	} else if (attacker->hasBall()) {
-		attacker->plan(Plan::passer);
-		attacker->otherPlayer(supporter);
-		supporter->receivingPass(true);	
-	} else {
-		attacker->plan(Plan::shoot);
-		waitingCounter = 0;
-		attackerWaiting = true;
-	}*/
 	attacker->plan(Plan::chase);
 }
 
 void CheaterStrategy::supporter(PPlayer supporter, PPlayer attacker) {
-	
-	/*World &w = World::get();
-	PField field = w.field();
-
-	if (!attacker->hasBall()) {
-		supporter->plan(Plan::chase);
-	} else {
-		Vector2 pos = w.ball()->position();
-
-		Vector2 penalty; // The penalty point.
-		if (!team.side())
-			penalty = field.westGoal().penalty;
-		else
-			penalty = field.eastGoal().penalty;
-
-		// Move towards the goal:
-		supporter->plan(Plan::move);
-		supporter->destination(penalty);
-	}*/
 	supporter->plan(Plan::chase);
 }
 
@@ -189,9 +143,9 @@ void CheaterStrategy::defenderTop(PPlayer robot) {
 
 	Vector2 center; // The center position of the goal.
 	if (team.side())
-		center = Vector2(field.west(), field.height() / 2.0);
+		center = Vector2(field.west(), (field.westGoal().south.y + field.westGoal().north.y) / 2.0);
 	else
-		center = Vector2(field.east(), field.height() / 2.0);
+		center = Vector2(field.east(), (field.westGoal().south.y + field.westGoal().north.y) / 2.0);
 
 	Vector2 vec = pos - center; // Vector between the ball and the goal.
 
@@ -236,9 +190,9 @@ void CheaterStrategy::defenderBottom(PPlayer robot) {
 
 	Vector2 center; // The center position of the goal.
 	if (team.side())
-		center = Vector2(field.west(), field.height() / 2.0);
+		center = Vector2(field.west(), (field.westGoal().south.y + field.westGoal().north.y) / 2.0);
 	else
-		center = Vector2(field.east(), field.height() / 2.0);
+		center = Vector2(field.east(), (field.westGoal().south.y + field.westGoal().north.y) / 2.0);
 
 	Vector2 vec = pos - center; // Vector between the ball and the goal.
 

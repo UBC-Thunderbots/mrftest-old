@@ -185,9 +185,9 @@ void DibsStrategy::defenderTop(PPlayer robot) {
 
 	Vector2 center; // The center position of the goal.
 	if (team.side())
-		center = Vector2(field.west(), field.height() / 2.0);
+		center = Vector2(field.west(), (field.westGoal().south.y + field.westGoal().north.y) / 2.0);
 	else
-		center = Vector2(field.east(), field.height() / 2.0);
+		center = Vector2(field.east(), (field.westGoal().south.y + field.westGoal().north.y) / 2.0);
 
 	Vector2 vec = pos - center; // Vector between the ball and the goal.
 
@@ -232,9 +232,9 @@ void DibsStrategy::defenderBottom(PPlayer robot) {
 
 	Vector2 center; // The center position of the goal.
 	if (team.side())
-		center = Vector2(field.west(), field.height() / 2.0);
+		center = Vector2(field.west(), (field.westGoal().south.y + field.westGoal().north.y) / 2.0);
 	else
-		center = Vector2(field.east(), field.height() / 2.0);
+		center = Vector2(field.east(), (field.westGoal().south.y + field.westGoal().north.y) / 2.0);
 
 	Vector2 vec = pos - center; // Vector between the ball and the goal.
 
