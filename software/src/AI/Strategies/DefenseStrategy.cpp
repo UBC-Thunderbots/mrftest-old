@@ -125,8 +125,8 @@ void DefenseStrategy::nearDefense() {
 	const Goal &enemygoal = isWest ? field.eastGoal() : field.westGoal();
 	const double GoalieRadius = World::get().field().convertMmToCoord(GOALIE_RADIUS);
 
-	Vector2 goalpost1 = owngoal.north;
-	Vector2 goalpost2 = owngoal.south;
+	const Vector2 &goalpost1 = owngoal.north;
+	const Vector2 &goalpost2 = owngoal.south;
 	Vector2 goalpost = (goalpost1 + goalpost2) * 0.5;
 
 	// rank the enemies based on distance
@@ -167,7 +167,28 @@ void DefenseStrategy::nearDefense() {
 	goalie->destination(ray + goalpost);
 }
 
-void DefenseStrategy::assignDefenders(const Vector2* blockPosition, int n) {
+void DefenseStrategy::assignDefenders(Vector2* blockPosition, int n) {
+	const bool isWest = team.side();
+	const World &w = World::get();
+	const Field &field = w.field();
+	const Goal &owngoal = isWest ? field.westGoal() : field.eastGoal();
+	const Goal &enemygoal = isWest ? field.eastGoal() : field.westGoal();
+	const Vector2 &goalpost1 = owngoal.north;
+	const Vector2 &goalpost2 = owngoal.south;
+	Vector2 goalpost = (goalpost1 + goalpost2) * 0.5;
+
+	const double GoalieRadius = World::get().field().convertMmToCoord(GOALIE_RADIUS);
+	
+	// note we have to enforce the fact that defenders cannot stay too long in the defense area
+	for (unsigned int i = 0; i < n; i++) {
+		Vector2 ray = blockPosition[i] - goalpost;
+		if (ray.length() < GoalieRadius) {
+			ray /= ray.length();
+			ray *= GoalieRadius;
+		}
+		blockPosition[i] = ray + goalpost;
+	}
+
 	// assign N defenders to defend M nearest enemies
 	int assign[Team::SIZE], bestAssign[Team::SIZE];
 	double bestAssignScore = 1e99;
