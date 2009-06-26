@@ -83,7 +83,7 @@ namespace {
 
 		void update() {
 			if (!inited) {
-				ofs << "I 1 " << std::time(0) << '\n';
+				ofs << "\nI 1 " << std::time(0) << '\n';
 
 				ofs << 'R';
 				for (unsigned int i = 0; i < 2 * Team::SIZE; i++)
