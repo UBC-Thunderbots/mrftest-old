@@ -9,6 +9,9 @@
 #define F_CONTROLLER_ENABLED 1
 #define W_CONTROLLER_ENABLED 1
 
+// The scaling factor applied to VT setpoint when T controller is disabled or gyro is absent.
+#define VT_CONTROLLERLESS_SCALE (41.0 / 57.0)
+
 // Allows ignoring wireless data and using a locally-configured test instead.
 #define TEST_MODE 0
 

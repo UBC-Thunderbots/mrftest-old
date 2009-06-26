@@ -157,9 +157,12 @@ static void loop_timed(void) {
 	vy_actuator = vy_filtered_setpoint;
 
 #if T_CONTROLLER_ENABLED
-	vt_actuator = filter_process(&vt_controller, vt_setpoint - vt);
+	if (gyro_present())
+		vt_actuator = filter_process(&vt_controller, vt_setpoint - vt);
+	else
+		vt_actuator = vt_setpoint * VT_CONTROLLERLESS_SCALE;
 #else
-	vt_actuator = vt_setpoint;
+	vt_actuator = vt_setpoint * VT_CONTROLLERLESS_SCALE;
 #endif
 
 	// Feed forward corrects theta actuator and uses X actuator as input.
