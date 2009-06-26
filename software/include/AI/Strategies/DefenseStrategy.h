@@ -15,6 +15,8 @@ public:
 
 private:
 	bool isUsed[5];
+	bool attackerWaiting;
+	unsigned int oldAttacker;
 
 	void init();
 	void defense();
@@ -25,6 +27,11 @@ private:
 	// n! runtime
 	// will modify blockPosition if the distance is too close to goal radius
 	void assignDefenders(Vector2* blockPosition, int n);
+	
+	// copied from Dibbs strategy
+	void goalie(PPlayer robot);
+	void attacker(PPlayer attacker, PPlayer supporter);
+	void supporter(PPlayer attacker, PPlayer supporter);
 };
 
 #endif
