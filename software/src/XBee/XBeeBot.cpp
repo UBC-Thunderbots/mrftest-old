@@ -32,9 +32,12 @@
 #define MOTOR_BATTERY_CONVERSION_FACTOR 0.01
 
 // Flags in the transmitted packet.
-#define FLAG_RUN    0
-#define FLAG_REBOOT 1
-#define FLAG_REPORT 2
+#define TXFLAG_RUN    0
+#define TXFLAG_REBOOT 1
+#define TXFLAG_REPORT 2
+
+// Flags in the received packet.
+#define RXFLAG_HAS_GYRO 0
 
 // The PAN ID.
 #define PAN_ID 0x7495
@@ -70,9 +73,10 @@ namespace {
 	// The format of an inbound packet from robot to host.
 	//
 	struct RXData {
-		unsigned char vGreen[2];
-		unsigned char vMotor[2];
-		unsigned char firmware[2];
+		uint8_t vGreen[2];
+		uint8_t vMotor[2];
+		uint8_t firmware[2];
+		uint8_t flags;
 	} __attribute__((__packed__));
 
 	//
@@ -178,6 +182,10 @@ Glib::PropertyProxy<unsigned int> XBeeBot::property_firmwareVersion() {
 	return prop_firmwareVersion.get_proxy();
 }
 
+Glib::PropertyProxy<bool> XBeeBot::property_hasGyro() {
+	return prop_hasGyro.get_proxy();
+}
+
 void XBeeBot::vx(double vx) {
 	vx_ = clamp(vx, -1.0, 1.0) * 127;
 }
@@ -202,25 +210,25 @@ void XBeeBot::kick(double strength) {
 }
 
 bool XBeeBot::run() const {
-	return !!(flags & (1 << FLAG_RUN));
+	return !!(txFlags & (1 << TXFLAG_RUN));
 }
 
 void XBeeBot::run(bool run) {
 	if (run)
-		flags |= (1 << FLAG_RUN);
+		txFlags |= (1 << TXFLAG_RUN);
 	else
-		flags &= ~(1 << FLAG_RUN);
+		txFlags &= ~(1 << TXFLAG_RUN);
 }
 
 void XBeeBot::reboot() {
-	if (!(flags & (1 << FLAG_REBOOT))) {
+	if (!(txFlags & (1 << TXFLAG_REBOOT))) {
 		kick_ = 0;
-		flags |= (1 << FLAG_REBOOT);
+		txFlags |= (1 << TXFLAG_REBOOT);
 		Glib::signal_timeout().connect(sigc::mem_fun(*this, &XBeeBot::clearReboot), REBOOT_TIME);
 	}
 }
 
-XBeeBot::XBeeBot(uint64_t address, XBeeModem &modem, XBeeBotSet &botSet) : Glib::ObjectBase(typeid(XBeeBot)), address(address), modem(modem), botSet(botSet), prop_commStatus(*this, "commStatus", STATUS_NO_ACK), prop_greenVoltage(*this, "greenVoltage", 0), prop_motorVoltage(*this, "motorVoltage", 0), prop_firmwareVersion(*this, "firmwareVersion", 0), vx_(0), vy_(0), vt_(0), dribbler_(0), kick_(0), flags(0), lastFrameNum(0), waitingForReport(false), waitingForResponse(false), errorCount(0), noReportCount(0) {
+XBeeBot::XBeeBot(uint64_t address, XBeeModem &modem, XBeeBotSet &botSet) : Glib::ObjectBase(typeid(XBeeBot)), address(address), modem(modem), botSet(botSet), prop_commStatus(*this, "commStatus", STATUS_NO_ACK), prop_greenVoltage(*this, "greenVoltage", 0), prop_motorVoltage(*this, "motorVoltage", 0), prop_firmwareVersion(*this, "firmwareVersion", 0), prop_hasGyro(*this, "hasGyro", false), vx_(0), vy_(0), vt_(0), dribbler_(0), kick_(0), txFlags(0), lastFrameNum(0), waitingForReport(false), waitingForResponse(false), errorCount(0), noReportCount(0) {
 	modem.connect_packet_received(XBeeModem::PACKET_TXSTATUS, sigc::mem_fun(*this, &XBeeBot::transmitResponse));
 	modem.connect_packet_received(XBeeModem::PACKET_RX64, sigc::mem_fun(*this, &XBeeBot::receiveData));
 }
@@ -231,7 +239,7 @@ bool XBeeBot::clearKick() {
 }
 
 bool XBeeBot::clearReboot() {
-	flags &= ~(1 << FLAG_REBOOT);
+	txFlags &= ~(1 << TXFLAG_REBOOT);
 	return false;
 }
 
@@ -325,6 +333,7 @@ void XBeeBot::receiveData(const void *payload, std::size_t length) {
 			prop_greenVoltage = (pkt->data.vGreen[0] * 256 + pkt->data.vGreen[1]) * GREEN_BATTERY_CONVERSION_FACTOR;
 			prop_motorVoltage = (pkt->data.vMotor[0] * 256 + pkt->data.vMotor[1]) * MOTOR_BATTERY_CONVERSION_FACTOR;
 			prop_firmwareVersion = pkt->data.firmware[0] * 256 + pkt->data.firmware[1];
+			prop_hasGyro = !!(pkt->data.flags & (1U << RXFLAG_HAS_GYRO));
 
 			if (waitingForReport) {
 				// We have now received the report. Mark it as such.
@@ -380,7 +389,7 @@ void XBeeBot::sendPacket(bool requestReport) {
 	pkt.data.vt = vt_;
 	pkt.data.dribble = dribbler_;
 	pkt.data.kick = kick_;
-	pkt.data.flags = flags | (requestReport ? (1 << FLAG_REPORT) : 0);
+	pkt.data.flags = txFlags | (requestReport ? (1 << TXFLAG_REPORT) : 0);
 
 	// Send the packet to the modem.
 	modem.send(XBeeModem::PACKET_TX64, &pkt, sizeof(pkt));

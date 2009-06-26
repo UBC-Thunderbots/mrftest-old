@@ -182,9 +182,24 @@ namespace {
 		}
 	};
 
+	class HasGyro : public Gtk::CheckButton, public virtual sigc::trackable {
+	public:
+		HasGyro(Glib::RefPtr<XBeeBot> bot) : bot(bot) {
+			set_sensitive(false);
+			bot->property_hasGyro().signal_changed().connect(sigc::mem_fun(*this, &HasGyro::onChange));
+		}
+
+	private:
+		Glib::RefPtr<XBeeBot> bot;
+
+		void onChange() {
+			set_active(bot->property_hasGyro());
+		}
+	};
+
 	class ControlPanelWindow : public Gtk::Window {
 	public:
-		ControlPanelWindow() : tbl(7, XBeeBotSet::instance().size() + 1, false) {
+		ControlPanelWindow() : tbl(8, XBeeBotSet::instance().size() + 1, false) {
 			set_title("Thunderbots Control Panel");
 
 			robotIdLabel.set_text("Robot:");
@@ -194,6 +209,7 @@ namespace {
 			greenLabel.set_text("Green Battery:");
 			motorLabel.set_text("Motor Battery:");
 			firmwareLabel.set_text("Firmware:");
+			gyroLabel.set_text("Has Gyro:");
 
 			tbl.attach(robotIdLabel,    0, 1, 0, 1);
 			tbl.attach(commStatusLabel, 0, 1, 1, 2);
@@ -202,6 +218,7 @@ namespace {
 			tbl.attach(greenLabel,      0, 1, 4, 5);
 			tbl.attach(motorLabel,      0, 1, 5, 6);
 			tbl.attach(firmwareLabel,   0, 1, 6, 7);
+			tbl.attach(gyroLabel,       0, 1, 7, 8);
 
 			for (unsigned int i = 0; i < XBeeBotSet::instance().size(); i++) {
 				Glib::RefPtr<XBeeBot> bot = XBeeBotSet::instance()[i];
@@ -216,6 +233,7 @@ namespace {
 				tbl.attach(*Gtk::manage(new Voltage(bot->property_greenVoltage(), GREEN_BATTERY_MIN_VOLTAGE, GREEN_BATTERY_MAX_VOLTAGE, GREEN_BATTERY_WARNING_VOLTAGE)), i + 1, i + 2, 4, 5);
 				tbl.attach(*Gtk::manage(new Voltage(bot->property_motorVoltage(), MOTOR_BATTERY_MIN_VOLTAGE, MOTOR_BATTERY_MAX_VOLTAGE, MOTOR_BATTERY_WARNING_VOLTAGE)), i + 1, i + 2, 5, 6);
 				tbl.attach(*Gtk::manage(new FirmwareVersion(bot)), i + 1, i + 2, 6, 7);
+				tbl.attach(*Gtk::manage(new HasGyro(bot)), i + 1, i + 2, 7, 8);
 			}
 
 			add(tbl);
@@ -234,7 +252,7 @@ namespace {
 
 	private:
 		Gtk::Table tbl;
-		Gtk::Label robotIdLabel, commStatusLabel, runLabel, rebootLabel, greenLabel, motorLabel, firmwareLabel;
+		Gtk::Label robotIdLabel, commStatusLabel, runLabel, rebootLabel, greenLabel, motorLabel, firmwareLabel, gyroLabel;
 	};
 }
 

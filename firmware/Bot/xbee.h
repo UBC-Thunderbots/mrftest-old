@@ -16,10 +16,15 @@ struct xbee_rxdata {
 	uint8_t flags;
 } __attribute__((packed));
 
+enum xbee_txflags {
+	XBEE_TXFLAG_HAS_GYRO = 0,
+};
+
 struct xbee_txdata {
 	uint8_t v_green[2];
 	uint8_t v_motor[2];
 	uint8_t firmware_version[2];
+	uint8_t flags;
 } __attribute__((packed));
 
 void xbee_init(void);

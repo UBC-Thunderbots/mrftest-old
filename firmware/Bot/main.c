@@ -230,6 +230,10 @@ static void loop_untimed(void) {
 		xbee_txdata.firmware_version[0] = FIRMWARE_REVISION / 256;
 		xbee_txdata.firmware_version[1] = FIRMWARE_REVISION % 256;
 
+		xbee_txdata.flags = 0;
+		if (gyro_present())
+			xbee_txdata.flags |= _BV(XBEE_TXFLAG_HAS_GYRO);
+
 		xbee_send();
 		xbee_rxdata.flags &= ~_BV(XBEE_RXFLAG_REPORT);
 	}

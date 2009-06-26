@@ -48,6 +48,11 @@ public:
 	Glib::PropertyProxy<unsigned int> property_firmwareVersion();
 
 	//
+	// Whether or not the robot has a gyroscope installed.
+	//
+	Glib::PropertyProxy<bool> property_hasGyro();
+
+	//
 	// Sets the VX setpoint for this bot.
 	//
 	void vx(double vx);
@@ -95,8 +100,9 @@ private:
 	Glib::Property<double> prop_greenVoltage;
 	Glib::Property<double> prop_motorVoltage;
 	Glib::Property<unsigned int> prop_firmwareVersion;
+	Glib::Property<bool> prop_hasGyro;
 	int8_t vx_, vy_, vt_;
-	uint8_t dribbler_, kick_, flags;
+	uint8_t dribbler_, kick_, txFlags;
 	uint8_t lastFrameNum;
 	sigc::connection timeoutConnection;
 	bool waitingForReport, waitingForResponse;
