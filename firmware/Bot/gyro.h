@@ -11,5 +11,10 @@ void gyro_init(void);
  */
 double gyro_read(void);
 
+/*
+ * Checks whether a gyroscope is present.
+ */
+uint8_t gyro_present(void);
+
 #endif
 
