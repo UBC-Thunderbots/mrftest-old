@@ -1,3 +1,4 @@
+#include "datapool/Config.h"
 #include "datapool/RefBox.h"
 #include "datapool/World.h"
 #include "Log/Log.h"
@@ -80,6 +81,17 @@ bool RefBox::onIO(Glib::IOCondition cond) {
 	GameStatePacket pkt;
 	ssize_t ret = recv(fd, &pkt, sizeof(pkt), MSG_DONTWAIT | MSG_TRUNC);
 	if (ret == sizeof(pkt)) {
+		const std::string &friendlyColour = Config::instance().getString("Game", "FriendlyColour");
+		if (friendlyColour == "Yellow") {
+			World::get().friendlyTeam().score(pkt.goals_yellow);
+			World::get().enemyTeam().score(pkt.goals_blue);
+		} else if (friendlyColour == "Blue") {
+			World::get().friendlyTeam().score(pkt.goals_blue);
+			World::get().enemyTeam().score(pkt.goals_yellow);
+		} else {
+			Log::log(Log::LEVEL_ERROR, "RefBox") << "Illegal config directive [Game]/FriendlyColour, should be Blue or Yellow.\n";
+		}
+
 		if (pkt.cmd_counter != last_count) {
 			last_count = pkt.cmd_counter;
 			switch (pkt.cmd) {
