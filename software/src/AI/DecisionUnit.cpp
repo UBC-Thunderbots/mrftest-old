@@ -19,7 +19,7 @@ void DecisionUnit::update() {
 	if (team.index() == 0)
 		strat.reset(new ChaseStrategy(team));
 	else
-		strat.reset(new ChaseStrategy(team));
+		strat.reset(new DefenseStrategy(team));
 	team.getCSU().strategy(strat);
 }
 

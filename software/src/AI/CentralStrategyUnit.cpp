@@ -25,7 +25,7 @@ Vector2 ballpos;
 void CentralStrategyUnit::update() {
 	for (unsigned int id = 0; id < Team::SIZE; id++) {
 		PPlayer robot = team.player(id);
-		if (World::get().playType() == PlayType::play/* || World::get().playType() == PlayType::prepareKickoff*/)
+		if (World::get().playType() == PlayType::play || World::get().playType() == PlayType::prepareKickoff)
 			robot->allowedInside(true);
 		else
 			robot->allowedInside(false);
@@ -35,7 +35,7 @@ void CentralStrategyUnit::update() {
 		case PlayType::start:    		startingPositions(); break;
 		case PlayType::stop:			strat->update(); break;
 		case PlayType::play:     		strat->update(); break;
-		case PlayType::directFreeKick:  directFreeKick(); break;
+		case PlayType::directFreeKick:  indirectFreeKick(); break;//directFreeKick(); break;
 		case PlayType::indirectFreeKick:indirectFreeKick(); break;
 		case PlayType::preparePenaltyKick:  preparePenaltyKick(); break;
 		case PlayType::penaltyKick:		penaltyKick(); break;
@@ -69,9 +69,19 @@ void CentralStrategyUnit::startingPositions() {
 		{{0.9754, 0.5}, {0.55, 0.35}, {0.55, 0.65}, {0.75, 0.5}, {0.62, 0.5}},
 		{{0.0246, 0.5}, {0.45, 0.35}, {0.45, 0.65}, {0.25, 0.5}, {0.38, 0.5}}
 	};
+	static const double SMULTIPLES[2][5][2] = {
+		{{0.9754, 0.5}, {0.53, 0.45}, {0.53, 0.55}, {0.75, 0.5}, {0.62, 0.5}},
+		{{0.0246, 0.5}, {0.47, 0.45}, {0.47, 0.55}, {0.25, 0.5}, {0.38, 0.5}}
+	};
+
 	for (unsigned int i = 0; i < Team::SIZE; i++) {
 		team.player(i)->plan(Plan::move);
-		team.player(i)->destination(Vector2(widthOffset + fieldWidth * MULTIPLES[team.side()][i][0], heightOffset + fieldHeight * MULTIPLES[team.side()][i][1]));
+		if (team.specialPossession()){
+			team.player(i)->destination(Vector2(widthOffset + fieldWidth * SMULTIPLES[team.side()][i][0], heightOffset + fieldHeight * SMULTIPLES[team.side()][i][1]));
+		}
+		else{
+			team.player(i)->destination(Vector2(widthOffset + fieldWidth * MULTIPLES[team.side()][i][0], heightOffset + fieldHeight * MULTIPLES[team.side()][i][1]));
+		}
 		team.player(i)->hasBall(false);
 	}
 }
@@ -292,9 +302,12 @@ void CentralStrategyUnit::kickoff() {
 		return;	
 	}
 	if (team.specialPossession()) {
-		
+		team.player(1)->plan(Plan::chase);
+		team.player(1)->allowedInside(true);
+		team.player(2)->plan(Plan::chase);
+		team.player(2)->allowedInside(true);
 		// Find closest player to ball.
-		double len = field.width() * 2.0;
+		/*double len = field.width() * 2.0;
 		unsigned int closest = 0;
 		for (unsigned int id = 1; id < Team::SIZE; id++) {
 			Vector2 dis = w.ball().position() - team.player(id)->position();
@@ -316,7 +329,7 @@ void CentralStrategyUnit::kickoff() {
 		kicker->plan(Plan::passer);
 		kicker->allowedInside(true);
 		kicker->otherPlayer(passee);
-		passee->receivingPass(true);
+		passee->receivingPass(true);*/
 	}
 }
 
@@ -373,6 +386,30 @@ void CentralStrategyUnit::indirectFreeKick() {
 		}
 		PPlayer kicker = team.player(closest);
 		
+		len = field.width() * 2.0;
+		unsigned int closest2 = 0;
+		for (unsigned int id = 1; id < Team::SIZE; id++) {
+			Vector2 dis = w.ball().position() - team.player(id)->position();
+			if (dis.length() < len && id != closest) {
+				closest2 = id;
+				len = dis.length();
+			}
+		}
+		
+		team.player(closest)->plan(Plan::chase);
+		team.player(closest)->allowedInside(true);
+		team.player(closest)->plan(Plan::chase);
+		team.player(closest)->allowedInside(true);
+		
+		/*kicker->receivingPass(false);
+		for (unsigned int id = 1; id < Team::SIZE; id++) {
+			if (id != closest){
+				team.player(id)->plan(Plan::move);
+				team.player(id)->allowedInside(false);
+			}
+		}
+		Vector2 dis = w.ball().position() - kicker->position();
+		
 		PPlayer passee = CentralAnalyzingUnit::closestRobot(kicker, CentralAnalyzingUnit::TEAM_SAME, false);
 
 		for (unsigned int i = 0; i < Team::SIZE; i++) {
@@ -380,11 +417,25 @@ void CentralStrategyUnit::indirectFreeKick() {
 			if (p->receivingPass())
 				passee = p;
 		}
+		double angle = (passee->position() - w.ball().position()).angle();
+		double currAngle = (w.ball().position() - kicker->position()).angle();
+		if (std::fabs(currAngle - angle) > 25){
+			if (dis.length() < field.convertMmToCoord(150.0)){
+				kicker->plan(Plan::move);
+				kicker->destination(w.ball().position() - Vector2(currAngle)*field.convertMmToCoord(300.0));
+				return;
+			}
+			else{
+				kicker->plan(Plan::move);
+				kicker->destination(w.ball().position() - Vector2(angle)*field.convertMmToCoord(300.0));
+				return;
+			}
+		}
 		
 		kicker->plan(Plan::passer);
 		kicker->allowedInside(true);
 		kicker->otherPlayer(passee);
-		passee->receivingPass(true);
+		passee->receivingPass(true);*/
 	}
 }
 

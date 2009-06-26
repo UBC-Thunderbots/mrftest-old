@@ -12,6 +12,8 @@
 #include <cmath>
 #include <stdint.h>
 
+#define ANGLE_THRESHOLD 15 //Terence's magic constant
+
 LocalStrategyUnit::LocalStrategyUnit(AITeam &team) : team(team) {
 }
 
@@ -49,19 +51,27 @@ void LocalStrategyUnit::update() {
 	}
 }
 
-void LocalStrategyUnit::pivot(PPlayer robot, bool left)
-{
-	double sign = (left ? 1.0 : -1.0);
-	//Vector2 center = robot->position() + World::get().field()->convertMmToCoord(120) * Vector2(robot->orientation());
-	//Vector2 distance = robot->position() - center;
-	//Vector2 destination = Vector2(distance.angle() + 30 * sign) * World::get().field()->convertMmToCoord(200) + center;
-	//Vector2 orientation = center - destination;
-	Vector2 center = robot->position() + World::get().field().convertMmToCoord(120) * Vector2(robot->orientation());
+// added by Cedric plus Terence
+bool LocalStrategyUnit::pivot(PPlayer robot, double angle, Vector2 center){
 	Vector2 distance = center - robot->position();
-	Vector2 destination = Vector2(distance.angle() - 145 * sign) * World::get().field().convertMmToCoord(200) + robot->position();
-	Vector2 orientation = center - destination;
-	double angle = orientation.angle();
-	RobotController::sendCommand(robot, destination, angle, 255, 0);
+	double diffAngle = distance.angle() - angle;
+	while (diffAngle >= 180)  diffAngle -= 360;
+	while (diffAngle <= -180) diffAngle += 360;
+	bool left;
+	if (diffAngle > ANGLE_THRESHOLD) {
+		left = false;
+	}
+	else if (diffAngle < -ANGLE_THRESHOLD) {
+		left = true;
+	}
+	else return false;
+	double sign = (left ? 1.0 : -1.0);
+	Vector2 destination = Vector2(distance.angle() - 90 * sign) * World::get().field().convertMmToCoord(200) + robot->position();
+	RobotController::sendCommand(robot, destination, (center - (3*robot->position() + destination)/4.0).angle(), 255, 0);
+	//Vector2 orientation = center - destination;
+	//RobotController::sendCommand(robot, destination, orientation.angle(), 255, 0);
+	return true;
+
 }
 
 void LocalStrategyUnit::stop(PPlayer robot) {
@@ -78,25 +88,28 @@ void LocalStrategyUnit::pass(PPlayer passer) {
 		chaseBall(passer);
 		return;
 	}
-
-	if (passee->predictedVelocity().length() > 0.5) { // Wait until the passee is not moving:
-		Vector2 vec = passee->position() - passer->position();
-		double angle = vec.angle();
-		// Orient towards the passee:
-		RobotController::sendCommand(passer, passer->position(), angle, 255, 0);
-		return;	
-	}
-
+	
 	Vector2 des = passee->position();
 	Vector2 pos = passer->position();
 
-	if (!CentralAnalyzingUnit::checkVector(pos, des, passer, 1, passee)) {
+	if (CentralAnalyzingUnit::checkVector(pos, des, passer, 1, passee)) {
+		// Find a clear path:
+		move(passer, des);
+		return;
+	} 
+
+	else if (passee->predictedVelocity().length() > 0.5 || std::fabs((des-pos).angle() - passer->orientation()) > ANGLE_THRESHOLD) { // Wait until the passee is not moving, and until the passer is at the right angle
+		Vector2 vec = passee->position() - passer->position();
+		double angle = vec.angle();
+		// Orient towards the passee:
+		pivot(passer, angle, World::get().ball().position());
+		return;	
+	}
+
+	else {
 		// The path is clear, so pass the ball:
 		double angle = (des - pos).angle();
 		RobotController::sendCommand(passer, passer->position(), angle, 255, 255);
-	} else {
-		// Find a clear path:
-		move(passer, des);
 	}
 }
 
@@ -145,7 +158,7 @@ void LocalStrategyUnit::chaseBall(PPlayer robot) {
 		// Chases ball, using move function
 		
 		Vector2 v = World::get().ball().position() - robot->position();
-		Vector2 m_v = v - Vector2(v.angle()) * World::get().field().convertMmToCoord(80);
+		Vector2 m_v = v - Vector2(v.angle()) * World::get().field().convertMmToCoord(70);
 		
 		move(robot, robot->position() + m_v);
 	}
@@ -274,18 +287,8 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos, double speed) {
 		angle = vec.angle();
 	} else if (robot->hasBall()) {		
 		// Orient towards the destination. If the robot's orientation is not correct, pivot around the ball.
-		angle = diff.angle();
-		double diffAngle = robot->orientation() - angle;
-		while (diffAngle >= 180)  diffAngle -= 360;
-		while (diffAngle <= -180) diffAngle += 360;
-		if (diffAngle > 20) {
-			pivot(robot, false);
-			return;
-		}
-		else if (diffAngle < -20) {
-			pivot(robot, true);
-			return;
-		}
+		if (pivot(robot, diff.angle(), World::get().ball().position())) return;
+
 		
 	} else {
 		// Always orient towards the ball:
@@ -342,7 +345,7 @@ void LocalStrategyUnit::shoot(PPlayer robot) {
 
 	double angle = orientation.angle();
 	
-	if (std::fabs(robot->orientation() - angle) > 5) {
+	if (std::fabs(robot->orientation() - angle) > ANGLE_THRESHOLD) {
 		// Get into the correct orientation for the shot:
 		move(robot, des); // Goal is too far away, so move closer.
 		return;

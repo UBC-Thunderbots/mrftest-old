@@ -11,7 +11,9 @@ ChaseStrategy::ChaseStrategy(AITeam &team) : Strategy(team) {
 }
 
 void ChaseStrategy::update() {	
-	team.player(0)->plan(Plan::chase);
+	/*team.player(4)->plan(Plan::passer);
+	team.player(4)->otherPlayer(team.player(1));	
+	team.player(1)->receivingPass(true);*/
 	for(int i = 1; i < 5; i++)
 		team.player(i)->plan(Plan::chase);
 }
