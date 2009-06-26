@@ -67,7 +67,7 @@ namespace {
 
 	class PositionLogger : public virtual Noncopyable, public Updateable {
 	public:
-		PositionLogger() : lastSeenPlayType(PlayType::noType), inited(false) {
+		PositionLogger() : lastSeenPlayType(PlayType::noType), lastSeenFriendlyScore(0), lastSeenEnemyScore(0), inited(false) {
 			ofs.exceptions(std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
 
 			const std::string &homeDir = Glib::getenv("HOME");
@@ -105,6 +105,12 @@ namespace {
 				ofs << '\n';
 			}
 
+			if (World::get().friendlyTeam().score() != lastSeenFriendlyScore || World::get().enemyTeam().score() != lastSeenEnemyScore) {
+				ofs << "S " << World::get().friendlyTeam().score() << ' ' << World::get().enemyTeam().score() << '\n';
+				lastSeenFriendlyScore = World::get().friendlyTeam().score();
+				lastSeenEnemyScore = World::get().enemyTeam().score();
+			}
+
 			ofs << "D";
 			for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
 				PPlayer pl = World::get().player(i);
@@ -116,6 +122,7 @@ namespace {
 	private:
 		Field lastSeenField;
 		PlayType::Type lastSeenPlayType;
+		unsigned int lastSeenFriendlyScore, lastSeenEnemyScore;
 		std::ofstream ofs;
 		bool inited;
 	};
