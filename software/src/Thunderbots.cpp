@@ -67,7 +67,7 @@ namespace {
 
 	class PositionLogger : public virtual Noncopyable, public Updateable {
 	public:
-		PositionLogger() : inited(false) {
+		PositionLogger() : lastSeenPlayType(PlayType::noType), inited(false) {
 			ofs.exceptions(std::ios_base::eofbit | std::ios_base::badbit | std::ios_base::failbit);
 
 			const std::string &homeDir = Glib::getenv("HOME");
@@ -99,6 +99,12 @@ namespace {
 				lastSeenField = field;
 			}
 
+			if (World::get().playType() != lastSeenPlayType) {
+				ofs << "P " << World::get().playType();
+				lastSeenPlayType = World::get().playType();
+				ofs << '\n';
+			}
+
 			ofs << "D";
 			for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
 				PPlayer pl = World::get().player(i);
@@ -109,6 +115,7 @@ namespace {
 
 	private:
 		Field lastSeenField;
+		PlayType::Type lastSeenPlayType;
 		std::ofstream ofs;
 		bool inited;
 	};
