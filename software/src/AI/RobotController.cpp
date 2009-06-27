@@ -19,7 +19,7 @@
 #define MAX_SP_AX 4000.0 // acceleration sideways
 #define MAX_SP_AY 10000.0 // acceleration forward
 #define MAX_SP_VT   4.0
-#define MAX_DIST 1000.0
+#define MAX_DIST 500.0
 const double EPS = 1E-9;
 
 namespace {
@@ -233,6 +233,8 @@ void RobotController::sendCommand(PPlayer robot, Vector2 acc, double rotate, uns
 	Vector2 error = acc - robot->position();
 	if(error.length() > World::get().field().convertMmToCoord(MAX_DIST))
 		error = error / error.length() * World::get().field().convertMmToCoord(MAX_DIST);
+		
+	error *= 2.0;
 	
 	robot->requestedVelocity(error);
 
