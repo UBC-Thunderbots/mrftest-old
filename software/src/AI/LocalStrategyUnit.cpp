@@ -338,7 +338,7 @@ void LocalStrategyUnit::shoot(PPlayer robot) {
 	// A clear shot has been found:
 	Vector2 orientation = des - pos;
 
-	if (orientation.length() > field.width() / 5.0) {
+	if (orientation.length() > field.width() / 2.0) {
 		move(robot, des); // Goal is too far away, so move closer.
 		return;
 	}
