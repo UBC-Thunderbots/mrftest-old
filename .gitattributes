@@ -47,6 +47,7 @@ software/include/AI/Strategies/DefenseStrategy.h -text
 software/include/AI/Strategies/DibsStrategy.h -text
 software/include/AI/Strategies/LazyStrategy.h -text
 software/include/AI/Strategies/OffensiveStrategy.h -text
+software/include/AI/Strategies/ShootingChallengeStrategy.h -text
 software/include/AI/Strategies/Strategy.h -text
 software/include/AI/Strategies/TestStrategy.h -text
 software/include/AI/Visualizer.h -text
@@ -89,6 +90,7 @@ software/src/AI/Strategies/DefenseStrategy.cpp -text
 software/src/AI/Strategies/DibsStrategy.cpp -text
 software/src/AI/Strategies/LazyStrategy.cpp -text
 software/src/AI/Strategies/OffensiveStrategy.cpp -text
+software/src/AI/Strategies/ShootingChallengeStrategy.cpp -text
 software/src/AI/Strategies/TestStrategy.cpp -text
 software/src/AI/Visualizer.cpp -text
 software/src/CMakeLists.txt -text

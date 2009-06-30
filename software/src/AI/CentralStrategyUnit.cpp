@@ -4,12 +4,6 @@
 #include "datapool/Plan.h"
 #include "datapool/PlayType.h"
 #include "datapool/World.h"
-#include "AI/Strategies/TestStrategy.h"
-#include "AI/Strategies/OffensiveStrategy.h"
-#include "AI/Strategies/LazyStrategy.h"
-#include "AI/Strategies/DefenseStrategy.h"
-#include "AI/Strategies/DibsStrategy.h"
-#include "AI/Strategies/CheaterStrategy.h"
 
 #include <cassert>
 
