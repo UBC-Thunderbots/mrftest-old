@@ -6,7 +6,7 @@ PPlayer Player::create(Team &team, unsigned int id) {
 	return player;
 }
 
-Player::Player(Team &team, unsigned int id) : idx(id), orient(0), possession(false), receiving(false), tm(team) {
+Player::Player(Team &team, unsigned int id) : idx(id), orient(0), possession(false), receiving(false), tm(team), gyro(false) {
 }
 
 Plan::Behavior Player::plan() const {
@@ -107,5 +107,13 @@ void Player::requestedVelocity(const Vector2 &rv) {
 
 unsigned int Player::id() const {
 	return idx;
+}
+
+bool Player::canHazGyro() const {
+	return gyro;
+}
+
+void Player::canHazGyro(bool g) {
+	gyro = g;
 }
 

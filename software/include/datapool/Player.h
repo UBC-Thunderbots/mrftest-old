@@ -84,6 +84,12 @@ public:
 	//
 	unsigned int id() const;
 
+	//
+	// Whether or not this player can haz a gyro.
+	//
+	bool canHazGyro() const;
+	void canHazGyro(bool chg);
+
 private:
 	Player(Team &team, unsigned int id);
 
@@ -97,6 +103,7 @@ private:
 	PPlayer other;           //which player I'm passing to or guarding
 	Vector2 dest;            //where I'm trying to get to
 	Vector2 reqVelocity;     //the last requested velocity
+	bool gyro;               //whether this player can haz a gyro
 };
 
 #endif

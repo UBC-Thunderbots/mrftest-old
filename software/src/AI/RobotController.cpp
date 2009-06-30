@@ -162,6 +162,10 @@ namespace {
 		//   World X -> -Robot X
 		//   World Y ->  Robot Y
 
+		Glib::RefPtr<XBeeBot> bot = XBeeBotSet::instance()[index];
+
+		// Check whether this bot has a gyro.
+		robot->canHazGyro(bot->property_hasGyro());
 		
 		double rot = robot->orientation() * M_PI / 180.0;
 		Vector2 rotated(convertedError.x * std::sin(rot) + convertedError.y * std::cos(rot), convertedError.x * std::cos(rot) + convertedError.y * -std::sin(rot));
@@ -169,8 +173,6 @@ namespace {
 		//Vector2 mrotate(mea.x * std::sin(rot) + mea.y * std::cos(rot), mea.x * std::cos(rot) + mea.y * -std::sin(rot));
 		//mrotate.x = World::get().field()->convertCoordToMm(mrotate.x) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
 		//mrotate.y = World::get().field()->convertCoordToMm(mrotate.y) / CentralAnalyzingUnit::FRAMES_PER_SECOND;
-
-		Glib::RefPtr<XBeeBot> bot = XBeeBotSet::instance()[index];
 
 		bot->vx(vxFilter[robot->id()].process( rotated.x ) / MAX_SP_VX);
 		bot->vy(vyFilter[robot->id()].process( rotated.y ) / MAX_SP_VY);
