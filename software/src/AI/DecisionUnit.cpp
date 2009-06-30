@@ -18,9 +18,9 @@ void DecisionUnit::update() {
 		return;
 	PStrategy strat;
 	if (team.index() == 0)
-		strat.reset(new ChaseStrategy(team));
+		strat.reset(new DefenseStrategy(team));
 	else
-		strat.reset(new ChaseStrategy(team));
+		strat.reset(new DefenseStrategy(team));
 	team.getCSU().strategy(strat);
 }
 

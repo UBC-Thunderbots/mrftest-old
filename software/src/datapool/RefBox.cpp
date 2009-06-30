@@ -73,6 +73,9 @@ RefBox::~RefBox() {
 }
 
 bool RefBox::onIO(Glib::IOCondition cond) {
+	//World::get().playType(PlayType::play);
+	//return false;
+
 	if (cond & (Glib::IO_ERR | Glib::IO_NVAL | Glib::IO_HUP)) {
 		Log::log(Log::LEVEL_ERROR, "RefBox") << "Error detected on socket\n";
 		return false;
