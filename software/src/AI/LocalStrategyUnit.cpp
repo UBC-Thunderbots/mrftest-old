@@ -296,7 +296,7 @@ void LocalStrategyUnit::move(PPlayer robot, Vector2 pos, double speed) {
 		angle = orientation.angle();
 	}
 
-	RobotController::sendCommand(robot, diff+robot->position(), angle, dribble, 0);
+	RobotController::sendCommand(robot, diff+robot->position(), angle, 255, 0);
 }
 
 void LocalStrategyUnit::shoot(PPlayer robot) {
@@ -338,7 +338,7 @@ void LocalStrategyUnit::shoot(PPlayer robot) {
 	// A clear shot has been found:
 	Vector2 orientation = des - pos;
 
-	if (orientation.length() > field.width() / 2.0) {
+	if (orientation.length() > field.width() / 1.25) {
 		move(robot, des); // Goal is too far away, so move closer.
 		return;
 	}
