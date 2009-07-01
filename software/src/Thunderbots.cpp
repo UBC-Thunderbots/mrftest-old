@@ -199,18 +199,21 @@ namespace {
 		Replayer() : friendly(0), enemy(1) {
 			const std::string &homeDir = Glib::getenv("HOME");
 			if (homeDir == "") {
-				Log::log(Log::LEVEL_ERROR, "XBee") << "Environment variable $HOME is not set!\n";
+				Log::log(Log::LEVEL_ERROR, "Replayer") << "Environment variable $HOME is not set!\n";
 				std::exit(1);
 			}
 
 			const std::string &logFile = homeDir + "/.thunderbots/match.log";
 			ifs.open(logFile.c_str(), std::ios_base::in);
 
+			unsigned int recnum = 1;
 			for (;;) {
 				char ch;
 				ifs >> ch;
-				if (!ifs)
+				if (!ifs) {
+					Log::log(Log::LEVEL_INFO, "Replayer") << "Reached end of log file at record " << recnum << '\n';
 					break;
+				}
 				if (ch == 'I') {
 					unsigned int version;
 					ifs >> version;
@@ -232,10 +235,18 @@ namespace {
 					double db;
 					for (unsigned int i = 0; i < 2 * Team::SIZE + 1; i++)
 						ifs >> db;
+				} else if (ch == 'P') {
+					unsigned int i;
+					ifs >> i;
+				} else if (ch == 'S') {
+					unsigned int i;
+					ifs >> i;
+					ifs >> i;
 				} else {
-					Log::log(Log::LEVEL_ERROR, "Replayer") << "Unrecognized record type " << ch << '\n';
+					Log::log(Log::LEVEL_ERROR, "Replayer") << "Unrecognized record type " << ch << " at position " << recnum << '\n';
 					std::exit(1);
 				}
+				recnum++;
 			}
 
 			Field field;
@@ -255,8 +266,9 @@ namespace {
 		}
 
 		void update() {
-			char ch;
-			ifs >> ch;
+			std::string s;
+			ifs >> s;
+			char ch = s[0];
 			if (!ifs) {
 				Log::log(Log::LEVEL_INFO, "Replayer") << "Reached EOF in log file.\n";
 				std::exit(0);
@@ -286,8 +298,33 @@ namespace {
 				double r;
 				ifs >> r;
 				World::get().ball().radius(r);
+			} else if (ch == 'P') {
+				unsigned int i;
+				ifs >> i;
+				PlayType::Type t = static_cast<PlayType::Type>(i);
+				switch (t) {
+					case PlayType::doNothing: Log::log(Log::LEVEL_ERROR, "Replayer") << "Play type: doNothing\n"; break;
+					case PlayType::start: Log::log(Log::LEVEL_ERROR, "Replayer") << "Play type: start\n"; break;
+					case PlayType::stop: Log::log(Log::LEVEL_ERROR, "Replayer") << "Play type: stop\n"; break;
+					case PlayType::play: Log::log(Log::LEVEL_ERROR, "Replayer") << "Play type: play\n"; break;
+					case PlayType::directFreeKick: Log::log(Log::LEVEL_ERROR, "Replayer") << "Play type: directFreeKick\n"; break;
+					case PlayType::indirectFreeKick: Log::log(Log::LEVEL_ERROR, "Replayer") << "Play type: indirectFreeKick\n"; break;
+					case PlayType::kickoff: Log::log(Log::LEVEL_ERROR, "Replayer") << "Play type: kickoff\n"; break;
+					case PlayType::preparePenaltyKick: Log::log(Log::LEVEL_ERROR, "Replayer") << "Play type: preparePenaltyKick\n"; break;
+					case PlayType::penaltyKick: Log::log(Log::LEVEL_ERROR, "Replayer") << "Play type: penaltyKick\n"; break;
+					case PlayType::penaltyKickoff: Log::log(Log::LEVEL_ERROR, "Replayer") << "Play type: penaltyKickoff\n"; break;
+					case PlayType::victoryDance: Log::log(Log::LEVEL_ERROR, "Replayer") << "Play type: victoryDance\n"; break;
+					case PlayType::prepareKickoff: Log::log(Log::LEVEL_ERROR, "Replayer") << "Play type: prepareKickoff\n"; break;
+					case PlayType::noType: Log::log(Log::LEVEL_ERROR, "Replayer") << "Play type: noType\n"; break;
+				}
+			} else if (ch == 'S') {
+				unsigned int i;
+				ifs >> i;
+				World::get().team(0).score(i);
+				ifs >> i;
+				World::get().team(1).score(i);
 			} else {
-				Log::log(Log::LEVEL_ERROR, "Replayer") << "Unrecognized record type " << ch << '\n';
+				Log::log(Log::LEVEL_ERROR, "Replayer") << "Unrecognized record type " << s << '\n';
 				std::exit(1);
 			}
 		}
