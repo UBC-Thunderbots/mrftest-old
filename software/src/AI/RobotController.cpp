@@ -173,6 +173,10 @@ namespace {
 
 		Glib::RefPtr<XBeeBot> bot = XBeeBotSet::instance()[index];
 
+		// Check whether this bot is off the field.
+		if (World::get().field().isInfinity(robot->position().x))
+			bot->run(false);
+
 		// Check whether this bot has a gyro.
 		robot->canHazGyro(bot->property_hasGyro());
 		
