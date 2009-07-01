@@ -27,7 +27,11 @@ namespace {
 
 	// both friendly and enemy team because simulation needs it
 	//const double rotKp = 0.78740157, rotKi = 1/127.0, rotKd = 0, rotDecay = 0.97;
-	const double rotKp = 2.0, rotKi = 2/127.0, rotKd = 0.0, rotDecay = 0.97;
+	const double rotKpReg = 2.0, rotKiReg = 2/127.0, rotKdReg = 0.0, rotDecayReg = 0.97;
+	//const double rotKpNoGyro = 2.0, rotKiNoGyro = 2/127.0, rotKdNoGyro = 0.0, rotDecayNoGyro = 0.97;
+	const double NoGyroAData[] = {1.0, 0.4, -0.6};
+	const double NoGyroBData[] = {7.4941, -13.7493, 6.7944};
+	
 	//const double vxKp = 0.15748031, vxKi = 0, vxKd = 0.01, vxDecay = 0.97;
 	//const double vyKp = 0.23622047, vyKi = 0, vyKd = 0.01, vyDecay = 0.97;
 	const double vxKp = 0.285714, vxKi = 1/127.0, vxKd = 0, vxDecay = 0.97;
@@ -38,11 +42,16 @@ namespace {
 	//const double slowMoveYBData[] = {5.0377e-4 -4.9289e-4};
 	//static const double TA[] = {1.0, 0.4566, -0.5434};
 	//static const double TB[] = {443.1705, -669.386, 270.312};
+	const std::vector<double> NoGyroA(NoGyroAData, NoGyroAData + sizeof(NoGyroAData) / sizeof(*NoGyroAData));
+	const std::vector<double> NoGyroB(NoGyroBData, NoGyroBData + sizeof(NoGyroBData) / sizeof(*NoGyroBData));
 	//const std::vector<double> fastMoveYA(fastMoveYAData, fastMoveYAData + sizeof(fastMoveYAData) / sizeof(*fastMoveYAData));
 	//const std::vector<double> fastMoveYB(fastMoveYBData, fastMoveYBData + sizeof(fastMoveYBData) / sizeof(*fastMoveYBData));
 	//const std::vector<double> slowMoveYA(slowMoveYAData, slowMoveYAData + sizeof(slowMoveYAData) / sizeof(*slowMoveYAData));
 	//const std::vector<double> slowMoveYB(slowMoveYBData, slowMoveYBData + sizeof(slowMoveYBData) / sizeof(*slowMoveYBData));
-	std::vector<PID> rotFilter(2 * Team::SIZE, PID(rotKp, rotKi, rotKd, rotDecay));
+	std::vector<PID> rotRegFilter(2 * Team::SIZE, PID(rotKpReg, rotKiReg, rotKdReg, rotDecayReg));
+	//std::vector<PID> rotNoGyroFilter(2 * Team::SIZE, PID(rotKpNoGyro, rotKiNoGyro, rotKdNoGyro, rotDecayNoGyro));
+	std::vector<MoveFilter> rotNoGyroFilter(2 * Team::SIZE, MoveFilter(NoGyroA,NoGyroB));
+	
 	std::vector<PID> vxFilter(2 * Team::SIZE, PID(vxKp, vxKi, vxKd, vxDecay));
 	std::vector<PID> vyFilter(2 * Team::SIZE, PID(vyKp, vyKi, vyKd, vyDecay));
 	//std::vector<MoveFilter> vxFilter(2 * Team::SIZE, MoveFilter(moveKA, moveKB));
@@ -184,8 +193,10 @@ namespace {
 		double diff = rotate - robot->orientation();
 		while (diff >= 180)  diff -= 360;
 		while (diff <= -180) diff += 360;
-		bot->vt(rotFilter[robot->id()].process(diff / 180.0 * M_PI) / MAX_SP_VT);
-		
+		if(bot->property_hasGyro())
+			bot->vt(rotRegFilter[robot->id()].process(diff / 180.0 * M_PI) / MAX_SP_VT);
+		else
+			bot->vt(rotNoGyroFilter[robot->id()].process(diff / 180.0 * M_PI) / MAX_SP_VT);
 		
 		//bot->vt(0);
 		/*if (robot->id() == 0) {
@@ -219,9 +230,11 @@ namespace {
 			bot->kick(kick);
 
 		if (!bot->run()) {
-			rotFilter[robot->id()].clear();
 			vxFilter[robot->id()].clear();
 			vyFilter[robot->id()].clear();
+			rotRegFilter[robot->id()].clear();
+			rotNoGyroFilter[robot->id()].clear();
+
 		}
 	}
 }
