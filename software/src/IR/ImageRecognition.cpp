@@ -249,6 +249,7 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 					} else {
 						plr->orientation(std::numeric_limits<double>::quiet_NaN());
 					}
+					plr->lastSeen().assign_current_time();
 				} else {
 					unusedAIIDs[i / Team::SIZE].push_back(i % Team::SIZE);
 				}
@@ -282,6 +283,7 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 							} else {
 								plr->orientation(std::numeric_limits<double>::quiet_NaN());
 							}
+							plr->lastSeen().assign_current_time();
 						}
 					}
 				}

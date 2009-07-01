@@ -10,6 +10,8 @@ typedef std::tr1::shared_ptr<Player> PPlayer;
 #include "datapool/Plan.h"
 #include "datapool/Team.h"
 
+#include <glibmm.h>
+
 #define DEFAULT_MAX_ACC    2
 
 class Player : public PredictableObject, private virtual Noncopyable {
@@ -90,6 +92,16 @@ public:
 	bool canHazGyro() const;
 	void canHazGyro(bool chg);
 
+	//
+	// The last time this player was seen on the field.
+	//
+	const Glib::TimeVal &lastSeen() const {
+		return seen;
+	}
+	Glib::TimeVal &lastSeen() {
+		return seen;
+	}
+
 private:
 	Player(Team &team, unsigned int id);
 
@@ -104,6 +116,7 @@ private:
 	Vector2 dest;            //where I'm trying to get to
 	Vector2 reqVelocity;     //the last requested velocity
 	bool gyro;               //whether this player can haz a gyro
+	Glib::TimeVal seen;      //when last seen
 };
 
 #endif
