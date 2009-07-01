@@ -29,8 +29,8 @@ namespace {
 	//const double rotKp = 0.78740157, rotKi = 1/127.0, rotKd = 0, rotDecay = 0.97;
 	const double rotKpReg = 2.0, rotKiReg = 2/127.0, rotKdReg = 0.0, rotDecayReg = 0.97;
 	//const double rotKpNoGyro = 2.0, rotKiNoGyro = 2/127.0, rotKdNoGyro = 0.0, rotDecayNoGyro = 0.97;
-	const double NoGyroAData[] = {1.0, 0.4, -0.6};
-	const double NoGyroBData[] = {7.4941, -13.7493, 6.7944};
+	const double NoGyroAData[] = {1.0, 0.0962, -0.9038};
+	const double NoGyroBData[] = {0.3567, -0.6544,0.3234};
 	
 	//const double vxKp = 0.15748031, vxKi = 0, vxKd = 0.01, vxDecay = 0.97;
 	//const double vyKp = 0.23622047, vyKi = 0, vyKd = 0.01, vyDecay = 0.97;
