@@ -218,6 +218,8 @@ static void loop_untimed(void) {
 	// Check for low battery state.
 	if (green_battery_voltage < GREEN_BATTERY_LOW || motor_battery_voltage < MOTOR_BATTERY_LOW)
 		low_battery = 1;
+	else if (green_battery_voltage >= GREEN_BATTERY_RESTART && motor_battery_voltage >= MOTOR_BATTERY_RESTART)
+		low_battery = 0;
 
 #if TEST_MODE
 	test_set_packet();

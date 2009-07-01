@@ -47,9 +47,11 @@
 // Conversion factors from ADC reading to battery voltage.
 #define GREEN_BATTERY_CONVERSION(x) (((x) / 1024.0 * 5.0) / 10.0 * 32.0)
 #define GREEN_BATTERY_LOW 9.0
+#define GREEN_BATTERY_RESTART 9.5
 
 #define MOTOR_BATTERY_CONVERSION(x) (((x) / 1024.0 * 5.0) / 10.0 * 43.0)
 #define MOTOR_BATTERY_LOW 14.4
+#define MOTOR_BATTERY_RESTART 14.7
 
 // Scaler radians/second per ADC unit
 #define GYRO_TO_RADS 0.0127768
