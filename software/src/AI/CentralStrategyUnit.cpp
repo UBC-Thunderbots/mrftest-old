@@ -28,7 +28,7 @@ void CentralStrategyUnit::update() {
 	switch (World::get().playType()) {
 		case PlayType::start:    		startingPositions(); break;
 		case PlayType::stop:			strat->update(); break;
-		case PlayType::play:     		strat->update(); break;
+		case PlayType::play:     		strat->update(); ballpos = World::get().ball().position(); break;
 		case PlayType::directFreeKick:  indirectFreeKick(); break;//directFreeKick(); break;
 		case PlayType::indirectFreeKick:indirectFreeKick(); break;
 		case PlayType::preparePenaltyKick:  preparePenaltyKick(); break;
