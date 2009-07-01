@@ -1,6 +1,11 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+//Wheel Motor Power Cap
+#define WHEEL_MAX_POWER 20.0
+#define VOLTAGE_TO_RPM 416.66
+#define MOTOR_RESISTANCE 1.45
+
 // Indicate CPU speed.
 #define F_CPU 16000000UL
 

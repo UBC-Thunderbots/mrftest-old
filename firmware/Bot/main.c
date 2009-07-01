@@ -69,6 +69,9 @@ static uint8_t low_battery;
 // Whether to estop.
 static uint8_t estop;
 
+//Storage locations for batteries
+double green_battery_voltage, motor_battery_voltage;
+
 /*
  * Zeroes everything.
  */
@@ -199,7 +202,6 @@ static double read_motor_voltage(void) {
  * All the stuff that does NOT need critical timing.
  */
 static void loop_untimed(void) {
-	double green_battery_voltage, motor_battery_voltage;
 	uint16_t battery_send_level;
 
 	// Fold battery reading through filters.

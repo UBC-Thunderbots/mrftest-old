@@ -6,6 +6,8 @@
 #include "iopins.h"
 #include "filter.h"
 
+extern double motor_battery_voltage;
+
 // For better code generation when pin is dynamic rather than compile-time constant.
 static void write_pin(uint8_t pin, uint8_t value) {
 	iopin_write(pin, value);
@@ -19,6 +21,7 @@ void wheel_init(struct wheel *w, uint8_t counter_oe_pin, uint8_t motor_a_pin, ui
 	w->motor_b_pin = motor_b_pin;
 	w->motor_pwm_pin = motor_pwm_pin;
 	w->scale_factors = scale_factors;
+	w->max_volt_diff = sqrt(WHEEL_MAX_POWER*MOTOR_RESISTANCE);
 }
 
 void wheel_clear(struct wheel *w) {
@@ -37,6 +40,8 @@ void wheel_update_rpm(struct wheel *w) {
 
 void wheel_update_drive(struct wheel *w, double vx, double vy, double vt) {
 	double setpoint, cur_rpm, power;
+	double max_pwm_dynamic;
+	
 	uint16_t pwm_level;
 
 	// Compute motor percentage setpoint.
@@ -60,9 +65,11 @@ void wheel_update_drive(struct wheel *w, double vx, double vy, double vt) {
 		write_pin(w->motor_a_pin, 0);
 		write_pin(w->motor_b_pin, 1);
 	}
+	max_pwm_dynamic=(cur_rpm/VOLTAGE_TO_RPM+w->max_volt_diff)/motor_battery_voltage*1023.0;
 	pwm_level = fabs(power) * 1023.0 + 0.5;
-	if (pwm_level > MOTOR_CAP)
-		pwm_level = MOTOR_CAP;
+	
+	if (pwm_level > (max_pwm_dynamic > MOTOR_CAP)?MOTOR_CAP:max_pwm_dynamic)
+		pwm_level = (max_pwm_dynamic > MOTOR_CAP)?MOTOR_CAP:max_pwm_dynamic;
 	pwm_write(w->motor_pwm_pin, pwm_level);
 }
 
