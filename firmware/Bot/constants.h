@@ -2,7 +2,7 @@
 #define CONSTANTS_H
 
 //Wheel Motor Power Cap in watts
-#define WHEEL_MAX_POWER 40.0
+#define WHEEL_MAX_POWER 200.0
 
 //some motor parameters for the current clamp
 #define VOLTAGE_TO_RPM 416.66
