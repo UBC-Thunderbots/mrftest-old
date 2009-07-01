@@ -76,7 +76,7 @@ void wheel_update_drive(struct wheel *w, double vx, double vy, double vt) {
 	if (pwm_level > max_pwm_dynamic)
 		pwm_level = max_pwm_dynamic;
 		
-	w->plantPrediction = filter_process(&w->plant, pwm_level / 1023.0 * (power > 0) ? 1 : -1);
+	w->plantPrediction = filter_process(&w->plant, pwm_level / 1023.0 * ( (power > 0) ? 1 : -1 ) );
 	
 	pwm_write(w->motor_pwm_pin, pwm_level);
 }
