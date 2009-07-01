@@ -85,15 +85,14 @@ bool RefBox::onIO(Glib::IOCondition cond) {
 	ssize_t ret = recv(fd, &pkt, sizeof(pkt), MSG_DONTWAIT | MSG_TRUNC);
 	if (ret == sizeof(pkt)) {
 		const std::string &friendlyColour = Config::instance().getString("Game", "FriendlyColour");
-		if (friendlyColour == "Yellow") {
-			World::get().friendlyTeam().score(pkt.goals_yellow);
-			World::get().enemyTeam().score(pkt.goals_blue);
-		} else if (friendlyColour == "Blue") {
-			World::get().friendlyTeam().score(pkt.goals_blue);
-			World::get().enemyTeam().score(pkt.goals_yellow);
-		} else {
+		if (friendlyColour != "Yellow" && friendlyColour != "Blue") {
 			Log::log(Log::LEVEL_ERROR, "RefBox") << "Illegal config directive [Game]/FriendlyColour, should be Blue or Yellow.\n";
 		}
+		Team &yellowTeam = friendlyColour == "Yellow" ? World::get().friendlyTeam() : World::get().enemyTeam();
+		Team &blueTeam = yellowTeam.other();
+
+		yellowTeam.score(pkt.goals_yellow);
+		blueTeam.score(pkt.goals_blue);
 
 		if (pkt.cmd_counter != last_count) {
 			last_count = pkt.cmd_counter;
@@ -105,8 +104,8 @@ bool RefBox::onIO(Glib::IOCondition cond) {
 				case 'S':
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Stop\n";
 					World::get().playType(PlayType::stop);
-					World::get().team(0).specialPossession(false);
-					World::get().team(1).specialPossession(false);
+					yellowTeam.specialPossession(false);
+					blueTeam.specialPossession(false);
 					break;
 				case ' ': // normal start
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Ready\n";
@@ -140,92 +139,92 @@ bool RefBox::onIO(Glib::IOCondition cond) {
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Penalty Shootout\n";
 					break;
 				case 'k':
-					Log::log(Log::LEVEL_INFO, "RefBox") << "Kickoff Yellow\n";
+					Log::log(Log::LEVEL_INFO, "RefBox") << "Kickoff Yellow (" << yellowTeam.index() << ")\n";
 					World::get().playType(PlayType::prepareKickoff);
-					World::get().team(0).specialPossession(true);
-					World::get().team(1).specialPossession(false);
+					yellowTeam.specialPossession(true);
+					blueTeam.specialPossession(false);
 					break;
 				case 'K':
-					Log::log(Log::LEVEL_INFO, "RefBox") << "Kickoff Blue\n";
+					Log::log(Log::LEVEL_INFO, "RefBox") << "Kickoff Blue (" << blueTeam.index() << ")\n";
 					World::get().playType(PlayType::prepareKickoff);
-					World::get().team(0).specialPossession(false);
-					World::get().team(1).specialPossession(true);
+					yellowTeam.specialPossession(false);
+					blueTeam.specialPossession(true);
 					break;
 				case 'p':
-					Log::log(Log::LEVEL_INFO, "RefBox") << "Penalty Yellow\n";
+					Log::log(Log::LEVEL_INFO, "RefBox") << "Penalty Yellow (" << yellowTeam.index() << ")\n";
 					World::get().playType(PlayType::preparePenaltyKick);
-					World::get().team(0).specialPossession(true);
-					World::get().team(1).specialPossession(false);
+					yellowTeam.specialPossession(true);
+					blueTeam.specialPossession(false);
 					break;
 				case 'P':
-					Log::log(Log::LEVEL_INFO, "RefBox") << "Penalty Blue\n";
+					Log::log(Log::LEVEL_INFO, "RefBox") << "Penalty Blue (" << blueTeam.index() << ")\n";
 					World::get().playType(PlayType::preparePenaltyKick);
-					World::get().team(0).specialPossession(false);
-					World::get().team(1).specialPossession(true);
+					yellowTeam.specialPossession(false);
+					blueTeam.specialPossession(true);
 					break;
 				case 'f':
-					Log::log(Log::LEVEL_INFO, "RefBox") << "Direct Free Kick Yellow\n";
+					Log::log(Log::LEVEL_INFO, "RefBox") << "Direct Free Kick Yellow (" << yellowTeam.index() << ")\n";
 					World::get().playType(PlayType::directFreeKick);
-					World::get().team(0).specialPossession(true);
-					World::get().team(1).specialPossession(false);
+					yellowTeam.specialPossession(true);
+					blueTeam.specialPossession(false);
 					break;
 				case 'F':
-					Log::log(Log::LEVEL_INFO, "RefBox") << "Direct Free Kick Blue\n";
+					Log::log(Log::LEVEL_INFO, "RefBox") << "Direct Free Kick Blue (" << blueTeam.index() << ")\n";
 					World::get().playType(PlayType::directFreeKick);
-					World::get().team(0).specialPossession(false);
-					World::get().team(1).specialPossession(true);
+					yellowTeam.specialPossession(false);
+					blueTeam.specialPossession(true);
 					break;
 				case 'i':
-					Log::log(Log::LEVEL_INFO, "RefBox") << "Indiriect Free Kick Yellow\n";
-					World::get().team(0).specialPossession(true);
-					World::get().team(1).specialPossession(false);
+					Log::log(Log::LEVEL_INFO, "RefBox") << "Indiriect Free Kick Yellow (" << yellowTeam.index() << ")\n";
+					yellowTeam.specialPossession(true);
+					blueTeam.specialPossession(false);
 					World::get().playType(PlayType::indirectFreeKick);
 					break;
 				case 'I':
-					Log::log(Log::LEVEL_INFO, "RefBox") << "Indirect Free Kick Blue\n";
-					World::get().team(0).specialPossession(false);
-					World::get().team(1).specialPossession(true);
+					Log::log(Log::LEVEL_INFO, "RefBox") << "Indirect Free Kick Blue (" << blueTeam.index() << ")\n";
+					yellowTeam.specialPossession(false);
+					blueTeam.specialPossession(true);
 					World::get().playType(PlayType::indirectFreeKick);
 					break;
 				case 't':
-					Log::log(Log::LEVEL_INFO, "RefBox") << "Timeout Yellow\n";
+					Log::log(Log::LEVEL_INFO, "RefBox") << "Timeout Yellow (" << yellowTeam.index() << ")\n";
 					World::get().playType(PlayType::doNothing);
-					World::get().team(0).specialPossession(true);
-					World::get().team(1).specialPossession(false);
+					yellowTeam.specialPossession(true);
+					blueTeam.specialPossession(false);
 					break;
 				case 'T':
-					Log::log(Log::LEVEL_INFO, "RefBox") << "Timeout Blue\n";
+					Log::log(Log::LEVEL_INFO, "RefBox") << "Timeout Blue (" << blueTeam.index() << ")\n";
 					World::get().playType(PlayType::doNothing);
-					World::get().team(0).specialPossession(false);
-					World::get().team(1).specialPossession(true);
+					yellowTeam.specialPossession(false);
+					blueTeam.specialPossession(true);
 					break;
 				case 'z':
 					Log::log(Log::LEVEL_INFO, "RefBox") << "Timeout End\n";
 					World::get().playType(PlayType::doNothing);
 					break;
 				case 'g':
-					Log::log(Log::LEVEL_INFO, "RefBox") << "Goal Yellow\n";
+					Log::log(Log::LEVEL_INFO, "RefBox") << "Goal Yellow (" << yellowTeam.index() << ")\n";
 					break;
 				case 'G':
-					Log::log(Log::LEVEL_INFO, "RefBox") << "Goal Blue\n";
+					Log::log(Log::LEVEL_INFO, "RefBox") << "Goal Blue (" << blueTeam.index() << ")\n";
 					break;
 				case 'd':
-					Log::log(Log::LEVEL_INFO, "RefBox") << "Ungoal Yellow\n";
+					Log::log(Log::LEVEL_INFO, "RefBox") << "Ungoal Yellow (" << yellowTeam.index() << ")\n";
 					break;
 				case 'D':
-					Log::log(Log::LEVEL_INFO, "RefBox") << "Ungoal Blue\n";
+					Log::log(Log::LEVEL_INFO, "RefBox") << "Ungoal Blue (" << blueTeam.index() << ")\n";
 					break;
 				case 'y':
-					Log::log(Log::LEVEL_INFO, "RefBox") << "Yellow Card Yellow\n";
+					Log::log(Log::LEVEL_INFO, "RefBox") << "Yellow Card Yellow (" << yellowTeam.index() << ")\n";
 					break;
 				case 'Y':
-					Log::log(Log::LEVEL_INFO, "RefBox") << "Yellow Card Blue\n";
+					Log::log(Log::LEVEL_INFO, "RefBox") << "Yellow Card Blue (" << blueTeam.index() << ")\n";
 					break;
 				case 'r':
-					Log::log(Log::LEVEL_INFO, "RefBox") << "Red Card Yellow\n";
+					Log::log(Log::LEVEL_INFO, "RefBox") << "Red Card Yellow (" << yellowTeam.index() << ")\n";
 					break;
 				case 'R':
-					Log::log(Log::LEVEL_INFO, "RefBox") << "Red Card Blue\n";
+					Log::log(Log::LEVEL_INFO, "RefBox") << "Red Card Blue (" << blueTeam.index() << ")\n";
 					break;
 			}
 		}
