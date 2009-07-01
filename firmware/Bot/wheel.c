@@ -13,7 +13,7 @@ static void write_pin(uint8_t pin, uint8_t value) {
 	iopin_write(pin, value);
 }
 
-void wheel_init(struct wheel *w, uint8_t counter_oe_pin, uint8_t motor_a_pin, uint8_t motor_b_pin, uint8_t motor_pwm_pin, const double *scale_factors, const double *rpm_filter_a, const double *rpm_filter_b, const double *controller_a, const double *controller_b,const double* plant_a,const double* plant_b) {
+void wheel_init(struct wheel *w, uint8_t counter_oe_pin, uint8_t motor_a_pin, uint8_t motor_b_pin, uint8_t motor_pwm_pin, const double *scale_factors, const double *rpm_filter_a, const double *rpm_filter_b, const double *controller_a, const double *controller_b, const double *plant_a, const double *plant_b) {
 	filter_init(&w->rpm_filter, rpm_filter_a, rpm_filter_b);
 	filter_init(&w->controller, controller_a, controller_b);
 	filter_init(&w->plant, plant_a, plant_b);

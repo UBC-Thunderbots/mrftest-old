@@ -358,10 +358,10 @@ int main(void) {
 	filter_init(&ff_controller, ff_controller_a, ff_controller_b);
 	filter_init2(&green_batt_filter, batt_filter_a, batt_filter_b, read_green_voltage());
 	filter_init2(&motor_batt_filter, batt_filter_a, batt_filter_b, read_motor_voltage());
-	wheel_init(&wheels[0], IOPIN_COUNTER0_OE, IOPIN_MOTOR0A, IOPIN_MOTOR0B, PWMPIN_MOTOR0, m[0], rpm_filter_a, rpm_filter_b, wheel_Q_a, wheel_Q_b,wheel_plant_a,wheel_plant_b);
-	wheel_init(&wheels[1], IOPIN_COUNTER0_OE, IOPIN_MOTOR0A, IOPIN_MOTOR0B, PWMPIN_MOTOR0, m[0], rpm_filter_a, rpm_filter_b, wheel_Q_a, wheel_Q_b,wheel_plant_a,wheel_plant_b);
-	wheel_init(&wheels[2], IOPIN_COUNTER0_OE, IOPIN_MOTOR0A, IOPIN_MOTOR0B, PWMPIN_MOTOR0, m[0], rpm_filter_a, rpm_filter_b, wheel_Q_a, wheel_Q_b,wheel_plant_a,wheel_plant_b);
-	wheel_init(&wheels[3], IOPIN_COUNTER0_OE, IOPIN_MOTOR0A, IOPIN_MOTOR0B, PWMPIN_MOTOR0, m[0], rpm_filter_a, rpm_filter_b, wheel_Q_a, wheel_Q_b,wheel_plant_a,wheel_plant_b);
+	wheel_init(&wheels[0], IOPIN_COUNTER0_OE, IOPIN_MOTOR0A, IOPIN_MOTOR0B, PWMPIN_MOTOR0, m[0], rpm_filter_a, rpm_filter_b, wheel_Q_a, wheel_Q_b, wheel_plant_a, wheel_plant_b);
+	wheel_init(&wheels[1], IOPIN_COUNTER1_OE, IOPIN_MOTOR1A, IOPIN_MOTOR1B, PWMPIN_MOTOR1, m[1], rpm_filter_a, rpm_filter_b, wheel_Q_a, wheel_Q_b, wheel_plant_a, wheel_plant_b);
+	wheel_init(&wheels[2], IOPIN_COUNTER2_OE, IOPIN_MOTOR2A, IOPIN_MOTOR2B, PWMPIN_MOTOR2, m[2], rpm_filter_a, rpm_filter_b, wheel_Q_a, wheel_Q_b, wheel_plant_a, wheel_plant_b);
+	wheel_init(&wheels[3], IOPIN_COUNTER3_OE, IOPIN_MOTOR3A, IOPIN_MOTOR3B, PWMPIN_MOTOR3, m[3], rpm_filter_a, rpm_filter_b, wheel_Q_a, wheel_Q_b, wheel_plant_a, wheel_plant_b);
 	
 	// Initialize the XBee.
 #if !TEST_MODE

@@ -14,7 +14,7 @@ struct wheel {
 	double max_volt_diff;
 };
 
-void wheel_init(struct wheel *w, uint8_t counter_oe_pin, uint8_t motor_a_pin, uint8_t motor_b_pin, uint8_t motor_pwm_pin, const double *scale_factors, const double *rpm_filter_a, const double *rpm_filter_b, const double *controller_a, const double *controller_b,const double *plant_a,const double *plant_b);
+void wheel_init(struct wheel *w, uint8_t counter_oe_pin, uint8_t motor_a_pin, uint8_t motor_b_pin, uint8_t motor_pwm_pin, const double *scale_factors, const double *rpm_filter_a, const double *rpm_filter_b, const double *controller_a, const double *controller_b, const double *plant_a, const double *plant_b);
 void wheel_clear(struct wheel *w);
 void wheel_update_rpm(struct wheel *w);
 void wheel_update_drive(struct wheel *w, double vx, double vy, double vt);
