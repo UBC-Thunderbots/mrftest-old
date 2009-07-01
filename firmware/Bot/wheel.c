@@ -23,7 +23,7 @@ void wheel_init(struct wheel *w, uint8_t counter_oe_pin, uint8_t motor_a_pin, ui
 	w->motor_pwm_pin = motor_pwm_pin;
 	w->scale_factors = scale_factors;
 	w->max_volt_diff = sqrt(WHEEL_MAX_POWER * MOTOR_RESISTANCE);
-		
+	w->plantPrediction = 0;
 }
 
 void wheel_clear(struct wheel *w) {
@@ -32,6 +32,7 @@ void wheel_clear(struct wheel *w) {
 	filter_clear(&w->plant);
 	w->cur_count = 0;
 	w->last_count = 0;
+	w->plantPrediction = 0;
 }
 
 void wheel_update_rpm(struct wheel *w) {
@@ -75,7 +76,7 @@ void wheel_update_drive(struct wheel *w, double vx, double vy, double vt) {
 	if (pwm_level > max_pwm_dynamic)
 		pwm_level = max_pwm_dynamic;
 		
-	w->plantPrediction=filter_process(&w->plant, pwm_level/1023.0*(power>0)?1:-1);
+	w->plantPrediction = filter_process(&w->plant, pwm_level / 1023.0 * (power > 0) ? 1 : -1);
 	
 	pwm_write(w->motor_pwm_pin, pwm_level);
 }
