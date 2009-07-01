@@ -196,7 +196,7 @@ namespace {
 		if(bot->property_hasGyro())
 			bot->vt(rotRegFilter[robot->id()].process(diff / 180.0 * M_PI) / MAX_SP_VT);
 		else
-			bot->vt(rotNoGyroFilter[robot->id()].process(diff / 180.0 * M_PI) / MAX_SP_VT);
+			bot->vt(rotNoGyroFilter[robot->id()].process(-diff / 180.0 * M_PI) / MAX_SP_VT);
 		
 		//bot->vt(0);
 		/*if (robot->id() == 0) {
