@@ -393,7 +393,7 @@ void LocalStrategyUnit::goalie(PPlayer robot) {
 	double R = field.width() / 2.0;
 	vec = pos - center;
 	Vector2 des;
-	if (vec.length() <= 3.0 * rad) {
+	if (vec.length() <= 10.0 * rad) { // 3
 		des = center + 1.0 * vec * (rad / vec.length());
 	} else {
 		des = center + 1.0 * vec * (rad/ R);

@@ -19,7 +19,7 @@
 #define MAX_SP_AX 4000.0 // acceleration sideways
 #define MAX_SP_AY 10000.0 // acceleration forward
 #define MAX_SP_VT   4.0
-#define MAX_DIST 1000.0
+#define MAX_DIST 500.0
 const double EPS = 1E-9;
 
 namespace {
@@ -34,8 +34,8 @@ namespace {
 	
 	//const double vxKp = 0.15748031, vxKi = 0, vxKd = 0.01, vxDecay = 0.97;
 	//const double vyKp = 0.23622047, vyKi = 0, vyKd = 0.01, vyDecay = 0.97;
-	const double vxKp = 0.285714, vxKi = 1/127.0, vxKd = 0, vxDecay = 0.97;
-	const double vyKp = 0.71428, vyKi = 1/127.0, vyKd = 0, vyDecay = 0.97;
+	const double vxKp = 0.285714, vxKi = 1/127.0, vxKd = 1.0, vxDecay = 0.97;
+	const double vyKp = 0.71428, vyKi = 1/127.0, vyKd = 1.0, vyDecay = 0.97;
 	//const double fastMoveYAData[] = {1.0, -0.2234};
 	//const double fastMoveYBData[] = {0.0213, -0.0208};
 	//const double slowMoveYAData[] = {1.0, -0.8530};
