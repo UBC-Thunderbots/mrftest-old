@@ -13,20 +13,23 @@ static void write_pin(uint8_t pin, uint8_t value) {
 	iopin_write(pin, value);
 }
 
-void wheel_init(struct wheel *w, uint8_t counter_oe_pin, uint8_t motor_a_pin, uint8_t motor_b_pin, uint8_t motor_pwm_pin, const double *scale_factors, const double *rpm_filter_a, const double *rpm_filter_b, const double *controller_a, const double *controller_b) {
+void wheel_init(struct wheel *w, uint8_t counter_oe_pin, uint8_t motor_a_pin, uint8_t motor_b_pin, uint8_t motor_pwm_pin, const double *scale_factors, const double *rpm_filter_a, const double *rpm_filter_b, const double *controller_a, const double *controller_b,const double* plant_a,const double* plant_b) {
 	filter_init(&w->rpm_filter, rpm_filter_a, rpm_filter_b);
 	filter_init(&w->controller, controller_a, controller_b);
+	filter_init(&w->plant, plant_a, plant_b);
 	w->counter_oe_pin = counter_oe_pin;
 	w->motor_a_pin = motor_a_pin;
 	w->motor_b_pin = motor_b_pin;
 	w->motor_pwm_pin = motor_pwm_pin;
 	w->scale_factors = scale_factors;
 	w->max_volt_diff = sqrt(WHEEL_MAX_POWER * MOTOR_RESISTANCE);
+		
 }
 
 void wheel_clear(struct wheel *w) {
 	filter_clear(&w->rpm_filter);
 	filter_clear(&w->controller);
+	filter_clear(&w->plant);
 	w->cur_count = 0;
 	w->last_count = 0;
 }
@@ -50,7 +53,7 @@ void wheel_update_drive(struct wheel *w, double vx, double vy, double vt) {
 
 	// Pass the error in motor percentage through the controller.
 #if W_CONTROLLER_ENABLED
-	power = filter_process(&w->controller, setpoint - cur_rpm / MOTOR_MAX_RPM);
+	power = filter_process(&w->controller, setpoint - cur_rpm / MOTOR_MAX_RPM + w->plantPrediction);
 #else
 	power = setpoint * MANUAL_ACTUATOR_MOTOR_SCALE;
 #endif
@@ -71,6 +74,8 @@ void wheel_update_drive(struct wheel *w, double vx, double vy, double vt) {
 		max_pwm_dynamic = MOTOR_CAP;
 	if (pwm_level > max_pwm_dynamic)
 		pwm_level = max_pwm_dynamic;
+		
+	w->plantPrediction=filter_process(&w->plant, pwm_level/1023.0*(power>0)?1:-1);
 	
 	pwm_write(w->motor_pwm_pin, pwm_level);
 }
