@@ -29,8 +29,8 @@ namespace {
 	//const double rotKp = 0.78740157, rotKi = 1/127.0, rotKd = 0, rotDecay = 0.97;
 	const double rotKpReg = 2.0, rotKiReg = 2/127.0, rotKdReg = 0.0, rotDecayReg = 0.97;
 	//const double rotKpNoGyro = 2.0, rotKiNoGyro = 2/127.0, rotKdNoGyro = 0.0, rotDecayNoGyro = 0.97;
-	const double NoGyroAData[] = {1.0, 0.0279, -0.9721};
-	const double NoGyroBData[] = {30.9485, -61.7171, 30.7760};
+	const double NoGyroAData[] = {1.0, 0.0962, -0.9038};
+	const double NoGyroBData[] = {0.3567, -0.6544, 0.3234};
 	
 	//const double vxKp = 0.15748031, vxKi = 0, vxKd = 0.01, vxDecay = 0.97;
 	//const double vyKp = 0.23622047, vyKi = 0, vyKd = 0.01, vyDecay = 0.97;
@@ -195,12 +195,12 @@ namespace {
 
 		
 		double diff = rotate - robot->orientation();
-		while (diff >= 180)  diff -= 360;
+		while (diff >= 180) diff -= 360;
 		while (diff <= -180) diff += 360;
 		if(bot->property_hasGyro())
 			bot->vt(rotRegFilter[robot->id()].process(diff / 180.0 * M_PI) / MAX_SP_VT);
 		else
-			bot->vt(rotNoGyroFilter[robot->id()].process(-diff / 180.0 * M_PI) / MAX_SP_VT);
+			bot->vt(rotNoGyroFilter[robot->id()].process(diff / 180.0 * M_PI) / MAX_SP_VT);
 		
 		//bot->vt(0);
 		/*if (robot->id() == 0) {
