@@ -297,8 +297,10 @@ void CentralStrategyUnit::kickoff() {
 		return;	
 	}
 	if (team.specialPossession()) {
-		team.player(1)->plan(Plan::chase);
-		team.player(1)->allowedInside(true);
+		for (unsigned int i = 1; i < Team::SIZE; i++) {
+			team.player(i)->plan(Plan::chase);
+			team.player(i)->allowedInside(true);
+		}
 		//team.player(2)->plan(Plan::chase);
 		//team.player(2)->allowedInside(true);
 		// Find closest player to ball.
