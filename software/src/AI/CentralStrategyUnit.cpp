@@ -297,10 +297,18 @@ void CentralStrategyUnit::kickoff() {
 		return;	
 	}
 	if (team.specialPossession()) {
-		for (unsigned int i = 1; i < Team::SIZE; i++) {
-			team.player(i)->plan(Plan::chase);
-			team.player(i)->allowedInside(true);
+		double len = field.width() * 20.0;
+		unsigned int closest = 0;
+		for (unsigned int id = 0; id < Team::SIZE; id++) {
+			Vector2 dis = w.ball().position() - team.player(id)->position();
+			if (dis.length() < len) {
+				closest = id;
+				len = dis.length();
+			}
 		}
+		PPlayer kicker = team.player(closest);
+		kicker->plan(Plan::chase);
+		kicker->allowedInside(true);
 		//team.player(2)->plan(Plan::chase);
 		//team.player(2)->allowedInside(true);
 		// Find closest player to ball.
