@@ -130,6 +130,7 @@ namespace {
 		RunSwitch(Glib::RefPtr<XBeeBot> bot) : Gtk::ToggleButton("Run"), bot(bot) {
 			HWRunSwitch::instance().property_state().signal_changed().connect(sigc::mem_fun(*this, &RunSwitch::onChange));
 			set_sensitive(HWRunSwitch::instance().property_state());
+			on_toggled();
 		}
 
 	protected:
