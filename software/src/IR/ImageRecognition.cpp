@@ -122,6 +122,9 @@ ImageRecognition::ImageRecognition(Team &friendly, Team &enemy) : fd(-1) {
 
 	// Register for IO.
 	Glib::signal_io().connect(sigc::mem_fun(*this, &ImageRecognition::onIO), fd, Glib::IO_IN);
+
+	// Register for quarter-second ticks.
+	Glib::signal_timeout().connect(sigc::mem_fun(*this, &ImageRecognition::onTimer), 250);
 }
 
 bool ImageRecognition::onIO(Glib::IOCondition cond) {
@@ -325,6 +328,21 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 		}
 	}
 
+	return true;
+}
+
+bool ImageRecognition::onTimer() {
+	const double inf = World::get().field().infinity();
+	const Vector2 infv(inf, inf);
+	Glib::TimeVal now;
+	now.assign_current_time();
+	for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
+		Glib::TimeVal diff = now;
+		diff -= World::get().player(i)->lastSeen();
+		if (diff.as_double() > 1) {
+			World::get().player(i)->position(infv);
+		}
+	}
 	return true;
 }
 

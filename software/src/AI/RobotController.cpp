@@ -175,7 +175,9 @@ namespace {
 
 		// Check whether this bot is off the field.
 		if (World::get().field().isInfinity(robot->position().x))
-			bot->run(false);
+			bot->killReasons(bot->killReasons() | XBeeBot::KILL_IR);
+		else
+			bot->killReasons(bot->killReasons() & ~XBeeBot::KILL_IR);
 
 		// Check whether this bot has a gyro.
 		robot->canHazGyro(bot->property_hasGyro());
@@ -233,12 +235,11 @@ namespace {
 		if (kick)
 			bot->kick(kick);
 
-		if (!bot->run()) {
+		if (bot->killReasons()) {
 			vxFilter[robot->id()].clear();
 			vyFilter[robot->id()].clear();
 			rotRegFilter[robot->id()].clear();
 			rotNoGyroFilter[robot->id()].clear();
-
 		}
 	}
 }

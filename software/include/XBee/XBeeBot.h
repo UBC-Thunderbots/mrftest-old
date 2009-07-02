@@ -28,6 +28,14 @@ public:
 	};
 
 	//
+	// The possible reasons for killing movement of a bot.
+	//
+	enum KILLREASON {
+		KILL_RUNSWITCH = 1, // Killed due to runswitch (hardware or software).
+		KILL_IR        = 2, // Killed because not visible on IR.
+	};
+
+	//
 	// The communication status.
 	//
 	Glib::PropertyProxy<STATUS> property_commStatus();
@@ -78,14 +86,14 @@ public:
 	void kick(double strength);
 
 	//
-	// Gets the run/stop control for this bot.
+	// Gets/sets the kill reasons bitfield.
 	//
-	bool run() const;
-
-	//
-	// Sets the run/stop control for this bot.
-	//
-	void run(bool run);
+	uint8_t killReasons() const {
+		return killReasons_;
+	}
+	void killReasons(uint8_t reasons) {
+		killReasons_ = reasons;
+	}
 
 	//
 	// Reboots the bot.
@@ -102,7 +110,9 @@ private:
 	Glib::Property<unsigned int> prop_firmwareVersion;
 	Glib::Property<bool> prop_hasGyro;
 	int8_t vx_, vy_, vt_;
-	uint8_t dribbler_, kick_, txFlags;
+	uint8_t dribbler_, kick_;
+	bool reboot_;
+	uint8_t killReasons_;
 	uint8_t lastFrameNum;
 	sigc::connection timeoutConnection;
 	bool waitingForReport, waitingForResponse;

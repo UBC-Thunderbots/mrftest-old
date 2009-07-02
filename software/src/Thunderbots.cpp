@@ -65,24 +65,6 @@ namespace {
 		}
 	};
 
-	class Reaper : public virtual Noncopyable, public Updateable {
-	public:
-		void update() {
-			Glib::TimeVal now;
-			now.assign_current_time();
-			const double inf = World::get().field().infinity();
-			const Vector2 infv(inf, inf);
-			for (unsigned int i = 0; i < 2 * Team::SIZE; i++) {
-				PPlayer plr = World::get().player(i);
-				Glib::TimeVal diff = plr->lastSeen();
-				diff -= now;
-				if (diff.as_double() > 2) {
-					plr->position(infv);
-				}
-			}
-		}
-	};
-
 	class PositionLogger : public virtual Noncopyable, public Updateable {
 	public:
 		PositionLogger() : lastSeenPlayType(PlayType::noType), lastSeenFriendlyScore(0), lastSeenEnemyScore(0), inited(false) {
@@ -193,8 +175,6 @@ namespace {
 			ControlPanel cp;
 			ImageRecognition ir(friendly, enemy);
 			RefBox refBox;
-			Reaper reaper;
-			updateables.push_back(&reaper);
 			execute(useVis, updateables);
 		}
 	}

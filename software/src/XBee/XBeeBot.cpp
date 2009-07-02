@@ -209,26 +209,15 @@ void XBeeBot::kick(double strength) {
 	}
 }
 
-bool XBeeBot::run() const {
-	return !!(txFlags & (1 << TXFLAG_RUN));
-}
-
-void XBeeBot::run(bool run) {
-	if (run)
-		txFlags |= (1 << TXFLAG_RUN);
-	else
-		txFlags &= ~(1 << TXFLAG_RUN);
-}
-
 void XBeeBot::reboot() {
-	if (!(txFlags & (1 << TXFLAG_REBOOT))) {
+	if (!reboot_) {
 		kick_ = 0;
-		txFlags |= (1 << TXFLAG_REBOOT);
+		reboot_ = true;
 		Glib::signal_timeout().connect(sigc::mem_fun(*this, &XBeeBot::clearReboot), REBOOT_TIME);
 	}
 }
 
-XBeeBot::XBeeBot(uint64_t address, XBeeModem &modem, XBeeBotSet &botSet) : Glib::ObjectBase(typeid(XBeeBot)), address(address), modem(modem), botSet(botSet), prop_commStatus(*this, "commStatus", STATUS_NO_ACK), prop_greenVoltage(*this, "greenVoltage", 0), prop_motorVoltage(*this, "motorVoltage", 0), prop_firmwareVersion(*this, "firmwareVersion", 0), prop_hasGyro(*this, "hasGyro", false), vx_(0), vy_(0), vt_(0), dribbler_(0), kick_(0), txFlags(0), lastFrameNum(0), waitingForReport(false), waitingForResponse(false), errorCount(0), noReportCount(0) {
+XBeeBot::XBeeBot(uint64_t address, XBeeModem &modem, XBeeBotSet &botSet) : Glib::ObjectBase(typeid(XBeeBot)), address(address), modem(modem), botSet(botSet), prop_commStatus(*this, "commStatus", STATUS_NO_ACK), prop_greenVoltage(*this, "greenVoltage", 0), prop_motorVoltage(*this, "motorVoltage", 0), prop_firmwareVersion(*this, "firmwareVersion", 0), prop_hasGyro(*this, "hasGyro", false), vx_(0), vy_(0), vt_(0), dribbler_(0), kick_(0), reboot_(false), killReasons_(0), lastFrameNum(0), waitingForReport(false), waitingForResponse(false), errorCount(0), noReportCount(0) {
 	modem.connect_packet_received(XBeeModem::PACKET_TXSTATUS, sigc::mem_fun(*this, &XBeeBot::transmitResponse));
 	modem.connect_packet_received(XBeeModem::PACKET_RX64, sigc::mem_fun(*this, &XBeeBot::receiveData));
 }
@@ -239,7 +228,7 @@ bool XBeeBot::clearKick() {
 }
 
 bool XBeeBot::clearReboot() {
-	txFlags &= ~(1 << TXFLAG_REBOOT);
+	reboot_ = false;
 	return false;
 }
 
@@ -389,7 +378,13 @@ void XBeeBot::sendPacket(bool requestReport) {
 	pkt.data.vt = vt_;
 	pkt.data.dribble = dribbler_;
 	pkt.data.kick = kick_;
-	pkt.data.flags = txFlags | (requestReport ? (1 << TXFLAG_REPORT) : 0);
+	pkt.data.flags = 0;
+	if (!killReasons_)
+		pkt.data.flags |= 1 << TXFLAG_RUN;
+	if (requestReport)
+		pkt.data.flags |= 1 << TXFLAG_REPORT;
+	if (reboot_)
+		pkt.data.flags |= 1 << TXFLAG_REBOOT;
 
 	// Send the packet to the modem.
 	modem.send(XBeeModem::PACKET_TX64, &pkt, sizeof(pkt));

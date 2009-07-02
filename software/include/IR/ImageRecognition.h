@@ -15,6 +15,7 @@ private:
 	int fd;
 
 	bool onIO(Glib::IOCondition cond);
+	bool onTimer();
 };
 
 #endif

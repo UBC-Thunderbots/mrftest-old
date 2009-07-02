@@ -134,7 +134,10 @@ namespace {
 
 	protected:
 		virtual void on_toggled() {
-			bot->run(get_active());
+			if (get_active())
+				bot->killReasons(bot->killReasons() & ~XBeeBot::KILL_RUNSWITCH);
+			else
+				bot->killReasons(bot->killReasons() | XBeeBot::KILL_RUNSWITCH);
 		}
 
 	private:
