@@ -9,7 +9,6 @@
 
 class ImageRecognition : private virtual Noncopyable, public virtual sigc::trackable {
 public:
-	static const unsigned int ANTIFLICKER_CIRCLE_RADIUS = 500;
 	ImageRecognition(Team &friendly, Team &enemy);
 
 private:
