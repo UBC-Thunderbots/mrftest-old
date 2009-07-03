@@ -305,9 +305,8 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 					const SSL_DetectionBall &b = detections[i].balls(j);
 					assert(&b);
 					const unsigned int cnt = b.confidence() * 100;
-					assert(cnt);
 					const Vector2 pos(b.x(), -b.y());
-					if (b.confidence() > 0.01) {
+					if (cnt) {
 						// Add this ball to all circles it's inside.
 						bool found = false;
 						for (std::list<AntiFlickerCircle *>::iterator k = antiFlickerCircles.begin(), kEnd = antiFlickerCircles.end(); k != kEnd; ++k) {
@@ -363,7 +362,8 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 			for (unsigned int i = 0; i < sizeof(detections) / sizeof(*detections); i++) {
 				for (int j = 0; j < detections[i].balls_size(); j++) {
 					const SSL_DetectionBall &b = detections[i].balls(j);
-					if (b.confidence() > 0.01) {
+					const unsigned int cnt = b.confidence() * 100;
+					if (cnt) {
 						// Find all circles for which this ball is the best. Merge them.
 						AntiFlickerCircle *prevCircle = 0;
 						for (std::list<AntiFlickerCircle *>::iterator k = antiFlickerCircles.begin(), kEnd = antiFlickerCircles.end(); k != kEnd; ++k) {
