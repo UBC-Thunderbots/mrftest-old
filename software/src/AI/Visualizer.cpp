@@ -1,5 +1,6 @@
 #include "AI/Visualizer.h"
 #include "datapool/World.h"
+#include "IR/ImageRecognition.h"
 
 #include <sstream>
 #include <sigc++/sigc++.h>
@@ -139,6 +140,11 @@ bool Visualizer::on_expose_event(GdkEventExpose *event) {
 	cr->set_source_rgb(1, 1, 1);
 	cr->arc(offsetX + scaling * w.ball().position().x, offsetY + scaling * w.ball().position().y, scaling * w.ball().radius(), 0.0, 2.0 * M_PI);
 	cr->fill();
+
+	// filtering circle:
+	cr->set_source_rgb(0, 0, 0);
+	cr->arc(offsetX + scaling * w.ball().position().x, offsetY + scaling * w.ball().position().y, scaling * ImageRecognition::ANTIFLICKER_CIRCLE_RADIUS, 0.0, 2.0 * M_PI);
+	cr->stroke();
 
 	// players:
 	static const double TEAM_COLOURS[2][3] = {

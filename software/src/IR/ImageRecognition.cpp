@@ -1,6 +1,7 @@
 #include "datapool/Config.h"
 #include "datapool/Field.h"
 #include "datapool/Hungarian.h"
+#include "datapool/Noncopyable.h"
 #include "datapool/Player.h"
 #include "datapool/Team.h"
 #include "datapool/World.h"
@@ -13,8 +14,10 @@
 #include <vector>
 #include <queue>
 #include <list>
+#include <utility>
 #include <algorithm>
 #include <limits>
+#include <cassert>
 #include <cerrno>
 #include <cstring>
 #include <glibmm.h>
@@ -24,44 +27,62 @@
 #include <arpa/inet.h>
 
 #define OFFSET_FROM_ROBOT_TO_BALL 80
-#define ANTIFLICKER_CIRCLE_RADIUS 700
-#define ANTIFLICKER_FRAMES        20
+#define ANTIFLICKER_FRAMES        60
 
 namespace {
 	SSL_DetectionFrame detections[2];
 
 	class AntiFlickerCircle;
 	std::list<AntiFlickerCircle *> antiFlickerCircles;
-	std::queue<std::vector<AntiFlickerCircle *> > antiFlickerCirclesByFrame;
-	class AntiFlickerCircle {
+	std::queue<std::vector<std::pair<AntiFlickerCircle *, unsigned int> > > antiFlickerCirclesByFrame;
+	class AntiFlickerCircle : public virtual Noncopyable {
 	public:
 		AntiFlickerCircle(const Vector2 &centre) : cen(centre), pop(0), parent(0), iter(antiFlickerCircles.insert(antiFlickerCircles.end(), this)) {
 		}
 
 		~AntiFlickerCircle() {
+			assert(!pop);
 			antiFlickerCircles.erase(iter);
 		}
 
 		bool isInside(const Vector2 &pt) const {
-			return (pt - cen).length() < ANTIFLICKER_CIRCLE_RADIUS;
+			return (pt - cen).length() < ImageRecognition::ANTIFLICKER_CIRCLE_RADIUS;
 		}
 
 		AntiFlickerCircle *representative() {
-			return parent ? (parent = parent->representative()) : this;
+			if (parent) {
+				AntiFlickerCircle *rep = parent->representative();
+				if (rep != parent) {
+					rep->addRefs(pop);
+					parent->subRefs(pop);
+					parent = rep;
+				}
+				return rep;
+			} else {
+				return this;
+			}
 		}
 
 		const AntiFlickerCircle *representative() const {
-			return parent ? (parent = parent->representative()) : this;
+			if (parent) {
+				AntiFlickerCircle *rep = parent->representative();
+				if (rep != parent) {
+					rep->addRefs(pop);
+					parent->subRefs(pop);
+					parent = rep;
+				}
+				return rep;
+			} else {
+				return this;
+			}
 		}
 
 		void merge(AntiFlickerCircle *other) {
-			if (parent) {
-				parent->merge(other);
-			} else if (other->parent) {
-				merge(other->parent);
-			} else {
-				parent = other;
-				parent->pop += pop;
+			AntiFlickerCircle *me = representative();
+			other = other->representative();
+			if (me != other) {
+				me->parent = other;
+				other->pop += me->pop;
 			}
 		}
 
@@ -77,21 +98,25 @@ namespace {
 			return cen;
 		}
 
-		void reference() {
-			pop++;
+		void addRefs(unsigned int n) {
+			assert(pop < UINT_MAX - n + 1);
+			pop += n;
 			if (parent)
-				parent->reference();
+				parent->addRefs(n);
 		}
 
-		void dereference() {
-			pop--;
+		void subRefs(unsigned int n) {
+			assert(pop >= n);
+			pop -= n;
 			if (parent)
-				parent->dereference();
+				parent->subRefs(n);
 			if (!pop)
 				delete this;
 		}
 
 		const SSL_DetectionBall *bestBall;
+		unsigned int bestBallConfidence;
+		unsigned int inFrameIndex;
 
 	private:
 		Vector2 cen;
@@ -263,30 +288,52 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 		// Handle the ball.
 		{
 			// Clear all the circle balls.
-			for (std::list<AntiFlickerCircle *>::iterator i = antiFlickerCircles.begin(), iEnd = antiFlickerCircles.end(); i != iEnd; ++i)
-				(*i)->bestBall = 0;
+			for (std::list<AntiFlickerCircle *>::iterator i = antiFlickerCircles.begin(), iEnd = antiFlickerCircles.end(); i != iEnd; ++i) {
+				AntiFlickerCircle *c = *i;
+				assert(c);
+				c->bestBall = 0;
+				c->bestBallConfidence = 0;
+				c->inFrameIndex = 0;
+			}
 
 			// Start a new frame.
-			antiFlickerCirclesByFrame.push(std::vector<AntiFlickerCircle *>());
+			antiFlickerCirclesByFrame.push(std::vector<std::pair<AntiFlickerCircle *, unsigned int> >());
 
 			// Go through all the detected balls, associating them with circles.
 			for (unsigned int i = 0; i < sizeof(detections) / sizeof(*detections); i++) {
 				for (int j = 0; j < detections[i].balls_size(); j++) {
 					const SSL_DetectionBall &b = detections[i].balls(j);
+					assert(&b);
+					const unsigned int cnt = b.confidence() * 100;
+					assert(cnt);
 					const Vector2 pos(b.x(), -b.y());
 					if (b.confidence() > 0.01) {
 						// Add this ball to all circles it's inside.
 						bool found = false;
 						for (std::list<AntiFlickerCircle *>::iterator k = antiFlickerCircles.begin(), kEnd = antiFlickerCircles.end(); k != kEnd; ++k) {
 							AntiFlickerCircle &c = **k;
+							assert(&c);
 							if (c.isInside(pos)) {
 								found = true;
 								if (!c.bestBall || c.bestBall->confidence() < b.confidence()) {
-									if (!c.bestBall) {
-										c.reference();
-										antiFlickerCirclesByFrame.back().push_back(&c);
+									if (c.bestBall) {
+										c.addRefs(cnt);
+										c.subRefs(c.bestBallConfidence);
+										std::pair<AntiFlickerCircle *, unsigned int> &e = antiFlickerCirclesByFrame.back()[c.inFrameIndex];
+										assert(e.first);
+										assert(e.second);
+										e.second += cnt;
+										e.second -= c.bestBallConfidence;
+										assert(e.second);
+										c.bestBall = &b;
+										c.bestBallConfidence = cnt;
+									} else {
+										c.addRefs(cnt);
+										c.inFrameIndex = antiFlickerCirclesByFrame.back().size();
+										antiFlickerCirclesByFrame.back().push_back(std::make_pair(&c, cnt));
+										c.bestBall = &b;
+										c.bestBallConfidence = cnt;
 									}
-									c.bestBall = &b;
 								}
 							}
 						}
@@ -294,8 +341,11 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 						// If no circles contained the ball, create a new one.
 						if (!found) {
 							AntiFlickerCircle *c = new AntiFlickerCircle(pos);
-							c->reference();
-							antiFlickerCirclesByFrame.back().push_back(c);
+							c->addRefs(cnt);
+							c->bestBall = &b;
+							c->bestBallConfidence = cnt;
+							c->inFrameIndex = antiFlickerCirclesByFrame.back().size();
+							antiFlickerCirclesByFrame.back().push_back(std::make_pair(c, cnt));
 						}
 					}
 				}
@@ -303,9 +353,9 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 
 			// Delete past frames.
 			while (antiFlickerCirclesByFrame.size() > ANTIFLICKER_FRAMES) {
-				const std::vector<AntiFlickerCircle *> &v = antiFlickerCirclesByFrame.front();
+				const std::vector<std::pair<AntiFlickerCircle *, unsigned int> > &v = antiFlickerCirclesByFrame.front();
 				for (unsigned int i = 0; i < v.size(); i++)
-					v[i]->dereference();
+					v[i].first->subRefs(v[i].second);
 				antiFlickerCirclesByFrame.pop();
 			}
 
@@ -318,6 +368,7 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 						AntiFlickerCircle *prevCircle = 0;
 						for (std::list<AntiFlickerCircle *>::iterator k = antiFlickerCircles.begin(), kEnd = antiFlickerCircles.end(); k != kEnd; ++k) {
 							AntiFlickerCircle &c = **k;
+							assert(&c);
 							if (c.bestBall == &b) {
 								if (prevCircle) {
 									prevCircle->merge(&c);
@@ -333,6 +384,7 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 			// Find the best ball.
 			AntiFlickerCircle *bestCircle = 0;
 			for (std::list<AntiFlickerCircle *>::iterator i = antiFlickerCircles.begin(), iEnd = antiFlickerCircles.end(); i != iEnd; ++i) {
+				assert(*i);
 				if (!bestCircle || (*i)->popularity() > bestCircle->popularity()) {
 					bestCircle = *i;
 				}
