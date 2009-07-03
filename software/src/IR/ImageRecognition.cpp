@@ -340,9 +340,11 @@ bool ImageRecognition::onIO(Glib::IOCondition cond) {
 
 			// Move the circle to the ball position.
 			if (bestCircle) {
-				const SSL_DetectionBall &b = *bestCircle->bestBall;
-				const Vector2 pos(b.x(), -b.y());
-				bestCircle->centre() = pos;
+				if (bestCircle->bestBall) {
+					const SSL_DetectionBall &b = *bestCircle->bestBall;
+					const Vector2 pos(b.x(), -b.y());
+					bestCircle->centre() = pos;
+				}
 			}
 
 			// Push up results.
