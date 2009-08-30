@@ -9,6 +9,8 @@ firmware/HWRunSwitch/hwrunswitch.elf
 firmware/HWRunSwitch/hwrunswitch.hex
 software/*.d
 software/geom/*.d
+software/rctest
 software/robot_controller/*.d
+software/robot_controller_test/*.d
 software/util/*.d
 software/world/*.d
