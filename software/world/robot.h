@@ -18,7 +18,7 @@ class robot : public virtual byref {
 		//
 		// The position of the robot at the last camera frame.
 		//
-		virtual const point &position() const = 0;
+		virtual point position() const = 0;
 
 		//
 		// The orientation of the robot in radians at the last camera frame.
