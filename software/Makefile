@@ -67,5 +67,5 @@ endif
 #
 .PHONY : clean
 clean :
-	find . -name '*.o' -o -name '*.d' -execdir rm \{\} +
+	find . \( -name '*.o' -o -name '*.d' \) -execdir rm \{\} +
 	$(RM) $(PROJECTS)
