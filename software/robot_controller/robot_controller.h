@@ -34,7 +34,7 @@ class robot_controller : public noncopyable {
 		//   the orientation to rotate to in world coordinates measured in
 		//   radians
 		//
-		void move(const point &position, double orientation) = 0;
+		virtual void move(const point &position, double orientation) = 0;
 };
 
 #endif

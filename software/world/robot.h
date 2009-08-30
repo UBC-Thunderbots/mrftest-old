@@ -15,12 +15,12 @@ class robot : public noncopyable {
 		//
 		// The position of the robot at the last camera frame.
 		//
-		const point &position() const = 0;
+		virtual const point &position() const = 0;
 
 		//
 		// The orientation of the robot in radians at the last camera frame.
 		//
-		double orientation() const = 0;
+		virtual double orientation() const = 0;
 };
 
 #endif
