@@ -5,6 +5,9 @@
 #include "geom/point.h"
 #include "util/noncopyable.h"
 
+//
+// A robot can be either friendly or enemy.
+//
 class robot : public noncopyable {
 	public:
 		//
