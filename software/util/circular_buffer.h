@@ -42,7 +42,7 @@ class circular_buffer {
 		//
 		// The size of the buffer.
 		//
-		const std::size_t size = N;
+		static const std::size_t size = N;
 
 	private:
 		T data[N];
