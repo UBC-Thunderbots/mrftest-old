@@ -1,13 +1,12 @@
 #ifndef FIELD_H
 #define FIELD_H
 
-#include "geom/point.h"
-#include "util/noncopyable.h"
+#include "util/byref.h"
 
 //
 // The playing field. All lengths are in metres.
 //
-class field : public noncopyable {
+class field : public virtual byref {
 	public:
 		//
 		// The length of the field, from goal to goal, in the X direction.

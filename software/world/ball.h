@@ -5,12 +5,12 @@
 #include <glibmm.h>
 #include "geom/point.h"
 #include "util/circular_buffer.h"
-#include "util/noncopyable.h"
+#include "util/byref.h"
 
 //
 // The ball.
 //
-class ball : public noncopyable {
+class ball : public virtual byref {
 	public:
 		//
 		// A pointer to a ball object.
