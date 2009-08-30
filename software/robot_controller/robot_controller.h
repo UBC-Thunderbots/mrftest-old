@@ -1,5 +1,5 @@
-#ifndef ROBOT_CONTROLLER_H
-#define ROBOT_CONTROLLER_H
+#ifndef ROBOT_CONTROLLER_ROBOT_CONTROLLER_H
+#define ROBOT_CONTROLLER_ROBOT_CONTROLLER_H
 
 #include <glibmm.h>
 #include "geom/point.h"

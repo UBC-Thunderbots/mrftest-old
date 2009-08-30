@@ -1,5 +1,5 @@
-#ifndef FIELD_H
-#define FIELD_H
+#ifndef WORLD_FIELD_H
+#define WORLD_FIELD_H
 
 #include <glibmm.h>
 #include "util/byref.h"

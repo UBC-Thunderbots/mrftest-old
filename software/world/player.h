@@ -1,5 +1,5 @@
-#ifndef PLAYER_H
-#define PLAYER_H
+#ifndef WORLD_PLAYER_H
+#define WORLD_PLAYER_H
 
 #include <glibmm.h>
 #include "geom/point.h"

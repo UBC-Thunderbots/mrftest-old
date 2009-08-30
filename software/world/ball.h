@@ -1,5 +1,5 @@
-#ifndef BALL_H
-#define BALL_H
+#ifndef WORLD_BALL_H
+#define WORLD_BALL_H
 
 #include <cstddef>
 #include <glibmm.h>

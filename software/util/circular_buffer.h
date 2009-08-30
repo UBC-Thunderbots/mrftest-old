@@ -1,5 +1,5 @@
-#ifndef CIRCULAR_BUFFER_H
-#define CIRCULAR_BUFFER_H
+#ifndef UTIL_CIRCULAR_BUFFER_H
+#define UTIL_CIRCULAR_BUFFER_H
 
 #include <cstddef>
 

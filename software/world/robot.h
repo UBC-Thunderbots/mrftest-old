@@ -1,5 +1,5 @@
-#ifndef ROBOT_H
-#define ROBOT_H
+#ifndef WORLD_ROBOT_H
+#define WORLD_ROBOT_H
 
 #include <glibmm.h>
 #include "geom/point.h"
