@@ -1,6 +1,7 @@
 #ifndef FIELD_H
 #define FIELD_H
 
+#include <glibmm.h>
 #include "util/byref.h"
 
 //
@@ -8,6 +9,11 @@
 //
 class field : public virtual byref {
 	public:
+		//
+		// A pointer to a field object.
+		//
+		typedef Glib::RefPtr<field> ptr;
+
 		//
 		// The length of the field, from goal to goal, in the X direction.
 		//
