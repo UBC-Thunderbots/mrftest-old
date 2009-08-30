@@ -49,34 +49,19 @@ class ball : public virtual byref {
 
 	private:
 		//
-		// One of the previous positions of the ball.
-		//
-		// Parameters:
-		//  n
-		//   which previous position - 0 for the current position, 1 for one
-		//   reading back, and so on
-		//
-		const point &past_position(unsigned int n) const;
-
-		//
-		// The timestamp for a previous ball position.
-		//
-		// Parameters:
-		//  n
-		//   which previous position - 0 for the current position, 1 for one
-		//   reading back, and so on
-		//
-		double past_timestamp(unsigned int n) const;
-
-		//
 		// How many past positions to keep for estimation purposes.
 		//
-		const std::size_t NUM_PAST_POSITIONS = 6;
+		static const std::size_t NUM_PAST_POSITIONS = 6;
 
 		//
 		// The list of positions.
 		//
 		circular_buffer<point, NUM_PAST_POSITIONS> past_positions;
+
+		//
+		// The list of timestamps.
+		//
+		circular_buffer<double, NUM_PAST_POSITIONS> past_timestamps;
 };
 
 #endif
