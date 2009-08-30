@@ -7,28 +7,50 @@
 //
 class byref {
 	public:
-		byref() : refs(1) {
-		}
-
+		//
+		// Adds one to the object's reference count. This should only be called
+		// by Glib::RefPtr, not by application code.
+		//
 		void reference() {
 			refs++;
 		}
 
+		//
+		// Subtracts one from the object's reference count. This should only be
+		// called by Glib::RefPtr, not by application code.
+		//
 		void unreference() {
 			if (!--refs)
 				delete this;
 		}
 
 	protected:
+		//
+		// Constructs a new byref. The object is assumed to have one reference.
+		//
+		byref() : refs(1) {
+		}
+
+		//
+		// Destroys a byref.
+		//
 		virtual ~byref() {
 		}
 
+	private:
+		//
+		// Prevents byref objects from being copied.
+		//
 		byref(const byref &copyref);
 
+		//
+		// Prevents byref objects from being assigned to one another.
+		//
 		byref &operator=(const byref &assgref);
 
-		friend class Glib::RefPtr<byref>;
-
+		//
+		// The reference count of the object.
+		//
 		unsigned int refs;
 };
 
