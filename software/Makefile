@@ -1,0 +1,70 @@
+#
+# Here, write a list of all the executable binaries the Makefile might generate.
+#
+PROJECTS := thunderbots
+
+#
+# Here, write a list of the source files and directories for each executable.
+# Directories will be searched for source files recursively.
+#
+SOURCES_thunderbots := geom robot_controller util world thunderbots.cpp
+
+#
+# Here, write the linker flags to be used for each project.
+#
+LDFLAGS_thunderbots := $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4)
+
+#
+# Here, write the compiler flags to be used.
+#
+CXXFLAGS := -Wall -Wextra -O2 -march=native -mfpmath=sse -fomit-frame-pointer $(shell pkg-config --cflags glibmm-2.4 gtkmm-2.4) $(CXXFLAGS) -I.
+
+#
+# DO NOT MODIFY STUFF BELOW HERE WITHOUT A GOOD REASON.
+# It should all be automated.
+#
+
+#
+# The target to build everything.
+#
+.PHONY : world
+world : $(PROJECTS)
+
+#
+# Template of code to generate for each project.
+#
+define project_template
+#
+# Find all the cpp sources for the project.
+#
+CPP_SOURCES_EXPANDED_$(1) := $$(shell find $$(SOURCES_$(1)) -name .svn -prune -o -name '*.cpp' -print)
+ALL_CPP_FILES += $$(CPP_SOURCES_EXPANDED_$(1))
+
+$(1) : $$(CPP_SOURCES_EXPANDED_$(1):.cpp=.o)
+	$$(CXX) $$(CXXFLAGS) -o$$@ $$+ $$(LDFLAGS_$(1))
+endef
+
+#
+# Generate the code for the projects.
+#
+$(eval $(foreach proj,$(PROJECTS),$(call project_template,$(proj))))
+
+#
+# Rule to make a .d file from a .cpp file.
+#
+%.d : %.cpp
+	$(CXX) $(CXXFLAGS) -MT '$(@:.d=.o) $@' -MM -MF $@ $< || { $(RM) $@; false; }
+
+#
+# Include all the dependency files.
+#
+ifneq ($(MAKECMDGOALS),clean)
+include $(ALL_CPP_FILES:.cpp=.d)
+endif
+
+#
+# Rule to clean.
+#
+.PHONY : clean
+clean :
+	$(RM) $(ALL_CPP_FILES:.cpp=.o) $(ALL_CPP_FILES:.cpp=.d) $(PROJECTS)

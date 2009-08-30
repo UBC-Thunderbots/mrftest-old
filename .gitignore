@@ -7,3 +7,8 @@ firmware/Counter4/counter4.lst
 firmware/Counter4/counter4.map
 firmware/HWRunSwitch/hwrunswitch.elf
 firmware/HWRunSwitch/hwrunswitch.hex
+software/*.d
+software/geom/*.d
+software/robot_controller/*.d
+software/util/*.d
+software/world/*.d

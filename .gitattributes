@@ -31,6 +31,7 @@ firmware/Counter4/counter4.asm -text
 firmware/HWRunSwitch/Makefile -text
 firmware/HWRunSwitch/hwrunswitch.c -text
 firmware/WheelTestBench/WheelTestBench.pde -text
+software/Makefile -text
 software/geom/point.cpp -text
 software/geom/point.h -text
 software/robot_controller/robot_controller.h -text
