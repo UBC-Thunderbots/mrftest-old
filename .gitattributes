@@ -34,6 +34,7 @@ firmware/WheelTestBench/WheelTestBench.pde -text
 software/Makefile -text
 software/geom/point.cpp -text
 software/geom/point.h -text
+software/robot_controller/robot_controller.cpp -text
 software/robot_controller/robot_controller.h -text
 software/util/byref.h -text
 software/util/circular_buffer.h -text

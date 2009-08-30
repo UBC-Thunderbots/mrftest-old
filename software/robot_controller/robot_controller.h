@@ -35,6 +35,12 @@ class robot_controller : public virtual byref {
 		//   radians
 		//
 		virtual void move(const point &position, double orientation) = 0;
+
+	protected:
+		//
+		// The robot controlled by this controller.
+		//
+		const player::ptr robot;
 };
 
 #endif
