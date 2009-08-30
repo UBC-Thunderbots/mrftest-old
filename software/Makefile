@@ -67,4 +67,5 @@ endif
 #
 .PHONY : clean
 clean :
-	$(RM) $(ALL_CPP_FILES:.cpp=.o) $(ALL_CPP_FILES:.cpp=.d) $(PROJECTS)
+	find . -name '*.o' -o -name '*.d' -execdir rm \{\} +
+	$(RM) $(PROJECTS)
