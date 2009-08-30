@@ -7,7 +7,7 @@ PROJECTS := thunderbots
 # Here, write a list of the source files and directories for each executable.
 # Directories will be searched for source files recursively.
 #
-SOURCES_thunderbots := geom robot_controller util world thunderbots.cpp
+SOURCES_thunderbots := geom robot_controller util world
 
 #
 # Here, write the linker flags to be used for each project.
