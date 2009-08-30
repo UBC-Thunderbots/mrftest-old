@@ -1,18 +1,18 @@
 #
 # Here, write a list of all the executable binaries the Makefile might generate.
 #
-PROJECTS := thunderbots
+PROJECTS := rctest
 
 #
 # Here, write a list of the source files and directories for each executable.
 # Directories will be searched for source files recursively.
 #
-SOURCES_thunderbots := geom robot_controller util world
+SOURCES_rctest := geom robot_controller robot_controller_test util world
 
 #
 # Here, write the linker flags to be used for each project.
 #
-LDFLAGS_thunderbots := $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4)
+LDFLAGS_rctest := $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4)
 
 #
 # Here, write the compiler flags to be used.
