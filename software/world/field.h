@@ -17,33 +17,33 @@ class field : public virtual byref {
 		//
 		// The length of the field, from goal to goal, in the X direction.
 		//
-		double length() const;
+		virtual double length() const = 0;
 
 		//
 		// The width of the field, from sideline to sideline, in the Y
 		// direction.
 		//
-		double width() const;
+		virtual double width() const = 0;
 
 		//
 		// The width of the goal, symmetric above and below the centreline.
 		//
-		double goal_width() const;
+		virtual double goal_width() const = 0;
 
 		//
 		// The radius of the centre circle.
 		//
-		double centre_circle_radius() const;
+		virtual double centre_circle_radius() const = 0;
 
 		//
 		// The radius of the arcs at the top and bottom of the defense area.
 		//
-		double defense_area_radius() const;
+		virtual double defense_area_radius() const = 0;
 
 		//
 		// The width of the straight part between the arcs in the defense area.
 		//
-		double defense_area_stretch() const;
+		virtual double defense_area_stretch() const = 0;
 };
 
 #endif
