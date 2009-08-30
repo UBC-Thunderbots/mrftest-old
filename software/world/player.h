@@ -3,13 +3,13 @@
 
 #include <glibmm.h>
 #include "geom/point.h"
-#include "util/noncopyable.h"
+#include "util/byref.h"
 #include "world/robot.h"
 
 //
 // A player that the robot_controller can control.
 //
-class player : public robot {
+class player : public virtual byref {
 	public:
 		//
 		// A pointer to a player object.

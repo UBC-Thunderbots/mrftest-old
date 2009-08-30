@@ -3,12 +3,12 @@
 
 #include <glibmm.h>
 #include "geom/point.h"
-#include "util/noncopyable.h"
+#include "util/byref.h"
 
 //
 // A robot can be either friendly or enemy.
 //
-class robot : public noncopyable {
+class robot : public virtual byref {
 	public:
 		//
 		// A pointer to a robot object.

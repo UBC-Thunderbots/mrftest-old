@@ -3,14 +3,14 @@
 
 #include <glibmm.h>
 #include "geom/point.h"
-#include "util/noncopyable.h"
+#include "util/byref.h"
 #include "world/player.h"
 
 //
 // Translates world-coordinate movement requests into robot-relative
 // velocities.
 //
-class robot_controller : public noncopyable {
+class robot_controller : public virtual byref {
 	public:
 		//
 		// A pointer to a robot_controller.
