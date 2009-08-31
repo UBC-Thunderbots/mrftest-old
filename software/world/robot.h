@@ -22,6 +22,7 @@ class robot : public virtual byref {
 
 		//
 		// The orientation of the robot in radians at the last camera frame.
+		// It is the angle between robot-relative x-axis and world x-axis. 
 		//
 		virtual double orientation() const = 0;
 };

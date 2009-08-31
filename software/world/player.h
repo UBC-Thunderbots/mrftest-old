@@ -18,7 +18,10 @@ class player : public virtual byref, public virtual robot {
 
 		//
 		// Instructs the player to move with specified velocities, in
-		// robot-relative coordinates.
+		// robot-relative coordinates that:
+		// 
+		// 	positive x-axis = forward direction of the robot
+		// 	positive y-axis = left direction of the robot
 		//
 		virtual void move(const point &linear_velocity, double angular_velocity) = 0;
 
