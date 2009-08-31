@@ -9,7 +9,7 @@
 //
 // A player that the robot_controller can control.
 //
-class player : public virtual byref {
+class player : public virtual byref, public virtual robot {
 	public:
 		//
 		// A pointer to a player object.
