@@ -1,6 +1,7 @@
 #ifndef ROBOT_CONTROLLER_TEST_PLAYER_H
 #define ROBOT_CONTROLLER_TEST_PLAYER_H
 
+#include <glibmm.h>
 #include "world/player.h"
 #include "geom/point.h"
 #include "geom/angle.h"
@@ -12,6 +13,7 @@
 //
 class rc_test_player : public virtual player {
 	public:
+		typedef Glib::RefPtr<rc_test_player> ptr;
 		rc_test_player(point position, double orientation, point linear_velocity, double angular_velocity);
 		virtual point position() const;
 		virtual double orientation() const;

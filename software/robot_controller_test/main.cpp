@@ -11,13 +11,10 @@
 
 int main() {
 	// Create an rc_test_player.
-	rc_test_player * test_player = new rc_test_player(point(0, 0), 0, point(0, 0), 0);
-
-	// Create the player.
-	player::ptr player(test_player);
+	rc_test_player::ptr test_player(new rc_test_player(point(0, 0), 0, point(0, 0), 0));
 
 	// Create the controller under test.
-	robot_controller::ptr controller(new testing_rc(player));
+	robot_controller::ptr controller(new testing_rc(test_player));
 
 	point target_position(1, 1);
 	double target_orientation = PI / 2;
