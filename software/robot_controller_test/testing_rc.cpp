@@ -68,17 +68,17 @@ double testing_rc::get_velocity(double s, double v0, double v1, double max_vel, 
    */
 
 
-void testing_rc::move(const point & tar_pos, double tar_ori) {
-	point pos = robot->position();
+void testing_rc::move(const point &tar_pos, double tar_ori) {
+	const point &pos = robot->position();
 	double ori = robot->orientation();
-	point lin_vel = (pos - old_position) / time_step;
+	const point &lin_vel = (pos - old_position) / time_step;
 	double ang_vel = (ori - old_orientation) / time_step;
 	double da = angle_mod(tar_ori - ori);
-	point d = rotate((tar_pos - pos), -ori);
+	const point &d = rotate((tar_pos - pos), -ori);
 	old_position = pos;
 	old_orientation = ori;	
 
-	point tmp = point(get_velocity(d.real(), lin_vel.real(), 0, max_linear_velocity, max_linear_velocity_accel),
+	point tmp(get_velocity(d.real(), lin_vel.real(), 0, max_linear_velocity, max_linear_velocity_accel),
 			get_velocity(d.imag(), lin_vel.imag(), 0, max_linear_velocity, max_linear_velocity_accel));
 	double tmp_ang = get_velocity(da, ang_vel, 0, max_angular_velocity, max_angular_velocity_accel);
 

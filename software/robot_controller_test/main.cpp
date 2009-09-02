@@ -19,7 +19,7 @@ int main() {
 	// Create the controller under test.
 	robot_controller::ptr controller(new testing_rc(player));
 
-	point target_position = point(1, 1);
+	point target_position(1, 1);
 	double target_orientation = PI / 2;
 	for (int i = 0; ; ++i) {
 		controller->move(target_position, target_orientation);
