@@ -3,8 +3,8 @@
 
 #include <cmath>
 
-#define PI acos(-1.)
-#define TWO_PI PI * 2
+#define PI (std::acos(-1.))
+#define TWO_PI (PI * 2)
 
 double angle_mod(double angle);
 

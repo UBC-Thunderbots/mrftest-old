@@ -1,5 +1,6 @@
 #include "robot_controller_test/testing_rc.h"
 #include <iostream>
+#include <cmath>
 
 
 
@@ -47,7 +48,7 @@ double testing_rc::get_velocity(double s, double v0, double v1, double max_vel, 
 		return v0 - max_accel * time_step;
 	}
 
-	double t_to_v1 = fabs(v1 - v0) / max_accel;
+	double t_to_v1 = std::fabs(v1 - v0) / max_accel;
 	s_accel = max_accel * t_to_v1 * t_to_v1 / 2 + v0 * t_to_v1;
 
 	// Case 3: accel, decel
