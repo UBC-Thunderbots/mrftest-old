@@ -15,15 +15,15 @@ class testing_rc : public virtual robot_controller {
 		// Constructs a new controller.
 		//
 		testing_rc(player::ptr player);
-			
+
 		//
 		// Constructs a new controller.
 		//
 		// Parameters:
 		//  target_position
-    		//   location the player wants to be in world coordinate
+		//   location the player wants to be in world coordinate
 		//
-		//  target_orientation 
+		//  target_orientation
 		//   direction the player wants to have
 		//
 		virtual void move(const point &target_position, double target_orientation);		
@@ -41,7 +41,7 @@ class testing_rc : public virtual robot_controller {
 		double max_angular_velocity_accel;
 
 		double max_linear_velocity;
-		double max_linear_velocity_accel;  
+		double max_linear_velocity_accel;
 };
 
 #endif

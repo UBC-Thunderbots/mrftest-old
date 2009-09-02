@@ -1,11 +1,10 @@
-#include <iostream>
-
-
-
 #include "robot_controller/robot_controller.h"
 #include "robot_controller_test/player.h"
 #include "robot_controller_test/testing_rc.h"
 #include "world/player.h"
+#include <iostream>
+
+
 
 #define EPS 1e-5
 

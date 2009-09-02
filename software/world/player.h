@@ -19,7 +19,7 @@ class player : public virtual byref, public virtual robot {
 		//
 		// Instructs the player to move with specified velocities, in
 		// robot-relative coordinates that:
-		// 
+		//
 		// 	positive x-axis = forward direction of the robot
 		// 	positive y-axis = left direction of the robot
 		//

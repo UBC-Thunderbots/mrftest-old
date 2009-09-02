@@ -10,8 +10,3 @@ double angle_mod(double angle);
 
 #endif
 
-
-
-
-
-

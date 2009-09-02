@@ -1,16 +1,17 @@
 #include "robot_controller_test/testing_rc.h"
-
-
 #include <iostream>
+
+
+
 testing_rc::testing_rc(player::ptr player) : robot_controller(player) {
 	old_position = robot->position();
 	old_orientation = robot->orientation();
 
 	time_step = 1. / 30;
-  	max_angular_velocity_accel = PI;
-  	max_angular_velocity = 4 * PI ;
-  	max_linear_velocity_accel = 2;
-  	max_linear_velocity = 10;
+	max_angular_velocity_accel = PI;
+	max_angular_velocity = 4 * PI;
+	max_linear_velocity_accel = 2;
+	max_linear_velocity = 10;
 }
 
 
@@ -24,8 +25,8 @@ double testing_rc::get_velocity(double s, double v0, double v1, double max_vel, 
 	else if (v0 < -max_vel) v0 = -max_vel;
 	if (v1 > max_vel) v1 = max_vel;
 	else if (v1 < -max_vel) v1 = -max_vel;
-	
-	// there are 4 cases: 
+
+	// there are 4 cases:
 	// Case 1: accel, cruise, decel
 	double t_accel = (max_vel - v0) / max_accel;
 	double s_accel = max_accel * t_accel * t_accel / 2 + v0 * t_accel;
@@ -52,7 +53,7 @@ double testing_rc::get_velocity(double s, double v0, double v1, double max_vel, 
 	// Case 3: accel, decel
 	if (s_accel <= s) {
 		return v0 + max_accel * time_step;
-	} 
+	}
 
 	// Case 4: decel, accel
 	return v0 - max_accel * time_step;	
@@ -60,10 +61,10 @@ double testing_rc::get_velocity(double s, double v0, double v1, double max_vel, 
 
 
 /*
-double testing_rc::get_velocity_with_time(double s, double v0, double v1, double max_vel, double max_accel, double time) {
-	return s;
-}
-*/
+   double testing_rc::get_velocity_with_time(double s, double v0, double v1, double max_vel, double max_accel, double time) {
+   return s;
+   }
+   */
 
 
 void testing_rc::move(const point & tar_pos, double tar_ori) {
@@ -77,7 +78,7 @@ void testing_rc::move(const point & tar_pos, double tar_ori) {
 	old_orientation = ori;	
 
 	point tmp = point(get_velocity(d.real(), lin_vel.real(), 0, max_linear_velocity, max_linear_velocity_accel),
-			  get_velocity(d.imag(), lin_vel.imag(), 0, max_linear_velocity, max_linear_velocity_accel)); 
+			get_velocity(d.imag(), lin_vel.imag(), 0, max_linear_velocity, max_linear_velocity_accel));
 	double tmp_ang = get_velocity(da, ang_vel, 0, max_angular_velocity, max_angular_velocity_accel);
 
 	robot->move(d, da);

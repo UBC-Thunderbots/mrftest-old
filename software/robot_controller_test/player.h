@@ -27,14 +27,15 @@ class rc_test_player : public virtual player {
 		point lin_vel;
 		double ang_vel;
 		int sub_steps;
-		double dt; 
+		double dt;
 		double time_step;
 
 		double max_angular_velocity;
 		double max_angular_velocity_accel;
 		
 		double max_linear_velocity;
-		double max_linear_velocity_accel;  
+		double max_linear_velocity_accel;
 };
 
 #endif
+
