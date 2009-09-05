@@ -45,6 +45,8 @@ software/robot_controller_test/testing_rc.cpp -text
 software/robot_controller_test/testing_rc.h -text
 software/util/byref.h -text
 software/util/circular_buffer.h -text
+software/util/hungarian.cpp -text
+software/util/hungarian.h -text
 software/world/ball.h -text
 software/world/field.h -text
 software/world/player.h -text
