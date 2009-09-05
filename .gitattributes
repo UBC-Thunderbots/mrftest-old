@@ -50,4 +50,5 @@ software/util/hungarian.h -text
 software/world/ball.h -text
 software/world/field.h -text
 software/world/player.h -text
+software/world/playtype.h -text
 software/world/robot.h -text
