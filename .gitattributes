@@ -32,6 +32,8 @@ firmware/HWRunSwitch/Makefile -text
 firmware/HWRunSwitch/hwrunswitch.c -text
 firmware/WheelTestBench/WheelTestBench.pde -text
 software/Makefile -text
+software/ai/navigator.cpp -text
+software/ai/navigator.h -text
 software/ai/role.cpp -text
 software/ai/role.h -text
 software/ai/strategy.cpp -text
