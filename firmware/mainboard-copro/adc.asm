@@ -47,9 +47,9 @@ WAIT_ADC_FINISH macro
 	; Sends the result of an ADC conversion out over SPI.
 SEND_ADC_RESULT macro
 	movf current_value + 0, W
-	call spi_transceive
+	call spi_send
 	movf current_value + 1, W
-	call spi_transceive
+	call spi_send
 	endm
 
 

@@ -238,7 +238,7 @@ erase_chip:
 	; Send CHIP ERASE command.
 	rcall select_chip
 	movlw 0xC7
-	call spi_transceive
+	call spi_send
 	rcall deselect_chip
 
 	; Wait until STATUS.BUSY clears.
@@ -253,18 +253,18 @@ write_page:
 	; Send PAGE PROGRAM command with address and data.
 	rcall select_chip
 	movlw 0x02
-	call spi_transceive
+	call spi_send
 	movf packet_data + 1, W
-	call spi_transceive
+	call spi_send
 	movf packet_data + 2, W
-	call spi_transceive
+	call spi_send
 	movlw 0
-	call spi_transceive
+	call spi_send
 	clrf packet_remaining
 	lfsr 0, packet_data + 12
 write_page_loop:
 	movf POSTINC0, W
-	call spi_transceive
+	call spi_send
 	decfsz packet_remaining
 	bra write_page_loop
 	rcall deselect_chip
@@ -278,19 +278,19 @@ sum_page:
 	; Send FAST READ command and read in 256 bytes of data.
 	rcall select_chip
 	movlw 0x0B
-	call spi_transceive
+	call spi_send
 	movf packet_data + 0, W
-	call spi_transceive
+	call spi_send
 	movf packet_data + 1, W
-	call spi_transceive
+	call spi_send
 	movlw 0
-	call spi_transceive
+	call spi_send
 	movlw 0
-	call spi_transceive
+	call spi_send
 	clrf packet_remaining
 	clrf computed_sum
 sum_page_loop:
-	call spi_transceive
+	call spi_receive
 	addwf computed_sum, F
 	decfsz packet_remaining
 	bra sum_page_loop
@@ -310,10 +310,9 @@ wait_until_programmed:
 	; Send READ STATUS REGISTER until bit 0 (BUSY) is clear.
 	rcall select_chip
 	movlw 0x05
-	call spi_transceive
+	call spi_send
 wait_until_programmed_loop:
-	movlw 0
-	call spi_transceive
+	call spi_receive
 	andlw 1
 	bnz wait_until_programmed_loop
 
@@ -359,7 +358,7 @@ deselect_chip:
 send_write_enable:
 	rcall select_chip
 	movlw 0x06
-	call spi_transceive
+	call spi_send
 	rcall deselect_chip
 	return
 

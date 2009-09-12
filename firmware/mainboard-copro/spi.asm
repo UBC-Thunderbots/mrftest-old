@@ -16,7 +16,8 @@
 
 	global spi_drive
 	global spi_tristate
-	global spi_transceive
+	global spi_send
+	global spi_receive
 
 
 
@@ -55,29 +56,22 @@ spi_tristate:
 
 
 
-	; This macro transceives one bit of WREG.
+	; This macro sends one bit of WREG.
 	; The code below is carefully written to minimize pin transitions and
 	; stabilize timing.
-SPI_TRANSCEIVE_BIT macro BIT
+SPI_SEND_BIT macro bit
 	; Drive data line.
-	btfsc WREG, BIT
+	btfsc WREG, bit
 	bsf LAT_SPI_TX, PIN_SPI_TX
-	btfss WREG, BIT
+	btfss WREG, bit
 	bcf LAT_SPI_TX, PIN_SPI_TX
-
-	; While TX is stabilizing, sample RX.
-	bcf WREG, BIT
-	btfsc PORT_SPI_RX, PIN_SPI_RX
-	bsf WREG, BIT
 
 	; Raise clock line.
 	bsf LAT_SPI_CK, PIN_SPI_CK
 
-	; Wait 7 instruction cycles.
+	; Wait 4 instruction cycles.
 	bra $+2
 	bra $+2
-	bra $+2
-	nop
 
 	; Lower clock line.
 	bcf LAT_SPI_CK, PIN_SPI_CK
@@ -85,14 +79,49 @@ SPI_TRANSCEIVE_BIT macro BIT
 
 
 
-spi_transceive:
-	SPI_TRANSCEIVE_BIT 7
-	SPI_TRANSCEIVE_BIT 6
-	SPI_TRANSCEIVE_BIT 5
-	SPI_TRANSCEIVE_BIT 4
-	SPI_TRANSCEIVE_BIT 3
-	SPI_TRANSCEIVE_BIT 2
-	SPI_TRANSCEIVE_BIT 1
-	SPI_TRANSCEIVE_BIT 0
+spi_send:
+	SPI_SEND_BIT 7
+	SPI_SEND_BIT 6
+	SPI_SEND_BIT 5
+	SPI_SEND_BIT 4
+	SPI_SEND_BIT 3
+	SPI_SEND_BIT 2
+	SPI_SEND_BIT 1
+	SPI_SEND_BIT 0
+	bcf LAT_SPI_TX, PIN_SPI_TX
+	return
+
+
+
+	; This macro receives one bit of WREG.
+	; The code below is carefully written to minimize pin transitions and
+	; stabilize timing.
+SPI_RECEIVE_BIT macro bit
+	; Raise clock line.
+	bsf LAT_SPI_CK, PIN_SPI_CK
+
+	; Sample receive line.
+	btfsc LAT_SPI_RX, PIN_SPI_RX
+	iorlw 1 << bit
+
+	; Lower clock line.
+	bcf LAT_SPI_CK, PIN_SPI_CK
+
+	; Wait 2 instruction cycles.
+	bra $+2
+	endm
+
+
+
+spi_receive:
+	movlw 0
+	SPI_RECEIVE_BIT 7
+	SPI_RECEIVE_BIT 6
+	SPI_RECEIVE_BIT 5
+	SPI_RECEIVE_BIT 4
+	SPI_RECEIVE_BIT 3
+	SPI_RECEIVE_BIT 2
+	SPI_RECEIVE_BIT 1
+	SPI_RECEIVE_BIT 0
 	return
 	end
