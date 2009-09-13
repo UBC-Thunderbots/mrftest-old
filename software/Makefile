@@ -1,7 +1,7 @@
 #
 # Here, write a list of all the executable binaries the Makefile might generate.
 #
-PROJECTS := rctest thunderbots
+PROJECTS := rctest thunderbots xbeeconfig
 
 #
 # Here, write a list of the source files and directories for each executable.
@@ -9,12 +9,14 @@ PROJECTS := rctest thunderbots
 #
 SOURCES_rctest := geom robot_controller robot_controller_test util world
 SOURCES_thunderbots := ai geom robot_controller robot_controller_test util world
+SOURCES_xbeeconfig := xbeeconfig.cpp
 
 #
 # Here, write the linker flags to be used for each project.
 #
 LDFLAGS_rctest := $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4)
 LDFLAGS_thunderbots := $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4)
+LDFLAGS_xbeeconfig := $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4) -lrt
 
 #
 # Here, write the compiler flags to be used.

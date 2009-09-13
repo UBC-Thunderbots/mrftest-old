@@ -44,3 +44,4 @@ software/world/playtype.h -text
 software/world/robot.h -text
 software/world/team.cpp -text
 software/world/team.h -text
+software/xbeeconfig.cpp -text

@@ -16,3 +16,4 @@ software/robot_controller_test/*.d
 software/thunderbots
 software/util/*.d
 software/world/*.d
+software/xbeeconfig
