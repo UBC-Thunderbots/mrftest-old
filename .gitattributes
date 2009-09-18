@@ -38,10 +38,15 @@ software/util/circular_buffer.h -text
 software/util/hungarian.cpp -text
 software/util/hungarian.h -text
 software/world/ball.h -text
+software/world/ball_impl.h -text
+software/world/config.cpp -text
+software/world/config.h -text
 software/world/field.h -text
 software/world/player.h -text
+software/world/player_impl.h -text
 software/world/playtype.h -text
 software/world/robot.h -text
+software/world/robot_impl.h -text
 software/world/team.cpp -text
 software/world/team.h -text
 software/xbeeconfig.cpp -text

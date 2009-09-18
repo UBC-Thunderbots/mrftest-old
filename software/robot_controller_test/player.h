@@ -11,7 +11,7 @@
 //
 // A player object compatible with the robot-controller tester framework.
 //
-class rc_test_player : public virtual player {
+class rc_test_player : public virtual player_impl {
 	public:
 		typedef Glib::RefPtr<rc_test_player> ptr;
 		rc_test_player(point position, double orientation, point linear_velocity, double angular_velocity);

@@ -1,12 +1,15 @@
 #ifndef WORLD_ROBOT_H
 #define WORLD_ROBOT_H
 
-#include <glibmm.h>
+#include <glibmm/refptr.h>
+#include "geom/angle.h"
 #include "geom/point.h"
 #include "util/byref.h"
+#include "world/robot_impl.h"
 
 //
-// A robot can be either friendly or enemy.
+// A robot can be either friendly or enemy. Vectors in this class are in team
+// coordinates.
 //
 class robot : public virtual byref {
 	public:
@@ -16,15 +19,42 @@ class robot : public virtual byref {
 		typedef Glib::RefPtr<robot> ptr;
 
 		//
+		// An ID number that uniquely identifies the robot across all teams.
+		//
+		unsigned int id() const {
+			return id;
+		}
+
+		//
 		// The position of the robot at the last camera frame.
 		//
-		virtual point position() const = 0;
+		point position() const {
+			return impl.position() * (flip ? -1.0 : 1.0);
+		}
 
 		//
 		// The orientation of the robot in radians at the last camera frame.
-		// It is the angle between robot-relative x-axis and world x-axis.
 		//
-		virtual double orientation() const = 0;
+		double orientation() const {
+			return angle_mod(impl.orientation() + (flip ? PI : 0.0));
+		}
+
+		//
+		// Constructs a new robot object.
+		//
+		// Parameters:
+		//  impl
+		//   the implementation object that provides global coordinates
+		//
+		//  flip
+		//   whether the X and Y coordinates are reversed for this object
+		//
+		robot(const robot_impl &impl, bool flip) : impl(impl), flip(flip) {
+		}
+
+	private:
+		const robot_impl &impl;
+		const bool flip;
 };
 
 #endif

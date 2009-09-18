@@ -41,7 +41,7 @@ class team : public virtual byref {
 //
 // A group of robots controlled by one AI on this computer.
 //
-class controlled_team : public virtual byref, public virtual team {
+class controlled_team : public virtual team {
 	public:
 		//
 		// A pointer to a controllable_team.

@@ -1,14 +1,13 @@
 #ifndef WORLD_BALL_H
 #define WORLD_BALL_H
 
-#include <cstddef>
-#include <glibmm.h>
+#include <glibmm/refptr.h>
 #include "geom/point.h"
-#include "util/circular_buffer.h"
 #include "util/byref.h"
+#include "world/ball_impl.h"
 
 //
-// The ball.
+// The ball, as seen by the AI. Vectors in this class are in team coordinates.
 //
 class ball : public virtual byref {
 	public:
@@ -20,17 +19,23 @@ class ball : public virtual byref {
 		//
 		// The position of the ball at the last camera frame.
 		//
-		const point &position() const;
+		point position() const {
+			return impl.position() * (flip ? -1.0 : 1.0);
+		}
 
 		//
 		// The estimated velocity of the ball at the last camera frame.
 		//
-		const point &velocity() const;
+		point velocity() const {
+			return impl.velocity() * (flip ? -1.0 : 1.0);
+		}
 
 		//
 		// The estimated acceleration of the ball at the last camera frame.
 		// 
-		const point &acceleration() const;
+		point acceleration() const {
+			return impl.acceleration() * (flip ? -1.0 : 1.0);
+		}
 
 		//
 		// The estimated future position of the ball.
@@ -39,29 +44,26 @@ class ball : public virtual byref {
 		//  t
 		//   the number of seconds in the future to predict
 		//
-		point future_position(double t) const;
+		point future_position(double t) const {
+			return position() + velocity() * t + 0.5 * acceleration() * t * t;
+		}
 
-	protected:
 		//
-		// Sets the current position of the ball.
+		// Constructs a new ball object.
 		//
-		void set_position(const point &pt, double timestamp);
+		// Parameters:
+		//  impl
+		//   the implementation object that provides global coordinates
+		//
+		//  flip
+		//   whether the X and Y coordinates are reversed for this object
+		//
+		ball(ball_impl &impl, bool flip) : impl(impl), flip(flip) {
+		}
 
 	private:
-		//
-		// How many past positions to keep for estimation purposes.
-		//
-		static const std::size_t NUM_PAST_POSITIONS = 6;
-
-		//
-		// The list of positions.
-		//
-		circular_buffer<point, NUM_PAST_POSITIONS> past_positions;
-
-		//
-		// The list of timestamps.
-		//
-		circular_buffer<double, NUM_PAST_POSITIONS> past_timestamps;
+		ball_impl &impl;
+		const bool flip;
 };
 
 #endif
