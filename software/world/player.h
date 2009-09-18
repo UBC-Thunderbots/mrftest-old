@@ -57,13 +57,16 @@ class player : public virtual byref, public virtual robot {
 		// Constructs a new player object.
 		//
 		// Parameters:
+		//  id
+		//   the global ID number of this robot
+		//
 		//  impl
 		//   the implementation object that provides global coordinates
 		//
 		//  flip
 		//   whether the X and Y coordinates are reversed for this object
 		//
-		player(player_impl &impl, bool flip) : robot(impl, flip), impl(impl), flip(flip) {
+		player(unsigned int id, player_impl &impl, bool flip) : robot(id, impl, flip), impl(impl), flip(flip) {
 		}
 
 	private:

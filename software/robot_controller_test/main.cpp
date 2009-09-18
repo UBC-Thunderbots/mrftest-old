@@ -12,7 +12,7 @@
 int main() {
 	// Create an rc_test_player.
 	rc_test_player test_player_impl(point(0, 0), 0, point(0, 0), 0);
-	player::ptr test_player(new player(test_player_impl, 1));
+	player::ptr test_player(new player(0, test_player_impl, 1));
 
 	// Create the controller under test.
 	robot_controller::ptr controller(new testing_rc(test_player));

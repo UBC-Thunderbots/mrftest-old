@@ -22,7 +22,7 @@ class robot : public virtual byref {
 		// An ID number that uniquely identifies the robot across all teams.
 		//
 		unsigned int id() const {
-			return id;
+			return the_id;
 		}
 
 		//
@@ -43,16 +43,20 @@ class robot : public virtual byref {
 		// Constructs a new robot object.
 		//
 		// Parameters:
+		//  id
+		//   the global ID number of this robot
+		//
 		//  impl
 		//   the implementation object that provides global coordinates
 		//
 		//  flip
 		//   whether the X and Y coordinates are reversed for this object
 		//
-		robot(const robot_impl &impl, bool flip) : impl(impl), flip(flip) {
+		robot(unsigned int id, const robot_impl &impl, bool flip) : the_id(id), impl(impl), flip(flip) {
 		}
 
 	private:
+		const unsigned int the_id;
 		const robot_impl &impl;
 		const bool flip;
 };
