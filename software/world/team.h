@@ -20,22 +20,22 @@ class team : public virtual byref {
 		//
 		// The number of robots on the team.
 		//
-		virtual std::size_t size() const;
+		virtual std::size_t size() const = 0;
 
 		//
 		// Gets one robot on the team.
 		//
-		virtual Glib::RefPtr<robot> get_robot(std::size_t idx);
+		virtual Glib::RefPtr<robot> get_robot(std::size_t idx) = 0;
 
 		//
 		// Gets the team's score.
 		//
-		virtual unsigned int score() const;
+		virtual unsigned int score() const = 0;
 
 		//
 		// Gets the team opposing this one.
 		//
-		team::ptr other();
+		virtual team::ptr other() = 0;
 };
 
 //
@@ -51,7 +51,7 @@ class controlled_team : public virtual team {
 		//
 		// Gets one player on the team.
 		//
-		virtual Glib::RefPtr<player> get_player(std::size_t idx);
+		virtual Glib::RefPtr<player> get_player(std::size_t idx) = 0;
 
 		//
 		// Gets one robot on the team.
