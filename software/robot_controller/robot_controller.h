@@ -64,7 +64,7 @@ class robot_controller_factory : public virtual noncopyable {
 		virtual robot_controller::ptr create_controller(player::ptr bot) = 0;
 
 		//
-		// Gets the collection of all registered controllers, keyed by name.
+		// Gets the collection of all registered controller factories, keyed by name.
 		//
 		static const std::map<Glib::ustring, robot_controller_factory *> &all();
 
