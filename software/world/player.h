@@ -26,7 +26,7 @@ class player : public virtual byref, public virtual robot {
 		// 	positive y-axis = left direction of the robot
 		//
 		void move(const point &linear_velocity, double angular_velocity) {
-			impl.move(linear_velocity * (flip ? -1.0 : 1.0), angular_velocity);
+			impl->move(linear_velocity * (flip ? -1.0 : 1.0), angular_velocity);
 		}
 
 		//
@@ -34,7 +34,7 @@ class player : public virtual byref, public virtual robot {
 		// speed is between 0 and 1.
 		//
 		void dribble(double speed) {
-			impl.dribble(speed);
+			impl->dribble(speed);
 		}
 
 		//
@@ -42,7 +42,7 @@ class player : public virtual byref, public virtual robot {
 		// The strength is between 0 and 1.
 		//
 		void kick(double strength) {
-			impl.kick(strength);
+			impl->kick(strength);
 		}
 
 		//
@@ -50,7 +50,7 @@ class player : public virtual byref, public virtual robot {
 		// The strength is between 0 and 1.
 		//
 		void chip(double strength) {
-			impl.chip(strength);
+			impl->chip(strength);
 		}
 
 		//
@@ -66,11 +66,11 @@ class player : public virtual byref, public virtual robot {
 		//  flip
 		//   whether the X and Y coordinates are reversed for this object
 		//
-		player(unsigned int id, player_impl &impl, bool flip) : robot(id, impl, flip), impl(impl), flip(flip) {
+		player(unsigned int id, player_impl::ptr impl, bool flip) : robot(id, impl, flip), impl(impl), flip(flip) {
 		}
 
 	private:
-		player_impl &impl;
+		player_impl::ptr impl;
 		const bool flip;
 };
 

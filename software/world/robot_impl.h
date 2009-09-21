@@ -13,6 +13,11 @@
 class robot_impl : public virtual byref {
 	public:
 		//
+		// A pointer to a robot_impl.
+		//
+		typedef Glib::RefPtr<robot_impl> ptr;
+
+		//
 		// The position of the robot at the last camera frame.
 		//
 		virtual point position() const = 0;

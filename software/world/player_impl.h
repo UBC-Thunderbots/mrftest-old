@@ -8,11 +8,16 @@
 
 //
 // The back-end behind a player object. An implementation of the world must
-// provide an implementation of this class and use it to construct robot objects
+// provide an implementation of this class and use it to construct player objects
 // to pass to the AI. Vectors in this class are in global coordinates.
 //
 class player_impl : public virtual robot_impl {
 	public:
+		//
+		// A pointer to a player_impl.
+		//
+		typedef Glib::RefPtr<player_impl> ptr;
+
 		//
 		// Instructs the player to move with specified velocities, in
 		// robot-relative coordinates that:

@@ -29,14 +29,14 @@ class robot : public virtual byref {
 		// The position of the robot at the last camera frame.
 		//
 		point position() const {
-			return impl.position() * (flip ? -1.0 : 1.0);
+			return impl->position() * (flip ? -1.0 : 1.0);
 		}
 
 		//
 		// The orientation of the robot in radians at the last camera frame.
 		//
 		double orientation() const {
-			return angle_mod(impl.orientation() + (flip ? PI : 0.0));
+			return angle_mod(impl->orientation() + (flip ? PI : 0.0));
 		}
 
 		//
@@ -52,12 +52,12 @@ class robot : public virtual byref {
 		//  flip
 		//   whether the X and Y coordinates are reversed for this object
 		//
-		robot(unsigned int id, const robot_impl &impl, bool flip) : the_id(id), impl(impl), flip(flip) {
+		robot(unsigned int id, robot_impl::ptr impl, bool flip) : the_id(id), impl(impl), flip(flip) {
 		}
 
 	private:
 		const unsigned int the_id;
-		const robot_impl &impl;
+		robot_impl::ptr impl;
 		const bool flip;
 };
 
