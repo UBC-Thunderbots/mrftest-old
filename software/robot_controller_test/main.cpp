@@ -10,7 +10,7 @@
 
 int main() {
 	// Create an rc_test_player.
-	rc_test_player test_player_impl(point(0, 0), 0, point(0, 0), 0);
+	Glib::RefPtr<rc_test_player> test_player_impl(new rc_test_player(point(0, 0), 0, point(0, 0), 0));
 	player::ptr test_player(new player(0, test_player_impl, false));
 
 	// Create the controller under test.
