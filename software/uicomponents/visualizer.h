@@ -15,7 +15,7 @@ class visualizer : public Gtk::DrawingArea {
 		// Constructs a new visualizer. All objects should be given for the same
 		// coordinate system.
 		//
-		visualizer(const field &field, const ball &ball, const team::ptr west_team, const team::ptr east_team);
+		visualizer(const field::ptr field, const ball::ptr ball, const team::ptr west_team, const team::ptr east_team);
 
 		//
 		// Updates the display.
@@ -32,8 +32,8 @@ class visualizer : public Gtk::DrawingArea {
 		}
 
 	private:
-		const field &the_field;
-		const ball &the_ball;
+		const field::ptr the_field;
+		const ball::ptr the_ball;
 		const team::ptr west_team;
 		const team::ptr east_team;
 };

@@ -5,7 +5,7 @@
 
 
 
-visualizer::visualizer(const field &field, const ball &ball, const team::ptr west_team, const team::ptr east_team) : the_field(field), the_ball(ball), west_team(west_team), east_team(east_team) {
+visualizer::visualizer(const field::ptr field, const ball::ptr ball, const team::ptr west_team, const team::ptr east_team) : the_field(field), the_ball(ball), west_team(west_team), east_team(east_team) {
 }
 
 void visualizer::update() {
@@ -23,47 +23,47 @@ void visualizer::update() {
 
 	// Establish a transformation from global world coordinates to screen coordinates.
 	ctx->translate(width / 2.0, height / 2.0);
-	double xscale = width / (the_field.length() * 1.2);
-	double yscale = height / (the_field.width() * 1.2);
+	double xscale = width / (the_field->length() * 1.2);
+	double yscale = height / (the_field->width() * 1.2);
 	double scale = std::min(xscale, yscale);
 	ctx->scale(scale, -scale);
 	ctx->set_line_width(2.0 / scale);
 
 	// Draw the rectangular outline.
 	ctx->set_source_rgb(1.0, 1.0, 1.0);
-	ctx->move_to(-the_field.length() / 2.0, -the_field.width() / 2.0);
-	ctx->line_to( the_field.length() / 2.0, -the_field.width() / 2.0);
-	ctx->line_to( the_field.length() / 2.0,  the_field.width() / 2.0);
-	ctx->line_to(-the_field.length() / 2.0,  the_field.width() / 2.0);
-	ctx->line_to(-the_field.length() / 2.0, -the_field.width() / 2.0);
+	ctx->move_to(-the_field->length() / 2.0, -the_field->width() / 2.0);
+	ctx->line_to( the_field->length() / 2.0, -the_field->width() / 2.0);
+	ctx->line_to( the_field->length() / 2.0,  the_field->width() / 2.0);
+	ctx->line_to(-the_field->length() / 2.0,  the_field->width() / 2.0);
+	ctx->line_to(-the_field->length() / 2.0, -the_field->width() / 2.0);
 	ctx->stroke();
 
 	// Draw the centre line.
-	ctx->move_to(0.0, -the_field.width() / 2.0);
-	ctx->line_to(0.0,  the_field.width() / 2.0);
+	ctx->move_to(0.0, -the_field->width() / 2.0);
+	ctx->line_to(0.0,  the_field->width() / 2.0);
 	ctx->stroke();
 
 	// Draw the centre circle.
-	ctx->arc(0.0, 0.0, the_field.centre_circle_radius(), 0.0, 2 * PI);
+	ctx->arc(0.0, 0.0, the_field->centre_circle_radius(), 0.0, 2 * PI);
 	ctx->stroke();
 
 	// Draw the west defense area.
-	ctx->arc(-the_field.length() / 2.0, -the_field.defense_area_stretch() / 2.0, the_field.defense_area_radius(), -PI / 2.0, 0.0);
-	ctx->move_to(-the_field.length() / 2.0 + the_field.defense_area_radius(), -the_field.defense_area_stretch() / 2.0);
-	ctx->line_to(-the_field.length() / 2.0 + the_field.defense_area_radius(),  the_field.defense_area_stretch() / 2.0);
-	ctx->arc(-the_field.length() / 2.0,  the_field.defense_area_stretch() / 2.0, the_field.defense_area_radius(), 0.0,  PI / 2.0);
+	ctx->arc(-the_field->length() / 2.0, -the_field->defense_area_stretch() / 2.0, the_field->defense_area_radius(), -PI / 2.0, 0.0);
+	ctx->move_to(-the_field->length() / 2.0 + the_field->defense_area_radius(), -the_field->defense_area_stretch() / 2.0);
+	ctx->line_to(-the_field->length() / 2.0 + the_field->defense_area_radius(),  the_field->defense_area_stretch() / 2.0);
+	ctx->arc(-the_field->length() / 2.0,  the_field->defense_area_stretch() / 2.0, the_field->defense_area_radius(), 0.0,  PI / 2.0);
 	ctx->stroke();
 
 	// Draw the east defense area.
-	ctx->arc( the_field.length() / 2.0, -the_field.defense_area_stretch() / 2.0, the_field.defense_area_radius(), PI, 3.0 * PI / 2.0);
-	ctx->move_to( the_field.length() / 2.0 - the_field.defense_area_radius(), -the_field.defense_area_stretch() / 2.0);
-	ctx->line_to( the_field.length() / 2.0 - the_field.defense_area_radius(),  the_field.defense_area_stretch() / 2.0);
-	ctx->arc_negative( the_field.length() / 2.0,  the_field.defense_area_stretch() / 2.0, the_field.defense_area_radius(), PI, PI / 2.0);
+	ctx->arc( the_field->length() / 2.0, -the_field->defense_area_stretch() / 2.0, the_field->defense_area_radius(), PI, 3.0 * PI / 2.0);
+	ctx->move_to( the_field->length() / 2.0 - the_field->defense_area_radius(), -the_field->defense_area_stretch() / 2.0);
+	ctx->line_to( the_field->length() / 2.0 - the_field->defense_area_radius(),  the_field->defense_area_stretch() / 2.0);
+	ctx->arc_negative( the_field->length() / 2.0,  the_field->defense_area_stretch() / 2.0, the_field->defense_area_radius(), PI, PI / 2.0);
 	ctx->stroke();
 
 	// Draw the ball.
 	ctx->set_source_rgb(1.0, 0.5, 0.0);
-	ctx->arc(the_ball.position().real(), the_ball.position().imag(), 0.03, 0.0, 2.0 * PI);
+	ctx->arc(the_ball->position().real(), the_ball->position().imag(), 0.03, 0.0, 2.0 * PI);
 	ctx->fill();
 
 	// Draw the players.
