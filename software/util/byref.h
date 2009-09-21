@@ -1,11 +1,13 @@
 #ifndef UTIL_BYREF_H
 #define UTIL_BYREF_H
 
+#include "util/noncopyable.h"
+
 //
 // An object that should be passed around by means of a Glib::RefPtr<> rather
 // than by copying.
 //
-class byref {
+class byref : public virtual noncopyable {
 	public:
 		//
 		// Adds one to the object's reference count. This should only be called
@@ -38,16 +40,6 @@ class byref {
 		}
 
 	private:
-		//
-		// Prevents byref objects from being copied.
-		//
-		byref(const byref &copyref);
-
-		//
-		// Prevents byref objects from being assigned to one another.
-		//
-		byref &operator=(const byref &assgref);
-
 		//
 		// The reference count of the object.
 		//
