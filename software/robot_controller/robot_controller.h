@@ -5,6 +5,7 @@
 #include <glibmm.h>
 #include "geom/point.h"
 #include "util/byref.h"
+#include "util/noncopyable.h"
 #include "world/player.h"
 
 //
@@ -48,7 +49,7 @@ class robot_controller : public virtual byref {
 //
 // A factory to construct robot_controllers.
 // 
-class robot_controller_factory : public virtual byref {
+class robot_controller_factory : public virtual noncopyable {
 	public:
 		//
 		// The name of the robot controllers created by this factory.
