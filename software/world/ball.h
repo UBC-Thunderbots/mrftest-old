@@ -20,21 +20,21 @@ class ball : public virtual byref {
 		// The position of the ball at the last camera frame.
 		//
 		point position() const {
-			return impl.position() * (flip ? -1.0 : 1.0);
+			return impl->position() * (flip ? -1.0 : 1.0);
 		}
 
 		//
 		// The estimated velocity of the ball at the last camera frame.
 		//
 		point velocity() const {
-			return impl.velocity() * (flip ? -1.0 : 1.0);
+			return impl->velocity() * (flip ? -1.0 : 1.0);
 		}
 
 		//
 		// The estimated acceleration of the ball at the last camera frame.
 		// 
 		point acceleration() const {
-			return impl.acceleration() * (flip ? -1.0 : 1.0);
+			return impl->acceleration() * (flip ? -1.0 : 1.0);
 		}
 
 		//
@@ -58,11 +58,11 @@ class ball : public virtual byref {
 		//  flip
 		//   whether the X and Y coordinates are reversed for this object
 		//
-		ball(ball_impl &impl, bool flip) : impl(impl), flip(flip) {
+		ball(ball_impl::ptr impl, bool flip) : impl(impl), flip(flip) {
 		}
 
 	private:
-		ball_impl &impl;
+		ball_impl::ptr impl;
 		const bool flip;
 };
 

@@ -3,6 +3,7 @@
 
 #include "geom/point.h"
 #include "util/byref.h"
+#include <glibmm/refptr.h>
 
 //
 // The ball, as provided by the world. An implementation of the world must
@@ -12,6 +13,11 @@
 //
 class ball_impl : public virtual byref {
 	public:
+		//
+		// A pointer to a ball_impl.
+		//
+		typedef Glib::RefPtr<ball_impl> ptr;
+
 		//
 		// The position of the ball at the last camera frame.
 		//
