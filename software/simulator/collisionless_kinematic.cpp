@@ -1,0 +1,177 @@
+#include "geom/angle.h"
+#include "simulator/engine.h"
+#include "world/timestep.h"
+#include <vector>
+#include <glibmm/refptr.h>
+
+namespace {
+	//
+	// The limit of floating-point precision.
+	//
+	const double EPS = 1.0e-9;
+
+	//
+	// The maximum acceleration of a robot, in metres per second squared.
+	//
+	const double BOT_MAX_ACCELERATION = 10.0;
+
+	//
+	// The maximum velocity of a robot, in metres per second.
+	//
+	const double BOT_MAX_VELOCITY = 5.0;
+
+	//
+	// The acceleration due to friction against the ball, in metres per second squared.
+	//
+	const double BALL_DECELERATION = 6.0;
+
+	//
+	// A collisionless-kinematic ball_impl.
+	//
+	class ck_ball : public virtual ball_impl {
+		public:
+			typedef Glib::RefPtr<ck_ball> ptr;
+
+			ck_ball() : the_position(0.0, 0.0), the_velocity(0.0, 0.0) {
+			}
+
+			void kick(const point &direction) {
+				the_velocity += direction;
+			}
+
+			void update() {
+				the_position += velocity() / static_cast<double>(TIMESTEPS_PER_SECOND);
+				const point &velocity_diff = acceleration() / static_cast<double>(TIMESTEPS_PER_SECOND);
+				if (abs(velocity_diff) >= abs(the_velocity))
+					the_velocity = point(0.0, 0.0);
+				else
+					the_velocity += velocity_diff;
+			}
+
+			virtual point position() const {
+				return the_position;
+			}
+
+			virtual point velocity() const {
+				return the_velocity;
+			}
+
+			virtual point acceleration() const {
+				if (std::abs(the_velocity) > EPS) {
+					return -the_velocity / std::abs(the_velocity) * BALL_DECELERATION;
+				} else {
+					return point(0.0, 0.0);
+				}
+			}
+
+		private:
+			point the_position, the_velocity;
+	};
+
+	//
+	// A collisionless-kinematic player_impl.
+	//
+	class ck_player : public virtual player_impl {
+		public:
+			typedef Glib::RefPtr<ck_player> ptr;
+
+			ck_player() : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0) {
+			}
+
+			void update() {
+				the_position += the_velocity;
+				const point &diff = target_velocity - the_velocity;
+				if (abs(diff) < BOT_MAX_ACCELERATION / TIMESTEPS_PER_SECOND) {
+					the_velocity = target_velocity;
+				} else {
+					the_velocity += diff / abs(diff) * BOT_MAX_ACCELERATION / static_cast<double>(TIMESTEPS_PER_SECOND);
+				}
+
+				the_orientation = angle_mod(the_orientation + avelocity);
+			}
+
+			virtual point position() const {
+				return the_position;
+			}
+
+			virtual double orientation() const {
+				return the_orientation;
+			}
+
+			virtual void move(const point &vel, double avel) {
+				target_velocity = vel;
+				avelocity = avel;
+			}
+
+			virtual void dribble(double speed) {
+			}
+
+			virtual void kick(double strength) {
+			}
+
+			virtual void chip(double strength) {
+			}
+
+		private:
+			point the_position, the_velocity, target_velocity;
+			double the_orientation, avelocity;
+	};
+
+	//
+	// A collisionless-kinematic simulator_engine.
+	//
+	class ck_engine : public virtual simulator_engine {
+		public:
+			ck_engine() : the_ball(new ck_ball) {
+			}
+
+			virtual void update() {
+				the_ball->update();
+				for (unsigned int i = 0; i < the_players.size(); i++)
+					the_players[i]->update();
+			}
+
+			virtual ball_impl::ptr get_ball() {
+				return the_ball;
+			}
+
+			virtual player_impl::ptr add_player() {
+				ck_player::ptr p(new ck_player);
+				the_players.push_back(p);
+				return p;
+			}
+
+			virtual void remove_player(player_impl::ptr p) {
+				for (unsigned int i = 0; i < the_players.size(); i++) {
+					if (static_cast<player_impl::ptr>(the_players[i]) == p) {
+						the_players.erase(the_players.begin() + i);
+						return;
+					}
+				}
+			}
+
+		private:
+			ck_ball::ptr the_ball;
+			std::vector<ck_player::ptr> the_players;
+	};
+
+	//
+	// A factory for creating ck_engines.
+	//
+	class ck_engine_factory : public virtual simulator_engine_factory {
+		public:
+			ck_engine_factory() : simulator_engine_factory("2D Collisionless Kinematic") {
+			}
+
+			virtual simulator_engine::ptr create_engine() {
+				simulator_engine::ptr p(new ck_engine);
+				return p;
+			}
+	};
+
+	//
+	// The global instance of ck_engine_factory.
+	//
+	ck_engine_factory fact;
+}
+
