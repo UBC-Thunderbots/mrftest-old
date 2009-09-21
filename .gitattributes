@@ -28,11 +28,10 @@ software/geom/point.cpp -text
 software/geom/point.h -text
 software/robot_controller/robot_controller.cpp -text
 software/robot_controller/robot_controller.h -text
+software/robot_controller/testing_rc.cpp -text
 software/robot_controller_test/main.cpp -text
 software/robot_controller_test/player.cpp -text
 software/robot_controller_test/player.h -text
-software/robot_controller_test/testing_rc.cpp -text
-software/robot_controller_test/testing_rc.h -text
 software/uicomponents/visualizer.cpp -text
 software/uicomponents/visualizer.h -text
 software/util/byref.h -text
