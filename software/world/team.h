@@ -36,6 +36,11 @@ class team : public virtual byref {
 		// Gets the team opposing this one.
 		//
 		virtual team::ptr other() = 0;
+
+		//
+		// Gets the colour of the team, true for yellow or false for blue.
+		//
+		virtual bool yellow() const = 0;
 };
 
 //
