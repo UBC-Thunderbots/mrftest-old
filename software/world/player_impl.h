@@ -44,6 +44,12 @@ class player_impl : public virtual robot_impl {
 		// The strength is between 0 and 1.
 		//
 		virtual void chip(double strength) = 0;
+
+		//
+		// Returns a trivial implementation of player_impl that always leaves
+		// the player at the origin facing in the positive X direction.
+		//
+		static const ptr &trivial();
 };
 
 #endif

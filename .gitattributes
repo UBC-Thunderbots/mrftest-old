@@ -54,6 +54,7 @@ software/world/config.cpp -text
 software/world/config.h -text
 software/world/field.h -text
 software/world/player.h -text
+software/world/player_impl.cpp -text
 software/world/player_impl.h -text
 software/world/playtype.h -text
 software/world/robot.h -text
