@@ -9,6 +9,7 @@ firmware/mainboard-copro/*.lst
 firmware/mainboard-copro/*.map
 software/*.d
 software/ai/*.d
+software/ai/navigator/*.d
 software/geom/*.d
 software/rctest
 software/robot_controller/*.d
