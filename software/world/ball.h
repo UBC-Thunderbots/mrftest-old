@@ -1,10 +1,11 @@
 #ifndef WORLD_BALL_H
 #define WORLD_BALL_H
 
-#include <glibmm/refptr.h>
 #include "geom/point.h"
 #include "util/byref.h"
 #include "world/ball_impl.h"
+#include <cassert>
+#include <glibmm/refptr.h>
 
 //
 // The ball, as seen by the AI. Vectors in this class are in team coordinates.
@@ -46,6 +47,15 @@ class ball : public virtual byref {
 		//
 		point future_position(double t) const {
 			return position() + velocity() * t + 0.5 * acceleration() * t * t;
+		}
+
+		//
+		// Sets a new ball_impl to delegate to. This method is intended only for
+		// use by universe implementers and should not be called by the AI.
+		//
+		void set_impl(const ball_impl::ptr &i) {
+			assert(i);
+			impl = i;
 		}
 
 		//
