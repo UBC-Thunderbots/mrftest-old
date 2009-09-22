@@ -16,6 +16,8 @@ firmware/mainboard-copro/spi.inc -text
 software/Makefile -text
 software/ai/navigator.cpp -text
 software/ai/navigator.h -text
+software/ai/navigator/testnavigator.cpp -text
+software/ai/navigator/testnavigator.h -text
 software/ai/role.cpp -text
 software/ai/role.h -text
 software/ai/strategy.cpp -text

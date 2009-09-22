@@ -25,6 +25,11 @@ class navigator : public virtual byref {
 		//
 		virtual void update() = 0;
 
+		//
+		// Instruct the navigator to move the player to a point.
+		//
+		virtual void go_to_point(const point& destination) = 0;
+
 	protected:
 		//
 		// The player being navigated.
