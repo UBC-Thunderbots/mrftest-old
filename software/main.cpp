@@ -1,3 +1,4 @@
+#include "simulator/window.h"
 #include "world/config.h"
 #include <iostream>
 #include <getopt.h>
@@ -26,6 +27,8 @@ namespace {
 
 	void simulate() {
 		config::get();
+		simulator_window win;
+		Gtk::Main::run();
 	}
 }
 
