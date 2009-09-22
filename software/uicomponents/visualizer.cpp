@@ -63,7 +63,7 @@ void visualizer::update() {
 
 	// Draw the ball.
 	ctx->set_source_rgb(1.0, 0.5, 0.0);
-	ctx->arc(the_ball->position().real(), the_ball->position().imag(), 0.03, 0.0, 2.0 * PI);
+	ctx->arc(the_ball->position().x, the_ball->position().y, 0.03, 0.0, 2.0 * PI);
 	ctx->fill();
 
 	// Draw the players.
@@ -76,7 +76,7 @@ void visualizer::update() {
 
 		for (unsigned int j = 0; j < teams[i]->size(); j++) {
 			robot::ptr bot = teams[i]->get_robot(j);
-			ctx->arc(bot->position().real(), bot->position().imag(), 0.09, bot->orientation() + PI / 4.0, bot->orientation() - PI / 4.0);
+			ctx->arc(bot->position().x, bot->position().y, 0.09, bot->orientation() + PI / 4.0, bot->orientation() - PI / 4.0);
 			ctx->fill();
 		}
 	}
@@ -93,8 +93,8 @@ void visualizer::update() {
 			const std::string &str = ustr;
 			Cairo::TextExtents extents;
 			ctx->get_text_extents(str, extents);
-			const double x = bot->position().real() - extents.x_bearing - extents.width / 2.0;
-			const double y = -bot->position().imag() - extents.y_bearing - extents.height / 2.0;
+			const double x = bot->position().x - extents.x_bearing - extents.width / 2.0;
+			const double y = -bot->position().y - extents.y_bearing - extents.height / 2.0;
 			ctx->move_to(x, y);
 			ctx->show_text(str);
 		}

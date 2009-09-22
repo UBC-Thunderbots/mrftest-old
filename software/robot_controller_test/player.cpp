@@ -57,17 +57,17 @@ void rc_test_player::move(const point &linear_velocity, double angular_velocity)
 		else if (ang_vel < -max_angular_velocity) ang_vel = -max_angular_velocity;
 
 		/* convert robot-relative coordinates to world coordinate */
-		const point &wlv = linear_velocity * point(std::cos(ori), std::sin(ori));
+		const point &wlv = linear_velocity.rotate(ori);
 
 		/* velocity acceleration limit */
 		point dv = wlv - lin_vel;
-		if (std::abs(dv) > max_linear_velocity_accel * dt)
-			dv *= (max_linear_velocity_accel * dt) / std::abs(dv);
+		if (dv.len() > max_linear_velocity_accel * dt)
+			dv *= (max_linear_velocity_accel * dt) / dv.len();
 
 		/* velocity limit */
 		lin_vel += dv;
-		if (std::abs(lin_vel) > max_linear_velocity)
-			lin_vel *= (max_linear_velocity) / std::abs(lin_vel);
+		if (lin_vel.len() > max_linear_velocity)
+			lin_vel *= (max_linear_velocity) / lin_vel.len();
 
 		/* update */
 		ori = angle_mod(ori + ang_vel * dt);

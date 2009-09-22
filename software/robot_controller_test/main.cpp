@@ -37,7 +37,7 @@ int main() {
 	for (int i = 0; ; ++i) {
 		controller->move(target_position, target_orientation);
 		std::cout << i / 30. << " secs at position " << test_player->position() << " with orientation " << test_player->orientation() << std::endl;
-		if (std::abs(test_player->position() - target_position) < EPS && std::fabs(test_player->orientation() - target_orientation) < EPS) break;
+		if ((test_player->position() - target_position).len() < EPS && std::fabs(test_player->orientation() - target_orientation) < EPS) break;
 	}
 
 	return 0;

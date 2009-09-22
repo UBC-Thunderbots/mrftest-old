@@ -26,7 +26,6 @@ software/ai/tactic.cpp -text
 software/ai/tactic.h -text
 software/geom/angle.cpp -text
 software/geom/angle.h -text
-software/geom/point.cpp -text
 software/geom/point.h -text
 software/main.cpp -text
 software/robot_controller/robot_controller.cpp -text

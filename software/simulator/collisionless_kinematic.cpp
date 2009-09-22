@@ -42,7 +42,7 @@ namespace {
 			void update() {
 				the_position += velocity() / static_cast<double>(TIMESTEPS_PER_SECOND);
 				const point &velocity_diff = acceleration() / static_cast<double>(TIMESTEPS_PER_SECOND);
-				if (abs(velocity_diff) >= abs(the_velocity))
+				if (velocity_diff.len() >= the_velocity.len())
 					the_velocity = point(0.0, 0.0);
 				else
 					the_velocity += velocity_diff;
@@ -57,8 +57,8 @@ namespace {
 			}
 
 			virtual point acceleration() const {
-				if (std::abs(the_velocity) > EPS) {
-					return -the_velocity / std::abs(the_velocity) * BALL_DECELERATION;
+				if (the_velocity.len() > EPS) {
+					return -the_velocity / the_velocity.len() * BALL_DECELERATION;
 				} else {
 					return point(0.0, 0.0);
 				}
@@ -81,10 +81,10 @@ namespace {
 			void update() {
 				the_position += the_velocity;
 				const point &diff = target_velocity - the_velocity;
-				if (abs(diff) < BOT_MAX_ACCELERATION / TIMESTEPS_PER_SECOND) {
+				if (diff.len() < BOT_MAX_ACCELERATION / TIMESTEPS_PER_SECOND) {
 					the_velocity = target_velocity;
 				} else {
-					the_velocity += diff / abs(diff) * BOT_MAX_ACCELERATION / static_cast<double>(TIMESTEPS_PER_SECOND);
+					the_velocity += diff / diff.len() * BOT_MAX_ACCELERATION / static_cast<double>(TIMESTEPS_PER_SECOND);
 				}
 
 				the_orientation = angle_mod(the_orientation + avelocity);

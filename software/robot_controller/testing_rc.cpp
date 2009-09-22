@@ -102,12 +102,12 @@ namespace {
 		const point &lin_vel = (pos - old_position) / time_step;
 		double ang_vel = (ori - old_orientation) / time_step;
 		double da = angle_mod(tar_ori - ori);
-		const point &d = rotate((tar_pos - pos), -ori);
+		const point &d = (tar_pos - pos).rotate(-ori);
 		old_position = pos;
 		old_orientation = ori;	
 
-		point tmp(get_velocity(d.real(), lin_vel.real(), 0, max_linear_velocity, max_linear_velocity_accel),
-				get_velocity(d.imag(), lin_vel.imag(), 0, max_linear_velocity, max_linear_velocity_accel));
+		point tmp(get_velocity(d.x, lin_vel.x, 0, max_linear_velocity, max_linear_velocity_accel),
+				get_velocity(d.y, lin_vel.y, 0, max_linear_velocity, max_linear_velocity_accel));
 		double tmp_ang = get_velocity(da, ang_vel, 0, max_angular_velocity, max_angular_velocity_accel);
 
 		robot->move(d, da);
