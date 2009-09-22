@@ -8,20 +8,21 @@ PROJECTS := rctest thunderbots xbeeconfig
 # Directories will be searched for source files recursively.
 #
 SOURCES_rctest := geom robot_controller robot_controller_test util world
-SOURCES_thunderbots := ai geom robot_controller robot_controller_test util world
+SOURCES_thunderbots := ai geom robot_controller simulator uicomponents util world main.cpp
 SOURCES_xbeeconfig := xbeeconfig.cpp
 
 #
 # Here, write the linker flags to be used for each project.
 #
-LDFLAGS_rctest := $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4)
-LDFLAGS_thunderbots := $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4)
-LDFLAGS_xbeeconfig := $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4) -lrt
+LDFLAGS_common := $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4 cairomm-1.0 libxml++-2.6)
+LDFLAGS_rctest := $(LDFLAGS_common)
+LDFLAGS_thunderbots := $(LDFLAGS_common)
+LDFLAGS_xbeeconfig := $(LDFLAGS_common) -lrt
 
 #
 # Here, write the compiler flags to be used.
 #
-CXXFLAGS := -Wall -Wextra -O2 -march=native -mfpmath=sse -fomit-frame-pointer $(shell pkg-config --cflags glibmm-2.4 gtkmm-2.4) $(CXXFLAGS) -I.
+CXXFLAGS := -Wall -Wextra -O2 -march=native -mfpmath=sse -fomit-frame-pointer $(shell pkg-config --cflags glibmm-2.4 gtkmm-2.4 cairomm-1.0 libxml++-2.6) $(CXXFLAGS) -I.
 
 #
 # DO NOT MODIFY STUFF BELOW HERE WITHOUT A GOOD REASON.
