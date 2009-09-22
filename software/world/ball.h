@@ -69,6 +69,7 @@ class ball : public virtual byref {
 		//   whether the X and Y coordinates are reversed for this object
 		//
 		ball(ball_impl::ptr impl, bool flip) : impl(impl), flip(flip) {
+			assert(impl);
 		}
 
 	private:
