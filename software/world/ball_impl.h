@@ -32,6 +32,12 @@ class ball_impl : public virtual byref {
 		// The estimated acceleration of the ball at the last camera frame.
 		// 
 		virtual point acceleration() const = 0;
+
+		//
+		// Returns a trivial implementation of ball_impl that always leaves the
+		// ball sitting at the origin.
+		//
+		static const ptr &trivial();
 };
 
 #endif
