@@ -58,6 +58,10 @@ namespace playtype {
 
 		// Robots do fancy stuff.
 		victory_dance,
+
+		// A counter of the number of legal playtypes. Put new types
+		// before this.
+		count,
 	};
 
 	//

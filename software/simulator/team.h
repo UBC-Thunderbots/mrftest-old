@@ -1,9 +1,11 @@
 #ifndef SIMULATOR_TEAM_H
 #define SIMULATOR_TEAM_H
 
+#include "ai/strategy.h"
 #include "simulator/engine.h"
 #include "world/player.h"
 #include "world/player_impl.h"
+#include "world/playtype.h"
 #include "world/team.h"
 #include <vector>
 #include <cassert>
@@ -111,6 +113,24 @@ class simulator_team_data : public virtual noncopyable {
 		}
 
 		//
+		// Sets the current play type.
+		//
+		void set_playtype(playtype::playtype pt) {
+			current_playtype = pt;
+			if (team_strategy)
+				team_strategy->set_playtype(current_playtype);
+		}
+
+		//
+		// Sets the strategy governing this team.
+		//
+		void set_strategy(strategy::ptr st) {
+			team_strategy = st;
+			if (team_strategy)
+				team_strategy->set_playtype(current_playtype);
+		}
+
+		//
 		// Configures the team to use a new engine.
 		//
 		void set_engine(const simulator_engine::ptr &e);
@@ -164,6 +184,16 @@ class simulator_team_data : public virtual noncopyable {
 		// The colour of this team.
 		//
 		bool yellow;
+
+		//
+		// The current play type.
+		//
+		playtype::playtype current_playtype;
+
+		//
+		// The current strategy governing this team.
+		//
+		strategy::ptr team_strategy;
 
 	public:
 		//

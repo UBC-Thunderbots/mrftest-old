@@ -1,6 +1,7 @@
 #include "simulator/engine.h"
 #include "simulator/window.h"
 #include "uicomponents/visualizer.h"
+#include "world/playtype.h"
 #include <algorithm>
 #include <functional>
 #include <gtkmm.h>
@@ -92,14 +93,44 @@ class engine_controls : public virtual Gtk::VBox {
 
 
 
+//
+// A combobox for selecting which playtype is active.
+//
+class playtype_combo : public virtual Gtk::ComboBoxText {
+	public:
+		playtype_combo(simulator &sim) : sim(sim) {
+			for (unsigned int i = 0; i < playtype::count; i++) {
+				append_text(playtype::descriptions_west[i]);
+			}
+			set_active_text("Halt");
+		}
+
+	protected:
+		virtual void on_changed() {
+			const Glib::ustring &pt = get_active_text();
+			for (unsigned int i = 0; i < playtype::count; i++)
+				if (playtype::descriptions_west[i] == pt)
+					sim.set_playtype(static_cast<playtype::playtype>(i));
+		}
+
+	private:
+		simulator &sim;
+};
+
+
+
+//
+// The main window.
+//
 class simulator_window_impl : public virtual Gtk::Window {
 	public:
-		simulator_window_impl(simulator &sim) : sim(sim), engine_frame("Simulation Engine"), engine_ctls(sim), playtype_frame("Play Type"), westteam_frame("West Team"), eastteam_frame("East Team"), visualizer_frame("Visualizer"), vis(sim.fld, sim.west_ball, sim.west_team.get_west_view(), sim.east_team.get_west_view()) {
+		simulator_window_impl(simulator &sim) : sim(sim), engine_frame("Simulation Engine"), engine_ctls(sim), playtype_frame("Play Type"), playtype_cb(sim), westteam_frame("West Team"), eastteam_frame("East Team"), visualizer_frame("Visualizer"), vis(sim.fld, sim.west_ball, sim.west_team.get_west_view(), sim.east_team.get_west_view()) {
 			set_title("Thunderbots Simulator");
 
 			engine_frame.add(engine_ctls);
 			vbox.pack_start(engine_frame);
 
+			playtype_frame.add(playtype_cb);
 			vbox.pack_start(playtype_frame);
 
 			vbox.pack_start(westteam_frame);
@@ -133,6 +164,7 @@ class simulator_window_impl : public virtual Gtk::Window {
 		engine_controls engine_ctls;
 
 		Gtk::Frame playtype_frame;
+		playtype_combo playtype_cb;
 
 		Gtk::Frame westteam_frame;
 

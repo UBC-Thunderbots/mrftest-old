@@ -6,6 +6,7 @@
 #include "util/noncopyable.h"
 #include "world/ball.h"
 #include "world/field.h"
+#include "world/playtype.h"
 #include <vector>
 #include <libxml++/libxml++.h>
 
@@ -30,6 +31,14 @@ class simulator : public virtual noncopyable {
 		// Sets the engine to use to implement simulation.
 		//
 		void set_engine(const Glib::ustring &engine_name);
+
+		//
+		// Sets the current play type.
+		//
+		void set_playtype(playtype::playtype pt) {
+			west_team.set_playtype(pt);
+			east_team.set_playtype(pt);
+		}
 
 		//
 		// Performs a timestep.

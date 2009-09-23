@@ -3,7 +3,7 @@
 #include "world/config.h"
 #include <sstream>
 
-simulator_team_data::simulator_team_data(xmlpp::Element *xml) : score(0), yellow(xml->get_attribute_value("colour") == "yellow"), west_view(new simulator_team_view(west_players, score, west_other, yellow)), east_view(new simulator_team_view(east_players, score, east_other, yellow)) {
+simulator_team_data::simulator_team_data(xmlpp::Element *xml) : score(0), yellow(xml->get_attribute_value("colour") == "yellow"), current_playtype(playtype::halt), west_view(new simulator_team_view(west_players, score, west_other, yellow)), east_view(new simulator_team_view(east_players, score, east_other, yellow)) {
 	// Iterate the child nodes.
 	const xmlpp::Node::NodeList &players = xml->get_children();
 	for (xmlpp::Node::NodeList::const_iterator i = players.begin(), iend = players.end(); i != iend; ++i) {
