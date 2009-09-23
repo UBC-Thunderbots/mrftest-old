@@ -44,6 +44,8 @@ software/uicomponents/visualizer.cpp -text
 software/uicomponents/visualizer.h -text
 software/util/byref.h -text
 software/util/circular_buffer.h -text
+software/util/exact_timer.cpp -text
+software/util/exact_timer.h -text
 software/util/hungarian.cpp -text
 software/util/hungarian.h -text
 software/util/mutex.h -text
