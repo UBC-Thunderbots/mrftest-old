@@ -1,7 +1,6 @@
 #include "uicomponents/visualizer.h"
 #include <algorithm>
 #include <cairomm/cairomm.h>
-#include <iostream>
 
 
 
