@@ -38,6 +38,10 @@ software/simulator/collisionless_kinematic.cpp -text
 software/simulator/engine.cpp -text
 software/simulator/engine.h -text
 software/simulator/field.h -text
+software/simulator/simulator.cpp -text
+software/simulator/simulator.h -text
+software/simulator/team.cpp -text
+software/simulator/team.h -text
 software/simulator/window.cpp -text
 software/simulator/window.h -text
 software/uicomponents/visualizer.cpp -text

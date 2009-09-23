@@ -6,6 +6,10 @@
 #include "world/player_impl.h"
 #include <map>
 #include <glibmm.h>
+#include <gtkmm/widget.h>
+#include <libxml++/libxml++.h>
+
+class simulator_engine_factory;
 
 //
 // A simulation engine. Individual simulation engines should extend this class
@@ -24,7 +28,8 @@ class simulator_engine : public virtual byref {
 		virtual void update() = 0;
 
 		//
-		// Called to retrieve the engine's specific ball_impl object.
+		// Called to retrieve the engine's specific ball_impl object. A given
+		// engine must always return the same ball_impl object!
 		//
 		virtual ball_impl::ptr get_ball() = 0;
 
@@ -38,6 +43,17 @@ class simulator_engine : public virtual byref {
 		// Called to remove from the simulation an existing player.
 		//
 		virtual void remove_player(player_impl::ptr player) = 0;
+
+		//
+		// Called to retrieve the engine-specific UI controls that will be placed
+		// in the simulator window when this engine is activated.
+		//
+		virtual Gtk::Widget *get_ui_controls() = 0;
+
+		//
+		// Called to retrieve the factory object that created the engine.
+		//
+		virtual simulator_engine_factory &get_factory() = 0;
 };
 
 //
@@ -48,6 +64,11 @@ class simulator_engine : public virtual byref {
 class simulator_engine_factory : public virtual noncopyable {
 	public:
 		//
+		// The type of the map returned by simulator_engine_factory::all().
+		//
+		typedef std::map<Glib::ustring, simulator_engine_factory *> map_type;
+
+		//
 		// The name of the simulation engine constructed by this factory.
 		//
 		const Glib::ustring &name() const {
@@ -57,12 +78,12 @@ class simulator_engine_factory : public virtual noncopyable {
 		//
 		// Constructs a new simulator_engine.
 		//
-		virtual simulator_engine::ptr create_engine() = 0;
+		virtual simulator_engine::ptr create_engine(xmlpp::Element *xml) = 0;
 
 		//
 		// Gets the collection of all registered engine factories, keyed by name.
 		//
-		static const std::map<Glib::ustring, simulator_engine_factory *> &all();
+		static const map_type &all();
 
 	protected:
 		//

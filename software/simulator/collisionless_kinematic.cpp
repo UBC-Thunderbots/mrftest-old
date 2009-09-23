@@ -3,6 +3,7 @@
 #include "world/timestep.h"
 #include <vector>
 #include <glibmm/refptr.h>
+#include <libxml++/libxml++.h>
 
 namespace {
 	//
@@ -150,6 +151,12 @@ namespace {
 				}
 			}
 
+			virtual Gtk::Widget *get_ui_controls() {
+				return 0;
+			}
+
+			virtual simulator_engine_factory &get_factory();
+
 		private:
 			ck_ball::ptr the_ball;
 			std::vector<ck_player::ptr> the_players;
@@ -163,7 +170,7 @@ namespace {
 			ck_engine_factory() : simulator_engine_factory("2D Collisionless Kinematic") {
 			}
 
-			virtual simulator_engine::ptr create_engine() {
+			virtual simulator_engine::ptr create_engine(xmlpp::Element *xml) {
 				simulator_engine::ptr p(new ck_engine);
 				return p;
 			}
@@ -173,5 +180,9 @@ namespace {
 	// The global instance of ck_engine_factory.
 	//
 	ck_engine_factory fact;
+
+	simulator_engine_factory &ck_engine::get_factory() {
+		return fact;
+	}
 }
 

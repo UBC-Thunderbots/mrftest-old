@@ -1,13 +1,13 @@
 #include "simulator/engine.h"
 
 namespace {
-	std::map<Glib::ustring, simulator_engine_factory *> &get_map() {
-		static std::map<Glib::ustring, simulator_engine_factory *> objects;
+	simulator_engine_factory::map_type &get_map() {
+		static simulator_engine_factory::map_type objects;
 		return objects;
 	}
 }
 
-const std::map<Glib::ustring, simulator_engine_factory *> &simulator_engine_factory::all() {
+const simulator_engine_factory::map_type &simulator_engine_factory::all() {
 	return get_map();
 }
 
