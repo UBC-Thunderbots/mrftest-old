@@ -6,6 +6,7 @@
 #include <cassert>
 #include <libxml++/libxml++.h>
 #include <glibmm.h>
+#include <sigc++/sigc++.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -13,6 +14,13 @@
 namespace {
 	xmlpp::DomParser *parser = 0;
 	Glib::ustring filename;
+	sigc::connection timer_connection;
+	bool is_dirty = false;
+
+	bool timeout() {
+		config::force_save();
+		return false;
+	}
 }
 
 xmlpp::Document *config::get() {
@@ -46,10 +54,20 @@ xmlpp::Document *config::get() {
 	return parser->get_document();
 }
 
-void config::save() {
-	assert(parser);
-	xmlpp::Document *doc = parser->get_document();
-	assert(doc);
-	doc->write_to_file_formatted(filename);
+void config::dirty() {
+	is_dirty = true;
+	if (!timer_connection)
+		timer_connection = Glib::signal_timeout().connect_seconds(&timeout, 3);
+}
+
+void config::force_save() {
+	timer_connection.disconnect();
+	if (is_dirty) {
+		assert(parser);
+		xmlpp::Document *doc = parser->get_document();
+		assert(doc);
+		doc->write_to_file_formatted(filename);
+		is_dirty = false;
+	}
 }
 

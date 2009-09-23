@@ -15,9 +15,21 @@ class config {
 		static xmlpp::Document *get();
 
 		//
-		// Writes the current configuration data to disk.
+		// Enqueues a save to disk. The data will not be written immediately;
+		// rather, a timer will be started and the data will be written in a few
+		// seconds. This avoids many repeated writes within a very short time if
+		// a lot of data is being changed by different modules. However, write
+		// starvation will also not occur: if writes are occurring constantly,
+		// the data will still be written to disk every few seconds.
 		//
-		static void save();
+		static void dirty();
+
+		//
+		// Forces the current data to be written to disk immediately. Normally
+		// you should call "save()" instead; the exception is if the application
+		// is shutting down.
+		//
+		static void force_save();
 
 	private:
 		config();
