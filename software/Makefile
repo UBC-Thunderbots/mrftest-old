@@ -68,6 +68,12 @@ include $(ALL_CPP_FILES:.cpp=.d)
 endif
 
 #
+# Rule to make only the dependency files.
+#
+.PHONY : dep
+dep : $(ALL_CPP_FILES:.cpp=.d)
+
+#
 # Rule to clean.
 #
 .PHONY : clean
