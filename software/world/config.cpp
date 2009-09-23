@@ -1,5 +1,4 @@
 #include "world/config.h"
-#include <iostream>
 #include <string>
 #include <stdexcept>
 #include <cstdio>
