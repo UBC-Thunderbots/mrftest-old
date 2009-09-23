@@ -15,6 +15,7 @@ software/rctest
 software/robot_controller/*.d
 software/robot_controller_test/*.d
 software/simulator/*.d
+software/simulator/engines/*.d
 software/thunderbots
 software/uicomponents/*.d
 software/util/*.d

@@ -1,0 +1,62 @@
+#include "world/playtype.h"
+
+const Glib::ustring playtype::descriptions_generic[] = {
+	"Halt",
+	"Stop",
+	"Play",
+	"Prep Kickoff Friendly",
+	"Kickoff Friendly",
+	"Prep Kickoff Enemy",
+	"Kickoff Enemy",
+	"Prep Penalty Friendly",
+	"Penalty Friendly",
+	"Prep Penalty Enemy",
+	"Penalty Enemy",
+	"Direct Free Friendly",
+	"Indirect Free Friendly",
+	"Direct Free Enemy",
+	"Indirect Free Enemy",
+	"Pit Stop",
+	"Victory Dance",
+};
+
+const Glib::ustring playtype::descriptions_west[] = {
+	"Halt",
+	"Stop",
+	"Play",
+	"Prep Kickoff West",
+	"Kickoff West",
+	"Prep Kickoff East",
+	"Kickoff East",
+	"Prep Penalty West",
+	"Penalty West",
+	"Prep Penalty East",
+	"Penalty East",
+	"Direct Free West",
+	"Indirect Free West",
+	"Direct Free East",
+	"Indirect Free East",
+	"Pit Stop",
+	"Victory Dance",
+};
+
+const playtype::playtype playtype::invert[] = {
+	halt,
+	stop,
+	play,
+	prepare_kickoff_enemy,
+	execute_kickoff_enemy,
+	prepare_kickoff_friendly,
+	execute_kickoff_friendly,
+	prepare_penalty_enemy,
+	execute_penalty_enemy,
+	prepare_penalty_friendly,
+	execute_penalty_friendly,
+	execute_direct_free_kick_enemy,
+	execute_indirect_free_kick_enemy,
+	execute_direct_free_kick_friendly,
+	execute_indirect_free_kick_friendly,
+	pit_stop,
+	victory_dance,
+};
+

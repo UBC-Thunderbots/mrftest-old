@@ -34,9 +34,9 @@ software/robot_controller/testing_rc.cpp -text
 software/robot_controller_test/main.cpp -text
 software/robot_controller_test/player.cpp -text
 software/robot_controller_test/player.h -text
-software/simulator/collisionless_kinematic.cpp -text
 software/simulator/engine.cpp -text
 software/simulator/engine.h -text
+software/simulator/engines/collisionless_kinematic.cpp -text
 software/simulator/field.h -text
 software/simulator/simulator.cpp -text
 software/simulator/simulator.h -text
@@ -65,6 +65,7 @@ software/world/field.h -text
 software/world/player.h -text
 software/world/player_impl.cpp -text
 software/world/player_impl.h -text
+software/world/playtype.cpp -text
 software/world/playtype.h -text
 software/world/robot.h -text
 software/world/robot_impl.h -text

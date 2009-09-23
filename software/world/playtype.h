@@ -1,6 +1,8 @@
 #ifndef WORLD_PLAYTYPE_H
 #define WORLD_PLAYTYPE_H
 
+#include <glibmm/ustring.h>
+
 namespace playtype {
 	//
 	// A state of play.
@@ -57,6 +59,27 @@ namespace playtype {
 		// Robots do fancy stuff.
 		victory_dance,
 	};
+
+	//
+	// Descriptions of the play types from a generic team's point of view.
+	// These descriptions simply use the words "friendly" and "enemy", and
+	// are appropriate for the real-world system.
+	//
+	extern const Glib::ustring descriptions_generic[];
+
+	//
+	// Descriptions of the play types from the west team's point of view.
+	// These descriptions use the words "west" and "east", and are appropriate
+	// for the simulator.
+	//
+	extern const Glib::ustring descriptions_west[];
+
+	//
+	// Directional inversions of the play types. An element in this array
+	// contains the play type as the east team would see it, if thei ndex into
+	// the array is the play type as the west team would see it.
+	//
+	extern const playtype invert[];
 }
 
 #endif

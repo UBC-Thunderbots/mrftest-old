@@ -5,6 +5,7 @@
 #include "util/byref.h"
 #include "world/ball.h"
 #include "world/field.h"
+#include "world/playtype.h"
 #include "world/team.h"
 
 //
@@ -26,6 +27,11 @@ class strategy : public virtual byref {
 		// Runs the AI for one time tick.
 		//
 		virtual void update() = 0;
+
+		//
+		// Sets the current play type.
+		//
+		virtual void set_playtype(playtype::playtype t) = 0;
 
 	protected:
 		//

@@ -104,13 +104,13 @@ namespace {
 				avelocity = avel;
 			}
 
-			virtual void dribble(double speed) {
+			virtual void dribble(double) {
 			}
 
-			virtual void kick(double strength) {
+			virtual void kick(double) {
 			}
 
-			virtual void chip(double strength) {
+			virtual void chip(double) {
 			}
 
 		private:
@@ -170,7 +170,7 @@ namespace {
 			ck_engine_factory() : simulator_engine_factory("2D Collisionless Kinematic") {
 			}
 
-			virtual simulator_engine::ptr create_engine(xmlpp::Element *xml) {
+			virtual simulator_engine::ptr create_engine(xmlpp::Element *) {
 				simulator_engine::ptr p(new ck_engine);
 				return p;
 			}
