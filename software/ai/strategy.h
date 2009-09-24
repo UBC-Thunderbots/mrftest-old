@@ -1,15 +1,19 @@
 #ifndef AI_STRATEGY_H
 #define AI_STRATEGY_H
 
-#include <glibmm.h>
 #include "util/byref.h"
+#include "util/noncopyable.h"
 #include "world/ball.h"
 #include "world/field.h"
 #include "world/playtype.h"
 #include "world/team.h"
+#include <map>
+#include <glibmm.h>
+#include <libxml++/libxml++.h>
 
 //
-// A strategy manages the overall operation of a team.
+// A strategy manages the overall operation of a team. Individual AI implementations
+// should extend this class to provide their own strategy.
 //
 class strategy : public virtual byref {
 	public:
@@ -17,11 +21,6 @@ class strategy : public virtual byref {
 		// A pointer to a strategy.
 		//
 		typedef Glib::RefPtr<strategy> ptr;
-
-		//
-		// Constructs a new strategy. Call this constructor from subclass constructors.
-		//
-		strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
 
 		//
 		// Runs the AI for one time tick.
@@ -34,6 +33,11 @@ class strategy : public virtual byref {
 		virtual void set_playtype(playtype::playtype t) = 0;
 
 	protected:
+		//
+		// Constructs a new strategy. Call this constructor from subclass constructors.
+		//
+		strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+
 		//
 		// The ball.
 		//
@@ -48,6 +52,50 @@ class strategy : public virtual byref {
 		// The team this strategy controls.
 		//
 		const controlled_team::ptr the_team;
+};
+
+//
+// A factory for creating strategy objects. An individual AI implementation should
+// extend this class to provide an object which can constructs its "strategy"
+// objects.
+//
+class strategy_factory : public virtual noncopyable {
+	public:
+		//
+		// The type of the map returned by strategy_factory::all().
+		//
+		typedef std::map<Glib::ustring, strategy_factory *> map_type;
+
+		//
+		// The name of the strategy constructed by this factory.
+		//
+		const Glib::ustring &name() const {
+			return the_name;
+		}
+
+		//
+		// Constructs a new strategy.
+		//
+		virtual strategy::ptr create_strategy(xmlpp::Element *xml) = 0;
+
+		//
+		// Gets a collection of all registered strategy factories, keyed by name.
+		//
+		static const map_type &all();
+
+	protected:
+		//
+		// Constructs a strategy_factory.
+		//
+		strategy_factory(const Glib::ustring &name);
+
+		//
+		// Destroys a strategy_factory.
+		//
+		virtual ~strategy_factory();
+
+	private:
+		const Glib::ustring the_name;
 };
 
 #endif

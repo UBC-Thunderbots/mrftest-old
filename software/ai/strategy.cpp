@@ -1,38 +1,24 @@
 #include "ai/strategy.h"
 
-//call update() to get new play types to see which strategy method to use
+namespace {
+	strategy_factory::map_type &get_map() {
+		static strategy_factory::map_type objects;
+		return objects;
+	}
+}
 
-//constructs new strategy
 strategy::strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : the_ball(ball), the_field(field), the_team(team) {
-
-	//God, you should have this thing get play types as a parameter 
-	
 }
 
-//create different strategy methods for different play types
-/*
-void strategy::OffensiveStrategy(controlled_team::ptr team){
-	//determines the roles of the players of te team 
-	//for(int i = 0; i < 5; i++)
-	//	team.player(i)->role::offender();
-	//there should be some methods that determines the role of the players
-
+strategy_factory::strategy_factory(const Glib::ustring &name) : the_name(name) {
+	get_map()[name] = this;
 }
 
-void strategy::DefensiveStrategy(controlled_team::ptr team){
-	//determines the roles of the players of te team 
-	//for(int i = 0; i < 5; i++)
-	//	team.player(i)->role::defender();
-	//same here
-
+strategy_factory::~strategy_factory() {
+	get_map().erase(name());
 }
 
-//You can change the name of this method to SuckStrategy
-void strategy::ByronStrategy(controlled_team::ptr team){
-	//determines the roles of the players of te team 
-	//for(int i = 0; i < 5; i++)
-	//	team.player(i)->role::Byrons();
-	//same here
-	
+const strategy_factory::map_type &strategy_factory::all() {
+	return get_map();
 }
-*/
+
