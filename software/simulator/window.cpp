@@ -128,21 +128,21 @@ class simulator_window_impl : public virtual Gtk::Window {
 			set_title("Thunderbots Simulator");
 
 			engine_frame.add(engine_ctls);
-			vbox.pack_start(engine_frame);
+			vbox.pack_start(engine_frame, false, false);
 
 			playtype_frame.add(playtype_cb);
-			vbox.pack_start(playtype_frame);
+			vbox.pack_start(playtype_frame, false, false);
 
-			vbox.pack_start(westteam_frame);
+			vbox.pack_start(westteam_frame, true, true);
 
-			vbox.pack_start(eastteam_frame);
+			vbox.pack_start(eastteam_frame, true, true);
 
-			hbox.pack_start(vbox);
+			paned.pack1(vbox, false, false);
 
 			visualizer_frame.add(vis);
-			hbox.pack_start(visualizer_frame);
+			paned.pack2(visualizer_frame, true, false);
 
-			add(hbox);
+			add(paned);
 			show_all();
 		}
 
@@ -157,7 +157,8 @@ class simulator_window_impl : public virtual Gtk::Window {
 
 		simulator_engine::ptr engine;
 
-		Gtk::HBox hbox;
+		Gtk::HPaned paned;
+
 		Gtk::VBox vbox;
 
 		Gtk::Frame engine_frame;
