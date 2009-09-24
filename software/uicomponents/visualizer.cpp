@@ -7,7 +7,7 @@
 visualizer::visualizer(const field::ptr field, const ball::ptr ball, const team::ptr west_team, const team::ptr east_team) : the_field(field), the_ball(ball), west_team(west_team), east_team(east_team) {
 }
 
-void visualizer::update() {
+bool visualizer::on_expose_event(GdkEventExpose *) {
 	int width, height;
 	get_window()->get_size(width, height);
 	Cairo::RefPtr<Cairo::Context> ctx = get_window()->create_cairo_context();
@@ -98,5 +98,12 @@ void visualizer::update() {
 			ctx->show_text(str);
 		}
 	}
+
+	// Done.
+	return true;
+}
+
+void visualizer::update() {
+	get_window()->invalidate(false);
 }
 

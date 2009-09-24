@@ -26,10 +26,7 @@ class visualizer : public Gtk::DrawingArea {
 		//
 		// Invoked when the control is exposed.
 		//
-		virtual bool on_expose_event(GdkEventExpose *) {
-			update();
-			return true;
-		}
+		virtual bool on_expose_event(GdkEventExpose *);
 
 	private:
 		const field::ptr the_field;
