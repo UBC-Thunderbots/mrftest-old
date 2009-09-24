@@ -3,17 +3,19 @@
 
 #include "simulator/engine.h"
 #include "simulator/team.h"
+#include "util/exact_timer.h"
 #include "util/noncopyable.h"
 #include "world/ball.h"
 #include "world/field.h"
 #include "world/playtype.h"
 #include <vector>
 #include <libxml++/libxml++.h>
+#include <sigc++/sigc++.h>
 
 //
 // The simulator itself.
 //
-class simulator : public virtual noncopyable {
+class simulator : public virtual noncopyable, public virtual sigc::trackable {
 	public:
 		//
 		// Constructs a new simulator.
@@ -41,11 +43,10 @@ class simulator : public virtual noncopyable {
 		}
 
 		//
-		// Performs a timestep.
+		// The signal emitted after each timestep.
 		//
-		void update() {
-			if (engine)
-				engine->update();
+		sigc::signal<void> &signal_updated() {
+			return the_signal_updated;
 		}
 
 		//
@@ -63,13 +64,35 @@ class simulator : public virtual noncopyable {
 		//
 		simulator_team_data west_team, east_team;
 
+	private:
 		//
 		// The engine.
 		//
 		simulator_engine::ptr engine;
 
-	private:
+		//
+		// The configuration element.
+		//
 		xmlpp::Element *xml;
+
+		//
+		// A callback invoked after each timestep.
+		//
+		sigc::signal<void> the_signal_updated;
+
+		//
+		// The timer.
+		//
+		exact_timer ticker;
+
+		//
+		// Performs a timestep.
+		//
+		void update() {
+			if (engine)
+				engine->update();
+			the_signal_updated.emit();
+		}
 };
 
 #endif

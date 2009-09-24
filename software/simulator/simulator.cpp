@@ -2,8 +2,9 @@
 #include "simulator/simulator.h"
 #include "util/xml.h"
 #include "world/config.h"
+#include "world/timestep.h"
 
-simulator::simulator(xmlpp::Element *xml) : fld(new simulator_field), west_ball(new ball(ball_impl::trivial(), false)), east_ball(new ball(ball_impl::trivial(), true)), west_team(xmlutil::strip(xmlutil::get_only_child(xml, "westteam"))), east_team(xmlutil::strip(xmlutil::get_only_child(xml, "eastteam"))), xml(xml) {
+simulator::simulator(xmlpp::Element *xml) : fld(new simulator_field), west_ball(new ball(ball_impl::trivial(), false)), east_ball(new ball(ball_impl::trivial(), true)), west_team(xmlutil::strip(xmlutil::get_only_child(xml, "westteam"))), east_team(xmlutil::strip(xmlutil::get_only_child(xml, "eastteam"))), xml(xml), ticker(1.0 / TIMESTEPS_PER_SECOND) {
 	// Configure objects with each other as the opponents.
 	west_team.set_other(east_team.west_view, east_team.east_view);
 	east_team.set_other(west_team.west_view, west_team.east_view);
@@ -11,6 +12,9 @@ simulator::simulator(xmlpp::Element *xml) : fld(new simulator_field), west_ball(
 	// Set the appropriate engine.
 	xmlpp::Element *xmlengines = xmlutil::strip(xmlutil::get_only_child(xml, "engines"));
 	set_engine(xmlengines->get_attribute_value("active"));
+
+	// Connect to the update tick.
+	ticker.signal_expired().connect(sigc::mem_fun(*this, &simulator::update));
 }
 
 void simulator::set_engine(const Glib::ustring &engine_name) {
