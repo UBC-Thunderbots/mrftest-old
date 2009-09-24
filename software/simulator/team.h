@@ -93,7 +93,7 @@ class simulator_team_data : public virtual noncopyable {
 		//
 		// Constructs a new simulator_team_data.
 		//
-		simulator_team_data(xmlpp::Element *xml);
+		simulator_team_data(xmlpp::Element *xml, bool yellow);
 
 		//
 		// Sets the views of the other team.
@@ -110,6 +110,13 @@ class simulator_team_data : public virtual noncopyable {
 		//
 		void set_yellow(bool y) {
 			yellow = y;
+		}
+
+		//
+		// Gets the colour of this team.
+		//
+		bool is_yellow() {
+			return yellow;
 		}
 
 		//
@@ -136,6 +143,16 @@ class simulator_team_data : public virtual noncopyable {
 		void set_engine(const simulator_engine::ptr &e);
 
 		//
+		// Adds a new player with the given ID number.
+		//
+		void add_player(unsigned int id);
+
+		//
+		// Removes the player with the given ID number.
+		//
+		void remove_player(unsigned int id);
+
+		//
 		// Returns the view of this team from the west perspective.
 		//
 		const team::ptr &get_west_view() const {
@@ -147,6 +164,13 @@ class simulator_team_data : public virtual noncopyable {
 		//
 		const team::ptr &get_east_view() const {
 			return east_view;
+		}
+
+		//
+		// Returns the list of ID numbers in this team.
+		//
+		const std::vector<unsigned int> &get_ids() const {
+			return ids;
 		}
 
 	private:
