@@ -89,7 +89,7 @@ class strategy_factory : public virtual noncopyable {
 		//
 		// Constructs a new strategy.
 		//
-		virtual strategy::ptr create_strategy(xmlpp::Element *xml) = 0;
+		virtual strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team) = 0;
 
 		//
 		// Gets a collection of all registered strategy factories, keyed by name.

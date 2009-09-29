@@ -139,7 +139,7 @@ class simulator_team_data : public virtual noncopyable {
 		//
 		// Sets the strategy governing this team by name.
 		//
-		void set_strategy(const Glib::ustring &name);
+		void set_strategy(const Glib::ustring &name, ball::ptr ball, field::ptr field);
 
 		//
 		// Configures the team to use a new engine.
@@ -160,20 +160,6 @@ class simulator_team_data : public virtual noncopyable {
 		// Removes the player with the given ID number.
 		//
 		void remove_player(unsigned int id);
-
-		//
-		// Returns the view of this team from the west perspective.
-		//
-		const team::ptr &get_west_view() const {
-			return west_view;
-		}
-
-		//
-		// Returns the view of this team from the east perspective.
-		//
-		const team::ptr &get_east_view() const {
-			return east_view;
-		}
 
 		//
 		// Returns the list of ID numbers in this team.
@@ -237,7 +223,7 @@ class simulator_team_data : public virtual noncopyable {
 		//
 		// The objects that provide west and east views of this team.
 		//
-		const team::ptr west_view, east_view;
+		const controlled_team::ptr west_view, east_view;
 
 	private:
 		//

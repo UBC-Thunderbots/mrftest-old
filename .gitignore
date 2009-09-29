@@ -10,6 +10,9 @@ firmware/mainboard-copro/*.map
 software/*.d
 software/ai/*.d
 software/ai/navigator/*.d
+software/ai/role/*.d
+software/ai/strategy/*.d
+software/ai/tactic/*.d
 software/geom/*.d
 software/rctest
 software/robot_controller/*.d

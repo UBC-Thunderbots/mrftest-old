@@ -83,7 +83,7 @@ void simulator_team_data::set_engine(simulator_engine::ptr e) {
 	}
 }
 
-void simulator_team_data::set_strategy(const Glib::ustring &name) {
+void simulator_team_data::set_strategy(const Glib::ustring &name, ball::ptr ball, field::ptr field) {
 	// Get the "engines" XML element.
 	xmlpp::Element *xmlstrategies = xmlutil::get_only_child(xml, "strategies");
 
@@ -94,7 +94,7 @@ void simulator_team_data::set_strategy(const Glib::ustring &name) {
 	if (factoryiter != factories.end()) {
 		strategy_factory *factory = factoryiter->second;
 		xmlpp::Element *xmlparams = xmlutil::strip(xmlutil::get_only_child_keyed(xmlstrategies, "params", "strategy", name));
-		strat = factory->create_strategy(xmlparams);
+		strat = factory->create_strategy(xmlparams, ball, field, yellow ? west_view : east_view);
 	}
 
 	// Lock in the strategy.
