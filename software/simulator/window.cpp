@@ -1,3 +1,4 @@
+#include "robot_controller/robot_controller.h"
 #include "simulator/engine.h"
 #include "simulator/team.h"
 #include "simulator/window.h"
@@ -122,11 +123,130 @@ class playtype_combo : public virtual Gtk::ComboBoxText {
 
 
 //
+// A combo box that allows the user to select a strategy.
+//
+class strategy_chooser : public virtual Gtk::ComboBoxText {
+	public:
+		strategy_chooser(simulator_team_data &team) : initializing(true) {
+			append_text("No Strategy");
+			const strategy_factory::map_type &m = strategy_factory::all();
+			for (strategy_factory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i)
+				append_text(i->first);
+			strategy::ptr strat = team.get_strategy();
+			if (strat) {
+				set_active_text(strat->get_factory().name());
+			} else {
+				set_active_text("No Strategy");
+			}
+			initializing = false;
+		}
+
+		sigc::signal<void, Glib::ustring> &signal_changed() {
+			return the_signal_changed;
+		}
+
+	protected:
+		virtual void on_changed() {
+			if (!initializing) {
+				const Glib::ustring &name = get_active_text();
+				the_signal_changed.emit(name);
+			}
+		}
+
+	private:
+		sigc::signal<void, Glib::ustring> the_signal_changed;
+		bool initializing;
+};
+
+
+
+//
+// The controls for managing a team's strategy.
+//
+class strategy_controls : public virtual Gtk::VBox {
+	public:
+		strategy_controls(simulator_team_data &team) : team(team), chooser(team), ctls(0) {
+			chooser.signal_changed().connect(sigc::mem_fun(*this, &strategy_controls::strategy_changed));
+			pack_start(chooser);
+			put_custom_controls();
+		}
+
+	private:
+		simulator_team_data &team;
+		strategy_chooser chooser;
+		Widget *ctls;
+
+		void put_custom_controls() {
+			// Remove old controls.
+			if (ctls)
+				remove(*ctls);
+
+			// Get the current strategy.
+			strategy::ptr s(team.get_strategy());
+
+			// Get controls.
+			if (s)
+				ctls = s->get_ui_controls();
+			else
+				ctls = Gtk::manage(new Gtk::Label("No strategy selected."));
+			if (!ctls)
+				ctls = Gtk::manage(new Gtk::Label("This strategy provides no controls."));
+			pack_start(*ctls);
+
+			// Show the controls.
+			show_all_children();
+		}
+
+		void strategy_changed(const Glib::ustring &s) {
+			// Lock in the use of the new strategy.
+			team.set_strategy(s);
+
+			// Add the new strategy-specific controls.
+			put_custom_controls();
+		}
+};
+
+
+
+//
+// A combo box that allows the user to select a controller.
+//
+class controller_chooser : public virtual Gtk::ComboBoxText {
+	public:
+		controller_chooser() : initializing(true) {
+			append_text("No Controller");
+			const robot_controller_factory::map_type &m = robot_controller_factory::all();
+			for (robot_controller_factory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i)
+				append_text(i->first);
+			set_active_text("No Controller");
+			initializing = false;
+		}
+
+		sigc::signal<void, Glib::ustring> &signal_changed() {
+			return the_signal_changed;
+		}
+
+	protected:
+		virtual void on_changed() {
+			if (!initializing) {
+				const Glib::ustring &name = get_active_text();
+				the_signal_changed.emit(name);
+			}
+		}
+
+	private:
+		sigc::signal<void, Glib::ustring> the_signal_changed;
+		bool initializing;
+};
+
+
+
+//
 // The controls for managing a team.
 //
 class team_controls : public virtual Gtk::VBox {
 	public:
-		team_controls(simulator_team_data &team_data) : team_data(team_data), players_frame("Players"), players_list(1), add_player_button(Gtk::Stock::ADD), del_player_button(Gtk::Stock::DELETE), strategy_frame("Strategy") {
+		team_controls(simulator_team_data &team_data) : team_data(team_data), players_frame("Players"), players_list(1), add_player_button(Gtk::Stock::ADD), del_player_button(Gtk::Stock::DELETE), strategy_frame("Strategy"), strategy_ctls(team_data), rc_frame("Controller") {
 			pack_start(*Gtk::manage(new Gtk::Label(team_data.is_yellow() ? "Yellow" : "Blue")), false, false);
 
 			players_list.set_headers_visible(false);
@@ -143,7 +263,12 @@ class team_controls : public virtual Gtk::VBox {
 			players_frame.add(players_box);
 			pack_start(players_frame, true, true);
 
+			strategy_frame.add(strategy_ctls);
 			pack_start(strategy_frame, false, false);
+
+			rc_frame.add(rc_chooser);
+			rc_chooser.signal_changed().connect(sigc::mem_fun(*this, &team_controls::controller_changed));
+			pack_start(rc_frame, false, false);
 		}
 
 	private:
@@ -195,6 +320,15 @@ class team_controls : public virtual Gtk::VBox {
 			}
 		}
 
+		void controller_changed(const Glib::ustring &c) {
+			const robot_controller_factory::map_type &m = robot_controller_factory::all();
+			robot_controller_factory::map_type::const_iterator i = m.find(c);
+			if (i != m.end())
+				team_data.set_controller_type(i->second);
+			else
+				team_data.set_controller_type(0);
+		}
+
 		simulator_team_data &team_data;
 
 		Gtk::Frame players_frame;
@@ -205,6 +339,10 @@ class team_controls : public virtual Gtk::VBox {
 		Gtk::Button add_player_button, del_player_button;
 
 		Gtk::Frame strategy_frame;
+		strategy_controls strategy_ctls;
+
+		Gtk::Frame rc_frame;
+		controller_chooser rc_chooser;
 };
 
 

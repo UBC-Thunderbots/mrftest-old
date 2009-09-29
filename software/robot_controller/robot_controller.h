@@ -6,7 +6,8 @@
 #include "geom/point.h"
 #include "util/byref.h"
 #include "util/noncopyable.h"
-#include "world/player.h"
+
+class robot_controller_factory;
 
 //
 // Translates world-coordinate movement requests into robot-relative
@@ -24,26 +25,40 @@ class robot_controller : public virtual byref {
 		// specified target location and orientation.
 		//
 		// Parameters:
-		//  position
+		//  current_position
+		//   the current position of the robot
+		//
+		//  new_position
 		//   the position to move to, in world coordinates measured in metres
 		//
-		//  orientation:
+		//  current_orientation
+		//   the current orientation of the robot
+		//
+		//  new_orientation
 		//   the orientation to rotate to in world coordinates measured in
 		//   radians
 		//
-		virtual void move(const point &position, double orientation) = 0;
+		//  linear_velocity
+		//   (output) the linear velocity to move at, in robot-relative coordinates
+		//   robot-relative coordinates are defined as the positive X axis being forward
+		//   and the positive Y axis being left
+		//
+		//  angular_velocity
+		//   (output) the angular velocity to move at
+		//
+		virtual void move(const point &current_position, const point &new_position, double current_orientation, double new_orientation, point &linear_velocity, double &angular_velocity) = 0;
+
+		//
+		// Returns the factory that created this controller.
+		//
+		virtual robot_controller_factory &get_factory() = 0;
 
 	protected:
 		//
-		// Constructs a new robot_controller for the specified robot.
+		// Constructs a new robot_controller.
 		//
-		robot_controller(player::ptr bot) : robot(bot) {
+		robot_controller() {
 		}
-
-		//
-		// The robot controlled by this controller.
-		//
-		const player::ptr robot;
 };
 
 //
@@ -51,6 +66,11 @@ class robot_controller : public virtual byref {
 // 
 class robot_controller_factory : public virtual noncopyable {
 	public:
+		//
+		// The type of the map returned by the all() method.
+		//
+		typedef std::map<Glib::ustring, robot_controller_factory *> map_type;
+
 		//
 		// The name of the robot controllers created by this factory.
 		//
@@ -61,12 +81,12 @@ class robot_controller_factory : public virtual noncopyable {
 		//
 		// Constructs a new robot_controller.
 		//
-		virtual robot_controller::ptr create_controller(player::ptr bot) = 0;
+		virtual robot_controller::ptr create_controller() = 0;
 
 		//
 		// Gets the collection of all registered controller factories, keyed by name.
 		//
-		static const std::map<Glib::ustring, robot_controller_factory *> &all();
+		static const map_type &all();
 
 	protected:
 		//

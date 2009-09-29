@@ -2,6 +2,7 @@
 #define SIMULATOR_TEAM_H
 
 #include "ai/strategy.h"
+#include "robot_controller/robot_controller.h"
 #include "simulator/engine.h"
 #include "world/player.h"
 #include "world/player_impl.h"
@@ -129,18 +130,26 @@ class simulator_team_data : public virtual noncopyable {
 		}
 
 		//
-		// Sets the strategy governing this team.
+		// Gets the strategy governing this team.
 		//
-		void set_strategy(strategy::ptr st) {
-			team_strategy = st;
-			if (team_strategy)
-				team_strategy->set_playtype(current_playtype);
+		strategy::ptr get_strategy() {
+			return team_strategy;
 		}
+
+		//
+		// Sets the strategy governing this team by name.
+		//
+		void set_strategy(const Glib::ustring &name);
 
 		//
 		// Configures the team to use a new engine.
 		//
-		void set_engine(const simulator_engine::ptr &e);
+		void set_engine(simulator_engine::ptr e);
+
+		//
+		// Configures the team to use a class of controller.
+		//
+		void set_controller_type(robot_controller_factory *cf);
 
 		//
 		// Adds a new player with the given ID number.
@@ -219,11 +228,22 @@ class simulator_team_data : public virtual noncopyable {
 		//
 		strategy::ptr team_strategy;
 
+		//
+		// The robot controller class to use for new players.
+		//
+		robot_controller_factory *controller_factory;
+
 	public:
 		//
 		// The objects that provide west and east views of this team.
 		//
 		const team::ptr west_view, east_view;
+
+	private:
+		//
+		// The configuration element for this team.
+		//
+		xmlpp::Element *xml;
 };
 
 #endif

@@ -29,13 +29,16 @@ int main() {
 		std::cerr << "Invalid controller number chosen.\n";
 		return 1;
 	}
-	robot_controller::ptr controller = factories.find(names[controller_index - 1])->second->create_controller(test_player);
+	robot_controller::ptr controller = factories.find(names[controller_index - 1])->second->create_controller();
+
+	// Attach the controller to the player.
+	test_player->set_controller(controller);
 
 	// Exercise the controller.
 	point target_position(1, 1);
 	double target_orientation = PI / 2;
 	for (int i = 0; ; ++i) {
-		controller->move(target_position, target_orientation);
+		test_player->move(target_position, target_orientation);
 		std::cout << i / 30. << " secs at position " << test_player->position() << " with orientation " << test_player->orientation() << std::endl;
 		if ((test_player->position() - target_position).len() < EPS && std::fabs(test_player->orientation() - target_orientation) < EPS) break;
 	}

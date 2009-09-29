@@ -1,7 +1,6 @@
 #include "robot_controller/robot_controller.h"
 #include "geom/point.h"
 #include "geom/angle.h"
-#include "world/player.h"
 #include <cmath>
 
 namespace {
@@ -13,7 +12,7 @@ namespace {
 			//
 			// Constructs a new controller.
 			//
-			testing_rc(player::ptr player);
+			testing_rc();
 
 			//
 			// Constructs a new controller.
@@ -25,10 +24,17 @@ namespace {
 			//  target_orientation
 			//   direction the player wants to have
 			//
-			virtual void move(const point &target_position, double target_orientation);		
+			virtual void move(const point &current_position, const point &new_position, double current_orientation, double new_orientation, point &linear_velocity, double &angular_velocity);
+
+			//
+			// Returns the factory.
+			//
+			virtual robot_controller_factory &get_factory();
 
 		private:
 			double get_velocity(double d, double v0, double v1, double max_vel, double max_accel);
+
+			bool initialized;
 
 			point old_position;
 			double old_orientation;
@@ -42,15 +48,7 @@ namespace {
 			double max_linear_velocity_accel;
 	};
 
-	testing_rc::testing_rc(player::ptr player) : robot_controller(player) {
-		old_position = robot->position();
-		old_orientation = robot->orientation();
-
-		time_step = 1. / 30;
-		max_angular_velocity_accel = PI;
-		max_angular_velocity = 4 * PI;
-		max_linear_velocity_accel = 2;
-		max_linear_velocity = 10;
+	testing_rc::testing_rc() : initialized(false) {
 	}
 
 	double testing_rc::get_velocity(double s, double v0, double v1, double max_vel, double max_accel) {
@@ -96,19 +94,29 @@ namespace {
 		return v0 - max_accel * time_step;	
 	}
 
-	void testing_rc::move(const point &tar_pos, double tar_ori) {
-		const point &pos = robot->position();
-		double ori = robot->orientation();
-		const point &lin_vel = (pos - old_position) / time_step;
-		double da = angle_mod(tar_ori - ori);
-		const point &d = (tar_pos - pos).rotate(-ori);
-		old_position = pos;
-		old_orientation = ori;	
+	void testing_rc::move(const point &current_position, const point &new_position, double current_orientation, double new_orientation, point &linear_velocity, double &angular_velocity) {
+		if (!initialized) {
+			old_position = current_position;
+			old_orientation = current_orientation;
+
+			time_step = 1. / 30;
+			max_angular_velocity_accel = PI;
+			max_angular_velocity = 4 * PI;
+			max_linear_velocity_accel = 2;
+			max_linear_velocity = 10;
+		}
+
+		const point &lin_vel = (current_position - old_position) / time_step;
+		double da = angle_mod(new_orientation - current_orientation);
+		const point &d = (new_position - current_position).rotate(-current_orientation);
+		old_position = current_position;
+		old_orientation = current_orientation;
 
 		point tmp(get_velocity(d.x, lin_vel.x, 0, max_linear_velocity, max_linear_velocity_accel),
 				get_velocity(d.y, lin_vel.y, 0, max_linear_velocity, max_linear_velocity_accel));
 
-		robot->move(d, da);
+		linear_velocity = d;
+		angular_velocity = da;
 	}
 
 	class testing_rc_factory : public virtual robot_controller_factory {
@@ -116,12 +124,16 @@ namespace {
 			testing_rc_factory() : robot_controller_factory("Testing RC") {
 			}
 
-			virtual robot_controller::ptr create_controller(player::ptr bot) {
-				robot_controller::ptr p(new testing_rc(bot));
+			virtual robot_controller::ptr create_controller() {
+				robot_controller::ptr p(new testing_rc);
 				return p;
 			}
 	};
 
 	testing_rc_factory factory;
+
+	robot_controller_factory &testing_rc::get_factory() {
+		return factory;
+	}
 }
 

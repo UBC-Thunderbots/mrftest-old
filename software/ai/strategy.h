@@ -9,7 +9,10 @@
 #include "world/team.h"
 #include <map>
 #include <glibmm.h>
+#include <gtkmm.h>
 #include <libxml++/libxml++.h>
+
+class strategy_factory;
 
 //
 // A strategy manages the overall operation of a team. Individual AI implementations
@@ -31,6 +34,16 @@ class strategy : public virtual byref {
 		// Sets the current play type.
 		//
 		virtual void set_playtype(playtype::playtype t) = 0;
+
+		//
+		// Returns the factory that creates this strategy.
+		//
+		virtual strategy_factory &get_factory() = 0;
+
+		//
+		// Returns the custom UI controls to manage this strategy.
+		//
+		virtual Gtk::Widget *get_ui_controls() = 0;
 
 	protected:
 		//

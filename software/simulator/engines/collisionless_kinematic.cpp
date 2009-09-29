@@ -144,7 +144,7 @@ namespace {
 
 			virtual void remove_player(player_impl::ptr p) {
 				for (unsigned int i = 0; i < the_players.size(); i++) {
-					if (static_cast<player_impl::ptr>(the_players[i]) == p) {
+					if (player_impl::ptr::cast_static(the_players[i]) == p) {
 						the_players.erase(the_players.begin() + i);
 						return;
 					}

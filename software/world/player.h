@@ -3,6 +3,7 @@
 
 #include <glibmm/refptr.h>
 #include "geom/point.h"
+#include "robot_controller/robot_controller.h"
 #include "util/byref.h"
 #include "world/player_impl.h"
 #include "world/robot.h"
@@ -19,14 +20,22 @@ class player : public virtual byref, public virtual robot {
 		typedef Glib::RefPtr<player> ptr;
 
 		//
-		// Instructs the player to move with specified velocities, in
-		// robot-relative coordinates that:
+		// Instructs the player to move to the specified position and orientatin.
 		//
-		// 	positive x-axis = forward direction of the robot
-		// 	positive y-axis = left direction of the robot
+		// Parameters:
+		//  new_position
+		//   the position to move to
 		//
-		void move(const point &linear_velocity, double angular_velocity) {
-			impl->move(linear_velocity * (flip ? -1.0 : 1.0), angular_velocity);
+		//  new_orientation
+		//   the orientation to move to
+		//
+		void move(const point &new_position, double new_orientation) {
+			if (controller) {
+				point linear_velocity;
+				double angular_velocity;
+				controller->move(position(), new_position, orientation(), new_orientation, linear_velocity, angular_velocity);
+				impl->move(linear_velocity * (flip ? -1.0 : 1.0), angular_velocity);
+			}
 		}
 
 		//
@@ -54,6 +63,13 @@ class player : public virtual byref, public virtual robot {
 		}
 
 		//
+		// Sets the controller used by this robot.
+		//
+		void set_controller(robot_controller::ptr c) {
+			controller = c;
+		}
+
+		//
 		// Constructs a new player object.
 		//
 		// Parameters:
@@ -71,6 +87,7 @@ class player : public virtual byref, public virtual robot {
 
 	private:
 		player_impl::ptr impl;
+		robot_controller::ptr controller;
 		const bool flip;
 };
 

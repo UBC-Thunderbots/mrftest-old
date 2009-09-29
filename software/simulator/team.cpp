@@ -5,9 +5,12 @@
 #include <algorithm>
 #include <stdexcept>
 
-simulator_team_data::simulator_team_data(xmlpp::Element *xml, bool yellow) : score(0), yellow(yellow), current_playtype(playtype::halt), west_view(new simulator_team_view(west_players, score, west_other, yellow)), east_view(new simulator_team_view(east_players, score, east_other, yellow)) {
+simulator_team_data::simulator_team_data(xmlpp::Element *xml, bool yellow) : score(0), yellow(yellow), current_playtype(playtype::halt), controller_factory(0), west_view(new simulator_team_view(west_players, score, west_other, yellow)), east_view(new simulator_team_view(east_players, score, east_other, yellow)), xml(xml) {
+	// Get the "players" element.
+	xmlpp::Element *xmlplayers = xmlutil::get_only_child(xml, "players");
+
 	// Iterate the child nodes.
-	const xmlpp::Node::NodeList &players = xml->get_children();
+	const xmlpp::Node::NodeList &players = xmlplayers->get_children();
 	for (xmlpp::Node::NodeList::const_iterator i = players.begin(), iend = players.end(); i != iend; ++i) {
 		xmlpp::Node *node = *i;
 
@@ -25,11 +28,11 @@ simulator_team_data::simulator_team_data(xmlpp::Element *xml, bool yellow) : sco
 				// Store the ID.
 				ids.push_back(id);
 			} else {
-				xml->remove_child(node);
+				xmlplayers->remove_child(node);
 				config::dirty();
 			}
 		} else {
-			xml->remove_child(node);
+			xmlplayers->remove_child(node);
 			config::dirty();
 		}
 	}
@@ -51,7 +54,7 @@ simulator_team_data::simulator_team_data(xmlpp::Element *xml, bool yellow) : sco
 	}
 }
 
-void simulator_team_data::set_engine(const simulator_engine::ptr &e) {
+void simulator_team_data::set_engine(simulator_engine::ptr e) {
 	// Delete old objects.
 	if (engine)
 		for (unsigned int i = 0; i < impls.size(); i++)
@@ -80,6 +83,46 @@ void simulator_team_data::set_engine(const simulator_engine::ptr &e) {
 	}
 }
 
+void simulator_team_data::set_strategy(const Glib::ustring &name) {
+	// Get the "engines" XML element.
+	xmlpp::Element *xmlstrategies = xmlutil::get_only_child(xml, "strategies");
+
+	// Find the strategy factory for this strategy type.
+	const strategy_factory::map_type &factories = strategy_factory::all();
+	strategy_factory::map_type::const_iterator factoryiter = factories.find(name);
+	strategy::ptr strat;
+	if (factoryiter != factories.end()) {
+		strategy_factory *factory = factoryiter->second;
+		xmlpp::Element *xmlparams = xmlutil::strip(xmlutil::get_only_child_keyed(xmlstrategies, "params", "strategy", name));
+		strat = factory->create_strategy(xmlparams);
+	}
+
+	// Lock in the strategy.
+	team_strategy = strat;
+	if (team_strategy)
+		team_strategy->set_playtype(current_playtype);
+
+	// Save the choice of engine in the configuration.
+	if (xmlstrategies->get_attribute_value("active") != name) {
+		xmlstrategies->set_attribute("active", name);
+		config::dirty();
+	}
+}
+
+void simulator_team_data::set_controller_type(robot_controller_factory *cf) {
+	controller_factory = cf;
+
+	for (unsigned int i = 0; i < west_players.size(); i++) {
+		if (controller_factory) {
+			west_players[i]->set_controller(controller_factory->create_controller());
+			east_players[i]->set_controller(controller_factory->create_controller());
+		} else {
+			west_players[i]->set_controller(robot_controller::ptr());
+			east_players[i]->set_controller(robot_controller::ptr());
+		}
+	}
+}
+
 void simulator_team_data::add_player(unsigned int id) {
 	// Find where to insert the new player.
 	unsigned int pos = std::lower_bound(ids.begin(), ids.end(), id) - ids.begin();
@@ -89,11 +132,23 @@ void simulator_team_data::add_player(unsigned int id) {
 	player::ptr wplr(new player(id, impl, false));
 	player::ptr eplr(new player(id, impl, true));
 
+	// Set the robot controller.
+	if (controller_factory) {
+		wplr->set_controller(controller_factory->create_controller());
+		eplr->set_controller(controller_factory->create_controller());
+	}
+
 	// Insert the new data into the arrays.
 	ids.insert(ids.begin() + pos, id);
 	impls.insert(impls.begin() + pos, impl);
 	west_players.insert(west_players.begin() + pos, wplr);
 	east_players.insert(east_players.begin() + pos, eplr);
+
+	// Add the player to the XML.
+	xmlpp::Element *xmlplayers = xmlutil::get_only_child(xml, "players");
+	xmlpp::Element *xmlplayer = xmlplayers->add_child("player");
+	xmlplayer->set_attribute("id", Glib::ustring::compose("%1", id));
+	config::dirty();
 }
 
 void simulator_team_data::remove_player(unsigned int id) {
@@ -106,5 +161,11 @@ void simulator_team_data::remove_player(unsigned int id) {
 	impls.erase(impls.begin() + pos);
 	west_players.erase(west_players.begin() + pos);
 	east_players.erase(east_players.begin() + pos);
+
+	// Delete the XML.
+	xmlpp::Element *xmlplayers = xmlutil::get_only_child(xml, "players");
+	xmlpp::Element *xmlplayer = xmlutil::get_only_child_keyed(xmlplayers, "player", "id", Glib::ustring::compose("%1", id));
+	xmlplayers->remove_child(xmlplayer);
+	config::dirty();
 }
 
