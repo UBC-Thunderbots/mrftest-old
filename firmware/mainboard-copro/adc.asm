@@ -101,11 +101,11 @@ loop:
 	CONVERT_AND_SEND 4, 5
 	CONVERT_AND_SEND 5, 6
 	CONVERT_AND_SEND 6, 7
-	CONVERT_AND_SEND 7, 9 ; NOTE: To ease board layout, PIC channels 8 and 9
-	CONVERT_AND_SEND 9, 8 ; correspond to logical channels 9 and 8.
+	CONVERT_AND_SEND 7, 11 ; NOTE: To ease board layout, PIC channels
+	CONVERT_AND_SEND 11, 9 ; DO NOT directly correspond to logical channels.
+	CONVERT_AND_SEND 9, 8  ; Check the schematic for the exact mapping.
 	CONVERT_AND_SEND 8, 10
-	CONVERT_AND_SEND 10, 11
-	CONVERT_AND_SEND 11, 12
+	CONVERT_AND_SEND 10, 12
 	WAIT_ADC_FINISH
 	SEND_ADC_RESULT
 
