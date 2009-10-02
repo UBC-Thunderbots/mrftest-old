@@ -54,12 +54,12 @@ SEND_ADC_RESULT macro
 
 
 
-	; Waits for an in-progress conversion on (channel) to finish, then
-	; simultaneously starts a conversion on (channel+1) and also sends the data
-	; from (channel) out over SPI.
-CONVERT_AND_SEND macro channel
+	; Waits for an in-progress conversion on (oldchannel) to finish, then
+	; simultaneously starts a conversion on (newchannel) and also sends the data
+	; from (oldchannel) out over SPI.
+CONVERT_AND_SEND macro oldchannel, newchannel
 	WAIT_ADC_FINISH
-	ADC_START_CONVERSION (channel) + 1
+	ADC_START_CONVERSION (newchannel)
 	SEND_ADC_RESULT
 	endm
 
@@ -94,18 +94,18 @@ loop:
 	bcf LAT_SPI_SS_FPGA, PIN_SPI_SS_FPGA
 
 	; Go through the thirteen channels, doing the overlapped convert-and-send.
-	CONVERT_AND_SEND 0
-	CONVERT_AND_SEND 1
-	CONVERT_AND_SEND 2
-	CONVERT_AND_SEND 3
-	CONVERT_AND_SEND 4
-	CONVERT_AND_SEND 5
-	CONVERT_AND_SEND 6
-	CONVERT_AND_SEND 7
-	CONVERT_AND_SEND 8
-	CONVERT_AND_SEND 9
-	CONVERT_AND_SEND 10
-	CONVERT_AND_SEND 11
+	CONVERT_AND_SEND 0, 1
+	CONVERT_AND_SEND 1, 2
+	CONVERT_AND_SEND 2, 3
+	CONVERT_AND_SEND 3, 4
+	CONVERT_AND_SEND 4, 5
+	CONVERT_AND_SEND 5, 6
+	CONVERT_AND_SEND 6, 7
+	CONVERT_AND_SEND 7, 9 ; NOTE: To ease board layout, PIC channels 8 and 9
+	CONVERT_AND_SEND 9, 8 ; correspond to logical channels 9 and 8.
+	CONVERT_AND_SEND 8, 10
+	CONVERT_AND_SEND 10, 11
+	CONVERT_AND_SEND 11, 12
 	WAIT_ADC_FINISH
 	SEND_ADC_RESULT
 
