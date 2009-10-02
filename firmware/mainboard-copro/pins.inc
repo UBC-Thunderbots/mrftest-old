@@ -116,3 +116,9 @@ PORT_USB_DM equ PORTC
 TRIS_USB_DM equ TRISC
 LAT_USB_DM  equ LATC
 PIN_USB_DM  equ 4
+
+	; Which port, tris, and pin is the MISC line.
+PORT_MISC equ PORTC
+TRIS_MISC equ TRISC
+LAT_MISC  equ LATC
+PIN_MISC  equ 2

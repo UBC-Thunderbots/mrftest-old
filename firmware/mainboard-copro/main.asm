@@ -61,7 +61,9 @@ main:
 	; USB_DM is low until controlled by the SIE.
 	bcf LAT_USB_DM, PIN_USB_DM
 	bcf TRIS_USB_DM, PIN_USB_DM
-	; Non-connected pins are externally grounded. Leave them as inputs.
+	; MISC is low as not needed currently.
+	bcf LAT_MISC, PIN_MISC
+	bcf TRIS_MISC, PIN_MISC
 
 	; Now that we've initialized ourself, we either go into bootloader mode or
 	; go into FPGA configuration mode, depending on the state of the XBee pin.
