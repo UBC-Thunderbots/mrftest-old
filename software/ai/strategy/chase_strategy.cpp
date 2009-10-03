@@ -1,4 +1,5 @@
 #include "ai/strategy.h"
+#include "ai/role.h"
 
 namespace {
 	class chase_strategy : public virtual strategy {
