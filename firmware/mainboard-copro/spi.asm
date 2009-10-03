@@ -106,9 +106,6 @@ SPI_RECEIVE_BIT macro bit
 
 	; Lower clock line.
 	bcf LAT_SPI_CK, PIN_SPI_CK
-
-	; Wait 2 instruction cycles.
-	bra $+2
 	endm
 
 
