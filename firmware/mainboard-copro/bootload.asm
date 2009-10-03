@@ -17,13 +17,16 @@
 
 
 	; The largest possible packet.
-MAX_PAYLOAD equ 1 + 2 + 256
+MAX_PAYLOAD equ 100
 MAX_PACKET  equ 1 + 8 + 1 + 1 + MAX_PAYLOAD
 
 	; The command identifiers for the commands.
 CMD_CHIP_ERASE equ 0x27
-CMD_PAGE_WRITE equ 0x73
-CMD_PAGE_SUM   equ 0x5A
+CMD_WRITE1     equ 0x47
+CMD_WRITE2     equ 0x68
+CMD_WRITE3     equ 0x83
+CMD_PAGE_SUM   equ 0xAA
+CMD_GET_STATUS equ 0xC9
 
 
 
@@ -32,7 +35,9 @@ CMD_PAGE_SUM   equ 0x5A
 
 
 
-xbeebuf udata
+	udata
+	; A temporary buffer used by send_xbee_byte
+send_xbee_byte_temp: res 1
 	; The calculated checksum so far.
 computed_sum: res 1
 	; The amount of data left to receive.
@@ -44,10 +49,15 @@ packet_data: res MAX_PACKET
 
 
 
+writebuf udata
+write_buffer: res 256
+
+
+
 	code
 bootload:
-	; Select data bank.
-	banksel packet_remaining
+	; Select bank. Never change this in bootload mode.
+	banksel packet_length
 
 	; Lock the wheels.
 	bcf LAT_BRAKE, PIN_BRAKE
@@ -90,36 +100,28 @@ bootload:
 receive_packet:
 	; First, wait until we see a delimiter (0x7E).
 	rcall receive_byte
-	addlw 0
-	bz serial_error
-	movf RCREG, W
 	xorlw 0x7E
 	bnz receive_packet
 
+receive_packet_post_delimiter:
 	; Now receive two more bytes, the length.
 	rcall receive_byte
-	addlw 0
-	bz serial_error
-	movf RCREG, W
 	movwf packet_length + 0
 	rcall receive_byte
-	addlw 0
-	bz serial_error
-	movf RCREG, W
 	movwf packet_length + 1
 
 	; Check that the length is not excessive.
 	movlw HIGH(MAX_PACKET)
 	cpfsgt packet_length + 0
 	bra packet_length_high_ok
-	bra serial_error
+	bra receive_packet
 packet_length_high_ok:
 	cpfseq packet_length + 0
 	bra packet_length_ok
 	movlw LOW(MAX_PACKET)
 	cpfsgt packet_length + 1
 	bra packet_length_ok
-	bra serial_error
+	bra receive_packet
 packet_length_ok:
 
 	; Start receiving bytes.
@@ -136,9 +138,6 @@ receive_payload_loop:
 
 	; Receive a byte of payload.
 	rcall receive_byte
-	addlw 0
-	bz serial_error
-	movf RCREG, W
 
 	; Store it in the data buffer.
 	movwf POSTINC0
@@ -155,9 +154,6 @@ receive_payload_loop:
 receive_checksum:
 	; Receive the checksum byte.
 	rcall receive_byte
-	addlw 0
-	bz serial_error
-	movf RCREG, W
 
 	; Add it to the computed checksum.
 	addwf computed_sum, F
@@ -165,26 +161,232 @@ receive_checksum:
 	; Check if the calculated sum is correct (0xFF).
 	movf computed_sum, W
 	xorlw 0xFF
-	bnz serial_error
+	bnz receive_packet
 
 	; Check if the API ID is correct (0x80 = 64-bit receive).
 	movf packet_data, W
 	xorlw 0x80
-	bnz serial_error
+	bnz receive_packet
 
 	; We have successfully received a packet. Dispatch based on command ID.
 	movf packet_data + 11, W
 	xorlw CMD_CHIP_ERASE
 	bz erase_chip
-	movf packet_data, W
-	xorlw CMD_PAGE_WRITE
-	bz write_page
-	movf packet_data, W
+	movf packet_data + 11, W
+	xorlw CMD_WRITE1
+	bz write1
+	movf packet_data + 11, W
+	xorlw CMD_WRITE2
+	bz write2
+	movf packet_data + 11, W
+	xorlw CMD_WRITE3
+	bz write3
+	movf packet_data + 11, W
 	xorlw CMD_PAGE_SUM
 	bz sum_page
+	movf packet_data + 11, W
+	xorlw CMD_GET_STATUS
+	bz get_status
 
 	; Invalid command.
+	bra receive_packet
+
+
+
+erase_chip:
+	; Send WRITE ENABLE command.
+	rcall send_write_enable
+
+	; Send CHIP ERASE command.
+	rcall select_chip
+	movlw 0xC7
+	call spi_send
+	rcall deselect_chip
+
+	; Send an ACK immediately. The client will poll the status register.
+	bra send_ack
+
+
+
+write1:
+	; The first byte (at packet_data+11) is the command, CMD_WRITE1.
+	; Then (at packet_data+12) are the 99 data bytes.
+	; Copy the 99 transmitted data bytes into bytes 0 through 98 of the write buffer.
+	lfsr 0, packet_data + 12
+	lfsr 1, writebuf + 0
+	movlw 99
+write1_loop:
+	movff POSTINC0, POSTINC1
+	addlw -1
+	bnz write1_loop
+
+	; Send an ACK.
+	bra send_ack
+
+
+
+write2:
+	; The first byte (at packet_data+11) is the command, CMD_WRITE2.
+	; Then (at packet_data+12) are the 99 data bytes.
+	; Copy the 99 transmitted data bytes into bytes 99 through 197 of the write buffer.
+	lfsr 0, packet_data + 12
+	lfsr 1, writebuf + 99
+	movlw 99
+write2_loop:
+	movff POSTINC0, POSTINC1
+	addlw -1
+	bnz write2_loop
+
+	; Send an ACK.
+	bra send_ack
+
+
+
+write3:
+	; The first byte (at packet_data+11) is the command, CMD_WRITE3.
+	; The next byte (at packet_data+12) is the MSB of the page number.
+	; The next byte (at packet_data+13) is the LSB of the page number.
+	; Then (at packet_data+14) are the remaining 58 bytes fo the page (bytes 198 through 255).
+	; Copy the remaining data into the write buffer.
+	lfsr 0, packet_data + 14
+	lfsr 1, writebuf + 198
+	movlw 58
+write3_copy_loop:
+	movff POSTINC0, POSTINC1
+	addlw -1
+	bnz write3_copy_loop
+
+	; Send WRITE ENABLE command.
+	rcall send_write_enable
+
+	; Send PAGE PROGRAM command with address and data.
+	rcall select_chip
+	movlw 0x02
+	call spi_send
+	movf packet_data + 12, W
+	call spi_send
+	movf packet_data + 13, W
+	call spi_send
+	movlw 0
+	call spi_send
+	clrf packet_remaining
+	lfsr 0, write_buffer
+write3_send_loop:
+	movf POSTINC0, W
+	call spi_send
+	decfsz packet_remaining, F
+	bra write3_send_loop
+	rcall deselect_chip
+
+	; Wait until STATUS.BUSY clears and then ACK.
+	bra wait_until_programmed
+
+
+
+sum_page:
+	; The first byte (at packet_data+11) is the command, CMD_PAGE_SUM.
+	; The next byte (at packet_data+12) is the MSB of the page number.
+	; The next byte (at packet_data+13) is the LSB of the page number.
+
+	; Send FAST READ command.
+	rcall select_chip
+	movlw 0x0B
+	call spi_send
+	movf packet_data + 12, W
+	call spi_send
+	movf packet_data + 13, W
+	call spi_send
+	movlw 0
+	call spi_send
+	movlw 0
+	call spi_send
+	clrf packet_remaining
+	clrf computed_sum
+sum_page_loop:
+	call spi_receive
+	addwf computed_sum, F
+	decf packet_remaining, F
+	bnz sum_page_loop
+	rcall deselect_chip
+
+	; Send response packet over XBee.
+	rcall prepare_xbee_out
+	movff computed_sum, packet_data + 11
+	clrf packet_length + 0
+	movlw 1
+	movwf packet_length + 1
+	bra send_xbee_packet
+
+
+
+wait_until_programmed:
+	; Send READ STATUS REGISTER until bit 0 (BUSY) is clear.
+	rcall select_chip
+	movlw 0x05
+	call spi_send
+wait_until_programmed_loop:
+	call spi_receive
+	andlw 1
+	bnz wait_until_programmed_loop
+	bra send_ack
+
+
+
+send_ack:
+	; Send back a zero-length packet over the radio indicating success.
+	rcall prepare_xbee_out
+	clrf packet_length + 0
+	clrf packet_length + 1
+	bra send_xbee_packet
+
+
+
+receive_byte:
+	; Receive a byte.
+	rcall receive_byte_raw
+	; Check if it's a delimiter.
+	xorlw 0x7E
+	skpnz
+	bra receive_packet_post_delimiter
+	; Check if it's an escape code.
+	xorlw 0x7D ^ 0x7E
+	bz receive_byte_escaped
+	; Return the byte.
+	xorlw 0x7D
+	return
+receive_byte_escaped:
+	; Receive a byte.
+	rcall receive_byte_raw
+	; Check if it's a delimiter.
+	xorlw 0x7E
+	skpnz
+	bra receive_packet_post_delimiter
+	; Check if it's an escape code.
+	xorlw 0x7D ^ 0x7E
+	bz receive_byte_escaped
+	; Return the byte, unescaping it.
+	xorlw 0x20 ^ 0x7D
+	return
+
+
+
+receive_byte_raw:
+	; If RCIF=1, break out of the loop.
+	btfsc PIR1, RCIF
+	bra receive_byte_rcif
+	; If BOOTLOAD=0, let the error handler tidy up.
+	btfss PORT_XBEE_BL, PIN_XBEE_BL
 	bra serial_error
+	; Loop back.
+	bra receive_byte
+receive_byte_rcif:
+	; Check for an error.
+	movf RCSTA, W
+	andlw (1 << OERR) | (1 << FERR)
+	bnz serial_error
+	; Return with the byte in WREG.
+	movf RCREG, W
+	return
 
 
 
@@ -193,6 +395,12 @@ serial_error:
 	; serial port, the XBee packet had an incorrect length or checksum, the
 	; packet contained an unrecognized command ID, or the bootload pin went low
 	; while receiving the byte.
+
+	; This label is jumped to from inside receive_byte_raw, which is called from
+	; receive_byte, which is called from mainline code. Fix up the stack.
+	pop
+	pop
+
 	; First, check if the bootload pin went low.
 	btfss PORT_XBEE_BL, PIN_XBEE_BL
 	bra bootload_done
@@ -201,7 +409,6 @@ serial_error:
 	; receiver.
 	btfsc RCSTA, OERR
 	bcf RCSTA, CREN
-	btfss RCSTA, CREN
 	bsf RCSTA, CREN
 
 	; Check for a framing error, which can be cleared by reading a byte.
@@ -228,114 +435,6 @@ bootload_done:
 
 	; Start configuring the FPGA.
 	goto configure_fpga
-
-
-
-erase_chip:
-	; Send WRITE ENABLE command.
-	rcall send_write_enable
-
-	; Send CHIP ERASE command.
-	rcall select_chip
-	movlw 0xC7
-	call spi_send
-	rcall deselect_chip
-
-	; Wait until STATUS.BUSY clears.
-	bra wait_until_programmed
-
-
-
-write_page:
-	; Send WRITE ENABLE command.
-	rcall send_write_enable
-
-	; Send PAGE PROGRAM command with address and data.
-	rcall select_chip
-	movlw 0x02
-	call spi_send
-	movf packet_data + 1, W
-	call spi_send
-	movf packet_data + 2, W
-	call spi_send
-	movlw 0
-	call spi_send
-	clrf packet_remaining
-	lfsr 0, packet_data + 12
-write_page_loop:
-	movf POSTINC0, W
-	call spi_send
-	decfsz packet_remaining
-	bra write_page_loop
-	rcall deselect_chip
-
-	; Wait until STATUS.BUSY clears.
-	bra wait_until_programmed
-
-
-
-sum_page:
-	; Send FAST READ command and read in 256 bytes of data.
-	rcall select_chip
-	movlw 0x0B
-	call spi_send
-	movf packet_data + 0, W
-	call spi_send
-	movf packet_data + 1, W
-	call spi_send
-	movlw 0
-	call spi_send
-	movlw 0
-	call spi_send
-	clrf packet_remaining
-	clrf computed_sum
-sum_page_loop:
-	call spi_receive
-	addwf computed_sum, F
-	decfsz packet_remaining
-	bra sum_page_loop
-	rcall deselect_chip
-
-	; Send response packet over XBee.
-	rcall prepare_xbee_out
-	movff computed_sum, packet_data + 11
-	clrf packet_length + 0
-	movlw 1
-	movwf packet_length + 1
-	bra send_xbee_packet
-
-
-
-wait_until_programmed:
-	; Send READ STATUS REGISTER until bit 0 (BUSY) is clear.
-	rcall select_chip
-	movlw 0x05
-	call spi_send
-wait_until_programmed_loop:
-	call spi_receive
-	andlw 1
-	bnz wait_until_programmed_loop
-
-	; Send back a zero-length packet over the radio indicating success.
-	rcall prepare_xbee_out
-	clrf packet_length + 0
-	clrf packet_length + 1
-	bra send_xbee_packet
-
-
-
-receive_byte:
-	btfsc PIR1, RCIF
-	bra receive_byte_rcif
-	btfss PORT_XBEE_BL, PIN_XBEE_BL
-	retlw 0
-	bra receive_byte
-receive_byte_rcif:
-	movf RCSTA, W
-	andlw (1 << OERR) | (1 << FERR)
-	skpz
-	retlw 0
-	retlw 1
 
 
 
@@ -380,7 +479,7 @@ prepare_xbee_out:
 	movff POSTDEC0, POSTDEC1
 
 	; Set a frame ID of zero because we don't want to deal with status frames.
-	clrf packet_data + 0
+	clrf packet_data + 1
 
 	; Set options to 0 (do radio-level ACKs, do not do broadcast).
 	clrf packet_data + 10
@@ -394,7 +493,7 @@ prepare_xbee_out:
 send_xbee_packet:
 	; Send delimiter.
 	movlw 0x7E
-	rcall send_xbee_byte
+	rcall send_xbee_byte_raw
 
 	; Send length.
 	movf packet_length + 0
@@ -438,9 +537,47 @@ send_xbee_packet_payload_done:
 
 
 send_xbee_byte:
+	; Check if it needs to be escaped.
+	xorlw 0x7E
+	bz send_xbee_byte_7e
+	xorlw 0x7D ^ 0x7E
+	bz send_xbee_byte_7d
+	xorlw 0x11 ^ 0x7D
+	bz send_xbee_byte_11
+	xorlw 0x13 ^ 0x11
+	bz send_xbee_byte_13
+	xorlw 0x13
+	bra send_xbee_byte_raw
+
+send_xbee_byte_7e:
+	movlw 0x7D
+	rcall send_xbee_byte_raw
+	movlw 0x7E ^ 0x20
+	bra send_xbee_byte_raw
+
+send_xbee_byte_7d:
+	movlw 0x7D
+	rcall send_xbee_byte_raw
+	movlw 0x7D ^ 0x20
+	bra send_xbee_byte_raw
+
+send_xbee_byte_11:
+	movlw 0x7D
+	rcall send_xbee_byte_raw
+	movlw 0x11 ^ 0x20
+	bra send_xbee_byte_raw
+
+send_xbee_byte_13:
+	movlw 0x7D
+	rcall send_xbee_byte_raw
+	movlw 0x13 ^ 0x20
+	bra send_xbee_byte_raw
+
+send_xbee_byte_raw:
 	movwf TXREG
-send_xbee_byte_wait:
+send_xbee_byte_raw_wait:
 	btfss TXSTA, TRMT
 	bra send_xbee_byte_wait
 	return
+
 	end
