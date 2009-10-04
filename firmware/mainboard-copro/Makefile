@@ -1,5 +1,5 @@
 HEX := mainboard-copro.hex
-LKR := 18F4550_e.lkr
+LKR := 18f4550.lkr
 PROC := PIC18F4550
 ASMS := $(wildcard *.asm)
 OBJS := $(ASMS:.asm=.o)
@@ -8,7 +8,7 @@ $(HEX) : $(OBJS)
 	gplink -o $@ -m -s $(LKR) $+
 
 %.d %.o : %.asm
-	{ gpasm -c -C -y -w2 -M $< && sed -e 's/^$(@:.d=.o) :/$@ $(@:.d=.o) :/' < $(@:.o=.d) > $(@:.o=.d).new && mv $(@:.o=.d).new $(@:.o=.d) ; } || { $(RM) $(@:.o=.d) $(@:.o=.d).new ; false ; }
+	{ gpasm -c -C -w2 -M $< && sed -e 's/^$(@:.d=.o) :/$@ $(@:.d=.o) :/' < $(@:.o=.d) > $(@:.o=.d).new && mv $(@:.o=.d).new $(@:.o=.d) ; } || { $(RM) $(@:.o=.d) $(@:.o=.d).new ; false ; }
 
 ifneq ($(MAKECMDGOALS),clean)
 include $(ASMS:.asm=.d)

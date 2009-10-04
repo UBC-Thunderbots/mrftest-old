@@ -1,7 +1,7 @@
 * text=auto !eol
 firmware/HWRunSwitch/Makefile -text
 firmware/HWRunSwitch/hwrunswitch.c -text
-firmware/mainboard-copro/18F4550_e.lkr -text
+firmware/mainboard-copro/18f4550.lkr -text
 firmware/mainboard-copro/Makefile -text
 firmware/mainboard-copro/adc.asm -text
 firmware/mainboard-copro/bootload.asm -text
