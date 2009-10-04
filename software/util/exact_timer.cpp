@@ -1,5 +1,4 @@
 #include "util/exact_timer.h"
-#include "util/mutex.h"
 #include "world/timestep.h"
 #include <time.h>
 #include <sigc++/sigc++.h>

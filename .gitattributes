@@ -53,7 +53,6 @@ software/util/exact_timer.cpp -text
 software/util/exact_timer.h -text
 software/util/hungarian.cpp -text
 software/util/hungarian.h -text
-software/util/mutex.h -text
 software/util/noncopyable.h -text
 software/util/xml.cpp -text
 software/util/xml.h -text

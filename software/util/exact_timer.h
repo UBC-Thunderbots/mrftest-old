@@ -1,7 +1,6 @@
 #ifndef UTIL_EXACT_TIMER_H
 #define UTIL_EXACT_TIMER_H
 
-#include "util/mutex.h"
 #include "util/noncopyable.h"
 #include <sigc++/sigc++.h>
 
