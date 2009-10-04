@@ -11,6 +11,10 @@
 #include <getopt.h>
 #include <time.h>
 
+#ifndef CLOCK_MONOTONIC
+	#define CLOCK_MONOTONIC CLOCK_REALTIME
+#endif
+
 namespace {
 	const char SHORT_OPTIONS[] = "msh";
 
