@@ -25,7 +25,7 @@ CMD_CHIP_ERASE equ 0x29
 CMD_WRITE1     equ 0x48
 CMD_WRITE2     equ 0x67
 CMD_WRITE3     equ 0x86
-CMD_PAGE_SUM   equ 0xA5
+CMD_SUM_PAGES  equ 0xA5
 CMD_GET_STATUS equ 0xC4
 CMD_IDENT      equ 0xE3
 
@@ -37,8 +37,8 @@ CMD_IDENT      equ 0xE3
 
 
 	udata
-	; A temporary buffer used by send_xbee_byte
-send_xbee_byte_temp: res 1
+	; A temporary buffer.
+temp: res 1
 	; The calculated checksum so far.
 computed_sum: res 1
 	; The amount of data left to receive.
@@ -183,14 +183,15 @@ receive_checksum:
 	xorlw CMD_WRITE3
 	bz write3
 	movf packet_data + 11, W
-	xorlw CMD_PAGE_SUM
-	bz sum_page
+	xorlw CMD_SUM_PAGES
+	bz sum_pages
 	movf packet_data + 11, W
 	xorlw CMD_GET_STATUS
 	bz get_status
 	movf packet_data + 11, W
 	xorlw CMD_IDENT
-	bz ident
+	skpnz
+	bra ident
 
 	; Invalid command.
 	bra receive_packet
@@ -287,10 +288,12 @@ write3_send_loop:
 
 
 
-sum_page:
+sum_pages:
 	; The first byte (at packet_data+11) is the command, CMD_PAGE_SUM.
-	; The next byte (at packet_data+12) is the MSB of the page number.
-	; The next byte (at packet_data+13) is the LSB of the page number.
+	; The next byte (at packet_data+12) is the MSB of the first page number.
+	; The next byte (at packet_data+13) is the LSB of the first page number.
+
+	; We will calculate CRC16s of 32 consecutive pages.
 
 	; Send FAST READ command.
 	rcall select_chip
@@ -303,21 +306,72 @@ sum_page:
 	movlw 0
 	call spi_send
 	call spi_send
+
+	; Prepare to send the response.
+	rcall prepare_xbee_out
+
+	; Let "temp" count the number of pages, and
+	; let "packet_remaining" count the number of bytes.
+	movlw 32
+	movwf temp
 	clrf packet_remaining
-	clrf computed_sum
-sum_page_loop:
+
+	; Let FSR0 point at the low byte of the CRC currently
+	; being calculated, and FSR1 point at the high byte.
+	lfsr 0, packet_data + 11
+	lfsr 1, packet_data + 12
+sum_pages_outer_loop:
+	; Initialize the CRC to 0xFFFF.
+	movlw 0xFF
+	movwf INDF0
+	movwf INDF1
+
+	; Go into a loop.
+sum_pages_inner_loop:
+	; Update the CRC.
+	; crc  = (crc >> 8) | (crc << 8);
+	movf INDF0, W
+	movff INDF1, INDF0
+	movwf INDF1
+    ; crc ^= ser_data;
 	call spi_receive
-	addwf computed_sum, F
+	xorwf INDF0, F
+    ; crc ^= (crc & 0xff) >> 4;
+	swapf INDF0, W
+	andlw 0x0F
+	xorwf INDF0, F
+    ; crc ^= crc << 12;
+	swapf INDF0, W
+	andlw 0xF0
+	xorwf INDF1, F
+    ; crc ^= (crc & 0xff) << 5;
+	swapf INDF0, W
+	rlncf WREG, W
+	andlw 0x0F
+	xorwf INDF1, F
+	swapf INDF0, W
+	rlncf WREG, W
+	andlw 0xF0
+	xorwf INDF0, F
+
+	; Decrement byte count and loop if nonzero.
 	decf packet_remaining, F
-	bnz sum_page_loop
-	rcall deselect_chip
+	bnz sum_pages_inner_loop
+
+	; A page is finished. Advance the FSRs to the next CRC position.
+	addfsr 0, 2
+	addfsr 1, 2
+
+	; Decrement page count and loop if nonzero.
+	decf temp, F
+	bnz sum_pages_outer_loop
+
+	; The packet has 64 payload bytes (32 pages × 2 bytes per CRC).
+	clrf packet_length + 0
+	movlw 64
+	movwf packet_length + 1
 
 	; Send response packet over XBee.
-	rcall prepare_xbee_out
-	movff computed_sum, packet_data + 11
-	clrf packet_length + 0
-	movlw 1
-	movwf packet_length + 1
 	bra send_xbee_packet
 
 
