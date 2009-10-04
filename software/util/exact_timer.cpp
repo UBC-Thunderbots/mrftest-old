@@ -4,8 +4,9 @@
 #include <sigc++/sigc++.h>
 #include <glibmm.h>
 
+// Needed because Cygwin doesn't provide CLOCK_MONOTONIC.
 #ifndef CLOCK_MONOTONIC
-	#define CLOCK_MONOTONIC CLOCK_REALTIME
+#define CLOCK_MONOTONIC CLOCK_REALTIME
 #endif
 
 class exact_timer_impl : public virtual sigc::trackable {

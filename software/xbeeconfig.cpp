@@ -11,8 +11,9 @@
 #include <getopt.h>
 #include <time.h>
 
+// Needed because Cygwin doesn't provide CLOCK_MONOTONIC.
 #ifndef CLOCK_MONOTONIC
-	#define CLOCK_MONOTONIC CLOCK_REALTIME
+#define CLOCK_MONOTONIC CLOCK_REALTIME
 #endif
 
 namespace {
