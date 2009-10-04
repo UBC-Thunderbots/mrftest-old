@@ -22,3 +22,6 @@ clean :
 burn : $(HEX)
 	pk2cmd -P$(PROC) -W -F $< -E -M -J
 
+.PHONY : dep
+dep : $(ASMS:.asm=.d)
+
