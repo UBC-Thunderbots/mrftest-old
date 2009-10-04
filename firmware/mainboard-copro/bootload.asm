@@ -21,12 +21,13 @@ MAX_PAYLOAD equ 100
 MAX_PACKET  equ 1 + 8 + 1 + 1 + MAX_PAYLOAD
 
 	; The command identifiers for the commands.
-CMD_CHIP_ERASE equ 0x27
-CMD_WRITE1     equ 0x47
-CMD_WRITE2     equ 0x68
-CMD_WRITE3     equ 0x83
-CMD_PAGE_SUM   equ 0xAA
-CMD_GET_STATUS equ 0xC9
+CMD_CHIP_ERASE equ 0x29
+CMD_WRITE1     equ 0x48
+CMD_WRITE2     equ 0x67
+CMD_WRITE3     equ 0x86
+CMD_PAGE_SUM   equ 0xA5
+CMD_GET_STATUS equ 0xC4
+CMD_IDENT      equ 0xE3
 
 
 
@@ -187,6 +188,9 @@ receive_checksum:
 	movf packet_data + 11, W
 	xorlw CMD_GET_STATUS
 	bz get_status
+	movf packet_data + 11, W
+	xorlw CMD_IDENT
+	bz ident
 
 	; Invalid command.
 	bra receive_packet
@@ -213,7 +217,7 @@ write1:
 	; Then (at packet_data+12) are the 99 data bytes.
 	; Copy the 99 transmitted data bytes into bytes 0 through 98 of the write buffer.
 	lfsr 0, packet_data + 12
-	lfsr 1, writebuf + 0
+	lfsr 1, write_buffer + 0
 	movlw 99
 write1_loop:
 	movff POSTINC0, POSTINC1
@@ -230,7 +234,7 @@ write2:
 	; Then (at packet_data+12) are the 99 data bytes.
 	; Copy the 99 transmitted data bytes into bytes 99 through 197 of the write buffer.
 	lfsr 0, packet_data + 12
-	lfsr 1, writebuf + 99
+	lfsr 1, write_buffer + 99
 	movlw 99
 write2_loop:
 	movff POSTINC0, POSTINC1
@@ -249,7 +253,7 @@ write3:
 	; Then (at packet_data+14) are the remaining 58 bytes fo the page (bytes 198 through 255).
 	; Copy the remaining data into the write buffer.
 	lfsr 0, packet_data + 14
-	lfsr 1, writebuf + 198
+	lfsr 1, write_buffer + 198
 	movlw 58
 write3_copy_loop:
 	movff POSTINC0, POSTINC1
@@ -298,7 +302,6 @@ sum_page:
 	call spi_send
 	movlw 0
 	call spi_send
-	movlw 0
 	call spi_send
 	clrf packet_remaining
 	clrf computed_sum
@@ -319,6 +322,48 @@ sum_page_loop:
 
 
 
+get_status:
+	; Send READ STATUS REGISTER.
+	rcall select_chip
+	movlw 0x05
+	call spi_send
+	call spi_receive
+	rcall deselect_chip
+
+	; Send back a length-one packet containing the status register.
+	rcall prepare_xbee_out
+	movwf packet_data + 11
+	clrf packet_length + 0
+	movlw 1
+	movwf packet_length + 1
+	bra send_xbee_packet
+
+
+
+ident:
+	; Prepare outbound packet with three bytes of payload.
+	rcall prepare_xbee_out
+	clrf packet_length + 0
+	movlw 3
+	movwf packet_length + 1
+
+	; Send JEDEC ID.
+	rcall select_chip
+	movlw 0x9F
+	call spi_send
+	call spi_receive
+	movwf packet_data + 11
+	call spi_receive
+	movwf packet_data + 12
+	call spi_receive
+	movwf packet_data + 13
+	rcall deselect_chip
+
+	; Transmit the packet.
+	bra send_xbee_packet
+
+
+
 wait_until_programmed:
 	; Send READ STATUS REGISTER until bit 0 (BUSY) is clear.
 	rcall select_chip
@@ -328,6 +373,7 @@ wait_until_programmed_loop:
 	call spi_receive
 	andlw 1
 	bnz wait_until_programmed_loop
+	rcall deselect_chip
 	bra send_ack
 
 
@@ -491,6 +537,12 @@ prepare_xbee_out:
 
 
 send_xbee_packet:
+	; Add the 11 bytes of overhead to the packet length.
+	movlw 11
+	addwf packet_length + 1, F
+	movlw 0
+	addwfc packet_length + 0, F
+
 	; Send delimiter.
 	movlw 0x7E
 	rcall send_xbee_byte_raw
@@ -577,7 +629,7 @@ send_xbee_byte_raw:
 	movwf TXREG
 send_xbee_byte_raw_wait:
 	btfss TXSTA, TRMT
-	bra send_xbee_byte_wait
+	bra send_xbee_byte_raw_wait
 	return
 
 	end
