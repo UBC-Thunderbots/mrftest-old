@@ -1,6 +1,9 @@
 #include "ai/strategy.h"
 #include "ai/role.h"
 
+#include <vector> // I like vectors
+using namespace std;
+
 //this currently is just a big hack from chase_strategy, need some roles to exist before more implementations
 
 namespace {
@@ -16,14 +19,29 @@ namespace {
 			playtype::playtype current_playtype;
 
 			// Create variables here (e.g. to store the roles).
+
+			vector <role> roles;
+			
 	};
 
 	offensive_strategy::offensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
 		// Initialize variables here (e.g. create the roles).
+		
+		// offender and defender doesn't exist yet >"< 
+		// role::offender off = role::offender(ball, field, team);
+		// roles.push_back(off);     			  
+		// role::defender def = role::defender(ball, field, team);
+		// roles.push_back(def);
+		
 	}
 
 	void offensive_strategy::update() {
 		// Use the variables "ball", "field", and "team" to allocate players to roles.
+		
+		// calls role::update
+
+		// ultimate offensive strategy: all 5 players switch to offenders (including goalie, mwahahahahahaha) 
+
 	}
 
 	void offensive_strategy::set_playtype(playtype::playtype t) {
