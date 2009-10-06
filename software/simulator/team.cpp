@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <stdexcept>
 
-simulator_team_data::simulator_team_data(xmlpp::Element *xml, bool yellow) : score(0), yellow(yellow), current_playtype(playtype::halt), controller_factory(0), west_view(new simulator_team_view(west_players, score, west_other, yellow)), east_view(new simulator_team_view(east_players, score, east_other, yellow)), xml(xml) {
+simulator_team_data::simulator_team_data(xmlpp::Element *xml, bool yellow) : score(0), yellow(yellow), current_playtype(playtype::halt), controller_factory(0), west_view(new simulator_team_view(west_players, score, west_other, this->yellow)), east_view(new simulator_team_view(east_players, score, east_other, this->yellow)), xml(xml) {
 	// Get the "players" attribute.
 	const Glib::ustring &players_string = xml->get_attribute_value("players");
 	unsigned int players = 0;
