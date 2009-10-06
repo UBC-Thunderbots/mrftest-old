@@ -20,7 +20,7 @@ namespace {
 
 			// Create variables here (e.g. to store the roles).
 
-			vector <role> roles;
+			vector<role::ptr> roles;
 			
 	};
 
