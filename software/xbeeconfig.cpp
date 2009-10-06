@@ -40,7 +40,7 @@ namespace {
 	};
 
 	void usage(const char *app) {
-		std::cerr << "Usage:\n\n" << app << " options\n\n";
+		std::cerr << "Usage:\n\n" << app << " options [port]\n\n";
 		std::cerr << "-m\n--master\n\tConfigures the XBee as a master; i.e. the modem attached to the computer.\n\n";
 		std::cerr << "-s\n--slave\n\tConfigures the XBee as a slave; i.e. a modem in a robot.\n\n";
 	}
