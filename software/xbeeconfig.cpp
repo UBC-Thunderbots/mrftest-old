@@ -219,7 +219,7 @@ connected:
 	}
 
 	std::cout << "Setting serial baud rate... " << std::flush;
-	send_fully(fd, do_master ? "ATBD7\r" : "ATBD6\r", 6);
+	send_fully(fd, "ATBD7\r", 6);
 	if (read_clean_ok(fd)) {
 		std::cout << "OK\n";
 	} else {
