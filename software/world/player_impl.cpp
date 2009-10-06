@@ -12,7 +12,7 @@ namespace {
 				return 0.0;
 			}
 
-			virtual void move(const point &, double) {
+			virtual void move_impl(const point &, double) {
 			}
 
 			virtual void dribble(double) {

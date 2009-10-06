@@ -1,11 +1,12 @@
 #ifndef WORLD_TEAM_H
 #define WORLD_TEAM_H
 
-#include <cstddef>
-#include <glibmm.h>
 #include "util/byref.h"
 #include "world/player.h"
 #include "world/robot.h"
+#include <cstddef>
+#include <glibmm.h>
+#include <sigc++/sigc++.h>
 
 //
 // A group of robots controlled by one AI.
@@ -41,6 +42,18 @@ class team : public virtual byref {
 		// Gets the colour of the team, true for yellow or false for blue.
 		//
 		virtual bool yellow() const = 0;
+
+		//
+		// A signal emitted when a robot is added to a team. The new robot was
+		// added at the end of the team.
+		//
+		sigc::signal<void> &signal_robot_added();
+
+		//
+		// A signal emitted when a robot is removed from a team. The parameter
+		// is the index number of the removed robot.
+		//
+		sigc::signal<void, unsigned int> &signal_robot_removed();
 };
 
 //

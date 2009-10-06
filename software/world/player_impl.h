@@ -3,6 +3,7 @@
 
 #include <glibmm/refptr.h>
 #include "geom/point.h"
+#include "robot_controller/robot_controller.h"
 #include "util/byref.h"
 #include "world/robot_impl.h"
 
@@ -19,14 +20,42 @@ class player_impl : public virtual robot_impl {
 		typedef Glib::RefPtr<player_impl> ptr;
 
 		//
+		// Instructs the player to move to the specified position and orientatin.
+		//
+		// Parameters:
+		//  new_position
+		//   the position to move to
+		//
+		//  new_orientation
+		//   the orientation to move to
+		//
+		void move(const point &new_position, double new_orientation) {	
+			if (controller) {
+				point linear_velocity;
+				double angular_velocity;
+				controller->move(position(), new_position, orientation(), new_orientation, linear_velocity, angular_velocity);
+				move_impl(linear_velocity, angular_velocity);
+			}
+		}
+
+		//
+		// Sets the controller used by this robot.
+		//
+		void set_controller(robot_controller::ptr c) {
+			controller = c;
+		}
+
+	protected:
+		//
 		// Instructs the player to move with specified velocities, in
 		// robot-relative coordinates that:
 		//
 		// 	positive x-axis = forward direction of the robot
 		// 	positive y-axis = left direction of the robot
 		//
-		virtual void move(const point &linear_velocity, double angular_velocity) = 0;
+		virtual void move_impl(const point &linear_velocity, double angular_velocity) = 0;
 
+	public:
 		//
 		// Instructs the player's dribbler to spin at the specified speed. The
 		// speed is between 0 and 1.
@@ -50,6 +79,9 @@ class player_impl : public virtual robot_impl {
 		// the player at the origin facing in the positive X direction.
 		//
 		static const ptr &trivial();
+
+	private:
+		robot_controller::ptr controller;
 };
 
 #endif

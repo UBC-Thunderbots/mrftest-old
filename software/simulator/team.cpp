@@ -6,55 +6,23 @@
 #include <stdexcept>
 
 simulator_team_data::simulator_team_data(xmlpp::Element *xml, bool yellow) : score(0), yellow(yellow), current_playtype(playtype::halt), controller_factory(0), west_view(new simulator_team_view(west_players, score, west_other, yellow)), east_view(new simulator_team_view(east_players, score, east_other, yellow)), xml(xml) {
-	// Get the "players" element.
-	xmlpp::Element *xmlplayers = xmlutil::get_only_child(xml, "players");
-
-	// Iterate the child nodes.
-	const xmlpp::Node::NodeList &players = xmlplayers->get_children();
-	for (xmlpp::Node::NodeList::const_iterator i = players.begin(), iend = players.end(); i != iend; ++i) {
-		xmlpp::Node *node = *i;
-
-		// It should be an element of type "player".
-		xmlpp::Element *elem = dynamic_cast<xmlpp::Element *>(node);
-		if (elem && elem->get_name() == "player") {
-			// It should have an "id" attribute.
-			const Glib::ustring &id_string = elem->get_attribute_value("id");
-			if (!id_string.empty()) {
-				// Convert the ID to an integer.
-				std::istringstream iss(id_string);
-				unsigned int id;
-				iss >> id;
-
-				// Store the ID.
-				ids.push_back(id);
-			} else {
-				xmlplayers->remove_child(node);
-				config::dirty();
-			}
-		} else {
-			xmlplayers->remove_child(node);
-			config::dirty();
-		}
+	// Get the "players" attribute.
+	const Glib::ustring &players_string = xml->get_attribute_value("players");
+	unsigned int players = 0;
+	if (!players_string.empty()) {
+		std::istringstream iss(players_string);
+		iss >> players;
 	}
 
-	// Sort the ID numbers.
-	std::sort(ids.begin(), ids.end());
-
-	// Create the other objects for the players.
-	for (unsigned int i = 0; i < ids.size(); i++) {
-		// Create the objects.
-		player_impl::ptr impl(player_impl::trivial());
-		player::ptr wplr(new player(ids[i], impl, false));
-		player::ptr eplr(new player(ids[i], impl, true));
-
-		// Store the objects.
-		impls.push_back(player_impl::trivial());
-		west_players.push_back(wplr);
-		east_players.push_back(eplr);
-	}
+	// Create the objects for the players.
+	for (unsigned int i = 0; i < players; i++)
+		add_player();
 }
 
 void simulator_team_data::set_engine(simulator_engine::ptr e) {
+	// Remember how many objects have been created.
+	unsigned int num_players = impls.size();
+
 	// Delete old objects.
 	if (engine)
 		for (unsigned int i = 0; i < impls.size(); i++)
@@ -67,20 +35,8 @@ void simulator_team_data::set_engine(simulator_engine::ptr e) {
 	engine = e;
 
 	// Create new objects.
-	for (unsigned int i = 0; i < ids.size(); i++) {
-		unsigned int id = ids[i];
-		player_impl::ptr p;
-		if (engine) {
-			p = engine->add_player();
-		} else {
-			p = player_impl::trivial();
-		}
-		player::ptr w(new player(id, p, false));
-		player::ptr e(new player(id, p, true));
-		impls.push_back(p);
-		west_players.push_back(w);
-		east_players.push_back(e);
-	}
+	for (unsigned int i = 0; i < num_players; i++)
+		add_player();
 }
 
 void simulator_team_data::set_strategy(const Glib::ustring &name, ball::ptr ball, field::ptr field) {
@@ -114,58 +70,42 @@ void simulator_team_data::set_controller_type(robot_controller_factory *cf) {
 
 	for (unsigned int i = 0; i < west_players.size(); i++) {
 		if (controller_factory) {
-			west_players[i]->set_controller(controller_factory->create_controller());
-			east_players[i]->set_controller(controller_factory->create_controller());
+			impls[i]->set_controller(controller_factory->create_controller());
 		} else {
-			west_players[i]->set_controller(robot_controller::ptr());
-			east_players[i]->set_controller(robot_controller::ptr());
+			impls[i]->set_controller(robot_controller::ptr());
 		}
 	}
 }
 
-void simulator_team_data::add_player(unsigned int id) {
-	// Find where to insert the new player.
-	unsigned int pos = std::lower_bound(ids.begin(), ids.end(), id) - ids.begin();
-
+void simulator_team_data::add_player() {
 	// Create the new objects.
 	player_impl::ptr impl(engine ? engine->add_player() : player_impl::trivial());
-	player::ptr wplr(new player(id, impl, false));
-	player::ptr eplr(new player(id, impl, true));
+	player::ptr wplr(new player(impl, false));
+	player::ptr eplr(new player(impl, true));
 
 	// Set the robot controller.
 	if (controller_factory) {
-		wplr->set_controller(controller_factory->create_controller());
-		eplr->set_controller(controller_factory->create_controller());
+		impl->set_controller(controller_factory->create_controller());
 	}
 
 	// Insert the new data into the arrays.
-	ids.insert(ids.begin() + pos, id);
-	impls.insert(impls.begin() + pos, impl);
-	west_players.insert(west_players.begin() + pos, wplr);
-	east_players.insert(east_players.begin() + pos, eplr);
+	impls.push_back(impl);
+	west_players.push_back(wplr);
+	east_players.push_back(eplr);
 
-	// Add the player to the XML.
-	xmlpp::Element *xmlplayers = xmlutil::get_only_child(xml, "players");
-	xmlpp::Element *xmlplayer = xmlplayers->add_child("player");
-	xmlplayer->set_attribute("id", Glib::ustring::compose("%1", id));
+	// Update the XML.
+	xml->set_attribute("players", Glib::ustring::compose("%1", impls.size()));
 	config::dirty();
 }
 
-void simulator_team_data::remove_player(unsigned int id) {
-	// Find the object.
-	unsigned int pos = std::lower_bound(ids.begin(), ids.end(), id) - ids.begin();
-	if (pos == ids.size() || ids[pos] != id) throw std::domain_error("No such element.");
-
+void simulator_team_data::remove_player(unsigned int index) {
 	// Delete the objects.
-	ids.erase(ids.begin() + pos);
-	impls.erase(impls.begin() + pos);
-	west_players.erase(west_players.begin() + pos);
-	east_players.erase(east_players.begin() + pos);
+	impls.erase(impls.begin() + index);
+	west_players.erase(west_players.begin() + index);
+	east_players.erase(east_players.begin() + index);
 
-	// Delete the XML.
-	xmlpp::Element *xmlplayers = xmlutil::get_only_child(xml, "players");
-	xmlpp::Element *xmlplayer = xmlutil::get_only_child_keyed(xmlplayers, "player", "id", Glib::ustring::compose("%1", id));
-	xmlplayers->remove_child(xmlplayer);
+	// Update the XML.
+	xml->set_attribute("players", Glib::ustring::compose("%1", impls.size()));
 	config::dirty();
 }
 

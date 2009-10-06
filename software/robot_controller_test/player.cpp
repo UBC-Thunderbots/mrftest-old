@@ -44,7 +44,7 @@ double rc_test_player::angular_velocity() const {
 
 
 
-void rc_test_player::move(const point &linear_velocity, double angular_velocity) {
+void rc_test_player::move_impl(const point &linear_velocity, double angular_velocity) {
 	for (int i = 0; i < sub_steps; ++i) {
 		/* angle acceleration limit */
 		double da = angular_velocity - ang_vel;

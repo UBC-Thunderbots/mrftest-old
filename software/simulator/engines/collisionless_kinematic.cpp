@@ -99,7 +99,7 @@ namespace {
 				return the_orientation;
 			}
 
-			virtual void move(const point &vel, double avel) {
+			virtual void move_impl(const point &vel, double avel) {
 				target_velocity = vel;
 				avelocity = avel;
 			}

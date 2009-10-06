@@ -19,13 +19,6 @@ class robot : public virtual byref {
 		typedef Glib::RefPtr<robot> ptr;
 
 		//
-		// An ID number that uniquely identifies the robot across all teams.
-		//
-		unsigned int id() const {
-			return the_id;
-		}
-
-		//
 		// The position of the robot at the last camera frame.
 		//
 		point position() const {
@@ -43,20 +36,16 @@ class robot : public virtual byref {
 		// Constructs a new robot object.
 		//
 		// Parameters:
-		//  id
-		//   the global ID number of this robot
-		//
 		//  impl
 		//   the implementation object that provides global coordinates
 		//
 		//  flip
 		//   whether the X and Y coordinates are reversed for this object
 		//
-		robot(unsigned int id, robot_impl::ptr impl, bool flip) : the_id(id), impl(impl), flip(flip) {
+		robot(robot_impl::ptr impl, bool flip) : impl(impl), flip(flip) {
 		}
 
 	private:
-		const unsigned int the_id;
 		robot_impl::ptr impl;
 		const bool flip;
 };

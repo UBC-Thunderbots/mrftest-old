@@ -275,51 +275,22 @@ class team_controls : public virtual Gtk::VBox {
 
 	private:
 		void add_player() {
-			Gtk::Container &top = *get_toplevel();
-			if (top.get_flags() & Gtk::TOPLEVEL) {
-				Gtk::Window &win = dynamic_cast<Gtk::Window &>(top);
-				Gtk::Dialog dlg("Add Player", win, true, true);
-				Gtk::VBox &vbox = *dlg.get_vbox();
-				Gtk::HBox hbox;
-				hbox.pack_start(*Gtk::manage(new Gtk::Label("ID Number:")), false, false);
-				Gtk::Entry id_entry;
-				hbox.pack_start(id_entry, true, true);
-				vbox.pack_start(hbox, true, true);
-				dlg.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
-				dlg.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
-				dlg.set_default_response(Gtk::RESPONSE_OK);
-				dlg.show_all();
-				int resp = dlg.run();
-				if (resp == Gtk::RESPONSE_OK) {
-					const Glib::ustring &str = id_entry.get_text();
-					std::istringstream iss(str);
-					unsigned int id;
-					iss >> id;
-					if (iss) {
-						team_data.add_player(id);
-						update_model();
-					}
-				}
-			}
+			team_data.add_player();
+			players_list.append_text(Glib::ustring::compose("%1", team_data.west_view->size() - 1));
 		}
 
 		void del_player() {
 			const Gtk::ListViewText::SelectionList &sel = players_list.get_selected();
 			if (sel.size() == 1) {
-				unsigned int pos = sel[0];
-				unsigned int id = team_data.get_ids()[pos];
-				team_data.remove_player(id);
+				team_data.remove_player(sel[0]);
 				update_model();
 			}
 		}
 
 		void update_model() {
 			players_list.clear_items();
-			for (unsigned int i = 0; i < team_data.get_ids().size(); i++) {
-				unsigned int id = team_data.get_ids()[i];
-				const Glib::ustring &str = Glib::ustring::compose("%1", id);
-				players_list.append_text(str);
-			}
+			for (unsigned int i = 0; i < team_data.west_view->size(); i++)
+				players_list.append_text(Glib::ustring::compose("%1", i));
 		}
 
 		void controller_changed(const Glib::ustring &c) {

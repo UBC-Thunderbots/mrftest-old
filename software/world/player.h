@@ -2,8 +2,8 @@
 #define WORLD_PLAYER_H
 
 #include <glibmm/refptr.h>
+#include "geom/angle.h"
 #include "geom/point.h"
-#include "robot_controller/robot_controller.h"
 #include "util/byref.h"
 #include "world/player_impl.h"
 #include "world/robot.h"
@@ -30,12 +30,7 @@ class player : public virtual byref, public virtual robot {
 		//   the orientation to move to
 		//
 		void move(const point &new_position, double new_orientation) {
-			if (controller) {
-				point linear_velocity;
-				double angular_velocity;
-				controller->move(position(), new_position, orientation(), new_orientation, linear_velocity, angular_velocity);
-				impl->move(linear_velocity * (flip ? -1.0 : 1.0), angular_velocity);
-			}
+			impl->move(new_position * (flip ? -1.0 : 1.0), angle_mod(new_orientation + (flip ? PI : 0.0)));
 		}
 
 		//
@@ -63,31 +58,20 @@ class player : public virtual byref, public virtual robot {
 		}
 
 		//
-		// Sets the controller used by this robot.
-		//
-		void set_controller(robot_controller::ptr c) {
-			controller = c;
-		}
-
-		//
 		// Constructs a new player object.
 		//
 		// Parameters:
-		//  id
-		//   the global ID number of this robot
-		//
 		//  impl
 		//   the implementation object that provides global coordinates
 		//
 		//  flip
 		//   whether the X and Y coordinates are reversed for this object
 		//
-		player(unsigned int id, player_impl::ptr impl, bool flip) : robot(id, impl, flip), impl(impl), flip(flip) {
+		player(player_impl::ptr impl, bool flip) : robot(impl, flip), impl(impl), flip(flip) {
 		}
 
 	private:
 		player_impl::ptr impl;
-		robot_controller::ptr controller;
 		const bool flip;
 };
 

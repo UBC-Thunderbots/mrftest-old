@@ -11,7 +11,7 @@
 int main() {
 	// Create an rc_test_player.
 	Glib::RefPtr<rc_test_player> test_player_impl(new rc_test_player(point(0, 0), 0, point(0, 0), 0));
-	player::ptr test_player(new player(0, test_player_impl, false));
+	player::ptr test_player(new player(test_player_impl, false));
 
 	// Create the controller under test.
 	const std::map<Glib::ustring, robot_controller_factory *> &factories = robot_controller_factory::all();
@@ -32,7 +32,7 @@ int main() {
 	robot_controller::ptr controller = factories.find(names[controller_index - 1])->second->create_controller();
 
 	// Attach the controller to the player.
-	test_player->set_controller(controller);
+	test_player_impl->set_controller(controller);
 
 	// Exercise the controller.
 	point target_position(1, 1);

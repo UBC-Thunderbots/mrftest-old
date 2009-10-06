@@ -19,7 +19,7 @@ class rc_test_player : public virtual player_impl {
 		virtual double orientation() const;
 		virtual point linear_velocity() const;
 		virtual double angular_velocity() const;
-		virtual void move(const point &linear_velocity, double angular_velocity);
+		virtual void move_impl(const point &linear_velocity, double angular_velocity);
 		virtual void dribble(double speed __attribute__((__unused__))) {}
 		virtual void kick(double strength __attribute__((__unused__))) {}
 		virtual void chip(double strength __attribute__((__unused__))) {}

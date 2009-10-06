@@ -88,7 +88,7 @@ bool visualizer::on_expose_event(GdkEventExpose *) {
 	for (unsigned int i = 0; i < 2; i++) {
 		for (unsigned int j = 0; j < teams[i]->size(); j++) {
 			robot::ptr bot = teams[i]->get_robot(j);
-			const Glib::ustring &ustr = Glib::ustring::compose("%1", bot->id());
+			const Glib::ustring &ustr = Glib::ustring::compose("%1", j);
 			const std::string &str = ustr;
 			Cairo::TextExtents extents;
 			ctx->get_text_extents(str, extents);

@@ -152,32 +152,20 @@ class simulator_team_data : public virtual noncopyable {
 		void set_controller_type(robot_controller_factory *cf);
 
 		//
-		// Adds a new player with the given ID number.
+		// Adds a new player.
 		//
-		void add_player(unsigned int id);
+		void add_player();
 
 		//
-		// Removes the player with the given ID number.
+		// Removes the player with the given index.
 		//
-		void remove_player(unsigned int id);
-
-		//
-		// Returns the list of ID numbers in this team.
-		//
-		const std::vector<unsigned int> &get_ids() const {
-			return ids;
-		}
+		void remove_player(unsigned int index);
 
 	private:
 		//
 		// The current engine.
 		//
 		simulator_engine::ptr engine;
-
-		//
-		// The ID numbers of the players on this team.
-		//
-		std::vector<unsigned int> ids;
 
 		//
 		// The engine-provided implementations of the players.
