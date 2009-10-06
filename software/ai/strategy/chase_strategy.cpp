@@ -1,6 +1,8 @@
 #include "ai/strategy.h"
 #include "ai/role.h"
 
+//this seems to have virtually nothing but the framework, add more stuff when roles are available
+
 namespace {
 	class chase_strategy : public virtual strategy {
 		public:
