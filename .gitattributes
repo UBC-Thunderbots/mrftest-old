@@ -23,6 +23,7 @@ software/ai/role.h -text
 software/ai/strategy.cpp -text
 software/ai/strategy.h -text
 software/ai/strategy/chase_strategy.cpp -text
+software/ai/strategy/defensive_strategy.cpp -text
 software/ai/tactic.cpp -text
 software/ai/tactic.h -text
 software/geom/angle.cpp -text
