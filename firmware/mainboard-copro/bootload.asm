@@ -322,37 +322,61 @@ sum_pages:
 	lfsr 1, packet_data + 12
 sum_pages_outer_loop:
 	; Initialize the CRC to 0xFFFF.
-	movlw 0xFF
-	movwf INDF0
-	movwf INDF1
+	setf INDF0
+	setf INDF1
 
 	; Go into a loop.
 sum_pages_inner_loop:
-	; Update the CRC.
-	; crc  = (crc >> 8) | (crc << 8);
-	movf INDF0, W
+	; Receive one byte from the SPI port into WREG.
+	call spi_receive
+
+	;
+	; Update the CRC16.
+	;
+	; This is a highly-optimized implementation of this basic algorithm:
+	;
+	; data ^= crc;
+	; data ^= data << 4;
+	; crc >>= 8;
+	; crc |= data << 8;
+	; crc ^= data << 3;
+	; crc ^= data >> 4;
+	;
+	; where "data" is a uint8_t and "crc" is a uint16_t.
+	;
+	; This algorithm is mathematically equivalent to the Linux kernel's
+	; CRC-CCITT algorithm. The equivalence of the C code listed above and the
+	; assembly code listed below to Linux's algorithm have both been formally
+	; proven by an exhaustive search of the parameter space.
+	;
+	; Some sources claim this is not the traditional CRC-CCITT algorithm, but
+	; is rather the CRC-CCITT algorithm with each input byte bit-reversed and
+	; with the final CRC bit-reversed after calculation. This bit-reversal is
+	; of course mostly irrelevant to the mathematical properties of the CRC.
+	; 
+	xorwf INDF0, W
+	movwf temp
 	movff INDF1, INDF0
 	movwf INDF1
-    ; crc ^= ser_data;
-	call spi_receive
-	xorwf INDF0, F
-    ; crc ^= (crc & 0xff) >> 4;
-	swapf INDF0, W
-	andlw 0x0F
-	xorwf INDF0, F
-    ; crc ^= crc << 12;
-	swapf INDF0, W
+	rrncf temp, W
+	andlw 0x07
+	xorwf INDF1, F
+	swapf temp, F
+	movf temp, W
 	andlw 0xF0
 	xorwf INDF1, F
-    ; crc ^= (crc & 0xff) << 5;
-	swapf INDF0, W
-	rlncf WREG, W
-	andlw 0x0F
+	rrncf temp, W
+	andlw 0x07
 	xorwf INDF1, F
-	swapf INDF0, W
-	rlncf WREG, W
-	andlw 0xF0
+	swapf temp, W
+	xorwf temp, W
+	andlw 0x0F
 	xorwf INDF0, F
+	rrncf temp, W
+	andlw 0xF8
+	xorwf INDF0, F
+	btfsc temp, 4
+	btg INDF0, 7
 
 	; Decrement byte count and loop if nonzero.
 	decf packet_remaining, F
