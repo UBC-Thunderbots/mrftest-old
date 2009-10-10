@@ -29,7 +29,7 @@ serial_port::serial_port(const Glib::ustring &filename) : fd(open_port(filename)
 	}
 	serinfo.flags &= ~ASYNC_SPD_MASK;
 	serinfo.flags |= ASYNC_SPD_CUST;
-	serinfo.custom_divisor = 96;
+	serinfo.custom_divisor = serinfo.baud_base / 250000;
 	if (ioctl(fd, TIOCSSERIAL, &serinfo) < 0) {
 		throw std::runtime_error("Cannot set serial port configuration!");
 	}
