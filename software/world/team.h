@@ -47,13 +47,21 @@ class team : public virtual byref {
 		// A signal emitted when a robot is added to a team. The new robot was
 		// added at the end of the team.
 		//
-		sigc::signal<void> &signal_robot_added();
+		sigc::signal<void> &signal_robot_added() {
+			return sig_robot_added;
+		}
 
 		//
 		// A signal emitted when a robot is removed from a team. The parameter
 		// is the index number of the removed robot.
 		//
-		sigc::signal<void, unsigned int> &signal_robot_removed();
+		sigc::signal<void, unsigned int> &signal_robot_removed() {
+			return sig_robot_removed;
+		}
+
+	private:
+		sigc::signal<void> sig_robot_added;
+		sigc::signal<void, unsigned int> sig_robot_removed;
 };
 
 //
