@@ -144,7 +144,7 @@ start_work:
 				serial_struct new_serinfo = old_serinfo;
 				new_serinfo.flags &= ~ASYNC_SPD_MASK;
 				new_serinfo.flags |= ASYNC_SPD_CUST;
-				new_serinfo.custom_divisor = 96;
+				new_serinfo.custom_divisor = new_serinfo.baud_base / 250000;
 				if (ioctl(fd, TIOCSSERIAL, &new_serinfo) < 0) {
 					perror("ioctl");
 					break;
