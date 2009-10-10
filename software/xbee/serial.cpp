@@ -73,5 +73,6 @@ bool serial_port::on_readable(Glib::IOCondition) {
 	for (int i = 0; i < ret; i++) {
 		sig_received.emit(buffer[i]);
 	}
+	return true;
 }
 
