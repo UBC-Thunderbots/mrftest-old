@@ -5,10 +5,11 @@
 #include <cstdlib>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <linux/serial.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <termios.h>
-#include <getopt.h>
 #include <time.h>
 
 // Needed because Cygwin doesn't provide CLOCK_MONOTONIC.
@@ -17,20 +18,12 @@
 #endif
 
 namespace {
-	const char SHORT_OPTIONS[] = "msh";
-
-	const option LONG_OPTIONS[] = {
-		{"master", no_argument, 0, 'm'},
-		{"slave", no_argument, 0, 's'},
-		{"help", no_argument, 0, 'h'},
-		{0, 0, 0, 0}
-	};
-
 	const struct BAUD_INFO {
 		unsigned int display;
 		speed_t tc;
 	} BAUDS[] = {
 		{9600, B9600},
+		{250000, B38400},
 		{115200, B115200},
 		{57600, B57600},
 		{1200, B1200},
@@ -40,9 +33,7 @@ namespace {
 	};
 
 	void usage(const char *app) {
-		std::cerr << "Usage:\n\n" << app << " options [port]\n\n";
-		std::cerr << "-m\n--master\n\tConfigures the XBee as a master; i.e. the modem attached to the computer.\n\n";
-		std::cerr << "-s\n--slave\n\tConfigures the XBee as a slave; i.e. a modem in a robot.\n\n";
+		std::cerr << "Usage:\n\n" << app << " [port]\n\n";
 	}
 
 	void send_fully(int fd, const void *data, int length) {
@@ -59,16 +50,17 @@ namespace {
 		}
 	}
 
+	void send_string(int fd, const std::string &str) {
+		send_fully(fd, str.data(), str.size());
+	}
+
 	bool read_messy_ok(int fd) {
 		timespec end_time, cur_time;
 		if (clock_gettime(CLOCK_MONOTONIC, &end_time) < 0) {perror("clock_gettime"); std::exit(1);}
-		end_time.tv_nsec += 750000000;
-		if (end_time.tv_nsec >= 1000000000) {
-			end_time.tv_sec++;
-			end_time.tv_nsec -= 1000000000;
-		}
+		end_time.tv_sec++;
 
 		bool seen_O = false;
+		bool seen_K = false;
 		for (;;) {
 			char ch;
 			int rc;
@@ -78,9 +70,18 @@ namespace {
 			rc = read(fd, &ch, 1);
 			if (rc < 0) {perror("read"); std::exit(1);}
 			else if (rc == 1) {
-				if (seen_O && ch == 'K') return true;
-				else if (ch == 'O') seen_O = true;
-				else seen_O = false;
+				if (seen_O && seen_K && ch == '\r') {
+					return true;
+				} else if (seen_O && ch == 'K') {
+					seen_O = true;
+					seen_K = true;
+				} else if (ch == 'O') {
+					seen_O = true;
+					seen_K = false;
+				} else {
+					seen_O = false;
+					seen_K = false;
+				}
 			}
 		}
 	}
@@ -88,11 +89,7 @@ namespace {
 	std::string read_line(int fd) {
 		timespec end_time, cur_time;
 		if (clock_gettime(CLOCK_MONOTONIC, &end_time) < 0) {perror("clock_gettime"); std::exit(1);}
-		end_time.tv_nsec += 750000000;
-		if (end_time.tv_nsec >= 1000000000) {
-			end_time.tv_sec++;
-			end_time.tv_nsec -= 1000000000;
-		}
+		end_time.tv_sec++;
 
 		std::string line;
 		for (;;) {
@@ -116,41 +113,43 @@ namespace {
 }
 
 int main(int argc, char **argv) {
-	unsigned int do_master = 0, do_slave = 0, do_help = 0;
-
-	int ch;
-	while ((ch = getopt_long(argc, argv, SHORT_OPTIONS, LONG_OPTIONS, 0)) != -1)
-		switch (ch) {
-			case 'm':
-				do_master++;
-				break;
-
-			case 's':
-				do_slave++;
-				break;
-
-			default:
-				do_help++;
-				break;
-		}
-
-	if (do_help || do_master + do_slave + do_help != 1 || optind < argc - 1) {
+	const char *path;
+	if (argc == 1) {
+		path = "/dev/xbee";
+	} else if (argc == 2) {
+		path = argv[1];
+	} else {
 		usage(argv[0]);
 		return 1;
-	}
-
-	const char *path = "/dev/xbee";
-	if (optind < argc) {
-		path = argv[optind];
 	}
 
 	int fd = open(path, O_RDWR);
 	if (fd < 0) {perror("open"); return 1;}
 
+	std::cout << "Getting old extended serial parameters... " << std::flush;
+	serial_struct old_serinfo;
+	if (ioctl(fd, TIOCGSERIAL, &old_serinfo) < 0) {
+		perror("ioctl");
+		return 1;
+	} else {
+		std::cout << "OK\n";
+	}
+
 start_work:
 	for (unsigned int baudidx = 0; baudidx < sizeof(BAUDS) / sizeof(*BAUDS); baudidx++) {
 		for (unsigned int retries = 0; retries < 3; retries++) {
 			std::cout << "Entering command mode at " << BAUDS[baudidx].display << " baud... " << std::flush;
+
+			if (BAUDS[baudidx].display == 250000) {
+				serial_struct new_serinfo = old_serinfo;
+				new_serinfo.flags &= ~ASYNC_SPD_MASK;
+				new_serinfo.flags |= ASYNC_SPD_CUST;
+				new_serinfo.custom_divisor = 96;
+				if (ioctl(fd, TIOCSSERIAL, &new_serinfo) < 0) {
+					perror("ioctl");
+					break;
+				}
+			}
 
 			termios tios;
 			if (tcgetattr(fd, &tios) < 0) {perror("tcgetattr"); return 1;}
@@ -167,7 +166,7 @@ start_work:
 			ts.tv_nsec = 200000000;
 			nanosleep(&ts, 0);
 
-			send_fully(fd, "+++", 3);
+			send_string(fd, "+++");
 
 			ts.tv_sec = 0;
 			ts.tv_nsec = 850000000;
@@ -186,7 +185,7 @@ connected:
 	std::cout << "OK\n";
 
 	std::cout << "Getting firmware version... " << std::flush;
-	send_fully(fd, "ATVR\r", 5);
+	send_string(fd, "ATVR\r");
 	const std::string &version_string = read_line(fd);
 	if (version_string.empty()) {
 		std::cout << "FAIL\n";
@@ -201,7 +200,7 @@ connected:
 		std::cout << "WARNING: Firmware version is less than 10CD. Consider upgrading!\n";
 
 	std::cout << "Loading factory default settings... " << std::flush;
-	send_fully(fd, "ATRE\r", 5);
+	send_string(fd, "ATRE\r");
 	if (read_clean_ok(fd)) {
 		std::cout << "OK\n";
 	} else {
@@ -210,7 +209,7 @@ connected:
 	}
 
 	std::cout << "Setting API mode with escapes... " << std::flush;
-	send_fully(fd, "ATAP2\r", 6);
+	send_string(fd, "ATAP2\r");
 	if (read_clean_ok(fd)) {
 		std::cout << "OK\n";
 	} else {
@@ -218,8 +217,8 @@ connected:
 		goto start_work;
 	}
 
-	std::cout << "Setting serial baud rate... " << std::flush;
-	send_fully(fd, "ATBD7\r", 6);
+	std::cout << "Setting serial baud rate to 250,000... " << std::flush;
+	send_string(fd, "ATBD3D090\r");
 	if (read_clean_ok(fd)) {
 		std::cout << "OK\n";
 	} else {
@@ -228,7 +227,7 @@ connected:
 	}
 
 	std::cout << "Setting radio channel... " << std::flush;
-	send_fully(fd, "ATCHE\r", 6);
+	send_string(fd, "ATCHE\r");
 	if (read_clean_ok(fd)) {
 		std::cout << "OK\n";
 	} else {
@@ -236,19 +235,17 @@ connected:
 		goto start_work;
 	}
 
-	if (do_slave) {
-		std::cout << "Setting DIO0 to default as digital output high... " << std::flush;
-		send_fully(fd, "ATD05\r", 6);
-		if (read_clean_ok(fd)) {
-			std::cout << "OK\n";
-		} else {
-			std::cout << "FAIL\n";
-			goto start_work;
-		}
+	std::cout << "Setting DIO0 to default as digital output high... " << std::flush;
+	send_string(fd, "ATD05\r");
+	if (read_clean_ok(fd)) {
+		std::cout << "OK\n";
+	} else {
+		std::cout << "FAIL\n";
+		goto start_work;
 	}
 
 	std::cout << "Setting PAN ID... " << std::flush;
-	send_fully(fd, "ATID6789\r", 9);
+	send_string(fd, "ATID6789\r");
 	if (read_clean_ok(fd)) {
 		std::cout << "OK\n";
 	} else {
@@ -257,7 +254,7 @@ connected:
 	}
 
 	std::cout << "Setting 16-bit address to none... " << std::flush;
-	send_fully(fd, "ATMYFFFF\r", 9);
+	send_string(fd, "ATMYFFFF\r");
 	if (read_clean_ok(fd)) {
 		std::cout << "OK\n";
 	} else {
@@ -266,7 +263,7 @@ connected:
 	}
 
 	std::cout << "Saving configuration... " << std::flush;
-	send_fully(fd, "ATWR\r", 5);
+	send_string(fd, "ATWR\r");
 	if (read_clean_ok(fd)) {
 		std::cout << "OK\n";
 	} else {
@@ -275,11 +272,18 @@ connected:
 	}
 
 	std::cout << "Rebooting modem... " << std::flush;
-	send_fully(fd, "ATFR\r", 5);
+	send_string(fd, "ATFR\r");
 	if (read_clean_ok(fd)) {
 		std::cout << "OK\n";
 	} else {
 		std::cout << "FAIL\nThe modem did not reboot. Please power cycle it.\n";
+	}
+
+	std::cout << "Restoring original serial configuration... " << std::flush;
+	if (ioctl(fd, TIOCSSERIAL, &old_serinfo) < 0) {
+		perror("ioctl");
+	} else {
+		std::cout << "OK\n";
 	}
 
 	return 0;
