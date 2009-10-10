@@ -53,6 +53,8 @@ software/util/byref.h -text
 software/util/circular_buffer.h -text
 software/util/exact_timer.cpp -text
 software/util/exact_timer.h -text
+software/util/fd.cpp -text
+software/util/fd.h -text
 software/util/hungarian.cpp -text
 software/util/hungarian.h -text
 software/util/noncopyable.h -text
