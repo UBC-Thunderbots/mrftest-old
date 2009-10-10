@@ -4,6 +4,8 @@
 #include "ai/strategy.h"
 #include "robot_controller/robot_controller.h"
 #include "simulator/engine.h"
+#include "world/ball.h"
+#include "world/field.h"
 #include "world/player.h"
 #include "world/player_impl.h"
 #include "world/playtype.h"
@@ -94,7 +96,7 @@ class simulator_team_data : public virtual noncopyable {
 		//
 		// Constructs a new simulator_team_data.
 		//
-		simulator_team_data(xmlpp::Element *xml, bool yellow);
+		simulator_team_data(xmlpp::Element *xml, bool yellow, ball::ptr ball, field::ptr field);
 
 		//
 		// Sets the views of the other team.
@@ -139,7 +141,7 @@ class simulator_team_data : public virtual noncopyable {
 		//
 		// Sets the strategy governing this team by name.
 		//
-		void set_strategy(const Glib::ustring &name, ball::ptr ball, field::ptr field);
+		void set_strategy(const Glib::ustring &name);
 
 		//
 		// Configures the team to use a new engine.
@@ -147,9 +149,16 @@ class simulator_team_data : public virtual noncopyable {
 		void set_engine(simulator_engine::ptr e);
 
 		//
+		// Gets the controller factory currently in use.
+		//
+		robot_controller_factory *get_controller_type() const {
+			return controller_factory;
+		}
+
+		//
 		// Configures the team to use a class of controller.
 		//
-		void set_controller_type(robot_controller_factory *cf);
+		void set_controller_type(const Glib::ustring &name);
 
 		//
 		// Adds a new player.
@@ -218,6 +227,16 @@ class simulator_team_data : public virtual noncopyable {
 		// The configuration element for this team.
 		//
 		xmlpp::Element *xml;
+
+		//
+		// The ball.
+		//
+		ball::ptr the_ball;
+
+		//
+		// The field.
+		//
+		field::ptr the_field;
 };
 
 #endif

@@ -165,7 +165,7 @@ class strategy_chooser : public virtual Gtk::ComboBoxText {
 //
 class strategy_controls : public virtual Gtk::VBox {
 	public:
-		strategy_controls(simulator_team_data &team, ball::ptr ball, field::ptr field) : team(team), the_ball(ball), the_field(field), chooser(team), ctls(0) {
+		strategy_controls(simulator_team_data &team) : team(team), chooser(team), ctls(0) {
 			chooser.signal_changed().connect(sigc::mem_fun(*this, &strategy_controls::strategy_changed));
 			pack_start(chooser);
 			put_custom_controls();
@@ -173,8 +173,6 @@ class strategy_controls : public virtual Gtk::VBox {
 
 	private:
 		simulator_team_data &team;
-		ball::ptr the_ball;
-		field::ptr the_field;
 		strategy_chooser chooser;
 		Widget *ctls;
 
@@ -201,7 +199,7 @@ class strategy_controls : public virtual Gtk::VBox {
 
 		void strategy_changed(const Glib::ustring &s) {
 			// Lock in the use of the new strategy.
-			team.set_strategy(s, the_ball, the_field);
+			team.set_strategy(s);
 
 			// Add the new strategy-specific controls.
 			put_custom_controls();
@@ -215,12 +213,15 @@ class strategy_controls : public virtual Gtk::VBox {
 //
 class controller_chooser : public virtual Gtk::ComboBoxText {
 	public:
-		controller_chooser() : initializing(true) {
+		controller_chooser(robot_controller_factory *current) : initializing(true) {
 			append_text("No Controller");
 			const robot_controller_factory::map_type &m = robot_controller_factory::all();
 			for (robot_controller_factory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i)
 				append_text(i->first);
-			set_active_text("No Controller");
+			if (current)
+				set_active_text(current->name());
+			else
+				set_active_text("No Controller");
 			initializing = false;
 		}
 
@@ -248,7 +249,7 @@ class controller_chooser : public virtual Gtk::ComboBoxText {
 //
 class team_controls : public virtual Gtk::VBox {
 	public:
-		team_controls(simulator_team_data &team_data, ball::ptr ball, field::ptr field) : team_data(team_data), players_frame("Players"), players_list(1), add_player_button(Gtk::Stock::ADD), del_player_button(Gtk::Stock::DELETE), strategy_frame("Strategy"), strategy_ctls(team_data, ball, field), rc_frame("Controller") {
+		team_controls(simulator_team_data &team_data) : team_data(team_data), players_frame("Players"), players_list(1), add_player_button(Gtk::Stock::ADD), del_player_button(Gtk::Stock::DELETE), strategy_frame("Strategy"), strategy_ctls(team_data), rc_frame("Controller"), rc_chooser(team_data.get_controller_type()) {
 			pack_start(*Gtk::manage(new Gtk::Label(team_data.is_yellow() ? "Yellow" : "Blue")), false, false);
 
 			players_list.set_headers_visible(false);
@@ -294,12 +295,7 @@ class team_controls : public virtual Gtk::VBox {
 		}
 
 		void controller_changed(const Glib::ustring &c) {
-			const robot_controller_factory::map_type &m = robot_controller_factory::all();
-			robot_controller_factory::map_type::const_iterator i = m.find(c);
-			if (i != m.end())
-				team_data.set_controller_type(i->second);
-			else
-				team_data.set_controller_type(0);
+			team_data.set_controller_type(c);
 		}
 
 		simulator_team_data &team_data;
@@ -325,7 +321,7 @@ class team_controls : public virtual Gtk::VBox {
 //
 class simulator_window_impl : public virtual Gtk::Window {
 	public:
-		simulator_window_impl(simulator &sim) : sim(sim), engine_frame("Simulation Engine"), engine_ctls(sim), playtype_frame("Play Type"), playtype_cb(sim), westteam_frame("West Team"), westteam_ctls(sim.west_team, sim.west_ball, sim.fld), eastteam_frame("East Team"), eastteam_ctls(sim.east_team, sim.east_ball, sim.fld), visualizer_frame("Visualizer"), vis(sim.fld, sim.west_ball, sim.west_team.west_view, sim.east_team.west_view) {
+		simulator_window_impl(simulator &sim) : sim(sim), engine_frame("Simulation Engine"), engine_ctls(sim), playtype_frame("Play Type"), playtype_cb(sim), westteam_frame("West Team"), westteam_ctls(sim.west_team), eastteam_frame("East Team"), eastteam_ctls(sim.east_team), visualizer_frame("Visualizer"), vis(sim.fld, sim.west_ball, sim.west_team.west_view, sim.east_team.west_view) {
 			set_title("Thunderbots Simulator");
 
 			engine_frame.add(engine_ctls);

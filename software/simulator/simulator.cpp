@@ -4,7 +4,7 @@
 #include "world/config.h"
 #include "world/timestep.h"
 
-simulator::simulator(xmlpp::Element *xml) : fld(new simulator_field), west_ball(new ball(ball_impl::trivial(), false)), east_ball(new ball(ball_impl::trivial(), true)), west_team(xmlutil::strip(xmlutil::get_only_child(xml, "westteam")), true), east_team(xmlutil::strip(xmlutil::get_only_child(xml, "eastteam")), false), xml(xml), ticker(1.0 / TIMESTEPS_PER_SECOND) {
+simulator::simulator(xmlpp::Element *xml) : fld(new simulator_field), west_ball(new ball(ball_impl::trivial(), false)), east_ball(new ball(ball_impl::trivial(), true)), west_team(xmlutil::strip(xmlutil::get_only_child(xml, "westteam")), true, west_ball, fld), east_team(xmlutil::strip(xmlutil::get_only_child(xml, "eastteam")), false, east_ball, fld), xml(xml), ticker(1.0 / TIMESTEPS_PER_SECOND) {
 	// Configure objects with each other as the opponents.
 	west_team.set_other(east_team.west_view, east_team.east_view);
 	east_team.set_other(west_team.west_view, west_team.east_view);
