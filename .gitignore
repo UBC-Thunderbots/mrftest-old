@@ -23,4 +23,5 @@ software/thunderbots
 software/uicomponents/*.d
 software/util/*.d
 software/world/*.d
+software/xbee/*.d
 software/xbeeconfig
