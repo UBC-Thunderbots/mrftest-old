@@ -84,7 +84,7 @@ bootload:
 	bsf TRIS_XBEE_TX, PIN_XBEE_TX
 	bsf TRIS_XBEE_RX, PIN_XBEE_RX
 	clrf SPBRGH
-	movlw 68
+	movlw 15
 	movwf SPBRG
 	movlw (1 << BRG16)
 	movwf BAUDCON
