@@ -4,6 +4,10 @@ xbee_byte_stream::xbee_byte_stream(const Glib::ustring &portname) : port(portnam
 	port.signal_received().connect(sigc::mem_fun(*this, &xbee_byte_stream::byte_received));
 }
 
+void xbee_byte_stream::send_sop() {
+	port.send(0x7E);
+}
+
 void xbee_byte_stream::send(uint8_t ch) {
 	if (ch == 0x7E || ch == 0x7D || ch == 0x11 || ch == 0x13) {
 		port.send(0x7D);
@@ -11,10 +15,6 @@ void xbee_byte_stream::send(uint8_t ch) {
 	} else {
 		port.send(ch);
 	}
-}
-
-void xbee_byte_stream::send_sop() {
-	port.send(0x7E);
 }
 
 void xbee_byte_stream::byte_received(uint8_t ch) {

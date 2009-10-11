@@ -17,13 +17,6 @@ class xbee_byte_stream : public virtual noncopyable, public virtual sigc::tracka
 		xbee_byte_stream(const Glib::ustring &portname);
 
 		//
-		// Invoked when a byte is received.
-		//
-		sigc::signal<void, uint8_t> &signal_byte_received() {
-			return sig_byte_received;
-		}
-
-		//
 		// Invoked when the start-of-packet delimiter is received.
 		//
 		sigc::signal<void> &signal_sop_received() {
@@ -31,19 +24,26 @@ class xbee_byte_stream : public virtual noncopyable, public virtual sigc::tracka
 		}
 
 		//
-		// Sends a byte to the port.
+		// Invoked when a byte is received.
 		//
-		void send(uint8_t);
+		sigc::signal<void, uint8_t> &signal_byte_received() {
+			return sig_byte_received;
+		}
 
 		//
 		// Sends a start-of-packet delimiter to the port.
 		//
 		void send_sop();
 
+		//
+		// Sends a byte to the port.
+		//
+		void send(uint8_t);
+
 	private:
 		serial_port port;
-		sigc::signal<void, uint8_t> sig_byte_received;
 		sigc::signal<void> sig_sop_received;
+		sigc::signal<void, uint8_t> sig_byte_received;
 		bool escape;
 		void byte_received(uint8_t b);
 };
