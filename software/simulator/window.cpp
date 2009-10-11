@@ -249,7 +249,7 @@ class controller_chooser : public virtual Gtk::ComboBoxText {
 //
 class team_controls : public virtual Gtk::VBox {
 	public:
-		team_controls(simulator_team_data &team_data) : team_data(team_data), players_frame("Players"), players_list(1), add_player_button(Gtk::Stock::ADD), del_player_button(Gtk::Stock::DELETE), strategy_frame("Strategy"), strategy_ctls(team_data), rc_frame("Controller"), rc_chooser(team_data.get_controller_type()) {
+		team_controls(simulator_team_data &team_data) : team_data(team_data), players_frame("Players"), players_list(1), players_button_box(Gtk::BUTTONBOX_SPREAD), add_player_button(Gtk::Stock::ADD), del_player_button(Gtk::Stock::DELETE), strategy_frame("Strategy"), strategy_ctls(team_data), rc_frame("Controller"), rc_chooser(team_data.get_controller_type()) {
 			pack_start(*Gtk::manage(new Gtk::Label(team_data.is_yellow() ? "Yellow" : "Blue")), false, false);
 
 			players_list.set_headers_visible(false);
@@ -257,7 +257,6 @@ class team_controls : public virtual Gtk::VBox {
 			players_list_scroll.add(players_list);
 			players_list_scroll.set_shadow_type(Gtk::SHADOW_IN);
 			players_box.pack_start(players_list_scroll, true, true);
-			players_button_box.set_layout(Gtk::BUTTONBOX_SPREAD);
 			add_player_button.signal_clicked().connect(sigc::mem_fun(*this, &team_controls::add_player));
 			players_button_box.pack_start(add_player_button);
 			del_player_button.signal_clicked().connect(sigc::mem_fun(*this, &team_controls::del_player));
