@@ -78,6 +78,8 @@ software/world/team.h -text
 software/world/timestep.h -text
 software/xbee/byteproto.cpp -text
 software/xbee/byteproto.h -text
+software/xbee/packetproto.cpp -text
+software/xbee/packetproto.h -text
 software/xbee/serial.cpp -text
 software/xbee/serial.h -text
 software/xbeeconfig.cpp -text
