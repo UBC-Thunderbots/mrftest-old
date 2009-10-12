@@ -4,8 +4,8 @@ PROC := PIC18F4550
 ASMS := $(wildcard *.asm)
 OBJS := $(ASMS:.asm=.o)
 
-$(HEX) : $(OBJS)
-	gplink -o $@ -m -s $(LKR) $+
+$(HEX) : $(OBJS) $(LKR)
+	gplink -o $@ -m -s $(LKR) $(subst $(LKR),,$+)
 
 %.d %.o : %.asm
 	{ gpasm -c -C -y -w2 -M $< && sed -e 's/^$(@:.d=.o) :/$@ $(@:.d=.o) :/' < $(@:.o=.d) > $(@:.o=.d).new && mv $(@:.o=.d).new $(@:.o=.d) ; } || { $(RM) $(@:.o=.d) $(@:.o=.d).new ; false ; }

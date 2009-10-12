@@ -7,6 +7,7 @@ firmware/mainboard-copro/adc.asm -text
 firmware/mainboard-copro/bootload.asm -text
 firmware/mainboard-copro/config.asm -text
 firmware/mainboard-copro/configure_fpga.asm -text
+firmware/mainboard-copro/dispatch.inc -text
 firmware/mainboard-copro/main.asm -text
 firmware/mainboard-copro/pins.inc -text
 firmware/mainboard-copro/sleep.asm -text
