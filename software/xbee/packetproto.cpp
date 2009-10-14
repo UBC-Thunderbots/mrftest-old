@@ -1,19 +1,21 @@
 #include "xbee/packetproto.h"
+#include <cassert>
 
 xbee_packet_stream::xbee_packet_stream(const Glib::ustring &portname) : bstream(portname), sop_seen(false) {
 	bstream.signal_sop_received().connect(sigc::mem_fun(*this, &xbee_packet_stream::on_sop));
 	bstream.signal_byte_received().connect(sigc::mem_fun(*this, &xbee_packet_stream::on_byte));
 }
 
-void xbee_packet_stream::send(const std::vector<uint8_t> &payload) {
+void xbee_packet_stream::send(const void *payload, std::size_t length) {
+	assert(length < 65536);
 	bstream.send_sop();
-	bstream.send(payload.size() / 256);
-	bstream.send(payload.size() % 256);
+	bstream.send(length / 256);
+	bstream.send(length % 256);
+	bstream.send(payload, length);
+	const uint8_t *dptr = reinterpret_cast<const uint8_t *>(payload);
 	uint8_t sum = 0;
-	for (unsigned int i = 0; i < payload.size(); i++) {
-		sum += payload[i];
-		bstream.send(payload[i]);
-	}
+	for (std::size_t i = 0; i < length; i++)
+		sum += dptr[i];
 	bstream.send(0xFF - sum);
 }
 

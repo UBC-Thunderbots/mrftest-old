@@ -4,6 +4,7 @@
 #include "util/noncopyable.h"
 #include "xbee/byteproto.h"
 #include <vector>
+#include <cstddef>
 #include <glibmm.h>
 #include <sigc++/sigc++.h>
 
@@ -27,7 +28,7 @@ class xbee_packet_stream : public virtual noncopyable, public virtual sigc::trac
 		//
 		// Sends a packet.
 		//
-		void send(const std::vector<uint8_t> &);
+		void send(const void *, std::size_t);
 
 	private:
 		xbee_byte_stream bstream;
