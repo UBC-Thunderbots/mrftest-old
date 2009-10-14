@@ -3,6 +3,8 @@
 
 #include "util/noncopyable.h"
 #include "xbee/serial.h"
+#include <cstddef>
+#include <stdint.h>
 #include <glibmm.h>
 #include <sigc++/sigc++.h>
 
@@ -39,6 +41,11 @@ class xbee_byte_stream : public virtual noncopyable, public virtual sigc::tracka
 		// Sends a byte to the port.
 		//
 		void send(uint8_t);
+
+		//
+		// Sends a string of bytes to the port.
+		//
+		void send(const void *, std::size_t);
 
 	private:
 		serial_port port;
