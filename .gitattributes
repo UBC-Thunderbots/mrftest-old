@@ -89,6 +89,7 @@ software/xbee/byteproto.cpp -text
 software/xbee/byteproto.h -text
 software/xbee/packetproto.cpp -text
 software/xbee/packetproto.h -text
+software/xbee/packettypes.h -text
 software/xbee/serial.cpp -text
 software/xbee/serial.h -text
 software/xbee/util.cpp -text
