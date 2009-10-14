@@ -30,7 +30,17 @@ class xbee_packet_stream : public virtual noncopyable, public virtual sigc::trac
 		//
 		void send(const void *, std::size_t);
 
+		//
+		// Gets a new frame number.
+		//
+		uint8_t generate_frame_number() {
+			if (!next_frame)
+				next_frame++;
+			return next_frame++;
+		}
+
 	private:
+		uint8_t next_frame;
 		xbee_byte_stream bstream;
 		bool sop_seen;
 		uint16_t length;
