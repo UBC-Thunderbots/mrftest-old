@@ -3,6 +3,7 @@
 
 #include "util/fd.h"
 #include "util/noncopyable.h"
+#include <cstddef>
 #include <stdint.h>
 #include <sigc++/sigc++.h>
 #include <glibmm.h>
@@ -28,6 +29,11 @@ class serial_port : public virtual noncopyable, public virtual sigc::trackable {
 		// Sends a byte to the port.
 		//
 		void send(uint8_t);
+
+		//
+		// Sends a string of bytes to the port.
+		//
+		void send(const void *, std::size_t);
 
 	private:
 		file_descriptor fd;

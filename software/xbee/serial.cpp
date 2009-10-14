@@ -59,8 +59,17 @@ serial_port::serial_port(const Glib::ustring &filename) : fd(open_port(filename)
 }
 
 void serial_port::send(uint8_t ch) {
-	if (write(fd, &ch, 1) != 1) {
-		throw std::runtime_error("Cannot write to serial port!");
+	send(&ch, 1);
+}
+
+void serial_port::send(const void *payload, std::size_t length) {
+	const uint8_t *dptr = reinterpret_cast<const uint8_t *>(payload);
+	while (length) {
+		ssize_t written = write(fd, dptr, length);
+		if (written < 0)
+			throw std::runtime_error("Cannot write to serial port!");
+		dptr += written;
+		length -= written;
 	}
 }
 
