@@ -1,0 +1,22 @@
+#ifndef XBEE_UTIL_H
+#define XBEE_UTIL_H
+
+#include <stdint.h>
+
+//
+// A collection of utility functions for XBee.
+//
+namespace xbeeutil {
+	//
+	// Converts a bot address from a uint64_t to an array of bytes.
+	//
+	void address_to_bytes(uint64_t src, uint8_t *dest);
+
+	//
+	// Converts a bot address from an array of bytes to a uint64_t.
+	//
+	uint64_t address_from_bytes(uint8_t *src);
+}
+
+#endif
+
