@@ -28,6 +28,12 @@ software/ai/strategy/defensive_strategy.cpp -text
 software/ai/strategy/offensive_strategy.cpp -text
 software/ai/tactic.cpp -text
 software/ai/tactic.h -text
+software/ai/tactic/chase.cpp -text
+software/ai/tactic/chase.h -text
+software/ai/tactic/pass.cpp -text
+software/ai/tactic/pass.h -text
+software/ai/tactic/pass_receive.cpp -text
+software/ai/tactic/pass_receive.h -text
 software/geom/angle.cpp -text
 software/geom/angle.h -text
 software/geom/point.h -text
