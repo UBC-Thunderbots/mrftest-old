@@ -20,7 +20,7 @@ class player : public virtual byref, public virtual robot {
 		typedef Glib::RefPtr<player> ptr;
 
 		//
-		// Instructs the player to move to the specified position and orientatin.
+		// Instructs the player to move to the specified position and orientation.
 		//
 		// Parameters:
 		//  new_position
