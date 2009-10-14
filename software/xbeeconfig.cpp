@@ -235,8 +235,8 @@ connected:
 		goto start_work;
 	}
 
-	std::cout << "Setting DIO0 to default as digital output high... " << std::flush;
-	send_string(fd, "ATD05\r");
+	std::cout << "Setting DIO0 to default as digital output low... " << std::flush;
+	send_string(fd, "ATD04\r");
 	if (read_clean_ok(fd)) {
 		std::cout << "OK\n";
 	} else {
