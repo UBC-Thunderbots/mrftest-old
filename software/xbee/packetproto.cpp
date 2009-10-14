@@ -1,7 +1,7 @@
 #include "xbee/packetproto.h"
 #include <cassert>
 
-xbee_packet_stream::xbee_packet_stream(const Glib::ustring &portname) : bstream(portname), sop_seen(false) {
+xbee_packet_stream::xbee_packet_stream(const Glib::ustring &portname) : next_frame(0), bstream(portname), sop_seen(false) {
 	bstream.signal_sop_received().connect(sigc::mem_fun(*this, &xbee_packet_stream::on_sop));
 	bstream.signal_byte_received().connect(sigc::mem_fun(*this, &xbee_packet_stream::on_byte));
 }
