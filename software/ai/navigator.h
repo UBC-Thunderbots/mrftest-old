@@ -4,6 +4,7 @@
 #include <glibmm.h>
 #include "util/byref.h"
 #include "world/player.h"
+#include "world/field.h"
 
 //
 // A navigator manages movement of a single robot to a target.
@@ -18,7 +19,7 @@ class navigator : public virtual byref {
 		//
 		// Constructs a new navigator. Call this constructor from subclass constructors.
 		//
-		navigator(player::ptr player);
+		navigator(player::ptr player,  field::ptr field);
 
 		//
 		// Runs the AI for one time tick.
@@ -35,6 +36,7 @@ class navigator : public virtual byref {
 		// The player being navigated.
 		//
 		const player::ptr the_player;
+		const field::ptr the_field;
 };
 
 #endif
