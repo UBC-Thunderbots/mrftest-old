@@ -19,7 +19,7 @@ void xbee_byte_stream::send(uint8_t ch) {
 }
 
 void xbee_byte_stream::send(const void *payload, std::size_t length) {
-	const uint8_t *dptr = reinterpret_cast<const uint8_t *>(payload);
+	const uint8_t *dptr = static_cast<const uint8_t *>(payload);
 	static const uint8_t SPECIAL_CHARS[] = {0x7E, 0x7D, 0x11, 0x13};
 
 	while (length) {

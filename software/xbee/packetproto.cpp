@@ -12,7 +12,7 @@ void xbee_packet_stream::send(const void *payload, std::size_t length) {
 	bstream.send(length / 256);
 	bstream.send(length % 256);
 	bstream.send(payload, length);
-	const uint8_t *dptr = reinterpret_cast<const uint8_t *>(payload);
+	const uint8_t *dptr = static_cast<const uint8_t *>(payload);
 	uint8_t sum = 0;
 	for (std::size_t i = 0; i < length; i++)
 		sum += dptr[i];

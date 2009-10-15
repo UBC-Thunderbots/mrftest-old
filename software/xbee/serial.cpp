@@ -63,7 +63,7 @@ void serial_port::send(uint8_t ch) {
 }
 
 void serial_port::send(const void *payload, std::size_t length) {
-	const uint8_t *dptr = reinterpret_cast<const uint8_t *>(payload);
+	const uint8_t *dptr = static_cast<const uint8_t *>(payload);
 	while (length) {
 		ssize_t written = write(fd, dptr, length);
 		if (written < 0)
