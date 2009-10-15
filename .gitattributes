@@ -60,6 +60,7 @@ software/uicomponents/world_add_bot_dialog.cpp -text
 software/uicomponents/world_add_bot_dialog.h -text
 software/util/byref.h -text
 software/util/circular_buffer.h -text
+software/util/dprint.h -text
 software/util/exact_timer.cpp -text
 software/util/exact_timer.h -text
 software/util/fd.cpp -text
