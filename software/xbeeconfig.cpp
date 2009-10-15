@@ -37,7 +37,7 @@ namespace {
 	}
 
 	void send_fully(int fd, const void *data, int length) {
-		const char *ptr = reinterpret_cast<const char *>(data);
+		const char *ptr = static_cast<const char *>(data);
 		while (length) {
 			int rc = write(fd, ptr, length);
 			if (rc > 0) {
