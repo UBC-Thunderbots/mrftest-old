@@ -36,8 +36,8 @@ main:
 	bcf LAT_PROG_B, PIN_PROG_B
 	bcf TRIS_PROG_B, PIN_PROG_B
 	; INIT_B is an input read from the FPGA.
-	; BRAKE goes low to lock the wheels until the FPGA is running.
-	bcf LAT_BRAKE, PIN_BRAKE
+	; BRAKE goes high to lock the wheels until the FPGA is running.
+	bsf LAT_BRAKE, PIN_BRAKE
 	bcf TRIS_BRAKE, PIN_BRAKE
 	; SPI_TX is tristated while the FPGA drives it to load from Flash.
 	; SPI_RX is always an input.

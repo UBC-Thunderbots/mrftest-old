@@ -980,7 +980,7 @@ bootload:
 	clrf irpptr
 
 	; Lock the wheels.
-	bcf LAT_BRAKE, PIN_BRAKE
+	bcf TRIS_BRAKE, PIN_BRAKE
 
 	; Drive PROG_B low to shut down the FPGA.
 	bcf LAT_PROG_B, PIN_PROG_B

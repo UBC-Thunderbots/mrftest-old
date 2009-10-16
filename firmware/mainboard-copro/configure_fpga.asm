@@ -26,7 +26,7 @@
 	code
 configure_fpga:
 	; Lock the wheels.
-	bcf LAT_BRAKE, PIN_BRAKE
+	bcf TRIS_BRAKE, PIN_BRAKE
 
 	; Tristate the SPI bus so that the FPGA can drive it.
 	call spi_tristate
