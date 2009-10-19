@@ -7,6 +7,7 @@
 #include "world/field.h"
 #include "world/playtype.h"
 #include "world/team.h"
+#include "ai/role.h"
 #include <map>
 #include <glibmm.h>
 #include <gtkmm.h>

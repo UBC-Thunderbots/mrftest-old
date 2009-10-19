@@ -1,5 +1,4 @@
 #include "ai/strategy.h"
-#include "ai/role.h"
 
 #include <vector> // I like vectors
 using namespace std;
