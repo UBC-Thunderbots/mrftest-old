@@ -26,6 +26,7 @@ software/ai/strategy.h -text
 software/ai/strategy/chase_strategy.cpp -text
 software/ai/strategy/defensive_strategy.cpp -text
 software/ai/strategy/offensive_strategy.cpp -text
+software/ai/strategy/simple_strategy1.cpp -text
 software/ai/tactic.cpp -text
 software/ai/tactic.h -text
 software/ai/tactic/chase.cpp -text
