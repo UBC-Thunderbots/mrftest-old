@@ -27,6 +27,12 @@ namespace {
 
 const int ntasks = sizeof(tasks) / sizeof(tasks[0]);
 
+double diff_orient(const double& a, const double &b) {
+	double angle = fmod(fmod(a - b, 2 * PI) + 2 * PI, 2 * PI);
+	if(angle > PI) angle -= 2 * PI;
+	return angle;
+}
+
 int main() {
 	// Create an rc_test_player.
 	Glib::RefPtr<rc_test_player> test_player_impl(new rc_test_player(point(0, 0), 0, point(0, 0), 0));
@@ -54,12 +60,13 @@ int main() {
 	test_player_impl->set_controller(controller);
 
 	// make the time output nice
-	std::cout.precision(3);
+	std::cout.precision(4);
 	std::cout.setf(std::ios::fixed);
 
 	// used to estimate the robot velocity
 	point prev_position(0, 0);
 	double prev_orientation(0);
+	double total_time(0);
 
 	// Exercise the controller.
 	for (int t = 0; t < ntasks; ++t) {
@@ -68,13 +75,18 @@ int main() {
 		for (int i = 0; ; ++i) {
 			test_player->move(target_position, target_orientation);
 			point lin_vel = test_player->position() - prev_position;
-			double ang_vel = test_player->orientation() - prev_orientation;
-			std::cout << i / 30. << " secs at task " << t << " and position " << test_player->position() << " with orientation " << test_player->orientation() << " linear velocity " << lin_vel << " angle velocity " << ang_vel << std::endl;
+			double ang_vel = diff_orient(test_player->orientation(), prev_orientation);
+			std::cout << i / 30. << " secs at task " << t << " error pos " << (target_position - test_player->position()) << " ori " << diff_orient(target_orientation, test_player->orientation()) << " linear vel " << lin_vel << " angle vel " << ang_vel << std::endl;
 			prev_position = test_player->position();
 			prev_orientation = test_player->orientation();
-			if ((test_player->position() - target_position).len() < EPS && std::fabs(test_player->orientation() - target_orientation) < EPS && lin_vel.len() < EPS && abs(ang_vel) < EPS) break;
+			if ((test_player->position() - target_position).len() < EPS && fabs(diff_orient(test_player->orientation(), target_orientation)) < EPS && lin_vel.len() < EPS && fabs(ang_vel) < EPS) {
+				total_time += i / 30.;
+				break;
+			}
 		}
 	}
+
+	std::cout << " total time taken " << total_time << std::endl;
 
 	return 0;
 }
