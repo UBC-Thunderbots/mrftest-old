@@ -8,6 +8,7 @@
 #include "world/player.h"
 #include "world/team.h"
 #include "ai/tactic.h"
+#include "ai/tactic/pass_mode.h"
 
 //
 // A tactic controls the operation of a single player doing some activity.
@@ -33,6 +34,10 @@ class pass : public tactic {
 		
 		// Pointer to the receiver of the pass.
 		player::ptr receiver;
+
+		pass_mode mode;
+
+		point calculate_target();
 };
 
 #endif

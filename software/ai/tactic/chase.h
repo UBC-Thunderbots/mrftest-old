@@ -8,7 +8,6 @@
 #include "world/player.h"
 #include "world/team.h"
 #include "ai/tactic.h"
-#include "ai/navigator.h"
 
 //
 // A tactic controls the operation of a single player doing some activity.
@@ -27,10 +26,7 @@ class chase : public tactic {
 		void update();	
 
 	protected:
-		//
-		// The navigator that chases.
-		//
-		navigator::ptr the_navigator;
+
 };
 
 #endif
