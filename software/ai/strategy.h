@@ -7,8 +7,10 @@
 #include "world/field.h"
 #include "world/playtype.h"
 #include "world/team.h"
+#include "world/robot.h"
 #include "ai/role.h"
 #include <map>
+#include <vector>
 #include <glibmm.h>
 #include <gtkmm.h>
 #include <libxml++/libxml++.h>
@@ -35,6 +37,16 @@ class strategy : public virtual byref {
 		// Sets the current play type.
 		//
 		virtual void set_playtype(playtype::playtype t) = 0;
+		
+		//
+		// Add robots to work for this strategy
+		//
+		virtual void add_robots(std::vector<robot::ptr> robots) = 0;
+		
+		// 
+		// Remove robots from this strategy
+		//
+		virtual void remove_robots(std::vector<robot::ptr> robots) = 0;
 
 		//
 		// Returns the factory that creates this strategy.

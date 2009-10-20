@@ -10,6 +10,8 @@ namespace {
 			simple_strategy1(ball::ptr ball, field::ptr field, controlled_team::ptr team);
 			virtual void update();
 			virtual void set_playtype(playtype::playtype t);
+			virtual void add_robots(std::vector<robot::ptr> robots);
+			virtual void remove_robots(std::vector<robot::ptr> robots);
 			virtual strategy_factory &get_factory();
 			virtual Gtk::Widget *get_ui_controls();
 
@@ -53,7 +55,13 @@ namespace {
 	void simple_strategy1::set_playtype(playtype::playtype t) {
 		current_playtype = t;
 	}
-
+	
+	void simple_strategy1::add_robots(std::vector<robot::ptr> robots){
+	}
+	
+	void simple_strategy1::remove_robots(std::vector<robot::ptr> robots){
+	}
+	
 	Gtk::Widget *simple_strategy1::get_ui_controls() {
 		return 0;
 	}
