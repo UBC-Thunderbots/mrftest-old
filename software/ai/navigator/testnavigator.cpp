@@ -2,7 +2,7 @@
 #include "world/field.h"
 
 testnavigator::testnavigator(player::ptr player, field::ptr field) : 
-  navigator(player, field), destInitialized(false)
+  navigator(player, field), destInitialized(false), outOfBoundsMargin(1.0)
 {
 
 }
@@ -12,25 +12,92 @@ void testnavigator::update() {
   if(destInitialized)
     {
       
-      point nowDest = currDest;//this we can change when we have the ball
-      //without changing the destination, so if we get/pass the ball
-      //on the way to the destination, it goes to where we told it
-      
-      
+      point nowDest;
+
+      // if we have the ball, adjust our destination to ensure that we
+      // don't take the ball out of bounds, otherwise, head to our
+      // assigned destination
+      if (the_player->has_ball())
+	{
+     
+	  nowDest = clip_point(currDest,
+			       point(-the_field->width()/2 + outOfBoundsMargin,
+				     -the_field->length()/2 + outOfBoundsMargin),
+			       point(the_field->width()/2 - outOfBoundsMargin,
+				     the_field->length()/2 - outOfBoundsMargin));
+	}
+      else
+	{
+	  nowDest = currDest;
+	}
     }
 }
 
 void testnavigator::go_to_point(const point &destination) {
   //set new destinatin point
-  currDest = destination;
   destInitialized = true;
-  if(currDest.x > the_field->width()/2)
-    currDest.x = the_field->width()/2;
-  if(currDest.x < -the_field->width()/2)
-    currDest.x = -the_field->width()/2;
-  if(currDest.y > the_field->length()/2)
-    currDest.y = the_field->length()/2;
-  if(currDest.y < -the_field->length()/2)
-     currDest.y = the_field->length()/2;
+
+  currDest = clip_point(destination,
+			point(-the_field->width()/2,
+			      -the_field->length()/2),
+			point(the_field->width()/2,
+			      the_field->length()/2));
+}
+
+point testnavigator::clip_point(point p, point bound1, point bound2)
+{
+  point rv;
+
+  double minx,maxx,miny,maxy;
+
+  if (bound1.x < bound2.x)
+    {
+      minx = bound1.x;
+      maxx = bound2.x;
+    }
+  else
+    {
+      minx = bound2.x;
+      maxx = bound1.x;
+    }
+
+  if (bound1.y < bound2.y)
+    {
+      miny = bound1.y;
+      maxy = bound2.y;
+    }
+  else
+    {
+      miny = bound2.y;
+      maxy = bound1.y;
+    }
+
+  if (p.x < minx)
+    {
+      rv.x = minx;
+    }
+  else if (p.x > maxx)
+    {
+      rv.x = maxx;      
+    }
+  else
+    {
+      rv.x = p.x;
+    }
+
+  if (p.y < miny)
+    {
+      rv.y = miny;
+    }
+  else if (p.y > maxy)
+    {
+      rv.y = maxy;
+    }
+  else
+    {
+      rv.y = p.y;
+    }
+
+  return rv;
 }
 

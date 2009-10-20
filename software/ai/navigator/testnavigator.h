@@ -9,8 +9,11 @@ class testnavigator : public navigator {
   void update();
   void go_to_point(const point& destination);
  private:
+  point clip_point(point p, point bound1, point bound2);
+
   bool destInitialized;//has a destination been specified?
   point currDest;//current destination
+  float outOfBoundsMargin;//distance to remain from sidelines to prevent from going oob
 };
 
 #endif
