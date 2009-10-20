@@ -52,6 +52,11 @@ class robot : public virtual byref {
 		robot(robot_impl::ptr impl, bool flip) : impl(impl), flip(flip) {
 		}
 
+		//
+		// The maximum possible radius of the robot.
+		//
+		static const double MAX_RADIUS = 0.09;
+
 	private:
 		robot_impl::ptr impl;
 		const bool flip;

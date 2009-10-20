@@ -72,6 +72,11 @@ class ball : public virtual byref {
 			assert(impl);
 		}
 
+		//
+		// The approximate radius of the ball.
+		//
+		static const double RADIUS = 0.0215;
+
 	private:
 		ball_impl::ptr impl;
 		const bool flip;
