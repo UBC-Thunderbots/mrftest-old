@@ -59,6 +59,20 @@ class point {
 		}
 
 		//
+		// Takes the dot product of two vectors.
+		//
+		double dot(const point &other) const {
+			return x * other.x + y * other.y;
+		}
+
+		//
+		// Takes the cross product of two vectors.
+		//
+		double cross(const point &other) const {
+			return x * other.y - y * other.x;
+		}
+
+		//
 		// Assigns one vector to another.
 		//
 		point &operator=(const point &q) {
