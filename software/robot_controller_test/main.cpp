@@ -2,11 +2,30 @@
 #include "robot_controller_test/player.h"
 #include "world/player.h"
 #include <iostream>
+#include <iomanip>
 #include <cmath>
+#include <vector>
 
 
+namespace {
+	// How close to the endpoint before we consider the task done
+	const double EPS = 1e-3;
 
-#define EPS 1e-5
+	// A set of tasks
+	const std::pair<point, double> tasks[] =
+	{
+		std::make_pair(point(10, 0), PI / 2),
+		std::make_pair(point(0, 0), PI),
+		std::make_pair(point(-10, 0), 0),
+		std::make_pair(point(0, 10), PI / 2),
+		std::make_pair(point(0, 0), 0),
+		std::make_pair(point(0, -10), PI),
+		std::make_pair(point(0, 0), 0),
+	};
+
+}
+
+const int ntasks = sizeof(tasks) / sizeof(tasks[0]);
 
 int main() {
 	// Create an rc_test_player.
@@ -34,13 +53,27 @@ int main() {
 	// Attach the controller to the player.
 	test_player_impl->set_controller(controller);
 
+	// make the time output nice
+	std::cout.precision(3);
+	std::cout.setf(std::ios::fixed);
+
+	// used to estimate the robot velocity
+	point prev_position(0, 0);
+	double prev_orientation(0);
+
 	// Exercise the controller.
-	point target_position(1, 1);
-	double target_orientation = PI / 2;
-	for (int i = 0; ; ++i) {
-		test_player->move(target_position, target_orientation);
-		std::cout << i / 30. << " secs at position " << test_player->position() << " with orientation " << test_player->orientation() << std::endl;
-		if ((test_player->position() - target_position).len() < EPS && std::fabs(test_player->orientation() - target_orientation) < EPS) break;
+	for (int t = 0; t < ntasks; ++t) {
+		const point& target_position = tasks[t].first;
+		const double& target_orientation = tasks[t].second;
+		for (int i = 0; ; ++i) {
+			test_player->move(target_position, target_orientation);
+			point lin_vel = test_player->position() - prev_position;
+			double ang_vel = test_player->orientation() - prev_orientation;
+			std::cout << i / 30. << " secs at task " << t << " and position " << test_player->position() << " with orientation " << test_player->orientation() << " linear velocity " << lin_vel << " angle velocity " << ang_vel << std::endl;
+			prev_position = test_player->position();
+			prev_orientation = test_player->orientation();
+			if ((test_player->position() - target_position).len() < EPS && std::fabs(test_player->orientation() - target_orientation) < EPS && lin_vel.len() < EPS && abs(ang_vel) < EPS) break;
+		}
 	}
 
 	return 0;
