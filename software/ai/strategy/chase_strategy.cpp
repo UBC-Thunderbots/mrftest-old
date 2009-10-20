@@ -23,6 +23,7 @@ namespace {
 
 	void chase_strategy::update() {
 		// Use the variables "ball", "field", and "team" to allocate players to roles.
+/*
 		switch (current_playtype) {
 		case halt:
 		case stop:
@@ -43,6 +44,7 @@ namespace {
 		case victory_dance:
 		default:
 		}
+*/
 	}
 
 	void chase_strategy::set_playtype(playtype::playtype t) {
