@@ -17,6 +17,7 @@ class rc_test_player : public virtual player_impl {
 		rc_test_player(point position, double orientation, point linear_velocity, double angular_velocity);
 		virtual point position() const;
 		virtual double orientation() const;
+		virtual bool has_ball() const { return false; }
 		virtual point linear_velocity() const;
 		virtual double angular_velocity() const;
 		virtual void move_impl(const point &linear_velocity, double angular_velocity);

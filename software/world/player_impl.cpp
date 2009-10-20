@@ -12,6 +12,10 @@ namespace {
 				return 0.0;
 			}
 
+			virtual bool has_ball() const {
+				return false;
+			}
+
 			virtual void move_impl(const point &, double) {
 			}
 

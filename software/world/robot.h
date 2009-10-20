@@ -33,6 +33,13 @@ class robot : public virtual byref {
 		}
 
 		//
+		// Whether or not this robot has possession of the ball.
+		//
+		bool has_ball() const {
+			return impl->has_ball();
+		}
+
+		//
 		// Constructs a new robot object.
 		//
 		// Parameters:

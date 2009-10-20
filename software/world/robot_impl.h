@@ -26,6 +26,11 @@ class robot_impl : public virtual byref {
 		// The orientation of the robot in radians at the last camera frame.
 		//
 		virtual double orientation() const = 0;
+
+		//
+		// Whether or not this robot has possession of the ball.
+		//
+		virtual bool has_ball() const = 0;
 };
 
 #endif

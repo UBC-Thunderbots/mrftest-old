@@ -99,6 +99,10 @@ namespace {
 				return the_orientation;
 			}
 
+			virtual bool has_ball() const {
+				return false;
+			}
+
 			virtual void move_impl(const point &vel, double avel) {
 				target_velocity = vel;
 				avelocity = avel;
