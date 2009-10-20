@@ -1,7 +1,6 @@
 #include "ai/strategy.h"
 #include "world/robot.h"
 #include <set>
-#include <map>
 
 //simple strategy created by Armand
 
@@ -18,7 +17,7 @@ namespace {
 			playtype::playtype current_playtype;
 
 			// saving the initialized roles for each robot
-			//map< role::ptr, set<robot::ptr> > RobotAssignment_;
+			std::map< role::ptr, std::set<robot::ptr> > RobotAssignment_;
 	};
 
 	simple_strategy1::simple_strategy1(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
@@ -27,28 +26,28 @@ namespace {
 
 	void simple_strategy1::update() {
 		// Use the variables "ball", "field", and "team" to allocate players to roles.
-/*
+
 		switch (current_playtype) {
-		case halt:
-		case stop:
-		case play:
-		case prepare_kickoff_friendly:
-		case execute_kickoff_friendly:
-		case prepare_kickoff_enemy:
-		case execute_kickoff_enemy:
-		case prepare_penalty_friendly:
-		case execute_penalty_friendly:
-		case prepare_penalty_enemy:
-		case execute_penalty_enemy:
-		case execute_direct_free_kick_friendly:
-		case execute_indirect_free_kick_friendly:
-		case execute_direct_free_kick_enemy:
-		case execute_indirect_free_kick_enemy:
-		case pit_stop:
-		case victory_dance:
-		default:
+		case playtype::halt:;
+		case playtype::stop:;
+		case playtype::play:;
+		case playtype::prepare_kickoff_friendly:;
+		case playtype::execute_kickoff_friendly:;
+		case playtype::prepare_kickoff_enemy:;
+		case playtype::execute_kickoff_enemy:;
+		case playtype::prepare_penalty_friendly:;
+		case playtype::execute_penalty_friendly:;
+		case playtype::prepare_penalty_enemy:;
+		case playtype::execute_penalty_enemy:;
+		case playtype::execute_direct_free_kick_friendly:;
+		case playtype::execute_indirect_free_kick_friendly:;
+		case playtype::execute_direct_free_kick_enemy:;
+		case playtype::execute_indirect_free_kick_enemy:;
+		case playtype::pit_stop:;
+		case playtype::victory_dance:;
+		default:;
 		}
-*/
+
 	}
 
 	void simple_strategy1::set_playtype(playtype::playtype t) {
