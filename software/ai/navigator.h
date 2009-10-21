@@ -1,15 +1,16 @@
 #ifndef AI_NAVIGATION_H
 #define AI_NAVIGATION_H
 
-#include <glibmm.h>
 #include "util/byref.h"
 #include "world/player.h"
 #include "world/field.h"
+#include <glibmm.h>
+#include <sigc++/sigc++.h>
 
 //
 // A navigator manages movement of a single robot to a target.
 //
-class navigator : public virtual byref {
+class navigator : public virtual byref, public virtual sigc::trackable {
 	public:
 		//
 		// A pointer to a navigator.

@@ -12,6 +12,7 @@
 #include <glibmm.h>
 #include <gtkmm.h>
 #include <libxml++/libxml++.h>
+#include <sigc++/sigc++.h>
 
 class strategy_factory;
 
@@ -19,7 +20,7 @@ class strategy_factory;
 // A strategy manages the overall operation of a team. Individual AI implementations
 // should extend this class to provide their own strategy.
 //
-class strategy : public virtual byref {
+class strategy : public virtual byref, public virtual sigc::trackable {
 	public:
 		//
 		// A pointer to a strategy.

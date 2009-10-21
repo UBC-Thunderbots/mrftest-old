@@ -1,16 +1,17 @@
 #ifndef AI_ROLE_H
 #define AI_ROLE_H
 
-#include <glibmm.h>
 #include "util/byref.h"
 #include "world/ball.h"
 #include "world/field.h"
 #include "world/team.h"
+#include <glibmm.h>
+#include <sigc++/sigc++.h>
 
 //
 // A role manages the operation of a small group of players.
 //
-class role : public virtual byref {
+class role : public virtual byref, public virtual sigc::trackable {
 	public:
 		//
 		// A pointer to a role.
