@@ -8,8 +8,6 @@ namespace {
 			defensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
 			virtual void update();
 			virtual void set_playtype(playtype::playtype t);
-			virtual void add_robots(std::vector<robot::ptr> robots);
-			virtual void remove_robots(std::vector<robot::ptr> robots);
 			virtual strategy_factory &get_factory();
 			virtual Gtk::Widget *get_ui_controls();
 
@@ -31,12 +29,6 @@ namespace {
 		current_playtype = t;
 	}
 	
-	void defensive_strategy::add_robots(std::vector<robot::ptr> robots){
-	}
-	
-	void defensive_strategy::remove_robots(std::vector<robot::ptr> robots){
-	}
-
 	Gtk::Widget *defensive_strategy::get_ui_controls() {
 		return 0;
 	}
