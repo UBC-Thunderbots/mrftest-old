@@ -48,11 +48,6 @@ class tactic : public virtual byref {
 		// The player this role controls.
 		//
 		const player::ptr the_player;
-
-		//
-		// Sub-tactics for this tactic.
-		//
-		std::vector< tactic::ptr > sub_tactics;
 };
 
 #endif
