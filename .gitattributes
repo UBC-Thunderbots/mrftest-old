@@ -39,6 +39,16 @@ software/ai/tactic/pass.h -text
 software/ai/tactic/pass_mode.h -text
 software/ai/tactic/pass_receive.cpp -text
 software/ai/tactic/pass_receive.h -text
+software/firmware/bootproto.cpp -text
+software/firmware/bootproto.h -text
+software/firmware/crc16.cpp -text
+software/firmware/crc16.h -text
+software/firmware/scheduler.cpp -text
+software/firmware/scheduler.h -text
+software/firmware/upload.cpp -text
+software/firmware/upload.h -text
+software/firmware/window.cpp -text
+software/firmware/window.h -text
 software/geom/angle.cpp -text
 software/geom/angle.h -text
 software/geom/point.h -text

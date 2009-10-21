@@ -1,7 +1,9 @@
+#include "firmware/window.h"
 #include "simulator/simulator.h"
 #include "simulator/window.h"
 #include "util/xml.h"
 #include "world/config.h"
+#include "xbee/packetproto.h"
 #include <iostream>
 #include <getopt.h>
 #include <gtkmm.h>
@@ -51,6 +53,30 @@ namespace {
 		// Go go go!
 		Gtk::Main::run();
 	}
+
+	void manage_firmware() {
+		// Get the XML document.
+		xmlpp::Document *xmldoc = config::get();
+
+		// Get the root node, creating it if it doesn't exist.
+		xmlpp::Element *xmlroot = xmldoc->get_root_node();
+		if (!xmlroot || xmlroot->get_name() != "thunderbots") {
+			xmlroot = xmldoc->create_root_node("thunderbots");
+		}
+		xmlutil::strip(xmlroot);
+
+		// Get the world node, creating it if it doesn't exist.
+		xmlpp::Element *xmlworld = xmlutil::strip(xmlutil::get_only_child(xmlroot, "world"));
+
+		// Create the XBee object.
+		xbee_packet_stream xbee("/dev/xbee");
+
+		// Create the UI.
+		firmware_window win(xbee, xmlworld);
+
+		// Go go go!
+		Gtk::Main::run();
+	}
 }
 
 int main(int argc, char **argv) {
@@ -94,7 +120,7 @@ int main(int argc, char **argv) {
 	} else if (do_sim) {
 		simulate();
 	} else if (do_firmware) {
-		std::cerr << "Firmware manager is not implemented yet.\n";
+		manage_firmware();
 	}
 
 	// The configuration file might recently have been dirtied but not flushed

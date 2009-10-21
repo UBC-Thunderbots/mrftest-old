@@ -8,7 +8,7 @@ PROJECTS := rctest thunderbots xbeeconfig
 # Directories will be searched for source files recursively.
 #
 SOURCES_rctest := geom robot_controller robot_controller_test util world
-SOURCES_thunderbots := ai geom robot_controller simulator uicomponents util world xbee main.cpp
+SOURCES_thunderbots := ai firmware geom robot_controller simulator uicomponents util world xbee main.cpp
 SOURCES_xbeeconfig := xbeeconfig.cpp
 
 #
