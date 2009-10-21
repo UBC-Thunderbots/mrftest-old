@@ -44,7 +44,7 @@ class team : public virtual byref {
 		virtual bool yellow() const = 0;
 
 		//
-		// A signal emitted when a robot is added to a team. The new robot was
+		// A signal emitted when a robot is added to the team. The new robot was
 		// added at the end of the team.
 		//
 		sigc::signal<void> &signal_robot_added() {
@@ -52,7 +52,7 @@ class team : public virtual byref {
 		}
 
 		//
-		// A signal emitted when a robot is removed from a team. The parameter
+		// A signal emitted when a robot is removed from the team. The parameter
 		// is the index number of the removed robot.
 		//
 		sigc::signal<void, unsigned int> &signal_robot_removed() {
