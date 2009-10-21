@@ -271,11 +271,17 @@ class team_controls : public virtual Gtk::VBox {
 			rc_frame.add(rc_chooser);
 			rc_chooser.signal_changed().connect(sigc::mem_fun(*this, &team_controls::controller_changed));
 			pack_start(rc_frame, false, false);
+
+			team_data.west_view->signal_robot_added().connect(sigc::mem_fun(*this, &team_controls::player_added));
+			team_data.west_view->signal_robot_removed().connect(sigc::mem_fun(*this, &team_controls::player_removed));
 		}
 
 	private:
 		void add_player() {
 			team_data.add_player();
+		}
+
+		void player_added() {
 			players_list.append_text(Glib::ustring::compose("%1", team_data.west_view->size() - 1));
 		}
 
@@ -283,8 +289,11 @@ class team_controls : public virtual Gtk::VBox {
 			const Gtk::ListViewText::SelectionList &sel = players_list.get_selected();
 			if (sel.size() == 1) {
 				team_data.remove_player(sel[0]);
-				update_model();
 			}
+		}
+
+		void player_removed(unsigned int, robot::ptr) {
+			update_model();
 		}
 
 		void update_model() {
