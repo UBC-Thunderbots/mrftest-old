@@ -93,7 +93,8 @@ void simulator_team_data::set_controller_type(const Glib::ustring &name) {
 	// Assign new controllers to all the bots.
 	for (unsigned int i = 0; i < impls.size(); i++) {
 		if (controller_factory) {
-			impls[i]->set_controller(controller_factory->create_controller());
+			const Glib::ustring &name = Glib::ustring::compose("%1 %2", yellow ? "Yellow" : "Blue", i);
+			impls[i]->set_controller(controller_factory->create_controller(name));
 		} else {
 			impls[i]->set_controller(robot_controller::ptr());
 		}
@@ -114,7 +115,8 @@ void simulator_team_data::add_player() {
 
 	// Set the robot controller.
 	if (controller_factory) {
-		impl->set_controller(controller_factory->create_controller());
+		const Glib::ustring &name = Glib::ustring::compose("%1 %2", yellow ? "Yellow" : "Blue", impls.size());
+		impl->set_controller(controller_factory->create_controller(name));
 	}
 
 	// Insert the new data into the arrays.

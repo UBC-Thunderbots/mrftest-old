@@ -51,7 +51,7 @@ class robot_controller : public virtual byref {
 		//
 		// Returns the factory that created this controller.
 		//
-		virtual robot_controller_factory &get_factory() = 0;
+		virtual robot_controller_factory &get_factory() const = 0;
 
 	protected:
 		//
@@ -81,7 +81,7 @@ class robot_controller_factory : public virtual noncopyable {
 		//
 		// Constructs a new robot_controller.
 		//
-		virtual robot_controller::ptr create_controller() = 0;
+		virtual robot_controller::ptr create_controller(const Glib::ustring &robot_name) = 0;
 
 		//
 		// Gets the collection of all registered controller factories, keyed by name.

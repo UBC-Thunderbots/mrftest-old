@@ -29,7 +29,7 @@ namespace {
 			//
 			// Returns the factory.
 			//
-			virtual robot_controller_factory &get_factory();
+			virtual robot_controller_factory &get_factory() const;
 
 		private:
 			double get_velocity(double d, double v0, double v1, double max_vel, double max_accel);
@@ -124,7 +124,7 @@ namespace {
 			testing_rc_factory() : robot_controller_factory("Testing RC") {
 			}
 
-			virtual robot_controller::ptr create_controller() {
+			virtual robot_controller::ptr create_controller(const Glib::ustring &) {
 				robot_controller::ptr p(new testing_rc);
 				return p;
 			}
@@ -132,7 +132,7 @@ namespace {
 
 	testing_rc_factory factory;
 
-	robot_controller_factory &testing_rc::get_factory() {
+	robot_controller_factory &testing_rc::get_factory() const {
 		return factory;
 	}
 }
