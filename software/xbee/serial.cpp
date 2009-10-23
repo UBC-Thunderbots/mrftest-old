@@ -12,7 +12,7 @@
 
 namespace {
 	int open_port(const Glib::ustring &filename) {
-		const std::string &fn = Glib::locale_from_utf8(filename);
+		const std::string &fn = Glib::filename_from_utf8(filename);
 		int fd = open(fn.c_str(), O_RDWR | O_NOCTTY);
 		if (fd < 0) {
 			throw std::runtime_error("Cannot open serial port!");
