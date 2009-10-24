@@ -39,12 +39,8 @@ void simulator_team_data::set_engine(simulator_engine::ptr e) {
 	unsigned int num_players = impls.size();
 
 	// Delete old objects.
-	if (engine)
-		for (unsigned int i = 0; i < impls.size(); i++)
-			engine->remove_player(impls[i]);
-	impls.clear();
-	west_players.clear();
-	east_players.clear();
+	while (impls.size())
+		remove_player(impls.size() - 1);
 
 	// Set new engine.
 	engine = e;
