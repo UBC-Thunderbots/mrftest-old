@@ -149,6 +149,7 @@ void simulator_team_data::remove_player(unsigned int index) {
 	east_view->signal_robot_removed().emit(index, east_bot);
 
 	// Remove the player from the engine.
-	engine->remove_player(impl);
+	if (engine)
+		engine->remove_player(impl);
 }
 
