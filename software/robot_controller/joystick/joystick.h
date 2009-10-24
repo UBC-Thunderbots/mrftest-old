@@ -2,7 +2,7 @@
 #define ROBOT_CONTROLLER_JOYSTICK_JOYSTICK_H
 
 #include "util/fd.h"
-#include "util/noncopyable.h"
+#include "util/byref.h"
 #include <vector>
 #include <utility>
 #include <glibmm.h>
@@ -11,8 +11,13 @@
 //
 // Allows access to a joystick device.
 //
-class joystick : public virtual noncopyable, public virtual sigc::trackable {
+class joystick : public virtual byref, public virtual sigc::trackable {
 	public:
+		//
+		// A pointer to a joystick.
+		//
+		typedef Glib::RefPtr<joystick> ptr;
+
 		//
 		// Opens a joystick.
 		//
