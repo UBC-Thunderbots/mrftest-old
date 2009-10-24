@@ -21,7 +21,10 @@ class joystick : public virtual byref, public virtual sigc::trackable {
 		//
 		// Opens a joystick.
 		//
-		joystick(const Glib::ustring &filename);
+		static ptr create(const Glib::ustring &filename) {
+			ptr p(new joystick(filename));
+			return p;
+		}
 
 		//
 		// Returns the number of axes.
@@ -67,6 +70,7 @@ class joystick : public virtual byref, public virtual sigc::trackable {
 		Glib::ustring stick_filename;
 		Glib::ustring stick_name;
 
+		joystick(const Glib::ustring &filename);
 		bool on_readable(Glib::IOCondition);
 };
 

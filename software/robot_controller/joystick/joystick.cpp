@@ -64,7 +64,7 @@ bool joystick::on_readable(Glib::IOCondition) {
 	return true;
 }
 
-const std::vector<std::pair<Glib::ustring, Glib::ustring> > &list() {
+const std::vector<std::pair<Glib::ustring, Glib::ustring> > &joystick::list() {
 	if (!list_inited) {
 		Glib::Dir dir("/dev/input");
 		for (Glib::Dir::const_iterator i = dir.begin(), iend = dir.end(); i != iend; ++i) {
