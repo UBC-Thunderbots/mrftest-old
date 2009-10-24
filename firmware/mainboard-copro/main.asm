@@ -13,6 +13,7 @@
 	processor 18F4550
 #include <p18f4550.inc>
 #include "pins.inc"
+#include "sleep.inc"
 
 
 
@@ -39,31 +40,35 @@ main:
 	; BRAKE goes high to lock the wheels until the FPGA is running.
 	bsf LAT_BRAKE, PIN_BRAKE
 	bcf TRIS_BRAKE, PIN_BRAKE
-	; SPI_TX is tristated while the FPGA drives it to load from Flash.
+	; SPI_TX is tristated if FPGA will configure itself, until in run mode.
+	; If in bootload mode, bootloader will drive SPI_TX.
 	; SPI_RX is always an input.
-	; SPI_CK is tristated while the FPGA drives it to load from Flash.
-	; SPI_SPI_SS_FLASH is tristated while the FPGA drives it to load from Flash.
+	; SPI_CK is tristated (see SPI_TX).
+	; SPI_SPI_SS_FLASH is tristated (see SPI_TX).
 	; SPI_SPI_SS_FPGA is high until the ADC is ready to send data to the FPGA.
 	bsf LAT_SPI_SS_FPGA, PIN_SPI_SS_FPGA
 	bcf TRIS_SPI_SS_FPGA, PIN_SPI_SS_FPGA
 	; FLASH_WP is high unless bootloading.
 	bsf LAT_FLASH_WP, PIN_FLASH_WP
 	bcf TRIS_FLASH_WP, PIN_FLASH_WP
-	; XBEE_TX is tristated unless in bootloader mode.
+	; XBEE_TX is tristated unless bootloading.
 	; XBEE_RX is always an input.
 	; XBEE_BL is always an input.
 	; ICSP_PGD is always an input.
 	; ICSP_PGC is always an input.
 	; ICSP_PGM is always an input.
-	; USB_DP is low until controlled by the SIE.
+	; USB_DP is low to avoid floating pin.
 	bcf LAT_USB_DP, PIN_USB_DP
 	bcf TRIS_USB_DP, PIN_USB_DP
-	; USB_DM is low until controlled by the SIE.
+	; USB_DM is low to avoid floating pin.
 	bcf LAT_USB_DM, PIN_USB_DM
 	bcf TRIS_USB_DM, PIN_USB_DM
-	; MISC is low as not needed currently.
+	; MISC is low until driven high for debug purposes.
 	bcf LAT_MISC, PIN_MISC
 	bcf TRIS_MISC, PIN_MISC
+
+	; Wait a tenth of a second for everything to stabilize.
+	call sleep_100ms
 
 	; Now that we've initialized ourself, we either go into bootloader mode or
 	; go into FPGA configuration mode, depending on the state of the XBee pin.

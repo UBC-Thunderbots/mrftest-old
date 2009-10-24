@@ -15,7 +15,6 @@
 
 
 	global spi_drive
-	global spi_tristate
 	global spi_send
 	global spi_receive
 
@@ -37,19 +36,8 @@ spi_drive:
 	bcf LAT_SPI_TX, PIN_SPI_TX
 	bcf TRIS_SPI_TX, PIN_SPI_TX
 
-	; Done!
-	return
-
-
-
-spi_tristate:
-	; Tristate CLOCK and TRANSMIT first.
-	bsf TRIS_SPI_CK, PIN_SPI_CK
-	bsf TRIS_SPI_TX, PIN_SPI_TX
-
-	; Now tristate both SLAVE SELECT lines.
-	bsf TRIS_SPI_SS_FLASH, PIN_SPI_SS_FLASH
-	bsf TRIS_SPI_SS_FPGA, PIN_SPI_SS_FPGA
+	; Wait for everything to settle.
+	call sleep_10ms
 
 	; Done!
 	return

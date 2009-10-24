@@ -16,7 +16,6 @@
 
 
 	global adc
-	extern bootload
 
 
 
@@ -88,7 +87,7 @@ loop:
 
 	; Check if the bootload signal line has gone high.
 	btfsc PORT_XBEE_BL, PIN_XBEE_BL
-	bra adc_done
+	reset
 
 	; Lower /SS to the FPGA.
 	bcf LAT_SPI_SS_FPGA, PIN_SPI_SS_FPGA
@@ -114,14 +113,4 @@ loop:
 
 	; Go back and do it again.
 	bra loop
-
-
-
-adc_done:
-	; The bootload signal was sent high.
-	; Turn off the ADC.
-	clrf ADCON0
-
-	; Go into bootloading mode.
-	goto bootload
 	end

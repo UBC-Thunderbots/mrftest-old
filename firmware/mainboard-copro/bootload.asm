@@ -64,7 +64,6 @@
 
 
 	global bootload
-	extern configure_fpga
 
 
 
@@ -979,32 +978,11 @@ bootload:
 	banksel irpptr
 	clrf irpptr
 
-	; Lock the wheels.
-	bcf TRIS_BRAKE, PIN_BRAKE
-
-	; Drive PROG_B low to shut down the FPGA.
-	bcf LAT_PROG_B, PIN_PROG_B
-
-	; Wait a tenth of a second for the FPGA to shut down.
-	call sleep_100ms
-
 	; Take control of the SPI bus.
 	call spi_drive
 
-	; Wait for the cleared slave-select lines to settle.
-	call sleep_10ms
-
 	; Allow writes to the Flash chip.
 	bcf LAT_FLASH_WP, PIN_FLASH_WP
-
-	; Send the RELEASE POWERDOWN command (0xAB) in case the chip was asleep.
-	rcall select_chip
-	movlw 0xAB
-	call spi_send
-	rcall deselect_chip
-
-	; Wait for the chip to power up in case it was powered down.
-	call sleep_1ms
 
 	; Send the JEDEC ID command (0x9F) and save the response.
 	banksel jedecid
@@ -1022,8 +1000,6 @@ bootload:
 	; Start up the USART and enable interrupts.
 	clrf RCSTA
 	clrf TXSTA
-	bsf TRIS_XBEE_TX, PIN_XBEE_TX
-	bsf TRIS_XBEE_RX, PIN_XBEE_RX
 	clrf SPBRGH
 	movlw 15
 	movwf SPBRG
@@ -1043,7 +1019,7 @@ bootload:
 irp_loop:
 	; Check if the IO pin has gone low.
 	btfss PORT_XBEE_BL, PIN_XBEE_BL
-	bra exit_bootloader
+	reset
 
 	; Address the IRP.
 	rcall irpptr_to_irp_fsr2
@@ -1072,26 +1048,6 @@ irp_loop:
 	movlw 0x03
 	andwf irpptr, F
 	bra irp_loop
-
-
-
-exit_bootloader:
-	; The XBee bootload signal line has gone low.
-	; Disable interrupts.
-	clrf PIE1
-	clrf INTCON
-
-	; Shut down the USART.
-	clrf RCSTA
-	clrf TXSTA
-	bsf TRIS_XBEE_TX, PIN_XBEE_TX
-	bsf TRIS_XBEE_RX, PIN_XBEE_RX
-
-	; Write-protect the Flash chip.
-	bsf LAT_FLASH_WP, PIN_FLASH_WP
-
-	; Start configuring the FPGA.
-	goto configure_fpga
 
 
 
