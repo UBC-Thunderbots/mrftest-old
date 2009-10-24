@@ -12,7 +12,7 @@
 
 namespace {
 	int open_device(const Glib::ustring &filename) {
-		const std::string &fn = Glib::filename_from_utf8(filename);
+		const std::string &fn = Glib::filename_from_utf8(Glib::ustring::compose("/dev/input/%1", filename));
 		int desc = open(fn.c_str(), O_RDONLY | O_NONBLOCK);
 		if (desc < 0)
 			throw std::runtime_error("Error opening joystick!");
