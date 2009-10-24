@@ -58,7 +58,7 @@ class joystick : public virtual byref, public virtual sigc::trackable {
 		// The first element of the pair is the filename.
 		// The second element of the pair is the model name.
 		//
-		static std::vector<std::pair<Glib::ustring, Glib::ustring> > list();
+		static const std::vector<std::pair<Glib::ustring, Glib::ustring> > &list();
 
 	private:
 		file_descriptor fd;

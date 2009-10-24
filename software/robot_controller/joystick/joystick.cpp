@@ -18,6 +18,9 @@ namespace {
 			throw std::runtime_error("Error opening joystick!");
 		return desc;
 	}
+
+	bool list_inited = false;
+	std::vector<std::pair<Glib::ustring, Glib::ustring> > list_data;
 }
 
 joystick::joystick(const Glib::ustring &filename) : fd(open_device(filename)), stick_filename(filename) {
@@ -61,18 +64,19 @@ bool joystick::on_readable(Glib::IOCondition) {
 	return true;
 }
 
-std::vector<std::pair<Glib::ustring, Glib::ustring> > list() {
-	std::vector<std::pair<Glib::ustring, Glib::ustring> > v;
-
-	Glib::Dir dir("/dev/input");
-	for (Glib::Dir::const_iterator i = dir.begin(), iend = dir.end(); i != iend; ++i) {
-		const Glib::ustring &filename = Glib::filename_to_utf8(*i);
-		if (filename[0] == 'j' && filename[1] == 's') {
-			joystick js(filename);
-			v.push_back(std::make_pair(filename, js.name()));
+const std::vector<std::pair<Glib::ustring, Glib::ustring> > &list() {
+	if (!list_inited) {
+		Glib::Dir dir("/dev/input");
+		for (Glib::Dir::const_iterator i = dir.begin(), iend = dir.end(); i != iend; ++i) {
+			const Glib::ustring &filename = Glib::filename_to_utf8(*i);
+			if (filename[0] == 'j' && filename[1] == 's') {
+				joystick js(filename);
+				list_data.push_back(std::make_pair(filename, js.name()));
+			}
 		}
+		list_inited = true;
 	}
 
-	return v;
+	return list_data;
 }
 
