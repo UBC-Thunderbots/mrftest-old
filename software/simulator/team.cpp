@@ -131,6 +131,7 @@ void simulator_team_data::add_player() {
 
 void simulator_team_data::remove_player(unsigned int index) {
 	// Grab a reference to the players before clearing the arrays.
+	player_impl::ptr impl = impls[index];
 	robot::ptr west_bot = west_players[index];
 	robot::ptr east_bot = east_players[index];
 
@@ -146,5 +147,8 @@ void simulator_team_data::remove_player(unsigned int index) {
 	// Send notifications.
 	west_view->signal_robot_removed().emit(index, west_bot);
 	east_view->signal_robot_removed().emit(index, east_bot);
+
+	// Remove the player from the engine.
+	engine->remove_player(impl);
 }
 
