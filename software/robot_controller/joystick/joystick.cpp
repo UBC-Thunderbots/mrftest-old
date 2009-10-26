@@ -61,6 +61,8 @@ bool joystick::on_readable(Glib::IOCondition) {
 		}
 	}
 
+	sig_moved.emit();
+
 	return true;
 }
 

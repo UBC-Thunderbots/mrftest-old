@@ -57,6 +57,11 @@ class joystick : public virtual byref, public virtual sigc::trackable {
 		const Glib::ustring &name() const { return stick_name; }
 
 		//
+		// Fired when the joystick changes state.
+		//
+		sigc::signal<void> &signal_moved() { return sig_moved; }
+
+		//
 		// Returns a list of all the joysticks on the system.
 		// The first element of the pair is the filename.
 		// The second element of the pair is the model name.
@@ -69,6 +74,7 @@ class joystick : public virtual byref, public virtual sigc::trackable {
 		std::vector<bool> buttons_data;
 		Glib::ustring stick_filename;
 		Glib::ustring stick_name;
+		sigc::signal<void> sig_moved;
 
 		joystick(const Glib::ustring &filename);
 		bool on_readable(Glib::IOCondition);
