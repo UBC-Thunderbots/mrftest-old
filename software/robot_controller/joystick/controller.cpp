@@ -101,7 +101,6 @@ namespace {
 					linear_velocity.y = 0;
 					angular_velocity = 0;
 				}
-				disp.update();
 			}
 
 			virtual robot_controller_factory &get_factory() const {
@@ -110,12 +109,12 @@ namespace {
 
 		private:
 			joystick::ptr stick;
-
 			Gtk::ComboBoxText joybox;
-
 			joystick_display_rectangle disp;
+			sigc::connection move_connection;
 
 			void joy_changed() {
+				move_connection.disconnect();
 				int idx = joybox.get_active_row_number();
 				if (idx > 0) {
 					stick = joystick::create(joystick::list()[idx - 1].first);
@@ -123,6 +122,7 @@ namespace {
 					stick.reset();
 				}
 				disp.set_stick(stick);
+				move_connection = stick->signal_moved().connect(sigc::mem_fun(disp, &joystick_display_rectangle::update));
 			}
 	};
 
