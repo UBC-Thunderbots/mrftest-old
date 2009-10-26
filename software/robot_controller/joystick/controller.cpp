@@ -63,7 +63,7 @@ namespace {
 					// Draw the angular velocity line.
 					double t = stick->axis(AXIS_ROT);
 					t = t / 32767.0 * PI;
-					const point &rot = point(0.0, 1.0).rotate(t) * width / 2.0;
+					const point &rot = point(0.0, -1.0).rotate(t) * width / 2.0;
 					ctx->set_source_rgb(0.0, 1.0, 0.0);
 					ctx->move_to(width / 2.0, height / 2.0);
 					ctx->line_to(rot.x + width / 2.0, rot.y + height / 2.0);
