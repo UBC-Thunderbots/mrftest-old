@@ -53,6 +53,7 @@ software/geom/angle.cpp -text
 software/geom/angle.h -text
 software/geom/point.h -text
 software/main.cpp -text
+software/robot_controller/joystick/controller.cpp -text
 software/robot_controller/joystick/joystick.cpp -text
 software/robot_controller/joystick/joystick.h -text
 software/robot_controller/robot_controller.cpp -text
