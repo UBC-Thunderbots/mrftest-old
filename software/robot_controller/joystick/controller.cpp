@@ -76,6 +76,7 @@ namespace {
 					y = (y / 32767.0 / 2.0 + 0.5) * height;
 					ctx->set_source_rgb(1.0, 0.0, 0.0);
 					ctx->arc(x, y, 1.0, 0.0, 2.0 * PI);
+					ctx->fill();
 				}
 
 				return true;
