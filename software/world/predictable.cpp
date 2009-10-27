@@ -31,7 +31,7 @@ predictable::predictable() {
 	approxy.setlength(MAX_DEGREE + 1);
 }
 
-point predictable::velocity() const {
+point predictable::est_velocity() const {
 	return point(approxx(1), approxy(1));
 }
 

@@ -17,7 +17,7 @@ class predictable {
 		//
 		// Gets the predicted velocity.
 		//
-		point velocity() const;
+		point est_velocity() const;
 
 	protected:
 		//
