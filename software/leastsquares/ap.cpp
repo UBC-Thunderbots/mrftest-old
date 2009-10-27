@@ -483,7 +483,7 @@ bool ap::readstrings(std::string file, std::list<std::string> *pOutput, std::str
 void ap::explodestring(std::string s, char sep, std::vector<std::string> *pOutput)
 {
     std::string tmp;
-    int i;
+    unsigned int i;
     tmp = "";
     pOutput->clear();
     for(i=0; i<s.length(); i++)

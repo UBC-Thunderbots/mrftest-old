@@ -151,10 +151,6 @@ void buildcubicspline(ap::real_1d_array x,
     ap::real_1d_array b;
     ap::real_1d_array d;
     int i;
-    int tblsize;
-    double delta;
-    double delta2;
-    double delta3;
 
     ap::ap_error::make_assertion(n>=2, "BuildCubicSpline: N<2!");
     ap::ap_error::make_assertion(boundltype==0||boundltype==1||boundltype==2, "BuildCubicSpline: incorrect BoundLType!");
@@ -661,9 +657,6 @@ void splinelintransy(ap::real_1d_array& c, double a, double b)
 {
     int i;
     int n;
-    double v;
-    double dv;
-    double d2v;
     ap::real_1d_array x;
     ap::real_1d_array y;
     ap::real_1d_array d;
@@ -763,7 +756,6 @@ void spline3buildtable(int n,
      ap::real_2d_array& ctbl)
 {
     bool c;
-    int e;
     int g;
     double tmp;
     int nxm1;
@@ -775,7 +767,6 @@ void spline3buildtable(int n,
     double dxjp1;
     double dyjp1;
     double dxp;
-    double dyp;
     double yppa;
     double yppb;
     double pj;

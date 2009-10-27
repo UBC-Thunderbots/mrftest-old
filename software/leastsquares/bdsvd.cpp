@@ -608,7 +608,7 @@ static bool bidiagonalsvddecompositioninternal(ap::real_1d_array& d,
             // Run convergence test in forward direction
             // First apply standard test to bottom of matrix
             //
-            if( fabs(e(m-1))<=fabs(tol)*fabs(d(m))||tol<0&&fabs(e(m-1))<=thresh )
+            if( fabs(e(m-1))<=fabs(tol)*fabs(d(m))||(tol<0&&fabs(e(m-1))<=thresh) )
             {
                 e(m-1) = 0;
                 continue;
@@ -648,7 +648,7 @@ static bool bidiagonalsvddecompositioninternal(ap::real_1d_array& d,
             // Run convergence test in backward direction
             // First apply standard test to top of matrix
             //
-            if( fabs(e(ll))<=fabs(tol)*fabs(d(ll))||tol<0&&fabs(e(ll))<=thresh )
+            if( fabs(e(ll))<=fabs(tol)*fabs(d(ll))||(tol<0&&fabs(e(ll))<=thresh) )
             {
                 e(ll) = 0;
                 continue;
