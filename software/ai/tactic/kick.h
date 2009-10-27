@@ -1,5 +1,5 @@
-#ifndef AI_TACTIC_MOVE_H
-#define AI_TACTIC_MOVE_H
+#ifndef AI_TACTIC_KICK_H
+#define AI_TACTIC_KICK_H
 
 #include <glibmm.h>
 #include "util/byref.h"
@@ -13,17 +13,17 @@
 //
 // Just a wrapper around the move function in player.
 //
-class move : public tactic {
+class kick : public tactic {
 	public:
 		//
 		// A pointer to a move tactic.
 		//
-		typedef Glib::RefPtr<move> ptr;
+		typedef Glib::RefPtr<kick> ptr;
 
 		//
 		// Constructs a new move tactic.
 		//
-		move(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player);
+		kick(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player);
 
 		//
 		// Runs the AI for one time tick.
@@ -33,23 +33,13 @@ class move : public tactic {
 		//
 		// Sets the target position for this move tactic
 		//
-		void set_position(const point& p);	
-
-		//
-		// Sets the target orientation for this move tactic
-		//
-		void set_orientation(const double& orientation);
+		void set_target(const point& p);	
 
 	protected:		
 
-		// The navigator that moves
-		navigator::ptr the_navigator;
-
 		// Target position
-		point target_position;
+		point the_target;
 
-		// Target orientation
-		double target_orientation;
 };
 
 #endif

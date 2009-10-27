@@ -32,6 +32,8 @@ software/ai/tactic.cpp -text
 software/ai/tactic.h -text
 software/ai/tactic/chase.cpp -text
 software/ai/tactic/chase.h -text
+software/ai/tactic/kick.cpp -text
+software/ai/tactic/kick.h -text
 software/ai/tactic/move.cpp -text
 software/ai/tactic/move.h -text
 software/ai/tactic/pass.cpp -text
@@ -39,6 +41,8 @@ software/ai/tactic/pass.h -text
 software/ai/tactic/pass_mode.h -text
 software/ai/tactic/pass_receive.cpp -text
 software/ai/tactic/pass_receive.h -text
+software/ai/tactic/shoot.cpp -text
+software/ai/tactic/shoot.h -text
 software/firmware/bootproto.cpp -text
 software/firmware/bootproto.h -text
 software/firmware/crc16.cpp -text
