@@ -27,8 +27,8 @@ namespace {
 
 	offensive_strategy::offensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
 		// Initialize variables here (e.g. create the roles).
-    the_team->signal_robot_added().connect(sigc::mem_fun(*this, *offensive_strategy::handleRobotAdded));
-    the_team->signal_robot_removed().connect(sigc::mem_fun(*this, *offensive_strategy::handleRobotRemoved));
+    the_team->signal_robot_added().connect(sigc::mem_fun(*this, &offensive_strategy::handleRobotAdded));
+    the_team->signal_robot_removed().connect(sigc::mem_fun(*this, &offensive_strategy::handleRobotRemoved));
 		/*
 		 offender and defender doesn't exist yet >"< 
 		 role::offender off = role::offender(ball, field, team);
@@ -97,7 +97,7 @@ namespace {
   void offensive_strategy::handleRobotAdded(void){
   }
 
-  void offensive_stretegy::handleRobotRemoved(unsigned int index, robot::ptr r){
+  void offensive_strategy::handleRobotRemoved(unsigned int index, robot::ptr r){
   }
 
 	class offensive_strategy_factory : public virtual strategy_factory {
