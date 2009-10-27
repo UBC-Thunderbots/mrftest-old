@@ -13,8 +13,8 @@ namespace {
 			virtual void set_playtype(playtype::playtype t);
 			virtual strategy_factory &get_factory();
 			virtual Gtk::Widget *get_ui_controls();
-      virtual void handleRobotAdded(void);
-      virtual void handleRobotRemoved(unsigned int index, robot::ptr r);
+			virtual void robot_added(void);
+			virtual void robot_removed(unsigned int index, robot::ptr r);
 
 		private:
 			playtype::playtype current_playtype;
@@ -27,8 +27,6 @@ namespace {
 
 	offensive_strategy::offensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
 		// Initialize variables here (e.g. create the roles).
-    the_team->signal_robot_added().connect(sigc::mem_fun(*this, &offensive_strategy::handleRobotAdded));
-    the_team->signal_robot_removed().connect(sigc::mem_fun(*this, &offensive_strategy::handleRobotRemoved));
 		/*
 		 offender and defender doesn't exist yet >"< 
 		 role::offender off = role::offender(ball, field, team);
@@ -94,10 +92,10 @@ namespace {
 		return 0;
 	}
 
-  void offensive_strategy::handleRobotAdded(void){
+  void offensive_strategy::robot_added(void){
   }
 
-  void offensive_strategy::handleRobotRemoved(unsigned int index, robot::ptr r){
+  void offensive_strategy::robot_removed(unsigned int index, robot::ptr r){
   }
 
 	class offensive_strategy_factory : public virtual strategy_factory {
