@@ -26,6 +26,13 @@ class robot : public virtual byref {
 		}
 
 		//
+		// The estimated velocity of the robot at the last camera frame.
+		//
+		point est_velocity() const {
+			return impl->est_velocity() * (flip ? -1.0 : 1.0);
+		}
+
+		//
 		// The orientation of the robot in radians at the last camera frame.
 		//
 		double orientation() const {

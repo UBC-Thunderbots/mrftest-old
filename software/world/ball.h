@@ -27,6 +27,13 @@ class ball : public virtual byref {
 		//
 		// The estimated velocity of the ball at the last camera frame.
 		//
+		point est_velocity() const {
+			return impl->est_velocity() * (flip ? -1.0 : 1.0);
+		}
+
+		//
+		// The estimated velocity of the ball at the last camera frame.
+		//
 		point velocity() const {
 			return impl->velocity() * (flip ? -1.0 : 1.0);
 		}

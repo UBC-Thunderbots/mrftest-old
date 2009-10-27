@@ -1,16 +1,17 @@
 #ifndef WORLD_ROBOT_IMPL_H
 #define WORLD_ROBOT_IMPL_H
 
-#include <glibmm/refptr.h>
 #include "geom/point.h"
 #include "util/byref.h"
+#include "world/predictable.h"
+#include <glibmm/refptr.h>
 
 //
 // A robot can be either friendly or enemy. An implementation of the world must
 // provide an implementation of this class and use it to construct robot objects
 // to pass to the AI. Vectors in this class are in global coordinates.
 //
-class robot_impl : public virtual byref {
+class robot_impl : public virtual byref, public virtual predictable {
 	public:
 		//
 		// A pointer to a robot_impl.

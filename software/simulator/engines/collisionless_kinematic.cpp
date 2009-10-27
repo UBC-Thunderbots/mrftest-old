@@ -47,6 +47,7 @@ namespace {
 					the_velocity = point(0.0, 0.0);
 				else
 					the_velocity += velocity_diff;
+				add_position(the_position);
 			}
 
 			virtual point position() const {
@@ -89,6 +90,8 @@ namespace {
 				}
 
 				the_orientation = angle_mod(the_orientation + avelocity);
+
+				add_position(the_position);
 			}
 
 			virtual point position() const {
