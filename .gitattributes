@@ -127,6 +127,8 @@ software/world/player_impl.cpp -text
 software/world/player_impl.h -text
 software/world/playtype.cpp -text
 software/world/playtype.h -text
+software/world/predictable.cpp -text
+software/world/predictable.h -text
 software/world/robot.h -text
 software/world/robot_impl.h -text
 software/world/team.cpp -text
