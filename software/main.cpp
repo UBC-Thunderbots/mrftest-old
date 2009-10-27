@@ -1,6 +1,7 @@
 #include "firmware/window.h"
 #include "simulator/simulator.h"
 #include "simulator/window.h"
+#include "util/args.h"
 #include "util/xml.h"
 #include "world/config.h"
 #include "xbee/packetproto.h"
@@ -80,6 +81,10 @@ namespace {
 }
 
 int main(int argc, char **argv) {
+	// Save raw arguments.
+	args::argc = argc;
+	args::argv = argv;
+
 	// Initialize GTK+.
 	Gtk::Main mn(argc, argv);
 

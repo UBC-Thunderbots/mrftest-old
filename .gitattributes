@@ -144,6 +144,8 @@ software/uicomponents/visualizer.cpp -text
 software/uicomponents/visualizer.h -text
 software/uicomponents/world_add_bot_dialog.cpp -text
 software/uicomponents/world_add_bot_dialog.h -text
+software/util/args.cpp -text
+software/util/args.h -text
 software/util/byref.h -text
 software/util/circular_buffer.h -text
 software/util/dprint.h -text
