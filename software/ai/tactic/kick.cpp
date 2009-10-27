@@ -7,6 +7,10 @@ void kick::set_target(const point& p) {
 	the_target = p;
 }
 
+void kick::set_chip(const bool& chip) {
+	should_chip = chip;
+}
+
 void kick::update() {
 	// calculate orientation based on the target
 	point target = the_target - the_player->position();
@@ -20,6 +24,9 @@ void kick::update() {
 	the_player->move(the_player->position(), the_player->orientation()+theta);
 
 	// assume maximum strength for now...
-	the_player->kick(1);
+	if (should_chip)
+		the_player->chip(1);
+	else
+		the_player->kick(1);
 }
 

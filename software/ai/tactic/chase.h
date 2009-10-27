@@ -1,5 +1,5 @@
-#ifndef AI_TACTIC_PASS_CHASE_H
-#define AI_TACTIC_PASS_CHASE_H
+#ifndef AI_TACTIC_CHASE_H
+#define AI_TACTIC_CHASE_H
 
 #include <glibmm.h>
 #include "util/byref.h"
@@ -11,13 +11,13 @@
 #include "ai/tactic/move.h"
 
 //
-// A tactic controls the operation of a single player doing some activity.
+// 
 //
 class chase : public tactic {
 	public:
 
 		//
-		// Constructs a new pass receive tactic. 
+		// Constructs a new chase tactic. 
 		//
 		chase(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player);
 

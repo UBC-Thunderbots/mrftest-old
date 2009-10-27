@@ -30,6 +30,8 @@ software/ai/strategy/offensive_strategy.cpp -text
 software/ai/strategy/simple_strategy1.cpp -text
 software/ai/tactic.cpp -text
 software/ai/tactic.h -text
+software/ai/tactic/block.cpp -text
+software/ai/tactic/block.h -text
 software/ai/tactic/chase.cpp -text
 software/ai/tactic/chase.h -text
 software/ai/tactic/kick.cpp -text

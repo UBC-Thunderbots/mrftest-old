@@ -11,17 +11,17 @@
 #include "ai/navigator.h"
 
 //
-// Just a wrapper around the move function in player.
+// 
 //
 class kick : public tactic {
 	public:
 		//
-		// A pointer to a move tactic.
+		// A pointer to a kick tactic.
 		//
 		typedef Glib::RefPtr<kick> ptr;
 
 		//
-		// Constructs a new move tactic.
+		// Constructs a new kick tactic.
 		//
 		kick(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player);
 
@@ -31,14 +31,22 @@ class kick : public tactic {
 		void update();
 
 		//
-		// Sets the target position for this move tactic
+		// Sets the target position for this kick tactic.
 		//
 		void set_target(const point& p);	
+
+		//
+		// Sets rather the player chips the ball or kicks the ball.
+		//
+		void set_chip(const bool& chip);
 
 	protected:		
 
 		// Target position
 		point the_target;
+
+		// Holds if this tactic should chip the ball rather than simply kicking it
+		bool should_chip;
 
 };
 

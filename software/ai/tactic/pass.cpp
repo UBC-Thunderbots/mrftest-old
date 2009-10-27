@@ -19,7 +19,8 @@ point pass::calculate_target() {
 			return the_receiver->position();
 		case FULL_SPEED:
 			// assuming the receiver is moving full speed forward
-			break;
+			// TODO: use velocity of the ball
+			return the_receiver->position() + the_receiver->est_velocity();
 		default:
 			return the_receiver->position();
 		break;
