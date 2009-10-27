@@ -1,10 +1,9 @@
 #include "ai/strategy.h"
 #include "ai/role.h"
-//#include <Map>
 #include <algorithm>
 #include <vector>
 using namespace std;
-//created by Kenneth Lui, last updated 12 Oct 2009.
+//created by Kenneth Lui, last updated 26 Oct 2009.
 
 namespace {
 
@@ -40,7 +39,7 @@ namespace {
 			static const int WAIT_AT_LEAST_TURN = 5;		// We need this because we don't want to make frequent changes
 			int turnSinceLastUpdate;
 			double possessionConfidence;
-			static const int PREFERRED_OFF_TO_DEF_DIFF = 1;	// i.e. one more offender than defender
+			static const int DEFAULT_OFF_TO_DEF_DIFF = 1;	// i.e. one more offender than defender
 			// Create variables here (e.g. to store the roles).
 	};
 
@@ -59,8 +58,12 @@ namespace {
 		
 
 		turnSinceLastUpdate++;	// doesn't have effect yet.
+		
+		//keep for future
+		//int our_score = the_team->score();
+		//int their_score = the_team->other()->score();
 
-		//get our team's robots' position and distance to the ball.		
+		//get our team's robots' position and distance to the ball.
 		vector<robot_details*> ourDetails_front;
 		vector<robot_details*> ourDetails_back;
 		unsigned int our_team_size = the_team->size();
@@ -91,8 +94,31 @@ namespace {
 		}
 		sort(theirDistanceToBall, theirDistanceToBall + their_team_size);
 
-		int prefer_offender_number = min( (int)our_team_size , (int)ceil(( our_team_size + PREFERRED_OFF_TO_DEF_DIFF)/2) );	//may need improvement
-//		int prefer_defender_number = our_team_size - prefer_offender_number;
+		// effective_team_size is original team size - 1 (goalie)
+		int our_effective_team_size = 0;
+		if (our_team_size & 1<<31)
+		  { our_effective_team_size = (our_team_size & 0x7fffffff);
+		  }
+		if (our_effective_team_size>0)
+		  { our_effective_team_size--;
+		  }
+		int their_effective_team_size = 0;
+		if (their_team_size & 1<<31)
+		  { their_effective_team_size = (their_team_size & 0x7fffffff);
+		  }
+		if (their_effective_team_size>0)
+		  { their_effective_team_size--;
+		  }
+		int prefer_off_to_def_diff = DEFAULT_OFF_TO_DEF_DIFF + our_effective_team_size - their_effective_team_size;
+		if (prefer_off_to_def_diff>our_effective_team_size)
+		  {    prefer_off_to_def_diff = our_effective_team_size;
+		  }
+		if (prefer_off_to_def_diff< -1 * our_effective_team_size)
+		  {    prefer_off_to_def_diff = -1 * our_effective_team_size;
+		  }
+		int prefer_defender_number = min((our_effective_team_size - prefer_off_to_def_diff)/2, our_effective_team_size);
+		int prefer_offender_number = our_effective_team_size - prefer_defender_number;
+		
 		if (prefer_offender_number == 0 )
 		{
 			//assign all robots to defend
