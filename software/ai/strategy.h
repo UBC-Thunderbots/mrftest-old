@@ -53,15 +53,15 @@ class strategy : public virtual byref, public virtual sigc::trackable {
 		//
 		strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
 
-    //
-    // function dedicated to handle if a robot has been added to our team
-    //
-    virtual void handleRobotAdded(void) = 0;
+		//
+		// function dedicated to handle if a robot has been added to our team
+		//
+		virtual void handleRobotAdded(void) = 0;
 
-    //
-    // function dedicated to handle if a robot has been removed from our team
-    //
-    virtual void handleRobotRemoved(unsigned int index, robot::ptr r) = 0;
+		//
+		// function dedicated to handle if a robot has been removed from our team
+		//
+		virtual void handleRobotRemoved(unsigned int index, robot::ptr r) = 0;
 
 		//
 		// The ball.
