@@ -7,7 +7,7 @@ PROJECTS := rctest thunderbots xbeeconfig
 # Here, write a list of the source files and directories for each executable.
 # Directories will be searched for source files recursively.
 #
-SOURCES_rctest := geom robot_controller robot_controller_test util world
+SOURCES_rctest := geom leastsquares robot_controller robot_controller_test util world
 SOURCES_thunderbots := ai firmware geom leastsquares robot_controller simulator uicomponents util world xbee main.cpp
 SOURCES_xbeeconfig := xbeeconfig.cpp
 
