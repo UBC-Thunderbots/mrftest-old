@@ -7,12 +7,12 @@
 #include <gtkmm.h>
 
 namespace {
-	struct IDENT_DATA {
+	struct __attribute__((packed)) IDENT_DATA {
 		uint8_t signature[5];
 		uint8_t manufacturer;
 		uint8_t memory_type;
 		uint8_t capacity;
-	} __attribute__((__packed__));
+	};
 
 	const uint8_t COMMAND_IDENT = 0x1;
 	const uint8_t COMMAND_READ_BUFFER = 0x2;

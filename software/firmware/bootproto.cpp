@@ -11,18 +11,18 @@ namespace {
 	const unsigned int TIMEOUT = 250;
 	const unsigned int MAX_RETRIES = 8;
 
-	struct COMMAND_PACKET {
+	struct __attribute__((packed)) COMMAND_PACKET {
 		xbeepacket::TRANSMIT_HDR hdr;
 		uint8_t command_index;
 		uint8_t payload[];
-	} __attribute__((__packed__));
+	};
 
-	struct RESPONSE_PACKET {
+	struct __attribute__((packed)) RESPONSE_PACKET {
 		xbeepacket::RECEIVE_HDR hdr;
 		uint8_t command_index;
 		uint8_t status;
 		uint8_t payload[];
-	} __attribute__((__packed__));
+	};
 
 	const uint8_t COMMAND_STATUS_OK          = 0x00;
 	const uint8_t COMMAND_STATUS_BAD_INDEX   = 0x01;
