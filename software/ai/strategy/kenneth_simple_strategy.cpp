@@ -32,6 +32,8 @@ namespace {
 			virtual void set_playtype(playtype::playtype t);
 			virtual strategy_factory &get_factory();
 			virtual Gtk::Widget *get_ui_controls();
+      virtual void handleRobotAdded(void);
+      virtual void handleRobotRemoved(unsigned int index, robot::ptr r);
 
 		private:
 			playtype::playtype current_playtype;
@@ -44,6 +46,9 @@ namespace {
 
 	simple_strategy::simple_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
 		// Initialize variables here (e.g. create the roles).
+    the_team->signal_robot_added().connect(sigc::mem_fun(*this, &simple_strategy::handleRobotAdded));
+    the_team->signal_robot_removed().connect(sigc::mem_fun(*this, &simple_strategy::handleRobotRemoved));
+
 		turnSinceLastUpdate = 0;
 		possessionConfidence = 1.0;
 		// problems: how do we keep track of roles?
@@ -184,6 +189,12 @@ namespace {
 	Gtk::Widget *simple_strategy::get_ui_controls() {
 		return 0;
 	}
+
+  void simple_strategy::handleRobotAdded(void){
+  }
+
+  void simple_strategy::handleRobotRemoved(unsigned int index, robot::ptr r){
+  }
 
 	class simple_strategy_factory : public virtual strategy_factory {
 		public:

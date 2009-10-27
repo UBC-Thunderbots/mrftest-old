@@ -10,6 +10,8 @@ namespace {
 			virtual void set_playtype(playtype::playtype t);
 			virtual strategy_factory &get_factory();
 			virtual Gtk::Widget *get_ui_controls();
+      virtual void handleRobotAdded(void);
+      virtual void handleRobotRemoved(unsigned int index, robot::ptr r);
 
 		private:
 			playtype::playtype current_playtype;
@@ -19,6 +21,8 @@ namespace {
 
 	chase_strategy::chase_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
 		// Initialize variables here (e.g. create the roles).
+    the_team->signal_robot_added().connect(sigc::mem_fun(*this, &chase_strategy::handleRobotAdded));
+    the_team->signal_robot_removed().connect(sigc::mem_fun(*this, &chase_strategy::handleRobotRemoved));
 	}
 
 	void chase_strategy::update() {
@@ -52,6 +56,12 @@ namespace {
 	Gtk::Widget *chase_strategy::get_ui_controls() {
 		return 0;
 	}
+
+  void chase_strategy::handleRobotAdded(void){
+  }
+
+  void chase_strategy::handleRobotRemoved(unsigned int index, robot::ptr r){
+  }
 
 	class chase_strategy_factory : public virtual strategy_factory {
 		public:
