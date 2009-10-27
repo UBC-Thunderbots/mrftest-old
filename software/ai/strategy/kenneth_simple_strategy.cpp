@@ -2,6 +2,7 @@
 #include "ai/role.h"
 //#include <Map>
 #include <algorithm>
+#include <vector>
 using namespace std;
 //created by Kenneth Lui, last updated 12 Oct 2009.
 

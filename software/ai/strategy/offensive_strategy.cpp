@@ -1,9 +1,9 @@
 #include "ai/strategy.h"
+#include <algorithm>
+#include <vector> // I like vectors, like it or die
 
-#include <vector> // I like vectors
+// made by Terence under braindead conditions with a crazy mind
 using namespace std;
-
-//this currently is just a big hack from chase_strategy, need some roles to exist before more implementations
 
 namespace {
 	class offensive_strategy : public virtual strategy {
@@ -18,28 +18,67 @@ namespace {
 			playtype::playtype current_playtype;
 
 			// Create variables here (e.g. to store the roles).
-
+			// kinda want something to 
 			vector<role::ptr> roles;
 			
 	};
 
 	offensive_strategy::offensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
 		// Initialize variables here (e.g. create the roles).
-		
-		// offender and defender doesn't exist yet >"< 
-		// role::offender off = role::offender(ball, field, team);
-		// roles.push_back(off);     			  
-		// role::defender def = role::defender(ball, field, team);
-		// roles.push_back(def);
+		/*
+		 offender and defender doesn't exist yet >"< 
+		 role::offender off = role::offender(ball, field, team);
+		 roles.push_back(off);     			  
+		 role::defender def = role::defender(ball, field, team);
+		 roles.push_back(def);
+		*/
 		
 	}
 
 	void offensive_strategy::update() {
-		// Use the variables "ball", "field", and "team" to allocate players to roles.
+
+		// There should be a switch statement to take care of the different playtypes
+		// the implementation below is just for the "play" playtype
+		// also the implementation for setting role goalie may be wrong
+
+		// Use the variables "the_ball", "the_field", and "the_team" to allocate players to roles.
 		
 		// calls role::update
 
-		// ultimate offensive strategy: all 5 players switch to offenders (including goalie, mwahahahahahaha) 
+		// ultimate offensive strategy: all 5 players switch to offenders (including goalie, mwahahahahahaha)
+		// fires once the ball gets to the other side 
+		if (the_ball->position().x > 0) {
+			for (int i = 0 ; i < 5 ; i++) {
+				// set every player to offenders, mwahahaha 
+				// the_team->get_robot(i)
+			}
+		}
+
+		/*
+		// else if the enemy got more than 3 robots flooding our side of the field, 2 offender, 2 defender, and 1 goalie?
+		// if you want to have a stronger defence, change to defensive strategy, I believe this is the best defensive mode for offensive strategy
+		else if (checkNumEnemyOnOurField()){
+			// set closest offender to goalie to defender
+			 
+
+		}
+		*/
+		// default: 2 offenders, 1 defender, and 1 goalie?
+		else {
+			
+			// set three closest player to ball to offender
+			for (int i = 0 ; i < 3 ; i++){
+				// the_team->get_robot(i).position().x;
+				// the_team->get_robot(i).position().y;
+				// the_ball->position().x;
+				// the_ball->position().y;
+			}
+			// set closest player to goal to goalie
+
+			// set closest player to goalie as defender
+
+		}
+
 
 	}
 
@@ -57,7 +96,7 @@ namespace {
 			virtual strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
-	offensive_strategy_factory::offensive_strategy_factory() : strategy_factory("offensive Strategy") {
+	offensive_strategy_factory::offensive_strategy_factory() : strategy_factory("Offensive Strategy") {
 	}
 
 	strategy::ptr offensive_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
