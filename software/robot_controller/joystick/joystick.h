@@ -69,7 +69,7 @@ class joystick : public virtual byref, public virtual sigc::trackable {
 		static const std::vector<std::pair<Glib::ustring, Glib::ustring> > &list();
 
 	private:
-		file_descriptor fd;
+		const file_descriptor fd;
 		std::vector<int> axes_data;
 		std::vector<bool> buttons_data;
 		Glib::ustring stick_filename;
