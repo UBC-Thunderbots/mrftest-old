@@ -16,7 +16,7 @@ class xbee_packet_stream : public virtual noncopyable, public virtual sigc::trac
 		//
 		// Constructs a new xbee_packet_stream.
 		//
-		xbee_packet_stream(const Glib::ustring &portname);
+		xbee_packet_stream();
 
 		//
 		// Invoked when a packet is received.

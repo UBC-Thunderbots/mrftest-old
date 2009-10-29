@@ -157,6 +157,7 @@ software/util/fd.h -text
 software/util/hungarian.cpp -text
 software/util/hungarian.h -text
 software/util/noncopyable.h -text
+software/util/sockaddrs.h -text
 software/util/xml.cpp -text
 software/util/xml.h -text
 software/world/ball.h -text
@@ -186,4 +187,6 @@ software/xbee/serial.cpp -text
 software/xbee/serial.h -text
 software/xbee/util.cpp -text
 software/xbee/util.h -text
+software/xbee/xbeed.cpp -text
+software/xbee/xbeed.h -text
 software/xbeeconfig.cpp -text

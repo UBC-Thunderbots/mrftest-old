@@ -1,7 +1,7 @@
 #include "xbee/byteproto.h"
 #include <algorithm>
 
-xbee_byte_stream::xbee_byte_stream(const Glib::ustring &portname) : port(portname), escape(false) {
+xbee_byte_stream::xbee_byte_stream() : escape(false) {
 	port.signal_received().connect(sigc::mem_fun(*this, &xbee_byte_stream::byte_received));
 }
 

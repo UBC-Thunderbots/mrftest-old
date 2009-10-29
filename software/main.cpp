@@ -70,7 +70,7 @@ namespace {
 		xmlpp::Element *xmlworld = xmlutil::strip(xmlutil::get_only_child(xmlroot, "world"));
 
 		// Create the XBee object.
-		xbee_packet_stream xbee("/dev/xbee");
+		xbee_packet_stream xbee;
 
 		// Create the UI.
 		firmware_window win(xbee, xmlworld);

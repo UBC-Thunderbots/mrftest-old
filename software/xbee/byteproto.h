@@ -16,7 +16,7 @@ class xbee_byte_stream : public virtual noncopyable, public virtual sigc::tracka
 		//
 		// Constructs a new byte stream.
 		//
-		xbee_byte_stream(const Glib::ustring &portname);
+		xbee_byte_stream();
 
 		//
 		// Invoked when the start-of-packet delimiter is received.
