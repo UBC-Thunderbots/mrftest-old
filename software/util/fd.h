@@ -12,6 +12,12 @@ class file_descriptor {
 		//
 		// Constructs a new file_descriptor.
 		//
+		file_descriptor() : fd(-1) {
+		}
+
+		//
+		// Constructs a new file_descriptor.
+		//
 		file_descriptor(int fd) : fd(fd) {
 		}
 
@@ -39,6 +45,7 @@ class file_descriptor {
 			close();
 			fd = assgref.fd;
 			assgref.fd = -1;
+			return *this;
 		}
 
 		//
@@ -48,6 +55,7 @@ class file_descriptor {
 			assert(newfd != -1);
 			close();
 			fd = newfd;
+			return *this;
 		}
 
 		//
