@@ -4,7 +4,7 @@
 #include "util/args.h"
 #include "util/xml.h"
 #include "world/config.h"
-#include "xbee/packetproto.h"
+#include "xbee/xbee.h"
 #include <iostream>
 #include <getopt.h>
 #include <gtkmm.h>
@@ -70,10 +70,10 @@ namespace {
 		xmlpp::Element *xmlworld = xmlutil::strip(xmlutil::get_only_child(xmlroot, "world"));
 
 		// Create the XBee object.
-		xbee_packet_stream xbee;
+		xbee modem;
 
 		// Create the UI.
-		firmware_window win(xbee, xmlworld);
+		firmware_window win(modem, xmlworld);
 
 		// Go go go!
 		Gtk::Main::run();

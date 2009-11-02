@@ -1,7 +1,7 @@
 #ifndef FIRMWARE_WINDOW_H
 #define FIRMWARE_WINDOW_H
 
-#include "xbee/packetproto.h"
+#include "xbee/xbee.h"
 #include <libxml++/libxml++.h>
 
 //
@@ -10,7 +10,7 @@
 class firmware_window_impl;
 class firmware_window {
 	public:
-		firmware_window(xbee_packet_stream &xbee, xmlpp::Element *xmlworld);
+		firmware_window(xbee &modem, xmlpp::Element *xmlworld);
 		~firmware_window();
 
 	private:

@@ -4,8 +4,8 @@
 #include "firmware/bootproto.h"
 #include "firmware/scheduler.h"
 #include "util/byref.h"
-#include "xbee/packetproto.h"
 #include "xbee/util.h"
+#include "xbee/xbee.h"
 #include <vector>
 #include <stdint.h>
 #include <sigc++/sigc++.h>
@@ -18,7 +18,7 @@ class upload : public virtual byref, public virtual sigc::trackable {
 		//
 		// Constructs an uploader object.
 		//
-		upload(xbee_packet_stream &xbee, uint64_t bot, const std::vector<std::vector<uint8_t> > &data);
+		upload(xbee &modem, uint64_t bot, const std::vector<std::vector<uint8_t> > &data);
 
 		//
 		// Starts the upload process.

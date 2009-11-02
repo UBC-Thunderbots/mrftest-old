@@ -2,10 +2,9 @@
 #define XBEE_PACKETPROTO_H
 
 #include "util/noncopyable.h"
-#include "xbee/byteproto.h"
+#include "xbee/daemon/byteproto.h"
 #include <vector>
 #include <cstddef>
-#include <glibmm.h>
 #include <sigc++/sigc++.h>
 
 //
@@ -31,16 +30,20 @@ class xbee_packet_stream : public virtual noncopyable, public virtual sigc::trac
 		void send(const void *, std::size_t);
 
 		//
-		// Gets a new frame number.
+		// Notifies that the underlying serial_port is readable.
 		//
-		uint8_t generate_frame_number() {
-			if (!next_frame)
-				next_frame++;
-			return next_frame++;
+		void readable() {
+			bstream.readable();
+		}
+
+		//
+		// Returns the file_descriptor of the underlying serial_port.
+		//
+		const file_descriptor &fd() const {
+			return bstream.fd();
 		}
 
 	private:
-		uint8_t next_frame;
 		xbee_byte_stream bstream;
 		bool sop_seen;
 		uint16_t length;

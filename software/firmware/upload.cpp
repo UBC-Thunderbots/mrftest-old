@@ -32,7 +32,7 @@ namespace {
 	const uint8_t IRP_STATUS_BAD_ADDRESS = 0x5;
 }
 
-upload::upload(xbee_packet_stream &xbee, uint64_t bot, const std::vector<std::vector<uint8_t> > &data) : proto(xbee, bot), sched(data), status("Initializing..."), irpptr(0), irpmask(0) {
+upload::upload(xbee &modem, uint64_t bot, const std::vector<std::vector<uint8_t> > &data) : proto(modem, bot), sched(data), status("Initializing..."), irpptr(0), irpmask(0) {
 	proto.signal_error().connect(sig_error.make_slot());
 }
 

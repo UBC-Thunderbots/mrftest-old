@@ -3,11 +3,9 @@
 
 #include "util/fd.h"
 #include "util/noncopyable.h"
-#include <queue>
 #include <cstddef>
 #include <stdint.h>
 #include <sigc++/sigc++.h>
-#include <glibmm.h>
 
 //
 // A serial port running at 250,000 baud.
@@ -22,7 +20,7 @@ class serial_port : public virtual noncopyable, public virtual sigc::trackable {
 		//
 		// Invoked when a byte arrives on the port.
 		//
-		sigc::signal<void, uint8_t> &signal_received() {
+		sigc::signal<void, const void *, std::size_t> &signal_received() {
 			return sig_received;
 		}
 
@@ -37,24 +35,20 @@ class serial_port : public virtual noncopyable, public virtual sigc::trackable {
 		void send(const void *, std::size_t);
 
 		//
-		// Locks the port for exclusive access.
+		// Notifies that the port is ready to read.
 		//
-		void lock(const sigc::slot<void> &on_acquire, bool batch);
+		void readable();
 
 		//
-		// Releases the lock on the port.
+		// Returns the underlying file descriptor.
 		//
-		void unlock();
+		const file_descriptor &fd() const {
+			return port;
+		}
 
 	private:
-		const file_descriptor sock;
 		const file_descriptor port;
-		sigc::signal<void, uint8_t> sig_received;
-		std::queue<sigc::slot<void> > lock_callbacks;
-		bool locked;
-
-		bool on_port_readable(Glib::IOCondition);
-		bool on_sock_readable(Glib::IOCondition);
+		sigc::signal<void, const void *, std::size_t> sig_received;
 };
 
 #endif

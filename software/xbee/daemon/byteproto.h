@@ -2,10 +2,9 @@
 #define XBEE_BYTEPROTO_H
 
 #include "util/noncopyable.h"
-#include "xbee/serial.h"
+#include "xbee/daemon/serial.h"
 #include <cstddef>
 #include <stdint.h>
-#include <glibmm.h>
 #include <sigc++/sigc++.h>
 
 //
@@ -47,12 +46,26 @@ class xbee_byte_stream : public virtual noncopyable, public virtual sigc::tracka
 		//
 		void send(const void *, std::size_t);
 
+		//
+		// Notifies the underlying serial_port that its descriptor is readable.
+		//
+		void readable() {
+			port.readable();
+		}
+
+		//
+		// Returns the file_descriptor of the underlying serial_port.
+		//
+		const file_descriptor &fd() const {
+			return port.fd();
+		}
+
 	private:
 		serial_port port;
 		sigc::signal<void> sig_sop_received;
 		sigc::signal<void, uint8_t> sig_byte_received;
-		bool escape;
-		void byte_received(uint8_t b);
+		bool received_escape;
+		void bytes_received(const void *, std::size_t);
 };
 
 #endif

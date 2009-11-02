@@ -2,10 +2,12 @@
 #define FIRMWARE_BOOTPROTO_H
 
 #include "util/noncopyable.h"
-#include "xbee/packetproto.h"
+#include "xbee/xbee.h"
 #include <vector>
 #include <stdint.h>
+#include <cstddef>
 #include <sigc++/sigc++.h>
+#include <glibmm.h>
 
 //
 // Handles the lower-level protocol of talking to the bootloader.
@@ -35,7 +37,7 @@ class bootproto : public virtual noncopyable, public virtual sigc::trackable {
 		//
 		// Constructs a new bootproto.
 		//
-		bootproto(xbee_packet_stream &xbee, uint64_t bot);
+		bootproto(xbee &modem, uint64_t bot);
 
 		//
 		// Returns the current state of the bootloader.
@@ -70,7 +72,7 @@ class bootproto : public virtual noncopyable, public virtual sigc::trackable {
 		void exit_bootloader(const sigc::slot<void> &callback);
 
 	private:
-		xbee_packet_stream &xbee;
+		xbee &modem;
 		uint64_t bot;
 		sigc::signal<void, const Glib::ustring &> sig_error;
 		enum state current_state;
@@ -86,14 +88,17 @@ class bootproto : public virtual noncopyable, public virtual sigc::trackable {
 		void report_error(const Glib::ustring &error);
 
 		void enter_bootloader_send();
-		void enter_bootloader_receive(const std::vector<uint8_t> &data);
-		void enter_bootloader_quiesce();
+		bool enter_bootloader_timeout();
+		void enter_bootloader_receive(const void *, std::size_t);
+		bool enter_bootloader_quiesce();
 
 		void send_send();
-		void send_receive(const std::vector<uint8_t> &data);
+		bool send_timeout();
+		void send_receive(const void *, std::size_t);
 
 		void exit_bootloader_send();
-		void exit_bootloader_receive(const std::vector<uint8_t> &data);
+		bool exit_bootloader_timeout();
+		void exit_bootloader_receive(const void *, std::size_t);
 };
 
 #endif

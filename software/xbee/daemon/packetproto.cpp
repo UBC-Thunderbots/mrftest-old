@@ -1,7 +1,7 @@
-#include "xbee/packetproto.h"
+#include "xbee/daemon/packetproto.h"
 #include <cassert>
 
-xbee_packet_stream::xbee_packet_stream() : next_frame(0), sop_seen(false) {
+xbee_packet_stream::xbee_packet_stream() : sop_seen(false) {
 	bstream.signal_sop_received().connect(sigc::mem_fun(*this, &xbee_packet_stream::on_sop));
 	bstream.signal_byte_received().connect(sigc::mem_fun(*this, &xbee_packet_stream::on_byte));
 }
@@ -42,7 +42,6 @@ void xbee_packet_stream::on_byte(uint8_t ch) {
 		sum += ch;
 		if (sum == 0xFF)
 			sig_received.emit(buffer);
-		buffer.clear();
 		sop_seen = false;
 	}
 }

@@ -151,7 +151,7 @@ namespace {
 
 class firmware_window_impl : public virtual Gtk::Window {
 	public:
-		firmware_window_impl(xbee_packet_stream &xbee, xmlpp::Element *xmlworld) : xbee(xbee), bot_frame("Bot"), bot_controls(xmlworld, *this), file_frame("Firmware File"), work_frame("Execute Upload"), start_upload_button(Gtk::Stock::EXECUTE) {
+		firmware_window_impl(xbee &modem, xmlpp::Element *xmlworld) : modem(modem), bot_frame("Bot"), bot_controls(xmlworld, *this), file_frame("Firmware File"), work_frame("Execute Upload"), start_upload_button(Gtk::Stock::EXECUTE) {
 			bot_controls.signal_address_changed().connect(sigc::mem_fun(*this, &firmware_window_impl::address_changed));
 			bot_frame.add(bot_controls);
 			vbox.pack_start(bot_frame, false, false);
@@ -177,7 +177,7 @@ class firmware_window_impl : public virtual Gtk::Window {
 		}
 
 	private:
-		xbee_packet_stream &xbee;
+		xbee &modem;
 
 		uint64_t current_address;
 
@@ -215,13 +215,13 @@ class firmware_window_impl : public virtual Gtk::Window {
 			}
 			ifs.close();
 
-			upload up(xbee, current_address, pages);
+			upload up(modem, current_address, pages);
 			upload_dialog dlg(*this, up);
 			dlg.run();
 		}
 };
 
-firmware_window::firmware_window(xbee_packet_stream &xbee, xmlpp::Element *xmlworld) : impl(new firmware_window_impl(xbee, xmlworld)) {
+firmware_window::firmware_window(xbee &modem, xmlpp::Element *xmlworld) : impl(new firmware_window_impl(modem, xmlworld)) {
 }
 
 firmware_window::~firmware_window() {
