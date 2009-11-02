@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-file_descriptor::file_descriptor(const char *file, int flags) : fd(open(file, flags)) {
+file_descriptor::file_descriptor(const char *file, int flags) : fd(open(file, flags, 0666)) {
 	if (fd < 0) throw std::runtime_error("Cannot open file!");
 }
 
