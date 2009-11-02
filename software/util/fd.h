@@ -71,6 +71,11 @@ class file_descriptor {
 			return fd;
 		}
 
+		//
+		// Sets whether the descriptor is blocking.
+		//
+		void set_blocking(bool block) const;
+
 	private:
 		int fd;
 };
