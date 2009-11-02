@@ -1,7 +1,12 @@
 #include "util/fd.h"
 #include <stdexcept>
+#include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+
+file_descriptor::file_descriptor(const char *file, int flags) : fd(open(file, flags)) {
+	if (fd < 0) throw std::runtime_error("Cannot open file!");
+}
 
 void file_descriptor::close() {
 	if (fd != -1) {

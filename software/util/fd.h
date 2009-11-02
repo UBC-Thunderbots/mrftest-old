@@ -22,6 +22,11 @@ class file_descriptor {
 		}
 
 		//
+		// Constructs a new file_descriptor by trying to open a file.
+		//
+		file_descriptor(const char *file, int flags);
+
+		//
 		// Copies a file_descriptor, transferring ownership.
 		//
 		file_descriptor(file_descriptor &copyref) {
