@@ -1,11 +1,16 @@
 #include "util/fd.h"
 #include <stdexcept>
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <unistd.h>
 #include <fcntl.h>
 
 file_descriptor::file_descriptor(const char *file, int flags) : fd(open(file, flags, 0666)) {
 	if (fd < 0) throw std::runtime_error("Cannot open file!");
+}
+
+file_descriptor::file_descriptor(int af, int type, int proto) : fd(socket(af, type, proto)) {
+	if (fd < 0) throw std::runtime_error("Cannot create socket!");
 }
 
 void file_descriptor::close() {

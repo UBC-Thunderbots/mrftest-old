@@ -10,13 +10,13 @@
 class file_descriptor {
 	public:
 		//
-		// Constructs a new file_descriptor.
+		// Constructs a new file_descriptor with no descriptor.
 		//
 		file_descriptor() : fd(-1) {
 		}
 
 		//
-		// Constructs a new file_descriptor.
+		// Constructs a new file_descriptor with a descriptor.
 		//
 		file_descriptor(int fd) : fd(fd) {
 		}
@@ -25,6 +25,11 @@ class file_descriptor {
 		// Constructs a new file_descriptor by trying to open a file.
 		//
 		file_descriptor(const char *file, int flags);
+
+		//
+		// Constructs a new file_descriptor for a socket.
+		//
+		file_descriptor(int pf, int type, int proto);
 
 		//
 		// Copies a file_descriptor, transferring ownership.
