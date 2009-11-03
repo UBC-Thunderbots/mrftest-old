@@ -5,5 +5,4 @@ pass_receive::pass_receive(ball::ptr ball, field::ptr field, controlled_team::pt
 
 void pass_receive::update()
 {
-
 }
