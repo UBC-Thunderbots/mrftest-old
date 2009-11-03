@@ -20,7 +20,7 @@ class player_impl : public virtual robot_impl {
 		typedef Glib::RefPtr<player_impl> ptr;
 
 		//
-		// Instructs the player to move to the specified position and orientatin.
+		// Instructs the player to move to the specified position and orientation. Orientation is in radians.
 		//
 		// Parameters:
 		//  new_position
