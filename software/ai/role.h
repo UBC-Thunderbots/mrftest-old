@@ -4,8 +4,8 @@
 #include "util/byref.h"
 #include "world/ball.h"
 #include "world/field.h"
+#include "world/player.h"
 #include "world/team.h"
-#include "world/robot.h"
 #include <glibmm.h>
 #include <sigc++/sigc++.h>
 #include <vector>
@@ -33,7 +33,7 @@ class role : public virtual byref, public virtual sigc::trackable {
 		//
 		// Sets the robots controlled by this role.
 		//
-		void set_robots(const std::vector<robot::ptr> &robots);
+		void set_robots(const std::vector<player::ptr> &robots);
 		
 		//
 		// Removes all robots from this role.
@@ -59,7 +59,7 @@ class role : public virtual byref, public virtual sigc::trackable {
 		//
 		// The  robots that this role controls.
 		//
-		std::vector<robot::ptr> the_robots;
+		std::vector<player::ptr> the_robots;
 };
 
 #endif
