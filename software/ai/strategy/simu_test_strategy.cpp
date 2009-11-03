@@ -42,7 +42,7 @@ namespace {
 			int turnSinceLastUpdate;
 			double possessionConfidence;
 			static const int DEFAULT_OFF_TO_DEF_DIFF = 1;	// i.e. one more offender than defender
-			vector<tactic*> tactics;
+			vector<tactic::ptr> tactics;
 			// Create variables here (e.g. to store the roles).
 	};
 
@@ -54,7 +54,7 @@ namespace {
 		{
 //			tactic::ptr memoryleak = new chase(the_ball, the_field, the_team, the_team->get_player(i));
 //			chase* memoryleak = new chase(the_ball, the_field, the_team, the_team->get_player(i));
-			tactics[i] = new chase(the_ball, the_field, the_team, the_team->get_player(i));
+			tactics.push_back(tactic::ptr(new chase(the_ball, the_field, the_team, the_team->get_player(i))));
 		}
 		return;
 		// problems: how do we keep track of roles?
