@@ -5,8 +5,12 @@
 #include "world/ball.h"
 #include "world/field.h"
 #include "world/team.h"
+#include "world/robot.h"
 #include <glibmm.h>
 #include <sigc++/sigc++.h>
+#include <vector>
+
+using namespace std;
 
 //
 // A role manages the operation of a small group of players.
@@ -27,6 +31,16 @@ class role : public virtual byref, public virtual sigc::trackable {
 		// Runs the AI for one time tick.
 		//
 		virtual void update() = 0;
+		
+		//
+		// Sets the robots controlled by this role.
+		//
+		void setRobots(vector<robot::ptr> robots);
+		
+		//
+		// Removes all robots from this role.
+		//
+		void emptyRobots();
 
 	protected:
 		//
@@ -43,6 +57,11 @@ class role : public virtual byref, public virtual sigc::trackable {
 		// The team this role controls.
 		//
 		const controlled_team::ptr the_team;
+		
+		//
+		// The  robots that this role controls.
+		//
+		vector<robot::ptr> the_robots;
 };
 
 #endif
