@@ -2,7 +2,7 @@
 #include "ai/navigator/testnavigator.h"
 #include "geom/angle.h"
 
-dance::dance(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player) : tactic(ball, field, team, player) , the_navigator(new testnavigator(player,field)) {
+dance::dance(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player) : tactic(ball, field, team, player) , the_navigator(new testnavigator(player, field, ball, team)) {
     tick = 0;
     the_player = player;
 }
