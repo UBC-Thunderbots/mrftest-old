@@ -62,6 +62,7 @@ software/ai/strategy/defensive_strategy.cpp -text
 software/ai/strategy/kenneth_simple_strategy.cpp -text
 software/ai/strategy/offensive_strategy.cpp -text
 software/ai/strategy/simple_strategy1.cpp -text
+software/ai/strategy/simu_test_strategy.cpp -text
 software/ai/tactic.cpp -text
 software/ai/tactic.h -text
 software/ai/tactic/block.cpp -text

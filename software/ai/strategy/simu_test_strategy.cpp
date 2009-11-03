@@ -1,5 +1,7 @@
 #include "ai/strategy.h"
 #include "ai/role.h"
+#include "ai/tactic.h"
+#include "ai/tactic/chase.h"
 #include <algorithm>
 #include <vector>
 using namespace std;
@@ -24,9 +26,9 @@ namespace {
 		return a->distToBall < b->distToBall;
 	}
 
-	class kenneth_simple_strategy : public virtual strategy {
+	class simu_test_strategy : public virtual strategy {
 		public:
-			kenneth_simple_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			simu_test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
 			virtual void update();
 			virtual void set_playtype(playtype::playtype t);
 			virtual strategy_factory &get_factory();
@@ -40,20 +42,31 @@ namespace {
 			int turnSinceLastUpdate;
 			double possessionConfidence;
 			static const int DEFAULT_OFF_TO_DEF_DIFF = 1;	// i.e. one more offender than defender
+			vector<chase*> tactics;
 			// Create variables here (e.g. to store the roles).
 	};
 
-	kenneth_simple_strategy::kenneth_simple_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
+	simu_test_strategy::simu_test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
 		// Initialize variables here (e.g. create the roles).
 		turnSinceLastUpdate = 0;
 		possessionConfidence = 1.0;
+		for (unsigned int i = 0; i < the_team->size(); i++)
+		{
+//			tactic::ptr memoryleak = new chase(the_ball, the_field, the_team, the_team->get_player(i));
+//			chase* memoryleak = new chase(the_ball, the_field, the_team, the_team->get_player(i));
+			tactics[i] = new chase(the_ball, the_field, the_team, the_team->get_player(i));
+		}
+		return;
 		// problems: how do we keep track of roles?
 	}
 
-	void kenneth_simple_strategy::update() {
+	void simu_test_strategy::update() {
 		// Use the variables "the_ball", "the_field", and "the_team" to allocate players to roles.
-		
 
+		for (int i = 0; i < tactics.size();i++)
+		{
+			tactics[i]->update();
+		}
 		turnSinceLastUpdate++;	// doesn't have effect yet.
 		
 		//keep for future
@@ -205,37 +218,37 @@ namespace {
 		}*/
 	}
 
-	void kenneth_simple_strategy::set_playtype(playtype::playtype t) {
+	void simu_test_strategy::set_playtype(playtype::playtype t) {
 		current_playtype = t;
 	}
 	
-	Gtk::Widget *kenneth_simple_strategy::get_ui_controls() {
+	Gtk::Widget *simu_test_strategy::get_ui_controls() {
 		return 0;
 	}
 
-	void kenneth_simple_strategy::robot_added(void) {
+	void simu_test_strategy::robot_added(void) {
 	}
 
-	void kenneth_simple_strategy::robot_removed(unsigned int index, robot::ptr r) {
+	void simu_test_strategy::robot_removed(unsigned int index, robot::ptr r) {
 	}
 
-	class kenneth_simple_strategy_factory : public virtual strategy_factory {
+	class simu_test_strategy_factory : public virtual strategy_factory {
 		public:
-			kenneth_simple_strategy_factory();
+			simu_test_strategy_factory();
 			virtual strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
-	kenneth_simple_strategy_factory::kenneth_simple_strategy_factory() : strategy_factory("Kenneth Simple Strategy") {
+	simu_test_strategy_factory::simu_test_strategy_factory() : strategy_factory("Kenneth Simple Strategy") {
 	}
 
-	strategy::ptr kenneth_simple_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
-		strategy::ptr s(new kenneth_simple_strategy(ball, field, team));
+	strategy::ptr simu_test_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
+		strategy::ptr s(new simu_test_strategy(ball, field, team));
 		return s;
 	}
 
-	kenneth_simple_strategy_factory factory;
+	simu_test_strategy_factory factory;
 
-	strategy_factory &kenneth_simple_strategy::get_factory() {
+	strategy_factory &simu_test_strategy::get_factory() {
 		return factory;
 	}
 }
