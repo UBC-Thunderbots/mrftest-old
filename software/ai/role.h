@@ -59,7 +59,7 @@ class role : public virtual byref, public virtual sigc::trackable {
 		//
 		// The  robots that this role controls.
 		//
-		vector<robot::ptr> the_robots;
+		std::vector<robot::ptr> the_robots;
 };
 
 #endif
