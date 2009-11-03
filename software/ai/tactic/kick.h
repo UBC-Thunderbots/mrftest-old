@@ -8,7 +8,7 @@
 #include "world/player.h"
 #include "world/team.h"
 #include "ai/tactic.h"
-#include "ai/navigator.h"
+#include "ai/tactic/turn.h"
 
 //
 // 
@@ -47,6 +47,8 @@ class kick : public tactic {
 
 		// Holds if this tactic should chip the ball rather than simply kicking it
 		bool should_chip;
+
+		turn::ptr turn_tactic;
 
 };
 
