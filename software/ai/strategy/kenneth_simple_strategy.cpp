@@ -1,9 +1,10 @@
 #include "ai/strategy.h"
 #include "ai/role.h"
+#include "ai/tactic.h"
+#include "ai/tactic/chase.h"
 #include <algorithm>
 #include <vector>
-using namespace std;
-//created by Kenneth Lui, last updated 26 Oct 2009.
+//created by Kenneth Lui, last updated 2 Nov 2009.
 
 namespace {
 
@@ -11,7 +12,7 @@ namespace {
 		int index;	// index in the team
 		double x;	// x coord
 		double y;	// y coord
-		double distToBall;	//distance between the ball and this robot
+		double dist_to_ball;	//distance between the ball and this robot
 	};
 	
 	bool x_cmp ( robot_details* a, robot_details* b)		// first ele is the one having smallest x
@@ -21,7 +22,7 @@ namespace {
 
 	bool d_cmp ( robot_details* a, robot_details* b)		// first ele is the one having smallest dist to ball
 	{
-		return a->distToBall < b->distToBall;
+		return a->dist_to_ball < b->dist_to_ball;
 	}
 
 	class kenneth_simple_strategy : public virtual strategy {
@@ -37,59 +38,71 @@ namespace {
 		private:
 			playtype::playtype current_playtype;
 			static const int WAIT_AT_LEAST_TURN = 5;		// We need this because we don't want to make frequent changes
-			int turnSinceLastUpdate;
-			double possessionConfidence;
+			int turn_since_last_update;
+			double possession_confidence;
 			static const int DEFAULT_OFF_TO_DEF_DIFF = 1;	// i.e. one more offender than defender
+			std::vector<tactic::ptr> tactics;
 			// Create variables here (e.g. to store the roles).
 	};
 
 	kenneth_simple_strategy::kenneth_simple_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
 		// Initialize variables here (e.g. create the roles).
-		turnSinceLastUpdate = 0;
-		possessionConfidence = 1.0;
+		turn_since_last_update = 0;
+		possession_confidence = 1.0;
+		for (unsigned int i = 0; i < the_team->size(); i++)
+		{
+			tactics.push_back(tactic::ptr(new chase(the_ball, the_field, the_team, the_team->get_player(i))));
+		}
+		return;
 		// problems: how do we keep track of roles?
 	}
 
 	void kenneth_simple_strategy::update() {
 		// Use the variables "the_ball", "the_field", and "the_team" to allocate players to roles.
-		
-
-		turnSinceLastUpdate++;	// doesn't have effect yet.
-		
+		switch (current_playtype)
+		{
+			case playtype::play:	for (unsigned int i = 0; i < tactics.size();i++)
+						{
+							tactics[i]->update();
+						}
+						turn_since_last_update++;	// doesn't have effect yet.
+						break;
+			default	:		break;
+		}
 		//keep for future
 		//int our_score = the_team->score();
 		//int their_score = the_team->other()->score();
 
 		//get our team's robots' position and distance to the ball.
-		vector<robot_details*> ourDetails_front;
-		vector<robot_details*> ourDetails_back;
+		std::vector<robot_details*> our_details_front;
+		std::vector<robot_details*> our_details_back;
 		unsigned int our_team_size = the_team->size();
-		double ourDistanceToBall[our_team_size];
+		double our_distance_to_ball[our_team_size];
 		for (unsigned int i = 0; i < our_team_size; i++)
 		{
-			robot_details* tempDetails = new robot_details();		// memory leak!!
-			tempDetails->distToBall = (the_ball->position()-the_team->get_robot(i)->position()).len();
-			ourDistanceToBall[i] = tempDetails->distToBall;
-			tempDetails->index = i;
-			tempDetails->x = the_team->get_robot(i)->position().x;
-			tempDetails->y = the_team->get_robot(i)->position().y;
-			if (tempDetails->x < the_ball->position().x)
-			{	ourDetails_back.push_back(tempDetails);		}	// between our goal and the ball
+			robot_details* temp_details = new robot_details();		// memory leak!!
+			temp_details->dist_to_ball = (the_ball->position()-the_team->get_robot(i)->position()).len();
+			our_distance_to_ball[i] = temp_details->dist_to_ball;
+			temp_details->index = i;
+			temp_details->x = the_team->get_robot(i)->position().x;
+			temp_details->y = the_team->get_robot(i)->position().y;
+			if (temp_details->x < the_ball->position().x)
+			{	our_details_back.push_back(temp_details);		}	// between our goal and the ball
 			else
-			{	ourDetails_front.push_back(tempDetails);		}	// between their goal and the ball
+			{	our_details_front.push_back(temp_details);		}	// between their goal and the ball
 		}
-		sort(ourDistanceToBall, ourDistanceToBall + our_team_size);
-		sort(ourDetails_front.begin(), ourDetails_front.end() , d_cmp);
-		sort(ourDetails_back.begin(), ourDetails_back.end() , d_cmp);
+		std::sort(our_distance_to_ball, our_distance_to_ball + our_team_size);
+		std::sort(our_details_front.begin(), our_details_front.end() , d_cmp);
+		std::sort(our_details_back.begin(), our_details_back.end() , d_cmp);
 
 		unsigned int their_team_size = the_team->other()->size();
-		double theirDistanceToBall[their_team_size];
+		double their_distance_to_ball[their_team_size];
 		for (unsigned int i = 0; i< their_team_size; i++)
 		{
-			point diffVec = the_ball->position()-the_team->other()->get_robot(i)->position();
-			theirDistanceToBall[i]= diffVec.len();
+			point difference_vector = the_ball->position()-the_team->other()->get_robot(i)->position();
+			their_distance_to_ball[i]= difference_vector.len();
 		}
-		sort(theirDistanceToBall, theirDistanceToBall + their_team_size);
+		std::sort(their_distance_to_ball, their_distance_to_ball + their_team_size);
 
 		// effective_team_size is original team size - 1 (goalie)
 		int our_effective_team_size = 0;
@@ -113,7 +126,7 @@ namespace {
 		if (prefer_off_to_def_diff< -1 * our_effective_team_size)
 		  {    prefer_off_to_def_diff = -1 * our_effective_team_size;
 		  }
-		int prefer_defender_number = min((our_effective_team_size - prefer_off_to_def_diff)/2, our_effective_team_size);
+		int prefer_defender_number = std::min((our_effective_team_size - prefer_off_to_def_diff)/2, our_effective_team_size);
 		int prefer_offender_number = our_effective_team_size - prefer_defender_number;
 		
 		if (prefer_offender_number == 0 )
@@ -127,51 +140,51 @@ namespace {
 			//if there is not enough in the front side, pick from back side.
 			
 			//check if the nearest robot is in the front side
-			bool nearestInFront;
-			if (ourDetails_front.size() == 0)
-			{	nearestInFront = false;
+			bool nearest_robot_is_in_front;
+			if (our_details_front.size() == 0)
+			{	nearest_robot_is_in_front = false;
  			} else
-			{	if (ourDetails_back.size() == 0)
-				{	nearestInFront = true;
+			{	if (our_details_back.size() == 0)
+				{	nearest_robot_is_in_front = true;
 	 			}else
-				{	nearestInFront = ourDetails_front[0]->distToBall < ourDetails_back[0]->distToBall;
+				{	nearest_robot_is_in_front = our_details_front[0]->dist_to_ball < our_details_back[0]->dist_to_ball;
 				}
 			}
-			if (nearestInFront)
-			{	//put ourDetails_front[0]->index to the offender side
+			if (nearest_robot_is_in_front)
+			{	//put our_details_front[0]->index to the offender side
 			}
 			else
-			{	//put ourDetails_back[0]->index to the offender side
+			{	//put our_details_back[0]->index to the offender side
 			}
 			int assigned_offender_number = 1;
-			for (unsigned int i = nearestInFront; i < ourDetails_front.size(); i++)
+			for (unsigned int i = nearest_robot_is_in_front; i < our_details_front.size(); i++)
 			{
 				if (assigned_offender_number < prefer_offender_number)	
-				{	//put ourDetails_front[i]->index to the offender side	
+				{	//put our_details_front[i]->index to the offender side	
 					assigned_offender_number ++ ;	
 				}
 				else
-				{	//put ourDetails_front[i]->index to the defender side	
+				{	//put our_details_front[i]->index to the defender side	
 				}
 			}
-			for (unsigned int i = 1-nearestInFront; i < ourDetails_back.size(); i++)
+			for (unsigned int i = 1-nearest_robot_is_in_front; i < our_details_back.size(); i++)
 			{
 				if (assigned_offender_number < prefer_offender_number)	
-				{	//put ourDetails_back[i].index to the offender side	
+				{	//put our_details_back[i].index to the offender side	
 					assigned_offender_number ++ ;	
 				}
 				else
-				{	//put ourDetails_back[i].index to the defender side	
+				{	//put our_details_back[i].index to the defender side	
 				}
 			}
 		}	//end of (prefer_offender_number != 0 )
 
-//			for (int i = 0; (assigned_offender_number < prefer_offender_number) && (nearestInFront+i < ourDetails_front.size()); i++)
+//			for (int i = 0; (assigned_offender_number < prefer_offender_number) && (nearest_robot_is_in_front+i < our_details_front.size()); i++)
 //			for (int i = 0; assigned_offender_number < prefer_offender_number; i++)
 		
 
 		//use later
-/*		if ( ourDistanceToBall[0] / possessionConfidence < theirDistanceToBall[0] )  
+/*		if ( our_distance_to_ball[0] / possession_confidence < their_distance_to_ball[0] )  
 		{
 		}
 		else
@@ -186,18 +199,18 @@ namespace {
 		//============================================back up
 
 		/*
-		robot_details ourDetails[team->size()];
+		robot_details our_details[team->size()];
 		for (int i = 0; i< team->size(); i++)
 		{
-			point diffVec = ball->position()-team->get_robot(i)->position();
-			= diffVec.len();
-			ourDetails[i].distToBall = ourDistanceToBall[i];
-			ourDetails[i].index = i;
-			ourDetails[i].x = get_robot(i)->position().x;
-			ourDetails[i].y = get_robot(i)->position().y;
+			point difference_vector = ball->position()-team->get_robot(i)->position();
+			= difference_vector.len();
+			our_details[i].dist_to_ball = our_distance_to_ball[i];
+			our_details[i].index = i;
+			our_details[i].x = get_robot(i)->position().x;
+			our_details[i].y = get_robot(i)->position().y;
 		}
-		sort(ourDistanceToBall);
-		sort(ourDetails, ourDetails + ourDetails.length, x_cmp);
+		std::sort(our_distance_to_ball);
+		std::sort(our_details, our_details + our_details.length, x_cmp);
 		int ball_relative_pos = -1;
 		for (int i = 0; i< team->size(); i++)
 		{
@@ -225,7 +238,7 @@ namespace {
 			virtual strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
-	kenneth_simple_strategy_factory::kenneth_simple_strategy_factory() : strategy_factory("Kenneth Simple Strategy") {
+	kenneth_simple_strategy_factory::kenneth_simple_strategy_factory() : strategy_factory("Simulator Test Strategy") {
 	}
 
 	strategy::ptr kenneth_simple_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
