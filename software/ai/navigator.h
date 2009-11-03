@@ -30,7 +30,7 @@ class navigator : public virtual byref, public virtual sigc::trackable {
 		//
 		// Instruct the navigator to move the player to a point.
 		//
-		virtual void go_to_point(const point& destination) = 0;
+		virtual void set_point(const point& destination) = 0;
 
 	protected:
 		//

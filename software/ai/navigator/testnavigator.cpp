@@ -33,7 +33,7 @@ void testnavigator::update() {
     }
 }
 
-void testnavigator::go_to_point(const point &destination) {
+void testnavigator::set_point(const point &destination) {
   //set new destinatin point
   destInitialized = true;
 
