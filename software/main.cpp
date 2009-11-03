@@ -9,7 +9,7 @@
 #include <getopt.h>
 #include <gtkmm.h>
 #include <libxml++/libxml++.h>
-
+#include <ode/ode.h>
 
 
 namespace {
@@ -32,6 +32,8 @@ namespace {
 	}
 
 	void simulate() {
+//initialize ODE
+ dInitODE2(0);
 		// Get the XML document.
 		xmlpp::Document *xmldoc = config::get();
 
@@ -53,6 +55,8 @@ namespace {
 
 		// Go go go!
 		Gtk::Main::run();
+
+  dCloseODE();
 	}
 
 	void manage_firmware() {

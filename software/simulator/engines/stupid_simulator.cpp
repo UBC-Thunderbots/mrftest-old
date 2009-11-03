@@ -33,7 +33,7 @@ namespace {
 		public:
 			typedef Glib::RefPtr<ck_ball> ptr;
 
-			ck_ball() : the_position(0.0, 0.0), the_velocity(0.0, 0.0) {
+			ck_ball() : the_position(0.0, 0.1), the_velocity(0.0, 0.0) {
 			}
 
 			void kick(const point &direction) {
@@ -131,10 +131,21 @@ namespace {
 	//
 	class ck_engine : public virtual simulator_engine {
 		public:
-dWorldID eworld;
+			dWorldID eworld;
+			dSpaceID space;
+			dGeomID ground;
+
 
 			ck_engine() : the_ball(new ck_ball) {
-eworld = dWorldCreate();
+			eworld = dWorldCreate(); 
+			dWorldSetGravity (eworld,0,0.0,-9.81);
+
+			space = dHashSpaceCreate (0);
+  
+  			dWorldSetGravity (eworld,0,0,-0.5);
+  			ground = dCreatePlane (space,0,0,1,0);
+    			dWorldSetContactSurfaceLayer(eworld, 0.001);
+
 			}
 
 			virtual void update() {
@@ -143,13 +154,15 @@ eworld = dWorldCreate();
 					the_players[i]->update();
 			}
 			virtual void setWorld(dWorldID *world) {
-eworld = *world;
+				eworld = *world;
 			}
 			virtual ball_impl::ptr get_ball() {
 				return the_ball;
 			}
 
 			virtual player_impl::ptr add_player() {
+				dBodyID b = dBodyCreate (eworld);
+
 				ck_player::ptr p(new ck_player);
 				the_players.push_back(p);
 				return p;
