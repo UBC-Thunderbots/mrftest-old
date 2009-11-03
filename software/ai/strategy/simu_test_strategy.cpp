@@ -42,7 +42,7 @@ namespace {
 			int turnSinceLastUpdate;
 			double possessionConfidence;
 			static const int DEFAULT_OFF_TO_DEF_DIFF = 1;	// i.e. one more offender than defender
-			vector<chase*> tactics;
+			vector<tactic*> tactics;
 			// Create variables here (e.g. to store the roles).
 	};
 
