@@ -17,16 +17,7 @@ point move_between_opponents::calculate_position() {
 		return opponentB->position();
 }
 
-double move_between_opponents::calculate_orientation() {
-	// TODO: Think of a better calculation
-	if (!opponentA->has_ball())
-		return opponentA->orientation();
-	else
-		return opponentB->orientation();
-}
-
 void move_between_opponents::update() {
 	move_tactic->set_position(calculate_position());
-	move_tactic->set_orientation(calculate_orientation());
 	move_tactic->update();
 }

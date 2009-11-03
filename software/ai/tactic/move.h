@@ -35,11 +35,6 @@ class move : public tactic {
 		//
 		void set_position(const point& p);	
 
-		//
-		// Sets the target orientation for this move tactic
-		//
-		void set_orientation(const double& orientation);
-
 	protected:		
 
 		// The navigator that moves
@@ -48,8 +43,6 @@ class move : public tactic {
 		// Target position
 		point target_position;
 
-		// Target orientation
-		double target_orientation;
 };
 
 #endif
