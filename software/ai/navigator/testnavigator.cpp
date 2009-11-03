@@ -1,8 +1,10 @@
 #include "ai/navigator/testnavigator.h"
 #include "world/field.h"
+#include <algorithm>
 
-testnavigator::testnavigator(player::ptr player, field::ptr field) : 
-  navigator(player, field), destInitialized(false), outOfBoundsMargin(field->width() / 20.0)
+testnavigator::testnavigator(player::ptr player, field::ptr field, ball::ptr ball, team::ptr team) : 
+  navigator(player, field, ball, team), destInitialized(false), outOfBoundsMargin(field->width() / 20.0),
+  maxLookahead(1.0)
 {
 
 }
@@ -30,6 +32,53 @@ void testnavigator::update() {
 	{
 	  nowDest = currDest;
 	}
+
+      point direction = nowDest - the_player->position();
+
+      direction = direction / direction.len();
+
+      point leftdirection = direction;
+      point rightdirection = direction;
+
+      bool undiverted = true;
+
+      while (!check_vector(the_player->position(),
+			   nowDest,
+			   leftdirection) 
+	     && !check_vector(the_player->position(),
+			   nowDest,
+			      rightdirection))
+	{
+	  undiverted = false;
+	  double rotationangle = 5.0 * PI / 180.0;
+	  leftdirection = leftdirection.rotate(rotationangle);
+	  rightdirection = rightdirection.rotate(-rotationangle);
+	}
+
+      point selected_direction;
+      if (check_vector(the_player->position(), nowDest, leftdirection))
+	{
+	  // select the left vector
+	  selected_direction = leftdirection;     
+	}
+      else
+	{
+	  // select the right vector
+	  selected_direction = rightdirection;
+	}
+
+      if (undiverted)
+	{
+	  point balldest = the_ball->position() - nowDest;
+	  the_player->move(nowDest, atan2(balldest.y, balldest.x));
+	}
+      else
+	{
+	  // maximum warp
+	  point balldest = the_ball->position() - nowDest;
+	  the_player->move(nowDest + selected_direction*1.0, atan2(nowDest.y, nowDest.x));
+	}
+
     }
 }
 
@@ -101,3 +150,38 @@ point testnavigator::clip_point(point p, point bound1, point bound2)
   return rv;
 }
 
+bool testnavigator::check_vector(point start, point dest, point direction)
+{
+
+  point startdest = dest - start;
+
+  double lookahead = std::min(startdest.len(), maxLookahead);
+
+  for (size_t i = 0; i < the_team->size() + the_team->other()->size(); i++)
+    {
+      robot::ptr rob;
+
+      if (i >= the_team->size())
+	{
+	  rob = the_team->other()->get_robot(i - the_team->size());
+	}
+      else
+	{
+	  rob = the_team->get_robot(i);
+	}
+
+      point rp = rob->position() - start;
+
+      double len = rp.dot(direction);
+
+      double d = sqrt(rp.dot(rp) - len*len);
+
+      if (len < lookahead && d < 2*robot::MAX_RADIUS)
+	{
+	  return false;
+	}
+    }
+  
+  return true;
+
+}

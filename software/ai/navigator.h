@@ -4,6 +4,8 @@
 #include "util/byref.h"
 #include "world/player.h"
 #include "world/field.h"
+#include "world/ball.h"
+#include "world/team.h"
 #include <glibmm.h>
 #include <sigc++/sigc++.h>
 
@@ -20,7 +22,7 @@ class navigator : public virtual byref, public virtual sigc::trackable {
 		//
 		// Constructs a new navigator. Call this constructor from subclass constructors.
 		//
-		navigator(player::ptr player,  field::ptr field);
+		navigator(player::ptr player,  field::ptr field, ball::ptr ball, team::ptr team);
 
 		//
 		// Runs the AI for one time tick.
@@ -38,6 +40,8 @@ class navigator : public virtual byref, public virtual sigc::trackable {
 		//
 		const player::ptr the_player;
 		const field::ptr the_field;
+		const ball::ptr the_ball;
+		const team::ptr the_team;
 };
 
 #endif
