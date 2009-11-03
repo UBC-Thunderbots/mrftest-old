@@ -5,7 +5,8 @@
 #include <algorithm>
 #include <vector>
 using namespace std;
-//created by Kenneth Lui, last updated 26 Oct 2009.
+//created by Kenneth Lui, last updated 2 Nov 2009.
+//This strategy was created to test the simulator.
 
 namespace {
 
@@ -62,13 +63,16 @@ namespace {
 
 	void simu_test_strategy::update() {
 		// Use the variables "the_ball", "the_field", and "the_team" to allocate players to roles.
-
-		for (int i = 0; i < tactics.size();i++)
+		switch (current_playtype)
 		{
-			tactics[i]->update();
+			case playtype::play:	for (unsigned int i = 0; i < tactics.size();i++)
+						{
+							tactics[i]->update();
+						}
+						turnSinceLastUpdate++;	// doesn't have effect yet.
+						break;
+			default	:		break;
 		}
-		turnSinceLastUpdate++;	// doesn't have effect yet.
-		
 		//keep for future
 		//int our_score = the_team->score();
 		//int their_score = the_team->other()->score();
