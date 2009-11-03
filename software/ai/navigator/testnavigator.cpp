@@ -2,7 +2,7 @@
 #include "world/field.h"
 
 testnavigator::testnavigator(player::ptr player, field::ptr field) : 
-  navigator(player, field), destInitialized(false), outOfBoundsMargin(1.0)
+  navigator(player, field), destInitialized(false), outOfBoundsMargin(field->width() / 20.0)
 {
 
 }
