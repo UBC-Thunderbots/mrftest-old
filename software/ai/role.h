@@ -10,8 +10,6 @@
 #include <sigc++/sigc++.h>
 #include <vector>
 
-using namespace std;
-
 //
 // A role manages the operation of a small group of players.
 //
@@ -35,12 +33,12 @@ class role : public virtual byref, public virtual sigc::trackable {
 		//
 		// Sets the robots controlled by this role.
 		//
-		void setRobots(vector<robot::ptr> robots);
+		void set_robots(const std::vector<robot::ptr> &robots);
 		
 		//
 		// Removes all robots from this role.
 		//
-		void emptyRobots();
+		void clear_robots();
 
 	protected:
 		//
