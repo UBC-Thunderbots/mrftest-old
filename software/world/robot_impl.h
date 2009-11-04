@@ -3,6 +3,7 @@
 
 #include "geom/point.h"
 #include "util/byref.h"
+#include "world/draggable.h"
 #include "world/predictable.h"
 #include <glibmm/refptr.h>
 
@@ -11,7 +12,7 @@
 // provide an implementation of this class and use it to construct robot objects
 // to pass to the AI. Vectors in this class are in global coordinates.
 //
-class robot_impl : public virtual byref, public virtual predictable {
+class robot_impl : public virtual byref, public virtual predictable, public virtual draggable {
 	public:
 		//
 		// A pointer to a robot_impl.

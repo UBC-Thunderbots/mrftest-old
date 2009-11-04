@@ -15,6 +15,9 @@ namespace {
 			virtual point acceleration() const {
 				return point();
 			}
+
+			virtual void ui_set_position(const point &) {
+			}
 	};
 }
 

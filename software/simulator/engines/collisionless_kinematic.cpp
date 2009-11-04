@@ -66,6 +66,11 @@ namespace {
 				}
 			}
 
+			virtual void ui_set_position(const point &pos) {
+				the_position = pos;
+				the_velocity.x = the_velocity.y = 0;
+			}
+
 		private:
 			point the_position, the_velocity;
 	};
@@ -118,6 +123,12 @@ namespace {
 			}
 
 			virtual void chip(double) {
+			}
+
+			virtual void ui_set_position(const point &pos) {
+				the_position = pos;
+				the_velocity.x = the_velocity.y = 0;
+				avelocity = 0;
 			}
 
 		private:

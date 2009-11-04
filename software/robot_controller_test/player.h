@@ -24,6 +24,7 @@ class rc_test_player : public virtual player_impl {
 		virtual void dribble(double) {}
 		virtual void kick(double) {}
 		virtual void chip(double) {}
+		virtual void ui_set_position(const point &) {}
 	private:
 		point pos;
 		double ori;

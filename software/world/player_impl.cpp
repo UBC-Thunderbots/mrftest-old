@@ -27,6 +27,9 @@ namespace {
 
 			virtual void chip(double) {
 			}
+
+			virtual void ui_set_position(const point &) {
+			}
 	};
 }
 

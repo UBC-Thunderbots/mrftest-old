@@ -3,6 +3,7 @@
 
 #include "geom/point.h"
 #include "util/byref.h"
+#include "world/draggable.h"
 #include "world/predictable.h"
 #include <glibmm/refptr.h>
 
@@ -12,7 +13,7 @@
 // which can be given to the AI. Vectors in this class are in global
 // coordinates.
 //
-class ball_impl : public virtual byref, public virtual predictable {
+class ball_impl : public virtual byref, public virtual predictable, public virtual draggable {
 	public:
 		//
 		// A pointer to a ball_impl.
