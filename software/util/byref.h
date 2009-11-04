@@ -34,7 +34,11 @@ class byref : public virtual noncopyable {
 		}
 
 		//
-		// Destroys a byref.
+		// Destroys a byref. This is here even though it doesn't do anything
+		// because it forces destructors all the way down the inheritance
+		// hierarchy to be virtual, which ensures that when a reference-counted
+		// object loses its last pointer, the "delete this" in unreference()
+		// invokes the correct destructor.
 		//
 		virtual ~byref() {
 		}
