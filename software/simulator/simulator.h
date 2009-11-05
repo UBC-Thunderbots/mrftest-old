@@ -46,7 +46,7 @@ class simulator : public virtual noncopyable, public virtual sigc::trackable {
 		// The signal emitted after each timestep.
 		//
 		sigc::signal<void> &signal_updated() {
-			return the_signal_updated;
+			return sig_updated;
 		}
 
 		//
@@ -78,7 +78,7 @@ class simulator : public virtual noncopyable, public virtual sigc::trackable {
 		//
 		// A callback invoked after each timestep.
 		//
-		sigc::signal<void> the_signal_updated;
+		sigc::signal<void> sig_updated;
 
 		//
 		// The timer.
@@ -89,9 +89,11 @@ class simulator : public virtual noncopyable, public virtual sigc::trackable {
 		// Performs a timestep.
 		//
 		void update() {
+			west_team.update();
+			east_team.update();
 			if (engine)
 				engine->update();
-			the_signal_updated.emit();
+			sig_updated.emit();
 		}
 };
 
