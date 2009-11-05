@@ -238,7 +238,7 @@ namespace {
 			virtual strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
-	kenneth_simple_strategy_factory::kenneth_simple_strategy_factory() : strategy_factory("Simulator Test Strategy") {
+	kenneth_simple_strategy_factory::kenneth_simple_strategy_factory() : strategy_factory("Kenneth's Simple Strategy") {
 	}
 
 	strategy::ptr kenneth_simple_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {

@@ -72,7 +72,7 @@ namespace {
 			virtual strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
-	simple_strategy1_factory::simple_strategy1_factory() : strategy_factory("Chase Strategy") {
+	simple_strategy1_factory::simple_strategy1_factory() : strategy_factory("Simple Strategy 1") {
 	}
 
 	strategy::ptr simple_strategy1_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
