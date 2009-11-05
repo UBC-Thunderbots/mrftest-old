@@ -170,6 +170,16 @@ class simulator_team_data : public virtual noncopyable {
 		//
 		void remove_player(unsigned int index);
 
+		//
+		// Runs a time tick.
+		//
+		void update() {
+			if (team_strategy)
+				team_strategy->update();
+			for (std::vector<player_impl::ptr>::iterator i = impls.begin(), iend = impls.end(); i != iend; ++i)
+				(*i)->update();
+		}
+
 	private:
 		//
 		// The current engine.
