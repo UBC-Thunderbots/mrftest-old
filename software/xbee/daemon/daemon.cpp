@@ -1,26 +1,18 @@
 #include "util/args.h"
-#include "util/fd.h"
-#include "util/noncopyable.h"
 #include "util/sockaddrs.h"
+#include "xbee/daemon/daemon.h"
 #include "xbee/daemon/packetproto.h"
 #include <stdexcept>
-#include <string>
 #include <algorithm>
 #include <vector>
-#include <cstring>
 #include <cstdlib>
-#include <cassert>
 #include <cerrno>
 #include <ctime>
 #include <glibmm.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
 #include <sys/file.h>
 #include <sys/prctl.h>
 #include <poll.h>
-#include <unistd.h>
-#include <fcntl.h>
 
 namespace {
 	class client_service_provider : public noncopyable, public sigc::trackable {
@@ -201,8 +193,9 @@ namespace xbeedaemon {
 			// Enter a new session and process group.
 			setsid();
 			// Display the proper name.
-			prctl(PR_SET_NAME, "xbeed", 0, 0, 0);
-			std::strcpy(args::argv[0], "xbeed");
+			static const char PROCESS_NAME[] = "xbeed";
+			prctl(PR_SET_NAME, PROCESS_NAME, 0, 0, 0);
+			std::copy(PROCESS_NAME, PROCESS_NAME + sizeof(PROCESS_NAME), args::argv[0]);
 			// Run as the multiplexing daemon.
 			run_daemon(listen_sock, pstream);
 		}
