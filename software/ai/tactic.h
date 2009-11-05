@@ -22,7 +22,8 @@ class tactic : public byref, public sigc::trackable {
 		//
 		// Constructs a new tactic. Call this from subclass constructor.
 		//
-		tactic(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player);
+		tactic(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player) : the_ball(ball), the_field(field), the_team(team), the_player(player) {
+		}
 
 		//
 		// Runs the AI for one time tick.

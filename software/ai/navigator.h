@@ -22,7 +22,8 @@ class navigator : public byref, public sigc::trackable {
 		//
 		// Constructs a new navigator. Call this constructor from subclass constructors.
 		//
-		navigator(player::ptr player,  field::ptr field, ball::ptr ball, team::ptr team);
+		navigator(player::ptr player,  field::ptr field, ball::ptr ball, team::ptr team) : the_player(player), the_field(field), the_ball(ball), the_team(team) {
+		}
 
 		//
 		// Runs the AI for one time tick.
