@@ -1,5 +1,4 @@
 #include "ai/strategy.h"
-#include <iostream>
 
 //this seems to have virtually nothing but the framework, add more stuff when roles are available
 
@@ -21,7 +20,6 @@ namespace {
 	};
 
 	chase_strategy::chase_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
-		std::cout << "Chase strategy constructing\n";
 		// Initialize variables here (e.g. create the roles).
 	}
 
