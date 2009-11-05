@@ -10,7 +10,7 @@
 //
 // The ball, as seen by the AI. Vectors in this class are in team coordinates.
 //
-class ball : public virtual byref {
+class ball : public virtual byref, public virtual draggable {
 	public:
 		//
 		// A pointer to a ball object.
@@ -43,6 +43,13 @@ class ball : public virtual byref {
 		// 
 		point acceleration() const {
 			return impl->acceleration() * (flip ? -1.0 : 1.0);
+		}
+
+		//
+		// Allows the UI to set the position of the ball.
+		//
+		void ui_set_position(const point &pos) {
+			impl->ui_set_position(pos * (flip ? -1.0 : 1.0));
 		}
 
 		//
