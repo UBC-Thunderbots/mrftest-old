@@ -188,7 +188,6 @@ software/world/predictable.cpp -text
 software/world/predictable.h -text
 software/world/robot.h -text
 software/world/robot_impl.h -text
-software/world/team.cpp -text
 software/world/team.h -text
 software/world/timestep.h -text
 software/xbee/daemon/byteproto.cpp -text
