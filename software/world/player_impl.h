@@ -30,10 +30,18 @@ class player_impl : public virtual robot_impl {
 		//   the orientation to move to
 		//
 		void move(const point &new_position, double new_orientation) {	
+			destination = new_position;
+			angular_target = new_orientation;
+		}
+
+		//
+		// Runs a time tick.
+		//
+		void update() {
 			if (controller) {
 				point linear_velocity;
 				double angular_velocity;
-				controller->move(position(), new_position, orientation(), new_orientation, linear_velocity, angular_velocity);
+				controller->move(position(), destination, orientation(), angular_target, linear_velocity, angular_velocity);
 				move_impl(linear_velocity, angular_velocity);
 			}
 		}
@@ -82,6 +90,8 @@ class player_impl : public virtual robot_impl {
 
 	private:
 		robot_controller::ptr controller;
+		point destination;
+		double angular_target;
 };
 
 #endif
