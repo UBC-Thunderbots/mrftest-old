@@ -1,4 +1,6 @@
 #include "simulator/engine.h"
+#include <stdexcept>
+#include <glibmm.h>
 
 namespace {
 	simulator_engine_factory::map_type &get_map() {
@@ -12,6 +14,8 @@ const simulator_engine_factory::map_type &simulator_engine_factory::all() {
 }
 
 simulator_engine_factory::simulator_engine_factory(const Glib::ustring &name) : the_name(name) {
+	if (get_map().count(name))
+		throw std::logic_error(Glib::locale_from_utf8(Glib::ustring::compose("Duplicate simulator name \"%1\"", name)));
 	get_map()[name] = this;
 }
 
