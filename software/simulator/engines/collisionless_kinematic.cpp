@@ -29,7 +29,7 @@ namespace {
 	//
 	// A collisionless-kinematic ball_impl.
 	//
-	class ck_ball : public virtual ball_impl {
+	class ck_ball : public ball_impl {
 		public:
 			typedef Glib::RefPtr<ck_ball> ptr;
 
@@ -50,15 +50,15 @@ namespace {
 				add_position(the_position);
 			}
 
-			virtual point position() const {
+			point position() const {
 				return the_position;
 			}
 
-			virtual point velocity() const {
+			point velocity() const {
 				return the_velocity;
 			}
 
-			virtual point acceleration() const {
+			point acceleration() const {
 				if (the_velocity.len() > EPS) {
 					return -the_velocity / the_velocity.len() * BALL_DECELERATION;
 				} else {
@@ -66,7 +66,7 @@ namespace {
 				}
 			}
 
-			virtual void ui_set_position(const point &pos) {
+			void ui_set_position(const point &pos) {
 				the_position = pos;
 				the_velocity.x = the_velocity.y = 0;
 			}
@@ -78,7 +78,7 @@ namespace {
 	//
 	// A collisionless-kinematic player_impl.
 	//
-	class ck_player : public virtual player_impl {
+	class ck_player : public player_impl {
 		public:
 			typedef Glib::RefPtr<ck_player> ptr;
 
@@ -99,33 +99,33 @@ namespace {
 				add_position(the_position);
 			}
 
-			virtual point position() const {
+			point position() const {
 				return the_position;
 			}
 
-			virtual double orientation() const {
+			double orientation() const {
 				return the_orientation;
 			}
 
-			virtual bool has_ball() const {
+			bool has_ball() const {
 				return false;
 			}
 
-			virtual void move_impl(const point &vel, double avel) {
+			void move_impl(const point &vel, double avel) {
 				target_velocity = vel;
 				avelocity = avel;
 			}
 
-			virtual void dribble(double) {
+			void dribble(double) {
 			}
 
-			virtual void kick(double) {
+			void kick(double) {
 			}
 
-			virtual void chip(double) {
+			void chip(double) {
 			}
 
-			virtual void ui_set_position(const point &pos) {
+			void ui_set_position(const point &pos) {
 				the_position = pos;
 				the_velocity.x = the_velocity.y = 0;
 				avelocity = 0;
@@ -139,28 +139,28 @@ namespace {
 	//
 	// A collisionless-kinematic simulator_engine.
 	//
-	class ck_engine : public virtual simulator_engine {
+	class ck_engine : public simulator_engine {
 		public:
 			ck_engine() : the_ball(new ck_ball) {
 			}
 
-			virtual void update() {
+			void update() {
 				the_ball->update();
 				for (unsigned int i = 0; i < the_players.size(); i++)
 					the_players[i]->update();
 			}
 
-			virtual ball_impl::ptr get_ball() {
+			ball_impl::ptr get_ball() {
 				return the_ball;
 			}
 
-			virtual player_impl::ptr add_player() {
+			player_impl::ptr add_player() {
 				ck_player::ptr p(new ck_player);
 				the_players.push_back(p);
 				return p;
 			}
 
-			virtual void remove_player(player_impl::ptr p) {
+			void remove_player(player_impl::ptr p) {
 				for (unsigned int i = 0; i < the_players.size(); i++) {
 					if (player_impl::ptr::cast_static(the_players[i]) == p) {
 						the_players.erase(the_players.begin() + i);
@@ -169,11 +169,11 @@ namespace {
 				}
 			}
 
-			virtual Gtk::Widget *get_ui_controls() {
+			Gtk::Widget *get_ui_controls() {
 				return 0;
 			}
 
-			virtual simulator_engine_factory &get_factory();
+			simulator_engine_factory &get_factory();
 
 		private:
 			ck_ball::ptr the_ball;
@@ -183,12 +183,12 @@ namespace {
 	//
 	// A factory for creating ck_engines.
 	//
-	class ck_engine_factory : public virtual simulator_engine_factory {
+	class ck_engine_factory : public simulator_engine_factory {
 		public:
 			ck_engine_factory() : simulator_engine_factory("2D Collisionless Kinematic") {
 			}
 
-			virtual simulator_engine::ptr create_engine(xmlpp::Element *) {
+			simulator_engine::ptr create_engine(xmlpp::Element *) {
 				simulator_engine::ptr p(new ck_engine);
 				return p;
 			}

@@ -2,33 +2,33 @@
 #include "world/player_impl.h"
 
 namespace {
-	class trivial_player_impl : public virtual player_impl {
+	class trivial_player_impl : public player_impl {
 		public:
-			virtual point position() const {
+			point position() const {
 				return point();
 			}
 
-			virtual double orientation() const {
+			double orientation() const {
 				return 0.0;
 			}
 
-			virtual bool has_ball() const {
+			bool has_ball() const {
 				return false;
 			}
 
-			virtual void move_impl(const point &, double) {
+			void move_impl(const point &, double) {
 			}
 
-			virtual void dribble(double) {
+			void dribble(double) {
 			}
 
-			virtual void kick(double) {
+			void kick(double) {
 			}
 
-			virtual void chip(double) {
+			void chip(double) {
 			}
 
-			virtual void ui_set_position(const point &) {
+			void ui_set_position(const point &) {
 			}
 	};
 }

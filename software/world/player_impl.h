@@ -12,7 +12,7 @@
 // provide an implementation of this class and use it to construct player objects
 // to pass to the AI. Vectors in this class are in global coordinates.
 //
-class player_impl : public virtual robot_impl {
+class player_impl : public robot_impl {
 	public:
 		//
 		// A pointer to a player_impl.

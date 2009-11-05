@@ -9,7 +9,7 @@
 #define CLOCK_MONOTONIC CLOCK_REALTIME
 #endif
 
-class exact_timer_impl : public virtual sigc::trackable {
+class exact_timer_impl : public sigc::trackable {
 	public:
 		exact_timer_impl(exact_timer &tmr, double interval) : interval(interval), tmr(tmr), invocations(0) {
 			// Remember start time.

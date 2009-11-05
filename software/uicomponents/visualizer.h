@@ -23,12 +23,12 @@ class visualizer : public Gtk::DrawingArea {
 		void update();
 
 	protected:
-		virtual void on_size_allocate(Gtk::Allocation &);
-		virtual bool on_expose_event(GdkEventExpose *);
-		virtual bool on_button_press_event(GdkEventButton *);
-		virtual bool on_button_release_event(GdkEventButton *);
-		virtual bool on_motion_notify_event(GdkEventMotion *);
-		virtual bool on_leave_notify_event(GdkEventCrossing *);
+		void on_size_allocate(Gtk::Allocation &);
+		bool on_expose_event(GdkEventExpose *);
+		bool on_button_press_event(GdkEventButton *);
+		bool on_button_release_event(GdkEventButton *);
+		bool on_motion_notify_event(GdkEventMotion *);
+		bool on_leave_notify_event(GdkEventCrossing *);
 
 	private:
 		double scale;

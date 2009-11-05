@@ -3,15 +3,15 @@
 //this seems to have virtually nothing but the framework, add more stuff when roles are available
 
 namespace {
-	class defensive_strategy : public virtual strategy {
+	class defensive_strategy : public strategy {
 		public:
 			defensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
-			virtual void update();
-			virtual void set_playtype(playtype::playtype t);
-			virtual strategy_factory &get_factory();
-			virtual Gtk::Widget *get_ui_controls();
-			virtual void robot_added(void);
-			virtual void robot_removed(unsigned int index, robot::ptr r);
+			void update();
+			void set_playtype(playtype::playtype t);
+			strategy_factory &get_factory();
+			Gtk::Widget *get_ui_controls();
+			void robot_added(void);
+			void robot_removed(unsigned int index, robot::ptr r);
 
 		private:
 			playtype::playtype current_playtype;
@@ -41,10 +41,10 @@ namespace {
   void defensive_strategy::robot_removed(unsigned int index, robot::ptr r){
   }
 
-	class defensive_strategy_factory : public virtual strategy_factory {
+	class defensive_strategy_factory : public strategy_factory {
 		public:
 			defensive_strategy_factory();
-			virtual strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
 	defensive_strategy_factory::defensive_strategy_factory() : strategy_factory("defensive Strategy") {

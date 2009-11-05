@@ -11,7 +11,7 @@
 // A robot can be either friendly or enemy. Vectors in this class are in team
 // coordinates.
 //
-class robot : public virtual byref, public virtual draggable {
+class robot : public draggable {
 	public:
 		//
 		// A pointer to a robot object.

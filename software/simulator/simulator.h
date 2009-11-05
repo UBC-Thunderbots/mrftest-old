@@ -15,7 +15,7 @@
 //
 // The simulator itself.
 //
-class simulator : public virtual noncopyable, public virtual sigc::trackable {
+class simulator : public noncopyable, public sigc::trackable {
 	public:
 		//
 		// Constructs a new simulator.

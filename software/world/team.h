@@ -11,7 +11,7 @@
 //
 // A group of robots controlled by one AI.
 //
-class team : public virtual byref {
+class team : public byref {
 	public:
 		//
 		// A pointer to a team.
@@ -68,7 +68,7 @@ class team : public virtual byref {
 //
 // A group of robots controlled by one AI on this computer.
 //
-class controlled_team : public virtual team {
+class controlled_team : public team {
 	public:
 		//
 		// A pointer to a controllable_team.
@@ -83,7 +83,7 @@ class controlled_team : public virtual team {
 		//
 		// Gets one robot on the team.
 		//
-		virtual robot::ptr get_robot(std::size_t idx) {
+		robot::ptr get_robot(std::size_t idx) {
 			return get_player(idx);
 		}
 };

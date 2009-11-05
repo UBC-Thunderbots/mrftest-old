@@ -12,7 +12,7 @@
 // provide an implementation of this class and use it to construct robot objects
 // to pass to the AI. Vectors in this class are in global coordinates.
 //
-class robot_impl : public virtual byref, public virtual predictable, public virtual draggable {
+class robot_impl : public predictable, public draggable {
 	public:
 		//
 		// A pointer to a robot_impl.

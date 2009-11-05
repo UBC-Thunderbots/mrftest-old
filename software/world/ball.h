@@ -10,7 +10,7 @@
 //
 // The ball, as seen by the AI. Vectors in this class are in team coordinates.
 //
-class ball : public virtual byref, public virtual draggable {
+class ball : public draggable {
 	public:
 		//
 		// A pointer to a ball object.

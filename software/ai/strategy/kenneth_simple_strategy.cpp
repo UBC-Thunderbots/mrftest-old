@@ -25,15 +25,15 @@ namespace {
 		return a->dist_to_ball < b->dist_to_ball;
 	}
 
-	class kenneth_simple_strategy : public virtual strategy {
+	class kenneth_simple_strategy : public strategy {
 		public:
 			kenneth_simple_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
-			virtual void update();
-			virtual void set_playtype(playtype::playtype t);
-			virtual strategy_factory &get_factory();
-			virtual Gtk::Widget *get_ui_controls();
-			virtual void robot_added(void);
-			virtual void robot_removed(unsigned int index, robot::ptr r);
+			void update();
+			void set_playtype(playtype::playtype t);
+			strategy_factory &get_factory();
+			Gtk::Widget *get_ui_controls();
+			void robot_added(void);
+			void robot_removed(unsigned int index, robot::ptr r);
 
 		private:
 			playtype::playtype current_playtype;
@@ -232,10 +232,10 @@ namespace {
 	void kenneth_simple_strategy::robot_removed(unsigned int index, robot::ptr r) {
 	}
 
-	class kenneth_simple_strategy_factory : public virtual strategy_factory {
+	class kenneth_simple_strategy_factory : public strategy_factory {
 		public:
 			kenneth_simple_strategy_factory();
-			virtual strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
 	kenneth_simple_strategy_factory::kenneth_simple_strategy_factory() : strategy_factory("Kenneth's Simple Strategy") {

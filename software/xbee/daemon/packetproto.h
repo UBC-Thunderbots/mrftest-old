@@ -10,7 +10,7 @@
 //
 // Allows sending and receiving packets to the XBee.
 //
-class xbee_packet_stream : public virtual noncopyable, public virtual sigc::trackable {
+class xbee_packet_stream : public noncopyable, public sigc::trackable {
 	public:
 		//
 		// Constructs a new xbee_packet_stream.

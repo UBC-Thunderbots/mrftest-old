@@ -7,7 +7,7 @@ namespace {
 	//
 	// The robot controller.
 	//
-	class testing_rc : public virtual robot_controller {
+	class testing_rc : public robot_controller {
 		public:
 			//
 			// Constructs a new controller.
@@ -24,12 +24,12 @@ namespace {
 			//  target_orientation
 			//   direction the player wants to have
 			//
-			virtual void move(const point &current_position, const point &new_position, double current_orientation, double new_orientation, point &linear_velocity, double &angular_velocity);
+			void move(const point &current_position, const point &new_position, double current_orientation, double new_orientation, point &linear_velocity, double &angular_velocity);
 
 			//
 			// Returns the factory.
 			//
-			virtual robot_controller_factory &get_factory() const;
+			robot_controller_factory &get_factory() const;
 
 		private:
 			double get_velocity(double d, double v0, double v1, double max_vel, double max_accel);
@@ -119,12 +119,12 @@ namespace {
 		angular_velocity = da;
 	}
 
-	class testing_rc_factory : public virtual robot_controller_factory {
+	class testing_rc_factory : public robot_controller_factory {
 		public:
 			testing_rc_factory() : robot_controller_factory("Testing RC") {
 			}
 
-			virtual robot_controller::ptr create_controller(const Glib::ustring &) {
+			robot_controller::ptr create_controller(const Glib::ustring &) {
 				robot_controller::ptr p(new testing_rc);
 				return p;
 			}

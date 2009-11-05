@@ -7,7 +7,7 @@
 // An object that should be passed around by means of a Glib::RefPtr<> rather
 // than by copying.
 //
-class byref : public virtual noncopyable {
+class byref : public noncopyable {
 	public:
 		//
 		// Adds one to the object's reference count. This should only be called

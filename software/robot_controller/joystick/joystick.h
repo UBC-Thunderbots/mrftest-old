@@ -11,7 +11,7 @@
 //
 // Allows access to a joystick device.
 //
-class joystick : public virtual byref, public virtual sigc::trackable {
+class joystick : public byref, public sigc::trackable {
 	public:
 		//
 		// A pointer to a joystick.

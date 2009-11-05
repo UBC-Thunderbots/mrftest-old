@@ -10,7 +10,7 @@ class exact_timer_impl;
 // A timer that provides exact interval timing, irrespective of the time taken
 // to handle each event.
 //
-class exact_timer : public virtual noncopyable {
+class exact_timer : public noncopyable {
 	public:
 		//
 		// Constructs a new exact_timer to fire at the specified interval.

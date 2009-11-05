@@ -13,7 +13,7 @@
 //
 // A combo box that allows the user to select a simulation engine.
 //
-class engine_chooser : public virtual Gtk::ComboBoxText {
+class engine_chooser : public Gtk::ComboBoxText {
 	public:
 		engine_chooser(simulator &sim) : initializing(true) {
 			append_text("No Engine");
@@ -34,7 +34,7 @@ class engine_chooser : public virtual Gtk::ComboBoxText {
 		}
 
 	protected:
-		virtual void on_changed() {
+		void on_changed() {
 			if (!initializing) {
 				const Glib::ustring &name = get_active_text();
 				the_signal_changed.emit(name);
@@ -51,7 +51,7 @@ class engine_chooser : public virtual Gtk::ComboBoxText {
 //
 // Controls for selecting and managing the simulation engine.
 //
-class engine_controls : public virtual Gtk::VBox {
+class engine_controls : public Gtk::VBox {
 	public:
 		engine_controls(simulator &sim) : sim(sim), chooser(sim), ctls(0) {
 			chooser.signal_changed().connect(sigc::mem_fun(*this, &engine_controls::engine_changed));
@@ -99,7 +99,7 @@ class engine_controls : public virtual Gtk::VBox {
 //
 // A combobox for selecting which playtype is active.
 //
-class playtype_combo : public virtual Gtk::ComboBoxText {
+class playtype_combo : public Gtk::ComboBoxText {
 	public:
 		playtype_combo(simulator &sim) : sim(sim) {
 			for (unsigned int i = 0; i < playtype::count; i++) {
@@ -109,7 +109,7 @@ class playtype_combo : public virtual Gtk::ComboBoxText {
 		}
 
 	protected:
-		virtual void on_changed() {
+		void on_changed() {
 			const Glib::ustring &pt = get_active_text();
 			for (unsigned int i = 0; i < playtype::count; i++)
 				if (playtype::descriptions_west[i] == pt)
@@ -125,7 +125,7 @@ class playtype_combo : public virtual Gtk::ComboBoxText {
 //
 // A combo box that allows the user to select a strategy.
 //
-class strategy_chooser : public virtual Gtk::ComboBoxText {
+class strategy_chooser : public Gtk::ComboBoxText {
 	public:
 		strategy_chooser(simulator_team_data &team) : initializing(true) {
 			append_text("No Strategy");
@@ -146,7 +146,7 @@ class strategy_chooser : public virtual Gtk::ComboBoxText {
 		}
 
 	protected:
-		virtual void on_changed() {
+		void on_changed() {
 			if (!initializing) {
 				const Glib::ustring &name = get_active_text();
 				the_signal_changed.emit(name);
@@ -163,7 +163,7 @@ class strategy_chooser : public virtual Gtk::ComboBoxText {
 //
 // The controls for managing a team's strategy.
 //
-class strategy_controls : public virtual Gtk::VBox {
+class strategy_controls : public Gtk::VBox {
 	public:
 		strategy_controls(simulator_team_data &team) : team(team), chooser(team), ctls(0) {
 			chooser.signal_changed().connect(sigc::mem_fun(*this, &strategy_controls::strategy_changed));
@@ -211,7 +211,7 @@ class strategy_controls : public virtual Gtk::VBox {
 //
 // A combo box that allows the user to select a controller.
 //
-class controller_chooser : public virtual Gtk::ComboBoxText {
+class controller_chooser : public Gtk::ComboBoxText {
 	public:
 		controller_chooser(robot_controller_factory *current) : initializing(true) {
 			append_text("No Controller");
@@ -230,7 +230,7 @@ class controller_chooser : public virtual Gtk::ComboBoxText {
 		}
 
 	protected:
-		virtual void on_changed() {
+		void on_changed() {
 			if (!initializing) {
 				const Glib::ustring &name = get_active_text();
 				the_signal_changed.emit(name);
@@ -247,7 +247,7 @@ class controller_chooser : public virtual Gtk::ComboBoxText {
 //
 // The controls for managing a team.
 //
-class team_controls : public virtual Gtk::VBox {
+class team_controls : public Gtk::VBox {
 	public:
 		team_controls(simulator_team_data &team_data) : team_data(team_data), players_frame("Players"), players_list(1), players_button_box(Gtk::BUTTONBOX_SPREAD), add_player_button(Gtk::Stock::ADD), del_player_button(Gtk::Stock::DELETE), strategy_frame("Strategy"), strategy_ctls(team_data), rc_frame("Controller"), rc_chooser(team_data.get_controller_type()) {
 			pack_start(*Gtk::manage(new Gtk::Label(team_data.is_yellow() ? "Yellow" : "Blue")), false, false);
@@ -327,7 +327,7 @@ class team_controls : public virtual Gtk::VBox {
 //
 // The main window.
 //
-class simulator_window_impl : public virtual Gtk::Window {
+class simulator_window_impl : public Gtk::Window {
 	public:
 		simulator_window_impl(simulator &sim) : sim(sim), engine_frame("Simulation Engine"), engine_ctls(sim), playtype_frame("Play Type"), playtype_cb(sim), westteam_frame("West Team"), westteam_ctls(sim.west_team), eastteam_frame("East Team"), eastteam_ctls(sim.east_team), visualizer_frame("Visualizer"), vis(sim.fld, sim.west_ball, sim.west_team.west_view, sim.east_team.west_view) {
 			set_title("Thunderbots Simulator");
@@ -356,7 +356,7 @@ class simulator_window_impl : public virtual Gtk::Window {
 		}
 
 	protected:
-		virtual bool on_delete_event(GdkEventAny *) {
+		bool on_delete_event(GdkEventAny *) {
 			Gtk::Main::quit();
 			return true;
 		}

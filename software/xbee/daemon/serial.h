@@ -10,7 +10,7 @@
 //
 // A serial port running at 250,000 baud.
 //
-class serial_port : public virtual noncopyable, public virtual sigc::trackable {
+class serial_port : public noncopyable, public sigc::trackable {
 	public:
 		//
 		// Constructs a new serial_port.

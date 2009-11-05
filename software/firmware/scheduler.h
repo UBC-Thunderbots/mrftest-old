@@ -25,7 +25,7 @@ struct upload_irp {
 //
 // Manages scheduling which IRPs should be dispatched when to the chip.
 //
-class upload_scheduler : public virtual noncopyable {
+class upload_scheduler : public noncopyable {
 	public:
 		//
 		// Constructs a new upload_scheduler.

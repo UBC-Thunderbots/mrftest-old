@@ -43,7 +43,7 @@ class file_descriptor {
 		//
 		// Destroys a file_descriptor.
 		//
-		virtual ~file_descriptor() {
+		~file_descriptor() {
 			close();
 		}
 

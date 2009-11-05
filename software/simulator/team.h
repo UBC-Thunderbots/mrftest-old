@@ -18,7 +18,7 @@
 //
 // A view of a physical team from either the west or the east perspective.
 //
-class simulator_team_view : public virtual controlled_team {
+class simulator_team_view : public controlled_team {
 	public:
 		//
 		// Constructs a new simulator_team_view.
@@ -29,14 +29,14 @@ class simulator_team_view : public virtual controlled_team {
 		//
 		// Gets the size of the team.
 		//
-		virtual std::size_t size() const {
+		std::size_t size() const {
 			return players.size();
 		}
 
 		//
 		// Gets one player on the team.
 		//
-		virtual player::ptr get_player(std::size_t idx) {
+		player::ptr get_player(std::size_t idx) {
 			assert(idx < players.size());
 			return players[idx];
 		}
@@ -44,21 +44,21 @@ class simulator_team_view : public virtual controlled_team {
 		//
 		// Gets the team's score.
 		//
-		virtual unsigned int score() const {
+		unsigned int score() const {
 			return the_score;
 		}
 
 		//
 		// Gets the other team.
 		//
-		virtual team::ptr other() {
+		team::ptr other() {
 			return the_other;
 		}
 
 		//
 		// Gets the colour of the team.
 		//
-		virtual bool yellow() const {
+		bool yellow() const {
 			return the_yellow;
 		}
 
@@ -91,7 +91,7 @@ class simulator_team_view : public virtual controlled_team {
 //
 // All the data about a physical team implemented by the simulator.
 //
-class simulator_team_data : public virtual noncopyable {
+class simulator_team_data : public noncopyable {
 	public:
 		//
 		// Constructs a new simulator_team_data.

@@ -13,7 +13,7 @@
 //
 // An in-progress firmware upgrade operation.
 //
-class upload : public virtual byref, public virtual sigc::trackable {
+class upload : public byref, public sigc::trackable {
 	public:
 		//
 		// Constructs an uploader object.

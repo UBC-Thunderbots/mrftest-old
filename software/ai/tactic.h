@@ -12,7 +12,7 @@
 //
 // A tactic controls the operation of a single player doing some activity.
 //
-class tactic : public virtual byref, public virtual sigc::trackable {
+class tactic : public byref, public sigc::trackable {
 	public:
 		//
 		// A pointer to a tactic.

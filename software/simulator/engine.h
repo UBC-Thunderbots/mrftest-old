@@ -15,7 +15,7 @@ class simulator_engine_factory;
 // A simulation engine. Individual simulation engines should extend this class
 // to provide actual simulation services.
 //
-class simulator_engine : public virtual byref {
+class simulator_engine : public byref {
 	public:
 		//
 		// A pointer to a simulator_engine.
@@ -61,7 +61,7 @@ class simulator_engine : public virtual byref {
 // extend this class to provide a class which can create objects of a particular
 // derived implementation of simulator_engine.
 //
-class simulator_engine_factory : public virtual noncopyable {
+class simulator_engine_factory : public noncopyable {
 	public:
 		//
 		// The type of the map returned by simulator_engine_factory::all().

@@ -8,7 +8,7 @@
 //
 // An object that can be dragged around in the visualizer.
 //
-class draggable : public virtual byref {
+class draggable : public byref {
 	public:
 		//
 		// A pointer to a draggable.

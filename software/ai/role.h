@@ -13,7 +13,7 @@
 //
 // A role manages the operation of a small group of players.
 //
-class role : public virtual byref, public virtual sigc::trackable {
+class role : public byref, public sigc::trackable {
 	public:
 		//
 		// A pointer to a role.

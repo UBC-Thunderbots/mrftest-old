@@ -2,21 +2,21 @@
 #include <glibmm/refptr.h>
 
 namespace {
-	class trivial_ball_impl : public virtual ball_impl {
+	class trivial_ball_impl : public ball_impl {
 		public:
-			virtual point position() const {
+			point position() const {
 				return point();
 			}
 
-			virtual point velocity() const {
+			point velocity() const {
 				return point();
 			}
 
-			virtual point acceleration() const {
+			point acceleration() const {
 				return point();
 			}
 
-			virtual void ui_set_position(const point &) {
+			void ui_set_position(const point &) {
 			}
 	};
 }

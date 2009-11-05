@@ -38,7 +38,7 @@
 //    as well, those other clients will get the token before that next packet is
 //    sent.
 //
-class xbee : public virtual noncopyable {
+class xbee : public noncopyable {
 	public:
 		//
 		// Connects to the arbiter daemon, launching it if necessary.

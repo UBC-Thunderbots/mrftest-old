@@ -20,7 +20,7 @@ class strategy_factory;
 // A strategy manages the overall operation of a team. Individual AI implementations
 // should extend this class to provide their own strategy.
 //
-class strategy : public virtual byref, public virtual sigc::trackable {
+class strategy : public byref, public sigc::trackable {
 	public:
 		//
 		// A pointer to a strategy.
@@ -84,7 +84,7 @@ class strategy : public virtual byref, public virtual sigc::trackable {
 // extend this class to provide an object which can constructs its "strategy"
 // objects.
 //
-class strategy_factory : public virtual noncopyable {
+class strategy_factory : public noncopyable {
 	public:
 		//
 		// The type of the map returned by strategy_factory::all().

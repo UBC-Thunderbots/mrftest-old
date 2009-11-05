@@ -11,20 +11,20 @@
 //
 // A player object compatible with the robot-controller tester framework.
 //
-class rc_test_player : public virtual player_impl {
+class rc_test_player : public player_impl {
 	public:
 		typedef Glib::RefPtr<rc_test_player> ptr;
 		rc_test_player(point position, double orientation, point linear_velocity, double angular_velocity);
-		virtual point position() const;
-		virtual double orientation() const;
-		virtual bool has_ball() const { return false; }
-		virtual point linear_velocity() const;
-		virtual double angular_velocity() const;
-		virtual void move_impl(const point &linear_velocity, double angular_velocity);
-		virtual void dribble(double) {}
-		virtual void kick(double) {}
-		virtual void chip(double) {}
-		virtual void ui_set_position(const point &) {}
+		point position() const;
+		double orientation() const;
+		bool has_ball() const { return false; }
+		point linear_velocity() const;
+		double angular_velocity() const;
+		void move_impl(const point &linear_velocity, double angular_velocity);
+		void dribble(double) {}
+		void kick(double) {}
+		void chip(double) {}
+		void ui_set_position(const point &) {}
 	private:
 		point pos;
 		double ori;

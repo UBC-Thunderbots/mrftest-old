@@ -10,7 +10,7 @@
 // The dialogue should be run with the Gtk::Dialog::run() method.
 // The response will be Gtk::RESPONSE_ACCEPT if the user commits.
 //
-class world_add_bot_dialog : public virtual Gtk::Dialog {
+class world_add_bot_dialog : public Gtk::Dialog {
 	public:
 		//
 		// Constructs a new "add bot" dialogue.

@@ -13,7 +13,7 @@
 // which can be given to the AI. Vectors in this class are in global
 // coordinates.
 //
-class ball_impl : public virtual byref, public virtual predictable, public virtual draggable {
+class ball_impl : public predictable, public draggable {
 	public:
 		//
 		// A pointer to a ball_impl.

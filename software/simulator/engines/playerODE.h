@@ -5,7 +5,7 @@
 // The back-end behind an ODE player object.
 // 
 //
-class playerODE : public virtual player_impl {
+class playerODE : public player_impl {
 	public:
 //The world constructed by the simulatiuon engine
 	dWorldID world;
@@ -13,23 +13,23 @@ class playerODE : public virtual player_impl {
 
 void update();
 
-	virtual point position() const ;
+	point position() const ;
 
-			virtual double orientation() const ;
+			double orientation() const ;
 
-			virtual bool has_ball() const ;
+			bool has_ball() const ;
 				
 			
 protected:
-			virtual void move_impl(const point &vel, double avel) ;
+			void move_impl(const point &vel, double avel) ;
 public:
-			virtual void dribble(double speed) ;
+			void dribble(double speed) ;
 
-			virtual void kick(double strength) ;
+			void kick(double strength) ;
 
-			virtual void chip(double strength) ;
+			void chip(double strength) ;
 
-			virtual void ui_set_position(const point &pos);
+			void ui_set_position(const point &pos);
 
 	private:
 			point the_position, the_velocity, target_velocity;

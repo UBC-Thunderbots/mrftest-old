@@ -19,7 +19,7 @@ namespace {
 	const uint8_t CMD_GET_STATUS = 0xC4;
 	const uint8_t CMD_IDENT      = 0xE3;
 
-	class bot_chooser : public virtual Gtk::ComboBoxText {
+	class bot_chooser : public Gtk::ComboBoxText {
 		private:
 			class item {
 				public:
@@ -86,7 +86,7 @@ namespace {
 			}
 
 		protected:
-			virtual void on_changed() {
+			void on_changed() {
 				int cur = get_active_row_number();
 				if (cur >= 0) {
 					sig_address_changed.emit(items[cur].address);
@@ -102,7 +102,7 @@ namespace {
 			sigc::signal<void, uint64_t> sig_address_changed;
 	};
 
-	class bot_panel : public virtual Gtk::VBox {
+	class bot_panel : public Gtk::VBox {
 		public:
 			bot_panel(xmlpp::Element *xmlworld, Gtk::Window &window) : xmlplayers(xmlutil::get_only_child(xmlworld, "players")), chooser(xmlplayers, window), button_box(Gtk::BUTTONBOX_SPREAD), add_button(Gtk::Stock::ADD), del_button(Gtk::Stock::DELETE) {
 				pack_start(chooser, false, false);
@@ -127,7 +127,7 @@ namespace {
 			Gtk::Button add_button, del_button;
 	};
 
-	class upload_dialog : public virtual Gtk::Dialog {
+	class upload_dialog : public Gtk::Dialog {
 		public:
 			upload_dialog(Gtk::Window &win, upload &up) : Gtk::Dialog("Upload Progress", win, true), up(up) {
 				up.signal_progress_made().connect(sigc::mem_fun(*this, &upload_dialog::status_update));
@@ -149,7 +149,7 @@ namespace {
 	};
 }
 
-class firmware_window_impl : public virtual Gtk::Window {
+class firmware_window_impl : public Gtk::Window {
 	public:
 		firmware_window_impl(xbee &modem, xmlpp::Element *xmlworld) : modem(modem), bot_frame("Bot"), bot_controls(xmlworld, *this), file_frame("Firmware File"), work_frame("Execute Upload"), start_upload_button(Gtk::Stock::EXECUTE) {
 			bot_controls.signal_address_changed().connect(sigc::mem_fun(*this, &firmware_window_impl::address_changed));
@@ -171,7 +171,7 @@ class firmware_window_impl : public virtual Gtk::Window {
 		}
 
 	protected:
-		virtual bool on_delete_event(GdkEventAny *) {
+		bool on_delete_event(GdkEventAny *) {
 			Gtk::Main::quit();
 			return true;
 		}

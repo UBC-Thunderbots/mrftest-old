@@ -13,7 +13,7 @@ class robot_controller_factory;
 // Translates world-coordinate movement requests into robot-relative
 // velocities.
 //
-class robot_controller : public virtual byref {
+class robot_controller : public byref {
 	public:
 		//
 		// A pointer to a robot_controller.
@@ -64,7 +64,7 @@ class robot_controller : public virtual byref {
 //
 // A factory to construct robot_controllers.
 // 
-class robot_controller_factory : public virtual noncopyable {
+class robot_controller_factory : public noncopyable {
 	public:
 		//
 		// The type of the map returned by the all() method.

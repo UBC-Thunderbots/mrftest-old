@@ -5,15 +5,15 @@
 //simple strategy created by Armand
 
 namespace {
-	class simple_strategy1 : public virtual strategy {
+	class simple_strategy1 : public strategy {
 		public:
 			simple_strategy1(ball::ptr ball, field::ptr field, controlled_team::ptr team);
-			virtual void update();
-			virtual void set_playtype(playtype::playtype t);
-			virtual strategy_factory &get_factory();
-			virtual Gtk::Widget *get_ui_controls();
-			virtual void robot_added(void);
-			virtual void robot_removed(unsigned int index, robot::ptr r);
+			void update();
+			void set_playtype(playtype::playtype t);
+			strategy_factory &get_factory();
+			Gtk::Widget *get_ui_controls();
+			void robot_added(void);
+			void robot_removed(unsigned int index, robot::ptr r);
 
 		private:
 			playtype::playtype current_playtype;
@@ -66,10 +66,10 @@ namespace {
   void simple_strategy1::robot_removed(unsigned int index, robot::ptr r){
   }
 
-	class simple_strategy1_factory : public virtual strategy_factory {
+	class simple_strategy1_factory : public strategy_factory {
 		public:
 			simple_strategy1_factory();
-			virtual strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
 	simple_strategy1_factory::simple_strategy1_factory() : strategy_factory("Simple Strategy 1") {

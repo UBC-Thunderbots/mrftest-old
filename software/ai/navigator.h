@@ -12,7 +12,7 @@
 //
 // A navigator manages movement of a single robot to a target.
 //
-class navigator : public virtual byref, public virtual sigc::trackable {
+class navigator : public byref, public sigc::trackable {
 	public:
 		//
 		// A pointer to a navigator.

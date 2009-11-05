@@ -10,17 +10,17 @@ namespace {
 	const unsigned int AXIS_LR = 3; // Right stick X axis.
 	const unsigned int AXIS_ROT = 0; // Left stick X axis.
 
-	class joystick_controller_factory : public virtual robot_controller_factory {
+	class joystick_controller_factory : public robot_controller_factory {
 		public:
 			joystick_controller_factory() : robot_controller_factory("Joystick") {
 			}
 
-			virtual robot_controller::ptr create_controller(const Glib::ustring &robot_name);
+			robot_controller::ptr create_controller(const Glib::ustring &robot_name);
 	};
 
 	joystick_controller_factory factory;
 
-	class joystick_display_rectangle : public virtual Gtk::DrawingArea {
+	class joystick_display_rectangle : public Gtk::DrawingArea {
 		public:
 			joystick_display_rectangle() {
 				set_size_request(128, 128);
@@ -35,7 +35,7 @@ namespace {
 			}
 
 		protected:
-			virtual bool on_expose_event(GdkEventExpose *) {
+			bool on_expose_event(GdkEventExpose *) {
 				int width, height;
 				get_window()->get_size(width, height);
 				if (width > height) width = height;
@@ -86,13 +86,13 @@ namespace {
 			joystick::ptr stick;
 	};
 
-	class joystick_controller : public virtual robot_controller, public virtual Gtk::VBox {
+	class joystick_controller : public robot_controller, public Gtk::VBox {
 		public:
 			joystick_controller(const Glib::ustring &robot_name);
 
-			virtual ~joystick_controller();
+			~joystick_controller();
 
-			virtual void move(const point &, const point &, double, double, point &linear_velocity, double &angular_velocity) {
+			void move(const point &, const point &, double, double, point &linear_velocity, double &angular_velocity) {
 				if (stick) {
 					linear_velocity.x = -stick->axis(AXIS_FB) / 32767.0 * MAX_LINEAR_VELOCITY;
 					linear_velocity.y = -stick->axis(AXIS_LR) / 32767.0 * MAX_LINEAR_VELOCITY;
@@ -104,7 +104,7 @@ namespace {
 				}
 			}
 
-			virtual robot_controller_factory &get_factory() const {
+			robot_controller_factory &get_factory() const {
 				return factory;
 			}
 
@@ -132,7 +132,7 @@ namespace {
 		return p;
 	}
 
-	class joystick_controller_ui : public virtual Gtk::Window {
+	class joystick_controller_ui : public Gtk::Window {
 		public:
 			joystick_controller_ui() {
 				add(book);
@@ -150,7 +150,7 @@ namespace {
 			}
 
 		protected:
-			virtual bool on_delete_event(GdkEventAny *) {
+			bool on_delete_event(GdkEventAny *) {
 				Gtk::Main::quit();
 				return true;
 			}

@@ -6,15 +6,15 @@
 using namespace std;
 
 namespace {
-	class offensive_strategy : public virtual strategy {
+	class offensive_strategy : public strategy {
 		public:
 			offensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
-			virtual void update();
-			virtual void set_playtype(playtype::playtype t);
-			virtual strategy_factory &get_factory();
-			virtual Gtk::Widget *get_ui_controls();
-			virtual void robot_added(void);
-			virtual void robot_removed(unsigned int index, robot::ptr r);
+			void update();
+			void set_playtype(playtype::playtype t);
+			strategy_factory &get_factory();
+			Gtk::Widget *get_ui_controls();
+			void robot_added(void);
+			void robot_removed(unsigned int index, robot::ptr r);
 
 		private:
 			playtype::playtype current_playtype;
@@ -98,10 +98,10 @@ namespace {
   void offensive_strategy::robot_removed(unsigned int index, robot::ptr r){
   }
 
-	class offensive_strategy_factory : public virtual strategy_factory {
+	class offensive_strategy_factory : public strategy_factory {
 		public:
 			offensive_strategy_factory();
-			virtual strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
 	offensive_strategy_factory::offensive_strategy_factory() : strategy_factory("Offensive Strategy") {

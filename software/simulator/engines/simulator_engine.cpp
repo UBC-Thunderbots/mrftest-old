@@ -36,7 +36,7 @@ namespace {
 	//
 	// A simulator_engine.
 	//
-	class sim_engine : public virtual simulator_engine {
+	class sim_engine : public simulator_engine {
 		public:
 			dWorldID eworld;
 			dSpaceID space;
@@ -57,24 +57,24 @@ namespace {
 				the_ball = b;
 			}
 
-			virtual void update() {
+			void update() {
 				
 			}
-			virtual void setWorld(dWorldID world) {
+			void setWorld(dWorldID world) {
 				eworld = world;
 			}
-			virtual ball_impl::ptr get_ball() {
+			ball_impl::ptr get_ball() {
 				
 				return the_ball;
 			}
 
-			virtual player_impl::ptr add_player() {
+			player_impl::ptr add_player() {
 				playerODE::ptr p(new playerODE(eworld));
 				the_players.push_back(p);
 				return p;
 			}
 
-			virtual void remove_player(player_impl::ptr p) {
+			void remove_player(player_impl::ptr p) {
 				for (unsigned int i = 0; i < the_players.size(); i++) {
 					if (player_impl::ptr::cast_static(the_players[i]) == p) {
 						the_players.erase(the_players.begin() + i);
@@ -83,11 +83,11 @@ namespace {
 				}
 			}
 
-			virtual Gtk::Widget *get_ui_controls() {
+			Gtk::Widget *get_ui_controls() {
 				return 0;
 			}
 
-			virtual simulator_engine_factory &get_factory();
+			simulator_engine_factory &get_factory();
 
 		private:
 			ballODE::ptr the_ball;
@@ -97,12 +97,12 @@ namespace {
 	//
 	// A factory for creating sim_engines.
 	//
-	class sim_engine_factory : public virtual simulator_engine_factory {
+	class sim_engine_factory : public simulator_engine_factory {
 		public:
 			sim_engine_factory() : simulator_engine_factory("Open Dynamics Engine Simulator") {
 			}
 
-			virtual simulator_engine::ptr create_engine(xmlpp::Element *) {
+			simulator_engine::ptr create_engine(xmlpp::Element *) {
 				simulator_engine::ptr p(new sim_engine);
 				return p;
 			}

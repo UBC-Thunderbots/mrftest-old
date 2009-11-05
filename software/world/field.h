@@ -9,7 +9,7 @@
 // The origin of this coordinate system is the centre of the field.
 // The positive x direction is the direction to the enemy goal.
 //
-class field : public virtual byref {
+class field : public byref {
 	public:
 		//
 		// A pointer to a field object.

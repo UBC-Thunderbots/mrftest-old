@@ -3,15 +3,15 @@
 //this seems to have virtually nothing but the framework, add more stuff when roles are available
 
 namespace {
-	class chase_strategy : public virtual strategy {
+	class chase_strategy : public strategy {
 		public:
 			chase_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
-			virtual void update();
-			virtual void set_playtype(playtype::playtype t);
-			virtual strategy_factory &get_factory();
-			virtual Gtk::Widget *get_ui_controls();
-			virtual void robot_added(void);
-			virtual void robot_removed(unsigned int index, robot::ptr r);
+			void update();
+			void set_playtype(playtype::playtype t);
+			strategy_factory &get_factory();
+			Gtk::Widget *get_ui_controls();
+			void robot_added(void);
+			void robot_removed(unsigned int index, robot::ptr r);
 
 		private:
 			playtype::playtype current_playtype;
@@ -61,10 +61,10 @@ namespace {
   void chase_strategy::robot_removed(unsigned int index, robot::ptr r){
   }
 
-	class chase_strategy_factory : public virtual strategy_factory {
+	class chase_strategy_factory : public strategy_factory {
 		public:
 			chase_strategy_factory();
-			virtual strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
 	chase_strategy_factory::chase_strategy_factory() : strategy_factory("Chase Strategy") {

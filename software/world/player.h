@@ -12,7 +12,7 @@
 // A player that the robot_controller can control. Vectors in this class are in
 // team coordinates.
 //
-class player : public virtual byref, public virtual robot {
+class player : public robot {
 	public:
 		//
 		// A pointer to a player object.

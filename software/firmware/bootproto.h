@@ -12,7 +12,7 @@
 //
 // Handles the lower-level protocol of talking to the bootloader.
 //
-class bootproto : public virtual noncopyable, public virtual sigc::trackable {
+class bootproto : public noncopyable, public sigc::trackable {
 	public:
 		//
 		// The states the robot can be in.
