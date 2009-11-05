@@ -170,7 +170,7 @@ bool visualizer::on_motion_notify_event(GdkEventMotion *evt) {
 	return true;
 }
 
-bool visualizer::on_leave_notify_event(GdkEventCrossing *evt) {
+bool visualizer::on_leave_notify_event(GdkEventCrossing *) {
 	// Drop the object and redraw the visualizer.
 	dragging.reset();
 	update();
