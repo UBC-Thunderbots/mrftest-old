@@ -3,10 +3,8 @@
 
 #include "util/noncopyable.h"
 #include <vector>
-#include <tr1/unordered_set>
 #include <cstddef>
 #include <stdint.h>
-#include <sigc++/sigc++.h>
 
 //
 // An individual abstract IO request packet. This is NOT the concrete bytewise

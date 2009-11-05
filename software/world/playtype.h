@@ -1,7 +1,7 @@
 #ifndef WORLD_PLAYTYPE_H
 #define WORLD_PLAYTYPE_H
 
-#include <glibmm/ustring.h>
+#include <glibmm.h>
 
 namespace playtype {
 	//

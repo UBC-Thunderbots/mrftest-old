@@ -1,16 +1,8 @@
 #ifndef SIMULATOR_SIMULATOR_H
 #define SIMULATOR_SIMULATOR_H
 
-#include "simulator/engine.h"
 #include "simulator/team.h"
 #include "util/exact_timer.h"
-#include "util/noncopyable.h"
-#include "world/ball.h"
-#include "world/field.h"
-#include "world/playtype.h"
-#include <vector>
-#include <libxml++/libxml++.h>
-#include <sigc++/sigc++.h>
 
 //
 // The simulator itself.

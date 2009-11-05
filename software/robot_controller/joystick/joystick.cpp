@@ -1,14 +1,11 @@
 #include "robot_controller/joystick/joystick.h"
 #include <stdexcept>
-#include <string>
-#include <cassert>
 #include <cerrno>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <linux/joystick.h>
-#include <unistd.h>
 
 namespace {
 	int open_device(const Glib::ustring &filename) {

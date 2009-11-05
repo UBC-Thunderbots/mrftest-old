@@ -1,6 +1,5 @@
 #include "robot_controller/robot_controller.h"
 #include <stdexcept>
-#include <glibmm.h>
 
 namespace {
 	static std::map<Glib::ustring, robot_controller_factory *> &get_map() {

@@ -1,11 +1,8 @@
 #ifndef WORLD_ROBOT_IMPL_H
 #define WORLD_ROBOT_IMPL_H
 
-#include "geom/point.h"
-#include "util/byref.h"
 #include "world/draggable.h"
 #include "world/predictable.h"
-#include <glibmm/refptr.h>
 
 //
 // A robot can be either friendly or enemy. An implementation of the world must

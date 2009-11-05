@@ -1,11 +1,8 @@
 #ifndef WORLD_BALL_H
 #define WORLD_BALL_H
 
-#include "geom/point.h"
-#include "util/byref.h"
 #include "world/ball_impl.h"
 #include <cassert>
-#include <glibmm/refptr.h>
 
 //
 // The ball, as seen by the AI. Vectors in this class are in team coordinates.

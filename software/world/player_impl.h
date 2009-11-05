@@ -1,10 +1,7 @@
 #ifndef WORLD_PLAYER_IMPL_H
 #define WORLD_PLAYER_IMPL_H
 
-#include <glibmm/refptr.h>
-#include "geom/point.h"
 #include "robot_controller/robot_controller.h"
-#include "util/byref.h"
 #include "world/robot_impl.h"
 
 //

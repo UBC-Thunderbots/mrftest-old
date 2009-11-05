@@ -1,11 +1,8 @@
 #ifndef WORLD_ROBOT_H
 #define WORLD_ROBOT_H
 
-#include <glibmm/refptr.h>
 #include "geom/angle.h"
-#include "geom/point.h"
-#include "util/byref.h"
-#include "world/robot_impl.h"
+#include "world/robot.h"
 
 //
 // A robot can be either friendly or enemy. Vectors in this class are in team

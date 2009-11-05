@@ -1,14 +1,6 @@
-#include "robot_controller/robot_controller.h"
-#include "simulator/engine.h"
-#include "simulator/team.h"
 #include "simulator/window.h"
 #include "uicomponents/visualizer.h"
-#include "world/playtype.h"
-#include <algorithm>
-#include <functional>
-#include <sstream>
 #include <gtkmm.h>
-#include <sigc++/sigc++.h>
 
 //
 // A combo box that allows the user to select a simulation engine.

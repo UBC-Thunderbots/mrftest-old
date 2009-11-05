@@ -1,9 +1,6 @@
 #include "geom/angle.h"
 #include "simulator/engine.h"
 #include "world/timestep.h"
-#include <vector>
-#include <glibmm/refptr.h>
-#include <libxml++/libxml++.h>
 
 namespace {
 	//

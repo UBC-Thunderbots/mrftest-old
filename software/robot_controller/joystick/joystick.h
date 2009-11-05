@@ -1,12 +1,8 @@
 #ifndef ROBOT_CONTROLLER_JOYSTICK_JOYSTICK_H
 #define ROBOT_CONTROLLER_JOYSTICK_JOYSTICK_H
 
-#include "util/fd.h"
 #include "util/byref.h"
-#include <vector>
-#include <utility>
-#include <glibmm.h>
-#include <sigc++/sigc++.h>
+#include "util/fd.h"
 
 //
 // Allows access to a joystick device.

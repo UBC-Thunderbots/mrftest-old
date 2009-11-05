@@ -1,6 +1,4 @@
 #include "ai/navigator/testnavigator.h"
-#include "world/field.h"
-#include <algorithm>
 
 testnavigator::testnavigator(player::ptr player, field::ptr field, ball::ptr ball, team::ptr team) : 
   navigator(player, field, ball, team), destInitialized(false), outOfBoundsMargin(field->width() / 20.0),

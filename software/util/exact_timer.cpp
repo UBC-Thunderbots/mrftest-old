@@ -1,13 +1,6 @@
 #include "util/exact_timer.h"
-#include "world/timestep.h"
-#include <time.h>
-#include <sigc++/sigc++.h>
 #include <glibmm.h>
-
-// Needed because Cygwin doesn't provide CLOCK_MONOTONIC.
-#ifndef CLOCK_MONOTONIC
-#define CLOCK_MONOTONIC CLOCK_REALTIME
-#endif
+#include <time.h>
 
 class exact_timer_impl : public sigc::trackable {
 	public:

@@ -2,7 +2,6 @@
 #define UTIL_XML_H
 
 #include <libxml++/libxml++.h>
-#include <glibmm/ustring.h>
 
 namespace xmlutil {
 	//

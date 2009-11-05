@@ -1,10 +1,4 @@
 #include "firmware/upload.h"
-#include "xbee/packettypes.h"
-#include <iostream>
-#include <iomanip>
-#include <algorithm>
-#include <stdint.h>
-#include <gtkmm.h>
 
 namespace {
 	struct __attribute__((packed)) IDENT_DATA {

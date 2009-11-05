@@ -1,14 +1,8 @@
 #ifndef AI_TACTIC_DANCE_H
 #define AI_TACTIC_DANCE_H
 
-#include <glibmm.h>
-#include "util/byref.h"
-#include "world/ball.h"
-#include "world/field.h"
-#include "world/player.h"
-#include "world/team.h"
-#include "ai/tactic.h"
 #include "ai/navigator.h"
+#include "ai/tactic.h"
 
 //
 // Victory (?) dance.

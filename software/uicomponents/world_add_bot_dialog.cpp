@@ -1,7 +1,4 @@
 #include "uicomponents/world_add_bot_dialog.h"
-#include <sstream>
-#include <iomanip>
-#include <cctype>
 
 world_add_bot_dialog::world_add_bot_dialog(Gtk::Window &parent) : Gtk::Dialog("Add Bot", parent, true), yellow_button(colour_group, "Yellow"), blue_button(colour_group, "Blue"), name_label("Name:"), address_label("XBee Address:") {
 	colour_hbox.pack_start(yellow_button, true, true);

@@ -1,11 +1,8 @@
 #ifndef WORLD_BALL_IMPL_H
 #define WORLD_BALL_IMPL_H
 
-#include "geom/point.h"
-#include "util/byref.h"
 #include "world/draggable.h"
 #include "world/predictable.h"
-#include <glibmm/refptr.h>
 
 //
 // The ball, as provided by the world. An implementation of the world must

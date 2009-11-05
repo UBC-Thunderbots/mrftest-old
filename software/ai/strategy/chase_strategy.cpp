@@ -1,5 +1,4 @@
 #include "ai/strategy.h"
-
 //this seems to have virtually nothing but the framework, add more stuff when roles are available
 
 namespace {

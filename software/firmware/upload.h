@@ -3,17 +3,11 @@
 
 #include "firmware/bootproto.h"
 #include "firmware/scheduler.h"
-#include "util/byref.h"
-#include "xbee/util.h"
-#include "xbee/xbee.h"
-#include <vector>
-#include <stdint.h>
-#include <sigc++/sigc++.h>
 
 //
 // An in-progress firmware upgrade operation.
 //
-class upload : public byref, public sigc::trackable {
+class upload : public noncopyable, public sigc::trackable {
 	public:
 		//
 		// Constructs an uploader object.

@@ -1,12 +1,7 @@
 #ifndef ROBOT_CONTROLLER_TEST_PLAYER_H
 #define ROBOT_CONTROLLER_TEST_PLAYER_H
 
-#include <glibmm.h>
-#include "world/player.h"
-#include "geom/point.h"
-#include "geom/angle.h"
-
-
+#include "world/player_impl.h"
 
 //
 // A player object compatible with the robot-controller tester framework.

@@ -1,13 +1,9 @@
 #ifndef AI_TACTIC_H
 #define AI_TACTIC_H
 
-#include "util/byref.h"
 #include "world/ball.h"
 #include "world/field.h"
-#include "world/player.h"
 #include "world/team.h"
-#include <glibmm.h>
-#include <sigc++/sigc++.h>
 
 //
 // A tactic controls the operation of a single player doing some activity.

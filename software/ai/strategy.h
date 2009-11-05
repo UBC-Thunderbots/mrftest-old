@@ -1,19 +1,15 @@
 #ifndef AI_STRATEGY_H
 #define AI_STRATEGY_H
 
-#include "util/byref.h"
-#include "util/noncopyable.h"
 #include "world/ball.h"
 #include "world/field.h"
 #include "world/playtype.h"
 #include "world/team.h"
-#include "ai/role.h"
-#include <map>
-#include <glibmm.h>
-#include <gtkmm.h>
 #include <libxml++/libxml++.h>
-#include <sigc++/sigc++.h>
 
+namespace Gtk {
+	class Widget;
+}
 class strategy_factory;
 
 //

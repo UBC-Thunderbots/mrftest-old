@@ -1,5 +1,5 @@
-#include "ai/tactic/move.h"
 #include "ai/navigator/testnavigator.h"
+#include "ai/tactic/move.h"
 
 move::move(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player) : tactic(ball, field, team, player) , the_navigator(new testnavigator(player,field,ball,team)) {
 }

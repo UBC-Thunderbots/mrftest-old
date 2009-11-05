@@ -1,7 +1,7 @@
+#include "ai/role.h"
 #include "ai/strategy.h"
-#include "world/robot.h"
+#include <map>
 #include <set>
-
 //simple strategy created by Armand
 
 namespace {

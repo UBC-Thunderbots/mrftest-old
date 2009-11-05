@@ -1,7 +1,6 @@
 #ifndef WORLD_FIELD_H
 #define WORLD_FIELD_H
 
-#include <glibmm/refptr.h>
 #include "util/byref.h"
 
 //

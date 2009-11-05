@@ -1,11 +1,7 @@
-#include "robot_controller/robot_controller.h"
+#include "geom/angle.h"
 #include "robot_controller_test/player.h"
 #include "world/player.h"
 #include <iostream>
-#include <iomanip>
-#include <cmath>
-#include <vector>
-
 
 namespace {
 	// How close to the endpoint before we consider the task done

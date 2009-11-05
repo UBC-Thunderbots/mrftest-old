@@ -1,14 +1,9 @@
 #ifndef AI_ROLE_H
 #define AI_ROLE_H
 
-#include "util/byref.h"
 #include "world/ball.h"
 #include "world/field.h"
-#include "world/player.h"
 #include "world/team.h"
-#include <glibmm.h>
-#include <sigc++/sigc++.h>
-#include <vector>
 
 //
 // A role manages the operation of a small group of players.

@@ -1,13 +1,7 @@
 #ifndef FIRWMARE_BOOTPROTO_H
 #define FIRMWARE_BOOTPROTO_H
 
-#include "util/noncopyable.h"
 #include "xbee/xbee.h"
-#include <vector>
-#include <stdint.h>
-#include <cstddef>
-#include <sigc++/sigc++.h>
-#include <glibmm.h>
 
 //
 // Handles the lower-level protocol of talking to the bootloader.

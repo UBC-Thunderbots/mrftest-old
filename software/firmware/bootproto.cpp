@@ -4,8 +4,6 @@
 #include "util/dprint.h"
 #include "xbee/packettypes.h"
 #include "xbee/util.h"
-#include <algorithm>
-#include <cassert>
 
 namespace {
 	const unsigned int TIMEOUT = 250;

@@ -1,14 +1,13 @@
 #ifndef SIMULATOR_ENGINE_H
 #define SIMULATOR_ENGINE_H
 
-#include "util/byref.h"
 #include "world/ball_impl.h"
 #include "world/player_impl.h"
-#include <map>
-#include <glibmm.h>
-#include <gtkmm/widget.h>
 #include <libxml++/libxml++.h>
 
+namespace Gtk {
+	class Widget;
+}
 class simulator_engine_factory;
 
 //

@@ -1,11 +1,8 @@
 #ifndef ROBOT_CONTROLLER_ROBOT_CONTROLLER_H
 #define ROBOT_CONTROLLER_ROBOT_CONTROLLER_H
 
-#include <map>
-#include <glibmm.h>
 #include "geom/point.h"
 #include "util/byref.h"
-#include "util/noncopyable.h"
 
 class robot_controller_factory;
 

@@ -2,18 +2,7 @@
 #define SIMULATOR_TEAM_H
 
 #include "ai/strategy.h"
-#include "robot_controller/robot_controller.h"
 #include "simulator/engine.h"
-#include "world/ball.h"
-#include "world/field.h"
-#include "world/player.h"
-#include "world/player_impl.h"
-#include "world/playtype.h"
-#include "world/team.h"
-#include <vector>
-#include <cassert>
-#include <glibmm/refptr.h>
-#include <libxml++/libxml++.h>
 
 //
 // A view of a physical team from either the west or the east perspective.

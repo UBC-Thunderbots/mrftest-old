@@ -1,7 +1,5 @@
+#include "ai/role.h"
 #include "ai/strategy.h"
-#include <algorithm>
-#include <vector> // I like vectors, like it or die
-
 // made by Terence under braindead conditions with a crazy mind
 using namespace std;
 

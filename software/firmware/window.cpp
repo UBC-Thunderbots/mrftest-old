@@ -2,13 +2,8 @@
 #include "firmware/window.h"
 #include "uicomponents/world_add_bot_dialog.h"
 #include "util/xml.h"
-#include <iomanip>
-#include <sstream>
 #include <fstream>
-#include <vector>
-#include <algorithm>
-#include <stdint.h>
-#include <gtkmm.h>
+#include <iomanip>
 
 namespace {
 	const uint8_t CMD_CHIP_ERASE = 0x29;

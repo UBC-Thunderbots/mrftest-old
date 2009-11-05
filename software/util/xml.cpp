@@ -1,7 +1,6 @@
-#include "util/xml.h"
 #include "world/config.h"
+#include "util/xml.h"
 #include <algorithm>
-#include <functional>
 
 xmlpp::Element *xmlutil::get_only_child(xmlpp::Element *parent, const Glib::ustring &name) {
 	// First get a list of all matching children.

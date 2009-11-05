@@ -1,11 +1,7 @@
 #ifndef XBEE_BYTEPROTO_H
 #define XBEE_BYTEPROTO_H
 
-#include "util/noncopyable.h"
 #include "xbee/daemon/serial.h"
-#include <cstddef>
-#include <stdint.h>
-#include <sigc++/sigc++.h>
 
 //
 // Performs the escaping necessary to provide a categorized byte stream to and from the XBee.

@@ -1,9 +1,5 @@
 #include "ai/strategy.h"
-#include "ai/role.h"
-#include "ai/tactic.h"
 #include "ai/tactic/chase.h"
-#include <algorithm>
-#include <vector>
 //created by Kenneth Lui, last updated 2 Nov 2009.
 
 namespace {

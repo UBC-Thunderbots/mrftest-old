@@ -1,6 +1,5 @@
 #include "ai/strategy.h"
 #include <stdexcept>
-#include <glibmm.h>
 
 namespace {
 	strategy_factory::map_type &get_map() {

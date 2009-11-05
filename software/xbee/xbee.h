@@ -4,7 +4,6 @@
 #include "util/fd.h"
 #include "util/noncopyable.h"
 #include <cstddef>
-#include <sigc++/sigc++.h>
 #include <glibmm.h>
 
 //

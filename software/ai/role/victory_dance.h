@@ -1,12 +1,6 @@
 #ifndef AI_ROLE_VICTORY_DANCE_H
 #define AI_ROLE_VICTORY_DANCE_H
 
-#include "util/byref.h"
-#include "world/ball.h"
-#include "world/field.h"
-#include "world/team.h"
-#include <glibmm.h>
-#include <sigc++/sigc++.h>
 #include "ai/role.h"
 
 //

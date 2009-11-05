@@ -1,7 +1,5 @@
-#include "robot_controller/robot_controller.h"
-#include "geom/point.h"
 #include "geom/angle.h"
-#include <cmath>
+#include "robot_controller/robot_controller.h"
 
 namespace {
 	//

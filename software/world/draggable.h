@@ -3,7 +3,6 @@
 
 #include "geom/point.h"
 #include "util/byref.h"
-#include <glibmm.h>
 
 //
 // An object that can be dragged around in the visualizer.

@@ -1,10 +1,6 @@
 #ifndef WORLD_PLAYER_H
 #define WORLD_PLAYER_H
 
-#include <glibmm/refptr.h>
-#include "geom/angle.h"
-#include "geom/point.h"
-#include "util/byref.h"
 #include "world/player_impl.h"
 #include "world/robot.h"
 

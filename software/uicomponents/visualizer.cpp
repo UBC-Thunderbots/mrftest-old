@@ -1,9 +1,4 @@
 #include "uicomponents/visualizer.h"
-#include <algorithm>
-#include <cmath>
-#include <cairomm/cairomm.h>
-
-
 
 visualizer::visualizer(const field::ptr field, const ball::ptr ball, const team::ptr west_team, const team::ptr east_team) : scale(1), xtranslate(0), ytranslate(0), the_field(field), the_ball(ball), west_team(west_team), east_team(east_team) {
 	add_events(Gdk::POINTER_MOTION_MASK);

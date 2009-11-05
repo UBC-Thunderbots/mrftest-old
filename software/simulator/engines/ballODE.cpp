@@ -1,5 +1,4 @@
-#include <glibmm/refptr.h>
-#include "ballODE.h"
+#include "simulator/engines/ballODE.h"
 
 /*
 

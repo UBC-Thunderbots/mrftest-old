@@ -1,7 +1,7 @@
 #ifndef WORLD_CONFIG_H
 #define WORLD_CONFIG_H
 
-#include <libxml++/document.h>
+#include <libxml++/libxml++.h>
 
 //
 // Manages the "config.xml" file.

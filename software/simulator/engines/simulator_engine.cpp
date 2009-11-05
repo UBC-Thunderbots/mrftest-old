@@ -1,12 +1,7 @@
-#include "geom/angle.h"
 #include "simulator/engine.h"
-#include "world/timestep.h"
-#include <vector>
-#include <glibmm/refptr.h>
-#include <libxml++/libxml++.h>
-#include <ode/ode.h>
-#include "playerODE.h"
-#include "ballODE.h"
+#include "simulator/engines/ballODE.h"
+#include "simulator/engines/playerODE.h"
+
 namespace {
 	//
 	// The limit of floating-point precision.

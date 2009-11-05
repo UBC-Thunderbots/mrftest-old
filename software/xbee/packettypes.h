@@ -1,7 +1,6 @@
 #ifndef XBEE_PACKETTYPES_H
 #define XBEE_PACKETTYPES_H
 
-#include <cstddef>
 #include <stdint.h>
 
 namespace xbeepacket {

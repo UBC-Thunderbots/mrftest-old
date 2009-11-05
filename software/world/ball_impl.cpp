@@ -1,5 +1,4 @@
 #include "world/ball_impl.h"
-#include <glibmm/refptr.h>
 
 namespace {
 	class trivial_ball_impl : public ball_impl {

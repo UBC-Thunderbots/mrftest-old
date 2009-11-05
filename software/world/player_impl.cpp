@@ -1,4 +1,3 @@
-#include "geom/point.h"
 #include "world/player_impl.h"
 
 namespace {

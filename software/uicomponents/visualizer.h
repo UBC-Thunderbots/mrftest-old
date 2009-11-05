@@ -1,10 +1,10 @@
 #ifndef UICOMPONENTS_VISUALIZER_H
 #define UICOMPONENTS_VISUALIZER_H
 
-#include <gtkmm/drawingarea.h>
 #include "world/ball.h"
 #include "world/field.h"
 #include "world/team.h"
+#include <gtkmm.h>
 
 //
 // Displays a view of the field.

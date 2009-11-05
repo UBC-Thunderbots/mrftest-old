@@ -1,14 +1,8 @@
-#include "util/sockaddrs.h"
 #include "xbee/daemon/serial.h"
 #include <stdexcept>
 #include <string>
-#include <algorithm>
-#include <cerrno>
-#include <cassert>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/socket.h>
-#include <sys/un.h>
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <unistd.h>

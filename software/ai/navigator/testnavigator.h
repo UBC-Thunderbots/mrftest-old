@@ -2,7 +2,7 @@
 #define AI_NAVIGATOR_TESTNAVIGATOR_H
 
 #include "ai/navigator.h"
-#include "world/field.h"
+
 class testnavigator : public navigator {
  public:
   testnavigator(player::ptr player, field::ptr field, ball::ptr ball, team::ptr team);

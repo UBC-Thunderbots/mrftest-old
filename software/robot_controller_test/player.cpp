@@ -1,8 +1,5 @@
-#include "robot_controller_test/player.h"
 #include "geom/angle.h"
-#include <cmath>
-
-
+#include "robot_controller_test/player.h"
 
 rc_test_player::rc_test_player(point position, double orientation, point linear_velocity, double angular_velocity) {
 	time_step = 1. / 30;

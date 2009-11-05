@@ -1,7 +1,6 @@
 #include "util/hungarian.h"
-
 #include <algorithm>
-#include <climits>
+#include <limits>
 #include <cmath>
 
 namespace {
@@ -12,7 +11,7 @@ namespace {
 	}
 }
 
-hungarian::hungarian(std::size_t size) : weights(size, std::vector<double>(size, 0.0)), mx(size, UINT_MAX), my(size, UINT_MAX) {
+hungarian::hungarian(std::size_t size) : weights(size, std::vector<double>(size, 0.0)), mx(size, std::numeric_limits<unsigned int>::max()), my(size, std::numeric_limits<unsigned int>::max()) {
 }
 
 void hungarian::execute() {
@@ -28,8 +27,8 @@ void hungarian::execute() {
 	unsigned int py[N];
 	bool S[N];
 
-	std::fill(mx.begin(), mx.end(), UINT_MAX);
-	std::fill(my.begin(), my.end(), UINT_MAX);
+	std::fill(mx.begin(), mx.end(), std::numeric_limits<unsigned int>::max());
+	std::fill(my.begin(), my.end(), std::numeric_limits<unsigned int>::max());
 
 	for (unsigned int i = 0; i < N; i++)
 		for (unsigned int j = 0; j < N; j++)
@@ -37,26 +36,26 @@ void hungarian::execute() {
 
 	for (unsigned int szm = 0; szm < N; ++szm) {
 		unsigned int u = 0;
-		while (u < N && mx[u] != UINT_MAX)
+		while (u < N && mx[u] != std::numeric_limits<unsigned int>::max())
 			u++;
 		std::fill(S, S + N, false);
 		S[u] = true;
-		std::fill(py, py + N, UINT_MAX);
+		std::fill(py, py + N, std::numeric_limits<unsigned int>::max());
 		for (unsigned int y = 0; y < N; y++)
 			sy[y] = ly[y] + lx[u] - weights[u][y];
 		for (;;) {
 			unsigned int y = 0;
-			while (y < N && !(equal(sy[y], 0.0) && py[y] == UINT_MAX))
+			while (y < N && !(equal(sy[y], 0.0) && py[y] == std::numeric_limits<unsigned int>::max()))
 				y++;
 			if (y == N) {
 				double a = 1.0 / 0.0;
 				for (unsigned int i = 0; i < N; i++)
-					if (py[i] == UINT_MAX)
+					if (py[i] == std::numeric_limits<unsigned int>::max())
 						a = std::min(a, sy[i]);
 				for (unsigned int v = 0; v < N; v++) {
 					if (S[v])
 						lx[v] -= a;
-					if (py[v] != UINT_MAX)
+					if (py[v] != std::numeric_limits<unsigned int>::max())
 						ly[v] += a;
 					else
 						sy[v] -= a;
@@ -67,7 +66,7 @@ void hungarian::execute() {
 						py[y] = x;
 						break;
 					}
-				if (my[y] != UINT_MAX) {
+				if (my[y] != std::numeric_limits<unsigned int>::max()) {
 					S[my[y]] = true;
 					for (unsigned int z = 0; z < N; z++)
 						sy[z] = std::min(sy[z], lx[my[y]] + ly[z] - weights[my[y]][z]);

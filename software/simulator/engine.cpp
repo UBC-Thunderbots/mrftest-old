@@ -1,6 +1,5 @@
 #include "simulator/engine.h"
 #include <stdexcept>
-#include <glibmm.h>
 
 namespace {
 	simulator_engine_factory::map_type &get_map() {

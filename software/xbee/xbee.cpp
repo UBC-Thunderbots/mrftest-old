@@ -1,12 +1,8 @@
 #include "util/sockaddrs.h"
-#include "xbee/xbee.h"
 #include "xbee/daemon/daemon.h"
+#include "xbee/xbee.h"
 #include <stdexcept>
-#include <algorithm>
 #include <cerrno>
-#include <glibmm.h>
-#include <sys/socket.h>
-#include <sys/un.h>
 
 namespace {
 	bool connect_to_existing_daemon(file_descriptor &sock) {

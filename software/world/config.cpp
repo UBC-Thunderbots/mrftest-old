@@ -1,12 +1,10 @@
 #include "world/config.h"
 #include <string>
 #include <stdexcept>
-#include <cstdio>
 #include <cassert>
-#include <libxml++/libxml++.h>
 #include <glibmm.h>
-#include <sigc++/sigc++.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <fcntl.h>
 #include <unistd.h>
 

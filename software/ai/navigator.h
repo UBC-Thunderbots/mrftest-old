@@ -1,13 +1,9 @@
 #ifndef AI_NAVIGATION_H
 #define AI_NAVIGATION_H
 
-#include "util/byref.h"
-#include "world/player.h"
-#include "world/field.h"
 #include "world/ball.h"
+#include "world/field.h"
 #include "world/team.h"
-#include <glibmm.h>
-#include <sigc++/sigc++.h>
 
 //
 // A navigator manages movement of a single robot to a target.

@@ -1,9 +1,6 @@
 #include "simulator/team.h"
 #include "util/xml.h"
 #include "world/config.h"
-#include <sstream>
-#include <algorithm>
-#include <stdexcept>
 
 simulator_team_data::simulator_team_data(xmlpp::Element *xml, bool yellow, ball::ptr ball, field::ptr field) : score(0), yellow(yellow), current_playtype(playtype::halt), controller_factory(0), west_view(new simulator_team_view(west_players, score, west_other, this->yellow)), east_view(new simulator_team_view(east_players, score, east_other, this->yellow)), xml(xml), the_ball(ball), the_field(field) {
 	// Get the "players" attribute.

@@ -1,15 +1,9 @@
 #ifndef AI_TACTIC_PASS_H
 #define AI_TACTIC_PASS_H
 
-#include <glibmm.h>
-#include "util/byref.h"
-#include "world/ball.h"
-#include "world/field.h"
-#include "world/player.h"
-#include "world/team.h"
 #include "ai/tactic.h"
-#include "ai/tactic/pass_mode.h"
 #include "ai/tactic/kick.h"
+#include "ai/tactic/pass_mode.h"
 
 //
 // A tactic controls the operation of a single player doing some activity.

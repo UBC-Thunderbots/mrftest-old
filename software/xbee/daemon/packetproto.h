@@ -1,11 +1,8 @@
 #ifndef XBEE_PACKETPROTO_H
 #define XBEE_PACKETPROTO_H
 
-#include "util/noncopyable.h"
 #include "xbee/daemon/byteproto.h"
 #include <vector>
-#include <cstddef>
-#include <sigc++/sigc++.h>
 
 //
 // Allows sending and receiving packets to the XBee.

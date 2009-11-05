@@ -1,7 +1,5 @@
 #include <iostream>
 #include <sstream>
-#include <string>
-#include <cstdio>
 #include <cstdlib>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -11,11 +9,6 @@
 #include <unistd.h>
 #include <termios.h>
 #include <time.h>
-
-// Needed because Cygwin doesn't provide CLOCK_MONOTONIC.
-#ifndef CLOCK_MONOTONIC
-#define CLOCK_MONOTONIC CLOCK_REALTIME
-#endif
 
 namespace {
 	const struct BAUD_INFO {

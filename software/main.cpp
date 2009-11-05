@@ -1,16 +1,11 @@
 #include "firmware/window.h"
-#include "simulator/simulator.h"
 #include "simulator/window.h"
 #include "util/args.h"
 #include "util/xml.h"
 #include "world/config.h"
-#include "xbee/xbee.h"
 #include <iostream>
-#include <getopt.h>
 #include <gtkmm.h>
-#include <libxml++/libxml++.h>
-
-
+#include <getopt.h>
 
 namespace {
 	const char SHORT_OPTIONS[] = "wsfh";

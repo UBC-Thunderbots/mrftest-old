@@ -1,12 +1,7 @@
 #ifndef WORLD_TEAM_H
 #define WORLD_TEAM_H
 
-#include "util/byref.h"
 #include "world/player.h"
-#include "world/robot.h"
-#include <cstddef>
-#include <glibmm.h>
-#include <sigc++/sigc++.h>
 
 //
 // A group of robots controlled by one AI.

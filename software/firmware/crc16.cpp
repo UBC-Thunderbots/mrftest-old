@@ -3,8 +3,6 @@
 //
 
 #include "firmware/crc16.h"
-#include <cstddef>
-#include <stdint.h>
 
 namespace {
 	const uint16_t crc16_table[256] = {
