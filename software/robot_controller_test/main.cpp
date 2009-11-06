@@ -70,6 +70,7 @@ int main() {
 		const double& target_orientation = tasks[t].second;
 		for (int i = 0; ; ++i) {
 			test_player->move(target_position, target_orientation);
+			test_player_impl->tick();
 			point lin_vel = test_player->position() - prev_position;
 			double ang_vel = diff_orient(test_player->orientation(), prev_orientation);
 			std::cout << i / 30. << " secs at task " << t << " error pos " << (target_position - test_player->position()) << " ori " << diff_orient(target_orientation, test_player->orientation()) << " linear vel " << lin_vel << " angle vel " << ang_vel << std::endl;
