@@ -43,6 +43,8 @@ void testnavigator::update() {
       point leftdirection = direction;
       point rightdirection = direction;
 
+      double rotationangle = 0.0;
+
       bool undiverted = true;
 
       while (!check_vector(the_player->position(),
@@ -53,9 +55,17 @@ void testnavigator::update() {
 			      rightdirection))
 	{
 	  undiverted = false;
-	  double rotationangle = 5.0 * PI / 180.0;
-	  leftdirection = leftdirection.rotate(rotationangle);
-	  rightdirection = rightdirection.rotate(-rotationangle);
+	  rotationangle += 5.0 * PI / 180.0;
+	  leftdirection = direction.rotate(rotationangle);
+	  rightdirection = direction.rotate(-rotationangle);
+
+	  // if we can't find a path within 90 degrees
+	  // go straight towards our destination
+	  if (rotationangle > 90.0 * PI / 180.0)
+	    {
+	      leftdirection = rightdirection = direction;
+	      break;
+	    }
 	}
 
       point selected_direction;
