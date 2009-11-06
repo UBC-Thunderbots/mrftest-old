@@ -51,6 +51,7 @@ class player_impl : public robot_impl {
 		}
 
 	protected:
+		robot_controller::ptr controller;
 		//
 		// Instructs the player to move with specified velocities, in
 		// robot-relative coordinates that:
@@ -61,6 +62,7 @@ class player_impl : public robot_impl {
 		virtual void move_impl(const point &linear_velocity, double angular_velocity) = 0;
 
 	public:
+
 		//
 		// Instructs the player's dribbler to spin at the specified speed. The
 		// speed is between 0 and 1.
@@ -86,7 +88,7 @@ class player_impl : public robot_impl {
 		static const ptr &trivial();
 
 	private:
-		robot_controller::ptr controller;
+		
 		point destination;
 		double angular_target;
 };

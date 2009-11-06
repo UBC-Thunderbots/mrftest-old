@@ -81,8 +81,20 @@ class simulator : public noncopyable, public sigc::trackable {
 		// Performs a timestep.
 		//
 		void update() {
+/*
+if(west_team.get_strategy()){
+west_team.get_strategy()->update();
+}
+
+if(east_team.get_strategy()){
+east_team.get_strategy()->update();
+}
+
+
+
 			west_team.update();
 			east_team.update();
+*/
 			if (engine)
 				engine->update();
 			sig_updated.emit();

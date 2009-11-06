@@ -1,6 +1,6 @@
 #include "simulator/engines/playerODE.h"
 
-			playerODE::playerODE (dWorldID eworld) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0) {
+			playerODE::playerODE (dWorldID eworld, dSpaceID dspace) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0) {
 
 				world = eworld;
 			}

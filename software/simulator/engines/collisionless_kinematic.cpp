@@ -1,6 +1,8 @@
 #include "geom/angle.h"
 #include "simulator/engine.h"
 #include "world/timestep.h"
+#include <iostream>
+#include "massivehack.h"
 
 namespace {
 	//
@@ -79,10 +81,31 @@ namespace {
 		public:
 			typedef Glib::RefPtr<ck_player> ptr;
 
-			ck_player() : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0) {
+			ck_player() : the_position(2.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0) {
 			}
 
 			void update() {
+
+point linear_velocity;
+double angular_velocity;
+massivehack h;
+h.getRequestedVelocities(controller, linear_velocity, angular_velocity);
+
+/*				
+if(controller){
+
+controller->move(the_position, the_position, the_orientation, the_orientation, linear_velocity, angular_velocity);
+
+}
+	//point temp(linear_velocity[1],linear_velocity[0]);
+double temp = 	linear_velocity.x;
+	linear_velocity.x = -linear_velocity.y;
+linear_velocity.y = temp;	
+*/
+//std::cout<<"update"<<std::endl;
+target_velocity =  linear_velocity/50.00;
+avelocity = angular_velocity/10.00;
+
 				the_position += the_velocity;
 				const point &diff = target_velocity - the_velocity;
 				if (diff.len() < BOT_MAX_ACCELERATION / TIMESTEPS_PER_SECOND) {
@@ -109,6 +132,8 @@ namespace {
 			}
 
 			void move_impl(const point &vel, double avel) {
+
+
 				target_velocity = vel;
 				avelocity = avel;
 			}
@@ -152,6 +177,7 @@ namespace {
 			}
 
 			player_impl::ptr add_player() {
+
 				ck_player::ptr p(new ck_player);
 				the_players.push_back(p);
 				return p;
