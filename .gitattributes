@@ -18,7 +18,6 @@ software/Makefile -text
 software/ai/navigator.h -text
 software/ai/navigator/testnavigator.cpp -text
 software/ai/navigator/testnavigator.h -text
-software/ai/role.cpp -text
 software/ai/role.h -text
 software/ai/role/defensive.cpp -text
 software/ai/role/defensive.h -text

@@ -18,7 +18,8 @@ class role : public byref, public sigc::trackable {
 		//
 		// Constructs a new role. Call this constructor from subclass constructors.
 		//
-		role(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+		role(ball::ptr ball, field::ptr field, controlled_team::ptr team) : the_ball(ball), the_field(field), the_team(team) {
+		}
 
 		//
 		// Runs the role for one time tick. It is expected that the role will
@@ -36,12 +37,16 @@ class role : public byref, public sigc::trackable {
 		//
 		// Sets the robots controlled by this role.
 		//
-		void set_robots(const std::vector<player::ptr> &robots);
+		void set_robots(const std::vector<player::ptr> &robots) {
+			the_robots = robots;
+		}
 		
 		//
 		// Removes all robots from this role.
 		//
-		void clear_robots();
+		void clear_robots() {
+			the_robots.clear();
+		}
 
 	protected:
 		//
