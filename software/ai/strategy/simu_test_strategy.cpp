@@ -25,7 +25,7 @@ namespace {
 	class simu_test_strategy : public strategy {
 		public:
 			simu_test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
-			void update();
+			void tick();
 			void set_playtype(playtype::playtype t);
 			strategy_factory &get_factory();
 			Gtk::Widget *get_ui_controls();
@@ -54,13 +54,13 @@ namespace {
 		// problems: how do we keep track of roles?
 	}
 
-	void simu_test_strategy::update() {
+	void simu_test_strategy::tick() {
 		// Use the variables "the_ball", "the_field", and "the_team" to allocate players to roles.
 		switch (current_playtype)
 		{
 			case playtype::play:	for (unsigned int i = 0; i < tactics.size();i++)
 						{
-							tactics[i]->update();
+							tactics[i]->tick();
 						}
 						turn_since_last_update++;	// doesn't have effect yet.
 						break;

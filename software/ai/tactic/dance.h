@@ -22,13 +22,13 @@ class dance : public tactic {
 		//
 		// Runs the AI for one time tick.
 		//
-		void update();
+		void tick();
 
 	protected:		
 
-        // Keeps track of the number of times update() was called.
+        // Keeps track of the number of times tick() was called.
         // This is used as an elementary clock, to give the dance some structure.
-        unsigned int tick; 
+        unsigned int ticks;
         
         // Used to control a robot, and read position.
         player::ptr the_player;

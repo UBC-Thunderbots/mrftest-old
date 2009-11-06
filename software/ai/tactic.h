@@ -22,9 +22,21 @@ class tactic : public byref, public sigc::trackable {
 		}
 
 		//
-		// Runs the AI for one time tick.
+		// Runs the tactic for one time tick. It is expected that the tactic
+		// will examine the robot for which it is responsible, determine how it
+		// wishes that robot to move, and then do one of the following:
 		//
-		virtual void update() = 0;
+		//  If this tactic is layered on top of another tactic, call
+		//  tactic::tick() on that lower-level tactic, OR
+		//
+		//  If this tactic is the bottom-level tactic and is layered on top of a
+		//  navigator, call navigator::set_point() and then navigator::tick(),
+		//  OR
+		//
+		//  If this tactic is the bottom-level tactic and does not use a
+		//  navigator, call player::move().
+		//
+		virtual void tick() = 0;
 
 	protected:
 		//

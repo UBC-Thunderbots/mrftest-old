@@ -22,14 +22,18 @@ class navigator : public byref, public sigc::trackable {
 		}
 
 		//
-		// Runs the AI for one time tick.
-		//
-		virtual void update() = 0;
-
-		//
-		// Instruct the navigator to move the player to a point.
+		// Instruct the navigator to move the player to a point. It is expected
+		// that the implementation will save the provided destination somewhere
+		// for later consideration.
 		//
 		virtual void set_point(const point& destination) = 0;
+
+		//
+		// Runs the navigator for one time tick. It is expected that the
+		// navigator will examine the destination value most recently provided
+		// by set_point(), decide how to move, and call player::move().
+		//
+		virtual void tick() = 0;
 
 	protected:
 		//

@@ -3,7 +3,7 @@
 shoot::shoot(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player) : tactic(ball, field, team, player), chase_tactic(new chase(ball, field, team, player)), kick_tactic(new kick(ball, field, team, player)) {
 }
 
-void shoot::update()
+void shoot::tick()
 {
 	if (!the_player->has_ball()) 
 	{
@@ -15,7 +15,7 @@ void shoot::update()
 			}
 		// chase if our team does not have the ball
 		if (!has_ball)
-			chase_tactic->update();
+			chase_tactic->tick();
 	} 
 	else
 	{
@@ -24,7 +24,7 @@ void shoot::update()
 
 		// TODO: detect where other goalie is and shoot at opening		
 		kick_tactic->set_target(enemy_goal);
-		kick_tactic->update();
+		kick_tactic->tick();
 		
 	}
 }

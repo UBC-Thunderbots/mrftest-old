@@ -14,7 +14,7 @@ simulator::simulator(xmlpp::Element *xml) : fld(new simulator_field), west_ball(
 	set_engine(xmlengines->get_attribute_value("active"));
 
 	// Connect to the update tick.
-	ticker.signal_expired().connect(sigc::mem_fun(*this, &simulator::update));
+	ticker.signal_expired().connect(sigc::mem_fun(*this, &simulator::tick));
 }
 
 void simulator::set_engine(const Glib::ustring &engine_name) {
@@ -51,5 +51,15 @@ void simulator::set_engine(const Glib::ustring &engine_name) {
 		xmlengines->set_attribute("active", engine_name);
 		config::dirty();
 	}
+}
+
+void simulator::tick() {
+	west_team.tick_preengine();
+	east_team.tick_preengine();
+	if (engine)
+		engine->tick();
+	west_team.tick_postengine();
+	west_team.tick_postengine();
+	sig_updated.emit();
 }
 

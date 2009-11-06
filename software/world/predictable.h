@@ -19,11 +19,10 @@ class predictable {
 		//
 		point est_velocity() const;
 
-	protected:
 		//
 		// Pushes a new sample of position into the prediction engine.
 		//
-		void add_position(const point &pos);
+		void add_prediction_datum(const point &pos);
 
 	private:
 		ap::real_1d_array xhistory, yhistory;

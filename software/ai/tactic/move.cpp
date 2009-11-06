@@ -9,8 +9,8 @@ void move::set_position(const point& p)
 	target_position = p;
 }
 
-void move::update()
+void move::tick()
 {
 	the_navigator->set_point(target_position);
-	the_navigator->update();
+	the_navigator->tick();
 }

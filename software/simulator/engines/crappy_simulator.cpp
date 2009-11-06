@@ -37,21 +37,25 @@ namespace {
 				the_velocity += direction;
 			}
 
-			void update() {
+			void tick() {
 				the_position += velocity() / static_cast<double>(TIMESTEPS_PER_SECOND);
 				const point &velocity_diff = acceleration() / static_cast<double>(TIMESTEPS_PER_SECOND);
 				if (velocity_diff.len() >= the_velocity.len())
 					the_velocity = point(0.0, 0.0);
 				else
 					the_velocity += velocity_diff;
-
-				add_position(the_position);
 			}
 
 			point position() const {
 				return the_position;
 			}
 
+			void ui_set_position(const point &pos) {
+				the_position = pos;
+				the_velocity.x = the_velocity.y = 0;
+			}
+
+		private:
 			point velocity() const {
 				return the_velocity;
 			}
@@ -64,12 +68,6 @@ namespace {
 				}
 			}
 
-			void ui_set_position(const point &pos) {
-				the_position = pos;
-				the_velocity.x = the_velocity.y = 0;
-			}
-
-		private:
 			point the_position, the_velocity;
 	};
 
@@ -83,7 +81,7 @@ namespace {
 			ck_player() : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0) {
 			}
 
-			void update() {
+			void tick() {
 				the_position += the_velocity;
 				const point &diff = target_velocity - the_velocity;
 				if (diff.len() < BOT_MAX_ACCELERATION / TIMESTEPS_PER_SECOND) {
@@ -93,8 +91,6 @@ namespace {
 				}
 
 				the_orientation = angle_mod(the_orientation + avelocity);
-
-				add_position(the_position);
 			}
 
 			point position() const {
@@ -142,10 +138,10 @@ namespace {
 			ck_engine() : the_ball(new ck_ball) {
 			}
 
-			void update() {
-				the_ball->update();
+			void tick() {
+				the_ball->tick();
 				for (unsigned int i = 0; i < the_players.size(); i++)
-					the_players[i]->update();
+					the_players[i]->tick();
 			}
 
 			ball_impl::ptr get_ball() {

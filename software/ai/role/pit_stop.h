@@ -21,7 +21,7 @@ class pit_stop : public role {
 		//
 		// Runs the AI for one time tick.
 		//
-		void update();
+		void tick();
 
 	protected:
 		

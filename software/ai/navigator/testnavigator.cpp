@@ -7,7 +7,7 @@ testnavigator::testnavigator(player::ptr player, field::ptr field, ball::ptr bal
 
 }
 
-void testnavigator::update() {
+void testnavigator::tick() {
   //tell it which way to go
   if(destInitialized)
     {

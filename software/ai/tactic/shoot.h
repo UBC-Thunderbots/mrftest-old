@@ -19,7 +19,7 @@ class shoot : public tactic {
 		//
 		// Runs the AI for one time tick.
 		//
-		void update();	
+		void tick();	
 
 	protected:
 	

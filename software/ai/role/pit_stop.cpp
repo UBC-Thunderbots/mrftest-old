@@ -3,6 +3,6 @@
 pit_stop::pit_stop(ball::ptr ball, field::ptr field, controlled_team::ptr team) : role(ball, field, team) {
 }
 
-void pit_stop::update(){
+void pit_stop::tick(){
 	
 }

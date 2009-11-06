@@ -52,7 +52,7 @@ namespace {
 				the_ball = b;
 			}
 
-			void update() {
+			void tick() {
 				
 			}
 			void setWorld(dWorldID world) {

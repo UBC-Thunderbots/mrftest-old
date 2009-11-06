@@ -344,7 +344,7 @@ class simulator_window_impl : public Gtk::Window {
 			add(paned);
 			show_all();
 
-			sim.signal_updated().connect(sigc::mem_fun(*this, &simulator_window_impl::on_timestep));
+			sim.signal_updated().connect(sigc::mem_fun(vis, &visualizer::update));
 		}
 
 	protected:
@@ -376,10 +376,6 @@ class simulator_window_impl : public Gtk::Window {
 
 		Gtk::Frame visualizer_frame;
 		visualizer vis;
-
-		void on_timestep() {
-			vis.update();
-		}
 };
 
 

@@ -21,7 +21,7 @@ class execute_indirect_free_kick_friendly : public role {
 		//
 		// Runs the AI for one time tick.
 		//
-		void update();
+		void tick();
 
 	protected:
 		

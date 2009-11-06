@@ -7,9 +7,9 @@ void pass::set_receiver(player::ptr receiver) {
 	the_receiver = receiver;
 }		
 
-void pass::update() {
+void pass::tick() {
 	kick_tactic->set_target(calculate_target());
-	kick_tactic->update();
+	kick_tactic->tick();
 }
 
 point pass::calculate_target() {	

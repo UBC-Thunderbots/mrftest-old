@@ -21,9 +21,17 @@ class role : public byref, public sigc::trackable {
 		role(ball::ptr ball, field::ptr field, controlled_team::ptr team);
 
 		//
-		// Runs the AI for one time tick.
+		// Runs the role for one time tick. It is expected that the role will
+		// examine the robots for which it is responsible, determine if they
+		// need to be given new tactics, and then call tactic::tick() for all
+		// the tactics under this role.
 		//
-		virtual void update() = 0;
+		// It is possible that the set of robots controlled by the tactic may
+		// change between one tick and the next. The role must be ready to deal
+		// with this situation, and must be sure to destroy any tactics
+		// controlling robots that have gone away.
+		//
+		virtual void tick() = 0;
 		
 		//
 		// Sets the robots controlled by this role.

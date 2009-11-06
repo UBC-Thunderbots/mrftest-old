@@ -7,7 +7,7 @@ namespace {
 	class offensive_strategy : public strategy {
 		public:
 			offensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
-			void update();
+			void tick();
 			void set_playtype(playtype::playtype t);
 			strategy_factory &get_factory();
 			Gtk::Widget *get_ui_controls();
@@ -35,7 +35,7 @@ namespace {
 		
 	}
 
-	void offensive_strategy::update() {
+	void offensive_strategy::tick() {
 
 		// There should be a switch statement to take care of the different playtypes
 		// the implementation below is just for the "play" playtype

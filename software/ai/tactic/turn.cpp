@@ -7,7 +7,7 @@ void turn::set_direction(const point& dir) {
 	the_direction = dir;
 }
 
-void turn::update()
+void turn::tick()
 {
 	// calculate orientation based on the target
 	point target = the_direction - the_player->position();

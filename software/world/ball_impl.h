@@ -23,16 +23,6 @@ class ball_impl : public predictable, public draggable {
 		virtual point position() const = 0;
 
 		//
-		// The estimated velocity of the ball at the last camera frame.
-		//
-		virtual point velocity() const = 0;
-
-		//
-		// The estimated acceleration of the ball at the last camera frame.
-		// 
-		virtual point acceleration() const = 0;
-
-		//
 		// Returns a trivial implementation of ball_impl that always leaves the
 		// ball sitting at the origin.
 		//

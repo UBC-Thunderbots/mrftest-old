@@ -21,7 +21,7 @@ class prepare_kickoff_enemy : public role {
 		//
 		// Runs the AI for one time tick.
 		//
-		void update();
+		void tick();
 
 	protected:
 		

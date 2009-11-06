@@ -17,7 +17,7 @@ point move_between_opponents::calculate_position() {
 		return opponentB->position();
 }
 
-void move_between_opponents::update() {
+void move_between_opponents::tick() {
 	move_tactic->set_position(calculate_position());
-	move_tactic->update();
+	move_tactic->tick();
 }

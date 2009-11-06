@@ -26,15 +26,6 @@ world = dworld;
 				return the_position;
 			}
 
-			point ballODE::velocity() const {
-				return the_velocity;
-			}
-
-			point ballODE::acceleration() const {
-
-					return point(0.0, 0.0);
-			}
-
 			void ballODE::ui_set_position(const point &pos) {
 			}
 

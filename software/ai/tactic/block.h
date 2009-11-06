@@ -18,7 +18,7 @@ class block : public tactic {
 		//
 		// Runs the AI for one time tick.
 		//
-		void update();
+		void tick();
 
 		//
 		// Sets the target for the block tactic.

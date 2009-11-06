@@ -36,12 +36,16 @@ class robot_controller : public byref {
 		//   radians
 		//
 		//  linear_velocity
-		//   (output) the linear velocity to move at, in robot-relative coordinates
-		//   robot-relative coordinates are defined as the positive X axis being forward
-		//   and the positive Y axis being left
+		//   (output) the linear velocity to move at, in robot-relative
+		//   coordinates robot-relative coordinates are defined as the positive
+		//   X axis being forward and the positive Y axis being left
 		//
 		//  angular_velocity
 		//   (output) the angular velocity to move at
+		//
+		// It is expected that this function will update internal state. It is
+		// guaranteed that this function will be called exactly once per timer
+		// tick.
 		//
 		virtual void move(const point &current_position, const point &new_position, double current_orientation, double new_orientation, point &linear_velocity, double &angular_velocity) = 0;
 

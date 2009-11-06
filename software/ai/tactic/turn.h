@@ -21,7 +21,7 @@ class turn : public tactic {
 		//
 		// Runs the AI for one time tick.
 		//
-		void update();
+		void tick();
 
 		//
 		// Sets the direction for the turn tactic. Takes in a point and turns towards that point.

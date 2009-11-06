@@ -35,7 +35,9 @@ class simulator : public noncopyable, public sigc::trackable {
 		}
 
 		//
-		// The signal emitted after each timestep.
+		// The signal emitted after each timestep. This signal should only be
+		// used to refresh the user interface or write data to a log; the actual
+		// updating of the world state is done separately.
 		//
 		sigc::signal<void> &signal_updated() {
 			return sig_updated;
@@ -78,15 +80,9 @@ class simulator : public noncopyable, public sigc::trackable {
 		exact_timer ticker;
 
 		//
-		// Performs a timestep.
+		// Handles a timer tick.
 		//
-		void update() {
-			west_team.update();
-			east_team.update();
-			if (engine)
-				engine->update();
-			sig_updated.emit();
-		}
+		void tick();
 };
 
 #endif

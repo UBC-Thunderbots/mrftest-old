@@ -11,7 +11,7 @@ void kick::set_chip(const bool& chip) {
 	should_chip = chip;
 }
 
-void kick::update() {
+void kick::tick() {
 	// calculate orientation based on the target
 	point target = the_target - the_player->position();
 

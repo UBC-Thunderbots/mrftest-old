@@ -6,7 +6,7 @@
 class testnavigator : public navigator {
  public:
   testnavigator(player::ptr player, field::ptr field, ball::ptr ball, team::ptr team);
-  void update();
+  void tick();
   void set_point(const point& destination);
  private:
   point clip_point(point p, point bound1, point bound2);

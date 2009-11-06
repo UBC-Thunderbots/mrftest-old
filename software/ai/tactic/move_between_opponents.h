@@ -22,7 +22,7 @@ class move_between_opponents : public tactic {
 		//
 		// Runs the AI for one time tick.
 		//
-		void update();
+		void tick();
 
 		//
 		// Sets the opponents' positions and orientations

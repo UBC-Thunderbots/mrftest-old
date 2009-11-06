@@ -8,7 +8,7 @@ namespace {
 	class simple_strategy1 : public strategy {
 		public:
 			simple_strategy1(ball::ptr ball, field::ptr field, controlled_team::ptr team);
-			void update();
+			void tick();
 			void set_playtype(playtype::playtype t);
 			strategy_factory &get_factory();
 			Gtk::Widget *get_ui_controls();
@@ -26,7 +26,7 @@ namespace {
 		// Initialize variables here (e.g. create the roles).
 	}
 
-	void simple_strategy1::update() {
+	void simple_strategy1::tick() {
 		// Use the variables "ball", "field", and "team" to allocate players to roles.
 
 		switch (current_playtype) {

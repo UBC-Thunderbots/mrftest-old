@@ -21,7 +21,7 @@ class kick : public tactic {
 		//
 		// Runs the AI for one time tick.
 		//
-		void update();
+		void tick();
 
 		//
 		// Sets the target position for this kick tactic.

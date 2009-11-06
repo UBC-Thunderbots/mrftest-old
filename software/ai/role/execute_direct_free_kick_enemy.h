@@ -21,7 +21,7 @@ class execute_direct_free_kick_enemy : public role {
 		//
 		// Runs the AI for one time tick.
 		//
-		void update();
+		void tick();
 
 	protected:
 		

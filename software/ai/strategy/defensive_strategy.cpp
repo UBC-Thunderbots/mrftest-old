@@ -5,7 +5,7 @@ namespace {
 	class defensive_strategy : public strategy {
 		public:
 			defensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
-			void update();
+			void tick();
 			void set_playtype(playtype::playtype t);
 			strategy_factory &get_factory();
 			Gtk::Widget *get_ui_controls();
@@ -22,7 +22,7 @@ namespace {
 		// Initialize variables here (e.g. create the roles).
 	}
 
-	void defensive_strategy::update() {
+	void defensive_strategy::tick() {
 		// Use the variables "ball", "field", and "team" to allocate players to roles.
 	}
 

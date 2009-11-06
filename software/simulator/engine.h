@@ -22,9 +22,13 @@ class simulator_engine : public byref {
 		typedef Glib::RefPtr<simulator_engine> ptr;
 
 		//
-		// Called once per AI frame to perform an update of the world state.
+		// Runs a time tick. Prior to calling this function,
+		// player_impl::move_impl() will have been called for all players. It is
+		// expected that player_impl::move_impl() will save its parameters and
+		// that simulator_engine::tick() will perform the actual updating of
+		// player and ball positions.
 		//
-		virtual void update() = 0;
+		virtual void tick() = 0;
 
 		//
 		// Called to retrieve the engine's specific ball_impl object. A given
@@ -34,7 +38,7 @@ class simulator_engine : public byref {
 
 		//
 		// Called to create a new player. The engine must keep a pointer to the
-		// new object and update its state.
+		// new object so that simulator_engine::tick() can move the player.
 		//
 		virtual player_impl::ptr add_player() = 0;
 

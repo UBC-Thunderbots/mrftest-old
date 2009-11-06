@@ -29,35 +29,10 @@ class ball : public draggable {
 		}
 
 		//
-		// The estimated velocity of the ball at the last camera frame.
-		//
-		point velocity() const {
-			return impl->velocity() * (flip ? -1.0 : 1.0);
-		}
-
-		//
-		// The estimated acceleration of the ball at the last camera frame.
-		// 
-		point acceleration() const {
-			return impl->acceleration() * (flip ? -1.0 : 1.0);
-		}
-
-		//
 		// Allows the UI to set the position of the ball.
 		//
 		void ui_set_position(const point &pos) {
 			impl->ui_set_position(pos * (flip ? -1.0 : 1.0));
-		}
-
-		//
-		// The estimated future position of the ball.
-		//
-		// Parameters:
-		//  t
-		//   the number of seconds in the future to predict
-		//
-		point future_position(double t) const {
-			return position() + velocity() * t + 0.5 * acceleration() * t * t;
 		}
 
 		//

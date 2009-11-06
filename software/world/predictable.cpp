@@ -35,7 +35,7 @@ point predictable::est_velocity() const {
 	return point(approxx(1), approxy(1));
 }
 
-void predictable::add_position(const point &pos) {
+void predictable::add_prediction_datum(const point &pos) {
 	// Add new position data to history list.
 	for (int i = NUM_OLD_POSITIONS - 1; i; i--) {
 		xhistory(i) = xhistory(i - 1);

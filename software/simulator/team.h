@@ -160,13 +160,23 @@ class simulator_team_data : public noncopyable {
 		void remove_player(unsigned int index);
 
 		//
-		// Runs a time tick.
+		// Runs part of a time tick, before the engine is called. This should
+		// only be called from the "simulator" class.
 		//
-		void update() {
+		void tick_preengine() {
 			if (team_strategy)
-				team_strategy->update();
-			for (std::vector<player_impl::ptr>::iterator i = impls.begin(), iend = impls.end(); i != iend; ++i)
-				(*i)->update();
+				team_strategy->tick();
+			for (unsigned int i = 0; i < impls.size(); ++i)
+				impls[i]->tick();
+		}
+
+		//
+		// Runs part of a time tick, after the engine is called. This should
+		// only be called from the "simulator" class.
+		//
+		void tick_postengine() {
+			for (unsigned int i = 0; i < impls.size(); ++i)
+				impls[i]->add_prediction_datum(impls[i]->position());
 		}
 
 	private:

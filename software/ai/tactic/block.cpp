@@ -7,7 +7,7 @@ void block::set_target(player::ptr target) {
 	the_target = target;
 }		
 
-void block::update() {
+void block::tick() {
 	const double GUARD_DIST = 10;
 	point p = the_player->position() - the_target->position();
 
@@ -28,7 +28,7 @@ void block::update() {
 		// move towards where the target's moving
 		move_tactic->set_position(the_target->position() + the_target->est_velocity());
 	}
-	move_tactic->update();
+	move_tactic->tick();
 }
 
 
