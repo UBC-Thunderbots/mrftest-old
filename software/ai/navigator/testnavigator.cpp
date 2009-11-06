@@ -33,6 +33,11 @@ void testnavigator::update() {
 
       point direction = nowDest - the_player->position();
 
+      if (direction.len() < 0.01)
+	{
+	  return;
+	}
+
       direction = direction / direction.len();
 
       point leftdirection = direction;
