@@ -39,9 +39,8 @@ namespace {
 
 
 			sim_engine(){
- 				dInitODE2(0);
 				eworld = dWorldCreate(); 
-				dWorldSetGravity (eworld,0.0,0.0,GRAVITY);
+				dWorldSetGravity (eworld,0,0.0,GRAVITY);
 
 				space = dHashSpaceCreate (0);
 
@@ -49,13 +48,10 @@ namespace {
     				dWorldSetContactSurfaceLayer(eworld, 0.001);
 
 
-				ballODE::ptr b(new ballODE(eworld, space));
+				ballODE::ptr b(new ballODE(eworld));
 				the_ball = b;
 			}
-			~sim_engine(){
-				dWorldDestroy (eworld);
-				 dCloseODE();
-			}
+
 			void update() {
 				
 			}
@@ -68,7 +64,7 @@ namespace {
 			}
 
 			player_impl::ptr add_player() {
-				playerODE::ptr p(new playerODE(eworld, space));
+				playerODE::ptr p(new playerODE(eworld));
 				the_players.push_back(p);
 				return p;
 			}

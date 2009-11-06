@@ -5,40 +5,22 @@
 ballODE.h has the following:
 
 public:
-typedef Glib::RefPtr<ballODE> ptr;
-dWorldID world;
+
 
 
 private:
-point the_position, the_velocity;
+
 
 
 */
 
 			
-			ballODE::ballODE(dWorldID dworld, dSpaceID dspace) : the_position(0.0, 0.0), the_velocity(0.0, 0.0) {
+			ballODE::ballODE(dWorldID dworld) : the_position(0.0, 0.0), the_velocity(0.0, 0.0) {
 
-			world = dworld;
-			dMass m;
-
-			dBodyID body = dBodyCreate(world);
-			dBodySetPosition(body, 0.0, 0.0, 0.03);
-			dGeomID ballGeom = dCreateSphere(0, 0.04267);//golf ball radius 4.2672cm
-
-			dMassSetSphere (&m,1,0.04267);
-			dBodySetMass (body,&m);
-
-			dGeomSetBody (ballGeom,body);
-			dSpaceAdd (dspace, ballGeom);
-
-
+world = dworld;
 			}
 
-			ballODE::~ballODE(){
 
-
-
-			}
 
 			point ballODE::position() const {
 				return the_position;

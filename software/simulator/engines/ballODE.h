@@ -12,8 +12,8 @@ class ballODE : public ball_impl {
 
 typedef Glib::RefPtr<ballODE> ptr;
 	dWorldID world;
-	ballODE(dWorldID dworld, dSpaceID dspace);
-~ballODE();
+	ballODE(dWorldID dworld);
+
 
 			point position() const;
 
