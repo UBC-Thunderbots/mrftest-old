@@ -107,6 +107,10 @@ namespace {
 
 			void move_impl(const point &vel, double avel) {
 				target_velocity = vel;
+double temp = target_velocity.x;
+target_velocity.x = -target_velocity.y;
+target_velocity.y = temp;
+target_velocity = target_velocity/10.0;
 				avelocity = avel;
 			}
 

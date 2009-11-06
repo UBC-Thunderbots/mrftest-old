@@ -9,7 +9,10 @@ class playerODE : public player_impl {
 	public:
 //The world constructed by the simulatiuon engine
 	dWorldID world;
-	playerODE( dWorldID dworld);
+dBodyID body;
+dMass mass;
+	playerODE( dWorldID dworld, dSpaceID dspace);
+//void tick();
 
 void update();
 
