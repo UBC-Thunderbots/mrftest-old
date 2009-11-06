@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <cstdio>
 
 namespace {
 	xmlpp::DomParser *parser = 0;

@@ -2,6 +2,7 @@
 #define UICOMPONENTS_WORLD_ADD_BOT_DIALOG_H
 
 #include <gtkmm.h>
+#include <stdint.h>
 
 //
 // The "add bot" dialogue for the real world.

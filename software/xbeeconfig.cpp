@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <termios.h>
 #include <time.h>
+#include <cstdio>
 
 namespace {
 	const struct BAUD_INFO {

@@ -2,6 +2,7 @@
 #define FIRMWARE_BOOTPROTO_H
 
 #include "xbee/xbee.h"
+#include <stdint.h>
 
 //
 // Handles the lower-level protocol of talking to the bootloader.
