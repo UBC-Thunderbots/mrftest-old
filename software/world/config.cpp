@@ -2,12 +2,12 @@
 #include <string>
 #include <stdexcept>
 #include <cassert>
+#include <cstdio>
 #include <glibmm.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <cstdio>
 
 namespace {
 	xmlpp::DomParser *parser = 0;
