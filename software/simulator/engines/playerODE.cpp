@@ -43,8 +43,8 @@ p.y = t[1];
 
 			void playerODE::move_impl(const point &vel, double avel) {
 
-double V_DiffMax = 7;
-double V_MaxVel = 2;
+double V_DiffMax = 5;
+double V_MaxVel = 2.5;
 
 //std::cout<<"move impl"<<vel<<std::endl;
 				target_velocity = vel;
@@ -78,7 +78,7 @@ point zero(0.0,0.0);
 point vDiff = target_velocity - the_velocity;
 
 
-vDiff = vDiff/15.0;//timestep 5
+vDiff = vDiff;//timestep 5
 
 double mag = sqrt(vDiff.x*vDiff.x + vDiff.y*vDiff.y);
 
@@ -91,7 +91,11 @@ acc=acc/mag;
 acc=acc*V_DiffMax;
 }
 
-point fce = acc;
+double m = mass.mass;
+
+point fce = acc*((double)m);
+
+fce = fce/400.0;
 
 
 

@@ -2,7 +2,7 @@
 #include "simulator/engines/ballODE.h"
 #include "simulator/engines/playerODE.h"
 
-#define MU 0.5		// the global mu to use
+#define MU 0.001		// the global mu to use
 namespace {
 
 	//
@@ -28,7 +28,7 @@ namespace {
 	//
 	// The force of gravity N/kg
 	//
-	const double GRAVITY = -0.05;
+	const double GRAVITY = -0.25;
 
 			static dWorldID eworlds;
 			static dSpaceID spaces;
@@ -45,13 +45,21 @@ static void nearCallback (void *data, dGeomID o1, dGeomID o2)
   int g2 = (o2 == grounds);
   if ((g1 ^ g2)) {
 
+g1 = (o1 == st_ball->ballGeom);
+   g2 = (o2 == st_ball->ballGeom);
+double frict = MU;
+
+if ((g1 ^ g2)){
+frict = MU*6000;
+}
+
   dBodyID b1 = dGeomGetBody(o1);
   dBodyID b2 = dGeomGetBody(o2);
 
   dContact contact[3];		// up to 3 contacts per box
   for (i=0; i<3; i++) {
     contact[i].surface.mode = dContactSoftCFM | dContactApprox1;
-    contact[i].surface.mu = MU;
+    contact[i].surface.mu = frict;
     contact[i].surface.soft_cfm = 0.01;
   }
   if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
@@ -156,7 +164,7 @@ st_ball = the_ball;
 				spaces= space;
 				grounds= ground;
 				contactgroups= contactgroup;
- dWorldSetLinearDamping (eworld, 0.9);
+ dWorldSetLinearDamping (eworld, 0.4);
 
 
 dWorldSetCFM (eworld, 0.2);
