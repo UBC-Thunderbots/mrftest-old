@@ -1,5 +1,24 @@
 #include "ai/strategy.h"
 #include "ai/tactic/chase.h"
+#include "ai/role.h"
+#include "ai/role/defensive.h"
+#include "ai/role/goalie.h"
+#include "ai/role/execute_direct_free_kick_enemy.h"
+#include "ai/role/offensive.h"
+#include "ai/role/execute_direct_free_kick_friendly.h" 
+#include "ai/role/pit_stop.h"
+#include "ai/role/execute_indirect_free_kick_enemy.h"     
+#include "ai/role/prepare_kickoff_enemy.h"
+#include "ai/role/execute_indirect_free_kick_friendly.h"  
+#include "ai/role/prepare_kickoff_friendly.h"
+#include "ai/role/execute_kickoff_enemy.h"                
+#include "ai/role/prepare_penalty_enemy.h"
+#include "ai/role/execute_kickoff_friendly.h"             
+#include "ai/role/prepare_penalty_friendly.h"
+#include "ai/role/execute_penalty_enemy.h"
+#include "ai/role/victory_dance.h"
+#include "ai/role/execute_penalty_friendly.h"
+
 #include <iostream>
 //created by Kenneth Lui, last updated 5 Nov 2009.
 //This strategy was created to test the simulator.
@@ -40,7 +59,10 @@ namespace {
 			double possession_confidence;
 			static const int DEFAULT_OFF_TO_DEF_DIFF = 1;	// i.e. one more offender than defender
 			std::vector<tactic::ptr> tactics;
+			std::vector<role::ptr> roles;
 			// Create variables here (e.g. to store the roles).
+                	  void reset_all(void);
+                       	  void in_play_assignment(void);
 	};
 
 	simu_test_strategy::simu_test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
@@ -64,9 +86,42 @@ namespace {
 	  if (turn_since_last_update % 20 == 0)
 	    {  std::cout << "TEST update" << turn_since_last_update << std::endl;
 	    }
-		switch (current_playtype)
+	switch (current_playtype)
+	  {
+		case playtype::halt: break;
+		case playtype::stop: break;
+		case playtype::play:  for (unsigned int i = 0; i < tactics.size();i++)
+				      	{
+				    		tactics[i]->tick();
+				       	}
+					break;
+/*	case playtype::prepare_kickoff_friendly: break;
+		case playtype::execute_kickoff_friendly: break;
+		case playtype::prepare_kickoff_enemy: break;
+		case playtype::execute_kickoff_enemy: break;
+		case playtype::prepare_penalty_friendly: break;
+		case playtype::execute_penalty_friendly: break;
+		case playtype::prepare_penalty_enemy: break;
+		case playtype::execute_penalty_enemy: break;
+		case playtype::execute_direct_free_kick_friendly: break;
+		case playtype::execute_indirect_free_kick_friendly: break;
+		case playtype::execute_direct_free_kick_enemy: break;
+		case playtype::execute_indirect_free_kick_enemy: break;
+	        case playtype::pit_stop: for (unsigned int i = 0; i < roles.size();i++)
+						{
+							roles[i]->tick();
+						}
+					break;				      
+		case playtype::victory_dance: break;*/
+		default	:	 for (unsigned int i = 0; i < roles.size();i++)
+				        {
+					    roles[i]->tick();
+					}
+		                   break;
+	  }
+	  /*		switch (current_playtype)
 		{
-		  /*      		case playtype::play:	for (unsigned int i = 0; i < tactics.size();i++)
+		        		case playtype::play:	for (unsigned int i = 0; i < tactics.size();i++)
 						{
 							delete tactics[i];
 						}
@@ -76,7 +131,7 @@ namespace {
 						{
 							tactics.push_back(tactic::ptr(new chase(the_ball, the_field, the_team, the_team->get_player(i))));
 							tactics[i]->tick();
-							}*/
+							}
 
 		case playtype::play:	//std:: cout << "TEST" << std::endl;
 		                                for (unsigned int i = 0; i < tactics.size();i++)
@@ -86,8 +141,21 @@ namespace {
 						//      std::cout << turn_since_last_update << std::endl;
 						break;
 			default	:		break;
-		}
+		}*/
 		return;
+	}
+
+	void simu_test_strategy::set_playtype(playtype::playtype t) {
+		current_playtype = t;
+        	  reset_all();
+	}
+	
+	Gtk::Widget *simu_test_strategy::get_ui_controls() {
+		return 0;
+	}
+
+  void simu_test_strategy::in_play_assignment(void)
+  {
 		//keep for future
 		//int our_score = the_team->score();
 		//int their_score = the_team->other()->score();		//get our team's robots' position and distance to the ball.
@@ -232,35 +300,125 @@ namespace {
 		for (int i = 0; i< team->size(); i++)
 		{
 			if (
-		}*/
-	}
+			}*/
 
-	void simu_test_strategy::set_playtype(playtype::playtype t) {
-		current_playtype = t;
-	}
-	
-	Gtk::Widget *simu_test_strategy::get_ui_controls() {
-		return 0;
-	}
+  }
+
+  void simu_test_strategy::reset_all(void)
+  {
+    std::vector<player::ptr> all_players;
+                roles.clear();
+		all_players.clear();
+		for (unsigned int i = 0; i < the_team->size(); i++)
+		{  all_players.push_back( the_team->get_player(i) );
+		}
+		switch (current_playtype)
+		{
+		case playtype::halt: break;
+		case playtype::stop: break;
+		case playtype::play:	 tactics.clear();
+		                         for (unsigned int i = 0; i < the_team->size(); i++)
+					   {
+					     tactics.push_back(tactic::ptr(new chase(the_ball, the_field, the_team, the_team->get_player(i))));
+					   }
+					 std::cout << tactics.size() << " robots set to chase" << std::endl;
+					break;
+
+		case playtype::prepare_kickoff_friendly: 
+		                         roles.push_back(role::ptr(new prepare_kickoff_friendly(the_ball, the_field, the_team)));
+					 roles[0]->set_robots(all_players);
+					 std::cout << all_players.size() << " robots set to prepare kickoff friendly" << std::endl;
+					break;
+
+		case playtype::execute_kickoff_friendly: 
+		                         roles.push_back(role::ptr(new execute_kickoff_friendly(the_ball, the_field, the_team)));
+					 roles[0]->set_robots(all_players);
+					 std::cout << all_players.size() << " robots set to execute kickoff friendly" << std::endl;
+					break;
+		case playtype::prepare_kickoff_enemy:
+		                         roles.push_back(role::ptr(new prepare_kickoff_enemy(the_ball, the_field, the_team)));
+					 roles[0]->set_robots(all_players);
+					 std::cout << all_players.size() << " robots set to prepare kickoff enemy" << std::endl;
+					break;
+
+		case playtype::execute_kickoff_enemy:
+		                         roles.push_back(role::ptr(new execute_kickoff_enemy(the_ball, the_field, the_team)));
+					 roles[0]->set_robots(all_players);
+					 std::cout << all_players.size() << " robots set to execute kickoff enemy" << std::endl;
+					break;
+
+		case playtype::prepare_penalty_friendly: 
+		                         roles.push_back(role::ptr(new prepare_penalty_friendly(the_ball, the_field, the_team)));
+					 roles[0]->set_robots(all_players);
+					 std::cout << all_players.size() << " robots set to prepare penalty friendly" << std::endl;
+					break;
+
+		case playtype::execute_penalty_friendly: 
+		                         roles.push_back(role::ptr(new execute_penalty_friendly(the_ball, the_field, the_team)));
+					 roles[0]->set_robots(all_players);
+					 std::cout << all_players.size() << " robots set to execute penalty friendly" << std::endl;
+					break;
+
+		case playtype::prepare_penalty_enemy:
+		                         roles.push_back(role::ptr(new prepare_penalty_enemy(the_ball, the_field, the_team)));
+					 roles[0]->set_robots(all_players);
+					 std::cout << all_players.size() << " robots set to prepare penalty enemy" << std::endl;
+					break;
+
+		case playtype::execute_penalty_enemy:
+		                         roles.push_back(role::ptr(new execute_penalty_enemy(the_ball, the_field, the_team)));
+					 roles[0]->set_robots(all_players);
+					 std::cout << all_players.size() << " robots set to execute penalty enemy" << std::endl;
+					break;
+
+		case playtype::execute_direct_free_kick_friendly:
+		                         roles.push_back(role::ptr(new execute_direct_free_kick_friendly(the_ball, the_field, the_team)));
+					 roles[0]->set_robots(all_players);
+					 std::cout << all_players.size() << " robots set to execute direct free kick friendly" << std::endl;
+					break;
+
+		case playtype::execute_indirect_free_kick_friendly:
+		                         roles.push_back(role::ptr(new execute_indirect_free_kick_friendly(the_ball, the_field, the_team)));
+					 roles[0]->set_robots(all_players);
+					 std::cout << all_players.size() << " robots set to execute indirect free kick friendly" << std::endl;
+					break;
+
+		case playtype::execute_direct_free_kick_enemy:
+		                         roles.push_back(role::ptr(new execute_direct_free_kick_enemy(the_ball, the_field, the_team)));
+					 roles[0]->set_robots(all_players);
+					 std::cout << all_players.size() << " robots set to execute direct free kick enemy" << std::endl;
+					break;
+
+		case playtype::execute_indirect_free_kick_enemy:
+		                         roles.push_back(role::ptr(new execute_indirect_free_kick_enemy(the_ball, the_field, the_team)));
+					 roles[0]->set_robots(all_players);
+					 std::cout << all_players.size() << " robots set to execute indirect free kick friendly" << std::endl;
+					break;
+
+		case playtype::pit_stop:
+		                         roles.push_back(role::ptr(new pit_stop(the_ball, the_field, the_team)));
+					 roles[0]->set_robots(all_players);
+					 std::cout << all_players.size() << " robots set to pit stop" << std::endl;
+					break;		
+		      
+		case playtype::victory_dance:
+		                         roles.push_back(role::ptr(new victory_dance(the_ball, the_field, the_team)));
+					 roles[0]->set_robots(all_players);
+					 std::cout << all_players.size() << " robots set to victory dance" << std::endl;
+					break;
+		default	:		break;
+		}
+    
+  }
 
 	void simu_test_strategy::robot_added(void) {
-	  std::cout << "<<<<<<<<<ROBOT ADDED>>>>" << std::endl;
-	  tactics.clear();
-		for (unsigned int i = 0; i < the_team->size(); i++)
-		{
-		  //	 		std::cout << i << std::endl;
-			tactics.push_back(tactic::ptr(new chase(the_ball, the_field, the_team, the_team->get_player(i))));
-		}
+	  std::cout << "<<<<<<<<<ROBOT ADDED>>>>" << std::endl;	 
+	  reset_all(); 
 	}
 
 	void simu_test_strategy::robot_removed(unsigned int index, robot::ptr r) {
 	  std::cout << "<<<<<<<<<ROBOT Removed>>>>" << std::endl;
-	  tactics.clear();
-	  for (unsigned int i = 0; i < the_team->size(); i++)
-	  {
-  //            std::cout << i << std::endl;
-		tactics.push_back(tactic::ptr(new chase(the_ball, the_field, the_team, the_team->get_player(i))));
-	  }
+	  reset_all();
 	}
 
 	class simu_test_strategy_factory : public strategy_factory {
