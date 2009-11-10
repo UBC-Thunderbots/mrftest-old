@@ -2,6 +2,10 @@
 #define AI_ROLE_PIT_STOP_H
 
 #include "ai/role.h"
+#include <vector>
+#include "ai/tactic/move.h"
+#include "ai/tactic.h"
+#include "geom/point.h"
 
 //
 // Gets the robots to go to their pit_stop positions.
@@ -23,8 +27,10 @@ class pit_stop : public role {
 		//
 		void tick();
 
+                void set_robots(const std::vector<player::ptr> &robots);
+
 	protected:
-		
+                std::vector<move::ptr> the_tactics;	
 };
 
 #endif
