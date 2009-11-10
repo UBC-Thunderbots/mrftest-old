@@ -4,7 +4,9 @@ prepare_kickoff_enemy::prepare_kickoff_enemy(ball::ptr ball, field::ptr field, c
 }
 
 void prepare_kickoff_enemy::tick(){
-    	
+   for(int i=0; i<the_tactics.size(); i++) {
+        the_tactics[i]->tick();
+   }
 }
 
 void prepare_kickoff_enemy::set_robots(const std::vector<player::ptr> &robots) {

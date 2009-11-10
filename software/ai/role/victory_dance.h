@@ -2,6 +2,7 @@
 #define AI_ROLE_VICTORY_DANCE_H
 
 #include "ai/role.h"
+#include "ai/tactic/dance.h"
 
 //
 // Gets the robots to go to their victory_dance positions.
@@ -23,7 +24,10 @@ class victory_dance : public role {
 		//
 		void tick();
 
+        void set_robots(const std::vector<player::ptr> &robots);
+
 	protected:
+        std::vector<dance::ptr> the_tactics;
 		
 };
 
