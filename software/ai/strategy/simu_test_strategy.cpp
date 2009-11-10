@@ -1,6 +1,7 @@
 #include "ai/strategy.h"
 #include "ai/tactic/chase.h"
-//created by Kenneth Lui, last updated 2 Nov 2009.
+#include <iostream>
+//created by Kenneth Lui, last updated 5 Nov 2009.
 //This strategy was created to test the simulator.
 
 namespace {
@@ -46,31 +47,50 @@ namespace {
 		// Initialize variables here (e.g. create the roles).
 		turn_since_last_update = 0;
 		possession_confidence = 1.0;
+ 		std::cout << "Start Constructor" << std::endl;
 		for (unsigned int i = 0; i < the_team->size(); i++)
 		{
+		  //	std::cout << i << std::endl;
 			tactics.push_back(tactic::ptr(new chase(the_ball, the_field, the_team, the_team->get_player(i))));
 		}
+ 		std::cout << "Done Constructor" << std::endl;
 		return;
 		// problems: how do we keep track of roles?
 	}
 
 	void simu_test_strategy::tick() {
 		// Use the variables "the_ball", "the_field", and "the_team" to allocate players to roles.
+	turn_since_last_update++;
+	  if (turn_since_last_update % 20 == 0)
+	    {  std::cout << "TEST update" << turn_since_last_update << std::endl;
+	    }
 		switch (current_playtype)
 		{
-			case playtype::play:	for (unsigned int i = 0; i < tactics.size();i++)
+		  /*      		case playtype::play:	for (unsigned int i = 0; i < tactics.size();i++)
+						{
+							delete tactics[i];
+						}
+						std::cout << "test" << std::endl;
+						tactics.clear();
+						for (unsigned int i = 0; i < the_team->size(); i++)
+						{
+							tactics.push_back(tactic::ptr(new chase(the_ball, the_field, the_team, the_team->get_player(i))));
+							tactics[i]->tick();
+							}*/
+
+		case playtype::play:	//std:: cout << "TEST" << std::endl;
+		                                for (unsigned int i = 0; i < tactics.size();i++)
 						{
 							tactics[i]->tick();
 						}
-						turn_since_last_update++;	// doesn't have effect yet.
+						//      std::cout << turn_since_last_update << std::endl;
 						break;
 			default	:		break;
 		}
+		return;
 		//keep for future
 		//int our_score = the_team->score();
-		//int their_score = the_team->other()->score();
-
-		//get our team's robots' position and distance to the ball.
+		//int their_score = the_team->other()->score();		//get our team's robots' position and distance to the ball.
 		std::vector<robot_details*> our_details_front;
 		std::vector<robot_details*> our_details_back;
 		unsigned int our_team_size = the_team->size();
@@ -224,9 +244,23 @@ namespace {
 	}
 
 	void simu_test_strategy::robot_added(void) {
+	  std::cout << "<<<<<<<<<ROBOT ADDED>>>>" << std::endl;
+	  tactics.clear();
+		for (unsigned int i = 0; i < the_team->size(); i++)
+		{
+		  //	 		std::cout << i << std::endl;
+			tactics.push_back(tactic::ptr(new chase(the_ball, the_field, the_team, the_team->get_player(i))));
+		}
 	}
 
 	void simu_test_strategy::robot_removed(unsigned int index, robot::ptr r) {
+	  std::cout << "<<<<<<<<<ROBOT Removed>>>>" << std::endl;
+	  tactics.clear();
+	  for (unsigned int i = 0; i < the_team->size(); i++)
+	  {
+  //            std::cout << i << std::endl;
+		tactics.push_back(tactic::ptr(new chase(the_ball, the_field, the_team, the_team->get_player(i))));
+	  }
 	}
 
 	class simu_test_strategy_factory : public strategy_factory {
