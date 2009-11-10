@@ -2,6 +2,10 @@
 #define AI_ROLE_PREPARE_KICKOFF_ENEMY_H
 
 #include "ai/role.h"
+#include <vector>
+#include "ai/tactic/move.h"
+#include "ai/tactic.h"
+#include "geom/point.h"
 
 //
 // Gets the robots to go to their prepare_kickoff_enemy positions.
@@ -23,8 +27,10 @@ class prepare_kickoff_enemy : public role {
 		//
 		void tick();
 
+                void set_robots(const std::vector<player::ptr> &robots);
+
 	protected:
-		
+                std::vector<move::ptr> the_tactics;	
 };
 
 #endif
