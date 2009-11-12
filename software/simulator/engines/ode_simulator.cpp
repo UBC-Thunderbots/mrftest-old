@@ -2,7 +2,7 @@
 #include "simulator/engines/ballODE.h"
 #include "simulator/engines/playerODE.h"
 
-#define MU 0.001		// the global mu to use
+#define MU 0.02		// the global mu to use
 namespace {
 
 	//
@@ -50,7 +50,7 @@ g1 = (o1 == st_ball->ballGeom);
 double frict = MU;
 
 if ((g1 ^ g2)){
-frict = MU*6000;
+frict = MU*60;
 }
 
   dBodyID b1 = dGeomGetBody(o1);
@@ -153,7 +153,7 @@ contact[i].surface.mode = dContactSlip1 | dContactSlip2 |
 				space = dHashSpaceCreate (0);
 
   				ground = dCreatePlane (space,0,0,1,0.1);
-    				dWorldSetContactSurfaceLayer(eworld, 0.01);
+    				dWorldSetContactSurfaceLayer(eworld, 0.05);
 				contactgroup = dJointGroupCreate (0);
 
 				ballODE::ptr b(new ballODE(eworld, space));

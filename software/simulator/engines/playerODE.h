@@ -11,6 +11,12 @@ class playerODE : public player_impl {
 	dWorldID world;
 dBodyID body;
 dMass mass;
+dMass mass2;
+bool posSet;
+dBodyID body2;
+dJointGroupID contactgroup;
+dJointID hinge;
+
 	playerODE( dWorldID dworld, dSpaceID dspace);
 //void tick();
 
@@ -33,10 +39,13 @@ public:
 			void chip(double strength) ;
 
 			void ui_set_position(const point &pos);
+			
+			void createJointBetweenB1B2();
 
 	private:
+				
 			point the_position, the_velocity, target_velocity;
-			double the_orientation, avelocity;
+			double the_orientation, avelocity, target_avelocity;
 
 };
 
