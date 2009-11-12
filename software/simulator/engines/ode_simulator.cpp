@@ -194,7 +194,7 @@ st_ball = the_ball;
 				spaces= space;
 				grounds= ground;
 				contactgroups= contactgroup;
- dWorldSetLinearDamping (eworld, 0.4);
+ dWorldSetLinearDamping (eworld, 0.02);
 
 
 dWorldSetCFM (eworld, 0.2);

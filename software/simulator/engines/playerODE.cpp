@@ -14,11 +14,11 @@
 			body2 = dBodyCreate(world);
 			
 			double x_pos = 0.0;
-			double y_pos = 1.0;
+			double y_pos = 0.0;
 			
-			dBodySetPosition(body, x_pos, 1.0, 0.0006);
+			dBodySetPosition(body, x_pos, y_pos, 0.0006);
 			
-			dBodySetPosition(body2, x_pos, 1.0, 0.0515);
+			dBodySetPosition(body2, x_pos, y_pos, 0.0515);
 			
 			
 			dGeomID robotGeom = dCreateBox (0,.1,.1,0.001);//10cm 
@@ -30,7 +30,7 @@
 			dMassSetSphere (&mass2,0.1,0.267);
 			dBodySetMass (body,&mass);
 			
-			
+			dBodySetLinearDamping (body, 0.02);
 			
 			dBodySetMass (body2,&mass2);
 
@@ -148,8 +148,8 @@ bool controller_not_nice_hack = false;
 
 if(!posSet){
 			double MaxRadians_perSec = 0.1;
-			  double V_DiffMax = 3.25;
-			  double V_MaxVel = 1.5;
+			  double V_DiffMax = 1.25;
+			  double V_MaxVel = .75;
 
 			  target_velocity = vel;
 			  avelocity = avel;
@@ -215,7 +215,10 @@ target_velocity = target_velocity.rotate(orientation());
 			void playerODE::ui_set_position(const point &pos) {
 				posSet = true;
 				const dReal *t = dBodyGetPosition (body);
+				const dReal *t2 = dBodyGetPosition (body2);
 				dBodySetPosition(body, pos.x, pos.y, t[2]);
+				dBodySetPosition(body2, pos.x, pos.y, t2[2]);
+				createJointBetweenB1B2();
 			}
 
 		

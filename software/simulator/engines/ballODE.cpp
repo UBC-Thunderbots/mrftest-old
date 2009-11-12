@@ -25,11 +25,12 @@ point the_position, the_velocity;
 			dBodySetPosition(body, 0.0, 0.0, 0.15267);
 			ballGeom = dCreateSphere(0, 0.14267);//golf ball radius 4.2672cm
 
-			dMassSetSphere (&m,0.1,0.14267);
+			dMassSetSphere (&m,2.0,0.14267);
 			dBodySetMass (body,&m);
 
 			dGeomSetBody (ballGeom,body);
 			dSpaceAdd (dspace, ballGeom);
+			dBodySetLinearDamping (body, 0.2);
 
 
 			}
@@ -59,6 +60,10 @@ p.y = t[1];
 			}
 
 			void ballODE::ui_set_position(const point &pos) {
+			const dReal *t = dBodyGetPosition (body);
+			
+			dBodySetPosition(body, pos.x, pos.y, t[2]);
+			dBodySetLinearVel(body, 0.0, 0.0, 0.0);
 			}
 
 
