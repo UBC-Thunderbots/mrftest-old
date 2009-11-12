@@ -44,15 +44,9 @@
 			dBodySetAngularDamping (body2, 0.2);
 			
 			contactgroup = dJointGroupCreate (0);
-			//hinge = dJointSetBallAnchor (dJointID, dReal x, dReal y, dReal z);
-			
-//dJointCreateAMotor (world, contactgroup);
 
-			//hinge = dJointCreateHinge (world,contactgroup);
-			//dBodyGetPosition(body);
-			//dBodyGetPosition (dBodyID);
 
- 	createJointBetweenB1B2();
+ 			createJointBetweenB1B2();
 
 			}
 			
@@ -78,14 +72,7 @@
 			dJointAttach (hinge, body, body2);
 			dVector3 result;
 			dVector3 result2;
-			//dJointGetBallAnchor2 (hinge, result);
-			//dJointGetBallAnchor (hinge, result2);
-			
-			//std::cout<<dJointGetHingeAngle (hinge)<<std::endl;
 
-			
-		//	std::cout<<result[0]<<" "<<result[1]<<" "<<result[2]<<std::endl;
-		//	std::cout<<result2[0]<<" "<<result2[1]<<" "<<result2[2]<<std::endl;
 			
 			 dJointEnable (hinge);
 			  
@@ -161,8 +148,8 @@ bool controller_not_nice_hack = false;
 
 if(!posSet){
 			double MaxRadians_perSec = 0.1;
-			  double V_DiffMax = 1.25;
-			  double V_MaxVel = 2.5;
+			  double V_DiffMax = 3.25;
+			  double V_MaxVel = 1.5;
 
 			  target_velocity = vel;
 			  avelocity = avel;

@@ -90,6 +90,36 @@ dBodyID b1 = dGeomGetBody(o1);
     }
   }
 
+}else{
+
+
+const dReal* pos1 = dGeomGetPosition (o1);
+const dReal* pos2 = dGeomGetPosition (o2);
+
+point p1 = point(pos1[0],pos1[1]);
+point p2 = point(pos2[0],pos2[1]);
+
+point dis = p1-p2;
+
+//if (dis.len>0.02) we assume that are components from same robot
+//as such we will ignore it
+if(dis.len()>0.02){
+	dBodyID b1 = dGeomGetBody(o1);
+  	dBodyID b2 = dGeomGetBody(o2);
+  dContact contact[3];		// up to 3 contacts per box
+  for (i=0; i<3; i++) {
+    contact[i].surface.mode = dContactSoftCFM | dContactApprox1;
+    contact[i].surface.mu = MU;
+    contact[i].surface.soft_cfm = 0.01;
+  }
+  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
+    for (i=0; i<numc; i++) {
+      dJointID c = dJointCreateContact (eworlds,contactgroups,contact+i);
+      dJointAttach (c,b1,b2);
+    }
+  }
+}
+
 }
 
 
@@ -192,6 +222,25 @@ dWorldSetCFM (eworld, 0.2);
 
 			playerODE::ptr add_player() {
 				playerODE::ptr p(new playerODE(eworld, space));
+				
+				point cur =p->position();
+				
+				point balpos = the_ball->position();
+				point c = balpos-cur;
+				if(c.len()<0.101){
+					cur.x+=0.1; 
+				}
+				
+				for (unsigned int i = 0; i < the_players.size(); i++) {
+					
+						point b = playerODE::ptr::cast_static(the_players[i])->position();
+					c = cur-b;
+					if(c.len()<0.15){
+					cur.x+=0.2;
+					}
+				}
+				
+				p->ui_set_position(cur);
 				the_players.push_back(p);
 				return p;
 			}
