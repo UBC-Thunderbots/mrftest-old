@@ -127,43 +127,6 @@ if(dis.len()>0.02){
 
 
 }
-/*
-static void nearCallback (void *data, dGeomID o1, dGeomID o2)
-{
-
-  int i,n;
-
-  // only collide things with the ground
-  int g1 = (o1 == grounds);
-  int g2 = (o2 == grounds);
-  if (true) {
-
-  const int N = 20;
-  dContact contact[N];
-  n = dCollide (o1,o2,N,&contact[0].geom,sizeof(dContact));
-  if (n > 0) {
-    for (i=0; i<n; i++) {
-
-
-contact[i].surface.mode = dContactSlip1 | dContactSlip2 |
-	dContactSoftERP | dContactSoftCFM | dContactApprox1;
-      contact[i].surface.mu = dInfinity;
-      contact[i].surface.slip1 = 0.1;
-      contact[i].surface.slip2 = 0.1;
-      contact[i].surface.soft_erp = 0.5;
-      contact[i].surface.soft_cfm = 0.3;
-
-      dJointID c = dJointCreateContact (eworlds,contactgroups,&contact[i]);
-      dJointAttach (c,
-		    dGeomGetBody(contact[i].geom.g1),
-		    dGeomGetBody(contact[i].geom.g2));
-    }
-  }
-  }
-}
-*/
-
-
 	//
 	// A simulator_engine.
 	//
@@ -175,8 +138,6 @@ contact[i].surface.mode = dContactSlip1 | dContactSlip2 |
 			dJointGroupID contactgroup;
 
 			sim_engine(){
-
-
 				eworld = dWorldCreate(); 
 				dWorldSetGravity (eworld,0,0.0,GRAVITY);
 
@@ -188,29 +149,21 @@ contact[i].surface.mode = dContactSlip1 | dContactSlip2 |
 
 				ballODE::ptr b(new ballODE(eworld, space));
 				the_ball = b;
-st_ball = the_ball;
+				st_ball = the_ball;
 
 				eworlds= eworld;
 				spaces= space;
 				grounds= ground;
 				contactgroups= contactgroup;
- dWorldSetLinearDamping (eworld, 0.02);
-
-
-dWorldSetCFM (eworld, 0.2);
-
-
+ 				dWorldSetLinearDamping (eworld, 0.02);
+				dWorldSetCFM (eworld, 0.2);
  				dInitODE2(0);
 			}
 
-
-
-
 			void tick() {
  				dSpaceCollide (space,0,&nearCallback);
-				
 				dWorldStep (eworld, 5);
-				 dJointGroupEmpty (contactgroup);
+				dJointGroupEmpty (contactgroup);
 			}
 			void setWorld(dWorldID world) {
 				eworld = world;
