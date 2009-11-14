@@ -30,7 +30,7 @@
 			dMassSetSphere (&mass2,0.1,0.267);
 			dBodySetMass (body,&mass);
 			
-			dBodySetLinearDamping (body, 0.02);
+			dBodySetLinearDamping (body, 0.12);
 			
 			dBodySetMass (body2,&mass2);
 
@@ -144,7 +144,7 @@ void controllerHack(point &target_velocity){
 
 			void playerODE::move_impl(const point &vel, double avel) {
 
-bool controller_not_nice_hack = false;
+bool controller_not_nice_hack = true;
 
 if(!posSet){
 			double MaxRadians_perSec = 0.1;
@@ -160,7 +160,7 @@ if(!posSet){
 			  the_velocity.y= cur_vel[1];
 
 			  target_velocity = target_velocity;
-if(controller_not_nice_hack == true){
+if(controller_not_nice_hack == false){
 controllerHack(target_velocity);
 }else{
 target_velocity = target_velocity.rotate(orientation());
@@ -218,6 +218,8 @@ target_velocity = target_velocity.rotate(orientation());
 				const dReal *t2 = dBodyGetPosition (body2);
 				dBodySetPosition(body, pos.x, pos.y, t[2]);
 				dBodySetPosition(body2, pos.x, pos.y, t2[2]);
+				dBodySetLinearVel(body,0.0,0.0,0.0);
+				dBodySetLinearVel(body2,0.0,0.0,0.0);
 				createJointBetweenB1B2();
 			}
 

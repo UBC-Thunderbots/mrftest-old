@@ -107,10 +107,8 @@ namespace {
 
 			void move_impl(const point &vel, double avel) {
 				target_velocity = vel;
-double temp = target_velocity.x;
-target_velocity.x = -target_velocity.y;
-target_velocity.y = temp;
-target_velocity = target_velocity/10.0;
+				target_velocity = target_velocity/10.0;
+				target_velocity = target_velocity.rotate(the_orientation);
 				avelocity = avel;
 			}
 
@@ -126,6 +124,7 @@ target_velocity = target_velocity/10.0;
 			void ui_set_position(const point &pos) {
 				the_position = pos;
 				the_velocity.x = the_velocity.y = 0;
+				target_velocity.x = target_velocity.y =0;
 				avelocity = 0;
 			}
 
@@ -183,7 +182,7 @@ target_velocity = target_velocity/10.0;
 	//
 	class ck_engine_factory : public simulator_engine_factory {
 		public:
-			ck_engine_factory() : simulator_engine_factory("2D Collisionless Kinematic") {
+			ck_engine_factory() : simulator_engine_factory("2D Collisionless Kinematic (use the other simulator engine)") {
 			}
 
 			simulator_engine::ptr create_engine(xmlpp::Element *) {

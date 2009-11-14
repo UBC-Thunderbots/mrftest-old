@@ -30,7 +30,7 @@ point the_position, the_velocity;
 
 			dGeomSetBody (ballGeom,body);
 			dSpaceAdd (dspace, ballGeom);
-			dBodySetLinearDamping (body, 0.2);
+			dBodySetLinearDamping (body, 0.9);
 
 
 			}
