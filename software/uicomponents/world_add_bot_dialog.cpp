@@ -19,6 +19,8 @@ world_add_bot_dialog::world_add_bot_dialog(Gtk::Window &parent) : Gtk::Dialog("A
 	address_entry.set_text("0000000000000000");
 	address_entry.set_width_chars(16);
 	address_entry.set_max_length(16);
+
+	show_all();
 }
 
 bool world_add_bot_dialog::is_yellow() const {
