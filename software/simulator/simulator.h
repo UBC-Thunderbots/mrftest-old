@@ -2,7 +2,7 @@
 #define SIMULATOR_SIMULATOR_H
 
 #include "simulator/team.h"
-#include "util/exact_timer.h"
+#include "util/clocksource.h"
 
 //
 // The simulator itself.
@@ -17,7 +17,7 @@ class simulator : public playtype_source, public noncopyable, public sigc::track
 		//
 		// Constructs a new simulator.
 		//
-		simulator(xmlpp::Element *xml);
+		simulator(xmlpp::Element *xml, clocksource &clk);
 
 		//
 		// Gets the current engine.
@@ -104,11 +104,6 @@ class simulator : public playtype_source, public noncopyable, public sigc::track
 		// A callback invoked after each timestep.
 		//
 		sigc::signal<void> sig_updated;
-
-		//
-		// The timer.
-		//
-		exact_timer ticker;
 
 		//
 		// Handles a timer tick.

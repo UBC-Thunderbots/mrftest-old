@@ -1,8 +1,10 @@
 #include "firmware/window.h"
 #include "simulator/window.h"
 #include "util/args.h"
+#include "util/clocksource_timerfd.h"
 #include "util/xml.h"
 #include "world/config.h"
+#include "world/timestep.h"
 #include <iostream>
 #include <gtkmm.h>
 #include <getopt.h>
@@ -26,7 +28,7 @@ namespace {
 		std::cerr << "-h\n--help\n\tDisplays this message.\n\n";
 	}
 
-	void simulate() {
+	void simulate(clocksource &clk) {
 		// Get the XML document.
 		xmlpp::Document *xmldoc = config::get();
 
@@ -41,7 +43,7 @@ namespace {
 		xmlpp::Element *xmlsim = xmlutil::strip(xmlutil::get_only_child(xmlroot, "simulator"));
 
 		// Create the simulator object.
-		simulator sim(xmlsim);
+		simulator sim(xmlsim, clk);
 
 		// Create the UI.
 		simulator_window win(sim);
@@ -118,7 +120,8 @@ int main(int argc, char **argv) {
 	if (do_world) {
 		std::cerr << "World operation is not implemented yet.\n";
 	} else if (do_sim) {
-		simulate();
+		clocksource_timerfd clk(1000000000ULL / TIMESTEPS_PER_SECOND);
+		simulate(clk);
 	} else if (do_firmware) {
 		manage_firmware();
 	}
