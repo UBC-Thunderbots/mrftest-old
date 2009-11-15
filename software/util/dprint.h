@@ -2,6 +2,9 @@
 #define UTIL_DPRINT_H
 
 #if DEBUG
+#include <iostream>
+#include <iomanip>
+#include <glibmm.h>
 namespace {
 	void dprint(const char *file, unsigned int line, const Glib::ustring &msg) {
 		std::cout << file << ':' << line << ": " << msg << '\n';
