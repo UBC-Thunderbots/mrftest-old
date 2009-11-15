@@ -88,6 +88,11 @@ class simulator_team_data : public noncopyable {
 		simulator_team_data(xmlpp::Element *xml, bool yellow, ball::ptr ball, field::ptr field);
 
 		//
+		// Destroys a simulator_team_data.
+		//
+		~simulator_team_data();
+
+		//
 		// Sets the views of the other team.
 		//
 		void set_other(const team::ptr &w, const team::ptr &e) {

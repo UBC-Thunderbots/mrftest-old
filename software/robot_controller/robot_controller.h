@@ -4,6 +4,7 @@
 #include "geom/point.h"
 #include "util/byref.h"
 
+class player_impl;
 class robot_controller_factory;
 
 //
@@ -82,7 +83,11 @@ class robot_controller_factory : public noncopyable {
 		//
 		// Constructs a new robot_controller.
 		//
-		virtual robot_controller::ptr create_controller(const Glib::ustring &robot_name) = 0;
+		// WARNING - WARNING - WARNING
+		// Most implementations of this class SHOULD IGNORE THE PARAMETERS TO THIS FUNCTION.
+		// The parameters are only provided for robot_controllers that are doing highly unusual things.
+		//
+		virtual robot_controller::ptr create_controller(Glib::RefPtr<player_impl> plr, bool yellow, unsigned int index) = 0;
 
 		//
 		// Gets the collection of all registered controller factories, keyed by name.

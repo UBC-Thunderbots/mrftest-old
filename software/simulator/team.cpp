@@ -31,6 +31,13 @@ simulator_team_data::simulator_team_data(xmlpp::Element *xml, bool yellow, ball:
 	set_controller_type(controller_name);
 }
 
+simulator_team_data::~simulator_team_data() {
+	// Remove the robot_controllers from all the player_impls.
+	// This breaks circular references and eliminates a potential memory leak.
+	for (std::vector<player_impl::ptr>::iterator i = impls.begin(), iend = impls.end(); i != iend; ++i)
+		(*i)->set_controller(robot_controller::ptr());
+}
+
 void simulator_team_data::set_engine(simulator_engine::ptr e) {
 	// Remember how many objects have been created.
 	unsigned int num_players = impls.size();
@@ -86,8 +93,7 @@ void simulator_team_data::set_controller_type(const Glib::ustring &name) {
 	// Assign new controllers to all the bots.
 	for (unsigned int i = 0; i < impls.size(); i++) {
 		if (controller_factory && engine) {
-			const Glib::ustring &name = Glib::ustring::compose("%1 %2", yellow ? "Yellow" : "Blue", i);
-			impls[i]->set_controller(controller_factory->create_controller(name));
+			impls[i]->set_controller(controller_factory->create_controller(impls[i], yellow, i));
 		} else {
 			impls[i]->set_controller(robot_controller::ptr());
 		}
@@ -107,10 +113,8 @@ void simulator_team_data::add_player() {
 	player::ptr eplr(new player(impl, true));
 
 	// Set the robot controller.
-	if (controller_factory && engine) {
-		const Glib::ustring &name = Glib::ustring::compose("%1 %2", yellow ? "Yellow" : "Blue", impls.size());
-		impl->set_controller(controller_factory->create_controller(name));
-	}
+	if (controller_factory && engine)
+		impl->set_controller(controller_factory->create_controller(impl, yellow, impls.size()));
 
 	// Insert the new data into the arrays.
 	impls.push_back(impl);
@@ -131,6 +135,9 @@ void simulator_team_data::remove_player(unsigned int index) {
 	player_impl::ptr impl = impls[index];
 	robot::ptr west_bot = west_players[index];
 	robot::ptr east_bot = east_players[index];
+
+	// Detach the player's robot_controller (breaks circular references).
+	impl->set_controller(robot_controller::ptr());
 
 	// Delete the objects.
 	impls.erase(impls.begin() + index);

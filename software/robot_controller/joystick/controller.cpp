@@ -1,6 +1,7 @@
 #include "geom/angle.h"
 #include "robot_controller/joystick/joystick.h"
 #include "robot_controller/robot_controller.h"
+#include "world/player_impl.h"
 #include <gtkmm.h>
 
 namespace {
@@ -15,7 +16,7 @@ namespace {
 			joystick_controller_factory() : robot_controller_factory("Joystick") {
 			}
 
-			robot_controller::ptr create_controller(const Glib::ustring &robot_name);
+			robot_controller::ptr create_controller(player_impl::ptr plr, bool yellow, unsigned int index);
 	};
 
 	joystick_controller_factory factory;
@@ -88,7 +89,7 @@ namespace {
 
 	class joystick_controller : public robot_controller, public Gtk::VBox {
 		public:
-			joystick_controller(const Glib::ustring &robot_name);
+			joystick_controller(player_impl::ptr plr, bool yellow, unsigned int index);
 
 			~joystick_controller();
 
@@ -109,6 +110,7 @@ namespace {
 			}
 
 		private:
+			player_impl::ptr plr;
 			joystick::ptr stick;
 			Gtk::ComboBoxText joybox;
 			joystick_display_rectangle disp;
@@ -127,8 +129,8 @@ namespace {
 			}
 	};
 
-	robot_controller::ptr joystick_controller_factory::create_controller(const Glib::ustring &robot_name) {
-		robot_controller::ptr p(new joystick_controller(robot_name));
+	robot_controller::ptr joystick_controller_factory::create_controller(player_impl::ptr plr, bool yellow, unsigned int index) {
+		robot_controller::ptr p(new joystick_controller(plr, yellow, index));
 		return p;
 	}
 
@@ -166,7 +168,7 @@ namespace {
 		return *ui;
 	}
 
-	joystick_controller::joystick_controller(const Glib::ustring &robot_name) {
+	joystick_controller::joystick_controller(player_impl::ptr plr, bool yellow, unsigned int index) : plr(plr) {
 		joybox.append_text("<Choose Joystick>");
 		const std::vector<std::pair<Glib::ustring, Glib::ustring> > &sticks = joystick::list();
 		for (unsigned int i = 0; i < sticks.size(); i++)
@@ -177,7 +179,7 @@ namespace {
 
 		pack_start(disp, true, true);
 
-		get_ui().add_controller(*this, robot_name);
+		get_ui().add_controller(*this, Glib::ustring::compose("%1 %2", yellow ? "Yellow" : "Blue", index));
 	}
 
 	joystick_controller::~joystick_controller() {

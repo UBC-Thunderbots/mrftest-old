@@ -1,5 +1,6 @@
 #include "geom/angle.h"
 #include "robot_controller/robot_controller.h"
+#include "world/player_impl.h"
 
 namespace {
 	//
@@ -122,7 +123,7 @@ namespace {
 			testing_rc_factory() : robot_controller_factory("Testing RC") {
 			}
 
-			robot_controller::ptr create_controller(const Glib::ustring &) {
+			robot_controller::ptr create_controller(player_impl::ptr, bool, unsigned int) {
 				robot_controller::ptr p(new testing_rc);
 				return p;
 			}
