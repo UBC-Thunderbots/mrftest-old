@@ -2,6 +2,7 @@
 #include "firmware/window.h"
 #include "uicomponents/world_add_bot_dialog.h"
 #include "util/xml.h"
+#include "world/config.h"
 #include <fstream>
 #include <iomanip>
 
@@ -67,6 +68,7 @@ namespace {
 					item itm(dlg.name(), dlg.address(), elem);
 					items.push_back(itm);
 					append_text(itm.format());
+					config::dirty();
 				}
 			}
 
