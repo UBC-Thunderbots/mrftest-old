@@ -80,12 +80,12 @@ class simulator_team_view : public controlled_team {
 //
 // All the data about a physical team implemented by the simulator.
 //
-class simulator_team_data : public noncopyable {
+class simulator_team_data : public playtype_source, public noncopyable {
 	public:
 		//
 		// Constructs a new simulator_team_data.
 		//
-		simulator_team_data(xmlpp::Element *xml, bool yellow, ball::ptr ball, field::ptr field);
+		simulator_team_data(playtype_source &pt_src, bool invert_playtype, xmlpp::Element *xml, bool yellow, ball::ptr ball, field::ptr field);
 
 		//
 		// Destroys a simulator_team_data.
@@ -114,15 +114,6 @@ class simulator_team_data : public noncopyable {
 		//
 		bool is_yellow() {
 			return yellow;
-		}
-
-		//
-		// Sets the current play type.
-		//
-		void set_playtype(playtype::playtype pt) {
-			current_playtype = pt;
-			if (team_strategy)
-				team_strategy->set_playtype(current_playtype);
 		}
 
 		//
@@ -184,7 +175,39 @@ class simulator_team_data : public noncopyable {
 				impls[i]->add_prediction_datum(impls[i]->position());
 		}
 
+		//
+		// Returns the current play type.
+		//
+		playtype::playtype current_playtype() const {
+			if (invert_playtype)
+				return playtype::invert[pt_src.current_playtype()];
+			else
+				return pt_src.current_playtype();
+		}
+
+		//
+		// Returns the signal fired when the play type changes.
+		//
+		sigc::signal<void, playtype::playtype> &signal_playtype_changed() {
+			return sig_playtype_changed;
+		}
+
 	private:
+		//
+		// The parent playtype_source that provides raw data to this team.
+		//
+		playtype_source &pt_src;
+
+		//
+		// Whether or not to invert the play types passed by the parent.
+		//
+		bool invert_playtype;
+
+		//
+		// Emitted when the play type changes.
+		//
+		sigc::signal<void, playtype::playtype> sig_playtype_changed;
+
 		//
 		// The current engine.
 		//
@@ -214,11 +237,6 @@ class simulator_team_data : public noncopyable {
 		// The colour of this team.
 		//
 		bool yellow;
-
-		//
-		// The current play type.
-		//
-		playtype::playtype current_playtype;
 
 		//
 		// The current strategy governing this team.
@@ -251,6 +269,13 @@ class simulator_team_data : public noncopyable {
 		// The field.
 		//
 		field::ptr the_field;
+
+		//
+		// Fired when the parent playtype_source's play type changes.
+		//
+		void parent_pt_changed(playtype::playtype) {
+			sig_playtype_changed.emit(current_playtype());
+		}
 };
 
 #endif

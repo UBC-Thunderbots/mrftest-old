@@ -7,7 +7,12 @@
 //
 // The simulator itself.
 //
-class simulator : public noncopyable, public sigc::trackable {
+// WARNING - WARNING - WARNING
+// A lot of work is done in the constructors of this object and its contents.
+// DO NOT CHANGE THE ORDER OF THE VARIABLES IN THIS CLASS.
+// You may cause a segfault if you do.
+//
+class simulator : public playtype_source, public noncopyable, public sigc::trackable {
 	public:
 		//
 		// Constructs a new simulator.
@@ -27,11 +32,25 @@ class simulator : public noncopyable, public sigc::trackable {
 		void set_engine(const Glib::ustring &engine_name);
 
 		//
+		// Gets the current play type.
+		//
+		playtype::playtype current_playtype() const {
+			return cur_playtype;
+		}
+
+		//
+		// Returns a signal fired when the play type changes.
+		//
+		sigc::signal<void, playtype::playtype> &signal_playtype_changed() {
+			return sig_playtype_changed;
+		}
+
+		//
 		// Sets the current play type.
 		//
 		void set_playtype(playtype::playtype pt) {
-			west_team.set_playtype(pt);
-			east_team.set_playtype(pt);
+			cur_playtype = pt;
+			sig_playtype_changed.emit(pt);
 		}
 
 		//
@@ -43,6 +62,18 @@ class simulator : public noncopyable, public sigc::trackable {
 			return sig_updated;
 		}
 
+	private:
+		//
+		// The current play type.
+		//
+		playtype::playtype cur_playtype;
+
+		//
+		// Emitted when the play type changes.
+		//
+		sigc::signal<void, playtype::playtype> sig_playtype_changed;
+
+	public:
 		//
 		// The field.
 		//

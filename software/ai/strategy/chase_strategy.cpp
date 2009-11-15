@@ -4,7 +4,7 @@
 namespace {
 	class chase_strategy : public strategy {
 		public:
-			chase_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			chase_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
 			void tick();
 			void set_playtype(playtype::playtype t);
 			strategy_factory &get_factory();
@@ -13,18 +13,17 @@ namespace {
 			void robot_removed(unsigned int index, robot::ptr r);
 
 		private:
-			playtype::playtype current_playtype;
 
 			// Create variables here (e.g. to store the roles).
 	};
 
-	chase_strategy::chase_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
+	chase_strategy::chase_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src) {
 		// Initialize variables here (e.g. create the roles).
 	}
 
 	void chase_strategy::tick() {
 		// Use the variables "ball", "field", and "team" to allocate players to roles.
-		switch (current_playtype) {
+		switch (pt_source.current_playtype()) {
 		case playtype::halt:;
 		case playtype::stop:;
 		case playtype::play:;
@@ -46,8 +45,8 @@ namespace {
 		}
 	}
 
-	void chase_strategy::set_playtype(playtype::playtype t) {
-		current_playtype = t;
+	void chase_strategy::set_playtype(playtype::playtype) {
+		// Do some computation here if you want.
 	}
 	
 	Gtk::Widget *chase_strategy::get_ui_controls() {
@@ -63,14 +62,14 @@ namespace {
 	class chase_strategy_factory : public strategy_factory {
 		public:
 			chase_strategy_factory();
-			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
 	};
 
 	chase_strategy_factory::chase_strategy_factory() : strategy_factory("Chase Strategy") {
 	}
 
-	strategy::ptr chase_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
-		strategy::ptr s(new chase_strategy(ball, field, team));
+	strategy::ptr chase_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) {
+		strategy::ptr s(new chase_strategy(ball, field, team, pt_src));
 		return s;
 	}
 

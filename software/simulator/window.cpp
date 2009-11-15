@@ -94,10 +94,10 @@ class engine_controls : public Gtk::VBox {
 class playtype_combo : public Gtk::ComboBoxText {
 	public:
 		playtype_combo(simulator &sim) : sim(sim) {
-			for (unsigned int i = 0; i < playtype::count; i++) {
+			for (unsigned int i = 0; i < playtype::count; i++)
 				append_text(playtype::descriptions_west[i]);
-			}
-			set_active_text("Halt");
+			set_active_text(playtype::descriptions_west[sim.current_playtype()]);
+			sim.signal_playtype_changed().connect(sigc::mem_fun(*this, &playtype_combo::playtype_changed));
 		}
 
 	protected:
@@ -110,6 +110,10 @@ class playtype_combo : public Gtk::ComboBoxText {
 
 	private:
 		simulator &sim;
+
+		void playtype_changed(playtype::playtype pt) {
+			set_active_text(playtype::descriptions_west[pt]);
+		}
 };
 
 

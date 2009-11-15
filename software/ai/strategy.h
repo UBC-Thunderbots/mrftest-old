@@ -33,13 +33,6 @@ class strategy : public byref, public sigc::trackable {
 		virtual void tick() = 0;
 
 		//
-		// Sets the current play type. It is expected that the strategy will
-		// examine the situation and potentially create new roles and reassign
-		// the robots (by means of role::set_robots()).
-		//
-		virtual void set_playtype(playtype::playtype t) = 0;
-
-		//
 		// Returns the factory that creates this strategy.
 		//
 		virtual strategy_factory &get_factory() = 0;
@@ -56,7 +49,7 @@ class strategy : public byref, public sigc::trackable {
 		// Constructs a new strategy. Call this constructor from subclass
 		// constructors.
 		//
-		strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+		strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
 
 		//
 		// Called if a robot has been added to the team. It is expected that the
@@ -75,6 +68,13 @@ class strategy : public byref, public sigc::trackable {
 		virtual void robot_removed(unsigned int index, robot::ptr r) = 0;
 
 		//
+		// Sets the current play type. It is expected that the strategy will
+		// examine the situation and potentially create new roles and reassign
+		// the robots (by means of role::set_robots()).
+		//
+		virtual void set_playtype(playtype::playtype t) = 0;
+
+		//
 		// The ball.
 		//
 		const ball::ptr the_ball;
@@ -88,6 +88,11 @@ class strategy : public byref, public sigc::trackable {
 		// The team this strategy controls.
 		//
 		const controlled_team::ptr the_team;
+
+		//
+		// The source of play type information.
+		//
+		playtype_source &pt_source;
 };
 
 //
@@ -112,7 +117,7 @@ class strategy_factory : public noncopyable {
 		//
 		// Constructs a new strategy.
 		//
-		virtual strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team) = 0;
+		virtual strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) = 0;
 
 		//
 		// Gets a collection of all registered strategy factories, keyed by name.

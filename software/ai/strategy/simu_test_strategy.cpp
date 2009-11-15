@@ -44,7 +44,7 @@ namespace {
 
 	class simu_test_strategy : public strategy {
 		public:
-			simu_test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			simu_test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
 			void tick();
 			void set_playtype(playtype::playtype t);
 			strategy_factory &get_factory();
@@ -53,7 +53,6 @@ namespace {
 			void robot_removed(unsigned int index, robot::ptr r);
 
 		private:
-			playtype::playtype current_playtype;
 			static const int WAIT_AT_LEAST_TURN = 5;		// We need this because we don't want to make frequent changes
 			int turn_since_last_update;
 			double possession_confidence;
@@ -65,7 +64,7 @@ namespace {
                        	  void in_play_assignment(void);
 	};
 
-	simu_test_strategy::simu_test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
+	simu_test_strategy::simu_test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src) {
 		// Initialize variables here (e.g. create the roles).
 		turn_since_last_update = 0;
 		possession_confidence = 1.0;
@@ -86,7 +85,7 @@ namespace {
 	  if (turn_since_last_update % 20 == 0)
 	    {  std::cout << "TEST update" << turn_since_last_update << std::endl;
 	    }
-	switch (current_playtype)
+	switch (pt_source.current_playtype())
 	  {
 		case playtype::halt: break;
 		case playtype::stop: break;
@@ -145,8 +144,7 @@ namespace {
 		return;
 	}
 
-	void simu_test_strategy::set_playtype(playtype::playtype t) {
-		current_playtype = t;
+	void simu_test_strategy::set_playtype(playtype::playtype) {
         	  reset_all();
 	}
 	
@@ -312,7 +310,7 @@ namespace {
 		for (unsigned int i = 0; i < the_team->size(); i++)
 		{  all_players.push_back( the_team->get_player(i) );
 		}
-		switch (current_playtype)
+		switch (pt_source.current_playtype())
 		{
 		case playtype::halt: break;
 		case playtype::stop: break;
@@ -424,14 +422,14 @@ namespace {
 	class simu_test_strategy_factory : public strategy_factory {
 		public:
 			simu_test_strategy_factory();
-			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
 	};
 
 	simu_test_strategy_factory::simu_test_strategy_factory() : strategy_factory("Simulator Test Strategy") {
 	}
 
-	strategy::ptr simu_test_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
-		strategy::ptr s(new simu_test_strategy(ball, field, team));
+	strategy::ptr simu_test_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) {
+		strategy::ptr s(new simu_test_strategy(ball, field, team, pt_src));
 		return s;
 	}
 

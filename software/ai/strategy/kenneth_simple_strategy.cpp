@@ -23,7 +23,7 @@ namespace {
 
 	class kenneth_simple_strategy : public strategy {
 		public:
-			kenneth_simple_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			kenneth_simple_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
 			void tick();
 			void set_playtype(playtype::playtype t);
 			strategy_factory &get_factory();
@@ -41,7 +41,7 @@ namespace {
 			// Create variables here (e.g. to store the roles).
 	};
 
-	kenneth_simple_strategy::kenneth_simple_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
+	kenneth_simple_strategy::kenneth_simple_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src) {
 		// Initialize variables here (e.g. create the roles).
 		turn_since_last_update = 0;
 		possession_confidence = 1.0;
@@ -231,14 +231,14 @@ namespace {
 	class kenneth_simple_strategy_factory : public strategy_factory {
 		public:
 			kenneth_simple_strategy_factory();
-			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
 	};
 
 	kenneth_simple_strategy_factory::kenneth_simple_strategy_factory() : strategy_factory("Kenneth's Simple Strategy") {
 	}
 
-	strategy::ptr kenneth_simple_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
-		strategy::ptr s(new kenneth_simple_strategy(ball, field, team));
+	strategy::ptr kenneth_simple_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) {
+		strategy::ptr s(new kenneth_simple_strategy(ball, field, team, pt_src));
 		return s;
 	}
 

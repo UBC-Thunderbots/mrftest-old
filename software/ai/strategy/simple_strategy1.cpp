@@ -7,7 +7,7 @@
 namespace {
 	class simple_strategy1 : public strategy {
 		public:
-			simple_strategy1(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			simple_strategy1(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
 			void tick();
 			void set_playtype(playtype::playtype t);
 			strategy_factory &get_factory();
@@ -16,20 +16,19 @@ namespace {
 			void robot_removed(unsigned int index, robot::ptr r);
 
 		private:
-			playtype::playtype current_playtype;
 
 			// saving the initialized roles for each robot
 			std::map< role::ptr, std::set<robot::ptr> > RobotAssignment_;
 	};
 
-	simple_strategy1::simple_strategy1(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
+	simple_strategy1::simple_strategy1(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src) {
 		// Initialize variables here (e.g. create the roles).
 	}
 
 	void simple_strategy1::tick() {
 		// Use the variables "ball", "field", and "team" to allocate players to roles.
 
-		switch (current_playtype) {
+		switch (pt_source.current_playtype()) {
 		case playtype::halt:;
 		case playtype::stop:;
 		case playtype::play:;
@@ -52,8 +51,7 @@ namespace {
 
 	}
 
-	void simple_strategy1::set_playtype(playtype::playtype t) {
-		current_playtype = t;
+	void simple_strategy1::set_playtype(playtype::playtype) {
 	}
 	
 	Gtk::Widget *simple_strategy1::get_ui_controls() {
@@ -69,14 +67,14 @@ namespace {
 	class simple_strategy1_factory : public strategy_factory {
 		public:
 			simple_strategy1_factory();
-			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
 	};
 
 	simple_strategy1_factory::simple_strategy1_factory() : strategy_factory("Simple Strategy 1") {
 	}
 
-	strategy::ptr simple_strategy1_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
-		strategy::ptr s(new simple_strategy1(ball, field, team));
+	strategy::ptr simple_strategy1_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) {
+		strategy::ptr s(new simple_strategy1(ball, field, team, pt_src));
 		return s;
 	}
 

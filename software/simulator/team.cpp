@@ -2,7 +2,7 @@
 #include "util/xml.h"
 #include "world/config.h"
 
-simulator_team_data::simulator_team_data(xmlpp::Element *xml, bool yellow, ball::ptr ball, field::ptr field) : score(0), yellow(yellow), current_playtype(playtype::halt), controller_factory(0), west_view(new simulator_team_view(west_players, score, west_other, this->yellow)), east_view(new simulator_team_view(east_players, score, east_other, this->yellow)), xml(xml), the_ball(ball), the_field(field) {
+simulator_team_data::simulator_team_data(playtype_source &pt_src, bool invert_playtype, xmlpp::Element *xml, bool yellow, ball::ptr ball, field::ptr field) : pt_src(pt_src), invert_playtype(invert_playtype), score(0), yellow(yellow), controller_factory(0), west_view(new simulator_team_view(west_players, score, west_other, this->yellow)), east_view(new simulator_team_view(east_players, score, east_other, this->yellow)), xml(xml), the_ball(ball), the_field(field) {
 	// Get the "players" attribute.
 	const Glib::ustring &players_string = xml->get_attribute_value("players");
 	unsigned int players = 0;
@@ -29,6 +29,9 @@ simulator_team_data::simulator_team_data(xmlpp::Element *xml, bool yellow, ball:
 
 	// Set this controller.
 	set_controller_type(controller_name);
+
+	// Register for play type change event.
+	pt_src.signal_playtype_changed().connect(sigc::mem_fun(*this, &simulator_team_data::parent_pt_changed));
 }
 
 simulator_team_data::~simulator_team_data() {
@@ -65,13 +68,11 @@ void simulator_team_data::set_strategy(const Glib::ustring &name) {
 	if (factoryiter != factories.end()) {
 		strategy_factory *factory = factoryiter->second;
 		xmlpp::Element *xmlparams = xmlutil::strip(xmlutil::get_only_child_keyed(xmlstrategies, "params", "strategy", name));
-		strat = factory->create_strategy(xmlparams, the_ball, the_field, yellow ? west_view : east_view);
+		strat = factory->create_strategy(xmlparams, the_ball, the_field, yellow ? west_view : east_view, *this);
 	}
 
 	// Lock in the strategy.
 	team_strategy = strat;
-	if (team_strategy)
-		team_strategy->set_playtype(current_playtype);
 
 	// Save the choice of engine in the configuration.
 	if (xmlstrategies->get_attribute_value("active") != name) {

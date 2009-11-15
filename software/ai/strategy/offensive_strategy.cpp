@@ -6,7 +6,7 @@ using namespace std;
 namespace {
 	class offensive_strategy : public strategy {
 		public:
-			offensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			offensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
 			void tick();
 			void set_playtype(playtype::playtype t);
 			strategy_factory &get_factory();
@@ -15,7 +15,6 @@ namespace {
 			void robot_removed(unsigned int index, robot::ptr r);
 
 		private:
-			playtype::playtype current_playtype;
 
 			// Create variables here (e.g. to store the roles).
 			// kinda want something to 
@@ -23,7 +22,7 @@ namespace {
 			
 	};
 
-	offensive_strategy::offensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
+	offensive_strategy::offensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src) {
 		// Initialize variables here (e.g. create the roles).
 		/*
 		 offender and defender doesn't exist yet >"< 
@@ -82,8 +81,7 @@ namespace {
 
 	}
 
-	void offensive_strategy::set_playtype(playtype::playtype t) {
-		current_playtype = t;
+	void offensive_strategy::set_playtype(playtype::playtype) {
 	}
 	
 	Gtk::Widget *offensive_strategy::get_ui_controls() {
@@ -99,14 +97,14 @@ namespace {
 	class offensive_strategy_factory : public strategy_factory {
 		public:
 			offensive_strategy_factory();
-			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
 	};
 
 	offensive_strategy_factory::offensive_strategy_factory() : strategy_factory("Offensive Strategy") {
 	}
 
-	strategy::ptr offensive_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
-		strategy::ptr s(new offensive_strategy(ball, field, team));
+	strategy::ptr offensive_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) {
+		strategy::ptr s(new offensive_strategy(ball, field, team, pt_src));
 		return s;
 	}
 
