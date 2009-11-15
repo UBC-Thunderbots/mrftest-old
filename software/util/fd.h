@@ -8,7 +8,28 @@
 // Ownership semantics are equivalent to std::auto_ptr.
 //
 class file_descriptor {
+	private:
+		//
+		// This is an implementation detail used to help with copying.
+		//
+		class file_descriptor_ref {
+			public:
+				file_descriptor_ref(int newfd) : fd(newfd) {
+				}
+
+				int fd;
+		};
+
 	public:
+		//
+		// Constructs a new file_descriptor with a descriptor.
+		//
+		static file_descriptor create(int fd) {
+			file_descriptor obj;
+			obj = fd;
+			return obj;
+		}
+
 		//
 		// Constructs a new file_descriptor with no descriptor.
 		//
@@ -16,9 +37,10 @@ class file_descriptor {
 		}
 
 		//
-		// Constructs a new file_descriptor with a descriptor.
+		// Helps to copy a file_descriptor object.
 		//
-		file_descriptor(int fd) : fd(fd) {
+		file_descriptor(file_descriptor_ref ref) : fd(ref.fd) {
+			assert(fd >= 0);
 		}
 
 		//
@@ -48,23 +70,34 @@ class file_descriptor {
 		}
 
 		//
+		// Helps to copy a file_descriptor object.
+		//
+		operator file_descriptor_ref() {
+			int value = fd;
+			fd = -1;
+			return file_descriptor_ref(value);
+		}
+
+		//
 		// Assigns a new value to a file_descriptor.
 		//
 		file_descriptor &operator=(file_descriptor &assgref) {
 			assert(assgref.fd != -1);
-			close();
-			fd = assgref.fd;
-			assgref.fd = -1;
+			if (assgref.fd != fd) {
+				close();
+				fd = assgref.fd;
+				assgref.fd = -1;
+			}
 			return *this;
 		}
 
 		//
 		// Assigns a new value to a file_descriptor.
 		//
-		file_descriptor &operator=(int newfd) {
-			assert(newfd != -1);
+		file_descriptor &operator=(file_descriptor_ref assgref) {
+			assert(assgref.fd != -1);
 			close();
-			fd = newfd;
+			fd = assgref.fd;
 			return *this;
 		}
 

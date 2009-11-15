@@ -8,12 +8,12 @@
 #include <linux/joystick.h>
 
 namespace {
-	int open_device(const Glib::ustring &filename) {
+	file_descriptor open_device(const Glib::ustring &filename) {
 		const std::string &fn = Glib::filename_from_utf8(Glib::ustring::compose("/dev/input/%1", filename));
 		int desc = open(fn.c_str(), O_RDONLY | O_NONBLOCK);
 		if (desc < 0)
 			throw std::runtime_error("Error opening joystick!");
-		return desc;
+		return file_descriptor::create(desc);
 	}
 
 	bool list_inited = false;
