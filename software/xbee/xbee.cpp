@@ -1,3 +1,5 @@
+#define DEBUG 0
+#include "util/dprint.h"
 #include "util/sockaddrs.h"
 #include "xbee/daemon/daemon.h"
 #include "xbee/xbee.h"
@@ -56,6 +58,11 @@ xbee::xbee() : sock(connect_to_daemon()) {
 }
 
 void xbee::send(const void *data, std::size_t length) {
+	DPRINT("TX:");
+	for (unsigned int i = 0; i < length; i++)
+		DPRINT(Glib::ustring::compose(" %1", Glib::ustring::format(std::hex, std::setw(2), std::setfill(L'0'), static_cast<const unsigned char *>(data)[i])));
+	DPRINT("\n");
+
 	ssize_t ret = ::send(sock, data, length, MSG_EOR | MSG_NOSIGNAL);
 	if (ret < 0)
 		throw std::runtime_error("Cannot talk to XBee arbiter!");
@@ -64,6 +71,7 @@ void xbee::send(const void *data, std::size_t length) {
 }
 
 void xbee::unlock() {
+	std::printf("unlock\n");
 	char ch;
 	send(&ch, 0);
 }
@@ -71,12 +79,18 @@ void xbee::unlock() {
 bool xbee::on_readable(Glib::IOCondition cond) {
 	if (cond & Glib::IO_HUP)
 		throw std::runtime_error("XBee arbiter died!");
-	char buffer[65536];
+	unsigned char buffer[65536];
 	ssize_t ret = recv(sock, buffer, sizeof(buffer), 0);
 	if (ret < 0)
 		throw std::runtime_error("Cannot talk to XBee arbiter!");
 	if (!ret)
 		throw std::runtime_error("XBee arbiter died!");
+
+	DPRINT("RX:");
+	for (int i = 0; i < ret; i++)
+		DPRINT(Glib::ustring::compose(" %1", Glib::ustring::format(std::hex, std::setw(2), std::setfill(L'0'), buffer[i])));
+	DPRINT("\n");
+
 	sig_received.emit(buffer, ret);
 	return true;
 }
