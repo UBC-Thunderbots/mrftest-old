@@ -13,6 +13,7 @@
 #include <sys/file.h>
 #include <sys/prctl.h>
 #include <poll.h>
+#include <signal.h>
 
 namespace {
 	class client_service_provider : public noncopyable, public sigc::trackable {
@@ -35,14 +36,27 @@ namespace {
 
 				// Go into a loop.
 				for (;;) {
-					// Receive a packet from the client.
-					uint8_t buffer[65536];
-					ssize_t len = recv(sock, buffer, sizeof(buffer), 0);
-					if (len <= 0)
-						return;
+					// Poll the descriptors.
+					if (poll(pfds, 2, -1) < 0)
+						throw std::runtime_error("Cannot poll!");
 
-					// Send the packet to the XBee.
-					pstream.send(buffer, len);
+					if (pfds[0].revents & POLLIN) {
+						pstream.readable();
+					} else if (pfds[1].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+						return;
+					} else if (pfds[1].revents & POLLIN) {
+						// Receive a packet from the client.
+						uint8_t buffer[65536];
+						ssize_t len = recv(sock, buffer, sizeof(buffer), 0);
+						if (len == 0)
+							return;
+						if (len < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
+							return;
+						if (len > 0) {
+							// Send the packet to the XBee.
+							pstream.send(buffer, len);
+						}
+					}
 				}
 			}
 
@@ -102,7 +116,7 @@ namespace {
 
 			// Check for disconnection or failure of clients.
 			for (std::vector<pollfd>::size_type i = 2; i < pfds.size(); i++)
-				if (pfds[i].events & (POLLHUP | POLLERR | POLLNVAL)) {
+				if (pfds[i].revents & (POLLHUP | POLLERR | POLLNVAL)) {
 					close(pfds[i].fd);
 					pfds.erase(pfds.begin() + i);
 					i--;
@@ -111,13 +125,15 @@ namespace {
 			// Make a list of all the clients who have sent us packets and hence
 			// are awaiting service.
 			std::vector<int> ready;
-			for (std::vector<pollfd>::const_iterator i = pfds.begin(), iend = pfds.end(); i != iend; ++i)
-				if (i->events & POLLIN)
-					ready.push_back(i->fd);
+			for (std::vector<pollfd>::size_type i = 2; i < pfds.size(); i++)
+				if (pfds[i].revents & POLLIN)
+					ready.push_back(pfds[i].fd);
 
 			// Pick a random client and service it.
-			client_service_provider serv(ready[std::rand() % ready.size()], pstream);
-			serv.run();
+			if (!ready.empty()) {
+				client_service_provider serv(ready[std::rand() % ready.size()], pstream);
+				serv.run();
+			}
 		} while (pfds.size() > 2);
 	}
 
@@ -134,6 +150,14 @@ namespace {
 
 namespace xbeedaemon {
 	bool launch(file_descriptor &client_sock) {
+		// Ignore the child-death signal.
+		struct sigaction sigact;
+		sigact.sa_handler = SIG_IGN;
+		sigemptyset(&sigact.sa_mask);
+		sigact.sa_flags = 0;
+		if (sigaction(SIGCHLD, &sigact, 0) < 0)
+			throw std::runtime_error("Cannot ignore SIGCHLD!");
+
 		// Calculate filenames.
 		const Glib::ustring &cache_dir = Glib::get_user_cache_dir();
 		const std::string &lock_path = Glib::filename_from_utf8(cache_dir + "/thunderbots-xbeed-lock");
@@ -162,7 +186,7 @@ namespace xbeedaemon {
 		if (listen(listen_sock, SOMAXCONN) < 0) throw std::runtime_error("Cannot listen on UNIX-domain socket!");
 
 		// Connect another socket to it.
-		const file_descriptor temp_client_sock(PF_UNIX, SOCK_SEQPACKET, 0);
+		file_descriptor temp_client_sock(PF_UNIX, SOCK_SEQPACKET, 0);
 		if (connect(temp_client_sock, &sa.sa, sizeof(sa)) < 0) throw std::runtime_error("Cannot connect to UNIX-domain socket!");
 		temp_client_sock.set_blocking(false);
 
@@ -187,7 +211,7 @@ namespace xbeedaemon {
 			// This is the child process.
 			// We need to keep the lock file, listen socket, and serial port.
 			// Close all the others.
-			for (int i = 0; i < 65536; i++)
+			for (int i = 3; i < 65536; i++)
 				if (i != listen_sock && i != lock_file && i != pstream.fd())
 					close(i);
 			// Enter a new session and process group.

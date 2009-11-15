@@ -52,7 +52,7 @@ namespace {
 }
 
 xbee::xbee() : sock(connect_to_daemon()) {
-	Glib::signal_io().connect(sigc::mem_fun(*this, &xbee::on_readable), sock, Glib::IO_IN);
+	Glib::signal_io().connect(sigc::mem_fun(*this, &xbee::on_readable), sock, Glib::IO_IN | Glib::IO_HUP);
 }
 
 void xbee::send(const void *data, std::size_t length) {
@@ -68,7 +68,9 @@ void xbee::unlock() {
 	send(&ch, 0);
 }
 
-bool xbee::on_readable(Glib::IOCondition) {
+bool xbee::on_readable(Glib::IOCondition cond) {
+	if (cond & Glib::IO_HUP)
+		throw std::runtime_error("XBee arbiter died!");
 	char buffer[65536];
 	ssize_t ret = recv(sock, buffer, sizeof(buffer), 0);
 	if (ret < 0)
