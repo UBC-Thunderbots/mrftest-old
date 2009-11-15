@@ -50,7 +50,7 @@ int main() {
 		std::cerr << "Invalid controller number chosen.\n";
 		return 1;
 	}
-	robot_controller::ptr controller = factories.find(names[controller_index - 1])->second->create_controller("Blue 1");
+	robot_controller::ptr controller = factories.find(names[controller_index - 1])->second->create_controller(test_player_impl, false, 1);
 
 	// Attach the controller to the player.
 	test_player_impl->set_controller(controller);
