@@ -10,6 +10,10 @@ namespace {
 	const unsigned int AXIS_FB = 4; // Right stick Y axis.
 	const unsigned int AXIS_LR = 3; // Right stick X axis.
 	const unsigned int AXIS_ROT = 0; // Left stick X axis.
+	const unsigned int AXIS_DRIBBLE = 2; // Left trigger.
+	const unsigned int AXIS_CHICK_POWER = 5; // Right trigger.
+	const unsigned int BTN_KICK = 0; // A.
+	const unsigned int BTN_CHIP = 2; // X.
 
 	class joystick_controller_factory : public robot_controller_factory {
 		public:
@@ -98,10 +102,23 @@ namespace {
 					linear_velocity.x = -stick->axis(AXIS_FB) / 32767.0 * MAX_LINEAR_VELOCITY;
 					linear_velocity.y = -stick->axis(AXIS_LR) / 32767.0 * MAX_LINEAR_VELOCITY;
 					angular_velocity = -stick->axis(AXIS_ROT) / 32767.0 * MAX_ANGULAR_VELOCITY;
+					plr->dribble(stick->axis(AXIS_DRIBBLE) / 32767.0);
+					double chick_power = stick->axis(AXIS_CHICK_POWER);
+					if (stick->button(BTN_KICK) && !prev_chick) {
+						plr->kick(chick_power);
+						prev_chick = true;
+					} else if (stick->button(BTN_CHIP) && !prev_chick) {
+						plr->chip(chick_power);
+						prev_chick = true;
+					} else if (!stick->button(BTN_KICK) && !stick->button(BTN_CHIP)) {
+						prev_chick = false;
+					}
 				} else {
 					linear_velocity.x = 0;
 					linear_velocity.y = 0;
 					angular_velocity = 0;
+					plr->dribble(0);
+					prev_chick = false;
 				}
 			}
 
@@ -115,6 +132,7 @@ namespace {
 			Gtk::ComboBoxText joybox;
 			joystick_display_rectangle disp;
 			sigc::connection move_connection;
+			bool prev_chick;
 
 			void joy_changed() {
 				move_connection.disconnect();
@@ -168,7 +186,7 @@ namespace {
 		return *ui;
 	}
 
-	joystick_controller::joystick_controller(player_impl::ptr plr, bool yellow, unsigned int index) : plr(plr) {
+	joystick_controller::joystick_controller(player_impl::ptr plr, bool yellow, unsigned int index) : plr(plr), prev_chick(false) {
 		joybox.append_text("<Choose Joystick>");
 		const std::vector<std::pair<Glib::ustring, Glib::ustring> > &sticks = joystick::list();
 		for (unsigned int i = 0; i < sticks.size(); i++)
