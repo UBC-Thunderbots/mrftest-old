@@ -80,7 +80,7 @@ namespace playtype {
 
 	//
 	// Directional inversions of the play types. An element in this array
-	// contains the play type as the east team would see it, if thei ndex into
+	// contains the play type as the east team would see it, if the index into
 	// the array is the play type as the west team would see it.
 	//
 	extern const playtype invert[];
