@@ -149,6 +149,7 @@ start_work:
 			if (tcgetattr(fd, &tios) < 0) {std::perror("tcgetattr"); return 1;}
 			cfmakeraw(&tios);
 			tios.c_cflag &= ~CRTSCTS;
+			tios.c_cflag |= CSTOPB;
 			tios.c_cc[VMIN] = 0;
 			tios.c_cc[VTIME] = 5;
 			cfsetispeed(&tios, BAUDS[baudidx].tc);
@@ -238,8 +239,8 @@ connected:
 		goto start_work;
 	}
 
-	std::cout << "Setting PAN ID... " << std::flush;
-	send_string(fd, "ATID6789\r");
+	std::cout << "Setting PAN ID to 496C... " << std::flush;
+	send_string(fd, "ATID496C\r");
 	if (read_clean_ok(fd)) {
 		std::cout << "OK\n";
 	} else {
