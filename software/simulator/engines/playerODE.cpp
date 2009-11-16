@@ -5,7 +5,6 @@
 #include <algorithm>
 
 			playerODE::playerODE (dWorldID eworld, dSpaceID dspace) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0), target_avelocity(0.0) {
-
 				world = eworld;
 				body = dBodyCreate(world);
 				body2 = dBodyCreate(world);
@@ -13,53 +12,33 @@
 				double y_pos = 0.0;
 				dBodySetPosition(body, x_pos, y_pos, 0.0006);
 				dBodySetPosition(body2, x_pos, y_pos, 0.0515);
-
 				dGeomID robotGeom = dCreateBox (0,.1,.1,0.001);//10cm 
 				dGeomID robotGeomTop = dCreateBox (0,.1,.1,0.1);
-
 				dMassSetSphere (&mass,0.5,0.267);
 				dMassSetSphere (&mass2,0.1,0.267);
 				dBodySetMass (body,&mass);
-				
 				dBodySetLinearDamping (body, 0.12);
-				
 				dBodySetMass (body2,&mass2);
-
 				dGeomSetBody (robotGeom,body);
 				dGeomSetBody (robotGeomTop,body2);
-				
 				dSpaceAdd (dspace, robotGeom);
 				dSpaceAdd (dspace, robotGeomTop);
-				
 				dBodySetAngularDamping (body, 0.2);
 				dBodySetAngularDamping (body2, 0.2);
-				
 				contactgroup = dJointGroupCreate (0);
-
-
 	 			createJointBetweenB1B2();
-
 			}
 			
 			void playerODE::createJointBetweenB1B2(){
-				
-				//if(hinge){
-					//dJointDestroy (hinge);
-					dJointGroupDestroy (contactgroup);
-				//}
-				
+				dJointGroupDestroy (contactgroup);
 				contactgroup = dJointGroupCreate(0);
-				//hinge=dJointCreateHinge (world, contactgroup);
 				hinge=dJointCreateBall (world, contactgroup);
 				  const dReal *t = dBodyGetPosition (body);
 				  double x = t[0];
 				  double y = t[1];
 				  double z = t[2];
-				  z+=0.0005;
-				  
-				  		//dJointSetHingeAnchor(hinge, x, y , z);
-				  		dJointSetBallAnchor(hinge, x, y , z);
-	 			//dJointSetHingeAxis (hinge, 0.0, 0.0, 1.0);
+				  z+=0.0005;  
+				dJointSetBallAnchor(hinge, x, y , z);
 				dJointAttach (hinge, body, body2);
 				dVector3 result;
 				dVector3 result2;
@@ -67,7 +46,6 @@
 			 }
 
 			double positionFromMatrix(const dReal *t){
-
 			  double x1 = 1; double y1=0;
 			  double x2; double y2;
 
@@ -104,13 +82,9 @@
 			}
 
 			double playerODE::orientation() const {
-
 			  const dReal *r = dBodyGetRotation(body);
 			  positionFromMatrix(r);
-
-
 			  double d = positionFromMatrix(dBodyGetRotation(body2));
-
 				return d;
 			}
 
@@ -119,9 +93,9 @@
 			}
 
 			void controllerHack(point &target_velocity){
-			 			double temp = target_velocity.x;
-						target_velocity.x = -target_velocity.y;
-						target_velocity.y = temp;
+	 			double temp = target_velocity.x;
+				target_velocity.x = -target_velocity.y;
+				target_velocity.y = temp;
 			}
 
 			void playerODE::move_impl(const point &vel, double avel) {
