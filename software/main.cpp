@@ -31,6 +31,29 @@ namespace {
 		std::cerr << "-h\n--help\n\tDisplays this message.\n\n";
 	}
 
+	class fps_reporter : public sigc::trackable {
+		public:
+			fps_reporter(clocksource &simclock, clocksource &uiclock, simulator_window &win) : simticks(0), uiticks(0), win(win) {
+				simclock.signal_tick().connect(sigc::mem_fun(*this, &fps_reporter::simtick));
+				uiclock.signal_tick().connect(sigc::mem_fun(*this, &fps_reporter::uitick));
+			}
+
+		private:
+			void simtick() {
+				simticks++;
+			}
+
+			void uitick() {
+				if (++uiticks == TIMESTEPS_PER_SECOND) {
+					win.show_fps(simticks);
+					simticks = uiticks = 0;
+				}
+			}
+
+			unsigned int simticks, uiticks;
+			simulator_window &win;
+	};
+
 	void simulate(clocksource &simclock, clocksource &uiclock) {
 		// Get the XML document.
 		xmlpp::Document *xmldoc = config::get();
@@ -50,6 +73,9 @@ namespace {
 
 		// Create the UI.
 		simulator_window win(sim, uiclock);
+
+		// Create the frame rate reporter.
+		fps_reporter fpsr(simclock, uiclock, win);
 
 		// Go go go!
 		Gtk::Main::run();

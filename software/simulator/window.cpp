@@ -389,3 +389,7 @@ simulator_window::~simulator_window() {
 	delete impl;
 }
 
+void simulator_window::show_fps(unsigned int fps) {
+	impl->set_title(Glib::ustring::compose("Thunderbots Simulator - %1FPS", fps));
+}
+
