@@ -1,4 +1,5 @@
 #include "simulator/engines/playerODE.h"
+#include "world/timestep.h"
 #include <iostream>
 #include <math.h>
 #include <algorithm>
@@ -127,7 +128,7 @@
 				bool controller_not_nice_hack = false;
 				if(!posSet){
 					double MaxRadians_perSec = 0.1;
-					double V_DiffMax = 1.25;
+					double Accel_Max = 1.25;
 					double V_MaxVel = .75;
 
 					target_velocity = vel;
@@ -154,16 +155,19 @@
 					dBodySetDynamic (body);
 
 					point vDiff = target_velocity - the_velocity;
-					double mag = sqrt(vDiff.x*vDiff.x + vDiff.y*vDiff.y);
+					
 
-					point acc = vDiff;
-					if(mag>V_DiffMax){
+					point acc = vDiff/static_cast<double>(TIMESTEPS_PER_SECOND);
+					double mag = acc.len();
+					
+					if(mag>Accel_Max){
 						acc=acc/mag;
-						acc=acc*V_DiffMax;
+						acc=acc*Accel_Max;
 					}
+					
 					double m = mass.mass;
 					point fce = acc*((double)m);
-					fce = fce/15;
+					fce = fce;
 
 					if(avel>2 || avel<-2){
 
