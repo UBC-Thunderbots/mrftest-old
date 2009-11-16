@@ -71,7 +71,7 @@ void xbee::send(const void *data, std::size_t length) {
 }
 
 void xbee::unlock() {
-	std::printf("unlock\n");
+	DPRINT("unlock\n");
 	char ch;
 	send(&ch, 0);
 }
