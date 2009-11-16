@@ -157,6 +157,7 @@ namespace {
 			dJointGroupID contactgroup;
 
 			sim_engine(){
+				dInitODE();
 				eworld = dWorldCreate(); 
 				dWorldSetGravity (eworld,0,0.0,GRAVITY);
 				//space = dHashSpaceCreate (0);
@@ -175,7 +176,7 @@ namespace {
 				contactgroups= contactgroup;
  				dWorldSetLinearDamping (eworld, 0.02);
 				dWorldSetCFM (eworld, 0.2);
- 				dInitODE2(0);
+ 				
 			}
 
 			void tick() {
