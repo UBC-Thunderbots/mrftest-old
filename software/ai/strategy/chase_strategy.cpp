@@ -1,5 +1,6 @@
 #include "ai/strategy.h"
-//this seems to have virtually nothing but the framework, add more stuff when roles are available
+#include "ai/tactic.h"
+#include "ai/tactic/chase.h"
 
 namespace {
 	class chase_strategy : public strategy {
@@ -11,53 +12,32 @@ namespace {
 			Gtk::Widget *get_ui_controls();
 			void robot_added(void);
 			void robot_removed(unsigned int index, robot::ptr r);
-
 		private:
-
-			// Create variables here (e.g. to store the roles).
 	};
 
 	chase_strategy::chase_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src) {
-		// Initialize variables here (e.g. create the roles).
 	}
 
 	void chase_strategy::tick() {
-		// Use the variables "ball", "field", and "team" to allocate players to roles.
-		switch (pt_source.current_playtype()) {
-		case playtype::halt:;
-		case playtype::stop:;
-		case playtype::play:;
-		case playtype::prepare_kickoff_friendly:;
-		case playtype::execute_kickoff_friendly:;
-		case playtype::prepare_kickoff_enemy:;
-		case playtype::execute_kickoff_enemy:;
-		case playtype::prepare_penalty_friendly:;
-		case playtype::execute_penalty_friendly:;
-		case playtype::prepare_penalty_enemy:;
-		case playtype::execute_penalty_enemy:;
-		case playtype::execute_direct_free_kick_friendly:;
-		case playtype::execute_indirect_free_kick_friendly:;
-		case playtype::execute_direct_free_kick_enemy:;
-		case playtype::execute_indirect_free_kick_enemy:;
-		case playtype::pit_stop:;
-		case playtype::victory_dance:;
-		default:;
+		for (unsigned int i = 0; i < the_team->size(); i++)
+		{
+			tactic::ptr chaser (new chase(the_ball, the_field, the_team, the_team->get_player(i)));
+			chaser->tick();
 		}
 	}
 
 	void chase_strategy::set_playtype(playtype::playtype) {
-		// Do some computation here if you want.
 	}
 	
 	Gtk::Widget *chase_strategy::get_ui_controls() {
 		return 0;
 	}
 
-  void chase_strategy::robot_added(void){
-  }
+	void chase_strategy::robot_added(void){
+	}
 
-  void chase_strategy::robot_removed(unsigned int index, robot::ptr r){
-  }
+	void chase_strategy::robot_removed(unsigned int index, robot::ptr r){
+	}
 
 	class chase_strategy_factory : public strategy_factory {
 		public:
