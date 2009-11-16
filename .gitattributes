@@ -156,6 +156,8 @@ software/util/args.cpp -text
 software/util/args.h -text
 software/util/byref.h -text
 software/util/clocksource.h -text
+software/util/clocksource_quick.cpp -text
+software/util/clocksource_quick.h -text
 software/util/clocksource_timerfd.cpp -text
 software/util/clocksource_timerfd.h -text
 software/util/dprint.h -text
