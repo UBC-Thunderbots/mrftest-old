@@ -3,6 +3,8 @@
 #include "ai/tactic/move.h"
 #include "iostream"
 
+// This benchmark records how long it takes for a robot to travel and stop at a point 1 meter away.
+
 namespace {
 	class movement_benchmark : public strategy {
 		public:
@@ -17,16 +19,17 @@ namespace {
 			point destination;
 			int time_steps;
 			bool done;
-			double threshold;
+			double dis_threshold;
+			double vel_threshold;
 	};
 
 	movement_benchmark::movement_benchmark(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src) {
 		destination = team->get_player(0)->position();
 		destination.x += 1;
-		destination.y += 1;
 		time_steps = 0;
 		done = false;
-		threshold = 0.1;
+		dis_threshold = 0.1;
+		vel_threshold = 0.01;
 	}
 
 	void movement_benchmark::tick() {
@@ -36,8 +39,12 @@ namespace {
 			double yDiff = the_team->get_player(0)->position().y - destination.y;
 			if (xDiff < 0) xDiff *= -1;
 			if (yDiff < 0) yDiff *= -1;
-			std::cout << xDiff << " " << yDiff << std::endl;
-			if (xDiff < threshold && yDiff < threshold) {
+			point vel = the_team->get_player(0)->est_velocity();
+			if (vel.x < 0) vel.x *= -1;
+			if (vel.y < 0) vel.y *= -1;
+			std::cout << "position: " << xDiff << " " << yDiff << std::endl;
+			std::cout << "velocity: " << the_team->get_player(0)->est_velocity().x << " " << the_team->get_player(0)->est_velocity().x << std::endl;
+			if (xDiff < dis_threshold && yDiff < dis_threshold && vel.x < vel_threshold && vel.y < vel_threshold) {
 				std::cout << "time steps taken: " << time_steps << std::endl;
 				done = true;
 			}
