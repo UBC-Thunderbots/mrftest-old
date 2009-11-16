@@ -182,7 +182,7 @@ namespace {
 	//
 	class ck_engine_factory : public simulator_engine_factory {
 		public:
-			ck_engine_factory() : simulator_engine_factory("2D Collisionless Kinematic (use the other simulator engine)") {
+			ck_engine_factory() : simulator_engine_factory("2D Collisionless Kinematic") {
 			}
 
 			simulator_engine::ptr create_engine(xmlpp::Element *) {
