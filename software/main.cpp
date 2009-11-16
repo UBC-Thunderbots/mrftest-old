@@ -1,6 +1,7 @@
 #include "firmware/window.h"
 #include "simulator/window.h"
 #include "util/args.h"
+#include "util/clocksource_quick.h"
 #include "util/clocksource_timerfd.h"
 #include "util/xml.h"
 #include "world/config.h"
@@ -10,11 +11,12 @@
 #include <getopt.h>
 
 namespace {
-	const char SHORT_OPTIONS[] = "wsfh";
+	const char SHORT_OPTIONS[] = "wsqfh";
 	const option LONG_OPTIONS[] = {
 		{"world", no_argument, 0, 'w'},
 		{"simulator", no_argument, 0, 's'},
 		{"sim", no_argument, 0, 's'},
+		{"quick", no_argument, 0, 'q'},
 		{"firmware", no_argument, 0, 'f'},
 		{"help", no_argument, 0, 'h'},
 		{0, 0, 0, 0}
@@ -24,6 +26,7 @@ namespace {
 		std::cerr << "Usage:\n\n" << app << " options\n\n";
 		std::cerr << "-w\n--world\n\tRuns the \"real-world\" driver using XBee and cameras.\n\n";
 		std::cerr << "-s\n--sim\n--simulator\n\tRuns the simulator.\n\n";
+		std::cerr << "-q\n--quick\n\tRuns in maximum-speed mode (only applicable to simulator).\n\n";
 		std::cerr << "-f\n--firwmare\n\tRuns the firmware manager.\n\n";
 		std::cerr << "-h\n--help\n\tDisplays this message.\n\n";
 	}
@@ -86,7 +89,7 @@ int main(int argc, char **argv) {
 	Gtk::Main mn(argc, argv);
 
 	// Parse options.
-	unsigned int do_world = 0, do_sim = 0, do_firmware = 0, do_help = 0;
+	unsigned int do_world = 0, do_sim = 0, do_quick = 0, do_firmware = 0, do_help = 0;
 	int ch;
 	while ((ch = getopt_long(argc, argv, SHORT_OPTIONS, LONG_OPTIONS, 0)) != -1)
 		switch (ch) {
@@ -96,6 +99,10 @@ int main(int argc, char **argv) {
 
 			case 's':
 				do_sim++;
+				break;
+
+			case 'q':
+				do_quick++;
 				break;
 
 			case 'f':
@@ -112,6 +119,10 @@ int main(int argc, char **argv) {
 		usage(argv[0]);
 		return 1;
 	}
+	if (do_quick > 1 || (do_quick && !do_sim)) {
+		usage(argv[0]);
+		return 1;
+	}
 
 	// Load the configuration file.
 	config::get();
@@ -120,8 +131,13 @@ int main(int argc, char **argv) {
 	if (do_world) {
 		std::cerr << "World operation is not implemented yet.\n";
 	} else if (do_sim) {
-		clocksource_timerfd clk(1000000000ULL / TIMESTEPS_PER_SECOND);
-		simulate(clk, clk);
+		clocksource_timerfd time_clk(1000000000ULL / TIMESTEPS_PER_SECOND);
+		if (do_quick) {
+			clocksource_quick quick_clk;
+			simulate(quick_clk, time_clk);
+		} else {
+			simulate(time_clk, time_clk);
+		}
 	} else if (do_firmware) {
 		manage_firmware();
 	}
