@@ -33,8 +33,8 @@ namespace {
 		tios.c_iflag &= ~INPCK & ~IXOFF;
 		tios.c_oflag &= ~OCRNL & ~ONOCR & ~ONLRET & ~OFILL & ~NLDLY & ~CRDLY & ~TABDLY & ~BSDLY & ~VTDLY & ~FFDLY;
 		tios.c_oflag |= NL0 | CR0 | TAB0 | BS0 | VT0 | FF0;
-		tios.c_cflag |= CSTOPB | CREAD | CRTSCTS;
-		tios.c_cflag &= ~CLOCAL;
+		tios.c_cflag |= CREAD | CRTSCTS;
+		tios.c_cflag &= ~CSTOPB & ~CLOCAL;
 		tios.c_cc[VMIN] = 0;
 		tios.c_cc[VTIME] = 0;
 		if (tcsetattr(fd, TCSAFLUSH, &tios) < 0)
