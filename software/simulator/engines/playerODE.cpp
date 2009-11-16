@@ -163,15 +163,15 @@
 					}
 					double m = mass.mass;
 					point fce = acc*((double)m);
-					fce = fce/50;
+					fce = fce/15;
 
-					if(avel>0.1 || avel<-0.1){
+					if(avel>2 || avel<-2){
 
 					//enorce a max turn speed
 					if(avel>0){
-						avel = 0.1;
+						avel = 2;
 					}else{
-						avel = -0.1;
+						avel = -2;
 					}
 
 					}

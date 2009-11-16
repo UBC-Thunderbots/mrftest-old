@@ -186,8 +186,8 @@ namespace {
 				//nearCallback creates all necessary contact points and parameters
  				dSpaceCollide (space,0,&nearCallback);
  				
- 				//step the world (have ODE do 5 iterations per step)
-				dWorldStep (eworld, 5);
+ 				//step the world (have ODE do 1 iterations per step)
+				dWorldStep (eworld, 1);
 				
 				//remove all the contact points that we created in this step
 				dJointGroupEmpty (contactgroup);
