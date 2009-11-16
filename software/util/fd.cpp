@@ -1,6 +1,5 @@
 #include "util/fd.h"
 #include <stdexcept>
-#include <cstdio>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -8,17 +7,14 @@
 
 file_descriptor::file_descriptor(const char *file, int flags) : fd(open(file, flags, 0666)) {
 	if (fd < 0) throw std::runtime_error("Cannot open file!");
-	std::printf("constructed file %d\n", fd);
 }
 
 file_descriptor::file_descriptor(int af, int type, int proto) : fd(socket(af, type, proto)) {
 	if (fd < 0) throw std::runtime_error("Cannot create socket!");
-	std::printf("constructed socket %d\n", fd);
 }
 
 void file_descriptor::close() {
 	if (fd != -1) {
-		std::printf("closed descriptor %d\n", fd);
 		::close(fd);
 		fd = -1;
 	}
