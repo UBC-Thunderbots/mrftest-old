@@ -28,7 +28,7 @@ namespace {
 		std::cerr << "-h\n--help\n\tDisplays this message.\n\n";
 	}
 
-	void simulate(clocksource &clk) {
+	void simulate(clocksource &simclock, clocksource &uiclock) {
 		// Get the XML document.
 		xmlpp::Document *xmldoc = config::get();
 
@@ -43,10 +43,10 @@ namespace {
 		xmlpp::Element *xmlsim = xmlutil::strip(xmlutil::get_only_child(xmlroot, "simulator"));
 
 		// Create the simulator object.
-		simulator sim(xmlsim, clk);
+		simulator sim(xmlsim, simclock);
 
 		// Create the UI.
-		simulator_window win(sim);
+		simulator_window win(sim, uiclock);
 
 		// Go go go!
 		Gtk::Main::run();
@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
 		std::cerr << "World operation is not implemented yet.\n";
 	} else if (do_sim) {
 		clocksource_timerfd clk(1000000000ULL / TIMESTEPS_PER_SECOND);
-		simulate(clk);
+		simulate(clk, clk);
 	} else if (do_firmware) {
 		manage_firmware();
 	}

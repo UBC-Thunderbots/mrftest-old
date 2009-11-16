@@ -53,15 +53,6 @@ class simulator : public playtype_source, public noncopyable, public sigc::track
 			sig_playtype_changed.emit(pt);
 		}
 
-		//
-		// The signal emitted after each timestep. This signal should only be
-		// used to refresh the user interface or write data to a log; the actual
-		// updating of the world state is done separately.
-		//
-		sigc::signal<void> &signal_updated() {
-			return sig_updated;
-		}
-
 	private:
 		//
 		// The current play type.
@@ -99,11 +90,6 @@ class simulator : public playtype_source, public noncopyable, public sigc::track
 		// The configuration element.
 		//
 		xmlpp::Element *xml;
-
-		//
-		// A callback invoked after each timestep.
-		//
-		sigc::signal<void> sig_updated;
 
 		//
 		// Handles a timer tick.

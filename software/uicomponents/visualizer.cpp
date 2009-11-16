@@ -1,11 +1,12 @@
 #include "uicomponents/visualizer.h"
 
-visualizer::visualizer(const field::ptr field, const ball::ptr ball, const team::ptr west_team, const team::ptr east_team) : scale(1), xtranslate(0), ytranslate(0), the_field(field), the_ball(ball), west_team(west_team), east_team(east_team) {
+visualizer::visualizer(const field::ptr field, const ball::ptr ball, const team::ptr west_team, const team::ptr east_team, clocksource &clk) : scale(1), xtranslate(0), ytranslate(0), the_field(field), the_ball(ball), west_team(west_team), east_team(east_team) {
 	add_events(Gdk::POINTER_MOTION_MASK);
 	add_events(Gdk::BUTTON_PRESS_MASK);
 	add_events(Gdk::BUTTON_RELEASE_MASK);
 	add_events(Gdk::ENTER_NOTIFY_MASK);
 	add_events(Gdk::LEAVE_NOTIFY_MASK);
+	clk.signal_tick().connect(sigc::mem_fun(*this, &visualizer::update));
 }
 
 bool visualizer::on_expose_event(GdkEventExpose *) {

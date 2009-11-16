@@ -325,7 +325,7 @@ class team_controls : public Gtk::VBox {
 //
 class simulator_window_impl : public Gtk::Window {
 	public:
-		simulator_window_impl(simulator &sim) : sim(sim), engine_frame("Simulation Engine"), engine_ctls(sim), playtype_frame("Play Type"), playtype_cb(sim), westteam_frame("West Team"), westteam_ctls(sim.west_team), eastteam_frame("East Team"), eastteam_ctls(sim.east_team), visualizer_frame("Visualizer"), vis(sim.fld, sim.west_ball, sim.west_team.west_view, sim.east_team.west_view) {
+		simulator_window_impl(simulator &sim, clocksource &uiclk) : sim(sim), engine_frame("Simulation Engine"), engine_ctls(sim), playtype_frame("Play Type"), playtype_cb(sim), westteam_frame("West Team"), westteam_ctls(sim.west_team), eastteam_frame("East Team"), eastteam_ctls(sim.east_team), visualizer_frame("Visualizer"), vis(sim.fld, sim.west_ball, sim.west_team.west_view, sim.east_team.west_view, uiclk) {
 			set_title("Thunderbots Simulator");
 
 			engine_frame.add(engine_ctls);
@@ -347,8 +347,6 @@ class simulator_window_impl : public Gtk::Window {
 
 			add(paned);
 			show_all();
-
-			sim.signal_updated().connect(sigc::mem_fun(vis, &visualizer::update));
 		}
 
 	protected:
@@ -384,7 +382,7 @@ class simulator_window_impl : public Gtk::Window {
 
 
 
-simulator_window::simulator_window(simulator &sim) : impl(new simulator_window_impl(sim)) {
+simulator_window::simulator_window(simulator &sim, clocksource &uiclk) : impl(new simulator_window_impl(sim, uiclk)) {
 }
 
 simulator_window::~simulator_window() {

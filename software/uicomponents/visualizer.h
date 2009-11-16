@@ -1,6 +1,7 @@
 #ifndef UICOMPONENTS_VISUALIZER_H
 #define UICOMPONENTS_VISUALIZER_H
 
+#include "util/clocksource.h"
 #include "world/ball.h"
 #include "world/field.h"
 #include "world/team.h"
@@ -15,12 +16,7 @@ class visualizer : public Gtk::DrawingArea {
 		// Constructs a new visualizer. All objects should be given for the same
 		// coordinate system.
 		//
-		visualizer(const field::ptr field, const ball::ptr ball, const team::ptr west_team, const team::ptr east_team);
-
-		//
-		// Updates the display.
-		//
-		void update();
+		visualizer(const field::ptr field, const ball::ptr ball, const team::ptr west_team, const team::ptr east_team, clocksource &clk);
 
 	protected:
 		void on_size_allocate(Gtk::Allocation &);
@@ -39,6 +35,7 @@ class visualizer : public Gtk::DrawingArea {
 		const team::ptr east_team;
 		draggable::ptr dragging;
 
+		void update();
 		double xtog(double x) { return  x * scale + xtranslate; }
 		double ytog(double y) { return -y * scale + ytranslate; }
 		double atog(double r) { return -r; }

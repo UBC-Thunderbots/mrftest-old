@@ -59,6 +59,5 @@ void simulator::tick() {
 		engine->tick();
 	west_team.tick_postengine();
 	west_team.tick_postengine();
-	sig_updated.emit();
 }
 
