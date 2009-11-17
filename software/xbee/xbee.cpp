@@ -70,12 +70,6 @@ void xbee::send(const void *data, std::size_t length) {
 		throw std::runtime_error("Message truncated talking to XBee arbiter!");
 }
 
-void xbee::unlock() {
-	DPRINT("unlock\n");
-	char ch;
-	send(&ch, 0);
-}
-
 bool xbee::on_readable(Glib::IOCondition cond) {
 	if (cond & Glib::IO_HUP)
 		throw std::runtime_error("XBee arbiter died!");

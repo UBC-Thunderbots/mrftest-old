@@ -91,7 +91,6 @@ void bootproto::enter_bootloader_send() {
 }
 
 bool bootproto::enter_bootloader_timeout() {
-	modem.unlock();
 	enter_bootloader_send();
 	return false;
 }
@@ -120,9 +119,6 @@ void bootproto::enter_bootloader_receive(const void *data, std::size_t length) {
 		DPRINT("packet ignored: wrong AT command");
 		return;
 	}
-
-	// This is definitely our response. Release the token.
-	modem.unlock();
 
 	// Check return status.
 	switch (pkt.status) {
@@ -229,7 +225,6 @@ void bootproto::send_send() {
 }
 
 bool bootproto::send_timeout() {
-	modem.unlock();
 	send_send();
 	return false;
 }
@@ -250,9 +245,6 @@ void bootproto::send_receive(const void *data, std::size_t length) {
 		DPRINT("packet ignored: wrong source address");
 		return;
 	}
-
-	// This is definitely our packet. Release the token.
-	modem.unlock();
 
 	// Check return status.
 	switch (pkt.status) {
@@ -353,7 +345,6 @@ void bootproto::exit_bootloader_send() {
 }
 
 bool bootproto::exit_bootloader_timeout() {
-	modem.unlock();
 	exit_bootloader_send();
 	return false;
 }
@@ -382,9 +373,6 @@ void bootproto::exit_bootloader_receive(const void *data, std::size_t length) {
 		DPRINT("packet ignored: wrong AT command");
 		return;
 	}
-
-	// This is definitely our packet. Release the token.
-	modem.unlock();
 
 	// Check return status.
 	switch (pkt.status) {
