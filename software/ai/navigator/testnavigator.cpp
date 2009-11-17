@@ -46,7 +46,7 @@ void testnavigator::tick() {
       double rotationangle = 0.0;
 
       bool undiverted = true;
-
+      bool stop = false;
       while (!check_vector(the_player->position(),
 			   nowDest,
 			   leftdirection) 
@@ -65,8 +65,15 @@ void testnavigator::tick() {
 	  if (rotationangle > 90.0 * PI / 180.0)
 	    {
 	      leftdirection = rightdirection = direction;
+	      stop = true;
 	      break;
 	    }
+	}
+
+      if(stop)
+	{
+	  point balldest = the_ball->position() - the_player->position();
+	  the_player->move(the_player->position(), atan2(balldest.y, balldest.x));
 	}
 
       point selected_direction;
