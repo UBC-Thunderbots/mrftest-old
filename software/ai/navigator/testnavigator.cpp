@@ -1,5 +1,5 @@
 #include "ai/navigator/testnavigator.h"
-
+#include <iostream>
 testnavigator::testnavigator(player::ptr player, field::ptr field, ball::ptr ball, team::ptr team) : 
   navigator(player, field, ball, team), destInitialized(false), outOfBoundsMargin(field->width() / 20.0),
   maxLookahead(1.0)
@@ -54,6 +54,7 @@ void testnavigator::tick() {
 			   nowDest,
 			      rightdirection))
 	{
+	  //std::cout << "path changed" <<std::endl;
 	  undiverted = false;
 	  rotationangle += 5.0 * PI / 180.0;
 	  leftdirection = direction.rotate(rotationangle);
@@ -89,7 +90,7 @@ void testnavigator::tick() {
 	{
 	  // maximum warp
 	  point balldest = the_ball->position() - nowDest;
-	  the_player->move(nowDest + selected_direction*1.0, atan2(nowDest.y, nowDest.x));
+	  the_player->move(the_player->position() + selected_direction*1.0, atan2(nowDest.y, nowDest.x));
 	}
 
     }
@@ -184,17 +185,19 @@ bool testnavigator::check_vector(point start, point dest, point direction)
       if(rob != this->the_player)
 	{
 	  point rp = rob->position() - start;
-	  rp/= rp.len();
+	  //rp/= rp.len();
 	  double len = rp.dot(direction);
 	  
 	  double d = sqrt(rp.dot(rp) - len*len);
 	  
 	  if (len < lookahead && d < 2*robot::MAX_RADIUS)
 	    {
+	      //std::cout << "Checked FALSE" << std::endl;
 	      return false;
 	    }
 	}
     }
+  //std::cout << "Checked TRUE" << std::endl;
   return true;
 
 }
