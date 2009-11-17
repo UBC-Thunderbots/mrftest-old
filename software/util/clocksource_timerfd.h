@@ -16,8 +16,20 @@ class clocksource_timerfd : public clocksource, public sigc::trackable {
 		//
 		clocksource_timerfd(uint64_t nanoseconds);
 
+		//
+		// Starts the clock source.
+		//
+		void start();
+
+		//
+		// Stops the clock source.
+		//
+		void stop();
+
 	private:
 		file_descriptor tfd;
+		uint64_t nanoseconds;
+		bool running;
 		bool on_readable(Glib::IOCondition);
 };
 

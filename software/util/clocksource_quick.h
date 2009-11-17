@@ -9,11 +9,17 @@
 class clocksource_quick : public clocksource, public sigc::trackable {
 	public:
 		//
-		// Constructs a new clocksource.
+		// Starts the clocksource.
 		//
-		clocksource_quick();
+		void start();
+
+		//
+		// Stops the clocksource.
+		//
+		void stop();
 
 	private:
+		sigc::connection connection;
 		bool on_idle();
 };
 
