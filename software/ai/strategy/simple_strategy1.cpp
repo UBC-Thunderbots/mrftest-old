@@ -1,8 +1,13 @@
 #include "ai/role.h"
 #include "ai/strategy.h"
+#include "ai/role/goalie.h"
+#include "ai/role/pit_stop.h"
 #include <map>
 #include <set>
 //simple strategy created by Armand
+
+#define all(container, it) \
+	typeof(container.begin()) it = container.begin(); it != container.end(); ++it
 
 namespace {
 	class simple_strategy1 : public strategy {
@@ -16,20 +21,32 @@ namespace {
 			void robot_removed(unsigned int index, robot::ptr r);
 
 		private:
+			
+			// private methods
+			void getAllRobots();
+			void clearRoles();
 
-			// saving the initialized roles for each robot
-			std::map< role::ptr, std::set<robot::ptr> > RobotAssignment_;
+			// saving the robot IDs mapped to its role
+			std::map< robot::ptr, role::ptr > assignments_;
+			std::set< role::ptr > existingRoles_;
 	};
 
 	simple_strategy1::simple_strategy1(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src) {
-		// Initialize variables here (e.g. create the roles).
+		// Get all robots currently assigned to the team
+		getAllRobots();
+		/* Assign the robots to their respective roles, if playtype has already
+		 * been set
+		 */
+		tick();
 	}
 
 	void simple_strategy1::tick() {
 		// Use the variables "ball", "field", and "team" to allocate players to roles.
 
 		switch (pt_source.current_playtype()) {
-		case playtype::halt:;
+		case playtype::halt:
+			clearRoles();
+			break;
 		case playtype::stop:;
 		case playtype::play:;
 		case playtype::prepare_kickoff_friendly:;
@@ -51,18 +68,43 @@ namespace {
 
 	}
 
+	void simple_strategy1::getAllRobots(){
+		for (unsigned int i = 0; i < the_team->size(); ++i){
+			robot::ptr rp = the_team->get_robot(i);
+			if (assignments_.find(rp) != assignments_.end()){
+				assignments_[rp] = pit_stop::ptr();
+			}
+		}
+	}
+
+	void simple_strategy1::clearRoles(){
+		existingRoles_.clear();
+		assignments_.clear();
+		getAllRobots();
+	}
+
 	void simple_strategy1::set_playtype(playtype::playtype) {
+		tick();
 	}
 	
 	Gtk::Widget *simple_strategy1::get_ui_controls() {
 		return 0;
 	}
 
-  void simple_strategy1::robot_added(void){
-  }
+	void simple_strategy1::robot_added(void){
+		for (unsigned int i = 0; i < the_team->size(); ++i){
+			robot::ptr rp = the_team->get_robot(i);
+			if (assignments_.find(rp) != assignments_.end()){
+				assignments_[rp] = pit_stop::ptr();
+			}
+		}
+		tick();
+	}
 
-  void simple_strategy1::robot_removed(unsigned int index, robot::ptr r){
-  }
+	void simple_strategy1::robot_removed(unsigned int index, robot::ptr r){
+		assignments_.erase(r);
+		tick();
+	}
 
 	class simple_strategy1_factory : public strategy_factory {
 		public:
