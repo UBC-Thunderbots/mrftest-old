@@ -180,19 +180,21 @@ bool testnavigator::check_vector(point start, point dest, point direction)
 	{
 	  rob = the_team->get_robot(i);
 	}
-
-      point rp = rob->position() - start;
-
-      double len = rp.dot(direction);
-
-      double d = sqrt(rp.dot(rp) - len*len);
-
-      if (len < lookahead && d < 2*robot::MAX_RADIUS)
+      
+      if(rob != this->the_player)
 	{
-	  return false;
+	  point rp = rob->position() - start;
+	  rp/= rp.len();
+	  double len = rp.dot(direction);
+	  
+	  double d = sqrt(rp.dot(rp) - len*len);
+	  
+	  if (len < lookahead && d < 2*robot::MAX_RADIUS)
+	    {
+	      return false;
+	    }
 	}
     }
-  
   return true;
 
 }
