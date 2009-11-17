@@ -2,6 +2,7 @@
 #define AI_TACTIC_KICK_H
 
 #include "ai/tactic.h"
+#include "ai/tactic/turn.h"
 
 //
 // 
@@ -34,6 +35,8 @@ class kick : public tactic {
 		void set_chip(const bool& chip);
 
 	protected:		
+
+		turn::ptr turn_tactic;
 
 		// Target position
 		point the_target;

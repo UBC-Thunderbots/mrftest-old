@@ -12,6 +12,11 @@ class pass : public tactic {
 	public:
 
 		//
+		// A pointer to a move tactic.
+		//
+		typedef Glib::RefPtr<pass> ptr;
+
+		//
 		// Constructs a new pass tactic.
 		//
 		pass(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player);
