@@ -21,14 +21,18 @@ namespace {
 
 }
 
-pid_controller::pid_controller() : initialized(false), proportional(0.6), differential(0.5), integral(0.0) {
+pid_controller::pid_controller() : initialized(false),
+	proportional_pos(1.8), differential_pos(0.8), integral_pos(0.0),
+	proportional_ori(1.0), differential_ori(0.2), integral_ori(0.0) {
 }
 
 void pid_controller::move(const point &current_position, const point &new_position, double current_orientation, double new_orientation, point &linear_velocity, double &angular_velocity) {
 
 	// relative new direction and angle
-	const double new_da = angle_mod(new_orientation - current_orientation);
+	double new_da = angle_mod(new_orientation - current_orientation);
 	const point &new_dir = (new_position - current_position).rotate(-current_orientation);
+
+	if (new_da > PI) new_da -= 2 * PI;
 
 	if (!initialized) {
 		initialized = true;
@@ -50,8 +54,8 @@ void pid_controller::move(const point &current_position, const point &new_positi
 		accum_ori += error_ori[t];
 	}
 
-	linear_velocity = proportional * error_pos[0] + integral * accum_pos + differential * (error_pos[0] - error_pos[1]);
-	angular_velocity = proportional * error_ori[0] + integral * accum_ori + differential * (error_ori[0] - error_ori[1]);
+	linear_velocity = proportional_pos * error_pos[0] + integral_ori * accum_pos + differential_pos * (error_pos[0] - error_pos[1]);
+	angular_velocity = proportional_ori * error_ori[0] + integral_ori * accum_ori + differential_ori * (error_ori[0] - error_ori[1]);
 }
 
 robot_controller_factory &pid_controller::get_factory() const {
