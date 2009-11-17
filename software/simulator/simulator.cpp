@@ -58,6 +58,6 @@ void simulator::tick() {
 	if (engine)
 		engine->tick();
 	west_team.tick_postengine();
-	west_team.tick_postengine();
+	east_team.tick_postengine();
 }
 
