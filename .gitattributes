@@ -75,8 +75,6 @@ software/ai/tactic/move.cpp -text
 software/ai/tactic/move.h -text
 software/ai/tactic/move_between.cpp -text
 software/ai/tactic/move_between.h -text
-software/ai/tactic/move_between_opponents.cpp -text
-software/ai/tactic/move_between_opponents.h -text
 software/ai/tactic/move_between_robots.cpp -text
 software/ai/tactic/move_between_robots.h -text
 software/ai/tactic/pass.cpp -text
