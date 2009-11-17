@@ -90,14 +90,14 @@ void testnavigator::tick() {
 
       if (undiverted)
 	{
-	  point balldest = the_ball->position() - nowDest;
+	  point balldest = the_ball->position() - the_player->position();
 	  the_player->move(nowDest, atan2(balldest.y, balldest.x));
 	}
       else
 	{
 	  // maximum warp
-	  point balldest = the_ball->position() - nowDest;
-	  the_player->move(the_player->position() + selected_direction*1.0, atan2(nowDest.y, nowDest.x));
+	  point balldest = the_ball->position() - the_player->position();
+	  the_player->move(the_player->position() + selected_direction*1.0, atan2(balldest.y, balldest.x));
 	}
 
     }
