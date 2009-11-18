@@ -1,147 +1,251 @@
+#define DEBUG 0
 #include "util/args.h"
+#include "util/dprint.h"
 #include "util/sockaddrs.h"
 #include "xbee/daemon/daemon.h"
 #include "xbee/daemon/packetproto.h"
+#include "xbee/util.h"
 #include <stdexcept>
+#include <exception>
 #include <algorithm>
 #include <vector>
+#include <tr1/unordered_map>
+#include <tr1/unordered_set>
 #include <cstdlib>
 #include <cerrno>
 #include <ctime>
+#include <stdint.h>
 #include <glibmm.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/file.h>
 #include <sys/prctl.h>
-#include <poll.h>
-#include <signal.h>
+#include <sys/epoll.h>
+
+#if DEBUG
+#define FIRST_CLOSE_FD 3
+#else
+#define FIRST_CLOSE_FD 0
+#endif
 
 namespace {
-	class client_service_provider : public noncopyable, public sigc::trackable {
+	file_descriptor create_epollfd() {
+		int fd = epoll_create(0);
+		if (fd < 0) throw std::runtime_error("Cannot create epollfd!");
+		return file_descriptor::create(fd);
+	}
+
+	struct client_info {
+		// All global frame IDs that route to this client.
+		std::tr1::unordered_set<uint8_t> frameid_reverse;
+		// All XBee addresses that route to this client.
+		std::tr1::unordered_set<uint64_t> address_reverse;
+	};
+
+	class daemon : public sigc::trackable {
 		public:
-			client_service_provider(int sock, xbee_packet_stream &pstream) : sock(sock), pstream(pstream) {
-			}
+			daemon(file_descriptor listen_sock, xbee_packet_stream &pstream);
+			void run();
 
-			void run() {
-				// Set up poll structures for the XBee and the client.
-				pollfd pfds[2];
-				pfds[0].fd = pstream.fd();
-				pfds[0].events = POLLIN;
-				pfds[0].revents = 0;
-				pfds[1].fd = sock;
-				pfds[1].events = POLLIN;
-				pfds[1].revents = 0;
+		private:
+			file_descriptor listen_sock;
+			xbee_packet_stream &pstream;
+			// Map from file descriptor to client_info.
+			std::tr1::unordered_map<int, client_info> fd_map;
+			// Map from XBee address to which file descriptor cares about it.
+			std::tr1::unordered_map<uint64_t, int> address_route;
+			// Map from global frame ID to which file descriptor cares about it.
+			int frameid_route[256];
+			// Map from global frame ID to local frame ID.
+			uint8_t frameid_revmap[256];
 
-				// Attach to the XBee for incoming packets.
-				pstream.signal_received().connect(sigc::mem_fun(*this, &client_service_provider::xbee_receive));
+			void on_receive(std::vector<uint8_t> pkt);
+	};
 
-				// Go into a loop.
-				for (;;) {
-					// Poll the descriptors.
-					if (poll(pfds, 2, -1) < 0)
-						throw std::runtime_error("Cannot poll!");
+	daemon::daemon(file_descriptor listen_sock, xbee_packet_stream &pstream) : listen_sock(listen_sock), pstream(pstream) {
+		std::fill(frameid_route, frameid_route + 256, -1);
+		std::fill(frameid_revmap, frameid_revmap + 256, 0);
+	}
 
-					if (pfds[0].revents & POLLIN) {
+	void daemon::run() {
+		struct epoll_event events[8];
+		uint8_t next_gfn = 1;
+
+		// Attach receive callback for serial port.
+		pstream.signal_received().connect(sigc::mem_fun(*this, &daemon::on_receive));
+
+		// Create epoll fd.
+		const file_descriptor &epollfd = create_epollfd();
+
+		// Add listen sock to epoll fd.
+		events[0].events = EPOLLIN;
+		events[0].data.fd = listen_sock;
+		if (epoll_ctl(epollfd, EPOLL_CTL_ADD, listen_sock, &events[0]) < 0)
+			throw std::runtime_error("Cannot register listensock with epoll!");
+
+		// Add serial port to epoll fd.
+		events[0].events = EPOLLIN;
+		events[0].data.fd = pstream.fd();
+		if (epoll_ctl(epollfd, EPOLL_CTL_ADD, pstream.fd(), &events[0]) < 0)
+			throw std::runtime_error("Cannot register serial port with epoll!");
+
+		// Go into a loop.
+		do {
+			// Wait for something to happen.
+			int nready = epoll_wait(epollfd, events, sizeof(events) / sizeof(*events), -1);
+			if (nready < 0)
+				throw std::runtime_error("Cannot wait for epoll event!");
+			for (int i = 0; i < nready; i++) {
+				if (events[i].data.fd == listen_sock) {
+					// Listen socket is ready to do something.
+					if (events[i].events & (EPOLLERR | EPOLLHUP)) {
+						throw std::runtime_error("Error on listen socket!");
+					} else if (events[i].events & EPOLLIN) {
+						int newfd = accept(listen_sock, 0, 0);
+						if (newfd >= 0) {
+							events[i].events = EPOLLIN;
+							events[i].data.fd = newfd;
+							if (epoll_ctl(epollfd, EPOLL_CTL_ADD, newfd, &events[i]) < 0)
+								throw std::runtime_error("Cannot register new socket with epoll!");
+							fd_map[newfd] = client_info();
+						}
+					}
+				} else if (events[i].data.fd == pstream.fd()) {
+					// Serial port is ready to do something.
+					if (events[i].events & (EPOLLERR | EPOLLHUP)) {
+						throw std::runtime_error("Error on serial port!");
+					} else {
 						pstream.readable();
-					} else if (pfds[1].revents & (POLLERR | POLLHUP | POLLNVAL)) {
-						return;
-					} else if (pfds[1].revents & POLLIN) {
-						// Receive a packet from the client.
+					}
+				} else {
+					// Client socket is ready to do something.
+					if (events[i].events & (EPOLLERR | EPOLLHUP)) {
+						// Socket error or closed.
+						// Unregister from routing tables.
+						for (std::tr1::unordered_set<uint8_t>::const_iterator j = fd_map[events[i].data.fd].frameid_reverse.begin(), jend = fd_map[events[i].data.fd].frameid_reverse.end(); j != jend; ++j) {
+							frameid_route[*j] = -1;
+							frameid_revmap[*j] = 0;
+						}
+						for (std::tr1::unordered_set<uint64_t>::const_iterator j = fd_map[events[i].data.fd].address_reverse.begin(), jend = fd_map[events[i].data.fd].address_reverse.end(); j != jend; ++j)
+							address_route.erase(*j);
+						// Remove from epoll.
+						if (epoll_ctl(epollfd, EPOLL_CTL_DEL, events[i].data.fd, &events[i]) < 0)
+							throw std::runtime_error("Cannot remove descriptor from epoll!");
+						// Close descriptor.
+						close(events[i].data.fd);
+						// Remove from FD map.
+						fd_map.erase(events[i].data.fd);
+					} else if (events[i].events & EPOLLIN) {
 						uint8_t buffer[65536];
-						ssize_t len = recv(sock, buffer, sizeof(buffer), 0);
-						if (len == 0)
-							return;
-						if (len < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
-							return;
-						if (len > 0) {
-							// Send the packet to the XBee.
-							pstream.send(buffer, len);
+						ssize_t ret = recv(events[i].data.fd, buffer, sizeof(buffer), MSG_DONTWAIT);
+						if (ret < 0) {
+							// Error or wouldblock.
+							// If error, let epoll return EPOLLERR next time.
+							// If wouldblock, just ignore it and keep polling.
+						} else if (ret == 0) {
+							// Remote peer closed.
+							// Let epoll return EPOLLHUP next time.
+						} else {
+							// Data arrived on socket.
+							// Check whether routing tables need updating.
+							uint64_t destaddr;
+							uint8_t local_frameid, global_frameid;
+							switch (buffer[0]) {
+								case 0x00:
+								case 0x17:
+									// Frame ID and destination address.
+									// Extract destination address.
+									destaddr = xbeeutil::address_from_bytes(&buffer[2]);
+									// Remove any existing routing.
+									if (address_route.count(destaddr)) {
+										fd_map[address_route[destaddr]].address_reverse.erase(destaddr);
+									}
+									// Set new route.
+									fd_map[events[i].data.fd].address_reverse.insert(destaddr);
+									address_route[destaddr] = events[i].data.fd;
+									// Fall through.
+
+								case 0x08:
+								case 0x09:
+									// Frame ID.
+									// Extract frame ID.
+									local_frameid = buffer[1];
+									// Allocate new global frame ID.
+									global_frameid = next_gfn;
+									next_gfn = (next_gfn == 255) ? (1) : (next_gfn + 1);
+									// Swap global frame ID into packet.
+									buffer[1] = global_frameid;
+									// Remove any existing route.
+									if (frameid_route[global_frameid] != -1) {
+										fd_map[frameid_route[global_frameid]].frameid_reverse.erase(global_frameid);
+									}
+									// Set new route.
+									fd_map[events[i].data.fd].frameid_reverse.insert(global_frameid);
+									frameid_route[global_frameid] = events[i].data.fd;
+									frameid_revmap[global_frameid] = local_frameid;
+									break;
+
+								case 0x01:
+									// 16-bit-address-frame (do not want).
+									DPRINT("TX16 frame dropped (only 64-bit addresses allowed)");
+									ret = -1;
+									break;
+							}
+
+							// Push it to the serial port.
+							pstream.send(buffer, ret);
 						}
 					}
 				}
 			}
-
-		private:
-			int sock;
-			xbee_packet_stream &pstream;
-
-			void xbee_receive(const std::vector<uint8_t> &pkt) {
-				// Send the packet over the UNIX socket.
-				send(sock, &pkt[0], pkt.size(), MSG_EOR | MSG_NOSIGNAL);
-			}
-	};
-
-	void run_daemon_impl(const file_descriptor &listen_sock, xbee_packet_stream &pstream) {
-		// Prepare a vector of pollfds to watch.
-		// Initially, we have only the serial port and the listening socket.
-		std::vector<pollfd> pfds(2);
-		pfds[0].fd = pstream.fd();
-		pfds[0].events = POLLIN;
-		pfds[0].revents = 0;
-		pfds[1].fd = listen_sock;
-		pfds[1].events = POLLIN;
-		pfds[1].revents = 0;
-
-		// Loop until nobody is connected to us.
-		// Special case: iterate the loop once on startup because the initial parent
-		// process who forked us is pending in the connect queue. Hence the "do"
-		// rather than plain "while".
-		do {
-			// Poll the descriptor set.
-			if (poll(&pfds[0], pfds.size(), -1) < 0)
-				throw std::runtime_error("Cannot poll!");
-
-			// First check for activity on the serial port.
-			if (pfds[0].revents & (POLLHUP | POLLERR | POLLNVAL))
-				throw std::runtime_error("Serial port failure!");
-			if (pfds[0].revents & POLLIN)
-				pstream.readable();
-
-			// Next check for a connection from a new client.
-			if (pfds[1].revents & (POLLHUP | POLLERR | POLLNVAL))
-				throw std::runtime_error("Listening UNIX-domain socket failure!");
-			if (pfds[1].revents & POLLIN) {
-				int fd = accept(listen_sock, 0, 0);
-				if (fd >= 0) {
-					if (send(fd, "XBEE", 4, MSG_NOSIGNAL | MSG_EOR) == 4) {
-						pollfd pfd;
-						pfd.fd = fd;
-						pfd.events = POLLIN;
-						pfd.revents = 0;
-						pfds.push_back(pfd);
-					} else {
-						close(fd);
-					}
-				}
-			}
-
-			// Check for disconnection or failure of clients.
-			for (std::vector<pollfd>::size_type i = 2; i < pfds.size(); i++)
-				if (pfds[i].revents & (POLLHUP | POLLERR | POLLNVAL)) {
-					close(pfds[i].fd);
-					pfds.erase(pfds.begin() + i);
-					i--;
-				}
-
-			// Make a list of all the clients who have sent us packets and hence
-			// are awaiting service.
-			std::vector<int> ready;
-			for (std::vector<pollfd>::size_type i = 2; i < pfds.size(); i++)
-				if (pfds[i].revents & POLLIN)
-					ready.push_back(pfds[i].fd);
-
-			// Pick a random client and service it.
-			if (!ready.empty()) {
-				client_service_provider serv(ready[std::rand() % ready.size()], pstream);
-				serv.run();
-			}
-		} while (pfds.size() > 2);
+		} while (!fd_map.empty());
 	}
 
-	__attribute__((noreturn)) void run_daemon(const file_descriptor &listen_sock, xbee_packet_stream &pstream);
-	void run_daemon(const file_descriptor &listen_sock, xbee_packet_stream &pstream) {
+	void daemon::on_receive(std::vector<uint8_t> pkt) {
+		int recipient = -1;
+
+		// Check what type of packet it is.
+		uint64_t srcaddr;
+		uint8_t frameid;
+		switch (pkt[0]) {
+			case 0x80:
+				// Route by sender address.
+				srcaddr = xbeeutil::address_from_bytes(&pkt[1]);
+				if (address_route.count(srcaddr))
+					recipient = address_route[srcaddr];
+				break;
+
+			case 0x88:
+			case 0x89:
+			case 0x97:
+				// Route by and translate frame ID.
+				frameid = pkt[1];
+				recipient = frameid_route[frameid];
+				pkt[1] = frameid_revmap[frameid];
+				break;
+		}
+
+		// Deliver the packet.
+		if (recipient == -1) {
+			// Broadcast delivery.
+			for (std::tr1::unordered_map<int, client_info>::const_iterator i = fd_map.begin(), iend = fd_map.end(); i != iend; ++i)
+				send(i->first, &pkt[0], pkt.size(), MSG_EOR | MSG_NOSIGNAL);
+		} else {
+			// Unicast delivery.
+			send(recipient, &pkt[0], pkt.size(), MSG_EOR | MSG_NOSIGNAL);
+		}
+	}
+
+	__attribute__((noreturn)) void run_daemon(file_descriptor listen_sock, xbee_packet_stream &pstream);
+	void run_daemon(file_descriptor listen_sock, xbee_packet_stream &pstream) {
 		try {
-			run_daemon_impl(listen_sock, pstream);
+			{
+				daemon d(listen_sock, pstream);
+				d.run();
+			}
 			_exit(0);
+		} catch (const std::exception &exp) {
+			DPRINT(exp.what());
 		} catch (...) {
 		}
 		_exit(1);
@@ -175,8 +279,7 @@ namespace xbeedaemon {
 		unlink(socket_path.c_str());
 
 		// Create and bind the listening socket.
-		const file_descriptor listen_sock(PF_UNIX, SOCK_SEQPACKET, 0);
-		listen_sock.set_blocking(false);
+		file_descriptor listen_sock(PF_UNIX, SOCK_SEQPACKET, 0);
 		sockaddrs sa;
 		sa.un.sun_family = AF_UNIX;
 		if (socket_path.size() > sizeof(sa.un.sun_path)) throw std::runtime_error("Path too long!");
@@ -188,7 +291,6 @@ namespace xbeedaemon {
 		// Connect another socket to it.
 		file_descriptor temp_client_sock(PF_UNIX, SOCK_SEQPACKET, 0);
 		if (connect(temp_client_sock, &sa.sa, sizeof(sa)) < 0) throw std::runtime_error("Cannot connect to UNIX-domain socket!");
-		temp_client_sock.set_blocking(false);
 
 		// Open the serial port.
 		xbee_packet_stream pstream;
@@ -211,7 +313,7 @@ namespace xbeedaemon {
 			// This is the child process.
 			// We need to keep the lock file, listen socket, and serial port.
 			// Close all the others.
-			for (int i = 3; i < 65536; i++)
+			for (int i = FIRST_CLOSE_FD; i < 65536; i++)
 				if (i != listen_sock && i != lock_file && i != pstream.fd())
 					close(i);
 			// Enter a new session and process group.
