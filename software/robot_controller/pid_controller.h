@@ -19,10 +19,9 @@ class pid_controller : public virtual robot_controller {
 
 	protected:
 
-		double proportional_pos, integral_pos, differential_pos;
-		double proportional_ori, integral_ori, differential_ori;
-
 		bool initialized;
+		double proportional_pos, differential_pos, integral_pos;
+		double proportional_ori, differential_ori, integral_ori;
 
 		// errors in x, y, d
 		point error_pos[10];
