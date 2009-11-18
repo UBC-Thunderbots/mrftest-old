@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <cerrno>
 #include <ctime>
+#include <cstring>
 #include <stdint.h>
 #include <glibmm.h>
 #include <signal.h>
@@ -321,6 +322,10 @@ namespace xbeedaemon {
 			// Display the proper name.
 			static const char PROCESS_NAME[] = "xbeed";
 			prctl(PR_SET_NAME, PROCESS_NAME, 0, 0, 0);
+			size_t arglen = 0;
+			for (int i = 0; i < args::argc; i++)
+				arglen += std::strlen(args::argv[i]) + 1;
+			std::fill(args::argv[0], args::argv[0] + arglen, '\0');
 			std::copy(PROCESS_NAME, PROCESS_NAME + sizeof(PROCESS_NAME), args::argv[0]);
 			// Run as the multiplexing daemon.
 			run_daemon(listen_sock, pstream);
