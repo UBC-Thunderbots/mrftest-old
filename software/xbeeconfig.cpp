@@ -221,8 +221,8 @@ connected:
 		goto start_work;
 	}
 
-	std::cout << "Setting radio channel... " << std::flush;
-	send_string(fd, "ATCHE\r");
+	std::cout << "Enabling RTS flow control..." << std::flush;
+	send_string(fd, "ATD61\r");
 	if (read_clean_ok(fd)) {
 		std::cout << "OK\n";
 	} else {
@@ -232,6 +232,15 @@ connected:
 
 	std::cout << "Setting DIO0 to default as digital output low... " << std::flush;
 	send_string(fd, "ATD04\r");
+	if (read_clean_ok(fd)) {
+		std::cout << "OK\n";
+	} else {
+		std::cout << "FAIL\n";
+		goto start_work;
+	}
+
+	std::cout << "Setting radio channel... " << std::flush;
+	send_string(fd, "ATCHE\r");
 	if (read_clean_ok(fd)) {
 		std::cout << "OK\n";
 	} else {
