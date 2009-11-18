@@ -58,10 +58,14 @@ xbee::xbee() : sock(connect_to_daemon()) {
 }
 
 void xbee::send(const void *data, std::size_t length) {
-	DPRINT("TX:");
-	for (unsigned int i = 0; i < length; i++)
-		DPRINT(Glib::ustring::compose(" %1", Glib::ustring::format(std::hex, std::setw(2), std::setfill(L'0'), static_cast<const unsigned char *>(data)[i])));
-	DPRINT("\n");
+#if DEBUG
+	Glib::ustring msg("TX:");
+	for (unsigned int i = 0; i < length; i++) {
+		msg.push_back(' ');
+		msg.append(Glib::ustring::format(std::hex, std::setw(2), std::setfill(L'0'), static_cast<const unsigned char *>(data)[i]));
+	}
+	DPRINT(msg);
+#endif
 
 	ssize_t ret = ::send(sock, data, length, MSG_EOR | MSG_NOSIGNAL);
 	if (ret < 0)
@@ -80,10 +84,14 @@ bool xbee::on_readable(Glib::IOCondition cond) {
 	if (!ret)
 		throw std::runtime_error("XBee arbiter died!");
 
-	DPRINT("RX:");
-	for (int i = 0; i < ret; i++)
-		DPRINT(Glib::ustring::compose(" %1", Glib::ustring::format(std::hex, std::setw(2), std::setfill(L'0'), buffer[i])));
-	DPRINT("\n");
+#if DEBUG
+	Glib::ustring msg("RX:");
+	for (int i = 0; i < ret; i++) {
+		msg.push_back(' ');
+		msg.append(Glib::ustring::format(std::hex, std::setw(2), std::setfill(L'0'), buffer[i]));
+	}
+	DPRINT(msg);
+#endif
 
 	sig_received.emit(buffer, ret);
 	return true;
