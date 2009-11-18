@@ -72,7 +72,7 @@ namespace {
 		simulator sim(xmlsim, simclock);
 
 		// Create the UI.
-		simulator_window win(sim, uiclock);
+		simulator_window win(sim, simclock, uiclock);
 
 		// Create the frame rate reporter.
 		fps_reporter fpsr(simclock, uiclock, win);
@@ -158,10 +158,9 @@ int main(int argc, char **argv) {
 		std::cerr << "World operation is not implemented yet.\n";
 	} else if (do_sim) {
 		clocksource_timerfd time_clk(1000000000ULL / TIMESTEPS_PER_SECOND);
-		time_clk.start();
 		if (do_quick) {
 			clocksource_quick quick_clk;
-			quick_clk.start();
+			time_clk.start();
 			simulate(quick_clk, time_clk);
 		} else {
 			simulate(time_clk, time_clk);

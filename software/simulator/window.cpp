@@ -45,15 +45,26 @@ class engine_chooser : public Gtk::ComboBoxText {
 //
 class engine_controls : public Gtk::VBox {
 	public:
-		engine_controls(simulator &sim) : sim(sim), chooser(sim), ctls(0) {
+		engine_controls(simulator &sim, clocksource &simclk) : sim(sim), simclk(simclk), chooser(sim), run_btn("Run"), pause_btn("Pause"), run_pause_box(Gtk::BUTTONBOX_SPREAD), ctls(0) {
 			chooser.signal_changed().connect(sigc::mem_fun(*this, &engine_controls::engine_changed));
+			run_btn.signal_clicked().connect(sigc::mem_fun(*this, &engine_controls::run_clicked));
+			pause_btn.signal_clicked().connect(sigc::mem_fun(*this, &engine_controls::pause_clicked));
+			pause_btn.set_sensitive(false);
+
+			run_pause_box.pack_start(run_btn);
+			run_pause_box.pack_start(pause_btn);
+
+			pack_start(run_pause_box);
 			pack_start(chooser);
 			put_custom_controls();
 		}
 
 	private:
 		simulator &sim;
+		clocksource &simclk;
 		engine_chooser chooser;
+		Gtk::Button run_btn, pause_btn;
+		Gtk::HButtonBox run_pause_box;
 		Widget *ctls;
 
 		void put_custom_controls() {
@@ -83,6 +94,18 @@ class engine_controls : public Gtk::VBox {
 
 			// Add the new engine-specific controls.
 			put_custom_controls();
+		}
+
+		void run_clicked() {
+			run_btn.set_sensitive(false);
+			pause_btn.set_sensitive(true);
+			simclk.start();
+		}
+
+		void pause_clicked() {
+			run_btn.set_sensitive(true);
+			pause_btn.set_sensitive(false);
+			simclk.stop();
 		}
 };
 
@@ -325,7 +348,7 @@ class team_controls : public Gtk::VBox {
 //
 class simulator_window_impl : public Gtk::Window {
 	public:
-		simulator_window_impl(simulator &sim, clocksource &uiclk) : sim(sim), engine_frame("Simulation Engine"), engine_ctls(sim), playtype_frame("Play Type"), playtype_cb(sim), westteam_frame("West Team"), westteam_ctls(sim.west_team), eastteam_frame("East Team"), eastteam_ctls(sim.east_team), visualizer_frame("Visualizer"), vis(sim.fld, sim.west_ball, sim.west_team.west_view, sim.east_team.west_view, uiclk) {
+		simulator_window_impl(simulator &sim, clocksource &simclk, clocksource &uiclk) : sim(sim), engine_frame("Simulation Engine"), engine_ctls(sim, simclk), playtype_frame("Play Type"), playtype_cb(sim), westteam_frame("West Team"), westteam_ctls(sim.west_team), eastteam_frame("East Team"), eastteam_ctls(sim.east_team), visualizer_frame("Visualizer"), vis(sim.fld, sim.west_ball, sim.west_team.west_view, sim.east_team.west_view, uiclk) {
 			set_title("Thunderbots Simulator");
 
 			engine_frame.add(engine_ctls);
@@ -382,7 +405,7 @@ class simulator_window_impl : public Gtk::Window {
 
 
 
-simulator_window::simulator_window(simulator &sim, clocksource &uiclk) : impl(new simulator_window_impl(sim, uiclk)) {
+simulator_window::simulator_window(simulator &sim, clocksource &simclk, clocksource &uiclk) : impl(new simulator_window_impl(sim, simclk, uiclk)) {
 }
 
 simulator_window::~simulator_window() {

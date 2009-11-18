@@ -9,7 +9,7 @@
 class simulator_window_impl;
 class simulator_window {
 	public:
-		simulator_window(simulator &sim, clocksource &uiclk);
+		simulator_window(simulator &sim, clocksource &simclk, clocksource &uiclk);
 		~simulator_window();
 		void show_fps(unsigned int fps);
 
