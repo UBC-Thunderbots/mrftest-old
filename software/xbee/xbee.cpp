@@ -77,6 +77,8 @@ void xbee::send(const void *data, std::size_t length) {
 bool xbee::on_readable(Glib::IOCondition cond) {
 	if (cond & Glib::IO_HUP)
 		throw std::runtime_error("XBee arbiter died!");
+	if (cond & (Glib::IO_ERR | Glib::IO_NVAL))
+		throw std::runtime_error("File descriptor error!");
 	unsigned char buffer[65536];
 	ssize_t ret = recv(sock, buffer, sizeof(buffer), 0);
 	if (ret < 0)
