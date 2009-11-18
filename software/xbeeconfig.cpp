@@ -191,8 +191,8 @@ connected:
 	iss_version.setf(std::ios_base::hex, std::ios_base::basefield);
 	unsigned int version;
 	iss_version >> version;
-	if (version < 0x10CD)
-		std::cout << "WARNING: Firmware version is less than 10CD. Consider upgrading!\n";
+	if (version < 0x10E6)
+		std::cout << "WARNING --- WARNING --- WARNING\nFirmware version is less than 10E6. Consider upgrading!\nWARNING --- WARNING --- WARNING\n";
 
 	std::cout << "Loading factory default settings... " << std::flush;
 	send_string(fd, "ATRE\r");
