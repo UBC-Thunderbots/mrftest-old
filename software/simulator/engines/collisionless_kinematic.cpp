@@ -90,6 +90,9 @@ namespace {
 					the_velocity += diff / diff.len() * BOT_MAX_ACCELERATION / static_cast<double>(TIMESTEPS_PER_SECOND);
 				}
 
+				if (the_velocity.len() > BOT_MAX_VELOCITY)
+					the_velocity = the_velocity / the_velocity.len() * BOT_MAX_VELOCITY;
+
 				the_orientation = angle_mod(the_orientation + avelocity);
 			}
 
