@@ -1,5 +1,6 @@
 #include "leastsquares/leastsquares.h"
 #include "world/predictable.h"
+#include "world/timestep.h"
 
 namespace {
 	const int MAX_DEGREE = 3;
@@ -32,7 +33,7 @@ predictable::predictable() {
 }
 
 point predictable::est_velocity() const {
-	return point(approxx(1), approxy(1));
+	return point(approxx(1), approxy(1)) * TIMESTEPS_PER_SECOND;
 }
 
 void predictable::add_prediction_datum(const point &pos) {
