@@ -37,7 +37,7 @@ namespace {
 			time_steps++;
 			point diff = the_team->get_player(0)->position() - destination;
 			point vel = the_team->get_player(0)->est_velocity();
-			std::cout << "position: " << diff.x << " " << diff.y << std::endl;
+			std::cout << "position difference: " << diff.x << " " << diff.y << std::endl;
 			std::cout << "velocity: " << the_team->get_player(0)->est_velocity().x << " " << the_team->get_player(0)->est_velocity().y << std::endl;
 			if (diff.len() < dis_threshold && vel.len() < vel_threshold) {
 				std::cout << "time steps taken: " << time_steps << std::endl;
