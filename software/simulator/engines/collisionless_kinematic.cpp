@@ -82,7 +82,7 @@ namespace {
 			}
 
 			void tick() {
-				the_position += the_velocity;
+				the_position += the_velocity / TIMESTEPS_PER_SECOND;
 				const point &diff = target_velocity - the_velocity;
 				if (diff.len() < BOT_MAX_ACCELERATION / TIMESTEPS_PER_SECOND) {
 					the_velocity = target_velocity;
