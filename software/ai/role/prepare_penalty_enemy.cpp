@@ -6,3 +6,7 @@ prepare_penalty_enemy::prepare_penalty_enemy(ball::ptr ball, field::ptr field, c
 void prepare_penalty_enemy::tick(){
 	
 }
+
+void prepare_penalty_enemy::robots_changed() {
+}
+

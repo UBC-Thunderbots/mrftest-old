@@ -6,3 +6,7 @@ defensive::defensive(ball::ptr ball, field::ptr field, controlled_team::ptr team
 void defensive::tick(){
 	
 }
+
+void defensive::robots_changed() {
+}
+

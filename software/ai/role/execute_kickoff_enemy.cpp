@@ -6,3 +6,7 @@ execute_kickoff_enemy::execute_kickoff_enemy(ball::ptr ball, field::ptr field, c
 void execute_kickoff_enemy::tick(){
 	
 }
+
+void execute_kickoff_enemy::robots_changed() {
+}
+

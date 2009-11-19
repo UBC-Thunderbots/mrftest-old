@@ -6,3 +6,7 @@ goalie::goalie(ball::ptr ball, field::ptr field, controlled_team::ptr team) : ro
 void goalie::tick(){
 	
 }
+
+void goalie::robots_changed() {
+}
+

@@ -9,12 +9,10 @@ void victory_dance::tick(){
     }
 }
 
-void victory_dance::set_robots(const std::vector<player::ptr> &robots) {
-    role::set_robots(robots);
-
+void victory_dance::robots_changed() {
     the_tactics.clear();
-    for(int i=0; i<robots.size(); i++) {
-        dance::ptr tactic( new dance(the_ball, the_field, the_team, robots[i]));
+    for(int i=0; i<the_robots.size(); i++) {
+        dance::ptr tactic( new dance(the_ball, the_field, the_team, the_robots[i]));
         the_tactics.push_back(tactic);
     }
 }

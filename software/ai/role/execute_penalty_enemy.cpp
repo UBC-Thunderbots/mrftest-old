@@ -6,3 +6,7 @@ execute_penalty_enemy::execute_penalty_enemy(ball::ptr ball, field::ptr field, c
 void execute_penalty_enemy::tick(){
 	
 }
+
+void execute_penalty_enemy::robots_changed() {
+}
+

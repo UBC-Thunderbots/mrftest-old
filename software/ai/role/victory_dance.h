@@ -24,7 +24,10 @@ class victory_dance : public role {
 		//
 		void tick();
 
-        void set_robots(const std::vector<player::ptr> &robots);
+		//
+		// Handles changes to the robot membership.
+		//
+		void robots_changed();
 
 	protected:
         std::vector<dance::ptr> the_tactics;

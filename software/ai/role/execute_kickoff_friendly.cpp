@@ -7,3 +7,6 @@ void execute_kickoff_friendly::tick(){
 	
 }
 
+void execute_kickoff_friendly::robots_changed() {
+}
+

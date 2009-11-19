@@ -6,3 +6,7 @@ execute_direct_free_kick_enemy::execute_direct_free_kick_enemy(ball::ptr ball, f
 void execute_direct_free_kick_enemy::tick(){
 	
 }
+
+void execute_direct_free_kick_enemy::robots_changed() {
+}
+

@@ -27,7 +27,10 @@ class pit_stop : public role {
 		//
 		void tick();
 
-                void set_robots(const std::vector<player::ptr> &robots);
+		//
+		// Handles changes to the robot membership.
+		//
+		void robots_changed();
 
 	protected:
                 std::vector<move::ptr> the_tactics;	

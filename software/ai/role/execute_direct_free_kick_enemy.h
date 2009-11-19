@@ -23,6 +23,11 @@ class execute_direct_free_kick_enemy : public role {
 		//
 		void tick();
 
+		//
+		// Handles changes to the robot membership.
+		//
+		void robots_changed();
+
 	protected:
 		
 };

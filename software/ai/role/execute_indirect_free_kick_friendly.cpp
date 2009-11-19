@@ -6,3 +6,7 @@ execute_indirect_free_kick_friendly::execute_indirect_free_kick_friendly(ball::p
 void execute_indirect_free_kick_friendly::tick(){
 	
 }
+
+void execute_indirect_free_kick_friendly::robots_changed() {
+}
+

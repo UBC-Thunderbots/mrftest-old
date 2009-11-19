@@ -33,12 +33,20 @@ class role : public byref, public sigc::trackable {
 		// controlling robots that have gone away.
 		//
 		virtual void tick() = 0;
+
+		//
+		// Called each time the set of robots for which the role is responsible
+		// has changed. It is expected that the role will examine the robots and
+		// determine if any changes need to be made.
+		//
+		virtual void robots_changed() = 0;
 		
 		//
 		// Sets the robots controlled by this role.
 		//
 		void set_robots(const std::vector<player::ptr> &robots) {
 			the_robots = robots;
+			robots_changed();
 		}
 		
 		//
@@ -46,6 +54,7 @@ class role : public byref, public sigc::trackable {
 		//
 		void clear_robots() {
 			the_robots.clear();
+			robots_changed();
 		}
 
 	protected:

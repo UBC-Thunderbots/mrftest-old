@@ -6,3 +6,7 @@ offensive::offensive(ball::ptr ball, field::ptr field, controlled_team::ptr team
 void offensive::tick(){
 	
 }
+
+void offensive::robots_changed() {
+}
+

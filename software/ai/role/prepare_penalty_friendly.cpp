@@ -6,3 +6,7 @@ prepare_penalty_friendly::prepare_penalty_friendly(ball::ptr ball, field::ptr fi
 void prepare_penalty_friendly::tick(){
 	
 }
+
+void prepare_penalty_friendly::robots_changed() {
+}
+

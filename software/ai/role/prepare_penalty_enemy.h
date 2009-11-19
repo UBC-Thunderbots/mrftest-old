@@ -23,6 +23,11 @@ class prepare_penalty_enemy : public role {
 		//
 		void tick();
 
+		//
+		// Handles changes to the robot membership.
+		//
+		void robots_changed();
+
 	protected:
 		
 };
