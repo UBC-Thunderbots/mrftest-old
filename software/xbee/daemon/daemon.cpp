@@ -171,19 +171,21 @@ namespace {
 									// Frame ID.
 									// Extract frame ID.
 									local_frameid = buffer[1];
-									// Allocate new global frame ID.
-									global_frameid = next_gfn;
-									next_gfn = (next_gfn == 255) ? (1) : (next_gfn + 1);
-									// Swap global frame ID into packet.
-									buffer[1] = global_frameid;
-									// Remove any existing route.
-									if (frameid_route[global_frameid] != -1) {
-										fd_map[frameid_route[global_frameid]].frameid_reverse.erase(global_frameid);
+									if (local_frameid != 0) {
+										// Allocate new global frame ID.
+										global_frameid = next_gfn;
+										next_gfn = (next_gfn == 255) ? (1) : (next_gfn + 1);
+										// Swap global frame ID into packet.
+										buffer[1] = global_frameid;
+										// Remove any existing route.
+										if (frameid_route[global_frameid] != -1) {
+											fd_map[frameid_route[global_frameid]].frameid_reverse.erase(global_frameid);
+										}
+										// Set new route.
+										fd_map[events[i].data.fd].frameid_reverse.insert(global_frameid);
+										frameid_route[global_frameid] = events[i].data.fd;
+										frameid_revmap[global_frameid] = local_frameid;
 									}
-									// Set new route.
-									fd_map[events[i].data.fd].frameid_reverse.insert(global_frameid);
-									frameid_route[global_frameid] = events[i].data.fd;
-									frameid_revmap[global_frameid] = local_frameid;
 									break;
 
 								case 0x01:
