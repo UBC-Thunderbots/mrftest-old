@@ -64,6 +64,8 @@
 
 
 	global bootload
+	global rcif_main
+	global txif_main
 
 
 
@@ -430,15 +432,7 @@ temp: res 1
 
 
 
-	; Interrupt vector code.
-intvec code
-	; Dispatch interrupts to their handlers.
-	btfsc PIR1, RCIF
-	goto rcif_main
-	btfsc PIR1, TXIF
-	goto txif_main
-	retfie FAST
-
+	code
 	; Handles a receive interrupt.
 rcif_main:
 	; Select the appropriate bank.
@@ -480,32 +474,32 @@ rcif_main:
 	movwf INDF0
 	; Increment the pointer.
 	incf xbee_in_ptr, F
-	retfie FAST
+	return
 
 rcif_waiting_for_sop:
 	; We're waiting to see an SOP byte. That's the only thing we care about.
 	movf RCREG, W
 	xorlw 0x7E
 	bz rcif_sop
-	retfie FAST
+	return
 
 rcif_sop:
 	; Got SOP. Mark the pointer with the special "waiting for length MSB" value.
 	movlw 0xFE
 	movwf xbee_in_ptr
 	clrf xbee_in_escape
-	retfie FAST
+	return
 
 rcif_wait_for_sop:
 	; We have decided we want to wait for the SOP. Mark the pointer as such.
 	setf xbee_in_ptr
-	retfie FAST
+	return
 
 rcif_escape:
 	; The escape byte was received. Set the flag so we're ready for the next
 	; byte.
 	setf xbee_in_escape
-	retfie FAST
+	return
 
 rcif_waiting_for_length_msb:
 	; We're waiting for the MSB of the length word. This should always be zero,
@@ -521,7 +515,7 @@ rcif_waiting_for_length_msb:
 	; The byte was zero. Now we're waiting for the LSB of the length.
 	movlw 0xFD
 	movwf xbee_in_ptr
-	retfie FAST
+	return
 
 rcif_waiting_for_length_lsb:
 	; We're waiting for the LSB of the length word. This one might be escaped,
@@ -544,7 +538,7 @@ rcif_waiting_for_length_lsb:
 	bz rcif_wait_for_sop
 	; The length is OK. Set the pointer to zero to prepare for the payload.
 	clrf xbee_in_ptr
-	retfie FAST
+	return
 
 rcif_waiting_for_checksum:
 	; We're waiting for the checksum. This might be escaped.
@@ -592,7 +586,7 @@ rcif_handle_packet:
 	movf xbee_in_apiid, W
 	xorlw 0x80
 	skpz
-	retfie FAST
+	return
 
 	; For now, xbee_out_length is the length of the response data. Zero it.
 	movlw 0
@@ -775,7 +769,7 @@ rcif_queue_response:
 	; Enable transmit interrupts so our packet will be sent.
 	bsf PIE1, TXIE
 	; Return from interrupt; allow transmit ISR to work.
-	retfie FAST
+	return
 
 rcif_address_buffer_fsr0:
 	; Use the index number in xbee_in_commandid to select a buffer.
@@ -840,7 +834,7 @@ txif_main:
 	movwf TXREG
 	incf xbee_out_ptr, F
 	clrf xbee_out_escape
-	retfie FAST
+	return
 
 txif_main_escaped:
 	; The escape was sent for this byte. Send the adjusted value.
@@ -849,7 +843,7 @@ txif_main_escaped:
 	; Move to the next byte.
 	incf xbee_out_ptr, F
 	clrf xbee_out_escape
-	retfie FAST
+	return
 
 txif_send_sop:
 	; Send a start-of-packet byte.
@@ -858,14 +852,14 @@ txif_send_sop:
 	movlw 0xFE
 	movwf xbee_out_ptr
 	clrf xbee_out_escape
-	retfie FAST
+	return
 
 txif_send_length_msb:
 	; Send a zero (we don't do extra-long packets).
 	clrf TXREG
 	movlw 0x7D
 	movwf xbee_out_ptr
-	retfie FAST
+	return
 
 txif_send_length_lsb:
 	; Check if we've already escaped this byte.
@@ -881,7 +875,7 @@ txif_send_length_lsb:
 	movwf TXREG
 	clrf xbee_out_ptr
 	clrf xbee_out_escape
-	retfie FAST
+	return
 
 txif_send_length_lsb_escaped:
 	; The escape was sent for this byte. Send the adjusted value.
@@ -890,7 +884,7 @@ txif_send_length_lsb_escaped:
 	; Move to the first data byte.
 	clrf xbee_out_ptr
 	clrf xbee_out_escape
-	retfie FAST
+	return
 
 txif_send_checksum:
 	; Check if the escape flag is set. That would mean we've already calculated
@@ -943,7 +937,7 @@ txif_escape:
 	movwf TXREG
 	; Flag that it has been sent.
 	setf xbee_out_escape
-	retfie FAST
+	return
 
 txif_end_transmission:
 	; Clear the length byte so we don't think there's any data to send.
@@ -954,12 +948,11 @@ txif_end_transmission:
 	; Disable the interrupt enable flag so we won't get invoked until someone
 	; reenables the flag when they queue up more data to send.
 	bcf PIE1, TXIE
-	retfie FAST
+	return
 
 
 
 	; Main code.
-	code
 bootload:
 	; Initialize XBee buffers to empty.
 	banksel xbee_in_ptr

@@ -12,6 +12,7 @@
 	radix dec
 	processor 18F4550
 #include <p18f4550.inc>
+#include "dbgprint.inc"
 #include "pins.inc"
 #include "sleep.inc"
 
@@ -19,6 +20,14 @@
 
 	extern configure_fpga
 	extern bootload
+	extern rcif_main, txif_main
+
+
+
+	udata
+intlow_status: res 1
+intlow_bsr: res 1
+intlow_wreg: res 1
 
 
 
@@ -28,8 +37,41 @@ resetvec code
 
 
 
+intvechigh code
+	; This code is burned at address 8, where high priority interrupts go.
+	call timer3_int
+	retfie FAST
+
+
+
+intveclow code
+	; This code is burned at address 18, where low priority interrupts go.
+	movff STATUS, intlow_status
+	movff BSR, intlow_bsr
+	banksel intlow_wreg
+	movwf intlow_wreg
+
+	btfsc PIR1, RCIF
+	call rcif_main
+	btfsc PIR1, TXIF
+	call txif_main
+
+	banksel intlow_wreg
+	movf intlow_wreg, W
+	movff intlow_bsr, BSR
+	movff intlow_status, STATUS
+	retfie
+
+
+
 	code
 main:
+	; Enable global interrupts and interrupt priorities. Do not enable any
+	; particular interrupts.
+	bsf RCON, IPEN
+	movlw (1 << GIEL) | (1 << GIEH)
+	movwf INTCON
+
 	; Initialize those pins that should be outputs to safe initial levels.
 	; Pins are configured as inputs at device startup.
 	; DONE is an input read from the FPGA.
@@ -54,7 +96,7 @@ main:
 	; XBEE_TX is tristated unless bootloading.
 	; XBEE_RX is always an input.
 	; XBEE_BL is always an input.
-	; ICSP_PGD is always an input.
+	; ICSP_PGD is managed by DBGPRINT.
 	; ICSP_PGC is always an input.
 	; ICSP_PGM is always an input.
 	; USB_DP is low to avoid floating pin.
@@ -67,6 +109,9 @@ main:
 	bcf LAT_MISC, PIN_MISC
 	bcf TRIS_MISC, PIN_MISC
 
+	; Initialize the debugging library.
+	call dbgprint_init
+
 	; Wait a tenth of a second for everything to stabilize.
 	call sleep_100ms
 
@@ -75,5 +120,4 @@ main:
 	btfss PORT_XBEE_BL, PIN_XBEE_BL
 	goto configure_fpga
 	goto bootload
-
 	end
