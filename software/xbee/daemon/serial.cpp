@@ -1,3 +1,5 @@
+#define DEBUG 0
+#include "util/dprint.h"
 #include "xbee/daemon/serial.h"
 #include <stdexcept>
 #include <string>
@@ -53,6 +55,15 @@ void serial_port::send(uint8_t ch) {
 }
 
 void serial_port::send(const void *payload, std::size_t length) {
+#if DEBUG
+	Glib::ustring msg("TX:");
+	for (unsigned int i = 0; i < length; i++) {
+		msg.push_back(' ');
+		msg.append(Glib::ustring::format(std::hex, std::setw(2), std::setfill(L'0'), static_cast<const unsigned char *>(payload)[i]));
+	}
+	DPRINT(msg);
+#endif
+
 	const uint8_t *dptr = static_cast<const uint8_t *>(payload);
 	while (length) {
 		ssize_t written = write(port, dptr, length);
@@ -68,6 +79,16 @@ void serial_port::readable() {
 	ssize_t ret = read(port, buffer, sizeof(buffer));
 	if (ret < 0)
 		throw std::runtime_error("Cannot read from serial port!");
+
+#if DEBUG
+	Glib::ustring msg("RX:");
+	for (int i = 0; i < ret; i++) {
+		msg.push_back(' ');
+		msg.append(Glib::ustring::format(std::hex, std::setw(2), std::setfill(L'0'), buffer[i]));
+	}
+	DPRINT(msg);
+#endif
+
 	sig_received.emit(buffer, ret);
 }
 
