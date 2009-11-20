@@ -214,6 +214,7 @@ class firmware_window_impl : public Gtk::Window {
 
 			upload up(modem, current_address, pages);
 			upload_dialog dlg(*this, up);
+			Glib::signal_idle().connect(sigc::bind_return(sigc::mem_fun(up, &upload::start), false));
 			dlg.run();
 		}
 };
