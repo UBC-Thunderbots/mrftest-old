@@ -105,9 +105,9 @@ main:
 	; USB_DM is low to avoid floating pin.
 	bcf LAT_USB_DM, PIN_USB_DM
 	bcf TRIS_USB_DM, PIN_USB_DM
-	; MISC is low until driven high for debug purposes.
-	bcf LAT_MISC, PIN_MISC
-	bcf TRIS_MISC, PIN_MISC
+	; RTS is low until used in bootloader for flow control.
+	bcf LAT_RTS, PIN_RTS
+	bcf TRIS_RTS, PIN_RTS
 
 	; Initialize the debugging library.
 	call dbgprint_init
