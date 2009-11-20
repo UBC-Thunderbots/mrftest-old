@@ -29,6 +29,12 @@
 	 			createJointBetweenB1B2();
 			}
 			
+			playerODE::~playerODE () {
+				dJointGroupDestroy (contactgroup);
+				dBodyDestroy (body);
+				dBodyDestroy (body2);
+			}
+			
 			void playerODE::createJointBetweenB1B2(){
 				dJointGroupDestroy (contactgroup);
 				contactgroup = dJointGroupCreate(0);

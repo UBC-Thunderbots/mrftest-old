@@ -66,6 +66,7 @@ namespace {
  				the_ball.reset();
  				dWorldDestroy (eworld);
  				dJointGroupDestroy (contactgroup);
+ 				dCloseODE();
 			}
 
 
@@ -88,7 +89,7 @@ namespace {
 				return the_ball;
 			}
 
-			playerODE::ptr add_player() {
+			player_impl::ptr add_player() {
 				playerODE::ptr p(new playerODE(eworld, space));
 				point cur =p->position();
 				
@@ -99,7 +100,7 @@ namespace {
 				}
 				
 				for (unsigned int i = 0; i < the_players.size(); i++) {
-					point b = playerODE::ptr::cast_static(the_players[i])->position();
+					point b = the_players[i]->position();
 					c = cur-b;
 					if(c.len()<0.15){
 					cur.x+=0.2;
@@ -113,7 +114,7 @@ namespace {
 
 			void remove_player(player_impl::ptr p) {
 				for (unsigned int i = 0; i < the_players.size(); i++) {
-					if (playerODE::ptr::cast_static(the_players[i]) == p) {
+					if (player_impl::ptr::cast_static(the_players[i]) == p) {
 						the_players.erase(the_players.begin() + i);
 						return;
 					}

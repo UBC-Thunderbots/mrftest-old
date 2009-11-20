@@ -8,6 +8,7 @@
 class playerODE : public player_impl {
 	public:
 //The world constructed by the simulatiuon engine
+typedef Glib::RefPtr<playerODE> ptr;
 	dWorldID world;
 dBodyID body;
 dMass mass;
@@ -18,6 +19,7 @@ dJointGroupID contactgroup;
 dJointID hinge;
 
 	playerODE( dWorldID dworld, dSpaceID dspace);
+	~playerODE();
 //void tick();
 
 void update();
