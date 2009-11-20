@@ -148,7 +148,7 @@ namespace {
 
 class firmware_window_impl : public Gtk::Window {
 	public:
-		firmware_window_impl(xbee &modem, xmlpp::Element *xmlworld) : modem(modem), bot_frame("Bot"), bot_controls(xmlworld, *this), file_frame("Firmware File"), work_frame("Execute Upload"), start_upload_button(Gtk::Stock::EXECUTE) {
+		firmware_window_impl(xbee &modem, xmlpp::Element *xmlworld) : modem(modem), bot_frame("Bot"), bot_controls(xmlworld, *this), file_frame("Firmware File"), start_upload_button(Gtk::Stock::EXECUTE) {
 			bot_controls.signal_address_changed().connect(sigc::mem_fun(*this, &firmware_window_impl::address_changed));
 			bot_frame.add(bot_controls);
 			vbox.pack_start(bot_frame, false, false);
@@ -157,10 +157,7 @@ class firmware_window_impl : public Gtk::Window {
 			vbox.pack_start(file_frame, false, false);
 
 			start_upload_button.signal_clicked().connect(sigc::mem_fun(*this, &firmware_window_impl::start_upload));
-			work_box.pack_start(start_upload_button, false, false);
-			work_box.pack_start(work_progress, false, false);
-			work_frame.add(work_box);
-			vbox.pack_start(work_frame, false, false);
+			vbox.pack_start(start_upload_button, false, false);
 
 			add(vbox);
 
@@ -186,10 +183,7 @@ class firmware_window_impl : public Gtk::Window {
 		Gtk::Frame file_frame;
 		Gtk::FileChooserButton file_chooser;
 
-		Gtk::Frame work_frame;
-		Gtk::VBox work_box;
 		Gtk::Button start_upload_button;
-		Gtk::ProgressBar work_progress;
 
 		void address_changed(uint64_t address) {
 			current_address = address;
