@@ -149,6 +149,8 @@ namespace {
 class firmware_window_impl : public Gtk::Window {
 	public:
 		firmware_window_impl(xbee &modem, xmlpp::Element *xmlworld) : modem(modem), bot_frame("Bot"), bot_controls(xmlworld, *this), file_frame("Firmware File"), start_upload_button(Gtk::Stock::EXECUTE) {
+			set_title("Thunderbots");
+
 			bot_controls.signal_address_changed().connect(sigc::mem_fun(*this, &firmware_window_impl::address_changed));
 			bot_frame.add(bot_controls);
 			vbox.pack_start(bot_frame, false, false);
