@@ -1,4 +1,4 @@
-#define DEBUG 0
+#define DEBUG 1
 #include "util/args.h"
 #include "util/dprint.h"
 #include "util/sockaddrs.h"
@@ -31,7 +31,7 @@
 
 namespace {
 	file_descriptor create_epollfd() {
-		int fd = epoll_create(0);
+		int fd = epoll_create(8);
 		if (fd < 0) throw std::runtime_error("Cannot create epollfd!");
 		return file_descriptor::create(fd);
 	}
