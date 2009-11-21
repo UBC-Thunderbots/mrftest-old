@@ -127,6 +127,7 @@ namespace {
 	class upload_dialog : public Gtk::Dialog {
 		public:
 			upload_dialog(Gtk::Window &win, upload &up) : Gtk::Dialog("Upload Progress", win, true), up(up) {
+				up.signal_error().connect(sigc::mem_fun(*this, &upload_dialog::upload_error));
 				up.signal_progress_made().connect(sigc::mem_fun(*this, &upload_dialog::status_update));
 				up.signal_upload_finished().connect(sigc::bind(sigc::mem_fun(static_cast<Gtk::Dialog &>(*this), &Gtk::Dialog::response), Gtk::RESPONSE_ACCEPT));
 				pb.set_text(up.get_status());
@@ -142,6 +143,12 @@ namespace {
 			void status_update(double fraction) {
 				pb.set_fraction(fraction);
 				pb.set_text(up.get_status());
+			}
+
+			void upload_error(const Glib::ustring &message) {
+				Gtk::MessageDialog md(*this, message, false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
+				md.run();
+				response(Gtk::RESPONSE_ACCEPT);
 			}
 	};
 }
