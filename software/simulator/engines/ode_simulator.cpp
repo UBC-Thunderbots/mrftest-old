@@ -30,6 +30,8 @@ namespace {
 	// The force of gravity N/kg
 	//
 	const double GRAVITY = -0.25;
+	
+	const int UPDATES_PER_TCIK = 2;
 
 	//
 	// A simulator_engine.
@@ -38,6 +40,7 @@ namespace {
 		private:
 			ballODE::ptr the_ball;
 			std::vector<playerODE::ptr> the_players;
+			playerODE::ptr emptyPlayer;
 		public:
 			dWorldID eworld;
 			dSpaceID space;
@@ -50,7 +53,7 @@ namespace {
 				dWorldSetGravity (eworld,0,0.0,GRAVITY);
 				space = dSimpleSpaceCreate(0);
   				ground = dCreatePlane (space,0,0,1,0.1);
-    				dWorldSetContactSurfaceLayer(eworld, 0.05);
+    				dWorldSetContactSurfaceLayer(eworld, 0.005);
 				contactgroup = dJointGroupCreate (0);
 
 				ballODE::ptr b(new ballODE(eworld, space));
@@ -71,6 +74,7 @@ namespace {
 
 
 			void tick() {
+
 				//check the world for possible collisions
 				//if there are colliding objects then call nearCallback
 				//nearCallback creates all necessary contact points and parameters
@@ -81,6 +85,8 @@ namespace {
 				
 				//remove all the contact points that we created in this step
 				dJointGroupEmpty (contactgroup);
+
+				
 			}
 			void setWorld(dWorldID world) {
 				eworld = world;
@@ -90,7 +96,7 @@ namespace {
 			}
 
 			player_impl::ptr add_player() {
-				playerODE::ptr p(new playerODE(eworld, space));
+				playerODE::ptr	 p(new playerODE(eworld, space, the_ball->ballGeom));
 				point cur =p->position();
 				
 				point balpos = the_ball->position();
@@ -111,7 +117,18 @@ namespace {
 				the_players.push_back(p);
 				return p;
 			}
-
+			
+			
+			playerODE::ptr get_player_from_shape(dGeomID shape){
+				for (unsigned int i = 0; i < the_players.size(); i++) {
+					if (the_players[i]->robot_contains_shape(shape)) {
+						return the_players[i];
+					}
+				}
+				return emptyPlayer;
+			}
+			
+			
 			void remove_player(player_impl::ptr p) {
 				for (unsigned int i = 0; i < the_players.size(); i++) {
 					if (player_impl::ptr::cast_static(the_players[i]) == p) {
@@ -134,7 +151,7 @@ namespace {
 				double frict = MU;
 				int i=0;		
 				if ((g1 ^ g2)){
-					frict = MU*60;
+					frict = MU*6;
 				}
 				  dBodyID b1 = dGeomGetBody(o1);
 				  dBodyID b2 = dGeomGetBody(o2);
@@ -179,25 +196,32 @@ namespace {
 			//
 			void handleRobotRobotCollision (dGeomID o1, dGeomID o2){
 				int i=0;
-				const dReal* pos1 = dGeomGetPosition (o1);
-				const dReal* pos2 = dGeomGetPosition (o2);
-				point p1 = point(pos1[0],pos1[1]);
-				point p2 = point(pos2[0],pos2[1]);
-				point dis = p1-p2;
+				
+				//const dReal* pos1 = dGeomGetPosition (o1);
+				//const dReal* pos2 = dGeomGetPosition (o2);
+				//point p1 = point(pos1[0],pos1[1]);
+				//point p2 = point(pos2[0],pos2[1]);
+				//point dis = p1-p2;
+				
+				playerODE::ptr robot1 = get_player_from_shape(o1);
+				playerODE::ptr robot2 = get_player_from_shape(o2);
+				
 				//if (dis.len>0.02) we assume that are components from same robot
 				//as such we will ignore it
 				//this is a pretty bad hack and needs to be changed to check whether the geoms come
 				//from the same robot
-				if(dis.len()>0.02){
+				const int num_contact = 9;
+				
+				if(robot1!=robot2){
 					  dBodyID b1 = dGeomGetBody(o1);
 				  	  dBodyID b2 = dGeomGetBody(o2);
-					  dContact contact[3];		// up to 3 contacts per box
-					  for (i=0; i<3; i++) {
+					  dContact contact[num_contact];		// up to 3 contacts per box
+					  for (i=0; i<num_contact; i++) {
 					    contact[i].surface.mode = dContactSoftCFM | dContactApprox1;
 					    contact[i].surface.mu = MU;
 					    contact[i].surface.soft_cfm = 0.01;
 					  }
-					  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
+					  if (int numc = dCollide (o1,o2,num_contact,&contact[0].geom,sizeof(dContact))) {
 					    for (i=0; i<numc; i++) {
 					      dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
 					      dJointAttach (c,b1,b2);

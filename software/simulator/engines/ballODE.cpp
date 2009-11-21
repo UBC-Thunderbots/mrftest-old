@@ -25,13 +25,13 @@ point the_position, the_velocity;
 				dBodySetPosition(body, 0.0, 0.0, radius + 0.01);
 				ballGeom = dCreateSphere(0,radius);//golf ball radius 4.2672cm
 
-				dMassSetSphere (&m,2.0,radius);
+				dMassSetSphere (&m,1.0,radius);
 				dBodySetMass (body,&m);
 				m.mass = mass;
 
 				dGeomSetBody (ballGeom,body);
 				dSpaceAdd (dspace, ballGeom);
-				dBodySetLinearDamping (body, 0.9);
+				dBodySetLinearDamping (body, 0.2);
 
 
 			}
@@ -64,12 +64,12 @@ point the_position, the_velocity;
 				dBodySetPosition(body, 0.0, 0.0, 0.15267);
 				ballGeom = dCreateSphere(0, 0.14267);//golf ball radius 4.2672cm
 
-				dMassSetSphere (&m,2.0,0.14267);
+				dMassSetSphere (&m,1.0,0.14267);
 				dBodySetMass (body,&m);
 
 				dGeomSetBody (ballGeom,body);
 				dSpaceAdd (dspace, ballGeom);
-				dBodySetLinearDamping (body, 0.9);
+				dBodySetLinearDamping (body, 0.2);
 			
 			}
 

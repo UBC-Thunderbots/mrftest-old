@@ -4,23 +4,50 @@
 #include <math.h>
 #include <algorithm>
 
-			playerODE::playerODE (dWorldID eworld, dSpaceID dspace) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0), target_avelocity(0.0) {
+			playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0), target_avelocity(0.0) {
+			
+			
+				double dribble_radius = 0.005;//half a cm
+				ballGeom = ballGeomi;
+				double ballradius = dGeomSphereGetRadius(ballGeom);
+			
 				world = eworld;
 				body = dBodyCreate(world);
 				body2 = dBodyCreate(world);
 				double x_pos = 0.0;
 				double y_pos = 0.0;
+				
+				x_len = 0.1;
+				y_len = 0.1;
+				
 				dBodySetPosition(body, x_pos, y_pos, 0.0006);
 				dBodySetPosition(body2, x_pos, y_pos, 0.0515);
-				dGeomID robotGeom = dCreateBox (0,.1,.1,0.001);//10cm 
-				dGeomID robotGeomTop = dCreateBox (0,.1,.1,0.1);
+				dGeomID robotGeom = dCreateBox (0,x_len,y_len,0.001);//10cm 
+				dGeomID robotGeomTop = dCreateBox (0,x_len,y_len,0.1);
+				
+				double arm_width = 0.001;
+				double arm_height = 0.01;
+				
+				dGeomID dribbleArmL = dCreateBox (0,dribble_radius*2.5,arm_width,arm_height);
+				dGeomID dribbleArmR = dCreateBox (0,dribble_radius*2.5,arm_width,arm_height);
+				
 				dMassSetSphere (&mass,0.5,0.267);
 				dMassSetSphere (&mass2,0.1,0.267);
 				dBodySetMass (body,&mass);
 				dBodySetLinearDamping (body, 0.12);
 				dBodySetMass (body2,&mass2);
+				
 				dGeomSetBody (robotGeom,body);
 				dGeomSetBody (robotGeomTop,body2);
+				
+				double arm_h_offset = ballradius - 0.051;
+				
+				dGeomSetBody (dribbleArmL,body2);
+				dGeomSetBody (dribbleArmR,body2);
+				
+				dGeomSetOffsetPosition (dribbleArmL, x_len/2, y_len/2 + arm_width/2, arm_h_offset);
+				dGeomSetOffsetPosition (dribbleArmR, -x_len/2, -y_len/2 - arm_width/2, arm_h_offset);
+				
 				dSpaceAdd (dspace, robotGeom);
 				dSpaceAdd (dspace, robotGeomTop);
 				dBodySetAngularDamping (body, 0.2);
@@ -46,8 +73,6 @@
 				  z+=0.0005;  
 				dJointSetBallAnchor(hinge, x, y , z);
 				dJointAttach (hinge, body, body2);
-				dVector3 result;
-				dVector3 result2;
 				dJointEnable (hinge); 
 			 }
 
@@ -93,9 +118,39 @@
 			  double d = positionFromMatrix(dBodyGetRotation(body2));
 				return d;
 			}
+			
+
 
 			bool playerODE::has_ball() const {
-				return false;
+
+				bool hasTheBall = true;
+				double hasBallTolerance = 0.000025;
+				const dReal *b = dBodyGetPosition (dGeomGetBody(ballGeom)); 
+				const dReal *p = dBodyGetPosition (body2);
+
+				point ball_loc(b[0], b[1]);
+				point play_loc(p[0], p[1]);
+				point play_ball_diff = ball_loc - play_loc;
+				point rel_play_ball_diff = play_ball_diff.rotate(-orientation());
+				play_ball_diff  = rel_play_ball_diff;
+
+				if(play_ball_diff.x > x_len/2 + dGeomSphereGetRadius(ballGeom) + hasBallTolerance){
+					hasTheBall=false;
+				}
+				if(play_ball_diff.y > y_len/2 + dGeomSphereGetRadius(ballGeom) + hasBallTolerance){
+					hasTheBall=false;
+				}
+				if(rel_play_ball_diff.x <0){
+					hasTheBall=false;
+				}
+				double mag_y = abs(rel_play_ball_diff.y);
+				double mag_x = abs(rel_play_ball_diff.x);
+
+				if( mag_y/mag_x > y_len/x_len){
+					hasTheBall=false;
+				}
+
+				return hasTheBall;
 			}
 
 			void controllerHack(point &target_velocity){
@@ -103,9 +158,14 @@
 				target_velocity.x = -target_velocity.y;
 				target_velocity.y = temp;
 			}
+			
+			bool playerODE::robot_contains_shape(dGeomID geom){
+				 dBodyID b = dGeomGetBody(geom);
+				return (b==body)||(b==body2);
+			}
 
 			void playerODE::move_impl(const point &vel, double avel) {
-				bool controller_not_nice_hack = false;
+					bool controller_not_nice_hack = false;
 				if(!posSet){
 					double MaxRadians_perSec = 0.1;
 					double Accel_Max = 1.25;
@@ -138,6 +198,7 @@
 					
 
 					point acc = vDiff/static_cast<double>(TIMESTEPS_PER_SECOND);
+					
 					double mag = acc.len();
 					
 					if(mag>Accel_Max){
@@ -148,6 +209,10 @@
 					double m = mass.mass;
 					point fce = acc*((double)m);
 					fce = fce;
+					
+					
+					//std::cout<<"angular speed: "<<avel<<std::endl;
+	
 
 					if(avel>2 || avel<-2){
 
@@ -164,16 +229,35 @@
 
 					dBodyAddForce (body, fce.x, fce.y, 0.0);
 				}
-				posSet=false;
+				posSet=false;		
 			}
-
+			
 			void playerODE::dribble(double speed) {
+				if(speed<0 || speed>1)return;
+			
+			double maxTorque = 0.001/static_cast<double>(TIMESTEPS_PER_SECOND); //is this realistic???			
+			double appliedTorque = speed*maxTorque;
+			
+			//std::cout<<"dribble speed: "<<speed<<std::endl;
+			
+			point torqueAxis(0,1);
+			torqueAxis.rotate(orientation());
+			
+			torqueAxis*=appliedTorque;
+			
+			if(has_ball()){
+				dBodyAddTorque(dGeomGetBody(ballGeom), torqueAxis.x, torqueAxis.y, 0.0);
+			}
+			
+			
 			}
 
 			void playerODE::kick(double strength) {
+				//std::cout<<"kick strength: "<<strength<<std::endl;
 			}
 
 			void playerODE::chip(double strength) {
+				//std::cout<<"chip strength: "<<strength<<std::endl;
 			}
 
 			void playerODE::ui_set_position(const point &pos) {
