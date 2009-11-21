@@ -16,9 +16,9 @@ void pit_stop::robots_changed() {
         the_tactics.push_back(tactic);
     }
     
-    the_tactics[0]->set_position(point( -1 * the_field->length()/10 , -1 * the_field->width()/2));
-    the_tactics[1]->set_position(point( -2 * the_field->length()/10 , -1 * the_field->width()/2));
-    the_tactics[2]->set_position(point( -3 * the_field->length()/10 , -1 * the_field->width()/2));
-    the_tactics[3]->set_position(point( -4 * the_field->length()/10 , -1 * the_field->width()/2));
-    the_tactics[4]->set_position(point( -5 * the_field->length()/10 , -1 * the_field->width()/2));
+    int y_pos = -1 * the_field->width()/2;
+    for(int i=0; i<the_tactics.size(); i++) {
+        int x_pos = -1 * the_field->length()/2 + the_field->length() / 10 * (i+1);
+        the_tactics[i]->set_position( point(x_pos, y_pos) );
+    }
 }
