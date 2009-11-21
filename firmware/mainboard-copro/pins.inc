@@ -19,13 +19,13 @@ PIN_DONE  equ 4
 PORT_PROG_B equ PORTD
 TRIS_PROG_B equ TRISD
 LAT_PROG_B  equ LATD
-PIN_PROG_B  equ 3
+PIN_PROG_B  equ 2
 
 	; Which port, tris, and pin is connected to the FPGA's "INIT_B" pin.
 PORT_INIT_B equ PORTD
 TRIS_INIT_B equ TRISD
 LAT_INIT_B  equ LATD
-PIN_INIT_B  equ 2
+PIN_INIT_B  equ 5
 
 	; Which port, tris, and pin is wired-ORed to the motor controllers' BRAKE lines.
 PORT_BRAKE equ PORTC
@@ -55,13 +55,13 @@ PIN_SPI_CK  equ 0
 PORT_SPI_SS_FLASH equ PORTD
 TRIS_SPI_SS_FLASH equ TRISD
 LAT_SPI_SS_FLASH  equ LATD
-PIN_SPI_SS_FLASH  equ 5
+PIN_SPI_SS_FLASH  equ 6
 
 	; Which port, tris, and pin is the SPI slave select line to the FPGA.
 PORT_SPI_SS_FPGA equ PORTD
 TRIS_SPI_SS_FPGA equ TRISD
 LAT_SPI_SS_FPGA  equ LATD
-PIN_SPI_SS_FPGA  equ 6
+PIN_SPI_SS_FPGA  equ 3
 
 	; Which port, tris, and pin is the Flash WRITE PROTECT line.
 PORT_FLASH_WP equ PORTA
