@@ -29,7 +29,7 @@ namespace {
 		time_steps = 0;
 		done = false;
 		dis_threshold = 1e-1;
-		vel_threshold = 1e-4;
+		vel_threshold = 1e-2;
 	}
 
 	void movement_benchmark::tick() {
