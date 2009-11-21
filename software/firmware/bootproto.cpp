@@ -1,5 +1,4 @@
 #define DEBUG 0
-
 #include "firmware/bootproto.h"
 #include "util/dprint.h"
 #include "xbee/packettypes.h"
