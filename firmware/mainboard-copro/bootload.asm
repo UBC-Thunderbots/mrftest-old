@@ -405,11 +405,11 @@ xbee_out_options: res 1
 xbee_out_payload:
 xbee_out_commandid: res 1
 xbee_out_commandstatus: res 1
-XBEE_OUT_RESPONSEDATA_OFFSET equ $-xbee_out_apiid
 xbee_out_responsedata: res 98
-XBEE_OUT_MAX_LENGTH equ $-xbee_out_apiid
 xbee_out_ptr: res 1
 xbee_out_escape: res 1
+XBEE_OUT_RESPONSEDATA_OFFSET equ xbee_out_responsedata - xbee_out_apiid
+XBEE_OUT_MAX_LENGTH equ xbee_out_ptr - xbee_out_apiid
 
 
 
