@@ -56,6 +56,7 @@
 	radix dec
 	processor 18F4550
 #include <p18f4550.inc>
+#include "dbgprint.inc"
 #include "dispatch.inc"
 #include "pins.inc"
 #include "sleep.inc"
