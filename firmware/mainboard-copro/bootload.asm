@@ -857,7 +857,7 @@ txif_send_sop:
 txif_send_length_msb:
 	; Send a zero (we don't do extra-long packets).
 	clrf TXREG
-	movlw 0x7D
+	movlw 0xFD
 	movwf xbee_out_ptr
 	return
 
