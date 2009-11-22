@@ -53,6 +53,8 @@ void upload::ident_received(const void *data) {
 		return;
 	}
 
+	status = "Clearing Buffers...";
+	sig_progress_made.emit(0);
 	proto.send(COMMAND_CLEAR_IRPS, 0x0F, 0, 0, 0, sigc::mem_fun(*this, &upload::init_irps_cleared));
 }
 
