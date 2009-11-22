@@ -28,6 +28,10 @@
 intlow_status: res 1
 intlow_bsr: res 1
 intlow_wreg: res 1
+intlow_tblptr: res 2
+intlow_tablat: res 1
+inthigh_tblptr: res 2
+inthigh_tablat: res 1
 
 
 
@@ -39,7 +43,25 @@ resetvec code
 
 intvechigh code
 	; This code is burned at address 8, where high priority interrupts go.
+	; Workaround for a silicon bug.
+	call intvechigh_impl, FAST
+
+
+
+intvechigh_impl_seg code
+intvechigh_impl:
+	; Workaround for a silicon bug.
+	pop
+
+	movff TBLPTRL, inthigh_tblptr + 0
+	movff TBLPTRH, inthigh_tblptr + 1
+	movff TABLAT, inthigh_tablat
+
 	call timer3_int
+
+	movff inthigh_tablat, TABLAT
+	movff inthigh_tblptr + 1, TBLPTRH
+	movff inthigh_tblptr + 0, TBLPTRL
 	retfie FAST
 
 
@@ -48,16 +70,20 @@ intveclow code
 	; This code is burned at address 18, where low priority interrupts go.
 	movff STATUS, intlow_status
 	movff BSR, intlow_bsr
-	banksel intlow_wreg
-	movwf intlow_wreg
+	movff WREG, intlow_wreg
+	movff TBLPTRL, intlow_tblptr + 0
+	movff TBLPTRH, intlow_tblptr + 1
+	movff TABLAT, intlow_tablat
 
 	btfsc PIR1, RCIF
 	call rcif_main
 	btfsc PIR1, TXIF
 	call txif_main
 
-	banksel intlow_wreg
-	movf intlow_wreg, W
+	movff intlow_tablat, TABLAT
+	movff intlow_tblptr + 1, TBLPTRH
+	movff intlow_tblptr + 0, TBLPTRL
+	movff intlow_wreg, WREG
 	movff intlow_bsr, BSR
 	movff intlow_status, STATUS
 	retfie
