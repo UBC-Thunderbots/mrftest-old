@@ -899,6 +899,7 @@ txif_send_checksum:
 	movwf xbee_out_escape
 	; Now go through the data bytes.
 	lfsr 0, xbee_out_apiid
+	movlw 0
 txif_send_checksum_calculate:
 	addwf POSTINC0, W
 	decf xbee_out_escape
