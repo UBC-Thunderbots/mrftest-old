@@ -57,10 +57,6 @@ SPI_SEND_BIT macro bit
 	; Raise clock line.
 	bsf LAT_SPI_CK, PIN_SPI_CK
 
-	; Wait 4 instruction cycles.
-	bra $+2
-	bra $+2
-
 	; Lower clock line.
 	bcf LAT_SPI_CK, PIN_SPI_CK
 	endm
