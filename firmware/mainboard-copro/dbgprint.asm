@@ -27,6 +27,9 @@ bitsleft: res 1
 buffer_used: res 1
 buffer: res BUFFER_SIZE * 2
 hextemp: res 1
+BSR_save: res 1
+STATUS_save: res 1
+W_save: res 1
 
 
 
@@ -57,6 +60,11 @@ hexdigits:
 
 
 dbgprint_init:
+	movff BSR, BSR_save
+	movff STATUS, STATUS_save
+	banksel W_save
+	movwf W_save
+
 	; Enable RB pullups so that RB6 doesn't float when PICkit2 not attached.
 	bcf INTCON2, NOT_RBPU
 
@@ -75,7 +83,6 @@ dbgprint_init:
 	bsf PIE2, TMR3IE
 
 	; Send 10 1-bits (8 1-data-bits plus a 2 stop bits) to stabilize the line.
-	banksel curbyte
 	movlw 0xFF
 	movwf curbyte
 	movlw 10
@@ -84,20 +91,20 @@ dbgprint_init:
 	; Clear the buffer counter.
 	clrf buffer_used
 
+	movf W_save, W
+	movff STATUS_save, STATUS
+	movff BSR_save, BSR
 	return
 
 
 
 
 
-dbgprint_rom:
+dbgprint_rom_impl:
 	; Read the first byte - don't enqueue an empty string.
 	tblrd *
 	movf TABLAT, F
-	btfsc STATUS, Z
-	return
-
-	banksel buffer_used
+	bz dbgprint_rom_impl_exit
 
 	; Disable interrupts.
 	movf INTCON, W
@@ -108,7 +115,7 @@ dbgprint_rom:
 	; Check for sufficient buffer space.
 	movlw BUFFER_SIZE
 	xorwf buffer_used, W
-	bz dbgprint_rom_unmask_and_return
+	bz dbgprint_rom_impl_unmask_and_return
 
 	; Decrement TBLPTR to point one-before the string data, because we always use
 	; a pre-increment read to load the data in the interrupt handler.
@@ -130,12 +137,31 @@ dbgprint_rom:
 	; Restore the proper value of TBLPTR.
 	tblrd *+
 
-dbgprint_rom_unmask_and_return:
+dbgprint_rom_impl_unmask_and_return:
 	; Re-enable interrupts.
 	movf INTCON_save, W
 	andlw (1 << GIEH) | (1 << GIEL)
 	iorwf INTCON, F
 
+dbgprint_rom_impl_exit:
+	return
+
+
+
+
+
+
+dbgprint_rom:
+	movff BSR, BSR_save
+	movff STATUS, STATUS_save
+	banksel W_save
+	movwf W_save
+
+	rcall dbgprint_rom_impl
+
+	movf W_save, W
+	movff STATUS_save, STATUS
+	movff BSR_save, BSR
 	return
 
 
@@ -143,15 +169,23 @@ dbgprint_rom_unmask_and_return:
 
 
 dbgprint_hex:
-	banksel hextemp
+	movff BSR, BSR_save
+	movff STATUS, STATUS_save
+	banksel W_save
+	movwf W_save
+
 	movwf hextemp
 	swapf WREG, W
 	andlw 0x0F
 	rcall dbgprint_hex_digit
-	banksel hextemp
 	movf hextemp, W
 	andlw 0x0F
-	bra dbgprint_hex_digit
+	rcall dbgprint_hex_digit
+	
+	movf W_save, W
+	movff STATUS_save, STATUS
+	movff BSR_save, BSR
+	return
 
 
 dbgprint_hex_digit:
@@ -162,28 +196,46 @@ dbgprint_hex_digit:
 	clrf TBLPTRH
 	movlw HIGH(hexdigits)
 	addwfc TBLPTRH, F
-	bra dbgprint_rom
+	bra dbgprint_rom_impl
 
 
 
 
 
 dbgprint_nl:
+	movff BSR, BSR_save
+	movff STATUS, STATUS_save
+	banksel W_save
+	movwf W_save
+
 	movlw LOW(nl)
 	movwf TBLPTRL
 	movlw HIGH(nl)
 	movwf TBLPTRH
-	rcall dbgprint_rom
+	rcall dbgprint_rom_impl
+	
+	movf W_save, W
+	movff STATUS_save, STATUS
+	movff BSR_save, BSR
+	return
 
 
 
 
 
 dbgprint_flush:
-	banksel buffer_used
+	movff BSR, BSR_save
+	movff STATUS, STATUS_save
+	banksel W_save
+	movwf W_save
+
 dbgprint_flush_loop:
 	tstfsz buffer_used
 	bra dbgprint_flush_loop
+	
+	movf W_save, W
+	movff STATUS_save, STATUS
+	movff BSR_save, BSR
 	return
 
 
