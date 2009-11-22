@@ -124,7 +124,39 @@
 			bool playerODE::has_ball() const {
 
 				bool hasTheBall = true;
-				double hasBallTolerance = 0.000025;
+				double hasBallTolerance = 0.0025;
+				const dReal *b = dBodyGetPosition (dGeomGetBody(ballGeom)); 
+				const dReal *p = dBodyGetPosition (body2);
+
+				point ball_loc(b[0], b[1]);
+				point play_loc(p[0], p[1]);
+				point play_ball_diff = ball_loc - play_loc;
+				point rel_play_ball_diff = play_ball_diff.rotate(-orientation());
+				play_ball_diff  = rel_play_ball_diff;
+
+				if(play_ball_diff.x > x_len/2 + dGeomSphereGetRadius(ballGeom) + hasBallTolerance){
+					hasTheBall=false;
+				}
+				if(play_ball_diff.y > y_len/2 + dGeomSphereGetRadius(ballGeom) + hasBallTolerance){
+					hasTheBall=false;
+				}
+				if(rel_play_ball_diff.x <0){
+					hasTheBall=false;
+				}
+				double mag_y = abs(rel_play_ball_diff.y);
+				double mag_x = abs(rel_play_ball_diff.x);
+
+				if( mag_y/mag_x > y_len/x_len){
+					hasTheBall=false;
+				}
+
+				return hasTheBall;
+			}
+			
+			bool playerODE::has_ball(double tolerance){
+
+				bool hasTheBall = true;
+				double hasBallTolerance = tolerance;
 				const dReal *b = dBodyGetPosition (dGeomGetBody(ballGeom)); 
 				const dReal *p = dBodyGetPosition (body2);
 
@@ -235,29 +267,72 @@
 			void playerODE::dribble(double speed) {
 				if(speed<0 || speed>1)return;
 			
-			double maxTorque = 0.001/static_cast<double>(TIMESTEPS_PER_SECOND); //is this realistic???			
-			double appliedTorque = speed*maxTorque;
-			
-			//std::cout<<"dribble speed: "<<speed<<std::endl;
-			
-			point torqueAxis(0,1);
-			torqueAxis.rotate(orientation());
-			
-			torqueAxis*=appliedTorque;
-			
-			if(has_ball()){
-				dBodyAddTorque(dGeomGetBody(ballGeom), torqueAxis.x, torqueAxis.y, 0.0);
-			}
-			
-			
+				double maxTorque = 0.0001/static_cast<double>(TIMESTEPS_PER_SECOND); //is this realistic???			
+				double appliedTorque = speed*maxTorque;
+				
+				//std::cout<<"dribble speed: "<<speed<<std::endl;
+				
+				point torqueAxis(0,1);
+				torqueAxis.rotate(orientation());
+				
+				torqueAxis*=appliedTorque;
+				
+				if(has_ball()){
+					dBodyAddTorque(dGeomGetBody(ballGeom), torqueAxis.x, torqueAxis.y, 0.0);
+				}
+				
+				
 			}
 
-			void playerODE::kick(double strength) {
+			void playerODE::kick(double strengthh) {
 				//std::cout<<"kick strength: "<<strength<<std::endl;
+				
+				bool hack = false;
+				
+				double strength = strengthh;
+				
+				if(hack)strength = 0.5;
+						
+				if(strength <0 || strength >1)return;
+				
+				double maximum_impulse = 0.0005;
+				point direction(1.0, 0.0);
+				direction = direction.rotate(orientation());
+				point impulse = strength*maximum_impulse*direction;
+
+				if(has_ball(0.005)){
+					dVector3 force;
+					dWorldImpulseToForce (world, static_cast<double>(TIMESTEPS_PER_SECOND),
+				   			impulse.x, impulse.y,0.0, force);
+				   	dBodyAddForce(dGeomGetBody(ballGeom), force[0], force[1], force[2]);
+				}
+				
 			}
 
-			void playerODE::chip(double strength) {
+			void playerODE::chip(double strengthh) {
+			
+				bool hack = false;
+				
+				double strength = strengthh;
+				
+				if(hack)strength = 0.5;
+			
+				if(strength <0 || strength >1)return;
 				//std::cout<<"chip strength: "<<strength<<std::endl;
+					double maximum_impulse = 0.0005;
+					
+				point direction(1.0/sqrt(2.0), 0.0);
+				direction = direction.rotate(orientation());
+				point impulse = strength*maximum_impulse*direction;
+				
+				double zimpulse = strength*maximum_impulse/sqrt(2.0);
+
+				if(has_ball(0.005)){
+					dVector3 force;
+					dWorldImpulseToForce (world, static_cast<double>(TIMESTEPS_PER_SECOND),
+				   			impulse.x, impulse.y,zimpulse, force);
+				   	dBodyAddForce(dGeomGetBody(ballGeom), force[0], force[1], force[2]);
+				}
 			}
 
 			void playerODE::ui_set_position(const point &pos) {

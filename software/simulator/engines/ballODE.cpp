@@ -61,10 +61,10 @@ point the_position, the_velocity;
 				dMass m;
 
 				body = dBodyCreate(world);
-				dBodySetPosition(body, 0.0, 0.0, 0.15267);
-				ballGeom = dCreateSphere(0, 0.14267);//golf ball radius 4.2672cm
+				dBodySetPosition(body, 0.0, 0.0, 0.01086);
+				ballGeom = dCreateSphere(0, 0.0213);//golf ball radius 4.2672cm
 
-				dMassSetSphere (&m,1.0,0.14267);
+				dMassSetSphere (&m,1.0,0.0213);
 				dBodySetMass (body,&m);
 
 				dGeomSetBody (ballGeom,body);

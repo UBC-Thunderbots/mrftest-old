@@ -85,7 +85,6 @@ namespace {
 				
 				//remove all the contact points that we created in this step
 				dJointGroupEmpty (contactgroup);
-
 				
 			}
 			void setWorld(dWorldID world) {

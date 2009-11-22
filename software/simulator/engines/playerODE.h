@@ -41,6 +41,8 @@ void update();
 			double orientation() const ;
 
 			bool has_ball() const ;
+			
+			
 		//
 		//
 		//
@@ -51,6 +53,8 @@ protected:
 			void move_impl(const point &vel, double avel) ;
 			
 public:
+			bool has_ball(double tolerance);
+			
 			void dribble(double speed) ;
 
 			void kick(double strength) ;
