@@ -877,9 +877,9 @@ txif_send_length_msb:
 
 txif_send_length_lsb:
 	; Check if we've already escaped this byte.
+	movf xbee_out_length, W
 	tstfsz xbee_out_escape
 	bra txif_send_length_lsb_escaped
-	movf xbee_out_length, W
 	DISPATCH_INIT
 	DISPATCH_COND 0x7E, txif_escape
 	DISPATCH_COND 0x7D, txif_escape
