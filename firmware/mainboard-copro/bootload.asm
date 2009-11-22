@@ -763,7 +763,20 @@ rcif_queue_response:
 	; length has been filled with number of bytes in responsedata.
 	; Need to add XBEE_OUT_RESPONSEDATA_OFFSET so we get the rest of the packet.
 	movlw XBEE_OUT_RESPONSEDATA_OFFSET
-	addwf xbee_out_length
+	addwf xbee_out_length, F
+	movf xbee_out_length, W
+	; Set up the rest of the outbound packet.
+	clrf xbee_out_apiid
+	clrf xbee_out_frameid
+	clrf xbee_out_options
+	movff xbee_in_address + 0, xbee_out_address + 0
+	movff xbee_in_address + 1, xbee_out_address + 1
+	movff xbee_in_address + 2, xbee_out_address + 2
+	movff xbee_in_address + 3, xbee_out_address + 3
+	movff xbee_in_address + 4, xbee_out_address + 4
+	movff xbee_in_address + 5, xbee_out_address + 5
+	movff xbee_in_address + 6, xbee_out_address + 6
+	movff xbee_in_address + 7, xbee_out_address + 7
 	; Set the pointer to 0xFF to tell the transmit ISR it needs to send SOP.
 	setf xbee_out_ptr
 	; Enable transmit interrupts so our packet will be sent.
