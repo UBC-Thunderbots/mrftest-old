@@ -782,6 +782,8 @@ rcif_queue_response:
 	setf xbee_out_ptr
 	; Enable transmit interrupts so our packet will be sent.
 	bsf PIE1, TXIE
+	; Deassert RTS until response is sent.
+	bsf LAT_RTS, PIN_RTS
 	; Return from interrupt; allow transmit ISR to work.
 	return
 
@@ -964,6 +966,8 @@ txif_end_transmission:
 	; Disable the interrupt enable flag so we won't get invoked until someone
 	; reenables the flag when they queue up more data to send.
 	bcf PIE1, TXIE
+	; Reassert RTS to resume transmission.
+	bcf LAT_RTS, PIN_RTS
 	return
 
 
