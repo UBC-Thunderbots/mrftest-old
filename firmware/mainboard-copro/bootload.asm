@@ -1004,10 +1004,10 @@ bootload:
 	movwf RCSTA
 	nop
 	nop
-	movlw (1 << RCIE)
-	movwf PIE1
-	movlw (1 << GIE) | (1 << PEIE)
-	movwf INTCON
+	bcf IPR1, RCIP
+	bcf IPR1, TXIP
+	bsf PIE1, RCIE
+	bcf PIE1, TXIE
 
 irp_loop:
 	; Check if the IO pin has gone low.
