@@ -75,9 +75,14 @@ intveclow code
 	movff TBLPTRH, intlow_tblptr + 1
 	movff TABLAT, intlow_tablat
 
-	btfsc PIR1, RCIF
+	movf PIR1, W
+	andwf PIE1, W
+	btfsc WREG, RCIF
 	call rcif_main
-	btfsc PIR1, TXIF
+
+	movf PIR1, W
+	andwf PIE1, W
+	btfsc WREG, TXIF
 	call txif_main
 
 	movff intlow_tablat, TABLAT
