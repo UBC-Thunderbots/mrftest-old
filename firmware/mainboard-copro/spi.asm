@@ -89,7 +89,7 @@ SPI_RECEIVE_BIT macro bit
 	bsf LAT_SPI_CK, PIN_SPI_CK
 
 	; Sample receive line.
-	btfsc LAT_SPI_RX, PIN_SPI_RX
+	btfsc PORT_SPI_RX, PIN_SPI_RX
 	iorlw 1 << bit
 
 	; Lower clock line.
