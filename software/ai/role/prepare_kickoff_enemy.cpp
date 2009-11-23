@@ -4,14 +4,14 @@ prepare_kickoff_enemy::prepare_kickoff_enemy(ball::ptr ball, field::ptr field, c
 }
 
 void prepare_kickoff_enemy::tick(){
-   for(int i=0; i<the_tactics.size(); i++) {
+   for(unsigned int i=0; i<the_tactics.size(); i++) {
         the_tactics[i]->tick();
    }
 }
 
 void prepare_kickoff_enemy::robots_changed() {
     the_tactics.clear();
-    for(int i=0; i<the_robots.size() ; i++) {
+    for(unsigned int i=0; i<the_robots.size() ; i++) {
         move::ptr tactic( new move(the_ball, the_field, the_team, the_robots[i]));
         the_tactics.push_back(tactic);
     }
