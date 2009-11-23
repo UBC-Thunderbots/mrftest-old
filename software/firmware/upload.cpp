@@ -72,6 +72,7 @@ void upload::init_irps_read(const void *data) {
 	if (any_nonempty) {
 		proto.send(COMMAND_CLEAR_IRPS, 0x0F, 0, 0, 0, sigc::mem_fun(*this, &upload::init_irps_cleared));
 	} else {
+		push_irps();
 	}
 }
 
