@@ -11,8 +11,8 @@ namespace {
 			linear_controller_factory() : robot_controller_factory("Linear RC") {
 			}
 
-			robot_controller::ptr create_controller(player_impl::ptr, bool, unsigned int) {
-				robot_controller::ptr p(new linear_controller);
+			robot_controller::ptr create_controller(player_impl::ptr plr, bool, unsigned int) {
+				robot_controller::ptr p(new linear_controller(plr));
 				return p;
 			}
 	};
@@ -21,10 +21,12 @@ namespace {
 
 }
 
-linear_controller::linear_controller() {
+linear_controller::linear_controller(player_impl::ptr plr) : plr(plr) {
 }
 
-void linear_controller::move(const point &current_position, const point &new_position, double current_orientation, double new_orientation, point &linear_velocity, double &angular_velocity) {
+void linear_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
+	const point &current_position = plr->position();
+	const double current_orientation = plr->orientation();
 	angular_velocity = angle_mod(new_orientation - current_orientation);
 	linear_velocity = (new_position - current_position).rotate(-current_orientation);
 }

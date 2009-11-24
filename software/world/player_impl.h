@@ -39,7 +39,7 @@ class player_impl : public robot_impl {
 			if (controller) {
 				point linear_velocity;
 				double angular_velocity;
-				controller->move(position(), destination, orientation(), angular_target, linear_velocity, angular_velocity);
+				controller->move(destination, angular_target, linear_velocity, angular_velocity);
 				move_impl(linear_velocity, angular_velocity);
 			} else {
 				move_impl(point(), 0);

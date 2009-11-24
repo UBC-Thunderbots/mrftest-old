@@ -23,14 +23,8 @@ class robot_controller : public byref {
 		// specified target location and orientation.
 		//
 		// Parameters:
-		//  current_position
-		//   the current position of the robot
-		//
 		//  new_position
 		//   the position to move to, in world coordinates measured in metres
-		//
-		//  current_orientation
-		//   the current orientation of the robot
 		//
 		//  new_orientation
 		//   the orientation to rotate to in world coordinates measured in
@@ -48,7 +42,7 @@ class robot_controller : public byref {
 		// guaranteed that this function will be called exactly once per timer
 		// tick.
 		//
-		virtual void move(const point &current_position, const point &new_position, double current_orientation, double new_orientation, point &linear_velocity, double &angular_velocity) = 0;
+		virtual void move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) = 0;
 
 		//
 		// Returns the factory that created this controller.
@@ -83,9 +77,14 @@ class robot_controller_factory : public noncopyable {
 		//
 		// Constructs a new robot_controller.
 		//
-		// WARNING - WARNING - WARNING
-		// Most implementations of this class SHOULD IGNORE THE PARAMETERS TO THIS FUNCTION.
-		// The parameters are only provided for robot_controllers that are doing highly unusual things.
+		// Virtually all controller implementations should ignore the "yellow"
+		// parameter. It is intended for use only by controllers doing VERY,
+		// VERY special things.
+		//
+		// The controller can keep a reference to the player_impl object if it
+		// wishes. It MUST not call any mutating methods on the player_impl;
+		// however, it may call into the player_impl to retrieve the player's
+		// current position, orientation, estimated velocity, and so on.
 		//
 		virtual robot_controller::ptr create_controller(Glib::RefPtr<player_impl> plr, bool yellow, unsigned int index) = 0;
 

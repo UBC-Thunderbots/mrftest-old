@@ -11,7 +11,7 @@ namespace {
 			//
 			// Constructs a new controller.
 			//
-			testing_rc();
+			testing_rc(player_impl::ptr plr);
 
 			//
 			// Constructs a new controller.
@@ -23,7 +23,7 @@ namespace {
 			//  target_orientation
 			//   direction the player wants to have
 			//
-			void move(const point &current_position, const point &new_position, double current_orientation, double new_orientation, point &linear_velocity, double &angular_velocity);
+			void move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity);
 
 			//
 			// Returns the factory.
@@ -31,6 +31,8 @@ namespace {
 			robot_controller_factory &get_factory() const;
 
 		private:
+			player_impl::ptr plr;
+
 			double get_velocity(double d, double v0, double v1, double max_vel, double max_accel);
 
 			bool initialized;
@@ -47,7 +49,7 @@ namespace {
 			double max_linear_velocity_accel;
 	};
 
-	testing_rc::testing_rc() : initialized(false) {
+	testing_rc::testing_rc(player_impl::ptr plr) : plr(plr), initialized(false) {
 	}
 
 	double testing_rc::get_velocity(double s, double v0, double v1, double max_vel, double max_accel) {
@@ -93,7 +95,9 @@ namespace {
 		return v0 - max_accel * time_step;	
 	}
 
-	void testing_rc::move(const point &current_position, const point &new_position, double current_orientation, double new_orientation, point &linear_velocity, double &angular_velocity) {
+	void testing_rc::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
+		const point &current_position = plr->position();
+		const double current_orientation = plr->orientation();
 		if (!initialized) {
 			old_position = current_position;
 			old_orientation = current_orientation;
@@ -123,8 +127,8 @@ namespace {
 			testing_rc_factory() : robot_controller_factory("Testing RC") {
 			}
 
-			robot_controller::ptr create_controller(player_impl::ptr, bool, unsigned int) {
-				robot_controller::ptr p(new testing_rc);
+			robot_controller::ptr create_controller(player_impl::ptr plr, bool, unsigned int) {
+				robot_controller::ptr p(new testing_rc(plr));
 				return p;
 			}
 	};

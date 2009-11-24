@@ -97,7 +97,7 @@ namespace {
 
 			~joystick_controller();
 
-			void move(const point &, const point &, double, double, point &linear_velocity, double &angular_velocity) {
+			void move(const point &, double, point &linear_velocity, double &angular_velocity) {
 				if (stick) {
 					linear_velocity.x = -stick->axis(AXIS_FB) / 32767.0 * MAX_LINEAR_VELOCITY;
 					linear_velocity.y = -stick->axis(AXIS_LR) / 32767.0 * MAX_LINEAR_VELOCITY;

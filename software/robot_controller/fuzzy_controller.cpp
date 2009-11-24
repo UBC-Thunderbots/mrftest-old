@@ -26,11 +26,13 @@ namespace {
 //
 const double BOT_MAX_VELOCITY = 5.0;
 
-fuzzy_controller::fuzzy_controller(Glib::RefPtr<player_impl>& player) {
+fuzzy_controller::fuzzy_controller(player_impl::ptr player) {
 	robot = player;
 }
 
-void fuzzy_controller::move(const point &current_position, const point &new_position, double current_orientation, double new_orientation, point &linear_velocity, double &angular_velocity) {
+void fuzzy_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
+	const point &current_position = robot->position();
+	const double current_orientation = robot->orientation();
 	angular_velocity = angle_mod(new_orientation - current_orientation);
 	
 	double distance_factor = (new_position - current_position).len() / 0.6;

@@ -7,15 +7,19 @@
 #include "geom/point.h"
 #include "util/byref.h"
 #include "util/noncopyable.h"
+#include "world/player_impl.h"
 
 class pid_controller : public virtual robot_controller {
 	public:
 
-		void move(const point &current_position, const point &new_position, double current_orientation, double new_orientation, point &linear_velocity, double &angular_velocity);
+		void move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity);
 
 		robot_controller_factory &get_factory() const;
 
-		pid_controller();
+		pid_controller(player_impl::ptr plr);
+
+	private:
+		player_impl::ptr plr;
 
 	protected:
 

@@ -11,8 +11,8 @@ namespace {
 			max_power_controller_factory() : robot_controller_factory("MAX POWER RC") {
 			}
 
-			robot_controller::ptr create_controller(player_impl::ptr, bool, unsigned int) {
-				robot_controller::ptr p(new max_power_controller);
+			robot_controller::ptr create_controller(player_impl::ptr plr, bool, unsigned int) {
+				robot_controller::ptr p(new max_power_controller(plr));
 				return p;
 			}
 	};
@@ -21,10 +21,12 @@ namespace {
 
 }
 
-max_power_controller::max_power_controller() {
+max_power_controller::max_power_controller(player_impl::ptr plr) : plr(plr) {
 }
 
-void max_power_controller::move(const point &current_position, const point &new_position, double current_orientation, double new_orientation, point &linear_velocity, double &angular_velocity) {
+void max_power_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
+	const point &current_position = plr->position();
+	const double current_orientation = plr->orientation();
 	angular_velocity = angle_mod(new_orientation - current_orientation);
 	linear_velocity = (new_position - current_position).rotate(-current_orientation);
 	if (linear_velocity.len()!=0) linear_velocity = linear_velocity/linear_velocity.len() * 9001; // It's over NINE THOUSAAAAAAAND!
