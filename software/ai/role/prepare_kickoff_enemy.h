@@ -7,8 +7,6 @@
 #include "ai/tactic.h"
 #include "geom/point.h"
 
-static const int NUMBER_OF_STARTING_POSITIONS = 5;
-
 //
 // Gets the robots to go to their prepare_kickoff_enemy positions.
 //
@@ -37,7 +35,9 @@ class prepare_kickoff_enemy : public role {
 	protected:
                 std::vector<move::ptr> the_tactics;	
 
-                point starting_positions[5];
+                static const unsigned int NUMBER_OF_STARTING_POSITIONS = 5;
+
+                point starting_positions[NUMBER_OF_STARTING_POSITIONS];
 
 };
 
