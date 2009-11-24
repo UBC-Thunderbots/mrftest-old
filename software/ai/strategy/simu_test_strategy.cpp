@@ -276,12 +276,12 @@ namespace {
     if (turn_since_last_update % 100)
       {
 	std::cout << "off" << offenders.size() << std::endl;
-      for (int i = 0; i<offenders.size(); i++)
+      for (unsigned int i = 0; i<offenders.size(); i++)
 	{
 	  std::cout << offenders[i]->position().x << " " << offenders[i]->position().y << std::endl;
 	}
 	std::cout << "def" << defenders.size() << std::endl;
-      for (int i = 0; i<defenders.size(); i++)
+      for (unsigned int i = 0; i<defenders.size(); i++)
 	{
 	  std::cout << defenders[i]->position().x << " " << defenders[i]->position().y << std::endl;
 	}
@@ -314,7 +314,7 @@ namespace {
     //============================================back up
     
     /*
-      robot_details our_details[team->size()];
+      robot_detaiunsigned ls our_details[team->size()];
       for (int i = 0; i< team->size(); i++)
       {
       point difference_vector = ball->position()-team->get_robot(i)->position();
@@ -331,11 +331,11 @@ namespace {
       {
       if (
       }*/
-    for (int i=0;i<our_details_front.size();i++)
+    for (unsigned int i=0;i<our_details_front.size();i++)
       {
 	free(our_details_front[i]);
       }
-    for (int i=0;i<our_details_back.size();i++)
+    for (unsigned int i=0;i<our_details_back.size();i++)
       {
 	free(our_details_back[i]);
       }
