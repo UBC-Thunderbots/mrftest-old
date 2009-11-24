@@ -9,7 +9,7 @@ void shoot::tick()
 	{
 		bool has_ball = false;
 		for (unsigned int i = 0; i < the_team->size(); ++i) 
-			if (the_team->get_robot(i)->has_ball()) {
+			if (the_team->get_player(i)->has_ball()) {
 				has_ball = true;
 				break;
 			}

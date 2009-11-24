@@ -37,13 +37,6 @@ class robot : public draggable {
 		}
 
 		//
-		// Whether or not this robot has possession of the ball.
-		//
-		bool has_ball() const {
-			return impl->has_ball();
-		}
-
-		//
 		// Allows the UI to set the position of the robot.
 		//
 		void ui_set_position(const point &p) {

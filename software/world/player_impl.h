@@ -53,6 +53,11 @@ class player_impl : public robot_impl {
 			controller = c;
 		}
 
+		//
+		// Whether or not this robot has possession of the ball.
+		//
+		virtual bool has_ball() const = 0;
+
 	protected:
 		//
 		// Instructs the player to move with specified velocities, in

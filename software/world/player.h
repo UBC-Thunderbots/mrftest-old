@@ -54,6 +54,13 @@ class player : public robot {
 		}
 
 		//
+		// Whether or not this robot has possession of the ball.
+		//
+		bool has_ball() const {
+			return impl->has_ball();
+		}
+
+		//
 		// Constructs a new player object.
 		//
 		// Parameters:
