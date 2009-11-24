@@ -9,7 +9,7 @@
 #include "util/noncopyable.h"
 #include "world/player_impl.h"
 
-class max_power_controller : public virtual robot_controller {
+class max_power_controller : public robot_controller {
 	public:
 
 		void move(const point &new_position, double new_orientation, point &lienar_velocity, double &angular_velocity);

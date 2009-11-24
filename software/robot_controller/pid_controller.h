@@ -9,7 +9,7 @@
 #include "util/noncopyable.h"
 #include "world/player_impl.h"
 
-class pid_controller : public virtual robot_controller {
+class pid_controller : public robot_controller {
 	public:
 
 		void move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity);
