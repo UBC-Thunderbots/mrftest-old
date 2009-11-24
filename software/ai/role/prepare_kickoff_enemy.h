@@ -34,6 +34,8 @@ class prepare_kickoff_enemy : public role {
 
 	protected:
                 std::vector<move::ptr> the_tactics;	
+
+                point starting_positions[5];
 };
 
 #endif

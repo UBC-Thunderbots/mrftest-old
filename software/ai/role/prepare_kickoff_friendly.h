@@ -33,7 +33,9 @@ class prepare_kickoff_friendly : public role {
 		void robots_changed();
 
 	protected:
-                std::vector<move::ptr> the_tactics;	
+                std::vector<move::ptr> the_tactics;
+
+                point starting_positions[5]; 
 };
 
 #endif
