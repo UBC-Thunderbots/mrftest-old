@@ -21,10 +21,10 @@ void testnavigator::tick() {
 	{
      
 	  nowDest = clip_point(currDest,
-			       point(-the_field->width()/2 + outOfBoundsMargin,
-				     -the_field->length()/2 + outOfBoundsMargin),
-			       point(the_field->width()/2 - outOfBoundsMargin,
-				     the_field->length()/2 - outOfBoundsMargin));
+			       point(-the_field->length()/2 + outOfBoundsMargin,
+				     -the_field->width()/2 + outOfBoundsMargin),
+			       point(the_field->length()/2 - outOfBoundsMargin,
+				     the_field->width()/2 - outOfBoundsMargin));
 	}
       else
 	{
@@ -47,12 +47,7 @@ void testnavigator::tick() {
 
       bool undiverted = true;
       bool stop = false;
-      while (!check_vector(the_player->position(),
-			   nowDest,
-			   leftdirection) 
-	     && !check_vector(the_player->position(),
-			   nowDest,
-			      rightdirection))
+      while (true)
 	{
 	  //std::cout << "path changed" <<std::endl;
 	  undiverted = false;
@@ -62,9 +57,26 @@ void testnavigator::tick() {
 	  leftdirection = direction.rotate(rotationangle);
 	  rightdirection = direction.rotate(-rotationangle);
 
+	  if (check_vector(the_player->position(), nowDest, leftdirection))
+	    {
+	      if (check_vector(the_player->position(), nowDest, leftdirection.rotate(5.0 * PI / 180.0)))
+		{
+		  leftdirection = leftdirection.rotate(2.5 * PI / 180.0);
+		  break;
+		}
+	    }
+	  else if (check_vector(the_player->position(), nowDest, rightdirection))
+	    {
+	      if (check_vector(the_player->position(), nowDest, rightdirection.rotate(-5.0 * PI / 180.0)))
+		{
+		  rightdirection = rightdirection.rotate(-2.5 * PI / 180.0);
+		  break;
+		}
+	    }
+	  
 	  // if we can't find a path within 90 degrees
 	  // go straight towards our destination
-	  if (rotationangle > 90.0 * PI / 180.0)
+	  if (rotationangle > 100.0 * PI / 180.0)
 	    {
 	      leftdirection = rightdirection = direction;
 	      stop = true;
