@@ -56,7 +56,9 @@ void testnavigator::tick() {
 	{
 	  //std::cout << "path changed" <<std::endl;
 	  undiverted = false;
-	  rotationangle += 5.0 * PI / 180.0;
+	  rotationangle += 1.0 * PI / 180.0;//rotate by 1 degree each
+					    //time
+	  //it shouldn't take that many checks to get a good direction
 	  leftdirection = direction.rotate(rotationangle);
 	  rightdirection = direction.rotate(-rotationangle);
 
