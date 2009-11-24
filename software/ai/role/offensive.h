@@ -2,6 +2,9 @@
 #define AI_ROLE_OFFENSIVE_H
 
 #include "ai/role.h"
+#include "ai/tactic/chase.h"
+#include "ai/tactic/move.h"
+#include "ai/tactic/shoot.h"
 
 //
 // Gets the robots to go to their offensive positions.
