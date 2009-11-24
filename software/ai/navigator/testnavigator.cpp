@@ -77,31 +77,32 @@ void testnavigator::tick() {
 	  point balldest = the_ball->position() - the_player->position();
 	  the_player->move(the_player->position(), atan2(balldest.y, balldest.x));
 	}
-
-      point selected_direction;
-      if (check_vector(the_player->position(), nowDest, leftdirection))
-	{
-	  // select the left vector
-	  selected_direction = leftdirection;     
-	}
       else
 	{
-	  // select the right vector
-	  selected_direction = rightdirection;
+	  point selected_direction;
+	  if (check_vector(the_player->position(), nowDest, leftdirection))
+	    {
+	      // select the left vector
+	      selected_direction = leftdirection;     
+	    }
+	  else
+	    {
+	      // select the right vector
+	      selected_direction = rightdirection;
+	    }
+	  
+	  if (undiverted)
+	    {
+	      point balldest = the_ball->position() - the_player->position();
+	      the_player->move(nowDest, atan2(balldest.y, balldest.x));
+	    }
+	  else
+	    {
+	      // maximum warp
+	      point balldest = the_ball->position() - the_player->position();
+	      the_player->move(the_player->position() + selected_direction*1.0, atan2(balldest.y, balldest.x));
+	    }
 	}
-
-      if (undiverted)
-	{
-	  point balldest = the_ball->position() - the_player->position();
-	  the_player->move(nowDest, atan2(balldest.y, balldest.x));
-	}
-      else
-	{
-	  // maximum warp
-	  point balldest = the_ball->position() - the_player->position();
-	  the_player->move(the_player->position() + selected_direction*1.0, atan2(balldest.y, balldest.x));
-	}
-
     }
 }
 
@@ -196,13 +197,17 @@ bool testnavigator::check_vector(point start, point dest, point direction)
 	  point rp = rob->position() - start;
 	  //rp/= rp.len();
 	  double len = rp.dot(direction);
-	  
-	  double d = sqrt(rp.dot(rp) - len*len);
-	  
-	  if (len < lookahead && d < 2*robot::MAX_RADIUS)
+
+	  // ignore robots behind us
+	  if (len > 0)
 	    {
-	      //std::cout << "Checked FALSE" << std::endl;
-	      return false;
+	      double d = sqrt(rp.dot(rp) - len*len);
+	  
+	      if (len < lookahead && d < 2*robot::MAX_RADIUS)
+		{
+		  //std::cout << "Checked FALSE" << std::endl;
+		  return false;
+		}
 	    }
 	}
     }
