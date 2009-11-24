@@ -12,7 +12,7 @@ void move_between::set_points(const point& p1, const point& p2) {
 point move_between::calculate_position() {
 
 	// TODO: Right now, we move towards the mid point, but anywhere in between is fine
-	return 2 * (the_point1 + the_point2);
+	return (the_point1 + the_point2) / 2;
 }
 
 void move_between::tick() {

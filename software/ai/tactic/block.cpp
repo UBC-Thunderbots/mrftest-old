@@ -8,7 +8,7 @@ void block::set_target(player::ptr target) {
 }		
 
 void block::tick() {
-	const double GUARD_DIST = 10;
+	const double GUARD_DIST = 20;
 	point p = the_player->position() - the_target->position();
 
 	if (p.cross(the_target->est_velocity()) == 0) {		

@@ -1,5 +1,5 @@
-#ifndef AI_TACTIC_BLOCK_H
-#define AI_TACTIC_BLOCK_H
+#ifndef AI_TACTIC_TURN_H
+#define AI_TACTIC_TURN_H
 
 #include "ai/tactic.h"
 

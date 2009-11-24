@@ -4,7 +4,8 @@
 #include "ai/tactic/pass.h"
 #include "ai/tactic/move.h"
 #include "ai/tactic/block.h"
-
+#include "ai/tactic/move_between_robots.h"
+#include <iostream>
 
 namespace {
 	class test_strategy : public strategy {
@@ -27,7 +28,7 @@ namespace {
 
 	void test_strategy::tick() {
 
-		if (the_team->size() < 3)	return;
+		if (the_team->size() < 5)	return;
 
 		const point LEFT(-1.5, 0);
 		const point RIGHT(1.5, 0);
@@ -38,10 +39,10 @@ namespace {
 //		std::cout << receiver->position() << std::endl;
 
 		// player 1 tries to block player 0
-//		player::ptr blocker = the_team->get_player(1);
-//		block::ptr block_tactic(new block(the_ball, the_field, the_team, blocker));
-//		block_tactic->set_target(receiver);
-//		block_tactic->tick();
+		player::ptr blocker = the_team->get_player(1);
+		block::ptr block_tactic(new block(the_ball, the_field, the_team, blocker));
+		block_tactic->set_target(receiver);
+		block_tactic->tick();
 
 		if (left) {
 			move_tactic->set_position(LEFT);			
@@ -58,8 +59,28 @@ namespace {
 		}
 		move_tactic->tick();
 		
+		// player #2 stands at a particular spot
+		const point STAND(-1,1);
+		player::ptr passer = the_team->get_player(2);
+//		std::cout << passer->position() << std::endl;
+		if ((passer->position() - STAND).lensq() > 0.05) {
+			move::ptr m_tactic(new move(the_ball, the_field, the_team, passer));
+			m_tactic->set_position(STAND);
+			m_tactic->tick();
+		} else {
+			pass::ptr pass_tactic (new pass(the_ball, the_field, the_team, passer));
+			pass_tactic->set_receiver(receiver);
+			pass_tactic->tick();				
+		}
+
+		// player #3 tries to move between player #0 and player #2
+		player::ptr interceptor = the_team->get_player(3);
+		move_between_robots::ptr move_between_tactic(new move_between_robots(the_ball, the_field, the_team, interceptor));
+		move_between_tactic->set_robots(passer, receiver);
+		move_between_tactic->tick();
+
 		// the rest of the players try to pass to player 0
-		for (unsigned int i = 2; i < the_team->size(); i++)
+		for (unsigned int i = 4; i < the_team->size(); i++)
 		{
 			player::ptr the_player = the_team->get_player(i);
 

@@ -9,7 +9,6 @@ void move::set_position(const point& p)
 	target_position = p;
 }
 
-
 void move::tick()
 {
 //	std::cout << target_position << std::endl;
