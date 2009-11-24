@@ -20,7 +20,7 @@
 #include "ai/role/execute_penalty_friendly.h"
 
 #include <iostream>
-//created by Kenneth Lui, last updated 18 Nov 2009.
+//created by Kenneth Lui, last updated 23 Nov 2009.
 //This strategy was created to test the simulator.
 
 namespace {
@@ -64,23 +64,15 @@ namespace {
     static const int DEFAULT_OFF_TO_DEF_DIFF = 1;	// i.e. one more offender than defender
     std::vector<tactic::ptr> tactics;
     std::vector<role::ptr> roles;
-    robot::ptr goalie_robot;
+    player::ptr goalie_player;
   };
   
   simu_test_strategy::simu_test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src) {
     // Initialize variables here (e.g. create the roles).
     turn_since_last_update = 0;
     possession_confidence = 1.0;
-    goalie_robot = robot::ptr(NULL);         // not sure if this is good
-    //		std::cout <<( goalie_robot==robot::ptr(NULL)) << std::endl;
+    goalie_player = player::ptr(NULL);         // not sure if this is good
     reset_all();
-    /* 		std::cout << "Start Constructor" << std::endl;
-		for (unsigned int i = 0; i < the_team->size(); i++)
-		{
-		//	std::cout << i << std::endl;
-		tactics.push_back(tactic::ptr(new chase(the_ball, the_field, the_team, the_team->get_player(i))));
-		}
- 		std::cout << "Done Constructor" << std::endl;*/
     return;
     // problems: how do we keep track of roles?
   }
@@ -94,7 +86,9 @@ namespace {
     switch (pt_source.current_playtype())
       {
       case playtype::halt: break;
-      case playtype::stop: break;
+      case playtype::stop: 
+	in_play_assignment();//testing only
+	break;
       case playtype::play:    in_play_assignment();
 	for (unsigned int i = 0; i < tactics.size();i++)
 	  {
@@ -162,150 +156,189 @@ namespace {
   
   void simu_test_strategy::in_play_assignment(void)
   {
+    if (the_team->size()<=1)
+      {
+	return;
+      }
     //keep for future
     //int our_score = the_team->score();
     //int their_score = the_team->other()->score();		//get our team's robots' position and distance to the ball.
     std::vector<robot_details*> our_details_front;
     std::vector<robot_details*> our_details_back;		
     unsigned int our_team_size = the_team->size();
-		double our_distance_to_ball[our_team_size];
-		//		std::cout << our_team_size << std::endl;
-		for (unsigned int i = 0; i < our_team_size; i++)
-		  {
-		    robot_details* temp_details = new robot_details();		// memory leak!!
-		    temp_details->dist_to_ball = (the_ball->position()-the_team->get_robot(i)->position()).len();
-		    our_distance_to_ball[i] = temp_details->dist_to_ball;
-		    temp_details->index = i;
-		    temp_details->x = the_team->get_robot(i)->position().x;
-		    temp_details->y = the_team->get_robot(i)->position().y;
-		    if (temp_details->x < the_ball->position().x)
-		      {	our_details_back.push_back(temp_details);		}	// between our goal and the ball
-		    else
-		      {	our_details_front.push_back(temp_details);		}	// between their goal and the ball
-		  }
-		std::sort(our_distance_to_ball, our_distance_to_ball + our_team_size);
-		std::sort(our_details_front.begin(), our_details_front.end() , d_cmp);
-		std::sort(our_details_back.begin(), our_details_back.end() , d_cmp);
-
-		unsigned int their_team_size = the_team->other()->size();
-		double their_distance_to_ball[their_team_size];
-		for (unsigned int i = 0; i< their_team_size; i++)
-		  {
-		    point difference_vector = the_ball->position()-the_team->other()->get_robot(i)->position();
-		    their_distance_to_ball[i]= difference_vector.len();
-		  }
-		std::sort(their_distance_to_ball, their_distance_to_ball + their_team_size);
-		
-		// effective_team_size is original team size - 1 (goalie)
-		int our_effective_team_size = 0;
-      	        our_effective_team_size = (our_team_size & 0x7fffffff);		 
-		if (our_effective_team_size>0)
-		  { our_effective_team_size--;
-		  }
-		int their_effective_team_size = 0;
-		their_effective_team_size = (their_team_size & 0x7fffffff);
-		if (their_effective_team_size>0)
-		  { their_effective_team_size--;
-		  }
-		//		std::cout << our_effective_team_size << std::endl;
-		int prefer_off_to_def_diff = DEFAULT_OFF_TO_DEF_DIFF + our_effective_team_size - their_effective_team_size;
-		if (prefer_off_to_def_diff>our_effective_team_size)
-		  {    prefer_off_to_def_diff = our_effective_team_size;
-		  }
-		if (prefer_off_to_def_diff< -1 * our_effective_team_size)
-		  {    prefer_off_to_def_diff = -1 * our_effective_team_size;
-		  }
-		int prefer_defender_number = std::min((our_effective_team_size - prefer_off_to_def_diff)/2, our_effective_team_size);
-		int prefer_offender_number = our_effective_team_size - prefer_defender_number;
-		//		std::cout << "prefer_def_num" << prefer_defender_number << " prefer_off_num" << prefer_offender_number << std::endl;
-		if (prefer_offender_number == 0 )
-		  {
-		    //assign all robots to defend
-		  }
-		else
-		  {
-		    //make sure the nearest robot is always an offender, 
-		    //then assigns the next (prefer_offender_number - 1) robots in the front side to the offender role,
-		    //if there is not enough in the front side, pick from back side.
-			
-		    //check if the nearest robot is in the front side
-		    bool nearest_robot_is_in_front;
-		    if (our_details_front.size() == 0)
-		      {	nearest_robot_is_in_front = false;
-		      } else
-		      {	if (our_details_back.size() == 0)
-			  {	nearest_robot_is_in_front = true;
-	 			}else
-			  {	nearest_robot_is_in_front = our_details_front[0]->dist_to_ball < our_details_back[0]->dist_to_ball;
-			  }
-		      }
-		    if (nearest_robot_is_in_front)
-		      {	//put our_details_front[0]->index to the offender side
-		      }
-		    else
-			{	//put our_details_back[0]->index to the offender side
-			}
-		    int assigned_offender_number = 1;
-		    for (unsigned int i = nearest_robot_is_in_front; i < our_details_front.size(); i++)
-		      {
-			if (assigned_offender_number < prefer_offender_number)	
-			  {	//put our_details_front[i]->index to the offender side	
-			      assigned_offender_number ++ ;	
-			  }
-			else
-			  {	//put our_details_front[i]->index to the defender side	
-			  }
-		      }
-		    for (unsigned int i = 1-nearest_robot_is_in_front; i < our_details_back.size(); i++)
-		      {
-			if (assigned_offender_number < prefer_offender_number)	
-			  {	//put our_details_back[i].index to the offender side	
-			    assigned_offender_number ++ ;	
-			  }
-			else
-			  {	//put our_details_back[i].index to the defender side	
-			  }
-		      }
-		  }	//end of (prefer_offender_number != 0 )
-		
-		//			for (int i = 0; (assigned_offender_number < prefer_offender_number) && (nearest_robot_is_in_front+i < our_details_front.size()); i++)
-		//			for (int i = 0; assigned_offender_number < prefer_offender_number; i++)
-		
-		
-		//use later
-		/*		if ( our_distance_to_ball[0] / possession_confidence < their_distance_to_ball[0] )  
-				{
-				}
-				else
-				{
-				}
-		*/
-		//can we get the goals' position?
-		
-		
-		// For all non-empty role, call update.
-		
-		//============================================back up
-		
-		/*
-		  robot_details our_details[team->size()];
-		for (int i = 0; i< team->size(); i++)
+    double our_distance_to_ball[our_team_size];
+    std::vector<player::ptr> offenders;
+    std::vector<player::ptr> defenders;
+    //		std::cout << our_team_size << std::endl;
+    for (unsigned int i = 0; i < our_team_size; i++)
+      {
+	robot_details* temp_details = new robot_details();		// memory leak!!
+	if (the_team->get_player(i)==goalie_player)
+	  {
+	    continue;
+	  }
+	temp_details->dist_to_ball = (the_ball->position()-the_team->get_player(i)->position()).len();
+	our_distance_to_ball[i] = temp_details->dist_to_ball;
+	temp_details->index = i;
+	temp_details->x = the_team->get_player(i)->position().x;
+	temp_details->y = the_team->get_player(i)->position().y;
+	if (temp_details->x < the_ball->position().x)
+	  {	our_details_back.push_back(temp_details);		}	// between our goal and the ball
+	else
+	  {	our_details_front.push_back(temp_details);		}	// between their goal and the ball
+      }
+    std::sort(our_distance_to_ball, our_distance_to_ball + our_team_size);
+    std::sort(our_details_front.begin(), our_details_front.end() , d_cmp);
+    std::sort(our_details_back.begin(), our_details_back.end() , d_cmp);
+    
+    unsigned int their_team_size = the_team->other()->size();
+    double their_distance_to_ball[their_team_size];
+    for (unsigned int i = 0; i< their_team_size; i++)
+      {
+	point difference_vector = the_ball->position()-the_team->other()->get_robot(i)->position();
+	their_distance_to_ball[i]= difference_vector.len();
+      }
+    std::sort(their_distance_to_ball, their_distance_to_ball + their_team_size);
+    
+    // effective_team_size is original team size - 1 (goalie)
+    int our_effective_team_size = 0;
+    our_effective_team_size = (our_team_size & 0x7fffffff);		 
+    if (our_effective_team_size>0)
+      { our_effective_team_size--;
+      }
+    int their_effective_team_size = 0;
+    their_effective_team_size = (their_team_size & 0x7fffffff);
+    if (their_effective_team_size>0)
+      { their_effective_team_size--;
+      }
+    //		std::cout << our_effective_team_size << std::endl;
+    int prefer_off_to_def_diff = DEFAULT_OFF_TO_DEF_DIFF + our_effective_team_size - their_effective_team_size;
+    if (prefer_off_to_def_diff>our_effective_team_size)
+      {    prefer_off_to_def_diff = our_effective_team_size;
+      }
+    if (prefer_off_to_def_diff< -1 * our_effective_team_size)
+      {    prefer_off_to_def_diff = -1 * our_effective_team_size;
+      }
+    int prefer_defender_number = std::min((our_effective_team_size - prefer_off_to_def_diff)/2, our_effective_team_size);
+    int prefer_offender_number = our_effective_team_size - prefer_defender_number;
+    //		std::cout << "prefer_def_num" << prefer_defender_number << " prefer_off_num" << prefer_offender_number << std::endl;
+      {
+	//make sure the nearest robot is always an offender, 
+	//then assigns the next (prefer_offender_number - 1) robots in the front side to the offender role,
+	//if there is not enough in the front side, pick from back side.
+	
+	//check if the nearest robot is in the front side
+	bool nearest_robot_is_in_front;
+	if (our_details_front.size() == 0)
+	  {	nearest_robot_is_in_front = false;
+	  } else
+	  {	if (our_details_back.size() == 0)
+	      {	nearest_robot_is_in_front = true;
+	      }else
+	      {	nearest_robot_is_in_front = our_details_front[0]->dist_to_ball < our_details_back[0]->dist_to_ball;
+	      }
+	  }
+	if (nearest_robot_is_in_front)
+	  {	//put our_details_front[0]->index to the offender side
+	    offenders.push_back(the_team->get_player(our_details_front[0]->index));
+	  }
+	else
+	  {	//put our_details_back[0]->index to the offender side
+	    offenders.push_back(the_team->get_player(our_details_back[0]->index));
+	  }
+	int assigned_offender_number = 1;
+	for (unsigned int i = nearest_robot_is_in_front; i < our_details_front.size(); i++)
+	  {
+	    if (assigned_offender_number < prefer_offender_number)	
+	      {	//put our_details_front[i]->index to the offender side	
+		offenders.push_back(the_team->get_player(our_details_front[i]->index));
+		assigned_offender_number ++ ;	
+	      }
+	    else
+	      {	//put our_details_front[i]->index to the defender side	
+		defenders.push_back(the_team->get_player(our_details_front[i]->index));
+	      }
+	  }
+	for (unsigned int i = 1-nearest_robot_is_in_front; i < our_details_back.size(); i++)
+	  {
+	    if (assigned_offender_number < prefer_offender_number)	
+	      {	//put our_details_back[i].index to the offender side	
+		offenders.push_back(the_team->get_player(our_details_back[i]->index));
+		assigned_offender_number ++ ;	
+	      }
+	    else
+	      {	//put our_details_back[i].index to the defender side	
+		defenders.push_back(the_team->get_player(our_details_back[i]->index));
+	      }
+	  }
+      }	//end of (prefer_offender_number != 0 )
+    
+    if (turn_since_last_update % 100)
+      {
+	std::cout << "off" << offenders.size() << std::endl;
+      for (int i = 0; i<offenders.size(); i++)
+	{
+	  std::cout << offenders[i]->position().x << " " << offenders[i]->position().y << std::endl;
+	}
+	std::cout << "def" << defenders.size() << std::endl;
+      for (int i = 0; i<defenders.size(); i++)
+	{
+	  std::cout << defenders[i]->position().x << " " << defenders[i]->position().y << std::endl;
+	}
+	std::cout << "ball:" <<  the_ball->position().x << " " << the_ball->position().y << std::endl;
+      }
+    roles.clear();
+    roles.push_back(role::ptr(new offensive(the_ball, the_field, the_team)));
+    roles[0]->set_robots(offenders);
+    roles[0]->tick();
+    roles.push_back(role::ptr(new defensive(the_ball, the_field, the_team)));
+    roles[1]->set_robots(defenders);
+    roles[1]->tick();
+    //			for (int i = 0; (assigned_offender_number < prefer_offender_number) && (nearest_robot_is_in_front+i < our_details_front.size()); i++)
+    //			for (int i = 0; assigned_offender_number < prefer_offender_number; i++)
+    
+    
+    //use later
+    /*		if ( our_distance_to_ball[0] / possession_confidence < their_distance_to_ball[0] )  
 		{
-			point difference_vector = ball->position()-team->get_robot(i)->position();
-			= difference_vector.len();
-			our_details[i].dist_to_ball = our_distance_to_ball[i];
-			our_details[i].index = i;
-			our_details[i].x = get_robot(i)->position().x;
-			our_details[i].y = get_robot(i)->position().y;
 		}
-		std::sort(our_distance_to_ball);
-		std::sort(our_details, our_details + our_details.length, x_cmp);
-		int ball_relative_pos = -1;
-		for (int i = 0; i< team->size(); i++)
+		else
 		{
-			if (
-			}*/
-
+		}
+		*/
+    //can we get the goals' position?
+		
+    
+    // For all non-empty role, call update.
+		
+    //============================================back up
+    
+    /*
+      robot_details our_details[team->size()];
+      for (int i = 0; i< team->size(); i++)
+      {
+      point difference_vector = ball->position()-team->get_robot(i)->position();
+      = difference_vector.len();
+      our_details[i].dist_to_ball = our_distance_to_ball[i];
+      our_details[i].index = i;
+      our_details[i].x = get_robot(i)->position().x;
+      our_details[i].y = get_robot(i)->position().y;
+      }
+      std::sort(our_distance_to_ball);
+      std::sort(our_details, our_details + our_details.length, x_cmp);
+      int ball_relative_pos = -1;
+      for (int i = 0; i< team->size(); i++)
+      {
+      if (
+      }*/
+    for (int i=0;i<our_details_front.size();i++)
+      {
+	free(our_details_front[i]);
+      }
+    for (int i=0;i<our_details_back.size();i++)
+      {
+	free(our_details_back[i]);
+      }
   }
 
   void simu_test_strategy::exclude_goalie(std::vector<player::ptr>& players_vector)
@@ -315,7 +348,7 @@ namespace {
     int i = 0;
     while (itr !=  players_vector.end())
       {
-	if (goalie_robot == the_team->get_robot(i))
+	if (*itr==goalie_player)
 	  {
 	    players_vector.erase(itr);    
 	    //	    std::cout << "exclude_goalie!" << std::endl;
@@ -337,7 +370,7 @@ namespace {
     std::vector<player::ptr> goalie_only;
     for (unsigned int i = 0; i < the_team->size(); i++)
       {
-	if (goalie_robot == the_team->get_robot(i))
+	if (goalie_player == the_team->get_player(i))
 	  {
 	    goalie_only.push_back(the_team->get_player(i));    
 	  }
@@ -355,7 +388,7 @@ namespace {
 	tactics.clear();
 	for (unsigned int i = 0; i < the_team->size(); i++)
 	  {
-	    if (goalie_robot != the_team->get_robot(i))
+	    if (goalie_player != the_team->get_player(i))
 	      {
 		tactics.push_back(tactic::ptr(new chase(the_ball, the_field, the_team, the_team->get_player(i))));
 	      }
@@ -468,9 +501,9 @@ namespace {
 
 	void simu_test_strategy::robot_added(void) {
 	  std::cout << "<<<<<<<<<ROBOT ADDED>>>>" << std::endl;	 
-	  if ((the_team->size()==1) || (goalie_robot==robot::ptr(NULL)) )
+	  if ((the_team->size()==1) || (goalie_player==player::ptr(NULL)) )
 	    {
-	      goalie_robot = the_team->get_robot(0);
+	      goalie_player = the_team->get_player(0);
 	      std::cout << "new goalie robot assigned" << std::endl;	      
 	    }
 	  reset_all(); 
@@ -478,17 +511,17 @@ namespace {
 
 	void simu_test_strategy::robot_removed(unsigned int index, player::ptr r) {	  
 	  std::cout << "<<<<<<<<<ROBOT Removed>>>>" << std::endl;
-	  if (robot::ptr::cast_static(r)==goalie_robot)
+	  if (r==goalie_player)
 	    {
-	      std::cout << "goalie_robot removed" << std::endl;
+	      std::cout << "goalie_player removed" << std::endl;
 	      if (the_team->size()>=1)
 		{
-		  goalie_robot = the_team->get_robot(0);
-		  std::cout << goalie_robot << std::endl;
-		  std::cout << "new goalie robot assigned" << std::endl;	      
+		  goalie_player = the_team->get_player(0);
+		  std::cout << goalie_player << std::endl;
+		  std::cout << "new goalie player assigned" << std::endl;	      
 		}else
 		{
-		  goalie_robot = robot::ptr(NULL);
+		  goalie_player = player::ptr(NULL);
 		}
 	    }
 	  reset_all();
