@@ -49,7 +49,7 @@ namespace {
     strategy_factory &get_factory();
     Gtk::Widget *get_ui_controls();
     void robot_added(void);
-    void robot_removed(unsigned int index, robot::ptr r);
+    void robot_removed(unsigned int index, player::ptr r);
     
   private:
     //private functions
@@ -476,9 +476,9 @@ namespace {
 	  reset_all(); 
 	}
 
-	void simu_test_strategy::robot_removed(unsigned int index, robot::ptr r) {	  
+	void simu_test_strategy::robot_removed(unsigned int index, player::ptr r) {	  
 	  std::cout << "<<<<<<<<<ROBOT Removed>>>>" << std::endl;
-	  if (r==goalie_robot)
+	  if (robot::ptr::cast_static(r)==goalie_robot)
 	    {
 	      std::cout << "goalie_robot removed" << std::endl;
 	      if (the_team->size()>=1)

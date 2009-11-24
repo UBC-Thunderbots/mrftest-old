@@ -65,7 +65,7 @@ class strategy : public byref, public sigc::trackable {
 		// the strategy will reallocate robots to roles such that the removed
 		// robot is no longer assigned to any role.
 		//
-		virtual void robot_removed(unsigned int index, robot::ptr r) = 0;
+		virtual void robot_removed(unsigned int index, player::ptr r) = 0;
 
 		//
 		// Sets the current play type. It is expected that the strategy will

@@ -29,7 +29,7 @@ namespace {
 			strategy_factory &get_factory();
 			Gtk::Widget *get_ui_controls();
 			void robot_added(void);
-			void robot_removed(unsigned int index, robot::ptr r);
+			void robot_removed(unsigned int index, player::ptr r);
 
 		private:
 			playtype::playtype current_playtype;
@@ -225,7 +225,7 @@ namespace {
 	void kenneth_simple_strategy::robot_added(void) {
 	}
 
-	void kenneth_simple_strategy::robot_removed(unsigned int index, robot::ptr r) {
+	void kenneth_simple_strategy::robot_removed(unsigned int index, player::ptr r) {
 	}
 
 	class kenneth_simple_strategy_factory : public strategy_factory {

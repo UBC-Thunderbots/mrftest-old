@@ -81,6 +81,27 @@ class controlled_team : public team {
 		robot::ptr get_robot(std::size_t idx) {
 			return get_player(idx);
 		}
+
+		//
+		// A signal emitted when a player is added to the team. The new player was
+		// added at the end of the team.
+		//
+		sigc::signal<void> &signal_player_added() {
+			return sig_player_added;
+		}
+
+		//
+		// A signal emitted when a player is removed from the team. The first
+		// parameter is the index number of the removed player. The second is the
+		// player itself.
+		//
+		sigc::signal<void, unsigned int, player::ptr> &signal_player_removed() {
+			return sig_player_removed;
+		}
+
+	private:
+		sigc::signal<void> sig_player_added;
+		sigc::signal<void, unsigned int, player::ptr> sig_player_removed;
 };
 
 #endif

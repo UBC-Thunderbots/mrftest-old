@@ -11,7 +11,7 @@ namespace {
 			strategy_factory &get_factory();
 			Gtk::Widget *get_ui_controls();
 			void robot_added(void);
-			void robot_removed(unsigned int index, robot::ptr r);
+			void robot_removed(unsigned int index, player::ptr r);
 		private:
 	};
 
@@ -36,7 +36,7 @@ namespace {
 	void chase_strategy::robot_added(void){
 	}
 
-	void chase_strategy::robot_removed(unsigned int index, robot::ptr r){
+	void chase_strategy::robot_removed(unsigned int index, player::ptr r){
 	}
 
 	class chase_strategy_factory : public strategy_factory {

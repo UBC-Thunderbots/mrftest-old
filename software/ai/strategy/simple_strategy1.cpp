@@ -18,7 +18,7 @@ namespace {
 			strategy_factory &get_factory();
 			Gtk::Widget *get_ui_controls();
 			void robot_added(void);
-			void robot_removed(unsigned int index, robot::ptr r);
+			void robot_removed(unsigned int index, player::ptr r);
 
 		private:
 			
@@ -101,8 +101,8 @@ namespace {
 		tick();
 	}
 
-	void simple_strategy1::robot_removed(unsigned int index, robot::ptr r){
-		assignments_.erase(r);
+	void simple_strategy1::robot_removed(unsigned int index, player::ptr r){
+		assignments_.erase(robot::ptr::cast_static(r));
 		tick();
 	}
 

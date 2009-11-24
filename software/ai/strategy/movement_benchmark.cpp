@@ -18,7 +18,7 @@ namespace {
 			strategy_factory &get_factory();
 			Gtk::Widget *get_ui_controls();
 			void robot_added(void);
-			void robot_removed(unsigned int index, robot::ptr r);
+			void robot_removed(unsigned int index, player::ptr r);
 		private:
 			std::vector<std::pair<point, double> > tasks;
 			int time_steps;
@@ -77,7 +77,7 @@ namespace {
 	void movement_benchmark::robot_added(void){
 	}
 
-	void movement_benchmark::robot_removed(unsigned int index, robot::ptr r){
+	void movement_benchmark::robot_removed(unsigned int index, player::ptr r){
 	}
 
 	class movement_benchmark_factory : public strategy_factory {

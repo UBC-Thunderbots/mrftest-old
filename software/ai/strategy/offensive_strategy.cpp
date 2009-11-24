@@ -12,7 +12,7 @@ namespace {
 			strategy_factory &get_factory();
 			Gtk::Widget *get_ui_controls();
 			void robot_added(void);
-			void robot_removed(unsigned int index, robot::ptr r);
+			void robot_removed(unsigned int index, player::ptr r);
 
 		private:
 
@@ -91,7 +91,7 @@ namespace {
   void offensive_strategy::robot_added(void){
   }
 
-  void offensive_strategy::robot_removed(unsigned int index, robot::ptr r){
+  void offensive_strategy::robot_removed(unsigned int index, player::ptr r){
   }
 
 	class offensive_strategy_factory : public strategy_factory {

@@ -128,14 +128,16 @@ void simulator_team_data::add_player() {
 
 	// Send notifications.
 	west_view->signal_robot_added().emit();
+	west_view->signal_player_added().emit();
 	east_view->signal_robot_added().emit();
+	east_view->signal_player_added().emit();
 }
 
 void simulator_team_data::remove_player(unsigned int index) {
 	// Grab a reference to the players before clearing the arrays.
 	player_impl::ptr impl = impls[index];
-	robot::ptr west_bot = west_players[index];
-	robot::ptr east_bot = east_players[index];
+	player::ptr west_bot = west_players[index];
+	player::ptr east_bot = east_players[index];
 
 	// Detach the player's robot_controller (breaks circular references).
 	impl->set_controller(robot_controller::ptr());
@@ -151,7 +153,9 @@ void simulator_team_data::remove_player(unsigned int index) {
 
 	// Send notifications.
 	west_view->signal_robot_removed().emit(index, west_bot);
+	west_view->signal_player_removed().emit(index, west_bot);
 	east_view->signal_robot_removed().emit(index, east_bot);
+	east_view->signal_player_removed().emit(index, east_bot);
 
 	// Remove the player from the engine.
 	if (engine)
