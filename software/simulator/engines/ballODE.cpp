@@ -103,6 +103,8 @@ point the_position, the_velocity;
 				
 				dBodySetPosition(body, pos.x, pos.y, t[2]);
 				dBodySetLinearVel(body, 0.0, 0.0, 0.0);
+				dBodySetAngularVel (body, 0.0, 0.0, 0.0);
+
 			}
 
 
