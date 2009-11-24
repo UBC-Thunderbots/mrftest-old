@@ -17,8 +17,8 @@
 				double x_pos = 0.0;
 				double y_pos = 0.0;
 				
-				x_len = 0.1;
-				y_len = 0.1;
+				x_len = 0.18;
+				y_len = 0.18;
 				
 				dBodySetPosition(body, x_pos, y_pos, 0.0006);
 				dBodySetPosition(body2, x_pos, y_pos, 0.0515);
@@ -246,13 +246,13 @@
 					//std::cout<<"angular speed: "<<avel<<std::endl;
 	
 
-					if(avel>2 || avel<-2){
+					if(avel>1 || avel<-1){
 
 					//enorce a max turn speed
 					if(avel>0){
-						avel = 2;
+						avel = 1;
 					}else{
-						avel = -2;
+						avel = -1;
 					}
 
 					}
@@ -306,7 +306,7 @@
 				   			impulse.x, impulse.y,0.0, force);
 				   	dBodyAddForce(dGeomGetBody(ballGeom), force[0], force[1], force[2]);
 				}
-				
+				//std::cout<<"kick strength: "<<strength<<std::endl;
 			}
 
 			void playerODE::chip(double strengthh) {
@@ -333,6 +333,7 @@
 				   			impulse.x, impulse.y,zimpulse, force);
 				   	dBodyAddForce(dGeomGetBody(ballGeom), force[0], force[1], force[2]);
 				}
+				//std::cout<<"chip strength: "<<strength<<std::endl;
 			}
 
 			void playerODE::ui_set_position(const point &pos) {
