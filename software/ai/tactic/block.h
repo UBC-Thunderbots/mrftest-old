@@ -9,6 +9,10 @@
 //
 class block : public tactic {
 	public:
+		//
+		// A pointer to a block tactic.
+		//
+		typedef Glib::RefPtr<block> ptr;
 
 		//
 		// Constructs a new block tactic. 

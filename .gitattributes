@@ -67,6 +67,7 @@ software/ai/strategy/movement_benchmark.cpp -text
 software/ai/strategy/offensive_strategy.cpp -text
 software/ai/strategy/simple_strategy1.cpp -text
 software/ai/strategy/simu_test_strategy.cpp -text
+software/ai/strategy/test_strategy.cpp -text
 software/ai/tactic.h -text
 software/ai/tactic/block.cpp -text
 software/ai/tactic/block.h -text
