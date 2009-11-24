@@ -31,12 +31,12 @@ namespace {
     double dist_to_ball;	//distance between the ball and this robot
   };
   
-  bool x_cmp ( robot_details a, robot_details b)		// first ele is the one having smallest x
+  bool x_cmp ( const robot_details &a, const robot_details &b)		// first ele is the one having smallest x
   {
     return a.x < b.x;
   }
   
-  bool d_cmp ( robot_details a, robot_details b)		// first ele is the one having smallest dist to ball
+  bool d_cmp ( const robot_details &a, const robot_details &b)		// first ele is the one having smallest dist to ball
   {
     return a.dist_to_ball < b.dist_to_ball;
   }
