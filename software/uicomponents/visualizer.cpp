@@ -25,6 +25,15 @@ bool visualizer::on_expose_event(GdkEventExpose *) {
 	ctx->line_to(0.0, height);
 	ctx->fill();
 
+	// Draw the outline of the referee area.
+	ctx->set_source_rgb(0.0, 0.0, 0.0);
+	ctx->move_to(xtog(-the_field->total_length() / 2.0), ytog(-the_field->total_width() / 2.0));
+	ctx->line_to(xtog( the_field->total_length() / 2.0), ytog(-the_field->total_width() / 2.0));
+	ctx->line_to(xtog( the_field->total_length() / 2.0), ytog( the_field->total_width() / 2.0));
+	ctx->line_to(xtog(-the_field->total_length() / 2.0), ytog( the_field->total_width() / 2.0));
+	ctx->line_to(xtog(-the_field->total_length() / 2.0), ytog(-the_field->total_width() / 2.0));
+	ctx->stroke();
+
 	// Draw the rectangular outline.
 	ctx->set_source_rgb(1.0, 1.0, 1.0);
 	ctx->move_to(xtog(-the_field->length() / 2.0), ytog(-the_field->width() / 2.0));
@@ -111,8 +120,8 @@ void visualizer::update() {
 void visualizer::on_size_allocate(Gtk::Allocation &alloc) {
 	int width = alloc.get_width();
 	int height = alloc.get_height();
-	double xscale = width / (the_field->length() * 1.2);
-	double yscale = height / (the_field->width() * 1.2);
+	double xscale = width / (the_field->total_length() * 1.01);
+	double yscale = height / (the_field->total_width() * 1.01);
 	scale = std::max(std::min(xscale, yscale), 1e-9);
 	xtranslate = width / 2.0;
 	ytranslate = height / 2.0;
