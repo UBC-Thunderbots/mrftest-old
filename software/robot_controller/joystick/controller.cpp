@@ -97,30 +97,7 @@ namespace {
 
 			~joystick_controller();
 
-			void move(const point &, double, point &linear_velocity, double &angular_velocity) {
-				if (stick) {
-					linear_velocity.x = -stick->axis(AXIS_FB) / 32767.0 * MAX_LINEAR_VELOCITY;
-					linear_velocity.y = -stick->axis(AXIS_LR) / 32767.0 * MAX_LINEAR_VELOCITY;
-					angular_velocity = -stick->axis(AXIS_ROT) / 32767.0 * MAX_ANGULAR_VELOCITY;
-					plr->dribble(stick->axis(AXIS_DRIBBLE) / 32767.0);
-					double chick_power = stick->axis(AXIS_CHICK_POWER);
-					if (stick->button(BTN_KICK) && !prev_chick) {
-						plr->kick(chick_power);
-						prev_chick = true;
-					} else if (stick->button(BTN_CHIP) && !prev_chick) {
-						plr->chip(chick_power);
-						prev_chick = true;
-					} else if (!stick->button(BTN_KICK) && !stick->button(BTN_CHIP)) {
-						prev_chick = false;
-					}
-				} else {
-					linear_velocity.x = 0;
-					linear_velocity.y = 0;
-					angular_velocity = 0;
-					plr->dribble(0);
-					prev_chick = false;
-				}
-			}
+			void move(const point &, double, point &linear_velocity, double &angular_velocity);
 
 			robot_controller_factory &get_factory() const {
 				return factory;
@@ -154,8 +131,11 @@ namespace {
 
 	class joystick_controller_ui : public Gtk::Window {
 		public:
-			joystick_controller_ui() {
-				add(book);
+			joystick_controller_ui() : abs_check("Absolute") {
+				set_title("Joystick Configuration");
+				vbox.pack_start(abs_check, false, false);
+				vbox.pack_start(book, true, true);
+				add(vbox);
 			}
 
 			void add_controller(joystick_controller &ctl, const Glib::ustring &title) {
@@ -169,6 +149,10 @@ namespace {
 					hide_all();
 			}
 
+			bool absolute() {
+				return abs_check.get_active();
+			}
+
 		protected:
 			bool on_delete_event(GdkEventAny *) {
 				Gtk::Main::quit();
@@ -176,14 +160,14 @@ namespace {
 			}
 
 		private:
+			Gtk::VBox vbox;
+			Gtk::CheckButton abs_check;
 			Gtk::Notebook book;
 	};
 
 	joystick_controller_ui &get_ui() {
-		static joystick_controller_ui *ui = 0;
-		if (!ui)
-			ui = new joystick_controller_ui();
-		return *ui;
+		static joystick_controller_ui ui;
+		return ui;
 	}
 
 	joystick_controller::joystick_controller(player_impl::ptr plr, bool yellow, unsigned int index) : plr(plr), prev_chick(false) {
@@ -202,6 +186,43 @@ namespace {
 
 	joystick_controller::~joystick_controller() {
 		get_ui().remove_controller(*this);
+	}
+
+	void joystick_controller::move(const point &, double, point &linear_velocity, double &angular_velocity) {
+		if (stick) {
+			if (get_ui().absolute()) {
+				// World coordinates.
+				// Positive world X is east.
+				// Positive world Y is north.
+				linear_velocity.x =  stick->axis(AXIS_LR) / 32767.0 * MAX_LINEAR_VELOCITY;
+				linear_velocity.y = -stick->axis(AXIS_FB) / 32767.0 * MAX_LINEAR_VELOCITY;
+				linear_velocity.rotate(-plr->orientation());
+			} else {
+				// Robot coordinates:
+				// Positive robot X is forward.
+				// Positive robot Y is left.
+				linear_velocity.x = -stick->axis(AXIS_FB) / 32767.0 * MAX_LINEAR_VELOCITY;
+				linear_velocity.y = -stick->axis(AXIS_LR) / 32767.0 * MAX_LINEAR_VELOCITY;
+			}
+			angular_velocity = -stick->axis(AXIS_ROT) / 32767.0 * MAX_ANGULAR_VELOCITY;
+			plr->dribble(stick->axis(AXIS_DRIBBLE) / 32767.0);
+			double chick_power = stick->axis(AXIS_CHICK_POWER);
+			if (stick->button(BTN_KICK) && !prev_chick) {
+				plr->kick(chick_power);
+				prev_chick = true;
+			} else if (stick->button(BTN_CHIP) && !prev_chick) {
+				plr->chip(chick_power);
+				prev_chick = true;
+			} else if (!stick->button(BTN_KICK) && !stick->button(BTN_CHIP)) {
+				prev_chick = false;
+			}
+		} else {
+			linear_velocity.x = 0;
+			linear_velocity.y = 0;
+			angular_velocity = 0;
+			plr->dribble(0);
+			prev_chick = false;
+		}
 	}
 }
 
