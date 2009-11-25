@@ -105,10 +105,19 @@ namespace {
 			}
 
 			void move_impl(const point &vel, double avel) {
-				target_velocity = vel;
-				target_velocity = target_velocity/10.0;
-				target_velocity = target_velocity.rotate(the_orientation);
-				avelocity = avel;
+				if (vel.x == vel.x && vel.y == vel.y) {
+					target_velocity = vel;
+					target_velocity = target_velocity / 10.0;
+					target_velocity = target_velocity.rotate(the_orientation);
+				} else {
+					target_velocity.x = target_velocity.y = 0.0;
+				}
+
+				if (avel == avel) {
+					avelocity = avel;
+				} else {
+					avelocity = 0.0;
+				}
 			}
 
 			void dribble(double) {
