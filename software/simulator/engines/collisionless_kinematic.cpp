@@ -33,10 +33,6 @@ namespace {
 			ck_ball() : the_position(0.0, 0.0), the_velocity(0.0, 0.0) {
 			}
 
-			void kick(const point &direction) {
-				the_velocity += direction;
-			}
-
 			void tick() {
 				the_position += velocity() / static_cast<double>(TIMESTEPS_PER_SECOND);
 				const point &velocity_diff = acceleration() / static_cast<double>(TIMESTEPS_PER_SECOND);
