@@ -10,10 +10,12 @@
 class simulator_field : public field {
 	public:
 		double length()               const { return 6.05; }
+		double total_length()         const { return 7.40; }
 		double width()                const { return 4.05; }
-		double goal_width()           const { return 0.7;  }
-		double centre_circle_radius() const { return 0.5;  }
-		double defense_area_radius()  const { return 0.5;  }
+		double total_width()          const { return 5.40; }
+		double goal_width()           const { return 0.70; }
+		double centre_circle_radius() const { return 0.50; }
+		double defense_area_radius()  const { return 0.50; }
 		double defense_area_stretch() const { return 0.35; }
 };
 

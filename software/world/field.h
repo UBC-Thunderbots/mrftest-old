@@ -21,10 +21,20 @@ class field : public byref {
 		virtual double length() const = 0;
 
 		//
+		// The length of the field, including the boundary and referee area.
+		//
+		virtual double total_length() const = 0;
+
+		//
 		// The width of the field, from sideline to sideline, in the Y
 		// direction.
 		//
 		virtual double width() const = 0;
+
+		//
+		// The width of the field, including the boundary and referee area.
+		//
+		virtual double total_width() const = 0;
 
 		//
 		// The width of the goal, symmetric above and below the centreline.
