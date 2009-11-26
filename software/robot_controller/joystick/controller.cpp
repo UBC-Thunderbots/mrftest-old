@@ -205,8 +205,8 @@ namespace {
 				linear_velocity.y = -stick->axis(AXIS_LR) / 32767.0 * MAX_LINEAR_VELOCITY;
 			}
 			angular_velocity = -stick->axis(AXIS_ROT) / 32767.0 * MAX_ANGULAR_VELOCITY;
-			plr->dribble(stick->axis(AXIS_DRIBBLE) / 32767.0);
-			double chick_power = stick->axis(AXIS_CHICK_POWER);
+			plr->dribble((stick->axis(AXIS_DRIBBLE) + 32767) / 65535.0);
+			double chick_power = (stick->axis(AXIS_CHICK_POWER) + 32767) / 65535.0;
 			if (stick->button(BTN_KICK) && !prev_chick) {
 				plr->kick(chick_power);
 				prev_chick = true;
