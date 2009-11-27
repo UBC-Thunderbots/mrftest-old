@@ -733,6 +733,7 @@ rcif_handle_submit_irp:
 	; Fill in the IRP.
 	movf xbee_in_commanddata + 0, W
 	andlw 0x0F
+	iorlw IRP_STATUS_PENDING << 4
 	movwf POSTINC0
 	movff xbee_in_commanddata + 1, POSTINC0
 	movff xbee_in_commanddata + 2, POSTINC0
