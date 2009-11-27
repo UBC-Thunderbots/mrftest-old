@@ -196,7 +196,7 @@ namespace {
 				// Positive world Y is north.
 				linear_velocity.x =  stick->axis(AXIS_LR) / 32767.0 * MAX_LINEAR_VELOCITY;
 				linear_velocity.y = -stick->axis(AXIS_FB) / 32767.0 * MAX_LINEAR_VELOCITY;
-				linear_velocity.rotate(-plr->orientation());
+				linear_velocity = linear_velocity.rotate(-plr->orientation());
 			} else {
 				// Robot coordinates:
 				// Positive robot X is forward.
