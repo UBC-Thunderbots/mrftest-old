@@ -179,7 +179,7 @@ void upload::irps_read(const void *response) {
 	uint8_t toclear = 0;
 
 	for (unsigned int i = 0; i < 4; i++) {
-		switch (statii[i]) {
+		switch (statii[i] >> 4) {
 			case IRP_STATUS_EMPTY:
 				irpmask &= ~(1 << i);
 				break;
