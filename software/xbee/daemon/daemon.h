@@ -21,7 +21,7 @@ namespace xbeedaemon {
 	//   If the lock file could not be locked, meaning a daemon is already
 	//   running.
 	//
-	bool launch(file_descriptor &sock);
+	bool launch(file_descriptor &sock) __attribute__((warn_unused_result));
 };
 
 #endif

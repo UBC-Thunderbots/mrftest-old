@@ -36,14 +36,14 @@ class visualizer : public Gtk::DrawingArea {
 		draggable::ptr dragging;
 
 		void update();
-		double xtog(double x) { return  x * scale + xtranslate; }
-		double ytog(double y) { return -y * scale + ytranslate; }
-		double atog(double r) { return -r; }
-		double dtog(double d) { return d * scale; }
-		double xtow(double x) { return  (x - xtranslate) / scale; }
-		double ytow(double y) { return -(y - ytranslate) / scale; }
-		double atow(double r) { return -r; }
-		double dtow(double d) { return d / scale; }
+		double xtog(double x) __attribute__((warn_unused_result)) { return  x * scale + xtranslate; }
+		double ytog(double y) __attribute__((warn_unused_result)) { return -y * scale + ytranslate; }
+		double atog(double r) __attribute__((warn_unused_result)) { return -r; }
+		double dtog(double d) __attribute__((warn_unused_result)) { return d * scale; }
+		double xtow(double x) __attribute__((warn_unused_result)) { return  (x - xtranslate) / scale; }
+		double ytow(double y) __attribute__((warn_unused_result)) { return -(y - ytranslate) / scale; }
+		double atow(double r) __attribute__((warn_unused_result)) { return -r; }
+		double dtow(double d) __attribute__((warn_unused_result)) { return d / scale; }
 };
 
 #endif

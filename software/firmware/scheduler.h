@@ -38,12 +38,12 @@ class upload_scheduler : public noncopyable {
 		//
 		// Gets the next IRP.
 		//
-		upload_irp next();
+		upload_irp next() __attribute__((warn_unused_result));
 
 		//
 		// Checks a set of 16 CRCs.
 		//
-		bool check_crcs(uint16_t first_page, const uint16_t *crcs);
+		bool check_crcs(uint16_t first_page, const uint16_t *crcs) __attribute__((warn_unused_result));
 
 	private:
 		std::vector<std::vector<uint8_t> > data;

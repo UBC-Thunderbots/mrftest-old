@@ -15,7 +15,7 @@ namespace xbeeutil {
 	//
 	// Converts a bot address from an array of bytes to a uint64_t.
 	//
-	uint64_t address_from_bytes(const uint8_t *src);
+	uint64_t address_from_bytes(const uint8_t *src) __attribute__((warn_unused_result));
 }
 
 #endif

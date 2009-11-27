@@ -19,12 +19,12 @@ class robot_impl : public predictable, public draggable {
 		//
 		// The position of the robot at the last camera frame.
 		//
-		virtual point position() const = 0;
+		virtual point position() const __attribute__((warn_unused_result)) = 0;
 
 		//
 		// The orientation of the robot in radians at the last camera frame.
 		//
-		virtual double orientation() const = 0;
+		virtual double orientation() const __attribute__((warn_unused_result)) = 0;
 };
 
 #endif

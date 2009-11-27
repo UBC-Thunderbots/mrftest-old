@@ -56,7 +56,7 @@ class player_impl : public robot_impl {
 		//
 		// Whether or not this robot has possession of the ball.
 		//
-		virtual bool has_ball() const = 0;
+		virtual bool has_ball() const __attribute__((warn_unused_result)) = 0;
 
 	protected:
 		//

@@ -20,7 +20,7 @@ class ball_impl : public predictable, public draggable {
 		//
 		// The position of the ball at the last camera frame.
 		//
-		virtual point position() const = 0;
+		virtual point position() const __attribute__((warn_unused_result)) = 0;
 
 		//
 		// Returns a trivial implementation of ball_impl that always leaves the

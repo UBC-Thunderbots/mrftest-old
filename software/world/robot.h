@@ -18,21 +18,21 @@ class robot : public draggable {
 		//
 		// The position of the robot at the last camera frame.
 		//
-		point position() const {
+		point position() const __attribute__((warn_unused_result)) {
 			return impl->position() * (flip ? -1.0 : 1.0);
 		}
 
 		//
 		// The estimated velocity of the robot at the last camera frame.
 		//
-		point est_velocity() const {
+		point est_velocity() const __attribute__((warn_unused_result)) {
 			return impl->est_velocity() * (flip ? -1.0 : 1.0);
 		}
 
 		//
 		// The orientation of the robot in radians at the last camera frame.
 		//
-		double orientation() const {
+		double orientation() const __attribute__((warn_unused_result)) {
 			return angle_mod(impl->orientation() + (flip ? PI : 0.0));
 		}
 

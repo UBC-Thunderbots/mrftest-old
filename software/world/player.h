@@ -56,7 +56,7 @@ class player : public robot {
 		//
 		// Whether or not this robot has possession of the ball.
 		//
-		bool has_ball() const {
+		bool has_ball() const __attribute__((warn_unused_result)) {
 			return impl->has_ball();
 		}
 

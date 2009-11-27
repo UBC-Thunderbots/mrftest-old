@@ -17,7 +17,7 @@ class predictable {
 		//
 		// Gets the predicted velocity.
 		//
-		point est_velocity() const;
+		point est_velocity() const __attribute__((warn_unused_result));
 
 		//
 		// Pushes a new sample of position into the prediction engine.
