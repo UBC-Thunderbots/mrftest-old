@@ -1,6 +1,7 @@
 #include "simulator/engine.h"
 #include "simulator/engines/ballODE.h"
 #include "simulator/engines/playerODE.h"
+#include "simulator/field.h"
 #include <iostream>
 
 #define MU 0.02		// the global mu to use
@@ -45,7 +46,17 @@ namespace {
 			dWorldID eworld;
 			dSpaceID space;
 			dGeomID ground;
+			dGeomID wall[4];
+			//dBodyID wallbody[4];
 			dJointGroupID contactgroup;
+			//dMass mass[4];
+			
+			bool isWall(dGeomID geom){
+				for(int i=0; i<4; i++){
+					if(geom == wall[i])return true;
+				}
+				return false;
+			}
 
 			sim_engine(){
 				dInitODE();
@@ -53,6 +64,21 @@ namespace {
 				dWorldSetGravity (eworld,0,0.0,GRAVITY);
 				space = dSimpleSpaceCreate(0);
   				ground = dCreatePlane (space,0,0,1,0.1);
+  				const field::ptr fld(new simulator_field);
+  				
+  				double wall_height = 20.5;//1/2 meter
+  				double wall_thickness = 0.5;//
+
+  				wall[0] = dCreateBox (space, fld->total_length() + 1.0, wall_thickness, wall_height);
+				wall[1] = dCreateBox (space, fld->total_length() + 1.0, wall_thickness, wall_height);  				
+				wall[2] = dCreateBox (space, wall_thickness, fld->total_width() + 1.0, wall_height);
+				wall[3] = dCreateBox (space, wall_thickness, fld->total_width() + 1.0, wall_height);
+
+  				dGeomSetPosition (wall[0],  0,  (fld->total_width()/2 + wall_thickness/2),  (wall_height/2) -0.1);
+  				dGeomSetPosition (wall[1],  0, - (fld->total_width()/2 + wall_thickness/2),  (wall_height/2) -0.1);
+  				dGeomSetPosition (wall[2],  (fld->total_length()/2 + wall_thickness/2), 0,  (wall_height/2) -0.1);
+  				dGeomSetPosition (wall[3], - (fld->total_length()/2 + wall_thickness/2), 0,  (wall_height/2) -0.1);
+
     				dWorldSetContactSurfaceLayer(eworld, 0.005);
 				contactgroup = dJointGroupCreate (0);
 
@@ -152,6 +178,8 @@ namespace {
 				if ((g1 ^ g2)){
 					frict = MU*6;
 				}
+		
+			
 				  dBodyID b1 = dGeomGetBody(o1);
 				  dBodyID b2 = dGeomGetBody(o2);
 
@@ -191,7 +219,28 @@ namespace {
 			}
 			
 			//
-			//if ground or ball isn't invloved, we assume a robot robot collision
+			//if a shape interescts with the wall set the contact parameters
+			//
+			void handleWallCollision (dGeomID o1, dGeomID o2){
+				int i=0;
+				  dBodyID b1 = dGeomGetBody(o1);
+				  dBodyID b2 = dGeomGetBody(o2);
+				  dContact contact[3];		// up to 3 contacts per box
+				  for (i=0; i<3; i++) {
+				    contact[i].surface.mode = dContactBounce| dContactApprox1;
+				    contact[i].surface.mu = 2.0;
+				    contact[i].surface.bounce = 1;
+				  }
+				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
+				    for (i=0; i<numc; i++) {
+				      dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
+				      dJointAttach (c,b1,b2);
+				    }
+				  }	
+			}
+			
+			//
+			//if ground or ball or wall isn't invloved, we assume a robot robot collision
 			//
 			void handleRobotRobotCollision (dGeomID o1, dGeomID o2){
 				int i=0;
@@ -247,9 +296,18 @@ namespace {
 					int ballCollision;
 					g1 = (o1 == the_ball->ballGeom);
 					g2 = (o2 == the_ball->ballGeom);
-					ballCollision = (g1 ^ g2);			
+					ballCollision = (g1 ^ g2);
+					
+					 bool wall1 = 	 isWall(o1);
+					 bool wall2 = 	 isWall(o2);	
+					 
 					if (ballCollision){
 						handleBallCollision(o1, o2);
+					}else if(wall1 && wall2){
+					//do nothing
+					}else if(wall1 || wall2){
+						std::cout<<"wall"<<std::endl;
+						handleWallCollision(o1,o2);
 					}else{
 						handleRobotRobotCollision (o1, o2);
 					}
