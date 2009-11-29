@@ -162,6 +162,14 @@ class firmware_window_impl : public Gtk::Window {
 			bot_frame.add(bot_controls);
 			vbox.pack_start(bot_frame, false, false);
 
+			Gtk::FileFilter *filter = new Gtk::FileFilter();
+			filter->set_name("Intel HEX Files");
+			filter->add_pattern("*.mcs");
+			file_chooser.add_filter(*filter);
+			filter = new Gtk::FileFilter();
+			filter->set_name("All Files");
+			filter->add_pattern("*");
+			file_chooser.add_filter(*filter);
 			file_frame.add(file_chooser);
 			vbox.pack_start(file_frame, false, false);
 
