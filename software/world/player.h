@@ -61,6 +61,14 @@ class player : public robot {
 		}
 
 		//
+		// The most-recently-requested linear velocity. Only intended for use by
+		// the UI layer.
+		//
+		point ui_requested_velocity() const {
+			return impl->ui_requested_velocity() * (flip ? -1.0 : 1.0);
+		}
+
+		//
 		// Constructs a new player object.
 		//
 		// Parameters:
