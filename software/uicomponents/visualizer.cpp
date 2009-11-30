@@ -1,3 +1,8 @@
+// Set nonzero to draw velocity vectors.
+#define DRAW_VELOCITY 0
+// Set to the multiplier for visualizing velocity vector lengths.
+#define DRAW_VELOCITY_SCALE 1.0
+
 #include "uicomponents/visualizer.h"
 
 visualizer::visualizer(const field::ptr field, const ball::ptr ball, const team::ptr west_team, const team::ptr east_team, clocksource &clk) : scale(1), xtranslate(0), ytranslate(0), the_field(field), the_ball(ball), west_team(west_team), east_team(east_team) {
@@ -94,6 +99,21 @@ bool visualizer::on_expose_event(GdkEventExpose *) {
 			const double y = ytog(bot->position().y) - extents.y_bearing - extents.height / 2.0;
 			ctx->move_to(x, y);
 			ctx->show_text(str);
+
+#if DRAW_VELOCITY
+			player::ptr plr = player::ptr::cast_dynamic(bot);
+			if (plr) {
+				ctx->begin_new_path();
+				double vx = bot->position().x;
+				double vy = bot->position().y;
+				ctx->move_to(xtog(vx), ytog(vy));
+				const point &reqvel = plr->ui_requested_velocity().rotate(plr->orientation());
+				vx += reqvel.x * DRAW_VELOCITY_SCALE;
+				vy += reqvel.y * DRAW_VELOCITY_SCALE;
+				ctx->line_to(xtog(vx), ytog(vy));
+				ctx->stroke();
+			}
+#endif
 		}
 	}
 
