@@ -184,6 +184,8 @@ software/util/fd.cpp -text
 software/util/fd.h -text
 software/util/hungarian.cpp -text
 software/util/hungarian.h -text
+software/util/ihex.cpp -text
+software/util/ihex.h -text
 software/util/noncopyable.h -text
 software/util/sockaddrs.h -text
 software/util/xml.cpp -text
