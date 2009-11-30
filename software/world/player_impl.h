@@ -37,12 +37,12 @@ class player_impl : public robot_impl {
 		//
 		void tick() {
 			if (controller) {
-				point linear_velocity;
 				double angular_velocity;
-				controller->move(destination, angular_target, linear_velocity, angular_velocity);
-				move_impl(linear_velocity, angular_velocity);
+				controller->move(destination, angular_target, last_requested_velocity, angular_velocity);
+				move_impl(last_requested_velocity, angular_velocity);
 			} else {
 				move_impl(point(), 0);
+				last_requested_velocity.x = last_requested_velocity.y = 0.0;
 			}
 		}
 
@@ -57,6 +57,14 @@ class player_impl : public robot_impl {
 		// Whether or not this robot has possession of the ball.
 		//
 		virtual bool has_ball() const __attribute__((warn_unused_result)) = 0;
+
+		//
+		// The most-recently-requested linear velocity. Only intended for use by
+		// the UI layer.
+		//
+		const point &ui_requested_velocity() const {
+			return last_requested_velocity;
+		}
 
 	protected:
 		//
@@ -114,7 +122,7 @@ class player_impl : public robot_impl {
 
 	private:
 		robot_controller::ptr controller;
-		point destination;
+		point destination, last_requested_velocity;
 		double angular_target;
 };
 
