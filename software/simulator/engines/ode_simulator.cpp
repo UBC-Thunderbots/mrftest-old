@@ -2,6 +2,7 @@
 #include "simulator/engines/ballODE.h"
 #include "simulator/engines/playerODE.h"
 #include "simulator/field.h"
+#include "geom/angle.h"
 #include <iostream>
 
 #define MU 0.02		// the global mu to use
@@ -47,9 +48,8 @@ namespace {
 			dSpaceID space;
 			dGeomID ground;
 			dGeomID wall[4];
-			//dBodyID wallbody[4];
 			dJointGroupID contactgroup;
-			//dMass mass[4];
+			//int stepSize;
 			
 			bool isWall(dGeomID geom){
 				for(int i=0; i<4; i++){
@@ -63,30 +63,32 @@ namespace {
 				eworld = dWorldCreate(); 
 				dWorldSetGravity (eworld,0,0.0,GRAVITY);
 				space = dSimpleSpaceCreate(0);
+				//space = dHashSpaceCreate(0);
   				ground = dCreatePlane (space,0,0,1,0.1);
   				const field::ptr fld(new simulator_field);
   				
   				double wall_height = 20.5;//1/2 meter
   				double wall_thickness = 0.5;//
-
+  				
+				//build a wall around the playing field
   				wall[0] = dCreateBox (space, fld->total_length() + 1.0, wall_thickness, wall_height);
 				wall[1] = dCreateBox (space, fld->total_length() + 1.0, wall_thickness, wall_height);  				
 				wall[2] = dCreateBox (space, wall_thickness, fld->total_width() + 1.0, wall_height);
 				wall[3] = dCreateBox (space, wall_thickness, fld->total_width() + 1.0, wall_height);
-
   				dGeomSetPosition (wall[0],  0,  (fld->total_width()/2 + wall_thickness/2),  (wall_height/2) -0.1);
   				dGeomSetPosition (wall[1],  0, - (fld->total_width()/2 + wall_thickness/2),  (wall_height/2) -0.1);
   				dGeomSetPosition (wall[2],  (fld->total_length()/2 + wall_thickness/2), 0,  (wall_height/2) -0.1);
   				dGeomSetPosition (wall[3], - (fld->total_length()/2 + wall_thickness/2), 0,  (wall_height/2) -0.1);
 
-    				dWorldSetContactSurfaceLayer(eworld, 0.005);
+				//set possible penetration for collisions
+    				dWorldSetContactSurfaceLayer(eworld, 0.0001);
 				contactgroup = dJointGroupCreate (0);
 
 				ballODE::ptr b(new ballODE(eworld, space));
 				the_ball = b;
 				
- 				dWorldSetLinearDamping (eworld, 0.02);
-				dWorldSetCFM (eworld, 0.9);
+ 				//dWorldSetLinearDamping (eworld, 0.02);
+				dWorldSetCFM (eworld, 0.3);
  				
 			}
 			
@@ -100,18 +102,22 @@ namespace {
 
 
 			void tick() {
+			
 
+				//std::cout<<"tick Start"<<std::endl;
 				//check the world for possible collisions
 				//if there are colliding objects then call nearCallback
 				//nearCallback creates all necessary contact points and parameters
  				dSpaceCollide (space,this,&sim_engine::nearCallbackThunk);
- 				
  				//step the world (have ODE do 1 iterations per step)
-				dWorldStep (eworld, 1);
-				
+				//dWorldStep (eworld, 1);
+				//dWorldSetQuickStepNumIterations (eworld, 50);
+				dWorldQuickStep(eworld, (1.0/15.0));
 				//remove all the contact points that we created in this step
 				dJointGroupEmpty (contactgroup);
+				//std::cout<<"tick End"<<std::endl;
 				
+			
 			}
 			void setWorld(dWorldID world) {
 				eworld = world;
@@ -176,9 +182,9 @@ namespace {
 				double frict = MU;
 				int i=0;		
 				if ((g1 ^ g2)){
-					frict = MU*6;
-				}
-		
+					handleBallCollisionWithGround(o1,o2);
+					//frict = MU*6;
+				}else{
 			
 				  dBodyID b1 = dGeomGetBody(o1);
 				  dBodyID b2 = dGeomGetBody(o2);
@@ -186,8 +192,8 @@ namespace {
 				  dContact contact[3];		// up to 3 contacts per box
 				  for (i=0; i<3; i++) {
 				    contact[i].surface.mode = dContactSoftCFM | dContactApprox1;
-				    contact[i].surface.mu = frict;
-				    contact[i].surface.soft_cfm = 0.01;
+				    contact[i].surface.mu = 0.0;
+				   contact[i].surface.soft_cfm = 0.3;
 				  }
 				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
 				    for (i=0; i<numc; i++) {
@@ -195,6 +201,72 @@ namespace {
 				      dJointAttach (c,b1,b2);
 				    }
 				  }
+				
+				}
+
+			}
+			
+			
+			//
+			//if a shape interescts with the ground set the contact parameters
+			//
+			void handleBallCollisionWithGround(dGeomID o1, dGeomID o2){
+				int g1 = (o1 == the_ball->ballGeom);
+				int g2 = (o2 == the_ball->ballGeom);
+				double frict = MU*6;
+				int i=0;
+				
+				
+				
+				 playerODE::ptr robot = emptyPlayer;
+				 
+				 for(int i=0; i<the_players.size(); i++){
+					 if(the_players[i]->has_ball()){
+					 	robot = the_players[i];
+					 }
+				 }
+				 
+				 bool hasBall = robot!=emptyPlayer;
+				 
+
+							
+				//std::cout<<"ball frict dir "<< (angleVel[0]) <<" "<< (angleVel[1]) <<" "<< (angleVel[2]) <<std::endl;
+									
+				if ((g1 ^ g2)){
+								
+				  dBodyID b1 = dGeomGetBody(o1);
+				  dBodyID b2 = dGeomGetBody(o2);
+
+				  dContact contact[3];		// up to 3 contacts per box
+				  for (i=0; i<3; i++) {
+				  	if(hasBall && false){
+				  		contact[i].surface.mode = dContactSoftCFM | dContactApprox1 | dContactFDir1 | dContactSlip1;
+				  			point t(1,0);
+				  			point dir = t.rotate(robot->orientation());
+				  						   
+				    contact[i].fdir1[0] = t.x;
+				    contact[i].fdir1[1] = t.y;
+				    contact[i].fdir1[2] = 0.0;
+				      contact[i].surface.mu = MU*6;
+				    //  contact[i].surface.mu2 = frict;
+				 	}else{
+				 		contact[i].surface.mode = dContactSoftCFM | dContactApprox1;
+				 		  contact[i].surface.mu = frict;
+				 	}
+				 	
+
+				  
+				   contact[i].surface.soft_cfm = 0.3;
+				  }
+				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
+				    for (i=0; i<numc; i++) {
+				      dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
+				      dJointAttach (c,b1,b2);
+				    }
+				  }
+				}
+		
+
 			}
 			
 			//
@@ -204,11 +276,68 @@ namespace {
 				int i=0;
 				  dBodyID b1 = dGeomGetBody(o1);
 				  dBodyID b2 = dGeomGetBody(o2);
+				  const unsigned int num_contact = 7;
+				  
+				  dContact contact[num_contact];		// up to 3 contacts per box
+				  
+				  playerODE::ptr robot1 = get_player_from_shape(o1);
+				  playerODE::ptr robot2 = get_player_from_shape(o2);
+				  
+				  if((robot1 != emptyPlayer || robot2 != emptyPlayer)){
+				  	handleRobotBallCollision(o1,o2);
+				  }else{
+				  
+					  for (i=0; i<num_contact; i++) {
+					    contact[i].surface.mode = dContactSoftCFM;
+					    contact[i].surface.mu = MU;
+					    //contact[i].surface.mu
+					   contact[i].surface.soft_cfm = 0.3;
+					  }
+					  if (int numc = dCollide (o1,o2,num_contact,&contact[0].geom,sizeof(dContact))) {
+					    for (i=0; i<numc; i++) {
+					      dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
+					      dJointAttach (c,b1,b2);
+					    }
+					  }	
+				  
+				  }
+			}
+			
+			//
+			//
+			//						
+			void handleRobotBallCollision (dGeomID o1, dGeomID o2){
+				int i=0;
+				  dBodyID b1 = dGeomGetBody(o1);
+				  dBodyID b2 = dGeomGetBody(o2);
 				  dContact contact[3];		// up to 3 contacts per box
+				  
+				  playerODE::ptr robot = get_player_from_shape(o1);
+				  if(robot == emptyPlayer){
+				  	robot = get_player_from_shape(o2);
+				  }
+				  
+				//  point direction(0.0, 1.0);
+				//  direction = direction.rotate(robot->orientation());
+				  //dReal[4]
+				  
+				  
+				//  dReal vec[4];
+				//  vec[0] = direction.x;
+				//  vec[1] = direction.y;
+				//  vec[2] = 0.0;
+				//  dVector3 fr1(vec[0], vec[1], vec[2]);
+				  
 				  for (i=0; i<3; i++) {
-				    contact[i].surface.mode = dContactSoftCFM | dContactApprox1;
-				    contact[i].surface.mu = MU;
-				    contact[i].surface.soft_cfm = 0.01;
+				  //  contact[i].surface.mode =  dContactMu2 |dContactMotion1 | dContactFDir1 |dContactSoftCFM | dContactApprox1;
+				  contact[i].surface.mode =  dContactSoftCFM |dContactBounce;
+				   // contact[i].fdir1[0] = vec[0];
+				    //contact[i].fdir1[1] = vec[1];
+				   // contact[i].fdir1[2] = vec[2];
+				    contact[i].surface.mu = MU;// 0.1*MU;
+				   // contact[i].surface.mu2 = 0.1*MU;
+				   contact[i].surface.soft_cfm = 0.3;
+				     contact[i].surface.bounce = 0.5;
 				  }
 				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
 				    for (i=0; i<numc; i++) {
@@ -227,9 +356,10 @@ namespace {
 				  dBodyID b2 = dGeomGetBody(o2);
 				  dContact contact[3];		// up to 3 contacts per box
 				  for (i=0; i<3; i++) {
-				    contact[i].surface.mode = dContactBounce| dContactApprox1;
+				    contact[i].surface.mode =  dContactSoftCFM | dContactBounce| dContactApprox1;
 				    contact[i].surface.mu = 2.0;
-				    contact[i].surface.bounce = 1;
+				   contact[i].surface.soft_cfm = 0.3;
+				    contact[i].surface.bounce = 1.0;
 				  }
 				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
 				    for (i=0; i<numc; i++) {
@@ -258,16 +388,17 @@ namespace {
 				//as such we will ignore it
 				//this is a pretty bad hack and needs to be changed to check whether the geoms come
 				//from the same robot
-				const int num_contact = 9;
+				const int num_contact = 12;
 				
 				if(robot1!=robot2){
 					  dBodyID b1 = dGeomGetBody(o1);
 				  	  dBodyID b2 = dGeomGetBody(o2);
 					  dContact contact[num_contact];		// up to 3 contacts per box
 					  for (i=0; i<num_contact; i++) {
-					    contact[i].surface.mode = dContactSoftCFM | dContactApprox1;
+					    contact[i].surface.mode = dContactSoftCFM | dContactApprox1 |dContactBounce;;
 					    contact[i].surface.mu = MU;
-					    contact[i].surface.soft_cfm = 0.01;
+					   contact[i].surface.soft_cfm = 0.3;
+					     contact[i].surface.bounce = 1.0;
 					  }
 					  if (int numc = dCollide (o1,o2,num_contact,&contact[0].geom,sizeof(dContact))) {
 					    for (i=0; i<numc; i++) {
@@ -306,7 +437,7 @@ namespace {
 					}else if(wall1 && wall2){
 					//do nothing
 					}else if(wall1 || wall2){
-						std::cout<<"wall"<<std::endl;
+						//std::cout<<"wall"<<std::endl;
 						handleWallCollision(o1,o2);
 					}else{
 						handleRobotRobotCollision (o1, o2);

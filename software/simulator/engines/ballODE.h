@@ -27,11 +27,14 @@ class ballODE : public ball_impl {
 			point velocity() const;
 
 			point acceleration() const;
+			
+			double getRadius();
 
 			void ui_set_position(const point &pos);
 
 	private:
 			point the_position, the_velocity;
+			 double dradius;
 
 };
 

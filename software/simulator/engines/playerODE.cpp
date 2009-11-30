@@ -10,7 +10,8 @@
 				double dribble_radius = 0.005;//half a cm
 				ballGeom = ballGeomi;
 				double ballradius = dGeomSphereGetRadius(ballGeom);
-			
+				maxAvel = 16.0;
+				maxAaccel = 16.0;
 				world = eworld;
 				body = dBodyCreate(world);
 				body2 = dBodyCreate(world);
@@ -36,7 +37,7 @@
 				dBodySetMass (body,&mass);
 				dBodySetLinearDamping (body, 0.12);
 				dBodySetMass (body2,&mass2);
-				
+				momentInertia = mass2.mass*2;
 				dGeomSetBody (robotGeom,body);
 				dGeomSetBody (robotGeomTop,body2);
 				
@@ -50,8 +51,8 @@
 				
 				dSpaceAdd (dspace, robotGeom);
 				dSpaceAdd (dspace, robotGeomTop);
-				dBodySetAngularDamping (body, 0.2);
-				dBodySetAngularDamping (body2, 0.2);
+				dBodySetAngularDamping (body, 0.002);
+				dBodySetAngularDamping (body2, 0.002);
 				contactgroup = dJointGroupCreate (0);
 	 			createJointBetweenB1B2();
 			}
@@ -185,11 +186,6 @@
 				return hasTheBall;
 			}
 
-			void controllerHack(point &target_velocity){
-	 			double temp = target_velocity.x;
-				target_velocity.x = -target_velocity.y;
-				target_velocity.y = temp;
-			}
 			
 			bool playerODE::robot_contains_shape(dGeomID geom){
 				 dBodyID b = dGeomGetBody(geom);
@@ -197,11 +193,12 @@
 			}
 
 			void playerODE::move_impl(const point &vel, double avel) {
-					bool controller_not_nice_hack = false;
+
+					
 				if(!posSet){
-					double MaxRadians_perSec = 0.1;
-					double Accel_Max = 1.25;
-					double V_MaxVel = .75;
+					double MaxRadians_perSec = 1.0;
+					double Accel_Max = 15.5;
+					double V_MaxVel = 12.5;
 
 					target_velocity = vel;
 					avelocity = avel;
@@ -213,11 +210,9 @@
 
 					target_velocity = target_velocity;
 					
-					if(controller_not_nice_hack){
-						controllerHack(target_velocity);
-					}else{
-						target_velocity = target_velocity.rotate(orientation());
-					}
+				
+					target_velocity = target_velocity.rotate(orientation());
+					
 					double magVel = sqrt(target_velocity.x*target_velocity.x + target_velocity.y*target_velocity.y);
 					if(magVel>V_MaxVel){
 						target_velocity= target_velocity/magVel;
@@ -226,11 +221,8 @@
 					dBodyEnable (body);
 					dBodySetDynamic (body);
 
-					point vDiff = target_velocity - the_velocity;
-					
-
-					point acc = vDiff/static_cast<double>(TIMESTEPS_PER_SECOND);
-					
+					point vDiff = target_velocity - the_velocity;				
+					point acc = vDiff/static_cast<double>(TIMESTEPS_PER_SECOND);;
 					double mag = acc.len();
 					
 					if(mag>Accel_Max){
@@ -238,26 +230,38 @@
 						acc=acc*Accel_Max;
 					}
 					
-					double m = mass.mass;
+					double m = mass.mass + mass2.mass;
 					point fce = acc*((double)m);
 					fce = fce;
 					
+					if(avel>maxAvel || avel<(-maxAvel)){
+						//enorce a max turn speed
+						if(avel>0){
+							avelocity = maxAvel;
+						}else{
+							avelocity = -maxAvel;
+						}
+					}
 					
 					//std::cout<<"angular speed: "<<avel<<std::endl;
-	
-
-					if(avel>1 || avel<-1){
-
-					//enorce a max turn speed
-					if(avel>0){
-						avel = 1;
-					}else{
-						avel = -1;
+					const dReal * t =  dBodyGetAngularVel (body2);
+					double avelRobot = t[2];
+					//std::cout<<avelRobot<<std::endl;
+					double avelDiff = avelocity - avelRobot;
+					double aAccel = avelDiff/static_cast<double>(TIMESTEPS_PER_SECOND);
+					
+					if(aAccel>maxAaccel){
+						aAccel= maxAaccel;
+					}
+					if(aAccel<(-maxAaccel)){
+						aAccel= -maxAaccel;
 					}
 
-					}
-
-					dBodySetAngularVel (body2, 0.0, 0.0, avel);
+					double torque = aAccel*momentInertia;
+					//double realizedAVel = avelRobot + aAccel;
+					
+					//dBodySetAngularVel (body2, 0.0, 0.0, realizedAVel);
+					dBodyAddTorque (body2, 0.0, 0.0, torque);
 
 					dBodyAddForce (body, fce.x, fce.y, 0.0);
 				}
@@ -265,34 +269,28 @@
 			}
 			
 			void playerODE::dribble(double speed) {
+			
+			
 				if(speed<0 || speed>1)return;
 			
-				double maxTorque = 0.0001/static_cast<double>(TIMESTEPS_PER_SECOND); //is this realistic???			
-				double appliedTorque = speed*maxTorque;
+				double maxTorque = 0.0001;//static_cast<double>(TIMESTEPS_PER_SECOND); //is this realistic???			
+				double appliedTorque = -(speed*maxTorque);
 				
-				//std::cout<<"dribble speed: "<<speed<<std::endl;
-				
+				std::cout<<"dribble speed: "<<speed<<std::endl;
 				point torqueAxis(0,1);
-				torqueAxis.rotate(orientation());
+				torqueAxis = torqueAxis.rotate(orientation());
 				
 				torqueAxis*=appliedTorque;
 				
-				if(has_ball()){
+				if(has_ball(0.005)){
 					dBodyAddTorque(dGeomGetBody(ballGeom), torqueAxis.x, torqueAxis.y, 0.0);
 				}
 				
 				
 			}
 
-			void playerODE::kick(double strengthh) {
-				//std::cout<<"kick strength: "<<strength<<std::endl;
-				
-				bool hack = false;
-				
-				double strength = strengthh;
-				
-				if(hack)strength = 0.5;
-						
+			void playerODE::kick(double strength) {
+
 				if(strength <0 || strength >1)return;
 				
 				double maximum_impulse = 0.0005;
@@ -306,17 +304,10 @@
 				   			impulse.x, impulse.y,0.0, force);
 				   	dBodyAddForce(dGeomGetBody(ballGeom), force[0], force[1], force[2]);
 				}
-				//std::cout<<"kick strength: "<<strength<<std::endl;
 			}
 
-			void playerODE::chip(double strengthh) {
-			
-				bool hack = false;
-				
-				double strength = strengthh;
-				
-				if(hack)strength = 0.5;
-			
+			void playerODE::chip(double strength) {
+
 				if(strength <0 || strength >1)return;
 				//std::cout<<"chip strength: "<<strength<<std::endl;
 					double maximum_impulse = 0.0005;
@@ -344,6 +335,8 @@
 				dBodySetPosition(body2, pos.x, pos.y, t2[2]);
 				dBodySetLinearVel(body,0.0,0.0,0.0);
 				dBodySetLinearVel(body2,0.0,0.0,0.0);
+				dBodySetAngularVel (body, 0.0, 0.0, 0.0);
+				dBodySetAngularVel (body2, 0.0, 0.0, 0.0);
 				createJointBetweenB1B2();
 			}
 

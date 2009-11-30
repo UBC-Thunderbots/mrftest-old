@@ -62,7 +62,10 @@ point the_position, the_velocity;
 
 				body = dBodyCreate(world);
 				dBodySetPosition(body, 0.0, 0.0, 0.01086);
-				ballGeom = dCreateSphere(0, 0.0213);//golf ball radius 4.2672cm
+				
+				dradius = 0.0213;
+				
+				ballGeom = dCreateSphere(0, dradius);//golf ball radius 4.2672cm
 
 				dMassSetSphere (&m,1.0,0.0213);
 				dBodySetMass (body,&m);
@@ -70,7 +73,7 @@ point the_position, the_velocity;
 				dGeomSetBody (ballGeom,body);
 				dSpaceAdd (dspace, ballGeom);
 				//dBodySetLinearDamping (body, 0.2);
-				dBodySetAngularDamping (body,0.2);
+				dBodySetAngularDamping (body,0.5);
 			
 			}
 
@@ -79,7 +82,12 @@ point the_position, the_velocity;
 
 
 			}
+			
+			double ballODE::getRadius(){
 
+				return dradius;
+			}
+			
 			point ballODE::position() const {
 				point p;
 				const dReal *t = dBodyGetPosition (body);

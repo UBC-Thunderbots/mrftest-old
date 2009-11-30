@@ -12,6 +12,7 @@ class playerODE : public player_impl {
 	
 	double x_len;
 	double y_len;
+	double momentInertia;
 	
 	typedef Glib::RefPtr<playerODE> ptr;
 	//The world constructed by the simulatiuon engine
@@ -28,6 +29,8 @@ class playerODE : public player_impl {
 	point the_position, the_velocity, target_velocity;
 	double the_orientation, avelocity, target_avelocity;
 	dGeomID ballGeom;
+	double maxAvel, maxAaccel;
+	
 	public:
 
 	playerODE( dWorldID dworld, dSpaceID dspace,  dGeomID ballGeom);
