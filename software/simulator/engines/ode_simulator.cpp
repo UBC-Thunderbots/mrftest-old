@@ -2,6 +2,7 @@
 #include "simulator/engines/ballODE.h"
 #include "simulator/engines/playerODE.h"
 #include "simulator/field.h"
+#include "world/timestep.h"
 #include "geom/angle.h"
 #include <iostream>
 
@@ -33,7 +34,9 @@ namespace {
 	//
 	const double GRAVITY = -0.25;
 	
-	const int UPDATES_PER_TCIK = 2;
+	
+	
+	const unsigned int UPDATES_PER_TICK = 1;
 
 	//
 	// A simulator_engine.
@@ -81,14 +84,14 @@ namespace {
   				dGeomSetPosition (wall[3], - (fld->total_length()/2 + wall_thickness/2), 0,  (wall_height/2) -0.1);
 
 				//set possible penetration for collisions
-    				dWorldSetContactSurfaceLayer(eworld, 0.0001);
+    				dWorldSetContactSurfaceLayer(eworld, 0.001);
 				contactgroup = dJointGroupCreate (0);
 
 				ballODE::ptr b(new ballODE(eworld, space));
 				the_ball = b;
 				
  				//dWorldSetLinearDamping (eworld, 0.02);
-				dWorldSetCFM (eworld, 0.3);
+				dWorldSetCFM (eworld, 0.5);
  				
 			}
 			
@@ -102,22 +105,31 @@ namespace {
 
 
 			void tick() {
-			
-
-				//std::cout<<"tick Start"<<std::endl;
-				//check the world for possible collisions
-				//if there are colliding objects then call nearCallback
-				//nearCallback creates all necessary contact points and parameters
- 				dSpaceCollide (space,this,&sim_engine::nearCallbackThunk);
- 				//step the world (have ODE do 1 iterations per step)
-				//dWorldStep (eworld, 1);
-				//dWorldSetQuickStepNumIterations (eworld, 50);
-				dWorldQuickStep(eworld, (1.0/15.0));
-				//remove all the contact points that we created in this step
-				dJointGroupEmpty (contactgroup);
-				//std::cout<<"tick End"<<std::endl;
+					
+				for(int i=0; i< UPDATES_PER_TICK; i++){
 				
-			
+					if(i>0){
+						for (unsigned int j = 0; j < the_players.size(); j++) {
+							the_players[j]->pre_tic();
+
+						}
+					}
+					//std::cout<<"tick Start"<<std::endl;
+					//check the world for possible collisions
+					//if there are colliding objects then call nearCallback
+					//nearCallback creates all necessary contact points and parameters
+	 				dSpaceCollide (space,this,&sim_engine::nearCallbackThunk);
+	 				//step the world (have ODE do 1 iterations per step)
+					//dWorldStep (eworld, 1);
+					dWorldSetQuickStepNumIterations (eworld, 50);
+					double timeStep = 1.0/static_cast<double>(TIMESTEPS_PER_SECOND*UPDATES_PER_TICK);
+					
+					dWorldQuickStep(eworld, timeStep);
+					//remove all the contact points that we created in this step
+					dJointGroupEmpty (contactgroup);
+					//std::cout<<"tick End"<<std::endl;
+				
+				}
 			}
 			void setWorld(dWorldID world) {
 				eworld = world;
@@ -127,7 +139,7 @@ namespace {
 			}
 
 			player_impl::ptr add_player() {
-				playerODE::ptr	 p(new playerODE(eworld, space, the_ball->ballGeom));
+				playerODE::ptr	 p(new playerODE(eworld, space, the_ball->ballGeom, static_cast<double>(UPDATES_PER_TICK)));
 				point cur =p->position();
 				
 				point balpos = the_ball->position();
@@ -193,7 +205,7 @@ namespace {
 				  for (i=0; i<3; i++) {
 				    contact[i].surface.mode = dContactSoftCFM | dContactApprox1;
 				    contact[i].surface.mu = 0.0;
-				   contact[i].surface.soft_cfm = 0.3;
+				   contact[i].surface.soft_cfm = 0.5;
 				  }
 				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
 				    for (i=0; i<numc; i++) {
@@ -256,7 +268,7 @@ namespace {
 				 	
 
 				  
-				   contact[i].surface.soft_cfm = 0.3;
+				   contact[i].surface.soft_cfm = 0.5;
 				  }
 				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
 				    for (i=0; i<numc; i++) {
@@ -291,7 +303,7 @@ namespace {
 					    contact[i].surface.mode = dContactSoftCFM;
 					    contact[i].surface.mu = MU;
 					    //contact[i].surface.mu
-					   contact[i].surface.soft_cfm = 0.3;
+					   contact[i].surface.soft_cfm = 0.5;
 					  }
 					  if (int numc = dCollide (o1,o2,num_contact,&contact[0].geom,sizeof(dContact))) {
 					    for (i=0; i<numc; i++) {
@@ -336,8 +348,8 @@ namespace {
 				   // contact[i].fdir1[2] = vec[2];
 				    contact[i].surface.mu = MU;// 0.1*MU;
 				   // contact[i].surface.mu2 = 0.1*MU;
-				   contact[i].surface.soft_cfm = 0.3;
-				     contact[i].surface.bounce = 0.5;
+				   contact[i].surface.soft_cfm = 0.5;
+				     contact[i].surface.bounce = 0.2;
 				  }
 				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
 				    for (i=0; i<numc; i++) {
@@ -358,7 +370,7 @@ namespace {
 				  for (i=0; i<3; i++) {
 				    contact[i].surface.mode =  dContactSoftCFM | dContactBounce| dContactApprox1;
 				    contact[i].surface.mu = 2.0;
-				   contact[i].surface.soft_cfm = 0.3;
+				   contact[i].surface.soft_cfm = 0.5;
 				    contact[i].surface.bounce = 1.0;
 				  }
 				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
@@ -397,7 +409,7 @@ namespace {
 					  for (i=0; i<num_contact; i++) {
 					    contact[i].surface.mode = dContactSoftCFM | dContactApprox1 |dContactBounce;;
 					    contact[i].surface.mu = MU;
-					   contact[i].surface.soft_cfm = 0.3;
+					   contact[i].surface.soft_cfm = 0.5;
 					     contact[i].surface.bounce = 1.0;
 					  }
 					  if (int numc = dCollide (o1,o2,num_contact,&contact[0].geom,sizeof(dContact))) {

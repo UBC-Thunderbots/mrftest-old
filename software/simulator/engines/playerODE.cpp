@@ -4,9 +4,9 @@
 #include <math.h>
 #include <algorithm>
 
-			playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0), target_avelocity(0.0) {
+			playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0), target_avelocity(0.0) {
 			
-			
+			updates_per_tick = ups_per_tick;
 				double dribble_radius = 0.005;//half a cm
 				ballGeom = ballGeomi;
 				double ballradius = dGeomSphereGetRadius(ballGeom);
@@ -17,6 +17,10 @@
 				body2 = dBodyCreate(world);
 				double x_pos = 0.0;
 				double y_pos = 0.0;
+				
+				fcex=0;
+				fcey=0;
+				torquez=0;
 				
 				x_len = 0.18;
 				y_len = 0.18;
@@ -191,16 +195,23 @@
 				 dBodyID b = dGeomGetBody(geom);
 				return (b==body)||(b==body2);
 			}
+			
+			void playerODE::pre_tic(){
 
-			void playerODE::move_impl(const point &vel, double avel) {
+					dBodyAddTorque (body2, 0.0, 0.0, torquez);
+					dBodyAddForce (body, fcex, fcey, 0.0);
+				
+			}
 
-					
+			void playerODE::move_impl(const point &vel, double avel) {					
 				if(!posSet){
 					double MaxRadians_perSec = 1.0;
 					double Accel_Max = 15.5;
 					double V_MaxVel = 12.5;
-
+					
 					target_velocity = vel;
+					point tVelocity = vel;
+					target_avelocity = avel;
 					avelocity = avel;
 
 					const dReal *cur_vel = dBodyGetLinearVel(body);
@@ -208,21 +219,22 @@
 					the_velocity.x=cur_vel[0];
 					the_velocity.y= cur_vel[1];
 
-					target_velocity = target_velocity;
+					tVelocity = tVelocity;
 					
 				
-					target_velocity = target_velocity.rotate(orientation());
+					tVelocity = tVelocity.rotate(orientation());
 					
-					double magVel = sqrt(target_velocity.x*target_velocity.x + target_velocity.y*target_velocity.y);
+					double magVel = sqrt(tVelocity.x*tVelocity.x + tVelocity.y*tVelocity.y);
 					if(magVel>V_MaxVel){
-						target_velocity= target_velocity/magVel;
-						target_velocity= target_velocity*V_MaxVel;
+						tVelocity= tVelocity/magVel;
+						tVelocity= tVelocity*V_MaxVel;
 					}
 					dBodyEnable (body);
 					dBodySetDynamic (body);
 
-					point vDiff = target_velocity - the_velocity;				
-					point acc = vDiff/static_cast<double>(TIMESTEPS_PER_SECOND);;
+					point vDiff = tVelocity - the_velocity;				
+					point acc = vDiff/static_cast<double>(TIMESTEPS_PER_SECOND);
+					//acc = acc/updates_per_tick;
 					double mag = acc.len();
 					
 					if(mag>Accel_Max){
@@ -249,6 +261,7 @@
 					//std::cout<<avelRobot<<std::endl;
 					double avelDiff = avelocity - avelRobot;
 					double aAccel = avelDiff/static_cast<double>(TIMESTEPS_PER_SECOND);
+					//aAccel = aAccel/updates_per_tick;
 					
 					if(aAccel>maxAaccel){
 						aAccel= maxAaccel;
@@ -264,6 +277,10 @@
 					dBodyAddTorque (body2, 0.0, 0.0, torque);
 
 					dBodyAddForce (body, fce.x, fce.y, 0.0);
+					
+					fcex=fce.x;
+					fcey= fce.y;
+					torquez=torque;
 				}
 				posSet=false;		
 			}
@@ -276,7 +293,7 @@
 				double maxTorque = 0.0001;//static_cast<double>(TIMESTEPS_PER_SECOND); //is this realistic???			
 				double appliedTorque = -(speed*maxTorque);
 				
-				std::cout<<"dribble speed: "<<speed<<std::endl;
+				//std::cout<<"dribble speed: "<<speed<<std::endl;
 				point torqueAxis(0,1);
 				torqueAxis = torqueAxis.rotate(orientation());
 				
@@ -300,7 +317,7 @@
 
 				if(has_ball(0.005)){
 					dVector3 force;
-					dWorldImpulseToForce (world, static_cast<double>(TIMESTEPS_PER_SECOND),
+					dWorldImpulseToForce (world, static_cast<double>(TIMESTEPS_PER_SECOND)/updates_per_tick,
 				   			impulse.x, impulse.y,0.0, force);
 				   	dBodyAddForce(dGeomGetBody(ballGeom), force[0], force[1], force[2]);
 				}
@@ -320,7 +337,7 @@
 
 				if(has_ball(0.005)){
 					dVector3 force;
-					dWorldImpulseToForce (world, static_cast<double>(TIMESTEPS_PER_SECOND),
+					dWorldImpulseToForce (world, static_cast<double>(TIMESTEPS_PER_SECOND)/updates_per_tick,
 				   			impulse.x, impulse.y,zimpulse, force);
 				   	dBodyAddForce(dGeomGetBody(ballGeom), force[0], force[1], force[2]);
 				}

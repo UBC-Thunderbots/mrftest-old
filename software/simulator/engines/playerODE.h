@@ -30,10 +30,12 @@ class playerODE : public player_impl {
 	double the_orientation, avelocity, target_avelocity;
 	dGeomID ballGeom;
 	double maxAvel, maxAaccel;
+	double updates_per_tick;
 	
+	double fcex,fcey,torquez;
 	public:
 
-	playerODE( dWorldID dworld, dSpaceID dspace,  dGeomID ballGeom);
+	playerODE( dWorldID dworld, dSpaceID dspace,  dGeomID ballGeom, double ups_per_tick);
 	~playerODE();
 //void tick();
 
@@ -56,6 +58,9 @@ protected:
 			void move_impl(const point &vel, double avel) ;
 			
 public:
+
+			void pre_tic();
+			
 			bool has_ball(double tolerance);
 			
 			void dribble(double speed) ;
