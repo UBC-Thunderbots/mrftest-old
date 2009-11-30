@@ -2,6 +2,76 @@
 #include "uicomponents/visualizer.h"
 #include <gtkmm.h>
 
+
+
+//
+// A combobox for selecting which playtype is active.
+//
+class playtype_combo : public Gtk::ComboBoxText {
+	public:
+		playtype_combo(simulator &sim) : sim(sim) {
+			for (unsigned int i = 0; i < playtype::count; i++)
+				append_text(playtype::descriptions_west[i]);
+			set_active_text(playtype::descriptions_west[sim.current_playtype()]);
+			sim.signal_playtype_changed().connect(sigc::mem_fun(*this, &playtype_combo::playtype_changed));
+		}
+
+	protected:
+		void on_changed() {
+			const Glib::ustring &pt = get_active_text();
+			for (unsigned int i = 0; i < playtype::count; i++)
+				if (playtype::descriptions_west[i] == pt)
+					sim.set_playtype(static_cast<playtype::playtype>(i));
+		}
+
+	private:
+		simulator &sim;
+
+		void playtype_changed(playtype::playtype pt) {
+			set_active_text(playtype::descriptions_west[pt]);
+		}
+};
+
+
+
+//
+// Controls for managing the simulation as a whole.
+//
+class simulation_controls : public Gtk::VBox {
+	public:
+		simulation_controls(simulator &sim, clocksource &simclk) : simclk(simclk), run_btn("Run"), pause_btn("Pause"), run_pause_box(Gtk::BUTTONBOX_SPREAD), playtype_cb(sim) {
+			run_btn.signal_clicked().connect(sigc::mem_fun(*this, &simulation_controls::run_clicked));
+			pause_btn.signal_clicked().connect(sigc::mem_fun(*this, &simulation_controls::pause_clicked));
+			pause_btn.set_sensitive(false);
+
+			run_pause_box.pack_start(run_btn);
+			run_pause_box.pack_start(pause_btn);
+
+			pack_start(run_pause_box, false, false);
+			pack_start(playtype_cb, false, false);
+		}
+
+	private:
+		clocksource &simclk;
+		Gtk::Button run_btn, pause_btn;
+		Gtk::HButtonBox run_pause_box;
+		playtype_combo playtype_cb;
+
+		void run_clicked() {
+			run_btn.set_sensitive(false);
+			pause_btn.set_sensitive(true);
+			simclk.start();
+		}
+
+		void pause_clicked() {
+			run_btn.set_sensitive(true);
+			pause_btn.set_sensitive(false);
+			simclk.stop();
+		}
+};
+
+
+
 //
 // A combo box that allows the user to select a simulation engine.
 //
@@ -45,17 +115,10 @@ class engine_chooser : public Gtk::ComboBoxText {
 //
 class engine_controls : public Gtk::VBox {
 	public:
-		engine_controls(simulator &sim, clocksource &simclk) : sim(sim), simclk(simclk), chooser(sim), run_btn("Run"), pause_btn("Pause"), run_pause_box(Gtk::BUTTONBOX_SPREAD), ctls(0) {
+		engine_controls(simulator &sim, clocksource &simclk) : sim(sim), simclk(simclk), chooser(sim), ctls(0) {
 			chooser.signal_changed().connect(sigc::mem_fun(*this, &engine_controls::engine_changed));
-			run_btn.signal_clicked().connect(sigc::mem_fun(*this, &engine_controls::run_clicked));
-			pause_btn.signal_clicked().connect(sigc::mem_fun(*this, &engine_controls::pause_clicked));
-			pause_btn.set_sensitive(false);
 
-			run_pause_box.pack_start(run_btn);
-			run_pause_box.pack_start(pause_btn);
-
-			pack_start(run_pause_box);
-			pack_start(chooser);
+			pack_start(chooser, false, false);
 			put_custom_controls();
 		}
 
@@ -63,8 +126,6 @@ class engine_controls : public Gtk::VBox {
 		simulator &sim;
 		clocksource &simclk;
 		engine_chooser chooser;
-		Gtk::Button run_btn, pause_btn;
-		Gtk::HButtonBox run_pause_box;
 		Widget *ctls;
 
 		void put_custom_controls() {
@@ -82,7 +143,7 @@ class engine_controls : public Gtk::VBox {
 				ctls = Gtk::manage(new Gtk::Label("No simulation engine selected."));
 			if (!ctls)
 				ctls = Gtk::manage(new Gtk::Label("This engine provides no controls."));
-			pack_start(*ctls);
+			pack_start(*ctls, true, true);
 
 			// Show the controls.
 			show_all_children();
@@ -94,48 +155,6 @@ class engine_controls : public Gtk::VBox {
 
 			// Add the new engine-specific controls.
 			put_custom_controls();
-		}
-
-		void run_clicked() {
-			run_btn.set_sensitive(false);
-			pause_btn.set_sensitive(true);
-			simclk.start();
-		}
-
-		void pause_clicked() {
-			run_btn.set_sensitive(true);
-			pause_btn.set_sensitive(false);
-			simclk.stop();
-		}
-};
-
-
-
-//
-// A combobox for selecting which playtype is active.
-//
-class playtype_combo : public Gtk::ComboBoxText {
-	public:
-		playtype_combo(simulator &sim) : sim(sim) {
-			for (unsigned int i = 0; i < playtype::count; i++)
-				append_text(playtype::descriptions_west[i]);
-			set_active_text(playtype::descriptions_west[sim.current_playtype()]);
-			sim.signal_playtype_changed().connect(sigc::mem_fun(*this, &playtype_combo::playtype_changed));
-		}
-
-	protected:
-		void on_changed() {
-			const Glib::ustring &pt = get_active_text();
-			for (unsigned int i = 0; i < playtype::count; i++)
-				if (playtype::descriptions_west[i] == pt)
-					sim.set_playtype(static_cast<playtype::playtype>(i));
-		}
-
-	private:
-		simulator &sim;
-
-		void playtype_changed(playtype::playtype pt) {
-			set_active_text(playtype::descriptions_west[pt]);
 		}
 };
 
@@ -186,7 +205,7 @@ class strategy_controls : public Gtk::VBox {
 	public:
 		strategy_controls(simulator_team_data &team) : team(team), chooser(team), ctls(0) {
 			chooser.signal_changed().connect(sigc::mem_fun(*this, &strategy_controls::strategy_changed));
-			pack_start(chooser);
+			pack_start(chooser, false, false);
 			put_custom_controls();
 		}
 
@@ -210,7 +229,7 @@ class strategy_controls : public Gtk::VBox {
 				ctls = Gtk::manage(new Gtk::Label("No strategy selected."));
 			if (!ctls)
 				ctls = Gtk::manage(new Gtk::Label("This strategy provides no controls."));
-			pack_start(*ctls);
+			pack_start(*ctls, true, true);
 
 			// Show the controls.
 			show_all_children();
@@ -285,7 +304,7 @@ class team_controls : public Gtk::VBox {
 			pack_start(players_frame, true, true);
 
 			strategy_frame.add(strategy_ctls);
-			pack_start(strategy_frame, false, false);
+			pack_start(strategy_frame, true, true);
 
 			rc_frame.add(rc_chooser);
 			rc_chooser.signal_changed().connect(sigc::mem_fun(*this, &team_controls::controller_changed));
@@ -348,25 +367,19 @@ class team_controls : public Gtk::VBox {
 //
 class simulator_window_impl : public Gtk::Window {
 	public:
-		simulator_window_impl(simulator &sim, clocksource &simclk, clocksource &uiclk) : sim(sim), engine_frame("Simulation Engine"), engine_ctls(sim, simclk), playtype_frame("Play Type"), playtype_cb(sim), westteam_frame("West Team"), westteam_ctls(sim.west_team), eastteam_frame("East Team"), eastteam_ctls(sim.east_team), visualizer_frame("Visualizer"), vis(sim.fld, sim.west_ball, sim.west_team.west_view, sim.east_team.west_view, uiclk) {
+		simulator_window_impl(simulator &sim, clocksource &simclk, clocksource &uiclk) : sim(sim), sim_ctls(sim, simclk), engine_ctls(sim, simclk), westteam_ctls(sim.west_team), eastteam_ctls(sim.east_team), vis(sim.fld, sim.west_ball, sim.west_team.west_view, sim.east_team.west_view, uiclk) {
 			set_title("Thunderbots Simulator");
 
-			engine_frame.add(engine_ctls);
-			vbox.pack_start(engine_frame, false, false);
+			vbox.pack_start(sim_ctls, false, false);
 
-			playtype_frame.add(playtype_cb);
-			vbox.pack_start(playtype_frame, false, false);
-
-			westteam_frame.add(westteam_ctls);
-			vbox.pack_start(westteam_frame, true, true);
-
-			eastteam_frame.add(eastteam_ctls);
-			vbox.pack_start(eastteam_frame, true, true);
+			notebook.append_page(engine_ctls, "Engine");
+			notebook.append_page(westteam_ctls, "West Team");
+			notebook.append_page(eastteam_ctls, "East Team");
+			vbox.pack_start(notebook, true, true);
 
 			paned.pack1(vbox, false, false);
 
-			visualizer_frame.add(vis);
-			paned.pack2(visualizer_frame, true, false);
+			paned.pack2(vis, true, false);
 
 			add(paned);
 			show_all();
@@ -387,19 +400,13 @@ class simulator_window_impl : public Gtk::Window {
 
 		Gtk::VBox vbox;
 
-		Gtk::Frame engine_frame;
+		simulation_controls sim_ctls;
+
+		Gtk::Notebook notebook;
 		engine_controls engine_ctls;
-
-		Gtk::Frame playtype_frame;
-		playtype_combo playtype_cb;
-
-		Gtk::Frame westteam_frame;
 		team_controls westteam_ctls;
-
-		Gtk::Frame eastteam_frame;
 		team_controls eastteam_ctls;
 
-		Gtk::Frame visualizer_frame;
 		visualizer vis;
 };
 
