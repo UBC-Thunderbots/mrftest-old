@@ -1,9 +1,9 @@
 #include "firmware/upload.h"
 #include "firmware/window.h"
 #include "uicomponents/world_add_bot_dialog.h"
+#include "util/ihex.h"
 #include "util/xml.h"
 #include "world/config.h"
-#include <fstream>
 #include <iomanip>
 
 namespace {
@@ -209,21 +209,16 @@ class firmware_window_impl : public Gtk::Window {
 
 		void start_upload() {
 			const Glib::ustring &filename = file_chooser.get_filename();
-			std::ifstream ifs;
-			ifs.exceptions(std::ios_base::badbit);
-			ifs.open(Glib::locale_from_utf8(filename).c_str(), std::ios_base::in | std::ios_base::binary);
-			std::vector<std::vector<uint8_t> > pages;
-			while (ifs) {
-				uint8_t buffer[256];
-				ifs.read(reinterpret_cast<char *>(buffer), sizeof(buffer));
-				if (ifs.gcount()) {
-					std::fill(&buffer[ifs.gcount()], &buffer[sizeof(buffer)], 0xFF);
-					pages.push_back(std::vector<uint8_t>(&buffer[0], &buffer[sizeof(buffer)]));
-				}
+			intel_hex ihex;
+			try {
+				ihex.load(filename);
+			} catch (const std::runtime_error &exp) {
+				Gtk::MessageDialog md(*this, exp.what(), false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
+				md.run();
+				return;
 			}
-			ifs.close();
 
-			upload up(modem, current_address, pages);
+			upload up(modem, current_address, ihex);
 			upload_dialog dlg(*this, up);
 			Glib::signal_idle().connect(sigc::bind_return(sigc::mem_fun(up, &upload::start), false));
 			dlg.run();

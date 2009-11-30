@@ -3,6 +3,7 @@
 
 #include "firmware/bootproto.h"
 #include "firmware/scheduler.h"
+#include "util/ihex.h"
 
 //
 // An in-progress firmware upgrade operation.
@@ -12,7 +13,7 @@ class upload : public noncopyable, public sigc::trackable {
 		//
 		// Constructs an uploader object.
 		//
-		upload(xbee &modem, uint64_t bot, const std::vector<std::vector<uint8_t> > &data);
+		upload(xbee &modem, uint64_t bot, const intel_hex &data);
 
 		//
 		// Starts the upload process.
