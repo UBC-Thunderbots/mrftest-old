@@ -53,7 +53,10 @@ namespace {
 
 
 
-intel_hex::intel_hex(const Glib::ustring &filename) {
+void intel_hex::load(const Glib::ustring &filename) {
+	// Allocate space to hold the new data.
+	std::vector<unsigned char> new_data;
+
 	// Open the file.
 	std::ifstream ifs(Glib::filename_from_utf8(filename).c_str());
 	if (!ifs.good()) {
@@ -115,10 +118,10 @@ intel_hex::intel_hex(const Glib::ustring &filename) {
 		if (record_type == 0x00) {
 			// Data record.
 			unsigned int real_address = address_base + record_address;
-			if (the_data.size() < real_address + data_length) {
-				the_data.resize(real_address + data_length, 0xFF);
+			if (new_data.size() < real_address + data_length) {
+				new_data.resize(real_address + data_length, 0xFF);
 			}
-			std::copy(record_data, record_data + data_length, &the_data[real_address]);
+			std::copy(record_data, record_data + data_length, &new_data[real_address]);
 		} else if (record_type == 0x01) {
 			// EOF record.
 			if (data_length != 0) {
@@ -145,5 +148,8 @@ intel_hex::intel_hex(const Glib::ustring &filename) {
 			throw std::runtime_error("Malformed hex file!");
 		}
 	}
+
+	// Load successful.
+	the_data = new_data;
 }
 

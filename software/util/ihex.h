@@ -12,7 +12,7 @@ class intel_hex {
 		//
 		// Loads data from a file.
 		//
-		intel_hex(const Glib::ustring &filename);
+		void load(const Glib::ustring &filename);
 
 		//
 		// Returns the data.
