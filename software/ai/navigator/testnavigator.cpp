@@ -121,10 +121,10 @@ void testnavigator::tick() {
 void testnavigator::set_point(const point &destination) {
   //set new destinatin point
   destInitialized = true;
-
-  currDest = clip_point(destination,
+  /*currDest = clip_point(destination,
 			point(-the_field->length()/2,-the_field->width()/2),
-			point(the_field->length()/2,the_field->width()/2));
+			point(the_field->length()/2,the_field->width()/2));*/
+  currDest = destination;
 }
 
 point testnavigator::clip_point(point p, point bound1, point bound2)
