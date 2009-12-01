@@ -21,6 +21,11 @@ class simulator_ball_impl : public ball_impl {
 		// X coordinate.
 		//
 		virtual bool in_goal() = 0;
+
+		//
+		// A trivial implementation.
+		//
+		static const ptr &trivial();
 };
 
 #endif

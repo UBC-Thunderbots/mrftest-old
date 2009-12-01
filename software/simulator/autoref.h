@@ -64,11 +64,12 @@ class autoref_factory : public noncopyable {
 
 		//
 		// Constructs a new autoref. The individual autoref should hold onto
-		// references to the simulator_ball_impl, the two vectors, and the
-		// simulator (references, NOT COPIES!), and should examine their values
-		// on each time tick to determine if any intervention is necessary.
+		// the simulator_ball_impl, references to the two vectors, and a
+		// reference to the simulator (references, NOT COPIES!), and should
+		// examine their values on each time tick to determine if any
+		// intervention is necessary.
 		//
-		virtual autoref::ptr create_autoref(simulator &sim, simulator_ball_impl &the_ball, std::vector<player_impl::ptr> &west_team, std::vector<player_impl::ptr> &east_team, xmlpp::Element *xml) = 0;
+		virtual autoref::ptr create_autoref(simulator &sim, simulator_ball_impl::ptr the_ball, std::vector<player_impl::ptr> &west_team, std::vector<player_impl::ptr> &east_team, xmlpp::Element *xml) = 0;
 
 		//
 		// Gets the collection of all registered autoref factories, keyed by

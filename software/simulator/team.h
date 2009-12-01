@@ -192,7 +192,6 @@ class simulator_team_data : public playtype_source, public noncopyable {
 			return sig_playtype_changed;
 		}
 
-	private:
 		//
 		// The parent playtype_source that provides raw data to this team.
 		//

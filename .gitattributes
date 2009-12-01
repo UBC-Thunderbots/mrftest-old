@@ -155,6 +155,7 @@ software/robot_controller_test/player.cpp -text
 software/robot_controller_test/player.h -text
 software/simulator/autoref.cpp -text
 software/simulator/autoref.h -text
+software/simulator/ball.cpp -text
 software/simulator/ball.h -text
 software/simulator/engine.cpp -text
 software/simulator/engine.h -text

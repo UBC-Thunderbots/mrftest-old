@@ -111,41 +111,94 @@ class engine_chooser : public Gtk::ComboBoxText {
 
 
 //
-// Controls for selecting and managing the simulation engine.
+// A combo box that allows the user to select an autoref.
+//
+class autoref_chooser : public Gtk::ComboBoxText {
+	public:
+		autoref_chooser(simulator &sim) : initializing(true) {
+			append_text("No Autoref");
+			const autoref_factory::map_type &m = autoref_factory::all();
+			for (autoref_factory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i)
+				append_text(i->first);
+			autoref::ptr ref = sim.get_autoref();
+			if (ref) {
+				set_active_text(ref->get_factory().name());
+			} else {
+				set_active_text("No Autoref");
+			}
+			initializing = false;
+		}
+
+		sigc::signal<void, Glib::ustring> &signal_changed() {
+			return the_signal_changed;
+		}
+
+	protected:
+		void on_changed() {
+			if (!initializing) {
+				const Glib::ustring &name = get_active_text();
+				the_signal_changed.emit(name);
+			}
+		}
+
+	private:
+		sigc::signal<void, Glib::ustring> the_signal_changed;
+		bool initializing;
+};
+
+
+
+//
+// Controls for selecting and managing the simulation engine and autoref.
 //
 class engine_controls : public Gtk::VBox {
 	public:
-		engine_controls(simulator &sim, clocksource &simclk) : sim(sim), simclk(simclk), chooser(sim), ctls(0) {
-			chooser.signal_changed().connect(sigc::mem_fun(*this, &engine_controls::engine_changed));
+		engine_controls(simulator &sim, clocksource &simclk) : sim(sim), simclk(simclk), eng_chooser(sim), ref_chooser(sim) {
+			eng_chooser.signal_changed().connect(sigc::mem_fun(*this, &engine_controls::engine_changed));
+			ref_chooser.signal_changed().connect(sigc::mem_fun(*this, &engine_controls::autoref_changed));
 
-			pack_start(chooser, false, false);
-			put_custom_controls();
+			put_controls();
 		}
 
 	private:
 		simulator &sim;
 		clocksource &simclk;
-		engine_chooser chooser;
-		Widget *ctls;
+		engine_chooser eng_chooser;
+		autoref_chooser ref_chooser;
 
-		void put_custom_controls() {
+		void put_controls() {
 			// Remove old controls.
-			if (ctls)
-				remove(*ctls);
+			children().erase(children().begin(), children().end());
 
 			// Get the current engine.
 			simulator_engine::ptr e(sim.get_engine());
 
-			// Get controls.
+			// Get engine controls.
+			Widget *engine_ctls;
 			if (e)
-				ctls = e->get_ui_controls();
+				engine_ctls = e->get_ui_controls();
 			else
-				ctls = Gtk::manage(new Gtk::Label("No simulation engine selected."));
-			if (!ctls)
-				ctls = Gtk::manage(new Gtk::Label("This engine provides no controls."));
-			pack_start(*ctls, true, true);
+				engine_ctls = Gtk::manage(new Gtk::Label("No simulation engine selected."));
+			if (!engine_ctls)
+				engine_ctls = Gtk::manage(new Gtk::Label("This engine provides no controls."));
 
-			// Show the controls.
+			// Get the current engine.
+			autoref::ptr r(sim.get_autoref());
+
+			// Get autoref controls.
+			Widget *autoref_ctls;
+			if (r)
+				autoref_ctls = r->get_ui_controls();
+			else
+				autoref_ctls = Gtk::manage(new Gtk::Label("No autoref selected."));
+			if (!autoref_ctls)
+				autoref_ctls = Gtk::manage(new Gtk::Label("This autoref provides no controls."));
+
+			// Add and show children.
+			pack_start(eng_chooser, false, false);
+			pack_start(*engine_ctls, true, true);
+			pack_start(ref_chooser, false, false);
+			pack_start(*autoref_ctls, true, true);
 			show_all_children();
 		}
 
@@ -154,7 +207,15 @@ class engine_controls : public Gtk::VBox {
 			sim.set_engine(e);
 
 			// Add the new engine-specific controls.
-			put_custom_controls();
+			put_controls();
+		}
+
+		void autoref_changed(const Glib::ustring &r) {
+			// Lock in the use of the new autoref.
+			sim.set_autoref(r);
+
+			// Add the new autoref-specific controls.
+			put_controls();
 		}
 };
 

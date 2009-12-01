@@ -1,6 +1,7 @@
 #ifndef SIMULATOR_SIMULATOR_H
 #define SIMULATOR_SIMULATOR_H
 
+#include "simulator/autoref.h"
 #include "simulator/team.h"
 #include "util/clocksource.h"
 
@@ -30,6 +31,18 @@ class simulator : public playtype_source, public noncopyable, public sigc::track
 		// Sets the engine to use to implement simulation.
 		//
 		void set_engine(const Glib::ustring &engine_name);
+
+		//
+		// Gets the current autoref.
+		//
+		autoref::ptr get_autoref() const {
+			return ref;
+		}
+
+		//
+		// Sets the autoref to use.
+		//
+		void set_autoref(const Glib::ustring &autoref_name);
 
 		//
 		// Gets the current play type.
@@ -67,7 +80,7 @@ class simulator : public playtype_source, public noncopyable, public sigc::track
 		//
 		// The current ball_impl.
 		//
-		ball_impl::ptr the_ball_impl;
+		simulator_ball_impl::ptr the_ball_impl;
 
 	public:
 		//
@@ -90,6 +103,11 @@ class simulator : public playtype_source, public noncopyable, public sigc::track
 		// The engine.
 		//
 		simulator_engine::ptr engine;
+
+		//
+		// The autoref.
+		//
+		autoref::ptr ref;
 
 		//
 		// The configuration element.
