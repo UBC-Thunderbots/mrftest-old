@@ -106,7 +106,7 @@ namespace {
 
 			void tick() {
 					
-				for(int i=0; i< UPDATES_PER_TICK; i++){
+				for(unsigned int i=0; i< UPDATES_PER_TICK; i++){
 				
 					if(i>0){
 						for (unsigned int j = 0; j < the_players.size(); j++) {
@@ -232,7 +232,7 @@ namespace {
 				
 				 playerODE::ptr robot = emptyPlayer;
 				 
-				 for(int i=0; i<the_players.size(); i++){
+				 for(unsigned int i=0; i<the_players.size(); i++){
 					 if(the_players[i]->has_ball()){
 					 	robot = the_players[i];
 					 }
