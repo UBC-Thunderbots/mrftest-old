@@ -1,5 +1,5 @@
-#ifndef SIMULATOR_ENGINE_H
-#define SIMULATOR_ENGINE_H
+#ifndef SIMULATOR_AUTOREF_H
+#define SIMULATOR_AUTOREF_H
 
 #include "simulator/ball.h"
 #include "world/player_impl.h"
