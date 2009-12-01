@@ -240,85 +240,83 @@ namespace {
       }
     int prefer_defender_number = std::min((our_effective_team_size - prefer_off_to_def_diff)/2, our_effective_team_size);
     int prefer_offender_number = our_effective_team_size - prefer_defender_number;
-    //		std::cout << "prefer_def_num" << prefer_defender_number << " prefer_off_num" << prefer_offender_number << std::endl;
-      {
-	//make sure the nearest robot is always an offender, 
-	//then assigns the next (prefer_offender_number - 1) robots in the front side to the offender role,
-	//if there is not enough in the front side, pick from back side.
-	
-	//check if the nearest robot is in the front side
-	bool nearest_robot_is_in_front;
-	if (our_details_front.size() == 0)
-	  {	nearest_robot_is_in_front = false;
-	  } else
-	  {	if (our_details_back.size() == 0)
-	      {	nearest_robot_is_in_front = true;
-	      }else
-	      {	nearest_robot_is_in_front = our_details_front[0].dist_to_ball < our_details_back[0].dist_to_ball;
-	      }
+    //std::cout << "prefer_def_num" << prefer_defender_number << " prefer_off_num" << prefer_offender_number << std::endl;
+      //make sure the nearest robot is always an offender, 
+      //then assigns the next (prefer_offender_number - 1) robots in the front side to the offender role,
+      //if there is not enough in the front side, pick from back side.
+      
+      //check if the nearest robot is in the front side
+    bool nearest_robot_is_in_front;
+    if (our_details_front.size() == 0)
+      {	nearest_robot_is_in_front = false;
+      } else
+      {	if (our_details_back.size() == 0)
+	  {	nearest_robot_is_in_front = true;
+	  }else
+	  {	nearest_robot_is_in_front = our_details_front[0].dist_to_ball < our_details_back[0].dist_to_ball;
 	  }
-	if (nearest_robot_is_in_front)
-	  {	//put our_details_front[0]->index to the offender side
-	    offenders.push_back(the_team->get_player(our_details_front[0].index));
+      }
+    if (nearest_robot_is_in_front)
+      {	//put our_details_front[0]->index to the offender side
+	offenders.push_back(the_team->get_player(our_details_front[0].index));
+      }
+    else
+      {	//put our_details_back[0]->index to the offender side
+	offenders.push_back(the_team->get_player(our_details_back[0].index));
+      }
+    int assigned_offender_number = 1;
+    for (unsigned int i = nearest_robot_is_in_front; i < our_details_front.size(); i++)
+      {
+	if (assigned_offender_number < prefer_offender_number)	
+	  {	//put our_details_front[i]->index to the offender side	
+	    offenders.push_back(the_team->get_player(our_details_front[i].index));
+	    assigned_offender_number ++ ;	
 	  }
 	else
-	  {	//put our_details_back[0]->index to the offender side
-	    offenders.push_back(the_team->get_player(our_details_back[0].index));
+	  {	//put our_details_front[i]->index to the defender side	
+	    defenders.push_back(the_team->get_player(our_details_front[i].index));
 	  }
-	int assigned_offender_number = 1;
-	for (unsigned int i = nearest_robot_is_in_front; i < our_details_front.size(); i++)
-	  {
-	    if (assigned_offender_number < prefer_offender_number)	
-	      {	//put our_details_front[i]->index to the offender side	
-		offenders.push_back(the_team->get_player(our_details_front[i].index));
-		assigned_offender_number ++ ;	
-	      }
-	    else
-	      {	//put our_details_front[i]->index to the defender side	
-		defenders.push_back(the_team->get_player(our_details_front[i].index));
-	      }
+      }
+    for (unsigned int i = 1-nearest_robot_is_in_front; i < our_details_back.size(); i++)
+      {
+	if (assigned_offender_number < prefer_offender_number)	
+	  {	//put our_details_back[i].index to the offender side	
+	    offenders.push_back(the_team->get_player(our_details_back[i].index));
+	    assigned_offender_number ++ ;	
 	  }
-	for (unsigned int i = 1-nearest_robot_is_in_front; i < our_details_back.size(); i++)
-	  {
-	    if (assigned_offender_number < prefer_offender_number)	
-	      {	//put our_details_back[i].index to the offender side	
-		offenders.push_back(the_team->get_player(our_details_back[i].index));
-		assigned_offender_number ++ ;	
-	      }
-	    else
-	      {	//put our_details_back[i].index to the defender side	
-		defenders.push_back(the_team->get_player(our_details_back[i].index));
-	      }
+	else
+	  {	//put our_details_back[i].index to the defender side	
+	    defenders.push_back(the_team->get_player(our_details_back[i].index));
 	  }
       }	//end of (prefer_offender_number != 0 )
-    
-    if (turn_since_last_update % 100)
-      {
-	std::cout << "off" << offenders.size() << std::endl;
+  
+  if (turn_since_last_update % 100)
+    {
+      std::cout << "off" << offenders.size() << std::endl;
       for (unsigned int i = 0; i<offenders.size(); i++)
 	{
 	  std::cout << offenders[i]->position().x << " " << offenders[i]->position().y << std::endl;
 	}
-	std::cout << "def" << defenders.size() << std::endl;
+      std::cout << "def" << defenders.size() << std::endl;
       for (unsigned int i = 0; i<defenders.size(); i++)
 	{
 	  std::cout << defenders[i]->position().x << " " << defenders[i]->position().y << std::endl;
 	}
-	std::cout << "ball:" <<  the_ball->position().x << " " << the_ball->position().y << std::endl;
-      }
-    roles.clear();
-    roles.push_back(role::ptr(new offensive(the_ball, the_field, the_team)));
-    roles[0]->set_robots(offenders);
-    roles[0]->tick();
-    roles.push_back(role::ptr(new defensive(the_ball, the_field, the_team)));
-    roles[1]->set_robots(defenders);
-    roles[1]->tick();
-    //	for (int i = 0; (assigned_offender_number < prefer_offender_number) && (nearest_robot_is_in_front+i < our_details_front.size()); i++)
-    //	for (int i = 0; assigned_offender_number < prefer_offender_number; i++)
-    
-    
-    //use later
-    /*	if ( our_distance_to_ball[0] / possession_confidence < their_distance_to_ball[0] )  
+      std::cout << "ball:" <<  the_ball->position().x << " " << the_ball->position().y << std::endl;
+    }
+  roles.clear();
+  roles.push_back(role::ptr(new offensive(the_ball, the_field, the_team)));
+  roles[0]->set_robots(offenders);
+  roles[0]->tick();
+  roles.push_back(role::ptr(new defensive(the_ball, the_field, the_team)));
+  roles[1]->set_robots(defenders);
+  roles[1]->tick();
+  //	for (int i = 0; (assigned_offender_number < prefer_offender_number) && (nearest_robot_is_in_front+i < our_details_front.size()); i++)
+  //	for (int i = 0; assigned_offender_number < prefer_offender_number; i++)
+  
+  
+  //use later
+  /*	if ( our_distance_to_ball[0] / possession_confidence < their_distance_to_ball[0] )  
 	{
 	}
 	else
@@ -510,52 +508,52 @@ namespace {
     
   }
 
-	void kenneth_simple_strategy::robot_added(void) {
-	  std::cout << "<<<<<<<<<ROBOT ADDED>>>>" << std::endl;	 
-	  if ((the_team->size()==1) || (goalie_player==player::ptr(NULL)) )
-	    {
-	      goalie_player = the_team->get_player(0);
-	      std::cout << "new goalie robot assigned" << std::endl;	      
-	    }
-	  reset_all(); 
-	}
+  void kenneth_simple_strategy::robot_added(void) {
+    std::cout << "<<<<<<<<<ROBOT ADDED>>>>" << std::endl;	 
+    if ((the_team->size()==1) || (goalie_player==player::ptr(NULL)) )
+      {
+	goalie_player = the_team->get_player(0);
+	std::cout << "new goalie robot assigned" << std::endl;	      
+      }
+    reset_all(); 
+  }
+  
+  void kenneth_simple_strategy::robot_removed(unsigned int, player::ptr r) {	  
+    std::cout << "<<<<<<<<<ROBOT Removed>>>>" << std::endl;
+    if (r==goalie_player)
+      {
+	std::cout << "goalie_player removed" << std::endl;
+	if (the_team->size()>=1)
+	  {
+	    goalie_player = the_team->get_player(0);
+	    std::cout << goalie_player << std::endl;
+	    std::cout << "new goalie player assigned" << std::endl;	      
+	  }else
+	  {
+	    goalie_player = player::ptr(NULL);
+	  }
+      }
+    reset_all();
+  }
+  
+  class kenneth_simple_strategy_factory : public strategy_factory {
+  public:
+    kenneth_simple_strategy_factory();
+    strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
+  };
 
-	void kenneth_simple_strategy::robot_removed(unsigned int, player::ptr r) {	  
-	  std::cout << "<<<<<<<<<ROBOT Removed>>>>" << std::endl;
-	  if (r==goalie_player)
-	    {
-	      std::cout << "goalie_player removed" << std::endl;
-	      if (the_team->size()>=1)
-		{
-		  goalie_player = the_team->get_player(0);
-		  std::cout << goalie_player << std::endl;
-		  std::cout << "new goalie player assigned" << std::endl;	      
-		}else
-		{
-		  goalie_player = player::ptr(NULL);
-		}
-	    }
-	  reset_all();
-	}
+  kenneth_simple_strategy_factory::kenneth_simple_strategy_factory() : strategy_factory("Kenneth Simple Strategy") {
+  }
 
-	class kenneth_simple_strategy_factory : public strategy_factory {
-		public:
-			kenneth_simple_strategy_factory();
-			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
-	};
-
-	kenneth_simple_strategy_factory::kenneth_simple_strategy_factory() : strategy_factory("Kenneth Simple Strategy") {
-	}
-
-	strategy::ptr kenneth_simple_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) {
-		strategy::ptr s(new kenneth_simple_strategy(ball, field, team, pt_src));
-		return s;
-	}
-
-	kenneth_simple_strategy_factory factory;
-
-	strategy_factory &kenneth_simple_strategy::get_factory() {
-		return factory;
-	}
+  strategy::ptr kenneth_simple_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) {
+    strategy::ptr s(new kenneth_simple_strategy(ball, field, team, pt_src));
+    return s;
+  }
+  
+  kenneth_simple_strategy_factory factory;
+  
+  strategy_factory &kenneth_simple_strategy::get_factory() {
+    return factory;
+  }
 }
 
