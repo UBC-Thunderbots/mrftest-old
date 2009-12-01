@@ -500,7 +500,7 @@ namespace {
 	  reset_all(); 
 	}
 
-	void simu_test_strategy::robot_removed(unsigned int index, player::ptr r) {	  
+	void simu_test_strategy::robot_removed(unsigned int, player::ptr r) {	  
 	  std::cout << "<<<<<<<<<ROBOT Removed>>>>" << std::endl;
 	  if (r==goalie_player)
 	    {
@@ -524,7 +524,7 @@ namespace {
 			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
 	};
 
-	simu_test_strategy_factory::simu_test_strategy_factory() : strategy_factory("Simulator Test Strategy") {
+	simu_test_strategy_factory::simu_test_strategy_factory() : strategy_factory("Simulator Test (For Jason)") {
 	}
 
 	strategy::ptr simu_test_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) {
