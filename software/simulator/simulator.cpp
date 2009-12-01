@@ -3,7 +3,7 @@
 #include "util/xml.h"
 #include "world/config.h"
 
-simulator::simulator(xmlpp::Element *xml, clocksource &clk) : cur_playtype(playtype::halt), fld(new simulator_field), west_ball(new ball(ball_impl::trivial(), false)), east_ball(new ball(ball_impl::trivial(), true)), west_team(*this, false, xmlutil::strip(xmlutil::get_only_child(xml, "westteam")), true, west_ball, fld), east_team(*this, true, xmlutil::strip(xmlutil::get_only_child(xml, "eastteam")), false, east_ball, fld), xml(xml) {
+simulator::simulator(xmlpp::Element *xml, clocksource &clk) : cur_playtype(playtype::halt), the_ball_impl(ball_impl::trivial()), fld(new simulator_field), west_ball(new ball(the_ball_impl, false)), east_ball(new ball(the_ball_impl, true)), west_team(*this, false, xmlutil::strip(xmlutil::get_only_child(xml, "westteam")), true, west_ball, fld), east_team(*this, true, xmlutil::strip(xmlutil::get_only_child(xml, "eastteam")), false, east_ball, fld), xml(xml) {
 	// Configure objects with each other as the opponents.
 	west_team.set_other(east_team.west_view, east_team.east_view);
 	east_team.set_other(west_team.west_view, west_team.east_view);
@@ -33,13 +33,12 @@ void simulator::set_engine(const Glib::ustring &engine_name) {
 
 	// Select the proper implementation of the ball.
 	if (engine) {
-		const ball_impl::ptr &impl = engine->get_ball();
-		west_ball->set_impl(impl);
-		east_ball->set_impl(impl);
+		the_ball_impl = engine->get_ball();
 	} else {
-		west_ball->set_impl(ball_impl::trivial());
-		east_ball->set_impl(ball_impl::trivial());
+		the_ball_impl = ball_impl::trivial();
 	}
+	west_ball->set_impl(the_ball_impl);
+	east_ball->set_impl(the_ball_impl);
 
 	// Make the teams use the proper engine.
 	west_team.set_engine(engine);
@@ -59,5 +58,6 @@ void simulator::tick() {
 		engine->tick();
 	west_team.tick_postengine();
 	east_team.tick_postengine();
+	the_ball_impl->add_prediction_datum(the_ball_impl->position());
 }
 

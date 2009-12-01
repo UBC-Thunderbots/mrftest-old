@@ -64,6 +64,11 @@ class simulator : public playtype_source, public noncopyable, public sigc::track
 		//
 		sigc::signal<void, playtype::playtype> sig_playtype_changed;
 
+		//
+		// The current ball_impl.
+		//
+		ball_impl::ptr the_ball_impl;
+
 	public:
 		//
 		// The field.
