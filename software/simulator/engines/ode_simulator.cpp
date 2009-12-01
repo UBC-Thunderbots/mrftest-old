@@ -134,7 +134,7 @@ namespace {
 			void setWorld(dWorldID world) {
 				eworld = world;
 			}
-			ball_impl::ptr get_ball() {
+			simulator_ball_impl::ptr get_ball() {
 				return the_ball;
 			}
 

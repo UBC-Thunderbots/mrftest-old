@@ -1,6 +1,7 @@
 #include "geom/angle.h"
 #include "simulator/engine.h"
 #include "world/timestep.h"
+#include <cmath>
 
 namespace {
 	//
@@ -26,7 +27,7 @@ namespace {
 	//
 	// A collisionless-kinematic ball_impl.
 	//
-	class ck_ball : public ball_impl {
+	class ck_ball : public simulator_ball_impl {
 		public:
 			typedef Glib::RefPtr<ck_ball> ptr;
 
@@ -49,6 +50,10 @@ namespace {
 			void ui_set_position(const point &pos) {
 				the_position = pos;
 				the_velocity.x = the_velocity.y = 0;
+			}
+
+			bool in_goal() {
+				return std::fabs(the_position.x) > 3.025 && std::fabs(the_position.y) < 0.35;
 			}
 
 		private:
@@ -155,7 +160,7 @@ namespace {
 					the_players[i]->tick();
 			}
 
-			ball_impl::ptr get_ball() {
+			simulator_ball_impl::ptr get_ball() {
 				return the_ball;
 			}
 

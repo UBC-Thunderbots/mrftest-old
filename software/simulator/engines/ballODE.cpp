@@ -115,4 +115,8 @@ point the_position, the_velocity;
 
 			}
 
+			bool ballODE::in_goal() {
+#warning THIS CODE NEEDS TO BE WRITTEN
+				return false;
+			}
 

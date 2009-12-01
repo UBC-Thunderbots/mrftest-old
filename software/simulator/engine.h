@@ -1,7 +1,7 @@
 #ifndef SIMULATOR_ENGINE_H
 #define SIMULATOR_ENGINE_H
 
-#include "world/ball_impl.h"
+#include "simulator/ball.h"
 #include "world/player_impl.h"
 #include <libxml++/libxml++.h>
 
@@ -34,7 +34,7 @@ class simulator_engine : public byref {
 		// Called to retrieve the engine's specific ball_impl object. A given
 		// engine must always return the same ball_impl object!
 		//
-		virtual ball_impl::ptr get_ball() = 0;
+		virtual simulator_ball_impl::ptr get_ball() = 0;
 
 		//
 		// Called to create a new player. The engine must keep a pointer to the
