@@ -36,6 +36,11 @@ CXXFLAGS := -Wall -Wextra -O2 -fomit-frame-pointer $(shell pkg-config --cflags g
 world : $(PROJECTS)
 
 #
+# Prevent echoing of compilation commands.
+#
+.SILENT :
+
+#
 # Template of code to generate for each project.
 #
 define project_template
