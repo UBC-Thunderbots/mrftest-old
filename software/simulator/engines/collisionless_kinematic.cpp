@@ -47,9 +47,9 @@ namespace {
 				return the_position;
 			}
 
-			void ui_set_position(const point &pos) {
+			void ext_drag(const point &pos, const point &vel) {
 				the_position = pos;
-				the_velocity.x = the_velocity.y = 0;
+				the_velocity = vel;
 			}
 
 			bool in_goal() {
@@ -134,9 +134,9 @@ namespace {
 			void chip(double) {
 			}
 
-			void ui_set_position(const point &pos) {
+			void ext_drag(const point &pos, const point &vel) {
 				the_position = pos;
-				the_velocity.x = the_velocity.y = 0;
+				the_velocity = vel;
 				target_velocity.x = target_velocity.y =0;
 				avelocity = 0;
 			}

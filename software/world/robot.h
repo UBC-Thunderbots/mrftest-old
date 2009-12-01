@@ -39,8 +39,8 @@ class robot : public draggable {
 		//
 		// Allows the UI to set the position of the robot.
 		//
-		void ui_set_position(const point &p) {
-			impl->ui_set_position(p * (flip ? -1.0 : 1.0));
+		void ext_drag(const point &p, const point &v) {
+			impl->ext_drag(p * (flip ? -1.0 : 1.0), v * (flip ? -1.0 : 1.0));
 		}
 
 		//

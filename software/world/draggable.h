@@ -5,7 +5,8 @@
 #include "util/byref.h"
 
 //
-// An object that can be dragged around in the visualizer.
+// An object that can be dragged around in the visualizer and manipulated by
+// framework code such as autorefs.
 //
 class draggable : public byref {
 	public:
@@ -15,10 +16,10 @@ class draggable : public byref {
 		typedef Glib::RefPtr<draggable> ptr;
 
 		//
-		// Sets the position of the object. This should ONLY be called from the
-		// UI, not from the AI!
+		// Sets the position and velocity of the object. This should NOT be
+		// called from the AI!
 		//
-		virtual void ui_set_position(const point &) = 0;
+		virtual void ext_drag(const point &pos, const point &vel) = 0;
 };
 
 #endif

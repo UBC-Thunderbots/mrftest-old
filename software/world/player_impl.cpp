@@ -27,7 +27,7 @@ namespace {
 			void chip(double) {
 			}
 
-			void ui_set_position(const point &) {
+			void ext_drag(const point &, const point &) {
 			}
 	};
 }

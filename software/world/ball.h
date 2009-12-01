@@ -31,8 +31,8 @@ class ball : public draggable {
 		//
 		// Allows the UI to set the position of the ball.
 		//
-		void ui_set_position(const point &pos) {
-			impl->ui_set_position(pos * (flip ? -1.0 : 1.0));
+		void ext_drag(const point &p, const point &v) {
+			impl->ext_drag(p * (flip ? -1.0 : 1.0), v * (flip ? -1.0 : 1.0));
 		}
 
 		//

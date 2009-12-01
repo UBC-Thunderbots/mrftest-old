@@ -30,7 +30,7 @@ class ballODE : public simulator_ball_impl {
 			
 			double getRadius();
 
-			void ui_set_position(const point &pos);
+			void ext_drag(const point &pos, const point &vel);
 
 			bool in_goal();
 

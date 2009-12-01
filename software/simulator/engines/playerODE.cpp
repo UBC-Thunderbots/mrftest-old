@@ -344,7 +344,7 @@
 				//std::cout<<"chip strength: "<<strength<<std::endl;
 			}
 
-			void playerODE::ui_set_position(const point &pos) {
+			void playerODE::ext_drag(const point &pos, const point &vel) {
 				posSet = true;
 				const dReal *t = dBodyGetPosition (body);
 				const dReal *t2 = dBodyGetPosition (body2);
@@ -355,6 +355,7 @@
 				dBodySetAngularVel (body, 0.0, 0.0, 0.0);
 				dBodySetAngularVel (body2, 0.0, 0.0, 0.0);
 				createJointBetweenB1B2();
+#warning APPLY THE VELOCITY PARAMETER
 			}
 
 		

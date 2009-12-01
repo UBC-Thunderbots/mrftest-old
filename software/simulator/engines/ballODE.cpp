@@ -106,13 +106,13 @@ point the_position, the_velocity;
 					return point(0.0, 0.0);
 			}
 
-			void ballODE::ui_set_position(const point &pos) {
+			void ballODE::ext_drag(const point &pos, const point &vel) {
 				const dReal *t = dBodyGetPosition (body);
 				
 				dBodySetPosition(body, pos.x, pos.y, t[2]);
 				dBodySetLinearVel(body, 0.0, 0.0, 0.0);
 				dBodySetAngularVel (body, 0.0, 0.0, 0.0);
-
+#warning APPLY THE VELOCITY PARAMETER
 			}
 
 			bool ballODE::in_goal() {

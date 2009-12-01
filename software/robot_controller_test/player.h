@@ -19,7 +19,7 @@ class rc_test_player : public player_impl {
 		void dribble(double) {}
 		void kick(double) {}
 		void chip(double) {}
-		void ui_set_position(const point &) {}
+		void ext_drag(const point &, const point &) {}
 	private:
 		point pos;
 		double ori;

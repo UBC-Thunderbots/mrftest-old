@@ -190,7 +190,7 @@ bool visualizer::on_button_release_event(GdkEventButton *evt) {
 bool visualizer::on_motion_notify_event(GdkEventMotion *evt) {
 	if (dragging) {
 		// Move the object being dragged.
-		dragging->ui_set_position(point(xtow(evt->x), ytow(evt->y)));
+		dragging->ext_drag(point(xtow(evt->x), ytow(evt->y)), point());
 		update();
 	}
 

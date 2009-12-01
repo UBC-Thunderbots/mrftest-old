@@ -156,7 +156,7 @@ namespace {
 					}
 				}
 				
-				p->ui_set_position(cur);
+				p->ext_drag(cur, point());
 				the_players.push_back(p);
 				return p;
 			}
