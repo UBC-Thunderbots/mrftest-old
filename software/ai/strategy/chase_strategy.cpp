@@ -36,7 +36,7 @@ namespace {
 	void chase_strategy::robot_added(void){
 	}
 
-	void chase_strategy::robot_removed(unsigned int index, player::ptr r){
+	void chase_strategy::robot_removed(unsigned int, player::ptr){
 	}
 
 	class chase_strategy_factory : public strategy_factory {
