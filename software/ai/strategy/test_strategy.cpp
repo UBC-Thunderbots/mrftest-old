@@ -86,6 +86,8 @@ namespace {
 
 			pass::ptr pass_tactic (new pass(the_ball, the_field, the_team, the_player));
 			pass_tactic->set_receiver(receiver);
+			if (the_player->has_ball())
+				std::cout << "Player " << i << " has the ball." << std::endl;
 			pass_tactic->tick();					
 		}	
 	}
@@ -109,7 +111,7 @@ namespace {
 			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
 	};
 
-	test_strategy_factory::test_strategy_factory() : strategy_factory("Test(Pass) Strategy") {
+	test_strategy_factory::test_strategy_factory() : strategy_factory("Test(Tactics) Strategy") {
 	}
 
 	strategy::ptr test_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) {

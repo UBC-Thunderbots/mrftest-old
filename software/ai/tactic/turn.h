@@ -28,10 +28,21 @@ class turn : public tactic {
 		//
 		void set_direction(const point& dir);	
 
+		//
+		// Returns true if the angle for which we need to turn is smaller than the tolerance.
+		//
+		bool is_turned(const double& tol);
+
 	protected:
 
 		point the_direction;				
 
+	private:
+		
+		//
+		// Returns the change in angle between the current orientation and the desired orientation.
+		//
+		double d_angle();
 };
 
 #endif

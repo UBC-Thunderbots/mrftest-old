@@ -11,15 +11,24 @@ void kick::set_chip(const bool& chip) {
 	should_chip = chip;
 }
 
+#include <iostream>
+
 void kick::tick() {
 	// turn towards the target
 	turn_tactic->set_direction(the_target);
-	turn_tactic->tick();	
 
-	// assume maximum strength for now...
-	if (should_chip)
-		the_player->chip(1);
-	else
-		the_player->kick(1);
+	const double TOL = 10;
+
+	if (!turn_tactic->is_turned(TOL)) 
+		turn_tactic->tick();	
+	else {
+//		std::cout << "kicking" << std::endl;
+		// assume maximum strength for now...
+		if (should_chip)
+			the_player->chip(1);
+		else
+			the_player->kick(1);
+	}
+
 }
 
