@@ -1,4 +1,5 @@
 #include "simulator/ball.h"
+#include "simulator/field.h"
 #include <ode/ode.h>
 
 //
@@ -37,6 +38,8 @@ class ballODE : public simulator_ball_impl {
 	private:
 			point the_position, the_velocity;
 			 double dradius;
+			 field::ptr fld;
+			
 
 };
 

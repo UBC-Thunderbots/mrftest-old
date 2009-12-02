@@ -32,7 +32,8 @@ point the_position, the_velocity;
 				dGeomSetBody (ballGeom,body);
 				dSpaceAdd (dspace, ballGeom);
 				dBodySetLinearDamping (body, 0.2);
-
+				 field::ptr fldd(new simulator_field);
+				 fld = fldd;
 
 			}
 			
@@ -110,13 +111,26 @@ point the_position, the_velocity;
 				const dReal *t = dBodyGetPosition (body);
 				
 				dBodySetPosition(body, pos.x, pos.y, t[2]);
-				dBodySetLinearVel(body, 0.0, 0.0, 0.0);
+				dBodySetLinearVel(body, vel.x, vel.y, 0.0);
 				dBodySetAngularVel (body, 0.0, 0.0, 0.0);
-#warning APPLY THE VELOCITY PARAMETER
+
 			}
 
 			bool ballODE::in_goal() {
-#warning THIS CODE NEEDS TO BE WRITTEN
+			point p;
+				const dReal *t = dBodyGetPosition (body);
+				p.x = t[0];
+				p.y = t[1];
+				if(p.x>fld->length() || p.x<-fld->length()){
+					if(p.y<fld->width() && p.y>-fld->goal_width()){
+						//double height = t[2];
+						//if(height<fld->goal_height())return true;
+						return true;
+					}
+				}
+
+
+
 				return false;
 			}
 

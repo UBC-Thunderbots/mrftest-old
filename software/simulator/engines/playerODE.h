@@ -31,8 +31,9 @@ class playerODE : public player_impl {
 	dGeomID ballGeom;
 	double maxAvel, maxAaccel;
 	double updates_per_tick;
-	
+	double jerkLimit;
 	double fcex,fcey,torquez;
+	point prevAccel;
 	public:
 
 	playerODE( dWorldID dworld, dSpaceID dspace,  dGeomID ballGeom, double ups_per_tick);

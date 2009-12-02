@@ -122,8 +122,8 @@ namespace {
 	 				//step the world (have ODE do 1 iterations per step)
 					//dWorldStep (eworld, 1);
 					dWorldSetQuickStepNumIterations (eworld, 50);
-					double timeStep = 1.0/static_cast<double>(TIMESTEPS_PER_SECOND*UPDATES_PER_TICK);
-					
+					//double timeStep = 1.0/static_cast<double>(UPDATES_PER_TICK);
+					double timeStep = 1.0/static_cast<double>(TIMESTEPS_PER_SECOND);
 					dWorldQuickStep(eworld, timeStep);
 					//remove all the contact points that we created in this step
 					dJointGroupEmpty (contactgroup);
@@ -191,11 +191,9 @@ namespace {
 			void handleCollisionWithGround(dGeomID o1, dGeomID o2){
 				int g1 = (o1 == the_ball->ballGeom);
 				int g2 = (o2 == the_ball->ballGeom);
-				double frict = MU;
 				int i=0;		
 				if ((g1 ^ g2)){
 					handleBallCollisionWithGround(o1,o2);
-					//frict = MU*6;
 				}else{
 			
 				  dBodyID b1 = dGeomGetBody(o1);
@@ -285,7 +283,7 @@ namespace {
 			//if a shape interescts with the ball set the contact parameters
 			//
 			void handleBallCollision (dGeomID o1, dGeomID o2){
-				int i=0;
+				  unsigned int i=0;
 				  dBodyID b1 = dGeomGetBody(o1);
 				  dBodyID b2 = dGeomGetBody(o2);
 				  const unsigned int num_contact = 7;
@@ -303,9 +301,9 @@ namespace {
 					    contact[i].surface.mode = dContactSoftCFM;
 					    contact[i].surface.mu = MU;
 					    //contact[i].surface.mu
-					   contact[i].surface.soft_cfm = 0.5;
+					   contact[i].surface.soft_cfm = 0.3;
 					  }
-					  if (int numc = dCollide (o1,o2,num_contact,&contact[0].geom,sizeof(dContact))) {
+					  if (unsigned int numc = dCollide (o1,o2,num_contact,&contact[0].geom,sizeof(dContact))) {
 					    for (i=0; i<numc; i++) {
 					      dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
 					      dJointAttach (c,b1,b2);

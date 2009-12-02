@@ -4,19 +4,20 @@
 #include <math.h>
 #include <algorithm>
 
-			playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0), target_avelocity(0.0) {
+			playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0), target_avelocity(0.0), prevAccel(0.0, 0.0) {
 			
 			updates_per_tick = ups_per_tick;
 				double dribble_radius = 0.005;//half a cm
 				ballGeom = ballGeomi;
 				double ballradius = dGeomSphereGetRadius(ballGeom);
-				maxAvel = 16.0;
-				maxAaccel = 16.0;
+				maxAvel = 2.0;
+				maxAaccel = 1.0;
 				world = eworld;
 				body = dBodyCreate(world);
 				body2 = dBodyCreate(world);
 				double x_pos = 0.0;
 				double y_pos = 0.0;
+				jerkLimit = 3.0;
 				
 				fcex=0;
 				fcey=0;
@@ -41,7 +42,7 @@
 				dBodySetMass (body,&mass);
 				dBodySetLinearDamping (body, 0.12);
 				dBodySetMass (body2,&mass2);
-				momentInertia = mass2.mass*2;
+				momentInertia = mass2.mass*0.2;
 				dGeomSetBody (robotGeom,body);
 				dGeomSetBody (robotGeomTop,body2);
 				
@@ -56,7 +57,7 @@
 				dSpaceAdd (dspace, robotGeom);
 				dSpaceAdd (dspace, robotGeomTop);
 				dBodySetAngularDamping (body, 0.002);
-				dBodySetAngularDamping (body2, 0.002);
+				dBodySetAngularDamping (body2, 0.02);
 				contactgroup = dJointGroupCreate (0);
 	 			createJointBetweenB1B2();
 			}
@@ -138,6 +139,10 @@
 				point play_ball_diff = ball_loc - play_loc;
 				point rel_play_ball_diff = play_ball_diff.rotate(-orientation());
 				play_ball_diff  = rel_play_ball_diff;
+				
+				if(play_ball_diff.x < x_len/2 + dGeomSphereGetRadius(ballGeom) - hasBallTolerance){
+					hasTheBall=false;
+				}
 
 				if(play_ball_diff.x > x_len/2 + dGeomSphereGetRadius(ballGeom) + hasBallTolerance){
 					hasTheBall=false;
@@ -170,6 +175,10 @@
 				point play_ball_diff = ball_loc - play_loc;
 				point rel_play_ball_diff = play_ball_diff.rotate(-orientation());
 				play_ball_diff  = rel_play_ball_diff;
+
+				if(play_ball_diff.x < x_len/2 + dGeomSphereGetRadius(ballGeom) - hasBallTolerance){
+					hasTheBall=false;
+				}
 
 				if(play_ball_diff.x > x_len/2 + dGeomSphereGetRadius(ballGeom) + hasBallTolerance){
 					hasTheBall=false;
@@ -205,9 +214,8 @@
 
 			void playerODE::move_impl(const point &vel, double avel) {					
 				if(!posSet){
-					double MaxRadians_perSec = 1.0;
-					double Accel_Max = 15.5;
-					double V_MaxVel = 12.5;
+					double Accel_Max = 5.5;
+					double V_MaxVel = 3.0;
 					
 					target_velocity = vel;
 					point tVelocity = vel;
@@ -225,26 +233,44 @@
 					tVelocity = tVelocity.rotate(orientation());
 					
 					double magVel = sqrt(tVelocity.x*tVelocity.x + tVelocity.y*tVelocity.y);
+					
 					if(magVel>V_MaxVel){
 						tVelocity= tVelocity/magVel;
 						tVelocity= tVelocity*V_MaxVel;
 					}
+					
 					dBodyEnable (body);
 					dBodySetDynamic (body);
 
 					point vDiff = tVelocity - the_velocity;				
-					point acc = vDiff/static_cast<double>(TIMESTEPS_PER_SECOND);
-					//acc = acc/updates_per_tick;
-					double mag = acc.len();
+					point acc = vDiff*static_cast<double>(TIMESTEPS_PER_SECOND);
+					acc = acc/updates_per_tick;
+					double magAcc = acc.len();
 					
-					if(mag>Accel_Max){
-						acc=acc/mag;
+					if(magAcc>Accel_Max){
+						acc=acc/magAcc;
 						acc=acc*Accel_Max;
+					}
+					
+					//acc
+					point accelDiff = acc - prevAccel;
+					
+					double magJerk = accelDiff.len()*static_cast<double>(TIMESTEPS_PER_SECOND);
+					
+					double directionAccel_change = acc.dot(prevAccel);
+					if(directionAccel_change>0){
+					
+					if(magJerk>jerkLimit){
+						accelDiff = accelDiff/accelDiff.len();
+						accelDiff = accelDiff*(jerkLimit/static_cast<double>(TIMESTEPS_PER_SECOND));
+					}
+					
+					acc = prevAccel + accelDiff;
+					
 					}
 					
 					double m = mass.mass + mass2.mass;
 					point fce = acc*((double)m);
-					fce = fce;
 					
 					if(avel>maxAvel || avel<(-maxAvel)){
 						//enorce a max turn speed
@@ -260,8 +286,8 @@
 					double avelRobot = t[2];
 					//std::cout<<avelRobot<<std::endl;
 					double avelDiff = avelocity - avelRobot;
-					double aAccel = avelDiff/static_cast<double>(TIMESTEPS_PER_SECOND);
-					//aAccel = aAccel/updates_per_tick;
+					double aAccel = avelDiff*static_cast<double>(TIMESTEPS_PER_SECOND);
+					aAccel = aAccel/updates_per_tick;
 					
 					if(aAccel>maxAaccel){
 						aAccel= maxAaccel;
@@ -272,26 +298,32 @@
 
 					double torque = aAccel*momentInertia;
 					//double realizedAVel = avelRobot + aAccel;
-					
+										
+					fcex=fce.x;
+					fcey= fce.y;
+					torquez=torque;
 					//dBodySetAngularVel (body2, 0.0, 0.0, realizedAVel);
 					dBodyAddTorque (body2, 0.0, 0.0, torque);
 
 					dBodyAddForce (body, fce.x, fce.y, 0.0);
 					
-					fcex=fce.x;
-					fcey= fce.y;
-					torquez=torque;
+					prevAccel = acc;
+
 				}
 				posSet=false;		
 			}
 			
 			void playerODE::dribble(double speed) {
-			
+				
+				double max_Angular_vel = 5.0;
 			
 				if(speed<0 || speed>1)return;
 			
 				double maxTorque = 0.0001;//static_cast<double>(TIMESTEPS_PER_SECOND); //is this realistic???			
 				double appliedTorque = -(speed*maxTorque);
+				
+				const dReal * t = dBodyGetAngularVel (dGeomGetBody(ballGeom));
+				//std::cout<<"dribble"<< t[0]<<" "<<t[1]<<" "<<t[2]<<std::endl;
 				
 				//std::cout<<"dribble speed: "<<speed<<std::endl;
 				point torqueAxis(0,1);
@@ -300,7 +332,16 @@
 				torqueAxis*=appliedTorque;
 				
 				if(has_ball(0.005)){
+				
+				//std::cout<<"dribble"<<std::endl;
+				//std::cout<<"dribble"<< t[0]<<" "<<t[1]<<" "<<t[2]<<std::endl;
+				point ball_turn;
+				ball_turn.x = t[0];
+				ball_turn.y = t[1];
+				if(! ball_turn.len() > max_Angular_vel){
 					dBodyAddTorque(dGeomGetBody(ballGeom), torqueAxis.x, torqueAxis.y, 0.0);
+				}
+					
 				}
 				
 				
@@ -350,12 +391,12 @@
 				const dReal *t2 = dBodyGetPosition (body2);
 				dBodySetPosition(body, pos.x, pos.y, t[2]);
 				dBodySetPosition(body2, pos.x, pos.y, t2[2]);
-				dBodySetLinearVel(body,0.0,0.0,0.0);
-				dBodySetLinearVel(body2,0.0,0.0,0.0);
+				dBodySetLinearVel(body,vel.x,vel.y,0.0);
+				dBodySetLinearVel(body2,vel.x,vel.y,0.0);
 				dBodySetAngularVel (body, 0.0, 0.0, 0.0);
 				dBodySetAngularVel (body2, 0.0, 0.0, 0.0);
 				createJointBetweenB1B2();
-#warning APPLY THE VELOCITY PARAMETER
+
 			}
 
 		
