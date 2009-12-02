@@ -21,7 +21,7 @@
 #include "ai/role/execute_penalty_friendly.h"
 
 #include <iostream>
-//created by Kenneth Lui, last updated 30 Nov 2009.
+//created by Kenneth Lui, last updated 1 Dec 2009.
 //This strategy was created to test the simulator.
 
 namespace simu_test{
@@ -45,9 +45,13 @@ namespace simu_test{
     int test_id;
     bool test_done;
     bool test_started;
+    bool tc_receive_receiving;
+    int tc_receive_receive_count;
+    bool tests_completed;
     bool is_ball_in_bound();
     bool is_player_in_pos(player::ptr , double , double);
     bool is_ball_in_pos(double , double);
+    void finish_test_case();
     navigator::ptr our_navigator;
     player::ptr the_only_player;
   };
@@ -59,237 +63,294 @@ namespace simu_test{
   simu_test_strategy::simu_test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src) {
     // Initialize variables here (e.g. create the roles).
     test_id = 0;
-    //simu_test_strategy::
     auto_ref_setup = true;
     test_done = true;
     test_started = false;
+    tc_receive_receiving = false;
+    tests_completed = false;
+    tc_receive_receive_count = 0;
     return;
     // problems: how do we keep track of roles?
   }
 
   bool simu_test_strategy::is_ball_in_bound() {
-	if (the_ball->position().x > the_field->length()/2)
-		return false;
-	if (the_ball->position().x < the_field->length()/-2)
-		return false;
-	if (the_ball->position().y > the_field->width()/2)
-		return false;
-	if (the_ball->position().y < the_field->width()/-2)
-		return false;
-	return true;
+    if (the_ball->position().x > the_field->length()/2)
+      return false;
+    if (the_ball->position().x < the_field->length()/-2)
+      return false;
+    if (the_ball->position().y > the_field->width()/2)
+      return false;
+    if (the_ball->position().y < the_field->width()/-2)
+      return false;
+    return true;
   }
 
   bool simu_test_strategy::is_player_in_pos(player::ptr plr, double x, double y) {
-	if (plr->position().x > x+0.05)
-		return false;
-	if (plr->position().x < x-0.05)
-		return false;
-	if (plr->position().y > y+0.05)
-		return false;
-	if (plr->position().y < y-0.05)
-		return false;
-	return true;
+    if (plr->position().x > x+0.05)
+      return false;
+    if (plr->position().x < x-0.05)
+      return false;
+    if (plr->position().y > y+0.05)
+      return false;
+    if (plr->position().y < y-0.05)
+      return false;
+    return true;
   }
 
   bool simu_test_strategy::is_ball_in_pos(double x, double y) {
-	if (the_ball->position().x > x+0.15)	//0.15 instead of 0.05...because ball enters the area after the player
-		return false;
-	if (the_ball->position().x < x-0.15)
-		return false;
-	if (the_ball->position().y > y+0.15)
-		return false;
-	if (the_ball->position().y < y-0.15)
-		return false;
-	return true;
+    if (the_ball->position().x > x+0.15)	//0.15 instead of 0.05...because ball enters the area after the player
+      return false;
+    if (the_ball->position().x < x-0.15)
+      return false;
+    if (the_ball->position().y > y+0.15)
+      return false;
+    if (the_ball->position().y < y-0.15)
+      return false;
+    return true;
+  }
+
+  void simu_test_strategy::finish_test_case()
+  {
+    test_done = true;
+    test_started = false;
+    test_id++;
   }
   
   void simu_test_strategy::tick() {
-	if (pt_source.current_playtype()!=playtype::play)
+    if (pt_source.current_playtype()!=playtype::play)
 	{
-		return;	//playtype must be play
+	  return;	//playtype must be play
 	}
+    if (test_id>5)
+      {
+	if (!tests_completed)
+	  {
+	    std::cout << "Test Completed" << std::endl;
+	    tests_completed = true;
+	  }
+	return;
+      }
     // Use the variables "the_ball", "the_field", and "the_team" to allocate players to roles.
-	if ((!auto_ref_setup)&&(!test_started))	//now the strategy starts the test
+    if ((!auto_ref_setup)&&(!test_started))	//now the strategy starts the test
 	{
-		the_only_player = the_team->get_player(0);
-		std::cout << "Test#" << test_id+1 << " Started" << std::endl;
-		point move_to_point; 
-		switch (test_id)
-		{
-			case 0: 	//kick
-				the_only_player->kick(1);
-				std::cout << "Kick - Kick Executed" << std::endl;
-				break;
-			case 1:	//chip
-				the_only_player->chip(1);
-				std::cout << "Chip - Chip Executed" << std::endl;
-				break;
-			case 2:	//move
-				our_navigator = navigator::ptr(new testnavigator(the_only_player,the_field,the_ball,the_team));
-				move_to_point.x = 2.0;
-				move_to_point.y = 0.0;
-				our_navigator->set_point(move_to_point);
-				our_navigator->tick();
-				std::cout << "Move - Move Executed" << std::endl;
-				break;
-			case 3:		//ball collides with player
-					//no action?
-				std::cout << "Collide - No action" << std::endl;
-				break;
-			case 4:		//dribble
-				if (the_only_player->has_ball())
-				{	std::cout << "Dribble - Has Ball" << std::endl;
-				}else
-				{	std::cout << "Dribble - Doesn't Has Ball" << std::endl;
-				}
-				the_only_player->dribble(1);
-				std::cout << "Dribble - Dribble Executed" << std::endl;
-				our_navigator = navigator::ptr(new testnavigator(the_only_player,the_field,the_ball,the_team));
-				move_to_point.x = -2.0;
-				move_to_point.y = 0.0;
-				our_navigator->set_point(move_to_point);
-				our_navigator->tick();
-				std::cout << "Dribble - Move Executed" << std::endl;
-				break;
-			case 5:		//receive	//not implemented yet
-				break;
+	  the_only_player = the_team->get_player(0);
+	  std::cout << "Test#" << test_id+1 << " Started" << std::endl;
+	  point move_to_point; 
+	  switch (test_id)
+	    {
+	    case 0: 	//kick
+	      the_only_player->kick(1);
+	      std::cout << "Kick - Kick Executed" << std::endl;
+	      break;
+	    case 1:	//chip
+	      the_only_player->chip(1);
+	      std::cout << "Chip - Chip Executed" << std::endl;
+	      
+	      break;
+	    case 2:	//move
+	      our_navigator = navigator::ptr(new testnavigator(the_only_player,the_field,the_ball,the_team));
+	      move_to_point.x = 2.0;
+	      move_to_point.y = 0.0;
+	      our_navigator->set_point(move_to_point);
+	      our_navigator->tick();
+	      std::cout << "Move - Move Executed" << std::endl;
+	      break;
+	    case 3:		//ball collides with player
+	      //no action?
+	      std::cout << "Collide - No action" << std::endl;
+	      break;
+	    case 4:		//dribble
+	      if (the_only_player->has_ball())
+		{	std::cout << "Dribble - Has Ball" << std::endl;
+		}else
+		{	std::cout << "Dribble - Doesn't Has Ball" << std::endl;
 		}
-		test_started = true;
-		return;		
+	      the_only_player->dribble(1);
+	      std::cout << "Dribble - Dribble Executed" << std::endl;
+	      our_navigator = navigator::ptr(new testnavigator(the_only_player,the_field,the_ball,the_team));
+	      move_to_point.x = -2.0;
+	      move_to_point.y = 0.0;
+	      our_navigator->set_point(move_to_point);
+	      our_navigator->tick();
+	      std::cout << "Dribble - Move Executed" << std::endl;
+	      break;
+	    case 5:		//receive
+	      if (the_only_player->has_ball())
+		{	std::cout << "Receive - Has Ball" << std::endl;
+		}else
+		{	std::cout << "Receive - Doesn't Has Ball" << std::endl;
+		}
+	      the_only_player->dribble(1);
+	      std::cout << "Receive - Dribble Executed" << std::endl;
+	      break;
+	    }
+	  test_started = true;
+	  return;		
 	}
 	if ((test_started)&&(!test_done))
-	{
-		//check if the action is done; otherwise continue tick() for the lower level;
-		switch (test_id)
-		{
-			case 0: 	//kick
-				if (!is_ball_in_bound())
-				{
-					std::cout << "Ball is out of bound" << std::endl;
-					std::cout << "Test#1 Completed" << std::endl;
-					test_done = true;
-					test_started = false;
-					test_id++;
-				}else
-				{
-					if ((the_ball->est_velocity().x >0.0)||(the_ball->est_velocity().y >0.0))
-					{
-						std::cout << "Ball is still in bound - Moving" << std::endl;
-					}else
-					{
-						std::cout << "Ball is still in bound - Stopped" << std::endl;
-					}
-				}
-				break;
-			case 1:	//chip
-				if (!is_ball_in_bound())
-				{
-					std::cout << "Ball is out of bound" << std::endl;
-					std::cout << "Test#1 Completed" << std::endl;
-					test_done = true;
-					test_started = false;
-					test_id++;
-				}else
-				{
-					std::cout << "Ball is still in bound" << std::endl;
-				}
-				break;
-			case 2:	//move
-				if (is_player_in_pos(the_only_player,2.0,0.0))
-				{
-					std::cout << "Player arrived at position" << std::endl;
-					std::cout << "Test#3 Completed" << std::endl;
-					test_done = true;
-					test_started = false;
-					test_id++;
-				}else
-				{
-					std::cout << "Player is still moving" << std::endl;
-					our_navigator->tick();
-				}
-				break;
-			case 3:		//ball collides with player
-				if (the_ball->est_velocity().x>0)
-				{
-					std::cout << "Ball and Player Collided" << std::endl;
-					std::cout << "Test#4 Completed" << std::endl;
-					test_done = true;
-					test_started = false;
-					test_id++;
-				}else
-				{
-					std::cout << "Ball is still moving to player" << std::endl;
-					our_navigator->tick();
-				}
-				break;
-			case 4:		//dribble
-				if (is_player_in_pos(the_only_player,-2.0,0.0))
-				{
-					std::cout << "Player arrived at position" << std::endl;
-					if (is_ball_in_pos(-2.0, 0.0))
-					{	std::cout << "Test#5 Completed" << std::endl;
-					}else
-					{	std::cout << "Test#5 Failed" << std::endl;
-					}
-					test_done = true;
-					test_started = false;
-					test_id++;
-				}else
-				{
-					std::cout << "Player is still moving" << std::endl;
-					our_navigator->tick();
-				}
-				break;
-			case 5:		//receive	//not implemented yet
-				break;
-		}
-	}
-    if ((auto_ref_setup)&&(test_done))
-	{
-		std::cout << "Test#" << test_id+1 << " Initialization" << std::endl;
-		switch (test_id)
-		{
-			case 0: //kick
-			case 1:	//chip
-			case 2:	//move
-				ball_pos.x = 0.0;
-				ball_pos.y = 0.0;
-				ball_vel.x = 0.0;
-				ball_vel.y = 0.0;
-				player_pos.x = -0.05;
-				player_pos.y = 0.0;
-				break;
-			case 3:		//ball collides with player
-				ball_pos.x = 1.0;
-				ball_pos.y = 0.0;
-				ball_vel.x = -1.0;
-				ball_vel.y = 0.0;
-				player_pos.x = 0.0;
-				player_pos.y = 0.0;
-				break;
-			case 4:		//dribble
-				ball_pos.x = 0.0;
-				ball_pos.y = 0.0;
-				ball_vel.x = 0.0;
-				ball_vel.y = 0.0;
-				player_pos.x = -0.05;
-				player_pos.y = 0.0;
-				break;
-			case 5:		//receive
-				ball_pos.x = 2.0;
-				ball_pos.y = 0.0;
-				ball_vel.x = -1.0;
-				ball_vel.y = 0.0;
-				player_pos.x = 0.0;
-				player_pos.y = 0.0;
-				break;
-		}
-		test_done = false;
-		auto_ref_setup = false; //should let auto ref do this
-	}
-
-    
-    return;
+	  {
+	    //check if the action is done; otherwise continue tick() for the lower level;
+	    switch (test_id)
+	      {
+	      case 0: 	//kick
+		if (!is_ball_in_bound())
+		  {
+		    std::cout << "Test#1 - Ball is out of bound" << std::endl;
+		    std::cout << "Test#1 Completed" << std::endl;
+		    finish_test_case();
+		  }else
+		  {
+		    if ((the_ball->est_velocity().x >0.0)||(the_ball->est_velocity().y >0.0))
+		      {
+			std::cout << "Test#1 - Ball is still in bound - Moving" << std::endl;
+		      }else
+		      {
+			std::cout << "Test#1 - Ball is still in bound - Stopped" << std::endl;
+		      }
+		  }
+		break;
+	      case 1:	//chip
+		if (!is_ball_in_bound())
+		  {
+		    std::cout << "Test#2 Ball is out of bound" << std::endl;
+		    std::cout << "Test#2 Completed" << std::endl;
+		    finish_test_case();
+		  }else
+		  {
+		    if ((the_ball->est_velocity().x >0.0)||(the_ball->est_velocity().y >0.0))
+		      {
+			std::cout << "Test#2 - Ball is still in bound - Moving" << std::endl;
+		      }else
+		      {
+			std::cout << "Test#2 - Ball is still in bound - Stopped" << std::endl;
+		      }
+		  }
+		break;
+	      case 2:	//move
+		if (is_player_in_pos(the_only_player,2.0,0.0))
+		  {
+		    std::cout << "Test#3 Player arrived at position" << std::endl;
+		    std::cout << "Test#3 Completed" << std::endl;
+		    finish_test_case();
+		  }else
+		  {
+		    std::cout << "Test#3 Player is still moving" << std::endl;
+		    our_navigator->tick();
+		  }
+		break;
+	      case 3:		//ball collides with player
+		if (the_ball->est_velocity().x>0)
+		  {
+		    std::cout << "Test#4 Ball and Player Collided" << std::endl;
+		    std::cout << "Test#4 Completed" << std::endl;
+		    finish_test_case();
+		  }else
+		  {
+		    std::cout << "Test#4 Ball is still moving to player" << std::endl;
+		    our_navigator->tick();
+		  }
+		break;
+	      case 4:		//dribble
+		if (is_player_in_pos(the_only_player,-2.0,0.0))
+		  {
+		    std::cout << "Test#5 Player arrived at position" << std::endl;
+		    if (is_ball_in_pos(-2.0, 0.0))
+		      {	std::cout << "Test#5 Completed" << std::endl;
+		      }else
+		      {	std::cout << "Test#5 Failed" << std::endl;
+		      }
+		    finish_test_case();
+		  }else
+		  {
+		    if (the_only_player->has_ball())
+		      {
+			std::cout << "Test#5 Player is still moving with the ball" << std::endl;
+		      }
+		    else{
+		      std::cout << "Test#5 Player is moving without the ball" << std::endl;
+		      finish_test_case();				    
+		    }
+		    our_navigator->tick();
+		  }
+		break;
+	      case 5:		//receive
+		if (!tc_receive_receiving)
+		  {
+		    if (the_only_player->has_ball())
+		      {
+			std::cout << "Test#6 Ball received, wait to see if the ball will bounce off." << std::endl;
+			tc_receive_receiving = true;
+		      }else
+		      {
+			std::cout << "Test#6 Waiting for ball." << std::endl;
+		      }
+		  }else
+		  {
+		    if (the_only_player->has_ball())
+		      {
+			tc_receive_receive_count++;
+			std::cout << "Test#6 Timestep:" << tc_receive_receive_count << " Still has ball." << std::endl;
+		      }else
+		      {
+			tc_receive_receive_count++;
+			std::cout << "Test#6 Timestep:" << tc_receive_receive_count << " lost ball." << std::endl;
+			finish_test_case();
+		      }
+		    if (tc_receive_receive_count==100)
+		      {
+			std::cout << "Test#6 Completed" << std::endl;
+			finish_test_case();
+		      }
+		  }
+		break;
+	      }
+	    return;
+	  }
+	if (test_done)
+	  {
+	    auto_ref_setup = true;
+	    std::cout << "Test#" << test_id+1 << " Initialization" << std::endl;
+	    switch (test_id)
+	      {
+	      case 0: //kick
+	      case 1:	//chip
+	      case 2:	//move
+		ball_pos.x = 0.0;
+		ball_pos.y = 0.0;
+		ball_vel.x = 0.0;
+		ball_vel.y = 0.0;
+		player_pos.x = -0.05;
+		player_pos.y = 0.0;
+		break;
+	      case 3:		//ball collides with player
+		ball_pos.x = 1.0;
+		ball_pos.y = 0.0;
+		ball_vel.x = -1.0;
+		ball_vel.y = 0.0;
+		player_pos.x = 0.0;
+		player_pos.y = 0.0;
+		break;
+	      case 4:		//dribble
+		ball_pos.x = 0.0;
+		ball_pos.y = 0.0;
+		ball_vel.x = 0.0;
+		ball_vel.y = 0.0;
+		player_pos.x = -0.05;
+		player_pos.y = 0.0;
+		break;
+	      case 5:		//receive
+		ball_pos.x = 2.0;
+		ball_pos.y = 0.0;
+		ball_vel.x = -1.0;
+		ball_vel.y = 0.0;
+		player_pos.x = 0.0;
+		player_pos.y = 0.0;
+		break;
+	      }
+	    test_done = false;
+	    auto_ref_setup = false; //should let auto ref do this
+	  }
+	return;
   }
 
   void simu_test_strategy::set_playtype(playtype::playtype) { 
