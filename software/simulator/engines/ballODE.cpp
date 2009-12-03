@@ -34,6 +34,8 @@ point the_position, the_velocity;
 				dBodySetLinearDamping (body, 0.2);
 				 field::ptr fldd(new simulator_field);
 				 fld = fldd;
+				 
+				 //dBodySetMaxAngularSpeed (body, 5.0);
 
 			}
 			
@@ -75,6 +77,7 @@ point the_position, the_velocity;
 				dSpaceAdd (dspace, ballGeom);
 				//dBodySetLinearDamping (body, 0.2);
 				dBodySetAngularDamping (body,0.5);
+				dBodySetMaxAngularSpeed (body, 5.0);
 			
 			}
 

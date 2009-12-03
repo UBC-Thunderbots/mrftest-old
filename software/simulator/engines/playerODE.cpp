@@ -17,7 +17,7 @@
 				body2 = dBodyCreate(world);
 				double x_pos = 0.0;
 				double y_pos = 0.0;
-				jerkLimit = 3.0;
+				jerkLimit = 30000.0;
 				
 				fcex=0;
 				fcey=0;
@@ -56,7 +56,9 @@
 				
 				dSpaceAdd (dspace, robotGeom);
 				dSpaceAdd (dspace, robotGeomTop);
-				dBodySetAngularDamping (body, 0.002);
+				dBodySetLinearDamping (body, 0.05);
+				//dBodySetLinearDamping (body2, 0.05);
+				dBodySetAngularDamping (body, 0.02);
 				dBodySetAngularDamping (body2, 0.02);
 				contactgroup = dJointGroupCreate (0);
 	 			createJointBetweenB1B2();
@@ -319,7 +321,7 @@
 			
 				if(speed<0 || speed>1)return;
 			
-				double maxTorque = 0.01;//static_cast<double>(TIMESTEPS_PER_SECOND); //is this realistic???			
+				double maxTorque = 0.00001;//static_cast<double>(TIMESTEPS_PER_SECOND); //is this realistic???			
 				double appliedTorque = -(speed*maxTorque);
 				
 				const dReal * t = dBodyGetAngularVel (dGeomGetBody(ballGeom));
@@ -338,9 +340,15 @@
 				ball_turn.x = t[0];
 				ball_turn.y = t[1];
 				if(! (ball_turn.len() > max_Angular_vel)){
-								std::cout<<"dribble"<<speed<<std::endl;
-				std::cout<<"dribble"<< t[0]<<" "<<t[1]<<" "<<t[2]<<std::endl;
-					dBodyAddTorque(dGeomGetBody(ballGeom), torqueAxis.x, torqueAxis.y, 0.0);
+				double forceMax = 0.0001;
+								//std::cout<<"dribble"<<speed<<std::endl;
+				//std::cout<<"dribble"<< t[0]<<" "<<t[1]<<" "<<t[2]<<std::endl;
+					//dBodyAddTorque(dGeomGetBody(ballGeom), torqueAxis.x, torqueAxis.y, 0.0);
+					point directionp(1,0);
+					directionp = directionp.rotate(orientation());
+					directionp = -directionp*forceMax*speed;
+					dBodyAddForce(dGeomGetBody(ballGeom), directionp.x, directionp.y, 0.0);
+					
 				}
 					
 				}

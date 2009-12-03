@@ -92,6 +92,8 @@ namespace {
 				
  				//dWorldSetLinearDamping (eworld, 0.02);
 				dWorldSetCFM (eworld, 0.5);
+				
+				 
  				
 			}
 			
@@ -398,14 +400,14 @@ namespace {
 				//as such we will ignore it
 				//this is a pretty bad hack and needs to be changed to check whether the geoms come
 				//from the same robot
-				const int num_contact = 12;
+				const int num_contact = 4;
 				
 				if(robot1!=robot2){
 					  dBodyID b1 = dGeomGetBody(o1);
 				  	  dBodyID b2 = dGeomGetBody(o2);
 					  dContact contact[num_contact];		// up to 3 contacts per box
 					  for (i=0; i<num_contact; i++) {
-					    contact[i].surface.mode = dContactSoftCFM | dContactApprox1 |dContactBounce;;
+					    contact[i].surface.mode = dContactBounce;;
 					    contact[i].surface.mu = MU;
 					   contact[i].surface.soft_cfm = 0.5;
 					     contact[i].surface.bounce = 1.0;
