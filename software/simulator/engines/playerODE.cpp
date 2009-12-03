@@ -319,7 +319,7 @@
 			
 				if(speed<0 || speed>1)return;
 			
-				double maxTorque = 0.0001;//static_cast<double>(TIMESTEPS_PER_SECOND); //is this realistic???			
+				double maxTorque = 0.01;//static_cast<double>(TIMESTEPS_PER_SECOND); //is this realistic???			
 				double appliedTorque = -(speed*maxTorque);
 				
 				const dReal * t = dBodyGetAngularVel (dGeomGetBody(ballGeom));
@@ -331,14 +331,15 @@
 				
 				torqueAxis*=appliedTorque;
 				
-				if(has_ball(0.005)){
+				if(has_ball(0.012)){
 				
-				//std::cout<<"dribble"<<std::endl;
-				//std::cout<<"dribble"<< t[0]<<" "<<t[1]<<" "<<t[2]<<std::endl;
+
 				point ball_turn;
 				ball_turn.x = t[0];
 				ball_turn.y = t[1];
-				if(! ball_turn.len() > max_Angular_vel){
+				if(! (ball_turn.len() > max_Angular_vel)){
+								std::cout<<"dribble"<<speed<<std::endl;
+				std::cout<<"dribble"<< t[0]<<" "<<t[1]<<" "<<t[2]<<std::endl;
 					dBodyAddTorque(dGeomGetBody(ballGeom), torqueAxis.x, torqueAxis.y, 0.0);
 				}
 					
@@ -351,14 +352,14 @@
 
 				if(strength <0 || strength >1)return;
 				
-				double maximum_impulse = 0.0005;
+				double maximum_impulse = 0.0001;
 				point direction(1.0, 0.0);
 				direction = direction.rotate(orientation());
 				point impulse = strength*maximum_impulse*direction;
 
 				if(has_ball(0.005)){
 					dVector3 force;
-					dWorldImpulseToForce (world, static_cast<double>(TIMESTEPS_PER_SECOND)/updates_per_tick,
+					dWorldImpulseToForce (world, 1.0/static_cast<double>(TIMESTEPS_PER_SECOND),
 				   			impulse.x, impulse.y,0.0, force);
 				   	dBodyAddForce(dGeomGetBody(ballGeom), force[0], force[1], force[2]);
 				}
@@ -368,7 +369,7 @@
 
 				if(strength <0 || strength >1)return;
 				//std::cout<<"chip strength: "<<strength<<std::endl;
-					double maximum_impulse = 0.0005;
+					double maximum_impulse = 0.0001;
 					
 				point direction(1.0/sqrt(2.0), 0.0);
 				direction = direction.rotate(orientation());
@@ -376,9 +377,9 @@
 				
 				double zimpulse = strength*maximum_impulse/sqrt(2.0);
 
-				if(has_ball(0.005)){
+				if(has_ball(0.01)){
 					dVector3 force;
-					dWorldImpulseToForce (world, static_cast<double>(TIMESTEPS_PER_SECOND)/updates_per_tick,
+					dWorldImpulseToForce (world, 1.0/static_cast<double>(TIMESTEPS_PER_SECOND),
 				   			impulse.x, impulse.y,zimpulse, force);
 				   	dBodyAddForce(dGeomGetBody(ballGeom), force[0], force[1], force[2]);
 				}
