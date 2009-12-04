@@ -43,6 +43,7 @@ namespace simu_test{
     static const int WAIT_AT_LEAST_TURN = 5;		// We need this because we don't want to make frequent changes
     static const int DEFAULT_OFF_TO_DEF_DIFF = 1;	// i.e. one more offender than defender
     int test_id;
+    int tick_count;
     bool test_done;
     bool test_started;
     bool tc_receive_receiving;
@@ -57,6 +58,7 @@ namespace simu_test{
     navigator::ptr our_navigator;
     player::ptr the_only_player;
     bool result[6];
+    bool print_msg, print_msg2;
   };
   
   //initialization of static variable
@@ -73,6 +75,9 @@ namespace simu_test{
     tests_completed = false;
     first_tick = true;
     tc_receive_receive_count = 0;
+    print_msg = true;
+    print_msg2 = true;
+    tick_count = 0;
     for (int i = 0; i<6; i++){result[i] = false;}
     return;
     // problems: how do we keep track of roles?
@@ -103,13 +108,13 @@ namespace simu_test{
   }
 
   bool simu_test_strategy::is_ball_in_pos(double x, double y) {
-    if (the_ball->position().x > x+0.15)	//0.15 instead of 0.05...because ball enters the area after the player
+    if (the_ball->position().x > x+0.25)	//0.25 instead of 0.05...because ball enters the area after the player
       return false;
-    if (the_ball->position().x < x-0.15)
+    if (the_ball->position().x < x-0.25)
       return false;
-    if (the_ball->position().y > y+0.15)
+    if (the_ball->position().y > y+0.25)
       return false;
-    if (the_ball->position().y < y-0.15)
+    if (the_ball->position().y < y-0.25)
       return false;
     return true;
   }
@@ -119,9 +124,12 @@ namespace simu_test{
     test_done = true;
     test_started = false;
     test_id++;
+    print_msg = true;
+    print_msg2 = true;
   }
   
   void simu_test_strategy::tick() {
+    tick_count++;
     point move_to_point; 
     the_only_player = the_team->get_player(0);
     //    the_only_player->dribble(1);
@@ -166,7 +174,11 @@ namespace simu_test{
     // Use the variables "the_ball", "the_field", and "the_team" to allocate players to roles.
     if ((!auto_ref_setup)&&(!test_started))	//now the strategy starts the test
 	{
-	  std::cout << "Test#" << test_id+1 << " Started" << std::endl;
+	  if (print_msg)
+	    {
+	      std::cout << "Test#" << test_id+1 << " Started" << std::endl;
+	      print_msg = false;
+	    }
 	  switch (test_id)
 	    {
 	    case 0: 	//kick
@@ -210,7 +222,11 @@ namespace simu_test{
 		  our_navigator->tick();
 		  std::cout << "Dribble - Move Executed" << std::endl;
 		}else
-		{ std::cout << "Dribble - Doesn't Has Ball" << std::endl;
+		{ if (print_msg2)
+		    {
+		      std::cout << "Dribble - Doesn't Has Ball" << std::endl;
+		      print_msg2 = false;
+		    }
 		}
 	      break;
 	    case 5:		//receive
@@ -223,7 +239,7 @@ namespace simu_test{
 		{ std::cout << "Receive - Doesn't Has Ball" << std::endl;
 		}
 	      break;
-	    }
+	    }	  
 	  return;		
 	}
 	if ((test_started)&&(!test_done))
@@ -242,7 +258,11 @@ namespace simu_test{
 		  {
 		    if ((the_ball->est_velocity().x >0.0)||(the_ball->est_velocity().y >0.0))
 		      {
-			std::cout << "Test#1 - Ball is still in bound - Moving" << std::endl;
+			if (tick_count%30==0)
+			  {
+			    std::cout << "Test#1 - Ball is still in bound - Moving" << std::endl;
+			    tick_count = 0 ;
+			  }
 		      }else
 		      {
 			std::cout << "Test#1 - Ball is still in bound - Stopped" << std::endl;
@@ -260,7 +280,11 @@ namespace simu_test{
 		  {
 		    if ((the_ball->est_velocity().x >0.0)||(the_ball->est_velocity().y >0.0))
 		      {
-			std::cout << "Test#2 - Ball is still in bound - Moving" << std::endl;
+			if (tick_count%30==0)
+			  {
+			    std::cout << "Test#2 - Ball is still in bound - Moving" << std::endl;
+			    tick_count = 0;
+			  }
 		      }else
 		      {
 			std::cout << "Test#2 - Ball is still in bound - Stopped" << std::endl;
@@ -278,7 +302,11 @@ namespace simu_test{
 		  {
 		    move_to_point.x = 2.0;
 		    move_to_point.y = 0.0;
-		    std::cout << "Test#3 Player is still moving"<<move_to_point.x<<" " << move_to_point.y << std::endl;
+		    if (tick_count%30==0)
+		      {
+			std::cout << "Test#3 Player is still moving to"<<move_to_point.x<<" " << move_to_point.y << std::endl;
+			tick_count =0;
+		      }
 		    our_navigator->set_point(move_to_point);
 		    our_navigator->tick();
 		  }
@@ -310,16 +338,21 @@ namespace simu_test{
 		    finish_test_case();
 		  }else
 		  {
-		    if ((the_ball->position() - the_only_player->position()).len() < 0.15)
-		      {
-			std::cout << "Test#5 Player is still moving with the ball" << std::endl;
+		    if (tick_count%30 == 0)
+		      {		       
+			if ((the_ball->position() - the_only_player->position()).len() < 0.15)
+			  {
+			    std::cout << "Test#5 Player is still moving with the ball" << std::endl;
+			  }
+			else{
+			  std::cout << "Test#5 Player is moving without the ball" << std::endl;
+			  // finish_test_case();
+			}
+			tick_count=0;
 		      }
-		    else{
-		      std::cout << "Test#5 Player is moving without the ball" << std::endl;
-		      // finish_test_case();				    
-		    }
 		    move_to_point.x = -2.0;
 		    move_to_point.y = 0.0;
+		    the_only_player->dribble(1);
 		    our_navigator->set_point(move_to_point);
 		    our_navigator->tick();
 		  }
