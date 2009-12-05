@@ -1283,6 +1283,9 @@ handle_crc_sector_byteloop:
 	decf pagecounter, F
 	bnz handle_crc_sector_pageloop
 
+	; Deselect the chip.
+	rcall deselect_chip
+
 	; Address the IRP.
 	rcall irpptr_to_irp_fsr2
 
