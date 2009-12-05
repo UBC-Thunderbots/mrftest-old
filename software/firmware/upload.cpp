@@ -80,15 +80,18 @@ void upload::init_irps_read(const void *data) {
 
 void upload::push_irps() {
 	if (sched.done()) {
-		if (irpmask == 0x0F) {
+		if (irpmask == 0) {
 			status = "Exiting...";
 			sig_progress_made.emit(1);
 			proto.exit_bootloader(sig_upload_finished.make_slot());
+		} else {
+			start_irp_scan(0);
 		}
 		return;
 	}
 
 	if (irpmask == 0x0F) {
+		start_irp_scan(0);
 		return;
 	}
 
@@ -166,7 +169,7 @@ void upload::submit_crc_sector() {
 }
 
 void upload::start_irp_scan(const void *) {
-	if (irpmask != 0x0F) {
+	if (irpmask != 0x0F && !sched.done()) {
 		push_irps();
 		return;
 	}
@@ -196,7 +199,6 @@ void upload::irps_read(const void *response) {
 					proto.send(COMMAND_READ_BUFFER, i, buffer, sizeof(buffer), 32, sigc::bind(sigc::mem_fun(*this, &upload::crcs_received), i));
 					return;
 				} else {
-					irpmask &= ~(1 << i);
 					toclear |= 1 << i;
 				}
 				break;
@@ -209,6 +211,7 @@ void upload::irps_read(const void *response) {
 
 	if (toclear) {
 		proto.send(COMMAND_CLEAR_IRPS, toclear, 0, 0, 0, sigc::mem_fun(*this, &upload::start_irp_scan));
+		irpmask &= ~toclear;
 	} else {
 		push_irps();
 	}
