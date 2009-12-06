@@ -25,6 +25,9 @@ class jons_controller : public robot_controller {
 		double max_acc;
 		double max_vel;
 		double max_Aacc;
+		double prev_orient;
+		double time_step;
+		double close_param;
 
 };
 

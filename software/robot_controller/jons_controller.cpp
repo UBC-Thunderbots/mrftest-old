@@ -21,8 +21,9 @@ namespace {
 
 }
 
-jons_controller::jons_controller(player_impl::ptr plr) : plr(plr), max_acc(10), max_vel(8000), max_Aacc(1)
+jons_controller::jons_controller(player_impl::ptr plr) : plr(plr), max_acc(10), max_vel(8000), max_Aacc(1), time_step(1/15.0), close_param(2)
 {
+prev_orient = plr->orientation();
 }
 
 void jons_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
@@ -30,19 +31,29 @@ void jons_controller::move(const point &new_position, double new_orientation, po
 	const double current_orientation = plr->orientation();
 	const point &current_velocity = plr->est_velocity();
 	const point diff = new_position - current_position;
+	double current_angularvel;
 	double vel_in_dir_travel;
 	// relative new direction and angle
 	double new_da = angle_mod(new_orientation - current_orientation);
+	current_angularvel = angle_mod(current_orientation-prev_orient);
+	if(current_angularvel > PI) current_angularvel -= 2*PI;
+	current_angularvel *= time_step;
+	
+	if(pow(current_angularvel,2)/max_Aacc*close_param < abs(new_da))
+		angular_velocity = new_da/abs(new_da)*max_vel;
+	else
+		angular_velocity=0;
+	
+	
 	point new_dir = diff.rotate(-current_orientation);
 	new_dir /= new_dir.len();
 	if (new_da > PI) new_da -= 2 * PI;
-	angular_velocity = new_da;
 	vel_in_dir_travel=current_velocity.dot(diff/diff.len());
-	if(pow(vel_in_dir_travel,2)/max_acc*1.5 > (new_position-current_position).len())
+
+	if(pow(vel_in_dir_travel,2)/max_acc*close_param < diff.len())
 		linear_velocity = max_vel*new_dir;
 	else
-		linear_velocity = 0*new_dir;
-	
+		linear_velocity = new_dir*0;
 }
 
 robot_controller_factory &jons_controller::get_factory() const {
