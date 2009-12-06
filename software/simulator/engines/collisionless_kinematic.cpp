@@ -139,6 +139,7 @@ namespace {
 				the_velocity = vel;
 				target_velocity.x = target_velocity.y =0;
 				avelocity = 0;
+				player_impl::ext_drag(pos, vel);
 			}
 
 		private:
