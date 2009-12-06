@@ -90,7 +90,7 @@ void simulator::tick() {
 		engine->tick();
 	west_team.tick_postengine();
 	east_team.tick_postengine();
-	the_ball_impl->add_prediction_datum(the_ball_impl->position());
+	the_ball_impl->add_prediction_datum(the_ball_impl->position(), 0);
 	if (ref)
 		ref->tick();
 }

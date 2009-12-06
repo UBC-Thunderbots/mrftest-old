@@ -172,7 +172,7 @@ class simulator_team_data : public playtype_source, public noncopyable {
 		//
 		void tick_postengine() {
 			for (unsigned int i = 0; i < impls.size(); ++i)
-				impls[i]->add_prediction_datum(impls[i]->position());
+				impls[i]->add_prediction_datum(impls[i]->position(), impls[i]->orientation());
 		}
 
 		//
