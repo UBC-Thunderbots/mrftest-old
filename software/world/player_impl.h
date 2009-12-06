@@ -59,12 +59,6 @@ class player_impl : public robot_impl {
 		virtual bool has_ball() const __attribute__((warn_unused_result)) = 0;
 
 		//
-		// Implements UI dragging. THIS FUNCTION IS IMPLEMENTED: subclasses
-		// should call this implementation at the END of their own!
-		//
-		virtual void ext_drag(const point &pos, const point &vel) = 0;
-
-		//
 		// The most-recently-requested linear velocity. Only intended for use by
 		// the UI layer.
 		//
@@ -91,6 +85,12 @@ class player_impl : public robot_impl {
 		// simulator_engine::tick().
 		//
 		virtual void move_impl(const point &linear_velocity, double angular_velocity) = 0;
+
+		//
+		// Subclasses should call this function at the end of their own
+		// implementations of draggable::ext_drag().
+		//
+		void ext_drag_postprocess();
 
 	public:
 		//

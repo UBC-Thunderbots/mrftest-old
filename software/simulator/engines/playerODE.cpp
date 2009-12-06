@@ -405,7 +405,7 @@
 				dBodySetAngularVel (body, 0.0, 0.0, 0.0);
 				dBodySetAngularVel (body2, 0.0, 0.0, 0.0);
 				createJointBetweenB1B2();
-				player_impl::ext_drag(pos, vel);
+				player_impl::ext_drag_postprocess();
 			}
 
 		

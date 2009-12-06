@@ -28,13 +28,13 @@ namespace {
 			}
 
 			void ext_drag(const point &, const point &) {
+				player_impl::ext_drag_postprocess();
 			}
 	};
 }
 
-void player_impl::ext_drag(const point &, const point &) {
+void player_impl::ext_drag_postprocess() {
 	destination = position();
-	angular_target = orientation();
 }
 
 const player_impl::ptr &player_impl::trivial() {

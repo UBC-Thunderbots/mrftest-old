@@ -19,8 +19,8 @@ class rc_test_player : public player_impl {
 		void dribble(double) {}
 		void kick(double) {}
 		void chip(double) {}
-		void ext_drag(const point &pos, const point &vel) {
-			player_impl::ext_drag(pos, vel);
+		void ext_drag(const point &, const point &) {
+			player_impl::ext_drag_postprocess();
 		}
 	private:
 		point pos;
