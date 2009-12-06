@@ -15,7 +15,7 @@ class predictable {
 		predictable();
 
 		//
-		// Gets the predicted velocity.
+		// Gets the predicted linear velocity.
 		//
 		point est_velocity() const __attribute__((warn_unused_result));
 
