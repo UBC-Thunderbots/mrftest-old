@@ -25,6 +25,16 @@ class predictable {
 		double est_avelocity() const __attribute__((warn_unused_result));
 
 		//
+		// Gets the predicted linear acceleration.
+		//
+		point est_acceleration() const __attribute__((warn_unused_result));
+
+		//
+		// Gets the predicted angular acceleration.
+		//
+		double est_aacceleration() const __attribute__((warn_unused_result));
+
+		//
 		// Pushes a new sample of position into the prediction engine.
 		//
 		void add_prediction_datum(const point &pos, double orientation);
