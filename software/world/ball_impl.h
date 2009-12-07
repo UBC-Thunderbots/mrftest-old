@@ -23,6 +23,14 @@ class ball_impl : public predictable, public draggable {
 		virtual point position() const __attribute__((warn_unused_result)) = 0;
 
 		//
+		// It does not make sense to deal with the "orientation" of a sphere.
+		// To eliminate the need for all subclasses to pointlessly implement
+		// this function, it is implemented here and does nothing.
+		//
+		void ext_rotate(double, double) {
+		}
+
+		//
 		// Returns a trivial implementation of ball_impl that always leaves the
 		// ball sitting at the origin.
 		//

@@ -36,6 +36,14 @@ class ball : public draggable {
 		}
 
 		//
+		// It does not make sense to deal with the "orientation" of a sphere.
+		// To eliminate the need for all subclasses to pointlessly implement
+		// this function, it is implemented here and does nothing.
+		//
+		void ext_rotate(double, double) {
+		}
+
+		//
 		// Sets a new ball_impl to delegate to. This method is intended only for
 		// use by universe implementers and should not be called by the AI.
 		//

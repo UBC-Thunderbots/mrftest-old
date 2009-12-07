@@ -22,6 +22,9 @@ class rc_test_player : public player_impl {
 		void ext_drag(const point &, const point &) {
 			ext_drag_postprocess();
 		}
+		void ext_rotate(double, double) {
+			player_impl::ext_rotate_postprocess();
+		}
 	private:
 		point pos;
 		double ori;

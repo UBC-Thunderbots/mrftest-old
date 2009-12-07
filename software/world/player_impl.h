@@ -92,6 +92,12 @@ class player_impl : public robot_impl {
 		//
 		void ext_drag_postprocess();
 
+		//
+		// Subclasses should call this function at the end of their own
+		// implementations of draggable::ext_rotate().
+		//
+		void ext_rotate_postprocess();
+
 	public:
 		//
 		// Instructs the player's dribbler to spin at the specified speed. The

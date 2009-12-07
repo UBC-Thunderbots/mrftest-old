@@ -408,5 +408,8 @@
 				ext_drag_postprocess();
 			}
 
-		
+			void playerODE::ext_rotate(double orient, double avel) {
+#warning IMPLEMENT THIS FUNCTION
+				ext_rotate_postprocess();
+			}
 

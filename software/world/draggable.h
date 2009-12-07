@@ -20,6 +20,12 @@ class draggable : public byref {
 		// called from the AI!
 		//
 		virtual void ext_drag(const point &pos, const point &vel) = 0;
+
+		//
+		// Sets the orientation and angular velocity of the object. This should
+		// NOT be called from the AI!
+		//
+		virtual void ext_rotate(double orient, double avel) = 0;
 };
 
 #endif

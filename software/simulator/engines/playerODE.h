@@ -71,6 +71,8 @@ public:
 			void chip(double strength) ;
 
 			void ext_drag(const point &pos, const point &vel);
+
+			void ext_rotate(double orient, double avel);
 			
 			void createJointBetweenB1B2();
 };

@@ -141,6 +141,12 @@ namespace {
 				ext_drag_postprocess();
 			}
 
+			void ext_rotate(double orient, double avel) {
+				the_orientation = orient;
+				avelocity = avel;
+				ext_rotate_postprocess();
+			}
+
 		private:
 			point the_position, the_velocity, target_velocity;
 			double the_orientation, avelocity;

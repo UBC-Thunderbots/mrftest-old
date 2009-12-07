@@ -44,6 +44,14 @@ class robot : public draggable {
 		}
 
 		//
+		// Allows the framework to set the orientation and angular velocity of
+		// the robot.
+		//
+		void ext_rotate(double orient, double avel) {
+			impl->ext_rotate(angle_mod(orient + (flip ? PI : 0)), avel);
+		}
+
+		//
 		// Constructs a new robot object.
 		//
 		// Parameters:
