@@ -138,7 +138,7 @@ namespace {
 				the_position = pos;
 				the_velocity = vel;
 				target_velocity = vel;
-				player_impl::ext_drag_postprocess();
+				ext_drag_postprocess();
 			}
 
 		private:

@@ -28,7 +28,7 @@ namespace {
 			}
 
 			void ext_drag(const point &, const point &) {
-				player_impl::ext_drag_postprocess();
+				ext_drag_postprocess();
 			}
 	};
 }
