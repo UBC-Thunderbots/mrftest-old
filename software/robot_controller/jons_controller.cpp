@@ -22,7 +22,7 @@ namespace {
 
 }
 
-jons_controller::jons_controller(player_impl::ptr plr) : plr(plr), max_acc(10), max_vel(100000), max_Aacc(1), close_param(1.5)
+jons_controller::jons_controller(player_impl::ptr plr) : plr(plr), max_acc(10), max_vel(1000), max_Aacc(1), close_param(1.5),position_delta(0.05), orient_delta(0.05)
 {
 }
 
@@ -37,7 +37,13 @@ void jons_controller::move(const point &new_position, double new_orientation, po
 	// relative new direction and angle
 	double new_da = angle_mod(new_orientation - current_orientation);
 	
-	if(pow(current_angularvel,2)/max_Aacc*close_param < abs(new_da) && abs(new_da) > 0.1)
+	if(plr->est_acceleration().len() > max_acc)
+		max_acc=plr->est_acceleration().len();
+
+	if(abs(plr->est_aacceleration()) > max_Aacc)
+		max_Aacc = abs(plr->est_aacceleration());
+
+	if(pow(current_angularvel,2)/max_Aacc*close_param < abs(new_da) && abs(new_da) > position_delta)
 		angular_velocity = new_da/abs(new_da)*max_vel;
 	else
 		angular_velocity=0;
@@ -48,7 +54,7 @@ void jons_controller::move(const point &new_position, double new_orientation, po
 	if (new_da > PI) new_da -= 2 * PI;
 	vel_in_dir_travel=current_velocity.dot(diff/diff.len());
 
-	if(pow(vel_in_dir_travel,2)/max_acc*close_param < diff.len() && diff.len() > 0.1)
+	if(pow(vel_in_dir_travel,2)/max_acc*close_param < diff.len() && diff.len() > orient_delta)
 		linear_velocity = max_vel*new_dir;
 	else
 		linear_velocity = new_dir*0;

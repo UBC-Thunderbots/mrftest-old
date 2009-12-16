@@ -25,6 +25,8 @@ class jons_controller : public robot_controller {
 		double max_vel;
 		double max_Aacc;
 		double close_param;
+		double position_delta;
+		double orient_delta;
 
 };
 
