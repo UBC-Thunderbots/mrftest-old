@@ -17,7 +17,6 @@ class jons_controller : public robot_controller {
 		robot_controller_factory &get_factory() const;
 
 		jons_controller(player_impl::ptr plr);
-
 	private:
 		player_impl::ptr plr;
 	
@@ -25,8 +24,6 @@ class jons_controller : public robot_controller {
 		double max_acc;
 		double max_vel;
 		double max_Aacc;
-		double prev_orient;
-		double time_step;
 		double close_param;
 
 };
