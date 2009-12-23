@@ -9,24 +9,14 @@ namespace {
 	};
 
 	const uint8_t COMMAND_IDENT = 0x1;
-	const uint8_t COMMAND_READ_BUFFER = 0x2;
-	const uint8_t COMMAND_WRITE_BUFFER = 0x3;
-	const uint8_t COMMAND_READ_IRPS = 0x4;
-	const uint8_t COMMAND_CLEAR_IRPS = 0x5;
-	const uint8_t COMMAND_SUBMIT_IRP = 0x6;
-
-	const uint8_t IO_OPERATION_ERASE_BLOCK = 0x1;
-	const uint8_t IO_OPERATION_WRITE_PAGE = 0x2;
-	const uint8_t IO_OPERATION_CRC_SECTOR = 0x3;
-	const uint8_t IRP_STATUS_EMPTY = 0x0;
-	const uint8_t IRP_STATUS_PENDING = 0x1;
-	const uint8_t IRP_STATUS_BUSY = 0x2;
-	const uint8_t IRP_STATUS_COMPLETE = 0x3;
-	const uint8_t IRP_STATUS_BAD_OPERATION = 0x4;
-	const uint8_t IRP_STATUS_BAD_ADDRESS = 0x5;
+	const uint8_t COMMAND_ERASE_BLOCK = 0x2;
+	const uint8_t COMMAND_WRITE_PAGE1 = 0x3;
+	const uint8_t COMMAND_WRITE_PAGE2 = 0x4;
+	const uint8_t COMMAND_WRITE_PAGE3 = 0x5;
+	const uint8_t COMMAND_CRC_SECTOR = 0x6;
 }
 
-upload::upload(xbee &modem, uint64_t bot, const intel_hex &data) : proto(modem, bot), sched(data), status("Initializing..."), irpptr(0), irpmask(0) {
+upload::upload(xbee &modem, uint64_t bot, const intel_hex &data) : proto(modem, bot), sched(data), status("Initializing...") {
 	proto.signal_error().connect(sig_error.make_slot());
 }
 
@@ -53,53 +43,21 @@ void upload::ident_received(const void *data) {
 		return;
 	}
 
-	status = "Clearing Buffers...";
+	status = "Uploading...";
 	sig_progress_made.emit(0);
-	proto.send(COMMAND_CLEAR_IRPS, 0x0F, 0, 0, 0, sigc::mem_fun(*this, &upload::init_irps_cleared));
+	send_next_irp();
 }
 
-void upload::init_irps_cleared(const void *) {
-	proto.send(COMMAND_READ_IRPS, 0, 0, 0, 4, sigc::mem_fun(*this, &upload::init_irps_read));
-}
-
-void upload::init_irps_read(const void *data) {
-	const uint8_t *irpstatii = static_cast<const uint8_t *>(data);
-	bool any_nonempty = false;
-	for (unsigned int i = 0; i < 4; i++)
-		if ((irpstatii[i] >> 4) != IRP_STATUS_EMPTY)
-			any_nonempty = true;
-
-	if (any_nonempty) {
-		proto.send(COMMAND_CLEAR_IRPS, 0x0F, 0, 0, 0, sigc::mem_fun(*this, &upload::init_irps_cleared));
-	} else {
-		status = "Uploading...";
-		sig_progress_made.emit(1);
-		push_irps();
-	}
-}
-
-void upload::push_irps() {
+void upload::send_next_irp() {
 	if (sched.done()) {
-		if (irpmask == 0) {
-			status = "Exiting...";
-			sig_progress_made.emit(1);
-			proto.exit_bootloader(sig_upload_finished.make_slot());
-		} else {
-			start_irp_scan(0);
-		}
+		status = "Exiting...";
+		sig_progress_made.emit(1);
+		proto.exit_bootloader(sig_upload_finished.make_slot());
 		return;
 	}
 
-	if (irpmask == 0x0F) {
-		start_irp_scan(0);
-		return;
-	}
-
-	while (irpmask & (1 << irpptr))
-		irpptr = (irpptr + 1) & 0x03;
-
-	irps[irpptr] = sched.next();
-	switch (irps[irpptr].op) {
+	irp = sched.next();
+	switch (irp.op) {
 		case upload_irp::IOOP_ERASE_BLOCK:
 			submit_erase_block();
 			return;
@@ -118,112 +76,41 @@ void upload::push_irps() {
 }
 
 void upload::submit_erase_block() {
-	uint8_t buffer[3];
-	buffer[0] = IO_OPERATION_ERASE_BLOCK;
-	buffer[1] = irps[irpptr].page >> 8;
-	buffer[2] = irps[irpptr].page & 0xFF;
-	proto.send(COMMAND_SUBMIT_IRP, irpptr, buffer, sizeof(buffer), 0, sigc::mem_fun(*this, &upload::start_irp_scan));
-	irpmask |= 1 << irpptr;
+	proto.send(COMMAND_ERASE_BLOCK, irp.page, 0, 0, 0, sigc::mem_fun(*this, &upload::erase_block_done));
+}
+
+void upload::erase_block_done(const void *) {
+	send_next_irp();
 }
 
 void upload::submit_write_page1() {
-	const uint8_t *bufdata = static_cast<const uint8_t *>(irps[irpptr].data);
-	uint8_t buffer[86];
-	buffer[0] = 0;
-	std::copy(&bufdata[0], &bufdata[85], &buffer[1]);
-	proto.send(COMMAND_WRITE_BUFFER, irpptr, buffer, sizeof(buffer), 0, sigc::mem_fun(*this, &upload::submit_write_page2));
+	proto.send(COMMAND_WRITE_PAGE1, irp.page, irp.data, 86, 0, sigc::mem_fun(*this, &upload::submit_write_page2));
 }
 
 void upload::submit_write_page2(const void *) {
-	const uint8_t *bufdata = static_cast<const uint8_t *>(irps[irpptr].data);
-	uint8_t buffer[86];
-	buffer[0] = 85;
-	std::copy(&bufdata[85], &bufdata[170], &buffer[1]);
-	proto.send(COMMAND_WRITE_BUFFER, irpptr, buffer, sizeof(buffer), 0, sigc::mem_fun(*this, &upload::submit_write_page3));
+	proto.send(COMMAND_WRITE_PAGE2, irp.page, &static_cast<const uint8_t *>(irp.data)[86], 86, 0, sigc::mem_fun(*this, &upload::submit_write_page3));
 }
 
 void upload::submit_write_page3(const void *) {
-	const uint8_t *bufdata = static_cast<const uint8_t *>(irps[irpptr].data);
-	uint8_t buffer[87];
-	buffer[0] = 170;
-	std::copy(&bufdata[170], &bufdata[256], &buffer[1]);
-	proto.send(COMMAND_WRITE_BUFFER, irpptr, buffer, sizeof(buffer), 0, sigc::mem_fun(*this, &upload::submit_write_page4));
+	proto.send(COMMAND_WRITE_PAGE3, irp.page, &static_cast<const uint8_t *>(irp.data)[86+86], 84, 0, sigc::mem_fun(*this, &upload::write_page_done));
 }
 
-void upload::submit_write_page4(const void *) {
-	uint8_t buffer[3];
-	buffer[0] = IO_OPERATION_WRITE_PAGE;
-	buffer[1] = irps[irpptr].page >> 8;
-	buffer[2] = irps[irpptr].page & 0xFF;
-	proto.send(COMMAND_SUBMIT_IRP, irpptr, buffer, sizeof(buffer), 0, sigc::mem_fun(*this, &upload::start_irp_scan));
-	irpmask |= 1 << irpptr;
+void upload::write_page_done(const void *) {
+	sig_progress_made.emit(sched.progress());
+	send_next_irp();
 }
 
 void upload::submit_crc_sector() {
-	uint8_t buffer[3];
-	buffer[0] = IO_OPERATION_CRC_SECTOR;
-	buffer[1] = irps[irpptr].page >> 8;
-	buffer[2] = irps[irpptr].page & 0xFF;
-	proto.send(COMMAND_SUBMIT_IRP, irpptr, buffer, sizeof(buffer), 0, sigc::mem_fun(*this, &upload::start_irp_scan));
-	irpmask |= 1 << irpptr;
+	proto.send(COMMAND_CRC_SECTOR, irp.page, 0, 0, 32, sigc::mem_fun(*this, &upload::crc_sector_done));
 }
 
-void upload::start_irp_scan(const void *) {
-	if (irpmask != 0x0F && !sched.done()) {
-		push_irps();
-		return;
-	}
+void upload::crc_sector_done(const void *response) {
 
-	proto.send(COMMAND_READ_IRPS, 0, 0, 0, 4, sigc::mem_fun(*this, &upload::irps_read));
-}
-
-void upload::irps_read(const void *response) {
-	const uint8_t *statii = static_cast<const uint8_t *>(response);
-	uint8_t toclear = 0;
-
-	for (unsigned int i = 0; i < 4; i++) {
-		switch (statii[i] >> 4) {
-			case IRP_STATUS_EMPTY:
-				irpmask &= ~(1 << i);
-				break;
-
-			case IRP_STATUS_PENDING:
-			case IRP_STATUS_BUSY:
-				break;
-
-			case IRP_STATUS_COMPLETE:
-				if (irps[i].op == upload_irp::IOOP_CRC_SECTOR) {
-					uint8_t buffer[2];
-					buffer[0] = 0;
-					buffer[1] = 32;
-					proto.send(COMMAND_READ_BUFFER, i, buffer, sizeof(buffer), 32, sigc::bind(sigc::mem_fun(*this, &upload::crcs_received), i));
-					return;
-				} else {
-					toclear |= 1 << i;
-				}
-				break;
-
-			default:
-				sig_error.emit("IRP failed!");
-				return;
-		}
-	}
-
-	if (toclear) {
-		proto.send(COMMAND_CLEAR_IRPS, toclear, 0, 0, 0, sigc::mem_fun(*this, &upload::start_irp_scan));
-		irpmask &= ~toclear;
-	} else {
-		push_irps();
-	}
-}
-
-void upload::crcs_received(const void *response, unsigned int index) {
-	if (!sched.check_crcs(irps[index].page, static_cast<const uint16_t *>(response))) {
+	if (!sched.check_crcs(irp.page, static_cast<const uint16_t *>(response))) {
 		sig_error.emit("CRC failed!");
 		return;
 	}
 
-	proto.send(COMMAND_CLEAR_IRPS, 1 << index, 0, 0, 0, sigc::mem_fun(*this, &upload::start_irp_scan));
-	irpmask &= ~(1 << index);
+	send_next_irp();
 }
 

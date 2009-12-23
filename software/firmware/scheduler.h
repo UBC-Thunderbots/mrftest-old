@@ -14,7 +14,8 @@ struct upload_irp {
 	enum ioop {
 		IOOP_ERASE_BLOCK,
 		IOOP_WRITE_PAGE,
-		IOOP_CRC_SECTOR
+		IOOP_CRC_SECTOR,
+		IOOP_READ_PAGE,
 	} op;
 	uint16_t page;
 	const void *data;
@@ -33,7 +34,7 @@ class upload_scheduler : public noncopyable {
 		//
 		// Returns true if all IRPs have been returned.
 		//
-		bool done();
+		bool done() const;
 
 		//
 		// Gets the next IRP.
@@ -44,6 +45,11 @@ class upload_scheduler : public noncopyable {
 		// Checks a set of 16 CRCs.
 		//
 		bool check_crcs(uint16_t first_page, const uint16_t *crcs) __attribute__((warn_unused_result));
+
+		//
+		// Returns the approximate progress of the operation (between 0 and 1).
+		//
+		double progress() const;
 
 	private:
 		const intel_hex &data;

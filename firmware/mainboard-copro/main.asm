@@ -20,16 +20,10 @@
 
 	extern configure_fpga
 	extern bootload
-	extern rcif_main, txif_main
 
 
 
 	udata
-intlow_status: res 1
-intlow_bsr: res 1
-intlow_wreg: res 1
-intlow_tblptr: res 2
-intlow_tablat: res 1
 inthigh_tblptr: res 2
 inthigh_tablat: res 1
 
@@ -63,35 +57,6 @@ intvechigh_impl:
 	movff inthigh_tblptr + 1, TBLPTRH
 	movff inthigh_tblptr + 0, TBLPTRL
 	retfie FAST
-
-
-
-intveclow code
-	; This code is burned at address 18, where low priority interrupts go.
-	movff STATUS, intlow_status
-	movff BSR, intlow_bsr
-	movff WREG, intlow_wreg
-	movff TBLPTRL, intlow_tblptr + 0
-	movff TBLPTRH, intlow_tblptr + 1
-	movff TABLAT, intlow_tablat
-
-	movf PIR1, W
-	andwf PIE1, W
-	btfsc WREG, RCIF
-	call rcif_main
-
-	movf PIR1, W
-	andwf PIE1, W
-	btfsc WREG, TXIF
-	call txif_main
-
-	movff intlow_tablat, TABLAT
-	movff intlow_tblptr + 1, TBLPTRH
-	movff intlow_tblptr + 0, TBLPTRL
-	movff intlow_wreg, WREG
-	movff intlow_bsr, BSR
-	movff intlow_status, STATUS
-	retfie
 
 
 

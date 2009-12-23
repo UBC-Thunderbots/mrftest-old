@@ -5,27 +5,28 @@
 #include "xbee/util.h"
 
 namespace {
-	const unsigned int TIMEOUT = 250;
+	const unsigned int TIMEOUT = 2500;
 	const unsigned int MAX_RETRIES = 8;
 
 	struct __attribute__((packed)) COMMAND_PACKET {
 		xbeepacket::TRANSMIT_HDR hdr;
-		uint8_t command_index;
+		uint8_t command;
+		uint8_t address_high;
+		uint8_t address_low;
 		uint8_t payload[];
 	};
 
 	struct __attribute__((packed)) RESPONSE_PACKET {
 		xbeepacket::RECEIVE_HDR hdr;
-		uint8_t command_index;
+		uint8_t command;
 		uint8_t status;
 		uint8_t payload[];
 	};
 
 	const uint8_t COMMAND_STATUS_OK          = 0x00;
-	const uint8_t COMMAND_STATUS_BAD_INDEX   = 0x01;
-	const uint8_t COMMAND_STATUS_BAD_LENGTH  = 0x02;
-	const uint8_t COMMAND_STATUS_IRP_IN_USE  = 0x03;
-	const uint8_t COMMAND_STATUS_BAD_COMMAND = 0x04;
+	const uint8_t COMMAND_STATUS_BAD_COMMAND = 0x01;
+	const uint8_t COMMAND_STATUS_BAD_ADDRESS = 0x02;
+	const uint8_t COMMAND_STATUS_BAD_LENGTH  = 0x03;
 }
 
 bootproto::bootproto(xbee &modem, uint64_t bot) : modem(modem), bot(bot), current_state(STATE_NOT_STARTED) {
@@ -171,11 +172,10 @@ bool bootproto::enter_bootloader_quiesce() {
 	return false;
 }
 
-void bootproto::send(uint8_t command, uint8_t index, const void *data, std::size_t data_len, std::size_t response_len, const sigc::slot<void, const void *> &callback) {
+void bootproto::send(uint8_t command, uint16_t address, const void *data, std::size_t data_len, std::size_t response_len, const sigc::slot<void, const void *> &callback) {
 	// Sanity check.
 	assert(current_state == STATE_READY);
 	assert(command < 16);
-	assert(index < 16);
 
 	// Mark new state.
 	current_state = STATE_BUSY;
@@ -184,13 +184,15 @@ void bootproto::send(uint8_t command, uint8_t index, const void *data, std::size
 	retries = MAX_RETRIES;
 
 	// Save data.
-	pending_data.resize(sizeof(xbeepacket::TRANSMIT_HDR) + 1 + data_len);
+	pending_data.resize(sizeof(COMMAND_PACKET) + data_len);
 	COMMAND_PACKET *pkt = reinterpret_cast<COMMAND_PACKET *>(&pending_data[0]);
 	pkt->hdr.apiid = xbeepacket::TRANSMIT_APIID;
 	pkt->hdr.frame = 0;
 	xbeeutil::address_to_bytes(bot, pkt->hdr.address);
-	pkt->hdr.options = xbeepacket::TRANSMIT_OPTION_DISABLE_ACK;
-	pkt->command_index = (command << 4) | index;
+	pkt->hdr.options = 0;
+	pkt->command = command;
+	pkt->address_high = address / 256;
+	pkt->address_low = address % 256;
 	if (data_len) {
 		std::copy(static_cast<const uint8_t *>(data), static_cast<const uint8_t *>(data) + data_len, pkt->payload);
 	}
@@ -267,24 +269,19 @@ void bootproto::send_receive(const void *data, std::size_t length) {
 			response_callback(pkt.payload);
 			return;
 
-		case COMMAND_STATUS_BAD_INDEX:
+		case COMMAND_STATUS_BAD_COMMAND:
 			// Hard error. Don't bother retrying; just report an error.
-			report_error("Communication error: Bad index number.");
+			report_error("Communication error: Bad command.");
+			return;
+
+		case COMMAND_STATUS_BAD_ADDRESS:
+			// Hard error. Don't bother retrying; just report an error.
+			report_error("Communication error: Bad address.");
 			return;
 
 		case COMMAND_STATUS_BAD_LENGTH:
 			// Hard error. Don't bother retrying; just report an error.
 			report_error("Communication error: Bad data length.");
-			return;
-
-		case COMMAND_STATUS_IRP_IN_USE:
-			// Hard error. Don't bother retrying; just report an error.
-			report_error("Communication error: Attempt to use a nonempty IRP.");
-			return;
-
-		case COMMAND_STATUS_BAD_COMMAND:
-			// Hard error. Don't bother retrying; just report an error.
-			report_error("Communication error: Bad command.");
 			return;
 
 		default:
@@ -350,7 +347,7 @@ bool bootproto::exit_bootloader_timeout() {
 
 void bootproto::exit_bootloader_receive(const void *data, std::size_t length) {
 	// Check sanity.
-	assert(current_state == STATE_ENTERING_BOOTLOADER);
+	assert(current_state == STATE_EXITING_BOOTLOADER);
 	if (length < sizeof(xbeepacket::REMOTE_AT_RESPONSE)) {
 		DPRINT("packet ignored: too short");
 		return;

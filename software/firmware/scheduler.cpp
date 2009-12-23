@@ -29,16 +29,20 @@ upload_irp upload_scheduler::next() {
 	return irp;
 }
 
-bool upload_scheduler::done() {
+bool upload_scheduler::done() const {
 	return sectors_checksummed == bytes_sectors(data.data().size());
 }
 
 bool upload_scheduler::check_crcs(uint16_t first_page, const uint16_t *crcs) {
 	for (uint16_t i = 0; i < 16 && first_page + i < bytes_pages(data.data().size()); i++) {
-		if (crcs[i] != crc16::calculate(&data.data()[(first_page + i) * PAGE_BYTES], 256)) {
+		if (crcs[i] != crc16::calculate(&data.data()[(first_page + i) * PAGE_BYTES], PAGE_BYTES)) {
 			return false;
 		}
 	}
 	return true;
+}
+
+double upload_scheduler::progress() const {
+	return ((double) pages_written) / bytes_pages(data.data().size());
 }
 

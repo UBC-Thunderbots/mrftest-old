@@ -58,7 +58,7 @@ class bootproto : public noncopyable, public sigc::trackable {
 		// Causes a request to be sent to the robot. The provided slot will be
 		// invoked when the robot sends back a response.
 		//
-		void send(uint8_t command, uint8_t index, const void *data, std::size_t data_len, std::size_t response_len, const sigc::slot<void, const void *> &callback);
+		void send(uint8_t command, uint16_t address, const void *data, std::size_t data_len, std::size_t response_len, const sigc::slot<void, const void *> &callback);
 
 		//
 		// Causes the robot to begin exiting bootloader mode. The proivded slot

@@ -52,8 +52,7 @@ class upload : public noncopyable, public sigc::trackable {
 		bootproto proto;
 		upload_scheduler sched;
 		Glib::ustring status;
-		uint8_t irpptr, irpmask;
-		upload_irp irps[4];
+		upload_irp irp;
 
 		sigc::signal<void, double> sig_progress_made;
 		sigc::signal<void> sig_upload_finished;
@@ -61,18 +60,16 @@ class upload : public noncopyable, public sigc::trackable {
 
 		void bootloader_entered();
 		void ident_received(const void *);
-		void init_irps_cleared(const void *);
-		void init_irps_read(const void *);
-		void push_irps();
+		void send_next_irp();
+		void irp_done(const void *);
 		void submit_erase_block();
+		void erase_block_done(const void *);
 		void submit_write_page1();
 		void submit_write_page2(const void *);
 		void submit_write_page3(const void *);
-		void submit_write_page4(const void *);
+		void write_page_done(const void *);
 		void submit_crc_sector();
-		void start_irp_scan(const void *);
-		void irps_read(const void *);
-		void crcs_received(const void *, unsigned int);
+		void crc_sector_done(const void *);
 };
 
 #endif

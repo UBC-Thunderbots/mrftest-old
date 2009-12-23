@@ -30,6 +30,8 @@ hextemp: res 1
 BSR_save: res 1
 STATUS_save: res 1
 W_save: res 1
+FSR0L_save: res 1
+FSR0H_save: res 1
 
 
 
@@ -156,9 +158,13 @@ dbgprint_rom:
 	movff STATUS, STATUS_save
 	banksel W_save
 	movwf W_save
+	movff FSR0L, FSR0L_save
+	movff FSR0H, FSR0H_save
 
 	rcall dbgprint_rom_impl
 
+	movff FSR0H_save, FSR0H
+	movff FSR0L_save, FSR0L
 	movf W_save, W
 	movff STATUS_save, STATUS
 	movff BSR_save, BSR
@@ -173,6 +179,8 @@ dbgprint_hex:
 	movff STATUS, STATUS_save
 	banksel W_save
 	movwf W_save
+	movff FSR0L, FSR0L_save
+	movff FSR0H, FSR0H_save
 
 	movwf hextemp
 	swapf WREG, W
@@ -182,6 +190,8 @@ dbgprint_hex:
 	andlw 0x0F
 	rcall dbgprint_hex_digit
 	
+	movff FSR0H_save, FSR0H
+	movff FSR0L_save, FSR0L
 	movf W_save, W
 	movff STATUS_save, STATUS
 	movff BSR_save, BSR
@@ -207,6 +217,8 @@ dbgprint_nl:
 	movff STATUS, STATUS_save
 	banksel W_save
 	movwf W_save
+	movff FSR0L, FSR0L_save
+	movff FSR0H, FSR0H_save
 
 	movlw LOW(nl)
 	movwf TBLPTRL
@@ -214,6 +226,8 @@ dbgprint_nl:
 	movwf TBLPTRH
 	rcall dbgprint_rom_impl
 	
+	movff FSR0H_save, FSR0H
+	movff FSR0L_save, FSR0L
 	movf W_save, W
 	movff STATUS_save, STATUS
 	movff BSR_save, BSR
