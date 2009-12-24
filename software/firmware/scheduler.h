@@ -4,6 +4,7 @@
 #include "util/ihex.h"
 #include "util/noncopyable.h"
 #include <queue>
+#include <vector>
 #include <cstddef>
 #include <stdint.h>
 
@@ -53,7 +54,7 @@ class upload_scheduler : public noncopyable {
 		double progress() const;
 
 	private:
-		const intel_hex &data;
+		std::vector<uint8_t> data;
 		std::queue<upload_irp> irps;
 		std::size_t initial_qlen;
 

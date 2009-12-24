@@ -2,18 +2,21 @@
 #include "firmware/scheduler.h"
 #include <cassert>
 
-upload_scheduler::upload_scheduler(const intel_hex &data) : data(data) {
+upload_scheduler::upload_scheduler(const intel_hex &ihex) : data(ihex.data()) {
+	while (data.size() % PAGE_BYTES) {
+		data.push_back(0xFF);
+	}
 	upload_irp irp;
-	for (unsigned int block = 0; block * BLOCK_BYTES < data.data().size(); ++block) {
+	for (unsigned int block = 0; block * BLOCK_BYTES < data.size(); ++block) {
 		irp.op = upload_irp::IOOP_ERASE_BLOCK;
 		irp.page = block * BLOCK_SECTORS * SECTOR_PAGES;
 		irp.data = 0;
 		irps.push(irp);
-		for (unsigned int sector = 0; block * BLOCK_BYTES + sector * SECTOR_BYTES < data.data().size() && sector < BLOCK_SECTORS; ++sector) {
-			for (unsigned int page = 0; block * BLOCK_BYTES + sector * SECTOR_BYTES + page * PAGE_BYTES < data.data().size() && page < SECTOR_PAGES; ++page) {
+		for (unsigned int sector = 0; block * BLOCK_BYTES + sector * SECTOR_BYTES < data.size() && sector < BLOCK_SECTORS; ++sector) {
+			for (unsigned int page = 0; block * BLOCK_BYTES + sector * SECTOR_BYTES + page * PAGE_BYTES < data.size() && page < SECTOR_PAGES; ++page) {
 				irp.op = upload_irp::IOOP_WRITE_PAGE;
 				irp.page = (block * BLOCK_SECTORS + sector) * SECTOR_PAGES + page;
-				irp.data = &data.data()[block * BLOCK_BYTES + sector * SECTOR_BYTES + page * PAGE_BYTES];
+				irp.data = &data[block * BLOCK_BYTES + sector * SECTOR_BYTES + page * PAGE_BYTES];
 				irps.push(irp);
 			}
 			irp.op = upload_irp::IOOP_CRC_SECTOR;
@@ -37,8 +40,8 @@ bool upload_scheduler::done() const {
 }
 
 bool upload_scheduler::check_crcs(uint16_t first_page, const uint16_t *crcs) {
-	for (uint16_t i = 0; i < 16 && (first_page + i) * PAGE_BYTES < data.data().size(); ++i) {
-		if (crcs[i] != crc16::calculate(&data.data()[(first_page + i) * PAGE_BYTES], PAGE_BYTES)) {
+	for (uint16_t i = 0; i < 16 && (first_page + i) * PAGE_BYTES < data.size(); ++i) {
+		if (crcs[i] != crc16::calculate(&data[(first_page + i) * PAGE_BYTES], PAGE_BYTES)) {
 			return false;
 		}
 	}
