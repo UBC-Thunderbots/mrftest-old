@@ -82,10 +82,10 @@ LAT_XBEE_RX  equ LATC
 PIN_XBEE_RX  equ 7
 
 	; Which port, tris, and pin is the bootload signal line from the XBee.
-PORT_XBEE_BL equ PORTD
-TRIS_XBEE_BL equ TRISD
-LAT_XBEE_BL  equ LATD
-PIN_XBEE_BL  equ 7
+PORT_XBEE_BL equ PORTC
+TRIS_XBEE_BL equ TRISC
+LAT_XBEE_BL  equ LATC
+PIN_XBEE_BL  equ 4
 
 	; Which port, tris, and pin is the PGD line for ICSP.
 PORT_ICSP_PGD equ PORTB
@@ -105,17 +105,17 @@ TRIS_ICSP_PGM equ TRISB
 LAT_ICSP_PGM  equ LATB
 PIN_ICSP_PGM  equ 5
 
-	; Which port, tris, and pin is the D+ line for USB.
-PORT_USB_DP equ PORTC
-TRIS_USB_DP equ TRISC
-LAT_USB_DP  equ LATC
-PIN_USB_DP  equ 5
+	; Which port, tris, and pin is the emergency erase signal line from the XBee.
+PORT_EMERG_ERASE equ PORTC
+TRIS_EMERG_ERASE equ TRISC
+LAT_EMERG_ERASE  equ LATC
+PIN_EMERG_ERASE  equ 5
 
-	; Which port, tris, and pin is the D- line for USB.
-PORT_USB_DM equ PORTC
-TRIS_USB_DM equ TRISC
-LAT_USB_DM  equ LATC
-PIN_USB_DM  equ 4
+	; Which port, tris, and pin is connected to the LED.
+PORT_LED equ PORTD
+TRIS_LED equ TRISD
+LAT_LED  equ LATD
+PIN_LED  equ 7
 
 	; Which port, tris, and pin is the RTS line.
 PORT_RTS equ PORTC

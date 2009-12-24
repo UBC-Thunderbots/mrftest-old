@@ -30,6 +30,7 @@
 	processor 18F4550
 #include <p18f4550.inc>
 #include "dispatch.inc"
+#include "led.inc"
 #include "pins.inc"
 #include "sleep.inc"
 #include "spi.inc"
@@ -235,6 +236,10 @@ bootload:
 	movwf RCSTA
 	nop
 	nop
+
+	; In the bootloader, blink the LED fast at 50% duty cycle.
+	movlw 0
+	call led_blink
 
 main_loop:
 	; Receive a packet from the XBee.
@@ -874,8 +879,12 @@ usart_receive:
 	; because if an error occurs, the top two levels of the stack are discarded and the function jumps to
 	; the entry point of xbee_receive_packet.
 
-	; Check if the bootload pin has gone low.
+	; Check if the bootload pin has been deasserted (gone low).
 	btfss PORT_XBEE_BL, PIN_XBEE_BL
+	reset
+
+	; Check if the emergency erase pin has been asserted (gone low).
+	btfss PORT_EMERG_ERASE, PIN_EMERG_ERASE
 	reset
 
 	; Check if there's data available to receive.

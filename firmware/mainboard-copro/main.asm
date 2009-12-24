@@ -13,19 +13,24 @@
 	processor 18F4550
 #include <p18f4550.inc>
 #include "dbgprint.inc"
+#include "led.inc"
 #include "pins.inc"
 #include "sleep.inc"
 
 
 
-	extern configure_fpga
+	extern emergency_erase
 	extern bootload
+	extern configure_fpga
 
 
 
 	udata
 inthigh_tblptr: res 2
 inthigh_tablat: res 1
+intlow_status: res 1
+intlow_wreg: res 1
+intlow_bsr: res 1
 
 
 
@@ -60,6 +65,21 @@ intvechigh_impl:
 
 
 
+intveclow code
+	; This code is burned at address 0x18, where low priority interrupts go.
+	movff STATUS, intlow_status
+	movff WREG, intlow_wreg
+	movff BSR, intlow_bsr
+
+	call timer1_int
+
+	movff intlow_bsr, BSR
+	movff intlow_wreg, WREG
+	movff intlow_status, STATUS
+	retfie
+
+
+
 	code
 main:
 	; Enable global interrupts and interrupt priorities. Do not enable any
@@ -67,6 +87,9 @@ main:
 	bsf RCON, IPEN
 	movlw (1 << GIEL) | (1 << GIEH)
 	movwf INTCON
+
+	; USB transceiver must be disabled to use RC4/RC5 as digital inputs.
+	bsf UCFG, UTRDIS
 
 	; Initialize those pins that should be outputs to safe initial levels.
 	; Pins are configured as inputs at device startup.
@@ -95,15 +118,14 @@ main:
 	; ICSP_PGD is managed by DBGPRINT.
 	; ICSP_PGC is always an input.
 	; ICSP_PGM is always an input.
-	; USB_DP is low to avoid floating pin.
-	bcf LAT_USB_DP, PIN_USB_DP
-	bcf TRIS_USB_DP, PIN_USB_DP
-	; USB_DM is low to avoid floating pin.
-	bcf LAT_USB_DM, PIN_USB_DM
-	bcf TRIS_USB_DM, PIN_USB_DM
+	; EMERG_ERASE is always an input.
+	; LED is managed by LED.
 	; RTS is low until used in bootloader for flow control.
 	bcf LAT_RTS, PIN_RTS
 	bcf TRIS_RTS, PIN_RTS
+
+	; Initialize the blinky light library.
+	call led_init
 
 	; Initialize the debugging library.
 	call dbgprint_init
@@ -111,9 +133,18 @@ main:
 	; Wait a tenth of a second for everything to stabilize.
 	call sleep_100ms
 
-	; Now that we've initialized ourself, we either go into bootloader mode or
-	; go into FPGA configuration mode, depending on the state of the XBee pin.
-	btfss PORT_XBEE_BL, PIN_XBEE_BL
-	goto configure_fpga
+	; Now that we've initialized ourself, we either go into emergency erase
+	; mode, bootloader mode, or FPGA configuration mode, depending on the states
+	; of the XBee pins.
+
+	; EMERG_ERASE is active low. If low, do emergency erase.
+	btfss PORT_EMERG_ERASE, PIN_EMERG_ERASE
+	goto emergency_erase
+
+	; BOOTLOAD is active high. If high, do bootload.
+	btfsc PORT_XBEE_BL, PIN_XBEE_BL
 	goto bootload
+
+	; Otherwise, configure the FPGA and then become an ADC.
+	goto configure_fpga
 	end

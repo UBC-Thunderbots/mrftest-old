@@ -10,6 +10,7 @@
 	radix dec
 	processor 18F4550
 #include <p18f4550.inc>
+#include "led.inc"
 #include "pins.inc"
 #include "spi.inc"
 
@@ -66,6 +67,9 @@ CONVERT_AND_SEND macro oldchannel, newchannel
 
 	code
 adc:
+	; Turn the LED on solid.
+	call led_on
+
 	; Let the motors run.
 	bsf TRIS_BRAKE, PIN_BRAKE
 
@@ -85,8 +89,12 @@ loop:
 	; Select ADC channel zero and begin an acquisition.
 	ADC_START_CONVERSION 0
 
-	; Check if the bootload signal line has gone high.
+	; Check if the bootload signal line has been asserted (gone high).
 	btfsc PORT_XBEE_BL, PIN_XBEE_BL
+	reset
+
+	; Check if the emergency erase signal line has been asserted (gone low).
+	btfss PORT_EMERG_ERASE, PIN_EMERG_ERASE
 	reset
 
 	; Lower /SS to the FPGA.
