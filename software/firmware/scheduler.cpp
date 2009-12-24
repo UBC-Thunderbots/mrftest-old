@@ -2,39 +2,42 @@
 #include "firmware/scheduler.h"
 #include <cassert>
 
-upload_scheduler::upload_scheduler(const intel_hex &data) : data(data), blocks_erased(0), pages_written(0), sectors_checksummed(0) {
+upload_scheduler::upload_scheduler(const intel_hex &data) : data(data) {
+	upload_irp irp;
+	for (unsigned int block = 0; block * BLOCK_BYTES < data.data().size(); ++block) {
+		irp.op = upload_irp::IOOP_ERASE_BLOCK;
+		irp.page = block * BLOCK_SECTORS * SECTOR_PAGES;
+		irp.data = 0;
+		irps.push(irp);
+		for (unsigned int sector = 0; block * BLOCK_BYTES + sector * SECTOR_BYTES < data.data().size() && sector < BLOCK_SECTORS; ++sector) {
+			for (unsigned int page = 0; block * BLOCK_BYTES + sector * SECTOR_BYTES + page * PAGE_BYTES < data.data().size() && page < SECTOR_PAGES; ++page) {
+				irp.op = upload_irp::IOOP_WRITE_PAGE;
+				irp.page = (block * BLOCK_SECTORS + sector) * SECTOR_PAGES + page;
+				irp.data = &data.data()[block * BLOCK_BYTES + sector * SECTOR_BYTES + page * PAGE_BYTES];
+				irps.push(irp);
+			}
+			irp.op = upload_irp::IOOP_CRC_SECTOR;
+			irp.page = (block * BLOCK_SECTORS + sector) * SECTOR_PAGES;
+			irp.data = 0;
+			irps.push(irp);
+		}
+	}
+	initial_qlen = irps.size();
 }
 
 upload_irp upload_scheduler::next() {
 	assert(!done());
-
-	upload_irp irp;
-	if (blocks_erased < bytes_blocks(data.data().size())) {
-		irp.op = upload_irp::IOOP_ERASE_BLOCK;
-		irp.page = blocks_erased * BLOCK_SECTORS * SECTOR_PAGES;
-		irp.data = 0;
-		blocks_erased++;
-	} else if (pages_written < bytes_pages(data.data().size())) {
-		irp.op = upload_irp::IOOP_WRITE_PAGE;
-		irp.page = pages_written;
-		irp.data = &data.data()[pages_written * PAGE_BYTES];
-		pages_written++;
-	} else {
-		irp.op = upload_irp::IOOP_CRC_SECTOR;
-		irp.page = sectors_checksummed * SECTOR_PAGES;
-		irp.data = 0;
-		sectors_checksummed++;
-	}
-
+	upload_irp irp = irps.front();
+	irps.pop();
 	return irp;
 }
 
 bool upload_scheduler::done() const {
-	return sectors_checksummed == bytes_sectors(data.data().size());
+	return irps.empty();
 }
 
 bool upload_scheduler::check_crcs(uint16_t first_page, const uint16_t *crcs) {
-	for (uint16_t i = 0; i < 16 && first_page + i < bytes_pages(data.data().size()); i++) {
+	for (uint16_t i = 0; i < 16 && (first_page + i) * PAGE_BYTES < data.data().size(); ++i) {
 		if (crcs[i] != crc16::calculate(&data.data()[(first_page + i) * PAGE_BYTES], PAGE_BYTES)) {
 			return false;
 		}
@@ -43,6 +46,6 @@ bool upload_scheduler::check_crcs(uint16_t first_page, const uint16_t *crcs) {
 }
 
 double upload_scheduler::progress() const {
-	return ((double) pages_written) / bytes_pages(data.data().size());
+	return ((double) (initial_qlen - irps.size())) / initial_qlen;
 }
 

@@ -3,6 +3,7 @@
 
 #include "util/ihex.h"
 #include "util/noncopyable.h"
+#include <queue>
 #include <cstddef>
 #include <stdint.h>
 
@@ -53,39 +54,15 @@ class upload_scheduler : public noncopyable {
 
 	private:
 		const intel_hex &data;
-		unsigned int blocks_erased, pages_written, sectors_checksummed;
-
-		void erase_finished(upload_irp, const void *);
-		void write_finished(upload_irp, const void *);
-		void checksum_finished(upload_irp, const void *);
+		std::queue<upload_irp> irps;
+		std::size_t initial_qlen;
 
 		static const std::size_t PAGE_BYTES = 256;
 		static const uint16_t SECTOR_PAGES = 16;
 		static const uint16_t BLOCK_SECTORS = 16;
 
-		static unsigned int bytes_pages(unsigned int bytes) {
-			return (bytes + PAGE_BYTES - 1) / PAGE_BYTES;
-		}
-
-		static unsigned int pages_sectors(unsigned int pages) {
-			return (pages + SECTOR_PAGES - 1) / SECTOR_PAGES;
-		}
-
-		static unsigned int bytes_sectors(unsigned int bytes) {
-			return pages_sectors(bytes_pages(bytes));
-		}
-
-		static unsigned int sectors_blocks(unsigned int sectors) {
-			return (sectors + BLOCK_SECTORS - 1) / BLOCK_SECTORS;
-		}
-
-		static unsigned int pages_blocks(unsigned int pages) {
-			return sectors_blocks(pages_sectors(pages));
-		}
-
-		static unsigned int bytes_blocks(unsigned int bytes) {
-			return sectors_blocks(bytes_sectors(bytes));
-		}
+		static const std::size_t SECTOR_BYTES = SECTOR_PAGES * PAGE_BYTES;
+		static const std::size_t BLOCK_BYTES = BLOCK_SECTORS * SECTOR_BYTES;
 };
 
 #endif
