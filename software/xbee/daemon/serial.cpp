@@ -47,7 +47,6 @@ namespace {
 serial_port::serial_port() : port("/dev/xbee", O_RDWR | O_NOCTTY) {
 	// Configure the port.
 	configure_port(port);
-	port.set_blocking(false);
 }
 
 void serial_port::send(uint8_t ch) {
