@@ -266,6 +266,15 @@ connected:
 		goto start_work;
 	}
 
+	std::cout << "Setting retry count to 3... " << std::flush;
+	send_string(fd, "ATRR3\r");
+	if (read_clean_ok(fd)) {
+		std::cout << "OK\n";
+	} else {
+		std::cout << "FAIL\n";
+		goto start_work;
+	}
+
 	std::cout << "Saving configuration... " << std::flush;
 	send_string(fd, "ATWR\r");
 	if (read_clean_ok(fd)) {
