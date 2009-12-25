@@ -28,8 +28,8 @@ configure_fpga:
 	; Drive PROG_B high to begin the configuration process.
 	bsf LAT_PROG_B, PIN_PROG_B
 
-	; While FPGA is configuring, blink LED slowly with 12.5% duty cycle.
-	movlw 7
+	; While FPGA is configuring, blink LED at 1048ms period with 50% duty cycle.
+	movlw (3 << 4) | 3
 	call led_blink
 
 	; Once the FPGA is finished configuring itself, the DONE pin will go high.

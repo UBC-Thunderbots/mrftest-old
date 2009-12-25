@@ -46,8 +46,8 @@ emergency_erase:
 	call spi_send
 	rcall deselect_chip
 
-	; Blink the LED slowly at 50% duty cycle while doing an emergency erase.
-	movlw (8 << 4) | 8
+	; While erasing, blink LED at 262ms period with 50% duty cycle.
+	movlw 0
 	call led_blink
 
 	; Send READ STATUS REGISTER and wait until not BUSY.
@@ -59,8 +59,9 @@ wait_nonbusy:
 	btfsc WREG, 0
 	bra wait_nonbusy
 
-	; Hold the LED off once emergency erase is done.
-	call led_off
+	; Until reset, blink LED at 1048ms period with 87.5% duty cycle.
+	movlw 6 << 4
+	call led_blink
 
 	; Wait until the emergency erase signal line is deasserted (goes high).
 wait_pin:

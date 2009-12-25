@@ -253,8 +253,8 @@ bootload:
 	nop
 	nop
 
-	; In the bootloader, blink the LED fast at 50% duty cycle.
-	movlw 0
+	; In the bootloader, blink LED at 1048ms period with 12.5% duty cycle.
+	movlw 6
 	call led_blink
 
 main_loop:

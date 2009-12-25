@@ -50,18 +50,6 @@ led_on:
 
 
 
-led_off:
-	; Turn off the timer interrupt. Only needed when blinking.
-	bcf PIE1, TMR1IE
-
-	; Turn off the LED.
-	bcf LAT_LED, PIN_LED
-
-	; Done.
-	return
-
-
-
 led_blink:
 	; Turn off timer interrupt while manipulating registers.
 	bcf PIE1, TMR1IE

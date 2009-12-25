@@ -238,7 +238,7 @@ class firmware_window_impl : public Gtk::Window {
 				resp = dlg.run();
 			}
 			if (resp == Gtk::RESPONSE_ACCEPT) {
-				Gtk::MessageDialog md(*this, "The emergency erase was requested. The indicator LED should be blinking slowly; when it stops blinking, power cycle the logic board.", false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_OK, true);
+				Gtk::MessageDialog md(*this, "The emergency erase was requested. The indicator LED should be blinking fast; when it occults slowly, power cycle the logic board.", false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_OK, true);
 				md.run();
 			}
 		}

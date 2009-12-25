@@ -27,14 +27,6 @@
 
 
 
-	; function led_off
-	; ================
-	;
-	; Turns the LED off solid.
-	EXTERNDEF led_off
-
-
-
 	; function led_blink
 	; ==================
 	;
