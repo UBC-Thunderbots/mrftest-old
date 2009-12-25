@@ -91,7 +91,6 @@ void upload::submit_write_page() {
 }
 
 void upload::write_page_done(const void *) {
-	sig_progress_made.emit(sched.progress());
 	send_next_irp();
 }
 
@@ -105,6 +104,7 @@ void upload::crc_sector_done(const void *response) {
 		return;
 	}
 
+	sig_progress_made.emit(sched.progress());
 	send_next_irp();
 }
 
