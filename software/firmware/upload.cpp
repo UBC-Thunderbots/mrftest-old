@@ -17,43 +17,44 @@ namespace {
 	const uint8_t COMMAND_ERASE_SECTOR = 0x7;
 }
 
-upload::upload(xbee &modem, uint64_t bot, const intel_hex &data) : proto(modem, bot), sched(data), status("Initializing...") {
-	proto.signal_error().connect(sig_error.make_slot());
+upload::upload(xbee &modem, uint64_t bot, const intel_hex &data) : proto(modem, bot), sched(data) {
+	status = "Initializing...";
+	proto.signal_error().connect(signal_error().make_slot());
 }
 
 void upload::start() {
 	status = "Entering Bootloader...";
-	sig_progress_made.emit(0);
+	signal_progress().emit(0);
 	proto.enter_bootloader(sigc::mem_fun(*this, &upload::bootloader_entered));
 }
 
 void upload::bootloader_entered() {
 	status = "Checking Identity...";
-	sig_progress_made.emit(0);
+	signal_progress().emit(0);
 	proto.send(COMMAND_IDENT, 0, 0, 0, 8, sigc::mem_fun(*this, &upload::ident_received));
 }
 
 void upload::ident_received(const void *data) {
 	const IDENT_DATA *resp = static_cast<const IDENT_DATA *>(data);
 	if (!std::equal(resp->signature, resp->signature + 5, "TBOTS")) {
-		sig_error.emit("Failed to check identity: Incorrect signature!");
+		signal_error().emit("Failed to check identity: Incorrect signature!");
 		return;
 	}
 	if (resp->manufacturer != 0xEF || resp->memory_type != 0x30 || resp->capacity != 0x15) {
-		sig_error.emit("Failed to check identity: Incorrect Flash JEDEC id!");
+		signal_error().emit("Failed to check identity: Incorrect Flash JEDEC id!");
 		return;
 	}
 
 	status = "Uploading...";
-	sig_progress_made.emit(0);
+	signal_progress().emit(0);
 	send_next_irp();
 }
 
 void upload::send_next_irp() {
 	if (sched.done()) {
 		status = "Exiting...";
-		sig_progress_made.emit(1);
-		proto.exit_bootloader(sig_upload_finished.make_slot());
+		signal_progress().emit(1);
+		proto.exit_bootloader(signal_finished().make_slot());
 		return;
 	}
 
@@ -77,7 +78,7 @@ void upload::send_next_irp() {
 				return;
 
 			default:
-				sig_error.emit("Scheduler returned illegal IRP!");
+				signal_error().emit("Scheduler returned illegal IRP!");
 				return;
 		}
 	}
@@ -103,11 +104,11 @@ void upload::submit_crc_sector() {
 
 void upload::crc_sector_done(const void *response) {
 	if (!sched.check_crcs(irp.page, static_cast<const uint16_t *>(response))) {
-		sig_error.emit("CRC failed!");
+		signal_error().emit("CRC failed!");
 		return;
 	}
 
-	sig_progress_made.emit(sched.progress());
+	signal_progress().emit(sched.progress());
 	send_next_irp();
 }
 

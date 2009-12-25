@@ -100,10 +100,13 @@ software/firmware/bootproto.cpp -text
 software/firmware/bootproto.h -text
 software/firmware/crc16.cpp -text
 software/firmware/crc16.h -text
+software/firmware/emergency_erase.cpp -text
+software/firmware/emergency_erase.h -text
 software/firmware/scheduler.cpp -text
 software/firmware/scheduler.h -text
 software/firmware/upload.cpp -text
 software/firmware/upload.h -text
+software/firmware/watchable_operation.h -text
 software/firmware/window.cpp -text
 software/firmware/window.h -text
 software/geom/angle.cpp -text

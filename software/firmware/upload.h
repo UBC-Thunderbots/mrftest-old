@@ -3,12 +3,13 @@
 
 #include "firmware/bootproto.h"
 #include "firmware/scheduler.h"
+#include "firmware/watchable_operation.h"
 #include "util/ihex.h"
 
 //
 // An in-progress firmware upgrade operation.
 //
-class upload : public noncopyable, public sigc::trackable {
+class upload : public watchable_operation, public sigc::trackable {
 	public:
 		//
 		// Constructs an uploader object.
@@ -20,43 +21,10 @@ class upload : public noncopyable, public sigc::trackable {
 		//
 		void start();
 
-		//
-		// Fired whenever progress is made.
-		//
-		sigc::signal<void, double> &signal_progress_made() {
-			return sig_progress_made;
-		}
-
-		//
-		// Fired when the upload completes.
-		//
-		sigc::signal<void> &signal_upload_finished() {
-			return sig_upload_finished;
-		}
-
-		//
-		// Fired when an error occurs. No further activity will occur.
-		//
-		sigc::signal<void, const Glib::ustring &> &signal_error() {
-			return sig_error;
-		}
-
-		//
-		// Returns the textual status of the current upload stage.
-		//
-		const Glib::ustring &get_status() const {
-			return status;
-		}
-
 	private:
 		bootproto proto;
 		upload_scheduler sched;
-		Glib::ustring status;
 		upload_irp irp;
-
-		sigc::signal<void, double> sig_progress_made;
-		sigc::signal<void> sig_upload_finished;
-		sigc::signal<void, const Glib::ustring &> sig_error;
 
 		void bootloader_entered();
 		void ident_received(const void *);

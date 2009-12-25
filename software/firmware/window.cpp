@@ -1,3 +1,4 @@
+#include "firmware/emergency_erase.h"
 #include "firmware/upload.h"
 #include "firmware/window.h"
 #include "uicomponents/world_add_bot_dialog.h"
@@ -124,28 +125,28 @@ namespace {
 			Gtk::Button add_button, del_button;
 	};
 
-	class upload_dialog : public Gtk::Dialog {
+	class working_dialog : public Gtk::Dialog {
 		public:
-			upload_dialog(Gtk::Window &win, upload &up) : Gtk::Dialog("Upload Progress", win, true), up(up) {
-				up.signal_error().connect(sigc::mem_fun(*this, &upload_dialog::upload_error));
-				up.signal_progress_made().connect(sigc::mem_fun(*this, &upload_dialog::status_update));
-				up.signal_upload_finished().connect(sigc::bind(sigc::mem_fun(static_cast<Gtk::Dialog &>(*this), &Gtk::Dialog::response), Gtk::RESPONSE_ACCEPT));
-				pb.set_text(up.get_status());
+			working_dialog(Gtk::Window &win, watchable_operation &op) : Gtk::Dialog("Progress", win, true), op(op) {
+				op.signal_error().connect(sigc::mem_fun(*this, &working_dialog::error));
+				op.signal_progress().connect(sigc::mem_fun(*this, &working_dialog::status_update));
+				op.signal_finished().connect(sigc::bind(sigc::mem_fun(static_cast<Gtk::Dialog &>(*this), &Gtk::Dialog::response), Gtk::RESPONSE_ACCEPT));
+				pb.set_text(op.get_status());
 				get_vbox()->pack_start(pb, false, false);
 				add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
 				show_all();
 			}
 
 		private:
-			upload &up;
+			watchable_operation &op;
 			Gtk::ProgressBar pb;
 
 			void status_update(double fraction) {
 				pb.set_fraction(fraction);
-				pb.set_text(up.get_status());
+				pb.set_text(op.get_status());
 			}
 
-			void upload_error(const Glib::ustring &message) {
+			void error(const Glib::ustring &message) {
 				Gtk::MessageDialog md(*this, message, false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
 				md.run();
 				response(Gtk::RESPONSE_CANCEL);
@@ -155,7 +156,7 @@ namespace {
 
 class firmware_window_impl : public Gtk::Window {
 	public:
-		firmware_window_impl(xbee &modem, xmlpp::Element *xmlworld) : modem(modem), bot_frame("Bot"), bot_controls(xmlworld, *this), file_frame("Firmware File"), start_upload_button(Gtk::Stock::EXECUTE) {
+		firmware_window_impl(xbee &modem, xmlpp::Element *xmlworld) : modem(modem), bot_frame("Bot"), bot_controls(xmlworld, *this), file_frame("Firmware File"), start_upload_button(Gtk::Stock::EXECUTE), emergency_erase_button("Emergency Erase") {
 			set_title("Thunderbots");
 
 			bot_controls.signal_address_changed().connect(sigc::mem_fun(*this, &firmware_window_impl::address_changed));
@@ -175,6 +176,9 @@ class firmware_window_impl : public Gtk::Window {
 
 			start_upload_button.signal_clicked().connect(sigc::mem_fun(*this, &firmware_window_impl::start_upload));
 			vbox.pack_start(start_upload_button, false, false);
+
+			emergency_erase_button.signal_clicked().connect(sigc::mem_fun(*this, &firmware_window_impl::start_emergency_erase));
+			vbox.pack_start(emergency_erase_button, false, false);
 
 			add(vbox);
 
@@ -201,6 +205,7 @@ class firmware_window_impl : public Gtk::Window {
 		Gtk::FileChooserButton file_chooser;
 
 		Gtk::Button start_upload_button;
+		Gtk::Button emergency_erase_button;
 
 		void address_changed(uint64_t address) {
 			current_address = address;
@@ -219,9 +224,23 @@ class firmware_window_impl : public Gtk::Window {
 			}
 
 			upload up(modem, current_address, ihex);
-			upload_dialog dlg(*this, up);
+			working_dialog dlg(*this, up);
 			Glib::signal_idle().connect(sigc::bind_return(sigc::mem_fun(up, &upload::start), false));
 			dlg.run();
+		}
+
+		void start_emergency_erase() {
+			int resp;
+			{
+				emergency_erase ee(modem, current_address);
+				working_dialog dlg(*this, ee);
+				Glib::signal_idle().connect(sigc::bind_return(sigc::mem_fun(ee, &emergency_erase::start), false));
+				resp = dlg.run();
+			}
+			if (resp == Gtk::RESPONSE_ACCEPT) {
+				Gtk::MessageDialog md(*this, "The emergency erase was requested. The indicator LED should be blinking slowly; when it stops blinking, power cycle the logic board.", false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_OK, true);
+				md.run();
+			}
 		}
 };
 
