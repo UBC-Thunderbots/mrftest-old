@@ -63,7 +63,7 @@ void upload::send_next_irp() {
 			return;
 
 		case upload_irp::IOOP_WRITE_PAGE:
-			submit_write_page1();
+			submit_write_page();
 			return;
 		case upload_irp::IOOP_CRC_SECTOR:
 			submit_crc_sector();
@@ -83,17 +83,9 @@ void upload::erase_block_done(const void *) {
 	send_next_irp();
 }
 
-void upload::submit_write_page1() {
+void upload::submit_write_page() {
 	proto.send_no_response(COMMAND_WRITE_PAGE1, irp.page, irp.data, 86);
-	submit_write_page2(0);
-}
-
-void upload::submit_write_page2(const void *) {
 	proto.send_no_response(COMMAND_WRITE_PAGE2, irp.page, &static_cast<const uint8_t *>(irp.data)[86], 86);
-	submit_write_page3(0);
-}
-
-void upload::submit_write_page3(const void *) {
 	proto.send(COMMAND_WRITE_PAGE3, irp.page, &static_cast<const uint8_t *>(irp.data)[86+86], 84, 0, sigc::mem_fun(*this, &upload::write_page_done));
 }
 
