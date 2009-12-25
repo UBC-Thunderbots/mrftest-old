@@ -55,6 +55,12 @@ class bootproto : public noncopyable, public sigc::trackable {
 		void enter_bootloader(const sigc::slot<void> &callback);
 
 		//
+		// Causes a request to be sent to the robot. The request is such that no
+		// response packet is expected.
+		//
+		void send_no_response(uint8_t command, uint16_t address, const void *data, std::size_t data_len);
+
+		//
 		// Causes a request to be sent to the robot. The provided slot will be
 		// invoked when the robot sends back a response.
 		//

@@ -84,11 +84,13 @@ void upload::erase_block_done(const void *) {
 }
 
 void upload::submit_write_page1() {
-	proto.send(COMMAND_WRITE_PAGE1, irp.page, irp.data, 86, 0, sigc::mem_fun(*this, &upload::submit_write_page2));
+	proto.send_no_response(COMMAND_WRITE_PAGE1, irp.page, irp.data, 86);
+	submit_write_page2(0);
 }
 
 void upload::submit_write_page2(const void *) {
-	proto.send(COMMAND_WRITE_PAGE2, irp.page, &static_cast<const uint8_t *>(irp.data)[86], 86, 0, sigc::mem_fun(*this, &upload::submit_write_page3));
+	proto.send_no_response(COMMAND_WRITE_PAGE2, irp.page, &static_cast<const uint8_t *>(irp.data)[86], 86);
+	submit_write_page3(0);
 }
 
 void upload::submit_write_page3(const void *) {

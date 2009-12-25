@@ -360,23 +360,6 @@ handle_write_page1_loop:
 	decfsz bytecounter, F
 	bra handle_write_page1_loop
 
-	; Send an OK.
-	rcall xbee_send_sop
-	movlw 13
-	rcall xbee_send_length
-	movlw 0x00
-	rcall xbee_send
-	movlw 0x00
-	rcall xbee_send
-	rcall xbee_send_address
-	movlw 0x00
-	rcall xbee_send
-	movlw COMMAND_WRITE_PAGE1
-	rcall xbee_send
-	movlw COMMAND_STATUS_OK
-	rcall xbee_send
-	rcall xbee_send_checksum
-
 handle_write_page1_wait_for_page2:
 	; Wait for another packet.
 	rcall xbee_receive_packet
@@ -407,23 +390,6 @@ handle_write_page2_loop:
 	call spi_send
 	decfsz bytecounter, F
 	bra handle_write_page2_loop
-
-	; Send an OK.
-	rcall xbee_send_sop
-	movlw 13
-	rcall xbee_send_length
-	movlw 0x00
-	rcall xbee_send
-	movlw 0x00
-	rcall xbee_send
-	rcall xbee_send_address
-	movlw 0x00
-	rcall xbee_send
-	movlw COMMAND_WRITE_PAGE2
-	rcall xbee_send
-	movlw COMMAND_STATUS_OK
-	rcall xbee_send
-	rcall xbee_send_checksum
 
 handle_write_page2_wait_for_page3:
 	; Wait for another packet.

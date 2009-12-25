@@ -172,6 +172,33 @@ bool bootproto::enter_bootloader_quiesce() {
 	return false;
 }
 
+void bootproto::send_no_response(uint8_t command, uint16_t address, const void *data, std::size_t data_len) {
+	// Sanity check.
+	assert(current_state == STATE_READY);
+	assert(command < 16);
+
+	// Cut old signal connections.
+	packet_received_connection.disconnect();
+	timeout_connection.disconnect();
+
+	// Assemble the packet.
+	std::vector<uint8_t> packet(sizeof(COMMAND_PACKET) + data_len);
+	COMMAND_PACKET *pkt = reinterpret_cast<COMMAND_PACKET *>(&packet[0]);
+	pkt->hdr.apiid = xbeepacket::TRANSMIT_APIID;
+	pkt->hdr.frame = 0;
+	xbeeutil::address_to_bytes(bot, pkt->hdr.address);
+	pkt->hdr.options = 0;
+	pkt->command = command;
+	pkt->address_high = address / 256;
+	pkt->address_low = address % 256;
+	if (data_len) {
+		std::copy(static_cast<const uint8_t *>(data), static_cast<const uint8_t *>(data) + data_len, pkt->payload);
+	}
+
+	// Send the packet.
+	modem.send(&packet[0], packet.size());
+}
+
 void bootproto::send(uint8_t command, uint16_t address, const void *data, std::size_t data_len, std::size_t response_len, const sigc::slot<void, const void *> &callback) {
 	// Sanity check.
 	assert(current_state == STATE_READY);
