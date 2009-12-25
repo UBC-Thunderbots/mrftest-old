@@ -218,20 +218,10 @@ class firmware_window_impl : public Gtk::Window {
 				return;
 			}
 
-			int resp;
-			Glib::Timer timer;
-			{
-				upload up(modem, current_address, ihex);
-				upload_dialog dlg(*this, up);
-				Glib::signal_idle().connect(sigc::bind_return(sigc::mem_fun(up, &upload::start), false));
-				resp = dlg.run();
-			}
-			if (resp == Gtk::RESPONSE_ACCEPT) {
-				timer.stop();
-				const Glib::ustring &msg = Glib::ustring::compose("Upload completed in %1s.", timer.elapsed());
-				Gtk::MessageDialog md(*this, msg, false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_OK, true);
-				md.run();
-			}
+			upload up(modem, current_address, ihex);
+			upload_dialog dlg(*this, up);
+			Glib::signal_idle().connect(sigc::bind_return(sigc::mem_fun(up, &upload::start), false));
+			dlg.run();
 		}
 };
 
