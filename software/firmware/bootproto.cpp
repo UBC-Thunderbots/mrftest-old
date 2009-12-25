@@ -226,6 +226,7 @@ void bootproto::send_send() {
 }
 
 bool bootproto::send_timeout() {
+	DPRINT("timeout on send");
 	send_send();
 	return false;
 }
