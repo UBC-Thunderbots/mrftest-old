@@ -65,6 +65,7 @@ void upload::send_next_irp() {
 		case upload_irp::IOOP_WRITE_PAGE:
 			submit_write_page();
 			return;
+
 		case upload_irp::IOOP_CRC_SECTOR:
 			submit_crc_sector();
 			return;
@@ -99,7 +100,6 @@ void upload::submit_crc_sector() {
 }
 
 void upload::crc_sector_done(const void *response) {
-
 	if (!sched.check_crcs(irp.page, static_cast<const uint16_t *>(response))) {
 		sig_error.emit("CRC failed!");
 		return;
