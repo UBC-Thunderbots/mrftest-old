@@ -65,9 +65,10 @@ class upload : public noncopyable, public sigc::trackable {
 		void submit_erase_block();
 		void erase_block_done(const void *);
 		void submit_write_page();
-		void write_page_done(const void *);
 		void submit_crc_sector();
 		void crc_sector_done(const void *);
+		void submit_erase_sector();
+		void erase_sector_done(const void *);
 };
 
 #endif

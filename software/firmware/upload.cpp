@@ -14,6 +14,7 @@ namespace {
 	const uint8_t COMMAND_WRITE_PAGE2 = 0x4;
 	const uint8_t COMMAND_WRITE_PAGE3 = 0x5;
 	const uint8_t COMMAND_CRC_SECTOR = 0x6;
+	const uint8_t COMMAND_ERASE_SECTOR = 0x7;
 }
 
 upload::upload(xbee &modem, uint64_t bot, const intel_hex &data) : proto(modem, bot), sched(data), status("Initializing...") {
@@ -56,23 +57,29 @@ void upload::send_next_irp() {
 		return;
 	}
 
-	irp = sched.next();
-	switch (irp.op) {
-		case upload_irp::IOOP_ERASE_BLOCK:
-			submit_erase_block();
-			return;
+	for (;;) {
+		irp = sched.next();
+		switch (irp.op) {
+			case upload_irp::IOOP_ERASE_BLOCK:
+				submit_erase_block();
+				return;
 
-		case upload_irp::IOOP_WRITE_PAGE:
-			submit_write_page();
-			return;
+			case upload_irp::IOOP_WRITE_PAGE:
+				submit_write_page();
+				break;
 
-		case upload_irp::IOOP_CRC_SECTOR:
-			submit_crc_sector();
-			return;
+			case upload_irp::IOOP_CRC_SECTOR:
+				submit_crc_sector();
+				return;
 
-		default:
-			sig_error.emit("Scheduler returned illegal IRP!");
-			return;
+			case upload_irp::IOOP_ERASE_SECTOR:
+				submit_erase_sector();
+				return;
+
+			default:
+				sig_error.emit("Scheduler returned illegal IRP!");
+				return;
+		}
 	}
 }
 
@@ -87,11 +94,7 @@ void upload::erase_block_done(const void *) {
 void upload::submit_write_page() {
 	proto.send_no_response(COMMAND_WRITE_PAGE1, irp.page, irp.data, 86);
 	proto.send_no_response(COMMAND_WRITE_PAGE2, irp.page, &static_cast<const uint8_t *>(irp.data)[86], 86);
-	proto.send(COMMAND_WRITE_PAGE3, irp.page, &static_cast<const uint8_t *>(irp.data)[86+86], 84, 0, sigc::mem_fun(*this, &upload::write_page_done));
-}
-
-void upload::write_page_done(const void *) {
-	send_next_irp();
+	proto.send_no_response(COMMAND_WRITE_PAGE3, irp.page, &static_cast<const uint8_t *>(irp.data)[86+86], 84);
 }
 
 void upload::submit_crc_sector() {
@@ -105,6 +108,14 @@ void upload::crc_sector_done(const void *response) {
 	}
 
 	sig_progress_made.emit(sched.progress());
+	send_next_irp();
+}
+
+void upload::submit_erase_sector() {
+	proto.send(COMMAND_ERASE_SECTOR, irp.page, 0, 0, 0, sigc::mem_fun(*this, &upload::erase_sector_done));
+}
+
+void upload::erase_sector_done(const void *) {
 	send_next_irp();
 }
 

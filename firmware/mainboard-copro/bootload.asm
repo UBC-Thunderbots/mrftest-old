@@ -142,6 +142,22 @@ COMMAND_WRITE_PAGE3 equ 0x5
 	;
 COMMAND_CRC_SECTOR equ 0x6
 
+	; COMMAND_ERASE_SECTOR
+	; ====================
+	;
+	; Erases a sector.
+	;
+	; Page number:
+	;  The page number of the first page in the sector to erase
+	;
+	; Request data:
+	;  None
+	;
+	; Response data:
+	;  None
+	;
+COMMAND_ERASE_SECTOR equ 0x7
+
 
 
 	; COMMAND_STATUS_OK
@@ -257,6 +273,7 @@ main_loop:
 	DISPATCH_COND COMMAND_ERASE_BLOCK, handle_erase_block
 	DISPATCH_COND COMMAND_WRITE_PAGE1, handle_write_page1
 	DISPATCH_BRA  COMMAND_CRC_SECTOR, handle_crc_sector
+	DISPATCH_BRA  COMMAND_ERASE_SECTOR, handle_erase_sector
 	DISPATCH_END_RESTORE
 
 	; Illegal command. Send back a response.
@@ -423,8 +440,16 @@ handle_write_page3_loop:
 	bra handle_write_page3_loop
 	rcall deselect_chip
 
-	; Poll the busy bit and respond when done.
-	bra poll_status_and_respond
+	; Poll the busy bit and continue when done.
+	rcall select_chip
+	movlw 0x05
+	call spi_send
+handle_write_page3_busy_loop:
+	call spi_receive
+	btfsc WREG, 0
+	bra handle_write_page3_busy_loop
+	rcall deselect_chip
+	bra main_loop
 
 
 
@@ -557,6 +582,36 @@ handle_crc_sector_response_data_loop:
 	bra handle_crc_sector_response_data_loop
 	rcall xbee_send_checksum
 	bra main_loop
+
+
+
+handle_erase_sector:
+	; Check that the page number is a multiple of 16.
+	movf xbee_receive_page_lsb, W
+	andlw 0x0F
+	bnz error_response_bad_address
+
+	; Check that the page number is within the size of the Flash.
+	movlw 33
+	cpfslt xbee_receive_page_msb
+	bra error_response_bad_address
+
+	; Send the WRITE ENABLE command.
+	rcall send_write_enable
+
+	; Send the SECTOR ERASE command (0x20).
+	rcall select_chip
+	movlw 0x20
+	call spi_send
+	movf xbee_receive_page_msb, W
+	call spi_send
+	movlw 0
+	call spi_send
+	call spi_send
+	rcall deselect_chip
+
+	; Poll the busy bit and respond when done.
+	bra poll_status_and_respond
 
 
 

@@ -5,7 +5,7 @@
 #include "xbee/util.h"
 
 namespace {
-	const unsigned int TIMEOUT = 750;
+	const unsigned int TIMEOUT = 3000;
 	const unsigned int MAX_RETRIES = 16;
 
 	struct __attribute__((packed)) COMMAND_PACKET {

@@ -18,6 +18,7 @@ struct upload_irp {
 		IOOP_WRITE_PAGE,
 		IOOP_CRC_SECTOR,
 		IOOP_READ_PAGE,
+		IOOP_ERASE_SECTOR,
 	} op;
 	uint16_t page;
 	const void *data;
@@ -57,6 +58,7 @@ class upload_scheduler : public noncopyable {
 		std::vector<uint8_t> data;
 		std::queue<upload_irp> irps;
 		std::size_t initial_qlen;
+		std::vector<uint8_t> crc_failures;
 
 		static const std::size_t PAGE_BYTES = 256;
 		static const uint16_t SECTOR_PAGES = 16;
