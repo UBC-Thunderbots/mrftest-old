@@ -129,7 +129,7 @@ void bootproto::enter_bootloader_receive(const void *data, std::size_t length) {
 			timeout_connection.disconnect();
 
 			// Give the bootloader time to quiesce before claiming we're ready.
-			Glib::signal_timeout().connect(sigc::mem_fun(*this, &bootproto::enter_bootloader_quiesce), 1000);
+			Glib::signal_timeout().connect(sigc::mem_fun(*this, &bootproto::enter_bootloader_quiesce), 2000);
 			return;
 
 		case xbeepacket::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE:
