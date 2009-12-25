@@ -59,6 +59,9 @@ wait_nonbusy:
 	btfsc WREG, 0
 	bra wait_nonbusy
 
+	; Hold the LED off once emergency erase is done.
+	call led_off
+
 	; Wait until the emergency erase signal line is deasserted (goes high).
 wait_pin:
 	btfss PORT_EMERG_ERASE, PIN_EMERG_ERASE
