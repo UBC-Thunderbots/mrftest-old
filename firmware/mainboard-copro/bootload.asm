@@ -852,7 +852,7 @@ xbee_receive_packet_loop:
 	rcall xbee_receive_byte
 	movwf POSTINC0
 	addwf xbee_receive_checksum, F
-	decfsz xbee_receive_length_lsb, F
+	decfsz xbee_temp, F
 	bra xbee_receive_packet_loop
 
 	; Receive and verify the checksum.
