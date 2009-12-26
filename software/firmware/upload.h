@@ -31,12 +31,10 @@ class upload : public watchable_operation, public sigc::trackable {
 		void send_next_irp();
 		void irp_done(const void *);
 		void submit_erase_block();
-		void erase_block_done(const void *);
 		void submit_write_page();
 		void submit_crc_sector();
 		void crc_sector_done(const void *);
 		void submit_erase_sector();
-		void erase_sector_done(const void *);
 };
 
 #endif

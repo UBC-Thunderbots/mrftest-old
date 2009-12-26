@@ -63,7 +63,7 @@ void upload::send_next_irp() {
 		switch (irp.op) {
 			case upload_irp::IOOP_ERASE_BLOCK:
 				submit_erase_block();
-				return;
+				break;
 
 			case upload_irp::IOOP_WRITE_PAGE:
 				submit_write_page();
@@ -75,7 +75,7 @@ void upload::send_next_irp() {
 
 			case upload_irp::IOOP_ERASE_SECTOR:
 				submit_erase_sector();
-				return;
+				break;
 
 			default:
 				signal_error().emit("Scheduler returned illegal IRP!");
@@ -85,11 +85,7 @@ void upload::send_next_irp() {
 }
 
 void upload::submit_erase_block() {
-	proto.send(COMMAND_ERASE_BLOCK, irp.page, 0, 0, 0, sigc::mem_fun(*this, &upload::erase_block_done));
-}
-
-void upload::erase_block_done(const void *) {
-	send_next_irp();
+	proto.send_no_response(COMMAND_ERASE_BLOCK, irp.page, 0, 0);
 }
 
 void upload::submit_write_page() {
@@ -113,10 +109,6 @@ void upload::crc_sector_done(const void *response) {
 }
 
 void upload::submit_erase_sector() {
-	proto.send(COMMAND_ERASE_SECTOR, irp.page, 0, 0, 0, sigc::mem_fun(*this, &upload::erase_sector_done));
-}
-
-void upload::erase_sector_done(const void *) {
-	send_next_irp();
+	proto.send_no_response(COMMAND_ERASE_SECTOR, irp.page, 0, 0);
 }
 

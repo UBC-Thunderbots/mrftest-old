@@ -194,26 +194,14 @@ bootloader_data udata
 jedecid: res 3
 bytecounter: res 1
 pagecounter: res 1
-temp: res 1
+crc_temp: res 1
 crc_low: res 1
 crc_high: res 1
-
-xbee_receive_buffer:
-xbee_receive_length_msb: res 1
-xbee_receive_length_lsb: res 1
-xbee_receive_apiid: res 1
+xbee_receive_bytes_left: res 1
 xbee_receive_address: res 8
-xbee_receive_rssi: res 1
-xbee_receive_options: res 1
-xbee_receive_command: res 1
-xbee_receive_page_msb: res 1
-xbee_receive_page_lsb: res 1
-xbee_receive_data: res 86
 xbee_receive_checksum: res 1
-
 xbee_transmit_checksum: res 1
-
-xbee_temp: res 1
+send_length_temp: res 1
 
 
 
@@ -258,17 +246,62 @@ bootload:
 	movlw 6
 	call led_blink
 
-main_loop:
-	; Receive a packet from the XBee.
-	rcall xbee_receive_packet
+expecting_sop:
+	; Assert RTS to allow the XBee to send data.
+	bcf LAT_RTS, PIN_RTS
 
-	; It must be of type 0x80 (64-bit receive).
-	movlw 0x80
-	cpfseq xbee_receive_apiid
-	bra main_loop
+	; Receive a raw byte from the USART without unescaping. It should be 0x7E.
+	rcall receive_raw
+	xorlw 0x7E
+	bnz expecting_sop
 
-	; Dispatch based on command ID.
-	movf xbee_receive_command, W
+got_sop:
+	; Receive a byte. It should be the MSB of the length, which should be zero.
+	rcall receive_byte_semicooked
+	xorlw 0
+	bnz expecting_sop
+
+	; Receive a byte. It should be the LSB of the length, which should be no longer than 100 bytes.
+	rcall receive_byte_semicooked
+	movwf xbee_receive_bytes_left
+	movlw 101
+	cpfslt xbee_receive_bytes_left
+	bra expecting_sop
+
+	; Initialize the receive checksum.
+	clrf xbee_receive_checksum
+
+	; Receive the API ID, which should be 0x80 (64-bit receive).
+	rcall receive_byte_cooked
+	xorlw 0x80
+	bnz expecting_sop
+
+	; Receive the remote peer's address.
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 0
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 1
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 2
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 3
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 4
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 5
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 6
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 7
+
+	; Receive the RSSI and discard it.
+	rcall receive_byte_cooked
+
+	; Receive the OPTIONS byte and discard it.
+	rcall receive_byte_cooked
+
+	; Receive the COMMAND ID and dispatch based on it.
+	rcall receive_byte_cooked
 	DISPATCH_INIT
 	DISPATCH_COND COMMAND_IDENT, handle_ident
 	DISPATCH_COND COMMAND_ERASE_BLOCK, handle_erase_block
@@ -277,220 +310,320 @@ main_loop:
 	DISPATCH_BRA  COMMAND_ERASE_SECTOR, handle_erase_sector
 	DISPATCH_END_RESTORE
 
-	; Illegal command. Send back a response.
-	bra error_response_bad_command
+	; COMMAND ID is illegal.
+	bra handle_error
 
 
 
 handle_ident:
+	; Page number is ignored.
+	rcall receive_byte_cooked
+	rcall receive_byte_cooked
+
+	; Should be no payload, so checksum should be next.
+	rcall receive_and_check_checksum
+
+	; Hold off bytes.
+	bsf LAT_RTS, PIN_RTS
+
 	; Send back the IDENT response.
-	rcall xbee_send_sop
+	rcall send_sop
 	movlw 21
-	rcall xbee_send_length
+	rcall send_length
 	movlw 0x00
-	rcall xbee_send
+	rcall send_byte
 	movlw 0x00
-	rcall xbee_send
-	rcall xbee_send_address
+	rcall send_byte
+	rcall send_address
 	movlw 0x00
-	rcall xbee_send
+	rcall send_byte
 	movlw COMMAND_IDENT
-	rcall xbee_send
+	rcall send_byte
 	movlw COMMAND_STATUS_OK
-	rcall xbee_send
+	rcall send_byte
 	movlw 'T'
-	rcall xbee_send
+	rcall send_byte
 	movlw 'B'
-	rcall xbee_send
+	rcall send_byte
 	movlw 'O'
-	rcall xbee_send
+	rcall send_byte
 	movlw 'T'
-	rcall xbee_send
+	rcall send_byte
 	movlw 'S'
-	rcall xbee_send
+	rcall send_byte
 	movf jedecid + 0, W
-	rcall xbee_send
+	rcall send_byte
 	movf jedecid + 1, W
-	rcall xbee_send
+	rcall send_byte
 	movf jedecid + 2, W
-	rcall xbee_send
-	rcall xbee_send_checksum
-	bra main_loop
+	rcall send_byte
+	rcall send_checksum
+
+	; Continue.
+	bra expecting_sop
 
 
 
 handle_erase_block:
-	; Check that the page number is within the size of the Flash.
-	movlw 33
-	cpfslt xbee_receive_page_msb
-	bra error_response_bad_address
-
-	; Check that the page number is a multiple of 256.
-	tstfsz xbee_receive_page_lsb
-	bra error_response_bad_address
-
 	; Send the WRITE ENABLE command.
 	rcall send_write_enable
 
-	; Send the BLOCK ERASE command (0xD8).
+	; Start sending the BLOCK ERASE command (0xD8).
 	rcall select_chip
 	movlw 0xD8
 	call spi_send
-	movf xbee_receive_page_msb, W
+
+	; Receive and pass on the page number.
+	rcall receive_byte_cooked
+	call spi_send
+	rcall receive_byte_cooked
 	call spi_send
 	movlw 0
 	call spi_send
-	call spi_send
 	rcall deselect_chip
 
-	; Poll the busy bit and respond when done.
-	bra poll_status_and_respond
+	; Expect the checksum next.
+	rcall receive_and_check_checksum
+
+	; Hold off bytes.
+	bsf LAT_RTS, PIN_RTS
+
+	; Wait until operation completes.
+	rcall wait_busy
+
+	; Done.
+	bra expecting_sop
 
 
 
 handle_write_page1:
-	; Check that the page number is within the size of the Flash.
-	movlw 33
-	cpfslt xbee_receive_page_msb
-	bra error_response_bad_address
-
 	; Send the WRITE ENABLE command.
 	rcall send_write_enable
-
-	; Send the PAGE PROGRAM command (0x02) with address.
+	
+	; Start sending the PAGE PROGRAM command (0x02).
 	rcall select_chip
 	movlw 0x02
 	call spi_send
-	movf xbee_receive_page_msb, W
+
+	; Receive and pass the page number.
+	rcall receive_byte_cooked
 	call spi_send
-	movf xbee_receive_page_lsb, W
+	rcall receive_byte_cooked
 	call spi_send
 	movlw 0
 	call spi_send
 
-	; Send the data.
-	lfsr 0, xbee_receive_data
+	; Receive and pass the data.
 	movlw 86
 	movwf bytecounter
 handle_write_page1_loop:
-	movf POSTINC0, W
+	rcall receive_byte_cooked
 	call spi_send
 	decfsz bytecounter, F
 	bra handle_write_page1_loop
 
-handle_write_page1_wait_for_page2:
-	; Wait for another packet.
-	rcall xbee_receive_packet
+	; Expect the checksum next.
+	rcall receive_and_check_checksum
 
-	; Check API ID.
-	movlw 0x80
-	cpfseq xbee_receive_apiid
-	bra handle_write_page1_wait_for_page2
+	; It's now time to receive the WRITE PAGE 2 packet.
+	; Receive a raw byte from the USART without unescaping. It should be 0x7E.
+	rcall receive_raw
+	xorlw 0x7E
+	skpz
+	bra expecting_sop
 
-	; Check command ID.
-	movf xbee_receive_command, W
+	; Receive a byte. It should be the MSB of the length, which should be zero.
+	rcall receive_byte_semicooked
+	xorlw 0
+	skpz
+	bra expecting_sop
+
+	; Receive a byte. It should be the LSB of the length, which should be no longer than 100 bytes.
+	rcall receive_byte_semicooked
+	movwf xbee_receive_bytes_left
+	movlw 101
+	cpfslt xbee_receive_bytes_left
+	bra expecting_sop
+
+	; Initialize the receive checksum.
+	clrf xbee_receive_checksum
+
+	; Receive the API ID, which should be 0x80 (64-bit receive).
+	rcall receive_byte_cooked
+	xorlw 0x80
+	skpz
+	bra expecting_sop
+
+	; Receive the remote peer's address.
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 0
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 1
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 2
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 3
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 4
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 5
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 6
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 7
+
+	; Receive the RSSI and discard it.
+	rcall receive_byte_cooked
+
+	; Receive the OPTIONS byte and discard it.
+	rcall receive_byte_cooked
+
+	; Receive the COMMAND ID, which should be WRITE PAGE 2.
+	rcall receive_byte_cooked
 	xorlw COMMAND_WRITE_PAGE2
-	bz handle_write_page2
+	skpz
+	bra handle_error
 
-	; Not WRITE_PAGE2. Deselect chip and send error.
-	rcall deselect_chip
-	bra error_response_bad_command
+	; Ignore the page number.
+	rcall receive_byte_cooked
+	rcall receive_byte_cooked
 
-
-
-handle_write_page2:
-	; Send the data.
-	lfsr 0, xbee_receive_data
+	; Receive and pass the data.
 	movlw 86
 	movwf bytecounter
 handle_write_page2_loop:
-	movf POSTINC0, W
+	rcall receive_byte_cooked
 	call spi_send
 	decfsz bytecounter, F
 	bra handle_write_page2_loop
 
-handle_write_page2_wait_for_page3:
-	; Wait for another packet.
-	rcall xbee_receive_packet
+	; Expect the checksum next.
+	rcall receive_and_check_checksum
 
-	; Check API ID.
-	movlw 0x80
-	cpfseq xbee_receive_apiid
-	bra handle_write_page2_wait_for_page3
+	; It's now time to receive the WRITE PAGE 3 packet.
+	; Receive a raw byte from the USART without unescaping. It should be 0x7E.
+	rcall receive_raw
+	xorlw 0x7E
+	skpz
+	bra expecting_sop
 
-	; Check command ID.
-	movf xbee_receive_command, W
+	; Receive a byte. It should be the MSB of the length, which should be zero.
+	rcall receive_byte_semicooked
+	xorlw 0
+	skpz
+	bra expecting_sop
+
+	; Receive a byte. It should be the LSB of the length, which should be no longer than 100 bytes.
+	rcall receive_byte_semicooked
+	movwf xbee_receive_bytes_left
+	movlw 101
+	cpfslt xbee_receive_bytes_left
+	bra expecting_sop
+
+	; Initialize the receive checksum.
+	clrf xbee_receive_checksum
+
+	; Receive the API ID, which should be 0x80 (64-bit receive).
+	rcall receive_byte_cooked
+	xorlw 0x80
+	skpz
+	bra expecting_sop
+
+	; Receive the remote peer's address.
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 0
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 1
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 2
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 3
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 4
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 5
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 6
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 7
+
+	; Receive the RSSI and discard it.
+	rcall receive_byte_cooked
+
+	; Receive the OPTIONS byte and discard it.
+	rcall receive_byte_cooked
+
+	; Receive the COMMAND ID, which should be WRITE PAGE 3.
+	rcall receive_byte_cooked
 	xorlw COMMAND_WRITE_PAGE3
-	bz handle_write_page3
+	bnz handle_error
 
-	; Not WRITE_PAGE3. Deselect chip and send error.
-	rcall deselect_chip
-	bra error_response_bad_command
+	; Ignore the page number.
+	rcall receive_byte_cooked
+	rcall receive_byte_cooked
 
-
-
-handle_write_page3:
-	; Send the data.
-	lfsr 0, xbee_receive_data
+	; Receive and pass the data.
 	movlw 84
 	movwf bytecounter
 handle_write_page3_loop:
-	movf POSTINC0, W
+	rcall receive_byte_cooked
 	call spi_send
 	decfsz bytecounter, F
 	bra handle_write_page3_loop
+
+	; Finish SPI command.
 	rcall deselect_chip
 
-	; Poll the busy bit and continue when done.
-	rcall select_chip
-	movlw 0x05
-	call spi_send
-handle_write_page3_busy_loop:
-	call spi_receive
-	btfsc WREG, 0
-	bra handle_write_page3_busy_loop
-	rcall deselect_chip
-	bra main_loop
+	; Expect the checksum next.
+	rcall receive_and_check_checksum
+
+	; All page data has been received and passed to the Flash.
+	; Hold off bytes.
+	bsf LAT_RTS, PIN_RTS
+
+	; Wait until operation completes.
+	rcall wait_busy
+
+	; Done.
+	bra expecting_sop
 
 
 
 handle_crc_sector:
-	; Check that the page number is a multiple of 16.
-	movf xbee_receive_page_lsb, W
-	andlw 0x0F
-	bnz error_response_bad_address
-
-	; Check that the page number is within the size of the Flash.
-	movlw 33
-	cpfslt xbee_receive_page_msb
-	bra error_response_bad_address
-
-	; Start the response. We'll stream the CRCs to the XBee.
-	rcall xbee_send_sop
-	movlw 45
-	rcall xbee_send_length
-	movlw 0x00
-	rcall xbee_send
-	movlw 0x00
-	rcall xbee_send
-	rcall xbee_send_address
-	movlw 0x00
-	rcall xbee_send
-	movlw COMMAND_CRC_SECTOR
-	rcall xbee_send
-	movlw COMMAND_STATUS_OK
-	rcall xbee_send
-
-	; Send the READ DATA command (0x03) with address.
+	; Start sending the READ DATA command (0x03).
 	rcall select_chip
 	movlw 0x03
 	call spi_send
-	movf xbee_receive_page_msb, W
+
+	; Receive and pass on the page number.
+	rcall receive_byte_cooked
 	call spi_send
-	movf xbee_receive_page_lsb, W
+	rcall receive_byte_cooked
 	call spi_send
 	movlw 0
 	call spi_send
+
+	; Expect the checksum next.
+	rcall receive_and_check_checksum
+
+	; Hold off bytes.
+	bsf LAT_RTS, PIN_RTS
+
+	; Start the response. We'll stream the CRCs to the XBee.
+	rcall send_sop
+	movlw 45
+	rcall send_length
+	movlw 0x00
+	rcall send_byte
+	movlw 0x00
+	rcall send_byte
+	rcall send_address
+	movlw 0x00
+	rcall send_byte
+	movlw COMMAND_CRC_SECTOR
+	rcall send_byte
+	movlw COMMAND_STATUS_OK
+	rcall send_byte
 
 	; Set up a counter of pages.
 	banksel pagecounter
@@ -534,27 +667,27 @@ handle_crc_sector_byteloop:
 	; of course mostly irrelevant to the mathematical properties of the CRC.
 	; 
 	xorwf crc_low, W
-	movwf temp
+	movwf crc_temp
 	movff crc_high, crc_low
 	movwf crc_high
-	rrncf temp, W
+	rrncf crc_temp, W
 	andlw 0x07
 	xorwf crc_high, F
-	swapf temp, F
-	movf temp, W
+	swapf crc_temp, F
+	movf crc_temp, W
 	andlw 0xF0
 	xorwf crc_high, F
-	rrncf temp, W
+	rrncf crc_temp, W
 	andlw 0x07
 	xorwf crc_high, F
-	swapf temp, W
-	xorwf temp, W
+	swapf crc_temp, W
+	xorwf crc_temp, W
 	andlw 0x0F
 	xorwf crc_low, F
-	rrncf temp, W
+	rrncf crc_temp, W
 	andlw 0xF8
 	xorwf crc_low, F
-	btfsc temp, 4
+	btfsc crc_temp, 4
 	btg crc_low, 7
 
 	; Decrement byte count and loop if nonzero.
@@ -563,9 +696,9 @@ handle_crc_sector_byteloop:
 
 	; A page is finished. Stream out the page's CRC.
 	movf crc_low, W
-	rcall xbee_send
+	rcall send_byte
 	movf crc_high, W
-	rcall xbee_send
+	rcall send_byte
 
 	; Decrement page count and loop if nonzero.
 	decfsz pagecounter, F
@@ -575,124 +708,106 @@ handle_crc_sector_byteloop:
 	rcall deselect_chip
 
 	; Finish response.
-	rcall xbee_send_checksum
-	bra main_loop
+	rcall send_checksum
+
+	; Done.
+	bra expecting_sop
 
 
 
 handle_erase_sector:
-	; Check that the page number is a multiple of 16.
-	movf xbee_receive_page_lsb, W
-	andlw 0x0F
-	bnz error_response_bad_address
-
-	; Check that the page number is within the size of the Flash.
-	movlw 33
-	cpfslt xbee_receive_page_msb
-	bra error_response_bad_address
-
 	; Send the WRITE ENABLE command.
 	rcall send_write_enable
 
-	; Send the SECTOR ERASE command (0x20).
+	; Start sending the SECTOR ERASE command (0x20).
 	rcall select_chip
 	movlw 0x20
 	call spi_send
-	movf xbee_receive_page_msb, W
+
+	; Receive and pass on the page number.
+	rcall receive_byte_cooked
+	call spi_send
+	rcall receive_byte_cooked
 	call spi_send
 	movlw 0
 	call spi_send
-	call spi_send
 	rcall deselect_chip
 
-	; Poll the busy bit and respond when done.
-	bra poll_status_and_respond
+	; Expect the checksum next.
+	rcall receive_and_check_checksum
+
+	; Hold off bytes.
+	bsf LAT_RTS, PIN_RTS
+
+	; Wait until operation completes.
+	rcall wait_busy
+
+	; Done.
+	bra expecting_sop
 
 
 
-error_response_bad_command:
-	movlw COMMAND_STATUS_BAD_COMMAND
-	bra error_response_generic
+handle_error:
+	; Hold off bytes.
+	bsf LAT_RTS, PIN_RTS
+
+	; We might have detected the error at any level of call. Clear the stack.
+	clrf STKPTR
+
+	; We might be in the middle of sending data to the Flash. Deselect it.
+	rcall deselect_chip
+
+	; The Flash might be in the middle of doing an erase or write. Wait for it.
+	rcall wait_busy
+
+	; Keep pumping packets.
+	bra expecting_sop
 
 
 
-error_response_bad_address:
-	movlw COMMAND_STATUS_BAD_ADDRESS
-	bra error_response_generic
+handle_unexpected_sop:
+	; Hold off bytes.
+	bsf LAT_RTS, PIN_RTS
+
+	; We might have detected the error at any level of call. Clear the stack.
+	clrf STKPTR
+
+	; We might be in the middle of sending data to the Flash. Deselect it.
+	rcall deselect_chip
+
+	; The Flash might be in the middle of doing an erase or write. Wait for it.
+	rcall wait_busy
+
+	; Keep pumping packets.
+	bra got_sop
 
 
 
-error_response_bad_length:
-	movlw COMMAND_STATUS_BAD_LENGTH
-	bra error_response_generic
-
-
-
-error_response_generic:
-	movwf temp
-	rcall xbee_send_sop
-	movlw 13
-	rcall xbee_send_length
-	movlw 0x00
-	rcall xbee_send
-	movlw 0x00
-	rcall xbee_send
-	rcall xbee_send_address
-	movlw 0x00
-	rcall xbee_send
-	movf xbee_receive_command, W
-	rcall xbee_send
-	movf temp, W
-	rcall xbee_send
-	rcall xbee_send_checksum
-	bra main_loop
-
-
-
-poll_status_and_respond:
+wait_busy:
 	; Poll the STATUS byte in the Flash chip until the chip is no longer busy.
 	rcall select_chip
 	movlw 0x05
 	call spi_send
-poll_status_and_respond_loop:
+wait_busy_loop:
 	call spi_receive
 	btfsc WREG, 0
-	bra poll_status_and_respond_loop
+	bra wait_busy_loop
 	rcall deselect_chip
-
-	; Send back an OK.
-	rcall xbee_send_sop
-	movlw 13
-	rcall xbee_send_length
-	movlw 0x00
-	rcall xbee_send
-	movlw 0x00
-	rcall xbee_send
-	rcall xbee_send_address
-	movlw 0x00
-	rcall xbee_send
-	movf xbee_receive_command, W
-	rcall xbee_send
-	movlw COMMAND_STATUS_OK
-	rcall xbee_send
-	rcall xbee_send_checksum
-	bra main_loop
+	return
 
 
 
 select_chip:
 	rcall sleep_1us
 	bcf LAT_SPI_SS_FLASH, PIN_SPI_SS_FLASH
-	rcall sleep_1us
-	return
+	goto sleep_1us
 
 
 
 deselect_chip:
 	rcall sleep_1us
 	bsf LAT_SPI_SS_FLASH, PIN_SPI_SS_FLASH
-	rcall sleep_1us
-	return
+	goto sleep_1us
 
 
 
@@ -700,109 +815,105 @@ send_write_enable:
 	rcall select_chip
 	movlw 0x06
 	call spi_send
-	rcall deselect_chip
+	goto deselect_chip
+
+
+
+send_sop:
+	; Transmit the raw byte 0x7E.
+	movlw 0x7E
+	bra send_raw
+
+
+
+send_length:
+	; The length is two bytes long, the first of which is zero. The length is not included in the checksum.
+	movwf send_length_temp
+	movlw 0
+	rcall send_byte
+	movf send_length_temp, W
+	rcall send_byte
+
+	; Clear checksum because we're starting a new packet.
+	setf xbee_transmit_checksum
+
+	; Done.
 	return
 
 
 
-xbee_send_sop:
-	; Clear checksum because we're starting a new packet.
-	setf xbee_transmit_checksum
-
-	; Transmit the raw byte 0x7E.
-	movlw 0x7E
-	bra usart_send
-
-
-
-xbee_send_length:
-	; The length is two bytes long, the first of which is zero. The length is not included in the checksum.
-	movwf xbee_temp
-	movlw 0
-	rcall xbee_send_without_checksumming
-	movf xbee_temp, W
-	bra xbee_send_without_checksumming
-
-
-
-xbee_send:
-	; Normal bytes affect the checksum.
-	subwf xbee_transmit_checksum, F
-	bra xbee_send_without_checksumming
+send_address:
+	movf xbee_receive_address + 0, W
+	rcall send_byte
+	movf xbee_receive_address + 1, W
+	rcall send_byte
+	movf xbee_receive_address + 2, W
+	rcall send_byte
+	movf xbee_receive_address + 3, W
+	rcall send_byte
+	movf xbee_receive_address + 4, W
+	rcall send_byte
+	movf xbee_receive_address + 5, W
+	rcall send_byte
+	movf xbee_receive_address + 6, W
+	rcall send_byte
+	movf xbee_receive_address + 7, W
+	bra send_byte
 
 
 
-xbee_send_address:
-	; Send the address using the normal algorithm.
-	lfsr 1, xbee_receive_address
-	movf POSTINC1, W
-	rcall xbee_send
-	movf POSTINC1, W
-	rcall xbee_send
-	movf POSTINC1, W
-	rcall xbee_send
-	movf POSTINC1, W
-	rcall xbee_send
-	movf POSTINC1, W
-	rcall xbee_send
-	movf POSTINC1, W
-	rcall xbee_send
-	movf POSTINC1, W
-	rcall xbee_send
-	movf POSTINC1, W
-	bra xbee_send
-
-
-
-xbee_send_checksum:
+send_checksum:
 	; Send the checksum calculated so far.
 	movf xbee_transmit_checksum, W
-	bra xbee_send_without_checksumming
+	bra send_byte
 
 
 
-xbee_send_without_checksumming:
+send_byte:
+	; Update the checksum.
+	subwf xbee_transmit_checksum, F
+
 	; Some bytes need escaping.
 	DISPATCH_INIT
-	DISPATCH_COND 0x7E, xbee_send_without_checksumming_escape_7e
-	DISPATCH_COND 0x7D, xbee_send_without_checksumming_escape_7d
-	DISPATCH_COND 0x11, xbee_send_without_checksumming_escape_11
-	DISPATCH_COND 0x13, xbee_send_without_checksumming_escape_13
+	DISPATCH_COND 0x7E, send_byte_7e
+	DISPATCH_COND 0x7D, send_byte_7d
+	DISPATCH_COND 0x11, send_byte_11
+	DISPATCH_COND 0x13, send_byte_13
 	DISPATCH_END_RESTORE
 
 	; This byte does not need escaping. Send it.
-	bra usart_send
+	bra send_raw
 
-xbee_send_without_checksumming_escape_7e:
+send_byte_7e:
 	movlw 0x7D
-	rcall usart_send
+	rcall send_raw
 	movlw 0x7E ^ 0x20
-	bra usart_send
+	bra send_raw
 
-xbee_send_without_checksumming_escape_7d:
+send_byte_7d:
 	movlw 0x7D
-	rcall usart_send
+	rcall send_raw
 	movlw 0x7D ^ 0x20
-	bra usart_send
+	bra send_raw
 
-xbee_send_without_checksumming_escape_11:
+send_byte_11:
 	movlw 0x7D
-	rcall usart_send
+	rcall send_raw
 	movlw 0x11 ^ 0x20
-	bra usart_send
+	bra send_raw
 
-xbee_send_without_checksumming_escape_13:
+send_byte_13:
 	movlw 0x7D
-	rcall usart_send
+	rcall send_raw
 	movlw 0x13 ^ 0x20
-	bra usart_send
+	bra send_raw
 
 
 
-usart_send:
+send_raw:
 	; Wait until the transmit buffer is not full.
 	btfss PIR1, TXIF
-	bra usart_send
+	bra send_raw
 
 	; Send the byte.
 	movwf TXREG
@@ -810,91 +921,65 @@ usart_send:
 
 
 
-xbee_receive_packet:
-	; Assert RTS to allow the XBee to send data.
-	bcf LAT_RTS, PIN_RTS
+receive_and_check_checksum:
+	; Check that we've used up all the data.
+	tstfsz xbee_receive_bytes_left
+	bra handle_error
 
-	; Receive a raw byte from the USART without unescaping. It should be 0x7E.
-	; usart_receive participates in the stack hacking, so it expects two levels of function
-	; calls between itself and xbee_receive_packet (one for xbee_receive_byte and one for
-	; usart_receive). To provide the expected stack layout, push a dummy stack element.
-	push
-	rcall usart_receive
-	pop
-	xorlw 0x7E
-	bnz xbee_receive_packet
-
-	; Receive a byte. It should be the MSB of the length, which should be zero.
-	rcall xbee_receive_byte
-	movwf xbee_receive_length_msb
-	xorlw 0
-	bnz error_response_bad_length
-
-	; Receive a byte. It should be the LSB of the length, which should be no longer than 100 bytes.
-	rcall xbee_receive_byte
-	movwf xbee_receive_length_lsb
-	movlw 101
-	cpfslt xbee_receive_length_lsb
-	bra error_response_bad_length
-
-	; Initialize the receive checksum.
-	clrf xbee_receive_checksum
-
-	; Set up a receive loop.
-	movff xbee_receive_length_lsb, xbee_temp
-	lfsr 0, xbee_receive_apiid
-xbee_receive_packet_loop:
-	rcall xbee_receive_byte
-	movwf POSTINC0
-	addwf xbee_receive_checksum, F
-	decfsz xbee_temp, F
-	bra xbee_receive_packet_loop
-
-	; Receive and verify the checksum.
-	rcall xbee_receive_byte
+	; Receive the checksum byte and add it onto the accumulated value.
+	rcall receive_byte_semicooked
 	addwf xbee_receive_checksum, W
-	xorlw 0xFF
-	bnz xbee_receive_packet
 
-	; Deassert RTS to hold off the XBee while processing this packet.
-	bsf LAT_RTS, PIN_RTS
+	; For a correct packet, the checksum should be 0xFF.
+	xorlw 0xFF
+	bnz handle_error
 	return
 
 
 
-xbee_receive_byte:
-	; This must only be called from xbee_receive_packet, because it does a neat hack with the return address stack.
-	; On success, returns with WREG equal to the received byte.
-	; On failure, pops the stack and jumps to xbee_receive_packet.
+receive_byte_cooked:
+	; Check that there are bytes left.
+	movf xbee_receive_bytes_left, F
+	bz handle_error
 
+	; Use one of them up.
+	decf xbee_receive_bytes_left, F
+
+	; Receive the byte and add it to the checksum.
+	rcall receive_byte_semicooked
+	addwf xbee_receive_checksum, F
+	return
+
+
+
+receive_byte_semicooked:
 	; Receive a byte from the USART.
-	rcall usart_receive
+	rcall receive_raw
 
-	; Check if this is an escape.
-	xorlw 0x7D
-	bz xbee_receive_byte_escaped
-	xorlw 0x7D
+	; Check if this is a special byte.
+	DISPATCH_INIT
+	DISPATCH_COND 0x7E, handle_unexpected_sop
+	DISPATCH_COND 0x7D, receive_byte_semicooked_escaped
+	DISPATCH_END_RESTORE
+
+	; Nothing special. Return it.
+	return
 
 	; Done!
 	return
 
-xbee_receive_byte_escaped:
+receive_byte_semicooked_escaped:
 	; We need to receive another byte and unescape it.
-	rcall usart_receive
+	rcall receive_raw
+	DISPATCH_INIT
+	DISPATCH_COND 0x7E, handle_unexpected_sop
+	DISPATCH_END_RESTORE
 	xorlw 0x20
 	return
 
 
 
-usart_receive:
-	; This must only be called from xbee_receive_byte, or from xbee_receive_packet with a hack, because the
-	; stack upon entry to this function must look like:
-	;  ADDRESS OF CALLER OF usart_receive (either xbee_receive_byte or a dummy)
-	;  ADDRESS OF CALLER OF CALLER        (xbee_receive_packet)
-	;  ADDRESS OF CALLER OF xbee_receive_packet
-	; because if an error occurs, the top two levels of the stack are discarded and the function jumps to
-	; the entry point of xbee_receive_packet.
-
+receive_raw:
 	; Check if the bootload pin has been deasserted (gone low).
 	btfss PORT_XBEE_BL, PIN_XBEE_BL
 	reset
@@ -905,35 +990,29 @@ usart_receive:
 
 	; Check if there's data available to receive.
 	btfss PIR1, RCIF
-	bra usart_receive
+	bra receive_raw
 
 	; Check for overrun error.
 	btfsc RCSTA, OERR
-	bra usart_receive_oerr
+	bra receive_raw_oerr
 
 	; Check for framing error.
 	btfsc RCSTA, FERR
-	bra usart_receive_ferr
+	bra receive_raw_ferr
 
 	; Return the byte.
 	movf RCREG, W
 	return
 
-usart_receive_oerr:
+receive_raw_oerr:
 	; Reset the USART.
 	bcf RCSTA, CREN
 	bsf RCSTA, CREN
-	bra usart_receive_error
+	bra handle_error
 
-usart_receive_ferr:
+receive_raw_ferr:
 	; Drop the byte.
 	movf RCREG, W
-	bra usart_receive_error
-
-usart_receive_error:
-	; Dump the return addresses and go back to xbee_receive_packet.
-	pop
-	pop
-	bra xbee_receive_packet
+	bra handle_error
 
 	end
