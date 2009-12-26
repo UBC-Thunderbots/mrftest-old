@@ -195,7 +195,8 @@ jedecid: res 3
 bytecounter: res 1
 pagecounter: res 1
 temp: res 1
-buffer: res 32
+crc_low: res 1
+crc_high: res 1
 
 xbee_receive_buffer:
 xbee_receive_length_msb: res 1
@@ -464,6 +465,22 @@ handle_crc_sector:
 	cpfslt xbee_receive_page_msb
 	bra error_response_bad_address
 
+	; Start the response. We'll stream the CRCs to the XBee.
+	rcall xbee_send_sop
+	movlw 45
+	rcall xbee_send_length
+	movlw 0x00
+	rcall xbee_send
+	movlw 0x00
+	rcall xbee_send
+	rcall xbee_send_address
+	movlw 0x00
+	rcall xbee_send
+	movlw COMMAND_CRC_SECTOR
+	rcall xbee_send
+	movlw COMMAND_STATUS_OK
+	rcall xbee_send
+
 	; Send the READ DATA command (0x03) with address.
 	rcall select_chip
 	movlw 0x03
@@ -475,9 +492,6 @@ handle_crc_sector:
 	movlw 0
 	call spi_send
 
-	; Address the buffer.
-	lfsr 2, buffer
-
 	; Set up a counter of pages.
 	banksel pagecounter
 	movlw 16
@@ -487,8 +501,8 @@ handle_crc_sector:
 	; Go into a loop of pages.
 handle_crc_sector_pageloop:
 	; Initialize the CRC to 0xFFFF.
-	setf [0]
-	setf [1]
+	setf crc_low
+	setf crc_high
 
 	; Go into a loop of bytes.
 handle_crc_sector_byteloop:
@@ -519,36 +533,39 @@ handle_crc_sector_byteloop:
 	; with the final CRC bit-reversed after calculation. This bit-reversal is
 	; of course mostly irrelevant to the mathematical properties of the CRC.
 	; 
-	xorwf [0], W
+	xorwf crc_low, W
 	movwf temp
-	movss [1], [0]
-	movwf [1]
+	movff crc_high, crc_low
+	movwf crc_high
 	rrncf temp, W
 	andlw 0x07
-	xorwf [1], F
+	xorwf crc_high, F
 	swapf temp, F
 	movf temp, W
 	andlw 0xF0
-	xorwf [1], F
+	xorwf crc_high, F
 	rrncf temp, W
 	andlw 0x07
-	xorwf [1], F
+	xorwf crc_high, F
 	swapf temp, W
 	xorwf temp, W
 	andlw 0x0F
-	xorwf [0], F
+	xorwf crc_low, F
 	rrncf temp, W
 	andlw 0xF8
-	xorwf [0], F
+	xorwf crc_low, F
 	btfsc temp, 4
-	btg [0], 7
+	btg crc_low, 7
 
 	; Decrement byte count and loop if nonzero.
 	decfsz bytecounter, F
 	bra handle_crc_sector_byteloop
 
-	; A page is finished. Advance the FSR to the next CRC position.
-	addfsr 2, 2
+	; A page is finished. Stream out the page's CRC.
+	movf crc_low, W
+	rcall xbee_send
+	movf crc_high, W
+	rcall xbee_send
 
 	; Decrement page count and loop if nonzero.
 	decfsz pagecounter, F
@@ -557,29 +574,7 @@ handle_crc_sector_byteloop:
 	; Deselect the chip.
 	rcall deselect_chip
 
-	; Send response.
-	rcall xbee_send_sop
-	movlw 45
-	rcall xbee_send_length
-	movlw 0x00
-	rcall xbee_send
-	movlw 0x00
-	rcall xbee_send
-	rcall xbee_send_address
-	movlw 0x00
-	rcall xbee_send
-	movlw COMMAND_CRC_SECTOR
-	rcall xbee_send
-	movlw COMMAND_STATUS_OK
-	rcall xbee_send
-	movlw 32
-	movwf temp
-	lfsr 0, buffer
-handle_crc_sector_response_data_loop:
-	movf POSTINC0, W
-	rcall xbee_send
-	decfsz temp, F
-	bra handle_crc_sector_response_data_loop
+	; Finish response.
 	rcall xbee_send_checksum
 	bra main_loop
 
