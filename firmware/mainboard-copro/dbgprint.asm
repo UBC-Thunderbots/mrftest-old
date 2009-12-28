@@ -74,7 +74,7 @@ dbgprint_init:
 	bsf LATB, 7
 	bcf TRISB, 7
 
-	; Configure timer 3 to tick 1200 times per second.
+	; Configure timer 3 to tick 9600 times per second.
 	movlw HIGH(TIMER3_RESET)
 	movwf TMR3H
 	movlw LOW(TIMER3_RESET)
