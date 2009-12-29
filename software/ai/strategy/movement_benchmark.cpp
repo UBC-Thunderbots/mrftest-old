@@ -55,7 +55,7 @@ namespace {
 		pos_vel_threshold = 1e-1;
 		ori_dis_threshold = 1e-1;
 		ori_vel_threshold = 1e-1;
-		reset_button = new Gtk::Button("Reset");
+		reset_button = Gtk::manage(new Gtk::Button("Reset"));
 		reset_button->signal_clicked().connect(sigc::mem_fun(*this,&movement_benchmark::strategy_reset));
 	}
 	
