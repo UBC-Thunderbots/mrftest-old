@@ -41,7 +41,7 @@ namespace {
 		std::make_pair(point(0, 0), 0),
 		std::make_pair(point(1, 0), PI / 2),
 		std::make_pair(point(0, 0), PI),
-		std::make_pair(point(-1, 0), 0),
+		std::make_pair(point(-1, 0), 3 * PI / 2),
 		std::make_pair(point(0, 1), PI / 2),
 		std::make_pair(point(0, 0), 0),
 		std::make_pair(point(0, -1), PI),
