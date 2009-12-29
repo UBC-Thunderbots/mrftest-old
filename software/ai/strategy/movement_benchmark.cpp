@@ -1,6 +1,7 @@
 #include "ai/strategy.h"
 #include "ai/tactic.h"
 #include "ai/tactic/move.h"
+#include "gtkmm/button.h"
 #include <iostream>
 #include <vector>
 
@@ -19,6 +20,7 @@ namespace {
 			Gtk::Widget *get_ui_controls();
 			void robot_added(void);
 			void robot_removed(unsigned int index, player::ptr r);
+			void strategy_reset();
 		private:
 			std::vector<std::pair<point, double> > tasks;
 			int time_steps;
@@ -26,6 +28,7 @@ namespace {
 			double dis_threshold;
 			double vel_threshold;
 			double ori_threshold;
+			Gtk::Button* reset_button;
 	};
 
 	// A set of tasks; use this for now
@@ -48,8 +51,15 @@ namespace {
 		dis_threshold = 1e-1;
 		vel_threshold = 1e-2;
 		ori_threshold = 1e-1;
+		reset_button = new Gtk::Button("Reset");
+		reset_button->signal_clicked().connect(sigc::mem_fun(*this,&movement_benchmark::strategy_reset));
 	}
-
+	
+	void movement_benchmark::strategy_reset() {
+		done = 0;
+		time_steps = 0;
+	}
+	
 	void movement_benchmark::tick() {
 		if (done < tasks.size()) {
 			if (done > 0) time_steps++;
@@ -71,7 +81,7 @@ namespace {
 	}
 
 	Gtk::Widget *movement_benchmark::get_ui_controls() {
-		return 0;
+		return reset_button;
 	}
 
 	void movement_benchmark::robot_added(void){
