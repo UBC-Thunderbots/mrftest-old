@@ -30,6 +30,7 @@ namespace {
 			double pos_vel_threshold;
 			double ori_dis_threshold;
 			double ori_vel_threshold;
+			point prev_pos;
 			double prev_ori;
 			Gtk::Button* reset_button;
 	};
@@ -48,7 +49,7 @@ namespace {
 	};
 	const int default_tasks_n = sizeof(default_tasks) / sizeof(default_tasks[0]);
 
-	movement_benchmark::movement_benchmark(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src), tasks(default_tasks, default_tasks + default_tasks_n), done(0), prev_ori(0) {
+	movement_benchmark::movement_benchmark(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src), tasks(default_tasks, default_tasks + default_tasks_n), done(0), prev_pos(0.0, 0.0), prev_ori(0) {
 		time_steps = 0;
 		done = false;
 		pos_dis_threshold = 1e-1;
@@ -69,18 +70,20 @@ namespace {
 			if (done == 0) time_steps = 0;
 			else if (done > 0) time_steps++;
 			const point diff_pos = the_team->get_player(0)->position() - tasks[done].first;
-			const point vel_pos = the_team->get_player(0)->est_velocity();
+			//const point vel_pos = the_team->get_player(0)->est_velocity();
+			const point vel_pos = the_team->get_player(0)->position() - prev_pos;
 			const double diff_ori = angle_mod(the_team->get_player(0)->orientation() - tasks[done].second);
 			const double vel_ori = angle_mod(the_team->get_player(0)->orientation() - prev_ori);
 			std::cout << "movement benchmark task #" << done << std::endl;
 			std::cout << "displace pos:" << diff_pos.x << " " << diff_pos.y << " ori:" << diff_ori << std::endl;
-			std::cout << "velocity pos:" << the_team->get_player(0)->est_velocity().x << " " << the_team->get_player(0)->est_velocity().y << " ori:" << vel_ori << std::endl;
+			std::cout << "velocity pos:" << vel_pos.x << " " << vel_pos.y << " ori:" << vel_ori << std::endl;
 			if (diff_pos.len() < pos_dis_threshold && vel_pos.len() < pos_vel_threshold && fabs(diff_ori) < ori_dis_threshold && fabs(vel_ori) < ori_vel_threshold) {
 				std::cout << "time steps taken: " << time_steps << std::endl;
 				++done;
 			}
-			prev_ori = the_team->get_player(0)->orientation();
 		}
+		prev_ori = the_team->get_player(0)->orientation();
+		prev_pos = the_team->get_player(0)->position();
 		the_team->get_player(0)->move(tasks[done].first, tasks[done].second);
 	}
 
