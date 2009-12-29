@@ -75,6 +75,9 @@ adc:
 
 	; Drive the SPI bus.
 	call spi_drive
+	
+	; Select proper bank.
+	banksel current_value
 
 	; Turn on the ADC.
 	movlw (1 << ADON)
