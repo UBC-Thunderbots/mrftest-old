@@ -100,6 +100,11 @@ loop:
 	btfss PORT_EMERG_ERASE, PIN_EMERG_ERASE
 	reset
 
+	; Check if the DONE signal line has been deasserted (gone low), meaning a 
+	; post-configuration CRC (if enabled) failed.
+	btfss PORT_DONE, PIN_DONE
+	reset
+
 	; Lower /SS to the FPGA.
 	bcf LAT_SPI_SS_FPGA, PIN_SPI_SS_FPGA
 
