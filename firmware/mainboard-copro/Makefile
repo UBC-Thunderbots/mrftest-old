@@ -20,7 +20,7 @@ clean :
 
 .PHONY: burn
 burn : $(HEX)
-	 pk2cmd -P$(PROC) -W -F $< -E -M -I -J -K -Y
+	 pk2cmd -P$(PROC) -W -F $< -E -M -I -J -K
 
 .PHONY : dep
 dep : $(ASMS:.asm=.d)
