@@ -8,14 +8,6 @@
 #include <iomanip>
 
 namespace {
-	const uint8_t CMD_CHIP_ERASE = 0x29;
-	const uint8_t CMD_WRITE1     = 0x48;
-	const uint8_t CMD_WRITE2     = 0x67;
-	const uint8_t CMD_WRITE3     = 0x86;
-	const uint8_t CMD_SUM_PAGES  = 0xA5;
-	const uint8_t CMD_GET_STATUS = 0xC4;
-	const uint8_t CMD_IDENT      = 0xE3;
-
 	class bot_chooser : public Gtk::ComboBoxText {
 		private:
 			class item {
