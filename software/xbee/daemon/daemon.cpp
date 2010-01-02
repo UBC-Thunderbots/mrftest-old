@@ -109,6 +109,7 @@ namespace {
 							if (epoll_ctl(epollfd, EPOLL_CTL_ADD, newfd, &events[i]) < 0)
 								throw std::runtime_error("Cannot register new socket with epoll!");
 							fd_map[newfd] = client_info();
+							send(newfd, "XBEE", 4, MSG_EOR | MSG_NOSIGNAL);
 						}
 					}
 				} else if (events[i].data.fd == pstream.fd()) {
@@ -310,6 +311,13 @@ namespace xbeedaemon {
 			// This is the parent process.
 			// The child will hold the lock file and listen socket, so we can close them.
 			// We will keep the client socket, and the child will close it.
+			// Receive the signature.
+			char buffer[4];
+			if (recv(temp_client_sock, buffer, sizeof(buffer), 0) != sizeof(buffer))
+				return false;
+			if (buffer[0] != 'X' || buffer[1] != 'B' || buffer[2] != 'E' || buffer[3] != 'E') {
+				return false;
+			}
 			client_sock = temp_client_sock;
 			return true;
 		} else {
