@@ -31,6 +31,7 @@ namespace {
 		public:
 			bot_chooser(xmlpp::Element *xmlplayers, Gtk::Window &window) : xmlplayers(xmlplayers), window(window) {
 				const xmlpp::Node::NodeList &children = xmlplayers->get_children("player");
+				append_text("None");
 				for (xmlpp::Node::NodeList::const_iterator i = children.begin(), iend = children.end(); i != iend; ++i) {
 					xmlpp::Node *node = *i;
 					xmlpp::Element *elem = dynamic_cast<xmlpp::Element *>(node);
@@ -48,6 +49,7 @@ namespace {
 						append_text(itm.format());
 					}
 				}
+				set_active_text("None");
 			}
 
 			sigc::signal<void, uint64_t> &signal_address_changed() {
@@ -81,8 +83,8 @@ namespace {
 		protected:
 			void on_changed() {
 				int cur = get_active_row_number();
-				if (cur >= 0) {
-					sig_address_changed.emit(items[cur].address);
+				if (cur > 0) {
+					sig_address_changed.emit(items[cur - 1].address);
 				} else {
 					sig_address_changed.emit(0);
 				}
