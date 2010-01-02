@@ -7,7 +7,7 @@
 
 namespace {
 	void present_rssi(uint8_t rssi, Gtk::ProgressBar &bar) {
-		bar.set_text(Glib::ustring::compose("-%1dBm", static_cast<unsigned int>(rssi)));
+		bar.set_text(Glib::ustring::compose("−%1dBm", static_cast<unsigned int>(rssi)));
 		bar.set_fraction((255 - rssi) / 255.0);
 	}
 }
