@@ -18,10 +18,10 @@
 #include <stdint.h>
 #include <glibmm.h>
 #include <signal.h>
-#include <sys/types.h>
+#include <sys/epoll.h>
 #include <sys/file.h>
 #include <sys/prctl.h>
-#include <sys/epoll.h>
+#include <sys/types.h>
 
 #if DEBUG
 #define FIRST_CLOSE_FD 3
