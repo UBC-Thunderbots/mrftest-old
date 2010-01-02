@@ -22,6 +22,7 @@ software/robot_controller/joystick/*.d
 software/robot_controller_test/*.d
 software/simulator/*.d
 software/simulator/engines/*.d
+software/tester/*.d
 software/thunderbots
 software/uicomponents/*.d
 software/util/*.d

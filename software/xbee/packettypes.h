@@ -1,9 +1,32 @@
 #ifndef XBEE_PACKETTYPES_H
 #define XBEE_PACKETTYPES_H
 
+#include <cstddef>
 #include <stdint.h>
 
 namespace xbeepacket {
+	template<std::size_t T_value_length>
+	struct __attribute__((packed)) AT_REQUEST {
+		uint8_t apiid;
+		uint8_t frame;
+		uint8_t command[2];
+		uint8_t value[T_value_length];
+	};
+	const uint8_t AT_REQUEST_APIID = 0x08;
+
+	struct __attribute__((packed)) AT_RESPONSE {
+		uint8_t apiid;
+		uint8_t frame;
+		uint8_t command[2];
+		uint8_t status;
+		uint8_t value[];
+	};
+	const uint8_t AT_RESPONSE_APIID = 0x88;
+	const uint8_t AT_RESPONSE_STATUS_OK = 0;
+	const uint8_t AT_RESPONSE_STATUS_ERROR = 1;
+	const uint8_t AT_RESPONSE_STATUS_INVALID_COMMAND = 2;
+	const uint8_t AT_RESPONSE_STATUS_INVALID_PARAMETER = 3;
+
 	template<std::size_t T_value_length>
 	struct __attribute__((packed)) REMOTE_AT_REQUEST {
 		uint8_t apiid;
@@ -52,6 +75,32 @@ namespace xbeepacket {
 	const uint8_t RECEIVE_APIID = 0x80;
 	const uint8_t RECEIVE_OPTION_BROADCAST_ADDRESS = 0x02;
 	const uint8_t RECEIVE_OPTION_BROADCAST_PANID = 0x04;
+
+	struct __attribute__((packed)) FEEDBACK_DATA {
+		RECEIVE_HDR rxhdr;
+		uint8_t flags;
+		uint8_t outbound_rssi;
+		uint16_t dribbler_speed;
+		uint16_t battery_level;
+		uint8_t motor_fault_counters_packed[3];
+		uint8_t command_ack;
+	};
+	const uint8_t FEEDBACK_FLAG_RUNNING = 0x80;
+
+	struct __attribute__((packed)) RUN_DATA {
+		TRANSMIT_HDR txhdr;
+		uint8_t flags;
+		int16_t drive_speeds[4];
+		int16_t dribbler_speed;
+		uint8_t command_seq;
+		uint8_t command;
+		uint16_t command_data;
+	};
+	const uint8_t RUN_FLAG_RUNNING = 0x80;
+	const uint8_t RUN_FLAG_DIRECT_DRIVE = 0x01;
+	const uint8_t RUN_FLAG_FEEDBACK = 0x40;
+	const uint8_t RUN_COMMAND_NOOP = 0x00;
+	const uint8_t RUN_COMMAND_KICK = 0x01;
 }
 
 #endif
