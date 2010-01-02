@@ -226,7 +226,8 @@ class firmware_window_impl : public Gtk::Window {
 			}
 			timer.stop();
 
-			const Glib::ustring &msg = Glib::ustring::compose("Upload completed in %1s.\n%2 CRC errors.",
+			const Glib::ustring &msg = Glib::ustring::compose(
+					"Upload completed in %1s.\n%2 CRC errors repaired.",
 					Glib::ustring::format(std::fixed, std::setprecision(1), timer.elapsed()),
 					crc_errors);
 			Gtk::MessageDialog md(*this, msg, false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_OK, true);
