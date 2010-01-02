@@ -54,6 +54,11 @@ class upload_scheduler : public noncopyable {
 		//
 		double progress() const;
 
+		//
+		// Returns the number of CRC failures seen so far.
+		//
+		unsigned int crc_failure_count() const;
+
 	private:
 		std::vector<uint8_t> data;
 		std::queue<upload_irp> irps;

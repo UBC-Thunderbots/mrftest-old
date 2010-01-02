@@ -21,6 +21,13 @@ class upload : public watchable_operation, public sigc::trackable {
 		//
 		void start();
 
+		//
+		// Returns the number of CRC errors so far.
+		//
+		unsigned int crc_failure_count() const {
+			return sched.crc_failure_count();
+		}
+
 	private:
 		bootproto proto;
 		upload_scheduler sched;

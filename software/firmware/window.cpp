@@ -215,10 +215,22 @@ class firmware_window_impl : public Gtk::Window {
 				return;
 			}
 
-			upload up(modem, current_address, ihex);
-			working_dialog dlg(*this, up);
-			Glib::signal_idle().connect(sigc::bind_return(sigc::mem_fun(up, &upload::start), false));
-			dlg.run();
+			Glib::Timer timer;
+			unsigned int crc_errors;
+			{
+				upload up(modem, current_address, ihex);
+				working_dialog dlg(*this, up);
+				Glib::signal_idle().connect(sigc::bind_return(sigc::mem_fun(up, &upload::start), false));
+				dlg.run();
+				crc_errors = up.crc_failure_count();
+			}
+			timer.stop();
+
+			const Glib::ustring &msg = Glib::ustring::compose("Upload completed in %1s.\n%2 CRC errors.",
+					Glib::ustring::format(std::fixed, std::setprecision(1), timer.elapsed()),
+					crc_errors);
+			Gtk::MessageDialog md(*this, msg, false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_OK, true);
+			md.run();
 		}
 
 		void start_emergency_erase() {

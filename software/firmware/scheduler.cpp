@@ -76,3 +76,11 @@ double upload_scheduler::progress() const {
 	return ((double) (initial_qlen - irps.size())) / initial_qlen;
 }
 
+unsigned int upload_scheduler::crc_failure_count() const {
+	unsigned int result = 0;
+	for (unsigned int i = 0; i < crc_failures.size(); ++i) {
+		result += crc_failures[i];
+	}
+	return result;
+}
+
