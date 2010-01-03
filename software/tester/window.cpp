@@ -214,6 +214,8 @@ class tester_window_impl : public Gtk::Window {
 				if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_Z || event->keyval == GDK_z)) {
 					control_chooser.set_active_text("Halt");
 					scram();
+				} else if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_0)) {
+					scram();
 				}
 			}
 			return 0;
