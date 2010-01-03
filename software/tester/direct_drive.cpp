@@ -31,5 +31,9 @@ void tester_control_direct_drive::scram() {
 	drive3_scale.set_value(0);
 	drive4_scale.set_value(0);
 	drive5_scale.set_value(0);
+	Glib::RefPtr<Gdk::Window> win = get_window();
+	if (win) {
+		win->invalidate(true);
+	}
 }
 
