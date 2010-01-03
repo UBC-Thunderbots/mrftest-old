@@ -12,6 +12,10 @@ void light::set_colour(double r, double g, double b) {
 	this->r = r;
 	this->g = g;
 	this->b = b;
+	Glib::RefPtr<Gdk::Window> win = get_window();
+	if (win) {
+		win->invalidate(false);
+	}
 }
 
 bool light::on_expose_event(GdkEventExpose *) {
