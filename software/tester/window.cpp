@@ -2,126 +2,13 @@
 #include "tester/direct_drive.h"
 #include "tester/feedback.h"
 #include "tester/window.h"
-#include "uicomponents/world_add_bot_dialog.h"
+#include "uicomponents/bot_chooser.h"
 #include "util/ihex.h"
 #include "util/xml.h"
 #include "world/config.h"
 #include "xbee/packettypes.h"
 #include "xbee/util.h"
 #include <iomanip>
-
-namespace {
-	class bot_chooser : public Gtk::ComboBoxText {
-		private:
-			class item {
-				public:
-					item(const Glib::ustring &name, uint64_t address, xmlpp::Element *xml) : name(name), address(address), xml(xml) {
-					}
-
-					Glib::ustring format() const {
-						const Glib::ustring &address_string = Glib::ustring::format(std::setfill(L'0'), std::setw(16), std::hex, address);
-						return Glib::ustring::compose("%1 [%2]", name, address_string);
-					}
-
-					Glib::ustring name;
-					uint64_t address;
-					xmlpp::Element *xml;
-			};
-
-		public:
-			bot_chooser(xmlpp::Element *xmlplayers, Gtk::Window &window) : xmlplayers(xmlplayers), window(window) {
-				const xmlpp::Node::NodeList &children = xmlplayers->get_children("player");
-				append_text("None");
-				for (xmlpp::Node::NodeList::const_iterator i = children.begin(), iend = children.end(); i != iend; ++i) {
-					xmlpp::Node *node = *i;
-					xmlpp::Element *elem = dynamic_cast<xmlpp::Element *>(node);
-					if (elem) {
-						const Glib::ustring &name = elem->get_attribute_value("name");
-						const Glib::ustring &address_string = elem->get_attribute_value("address");
-						uint64_t address;
-						{
-							std::istringstream iss(Glib::locale_from_utf8(address_string));
-							iss.setf(std::ios_base::hex, std::ios_base::basefield);
-							iss >> address;
-						}
-						item itm(name, address, elem);
-						items.push_back(itm);
-						append_text(itm.format());
-					}
-				}
-				set_active_text("None");
-			}
-
-			sigc::signal<void, uint64_t> &signal_address_changed() {
-				return sig_address_changed;
-			}
-
-			void add_player() {
-				world_add_bot_dialog dlg(window);
-				if (dlg.run() == Gtk::RESPONSE_ACCEPT) {
-					xmlpp::Element *elem = xmlplayers->add_child("player");
-					elem->set_attribute("name", dlg.name());
-					elem->set_attribute("address", Glib::ustring::format(std::hex, dlg.address()));
-					elem->set_attribute("colour", dlg.is_yellow() ? "yellow" : "blue");
-					item itm(dlg.name(), dlg.address(), elem);
-					items.push_back(itm);
-					append_text(itm.format());
-					config::dirty();
-				}
-			}
-
-			void del_player() {
-				int cur = get_active_row_number();
-				if (cur >= 0) {
-					item itm = items[cur];
-					items.erase(items.begin() + cur);
-					xmlplayers->remove_child(itm.xml);
-					remove_text(itm.format());
-				}
-			}
-
-		protected:
-			void on_changed() {
-				int cur = get_active_row_number();
-				if (cur > 0) {
-					sig_address_changed.emit(items[cur - 1].address);
-				} else {
-					sig_address_changed.emit(0);
-				}
-			}
-
-		private:
-			xmlpp::Element *xmlplayers;
-			Gtk::Window &window;
-			std::vector<item> items;
-			sigc::signal<void, uint64_t> sig_address_changed;
-	};
-
-	class bot_panel : public Gtk::VBox {
-		public:
-			bot_panel(xmlpp::Element *xmlworld, Gtk::Window &window) : xmlplayers(xmlutil::get_only_child(xmlworld, "players")), chooser(xmlplayers, window), button_box(Gtk::BUTTONBOX_SPREAD), add_button(Gtk::Stock::ADD), del_button(Gtk::Stock::DELETE) {
-				pack_start(chooser, false, false);
-
-				add_button.signal_clicked().connect(sigc::mem_fun(chooser, &bot_chooser::add_player));
-				button_box.pack_start(add_button);
-				del_button.signal_clicked().connect(sigc::mem_fun(chooser, &bot_chooser::del_player));
-				button_box.pack_start(del_button);
-				pack_start(button_box, false, false);
-			}
-
-			sigc::signal<void, uint64_t> &signal_address_changed() {
-				return chooser.signal_address_changed();
-			}
-
-		private:
-			xmlpp::Element *xmlplayers;
-
-			bot_chooser chooser;
-
-			Gtk::HButtonBox button_box;
-			Gtk::Button add_button, del_button;
-	};
-}
 
 class tester_window_impl : public Gtk::Window {
 	public:
@@ -167,7 +54,7 @@ class tester_window_impl : public Gtk::Window {
 		Gtk::VBox vbox;
 
 		Gtk::Frame bot_frame;
-		bot_panel bot_controls;
+		bot_chooser bot_controls;
 
 		Gtk::Frame feedback_frame;
 		tester_feedback feedback;

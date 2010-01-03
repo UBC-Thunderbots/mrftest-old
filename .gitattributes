@@ -188,6 +188,8 @@ software/tester/feedback.cpp -text
 software/tester/feedback.h -text
 software/tester/window.cpp -text
 software/tester/window.h -text
+software/uicomponents/bot_chooser.cpp -text
+software/uicomponents/bot_chooser.h -text
 software/uicomponents/light.cpp -text
 software/uicomponents/light.h -text
 software/uicomponents/visualizer.cpp -text
