@@ -98,9 +98,9 @@ main:
 	bcf LAT_PROG_B, PIN_PROG_B
 	bcf TRIS_PROG_B, PIN_PROG_B
 	; INIT_B is an input read from the FPGA.
-	; BRAKE goes high to lock the wheels until the FPGA is running.
-	bsf LAT_BRAKE, PIN_BRAKE
-	bcf TRIS_BRAKE, PIN_BRAKE
+	; UNUSED goes low to avoid floating inputs.
+	bcf LAT_UNUSED, PIN_UNUSED
+	bcf TRIS_UNUSED, PIN_UNUSED
 	; SPI_TX is tristated if FPGA will configure itself, until in run mode.
 	; If in bootload mode, bootloader will drive SPI_TX.
 	; SPI_RX is always an input.

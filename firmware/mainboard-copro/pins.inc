@@ -27,12 +27,6 @@ TRIS_INIT_B equ TRISD
 LAT_INIT_B  equ LATD
 PIN_INIT_B  equ 5
 
-	; Which port, tris, and pin is wired-ORed to the motor controllers' BRAKE lines.
-PORT_BRAKE equ PORTC
-TRIS_BRAKE equ TRISC
-LAT_BRAKE  equ LATC
-PIN_BRAKE  equ 1
-
 	; Which port, tris, and pin is the SPI transmit line.
 PORT_SPI_TX equ PORTD
 TRIS_SPI_TX equ TRISD
@@ -122,3 +116,9 @@ PORT_RTS equ PORTC
 TRIS_RTS equ TRISC
 LAT_RTS  equ LATC
 PIN_RTS  equ 2
+
+	; Which port, tris, and pin is unused.
+PORT_UNUSED equ PORTC
+TRIS_UNUSED equ TRISC
+LAT_UNUSED  equ LATC
+PIN_UNUSED  equ 1

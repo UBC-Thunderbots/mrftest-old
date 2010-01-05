@@ -70,9 +70,6 @@ adc:
 	; Turn the LED on solid.
 	call led_on
 
-	; Let the motors run.
-	bsf TRIS_BRAKE, PIN_BRAKE
-
 	; Drive the SPI bus.
 	call spi_drive
 	
