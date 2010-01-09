@@ -22,6 +22,8 @@ software/robot_controller/joystick/*.d
 software/robot_controller_test/*.d
 software/simulator/*.d
 software/simulator/engines/*.d
+software/simulator/engines/ODE_simulator/*.d
+software/simulator/engines/collisionless/*.d
 software/tester/*.d
 software/thunderbots
 software/uicomponents/*.d
