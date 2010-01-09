@@ -81,13 +81,13 @@ playerODE::~playerODE () {
 void playerODE::createJointBetweenB1B2(){
 	dJointGroupDestroy (contactgroup);
 	contactgroup = dJointGroupCreate(0);
-	hinge=dJointCreateBall (world, contactgroup);
+	hinge=dJointCreateFixed (world, contactgroup);
 	const dReal *t = dBodyGetPosition (body);
 	double x = t[0];
 	double y = t[1];
 	double z = t[2];
 	z+=0.0005;  
-	dJointSetBallAnchor(hinge, x, y , z);
+	//dJointSetBallAnchor(hinge, x, y , z);
 	dJointAttach (hinge, body, body2);
 	dJointEnable (hinge); 
 }
@@ -224,8 +224,7 @@ void playerODE::move_impl(const point &vel, double avel) {
 		}
 
 		//acc
-		point accelDiff = acc - prevAccel;
-
+/*		point accelDiff = acc - prevAccel;
 		double magJerk = accelDiff.len()*static_cast<double>(TIMESTEPS_PER_SECOND);
 
 		double directionAccel_change = acc.dot(prevAccel);
@@ -239,10 +238,11 @@ void playerODE::move_impl(const point &vel, double avel) {
 			acc = prevAccel + accelDiff;
 
 		}
-
+*/
 		double m = mass.mass + mass2.mass;
 		point fce = acc*((double)m);
-
+		
+		
 		//enorce a max turn speed
 		if(avel > maxAvel) {
 			avelocity = maxAvel;
@@ -254,10 +254,12 @@ void playerODE::move_impl(const point &vel, double avel) {
 		const dReal * t =  dBodyGetAngularVel (body2);
 		double avelRobot = t[2];
 		//std::cout<<avelRobot<<std::endl;
+		//std::cout << "aVel: " << avelocity << "\n";
 		double avelDiff = avelocity - avelRobot;
 		double aAccel = avelDiff*static_cast<double>(TIMESTEPS_PER_SECOND);
 		aAccel = aAccel/updates_per_tick;
-
+		
+		//std::cout << "aAccel: " << aAccel << "\n";
 		// enforce max angular acceleration
 		if(aAccel > maxAaccel){
 			aAccel = maxAaccel;
@@ -271,9 +273,10 @@ void playerODE::move_impl(const point &vel, double avel) {
 		fcex = fce.x;
 		fcey = fce.y;
 		torquez=torque;
+		//std::cout << "Torque: " << torque << "\n";
 		//dBodySetAngularVel (body2, 0.0, 0.0, realizedAVel);
+		
 		dBodyAddTorque (body2, 0.0, 0.0, torque);
-
 		dBodyAddForce (body, fce.x, fce.y, 0.0);
 
 		prevAccel = acc;
