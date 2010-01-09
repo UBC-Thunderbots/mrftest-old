@@ -1,7 +1,7 @@
 #include "ai/strategy.h"
 #include "ai/tactic.h"
 #include "ai/tactic/move.h"
-#include "gtkmm/button.h"
+#include "gtkmm.h"
 #include <iostream>
 #include <vector>
 #include <cmath>
