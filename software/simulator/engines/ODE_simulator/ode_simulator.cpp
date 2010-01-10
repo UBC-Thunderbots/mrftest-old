@@ -15,21 +15,6 @@ namespace {
 	const double EPS = 1.0e-9;
 
 	//
-	// The maximum acceleration of a robot, in metres per second squared.
-	//
-	const double BOT_MAX_ACCELERATION = 10.0;
-
-	//
-	// The maximum velocity of a robot, in metres per second.
-	//
-	const double BOT_MAX_VELOCITY = 5.0;
-
-	//
-	// The acceleration due to friction against the ball, in metres per second squared.
-	//
-	const double BALL_DECELERATION = 6.0;
-
-	//
 	// The force of gravity N/kg
 	//
 	const double GRAVITY = -0.25;
@@ -110,12 +95,12 @@ namespace {
 					
 				for(unsigned int i=0; i< UPDATES_PER_TICK; i++){
 				
-					if(i>0){
+					
 						for (unsigned int j = 0; j < the_players.size(); j++) {
 							the_players[j]->pre_tic();
 
 						}
-					}
+					
 					//std::cout<<"tick Start"<<std::endl;
 					//check the world for possible collisions
 					//if there are colliding objects then call nearCallback

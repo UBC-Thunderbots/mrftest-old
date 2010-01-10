@@ -9,20 +9,44 @@ namespace {
 	double orientationFromMatrix(const dReal *t){
 		return atan2(-t[1], t[0]);
 	}
+	
+	//
+	// The maximum acceleration of a robot, in metres per second squared.
+	//
+	const double BOT_MAX_ACCELERATION = 10.0;
+
+	//
+	// The maximum velocity of a robot, in metres per second.
+	//
+	const double BOT_MAX_VELOCITY = 5.0;
+	
+	//
+	// The maximum angular velocity of a robot in radians per second
+	//
+	const double BOT_MAX_A_VELOCITY = 2.0;
+	
+	//
+	// The maximum angular acceleration of a robot, in radians per second squared
+	//
+	const double BOT_MAX_A_ACCELERATION = 1.0;
+
+	//
+	// The acceleration due to friction against the ball, in metres per second squared.
+	//
+	const double BALL_DECELERATION = 6.0;
 
 }
 
-playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0), target_avelocity(0.0), prevAccel(0.0, 0.0) {
+playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0), target_avelocity(0.0) {
 
 	updates_per_tick = ups_per_tick;
 	double dribble_radius = 0.005;//half a cm
 	ballGeom = ballGeomi;
 	double ballradius = dGeomSphereGetRadius(ballGeom);
-	maxAvel = 2.0;
-	maxAaccel = 1.0;
+
 	world = eworld;
 	body = dBodyCreate(world);
-	body2 = dBodyCreate(world);
+	//body2 = dBodyCreate(world);
 	double x_pos = 0.0;
 	double y_pos = 0.0;
 	jerkLimit = 30000.0;
@@ -34,9 +58,9 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	x_len = 0.18;
 	y_len = 0.18;
 
-	dBodySetPosition(body, x_pos, y_pos, 0.0006);
-	dBodySetPosition(body2, x_pos, y_pos, 0.0515);
-	dGeomID robotGeom = dCreateBox (0,x_len,y_len,0.001);//10cm 
+	//dBodySetPosition(body, x_pos, y_pos, 0.0006);
+	dBodySetPosition(body, x_pos, y_pos, 0.0515);
+	//dGeomID robotGeom = dCreateBox (0,x_len,y_len,0.001);//10cm 
 	dGeomID robotGeomTop = dCreateBox (0,x_len,y_len,0.1);
 
 	double arm_width = 0.001;
@@ -45,51 +69,50 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	dGeomID dribbleArmL = dCreateBox (0,dribble_radius*2.5,arm_width,arm_height);
 	dGeomID dribbleArmR = dCreateBox (0,dribble_radius*2.5,arm_width,arm_height);
 
-	dMassSetSphere (&mass,0.5,0.267);
-	dMassSetSphere (&mass2,0.1,0.267);
+	//dMassSetCylinderTotal (&mass,0.1, 3,9.0/100,15.0/100);
+	dMassSetCylinderTotal (&mass,4.0, 3,9.0/100,15.0/100);
+	//dBodySetMass (body,&mass);
+	//dBodySetLinearDamping (body, 0.12);
 	dBodySetMass (body,&mass);
-	dBodySetLinearDamping (body, 0.12);
-	dBodySetMass (body2,&mass2);
-	momentInertia = mass2.mass*0.2;
-	dGeomSetBody (robotGeom,body);
-	dGeomSetBody (robotGeomTop,body2);
+	momentInertia = 0.00405;
+	//dGeomSetBody (robotGeom,body);
+	dGeomSetBody (robotGeomTop,body);
 
 	double arm_h_offset = ballradius - 0.051;
 
-	dGeomSetBody (dribbleArmL,body2);
-	dGeomSetBody (dribbleArmR,body2);
+	dGeomSetBody (dribbleArmL,body);
+	dGeomSetBody (dribbleArmR,body);
 
 	dGeomSetOffsetPosition (dribbleArmL, x_len/2, y_len/2 + arm_width/2, arm_h_offset);
 	dGeomSetOffsetPosition (dribbleArmR, -x_len/2, -y_len/2 - arm_width/2, arm_h_offset);
 
-	dSpaceAdd (dspace, robotGeom);
+	//dSpaceAdd (dspace, robotGeom);
 	dSpaceAdd (dspace, robotGeomTop);
-	dBodySetLinearDamping (body, 0.05);
+	//dBodySetLinearDamping (body, 0.05);
 	//dBodySetLinearDamping (body2, 0.05);
-	dBodySetAngularDamping (body, 0.02);
-	dBodySetAngularDamping (body2, 0.02);
-	contactgroup = dJointGroupCreate (0);
-	createJointBetweenB1B2();
+	//dBodySetAngularDamping (body, 0.12);
+	//contactgroup = dJointGroupCreate (0);
+	//createJointBetweenB1B2();
 }
 
 playerODE::~playerODE () {
-	dJointGroupDestroy (contactgroup);
+	//dJointGroupDestroy (contactgroup);
 	dBodyDestroy (body);
-	dBodyDestroy (body2);
+	//dBodyDestroy (body2);
 }
 
 void playerODE::createJointBetweenB1B2(){
-	dJointGroupDestroy (contactgroup);
-	contactgroup = dJointGroupCreate(0);
-	hinge=dJointCreateFixed (world, contactgroup);
-	const dReal *t = dBodyGetPosition (body);
-	double x = t[0];
-	double y = t[1];
-	double z = t[2];
-	z+=0.0005;  
+	//dJointGroupDestroy (contactgroup);
+	//contactgroup = dJointGroupCreate(0);
+	//hinge=dJointCreateFixed (world, contactgroup);
+	//const dReal *t = dBodyGetPosition (body);
+//	double x = t[0];
+//	double y = t[1];
+	//double z = t[2];
+	//z+=0.0005;  
 	//dJointSetBallAnchor(hinge, x, y , z);
-	dJointAttach (hinge, body, body2);
-	dJointEnable (hinge); 
+	//dJointAttach (hinge, body, body2);
+	//dJointEnable (hinge); 
 }
 
 point playerODE::position() const {
@@ -98,7 +121,7 @@ point playerODE::position() const {
 }
 
 double playerODE::orientation() const {
-	return orientationFromMatrix(dBodyGetRotation(body2));
+	return orientationFromMatrix(dBodyGetRotation(body));
 }
 
 bool playerODE::has_ball() const {
@@ -106,7 +129,7 @@ bool playerODE::has_ball() const {
 	bool hasTheBall = true;
 	double hasBallTolerance = 0.0025;
 	const dReal *b = dBodyGetPosition (dGeomGetBody(ballGeom)); 
-	const dReal *p = dBodyGetPosition (body2);
+	const dReal *p = dBodyGetPosition (body);
 
 	point ball_loc(b[0], b[1]);
 	point play_loc(p[0], p[1]);
@@ -142,7 +165,7 @@ bool playerODE::has_ball(double tolerance){
 	bool hasTheBall = true;
 	double hasBallTolerance = tolerance;
 	const dReal *b = dBodyGetPosition (dGeomGetBody(ballGeom)); 
-	const dReal *p = dBodyGetPosition (body2);
+	const dReal *p = dBodyGetPosition (body);
 
 	point ball_loc(b[0], b[1]);
 	point play_loc(p[0], p[1]);
@@ -176,113 +199,50 @@ bool playerODE::has_ball(double tolerance){
 
 bool playerODE::robot_contains_shape(dGeomID geom){
 	dBodyID b = dGeomGetBody(geom);
-	return (b==body)||(b==body2);
+	return (b==body);
 }
 
 void playerODE::pre_tic(){
 
-	dBodyAddTorque (body2, 0.0, 0.0, torquez);
-	dBodyAddForce (body, fcex, fcey, 0.0);
-
-}
-
-void playerODE::move_impl(const point &vel, double avel) {					
 	if(!posSet){
-		double Accel_Max = 5.5;
-		double V_MaxVel = 3.0;
-
-		target_velocity = vel;
-		point tVelocity = vel;
-		target_avelocity = avel;
-		avelocity = avel;
-
+	
 		const dReal *cur_vel = dBodyGetLinearVel(body);
-
 		the_velocity.x = cur_vel[0];
 		the_velocity.y = cur_vel[1];
-
-		tVelocity = tVelocity.rotate(orientation());
-
-		double magVel = sqrt(tVelocity.x*tVelocity.x + tVelocity.y*tVelocity.y);
-
-		if(magVel>V_MaxVel){
-			tVelocity= tVelocity/magVel;
-			tVelocity= tVelocity*V_MaxVel;
-		}
-
-		dBodyEnable (body);
-		dBodySetDynamic (body);
-
-		point vDiff = tVelocity - the_velocity;				
-		point acc = vDiff*static_cast<double>(TIMESTEPS_PER_SECOND);
-		acc = acc/updates_per_tick;
-		double magAcc = acc.len();
-
-		if(magAcc>Accel_Max){
-			acc=acc/magAcc;
-			acc=acc*Accel_Max;
-		}
-
-		//acc
-/*		point accelDiff = acc - prevAccel;
-		double magJerk = accelDiff.len()*static_cast<double>(TIMESTEPS_PER_SECOND);
-
-		double directionAccel_change = acc.dot(prevAccel);
-		if(directionAccel_change>0){
-
-			if(magJerk>jerkLimit){
-				accelDiff = accelDiff/accelDiff.len();
-				accelDiff = accelDiff*(jerkLimit/static_cast<double>(TIMESTEPS_PER_SECOND));
-			}
-
-			acc = prevAccel + accelDiff;
-
-		}
-*/
-		double m = mass.mass + mass2.mass;
-		point fce = acc*((double)m);
 		
+		const dReal * t =  dBodyGetAngularVel (body);
+		avelocity = t[2];
 		
-		//enorce a max turn speed
-		if(avel > maxAvel) {
-			avelocity = maxAvel;
-		} else if(avel < -maxAvel) {
-			avelocity = -maxAvel;
-		}
-
-		//std::cout<<"angular speed: "<<avel<<std::endl;
-		const dReal * t =  dBodyGetAngularVel (body2);
-		double avelRobot = t[2];
-		//std::cout<<avelRobot<<std::endl;
-		//std::cout << "aVel: " << avelocity << "\n";
-		double avelDiff = avelocity - avelRobot;
-		double aAccel = avelDiff*static_cast<double>(TIMESTEPS_PER_SECOND);
-		aAccel = aAccel/updates_per_tick;
+		point fce = (target_velocity-the_velocity)/BOT_MAX_VELOCITY*BOT_MAX_ACCELERATION*mass.mass;
 		
-		//std::cout << "aAccel: " << aAccel << "\n";
-		// enforce max angular acceleration
-		if(aAccel > maxAaccel){
-			aAccel = maxAaccel;
-		} else if(aAccel < -maxAaccel){
-			aAccel = -maxAaccel;
-		}
-
-		double torque = aAccel*momentInertia;
-		//double realizedAVel = avelRobot + aAccel;
-
+		double torque = (target_avelocity-avelocity)/BOT_MAX_A_VELOCITY*BOT_MAX_A_ACCELERATION*momentInertia;		
+		
 		fcex = fce.x;
 		fcey = fce.y;
 		torquez=torque;
-		//std::cout << "Torque: " << torque << "\n";
-		//dBodySetAngularVel (body2, 0.0, 0.0, realizedAVel);
 		
-		dBodyAddTorque (body2, 0.0, 0.0, torque);
-		dBodyAddForce (body, fce.x, fce.y, 0.0);
-
-		prevAccel = acc;
+		dBodyEnable (body);
+		dBodySetDynamic (body);
+		
+		dBodyAddTorque (body, 0.0, 0.0, torquez);
+		dBodyAddForce (body, fcex, fcey, 0.0);
 
 	}
 	posSet=false;
+}
+
+void playerODE::move_impl(const point &vel, double avel) {					
+		if(vel.len() > BOT_MAX_VELOCITY)
+			target_velocity = vel/vel.len()*BOT_MAX_VELOCITY;
+		else
+			target_velocity=vel;
+		    
+		if(fabs(avel) > BOT_MAX_A_VELOCITY)
+			target_avelocity = avel/fabs(avel)*BOT_MAX_A_VELOCITY;		
+		else
+			target_avelocity = avel;	
+			
+		target_velocity = target_velocity.rotate(orientation());	
 }
 
 void playerODE::dribble(double speed) {
@@ -365,19 +325,26 @@ void playerODE::chip(double strength) {
 void playerODE::ext_drag(const point &pos, const point &vel) {
 	posSet = true;
 	const dReal *t = dBodyGetPosition (body);
-	const dReal *t2 = dBodyGetPosition (body2);
+	//const dReal *t2 = dBodyGetPosition (body2);
 	dBodySetPosition(body, pos.x, pos.y, t[2]);
-	dBodySetPosition(body2, pos.x, pos.y, t2[2]);
+	//dBodySetPosition(body2, pos.x, pos.y, t2[2]);
 	dBodySetLinearVel(body,vel.x,vel.y,0.0);
-	dBodySetLinearVel(body2,vel.x,vel.y,0.0);
+	//dBodySetLinearVel(body2,vel.x,vel.y,0.0);
 	dBodySetAngularVel (body, 0.0, 0.0, 0.0);
-	dBodySetAngularVel (body2, 0.0, 0.0, 0.0);
-	createJointBetweenB1B2();
+	//dBodySetAngularVel (body2, 0.0, 0.0, 0.0);
+	//createJointBetweenB1B2();
 	ext_drag_postprocess();
 }
 
 void playerODE::ext_rotate(double orient, double avel) {
-#warning IMPLEMENT THIS FUNCTION
+	posSet=true;
+	//#warning IMPLEMENT
+	dMatrix3 RotationMatrix;
+	dRFromAxisAndAngle (RotationMatrix, 0.0, 0.0, 1.0, orient);
+	dBodySetRotation (body, RotationMatrix);
+	//dBodySetRotation (body2, RotationMatrix);
+	dBodySetAngularVel (body, 0.0, 0.0, avel);
+	//dBodySetAngularVel (body2, 0.0, 0.0, avel);
 	ext_rotate_postprocess();
 }
 
