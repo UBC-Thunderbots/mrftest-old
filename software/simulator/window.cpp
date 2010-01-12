@@ -1,5 +1,6 @@
 #include "simulator/window.h"
 #include "uicomponents/visualizer.h"
+#include <algorithm>
 #include <gtkmm.h>
 
 
@@ -388,6 +389,11 @@ class team_controls : public Gtk::VBox {
 			const Gtk::ListViewText::SelectionList &sel = players_list.get_selected();
 			if (sel.size() == 1) {
 				team_data.remove_player(sel[0]);
+				if (!team_data.impls.empty()) {
+					Gtk::TreePath path;
+					path.push_back(std::min(static_cast<unsigned int>(sel[0]), team_data.impls.size() - 1));
+					players_list.get_selection()->select(path);
+				}
 			}
 		}
 
