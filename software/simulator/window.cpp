@@ -391,7 +391,7 @@ class team_controls : public Gtk::VBox {
 				team_data.remove_player(sel[0]);
 				if (!team_data.impls.empty()) {
 					Gtk::TreePath path;
-					path.push_back(std::min(static_cast<size_t>(sel[0]), team_data.impls.size() - 1));
+					path.push_back(std::min(static_cast<std::vector<player_impl::ptr>::size_type>(sel[0]), team_data.impls.size() - 1));
 					players_list.get_selection()->select(path);
 				}
 			}
