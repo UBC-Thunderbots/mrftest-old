@@ -21,18 +21,13 @@ class playerODE : public player_impl {
 	dWorldID world;
 	dBodyID body;
 	dMass mass;
-	//dMass mass2;
 	bool posSet;
-	//dBodyID body2;
-	//dJointGroupID contactgroup;
-	//dJointID hinge;
 	point the_position, the_velocity, target_velocity;
 	double the_orientation, avelocity, target_avelocity;
 	dGeomID ballGeom;
 	double updates_per_tick;
 	double jerkLimit;
 	double fcex,fcey,torquez;
-	//point prevAccel;
 	public:
 
 	playerODE( dWorldID dworld, dSpaceID dspace,  dGeomID ballGeom, double ups_per_tick);

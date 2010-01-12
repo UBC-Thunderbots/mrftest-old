@@ -23,21 +23,26 @@ namespace {
 	//
 	// The maximum angular velocity of a robot in radians per second
 	//
-	const double BOT_MAX_A_VELOCITY = 2.0;
+	const double BOT_MAX_A_VELOCITY = 12.0;
 	
 	//
 	// The maximum angular acceleration of a robot, in radians per second squared
 	//
-	const double BOT_MAX_A_ACCELERATION = 1.0;
+	const double BOT_MAX_A_ACCELERATION = 5.0;
 
 	//
 	// The acceleration due to friction against the ball, in metres per second squared.
 	//
 	const double BALL_DECELERATION = 6.0;
 
+	const double ROBOT_RADIUS = 0.09;
+	const double ROBOT_MASS = 4.0;
+	const double ROBOT_HEIGHT = 0.15;
+	
+
 }
 
-playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0), target_avelocity(0.0) {
+playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0), target_avelocity(0.0){
 
 	updates_per_tick = ups_per_tick;
 	double dribble_radius = 0.005;//half a cm
@@ -46,7 +51,6 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 
 	world = eworld;
 	body = dBodyCreate(world);
-	//body2 = dBodyCreate(world);
 	double x_pos = 0.0;
 	double y_pos = 0.0;
 	jerkLimit = 30000.0;
@@ -69,12 +73,11 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	dGeomID dribbleArmL = dCreateBox (0,dribble_radius*2.5,arm_width,arm_height);
 	dGeomID dribbleArmR = dCreateBox (0,dribble_radius*2.5,arm_width,arm_height);
 
-	//dMassSetCylinderTotal (&mass,0.1, 3,9.0/100,15.0/100);
-	dMassSetCylinderTotal (&mass,4.0, 3,9.0/100,15.0/100);
-	//dBodySetMass (body,&mass);
-	//dBodySetLinearDamping (body, 0.12);
+	
+	dMassSetCylinderTotal (&mass,ROBOT_MASS, 3,ROBOT_RADIUS,ROBOT_HEIGHT);
 	dBodySetMass (body,&mass);
-	momentInertia = 0.00405;
+
+	momentInertia = ROBOT_RADIUS*ROBOT_RADIUS*mass.mass/2;
 	//dGeomSetBody (robotGeom,body);
 	dGeomSetBody (robotGeomTop,body);
 
@@ -89,7 +92,6 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	//dSpaceAdd (dspace, robotGeom);
 	dSpaceAdd (dspace, robotGeomTop);
 	//dBodySetLinearDamping (body, 0.05);
-	//dBodySetLinearDamping (body2, 0.05);
 	//dBodySetAngularDamping (body, 0.12);
 	//contactgroup = dJointGroupCreate (0);
 	//createJointBetweenB1B2();
@@ -101,6 +103,7 @@ playerODE::~playerODE () {
 	//dBodyDestroy (body2);
 }
 
+//useless function
 void playerODE::createJointBetweenB1B2(){
 	//dJointGroupDestroy (contactgroup);
 	//contactgroup = dJointGroupCreate(0);
