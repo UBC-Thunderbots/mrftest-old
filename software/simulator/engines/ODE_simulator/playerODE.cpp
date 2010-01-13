@@ -3,6 +3,7 @@
 #include <iostream>
 #include <math.h>
 #include <algorithm>
+#include "geom/angle.h"
 
 namespace {
 
@@ -38,8 +39,8 @@ namespace {
 	const double ROBOT_RADIUS = 0.09;
 	const double ROBOT_MASS = 4.0;
 	const double ROBOT_HEIGHT = 0.15;
-	
-
+	const double FRONT_FACE_WIDTH = 0.10;
+	const unsigned int NUM_SIDES = 20; 
 }
 
 playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0), target_avelocity(0.0){
@@ -351,3 +352,111 @@ void playerODE::ext_rotate(double orient, double avel) {
 	ext_rotate_postprocess();
 }
 
+dTriMeshDataID playerODE::CreateRobotGeom()
+{
+
+//Compute angle for front face (Cosine Law)
+double WideAngle = acos((FRONT_FACE_WIDTH*FRONT_FACE_WIDTH - 2*ROBOT_RADIUS*ROBOT_RADIUS)/(-2*ROBOT_RADIUS*ROBOT_RADIUS));
+
+//Compute remainder of angles
+double NarrowAngleSize = (2*PI - WideAngle)/NUM_SIDES;
+
+//calculate the number of faces and vertices
+unsigned int NumVertices=(NUM_SIDES+2)*2;
+unsigned int NumTriangles=4*(NUM_SIDES+1);
+
+double Angles[NUM_SIDES+1];
+
+dVector3 Vertices[NumVertices];
+unsigned int Triangles[3*NumTriangles];
+
+//Compute the angles
+Angles[0]=WideAngle/2;
+for(unsigned int i=0;i<NUM_SIDES;i++)
+    Angles[i+1]=Angles[i]+NarrowAngleSize;
+
+
+
+Vertices[0][0]=0; 
+Vertices[0][1]=0;
+Vertices[0][2]=ROBOT_HEIGHT/2;
+ 
+
+Vertices[NUM_SIDES+2][0]=0; 
+Vertices[NUM_SIDES+2][1]=0; 
+Vertices[NUM_SIDES+2][2]=-ROBOT_HEIGHT/2;
+
+for(unsigned int i=0;i<NUM_SIDES;i++)
+{
+    Vertices[i+1][0]=cos(Angles[i])*ROBOT_RADIUS; 
+    Vertices[i+1][1]=sin(Angles[i])*ROBOT_RADIUS; 
+    Vertices[i+1][2]=ROBOT_HEIGHT/2;
+
+    Vertices[i+2+NUM_SIDES+1][0]=cos(Angles[i])*ROBOT_RADIUS; 
+    Vertices[i+2+NUM_SIDES+1][1]=sin(Angles[i])*ROBOT_RADIUS;
+    Vertices[i+2+NUM_SIDES+1][2]=-ROBOT_HEIGHT/2;
+}
+
+
+
+
+//Top Side
+unsigned int offset=0;
+for(unsigned int i=0;i<NUM_SIDES;i++)
+{
+	Triangles[3*(i+offset)+0]=0; 
+	Triangles[3*(i+offset)+1]=i+1; 
+	Triangles[3*(i+offset)+2]=i+2;
+}
+
+Triangles[3*(NUM_SIDES+offset)+0]=0;
+Triangles[3*(NUM_SIDES+offset)+1]=NUM_SIDES+1; 
+Triangles[3*(NUM_SIDES+offset)+2]=1;
+
+
+//Sides
+offset=offset+NUM_SIDES+1;
+for(unsigned int i=0;i<NUM_SIDES;i++)
+{
+        Triangles[3*(offset+i)+0]=i+1;
+	Triangles[3*(offset+i)+1]=NUM_SIDES+3+i; 
+	Triangles[3*(offset+i)+2]=NUM_SIDES+4+i;
+}
+
+Triangles[3*(offset+NUM_SIDES)+0]=NUM_SIDES+1;
+Triangles[3*(offset+NUM_SIDES)+1]=2*NUM_SIDES+3;
+Triangles[3*(offset+NUM_SIDES)+2]=NUM_SIDES+3;
+
+
+offset=offset+NUM_SIDES+1;
+for(unsigned int i=0;i<NUM_SIDES;i++)
+{
+        Triangles[3*(offset+i)+0]=i+1;
+	Triangles[3*(offset+i)+1]=NUM_SIDES+3+i;
+	Triangles[3*(offset+i)+2]=NUM_SIDES+4+i;
+}
+Triangles[3*(offset+NUM_SIDES)+0]=NUM_SIDES+1;
+Triangles[3*(offset+NUM_SIDES)+1]=NUM_SIDES+3; 
+Triangles[3*(offset+NUM_SIDES)+2]=1;
+
+
+//Bottom Side
+offset=offset+(NUM_SIDES+1);
+for(unsigned int i=0;i<NUM_SIDES;i++)
+{
+	Triangles[3*(offset+i)+0]=NUM_SIDES+2;
+	Triangles[3*(offset+i)+1]=NUM_SIDES+4+i;
+	Triangles[3*(offset+i)+2]=NUM_SIDES+3+i;
+}
+
+Triangles[3*(NUM_SIDES+offset)+0]=NUM_SIDES+2;
+Triangles[3*(NUM_SIDES+offset)+1]=NUM_SIDES+3;
+Triangles[3*(NUM_SIDES+offset)+2]=2*NUM_SIDES+3;
+
+
+dTriMeshDataID triMesh;
+triMesh = dGeomTriMeshDataCreate();
+//dGeomTriMeshDataBuildSimple(triMesh,Vertices,NumVertices,Triangles,NumTriangles);
+return triMesh;
+
+}

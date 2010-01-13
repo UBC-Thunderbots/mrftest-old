@@ -69,6 +69,8 @@ public:
 			void ext_rotate(double orient, double avel);
 			
 			void createJointBetweenB1B2();
+
+			static dTriMeshDataID CreateRobotGeom();
 };
 
 
