@@ -456,7 +456,7 @@ Triangles[3*(NUM_SIDES+offset)+2]=2*NUM_SIDES+3;
 
 dTriMeshDataID triMesh;
 triMesh = dGeomTriMeshDataCreate();
-//dGeomTriMeshDataBuildSimple(triMesh,Vertices,NumVertices,Triangles,NumTriangles);
+dGeomTriMeshDataBuildSimple(triMesh,Vertices[0],NumVertices,Triangles,NumTriangles);
 return triMesh;
 
 }
