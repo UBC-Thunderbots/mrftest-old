@@ -70,7 +70,7 @@ public:
 			
 			void createJointBetweenB1B2();
 
-			static dTriMeshDataID CreateRobotGeom();
+			static dTriMeshDataID create_robot_geom();
 };
 
 

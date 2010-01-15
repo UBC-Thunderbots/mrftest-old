@@ -64,9 +64,10 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	y_len = 0.18;
 
 	//dBodySetPosition(body, x_pos, y_pos, 0.0006);
-	dBodySetPosition(body, x_pos, y_pos, 0.0515);
+	dBodySetPosition(body, x_pos, y_pos, 0.076);
 	//dGeomID robotGeom = dCreateBox (0,x_len,y_len,0.001);//10cm 
-	dGeomID robotGeomTop = dCreateBox (0,x_len,y_len,0.1);
+	//dGeomID robotGeomTop = dCreateTriMesh(dspace,create_robot_geom(),NULL,NULL,NULL);		
+	dGeomID robotGeomTop = dCreateBox (0,x_len,y_len,0.15);
 
 	double arm_width = 0.001;
 	double arm_height = 0.01;
@@ -96,6 +97,7 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	//dBodySetAngularDamping (body, 0.12);
 	//contactgroup = dJointGroupCreate (0);
 	//createJointBetweenB1B2();
+	
 }
 
 playerODE::~playerODE () {
@@ -352,111 +354,111 @@ void playerODE::ext_rotate(double orient, double avel) {
 	ext_rotate_postprocess();
 }
 
-dTriMeshDataID playerODE::CreateRobotGeom()
+dTriMeshDataID playerODE::create_robot_geom()
 {
 
-//Compute angle for front face (Cosine Law)
-double WideAngle = acos((FRONT_FACE_WIDTH*FRONT_FACE_WIDTH - 2*ROBOT_RADIUS*ROBOT_RADIUS)/(-2*ROBOT_RADIUS*ROBOT_RADIUS));
+	//Compute angle for front face (Cosine Law)
+	double WideAngle = acos((FRONT_FACE_WIDTH*FRONT_FACE_WIDTH - 2*ROBOT_RADIUS*ROBOT_RADIUS)/(-2*ROBOT_RADIUS*ROBOT_RADIUS));
 
-//Compute remainder of angles
-double NarrowAngleSize = (2*PI - WideAngle)/NUM_SIDES;
+	//Compute remainder of angles
+	double NarrowAngleSize = (2*PI - WideAngle)/NUM_SIDES;
 
-//calculate the number of faces and vertices
-unsigned int NumVertices=(NUM_SIDES+2)*2;
-unsigned int NumTriangles=4*(NUM_SIDES+1);
+	//calculate the number of faces and vertices
+	unsigned int NumVertices=(NUM_SIDES+2)*2;
+	unsigned int NumTriangles=4*(NUM_SIDES+1);
 
-double Angles[NUM_SIDES+1];
+	double Angles[NUM_SIDES+1];
 
-dVector3 Vertices[NumVertices];
-unsigned int Triangles[3*NumTriangles];
+	dVector3 Vertices[NumVertices];
+	unsigned int Triangles[3*NumTriangles];
 
-//Compute the angles
-Angles[0]=WideAngle/2;
-for(unsigned int i=0;i<NUM_SIDES;i++)
-    Angles[i+1]=Angles[i]+NarrowAngleSize;
-
-
-
-Vertices[0][0]=0; 
-Vertices[0][1]=0;
-Vertices[0][2]=ROBOT_HEIGHT/2;
- 
-
-Vertices[NUM_SIDES+2][0]=0; 
-Vertices[NUM_SIDES+2][1]=0; 
-Vertices[NUM_SIDES+2][2]=-ROBOT_HEIGHT/2;
-
-for(unsigned int i=0;i<NUM_SIDES;i++)
-{
-    Vertices[i+1][0]=cos(Angles[i])*ROBOT_RADIUS; 
-    Vertices[i+1][1]=sin(Angles[i])*ROBOT_RADIUS; 
-    Vertices[i+1][2]=ROBOT_HEIGHT/2;
-
-    Vertices[i+2+NUM_SIDES+1][0]=cos(Angles[i])*ROBOT_RADIUS; 
-    Vertices[i+2+NUM_SIDES+1][1]=sin(Angles[i])*ROBOT_RADIUS;
-    Vertices[i+2+NUM_SIDES+1][2]=-ROBOT_HEIGHT/2;
-}
+	//Compute the angles
+	Angles[0]=WideAngle/2;
+	for(unsigned int i=0;i<NUM_SIDES;i++)
+	    Angles[i+1]=Angles[i]+NarrowAngleSize;
 
 
 
+	Vertices[0][0]=0; 
+	Vertices[0][1]=0;
+	Vertices[0][2]=ROBOT_HEIGHT/2;
+	 
 
-//Top Side
-unsigned int offset=0;
-for(unsigned int i=0;i<NUM_SIDES;i++)
-{
-	Triangles[3*(i+offset)+0]=0; 
-	Triangles[3*(i+offset)+1]=i+1; 
-	Triangles[3*(i+offset)+2]=i+2;
-}
+	Vertices[NUM_SIDES+2][0]=0; 
+	Vertices[NUM_SIDES+2][1]=0; 
+	Vertices[NUM_SIDES+2][2]=-ROBOT_HEIGHT/2;
 
-Triangles[3*(NUM_SIDES+offset)+0]=0;
-Triangles[3*(NUM_SIDES+offset)+1]=NUM_SIDES+1; 
-Triangles[3*(NUM_SIDES+offset)+2]=1;
+	for(unsigned int i=0;i<=NUM_SIDES;i++)
+	{
+	    Vertices[i+1][0]=cos(Angles[i])*ROBOT_RADIUS; 
+	    Vertices[i+1][1]=sin(Angles[i])*ROBOT_RADIUS; 
+	    Vertices[i+1][2]=ROBOT_HEIGHT/2;
 
-
-//Sides
-offset=offset+NUM_SIDES+1;
-for(unsigned int i=0;i<NUM_SIDES;i++)
-{
-        Triangles[3*(offset+i)+0]=i+1;
-	Triangles[3*(offset+i)+1]=NUM_SIDES+3+i; 
-	Triangles[3*(offset+i)+2]=NUM_SIDES+4+i;
-}
-
-Triangles[3*(offset+NUM_SIDES)+0]=NUM_SIDES+1;
-Triangles[3*(offset+NUM_SIDES)+1]=2*NUM_SIDES+3;
-Triangles[3*(offset+NUM_SIDES)+2]=NUM_SIDES+3;
+	    Vertices[i+1+NUM_SIDES+2][0]=cos(Angles[i])*ROBOT_RADIUS; 
+	    Vertices[i+1+NUM_SIDES+2][1]=sin(Angles[i])*ROBOT_RADIUS;
+	    Vertices[i+1+NUM_SIDES+2][2]=-ROBOT_HEIGHT/2;
+	}
 
 
-offset=offset+NUM_SIDES+1;
-for(unsigned int i=0;i<NUM_SIDES;i++)
-{
-        Triangles[3*(offset+i)+0]=i+1;
-	Triangles[3*(offset+i)+1]=NUM_SIDES+3+i;
-	Triangles[3*(offset+i)+2]=NUM_SIDES+4+i;
-}
-Triangles[3*(offset+NUM_SIDES)+0]=NUM_SIDES+1;
-Triangles[3*(offset+NUM_SIDES)+1]=NUM_SIDES+3; 
-Triangles[3*(offset+NUM_SIDES)+2]=1;
 
 
-//Bottom Side
-offset=offset+(NUM_SIDES+1);
-for(unsigned int i=0;i<NUM_SIDES;i++)
-{
-	Triangles[3*(offset+i)+0]=NUM_SIDES+2;
-	Triangles[3*(offset+i)+1]=NUM_SIDES+4+i;
-	Triangles[3*(offset+i)+2]=NUM_SIDES+3+i;
-}
+	//Top Side
+	unsigned int offset=0;
+	for(unsigned int i=0;i<NUM_SIDES;i++)
+	{
+		Triangles[3*(i+offset)+0]=0; 
+		Triangles[3*(i+offset)+1]=i+1; 
+		Triangles[3*(i+offset)+2]=i+2;
+	}
 
-Triangles[3*(NUM_SIDES+offset)+0]=NUM_SIDES+2;
-Triangles[3*(NUM_SIDES+offset)+1]=NUM_SIDES+3;
-Triangles[3*(NUM_SIDES+offset)+2]=2*NUM_SIDES+3;
+	Triangles[3*(NUM_SIDES+offset)+0]=0;
+	Triangles[3*(NUM_SIDES+offset)+1]=NUM_SIDES+1; 
+	Triangles[3*(NUM_SIDES+offset)+2]=1;
 
 
-dTriMeshDataID triMesh;
-triMesh = dGeomTriMeshDataCreate();
-dGeomTriMeshDataBuildSimple(triMesh,Vertices[0],NumVertices,Triangles,NumTriangles);
-return triMesh;
+	//Sides
+	offset=offset+NUM_SIDES+1;
+	for(unsigned int i=0;i<NUM_SIDES;i++)
+	{
+		Triangles[3*(offset+i)+0]=i+1;
+		Triangles[3*(offset+i)+1]=NUM_SIDES+3+i; 
+		Triangles[3*(offset+i)+2]=NUM_SIDES+4+i;
+	}
+
+	Triangles[3*(offset+NUM_SIDES)+0]=NUM_SIDES+1;
+	Triangles[3*(offset+NUM_SIDES)+1]=2*NUM_SIDES+3;
+	Triangles[3*(offset+NUM_SIDES)+2]=NUM_SIDES+3;
+
+
+	offset=offset+NUM_SIDES+1;
+	for(unsigned int i=0;i<NUM_SIDES;i++)
+	{
+		Triangles[3*(offset+i)+0]=i+1;
+		Triangles[3*(offset+i)+1]=NUM_SIDES+4+i;
+		Triangles[3*(offset+i)+2]=i+2;
+	}
+	Triangles[3*(offset+NUM_SIDES)+0]=NUM_SIDES+1;
+	Triangles[3*(offset+NUM_SIDES)+1]=NUM_SIDES+3; 
+	Triangles[3*(offset+NUM_SIDES)+2]=1;
+
+
+	//Bottom Side
+	offset=offset+(NUM_SIDES+1);
+	for(unsigned int i=0;i<NUM_SIDES;i++)
+	{
+		Triangles[3*(offset+i)+0]=NUM_SIDES+2;
+		Triangles[3*(offset+i)+1]=NUM_SIDES+4+i;
+		Triangles[3*(offset+i)+2]=NUM_SIDES+3+i;
+	}
+
+	Triangles[3*(NUM_SIDES+offset)+0]=NUM_SIDES+2;
+	Triangles[3*(NUM_SIDES+offset)+1]=NUM_SIDES+3;
+	Triangles[3*(NUM_SIDES+offset)+2]=2*NUM_SIDES+3;
+
+	dTriMeshDataID triMesh;
+	triMesh = dGeomTriMeshDataCreate();
+	dGeomTriMeshDataBuildSimple(triMesh,Vertices[0],NumVertices,Triangles,NumTriangles);
+
+	return triMesh;
 
 }
