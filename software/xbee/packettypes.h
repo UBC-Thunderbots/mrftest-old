@@ -66,6 +66,17 @@ namespace xbeepacket {
 	const uint8_t TRANSMIT_OPTION_DISABLE_ACK = 0x01;
 	const uint8_t TRANSMIT_OPTION_BROADCAST_PANID = 0x04;
 
+	struct __attribute__((packed)) TRANSMIT_STATUS {
+		uint8_t apiid;
+		uint8_t frame;
+		uint8_t status;
+	};
+	const uint8_t TRANSMIT_STATUS_APIID = 0x89;
+	const uint8_t TRANSMIT_STATUS_SUCCESS = 0;
+	const uint8_t TRANSMIT_STATUS_NO_ACK = 1;
+	const uint8_t TRANSMIT_STATUS_NO_CCA = 2;
+	const uint8_t TRANSMIT_STATUS_PURGED = 3;
+
 	struct __attribute__((packed)) RECEIVE_HDR {
 		uint8_t apiid;
 		uint8_t address[8];
@@ -82,7 +93,7 @@ namespace xbeepacket {
 		uint8_t outbound_rssi;
 		uint16_t dribbler_speed;
 		uint16_t battery_level;
-		uint8_t motor_fault_counters_packed[3];
+		uint8_t faults;
 		uint8_t command_ack;
 	};
 	const uint8_t FEEDBACK_FLAG_RUNNING = 0x80;
@@ -99,7 +110,7 @@ namespace xbeepacket {
 	const uint8_t RUN_FLAG_RUNNING = 0x80;
 	const uint8_t RUN_FLAG_DIRECT_DRIVE = 0x01;
 	const uint8_t RUN_FLAG_CONTROLLED_DRIVE = 0x02;
-	const uint8_t RUN_FLAG_VELOCITIES = 0x04;
+	const uint8_t RUN_FLAG_DRIBBLE = 0x04;
 	const uint8_t RUN_FLAG_FEEDBACK = 0x40;
 	const uint8_t RUN_COMMAND_NOOP = 0x00;
 	const uint8_t RUN_COMMAND_KICK = 0x01;

@@ -2,7 +2,7 @@
 #define TESTER_FEEDBACK_H
 
 #include "uicomponents/light.h"
-#include "xbee/xbee.h"
+#include "xbee/bot.h"
 #include <cstddef>
 #include <stdint.h>
 #include <gtkmm.h>
@@ -12,14 +12,11 @@
 //
 class tester_feedback : public Gtk::HBox {
 	public:
-		tester_feedback(xbee &modem);
-		void address_changed(uint64_t address);
+		tester_feedback();
+		void set_bot(radio_bot::ptr bot);
 
 	private:
-		xbee &modem;
-		uint64_t current_address;
-		uint8_t old_fault_counters[5];
-		bool seen_packet;
+		radio_bot::ptr robot;
 
 		Gtk::VBox column1;
 		Gtk::Label battery_label;
@@ -35,10 +32,8 @@ class tester_feedback : public Gtk::HBox {
 		Gtk::Label fault_label;
 		Gtk::HBox fault_indicator_box;
 		light fault_indicators[5];
-		Gtk::Button clear_fault_button;
 
-		void packet_received(const void *data, std::size_t length);
-		void clear_fault();
+		void on_update();
 };
 
 #endif

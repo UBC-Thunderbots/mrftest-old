@@ -53,7 +53,7 @@ namespace {
 	}
 }
 
-xbee::xbee() : sock(connect_to_daemon()) {
+xbee::xbee() : sock(connect_to_daemon()), next_frame(1) {
 	Glib::signal_io().connect(sigc::mem_fun(*this, &xbee::on_readable), sock, Glib::IO_IN | Glib::IO_HUP);
 }
 

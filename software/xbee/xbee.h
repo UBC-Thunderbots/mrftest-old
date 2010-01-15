@@ -4,6 +4,7 @@
 #include "util/fd.h"
 #include "util/noncopyable.h"
 #include <cstddef>
+#include <stdint.h>
 #include <glibmm.h>
 
 //
@@ -28,9 +29,21 @@ class xbee : public noncopyable {
 			return sig_received;
 		}
 
+		//
+		// Allocates a frame number.
+		//
+		uint8_t alloc_frame() {
+			uint8_t cur = next_frame;
+			if (!++next_frame) {
+				next_frame = 1;
+			}
+			return cur;
+		}
+
 	private:
 		const file_descriptor sock;
 		sigc::signal<void, const void *, std::size_t> sig_received;
+		uint8_t next_frame;
 
 		bool on_readable(Glib::IOCondition);
 };

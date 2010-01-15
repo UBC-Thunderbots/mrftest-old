@@ -181,7 +181,6 @@ software/simulator/team.cpp -text
 software/simulator/team.h -text
 software/simulator/window.cpp -text
 software/simulator/window.h -text
-software/tester/controls.h -text
 software/tester/direct_drive.cpp -text
 software/tester/direct_drive.h -text
 software/tester/feedback.cpp -text
@@ -233,6 +232,8 @@ software/world/robot.h -text
 software/world/robot_impl.h -text
 software/world/team.h -text
 software/world/timestep.h -text
+software/xbee/bot.cpp -text
+software/xbee/bot.h -text
 software/xbee/daemon/byteproto.cpp -text
 software/xbee/daemon/byteproto.h -text
 software/xbee/daemon/daemon.cpp -text

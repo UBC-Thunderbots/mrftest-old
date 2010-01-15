@@ -1,4 +1,3 @@
-#include "tester/controls.h"
 #include "tester/direct_drive.h"
 #include "tester/feedback.h"
 #include "tester/window.h"
@@ -6,13 +5,13 @@
 #include "util/ihex.h"
 #include "util/xml.h"
 #include "world/config.h"
-#include "xbee/packettypes.h"
-#include "xbee/util.h"
+#include "xbee/bot.h"
 #include <iomanip>
+#include <iostream>
 
 class tester_window_impl : public Gtk::Window {
 	public:
-		tester_window_impl(xbee &modem, xmlpp::Element *xmlworld) : modem(modem), current_address(0), feedback_counter(0), bot_frame("Bot"), bot_controls(xmlworld, *this), feedback_frame("Feedback"), feedback(modem), command_frame("Commands"), control_frame("Controls"), current_controls(0), current_controls_widget(0) {
+		tester_window_impl(xbee &modem, xmlpp::Element *xmlworld) : modem(modem), bot_frame("Bot"), bot_controls(xmlworld, *this), feedback_frame("Feedback"), command_frame("Commands"), drive_frame("Drive"), drive_widget(0), dribble_frame("Dribble"), dribble_checkbox("Enable Dribbler"), dribble_scale(-1023, 1024, 1) {
 			set_title("Thunderbots");
 
 			bot_controls.signal_address_changed().connect(sigc::mem_fun(*this, &tester_window_impl::address_changed));
@@ -24,20 +23,27 @@ class tester_window_impl : public Gtk::Window {
 
 			vbox.pack_start(command_frame, false, false);
 
-			control_chooser.append_text("Halt");
-			control_chooser.append_text("Direct Drive");
-			control_chooser.set_active_text("Halt");
-			control_chooser.signal_changed().connect(sigc::mem_fun(*this, &tester_window_impl::controls_changed));
-			control_box.pack_start(control_chooser);
-			control_frame.add(control_box);
-			vbox.pack_start(control_frame, false, false);
+			drive_chooser.append_text("Halt");
+			drive_chooser.append_text("Direct Drive");
+			drive_chooser.set_active_text("Halt");
+			drive_chooser.signal_changed().connect(sigc::mem_fun(*this, &tester_window_impl::drive_mode_changed));
+			drive_box.pack_start(drive_chooser);
+			drive_frame.add(drive_box);
+			vbox.pack_start(drive_frame, false, false);
+
+			dribble_box.pack_start(dribble_checkbox);
+			dribble_box.pack_start(dribble_scale);
+			dribble_frame.add(dribble_box);
+			vbox.pack_start(dribble_frame, false, false);
 
 			add(vbox);
 
 			show_all();
 
-			Glib::signal_timeout().connect(sigc::mem_fun(*this, &tester_window_impl::tick), (1000 + 15) / 30);
 			Gtk::Main::signal_key_snooper().connect(sigc::mem_fun(*this, &tester_window_impl::key_snoop));
+			dribble_checkbox.signal_toggled().connect(sigc::mem_fun(*this, &tester_window_impl::on_dribble_change));
+			dribble_scale.set_value(0);
+			dribble_scale.signal_value_changed().connect(sigc::mem_fun(*this, &tester_window_impl::on_dribble_change));
 		}
 
 	protected:
@@ -48,8 +54,7 @@ class tester_window_impl : public Gtk::Window {
 
 	private:
 		xbee &modem;
-		uint64_t current_address;
-		unsigned int feedback_counter;
+		radio_bot::ptr bot;
 
 		Gtk::VBox vbox;
 
@@ -61,75 +66,96 @@ class tester_window_impl : public Gtk::Window {
 
 		Gtk::Frame command_frame;
 
-		Gtk::Frame control_frame;
-		Gtk::VBox control_box;
-		Gtk::ComboBoxText control_chooser;
-		tester_control_direct_drive direct_drive;
+		Gtk::Frame drive_frame;
+		Gtk::VBox drive_box;
+		Gtk::ComboBoxText drive_chooser;
+		tester_control_direct_drive drive_direct;
+		Gtk::Widget *drive_widget;
 
-		tester_controls *current_controls;
-		Gtk::Widget *current_controls_widget;
+		Gtk::Frame dribble_frame;
+		Gtk::VBox dribble_box;
+		Gtk::CheckButton dribble_checkbox;
+		Gtk::HScale dribble_scale;
 
 		void address_changed(uint64_t address) {
-			current_address = address;
-			feedback.address_changed(address);
-		}
-
-		bool tick() {
-			if (current_address) {
-				xbeepacket::RUN_DATA data;
-				data.txhdr.apiid = xbeepacket::TRANSMIT_APIID;
-				data.txhdr.frame = 0;
-				xbeeutil::address_to_bytes(current_address, data.txhdr.address);
-				data.txhdr.options = xbeepacket::TRANSMIT_OPTION_DISABLE_ACK;
-				data.flags = xbeepacket::RUN_FLAG_RUNNING;
-				data.command_seq = 0;
-				data.command = xbeepacket::RUN_COMMAND_NOOP;
-				if (current_controls) {
-					current_controls->encode(data);
-				}
-				if (++feedback_counter == 30) {
-					feedback_counter = 0;
-					data.flags |= xbeepacket::RUN_FLAG_FEEDBACK;
-				}
-				modem.send(&data, sizeof(data));
+			// Update the bot pointer.
+			if (address) {
+				bot = radio_bot::ptr(new radio_bot(modem, address));
+				bot->start();
+			} else {
+				bot.reset();
 			}
-			return true;
+
+			// Attach the robot to the feedback controls, dropping any prior.
+			feedback.set_bot(bot);
+
+			// Attach the robot to the drive controls, dropping any prior.
+			attach_drive_controls_to_bot();
+
+			// Attach the robot to the dribbler controls, dropping any prior.
+			on_dribble_change();
 		}
 
 		int key_snoop(Widget *, GdkEventKey *event) {
-			if (current_address) {
-				if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_Z || event->keyval == GDK_z)) {
-					control_chooser.set_active_text("Halt");
-					scram();
-				} else if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_0)) {
-					scram();
-				}
+			if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_Z || event->keyval == GDK_z)) {
+				// Z letter scrams the system.
+				drive_chooser.set_active_text("Halt");
+				dribble_checkbox.set_active(false);
+				dribble_scale.set_value(0);
+			} else if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_0)) {
+				// Zero digit sets all controls to zero but does not scram things.
+				drive_direct.zero();
+				dribble_scale.set_value(0);
 			}
 			return 0;
 		}
 
-		void controls_changed() {
-			scram();
-			const Glib::ustring &cur = control_chooser.get_active_text();
-			if (current_controls_widget) {
-				control_box.remove(*current_controls_widget);
-				current_controls = 0;
-				current_controls_widget = 0;
+		void drive_mode_changed() {
+			// Remove any UI control.
+			if (drive_widget) {
+				drive_box.remove(*drive_widget);
+				drive_widget = 0;
 			}
-			if (cur == "Halt") {
-				// Leave it NULL.
-			} else if (cur == "Direct Drive") {
-				current_controls = &direct_drive;
-				current_controls_widget = &direct_drive;
-			}
-			if (current_controls_widget) {
-				control_box.pack_start(*current_controls_widget);
-				current_controls_widget->show_all();
+
+			// Zero out all drive controls.
+			drive_direct.zero();
+
+			// Detach the bot from all drive controls.
+			drive_direct.set_robot(radio_bot::ptr());
+
+			// Attach the new controls to the robot.
+			attach_drive_controls_to_bot();
+
+			// Place the new controls in the UI.
+			if (drive_widget) {
+				drive_box.pack_start(*drive_widget);
+				drive_widget->show_all();
 			}
 		}
 
-		void scram() {
-			direct_drive.scram();
+		void attach_drive_controls_to_bot() {
+			const Glib::ustring &cur = drive_chooser.get_active_text();
+			if (cur == "Halt") {
+				// No controls, but need to scram the drive motors.
+				drive_widget = 0;
+				if (bot) {
+					bot->drive_scram();
+				}
+			} else if (cur == "Direct Drive") {
+				// Use the direct drive controls.
+				drive_widget = &drive_direct;
+				drive_direct.set_robot(bot);
+			}
+		}
+
+		void on_dribble_change() {
+			if (bot) {
+				if (dribble_checkbox.get_active()) {
+					bot->dribble(dribble_scale.get_value());
+				} else {
+					bot->dribble_scram();
+				}
+			}
 		}
 };
 
