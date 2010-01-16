@@ -130,6 +130,7 @@ namespace simu_test{
   
   void simu_test_strategy::tick() {
     tick_count++;
+    if (!the_team->size()) return;
     point move_to_point; 
     the_only_player = the_team->get_player(0);
     //    the_only_player->dribble(1);
