@@ -86,9 +86,6 @@ adc:
 
 	; Go into a loop.
 loop:
-	; Select ADC channel zero and begin an acquisition.
-	ADC_START_CONVERSION 0
-
 	; Check if the bootload signal line has been asserted (gone high).
 	btfsc PORT_XBEE_BL, PIN_XBEE_BL
 	reset
@@ -105,23 +102,12 @@ loop:
 	; Lower /SS to the FPGA.
 	bcf LAT_SPI_SS_FPGA, PIN_SPI_SS_FPGA
 
-	; Go through the thirteen channels, doing the overlapped convert-and-send.
-	CONVERT_AND_SEND 0, 1
-	CONVERT_AND_SEND 1, 2
-	CONVERT_AND_SEND 2, 3
-	CONVERT_AND_SEND 3, 4
-	CONVERT_AND_SEND 4, 5
-	CONVERT_AND_SEND 5, 6
-	CONVERT_AND_SEND 6, 7
-	CONVERT_AND_SEND 7, 11 ; NOTE: To ease board layout, PIC channels
-	CONVERT_AND_SEND 11, 9 ; DO NOT directly correspond to logical channels.
-	CONVERT_AND_SEND 9, 8  ; Check the schematic for the exact mapping.
-	CONVERT_AND_SEND 8, 10
-	CONVERT_AND_SEND 10, 12
+	; Acquire and send the ADC data.
+	ADC_START_CONVERSION 12
 	WAIT_ADC_FINISH
 	SEND_ADC_RESULT
 
-	; All thirteen channels have been sent. Raise /SS.
+	; Raise /SS.
 	bsf LAT_SPI_SS_FPGA, PIN_SPI_SS_FPGA
 
 	; Go back and do it again.
