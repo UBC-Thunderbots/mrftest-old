@@ -457,10 +457,17 @@ namespace simu_test{
   
 	void simu_test_strategy::robot_added(void) {
 	  std::cout << "<<<<<<<<<ROBOT ADDED>>>>" << std::endl;	 
+	  if (the_team->size() == 1) {
+		first_tick = true;
+	  }
 	}
 
-	void simu_test_strategy::robot_removed(unsigned int, player::ptr) {	  
+	void simu_test_strategy::robot_removed(unsigned int, player::ptr plr) {	  
 	  std::cout << "<<<<<<<<<ROBOT Removed>>>>" << std::endl;
+	  if (plr == the_only_player) {
+		the_only_player.reset();
+		our_navigator.reset();
+	  }
 	}
 
 	class simu_test_strategy_factory : public strategy_factory {
