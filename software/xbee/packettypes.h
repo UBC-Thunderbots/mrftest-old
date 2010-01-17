@@ -91,7 +91,7 @@ namespace xbeepacket {
 		RECEIVE_HDR rxhdr;
 		uint8_t flags;
 		uint8_t outbound_rssi;
-		uint16_t dribbler_speed;
+		int16_t dribbler_speed;
 		uint16_t battery_level;
 		uint8_t faults;
 		uint8_t command_ack;

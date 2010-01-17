@@ -112,7 +112,7 @@ class radio_bot : public byref {
 		//
 		// Gets the speed of the dribbler.
 		//
-		uint16_t dribbler_speed() const {
+		int16_t dribbler_speed() const {
 			return fb_packet.dribbler_speed;
 		}
 
