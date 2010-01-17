@@ -28,6 +28,8 @@ class playerODE : public player_impl {
 	double updates_per_tick;
 	double jerkLimit;
 	double fcex,fcey,torquez;
+	dVector3 *Vertices;
+	unsigned int *Triangles;
 	public:
 
 	playerODE( dWorldID dworld, dSpaceID dspace,  dGeomID ballGeom, double ups_per_tick);
@@ -70,7 +72,7 @@ public:
 			
 			void createJointBetweenB1B2();
 
-			static dTriMeshDataID create_robot_geom();
+		 	dTriMeshDataID create_robot_geom();
 };
 
 

@@ -103,6 +103,10 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 playerODE::~playerODE () {
 	//dJointGroupDestroy (contactgroup);
 	dBodyDestroy (body);
+	if(Vertices != NULL)
+		delete Vertices;
+	if(Triangles != NULL)
+		delete Triangles;
 	//dBodyDestroy (body2);
 }
 
@@ -369,8 +373,12 @@ dTriMeshDataID playerODE::create_robot_geom()
 
 	double Angles[NUM_SIDES+1];
 
-	dVector3 Vertices[NumVertices];
-	unsigned int Triangles[3*NumTriangles];
+	Vertices = new dVector3[NumVertices];
+	
+	//dVector3 Vertices[NumVertices];
+	
+	Triangles = new unsigned int[3*NumTriangles];
+	//unsigned int Triangles[3*NumTriangles];
 
 	//Compute the angles
 	Angles[0]=WideAngle/2;
