@@ -39,12 +39,21 @@ namespace {
 	const std::pair<point, double> default_tasks[] =
 	{
 		std::make_pair(point(0, 0), 0),
-		std::make_pair(point(1, 0), PI / 2),
-		std::make_pair(point(0, 0), PI),
-		std::make_pair(point(-1, 0), 3 * PI / 2),
-		std::make_pair(point(0, 1), PI / 2),
+		std::make_pair(point(1, 0), 0),
 		std::make_pair(point(0, 0), 0),
-		std::make_pair(point(0, -1), PI),
+		std::make_pair(point(-1, 0), 0),
+		std::make_pair(point(0, 1), 0),
+		std::make_pair(point(0, -1), 0),
+		std::make_pair(point(2.5, 0), 0),
+		std::make_pair(point(-2.5, 0), 0),
+		std::make_pair(point(0, 0), 0),
+		std::make_pair(point(0.25, 0), 0),
+		std::make_pair(point(0.1, 0.1), 0),
+		std::make_pair(point(-0.1, 0), 0),
+		std::make_pair(point(0, 0), 0),
+		std::make_pair(point(-0.25, -0.1), 0),
+		std::make_pair(point(0.25, 0.1), 0),
+		std::make_pair(point(-0.1, 0), 0),
 		std::make_pair(point(0, 0), 0),
 	};
 	const int default_tasks_n = sizeof(default_tasks) / sizeof(default_tasks[0]);
@@ -52,8 +61,8 @@ namespace {
 	movement_benchmark::movement_benchmark(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src), tasks(default_tasks, default_tasks + default_tasks_n), done(0), prev_pos(0.0, 0.0), prev_ori(0) {
 		time_steps = 0;
 		done = false;
-		pos_dis_threshold = 1e-1;
-		pos_vel_threshold = 1e-1;
+		pos_dis_threshold = 1e-2;
+		pos_vel_threshold = 1e-2;
 		ori_dis_threshold = 1e-1;
 		ori_vel_threshold = 1e-1;
 		reset_button = Gtk::manage(new Gtk::Button("Reset"));
