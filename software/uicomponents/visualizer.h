@@ -33,7 +33,8 @@ class visualizer : public Gtk::DrawingArea {
 		const ball::ptr the_ball;
 		const team::ptr west_team;
 		const team::ptr east_team;
-		draggable::ptr dragging;
+		draggable::ptr dragging, veldragging;
+		point dragged_velocity;
 
 		void update();
 		double xtog(double x) __attribute__((warn_unused_result)) { return  x * scale + xtranslate; }
@@ -44,6 +45,7 @@ class visualizer : public Gtk::DrawingArea {
 		double ytow(double y) __attribute__((warn_unused_result)) { return -(y - ytranslate) / scale; }
 		double atow(double r) __attribute__((warn_unused_result)) { return -r; }
 		double dtow(double d) __attribute__((warn_unused_result)) { return d / scale; }
+		draggable::ptr object_at(const point &pos) const;
 };
 
 #endif

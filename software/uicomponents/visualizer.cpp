@@ -117,6 +117,16 @@ bool visualizer::on_expose_event(GdkEventExpose *) {
 		}
 	}
 
+	// Draw the velocity vector for the dragged object.
+	if (veldragging) {
+		ctx->set_source_rgb(0.0, 0.0, 0.0);
+		ctx->begin_new_path();
+		const point &pos = veldragging->position();
+		ctx->move_to(xtog(pos.x), ytog(pos.y));
+		ctx->line_to(xtog(pos.x + dragged_velocity.x), ytog(pos.y + dragged_velocity.y));
+		ctx->stroke();
+	}
+
 	// Draw the ball.
 	ctx->set_source_rgb(1.0, 0.5, 0.0);
 	ctx->begin_new_path();
@@ -155,20 +165,23 @@ bool visualizer::on_button_press_event(GdkEventButton *evt) {
 
 		// Clear any currently-dragged object.
 		dragging.reset();
+		veldragging.reset();
 
-		// Check if it's a player.
-		const team::ptr teams[2] = {west_team, east_team};
-		for (unsigned int i = 0; i < 2; i++) {
-			for (unsigned int j = 0; j < teams[i]->size(); j++) {
-				robot::ptr bot = teams[i]->get_robot(j);
-				if ((bot->position() - click).len() < 0.09)
-					dragging = bot;
-			}
-		}
+		// Get the new object.
+		dragging = object_at(click);
 
-		// Check if it's the ball.
-		if ((the_ball->position() - click).len() < 0.03)
-			dragging = the_ball;
+		// Redraw the visualizer.
+		update();
+	} else if (evt->type == GDK_BUTTON_PRESS && evt->button == 3) {
+		// Calculate the location on the field.
+		point click(xtow(evt->x), ytow(evt->y));
+
+		// Clear any currently-dragged object.
+		dragging.reset();
+		veldragging.reset();
+
+		// Get the new object.
+		veldragging = object_at(click);
 
 		// Redraw the visualizer.
 		update();
@@ -182,6 +195,10 @@ bool visualizer::on_button_release_event(GdkEventButton *evt) {
 		// Drop the object and redraw the visualizer.
 		dragging.reset();
 		update();
+	} else if (evt->button == 3) {
+		// Drop the object and redraw the visualizer.
+		veldragging.reset();
+		update();
 	}
 
 	return true;
@@ -192,6 +209,11 @@ bool visualizer::on_motion_notify_event(GdkEventMotion *evt) {
 		// Move the object being dragged.
 		dragging->ext_drag(point(xtow(evt->x), ytow(evt->y)), point());
 		update();
+	} else if (veldragging) {
+		// Update the dragging velocity.
+		dragged_velocity = point(xtow(evt->x), ytow(evt->y)) - veldragging->position();
+		veldragging->ext_drag(veldragging->position(), dragged_velocity);
+		update();
 	}
 
 	return true;
@@ -200,8 +222,27 @@ bool visualizer::on_motion_notify_event(GdkEventMotion *evt) {
 bool visualizer::on_leave_notify_event(GdkEventCrossing *) {
 	// Drop the object and redraw the visualizer.
 	dragging.reset();
+	veldragging.reset();
 	update();
 
 	return true;
+}
+
+draggable::ptr visualizer::object_at(const point &pos) const {
+	// Check if it's a player.
+	const team::ptr teams[2] = {west_team, east_team};
+	for (unsigned int i = 0; i < 2; i++) {
+		for (unsigned int j = 0; j < teams[i]->size(); j++) {
+			robot::ptr bot = teams[i]->get_robot(j);
+			if ((bot->position() - pos).len() < 0.09)
+				return bot;
+		}
+	}
+
+	// Check if it's the ball.
+	if ((the_ball->position() - pos).len() < 0.03)
+		return the_ball;
+
+	return draggable::ptr();
 }
 
