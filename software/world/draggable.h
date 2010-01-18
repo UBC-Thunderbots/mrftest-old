@@ -16,6 +16,11 @@ class draggable : public byref {
 		typedef Glib::RefPtr<draggable> ptr;
 
 		//
+		// Gets the position of the object.
+		//
+		virtual point position() const __attribute__((warn_unused_result)) = 0;
+
+		//
 		// Sets the position and velocity of the object. This should NOT be
 		// called from the AI!
 		//
