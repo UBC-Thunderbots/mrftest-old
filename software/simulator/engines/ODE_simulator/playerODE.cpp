@@ -43,7 +43,7 @@ namespace {
 	const unsigned int NUM_SIDES = 20; 
 }
 
-playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0), target_avelocity(0.0){
+playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0), target_avelocity(0.0), Vertices(0), Triangles(0) {
 
 	updates_per_tick = ups_per_tick;
 	double dribble_radius = 0.005;//half a cm
