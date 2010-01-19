@@ -73,7 +73,7 @@ bool upload_scheduler::check_crcs(uint16_t first_page, const uint16_t *crcs) {
 }
 
 double upload_scheduler::progress() const {
-	return ((double) (initial_qlen - irps.size())) / initial_qlen;
+	return static_cast<double>(initial_qlen - irps.size()) / initial_qlen;
 }
 
 unsigned int upload_scheduler::crc_failure_count() const {
