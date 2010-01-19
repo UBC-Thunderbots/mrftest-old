@@ -1,5 +1,6 @@
 #include "firmware/crc16.h"
 #include "firmware/scheduler.h"
+#include <numeric>
 #include <cassert>
 
 upload_scheduler::upload_scheduler(const intel_hex &ihex) : data(ihex.data()) {
@@ -77,10 +78,6 @@ double upload_scheduler::progress() const {
 }
 
 unsigned int upload_scheduler::crc_failure_count() const {
-	unsigned int result = 0;
-	for (unsigned int i = 0; i < crc_failures.size(); ++i) {
-		result += crc_failures[i];
-	}
-	return result;
+	return std::accumulate(crc_failures.begin(), crc_failures.end(), 0U);
 }
 
