@@ -965,9 +965,6 @@ receive_byte_semicooked:
 	; Nothing special. Return it.
 	return
 
-	; Done!
-	return
-
 receive_byte_semicooked_escaped:
 	; We need to receive another byte and unescape it.
 	rcall receive_raw
