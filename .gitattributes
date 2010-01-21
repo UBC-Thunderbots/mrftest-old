@@ -14,7 +14,6 @@ firmware/mainboard-copro/main.asm -text
 firmware/mainboard-copro/pins.inc -text
 firmware/mainboard-copro/sleep.asm -text
 firmware/mainboard-copro/sleep.inc -text
-firmware/mainboard-copro/spi.asm -text
 firmware/mainboard-copro/spi.inc -text
 software/Makefile -text
 software/ai/navigator.h -text

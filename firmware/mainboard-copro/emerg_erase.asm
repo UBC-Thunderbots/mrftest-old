@@ -12,7 +12,6 @@
 	processor 18F4550
 #include <p18f4550.inc>
 #include "pins.inc"
-#include "sleep.inc"
 #include "spi.inc"
 
 
@@ -25,7 +24,7 @@
 	; Main code.
 emergency_erase:
 	; Take control of the SPI bus.
-	call spi_drive
+	SPI_DRIVE
 
 	; Allow writes to the Flash chip.
 	bcf LAT_FLASH_WP, PIN_FLASH_WP
@@ -35,22 +34,19 @@ emergency_erase:
 
 	; Send WRITE ENABLE.
 	rcall select_chip
-	movlw 0x06
-	call spi_send
+	SPI_SEND_CONSTANT 0x06
 	rcall deselect_chip
 
 	; Send CHIP ERASE.
 	rcall select_chip
-	movlw 0xC7
-	call spi_send
+	SPI_SEND_CONSTANT 0xC7
 	rcall deselect_chip
 
 	; Send READ STATUS REGISTER and wait until not BUSY.
 	rcall select_chip
-	movlw 0x05
-	call spi_send
+	SPI_SEND_CONSTANT 0x05
 wait_nonbusy:
-	call spi_receive
+	SPI_RECEIVE WREG
 	btfsc WREG, 0
 	bra wait_nonbusy
 

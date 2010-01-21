@@ -46,9 +46,9 @@ WAIT_ADC_FINISH macro
 	; Sends the result of an ADC conversion out over SPI.
 SEND_ADC_RESULT macro
 	movf current_value + 1, W
-	call spi_send
+	SPI_SEND_WREG
 	movf current_value + 0, W
-	call spi_send
+	SPI_SEND_WREG
 	endm
 
 
@@ -67,7 +67,7 @@ CONVERT_AND_SEND macro oldchannel, newchannel
 	code
 adc:
 	; Drive the SPI bus.
-	call spi_drive
+	SPI_DRIVE
 	
 	; Select proper bank.
 	banksel current_value

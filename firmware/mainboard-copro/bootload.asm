@@ -31,7 +31,6 @@
 #include <p18f4550.inc>
 #include "dispatch.inc"
 #include "pins.inc"
-#include "sleep.inc"
 #include "spi.inc"
 
 
@@ -208,7 +207,7 @@ send_length_temp: res 1
 	; Main code.
 bootload:
 	; Take control of the SPI bus.
-	call spi_drive
+	SPI_DRIVE
 
 	; Allow writes to the Flash chip.
 	bcf LAT_FLASH_WP, PIN_FLASH_WP
@@ -216,14 +215,10 @@ bootload:
 	; Send the JEDEC ID command (0x9F) and save the response.
 	banksel jedecid
 	rcall select_chip
-	movlw 0x9F
-	call spi_send
-	call spi_receive
-	movwf jedecid + 0
-	call spi_receive
-	movwf jedecid + 1
-	call spi_receive
-	movwf jedecid + 2
+	SPI_SEND_CONSTANT 0x9F
+	SPI_RECEIVE jedecid + 0
+	SPI_RECEIVE jedecid + 1
+	SPI_RECEIVE jedecid + 2
 	rcall deselect_chip
 
 	; Start up the USART.
@@ -300,13 +295,13 @@ got_sop:
 	DISPATCH_INIT
 	DISPATCH_COND COMMAND_IDENT, handle_ident
 	DISPATCH_COND COMMAND_ERASE_BLOCK, handle_erase_block
-	DISPATCH_COND COMMAND_WRITE_PAGE1, handle_write_page1
+	DISPATCH_BRA  COMMAND_WRITE_PAGE1, handle_write_page1
 	DISPATCH_BRA  COMMAND_CRC_SECTOR, handle_crc_sector
-	DISPATCH_BRA  COMMAND_ERASE_SECTOR, handle_erase_sector
+	DISPATCH_GOTO COMMAND_ERASE_SECTOR, handle_erase_sector
 	DISPATCH_END_RESTORE
 
 	; COMMAND ID is illegal.
-	bra handle_error
+	goto handle_error
 
 
 
@@ -365,16 +360,14 @@ handle_erase_block:
 
 	; Start sending the BLOCK ERASE command (0xD8).
 	rcall select_chip
-	movlw 0xD8
-	call spi_send
+	SPI_SEND_CONSTANT 0xD8
 
 	; Receive and pass on the page number.
 	rcall receive_byte_cooked
-	call spi_send
+	SPI_SEND_WREG
 	rcall receive_byte_cooked
-	call spi_send
-	movlw 0
-	call spi_send
+	SPI_SEND_WREG
+	SPI_SEND_CONSTANT 0
 	rcall deselect_chip
 
 	; Expect the checksum next.
@@ -388,403 +381,15 @@ handle_erase_block:
 
 	; Done.
 	bra expecting_sop
-
-
-
-handle_write_page1:
-	; Send the WRITE ENABLE command.
-	rcall send_write_enable
-	
-	; Start sending the PAGE PROGRAM command (0x02).
-	rcall select_chip
-	movlw 0x02
-	call spi_send
-
-	; Receive and pass the page number.
-	rcall receive_byte_cooked
-	call spi_send
-	rcall receive_byte_cooked
-	call spi_send
-	movlw 0
-	call spi_send
-
-	; Receive and pass the data.
-	movlw 86
-	movwf bytecounter
-handle_write_page1_loop:
-	rcall receive_byte_cooked
-	call spi_send
-	decfsz bytecounter, F
-	bra handle_write_page1_loop
-
-	; Expect the checksum next.
-	rcall receive_and_check_checksum
-
-	; It's now time to receive the WRITE PAGE 2 packet.
-	; Receive a raw byte from the USART without unescaping. It should be 0x7E.
-	rcall receive_raw
-	xorlw 0x7E
-	skpz
-	bra expecting_sop
-
-	; Receive a byte. It should be the MSB of the length, which should be zero.
-	rcall receive_byte_semicooked
-	xorlw 0
-	skpz
-	bra expecting_sop
-
-	; Receive a byte. It should be the LSB of the length, which should be no longer than 100 bytes.
-	rcall receive_byte_semicooked
-	movwf xbee_receive_bytes_left
-	movlw 101
-	cpfslt xbee_receive_bytes_left
-	bra expecting_sop
-
-	; Initialize the receive checksum.
-	clrf xbee_receive_checksum
-
-	; Receive the API ID, which should be 0x80 (64-bit receive).
-	rcall receive_byte_cooked
-	xorlw 0x80
-	skpz
-	bra expecting_sop
-
-	; Receive the remote peer's address.
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 0
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 1
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 2
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 3
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 4
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 5
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 6
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 7
-
-	; Receive the RSSI and discard it.
-	rcall receive_byte_cooked
-
-	; Receive the OPTIONS byte and discard it.
-	rcall receive_byte_cooked
-
-	; Receive the COMMAND ID, which should be WRITE PAGE 2.
-	rcall receive_byte_cooked
-	xorlw COMMAND_WRITE_PAGE2
-	skpz
-	bra handle_error
-
-	; Ignore the page number.
-	rcall receive_byte_cooked
-	rcall receive_byte_cooked
-
-	; Receive and pass the data.
-	movlw 86
-	movwf bytecounter
-handle_write_page2_loop:
-	rcall receive_byte_cooked
-	call spi_send
-	decfsz bytecounter, F
-	bra handle_write_page2_loop
-
-	; Expect the checksum next.
-	rcall receive_and_check_checksum
-
-	; It's now time to receive the WRITE PAGE 3 packet.
-	; Receive a raw byte from the USART without unescaping. It should be 0x7E.
-	rcall receive_raw
-	xorlw 0x7E
-	skpz
-	bra expecting_sop
-
-	; Receive a byte. It should be the MSB of the length, which should be zero.
-	rcall receive_byte_semicooked
-	xorlw 0
-	skpz
-	bra expecting_sop
-
-	; Receive a byte. It should be the LSB of the length, which should be no longer than 100 bytes.
-	rcall receive_byte_semicooked
-	movwf xbee_receive_bytes_left
-	movlw 101
-	cpfslt xbee_receive_bytes_left
-	bra expecting_sop
-
-	; Initialize the receive checksum.
-	clrf xbee_receive_checksum
-
-	; Receive the API ID, which should be 0x80 (64-bit receive).
-	rcall receive_byte_cooked
-	xorlw 0x80
-	skpz
-	bra expecting_sop
-
-	; Receive the remote peer's address.
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 0
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 1
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 2
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 3
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 4
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 5
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 6
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 7
-
-	; Receive the RSSI and discard it.
-	rcall receive_byte_cooked
-
-	; Receive the OPTIONS byte and discard it.
-	rcall receive_byte_cooked
-
-	; Receive the COMMAND ID, which should be WRITE PAGE 3.
-	rcall receive_byte_cooked
-	xorlw COMMAND_WRITE_PAGE3
-	bnz handle_error
-
-	; Ignore the page number.
-	rcall receive_byte_cooked
-	rcall receive_byte_cooked
-
-	; Receive and pass the data.
-	movlw 84
-	movwf bytecounter
-handle_write_page3_loop:
-	rcall receive_byte_cooked
-	call spi_send
-	decfsz bytecounter, F
-	bra handle_write_page3_loop
-
-	; Finish SPI command.
-	rcall deselect_chip
-
-	; Expect the checksum next.
-	rcall receive_and_check_checksum
-
-	; All page data has been received and passed to the Flash.
-	; Hold off bytes.
-	bsf LAT_RTS, PIN_RTS
-
-	; Wait until operation completes.
-	rcall wait_busy
-
-	; Done.
-	bra expecting_sop
-
-
-
-handle_crc_sector:
-	; Start sending the READ DATA command (0x03).
-	rcall select_chip
-	movlw 0x03
-	call spi_send
-
-	; Receive and pass on the page number.
-	rcall receive_byte_cooked
-	call spi_send
-	rcall receive_byte_cooked
-	call spi_send
-	movlw 0
-	call spi_send
-
-	; Expect the checksum next.
-	rcall receive_and_check_checksum
-
-	; Hold off bytes.
-	bsf LAT_RTS, PIN_RTS
-
-	; Start the response. We'll stream the CRCs to the XBee.
-	rcall send_sop
-	movlw 45
-	rcall send_length
-	movlw 0x00
-	rcall send_byte
-	movlw 0x00
-	rcall send_byte
-	rcall send_address
-	movlw 0x00
-	rcall send_byte
-	movlw COMMAND_CRC_SECTOR
-	rcall send_byte
-	movlw COMMAND_STATUS_OK
-	rcall send_byte
-
-	; Set up a counter of pages.
-	banksel pagecounter
-	movlw 16
-	movwf pagecounter
-	clrf bytecounter
-
-	; Go into a loop of pages.
-handle_crc_sector_pageloop:
-	; Initialize the CRC to 0xFFFF.
-	setf crc_low
-	setf crc_high
-
-	; Go into a loop of bytes.
-handle_crc_sector_byteloop:
-	; Receive one byte from the SPI port into WREG.
-	call spi_receive
-
-	;
-	; Update the CRC16.
-	;
-	; This is a highly-optimized implementation of this basic algorithm:
-	;
-	; data ^= crc;
-	; data ^= data << 4;
-	; crc >>= 8;
-	; crc |= data << 8;
-	; crc ^= data << 3;
-	; crc ^= data >> 4;
-	;
-	; where "data" is a uint8_t and "crc" is a uint16_t.
-	;
-	; This algorithm is mathematically equivalent to the Linux kernel's
-	; CRC-CCITT algorithm. The equivalence of the C code listed above and the
-	; assembly code listed below to Linux's algorithm have both been formally
-	; proven by an exhaustive search of the parameter space.
-	;
-	; Some sources claim this is not the traditional CRC-CCITT algorithm, but
-	; is rather the CRC-CCITT algorithm with each input byte bit-reversed and
-	; with the final CRC bit-reversed after calculation. This bit-reversal is
-	; of course mostly irrelevant to the mathematical properties of the CRC.
-	; 
-	xorwf crc_low, W
-	movwf crc_temp
-	movff crc_high, crc_low
-	movwf crc_high
-	rrncf crc_temp, W
-	andlw 0x07
-	xorwf crc_high, F
-	swapf crc_temp, F
-	movf crc_temp, W
-	andlw 0xF0
-	xorwf crc_high, F
-	rrncf crc_temp, W
-	andlw 0x07
-	xorwf crc_high, F
-	swapf crc_temp, W
-	xorwf crc_temp, W
-	andlw 0x0F
-	xorwf crc_low, F
-	rrncf crc_temp, W
-	andlw 0xF8
-	xorwf crc_low, F
-	btfsc crc_temp, 4
-	btg crc_low, 7
-
-	; Decrement byte count and loop if nonzero.
-	decfsz bytecounter, F
-	bra handle_crc_sector_byteloop
-
-	; A page is finished. Stream out the page's CRC.
-	movf crc_low, W
-	rcall send_byte
-	movf crc_high, W
-	rcall send_byte
-
-	; Decrement page count and loop if nonzero.
-	decfsz pagecounter, F
-	bra handle_crc_sector_pageloop
-
-	; Deselect the chip.
-	rcall deselect_chip
-
-	; Finish response.
-	rcall send_checksum
-
-	; Done.
-	bra expecting_sop
-
-
-
-handle_erase_sector:
-	; Send the WRITE ENABLE command.
-	rcall send_write_enable
-
-	; Start sending the SECTOR ERASE command (0x20).
-	rcall select_chip
-	movlw 0x20
-	call spi_send
-
-	; Receive and pass on the page number.
-	rcall receive_byte_cooked
-	call spi_send
-	rcall receive_byte_cooked
-	call spi_send
-	movlw 0
-	call spi_send
-	rcall deselect_chip
-
-	; Expect the checksum next.
-	rcall receive_and_check_checksum
-
-	; Hold off bytes.
-	bsf LAT_RTS, PIN_RTS
-
-	; Wait until operation completes.
-	rcall wait_busy
-
-	; Done.
-	bra expecting_sop
-
-
-
-handle_error:
-	; Hold off bytes.
-	bsf LAT_RTS, PIN_RTS
-
-	; We might have detected the error at any level of call. Clear the stack.
-	clrf STKPTR
-
-	; We might be in the middle of sending data to the Flash. Deselect it.
-	rcall deselect_chip
-
-	; The Flash might be in the middle of doing an erase or write. Wait for it.
-	rcall wait_busy
-
-	; Keep pumping packets.
-	bra expecting_sop
-
-
-
-handle_unexpected_sop:
-	; Hold off bytes.
-	bsf LAT_RTS, PIN_RTS
-
-	; We might have detected the error at any level of call. Clear the stack.
-	clrf STKPTR
-
-	; We might be in the middle of sending data to the Flash. Deselect it.
-	rcall deselect_chip
-
-	; The Flash might be in the middle of doing an erase or write. Wait for it.
-	rcall wait_busy
-
-	; Keep pumping packets.
-	bra got_sop
 
 
 
 wait_busy:
 	; Poll the STATUS byte in the Flash chip until the chip is no longer busy.
 	rcall select_chip
-	movlw 0x05
-	call spi_send
+	SPI_SEND_CONSTANT 0x05
 wait_busy_loop:
-	call spi_receive
+	SPI_RECEIVE WREG
 	btfsc WREG, 0
 	bra wait_busy_loop
 	rcall deselect_chip
@@ -793,14 +398,14 @@ wait_busy_loop:
 
 
 select_chip:
-	rcall sleep_1us
+	call sleep_1us
 	bcf LAT_SPI_SS_FLASH, PIN_SPI_SS_FLASH
 	goto sleep_1us
 
 
 
 deselect_chip:
-	rcall sleep_1us
+	call sleep_1us
 	bsf LAT_SPI_SS_FLASH, PIN_SPI_SS_FLASH
 	goto sleep_1us
 
@@ -808,8 +413,7 @@ deselect_chip:
 
 send_write_enable:
 	rcall select_chip
-	movlw 0x06
-	call spi_send
+	SPI_SEND_CONSTANT 0x06
 	goto deselect_chip
 
 
@@ -1006,5 +610,387 @@ receive_raw_ferr:
 	; Drop the byte.
 	movf RCREG, W
 	bra handle_error
+
+
+
+handle_error:
+	; Hold off bytes.
+	bsf LAT_RTS, PIN_RTS
+
+	; We might have detected the error at any level of call. Clear the stack.
+	clrf STKPTR
+
+	; We might be in the middle of sending data to the Flash. Deselect it.
+	rcall deselect_chip
+
+	; The Flash might be in the middle of doing an erase or write. Wait for it.
+	rcall wait_busy
+
+	; Keep pumping packets.
+	bra expecting_sop
+
+
+
+handle_unexpected_sop:
+	; Hold off bytes.
+	bsf LAT_RTS, PIN_RTS
+
+	; We might have detected the error at any level of call. Clear the stack.
+	clrf STKPTR
+
+	; We might be in the middle of sending data to the Flash. Deselect it.
+	rcall deselect_chip
+
+	; The Flash might be in the middle of doing an erase or write. Wait for it.
+	rcall wait_busy
+
+	; Keep pumping packets.
+	bra got_sop
+
+
+
+handle_write_page1:
+	; Send the WRITE ENABLE command.
+	rcall send_write_enable
+	
+	; Start sending the PAGE PROGRAM command (0x02).
+	rcall select_chip
+	SPI_SEND_CONSTANT 0x02
+
+	; Receive and pass the page number.
+	rcall receive_byte_cooked
+	SPI_SEND_WREG
+	rcall receive_byte_cooked
+	SPI_SEND_WREG
+	SPI_SEND_CONSTANT 0
+
+	; Receive and pass the data.
+	movlw 86
+	movwf bytecounter
+handle_write_page1_loop:
+	rcall receive_byte_cooked
+	SPI_SEND_WREG
+	decfsz bytecounter, F
+	bra handle_write_page1_loop
+
+	; Expect the checksum next.
+	rcall receive_and_check_checksum
+
+	; It's now time to receive the WRITE PAGE 2 packet.
+	; Receive a raw byte from the USART without unescaping. It should be 0x7E.
+	rcall receive_raw
+	xorlw 0x7E
+	skpz
+	bra expecting_sop
+
+	; Receive a byte. It should be the MSB of the length, which should be zero.
+	rcall receive_byte_semicooked
+	xorlw 0
+	skpz
+	bra expecting_sop
+
+	; Receive a byte. It should be the LSB of the length, which should be no longer than 100 bytes.
+	rcall receive_byte_semicooked
+	movwf xbee_receive_bytes_left
+	movlw 101
+	cpfslt xbee_receive_bytes_left
+	bra expecting_sop
+
+	; Initialize the receive checksum.
+	clrf xbee_receive_checksum
+
+	; Receive the API ID, which should be 0x80 (64-bit receive).
+	rcall receive_byte_cooked
+	xorlw 0x80
+	skpz
+	bra expecting_sop
+
+	; Receive the remote peer's address.
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 0
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 1
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 2
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 3
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 4
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 5
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 6
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 7
+
+	; Receive the RSSI and discard it.
+	rcall receive_byte_cooked
+
+	; Receive the OPTIONS byte and discard it.
+	rcall receive_byte_cooked
+
+	; Receive the COMMAND ID, which should be WRITE PAGE 2.
+	rcall receive_byte_cooked
+	xorlw COMMAND_WRITE_PAGE2
+	skpz
+	bra handle_error
+
+	; Ignore the page number.
+	rcall receive_byte_cooked
+	rcall receive_byte_cooked
+
+	; Receive and pass the data.
+	movlw 86
+	movwf bytecounter
+handle_write_page2_loop:
+	rcall receive_byte_cooked
+	SPI_SEND_WREG
+	decfsz bytecounter, F
+	bra handle_write_page2_loop
+
+	; Expect the checksum next.
+	rcall receive_and_check_checksum
+
+	; It's now time to receive the WRITE PAGE 3 packet.
+	; Receive a raw byte from the USART without unescaping. It should be 0x7E.
+	rcall receive_raw
+	xorlw 0x7E
+	skpz
+	bra expecting_sop
+
+	; Receive a byte. It should be the MSB of the length, which should be zero.
+	rcall receive_byte_semicooked
+	xorlw 0
+	skpz
+	bra expecting_sop
+
+	; Receive a byte. It should be the LSB of the length, which should be no longer than 100 bytes.
+	rcall receive_byte_semicooked
+	movwf xbee_receive_bytes_left
+	movlw 101
+	cpfslt xbee_receive_bytes_left
+	bra expecting_sop
+
+	; Initialize the receive checksum.
+	clrf xbee_receive_checksum
+
+	; Receive the API ID, which should be 0x80 (64-bit receive).
+	rcall receive_byte_cooked
+	xorlw 0x80
+	skpz
+	bra expecting_sop
+
+	; Receive the remote peer's address.
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 0
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 1
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 2
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 3
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 4
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 5
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 6
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 7
+
+	; Receive the RSSI and discard it.
+	rcall receive_byte_cooked
+
+	; Receive the OPTIONS byte and discard it.
+	rcall receive_byte_cooked
+
+	; Receive the COMMAND ID, which should be WRITE PAGE 3.
+	rcall receive_byte_cooked
+	xorlw COMMAND_WRITE_PAGE3
+	skpz
+	bra handle_error
+
+	; Ignore the page number.
+	rcall receive_byte_cooked
+	rcall receive_byte_cooked
+
+	; Receive and pass the data.
+	movlw 84
+	movwf bytecounter
+handle_write_page3_loop:
+	rcall receive_byte_cooked
+	SPI_SEND_WREG
+	decfsz bytecounter, F
+	bra handle_write_page3_loop
+
+	; Finish SPI command.
+	rcall deselect_chip
+
+	; Expect the checksum next.
+	rcall receive_and_check_checksum
+
+	; All page data has been received and passed to the Flash.
+	; Hold off bytes.
+	bsf LAT_RTS, PIN_RTS
+
+	; Wait until operation completes.
+	rcall wait_busy
+
+	; Done.
+	bra expecting_sop
+
+
+
+handle_crc_sector:
+	; Start sending the READ DATA command (0x03).
+	rcall select_chip
+	SPI_SEND_CONSTANT 0x03
+
+	; Receive and pass on the page number.
+	rcall receive_byte_cooked
+	SPI_SEND_WREG
+	rcall receive_byte_cooked
+	SPI_SEND_WREG
+	SPI_SEND_CONSTANT 0
+
+	; Expect the checksum next.
+	rcall receive_and_check_checksum
+
+	; Hold off bytes.
+	bsf LAT_RTS, PIN_RTS
+
+	; Start the response. We'll stream the CRCs to the XBee.
+	rcall send_sop
+	movlw 45
+	rcall send_length
+	movlw 0x00
+	rcall send_byte
+	movlw 0x00
+	rcall send_byte
+	rcall send_address
+	movlw 0x00
+	rcall send_byte
+	movlw COMMAND_CRC_SECTOR
+	rcall send_byte
+	movlw COMMAND_STATUS_OK
+	rcall send_byte
+
+	; Set up a counter of pages.
+	banksel pagecounter
+	movlw 16
+	movwf pagecounter
+	clrf bytecounter
+
+	; Go into a loop of pages.
+handle_crc_sector_pageloop:
+	; Initialize the CRC to 0xFFFF.
+	setf crc_low
+	setf crc_high
+
+	; Go into a loop of bytes.
+handle_crc_sector_byteloop:
+	; Receive one byte from the SPI port into WREG.
+	SPI_RECEIVE WREG
+
+	;
+	; Update the CRC16.
+	;
+	; This is a highly-optimized implementation of this basic algorithm:
+	;
+	; data ^= crc;
+	; data ^= data << 4;
+	; crc >>= 8;
+	; crc |= data << 8;
+	; crc ^= data << 3;
+	; crc ^= data >> 4;
+	;
+	; where "data" is a uint8_t and "crc" is a uint16_t.
+	;
+	; This algorithm is mathematically equivalent to the Linux kernel's
+	; CRC-CCITT algorithm. The equivalence of the C code listed above and the
+	; assembly code listed below to Linux's algorithm have both been formally
+	; proven by an exhaustive search of the parameter space.
+	;
+	; Some sources claim this is not the traditional CRC-CCITT algorithm, but
+	; is rather the CRC-CCITT algorithm with each input byte bit-reversed and
+	; with the final CRC bit-reversed after calculation. This bit-reversal is
+	; of course mostly irrelevant to the mathematical properties of the CRC.
+	; 
+	xorwf crc_low, W
+	movwf crc_temp
+	movff crc_high, crc_low
+	movwf crc_high
+	rrncf crc_temp, W
+	andlw 0x07
+	xorwf crc_high, F
+	swapf crc_temp, F
+	movf crc_temp, W
+	andlw 0xF0
+	xorwf crc_high, F
+	rrncf crc_temp, W
+	andlw 0x07
+	xorwf crc_high, F
+	swapf crc_temp, W
+	xorwf crc_temp, W
+	andlw 0x0F
+	xorwf crc_low, F
+	rrncf crc_temp, W
+	andlw 0xF8
+	xorwf crc_low, F
+	btfsc crc_temp, 4
+	btg crc_low, 7
+
+	; Decrement byte count and loop if nonzero.
+	decfsz bytecounter, F
+	bra handle_crc_sector_byteloop
+
+	; A page is finished. Stream out the page's CRC.
+	movf crc_low, W
+	rcall send_byte
+	movf crc_high, W
+	rcall send_byte
+
+	; Decrement page count and loop if nonzero.
+	decfsz pagecounter, F
+	bra handle_crc_sector_pageloop
+
+	; Deselect the chip.
+	rcall deselect_chip
+
+	; Finish response.
+	rcall send_checksum
+
+	; Done.
+	goto expecting_sop
+
+
+
+handle_erase_sector:
+	; Send the WRITE ENABLE command.
+	rcall send_write_enable
+
+	; Start sending the SECTOR ERASE command (0x20).
+	rcall select_chip
+	SPI_SEND_CONSTANT 0x20
+
+	; Receive and pass on the page number.
+	rcall receive_byte_cooked
+	SPI_SEND_WREG
+	rcall receive_byte_cooked
+	SPI_SEND_WREG
+	SPI_SEND_CONSTANT 0
+	rcall deselect_chip
+
+	; Expect the checksum next.
+	rcall receive_and_check_checksum
+
+	; Hold off bytes.
+	bsf LAT_RTS, PIN_RTS
+
+	; Wait until operation completes.
+	rcall wait_busy
+
+	; Done.
+	goto expecting_sop
 
 	end
