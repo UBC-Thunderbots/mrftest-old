@@ -10,9 +10,6 @@ firmware/mainboard-copro/configure_fpga.asm -text
 firmware/mainboard-copro/dispatch.inc -text
 firmware/mainboard-copro/emerg_erase.asm -text
 firmware/mainboard-copro/externdef.inc -text
-firmware/mainboard-copro/led.asm -text
-firmware/mainboard-copro/led.inc -text
-firmware/mainboard-copro/led_patterns.txt -text
 firmware/mainboard-copro/main.asm -text
 firmware/mainboard-copro/pins.inc -text
 firmware/mainboard-copro/sleep.asm -text

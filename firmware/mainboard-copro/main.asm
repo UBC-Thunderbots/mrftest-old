@@ -12,7 +12,6 @@
 	radix dec
 	processor 18F4550
 #include <p18f4550.inc>
-#include "led.inc"
 #include "pins.inc"
 #include "sleep.inc"
 
@@ -68,8 +67,6 @@ intveclow code
 	movff WREG, intlow_wreg
 	movff BSR, intlow_bsr
 
-	call timer1_int
-
 	movff intlow_bsr, BSR
 	movff intlow_wreg, WREG
 	movff intlow_status, STATUS
@@ -116,13 +113,9 @@ main:
 	; ICSP_PGC is always an input.
 	; ICSP_PGM is always an input.
 	; EMERG_ERASE is always an input.
-	; LED is managed by LED.
 	; RTS is low until used in bootloader for flow control.
 	bcf LAT_RTS, PIN_RTS
 	bcf TRIS_RTS, PIN_RTS
-
-	; Initialize the blinky light library.
-	call led_init
 
 	; Wait a tenth of a second for everything to stabilize.
 	call sleep_100ms

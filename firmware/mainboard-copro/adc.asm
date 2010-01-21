@@ -10,7 +10,6 @@
 	radix dec
 	processor 18F4550
 #include <p18f4550.inc>
-#include "led.inc"
 #include "pins.inc"
 #include "spi.inc"
 
@@ -67,9 +66,6 @@ CONVERT_AND_SEND macro oldchannel, newchannel
 
 	code
 adc:
-	; Turn the LED on solid.
-	call led_on
-
 	; Drive the SPI bus.
 	call spi_drive
 	

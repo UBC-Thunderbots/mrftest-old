@@ -11,7 +11,6 @@
 	radix dec
 	processor 18F4550
 #include <p18f4550.inc>
-#include "led.inc"
 #include "pins.inc"
 #include "sleep.inc"
 #include "spi.inc"
@@ -46,10 +45,6 @@ emergency_erase:
 	call spi_send
 	rcall deselect_chip
 
-	; While erasing, blink LED at 262ms period with 50% duty cycle.
-	movlw 0
-	call led_blink
-
 	; Send READ STATUS REGISTER and wait until not BUSY.
 	rcall select_chip
 	movlw 0x05
@@ -58,10 +53,6 @@ wait_nonbusy:
 	call spi_receive
 	btfsc WREG, 0
 	bra wait_nonbusy
-
-	; Until reset, blink LED at 1048ms period with 87.5% duty cycle.
-	movlw 6 << 4
-	call led_blink
 
 	; Wait until the emergency erase signal line is deasserted (goes high).
 wait_pin:

@@ -30,7 +30,6 @@
 	processor 18F4550
 #include <p18f4550.inc>
 #include "dispatch.inc"
-#include "led.inc"
 #include "pins.inc"
 #include "sleep.inc"
 #include "spi.inc"
@@ -241,10 +240,6 @@ bootload:
 	movwf RCSTA
 	nop
 	nop
-
-	; In the bootloader, blink LED at 1048ms period with 12.5% duty cycle.
-	movlw 6
-	call led_blink
 
 expecting_sop:
 	; Assert RTS to allow the XBee to send data.

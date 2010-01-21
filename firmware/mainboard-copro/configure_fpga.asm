@@ -11,7 +11,6 @@
 	radix dec
 	processor 18F4550
 #include <p18f4550.inc>
-#include "led.inc"
 #include "pins.inc"
 #include "sleep.inc"
 #include "spi.inc"
@@ -27,10 +26,6 @@
 configure_fpga:
 	; Drive PROG_B high to begin the configuration process.
 	bsf LAT_PROG_B, PIN_PROG_B
-
-	; While FPGA is configuring, blink LED at 1048ms period with 50% duty cycle.
-	movlw (3 << 4) | 3
-	call led_blink
 
 	; Once the FPGA is finished configuring itself, the DONE pin will go high.
 	; Wait until that happens. If the bootload pin is driven high during this
