@@ -20,6 +20,18 @@
 
 
 
+	; Asserts the SLAVE SELECT line to the Flash.
+SELECT_CHIP macro
+	bcf LAT_SPI_SS_FLASH, PIN_SPI_SS_FLASH
+	endm
+
+	; Deasserts the SLAVE SELECT line to the Flash.
+DESELECT_CHIP macro
+	bsf LAT_SPI_SS_FLASH, PIN_SPI_SS_FLASH
+	endm
+
+
+
 	code
 	; Main code.
 emergency_erase:
@@ -33,17 +45,17 @@ emergency_erase:
 	call sleep_100ms
 
 	; Send WRITE ENABLE.
-	rcall select_chip
+	SELECT_CHIP
 	SPI_SEND_CONSTANT 0x06
-	rcall deselect_chip
+	DESELECT_CHIP
 
 	; Send CHIP ERASE.
-	rcall select_chip
+	SELECT_CHIP
 	SPI_SEND_CONSTANT 0xC7
-	rcall deselect_chip
+	DESELECT_CHIP
 
 	; Send READ STATUS REGISTER and wait until not BUSY.
-	rcall select_chip
+	SELECT_CHIP
 	SPI_SEND_CONSTANT 0x05
 wait_nonbusy:
 	SPI_RECEIVE WREG
@@ -56,21 +68,5 @@ wait_pin:
 	bra wait_pin
 
 	reset
-
-
-
-select_chip:
-	rcall sleep_1us
-	bcf LAT_SPI_SS_FLASH, PIN_SPI_SS_FLASH
-	rcall sleep_1us
-	return
-
-
-
-deselect_chip:
-	rcall sleep_1us
-	bsf LAT_SPI_SS_FLASH, PIN_SPI_SS_FLASH
-	rcall sleep_1us
-	return
 
 	end

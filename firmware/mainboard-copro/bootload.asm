@@ -203,6 +203,18 @@ send_length_temp: res 1
 
 
 
+SELECT_CHIP macro
+	bcf LAT_SPI_SS_FLASH, PIN_SPI_SS_FLASH
+	endm
+
+
+
+DESELECT_CHIP macro
+	bsf LAT_SPI_SS_FLASH, PIN_SPI_SS_FLASH
+	endm
+
+
+
 	code
 	; Main code.
 bootload:
@@ -214,12 +226,12 @@ bootload:
 
 	; Send the JEDEC ID command (0x9F) and save the response.
 	banksel jedecid
-	rcall select_chip
+	SELECT_CHIP
 	SPI_SEND_CONSTANT 0x9F
 	SPI_RECEIVE jedecid + 0
 	SPI_RECEIVE jedecid + 1
 	SPI_RECEIVE jedecid + 2
-	rcall deselect_chip
+	DESELECT_CHIP
 
 	; Start up the USART.
 	clrf RCSTA
@@ -359,7 +371,7 @@ handle_erase_block:
 	rcall send_write_enable
 
 	; Start sending the BLOCK ERASE command (0xD8).
-	rcall select_chip
+	SELECT_CHIP
 	SPI_SEND_CONSTANT 0xD8
 
 	; Receive and pass on the page number.
@@ -368,7 +380,7 @@ handle_erase_block:
 	rcall receive_byte_cooked
 	SPI_SEND_WREG
 	SPI_SEND_CONSTANT 0
-	rcall deselect_chip
+	DESELECT_CHIP
 
 	; Expect the checksum next.
 	rcall receive_and_check_checksum
@@ -386,35 +398,22 @@ handle_erase_block:
 
 wait_busy:
 	; Poll the STATUS byte in the Flash chip until the chip is no longer busy.
-	rcall select_chip
+	SELECT_CHIP
 	SPI_SEND_CONSTANT 0x05
 wait_busy_loop:
 	SPI_RECEIVE WREG
 	btfsc WREG, 0
 	bra wait_busy_loop
-	rcall deselect_chip
+	DESELECT_CHIP
 	return
 
 
 
-select_chip:
-	call sleep_1us
-	bcf LAT_SPI_SS_FLASH, PIN_SPI_SS_FLASH
-	goto sleep_1us
-
-
-
-deselect_chip:
-	call sleep_1us
-	bsf LAT_SPI_SS_FLASH, PIN_SPI_SS_FLASH
-	goto sleep_1us
-
-
-
 send_write_enable:
-	rcall select_chip
+	SELECT_CHIP
 	SPI_SEND_CONSTANT 0x06
-	goto deselect_chip
+	DESELECT_CHIP
+	return
 
 
 
@@ -621,7 +620,7 @@ handle_error:
 	clrf STKPTR
 
 	; We might be in the middle of sending data to the Flash. Deselect it.
-	rcall deselect_chip
+	DESELECT_CHIP
 
 	; The Flash might be in the middle of doing an erase or write. Wait for it.
 	rcall wait_busy
@@ -639,7 +638,7 @@ handle_unexpected_sop:
 	clrf STKPTR
 
 	; We might be in the middle of sending data to the Flash. Deselect it.
-	rcall deselect_chip
+	DESELECT_CHIP
 
 	; The Flash might be in the middle of doing an erase or write. Wait for it.
 	rcall wait_busy
@@ -654,7 +653,7 @@ handle_write_page1:
 	rcall send_write_enable
 	
 	; Start sending the PAGE PROGRAM command (0x02).
-	rcall select_chip
+	SELECT_CHIP
 	SPI_SEND_CONSTANT 0x02
 
 	; Receive and pass the page number.
@@ -824,7 +823,7 @@ handle_write_page3_loop:
 	bra handle_write_page3_loop
 
 	; Finish SPI command.
-	rcall deselect_chip
+	DESELECT_CHIP
 
 	; Expect the checksum next.
 	rcall receive_and_check_checksum
@@ -843,7 +842,7 @@ handle_write_page3_loop:
 
 handle_crc_sector:
 	; Start sending the READ DATA command (0x03).
-	rcall select_chip
+	SELECT_CHIP
 	SPI_SEND_CONSTANT 0x03
 
 	; Receive and pass on the page number.
@@ -955,7 +954,7 @@ handle_crc_sector_byteloop:
 	bra handle_crc_sector_pageloop
 
 	; Deselect the chip.
-	rcall deselect_chip
+	DESELECT_CHIP
 
 	; Finish response.
 	rcall send_checksum
@@ -970,7 +969,7 @@ handle_erase_sector:
 	rcall send_write_enable
 
 	; Start sending the SECTOR ERASE command (0x20).
-	rcall select_chip
+	SELECT_CHIP
 	SPI_SEND_CONSTANT 0x20
 
 	; Receive and pass on the page number.
@@ -979,7 +978,7 @@ handle_erase_sector:
 	rcall receive_byte_cooked
 	SPI_SEND_WREG
 	SPI_SEND_CONSTANT 0
-	rcall deselect_chip
+	DESELECT_CHIP
 
 	; Expect the checksum next.
 	rcall receive_and_check_checksum
