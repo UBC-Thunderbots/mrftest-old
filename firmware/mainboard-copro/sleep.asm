@@ -10,15 +10,9 @@
 	radix dec
 	processor 18F4550
 #include <p18f4550.inc>
-
-
-
-	global sleep_100ms
-	global sleep_10ms
-	global sleep_1ms
-	global sleep_100us
-	global sleep_10us
-	global sleep_1us
+#define IMPL
+#include "sleep.inc"
+#undefine IMPL
 
 
 
