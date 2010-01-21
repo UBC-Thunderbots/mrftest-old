@@ -4,8 +4,8 @@
 #include <p18f4550.inc>
 #define IMPL
 #include "led.inc"
-#include "pins.inc"
 #undefine IMPL
+#include "pins.inc"
 
 
 
