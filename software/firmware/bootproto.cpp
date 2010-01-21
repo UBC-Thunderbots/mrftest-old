@@ -23,10 +23,7 @@ namespace {
 		uint8_t payload[];
 	};
 
-	const uint8_t COMMAND_STATUS_OK          = 0x00;
-	const uint8_t COMMAND_STATUS_BAD_COMMAND = 0x01;
-	const uint8_t COMMAND_STATUS_BAD_ADDRESS = 0x02;
-	const uint8_t COMMAND_STATUS_BAD_LENGTH  = 0x03;
+	const uint8_t COMMAND_STATUS_OK = 0x00;
 }
 
 bootproto::bootproto(xbee &modem, uint64_t bot) : modem(modem), bot(bot), current_state(STATE_NOT_STARTED) {
@@ -295,21 +292,6 @@ void bootproto::send_receive(const void *data, std::size_t length) {
 
 			// Notify the client.
 			response_callback(pkt.payload);
-			return;
-
-		case COMMAND_STATUS_BAD_COMMAND:
-			// Hard error. Don't bother retrying; just report an error.
-			report_error("Communication error: Bad command.");
-			return;
-
-		case COMMAND_STATUS_BAD_ADDRESS:
-			// Hard error. Don't bother retrying; just report an error.
-			report_error("Communication error: Bad address.");
-			return;
-
-		case COMMAND_STATUS_BAD_LENGTH:
-			// Hard error. Don't bother retrying; just report an error.
-			report_error("Communication error: Bad data length.");
 			return;
 
 		default:
