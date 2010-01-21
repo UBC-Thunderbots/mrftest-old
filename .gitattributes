@@ -7,8 +7,6 @@ firmware/mainboard-copro/adc.asm -text
 firmware/mainboard-copro/bootload.asm -text
 firmware/mainboard-copro/config.asm -text
 firmware/mainboard-copro/configure_fpga.asm -text
-firmware/mainboard-copro/dbgprint.asm -text
-firmware/mainboard-copro/dbgprint.inc -text
 firmware/mainboard-copro/dispatch.inc -text
 firmware/mainboard-copro/emerg_erase.asm -text
 firmware/mainboard-copro/externdef.inc -text

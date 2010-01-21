@@ -12,7 +12,6 @@
 	radix dec
 	processor 18F4550
 #include <p18f4550.inc>
-#include "dbgprint.inc"
 #include "led.inc"
 #include "pins.inc"
 #include "sleep.inc"
@@ -55,8 +54,6 @@ intvechigh_impl:
 	movff TBLPTRL, inthigh_tblptr + 0
 	movff TBLPTRH, inthigh_tblptr + 1
 	movff TABLAT, inthigh_tablat
-
-	call timer3_int
 
 	movff inthigh_tablat, TABLAT
 	movff inthigh_tblptr + 1, TBLPTRH
@@ -115,7 +112,7 @@ main:
 	; XBEE_TX is tristated unless bootloading.
 	; XBEE_RX is always an input.
 	; XBEE_BL is always an input.
-	; ICSP_PGD is managed by DBGPRINT.
+	; ICSP_PGD is always an input.
 	; ICSP_PGC is always an input.
 	; ICSP_PGM is always an input.
 	; EMERG_ERASE is always an input.
@@ -126,9 +123,6 @@ main:
 
 	; Initialize the blinky light library.
 	call led_init
-
-	; Initialize the debugging library.
-	call dbgprint_init
 
 	; Wait a tenth of a second for everything to stabilize.
 	call sleep_100ms
