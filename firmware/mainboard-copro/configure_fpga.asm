@@ -13,7 +13,6 @@
 #include <p18f4550.inc>
 #include "pins.inc"
 #include "sleep.inc"
-#include "spi.inc"
 
 
 
