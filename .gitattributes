@@ -71,6 +71,7 @@ software/ai/strategy/movement_benchmark.cpp -text
 software/ai/strategy/offensive_strategy.cpp -text
 software/ai/strategy/simple_strategy1.cpp -text
 software/ai/strategy/simu_test_strategy.cpp -text
+software/ai/strategy/simu_test_strategy.h -text
 software/ai/strategy/test_pass_strategy.cpp -text
 software/ai/strategy/test_strategy.cpp -text
 software/ai/tactic.h -text
@@ -175,6 +176,7 @@ software/simulator/engines/ODE_simulator/playerODE.cpp -text
 software/simulator/engines/ODE_simulator/playerODE.h -text
 software/simulator/engines/collisionless/collisionless_kinematic.cpp -text
 software/simulator/field.h -text
+software/simulator/referees/simple_ref.cpp -text
 software/simulator/simulator.cpp -text
 software/simulator/simulator.h -text
 software/simulator/team.cpp -text

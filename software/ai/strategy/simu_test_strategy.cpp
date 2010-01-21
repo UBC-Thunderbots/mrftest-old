@@ -19,51 +19,23 @@
 #include "ai/role/execute_penalty_enemy.h"
 #include "ai/role/victory_dance.h"
 #include "ai/role/execute_penalty_friendly.h"
-
+#include "simu_test_strategy.h"
 #include <iostream>
 //created by Kenneth Lui, last updated 2 Dec 2009.
 //This strategy was created to test the simulator.
 
 namespace simu_test{
   
-  class simu_test_strategy : public strategy {
-  public:
-    simu_test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
-    void tick();
-    void set_playtype(playtype::playtype t);
-    strategy_factory &get_factory();
-    Gtk::Widget *get_ui_controls();
-    void robot_added(void);
-    void robot_removed(unsigned int index, player::ptr r);
-    static bool auto_ref_setup;
-    static point ball_pos, ball_vel, player_pos;
-    
-  private:
-    //private variables
-    static const int WAIT_AT_LEAST_TURN = 5;		// We need this because we don't want to make frequent changes
-    static const int DEFAULT_OFF_TO_DEF_DIFF = 1;	// i.e. one more offender than defender
-    int test_id;
-    int tick_count;
-    bool test_done;
-    bool test_started;
-    bool tc_receive_receiving;
-    bool first_tick;
-    point stay_here;
-    int tc_receive_receive_count;
-    bool tests_completed;
-    bool is_ball_in_bound();
-    bool is_player_in_pos(player::ptr , double , double);
-    bool is_ball_in_pos(double , double);
-    void finish_test_case();
-    navigator::ptr our_navigator;
-    player::ptr the_only_player;
-    bool result[6];
-    bool print_msg, print_msg2;
-  };
-  
+
   //initialization of static variable
+ // static bool simu_test_strategy::auto_ref_setup = true;
+ 
   bool simu_test_strategy::auto_ref_setup = true;
-  point simu_test_strategy::ball_pos, simu_test_strategy::ball_vel, simu_test_strategy::player_pos;;
+ point simu_test_strategy::ball_pos(0,0), simu_test_strategy::ball_vel(0,0), simu_test_strategy::player_pos(0,0);
+ 
+
+//auto_ref_setup = true;
+
 
   simu_test_strategy::simu_test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src) {
     // Initialize variables here (e.g. create the roles).
@@ -279,7 +251,8 @@ namespace simu_test{
 		    finish_test_case();
 		  }else
 		  {
-		    if ((the_ball->est_velocity().x >0.0)||(the_ball->est_velocity().y >0.0))
+		    if ((the_ball->est_velocity().x >0.00001)||(the_ball->est_velocity().y >0.00001)||
+		    	(the_ball->est_velocity().x <-0.00001)||(the_ball->est_velocity().y <-0.00001))
 		      {
 			if (tick_count%30==0)
 			  {
@@ -442,7 +415,7 @@ namespace simu_test{
 	    auto_ref_setup = true;
 	    std::cout << "Test#" << test_id+1 << " Initialization" << std::endl;
 	    test_done = false;
-	    auto_ref_setup = false; //should let auto ref do this
+	   // auto_ref_setup = false; //should let auto ref do this
 	  }
 	return;
   }

@@ -1,4 +1,4 @@
-#include "ballODE.h"
+#include "simulator/engines/ODE_simulator/ballODE.h"
 #include <iostream>
 /*
 
@@ -55,6 +55,8 @@ point the_position, the_velocity;
 				dGeomSetBody (ballGeom,body);
 				dSpaceAdd (dspace, ballGeom);
 				dBodySetLinearDamping (body, 0.9);
+				 field::ptr fldd(new simulator_field);
+				 fld = fldd;
 			
 			}
 			
@@ -78,6 +80,8 @@ point the_position, the_velocity;
 				//dBodySetLinearDamping (body, 0.2);
 				dBodySetAngularDamping (body,0.5);
 				dBodySetMaxAngularSpeed (body, 5.0);
+				 field::ptr fldd(new simulator_field);
+				 fld = fldd;
 			
 			}
 
@@ -120,18 +124,20 @@ point the_position, the_velocity;
 			}
 
 			bool ballODE::in_goal() {
-			point p;
+				point p;
 				const dReal *t = dBodyGetPosition (body);
 				p.x = t[0];
 				p.y = t[1];
-				if(p.x>fld->length() || p.x<-fld->length()){
-					if(p.y<fld->width() && p.y>-fld->goal_width()){
+				double len = fld->length() ;
+				if(p.x>len/2|| p.x<-len/2){
+				double width = fld->goal_width() ;
+
+					if(p.y<width/2 && p.y>(-width/2)){
 						//double height = t[2];
 						//if(height<fld->goal_height())return true;
 						return true;
 					}
 				}
-
 
 
 				return false;
