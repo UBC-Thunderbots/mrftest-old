@@ -165,27 +165,6 @@ COMMAND_ERASE_SECTOR equ 0x7
 	;
 COMMAND_STATUS_OK          equ 0x00
 
-	; COMMAND_STATUS_BAD_COMMAND
-	; ==========================
-	;
-	; Returned when an invalid command ID is sent.
-	;
-COMMAND_STATUS_BAD_COMMAND equ 0x01
-
-	; COMMAND_STATUS_BAD_ADDRESS
-	; ==========================
-	;
-	; Returned when the page number associated with a command was illegal.
-	;
-COMMAND_STATUS_BAD_ADDRESS equ 0x02
-
-	; COMMAND_STATUS_BAD_LENGTH
-	; =========================
-	;
-	; Returned when a length value associated with a command was too large.
-	;
-COMMAND_STATUS_BAD_LENGTH equ 0x03
-
 
 
 bootloader_data udata
