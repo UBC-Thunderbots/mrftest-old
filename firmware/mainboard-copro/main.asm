@@ -23,15 +23,6 @@
 
 
 
-	udata
-inthigh_tblptr: res 2
-inthigh_tablat: res 1
-intlow_status: res 1
-intlow_wreg: res 1
-intlow_bsr: res 1
-
-
-
 resetvec code
 	; This code is burned at address 0, where the PIC starts running.
 	goto main
@@ -40,36 +31,12 @@ resetvec code
 
 intvechigh code
 	; This code is burned at address 8, where high priority interrupts go.
-	; Workaround for a silicon bug.
-	call intvechigh_impl, FAST
-
-
-
-intvechigh_impl_seg code
-intvechigh_impl:
-	; Workaround for a silicon bug.
-	pop
-
-	movff TBLPTRL, inthigh_tblptr + 0
-	movff TBLPTRH, inthigh_tblptr + 1
-	movff TABLAT, inthigh_tablat
-
-	movff inthigh_tablat, TABLAT
-	movff inthigh_tblptr + 1, TBLPTRH
-	movff inthigh_tblptr + 0, TBLPTRL
 	retfie FAST
 
 
 
 intveclow code
 	; This code is burned at address 0x18, where low priority interrupts go.
-	movff STATUS, intlow_status
-	movff WREG, intlow_wreg
-	movff BSR, intlow_bsr
-
-	movff intlow_bsr, BSR
-	movff intlow_wreg, WREG
-	movff intlow_status, STATUS
 	retfie
 
 
