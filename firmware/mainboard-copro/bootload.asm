@@ -293,7 +293,7 @@ bootload:
 	clrf RCSTA
 	clrf TXSTA
 	clrf SPBRGH
-	movlw 15
+	movlw 7
 	movwf SPBRG
 	movlw (1 << BRG16)
 	movwf BAUDCON

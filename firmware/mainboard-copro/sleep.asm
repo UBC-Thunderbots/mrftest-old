@@ -17,16 +17,16 @@
 
 
 	code
-	; Clock rate is 16MHz.
-	; There are 4M instruction cycles per second.
-	; There are 4 instruction cycles per microsecond.
+	; Clock rate is 8MHz.
+	; There are 2M instruction cycles per second.
+	; There are 2 instruction cycles per microsecond.
 	; CALL and RCALL take 2 instruction cycles.
 	; RETURN takes 2 instruction cycles.
 	; Therefore, each label must consume exactly 2 instruction cycles fewer than
 	; its name implies (the other 2 are consumed by the original CALL/RCALL).
 
-sleep_100ms: ; This label wants 4*100000-2=399998 cycles.
-	; 9*40000=360000.
+sleep_100ms: ; This label wants 2*100000-2=199998 cycles.
+	; 9*20000=180000.
 	rcall sleep_10ms
 	rcall sleep_10ms
 	rcall sleep_10ms
@@ -36,10 +36,10 @@ sleep_100ms: ; This label wants 4*100000-2=399998 cycles.
 	rcall sleep_10ms
 	rcall sleep_10ms
 	rcall sleep_10ms
-	; Fallthrough gives another 39998 for 399998.
+	; Fallthrough gives another 19998 for 199998.
 
-sleep_10ms: ; This label wants 4*10000-2=39998 cycles.
-	; 9*4000=36000.
+sleep_10ms: ; This label wants 2*10000-2=19998 cycles.
+	; 9*2000=18000.
 	rcall sleep_1ms
 	rcall sleep_1ms
 	rcall sleep_1ms
@@ -49,10 +49,10 @@ sleep_10ms: ; This label wants 4*10000-2=39998 cycles.
 	rcall sleep_1ms
 	rcall sleep_1ms
 	rcall sleep_1ms
-	; Fallthrough gives another 3998 for 39998.
+	; Fallthrough gives another 1998 for 19998.
 
-sleep_1ms: ; This label wants 4*1000-2=3998 cycles.
-	; 9*400=3600.
+sleep_1ms: ; This label wants 2*1000-2=1998 cycles.
+	; 9*200=1800.
 	rcall sleep_100us
 	rcall sleep_100us
 	rcall sleep_100us
@@ -62,10 +62,10 @@ sleep_1ms: ; This label wants 4*1000-2=3998 cycles.
 	rcall sleep_100us
 	rcall sleep_100us
 	rcall sleep_100us
-	; Fallthrough gives another 398 for 3998.
+	; Fallthrough gives another 198 for 1998.
 
-sleep_100us: ; This label wants 4*100-2=398 cycles.
-	; 9*40=360.
+sleep_100us: ; This label wants 2*100-2=198 cycles.
+	; 9*20=180.
 	rcall sleep_10us
 	rcall sleep_10us
 	rcall sleep_10us
@@ -75,22 +75,17 @@ sleep_100us: ; This label wants 4*100-2=398 cycles.
 	rcall sleep_10us
 	rcall sleep_10us
 	rcall sleep_10us
-	; Fallthrough gives another 38 for 398.
+	; Fallthrough gives another 18 for 198.
 
-sleep_10us: ; This label wants 4*10-2=38 cycles.
-	; 9*4=36.
-	rcall sleep_1us
-	rcall sleep_1us
-	rcall sleep_1us
-	rcall sleep_1us
-	rcall sleep_1us
-	rcall sleep_1us
-	rcall sleep_1us
-	rcall sleep_1us
-	rcall sleep_1us
-	; Fallthrough gives another 2 for 38.
+sleep_10us: ; This label wants 2*10-2=18 cycles.
+	; 4*4=16.
+	rcall sleep_2us
+	rcall sleep_2us
+	rcall sleep_2us
+	rcall sleep_2us
+	; Fallthrough gives another 2 for 18.
 
-sleep_1us: ; This label wants 4*1-2=2 cycles.
+sleep_2us: ; This label wants 2*2-2=2 cycles.
 	; 2.
 	return
 

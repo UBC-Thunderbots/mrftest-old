@@ -87,6 +87,11 @@ main:
 	bcf LAT_RTS, PIN_RTS
 	bcf TRIS_RTS, PIN_RTS
 
+	; Configure the SLEEP instruction to go into IDLE mode, and the internal
+	; oscillator to run at 8MHz.
+	movlw (1 << IDLEN) | (1 << IRCF2) | (1 << IRCF1) | (1 << IRCF0)
+	movwf OSCCON
+
 	; Wait a tenth of a second for everything to stabilize.
 	call sleep_100ms
 

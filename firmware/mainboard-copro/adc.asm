@@ -77,7 +77,7 @@ adc:
 	movwf ADCON0
 
 	; Set acquisition time configuration.
-	movlw (1 << ADFM) | (1 << ACQT1) | (1 << ADCS1)
+	movlw (1 << ADFM) | (1 << ACQT1) | (1 << ADCS2) | (1 << ADCS0)
 	movwf ADCON2
 
 	; Go into a loop.
