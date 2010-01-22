@@ -5,6 +5,7 @@ firmware/mainboard-copro/18f4550.lkr -text
 firmware/mainboard-copro/Makefile -text
 firmware/mainboard-copro/adc.asm -text
 firmware/mainboard-copro/bootload.asm -text
+firmware/mainboard-copro/cbuf.inc -text
 firmware/mainboard-copro/config.asm -text
 firmware/mainboard-copro/configure_fpga.asm -text
 firmware/mainboard-copro/dispatch.inc -text

@@ -29,6 +29,7 @@
 	radix dec
 	processor 18F4550
 #include <p18f4550.inc>
+#include "cbuf.inc"
 #include "dispatch.inc"
 #include "pins.inc"
 #include "spi.inc"
@@ -36,6 +37,7 @@
 
 
 	global bootload
+	global rcif_handler
 
 
 
@@ -179,6 +181,8 @@ xbee_receive_address: res 8
 xbee_receive_checksum: res 1
 xbee_transmit_checksum: res 1
 send_length_temp: res 1
+	CBUF_DECLARE rxbuf
+rcif_fsr0: res 2
 
 
 
@@ -195,6 +199,76 @@ DESELECT_CHIP macro
 
 
 	code
+	; Receive interrupt handler.
+rcif_handler:
+	; Save FSR0.
+	movff FSR0L, rcif_fsr0 + 0
+	movff FSR0H, rcif_fsr0 + 1
+
+	; Bank select.
+	banksel rxbuf
+
+	; Check for overrun error.
+	btfsc RCSTA, OERR
+	bra rcif_handler_oerr
+
+	; Check for framing error.
+	btfsc RCSTA, FERR
+	bra rcif_handler_ferr
+
+	; Receive byte.
+	movf RCREG, W
+	CBUF_PUT rxbuf, 0
+
+	; Consider if we need to assert RTS or not, based on the fill level of the
+	; buffer.
+	rcall update_rts
+
+	bra rcif_handler_exit
+
+rcif_handler_oerr:
+	; Overrun error. Reset USART.
+	bcf RCSTA, CREN
+	bsf RCSTA, CREN
+	bra rcif_handler_exit
+
+rcif_handler_ferr:
+	; Framing error. Discard RCREG to clear.
+	movf RCREG, W
+
+rcif_handler_exit:
+	; Restore FSR0.
+	movff rcif_fsr0 + 0, FSR0L
+	movff rcif_fsr0 + 1, FSR0H
+
+	; Done.
+	retfie FAST
+
+
+
+update_rts:
+	; Get buffer fill level.
+	CBUF_LEVEL rxbuf
+	; If fill level is >= 12, deassert RTS.
+	addlw -12
+	bc update_rts_deassert
+	addlw 12
+	; If fill level is <= 10, assert RTS.
+	addlw -11
+	bnc update_rts_assert
+	; Histeresis: leave RTS alone.
+	return
+
+update_rts_deassert:
+	bsf LAT_RTS, PIN_RTS
+	return
+
+update_rts_assert:
+	bcf LAT_RTS, PIN_RTS
+	return
+
+
+
 	; Main code.
 bootload:
 	; Take control of the SPI bus.
@@ -212,6 +286,9 @@ bootload:
 	SPI_RECEIVE jedecid + 2
 	DESELECT_CHIP
 
+	; Initialize the circular buffer.
+	CBUF_INIT rxbuf
+
 	; Start up the USART.
 	clrf RCSTA
 	clrf TXSTA
@@ -226,11 +303,9 @@ bootload:
 	movwf RCSTA
 	nop
 	nop
+	bsf PIE1, RCIE
 
 expecting_sop:
-	; Assert RTS to allow the XBee to send data.
-	bcf LAT_RTS, PIN_RTS
-
 	; Receive a raw byte from the USART without unescaping. It should be 0x7E.
 	rcall receive_raw
 	xorlw 0x7E
@@ -304,9 +379,6 @@ handle_ident:
 	; Should be no payload, so checksum should be next.
 	rcall receive_and_check_checksum
 
-	; Hold off bytes.
-	bsf LAT_RTS, PIN_RTS
-
 	; Send back the IDENT response.
 	rcall send_sop
 	movlw 21
@@ -363,9 +435,6 @@ handle_erase_block:
 
 	; Expect the checksum next.
 	rcall receive_and_check_checksum
-
-	; Hold off bytes.
-	bsf LAT_RTS, PIN_RTS
 
 	; Wait until operation completes.
 	rcall wait_busy
@@ -563,38 +632,25 @@ receive_raw:
 	reset
 
 	; Check if there's data available to receive.
-	btfss PIR1, RCIF
-	bra receive_raw
+	; HACK: once mode pin checking goes to interrupts, replace all this with a
+	; simple call to CBUF_GET!
+	CBUF_LEVEL rxbuf
+	addlw 0
+	bz receive_raw
 
-	; Check for overrun error.
-	btfsc RCSTA, OERR
-	bra receive_raw_oerr
+	; Consider if we need to assert RTS or not, based on the fill level of the
+	; buffer.
+	rcall update_rts
 
-	; Check for framing error.
-	btfsc RCSTA, FERR
-	bra receive_raw_ferr
+	; Get the byte.
+	CBUF_GET rxbuf, 0
 
-	; Return the byte.
-	movf RCREG, W
+	; Done.
 	return
-
-receive_raw_oerr:
-	; Reset the USART.
-	bcf RCSTA, CREN
-	bsf RCSTA, CREN
-	bra handle_error
-
-receive_raw_ferr:
-	; Drop the byte.
-	movf RCREG, W
-	bra handle_error
 
 
 
 handle_error:
-	; Hold off bytes.
-	bsf LAT_RTS, PIN_RTS
-
 	; We might have detected the error at any level of call. Clear the stack.
 	clrf STKPTR
 
@@ -610,9 +666,6 @@ handle_error:
 
 
 handle_unexpected_sop:
-	; Hold off bytes.
-	bsf LAT_RTS, PIN_RTS
-
 	; We might have detected the error at any level of call. Clear the stack.
 	clrf STKPTR
 
@@ -807,10 +860,6 @@ handle_write_page3_loop:
 	; Expect the checksum next.
 	rcall receive_and_check_checksum
 
-	; All page data has been received and passed to the Flash.
-	; Hold off bytes.
-	bsf LAT_RTS, PIN_RTS
-
 	; Wait until operation completes.
 	rcall wait_busy
 
@@ -833,9 +882,6 @@ handle_crc_sector:
 
 	; Expect the checksum next.
 	rcall receive_and_check_checksum
-
-	; Hold off bytes.
-	bsf LAT_RTS, PIN_RTS
 
 	; Start the response. We'll stream the CRCs to the XBee.
 	rcall send_sop
@@ -961,9 +1007,6 @@ handle_erase_sector:
 
 	; Expect the checksum next.
 	rcall receive_and_check_checksum
-
-	; Hold off bytes.
-	bsf LAT_RTS, PIN_RTS
 
 	; Wait until operation completes.
 	rcall wait_busy

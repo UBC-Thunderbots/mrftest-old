@@ -20,6 +20,7 @@
 	extern emergency_erase
 	extern bootload
 	extern configure_fpga
+	extern rcif_handler
 
 
 
@@ -31,6 +32,8 @@ resetvec code
 
 intvechigh code
 	; This code is burned at address 8, where high priority interrupts go.
+	btfsc PIR1, RCIF
+	goto rcif_handler
 	retfie FAST
 
 
