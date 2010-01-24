@@ -19,7 +19,9 @@ struct circle {
 class ball_filter {
     private:
         static const double RADIUS = 0.6;
-        static const double DECAY_RATE = 0.2063; // half-life = 3 frames
+        #warning stupid douchebags stop using magic timing constants if it
+        #warning is in relation to time give in relation to FPS
+        static const double DECAY_RATE = 0.2063; // half-life = 3 frames 
         static const double DELETE_THRESHOLD = 0.02; // stores < 50 circles
         static list<circle> circles;
     
