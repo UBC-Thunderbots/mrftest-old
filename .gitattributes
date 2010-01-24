@@ -43,6 +43,8 @@ software/ai/role/execute_penalty_friendly.cpp -text
 software/ai/role/execute_penalty_friendly.h -text
 software/ai/role/goalie.cpp -text
 software/ai/role/goalie.h -text
+software/ai/role/halt.cpp -text
+software/ai/role/halt.h -text
 software/ai/role/offensive.cpp -text
 software/ai/role/offensive.h -text
 software/ai/role/pit_stop.cpp -text
@@ -55,6 +57,8 @@ software/ai/role/prepare_penalty_enemy.cpp -text
 software/ai/role/prepare_penalty_enemy.h -text
 software/ai/role/prepare_penalty_friendly.cpp -text
 software/ai/role/prepare_penalty_friendly.h -text
+software/ai/role/stop.cpp -text
+software/ai/role/stop.h -text
 software/ai/role/victory_dance.cpp -text
 software/ai/role/victory_dance.h -text
 software/ai/strategy.cpp -text
