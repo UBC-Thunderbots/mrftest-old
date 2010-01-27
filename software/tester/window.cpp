@@ -1,3 +1,4 @@
+#include "tester/controlled_permotor_drive.h"
 #include "tester/direct_drive.h"
 #include "tester/feedback.h"
 #include "tester/window.h"
@@ -25,6 +26,7 @@ class tester_window_impl : public Gtk::Window {
 
 			drive_chooser.append_text("Halt");
 			drive_chooser.append_text("Direct Drive");
+			drive_chooser.append_text("Controlled Per-Motor Drive");
 			drive_chooser.set_active_text("Halt");
 			drive_chooser.signal_changed().connect(sigc::mem_fun(*this, &tester_window_impl::drive_mode_changed));
 			drive_box.pack_start(drive_chooser);
@@ -70,6 +72,7 @@ class tester_window_impl : public Gtk::Window {
 		Gtk::VBox drive_box;
 		Gtk::ComboBoxText drive_chooser;
 		tester_control_direct_drive drive_direct;
+		tester_control_controlled_permotor_drive drive_controlled_permotor;
 		Gtk::Widget *drive_widget;
 
 		Gtk::Frame dribble_frame;
@@ -105,6 +108,7 @@ class tester_window_impl : public Gtk::Window {
 			} else if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_0)) {
 				// Zero digit sets all controls to zero but does not scram things.
 				drive_direct.zero();
+				drive_controlled_permotor.zero();
 				dribble_scale.set_value(0);
 			}
 			return 0;
@@ -119,9 +123,11 @@ class tester_window_impl : public Gtk::Window {
 
 			// Zero out all drive controls.
 			drive_direct.zero();
+			drive_controlled_permotor.zero();
 
 			// Detach the bot from all drive controls.
 			drive_direct.set_robot(radio_bot::ptr());
+			drive_controlled_permotor.set_robot(radio_bot::ptr());
 
 			// Attach the new controls to the robot.
 			attach_drive_controls_to_bot();
@@ -145,6 +151,10 @@ class tester_window_impl : public Gtk::Window {
 				// Use the direct drive controls.
 				drive_widget = &drive_direct;
 				drive_direct.set_robot(bot);
+			} else if (cur == "Controlled Per-Motor Drive") {
+				// Use the controlled per-motor drive controls.
+				drive_widget = &drive_controlled_permotor;
+				drive_controlled_permotor.set_robot(bot);
 			}
 		}
 

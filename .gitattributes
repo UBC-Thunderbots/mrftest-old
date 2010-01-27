@@ -182,6 +182,7 @@ software/simulator/team.cpp -text
 software/simulator/team.h -text
 software/simulator/window.cpp -text
 software/simulator/window.h -text
+software/tester/controlled_permotor_drive.h -text
 software/tester/direct_drive.h -text
 software/tester/feedback.cpp -text
 software/tester/feedback.h -text
