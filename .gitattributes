@@ -182,10 +182,11 @@ software/simulator/team.cpp -text
 software/simulator/team.h -text
 software/simulator/window.cpp -text
 software/simulator/window.h -text
-software/tester/direct_drive.cpp -text
 software/tester/direct_drive.h -text
 software/tester/feedback.cpp -text
 software/tester/feedback.h -text
+software/tester/permotor_drive.cpp -text
+software/tester/permotor_drive.h -text
 software/tester/window.cpp -text
 software/tester/window.h -text
 software/uicomponents/bot_chooser.cpp -text
