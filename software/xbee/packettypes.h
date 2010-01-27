@@ -94,7 +94,6 @@ namespace xbeepacket {
 		int16_t dribbler_speed;
 		uint16_t battery_level;
 		uint8_t faults;
-		uint8_t command_ack;
 	};
 	const uint8_t FEEDBACK_FLAG_RUNNING = 0x80;
 
@@ -103,9 +102,6 @@ namespace xbeepacket {
 		uint8_t flags;
 		int16_t drive_speeds[4];
 		int16_t dribbler_speed;
-		uint8_t command_seq;
-		uint8_t command;
-		uint16_t command_data;
 	};
 	const uint8_t RUN_FLAG_RUNNING = 0x80;
 	const uint8_t RUN_FLAG_DIRECT_DRIVE = 0x01;

@@ -29,9 +29,6 @@ void radio_bot::start() {
 	out_packet.drive_speeds[2] = 0;
 	out_packet.drive_speeds[3] = 0;
 	out_packet.dribbler_speed = 0;
-	out_packet.command_seq = 0;
-	out_packet.command = xbeepacket::RUN_COMMAND_NOOP;
-	out_packet.command_data = 0;
 	send_packet();
 }
 
