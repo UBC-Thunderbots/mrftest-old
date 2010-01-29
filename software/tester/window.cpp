@@ -1,6 +1,7 @@
 #include "tester/controlled_permotor_drive.h"
 #include "tester/direct_drive.h"
 #include "tester/feedback.h"
+#include "tester/matrix_drive.h"
 #include "tester/window.h"
 #include "uicomponents/bot_chooser.h"
 #include "util/ihex.h"
@@ -27,6 +28,7 @@ class tester_window_impl : public Gtk::Window {
 			drive_chooser.append_text("Halt");
 			drive_chooser.append_text("Direct Drive");
 			drive_chooser.append_text("Controlled Per-Motor Drive");
+			drive_chooser.append_text("Matrix Drive");
 			drive_chooser.set_active_text("Halt");
 			drive_chooser.signal_changed().connect(sigc::mem_fun(*this, &tester_window_impl::drive_mode_changed));
 			drive_box.pack_start(drive_chooser);
@@ -73,6 +75,7 @@ class tester_window_impl : public Gtk::Window {
 		Gtk::ComboBoxText drive_chooser;
 		tester_control_direct_drive drive_direct;
 		tester_control_controlled_permotor_drive drive_controlled_permotor;
+		tester_control_matrix_drive drive_matrix;
 		Gtk::Widget *drive_widget;
 
 		Gtk::Frame dribble_frame;
@@ -109,6 +112,7 @@ class tester_window_impl : public Gtk::Window {
 				// Zero digit sets all controls to zero but does not scram things.
 				drive_direct.zero();
 				drive_controlled_permotor.zero();
+				drive_matrix.zero();
 				dribble_scale.set_value(0);
 			}
 			return 0;
@@ -124,10 +128,12 @@ class tester_window_impl : public Gtk::Window {
 			// Zero out all drive controls.
 			drive_direct.zero();
 			drive_controlled_permotor.zero();
+			drive_matrix.zero();
 
 			// Detach the bot from all drive controls.
 			drive_direct.set_robot(radio_bot::ptr());
 			drive_controlled_permotor.set_robot(radio_bot::ptr());
+			drive_matrix.set_robot(radio_bot::ptr());
 
 			// Attach the new controls to the robot.
 			attach_drive_controls_to_bot();
@@ -155,6 +161,10 @@ class tester_window_impl : public Gtk::Window {
 				// Use the controlled per-motor drive controls.
 				drive_widget = &drive_controlled_permotor;
 				drive_controlled_permotor.set_robot(bot);
+			} else if (cur == "Matrix Drive") {
+				// Use the matrix drive controls.
+				drive_widget = &drive_matrix;
+				drive_matrix.set_robot(bot);
 			}
 		}
 
