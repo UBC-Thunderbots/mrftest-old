@@ -58,9 +58,19 @@ class defensive : public role {
         //
         double get_distance_from_ball(int index);
 
-	protected:
+	// Kenneth:
+        // This set the goalie robot in the defensive role. Note that this goalie is not included in the set_robots list! The role should handle this goalie separately!!
+        void set_goalie(const player::ptr goalie);
+
+        protected:
         std::vector<tactic::ptr> the_tactics;
-		
+
+        private:
+        // note that this is a role in role, so the goalie role can still be developed independently.
+        // Normally, the defensive role should just tick the goalie_role.
+        // When the goalie has ball, this role can set the goalie to other tactics such as passing etc., but it should NEVER leave the goalie box.
+        role::ptr goalie_role;
+        player::ptr the_goalie;
 };
 
 #endif

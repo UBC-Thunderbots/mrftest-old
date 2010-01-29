@@ -18,9 +18,12 @@
 #include "ai/role/execute_penalty_enemy.h"
 #include "ai/role/victory_dance.h"
 #include "ai/role/execute_penalty_friendly.h"
+#include "ai/role/halt.h"
+#include "ai/role/stop.h"
+
 
 #include <iostream>
-//created by Kenneth Lui, last updated 16 Jan 2010.
+//created by Kenneth Lui, last updated 29 Jan 2010.
 
 namespace {
   struct robot_details{
@@ -79,29 +82,21 @@ namespace {
     turn_since_last_update = 0;
     possession_confidence = 1.0;
     goalie_player = player::ptr(NULL);         // not sure if this is good
-    reset_all();
+    //reset_all();
     return;
     // problems: how do we keep track of roles?
   }
   
   void kenneth_simple_strategy::tick() {
-    /////////////////////////////
-    // The role for goalie is not kept after in_play assignment
-    ////////////////////////////
-    // What if play type is changed??
-    ///////////////////////////
-    
-
-    // Use the variables "the_ball", "the_field", and "the_team" to allocate players to roles.
+     // Use the variables "the_ball", "the_field", and "the_team" to allocate players to roles.
     turn_since_last_update++;
     if (turn_since_last_update % 40 == 0)
       {  std::cout << "tick" << turn_since_last_update << std::endl;
       }
     switch (pt_source.current_playtype())
     {
-      case playtype::halt: break;
-      case playtype::stop: 
-	break;
+//      case playtype::halt: break;
+//      case playtype::stop: break;
       case playtype::play: 
         in_play_assignment();
         for (unsigned int i = 0; i < roles.size(); i++)
@@ -148,15 +143,20 @@ namespace {
  
 
   ///////////////////////
+  // The REST is NOT TRUE NOW.
   // It is assumed that the role vector already has one role containing the goalie.
   // It should always keep that role unchanged.
   //////////////////////
   void kenneth_simple_strategy::in_play_assignment(void)
   {
-    if (the_team->size()<=1)
-      {
-	return;
-      }
+    if (the_team->size()==1)
+    {
+       roles.clear();
+       defensive::ptr defensive_role = defensive::ptr(new defensive(the_ball, the_field, the_team));
+       defensive_role->set_goalie(goalie_player);
+       roles.push_back(role::ptr(defensive_role));
+       return;
+    }
     //keep for future
     //int our_score = the_team->score();
     //int their_score = the_team->other()->score();		//get our team's robots' position and distance to the ball.
@@ -240,9 +240,26 @@ namespace {
     if (prefer_off_to_def_diff< -1 * our_effective_team_size)
       {    prefer_off_to_def_diff = -1 * our_effective_team_size;
       }
+
+////////////
+// TODO Check this calculation
+////////////
     int prefer_defender_number = std::min((our_effective_team_size - prefer_off_to_def_diff)/2, our_effective_team_size);
     int prefer_offender_number = our_effective_team_size - prefer_defender_number;
-    
+
+///////
+/// TODO Always assign one robot more to the defender if goalie has the ball.
+////////////////    
+    int min_defender_number = 0;
+    int min_offender_number = 0;
+    if (goalie_player->has_ball())
+    {
+       min_defender_number = 1;
+    }
+    if (our_effective_team_size - min_defender_number >= 1)
+    {
+       min_offender_number = 1;
+    }
 
     /////////////////////////////////////
     //make sure the nearest robot is always an offender, 
@@ -320,17 +337,20 @@ namespace {
   ///////////////////////////
   // Keep the goalie role, add it & the front & de roles to roles vector
   ///////////////////////////
-    role::ptr tempRole = roles[0];
+//    role::ptr tempRole = roles[0];
     roles.clear();
-    roles.push_back(tempRole);
+//    roles.push_back(tempRole);
     if (offenders.size() > 0)
     {
         roles.push_back(role::ptr(new offensive(the_ball, the_field, the_team)));
         roles[roles.size()-1]->set_robots(offenders);
     }
+    defensive::ptr defensive_role = defensive::ptr(new defensive(the_ball, the_field, the_team));
+    defensive_role->set_goalie(goalie_player);
+    roles.push_back(role::ptr(defensive_role));
     if (defenders.size() > 0)
     {
-        roles.push_back(role::ptr(new defensive(the_ball, the_field, the_team)));
+//        roles.push_back(role::ptr(new defensive(the_ball, the_field, the_team)));
         roles[roles.size()-1]->set_robots(defenders);
     }
 //	std::cout << "IT IS HERE !!!!!!!!!!!!!!!!!" << std::endl;
@@ -402,6 +422,10 @@ namespace {
     if (the_team->size()==0)
     {
         return;
+    }else if (goalie_player == player::ptr(NULL))
+    {
+        //This case is used to handle the stupid remove calls when the simulator starts.
+        return;
     }
 
     /////////////////////////////
@@ -433,18 +457,32 @@ namespace {
     ////////////////////
     roles.clear();
 
+    goalie::ptr goalie_role;
 
     ////////////////////
     // Switch play type
     ///////////////////
     switch (pt_source.current_playtype())
       {
-      case playtype::halt: break; //TODO: haven't implemented
-      case playtype::stop: break;  //TODO: haven't implemented
+      case playtype::halt:
+        roles.push_back(role::ptr(new halt(the_ball, the_field, the_team)));
+        all_players.push_back(goalie_only[0]);
+        roles[0]->set_robots(all_players);
+        std::cout << all_players.size() << " robots set to halt" << std::endl;
+        break;
+
+      case playtype::stop:
+        roles.push_back(role::ptr(new stop(the_ball, the_field, the_team)));
+        all_players.push_back(goalie_only[0]);
+        roles[0]->set_robots(all_players);
+        std::cout << all_players.size() << " robots set to stop" << std::endl;
+        break;
 
       case playtype::play:
-            roles.push_back(role::ptr((new goalie(the_ball, the_field, the_team))));
-            roles[0]->set_robots(goalie_only);
+//            goalie_role = goalie::ptr(new goalie(the_ball, the_field, the_team));
+//            goalie_role->start_play();
+//            roles.push_back(role::ptr((goalie_role)));
+//            roles[0]->set_robots(goalie_only);
             in_play_assignment();
             break;
 
