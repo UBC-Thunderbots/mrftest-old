@@ -16,6 +16,7 @@ software/ai/tactic/*.d
 software/firmware/*.d
 software/geom/*.d
 software/leastsquares/*.d
+software/log/*.d
 software/rctest
 software/robot_controller/*.d
 software/robot_controller/joystick/*.d

@@ -8,13 +8,13 @@ PROJECTS := rctest thunderbots xbeeconfig
 # Directories will be searched for source files recursively.
 #
 SOURCES_rctest := geom leastsquares robot_controller robot_controller_test util world
-SOURCES_thunderbots := ai firmware geom leastsquares robot_controller simulator tester uicomponents util world xbee main.cpp
+SOURCES_thunderbots := ai firmware geom leastsquares log robot_controller simulator tester uicomponents util world xbee main.cpp
 SOURCES_xbeeconfig := xbeeconfig.cpp
 
 #
 # Here, write the linker flags to be used for each project.
 #
-LDFLAGS_common := $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4 cairomm-1.0 libxml++-2.6 ode) -lrt
+LDFLAGS_common := $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4 cairomm-1.0 libxml++-2.6 ode) -lrt -lbz2
 LDFLAGS_rctest := $(LDFLAGS_common)
 LDFLAGS_thunderbots := $(LDFLAGS_common)
 LDFLAGS_xbeeconfig := $(LDFLAGS_common)
