@@ -4,88 +4,17 @@
 #include "ai/strategy.h"
 #include "simulator/engine.h"
 
-//
-// A view of a physical team from either the west or the east perspective.
-//
-class simulator_team_view : public controlled_team {
-	public:
-		//
-		// Constructs a new simulator_team_view.
-		//
-		simulator_team_view(const std::vector<player::ptr> &players, const unsigned int &score, const team::ptr &other, const bool &yellow) : players(players), the_score(score), the_other(other), the_yellow(yellow) {
-		}
-
-		//
-		// Gets the size of the team.
-		//
-		std::size_t size() const {
-			return players.size();
-		}
-
-		//
-		// Gets one player on the team.
-		//
-		player::ptr get_player(std::size_t idx) {
-			assert(idx < players.size());
-			return players[idx];
-		}
-
-		//
-		// Gets the team's score.
-		//
-		unsigned int score() const {
-			return the_score;
-		}
-
-		//
-		// Gets the other team.
-		//
-		team::ptr other() {
-			return the_other;
-		}
-
-		//
-		// Gets the colour of the team.
-		//
-		bool yellow() const {
-			return the_yellow;
-		}
-
-	private:
-		//
-		// The vector, stored in the corresponding simulator_team_data object,
-		// that contains the player objects exposed by this view.
-		//
-		const std::vector<player::ptr> &players;
-
-		//
-		// The score variable, stored in the corresponding simulator_team_data
-		// object.
-		//
-		const unsigned int &the_score;
-
-		//
-		// The pointer to the other team, stored in the corresponding
-		// simulator_team_data object.
-		//
-		const team::ptr &the_other;
-
-		//
-		// The colour of the team, stored in the corresponding
-		// simulator_team_data object.
-		//
-		const bool &the_yellow;
-};
+class simulator;
 
 //
 // All the data about a physical team implemented by the simulator.
 //
-class simulator_team_data : public playtype_source, public noncopyable {
+class simulator_team_data : public noncopyable {
 	public:
 		//
 		// Constructs a new simulator_team_data.
 		//
-		simulator_team_data(playtype_source &pt_src, bool invert_playtype, xmlpp::Element *xml, bool yellow, ball::ptr ball, field::ptr field);
+		simulator_team_data(simulator &sim, bool invert_playtype, xmlpp::Element *xml, bool yellow, ball::ptr ball, field::ptr field);
 
 		//
 		// Destroys a simulator_team_data.
@@ -178,24 +107,17 @@ class simulator_team_data : public playtype_source, public noncopyable {
 		//
 		// Returns the current play type.
 		//
-		playtype::playtype current_playtype() const {
-			if (invert_playtype)
-				return playtype::invert[pt_src.current_playtype()];
-			else
-				return pt_src.current_playtype();
-		}
+		playtype::playtype current_playtype() const;
 
 		//
-		// Returns the signal fired when the play type changes.
+		// Called by the simulator when the play type changes.
 		//
-		sigc::signal<void, playtype::playtype> &signal_playtype_changed() {
-			return sig_playtype_changed;
-		}
+		void playtype_changed(playtype::playtype);
 
 		//
-		// The parent playtype_source that provides raw data to this team.
+		// The simulator that holds this object.
 		//
-		playtype_source &pt_src;
+		simulator &the_simulator;
 
 		//
 		// Whether or not to invert the play types passed by the parent.
@@ -268,13 +190,91 @@ class simulator_team_data : public playtype_source, public noncopyable {
 		// The field.
 		//
 		field::ptr the_field;
+};
+
+//
+// A view of a physical team from either the west or the east perspective.
+//
+class simulator_team_view : public controlled_team {
+	public:
+		//
+		// Constructs a new simulator_team_view.
+		//
+		simulator_team_view(const simulator_team_data &data, const std::vector<player::ptr> &players, const unsigned int &score, const team::ptr &other, const bool &yellow) : data(data), players(players), the_score(score), the_other(other), the_yellow(yellow) {
+		}
 
 		//
-		// Fired when the parent playtype_source's play type changes.
+		// Gets the size of the team.
 		//
-		void parent_pt_changed(playtype::playtype) {
-			sig_playtype_changed.emit(current_playtype());
+		std::size_t size() const {
+			return players.size();
 		}
+
+		//
+		// Gets one player on the team.
+		//
+		player::ptr get_player(std::size_t idx) {
+			assert(idx < players.size());
+			return players[idx];
+		}
+
+		//
+		// Gets the team's score.
+		//
+		unsigned int score() const {
+			return the_score;
+		}
+
+		//
+		// Gets the other team.
+		//
+		team::ptr other() {
+			return the_other;
+		}
+
+		//
+		// Gets the colour of the team.
+		//
+		bool yellow() const {
+			return the_yellow;
+		}
+
+		//
+		// Gets the current play type.
+		//
+		playtype::playtype current_playtype() const {
+			return data.current_playtype();
+		}
+
+	private:
+		//
+		// The simulator_team_data backing this view.
+		//
+		const simulator_team_data &data;
+
+		//
+		// The vector, stored in the corresponding simulator_team_data object,
+		// that contains the player objects exposed by this view.
+		//
+		const std::vector<player::ptr> &players;
+
+		//
+		// The score variable, stored in the corresponding simulator_team_data
+		// object.
+		//
+		const unsigned int &the_score;
+
+		//
+		// The pointer to the other team, stored in the corresponding
+		// simulator_team_data object.
+		//
+		const team::ptr &the_other;
+
+		//
+		// The colour of the team, stored in the corresponding
+		// simulator_team_data object.
+		//
+		const bool &the_yellow;
 };
 
 #endif

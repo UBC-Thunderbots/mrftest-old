@@ -20,7 +20,7 @@ class log_writer : public byref, public sigc::trackable {
 		// Constructs a new log_writer. The log_writer will begin writing to the
 		// log immediately at the next tick.
 		//
-		log_writer(clocksource &clksrc, ball::ptr theball, team::ptr wteam, team::ptr eteam, playtype_source &ptsrc);
+		log_writer(clocksource &clksrc, ball::ptr theball, team::ptr wteam, team::ptr eteam);
 
 		//
 		// Destroys a log_writer. The file is flushed if necessary.
@@ -30,7 +30,6 @@ class log_writer : public byref, public sigc::trackable {
 	private:
 		ball::ptr the_ball;
 		team::ptr west_team, east_team;
-		playtype_source &pt_source;
 
 		std::time_t last_frame_time;
 		file_descriptor log_file;

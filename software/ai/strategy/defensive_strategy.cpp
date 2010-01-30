@@ -82,7 +82,7 @@ namespace {
 
 	class defensive_strategy : public strategy {
 		public:
-			defensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
+			defensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
 			void tick();
 			void set_playtype(playtype::playtype t);
 			strategy_factory &get_factory();
@@ -97,7 +97,7 @@ namespace {
 			playtype::playtype current_playtype;
 	};
 
-	defensive_strategy::defensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src) {
+	defensive_strategy::defensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
 		// Initialize variables here (e.g. create the roles).
 
 		// Initialize: everybody a happy defender :)
@@ -136,14 +136,14 @@ namespace {
 	class defensive_strategy_factory : public strategy_factory {
 		public:
 			defensive_strategy_factory();
-			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
+			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
 	defensive_strategy_factory::defensive_strategy_factory() : strategy_factory("defensive Strategy") {
 	}
 
-	strategy::ptr defensive_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) {
-		strategy::ptr s(new defensive_strategy(ball, field, team, pt_src));
+	strategy::ptr defensive_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
+		strategy::ptr s(new defensive_strategy(ball, field, team));
 		return s;
 	}
 

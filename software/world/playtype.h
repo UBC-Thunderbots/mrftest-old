@@ -86,21 +86,5 @@ namespace playtype {
 	extern const playtype invert[];
 }
 
-//
-// Objects that provide system-wide playtype information implement this class.
-//
-class playtype_source {
-	public:
-		//
-		// Returns the current play type.
-		//
-		virtual playtype::playtype current_playtype() const = 0;
-
-		//
-		// Returns a signal that is fired whenever the play type changes.
-		//
-		virtual sigc::signal<void, playtype::playtype> &signal_playtype_changed() = 0;
-};
-
 #endif
 

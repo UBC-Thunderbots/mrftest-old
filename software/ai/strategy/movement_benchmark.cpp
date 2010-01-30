@@ -14,7 +14,7 @@
 namespace {
 	class movement_benchmark : public strategy {
 		public:
-			movement_benchmark(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
+			movement_benchmark(ball::ptr ball, field::ptr field, controlled_team::ptr team);
 			void tick();
 			void set_playtype(playtype::playtype t);
 			strategy_factory &get_factory();
@@ -58,7 +58,7 @@ namespace {
 	};
 	const int default_tasks_n = sizeof(default_tasks) / sizeof(default_tasks[0]);
 
-	movement_benchmark::movement_benchmark(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src), tasks(default_tasks, default_tasks + default_tasks_n), done(0), prev_pos(0.0, 0.0), prev_ori(0) {
+	movement_benchmark::movement_benchmark(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team), tasks(default_tasks, default_tasks + default_tasks_n), done(0), prev_pos(0.0, 0.0), prev_ori(0) {
 		time_steps = 0;
 		done = false;
 		pos_dis_threshold = 1e-2;
@@ -112,14 +112,14 @@ namespace {
 	class movement_benchmark_factory : public strategy_factory {
 		public:
 			movement_benchmark_factory();
-			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
+			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
 	movement_benchmark_factory::movement_benchmark_factory() : strategy_factory("Movement Benchmark") {
 	}
 
-	strategy::ptr movement_benchmark_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) {
-		strategy::ptr s(new movement_benchmark(ball, field, team, pt_src));
+	strategy::ptr movement_benchmark_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
+		strategy::ptr s(new movement_benchmark(ball, field, team));
 		return s;
 	}
 

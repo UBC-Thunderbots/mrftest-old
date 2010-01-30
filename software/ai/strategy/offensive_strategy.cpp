@@ -110,7 +110,7 @@ namespace {
 
 	class offensive_strategy : public strategy {
 		public:
-			offensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
+			offensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
 			void tick();
 			void set_playtype(playtype::playtype t);
 			strategy_factory &get_factory();
@@ -130,7 +130,7 @@ namespace {
 							   // default robot will be the one closest to goal
 	};
 
-	offensive_strategy::offensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src) {
+	offensive_strategy::offensive_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
 		// Initialize variables here (e.g. create the roles).
 		
 		// Initialize: everybody a happy offender :)
@@ -253,14 +253,14 @@ namespace {
 	class offensive_strategy_factory : public strategy_factory {
 		public:
 			offensive_strategy_factory();
-			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
+			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
 	offensive_strategy_factory::offensive_strategy_factory() : strategy_factory("Offensive Strategy") {
 	}
 
-	strategy::ptr offensive_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) {
-		strategy::ptr s(new offensive_strategy(ball, field, team, pt_src));
+	strategy::ptr offensive_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
+		strategy::ptr s(new offensive_strategy(ball, field, team));
 		return s;
 	}
 

@@ -2,6 +2,7 @@
 #define WORLD_TEAM_H
 
 #include "world/player.h"
+#include "world/playtype.h"
 
 //
 // A group of robots controlled by one AI.
@@ -39,6 +40,11 @@ class team : public byref {
 		virtual bool yellow() const = 0;
 
 		//
+		// Gets the current play type, from this team's point of view.
+		//
+		virtual playtype::playtype current_playtype() const = 0;
+
+		//
 		// A signal emitted when a robot is added to the team. The new robot was
 		// added at the end of the team.
 		//
@@ -55,9 +61,17 @@ class team : public byref {
 			return sig_robot_removed;
 		}
 
+		//
+		// A signal emitted whenever the play type changes.
+		//
+		sigc::signal<void, playtype::playtype> &signal_playtype_changed() {
+			return sig_playtype_changed;
+		}
+
 	private:
 		sigc::signal<void> sig_robot_added;
 		sigc::signal<void, unsigned int, robot::ptr> sig_robot_removed;
+		sigc::signal<void, playtype::playtype> sig_playtype_changed;
 };
 
 //

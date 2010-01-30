@@ -12,7 +12,7 @@
 namespace {
 	class simple_strategy1 : public strategy {
 		public:
-			simple_strategy1(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
+			simple_strategy1(ball::ptr ball, field::ptr field, controlled_team::ptr team);
 			void tick();
 			void set_playtype(playtype::playtype t);
 			strategy_factory &get_factory();
@@ -31,7 +31,7 @@ namespace {
 			std::set< role::ptr > existingRoles_;
 	};
 
-	simple_strategy1::simple_strategy1(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src) {
+	simple_strategy1::simple_strategy1(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
 		// Get all robots currently assigned to the team
 		getAllRobots();
 		/* Assign the robots to their respective roles, if playtype has already
@@ -43,7 +43,7 @@ namespace {
 	void simple_strategy1::tick() {
 		// Use the variables "ball", "field", and "team" to allocate players to roles.
 
-		switch (pt_source.current_playtype()) {
+		switch (the_team->current_playtype()) {
 		case playtype::halt:
 			clearRoles();
 			break;
@@ -109,14 +109,14 @@ namespace {
 	class simple_strategy1_factory : public strategy_factory {
 		public:
 			simple_strategy1_factory();
-			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
+			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
 	simple_strategy1_factory::simple_strategy1_factory() : strategy_factory("Simple Strategy 1") {
 	}
 
-	strategy::ptr simple_strategy1_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) {
-		strategy::ptr s(new simple_strategy1(ball, field, team, pt_src));
+	strategy::ptr simple_strategy1_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
+		strategy::ptr s(new simple_strategy1(ball, field, team));
 		return s;
 	}
 

@@ -45,7 +45,7 @@ namespace {
   
   class kenneth_simple_strategy : public strategy {
   public:
-    kenneth_simple_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
+    kenneth_simple_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
     void tick();
     void set_playtype(playtype::playtype t);
     strategy_factory &get_factory();
@@ -77,7 +77,7 @@ namespace {
     player::ptr goalie_player;
   };
   
-  kenneth_simple_strategy::kenneth_simple_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src) {
+  kenneth_simple_strategy::kenneth_simple_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
     // Initialize variables here (e.g. create the roles).
     turn_since_last_update = 0;
     possession_confidence = 1.0;
@@ -93,7 +93,7 @@ namespace {
     if (turn_since_last_update % 40 == 0)
       {  std::cout << "tick" << turn_since_last_update << std::endl;
       }
-    switch (pt_source.current_playtype())
+    switch (the_team->current_playtype())
     {
 //      case playtype::halt: break;
 //      case playtype::stop: break;
@@ -462,7 +462,7 @@ namespace {
     ////////////////////
     // Switch play type
     ///////////////////
-    switch (pt_source.current_playtype())
+    switch (the_team->current_playtype())
       {
       case playtype::halt:
         roles.push_back(role::ptr(new halt(the_ball, the_field, the_team)));
@@ -584,7 +584,7 @@ namespace {
     // Only assign goalie role for valid play type
     // In these cases the goalie role is the last role in the vector.
     ///////////////////////
-    switch (pt_source.current_playtype())
+    switch (the_team->current_playtype())
     {
         case playtype::halt: break;
         case playtype::stop: break;
@@ -630,14 +630,14 @@ namespace {
   class kenneth_simple_strategy_factory : public strategy_factory {
   public:
     kenneth_simple_strategy_factory();
-    strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
+    strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
   };
 
   kenneth_simple_strategy_factory::kenneth_simple_strategy_factory() : strategy_factory("Kenneth Simple Strategy") {
   }
 
-  strategy::ptr kenneth_simple_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) {
-    strategy::ptr s(new kenneth_simple_strategy(ball, field, team, pt_src));
+  strategy::ptr kenneth_simple_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
+    strategy::ptr s(new kenneth_simple_strategy(ball, field, team));
     return s;
   }
   

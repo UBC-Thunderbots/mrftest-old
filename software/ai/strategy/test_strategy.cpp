@@ -10,7 +10,7 @@
 namespace {
 	class test_strategy : public strategy {
 		public:
-			test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
+			test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
 			void tick();
 			void set_playtype(playtype::playtype t);
 			strategy_factory &get_factory();
@@ -20,7 +20,7 @@ namespace {
 		private:
 	};
 
-	test_strategy::test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src) {
+	test_strategy::test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
 
 	}
 
@@ -108,14 +108,14 @@ namespace {
 	class test_strategy_factory : public strategy_factory {
 		public:
 			test_strategy_factory();
-			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
+			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
 	test_strategy_factory::test_strategy_factory() : strategy_factory("Test(Tactics) Strategy") {
 	}
 
-	strategy::ptr test_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) {
-		strategy::ptr s(new test_strategy(ball, field, team, pt_src));
+	strategy::ptr test_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
+		strategy::ptr s(new test_strategy(ball, field, team));
 		return s;
 	}
 

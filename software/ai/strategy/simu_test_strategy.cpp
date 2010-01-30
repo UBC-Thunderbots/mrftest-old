@@ -37,7 +37,7 @@ namespace simu_test{
 //auto_ref_setup = true;
 
 
-  simu_test_strategy::simu_test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src) {
+  simu_test_strategy::simu_test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
     // Initialize variables here (e.g. create the roles).
     test_id = 0;
     auto_ref_setup = true;
@@ -446,14 +446,14 @@ namespace simu_test{
 	class simu_test_strategy_factory : public strategy_factory {
 		public:
 			simu_test_strategy_factory();
-			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
+			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
 	simu_test_strategy_factory::simu_test_strategy_factory() : strategy_factory("Simulator Test (For Jason)") {
 	}
 
-	strategy::ptr simu_test_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) {
-		strategy::ptr s(new simu_test_strategy(ball, field, team, pt_src));
+	strategy::ptr simu_test_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
+		strategy::ptr s(new simu_test_strategy(ball, field, team));
 		return s;
 	}
 

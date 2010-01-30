@@ -50,7 +50,7 @@ class strategy : public byref, public sigc::trackable {
 		// Constructs a new strategy. Call this constructor from subclass
 		// constructors.
 		//
-		strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
+		strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
 
 		//
 		// Called if a robot has been added to the team. It is expected that the
@@ -89,11 +89,6 @@ class strategy : public byref, public sigc::trackable {
 		// The team this strategy controls.
 		//
 		const controlled_team::ptr the_team;
-
-		//
-		// The source of play type information.
-		//
-		playtype_source &pt_source;
 };
 
 //
@@ -106,7 +101,7 @@ class strategy_factory : public registerable<strategy_factory> {
 		//
 		// Constructs a new strategy.
 		//
-		virtual strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) = 0;
+		virtual strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team) = 0;
 
 	protected:
 		//

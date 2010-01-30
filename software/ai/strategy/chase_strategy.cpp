@@ -5,7 +5,7 @@
 namespace {
 	class chase_strategy : public strategy {
 		public:
-			chase_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
+			chase_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
 			void tick();
 			void set_playtype(playtype::playtype t);
 			strategy_factory &get_factory();
@@ -15,7 +15,7 @@ namespace {
 		private:
 	};
 
-	chase_strategy::chase_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) : strategy(ball, field, team, pt_src) {
+	chase_strategy::chase_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
 	}
 
 	void chase_strategy::tick() {
@@ -42,14 +42,14 @@ namespace {
 	class chase_strategy_factory : public strategy_factory {
 		public:
 			chase_strategy_factory();
-			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
+			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
 	chase_strategy_factory::chase_strategy_factory() : strategy_factory("Chase Strategy") {
 	}
 
-	strategy::ptr chase_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) {
-		strategy::ptr s(new chase_strategy(ball, field, team, pt_src));
+	strategy::ptr chase_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
+		strategy::ptr s(new chase_strategy(ball, field, team));
 		return s;
 	}
 

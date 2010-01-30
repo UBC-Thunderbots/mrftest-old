@@ -58,7 +58,7 @@ namespace {
 
 
 
-log_writer::log_writer(clocksource &clksrc, ball::ptr theball, team::ptr wteam, team::ptr eteam, playtype_source &ptsrc) : the_ball(theball), west_team(wteam), east_team(eteam), pt_source(ptsrc), last_frame_time(std::time(0)), log_file(get_log_file_name(last_frame_time).c_str(), O_WRONLY | O_CREAT | O_EXCL), index_file(get_index_file_name(last_frame_time).c_str(), O_WRONLY | O_CREAT | O_EXCL), frame_count(0), byte_count(0), last_score_west(0), last_score_east(0) {
+log_writer::log_writer(clocksource &clksrc, ball::ptr theball, team::ptr wteam, team::ptr eteam) : the_ball(theball), west_team(wteam), east_team(eteam), last_frame_time(std::time(0)), log_file(get_log_file_name(last_frame_time).c_str(), O_WRONLY | O_CREAT | O_EXCL), index_file(get_index_file_name(last_frame_time).c_str(), O_WRONLY | O_CREAT | O_EXCL), frame_count(0), byte_count(0), last_score_west(0), last_score_east(0) {
 	clksrc.signal_tick().connect(sigc::mem_fun(*this, &log_writer::tick));
 }
 
@@ -171,7 +171,7 @@ void log_writer::tick() {
 	}
 
 	// Write the data for this frame.
-	encode_u8(log_buffer, (delta_time << 7) | (pt_source.current_playtype() << 2) | (delta_score_west << 1) | delta_score_east);
+	encode_u8(log_buffer, (delta_time << 7) | (west_team->current_playtype() << 2) | (delta_score_west << 1) | delta_score_east);
 	encode_u8(log_buffer, west_team->size());
 	encode_u8(log_buffer, east_team->size());
 	encode_u16(log_buffer, static_cast<int16_t>(the_ball->position().x * 1000.0));

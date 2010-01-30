@@ -13,7 +13,7 @@
 // DO NOT CHANGE THE ORDER OF THE VARIABLES IN THIS CLASS.
 // You may cause a segfault if you do.
 //
-class simulator : public playtype_source, public noncopyable, public sigc::trackable {
+class simulator : public noncopyable, public sigc::trackable {
 	public:
 		//
 		// Constructs a new simulator.

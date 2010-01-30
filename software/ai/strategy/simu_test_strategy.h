@@ -29,7 +29,7 @@ namespace simu_test{
  
   class simu_test_strategy : public strategy {
   public:
-    simu_test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src);
+    simu_test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
     void tick();
     void set_playtype(playtype::playtype t);
     strategy_factory &get_factory();

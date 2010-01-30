@@ -1,8 +1,9 @@
+#include "simulator/simulator.h"
 #include "simulator/team.h"
 #include "util/xml.h"
 #include "world/config.h"
 
-simulator_team_data::simulator_team_data(playtype_source &pt_src, bool invert_playtype, xmlpp::Element *xml, bool yellow, ball::ptr ball, field::ptr field) : pt_src(pt_src), invert_playtype(invert_playtype), score(0), yellow(yellow), controller_factory(0), west_view(new simulator_team_view(west_players, score, west_other, this->yellow)), east_view(new simulator_team_view(east_players, score, east_other, this->yellow)), xml(xml), the_ball(ball), the_field(field) {
+simulator_team_data::simulator_team_data(simulator &sim, bool invert_playtype, xmlpp::Element *xml, bool yellow, ball::ptr ball, field::ptr field) : the_simulator(sim), invert_playtype(invert_playtype), score(0), yellow(yellow), controller_factory(0), west_view(new simulator_team_view(*this, west_players, score, west_other, this->yellow)), east_view(new simulator_team_view(*this, east_players, score, east_other, this->yellow)), xml(xml), the_ball(ball), the_field(field) {
 	// Get the "players" attribute.
 	const Glib::ustring &players_string = xml->get_attribute_value("players");
 	unsigned int players = 0;
@@ -30,8 +31,8 @@ simulator_team_data::simulator_team_data(playtype_source &pt_src, bool invert_pl
 	// Set this controller.
 	set_controller_type(controller_name);
 
-	// Register for play type change event.
-	pt_src.signal_playtype_changed().connect(sigc::mem_fun(*this, &simulator_team_data::parent_pt_changed));
+	// Connect to the playtype change signal.
+	sim.signal_playtype_changed().connect(sigc::mem_fun(*this, &simulator_team_data::playtype_changed));
 }
 
 simulator_team_data::~simulator_team_data() {
@@ -68,7 +69,7 @@ void simulator_team_data::set_strategy(const Glib::ustring &name) {
 	if (factoryiter != factories.end()) {
 		strategy_factory *factory = factoryiter->second;
 		xmlpp::Element *xmlparams = xmlutil::strip(xmlutil::get_only_child_keyed(xmlstrategies, "params", "strategy", name));
-		strat = factory->create_strategy(xmlparams, the_ball, the_field, yellow ? west_view : east_view, *this);
+		strat = factory->create_strategy(xmlparams, the_ball, the_field, yellow ? west_view : east_view);
 	}
 
 	// Lock in the strategy.
@@ -160,5 +161,17 @@ void simulator_team_data::remove_player(unsigned int index) {
 	// Remove the player from the engine.
 	if (engine)
 		engine->remove_player(impl);
+}
+
+playtype::playtype simulator_team_data::current_playtype() const {
+	if (invert_playtype)
+		return playtype::invert[the_simulator.current_playtype()];
+	else
+		return the_simulator.current_playtype();
+}
+
+void simulator_team_data::playtype_changed(playtype::playtype) {
+	west_view->signal_playtype_changed().emit(current_playtype());
+	east_view->signal_playtype_changed().emit(current_playtype());
 }
 
