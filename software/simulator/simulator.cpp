@@ -8,13 +8,25 @@ simulator::simulator(xmlpp::Element *xml, clocksource &clk) : cur_playtype(playt
 	west_team.set_other(east_team.west_view, east_team.east_view);
 	east_team.set_other(west_team.west_view, west_team.east_view);
 
-	// Set the appropriate engine.
+	// Get the names of the engine and autoref implementations. We must do this
+	// here, before creating either object, because when we create an engine, it
+	// destroys and recreates the autoref, and it does so through the
+	// set_autoref() function. However, if we have a real autoref named in the
+	// configuration file but it hasn't been instantiated yet because we haven't
+	// gotten to calling set_autoref(), this will replace the configuration
+	// file's value with "No Autoref", because the autoref object is initially
+	// null in set_engine(). Putting set_autoref() first would be inefficient,
+	// because the autoref would be created, destroyed, and created again. So
+	// instead, just read the names of the implementations here to shake out
+	// this weirdness.
 	xmlpp::Element *xmlengines = xmlutil::strip(xmlutil::get_only_child(xml, "engines"));
-	set_engine(xmlengines->get_attribute_value("active"));
-
-	// Set the appropriate autoref.
+	const Glib::ustring &engine_name = xmlengines->get_attribute_value("active");
 	xmlpp::Element *xmlautorefs = xmlutil::strip(xmlutil::get_only_child(xml, "autorefs"));
-	set_autoref(xmlautorefs->get_attribute_value("active"));
+	const Glib::ustring &autoref_name = xmlautorefs->get_attribute_value("active");
+
+	// Create the objects.
+	set_engine(engine_name);
+	set_autoref(autoref_name);
 
 	// Connect to the update tick.
 	clk.signal_tick().connect(sigc::mem_fun(*this, &simulator::tick));
