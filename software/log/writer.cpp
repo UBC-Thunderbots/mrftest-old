@@ -20,7 +20,7 @@ namespace {
 		std::tm *tim = std::localtime(&stamp);
 		char timebuf[256];
 		std::strftime(timebuf, sizeof(timebuf), "%Y-%m-%d %H:%M:%S %Z", tim);
-		const std::string &file = base + '/' + timebuf + '.' + extension;
+		const std::string &file = sub + '/' + timebuf + '.' + extension;
 		return file;
 	}
 
