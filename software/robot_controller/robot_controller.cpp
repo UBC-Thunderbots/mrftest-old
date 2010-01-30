@@ -3,13 +3,13 @@
 #include <stdexcept>
 
 namespace {
-	static std::map<Glib::ustring, robot_controller_factory *> &get_map() {
-		static std::map<Glib::ustring, robot_controller_factory *> objects;
+	static robot_controller_factory::map_type &get_map() {
+		static robot_controller_factory::map_type objects;
 		return objects;
 	}
 }
 
-const std::map<Glib::ustring, robot_controller_factory *> &robot_controller_factory::all() {
+const robot_controller_factory::map_type &robot_controller_factory::all() {
 	return get_map();
 }
 
