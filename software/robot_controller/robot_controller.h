@@ -3,6 +3,7 @@
 
 #include "geom/point.h"
 #include "util/byref.h"
+#include "util/registerable.h"
 
 class player_impl;
 class robot_controller_factory;
@@ -60,20 +61,8 @@ class robot_controller : public byref {
 //
 // A factory to construct robot_controllers.
 // 
-class robot_controller_factory : public noncopyable {
+class robot_controller_factory : public registerable<robot_controller_factory> {
 	public:
-		//
-		// The type of the map returned by the all() method.
-		//
-		typedef std::map<std::string, robot_controller_factory *> map_type;
-
-		//
-		// The name of the robot controllers created by this factory.
-		//
-		const Glib::ustring &name() const {
-			return the_name;
-		}
-
 		//
 		// Constructs a new robot_controller.
 		//
@@ -88,25 +77,12 @@ class robot_controller_factory : public noncopyable {
 		//
 		virtual robot_controller::ptr create_controller(Glib::RefPtr<player_impl> plr, bool yellow, unsigned int index) = 0;
 
-		//
-		// Gets the collection of all registered controller factories, keyed by
-		// name collate key.
-		//
-		static const map_type &all();
-
 	protected:
 		//
 		// Constructs a robot_controller_factory.
 		//
-		robot_controller_factory(const Glib::ustring &name);
-
-		//
-		// Destroys a robot_controller_factory.
-		//
-		virtual ~robot_controller_factory();
-
-	private:
-		Glib::ustring the_name;
+		robot_controller_factory(const Glib::ustring &name) : registerable<robot_controller_factory>(name) {
+		}
 };
 
 #endif

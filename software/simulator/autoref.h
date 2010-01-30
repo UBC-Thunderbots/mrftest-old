@@ -2,6 +2,7 @@
 #define SIMULATOR_AUTOREF_H
 
 #include "simulator/ball.h"
+#include "util/registerable.h"
 #include "world/player_impl.h"
 #include <vector>
 #include <libxml++/libxml++.h>
@@ -48,20 +49,8 @@ class autoref : public byref {
 // this class to provide a class which can create objects of a particular
 // derived implementation of autoref.
 //
-class autoref_factory : public noncopyable {
+class autoref_factory : public registerable<autoref_factory> {
 	public:
-		//
-		// The type of the map returned by autoref_factory::all().
-		//
-		typedef std::map<std::string, autoref_factory *> map_type;
-
-		//
-		// The name of the autoref constructed by this factory.
-		//
-		const Glib::ustring &name() const {
-			return the_name;
-		}
-
 		//
 		// Constructs a new autoref. The individual autoref should hold onto
 		// the simulator_ball_impl, references to the two vectors, and a
@@ -71,25 +60,12 @@ class autoref_factory : public noncopyable {
 		//
 		virtual autoref::ptr create_autoref(simulator &sim, simulator_ball_impl::ptr the_ball, std::vector<player_impl::ptr> &west_team, std::vector<player_impl::ptr> &east_team, xmlpp::Element *xml) = 0;
 
-		//
-		// Gets the collection of all registered autoref factories, keyed by
-		// name.
-		//
-		static const map_type &all();
-
 	protected:
 		//
 		// Constructs an autoref_factory.
 		//
-		autoref_factory(const Glib::ustring &name);
-
-		//
-		// Destroys an autoref_factory.
-		//
-		virtual ~autoref_factory();
-
-	private:
-		const Glib::ustring the_name;
+		autoref_factory(const Glib::ustring &name) : registerable<autoref_factory>(name) {
+		}
 };
 
 #endif

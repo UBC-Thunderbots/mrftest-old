@@ -34,7 +34,7 @@ simulator::simulator(xmlpp::Element *xml, clocksource &clk) : cur_playtype(playt
 
 void simulator::set_engine(const Glib::ustring &engine_name) {
 	// Get the name of the current autoref.
-	const Glib::ustring &autoref_name = ref ? ref->get_factory().name() : "No Autoref";
+	const Glib::ustring &autoref_name = ref ? ref->get_factory().name : "No Autoref";
 
 	// Get the "engines" XML element.
 	xmlpp::Element *xmlengines = xmlutil::get_only_child(xml, "engines");

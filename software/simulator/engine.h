@@ -2,6 +2,7 @@
 #define SIMULATOR_ENGINE_H
 
 #include "simulator/ball.h"
+#include "util/registerable.h"
 #include "world/player_impl.h"
 #include <libxml++/libxml++.h>
 
@@ -64,44 +65,19 @@ class simulator_engine : public byref {
 // extend this class to provide a class which can create objects of a particular
 // derived implementation of simulator_engine.
 //
-class simulator_engine_factory : public noncopyable {
+class simulator_engine_factory : public registerable<simulator_engine_factory> {
 	public:
-		//
-		// The type of the map returned by simulator_engine_factory::all().
-		//
-		typedef std::map<std::string, simulator_engine_factory *> map_type;
-
-		//
-		// The name of the simulation engine constructed by this factory.
-		//
-		const Glib::ustring &name() const {
-			return the_name;
-		}
-
 		//
 		// Constructs a new simulator_engine.
 		//
 		virtual simulator_engine::ptr create_engine(xmlpp::Element *xml) = 0;
 
-		//
-		// Gets the collection of all registered engine factories, keyed by name
-		// collate key.
-		//
-		static const map_type &all();
-
 	protected:
-		//
+		// 
 		// Constructs a simulator_engine_factory.
 		//
-		simulator_engine_factory(const Glib::ustring &name);
-
-		//
-		// Destroys a simulator_engine_factory.
-		//
-		virtual ~simulator_engine_factory();
-
-	private:
-		const Glib::ustring the_name;
+		simulator_engine_factory(const Glib::ustring &name) : registerable<simulator_engine_factory>(name) {
+		}
 };
 
 #endif

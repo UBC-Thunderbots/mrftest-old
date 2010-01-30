@@ -33,7 +33,7 @@ namespace simu_test{
 			void tick() {
 				
 
-			if(simu.west_team.get_strategy()->get_factory().name() ==	"Simulator Test (For Jason)"){
+			if(simu.west_team.get_strategy()->get_factory().name ==	"Simulator Test (For Jason)"){
 			
 			if(simu_test_strategy::auto_ref_setup){
 			

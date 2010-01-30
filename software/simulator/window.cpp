@@ -82,10 +82,10 @@ class engine_chooser : public Gtk::ComboBoxText {
 			append_text("No Engine");
 			const simulator_engine_factory::map_type &m = simulator_engine_factory::all();
 			for (simulator_engine_factory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i)
-				append_text(i->second->name());
+				append_text(i->second->name);
 			simulator_engine::ptr engine = sim.get_engine();
 			if (engine) {
-				set_active_text(engine->get_factory().name());
+				set_active_text(engine->get_factory().name);
 			} else {
 				set_active_text("No Engine");
 			}
@@ -120,10 +120,10 @@ class autoref_chooser : public Gtk::ComboBoxText {
 			append_text("No Autoref");
 			const autoref_factory::map_type &m = autoref_factory::all();
 			for (autoref_factory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i)
-				append_text(i->second->name());
+				append_text(i->second->name);
 			autoref::ptr ref = sim.get_autoref();
 			if (ref) {
-				set_active_text(ref->get_factory().name());
+				set_active_text(ref->get_factory().name);
 			} else {
 				set_active_text("No Autoref");
 			}
@@ -231,10 +231,10 @@ class strategy_chooser : public Gtk::ComboBoxText {
 			append_text("No Strategy");
 			const strategy_factory::map_type &m = strategy_factory::all();
 			for (strategy_factory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i)
-				append_text(i->second->name());
+				append_text(i->second->name);
 			strategy::ptr strat = team.get_strategy();
 			if (strat) {
-				set_active_text(strat->get_factory().name());
+				set_active_text(strat->get_factory().name);
 			} else {
 				set_active_text("No Strategy");
 			}
@@ -317,9 +317,9 @@ class controller_chooser : public Gtk::ComboBoxText {
 			append_text("No Controller");
 			const robot_controller_factory::map_type &m = robot_controller_factory::all();
 			for (robot_controller_factory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i)
-				append_text(i->second->name());
+				append_text(i->second->name);
 			if (current)
-				set_active_text(current->name());
+				set_active_text(current->name);
 			else
 				set_active_text("No Controller");
 			initializing = false;

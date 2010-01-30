@@ -1,6 +1,7 @@
 #ifndef AI_STRATEGY_H
 #define AI_STRATEGY_H
 
+#include "util/registerable.h"
 #include "world/ball.h"
 #include "world/field.h"
 #include "world/playtype.h"
@@ -100,44 +101,19 @@ class strategy : public byref, public sigc::trackable {
 // extend this class to provide an object which can constructs its "strategy"
 // objects.
 //
-class strategy_factory : public noncopyable {
+class strategy_factory : public registerable<strategy_factory> {
 	public:
-		//
-		// The type of the map returned by strategy_factory::all().
-		//
-		typedef std::map<std::string, strategy_factory *> map_type;
-
-		//
-		// The name of the strategy constructed by this factory.
-		//
-		const Glib::ustring &name() const {
-			return the_name;
-		}
-
 		//
 		// Constructs a new strategy.
 		//
 		virtual strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) = 0;
 
-		//
-		// Gets a collection of all registered strategy factories, keyed by name
-		// collate key.
-		//
-		static const map_type &all();
-
 	protected:
 		//
 		// Constructs a strategy_factory.
 		//
-		strategy_factory(const Glib::ustring &name);
-
-		//
-		// Destroys a strategy_factory.
-		//
-		virtual ~strategy_factory();
-
-	private:
-		const Glib::ustring the_name;
+		strategy_factory(const Glib::ustring &name) : registerable<strategy_factory>(name) {
+		}
 };
 
 #endif

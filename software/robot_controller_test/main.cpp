@@ -38,7 +38,7 @@ int main() {
 	const robot_controller_factory::map_type &factories = robot_controller_factory::all();
 	std::vector<Glib::ustring> names;
 	for (robot_controller_factory::map_type::const_iterator i = factories.begin(), iend = factories.end(); i != iend; ++i)
-		names.push_back(i->second->name());
+		names.push_back(i->second->name);
 	std::cout << "These controllers are available:\n";
 	for (unsigned int i = 0; i < names.size(); i++)
 		std::cout << '[' << (i + 1) << "]\t" << Glib::locale_from_utf8(names[i]) << '\n';
