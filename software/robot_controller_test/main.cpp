@@ -35,9 +35,9 @@ int main() {
 	player::ptr test_player(new player(test_player_impl, false));
 
 	// Create the controller under test.
-	const std::map<Glib::ustring, robot_controller_factory *> &factories = robot_controller_factory::all();
+	const robot_controller_factory::map_type &factories = robot_controller_factory::all();
 	std::vector<Glib::ustring> names;
-	for (std::map<Glib::ustring, robot_controller_factory *>::const_iterator i = factories.begin(), iend = factories.end(); i != iend; ++i)
+	for (robot_controller_factory::map_type::const_iterator i = factories.begin(), iend = factories.end(); i != iend; ++i)
 		names.push_back(i->first);
 	std::cout << "These controllers are available:\n";
 	for (unsigned int i = 0; i < names.size(); i++)
