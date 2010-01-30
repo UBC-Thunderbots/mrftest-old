@@ -200,7 +200,7 @@ class simulator_team_view : public controlled_team {
 		//
 		// Constructs a new simulator_team_view.
 		//
-		simulator_team_view(const simulator_team_data &data, const std::vector<player::ptr> &players, const unsigned int &score, const team::ptr &other, const bool &yellow) : data(data), players(players), the_score(score), the_other(other), the_yellow(yellow) {
+		simulator_team_view(const simulator_team_data &data, const std::vector<player::ptr> &players, const team::ptr &other) : data(data), players(players), the_other(other) {
 		}
 
 		//
@@ -222,7 +222,7 @@ class simulator_team_view : public controlled_team {
 		// Gets the team's score.
 		//
 		unsigned int score() const {
-			return the_score;
+			return data.score;
 		}
 
 		//
@@ -236,7 +236,7 @@ class simulator_team_view : public controlled_team {
 		// Gets the colour of the team.
 		//
 		bool yellow() const {
-			return the_yellow;
+			return data.yellow;
 		}
 
 		//
@@ -259,22 +259,10 @@ class simulator_team_view : public controlled_team {
 		const std::vector<player::ptr> &players;
 
 		//
-		// The score variable, stored in the corresponding simulator_team_data
-		// object.
-		//
-		const unsigned int &the_score;
-
-		//
 		// The pointer to the other team, stored in the corresponding
 		// simulator_team_data object.
 		//
 		const team::ptr &the_other;
-
-		//
-		// The colour of the team, stored in the corresponding
-		// simulator_team_data object.
-		//
-		const bool &the_yellow;
 };
 
 #endif

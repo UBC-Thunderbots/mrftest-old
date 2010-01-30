@@ -3,7 +3,7 @@
 #include "util/xml.h"
 #include "world/config.h"
 
-simulator_team_data::simulator_team_data(simulator &sim, bool invert_playtype, xmlpp::Element *xml, bool yellow, ball::ptr ball, field::ptr field) : the_simulator(sim), invert_playtype(invert_playtype), score(0), yellow(yellow), controller_factory(0), west_view(new simulator_team_view(*this, west_players, score, west_other, this->yellow)), east_view(new simulator_team_view(*this, east_players, score, east_other, this->yellow)), xml(xml), the_ball(ball), the_field(field) {
+simulator_team_data::simulator_team_data(simulator &sim, bool invert_playtype, xmlpp::Element *xml, bool yellow, ball::ptr ball, field::ptr field) : the_simulator(sim), invert_playtype(invert_playtype), score(0), yellow(yellow), controller_factory(0), west_view(new simulator_team_view(*this, west_players, west_other)), east_view(new simulator_team_view(*this, east_players, east_other)), xml(xml), the_ball(ball), the_field(field) {
 	// Get the "players" attribute.
 	const Glib::ustring &players_string = xml->get_attribute_value("players");
 	unsigned int players = 0;
