@@ -17,17 +17,23 @@
 class log_writer : public byref, public sigc::trackable {
 	public:
 		//
+		// A pointer to a log_writer.
+		//
+		typedef Glib::RefPtr<log_writer> ptr;
+
+		//
 		// Constructs a new log_writer. The log_writer will begin writing to the
 		// log immediately at the next tick.
 		//
-		log_writer(clocksource &clksrc, ball::ptr theball, team::ptr wteam, team::ptr eteam);
-
-		//
-		// Destroys a log_writer. The file is flushed if necessary.
-		// 
-		~log_writer();
+		static ptr create(clocksource &clksrc, ball::ptr theball, team::ptr wteam, team::ptr eteam) {
+			ptr p(new log_writer(clksrc, theball, wteam, eteam));
+			return p;
+		}
 
 	private:
+		log_writer(clocksource &clksrc, ball::ptr theball, team::ptr wteam, team::ptr eteam);
+		~log_writer();
+
 		ball::ptr the_ball;
 		team::ptr west_team, east_team;
 
