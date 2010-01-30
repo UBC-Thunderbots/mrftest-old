@@ -69,7 +69,7 @@ class simulator_engine_factory : public noncopyable {
 		//
 		// The type of the map returned by simulator_engine_factory::all().
 		//
-		typedef std::map<Glib::ustring, simulator_engine_factory *> map_type;
+		typedef std::map<std::string, simulator_engine_factory *> map_type;
 
 		//
 		// The name of the simulation engine constructed by this factory.
@@ -84,7 +84,8 @@ class simulator_engine_factory : public noncopyable {
 		virtual simulator_engine::ptr create_engine(xmlpp::Element *xml) = 0;
 
 		//
-		// Gets the collection of all registered engine factories, keyed by name.
+		// Gets the collection of all registered engine factories, keyed by name
+		// collate key.
 		//
 		static const map_type &all();
 

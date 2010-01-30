@@ -15,12 +15,12 @@ const autoref_factory::map_type &autoref_factory::all() {
 
 autoref_factory::autoref_factory(const Glib::ustring &name) : the_name(name) {
 	initialize_locale();
-	if (get_map().count(name))
+	if (get_map().count(name.collate_key()))
 		throw std::logic_error(Glib::locale_from_utf8(Glib::ustring::compose("Duplicate autoref name \"%1\"", name)));
-	get_map()[name] = this;
+	get_map()[name.collate_key()] = this;
 }
 
 autoref_factory::~autoref_factory() {
-	get_map().erase(name());
+	get_map().erase(name().collate_key());
 }
 

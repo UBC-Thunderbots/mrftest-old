@@ -65,7 +65,7 @@ class robot_controller_factory : public noncopyable {
 		//
 		// The type of the map returned by the all() method.
 		//
-		typedef std::map<Glib::ustring, robot_controller_factory *> map_type;
+		typedef std::map<std::string, robot_controller_factory *> map_type;
 
 		//
 		// The name of the robot controllers created by this factory.
@@ -89,7 +89,8 @@ class robot_controller_factory : public noncopyable {
 		virtual robot_controller::ptr create_controller(Glib::RefPtr<player_impl> plr, bool yellow, unsigned int index) = 0;
 
 		//
-		// Gets the collection of all registered controller factories, keyed by name.
+		// Gets the collection of all registered controller factories, keyed by
+		// name collate key.
 		//
 		static const map_type &all();
 

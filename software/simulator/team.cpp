@@ -63,7 +63,7 @@ void simulator_team_data::set_strategy(const Glib::ustring &name) {
 
 	// Find the strategy factory for this strategy type.
 	const strategy_factory::map_type &factories = strategy_factory::all();
-	strategy_factory::map_type::const_iterator factoryiter = factories.find(name);
+	strategy_factory::map_type::const_iterator factoryiter = factories.find(name.collate_key());
 	strategy::ptr strat;
 	if (factoryiter != factories.end()) {
 		strategy_factory *factory = factoryiter->second;
@@ -84,7 +84,7 @@ void simulator_team_data::set_strategy(const Glib::ustring &name) {
 void simulator_team_data::set_controller_type(const Glib::ustring &name) {
 	// Find the factory with this name.
 	const robot_controller_factory::map_type &m = robot_controller_factory::all();
-	robot_controller_factory::map_type::const_iterator i = m.find(name);
+	robot_controller_factory::map_type::const_iterator i = m.find(name.collate_key());
 	if (i != m.end()) {
 		controller_factory = i->second;
 	} else {

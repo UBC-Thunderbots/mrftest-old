@@ -41,7 +41,7 @@ void simulator::set_engine(const Glib::ustring &engine_name) {
 
 	// Find the engine factory for this engine type.
 	const simulator_engine_factory::map_type &factories = simulator_engine_factory::all();
-	simulator_engine_factory::map_type::const_iterator factoryiter = factories.find(engine_name);
+	simulator_engine_factory::map_type::const_iterator factoryiter = factories.find(engine_name.collate_key());
 	if (factoryiter != factories.end()) {
 		simulator_engine_factory *factory = factoryiter->second;
 		xmlpp::Element *xmlparams = xmlutil::strip(xmlutil::get_only_child_keyed(xmlengines, "params", "engine", engine_name));
@@ -79,7 +79,7 @@ void simulator::set_autoref(const Glib::ustring &autoref_name) {
 
 	// Find the autoref factory for this autoref type.
 	const autoref_factory::map_type &factories = autoref_factory::all();
-	autoref_factory::map_type::const_iterator factoryiter = factories.find(autoref_name);
+	autoref_factory::map_type::const_iterator factoryiter = factories.find(autoref_name.collate_key());
 	if (factoryiter != factories.end()) {
 		autoref_factory *factory = factoryiter->second;
 		xmlpp::Element *xmlparams = xmlutil::strip(xmlutil::get_only_child_keyed(xmlautorefs, "params", "autoref", autoref_name));

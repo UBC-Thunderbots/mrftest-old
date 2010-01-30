@@ -53,7 +53,7 @@ class autoref_factory : public noncopyable {
 		//
 		// The type of the map returned by autoref_factory::all().
 		//
-		typedef std::map<Glib::ustring, autoref_factory *> map_type;
+		typedef std::map<std::string, autoref_factory *> map_type;
 
 		//
 		// The name of the autoref constructed by this factory.

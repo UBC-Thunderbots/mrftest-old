@@ -82,7 +82,7 @@ class engine_chooser : public Gtk::ComboBoxText {
 			append_text("No Engine");
 			const simulator_engine_factory::map_type &m = simulator_engine_factory::all();
 			for (simulator_engine_factory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i)
-				append_text(i->first);
+				append_text(i->second->name());
 			simulator_engine::ptr engine = sim.get_engine();
 			if (engine) {
 				set_active_text(engine->get_factory().name());
@@ -120,7 +120,7 @@ class autoref_chooser : public Gtk::ComboBoxText {
 			append_text("No Autoref");
 			const autoref_factory::map_type &m = autoref_factory::all();
 			for (autoref_factory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i)
-				append_text(i->first);
+				append_text(i->second->name());
 			autoref::ptr ref = sim.get_autoref();
 			if (ref) {
 				set_active_text(ref->get_factory().name());
@@ -231,7 +231,7 @@ class strategy_chooser : public Gtk::ComboBoxText {
 			append_text("No Strategy");
 			const strategy_factory::map_type &m = strategy_factory::all();
 			for (strategy_factory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i)
-				append_text(i->first);
+				append_text(i->second->name());
 			strategy::ptr strat = team.get_strategy();
 			if (strat) {
 				set_active_text(strat->get_factory().name());
@@ -317,7 +317,7 @@ class controller_chooser : public Gtk::ComboBoxText {
 			append_text("No Controller");
 			const robot_controller_factory::map_type &m = robot_controller_factory::all();
 			for (robot_controller_factory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i)
-				append_text(i->first);
+				append_text(i->second->name());
 			if (current)
 				set_active_text(current->name());
 			else

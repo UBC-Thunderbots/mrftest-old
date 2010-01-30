@@ -105,7 +105,7 @@ class strategy_factory : public noncopyable {
 		//
 		// The type of the map returned by strategy_factory::all().
 		//
-		typedef std::map<Glib::ustring, strategy_factory *> map_type;
+		typedef std::map<std::string, strategy_factory *> map_type;
 
 		//
 		// The name of the strategy constructed by this factory.
@@ -120,7 +120,8 @@ class strategy_factory : public noncopyable {
 		virtual strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team, playtype_source &pt_src) = 0;
 
 		//
-		// Gets a collection of all registered strategy factories, keyed by name.
+		// Gets a collection of all registered strategy factories, keyed by name
+		// collate key.
 		//
 		static const map_type &all();
 

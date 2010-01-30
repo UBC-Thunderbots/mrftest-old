@@ -38,7 +38,7 @@ int main() {
 	const robot_controller_factory::map_type &factories = robot_controller_factory::all();
 	std::vector<Glib::ustring> names;
 	for (robot_controller_factory::map_type::const_iterator i = factories.begin(), iend = factories.end(); i != iend; ++i)
-		names.push_back(i->first);
+		names.push_back(i->second->name());
 	std::cout << "These controllers are available:\n";
 	for (unsigned int i = 0; i < names.size(); i++)
 		std::cout << '[' << (i + 1) << "]\t" << Glib::locale_from_utf8(names[i]) << '\n';
@@ -50,7 +50,7 @@ int main() {
 		std::cerr << "Invalid controller number chosen.\n";
 		return 1;
 	}
-	robot_controller::ptr controller = factories.find(names[controller_index - 1])->second->create_controller(test_player_impl, false, 1);
+	robot_controller::ptr controller = factories.find(names[controller_index - 1].collate_key())->second->create_controller(test_player_impl, false, 1);
 
 	// Attach the controller to the player.
 	test_player_impl->set_controller(controller);
