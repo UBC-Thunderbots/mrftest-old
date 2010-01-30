@@ -154,9 +154,6 @@ void log_writer::tick() {
 	// block header.
 	if (delta_time > 1 || !is_ok_delta_score(delta_score_west) || !is_ok_delta_score(delta_score_east)) {
 		flush();
-		delta_time = 0;
-		delta_score_west = 0;
-		delta_score_east = 0;
 	}
 
 	// Write a header if needed.
@@ -168,6 +165,9 @@ void log_writer::tick() {
 		encode_u64(log_buffer, frame_count);
 		encode_u32(log_buffer, last_score_west);
 		encode_u32(log_buffer, last_score_east);
+		delta_time = 0;
+		delta_score_west = 0;
+		delta_score_east = 0;
 	}
 
 	// Write the data for this frame.
