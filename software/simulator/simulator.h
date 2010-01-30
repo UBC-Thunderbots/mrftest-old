@@ -1,6 +1,7 @@
 #ifndef SIMULATOR_SIMULATOR_H
 #define SIMULATOR_SIMULATOR_H
 
+#include "log/writer.h"
 #include "simulator/autoref.h"
 #include "simulator/team.h"
 #include "util/clocksource.h"
@@ -66,6 +67,20 @@ class simulator : public noncopyable, public sigc::trackable {
 			sig_playtype_changed.emit(pt);
 		}
 
+		//
+		// Starts logging.
+		//
+		void start_logging() {
+			logger = log_writer::create(clksrc, west_ball, west_team.west_view, east_team.west_view);
+		}
+
+		//
+		// Stops logging.
+		//
+		void stop_logging() {
+			logger.reset();
+		}
+
 	private:
 		//
 		// The current play type.
@@ -113,6 +128,16 @@ class simulator : public noncopyable, public sigc::trackable {
 		// The configuration element.
 		//
 		xmlpp::Element *xml;
+
+		//
+		// The clock source.
+		//
+		clocksource &clksrc;
+
+		//
+		// The log writer.
+		//
+		log_writer::ptr logger;
 
 		//
 		// Handles a timer tick.

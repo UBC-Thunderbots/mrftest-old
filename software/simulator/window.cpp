@@ -40,7 +40,7 @@ class playtype_combo : public Gtk::ComboBoxText {
 //
 class simulation_controls : public Gtk::VBox {
 	public:
-		simulation_controls(simulator &sim, clocksource &simclk) : simclk(simclk), run_btn("Run"), pause_btn("Pause"), run_pause_box(Gtk::BUTTONBOX_SPREAD), playtype_cb(sim) {
+		simulation_controls(simulator &sim, clocksource &simclk) : sim(sim), simclk(simclk), run_btn("Run"), pause_btn("Pause"), run_pause_box(Gtk::BUTTONBOX_SPREAD), record_btn("Record"), record_stop_btn("Stop"), record_box(Gtk::BUTTONBOX_SPREAD), playtype_cb(sim) {
 			run_btn.signal_clicked().connect(sigc::mem_fun(*this, &simulation_controls::run_clicked));
 			pause_btn.signal_clicked().connect(sigc::mem_fun(*this, &simulation_controls::pause_clicked));
 			pause_btn.set_sensitive(false);
@@ -48,14 +48,25 @@ class simulation_controls : public Gtk::VBox {
 			run_pause_box.pack_start(run_btn);
 			run_pause_box.pack_start(pause_btn);
 
+			record_btn.signal_clicked().connect(sigc::mem_fun(*this, &simulation_controls::record_clicked));
+			record_stop_btn.signal_clicked().connect(sigc::mem_fun(*this, &simulation_controls::record_stop_clicked));
+			record_stop_btn.set_sensitive(false);
+
+			record_box.pack_start(record_btn);
+			record_box.pack_start(record_stop_btn);
+
 			pack_start(run_pause_box, false, false);
+			pack_start(record_box, false, false);
 			pack_start(playtype_cb, false, false);
 		}
 
 	private:
+		simulator &sim;
 		clocksource &simclk;
 		Gtk::Button run_btn, pause_btn;
 		Gtk::HButtonBox run_pause_box;
+		Gtk::Button record_btn, record_stop_btn;
+		Gtk::HButtonBox record_box;
 		playtype_combo playtype_cb;
 
 		void run_clicked() {
@@ -68,6 +79,18 @@ class simulation_controls : public Gtk::VBox {
 			run_btn.set_sensitive(true);
 			pause_btn.set_sensitive(false);
 			simclk.stop();
+		}
+
+		void record_clicked() {
+			record_btn.set_sensitive(false);
+			record_stop_btn.set_sensitive(true);
+			sim.start_logging();
+		}
+
+		void record_stop_clicked() {
+			record_btn.set_sensitive(true);
+			record_stop_btn.set_sensitive(false);
+			sim.stop_logging();
 		}
 };
 
