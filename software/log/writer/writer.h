@@ -1,5 +1,5 @@
-#ifndef LOG_WRITER_H
-#define LOG_WRITER_H
+#ifndef LOG_WRITER_WRITER_H
+#define LOG_WRITER_WRITER_H
 
 #include "util/byref.h"
 #include "util/clocksource.h"
