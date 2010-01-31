@@ -96,8 +96,7 @@ void log_writer::tick() {
 	// Take a timestamp.
 	std::time_t now = std::time(0);
 	std::time_t delta_time = now - last_frame_time;
-	int delta_score_west = west_team->score() - last_score_west;
-	int delta_score_east = east_team->score() - last_score_east;
+	int delta_scores[2] = {west_team->score() - last_score_west, east_team->score() - last_score_east};
 	last_frame_time = now;
 	last_score_west = west_team->score();
 	last_score_east = east_team->score();
@@ -113,36 +112,33 @@ void log_writer::tick() {
 	// Each frame record looks like this:
 	//  1 byte:
 	//   1 bit:  delta timestamp (0 or 1)
-	//   5 bits: play type
-	//   1 bit:  delta west score (0 or 1)
-	//   1 bit:  delta east score (0 or 1)
-	//  1 byte: # robots on west team
-	//  1 byte: # robots on east team
+	//   7 bits: play type
 	//  2 bytes: ball X position
 	//  2 bytes: ball Y position
-	//  For each robot (west team first, then east team):
-	//   2 bytes: X position
-	//   2 bytes: Y position
-	//   2 bytes: orientation
+	//  For each team (west then east):
+	//   1 byte:
+	//    1 bit:  colour (1=yellow, 0=blue)
+	//    1 bit:  delta score (1=increment, 0=no change)
+	//    6 bits: # robots on team
+	//   For each robot:
+	//    2 bytes: X position
+	//    2 bytes: Y position
+	//    2 bytes: orientation
 	//
 	// Positions are measured in millimetres.
 	// Orientations are measured in 10,000ths of radians.
-	//
-	// The first byte requires that we have no more than 32 play types. Check
-	// this at compile time.
-	typedef char ASSERTION_CHECK_PLAY_TYPE_COUNT[playtype::count > 32 ? -1 : 1];
 
-	// We require, with no exceptions, that there be no more than 255 robots per
+	// We require, with no exceptions, that there be no more than 63 robots per
 	// team.
-	if (west_team->size() > 255 || east_team->size() > 255) {
+	if (west_team->size() > 63 || east_team->size() > 63) {
 		throw std::runtime_error("Team too big to log!");
 	}
 
 	// Check if any changes have happened that require starting a new block.
 	bool new_header = false;
 	new_header = new_header || (delta_time > 1);
-	new_header = new_header || (!is_ok_delta_score(delta_score_west));
-	new_header = new_header || (!is_ok_delta_score(delta_score_east));
+	new_header = new_header || (!is_ok_delta_score(delta_scores[0]));
+	new_header = new_header || (!is_ok_delta_score(delta_scores[1]));
 	new_header = new_header || (field_length != last_field_length);
 	new_header = new_header || (field_total_length != last_field_total_length);
 	new_header = new_header || (field_width != last_field_width);
@@ -181,19 +177,17 @@ void log_writer::tick() {
 		encode_u16(log_buffer, field_defense_area_radius);
 		encode_u16(log_buffer, field_defense_area_stretch);
 		delta_time = 0;
-		delta_score_west = 0;
-		delta_score_east = 0;
+		delta_scores[0] = 0;
+		delta_scores[1] = 0;
 	}
 
 	// Write the data for this frame.
-	encode_u8(log_buffer, (delta_time << 7) | (west_team->current_playtype() << 2) | (delta_score_west << 1) | delta_score_east);
-	encode_u8(log_buffer, west_team->size());
-	encode_u8(log_buffer, east_team->size());
+	encode_u8(log_buffer, (delta_time << 7) | west_team->current_playtype());
 	encode_u16(log_buffer, static_cast<int16_t>(the_ball->position().x * 1000.0 + 0.49));
 	encode_u16(log_buffer, static_cast<int16_t>(the_ball->position().y * 1000.0 + 0.49));
 	team::ptr teams[2] = {west_team, east_team};
 	for (unsigned int tidx = 0; tidx < 2; ++tidx) {
-		encode_u8(log_buffer, teams[tidx]->size() | (teams[tidx]->yellow() ? (1 << 7) : 0));
+		encode_u8(log_buffer, teams[tidx]->size() | (teams[tidx]->yellow() ? (1 << 7) : 0) | (delta_scores[tidx] ? (1 << 6) : 0));
 		for (std::size_t i = 0; i < teams[tidx]->size(); ++i) {
 			robot::ptr bot = teams[tidx]->get_robot(i);
 			encode_u16(log_buffer, static_cast<int16_t>(bot->position().x * 1000.0 + 0.49));
