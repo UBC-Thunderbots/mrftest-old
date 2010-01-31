@@ -16,7 +16,7 @@ class visualizer : public Gtk::DrawingArea {
 		// Constructs a new visualizer. All objects should be given for the same
 		// coordinate system.
 		//
-		visualizer(const field::ptr field, const ball::ptr ball, const team::ptr west_team, const team::ptr east_team, clocksource &clk);
+		visualizer(const field::ptr field, const ball::ptr ball, const team::ptr west_team, const team::ptr east_team, clocksource &clk, bool draggable);
 
 	protected:
 		void on_size_allocate(Gtk::Allocation &);
@@ -27,6 +27,7 @@ class visualizer : public Gtk::DrawingArea {
 		bool on_leave_notify_event(GdkEventCrossing *);
 
 	private:
+		bool draggable;
 		double scale;
 		double xtranslate, ytranslate;
 		const field::ptr the_field;

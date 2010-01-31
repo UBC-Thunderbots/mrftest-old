@@ -5,7 +5,7 @@
 
 #include "uicomponents/visualizer.h"
 
-visualizer::visualizer(const field::ptr field, const ball::ptr ball, const team::ptr west_team, const team::ptr east_team, clocksource &clk) : scale(1), xtranslate(0), ytranslate(0), the_field(field), the_ball(ball), west_team(west_team), east_team(east_team) {
+visualizer::visualizer(const field::ptr field, const ball::ptr ball, const team::ptr west_team, const team::ptr east_team, clocksource &clk, bool draggable) : draggable(draggable), scale(1), xtranslate(0), ytranslate(0), the_field(field), the_ball(ball), west_team(west_team), east_team(east_team) {
 	set_size_request(600, 600);
 	add_events(Gdk::POINTER_MOTION_MASK);
 	add_events(Gdk::BUTTON_PRESS_MASK);
@@ -163,6 +163,10 @@ void visualizer::on_size_allocate(Gtk::Allocation &alloc) {
 }
 
 bool visualizer::on_button_press_event(GdkEventButton *evt) {
+	if (!draggable) {
+		return true;
+	}
+
 	if (evt->type == GDK_BUTTON_PRESS && evt->button == 1) {
 		// Calculate the location on the field.
 		point click(xtow(evt->x), ytow(evt->y));
