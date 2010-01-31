@@ -1,4 +1,3 @@
-#define __STDC_CONSTANT_MACROS
 #include "log/writer/writer.h"
 #include "util/codec.h"
 #include <stdexcept>
@@ -12,7 +11,6 @@
 
 namespace {
 	const std::size_t BLOCK_SIZE = 128 * 1024;
-	const uint64_t BLOCK_SIGNATURE = UINT64_C(0x5485485915675249);
 
 	std::string get_file_name(std::time_t stamp, const std::string &extension) {
 		const std::string &base = Glib::get_user_data_dir();
