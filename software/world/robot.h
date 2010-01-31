@@ -2,7 +2,8 @@
 #define WORLD_ROBOT_H
 
 #include "geom/angle.h"
-#include "world/robot.h"
+#include "world/draggable.h"
+#include "world/robot_impl.h"
 
 //
 // A robot can be either friendly or enemy. Vectors in this class are in team
