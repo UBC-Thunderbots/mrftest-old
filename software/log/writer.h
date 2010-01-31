@@ -5,6 +5,7 @@
 #include "util/clocksource.h"
 #include "util/fd.h"
 #include "world/ball.h"
+#include "world/field.h"
 #include "world/playtype.h"
 #include "world/team.h"
 #include <vector>
@@ -25,15 +26,16 @@ class log_writer : public byref, public sigc::trackable {
 		// Constructs a new log_writer. The log_writer will begin writing to the
 		// log immediately at the next tick.
 		//
-		static ptr create(clocksource &clksrc, ball::ptr theball, team::ptr wteam, team::ptr eteam) {
-			ptr p(new log_writer(clksrc, theball, wteam, eteam));
+		static ptr create(clocksource &clksrc, field::ptr thefield, ball::ptr theball, team::ptr wteam, team::ptr eteam) {
+			ptr p(new log_writer(clksrc, thefield, theball, wteam, eteam));
 			return p;
 		}
 
 	private:
-		log_writer(clocksource &clksrc, ball::ptr theball, team::ptr wteam, team::ptr eteam);
+		log_writer(clocksource &clksrc, field::ptr thefield, ball::ptr theball, team::ptr wteam, team::ptr eteam);
 		~log_writer();
 
+		field::ptr the_field;
 		ball::ptr the_ball;
 		team::ptr west_team, east_team;
 
@@ -42,6 +44,7 @@ class log_writer : public byref, public sigc::trackable {
 		file_descriptor index_file;
 		std::vector<uint8_t> log_buffer;
 		uint64_t frame_count, byte_count;
+		int16_t last_field_length, last_field_total_length, last_field_width, last_field_total_width, last_field_goal_width, last_field_centre_circle_radius, last_field_defense_area_radius, last_field_defense_area_stretch;
 		uint32_t last_score_west, last_score_east;
 
 		void flush();

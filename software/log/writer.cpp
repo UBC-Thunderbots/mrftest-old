@@ -58,7 +58,7 @@ namespace {
 
 
 
-log_writer::log_writer(clocksource &clksrc, ball::ptr theball, team::ptr wteam, team::ptr eteam) : the_ball(theball), west_team(wteam), east_team(eteam), last_frame_time(std::time(0)), log_file(get_log_file_name(last_frame_time).c_str(), O_WRONLY | O_CREAT | O_EXCL), index_file(get_index_file_name(last_frame_time).c_str(), O_WRONLY | O_CREAT | O_EXCL), frame_count(0), byte_count(0), last_score_west(0), last_score_east(0) {
+log_writer::log_writer(clocksource &clksrc, field::ptr thefield, ball::ptr theball, team::ptr wteam, team::ptr eteam) : the_field(thefield), the_ball(theball), west_team(wteam), east_team(eteam), last_frame_time(std::time(0)), log_file(get_log_file_name(last_frame_time).c_str(), O_WRONLY | O_CREAT | O_EXCL), index_file(get_index_file_name(last_frame_time).c_str(), O_WRONLY | O_CREAT | O_EXCL), frame_count(0), byte_count(0), last_score_west(0), last_score_east(0) {
 	clksrc.signal_tick().connect(sigc::mem_fun(*this, &log_writer::tick));
 }
 
@@ -121,6 +121,14 @@ void log_writer::tick() {
 	last_frame_time = now;
 	last_score_west = west_team->score();
 	last_score_east = east_team->score();
+	int16_t field_length = the_field->length() * 1000 + 0.49;
+	int16_t field_total_length = the_field->total_length() * 1000 + 0.49;
+	int16_t field_width = the_field->width() * 1000 + 0.49;
+	int16_t field_total_width = the_field->total_width() * 1000 + 0.49;
+	int16_t field_goal_width = the_field->goal_width() * 1000 + 0.49;
+	int16_t field_centre_circle_radius = the_field->centre_circle_radius() * 1000 + 0.49;
+	int16_t field_defense_area_radius = the_field->defense_area_radius() * 1000 + 0.49;
+	int16_t field_defense_area_stretch = the_field->defense_area_stretch() * 1000 + 0.49;
 
 	// Each frame record looks like this:
 	//  1 byte:
@@ -144,15 +152,26 @@ void log_writer::tick() {
 	// this at compile time.
 	typedef char ASSERTION_CHECK_PLAY_TYPE_COUNT[playtype::count > 32 ? -1 : 1];
 
-	// We require, with no exceptions, that there be no more than 255 robots per team.
+	// We require, with no exceptions, that there be no more than 255 robots per
+	// team.
 	if (west_team->size() > 255 || east_team->size() > 255) {
 		throw std::runtime_error("Team too big to log!");
 	}
 
-	// We also require that deltas of time and score be no more than 1. If they
-	// would be, flush the buffer to allow absolute values to be written in a
-	// block header.
-	if (delta_time > 1 || !is_ok_delta_score(delta_score_west) || !is_ok_delta_score(delta_score_east)) {
+	// Check if any changes have happened that require starting a new block.
+	bool new_header = false;
+	new_header = new_header || (delta_time > 1);
+	new_header = new_header || (!is_ok_delta_score(delta_score_west));
+	new_header = new_header || (!is_ok_delta_score(delta_score_east));
+	new_header = new_header || (field_length != last_field_length);
+	new_header = new_header || (field_total_length != last_field_total_length);
+	new_header = new_header || (field_width != last_field_width);
+	new_header = new_header || (field_total_width != last_field_total_width);
+	new_header = new_header || (field_goal_width != last_field_goal_width);
+	new_header = new_header || (field_centre_circle_radius != last_field_centre_circle_radius);
+	new_header = new_header || (field_defense_area_radius != last_field_defense_area_radius);
+	new_header = new_header || (field_defense_area_stretch != last_field_defense_area_stretch);
+	if (new_header) {
 		flush();
 	}
 
@@ -161,10 +180,26 @@ void log_writer::tick() {
 		last_frame_time = now;
 		last_score_west = west_team->score();
 		last_score_east = east_team->score();
+		last_field_length = field_length;
+		last_field_total_length = field_total_length;
+		last_field_width = field_width;
+		last_field_total_width = field_total_width;
+		last_field_goal_width = field_goal_width;
+		last_field_centre_circle_radius = field_centre_circle_radius;
+		last_field_defense_area_radius = field_defense_area_radius;
+		last_field_defense_area_stretch = field_defense_area_stretch;
 		encode_u64(log_buffer, last_frame_time);
 		encode_u64(log_buffer, frame_count);
 		encode_u32(log_buffer, last_score_west);
 		encode_u32(log_buffer, last_score_east);
+		encode_u16(log_buffer, field_length);
+		encode_u16(log_buffer, field_total_length);
+		encode_u16(log_buffer, field_width);
+		encode_u16(log_buffer, field_total_width);
+		encode_u16(log_buffer, field_goal_width);
+		encode_u16(log_buffer, field_centre_circle_radius);
+		encode_u16(log_buffer, field_defense_area_radius);
+		encode_u16(log_buffer, field_defense_area_stretch);
 		delta_time = 0;
 		delta_score_west = 0;
 		delta_score_east = 0;
@@ -174,19 +209,19 @@ void log_writer::tick() {
 	encode_u8(log_buffer, (delta_time << 7) | (west_team->current_playtype() << 2) | (delta_score_west << 1) | delta_score_east);
 	encode_u8(log_buffer, west_team->size());
 	encode_u8(log_buffer, east_team->size());
-	encode_u16(log_buffer, static_cast<int16_t>(the_ball->position().x * 1000.0));
-	encode_u16(log_buffer, static_cast<int16_t>(the_ball->position().y * 1000.0));
+	encode_u16(log_buffer, static_cast<int16_t>(the_ball->position().x * 1000.0 + 0.49));
+	encode_u16(log_buffer, static_cast<int16_t>(the_ball->position().y * 1000.0 + 0.49));
 	for (std::size_t i = 0; i < west_team->size(); ++i) {
 		robot::ptr bot = west_team->get_robot(i);
-		encode_u16(log_buffer, static_cast<int16_t>(bot->position().x * 1000.0));
-		encode_u16(log_buffer, static_cast<int16_t>(bot->position().y * 1000.0));
-		encode_u16(log_buffer, static_cast<int16_t>(bot->orientation() * 10000.0));
+		encode_u16(log_buffer, static_cast<int16_t>(bot->position().x * 1000.0 + 0.49));
+		encode_u16(log_buffer, static_cast<int16_t>(bot->position().y * 1000.0 + 0.49));
+		encode_u16(log_buffer, static_cast<int16_t>(bot->orientation() * 10000.0 + 0.49));
 	}
 	for (std::size_t i = 0; i < east_team->size(); ++i) {
 		robot::ptr bot = east_team->get_robot(i);
-		encode_u16(log_buffer, static_cast<int16_t>(bot->position().x * 1000.0));
-		encode_u16(log_buffer, static_cast<int16_t>(bot->position().y * 1000.0));
-		encode_u16(log_buffer, static_cast<int16_t>(bot->orientation() * 10000.0));
+		encode_u16(log_buffer, static_cast<int16_t>(bot->position().x * 1000.0 + 0.49));
+		encode_u16(log_buffer, static_cast<int16_t>(bot->position().y * 1000.0 + 0.49));
+		encode_u16(log_buffer, static_cast<int16_t>(bot->orientation() * 10000.0 + 0.49));
 	}
 
 	// If the buffer has reached the block size, flush it.

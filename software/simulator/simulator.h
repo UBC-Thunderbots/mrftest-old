@@ -71,7 +71,7 @@ class simulator : public noncopyable, public sigc::trackable {
 		// Starts logging.
 		//
 		void start_logging() {
-			logger = log_writer::create(clksrc, west_ball, west_team.west_view, east_team.west_view);
+			logger = log_writer::create(clksrc, fld, west_ball, west_team.west_view, east_team.west_view);
 		}
 
 		//
