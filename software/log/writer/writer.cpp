@@ -191,17 +191,15 @@ void log_writer::tick() {
 	encode_u8(log_buffer, east_team->size());
 	encode_u16(log_buffer, static_cast<int16_t>(the_ball->position().x * 1000.0 + 0.49));
 	encode_u16(log_buffer, static_cast<int16_t>(the_ball->position().y * 1000.0 + 0.49));
-	for (std::size_t i = 0; i < west_team->size(); ++i) {
-		robot::ptr bot = west_team->get_robot(i);
-		encode_u16(log_buffer, static_cast<int16_t>(bot->position().x * 1000.0 + 0.49));
-		encode_u16(log_buffer, static_cast<int16_t>(bot->position().y * 1000.0 + 0.49));
-		encode_u16(log_buffer, static_cast<int16_t>(bot->orientation() * 10000.0 + 0.49));
-	}
-	for (std::size_t i = 0; i < east_team->size(); ++i) {
-		robot::ptr bot = east_team->get_robot(i);
-		encode_u16(log_buffer, static_cast<int16_t>(bot->position().x * 1000.0 + 0.49));
-		encode_u16(log_buffer, static_cast<int16_t>(bot->position().y * 1000.0 + 0.49));
-		encode_u16(log_buffer, static_cast<int16_t>(bot->orientation() * 10000.0 + 0.49));
+	team::ptr teams[2] = {west_team, east_team};
+	for (unsigned int tidx = 0; tidx < 2; ++tidx) {
+		encode_u8(log_buffer, teams[tidx]->size() | (teams[tidx]->yellow() ? (1 << 7) : 0));
+		for (std::size_t i = 0; i < teams[tidx]->size(); ++i) {
+			robot::ptr bot = teams[tidx]->get_robot(i);
+			encode_u16(log_buffer, static_cast<int16_t>(bot->position().x * 1000.0 + 0.49));
+			encode_u16(log_buffer, static_cast<int16_t>(bot->position().y * 1000.0 + 0.49));
+			encode_u16(log_buffer, static_cast<int16_t>(bot->orientation() * 10000.0 + 0.49));
+		}
 	}
 
 	// Update the frame count.
