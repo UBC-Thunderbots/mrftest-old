@@ -397,6 +397,8 @@ class team_controls : public Gtk::VBox {
 
 			team_data.west_view->signal_robot_added().connect(sigc::mem_fun(*this, &team_controls::player_added));
 			team_data.west_view->signal_robot_removed().connect(sigc::mem_fun(*this, &team_controls::player_removed));
+
+			update_add_player_sensitivity();
 		}
 
 	private:
@@ -406,6 +408,7 @@ class team_controls : public Gtk::VBox {
 
 		void player_added() {
 			players_list.append_text(Glib::ustring::compose("%1", team_data.west_view->size() - 1));
+			update_add_player_sensitivity();
 		}
 
 		void del_player() {
@@ -422,6 +425,7 @@ class team_controls : public Gtk::VBox {
 
 		void player_removed(unsigned int, robot::ptr) {
 			update_model();
+			update_add_player_sensitivity();
 		}
 
 		void update_model() {
@@ -432,6 +436,10 @@ class team_controls : public Gtk::VBox {
 
 		void controller_changed(const Glib::ustring &c) {
 			team_data.set_controller_type(c);
+		}
+
+		void update_add_player_sensitivity() {
+			add_player_button.set_sensitive(team_data.west_view->size() < 127);
 		}
 
 		simulator_team_data &team_data;
