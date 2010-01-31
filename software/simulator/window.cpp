@@ -439,7 +439,7 @@ class team_controls : public Gtk::VBox {
 		}
 
 		void update_add_player_sensitivity() {
-			add_player_button.set_sensitive(team_data.west_view->size() < 127);
+			add_player_button.set_sensitive(team_data.west_view->size() < 63);
 		}
 
 		simulator_team_data &team_data;
