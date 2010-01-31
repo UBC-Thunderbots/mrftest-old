@@ -1,7 +1,7 @@
 #ifndef SIMULATOR_SIMULATOR_H
 #define SIMULATOR_SIMULATOR_H
 
-#include "log/writer.h"
+#include "log/writer/writer.h"
 #include "simulator/autoref.h"
 #include "simulator/team.h"
 #include "util/clocksource.h"

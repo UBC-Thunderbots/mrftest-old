@@ -140,8 +140,8 @@ software/leastsquares/spline3.cpp -text
 software/leastsquares/spline3.h -text
 software/leastsquares/svd.cpp -text
 software/leastsquares/svd.h -text
-software/log/writer.cpp -text
-software/log/writer.h -text
+software/log/writer/writer.cpp -text
+software/log/writer/writer.h -text
 software/main.cpp -text
 software/robot_controller/fuzzy_controller.cpp -text
 software/robot_controller/fuzzy_controller.h -text

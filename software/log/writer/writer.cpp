@@ -1,5 +1,5 @@
 #define __STDC_CONSTANT_MACROS
-#include "log/writer.h"
+#include "log/writer/writer.h"
 #include <stdexcept>
 #include <fcntl.h>
 #include <unistd.h>
