@@ -208,6 +208,7 @@ software/util/clocksource_quick.cpp -text
 software/util/clocksource_quick.h -text
 software/util/clocksource_timerfd.cpp -text
 software/util/clocksource_timerfd.h -text
+software/util/codec.h -text
 software/util/dprint.h -text
 software/util/fd.cpp -text
 software/util/fd.h -text

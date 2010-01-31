@@ -1,5 +1,6 @@
 #define __STDC_CONSTANT_MACROS
 #include "log/writer/writer.h"
+#include "util/codec.h"
 #include <stdexcept>
 #include <fcntl.h>
 #include <unistd.h>
@@ -30,25 +31,6 @@ namespace {
 
 	std::string get_index_file_name(std::time_t stamp) {
 		return get_file_name(stamp, "idx");
-	}
-
-	void encode_u8(std::vector<uint8_t> &v, uint8_t x) {
-		v.push_back(x);
-	}
-
-	void encode_u16(std::vector<uint8_t> &v, uint16_t x) {
-		encode_u8(v, x >> 8);
-		encode_u8(v, x);
-	}
-
-	void encode_u32(std::vector<uint8_t> &v, uint32_t x) {
-		encode_u16(v, x >> 16);
-		encode_u16(v, x);
-	}
-
-	void encode_u64(std::vector<uint8_t> &v, uint64_t x) {
-		encode_u32(v, x >> 32);
-		encode_u32(v, x);
 	}
 
 	bool is_ok_delta_score(int d) {
