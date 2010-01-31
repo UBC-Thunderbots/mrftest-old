@@ -46,6 +46,22 @@ namespace {
 		uint64_t low = decode_u32(buffer, i);
 		return (high << 32) | low;
 	}
+
+	uint8_t decode_u8(const std::vector<uint8_t> &buffer, std::size_t &i) {
+		return decode_u8(&buffer[0], i);
+	}
+
+	uint16_t decode_u16(const std::vector<uint8_t> &buffer, std::size_t &i) {
+		return decode_u16(&buffer[0], i);
+	}
+
+	uint32_t decode_u32(const std::vector<uint8_t> &buffer, std::size_t &i) {
+		return decode_u32(&buffer[0], i);
+	}
+
+	uint64_t decode_u64(const std::vector<uint8_t> &buffer, std::size_t &i) {
+		return decode_u64(&buffer[0], i);
+	}
 }
 
 #endif
