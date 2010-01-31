@@ -94,6 +94,9 @@ void log_writer::flush() {
 		throw std::runtime_error("Error writing to log file!");
 	}
 
+	// Update byte count to reflect newly written data.
+	byte_count += bzoutlen;
+
 	// Write an index record.
 	std::vector<uint8_t> index_record;
 	encode_u64(index_record, frame_count);
@@ -102,9 +105,6 @@ void log_writer::flush() {
 	if (ssz != static_cast<ssize_t>(index_record.size())) {
 		throw std::runtime_error("Error writing to log index file!");
 	}
-
-	// Update byte count to reflect newly written data.
-	byte_count += bzoutlen;
 
 	// Clear log buffer.
 	log_buffer.clear();
@@ -223,6 +223,9 @@ void log_writer::tick() {
 		encode_u16(log_buffer, static_cast<int16_t>(bot->position().y * 1000.0 + 0.49));
 		encode_u16(log_buffer, static_cast<int16_t>(bot->orientation() * 10000.0 + 0.49));
 	}
+
+	// Update the frame count.
+	++frame_count;
 
 	// If the buffer has reached the block size, flush it.
 	if (log_buffer.size() >= BLOCK_SIZE) {
