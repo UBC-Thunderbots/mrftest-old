@@ -2,6 +2,7 @@
 #define UICOMPONENTS_VISUALIZER_H
 
 #include "util/clocksource.h"
+#include "util/noncopyable.h"
 #include "world/ball.h"
 #include "world/field.h"
 #include "world/team.h"
@@ -10,7 +11,7 @@
 //
 // Displays a view of the field.
 //
-class visualizer : public Gtk::DrawingArea {
+class visualizer : public Gtk::DrawingArea, public noncopyable {
 	public:
 		//
 		// Constructs a new visualizer. All objects should be given for the same
