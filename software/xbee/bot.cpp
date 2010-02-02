@@ -24,10 +24,10 @@ void radio_bot::start() {
 	xbeeutil::address_to_bytes(address, out_packet.txhdr.address);
 	out_packet.txhdr.options = 0;
 	out_packet.flags = xbeepacket::RUN_FLAG_RUNNING;
-	out_packet.drive_speeds[0] = 0;
-	out_packet.drive_speeds[1] = 0;
-	out_packet.drive_speeds[2] = 0;
-	out_packet.drive_speeds[3] = 0;
+	out_packet.drive1_speed = 0;
+	out_packet.drive2_speed = 0;
+	out_packet.drive3_speed = 0;
+	out_packet.drive4_speed = 0;
 	out_packet.dribbler_speed = 0;
 	send_packet();
 }
@@ -63,10 +63,10 @@ void radio_bot::drive_controlled(int16_t m1, int16_t m2, int16_t m3, int16_t m4)
 void radio_bot::drive_impl(uint8_t flag, int16_t m1, int16_t m2, int16_t m3, int16_t m4) {
 	out_packet.flags &= ~(xbeepacket::RUN_FLAG_DIRECT_DRIVE | xbeepacket::RUN_FLAG_CONTROLLED_DRIVE);
 	out_packet.flags |= flag;
-	out_packet.drive_speeds[0] = m1;
-	out_packet.drive_speeds[1] = m2;
-	out_packet.drive_speeds[2] = m3;
-	out_packet.drive_speeds[3] = m4;
+	out_packet.drive1_speed = m1;
+	out_packet.drive2_speed = m2;
+	out_packet.drive3_speed = m3;
+	out_packet.drive4_speed = m4;
 }
 
 

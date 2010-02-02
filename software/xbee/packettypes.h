@@ -100,8 +100,11 @@ namespace xbeepacket {
 	struct __attribute__((packed)) RUN_DATA {
 		TRANSMIT_HDR txhdr;
 		uint8_t flags;
-		int16_t drive_speeds[4];
-		int16_t dribbler_speed;
+		signed drive1_speed : 11;
+		signed drive2_speed : 11;
+		signed drive3_speed : 11;
+		signed drive4_speed : 11;
+		signed dribbler_speed : 11;
 	};
 	const uint8_t RUN_FLAG_RUNNING = 0x80;
 	const uint8_t RUN_FLAG_DIRECT_DRIVE = 0x01;
