@@ -465,7 +465,9 @@ class team_controls : public Gtk::VBox {
 //
 class simulator_window_impl : public Gtk::Window {
 	public:
-		simulator_window_impl(simulator &sim, clocksource &simclk, clocksource &uiclk) : sim(sim), sim_ctls(sim, simclk), engine_ctls(sim, simclk), westteam_ctls(sim.west_team), eastteam_ctls(sim.east_team), vis(sim.fld, sim.west_ball, sim.west_team.west_view, sim.east_team.west_view, uiclk, true) {
+		simulator_window_impl(simulator &sim, clocksource &simclk, clocksource &uiclk) : sim(sim), sim_ctls(sim, simclk), engine_ctls(sim, simclk), westteam_ctls(sim.west_team), eastteam_ctls(sim.east_team), vis(sim.fld, sim.west_ball, sim.west_team.west_view, sim.east_team.west_view, true) {
+			uiclk.signal_tick().connect(sigc::mem_fun(vis, &visualizer::update));
+
 			set_title("Thunderbots Simulator");
 
 			vbox.pack_start(sim_ctls, false, false);

@@ -1,7 +1,6 @@
 #ifndef UICOMPONENTS_VISUALIZER_H
 #define UICOMPONENTS_VISUALIZER_H
 
-#include "util/clocksource.h"
 #include "util/noncopyable.h"
 #include "world/ball.h"
 #include "world/field.h"
@@ -17,7 +16,13 @@ class visualizer : public Gtk::DrawingArea, public noncopyable {
 		// Constructs a new visualizer. All objects should be given for the same
 		// coordinate system.
 		//
-		visualizer(const field::ptr field, const ball::ptr ball, const team::ptr west_team, const team::ptr east_team, clocksource &clk, bool draggable);
+		visualizer(const field::ptr field, const ball::ptr ball, const team::ptr west_team, const team::ptr east_team, bool draggable);
+
+		//
+		// Redraws the visualizer. This function needs to be called after each
+		// change to the state of the world.
+		//
+		void update();
 
 	protected:
 		void on_size_allocate(Gtk::Allocation &);
@@ -38,7 +43,6 @@ class visualizer : public Gtk::DrawingArea, public noncopyable {
 		draggable::ptr dragging, veldragging;
 		point dragged_velocity;
 
-		void update();
 		double xtog(double x) __attribute__((warn_unused_result)) { return  x * scale + xtranslate; }
 		double ytog(double y) __attribute__((warn_unused_result)) { return -y * scale + ytranslate; }
 		double atog(double r) __attribute__((warn_unused_result)) { return -r; }
