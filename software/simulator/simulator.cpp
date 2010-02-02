@@ -105,5 +105,7 @@ void simulator::tick() {
 	the_ball_impl->add_prediction_datum(the_ball_impl->position(), 0);
 	if (ref)
 		ref->tick();
+	if (logger)
+		logger->write_frame(fld, west_ball, west_team.west_view, east_team.east_view);
 }
 

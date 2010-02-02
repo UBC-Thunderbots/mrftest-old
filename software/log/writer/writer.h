@@ -22,21 +22,21 @@ class log_writer : public byref, public sigc::trackable {
 		typedef Glib::RefPtr<log_writer> ptr;
 
 		//
-		// Constructs a new log_writer. The log_writer will begin writing to the
-		// log immediately at the next tick.
+		// Constructs a new log_writer.
 		//
-		static ptr create(clocksource &clksrc, field::ptr thefield, ball::ptr theball, team::ptr wteam, team::ptr eteam) {
-			ptr p(new log_writer(clksrc, thefield, theball, wteam, eteam));
+		static ptr create() {
+			ptr p(new log_writer);
 			return p;
 		}
 
-	private:
-		log_writer(clocksource &clksrc, field::ptr thefield, ball::ptr theball, team::ptr wteam, team::ptr eteam);
-		~log_writer();
+		//
+		// Writes a frame to the log file.
+		//
+		void write_frame(field::ptr the_field, ball::ptr the_ball, team::ptr west_team, team::ptr east_team);
 
-		field::ptr the_field;
-		ball::ptr the_ball;
-		team::ptr west_team, east_team;
+	private:
+		log_writer();
+		~log_writer();
 
 		file_descriptor log_file;
 		file_descriptor index_file;
@@ -46,7 +46,6 @@ class log_writer : public byref, public sigc::trackable {
 		uint32_t last_score_west, last_score_east;
 
 		void flush();
-		void tick();
 };
 
 #endif

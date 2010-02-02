@@ -20,7 +20,7 @@ namespace {
 
 
 
-log_writer::log_writer(clocksource &clksrc, field::ptr thefield, ball::ptr theball, team::ptr wteam, team::ptr eteam) : the_field(thefield), the_ball(theball), west_team(wteam), east_team(eteam), frame_count(0), byte_count(0), last_score_west(0), last_score_east(0) {
+log_writer::log_writer() : frame_count(0), byte_count(0), last_score_west(0), last_score_east(0) {
 	const std::string &dir = Glib::get_user_data_dir() + "/thunderbots";
 	mkdir(dir.c_str(), 0777);
 	std::time_t stamp = std::time(0);
@@ -30,7 +30,6 @@ log_writer::log_writer(clocksource &clksrc, field::ptr thefield, ball::ptr theba
 	const std::string &basename = dir + '/' + timebuf;
 	log_file = file_descriptor((basename + ".log").c_str(), O_WRONLY | O_CREAT | O_EXCL);
 	index_file = file_descriptor((basename + ".idx").c_str(), O_WRONLY | O_CREAT | O_EXCL);
-	clksrc.signal_tick().connect(sigc::mem_fun(*this, &log_writer::tick));
 }
 
 
@@ -83,7 +82,7 @@ void log_writer::flush() {
 
 
 
-void log_writer::tick() {
+void log_writer::write_frame(field::ptr the_field, ball::ptr the_ball, team::ptr west_team, team::ptr east_team) {
 	// Take a snapshot of the world.
 	int delta_scores[2] = {west_team->score() - last_score_west, east_team->score() - last_score_east};
 	last_score_west = west_team->score();
