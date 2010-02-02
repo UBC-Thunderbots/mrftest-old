@@ -1,6 +1,6 @@
 #include "tester/matrix_drive.h"
 
-tester_control_matrix_drive::tester_control_matrix_drive() : Gtk::HBox(false, 10), column1(true, 0), drive1_label("Vx:"), drive2_label("Vy:"), drive3_label("Vt:"), column2(true, 0), drive1_scale(-10, 10.1, .1), drive2_scale(-10, 10.1, .1), drive3_scale(-20, 20.1, .1) {
+tester_control_matrix_drive::tester_control_matrix_drive() : Gtk::HBox(false, 10), column1(true, 0), drive1_label("Vx:"), drive2_label("Vy:"), drive3_label("Vt:"), column2(true, 0), drive1_scale(-10, 10, .1), drive2_scale(-10, 10, .1), drive3_scale(-20, 20, .1) {
 	column1.pack_start(drive1_label);
 	column1.pack_start(drive2_label);
 	column1.pack_start(drive3_label);
@@ -14,7 +14,9 @@ tester_control_matrix_drive::tester_control_matrix_drive() : Gtk::HBox(false, 10
 	drive1_scale.set_digits(1);
 	drive2_scale.set_digits(1);
 	drive3_scale.set_digits(1);
-
+	drive1_scale.get_adjustment()->set_page_size(0);
+	drive2_scale.get_adjustment()->set_page_size(0);
+	drive3_scale.get_adjustment()->set_page_size(0);
 	drive1_scale.signal_value_changed().connect(sigc::mem_fun(*this, &tester_control_matrix_drive::on_change));
 	drive2_scale.signal_value_changed().connect(sigc::mem_fun(*this, &tester_control_matrix_drive::on_change));
 	drive3_scale.signal_value_changed().connect(sigc::mem_fun(*this, &tester_control_matrix_drive::on_change));
