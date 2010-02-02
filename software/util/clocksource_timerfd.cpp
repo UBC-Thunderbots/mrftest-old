@@ -1,5 +1,6 @@
 #include "util/clocksource_timerfd.h"
 #include <stdexcept>
+#include <stdint.h>
 #include <sys/timerfd.h>
 
 namespace {
@@ -31,8 +32,8 @@ bool clocksource_timerfd::on_readable(Glib::IOCondition) {
 
 void clocksource_timerfd::start() {
 	itimerspec tspec;
-	tspec.it_interval.tv_sec  = nanoseconds / 1000000000ULL;
-	tspec.it_interval.tv_nsec = nanoseconds % 1000000000ULL;
+	tspec.it_interval.tv_sec  = nanoseconds / UINT64_C(1000000000);
+	tspec.it_interval.tv_nsec = nanoseconds % UINT64_C(1000000000);
 	tspec.it_value = tspec.it_interval;
 	if (timerfd_settime(tfd, 0, &tspec, 0) < 0)
 		throw std::runtime_error("Cannot start timerfd!");

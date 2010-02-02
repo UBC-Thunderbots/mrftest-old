@@ -298,7 +298,7 @@ int main(int argc, char **argv) {
 	if (do_world) {
 		std::cerr << "World operation is not implemented yet.\n";
 	} else if (do_sim) {
-		clocksource_timerfd time_clk(1000000000ULL / TIMESTEPS_PER_SECOND);
+		clocksource_timerfd time_clk(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND);
 		if (do_quick) {
 			clocksource_quick quick_clk;
 			time_clk.start();
