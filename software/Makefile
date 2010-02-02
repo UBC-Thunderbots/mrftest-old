@@ -22,7 +22,7 @@ LDFLAGS_xbeeconfig := $(LDFLAGS_common)
 #
 # Here, write the compiler flags to be used.
 #
-CXXFLAGS := -Wall -Wextra -O2 -fomit-frame-pointer -D_FILE_OFFSET_BITS=64 $(shell pkg-config --cflags glibmm-2.4 gtkmm-2.4 cairomm-1.0 libxml++-2.6 ode) $(CXXFLAGS) -I.
+CXXFLAGS := -Wall -Wextra -O2 -fomit-frame-pointer -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 $(shell pkg-config --cflags glibmm-2.4 gtkmm-2.4 cairomm-1.0 libxml++-2.6 ode) $(CXXFLAGS) -I.
 
 #
 # DO NOT MODIFY STUFF BELOW HERE WITHOUT A GOOD REASON.
