@@ -83,6 +83,34 @@ class log_reader : public byref {
 		//
 		uint64_t read_u64();
 
+		//
+		// Gets the field driven by this log file.
+		//
+		field::ptr get_field() const {
+			return fld;
+		}
+
+		//
+		// Gets the ball driven by this log file.
+		//
+		ball::ptr get_ball() const {
+			return the_ball;
+		}
+
+		//
+		// Gets the west team driven by this log file.
+		//
+		team::ptr get_west_team() const {
+			return west_team;
+		}
+
+		//
+		// Gets the east team driven by this log file.
+		//
+		team::ptr get_east_team() const {
+			return east_team;
+		}
+
 	private:
 		log_reader_logfile log_file;
 		log_reader_index index;
