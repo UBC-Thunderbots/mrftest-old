@@ -1,5 +1,6 @@
 #include "log/reader/reader.h"
 #include "util/codec.h"
+#include <algorithm>
 #include <limits>
 #include <stdexcept>
 #include <glibmm.h>
@@ -8,6 +9,19 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+
+
+namespace {
+	class filename_comparator {
+		public:
+			bool operator()(const std::string &x, const std::string &y) {
+				const Glib::ustring &dx = Glib::filename_display_name(x);
+				const Glib::ustring &dy = Glib::filename_display_name(y);
+				return dx < dy;
+			}
+	};
+}
 
 
 
@@ -25,6 +39,7 @@ std::vector<std::string> log_reader::all_logs() {
 				vec.push_back(elem.substr(0, elem.size() - 4));
 			}
 		}
+		std::sort(vec.begin(), vec.end(), filename_comparator());
 		return vec;
 	} catch (const Glib::FileError &err) {
 		if (err.code() == Glib::FileError::NO_SUCH_ENTITY) {
