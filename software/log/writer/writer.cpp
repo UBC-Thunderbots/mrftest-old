@@ -12,6 +12,7 @@
 
 namespace {
 	const std::size_t BLOCK_SIZE = 128 * 1024;
+	const uint64_t SIGNATURE = UINT64_C(0x4848614578615486);
 
 	bool is_ok_delta_score(int d) {
 		return d == 0 || d == 1;
@@ -147,6 +148,7 @@ void log_writer::write_frame(field::ptr the_field, ball::ptr the_ball, team::ptr
 		last_field_centre_circle_radius = field_centre_circle_radius;
 		last_field_defense_area_radius = field_defense_area_radius;
 		last_field_defense_area_stretch = field_defense_area_stretch;
+		encode_u64(log_buffer, SIGNATURE);
 		encode_u64(log_buffer, frame_count);
 		encode_u32(log_buffer, last_score_west);
 		encode_u32(log_buffer, last_score_east);

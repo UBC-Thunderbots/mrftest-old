@@ -21,6 +21,8 @@ namespace {
 				return dx < dy;
 			}
 	};
+
+	const uint64_t SIGNATURE = UINT64_C(0x4848614578615486);
 }
 
 
@@ -74,6 +76,9 @@ void log_reader::seek(uint64_t frame) {
 
 void log_reader::next_frame() {
 	if (!current_block_offset) {
+		if (read_u64() != SIGNATURE) {
+			throw std::runtime_error("Bad signature!");
+		}
 		uint64_t frame_count = read_u64();
 		assert(frame_count == current_frame + 1);
 		west_team->the_score = read_u32();
