@@ -74,7 +74,6 @@ void log_reader::seek(uint64_t frame) {
 
 void log_reader::next_frame() {
 	if (!current_block_offset) {
-		frame_time = read_u64();
 		uint64_t frame_count = read_u64();
 		assert(frame_count == current_frame + 1);
 		west_team->the_score = read_u32();
@@ -83,11 +82,8 @@ void log_reader::next_frame() {
 	}
 
 	uint8_t u8 = read_u8();
-	if (u8 & 0x80) {
-		++frame_time;
-	}
-	west_team->the_playtype = static_cast<playtype::playtype>(u8 & 0x7F);
-	east_team->the_playtype = playtype::invert[u8 & 0x7F];
+	west_team->the_playtype = static_cast<playtype::playtype>(u8);
+	east_team->the_playtype = playtype::invert[u8];
 	the_ball_impl->update();
 	west_team->update();
 	east_team->update();

@@ -1,6 +1,7 @@
 #include "log/writer/writer.h"
 #include "util/codec.h"
 #include <stdexcept>
+#include <ctime>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -12,25 +13,6 @@
 namespace {
 	const std::size_t BLOCK_SIZE = 128 * 1024;
 
-	std::string get_file_name(std::time_t stamp, const std::string &extension) {
-		const std::string &base = Glib::get_user_data_dir();
-		const std::string &sub = base + "/thunderbots";
-		mkdir(sub.c_str(), 0777);
-		std::tm *tim = std::localtime(&stamp);
-		char timebuf[256];
-		std::strftime(timebuf, sizeof(timebuf), "%Y-%m-%d %H:%M:%S %Z", tim);
-		const std::string &file = sub + '/' + timebuf + '.' + extension;
-		return file;
-	}
-
-	std::string get_log_file_name(std::time_t stamp) {
-		return get_file_name(stamp, "log");
-	}
-
-	std::string get_index_file_name(std::time_t stamp) {
-		return get_file_name(stamp, "idx");
-	}
-
 	bool is_ok_delta_score(int d) {
 		return d == 0 || d == 1;
 	}
@@ -38,7 +20,16 @@ namespace {
 
 
 
-log_writer::log_writer(clocksource &clksrc, field::ptr thefield, ball::ptr theball, team::ptr wteam, team::ptr eteam) : the_field(thefield), the_ball(theball), west_team(wteam), east_team(eteam), last_frame_time(std::time(0)), log_file(get_log_file_name(last_frame_time).c_str(), O_WRONLY | O_CREAT | O_EXCL), index_file(get_index_file_name(last_frame_time).c_str(), O_WRONLY | O_CREAT | O_EXCL), frame_count(0), byte_count(0), last_score_west(0), last_score_east(0) {
+log_writer::log_writer(clocksource &clksrc, field::ptr thefield, ball::ptr theball, team::ptr wteam, team::ptr eteam) : the_field(thefield), the_ball(theball), west_team(wteam), east_team(eteam), frame_count(0), byte_count(0), last_score_west(0), last_score_east(0) {
+	const std::string &dir = Glib::get_user_data_dir() + "/thunderbots";
+	mkdir(dir.c_str(), 0777);
+	std::time_t stamp = std::time(0);
+	std::tm *tim = std::localtime(&stamp);
+	char timebuf[256];
+	std::strftime(timebuf, sizeof(timebuf), "%Y-%m-%d %H:%M:%S %Z", tim);
+	const std::string &basename = dir + '/' + timebuf;
+	log_file = file_descriptor((basename + ".log").c_str(), O_WRONLY | O_CREAT | O_EXCL);
+	index_file = file_descriptor((basename + ".idx").c_str(), O_WRONLY | O_CREAT | O_EXCL);
 	clksrc.signal_tick().connect(sigc::mem_fun(*this, &log_writer::tick));
 }
 
@@ -93,11 +84,8 @@ void log_writer::flush() {
 
 
 void log_writer::tick() {
-	// Take a timestamp.
-	std::time_t now = std::time(0);
-	std::time_t delta_time = now - last_frame_time;
+	// Take a snapshot of the world.
 	int delta_scores[2] = {west_team->score() - last_score_west, east_team->score() - last_score_east};
-	last_frame_time = now;
 	last_score_west = west_team->score();
 	last_score_east = east_team->score();
 	int16_t field_length = the_field->length() * 1000 + 0.49;
@@ -110,9 +98,7 @@ void log_writer::tick() {
 	int16_t field_defense_area_stretch = the_field->defense_area_stretch() * 1000 + 0.49;
 
 	// Each frame record looks like this:
-	//  1 byte:
-	//   1 bit:  delta timestamp (0 or 1)
-	//   7 bits: play type
+	//  1 byte:  play type
 	//  2 bytes: ball X position
 	//  2 bytes: ball Y position
 	//  For each team (west then east):
@@ -136,7 +122,6 @@ void log_writer::tick() {
 
 	// Check if any changes have happened that require starting a new block.
 	bool new_header = false;
-	new_header = new_header || (delta_time > 1);
 	new_header = new_header || (!is_ok_delta_score(delta_scores[0]));
 	new_header = new_header || (!is_ok_delta_score(delta_scores[1]));
 	new_header = new_header || (field_length != last_field_length);
@@ -153,7 +138,6 @@ void log_writer::tick() {
 
 	// Write a header if needed.
 	if (log_buffer.empty()) {
-		last_frame_time = now;
 		last_score_west = west_team->score();
 		last_score_east = east_team->score();
 		last_field_length = field_length;
@@ -164,7 +148,6 @@ void log_writer::tick() {
 		last_field_centre_circle_radius = field_centre_circle_radius;
 		last_field_defense_area_radius = field_defense_area_radius;
 		last_field_defense_area_stretch = field_defense_area_stretch;
-		encode_u64(log_buffer, last_frame_time);
 		encode_u64(log_buffer, frame_count);
 		encode_u32(log_buffer, last_score_west);
 		encode_u32(log_buffer, last_score_east);
@@ -176,13 +159,12 @@ void log_writer::tick() {
 		encode_u16(log_buffer, field_centre_circle_radius);
 		encode_u16(log_buffer, field_defense_area_radius);
 		encode_u16(log_buffer, field_defense_area_stretch);
-		delta_time = 0;
 		delta_scores[0] = 0;
 		delta_scores[1] = 0;
 	}
 
 	// Write the data for this frame.
-	encode_u8(log_buffer, (delta_time << 7) | west_team->current_playtype());
+	encode_u8(log_buffer, west_team->current_playtype());
 	encode_u16(log_buffer, static_cast<int16_t>(the_ball->position().x * 1000.0 + 0.49));
 	encode_u16(log_buffer, static_cast<int16_t>(the_ball->position().y * 1000.0 + 0.49));
 	team::ptr teams[2] = {west_team, east_team};

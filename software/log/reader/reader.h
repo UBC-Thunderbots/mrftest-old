@@ -13,7 +13,6 @@
 #include <utility>
 #include <vector>
 #include <cstddef>
-#include <ctime>
 #include <stdint.h>
 
 //
@@ -122,7 +121,6 @@ class log_reader : public byref {
 		log_reader_ball::ptr the_ball_impl;
 		ball::ptr the_ball;
 		log_reader_team::ptr west_team, east_team;
-		std::time_t frame_time;
 
 		log_reader(const std::string &name);
 

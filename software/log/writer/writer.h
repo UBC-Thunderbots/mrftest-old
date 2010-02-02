@@ -9,7 +9,6 @@
 #include "world/playtype.h"
 #include "world/team.h"
 #include <vector>
-#include <ctime>
 #include <stdint.h>
 
 //
@@ -39,7 +38,6 @@ class log_writer : public byref, public sigc::trackable {
 		ball::ptr the_ball;
 		team::ptr west_team, east_team;
 
-		std::time_t last_frame_time;
 		file_descriptor log_file;
 		file_descriptor index_file;
 		std::vector<uint8_t> log_buffer;
