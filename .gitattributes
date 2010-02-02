@@ -154,6 +154,12 @@ software/log/reader/robot.cpp -text
 software/log/reader/robot.h -text
 software/log/reader/team.cpp -text
 software/log/reader/team.h -text
+software/log/tools/merger.cpp -text
+software/log/tools/merger.h -text
+software/log/tools/tool_launcher.cpp -text
+software/log/tools/tool_launcher.h -text
+software/log/tools/viewer.cpp -text
+software/log/tools/viewer.h -text
 software/log/writer/writer.cpp -text
 software/log/writer/writer.h -text
 software/main.cpp -text

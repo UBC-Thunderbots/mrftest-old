@@ -1,4 +1,5 @@
 #include "firmware/window.h"
+#include "log/tools/tool_launcher.h"
 #include "simulator/window.h"
 #include "tester/window.h"
 #include "util/args.h"
@@ -16,12 +17,14 @@
 #include <getopt.h>
 
 namespace {
-	const char SHORT_OPTIONS[] = "wsqftmh";
+	const char SHORT_OPTIONS[] = "wsqlftmh";
 	const option LONG_OPTIONS[] = {
 		{"world", no_argument, 0, 'w'},
 		{"simulator", no_argument, 0, 's'},
 		{"sim", no_argument, 0, 's'},
 		{"quick", no_argument, 0, 'q'},
+		{"log-viewer", no_argument, 0, 'l'},
+		{"log", no_argument, 0, 'l'},
 		{"firmware", no_argument, 0, 'f'},
 		{"test", no_argument, 0, 't'},
 		{"tester", no_argument, 0, 't'},
@@ -35,6 +38,7 @@ namespace {
 		std::cerr << "-w\n--world\n\tRuns the \"real-world\" driver using XBee and cameras.\n\n";
 		std::cerr << "-s\n--sim\n--simulator\n\tRuns the simulator.\n\n";
 		std::cerr << "-q\n--quick\n\tRuns in maximum-speed mode (only applicable to simulator).\n\n";
+		std::cerr << "-l\n--log\n--log-viewer\n\tRuns the log replayer.\n\n";
 		std::cerr << "-f\n--firwmare\n\tRuns the firmware manager.\n\n";
 		std::cerr << "-t\n--test\n--tester\n\tRuns the robot tester.\n\n";
 		std::cerr << "-m\n--modeminfo\n\tDisplays information about the attached XBee.\n\n";
@@ -248,7 +252,7 @@ int main(int argc, char **argv) {
 	Gtk::Main mn(argc, argv);
 
 	// Parse options.
-	unsigned int do_world = 0, do_sim = 0, do_quick = 0, do_firmware = 0, do_test = 0, do_modeminfo = 0, do_help = 0;
+	unsigned int do_world = 0, do_sim = 0, do_quick = 0, do_log = 0, do_firmware = 0, do_test = 0, do_modeminfo = 0, do_help = 0;
 	int ch;
 	while ((ch = getopt_long(argc, argv, SHORT_OPTIONS, LONG_OPTIONS, 0)) != -1)
 		switch (ch) {
@@ -262,6 +266,10 @@ int main(int argc, char **argv) {
 
 			case 'q':
 				do_quick++;
+				break;
+
+			case 'l':
+				do_log++;
 				break;
 
 			case 'f':
@@ -282,7 +290,7 @@ int main(int argc, char **argv) {
 		}
 
 	// Check for legal combinations of options.
-	if (do_help || (do_world + do_sim + do_firmware + do_test + do_modeminfo != 1)) {
+	if (do_help || (do_world + do_sim + do_log + do_firmware + do_test + do_modeminfo != 1)) {
 		usage(argv[0]);
 		return 1;
 	}
@@ -306,6 +314,9 @@ int main(int argc, char **argv) {
 		} else {
 			simulate(time_clk, time_clk);
 		}
+	} else if (do_log) {
+		log_tool_launcher launcher;
+		Gtk::Main::run();
 	} else if (do_firmware) {
 		manage_firmware();
 	} else if (do_test) {

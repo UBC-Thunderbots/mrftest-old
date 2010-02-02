@@ -18,6 +18,7 @@ software/geom/*.d
 software/leastsquares/*.d
 software/log/*.d
 software/log/reader/*.d
+software/log/tools/*.d
 software/log/writer/*.d
 software/rctest
 software/robot_controller/*.d
