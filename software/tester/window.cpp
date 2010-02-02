@@ -14,7 +14,7 @@
 class tester_window_impl : public Gtk::Window {
 	public:
 		tester_window_impl(xbee &modem, xmlpp::Element *xmlworld) : modem(modem), bot_frame("Bot"), bot_controls(xmlworld, *this), feedback_frame("Feedback"), command_frame("Commands"), drive_frame("Drive"), drive_widget(0), dribble_frame("Dribble"), dribble_checkbox("Enable Dribbler"), dribble_scale(-1023, 1023, 1) {
-			set_title("Thunderbots");
+			set_title("Robot Tester");
 
 			bot_controls.signal_address_changed().connect(sigc::mem_fun(*this, &tester_window_impl::address_changed));
 			bot_frame.add(bot_controls);
