@@ -54,7 +54,7 @@ std::vector<std::string> log_reader::all_logs() {
 
 
 
-log_reader::log_reader(const std::string &name) : log_file(name), index(name), the_size(index.size()), current_frame(0), fld(log_reader_field::create(*this)), the_ball_impl(log_reader_ball::create(*this)), the_ball(new ball(the_ball_impl, false)), west_team(log_reader_team::create(*this, false)), east_team(log_reader_team::create(*this, true)) {
+log_reader::log_reader(const std::string &name) : log_file(name), index(name), the_size(index.size()), current_frame(0), fld(log_reader_field::create(*this)), the_ball_impl(log_reader_ball::create(*this)), the_ball(new ball(the_ball_impl, false)), west_team(log_reader_team::create(*this)), east_team(log_reader_team::create(*this)) {
 	seek(0);
 }
 

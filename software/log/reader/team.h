@@ -20,8 +20,8 @@ class log_reader_team : public team {
 		//
 		// Creates a new log_reader_team.
 		//
-		static ptr create(log_reader &reader, bool flip) {
-			ptr p(new log_reader_team(reader, flip));
+		static ptr create(log_reader &reader) {
+			ptr p(new log_reader_team(reader));
 			return p;
 		}
 
@@ -62,7 +62,6 @@ class log_reader_team : public team {
 		}
 
 		log_reader &reader;
-		bool flip;
 		std::vector<log_reader_robot::ptr> lrrs;
 		std::vector<robot::ptr> bots;
 		unsigned int the_score;
@@ -70,7 +69,7 @@ class log_reader_team : public team {
 		team::ptr the_other;
 		playtype::playtype the_playtype;
 
-		log_reader_team(log_reader &r, bool flip);
+		log_reader_team(log_reader &r);
 };
 
 #endif

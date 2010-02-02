@@ -106,6 +106,6 @@ void simulator::tick() {
 	if (ref)
 		ref->tick();
 	if (logger)
-		logger->write_frame(fld, west_ball, west_team.west_view, east_team.east_view);
+		logger->write_frame(fld, west_ball, west_team.west_view, east_team.west_view);
 }
 

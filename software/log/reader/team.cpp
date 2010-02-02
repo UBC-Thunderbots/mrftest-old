@@ -3,7 +3,7 @@
 
 
 
-log_reader_team::log_reader_team(log_reader &r, bool flip) : reader(r), flip(flip), the_score(0), is_yellow(false), the_playtype(playtype::halt) {
+log_reader_team::log_reader_team(log_reader &r) : reader(r), the_score(0), is_yellow(false), the_playtype(playtype::halt) {
 }
 
 
@@ -21,7 +21,7 @@ void log_reader_team::update() {
 	}
 	while (lrrs.size() < u8) {
 		lrrs.push_back(log_reader_robot::create(reader));
-		bots.push_back(robot::ptr(new robot(lrrs.back(), flip)));
+		bots.push_back(robot::ptr(new robot(lrrs.back(), false)));
 	}
 
 	for (std::size_t i = 0; i < lrrs.size(); ++i) {
