@@ -34,7 +34,7 @@ class log_reader : public byref {
 		//
 		// Opens a log.
 		//
-		ptr create(const std::string &name) {
+		static ptr create(const std::string &name) {
 			ptr p(new log_reader(name));
 			return p;
 		}
