@@ -2,8 +2,10 @@
 #define TESTER_FEEDBACK_H
 
 #include "uicomponents/battery_meter.h"
+#include "uicomponents/latency_meter.h"
 #include "uicomponents/light.h"
 #include "uicomponents/rssi_meter.h"
+#include "uicomponents/success_meter.h"
 #include "xbee/bot.h"
 #include <cstddef>
 #include <stdint.h>
@@ -24,11 +26,15 @@ class tester_feedback : public Gtk::HBox {
 		Gtk::Label battery_label;
 		Gtk::Label out_rssi_label;
 		Gtk::Label in_rssi_label;
+		Gtk::Label latency_label;
+		Gtk::Label success_label;
 
 		Gtk::VBox column2;
 		battery_meter battery_level;
 		rssi_meter out_rssi_level;
 		rssi_meter in_rssi_level;
+		latency_meter latency_level;
+		success_meter success_level;
 
 		Gtk::VBox column3;
 		Gtk::Label fault_label;
