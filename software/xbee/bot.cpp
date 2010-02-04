@@ -173,6 +173,7 @@ void radio_bot::on_receive(const void *buffer, std::size_t length) {
 
 
 void radio_bot::on_timeout() {
+	tx_success_mask <<= 1;
 	send_packet();
 }
 
