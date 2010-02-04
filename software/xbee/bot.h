@@ -81,10 +81,11 @@ class radio_bot : public byref {
 		}
 
 		//
-		// Gets the fraction of the last 64 packets that were successfully delivered.
+		// Gets the number of the last 64 packets that were successfully
+		// delivered.
 		// 
-		double success_rate() const {
-			return __builtin_popcount(tx_success_mask) / 64.0;
+		unsigned int success_rate() const {
+			return __builtin_popcountll(tx_success_mask);
 		}
 
 		//
