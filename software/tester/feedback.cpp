@@ -5,16 +5,7 @@
 
 
 
-namespace {
-	void present_rssi(int rssi, Gtk::ProgressBar &bar) {
-		bar.set_text(Glib::ustring::compose("%1dBm", rssi));
-		bar.set_fraction((rssi + 255) / 255.0);
-	}
-}
-
-
-
-tester_feedback::tester_feedback() : Gtk::HBox(true, 5), column1(true), battery_label("Battery Voltage:"), out_rssi_label("Out RSSI:"), in_rssi_label("In RSSI:"), column2(true), column3(true), fault_label("Motor Faults:"), fault_indicator_box(true) {
+tester_feedback::tester_feedback() : Gtk::HBox(true, 5), column1(true), battery_label("Battery Voltage:"), out_rssi_label("Out RSSI:"), in_rssi_label("In RSSI:"), column2(true), out_rssi_level(&radio_bot::out_rssi), in_rssi_level(&radio_bot::in_rssi), column3(true), fault_label("Motor Faults:"), fault_indicator_box(true) {
 	column1.pack_start(battery_label);
 	column1.pack_start(out_rssi_label);
 	column1.pack_start(in_rssi_label);
@@ -38,6 +29,9 @@ tester_feedback::tester_feedback() : Gtk::HBox(true, 5), column1(true), battery_
 
 
 void tester_feedback::set_bot(radio_bot::ptr bot) {
+	battery_level.set_bot(bot);
+	out_rssi_level.set_bot(bot);
+	in_rssi_level.set_bot(bot);
 	robot = bot;
 	if (bot) {
 		bot->signal_updated().connect(sigc::mem_fun(*this, &tester_feedback::on_update));
@@ -50,10 +44,6 @@ void tester_feedback::set_bot(radio_bot::ptr bot) {
 
 void tester_feedback::on_update() {
 	if (robot && robot->has_feedback()) {
-		battery_level.set_text(Glib::ustring::compose("%1V", robot->battery_voltage()));
-		battery_level.set_fraction(robot->battery_voltage() / 17.0);
-		present_rssi(robot->out_rssi(), out_rssi_level);
-		present_rssi(robot->in_rssi(), in_rssi_level);
 		for (unsigned int i = 0; i < 4; ++i) {
 			if (robot->drive_fault(i)) {
 				fault_indicators[i].set_colour(1, 0, 0);
@@ -67,12 +57,6 @@ void tester_feedback::on_update() {
 			fault_indicators[4].set_colour(0, 1, 0);
 		}
 	} else {
-		battery_level.set_text("No Data");
-		battery_level.set_fraction(0);
-		out_rssi_level.set_text("No Data");
-		out_rssi_level.set_fraction(0);
-		in_rssi_level.set_text("No Data");
-		in_rssi_level.set_fraction(0);
 		for (unsigned int i = 0; i < 5; ++i) {
 			fault_indicators[i].set_colour(0, 0, 0);
 		}

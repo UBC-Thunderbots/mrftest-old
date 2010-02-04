@@ -211,10 +211,12 @@ software/tester/permotor_drive.cpp -text
 software/tester/permotor_drive.h -text
 software/tester/window.cpp -text
 software/tester/window.h -text
+software/uicomponents/battery_meter.h -text
 software/uicomponents/bot_chooser.cpp -text
 software/uicomponents/bot_chooser.h -text
 software/uicomponents/light.cpp -text
 software/uicomponents/light.h -text
+software/uicomponents/rssi_meter.h -text
 software/uicomponents/visualizer.cpp -text
 software/uicomponents/visualizer.h -text
 software/uicomponents/world_add_bot_dialog.cpp -text

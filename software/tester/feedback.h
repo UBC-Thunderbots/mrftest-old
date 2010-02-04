@@ -1,7 +1,9 @@
 #ifndef TESTER_FEEDBACK_H
 #define TESTER_FEEDBACK_H
 
+#include "uicomponents/battery_meter.h"
 #include "uicomponents/light.h"
+#include "uicomponents/rssi_meter.h"
 #include "xbee/bot.h"
 #include <cstddef>
 #include <stdint.h>
@@ -24,9 +26,9 @@ class tester_feedback : public Gtk::HBox {
 		Gtk::Label in_rssi_label;
 
 		Gtk::VBox column2;
-		Gtk::ProgressBar battery_level;
-		Gtk::ProgressBar out_rssi_level;
-		Gtk::ProgressBar in_rssi_level;
+		battery_meter battery_level;
+		rssi_meter out_rssi_level;
+		rssi_meter in_rssi_level;
 
 		Gtk::VBox column3;
 		Gtk::Label fault_label;
