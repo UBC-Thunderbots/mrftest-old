@@ -97,7 +97,7 @@ void radio_bot::send_packet() {
 	out_packet_timer.reset();
 	out_packet_timer.start();
 	timeout_connection.disconnect();
-	timeout_connection = Glib::signal_timeout().connect_seconds(sigc::bind_return(sigc::mem_fun(*this, &radio_bot::on_timeout), false), 1);
+	timeout_connection = Glib::signal_timeout().connect(sigc::bind_return(sigc::mem_fun(*this, &radio_bot::on_timeout), false), 100);
 }
 
 
