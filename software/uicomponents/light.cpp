@@ -9,12 +9,14 @@ light::light() : r(0), g(0), b(0) {
 }
 
 void light::set_colour(double r, double g, double b) {
-	this->r = r;
-	this->g = g;
-	this->b = b;
-	Glib::RefPtr<Gdk::Window> win = get_window();
-	if (win) {
-		win->invalidate(false);
+	if (r != this->r || g != this->g || b != this->b) {
+		this->r = r;
+		this->g = g;
+		this->b = b;
+		Glib::RefPtr<Gdk::Window> win = get_window();
+		if (win) {
+			win->invalidate(false);
+		}
 	}
 }
 
