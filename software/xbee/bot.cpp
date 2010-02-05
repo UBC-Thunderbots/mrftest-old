@@ -119,6 +119,16 @@ void radio_bot::on_receive(const void *buffer, std::size_t length) {
 
 		// Check that it's in response to our own packet and not somebody else's.
 		if (in_packet.frame != out_packet.txhdr.frame) {
+			// Try to avoid building up insanely long queues that never get
+			// properly emptied. If we see a gratuitous ACK, it's probably from
+			// an earlier packet that was dropped on the floor by a timeout. If
+			// this happens a few times, we might end up with enough packets
+			// queued that we keep timing out and resending just because the
+			// queue is too long. To try to prevent that, when a gratuitous ACK
+			// arrives, reset the timeout for the current packet to give it more
+			// time to clear the queue.
+			timeout_connection.disconnect();
+			timeout_connection = Glib::signal_timeout().connect(sigc::bind_return(sigc::mem_fun(*this, &radio_bot::on_timeout), false), 100);
 			return;
 		}
 
