@@ -52,6 +52,20 @@ class point {
 		}
 
 		//
+		// Returns a unit vector in the same direction as this vector, or the
+		// zero vector if this is the zero vector.
+		//
+		point norm() const __attribute__((warn_unused_result)) {
+			double l = len();
+			point p(x / l, y / l);
+			if (std::fabs(p.lensq() - 1.0) < 1.0e-9) {
+				return p;
+			} else {
+				return point();
+			}
+		}
+
+		//
 		// Returns a rotation of the vector.
 		//
 		point rotate(double rot) const __attribute__((warn_unused_result)) {
