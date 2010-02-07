@@ -29,6 +29,8 @@ software/simulator/engines/*.d
 software/simulator/engines/ODE_simulator/*.d
 software/simulator/engines/collisionless/*.d
 software/simulator/referees/*.d
+software/step_test/*.d
+software/steptest
 software/tester/*.d
 software/thunderbots
 software/uicomponents/*.d
