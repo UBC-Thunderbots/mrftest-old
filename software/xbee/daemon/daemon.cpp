@@ -245,13 +245,16 @@ namespace {
 		try {
 			{
 				daemon d(listen_sock, pstream);
+				DPRINT("Daemon starting.");
 				d.run();
 			}
+			DPRINT("Daemon exited normally.");
 			_exit(0);
 		} catch (const std::exception &exp) {
 			DPRINT(exp.what());
 		} catch (...) {
 		}
+		DPRINT("Daemon exited abnormally.");
 		_exit(1);
 	}
 }
