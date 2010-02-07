@@ -35,7 +35,7 @@ class playerODE : public player_impl {
 	playerODE( dWorldID dworld, dSpaceID dspace,  dGeomID ballGeom, double ups_per_tick);
 	~playerODE();
 //void tick();
-
+			double get_height() const;
 void update();
 
 	point position() const ;
@@ -56,7 +56,7 @@ protected:
 			
 public:
 
-			void pre_tic();
+			void pre_tic(double TimeStep);
 			
 			bool has_ball(double tolerance);
 			

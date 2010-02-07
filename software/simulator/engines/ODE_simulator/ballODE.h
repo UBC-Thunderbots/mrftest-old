@@ -13,14 +13,15 @@ class ballODE : public simulator_ball_impl {
 			dWorldID world;
 			dBodyID body;
 			dGeomID ballGeom;
+			dMass m;
 			
 			
-			ballODE(dWorldID dworld, dSpaceID dspace, double radius, double mass);
+			ballODE(dWorldID dworld, dSpaceID dspace, double radius   = 0.042672/2, double mass = 0.046);
 			
-			ballODE(dWorldID dworld, dSpaceID dspace, double radius);
+			/*ballODE(dWorldID dworld, dSpaceID dspace, double radius);
 			
 			ballODE(dWorldID dworld, dSpaceID dspace);
-			
+			*/
 			~ballODE();
 
 			point position() const;
@@ -28,7 +29,8 @@ class ballODE : public simulator_ball_impl {
 			point velocity() const;
 
 			point acceleration() const;
-			
+			double get_height() const;
+
 			double getRadius();
 
 			void ext_drag(const point &pos, const point &vel);

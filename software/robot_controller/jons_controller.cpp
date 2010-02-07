@@ -38,11 +38,11 @@ void jons_controller::move(const point &new_position, double new_orientation, po
 	// relative new direction and angle
 	double new_da = angle_mod(new_orientation - current_orientation);
 	
-	if(plr->est_acceleration().len() > max_acc)
-		max_acc=plr->est_acceleration().len();
+	//if(plr->est_acceleration().len() > max_acc)
+	//	max_acc=max_acc + plr->est_acceleration().len();
 
-	if(abs(plr->est_aacceleration()) > max_Aacc)
-		max_Aacc = abs(plr->est_aacceleration());
+	//if(abs(plr->est_aacceleration()) > max_Aacc)
+	//	max_Aacc = abs(plr->est_aacceleration());
 
 	if(pow(current_angularvel,2)/max_Aacc*close_param < fabs(new_da) && fabs(new_da) > orient_delta)
 		angular_velocity = new_da/fabs(new_da)*max_vel;
@@ -51,15 +51,27 @@ void jons_controller::move(const point &new_position, double new_orientation, po
 		
 	
 	point new_dir = diff.rotate(-current_orientation);
-	new_dir /= new_dir.len();
+	
 	//if (new_da > PI) new_da -= 2 * PI;
-	vel_in_dir_travel=current_velocity.dot(diff/diff.len());
-
+	if(diff.len() > 0.0001) {
+	
+		new_dir = new_dir / new_dir.len();
+		vel_in_dir_travel=current_velocity.dot(diff/diff.len());
+	}else {
+		vel_in_dir_travel=0;
+	}
+	
 	if(pow(vel_in_dir_travel,2)/max_acc*close_param < diff.len() && diff.len() > position_delta)
 		linear_velocity = max_vel*new_dir;
 	else
 		linear_velocity = new_dir*0;
-
+		
+	//Fix the problems with unrealistic numbers when the robot is manually moved
+	//if(isnan(linear_velocity.len()) || isinf(linear_velocity.len()) || isinf(-linear_velocity.len()))
+	//	linear_velocity = point(0,0);
+			
+	//if(isnan(angular_velocity) || isinf(angular_velocity) || isinf(-angular_velocity))
+	//	angular_velocity=0;
 }
 
 

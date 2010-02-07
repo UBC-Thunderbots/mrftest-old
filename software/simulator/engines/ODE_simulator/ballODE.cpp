@@ -19,26 +19,33 @@ point the_position, the_velocity;
 			ballODE::ballODE(dWorldID dworld, dSpaceID dspace, double radius, double mass) : the_position(0.0, 0.0), the_velocity(0.0, 0.0) {
 
 				world = dworld;
-				dMass m;
+				
 
 				body = dBodyCreate(world);
-				dBodySetPosition(body, 0.0, 0.0, radius + 0.01);
-				ballGeom = dCreateSphere(0,radius);//golf ball radius 4.2672cm
-
-				dMassSetSphere (&m,1.0,radius);
-				dBodySetMass (body,&m);
-				m.mass = mass;
-
+				ballGeom = dCreateSphere(dspace,radius);//golf ball radius 4.2672cm
 				dGeomSetBody (ballGeom,body);
-				dSpaceAdd (dspace, ballGeom);
-				dBodySetLinearDamping (body, 0.2);
+				dBodySetPosition(body, 0.0, 0.0, radius + 0.001);
+				
+
+				dMassSetSphereTotal (&m,mass,radius);
+				dBodySetMass (body,&m);
+
+				//dSpaceAdd (dspace, ballGeom);
+				 dBodySetLinearDamping (body, 0.001);
 				 field::ptr fldd(new simulator_field);
 				 fld = fldd;
 				 
 				 //dBodySetMaxAngularSpeed (body, 5.0);
 
 			}
+			double ballODE::get_height() const
+			{
+				const dReal *t = dBodyGetPosition (body);
+				return t[2];
+			}
 			
+		/*
+		
 		
 			ballODE::ballODE(dWorldID dworld, dSpaceID dspace, double radius): the_position(0.0, 0.0), the_velocity(0.0, 0.0){
 			
@@ -84,7 +91,7 @@ point the_position, the_velocity;
 				 fld = fldd;
 			
 			}
-
+*/
 			ballODE::~ballODE(){
 
 

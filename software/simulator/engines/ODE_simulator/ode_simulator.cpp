@@ -17,11 +17,21 @@ namespace {
 	//
 	// The force of gravity N/kg
 	//
-	const double GRAVITY = -0.25;
+	const double GRAVITY = -9.81;
 	
 	
+	const unsigned int UPDATES_PER_TICK = 100;
+
+	//
+	//
+	//
+	const double CFM = 0;
 	
-	const unsigned int UPDATES_PER_TICK = 1;
+	//
+	//
+	//
+	const double ERP = 1.0;
+	
 
 	//
 	// A simulator_engine.
@@ -32,6 +42,7 @@ namespace {
 			std::vector<playerODE::ptr> the_players;
 			playerODE::ptr emptyPlayer;
 		public:
+			double timeStep;
 			dWorldID eworld;
 			dSpaceID space;
 			dGeomID ground;
@@ -48,35 +59,43 @@ namespace {
 
 			sim_engine(){
 				dInitODE();
+				timeStep = 1.0/(static_cast<double>(TIMESTEPS_PER_SECOND)*static_cast<double>(UPDATES_PER_TICK));
 				eworld = dWorldCreate(); 
 				dWorldSetGravity (eworld,0,0.0,GRAVITY);
 				space = dSimpleSpaceCreate(0);
 				//space = dHashSpaceCreate(0);
-  				ground = dCreatePlane (space,0,0,1,0.1);
-  				const field::ptr fld(new simulator_field);
+				
+				const field::ptr fld(new simulator_field);
+  				ground = dCreatePlane (space,0,0,1,0);
+  				//wall[0] = dCreatePlane(space,1,0,0,fld->total_length()/2);
+  				//wall[1] = dCreatePlane(space,1,0,0,-fld->total_length()/2);
+  				//wall[2] = dCreatePlane(space,0,1,0,fld->total_width()/2);
+  				//wall[3] = dCreatePlane(space,0,1,0,-fld->total_width()/2);
   				
-  				double wall_height = 20.5;//1/2 meter
-  				double wall_thickness = 0.5;//
+  				
+  				
+  				double wall_height = 20.5; //1/2 meter
+  				double wall_thickness = 0.0127; //
   				
 				//build a wall around the playing field
-  				wall[0] = dCreateBox (space, fld->total_length() + 1.0, wall_thickness, wall_height);
-				wall[1] = dCreateBox (space, fld->total_length() + 1.0, wall_thickness, wall_height);  				
-				wall[2] = dCreateBox (space, wall_thickness, fld->total_width() + 1.0, wall_height);
-				wall[3] = dCreateBox (space, wall_thickness, fld->total_width() + 1.0, wall_height);
-  				dGeomSetPosition (wall[0],  0,  (fld->total_width()/2 + wall_thickness/2),  (wall_height/2) -0.1);
-  				dGeomSetPosition (wall[1],  0, - (fld->total_width()/2 + wall_thickness/2),  (wall_height/2) -0.1);
-  				dGeomSetPosition (wall[2],  (fld->total_length()/2 + wall_thickness/2), 0,  (wall_height/2) -0.1);
-  				dGeomSetPosition (wall[3], - (fld->total_length()/2 + wall_thickness/2), 0,  (wall_height/2) -0.1);
-
+  				wall[0] = dCreateBox (space, fld->total_length() + 2*wall_thickness, wall_thickness, wall_height);
+				wall[1] = dCreateBox (space, fld->total_length() + 2*wall_thickness, wall_thickness, wall_height);  			
+				wall[2] = dCreateBox (space, wall_thickness, fld->total_width()-2*wall_thickness, wall_height);
+				wall[3] = dCreateBox (space, wall_thickness, fld->total_width()-2*wall_thickness, wall_height);
+  				dGeomSetPosition (wall[0],  0,  (fld->total_width()/2 + wall_thickness/2),  (wall_height/2));
+  				dGeomSetPosition (wall[1],  0, -(fld->total_width()/2 + wall_thickness/2),  (wall_height/2));
+  				dGeomSetPosition (wall[2],  (fld->total_length()/2 + wall_thickness/2), 0,  (wall_height/2));
+  				dGeomSetPosition (wall[3], - (fld->total_length()/2 + wall_thickness/2), 0,  (wall_height/2));
 				//set possible penetration for collisions
-    				dWorldSetContactSurfaceLayer(eworld, 0.001);
+    				
+    				dWorldSetContactSurfaceLayer(eworld, 0.1);
 				contactgroup = dJointGroupCreate (0);
 
 				ballODE::ptr b(new ballODE(eworld, space));
 				the_ball = b;
 				
  				//dWorldSetLinearDamping (eworld, 0.02);
-				dWorldSetCFM (eworld, 0.5);
+				dWorldSetCFM (eworld, CFM);
 				
 				 
  				
@@ -91,16 +110,13 @@ namespace {
 			}
 
 
-			void tick() {
-					
-				for(unsigned int i=0; i< UPDATES_PER_TICK; i++){
-				
-					
+			void tick() {	
+				for(unsigned int i=0; i< UPDATES_PER_TICK; i++){	
 						for (unsigned int j = 0; j < the_players.size(); j++) {
-							the_players[j]->pre_tic();
-
+							the_players[j]->pre_tic(timeStep);
+							
 						}
-					
+					//std::cout << "Player: " << the_players[0]->get_height() << ": The Ball: " << the_ball->get_height() << std::endl;
 					//std::cout<<"tick Start"<<std::endl;
 					//check the world for possible collisions
 					//if there are colliding objects then call nearCallback
@@ -109,9 +125,12 @@ namespace {
 	 				//step the world (have ODE do 1 iterations per step)
 					//dWorldStep (eworld, 1);
 					dWorldSetQuickStepNumIterations (eworld, 50);
+					
 					//double timeStep = 1.0/static_cast<double>(UPDATES_PER_TICK);
-					double timeStep = 1.0/static_cast<double>(TIMESTEPS_PER_SECOND);
+					
 					dWorldQuickStep(eworld, timeStep);
+					//dWorldStep(eworld,timeStep);
+					
 					//remove all the contact points that we created in this step
 					dJointGroupEmpty (contactgroup);
 					//std::cout<<"tick End"<<std::endl;
@@ -187,13 +206,14 @@ namespace {
 				  dBodyID b2 = dGeomGetBody(o2);
 
 				  dContact contact[3];		// up to 3 contacts per box
-				  for (i=0; i<3; i++) {
-				    contact[i].surface.mode = dContactSoftCFM | dContactApprox1;
-				    contact[i].surface.mu = 0.0;
-				   contact[i].surface.soft_cfm = 0.5;
-				  }
 				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
 				    for (i=0; i<numc; i++) {
+				      contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;
+				      contact[i].surface.mu = 0.0;
+				      contact[i].surface.soft_cfm = CFM;
+				      contact[i].surface.soft_erp = ERP;
+				      contact[i].surface.bounce = 0.8;
+				      contact[i].surface.bounce_vel =0.0;
 				      dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
 				      dJointAttach (c,b1,b2);
 				    }
@@ -212,9 +232,6 @@ namespace {
 				int g2 = (o2 == the_ball->ballGeom);
 				double frict = MU*6;
 				int i=0;
-				
-				
-				
 				 playerODE::ptr robot = emptyPlayer;
 				 
 				 for(unsigned int i=0; i<the_players.size(); i++){
@@ -229,39 +246,25 @@ namespace {
 							
 				//std::cout<<"ball frict dir "<< (angleVel[0]) <<" "<< (angleVel[1]) <<" "<< (angleVel[2]) <<std::endl;
 									
-				if ((g1 ^ g2)){
+				//if ((g1 ^ g2)){
 								
 				  dBodyID b1 = dGeomGetBody(o1);
 				  dBodyID b2 = dGeomGetBody(o2);
 
-				  dContact contact[3];		// up to 3 contacts per box
-				  for (i=0; i<3; i++) {
-				  	if(hasBall && false){
-				  		contact[i].surface.mode = dContactSoftCFM | dContactApprox1 | dContactFDir1 | dContactSlip1;
-				  			point t(1,0);
-				  			point dir = t.rotate(robot->orientation());
-				  						   
-				    contact[i].fdir1[0] = t.x;
-				    contact[i].fdir1[1] = t.y;
-				    contact[i].fdir1[2] = 0.0;
-				      contact[i].surface.mu = MU*6;
-				    //  contact[i].surface.mu2 = frict;
-				 	}else{
-				 		contact[i].surface.mode = dContactSoftCFM | dContactApprox1;
-				 		  contact[i].surface.mu = frict;
-				 	}
-				 	
-
-				  
-				   contact[i].surface.soft_cfm = 0.5;
-				  }
+				  dContact contact[3];		// up to 3 contacts per box				  
 				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
-				    for (i=0; i<numc; i++) {
-				      dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
-				      dJointAttach (c,b1,b2);
-				    }
+				  	for (i=0; i<numc; i++) {
+				 		contact[i].surface.mode = dContactSoftERP | dContactSoftCFM | dContactApprox1 | dContactBounce;
+				 		contact[i].surface.mu = frict;
+				   		contact[i].surface.soft_cfm = 0.0;
+				   		contact[i].surface.soft_erp = 1.0;
+				   		contact[i].surface.bounce = 1.0;
+				   		contact[i].surface.bounce_vel = 0.0;
+				      		dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
+				      		dJointAttach (c,b1,b2);
+				    	}
 				  }
-				}
+				//}
 		
 
 			}
@@ -283,17 +286,16 @@ namespace {
 				  if((robot1 != emptyPlayer || robot2 != emptyPlayer)){
 				  	handleRobotBallCollision(o1,o2);
 				  }else{
-				  
-					  for (i=0; i<num_contact; i++) {
-					    contact[i].surface.mode = dContactSoftCFM;
-					    contact[i].surface.mu = MU;
-					    //contact[i].surface.mu
-					   contact[i].surface.soft_cfm = 0.3;
-					  }
-					  if (unsigned int numc = dCollide (o1,o2,num_contact,&contact[0].geom,sizeof(dContact))) {
+					if (unsigned int numc = dCollide (o1,o2,num_contact,&contact[0].geom,sizeof(dContact))) {
 					    for (i=0; i<numc; i++) {
-					      dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
-					      dJointAttach (c,b1,b2);
+					  	contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;
+					    	contact[i].surface.mu = MU;
+					    	contact[i].surface.soft_cfm = CFM;
+					   	contact[i].surface.soft_erp = ERP;
+					   	contact[i].surface.bounce = 0.3;
+					   	contact[i].surface.bounce_vel=0.0;
+					      	dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
+					      	dJointAttach (c,b1,b2);
 					    }
 					  }	
 				  
@@ -313,34 +315,17 @@ namespace {
 				  if(robot == emptyPlayer){
 				  	robot = get_player_from_shape(o2);
 				  }
-				  
-				//  point direction(0.0, 1.0);
-				//  direction = direction.rotate(robot->orientation());
-				  //dReal[4]
-				  
-				  
-				//  dReal vec[4];
-				//  vec[0] = direction.x;
-				//  vec[1] = direction.y;
-				//  vec[2] = 0.0;
-				//  dVector3 fr1(vec[0], vec[1], vec[2]);
-				  
-				  for (i=0; i<3; i++) {
-				  //  contact[i].surface.mode =  dContactMu2 |dContactMotion1 | dContactFDir1 |dContactSoftCFM | dContactApprox1;
-				  contact[i].surface.mode =  dContactSoftCFM |dContactBounce;
-				   // contact[i].fdir1[0] = vec[0];
-				    //contact[i].fdir1[1] = vec[1];
-				   // contact[i].fdir1[2] = vec[2];
-				    contact[i].surface.mu = MU;// 0.1*MU;
-				   // contact[i].surface.mu2 = 0.1*MU;
-				   contact[i].surface.soft_cfm = 0.5;
-				     contact[i].surface.bounce = 0.2;
-				  }
 				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
-				    for (i=0; i<numc; i++) {
-				      dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
-				      dJointAttach (c,b1,b2);
-				    }
+				  	for (i=0; i<numc; i++) {
+				   		contact[i].surface.mode =  dContactSoftCFM | dContactSoftERP |dContactBounce;
+				   		contact[i].surface.mu = MU;// 0.1*MU;
+				   		contact[i].surface.soft_cfm = CFM;
+				   		contact[i].surface.soft_erp = ERP;
+				     		contact[i].surface.bounce = 0.2;
+				     		contact[i].surface.bounce_vel=0.0;
+				      		dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
+				      		dJointAttach (c,b1,b2);
+				    	}
 				  }	
 			}
 			
@@ -352,17 +337,17 @@ namespace {
 				  dBodyID b1 = dGeomGetBody(o1);
 				  dBodyID b2 = dGeomGetBody(o2);
 				  dContact contact[3];		// up to 3 contacts per box
-				  for (i=0; i<3; i++) {
-				    contact[i].surface.mode =  dContactSoftCFM | dContactBounce| dContactApprox1;
-				    contact[i].surface.mu = 2.0;
-				   contact[i].surface.soft_cfm = 0.5;
-				    contact[i].surface.bounce = 1.0;
-				  }
 				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
-				    for (i=0; i<numc; i++) {
-				      dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
-				      dJointAttach (c,b1,b2);
-				    }
+				  	for (i=0; i<numc; i++) {
+				        	contact[i].surface.mode =  dContactSoftCFM| dContactSoftERP | dContactBounce| dContactApprox1;
+				    		contact[i].surface.mu = 2.0;
+				   		contact[i].surface.soft_cfm = CFM;
+				   		contact[i].surface.soft_erp = ERP;
+				    		contact[i].surface.bounce = 1.0;
+				    		contact[i].surface.bounce_vel = 0.0;
+				      		dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
+				      		dJointAttach (c,b1,b2);
+				    	}
 				  }	
 			}
 			
@@ -391,16 +376,16 @@ namespace {
 					  dBodyID b1 = dGeomGetBody(o1);
 				  	  dBodyID b2 = dGeomGetBody(o2);
 					  dContact contact[num_contact];		// up to 3 contacts per box
-					  for (i=0; i<num_contact; i++) {
-					    contact[i].surface.mode = dContactBounce;;
-					    contact[i].surface.mu = MU;
-					   contact[i].surface.soft_cfm = 0.5;
-					     contact[i].surface.bounce = 1.0;
-					  }
 					  if (int numc = dCollide (o1,o2,num_contact,&contact[0].geom,sizeof(dContact))) {
 					    for (i=0; i<numc; i++) {
-					      dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
-					      dJointAttach (c,b1,b2);
+					    	contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;;
+					    	contact[i].surface.mu = MU;
+					   	contact[i].surface.soft_cfm = CFM;
+					   	contact[i].surface.soft_erp = ERP;
+					     	contact[i].surface.bounce = 1.0;
+					     	contact[i].surface.bounce_vel = 0.0;
+					      	dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
+					      	dJointAttach (c,b1,b2);
 					    }
 					  }
 				}

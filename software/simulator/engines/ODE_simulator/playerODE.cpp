@@ -64,11 +64,16 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	y_len = 0.18;
 
 	//dBodySetPosition(body, x_pos, y_pos, 0.0006);
-	dBodySetPosition(body, x_pos, y_pos, 0.076);
+	dGeomID robotGeomTop = dCreateBox (0,x_len,y_len,0.15);
+	dMassSetCylinderTotal (&mass,ROBOT_MASS, 3,ROBOT_RADIUS,ROBOT_HEIGHT);
+	dBodySetMass (body,&mass);
+	dGeomSetBody (robotGeomTop,body);
+
+
+	dBodySetPosition(body, x_pos, y_pos, ROBOT_HEIGHT/2 + 0.001);
 	//dGeomID robotGeom = dCreateBox (0,x_len,y_len,0.001);//10cm 
 	//dGeomID robotGeomTop = dCreateTriMesh(dspace,create_robot_geom(),NULL,NULL,NULL);		
-	dGeomID robotGeomTop = dCreateBox (0,x_len,y_len,0.15);
-
+	
 	double arm_width = 0.001;
 	double arm_height = 0.01;
 
@@ -76,13 +81,10 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	dGeomID dribbleArmR = dCreateBox (0,dribble_radius*2.5,arm_width,arm_height);
 
 	
-	dMassSetCylinderTotal (&mass,ROBOT_MASS, 3,ROBOT_RADIUS,ROBOT_HEIGHT);
-	dBodySetMass (body,&mass);
-
+	
 	momentInertia = ROBOT_RADIUS*ROBOT_RADIUS*mass.mass/2;
 	//dGeomSetBody (robotGeom,body);
-	dGeomSetBody (robotGeomTop,body);
-
+	
 	double arm_h_offset = ballradius - 0.051;
 
 	dGeomSetBody (dribbleArmL,body);
@@ -170,6 +172,12 @@ bool playerODE::has_ball() const {
 	return hasTheBall;
 }
 
+double playerODE::get_height() const
+{
+	const dReal *t = dBodyGetPosition (body);
+	return t[2];
+}
+
 bool playerODE::has_ball(double tolerance){
 
 	bool hasTheBall = true;
@@ -212,7 +220,7 @@ bool playerODE::robot_contains_shape(dGeomID geom){
 	return (b==body);
 }
 
-void playerODE::pre_tic(){
+void playerODE::pre_tic(double TimeStep){
 
 	if(!posSet){
 	
@@ -325,7 +333,7 @@ void playerODE::chip(double strength) {
 
 	if(has_ball(0.01)){
 		dVector3 force;
-		dWorldImpulseToForce (world, 1.0/static_cast<double>(TIMESTEPS_PER_SECOND),
+		dWorldImpulseToForce (world, 1.0/(static_cast<double>(TIMESTEPS_PER_SECOND)*updates_per_tick),
 				impulse.x, impulse.y,zimpulse, force);
 		dBodyAddForce(dGeomGetBody(ballGeom), force[0], force[1], force[2]);
 	}
@@ -336,7 +344,7 @@ void playerODE::ext_drag(const point &pos, const point &vel) {
 	posSet = true;
 	const dReal *t = dBodyGetPosition (body);
 	//const dReal *t2 = dBodyGetPosition (body2);
-	dBodySetPosition(body, pos.x, pos.y, t[2]);
+	dBodySetPosition(body, pos.x, pos.y, ROBOT_HEIGHT/2+0.01);
 	//dBodySetPosition(body2, pos.x, pos.y, t2[2]);
 	dBodySetLinearVel(body,vel.x,vel.y,0.0);
 	//dBodySetLinearVel(body2,vel.x,vel.y,0.0);
