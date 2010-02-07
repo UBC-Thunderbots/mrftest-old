@@ -68,6 +68,12 @@ class player_impl : public robot_impl {
 
 	protected:
 		//
+		// Constructs a player_impl.
+		//
+		player_impl() : controller(), destination(), last_requested_velocity(), angular_target(0) {
+		}
+
+		//
 		// Instructs the player to move with specified velocities, in
 		// robot-relative coordinates that:
 		//
