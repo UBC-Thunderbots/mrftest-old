@@ -22,7 +22,7 @@ namespace {
 			int16_t data[800];
 			bool received[800];
 
-			void on_receive(const void *dataptr, std::size_t length) {
+			void on_receive(const void *dataptr, std::size_t) {
 				const xbeepacket::RECEIVE_HDR &hdr = *static_cast<const xbeepacket::RECEIVE_HDR *>(dataptr);
 				if (hdr.apiid != xbeepacket::RECEIVE_APIID) return;
 				const uint8_t *payloadptr = static_cast<const uint8_t *>(dataptr);
