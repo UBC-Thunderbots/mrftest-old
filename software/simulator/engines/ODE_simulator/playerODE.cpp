@@ -64,7 +64,7 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	y_len = 0.18;
 
 	//dBodySetPosition(body, x_pos, y_pos, 0.0006);
-	dGeomID robotGeomTop = dCreateBox (0,x_len,y_len,0.15);
+	robotGeomTop = dCreateBox (0,x_len,y_len,0.15);
 	dMassSetCylinderTotal (&mass,ROBOT_MASS, 3,ROBOT_RADIUS,ROBOT_HEIGHT);
 	dBodySetMass (body,&mass);
 	dGeomSetBody (robotGeomTop,body);
@@ -77,8 +77,8 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	double arm_width = 0.001;
 	double arm_height = 0.01;
 
-	dGeomID dribbleArmL = dCreateBox (0,dribble_radius*2.5,arm_width,arm_height);
-	dGeomID dribbleArmR = dCreateBox (0,dribble_radius*2.5,arm_width,arm_height);
+	dribbleArmL = dCreateBox (0,dribble_radius*2.5,arm_width,arm_height);
+	dribbleArmR = dCreateBox (0,dribble_radius*2.5,arm_width,arm_height);
 
 	
 	
@@ -104,7 +104,11 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 
 playerODE::~playerODE () {
 	//dJointGroupDestroy (contactgroup);
+	dGeomDestroy(robotGeomTop);
+	dGeomDestroy(dribbleArmL);
+	dGeomDestroy(dribbleArmR);
 	dBodyDestroy (body);
+
 	if(Vertices != NULL)
 		delete Vertices;
 	if(Triangles != NULL)

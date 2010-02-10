@@ -17,7 +17,9 @@ class playerODE : public player_impl {
 	typedef Glib::RefPtr<playerODE> ptr;
 	//The world constructed by the simulatiuon engine
 	private:
-	
+	dGeomID robotGeomTop;
+	dGeomID dribbleArmL;
+	dGeomID dribbleArmR;
 	dWorldID world;
 	dBodyID body;
 	dMass mass;
