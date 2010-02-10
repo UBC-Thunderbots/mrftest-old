@@ -136,7 +136,7 @@ class player_impl : public robot_impl {
 		// Returns a trivial implementation of player_impl that always leaves
 		// the player at the origin facing in the positive X direction.
 		//
-		static const ptr &trivial();
+		static ptr trivial();
 
 	private:
 		robot_controller::ptr controller;

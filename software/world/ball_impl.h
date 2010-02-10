@@ -34,7 +34,7 @@ class ball_impl : public predictable, public draggable {
 		// Returns a trivial implementation of ball_impl that always leaves the
 		// ball sitting at the origin.
 		//
-		static const ptr &trivial();
+		static ptr trivial();
 };
 
 #endif

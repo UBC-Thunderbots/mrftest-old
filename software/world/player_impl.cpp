@@ -45,8 +45,8 @@ void player_impl::ext_rotate_postprocess() {
 	angular_target = orientation();
 }
 
-const player_impl::ptr &player_impl::trivial() {
-	static player_impl::ptr p(new trivial_player_impl);
+player_impl::ptr player_impl::trivial() {
+	player_impl::ptr p(new trivial_player_impl);
 	return p;
 }
 

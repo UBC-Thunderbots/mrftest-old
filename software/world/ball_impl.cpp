@@ -20,8 +20,8 @@ namespace {
 	};
 }
 
-const ball_impl::ptr &ball_impl::trivial() {
-	static ball_impl::ptr p(new trivial_ball_impl);
+ball_impl::ptr ball_impl::trivial() {
+	ball_impl::ptr p(new trivial_ball_impl);
 	return p;
 }
 
