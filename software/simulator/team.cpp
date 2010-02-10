@@ -2,6 +2,7 @@
 #include "simulator/team.h"
 #include "util/xml.h"
 #include "world/config.h"
+#include <iostream>
 
 simulator_team_data::simulator_team_data(simulator &sim, bool invert_playtype, xmlpp::Element *xml, bool yellow, ball::ptr ball, field::ptr field) : the_simulator(sim), invert_playtype(invert_playtype), score(0), yellow(yellow), controller_factory(0), west_view(new simulator_team_view(*this, west_players, west_other)), east_view(new simulator_team_view(*this, east_players, east_other)), xml(xml), the_ball(ball), the_field(field) {
 	// Get the "players" attribute.
@@ -161,6 +162,16 @@ void simulator_team_data::remove_player(unsigned int index) {
 	// Remove the player from the engine.
 	if (engine)
 		engine->remove_player(impl);
+
+	// Check for leaky references to the player objects.
+	if (west_bot->refs() != 1 || east_bot != 1)
+		std::cerr << "Leaky reference detected to player object.\n";
+	west_bot.reset();
+	east_bot.reset();
+
+	// Check for a leaky reference to the player_impl.
+	if (impl->refs() != 1)
+		std::cerr << "Leaky reference detected to player_impl object.\n";
 }
 
 playtype::playtype simulator_team_data::current_playtype() const {
