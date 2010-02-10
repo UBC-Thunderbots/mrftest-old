@@ -14,24 +14,32 @@ class byref : public noncopyable {
 		// Adds one to the object's reference count. This should only be called
 		// by Glib::RefPtr, not by application code.
 		//
-		void reference() {
-			refs++;
+		virtual void reference() {
+			refs_++;
 		}
 
 		//
 		// Subtracts one from the object's reference count. This should only be
 		// called by Glib::RefPtr, not by application code.
 		//
-		void unreference() {
-			if (!--refs)
+		virtual void unreference() {
+			if (!--refs_)
 				delete this;
+		}
+
+		//
+		// Returns the reference count of the object. This can be used to check
+		// for leaking references at the expected point of destruction.
+		//
+		unsigned int refs() const {
+			return refs_;
 		}
 
 	protected:
 		//
 		// Constructs a new byref. The object is assumed to have one reference.
 		//
-		byref() : refs(1) {
+		byref() : refs_(1) {
 		}
 
 		//
@@ -48,7 +56,7 @@ class byref : public noncopyable {
 		//
 		// The reference count of the object.
 		//
-		unsigned int refs;
+		unsigned int refs_;
 };
 
 #endif
