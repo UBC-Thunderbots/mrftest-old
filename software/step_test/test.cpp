@@ -19,8 +19,8 @@ namespace {
 
 		private:
 			xbee modem;
-			int16_t data[800];
-			bool received[800];
+			int16_t data[1024];
+			bool received[1024];
 
 			void on_receive(const void *dataptr, std::size_t) {
 				const xbeepacket::RECEIVE_HDR &hdr = *static_cast<const xbeepacket::RECEIVE_HDR *>(dataptr);
