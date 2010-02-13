@@ -1,4 +1,5 @@
 #include "world/player_impl.h"
+#include <iostream>
 
 namespace {
 	class trivial_player_impl : public player_impl {
@@ -35,6 +36,16 @@ namespace {
 				ext_rotate_postprocess();
 			}
 	};
+}
+
+void player_impl::set_controller(robot_controller::ptr c) {
+	// Check for a leaky reference to the robot_controller.
+	if (controller)
+		if (controller->refs() != 1)
+			std::cerr << "Leaky reference detected to robot_controller object.\n";
+
+	// Lock in the new controller.
+	controller = c;
 }
 
 void player_impl::ext_drag_postprocess() {

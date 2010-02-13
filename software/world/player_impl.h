@@ -49,9 +49,7 @@ class player_impl : public robot_impl {
 		//
 		// Sets the controller used by this robot.
 		//
-		void set_controller(robot_controller::ptr c) {
-			controller = c;
-		}
+		void set_controller(robot_controller::ptr c);
 
 		//
 		// Whether or not this robot has possession of the ball.
