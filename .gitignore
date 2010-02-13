@@ -23,7 +23,6 @@ software/log/writer/*.d
 software/rctest
 software/robot_controller/*.d
 software/robot_controller/joystick/*.d
-software/robot_controller_test/*.d
 software/simulator/*.d
 software/simulator/engines/*.d
 software/simulator/engines/ODE_simulator/*.d
