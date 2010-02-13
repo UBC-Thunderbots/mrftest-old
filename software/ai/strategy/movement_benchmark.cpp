@@ -75,6 +75,10 @@ namespace {
 	}
 	
 	void movement_benchmark::tick() {
+		if (the_team->size() == 0) {
+			std::cerr << "warning: movement benchmark: nobody in the team" << std::endl;
+			return;
+		}
 		if (done < tasks.size()) {
 			if (done == 0) time_steps = 0;
 			else if (done > 0) time_steps++;
