@@ -24,7 +24,7 @@ namespace {
 	//
 	// The maximum angular velocity of a robot in radians per second
 	//
-	const double BOT_MAX_A_VELOCITY = 12.0;
+	const double BOT_MAX_A_VELOCITY = 37;
 	
 	//
 	// The maximum angular acceleration of a robot, in radians per second squared
@@ -64,6 +64,7 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	y_len = 0.18;
 
 	//dBodySetPosition(body, x_pos, y_pos, 0.0006);
+	//robotGeomTop = dCreateTriMesh(0,create_robot_geom(),NULL,NULL,NULL);		
 	robotGeomTop = dCreateBox (0,x_len,y_len,0.15);
 	dMassSetCylinderTotal (&mass,ROBOT_MASS, 3,ROBOT_RADIUS,ROBOT_HEIGHT);
 	dBodySetMass (body,&mass);
@@ -72,7 +73,6 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 
 	dBodySetPosition(body, x_pos, y_pos, ROBOT_HEIGHT/2 + 0.001);
 	//dGeomID robotGeom = dCreateBox (0,x_len,y_len,0.001);//10cm 
-	//dGeomID robotGeomTop = dCreateTriMesh(dspace,create_robot_geom(),NULL,NULL,NULL);		
 	
 	double arm_width = 0.001;
 	double arm_height = 0.01;
