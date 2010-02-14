@@ -198,7 +198,7 @@ software/simulator/team.cpp -text
 software/simulator/team.h -text
 software/simulator/window.cpp -text
 software/simulator/window.h -text
-software/step_test/test.cpp -text
+software/steptest.cpp -text
 software/tester/controlled_permotor_drive.h -text
 software/tester/direct_drive.h -text
 software/tester/feedback.cpp -text
