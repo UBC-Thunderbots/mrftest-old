@@ -32,7 +32,7 @@ void fuzzy_controller::move(const point &new_position, double new_orientation, p
 	const double current_orientation = robot->orientation();
 	angular_velocity = angle_mod(new_orientation - current_orientation);
 	
-	double distance_factor = (new_position - current_position).len() / 0.02; // <-- this is a parameter which can be tuned
+	double distance_factor = (new_position - current_position).len() / 0.1; // <-- this is a parameter which can be tuned
 	if (distance_factor > 1) distance_factor = 1;
 	
 	linear_velocity = (new_position - current_position).rotate(-current_orientation);
@@ -40,12 +40,12 @@ void fuzzy_controller::move(const point &new_position, double new_orientation, p
 	if (linear_velocity.len()!=0) linear_velocity = linear_velocity / linear_velocity.len() * distance_factor * BOT_MAX_VELOCITY;
 	
 	point stopping_velocity = (-robot->est_velocity()).rotate(-current_orientation);
-	stopping_velocity = stopping_velocity / stopping_velocity.len() * BOT_MAX_VELOCITY;
+	if (stopping_velocity.len()!=0) stopping_velocity = stopping_velocity / stopping_velocity.len() * BOT_MAX_VELOCITY;
 	
 	double velocity_factor = ((robot->est_velocity()).len() / BOT_MAX_VELOCITY) * 4.87; // <-- this is a parameter which can be tuned
 	if (velocity_factor > 1) velocity_factor = 1;
 	
-	distance_factor = (new_position - current_position).len() / 0.82; // <-- this is a parameter which can be tuned
+	distance_factor = (new_position - current_position).len() / 1.02; // <-- this is a parameter which can be tuned
 	if (distance_factor > 1) distance_factor = 1;
 	
 	linear_velocity = distance_factor*linear_velocity+(1-distance_factor)*(velocity_factor*stopping_velocity + (1-velocity_factor)*linear_velocity);
