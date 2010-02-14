@@ -20,9 +20,8 @@ struct circle {
 
 class ball_filter {
 	private:
-		static const double RADIUS = 0.6;
-		static const double DECAY_TIME_CONSTANT = 0.2885; //decay constant in seconds
-		static double DECAY_RATE;
+		static const double RADIUS = 10.0/TIMESTEPS_PER_SECOND;
+		static const double DECAY_RATE = 0.2063; // half-life = 3 frames
 		static const double DELETE_THRESHOLD = 0.02; // stores < 50 circles
 		static list<circle> circles;
 
@@ -33,7 +32,6 @@ class ball_filter {
 			c.center = pt(0, 0);
 			c.certainty = DELETE_THRESHOLD;
 			circles.push_back(c);
-			DECAY_RATE = 1 - exp(-1.0 / static_cast<double>(TIMESTEPS_PER_SECOND) / DECAY_TIME_CONSTANT);
 		}
 
 		static pt filter(const vector<pair<pt, double> >& obs) {
