@@ -52,7 +52,6 @@ void testnavigator::tick() {
       while (true)
 	{
 	  //std::cout << "path changed" <<std::endl;
-	  undiverted = false;
 	  rotationangle += 1.0 * PI / 180.0;//rotate by 1 degree each
 					    //time
 	  //it shouldn't take that many checks to get a good direction
@@ -85,7 +84,7 @@ void testnavigator::tick() {
 	      break;
 	    }
 	}
-
+      undiverted = rotationangle < 1e-5;
       if(stop)
 	{
 	  point balldest = the_ball->position() - the_player->position();
