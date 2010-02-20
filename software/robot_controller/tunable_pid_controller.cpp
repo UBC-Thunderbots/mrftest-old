@@ -48,6 +48,9 @@ namespace {
 	const double learn = 1e-2;
 }
 
+static std::vector<double> tunable_pid_controller::param_min;
+static std::vector<double> tunable_pid_controller::param_max;
+
 tunable_pid_controller::tunable_pid_controller(player_impl::ptr plr) : plr(plr), initialized(false), param(9), error_pos(10), error_ori(10) {
 	// param := [prop x, diff x, int x, prop y, diff y, int y, prop r, diff r, int r]
 	param[0] = 4.0;
@@ -59,14 +62,11 @@ tunable_pid_controller::tunable_pid_controller(player_impl::ptr plr) : plr(plr),
 	param[6] = 3.0;
 	param[7] = 0.01;
 	param[8] = 0.0;
-}
 
-void tunable_pid_controller::set_params(const std::vector<double>& params) {
-	for(int i = 0; i < 9; ++i) param[i] = params[i];
-}
-
-const std::vector<double>& tunable_pid_controller::get_params() const {
-	return param;
+	if(param_min.size() == 0) {
+		param_min.resize(9, 0.0);
+		param_max.resize(9, 100.0);
+	}
 }
 
 void tunable_pid_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
