@@ -19,13 +19,29 @@ class tunable_pid_controller : public robot_controller, public tunable_controlle
 
 		tunable_pid_controller(player_impl::ptr plr);
 
-	 	void set_params(const std::vector<double>& params);
-		const std::vector<double>& get_params() const;
+	 	void set_params(const std::vector<double>& params) {
+			this->param = params;
+		}
+
+		const std::vector<double>& get_params() const {
+			return param;
+		}
+
+		const std::vector<double>& get_params_min() const {
+			return param_min;
+		}
+
+		const std::vector<double>& get_params_max() const {
+			return param_max;
+		}
 
 	private:
 		player_impl::ptr plr;
 
 	protected:
+
+		static std::vector<double> param_min;
+		static std::vector<double> param_max;
 
 		bool initialized;
 

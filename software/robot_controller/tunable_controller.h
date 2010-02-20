@@ -17,6 +17,16 @@ class tunable_controller {
 		// gets the array of parameters
 		//
 		virtual const std::vector<double>& get_params() const = 0;
+
+		//
+		// gets the minimum value of each parameter
+		//
+		virtual const std::vector<double>& get_params_min() const = 0;
+
+		//
+		// gets the maximum value of each parameter
+		//
+		virtual const std::vector<double>& get_params_max() const = 0;
 };
 
 #endif
