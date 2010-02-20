@@ -1,5 +1,6 @@
 #include "ai/navigator/testnavigator.h"
 #include <iostream>
+#include <cstdlib>
 testnavigator::testnavigator(player::ptr player, field::ptr field, ball::ptr ball, team::ptr team) : 
   navigator(player, field, ball, team), destInitialized(false), outOfBoundsMargin(field->width() / 20.0),
   maxLookahead(1.0)
@@ -38,6 +39,7 @@ void testnavigator::tick() {
 	  return;
 	}
 
+      double dirlen = direction.len();
       direction = direction / direction.len();
 
       point leftdirection = direction;
@@ -112,7 +114,7 @@ void testnavigator::tick() {
 	    {
 	      // maximum warp
 	      point balldest = the_ball->position() - the_player->position();
-	      the_player->move(the_player->position() + selected_direction*1.0, atan2(balldest.y, balldest.x));
+	      the_player->move(the_player->position() + selected_direction*std::min(dirlen,1.0), atan2(balldest.y, balldest.x));
 	    }
 	}
     }
