@@ -181,6 +181,8 @@ software/robot_controller/pid_controller.h -text
 software/robot_controller/robot_controller.h -text
 software/robot_controller/testing_rc.cpp -text
 software/robot_controller/tunable_controller.h -text
+software/robot_controller/tunable_pid_controller.cpp -text
+software/robot_controller/tunable_pid_controller.h -text
 software/simulator/autoref.h -text
 software/simulator/ball.cpp -text
 software/simulator/ball.h -text
