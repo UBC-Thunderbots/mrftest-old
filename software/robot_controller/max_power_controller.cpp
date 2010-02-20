@@ -11,7 +11,7 @@ namespace {
 			max_power_controller_factory() : robot_controller_factory("MAX POWER RC") {
 			}
 
-			robot_controller::ptr create_controller(player_impl::ptr plr, bool, unsigned int) {
+			robot_controller::ptr create_controller(player_impl::ptr plr, bool, unsigned int) const {
 				robot_controller::ptr p(new max_power_controller(plr));
 				return p;
 			}

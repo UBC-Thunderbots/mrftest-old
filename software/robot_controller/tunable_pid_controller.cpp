@@ -18,7 +18,7 @@ namespace {
 			tunable_pid_controller_factory() : robot_controller_factory("Tunable PID") {
 			}
 
-			robot_controller::ptr create_controller(player_impl::ptr plr, bool, unsigned int) {
+			robot_controller::ptr create_controller(player_impl::ptr plr, bool, unsigned int) const {
 				robot_controller::ptr p(new tunable_pid_controller(plr));
 				return p;
 			}

@@ -13,7 +13,7 @@ namespace {
 			jons_controller_factory() : robot_controller_factory("JONS RC") {
 			}
 
-			robot_controller::ptr create_controller(player_impl::ptr plr, bool, unsigned int) {
+			robot_controller::ptr create_controller(player_impl::ptr plr, bool, unsigned int) const {
 				robot_controller::ptr p(new jons_controller(plr));
 				return p;
 			}

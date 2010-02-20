@@ -75,7 +75,7 @@ class robot_controller_factory : public registerable<robot_controller_factory> {
 		// however, it may call into the player_impl to retrieve the player's
 		// current position, orientation, estimated velocity, and so on.
 		//
-		virtual robot_controller::ptr create_controller(Glib::RefPtr<player_impl> plr, bool yellow, unsigned int index) = 0;
+		virtual robot_controller::ptr create_controller(Glib::RefPtr<player_impl> plr, bool yellow, unsigned int index) const = 0;
 
 	protected:
 		//

@@ -127,7 +127,7 @@ namespace {
 			testing_rc_factory() : robot_controller_factory("Testing RC") {
 			}
 
-			robot_controller::ptr create_controller(player_impl::ptr plr, bool, unsigned int) {
+			robot_controller::ptr create_controller(player_impl::ptr plr, bool, unsigned int) const {
 				robot_controller::ptr p(new testing_rc(plr));
 				return p;
 			}

@@ -11,7 +11,7 @@ namespace {
 			fuzzy_controller_factory() : robot_controller_factory("Fuzzy RC") {
 			}
 
-			robot_controller::ptr create_controller(player_impl::ptr player, bool, unsigned int) {
+			robot_controller::ptr create_controller(player_impl::ptr player, bool, unsigned int) const {
 				robot_controller::ptr p(new fuzzy_controller (player));
 				return p;
 			}

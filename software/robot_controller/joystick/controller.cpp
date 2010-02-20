@@ -20,7 +20,7 @@ namespace {
 			joystick_controller_factory() : robot_controller_factory("Joystick") {
 			}
 
-			robot_controller::ptr create_controller(player_impl::ptr plr, bool yellow, unsigned int index);
+			robot_controller::ptr create_controller(player_impl::ptr plr, bool yellow, unsigned int index) const;
 	};
 
 	joystick_controller_factory factory;
@@ -124,7 +124,7 @@ namespace {
 			}
 	};
 
-	robot_controller::ptr joystick_controller_factory::create_controller(player_impl::ptr plr, bool yellow, unsigned int index) {
+	robot_controller::ptr joystick_controller_factory::create_controller(player_impl::ptr plr, bool yellow, unsigned int index) const {
 		robot_controller::ptr p(new joystick_controller(plr, yellow, index));
 		return p;
 	}
