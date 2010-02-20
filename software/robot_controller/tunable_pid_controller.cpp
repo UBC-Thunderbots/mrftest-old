@@ -48,8 +48,8 @@ namespace {
 	const double learn = 1e-2;
 }
 
-static std::vector<double> tunable_pid_controller::param_min;
-static std::vector<double> tunable_pid_controller::param_max;
+std::vector<double> tunable_pid_controller::param_min;
+std::vector<double> tunable_pid_controller::param_max;
 
 tunable_pid_controller::tunable_pid_controller(player_impl::ptr plr) : plr(plr), initialized(false), param(9), error_pos(10), error_ori(10) {
 	// param := [prop x, diff x, int x, prop y, diff y, int y, prop r, diff r, int r]
