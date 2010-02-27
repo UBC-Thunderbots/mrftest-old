@@ -13,6 +13,14 @@
 #include <linux/serial.h>
 
 namespace {
+	bool is_serinfo_ok(const serial_struct &serinfo) {
+		if ((serinfo.flags & ASYNC_SPD_MASK) != ASYNC_SPD_CUST)
+			return false;
+		if (serinfo.baud_base / serinfo.custom_diviser != 250000)
+			return false;
+		return true;
+	}
+
 	bool is_tios_ok(const termios &tios) {
 		if ((tios.c_iflag & (IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON | IGNPAR | INPCK | IXOFF)) != IGNPAR)
 			return false;
@@ -22,19 +30,32 @@ namespace {
 			return false;
 		if ((tios.c_lflag & (ECHO | ECHONL | ICANON | ISIG | IEXTEN)) != 0)
 			return false;
+		if (tios.c_cc[VMIN] != 0)
+			return false;
+		if (tios.c_cc[VTIME] != 0)
+			return false;
+		if (cfgetospeed(&tios) != B38400)
+			return false;
+		if (cfgetispeed(&tios) != B0)
+			return false;
 		return true;
 	}
 
 	void configure_port(const file_descriptor &fd) {
 		// Try to configure the custom divisor to give 250,000 baud.
-		serial_struct serinfo;
-		if (ioctl(fd, TIOCGSERIAL, &serinfo) < 0)
+		serial_struct cur_serinfo, new_serinfo;
+		if (ioctl(fd, TIOCGSERIAL, &cur_serinfo) < 0)
 			throw std::runtime_error("Cannot get serial port configuration!");
-		serinfo.flags &= ~ASYNC_SPD_MASK;
-		serinfo.flags |= ASYNC_SPD_CUST;
-		serinfo.custom_divisor = serinfo.baud_base / 250000;
-		if (ioctl(fd, TIOCSSERIAL, &serinfo) < 0)
-			throw std::runtime_error("Cannot set serial port configuration!");
+		new_serinfo = cur_serinfo;
+		new_serinfo.flags &= ~ASYNC_SPD_MASK;
+		new_serinfo.flags |= ASYNC_SPD_CUST;
+		new_serinfo.custom_divisor = new_serinfo.baud_base / 250000;
+		while (!is_serinfo_ok(cur_serinfo)) {
+			if (ioctl(fd, TIOCSSERIAL, &new_serinfo) < 0)
+				throw std::runtime_error("Cannot set serial port configuration!");
+			if (ioctl(fd, TIOCGSERIAL, &cur_serinfo) < 0)
+				throw std::runtime_error("Cannot get serial port configuration!");
+		}
 
 		// Try to configure the regular terminal to 38,400 baud (which means to use the custom divisor).
 		termios cur_tios, new_tios;
