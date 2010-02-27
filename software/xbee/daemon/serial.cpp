@@ -13,6 +13,18 @@
 #include <linux/serial.h>
 
 namespace {
+	bool is_tios_ok(const termios &tios) {
+		if ((tios.c_iflag & (IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON | IGNPAR | INPCK | IXOFF)) != IGNPAR)
+			return false;
+		if ((tios.c_oflag & (OPOST | OCRNL | ONOCR | ONLRET | OFILL | NLDLY | CRDLY | TABDLY | BSDLY | VTDLY | FFDLY | NL0 | CR0 | TAB0 | BS0 | VT0 | FF0)) != (NL0 | CR0 | TAB0 | BS0 | VT0 | FF0))
+			return false;
+		if ((tios.c_cflag & (CSIZE | PARENB | CS8 | CREAD | CRTSCTS | CSTOPB | CLOCAL)) != (CS8 | CREAD | CRTSCTS))
+			return false;
+		if ((tios.c_lflag & (ECHO | ECHONL | ICANON | ISIG | IEXTEN)) != 0)
+			return false;
+		return true;
+	}
+
 	void configure_port(const file_descriptor &fd) {
 		// Try to configure the custom divisor to give 250,000 baud.
 		serial_struct serinfo;
@@ -25,22 +37,27 @@ namespace {
 			throw std::runtime_error("Cannot set serial port configuration!");
 
 		// Try to configure the regular terminal to 38,400 baud (which means to use the custom divisor).
-		termios tios;
-		if (tcgetattr(fd, &tios) < 0)
+		termios cur_tios, new_tios;
+		if (tcgetattr(fd, &cur_tios) < 0)
 			throw std::runtime_error("Cannot get serial port configuration!");
-		cfmakeraw(&tios);
-		cfsetispeed(&tios, B0);
-		cfsetospeed(&tios, B38400);
-		tios.c_iflag |= IGNPAR;
-		tios.c_iflag &= ~INPCK & ~IXOFF;
-		tios.c_oflag &= ~OCRNL & ~ONOCR & ~ONLRET & ~OFILL & ~NLDLY & ~CRDLY & ~TABDLY & ~BSDLY & ~VTDLY & ~FFDLY;
-		tios.c_oflag |= NL0 | CR0 | TAB0 | BS0 | VT0 | FF0;
-		tios.c_cflag |= CREAD | CRTSCTS;
-		tios.c_cflag &= ~CSTOPB & ~CLOCAL;
-		tios.c_cc[VMIN] = 0;
-		tios.c_cc[VTIME] = 0;
-		if (tcsetattr(fd, TCSAFLUSH, &tios) < 0)
-			throw std::runtime_error("Cannot set serial port configuration!");
+		new_tios = cur_tios;
+		cfmakeraw(&new_tios);
+		cfsetispeed(&new_tios, B0);
+		cfsetospeed(&new_tios, B38400);
+		new_tios.c_iflag |= IGNPAR;
+		new_tios.c_iflag &= ~INPCK & ~IXOFF;
+		new_tios.c_oflag &= ~OCRNL & ~ONOCR & ~ONLRET & ~OFILL & ~NLDLY & ~CRDLY & ~TABDLY & ~BSDLY & ~VTDLY & ~FFDLY;
+		new_tios.c_oflag |= NL0 | CR0 | TAB0 | BS0 | VT0 | FF0;
+		new_tios.c_cflag |= CREAD | CRTSCTS;
+		new_tios.c_cflag &= ~CSTOPB & ~CLOCAL;
+		new_tios.c_cc[VMIN] = 0;
+		new_tios.c_cc[VTIME] = 0;
+		while (!is_tios_ok(cur_tios)) {
+			if (tcsetattr(fd, TCSAFLUSH, &new_tios) < 0)
+				throw std::runtime_error("Cannot set serial port configuration!");
+			if (tcgetattr(fd, &cur_tios) < 0)
+				throw std::runtime_error("Cannot get serial port configuration!");
+		}
 	}
 }
 
