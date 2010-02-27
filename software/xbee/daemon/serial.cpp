@@ -16,7 +16,7 @@ namespace {
 	bool is_serinfo_ok(const serial_struct &serinfo) {
 		if ((serinfo.flags & ASYNC_SPD_MASK) != ASYNC_SPD_CUST)
 			return false;
-		if (serinfo.baud_base / serinfo.custom_diviser != 250000)
+		if (serinfo.baud_base / serinfo.custom_divisor != 250000)
 			return false;
 		return true;
 	}
