@@ -14,30 +14,42 @@
 
 namespace {
 	bool is_serinfo_ok(const serial_struct &serinfo) {
-		if ((serinfo.flags & ASYNC_SPD_MASK) != ASYNC_SPD_CUST)
+		if ((serinfo.flags & ASYNC_SPD_MASK) != ASYNC_SPD_CUST) {
+			DPRINT(Glib::ustring::compose("Serial: want speed mask %1, have %2", serinfo.flags & ASYNC_SPD_MASK, ASYNC_SPD_CUST));
 			return false;
-		if (serinfo.baud_base / serinfo.custom_divisor != 250000)
+		}
+		if (serinfo.baud_base / serinfo.custom_divisor != 250000) {
+			DPRINT(Glib::ustring::compose("Serial: want baud rate 250000, have crystal speed %1, divisor %2, baud %3", serinfo.baud_base, serinfo.custom_divisor, serinfo.baud_base / serinfo.custom_divisor));
 			return false;
+		}
 		return true;
 	}
 
 	bool is_tios_ok(const termios &tios) {
-		if ((tios.c_iflag & (IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON | IGNPAR | INPCK | IXOFF)) != IGNPAR)
+		if ((tios.c_iflag & (IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON | IGNPAR | INPCK | IXOFF)) != IGNPAR) {
+			DPRINT("Serial: iflag needs changing");
 			return false;
-		if ((tios.c_oflag & (OPOST | OCRNL | ONOCR | ONLRET | OFILL | NLDLY | CRDLY | TABDLY | BSDLY | VTDLY | FFDLY | NL0 | CR0 | TAB0 | BS0 | VT0 | FF0)) != (NL0 | CR0 | TAB0 | BS0 | VT0 | FF0))
+		}
+		if ((tios.c_oflag & (OPOST | OCRNL | ONOCR | ONLRET | OFILL | NLDLY | CRDLY | TABDLY | BSDLY | VTDLY | FFDLY | NL0 | CR0 | TAB0 | BS0 | VT0 | FF0)) != (NL0 | CR0 | TAB0 | BS0 | VT0 | FF0)) {
+			DPRINT("Serial: oflag needs changing");
 			return false;
-		if ((tios.c_cflag & (CSIZE | PARENB | CS8 | CREAD | CRTSCTS | CSTOPB | CLOCAL)) != (CS8 | CREAD | CRTSCTS))
+		}
+		if ((tios.c_cflag & (CSIZE | PARENB | CS8 | CREAD | CRTSCTS | CSTOPB | CLOCAL)) != (CS8 | CREAD | CRTSCTS)) {
+			DPRINT("Serial: cflag needs changing");
 			return false;
-		if ((tios.c_lflag & (ECHO | ECHONL | ICANON | ISIG | IEXTEN)) != 0)
+		}
+		if ((tios.c_lflag & (ECHO | ECHONL | ICANON | ISIG | IEXTEN)) != 0) {
+			DPRINT("Serial: lflag needs changing");
 			return false;
-		if (tios.c_cc[VMIN] != 0)
+		}
+		if (tios.c_cc[VMIN] != 0) {
+			DPRINT("Serial: c_cc[VMIN] needs changing");
 			return false;
-		if (tios.c_cc[VTIME] != 0)
+		}
+		if (tios.c_cc[VTIME] != 0) {
+			DPRINT("Serial: c_cc[VTIME] needs changing");
 			return false;
-		if (cfgetospeed(&tios) != B38400)
-			return false;
-		if (cfgetispeed(&tios) != B0)
-			return false;
+		}
 		return true;
 	}
 
@@ -63,7 +75,7 @@ namespace {
 			throw std::runtime_error("Cannot get serial port configuration!");
 		new_tios = cur_tios;
 		cfmakeraw(&new_tios);
-		cfsetispeed(&new_tios, B0);
+		cfsetispeed(&new_tios, B38400);
 		cfsetospeed(&new_tios, B38400);
 		new_tios.c_iflag |= IGNPAR;
 		new_tios.c_iflag &= ~INPCK & ~IXOFF;
