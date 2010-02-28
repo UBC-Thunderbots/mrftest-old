@@ -196,8 +196,10 @@ namespace {
 									break;
 							}
 
-							// Push it to the serial port.
-							pstream.send(buffer, ret);
+							if (ret > 0) {
+								// Push it to the serial port.
+								pstream.send(buffer, ret);
+							}
 						}
 					}
 				}
