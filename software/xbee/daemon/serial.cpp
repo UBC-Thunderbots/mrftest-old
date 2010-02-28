@@ -15,7 +15,7 @@
 namespace {
 	bool is_serinfo_ok(const serial_struct &serinfo) {
 		if ((serinfo.flags & ASYNC_SPD_MASK) != ASYNC_SPD_CUST) {
-			DPRINT(Glib::ustring::compose("Serial: want speed mask %1, have %2", serinfo.flags & ASYNC_SPD_MASK, ASYNC_SPD_CUST));
+			DPRINT(Glib::ustring::compose("Serial: want speed mask %1, have %2", ASYNC_SPD_CUST, serinfo.flags & ASYNC_SPD_MASK));
 			return false;
 		}
 		if (serinfo.baud_base / serinfo.custom_divisor != 250000) {
