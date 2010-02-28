@@ -69,7 +69,7 @@ namespace {
 	}
 
 	void daemon::run() {
-		struct epoll_event events[8];
+		epoll_event events[8];
 		uint8_t next_gfn = 1;
 
 		// Attach receive callback for serial port.
