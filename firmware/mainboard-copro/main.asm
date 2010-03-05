@@ -12,6 +12,7 @@
 	radix dec
 	processor 18F4550
 #include <p18f4550.inc>
+#include "led.inc"
 #include "pins.inc"
 #include "sleep.inc"
 
@@ -21,6 +22,7 @@
 	extern bootload
 	extern configure_fpga
 	extern rcif_handler
+	extern tmr1if_handler
 
 
 
@@ -34,12 +36,18 @@ intvechigh code
 	; This code is burned at address 8, where high priority interrupts go.
 	btfsc PIR1, RCIF
 	goto rcif_handler
+	btfsc INTCON3, INT1IF
+	reset
+	btfsc INTCON3, INT2IF
+	reset
 	retfie FAST
 
 
 
 intveclow code
 	; This code is burned at address 0x18, where low priority interrupts go.
+	btfsc PIR1, TMR1IF
+	goto tmr1if_handler
 	retfie
 
 
@@ -55,37 +63,16 @@ main:
 	; USB transceiver must be disabled to use RC4/RC5 as digital inputs.
 	bsf UCFG, UTRDIS
 
-	; Initialize those pins that should be outputs to safe initial levels.
-	; Pins are configured as inputs at device startup.
-	; DONE is an input read from the FPGA.
-	; PROG_B goes low to hold the FPGA in pre-configuration until ready.
-	bcf LAT_PROG_B, PIN_PROG_B
-	bcf TRIS_PROG_B, PIN_PROG_B
-	; INIT_B is an input read from the FPGA.
-	; UNUSED goes low to avoid floating inputs.
-	bcf LAT_UNUSED, PIN_UNUSED
-	bcf TRIS_UNUSED, PIN_UNUSED
-	; SPI_TX is tristated if FPGA will configure itself, until in run mode.
-	; If in bootload mode, bootloader will drive SPI_TX.
-	; SPI_RX is always an input.
-	; SPI_CK is tristated (see SPI_TX).
-	; SPI_SPI_SS_FLASH is tristated (see SPI_TX).
-	; SPI_SPI_SS_FPGA is high until the ADC is ready to send data to the FPGA.
-	bsf LAT_SPI_SS_FPGA, PIN_SPI_SS_FPGA
-	bcf TRIS_SPI_SS_FPGA, PIN_SPI_SS_FPGA
-	; FLASH_WP is high unless bootloading.
-	bsf LAT_FLASH_WP, PIN_FLASH_WP
-	bcf TRIS_FLASH_WP, PIN_FLASH_WP
-	; XBEE_TX is tristated unless bootloading.
-	; XBEE_RX is always an input.
-	; XBEE_BL is always an input.
-	; ICSP_PGD is always an input.
-	; ICSP_PGC is always an input.
-	; ICSP_PGM is always an input.
-	; EMERG_ERASE is always an input.
-	; RTS is low until used in bootloader for flow control.
-	bcf LAT_RTS, PIN_RTS
-	bcf TRIS_RTS, PIN_RTS
+	; The ADC initializes AN0..7 as analogue inputs by default. We actually only
+	; want AN0..5.
+	movlw (1 << PCFG3) | (1 << PCFG0)
+	movwf ADCON1
+
+	; Initialize the I/O pins.
+	PINS_INITIALIZE
+
+	; Enable the LED module.
+	call led_init
 
 	; Configure the SLEEP instruction to go into IDLE mode, and the internal
 	; oscillator to run at 8MHz.
@@ -108,5 +95,13 @@ main:
 	goto bootload
 
 	; Otherwise, configure the FPGA and then become an ADC.
+	; Before doing this, reset the XBee (just in case). We don't want to do this
+	; if the emergency erase or bootload line is set, because the line would be
+	; dropped by the reset.
+	bcf LAT_XBEE_RESET, PIN_XBEE_RESET
+	call sleep_10ms
+	bsf LAT_XBEE_RESET, PIN_XBEE_RESET
+	call sleep_100ms
+	call sleep_100ms
 	goto configure_fpga
 	end

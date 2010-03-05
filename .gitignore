@@ -7,6 +7,8 @@ firmware/mainboard-copro/*.err
 firmware/mainboard-copro/*.hex
 firmware/mainboard-copro/*.lst
 firmware/mainboard-copro/*.map
+firmware/mainboard-copro/pingen
+firmware/mainboard-copro/pins.inc
 software/*.d
 software/ai/*.d
 software/ai/navigator/*.d

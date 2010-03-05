@@ -1,0 +1,39 @@
+#
+# Each line of this file (except those starting with #) defines a single pin
+# on the microcontroller.
+#
+# First token is the application name of the pin.
+# Second token is the physical location of the pin (e.g. "RA0").
+# Third token is the type of pin.
+#
+# Legal types are:
+#  in   - pin should be configured as an input at startup
+#  out0 - pin should be configured as a grounded output at startup
+#  out1 - pin should be configured as an output driven high at startup
+#  vgnd - pin should be configured as a virtual ground (name is ignored)
+#
+
+XBEE_RX       RC7 in   # Always an input.
+PROG_B        RD4 out0 # Always an output (controls FPGA configuration).
+SPI_SS_FPGA   RD5 out1 # Always an output.
+INIT_B        RD6 in   # Always an input (controlled by FPGA).
+DONE          RD7 in   # Always an input (controlled by FPGA).
+VGND1         RB0 vgnd
+XBEE_BL       RB1 in   # Always an input (controlled by XBee).
+EMERG_ERASE   RB2 in   # Always an input (controlled by XBee).
+VGND2         RB3 vgnd
+RTS           RB4 out0 # Always an output (startup: allow flow).
+ICSP_PGM      RB5 vgnd
+ICSP_PGC      RB6 vgnd
+ICSP_PGD      RB7 out1
+SPI_CK        RA4 in   # Undriven until in bootloader or ADC mode.
+SPI_TX        RE1 in   # Undriven until in bootloader or ADC mode.
+SPI_SS_FLASH  RE2 in   # Undriven until in bootloader mode.
+SPI_RX        RC0 in   # Always an input.
+LED           RC1 out0 # Always an output (startup: LED off).
+VGND3         RC2 vgnd
+VGND4         RD0 vgnd
+VGND5         RD1 vgnd
+VGND6         RD2 vgnd
+XBEE_RESET    RD3 out1 # Always an output (startup: no reset).
+XBEE_TX       RC6 in   # Undriven until in bootloader mode.

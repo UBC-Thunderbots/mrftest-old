@@ -11,5 +11,3 @@
 	EXTERNDEF sleep_100ms
 	EXTERNDEF sleep_10ms
 	EXTERNDEF sleep_1ms
-	EXTERNDEF sleep_100us
-	EXTERNDEF sleep_10us

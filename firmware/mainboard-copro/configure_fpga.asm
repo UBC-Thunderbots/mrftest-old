@@ -23,17 +23,29 @@
 
 	code
 configure_fpga:
+	; Enable mode-change interrupts.
+	; We care about both signals (EMERG_ERASE=INT2, BOOTLOAD=INT1).
+	; EMERG_ERASE should be high right now (deasserted).
+	; BOOTLOAD should be low right now (deasserted).
+	; A change on either one should reset the PIC.
+	bcf INTCON2, INTEDG2
+	bcf INTCON3, INT1IF
+	bcf INTCON3, INT2IF
+	bsf INTCON3, INT1IE
+	bsf INTCON3, INT2IE
+
+	; Check that we haven't raced and missed a change.
+	btfss PORT_EMERG_ERASE, PIN_EMERG_ERASE
+	reset
+	btfsc PORT_XBEE_BL, PIN_XBEE_BL
+	reset
+
 	; Drive PROG_B high to begin the configuration process.
 	bsf LAT_PROG_B, PIN_PROG_B
 
 	; Once the FPGA is finished configuring itself, the DONE pin will go high.
-	; Wait until that happens. If the bootload pin is driven high during this
-	; time, reset the PIC (also if the emergency erase pin is driven low).
+	; Wait until that happens.
 wait_for_done:
-	btfsc PORT_XBEE_BL, PIN_XBEE_BL
-	reset
-	btfss PORT_EMERG_ERASE, PIN_EMERG_ERASE
-	reset
 	btfss PORT_DONE, PIN_DONE
 	bra wait_for_done
 

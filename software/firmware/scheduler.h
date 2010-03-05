@@ -14,9 +14,8 @@
 //
 struct upload_irp {
 	enum ioop {
-		IOOP_ERASE_BLOCK,
 		IOOP_WRITE_PAGE,
-		IOOP_CRC_SECTOR,
+		IOOP_CRC_CHUNK,
 		IOOP_READ_PAGE,
 		IOOP_ERASE_SECTOR,
 	} op;
@@ -61,16 +60,27 @@ class upload_scheduler : public noncopyable {
 
 	private:
 		std::vector<uint8_t> data;
-		std::queue<upload_irp> irps;
-		std::size_t initial_qlen;
 		std::vector<uint8_t> crc_failures;
+		unsigned int sector;
+		bool erase_done;
+		unsigned int chunk;
+		uint16_t pages_written;
+		unsigned int next_page;
 
 		static const std::size_t PAGE_BYTES = 256;
-		static const uint16_t SECTOR_PAGES = 16;
-		static const uint16_t BLOCK_SECTORS = 16;
+		static const std::size_t CHUNK_PAGES = 16;
+		static const std::size_t SECTOR_CHUNKS = 16;
 
-		static const std::size_t SECTOR_BYTES = SECTOR_PAGES * PAGE_BYTES;
-		static const std::size_t BLOCK_BYTES = BLOCK_SECTORS * SECTOR_BYTES;
+		void sector_start();
+		bool sector_done() const;
+		upload_irp sector_next();
+		bool sector_check_crcs(uint16_t first_page, const uint16_t *crcs) __attribute__((warn_unused_result));
+		double sector_progress() const;
+
+		void chunk_start();
+		bool chunk_done() const;
+		upload_irp chunk_next();
+		bool chunk_check_crcs(uint16_t first_page, const uint16_t *crcs) __attribute__((warn_unused_result));
 };
 
 #endif

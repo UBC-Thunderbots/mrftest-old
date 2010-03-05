@@ -31,6 +31,7 @@
 #include <p18f4550.inc>
 #include "cbuf.inc"
 #include "dispatch.inc"
+#include "led.inc"
 #include "pins.inc"
 #include "spi.inc"
 
@@ -61,22 +62,6 @@
 	;  1 byte JEDEC capacity ID of Flash chip
 	;
 COMMAND_IDENT equ 0x1
-
-	; COMMAND_ERASE_BLOCK
-	; ===================
-	;
-	; Erases a block.
-	;
-	; Page number:
-	;  The page number of the first page in the block to erase
-	;
-	; Request data:
-	;  None
-	;
-	; Response data:
-	;  None
-	;
-COMMAND_ERASE_BLOCK equ 0x2
 
 	; COMMAND_WRITE_PAGE1
 	; ===================
@@ -126,8 +111,8 @@ COMMAND_WRITE_PAGE2 equ 0x4
 	;
 COMMAND_WRITE_PAGE3 equ 0x5
 
-	; COMMAND_CRC_SECTOR
-	; ==================
+	; COMMAND_CRC_CHUNK
+	; =================
 	;
 	; Performs a CRC16 of a sector.
 	;
@@ -140,7 +125,7 @@ COMMAND_WRITE_PAGE3 equ 0x5
 	; Response data:
 	;  32 bytes CRC16s of the pages
 	;
-COMMAND_CRC_SECTOR equ 0x6
+COMMAND_CRC_CHUNK equ 0x6
 
 	; COMMAND_ERASE_SECTOR
 	; ====================
@@ -183,6 +168,9 @@ xbee_transmit_checksum: res 1
 send_length_temp: res 1
 	CBUF_DECLARE rxbuf
 rcif_fsr0: res 2
+page_residue: res 1
+page_bitmap: res 2
+bits_table: res 8
 
 
 
@@ -314,11 +302,26 @@ update_rts_assert:
 
 	; Main code.
 bootload:
+	; Enable mode-change interrupts.
+	; We care about both signals (EMERG_ERASE=INT2, BOOTLOAD=INT1).
+	; EMERG_ERASE should be high right now (deasserted).
+	; BOOTLOAD should be high right now (asserted).
+	; A change on either one should reset the PIC.
+	bcf INTCON2, INTEDG1
+	bcf INTCON2, INTEDG2
+	bcf INTCON3, INT1IF
+	bcf INTCON3, INT2IF
+	bsf INTCON3, INT1IE
+	bsf INTCON3, INT2IE
+
+	; Check that we haven't raced and missed a change.
+	btfss PORT_EMERG_ERASE, PIN_EMERG_ERASE
+	reset
+	btfss PORT_XBEE_BL, PIN_XBEE_BL
+	reset
+
 	; Take control of the SPI bus.
 	SPI_DRIVE
-
-	; Allow writes to the Flash chip.
-	bcf LAT_FLASH_WP, PIN_FLASH_WP
 
 	; Send the JEDEC ID command (0x9F) and save the response.
 	banksel jedecid
@@ -354,15 +357,33 @@ load_crc_table_loop:
 	addlw 1
 	bnz load_crc_table_loop
 
+	; Initialize the table of bits by position.
+	movlw 0x01
+	movwf bits_table + 0
+	movlw 0x02
+	movwf bits_table + 1
+	movlw 0x04
+	movwf bits_table + 2
+	movlw 0x08
+	movwf bits_table + 3
+	movlw 0x10
+	movwf bits_table + 4
+	movlw 0x20
+	movwf bits_table + 5
+	movlw 0x40
+	movwf bits_table + 6
+	movlw 0x80
+	movwf bits_table + 7
+
 	; Start up the USART.
 	clrf RCSTA
 	clrf TXSTA
 	clrf SPBRGH
-	movlw 7
+	movlw 1
 	movwf SPBRG
 	movlw (1 << BRG16)
 	movwf BAUDCON
-	movlw (1 << TXEN) | (1 << BRGH)
+	movlw (1 << TXEN)
 	movwf TXSTA
 	movlw (1 << SPEN) | (1 << CREN)
 	movwf RCSTA
@@ -371,12 +392,19 @@ load_crc_table_loop:
 	bsf PIE1, RCIE
 
 expecting_sop:
+	; We are currently idle.
+	call led_idle
+
+expecting_sop_loop:
 	; Receive a raw byte from the USART without unescaping. It should be 0x7E.
 	rcall receive_raw
 	xorlw 0x7E
-	bnz expecting_sop
+	bnz expecting_sop_loop
 
 got_sop:
+	; We got a SOP. We consider this to be packet activity.
+	call led_activity
+
 	; Receive a byte. It should be the MSB of the length, which should be zero.
 	rcall receive_byte_semicooked
 	xorlw 0
@@ -423,11 +451,11 @@ got_sop:
 
 	; Receive the COMMAND ID and dispatch based on it.
 	rcall receive_byte_cooked
+main_dispatch_tree:
 	DISPATCH_INIT
 	DISPATCH_COND COMMAND_IDENT, handle_ident
-	DISPATCH_COND COMMAND_ERASE_BLOCK, handle_erase_block
 	DISPATCH_BRA  COMMAND_WRITE_PAGE1, handle_write_page1
-	DISPATCH_BRA  COMMAND_CRC_SECTOR, handle_crc_sector
+	DISPATCH_BRA  COMMAND_CRC_CHUNK, handle_crc_chunk
 	DISPATCH_GOTO COMMAND_ERASE_SECTOR, handle_erase_sector
 	DISPATCH_END_RESTORE
 
@@ -478,33 +506,6 @@ handle_ident:
 	rcall send_checksum
 
 	; Continue.
-	bra expecting_sop
-
-
-
-handle_erase_block:
-	; Send the WRITE ENABLE command.
-	rcall send_write_enable
-
-	; Start sending the BLOCK ERASE command (0xD8).
-	SELECT_CHIP
-	SPI_SEND_CONSTANT 0xD8
-
-	; Receive and pass on the page number.
-	rcall receive_byte_cooked
-	SPI_SEND_WREG
-	rcall receive_byte_cooked
-	SPI_SEND_WREG
-	SPI_SEND_CONSTANT 0
-	DESELECT_CHIP
-
-	; Expect the checksum next.
-	rcall receive_and_check_checksum
-
-	; Wait until operation completes.
-	rcall wait_busy
-
-	; Done.
 	bra expecting_sop
 
 
@@ -688,21 +689,6 @@ receive_byte_semicooked_escaped:
 
 
 receive_raw:
-	; Check if the bootload pin has been deasserted (gone low).
-	btfss PORT_XBEE_BL, PIN_XBEE_BL
-	reset
-
-	; Check if the emergency erase pin has been asserted (gone low).
-	btfss PORT_EMERG_ERASE, PIN_EMERG_ERASE
-	reset
-
-	; Check if there's data available to receive.
-	; HACK: once mode pin checking goes to interrupts, replace all this with a
-	; simple call to CBUF_GET!
-	CBUF_LEVEL rxbuf
-	addlw 0
-	bz receive_raw
-
 	; Consider if we need to assert RTS or not, based on the fill level of the
 	; buffer.
 	rcall update_rts
@@ -719,6 +705,20 @@ handle_error:
 	; We might have detected the error at any level of call. Clear the stack.
 	clrf STKPTR
 
+	; If we were in the middle of a Page Program command or other write command
+	; when the failure occurred, we might be able to abort the operation by
+	; sending four extra bits, which will make the transmitted sequence not be a
+	; multiple of eight bits in length. So, pulse the SPI Clock line four times.
+	; If the chip was already deselected, this will do absolutely nothing.
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+
 	; We might be in the middle of sending data to the Flash. Deselect it.
 	DESELECT_CHIP
 
@@ -733,6 +733,20 @@ handle_error:
 handle_unexpected_sop:
 	; We might have detected the error at any level of call. Clear the stack.
 	clrf STKPTR
+
+	; If we were in the middle of a Page Program command or other write command
+	; when the failure occurred, we might be able to abort the operation by
+	; sending four extra bits, which will make the transmitted sequence not be a
+	; multiple of eight bits in length. So, pulse the SPI Clock line four times.
+	; If the chip was already deselected, this will do absolutely nothing.
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
 
 	; We might be in the middle of sending data to the Flash. Deselect it.
 	DESELECT_CHIP
@@ -760,6 +774,10 @@ handle_write_page1:
 	SPI_SEND_WREG
 	SPI_SEND_CONSTANT 0
 
+	; Save the page number modulo 16 for later consideration.
+	andlw 0x0F
+	movwf page_residue
+
 	; Receive and pass the data.
 	movlw 86
 	movwf bytecounter
@@ -774,10 +792,11 @@ handle_write_page1_loop:
 
 	; It's now time to receive the WRITE PAGE 2 packet.
 	; Receive a raw byte from the USART without unescaping. It should be 0x7E.
+handle_write_page1_expect_sop_loop:
 	rcall receive_raw
 	xorlw 0x7E
 	skpz
-	bra expecting_sop
+	bra handle_write_page1_expect_sop_loop
 
 	; Receive a byte. It should be the MSB of the length, which should be zero.
 	rcall receive_byte_semicooked
@@ -827,10 +846,24 @@ handle_write_page1_loop:
 
 	; Receive the COMMAND ID, which should be WRITE PAGE 2.
 	rcall receive_byte_cooked
-	xorlw COMMAND_WRITE_PAGE2
-	skpz
-	bra handle_error
+	DISPATCH_INIT
+	DISPATCH_COND COMMAND_WRITE_PAGE2, handle_write_page2
+	DISPATCH_COND COMMAND_WRITE_PAGE1, handle_write_page1_expect_sop_loop
+	DISPATCH_END_RESTORE
 
+	; Abort the SPI transaction and dispatch the command freshly.
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+	DESELECT_CHIP
+	bra main_dispatch_tree
+
+handle_write_page2:
 	; Ignore the page number.
 	rcall receive_byte_cooked
 	rcall receive_byte_cooked
@@ -849,10 +882,11 @@ handle_write_page2_loop:
 
 	; It's now time to receive the WRITE PAGE 3 packet.
 	; Receive a raw byte from the USART without unescaping. It should be 0x7E.
+handle_write_page2_expect_sop_loop:
 	rcall receive_raw
 	xorlw 0x7E
 	skpz
-	bra expecting_sop
+	bra handle_write_page2_expect_sop_loop
 
 	; Receive a byte. It should be the MSB of the length, which should be zero.
 	rcall receive_byte_semicooked
@@ -902,10 +936,24 @@ handle_write_page2_loop:
 
 	; Receive the COMMAND ID, which should be WRITE PAGE 3.
 	rcall receive_byte_cooked
-	xorlw COMMAND_WRITE_PAGE3
-	skpz
-	bra handle_error
+	DISPATCH_INIT
+	DISPATCH_COND COMMAND_WRITE_PAGE3, handle_write_page3
+	DISPATCH_COND COMMAND_WRITE_PAGE2, handle_write_page2_expect_sop_loop
+	DISPATCH_END_RESTORE
 
+	; Abort the SPI transaction and dispatch the command freshly.
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+	DESELECT_CHIP
+	bra main_dispatch_tree
+
+handle_write_page3:
 	; Ignore the page number.
 	rcall receive_byte_cooked
 	rcall receive_byte_cooked
@@ -928,12 +976,22 @@ handle_write_page3_loop:
 	; Wait until operation completes.
 	rcall wait_busy
 
+	; We have now written a page. Mark it in the bitmap.
+	lfsr 0, page_bitmap
+	lfsr 1, bits_table
+	btfsc page_residue, 3
+	incf FSR0L, F
+	movf page_residue, W
+	andlw 0x07
+	movf PLUSW1, W
+	iorwf INDF0, F
+
 	; Done.
 	bra expecting_sop
 
 
 
-handle_crc_sector:
+handle_crc_chunk:
 	; Start sending the READ DATA command (0x03).
 	SELECT_CHIP
 	SPI_SEND_CONSTANT 0x03
@@ -948,9 +1006,9 @@ handle_crc_sector:
 	; Expect the checksum next.
 	rcall receive_and_check_checksum
 
-	; Start the response. We'll stream the CRCs to the XBee.
+	; Start the response. We'll stream the page bitmap and the CRCs to the XBee.
 	rcall send_sop
-	movlw 45
+	movlw 47
 	rcall send_length
 	movlw 0x00
 	rcall send_byte
@@ -959,9 +1017,15 @@ handle_crc_sector:
 	rcall send_address
 	movlw 0x00
 	rcall send_byte
-	movlw COMMAND_CRC_SECTOR
+	movlw COMMAND_CRC_CHUNK
 	rcall send_byte
 	movlw COMMAND_STATUS_OK
+	rcall send_byte
+
+	; Send the page bitmap.
+	movf page_bitmap + 0, W
+	rcall send_byte
+	movf page_bitmap + 1, W
 	rcall send_byte
 
 	; Set up a counter of pages.
@@ -976,13 +1040,13 @@ handle_crc_sector:
 	lfsr 1, crc_table_high + 128
 
 	; Go into a loop of pages.
-handle_crc_sector_pageloop:
+handle_crc_chunk_pageloop:
 	; Initialize the CRC to 0xFFFF.
 	setf crc_low
 	setf crc_high
 
 	; Go into a loop of bytes.
-handle_crc_sector_byteloop:
+handle_crc_chunk_byteloop:
 	; Receive one byte from the SPI port into WREG.
 	SPI_RECEIVE WREG
 
@@ -995,7 +1059,7 @@ handle_crc_sector_byteloop:
 
 	; Decrement byte count and loop if nonzero.
 	decfsz bytecounter, F
-	bra handle_crc_sector_byteloop
+	bra handle_crc_chunk_byteloop
 
 	; A page is finished. Stream out the page's CRC.
 	movf crc_low, W
@@ -1005,7 +1069,7 @@ handle_crc_sector_byteloop:
 
 	; Decrement page count and loop if nonzero.
 	decfsz pagecounter, F
-	bra handle_crc_sector_pageloop
+	bra handle_crc_chunk_pageloop
 
 	; Deselect the chip.
 	DESELECT_CHIP
@@ -1022,9 +1086,9 @@ handle_erase_sector:
 	; Send the WRITE ENABLE command.
 	rcall send_write_enable
 
-	; Start sending the SECTOR ERASE command (0x20).
+	; Start sending the SECTOR ERASE command (0xD8).
 	SELECT_CHIP
-	SPI_SEND_CONSTANT 0x20
+	SPI_SEND_CONSTANT 0xD8
 
 	; Receive and pass on the page number.
 	rcall receive_byte_cooked
@@ -1033,6 +1097,10 @@ handle_erase_sector:
 	SPI_SEND_WREG
 	SPI_SEND_CONSTANT 0
 	DESELECT_CHIP
+
+	; Clear the page bitmap.
+	clrf page_bitmap + 0
+	clrf page_bitmap + 1
 
 	; Expect the checksum next.
 	rcall receive_and_check_checksum

@@ -1,4 +1,5 @@
 #include "firmware/upload.h"
+#include <iomanip>
 
 namespace {
 	struct __attribute__((packed)) IDENT_DATA {
@@ -9,11 +10,10 @@ namespace {
 	};
 
 	const uint8_t COMMAND_IDENT = 0x1;
-	const uint8_t COMMAND_ERASE_BLOCK = 0x2;
 	const uint8_t COMMAND_WRITE_PAGE1 = 0x3;
 	const uint8_t COMMAND_WRITE_PAGE2 = 0x4;
 	const uint8_t COMMAND_WRITE_PAGE3 = 0x5;
-	const uint8_t COMMAND_CRC_SECTOR = 0x6;
+	const uint8_t COMMAND_CRC_CHUNK = 0x6;
 	const uint8_t COMMAND_ERASE_SECTOR = 0x7;
 }
 
@@ -40,8 +40,11 @@ void upload::ident_received(const void *data) {
 		signal_error().emit("Failed to check identity: Incorrect signature!");
 		return;
 	}
-	if (resp->manufacturer != 0xEF || resp->memory_type != 0x30 || resp->capacity != 0x15) {
-		signal_error().emit("Failed to check identity: Incorrect Flash JEDEC id!");
+	if (resp->manufacturer != 0x20 || resp->memory_type != 0x20 || resp->capacity != 0x15) {
+		signal_error().emit(Glib::ustring::compose("Failed to check identity: Incorrect Flash JEDEC id! (have %1%2%3, want 202015)",
+			Glib::ustring::format(std::hex, std::setw(2), std::setfill(L'0'), resp->manufacturer),
+			Glib::ustring::format(std::hex, std::setw(2), std::setfill(L'0'), resp->memory_type),
+			Glib::ustring::format(std::hex, std::setw(2), std::setfill(L'0'), resp->capacity)));
 		return;
 	}
 
@@ -61,16 +64,12 @@ void upload::send_next_irp() {
 	for (;;) {
 		irp = sched.next();
 		switch (irp.op) {
-			case upload_irp::IOOP_ERASE_BLOCK:
-				submit_erase_block();
-				break;
-
 			case upload_irp::IOOP_WRITE_PAGE:
 				submit_write_page();
 				break;
 
-			case upload_irp::IOOP_CRC_SECTOR:
-				submit_crc_sector();
+			case upload_irp::IOOP_CRC_CHUNK:
+				submit_crc_chunk();
 				return;
 
 			case upload_irp::IOOP_ERASE_SECTOR:
@@ -84,21 +83,17 @@ void upload::send_next_irp() {
 	}
 }
 
-void upload::submit_erase_block() {
-	proto.send_no_response(COMMAND_ERASE_BLOCK, irp.page, 0, 0);
-}
-
 void upload::submit_write_page() {
 	proto.send_no_response(COMMAND_WRITE_PAGE1, irp.page, irp.data, 86);
 	proto.send_no_response(COMMAND_WRITE_PAGE2, irp.page, &static_cast<const uint8_t *>(irp.data)[86], 86);
 	proto.send_no_response(COMMAND_WRITE_PAGE3, irp.page, &static_cast<const uint8_t *>(irp.data)[86+86], 84);
 }
 
-void upload::submit_crc_sector() {
-	proto.send(COMMAND_CRC_SECTOR, irp.page, 0, 0, 32, sigc::mem_fun(*this, &upload::crc_sector_done));
+void upload::submit_crc_chunk() {
+	proto.send(COMMAND_CRC_CHUNK, irp.page, 0, 0, 34, sigc::mem_fun(*this, &upload::crc_chunk_done));
 }
 
-void upload::crc_sector_done(const void *response) {
+void upload::crc_chunk_done(const void *response) {
 	if (!sched.check_crcs(irp.page, static_cast<const uint16_t *>(response))) {
 		signal_error().emit("CRC failed!");
 		return;

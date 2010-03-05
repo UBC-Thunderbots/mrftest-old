@@ -82,14 +82,6 @@ adc:
 
 	; Go into a loop.
 loop:
-	; Check if the bootload signal line has been asserted (gone high).
-	btfsc PORT_XBEE_BL, PIN_XBEE_BL
-	reset
-
-	; Check if the emergency erase signal line has been asserted (gone low).
-	btfss PORT_EMERG_ERASE, PIN_EMERG_ERASE
-	reset
-
 	; Check if the INIT signal line has gone low, meaning a post-configuration
 	; CRC (if enabled) failed.
 	btfss PORT_INIT_B, PIN_INIT_B
@@ -99,7 +91,7 @@ loop:
 	bcf LAT_SPI_SS_FPGA, PIN_SPI_SS_FPGA
 
 	; Acquire and send the ADC data.
-	ADC_START_CONVERSION 12
+	ADC_START_CONVERSION 0
 	WAIT_ADC_FINISH
 	SEND_ADC_RESULT
 

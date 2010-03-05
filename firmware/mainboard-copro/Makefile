@@ -7,16 +7,21 @@ OBJS := $(ASMS:.asm=.o)
 $(HEX) : $(OBJS) $(LKR)
 	gplink -o $@ -m -s $(LKR) $(subst $(LKR),,$+)
 
-%.d %.o : %.asm
+%.d %.o : %.asm pins.inc
 	{ gpasm -c -C -y -w2 -M $< && sed -e 's/^$(@:.d=.o) :/$@ $(@:.d=.o) :/' < $(@:.o=.d) > $(@:.o=.d).new && mv $(@:.o=.d).new $(@:.o=.d) ; } || { $(RM) $(@:.o=.d) $(@:.o=.d).new ; false ; }
 
 ifneq ($(MAKECMDGOALS),clean)
 include $(ASMS:.asm=.d)
 endif
 
+pins.inc : pins.txt pingen
+	./pingen < $< > $@
+
+pingen : pingen.c
+
 .PHONY: clean
 clean :
-	$(RM) *.cod *.cof *.d *.err *.hex *.lst *.map *.o
+	$(RM) *.cod *.cof *.d *.err *.hex *.lst *.map *.o pins.inc pingen
 
 .PHONY: burn
 burn : $(HEX)
