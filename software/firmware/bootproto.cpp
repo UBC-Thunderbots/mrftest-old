@@ -174,6 +174,7 @@ void bootproto::send_no_response(uint8_t command, uint16_t address, const void *
 	// Sanity check.
 	assert(current_state == STATE_READY);
 	assert(!(command & 0x80));
+	assert(data_len <= 97);
 
 	// Cut old signal connections.
 	packet_received_connection.disconnect();
@@ -201,6 +202,7 @@ void bootproto::send(uint8_t command, uint16_t address, const void *data, std::s
 	// Sanity check.
 	assert(current_state == STATE_READY);
 	assert(!(command & 0x80));
+	assert(data_len <= 97);
 
 	// Mark new state.
 	current_state = STATE_BUSY;
