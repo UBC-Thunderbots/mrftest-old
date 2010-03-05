@@ -173,7 +173,7 @@ bool bootproto::enter_bootloader_quiesce() {
 void bootproto::send_no_response(uint8_t command, uint16_t address, const void *data, std::size_t data_len) {
 	// Sanity check.
 	assert(current_state == STATE_READY);
-	assert(command < 16);
+	assert(!(command & 0x80));
 
 	// Cut old signal connections.
 	packet_received_connection.disconnect();
@@ -200,7 +200,7 @@ void bootproto::send_no_response(uint8_t command, uint16_t address, const void *
 void bootproto::send(uint8_t command, uint16_t address, const void *data, std::size_t data_len, std::size_t response_len, const sigc::slot<void, const void *> &callback) {
 	// Sanity check.
 	assert(current_state == STATE_READY);
-	assert(command < 16);
+	assert(!(command & 0x80));
 
 	// Mark new state.
 	current_state = STATE_BUSY;
