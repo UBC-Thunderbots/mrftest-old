@@ -3,6 +3,7 @@
 #include "util/dprint.h"
 #include "xbee/packettypes.h"
 #include "xbee/util.h"
+#include <cassert>
 
 namespace {
 	const unsigned int TIMEOUT = 3000;
