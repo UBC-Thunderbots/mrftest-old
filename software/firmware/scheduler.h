@@ -16,7 +16,6 @@ struct upload_irp {
 	enum ioop {
 		IOOP_WRITE_PAGE,
 		IOOP_CRC_CHUNK,
-		IOOP_READ_PAGE,
 		IOOP_ERASE_SECTOR,
 	} op;
 	uint16_t page;
