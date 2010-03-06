@@ -23,7 +23,7 @@
 
 
 #include <iostream>
-//created by Kenneth Lui, last updated 29 Jan 2010.
+//created by Kenneth Lui, last updated 5 Mar 2010.
 
 namespace {
   struct robot_details{
@@ -90,9 +90,9 @@ namespace {
   void kenneth_simple_strategy::tick() {
      // Use the variables "the_ball", "the_field", and "the_team" to allocate players to roles.
     turn_since_last_update++;
-    if (turn_since_last_update % 40 == 0)
+/*    if (turn_since_last_update % 40 == 0)
       {  std::cout << "tick" << turn_since_last_update << std::endl;
-      }
+      }*/
     switch (the_team->current_playtype())
     {
 //      case playtype::halt: break;
@@ -149,6 +149,11 @@ namespace {
   //////////////////////
   void kenneth_simple_strategy::in_play_assignment(void)
   {
+    if (the_team->size()<1)
+    {
+       roles.clear();
+       return;
+    }
     if (the_team->size()==1)
     {
        roles.clear();
