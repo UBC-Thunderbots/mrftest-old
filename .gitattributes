@@ -246,6 +246,8 @@ software/util/ihex.cpp -text
 software/util/ihex.h -text
 software/util/noncopyable.h -text
 software/util/registerable.h -text
+software/util/rle.cpp -text
+software/util/rle.h -text
 software/util/sockaddrs.h -text
 software/util/xml.cpp -text
 software/util/xml.h -text
