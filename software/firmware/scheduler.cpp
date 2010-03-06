@@ -1,5 +1,5 @@
-#include "firmware/crc16.h"
 #include "firmware/scheduler.h"
+#include "util/crc16.h"
 #include <algorithm>
 #include <numeric>
 #include <cassert>

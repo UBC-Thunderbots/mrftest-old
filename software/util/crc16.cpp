@@ -1,4 +1,4 @@
-#include "firmware/crc16.h"
+#include "util/crc16.h"
 
 namespace {
 	uint16_t crc16_byte(uint16_t crc, uint8_t data) {

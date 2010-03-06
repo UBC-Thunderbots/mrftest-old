@@ -102,8 +102,6 @@ software/ai/tactic/turn.cpp -text
 software/ai/tactic/turn.h -text
 software/firmware/bootproto.cpp -text
 software/firmware/bootproto.h -text
-software/firmware/crc16.cpp -text
-software/firmware/crc16.h -text
 software/firmware/emergency_erase.cpp -text
 software/firmware/emergency_erase.h -text
 software/firmware/scheduler.cpp -text
@@ -237,6 +235,8 @@ software/util/clocksource_quick.h -text
 software/util/clocksource_timerfd.cpp -text
 software/util/clocksource_timerfd.h -text
 software/util/codec.h -text
+software/util/crc16.cpp -text
+software/util/crc16.h -text
 software/util/dprint.h -text
 software/util/fd.cpp -text
 software/util/fd.h -text

@@ -1,5 +1,5 @@
-#ifndef FIRMWARE_CRC16_H
-#define FIRMWARE_CRC16_H
+#ifndef UTIL_CRC16_H
+#define UTIL_CRC16_H
 
 #include <cstddef>
 #include <stdint.h>
