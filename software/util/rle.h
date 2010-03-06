@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <vector>
+#include <stdint.h>
 
 //
 // Run-length-encodes a block of binary data. The expected usage model is:
@@ -31,17 +32,15 @@ class rle_compressor {
 		//
 		// Fetches the next block of compressed data. The output can be
 		// constrained to any size, but larger output block sizes will result in
-		// more efficient compression and no output at all will be produced with
-		// an output block size of less than two bytes (with the exception of
-		// the termination marker, which requires only one byte). The function
-		// returns the number of bytes of compressed data generated.
+		// more efficient compression and in order to guarantee that progress
+		// will be made, the output block size must be at least three bytes.
 		//
 		std::size_t next(void *buffer, std::size_t length);
 
 	private:
 		class rle_run {
 			public:
-				rle_run(bool is_repeat, std::size_t length, const unsigned char *data);
+				rle_run(bool is_repeat, std::size_t length, const unsigned char *data, uint16_t crc = 0);
 				bool done() const;
 				std::size_t encode(void *buffer, std::size_t buflen);
 
@@ -49,6 +48,7 @@ class rle_compressor {
 				bool is_repeat;
 				std::size_t length;
 				const unsigned char *data;
+				uint16_t crc;
 		};
 
 		std::vector<rle_run> runs;

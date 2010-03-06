@@ -1,3 +1,4 @@
+#include "util/crc16.h"
 #include "util/rle.h"
 #include <algorithm>
 #include <cassert>
@@ -6,6 +7,9 @@
 
 
 rle_compressor::rle_compressor(const void *data, std::size_t length) : cur_run(0) {
+	// Compute the CRC16 of the input data.
+	uint16_t crc = crc16::calculate(data, length);
+
 	// First, break the input into a sequence of blocks where all bytes in the
 	// same block are equal.
 	std::vector<std::pair<std::size_t, const unsigned char *> > blocks;
@@ -47,7 +51,7 @@ rle_compressor::rle_compressor(const void *data, std::size_t length) : cur_run(0
 	}
 
 	// Add the termination marker.
-	runs.push_back(rle_run(false, 0, 0));
+	runs.push_back(rle_run(false, 1, 0, crc));
 }
 
 bool rle_compressor::done() const {
@@ -87,7 +91,7 @@ std::size_t rle_compressor::next(void *buffer, std::size_t length) {
 
 
 
-rle_compressor::rle_run::rle_run(bool is_repeat, std::size_t length, const unsigned char *data) : is_repeat(is_repeat), length(length), data(data) {
+rle_compressor::rle_run::rle_run(bool is_repeat, std::size_t length, const unsigned char *data, uint16_t crc) : is_repeat(is_repeat), length(length), data(data), crc(crc) {
 }
 
 bool rle_compressor::rle_run::done() const {
@@ -97,6 +101,7 @@ bool rle_compressor::rle_run::done() const {
 
 std::size_t rle_compressor::rle_run::encode(void *buffer, std::size_t buflen) {
 	unsigned char *bufptr = static_cast<unsigned char *>(buffer);
+	assert(!done());
 
 	if (is_repeat) {
 		// Here, "length" is the number of occurrences of the repeating byte
@@ -113,7 +118,7 @@ std::size_t rle_compressor::rle_run::encode(void *buffer, std::size_t buflen) {
 			generated += s;
 		}
 		return generated;
-	} else {
+	} else if (data) {
 		// Here, "length" is the number of bytes that have yet to be encoded.
 		// Keep pushing until we run out of either data or buffer space.
 		std::size_t generated = 0;
@@ -129,6 +134,20 @@ std::size_t rle_compressor::rle_run::encode(void *buffer, std::size_t buflen) {
 			generated += s + 1;
 		}
 		return generated;
+	} else {
+		// This is a termination marker. Here, "length" is set to 1 if the
+		// marker has not yet been written, or 0 if it has. Writing the marker
+		// requires 3 bytes of buffer space (one for the code and two for the
+		// CRC).
+		if (buflen >= 3) {
+			bufptr[0] = 0;
+			bufptr[1] = crc / 256;
+			bufptr[2] = crc % 256;
+			length = 0;
+			return 3;
+		} else {
+			return 0;
+		}
 	}
 }
 
