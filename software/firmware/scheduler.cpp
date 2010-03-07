@@ -5,7 +5,7 @@
 #include <cassert>
 
 upload_scheduler::upload_scheduler(const intel_hex &ihex) : data(ihex.data()) {
-	while (data.size() % (SECTOR_CHUNKS * CHUNK_PAGES * PAGE_BYTES)) {
+	while (data.size() % (CHUNK_PAGES * PAGE_BYTES)) {
 		data.push_back(0xFF);
 	}
 	crc_failures.resize(data.size() / PAGE_BYTES, 0);
@@ -25,7 +25,7 @@ upload_irp upload_scheduler::next() {
 }
 
 bool upload_scheduler::done() const {
-	return sector_done() && sector + 1 == data.size() / (SECTOR_CHUNKS * CHUNK_PAGES * PAGE_BYTES);
+	return sector_done() && sector + 1 == (data.size() + SECTOR_CHUNKS * CHUNK_PAGES * PAGE_BYTES - 1) / (SECTOR_CHUNKS * CHUNK_PAGES * PAGE_BYTES);
 }
 
 bool upload_scheduler::check_crcs(uint16_t first_page, const uint16_t *crcs) {
@@ -49,7 +49,7 @@ void upload_scheduler::sector_start() {
 }
 
 bool upload_scheduler::sector_done() const {
-	return chunk_done() && chunk + 1 == SECTOR_CHUNKS;
+	return chunk_done() && (chunk + 1 == SECTOR_CHUNKS || (sector * SECTOR_CHUNKS + chunk + 1) == data.size() / (CHUNK_PAGES * PAGE_BYTES));
 }
 
 upload_irp upload_scheduler::sector_next() {
