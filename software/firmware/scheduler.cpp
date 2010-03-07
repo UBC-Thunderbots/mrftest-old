@@ -33,7 +33,7 @@ bool upload_scheduler::check_crcs(uint16_t first_page, const uint16_t *crcs) {
 }
 
 double upload_scheduler::progress() const {
-	return std::min(1.0, static_cast<double>(sector * SECTOR_CHUNKS * CHUNK_PAGES * PAGE_BYTES) / data.size() + sector_progress() / (data.size() / PAGE_BYTES / CHUNK_PAGES / SECTOR_CHUNKS));
+	return std::min(1.0, static_cast<double>(sector * SECTOR_CHUNKS * CHUNK_PAGES * PAGE_BYTES) / data.size() + sector_progress() / (data.size() / static_cast<double>(PAGE_BYTES * CHUNK_PAGES * SECTOR_CHUNKS)));
 }
 
 unsigned int upload_scheduler::crc_failure_count() const {
