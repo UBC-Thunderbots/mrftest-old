@@ -96,7 +96,12 @@ void upload::submit_crc_chunk() {
 }
 
 void upload::crc_chunk_done(const void *response) {
-	if (!sched.check_crcs(irp.page, static_cast<const uint16_t *>(response))) {
+	uint16_t crcs[17];
+	const unsigned char *data = static_cast<const unsigned char *>(response);
+	for (unsigned int i = 0; i < 17; ++i) {
+		crcs[i] = 256 * data[i * 2] + data[i * 2 + 1];
+	}
+	if (!sched.check_crcs(irp.page, crcs)) {
 		signal_error().emit("CRC failed!");
 		return;
 	}

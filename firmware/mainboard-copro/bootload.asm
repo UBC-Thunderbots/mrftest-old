@@ -1004,9 +1004,9 @@ handle_crc_chunk:
 	rcall send_byte
 
 	; Send the page bitmap.
-	movf page_bitmap + 0, W
-	rcall send_byte
 	movf page_bitmap + 1, W
+	rcall send_byte
+	movf page_bitmap + 0, W
 	rcall send_byte
 
 	; Set up a counter of pages.
@@ -1039,9 +1039,9 @@ handle_crc_chunk_byteloop:
 	bra handle_crc_chunk_byteloop
 
 	; A page is finished. Stream out the page's CRC.
-	movf crc_low, W
-	rcall send_byte
 	movf crc_high, W
+	rcall send_byte
+	movf crc_low, W
 	rcall send_byte
 
 	; Decrement page count and loop if nonzero.
