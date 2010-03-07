@@ -1,4 +1,5 @@
 #include "firmware/upload.h"
+#include "util/rle.h"
 #include <iomanip>
 
 namespace {
@@ -10,11 +11,9 @@ namespace {
 	};
 
 	const uint8_t COMMAND_IDENT = 0x1;
-	const uint8_t COMMAND_WRITE_PAGE1 = 0x3;
-	const uint8_t COMMAND_WRITE_PAGE2 = 0x4;
-	const uint8_t COMMAND_WRITE_PAGE3 = 0x5;
-	const uint8_t COMMAND_CRC_CHUNK = 0x6;
-	const uint8_t COMMAND_ERASE_SECTOR = 0x7;
+	const uint8_t COMMAND_WRITE_DATA = 0x2;
+	const uint8_t COMMAND_CRC_CHUNK = 0x3;
+	const uint8_t COMMAND_ERASE_SECTOR = 0x4;
 }
 
 upload::upload(xbee &modem, uint64_t bot, const intel_hex &data) : proto(modem, bot), sched(data) {
@@ -84,9 +83,12 @@ void upload::send_next_irp() {
 }
 
 void upload::submit_write_page() {
-	proto.send_no_response(COMMAND_WRITE_PAGE1, irp.page, irp.data, 86);
-	proto.send_no_response(COMMAND_WRITE_PAGE2, irp.page, &static_cast<const uint8_t *>(irp.data)[86], 86);
-	proto.send_no_response(COMMAND_WRITE_PAGE3, irp.page, &static_cast<const uint8_t *>(irp.data)[86+86], 84);
+	rle_compressor comp(irp.data, 256);
+	while (!comp.done()) {
+		unsigned char buffer[97];
+		std::size_t len = comp.next(buffer, sizeof(buffer));
+		proto.send_no_response(COMMAND_WRITE_DATA, irp.page, buffer, len);
+	}
 }
 
 void upload::submit_crc_chunk() {

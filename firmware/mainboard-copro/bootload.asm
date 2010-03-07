@@ -63,8 +63,8 @@
 	;
 COMMAND_IDENT equ 0x1
 
-	; COMMAND_WRITE_PAGE1
-	; ===================
+	; COMMAND_WRITE_DATA
+	; ==================
 	;
 	; Begins a write operation.
 	;
@@ -72,44 +72,12 @@ COMMAND_IDENT equ 0x1
 	;  The page number of the page to write
 	;
 	; Request data:
-	;  86 bytes data to burn
+	;  RLE-compressed data to burn
 	;
 	; Response data:
 	;  None
 	;
-COMMAND_WRITE_PAGE1 equ 0x3
-
-	; COMMAND_WRITE_PAGE2
-	; ===================
-	;
-	; Continues a write operation started with COMMAND_WRITE_PAGE1.
-	;
-	; Page number:
-	;  Ignored
-	;
-	; Request data:
-	;  86 bytes data to burn
-	;
-	; Response data:
-	;  None
-	;
-COMMAND_WRITE_PAGE2 equ 0x4
-
-	; COMMAND_WRITE_PAGE3
-	; ===================
-	;
-	; Finishes a write operation continued with COMMAND_WRITE_PAGE2.
-	;
-	; Page number:
-	;  Ignored
-	;
-	; Request data:
-	;  84 bytes data to burn
-	;
-	; Response data:
-	;  None
-	;
-COMMAND_WRITE_PAGE3 equ 0x5
+COMMAND_WRITE_DATA equ 0x2
 
 	; COMMAND_CRC_CHUNK
 	; =================
@@ -125,7 +93,7 @@ COMMAND_WRITE_PAGE3 equ 0x5
 	; Response data:
 	;  32 bytes CRC16s of the pages
 	;
-COMMAND_CRC_CHUNK equ 0x6
+COMMAND_CRC_CHUNK equ 0x3
 
 	; COMMAND_ERASE_SECTOR
 	; ====================
@@ -141,7 +109,7 @@ COMMAND_CRC_CHUNK equ 0x6
 	; Response data:
 	;  None
 	;
-COMMAND_ERASE_SECTOR equ 0x7
+COMMAND_ERASE_SECTOR equ 0x4
 
 
 
@@ -154,11 +122,37 @@ COMMAND_STATUS_OK          equ 0x00
 
 
 
+	; CRC_INIT_FSRS
+	; =============
+	;
+	; Initializes FSR0 and FSR1 suitable to call CRC_UPDATE_WREG.
+	;
+CRC_INIT_FSRS macro
+	lfsr 0, crc_table_low + 128
+	lfsr 1, crc_table_high + 128
+	endm
+
+	; CRC_UPDATE_WREG
+	; ===============
+	;
+	; Updates the CRC stored in crc_high:crc_low with the byte stored in WREG,
+	; assuming FSR0 points 128 bytes into crc_table_low and FSR1 points 128
+	; bytes into crc_table_high. WREG is destroyed.
+	;
+CRC_UPDATE_WREG macro
+	xorwf crc_low, W
+	movff crc_high, crc_low
+	movff PLUSW1, crc_high
+	movf PLUSW0, W
+	xorwf crc_low, F
+	endm
+
+
+
 bootloader_data udata
 jedecid: res 3
 bytecounter: res 1
 pagecounter: res 1
-crc_temp: res 1
 crc_low: res 1
 crc_high: res 1
 xbee_receive_bytes_left: res 1
@@ -168,9 +162,11 @@ xbee_transmit_checksum: res 1
 send_length_temp: res 1
 	CBUF_DECLARE rxbuf
 rcif_fsr0: res 2
-page_residue: res 1
+page_number: res 2
+old_page_number: res 2
 page_bitmap: res 2
 bits_table: res 8
+write_repeat_temp: res 1
 
 
 
@@ -346,8 +342,7 @@ bootload:
 	movwf TBLPTRH
 	movlw UPPER(crc_table)
 	movwf TBLPTRU
-	lfsr 0, crc_table_low + 128
-	lfsr 1, crc_table_high + 128
+	CRC_INIT_FSRS
 	movlw 0
 load_crc_table_loop:
 	tblrd *+
@@ -410,10 +405,10 @@ got_sop:
 	xorlw 0
 	bnz expecting_sop
 
-	; Receive a byte. It should be the LSB of the length, which should be no longer than 100 bytes.
+	; Receive a byte. It should be the LSB of the length, which should be no longer than 111 bytes.
 	rcall receive_byte_semicooked
 	movwf xbee_receive_bytes_left
-	movlw 101
+	movlw 112
 	cpfslt xbee_receive_bytes_left
 	bra expecting_sop
 
@@ -454,7 +449,7 @@ got_sop:
 main_dispatch_tree:
 	DISPATCH_INIT
 	DISPATCH_COND COMMAND_IDENT, handle_ident
-	DISPATCH_BRA  COMMAND_WRITE_PAGE1, handle_write_page1
+	DISPATCH_BRA  COMMAND_WRITE_DATA, handle_write_data
 	DISPATCH_BRA  COMMAND_CRC_CHUNK, handle_crc_chunk
 	DISPATCH_GOTO COMMAND_ERASE_SECTOR, handle_erase_sector
 	DISPATCH_END_RESTORE
@@ -507,19 +502,6 @@ handle_ident:
 
 	; Continue.
 	bra expecting_sop
-
-
-
-wait_busy:
-	; Poll the STATUS byte in the Flash chip until the chip is no longer busy.
-	SELECT_CHIP
-	SPI_SEND_CONSTANT 0x05
-wait_busy_loop:
-	SPI_RECEIVE WREG
-	btfsc WREG, 0
-	bra wait_busy_loop
-	DESELECT_CHIP
-	return
 
 
 
@@ -694,7 +676,7 @@ receive_raw:
 	rcall update_rts
 
 	; Get the byte.
-	CBUF_GET rxbuf, 0
+	CBUF_GET rxbuf, 2
 
 	; Done.
 	return
@@ -759,7 +741,21 @@ handle_unexpected_sop:
 
 
 
-handle_write_page1:
+wait_busy:
+	; Poll the STATUS byte in the Flash chip until the chip is no longer busy.
+	SELECT_CHIP
+	SPI_SEND_CONSTANT 0x05
+wait_busy_loop:
+	SPI_RECEIVE WREG
+	btfsc WREG, 0
+	bra wait_busy_loop
+	DESELECT_CHIP
+	return
+
+
+
+handle_write_data:
+	call led_off
 	; Send the WRITE ENABLE command.
 	rcall send_write_enable
 	
@@ -770,224 +766,209 @@ handle_write_page1:
 	; Receive and pass the page number.
 	rcall receive_byte_cooked
 	SPI_SEND_WREG
+	movwf page_number + 0
 	rcall receive_byte_cooked
 	SPI_SEND_WREG
+	movwf page_number + 1
 	SPI_SEND_CONSTANT 0
 
-	; Save the page number modulo 16 for later consideration.
-	andlw 0x0F
-	movwf page_residue
+	; Check if the chunk number has changed.
+	movf page_number + 0, W
+	xorwf old_page_number + 0, F
+	movf page_number + 1, W
+	xorwf old_page_number + 1, W
+	andlw 0xF0
+	iorwf old_page_number + 0, W
+	bz handle_write_data_no_reset_page_bitmap
 
-	; Receive and pass the data.
-	movlw 86
+	; Chunk number changed. Reset written-pages bitmap.
+	clrf page_bitmap + 0
+	clrf page_bitmap + 1
+
+handle_write_data_no_reset_page_bitmap:
+	; Copy the current page number to the old page number.
+	movff page_number + 0, old_page_number + 0
+	movff page_number + 1, old_page_number + 1
+
+	; Initialize the CRC to 0xFFFF.
+	setf crc_high
+	setf crc_low
+
+	; Prepare the FSRs to do CRC calculations.
+	CRC_INIT_FSRS
+
+handle_write_data_payload:
+	; Check if there's any more data left.
+	movf xbee_receive_bytes_left, F
+	skpnz
+	bra handle_write_data_eop
+
+	; Receive the command code.
+	rcall receive_byte_cooked
+
+	; If bit 7 is set, it's a repeat code.
+	btfsc WREG, 7
+	bra handle_write_data_payload_repeat
+
+	; If the byte is 0x00, it's a termination marker.
+	addlw 0
+	bz handle_write_data_payload_term
+
+	; Otherwise, it's literal data. Receive, pass, and CRC.
 	movwf bytecounter
-handle_write_page1_loop:
+handle_write_data_payload_literal_loop:
 	rcall receive_byte_cooked
 	SPI_SEND_WREG
+	CRC_UPDATE_WREG
 	decfsz bytecounter, F
-	bra handle_write_page1_loop
+	bra handle_write_data_payload_literal_loop
+	bra handle_write_data_payload
 
-	; Expect the checksum next.
-	rcall receive_and_check_checksum
-
-	; It's now time to receive the WRITE PAGE 2 packet.
-	; Receive a raw byte from the USART without unescaping. It should be 0x7E.
-handle_write_page1_expect_sop_loop:
-	rcall receive_raw
-	xorlw 0x7E
-	skpz
-	bra handle_write_page1_expect_sop_loop
-
-	; Receive a byte. It should be the MSB of the length, which should be zero.
-	rcall receive_byte_semicooked
-	xorlw 0
-	skpz
-	bra expecting_sop
-
-	; Receive a byte. It should be the LSB of the length, which should be no longer than 100 bytes.
-	rcall receive_byte_semicooked
-	movwf xbee_receive_bytes_left
-	movlw 101
-	cpfslt xbee_receive_bytes_left
-	bra expecting_sop
-
-	; Initialize the receive checksum.
-	clrf xbee_receive_checksum
-
-	; Receive the API ID, which should be 0x80 (64-bit receive).
-	rcall receive_byte_cooked
-	xorlw 0x80
-	skpz
-	bra expecting_sop
-
-	; Receive the remote peer's address.
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 0
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 1
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 2
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 3
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 4
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 5
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 6
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 7
-
-	; Receive the RSSI and discard it.
-	rcall receive_byte_cooked
-
-	; Receive the OPTIONS byte and discard it.
-	rcall receive_byte_cooked
-
-	; Receive the COMMAND ID, which should be WRITE PAGE 2.
-	rcall receive_byte_cooked
-	DISPATCH_INIT
-	DISPATCH_COND COMMAND_WRITE_PAGE2, handle_write_page2
-	DISPATCH_COND COMMAND_WRITE_PAGE1, handle_write_page1_expect_sop_loop
-	DISPATCH_END_RESTORE
-
-	; Abort the SPI transaction and dispatch the command freshly.
-	bsf LAT_SPI_CK, PIN_SPI_CK
-	bcf LAT_SPI_CK, PIN_SPI_CK
-	bsf LAT_SPI_CK, PIN_SPI_CK
-	bcf LAT_SPI_CK, PIN_SPI_CK
-	bsf LAT_SPI_CK, PIN_SPI_CK
-	bcf LAT_SPI_CK, PIN_SPI_CK
-	bsf LAT_SPI_CK, PIN_SPI_CK
-	bcf LAT_SPI_CK, PIN_SPI_CK
-	DESELECT_CHIP
-	bra main_dispatch_tree
-
-handle_write_page2:
-	; Ignore the page number.
-	rcall receive_byte_cooked
-	rcall receive_byte_cooked
-
-	; Receive and pass the data.
-	movlw 86
+	; Handle repeat command.
+handle_write_data_payload_repeat:
+	; Lower 7 bits are the number of times to repeat.
+	andlw 0x7F
 	movwf bytecounter
-handle_write_page2_loop:
+	; Receive the byte to repeat.
 	rcall receive_byte_cooked
+	movwf write_repeat_temp
+	; Send it and update CRC repeatedly.
+handle_write_data_payload_repeat_loop:
+	movf write_repeat_temp, W
 	SPI_SEND_WREG
+	CRC_UPDATE_WREG
 	decfsz bytecounter, F
-	bra handle_write_page2_loop
+	bra handle_write_data_payload_repeat_loop
+	bra handle_write_data_payload
 
-	; Expect the checksum next.
+	; Handle a termination marker.
+handle_write_data_payload_term:
+	; Receive and check the CRC.
+	rcall receive_byte_cooked
+	xorwf crc_high, W
+	skpz
+	bra handle_error
+	rcall receive_byte_cooked
+	xorwf crc_low, W
+	skpz
+	bra handle_error
+
+	; The next thing should be the packet checksum.
 	rcall receive_and_check_checksum
 
-	; It's now time to receive the WRITE PAGE 3 packet.
-	; Receive a raw byte from the USART without unescaping. It should be 0x7E.
-handle_write_page2_expect_sop_loop:
-	rcall receive_raw
-	xorlw 0x7E
-	skpz
-	bra handle_write_page2_expect_sop_loop
-
-	; Receive a byte. It should be the MSB of the length, which should be zero.
-	rcall receive_byte_semicooked
-	xorlw 0
-	skpz
-	bra expecting_sop
-
-	; Receive a byte. It should be the LSB of the length, which should be no longer than 100 bytes.
-	rcall receive_byte_semicooked
-	movwf xbee_receive_bytes_left
-	movlw 101
-	cpfslt xbee_receive_bytes_left
-	bra expecting_sop
-
-	; Initialize the receive checksum.
-	clrf xbee_receive_checksum
-
-	; Receive the API ID, which should be 0x80 (64-bit receive).
-	rcall receive_byte_cooked
-	xorlw 0x80
-	skpz
-	bra expecting_sop
-
-	; Receive the remote peer's address.
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 0
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 1
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 2
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 3
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 4
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 5
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 6
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 7
-
-	; Receive the RSSI and discard it.
-	rcall receive_byte_cooked
-
-	; Receive the OPTIONS byte and discard it.
-	rcall receive_byte_cooked
-
-	; Receive the COMMAND ID, which should be WRITE PAGE 3.
-	rcall receive_byte_cooked
-	DISPATCH_INIT
-	DISPATCH_COND COMMAND_WRITE_PAGE3, handle_write_page3
-	DISPATCH_COND COMMAND_WRITE_PAGE2, handle_write_page2_expect_sop_loop
-	DISPATCH_END_RESTORE
-
-	; Abort the SPI transaction and dispatch the command freshly.
-	bsf LAT_SPI_CK, PIN_SPI_CK
-	bcf LAT_SPI_CK, PIN_SPI_CK
-	bsf LAT_SPI_CK, PIN_SPI_CK
-	bcf LAT_SPI_CK, PIN_SPI_CK
-	bsf LAT_SPI_CK, PIN_SPI_CK
-	bcf LAT_SPI_CK, PIN_SPI_CK
-	bsf LAT_SPI_CK, PIN_SPI_CK
-	bcf LAT_SPI_CK, PIN_SPI_CK
+	; Finish the write operation.
 	DESELECT_CHIP
-	bra main_dispatch_tree
-
-handle_write_page3:
-	; Ignore the page number.
-	rcall receive_byte_cooked
-	rcall receive_byte_cooked
-
-	; Receive and pass the data.
-	movlw 84
-	movwf bytecounter
-handle_write_page3_loop:
-	rcall receive_byte_cooked
-	SPI_SEND_WREG
-	decfsz bytecounter, F
-	bra handle_write_page3_loop
-
-	; Finish SPI command.
-	DESELECT_CHIP
-
-	; Expect the checksum next.
-	rcall receive_and_check_checksum
-
-	; Wait until operation completes.
 	rcall wait_busy
 
 	; We have now written a page. Mark it in the bitmap.
 	lfsr 0, page_bitmap
 	lfsr 1, bits_table
-	btfsc page_residue, 3
+	movf page_number + 1, W
+	andlw 0x0F
+	btfsc WREG, 3
 	incf FSR0L, F
-	movf page_residue, W
 	andlw 0x07
 	movf PLUSW1, W
 	iorwf INDF0, F
 
 	; Done.
 	bra expecting_sop
+
+	; Handle end of radio packet without termination marker.
+handle_write_data_eop:
+	; This is perfectly legal; it just means that we ran out of space and need
+	; to use more than one radio packet to carry a full page of data. What we
+	; want to do is leave the SPI slave select asserted and the write operation
+	; pending, and then receive another packet which will hopefully contain more
+	; data for the same page.
+	; The first thing we should see is the SOP for the next packet.
+	rcall receive_raw
+	xorlw 0x7E
+	bnz handle_write_data_eop
+
+	; Receive a byte. It should be the MSB of the length, which should be zero.
+	rcall receive_byte_semicooked
+	xorlw 0
+	bnz handle_write_data_eop
+
+	; Receive a byte. It should be the LSB of the length, which should be no longer than 111 bytes.
+	rcall receive_byte_semicooked
+	movwf xbee_receive_bytes_left
+	movlw 112
+	cpfslt xbee_receive_bytes_left
+	bra handle_write_data_eop
+
+	; Initialize the receive checksum.
+	clrf xbee_receive_checksum
+
+	; Receive the API ID, which should be 0x80 (64-bit receive).
+	rcall receive_byte_cooked
+	xorlw 0x80
+	bnz handle_write_data_eop
+
+	; Receive the remote peer's address.
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 0
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 1
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 2
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 3
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 4
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 5
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 6
+	rcall receive_byte_cooked
+	movwf xbee_receive_address + 7
+
+	; Receive the RSSI and discard it.
+	rcall receive_byte_cooked
+
+	; Receive the OPTIONS byte and discard it.
+	rcall receive_byte_cooked
+
+	; Receive the COMMAND ID.
+	rcall receive_byte_cooked
+
+	; If the upper bit is set, this is run data, not bootload data. Ignore it.
+	btfsc WREG, 7
+	bra handle_write_data_eop
+
+	; It should be another WRITE DATA. Check.
+	DISPATCH_INIT
+	DISPATCH_COND COMMAND_WRITE_DATA, handle_write_data_eop_compare_page
+	DISPATCH_END_RESTORE
+
+	; It's not. Abort the SPI operation and go back to the main dispatcher.
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+	bsf LAT_SPI_CK, PIN_SPI_CK
+	bcf LAT_SPI_CK, PIN_SPI_CK
+	DESELECT_CHIP
+	bra main_dispatch_tree
+
+handle_write_data_eop_compare_page:
+	; This is a second (or subsequent) WRITE DATA command. We need to check that
+	; the page number is the same as it was for the original command.
+	rcall receive_byte_cooked
+	xorwf page_number + 0, W
+	skpz
+	bra handle_error
+	rcall receive_byte_cooked
+	xorwf page_number + 1, W
+	skpz
+	bra handle_error
+
+	; Go back to the main WRITE DATA loop where we grab command bytes, do RLE
+	; decoding, and push data through the CRC and the SPI bus.
+	bra handle_write_data_payload
 
 
 
@@ -1051,11 +1032,7 @@ handle_crc_chunk_byteloop:
 	SPI_RECEIVE WREG
 
 	; Perform the CRC update.
-	xorwf crc_low, W
-	movff crc_high, crc_low
-	movff PLUSW1, crc_high
-	movf PLUSW0, W
-	xorwf crc_low, F
+	CRC_UPDATE_WREG
 
 	; Decrement byte count and loop if nonzero.
 	decfsz bytecounter, F
