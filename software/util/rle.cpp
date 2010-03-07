@@ -68,7 +68,7 @@ std::size_t rle_compressor::next(void *buffer, std::size_t length) {
 	unsigned char *bufptr = static_cast<unsigned char *>(buffer);
 	for (;;) {
 		// Try to encode the current run into the buffer.
-		encoded += runs[cur_run].encode(bufptr, length - encoded);
+		encoded += runs[cur_run].encode(bufptr + encoded, length - encoded);
 
 		if (runs[cur_run].done()) {
 			// The current run has finished encoding itself. Advance.
