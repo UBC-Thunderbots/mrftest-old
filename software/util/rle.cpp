@@ -115,7 +115,7 @@ std::size_t rle_compressor::rle_run::encode(void *buffer, std::size_t buflen) {
 			*bufptr++ = *data;
 			buflen -= 2;
 			length -= s;
-			generated += s;
+			generated += 2;
 		}
 		return generated;
 	} else if (data) {
@@ -127,11 +127,14 @@ std::size_t rle_compressor::rle_run::encode(void *buffer, std::size_t buflen) {
 			// also not allowed to overflow the output buffer.
 			unsigned char s = std::min<std::size_t>(127U, std::min<std::size_t>(buflen - 1, length));
 			*bufptr++ = s;
+			--buflen;
+			++generated;
 			std::copy(data, data + s, bufptr);
+			data += s;
 			bufptr += s;
-			buflen -= s + 1;
+			buflen -= s;
 			length -= s;
-			generated += s + 1;
+			generated += s;
 		}
 		return generated;
 	} else {
