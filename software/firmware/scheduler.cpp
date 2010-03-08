@@ -4,7 +4,7 @@
 #include <numeric>
 #include <cassert>
 
-upload_scheduler::upload_scheduler(const intel_hex &ihex) : data(ihex.data()) {
+upload_scheduler::upload_scheduler(const intel_hex &ihex) : data(ihex.data()[0]) {
 	while (data.size() % (CHUNK_PAGES * PAGE_BYTES)) {
 		data.push_back(0xFF);
 	}

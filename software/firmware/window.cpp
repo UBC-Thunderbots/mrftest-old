@@ -99,6 +99,7 @@ class firmware_window_impl : public Gtk::Window {
 		void start_upload() {
 			const Glib::ustring &filename = file_chooser.get_filename();
 			intel_hex ihex;
+			ihex.add_section(0, 16 * 1024 * 1024 / 8);
 			try {
 				ihex.load(filename);
 			} catch (const std::runtime_error &exp) {

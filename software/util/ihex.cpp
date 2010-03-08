@@ -54,9 +54,15 @@ namespace {
 
 
 
+void intel_hex::add_section(unsigned int start, unsigned int length) {
+	the_sections.push_back(section(start, length));
+}
+
+
+
 void intel_hex::load(const Glib::ustring &filename) {
 	// Allocate space to hold the new data.
-	std::vector<unsigned char> new_data;
+	std::vector<std::vector<unsigned char> > new_data(the_sections.size());
 
 	// Open the file.
 	std::ifstream ifs(Glib::filename_from_utf8(filename).c_str());
@@ -119,10 +125,25 @@ void intel_hex::load(const Glib::ustring &filename) {
 		if (record_type == 0x00) {
 			// Data record.
 			unsigned int real_address = address_base + record_address;
-			if (new_data.size() < real_address + data_length) {
-				new_data.resize(real_address + data_length, 0xFF);
+			for (unsigned int i = 0; i < data_length; ++i) {
+				unsigned int byte_address = real_address + i;
+				bool found = false;
+				for (unsigned int j = 0; j < the_sections.size(); ++j) {
+					const section &sec = the_sections[j];
+					if (sec.start() <= byte_address && byte_address < sec.start() + sec.length()) {
+						found = true;
+						std::vector<unsigned char> &d = new_data[j];
+						unsigned int offset = byte_address - sec.start();
+						while (d.size() <= offset) {
+							d.push_back(0xFF);
+						}
+						d[offset] = record_data[i];
+					}
+				}
+				if (!found) {
+					throw std::runtime_error("Data outside of section!");
+				}
 			}
-			std::copy(record_data, record_data + data_length, &new_data[real_address]);
 		} else if (record_type == 0x01) {
 			// EOF record.
 			if (data_length != 0) {
