@@ -63,8 +63,8 @@
 	;
 COMMAND_IDENT equ 0x1
 
-	; COMMAND_WRITE_DATA
-	; ==================
+	; COMMAND_FPGA_WRITE_DATA
+	; =======================
 	;
 	; Begins a write operation.
 	;
@@ -77,10 +77,10 @@ COMMAND_IDENT equ 0x1
 	; Response data:
 	;  None
 	;
-COMMAND_WRITE_DATA equ 0x2
+COMMAND_FPGA_WRITE_DATA equ 0x2
 
-	; COMMAND_CRC_CHUNK
-	; =================
+	; COMMAND_FPGA_CRC_CHUNK
+	; ======================
 	;
 	; Performs a CRC16 of a sector.
 	;
@@ -93,10 +93,10 @@ COMMAND_WRITE_DATA equ 0x2
 	; Response data:
 	;  32 bytes CRC16s of the pages
 	;
-COMMAND_CRC_CHUNK equ 0x3
+COMMAND_FPGA_CRC_CHUNK equ 0x3
 
-	; COMMAND_ERASE_SECTOR
-	; ====================
+	; COMMAND_FPGA_ERASE_SECTOR
+	; =========================
 	;
 	; Erases a sector.
 	;
@@ -109,7 +109,7 @@ COMMAND_CRC_CHUNK equ 0x3
 	; Response data:
 	;  None
 	;
-COMMAND_ERASE_SECTOR equ 0x4
+COMMAND_FPGA_ERASE_SECTOR equ 0x4
 
 
 
@@ -449,9 +449,9 @@ got_sop:
 main_dispatch_tree:
 	DISPATCH_INIT
 	DISPATCH_COND COMMAND_IDENT, handle_ident
-	DISPATCH_BRA  COMMAND_WRITE_DATA, handle_write_data
-	DISPATCH_BRA  COMMAND_CRC_CHUNK, handle_crc_chunk
-	DISPATCH_GOTO COMMAND_ERASE_SECTOR, handle_erase_sector
+	DISPATCH_BRA  COMMAND_FPGA_WRITE_DATA, handle_write_data
+	DISPATCH_BRA  COMMAND_FPGA_CRC_CHUNK, handle_crc_chunk
+	DISPATCH_GOTO COMMAND_FPGA_ERASE_SECTOR, handle_erase_sector
 	DISPATCH_END_RESTORE
 
 	; COMMAND ID is illegal.
@@ -939,7 +939,7 @@ handle_write_data_eop:
 
 	; It should be another WRITE DATA. Check.
 	DISPATCH_INIT
-	DISPATCH_COND COMMAND_WRITE_DATA, handle_write_data_eop_compare_page
+	DISPATCH_COND COMMAND_FPGA_WRITE_DATA, handle_write_data_eop_compare_page
 	DISPATCH_END_RESTORE
 
 	; It's not. Abort the SPI operation and go back to the main dispatcher.
@@ -998,7 +998,7 @@ handle_crc_chunk:
 	rcall send_address
 	movlw 0x00
 	rcall send_byte
-	movlw COMMAND_CRC_CHUNK
+	movlw COMMAND_FPGA_CRC_CHUNK
 	rcall send_byte
 	movlw COMMAND_STATUS_OK
 	rcall send_byte

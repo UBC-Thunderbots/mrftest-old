@@ -11,9 +11,9 @@ namespace {
 	};
 
 	const uint8_t COMMAND_IDENT = 0x1;
-	const uint8_t COMMAND_WRITE_DATA = 0x2;
-	const uint8_t COMMAND_CRC_CHUNK = 0x3;
-	const uint8_t COMMAND_ERASE_SECTOR = 0x4;
+	const uint8_t COMMAND_FPGA_WRITE_DATA = 0x2;
+	const uint8_t COMMAND_FPGA_CRC_CHUNK = 0x3;
+	const uint8_t COMMAND_FPGA_ERASE_SECTOR = 0x4;
 }
 
 upload::upload(xbee &modem, uint64_t bot, const intel_hex &data) : proto(modem, bot), sched(data) {
@@ -87,12 +87,12 @@ void upload::submit_write_page() {
 	while (!comp.done()) {
 		unsigned char buffer[97];
 		std::size_t len = comp.next(buffer, sizeof(buffer));
-		proto.send_no_response(COMMAND_WRITE_DATA, irp.page, buffer, len);
+		proto.send_no_response(COMMAND_FPGA_WRITE_DATA, irp.page, buffer, len);
 	}
 }
 
 void upload::submit_crc_chunk() {
-	proto.send(COMMAND_CRC_CHUNK, irp.page, 0, 0, 34, sigc::mem_fun(*this, &upload::crc_chunk_done));
+	proto.send(COMMAND_FPGA_CRC_CHUNK, irp.page, 0, 0, 34, sigc::mem_fun(*this, &upload::crc_chunk_done));
 }
 
 void upload::crc_chunk_done(const void *response) {
@@ -111,6 +111,6 @@ void upload::crc_chunk_done(const void *response) {
 }
 
 void upload::submit_erase_sector() {
-	proto.send_no_response(COMMAND_ERASE_SECTOR, irp.page, 0, 0);
+	proto.send_no_response(COMMAND_FPGA_ERASE_SECTOR, irp.page, 0, 0);
 }
 
