@@ -127,6 +127,24 @@ COMMAND_FPGA_ERASE_SECTOR equ 0x4
 	;
 COMMAND_PIC_READ_FUSES equ 0x5
 
+	; COMMAND_PIC_WRITE_DATA
+	; ======================
+	;
+	; Writes a chunk of data to the PIC's Flash memory.
+	;
+	; Page number:
+	;  The address at which to start writing, which must be a multiple of 64 and
+	;  which, for reliable operation, should probably point somewhere in the
+	;  staging area (0x4800 through 0x7FFF).
+	;
+	; Request data:
+	;  64 bytes of data to burn
+	;
+	; Response data:
+	;  64 bytes read back from the target area after the burn finished
+	;
+COMMAND_PIC_WRITE_DATA equ 0x6
+
 
 
 	; COMMAND_STATUS_OK
@@ -183,6 +201,7 @@ old_page_number: res 2
 page_bitmap: res 2
 bits_table: res 8
 write_repeat_temp: res 1
+pic_write_buffer: res 64
 
 
 
@@ -469,6 +488,7 @@ main_dispatch_tree:
 	DISPATCH_BRA  COMMAND_FPGA_CRC_CHUNK, handle_fpga_crc_chunk
 	DISPATCH_GOTO COMMAND_FPGA_ERASE_SECTOR, handle_fpga_erase_sector
 	DISPATCH_GOTO COMMAND_PIC_READ_FUSES, handle_pic_read_fuses
+	DISPATCH_GOTO COMMAND_PIC_WRITE_DATA, handle_pic_write_data
 	DISPATCH_END_RESTORE
 
 	; COMMAND ID is illegal.
@@ -1155,6 +1175,132 @@ handle_pic_read_fuses_loop:
 	rcall send_checksum
 
 	; Continue.
+	goto expecting_sop
+
+
+
+handle_pic_write_data:
+	; Receive page number (actually physical address) into TBLPTR.
+	rcall receive_byte_cooked
+	movwf page_number + 0
+	rcall receive_byte_cooked
+	movwf page_number + 1
+
+	; Receive 64 bytes of data to burn into RAM buffer.
+	lfsr 0, pic_write_buffer
+	movlw 64
+	movwf bytecounter
+handle_pic_write_data_receive_loop:
+	rcall receive_byte_cooked
+	movwf POSTINC0
+	decfsz bytecounter, F
+	bra handle_pic_write_data_receive_loop
+
+	; This should be the end of the packet.
+	rcall receive_and_check_checksum
+
+	; Erase the 64-byte block.
+	clrf TBLPTRU
+	movff page_number + 0, TBLPTRH
+	movff page_number + 1, TBLPTRL
+	bcf INTCON, GIEL
+	bcf INTCON, GIEH
+	movlw (1 << EEPGD) | (1 << FREE) | (1 << WREN)
+	movwf EECON1
+	movlw 0x55
+	movwf EECON2
+	movlw 0xAA
+	movwf EECON2
+	bsf EECON1, WR
+	clrf EECON1
+	bsf INTCON, GIEH
+	bsf INTCON, GIEL
+
+	; Write the first 32-byte block. TBLPTR must be within the block to write
+	; when the write is initiated, so we want to use the preincrement table
+	; write instead of the postincrement. Thus, TBLPTR must start out pointing
+	; one byte below the starting address. TBLPTR right now points exactly at
+	; the starting address; the easiest way to shift it down by one byte is with
+	; a postdecrement table read, so do that before we start.
+	tblrd *-
+	movlw 32
+	movwf bytecounter
+	lfsr 0, pic_write_buffer
+handle_pic_write_data_write1_loop:
+	movff POSTINC0, TABLAT
+	tblwt +*
+	decfsz bytecounter, F
+	bra handle_pic_write_data_write1_loop
+	bcf INTCON, GIEL
+	bcf INTCON, GIEH
+	movlw (1 << EEPGD) | (1 << WREN)
+	movwf EECON1
+	movlw 0x55
+	movwf EECON2
+	movlw 0xAA
+	movwf EECON2
+	bsf EECON1, WR
+	clrf EECON1
+	bsf INTCON, GIEH
+	bsf INTCON, GIEL
+
+	; Write the second 32-byte block. TBLPTR is already pointing one byte before
+	; the start of this block, because it's pointing at the last byte of the
+	; block we just wrote. FSR0 is also still pointing at the right place.
+	movlw 32
+	movwf bytecounter
+handle_pic_write_data_write2_loop:
+	movff POSTINC0, TABLAT
+	tblwt +*
+	decfsz bytecounter, F
+	bra handle_pic_write_data_write2_loop
+	bcf INTCON, GIEL
+	bcf INTCON, GIEH
+	movlw (1 << EEPGD) | (1 << WREN)
+	movwf EECON1
+	movlw 0x55
+	movwf EECON2
+	movlw 0xAA
+	movwf EECON2
+	bsf EECON1, WR
+	clrf EECON1
+	bsf INTCON, GIEH
+	bsf INTCON, GIEL
+
+	; Begin sending a response.
+	call send_sop
+	movlw 78
+	call send_length
+	movlw 0x00
+	call send_byte
+	movlw 0x00
+	call send_byte
+	call send_address
+	movlw 0x00
+	call send_byte
+	movlw COMMAND_PIC_WRITE_DATA
+	call send_byte
+	movlw COMMAND_STATUS_OK
+	call send_byte
+
+	; Point the table pointer back at the start of the 64-byte block.
+	movff page_number + 0, TBLPTRH
+	movff page_number + 1, TBLPTRL
+
+	; Send the entire written block.
+	movlw 64
+	movwf bytecounter
+handle_pic_write_data_readback_loop:
+	tblrd *+
+	movf TABLAT, W
+	call send_byte
+	decfsz bytecounter, F
+	bra handle_pic_write_data_readback_loop
+
+	; Finish the packet.
+	call send_checksum
+
+	; Done.
 	goto expecting_sop
 
 	end
