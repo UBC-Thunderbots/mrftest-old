@@ -449,9 +449,9 @@ got_sop:
 main_dispatch_tree:
 	DISPATCH_INIT
 	DISPATCH_COND COMMAND_IDENT, handle_ident
-	DISPATCH_BRA  COMMAND_FPGA_WRITE_DATA, handle_write_data
-	DISPATCH_BRA  COMMAND_FPGA_CRC_CHUNK, handle_crc_chunk
-	DISPATCH_GOTO COMMAND_FPGA_ERASE_SECTOR, handle_erase_sector
+	DISPATCH_BRA  COMMAND_FPGA_WRITE_DATA, handle_fpga_write_data
+	DISPATCH_BRA  COMMAND_FPGA_CRC_CHUNK, handle_fpga_crc_chunk
+	DISPATCH_GOTO COMMAND_FPGA_ERASE_SECTOR, handle_fpga_erase_sector
 	DISPATCH_END_RESTORE
 
 	; COMMAND ID is illegal.
@@ -754,7 +754,7 @@ wait_busy_loop:
 
 
 
-handle_write_data:
+handle_fpga_write_data:
 	call led_off
 	; Send the WRITE ENABLE command.
 	rcall send_write_enable
@@ -779,13 +779,13 @@ handle_write_data:
 	xorwf old_page_number + 1, W
 	andlw 0xF0
 	iorwf old_page_number + 0, W
-	bz handle_write_data_no_reset_page_bitmap
+	bz handle_fpga_write_data_no_reset_page_bitmap
 
 	; Chunk number changed. Reset written-pages bitmap.
 	clrf page_bitmap + 0
 	clrf page_bitmap + 1
 
-handle_write_data_no_reset_page_bitmap:
+handle_fpga_write_data_no_reset_page_bitmap:
 	; Copy the current page number to the old page number.
 	movff page_number + 0, old_page_number + 0
 	movff page_number + 1, old_page_number + 1
@@ -797,35 +797,35 @@ handle_write_data_no_reset_page_bitmap:
 	; Prepare the FSRs to do CRC calculations.
 	CRC_INIT_FSRS
 
-handle_write_data_payload:
+handle_fpga_write_data_payload:
 	; Check if there's any more data left.
 	movf xbee_receive_bytes_left, F
 	skpnz
-	bra handle_write_data_eop
+	bra handle_fpga_write_data_eop
 
 	; Receive the command code.
 	rcall receive_byte_cooked
 
 	; If bit 7 is set, it's a repeat code.
 	btfsc WREG, 7
-	bra handle_write_data_payload_repeat
+	bra handle_fpga_write_data_payload_repeat
 
 	; If the byte is 0x00, it's a termination marker.
 	addlw 0
-	bz handle_write_data_payload_term
+	bz handle_fpga_write_data_payload_term
 
 	; Otherwise, it's literal data. Receive, pass, and CRC.
 	movwf bytecounter
-handle_write_data_payload_literal_loop:
+handle_fpga_write_data_payload_literal_loop:
 	rcall receive_byte_cooked
 	SPI_SEND_WREG
 	CRC_UPDATE_WREG
 	decfsz bytecounter, F
-	bra handle_write_data_payload_literal_loop
-	bra handle_write_data_payload
+	bra handle_fpga_write_data_payload_literal_loop
+	bra handle_fpga_write_data_payload
 
 	; Handle repeat command.
-handle_write_data_payload_repeat:
+handle_fpga_write_data_payload_repeat:
 	; Lower 7 bits are the number of times to repeat.
 	andlw 0x7F
 	movwf bytecounter
@@ -833,16 +833,16 @@ handle_write_data_payload_repeat:
 	rcall receive_byte_cooked
 	movwf write_repeat_temp
 	; Send it and update CRC repeatedly.
-handle_write_data_payload_repeat_loop:
+handle_fpga_write_data_payload_repeat_loop:
 	movf write_repeat_temp, W
 	SPI_SEND_WREG
 	CRC_UPDATE_WREG
 	decfsz bytecounter, F
-	bra handle_write_data_payload_repeat_loop
-	bra handle_write_data_payload
+	bra handle_fpga_write_data_payload_repeat_loop
+	bra handle_fpga_write_data_payload
 
 	; Handle a termination marker.
-handle_write_data_payload_term:
+handle_fpga_write_data_payload_term:
 	; Receive and check the CRC.
 	rcall receive_byte_cooked
 	xorwf crc_high, W
@@ -875,7 +875,7 @@ handle_write_data_payload_term:
 	bra expecting_sop
 
 	; Handle end of radio packet without termination marker.
-handle_write_data_eop:
+handle_fpga_write_data_eop:
 	; This is perfectly legal; it just means that we ran out of space and need
 	; to use more than one radio packet to carry a full page of data. What we
 	; want to do is leave the SPI slave select asserted and the write operation
@@ -884,19 +884,19 @@ handle_write_data_eop:
 	; The first thing we should see is the SOP for the next packet.
 	rcall receive_raw
 	xorlw 0x7E
-	bnz handle_write_data_eop
+	bnz handle_fpga_write_data_eop
 
 	; Receive a byte. It should be the MSB of the length, which should be zero.
 	rcall receive_byte_semicooked
 	xorlw 0
-	bnz handle_write_data_eop
+	bnz handle_fpga_write_data_eop
 
 	; Receive a byte. It should be the LSB of the length, which should be no longer than 111 bytes.
 	rcall receive_byte_semicooked
 	movwf xbee_receive_bytes_left
 	movlw 112
 	cpfslt xbee_receive_bytes_left
-	bra handle_write_data_eop
+	bra handle_fpga_write_data_eop
 
 	; Initialize the receive checksum.
 	clrf xbee_receive_checksum
@@ -904,7 +904,7 @@ handle_write_data_eop:
 	; Receive the API ID, which should be 0x80 (64-bit receive).
 	rcall receive_byte_cooked
 	xorlw 0x80
-	bnz handle_write_data_eop
+	bnz handle_fpga_write_data_eop
 
 	; Receive the remote peer's address.
 	rcall receive_byte_cooked
@@ -935,11 +935,11 @@ handle_write_data_eop:
 
 	; If the upper bit is set, this is run data, not bootload data. Ignore it.
 	btfsc WREG, 7
-	bra handle_write_data_eop
+	bra handle_fpga_write_data_eop
 
 	; It should be another WRITE DATA. Check.
 	DISPATCH_INIT
-	DISPATCH_COND COMMAND_FPGA_WRITE_DATA, handle_write_data_eop_compare_page
+	DISPATCH_COND COMMAND_FPGA_WRITE_DATA, handle_fpga_write_data_eop_compare_page
 	DISPATCH_END_RESTORE
 
 	; It's not. Abort the SPI operation and go back to the main dispatcher.
@@ -954,7 +954,7 @@ handle_write_data_eop:
 	DESELECT_CHIP
 	bra main_dispatch_tree
 
-handle_write_data_eop_compare_page:
+handle_fpga_write_data_eop_compare_page:
 	; This is a second (or subsequent) WRITE DATA command. We need to check that
 	; the page number is the same as it was for the original command.
 	rcall receive_byte_cooked
@@ -968,11 +968,11 @@ handle_write_data_eop_compare_page:
 
 	; Go back to the main WRITE DATA loop where we grab command bytes, do RLE
 	; decoding, and push data through the CRC and the SPI bus.
-	bra handle_write_data_payload
+	bra handle_fpga_write_data_payload
 
 
 
-handle_crc_chunk:
+handle_fpga_crc_chunk:
 	; Start sending the READ DATA command (0x03).
 	SELECT_CHIP
 	SPI_SEND_CONSTANT 0x03
@@ -1021,13 +1021,13 @@ handle_crc_chunk:
 	lfsr 1, crc_table_high + 128
 
 	; Go into a loop of pages.
-handle_crc_chunk_pageloop:
+handle_fpga_crc_chunk_pageloop:
 	; Initialize the CRC to 0xFFFF.
 	setf crc_low
 	setf crc_high
 
 	; Go into a loop of bytes.
-handle_crc_chunk_byteloop:
+handle_fpga_crc_chunk_byteloop:
 	; Receive one byte from the SPI port into WREG.
 	SPI_RECEIVE WREG
 
@@ -1036,7 +1036,7 @@ handle_crc_chunk_byteloop:
 
 	; Decrement byte count and loop if nonzero.
 	decfsz bytecounter, F
-	bra handle_crc_chunk_byteloop
+	bra handle_fpga_crc_chunk_byteloop
 
 	; A page is finished. Stream out the page's CRC.
 	movf crc_high, W
@@ -1046,7 +1046,7 @@ handle_crc_chunk_byteloop:
 
 	; Decrement page count and loop if nonzero.
 	decfsz pagecounter, F
-	bra handle_crc_chunk_pageloop
+	bra handle_fpga_crc_chunk_pageloop
 
 	; Deselect the chip.
 	DESELECT_CHIP
@@ -1059,7 +1059,7 @@ handle_crc_chunk_byteloop:
 
 
 
-handle_erase_sector:
+handle_fpga_erase_sector:
 	; Send the WRITE ENABLE command.
 	rcall send_write_enable
 
