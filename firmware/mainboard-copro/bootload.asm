@@ -1159,7 +1159,7 @@ handle_pic_read_fuses:
 
 	; Start the response.
 	rcall send_sop
-	movlw 30
+	movlw 29
 	rcall send_length
 	movlw 0x00
 	rcall send_byte
@@ -1291,7 +1291,7 @@ handle_pic_write_data_write2_loop:
 
 	; Begin sending a response.
 	call send_sop
-	movlw 78
+	movlw 77
 	call send_length
 	movlw 0x00
 	call send_byte
@@ -1379,7 +1379,7 @@ handle_pic_enable_upgrade_flag2_loop:
 
 	; Start the response.
 	call send_sop
-	movlw 16
+	movlw 15
 	call send_length
 	movlw 0x00
 	call send_byte
