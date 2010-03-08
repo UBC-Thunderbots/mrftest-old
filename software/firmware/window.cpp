@@ -1,5 +1,5 @@
 #include "firmware/emergency_erase.h"
-#include "firmware/upload.h"
+#include "firmware/fpga.h"
 #include "firmware/window.h"
 #include "uicomponents/bot_chooser.h"
 #include "util/ihex.h"
@@ -109,20 +109,16 @@ class firmware_window_impl : public Gtk::Window {
 			}
 
 			Glib::Timer timer;
-			unsigned int crc_errors;
 			{
-				upload up(modem, current_address, ihex);
+				fpga_upload up(modem, current_address, ihex);
 				working_dialog dlg(*this, up);
-				Glib::signal_idle().connect(sigc::bind_return(sigc::mem_fun(up, &upload::start), false));
+				Glib::signal_idle().connect(sigc::bind_return(sigc::mem_fun(up, &fpga_upload::start), false));
 				dlg.run();
-				crc_errors = up.crc_failure_count();
 			}
 			timer.stop();
 
-			const Glib::ustring &msg = Glib::ustring::compose(
-					"Upload completed in %1s.\n%2 CRC errors repaired.",
-					Glib::ustring::format(std::fixed, std::setprecision(1), timer.elapsed()),
-					crc_errors);
+			const Glib::ustring &msg = Glib::ustring::compose("Upload completed in %1s.",
+					Glib::ustring::format(std::fixed, std::setprecision(1), timer.elapsed()));
 			Gtk::MessageDialog md(*this, msg, false, Gtk::MESSAGE_INFO, Gtk::BUTTONS_OK, true);
 			md.run();
 		}
