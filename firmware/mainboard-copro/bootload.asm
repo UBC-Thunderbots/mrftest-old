@@ -13,8 +13,8 @@
 	;  2 bytes page number
 	;  n bytes command data
 	;
-	; The bootloader receives the command, handles it, and sends back a
-	; RESPONSE. The RESPONSE packet has this form:
+	; The bootloader receives the command, handles it, and optionally sends back
+	; a RESPONSE. The RESPONSE packet has this form:
 	;  1 byte command ID
 	;    This byte has the same value as the corresponding byte in the command
 	;    packet.
@@ -22,8 +22,11 @@
 	;    This byte contains one of the COMMAND_STATUS_* constants.
 	;  n bytes response data (only if status is COMMAND_STATUS_OK)
 	;
-	; The host is expected to only send another command after receiving the
-	; previous command's response.
+	; If a command is listed as having a response of "None", the bootloader does
+	; not send a response and the host is permitted to send additional commands
+	; immediately, with flow control being handled by RTS/CTS and XBee ACKs. If
+	; a command is listed as having a response, the host is expected to wait for
+	; the response before sending additional commands.
 	;
 
 	radix dec
