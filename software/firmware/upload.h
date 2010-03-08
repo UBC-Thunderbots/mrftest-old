@@ -37,10 +37,10 @@ class upload : public watchable_operation, public sigc::trackable {
 		void ident_received(const void *);
 		void send_next_irp();
 		void irp_done(const void *);
-		void submit_write_page();
-		void submit_crc_chunk();
-		void crc_chunk_done(const void *);
-		void submit_erase_sector();
+		void submit_fpga_write_page();
+		void submit_fpga_crc_chunk();
+		void fpga_crc_chunk_done(const void *);
+		void submit_fpga_erase_sector();
 };
 
 #endif

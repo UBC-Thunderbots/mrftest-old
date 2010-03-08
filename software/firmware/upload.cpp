@@ -63,16 +63,16 @@ void upload::send_next_irp() {
 	for (;;) {
 		irp = sched.next();
 		switch (irp.op) {
-			case upload_irp::IOOP_WRITE_PAGE:
-				submit_write_page();
+			case upload_irp::IOOP_FPGA_WRITE_PAGE:
+				submit_fpga_write_page();
 				break;
 
-			case upload_irp::IOOP_CRC_CHUNK:
-				submit_crc_chunk();
+			case upload_irp::IOOP_FPGA_CRC_CHUNK:
+				submit_fpga_crc_chunk();
 				return;
 
-			case upload_irp::IOOP_ERASE_SECTOR:
-				submit_erase_sector();
+			case upload_irp::IOOP_FPGA_ERASE_SECTOR:
+				submit_fpga_erase_sector();
 				break;
 
 			default:
@@ -82,7 +82,7 @@ void upload::send_next_irp() {
 	}
 }
 
-void upload::submit_write_page() {
+void upload::submit_fpga_write_page() {
 	rle_compressor comp(irp.data, 256);
 	while (!comp.done()) {
 		unsigned char buffer[97];
@@ -91,11 +91,11 @@ void upload::submit_write_page() {
 	}
 }
 
-void upload::submit_crc_chunk() {
-	proto.send(COMMAND_FPGA_CRC_CHUNK, irp.page, 0, 0, 34, sigc::mem_fun(*this, &upload::crc_chunk_done));
+void upload::submit_fpga_crc_chunk() {
+	proto.send(COMMAND_FPGA_CRC_CHUNK, irp.page, 0, 0, 34, sigc::mem_fun(*this, &upload::fpga_crc_chunk_done));
 }
 
-void upload::crc_chunk_done(const void *response) {
+void upload::fpga_crc_chunk_done(const void *response) {
 	uint16_t crcs[17];
 	const unsigned char *data = static_cast<const unsigned char *>(response);
 	for (unsigned int i = 0; i < 17; ++i) {
@@ -110,7 +110,7 @@ void upload::crc_chunk_done(const void *response) {
 	send_next_irp();
 }
 
-void upload::submit_erase_sector() {
+void upload::submit_fpga_erase_sector() {
 	proto.send_no_response(COMMAND_FPGA_ERASE_SECTOR, irp.page, 0, 0);
 }
 

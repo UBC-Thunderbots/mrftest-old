@@ -57,7 +57,7 @@ upload_irp upload_scheduler::sector_next() {
 
 	if (!erase_done) {
 		upload_irp irp;
-		irp.op = upload_irp::IOOP_ERASE_SECTOR;
+		irp.op = upload_irp::IOOP_FPGA_ERASE_SECTOR;
 		irp.page = (sector * SECTOR_CHUNKS + chunk) * CHUNK_PAGES;
 		irp.data = 0;
 		erase_done = true;
@@ -96,14 +96,14 @@ upload_irp upload_scheduler::chunk_next() {
 
 	if (next_page < 16) {
 		upload_irp irp;
-		irp.op = upload_irp::IOOP_WRITE_PAGE;
+		irp.op = upload_irp::IOOP_FPGA_WRITE_PAGE;
 		irp.page = (sector * SECTOR_CHUNKS + chunk) * CHUNK_PAGES + next_page;
 		irp.data = &data[irp.page * PAGE_BYTES];
 		++next_page;
 		return irp;
 	} else {
 		upload_irp irp;
-		irp.op = upload_irp::IOOP_CRC_CHUNK;
+		irp.op = upload_irp::IOOP_FPGA_CRC_CHUNK;
 		irp.page = (sector * SECTOR_CHUNKS + chunk) * CHUNK_PAGES;
 		irp.data = 0;
 		return irp;

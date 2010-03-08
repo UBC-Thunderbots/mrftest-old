@@ -14,9 +14,9 @@
 //
 struct upload_irp {
 	enum ioop {
-		IOOP_WRITE_PAGE,
-		IOOP_CRC_CHUNK,
-		IOOP_ERASE_SECTOR,
+		IOOP_FPGA_WRITE_PAGE,
+		IOOP_FPGA_CRC_CHUNK,
+		IOOP_FPGA_ERASE_SECTOR,
 	} op;
 	uint16_t page;
 	const void *data;
