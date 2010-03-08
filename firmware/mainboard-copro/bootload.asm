@@ -111,6 +111,22 @@ COMMAND_FPGA_CRC_CHUNK equ 0x3
 	;
 COMMAND_FPGA_ERASE_SECTOR equ 0x4
 
+	; COMMAND_PIC_READ_FUSES
+	; ======================
+	;
+	; Reads the configuration fuse area on the PIC.
+	;
+	; Page number:
+	;  Ignored
+	;
+	; Request data:
+	;  None
+	;
+	; Response data:
+	;  16 bytes of configuration fuse data, from 0x300000 to 0x30000F.
+	;
+COMMAND_PIC_READ_FUSES equ 0x5
+
 
 
 	; COMMAND_STATUS_OK
@@ -452,6 +468,7 @@ main_dispatch_tree:
 	DISPATCH_BRA  COMMAND_FPGA_WRITE_DATA, handle_fpga_write_data
 	DISPATCH_BRA  COMMAND_FPGA_CRC_CHUNK, handle_fpga_crc_chunk
 	DISPATCH_GOTO COMMAND_FPGA_ERASE_SECTOR, handle_fpga_erase_sector
+	DISPATCH_GOTO COMMAND_PIC_READ_FUSES, handle_pic_read_fuses
 	DISPATCH_END_RESTORE
 
 	; COMMAND ID is illegal.
@@ -1086,6 +1103,58 @@ handle_fpga_erase_sector:
 	rcall wait_busy
 
 	; Done.
+	goto expecting_sop
+
+
+
+handle_pic_read_fuses:
+	; Page number is ignored.
+	rcall receive_byte_cooked
+	rcall receive_byte_cooked
+
+	; Should be no payload, so checksum should be next.
+	rcall receive_and_check_checksum
+
+	; Start the response.
+	rcall send_sop
+	movlw 30
+	rcall send_length
+	movlw 0x00
+	rcall send_byte
+	movlw 0x00
+	rcall send_byte
+	rcall send_address
+	movlw 0x00
+	rcall send_byte
+	movlw COMMAND_PIC_READ_FUSES
+	rcall send_byte
+	movlw COMMAND_STATUS_OK
+	rcall send_byte
+
+	; Initialize the pointer.
+	movlw LOW(0x300000)
+	movwf TBLPTRL
+	movlw HIGH(0x300000)
+	movwf TBLPTRH
+	movlw UPPER(0x300000)
+	movwf TBLPTRU
+
+	; Initialize a byte counter.
+	movlw 16
+	movwf bytecounter
+
+	; Push the data.
+handle_pic_read_fuses_loop:
+	tblrd *+
+	movf TABLAT, W
+	rcall send_byte
+	decfsz bytecounter, F
+	bra handle_pic_read_fuses_loop
+
+	; Finish the packet.
+	rcall send_checksum
+
+	; Continue.
 	goto expecting_sop
 
 	end
