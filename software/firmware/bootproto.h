@@ -1,4 +1,4 @@
-#ifndef FIRWMARE_BOOTPROTO_H
+#ifndef FIRMWARE_BOOTPROTO_H
 #define FIRMWARE_BOOTPROTO_H
 
 #include "xbee/xbee.h"
