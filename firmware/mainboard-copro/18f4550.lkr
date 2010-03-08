@@ -7,10 +7,12 @@
 
 LIBPATH .
 
-CODEPAGE   NAME=resetvec   START=0x0            END=0x7            PROTECTED
-CODEPAGE   NAME=intvechigh START=0x8            END=0x17           PROTECTED
-CODEPAGE   NAME=intveclow  START=0x18           END=0x3FF          PROTECTED
-CODEPAGE   NAME=page       START=0x400          END=0x7FFF
+CODEPAGE   NAME=bootblock  START=0x0            END=0x7FF          PROTECTED
+CODEPAGE   NAME=resetvec   START=0x800          END=0x807          PROTECTED
+CODEPAGE   NAME=intvechigh START=0x808          END=0x817          PROTECTED
+CODEPAGE   NAME=intveclow  START=0x808          END=0x9FF          PROTECTED
+CODEPAGE   NAME=page       START=0xA00          END=0x3FFF
+CODEPAGE   NAME=stage      START=0x4000         END=0x7FFF         PROTECTED
 CODEPAGE   NAME=idlocs     START=0x200000       END=0x200007       PROTECTED
 CODEPAGE   NAME=config     START=0x300000       END=0x30000D       PROTECTED
 CODEPAGE   NAME=devid      START=0x3FFFFE       END=0x3FFFFF       PROTECTED

@@ -4,6 +4,7 @@ firmware/HWRunSwitch/hwrunswitch.c -text
 firmware/mainboard-copro/18f4550.lkr -text
 firmware/mainboard-copro/Makefile -text
 firmware/mainboard-copro/adc.asm -text
+firmware/mainboard-copro/bootblock.asm -text
 firmware/mainboard-copro/bootload.asm -text
 firmware/mainboard-copro/cbuf.inc -text
 firmware/mainboard-copro/config.asm -text

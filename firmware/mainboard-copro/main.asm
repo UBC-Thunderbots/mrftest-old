@@ -27,13 +27,15 @@
 
 
 resetvec code
-	; This code is burned at address 0, where the PIC starts running.
+	; This code is burned at address 0x800, where the PIC starts running after
+	; the boot block.
 	goto main
 
 
 
 intvechigh code
-	; This code is burned at address 8, where high priority interrupts go.
+	; This code is burned at address 0x808, where high priority interrupts go
+	; after the boot block.
 	btfsc PIR1, RCIF
 	goto rcif_handler
 	btfsc INTCON3, INT1IF
@@ -45,7 +47,8 @@ intvechigh code
 
 
 intveclow code
-	; This code is burned at address 0x18, where low priority interrupts go.
+	; This code is burned at address 0x818, where low priority interrupts go
+	; after the boot block.
 	btfsc PIR1, TMR1IF
 	goto tmr1if_handler
 	retfie
