@@ -145,6 +145,24 @@ COMMAND_PIC_READ_FUSES equ 0x5
 	;
 COMMAND_PIC_WRITE_DATA equ 0x6
 
+	; COMMAND_PIC_ENABLE_UPGRADE
+	; ==========================
+	;
+	; Sets the internal flag that signals the boot block to copy the staging
+	; area to the execution area on the next reboot.
+	;
+	; Page number:
+	;  Ignored
+	;
+	; Request data:
+	;  None
+	;
+	; Response data:
+	;  The final value of the internal flag, which when all is OK should be
+	;  0x1234.
+	;
+COMMAND_PIC_ENABLE_UPGRADE equ 0x7
+
 
 
 	; COMMAND_STATUS_OK
@@ -489,6 +507,7 @@ main_dispatch_tree:
 	DISPATCH_GOTO COMMAND_FPGA_ERASE_SECTOR, handle_fpga_erase_sector
 	DISPATCH_GOTO COMMAND_PIC_READ_FUSES, handle_pic_read_fuses
 	DISPATCH_GOTO COMMAND_PIC_WRITE_DATA, handle_pic_write_data
+	DISPATCH_GOTO COMMAND_PIC_ENABLE_UPGRADE, handle_pic_enable_upgrade
 	DISPATCH_END_RESTORE
 
 	; COMMAND ID is illegal.
@@ -1301,6 +1320,90 @@ handle_pic_write_data_readback_loop:
 	call send_checksum
 
 	; Done.
+	goto expecting_sop
+
+
+
+handle_pic_enable_upgrade:
+	; Page number is ignored.
+	call receive_byte_cooked
+	call receive_byte_cooked
+
+	; Should be no payload, so checksum should be next.
+	call receive_and_check_checksum
+
+	; The flag is to write 0x1234 into the first two bytes of EEPROM.
+	; Write the first byte.
+	clrf EEADR
+	movlw 0x12
+	movwf EEDATA
+	bcf INTCON, GIEL
+	bcf INTCON, GIEH
+	movlw (1 << WREN)
+	movwf EECON1
+	movlw 0x55
+	movwf EECON2
+	movlw 0xAA
+	movwf EECON2
+	bsf EECON1, WR
+handle_pic_enable_upgrade_flag1_loop:
+	btfsc EECON1, WR
+	bra handle_pic_enable_upgrade_flag1_loop
+	clrf EECON1
+	bsf INTCON, GIEH
+	bsf INTCON, GIEL
+
+	; Write the second byte.
+	movlw 1
+	movwf EEADR
+	movlw 0x34
+	movwf EEDATA
+	bcf INTCON, GIEL
+	bcf INTCON, GIEH
+	movlw (1 << WREN)
+	movwf EECON1
+	movlw 0x55
+	movwf EECON2
+	movlw 0xAA
+	movwf EECON2
+	bsf EECON1, WR
+handle_pic_enable_upgrade_flag2_loop:
+	btfsc EECON1, WR
+	bra handle_pic_enable_upgrade_flag2_loop
+	clrf EECON1
+	bsf INTCON, GIEH
+	bsf INTCON, GIEL
+
+	; Start the response.
+	call send_sop
+	movlw 16
+	call send_length
+	movlw 0x00
+	call send_byte
+	movlw 0x00
+	call send_byte
+	call send_address
+	movlw 0x00
+	call send_byte
+	movlw COMMAND_PIC_READ_FUSES
+	call send_byte
+	movlw COMMAND_STATUS_OK
+	call send_byte
+
+	; Read the two bytes from EEPROM.
+	clrf EEADR
+	bsf EECON1, RD
+	movf EEDATA, W
+	call send_byte
+	incf EEADR, F
+	bsf EECON1, RD
+	movf EEDATA, W
+	call send_byte
+
+	; Finish the packet.
+	call send_checksum
+
+	; Continue.
 	goto expecting_sop
 
 	end
