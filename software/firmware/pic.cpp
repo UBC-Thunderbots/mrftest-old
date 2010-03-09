@@ -1,4 +1,4 @@
-#define DEBUG 1
+#define DEBUG 0
 #include "firmware/pic.h"
 #include "util/dprint.h"
 #include <algorithm>
