@@ -107,6 +107,8 @@ software/firmware/emergency_erase.cpp -text
 software/firmware/emergency_erase.h -text
 software/firmware/fpga.cpp -text
 software/firmware/fpga.h -text
+software/firmware/pic.cpp -text
+software/firmware/pic.h -text
 software/firmware/watchable_operation.h -text
 software/firmware/window.cpp -text
 software/firmware/window.h -text
