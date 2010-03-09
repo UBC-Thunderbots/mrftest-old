@@ -1217,7 +1217,7 @@ handle_pic_read_fuses_loop:
 
 
 handle_pic_write_data:
-	; Receive page number (actually physical address) into TBLPTR.
+	; Receive page number (actually physical address).
 	rcall receive_byte_cooked
 	movwf page_number + 0
 	rcall receive_byte_cooked
