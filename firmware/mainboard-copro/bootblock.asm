@@ -46,8 +46,12 @@ bootup:
 
 
 
-	; We need to execute an upgrade. First, erase everything from 0x800 to
-	; 0x3FFF.
+	; We need to execute an upgrade.
+	; Turn on the LED.
+	bcf TRIS_LED, PIN_LED
+	bsf LAT_LED, PIN_LED
+
+	; First, erase everything from 0x800 to 0x3FFF.
 	movlw LOW(0x800)
 	movwf TBLPTRL
 	movlw HIGH(0x800)
