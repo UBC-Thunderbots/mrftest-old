@@ -36,17 +36,9 @@ DESELECT_CHIP macro
 	code
 	; Main code.
 emergency_erase:
-	; Enable mode-change interrupts.
-	; We only care about EMERG_ERASE (INT2).
-	; EMERG_ERASE should be low right now.
-	; A rising edge should reset the PIC.
-	; Rising edge is the default.
-	bcf INTCON3, INT2IF
-	bsf INTCON3, INT2IE
-
-	; Check that we haven't raced and missed a change.
-	btfsc PORT_EMERG_ERASE, PIN_EMERG_ERASE
-	reset
+	; In emergency erase mode, we want to perform the operation and not let
+	; anything get in our way. The only way to escape should be to cut power to
+	; the board. Thus, do NOT enable mode-change interrupts!
 
 	; Blink the LED while erasing.
 	call led_activity
@@ -75,7 +67,7 @@ wait_nonbusy:
 	btfsc WREG, 0
 	bra wait_nonbusy
 
-	; Done erasing. Occult the LED until reset by an interrupt.
+	; Done erasing. Occult the LED until powered down.
 	clrf CCP2CON
 occult_loop:
 	bsf LAT_LED, PIN_LED
