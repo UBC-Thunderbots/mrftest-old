@@ -123,11 +123,11 @@ copy_inner_loop:
 	movwf EECON2
 	bsf EECON1, WR
 	; Finish when we're sitting at 0x3FFF.
-	movf TBLPTRL, W
-	xorlw 0x3F
-	bnz copy_outer_loop
 	movf TBLPTRH, W
-	xorlw 0xFF
+	xorlw HIGH(0x3FFF)
+	bnz copy_outer_loop
+	movf TBLPTRL, W
+	xorlw LOW(0x3FFF)
 	bnz copy_outer_loop
 
 	; Copying is finished. We now want to clear the first two bytes of EEPROM so
