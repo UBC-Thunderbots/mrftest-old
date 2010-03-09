@@ -59,6 +59,7 @@ bootup:
 	movlw UPPER(0x800)
 	movwf TBLPTRU
 	movlw (1 << EEPGD) | (1 << FREE) | (1 << WREN)
+	movwf EECON1
 erase_loop:
 	movlw 0x55
 	movwf EECON2
@@ -104,6 +105,7 @@ erase_loop:
 	movlw UPPER(0x7FF)
 	movwf TBLPTRU
 	movlw (1 << EEPGD) | (1 << WREN)
+	movwf EECON1
 copy_outer_loop:
 	; Bounce TBLPTR up to the staging area.
 	bsf TBLPTRH, 6
