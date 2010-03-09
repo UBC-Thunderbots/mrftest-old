@@ -16,6 +16,11 @@
 
 
 
+	udata
+buffer: res 32
+
+
+
 bootentry code 0x0
 	; Jump to a more useful (larger) area of ROM.
 	goto bootup
@@ -58,19 +63,19 @@ bootup:
 	movwf TBLPTRH
 	movlw UPPER(0x800)
 	movwf TBLPTRU
+erase_loop:
 	movlw (1 << EEPGD) | (1 << FREE) | (1 << WREN)
 	movwf EECON1
-erase_loop:
 	movlw 0x55
 	movwf EECON2
 	movlw 0xAA
 	movwf EECON2
 	bsf EECON1, WR
+	clrf EECON1
 	movlw 64
 	addwf TBLPTRL, F
-	movlw 0
-	addwfc TBLPTRH, F
-	addwfc TBLPTRU, F
+	skpnc
+	incf TBLPTRH, F
 	movlw 0x3F
 	cpfsgt TBLPTRH
 	bra erase_loop
@@ -98,38 +103,55 @@ erase_loop:
 	; block. Incrementing TBLPTR will then point at the first byte of the next
 	; block. To accomodate this for the first block, start with TBLPTR pointing
 	; one byte before the first block.
-	movlw LOW(0x7FF)
+	movlw LOW(0x800)
 	movwf TBLPTRL
-	movlw HIGH(0x7FF)
+	movlw HIGH(0x800)
 	movwf TBLPTRH
-	movlw UPPER(0x7FF)
+	movlw UPPER(0x800)
 	movwf TBLPTRU
-	movlw (1 << EEPGD) | (1 << WREN)
-	movwf EECON1
 copy_outer_loop:
 	; Bounce TBLPTR up to the staging area.
 	bsf TBLPTRH, 6
-	; Copy 32 bytes to holding registers.
+	; Copy 32 bytes to buffer.
+	lfsr 0, buffer
 	movlw 32
-copy_inner_loop:
-	tblrd +*
-	tblwt *
+copy_to_buffer_loop:
+	tblrd *+
+	movff TABLAT, POSTINC0
 	decfsz WREG, W
-	bra copy_inner_loop
+	bra copy_to_buffer_loop
+
+	; Shift TBLPTR back by 32 bytes.
+	tblrd *-
+	movlw -31
+	addwf TBLPTRL, F
 	; Bounce TBLPTR down to the execution area.
 	bcf TBLPTRH, 6
+	; Copy 32 bytes to holding registers
+	lfsr 0, buffer
+	movlw 32
+	tblrd *-
+copy_from_buffer_loop:
+	movff POSTINC0, TABLAT
+	tblwt +*
+	decfsz WREG, W
+	bra copy_from_buffer_loop
 	; Write the data.
+	movlw (1 << EEPGD) | (1 << WREN)
+	movwf EECON1
 	movlw 0x55
 	movwf EECON2
 	movlw 0xAA
 	movwf EECON2
 	bsf EECON1, WR
-	; Finish when we're sitting at 0x3FFF.
+	clrf EECON1
+	; Finish when we're sitting at 0x4000.
+	tblrd *+
 	movf TBLPTRH, W
-	xorlw HIGH(0x3FFF)
+	xorlw HIGH(0x4000)
 	bnz copy_outer_loop
 	movf TBLPTRL, W
-	xorlw LOW(0x3FFF)
+	xorlw LOW(0x4000)
 	bnz copy_outer_loop
 
 	; Copying is finished. We now want to clear the first two bytes of EEPROM so
