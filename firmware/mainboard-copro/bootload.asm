@@ -127,6 +127,7 @@ COMMAND_FPGA_ERASE_SECTOR equ 0x4
 	;
 	; Response data:
 	;  16 bytes of configuration fuse data, from 0x300000 to 0x30000F.
+	;  2 bytes of device ID data, from 0x3FFFFE to 0x3FFFFF.
 	;
 COMMAND_PIC_READ_FUSES equ 0x5
 
@@ -1159,7 +1160,7 @@ handle_pic_read_fuses:
 
 	; Start the response.
 	rcall send_sop
-	movlw 29
+	movlw 31
 	rcall send_length
 	movlw 0x00
 	rcall send_byte
@@ -1185,13 +1186,27 @@ handle_pic_read_fuses:
 	movlw 16
 	movwf bytecounter
 
-	; Push the data.
+	; Push the configuration data.
 handle_pic_read_fuses_loop:
 	tblrd *+
 	movf TABLAT, W
 	rcall send_byte
 	decfsz bytecounter, F
 	bra handle_pic_read_fuses_loop
+
+	; Push the device ID.
+	movlw LOW(0x3FFFFE)
+	movwf TBLPTRL
+	movlw HIGH(0x3FFFFE)
+	movwf TBLPTRH
+	movlw UPPER(0x3FFFFE)
+	movwf TBLPTRU
+	tblrd *+
+	movf TABLAT, W
+	rcall send_byte
+	tblrd *+
+	movf TABLAT, W
+	rcall send_byte
 
 	; Finish the packet.
 	rcall send_checksum
