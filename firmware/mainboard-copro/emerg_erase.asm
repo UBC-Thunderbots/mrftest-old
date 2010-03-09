@@ -75,12 +75,22 @@ wait_nonbusy:
 	btfsc WREG, 0
 	bra wait_nonbusy
 
-	; Done erasing. Turn LED on solid.
-	call led_idle
-
-	; Go to sleep forever until we're reset by an interrupt.
-die:
-	sleep
-	bra die
+	; Done erasing. Occult the LED until reset by an interrupt.
+	clrf CCP2CON
+occult_loop:
+	bsf LAT_LED, PIN_LED
+	call sleep_100ms
+	call sleep_100ms
+	call sleep_100ms
+	call sleep_100ms
+	call sleep_100ms
+	call sleep_100ms
+	call sleep_100ms
+	call sleep_100ms
+	call sleep_100ms
+	bcf LAT_LED, PIN_LED
+	call sleep_100ms
+	call sleep_100ms
+	bra occult_loop
 
 	end
