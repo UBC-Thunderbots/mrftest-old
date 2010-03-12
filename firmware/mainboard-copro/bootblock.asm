@@ -80,29 +80,7 @@ erase_loop:
 	cpfsgt TBLPTRH
 	bra erase_loop
 
-	; Now copy data from 0x4800 through 0x7FFF to 0x800 through 0x3FFF. Here's a
-	; sneaky idea: to write a block of 32 bytes, you first use TBLWT to load the
-	; 32 holding registers, then set EECON1.WR to write the holding registers to
-	; Flash. The lower 5 bits of TBLPTR determine which holding register is
-	; written to with a particular TBLWT; those same bits are ignored during the
-	; actual write. Thus, there is no requirement that TBLPTR actually point at
-	; the address being written when the TBLWT is executed, only that it point
-	; at an address whose lower 5 bits are the same... namely, it could point at
-	; the *mirror* of the address in the staging area! So what we do is we do a
-	; sequence of matched TBLRDs and TBLWTs with TBLPTR pointing in the staging
-	; area to pull data from the staging area into the holding registers. Once
-	; 32 bytes have been pulled, we then bounce TBLPTR down into the execution
-	; area, burn the block, and bounce TBLPTR back up into the staging area
-	; ready to do the next block.
-	;
-	; Because the execution is 0x0800 to 0x3FFF and the staging area is 0x4800
-	; to 0x7FFF, the only difference between their addresses is bit 14 (aka bit
-	; 6 of TBLPTRH).
-	;
-	; Each block write will finish with TBLPTR pointing at the last byte of the
-	; block. Incrementing TBLPTR will then point at the first byte of the next
-	; block. To accomodate this for the first block, start with TBLPTR pointing
-	; one byte before the first block.
+	; Now copy data from 0x4800 through 0x7FFF to 0x800 through 0x3FFF.
 	movlw LOW(0x800)
 	movwf TBLPTRL
 	movlw HIGH(0x800)
