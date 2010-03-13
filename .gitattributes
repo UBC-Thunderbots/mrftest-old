@@ -250,6 +250,7 @@ software/util/registerable.h -text
 software/util/rle.cpp -text
 software/util/rle.h -text
 software/util/sockaddrs.h -text
+software/util/stochastic_local_search.cpp -text
 software/util/xml.cpp -text
 software/util/xml.h -text
 software/world/ball.h -text
