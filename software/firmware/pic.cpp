@@ -26,7 +26,7 @@ namespace {
 		std::fill(buffer, buffer + pic_upload::PAGE_BYTES, 0xFF);
 		unsigned int byte = page * pic_upload::PAGE_BYTES;
 		if (byte < data.data()[0].size()) {
-			std::copy(&data.data()[0][byte], &data.data()[0][std::min(byte + pic_upload::PAGE_BYTES, data.data()[0].size())], buffer);
+			std::copy(&data.data()[0][byte], &data.data()[0][std::min<std::size_t>(byte + pic_upload::PAGE_BYTES, data.data()[0].size())], buffer);
 		}
 	}
 
