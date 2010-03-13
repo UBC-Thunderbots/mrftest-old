@@ -104,7 +104,7 @@ void pic_upload::fuses_received(const void *response) {
 }
 
 void pic_upload::do_work() {
-	if (pages_written < divup(data.data()[1].size(), PAGE_BYTES)) {
+	if (pages_written < divup<std::size_t>(data.data()[1].size(), PAGE_BYTES)) {
 		// We should write a page. The address is offset by 0x800 to advance by
 		// the size of the boot block, and 0x4000 to move into the staging area.
 		DPRINT(Glib::ustring::compose("Writing page %1 at address %2.", pages_written, pages_written * PAGE_BYTES + 0x4800));
@@ -115,7 +115,7 @@ void pic_upload::do_work() {
 		proto.send(COMMAND_PIC_ENABLE_UPGRADE, 0, 0, 0, 2, sigc::mem_fun(*this, &pic_upload::upgrade_enabled));
 	}
 
-	signal_progress().emit(static_cast<double>(pages_written) / divup(data.data()[1].size(), PAGE_BYTES));
+	signal_progress().emit(static_cast<double>(pages_written) / divup<std::size_t>(data.data()[1].size(), PAGE_BYTES));
 }
 
 void pic_upload::page_written(const void *response) {
