@@ -33,8 +33,8 @@ fuzzy_controller::fuzzy_controller(player_impl::ptr player) : param(4){
 	param[3] = 1.02;
 
 	if(param_min.size() == 0) {
-		param_min.resize(9, 0.0);
-		param_max.resize(9, 10.0);
+		param_min.resize(4, 0.0);
+		param_max.resize(4, 10.0);
 	}
 }
 

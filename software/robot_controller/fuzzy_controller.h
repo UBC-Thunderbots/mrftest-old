@@ -10,7 +10,7 @@
 #include "world/player_impl.h"
 #include "robot_controller/tunable_controller.h"
 
-class fuzzy_controller : public robot_controller {
+class fuzzy_controller : public robot_controller, public tunable_controller {
 	public:
 
 		void move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity);
