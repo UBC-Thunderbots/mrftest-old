@@ -28,7 +28,7 @@ namespace {
 		std::fill(buffer, buffer + fpga_upload::PAGE_BYTES, 0xFF);
 		unsigned int byte = page * fpga_upload::PAGE_BYTES;
 		if (byte < data.data()[0].size()) {
-			std::copy(&data.data()[0][byte], &data.data()[0][std::min(byte + fpga_upload::PAGE_BYTES, data.data()[0].size())], buffer);
+			std::copy(&data.data()[0][byte], &data.data()[0][std::min<std::size_t>(byte + fpga_upload::PAGE_BYTES, data.data()[0].size())], buffer);
 		}
 	}
 }
@@ -71,7 +71,7 @@ void fpga_upload::ident_received(const void *response) {
 
 void fpga_upload::do_work() {
 	for (;;) {
-		if (chunks_crcd == divup(data.data()[0].size(), CHUNK_PAGES * PAGE_BYTES)) {
+		if (chunks_crcd == divup<std::size_t>(data.data()[0].size(), CHUNK_PAGES * PAGE_BYTES)) {
 			// We have CRCd as many chunks as are in the HEX file. We're done.
 			DPRINT("Exiting bootloader.");
 			status = "Exiting Bootloader";
@@ -94,7 +94,7 @@ void fpga_upload::do_work() {
 			++sectors_erased;
 		} else {
 			// We should write a page.
-			if (pages_written >= divup(data.data()[0].size(), PAGE_BYTES)) {
+			if (pages_written >= divup<std::size_t>(data.data()[0].size(), PAGE_BYTES)) {
 				DPRINT(Glib::ustring::compose("Skipping page %1 due to beyond-end-of-data.", pages_written));
 			} else if (pages_prewritten[pages_written % CHUNK_PAGES]) {
 				DPRINT(Glib::ustring::compose("Skipping page %1 due to prewritten bitmap.", pages_written));
@@ -112,7 +112,7 @@ void fpga_upload::do_work() {
 			++pages_written;
 		}
 
-		signal_progress().emit(static_cast<double>(pages_written) / (divup(divup(data.data()[0].size(), PAGE_BYTES), CHUNK_PAGES) * CHUNK_PAGES));
+		signal_progress().emit(static_cast<double>(pages_written) / (divup<std::size_t>(divup<std::size_t>(data.data()[0].size(), PAGE_BYTES), CHUNK_PAGES) * CHUNK_PAGES));
 	}
 }
 
@@ -125,7 +125,7 @@ void fpga_upload::crcs_received(const void *response) {
 
 	// First consider the bitmap of pages written.
 	bool all_ok = true;
-	for (unsigned int i = 0; i < CHUNK_PAGES && chunks_crcd * CHUNK_PAGES + i < divup(data.data()[0].size(), PAGE_BYTES); ++i) {
+	for (unsigned int i = 0; i < CHUNK_PAGES && chunks_crcd * CHUNK_PAGES + i < divup<std::size_t>(data.data()[0].size(), PAGE_BYTES); ++i) {
 		pages_prewritten[i] = !!(words[0] & (1 << i));
 		if (!pages_prewritten[i]) {
 			DPRINT(Glib::ustring::compose("Page %1 should have been written but wasn't.", chunks_crcd * CHUNK_PAGES + i));
@@ -139,7 +139,7 @@ void fpga_upload::crcs_received(const void *response) {
 	}
 
 	// Now verify the CRCs of the data in Flash.
-	for (unsigned int i = 0; i < CHUNK_PAGES && chunks_crcd * CHUNK_PAGES + i < divup(data.data()[0].size(), PAGE_BYTES); ++i) {
+	for (unsigned int i = 0; i < CHUNK_PAGES && chunks_crcd * CHUNK_PAGES + i < divup<std::size_t>(data.data()[0].size(), PAGE_BYTES); ++i) {
 		unsigned char pagedata[PAGE_BYTES];
 		get_page_data(data, chunks_crcd * CHUNK_PAGES + i, pagedata);
 		uint16_t computed = crc16::calculate(pagedata, PAGE_BYTES);
