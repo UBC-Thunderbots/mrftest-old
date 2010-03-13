@@ -71,15 +71,7 @@ void radio_bot::drive_impl(uint8_t flag, int16_t m1, int16_t m2, int16_t m3, int
 
 
 
-void radio_bot::dribble_scram() {
-	out_packet.flags &= ~xbeepacket::RUN_FLAG_DRIBBLE;
-	out_packet.dribbler_speed = 0;
-}
-
-
-
 void radio_bot::dribble(int16_t power) {
-	out_packet.flags |= xbeepacket::RUN_FLAG_DRIBBLE;
 	out_packet.dribbler_speed = power;
 }
 

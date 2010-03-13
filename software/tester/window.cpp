@@ -13,7 +13,7 @@
 
 class tester_window_impl : public Gtk::Window {
 	public:
-		tester_window_impl(xbee &modem, xmlpp::Element *xmlworld) : modem(modem), bot_frame("Bot"), bot_controls(xmlworld, *this), feedback_frame("Feedback"), command_frame("Commands"), drive_frame("Drive"), drive_widget(0), dribble_frame("Dribble"), dribble_checkbox("Enable Dribbler"), dribble_scale(-1023, 1023, 1) {
+		tester_window_impl(xbee &modem, xmlpp::Element *xmlworld) : modem(modem), bot_frame("Bot"), bot_controls(xmlworld, *this), feedback_frame("Feedback"), command_frame("Commands"), drive_frame("Drive"), drive_widget(0), dribble_frame("Dribble"), dribble_scale(-1023, 1023, 1) {
 			set_title("Robot Tester");
 
 			bot_controls.signal_address_changed().connect(sigc::mem_fun(*this, &tester_window_impl::address_changed));
@@ -35,7 +35,6 @@ class tester_window_impl : public Gtk::Window {
 			drive_frame.add(drive_box);
 			vbox.pack_start(drive_frame, false, false);
 
-			dribble_box.pack_start(dribble_checkbox);
 			dribble_scale.get_adjustment()->set_page_size(0);
 			dribble_box.pack_start(dribble_scale);
 			dribble_frame.add(dribble_box);
@@ -46,7 +45,6 @@ class tester_window_impl : public Gtk::Window {
 			show_all();
 
 			Gtk::Main::signal_key_snooper().connect(sigc::mem_fun(*this, &tester_window_impl::key_snoop));
-			dribble_checkbox.signal_toggled().connect(sigc::mem_fun(*this, &tester_window_impl::on_dribble_change));
 			dribble_scale.set_value(0);
 			dribble_scale.signal_value_changed().connect(sigc::mem_fun(*this, &tester_window_impl::on_dribble_change));
 		}
@@ -81,7 +79,6 @@ class tester_window_impl : public Gtk::Window {
 
 		Gtk::Frame dribble_frame;
 		Gtk::VBox dribble_box;
-		Gtk::CheckButton dribble_checkbox;
 		Gtk::HScale dribble_scale;
 
 		void address_changed(uint64_t address) {
@@ -107,7 +104,6 @@ class tester_window_impl : public Gtk::Window {
 			if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_Z || event->keyval == GDK_z)) {
 				// Z letter scrams the system.
 				drive_chooser.set_active_text("Halt");
-				dribble_checkbox.set_active(false);
 				dribble_scale.set_value(0);
 			} else if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_0)) {
 				// Zero digit sets all controls to zero but does not scram things.
@@ -171,11 +167,7 @@ class tester_window_impl : public Gtk::Window {
 
 		void on_dribble_change() {
 			if (bot) {
-				if (dribble_checkbox.get_active()) {
-					bot->dribble(dribble_scale.get_value());
-				} else {
-					bot->dribble_scram();
-				}
+				bot->dribble(dribble_scale.get_value());
 			}
 		}
 };

@@ -109,7 +109,6 @@ namespace xbeepacket {
 	const uint8_t RUN_FLAG_RUNNING = 0x80;
 	const uint8_t RUN_FLAG_DIRECT_DRIVE = 0x01;
 	const uint8_t RUN_FLAG_CONTROLLED_DRIVE = 0x02;
-	const uint8_t RUN_FLAG_DRIBBLE = 0x04;
 	const uint8_t RUN_FLAG_FEEDBACK = 0x40;
 }
 

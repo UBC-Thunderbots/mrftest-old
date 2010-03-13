@@ -56,13 +56,8 @@ class radio_bot : public byref {
 		void drive_controlled(int16_t m1, int16_t m2, int16_t m3, int16_t m4);
 
 		//
-		// Applies regenerative braking to the dribbler.
-		//
-		void dribble_scram();
-
-		//
 		// Sets the power level of the dribbler. The parameter is a power level
-		// between -1023 and 1023.
+		// between -1023 and 1023. A power level of zero brakes the dribbler.
 		//
 		void dribble(int16_t power);
 
