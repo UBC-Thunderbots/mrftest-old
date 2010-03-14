@@ -310,15 +310,19 @@ void playerODE::kick(double strength) {
 
 	if(strength <0 || strength >1)return;
 
-	double maximum_impulse = 0.0001;
+	double maximum_impulse = 1.0;
 	point direction(1.0, 0.0);
 	direction = direction.rotate(orientation());
+	//std::cout<<"strength"<<strength<<std::endl;
 	point impulse = strength*maximum_impulse*direction;
 
 	if(has_ball(0.005)){
 		dVector3 force;
-		dWorldImpulseToForce (world, 1.0/static_cast<double>(TIMESTEPS_PER_SECOND),
+		//std::cout<<"attempt kick impulse ="<<impulse.x<<" "<<impulse.y<<std::endl;
+		dWorldImpulseToForce (world, 1.0/(static_cast<double>(TIMESTEPS_PER_SECOND)*updates_per_tick),
 				impulse.x, impulse.y,0.0, force);
+		//std::cout<<"force="<<force[0]<<" "<<force[1]<<" "<<force[2]<<std::endl;
+
 		dBodyAddForce(dGeomGetBody(ballGeom), force[0], force[1], force[2]);
 	}
 }
@@ -327,7 +331,7 @@ void playerODE::chip(double strength) {
 
 	if(strength <0 || strength >1)return;
 	//std::cout<<"chip strength: "<<strength<<std::endl;
-	double maximum_impulse = 0.0001;
+	double maximum_impulse = 1.0;
 
 	point direction(1.0/sqrt(2.0), 0.0);
 	direction = direction.rotate(orientation());
@@ -336,9 +340,12 @@ void playerODE::chip(double strength) {
 	double zimpulse = strength*maximum_impulse/sqrt(2.0);
 
 	if(has_ball(0.01)){
+	 // std::cout<<"attempting chipping"<<std::endl;
 		dVector3 force;
+
 		dWorldImpulseToForce (world, 1.0/(static_cast<double>(TIMESTEPS_PER_SECOND)*updates_per_tick),
 				impulse.x, impulse.y,zimpulse, force);
+	//std::cout<<"force="<<force[0]<<" "<<force[1]<<" "<<force[2]<<std::endl;
 		dBodyAddForce(dGeomGetBody(ballGeom), force[0], force[1], force[2]);
 	}
 	//std::cout<<"chip strength: "<<strength<<std::endl;

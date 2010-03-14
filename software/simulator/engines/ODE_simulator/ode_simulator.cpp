@@ -228,8 +228,7 @@ namespace {
 			//if a shape interescts with the ground set the contact parameters
 			//
 			void handleBallCollisionWithGround(dGeomID o1, dGeomID o2){
-				int g1 = (o1 == the_ball->ballGeom);
-				int g2 = (o2 == the_ball->ballGeom);
+
 				double frict = MU*6;
 				int i=0;
 				 playerODE::ptr robot = emptyPlayer;
