@@ -13,7 +13,7 @@
 
 class tester_window_impl : public Gtk::Window {
 	public:
-		tester_window_impl(xbee &modem, xmlpp::Element *xmlworld) : modem(modem), bot_frame("Bot"), bot_controls(xmlworld, *this), feedback_frame("Feedback"), command_frame("Commands"), drive_frame("Drive"), drive_widget(0), dribble_frame("Dribble"), dribble_scale(-1023, 1023, 1) {
+		tester_window_impl(xbee &modem, xmlpp::Element *xmlworld) : modem(modem), bot_frame("Bot"), bot_controls(xmlworld, *this), feedback_frame("Feedback"), command_frame("Commands"), drive_frame("Drive"), drive_widget(0), dribble_frame("Dribble"), dribble_scale(-1023, 1023, 1), chicker_frame("Chicker"), chicker_enabled("Enable") {
 			set_title("Robot Tester");
 
 			bot_controls.signal_address_changed().connect(sigc::mem_fun(*this, &tester_window_impl::address_changed));
@@ -40,6 +40,10 @@ class tester_window_impl : public Gtk::Window {
 			dribble_frame.add(dribble_box);
 			vbox.pack_start(dribble_frame, false, false);
 
+			chicker_box.pack_start(chicker_enabled, false, false);
+			chicker_frame.add(chicker_box);
+			vbox.pack_start(chicker_frame, false, false);
+
 			add(vbox);
 
 			show_all();
@@ -47,6 +51,7 @@ class tester_window_impl : public Gtk::Window {
 			Gtk::Main::signal_key_snooper().connect(sigc::mem_fun(*this, &tester_window_impl::key_snoop));
 			dribble_scale.set_value(0);
 			dribble_scale.signal_value_changed().connect(sigc::mem_fun(*this, &tester_window_impl::on_dribble_change));
+			chicker_enabled.signal_toggled().connect(sigc::mem_fun(*this, &tester_window_impl::on_chicker_enable_change));
 		}
 
 	protected:
@@ -80,6 +85,10 @@ class tester_window_impl : public Gtk::Window {
 		Gtk::Frame dribble_frame;
 		Gtk::VBox dribble_box;
 		Gtk::HScale dribble_scale;
+
+		Gtk::Frame chicker_frame;
+		Gtk::VBox chicker_box;
+		Gtk::CheckButton chicker_enabled;
 
 		void address_changed(uint64_t address) {
 			// Update the bot pointer.
@@ -168,6 +177,12 @@ class tester_window_impl : public Gtk::Window {
 		void on_dribble_change() {
 			if (bot) {
 				bot->dribble(dribble_scale.get_value());
+			}
+		}
+
+		void on_chicker_enable_change() {
+			if (bot) {
+				bot->enable_chicker(chicker_enabled.get_active());
 			}
 		}
 };

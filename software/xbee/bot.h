@@ -62,6 +62,28 @@ class radio_bot : public byref {
 		void dribble(int16_t power);
 
 		//
+		// Enables or disables the chicker subsystem.
+		//
+		void enable_chicker(bool enable = true);
+
+		//
+		// Indicates whether or not the chicker is ready to fire.
+		//
+		bool chicker_ready() const;
+
+		//
+		// Begins kicking the ball. The parameter is a power level between 0 and
+		// 511. A power level of zero does nothing.
+		//
+		void kick(uint16_t power);
+
+		//
+		// Begins chipping the ball. The parameter is a power level between 0
+		// and 511. A power level of zero does nothing.
+		//
+		void chip(uint16_t power);
+
+		//
 		// Emitted whenever new statistics are available.
 		//
 		sigc::signal<void> &signal_updated() {
@@ -147,6 +169,7 @@ class radio_bot : public byref {
 		uint64_t tx_success_mask;
 		xbeepacket::FEEDBACK_DATA fb_packet;
 		unsigned int feedback_counter;
+		unsigned int chicker_firing_counter;
 
 		void drive_impl(uint8_t flag, int16_t m1, int16_t m2, int16_t m3, int16_t m4);
 		void on_receive(const void *, std::size_t);

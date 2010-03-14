@@ -3,7 +3,7 @@
 
 
 
-radio_bot::radio_bot(xbee &modem, uint64_t address) : modem(modem), address(address), latency_(0), tx_success_mask(0), feedback_counter(0) {
+radio_bot::radio_bot(xbee &modem, uint64_t address) : modem(modem), address(address), latency_(0), tx_success_mask(0), feedback_counter(0), chicker_firing_counter(0) {
 	fb_packet.flags = 0;
 	out_packet_timer.stop();
 }
@@ -77,12 +77,55 @@ void radio_bot::dribble(int16_t power) {
 
 
 
+void radio_bot::enable_chicker(bool enable) {
+	out_packet.flags &= ~xbeepacket::RUN_FLAG_CHICKER_ENABLED;
+	if (enable) {
+		out_packet.flags |= xbeepacket::RUN_FLAG_CHICKER_ENABLED;
+	} else {
+		chicker_firing_counter = 0;
+	}
+}
+
+
+
+bool radio_bot::chicker_ready() const {
+	return !!(fb_packet.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_READY) && !chicker_firing_counter;
+}
+
+
+
+void radio_bot::kick(uint16_t power) {
+	if (power && (out_packet.flags & xbeepacket::RUN_FLAG_CHICKER_ENABLED)) {
+		out_packet.flags &= ~xbeepacket::RUN_FLAG_CHIP;
+		out_packet.chick_power = power;
+		chicker_firing_counter = 30;
+	}
+}
+
+
+
+void radio_bot::chip(uint16_t power) {
+	if (power && (out_packet.flags & xbeepacket::RUN_FLAG_CHICKER_ENABLED)) {
+		out_packet.flags |= xbeepacket::RUN_FLAG_CHIP;
+		out_packet.chick_power = power;
+		chicker_firing_counter = 30;
+	}
+}
+
+
+
 void radio_bot::send_packet() {
 	if (++feedback_counter == 30) {
 		feedback_counter = 0;
 		out_packet.flags |= xbeepacket::RUN_FLAG_FEEDBACK;
 	} else {
 		out_packet.flags &= ~xbeepacket::RUN_FLAG_FEEDBACK;
+	}
+	if (chicker_firing_counter == 0) {
+		out_packet.flags &= ~xbeepacket::RUN_FLAG_CHIP;
+		out_packet.chick_power = 0;
+	} else {
+		--chicker_firing_counter;
 	}
 	out_packet.txhdr.frame = modem.alloc_frame();
 	modem.send(&out_packet, sizeof(out_packet));

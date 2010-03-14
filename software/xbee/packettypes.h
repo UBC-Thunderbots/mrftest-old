@@ -96,6 +96,8 @@ namespace xbeepacket {
 		uint8_t faults;
 	};
 	const uint8_t FEEDBACK_FLAG_RUNNING = 0x80;
+	const uint8_t FEEDBACK_FLAG_CHICKER_READY = 0x01;
+	const uint8_t FEEDBACK_FLAG_CHICKER_FAULT = 0x02;
 
 	struct __attribute__((packed)) RUN_DATA {
 		TRANSMIT_HDR txhdr;
@@ -105,10 +107,13 @@ namespace xbeepacket {
 		signed drive3_speed : 11;
 		signed drive4_speed : 11;
 		signed dribbler_speed : 11;
+		unsigned chick_power : 9;
 	};
 	const uint8_t RUN_FLAG_RUNNING = 0x80;
 	const uint8_t RUN_FLAG_DIRECT_DRIVE = 0x01;
 	const uint8_t RUN_FLAG_CONTROLLED_DRIVE = 0x02;
+	const uint8_t RUN_FLAG_CHICKER_ENABLED = 0x04;
+	const uint8_t RUN_FLAG_CHIP = 0x08;
 	const uint8_t RUN_FLAG_FEEDBACK = 0x40;
 }
 
