@@ -9,7 +9,6 @@
 #include "world/config.h"
 #include "xbee/bot.h"
 #include <iomanip>
-#include <iostream>
 
 class tester_window_impl : public Gtk::Window {
 	public:
@@ -40,7 +39,8 @@ class tester_window_impl : public Gtk::Window {
 			dribble_frame.add(dribble_box);
 			vbox.pack_start(dribble_frame, false, false);
 
-			chicker_box.pack_start(chicker_enabled, false, false);
+			chicker_box.pack_start(chicker_enabled, true, true);
+			chicker_box.pack_start(chicker_status, false, false);
 			chicker_frame.add(chicker_box);
 			vbox.pack_start(chicker_frame, false, false);
 
@@ -52,6 +52,8 @@ class tester_window_impl : public Gtk::Window {
 			dribble_scale.set_value(0);
 			dribble_scale.signal_value_changed().connect(sigc::mem_fun(*this, &tester_window_impl::on_dribble_change));
 			chicker_enabled.signal_toggled().connect(sigc::mem_fun(*this, &tester_window_impl::on_chicker_enable_change));
+
+			on_update();
 		}
 
 	protected:
@@ -87,8 +89,9 @@ class tester_window_impl : public Gtk::Window {
 		Gtk::HScale dribble_scale;
 
 		Gtk::Frame chicker_frame;
-		Gtk::VBox chicker_box;
+		Gtk::HBox chicker_box;
 		Gtk::CheckButton chicker_enabled;
+		light chicker_status;
 
 		void address_changed(uint64_t address) {
 			// Update the bot pointer.
@@ -107,6 +110,9 @@ class tester_window_impl : public Gtk::Window {
 
 			// Attach the robot to the dribbler controls, dropping any prior.
 			on_dribble_change();
+
+			// Attach to the update handler.
+			bot->signal_updated().connect(sigc::mem_fun(*this, &tester_window_impl::on_update));
 		}
 
 		int key_snoop(Widget *, GdkEventKey *event) {
@@ -183,6 +189,20 @@ class tester_window_impl : public Gtk::Window {
 		void on_chicker_enable_change() {
 			if (bot) {
 				bot->enable_chicker(chicker_enabled.get_active());
+			}
+		}
+
+		void on_update() {
+			if (bot && bot->has_feedback()) {
+				if (bot->chicker_faulted()) {
+					chicker_status.set_colour(1, 0, 0);
+				} else if (bot->chicker_ready()) {
+					chicker_status.set_colour(0, 1, 0);
+				} else {
+					chicker_status.set_colour(0, 0, 0);
+				}
+			} else {
+				chicker_status.set_colour(0, 0, 0);
 			}
 		}
 };

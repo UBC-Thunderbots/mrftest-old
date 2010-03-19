@@ -94,6 +94,12 @@ bool radio_bot::chicker_ready() const {
 
 
 
+bool radio_bot::chicker_faulted() const {
+	return !!(fb_packet.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_FAULT);
+}
+
+
+
 void radio_bot::kick(uint16_t power) {
 	if (power && (out_packet.flags & xbeepacket::RUN_FLAG_CHICKER_ENABLED)) {
 		out_packet.flags &= ~xbeepacket::RUN_FLAG_CHIP;

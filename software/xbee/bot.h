@@ -72,6 +72,11 @@ class radio_bot : public byref {
 		bool chicker_ready() const;
 
 		//
+		// Indicates whether or not the chicker has failed.
+		//
+		bool chicker_faulted() const;
+
+		//
 		// Begins kicking the ball. The parameter is a power level between 0 and
 		// 511. A power level of zero does nothing.
 		//
