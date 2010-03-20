@@ -71,7 +71,9 @@ software/ai/strategy/chase_strategy.cpp -text
 software/ai/strategy/defensive_strategy.cpp -text
 software/ai/strategy/kenneth_simple_strategy.cpp -text
 software/ai/strategy/movement_benchmark.cpp -text
+software/ai/strategy/movement_benchmark.h -text
 software/ai/strategy/offensive_strategy.cpp -text
+software/ai/strategy/param_tuning.cpp -text
 software/ai/strategy/simple_strategy1.cpp -text
 software/ai/strategy/simu_test_strategy.cpp -text
 software/ai/strategy/simu_test_strategy.h -text
@@ -182,6 +184,7 @@ software/robot_controller/pid_controller.cpp -text
 software/robot_controller/pid_controller.h -text
 software/robot_controller/robot_controller.h -text
 software/robot_controller/testing_rc.cpp -text
+software/robot_controller/tunable_controller.cpp -text
 software/robot_controller/tunable_controller.h -text
 software/robot_controller/tunable_pid_controller.cpp -text
 software/robot_controller/tunable_pid_controller.h -text
@@ -251,6 +254,7 @@ software/util/rle.cpp -text
 software/util/rle.h -text
 software/util/sockaddrs.h -text
 software/util/stochastic_local_search.cpp -text
+software/util/stochastic_local_search.h -text
 software/util/xml.cpp -text
 software/util/xml.h -text
 software/world/ball.h -text

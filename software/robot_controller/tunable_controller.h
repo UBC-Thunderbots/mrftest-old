@@ -8,6 +8,15 @@
 //
 class tunable_controller {
 	public:
+		tunable_controller() {
+			controller_instance = this;
+		}
+
+		~tunable_controller() {
+			if(controller_instance == this)
+				controller_instance = NULL;
+		}
+
 		//
 		// changes the controller parameters
 		//
@@ -27,6 +36,8 @@ class tunable_controller {
 		// gets the maximum value of each parameter
 		//
 		virtual const std::vector<double>& get_params_max() const = 0;
+
+		static tunable_controller* controller_instance;
 };
 
 #endif
