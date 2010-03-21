@@ -315,15 +315,19 @@ namespace {
 				  	robot = get_player_from_shape(o2);
 				  }
 				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
+					bool robotCollided = robot->hasContactPenetration(contact[i].geom.pos);
 				  	for (i=0; i<numc; i++) {
-				   		contact[i].surface.mode =  dContactSoftCFM | dContactSoftERP |dContactBounce;
-				   		contact[i].surface.mu = MU;// 0.1*MU;
-				   		contact[i].surface.soft_cfm = CFM;
-				   		contact[i].surface.soft_erp = ERP;
-				     		contact[i].surface.bounce = 0.2;
-				     		contact[i].surface.bounce_vel=0.0;
-				      		dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
-				      		dJointAttach (c,b1,b2);
+						if(robotCollided){
+				   			contact[i].surface.mode =  dContactSoftCFM | dContactSoftERP |dContactBounce;
+				   			contact[i].surface.mu = MU;// 0.1*MU;
+				   			contact[i].surface.soft_cfm = CFM;
+				   			contact[i].surface.soft_erp = ERP;
+				     			contact[i].surface.bounce = 0.2;
+				     			contact[i].surface.bounce_vel=0.0;
+				      			dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
+				      			dJointAttach (c,b1,b2);
+						}
+
 				    	}
 				  }	
 			}

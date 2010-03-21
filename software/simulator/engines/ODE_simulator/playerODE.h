@@ -18,6 +18,7 @@ class playerODE : public player_impl {
 	//The world constructed by the simulatiuon engine
 	private:
 	dGeomID robotGeomTop;
+	dGeomID robotGeomTopCyl;
 	dGeomID dribbleArmL;
 	dGeomID dribbleArmR;
 	dWorldID world;
@@ -36,6 +37,7 @@ class playerODE : public player_impl {
 
 	playerODE( dWorldID dworld, dSpaceID dspace,  dGeomID ballGeom, double ups_per_tick);
 	~playerODE();
+bool has_point(double x, double y) const;
 //void tick();
 			double get_height() const;
 void update();
@@ -57,6 +59,7 @@ protected:
 			void move_impl(const point &vel, double avel) ;
 			
 public:
+			bool hasContactPenetration(dVector3 pos); 
 
 			void pre_tic(double TimeStep);
 			

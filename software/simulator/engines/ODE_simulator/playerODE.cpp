@@ -65,7 +65,7 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 
 	//dBodySetPosition(body, x_pos, y_pos, 0.0006);
 	//robotGeomTop = dCreateTriMesh(0,create_robot_geom(),NULL,NULL,NULL);		
-	robotGeomTop = dCreateBox (0,x_len,y_len,0.15);
+	robotGeomTop = dCreateBox (0,x_len,y_len,ROBOT_HEIGHT);
 	dMassSetCylinderTotal (&mass,ROBOT_MASS, 3,ROBOT_RADIUS,ROBOT_HEIGHT);
 	dBodySetMass (body,&mass);
 	dGeomSetBody (robotGeomTop,body);
@@ -95,6 +95,8 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 
 	//dSpaceAdd (dspace, robotGeom);
 	dSpaceAdd (dspace, robotGeomTop);
+	dSpaceAdd (dspace, dribbleArmL);
+	dSpaceAdd (dspace, dribbleArmR);
 	//dBodySetLinearDamping (body, 0.05);
 	//dBodySetAngularDamping (body, 0.12);
 	//contactgroup = dJointGroupCreate (0);
@@ -129,6 +131,16 @@ void playerODE::createJointBetweenB1B2(){
 	//dJointSetBallAnchor(hinge, x, y , z);
 	//dJointAttach (hinge, body, body2);
 	//dJointEnable (hinge); 
+}
+
+bool playerODE::hasContactPenetration(dVector3 pos){
+	//if(dGeomBoxPointDepth (dGeomID box, dReal x, dReal y, dReal z);
+//((GeomBox)
+// robotGeomTop).pointDepth(pos)<0
+if(dGeomBoxPointDepth (robotGeomTop, pos[0], pos[1], pos[2])<0){
+return true;
+}
+return false;
 }
 
 point playerODE::position() const {
@@ -176,6 +188,40 @@ bool playerODE::has_ball() const {
 	return hasTheBall;
 }
 
+bool playerODE::has_point(double x, double y) const {
+
+	double hasBallTolerance = 0.25;
+	const dReal *p = dBodyGetPosition (body);
+
+	point ball_loc(x, y);
+	point play_loc(p[0], p[1]);
+	point play_ball_diff = ball_loc - play_loc;
+	point rel_play_ball_diff = play_ball_diff.rotate(-orientation());
+	play_ball_diff  = rel_play_ball_diff;
+
+	if(play_ball_diff.x < x_len/2 - hasBallTolerance){
+		return false;
+	}
+
+	if(play_ball_diff.x > x_len/2  + hasBallTolerance){
+		return false;
+	}
+	if(play_ball_diff.y > y_len/2  + hasBallTolerance){
+		return false;
+	}
+	if(rel_play_ball_diff.x <0){
+		return false;
+	}
+	double mag_y = abs(rel_play_ball_diff.y);
+	double mag_x = abs(rel_play_ball_diff.x);
+
+	if( mag_y/mag_x > y_len/x_len){
+		return false;
+	}
+
+	return true;
+}
+
 double playerODE::get_height() const
 {
 	const dReal *t = dBodyGetPosition (body);
@@ -220,6 +266,10 @@ bool playerODE::has_ball(double tolerance){
 
 
 bool playerODE::robot_contains_shape(dGeomID geom){
+//if(geom==dribbleArmL){
+//std::cout<<"left Arm collide"<<std::endl;
+//}
+
 	dBodyID b = dGeomGetBody(geom);
 	return (b==body);
 }
