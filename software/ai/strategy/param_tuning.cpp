@@ -72,6 +72,7 @@ namespace {
 		sls = new stochastic_local_search(tc->get_params_min(), tc->get_params_max());
 		done = 0;
 		time_steps = 0;
+		best = EVALUATION_LIMIT;
 		sls_counter = 0;
 		tc->set_params(sls->get_params());
 		std::cout << " reset " << std::endl;

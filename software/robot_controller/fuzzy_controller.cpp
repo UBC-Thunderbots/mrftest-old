@@ -27,15 +27,17 @@ std::vector<double> fuzzy_controller::param_max;
 fuzzy_controller::fuzzy_controller(player_impl::ptr player) : param(4){
 	robot = player;
 	
-	param[0] = 5.0; // max bot velocity
-	param[1] = 0.1;
-	param[2] = 4.87;
-	param[3] = 1.02;
+	// best time = 198
+	param[0] = 25.4088; // max bot velocity
+	param[1] = 0.855547;
+	param[2] = 4.91968;
+	param[3] = 2.13349;
 
 	if(param_min.size() == 0) {
 		param_min.resize(4, 0.0);
-		param_max.resize(4, 10.0);
+		param_max.resize(4, 5.0);
 	}
+	param_min[0] = 50;
 }
 
 void fuzzy_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
