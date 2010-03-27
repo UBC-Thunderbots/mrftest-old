@@ -65,7 +65,10 @@ tunable_pid_controller::tunable_pid_controller(player_impl::ptr plr) : plr(plr),
 
 	if(param_min.size() == 0) {
 		param_min.resize(9, 0.0);
-		param_max.resize(9, 100.0);
+		param_max.resize(9, 0.8);
+		param_max[0] = 8;
+		param_max[3] = 8;
+		param_max[6] = 8;
 	}
 }
 
