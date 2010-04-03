@@ -49,28 +49,28 @@ void testnavigator::tick() {
 
       bool undiverted = true;
       bool stop = false;
+      bool chooseleft;
       while (true)
 	{
 	  //std::cout << "path changed" <<std::endl;
-	  rotationangle += 1.0 * PI / 180.0;//rotate by 1 degree each
-					    //time
+	  
 	  //it shouldn't take that many checks to get a good direction
 	  leftdirection = direction.rotate(rotationangle);
 	  rightdirection = direction.rotate(-rotationangle);
 
-	  if (check_vector(the_player->position(), nowDest, leftdirection))
+	  if (check_vector(the_player->position(), nowDest, leftdirection.rotate(2.5 * PI / 180.0)))
 	    {
-	      if (check_vector(the_player->position(), nowDest, leftdirection.rotate(5.0 * PI / 180.0)))
+	      if (check_vector(the_player->position(), nowDest, leftdirection.rotate(-2.5 * PI / 180.0)))
 		{
-		  leftdirection = leftdirection.rotate(2.5 * PI / 180.0);
+		  chooseleft = true;
 		  break;
 		}
 	    }
-	  else if (check_vector(the_player->position(), nowDest, rightdirection))
+	  else if (check_vector(the_player->position(), nowDest, rightdirection.rotate(-2.5 * PI / 180.0)))
 	    {
-	      if (check_vector(the_player->position(), nowDest, rightdirection.rotate(-5.0 * PI / 180.0)))
+	      if (check_vector(the_player->position(), nowDest, rightdirection.rotate(2.5 * PI / 180.0)))
 		{
-		  rightdirection = rightdirection.rotate(-2.5 * PI / 180.0);
+		  chooseleft = false;
 		  break;
 		}
 	    }
@@ -83,6 +83,8 @@ void testnavigator::tick() {
 	      stop = true;
 	      break;
 	    }
+	  rotationangle += 1.0 * PI / 180.0;//rotate by 1 degree each
+					    //time
 	}
       undiverted = rotationangle < 1e-5;
       if(stop)
@@ -93,7 +95,7 @@ void testnavigator::tick() {
       else
 	{
 	  point selected_direction;
-	  if (check_vector(the_player->position(), nowDest, leftdirection))
+	  if (chooseleft)
 	    {
 	      // select the left vector
 	      selected_direction = leftdirection;     
