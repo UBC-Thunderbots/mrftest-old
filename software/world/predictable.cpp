@@ -45,11 +45,11 @@ double predictable::est_avelocity() const {
 }
 
 point predictable::est_acceleration() const {
-	return point(approxx(2), approxy(2)) * TIMESTEPS_PER_SECOND * 2;
+	return point(approxx(2), approxy(2)) * TIMESTEPS_PER_SECOND * TIMESTEPS_PER_SECOND * 2;
 }
 
 double predictable::est_aacceleration() const {
-	return approxt(2) * TIMESTEPS_PER_SECOND * 2;
+	return approxt(2) * TIMESTEPS_PER_SECOND * TIMESTEPS_PER_SECOND * 2;
 }
 
 void predictable::add_prediction_datum(const point &pos, double orient) {
