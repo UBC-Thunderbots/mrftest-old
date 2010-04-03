@@ -16,6 +16,7 @@ class testnavigator : public navigator {
   point currDest;//current destination
   float outOfBoundsMargin;//distance to remain from sidelines to prevent from going oob
   double maxLookahead;
+  double aggression_factor; //smaller factor makes robot more aggressive (i.e. less eager to avoid obstacles)
 };
 
 #endif

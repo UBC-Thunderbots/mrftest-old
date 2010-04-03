@@ -3,7 +3,7 @@
 #include <cstdlib>
 testnavigator::testnavigator(player::ptr player, field::ptr field, ball::ptr ball, team::ptr team) : 
   navigator(player, field, ball, team), destInitialized(false), outOfBoundsMargin(field->width() / 20.0),
-  maxLookahead(1.0)
+  maxLookahead(1.0), aggression_factor(2)
 {
 
 }
@@ -218,7 +218,7 @@ bool testnavigator::check_vector(point start, point dest, point direction)
 	    {
 	      double d = sqrt(rp.dot(rp) - len*len);
 	  
-	      if (len < lookahead && d < 2*robot::MAX_RADIUS)
+	      if (len < lookahead && d < 2*aggression_factor*robot::MAX_RADIUS)
 		{
 		  //std::cout << "Checked FALSE" << std::endl;
 		  return false;
