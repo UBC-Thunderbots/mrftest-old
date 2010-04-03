@@ -27,6 +27,13 @@ class ball : public draggable {
 		point est_velocity() const __attribute__((warn_unused_result)) {
 			return impl->est_velocity() * (flip ? -1.0 : 1.0);
 		}
+		
+		//
+		// The estimated acceleration of the ball at the last camera frame.
+		//
+		point est_acceleration() const __attribute__((warn_unused_result)) {
+			return impl->est_acceleration() * (flip ? -1.0 : 1.0);
+		}
 
 		//
 		// Allows the framework to set the position of the ball.
