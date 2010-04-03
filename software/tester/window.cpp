@@ -112,7 +112,9 @@ class tester_window_impl : public Gtk::Window {
 			on_dribble_change();
 
 			// Attach to the update handler.
-			bot->signal_updated().connect(sigc::mem_fun(*this, &tester_window_impl::on_update));
+			if (bot) {
+				bot->signal_updated().connect(sigc::mem_fun(*this, &tester_window_impl::on_update));
+			}
 		}
 
 		int key_snoop(Widget *, GdkEventKey *event) {
