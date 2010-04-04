@@ -1,7 +1,7 @@
 #define DEBUG 0
 #include "util/dprint.h"
 #include "util/sockaddrs.h"
-#include "xbee/daemon/daemon.h"
+#include "xbeedaemon/daemon.h"
 #include "xbee/xbee.h"
 #include <stdexcept>
 #include <cerrno>

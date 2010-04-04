@@ -1,4 +1,4 @@
-#include "xbee/daemon/byteproto.h"
+#include "xbeedaemon/byteproto.h"
 #include <algorithm>
 
 xbee_byte_stream::xbee_byte_stream() : received_escape(false) {

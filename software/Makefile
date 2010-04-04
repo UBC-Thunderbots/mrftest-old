@@ -7,8 +7,8 @@ PROJECTS := steptest thunderbots xbeeconfig
 # Here, write a list of the source files and directories for each executable.
 # Directories will be searched for source files recursively.
 #
-SOURCES_steptest := geom leastsquares util world xbee steptest.cpp
-SOURCES_thunderbots := ai firmware geom leastsquares log robot_controller simulator tester uicomponents util world xbee main.cpp
+SOURCES_steptest := geom leastsquares util world xbee xbeedaemon steptest.cpp
+SOURCES_thunderbots := ai firmware geom leastsquares log robot_controller simulator tester uicomponents util world xbee xbeedaemon main.cpp
 SOURCES_xbeeconfig := xbeeconfig.cpp
 
 #

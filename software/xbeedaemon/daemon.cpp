@@ -2,8 +2,8 @@
 #include "util/args.h"
 #include "util/dprint.h"
 #include "util/sockaddrs.h"
-#include "xbee/daemon/daemon.h"
-#include "xbee/daemon/packetproto.h"
+#include "xbeedaemon/daemon.h"
+#include "xbeedaemon/packetproto.h"
 #include "xbee/util.h"
 #include <stdexcept>
 #include <exception>

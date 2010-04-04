@@ -1,4 +1,4 @@
-#include "xbee/daemon/packetproto.h"
+#include "xbeedaemon/packetproto.h"
 #include <cassert>
 
 xbee_packet_stream::xbee_packet_stream() : sop_seen(false) {

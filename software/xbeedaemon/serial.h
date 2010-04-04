@@ -1,5 +1,5 @@
-#ifndef XBEE_SERIAL_H
-#define XBEE_SERIAL_H
+#ifndef XBEEDAEMON_SERIAL_H
+#define XBEEDAEMON_SERIAL_H
 
 #include "util/fd.h"
 #include "util/noncopyable.h"

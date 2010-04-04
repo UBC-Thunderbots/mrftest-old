@@ -37,5 +37,5 @@ software/uicomponents/*.d
 software/util/*.d
 software/world/*.d
 software/xbee/*.d
-software/xbee/daemon/*.d
 software/xbeeconfig
+software/xbeedaemon/*.d

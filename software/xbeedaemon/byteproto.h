@@ -1,7 +1,7 @@
-#ifndef XBEE_BYTEPROTO_H
-#define XBEE_BYTEPROTO_H
+#ifndef XBEEDAEMON_BYTEPROTO_H
+#define XBEEDAEMON_BYTEPROTO_H
 
-#include "xbee/daemon/serial.h"
+#include "xbeedaemon/serial.h"
 
 //
 // Performs the escaping necessary to provide a categorized byte stream to and from the XBee.

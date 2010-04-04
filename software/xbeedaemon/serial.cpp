@@ -1,6 +1,6 @@
 #define DEBUG 0
 #include "util/dprint.h"
-#include "xbee/daemon/serial.h"
+#include "xbeedaemon/serial.h"
 #include <stdexcept>
 #include <string>
 #include <sys/types.h>

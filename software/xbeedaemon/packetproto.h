@@ -1,7 +1,7 @@
-#ifndef XBEE_PACKETPROTO_H
-#define XBEE_PACKETPROTO_H
+#ifndef XBEEDAEMON_PACKETPROTO_H
+#define XBEEDAEMON_PACKETPROTO_H
 
-#include "xbee/daemon/byteproto.h"
+#include "xbeedaemon/byteproto.h"
 #include <vector>
 
 //

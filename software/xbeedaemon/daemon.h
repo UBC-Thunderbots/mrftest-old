@@ -1,5 +1,5 @@
-#ifndef XBEE_DAEMON_DAEMON_H
-#define XBEE_DAEMON_DAEMON_H
+#ifndef XBEEDAEMON_DAEMON_H
+#define XBEEDAEMON_DAEMON_H
 
 #include "util/fd.h"
 
