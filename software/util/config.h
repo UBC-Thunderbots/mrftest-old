@@ -1,5 +1,5 @@
-#ifndef WORLD_CONFIG_H
-#define WORLD_CONFIG_H
+#ifndef UTIL_CONFIG_H
+#define UTIL_CONFIG_H
 
 #include <libxml++/libxml++.h>
 
