@@ -1,7 +1,7 @@
 #include "simulator/field.h"
 #include "simulator/simulator.h"
+#include "util/config.h"
 #include "util/xml.h"
-#include "world/config.h"
 
 simulator::simulator(xmlpp::Element *xml, clocksource &clk) : cur_playtype(playtype::halt), the_ball_impl(simulator_ball_impl::trivial()), fld(new simulator_field), west_ball(new ball(the_ball_impl, false)), east_ball(new ball(the_ball_impl, true)), west_team(*this, false, xmlutil::strip(xmlutil::get_only_child(xml, "westteam")), true, west_ball, fld), east_team(*this, true, xmlutil::strip(xmlutil::get_only_child(xml, "eastteam")), false, east_ball, fld), xml(xml), clksrc(clk) {
 	// Configure objects with each other as the opponents.

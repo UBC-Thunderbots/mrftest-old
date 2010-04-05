@@ -239,6 +239,8 @@ software/util/clocksource_quick.h -text
 software/util/clocksource_timerfd.cpp -text
 software/util/clocksource_timerfd.h -text
 software/util/codec.h -text
+software/util/config.cpp -text
+software/util/config.h -text
 software/util/crc16.cpp -text
 software/util/crc16.h -text
 software/util/dprint.h -text
@@ -260,8 +262,6 @@ software/util/xml.h -text
 software/world/ball.h -text
 software/world/ball_impl.cpp -text
 software/world/ball_impl.h -text
-software/world/config.cpp -text
-software/world/config.h -text
 software/world/draggable.h -text
 software/world/field.h -text
 software/world/player.h -text

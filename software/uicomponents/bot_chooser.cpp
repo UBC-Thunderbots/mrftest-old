@@ -1,7 +1,7 @@
 #include "uicomponents/bot_chooser.h"
 #include "uicomponents/world_add_bot_dialog.h"
+#include "util/config.h"
 #include "util/xml.h"
-#include "world/config.h"
 #include <iomanip>
 
 bot_chooser::bot_chooser(xmlpp::Element *xmlworld, Gtk::Window &window) : xmlplayers(xmlutil::get_only_child(xmlworld, "players")), chooser(xmlplayers, window), button_box(Gtk::BUTTONBOX_SPREAD), add_button(Gtk::Stock::ADD), del_button(Gtk::Stock::DELETE) {

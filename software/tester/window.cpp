@@ -4,9 +4,9 @@
 #include "tester/matrix_drive.h"
 #include "tester/window.h"
 #include "uicomponents/bot_chooser.h"
+#include "util/config.h"
 #include "util/ihex.h"
 #include "util/xml.h"
-#include "world/config.h"
 #include "xbee/bot.h"
 #include <iomanip>
 

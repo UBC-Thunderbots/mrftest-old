@@ -1,4 +1,4 @@
-#include "world/config.h"
+#include "util/config.h"
 #include "util/xml.h"
 #include <algorithm>
 

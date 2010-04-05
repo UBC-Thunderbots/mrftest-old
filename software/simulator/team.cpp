@@ -1,7 +1,7 @@
 #include "simulator/simulator.h"
 #include "simulator/team.h"
+#include "util/config.h"
 #include "util/xml.h"
-#include "world/config.h"
 #include <iostream>
 
 simulator_team_data::simulator_team_data(simulator &sim, bool invert_playtype, xmlpp::Element *xml, bool yellow, ball::ptr ball, field::ptr field) : the_simulator(sim), invert_playtype(invert_playtype), score(0), yellow(yellow), controller_factory(0), west_view(new simulator_team_view(*this, west_players, west_other)), east_view(new simulator_team_view(*this, east_players, east_other)), xml(xml), the_ball(ball), the_field(field) {
