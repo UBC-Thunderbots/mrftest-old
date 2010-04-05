@@ -1,8 +1,8 @@
 #define DEBUG 0
 #include "firmware/bootproto.h"
 #include "util/dprint.h"
+#include "util/xbee.h"
 #include "xbee/packettypes.h"
-#include "xbee/util.h"
 #include <cassert>
 
 namespace {

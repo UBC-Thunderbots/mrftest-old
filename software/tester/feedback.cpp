@@ -1,6 +1,6 @@
 #include "tester/feedback.h"
+#include "util/xbee.h"
 #include "xbee/packettypes.h"
-#include "xbee/util.h"
 #include <iomanip>
 
 

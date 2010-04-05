@@ -257,6 +257,8 @@ software/util/rle.h -text
 software/util/sockaddrs.h -text
 software/util/stochastic_local_search.cpp -text
 software/util/stochastic_local_search.h -text
+software/util/xbee.cpp -text
+software/util/xbee.h -text
 software/util/xml.cpp -text
 software/util/xml.h -text
 software/world/ball.h -text
@@ -278,8 +280,6 @@ software/world/timestep.h -text
 software/xbee/bot.cpp -text
 software/xbee/bot.h -text
 software/xbee/packettypes.h -text
-software/xbee/util.cpp -text
-software/xbee/util.h -text
 software/xbee/xbee.cpp -text
 software/xbee/xbee.h -text
 software/xbeeconfig.cpp -text

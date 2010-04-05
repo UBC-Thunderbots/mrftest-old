@@ -1,4 +1,4 @@
-#include "xbee/util.h"
+#include "util/xbee.h"
 
 void xbeeutil::address_to_bytes(uint64_t src, uint8_t *dest) {
 	for (unsigned int i = 0; i < 8; i++) {

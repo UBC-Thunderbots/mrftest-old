@@ -1,5 +1,5 @@
-#ifndef XBEE_UTIL_H
-#define XBEE_UTIL_H
+#ifndef UTIL_XBEE_H
+#define UTIL_XBEE_H
 
 #include <stdint.h>
 
