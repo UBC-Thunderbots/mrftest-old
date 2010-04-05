@@ -79,9 +79,19 @@ endif
 dep : $(ALL_CPP_FILES:.cpp=.d)
 
 #
-# Rule to clean.
+# Rules to clean.
 #
 .PHONY : clean
-clean :
-	find . \( -name '*.o' -o -name '*.d' \) -execdir rm \{\} +
+clean : cleanbin cleandep cleanobj
+
+.PHONY : cleanbin
+cleanbin :
 	$(RM) $(PROJECTS)
+
+.PHONY : cleandep
+cleandep :
+	find . ! -path '*/.svn*' -name '*.d' -delete
+
+.PHONY : cleanobj
+cleanobj :
+	find . ! -path '*/.svn*' -name '*.o' -delete
