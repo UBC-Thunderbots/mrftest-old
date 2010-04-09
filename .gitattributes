@@ -286,7 +286,6 @@ software/xbeeconfig.cpp -text
 software/xbeedaemon/byteproto.cpp -text
 software/xbeedaemon/byteproto.h -text
 software/xbeedaemon/daemon.cpp -text
-software/xbeedaemon/daemon.h -text
 software/xbeedaemon/packetproto.cpp -text
 software/xbeedaemon/packetproto.h -text
 software/xbeedaemon/serial.cpp -text

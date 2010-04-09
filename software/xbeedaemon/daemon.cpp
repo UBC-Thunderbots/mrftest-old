@@ -1,13 +1,12 @@
 #define DEBUG 0
-#include "util/args.h"
 #include "util/dprint.h"
 #include "util/sockaddrs.h"
 #include "util/xbee.h"
-#include "xbeedaemon/daemon.h"
 #include "xbeedaemon/packetproto.h"
-#include <stdexcept>
-#include <exception>
 #include <algorithm>
+#include <exception>
+#include <iostream>
+#include <stdexcept>
 #include <vector>
 #include <tr1/unordered_map>
 #include <tr1/unordered_set>
@@ -23,12 +22,6 @@
 #include <sys/prctl.h>
 #include <sys/types.h>
 
-#if DEBUG
-#define FIRST_CLOSE_FD 3
-#else
-#define FIRST_CLOSE_FD 0
-#endif
-
 namespace {
 	file_descriptor create_epollfd() {
 		int fd = epoll_create(8);
@@ -43,9 +36,9 @@ namespace {
 		std::tr1::unordered_set<uint64_t> address_reverse;
 	};
 
-	class daemon : public sigc::trackable {
+	class multiplexer : public sigc::trackable {
 		public:
-			daemon(file_descriptor listen_sock, xbee_packet_stream &pstream);
+			multiplexer(file_descriptor listen_sock, xbee_packet_stream &pstream);
 			void run();
 
 		private:
@@ -63,17 +56,19 @@ namespace {
 			void on_receive(std::vector<uint8_t> pkt);
 	};
 
-	daemon::daemon(file_descriptor listen_sock, xbee_packet_stream &pstream) : listen_sock(listen_sock), pstream(pstream) {
+	multiplexer::multiplexer(file_descriptor listen_sock, xbee_packet_stream &pstream) : listen_sock(listen_sock), pstream(pstream) {
 		std::fill(frameid_route, frameid_route + 256, -1);
 		std::fill(frameid_revmap, frameid_revmap + 256, 0);
 	}
 
-	void daemon::run() {
+	void multiplexer::run() {
 		epoll_event events[8];
 		uint8_t next_gfn = 1;
 
+		DPRINT("Multiplexer alive.");
+
 		// Attach receive callback for serial port.
-		pstream.signal_received().connect(sigc::mem_fun(*this, &daemon::on_receive));
+		pstream.signal_received().connect(sigc::mem_fun(*this, &multiplexer::on_receive));
 
 		// Create epoll fd.
 		const file_descriptor &epollfd = create_epollfd();
@@ -207,7 +202,7 @@ namespace {
 		} while (!fd_map.empty());
 	}
 
-	void daemon::on_receive(std::vector<uint8_t> pkt) {
+	void multiplexer::on_receive(std::vector<uint8_t> pkt) {
 		int recipient = -1;
 
 		// Check what type of packet it is.
@@ -242,34 +237,21 @@ namespace {
 		}
 	}
 
-	__attribute__((noreturn)) void run_daemon(file_descriptor listen_sock, xbee_packet_stream &pstream);
-	void run_daemon(file_descriptor listen_sock, xbee_packet_stream &pstream) {
-		try {
-			{
-				daemon d(listen_sock, pstream);
-				DPRINT("Daemon starting.");
-				d.run();
-			}
-			DPRINT("Daemon exited normally.");
-			_exit(0);
-		} catch (const std::exception &exp) {
-			DPRINT(exp.what());
-		} catch (...) {
+	int main_impl(int argc, char **argv) {
+		// Parse command-line options.
+		Glib::OptionEntry daemon_entry;
+		daemon_entry.set_long_name("daemon");
+		daemon_entry.set_short_name('d');
+		daemon_entry.set_description("Dæmonizes the multiplexer after initialization.");
+		bool daemonize = false;
+		Glib::OptionGroup opt_group("xbeed", "Main Options");
+		opt_group.add_entry(daemon_entry, daemonize);
+		Glib::OptionContext opt_context;
+		opt_context.set_description("Launches the XBee multiplexer.");
+		opt_context.set_main_group(opt_group);
+		if (!opt_context.parse(argc, argv)) {
+			return 1;
 		}
-		DPRINT("Daemon exited abnormally.");
-		_exit(1);
-	}
-}
-
-namespace xbeedaemon {
-	bool launch(file_descriptor &client_sock) {
-		// Ignore the child-death signal.
-		struct sigaction sigact;
-		sigact.sa_handler = SIG_IGN;
-		sigemptyset(&sigact.sa_mask);
-		sigact.sa_flags = 0;
-		if (sigaction(SIGCHLD, &sigact, 0) < 0)
-			throw std::runtime_error("Cannot ignore SIGCHLD!");
 
 		// Calculate filenames.
 		const Glib::ustring &cache_dir = Glib::get_user_cache_dir();
@@ -297,54 +279,41 @@ namespace xbeedaemon {
 		if (bind(listen_sock, &sa.sa, sizeof(sa)) < 0) throw std::runtime_error("Cannot bind UNIX-domain socket!");
 		if (listen(listen_sock, SOMAXCONN) < 0) throw std::runtime_error("Cannot listen on UNIX-domain socket!");
 
-		// Connect another socket to it.
-		file_descriptor temp_client_sock(PF_UNIX, SOCK_SEQPACKET, 0);
-		if (connect(temp_client_sock, &sa.sa, sizeof(sa)) < 0) throw std::runtime_error("Cannot connect to UNIX-domain socket!");
-
 		// Open the serial port.
 		xbee_packet_stream pstream;
 
-		// Seed the random number generator.
-		std::srand(std::time(0));
-
-		// Fork a process.
-		pid_t child_pid = fork();
-		if (child_pid < 0) {
-			// Fork failed.
-			throw std::runtime_error("Cannot fork!");
-		} else if (child_pid > 0) {
-			// This is the parent process.
-			// The child will hold the lock file and listen socket, so we can close them.
-			// We will keep the client socket, and the child will close it.
-			// Receive the signature.
-			char buffer[4];
-			if (recv(temp_client_sock, buffer, sizeof(buffer), 0) != sizeof(buffer))
-				return false;
-			if (buffer[0] != 'X' || buffer[1] != 'B' || buffer[2] != 'E' || buffer[3] != 'E') {
-				return false;
+		// If we're supposed to dæmonize, then do.
+		if (daemonize) {
+			pid_t cpid = fork();
+			if (cpid < 0) {
+				throw new std::runtime_error("Cannot fork!");
+			} else if (cpid > 0) {
+				return 0;
 			}
-			client_sock = temp_client_sock;
-			return true;
-		} else {
-			// This is the child process.
-			// We need to keep the lock file, listen socket, and serial port.
-			// Close all the others.
-			for (int i = FIRST_CLOSE_FD; i < 65536; i++)
-				if (i != listen_sock && i != lock_file && i != pstream.fd())
-					close(i);
-			// Enter a new session and process group.
 			setsid();
-			// Display the proper name.
-			static const char PROCESS_NAME[] = "xbeed";
-			prctl(PR_SET_NAME, PROCESS_NAME, 0, 0, 0);
-			size_t arglen = 0;
-			for (int i = 0; i < args::argc; i++)
-				arglen += std::strlen(args::argv[i]) + 1;
-			std::fill(args::argv[0], args::argv[0] + arglen, '\0');
-			std::copy(PROCESS_NAME, PROCESS_NAME + sizeof(PROCESS_NAME), args::argv[0]);
-			// Run as the multiplexing daemon.
-			run_daemon(listen_sock, pstream);
+			chdir("/");
+			file_descriptor null_fd("/dev/null", O_RDWR);
+			if (dup2(null_fd, 0) < 0 || dup2(null_fd, 1) < 0 || dup2(null_fd, 2) < 0) {
+				throw new std::runtime_error("Cannot redirect standard streams to /dev/null!");
+			}
 		}
+
+		// Run as the multiplexer.
+		multiplexer mux(listen_sock, pstream);
+		mux.run();
+		return 0;
+	}
+}
+
+int main(int argc, char **argv) {
+	try {
+		return main_impl(argc, argv);
+	} catch (const std::exception &exp) {
+		std::cerr << exp.what() << '\n';
+		return 1;
+	} catch (...) {
+		std::cerr << "Unknown error!\n";
+		return 1;
 	}
 }
 

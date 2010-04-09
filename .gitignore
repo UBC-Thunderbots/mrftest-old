@@ -38,4 +38,5 @@ software/util/*.d
 software/world/*.d
 software/xbee/*.d
 software/xbeeconfig
+software/xbeed
 software/xbeedaemon/*.d

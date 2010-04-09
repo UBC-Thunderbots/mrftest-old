@@ -1,8 +1,8 @@
 #define DEBUG 0
 #include "util/dprint.h"
 #include "util/sockaddrs.h"
-#include "xbeedaemon/daemon.h"
 #include "xbee/xbee.h"
+#include <iostream>
 #include <stdexcept>
 #include <cerrno>
 
@@ -37,18 +37,48 @@ namespace {
 		return true;
 	}
 
+	void launch_daemon() {
+		// Find out the path name to myself.
+		std::vector<char> buffer(8);
+		ssize_t ssz;
+		while ((ssz = readlink("/proc/self/exe", &buffer[0], buffer.size())) == (ssize_t) buffer.size()) {
+			buffer.resize(buffer.size() * 2);
+		}
+		if (ssz < 0) {
+			throw std::runtime_error("Cannot read executable path!");
+		}
+		std::string my_path(&buffer[0], &buffer[ssz]);
+
+		// Compute the path name to the arbiter daemon.
+		std::string xbeed_path = Glib::path_get_dirname(my_path);
+		xbeed_path.append("/xbeed");
+
+		// Launch the arbiter.
+		DPRINT(Glib::ustring::compose("Spawning arbiter at %1", Glib::filename_to_utf8(xbeed_path)));
+		std::vector<std::string> args;
+		args.push_back(xbeed_path);
+		args.push_back("--daemon");
+		std::string output, error;
+		int status;
+		Glib::spawn_sync("", args, Glib::SpawnFlags(0), sigc::slot<void>(), &output, &error, &status);
+		std::cout << output;
+		std::cerr << error;
+		if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+			throw std::runtime_error("Cannot launch arbiter daemon!");
+		}
+	}
+
 	file_descriptor connect_to_daemon() {
 		file_descriptor sock;
 
 		// Loop forever, until something works.
 		for (;;) {
-			// Try running the daemon ourself.
-			if (xbeedaemon::launch(sock))
-				return sock;
-
 			// Try connecting to an already-running daemon.
 			if (connect_to_existing_daemon(sock))
 				return sock;
+
+			// Try launching a new daemon.
+			launch_daemon();
 		}
 	}
 }

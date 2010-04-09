@@ -1,15 +1,16 @@
 #
 # Here, write a list of all the executable binaries the Makefile might generate.
 #
-PROJECTS := steptest thunderbots xbeeconfig
+PROJECTS := steptest thunderbots xbeeconfig xbeed
 
 #
 # Here, write a list of the source files and directories for each executable.
 # Directories will be searched for source files recursively.
 #
-SOURCES_steptest := geom leastsquares util world xbee xbeedaemon steptest.cpp
-SOURCES_thunderbots := ai firmware geom leastsquares log robot_controller simulator tester uicomponents util world xbee xbeedaemon main.cpp
+SOURCES_steptest := geom leastsquares util world xbee steptest.cpp
+SOURCES_thunderbots := ai firmware geom leastsquares log robot_controller simulator tester uicomponents util world xbee main.cpp
 SOURCES_xbeeconfig := xbeeconfig.cpp
+SOURCES_xbeed := util/fd.cpp util/xbee.cpp xbeedaemon
 
 #
 # Here, write the linker flags to be used for each project.
@@ -18,6 +19,7 @@ LDFLAGS_common := $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4 cairomm-1.0 lib
 LDFLAGS_steptest := $(LDFLAGS_common)
 LDFLAGS_thunderbots := $(LDFLAGS_common)
 LDFLAGS_xbeeconfig := $(LDFLAGS_common)
+LDFLAGS_xbeed := $(shell pkg-config --libs glibmm-2.4)
 
 #
 # Here, write the compiler flags to be used.
