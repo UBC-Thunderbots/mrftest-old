@@ -286,7 +286,7 @@ namespace {
 		if (daemonize) {
 			pid_t cpid = fork();
 			if (cpid < 0) {
-				throw new std::runtime_error("Cannot fork!");
+				throw std::runtime_error("Cannot fork!");
 			} else if (cpid > 0) {
 				return 0;
 			}
@@ -296,7 +296,7 @@ namespace {
 			}
 			file_descriptor null_fd("/dev/null", O_RDWR);
 			if (dup2(null_fd, 0) < 0 || dup2(null_fd, 1) < 0 || dup2(null_fd, 2) < 0) {
-				throw new std::runtime_error("Cannot redirect standard streams to /dev/null!");
+				throw std::runtime_error("Cannot redirect standard streams to /dev/null!");
 			}
 		}
 
