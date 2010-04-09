@@ -291,7 +291,9 @@ namespace {
 				return 0;
 			}
 			setsid();
-			chdir("/");
+			if (chdir("/") < 0) {
+				throw std::runtime_error("Cannot move to root directory!");
+			}
 			file_descriptor null_fd("/dev/null", O_RDWR);
 			if (dup2(null_fd, 0) < 0 || dup2(null_fd, 1) < 0 || dup2(null_fd, 2) < 0) {
 				throw new std::runtime_error("Cannot redirect standard streams to /dev/null!");
