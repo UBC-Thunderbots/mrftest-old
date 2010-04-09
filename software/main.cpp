@@ -1,6 +1,6 @@
 #include "firmware/window.h"
 #include "log/tools/tool_launcher.h"
-#include "simulator/window.h"
+#include "sim/window.h"
 #include "tester/window.h"
 #include "util/args.h"
 #include "util/clocksource_quick.h"

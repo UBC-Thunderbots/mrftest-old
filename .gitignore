@@ -25,11 +25,11 @@ software/log/writer/*.d
 software/rctest
 software/robot_controller/*.d
 software/robot_controller/joystick/*.d
-software/simulator/*.d
-software/simulator/engines/*.d
-software/simulator/engines/ODE_simulator/*.d
-software/simulator/engines/collisionless/*.d
-software/simulator/referees/*.d
+software/sim/*.d
+software/sim/engines/*.d
+software/sim/engines/ODE_simulator/*.d
+software/sim/engines/collisionless/*.d
+software/sim/referees/*.d
 software/steptest
 software/tester/*.d
 software/thunderbots

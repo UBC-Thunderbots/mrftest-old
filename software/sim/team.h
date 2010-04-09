@@ -2,7 +2,7 @@
 #define SIMULATOR_TEAM_H
 
 #include "ai/strategy.h"
-#include "simulator/engine.h"
+#include "sim/engine.h"
 
 class simulator;
 

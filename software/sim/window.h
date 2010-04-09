@@ -1,7 +1,7 @@
 #ifndef SIMULATOR_WINDOW_H
 #define SIMULATOR_WINDOW_H
 
-#include "simulator/simulator.h"
+#include "sim/simulator.h"
 
 //
 // The user interface for the simulator.

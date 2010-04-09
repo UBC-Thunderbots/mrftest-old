@@ -1,9 +1,9 @@
 #include "geom/angle.h"
 #include "world/timestep.h"
 #include <cmath>
-#include "simulator/autoref.h"
-#include "simulator/simulator.h"
-#include "simulator/field.h"
+#include "sim/autoref.h"
+#include "sim/simulator.h"
+#include "sim/field.h"
 #include "ai/strategy/simu_test_strategy.h"
 #include <iostream>
 namespace simu_test{

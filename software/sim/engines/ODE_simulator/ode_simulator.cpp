@@ -1,7 +1,7 @@
-#include "simulator/engine.h"
+#include "sim/engine.h"
 #include "ballODE.h"
 #include "playerODE.h"
-#include "simulator/field.h"
+#include "sim/field.h"
 #include "world/timestep.h"
 #include "geom/angle.h"
 #include <iostream>

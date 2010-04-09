@@ -1,5 +1,5 @@
-#include "simulator/simulator.h"
-#include "simulator/team.h"
+#include "sim/simulator.h"
+#include "sim/team.h"
 #include "util/config.h"
 #include "util/xml.h"
 #include <iostream>

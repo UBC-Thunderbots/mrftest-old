@@ -1,7 +1,7 @@
 #ifndef SIMULATOR_AUTOREF_H
 #define SIMULATOR_AUTOREF_H
 
-#include "simulator/ball.h"
+#include "sim/ball.h"
 #include "util/registerable.h"
 #include "world/player_impl.h"
 #include <vector>

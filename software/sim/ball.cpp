@@ -1,4 +1,4 @@
-#include "simulator/ball.h"
+#include "sim/ball.h"
 
 namespace {
 	class trivial_simulator_ball_impl : public simulator_ball_impl {

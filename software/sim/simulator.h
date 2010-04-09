@@ -2,8 +2,8 @@
 #define SIMULATOR_SIMULATOR_H
 
 #include "log/writer/writer.h"
-#include "simulator/autoref.h"
-#include "simulator/team.h"
+#include "sim/autoref.h"
+#include "sim/team.h"
 #include "util/clocksource.h"
 
 //

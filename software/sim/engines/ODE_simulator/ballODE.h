@@ -1,5 +1,5 @@
-#include "simulator/ball.h"
-#include "simulator/field.h"
+#include "sim/ball.h"
+#include "sim/field.h"
 #include <ode/ode.h>
 
 //

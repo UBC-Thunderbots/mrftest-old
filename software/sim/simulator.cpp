@@ -1,5 +1,5 @@
-#include "simulator/field.h"
-#include "simulator/simulator.h"
+#include "sim/field.h"
+#include "sim/simulator.h"
 #include "util/config.h"
 #include "util/xml.h"
 

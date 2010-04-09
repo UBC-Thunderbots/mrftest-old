@@ -1,4 +1,4 @@
-#include "simulator/window.h"
+#include "sim/window.h"
 #include "uicomponents/visualizer.h"
 #include <algorithm>
 #include <gtkmm.h>
