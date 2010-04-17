@@ -44,7 +44,7 @@ namespace {
 
 class log_tool_launcher_impl : public Gtk::Window, public noncopyable {
 	public:
-		log_tool_launcher_impl() : box(false, 10), button_box(Gtk::BUTTONBOX_SPREAD), view_button("Play"), rename_button("Rename"), delete_button("Delete"), merge_button("Merge"),  matlab_button("Create M file"){
+		log_tool_launcher_impl() : box(false, 10), button_box(Gtk::BUTTONBOX_SPREAD), view_button("Play"), rename_button("Rename"), delete_button("Delete"), merge_button("Merge"), matlab_button("Create M file") {
 			set_title("Log Tools");
 			chooser.get_selection()->signal_changed().connect(sigc::mem_fun(*this, &log_tool_launcher_impl::update_sensitivity));
 			chooser_scroll.add(chooser);
@@ -145,8 +145,6 @@ class log_tool_launcher_impl : public Gtk::Window, public noncopyable {
 			}
 		}
 
-
-
 		void on_matlab_clicked(){
 			Gtk::Dialog dlg("Export as .m file", *this, true);
 			Gtk::Label lbl("Enter the file path + name:");
@@ -160,18 +158,12 @@ class log_tool_launcher_impl : public Gtk::Window, public noncopyable {
 			dlg.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
 			dlg.set_default_response(Gtk::RESPONSE_OK);
 			if (dlg.run() == Gtk::RESPONSE_OK) {
-				std::string new_name = Glib::filename_from_utf8(entry.get_text());
-				char * arr=NULL;
-				arr = new char[new_name.size()];
-				for(unsigned int i=0;i<new_name.size(); i++){
-					arr[i]=new_name[i];
-				}
+				const std::string &new_name = Glib::filename_from_utf8(entry.get_text());
 
 				////////////////////////////////////////////////////
 				// We have a file name go ahead and create files  //
 				////////////////////////////////////////////////////
-				std::ofstream file;
-				file.open(arr);
+				std::ofstream file(new_name.c_str());
 
 				//////////////////////////
 				// Create the log reader//
@@ -187,44 +179,42 @@ class log_tool_launcher_impl : public Gtk::Window, public noncopyable {
 				const int num_vals_robot = 3;
 				const int num_vals_ball = 2;		
 
-				std::string teams[num_teams] = {"team_A", "team_B"};
-				std::string robotVals[num_vals_robot] = {"robotX", "robotY", "robotOrientation"};
+				const std::string teams[num_teams] = {"team_A", "team_B"};
+				const std::string robotVals[num_vals_robot] = {"robotX", "robotY", "robotOrientation"};
 
-				std::string ballVals[num_vals_ball] = {"ballX", "ballY" };			
+				const std::string ballVals[num_vals_ball] = {"ballX", "ballY"};			
 
 				double values_robot[num_vals_robot];
 
-				team::ptr teamz[2];
+				const team::ptr teamz[2] = {reader->get_west_team(), reader->get_east_team()};
 
 				/////////////////////////////////////////////////////
 				//write data out as an bunch of octave 2D matricies//
 				/////////////////////////////////////////////////////
-				for(int g=0; g<num_teams; g++){
-					std::string team = teams[g];
-					for(int h=0; h<num_vals_robot; h++){
+				for (int g = 0; g < num_teams; g++) {
+					const std::string &team = teams[g];
+					for (int h = 0; h < num_vals_robot; h++) {
 						reader->seek(0);//set the reader to the first frame
-						teamz[0] = reader->get_west_team();
-						teamz[1] = reader->get_east_team();
-						file<<team<<robotVals[h]<<" = [";
-						for(std::size_t i=0; i<reader->size(); i++){
+						file << team << robotVals[h] << " = [";
+						for (std::size_t i = 0; i < reader->size(); i++) {
 							////////////////////////////////////////////////////////////////////////////////////////
 							//for this frame output the players "h th" property (eg pos().x pos().y orientation() //
 							////////////////////////////////////////////////////////////////////////////////////////
-							for(std::size_t j=0; j<teamz[g]->size(); j++){
-								if(i>0 &&j==0)file<<";";
-								if(j>0)file<<",";
-								values_robot[0]=teamz[g]->get_robot(j)->position().x;						
-								values_robot[1]=teamz[g]->get_robot(j)->position().y;
-								values_robot[2]=teamz[g]->get_robot(j)->orientation();
-								file<<values_robot[h];
+							for (std::size_t j = 0; j < teamz[g]->size(); j++) {
+								if (i > 0 && j == 0) file << ';';
+								if (j > 0) file << ',';
+								values_robot[0] = teamz[g]->get_robot(j)->position().x;						
+								values_robot[1] = teamz[g]->get_robot(j)->position().y;
+								values_robot[2] = teamz[g]->get_robot(j)->orientation();
+								file << values_robot[h];
 							}
 							//////////////////////
 							//advance the frame //
 							//////////////////////
 							reader->next_frame();
-						
+
 						}
-						file<<"]"<<std::endl;
+						file << ']' << std::endl;
 					} 
 				}
 				///////////////////////////////////
@@ -234,33 +224,30 @@ class log_tool_launcher_impl : public Gtk::Window, public noncopyable {
 				//////////////////////
 				//write out the ball//
 				//////////////////////
-				for(int h=0; h<num_vals_ball; h++){
+				for (int h = 0; h < num_vals_ball; h++) {
 					reader->seek(0);//set the reader to the first frame
-					file<<ballVals[h]<<" = [";
-					for(std::size_t i=0; i<reader->size(); i++){
-						
-						if(i>0)file<<",";
-						if(h==0){
-							file<<reader->get_ball()->position().x;
-						}else if(h==1){
-							file<<reader->get_ball()->position().y;
-						}else{
+					file << ballVals[h] << " = [";
+					for (std::size_t i = 0; i < reader->size(); i++) {
+						if (i > 0) file << ',';
+						if (h == 0) {
+							file << reader->get_ball()->position().x;
+						} else if (h == 1) {
+							file << reader->get_ball()->position().y;
+						} else {
 							//throw exception?
 						}
 						//////////////////////
 						//advance the frame //
 						//////////////////////
 						reader->next_frame();
-					
 					}
-					file<<"]"<<std::endl;
+					file << ']' << std::endl;
 				} 
 				/////////////////////////////////
 				// Done writing ball to file =)//
 				/////////////////////////////////
 			}
 		}
-
 
 		void on_delete_clicked() {
 			const std::vector<std::string> &sel = chooser.get_selected_logs();
