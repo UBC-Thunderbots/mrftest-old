@@ -145,20 +145,24 @@ class log_tool_launcher_impl : public Gtk::Window, public noncopyable {
 			}
 		}
 
-		void on_matlab_clicked(){
-			Gtk::Dialog dlg("Export as .m file", *this, true);
-			Gtk::Label lbl("Enter the file path + name:");
-			lbl.show();
-			dlg.get_vbox()->pack_start(lbl);
-			Gtk::Entry entry;
-			entry.set_activates_default(true);
-			entry.show();
-			dlg.get_vbox()->pack_start(entry);
-			dlg.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
+		void on_matlab_clicked() {
+			const std::vector<std::string> &sel = chooser.get_selected_logs();
+			const std::string &name = sel[0];
+			Gtk::FileChooserDialog dlg(*this, "Choose an output Matlab file", Gtk::FILE_CHOOSER_ACTION_SAVE);
+			dlg.set_select_multiple(false);
+			dlg.set_current_name(Glib::filename_to_utf8(name) + ".m");
+			Gtk::FileFilter *filter = new Gtk::FileFilter();
+			filter->set_name("Matlab/Octave Files");
+			filter->add_pattern("*.m");
+			dlg.add_filter(*filter);
+			filter = new Gtk::FileFilter();
+			filter->set_name("All Files");
+			filter->add_pattern("*");
+			dlg.add_filter(*filter);
 			dlg.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
-			dlg.set_default_response(Gtk::RESPONSE_OK);
+			dlg.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
 			if (dlg.run() == Gtk::RESPONSE_OK) {
-				const std::string &new_name = Glib::filename_from_utf8(entry.get_text());
+				const std::string &new_name = Glib::filename_from_utf8(dlg.get_filename());
 
 				////////////////////////////////////////////////////
 				// We have a file name go ahead and create files  //
@@ -168,8 +172,6 @@ class log_tool_launcher_impl : public Gtk::Window, public noncopyable {
 				//////////////////////////
 				// Create the log reader//
 				//////////////////////////
-				const std::vector<std::string> &sel = chooser.get_selected_logs();
-				const std::string &name = sel[0];
 				Glib::RefPtr<log_reader> reader = log_reader::create(name);
 
 				//////////////////////////////////////////////
