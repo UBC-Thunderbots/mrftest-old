@@ -37,7 +37,7 @@ fuzzy_controller::fuzzy_controller(player_impl::ptr player) : param(4){
 		param_min.resize(4, 0.0);
 		param_max.resize(4, 5.0);
 	}
-	param_min[0] = 50;
+	param_max[0] = 50;
 }
 
 void fuzzy_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
