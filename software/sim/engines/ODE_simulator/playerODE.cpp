@@ -174,10 +174,7 @@ point playerODE::position() const {
 }
 
 double playerODE::orientation() const {
-
-double temp = orientationFromMatrix(dBodyGetRotation(body));
-std::cout<<temp;
-	return temp;
+	return orientationFromMatrix(dBodyGetRotation(body));
 }
 
 bool playerODE::has_ball() const {
