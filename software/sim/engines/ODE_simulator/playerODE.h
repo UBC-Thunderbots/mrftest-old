@@ -53,7 +53,7 @@ void update();
 		//
 		//
 		bool robot_contains_shape(dGeomID geom);
-				
+				bool robot_contains_shape_ground(dGeomID geom);
 			
 protected:
 			void move_impl(const point &vel, double avel) ;

@@ -176,6 +176,16 @@ namespace {
 				}
 				return emptyPlayer;
 			}
+
+			
+			playerODE::ptr get_player_from_shape_ground(dGeomID shape){
+				for (unsigned int i = 0; i < the_players.size(); i++) {
+					if (the_players[i]->robot_contains_shape_ground(shape)) {
+						return the_players[i];
+					}
+				}
+				return emptyPlayer;
+			}
 			
 			
 			void remove_player(player_impl::ptr p) {
@@ -200,6 +210,26 @@ namespace {
 				int i=0;		
 				if ((g1 ^ g2)){
 					handleBallCollisionWithGround(o1,o2);
+				}else if(get_player_from_shape(o1) != emptyPlayer || get_player_from_shape(o2) != emptyPlayer){
+				  //make sure that the capped cylinders do not collide with the ground
+				  if(get_player_from_shape_ground(o1) != emptyPlayer || get_player_from_shape_ground(o2) != emptyPlayer){
+				  dBodyID b1 = dGeomGetBody(o1);
+				  dBodyID b2 = dGeomGetBody(o2);
+
+				  dContact contact[3];		// up to 3 contacts per box
+				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
+				    for (i=0; i<numc; i++) {
+				      contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;
+				      contact[i].surface.mu = 0.0;
+				      contact[i].surface.soft_cfm = CFM;
+				      contact[i].surface.soft_erp = ERP;
+				      contact[i].surface.bounce = 0.8;
+				      contact[i].surface.bounce_vel =0.0;
+				      dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
+				      dJointAttach (c,b1,b2);
+				    }
+				  }
+				  }
 				}else{
 			
 				  dBodyID b1 = dGeomGetBody(o1);
@@ -315,8 +345,9 @@ namespace {
 				  	robot = get_player_from_shape(o2);
 				  }
 				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
-					bool robotCollided = robot->hasContactPenetration(contact[i].geom.pos);
+
 				  	for (i=0; i<numc; i++) {
+						bool robotCollided = robot->hasContactPenetration(contact[i].geom.pos);
 						if(robotCollided){
 				   			contact[i].surface.mode =  dContactSoftCFM | dContactSoftERP |dContactBounce;
 				   			contact[i].surface.mu = MU;// 0.1*MU;
@@ -334,11 +365,20 @@ namespace {
 			
 			//
 			//if a shape interescts with the wall set the contact parameters
+			//robot collisions with the wall are disabled for stability
 			//
 			void handleWallCollision (dGeomID o1, dGeomID o2){
 				int i=0;
 				  dBodyID b1 = dGeomGetBody(o1);
 				  dBodyID b2 = dGeomGetBody(o2);
+
+				playerODE::ptr robot1 = get_player_from_shape(o1);
+				playerODE::ptr robot2 = get_player_from_shape(o2);
+
+						if(robot1 || robot2){
+							return;
+						}
+
 				  dContact contact[3];		// up to 3 contacts per box
 				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
 				  	for (i=0; i<numc; i++) {
@@ -350,6 +390,7 @@ namespace {
 				    		contact[i].surface.bounce_vel = 0.0;
 				      		dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
 				      		dJointAttach (c,b1,b2);
+
 				    	}
 				  }	
 			}
@@ -381,14 +422,19 @@ namespace {
 					  dContact contact[num_contact];		// up to 3 contacts per box
 					  if (int numc = dCollide (o1,o2,num_contact,&contact[0].geom,sizeof(dContact))) {
 					    for (i=0; i<numc; i++) {
-					    	contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;;
-					    	contact[i].surface.mu = MU;
-					   	contact[i].surface.soft_cfm = CFM;
-					   	contact[i].surface.soft_erp = ERP;
-					     	contact[i].surface.bounce = 1.0;
-					     	contact[i].surface.bounce_vel = 0.0;
-					      	dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
-					      	dJointAttach (c,b1,b2);
+						bool robotCollided = robot1->hasContactPenetration(contact[i].geom.pos) &&
+									robot2->hasContactPenetration(contact[i].geom.pos);
+						if(robotCollided){
+					    	  contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;;
+					    	  contact[i].surface.mu = MU;
+					   	  contact[i].surface.soft_cfm = CFM;
+					   	  contact[i].surface.soft_erp = ERP;
+					     	  contact[i].surface.bounce = 1.0;
+					     	  contact[i].surface.bounce_vel = 0.0;
+					      	  dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
+					      	  dJointAttach (c,b1,b2);
+
+						}
 					    }
 					  }
 				}

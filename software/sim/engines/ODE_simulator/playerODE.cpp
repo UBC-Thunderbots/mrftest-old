@@ -24,12 +24,12 @@ namespace {
 	//
 	// The maximum angular velocity of a robot in radians per second
 	//
-	const double BOT_MAX_A_VELOCITY = 37;
+	const double BOT_MAX_A_VELOCITY = 5;
 	
 	//
 	// The maximum angular acceleration of a robot, in radians per second squared
 	//
-	const double BOT_MAX_A_ACCELERATION = 5.0;
+	const double BOT_MAX_A_ACCELERATION = 10.0;
 
 	//
 	// The acceleration due to friction against the ball, in metres per second squared.
@@ -39,7 +39,7 @@ namespace {
 	const double ROBOT_RADIUS = 0.09;
 	const double ROBOT_MASS = 4.0;
 	const double ROBOT_HEIGHT = 0.15;
-	const double FRONT_FACE_WIDTH = 0.10;
+	const double FRONT_FACE_WIDTH = 0.16;
 	const unsigned int NUM_SIDES = 20; 
 }
 
@@ -63,6 +63,10 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	x_len = 0.18;
 	y_len = 0.18;
 
+	
+	y_len = 0.1;
+	x_len = sqrt((2*ROBOT_RADIUS)*(2*ROBOT_RADIUS) -(y_len)*(y_len));
+
 	//dBodySetPosition(body, x_pos, y_pos, 0.0006);
 	//robotGeomTop = dCreateTriMesh(0,create_robot_geom(),NULL,NULL,NULL);		
 	robotGeomTop = dCreateBox (0,x_len,y_len,ROBOT_HEIGHT);
@@ -70,7 +74,10 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	dBodySetMass (body,&mass);
 	dGeomSetBody (robotGeomTop,body);
 
+//ROBOT_RADIUS
 
+	robotGeomTopCyl = dCreateCapsule (0, ROBOT_RADIUS, ROBOT_HEIGHT);
+	dGeomSetBody (robotGeomTopCyl,body);
 	dBodySetPosition(body, x_pos, y_pos, ROBOT_HEIGHT/2 + 0.001);
 	//dGeomID robotGeom = dCreateBox (0,x_len,y_len,0.001);//10cm 
 	
@@ -95,12 +102,15 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 
 	//dSpaceAdd (dspace, robotGeom);
 	dSpaceAdd (dspace, robotGeomTop);
+dSpaceAdd (dspace, robotGeomTopCyl);
 	dSpaceAdd (dspace, dribbleArmL);
 	dSpaceAdd (dspace, dribbleArmR);
 	//dBodySetLinearDamping (body, 0.05);
 	//dBodySetAngularDamping (body, 0.12);
 	//contactgroup = dJointGroupCreate (0);
 	//createJointBetweenB1B2();
+
+//dBodySetAngularDamping (body, dReal scale);
 	
 }
 
@@ -135,12 +145,27 @@ void playerODE::createJointBetweenB1B2(){
 
 bool playerODE::hasContactPenetration(dVector3 pos){
 	//if(dGeomBoxPointDepth (dGeomID box, dReal x, dReal y, dReal z);
-//((GeomBox)
-// robotGeomTop).pointDepth(pos)<0
-if(dGeomBoxPointDepth (robotGeomTop, pos[0], pos[1], pos[2])<0){
-return true;
-}
-return false;
+	//((GeomBox)
+	// robotGeomTop).pointDepth(pos)<0
+	if(dGeomBoxPointDepth (robotGeomTop, pos[0], pos[1], pos[2])<0){
+		return true;
+	}
+
+
+	const dReal *p = dBodyGetPosition (body);
+
+	point ball_loc(pos[0], pos[1]);
+	point play_loc(p[0], p[1]);
+	point play_ball_diff = ball_loc - play_loc;
+	play_ball_diff = play_ball_diff.rotate(-orientation());
+
+	bool face = play_ball_diff.x>=x_len/2 && (play_ball_diff.y*x_len) <= (play_ball_diff.x*y_len);
+
+	if(!face && pos[2]>0 && pos[2]<ROBOT_HEIGHT){
+		return (dGeomCapsulePointDepth (robotGeomTopCyl, pos[0], pos[1], pos[2])<0);
+	}
+
+	return false;
 }
 
 point playerODE::position() const {
@@ -149,7 +174,10 @@ point playerODE::position() const {
 }
 
 double playerODE::orientation() const {
-	return orientationFromMatrix(dBodyGetRotation(body));
+
+double temp = orientationFromMatrix(dBodyGetRotation(body));
+std::cout<<temp;
+	return temp;
 }
 
 bool playerODE::has_ball() const {
@@ -181,12 +209,14 @@ bool playerODE::has_ball() const {
 	double mag_y = abs(rel_play_ball_diff.y);
 	double mag_x = abs(rel_play_ball_diff.x);
 
-	if( mag_y/mag_x > y_len/x_len){
+	if( mag_y*x_len > (y_len+0.02)*mag_x){
 		hasTheBall=false;
 	}
 
 	return hasTheBall;
 }
+
+
 
 bool playerODE::has_point(double x, double y) const {
 
@@ -257,7 +287,10 @@ bool playerODE::has_ball(double tolerance){
 	double mag_y = abs(rel_play_ball_diff.y);
 	double mag_x = abs(rel_play_ball_diff.x);
 
-	if( mag_y/mag_x > y_len/x_len){
+	//if( mag_y/mag_x > y_len/x_len){
+		//hasTheBall=false;
+	//}
+	if( mag_y*x_len > (y_len+0.02)*mag_x){
 		hasTheBall=false;
 	}
 
@@ -273,10 +306,21 @@ bool playerODE::robot_contains_shape(dGeomID geom){
 	dBodyID b = dGeomGetBody(geom);
 	return (b==body);
 }
+//robot_contains_shape_ground(dGeomID geom)
+
+bool playerODE::robot_contains_shape_ground(dGeomID geom){
+
+
+	dBodyID b = dGeomGetBody(geom);
+	return (b==body) && (geom!=robotGeomTopCyl);
+}
 
 void playerODE::pre_tic(double TimeStep){
 
+
 	if(!posSet){
+
+		
 	
 		const dReal *cur_vel = dBodyGetLinearVel(body);
 		the_velocity.x = cur_vel[0];
@@ -298,6 +342,8 @@ void playerODE::pre_tic(double TimeStep){
 		
 		dBodyAddTorque (body, 0.0, 0.0, torquez);
 		dBodyAddForce (body, fcex, fcey, 0.0);
+
+
 
 	}
 	posSet=false;
@@ -342,7 +388,7 @@ void playerODE::dribble(double speed) {
 		ball_turn.x = t[0];
 		ball_turn.y = t[1];
 		if(! (ball_turn.len() > max_Angular_vel)){
-			double forceMax = 0.0001;
+			double forceMax = 0.01;
 			//std::cout<<"dribble"<<speed<<std::endl;
 			//std::cout<<"dribble"<< t[0]<<" "<<t[1]<<" "<<t[2]<<std::endl;
 			//dBodyAddTorque(dGeomGetBody(ballGeom), torqueAxis.x, torqueAxis.y, 0.0);
