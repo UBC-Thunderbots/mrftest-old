@@ -4,16 +4,19 @@
 #include "world/player_impl.h"
 #include <cmath>
 
+#define REDUCED_PARAMS
+
 namespace {
 
-	// current configurations
+	// full configurations
 	// params = 9
 	// param := [prop x, diff x, int x, prop y, diff y, int y, prop r, diff r, int r]
 	
-	// idea for configurations:
+	// reduced parameters
 	// assume: x and y are linearly related
-	// params = 7
-	// param := [prop x, diff x, int x, y/x ratio, prop r, diff r, int r]
+	// no integral needed
+	// params = 5
+	// param := [prop x, diff x, y/x ratio, prop r, diff r]
 
 	// input = 9
 	// input := [dis x, vel x, int x, dis y, vel y, int y, dis r, vel r, int r]
@@ -33,32 +36,18 @@ namespace {
 
 	tunable_pid_controller_factory factory;
 
-	// score as function of input
-	// least squares error
-	double score(const double inp[]) {
-		// input := [dis x, vel x, int x, dis y, vel y, int y, dis r, vel r, int r]
-		return 1e0*inp[0]*inp[0] + 1e0*inp[3]*inp[3] + 1e-2*inp[6]*inp[6] // displacement
-			+ 1e-2*inp[1]*inp[1] + 1e-2*inp[4]*inp[4]; // velocity
-	}
-
-	// apply param to the inputs
-	void apply(const std::vector<double>& param, const std::vector<double>& inp, std::vector<double>& out) {
-		for(int i = 0; i < 3; ++i) {
-			out[i] = 0;
-			for(int j = 0; j < 3; ++j) {
-				out[i] += param[3*i+j]*inp[3*i+j];
-			}
-		}
-	}
-
-	// learn rate
-	const double learn = 1e-2;
-
 	// parameters
+#ifdef REDUCED_PARAMS
+	const int P = 5;
+	const double arr_min[P] = {0.0, 0.0, 0.8, 0.0, 0.0};
+	const double arr_max[P] = {5.0, 0.8, 1.2, 3.0, 0.8};
+	const double arr_def[P] = {5.0, 0.3, 1.0, 3.0, 0.3};
+#else
 	const int P = 9;
 	const double arr_min[P] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-	const double arr_max[P] = {3.0, 0.8, 0.1, 3.0, 0.8, 0.1, 3.0, 0.8, 0.1};
-	const double arr_def[P] = {3.0, 0.3, 0.1, 3.0, 0.3, 0.1, 3.0, 0.3, 0.1};
+	const double arr_max[P] = {5.0, 0.8, 0.1, 5.0, 0.8, 0.1, 3.0, 0.8, 0.1};
+	const double arr_def[P] = {5.0, 0.3, 0.1, 5.0, 0.3, 0.1, 3.0, 0.3, 0.1};
+#endif
 }
 
 const std::vector<double> tunable_pid_controller::param_min(arr_min, arr_min + P);
@@ -107,23 +96,26 @@ void tunable_pid_controller::move(const point &new_position, double new_orientat
 	}
 
 	// input := [dis x, vel x, int x, dis y, vel y, int y, dis r, vel r, int r]
-	input[0] = error_pos[0].x;
-	input[1] = error_pos[0].x - error_pos[1].x;
-	input[2] = accum_pos.x;
-	input[3] = error_pos[0].y;
-	input[4] = error_pos[0].y - error_pos[1].y;
-	input[5] = accum_pos.y;
-	input[6] = error_ori[0];
-	input[7] = error_ori[0] - error_ori[1];
-	input[8] = accum_ori;
+	const double px = error_pos[0].x;
+	const double vx = error_pos[0].x - error_pos[1].x;
+	const double py = error_pos[0].y;
+	const double vy = error_pos[0].y - error_pos[1].y;
+	const double pa = error_ori[0];
+	const double va = error_ori[0] - error_ori[1];
 
-	std::vector<double> output(3);
-	apply(param, input, output);
+#ifdef REDUCED_PARAMS
+	linear_velocity.x = px * param[0] + vx * param[1];
+	linear_velocity.y = py * param[0] * param[2] + vy * param[1] * param[2];
+	angular_velocity  = pa * param[3] + va * param[4];
+#else
+	const double cx = accum_pos.x;
+	const double cy = accum_pos.y;
+	const double ca = accum_ori;
 
-	// output := [vel x, vel y, vel r]
-	linear_velocity.x = output[0];
-	linear_velocity.y = output[1];
-	angular_velocity = output[2];
+	linear_velocity.x = px * param[0] + vx * param[1] + cx * param[2];
+	linear_velocity.y = py * param[3] + vy * param[4] + cy * param[5];
+	angular_velocity  = pa * param[6] + va * param[7] + ca * param[8];
+#endif
 }
 
 robot_controller_factory &tunable_pid_controller::get_factory() const {
