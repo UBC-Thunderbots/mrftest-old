@@ -39,6 +39,12 @@ void stochastic_local_search::set_cost(double cost) {
 	}
 }
 
+void stochastic_local_search::set_initial(const std::vector<double>& initial) {
+	param_cur = initial;
+	param_best = initial;
+	stale = 0;
+}
+
 void stochastic_local_search::hill_climb() {
 	int index = rand() % param_cur.size();
 	// pick a neighbour
@@ -62,5 +68,6 @@ void stochastic_local_search::random_restart() {
 	int index = rand()%param_cur.size();
 	param_cur[index] = drand48()*(param_max[index]-param_min[index]) + param_min[index];
 	for (uint i = 0; i < param_min.size(); i++) param_cur[i] = drand48()*(param_max[i]-param_min[i]) + param_min[i];
+	param_best = param_cur;
 	stale = 0;
 }
