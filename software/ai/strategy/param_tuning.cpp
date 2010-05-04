@@ -15,7 +15,7 @@ namespace {
 	const int TUNING_ITERATIONS = 1000;
 	const int EVALUATION_LIMIT = 1000;
 
-	// A set of tasks; use this for now
+	// TODO: implement separate controllers for vertical, horizontal, rotational etc
 	const std::pair<point, double> default_tasks[] =
 	{
 		std::make_pair(point(0, 0), 0),
@@ -80,7 +80,7 @@ namespace {
 
 	void param_tuning::tick() {
 		if (tc == NULL) {
-			std::cerr << "error: use a tunable robot controller! or press reset" << std::endl;
+			std::cerr << "Error: Use tunable robot controller and press reset" << std::endl;
 			return;
 		}
 		// std::cout << " tick " << std::endl;
@@ -100,12 +100,20 @@ namespace {
 			if (time_steps < best) {
 				best = time_steps;
 				sls->set_cost(time_steps);
+				sls->hill_climb();
 			} else {
 				sls->set_cost(EVALUATION_LIMIT);
+				sls->hill_climb();
 			}
 			tc->set_params(sls->get_params());
 			std::cout << "time steps taken=" << time_steps << std::endl;
 			std::cout << "setting new params" << std::endl;
+			std::cout << "curr params=";
+			const std::vector<double>& params = sls->get_params();
+			for (int i = 0; i < (int)params.size(); ++i) {
+				std::cout << params[i] << " ";
+			}
+			std::cout << std::endl;
 			const std::vector<double>& best_params = sls->get_best_params();
 			std::cout << "best params=";
 			for (int i = 0; i < (int)best_params.size(); ++i) {
@@ -118,6 +126,7 @@ namespace {
 		} else {
 			time_steps++;
 			if (done == 0) {
+				// do something
 			} else if (done > 0) {
 			}
 			const point diff_pos = the_team->get_player(0)->position() - tasks[done].first;

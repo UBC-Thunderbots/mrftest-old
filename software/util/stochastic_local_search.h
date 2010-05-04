@@ -17,6 +17,8 @@ class stochastic_local_search {
 	private:
 		double bestCost;
 		double curCost;
+		int steps;
+		bool improved;
 		std::vector<double> param_cur;
 		std::vector<double> param_best;
 		std::vector<double> param_min;
@@ -26,6 +28,9 @@ class stochastic_local_search {
 		const std::vector<double>& get_params() const;
 		const std::vector<double>& get_best_params() const;
 		void set_cost(double cost);
+		// change settings
+		void random_restart();
+		void hill_climb();
 };
 
 
