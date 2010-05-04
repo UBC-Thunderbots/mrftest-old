@@ -19,25 +19,19 @@ namespace {
 
 	fuzzy_controller_factory factory;
 
+	const int P = 4;
+	const double arr_min[P] = {0.0, 0.0, 0.0, 0.0};
+	const double arr_max[P] = {50.0, 5.0, 5.0, 5.0};
+	const double arr_def[P] = {25.4088, 0.855547, 4.91968, 2.13349};
 }
 
-std::vector<double> fuzzy_controller::param_min;
-std::vector<double> fuzzy_controller::param_max;
+const std::vector<double> fuzzy_controller::param_min(arr_min, arr_min + P);
+const std::vector<double> fuzzy_controller::param_max(arr_max, arr_max + P);
+const std::vector<double> fuzzy_controller::param_default(arr_def, arr_def + P);
 
-fuzzy_controller::fuzzy_controller(player_impl::ptr player) : param(4){
+fuzzy_controller::fuzzy_controller(player_impl::ptr player) : param(4) {
 	robot = player;
-	
-	// best time = 198
-	param[0] = 25.4088; // max bot velocity
-	param[1] = 0.855547;
-	param[2] = 4.91968;
-	param[3] = 2.13349;
-
-	if(param_min.size() == 0) {
-		param_min.resize(4, 0.0);
-		param_max.resize(4, 5.0);
-	}
-	param_max[0] = 50;
+	param = param_default;
 }
 
 void fuzzy_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {

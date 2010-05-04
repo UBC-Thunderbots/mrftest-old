@@ -38,9 +38,9 @@ class fuzzy_controller : public robot_controller, public tunable_controller {
 	protected:
 		player_impl::ptr robot;
 		
-		static std::vector<double> param_min;
-		
-		static std::vector<double> param_max;
+		static const std::vector<double> param_min;
+		static const std::vector<double> param_max;
+		static const std::vector<double> param_default;
 
 		std::vector<double> param;
 };

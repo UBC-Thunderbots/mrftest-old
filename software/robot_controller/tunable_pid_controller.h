@@ -1,7 +1,7 @@
 #ifndef ROBOT_CONTROLLER_PID_CONTROLLER_H
 #define ROBOT_CONTROLLER_PID_CONTROLLER_H
 
-#include <map>
+#include <vector>
 #include <glibmm.h>
 #include "robot_controller/robot_controller.h"
 #include "robot_controller/tunable_controller.h"
@@ -40,8 +40,9 @@ class tunable_pid_controller : public robot_controller, public tunable_controlle
 
 	protected:
 
-		static std::vector<double> param_min;
-		static std::vector<double> param_max;
+		static const std::vector<double> param_min;
+		static const std::vector<double> param_max;
+		static const std::vector<double> param_default;
 
 		bool initialized;
 

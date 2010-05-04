@@ -6,8 +6,15 @@
 
 namespace {
 
+	// current configurations
 	// params = 9
 	// param := [prop x, diff x, int x, prop y, diff y, int y, prop r, diff r, int r]
+	
+	// idea for configurations:
+	// assume: x and y are linearly related
+	// params = 7
+	// param := [prop x, diff x, int x, y/x ratio, prop r, diff r, int r]
+
 	// input = 9
 	// input := [dis x, vel x, int x, dis y, vel y, int y, dis r, vel r, int r]
 	// output = 3
@@ -46,30 +53,21 @@ namespace {
 
 	// learn rate
 	const double learn = 1e-2;
+
+	// parameters
+	const int P = 9;
+	const double arr_min[P] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+	const double arr_max[P] = {3.0, 0.8, 0.1, 3.0, 0.8, 0.1, 3.0, 0.8, 0.1};
+	const double arr_def[P] = {3.0, 0.3, 0.1, 3.0, 0.3, 0.1, 3.0, 0.3, 0.1};
 }
 
-std::vector<double> tunable_pid_controller::param_min;
-std::vector<double> tunable_pid_controller::param_max;
+const std::vector<double> tunable_pid_controller::param_min(arr_min, arr_min + P);
+const std::vector<double> tunable_pid_controller::param_max(arr_max, arr_max + P);
+const std::vector<double> tunable_pid_controller::param_default(arr_def, arr_def + P);
 
-tunable_pid_controller::tunable_pid_controller(player_impl::ptr plr) : plr(plr), initialized(false), param(9), error_pos(10), error_ori(10) {
+tunable_pid_controller::tunable_pid_controller(player_impl::ptr plr) : plr(plr), initialized(false), error_pos(10), error_ori(10) {
 	// param := [prop x, diff x, int x, prop y, diff y, int y, prop r, diff r, int r]
-	param[0] = 4.0;
-	param[1] = 0.5;
-	param[2] = 0.0;
-	param[3] = 4.0;
-	param[4] = 0.5;
-	param[5] = 0.0;
-	param[6] = 3.0;
-	param[7] = 0.01;
-	param[8] = 0.0;
-
-	if(param_min.size() == 0) {
-		param_min.resize(9, 0.0);
-		param_max.resize(9, 0.8);
-		param_max[0] = 8;
-		param_max[3] = 8;
-		param_max[6] = 8;
-	}
+	param = param_default;
 }
 
 void tunable_pid_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
