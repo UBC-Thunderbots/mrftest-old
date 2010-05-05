@@ -14,7 +14,7 @@ namespace {
 			working_dialog(Gtk::Window &win, watchable_operation &op) : Gtk::Dialog("Progress", win, true), op(op) {
 				op.signal_error().connect(sigc::mem_fun(this, &working_dialog::error));
 				op.signal_progress().connect(sigc::mem_fun(this, &working_dialog::status_update));
-				op.signal_finished().connect(sigc::bind(sigc::mem_fun(static_cast<Gtk::Dialog &>(*this), &Gtk::Dialog::response), Gtk::RESPONSE_ACCEPT));
+				op.signal_finished().connect(sigc::bind(sigc::mem_fun(static_cast<Gtk::Dialog *>(this), &Gtk::Dialog::response), Gtk::RESPONSE_ACCEPT));
 				pb.set_text(op.get_status());
 				get_vbox()->pack_start(pb, false, false);
 				add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);

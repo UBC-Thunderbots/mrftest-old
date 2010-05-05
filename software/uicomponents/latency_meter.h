@@ -26,7 +26,7 @@ class latency_meter : public Gtk::ProgressBar, public noncopyable {
 			robot = bot;
 			update();
 			if (robot) {
-				conn = robot->signal_updated().connect(sigc::mem_fun(*this, &latency_meter::update));
+				conn = robot->signal_updated().connect(sigc::mem_fun(this, &latency_meter::update));
 			}
 		}
 
