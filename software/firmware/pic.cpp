@@ -60,14 +60,14 @@ void pic_upload::start() {
 	DPRINT("Entering bootloader.");
 	status = "Entering Bootloader";
 	signal_progress().emit(0);
-	proto.enter_bootloader(sigc::mem_fun(*this, &pic_upload::enter_bootloader_done));
+	proto.enter_bootloader(sigc::mem_fun(this, &pic_upload::enter_bootloader_done));
 }
 
 void pic_upload::enter_bootloader_done() {
 	DPRINT("Sending COMMAND_IDENT.");
 	status = "Checking Identity";
 	signal_progress().emit(0);
-	proto.send(COMMAND_IDENT, 0, 0, 0, 8, sigc::mem_fun(*this, &pic_upload::ident_received));
+	proto.send(COMMAND_IDENT, 0, 0, 0, 8, sigc::mem_fun(this, &pic_upload::ident_received));
 }
 
 void pic_upload::ident_received(const void *response) {
@@ -79,7 +79,7 @@ void pic_upload::ident_received(const void *response) {
 	}
 	status = "Checking Fuses";
 	signal_progress().emit(0);
-	proto.send(COMMAND_PIC_READ_FUSES, 0, 0, 0, 18, sigc::mem_fun(*this, &pic_upload::fuses_received));
+	proto.send(COMMAND_PIC_READ_FUSES, 0, 0, 0, 18, sigc::mem_fun(this, &pic_upload::fuses_received));
 }
 
 void pic_upload::fuses_received(const void *response) {
@@ -108,11 +108,11 @@ void pic_upload::do_work() {
 		// We should write a page. The address is offset by 0x800 to advance by
 		// the size of the boot block, and 0x4000 to move into the staging area.
 		DPRINT(Glib::ustring::compose("Writing page %1 at address %2.", pages_written, pages_written * PAGE_BYTES + 0x4800));
-		proto.send(COMMAND_PIC_WRITE_DATA, pages_written * PAGE_BYTES + 0x4800, &data.data()[1][pages_written * PAGE_BYTES], PAGE_BYTES, PAGE_BYTES, sigc::mem_fun(*this, &pic_upload::page_written));
+		proto.send(COMMAND_PIC_WRITE_DATA, pages_written * PAGE_BYTES + 0x4800, &data.data()[1][pages_written * PAGE_BYTES], PAGE_BYTES, PAGE_BYTES, sigc::mem_fun(this, &pic_upload::page_written));
 	} else {
 		// All pages are written. Set the upgrade flag.
 		DPRINT("Enabling upgrade flag.");
-		proto.send(COMMAND_PIC_ENABLE_UPGRADE, 0, 0, 0, 2, sigc::mem_fun(*this, &pic_upload::upgrade_enabled));
+		proto.send(COMMAND_PIC_ENABLE_UPGRADE, 0, 0, 0, 2, sigc::mem_fun(this, &pic_upload::upgrade_enabled));
 	}
 
 	signal_progress().emit(static_cast<double>(pages_written) / divup<std::size_t>(data.data()[1].size(), PAGE_BYTES));

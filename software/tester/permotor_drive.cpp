@@ -17,10 +17,10 @@ tester_control_permotor_drive::tester_control_permotor_drive() : Gtk::HBox(false
 	drive2_scale.get_adjustment()->set_page_size(0);
 	drive3_scale.get_adjustment()->set_page_size(0);
 	drive4_scale.get_adjustment()->set_page_size(0);
-	drive1_scale.signal_value_changed().connect(sigc::mem_fun(*this, &tester_control_permotor_drive::on_change));
-	drive2_scale.signal_value_changed().connect(sigc::mem_fun(*this, &tester_control_permotor_drive::on_change));
-	drive3_scale.signal_value_changed().connect(sigc::mem_fun(*this, &tester_control_permotor_drive::on_change));
-	drive4_scale.signal_value_changed().connect(sigc::mem_fun(*this, &tester_control_permotor_drive::on_change));
+	drive1_scale.signal_value_changed().connect(sigc::mem_fun(this, &tester_control_permotor_drive::on_change));
+	drive2_scale.signal_value_changed().connect(sigc::mem_fun(this, &tester_control_permotor_drive::on_change));
+	drive3_scale.signal_value_changed().connect(sigc::mem_fun(this, &tester_control_permotor_drive::on_change));
+	drive4_scale.signal_value_changed().connect(sigc::mem_fun(this, &tester_control_permotor_drive::on_change));
 }
 
 void tester_control_permotor_drive::set_robot(radio_bot::ptr bot) {

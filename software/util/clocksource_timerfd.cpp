@@ -15,7 +15,7 @@ namespace {
 clocksource_timerfd::clocksource_timerfd(uint64_t interval) : tfd(create_timerfd(CLOCK_MONOTONIC)), nanoseconds(interval), running(false) {
 	tfd.set_blocking(false);
 
-	Glib::signal_io().connect(sigc::mem_fun(*this, &clocksource_timerfd::on_readable), tfd, Glib::IO_IN);
+	Glib::signal_io().connect(sigc::mem_fun(this, &clocksource_timerfd::on_readable), tfd, Glib::IO_IN);
 }
 
 bool clocksource_timerfd::on_readable(Glib::IOCondition) {

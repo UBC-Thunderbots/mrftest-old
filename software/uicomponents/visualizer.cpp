@@ -12,10 +12,10 @@ visualizer::visualizer(const field::ptr field, const ball::ptr ball, const team:
 	add_events(Gdk::BUTTON_RELEASE_MASK);
 	add_events(Gdk::ENTER_NOTIFY_MASK);
 	add_events(Gdk::LEAVE_NOTIFY_MASK);
-	west_team->signal_robot_added().connect(sigc::mem_fun(*this, &visualizer::update));
-	west_team->signal_robot_removed().connect(sigc::hide(sigc::hide(sigc::mem_fun(*this, &visualizer::update))));
-	east_team->signal_robot_added().connect(sigc::mem_fun(*this, &visualizer::update));
-	east_team->signal_robot_removed().connect(sigc::hide(sigc::hide(sigc::mem_fun(*this, &visualizer::update))));
+	west_team->signal_robot_added().connect(sigc::mem_fun(this, &visualizer::update));
+	west_team->signal_robot_removed().connect(sigc::hide(sigc::hide(sigc::mem_fun(this, &visualizer::update))));
+	east_team->signal_robot_added().connect(sigc::mem_fun(this, &visualizer::update));
+	east_team->signal_robot_removed().connect(sigc::hide(sigc::hide(sigc::mem_fun(this, &visualizer::update))));
 }
 
 bool visualizer::on_expose_event(GdkEventExpose *) {

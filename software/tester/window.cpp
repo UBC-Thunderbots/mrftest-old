@@ -15,7 +15,7 @@ class tester_window_impl : public Gtk::Window {
 		tester_window_impl(xbee &modem, xmlpp::Element *xmlworld) : modem(modem), bot_frame("Bot"), bot_controls(xmlworld, *this), feedback_frame("Feedback"), command_frame("Commands"), drive_frame("Drive"), drive_widget(0), dribble_frame("Dribble"), dribble_scale(-1023, 1023, 1), chicker_frame("Chicker"), chicker_enabled("Enable") {
 			set_title("Robot Tester");
 
-			bot_controls.signal_address_changed().connect(sigc::mem_fun(*this, &tester_window_impl::address_changed));
+			bot_controls.signal_address_changed().connect(sigc::mem_fun(this, &tester_window_impl::address_changed));
 			bot_frame.add(bot_controls);
 			vbox.pack_start(bot_frame, false, false);
 
@@ -29,7 +29,7 @@ class tester_window_impl : public Gtk::Window {
 			drive_chooser.append_text("Controlled Per-Motor Drive");
 			drive_chooser.append_text("Matrix Drive");
 			drive_chooser.set_active_text("Halt");
-			drive_chooser.signal_changed().connect(sigc::mem_fun(*this, &tester_window_impl::drive_mode_changed));
+			drive_chooser.signal_changed().connect(sigc::mem_fun(this, &tester_window_impl::drive_mode_changed));
 			drive_box.pack_start(drive_chooser);
 			drive_frame.add(drive_box);
 			vbox.pack_start(drive_frame, false, false);
@@ -48,10 +48,10 @@ class tester_window_impl : public Gtk::Window {
 
 			show_all();
 
-			Gtk::Main::signal_key_snooper().connect(sigc::mem_fun(*this, &tester_window_impl::key_snoop));
+			Gtk::Main::signal_key_snooper().connect(sigc::mem_fun(this, &tester_window_impl::key_snoop));
 			dribble_scale.set_value(0);
-			dribble_scale.signal_value_changed().connect(sigc::mem_fun(*this, &tester_window_impl::on_dribble_change));
-			chicker_enabled.signal_toggled().connect(sigc::mem_fun(*this, &tester_window_impl::on_chicker_enable_change));
+			dribble_scale.signal_value_changed().connect(sigc::mem_fun(this, &tester_window_impl::on_dribble_change));
+			chicker_enabled.signal_toggled().connect(sigc::mem_fun(this, &tester_window_impl::on_chicker_enable_change));
 
 			on_update();
 		}
@@ -113,7 +113,7 @@ class tester_window_impl : public Gtk::Window {
 
 			// Attach to the update handler.
 			if (bot) {
-				bot->signal_updated().connect(sigc::mem_fun(*this, &tester_window_impl::on_update));
+				bot->signal_updated().connect(sigc::mem_fun(this, &tester_window_impl::on_update));
 			}
 		}
 

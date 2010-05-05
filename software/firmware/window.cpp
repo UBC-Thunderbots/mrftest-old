@@ -12,8 +12,8 @@ namespace {
 	class working_dialog : public Gtk::Dialog {
 		public:
 			working_dialog(Gtk::Window &win, watchable_operation &op) : Gtk::Dialog("Progress", win, true), op(op) {
-				op.signal_error().connect(sigc::mem_fun(*this, &working_dialog::error));
-				op.signal_progress().connect(sigc::mem_fun(*this, &working_dialog::status_update));
+				op.signal_error().connect(sigc::mem_fun(this, &working_dialog::error));
+				op.signal_progress().connect(sigc::mem_fun(this, &working_dialog::status_update));
 				op.signal_finished().connect(sigc::bind(sigc::mem_fun(static_cast<Gtk::Dialog &>(*this), &Gtk::Dialog::response), Gtk::RESPONSE_ACCEPT));
 				pb.set_text(op.get_status());
 				get_vbox()->pack_start(pb, false, false);
@@ -43,7 +43,7 @@ class firmware_window_impl : public Gtk::Window {
 		firmware_window_impl(xbee &modem, xmlpp::Element *xmlworld) : modem(modem), bot_frame("Bot"), bot_controls(xmlworld, *this), file_frame("Firmware File"), file_fpga_button(file_target_group, "FPGA"), file_pic_button(file_target_group, "PIC"), start_upload_button(Gtk::Stock::EXECUTE), emergency_erase_button("Emergency Erase") {
 			set_title("Firmware Uploader");
 
-			bot_controls.signal_address_changed().connect(sigc::mem_fun(*this, &firmware_window_impl::address_changed));
+			bot_controls.signal_address_changed().connect(sigc::mem_fun(this, &firmware_window_impl::address_changed));
 			bot_frame.add(bot_controls);
 			vbox.pack_start(bot_frame, false, false);
 
@@ -63,11 +63,11 @@ class firmware_window_impl : public Gtk::Window {
 			file_frame.add(file_vbox);
 			vbox.pack_start(file_frame, false, false);
 
-			start_upload_button.signal_clicked().connect(sigc::mem_fun(*this, &firmware_window_impl::start_upload));
+			start_upload_button.signal_clicked().connect(sigc::mem_fun(this, &firmware_window_impl::start_upload));
 			start_upload_button.set_sensitive(false);
 			vbox.pack_start(start_upload_button, false, false);
 
-			emergency_erase_button.signal_clicked().connect(sigc::mem_fun(*this, &firmware_window_impl::start_emergency_erase));
+			emergency_erase_button.signal_clicked().connect(sigc::mem_fun(this, &firmware_window_impl::start_emergency_erase));
 			vbox.pack_start(emergency_erase_button, false, false);
 
 			add(vbox);

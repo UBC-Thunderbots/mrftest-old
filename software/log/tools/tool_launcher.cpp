@@ -46,7 +46,7 @@ class log_tool_launcher_impl : public Gtk::Window, public noncopyable {
 	public:
 		log_tool_launcher_impl() : box(false, 10), button_box(Gtk::BUTTONBOX_SPREAD), view_button("Play"), rename_button("Rename"), delete_button("Delete"), merge_button("Merge"), matlab_button("Create M file") {
 			set_title("Log Tools");
-			chooser.get_selection()->signal_changed().connect(sigc::mem_fun(*this, &log_tool_launcher_impl::update_sensitivity));
+			chooser.get_selection()->signal_changed().connect(sigc::mem_fun(this, &log_tool_launcher_impl::update_sensitivity));
 			chooser_scroll.add(chooser);
 			chooser_scroll.set_shadow_type(Gtk::SHADOW_ETCHED_IN);
 			box.pack_start(chooser_scroll, true, true);
@@ -62,11 +62,11 @@ class log_tool_launcher_impl : public Gtk::Window, public noncopyable {
 			show_all();
 
 			update_sensitivity();
-			view_button.signal_clicked().connect(sigc::mem_fun(*this, &log_tool_launcher_impl::on_view_clicked));
-			rename_button.signal_clicked().connect(sigc::mem_fun(*this, &log_tool_launcher_impl::on_rename_clicked));
-			delete_button.signal_clicked().connect(sigc::mem_fun(*this, &log_tool_launcher_impl::on_delete_clicked));
-			merge_button.signal_clicked().connect(sigc::mem_fun(*this, &log_tool_launcher_impl::on_merge_clicked));
-			matlab_button.signal_clicked().connect(sigc::mem_fun(*this, &log_tool_launcher_impl::on_matlab_clicked));
+			view_button.signal_clicked().connect(sigc::mem_fun(this, &log_tool_launcher_impl::on_view_clicked));
+			rename_button.signal_clicked().connect(sigc::mem_fun(this, &log_tool_launcher_impl::on_rename_clicked));
+			delete_button.signal_clicked().connect(sigc::mem_fun(this, &log_tool_launcher_impl::on_delete_clicked));
+			merge_button.signal_clicked().connect(sigc::mem_fun(this, &log_tool_launcher_impl::on_merge_clicked));
+			matlab_button.signal_clicked().connect(sigc::mem_fun(this, &log_tool_launcher_impl::on_matlab_clicked));
 		}
 
 	protected:

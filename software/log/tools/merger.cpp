@@ -13,12 +13,12 @@ log_merger::log_merger(const std::vector<std::string> &logs, Gtk::Window &parent
 		input_list.append_text(Glib::filename_display_name(*i));
 	}
 	input_list.set_headers_visible(false);
-	input_list.get_selection()->signal_changed().connect(sigc::mem_fun(*this, &log_merger::update_sensitivity));
+	input_list.get_selection()->signal_changed().connect(sigc::mem_fun(this, &log_merger::update_sensitivity));
 	input_list_scroll.set_shadow_type(Gtk::SHADOW_ETCHED_IN);
 	update_sensitivity();
-	input_move_up_button.signal_clicked().connect(sigc::mem_fun(*this, &log_merger::move_up_clicked));
-	input_move_down_button.signal_clicked().connect(sigc::mem_fun(*this, &log_merger::move_down_clicked));
-	merge_button.signal_clicked().connect(sigc::mem_fun(*this, &log_merger::merge_clicked));
+	input_move_up_button.signal_clicked().connect(sigc::mem_fun(this, &log_merger::move_up_clicked));
+	input_move_down_button.signal_clicked().connect(sigc::mem_fun(this, &log_merger::move_down_clicked));
+	merge_button.signal_clicked().connect(sigc::mem_fun(this, &log_merger::merge_clicked));
 
 	input_list_scroll.add(input_list);
 	input_box.pack_start(input_list_scroll, true, true);

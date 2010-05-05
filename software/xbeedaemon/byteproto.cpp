@@ -2,7 +2,7 @@
 #include <algorithm>
 
 xbee_byte_stream::xbee_byte_stream() : received_escape(false) {
-	port.signal_received().connect(sigc::mem_fun(*this, &xbee_byte_stream::bytes_received));
+	port.signal_received().connect(sigc::mem_fun(this, &xbee_byte_stream::bytes_received));
 }
 
 void xbee_byte_stream::send_sop() {

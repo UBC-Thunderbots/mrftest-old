@@ -10,7 +10,7 @@ namespace {
 		public:
 			step_tester() {
 				std::fill(received, received + sizeof(received) / sizeof(*received), false);
-				modem.signal_received().connect(sigc::mem_fun(*this, &step_tester::on_receive));
+				modem.signal_received().connect(sigc::mem_fun(this, &step_tester::on_receive));
 			}
 
 			void run() {

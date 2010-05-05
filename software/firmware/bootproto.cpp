@@ -84,8 +84,8 @@ void bootproto::enter_bootloader_send() {
 	modem.send(&pkt, sizeof(pkt));
 
 	// Set up signals.
-	packet_received_connection = modem.signal_received().connect(sigc::mem_fun(*this, &bootproto::enter_bootloader_receive));
-	timeout_connection = Glib::signal_timeout().connect(sigc::mem_fun(*this, &bootproto::enter_bootloader_timeout), TIMEOUT);
+	packet_received_connection = modem.signal_received().connect(sigc::mem_fun(this, &bootproto::enter_bootloader_receive));
+	timeout_connection = Glib::signal_timeout().connect(sigc::mem_fun(this, &bootproto::enter_bootloader_timeout), TIMEOUT);
 }
 
 bool bootproto::enter_bootloader_timeout() {
@@ -127,7 +127,7 @@ void bootproto::enter_bootloader_receive(const void *data, std::size_t length) {
 			timeout_connection.disconnect();
 
 			// Give the bootloader time to quiesce before claiming we're ready.
-			Glib::signal_timeout().connect(sigc::mem_fun(*this, &bootproto::enter_bootloader_quiesce), 1000);
+			Glib::signal_timeout().connect(sigc::mem_fun(this, &bootproto::enter_bootloader_quiesce), 1000);
 			return;
 
 		case xbeepacket::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE:
@@ -248,8 +248,8 @@ void bootproto::send_send() {
 	modem.send(&pending_data[0], pending_data.size());
 
 	// Set up signals.
-	packet_received_connection = modem.signal_received().connect(sigc::mem_fun(*this, &bootproto::send_receive));
-	timeout_connection = Glib::signal_timeout().connect(sigc::mem_fun(*this, &bootproto::send_timeout), TIMEOUT);
+	packet_received_connection = modem.signal_received().connect(sigc::mem_fun(this, &bootproto::send_receive));
+	timeout_connection = Glib::signal_timeout().connect(sigc::mem_fun(this, &bootproto::send_timeout), TIMEOUT);
 }
 
 bool bootproto::send_timeout() {
@@ -349,8 +349,8 @@ void bootproto::exit_bootloader_send() {
 	modem.send(&pkt, sizeof(pkt));
 
 	// Set up signals.
-	packet_received_connection = modem.signal_received().connect(sigc::mem_fun(*this, &bootproto::exit_bootloader_receive));
-	timeout_connection = Glib::signal_timeout().connect(sigc::mem_fun(*this, &bootproto::exit_bootloader_timeout), TIMEOUT);
+	packet_received_connection = modem.signal_received().connect(sigc::mem_fun(this, &bootproto::exit_bootloader_receive));
+	timeout_connection = Glib::signal_timeout().connect(sigc::mem_fun(this, &bootproto::exit_bootloader_timeout), TIMEOUT);
 }
 
 bool bootproto::exit_bootloader_timeout() {

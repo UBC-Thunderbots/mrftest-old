@@ -57,7 +57,7 @@ namespace {
 
 		// override the reset button
 		reset_button = Gtk::manage(new Gtk::Button("Reset"));
-		reset_button->signal_clicked().connect(sigc::mem_fun(*this,&param_tuning::strategy_reset));
+		reset_button->signal_clicked().connect(sigc::mem_fun(this,&param_tuning::strategy_reset));
 		best = EVALUATION_LIMIT;
 	}
 

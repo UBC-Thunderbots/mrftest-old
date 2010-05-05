@@ -68,7 +68,7 @@ namespace {
 		DPRINT("Multiplexer alive.");
 
 		// Attach receive callback for serial port.
-		pstream.signal_received().connect(sigc::mem_fun(*this, &multiplexer::on_receive));
+		pstream.signal_received().connect(sigc::mem_fun(this, &multiplexer::on_receive));
 
 		// Create epoll fd.
 		const file_descriptor &epollfd = create_epollfd();

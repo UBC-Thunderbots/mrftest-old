@@ -40,7 +40,7 @@ void tester_feedback::set_bot(radio_bot::ptr bot) {
 	success_level.set_bot(bot);
 	robot = bot;
 	if (bot) {
-		bot->signal_updated().connect(sigc::mem_fun(*this, &tester_feedback::on_update));
+		bot->signal_updated().connect(sigc::mem_fun(this, &tester_feedback::on_update));
 	} else {
 		on_update();
 	}

@@ -2,8 +2,8 @@
 #include <cassert>
 
 xbee_packet_stream::xbee_packet_stream() : sop_seen(false) {
-	bstream.signal_sop_received().connect(sigc::mem_fun(*this, &xbee_packet_stream::on_sop));
-	bstream.signal_byte_received().connect(sigc::mem_fun(*this, &xbee_packet_stream::on_byte));
+	bstream.signal_sop_received().connect(sigc::mem_fun(this, &xbee_packet_stream::on_sop));
+	bstream.signal_byte_received().connect(sigc::mem_fun(this, &xbee_packet_stream::on_byte));
 }
 
 void xbee_packet_stream::send(const void *payload, std::size_t length) {

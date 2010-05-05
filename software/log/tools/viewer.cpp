@@ -6,9 +6,9 @@
 
 log_viewer::log_viewer(const std::string &name) : clk(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND), reader(log_reader::create(name)), vbox(false, 10), vis(reader->get_field(), reader->get_ball(), reader->get_west_team(), reader->get_east_team(), false), control_box(false, 10), play_button(Gtk::Stock::MEDIA_PLAY), frame_scale(0, reader->size() - 1, 1) {
 	frame_scale.get_adjustment()->set_page_size(0);
-	clk.signal_tick().connect(sigc::mem_fun(*this, &log_viewer::on_tick));
-	play_button.signal_toggled().connect(sigc::mem_fun(*this, &log_viewer::on_play_toggled));
-	frame_scale.signal_value_changed().connect(sigc::mem_fun(*this, &log_viewer::on_frame_scale_moved));
+	clk.signal_tick().connect(sigc::mem_fun(this, &log_viewer::on_tick));
+	play_button.signal_toggled().connect(sigc::mem_fun(this, &log_viewer::on_play_toggled));
+	frame_scale.signal_value_changed().connect(sigc::mem_fun(this, &log_viewer::on_frame_scale_moved));
 
 	vbox.pack_start(vis, true, true);
 

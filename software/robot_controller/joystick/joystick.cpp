@@ -35,7 +35,7 @@ joystick::joystick(const Glib::ustring &filename) : fd(open_device(filename)), s
 		throw std::runtime_error("JSIOCGBUTTONS failed!");
 	buttons_data.resize(ch, false);
 
-	Glib::signal_io().connect(sigc::mem_fun(*this, &joystick::on_readable), fd, Glib::IO_IN);
+	Glib::signal_io().connect(sigc::mem_fun(this, &joystick::on_readable), fd, Glib::IO_IN);
 }
 
 bool joystick::on_readable(Glib::IOCondition) {

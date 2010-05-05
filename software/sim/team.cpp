@@ -33,7 +33,7 @@ simulator_team_data::simulator_team_data(simulator &sim, bool invert_playtype, x
 	set_controller_type(controller_name);
 
 	// Connect to the playtype change signal.
-	sim.signal_playtype_changed().connect(sigc::mem_fun(*this, &simulator_team_data::playtype_changed));
+	sim.signal_playtype_changed().connect(sigc::mem_fun(this, &simulator_team_data::playtype_changed));
 }
 
 simulator_team_data::~simulator_team_data() {

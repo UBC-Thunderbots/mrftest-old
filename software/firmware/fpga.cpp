@@ -43,14 +43,14 @@ void fpga_upload::start() {
 	DPRINT("Entering bootloader.");
 	status = "Entering Bootloader";
 	signal_progress().emit(0);
-	proto.enter_bootloader(sigc::mem_fun(*this, &fpga_upload::enter_bootloader_done));
+	proto.enter_bootloader(sigc::mem_fun(this, &fpga_upload::enter_bootloader_done));
 }
 
 void fpga_upload::enter_bootloader_done() {
 	DPRINT("Sending COMMAND_IDENT.");
 	status = "Checking Identity";
 	signal_progress().emit(0);
-	proto.send(COMMAND_IDENT, 0, 0, 0, 8, sigc::mem_fun(*this, &fpga_upload::ident_received));
+	proto.send(COMMAND_IDENT, 0, 0, 0, 8, sigc::mem_fun(this, &fpga_upload::ident_received));
 }
 
 void fpga_upload::ident_received(const void *response) {
@@ -83,7 +83,7 @@ void fpga_upload::do_work() {
 			unsigned int first_page = chunks_crcd * CHUNK_PAGES;
 			DPRINT(Glib::ustring::compose("CRCing pages %1 through %2.", first_page, first_page + CHUNK_PAGES - 1));
 			std::fill(pages_prewritten, pages_prewritten + CHUNK_PAGES, false);
-			proto.send(COMMAND_FPGA_CRC_CHUNK, first_page, 0, 0, 34, sigc::mem_fun(*this, &fpga_upload::crcs_received));
+			proto.send(COMMAND_FPGA_CRC_CHUNK, first_page, 0, 0, 34, sigc::mem_fun(this, &fpga_upload::crcs_received));
 			return;
 		} else if (chunks_crcd == sectors_erased * SECTOR_CHUNKS) {
 			// We have CRCd a full sector's worth of pages. We must erase more before continuing.

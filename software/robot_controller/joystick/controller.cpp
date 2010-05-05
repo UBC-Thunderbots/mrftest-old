@@ -176,7 +176,7 @@ namespace {
 		for (unsigned int i = 0; i < sticks.size(); i++)
 			joybox.append_text(Glib::ustring::compose("%1 [%2]", sticks[i].second, sticks[i].first));
 		joybox.set_active_text("<Choose Joystick>");
-		joybox.signal_changed().connect(sigc::mem_fun(*this, &joystick_controller::joy_changed));
+		joybox.signal_changed().connect(sigc::mem_fun(this, &joystick_controller::joy_changed));
 		pack_start(joybox, false, false);
 
 		pack_start(disp, true, true);

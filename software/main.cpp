@@ -48,8 +48,8 @@ namespace {
 	class fps_reporter : public sigc::trackable {
 		public:
 			fps_reporter(clocksource &simclock, clocksource &uiclock, simulator_window &win) : simticks(0), uiticks(0), win(win) {
-				simclock.signal_tick().connect(sigc::mem_fun(*this, &fps_reporter::simtick));
-				uiclock.signal_tick().connect(sigc::mem_fun(*this, &fps_reporter::uitick));
+				simclock.signal_tick().connect(sigc::mem_fun(this, &fps_reporter::simtick));
+				uiclock.signal_tick().connect(sigc::mem_fun(this, &fps_reporter::uitick));
 			}
 
 		private:

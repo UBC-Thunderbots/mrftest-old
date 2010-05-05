@@ -30,8 +30,8 @@ void emergency_erase::start() {
 	pkt.value[0] = 4;
 	modem.send(&pkt, sizeof(pkt));
 
-	packet_received_connection = modem.signal_received().connect(sigc::mem_fun(*this, &emergency_erase::receive));
-	timeout_connection = Glib::signal_timeout().connect(sigc::mem_fun(*this, &emergency_erase::timeout), TIMEOUT);
+	packet_received_connection = modem.signal_received().connect(sigc::mem_fun(this, &emergency_erase::receive));
+	timeout_connection = Glib::signal_timeout().connect(sigc::mem_fun(this, &emergency_erase::timeout), TIMEOUT);
 }
 
 

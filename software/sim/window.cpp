@@ -14,7 +14,7 @@ class playtype_combo : public Gtk::ComboBoxText {
 			for (unsigned int i = 0; i < playtype::count; i++)
 				append_text(playtype::descriptions_west[i]);
 			set_active_text(playtype::descriptions_west[sim.current_playtype()]);
-			sim.signal_playtype_changed().connect(sigc::mem_fun(*this, &playtype_combo::playtype_changed));
+			sim.signal_playtype_changed().connect(sigc::mem_fun(this, &playtype_combo::playtype_changed));
 		}
 
 	protected:
@@ -41,15 +41,15 @@ class playtype_combo : public Gtk::ComboBoxText {
 class simulation_controls : public Gtk::VBox {
 	public:
 		simulation_controls(simulator &sim, clocksource &simclk) : sim(sim), simclk(simclk), run_btn("Run"), pause_btn("Pause"), run_pause_box(Gtk::BUTTONBOX_SPREAD), record_btn("Record"), record_stop_btn("Stop"), record_box(Gtk::BUTTONBOX_SPREAD), playtype_cb(sim) {
-			run_btn.signal_clicked().connect(sigc::mem_fun(*this, &simulation_controls::run_clicked));
-			pause_btn.signal_clicked().connect(sigc::mem_fun(*this, &simulation_controls::pause_clicked));
+			run_btn.signal_clicked().connect(sigc::mem_fun(this, &simulation_controls::run_clicked));
+			pause_btn.signal_clicked().connect(sigc::mem_fun(this, &simulation_controls::pause_clicked));
 			pause_btn.set_sensitive(false);
 
 			run_pause_box.pack_start(run_btn);
 			run_pause_box.pack_start(pause_btn);
 
-			record_btn.signal_clicked().connect(sigc::mem_fun(*this, &simulation_controls::record_clicked));
-			record_stop_btn.signal_clicked().connect(sigc::mem_fun(*this, &simulation_controls::record_stop_clicked));
+			record_btn.signal_clicked().connect(sigc::mem_fun(this, &simulation_controls::record_clicked));
+			record_stop_btn.signal_clicked().connect(sigc::mem_fun(this, &simulation_controls::record_stop_clicked));
 			record_stop_btn.set_sensitive(false);
 
 			record_box.pack_start(record_btn);
@@ -178,8 +178,8 @@ class autoref_chooser : public Gtk::ComboBoxText {
 class engine_controls : public Gtk::VBox {
 	public:
 		engine_controls(simulator &sim, clocksource &simclk) : sim(sim), simclk(simclk), eng_chooser(sim), ref_chooser(sim) {
-			eng_chooser.signal_changed().connect(sigc::mem_fun(*this, &engine_controls::engine_changed));
-			ref_chooser.signal_changed().connect(sigc::mem_fun(*this, &engine_controls::autoref_changed));
+			eng_chooser.signal_changed().connect(sigc::mem_fun(this, &engine_controls::engine_changed));
+			ref_chooser.signal_changed().connect(sigc::mem_fun(this, &engine_controls::autoref_changed));
 
 			put_controls();
 		}
@@ -289,7 +289,7 @@ class strategy_chooser : public Gtk::ComboBoxText {
 class strategy_controls : public Gtk::VBox {
 	public:
 		strategy_controls(simulator_team_data &team) : team(team), chooser(team), ctls(0) {
-			chooser.signal_changed().connect(sigc::mem_fun(*this, &strategy_controls::strategy_changed));
+			chooser.signal_changed().connect(sigc::mem_fun(this, &strategy_controls::strategy_changed));
 			pack_start(chooser, false, false);
 			put_custom_controls();
 		}
@@ -380,9 +380,9 @@ class team_controls : public Gtk::VBox {
 			players_list_scroll.add(players_list);
 			players_list_scroll.set_shadow_type(Gtk::SHADOW_IN);
 			players_box.pack_start(players_list_scroll, true, true);
-			add_player_button.signal_clicked().connect(sigc::mem_fun(*this, &team_controls::add_player));
+			add_player_button.signal_clicked().connect(sigc::mem_fun(this, &team_controls::add_player));
 			players_button_box.pack_start(add_player_button);
-			del_player_button.signal_clicked().connect(sigc::mem_fun(*this, &team_controls::del_player));
+			del_player_button.signal_clicked().connect(sigc::mem_fun(this, &team_controls::del_player));
 			players_button_box.pack_start(del_player_button);
 			players_box.pack_start(players_button_box, false, false);
 			players_frame.add(players_box);
@@ -392,11 +392,11 @@ class team_controls : public Gtk::VBox {
 			pack_start(strategy_frame, true, true);
 
 			rc_frame.add(rc_chooser);
-			rc_chooser.signal_changed().connect(sigc::mem_fun(*this, &team_controls::controller_changed));
+			rc_chooser.signal_changed().connect(sigc::mem_fun(this, &team_controls::controller_changed));
 			pack_start(rc_frame, false, false);
 
-			team_data.west_view->signal_robot_added().connect(sigc::mem_fun(*this, &team_controls::player_added));
-			team_data.west_view->signal_robot_removed().connect(sigc::mem_fun(*this, &team_controls::player_removed));
+			team_data.west_view->signal_robot_added().connect(sigc::mem_fun(this, &team_controls::player_added));
+			team_data.west_view->signal_robot_removed().connect(sigc::mem_fun(this, &team_controls::player_removed));
 
 			update_add_player_sensitivity();
 		}

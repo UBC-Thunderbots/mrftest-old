@@ -29,7 +29,7 @@ simulator::simulator(xmlpp::Element *xml, clocksource &clk) : cur_playtype(playt
 	set_autoref(autoref_name);
 
 	// Connect to the update tick.
-	clk.signal_tick().connect(sigc::mem_fun(*this, &simulator::tick));
+	clk.signal_tick().connect(sigc::mem_fun(this, &simulator::tick));
 }
 
 void simulator::set_engine(const Glib::ustring &engine_name) {
