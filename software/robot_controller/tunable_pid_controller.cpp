@@ -4,7 +4,8 @@
 #include "world/player_impl.h"
 #include <cmath>
 
-#define NO_ROTATION
+#define TUNE_ROTATION
+// #define TUNE_XY
 #define LINEAR_XY
 
 namespace {
@@ -38,45 +39,76 @@ namespace {
 	tunable_pid_controller_factory factory;
 
 	// basic
-	const double DEF_X_PROP = 6.95932;
+	const double DEF_X_PROP = 16.0157;
+#ifdef TUNE_XY
 	const double MIN_X_PROP = 0;
 	const double MAX_X_PROP = 20;
+#else
+	const double MIN_X_PROP = DEF_X_PROP;
+	const double MAX_X_PROP = DEF_X_PROP;
+#endif
 	
-	const double DEF_X_DIFF = 28.264;
-	const double MIN_X_DIFF = 10;
+	const double DEF_X_DIFF = 46.6771;
+#ifdef TUNE_XY
+	const double MIN_X_DIFF = 0;
 	const double MAX_X_DIFF = 50;
+#else
+	const double MIN_X_DIFF = DEF_X_DIFF;
+	const double MAX_X_DIFF = DEF_X_DIFF;
+#endif
 
 #ifndef LINEAR_XY
 	// if y independent of x
 
-	const double DEF_Y_PROP = 7;
+	const double DEF_Y_PROP = 16.0157;
+#ifdef TUNE_XY
 	const double MIN_Y_PROP = 0;
 	const double MAX_Y_PROP = 20;
+#else
+	const double MIN_Y_PROP = DEF_Y_PROP;
+	const double MAX_Y_PROP = DEF_Y_PROP;
+#endif
 
-	const double DEF_Y_DIFF = 0;
-	const double MIN_Y_DIFF = 10;
+	const double DEF_Y_DIFF = 46.6771;
+#ifdef TUNE_XY
+	const double MIN_Y_DIFF = 0;
 	const double MAX_Y_DIFF = 50;
+#else
+	const double MIN_Y_DIFF = DEF_Y_DIFF;
+	const double MAX_Y_DIFF = DEF_Y_DIFF;
+#endif
 
 #else
 	// if x and y are tied linearly
 
 	const double DEF_XY_RATIO = 1.0;
-	const double MIN_XY_RATIO = 0.8;
-	const double MAX_XY_RATIO = 1.2;
+#ifdef TUNE_XY
+	const double MIN_XY_RATIO = 1.0;
+	const double MAX_XY_RATIO = 1.0;
+#else
+	const double MIN_XY_RATIO = DEF_XY_RATIO;
+	const double MAX_XY_RATIO = DEF_XY_RATIO;
+#endif
 
 #endif
 
-#ifndef NO_ROTATION
-
 	// basic
-	const double DEF_A_PROP = 7;
+	const double DEF_A_PROP = 12.6332;
+#ifdef TUNE_ROTATION
 	const double MIN_A_PROP = 0;
 	const double MAX_A_PROP = 20;
+#else
+	const double MIN_A_PROP = DEF_A_PROP;
+	const double MAX_A_PROP = DEF_A_PROP;
+#endif
 	
-	const double DEF_A_DIFF = 0;
-	const double MIN_A_DIFF = 10;
-	const double MAX_A_DIFF = 50;
-
+	const double DEF_A_DIFF = 40.3835;
+#ifdef TUNE_ROTATION
+	const double MIN_A_DIFF = 0;
+	const double MAX_A_DIFF = 80;
+#else
+	const double MIN_A_DIFF = DEF_A_DIFF;
+	const double MAX_A_DIFF = DEF_A_DIFF;
 #endif
 
 enum {
@@ -87,9 +119,7 @@ enum {
 #else
 	PARAM_XY_RATIO,
 #endif
-#ifndef NO_ROTATION
 	PARAM_A_PROP, PARAM_A_DIFF,
-#endif
 };
 
 const double arr_min[] = {MIN_X_PROP, MIN_X_DIFF,
@@ -98,9 +128,7 @@ const double arr_min[] = {MIN_X_PROP, MIN_X_DIFF,
 #else
 	MIN_XY_RATIO,
 #endif
-#ifndef NO_ROTATION
 	MIN_A_PROP, MIN_A_DIFF,
-#endif
 };
 
 const double arr_def[] = {DEF_X_PROP, DEF_X_DIFF,
@@ -109,9 +137,7 @@ const double arr_def[] = {DEF_X_PROP, DEF_X_DIFF,
 #else
 	DEF_XY_RATIO,
 #endif
-#ifndef NO_ROTATION
 	DEF_A_PROP, DEF_A_DIFF,
-#endif
 };
 
 const double arr_max[] = {MAX_X_PROP, MAX_X_DIFF,
@@ -120,9 +146,7 @@ const double arr_max[] = {MAX_X_PROP, MAX_X_DIFF,
 #else
 	MAX_XY_RATIO,
 #endif
-#ifndef NO_ROTATION
 	MAX_A_PROP, MAX_A_DIFF,
-#endif
 };
 
 const int P = sizeof(arr_max) / sizeof(arr_max[0]);
@@ -190,22 +214,9 @@ void tunable_pid_controller::move(const point &new_position, double new_orientat
 	linear_velocity.y = (py * param[PARAM_X_PROP] + vy * param[PARAM_X_DIFF]) * param[PARAM_XY_RATIO];
 #endif
 
-#ifndef NO_ROTATION
 	const double pa = error_ori[0];
 	const double va = error_ori[0] - error_ori[1];
-	// const double ca = accum_ori;
 	angular_velocity = pa * param[PARAM_A_PROP] + va * param[PARAM_A_DIFF];
-#else
-	angular_velocity = 0;
-#endif
-}
-
-void tunable_pid_controller::set_params(const std::vector<double>& params) {
-	this->param = params;
-}
-
-const std::vector<double>& tunable_pid_controller::get_params() const {
-	return param;
 }
 
 robot_controller_factory &tunable_pid_controller::get_factory() const {

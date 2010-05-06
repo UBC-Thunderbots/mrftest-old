@@ -5,38 +5,13 @@
 #include <vector>
 #include <cmath>
 
-// This benchmark records how long it takes for a robot to travel and stop at a point 1 meter away.
-
-// NOTE:
-// the first task centers the robot, so the timing does not start until after that
+// Parameter Tuning based on movement benchmark
+// To change tasks, make use of movement_benchmark
 
 namespace {
 
 	const int TUNING_ITERATIONS = 1000;
 	const int EVALUATION_LIMIT = 1000;
-
-	// TODO: implement separate controllers for vertical, horizontal, rotational etc
-	const std::pair<point, double> default_tasks[] =
-	{
-		std::make_pair(point(0, 0), 0),
-		std::make_pair(point(1, 0), 0),
-		std::make_pair(point(0, 0), 0),
-		std::make_pair(point(-1, 0), 0),
-		std::make_pair(point(0, 1), 0),
-		std::make_pair(point(0, -1), 0),
-		std::make_pair(point(2.5, 0), 0),
-		std::make_pair(point(-2.5, 0), 0),
-		std::make_pair(point(0, 0), 0),
-		std::make_pair(point(0.25, 0), 0),
-		std::make_pair(point(0.1, 0.1), 0),
-		std::make_pair(point(-0.1, 0), 0),
-		std::make_pair(point(0, 0), 0),
-		std::make_pair(point(-0.25, -0.1), 0),
-		std::make_pair(point(0.25, 0.1), 0),
-		std::make_pair(point(-0.1, 0), 0),
-		std::make_pair(point(0, 0), 0),
-	};
-	const int default_tasks_n = sizeof(default_tasks) / sizeof(default_tasks[0]);
 
 	class param_tuning : public movement_benchmark {
 		public:

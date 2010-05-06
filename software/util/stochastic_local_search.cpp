@@ -46,22 +46,14 @@ void stochastic_local_search::set_initial(const std::vector<double>& initial) {
 }
 
 void stochastic_local_search::hill_climb() {
-	int index = rand() % param_cur.size();
-	// pick a neighbour
-	switch(rand() % 3) {
-	case 0:
-		param_cur[index] += (param_max[index] - param_min[index]) / (stale+1);
-		break;
-	case 2:
-		param_cur[index] -= (param_max[index] - param_min[index]) / (stale+1);
+	int tries = 100;
+	while(tries > 0) {
+		--tries;
+		int index = rand() % param_cur.size();
+		if (param_min[index] == param_max[index]) continue;
+		param_cur[index] = drand48()*(param_max[index]-param_min[index]) + param_min[index];
 		break;
 	}
-	// double change = drand48()*(param_max[index]-param_min[index]) * exp(- steps * 0.1);
-	// std::cout << param_min[index] << " " << change << " " << param_max[index] << std::endl;
-	// param_cur[index] = param_best[index] + change;
-	param_cur[index] = max(param_min[index], param_cur[index]);
-	param_cur[index] = min(param_max[index], param_cur[index]);
-	//param_cur[index] = drand48()*(param_max[index]-param_min[index]) + param_min[index];
 }
 
 void stochastic_local_search::random_restart() {

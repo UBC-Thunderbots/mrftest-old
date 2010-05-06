@@ -8,6 +8,8 @@
 // NOTE:
 // the first task centers the robot, so the timing does not start until after that
 
+// #define NO_TUNE_ROTATION
+
 namespace {
 
 	class movement_benchmark_factory : public strategy_factory {
@@ -26,7 +28,30 @@ namespace {
 
 	movement_benchmark_factory factory;
 
-	// A set of tasks; use this for now
+	const double PI = M_PI;
+
+#ifndef NO_TUNE_ROTATION
+	const std::pair<point, double> default_tasks[] =
+	{
+		std::make_pair(point(0, 0), 0),
+		std::make_pair(point(1, 0), PI),
+		std::make_pair(point(0, 0), 0),
+		std::make_pair(point(-1, 0), PI/2),
+		std::make_pair(point(0, 1), -PI/2),
+		std::make_pair(point(0, -1), 0),
+		std::make_pair(point(2.5, 0), PI),
+		std::make_pair(point(-2.5, 0), -PI/2),
+		std::make_pair(point(0, 0), 0),
+		std::make_pair(point(0.25, 0), PI/2),
+		std::make_pair(point(0.1, 0.1), 0),
+		std::make_pair(point(-0.1, 0), PI),
+		std::make_pair(point(0, 0), PI),
+		std::make_pair(point(-0.25, -0.1), 0),
+		std::make_pair(point(0.25, 0.1), PI/2),
+		std::make_pair(point(-0.1, 0), 0),
+		std::make_pair(point(0, 0), 0),
+	};
+#else
 	const std::pair<point, double> default_tasks[] =
 	{
 		std::make_pair(point(0, 0), 0),
@@ -47,6 +72,7 @@ namespace {
 		std::make_pair(point(-0.1, 0), 0),
 		std::make_pair(point(0, 0), 0),
 	};
+#endif
 	const int default_tasks_n = sizeof(default_tasks) / sizeof(default_tasks[0]);
 
 }
@@ -80,9 +106,9 @@ void movement_benchmark::tick() {
 		const point vel_pos = the_team->get_player(0)->position() - prev_pos;
 		const double diff_ori = angle_mod(the_team->get_player(0)->orientation() - tasks[done].second);
 		const double vel_ori = angle_mod(the_team->get_player(0)->orientation() - prev_ori);
-		std::cout << "movement benchmark task #" << done << std::endl;
-		std::cout << "displace pos:" << diff_pos.x << " " << diff_pos.y << " ori:" << diff_ori << std::endl;
-		std::cout << "velocity pos:" << vel_pos.x << " " << vel_pos.y << " ori:" << vel_ori << std::endl;
+		// std::cout << "movement benchmark task #" << done << std::endl;
+		// std::cout << "displace pos:" << diff_pos.x << " " << diff_pos.y << " ori:" << diff_ori << std::endl;
+		// std::cout << "velocity pos:" << vel_pos.x << " " << vel_pos.y << " ori:" << vel_ori << std::endl;
 		if (diff_pos.len() < pos_dis_threshold && vel_pos.len() < pos_vel_threshold && fabs(diff_ori) < ori_dis_threshold && fabs(vel_ori) < ori_vel_threshold) {
 			std::cout << "time steps taken: " << time_steps << std::endl;
 			++done;

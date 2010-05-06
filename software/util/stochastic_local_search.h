@@ -16,6 +16,7 @@
  
    Some advice:
    - the LESSER the PARAMETERS, the faster the convergence
+   - if the max of a parameter equals the min, then that parameter is ignored
    
  */
 
