@@ -4,7 +4,8 @@
 #include "world/player_impl.h"
 #include <cmath>
 
-#define REDUCED_PARAMS
+#define NO_ROTATION
+#define LINEAR_XY
 
 namespace {
 
@@ -36,18 +37,96 @@ namespace {
 
 	tunable_pid_controller_factory factory;
 
-	// parameters
-#ifdef REDUCED_PARAMS
-	const int P = 5;
-	const double arr_min[P] = {0.0, 0.0, 0.8, 0.0, 0.0};
-	const double arr_max[P] = {5.0, 0.8, 1.2, 3.0, 0.8};
-	const double arr_def[P] = {5.0, 0.3, 1.0, 3.0, 0.3};
+	// basic
+	const double DEF_X_PROP = 6.95932;
+	const double MIN_X_PROP = 0;
+	const double MAX_X_PROP = 20;
+	
+	const double DEF_X_DIFF = 28.264;
+	const double MIN_X_DIFF = 10;
+	const double MAX_X_DIFF = 50;
+
+#ifndef LINEAR_XY
+	// if y independent of x
+
+	const double DEF_Y_PROP = 7;
+	const double MIN_Y_PROP = 0;
+	const double MAX_Y_PROP = 20;
+
+	const double DEF_Y_DIFF = 0;
+	const double MIN_Y_DIFF = 10;
+	const double MAX_Y_DIFF = 50;
+
 #else
-	const int P = 9;
-	const double arr_min[P] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-	const double arr_max[P] = {5.0, 0.8, 0.1, 5.0, 0.8, 0.1, 3.0, 0.8, 0.1};
-	const double arr_def[P] = {5.0, 0.3, 0.1, 5.0, 0.3, 0.1, 3.0, 0.3, 0.1};
+	// if x and y are tied linearly
+
+	const double DEF_XY_RATIO = 1.0;
+	const double MIN_XY_RATIO = 0.8;
+	const double MAX_XY_RATIO = 1.2;
+
 #endif
+
+#ifndef NO_ROTATION
+
+	// basic
+	const double DEF_A_PROP = 7;
+	const double MIN_A_PROP = 0;
+	const double MAX_A_PROP = 20;
+	
+	const double DEF_A_DIFF = 0;
+	const double MIN_A_DIFF = 10;
+	const double MAX_A_DIFF = 50;
+
+#endif
+
+enum {
+	PARAM_X_PROP = 0,
+	PARAM_X_DIFF,
+#ifndef LINEAR_XY
+	PARAM_Y_PROP, PARAM_Y_DIFF,
+#else
+	PARAM_XY_RATIO,
+#endif
+#ifndef NO_ROTATION
+	PARAM_A_PROP, PARAM_A_DIFF,
+#endif
+};
+
+const double arr_min[] = {MIN_X_PROP, MIN_X_DIFF,
+#ifndef LINEAR_XY
+	MIN_Y_PROP, MIN_Y_DIFF,
+#else
+	MIN_XY_RATIO,
+#endif
+#ifndef NO_ROTATION
+	MIN_A_PROP, MIN_A_DIFF,
+#endif
+};
+
+const double arr_def[] = {DEF_X_PROP, DEF_X_DIFF,
+#ifndef LINEAR_XY
+	DEF_Y_PROP, DEF_Y_DIFF,
+#else
+	DEF_XY_RATIO,
+#endif
+#ifndef NO_ROTATION
+	DEF_A_PROP, DEF_A_DIFF,
+#endif
+};
+
+const double arr_max[] = {MAX_X_PROP, MAX_X_DIFF,
+#ifndef LINEAR_XY
+	MAX_Y_PROP, MAX_Y_DIFF,
+#else
+	MAX_XY_RATIO,
+#endif
+#ifndef NO_ROTATION
+	MAX_A_PROP, MAX_A_DIFF,
+#endif
+};
+
+const int P = sizeof(arr_max) / sizeof(arr_max[0]);
+
 }
 
 const std::vector<double> tunable_pid_controller::param_min(arr_min, arr_min + P);
@@ -100,25 +179,35 @@ void tunable_pid_controller::move(const point &new_position, double new_orientat
 	const double vx = error_pos[0].x - error_pos[1].x;
 	const double py = error_pos[0].y;
 	const double vy = error_pos[0].y - error_pos[1].y;
+
+	linear_velocity.x = px * param[PARAM_X_PROP] + vx * param[PARAM_X_DIFF];
+
+#ifndef LINEAR_XY
+	//const double cx = accum_pos.x;
+	//const double cy = accum_pos.y;
+	linear_velocity.y = py * param[PARAM_Y_PROP] + vy * param[PARAM_Y_DIFF];
+#else
+	linear_velocity.y = (py * param[PARAM_X_PROP] + vy * param[PARAM_X_DIFF]) * param[PARAM_XY_RATIO];
+#endif
+
+#ifndef NO_ROTATION
 	const double pa = error_ori[0];
 	const double va = error_ori[0] - error_ori[1];
-
-#ifdef REDUCED_PARAMS
-	linear_velocity.x = px * param[0] + vx * param[1];
-	linear_velocity.y = py * param[0] * param[2] + vy * param[1] * param[2];
-	angular_velocity  = pa * param[3] + va * param[4];
+	// const double ca = accum_ori;
+	angular_velocity = pa * param[PARAM_A_PROP] + va * param[PARAM_A_DIFF];
 #else
-	const double cx = accum_pos.x;
-	const double cy = accum_pos.y;
-	const double ca = accum_ori;
-
-	linear_velocity.x = px * param[0] + vx * param[1] + cx * param[2];
-	linear_velocity.y = py * param[3] + vy * param[4] + cy * param[5];
-	angular_velocity  = pa * param[6] + va * param[7] + ca * param[8];
+	angular_velocity = 0;
 #endif
+}
+
+void tunable_pid_controller::set_params(const std::vector<double>& params) {
+	this->param = params;
+}
+
+const std::vector<double>& tunable_pid_controller::get_params() const {
+	return param;
 }
 
 robot_controller_factory &tunable_pid_controller::get_factory() const {
 	return factory;
 }
-

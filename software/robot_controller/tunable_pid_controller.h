@@ -1,14 +1,15 @@
 #ifndef ROBOT_CONTROLLER_PID_CONTROLLER_H
 #define ROBOT_CONTROLLER_PID_CONTROLLER_H
 
-#include <vector>
-#include <glibmm.h>
 #include "robot_controller/robot_controller.h"
 #include "robot_controller/tunable_controller.h"
 #include "geom/point.h"
 #include "util/byref.h"
 #include "util/noncopyable.h"
 #include "world/player_impl.h"
+
+#include <vector>
+#include <glibmm.h>
 
 class tunable_pid_controller : public robot_controller, public tunable_controller {
 	public:
@@ -19,14 +20,6 @@ class tunable_pid_controller : public robot_controller, public tunable_controlle
 
 		tunable_pid_controller(player_impl::ptr plr);
 
-	 	void set_params(const std::vector<double>& params) {
-			this->param = params;
-		}
-
-		const std::vector<double>& get_params() const {
-			return param;
-		}
-
 		const std::vector<double>& get_params_min() const {
 			return param_min;
 		}
@@ -34,6 +27,10 @@ class tunable_pid_controller : public robot_controller, public tunable_controlle
 		const std::vector<double>& get_params_max() const {
 			return param_max;
 		}
+
+		void set_params(const std::vector<double>& params);
+
+		const std::vector<double>& get_params() const;
 
 	private:
 		player_impl::ptr plr;
@@ -54,4 +51,3 @@ class tunable_pid_controller : public robot_controller, public tunable_controlle
 };
 
 #endif
-
