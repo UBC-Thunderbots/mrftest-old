@@ -20,7 +20,7 @@ namespace {
 	const double GRAVITY = -9.81;
 	
 	
-	const unsigned int UPDATES_PER_TICK = 100;
+	const unsigned int UPDATES_PER_TICK = 300;
 
 	//
 	//

@@ -25,7 +25,7 @@ class playerODE : public player_impl {
 	dBodyID body;
 	dMass mass;
 	bool posSet;
-	point the_position, the_velocity, target_velocity;
+	point the_position, the_velocity, target_velocity, unrotated_target_velocity;
 	double the_orientation, avelocity, target_avelocity;
 	dGeomID ballGeom;
 	double updates_per_tick;

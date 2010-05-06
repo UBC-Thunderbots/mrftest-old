@@ -317,7 +317,7 @@ void playerODE::pre_tic(double TimeStep){
 
 	if(!posSet){
 
-		
+		target_velocity = unrotated_target_velocity.rotate(orientation());
 	
 		const dReal *cur_vel = dBodyGetLinearVel(body);
 		the_velocity.x = cur_vel[0];
@@ -348,16 +348,16 @@ void playerODE::pre_tic(double TimeStep){
 
 void playerODE::move_impl(const point &vel, double avel) {					
 		if(vel.len() > BOT_MAX_VELOCITY)
-			target_velocity = vel/vel.len()*BOT_MAX_VELOCITY;
+			unrotated_target_velocity = vel/vel.len()*BOT_MAX_VELOCITY;
 		else
-			target_velocity=vel;
+			unrotated_target_velocity=vel;
 		    
 		if(fabs(avel) > BOT_MAX_A_VELOCITY)
 			target_avelocity = avel/fabs(avel)*BOT_MAX_A_VELOCITY;		
 		else
 			target_avelocity = avel;	
 			
-		target_velocity = target_velocity.rotate(orientation());	
+		//target_velocity = unrotated_target_velocity.rotate(orientation());	
 }
 
 void playerODE::dribble(double speed) {
@@ -378,23 +378,29 @@ void playerODE::dribble(double speed) {
 
 	torqueAxis*=appliedTorque;
 
-	if(has_ball(0.012)){
+	if(has_ball(0.022)){
 
 
 		point ball_turn;
 		ball_turn.x = t[0];
 		ball_turn.y = t[1];
 		if(! (ball_turn.len() > max_Angular_vel)){
-			double forceMax = 0.01;
+			//double forceMax = 0.1;
 			//std::cout<<"dribble"<<speed<<std::endl;
 			//std::cout<<"dribble"<< t[0]<<" "<<t[1]<<" "<<t[2]<<std::endl;
 			//dBodyAddTorque(dGeomGetBody(ballGeom), torqueAxis.x, torqueAxis.y, 0.0);
-			point directionp(1,0);
-			directionp = directionp.rotate(orientation());
-			directionp = -directionp*forceMax*speed;
-			dBodyAddForce(dGeomGetBody(ballGeom), directionp.x, directionp.y, 0.0);
+			//point directionp(1,0);
+			//directionp = directionp.rotate(orientation());
+			//directionp = -directionp*forceMax*speed;
+			//dBodyAddForce(dGeomGetBody(ballGeom), directionp.x, directionp.y, 0.0);
 
 		}
+//			double forceMax = 0.1;
+//			std::cout<<"dribble"<<speed<<std::endl;
+//			point directionp(1,0);
+//			directionp = directionp.rotate(orientation());
+//			directionp = -directionp*forceMax*speed;
+//			dBodyAddForce(dGeomGetBody(ballGeom), directionp.x, directionp.y, 0.0);
 
 	}
 }
