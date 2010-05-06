@@ -52,6 +52,9 @@ class tunable_pid_controller : public robot_controller, public tunable_controlle
 		// errors in x, y, d
 		std::vector<point> error_pos;
 		std::vector<double> error_ori;
+		
+		point prev_new_pos;
+		double prev_new_ori;
 };
 
 #endif
