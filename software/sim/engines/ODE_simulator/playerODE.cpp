@@ -102,7 +102,7 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 
 	//dSpaceAdd (dspace, robotGeom);
 	dSpaceAdd (dspace, robotGeomTop);
-dSpaceAdd (dspace, robotGeomTopCyl);
+	dSpaceAdd (dspace, robotGeomTopCyl);
 	dSpaceAdd (dspace, dribbleArmL);
 	dSpaceAdd (dspace, dribbleArmR);
 	//dBodySetLinearDamping (body, 0.05);
@@ -117,6 +117,7 @@ dSpaceAdd (dspace, robotGeomTopCyl);
 playerODE::~playerODE () {
 	//dJointGroupDestroy (contactgroup);
 	dGeomDestroy(robotGeomTop);
+	dGeomDestroy(robotGeomTopCyl);
 	dGeomDestroy(dribbleArmL);
 	dGeomDestroy(dribbleArmR);
 	dBodyDestroy (body);
