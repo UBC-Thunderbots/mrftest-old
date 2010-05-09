@@ -33,6 +33,12 @@ class playerODE : public player_impl {
 	double fcex,fcey,torquez;
 	dVector3 *Vertices;
 	unsigned int *Triangles;
+	point* wheel_position;
+	point* force_direction;
+	
+	//Target wheel velocities in quarter of a degree per 200 milliseconds
+	double motor_desired[4];
+	
 	public:
 
 	playerODE( dWorldID dworld, dSpaceID dspace,  dGeomID ballGeom, double ups_per_tick);

@@ -35,12 +35,25 @@ namespace {
 	// The acceleration due to friction against the ball, in metres per second squared.
 	//
 	const double BALL_DECELERATION = 6.0;
+	
+	//
+	// Conversion Factor from the value used in radio packets (1/4 degree) per 5 ms to motor voltage
+	//
+	const double PACKET_TO_VOLTAGE = 0.022281639;
+	
+	const double VOLTAGE_LIMIT = 15.0;
+	
+	const double MOTOR_RESISTANCE = 1.2; //ohms
+	const double CURRENT_TO_TORQUE = 0.0255; //Nm / amp
+	const double GEAR_RATIO = 3.5;
 
 	const double ROBOT_RADIUS = 0.09;
 	const double ROBOT_MASS = 4.0;
 	const double ROBOT_HEIGHT = 0.15;
 	const double FRONT_FACE_WIDTH = 0.16;
-	const unsigned int NUM_SIDES = 20; 
+	const unsigned int NUM_SIDES = 20;
+	
+	const double ANGLES[4] = {0.959931, 2.35619, 3.9269908, 5.32325}; 
 }
 
 playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0), target_avelocity(0.0), Vertices(0), Triangles(0) {
@@ -110,7 +123,14 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	//contactgroup = dJointGroupCreate (0);
 	//createJointBetweenB1B2();
 
-//dBodySetAngularDamping (body, dReal scale);
+		wheel_position = new point[4];
+		force_direction = new point[4];
+		
+	for(int index=0;index<4;index++)
+	{
+		wheel_position[index]=point(1,0).rotate(ANGLES[index])*ROBOT_RADIUS;
+		force_direction[index]=point(wheel_position[index].rotate(PI/2).norm());
+	}
 	
 }
 
@@ -121,11 +141,19 @@ playerODE::~playerODE () {
 	dGeomDestroy(dribbleArmL);
 	dGeomDestroy(dribbleArmR);
 	dBodyDestroy (body);
+	
 
 	if(Vertices != NULL)
 		delete Vertices;
 	if(Triangles != NULL)
 		delete Triangles;
+	
+	if(wheel_position != NULL)
+		delete[] wheel_position;
+	
+	if(force_direction != NULL)
+		delete[] force_direction;
+		
 	//dBodyDestroy (body2);
 }
 
@@ -313,33 +341,64 @@ bool playerODE::robot_contains_shape_ground(dGeomID geom){
 	return (b==body) && (geom!=robotGeomTopCyl);
 }
 
-void playerODE::pre_tic(double TimeStep){
+//paramter is timestep
+void playerODE::pre_tic(double ){
 
-
+	//Current Motor Speed
+	double motor_current[4];
+	double wheel_torque;
+	point force;
+	
 	if(!posSet){
 
-		target_velocity = unrotated_target_velocity.rotate(orientation());
-	
+		//target_velocity = unrotated_target_velocity.rotate(orientation());
+		
+		//get the current bots velocity	
 		const dReal *cur_vel = dBodyGetLinearVel(body);
 		the_velocity.x = cur_vel[0];
 		the_velocity.y = cur_vel[1];
 		
-		const dReal * t =  dBodyGetAngularVel (body);
-		avelocity = t[2];
+		//rotate it to bot relative
+		the_velocity = the_velocity.rotate(-orientation());
 		
-		point fce = (target_velocity-the_velocity)/BOT_MAX_VELOCITY*BOT_MAX_ACCELERATION*mass.mass;
 		
-		double torque = (target_avelocity-avelocity)/BOT_MAX_A_VELOCITY*BOT_MAX_A_ACCELERATION*momentInertia;		
+		//get the angular velocity
+		const dReal * avels =  dBodyGetAngularVel (body);
 		
-		fcex = fce.x;
-		fcey = fce.y;
-		torquez=torque;
 		
+		//convert the velocities to packet date type for comparison to stored values
+		motor_current[0] = -42.5995*the_velocity.x + 27.6645*the_velocity.y + 4.3175 * avels[2]; 
+		motor_current[1] = -35.9169*the_velocity.x + -35.9169*the_velocity.y + 4.3175*avels[2];
+		motor_current[2] = 35.9169*the_velocity.x + -35.9169*the_velocity.y  + 4.3175*avels[2];
+		motor_current[3] = 42.5995*the_velocity.x + 27.6645*the_velocity.y + 4.3175*avels[2];		
+		
+		
+	
 		dBodyEnable (body);
 		dBodySetDynamic (body);
 		
-		dBodyAddTorque (body, 0.0, 0.0, torquez);
-		dBodyAddForce (body, fcex, fcey, 0.0);
+		
+		for(int index=0;index<4;index++)
+		{
+			//motor desired in this context should be coming from the firmware interpreter
+			wheel_torque=(motor_desired[index]-motor_current[index])*PACKET_TO_VOLTAGE/MOTOR_RESISTANCE*CURRENT_TO_TORQUE*GEAR_RATIO;
+			force = force_direction[index]*wheel_torque/0.0254; //scale by wheel radius
+			
+			//Adds the force at the wheel positions, at mid-point of the robot(not realistic but should prevent tipping that we can't detect)
+			dBodyAddRelForceAtRelPos(body, force.x, force.y, ROBOT_HEIGHT/2, wheel_position[index].x, wheel_position[index].y, ROBOT_HEIGHT/2);
+		}
+		
+		
+		//point fce = (target_velocity-the_velocity)/BOT_MAX_VELOCITY*BOT_MAX_ACCELERATION*mass.mass;
+		
+		//double torque = (target_avelocity-avelocity)/BOT_MAX_A_VELOCITY*BOT_MAX_A_ACCELERATION*momentInertia;		
+		
+		//fcex = fce.x;
+		//fcey = fce.y;
+		//torquez=torque;
+		
+		//dBodyAddTorque (body, 0.0, 0.0, torquez);
+		//dBodyAddForce (body, fcex, fcey, 0.0);
 
 
 
@@ -347,19 +406,29 @@ void playerODE::pre_tic(double TimeStep){
 	posSet=false;
 }
 
+
+//received data from ai does some checks and stores it,
+//when implemented should pass to firmware interpreter
 void playerODE::move_impl(const point &vel, double avel) {					
-		if(vel.len() > BOT_MAX_VELOCITY)
-			unrotated_target_velocity = vel/vel.len()*BOT_MAX_VELOCITY;
-		else
-			unrotated_target_velocity=vel;
-		    
-		if(fabs(avel) > BOT_MAX_A_VELOCITY)
-			target_avelocity = avel/fabs(avel)*BOT_MAX_A_VELOCITY;		
-		else
-			target_avelocity = avel;	
 			
-		//target_velocity = unrotated_target_velocity.rotate(orientation());	
+		point new_vel = vel;
+	
+	//These are used directly in the simulator code, needs to intercepted by a 
+	//firmware intepreter to simulate controller			
+	motor_desired[0] = -42.5995*new_vel.x +  27.6645*new_vel.y + 4.3175*avel; 
+	motor_desired[1] = -35.9169*new_vel.x + -35.9169*new_vel.y + 4.3175*avel;
+	motor_desired[2] =  35.9169*new_vel.x + -35.9169*new_vel.y + 4.3175*avel;
+	motor_desired[3] =  42.5995*new_vel.x +  27.6645*new_vel.y + 4.3175*avel;		
+	
+	
+	//limit max motor "voltage" to VOLTAGE_LIMIT by scaling the largest component to VOLTAGE_LIMIT if greater
+	for(int index=0;index<4;index++)
+		if(fabs(motor_desired[index])>VOLTAGE_LIMIT/PACKET_TO_VOLTAGE)
+			for(int index2=0;index2<4;index2++)
+				motor_desired[index2]=motor_desired[index2]/motor_desired[index]*VOLTAGE_LIMIT/PACKET_TO_VOLTAGE;
 }
+
+
 
 void playerODE::dribble(double speed) {
 
@@ -453,7 +522,7 @@ void playerODE::chip(double strength) {
 
 void playerODE::ext_drag(const point &pos, const point &vel) {
 	posSet = true;
-	const dReal *t = dBodyGetPosition (body);
+	//const dReal *t = dBodyGetPosition (body);
 	//const dReal *t2 = dBodyGetPosition (body2);
 	dBodySetPosition(body, pos.x, pos.y, ROBOT_HEIGHT/2+0.01);
 	//dBodySetPosition(body2, pos.x, pos.y, t2[2]);
