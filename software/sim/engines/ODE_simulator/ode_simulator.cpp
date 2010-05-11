@@ -124,7 +124,7 @@ namespace {
 	 				dSpaceCollide (space,this,&sim_engine::nearCallbackThunk);
 	 				//step the world (have ODE do 1 iterations per step)
 					//dWorldStep (eworld, 1);
-					dWorldSetQuickStepNumIterations (eworld, 50);
+					dWorldSetQuickStepNumIterations (eworld, 150);
 					
 					//double timeStep = 1.0/static_cast<double>(UPDATES_PER_TICK);
 					

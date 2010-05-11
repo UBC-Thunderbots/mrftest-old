@@ -4,6 +4,7 @@
 #include "ai/role.h"
 #include "ai/tactic.h"
 #include "ai/tactic/chase.h"
+#include "ai/tactic/chase_and_shoot.h"
 #include "ai/tactic/move.h"
 #include "ai/tactic/shoot.h"
 #include <vector>

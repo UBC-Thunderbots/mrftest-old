@@ -5,6 +5,7 @@
 
 class robot_navigator : public navigator {
  public:
+typedef Glib::RefPtr<robot_navigator> ptr;
   robot_navigator(player::ptr player, field::ptr field, ball::ptr ball, team::ptr team);
   
   void tick();

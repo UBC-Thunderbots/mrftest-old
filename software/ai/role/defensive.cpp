@@ -25,7 +25,7 @@ void defensive::move_halfway_between_ball_and_our_goal(int index) {
 }
 
 void defensive::chase_ball(int index) {
-    chase::ptr tactic( new chase(the_ball, the_field, the_team, the_robots[index]));
+    chase_and_shoot::ptr tactic( new chase_and_shoot(the_ball, the_field, the_team, the_robots[index]));
     the_tactics.push_back(tactic);
 }
 
@@ -78,9 +78,11 @@ void defensive::tick() {
         if(have_ball()) {
             if(the_robots[i]->has_ball()) {
                 //todo: pass
+                chase_ball(i);
             }
             else {
-               move_halfway_between_ball_and_our_goal(i);
+             chase_ball(i);
+              // move_halfway_between_ball_and_our_goal(i);
             }
         }
         else {

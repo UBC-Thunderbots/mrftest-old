@@ -23,7 +23,12 @@ class move : public tactic {
 		// Runs the AI for one time tick.
 		//
 		void tick();
-
+		
+		//
+		//make the move tactic avoid the ball
+		//
+		void set_avoid_ball(bool avoid);
+		
 		//
 		// Sets the target position for this move tactic
 		//
@@ -37,6 +42,7 @@ class move : public tactic {
 		// Target position
 		point target_position;
 
+		bool avoid_ball;
 };
 
 #endif

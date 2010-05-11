@@ -24,7 +24,7 @@ void offensive::shoot_at_goal(int index) {
 }
 
 void offensive::chase_ball(int index) {
-    chase::ptr tactic( new chase(the_ball, the_field, the_team, the_robots[index]));
+    chase_and_shoot::ptr tactic( new chase_and_shoot(the_ball, the_field, the_team, the_robots[index]));
     the_tactics.push_back(tactic);
 }
 

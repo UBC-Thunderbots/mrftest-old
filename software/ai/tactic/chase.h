@@ -3,12 +3,21 @@
 
 #include "ai/tactic.h"
 #include "ai/tactic/move.h"
+#include "geom/point.h"
 
 //
 // 
 //
 class chase : public tactic {
 	public:
+		//
+		// A pointer to a kick tactic.
+		//
+		typedef Glib::RefPtr<chase> ptr;
+		//
+		// Set a target that robot would like to take ball after gaining possesion
+		//
+		void set_target(point target);
 
 		//
 		// Constructs a new chase tactic. 
@@ -23,6 +32,8 @@ class chase : public tactic {
 	protected:
 
 		move::ptr move_tactic;
+		
+		point target;
 
 };
 
