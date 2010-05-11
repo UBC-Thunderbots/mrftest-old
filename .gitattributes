@@ -20,6 +20,7 @@ firmware/mainboard-copro/pins.txt -text
 firmware/mainboard-copro/sleep.asm -text
 firmware/mainboard-copro/sleep.inc -text
 firmware/mainboard-copro/spi.inc -text
+software/Doxyfile -text
 software/Makefile -text
 software/ai/navigator.h -text
 software/ai/navigator/collisionnavigator.cpp -text
