@@ -87,6 +87,8 @@ software/ai/tactic/block.cpp -text
 software/ai/tactic/block.h -text
 software/ai/tactic/chase.cpp -text
 software/ai/tactic/chase.h -text
+software/ai/tactic/chase_and_shoot.cpp -text
+software/ai/tactic/chase_and_shoot.h -text
 software/ai/tactic/dance.cpp -text
 software/ai/tactic/dance.h -text
 software/ai/tactic/kick.cpp -text
