@@ -24,6 +24,8 @@ software/Makefile -text
 software/ai/navigator.h -text
 software/ai/navigator/collisionnavigator.cpp -text
 software/ai/navigator/collisionnavigator.h -text
+software/ai/navigator/robot_navigator.cpp -text
+software/ai/navigator/robot_navigator.h -text
 software/ai/navigator/testnavigator.cpp -text
 software/ai/navigator/testnavigator.h -text
 software/ai/role.h -text

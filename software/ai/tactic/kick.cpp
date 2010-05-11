@@ -23,10 +23,18 @@ void kick::tick() {
 	else {
 //		std::cout << "kicking" << std::endl;
 		// assume maximum strength for now...
-		if (should_chip)
-			the_player->chip(1);
-		else
-			the_player->kick(1);
+		if (should_chip){
+			if (the_player->has_ball()){
+				the_player->chip(1);
+			}
+		}
+			
+		else{
+			if (the_player->has_ball()){
+				the_player->kick(1);
+			}
+		}
+			
 	}
 
 }
