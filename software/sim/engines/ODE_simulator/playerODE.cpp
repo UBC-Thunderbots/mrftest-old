@@ -77,7 +77,7 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	y_len = 0.18;
 
 	
-	y_len = FRONT_FACE_WIDTH;
+	y_len = 0.1;
 	x_len = sqrt((2*ROBOT_RADIUS)*(2*ROBOT_RADIUS) -(y_len)*(y_len));
 
 	//dBodySetPosition(body, x_pos, y_pos, 0.0006);
@@ -209,7 +209,7 @@ double playerODE::orientation() const {
 bool playerODE::has_ball() const {
 
 	bool hasTheBall = true;
-	double hasBallTolerance = 0.055;
+	double hasBallTolerance = 0.0025;
 	const dReal *b = dBodyGetPosition (dGeomGetBody(ballGeom)); 
 	const dReal *p = dBodyGetPosition (body);
 
@@ -229,22 +229,15 @@ bool playerODE::has_ball() const {
 	if(play_ball_diff.y > y_len/2 + dGeomSphereGetRadius(ballGeom) + hasBallTolerance){
 		hasTheBall=false;
 	}
-	
-	if(play_ball_diff.y < -y_len/2 - dGeomSphereGetRadius(ballGeom) - hasBallTolerance){
+	if(rel_play_ball_diff.x <0){
 		hasTheBall=false;
 	}
-	
-	//if(rel_play_ball_diff.x <0){
-	//	hasTheBall=false;
-	//}
-	//double mag_y = abs(rel_play_ball_diff.y);
-	//double mag_x = abs(rel_play_ball_diff.x);
+	double mag_y = abs(rel_play_ball_diff.y);
+	double mag_x = abs(rel_play_ball_diff.x);
 
-	//if( mag_y*x_len > (y_len)*mag_x){
-		//hasTheBall=false;
-	//}
-	
-	//std::cout<<hasTheBall<<" "<< play_ball_diff<<std::endl;
+	if( mag_y*x_len > (y_len+0.02)*mag_x){
+		hasTheBall=false;
+	}
 
 	return hasTheBall;
 }
@@ -314,22 +307,18 @@ bool playerODE::has_ball(double tolerance){
 	if(play_ball_diff.y > y_len/2 + dGeomSphereGetRadius(ballGeom) + hasBallTolerance){
 		hasTheBall=false;
 	}
-	
-	if(play_ball_diff.y < -y_len/2 - dGeomSphereGetRadius(ballGeom) - hasBallTolerance){
+	if(rel_play_ball_diff.x <0){
 		hasTheBall=false;
 	}
-	
-	//if(rel_play_ball_diff.x <0){
-	//	hasTheBall=false;
-	//}
-	//double mag_y = abs(rel_play_ball_diff.y);
-	//double mag_x = abs(rel_play_ball_diff.x);
+	double mag_y = abs(rel_play_ball_diff.y);
+	double mag_x = abs(rel_play_ball_diff.x);
 
-	//if( mag_y*x_len > (y_len)*mag_x){
+	//if( mag_y/mag_x > y_len/x_len){
 		//hasTheBall=false;
 	//}
-	
-	//std::cout<<hasTheBall<<" "<< play_ball_diff<<std::endl;
+	if( mag_y*x_len > (y_len+0.02)*mag_x){
+		hasTheBall=false;
+	}
 
 	return hasTheBall;
 }
@@ -496,7 +485,7 @@ void playerODE::kick(double strength) {
 	//std::cout<<"strength"<<strength<<std::endl;
 	point impulse = strength*maximum_impulse*direction;
 
-	if(has_ball(0.055)){
+	if(has_ball(0.005)){
 		dVector3 force;
 		//std::cout<<"attempt kick impulse ="<<impulse.x<<" "<<impulse.y<<std::endl;
 		dWorldImpulseToForce (world, 1.0/(static_cast<double>(TIMESTEPS_PER_SECOND)*updates_per_tick),
@@ -519,7 +508,7 @@ void playerODE::chip(double strength) {
 
 	double zimpulse = strength*maximum_impulse/sqrt(2.0);
 
-	if(has_ball(0.05)){
+	if(has_ball(0.01)){
 	 // std::cout<<"attempting chipping"<<std::endl;
 		dVector3 force;
 
