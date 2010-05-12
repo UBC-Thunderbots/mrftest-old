@@ -90,7 +90,15 @@ proto/%.pb.o : proto/%.pb.cc proto/*.pb.h
 # Include all the dependency files.
 #
 ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),cleanbin)
+ifneq ($(MAKECMDGOALS),cleandep)
+ifneq ($(MAKECMDGOALS),cleanobj)
+ifneq ($(MAKECMDGOALS),cleanpb)
 include $(ALL_CPP_FILES:.cpp=.d)
+endif
+endif
+endif
+endif
 endif
 
 #
