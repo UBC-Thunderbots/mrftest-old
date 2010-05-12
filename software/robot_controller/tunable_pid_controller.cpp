@@ -2,13 +2,19 @@
 #include "geom/point.h"
 #include "geom/angle.h"
 #include "world/player_impl.h"
+
 #include <cmath>
+#include <iostream>
+#include <fstream>
 
 #define TUNE_ROTATION
 #define TUNE_XY
 #define LINEAR_XY
 
 namespace {
+
+	// std::ofstream dout("pid.csv");
+	// int dnt = 1;
 
 	// full configurations
 	// params = 9
@@ -38,26 +44,20 @@ namespace {
 
 	tunable_pid_controller_factory factory;
 	
-	// on simulator:
-	// 299, tune_rotation, tune_xy, linear_xy
-	// 17.9826 48.9929 16.4504 47.2417
-	// 292
-	// 21.9721 57.3367 7.31376 26.7814
-
 	// basic
-	const double DEF_X_PROP = 21.9721;
+	const double DEF_X_PROP = 1.2;
 #ifdef TUNE_XY
-	const double MIN_X_PROP = 0;
-	const double MAX_X_PROP = 30;
+	const double MIN_X_PROP = 1;
+	const double MAX_X_PROP = 3;
 #else
 	const double MIN_X_PROP = DEF_X_PROP;
 	const double MAX_X_PROP = DEF_X_PROP;
 #endif
 	
-	const double DEF_X_DIFF = 57.3367;
+	const double DEF_X_DIFF = 0.25;
 #ifdef TUNE_XY
 	const double MIN_X_DIFF = 0;
-	const double MAX_X_DIFF = 60;
+	const double MAX_X_DIFF = 2;
 #else
 	const double MIN_X_DIFF = DEF_X_DIFF;
 	const double MAX_X_DIFF = DEF_X_DIFF;
@@ -98,19 +98,19 @@ namespace {
 
 #endif
 
-	const double DEF_A_PROP = 7.31376;
+	const double DEF_A_PROP = 2;
 #ifdef TUNE_ROTATION
-	const double MIN_A_PROP = 0;
-	const double MAX_A_PROP = 30;
+	const double MIN_A_PROP = 1;
+	const double MAX_A_PROP = 3;
 #else
 	const double MIN_A_PROP = DEF_A_PROP;
 	const double MAX_A_PROP = DEF_A_PROP;
 #endif
 	
-	const double DEF_A_DIFF = 26.7814;
+	const double DEF_A_DIFF = 0.2;
 #ifdef TUNE_ROTATION
-	const double MIN_A_DIFF = 0;
-	const double MAX_A_DIFF = 80;
+	const double MIN_A_DIFF = 2;
+	const double MAX_A_DIFF = 4;
 #else
 	const double MIN_A_DIFF = DEF_A_DIFF;
 	const double MAX_A_DIFF = DEF_A_DIFF;
@@ -209,9 +209,17 @@ void tunable_pid_controller::move(const point &new_position, double new_orientat
 	const double px = error_pos[0].x;
 	const double py = error_pos[0].y;
 	const double pa = error_ori[0];
-	double vx = error_pos[0].x - error_pos[1].x;
-	double vy = error_pos[0].y - error_pos[1].y;
-	double va = error_ori[0] - error_ori[1];
+	point vel = (plr->est_velocity()).rotate(-current_orientation);
+	double vx = -vel.x;
+	double vy = -vel.y;
+	double va = plr->est_avelocity();
+
+	//double ovx = error_pos[0].x - error_pos[1].x;
+	//double ovy = error_pos[0].y - error_pos[1].y;
+	//double ova = error_ori[0] - error_ori[1];
+	//dout << ovx << " " << vx << " " << ovy << " " << vy << " " << ova << " " << va << std::endl;
+	//dout << dnt << " " << va << std::endl;
+	//dnt++;
 	
 	// check if command has changed
 	if (prev_new_pos.x != new_position.x || prev_new_pos.y != new_position.y || prev_new_ori != new_orientation) {
