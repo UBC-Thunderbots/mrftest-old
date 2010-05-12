@@ -172,6 +172,9 @@ software/log/tools/viewer.h -text
 software/log/writer/writer.cpp -text
 software/log/writer/writer.h -text
 software/main.cpp -text
+software/proto/messages_robocup_ssl_detection.proto -text
+software/proto/messages_robocup_ssl_geometry.proto -text
+software/proto/messages_robocup_ssl_wrapper.proto -text
 software/robot_controller/fuzzy_controller.cpp -text
 software/robot_controller/fuzzy_controller.h -text
 software/robot_controller/jons_controller.cpp -text

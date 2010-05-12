@@ -68,6 +68,25 @@ $(eval $(foreach proj,$(PROJECTS),$(call project_template,$(proj))))
 	$(CXX) $(CXXFLAGS) -MT '$(@:.d=.o) $@' -MM -MF $@ $< || { $(RM) $@; false; }
 
 #
+# Rule to make a .d file from a .cc file.
+#
+%.d : %.cc
+	$(CXX) $(CXXFLAGS) -MT '$(@:.d=.o) $@' -MM -MF $@ $< || { $(RM) $@; false; }
+
+#
+# Rule to make a .pb.cc and a .pb.h file from a .proto file.
+#
+proto/%.pb.cc proto/%.pb.h : proto/%.proto
+	protoc --proto_path=proto --cpp_out=proto $<
+
+#
+# Customized rule to compile a protocol-buffers-generated C++ source file,
+# because the generated code otherwise triggers warnings.
+#
+proto/%.pb.o : proto/%.pb.cc proto/*.pb.h
+	$(CXX) $(CXXFLAGS) -o$@ -c -Wno-extra $<
+
+#
 # Include all the dependency files.
 #
 ifneq ($(MAKECMDGOALS),clean)
@@ -84,7 +103,7 @@ dep : $(ALL_CPP_FILES:.cpp=.d)
 # Rules to clean.
 #
 .PHONY : clean
-clean : cleanbin cleandep cleanobj
+clean : cleanbin cleandep cleanobj cleanpb
 
 .PHONY : cleanbin
 cleanbin :
@@ -97,3 +116,7 @@ cleandep :
 .PHONY : cleanobj
 cleanobj :
 	find . ! -path '*/.svn*' -name '*.o' -delete
+
+.PHONY : cleanpb
+cleanpb :
+	$(RM) proto/*.cc proto/*.h

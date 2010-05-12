@@ -22,6 +22,9 @@ software/log/*.d
 software/log/reader/*.d
 software/log/tools/*.d
 software/log/writer/*.d
+software/proto/*.cc
+software/proto/*.d
+software/proto/*.h
 software/rctest
 software/robot_controller/*.d
 software/robot_controller/joystick/*.d
