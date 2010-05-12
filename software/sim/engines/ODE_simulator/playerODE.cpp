@@ -14,48 +14,69 @@ namespace {
 	//
 	// The maximum acceleration of a robot, in metres per second squared.
 	//
-	const double BOT_MAX_ACCELERATION = 10.0;
+	//const double BOT_MAX_ACCELERATION = 10.0;
 
 	//
 	// The maximum velocity of a robot, in metres per second.
 	//
-	const double BOT_MAX_VELOCITY = 5.0;
+	//const double BOT_MAX_VELOCITY = 5.0;
 	
 	//
 	// The maximum angular velocity of a robot in radians per second
 	//
-	const double BOT_MAX_A_VELOCITY = 5;
+	//const double BOT_MAX_A_VELOCITY = 5;
 	
 	//
 	// The maximum angular acceleration of a robot, in radians per second squared
 	//
-	const double BOT_MAX_A_ACCELERATION = 10.0;
+	//const double BOT_MAX_A_ACCELERATION = 10.0;
 
 	//
 	// The acceleration due to friction against the ball, in metres per second squared.
 	//
-	const double BALL_DECELERATION = 6.0;
+	//const double BALL_DECELERATION = 6.0;
 	
-	//
-	// Conversion Factor from the value used in radio packets (1/4 degree) per 5 ms to motor voltage
-	//
+	/// Conversion Factor from the value used in radio packets (1/4 degree) per 5 ms to motor voltage
 	const double PACKET_TO_VOLTAGE = 0.022281639;
 	
+	
+	/// Maximum voltage available to the robot.
 	const double VOLTAGE_LIMIT = 15.0;
 	
+	
+	/// Resistance of the stator
 	const double MOTOR_RESISTANCE = 1.2; //ohms
+	
+	/// Constant relating motor current to motor torque
 	const double CURRENT_TO_TORQUE = 0.0255; //Nm / amp
+	
+	/// Gearing ration of the drive train (speed reduction, torque increase)
 	const double GEAR_RATIO = 3.5;
 
+	/// physical radius of the robot in meters
 	const double ROBOT_RADIUS = 0.09;
+	
+	/// Physical mass of the robot in kg
 	const double ROBOT_MASS = 4.0;
+	
+	/// Physical height of the robot in m
 	const double ROBOT_HEIGHT = 0.15;
+	
+	/// Physical width of the flattened face of the robot
 	const double FRONT_FACE_WIDTH = 0.16;
+	
+	/// Number of sides used to generate the triangle mesh geometry
 	const unsigned int NUM_SIDES = 20;
 	
+	
+	/// Angles in radians that the wheels are located off the forward direction
 	const double ANGLES[4] = {0.959931, 2.35619, 3.9269908, 5.32325}; 
 }
 
+
+/**
+	Constructor method for the robot model contained in the simulator
+*/
 playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0), target_avelocity(0.0), Vertices(0), Triangles(0) {
 
 	updates_per_tick = ups_per_tick;
@@ -134,6 +155,8 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	
 }
 
+
+
 playerODE::~playerODE () {
 	//dJointGroupDestroy (contactgroup);
 	dGeomDestroy(robotGeomTop);
@@ -157,7 +180,7 @@ playerODE::~playerODE () {
 	//dBodyDestroy (body2);
 }
 
-//useless function
+///useless function, literally does nothing blame Jason
 void playerODE::createJointBetweenB1B2(){
 	//dJointGroupDestroy (contactgroup);
 	//contactgroup = dJointGroupCreate(0);
@@ -172,6 +195,9 @@ void playerODE::createJointBetweenB1B2(){
 	//dJointEnable (hinge); 
 }
 
+/**
+No Idea what this does, sounds dirty though
+*/
 bool playerODE::hasContactPenetration(dVector3 pos){
 	//if(dGeomBoxPointDepth (dGeomID box, dReal x, dReal y, dReal z);
 	//((GeomBox)
@@ -197,15 +223,23 @@ bool playerODE::hasContactPenetration(dVector3 pos){
 	return false;
 }
 
+
+/// Accessor method to get the robots position
 point playerODE::position() const {
 	const dReal *t = dBodyGetPosition (body);
 	return point(t[0], t[1]);
 }
 
+
+/// Accessor method to get the robots orientation
 double playerODE::orientation() const {
 	return orientationFromMatrix(dBodyGetRotation(body));
 }
 
+
+/**
+Returns whether or not a given robot has the ball in the most retarded way possible
+*/
 bool playerODE::has_ball() const {
 
 	bool hasTheBall = true;
@@ -278,12 +312,18 @@ bool playerODE::has_point(double x, double y) const {
 	return true;
 }
 
+/// Accessor to get the height of the middle of the robot (should be ROBOT_HEIGHT/2)
 double playerODE::get_height() const
 {
 	const dReal *t = dBodyGetPosition (body);
 	return t[2];
 }
 
+
+/**
+Does the same thing as the OTHER has ball method, but rather than use default parameter values 
+it's copied and pasted, blame Jason 
+*/
 bool playerODE::has_ball(double tolerance){
 
 	bool hasTheBall = true;
@@ -366,7 +406,7 @@ void playerODE::pre_tic(double ){
 		const dReal * avels =  dBodyGetAngularVel (body);
 		
 		
-		//convert the velocities to packet date type for comparison to stored values
+		//convert the velocities to packet data type for comparison to stored values
 		motor_current[0] = -42.5995*the_velocity.x + 27.6645*the_velocity.y + 4.3175 * avels[2]; 
 		motor_current[1] = -35.9169*the_velocity.x + -35.9169*the_velocity.y + 4.3175*avels[2];
 		motor_current[2] = 35.9169*the_velocity.x + -35.9169*the_velocity.y  + 4.3175*avels[2];
