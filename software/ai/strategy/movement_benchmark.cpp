@@ -96,8 +96,8 @@ void movement_benchmark::strategy_reset() {
 }
 
 void movement_benchmark::tick() {
-	if (the_team->size() == 0) {
-		std::cerr << "warning: movement benchmark: nobody in the team" << std::endl;
+	if (the_team->size() != 1) {
+		std::cerr << "error: must have only 1 robot in the team!" << std::endl;
 		return;
 	}
 	if (done >= tasks.size()) return;

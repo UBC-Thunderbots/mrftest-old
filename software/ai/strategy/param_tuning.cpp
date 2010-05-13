@@ -11,7 +11,7 @@
 namespace {
 
 	const int TUNING_ITERATIONS = 1000;
-	const int EVALUATION_LIMIT = 1000;
+	const int EVALUATION_LIMIT = 1500;
 
 	class param_tuning : public movement_benchmark {
 		public:
@@ -19,7 +19,7 @@ namespace {
 			~param_tuning();
 			strategy_factory &get_factory();
 			void tick();
-			void strategy_reset();
+			void reset();
 		private:
 			stochastic_local_search* sls;
 			tunable_controller* tc;
@@ -32,7 +32,7 @@ namespace {
 
 		// override the reset button
 		reset_button = Gtk::manage(new Gtk::Button("Reset"));
-		reset_button->signal_clicked().connect(sigc::mem_fun(this,&param_tuning::strategy_reset));
+		reset_button->signal_clicked().connect(sigc::mem_fun(this,&param_tuning::reset));
 		best = EVALUATION_LIMIT;
 	}
 
@@ -40,7 +40,7 @@ namespace {
 		if(sls != NULL) delete sls;
 	}
 
-	void param_tuning::strategy_reset() {
+	void param_tuning::reset() {
 		if (sls != NULL) delete sls;
 		tc = tunable_controller::controller_instance;
 		if (tc == NULL) return;
@@ -59,8 +59,8 @@ namespace {
 	}
 
 	void param_tuning::tick() {
-		if (tc == NULL) {
-			std::cerr << "Error: Use tunable robot controller and press reset" << std::endl;
+		if (tc == NULL || tc != tunable_controller::controller_instance) {
+			reset();
 			return;
 		}
 		// std::cout << " tick " << std::endl;
@@ -70,10 +70,6 @@ namespace {
 		}
 		if (the_team->size() != 1) {
 			std::cerr << "error: must have only 1 robot in the team!" << std::endl;
-			return;
-		}
-		if (tc != tunable_controller::controller_instance) {
-			std::cerr << "error: robot controller changed; press reset" << std::endl;
 			return;
 		}
 		if (done >= tasks.size() || time_steps > best) {
@@ -86,7 +82,6 @@ namespace {
 				sls->hill_climb();
 			}
 			tc->set_params(sls->get_params());
-			std::cout << "time steps taken=" << time_steps << std::endl;
 			std::cout << "setting new params" << std::endl;
 			std::cout << "curr params=";
 			const std::vector<double>& params = sls->get_params();
@@ -103,31 +98,8 @@ namespace {
 			sls_counter++;
 			done = 0;
 			time_steps = 0;
-		} else {
-			time_steps++;
-			if (done == 0) {
-				// do something
-			} else if (done > 0) {
-			}
-			const point diff_pos = the_team->get_player(0)->position() - tasks[done].first;
-			//const point vel_pos = the_team->get_player(0)->est_velocity();
-			const point vel_pos = the_team->get_player(0)->position() - prev_pos;
-			const double diff_ori = angle_mod(the_team->get_player(0)->orientation() - tasks[done].second);
-			const double vel_ori = angle_mod(the_team->get_player(0)->orientation() - prev_ori);
-			//std::cout << "movement benchmark task #" << done << " time step=" << time_steps << std::endl;
-			//std::cout << "displace pos:" << diff_pos.x << " " << diff_pos.y << " ori:" << diff_ori << std::endl;
-			//std::cout << "velocity pos:" << vel_pos.x << " " << vel_pos.y << " ori:" << vel_ori << std::endl;
-			if (diff_pos.len() < pos_dis_threshold && vel_pos.len() < pos_vel_threshold && fabs(diff_ori) < ori_dis_threshold && fabs(vel_ori) < ori_vel_threshold) {
-				//std::cout << "time steps taken: " << time_steps << std::endl;
-				if(done == 0) {
-					time_steps = 0;
-				}
-				++done;
-			}
 		}
-		prev_ori = the_team->get_player(0)->orientation();
-		prev_pos = the_team->get_player(0)->position();
-		the_team->get_player(0)->move(tasks[done].first, tasks[done].second);
+		movement_benchmark::tick();
 	}
 
 	class param_tuning_factory : public strategy_factory {
