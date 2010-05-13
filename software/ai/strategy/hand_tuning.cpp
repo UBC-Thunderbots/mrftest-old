@@ -20,13 +20,16 @@ namespace {
 				//vbox.add(button);
 				//button.signal_clicked().connect(sigc::mem_fun(this, &hand_tuning_ui::run));
 				//button.set_label("Run!");
-				add(vbox);
+				//add(vbox);
+				add(table);
 			}
 
 			~hand_tuning_ui() {
-				for (size_t i = 0; i < hboxes.size(); ++i) {
-					vbox.remove(*hboxes[i]);
-					delete hboxes[i];
+				for (size_t i = 0; i < entries.size(); ++i) {
+					table.remove(*entries[i]);
+					table.remove(*labels[i]);
+					delete entries[i];
+					delete labels[i];
 				}
 			}
 
@@ -35,27 +38,28 @@ namespace {
 			/// Resets the parameters on the ui.
 			void reset(tunable_controller* tc) {
 				for (size_t i = 0; i < entries.size(); ++i) {
-					vbox.remove(*hboxes[i]);
-					delete hboxes[i];
+					table.remove(*entries[i]);
+					table.remove(*labels[i]);
+					delete entries[i];
+					delete labels[i];
 				}
 				if (tc == NULL) {
 					entries.clear();
-					hboxes.clear();
+					labels.clear();
 					hide_all();
 					return;
 				}
 				size_t P = tc->get_params().size();
 				const std::vector<std::string>& names = tc->get_params_name();
 				const std::vector<double>& vals = tc->get_params();
-				hboxes.resize(P);
+				labels.resize(P);
 				entries.resize(P);
+				table.resize(P, 2);
 				for (size_t i = 0; i < P; ++i) {
-					hboxes[i] = new Gtk::HBox();
-					Gtk::Label* label = Gtk::manage(new Gtk::Label(names[i]));
-					entries[i] = Gtk::manage(new Gtk::Entry());
-					hboxes[i]->add(*label);
-					hboxes[i]->add(*entries[i]);
-					vbox.add(*hboxes[i]);
+					labels[i] = new Gtk::Label(names[i]);
+					entries[i] = new Gtk::Entry();
+					table.attach(*labels[i], 0, 1, i, i+1);
+					table.attach(*entries[i], 1, 2, i, i+1);
 					Glib::ustring str = Glib::ustring::format(std::fixed, std::setprecision(3), vals[i]);
 					entries[i]->set_text(str);
 				}
@@ -79,10 +83,11 @@ namespace {
 
 		private:
 			int params;
-			Gtk::VBox vbox;
+			Gtk::Table table;
+			// Gtk::VBox vbox;
 			// Gtk::Button button;
+			std::vector<Gtk::Label*> labels;
 			std::vector<Gtk::Entry*> entries;
-			std::vector<Gtk::HBox*> hboxes;
 			hand_tuning* ht;
 	};
 
@@ -108,10 +113,6 @@ namespace {
 
 	hand_tuning::~hand_tuning() {
 	}
-
-	//void hand_tuning_ui::run() {
-		//ht->run();
-	//}
 
 	void hand_tuning::reset() {
 		tc = tunable_controller::controller_instance;

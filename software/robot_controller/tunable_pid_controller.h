@@ -24,6 +24,8 @@ class tunable_pid_controller : public robot_controller, public tunable_controlle
 			this->param = params;
 		}
 
+		const std::vector<std::string> get_params_name() const;
+
 		const std::vector<double>& get_params() const {
 			return param;
 		}
