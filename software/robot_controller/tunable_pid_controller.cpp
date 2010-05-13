@@ -167,6 +167,16 @@ tunable_pid_controller::tunable_pid_controller(player_impl::ptr plr) : plr(plr),
 	param = param_default;
 }
 
+const std::vector<std::string> tunable_pid_controller::get_params_name() const {
+	std::vector<std::string> ret;
+	ret.push_back("Proportional X");
+	ret.push_back("Differential X");
+	ret.push_back("X/Y Ratio");
+	ret.push_back("Proportional Angle");
+	ret.push_back("Differential Angle");
+	return ret;
+}
+
 void tunable_pid_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
 	const point &current_position = plr->position();
 	const double current_orientation = plr->orientation();

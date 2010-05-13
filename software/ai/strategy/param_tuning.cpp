@@ -50,7 +50,12 @@ namespace {
 		best = EVALUATION_LIMIT;
 		sls_counter = 0;
 		tc->set_params(sls->get_params());
-		std::cout << " reset " << std::endl;
+		std::cout << " reset, curr params=";
+		const std::vector<double>& params = sls->get_params();
+		for (int i = 0; i < (int)params.size(); ++i) {
+			std::cout << params[i] << " ";
+		}
+		std::cout << std::endl;
 	}
 
 	void param_tuning::tick() {

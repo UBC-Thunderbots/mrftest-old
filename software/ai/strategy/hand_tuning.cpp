@@ -1,6 +1,5 @@
 #include "ai/strategy/movement_benchmark.h"
 #include "robot_controller/tunable_controller.h"
-#include "util/stochastic_local_search.h"
 
 #include <iomanip>
 #include <iostream>
@@ -17,33 +16,46 @@ namespace {
 	class hand_tuning_ui : public Gtk::Window {
 		public:
 			hand_tuning_ui(hand_tuning* h) : ht(h) {
-				set_title("Hand Tuning");
-				//vbox.pack_start(button, true, true);
-				vbox.add(button);
-				button.signal_clicked().connect(sigc::mem_fun(this, &hand_tuning_ui::run));
-				button.set_label("Run!");
+				set_title("Parameters");
+				//vbox.add(button);
+				//button.signal_clicked().connect(sigc::mem_fun(this, &hand_tuning_ui::run));
+				//button.set_label("Run!");
 				add(vbox);
 			}
 
 			~hand_tuning_ui() {
-				for (size_t i = 0; i < entries.size(); ++i) {
-					vbox.remove(*entries[i]);
-					delete entries[i];
+				for (size_t i = 0; i < hboxes.size(); ++i) {
+					vbox.remove(*hboxes[i]);
+					delete hboxes[i];
 				}
 			}
 
-			void run();
+			// void run();
 
 			/// Resets the parameters on the ui.
-			void reset_params(const std::vector<double>& mini, const std::vector<double>& maxi, const std::vector<double>& vals) {
+			void reset(tunable_controller* tc) {
 				for (size_t i = 0; i < entries.size(); ++i) {
-					vbox.remove(*entries[i]);
-					delete entries[i];
+					vbox.remove(*hboxes[i]);
+					delete hboxes[i];
 				}
-				entries.resize(vals.size());
-				for (size_t i = 0; i < entries.size(); ++i) {
-					entries[i] = new Gtk::Entry();
-					vbox.add(*entries[i]);
+				if (tc == NULL) {
+					entries.clear();
+					hboxes.clear();
+					hide_all();
+					return;
+				}
+				size_t P = tc->get_params().size();
+				const std::vector<std::string>& names = tc->get_params_name();
+				const std::vector<double>& vals = tc->get_params();
+				hboxes.resize(P);
+				entries.resize(P);
+				for (size_t i = 0; i < P; ++i) {
+					hboxes[i] = new Gtk::HBox();
+					Gtk::Label* label = Gtk::manage(new Gtk::Label(names[i]));
+					entries[i] = Gtk::manage(new Gtk::Entry());
+					hboxes[i]->add(*label);
+					hboxes[i]->add(*entries[i]);
+					vbox.add(*hboxes[i]);
 					Glib::ustring str = Glib::ustring::format(std::fixed, std::setprecision(3), vals[i]);
 					entries[i]->set_text(str);
 				}
@@ -68,8 +80,9 @@ namespace {
 		private:
 			int params;
 			Gtk::VBox vbox;
-			Gtk::Button button;
+			// Gtk::Button button;
 			std::vector<Gtk::Entry*> entries;
+			std::vector<Gtk::HBox*> hboxes;
 			hand_tuning* ht;
 	};
 
@@ -78,39 +91,49 @@ namespace {
 			hand_tuning(ball::ptr ball, field::ptr field, controlled_team::ptr team);
 			~hand_tuning();
 			strategy_factory &get_factory();
-			// void tick();
+			void tick();
 			void run();
 			void reset();
 		private:
-			tunable_controller* tc;
 			hand_tuning_ui ui;
+			tunable_controller* tc;
 	};
 
-	hand_tuning::hand_tuning(ball::ptr ball, field::ptr field, controlled_team::ptr team) : movement_benchmark(ball, field, team), ui(this) {
-		reset_button = Gtk::manage(new Gtk::Button("Reset"));
-		reset_button->signal_clicked().connect(sigc::mem_fun(this,&hand_tuning::reset));
+	hand_tuning::hand_tuning(ball::ptr ball, field::ptr field, controlled_team::ptr team) : movement_benchmark(ball, field, team), ui(this), tc(NULL) {
+		reset_button = Gtk::manage(new Gtk::Button("Run"));
+		reset_button->signal_clicked().connect(sigc::mem_fun(this,&hand_tuning::run));
+		done = tasks.size();
+		time_steps = 0;
 	}
 
 	hand_tuning::~hand_tuning() {
 	}
 
-	void hand_tuning_ui::run() {
-		ht->run();
-	}
+	//void hand_tuning_ui::run() {
+		//ht->run();
+	//}
 
 	void hand_tuning::reset() {
 		tc = tunable_controller::controller_instance;
-		if (tc == NULL) return;
 		time_steps = 0;
 		done = tasks.size();
-		ui.reset_params(tc->get_params_min(), tc->get_params_max(), tc->get_params());
+		ui.reset(tc);
 	}
 
 	void hand_tuning::run() {
-		const std::vector<double>& params = ui.read_params();
-		tc->set_params(params);
+		if (tc) {
+			const std::vector<double>& params = ui.read_params();
+			tc->set_params(params);
+		}
 		done = 0;
 		time_steps = 0;
+	}
+
+	void hand_tuning::tick() {
+		if (tc != tunable_controller::controller_instance) {
+			reset();
+		}
+		movement_benchmark::tick();
 	}
 
 	class hand_tuning_factory : public strategy_factory {
@@ -119,7 +142,7 @@ namespace {
 			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
-	hand_tuning_factory::hand_tuning_factory() : strategy_factory("Hand Tuning") {
+	hand_tuning_factory::hand_tuning_factory() : strategy_factory("Hand Tune & Move Benchmark") {
 	}
 
 	strategy::ptr hand_tuning_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {

@@ -18,7 +18,7 @@ namespace {
 			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
 	};
 
-	movement_benchmark_factory::movement_benchmark_factory() : strategy_factory("Movement Benchmark") {
+	movement_benchmark_factory::movement_benchmark_factory() : strategy_factory("Movement Benchmark (Obselete)") {
 	}
 
 	strategy::ptr movement_benchmark_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
