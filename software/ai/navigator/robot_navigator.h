@@ -11,6 +11,29 @@ typedef Glib::RefPtr<robot_navigator> ptr;
   void tick();
   void set_point(const point& destination);
 
+  //set the amount of avoidance 
+  void set_slow_avoidance_factor(double factor){
+  slow_avoidance_factor=factor;
+  }
+  
+  //get the amount of avoidance 
+  double get_slow_avoidance_factor(){ 
+  return slow_avoidance_factor;
+  }
+
+  //set the amount of avoidance 
+  void set_fast_avoidance_factor(double factor){
+  fast_avoidance_factor = factor;
+  }
+
+  //get the amount of avoidance 
+  double get_fast_avoidance_factor(){
+  return fast_avoidance_factor;
+  }
+  
+  //get the agression factor that is associateds with the given speed
+  double get_avoidance_factor();
+
   void set_correction_step_size(double correction_size);  
   void set_desired_robot_orientation(double orientation);
   
@@ -42,7 +65,9 @@ typedef Glib::RefPtr<robot_navigator> ptr;
   point currDest;//current destination
   float outOfBoundsMargin;//distance to remain from sidelines to prevent from going oob
   double maxLookahead;
-  double aggression_factor; //smaller factor makes robot more aggressive (i.e. less eager to avoid obstacles)
+  double avoidance_factor; //smaller factor makes robot more aggressive (i.e. less eager to avoid obstacles)
+  double slow_avoidance_factor;
+  double fast_avoidance_factor; 
   bool avoid_ball;
   bool avoids_goal;
   double avoid_goal_amount;

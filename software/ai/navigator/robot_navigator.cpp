@@ -2,10 +2,34 @@
 #include <iostream>
 #include <cstdlib>
 
+  const double SLOW_AVOIDANCE_SPEED=1.0;
+  const double FAST_AVOIDANCE_SPEED=2.0;
+
 robot_navigator::robot_navigator(player::ptr player, field::ptr field, ball::ptr ball, team::ptr team) : 
   navigator(player, field, ball, team), destInitialized(false), outOfBoundsMargin(field->width() / 20.0),
-  maxLookahead(1.0), aggression_factor(2)
+  maxLookahead(1.0), avoidance_factor(2), slow_avoidance_factor(0.5), fast_avoidance_factor(2.0)
 {
+
+}
+
+double robot_navigator::get_avoidance_factor(){
+
+double robot_speed = the_player->est_velocity().len();
+
+if(robot_speed < SLOW_AVOIDANCE_SPEED){
+return get_slow_avoidance_factor();
+}
+
+if(robot_speed > FAST_AVOIDANCE_SPEED){
+return get_fast_avoidance_factor();
+}
+
+assert(SLOW_AVOIDANCE_SPEED < FAST_AVOIDANCE_SPEED);
+
+double slowness = (robot_speed - FAST_AVOIDANCE_SPEED)/(SLOW_AVOIDANCE_SPEED - FAST_AVOIDANCE_SPEED);
+double fastness = ( SLOW_AVOIDANCE_SPEED - robot_speed)/(SLOW_AVOIDANCE_SPEED - FAST_AVOIDANCE_SPEED);
+
+return get_slow_avoidance_factor()*slowness + get_fast_avoidance_factor()*fastness;
 
 }
 
@@ -131,12 +155,25 @@ void robot_navigator::set_point(const point &destination) {
   currDest = destination;
 }
 
-void robot_navigator::set_correction_step_size(double correction_size) {
+/**
+intended to specify how far robot should travel after making a path correction
+not final! 
+implement or delete function soon
 
+ \param correction_size - amount of distance travelled to correct path
+ 
+**/
+void robot_navigator::set_correction_step_size(double) {
+#warning "implement or delete function soon"
 }
-
-void robot_navigator::set_desired_robot_orientation(double orientation) {
-
+/**
+normally the navigator sets the robot orientation to be towards the ball
+use this if you want to override this behaviour
+this only sets the desired orientation for one timestep
+\param orientation
+*/
+void robot_navigator::set_desired_robot_orientation(double) {
+#warning "implement function"
 }
 
 bool robot_navigator::robot_avoids_ball() {
@@ -147,43 +184,74 @@ void robot_navigator::set_robot_avoids_ball(bool avoid){
 avoid_ball=avoid;
 }
 
+/**
+get whether the robot avoid it's own goal
+*/
 bool robot_navigator::robot_avoids_goal() {
+#warning "implement or delete function soon"
 return false;
 }
 
-void robot_navigator::set_robot_avoids_goal(bool avoid) {
-
+/**
+make the robot avoid it's own goal
+\param avoid whether to avoid it's own goal
+*/
+void robot_navigator::set_robot_avoids_goal(bool) {
+#warning "implement or delete function soon"
 }
 
+/**
+get whether the robot is set to stay on it's own half
+*/
 bool robot_navigator::robot_stays_on_own_half() {
+#warning "implement function"
 return false;
 }
 
-void robot_navigator::set_robot_stays_on_own_half(bool avoid) {
-
+/**
+make the robot stay on it's own half
+\param avoid whether to make robot stay on it's own half
+*/
+void robot_navigator::set_robot_stays_on_own_half(bool) {
+#warning "implement function"
 }
 
+/**
+get whether the robot avoid it's opponents goal
+*/
 bool robot_navigator::robot_stays_away_from_opponent_goal() {
+#warning "implement function"
 return false;
 }
 
-void robot_navigator::set_robot_stays_away_from_opponent_goal(bool avoid) {
-
+/**
+make the robot avoid it's opponents goal
+\param avoid whether to avoid it's opponents goal
+*/
+void robot_navigator::set_robot_stays_away_from_opponent_goal(bool) {
+#warning "implement function"
 }
 
-void robot_navigator::set_robot_avoid_opponent_goal_amount(double amount) {
-
+/**
+set how much the robot should avoid the opponents goal by
+\param amount the amount that the robot should avoid goal by
+*/
+void robot_navigator::set_robot_avoid_opponent_goal_amount(double) {
+#warning "implement function"
 }
 
 bool robot_navigator::robot_is_in_desired_state() {
+#warning "implement function"
 return false;
 }
 
 bool robot_navigator::robot_is_in_desired_location() {
+#warning "implement function"
 return false;
 }
 
 bool robot_navigator::robot_is_in_desired_orientation(){
+#warning "implement function"
 return false;
 }
 
@@ -275,7 +343,7 @@ bool robot_navigator::check_vector(point start, point dest, point direction)
 	    {
 	      double d = sqrt(rp.dot(rp) - len*len);
 	  
-	      if (len < lookahead && d < 2*aggression_factor*robot::MAX_RADIUS)
+	      if (len < lookahead && d < 2*get_avoidance_factor()*robot::MAX_RADIUS)
 		{
 		  //std::cout << "Checked FALSE" << std::endl;
 		  return false;
@@ -292,7 +360,7 @@ double len = ballVec.dot(direction);
 	    {
 	      double d = sqrt(ballVec.dot(ballVec) - len*len);
 	  
-	      if (len < lookahead && d < aggression_factor*robot::MAX_RADIUS)
+	      if (len < lookahead && d < get_avoidance_factor()*robot::MAX_RADIUS)
 		{
 		  //std::cout << "Checked FALSE" << std::endl;
 		  return false;
