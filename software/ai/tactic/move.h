@@ -36,13 +36,15 @@ class move : public tactic {
 
 	protected:		
 
-		// The navigator that moves
-		navigator::ptr the_navigator;
+	
 
 		// Target position
 		point target_position;
 
 		bool avoid_ball;
+		
+		// The navigator that moves
+		navigator::ptr the_navigator;
 };
 
 #endif
