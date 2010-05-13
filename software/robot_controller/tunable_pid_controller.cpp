@@ -17,17 +17,12 @@ namespace {
 	// full configurations
 	// params = 9
 	// param := [prop x, diff x, int x, prop y, diff y, int y, prop r, diff r, int r]
-	
+
 	// reduced parameters
 	// assume: x and y are linearly related
 	// no integral needed
 	// params = 5
 	// param := [prop x, diff x, y/x ratio, prop r, diff r]
-
-	// input = 9
-	// input := [dis x, vel x, int x, dis y, vel y, int y, dis r, vel r, int r]
-	// output = 3
-	// output := [vel x, vel y, vel r]
 
 	class tunable_pid_controller_factory : public robot_controller_factory {
 		public:
@@ -41,12 +36,12 @@ namespace {
 	};
 
 	tunable_pid_controller_factory factory;
-	
+
 	// basic
 	const double DEF_X_PROP = 1.16;
 	const double MIN_X_PROP = 1;
 	const double MAX_X_PROP = 1.2;
-	
+
 	const double DEF_X_DIFF = 0.54;
 	const double MIN_X_DIFF = 0;
 	const double MAX_X_DIFF = 1;
@@ -79,52 +74,52 @@ namespace {
 	const double DEF_A_PROP = 4;
 	const double MIN_A_PROP = 4;
 	const double MAX_A_PROP = 4;
-	
+
 	const double DEF_A_DIFF = 0.3;
 	const double MIN_A_DIFF = 0.1;
 	const double MAX_A_DIFF = 0.5;
 
-enum {
-	PARAM_X_PROP = 0, PARAM_X_DIFF, PARAM_X_INTG,
+	enum {
+		PARAM_X_PROP = 0, PARAM_X_DIFF, PARAM_X_INTG,
 #ifndef LINEAR_XY
-	PARAM_Y_PROP, PARAM_Y_DIFF, PARAM_Y_INTG,
+		PARAM_Y_PROP, PARAM_Y_DIFF, PARAM_Y_INTG,
 #else
-	PARAM_XY_RATIO,
+		PARAM_XY_RATIO,
 #endif
-	PARAM_A_PROP, PARAM_A_DIFF,
-};
+		PARAM_A_PROP, PARAM_A_DIFF,
+	};
 
-const double arr_min[] = {
-	MIN_X_PROP, MIN_X_DIFF, MIN_X_INTG,
+	const double arr_min[] = {
+		MIN_X_PROP, MIN_X_DIFF, MIN_X_INTG,
 #ifndef LINEAR_XY
-	MIN_Y_PROP, MIN_Y_DIFF,
+		MIN_Y_PROP, MIN_Y_DIFF,
 #else
-	MIN_XY_RATIO,
+		MIN_XY_RATIO,
 #endif
-	MIN_A_PROP, MIN_A_DIFF,
-};
+		MIN_A_PROP, MIN_A_DIFF,
+	};
 
-const double arr_def[] = {
-	DEF_X_PROP, DEF_X_DIFF, DEF_X_INTG,
+	const double arr_def[] = {
+		DEF_X_PROP, DEF_X_DIFF, DEF_X_INTG,
 #ifndef LINEAR_XY
-	DEF_Y_PROP, DEF_Y_DIFF,
+		DEF_Y_PROP, DEF_Y_DIFF,
 #else
-	DEF_XY_RATIO,
+		DEF_XY_RATIO,
 #endif
-	DEF_A_PROP, DEF_A_DIFF,
-};
+		DEF_A_PROP, DEF_A_DIFF,
+	};
 
-const double arr_max[] = {
-	MAX_X_PROP, MAX_X_DIFF, MAX_X_INTG,
+	const double arr_max[] = {
+		MAX_X_PROP, MAX_X_DIFF, MAX_X_INTG,
 #ifndef LINEAR_XY
-	MAX_Y_PROP, MAX_Y_DIFF,
+		MAX_Y_PROP, MAX_Y_DIFF,
 #else
-	MAX_XY_RATIO,
+		MAX_XY_RATIO,
 #endif
-	MAX_A_PROP, MAX_A_DIFF,
-};
+		MAX_A_PROP, MAX_A_DIFF,
+	};
 
-const int P = sizeof(arr_max) / sizeof(arr_max[0]);
+	const int P = sizeof(arr_max) / sizeof(arr_max[0]);
 
 }
 
@@ -133,7 +128,6 @@ const std::vector<double> tunable_pid_controller::param_max(arr_max, arr_max + P
 const std::vector<double> tunable_pid_controller::param_default(arr_def, arr_def + P);
 
 tunable_pid_controller::tunable_pid_controller(player_impl::ptr plr) : plr(plr), initialized(false), error_pos(10), error_ori(10) {
-	// param := [prop x, diff x, int x, prop y, diff y, int y, prop r, diff r, int r]
 	param = param_default;
 }
 
@@ -143,7 +137,7 @@ const std::vector<std::string> tunable_pid_controller::get_params_name() const {
 	ret.push_back("Differential X");
 	ret.push_back("Integral X");
 #ifdef LINEAR_XY
-	ret.push_back("X/Y Ratio");
+	ret.push_back("Y/X Parameter Ratio");
 #else
 	ret.push_back("Proportional Y");
 	ret.push_back("Differential Y");
@@ -163,8 +157,6 @@ void tunable_pid_controller::move(const point &new_position, double new_orientat
 	const point &new_dir = (new_position - current_position).rotate(-current_orientation);
 
 	if (new_da > PI) new_da -= 2 * PI;
-
-	std::vector<double> input(9), out(3);
 
 	if (!initialized) {
 		initialized = true;
@@ -210,7 +202,7 @@ void tunable_pid_controller::move(const point &new_position, double new_orientat
 	//dout << ovx << " " << vx << " " << ovy << " " << vy << " " << ova << " " << va << std::endl;
 	//dout << dnt << " " << va << std::endl;
 	//dnt++;
-	
+
 	// check if command has changed
 	if (prev_new_pos.x != new_position.x || prev_new_pos.y != new_position.y || prev_new_ori != new_orientation) {
 		prev_new_pos = new_position;
