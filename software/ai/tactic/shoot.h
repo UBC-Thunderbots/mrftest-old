@@ -27,6 +27,9 @@ class shoot : public tactic {
 
 		kick::ptr kick_tactic;
 
+	private:
+
+		static const unsigned int SAMPLE_POINTS = 9;
 };
 
 #endif
