@@ -1,5 +1,4 @@
 #include "ai/tactic/shoot.h"
-#include "world/robot.h"
 #include "geom/angle.h"
 
 shoot::shoot(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player) : tactic(ball, field, team, player), chase_tactic(new chase(ball, field, team, player)), kick_tactic(new kick(ball, field, team, player)) {
@@ -53,7 +52,7 @@ void shoot::tick()
 			for (unsigned int i = 0; i < opponent_team->size(); ++i)
 			{
 				// TODO: take into account of velocity?
-				point other = the_team->get_player(i)->position() - the_player->position();
+				point other = opponent_team->get_robot(i)->position() - the_player->position();
 
 				proximity = (other).dot(projection.norm());
 

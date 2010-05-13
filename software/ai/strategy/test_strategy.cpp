@@ -68,8 +68,7 @@ namespace {
 			m_tactic->set_position(STAND);
 			m_tactic->tick();
 		} else {
-			pass::ptr pass_tactic (new pass(the_ball, the_field, the_team, passer));
-			pass_tactic->set_receiver(receiver);
+			pass::ptr pass_tactic (new pass(the_ball, the_field, the_team, passer, receiver));
 			pass_tactic->tick();				
 		}
 
@@ -84,8 +83,7 @@ namespace {
 		{
 			player::ptr the_player = the_team->get_player(i);
 
-			pass::ptr pass_tactic (new pass(the_ball, the_field, the_team, the_player));
-			pass_tactic->set_receiver(receiver);
+			pass::ptr pass_tactic (new pass(the_ball, the_field, the_team, the_player, receiver));
 			if (the_player->has_ball())
 				std::cout << "Player " << i << " has the ball." << std::endl;
 			pass_tactic->tick();					

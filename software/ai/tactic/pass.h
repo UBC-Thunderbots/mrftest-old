@@ -3,6 +3,7 @@
 
 #include "ai/tactic.h"
 #include "ai/tactic/kick.h"
+#include "ai/tactic/move.h"
 #include "ai/tactic/pass_mode.h"
 
 //
@@ -12,19 +13,14 @@ class pass : public tactic {
 	public:
 
 		//
-		// A pointer to a move tactic.
+		// A pointer to a pass tactic.
 		//
 		typedef Glib::RefPtr<pass> ptr;
 
 		//
 		// Constructs a new pass tactic.
 		//
-		pass(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player);
-
-		//
-		// Sets the receiver for this pass tactic.
-		//
-		void set_receiver(player::ptr receiver);
+		pass(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player, player::ptr receiver);
 
 		//
 		// Runs the AI for one time tick.
@@ -35,16 +31,13 @@ class pass : public tactic {
 		
 		kick::ptr kick_tactic;
 
+		move::ptr move_tactic;
+
 		// Pointer to the receiver of the pass.
 		player::ptr the_receiver;
-		
-		// Passing mode
-		pass_mode mode;
 
-		//
-		// Calculates the target based on the passing mode and the receiver.
-		//
-		point calculate_target();
+		// The distance assumed that opponent robots may travel to intercept the pass.
+		static const double INTERCEPT_RADIUS = 0.1;
 };
 
 #endif

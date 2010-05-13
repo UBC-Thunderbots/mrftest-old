@@ -35,7 +35,7 @@ namespace {
 
 		// player 0 is the receiver
 		player::ptr receiver = the_team->get_player(0);
-		move::ptr move_tactic( new move(the_ball, the_field, the_team, receiver));
+		move::ptr move_tactic(new move(the_ball, the_field, the_team, receiver));
 		if ((receiver->position() - LEFT).lensq() > 0.05) 
 			move_tactic->set_position(LEFT);
 		else 
@@ -61,8 +61,7 @@ namespace {
 //		std::cout << passer->est_velocity() << std::endl;
 		if (passer->has_ball()) {
 //			std::cout << "passer has ball" << std::endl;
-			pass::ptr pass_tactic( new pass(the_ball, the_field, the_team, passer));
-			pass_tactic->set_receiver(receiver);
+			pass::ptr pass_tactic(new pass(the_ball, the_field, the_team, passer, receiver));
 			pass_tactic->tick();
 		} else {
 			chase::ptr chase_tactic( new chase(the_ball, the_field, the_team, passer));
