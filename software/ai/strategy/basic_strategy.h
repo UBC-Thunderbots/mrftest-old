@@ -6,6 +6,11 @@
 
 #include <vector>
 
+/**
+ * A really basic strategy that satisfies the rule.
+ * Most strategies should derive this function and overide in_play_assignment().
+ * Assumes that the first robot is always the goalie.
+ */
 class basic_strategy : public strategy {
 	public:
 		basic_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
@@ -18,16 +23,33 @@ class basic_strategy : public strategy {
 		Gtk::Widget *get_ui_controls();
 
 	protected:
+
+		/**
+		 * Reassigns all robots.
+		 */
 		void reset_all();
 
-		/// Assign players when playtype is play.
+		/**
+		 * Assign players when playtype is play.
+		 * This can be overriden for more complex intelligence.
+		 */
 		virtual void in_play_assignment();
 
-		// We need this because we don't want to make frequent changes
-		static const int WAIT_AT_LEAST_TURN = 5;
-		int turn_since_last_update;
+		/**
+		 * Amount of ticks per update.
+		 * To save processing time, we only update if necessary.
+		 * By default, the basic_strategy will update every 5 turns.
+		 * This is used only when playtype is play.
+		 */
+		int update_wait_turns;
 
+		/**
+		 * Robot roles.
+		 */
 		std::vector<role::ptr> roles;
+
+	private:
+		int update_wait;
 };
 
 #endif

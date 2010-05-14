@@ -39,18 +39,19 @@ namespace {
 	}
 
 	basic_strategy_factory factory;
-
 }
 
 basic_strategy::basic_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
-	turn_since_last_update = 0;
+	update_wait = 0;
+	update_wait_turns = 5;
 }
 
 void basic_strategy::tick() {
-	turn_since_last_update++;
-	if (turn_since_last_update >= WAIT_AT_LEAST_TURN) {
-		in_play_assignment();
-		turn_since_last_update = 0;
+	update_wait++;
+	if (update_wait >= update_wait_turns) {
+		update_wait = 0;
+		if (the_team->current_playtype() == playtype::play)
+			in_play_assignment();
 	}
 	for (size_t i = 0; i < roles.size(); i++) {
 		roles[i]->tick();
