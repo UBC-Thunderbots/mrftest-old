@@ -4,7 +4,7 @@
 #include "ai/strategy.h"
 #include "ai/tactic.h"
 #include "ai/tactic/move.h"
-#include "gtkmm.h"
+#include <gtkmm.h>
 
 class movement_benchmark : public strategy {
 	public:
