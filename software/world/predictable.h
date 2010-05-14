@@ -62,9 +62,14 @@ class predictable {
 
 	private:
 		ap::real_1d_array xhistory, yhistory, thistory;
+		ap::real_1d_array dhistory; // history vector of time steps
 		ap::real_1d_array weights;
 		ap::real_2d_array fmatrix;
 		ap::real_1d_array approxx, approxy, approxt;
+
+		// Updates matrices used to build the least squares prediction.
+		// Call whenever the history vectors are updated.
+		void build_matrices();
 };
 
 #endif
