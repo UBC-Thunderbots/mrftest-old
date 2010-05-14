@@ -36,6 +36,16 @@ predictable::predictable() {
 	approxt.setlength(MAX_DEGREE + 1);
 }
 
+point predictable::future_position(double delta_time) const {
+#warning USE HIGHER ORDER TERMS TO MAKE THIS MORE ACCURATE
+	return point(xhistory(0), yhistory(0)) + est_velocity() * delta_time + 0.5 * est_acceleration() * delta_time * delta_time;
+}
+
+double predictable::future_orientation(double delta_time) const {
+#warning USE HIGHER ORDER TERMS TO MAKE THIS MORE ACCURATE
+	return angle_mod(thistory(0) + est_avelocity() * delta_time + 0.5 * est_aacceleration() * delta_time * delta_time);
+}
+
 point predictable::est_velocity() const {
 	return point(approxx(1), approxy(1)) * TIMESTEPS_PER_SECOND;
 }
@@ -52,7 +62,8 @@ double predictable::est_aacceleration() const {
 	return approxt(2) * TIMESTEPS_PER_SECOND * TIMESTEPS_PER_SECOND * 2;
 }
 
-void predictable::add_prediction_datum(const point &pos, double orient) {
+void predictable::add_prediction_datum(const point &pos, double orient, double delta_time) {
+#warning MAKE THIS OBEY DELTA_TIME AND DO VARIABLE-TIMESTEP PREDICTIONS
 	// Move the new orientation value close to the previous value.
 	while (std::fabs(orient - thistory(0)) > PI + 1e-9) {
 		if (orient > thistory(0)) {
@@ -78,6 +89,21 @@ void predictable::add_prediction_datum(const point &pos, double orient) {
 		for (int i = 0; i < NUM_OLD_POSITIONS; i++) {
 			thistory(i) += shift;
 		}
+	}
+
+	// Perform the regressions.
+	buildgeneralleastsquares(xhistory, weights, fmatrix, NUM_OLD_POSITIONS, MAX_DEGREE + 1, approxx);
+	buildgeneralleastsquares(yhistory, weights, fmatrix, NUM_OLD_POSITIONS, MAX_DEGREE + 1, approxy);
+	buildgeneralleastsquares(thistory, weights, fmatrix, NUM_OLD_POSITIONS, MAX_DEGREE + 1, approxt);
+}
+
+void predictable::clear_prediction(const point &pos, double orient) {
+	// Fill the current position and orientation into all history cells. This
+	// means that the object appears to be stationary.
+	for (int i = 0; i < NUM_OLD_POSITIONS; ++i) {
+		xhistory(i) = pos.x;
+		yhistory(i) = pos.y;
+		thistory(i) = orient;
 	}
 
 	// Perform the regressions.

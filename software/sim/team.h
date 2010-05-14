@@ -3,6 +3,7 @@
 
 #include "ai/strategy.h"
 #include "sim/engine.h"
+#include "world/timestep.h"
 
 class simulator;
 
@@ -101,7 +102,7 @@ class simulator_team_data : public noncopyable {
 		//
 		void tick_postengine() {
 			for (unsigned int i = 0; i < impls.size(); ++i)
-				impls[i]->add_prediction_datum(impls[i]->position(), impls[i]->orientation());
+				impls[i]->add_prediction_datum(impls[i]->position(), impls[i]->orientation(), 1.0 / TIMESTEPS_PER_SECOND);
 		}
 
 		//
