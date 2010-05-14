@@ -46,7 +46,7 @@ class ball_filter {
 				}
 			}
 			else {
-				for (int i = 0; i < int(obs.size()); i++) {
+				for (unsigned int i = 0; i < obs.size(); i++) {
 					if (max_cert < obs[i].second) {
 						max_point = obs[i].first;
 						max_cert = obs[i].second;
