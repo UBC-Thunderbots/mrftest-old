@@ -9,14 +9,16 @@ using namespace std;
 
 typedef complex<double> pt;
 
-struct circle {
-	pt center;
-	double certainty;
+namespace {
+	struct circle {
+		pt center;
+		double certainty;
 
-	bool operator==(circle other) {
-		return (center == other.center);
-	}
-};
+		bool operator==(circle other) {
+			return (center == other.center);
+		}
+	};
+}
 
 class ball_filter {
 	private:
