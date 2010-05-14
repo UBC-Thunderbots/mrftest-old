@@ -70,15 +70,18 @@ void basic_strategy::in_play_assignment() {
 	roles.clear();
 	if (the_team->size() == 0) return;
 
+	goalie::ptr goalie_role(new goalie(the_ball, the_field, the_team));
+	roles.push_back(role::ptr(goalie_role));
+	std::vector<player::ptr> goalie;
+	goalie.push_back(the_team->get_player(0));
+	goalie_role->set_robots(goalie);
+
 	defensive::ptr defensive_role(new defensive(the_ball, the_field, the_team));
 	offensive::ptr offensive_role(new offensive(the_ball, the_field, the_team));
 	roles.push_back(role::ptr(defensive_role));
 	roles.push_back(role::ptr(offensive_role));
-
 	std::vector<player::ptr> defenders;
 	std::vector<player::ptr> offenders;
-
-	defensive_role->set_goalie(the_team->get_player(0));
 
 	if (the_team->size() >= 2)
 		offenders.push_back(the_team->get_player(1));
@@ -91,6 +94,10 @@ void basic_strategy::in_play_assignment() {
 
 	if (the_team->size() >= 5)
 		defenders.push_back(the_team->get_player(4));
+	
+	// extra players become offenders
+	for (size_t i = 5; i < the_team->size(); ++i)
+		offenders.push_back(the_team->get_player(i));
 
 	defensive_role->set_robots(defenders);
 	offensive_role->set_robots(offenders);
