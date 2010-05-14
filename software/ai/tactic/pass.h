@@ -38,6 +38,9 @@ class pass : public tactic {
 
 		// The distance assumed that opponent robots may travel to intercept the pass.
 		static const double INTERCEPT_RADIUS = 0.1;
+
+		// The threshold speed for the receiver to be considered not moving.
+		static const double SPEED_THRESHOLD = 0.5;
 };
 
 #endif

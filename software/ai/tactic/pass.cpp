@@ -27,6 +27,8 @@ void pass::tick() {
 			break;
 		}
 	}
+	// Also check the passee is not moving
+	should_wait = should_wait || (the_receiver->est_velocity().len() > SPEED_THRESHOLD);
 
 	// only kick the ball to the receiver if the passing lane is clear, otherwise, move towards the receiver
 	if (should_wait)
