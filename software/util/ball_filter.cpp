@@ -41,7 +41,7 @@ class ball_filter {
 			double max_cert = 0.0;
 
 			if (obs.empty()) {
-				for (list<circle>::iterator it = circles.begin(); it != circles.end(); it++) {
+				for (list<circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
 					it->certainty = (1.0 - DECAY_RATE)*it->certainty;
 				}
 			}
@@ -54,7 +54,7 @@ class ball_filter {
 				}
 
 				vector<circle> containing;
-				for (list<circle>::iterator it = circles.begin(); it != circles.end(); it++) {
+				for (list<circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
 					if (abs(max_point - it->center) < RADIUS) {
 						containing.push_back(*it);
 						it->center = max_point;
@@ -87,13 +87,13 @@ class ball_filter {
 
 				for (list<circle>::iterator it = circles.begin(); it != circles.end(); ) {
 					if (it->certainty < DELETE_THRESHOLD) it = circles.erase(it);
-					else it++;
+					else ++it;
 				}
 			}
 
 			max_cert = 0.0;
 			list<circle>::iterator max_point_it = circles.begin();
-			for (list<circle>::iterator it = circles.begin(); it != circles.end(); it++) {
+			for (list<circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
 				if (max_cert < it->certainty) {
 					max_cert = it->certainty;
 					max_point_it = it;
