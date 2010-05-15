@@ -4,6 +4,7 @@
 
 namespace {
 	const double EPS = 1e-5;
+	const double NEAR = 1e-2;
 
 #warning "hardware dependent parameter"
 	const double SLOW_AVOIDANCE_SPEED=1.0;
@@ -50,7 +51,7 @@ void robot_navigator::tick() {
 
 	point nowdest;
 
-	point balldirection = the_ball->position() - the_player->position();
+	point balldist = the_ball->position() - the_player->position();
 
 	// if we have the ball, adjust our destination to ensure that we
 	// don't take the ball out of bounds, otherwise, head to our
@@ -65,9 +66,8 @@ void robot_navigator::tick() {
 	point direction = nowdest - the_player->position();
 
 	// at least face the ball
-	if (direction.len() < 0.01) {
-		if (!the_player->has_ball())
-			the_player->move(the_player->position(), atan2(balldirection.y, balldirection.x));
+	if (direction.len() < NEAR) {
+		if (balldist.len() > NEAR) the_player->move(the_player->position(), atan2(balldist.y, balldist.x));
 		return;
 	}
 
@@ -111,17 +111,17 @@ void robot_navigator::tick() {
 	undiverted = angle < EPS;
 
 	if(stop) {
-		the_player->move(the_player->position(), atan2(balldirection.y, balldirection.x));
+		the_player->move(the_player->position(), atan2(balldist.y, balldist.x));
 		return;
 	}
 
 	point selected_direction = (chooseleft) ? leftdirection : rightdirection;
 
 	if (undiverted) {
-		the_player->move(nowdest, atan2(balldirection.y, balldirection.x));
+		the_player->move(nowdest, atan2(balldist.y, balldist.x));
 	} else {
 		// maximum warp
-		the_player->move(the_player->position() + selected_direction * std::min(dirlen,1.0), atan2(balldirection.y, balldirection.x));
+		the_player->move(the_player->position() + selected_direction * std::min(dirlen,1.0), atan2(balldist.y, balldist.x));
 	}
 }
 
@@ -241,7 +241,7 @@ point robot_navigator::clip_point(const point& p, const point& bound1, const poi
 Collision avoidance seems wrong.
 */
 bool robot_navigator::check_vector(const point& start, const point& dest, const point& direction) const {
-#warning "FIX THIS!!"
+#warning "fixme"
 	const point startdest = dest - start;
 	const double lookahead = std::min(startdest.len(), lookahead_max);
 
@@ -262,7 +262,7 @@ bool robot_navigator::check_vector(const point& start, const point& dest, const 
 			if (len <= 0) continue;
 			const double d = sqrt(rp.dot(rp) - len*len);
 
-			if (len < s * lookahead_step && d < 2 * get_avoidance_factor() * robot::MAX_RADIUS) {
+			if (len < s * lookahead_step && d < get_avoidance_factor() * (robot::MAX_RADIUS * 2)) {
 				return false;
 			}
 		}
