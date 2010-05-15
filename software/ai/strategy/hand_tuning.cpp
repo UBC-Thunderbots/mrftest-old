@@ -115,7 +115,7 @@ namespace {
 	}
 
 	void hand_tuning::reset() {
-		tc = tunable_controller::controller_instance;
+		tc = tunable_controller::get_instance();
 		time_steps = 0;
 		done = tasks.size();
 		ui.reset(tc);
@@ -131,7 +131,7 @@ namespace {
 	}
 
 	void hand_tuning::tick() {
-		if (tc != tunable_controller::controller_instance) {
+		if (tc != tunable_controller::get_instance()) {
 			reset();
 		}
 		movement_benchmark::tick();

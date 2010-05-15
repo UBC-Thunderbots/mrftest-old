@@ -8,47 +8,50 @@
  * Parameter tunable robot controller.
  * All tunable robot controller should inherit this class.
  * Parameter is a vector of doubles.
+ * Not thread-safe.
  */
 class tunable_controller {
 	public:
-		tunable_controller() {
-			controller_instance = this;
-		}
+		tunable_controller();
 
-		~tunable_controller() {
-			if(controller_instance == this)
-				controller_instance = NULL;
-		}
+		~tunable_controller();
 
-		//
-		// changes the controller parameters
-		//
+		/**
+		 * Changes the controller parameters.
+		 */
 		virtual void set_params(const std::vector<double>& params) = 0;
 
-		//
-		// gets the array of parameters
-		//
+		/**
+		 * Gets the array of parameters.
+		 */
 		virtual const std::vector<double>& get_params() const = 0;
 
 		/**
-		 * (Optional) gets the name of each parameter.
+		 * Gets the name of each parameter.
+		 * Unless defined by the subclass,
+		 * this will always return a vector of question marks.
 		 */
 		virtual const std::vector<std::string> get_params_name() const {
 			size_t n = get_params().size();
 			return std::vector<std::string>(n, "?");
 		}
 
-		//
-		// gets the minimum value of each parameter
-		//
+		/**
+		 * Gets the minimum value of each parameter.
+		 */
 		virtual const std::vector<double>& get_params_min() const = 0;
 
-		//
-		// gets the maximum value of each parameter
-		//
+		/**
+		 * Gets the maximum value of each parameter.
+		 */
 		virtual const std::vector<double>& get_params_max() const = 0;
 
-		static tunable_controller* controller_instance;
+		/**
+		 * Gets one instance of a tunable controller.
+		 * Returns NULL if no such controller exist.
+		 */
+		static tunable_controller* get_instance();
 };
 
 #endif
+

@@ -42,7 +42,7 @@ namespace {
 
 	void param_tuning::reset() {
 		if (sls != NULL) delete sls;
-		tc = tunable_controller::controller_instance;
+		tc = tunable_controller::get_instance();
 		if (tc == NULL) return;
 		sls = new stochastic_local_search(tc->get_params_min(), tc->get_params_max());
 		done = 0;
@@ -59,7 +59,7 @@ namespace {
 	}
 
 	void param_tuning::tick() {
-		if (tc == NULL || tc != tunable_controller::controller_instance) {
+		if (tc == NULL || tc != tunable_controller::get_instance()) {
 			reset();
 			return;
 		}
