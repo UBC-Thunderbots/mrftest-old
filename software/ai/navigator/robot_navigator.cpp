@@ -6,27 +6,26 @@ namespace {
 	const double EPS = 1e-5;
 	const double NEAR = 1e-2;
 
-#warning "hardware dependent parameter"
+#warning "PLEASE TAKE CARE OF THIS hardware dependent parameter"
 	const double SLOW_AVOIDANCE_SPEED=1.0;
 	const double FAST_AVOIDANCE_SPEED=2.0;
 }
 
 robot_navigator::robot_navigator(player::ptr player, field::ptr field, ball::ptr ball, team::ptr team) : navigator(player, field, ball, team),
 	dest_initialized(false), outofbounds_margin(field->width() / 20.0),
-	avoidance_factor(2), slow_avoidance_factor(0.5), fast_avoidance_factor(2.0) {
+	slow_avoidance_factor(0.5), fast_avoidance_factor(2.0) {
 
+	avoidance_factor = 1.0;
 	rotation_angle = 1.0 * PI / 180.0;
 	rotation_thresh = 100.0 * PI / 180.0;
 
-	lookahead_step = robot::MAX_RADIUS * 0.5;
 	lookahead_max = robot::MAX_RADIUS * 10;
 }
 
 double robot_navigator::get_avoidance_factor() const {
-	return 1.5;
+	return avoidance_factor + the_player->est_velocity().len();
 
-#warning "delete the code below"
-
+#warning "do something"
 	double robot_speed = the_player->est_velocity().len();
 
 	if(robot_speed < SLOW_AVOIDANCE_SPEED){
@@ -155,14 +154,6 @@ void robot_navigator::set_desired_robot_orientation(double) {
 #warning "implement function"
 }
 
-bool robot_navigator::robot_avoids_ball() {
-	return avoid_ball;
-}
-
-void robot_navigator::set_robot_avoids_ball(bool avoid){
-	avoid_ball=avoid;
-}
-
 /**
   get whether the robot avoid it's own goal
  */
@@ -237,45 +228,40 @@ point robot_navigator::clip_point(const point& p, const point& bound1, const poi
 	return ret;
 }
 
-/*
-Collision avoidance seems wrong.
-*/
 bool robot_navigator::check_vector(const point& start, const point& dest, const point& direction) const {
-#warning "fixme"
 	const point startdest = dest - start;
 	const double lookahead = std::min(startdest.len(), lookahead_max);
 
 	assert(abs(direction.len() - 1.0) < EPS);
 
-	for (int s = 0; s * lookahead_step < lookahead; ++s) {
-		for (size_t i = 0; i < the_team->size() + the_team->other()->size(); i++) {
-			robot::ptr rob;
-			if (i >= the_team->size()) {
-				rob = the_team->other()->get_robot(i - the_team->size());
-			} else {
-				rob = the_team->get_robot(i);
-			}
-			if(rob == this->the_player) continue;
-			const point rp = rob->position() - start;
-			const double len = rp.dot(direction);
-
-			if (len <= 0) continue;
-			const double d = sqrt(rp.dot(rp) - len*len);
-
-			if (len < s * lookahead_step && d < get_avoidance_factor() * (robot::MAX_RADIUS * 2)) {
-				return false;
-			}
+	for (size_t i = 0; i < the_team->size() + the_team->other()->size(); i++) {
+		robot::ptr rob;
+		if (i >= the_team->size()) {
+			rob = the_team->other()->get_robot(i - the_team->size());
+		} else {
+			rob = the_team->get_robot(i);
 		}
+		if(rob == this->the_player) continue;
 
-		if(avoid_ball) {
-			const point ballvec = the_ball->position() - start;
-			double len = ballvec.dot(direction);
-			if (len > 0) {
-				double d = sqrt(ballvec.dot(ballvec) - len*len);
-				if (len < s * lookahead_step && d < get_avoidance_factor() * (robot::MAX_RADIUS + ball::RADIUS)) {
-					//std::cout << "Checked FALSE" << std::endl;
-					return false;
-				}
+		const point rp = rob->position() - start;
+		const double proj = rp.dot(direction);
+		const double perp = sqrt(rp.dot(rp) - proj * proj);
+
+		if (proj <= 0) continue;
+
+		if (proj < lookahead && perp < get_avoidance_factor() * (robot::MAX_RADIUS * 2)) {
+			return false;
+		}
+	}
+
+	if(avoid_ball) {
+		const point ballvec = the_ball->position() - start;
+		double proj = ballvec.dot(direction);
+		if (proj > 0) {
+			double perp = sqrt(ballvec.dot(ballvec) - proj * proj);
+			if (proj < lookahead && perp < get_avoidance_factor() * (robot::MAX_RADIUS + ball::RADIUS)) {
+				//std::cout << "Checked FALSE" << std::endl;
+				return false;
 			}
 		}
 	}

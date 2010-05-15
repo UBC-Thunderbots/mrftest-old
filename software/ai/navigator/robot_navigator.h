@@ -3,8 +3,6 @@
 
 #include "ai/navigator.h"
 
-#warning "bloat"
-
 class robot_navigator : public navigator {
 	public:
 		typedef Glib::RefPtr<robot_navigator> ptr;
@@ -13,27 +11,25 @@ class robot_navigator : public navigator {
 		void tick();
 		void set_point(const point& destination);
 
+#warning "PLEASE TAKE CARE OF THIS hardware dependent parameter"
+
 		//set the amount of avoidance 
 		void set_slow_avoidance_factor(double factor){
-			#warning "hardware dependent parameter"
 			slow_avoidance_factor=factor;
 		}
 
 		//get the amount of avoidance 
 		double get_slow_avoidance_factor() const {
-			#warning "hardware dependent parameter"
 			return slow_avoidance_factor;
 		}
 
 		//set the amount of avoidance 
 		void set_fast_avoidance_factor(double factor){
-			#warning "hardware dependent parameter"
 			fast_avoidance_factor = factor;
 		}
 
 		//get the amount of avoidance 
 		double get_fast_avoidance_factor() const {
-			#warning "hardware dependent parameter"
 			return fast_avoidance_factor;
 		}
 
@@ -43,9 +39,16 @@ class robot_navigator : public navigator {
 		void set_correction_step_size(double correction_size);  
 		void set_desired_robot_orientation(double orientation);
 
+#warning "implement or delete function soon"
 		void set_robot_avoid_ball_amount(int amount);   
-		bool robot_avoids_ball();
-		void set_robot_avoids_ball(bool avoid);
+
+		bool robot_avoids_ball() const {
+			return avoid_ball;
+		}
+
+		void set_robot_avoids_ball(bool avoid) {
+			avoid_ball = avoid;
+		}
 
 		bool robot_avoids_goal();
 		void set_robot_avoids_goal(bool avoid);
@@ -69,7 +72,7 @@ class robot_navigator : public navigator {
 		double slow_avoidance_factor;
 		double fast_avoidance_factor; 
 		bool avoid_ball;
-		bool avoids_goal;
+		bool avoid_goal;
 		double avoid_goal_amount;
 		bool robot_stays_on_half;
 		bool robot_avoids_opponent_goal;
@@ -83,9 +86,6 @@ class robot_navigator : public navigator {
 
 		/// Max distance of lookahead distance.
 		double lookahead_max;
-
-		/// distance of each of lookahead step.
-		double lookahead_step;
 };
 
 #endif
