@@ -71,6 +71,8 @@ namespace {
 	
 	/// Angles in radians that the wheels are located off the forward direction
 	const double ANGLES[4] = {0.959931, 2.35619, 3.9269908, 5.32325}; 
+	
+	int click =0;
 }
 
 
@@ -109,7 +111,7 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	dGeomSetBody (robotGeomTop,body);
 
 //ROBOT_RADIUS
-
+//comment
 	robotGeomTopCyl = dCreateCapsule (0, ROBOT_RADIUS, ROBOT_HEIGHT);
 	dGeomSetBody (robotGeomTopCyl,body);
 	dBodySetPosition(body, x_pos, y_pos, ROBOT_HEIGHT/2 + 0.001);
@@ -134,15 +136,11 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	dGeomSetOffsetPosition (dribbleArmL, x_len/2, y_len/2 + arm_width/2, arm_h_offset);
 	dGeomSetOffsetPosition (dribbleArmR, -x_len/2, -y_len/2 - arm_width/2, arm_h_offset);
 
-	//dSpaceAdd (dspace, robotGeom);
 	dSpaceAdd (dspace, robotGeomTop);
 	dSpaceAdd (dspace, robotGeomTopCyl);
 	dSpaceAdd (dspace, dribbleArmL);
 	dSpaceAdd (dspace, dribbleArmR);
-	//dBodySetLinearDamping (body, 0.05);
-	//dBodySetAngularDamping (body, 0.12);
-	//contactgroup = dJointGroupCreate (0);
-	//createJointBetweenB1B2();
+
 
 		wheel_position = new point[4];
 		force_direction = new point[4];
@@ -180,23 +178,14 @@ playerODE::~playerODE () {
 	//dBodyDestroy (body2);
 }
 
-///useless function, literally does nothing blame Jason
-void playerODE::createJointBetweenB1B2(){
-	//dJointGroupDestroy (contactgroup);
-	//contactgroup = dJointGroupCreate(0);
-	//hinge=dJointCreateFixed (world, contactgroup);
-	//const dReal *t = dBodyGetPosition (body);
-//	double x = t[0];
-//	double y = t[1];
-	//double z = t[2];
-	//z+=0.0005;  
-	//dJointSetBallAnchor(hinge, x, y , z);
-	//dJointAttach (hinge, body, body2);
-	//dJointEnable (hinge); 
+void playerODE::set_has_ball(){
+
+//std::cout<<"set has ball"<<std::endl;
+player_has_ball = true;
 }
 
 /**
-No Idea what this does, sounds dirty though
+used to decide whether to add a contact joint for a robot collision
 */
 bool playerODE::hasContactPenetration(dVector3 pos){
 	//if(dGeomBoxPointDepth (dGeomID box, dReal x, dReal y, dReal z);
@@ -223,6 +212,23 @@ bool playerODE::hasContactPenetration(dVector3 pos){
 	return false;
 }
 
+/**
+sees whether the contact joint penetrates the face of the robot
+*/
+bool playerODE::hasContactWithFace(dVector3 pos){
+	const dReal *p = dBodyGetPosition (body);
+	point ball_loc(pos[0], pos[1]);
+	point play_loc(p[0], p[1]);
+	point play_ball_diff = ball_loc - play_loc;
+	play_ball_diff = play_ball_diff.rotate(-orientation());
+	bool face = play_ball_diff.x>=x_len/2 && (play_ball_diff.y*x_len) < (play_ball_diff.x*y_len);
+
+	if(dGeomBoxPointDepth (robotGeomTop, pos[0], pos[1], pos[2])<0){
+		return face;
+	}
+	return false;
+}
+
 
 /// Accessor method to get the robots position
 point playerODE::position() const {
@@ -240,40 +246,8 @@ double playerODE::orientation() const {
 /**
 Returns whether or not a given robot has the ball in the most retarded way possible
 */
-bool playerODE::has_ball() const {
-
-	bool hasTheBall = true;
-	double hasBallTolerance = 0.0025;
-	const dReal *b = dBodyGetPosition (dGeomGetBody(ballGeom)); 
-	const dReal *p = dBodyGetPosition (body);
-
-	point ball_loc(b[0], b[1]);
-	point play_loc(p[0], p[1]);
-	point play_ball_diff = ball_loc - play_loc;
-	point rel_play_ball_diff = play_ball_diff.rotate(-orientation());
-	play_ball_diff  = rel_play_ball_diff;
-
-	if(play_ball_diff.x < x_len/2 + dGeomSphereGetRadius(ballGeom) - hasBallTolerance){
-		hasTheBall=false;
-	}
-
-	if(play_ball_diff.x > x_len/2 + dGeomSphereGetRadius(ballGeom) + hasBallTolerance){
-		hasTheBall=false;
-	}
-	if(play_ball_diff.y > y_len/2 + dGeomSphereGetRadius(ballGeom) + hasBallTolerance){
-		hasTheBall=false;
-	}
-	if(rel_play_ball_diff.x <0){
-		hasTheBall=false;
-	}
-	double mag_y = abs(rel_play_ball_diff.y);
-	double mag_x = abs(rel_play_ball_diff.x);
-
-	if( mag_y*x_len > (y_len+0.02)*mag_x){
-		hasTheBall=false;
-	}
-
-	return hasTheBall;
+bool playerODE::has_ball() const {	
+	return player_has_ball;
 }
 
 
@@ -320,50 +294,6 @@ double playerODE::get_height() const
 }
 
 
-/**
-Does the same thing as the OTHER has ball method, but rather than use default parameter values 
-it's copied and pasted, blame Jason 
-*/
-bool playerODE::has_ball(double tolerance){
-
-	bool hasTheBall = true;
-	double hasBallTolerance = tolerance;
-	const dReal *b = dBodyGetPosition (dGeomGetBody(ballGeom)); 
-	const dReal *p = dBodyGetPosition (body);
-
-	point ball_loc(b[0], b[1]);
-	point play_loc(p[0], p[1]);
-	point play_ball_diff = ball_loc - play_loc;
-	point rel_play_ball_diff = play_ball_diff.rotate(-orientation());
-	play_ball_diff  = rel_play_ball_diff;
-
-	if(play_ball_diff.x < x_len/2 + dGeomSphereGetRadius(ballGeom) - hasBallTolerance){
-		hasTheBall=false;
-	}
-
-	if(play_ball_diff.x > x_len/2 + dGeomSphereGetRadius(ballGeom) + hasBallTolerance){
-		hasTheBall=false;
-	}
-	if(play_ball_diff.y > y_len/2 + dGeomSphereGetRadius(ballGeom) + hasBallTolerance){
-		hasTheBall=false;
-	}
-	if(rel_play_ball_diff.x <0){
-		hasTheBall=false;
-	}
-	double mag_y = abs(rel_play_ball_diff.y);
-	double mag_x = abs(rel_play_ball_diff.x);
-
-	//if( mag_y/mag_x > y_len/x_len){
-		//hasTheBall=false;
-	//}
-	if( mag_y*x_len > (y_len+0.02)*mag_x){
-		hasTheBall=false;
-	}
-
-	return hasTheBall;
-}
-
-
 bool playerODE::robot_contains_shape(dGeomID geom){
 //if(geom==dribbleArmL){
 //std::cout<<"left Arm collide"<<std::endl;
@@ -384,14 +314,20 @@ bool playerODE::robot_contains_shape_ground(dGeomID geom){
 //paramter is timestep
 void playerODE::pre_tic(double ){
 
+click++;
+
 	//Current Motor Speed
 	double motor_current[4];
 	double wheel_torque;
 	point force;
 	
-	if(!posSet){
 
-		//target_velocity = unrotated_target_velocity.rotate(orientation());
+	//player doesn't have ball
+	//unless we determine from collision detection
+	//that the player does have the ball
+
+	
+	if(!posSet){
 		
 		//get the current bots velocity	
 		const dReal *cur_vel = dBodyGetLinearVel(body);
@@ -401,10 +337,8 @@ void playerODE::pre_tic(double ){
 		//rotate it to bot relative
 		the_velocity = the_velocity.rotate(-orientation());
 		
-		
 		//get the angular velocity
 		const dReal * avels =  dBodyGetAngularVel (body);
-		
 		
 		//convert the velocities to packet data type for comparison to stored values
 		motor_current[0] = -42.5995*the_velocity.x + 27.6645*the_velocity.y + 4.3175 * avels[2]; 
@@ -412,8 +346,6 @@ void playerODE::pre_tic(double ){
 		motor_current[2] = 35.9169*the_velocity.x + -35.9169*the_velocity.y  + 4.3175*avels[2];
 		motor_current[3] = 42.5995*the_velocity.x + 27.6645*the_velocity.y + 4.3175*avels[2];		
 		
-		
-	
 		dBodyEnable (body);
 		dBodySetDynamic (body);
 		
@@ -427,6 +359,12 @@ void playerODE::pre_tic(double ){
 			//Adds the force at the wheel positions, at mid-point of the robot(not realistic but should prevent tipping that we can't detect)
 			dBodyAddRelForceAtRelPos(body, force.x, force.y, ROBOT_HEIGHT/2, wheel_position[index].x, wheel_position[index].y, ROBOT_HEIGHT/2);
 		}
+		
+		if(chip_set){
+			if(execute_chip()){
+				chip_set=false;
+			}
+		}	
 		
 		
 		//point fce = (target_velocity-the_velocity)/BOT_MAX_VELOCITY*BOT_MAX_ACCELERATION*mass.mass;
@@ -443,6 +381,7 @@ void playerODE::pre_tic(double ){
 
 
 	}
+		player_has_ball=false;
 	posSet=false;
 }
 
@@ -488,7 +427,7 @@ void playerODE::dribble(double speed) {
 
 	torqueAxis*=appliedTorque;
 
-	if(has_ball(0.022)){
+	if(has_ball()){
 
 
 		point ball_turn;
@@ -525,9 +464,9 @@ void playerODE::kick(double strength) {
 	//std::cout<<"strength"<<strength<<std::endl;
 	point impulse = strength*maximum_impulse*direction;
 
-	if(has_ball(0.005)){
+	if(has_ball()){
 		dVector3 force;
-		//std::cout<<"attempt kick impulse ="<<impulse.x<<" "<<impulse.y<<std::endl;
+		std::cout<<"attempt kick impulse ="<<impulse.x<<" "<<impulse.y<<std::endl;
 		dWorldImpulseToForce (world, 1.0/(static_cast<double>(TIMESTEPS_PER_SECOND)*updates_per_tick),
 				impulse.x, impulse.y,0.0, force);
 		//std::cout<<"force="<<force[0]<<" "<<force[1]<<" "<<force[2]<<std::endl;
@@ -538,7 +477,17 @@ void playerODE::kick(double strength) {
 
 void playerODE::chip(double strength) {
 
-	if(strength <0 || strength >1)return;
+
+	if(has_ball()){
+	chip_strength = strength;
+	chip_set = true;
+	}
+
+}
+
+bool playerODE::execute_chip() {
+
+	double strength = chip_strength;
 	//std::cout<<"chip strength: "<<strength<<std::endl;
 	double maximum_impulse = 1.0;
 
@@ -548,16 +497,20 @@ void playerODE::chip(double strength) {
 
 	double zimpulse = strength*maximum_impulse/sqrt(2.0);
 
-	if(has_ball(0.01)){
-	 // std::cout<<"attempting chipping"<<std::endl;
+	if(!has_ball()){
+	 	std::cout<<"attempting chipping"<<robotGeomTop<<" "<<click<<std::endl;
 		dVector3 force;
 
 		dWorldImpulseToForce (world, 1.0/(static_cast<double>(TIMESTEPS_PER_SECOND)*updates_per_tick),
 				impulse.x, impulse.y,zimpulse, force);
-	//std::cout<<"force="<<force[0]<<" "<<force[1]<<" "<<force[2]<<std::endl;
+
 		dBodyAddForce(dGeomGetBody(ballGeom), force[0], force[1], force[2]);
+		
 	}
-	//std::cout<<"chip strength: "<<strength<<std::endl;
+	
+	return !has_ball();
+	
+
 }
 
 void playerODE::ext_drag(const point &pos, const point &vel) {

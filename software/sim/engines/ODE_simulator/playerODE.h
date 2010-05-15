@@ -13,6 +13,8 @@ class playerODE : public player_impl {
 		double y_len;
 		double momentInertia;
 	
+
+	
 	typedef Glib::RefPtr<playerODE> ptr;
 	
 	private:
@@ -37,7 +39,7 @@ class playerODE : public player_impl {
 	///The mass object for the robot, keeps track of things like inertial moments
 	dMass mass;
 	
-	/// We are mobing the robot
+	/// We are moving the robot
 	bool posSet;
 	
 	///Some vectors for keeping track of the robot
@@ -46,6 +48,11 @@ class playerODE : public player_impl {
 	///Some values for robot tracking 
 	double the_orientation, avelocity, target_avelocity;
 	
+	bool player_has_ball;
+	
+	bool chip_set;	
+	
+	double chip_strength;
 	
 	/**
 	I don't know why we keep track of the ball ID, oh right retarded has ball
@@ -85,6 +92,8 @@ class playerODE : public player_impl {
 	bool robot_contains_shape_ground(dGeomID geom);
 			
 protected:
+
+			
 			/**
 				method for the AI to control the robots movement
 				\param vel desired robot velocity for control
@@ -94,16 +103,22 @@ protected:
 			
 public:
 			bool hasContactPenetration(dVector3 pos); 
+			
+			bool hasContactWithFace(dVector3 pos);
+			/**
+			call this when we find a robot ball collision may do some additional testing beyond this to make sure "has ball"
+			*/
+			void set_has_ball();
 
 			void pre_tic(double TimeStep);
-			
-			bool has_ball(double tolerance);
 			
 			void dribble(double speed) ;
 
 			void kick(double strength) ;
 
 			void chip(double strength) ;
+			
+			bool execute_chip() ;
 
 			void ext_drag(const point &pos, const point &vel);
 

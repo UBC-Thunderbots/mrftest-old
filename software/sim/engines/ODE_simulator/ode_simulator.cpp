@@ -20,12 +20,12 @@ namespace {
 	const double GRAVITY = -9.81;
 	
 	
-	const unsigned int UPDATES_PER_TICK = 300;
+	const unsigned int UPDATES_PER_TICK = 500;
 
 	//
 	//
 	//
-	const double CFM = 0;
+	const double CFM = 1E-5;
 	
 	//
 	//
@@ -122,6 +122,7 @@ namespace {
 					//if there are colliding objects then call nearCallback
 					//nearCallback creates all necessary contact points and parameters
 	 				dSpaceCollide (space,this,&sim_engine::nearCallbackThunk);
+	 				
 	 				//step the world (have ODE do 1 iterations per step)
 					//dWorldStep (eworld, 1);
 					dWorldSetQuickStepNumIterations (eworld, 50);
@@ -348,6 +349,8 @@ namespace {
 
 				  	for (i=0; i<numc; i++) {
 						bool robotCollided = robot->hasContactPenetration(contact[i].geom.pos);
+						bool has_ball = robot->hasContactWithFace(contact[i].geom.pos);
+						if(has_ball)robot->set_has_ball();
 						if(robotCollided){
 				   			contact[i].surface.mode =  dContactSoftCFM | dContactSoftERP |dContactBounce;
 				   			contact[i].surface.mu = MU;// 0.1*MU;
