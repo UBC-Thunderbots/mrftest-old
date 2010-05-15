@@ -3,6 +3,8 @@
 
 #include "ai/navigator.h"
 
+#warning "bloat"
+
 class robot_navigator : public navigator {
 	public:
 		typedef Glib::RefPtr<robot_navigator> ptr;
@@ -13,21 +15,25 @@ class robot_navigator : public navigator {
 
 		//set the amount of avoidance 
 		void set_slow_avoidance_factor(double factor){
+			#warning "hardware dependent parameter"
 			slow_avoidance_factor=factor;
 		}
 
 		//get the amount of avoidance 
 		double get_slow_avoidance_factor() const {
+			#warning "hardware dependent parameter"
 			return slow_avoidance_factor;
 		}
 
 		//set the amount of avoidance 
 		void set_fast_avoidance_factor(double factor){
+			#warning "hardware dependent parameter"
 			fast_avoidance_factor = factor;
 		}
 
 		//get the amount of avoidance 
 		double get_fast_avoidance_factor() const {
+			#warning "hardware dependent parameter"
 			return fast_avoidance_factor;
 		}
 
@@ -51,10 +57,6 @@ class robot_navigator : public navigator {
 		bool robot_stays_away_from_opponent_goal();
 		void set_robot_stays_away_from_opponent_goal(bool avoid);
 
-		bool robot_is_in_desired_state();
-		bool robot_is_in_desired_location();
-		bool robot_is_in_desired_orientation();
-
 		static point clip_point(const point& p, const point& bound1, const point& bound2);
 
 	private:
@@ -63,7 +65,6 @@ class robot_navigator : public navigator {
 		bool dest_initialized;//has a destination been specified?
 		point curr_dest;//current destination
 		double outofbounds_margin;//distance to remain from sidelines to prevent from going oob
-		double max_lookahead;
 		double avoidance_factor; //smaller factor makes robot more aggressive (i.e. less eager to avoid obstacles)
 		double slow_avoidance_factor;
 		double fast_avoidance_factor; 
@@ -74,6 +75,17 @@ class robot_navigator : public navigator {
 		bool robot_avoids_opponent_goal;
 		double avoid_opponent_goal_amount;
 
+		/// Amount of rotation per step to check for collision.
+		double rotation_angle;
+
+		/// Amount of rotation before robot gives up checking collision.
+		double rotation_thresh;
+
+		/// Max distance of lookahead distance.
+		double lookahead_max;
+
+		/// distance of each of lookahead step.
+		double lookahead_step;
 };
 
 #endif

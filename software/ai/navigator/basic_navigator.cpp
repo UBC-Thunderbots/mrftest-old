@@ -83,6 +83,7 @@ void basic_navigator::tick() {
 	}
 
 	point selected_direction = (chooseleft) ? leftdirection : rightdirection;
+
 	if (undiverted) {
 		the_player->move(nowdest, atan2(balldirection.y, balldirection.x));
 	} else {

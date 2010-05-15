@@ -3,16 +3,28 @@
 #include <cstdlib>
 
 namespace {
+	const double EPS = 1e-5;
+
+#warning "hardware dependent parameter"
 	const double SLOW_AVOIDANCE_SPEED=1.0;
 	const double FAST_AVOIDANCE_SPEED=2.0;
 }
 
 robot_navigator::robot_navigator(player::ptr player, field::ptr field, ball::ptr ball, team::ptr team) : navigator(player, field, ball, team),
 	dest_initialized(false), outofbounds_margin(field->width() / 20.0),
-	max_lookahead(1.0), avoidance_factor(2), slow_avoidance_factor(0.5), fast_avoidance_factor(2.0) {
+	avoidance_factor(2), slow_avoidance_factor(0.5), fast_avoidance_factor(2.0) {
+
+	rotation_angle = 1.0 * PI / 180.0;
+	rotation_thresh = 100.0 * PI / 180.0;
+
+	lookahead_step = robot::MAX_RADIUS * 0.5;
+	lookahead_max = robot::MAX_RADIUS * 10;
 }
 
 double robot_navigator::get_avoidance_factor() const {
+	return 1.5;
+
+#warning "delete the code below"
 
 	double robot_speed = the_player->est_velocity().len();
 
@@ -70,6 +82,7 @@ void robot_navigator::tick() {
 	bool undiverted = true;
 	bool stop = false;
 	bool chooseleft;
+
 	while (true) {
 		//std::cout << "path changed" <<std::endl;
 
@@ -77,30 +90,25 @@ void robot_navigator::tick() {
 		leftdirection = direction.rotate(angle);
 		rightdirection = direction.rotate(-angle);
 
-		if (check_vector(the_player->position(), nowdest, leftdirection.rotate(2.5 * PI / 180.0))) {
-			if (check_vector(the_player->position(), nowdest, leftdirection.rotate(-2.5 * PI / 180.0))) {
-				chooseleft = true;
-				break;
-			}
-		}
-		else if (check_vector(the_player->position(), nowdest, rightdirection.rotate(-2.5 * PI / 180.0))) {
-			if (check_vector(the_player->position(), nowdest, rightdirection.rotate(2.5 * PI / 180.0))) {
-				chooseleft = false;
-				break;
-			}
+		if (check_vector(the_player->position(), nowdest, leftdirection)) {
+			chooseleft = true;
+			break;
+		} else if (check_vector(the_player->position(), nowdest, rightdirection)) {
+			chooseleft = false;
+			break;
 		}
 
 		// if we can't find a path within 90 degrees
 		// go straight towards our destination
-		if (angle > 100.0 * PI / 180.0) {
+		if (angle > rotation_thresh) {
 			leftdirection = rightdirection = direction;
 			stop = true;
 			break;
 		}
-		angle += 1.0 * PI / 180.0;//rotate by 1 degree each
-		//time
+		angle += rotation_angle;
 	}
-	undiverted = angle < 1e-5;
+
+	undiverted = angle < EPS;
 
 	if(stop) {
 		the_player->move(the_player->position(), atan2(balldirection.y, balldirection.x));
@@ -113,7 +121,7 @@ void robot_navigator::tick() {
 		the_player->move(nowdest, atan2(balldirection.y, balldirection.x));
 	} else {
 		// maximum warp
-		the_player->move(the_player->position() + selected_direction*std::min(dirlen,1.0), atan2(balldirection.y, balldirection.x));
+		the_player->move(the_player->position() + selected_direction * std::min(dirlen,1.0), atan2(balldirection.y, balldirection.x));
 	}
 }
 
@@ -211,21 +219,6 @@ void robot_navigator::set_robot_avoid_opponent_goal_amount(double) {
 #warning "implement function"
 }
 
-bool robot_navigator::robot_is_in_desired_state() {
-#warning "implement function"
-	return false;
-}
-
-bool robot_navigator::robot_is_in_desired_location() {
-#warning "implement function"
-	return false;
-}
-
-bool robot_navigator::robot_is_in_desired_orientation(){
-#warning "implement function"
-	return false;
-}
-
 point robot_navigator::clip_point(const point& p, const point& bound1, const point& bound2) {
 
 	double minx = std::min(bound1.x, bound2.x);
@@ -244,40 +237,49 @@ point robot_navigator::clip_point(const point& p, const point& bound1, const poi
 	return ret;
 }
 
+/*
+Collision avoidance seems wrong.
+*/
 bool robot_navigator::check_vector(const point& start, const point& dest, const point& direction) const {
+#warning "FIX THIS!!"
 	const point startdest = dest - start;
-	const double lookahead = std::min(startdest.len(), max_lookahead);
-	for (size_t i = 0; i < the_team->size() + the_team->other()->size(); i++) {
-		robot::ptr rob;
-		if (i >= the_team->size()) {
-			rob = the_team->other()->get_robot(i - the_team->size());
-		} else {
-			rob = the_team->get_robot(i);
-		}
-		if(rob == this->the_player) continue;
-		const point rp = rob->position() - start;
-		const double len = rp.dot(direction);
+	const double lookahead = std::min(startdest.len(), lookahead_max);
 
-		if (len <= 0) continue;
-		const double d = sqrt(rp.dot(rp) - len*len);
+	assert(abs(direction.len() - 1.0) < EPS);
 
-		if (len < lookahead && d < 2 * get_avoidance_factor() * robot::MAX_RADIUS) {
-			return false;
-		}
-	}
+	for (int s = 0; s * lookahead_step < lookahead; ++s) {
+		for (size_t i = 0; i < the_team->size() + the_team->other()->size(); i++) {
+			robot::ptr rob;
+			if (i >= the_team->size()) {
+				rob = the_team->other()->get_robot(i - the_team->size());
+			} else {
+				rob = the_team->get_robot(i);
+			}
+			if(rob == this->the_player) continue;
+			const point rp = rob->position() - start;
+			const double len = rp.dot(direction);
 
-	if(avoid_ball) {
-		//check ball
-		point ballVec = the_ball->position() - start;
-		double len = ballVec.dot(direction);
-		if (len > 0) {
-			double d = sqrt(ballVec.dot(ballVec) - len*len);
-			if (len < lookahead && d < get_avoidance_factor()*robot::MAX_RADIUS) {
-				//std::cout << "Checked FALSE" << std::endl;
+			if (len <= 0) continue;
+			const double d = sqrt(rp.dot(rp) - len*len);
+
+			if (len < s * lookahead_step && d < 2 * get_avoidance_factor() * robot::MAX_RADIUS) {
 				return false;
 			}
 		}
+
+		if(avoid_ball) {
+			const point ballvec = the_ball->position() - start;
+			double len = ballvec.dot(direction);
+			if (len > 0) {
+				double d = sqrt(ballvec.dot(ballvec) - len*len);
+				if (len < s * lookahead_step && d < get_avoidance_factor() * (robot::MAX_RADIUS + ball::RADIUS)) {
+					//std::cout << "Checked FALSE" << std::endl;
+					return false;
+				}
+			}
+		}
 	}
+
 	//std::cout << "Checked TRUE" << std::endl;
 	return true;
 }
