@@ -76,7 +76,7 @@ class playerODE : public player_impl {
 
 	playerODE( dWorldID dworld, dSpaceID dspace,  dGeomID ballGeom, double ups_per_tick);
 	~playerODE();
-	bool has_point(double x, double y) const;
+
 	double get_height() const;
 			
 	void update();

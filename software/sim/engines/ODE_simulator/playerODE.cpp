@@ -251,41 +251,6 @@ bool playerODE::has_ball() const {
 }
 
 
-
-bool playerODE::has_point(double x, double y) const {
-
-	double hasBallTolerance = 0.25;
-	const dReal *p = dBodyGetPosition (body);
-
-	point ball_loc(x, y);
-	point play_loc(p[0], p[1]);
-	point play_ball_diff = ball_loc - play_loc;
-	point rel_play_ball_diff = play_ball_diff.rotate(-orientation());
-	play_ball_diff  = rel_play_ball_diff;
-
-	if(play_ball_diff.x < x_len/2 - hasBallTolerance){
-		return false;
-	}
-
-	if(play_ball_diff.x > x_len/2  + hasBallTolerance){
-		return false;
-	}
-	if(play_ball_diff.y > y_len/2  + hasBallTolerance){
-		return false;
-	}
-	if(rel_play_ball_diff.x <0){
-		return false;
-	}
-	double mag_y = abs(rel_play_ball_diff.y);
-	double mag_x = abs(rel_play_ball_diff.x);
-
-	if( mag_y/mag_x > y_len/x_len){
-		return false;
-	}
-
-	return true;
-}
-
 /// Accessor to get the height of the middle of the robot (should be ROBOT_HEIGHT/2)
 double playerODE::get_height() const
 {
