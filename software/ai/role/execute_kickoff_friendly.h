@@ -2,9 +2,10 @@
 #define AI_ROLE_EXECUTE_KICKOFF_FRIENDLY_H
 
 #include "ai/role.h"
+#include "ai/tactic.h"
 
 //
-// Gets the robots to go to their execute_kickoff_friendly positions.
+// Executes the kickoff for the kicking robot.
 //
 class execute_kickoff_friendly : public role {
 	public:
@@ -19,6 +20,26 @@ class execute_kickoff_friendly : public role {
 		execute_kickoff_friendly(ball::ptr ball, field::ptr field, controlled_team::ptr team);
 
 		//
+		// True if kicker has made contact with the ball.
+		//
+		bool contacted_ball;
+
+		//
+		// Tells the kicker to move away from the ball.
+		//
+		void avoid_ball(int);
+
+		//
+		// Tells the kicker to kick the ball (slightly) forward.
+		//
+		void kick_ball(int);
+
+		//
+		// Tells the kicker to take posession of the ball.
+		//
+		void chase_ball(int);
+
+		//
 		// Runs the AI for one time tick.
 		//
 		void tick();
@@ -29,6 +50,7 @@ class execute_kickoff_friendly : public role {
 		void robots_changed();
 
 	protected:
+		std::vector<tactic::ptr> the_tactics;
 		
 };
 
