@@ -73,7 +73,6 @@ class field : public noncopyable {
 			return defense_area_stretch_;
 		}
 
-
 	private:
 		double length_;
 		double total_length_;
