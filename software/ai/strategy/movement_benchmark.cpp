@@ -9,6 +9,8 @@
 // the first task centers the robot, so the timing does not start until after that
 
 // #define NO_TUNE_ROTATION
+// #define TUNE_FULL
+#define TUNE_HALF
 
 namespace {
 
@@ -30,7 +32,23 @@ namespace {
 
 	const double PI = M_PI;
 
-#ifndef NO_TUNE_ROTATION
+#ifdef TUNE_HALF
+	const std::pair<point, double> default_tasks[] =
+	{
+		std::make_pair(point(-1.2, 0), 0),
+		std::make_pair(point(-0.5, 0), PI),
+		std::make_pair(point(-2.5, 0), 0),
+		std::make_pair(point(-0.5, 1.2), PI),
+		std::make_pair(point(-1, -0.6), 0),
+		std::make_pair(point(-2, 0.6), PI/2),
+		std::make_pair(point(-1, -0.6), -PI/2),
+		std::make_pair(point(-0.5, 0), 0),
+		std::make_pair(point(-2.5, 0.6), -PI/2),
+		std::make_pair(point(-1.2, 0), 0),
+	};
+#endif
+
+#ifdef TUNE_FULL
 	const std::pair<point, double> default_tasks[] =
 	{
 		std::make_pair(point(0, 0), 0),
@@ -53,7 +71,9 @@ namespace {
 		std::make_pair(point(-0.1, 0), 0),
 		std::make_pair(point(0, 0), 0),
 	};
-#else
+#endif
+
+#ifdef NO_TUNE_ROTATION
 	const std::pair<point, double> default_tasks[] =
 	{
 		std::make_pair(point(0, 0), 0),
@@ -117,6 +137,7 @@ void movement_benchmark::tick() {
 	if (done >= tasks.size()) {
 		// task completed
 		std::cout << "time steps taken: " << time_steps << std::endl;
+		return;
 	}
 	prev_ori = the_team->get_player(0)->orientation();
 	prev_pos = the_team->get_player(0)->position();
