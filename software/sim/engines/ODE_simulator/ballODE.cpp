@@ -1,3 +1,4 @@
+#include "sim/field.h"
 #include "sim/engines/ODE_simulator/ballODE.h"
 #include <iostream>
 /*
@@ -32,8 +33,6 @@ point the_position, the_velocity;
 
 				//dSpaceAdd (dspace, ballGeom);
 				 dBodySetLinearDamping (body, 0.001);
-				 field::ptr fldd(new simulator_field);
-				 fld = fldd;
 				 
 				 //dBodySetMaxAngularSpeed (body, 5.0);
 
@@ -121,10 +120,14 @@ point the_position, the_velocity;
 					return point(0.0, 0.0);
 			}
 
-			void ballODE::ext_drag(const point &pos, const point &vel) {
+			void ballODE::position(const point &pos) {
 				const dReal *t = dBodyGetPosition (body);
 				
 				dBodySetPosition(body, pos.x, pos.y, t[2]);
+
+			}
+
+			void ballODE::velocity(const point &vel) {
 				dBodySetLinearVel(body, vel.x, vel.y, 0.0);
 				dBodySetAngularVel (body, 0.0, 0.0, 0.0);
 
@@ -135,9 +138,9 @@ point the_position, the_velocity;
 				const dReal *t = dBodyGetPosition (body);
 				p.x = t[0];
 				p.y = t[1];
-				double len = fld->length() ;
+				double len = simulator_field::length;
 				if(p.x>len/2|| p.x<-len/2){
-				double width = fld->goal_width() ;
+				double width = simulator_field::goal_width;
 
 					if(p.y<width/2 && p.y>(-width/2)){
 						//double height = t[2];

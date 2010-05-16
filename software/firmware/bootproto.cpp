@@ -2,7 +2,7 @@
 #include "firmware/bootproto.h"
 #include "util/dprint.h"
 #include "util/xbee.h"
-#include "xbee/packettypes.h"
+#include "xbee/shared/packettypes.h"
 #include <cassert>
 
 namespace {

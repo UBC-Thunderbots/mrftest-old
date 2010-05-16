@@ -1,7 +1,7 @@
 #include "ai/role/goalie.h"
 #include "ai/tactic/move.h"
 
-goalie::goalie(ball::ptr ball, field::ptr field, controlled_team::ptr team) : role(ball, field, team), started(false), default_pos(-0.45*the_field->length(),0), centre_of_goal(-0.5*the_field->length(),0){
+goalie::goalie(world::ptr world) : the_world(world), started(false), default_pos(-0.45*the_world->field().length(),0), centre_of_goal(-0.5*the_world->field().length(),0){
 }
 
 void goalie::tick(){
@@ -15,19 +15,18 @@ void goalie::tick(){
         return;
     }else
     {
-        move::ptr move_tac( new move(the_ball, the_field, the_team, the_robots[0]));
+        move move_tac(the_robots[0], the_world);
         if (started)
         {
-            point tempPoint = the_ball->position()-centre_of_goal;
+            point tempPoint = the_world->ball()->position()-centre_of_goal;
             tempPoint = tempPoint * (STANDBY_DIST / tempPoint.len());
             tempPoint += centre_of_goal;
-            move_tac->set_position(tempPoint);
+            move_tac.set_position(tempPoint);
         }else
         { 
-	    move_tac->set_position( point(-0.45*the_field->length(),0));
+	    move_tac.set_position( point(-0.45*the_world->field().length(),0));
         }
-        curr_tactic = tactic::ptr(move_tac);
-        curr_tactic->tick();
+        move_tac.tick();
     } 
 }
 

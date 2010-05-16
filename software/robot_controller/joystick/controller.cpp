@@ -1,7 +1,7 @@
+#include "ai/world/player.h"
 #include "geom/angle.h"
 #include "robot_controller/joystick/joystick.h"
 #include "robot_controller/robot_controller.h"
-#include "world/player_impl.h"
 #include <gtkmm.h>
 
 namespace {
@@ -20,7 +20,7 @@ namespace {
 			joystick_controller_factory() : robot_controller_factory("Joystick") {
 			}
 
-			robot_controller::ptr create_controller(player_impl::ptr plr, bool yellow, unsigned int index) const;
+			robot_controller::ptr create_controller(player::ptr plr, bool yellow, unsigned int index) const;
 	};
 
 	joystick_controller_factory factory;
@@ -93,18 +93,22 @@ namespace {
 
 	class joystick_controller : public robot_controller, public Gtk::VBox {
 		public:
-			joystick_controller(player_impl::ptr plr, bool yellow, unsigned int index);
+#warning figure out a better UI so we can avoid passing colour and index into a robot controller
+			joystick_controller(player::ptr plr, bool yellow, unsigned int index);
 
 			~joystick_controller();
 
 			void move(const point &, double, point &linear_velocity, double &angular_velocity);
+
+			void clear() {
+			}
 
 			robot_controller_factory &get_factory() const {
 				return factory;
 			}
 
 		private:
-			player_impl::ptr plr;
+			player::ptr plr;
 			joystick::ptr stick;
 			Gtk::ComboBoxText joybox;
 			joystick_display_rectangle disp;
@@ -124,7 +128,7 @@ namespace {
 			}
 	};
 
-	robot_controller::ptr joystick_controller_factory::create_controller(player_impl::ptr plr, bool yellow, unsigned int index) const {
+	robot_controller::ptr joystick_controller_factory::create_controller(player::ptr plr, bool yellow, unsigned int index) const {
 		robot_controller::ptr p(new joystick_controller(plr, yellow, index));
 		return p;
 	}
@@ -170,7 +174,7 @@ namespace {
 		return ui;
 	}
 
-	joystick_controller::joystick_controller(player_impl::ptr plr, bool yellow, unsigned int index) : plr(plr), prev_chick(false) {
+	joystick_controller::joystick_controller(player::ptr plr, bool yellow, unsigned int index) : plr(plr), prev_chick(false) {
 		joybox.append_text("<Choose Joystick>");
 		const std::vector<std::pair<Glib::ustring, Glib::ustring> > &sticks = joystick::list();
 		for (unsigned int i = 0; i < sticks.size(); i++)

@@ -1,0 +1,294 @@
+#define DEBUG 0
+#include "util/algorithm.h"
+#include "util/dprint.h"
+#include "util/rwlock.h"
+#include "util/time.h"
+#include "xbee/daemon/frontend/backend.h"
+#include "xbee/daemon/frontend/daemon.h"
+#include "xbee/daemon/frontend/scheduler.h"
+#include "xbee/shared/packettypes.h"
+#include <algorithm>
+#include <functional>
+#include <cassert>
+
+namespace {
+	//
+	// How many milliseconds to wait for a feedback packet or response packet before assuming it has been lost.
+	//
+	const unsigned int TIMEOUT = 200;
+}
+
+scheduler::scheduler(class daemon &daemon) : daemon(daemon), sent_count(0), next_type(NEXT_QUEUED), last_feedback_index(0) {
+	daemon.backend.signal_received.connect(sigc::mem_fun(this, &scheduler::on_receive));
+}
+
+void scheduler::queue(request::ptr req) {
+	pending.push(req);
+	push();
+}
+
+void scheduler::push() {
+	// If packets are outstanding, do nothing. We will be signalled when a
+	// response arrives or timeout expires, at which point we can repush.
+	if (sent_count > 0) {
+		return;
+	}
+
+	// Compute whether there is any data available to send of each type.
+	bool has_queued = !pending.empty();
+	bool has_bulk = exists_if(daemon.run_data_index_reverse, daemon.run_data_index_reverse + xbeepacket::MAX_DRIVE_ROBOTS, std::bind2nd(std::not_equal_to<uint64_t>(), UINT64_C(0)));
+
+	// If there is no data at all to send, do nothing.
+	if (!has_queued && !has_bulk) {
+		return;
+	}
+
+	// If there's only one type of data available, we must send that.
+	if (!has_queued) {
+		next_type = NEXT_BULK;
+	} else if (!has_bulk) {
+		next_type = NEXT_QUEUED;
+	}
+
+	// Determine what to do next.
+	if (next_type == NEXT_QUEUED) {
+		DPRINT("Sending queued request.");
+
+		// We should send some queued data. Dequeue a request.
+		request::ptr req = pending.front();
+		pending.pop();
+
+		// If the request will expect a response, then record it as outstanding
+		// and register a timeout so we're sure delivery is successful at least
+		// over the local USB, to the local radio. We will then do nothing
+		// further.
+		if (req->has_response()) {
+			uint8_t frame = req->data()[1];
+			assert(frame);
+			assert(!sent[frame].data);
+			sent[frame].data = req;
+			sent[frame].timeout_connection = Glib::signal_timeout().connect(sigc::bind(sigc::mem_fun(this, &scheduler::on_request_timeout), frame), TIMEOUT);
+			++sent_count;
+		}
+
+		// Actually send the data.
+		iovec iov;
+		iov.iov_base = const_cast<uint8_t *>(&req->data()[0]);
+		iov.iov_len = req->data().size();
+		daemon.backend.send(&iov, 1);
+
+		// Next, it's a bulk packet's turn if there is one.
+		next_type = NEXT_BULK;
+
+		// If we will be getting a response, do nothing yet; we should wait for
+		// this request to be complete before we move on and push more data. On
+		// the other hand, if we will not be getting any response anyway, we
+		// can't possibly know when the packet is "finished" and thus when we
+		// can move on to the next packet... so we might as well do it right
+		// now!
+		if (!req->has_response()) {
+			push();
+		}
+	} else {
+		DPRINT("Sending bulk request.");
+
+		// We should send a bulk packet. Assemble the packet.
+		struct __attribute__((packed)) BULK_PACKET {
+			xbeepacket::TRANSMIT16_HDR hdr;
+			uint8_t pad;
+			xbeepacket::RUN_DATA data[xbeepacket::MAX_DRIVE_ROBOTS];
+			uint8_t pad2;
+		} packet;
+		unsigned int max_index = 0;
+		for (unsigned int i = 0; i < xbeepacket::MAX_DRIVE_ROBOTS; ++i) {
+			if (daemon.run_data_index_reverse[i]) {
+				max_index = i;
+			}
+		}
+		bool eligible_for_feedback[xbeepacket::MAX_DRIVE_ROBOTS];
+		{
+			rwlock_scoped_acquire acq(&daemon.shm->lock, &pthread_rwlock_wrlock);
+			timespec now;
+			timespec_now(now);
+			timespec threshold;
+			threshold.tv_sec = 0;
+			threshold.tv_nsec = 500000000L;
+			for (unsigned int i = 0; i <= max_index; ++i) {
+				timespec diff;
+				timespec_sub(now, daemon.shm->frames[i].timestamp, diff);
+				if (timespec_cmp(diff, threshold) > 0) {
+					daemon.shm->frames[i].run_data.flags = xbeepacket::RUN_FLAG_RUNNING;
+				}
+				if (daemon.run_data_index_reverse[i] && (daemon.shm->frames[i].run_data.flags & xbeepacket::RUN_FLAG_RUNNING)) {
+					packet.data[i] = daemon.shm->frames[i].run_data;
+					eligible_for_feedback[i] = true;
+					DPRINT(Glib::ustring::compose("Robot %1 is eligible for feedback.", i));
+				} else {
+					packet.data[i].flags = xbeepacket::RUN_FLAG_RUNNING;
+					packet.data[i].drive1_speed = 0;
+					packet.data[i].drive2_speed = 0;
+					packet.data[i].drive3_speed = 0;
+					packet.data[i].drive4_speed = 0;
+					packet.data[i].dribbler_speed = 0;
+					packet.data[i].chick_power = 0;
+					eligible_for_feedback[i] = false;
+					DPRINT(Glib::ustring::compose("Robot %1 is ineligible for feedback.", i));
+				}
+			}
+		}
+		packet.hdr.apiid = xbeepacket::TRANSMIT16_APIID;
+		packet.hdr.frame = 0;
+		packet.hdr.address[0] = 0xFF;
+		packet.hdr.address[1] = 0xFF;
+		packet.hdr.options = xbeepacket::TRANSMIT_OPTION_DISABLE_ACK;
+		packet.pad = 0;
+		packet.pad2 = 0;
+		std::size_t length = sizeof(xbeepacket::TRANSMIT16_HDR) + (max_index + 1) * sizeof(xbeepacket::RUN_DATA) + 2;
+
+		// Check if any robots are eligible to send feedback.
+		bool any_eligible_for_feedback = exists(eligible_for_feedback, eligible_for_feedback + max_index + 1, true);
+		if (any_eligible_for_feedback) {
+			// Advance the feedback index to the next eligible robot.
+			do {
+				last_feedback_index = (last_feedback_index + 1) % (max_index + 1);
+			} while (!eligible_for_feedback[last_feedback_index]);
+			last_feedback_address = daemon.robots[daemon.run_data_index_reverse[last_feedback_index]]->address16();
+
+			// Set the feedback flag in this robot's outbound data block.
+			packet.data[last_feedback_index].flags |= xbeepacket::RUN_FLAG_FEEDBACK;
+
+			// Record the timestamp.
+			timespec_now(last_feedback_timestamp);
+
+			DPRINT(Glib::ustring::compose("Requesting feedback from robot %1.", last_feedback_index));
+		} else {
+			DPRINT("Not requesting any feedback.");
+		}
+
+		// Actually send the data.
+		iovec iov;
+		iov.iov_base = &packet;
+		iov.iov_len = length;
+		daemon.backend.send(&iov, 1);
+
+		// Record that there is a packet outstanding.
+		++sent_count;
+
+		// Start a timeout for receiving the feedback packet. If no robots were
+		// asked to send feedback because none were eligible, we're in a
+		// slightly strange situation where some robots are in the process of
+		// being configured (else they wouldn't have run data index reverse
+		// mappings at all), but have not yet been fully configured (else they
+		// would have the run flag turned on and be eligible for feedback).
+		// Because this will probably happen only occasionally and not for very
+		// long (only until a robot is fully configured), and because this only
+		// happens when NO robots are actually driving (else they would be
+		// eligible for feedback), let's just handle this by the slightly hacky
+		// solution of letting the feedback timeout expire and then pushing more
+		// packets.
+		feedback_timeout_connection = Glib::signal_timeout().connect(sigc::bind_return(sigc::mem_fun(this, &scheduler::on_feedback_timeout), false), TIMEOUT);
+
+		// Next, it's a queued packet's turn if there is one.
+		next_type = NEXT_QUEUED;
+	}
+
+	push();
+}
+
+bool scheduler::on_request_timeout(uint8_t frame) {
+	// Resend the request.
+	request::ptr req = sent[frame].data;
+	iovec iov;
+	iov.iov_base = const_cast<uint8_t *>(&req->data()[0]);
+	iov.iov_len = req->data().size();
+	daemon.backend.send(&iov, 1);
+
+	// Keep the timeout signal connected.
+	return true;
+}
+
+void scheduler::on_feedback_timeout() {
+	// Whatever happens, give up on waiting for this request.
+	--sent_count;
+
+	// See if we can report the timeout to someone who cares.
+	uint64_t address64 = daemon.run_data_index_reverse[last_feedback_index];
+	if (address64) {
+		// OK, there's still a robot at this run data index.
+		robot_state::ptr bot(daemon.robots[address64]);
+		if (bot->address16() == last_feedback_address) {
+			// OK, the bot at this run data index has the same 16-bit address as
+			// the one that was there when we sent the original bulk packet. We
+			// can be reasonably certain it's the same robot.
+			bot->on_feedback_timeout();
+		}
+	}
+
+	// Send some more packets, in any case.
+	push();
+}
+
+void scheduler::on_receive(const std::vector<uint8_t> &data) {
+	if (data[0] == xbeepacket::AT_RESPONSE_APIID || data[0] == xbeepacket::REMOTE_AT_RESPONSE_APIID || data[0] == xbeepacket::TRANSMIT_STATUS_APIID) {
+		// We're receiving an XBee-layer response to a queued request. Use the
+		// frame number to dispatch the request to the proper handlers.
+		uint8_t frame = data[1];
+		if (sent[frame].data) {
+			// This matches a sent frame.
+			assert(sent[frame].data->has_response());
+			sent[frame].data->signal_complete().emit(&data[0], data.size());
+			sent[frame].data.reset();
+			sent[frame].timeout_connection.disconnect();
+			--sent_count;
+
+			// Send some more packets.
+			push();
+		} else {
+			// This does not match a sent frame. It could be some old crud from
+			// a previous run accumulating in the serial buffer. Just ignore it.
+		}
+	} else if (data[0] == xbeepacket::RECEIVE16_APIID) {
+		// We're receiving a feedback packet from a robot.
+		const struct __attribute__((packed)) FEEDBACK_PACKET {
+			xbeepacket::RECEIVE16_HDR hdr;
+			xbeepacket::FEEDBACK_DATA data;
+		} &packet = *reinterpret_cast<const FEEDBACK_PACKET *>(&data[0]);
+
+		// Check for proper length.
+		if (data.size() != sizeof(packet)) {
+			return;
+		}
+
+		// Check for the source address being the address of the robot most
+		// recently asked to provide feedback.
+		uint16_t address16 = (packet.hdr.address[0] << 8) | packet.hdr.address[1];
+		if (address16 != last_feedback_address) {
+			return;
+		}
+
+		// Check flags.
+		if (!(packet.data.flags & xbeepacket::FEEDBACK_FLAG_RUNNING)) {
+			return;
+		}
+
+		// Looks like it's a genuine feedback packet. Assuming there's still a
+		// robot hanging off this run data index, pass the feedback to it.
+		uint64_t address64 = daemon.run_data_index_reverse[last_feedback_index];
+		if (address64) {
+			robot_state::ptr bot(daemon.robots[address64]);
+			if (bot->address16() == last_feedback_address) {
+				timespec now;
+				timespec_now(now);
+				timespec diff;
+				timespec_sub(now, last_feedback_timestamp, diff);
+				bot->on_feedback(packet.hdr.rssi, packet.data, diff);
+			}
+		}
+
+		// We should now disconnect the timeout and send more packets.
+		--sent_count;
+		feedback_timeout_connection.disconnect();
+		push();
+	}
+}
+

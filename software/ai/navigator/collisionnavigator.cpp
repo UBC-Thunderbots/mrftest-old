@@ -1,13 +1,16 @@
 #include "ai/navigator/collisionnavigator.h"
 #include <iostream>
-collisionnavigator::collisionnavigator(player::ptr player, field::ptr field, ball::ptr ball, team::ptr team) : 
-  navigator(player, field, ball, team), destInitialized(false), outOfBoundsMargin(field->width() / 20.0),
+collisionnavigator::collisionnavigator(player::ptr player, world::ptr world) : 
+  the_player(player), the_world(world), destInitialized(false), outOfBoundsMargin(world->field().width() / 20.0),
   maxLookahead(1.0)
 {
 
 }
 
 void collisionnavigator::tick() {
+  const field &the_field(the_world->field());
+  const ball::ptr the_ball(the_world->ball());
+
   //tell it which way to go
   if(destInitialized)
     {
@@ -21,10 +24,10 @@ void collisionnavigator::tick() {
 	{
      
 	  nowDest = clip_point(currDest,
-			       point(-the_field->length()/2 + outOfBoundsMargin,
-				     -the_field->width()/2 + outOfBoundsMargin),
-			       point(the_field->length()/2 - outOfBoundsMargin,
-				     the_field->width()/2 - outOfBoundsMargin));
+			       point(-the_field.length()/2 + outOfBoundsMargin,
+				     -the_field.width()/2 + outOfBoundsMargin),
+			       point(the_field.length()/2 - outOfBoundsMargin,
+				     the_field.width()/2 - outOfBoundsMargin));
 	}
       else
 	{
@@ -45,12 +48,14 @@ void collisionnavigator::tick() {
 }
 
 void collisionnavigator::set_point(const point &destination) {
+  const field &the_field(the_world->field());
+
   //set new destinatin point
   destInitialized = true;
 
   currDest = clip_point(destination,
-			point(-the_field->length()/2,-the_field->width()/2),
-			point(the_field->length()/2,the_field->width()/2));
+			point(-the_field.length()/2,-the_field.width()/2),
+			point(the_field.length()/2,the_field.width()/2));
 }
 
 point collisionnavigator::clip_point(point p, point bound1, point bound2)

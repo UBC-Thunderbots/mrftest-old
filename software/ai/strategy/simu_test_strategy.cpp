@@ -1,7 +1,7 @@
-#include "ai/strategy.h"
+#include "ai/strategy/strategy.h"
 #include "ai/navigator/testnavigator.h"
 #include "ai/tactic/chase.h"
-#include "ai/role.h"
+#include "ai/role/role.h"
 #include "ai/role/defensive.h"
 #include "ai/role/goalie.h"
 #include "ai/role/execute_direct_free_kick_enemy.h"
@@ -37,7 +37,11 @@ namespace simu_test{
 //auto_ref_setup = true;
 
 
-  simu_test_strategy::simu_test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
+  simu_test_strategy::simu_test_strategy(world::ptr world) : the_world(world) {
+	friendly_team &team(the_world->friendly);
+    // Connect to the team change signals.
+    team.signal_player_added.connect(sigc::hide(sigc::hide(sigc::mem_fun(this, &simu_test_strategy::robot_added))));
+	team.signal_player_removed.connect(sigc::mem_fun(this, &simu_test_strategy::robot_removed));
     // Initialize variables here (e.g. create the roles).
     test_id = 0;
     auto_ref_setup = true;
@@ -56,13 +60,15 @@ namespace simu_test{
   }
 
   bool simu_test_strategy::is_ball_in_bound() {
-    if (the_ball->position().x > the_field->length()/2)
+	const ball::ptr the_ball(the_world->ball());
+	const field &the_field(the_world->field());
+    if (the_ball->position().x > the_field.length()/2)
       return false;
-    if (the_ball->position().x < the_field->length()/-2)
+    if (the_ball->position().x < the_field.length()/-2)
       return false;
-    if (the_ball->position().y > the_field->width()/2)
+    if (the_ball->position().y > the_field.width()/2)
       return false;
-    if (the_ball->position().y < the_field->width()/-2)
+    if (the_ball->position().y < the_field.width()/-2)
       return false;
     return true;
   }
@@ -80,6 +86,7 @@ namespace simu_test{
   }
 
   bool simu_test_strategy::is_ball_in_pos(double x, double y) {
+	const ball::ptr the_ball(the_world->ball());
     if (the_ball->position().x > x+0.25)	//0.25 instead of 0.05...because ball enters the area after the player
       return false;
     if (the_ball->position().x < x-0.25)
@@ -101,15 +108,17 @@ namespace simu_test{
   }
   
   void simu_test_strategy::tick() {
+	const ball::ptr the_ball(the_world->ball());
+	const friendly_team &the_team(the_world->friendly);
     tick_count++;
-    if (!the_team->size()) return;
+    if (!the_team.size()) return;
     point move_to_point; 
-    the_only_player = the_team->get_player(0);
+    the_only_player = the_team.get_player(0);
     //    the_only_player->dribble(1);
     if (first_tick)
       {
 	stay_here = the_only_player->position();
-	our_navigator = navigator::ptr(new testnavigator(the_only_player,the_field,the_ball,the_team));
+	our_navigator = new testnavigator(the_only_player,the_world);
 	first_tick = false;
       }
     if ((stay_here - the_only_player->position()).len() > 0.3)
@@ -188,7 +197,7 @@ namespace simu_test{
 		  test_started = true;  
 		  the_only_player->dribble(1);
 		  std::cout << "Dribble - Dribble Executed" << std::endl;
-		  our_navigator = navigator::ptr(new testnavigator(the_only_player,the_field,the_ball,the_team));
+		  our_navigator = new testnavigator(the_only_player,the_world);
 		  move_to_point.x = -2.0;
 		  move_to_point.y = 0.0;
 		  our_navigator->set_point(move_to_point);
@@ -420,17 +429,13 @@ namespace simu_test{
 	return;
   }
 
-  void simu_test_strategy::set_playtype(playtype::playtype) { 
-
-  }
-  
   Gtk::Widget *simu_test_strategy::get_ui_controls() {
     return 0;
 	}
   
 	void simu_test_strategy::robot_added(void) {
 	  std::cout << "<<<<<<<<<ROBOT ADDED>>>>" << std::endl;	 
-	  if (the_team->size() == 1) {
+	  if (the_world->friendly.size() == 1) {
 		first_tick = true;
 	  }
 	}
@@ -439,21 +444,21 @@ namespace simu_test{
 	  std::cout << "<<<<<<<<<ROBOT Removed>>>>" << std::endl;
 	  if (plr == the_only_player) {
 		the_only_player.reset();
-		our_navigator.reset();
+		our_navigator = 0;
 	  }
 	}
 
 	class simu_test_strategy_factory : public strategy_factory {
 		public:
 			simu_test_strategy_factory();
-			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			strategy::ptr create_strategy(world::ptr world);
 	};
 
 	simu_test_strategy_factory::simu_test_strategy_factory() : strategy_factory("Simulator Test (For Jason)") {
 	}
 
-	strategy::ptr simu_test_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
-		strategy::ptr s(new simu_test_strategy(ball, field, team));
+	strategy::ptr simu_test_strategy_factory::create_strategy(world::ptr world) {
+		strategy::ptr s(new simu_test_strategy(world));
 		return s;
 	}
 

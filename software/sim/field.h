@@ -1,22 +1,51 @@
-#ifndef SIMULATOR_FIELD_H
-#define SIMULATOR_FIELD_H
-
-#include "world/field.h"
+#ifndef SIM_FIELD_H
+#define SIM_FIELD_H
 
 //
-// An implementation of "field" that uses the published theoretical dimensions
-// of the field and is suitable for use in the simulator.
+// The dimensions of the field.
 //
-class simulator_field : public field {
+class simulator_field {
 	public:
-		double length()               const { return 6.05; }
-		double total_length()         const { return 7.40; }
-		double width()                const { return 4.05; }
-		double total_width()          const { return 5.40; }
-		double goal_width()           const { return 0.70; }
-		double centre_circle_radius() const { return 0.50; }
-		double defense_area_radius()  const { return 0.50; }
-		double defense_area_stretch() const { return 0.35; }
+		//
+		// The length of the field, from goal to goal, in metres.
+		//
+		static const double length = 6.05;
+
+		//
+		// The length of the field, including the boundary and referee area.
+		//
+		static const double total_length = 7.40;
+
+		//
+		// The width of the field, from sideline to sideline, in the Y
+		// direction.
+		//
+		static const double width = 4.05;
+
+		//
+		// The width of the field, including the boundary and referee area.
+		// 
+		static const double total_width = 5.40;
+
+		//
+		// The width of the goal, symmetric above and below the centreline.
+		//
+		static const double goal_width = 0.70;
+
+		//
+		// The radius of the centre circle.
+		//
+		static const double centre_circle_radius = 0.50;
+
+		//
+		// The radius of the arcs at the top and bottom of the defense area.
+		//
+		static const double defense_area_radius = 0.50;
+
+		//
+		// The width of the straight part between the arcs in the defense area.
+		//
+		static const double defense_area_stretch = 0.35;
 };
 
 #endif

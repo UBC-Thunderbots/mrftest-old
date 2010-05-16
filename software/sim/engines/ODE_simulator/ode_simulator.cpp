@@ -1,8 +1,8 @@
-#include "sim/engine.h"
+#include "sim/field.h"
+#include "sim/engines/engine.h"
 #include "ballODE.h"
 #include "playerODE.h"
-#include "sim/field.h"
-#include "world/timestep.h"
+#include "util/timestep.h"
 #include "geom/angle.h"
 #include <iostream>
 
@@ -65,7 +65,6 @@ namespace {
 				space = dSimpleSpaceCreate(0);
 				//space = dHashSpaceCreate(0);
 				
-				const field::ptr fld(new simulator_field);
   				ground = dCreatePlane (space,0,0,1,0);
   				//wall[0] = dCreatePlane(space,1,0,0,fld->total_length()/2);
   				//wall[1] = dCreatePlane(space,1,0,0,-fld->total_length()/2);
@@ -78,14 +77,14 @@ namespace {
   				double wall_thickness = 0.0127; //
   				
 				//build a wall around the playing field
-  				wall[0] = dCreateBox (space, fld->total_length() + 2*wall_thickness, wall_thickness, wall_height);
-				wall[1] = dCreateBox (space, fld->total_length() + 2*wall_thickness, wall_thickness, wall_height);  			
-				wall[2] = dCreateBox (space, wall_thickness, fld->total_width()-2*wall_thickness, wall_height);
-				wall[3] = dCreateBox (space, wall_thickness, fld->total_width()-2*wall_thickness, wall_height);
-  				dGeomSetPosition (wall[0],  0,  (fld->total_width()/2 + wall_thickness/2),  (wall_height/2));
-  				dGeomSetPosition (wall[1],  0, -(fld->total_width()/2 + wall_thickness/2),  (wall_height/2));
-  				dGeomSetPosition (wall[2],  (fld->total_length()/2 + wall_thickness/2), 0,  (wall_height/2));
-  				dGeomSetPosition (wall[3], - (fld->total_length()/2 + wall_thickness/2), 0,  (wall_height/2));
+  				wall[0] = dCreateBox (space, simulator_field::total_length + 2*wall_thickness, wall_thickness, wall_height);
+				wall[1] = dCreateBox (space, simulator_field::total_length + 2*wall_thickness, wall_thickness, wall_height);  			
+				wall[2] = dCreateBox (space, wall_thickness, simulator_field::total_width-2*wall_thickness, wall_height);
+				wall[3] = dCreateBox (space, wall_thickness, simulator_field::total_width-2*wall_thickness, wall_height);
+  				dGeomSetPosition (wall[0],  0,  (simulator_field::total_width/2 + wall_thickness/2),  (wall_height/2));
+  				dGeomSetPosition (wall[1],  0, -(simulator_field::total_width/2 + wall_thickness/2),  (wall_height/2));
+  				dGeomSetPosition (wall[2],  (simulator_field::total_length/2 + wall_thickness/2), 0,  (wall_height/2));
+  				dGeomSetPosition (wall[3], - (simulator_field::total_length/2 + wall_thickness/2), 0,  (wall_height/2));
 				//set possible penetration for collisions
     				
     				dWorldSetContactSurfaceLayer(eworld, 0.1);
@@ -141,11 +140,11 @@ namespace {
 			void setWorld(dWorldID world) {
 				eworld = world;
 			}
-			simulator_ball_impl::ptr get_ball() {
+			ball::ptr get_ball() {
 				return the_ball;
 			}
 
-			player_impl::ptr add_player() {
+			player::ptr add_player() {
 				playerODE::ptr	 p(new playerODE(eworld, space, the_ball->ballGeom, static_cast<double>(UPDATES_PER_TICK)));
 				point cur =p->position();
 				
@@ -163,7 +162,8 @@ namespace {
 					}
 				}
 				
-				p->ext_drag(cur, point());
+				p->position(cur);
+				p->velocity(point());
 				the_players.push_back(p);
 				return p;
 			}
@@ -189,9 +189,9 @@ namespace {
 			}
 			
 			
-			void remove_player(player_impl::ptr p) {
+			void remove_player(player::ptr p) {
 				for (unsigned int i = 0; i < the_players.size(); i++) {
-					if (player_impl::ptr::cast_static(the_players[i]) == p) {
+					if (player::ptr::cast_static(the_players[i]) == p) {
 						the_players.erase(the_players.begin() + i);
 						return;
 					}
@@ -497,7 +497,7 @@ namespace {
 			sim_engine_factory() : simulator_engine_factory("Open Dynamics Engine Simulator") {
 			}
 
-			simulator_engine::ptr create_engine(xmlpp::Element *) {
+			simulator_engine::ptr create_engine() {
 				simulator_engine::ptr p(new sim_engine);
 				return p;
 			}

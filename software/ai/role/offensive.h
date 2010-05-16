@@ -1,8 +1,7 @@
 #ifndef AI_ROLE_OFFENSIVE_H
 #define AI_ROLE_OFFENSIVE_H
 
-#include "ai/role.h"
-#include "ai/tactic.h"
+#include "ai/role/role.h"
 #include "ai/tactic/chase.h"
 #include "ai/tactic/chase_and_shoot.h"
 #include "ai/tactic/move.h"
@@ -22,7 +21,7 @@ class offensive : public role {
 		//
 		// Constructs a new offensive role.
 		//
-		offensive(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+		offensive(world::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -60,6 +59,7 @@ class offensive : public role {
         double get_distance_from_goal(int index);
 
 	protected:
+		const world::ptr the_world;
         std::vector<tactic::ptr> the_tactics;
 		
 };

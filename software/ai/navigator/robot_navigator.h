@@ -1,12 +1,14 @@
 #ifndef AI_NAVIGATOR_ROBOT_NAVIGATOR_H
 #define AI_NAVIGATOR_ROBOT_NAVIGATOR_H
 
-#include "ai/navigator.h"
+#include "ai/world/player.h"
+#include "ai/world/world.h"
+#include "geom/point.h"
+#include "util/noncopyable.h"
 
-class robot_navigator : public navigator {
+class robot_navigator : public noncopyable {
 	public:
-		typedef Glib::RefPtr<robot_navigator> ptr;
-		robot_navigator(player::ptr player, field::ptr field, ball::ptr ball, team::ptr team);
+		robot_navigator(player::ptr player, world::ptr world);
 
 		void tick();
 		void set_point(const point& destination);
@@ -65,6 +67,8 @@ class robot_navigator : public navigator {
 	private:
 		bool check_vector(const point& start, const point& dest, const point& direction) const;
 
+		const player::ptr the_player;
+		const world::ptr the_world;
 		bool dest_initialized;//has a destination been specified?
 		point curr_dest;//current destination
 		double outofbounds_margin;//distance to remain from sidelines to prevent from going oob

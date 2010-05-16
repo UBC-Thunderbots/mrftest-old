@@ -2,7 +2,6 @@
 #define FIRMWARE_EMERGENCY_ERASE_H
 
 #include "firmware/watchable_operation.h"
-#include "xbee/xbee.h"
 #include <stdint.h>
 
 //

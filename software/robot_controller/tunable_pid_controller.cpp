@@ -1,7 +1,6 @@
 #include "tunable_pid_controller.h"
 #include "geom/point.h"
 #include "geom/angle.h"
-#include "world/player_impl.h"
 
 #include <cmath>
 #include <iostream>
@@ -29,7 +28,7 @@ namespace {
 			tunable_pid_controller_factory() : robot_controller_factory("Tunable PID") {
 			}
 
-			robot_controller::ptr create_controller(player_impl::ptr plr, bool, unsigned int) const {
+			robot_controller::ptr create_controller(player::ptr plr, bool, unsigned int) const {
 				robot_controller::ptr p(new tunable_pid_controller(plr));
 				return p;
 			}
@@ -127,7 +126,7 @@ const std::vector<double> tunable_pid_controller::param_min(arr_min, arr_min + P
 const std::vector<double> tunable_pid_controller::param_max(arr_max, arr_max + P);
 const std::vector<double> tunable_pid_controller::param_default(arr_def, arr_def + P);
 
-tunable_pid_controller::tunable_pid_controller(player_impl::ptr plr) : plr(plr), initialized(false), error_pos(10), error_ori(10) {
+tunable_pid_controller::tunable_pid_controller(player::ptr plr) : plr(plr), initialized(false), error_pos(10), error_ori(10) {
 	param = param_default;
 }
 
@@ -218,6 +217,10 @@ void tunable_pid_controller::move(const point &new_position, double new_orientat
 #endif
 
 	angular_velocity = pa * param[PARAM_A_PROP] + va * param[PARAM_A_DIFF];
+}
+
+void tunable_pid_controller::clear() {
+#warning WRITE CODE HERE
 }
 
 robot_controller_factory &tunable_pid_controller::get_factory() const {

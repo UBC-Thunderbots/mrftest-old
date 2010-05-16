@@ -1,7 +1,6 @@
 #ifndef AI_TACTIC_KICK_H
 #define AI_TACTIC_KICK_H
 
-#include "ai/tactic.h"
 #include "ai/tactic/turn.h"
 
 /**
@@ -11,14 +10,14 @@
 class kick : public tactic {
 	public:
 		//
-		// A pointer to a kick tactic.
+		// A pointer to this tactic.
 		//
 		typedef Glib::RefPtr<kick> ptr;
 
 		//
 		// Constructs a new kick tactic.
 		//
-		kick(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player);
+		kick(player::ptr player);
 
 		//
 		// Runs the AI for one time tick.
@@ -50,9 +49,12 @@ class kick : public tactic {
 			should_chip = false;
 		}
 
+	protected:
+		const player::ptr the_player;
+
 	protected:		
 
-		turn::ptr turn_tactic;
+		turn turn_tactic;
 
 		// Target position
 		point the_target;

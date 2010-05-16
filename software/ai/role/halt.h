@@ -1,7 +1,7 @@
 #ifndef AI_ROLE_HALT_H
 #define AI_ROLE_HALT_H
 
-#include "ai/role.h"
+#include "ai/role/role.h"
 
 /**
  * Robots in this role should stop moving.
@@ -16,7 +16,7 @@ class halt : public role {
 		/**
 		 * Constructs a new halt role.
 		 */
-		halt(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+		halt();
 
 		/**
 		 * Runs the AI for one time tick.

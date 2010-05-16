@@ -1,6 +1,6 @@
 #include "ai/tactic/move_between.h"
 
-move_between::move_between(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player) : tactic(ball, field, team, player) , move_tactic(new move(ball, field, team, player)) {
+move_between::move_between(player::ptr player, world::ptr world) : move_tactic(player, world) {
 	
 }
 
@@ -16,6 +16,6 @@ point move_between::calculate_position() {
 }
 
 void move_between::tick() {
-	move_tactic->set_position(calculate_position());
-	move_tactic->tick();
+	move_tactic.set_position(calculate_position());
+	move_tactic.tick();
 }

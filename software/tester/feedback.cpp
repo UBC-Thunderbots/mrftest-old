@@ -1,70 +1,56 @@
 #include "tester/feedback.h"
 #include "util/xbee.h"
-#include "xbee/packettypes.h"
+#include "xbee/shared/packettypes.h"
 #include <iomanip>
 
 
 
-tester_feedback::tester_feedback() : Gtk::HBox(true, 5), column1(true), battery_label("Battery Voltage:"), out_rssi_label("Out RSSI:"), in_rssi_label("In RSSI:"), latency_label("Latency:"), success_label("Delivery Rate:"), column2(true), out_rssi_level(&radio_bot::out_rssi), in_rssi_level(&radio_bot::in_rssi), column3(true), fault_label("Motor Faults:"), fault_indicator_box(true) {
-	column1.pack_start(battery_label);
-	column1.pack_start(out_rssi_label);
-	column1.pack_start(in_rssi_label);
-	column1.pack_start(latency_label);
-	column1.pack_start(success_label);
-	pack_start(column1);
+tester_feedback::tester_feedback() : Gtk::Table(5, 3, false), battery_label("Battery Voltage:"), out_rssi_label("Out RSSI:"), in_rssi_label("In RSSI:"), latency_label("Latency:"), success_label("Delivery Rate:"), fault_indicator_frame("Motor Faults"), fault_indicator_box(true) {
+	attach(battery_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
+	attach(out_rssi_label, 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
+	attach(in_rssi_label, 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
+	attach(latency_label, 0, 1, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
+	attach(success_label, 0, 1, 4, 5, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
 
-	column2.pack_start(battery_level);
-	column2.pack_start(out_rssi_level);
-	column2.pack_start(in_rssi_level);
-	column2.pack_start(latency_level);
-	column2.pack_start(success_level);
-	pack_start(column2);
+	attach(battery_level, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
+	attach(out_rssi_level, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
+	attach(in_rssi_level, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
+	attach(latency_level, 1, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
+	attach(success_level, 1, 2, 4, 5, Gtk::EXPAND | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
 
 	for (unsigned int i = 0; i < 5; ++i) {
 		fault_indicator_box.pack_start(fault_indicators[i]);
 	}
-	column3.pack_start(fault_label);
-	column3.pack_start(fault_indicator_box);
-	pack_start(column3);
-
-	on_update();
+	fault_indicator_frame.add(fault_indicator_box);
+	attach(fault_indicator_frame, 2, 3, 0, 5, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL, 3, 0);
 }
 
 
 
-void tester_feedback::set_bot(radio_bot::ptr bot) {
+void tester_feedback::set_bot(xbee_drive_bot::ptr bot) {
+	connection.disconnect();
 	battery_level.set_bot(bot);
 	out_rssi_level.set_bot(bot);
 	in_rssi_level.set_bot(bot);
 	latency_level.set_bot(bot);
 	success_level.set_bot(bot);
 	robot = bot;
-	if (bot) {
-		bot->signal_updated().connect(sigc::mem_fun(this, &tester_feedback::on_update));
-	} else {
-		on_update();
+	if (robot) {
+		connection = robot->signal_feedback.connect(sigc::mem_fun(this, &tester_feedback::update));
+	}
+	for (unsigned int i = 0; i < 5; ++i) {
+		fault_indicators[i].set_colour(0, 0, 0);
 	}
 }
 
 
 
-void tester_feedback::on_update() {
-	if (robot && robot->has_feedback()) {
-		for (unsigned int i = 0; i < 4; ++i) {
-			if (robot->drive_fault(i)) {
-				fault_indicators[i].set_colour(1, 0, 0);
-			} else {
-				fault_indicators[i].set_colour(0, 1, 0);
-			}
-		}
-		if (robot->dribbler_fault()) {
-			fault_indicators[4].set_colour(1, 0, 0);
+void tester_feedback::update() {
+	for (unsigned int i = 0; i < 5; ++i) {
+		if (robot->feedback().faults & (1 << i)) {
+			fault_indicators[i].set_colour(1, 0, 0);
 		} else {
-			fault_indicators[4].set_colour(0, 1, 0);
-		}
-	} else {
-		for (unsigned int i = 0; i < 5; ++i) {
-			fault_indicators[i].set_colour(0, 0, 0);
+			fault_indicators[i].set_colour(0, 1, 0);
 		}
 	}
 }

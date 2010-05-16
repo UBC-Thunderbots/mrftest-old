@@ -1,15 +1,18 @@
 #ifndef AI_NAVIGATOR_BASIC_NAVIGATOR_H
 #define AI_NAVIGATOR_BASIC_NAVIGATOR_H
 
-#include "ai/navigator.h"
+#include "ai/world/player.h"
+#include "ai/world/world.h"
+#include "geom/point.h"
+#include "util/noncopyable.h"
 
 /**
  * Basic collision avoidance navigator.
  * Should not have complicated functionality.
  */
-class basic_navigator : public navigator {
+class basic_navigator : public noncopyable {
 	public:
-		basic_navigator(player::ptr player, field::ptr field, ball::ptr ball, team::ptr team);
+		basic_navigator(player::ptr player, world::ptr world);
 		void tick();
 		void set_point(const point& destination);
 
@@ -21,6 +24,9 @@ class basic_navigator : public navigator {
 	protected:
 
 		bool check_vector(const point& start, const point& dest, const point& direction) const;
+
+		const player::ptr the_player;
+		const world::ptr the_world;
 
 		///has a destination been specified?
 		bool dest_initialized;

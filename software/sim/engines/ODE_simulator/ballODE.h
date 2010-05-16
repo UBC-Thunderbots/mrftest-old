@@ -1,12 +1,11 @@
 #include "sim/ball.h"
-#include "sim/field.h"
 #include <ode/ode.h>
 
 //
 // The back-end behind an ODE ball object.
 // 
 //
-class ballODE : public simulator_ball_impl {
+class ballODE : public ball {
 	public:
 
 			typedef Glib::RefPtr<ballODE> ptr;
@@ -33,14 +32,14 @@ class ballODE : public simulator_ball_impl {
 
 			double getRadius();
 
-			void ext_drag(const point &pos, const point &vel);
+			void position(const point &pos);
+			void velocity(const point &vel);
 
 			bool in_goal();
 
 	private:
 			point the_position, the_velocity;
 			 double dradius;
-			 field::ptr fld;
 			
 
 };

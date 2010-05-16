@@ -1,8 +1,7 @@
 #ifndef AI_ROLE_DEFENSIVE_H
 #define AI_ROLE_DEFENSIVE_H
 
-#include "ai/role.h"
-#include "ai/tactic.h"
+#include "ai/role/role.h"
 #include "ai/tactic/chase.h"
 #include "ai/tactic/chase_and_shoot.h"
 #include "ai/tactic/move.h"
@@ -22,7 +21,7 @@ class defensive : public role {
 		//
 		// Constructs a new defensive role.
 		//
-		defensive(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+		defensive(world::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -67,6 +66,7 @@ class defensive : public role {
         std::vector<tactic::ptr> the_tactics;
 
         private:
+		const world::ptr the_world;
         // note that this is a role in role, so the goalie role can still be developed independently.
         // Normally, the defensive role should just tick the goalie_role.
         // When the goalie has ball, this role can set the goalie to other tactics such as passing etc., but it should NEVER leave the goalie box.

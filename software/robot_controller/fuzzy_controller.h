@@ -3,11 +3,11 @@
 
 #include <map>
 #include <glibmm.h>
+#include "ai/world/player.h"
 #include "robot_controller/robot_controller.h"
 #include "geom/point.h"
 #include "util/byref.h"
 #include "util/noncopyable.h"
-#include "world/player_impl.h"
 #include "robot_controller/tunable_controller.h"
 
 class fuzzy_controller : public robot_controller, public tunable_controller {
@@ -15,9 +15,11 @@ class fuzzy_controller : public robot_controller, public tunable_controller {
 
 		void move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity);
 
+		void clear();
+
 		robot_controller_factory &get_factory() const;
 
-		fuzzy_controller(player_impl::ptr player);
+		fuzzy_controller(player::ptr player);
 		
 	 	void set_params(const std::vector<double>& params) {
 			this->param = params;
@@ -36,7 +38,7 @@ class fuzzy_controller : public robot_controller, public tunable_controller {
 		}
 
 	protected:
-		player_impl::ptr robot;
+		player::ptr robot;
 		
 		static const std::vector<double> param_min;
 		static const std::vector<double> param_max;

@@ -2,7 +2,7 @@
 #include <glibmm.h>
 
 bool clocksource_quick::on_idle() {
-	signal_tick().emit();
+	signal_tick.emit();
 	return true;
 }
 

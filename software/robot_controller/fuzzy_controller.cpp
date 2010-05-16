@@ -1,7 +1,6 @@
 #include "fuzzy_controller.h"
 #include "geom/point.h"
 #include "geom/angle.h"
-#include "world/player_impl.h"
 #include <cmath>
 
 namespace {
@@ -11,7 +10,7 @@ namespace {
 			fuzzy_controller_factory() : robot_controller_factory("Fuzzy RC") {
 			}
 
-			robot_controller::ptr create_controller(player_impl::ptr player, bool, unsigned int) const {
+			robot_controller::ptr create_controller(player::ptr player, bool, unsigned int) const {
 				robot_controller::ptr p(new fuzzy_controller (player));
 				return p;
 			}
@@ -29,7 +28,7 @@ const std::vector<double> fuzzy_controller::param_min(arr_min, arr_min + P);
 const std::vector<double> fuzzy_controller::param_max(arr_max, arr_max + P);
 const std::vector<double> fuzzy_controller::param_default(arr_def, arr_def + P);
 
-fuzzy_controller::fuzzy_controller(player_impl::ptr player) : param(4) {
+fuzzy_controller::fuzzy_controller(player::ptr player) : param(4) {
 	robot = player;
 	param = param_default;
 }
@@ -56,6 +55,10 @@ void fuzzy_controller::move(const point &new_position, double new_orientation, p
 	if (distance_factor > 1) distance_factor = 1;
 	
 	linear_velocity = distance_factor*linear_velocity+(1-distance_factor)*(velocity_factor*stopping_velocity + (1-velocity_factor)*linear_velocity);
+}
+
+void fuzzy_controller::clear() {
+#warning WRITE CODE HERE
 }
 
 robot_controller_factory &fuzzy_controller::get_factory() const {

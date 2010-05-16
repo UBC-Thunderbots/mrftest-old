@@ -1,35 +1,37 @@
 #ifndef AI_ROLE_EXECUTE_KICKOFF_ENEMY_H
 #define AI_ROLE_EXECUTE_KICKOFF_ENEMY_H
 
-#include "ai/role.h"
+#include "ai/role/role.h"
 
-//
-// Gets the robots to go to their execute_kickoff_enemy positions.
-//
+/**
+ * Gets the robots to go to their execute_kickoff_enemy positions.
+ */
 class execute_kickoff_enemy : public role {
 	public:
-		//
-		// A pointer to a execute_kickoff_enemy role.
-		//
+		/**
+		 * A pointer to a execute_kickoff_enemy role.
+		 */
 		typedef Glib::RefPtr<execute_kickoff_enemy> ptr;
 
-		//
-		// Constructs a new execute_kickoff_enemy role.
-		//
-		execute_kickoff_enemy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+		/**
+		 * Constructs a new execute_kickoff_enemy role.
+		 *
+		 * \param world the world
+		 */
+		execute_kickoff_enemy(world::ptr world);
 
-		//
-		// Runs the AI for one time tick.
-		//
+		/**
+		 * Runs the AI for one time tick.
+		 */
 		void tick();
 
-		//
-		// Handles changes to the robot membership.
-		//
+		/**
+		 * Handles changes to the robot membership.
+		 */
 		void robots_changed();
 
-	protected:
-		
+	private:
+		const world::ptr the_world;
 };
 
 #endif

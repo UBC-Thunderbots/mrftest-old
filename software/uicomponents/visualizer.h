@@ -1,3 +1,4 @@
+#if 0
 #ifndef UICOMPONENTS_VISUALIZER_H
 #define UICOMPONENTS_VISUALIZER_H
 
@@ -54,5 +55,8 @@ class visualizer : public Gtk::DrawingArea, public noncopyable {
 		draggable::ptr object_at(const point &pos) const;
 };
 
+#endif
+#else
+#warning IMPLEMENT THIS
 #endif
 

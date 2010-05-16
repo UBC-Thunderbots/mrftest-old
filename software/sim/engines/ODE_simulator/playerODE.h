@@ -1,4 +1,5 @@
-#include "world/player_impl.h"
+#include "sim/player.h"
+#include "xbee/shared/packettypes.h"
 #include <ode/ode.h>
 
 
@@ -6,7 +7,7 @@
 /** 
 The back-end behind an ODE player object.
 */
-class playerODE : public player_impl {
+class playerODE : public player {
 	
 	public:
 		double x_len;
@@ -43,10 +44,8 @@ class playerODE : public player_impl {
 	bool posSet;
 	
 	///Some vectors for keeping track of the robot
-	point the_position, the_velocity, target_velocity, unrotated_target_velocity;
+	point target_velocity, unrotated_target_velocity;
 	
-	///Some values for robot tracking 
-	double the_orientation, avelocity, target_avelocity;
 	
 	bool player_has_ball;
 	
@@ -55,7 +54,7 @@ class playerODE : public player_impl {
 	double chip_strength;
 	
 	/**
-	I don't know why we keep track of the ball ID, oh right retarded has ball
+	I don't know why we keep track of the ball ID, oh right the retarded hasball
 	routine Number 1
 	*/
 	dGeomID ballGeom;
@@ -71,7 +70,14 @@ class playerODE : public player_impl {
 	
 	///Target wheel velocities in quarter of a degree per 5 milliseconds
 	double motor_desired[4];
-	
+
+	///Should the robot run in direct drive mode
+	bool direct_drive;
+
+	///Should the robot run in controlled drive mode
+	bool controlled_drive;
+
+
 	public:
 
 	playerODE( dWorldID dworld, dSpaceID dspace,  dGeomID ballGeom, double ups_per_tick);
@@ -120,9 +126,15 @@ public:
 			
 			bool execute_chip() ;
 
-			void ext_drag(const point &pos, const point &vel);
+			void position(const point &pos);
 
-			void ext_rotate(double orient, double avel);
+			void velocity(const point &vel);
+
+			void orientation(double orient);
+
+			void avelocity(double avel);
+
+			void received(const xbeepacket::RUN_DATA &);
 			
 			void createJointBetweenB1B2();
 

@@ -3,11 +3,11 @@
 
 #include <iostream>
 
-chase_and_shoot::chase_and_shoot(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player) : tactic(ball, field, team, player), the_player(player), move_tactic(new move(ball,field,team,player)) {
+chase_and_shoot::chase_and_shoot(player::ptr player, world::ptr world) : the_world(world), the_player(player), move_tactic(player, world) {
 
 
-
-target.x=(the_field->length()/2.0);
+const field &the_field(the_world->field());
+target.x=(the_field.length()/2.0);
 target.y=( 0.0);
 
 }
@@ -16,6 +16,7 @@ bool recent_hit_target = false;
 
 void chase_and_shoot::tick()
 {
+	const ball::ptr the_ball(the_world->ball());
 //	std::cout << (the_ball->position()+the_ball->est_velocity()/2) << std::endl;	
 //	std::cout << the_ball->est_velocity() << std::endl;
 	//move_tactic->set_position(the_ball->position()+the_ball->est_velocity()/2);
@@ -49,18 +50,18 @@ void chase_and_shoot::tick()
  	if((robot_dst-the_player->position()).len()<0.01){
  		recent_hit_target = true;
  		//std::cout<<"right there!!!"<<std::endl;
- 	 	shoot::ptr tactic( new shoot(the_ball, the_field, the_team, the_player));
+ 	 	shoot tactic(the_player, the_world);
  		//std::cout <<"player has ball"<<std::endl;
- 		tactic->tick();
+ 		tactic.tick();
  	}else if(recent_hit_target ){
  		//std::cout<<"right there!!!"<<std::endl;
- 	 	shoot::ptr tactic( new shoot(the_ball, the_field, the_team, the_player));
+ 	 	shoot tactic(the_player, the_world);
  		//std::cout <<"player has ball"<<std::endl;
- 		tactic->tick();
+ 		tactic.tick();
  	}else{
- 		move_tactic->set_position(robot_dst);
-		move_tactic->set_avoid_ball(true);
-		move_tactic->tick(); 	
+ 		move_tactic.set_position(robot_dst);
+		move_tactic.set_avoid_ball(true);
+		move_tactic.tick(); 	
  	
  	}
  	

@@ -1,23 +1,25 @@
 #ifndef AI_ROLE_EXECUTE_KICKOFF_FRIENDLY_H
 #define AI_ROLE_EXECUTE_KICKOFF_FRIENDLY_H
 
-#include "ai/role.h"
-#include "ai/tactic.h"
+#include "ai/role/role.h"
+#include "ai/tactic/tactic.h"
 
-//
-// Executes the kickoff for the kicking robot.
-//
+/**
+ * Executes the kickoff for the kicking robot.
+ */
 class execute_kickoff_friendly : public role {
 	public:
-		//
-		// A pointer to a execute_kickoff_friendly role.
-		//
+		/**
+		 * A pointer to a execute_kickoff_friendly role.
+		 */
 		typedef Glib::RefPtr<execute_kickoff_friendly> ptr;
 
-		//
-		// Constructs a new execute_kickoff_friendly role.
-		//
-		execute_kickoff_friendly(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+		/**
+		 * Constructs a new execute_kickoff_friendly role.
+		 *
+		 * \param world the world
+		 */
+		execute_kickoff_friendly(world::ptr world);
 
 		//
 		// True if kicker has made contact with the ball.
@@ -39,19 +41,19 @@ class execute_kickoff_friendly : public role {
 		//
 		void chase_ball(int);
 
-		//
-		// Runs the AI for one time tick.
-		//
+		/**
+		 * Runs the AI for one time tick.
+		 */
 		void tick();
 
-		//
-		// Handles changes to the robot membership.
-		//
+		/**
+		 * Handles changes to the robot membership.
+		 */
 		void robots_changed();
 
-	protected:
+	private:
+		const world::ptr the_world;
 		std::vector<tactic::ptr> the_tactics;
-		
 };
 
 #endif

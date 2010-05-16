@@ -1,6 +1,6 @@
-#include "ai/strategy.h"
+#include "ai/strategy/strategy.h"
 #include "ai/tactic/chase.h"
-#include "ai/role.h"
+#include "ai/role/role.h"
 #include "ai/role/defensive.h"
 #include "ai/role/goalie.h"
 #include "ai/role/execute_direct_free_kick_enemy.h"
@@ -45,7 +45,7 @@ namespace {
   
   class kenneth_simple_strategy : public strategy {
   public:
-    kenneth_simple_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+    kenneth_simple_strategy(world::ptr world);
     void tick();
     void set_playtype(playtype::playtype t);
     strategy_factory &get_factory();
@@ -60,6 +60,7 @@ namespace {
 //    void exclude_goalie(std::vector<player::ptr>& players_vector);
 
     //private variables
+    const world::ptr the_world;
     static const int WAIT_AT_LEAST_TURN = 5;		// We need this because we don't want to make frequent changes
     int turn_since_last_update;
     double possession_confidence;
@@ -77,11 +78,12 @@ namespace {
     player::ptr goalie_player;
   };
   
-  kenneth_simple_strategy::kenneth_simple_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
-    // Initialize variables here (e.g. create the roles).
+  kenneth_simple_strategy::kenneth_simple_strategy(world::ptr world) : the_world(world) {
+    // Connect signals
+    the_world->friendly.signal_player_added.connect(sigc::hide(sigc::hide(sigc::mem_fun(this, &kenneth_simple_strategy::robot_added))));
     turn_since_last_update = 0;
     possession_confidence = 1.0;
-    goalie_player = player::ptr(NULL);         // not sure if this is good
+    goalie_player = player::ptr();         // not sure if this is good
     //reset_all();
     return;
     // problems: how do we keep track of roles?
@@ -93,7 +95,7 @@ namespace {
 /*    if (turn_since_last_update % 40 == 0)
       {  std::cout << "tick" << turn_since_last_update << std::endl;
       }*/
-    switch (the_team->current_playtype())
+    switch (the_world->playtype())
     {
 //      case playtype::halt: break;
 //      case playtype::stop: break;
@@ -149,25 +151,29 @@ namespace {
   //////////////////////
   void kenneth_simple_strategy::in_play_assignment(void)
   {
-    if (the_team->size()<1)
+    const friendly_team &the_team(the_world->friendly);
+	const team &the_other_team(the_world->enemy);
+	const ball::ptr the_ball(the_world->ball());
+	const field &the_field(the_world->field());
+    if (the_team.size()<1)
     {
        roles.clear();
        return;
     }
-    if (the_team->size()==1)
+    if (the_team.size()==1)
     {
        roles.clear();
-       defensive::ptr defensive_role = defensive::ptr(new defensive(the_ball, the_field, the_team));
+       defensive::ptr defensive_role = defensive::ptr(new defensive(the_world));
        defensive_role->set_goalie(goalie_player);
        roles.push_back(role::ptr(defensive_role));
        return;
     }
     //keep for future
-    //int our_score = the_team->score();
-    //int their_score = the_team->other()->score();		//get our team's robots' position and distance to the ball.
+    //int our_score = the_team.score();
+    //int their_score = the_other_team.score();		//get our team's robots' position and distance to the ball.
     std::vector<robot_details> our_details_front;
     std::vector<robot_details> our_details_back;		
-    unsigned int our_team_size = the_team->size();
+    unsigned int our_team_size = the_team.size();
     double our_distance_to_ball[our_team_size];
     std::vector<player::ptr> offenders;
     std::vector<player::ptr> defenders;
@@ -177,16 +183,16 @@ namespace {
 	///////////////////
 	// This skips the goalie
 	///////////////////
-	if (the_team->get_player(i)==goalie_player)
+	if (the_team.get_player(i)==goalie_player)
 	  {
 	    continue;
 	  }
 	robot_details temp_details;
-	temp_details.dist_to_ball = (the_ball->position()-the_team->get_player(i)->position()).len();
+	temp_details.dist_to_ball = (the_ball->position()-the_team.get_player(i)->position()).len();
 	our_distance_to_ball[i] = temp_details.dist_to_ball;
 	temp_details.index = i;
-	temp_details.x = the_team->get_player(i)->position().x;
-	temp_details.y = the_team->get_player(i)->position().y;
+	temp_details.x = the_team.get_player(i)->position().x;
+	temp_details.y = the_team.get_player(i)->position().y;
 	if (temp_details.x < the_ball->position().x)
 	  {	our_details_back.push_back(temp_details);		}	// between our goal and the ball
 	else
@@ -195,11 +201,11 @@ namespace {
     std::sort(our_distance_to_ball, our_distance_to_ball + (our_team_size - 1 )); // team size need - 1 because the goalie is skipped.
     std::sort(our_details_front.begin(), our_details_front.end() , d_cmp);
     std::sort(our_details_back.begin(), our_details_back.end() , d_cmp);
-    unsigned int their_team_size = the_team->other()->size();
+    unsigned int their_team_size = the_other_team.size();
     double their_distance_to_ball[their_team_size];
     for (unsigned int i = 0; i< their_team_size; i++)
       {
-	point difference_vector = the_ball->position()-the_team->other()->get_robot(i)->position();
+	point difference_vector = the_ball->position()-the_other_team.get_robot(i)->position();
 	their_distance_to_ball[i]= difference_vector.len();
       }
     std::sort(their_distance_to_ball, their_distance_to_ball + their_team_size);
@@ -225,7 +231,7 @@ namespace {
     // 
     ////////////////////////////////////
     int prefer_off_to_def_diff = DEFAULT_OFF_TO_DEF_DIFF + our_effective_team_size - their_effective_team_size;
-    double ball_pos_ratio = the_ball->position().x * 2 / the_field->length();  // the relative position of the ball.
+    double ball_pos_ratio = the_ball->position().x * 2 / the_field.length();  // the relative position of the ball.
 //    std::cout << "ball_pos_ratio" <<  ball_pos_ratio << std::endl;
     if ( ball_pos_ratio < DEFENSE_ZONE)
       {
@@ -285,11 +291,11 @@ namespace {
       }
     if (nearest_robot_is_in_front)
       {	//put our_details_front[0]->index to the offender side
-	offenders.push_back(the_team->get_player(our_details_front[0].index));
+	offenders.push_back(the_team.get_player(our_details_front[0].index));
       }
     else
       {	//put our_details_back[0]->index to the offender side
-	offenders.push_back(the_team->get_player(our_details_back[0].index));
+	offenders.push_back(the_team.get_player(our_details_back[0].index));
       }
 
     //////////////////////////////////////
@@ -300,24 +306,24 @@ namespace {
       {
 	if (assigned_offender_number < prefer_offender_number)	
 	  {	//put our_details_front[i]->index to the offender side	
-	    offenders.push_back(the_team->get_player(our_details_front[i].index));
+	    offenders.push_back(the_team.get_player(our_details_front[i].index));
 	    assigned_offender_number ++ ;	
 	  }
 	else
 	  {	//put our_details_front[i]->index to the defender side	
-	    defenders.push_back(the_team->get_player(our_details_front[i].index));
+	    defenders.push_back(the_team.get_player(our_details_front[i].index));
 	  }
       }
     for (unsigned int i = 1-nearest_robot_is_in_front; i < our_details_back.size(); i++)
       {
 	if (assigned_offender_number < prefer_offender_number)	
 	  {	//put our_details_back[i].index to the offender side	
-	    offenders.push_back(the_team->get_player(our_details_back[i].index));
+	    offenders.push_back(the_team.get_player(our_details_back[i].index));
 	    assigned_offender_number ++ ;	
 	  }
 	else
 	  {	//put our_details_back[i].index to the defender side	
-	    defenders.push_back(the_team->get_player(our_details_back[i].index));
+	    defenders.push_back(the_team.get_player(our_details_back[i].index));
 	  }
       }	//end of (prefer_offender_number != 0 )
   
@@ -347,15 +353,15 @@ namespace {
 //    roles.push_back(tempRole);
     if (offenders.size() > 0)
     {
-        roles.push_back(role::ptr(new offensive(the_ball, the_field, the_team)));
+        roles.push_back(role::ptr(new offensive(the_world)));
         roles[roles.size()-1]->set_robots(offenders);
     }
-    defensive::ptr defensive_role = defensive::ptr(new defensive(the_ball, the_field, the_team));
+    defensive::ptr defensive_role = defensive::ptr(new defensive(the_world));
     defensive_role->set_goalie(goalie_player);
     roles.push_back(role::ptr(defensive_role));
     if (defenders.size() > 0)
     {
-//        roles.push_back(role::ptr(new defensive(the_ball, the_field, the_team)));
+//        roles.push_back(role::ptr(new defensive(the_world)));
         roles[roles.size()-1]->set_robots(defenders);
     }
 //	std::cout << "IT IS HERE !!!!!!!!!!!!!!!!!" << std::endl;
@@ -424,7 +430,8 @@ namespace {
   /////////////////////////////////////////
   void kenneth_simple_strategy::reset_all(void)
   {
-    if (the_team->size()==0)
+    const friendly_team &the_team(the_world->friendly);
+    if (the_team.size()==0)
     {
         return;
     }else if (goalie_player == player::ptr(NULL))
@@ -446,14 +453,14 @@ namespace {
     //////////////////////////
     // Fill the vectors
     //////////////////////////
-    for (unsigned int i = 0; i < the_team->size(); i++)
+    for (unsigned int i = 0; i < the_team.size(); i++)
       {
-	if (goalie_player == the_team->get_player(i))
+	if (goalie_player == the_team.get_player(i))
 	  {
-	    goalie_only.push_back(the_team->get_player(i));    
+	    goalie_only.push_back(the_team.get_player(i));    
 	  }else
 	  {
-	    all_players.push_back( the_team->get_player(i) );
+	    all_players.push_back( the_team.get_player(i) );
 	  }
       }
 
@@ -467,24 +474,24 @@ namespace {
     ////////////////////
     // Switch play type
     ///////////////////
-    switch (the_team->current_playtype())
+    switch (the_world->playtype())
       {
       case playtype::halt:
-        roles.push_back(role::ptr(new halt(the_ball, the_field, the_team)));
+        roles.push_back(role::ptr(new halt));
         all_players.push_back(goalie_only[0]);
         roles[0]->set_robots(all_players);
         std::cout << all_players.size() << " robots set to halt" << std::endl;
         break;
 
       case playtype::stop:
-        roles.push_back(role::ptr(new stop(the_ball, the_field, the_team)));
+        roles.push_back(role::ptr(new stop(the_world)));
         all_players.push_back(goalie_only[0]);
         roles[0]->set_robots(all_players);
         std::cout << all_players.size() << " robots set to stop" << std::endl;
         break;
 
       case playtype::play:
-//            goalie_role = goalie::ptr(new goalie(the_ball, the_field, the_team));
+//            goalie_role = goalie::ptr(new goalie(the_world));
 //            goalie_role->start_play();
 //            roles.push_back(role::ptr((goalie_role)));
 //            roles[0]->set_robots(goalie_only);
@@ -492,73 +499,73 @@ namespace {
             break;
 
       case playtype::prepare_kickoff_friendly: 
-	roles.push_back(role::ptr(new prepare_kickoff_friendly(the_ball, the_field, the_team)));
+	roles.push_back(role::ptr(new prepare_kickoff_friendly(the_world)));
 	roles[0]->set_robots(all_players);
 	std::cout << all_players.size() << " robots set to prepare kickoff friendly" << std::endl;
 	break;
 	
       case playtype::execute_kickoff_friendly: 
-	roles.push_back(role::ptr(new execute_kickoff_friendly(the_ball, the_field, the_team)));
+	roles.push_back(role::ptr(new execute_kickoff_friendly(the_world)));
 	roles[0]->set_robots(all_players);
 	std::cout << all_players.size() << " robots set to execute kickoff friendly" << std::endl;
 	break;
 
       case playtype::prepare_kickoff_enemy:
-	roles.push_back(role::ptr(new prepare_kickoff_enemy(the_ball, the_field, the_team)));
+	roles.push_back(role::ptr(new prepare_kickoff_enemy(the_world)));
 	roles[0]->set_robots(all_players);
 	std::cout << all_players.size() << " robots set to prepare kickoff enemy" << std::endl;
 	break;
 	
       case playtype::execute_kickoff_enemy:
-	roles.push_back(role::ptr(new execute_kickoff_enemy(the_ball, the_field, the_team)));
+	roles.push_back(role::ptr(new execute_kickoff_enemy(the_world)));
 	roles[0]->set_robots(all_players);
 	std::cout << all_players.size() << " robots set to execute kickoff enemy" << std::endl;
 	break;
 	
       case playtype::prepare_penalty_friendly: 
-	roles.push_back(role::ptr(new prepare_penalty_friendly(the_ball, the_field, the_team)));
+	roles.push_back(role::ptr(new prepare_penalty_friendly(the_world)));
 	roles[0]->set_robots(all_players);
 	std::cout << all_players.size() << " robots set to prepare penalty friendly" << std::endl;
 	break;
 	
       case playtype::execute_penalty_friendly: 
-	roles.push_back(role::ptr(new execute_penalty_friendly(the_ball, the_field, the_team)));
+	roles.push_back(role::ptr(new execute_penalty_friendly(the_world)));
 	roles[0]->set_robots(all_players);
 	std::cout << all_players.size() << " robots set to execute penalty friendly" << std::endl;
 	break;
 	
       case playtype::prepare_penalty_enemy:
-	roles.push_back(role::ptr(new prepare_penalty_enemy(the_ball, the_field, the_team)));
+	roles.push_back(role::ptr(new prepare_penalty_enemy(the_world)));
 	roles[0]->set_robots(all_players);
 	std::cout << all_players.size() << " robots set to prepare penalty enemy" << std::endl;
 	break;
 	
       case playtype::execute_penalty_enemy:
-	roles.push_back(role::ptr(new execute_penalty_enemy(the_ball, the_field, the_team)));
+	roles.push_back(role::ptr(new execute_penalty_enemy(the_world)));
 	roles[0]->set_robots(all_players);
 	std::cout << all_players.size() << " robots set to execute penalty enemy" << std::endl;
 	break;
 	
       case playtype::execute_direct_free_kick_friendly:
-	roles.push_back(role::ptr(new execute_direct_free_kick_friendly(the_ball, the_field, the_team)));
+	roles.push_back(role::ptr(new execute_direct_free_kick_friendly(the_world)));
 	roles[0]->set_robots(all_players);
 	std::cout << all_players.size() << " robots set to execute direct free kick friendly" << std::endl;
 	break;
 	
       case playtype::execute_indirect_free_kick_friendly:
-	roles.push_back(role::ptr(new execute_indirect_free_kick_friendly(the_ball, the_field, the_team)));
+	roles.push_back(role::ptr(new execute_indirect_free_kick_friendly(the_world)));
 	roles[0]->set_robots(all_players);
 	std::cout << all_players.size() << " robots set to execute indirect free kick friendly" << std::endl;
 	break;
 	
       case playtype::execute_direct_free_kick_enemy:
-	roles.push_back(role::ptr(new execute_direct_free_kick_enemy(the_ball, the_field, the_team)));
+	roles.push_back(role::ptr(new execute_direct_free_kick_enemy(the_world)));
 	roles[0]->set_robots(all_players);
 	std::cout << all_players.size() << " robots set to execute direct free kick enemy" << std::endl;
 	break;
 	
       case playtype::execute_indirect_free_kick_enemy:
-	roles.push_back(role::ptr(new execute_indirect_free_kick_enemy(the_ball, the_field, the_team)));
+	roles.push_back(role::ptr(new execute_indirect_free_kick_enemy(the_world)));
 	roles[0]->set_robots(all_players);
 	std::cout << all_players.size() << " robots set to execute indirect free kick friendly" << std::endl;
 	break;
@@ -567,7 +574,7 @@ namespace {
 	// We need the goalie to go to pit stop too
 	//////////
       case playtype::pit_stop:
-	roles.push_back(role::ptr(new pit_stop(the_ball, the_field, the_team)));
+	roles.push_back(role::ptr(new pit_stop(the_world)));
 	all_players.push_back(goalie_only[0]);
 	roles[0]->set_robots(all_players);
 	std::cout << all_players.size() << " robots set to pit stop" << std::endl;
@@ -577,7 +584,7 @@ namespace {
 	// We need the goalie to dance
 	//////////	
       case playtype::victory_dance:
-	roles.push_back(role::ptr(new victory_dance(the_ball, the_field, the_team)));
+	roles.push_back(role::ptr(new victory_dance));
 	all_players.push_back(goalie_only[0]);
 	roles[0]->set_robots(all_players);
 	std::cout << all_players.size() << " robots set to victory dance" << std::endl;
@@ -589,7 +596,7 @@ namespace {
     // Only assign goalie role for valid play type
     // In these cases the goalie role is the last role in the vector.
     ///////////////////////
-    switch (the_team->current_playtype())
+    switch (the_world->playtype())
     {
         case playtype::halt: break;
         case playtype::stop: break;
@@ -597,7 +604,7 @@ namespace {
         case playtype::pit_stop: break;
         case playtype::victory_dance: break;
         default:
-            roles.push_back(role::ptr((new goalie(the_ball, the_field, the_team))));
+            roles.push_back(role::ptr((new goalie(the_world))));
             roles[roles.size()-1]->set_robots(goalie_only);
             std::cout << goalie_only.size() << " robots set to goalie" << std::endl;
             break;
@@ -605,23 +612,25 @@ namespace {
   }
 
   void kenneth_simple_strategy::robot_added(void) {
+    const friendly_team &the_team(the_world->friendly);
     std::cout << "<<<<<<<<<ROBOT ADDED>>>>" << std::endl;	 
-    if ((the_team->size()==1) || (goalie_player==player::ptr(NULL)) )
+    if ((the_team.size()==1) || (goalie_player==player::ptr()) )
       {
-	goalie_player = the_team->get_player(0);
+	goalie_player = the_team.get_player(0);
 	std::cout << "new goalie robot assigned" << std::endl;	      
       }
     reset_all(); 
   }
   
   void kenneth_simple_strategy::robot_removed(unsigned int, player::ptr r) {	  
+    const friendly_team &the_team(the_world->friendly);
     std::cout << "<<<<<<<<<ROBOT Removed>>>>" << std::endl;
     if (r==goalie_player)
       {
 	std::cout << "goalie_player removed" << std::endl;
-	if (the_team->size()>=1)
+	if (the_team.size()>=1)
 	  {
-	    goalie_player = the_team->get_player(0);
+	    goalie_player = the_team.get_player(0);
 	    //std::cout << goalie_player << std::endl;
 	    std::cout << "new goalie player assigned" << std::endl;	      
 	  }else
@@ -635,14 +644,14 @@ namespace {
   class kenneth_simple_strategy_factory : public strategy_factory {
   public:
     kenneth_simple_strategy_factory();
-    strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
+    strategy::ptr create_strategy(world::ptr world);
   };
 
   kenneth_simple_strategy_factory::kenneth_simple_strategy_factory() : strategy_factory("Kenneth Simple Strategy") {
   }
 
-  strategy::ptr kenneth_simple_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
-    strategy::ptr s(new kenneth_simple_strategy(ball, field, team));
+  strategy::ptr kenneth_simple_strategy_factory::create_strategy(world::ptr world) {
+    strategy::ptr s(new kenneth_simple_strategy(world));
     return s;
   }
   

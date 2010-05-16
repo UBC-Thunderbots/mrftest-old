@@ -1,10 +1,9 @@
 #ifndef AI_ROLE_PIT_STOP_H
 #define AI_ROLE_PIT_STOP_H
 
-#include "ai/role.h"
+#include "ai/role/role.h"
 #include <vector>
 #include "ai/tactic/move.h"
-#include "ai/tactic.h"
 #include "geom/point.h"
 
 //
@@ -20,7 +19,7 @@ class pit_stop : public role {
 		//
 		// Constructs a new pit_stop role.
 		//
-		pit_stop(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+		pit_stop(world::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -33,6 +32,7 @@ class pit_stop : public role {
 		void robots_changed();
 
 	protected:
+		const world::ptr the_world;
                 std::vector<move::ptr> the_tactics;	
 };
 

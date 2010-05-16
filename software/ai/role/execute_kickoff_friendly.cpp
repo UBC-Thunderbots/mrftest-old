@@ -8,25 +8,25 @@ namespace {
 	const double KICKER_STRENGTH = 0.1;
 }
 
-execute_kickoff_friendly::execute_kickoff_friendly(ball::ptr ball, field::ptr field, controlled_team::ptr team) : role(ball, field, team) {
+execute_kickoff_friendly::execute_kickoff_friendly(world::ptr world) : the_world(world) {
 	contacted_ball = false;
 }
 
 void execute_kickoff_friendly::avoid_ball(int index){
-	move::ptr tactic(new move(the_ball, the_field, the_team, the_robots[index]));
-	tactic->set_position(point( -1 * the_field->length()/2, 0));
+	move::ptr tactic(new move(the_robots[index], the_world));
+	tactic->set_position(point( -1 * the_world->field().length()/2, 0));
 	the_tactics.push_back(tactic);
 }
 
 void execute_kickoff_friendly::kick_ball(int index){
-	kick::ptr tactic( new kick(the_ball, the_field, the_team, the_robots[index]));
-	tactic->set_target(point( the_field->length()/10 , 0));
+	kick::ptr tactic( new kick(the_robots[index]));
+	tactic->set_target(point( the_world->field().length()/10 , 0));
 	tactic->set_kick(KICKER_STRENGTH);
 	the_tactics.push_back(tactic);
 }
 
 void execute_kickoff_friendly::chase_ball(int index) {
-	chase::ptr tactic( new chase(the_ball, the_field, the_team, the_robots[index]));
+	chase::ptr tactic( new chase(the_robots[index], the_world));
 	the_tactics.push_back(tactic);
 }
 

@@ -1,30 +1,36 @@
 #
 # Here, write a list of all the executable binaries the Makefile might generate.
 #
-PROJECTS := steptest thunderbots xbeeconfig xbeed
+PROJECTS := config simulator steptest test thunderbots xbeeconfig xbeed
 
 #
 # Here, write a list of the source files and directories for each executable.
 # Directories will be searched for source files recursively.
 #
-SOURCES_steptest := geom leastsquares util world xbee steptest.cpp
-SOURCES_thunderbots := ai firmware geom leastsquares log robot_controller sim tester uicomponents util world xbee main.cpp
+SOURCES_config := configeditor util
+SOURCES_simulator := geom leastsquares proto sim uicomponents util xbee/daemon/frontend xbee/shared
+SOURCES_steptest := geom leastsquares util xbee steptest.cpp
+SOURCES_test := geom tester uicomponents util xbee/client xbee/shared
+SOURCES_thunderbots := ai geom leastsquares proto robot_controller uicomponents util xbee/client xbee/shared
 SOURCES_xbeeconfig := xbeeconfig.cpp
-SOURCES_xbeed := util/fd.cpp util/xbee.cpp xbeedaemon
+SOURCES_xbeed := util/fd.cpp util/shm.cpp util/xbee.cpp xbee/daemon xbee/shared
 
 #
 # Here, write the linker flags to be used for each project.
 #
-LDFLAGS_common := $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4 cairomm-1.0 libxml++-2.6 ode) -lrt -lbz2
+LDFLAGS_common := $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf) -lrt -lbz2
+LDFLAGS_config := $(LDFLAGS_common)
+LDFLAGS_simulator := $(LDFLAGS_common)
 LDFLAGS_steptest := $(LDFLAGS_common)
+LDFLAGS_test := $(LDFLAGS_common)
 LDFLAGS_thunderbots := $(LDFLAGS_common)
 LDFLAGS_xbeeconfig := $(LDFLAGS_common)
-LDFLAGS_xbeed := $(shell pkg-config --libs glibmm-2.4)
+LDFLAGS_xbeed := $(shell pkg-config --libs glibmm-2.4) -lrt
 
 #
 # Here, write the compiler flags to be used.
 #
-CXXFLAGS := -Wall -Wextra -O2 -fomit-frame-pointer -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 $(shell pkg-config --cflags glibmm-2.4 gtkmm-2.4 cairomm-1.0 libxml++-2.6 ode | sed 's/-I/-isystem /g') $(CXXFLAGS) -I.
+CXXFLAGS := -Wall -Wextra -O2 -fomit-frame-pointer -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -pthread $(shell pkg-config --cflags glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf | sed 's/-I/-isystem /g') $(CXXFLAGS) -I.
 
 #
 # DO NOT MODIFY STUFF BELOW HERE WITHOUT A GOOD REASON.
@@ -51,8 +57,9 @@ define project_template
 #
 CPP_SOURCES_EXPANDED_$(1) := $$(shell find $$(SOURCES_$(1)) -name .svn -prune -o -name '*.cpp' -print)
 ALL_CPP_FILES += $$(CPP_SOURCES_EXPANDED_$(1))
+CC_SOURCES_EXPANDED_$(1) := $$(shell find $$(SOURCES_$(1)) -name .svn -prune -o -name '*.cc' -print)
 
-$(1) : $$(CPP_SOURCES_EXPANDED_$(1):.cpp=.o)
+$(1) : $$(CPP_SOURCES_EXPANDED_$(1):.cpp=.o) $$(CC_SOURCES_EXPANDED_$(1):.cc=.o)
 	$$(CXX) $$(CXXFLAGS) -o$$@ $$+ $$(LDFLAGS_$(1))
 endef
 
@@ -62,15 +69,23 @@ endef
 $(eval $(foreach proj,$(PROJECTS),$(call project_template,$(proj))))
 
 #
-# Rule to make a .d file from a .cpp file.
+# Gather all the protocol buffers input files.
 #
-%.d : %.cpp
-	$(CXX) $(CXXFLAGS) -MT '$(@:.d=.o) $@' -MM -MF $@ $< || { $(RM) $@; false; }
+PROTOBUF_INPUTS := $(wildcard proto/*.proto)
+PROTOBUF_CCS := $(PROTOBUF_INPUTS:.proto=.pb.cc)
+PROTOBUF_HS := $(PROTOBUF_INPUTS:.proto=.pb.h)
 
 #
-# Rule to make a .d file from a .cc file.
+# Rule to make a .d file from a .cpp file.
 #
-%.d : %.cc
+# Protobuf interferes with normal automatic dependency calculation, because the
+# C++ header files corresponding to protobuf files do not exist when the
+# dependency-calculating rule is invoked, thus causing the C++ compiler to throw
+# an error on the #include line while trying to compute the dependencies. To
+# solve this, just make all ".d" files depend on the protobuf ".h" files, to
+# force protoc to be run before dependency calculation begins.
+#
+%.d : %.cpp $(PROTOBUF_HS)
 	$(CXX) $(CXXFLAGS) -MT '$(@:.d=.o) $@' -MM -MF $@ $< || { $(RM) $@; false; }
 
 #
@@ -78,12 +93,13 @@ $(eval $(foreach proj,$(PROJECTS),$(call project_template,$(proj))))
 #
 proto/%.pb.cc proto/%.pb.h : proto/%.proto
 	protoc --proto_path=proto --cpp_out=proto $<
+.SECONDARY : $(PROTOBUF_CCS) $(PROTOBUF_HS)
 
 #
 # Customized rule to compile a protocol-buffers-generated C++ source file,
 # because the generated code otherwise triggers warnings.
 #
-proto/%.pb.o : proto/%.pb.cc proto/*.pb.h
+proto/%.pb.o : proto/%.pb.cc $(PROTOBUF_HS)
 	$(CXX) $(CXXFLAGS) -o$@ -c -Wno-extra $<
 
 #
@@ -127,4 +143,4 @@ cleanobj :
 
 .PHONY : cleanpb
 cleanpb :
-	$(RM) proto/*.cc proto/*.h
+	$(RM) $(PROTOBUF_CCS) $(PROTOBUF_HS)

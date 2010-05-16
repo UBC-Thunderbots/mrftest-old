@@ -1,8 +1,7 @@
 #ifndef AI_ROLE_GOALIE_H
 #define AI_ROLE_GOALIE_H
 
-#include "ai/role.h"
-#include "ai/tactic.h"
+#include "ai/role/role.h"
 
 //
 // Gets the robots to go to their goalie positions.
@@ -17,7 +16,7 @@ class goalie : public role {
 		//
 		// Constructs a new goalie role.
 		//
-		goalie(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+		goalie(world::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -38,8 +37,8 @@ class goalie : public role {
 	protected:
 
         private:
+				const world::ptr the_world;
                 bool started;
-                tactic::ptr curr_tactic;
                 point default_pos;
                 point centre_of_goal;
                 static const double STANDBY_DIST = 0.2;		

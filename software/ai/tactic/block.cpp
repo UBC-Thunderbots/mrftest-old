@@ -1,6 +1,6 @@
 #include "ai/tactic/block.h"
 
-block::block(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player) : tactic(ball, field, team, player), move_tactic(new move(ball, field, team, player)) {
+block::block(player::ptr player, world::ptr world) : the_player(player), move_tactic(player, world) {
 }
 
 void block::set_target(player::ptr target) {
@@ -19,16 +19,16 @@ void block::tick() {
 
 		if (p_side > 0 && v_side > 0) {
 			// target is moving towards me, move towards him, but don't bump into him
-			move_tactic->set_position(the_target->position() + the_target->est_velocity() * 1.0/GUARD_DIST);
+			move_tactic.set_position(the_target->position() + the_target->est_velocity() * 1.0/GUARD_DIST);
 		} else {
 			// I am behind target, move towards where the target's moving for now
-			move_tactic->set_position(the_target->position() + the_target->est_velocity());
+			move_tactic.set_position(the_target->position() + the_target->est_velocity());
 		}
 	} else {
 		// move towards where the target's moving
-		move_tactic->set_position(the_target->position() + the_target->est_velocity());
+		move_tactic.set_position(the_target->position() + the_target->est_velocity());
 	}
-	move_tactic->tick();
+	move_tactic.tick();
 }
 
 

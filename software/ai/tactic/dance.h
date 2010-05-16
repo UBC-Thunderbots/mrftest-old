@@ -1,8 +1,8 @@
 #ifndef AI_TACTIC_DANCE_H
 #define AI_TACTIC_DANCE_H
 
-#include "ai/navigator.h"
-#include "ai/tactic.h"
+#include "ai/tactic/tactic.h"
+#include "ai/world/player.h"
 
 //
 // Victory (?) dance.
@@ -10,14 +10,14 @@
 class dance : public tactic {
 	public:
 		//
-		// A pointer to a dance tactic.
+		// A pointer to this tactic.
 		//
 		typedef Glib::RefPtr<dance> ptr;
 
 		//
 		// Constructs a new dance tactic.
 		//
-		dance(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player);
+		dance(player::ptr player);
 
 		//
 		// Runs the AI for one time tick.
@@ -31,8 +31,7 @@ class dance : public tactic {
         unsigned int ticks;
         
         // Used to control a robot, and read position.
-        player::ptr the_player;
-        navigator::ptr the_navigator;
+        const player::ptr the_player;
 };
 
 #endif

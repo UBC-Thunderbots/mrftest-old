@@ -1,4 +1,5 @@
 #include "ai/navigator/robot_navigator.h"
+#include "geom/angle.h"
 #include <iostream>
 #include <cstdlib>
 
@@ -11,8 +12,8 @@ namespace {
 	const double FAST_AVOIDANCE_SPEED=2.0;
 }
 
-robot_navigator::robot_navigator(player::ptr player, field::ptr field, ball::ptr ball, team::ptr team) : navigator(player, field, ball, team),
-	dest_initialized(false), outofbounds_margin(field->width() / 20.0),
+robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world),
+	dest_initialized(false), outofbounds_margin(the_world->field().width() / 20.0),
 	slow_avoidance_factor(0.5), fast_avoidance_factor(2.0) {
 
 	avoidance_factor = 1.0;
@@ -45,6 +46,8 @@ double robot_navigator::get_avoidance_factor() const {
 }
 
 void robot_navigator::tick() {
+	const ball::ptr the_ball(the_world->ball());
+	const field &the_field(the_world->field());
 
 	if(!dest_initialized) return;
 
@@ -56,8 +59,8 @@ void robot_navigator::tick() {
 	// don't take the ball out of bounds, otherwise, head to our
 	// assigned destination
 	if (the_player->has_ball()) {
-		nowdest = clip_point(curr_dest, point(-the_field->length()/2 + outofbounds_margin, -the_field->width()/2 + outofbounds_margin),
-				point(the_field->length()/2 - outofbounds_margin, the_field->width()/2 - outofbounds_margin));
+		nowdest = clip_point(curr_dest, point(-the_field.length()/2 + outofbounds_margin, -the_field.width()/2 + outofbounds_margin),
+				point(the_field.length()/2 - outofbounds_margin, the_field.width()/2 - outofbounds_margin));
 	} else {
 		nowdest = curr_dest;
 	}
@@ -229,28 +232,26 @@ point robot_navigator::clip_point(const point& p, const point& bound1, const poi
 }
 
 bool robot_navigator::check_vector(const point& start, const point& dest, const point& direction) const {
+	const ball::ptr the_ball(the_world->ball());
 	const point startdest = dest - start;
 	const double lookahead = std::min(startdest.len(), lookahead_max);
 
 	assert(abs(direction.len() - 1.0) < EPS);
 
-	for (size_t i = 0; i < the_team->size() + the_team->other()->size(); i++) {
-		robot::ptr rob;
-		if (i >= the_team->size()) {
-			rob = the_team->other()->get_robot(i - the_team->size());
-		} else {
-			rob = the_team->get_robot(i);
-		}
-		if(rob == this->the_player) continue;
+	const team * const teams[2] = { &the_world->friendly, &the_world->enemy };
+	for (unsigned int i = 0; i < 2; ++i) {
+		for (unsigned int j = 0; j < teams[i]->size(); ++j) {
+			const robot::ptr rob(teams[i]->get_robot(j));
+			if(rob == this->the_player) continue;
+			const point rp = rob->position() - start;
+			const double proj = rp.dot(direction);
+			const double perp = sqrt(rp.dot(rp) - proj * proj);
 
-		const point rp = rob->position() - start;
-		const double proj = rp.dot(direction);
-		const double perp = sqrt(rp.dot(rp) - proj * proj);
+			if (proj <= 0) continue;
 
-		if (proj <= 0) continue;
-
-		if (proj < lookahead && perp < get_avoidance_factor() * (robot::MAX_RADIUS * 2)) {
-			return false;
+			if (proj < lookahead && perp < get_avoidance_factor() * (robot::MAX_RADIUS * 2)) {
+				return false;
+			}
 		}
 	}
 

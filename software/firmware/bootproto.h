@@ -1,7 +1,6 @@
 #ifndef FIRMWARE_BOOTPROTO_H
 #define FIRMWARE_BOOTPROTO_H
 
-#include "xbee/xbee.h"
 #include <stdint.h>
 
 //

@@ -1,7 +1,7 @@
-#include "ai/strategy.h"
+#include "ai/strategy/strategy.h"
 #include "ai/navigator/testnavigator.h"
 #include "ai/tactic/chase.h"
-#include "ai/role.h"
+#include "ai/role/role.h"
 #include "ai/role/defensive.h"
 #include "ai/role/goalie.h"
 #include "ai/role/execute_direct_free_kick_enemy.h"
@@ -29,9 +29,8 @@ namespace simu_test{
  
   class simu_test_strategy : public strategy {
   public:
-    simu_test_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+    simu_test_strategy(world::ptr world);
     void tick();
-    void set_playtype(playtype::playtype t);
     strategy_factory &get_factory();
     Gtk::Widget *get_ui_controls();
     void robot_added(void);
@@ -41,6 +40,7 @@ namespace simu_test{
     
   private:
     //private variables
+	const world::ptr the_world;
     static const int WAIT_AT_LEAST_TURN = 5;		// We need this because we don't want to make frequent changes
     static const int DEFAULT_OFF_TO_DEF_DIFF = 1;	// i.e. one more offender than defender
     int test_id;
@@ -56,7 +56,8 @@ namespace simu_test{
     bool is_player_in_pos(player::ptr , double , double);
     bool is_ball_in_pos(double , double);
     void finish_test_case();
-    navigator::ptr our_navigator;
+#warning THIS IS EVIL. If you weren't breaking hierarchy we wouldn't have to use a raw pointer here!
+    testnavigator *our_navigator;
     player::ptr the_only_player;
     bool result[6];
     bool print_msg, print_msg2;

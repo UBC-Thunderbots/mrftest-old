@@ -1,35 +1,129 @@
 #ifndef UTIL_CONFIG_H
 #define UTIL_CONFIG_H
 
-#include <libxml++/libxml++.h>
+#include <istream>
+#include <ostream>
+#include <vector>
+#include <glibmm.h>
+#include <stdint.h>
+#include "util/noncopyable.h"
 
 //
-// Manages the "config.xml" file.
+// Provides access to the configuration file.
 //
-namespace config {
-	//
-	// Gets the configuration data. The data is loaded from disk if this has
-	// not yet been done.
-	//
-	xmlpp::Document *get();
+class config : public noncopyable {
+	public:
+		//
+		// The configuration of a single robot.
+		//
+		struct robot_info {
+			uint64_t address;
+			bool yellow;
+			unsigned int pattern_index;
+			Glib::ustring name;
 
-	//
-	// Enqueues a save to disk. The data will not be written immediately;
-	// rather, a timer will be started and the data will be written in a few
-	// seconds. This avoids many repeated writes within a very short time if
-	// a lot of data is being changed by different modules. However, write
-	// starvation will also not occur: if writes are occurring constantly,
-	// the data will still be written to disk every few seconds.
-	//
-	void dirty();
+			robot_info() {
+			}
 
-	//
-	// Forces the current data to be written to disk immediately. Normally
-	// you should call "save()" instead; the exception is if the application
-	// is shutting down.
-	//
-	void force_save();
-}
+			robot_info(uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name) : address(address), yellow(yellow), pattern_index(pattern_index), name(name) {
+			}
+		};
+
+		//
+		// A collection of robot_info objects.
+		//
+		class robot_set : public noncopyable {
+			public:
+				//
+				// Returns the number of robots in the list.
+				//
+				unsigned int size() const {
+					return robots.size();
+				}
+
+				//
+				// Gets a robot by its position in the list.
+				//
+				const robot_info &operator[](unsigned int index) const {
+					return robots[index];
+				}
+
+				//
+				// Gets a robot by its 64-bit address.
+				//
+				const robot_info &find(uint64_t address) const;
+
+				//
+				// Checks whether a particular address is already in the list.
+				//
+				bool contains_address(uint64_t address) const;
+
+				//
+				// Checks whether a particular vision pattern is already in the
+				// list.
+				//
+				bool contains_pattern(bool yellow, unsigned int pattern_index) const;
+
+				//
+				// Adds a new robot.
+				//
+				void add(uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name);
+
+				//
+				// Emitted when a robot is added. Parameter is the index of the
+				// robot.
+				//
+				mutable sigc::signal<void, unsigned int> signal_robot_added;
+
+				//
+				// Deletes a robot.
+				//
+				void remove(uint64_t address);
+
+				//
+				// Emitted when a robot is deleted. Parameter is the index of
+				// the robot.
+				//
+				mutable sigc::signal<void, unsigned int> signal_robot_removed;
+
+			private:
+				std::vector<robot_info> robots;
+
+				void save(std::ostream &ofs) const;
+				void load_v1(std::istream &ifs);
+
+				friend class config;
+		};
+
+		//
+		// Loads the configuration file.
+		//
+		config();
+
+		//
+		// Saves the configuration file.
+		//
+		void save() const;
+
+		//
+		// Returns the set of configured robots.
+		//
+		const robot_set &robots() const {
+			return robots_;
+		}
+
+		//
+		// Returns the set of configured robots.
+		//
+		robot_set &robots() {
+			return robots_;
+		}
+
+	private:
+		robot_set robots_;
+
+		void load_v1(std::istream &ifs);
+};
 
 #endif
 

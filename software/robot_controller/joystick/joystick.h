@@ -3,6 +3,7 @@
 
 #include "util/byref.h"
 #include "util/fd.h"
+#include <glibmm.h>
 
 //
 // Allows access to a joystick device.

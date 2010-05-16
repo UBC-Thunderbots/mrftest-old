@@ -9,7 +9,7 @@ Kenneth            23 Jan 2010        Initial implementation
 #ifndef AI_ROLE_STOP_H
 #define AI_ROLE_STOP_H
 
-#include "ai/role.h"
+#include "ai/role/role.h"
 #include "ai/tactic/move.h"
 
 //
@@ -25,7 +25,7 @@ class stop : public role {
 		//
 		// Constructs a new stop role.
 		//
-		stop(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+		stop(world::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -40,6 +40,7 @@ class stop : public role {
 	protected:
 
         private:
+				const world::ptr the_world;
                 static const double DIST_AWAY_FROM_BALL = 0.5;
                 static const double PI = 3.14159;
                 //point our_goal;

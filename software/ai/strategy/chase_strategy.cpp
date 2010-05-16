@@ -1,28 +1,27 @@
-#include "ai/strategy.h"
-#include "ai/tactic.h"
+#include "ai/strategy/strategy.h"
 #include "ai/tactic/chase.h"
 
 namespace {
 	class chase_strategy : public strategy {
 		public:
-			chase_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			chase_strategy(world::ptr world);
 			void tick();
 			void set_playtype(playtype::playtype t);
+			const world::ptr the_world;
 			strategy_factory &get_factory();
 			Gtk::Widget *get_ui_controls();
-			void robot_added(void);
-			void robot_removed(unsigned int index, player::ptr r);
 		private:
 	};
 
-	chase_strategy::chase_strategy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
+	chase_strategy::chase_strategy(world::ptr world) : the_world(world) {
 	}
 
 	void chase_strategy::tick() {
-		for (unsigned int i = 0; i < the_team->size(); i++)
+		const friendly_team &the_team(the_world->friendly);
+		for (unsigned int i = 0; i < the_team.size(); i++)
 		{
-			tactic::ptr chaser (new chase(the_ball, the_field, the_team, the_team->get_player(i)));
-			chaser->tick();
+			chase chaser(the_team.get_player(i), the_world);
+			chaser.tick();
 		}
 	}
 
@@ -33,23 +32,17 @@ namespace {
 		return 0;
 	}
 
-	void chase_strategy::robot_added(void){
-	}
-
-	void chase_strategy::robot_removed(unsigned int, player::ptr){
-	}
-
 	class chase_strategy_factory : public strategy_factory {
 		public:
 			chase_strategy_factory();
-			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			strategy::ptr create_strategy(world::ptr world);
 	};
 
 	chase_strategy_factory::chase_strategy_factory() : strategy_factory("Chase Strategy") {
 	}
 
-	strategy::ptr chase_strategy_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
-		strategy::ptr s(new chase_strategy(ball, field, team));
+	strategy::ptr chase_strategy_factory::create_strategy(world::ptr world) {
+		strategy::ptr s(new chase_strategy(world));
 		return s;
 	}
 

@@ -1,6 +1,4 @@
-#include "util/args.h"
-#include "xbee/packettypes.h"
-#include "xbee/xbee.h"
+#include "xbee/shared/packettypes.h"
 #include <algorithm>
 #include <iostream>
 #include <gtkmm.h>
@@ -55,9 +53,6 @@ namespace {
 }
 
 int main(int argc, char **argv) {
-	args::argc = argc;
-	args::argv = argv;
-
 	Gtk::Main mn(argc, argv);
 	step_tester tester;
 	tester.run();

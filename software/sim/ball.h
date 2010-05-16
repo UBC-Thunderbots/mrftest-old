@@ -1,31 +1,38 @@
-#ifndef SIMULATOR_BALL_H
-#define SIMULATOR_BALL_H
+#ifndef SIM_BALL_H
+#define SIM_BALL_H
 
-#include "world/ball_impl.h"
+#include "geom/point.h"
+#include "util/byref.h"
+#include <glibmm.h>
 
-//
-// An extension of ball_impl that defines functions that are only needed for
-// simulation implementations.
-//
-class simulator_ball_impl : public ball_impl {
+/**
+ * The ball, as seen by a simulation engine. An individual engine is expected to
+ * subclass this class and return an instance of the subclass from its
+ * simulator_engine::get_ball() method.
+ */
+class ball : public byref {
 	public:
-		//
-		// A pointer to a simulator_ball_impl.
-		//
-		typedef Glib::RefPtr<simulator_ball_impl> ptr;
+		/**
+		 * A pointer to a ball.
+		 */
+		typedef Glib::RefPtr<ball> ptr;
 
-		//
-		// Checks whether the ball is in a goal. This should take into account
-		// engine-specific data regarding the ball, such as altitude. The
-		// determination of WHICH goal the ball is in is made by the sign of its
-		// X coordinate.
-		//
-		virtual bool in_goal() = 0;
+		/**
+		 * \return The position of the ball, in metres from field centre
+		 */
+		virtual point position() const __attribute__((warn_unused_result)) = 0;
 
-		//
-		// A trivial implementation.
-		//
-		static const ptr &trivial();
+		/**
+		 * Moves the ball.
+		 * \param pos the new location of the ball, in metres from field centre
+		 */
+		virtual void position(const point &pos) = 0;
+
+		/**
+		 * Sets the ball's velocity.
+		 * \param vel the new velocity, in metres per second field-relative
+		 */
+		virtual void velocity(const point &vel) = 0;
 };
 
 #endif

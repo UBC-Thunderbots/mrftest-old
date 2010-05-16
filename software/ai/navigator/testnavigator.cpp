@@ -1,14 +1,18 @@
 #include "ai/navigator/testnavigator.h"
+#include "geom/angle.h"
 #include <iostream>
 #include <cstdlib>
-testnavigator::testnavigator(player::ptr player, field::ptr field, ball::ptr ball, team::ptr team) : 
-  navigator(player, field, ball, team), destInitialized(false), outOfBoundsMargin(field->width() / 20.0),
+testnavigator::testnavigator(player::ptr player, world::ptr world) : 
+  the_player(player), the_world(world), destInitialized(false), outOfBoundsMargin(the_world->field().width() / 20.0),
   maxLookahead(1.0), aggression_factor(2)
 {
 
 }
 
 void testnavigator::tick() {
+  const field &the_field(the_world->field());
+  const ball::ptr the_ball(the_world->ball());
+
   //tell it which way to go
   if(destInitialized)
     {
@@ -22,10 +26,10 @@ void testnavigator::tick() {
 	{
      
 	  nowDest = clip_point(currDest,
-			       point(-the_field->length()/2 + outOfBoundsMargin,
-				     -the_field->width()/2 + outOfBoundsMargin),
-			       point(the_field->length()/2 - outOfBoundsMargin,
-				     the_field->width()/2 - outOfBoundsMargin));
+			       point(-the_field.length()/2 + outOfBoundsMargin,
+				     -the_field.width()/2 + outOfBoundsMargin),
+			       point(the_field.length()/2 - outOfBoundsMargin,
+				     the_field.width()/2 - outOfBoundsMargin));
 	}
       else
 	{
@@ -194,34 +198,29 @@ bool testnavigator::check_vector(point start, point dest, point direction)
 
   double lookahead = std::min(startdest.len(), maxLookahead);
 
-  for (size_t i = 0; i < the_team->size() + the_team->other()->size(); i++)
+  const team * const teams[2] = { &the_world->friendly, &the_world->enemy };
+  for (unsigned int i = 0; i < 2; ++i)
     {
-      robot::ptr rob;
-
-      if (i >= the_team->size())
+      for (unsigned int j = 0; j < teams[i]->size(); ++j)
 	{
-	  rob = the_team->other()->get_robot(i - the_team->size());
-	}
-      else
-	{
-	  rob = the_team->get_robot(i);
-	}
-      
-      if(rob != this->the_player)
-	{
-	  point rp = rob->position() - start;
-	  //rp/= rp.len();
-	  double len = rp.dot(direction);
-
-	  // ignore robots behind us
-	  if (len > 0)
-	    {
-	      double d = sqrt(rp.dot(rp) - len*len);
+	  const robot::ptr rob(teams[i]->get_robot(j));
 	  
-	      if (len < lookahead && d < 2*aggression_factor*robot::MAX_RADIUS)
+	  if(rob != this->the_player)
+	    {
+	      point rp = rob->position() - start;
+	      //rp/= rp.len();
+	      double len = rp.dot(direction);
+
+	      // ignore robots behind us
+	      if (len > 0)
 		{
-		  //std::cout << "Checked FALSE" << std::endl;
-		  return false;
+		  double d = sqrt(rp.dot(rp) - len*len);
+	      
+		  if (len < lookahead && d < 2*aggression_factor*robot::MAX_RADIUS)
+		    {
+		      //std::cout << "Checked FALSE" << std::endl;
+		      return false;
+		    }
 		}
 	    }
 	}

@@ -1,7 +1,6 @@
 #ifndef FIRMWARE_WINDOW_H
 #define FIRMWARE_WINDOW_H
 
-#include "xbee/xbee.h"
 #include <libxml++/libxml++.h>
 
 //

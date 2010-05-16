@@ -2,10 +2,7 @@
 #include "firmware/fpga.h"
 #include "firmware/pic.h"
 #include "firmware/window.h"
-#include "uicomponents/bot_chooser.h"
-#include "util/config.h"
 #include "util/ihex.h"
-#include "util/xml.h"
 #include <iomanip>
 
 namespace {

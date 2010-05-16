@@ -1,7 +1,6 @@
 #ifndef AI_TACTIC_SHOOT_H
 #define AI_TACTIC_SHOOT_H
 
-#include "ai/tactic.h"
 #include "ai/tactic/chase.h"
 #include "ai/tactic/kick.h"
 
@@ -10,11 +9,15 @@
 //
 class shoot : public tactic {
 	public:
+		//
+		// A pointer to this tactic.
+		//
+		typedef Glib::RefPtr<shoot> ptr;
 
 		//
 		// Constructs a new pass receive tactic. 
 		//
-		shoot(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player);
+		shoot(player::ptr player, world::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -22,10 +25,13 @@ class shoot : public tactic {
 		void tick();	
 
 	protected:
-	
-		chase::ptr chase_tactic;
+		const player::ptr the_player;
 
-		kick::ptr kick_tactic;
+		const world::ptr the_world;
+	
+		chase chase_tactic;
+
+		kick kick_tactic;
 
 	private:
 

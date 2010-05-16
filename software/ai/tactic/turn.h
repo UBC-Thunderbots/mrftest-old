@@ -1,7 +1,9 @@
 #ifndef AI_TACTIC_TURN_H
 #define AI_TACTIC_TURN_H
 
-#include "ai/tactic.h"
+#include "ai/tactic/tactic.h"
+#include "ai/world/player.h"
+#include "geom/point.h"
 
 //
 // 
@@ -9,14 +11,14 @@
 class turn : public tactic {
 	public:
 		//
-		// A pointer to a turn tactic.
+		// A pointer to this tactic.
 		//
 		typedef Glib::RefPtr<turn> ptr;
 
 		//
 		// Constructs a new block tactic. 
 		//
-		turn(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player);
+		turn(player::ptr player);
 
 		//
 		// Runs the AI for one time tick.
@@ -38,6 +40,7 @@ class turn : public tactic {
 		point the_direction;				
 
 	private:
+		const player::ptr the_player;
 		
 		//
 		// Returns the change in angle between the current orientation and the desired orientation.

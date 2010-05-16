@@ -1,10 +1,9 @@
 #ifndef AI_ROLE_PREPARE_KICKOFF_ENEMY_H
 #define AI_ROLE_PREPARE_KICKOFF_ENEMY_H
 
-#include "ai/role.h"
+#include "ai/role/role.h"
 #include <vector>
 #include "ai/tactic/move.h"
-#include "ai/tactic.h"
 #include "geom/point.h"
 
 //
@@ -20,7 +19,7 @@ class prepare_kickoff_enemy : public role {
 		//
 		// Constructs a new prepare_kickoff_enemy role.
 		//
-		prepare_kickoff_enemy(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+		prepare_kickoff_enemy(world::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -33,6 +32,8 @@ class prepare_kickoff_enemy : public role {
 		void robots_changed();
 
 	protected:
+		const world::ptr the_world;
+
                 std::vector<move::ptr> the_tactics;	
 
                 static const unsigned int NUMBER_OF_STARTING_POSITIONS = 5;

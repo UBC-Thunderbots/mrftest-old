@@ -25,7 +25,7 @@ bool clocksource_timerfd::on_readable(Glib::IOCondition) {
 		throw std::runtime_error("Cannot read timerfd!");
 
 	while (ticks-- && running)
-		signal_tick().emit();
+		signal_tick.emit();
 
 	return true;
 }

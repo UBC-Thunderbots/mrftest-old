@@ -1,148 +1,76 @@
-#ifndef SIMULATOR_SIMULATOR_H
-#define SIMULATOR_SIMULATOR_H
+#ifndef SIM_SIMULATOR_H
+#define SIM_SIMULATOR_H
 
-#include "log/writer/writer.h"
-#include "sim/autoref.h"
-#include "sim/team.h"
+#include "sim/ball.h"
+#include "sim/player.h"
+#include "sim/robot.h"
+#include "sim/engines/engine.h"
 #include "util/clocksource.h"
+#include "util/config.h"
+#include "util/fd.h"
+#include "util/noncopyable.h"
+#include "xbee/daemon/frontend/backend.h"
+#include <cstddef>
+#include <queue>
+#include <vector>
+#include <tr1/unordered_map>
+#include <stdint.h>
 
-//
-// The simulator itself.
-//
-// WARNING - WARNING - WARNING
-// A lot of work is done in the constructors of this object and its contents.
-// DO NOT CHANGE THE ORDER OF THE VARIABLES IN THIS CLASS.
-// You may cause a segfault if you do.
-//
-class simulator : public noncopyable, public sigc::trackable {
+/**
+ * This is the actual core of the simulator.
+ */
+class simulator : public backend, public sigc::trackable {
 	public:
-		//
-		// Constructs a new simulator.
-		//
-		simulator(xmlpp::Element *xml, clocksource &clk);
+		/**
+		 * The configuration file driving this simulator.
+		 */
+		const config &conf;
 
-		//
-		// Gets the current engine.
-		//
-		simulator_engine::ptr get_engine() const {
-			return engine;
+		/**
+		 * Fired when the positions of objects on the field change, such as when
+		 * a time tick occurs and robots move.
+		 */
+		sigc::signal<void> signal_field_changed;
+
+		/**
+		 * Constructs a new simulator using the robots found in a configuration
+		 * file.
+		 * \param conf the configuration data to initialize the simulator with
+		 * \param engine the engine to drive the simulator with
+		 * \param clk the clock source to drive the simulator with
+		 */
+		simulator(const config &conf, simulator_engine::ptr engine, clocksource &clk);
+
+		/**
+		 * \return all the robots recognized by this simulator, keyed by XBee
+		 * address
+		 */
+		const std::tr1::unordered_map<uint64_t, robot::ptr> &robots() const {
+			return robots_;
 		}
 
-		//
-		// Sets the engine to use to implement simulation.
-		//
-		void set_engine(const Glib::ustring &engine_name);
-
-		//
-		// Gets the current autoref.
-		//
-		autoref::ptr get_autoref() const {
-			return ref;
-		}
-
-		//
-		// Sets the autoref to use.
-		//
-		void set_autoref(const Glib::ustring &autoref_name);
-
-		//
-		// Gets the current play type.
-		//
-		playtype::playtype current_playtype() const {
-			return cur_playtype;
-		}
-
-		//
-		// Returns a signal fired when the play type changes.
-		//
-		sigc::signal<void, playtype::playtype> &signal_playtype_changed() {
-			return sig_playtype_changed;
-		}
-
-		//
-		// Sets the current play type.
-		//
-		void set_playtype(playtype::playtype pt) {
-			cur_playtype = pt;
-			sig_playtype_changed.emit(pt);
-		}
-
-		//
-		// Starts logging.
-		//
-		void start_logging() {
-			logger = log_writer::create();
-		}
-
-		//
-		// Stops logging.
-		//
-		void stop_logging() {
-			logger.reset();
-		}
+		/**
+		 * Searches for a robot by its 16-bit address.
+		 * \param addr the address to search for
+		 * \return The robot matching the address, or a null pointer if no robot
+		 * has the address
+		 */
+		robot::ptr find_by16(uint16_t addr) const;
 
 	private:
-		//
-		// The current play type.
-		//
-		playtype::playtype cur_playtype;
+		const simulator_engine::ptr engine;
+		std::tr1::unordered_map<uint64_t, robot::ptr> robots_;
+		std::queue<std::vector<uint8_t> > responses;
+		sigc::connection response_push_connection;
+		uint16_t host_address16;
+		file_descriptor sock;
+		uint32_t frame_counters[2];
 
-		//
-		// Emitted when the play type changes.
-		//
-		sigc::signal<void, playtype::playtype> sig_playtype_changed;
-
-		//
-		// The current ball_impl.
-		//
-		simulator_ball_impl::ptr the_ball_impl;
-
-	public:
-		//
-		// The field.
-		//
-		field::ptr fld;
-
-		//
-		// The ball, as viewed from the two ends of the field.
-		//
-		ball::ptr west_ball, east_ball;
-
-		//
-		// The two teams.
-		//
-		simulator_team_data west_team, east_team;
-
-	private:
-		//
-		// The engine.
-		//
-		simulator_engine::ptr engine;
-
-		//
-		// The autoref.
-		//
-		autoref::ptr ref;
-
-		//
-		// The configuration element.
-		//
-		xmlpp::Element *xml;
-
-		//
-		// The clock source.
-		//
-		clocksource &clksrc;
-
-		//
-		// The log writer.
-		//
-		log_writer::ptr logger;
-
-		//
-		// Handles a timer tick.
-		//
+		void send(const iovec *, std::size_t);
+		void queue_response(const void *, std::size_t);
+		bool push_response();
 		void tick();
+		bool tick_geometry();
 };
 
 #endif

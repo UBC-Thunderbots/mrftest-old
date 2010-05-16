@@ -1,12 +1,13 @@
 #include "ai/role/defensive.h"
 #include "ai/role/goalie.h"
 
-defensive::defensive(ball::ptr ball, field::ptr field, controlled_team::ptr team) : role(ball, field, team) {
+defensive::defensive(world::ptr world) : the_world(world) {
 }
 
 bool defensive::have_ball() {
-    for(unsigned int i=0; i<the_team->size(); i++) {
-        if(the_team->get_player(i)->has_ball()) {
+	const friendly_team &the_team(the_world->friendly);
+    for(unsigned int i=0; i<the_team.size(); i++) {
+        if(the_team.get_player(i)->has_ball()) {
             return true;
         }
     }
@@ -14,9 +15,11 @@ bool defensive::have_ball() {
 }
 
 void defensive::move_halfway_between_ball_and_our_goal(int index) {
-    move::ptr tactic( new move(the_ball, the_field, the_team, the_robots[index]));
+	const field &the_field(the_world->field());
 
-    double x_pos  = -1*the_field->length()/2 + (the_field->length()/2 + the_ball->position().x) /2;
+    move::ptr tactic( new move(the_robots[index], the_world));
+
+    double x_pos  = -1*the_field.length()/2 + (the_field.length()/2 + the_world->ball()->position().x) /2;
     
     double y_pos = the_robots[index]->position().y;
 
@@ -25,7 +28,7 @@ void defensive::move_halfway_between_ball_and_our_goal(int index) {
 }
 
 void defensive::chase_ball(int index) {
-    chase_and_shoot::ptr tactic( new chase_and_shoot(the_ball, the_field, the_team, the_robots[index]));
+    chase_and_shoot::ptr tactic( new chase_and_shoot(the_robots[index], the_world));
     the_tactics.push_back(tactic);
 }
 
@@ -35,7 +38,7 @@ void defensive::block(int index) {
 
 double defensive::get_distance_from_ball(int index) {
     point pos = the_robots[index]->position();
-    point ball = the_ball->position();
+    point ball = the_world->ball()->position();
 
     point dist = ball-pos;
 
@@ -44,6 +47,8 @@ double defensive::get_distance_from_ball(int index) {
 }
 
 void defensive::tick() {
+	const field &the_field(the_world->field());
+
     // Kenneth: PLEASE READ THIS BEFORE UPDATING.
     // ALSO READ DEFENSIVE.H FOR MORE DETAILS.
     // 1) the_goalie is guaranteed to be non-empty
@@ -63,9 +68,9 @@ void defensive::tick() {
 		} else {
 			// if the goalie doesn't have ball, it should act like a goalie.
 
-			goalie::ptr temp_role = goalie::ptr(new goalie(the_ball, the_field, the_team));
+			goalie::ptr temp_role(new goalie(the_world));
 			temp_role->start_play(); 
-			goalie_role = role::ptr(temp_role);
+			goalie_role = temp_role;
 			std::vector<player::ptr> goalie_only;
 			goalie_only.push_back(the_goalie);
 			goalie_role->set_robots(goalie_only);
@@ -86,7 +91,7 @@ void defensive::tick() {
             }
         }
         else {
-            if(get_distance_from_ball(i) < the_field->length()/4)
+            if(get_distance_from_ball(i) < the_field.length()/4)
             {
                 chase_ball(i);
             }

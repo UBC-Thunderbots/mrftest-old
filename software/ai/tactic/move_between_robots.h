@@ -1,7 +1,6 @@
 #ifndef AI_TACTIC_MOVE_BETWEEN_ROBOTS_H
 #define AI_TACTIC_MOVE_BETWEEN_ROBOTS_H
 
-#include "ai/tactic.h"
 #include "ai/tactic/move_between.h"
 
 //
@@ -10,14 +9,14 @@
 class move_between_robots : public tactic {
 	public:
 		//
-		// A pointer to a move tactic.
+		// A pointer to this tactic.
 		//
 		typedef Glib::RefPtr<move_between_robots> ptr;
 
 		//
 		// Constructs a new move_between_robots tactic.
 		//
-		move_between_robots(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player);
+		move_between_robots(player::ptr player, world::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -31,7 +30,7 @@ class move_between_robots : public tactic {
 
 	protected:		
 
-		move_between::ptr move_between_tactic;
+		move_between move_between_tactic;
 		
 		robot::ptr the_robot1;
 

@@ -1,5 +1,5 @@
-#include "ai/role.h"
-#include "ai/strategy.h"
+#include "ai/role/role.h"
+#include "ai/strategy/strategy.h"
 #include "ai/role/goalie.h"
 #include "ai/role/pit_stop.h"
 #include <map>
@@ -12,9 +12,8 @@
 namespace {
 	class simple_strategy1 : public strategy {
 		public:
-			simple_strategy1(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			simple_strategy1(world::ptr world);
 			void tick();
-			void set_playtype(playtype::playtype t);
 			strategy_factory &get_factory();
 			Gtk::Widget *get_ui_controls();
 			void robot_added(void);
@@ -26,12 +25,17 @@ namespace {
 			void getAllRobots();
 			void clearRoles();
 
+			const world::ptr the_world;
+
 			// saving the robot IDs mapped to its role
 			std::map< robot::ptr, role::ptr > assignments_;
 			std::set< role::ptr > existingRoles_;
 	};
 
-	simple_strategy1::simple_strategy1(ball::ptr ball, field::ptr field, controlled_team::ptr team) : strategy(ball, field, team) {
+	simple_strategy1::simple_strategy1(world::ptr world) : the_world(world) {
+		// Connect to the team change signals.
+		world->friendly.signal_player_added.connect(sigc::hide(sigc::hide(sigc::mem_fun(this, &simple_strategy1::robot_added))));
+		world->friendly.signal_player_removed.connect(sigc::mem_fun(this, &simple_strategy1::robot_removed));
 		// Get all robots currently assigned to the team
 		getAllRobots();
 		/* Assign the robots to their respective roles, if playtype has already
@@ -43,7 +47,7 @@ namespace {
 	void simple_strategy1::tick() {
 		// Use the variables "ball", "field", and "team" to allocate players to roles.
 
-		switch (the_team->current_playtype()) {
+		switch (the_world->playtype()) {
 		case playtype::halt:
 			clearRoles();
 			break;
@@ -69,8 +73,9 @@ namespace {
 	}
 
 	void simple_strategy1::getAllRobots(){
-		for (unsigned int i = 0; i < the_team->size(); ++i){
-			robot::ptr rp = the_team->get_robot(i);
+		const team &the_team(the_world->friendly);
+		for (unsigned int i = 0; i < the_team.size(); ++i){
+			robot::ptr rp = the_team.get_robot(i);
 			if (assignments_.find(rp) != assignments_.end()){
 				assignments_[rp] = pit_stop::ptr();
 			}
@@ -83,17 +88,14 @@ namespace {
 		getAllRobots();
 	}
 
-	void simple_strategy1::set_playtype(playtype::playtype) {
-		tick();
-	}
-	
 	Gtk::Widget *simple_strategy1::get_ui_controls() {
 		return 0;
 	}
 
 	void simple_strategy1::robot_added(void){
-		for (unsigned int i = 0; i < the_team->size(); ++i){
-			robot::ptr rp = the_team->get_robot(i);
+		const team &the_team(the_world->friendly);
+		for (unsigned int i = 0; i < the_team.size(); ++i){
+			robot::ptr rp = the_team.get_robot(i);
 			if (assignments_.find(rp) != assignments_.end()){
 				assignments_[rp] = pit_stop::ptr();
 			}
@@ -101,7 +103,7 @@ namespace {
 		tick();
 	}
 
-	void simple_strategy1::robot_removed(unsigned int index, player::ptr r){
+	void simple_strategy1::robot_removed(unsigned int, player::ptr r){
 		assignments_.erase(robot::ptr::cast_static(r));
 		tick();
 	}
@@ -109,14 +111,14 @@ namespace {
 	class simple_strategy1_factory : public strategy_factory {
 		public:
 			simple_strategy1_factory();
-			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			strategy::ptr create_strategy(world::ptr world);
 	};
 
 	simple_strategy1_factory::simple_strategy1_factory() : strategy_factory("Simple Strategy 1") {
 	}
 
-	strategy::ptr simple_strategy1_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
-		strategy::ptr s(new simple_strategy1(ball, field, team));
+	strategy::ptr simple_strategy1_factory::create_strategy(world::ptr world) {
+		strategy::ptr s(new simple_strategy1(world));
 		return s;
 	}
 

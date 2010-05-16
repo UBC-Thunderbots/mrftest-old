@@ -1,10 +1,10 @@
 #include "ai/role/execute_kickoff_enemy.h"
 
-execute_kickoff_enemy::execute_kickoff_enemy(ball::ptr ball, field::ptr field, controlled_team::ptr team) : role(ball, field, team) {
+execute_kickoff_enemy::execute_kickoff_enemy(world::ptr world) : the_world(world) {
 }
 
 void execute_kickoff_enemy::tick(){
-	
+
 }
 
 void execute_kickoff_enemy::robots_changed() {

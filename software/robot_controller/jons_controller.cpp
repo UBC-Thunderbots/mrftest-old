@@ -1,8 +1,7 @@
 #include "jons_controller.h"
 #include "geom/point.h"
 #include "geom/angle.h"
-#include "world/player_impl.h"
-#include "world/timestep.h"
+#include "util/timestep.h"
 #include <cmath>
 #include <iostream>
 
@@ -13,7 +12,7 @@ namespace {
 			jons_controller_factory() : robot_controller_factory("JONS RC") {
 			}
 
-			robot_controller::ptr create_controller(player_impl::ptr plr, bool, unsigned int) const {
+			robot_controller::ptr create_controller(player::ptr plr, bool, unsigned int) const {
 				robot_controller::ptr p(new jons_controller(plr));
 				return p;
 			}
@@ -23,7 +22,7 @@ namespace {
 
 }
 
-jons_controller::jons_controller(player_impl::ptr plr) : plr(plr), max_acc(10), max_vel(1000), max_Aacc(1), close_param(1.5),position_delta(0.05), orient_delta(0.05)
+jons_controller::jons_controller(player::ptr plr) : plr(plr), max_acc(10), max_vel(1000), max_Aacc(1), close_param(1.5),position_delta(0.05), orient_delta(0.05)
 {
 }
 
@@ -74,6 +73,9 @@ void jons_controller::move(const point &new_position, double new_orientation, po
 	//	angular_velocity=0;
 }
 
+void jons_controller::clear() {
+#warning WRITE CODE HERE
+}
 
 robot_controller_factory &jons_controller::get_factory() const {
 	return factory;

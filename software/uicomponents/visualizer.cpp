@@ -1,3 +1,4 @@
+#if 0
 // Set nonzero to draw velocity vectors.
 #define DRAW_VELOCITY 0
 // Set to the multiplier for visualizing velocity vector lengths.
@@ -252,4 +253,7 @@ draggable::ptr visualizer::object_at(const point &pos) const {
 
 	return draggable::ptr();
 }
+#else
+#warning IMPLEMENT THIS
+#endif
 

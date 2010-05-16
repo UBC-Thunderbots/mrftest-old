@@ -15,29 +15,35 @@ namespace {
 
 	class param_tuning : public movement_benchmark {
 		public:
-			param_tuning(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			param_tuning(world::ptr world);
 			~param_tuning();
+			Gtk::Widget *get_ui_controls();
 			strategy_factory &get_factory();
 			void tick();
 			void reset();
 		private:
+			const world::ptr the_world;
+			Gtk::Button reset_button;
 			stochastic_local_search* sls;
 			tunable_controller* tc;
 			int sls_counter;
 			int best;
 	};
 
-	param_tuning::param_tuning(ball::ptr ball, field::ptr field, controlled_team::ptr team) : movement_benchmark(ball, field, team), sls(NULL) {
+	param_tuning::param_tuning(world::ptr world) : movement_benchmark(world), the_world(world), reset_button("Reset"), sls(0) {
 		sls_counter = 0;
 
 		// override the reset button
-		reset_button = Gtk::manage(new Gtk::Button("Reset"));
-		reset_button->signal_clicked().connect(sigc::mem_fun(this,&param_tuning::reset));
+		reset_button.signal_clicked().connect(sigc::mem_fun(this,&param_tuning::reset));
 		best = EVALUATION_LIMIT;
 	}
 
 	param_tuning::~param_tuning() {
 		if(sls != NULL) delete sls;
+	}
+
+	Gtk::Widget *param_tuning::get_ui_controls() {
+		return &reset_button;
 	}
 
 	void param_tuning::reset() {
@@ -68,7 +74,7 @@ namespace {
 			// done with sls
 			return;
 		}
-		if (the_team->size() != 1) {
+		if (the_world->friendly.size() != 1) {
 			std::cerr << "error: must have only 1 robot in the team!" << std::endl;
 			return;
 		}
@@ -105,14 +111,14 @@ namespace {
 	class param_tuning_factory : public strategy_factory {
 		public:
 			param_tuning_factory();
-			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			strategy::ptr create_strategy(world::ptr world);
 	};
 
 	param_tuning_factory::param_tuning_factory() : strategy_factory("Param Tuning") {
 	}
 
-	strategy::ptr param_tuning_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
-		strategy::ptr s(new param_tuning(ball, field, team));
+	strategy::ptr param_tuning_factory::create_strategy(world::ptr world) {
+		strategy::ptr s(new param_tuning(world));
 		return s;
 	}
 

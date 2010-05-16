@@ -2,7 +2,6 @@
 #define UTIL_BYREF_H
 
 #include "util/noncopyable.h"
-#include <glibmm.h>
 
 //
 // An object that should be passed around by means of a Glib::RefPtr<> rather

@@ -1,9 +1,10 @@
 #include "playerODE.h"
-#include "world/timestep.h"
+#include "util/timestep.h"
 #include <iostream>
 #include <math.h>
 #include <algorithm>
 #include "geom/angle.h"
+#include <cassert>
 
 namespace {
 
@@ -75,11 +76,10 @@ namespace {
 	int click =0;
 }
 
-
 /**
 	Constructor method for the robot model contained in the simulator
 */
-playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : the_position(0.0, 0.0), the_velocity(0.0, 0.0), target_velocity(0.0, 0.0), the_orientation(0.0), avelocity(0.0), target_avelocity(0.0), Vertices(0), Triangles(0) {
+playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : target_velocity(0.0, 0.0), Vertices(0), Triangles(0) {
 
 	updates_per_tick = ups_per_tick;
 	double dribble_radius = 0.005;//half a cm
@@ -296,8 +296,7 @@ click++;
 		
 		//get the current bots velocity	
 		const dReal *cur_vel = dBodyGetLinearVel(body);
-		the_velocity.x = cur_vel[0];
-		the_velocity.y = cur_vel[1];
+		point the_velocity(cur_vel[0], cur_vel[1]);
 		
 		//rotate it to bot relative
 		the_velocity = the_velocity.rotate(-orientation());
@@ -478,30 +477,24 @@ bool playerODE::execute_chip() {
 
 }
 
-void playerODE::ext_drag(const point &pos, const point &vel) {
+void playerODE::position(const point &pos) {
 	posSet = true;
-	//const dReal *t = dBodyGetPosition (body);
-	//const dReal *t2 = dBodyGetPosition (body2);
 	dBodySetPosition(body, pos.x, pos.y, ROBOT_HEIGHT/2+0.01);
-	//dBodySetPosition(body2, pos.x, pos.y, t2[2]);
-	dBodySetLinearVel(body,vel.x,vel.y,0.0);
-	//dBodySetLinearVel(body2,vel.x,vel.y,0.0);
-	dBodySetAngularVel (body, 0.0, 0.0, 0.0);
-	//dBodySetAngularVel (body2, 0.0, 0.0, 0.0);
-	//createJointBetweenB1B2();
-	ext_drag_postprocess();
 }
 
-void playerODE::ext_rotate(double orient, double avel) {
+void playerODE::velocity(const point &vel) {
+	dBodySetLinearVel(body,vel.x,vel.y,0.0);
+}
+
+void playerODE::orientation(double orient) {
 	posSet=true;
-	//#warning IMPLEMENT
 	dMatrix3 RotationMatrix;
 	dRFromAxisAndAngle (RotationMatrix, 0.0, 0.0, 1.0, orient);
 	dBodySetRotation (body, RotationMatrix);
-	//dBodySetRotation (body2, RotationMatrix);
+}
+
+void playerODE::avelocity(double avel) {
 	dBodySetAngularVel (body, 0.0, 0.0, avel);
-	//dBodySetAngularVel (body2, 0.0, 0.0, avel);
-	ext_rotate_postprocess();
 }
 
 dTriMeshDataID playerODE::create_robot_geom()
@@ -616,3 +609,92 @@ dTriMeshDataID playerODE::create_robot_geom()
 	return triMesh;
 
 }
+
+/*
+	struct __attribute__((packed)) RUN_DATA {
+		uint8_t flags;
+		signed drive1_speed : 11;
+		signed drive2_speed : 11;
+		signed drive3_speed : 11;
+		signed drive4_speed : 11;
+		signed dribbler_speed : 11;
+		unsigned chick_power : 9;
+	};
+	const uint8_t RUN_FLAG_RUNNING = 0x80;
+	const uint8_t RUN_FLAG_DIRECT_DRIVE = 0x01;
+	const uint8_t RUN_FLAG_CONTROLLED_DRIVE = 0x02;
+	const uint8_t RUN_FLAG_CHICKER_ENABLED = 0x04;
+	const uint8_t RUN_FLAG_CHIP = 0x08;
+	const uint8_t RUN_FLAG_FEEDBACK = 0x40;
+*/
+
+void playerODE::received(const xbeepacket::RUN_DATA &packet) {
+	
+	assert(packet.flags&xbeepacket::RUN_FLAG_RUNNING);
+	
+	// These two aren't used for now because we don't have a firmware simulator
+	direct_drive = packet.flags&xbeepacket::RUN_FLAG_DIRECT_DRIVE;
+	controlled_drive = packet.flags&xbeepacket::RUN_FLAG_CONTROLLED_DRIVE;
+
+	
+
+	// These settings are being passed directly for now, we should probably put code in to handle the fact that packets can arrive whenever
+	// and that we could get more than one kick packet
+	if(packet.flags&xbeepacket::RUN_FLAG_CHICKER_ENABLED) {
+		if(packet.flags&xbeepacket::RUN_FLAG_CHIP){
+			chip(packet.chick_power);
+		
+		}else{
+			kick(packet.chick_power);
+		}
+	}
+
+	/// The dribbler code will probably be re-written so this will do for now.
+	dribble(packet.dribbler_speed);
+	
+
+
+	//These are used directly in the simulator code, needs to intercepted by a 
+	//firmware intepreter to simulate controller			
+	motor_desired[0] = packet.drive1_speed;
+	motor_desired[1] = packet.drive2_speed;
+	motor_desired[2] = packet.drive3_speed;
+	motor_desired[3] = packet.drive4_speed;
+	
+	
+	//limit max motor "voltage" to VOLTAGE_LIMIT by scaling the largest component to VOLTAGE_LIMIT if greater
+	for(int index=0;index<4;index++)
+		if(fabs(motor_desired[index])>VOLTAGE_LIMIT/PACKET_TO_VOLTAGE)
+			for(int index2=0;index2<4;index2++)
+				motor_desired[index2]=motor_desired[index2]/motor_desired[index]*VOLTAGE_LIMIT/PACKET_TO_VOLTAGE;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

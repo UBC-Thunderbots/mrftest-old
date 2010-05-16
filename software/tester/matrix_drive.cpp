@@ -1,29 +1,27 @@
 #include "tester/matrix_drive.h"
 
-tester_control_matrix_drive::tester_control_matrix_drive() : Gtk::HBox(false, 10), column1(true, 0), drive1_label("Vx:"), drive2_label("Vy:"), drive3_label("Vt:"), column2(true, 0), drive1_scale(-10, 10, .1), drive2_scale(-10, 10, .1), drive3_scale(-20, 20, .1) {
-	column1.pack_start(drive1_label);
-	column1.pack_start(drive2_label);
-	column1.pack_start(drive3_label);
-	pack_start(column1);
+tester_control_matrix_drive::tester_control_matrix_drive(xbee_drive_bot::ptr bot) : Gtk::Table(3, 2), robot(bot), drive1_label("Vx:"), drive2_label("Vy:"), drive3_label("Vt:"), drive1_scale(-10, 10, .1), drive2_scale(-10, 10, .1), drive3_scale(-20, 20, .1) {
+	attach(drive1_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
+	attach(drive2_label, 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
+	attach(drive3_label, 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
 
-	column2.pack_start(drive1_scale);
-	column2.pack_start(drive2_scale);
-	column2.pack_start(drive3_scale);
-	pack_start(column2);
+	attach(drive1_scale, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
+	attach(drive2_scale, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
+	attach(drive3_scale, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
 
 	drive1_scale.set_digits(1);
+	drive1_scale.set_value(0);
 	drive2_scale.set_digits(1);
+	drive2_scale.set_value(0);
 	drive3_scale.set_digits(1);
+	drive3_scale.set_value(0);
 	drive1_scale.get_adjustment()->set_page_size(0);
 	drive2_scale.get_adjustment()->set_page_size(0);
 	drive3_scale.get_adjustment()->set_page_size(0);
 	drive1_scale.signal_value_changed().connect(sigc::mem_fun(this, &tester_control_matrix_drive::on_change));
 	drive2_scale.signal_value_changed().connect(sigc::mem_fun(this, &tester_control_matrix_drive::on_change));
 	drive3_scale.signal_value_changed().connect(sigc::mem_fun(this, &tester_control_matrix_drive::on_change));
-}
 
-void tester_control_matrix_drive::set_robot(radio_bot::ptr bot) {
-	robot = bot;
 	on_change();
 }
 
@@ -44,10 +42,10 @@ void tester_control_matrix_drive::on_change() {
 		for (unsigned int row = 0; row < 4; ++row)
 			for (unsigned int col = 0; col < 3; ++col)
 				output[row] += matrix[row][col] * input[col];
-		int16_t m1 = static_cast<int16_t>(output[0]);
-		int16_t m2 = static_cast<int16_t>(output[1]);
-		int16_t m3 = static_cast<int16_t>(output[2]);
-		int16_t m4 = static_cast<int16_t>(output[3]);
+		int m1 = static_cast<int>(output[0]);
+		int m2 = static_cast<int>(output[1]);
+		int m3 = static_cast<int>(output[2]);
+		int m4 = static_cast<int>(output[3]);
 		robot->drive_controlled(m1, m2, m3, m4);
 	}
 }

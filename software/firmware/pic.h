@@ -4,7 +4,6 @@
 #include "firmware/bootproto.h"
 #include "firmware/watchable_operation.h"
 #include "util/ihex.h"
-#include "xbee/xbee.h"
 
 //
 // An operation to upload data to be burned into the PIC.

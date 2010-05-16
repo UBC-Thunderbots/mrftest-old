@@ -1,7 +1,7 @@
 #include "ai/tactic/turn.h"
 #include "geom/angle.h"
 
-turn::turn(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player) : tactic(ball, field, team, player) {
+turn::turn(player::ptr player) : the_player(player) {
 }
 
 void turn::set_direction(const point& dir) {

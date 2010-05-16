@@ -1,8 +1,8 @@
 #ifndef AI_TACTIC_MOVE_H
 #define AI_TACTIC_MOVE_H
 
-#include "ai/navigator.h"
-#include "ai/tactic.h"
+#include "ai/navigator/robot_navigator.h"
+#include "ai/tactic/tactic.h"
 
 //
 // Just a wrapper around the move function in player.
@@ -10,14 +10,14 @@
 class move : public tactic {
 	public:
 		//
-		// A pointer to a move tactic.
+		// A pointer to this tactic.
 		//
 		typedef Glib::RefPtr<move> ptr;
 
 		//
 		// Constructs a new move tactic.
 		//
-		move(ball::ptr ball, field::ptr field, controlled_team::ptr team, player::ptr player);
+		move(player::ptr player, world::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -36,7 +36,7 @@ class move : public tactic {
 
 	protected:		
 
-	
+		const player::ptr the_player;
 
 		// Target position
 		point target_position;
@@ -44,7 +44,7 @@ class move : public tactic {
 		bool avoid_ball;
 		
 		// The navigator that moves
-		navigator::ptr the_navigator;
+		robot_navigator the_navigator;
 };
 
 #endif

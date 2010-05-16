@@ -93,8 +93,9 @@ namespace {
 
 	class hand_tuning : public movement_benchmark {
 		public:
-			hand_tuning(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			hand_tuning(world::ptr);
 			~hand_tuning();
+			Gtk::Widget *get_ui_controls();
 			strategy_factory &get_factory();
 			void tick();
 			void run();
@@ -102,16 +103,20 @@ namespace {
 		private:
 			hand_tuning_ui ui;
 			tunable_controller* tc;
+			Gtk::Button run_button;
 	};
 
-	hand_tuning::hand_tuning(ball::ptr ball, field::ptr field, controlled_team::ptr team) : movement_benchmark(ball, field, team), ui(this), tc(NULL) {
-		reset_button = Gtk::manage(new Gtk::Button("Run"));
-		reset_button->signal_clicked().connect(sigc::mem_fun(this,&hand_tuning::run));
+	hand_tuning::hand_tuning(world::ptr world) : movement_benchmark(world), ui(this), tc(NULL), run_button("Run") {
+		run_button.signal_clicked().connect(sigc::mem_fun(this,&hand_tuning::run));
 		done = tasks.size();
 		time_steps = 0;
 	}
 
 	hand_tuning::~hand_tuning() {
+	}
+
+	Gtk::Widget *hand_tuning::get_ui_controls() {
+		return &run_button;
 	}
 
 	void hand_tuning::reset() {
@@ -140,14 +145,14 @@ namespace {
 	class hand_tuning_factory : public strategy_factory {
 		public:
 			hand_tuning_factory();
-			strategy::ptr create_strategy(xmlpp::Element *xml, ball::ptr ball, field::ptr field, controlled_team::ptr team);
+			strategy::ptr create_strategy(world::ptr world);
 	};
 
 	hand_tuning_factory::hand_tuning_factory() : strategy_factory("Hand Tune & Move Benchmark") {
 	}
 
-	strategy::ptr hand_tuning_factory::create_strategy(xmlpp::Element *, ball::ptr ball, field::ptr field, controlled_team::ptr team) {
-		strategy::ptr s(new hand_tuning(ball, field, team));
+	strategy::ptr hand_tuning_factory::create_strategy(world::ptr world) {
+		strategy::ptr s(new hand_tuning(world));
 		return s;
 	}
 

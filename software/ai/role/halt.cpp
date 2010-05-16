@@ -1,7 +1,7 @@
 #include "ai/role/halt.h"
 #include "ai/tactic/move.h"
 
-halt::halt(ball::ptr ball, field::ptr field, controlled_team::ptr team) : role(ball, field, team) {
+halt::halt() {
 }
 
 void halt::tick(){

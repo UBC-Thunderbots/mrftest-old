@@ -11,11 +11,10 @@ class light : public Gtk::DrawingArea {
 		light();
 		void set_colour(double r, double g, double b);
 
-	protected:
-		bool on_expose_event(GdkEventExpose *);
-
 	private:
 		double r, g, b;
+
+		bool on_expose_event(GdkEventExpose *);
 };
 
 #endif

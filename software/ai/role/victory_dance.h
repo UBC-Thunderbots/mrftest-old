@@ -1,7 +1,7 @@
 #ifndef AI_ROLE_VICTORY_DANCE_H
 #define AI_ROLE_VICTORY_DANCE_H
 
-#include "ai/role.h"
+#include "ai/role/role.h"
 #include "ai/tactic/dance.h"
 
 //
@@ -17,7 +17,7 @@ class victory_dance : public role {
 		//
 		// Constructs a new victory_dance role.
 		//
-		victory_dance(ball::ptr ball, field::ptr field, controlled_team::ptr team);
+		victory_dance();
 
 		//
 		// Runs the AI for one time tick.

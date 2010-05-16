@@ -1,6 +1,6 @@
+#include "ai/world/player.h"
 #include "geom/angle.h"
 #include "robot_controller/robot_controller.h"
-#include "world/player_impl.h"
 
 namespace {
 	//
@@ -11,7 +11,7 @@ namespace {
 			//
 			// Constructs a new controller.
 			//
-			testing_rc(player_impl::ptr plr);
+			testing_rc(player::ptr plr);
 
 			//
 			// Constructs a new controller.
@@ -26,12 +26,18 @@ namespace {
 			void move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity);
 
 			//
+			// Clears accumulated data.
+			//
+			void clear() {
+			}
+
+			//
 			// Returns the factory.
 			//
 			robot_controller_factory &get_factory() const;
 
 		private:
-			player_impl::ptr plr;
+			player::ptr plr;
 
 			double get_velocity(double d, double v0, double v1, double max_vel, double max_accel);
 
@@ -49,7 +55,7 @@ namespace {
 			double max_linear_velocity_accel;
 	};
 
-	testing_rc::testing_rc(player_impl::ptr plr) : plr(plr), initialized(false) {
+	testing_rc::testing_rc(player::ptr plr) : plr(plr), initialized(false) {
 	}
 
 	double testing_rc::get_velocity(double s, double v0, double v1, double max_vel, double max_accel) {
@@ -127,7 +133,7 @@ namespace {
 			testing_rc_factory() : robot_controller_factory("Testing RC") {
 			}
 
-			robot_controller::ptr create_controller(player_impl::ptr plr, bool, unsigned int) const {
+			robot_controller::ptr create_controller(player::ptr plr, bool, unsigned int) const {
 				robot_controller::ptr p(new testing_rc(plr));
 				return p;
 			}

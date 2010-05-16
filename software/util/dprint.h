@@ -1,7 +1,6 @@
 #ifndef UTIL_DPRINT_H
 #define UTIL_DPRINT_H
 
-#if DEBUG
 #include <iostream>
 #include <iomanip>
 #include <glibmm.h>
@@ -10,7 +9,9 @@ namespace {
 		std::cout << file << ':' << line << ": " << msg << '\n';
 	}
 }
-#define DPRINT(msg) dprint(__FILE__, __LINE__, msg)
+#define LOG(msg) dprint(__FILE__, __LINE__, msg)
+#if DEBUG
+#define DPRINT(msg) LOG(msg)
 #else
 #define DPRINT(msg) do {} while (0)
 #endif

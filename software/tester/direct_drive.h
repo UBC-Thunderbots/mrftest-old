@@ -5,7 +5,10 @@
 
 class tester_control_direct_drive : public tester_control_permotor_drive {
 	public:
-		void drive(int16_t m1, int16_t m2, int16_t m3, int16_t m4) {
+		tester_control_direct_drive(xbee_drive_bot::ptr bot) : tester_control_permotor_drive(bot) {
+		}
+
+		void drive(int m1, int m2, int m3, int m4) {
 			robot->drive_direct(m1, m2, m3, m4);
 		}
 };
