@@ -4,9 +4,10 @@
 #include "ai/tactic.h"
 #include "ai/tactic/turn.h"
 
-//
-// 
-//
+/**
+ * Tactic for doing either chip or kick.
+ * By default, kicks at full strength.
+ */
 class kick : public tactic {
 	public:
 		//
@@ -24,15 +25,30 @@ class kick : public tactic {
 		//
 		void tick();
 
-		//
-		// Sets the target position for this kick tactic.
-		//
-		void set_target(const point& p);	
+		/**
+		 * Sets the target position for this kick tactic.
+		 */
+		void set_target(const point& p) {
+			the_target = p;
+		}
 
-		//
-		// Sets rather the player chips the ball or kicks the ball.
-		//
-		void set_chip(const bool& chip);
+		/**
+		 * Enables and sets the strength of the chipping.
+		 * Value between 0 and 1.
+		 */
+		void set_chip(const double& s = 1.0) {
+			chip_strength = s;
+			should_chip = true;
+		}
+
+		/**
+		 * Enables and sets the strength of the chipping.
+		 * Value between 0 and 1.
+		 */
+		void set_kick(const double& k = 1.0) {
+			kick_strength = k;
+			should_chip = false;
+		}
 
 	protected:		
 
@@ -44,6 +60,9 @@ class kick : public tactic {
 		// Holds if this tactic should chip the ball rather than simply kicking it
 		bool should_chip;
 
+		double chip_strength;
+
+		double kick_strength;
 };
 
 #endif
