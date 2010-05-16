@@ -1,4 +1,4 @@
-#define DEBUG 1
+#define DEBUG 0
 #include "proto/messages_robocup_ssl_detection.pb.h"
 #include "proto/messages_robocup_ssl_geometry.pb.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"

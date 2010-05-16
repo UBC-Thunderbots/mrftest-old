@@ -1,4 +1,4 @@
-#define DEBUG 1
+#define DEBUG 0
 #include "sim/robot.h"
 #include "util/dprint.h"
 #include <iomanip>
