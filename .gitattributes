@@ -43,8 +43,6 @@ software/ai/role/execute_indirect_free_kick_enemy.cpp -text
 software/ai/role/execute_indirect_free_kick_enemy.h -text
 software/ai/role/execute_indirect_free_kick_friendly.cpp -text
 software/ai/role/execute_indirect_free_kick_friendly.h -text
-software/ai/role/execute_kickoff_enemy.cpp -text
-software/ai/role/execute_kickoff_enemy.h -text
 software/ai/role/execute_kickoff_friendly.cpp -text
 software/ai/role/execute_kickoff_friendly.h -text
 software/ai/role/execute_penalty_enemy.cpp -text

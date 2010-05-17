@@ -9,8 +9,7 @@
 #include "ai/role/execute_indirect_free_kick_enemy.h"     
 #include "ai/role/prepare_kickoff_enemy.h"
 #include "ai/role/execute_indirect_free_kick_friendly.h"  
-#include "ai/role/prepare_kickoff_friendly.h"
-#include "ai/role/execute_kickoff_enemy.h"                
+#include "ai/role/prepare_kickoff_friendly.h"             
 #include "ai/role/prepare_penalty_enemy.h"
 #include "ai/role/execute_kickoff_friendly.h"             
 #include "ai/role/prepare_penalty_friendly.h"
@@ -161,7 +160,8 @@ void basic_strategy::reset_all() {
 			break;
 
 		case playtype::execute_kickoff_enemy:
-			roles.push_back(role::ptr(new execute_kickoff_enemy(the_world)));
+			roles.push_back(role::ptr(new prepare_kickoff_enemy(the_world)));
+		#warning robots should detect when ball is in play, then playtypes should be switched
 			roles[0]->set_robots(all_players);
 			std::cout << all_players.size() << " robots set to execute kickoff enemy" << std::endl;
 			break;
