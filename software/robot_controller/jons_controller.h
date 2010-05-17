@@ -9,6 +9,12 @@
 #include "util/byref.h"
 #include "util/noncopyable.h"
 
+
+/**
+Controller to exploit old broken simulator
+This class is more or less obsolete, however, current use could 
+result in much needed hilarity with our current robots
+*/
 class jons_controller : public robot_controller {
 	public:
 

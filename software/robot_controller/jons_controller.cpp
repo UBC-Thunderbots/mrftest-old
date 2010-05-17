@@ -73,8 +73,11 @@ void jons_controller::move(const point &new_position, double new_orientation, po
 	//	angular_velocity=0;
 }
 
+/**
+This is unnessecary because there is not state to clear
+in this controller.
+*/
 void jons_controller::clear() {
-#warning WRITE CODE HERE
 }
 
 robot_controller_factory &jons_controller::get_factory() const {
