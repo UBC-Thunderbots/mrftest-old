@@ -311,6 +311,9 @@ bool world::on_refbox_readable(Glib::IOCondition) {
 				break;
 
 			case ' ': // NORMAL START
+#warning this is horrible, it needs to be rewritten with something useful
+#warning right now it latches into the "execute" state for exactly one packet before changing to "play"
+#warning work with AI people to figure out a better division between playtypes and something else that better describes the semantics?
 				if (playtype_ == playtype::prepare_kickoff_friendly) {
 					pt = playtype::execute_kickoff_friendly;
 				} else if (playtype_ == playtype::prepare_kickoff_enemy) {
