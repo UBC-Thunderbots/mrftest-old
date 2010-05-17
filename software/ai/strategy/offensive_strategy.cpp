@@ -6,11 +6,9 @@
 
 #include "ai/role/defensive.h"
 #include "ai/role/goalie.h"
-#include "ai/role/execute_direct_free_kick_enemy.h"
 #include "ai/role/offensive.h"
 #include "ai/role/execute_direct_free_kick_friendly.h" 
-#include "ai/role/pit_stop.h"
-#include "ai/role/execute_indirect_free_kick_enemy.h"     
+#include "ai/role/pit_stop.h"     
 #include "ai/role/prepare_kickoff_enemy.h"
 #include "ai/role/execute_indirect_free_kick_friendly.h"  
 #include "ai/role/prepare_kickoff_friendly.h"               

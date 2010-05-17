@@ -1,23 +1,5 @@
 #include "ai/strategy/strategy.h"
-#include "ai/navigator/testnavigator.h"
-#include "ai/tactic/chase.h"
 #include "ai/role/role.h"
-#include "ai/role/defensive.h"
-#include "ai/role/goalie.h"
-#include "ai/role/execute_direct_free_kick_enemy.h"
-#include "ai/role/offensive.h"
-#include "ai/role/execute_direct_free_kick_friendly.h" 
-#include "ai/role/pit_stop.h"
-#include "ai/role/execute_indirect_free_kick_enemy.h"     
-#include "ai/role/prepare_kickoff_enemy.h"
-#include "ai/role/execute_indirect_free_kick_friendly.h"  
-#include "ai/role/prepare_kickoff_friendly.h"             
-#include "ai/role/prepare_penalty_enemy.h"
-#include "ai/role/execute_kickoff_friendly.h"             
-#include "ai/role/prepare_penalty_friendly.h"
-#include "ai/role/execute_penalty_enemy.h"
-#include "ai/role/victory_dance.h"
-#include "ai/role/execute_penalty_friendly.h" 
  
  // bool auto_ref_setup=false;
  // point ball_pos, ball_vel, player_pos;

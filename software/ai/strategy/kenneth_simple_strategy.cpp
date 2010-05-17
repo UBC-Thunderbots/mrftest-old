@@ -3,11 +3,9 @@
 #include "ai/role/role.h"
 #include "ai/role/defensive.h"
 #include "ai/role/goalie.h"
-#include "ai/role/execute_direct_free_kick_enemy.h"
 #include "ai/role/offensive.h"
 #include "ai/role/execute_direct_free_kick_friendly.h" 
 #include "ai/role/pit_stop.h"
-#include "ai/role/execute_indirect_free_kick_enemy.h"     
 #include "ai/role/prepare_kickoff_enemy.h"
 #include "ai/role/execute_indirect_free_kick_friendly.h"  
 #include "ai/role/prepare_kickoff_friendly.h"           
@@ -559,15 +557,19 @@ namespace {
 	break;
 	
       case playtype::execute_direct_free_kick_enemy:
-	roles.push_back(role::ptr(new execute_direct_free_kick_enemy(the_world)));
-	roles[0]->set_robots(all_players);
+	#warning A more suitable role should be choosed. Also need to detect when the ball is in play.
+	roles.push_back(role::ptr(new stop(the_world)));
+        all_players.push_back(goalie_only[0]);
+        roles[0]->set_robots(all_players);
 	std::cout << all_players.size() << " robots set to execute direct free kick enemy" << std::endl;
 	break;
 	
       case playtype::execute_indirect_free_kick_enemy:
-	roles.push_back(role::ptr(new execute_indirect_free_kick_enemy(the_world)));
-	roles[0]->set_robots(all_players);
-	std::cout << all_players.size() << " robots set to execute indirect free kick friendly" << std::endl;
+	#warning A more suitable role should be choosed. Also need to detect when the ball is in play.
+	roles.push_back(role::ptr(new stop(the_world)));
+        all_players.push_back(goalie_only[0]);
+        roles[0]->set_robots(all_players);
+	std::cout << all_players.size() << " robots set to execute indirect free kick enemy" << std::endl;
 	break;
 	
 	////////
