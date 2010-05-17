@@ -35,7 +35,6 @@ software/sim/*.d
 software/sim/engines/*.d
 software/sim/engines/ODE_simulator/*.d
 software/simulator
-software/steptest
 software/test
 software/tester/*.d
 software/thunderbots

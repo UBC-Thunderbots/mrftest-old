@@ -1,7 +1,7 @@
 #
 # Here, write a list of all the executable binaries the Makefile might generate.
 #
-PROJECTS := config simulator steptest test thunderbots xbeeconfig xbeed
+PROJECTS := config simulator test thunderbots xbeeconfig xbeed
 
 #
 # Here, write a list of the source files and directories for each executable.
