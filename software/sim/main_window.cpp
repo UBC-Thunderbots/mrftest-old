@@ -177,22 +177,13 @@ namespace {
 main_window::main_window(simulator &sim) : sim(sim) {
 	set_title("Thunderbots Simulator");
 
-	Gtk::HPaned *toplevel_paned = Gtk::manage(new Gtk::HPaned);
-
-	Gtk::VBox *left_vbox = Gtk::manage(new Gtk::VBox);
+	Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox);
 
 	Gtk::Frame *robots_frame = Gtk::manage(new Gtk::Frame("Robots"));
 	robots_frame->add(*Gtk::manage(new robots_controls(sim)));
-	left_vbox->pack_start(*robots_frame, Gtk::PACK_EXPAND_WIDGET);
+	vbox->pack_start(*robots_frame, Gtk::PACK_EXPAND_WIDGET);
 
-	toplevel_paned->pack1(*left_vbox, Gtk::SHRINK | Gtk::FILL);
-
-	Gtk::Expander *right_expander = Gtk::manage(new Gtk::Expander("Visualizer"));
-#warning write code here
-	right_expander->add(*Gtk::manage(new Gtk::Label("The visualizer would go here.")));
-	toplevel_paned->pack2(*right_expander, Gtk::EXPAND | Gtk::FILL);
-	
-	add(*toplevel_paned);
+	add(*vbox);
 
 	show_all();
 }
