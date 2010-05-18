@@ -1,94 +1,72 @@
 #include "ai/navigator/robot_navigator.h"
 #include "geom/angle.h"
+#include "ai/util.h"
+
 #include <iostream>
 #include <cstdlib>
 
 namespace {
-	const double EPS = 1e-5;
-	const double NEAR = 1e-2;
 
-#warning "PLEASE TAKE CARE OF THIS hardware dependent parameter"
-	const double SLOW_AVOIDANCE_SPEED=1.0;
-	const double FAST_AVOIDANCE_SPEED=2.0;
+#warning magic constants
+	const double AVOID_MULT = 1.0;
+	const double AVOID_CONST = 1.0;
+	const double ROTATION_THRESH = 100.0 * PI / 180.0;
+	const double ROTATION_STEP = 1.0 * PI / 180.0;
 }
 
-robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world),
-	dest_initialized(false), outofbounds_margin(the_world->field().width() / 20.0),
-	slow_avoidance_factor(0.5), fast_avoidance_factor(2.0) {
-
-	avoidance_factor = 1.0;
-	rotation_angle = 1.0 * PI / 180.0;
-	rotation_thresh = 100.0 * PI / 180.0;
-
+robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world), dest_initialized(false), outofbounds_margin(the_world->field().width() / 20.0) {
 	lookahead_max = robot::MAX_RADIUS * 10;
 }
 
 double robot_navigator::get_avoidance_factor() const {
-	return avoidance_factor + the_player->est_velocity().len();
-
-#warning "do something"
-	double robot_speed = the_player->est_velocity().len();
-
-	if(robot_speed < SLOW_AVOIDANCE_SPEED){
-		return get_slow_avoidance_factor();
-	}
-
-	if(robot_speed > FAST_AVOIDANCE_SPEED){
-		return get_fast_avoidance_factor();
-	}
-
-	assert(SLOW_AVOIDANCE_SPEED < FAST_AVOIDANCE_SPEED);
-
-	double slowness = (robot_speed - FAST_AVOIDANCE_SPEED)/(SLOW_AVOIDANCE_SPEED - FAST_AVOIDANCE_SPEED);
-	double fastness = ( SLOW_AVOIDANCE_SPEED - robot_speed)/(SLOW_AVOIDANCE_SPEED - FAST_AVOIDANCE_SPEED);
-
-	return get_slow_avoidance_factor()*slowness + get_fast_avoidance_factor()*fastness;
+	return AVOID_CONST + AVOID_MULT * the_player->est_velocity().len();
 }
 
 void robot_navigator::tick() {
 	const ball::ptr the_ball(the_world->ball());
 	const field &the_field(the_world->field());
 
-	if(!dest_initialized) return;
+	// TODO: face towards the ball and stay in same place
+	if (!dest_initialized) return;
 
-	point nowdest;
+	const point balldist = the_ball->position() - the_player->position();
 
-	point balldist = the_ball->position() - the_player->position();
-
+#warning TODO bound the ball if set by flag
+	// BY DEFAULT, NAVIGATOR ALLOWS ROBOT ROAM FREE
 	// if we have the ball, adjust our destination to ensure that we
 	// don't take the ball out of bounds, otherwise, head to our
 	// assigned destination
-	if (the_player->has_ball()) {
-		nowdest = clip_point(curr_dest, point(-the_field.length()/2 + outofbounds_margin, -the_field.width()/2 + outofbounds_margin),
-				point(the_field.length()/2 - outofbounds_margin, the_field.width()/2 - outofbounds_margin));
-	} else {
-		nowdest = curr_dest;
-	}
+	// point nowdest;
+	// if (the_player->has_ball()) {
+	// nowdest = ai_util::clip_point(curr_dest, point(-the_field.length()/2 + outofbounds_margin, -the_field.width()/2 + outofbounds_margin),
+	//point(the_field.length()/2 - outofbounds_margin, the_field.width()/2 - outofbounds_margin));
+	//} else {
+	//nowdest = curr_dest;
+	//}
 
-	point direction = nowdest - the_player->position();
+	const point nowdest = curr_dest;
+
+	const double distance = (nowdest - the_player->position()).len();
 
 	// at least face the ball
-	if (direction.len() < NEAR) {
-		if (balldist.len() > NEAR) the_player->move(the_player->position(), atan2(balldist.y, balldist.x));
+	if (distance < ai_util::POS_CLOSE || dest_initialized) {
+		if (balldist.len() > ai_util::POS_CLOSE) the_player->move(the_player->position(), atan2(balldist.y, balldist.x));
 		return;
 	}
 
-	double dirlen = direction.len();
-	direction = direction / direction.len();
+	const point direction = (nowdest - the_player->position()).norm();
 
 	point leftdirection = direction;
 	point rightdirection = direction;
 
 	double angle = 0.0;
 
-	bool undiverted = true;
 	bool stop = false;
 	bool chooseleft;
 
+	//it shouldn't take that many checks to get a good direction
 	while (true) {
-		//std::cout << "path changed" <<std::endl;
 
-		//it shouldn't take that many checks to get a good direction
 		leftdirection = direction.rotate(angle);
 		rightdirection = direction.rotate(-angle);
 
@@ -100,37 +78,33 @@ void robot_navigator::tick() {
 			break;
 		}
 
-		// if we can't find a path within 90 degrees
-		// go straight towards our destination
-		if (angle > rotation_thresh) {
+		if (angle > ROTATION_THRESH) {
 			leftdirection = rightdirection = direction;
 			stop = true;
 			break;
 		}
-		angle += rotation_angle;
+		angle += ROTATION_STEP;
 	}
-
-	undiverted = angle < EPS;
 
 	if(stop) {
 		the_player->move(the_player->position(), atan2(balldist.y, balldist.x));
 		return;
 	}
 
-	point selected_direction = (chooseleft) ? leftdirection : rightdirection;
+	const point selected_direction = (chooseleft) ? leftdirection : rightdirection;
 
-	if (undiverted) {
+	if (angle < ai_util::ORI_CLOSE) {
 		the_player->move(nowdest, atan2(balldist.y, balldist.x));
 	} else {
 		// maximum warp
-		the_player->move(the_player->position() + selected_direction * std::min(dirlen,1.0), atan2(balldist.y, balldist.x));
+		the_player->move(the_player->position() + selected_direction * std::min(distance, 1.0), atan2(balldist.y, balldist.x));
 	}
 }
 
 void robot_navigator::set_point(const point &destination) {
 	//set new destinatin point
 	dest_initialized = true;
-	/*curr_dest = clip_point(destination,
+	/*curr_dest = ai_util::clip_point(destination,
 	  point(-the_field->length()/2,-the_field->width()/2),
 	  point(the_field->length()/2,the_field->width()/2));*/
 	curr_dest = destination;
@@ -205,38 +179,13 @@ void robot_navigator::set_robot_stays_away_from_opponent_goal(bool) {
 #warning "implement function"
 }
 
-/**
-  set how much the robot should avoid the opponents goal by
-  \param amount the amount that the robot should avoid goal by
- */
-void robot_navigator::set_robot_avoid_opponent_goal_amount(double) {
-#warning "implement function"
-}
-
-point robot_navigator::clip_point(const point& p, const point& bound1, const point& bound2) {
-
-	double minx = std::min(bound1.x, bound2.x);
-	double miny = std::min(bound1.y, bound2.y);
-	double maxx = std::max(bound1.x, bound2.x);
-	double maxy = std::max(bound1.y, bound2.y);
-
-	point ret = p;
-
-	if (p.x < minx) ret.x = minx;
-	else if (p.x > maxx) ret.x = maxx;      
-
-	if (p.y < miny) ret.y = miny;
-	else if (p.y > maxy) ret.y = maxy;
-
-	return ret;
-}
-
+// TODO: use the util functions
 bool robot_navigator::check_vector(const point& start, const point& dest, const point& direction) const {
 	const ball::ptr the_ball(the_world->ball());
 	const point startdest = dest - start;
 	const double lookahead = std::min(startdest.len(), lookahead_max);
 
-	assert(abs(direction.len() - 1.0) < EPS);
+	assert(abs(direction.len() - 1.0) < ai_util::POS_CLOSE);
 
 	const team * const teams[2] = { &the_world->friendly, &the_world->enemy };
 	for (unsigned int i = 0; i < 2; ++i) {
