@@ -40,6 +40,7 @@ ai_window::ai_window(ai &ai) : the_ai(ai), strategy_controls(0), rc_controls(0) 
 	add(*vbox);
 
 	the_ai.the_world->signal_playtype_changed.connect(sigc::mem_fun(this, &ai_window::on_playtype_changed));
+	on_playtype_changed();
 
 	show_all();
 }
