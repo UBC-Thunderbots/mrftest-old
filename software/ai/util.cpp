@@ -16,6 +16,8 @@ namespace ai_util{
 
 	const double POS_CLOSE = 1e-5;
 
+	const unsigned int SHOOTING_SAMPLE_POINTS = 9;
+
 	double orientation(const point& p) {
 		return atan2(p.x, p.y);
 	}
@@ -23,11 +25,6 @@ namespace ai_util{
 	double angle_diff(const double& a, const double& b) {
 		return fmod(abs(a - b), PI);
 	}
-
-	//
-	// Number of points to consider when shooting at the goal.
-	//
-	const unsigned int SHOOTING_SAMPLE_POINTS = 9;
 
 	const std::vector<point> calc_candidates(const world::ptr world){
 		std::vector<point> candidates(SHOOTING_SAMPLE_POINTS);

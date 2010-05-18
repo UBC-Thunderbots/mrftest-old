@@ -6,6 +6,7 @@
 #include "ai/tactic/chase_and_shoot.h"
 #include "ai/tactic/move.h"
 #include "ai/tactic/shoot.h"
+#include "ai/tactic/pass.h"
 #include <vector>
 
 //
@@ -52,6 +53,8 @@ class offensive : public role {
         // Tells the robot to chase the ball
         //
         void chase_ball(int index);
+
+        void pass_ball(int index, int receiver);
 
         //
         // Gets the distance of the robot from the enemy's goal

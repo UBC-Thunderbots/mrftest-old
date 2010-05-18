@@ -1,4 +1,5 @@
 #include "ai/role/offensive.h"
+#include "ai/util.h"
 
 offensive::offensive(world::ptr world) : the_world(world) {
 }
@@ -29,6 +30,11 @@ void offensive::chase_ball(int index) {
     the_tactics.push_back(tactic);
 }
 
+void offensive::pass_ball(int index, int receiver){
+    pass::ptr tactic (new pass(the_robots[index], the_robots[receiver], the_world));
+    the_tactics.push_back(tactic);
+}
+
 double offensive::get_distance_from_goal(int index) {
     point pos = the_robots[index]->position();
     point goal = point(the_world->field().length()/2,0);
@@ -45,7 +51,40 @@ void offensive::tick(){
         if(have_ball()) {
             if(the_robots[i]->has_ball()) {
                 if(get_distance_from_goal(i)<the_world->field().length()/3) {
-                   shoot_at_goal(i);
+                    if (ai_util::calc_best_shot(the_robots[i],the_world) < ai_util::SHOOTING_SAMPLE_POINTS){
+                        shoot_at_goal(i);
+                    }
+                    else{
+                        unsigned int best_passee = the_robots.size();
+                        double best_dist = 1e99;
+                        // We will try passing to another offensive robot,
+                        // if there is a clear path to the passee and the passee has a clear path to the goal
+                        for (unsigned int j = 0; j < the_robots.size(); j++){
+                            if (i == j) continue;  
+                            if (ai_util::can_pass(the_world,the_robots[j]) 
+                                && ai_util::calc_best_shot(the_robots[j],the_world) < ai_util::SHOOTING_SAMPLE_POINTS){
+                                double new_dist = (the_robots[j]->position()-the_robots[i]->position()).len()
+                                                + get_distance_from_goal(j);
+                                if (best_dist > new_dist){
+                                    best_dist = new_dist;
+                                    best_passee = j;
+                                }
+                            }
+                        }
+                        if (best_passee < the_robots.size()){
+                            // found suitable passee, make a pass
+                            pass_ball(i,best_passee);
+                        }
+                        else {// no suitable passee 
+                             if (get_distance_from_goal(i) < the_world->field().length()/6) {
+                                 // very close to goal, so try making a shot anyways
+                                 shoot_at_goal(i);
+                             } 
+                             else { // move closer to the goal
+                                 move_towards_goal(i);
+                             }
+                        }
+                    }
                 }
                 else {
                     move_towards_goal(i);
