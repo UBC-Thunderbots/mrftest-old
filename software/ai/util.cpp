@@ -41,6 +41,22 @@ namespace ai_util{
 		return candidates;
 	}
 
+	bool path_check(const point& begin, const point& end, const team& theteam, const double& thresh) {
+		const point direction = (end - begin).norm();
+		const double dist = (end - begin).len();
+		for (size_t i = 0; i < theteam.size(); ++i) {
+			const robot::ptr rob = theteam.get_robot(i);
+			const point rp = rob->position() - end;
+			const double proj = rp.dot(direction);
+			const double perp = sqrt(rp.dot(rp) - proj * proj);
+			if (proj <= 0) continue;
+			if (proj < dist && perp < thresh) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	bool can_pass(const world::ptr w, const player::ptr passee) {
 		const ball::ptr ball = w->ball();
 		if ((ball->position() - passee->position()).lensq() < POS_CLOSE) {
@@ -51,13 +67,11 @@ namespace ai_util{
 		const double ballori = angle(ball->position() - passee->position());
 		if (std::fmod(std::abs(ballori - passee->orientation()), PI) > ORI_CLOSE) return false;
 		// check if there is some enemy blocking
-		const enemy_team& enemy = w->enemy;
-		const friendly_team& friendly = w->friendly;
-		const point passedir = point(cos(passee->orientation()), sin(passee->orientation()));
+		// if(!path_check(ball->position(), passee->position(), w->enemy, SHOOT_ALLOWANCE + robot::MAX_RADIUS + ball::RADIUS)) return false;
 		const point direction = (ball->position() - passee->position()).norm();
 		const double dist = (ball->position() - passee->position()).len();
-		for (size_t i = 0; i < enemy.size(); ++i) {
-			const robot::ptr rob = enemy.get_robot(i);
+		for (size_t i = 0; i < w->enemy.size(); ++i) {
+			const robot::ptr rob = w->enemy.get_robot(i);
 			const point rp = rob->position() - passee->position();
 			const double proj = rp.dot(direction);
 			const double perp = sqrt(rp.dot(rp) - proj * proj);
@@ -66,8 +80,8 @@ namespace ai_util{
 				return false;
 			}
 		}
-		for (size_t i = 0; i < friendly.size(); ++i) {
-			const player::ptr plr = friendly.get_player(i);
+		for (size_t i = 0; i < w->friendly.size(); ++i) {
+			const player::ptr plr = w->friendly.get_player(i);
 			if (plr->has_ball() || plr == passee) continue;
 			const point rp = plr->position() - passee->position();
 			const double proj = rp.dot(direction);
@@ -80,7 +94,7 @@ namespace ai_util{
 		return true;
 	}
 
-	size_t calc_best_shot(player::ptr player, const world::ptr world) {
+	size_t calc_best_shot(const player::ptr player, const world::ptr world) {
 		std::vector<point> candidates = calc_candidates(world);
 		size_t best_point = candidates.size();
 		double best_score = -1;
