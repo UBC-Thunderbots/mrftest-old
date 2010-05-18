@@ -4,57 +4,58 @@
 #include <ostream>
 #include <cmath>
 
-//
-// A point or vector in 2D space.
-//
+/**
+A point or vector in 2D space.
+*/
 class point {
 	public:
 		//
-		// The X coordinate of the point.
+		/// The X coordinate of the point.
 		//
 		double x;
 
 		//
-		// The Y coordinate of the point.
+		/// The Y coordinate of the point.
 		//
 		double y;
 
-		//
-		// Creates a point at the origin.
-		//
+		/**
+		 Creates a point of zero length
+		*/
 		point() : x(0.0), y(0.0) {
 		}
 
-		//
-		// Creates a point at arbitrary coordinates.
-		//
+		/**
+		 Creates a point at arbitrary coordinates.
+		\param x the x value of the point
+		\param y the y value of the point
+		*/
 		point(double x, double y) : x(x), y(y) {
 		}
 
 		//
-		// Creates a copy of a point.
+		/// Creates a copy of a point.
 		//
 		point(const point &p) : x(p.x), y(p.y) {
 		}
 
-		//
-		// Returns the square of the length of the vector.
-		//
+		/**
+		\return square of the length of the point
+		*/
 		double lensq() const __attribute__((warn_unused_result)) {
 			return x * x + y * y;
 		}
 
-		//
-		// Returns the length of the vector.
-		//
+		/**
+		 \return the length of the point
+		*/
 		double len() const __attribute__((warn_unused_result)) {
 			return std::sqrt(lensq());
 		}
 
-		//
-		// Returns a unit vector in the same direction as this vector, or the
-		// zero vector if this is the zero vector.
-		//
+		/**
+		 \return a unit vector in the same direction as this point or a zero length point if input is zero
+		*/
 		point norm() const __attribute__((warn_unused_result)) {
 			double l = len();
 			point p(x / l, y / l);
@@ -65,30 +66,36 @@ class point {
 			}
 		}
 
-		//
-		// Returns a rotation of the vector.
-		//
+		/**
+		 Returns a rotation of the point
+		\param rot angle in radians to rotate vector
+		\return the point rotated by rot
+		*/
 		point rotate(double rot) const __attribute__((warn_unused_result)) {
 			return point(x * std::cos(rot) - y * std::sin(rot), x * std::sin(rot) + y * std::cos(rot));
 		}
 
-		//
-		// Takes the dot product of two vectors.
-		//
+		/**
+		 Takes the dot product of two vectors.
+		\param other point to dot against
+		\return dot product of two points
+		*/
 		double dot(const point &other) const __attribute__((warn_unused_result)) {
 			return x * other.x + y * other.y;
 		}
 
-		//
-		// Takes the cross product of two vectors.
-		//
+		/**
+		 Takes the cross product of two vectors.
+		\param other point to cross with
+		\return the z component of the 3 dimensional cross product This x Other
+		*/
 		double cross(const point &other) const __attribute__((warn_unused_result)) {
 			return x * other.y - y * other.x;
 		}
 
-		//
-		// Assigns one vector to another.
-		//
+		/**
+		 Assigns one vector to another.
+		*/
 		point &operator=(const point &q) {
 			x = q.x;
 			y = q.y;
