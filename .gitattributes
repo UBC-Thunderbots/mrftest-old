@@ -285,6 +285,7 @@ software/util/hungarian.cpp -text
 software/util/hungarian.h -text
 software/util/ihex.cpp -text
 software/util/ihex.h -text
+software/util/matrix.h -text
 software/util/noncopyable.h -text
 software/util/registerable.h -text
 software/util/rle.cpp -text

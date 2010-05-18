@@ -2,6 +2,7 @@
 #include "geom/point.h"
 #include "geom/angle.h"
 #include "util/timestep.h"
+#include "util/matrix.h"
 #include <cmath>
 #include <iostream>
 
@@ -27,6 +28,15 @@ jons_controller::jons_controller(player::ptr plr) : plr(plr), max_acc(10), max_v
 }
 
 void jons_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
+	math::matrix<double> Amat(3,3);
+	math::matrix<double> Bmat(3,3);
+	
+	for(int i=0;i<3;i++)
+		for(int j=0;j<3;j++)
+			Amat(i,j)=3*i+j;
+	Bmat=~Amat;
+	std::cout << Bmat << std::endl;
+		
 	const point &current_position = plr->position();
 	const double current_orientation = plr->orientation();
 	const point &current_velocity = plr->est_velocity();
@@ -51,14 +61,9 @@ void jons_controller::move(const point &new_position, double new_orientation, po
 	
 	point new_dir = diff.rotate(-current_orientation);
 	
-	//if (new_da > PI) new_da -= 2 * PI;
-	if(diff.len() > 0.0001) {
 	
-		new_dir = new_dir / new_dir.len();
-		vel_in_dir_travel=current_velocity.dot(diff/diff.len());
-	}else {
-		vel_in_dir_travel=0;
-	}
+	new_dir = new_dir.norm();
+	vel_in_dir_travel=current_velocity.dot(diff.norm());
 	
 	if(pow(vel_in_dir_travel,2)/max_acc*close_param < diff.len() && diff.len() > position_delta)
 		linear_velocity = max_vel*new_dir;
