@@ -22,7 +22,7 @@ class shoot : public tactic {
 		//
 		// Runs the AI for one time tick.
 		//
-		void tick();	
+		void tick();
 
 	protected:
 		const player::ptr the_player;
@@ -33,9 +33,6 @@ class shoot : public tactic {
 
 		kick kick_tactic;
 
-	private:
-
-		static const unsigned int SAMPLE_POINTS = 9;
 };
 
 #endif
