@@ -8,9 +8,6 @@ namespace {
 #warning Magic constant
 	const double SHOOT_ALLOWANCE = 1e-1;
 
-	double angle(const point& p) {
-		return atan2(p.x, p.y);
-	}
 }
 
 namespace ai_util{
@@ -18,6 +15,14 @@ namespace ai_util{
 	const double ORI_CLOSE = 1e-2;
 
 	const double POS_CLOSE = 1e-5;
+
+	double orientation(const point& p) {
+		return atan2(p.x, p.y);
+	}
+
+	double angle_diff(const double& a, const double& b) {
+		return fmod(abs(a - b), PI);
+	}
 
 	//
 	// Number of points to consider when shooting at the goal.
@@ -39,6 +44,23 @@ namespace ai_util{
 			candidates[i] = p;
 		}
 		return candidates;
+	}
+
+	bool path_check(const point& begin, const point& end, const team& theteam, const double& thresh, const robot::ptr skip) {
+		const point direction = (end - begin).norm();
+		const double dist = (end - begin).len();
+		for (size_t i = 0; i < theteam.size(); ++i) {
+			const robot::ptr rob = theteam.get_robot(i);
+			if (rob == skip) continue;
+			const point rp = rob->position() - end;
+			const double proj = rp.dot(direction);
+			const double perp = sqrt(rp.dot(rp) - proj * proj);
+			if (proj <= 0) continue;
+			if (proj < dist && perp < thresh) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	bool path_check(const point& begin, const point& end, const team& theteam, const double& thresh) {
@@ -64,7 +86,7 @@ namespace ai_util{
 			return true;
 		}
 		// if the passee is not facing the ball, forget it
-		const double ballori = angle(ball->position() - passee->position());
+		const double ballori = orientation(ball->position() - passee->position());
 		if (std::fmod(std::abs(ballori - passee->orientation()), PI) > ORI_CLOSE) return false;
 		// check if there is some enemy blocking
 		// if(!path_check(ball->position(), passee->position(), w->enemy, SHOOT_ALLOWANCE + robot::MAX_RADIUS + ball::RADIUS)) return false;
@@ -133,4 +155,23 @@ namespace ai_util{
 		return best_point;
 	}
 
+	point clip_point(const point& p, const point& bound1, const point& bound2) {
+
+		double minx = std::min(bound1.x, bound2.x);
+		double miny = std::min(bound1.y, bound2.y);
+		double maxx = std::max(bound1.x, bound2.x);
+		double maxy = std::max(bound1.y, bound2.y);
+
+		point ret = p;
+
+		if (p.x < minx) ret.x = minx;
+		else if (p.x > maxx) ret.x = maxx;      
+
+		if (p.y < miny) ret.y = miny;
+		else if (p.y > maxy) ret.y = maxy;
+
+		return ret;
+	}
+
 }
+

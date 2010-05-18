@@ -18,10 +18,28 @@ namespace ai_util {
 	extern const double POS_CLOSE;
 
 	/**
+	 * Gets the orientation of a point.
+	 */
+	double orientation(const point& p);
+
+	/**
+	 * Gets the absolute angle difference.
+	 * Guaranteed to be between 0 and PI.
+	 */
+	double angle_diff(const double& a, const double& b);
+
+	/**
 	 * Checks if the path from begin to end is blocked by one team, with some threshold.
 	 * Returns true if path is okay.
 	 */
 	bool path_check(const point& begin, const point& end, const team& theteam, const double& thresh);
+
+	/**
+	 * Checks if the path from begin to end is blocked by one team, with some threshold.
+	 * Also skips one particular robot.
+	 * Returns true if path is okay.
+	 */
+	bool path_check(const point& begin, const point& end, const team& theteam, const double& thresh, const robot::ptr skip);
 
 	/**
 	 * Checks if the passee can get the ball now.
@@ -43,6 +61,10 @@ namespace ai_util {
 	 */
 	size_t calc_best_shot(const player::ptr player, const world::ptr w);
 
+	/**
+	 * Clips a point to a rectangle boundary.
+	 */
+	point clip_point(const point& p, const point& bound1, const point& bound2);
 }
 
 #endif
