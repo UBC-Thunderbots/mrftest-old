@@ -6,6 +6,7 @@
 #include "ai/world/player.h"
 #include "ai/world/playtype.h"
 #include "ai/world/team.h"
+#include "uicomponents/visualizer.h"
 #include "util/byref.h"
 #include "util/clocksource.h"
 #include "util/config.h"
@@ -121,7 +122,43 @@ class world : public byref {
 			return playtype_;
 		}
 
+		/**
+		 * \return A visualizable view of the world
+		 */
+		const visualizable &visualizer_view() const {
+			return vis_view;
+		}
+
 	private:
+		class visualizer_view : public visualizable {
+			public:
+				visualizer_view(const world * const w) : the_world(w) {
+				}
+
+				const class visualizable::field &field() const {
+					return the_world->field();
+				}
+
+				visualizable::ball::ptr ball() const {
+					return the_world->ball();
+				}
+
+				std::size_t size() const {
+					return the_world->friendly.size() + the_world->enemy.size();
+				}
+
+				visualizable::robot::ptr operator[](unsigned int index) const {
+					if (index < the_world->friendly.size()) {
+						return the_world->friendly.get_robot(index);
+					} else {
+						return the_world->enemy.get_robot(index - the_world->friendly.size());
+					}
+				}
+
+			private:
+				const world * const the_world;
+		};
+
 		bool east_;
 		bool refbox_yellow_;
 		const file_descriptor vision_socket;
@@ -131,6 +168,7 @@ class world : public byref {
 		SSL_DetectionFrame detections[2];
 		const std::vector<xbee_drive_bot::ptr> xbee_bots;
 		playtype::playtype playtype_;
+		class visualizer_view vis_view;
 
 		world(const config &, const std::vector<xbee_drive_bot::ptr> &);
 		bool on_vision_readable(Glib::IOCondition);

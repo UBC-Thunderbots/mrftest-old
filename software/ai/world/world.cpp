@@ -67,7 +67,7 @@ void world::flip_refbox_colour() {
 	signal_flipped_refbox_colour.emit();
 }
 
-world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bots) : conf(conf), east_(false), refbox_yellow_(false), vision_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), refbox_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), ball_(ball::create()), xbee_bots(xbee_bots), playtype_(playtype::halt) {
+world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bots) : conf(conf), east_(false), refbox_yellow_(false), vision_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), refbox_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), ball_(ball::create()), xbee_bots(xbee_bots), playtype_(playtype::halt), vis_view(this) {
 	vision_socket.set_blocking(false);
 	const int one = 1;
 	if (setsockopt(vision_socket, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
@@ -252,6 +252,25 @@ bool world::on_vision_readable(Glib::IOCondition) {
 				}
 			}
 		}
+	}
+
+	// Notify any attached visualizers. Because visualizers call position() and
+	// orientation() on robots and the ball, and because those objects are
+	// predictable and hence implement those functions as estimates based on a
+	// delta time, we need to lock the prediction timestamps of those objects
+	// before handing them to the visualizer for rendering, otherwise we won't
+	// actually see them move!
+	{
+		static team * const teams[2] = { &friendly, &enemy };
+		for (unsigned int i = 0; i < 2; ++i) {
+			const team &tm(*teams[i]);
+			for (unsigned int j = 0; j < tm.size(); ++j) {
+				const robot::ptr bot(tm.get_robot(j));
+				bot->lock_time();
+			}
+		}
+		ball_->lock_time();
+		vis_view.signal_visdata_changed.emit();
 	}
 
 	return true;

@@ -3,8 +3,9 @@
 
 #include "ai/ai.h"
 #include "ai/strategy/strategy.h"
-#include "robot_controller/robot_controller.h"
 #include "ai/world/world.h"
+#include "robot_controller/robot_controller.h"
+#include "uicomponents/visualizer.h"
 #include <gtkmm.h>
 
 /**
@@ -26,11 +27,15 @@ class ai_window : public Gtk::Window {
 		Gtk::VBox rc_vbox;
 		Gtk::ComboBoxText rc_chooser;
 		Gtk::Widget *rc_controls;
+		Gtk::ToggleButton vis_button;
+		Gtk::Window vis_window;
+		visualizer vis;
 
 		void on_strategy_changed();
 		void on_rc_changed();
 		void put_strategy_controls();
 		void on_playtype_changed();
+		void on_vis_toggled();
 };
 
 #endif

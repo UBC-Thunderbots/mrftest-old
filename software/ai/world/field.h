@@ -2,6 +2,7 @@
 #define AI_WORLD_FIELD_H
 
 #include "proto/messages_robocup_ssl_geometry.pb.h"
+#include "uicomponents/visualizer.h"
 #include "util/noncopyable.h"
 
 class world;
@@ -10,7 +11,7 @@ class world;
  * Provides the AI with a way to get the dimensions of the field. The dimensions
  * of the field are provided by SSL-Vision or the simulator.
  */
-class field : public noncopyable {
+class field : public visualizable::field {
 	public:
 		/**
 		 * \return The length of the field, from goal to goal, in metres

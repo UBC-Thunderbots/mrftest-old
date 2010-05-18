@@ -4,6 +4,7 @@
 #include "ai/world/predictable.h"
 #include "geom/point.h"
 #include "proto/messages_robocup_ssl_detection.pb.h"
+#include "uicomponents/visualizer.h"
 #include "util/byref.h"
 #include <glibmm.h>
 
@@ -12,7 +13,7 @@ class world;
 /**
  * The ball.
  */
-class ball : public byref, public predictable {
+class ball : public visualizable::ball, public predictable {
 	public:
 		/**
 		 * A pointer to a ball.
@@ -23,6 +24,13 @@ class ball : public byref, public predictable {
 		 * The approximate radius of the ball.
 		 */
 		static const double RADIUS = 0.0215;
+
+		/**
+		 * \return The position of the robot
+		 */
+		point position() const {
+			return predictable::position();
+		}
 
 	private:
 		double sign;

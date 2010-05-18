@@ -48,6 +48,10 @@ class player : public robot {
 		 */
 		bool has_ball() const;
 
+		visualizable::colour visualizer_colour() const {
+			return visualizable::colour(0.0, 1.0, 0.0);
+		}
+
 	private:
 		xbee_drive_bot::ptr bot;
 		point destination;
