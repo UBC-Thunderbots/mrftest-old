@@ -124,6 +124,10 @@ public:
 
 			void chip(double strength) ;
 			
+			bool has_chip_set(){
+				return chip_set;
+			}
+			
 			bool execute_chip() ;
 
 			void position(const point &pos);

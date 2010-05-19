@@ -351,7 +351,7 @@ namespace {
 						bool robotCollided = robot->hasContactPenetration(contact[i].geom.pos);
 						bool has_ball = robot->hasContactWithFace(contact[i].geom.pos);
 						if(has_ball)robot->set_has_ball();
-						if(robotCollided){
+						if(robotCollided && !robot->has_chip_set()){
 				   			contact[i].surface.mode =  dContactSoftCFM | dContactSoftERP |dContactBounce;
 				   			contact[i].surface.mu = MU;// 0.1*MU;
 				   			contact[i].surface.soft_cfm = CFM;
