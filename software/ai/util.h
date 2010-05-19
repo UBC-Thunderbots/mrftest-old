@@ -7,6 +7,20 @@
 
 namespace ai_util {
 
+	//
+	// A comparator that sorts by values in a vector
+	//
+	template<typename T> class SortByTable {
+		public:
+			SortByTable(const std::vector<T>& tbl) : tbl(tbl) {
+			}
+			bool operator()(unsigned int x, unsigned int y) {
+				return tbl[x] > tbl[y];
+			}
+		private:
+			const std::vector<T>& tbl;
+	};
+
 	/**
 	 * Orientation epsilon.
 	 */
