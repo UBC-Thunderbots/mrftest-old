@@ -49,7 +49,7 @@ void robot_navigator::tick() {
 	const double distance = (nowdest - the_player->position()).len();
 
 	// at least face the ball
-	if (distance < ai_util::POS_CLOSE || dest_initialized) {
+	if (distance < ai_util::POS_CLOSE) {
 		if (balldist.len() > ai_util::POS_CLOSE) the_player->move(the_player->position(), atan2(balldist.y, balldist.x));
 		return;
 	}
