@@ -111,7 +111,7 @@ void serial_port::send(iovec *iov, std::size_t iovcnt) {
 	for (int i = 0; i < iovcnt; ++i) {
 		for (unsigned int j = 0; j < iov[i].iov_len; ++j) {
 			msg.push_back(' ');
-			msg.append(Glib::ustring::format(std::hex, std::setw(2), std::setfill(L'0'), static_cast<const unsigned char *>(iov[i].iov_base)[j]));
+			msg.append(tohex(static_cast<const unsigned char *>(iov[i].iov_base)[j], 2));
 		}
 	}
 	DPRINT(msg);
@@ -148,7 +148,7 @@ bool serial_port::on_readable(Glib::IOCondition) {
 	Glib::ustring msg("RX:");
 	for (int i = 0; i < ret; i++) {
 		msg.push_back(' ');
-		msg.append(Glib::ustring::format(std::hex, std::setw(2), std::setfill(L'0'), buffer[i]));
+		msg.append(tohex(buffer[i], 2));
 	}
 	DPRINT(msg);
 #endif

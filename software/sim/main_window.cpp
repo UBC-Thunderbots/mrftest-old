@@ -1,6 +1,6 @@
 #include "sim/main_window.h"
 #include "uicomponents/single_bot_combobox.h"
-#include <iomanip>
+#include "util/dprint.h"
 
 namespace {
 	/**
@@ -90,8 +90,8 @@ namespace {
 					field_button.set_sensitive(true);
 					battery_scale.set_value(bot->battery());
 					battery_scale.set_sensitive(true);
-					address64_entry.set_text(Glib::ustring::format(std::hex, std::fixed, std::setw(16), std::setfill(L'0'), std::uppercase, bot->address));
-					address16_entry.set_text(Glib::ustring::format(std::hex, std::fixed, std::setw(4), std::setfill(L'0'), std::uppercase, bot->address16()));
+					address64_entry.set_text(tohex(bot->address, 16));
+					address16_entry.set_text(tohex(bot->address16(), 4));
 					run_data_offset_entry.set_text(Glib::ustring::format(bot->run_data_offset()));
 					bootload_check.set_active(bot->bootloading());
 				} else {

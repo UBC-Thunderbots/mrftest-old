@@ -11,7 +11,6 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring>
-#include <iomanip>
 #include <iostream>
 #include <stdexcept>
 #include <netinet/in.h>
@@ -85,7 +84,7 @@ void simulator::packet_handler(const std::vector<uint8_t> &data) {
 
 		if (data.size() == sizeof(req) && req.command[0] == 'M' && req.command[1] == 'Y') {
 			host_address16 = (req.value[0] << 8) | req.value[1];
-			DPRINT(Glib::ustring::compose("Setting host XBee 16-bit address to 0x%1.", Glib::ustring::format(std::hex, std::fixed, std::setw(4), std::setfill(L'0'), std::uppercase, host_address16)));
+			DPRINT(Glib::ustring::compose("Setting host XBee 16-bit address to 0x%1.", tohex(host_address16, 4)));
 			resp.status = xbeepacket::AT_RESPONSE_STATUS_OK;
 		} else {
 			LOG(Glib::ustring::format("Received unsupported local AT command \"%1\".", Glib::ustring(reinterpret_cast<const char *>(req.command), 2)));
@@ -220,7 +219,7 @@ void simulator::packet_handler(const std::vector<uint8_t> &data) {
 			queue_response(&resp, sizeof(resp));
 		}
 	} else {
-		LOG(Glib::ustring::compose("Received unsupported XBee packet of type 0x%1.", Glib::ustring::format(std::hex, std::fixed, std::setw(2), std::setfill(L'0'), std::uppercase, static_cast<unsigned int>(data[0]))));
+		LOG(Glib::ustring::compose("Received unsupported XBee packet of type 0x%1.", tohex(data[0], 2)));
 	}
 }
 

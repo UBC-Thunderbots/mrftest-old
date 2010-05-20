@@ -1,7 +1,7 @@
 #include "uicomponents/single_bot_combobox.h"
 #include "util/abstract_list_model.h"
+#include "util/dprint.h"
 #include <cassert>
-#include <iomanip>
 
 single_bot_combobox_model::ptr single_bot_combobox_model::create(const config::robot_set &robots) {
 	ptr p(new single_bot_combobox_model(robots));
@@ -25,7 +25,7 @@ void single_bot_combobox_model::alm_get_value(unsigned int row, unsigned int col
 	if (col == 0) {
 		Glib::Value<Glib::ustring> v;
 		v.init(address_column.type());
-		v.set(Glib::ustring::format(std::setw(16), std::hex, std::setfill(L'0'), std::uppercase, robots[row].address));
+		v.set(tohex(robots[row].address, 16));
 		value.init(address_column.type());
 		value = v;
 	} else if (col == 1) {

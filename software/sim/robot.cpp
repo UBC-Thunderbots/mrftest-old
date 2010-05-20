@@ -1,7 +1,6 @@
 #define DEBUG 0
 #include "sim/robot.h"
 #include "util/dprint.h"
-#include <iomanip>
 
 robot::ptr robot::create(uint64_t address, simulator_engine::ptr engine) {
 	ptr p(new robot(address, engine));
@@ -54,7 +53,7 @@ void robot::bootloading(bool bl) {
 
 void robot::address16(uint16_t addr) {
 	if (addr != address16_) {
-		DPRINT(Glib::ustring::compose("Robot receiving 16-bit address 0x%1.", Glib::ustring::format(std::hex, std::setw(2), std::setfill(L'0'), std::uppercase, addr)));
+		DPRINT(Glib::ustring::compose("Robot receiving 16-bit address 0x%1.", tohex(addr, 4)));
 		address16_ = addr;
 		signal_changed.emit();
 	}
