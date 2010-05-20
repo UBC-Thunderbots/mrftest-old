@@ -31,7 +31,9 @@ void player::move(const point &dest, double target_ori) {
 }
 
 void player::dribble(double speed) {
-	bot->dribble(std::min(1023.0, std::max(0.0, speed * 1023.0)));
+	if (bot->alive()) {
+		bot->dribble(std::min(1023.0, std::max(0.0, speed * 1023.0)));
+	}
 }
 
 void player::kick(double power) {
