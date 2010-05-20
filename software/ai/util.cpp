@@ -26,17 +26,17 @@ namespace ai_util{
 		return fmod(abs(a - b), PI);
 	}
 
-	const std::vector<point> calc_candidates(const world::ptr world){
+	const std::vector<point> calc_candidates(const world::ptr world) {
 		std::vector<point> candidates(SHOOTING_SAMPLE_POINTS);
 		const field &the_field(world->field());
 
 		// allow some space for the ball to go in from the post
 		const double EDGE_SPACE = 0.1;
 
-		double goal_width = (the_field.goal_width() - EDGE_SPACE) * 2;
-		double delta = goal_width / SHOOTING_SAMPLE_POINTS;
+		const double goal_width = (the_field.goal_width() - EDGE_SPACE) * 2;
+		const double delta = goal_width / SHOOTING_SAMPLE_POINTS;
 
-		for (unsigned int i = 0; i < SHOOTING_SAMPLE_POINTS; ++i) {
+		for (size_t i = 0; i < SHOOTING_SAMPLE_POINTS; ++i) {
 			point p(the_field.length(), -the_field.goal_width() + EDGE_SPACE + i * delta);
 			candidates[i] = p;
 		}
@@ -186,5 +186,23 @@ namespace ai_util{
 		return players;
 	}
 
+	std::vector<size_t> dist_matching(const std::vector<point>& v1, const std::vector<point>& v2) {
+		std::vector<size_t> order(v2.size());
+		for (size_t i = 0; i < v2.size(); ++i) order[i] = i;
+		std::vector<size_t> best = order;
+		double bestscore = 1e99;
+		const size_t N = std::min(v1.size(), v2.size());
+		do {
+			double score = 0;
+			for (size_t i = 0; i < N; ++i) {
+				score += (v1[i] - v2[order[i]]).len();
+			}
+			if (score < bestscore) {
+				bestscore = score;
+				best = order;
+			}
+		} while(std::next_permutation(order.begin(), order.end()));
+		return best;
+	}
 }
 
