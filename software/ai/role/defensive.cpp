@@ -43,25 +43,27 @@ void defensive::tick_goalie() {
 	}
 }
 
-#warning TODO: complete or delete this function
 std::vector<point> defensive::calc_block_positions() const {
 	const enemy_team& enemy(the_world->enemy);
-	const point self(-the_world->field().length() / 2, 0);
 
 	// Find rays from the goal posts.
-	const point goal(-the_world->field().length() / 2, 0);
-	const point goal_top(-the_world->field().length() / 2, -the_world->field().goal_width());
-	const point goal_bot(-the_world->field().length() / 2, the_world->field().goal_width());
+	const point self(-the_world->field().length() / 2, 0);
+	// const point self_top(-the_world->field().length() / 2, -the_world->field().goal_width());
+	// const point self_bot(-the_world->field().length() / 2, the_world->field().goal_width());
 
 	// Sort enemies by distance from goal.
 	std::vector<robot::ptr> enemies = ai_util::get_robots(enemy);
-	std::sort(enemies.begin(), enemies.end(), ai_util::cmp_dist<robot::ptr>(goal));
+	std::sort(enemies.begin(), enemies.end(), ai_util::cmp_dist<robot::ptr>(self));
 
 	// Place waypoints on the defence area.
+	// TODO: calculate proper areas in the future.
 	std::vector<point> waypoints;
 	for (size_t i = 0; i < enemies.size(); ++i) {
-		waypoints.push_back(enemies[i]->position());
+		point half = (enemies[i]->position() + self) * 0.5;
+		waypoints.push_back(half);
 	}
+
+	// TODO: have only up to one defensive robot in the defence area.
 
 	return waypoints;
 }
@@ -82,7 +84,6 @@ void defensive::tick() {
 	const point self(-the_world->field().length() / 2, 0);
 	const friendly_team& friendly(the_world->friendly);
 	const point goal(the_world->field().length() / 2, 0);
-	const enemy_team& enemy(the_world->enemy);
 
 	int rolehasball = -1;
 	for(size_t i = 0; i < the_robots.size(); i++) {
@@ -148,27 +149,29 @@ void defensive::tick() {
 		busyidx = 0;
 	}
 
-	// Sort enemies by distance from self goal.
-	std::vector<robot::ptr> enemies = ai_util::get_robots(enemy);
-	std::sort(enemies.begin(), enemies.end(), ai_util::cmp_dist<robot::ptr>(self));
+	std::vector<point> waypoints = calc_block_positions();
 
-	// TODO: Use hungarian matching or something to block.
-	// Do something to the rest of the players.
-	size_t w = 0;
+	std::vector<player::ptr> available;
+	std::vector<point> locations;
 	for (size_t i = 0; i < the_robots.size(); ++i) {
 		if (static_cast<int>(i) == busyidx) continue;
-		if (w >= enemies.size()) {
+		available.push_back(the_robots[i]);
+		locations.push_back(the_robots[i]->position());
+	}
+
+	std::vector<size_t> order = ai_util::dist_matching(locations, waypoints);
+
+	size_t w = 0;
+	for (size_t i = 0; i < waypoints.size(); ++i) {
+		if (w >= waypoints.size()) {
 			// std::cerr << "Defender has nothing to do!" << std::endl;
 			move::ptr move_tactic(new move(the_robots[i], the_world));
 			move_tactic->set_position(the_robots[i]->position());
 			the_tactics.push_back(move_tactic);
 		} else {
-			//move::ptr move_tactic(new move(the_robots[i], the_world));
-			//move_tactic->set_position(waypoints[w]);
-			//the_tactics.push_back(move_tactic);
-			block::ptr block_tactic(new block(the_robots[i], the_world));
-			block_tactic->set_target(enemies[i]);
-			the_tactics.push_back(block_tactic);
+			move::ptr move_tactic(new move(the_robots[i], the_world));
+			move_tactic->set_position(waypoints[order[i]]);
+			the_tactics.push_back(move_tactic);
 			w++;
 		}
 	}
