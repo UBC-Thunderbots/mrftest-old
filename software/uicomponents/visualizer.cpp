@@ -3,7 +3,9 @@
 // Set to the multiplier for visualizing velocity vector lengths.
 #define DRAW_VELOCITY_SCALE 1.0
 
+#define DEBUG 0
 #include "uicomponents/visualizer.h"
+#include "util/dprint.h"
 #include <cmath>
 
 visualizer::visualizer(const visualizable &data) : data(data) {
@@ -28,6 +30,8 @@ void visualizer::on_hide() {
 }
 
 bool visualizer::on_expose_event(GdkEventExpose *evt) {
+	DPRINT("Enter on_expose_event.");
+
 	Gtk::DrawingArea::on_expose_event(evt);
 
 	int width, height;
@@ -147,6 +151,7 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 	const visualizable::ball::ptr the_ball(data.ball());
 	ctx->set_source_rgb(1.0, 0.5, 0.0);
 	ctx->begin_new_path();
+	DPRINT(Glib::ustring::compose("The ball is at (%1, %2) which is (%1, %2) in graphical coordinates with radius (%3).", the_ball->position().x, the_ball->position().y, xtog(the_ball->position().x), ytog(the_ball->position().y), dtog(0.03)));
 	ctx->arc(xtog(the_ball->position().x), ytog(the_ball->position().y), dtog(0.03), 0.0, 2.0 * M_PI);
 	ctx->fill();
 #warning IMPLEMENT DRAGGING
@@ -160,6 +165,7 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 #endif
 
 	// Done.
+	DPRINT("Exit on_expose_event.");
 	return true;
 }
 

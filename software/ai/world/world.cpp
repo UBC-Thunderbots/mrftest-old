@@ -106,6 +106,8 @@ world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bo
 }
 
 bool world::on_vision_readable(Glib::IOCondition) {
+	DPRINT("Enter on_vision_readable.");
+
 	// Receive a packet.
 	uint8_t buffer[65536];
 	ssize_t len = recv(vision_socket, buffer, sizeof(buffer), 0);
@@ -113,6 +115,7 @@ bool world::on_vision_readable(Glib::IOCondition) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
 			LOG("Cannot receive packet from SSL-Vision.");
 		}
+		DPRINT("Exit on_vision_readable (1).");
 		return true;
 	}
 
@@ -120,6 +123,7 @@ bool world::on_vision_readable(Glib::IOCondition) {
 	SSL_WrapperPacket packet;
 	if (!packet.ParseFromArray(buffer, len)) {
 		LOG("Received malformed SSL-Vision packet.");
+		DPRINT("Exit on_vision_readable (2).");
 		return true;
 	}
 
@@ -138,6 +142,7 @@ bool world::on_vision_readable(Glib::IOCondition) {
 		// Check for a sensible camera ID number.
 		if (det.camera_id() >= 2) {
 			LOG(Glib::ustring::compose("Received SSL-Vision packet for unknown camera %1.", det.camera_id()));
+			DPRINT("Exit on_vision_readable (3).");
 			return true;
 		}
 
@@ -270,13 +275,17 @@ bool world::on_vision_readable(Glib::IOCondition) {
 			}
 		}
 		ball_->lock_time();
+		DPRINT("Updating visualizers.");
 		vis_view.signal_visdata_changed.emit();
 	}
 
+	DPRINT("Exit on_vision_readable (4).");
 	return true;
 }
 
 bool world::on_refbox_readable(Glib::IOCondition) {
+	DPRINT("Enter on_refbox_readable.");
+
 	// Receive the packet.
 	struct __attribute__((packed)) {
 		char cmd;
@@ -295,6 +304,7 @@ bool world::on_refbox_readable(Glib::IOCondition) {
 		return true;
 	} else if (len != sizeof(packet)) {
 		LOG("Received martian packet from refbox.");
+		DPRINT("Exit on_refbox_readable (1).");
 		return true;
 	}
 
@@ -414,6 +424,7 @@ bool world::on_refbox_readable(Glib::IOCondition) {
 		playtype(pt);
 	}
 
+	DPRINT("Exit on_refbox_readable (2).");
 	return true;
 }
 
