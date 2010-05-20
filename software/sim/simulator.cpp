@@ -101,6 +101,7 @@ void simulator::send(const iovec *iov, std::size_t iovlen) {
 				if (data.size() == sizeof(req) + 2 && req.command[0] == 'M' && req.command[1] == 'Y') {
 					uint16_t value = (req.value[0] << 8) | req.value[1];
 					if (value) {
+						DPRINT(Glib::ustring::compose("Setting a robot's 16-bit address to %1.", value));
 						i->second->address16(value);
 						resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK;
 					} else {
@@ -109,9 +110,11 @@ void simulator::send(const iovec *iov, std::size_t iovlen) {
 					}
 				} else if (data.size() == sizeof(req) + 1 && req.command[0] == 'D' && req.command[1] == '0') {
 					if (req.value[0] == 4) {
+						DPRINT("Exiting a robot from bootload mode.");
 						i->second->bootloading(false);
 						resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK;
 					} else if (req.value[0] == 5) {
+						DPRINT("Entering a robot into bootload mode.");
 						i->second->bootloading(true);
 						resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK;
 					} else {
@@ -147,6 +150,7 @@ void simulator::send(const iovec *iov, std::size_t iovlen) {
 		if (data.size() == sizeof(req) + 1 && recipient != 0xFFFF) {
 			robot::ptr bot(find_by16(recipient));
 			if (bot) {
+				DPRINT(Glib::ustring::compose("Setting a robot's run data offset to %1.", static_cast<unsigned int>(req.data[0])));
 				bot->run_data_offset(req.data[0]);
 				resp.status = xbeepacket::TRANSMIT_STATUS_SUCCESS;
 			} else {
@@ -254,9 +258,6 @@ void simulator::tick() {
 		for (std::tr1::unordered_map<uint64_t, robot::ptr>::const_iterator j(robots_.begin()), jend(robots_.end()); j != jend; ++j) {
 			robot::ptr bot(j->second);
 			player::ptr plr(bot->get_player());
-			if (plr) {
-				DPRINT(Glib::ustring::compose("A player is at (%1,%2).", plr->position().x, plr->position().y));
-			}
 			if (plr && plr->position().x * LIMIT_SIGNS[i] > -LIMIT_MAG) {
 				SSL_DetectionRobot *elem;
 				const config::robot_info &info(conf.robots().find(j->first));
