@@ -2,6 +2,8 @@
 #define AI_ROLE_EXECUTE_INDIRECT_FREE_KICK_FRIENDLY_H
 
 #include "ai/role/role.h"
+#include "ai/tactic/kick.h"
+#include "ai/tactic/pass.h"
 
 /**
  * Gets the robots to go to their execute_indirect_free_kick_friendly positions.
