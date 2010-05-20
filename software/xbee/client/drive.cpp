@@ -7,6 +7,11 @@
 #include <cstdlib>
 
 xbee_drive_bot::xbee_drive_bot(uint64_t address, xbee_lowlevel &ll) : address(address), ll(ll), alive_(false), shm_frame(0) {
+	feedback_.flags = 0;
+	feedback_.outbound_rssi = 0;
+	feedback_.dribbler_speed = 0;
+	feedback_.battery_level = 0;
+	feedback_.faults = 0;
 	ll.signal_meta.connect(sigc::mem_fun(this, &xbee_drive_bot::on_meta));
 	packet::ptr p(meta_claim_packet::create(address, true));
 	ll.send(p);
