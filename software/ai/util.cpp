@@ -31,14 +31,11 @@ namespace ai_util{
 		std::vector<point> candidates(SHOOTING_SAMPLE_POINTS);
 		const field &the_field(world->field());
 
-		// allow some space for the ball to go in from the post
-		const double EDGE_SPACE = 0.1;
-
-		const double goal_width = (the_field.goal_width() - EDGE_SPACE) * 2;
+		const double goal_width = (the_field.goal_width() - robot::MAX_RADIUS) * 2;
 		const double delta = goal_width / SHOOTING_SAMPLE_POINTS;
 
 		for (size_t i = 0; i < SHOOTING_SAMPLE_POINTS; ++i) {
-			point p(the_field.length(), -the_field.goal_width() + EDGE_SPACE + i * delta);
+			point p(the_field.length(), -the_field.goal_width() + robot::MAX_RADIUS + i * delta);
 			candidates[i] = p;
 		}
 		return candidates;
