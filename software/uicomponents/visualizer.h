@@ -50,6 +50,12 @@ class visualizable : public noncopyable {
 		class field : public noncopyable {
 			public:
 				/**
+				 * \return true if the geometry data in the field is valid, or
+				 * false if not
+				 */
+				virtual bool valid() const = 0;
+
+				/**
 				 * \return The length of the field, from goal to goal, in metres
 				 */
 				virtual double length() const = 0;

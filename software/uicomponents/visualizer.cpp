@@ -48,6 +48,12 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 	ctx->line_to(0.0, height);
 	ctx->fill();
 
+	// If the field data is invalid, go no further.
+	if (!data.field().valid()) {
+		DPRINT("Exit on_expose_event (1).");
+		return true;
+	}
+
 	// Draw the outline of the referee area.
 	ctx->set_source_rgb(0.0, 0.0, 0.0);
 	ctx->move_to(xtog(-data.field().total_length() / 2.0), ytog(-data.field().total_width() / 2.0));
@@ -165,7 +171,7 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 #endif
 
 	// Done.
-	DPRINT("Exit on_expose_event.");
+	DPRINT("Exit on_expose_event (2).");
 	return true;
 }
 

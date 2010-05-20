@@ -11,6 +11,11 @@ ai::ai(world::ptr world, clocksource &clk) : the_world(world), clk(clk), the_str
 void ai::tick() {
 	DPRINT("Tick.");
 
+	// If the field geometry is not yet valid, do nothing.
+	if (!the_world->field().valid()) {
+		return;
+	}
+
 	// First, make the predictors lock in the current time.
 	const team * const teams[2] = { &the_world->friendly, &the_world->enemy };
 	for (unsigned int i = 0; i < 2; ++i) {

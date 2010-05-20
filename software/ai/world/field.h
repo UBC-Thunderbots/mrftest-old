@@ -14,6 +14,13 @@ class world;
 class field : public visualizable::field {
 	public:
 		/**
+		 * \return true if the data in the field is valid, or false if not
+		 */
+		bool valid() const {
+			return valid_;
+		}
+
+		/**
 		 * \return The length of the field, from goal to goal, in metres
 		 */
 		double length() const {
@@ -75,6 +82,7 @@ class field : public visualizable::field {
 		}
 
 	private:
+		bool valid_;
 		double length_;
 		double total_length_;
 		double width_;
