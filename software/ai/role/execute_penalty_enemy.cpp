@@ -1,3 +1,4 @@
+#include <vector>
 #include "ai/role/execute_penalty_enemy.h"
 #include "ai/util.h"
 
@@ -15,9 +16,16 @@ void execute_penalty_enemy::tick(){
 		// not at ready position yet
 		if ((the_goalie->position() - starting_position).lensq() > ai_util::POS_CLOSE) {
 			move_to_start->tick();
-		} else if (!enemy_moved) {
-			// check whether the shooter has begun shooting the ball
-			enemy_moved = detect_enemy_movement();
+		} else {
+			if (the_goalie->orientation() > ai_util::ORI_CLOSE) {
+				// turn towards enemy goal
+				the_goalie->move(the_goalie->position(), 0);
+			}
+	
+			if (!enemy_moved) {
+				// check whether the shooter has begun shooting the ball
+				enemy_moved = detect_enemy_movement();
+			}
 		} 
 
 		// if the shooter has made a move, move to the other corner right away
@@ -63,25 +71,33 @@ bool execute_penalty_enemy::detect_enemy_movement() {
 		const team& enemy = the_world->enemy;
 		const point the_goal(-the_world->field().length(),0);
 
-		double min_dist = -1;
-		double dist;
+		vector<int> robots;
 
 		// gets the shooter by looking at the closest enemy robot
 		for (unsigned int i = 0; i < enemy.size(); ++i) {
 			robot::ptr robot = enemy.get_robot(i);
-			dist = (robot->position() - the_goal).lensq();
-			if (min_dist == -1 || dist < min_dist) {
-				the_shooter = robot;
-				min_dist = dist;
+			double dist = fabs(-the_world->field().length() - robot->position().x);
+
+			if (dist >= penalty_mark_length && dist <= restricted_zone_length) {
+				dists.push_back(i);
 			}
 		}
 
-		last_orientation = the_shooter->orientation();
+		// there should be only 1 robot within the shooting area
+		if (robots.size() == 1) {
+			the_shooter = enemy.get_robot(robots[0]);
+			last_orientation = the_shooter->orientation();
+		}
 	}
 	
-	bool ret = the_shooter->orientation() - last_orientation > ai_util::ORI_CLOSE;
-	last_orientation = the_shooter->orientation();
+	// the_shooter may be just populated 
+	if (!the_shooter) {
+		bool ret = the_shooter->orientation() - last_orientation > ai_util::ORI_CLOSE;
+		last_orientation = the_shooter->orientation();
+		return ret;
+	}
 
-	return ret;
+	// return false if it's not set up yet
+	return false;
 }
 

@@ -45,6 +45,16 @@ class execute_penalty_enemy : public role {
 		const world::ptr the_world;
 
 		/**
+		 * The distance between the penalty mark and the mid point of the two goal posts as described in the rules.
+		 */
+		const double penalty_mark_length = 0.45;
+
+		/**
+		 * The distance between the baseline and the line behind which other robots may stand.
+		 */
+		const double restricted_zone_length = penalty_mark_length + 0.4;
+
+		/**
 		 * The starting position.
 		 */
 		const point starting_position;
