@@ -6,17 +6,36 @@
 #include "geom/point.h"
 #include "util/noncopyable.h"
 
+/**
+ * Note about the default behaviour:
+ * - Does not have any clipping (all flags are off).
+ * - Always orient towards the ball.
+ *
+ * Thus at every tick:
+ * - Call set_point/set_orientation.
+ */
 class robot_navigator : public noncopyable {
 	public:
 		robot_navigator(player::ptr player, world::ptr world);
 
 		void tick();
+
+		/**
+		 * Sets the desired location.
+		 * you have to call set_orientation to manually set the robot orientation for each time step.
+		 */
 		void set_point(const point& destination);
 
-		void set_correction_step_size(double correction_size);  
-		void set_desired_robot_orientation(double orientation);
+		/**
+		 * Normally the navigator sets the robot orientation to be towards the ball.
+		 * Use this if you want to override this behaviour.
+		 * This only sets the desired orientation for one timestep.
+		 * You have to call this function every timestep.
+		 * \param orientation
+		 */
+		void set_orientation(const double& orientation);
 
-#warning "implement or delete function soon"
+#warning Refactor flags
 		void set_robot_avoid_ball_amount(int amount);   
 
 		bool robot_avoids_ball() const {
@@ -38,22 +57,26 @@ class robot_navigator : public noncopyable {
 
 	private:
 		bool check_vector(const point& start, const point& dest, const point& direction) const;
-
 		double get_avoidance_factor() const;
 
 		const player::ptr the_player;
 		const world::ptr the_world;
-		bool dest_initialized;//has a destination been specified?
-		point curr_dest;//current destination
+
+		// Has destination and orientation been set?
+		bool dest_initialized;
+		bool ori_initialized;
+
+		point curr_dest;
+		double curr_ori;
+		double lookahead_max;
+
+		// ALL THIS FUNCTION BELOW HERE SHOULD BE REFACTORED
 		double outofbounds_margin;//distance to remain from sidelines to prevent from going oob
 		bool avoid_ball;
 		bool avoid_goal;
 		double avoid_goal_amount;
 		bool robot_stays_on_half;
 		bool robot_avoids_opponent_goal;
-
-		/// Max distance of lookahead distance.
-		double lookahead_max;
 };
 
 #endif
