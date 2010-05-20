@@ -76,11 +76,12 @@ void defensive::tick() {
 	if (the_robots.size() == 0) return;
 
 	// Sort by distance to ball.
-	// std::sort(the_robots.begin(), the_robots.end(), ai_util::cmp_dist<player::ptr>(the_world->ball()->position()));
+	// DO NOT SORT IT AGAIN!!
+	std::sort(the_robots.begin(), the_robots.end(), ai_util::cmp_dist<player::ptr>(the_world->ball()->position()));
 
 	const point self(-the_world->field().length() / 2, 0);
 	const friendly_team& friendly(the_world->friendly);
-	const point goal(-the_world->field().length() / 2, 0);
+	const point goal(the_world->field().length() / 2, 0);
 	const enemy_team& enemy(the_world->enemy);
 
 	int rolehasball = -1;
@@ -91,43 +92,35 @@ void defensive::tick() {
 		}
 	}
 
-	int teamhasball = -1;
+	bool teamhasball = false;
 	for(size_t i = 0; i < friendly.size(); i++) {
 		if(friendly.get_player(i)->has_ball()) {
-			teamhasball = i;
+			teamhasball = true;
 			break;
 		}
+	}
+
+	std::vector<player::ptr> friends;
+	for (size_t i = 0; i < friendly.size(); ++i) {
+		const player::ptr plr(friendly.get_player(i));
+		if (exists(the_robots.begin(), the_robots.end(), plr)) continue;
+		friends.push_back(plr);
 	}
 
 	// The robot that will do something to the ball (e.g. chase).
 	// Other robots will just go defend or something.
 	int busyidx = -1;
 
-	// If the ball is in the goal area
-	// If a goalie has the ball
-	// If a player in the role has a ball, then
-	// - that player waits until another friendly is ready to take the ball.
-	// - pass to the other friendly.
-	// Otherwise
-	// - blocks an enemy robot (use matching).
-	if (teamhasball >= 0) {
+	if (teamhasball) {
 		if (rolehasball >= 0) {
-			// choose a good friendly to pass to
-			// std::vector<bool> samerole(friendly->size());
-			double neardist = 1e99;
+			// If a player in the role has a ball, then
+			// pass to the other friendly, or wait if there is none.
+			std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(goal));
 			int nearidx = -1;
-			for (size_t i = 0; i < friendly.size(); ++i) {
-				const player::ptr plr(friendly.get_player(i));
-				// check to ensure we are not passing to someone in our team
-				if (exists(the_robots.begin(), the_robots.end(), plr)) continue;
-				// see if this player is on line of sight
-				if (!ai_util::can_pass(the_world, plr)) continue;
-				// choose the most favourable distance
-				double dist = (plr->position() - self).len();
-				if (nearidx == -1 || dist < neardist) {
-					neardist = dist;
-					nearidx = i;
-				}
+			for (size_t i = 0; i < friends.size(); ++i) {
+				if (!ai_util::can_pass(the_world, friends[i])) continue;
+				nearidx = i;
+				break;
 			}
 
 			// TODO: do something
@@ -137,32 +130,31 @@ void defensive::tick() {
 				move::ptr move_tactic(new move(the_robots[rolehasball], the_world));
 				move_tactic->set_position(the_robots[rolehasball]->position());
 			} else {
-				pass::ptr pass_tactic(new pass(the_robots[rolehasball], friendly.get_player(nearidx), the_world));
+				pass::ptr pass_tactic(new pass(the_robots[rolehasball], friends[nearidx], the_world));
 				the_tactics.push_back(pass_tactic);
 			}
 
 			busyidx = rolehasball;
-		}
-	} else {
-		// Robot nearest to ball to chase ball.
-		double neardist = 1e99;
-		int nearidx = -1;
-		for (size_t i = 0; i < the_robots.size(); ++i) {
-			const double dist = (the_robots[i]->position() - the_world->ball()->position()).len();
-			if (nearidx == -1 || dist < neardist) {
-				nearidx = i;
-				neardist = dist;
+		} else {
+			// If a player nearest to the goal area has the ball
+			// that player is probably a goalie, chase the ball!
+			std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(self));
+			if (friends.size() > 0 && friends[0]->has_ball()) {
+				chase::ptr chase_tactic(new chase(the_robots[0], the_world));
+				the_tactics.push_back(chase_tactic);
+				busyidx = 0;
 			}
 		}
-		chase::ptr chase_tactic(new chase(the_robots[nearidx], the_world));
+	} else {
+		// already sorted by distance to ball
+		chase::ptr chase_tactic(new chase(the_robots[0], the_world));
 		the_tactics.push_back(chase_tactic);
-
-		busyidx = nearidx;
+		busyidx = 0;
 	}
 
-	// Sort enemies by distance from goal.
+	// Sort enemies by distance from self goal.
 	std::vector<robot::ptr> enemies = ai_util::get_robots(enemy);
-	std::sort(enemies.begin(), enemies.end(), ai_util::cmp_dist<robot::ptr>(goal));
+	std::sort(enemies.begin(), enemies.end(), ai_util::cmp_dist<robot::ptr>(self));
 
 	// TODO: Use hungarian matching or something to block.
 	// Do something to the rest of the players.
@@ -174,7 +166,6 @@ void defensive::tick() {
 			move::ptr move_tactic(new move(the_robots[i], the_world));
 			move_tactic->set_position(the_robots[i]->position());
 			the_tactics.push_back(move_tactic);
-			continue;
 		} else {
 			//move::ptr move_tactic(new move(the_robots[i], the_world));
 			//move_tactic->set_position(waypoints[w]);

@@ -204,5 +204,22 @@ namespace ai_util{
 		} while(std::next_permutation(order.begin(), order.end()));
 		return best;
 	}
+
+	int choose_best_pass(const world::ptr w, const std::vector<player::ptr>& friends) {
+		double neardist = 1e99;
+		int nearidx = -1;
+		for (size_t i = 0; i < friends.size(); ++i) {
+			// see if this player is on line of sight
+			if (!ai_util::can_pass(w, friends[i])) continue;
+			// choose the most favourable distance
+			const double dist = (friends[i]->position() - w->ball()->position()).len();
+			if (nearidx == -1 || dist < neardist) {
+				neardist = dist;
+				nearidx = i;
+			}
+		}
+		return nearidx;
+	}
+
 }
 

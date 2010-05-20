@@ -127,6 +127,11 @@ namespace ai_util {
 	 */
 	std::vector<size_t> dist_matching(const std::vector<point>& v1, const std::vector<point>& v2);
 
+	/**
+	 * Finds the best player to pass to based on distance to the enemy goal.
+	 * Returns -1 if no valid target is found.
+	 */
+	int choose_best_pass(const world::ptr w, const std::vector<player::ptr>& friends);
 }
 
 #endif
