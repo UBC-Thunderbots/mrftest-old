@@ -57,11 +57,13 @@ player::player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot)
 }
 
 void player::tick(bool scram) {
-	if (scram || !controller) {
+	if (!bot->alive() || scram || !controller) {
 		if (controller) {
 			controller->clear();
 		}
-		bot->drive_scram();
+		if (bot->alive()) {
+			bot->drive_scram();
+		}
 		moved = false;
 	} else if (moved) {
 		point vel;
