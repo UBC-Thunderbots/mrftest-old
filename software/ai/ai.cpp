@@ -48,7 +48,7 @@ void ai::player_added(unsigned int, player::ptr plr) {
 void ai::player_removed(unsigned int, player::ptr plr) {
 	DPRINT(Glib::ustring::compose("player<%1,%2> removed.", plr->yellow ? 'Y' : 'B', plr->pattern_index));
 
-	if (plr->controller->refs() != 1) {
+	if (plr->controller && plr->controller->refs() != 1) {
 		LOG(Glib::ustring::compose("Leak detected of robot_controller for player<%1,%2>.", plr->yellow ? 'Y' : 'B', plr->pattern_index));
 	}
 	plr->controller.reset();
