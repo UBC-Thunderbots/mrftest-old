@@ -71,7 +71,7 @@ bool execute_penalty_enemy::detect_enemy_movement() {
 		const team& enemy = the_world->enemy;
 		const point the_goal(-the_world->field().length(),0);
 
-		vector<int> robots;
+		std::vector<int> robots;
 
 		// gets the shooter by looking at the closest enemy robot
 		for (unsigned int i = 0; i < enemy.size(); ++i) {
@@ -79,7 +79,7 @@ bool execute_penalty_enemy::detect_enemy_movement() {
 			double dist = fabs(-the_world->field().length() - robot->position().x);
 
 			if (dist >= penalty_mark_length && dist <= restricted_zone_length) {
-				dists.push_back(i);
+				robots.push_back(i);
 			}
 		}
 
