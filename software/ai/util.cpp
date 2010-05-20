@@ -1,4 +1,5 @@
 #include "ai/util.h"
+#include "util/algorithm.h"
 #include "geom/angle.h"
 
 #include <iostream>
@@ -184,6 +185,16 @@ namespace ai_util{
 			players[i] = friendly.get_player(i);
 		}
 		return players;
+	}
+
+	std::vector<player::ptr> get_friends(const friendly_team& friendly, const std::vector<player::ptr>& exclude) {
+		std::vector<player::ptr> friends;
+		for (size_t i = 0; i < friendly.size(); ++i) {
+			const player::ptr plr(friendly.get_player(i));
+			if (exists(exclude.begin(), exclude.end(), plr)) continue;
+			friends.push_back(plr);
+		}
+		return friends;
 	}
 
 	std::vector<size_t> dist_matching(const std::vector<point>& v1, const std::vector<point>& v2) {

@@ -108,7 +108,7 @@ namespace ai_util {
 
 	/**
 	 * Convert team into vector of robots. 
-	 * For enemy team.
+	 * For any team.
 	 */
 	std::vector<robot::ptr> get_robots(const team& theteam);
 
@@ -117,6 +117,12 @@ namespace ai_util {
 	 * For friendly team.
 	 */
 	std::vector<player::ptr> get_players(const friendly_team& friendly);
+
+	/**
+	 * Convert friendly into vector of players, excluding some.
+	 * Useful for separating robots in the role and those which are not.
+	 */
+	std::vector<player::ptr> get_friends(const friendly_team& friendly, const std::vector<player::ptr>& exclude);
 
 	/**
 	 * Matches points of two different vectors.

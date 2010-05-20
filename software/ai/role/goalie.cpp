@@ -1,5 +1,7 @@
+#include "ai/util.h"
 #include "ai/role/goalie.h"
 #include "ai/tactic/move.h"
+#include "ai/tactic/pass.h"
 
 #include <iostream>
 
@@ -10,7 +12,7 @@ namespace {
 goalie::goalie(world::ptr world) : the_world(world) {
 }
 
-void goalie::tick(){
+void goalie::tick() {
 
 	if (the_robots.size() < 1) return;
 	if (the_robots.size() > 1) {
@@ -18,16 +20,32 @@ void goalie::tick(){
 	}
 
 	const player::ptr me = the_robots[0];
-	const friendly_team& friendly(the_world->friendly);
-
-	// ? Chase the ball if need to.
-	// std::vector<player::ptr> friends = ai_util::get_players(friendly);
-	// std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(the_world->ball()->position()));
 
 	if (me->has_ball()) {
-#warning implement
-		// TODO: implement
-		// Find a friend to pass to.
+		// TODO: check correctness
+		// Code copied from defensive role
+
+		std::vector<player::ptr> friends = ai_util::get_friends(the_world->friendly, the_robots);
+		std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(the_world->ball()->position()));
+
+		int nearidx = -1;
+		for (size_t i = 0; i < friends.size(); ++i) {
+			if (!ai_util::can_pass(the_world, friends[i])) continue;
+			nearidx = i;
+			break;
+		}
+
+		if (nearidx == -1) {
+			move move_tactic(me, the_world);
+			move_tactic.set_position(me->position());
+			move_tactic.tick();
+		} else {
+			pass pass_tactic(me, friends[nearidx], the_world);
+			pass_tactic.tick();
+		}
+
+#warning the goalie can't hold the ball for too long, it should chip somewhere very randomly
+
 	} else {
 		// Generic defence.
 		const point default_pos = point(-0.45*the_world->field().length(), 0);

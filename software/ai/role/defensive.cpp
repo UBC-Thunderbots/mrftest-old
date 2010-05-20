@@ -100,12 +100,7 @@ void defensive::tick() {
 		}
 	}
 
-	std::vector<player::ptr> friends;
-	for (size_t i = 0; i < friendly.size(); ++i) {
-		const player::ptr plr(friendly.get_player(i));
-		if (exists(the_robots.begin(), the_robots.end(), plr)) continue;
-		friends.push_back(plr);
-	}
+	std::vector<player::ptr> friends = ai_util::get_friends(friendly, the_robots);
 
 	// The robot that will do something to the ball (e.g. chase).
 	// Other robots will just go defend or something.
@@ -129,6 +124,7 @@ void defensive::tick() {
 				// Just play around with the ball I guess
 				move::ptr move_tactic(new move(the_robots[rolehasball], the_world));
 				move_tactic->set_position(the_robots[rolehasball]->position());
+				the_tactics.push_back(move_tactic);
 			} else {
 				pass::ptr pass_tactic(new pass(the_robots[rolehasball], friends[nearidx], the_world));
 				the_tactics.push_back(pass_tactic);
