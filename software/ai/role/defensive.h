@@ -2,15 +2,23 @@
 #define AI_ROLE_DEFENSIVE_H
 
 #include "ai/role/role.h"
-#include "ai/tactic/chase.h"
-#include "ai/tactic/chase_and_shoot.h"
-#include "ai/tactic/move.h"
-#include "ai/tactic/shoot.h"
+#include "ai/tactic/tactic.h"
 #include <vector>
 
-//
-// Gets the robots to go to their defensive positions.
-//
+// TODO: Ignore this message
+// Kenneth: PLEASE READ THIS BEFORE UPDATING.
+// 1) the_goalie is guaranteed to be non-empty
+// 2) the_robots may be empty(i.e. the defensive role only has one goalie, which is stored separately). In this case the defensive role should just tick the goalie role and do nothing else.
+// 3) If the goalie has ball and there are at least two robots on the field, the the_robots has at least one robot.
+
+/**
+ * While the goalie blocks the  ball's direct line of sight.
+ * Defenders block enemy robots.
+ * Rules:
+ * When goalie is in possesion of a ball, tries to be in line of sight of the goalie to receive the ball.
+ * If the defensive is in possesion of a ball, tries to pass to a robot not in defensive role closest to an enemy goal.
+ * If not possible, passes to a defender or goalie (randomly).
+ */
 class defensive : public role {
 	public:
 		//
@@ -33,45 +41,36 @@ class defensive : public role {
 		//
 		void robots_changed();
 
-        //
-        // Checks if the team has the ball
-        //
-        bool have_ball();
+		/// TODO: remove this in the future?
+		void move_halfway_between_ball_and_our_goal(int index);
 
-        //
-        // Tells the robot to go towards the goal
-        //
-        void move_halfway_between_ball_and_our_goal(int index);
+		/// TODO: remove this in the future?
+		void set_goalie(const player::ptr goalie);
 
-        //
-        // Tells the robot to chase the ball
-        //
-        void chase_ball(int index);
+	protected:
 
-        //
-        // Tells the robot to block the ball
-        //
-        void block(int index);
+		/**
+		 * Calculate points which should be used to defend from enemy robots.
+		 * Should be adjusted to take into account of the rules and number of robots in this role.
+		 */
+		std::vector<point> calc_block_positions() const;
 
-        //
-        // Gets the distance of the robot from the ball
-        //
-        double get_distance_from_ball(int index);
+		std::vector<tactic::ptr> the_tactics;
 
-	// Kenneth:
-        // This set the goalie robot in the defensive role. Note that this goalie is not included in the set_robots list! The role should handle this goalie separately!!
-        void set_goalie(const player::ptr goalie);
-
-        protected:
-        std::vector<tactic::ptr> the_tactics;
-
-        private:
+	private:
 		const world::ptr the_world;
-        // note that this is a role in role, so the goalie role can still be developed independently.
-        // Normally, the defensive role should just tick the goalie_role.
-        // When the goalie has ball, this role can set the goalie to other tactics such as passing etc., but it should NEVER leave the goalie box.
-        role::ptr goalie_role;
-        player::ptr the_goalie;
+
+		// TODO: get rid of this message
+		// note that this is a role in role, so the goalie role can still be developed independently.
+		// Normally, the defensive role should just tick the goalie_role.
+		// When the goalie has ball, this role can set the goalie to other tactics such as passing etc., but it should NEVER leave the goalie box.
+		role::ptr goalie_role;
+		player::ptr the_goalie;
+
+		/**
+		 * This should be removed in the future.
+		 */
+		void tick_goalie();
 };
 
 #endif

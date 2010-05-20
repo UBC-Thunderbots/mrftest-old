@@ -1,11 +1,13 @@
 #ifndef AI_TACTIC_BLOCK_H
 #define AI_TACTIC_BLOCK_H
 
-#include "ai/tactic/move.h"
+#include "ai/tactic/tactic.h"
+#include "ai/navigator/robot_navigator.h"
 
-//
-// 
-//
+/**
+ * Calculates an optimal defensive point to blocks an enemy AI.
+ * TODO: This tactic does not look right.
+ */
 class block : public tactic {
 	public:
 		//
@@ -23,18 +25,15 @@ class block : public tactic {
 		//
 		void tick();
 
-		//
-		// Sets the target for the block tactic.
-		//
-		void set_target(player::ptr target);	
+		/**
+		 * Sets the target for the block tactic.
+		 */
+		void set_target(robot::ptr target);	
 
 	protected:
 		const player::ptr the_player;
-
-		player::ptr the_target;		
-
-		move move_tactic;
-
+		robot::ptr target;
+		robot_navigator navi;
 };
 
 #endif
