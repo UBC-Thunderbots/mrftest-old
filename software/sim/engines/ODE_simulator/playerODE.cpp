@@ -177,7 +177,9 @@ playerODE::~playerODE () {
 		
 	//dBodyDestroy (body2);
 }
-
+/**
+this should only be called from simulator during collision detection
+*/
 void playerODE::set_has_ball(){
 
 //std::cout<<"set has ball"<<std::endl;
@@ -244,7 +246,8 @@ double playerODE::orientation() const {
 
 
 /**
-Returns whether or not a given robot has the ball in the most retarded way possible
+Returns whether or not a given robot has the ball. 
+Has ball is determined from the collision detection from the previous timestep
 */
 bool playerODE::has_ball() const {	
 	return player_has_ball;
@@ -328,21 +331,11 @@ click++;
 			if(execute_chip()){
 				chip_set=false;
 			}
-		}	
-		
-		
-		//point fce = (target_velocity-the_velocity)/BOT_MAX_VELOCITY*BOT_MAX_ACCELERATION*mass.mass;
-		
-		//double torque = (target_avelocity-avelocity)/BOT_MAX_A_VELOCITY*BOT_MAX_A_ACCELERATION*momentInertia;		
-		
-		//fcex = fce.x;
-		//fcey = fce.y;
-		//torquez=torque;
-		
-		//dBodyAddTorque (body, 0.0, 0.0, torquez);
-		//dBodyAddForce (body, fcex, fcey, 0.0);
-
-
+		}else if(kick_set){
+			if(execute_kick()){
+				chip_set=false;
+			}
+		}
 
 	}
 		player_has_ball=false;
