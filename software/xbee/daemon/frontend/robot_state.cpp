@@ -7,126 +7,472 @@
 #include "xbee/daemon/frontend/robot_state.h"
 #include "xbee/shared/packettypes.h"
 #include <cassert>
+#include <cstdlib>
 
 namespace {
-	//
-	// Although there are XBee-layer acknowledgements indicating whether radio
-	// delivery was successful or not, there is no acknowledgement protocol that
-	// would handle an error on the robot's serial line from the XBee to the
-	// FPGA. An error there would result in the run data offset value being
-	// silently lost, while the robot's XBee would ACK the packet and the host
-	// XBee would send a Transmit Status packet indicating success. To avoid
-	// this problem, we just require successful XBee-level delivery of the run
-	// data offset value more than once, under the assumption that at least one
-	// of those deliveries will traverse the serial line intact and reach the
-	// FPGA (the serial line is amazingly reliable, so this is a very reasonable
-	// assumption).
-	//
-	// This is the number of transmission that are made.
-	//
-	const unsigned int SET_RUN_DATA_OFFSET_COUNT = 3;
+	/**
+	 * Resets the shared memory block to a sensible initial state.
+	 */
+	void scrub_shm(pthread_rwlock_t *lck, xbeepacket::SHM_FRAME &frame) {
+		rwlock_scoped_acquire acq(lck, &pthread_rwlock_wrlock);
+		frame.run_data.flags = 0;
+		frame.run_data.drive1_speed = 0;
+		frame.run_data.drive2_speed = 0;
+		frame.run_data.drive3_speed = 0;
+		frame.run_data.drive4_speed = 0;
+		frame.run_data.dribbler_speed = 0;
+		frame.run_data.chick_power = 0;
+		frame.feedback_data.flags = 0;
+		frame.feedback_data.outbound_rssi = 0;
+		frame.feedback_data.dribbler_speed = 0;
+		frame.feedback_data.battery_level = 0;
+		frame.feedback_data.faults = 0;
+		frame.timestamp.tv_sec = 0;
+		frame.timestamp.tv_nsec = 0;
+		frame.delivery_mask = 0;
+	}
 
-	//
-	// This is the maximum number of times to try sending a message while
-	// deassigning resources from a released robot before giving up and assuming
-	// the robot has been powered down and hence forgotten all its resources
-	// anyway.
-	//
-	const unsigned int DEASSIGN_TRIES = 100;
-
-	//
-	// This is the maximum number of times a feedback packet can fail during the
-	// CONFIGURING state before trying to resend the 16-bit address and run data
-	// offset.
-	//
-	const unsigned int MAX_CONFIGURING_FEEDBACK_FAILURES = 5;
+	/**
+	 * Stores feedback into the shared memory block as well as updating other
+	 * miscellaneous fields.
+	 */
+	void put_feedback(pthread_rwlock_t *lck, xbeepacket::SHM_FRAME &frame, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency, uint8_t rssi) {
+		rwlock_scoped_acquire acq(lck, &pthread_rwlock_wrlock);
+		frame.feedback_data = packet;
+		frame.delivery_mask = (frame.delivery_mask << 1) | 1;
+		frame.latency = latency;
+		frame.inbound_rssi = rssi;
+	}
 }
 
-robot_state::ptr robot_state::create(uint64_t address64, class daemon &daemon) {
-	robot_state::ptr p(new robot_state(address64, daemon));
+/**
+ * A robot is in this state if it is not claimed by a client and if it has no
+ * allocated resources.
+ */
+class robot_state::idle_state : public robot_state::state {
+	public:
+		static ptr enter(robot_state &bot);
+		void enter_raw_mode(client *cli);
+		void enter_drive_mode(client *cli);
+		void release();
+		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback_timeout();
+		bool claimed() const;
+		bool freeing() const;
+		uint16_t address16() const;
+		uint8_t run_data_index() const;
+
+	private:
+		robot_state &bot;
+
+		idle_state(robot_state &bot);
+};
+
+/**
+ * A robot is in this state if it has been claimed by a client in raw mode.
+ */
+class robot_state::raw_state : public robot_state::state {
+	public:
+		static ptr enter(robot_state &bot, client &claimed_by);
+		void enter_raw_mode(client *cli);
+		void enter_drive_mode(client *cli);
+		void release();
+		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback_timeout();
+		bool claimed() const;
+		bool freeing() const;
+		uint16_t address16() const;
+		uint8_t run_data_index() const;
+
+	private:
+		robot_state &bot;
+		client &claimed_by;
+
+		raw_state(robot_state &bot, client &claimed_by);
+};
+
+/**
+ * A robot is in this state if it has been claimed by a client in drive mode but
+ * the robot has not yet been given a 16-bit address.
+ */
+class robot_state::setting16_state : public robot_state::state {
+	public:
+		static ptr enter(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index);
+		void enter_raw_mode(client *cli);
+		void enter_drive_mode(client *cli);
+		void release();
+		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback_timeout();
+		bool claimed() const;
+		bool freeing() const;
+		uint16_t address16() const;
+		uint8_t run_data_index() const;
+
+	private:
+		robot_state &bot;
+		client &claimed_by;
+		const uint16_t address16_;
+		const uint8_t run_data_index_;
+
+		setting16_state(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index);
+		void queue_request();
+		void request_done(const void *buffer, std::size_t length);
+};
+
+/**
+ * A robot is in this state if it has been claimed by a client in drive mode and
+ * has been given a 16-bit address but has not yet been given a run data offset.
+ */
+class robot_state::settingrdo_state : public robot_state::state {
+	public:
+		static ptr enter(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index);
+		void enter_raw_mode(client *cli);
+		void enter_drive_mode(client *cli);
+		void release();
+		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback_timeout();
+		bool claimed() const;
+		bool freeing() const;
+		uint16_t address16() const;
+		uint8_t run_data_index() const;
+
+	private:
+		robot_state &bot;
+		client &claimed_by;
+		const uint16_t address16_;
+		const uint8_t run_data_index_;
+
+		settingrdo_state(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index);
+		void queue_request();
+		void request_done(const void *buffer, std::size_t length);
+};
+
+/**
+ * A robot is in this state if it has been claimed by a client in drive mode and
+ * has been given a 16-bit address and a run data offset and is therefore alive
+ * and ready to drive.
+ */
+class robot_state::alive_state : public robot_state::state {
+	public:
+		static ptr enter(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index);
+		void enter_raw_mode(client *cli);
+		void enter_drive_mode(client *cli);
+		void release();
+		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback_timeout();
+		bool claimed() const;
+		bool freeing() const;
+		uint16_t address16() const;
+		uint8_t run_data_index() const;
+
+	private:
+		robot_state &bot;
+		client &claimed_by;
+		const uint16_t address16_;
+		const uint8_t run_data_index_;
+
+		alive_state(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index);
+};
+
+/**
+ * A robot is in this state if it has been released from drive mode and needs
+ * its 16-bit address clearing.
+ */
+class robot_state::releasing16_state : public robot_state::state {
+	public:
+		static ptr enter(robot_state &bot, uint16_t address16, uint8_t run_data_index);
+		void enter_raw_mode(client *cli);
+		void enter_drive_mode(client *cli);
+		void release();
+		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback_timeout();
+		bool claimed() const;
+		bool freeing() const;
+		uint16_t address16() const;
+		uint8_t run_data_index() const;
+
+	private:
+		robot_state &bot;
+		const uint16_t address16_;
+		const uint8_t run_data_index_;
+		unsigned int attempts;
+		static const unsigned int MAX_ATTEMPTS = 20;
+
+		releasing16_state(robot_state &bot, uint16_t address16, uint8_t run_data_index);
+		void queue_request();
+		void request_done(const void *buffer, std::size_t length);
+};
+
+/**
+ * A robot is in this state if it has been released from drive mode and needs
+ * its bootload line to go high to reset the FPGA and clear the run data offset.
+ */
+class robot_state::bootloading_high_state : public robot_state::state {
+	public:
+		static ptr enter(robot_state &bot, uint16_t address16, uint8_t run_data_index);
+		void enter_raw_mode(client *cli);
+		void enter_drive_mode(client *cli);
+		void release();
+		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback_timeout();
+		bool claimed() const;
+		bool freeing() const;
+		uint16_t address16() const;
+		uint8_t run_data_index() const;
+
+	private:
+		robot_state &bot;
+		const uint16_t address16_;
+		const uint8_t run_data_index_;
+		unsigned int attempts;
+		static const unsigned int MAX_ATTEMPTS = 20;
+
+		bootloading_high_state(robot_state &bot, uint16_t address16, uint8_t run_data_index);
+		void queue_request();
+		void request_done(const void *buffer, std::size_t length);
+};
+
+/**
+ * A robot is in this state if it has had its bootload line set high but has not
+ * yet had it returned to low.
+ */
+class robot_state::bootloading_low_state : public robot_state::state {
+	public:
+		static ptr enter(robot_state &bot, uint16_t address16, uint8_t run_data_index);
+		void enter_raw_mode(client *cli);
+		void enter_drive_mode(client *cli);
+		void release();
+		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback_timeout();
+		bool claimed() const;
+		bool freeing() const;
+		uint16_t address16() const;
+		uint8_t run_data_index() const;
+
+	private:
+		robot_state &bot;
+		const uint16_t address16_;
+		const uint8_t run_data_index_;
+		unsigned int attempts;
+		static const unsigned int MAX_ATTEMPTS = 20;
+
+		bootloading_low_state(robot_state &bot, uint16_t address16, uint8_t run_data_index);
+		void queue_request();
+		void request_done(const void *buffer, std::size_t length);
+};
+
+/**
+ * A robot is in this state if it has had its bootload line set high, is in the
+ * process of setting it low, and received a "drive mode" claim request during
+ * the time period where this statement was true, and hence must lower the
+ * bootload line (in order to bring the FPGA back online) and then consider
+ * itself claimed, rather than proceeding to the idle state.
+ */
+class robot_state::bootloading_low_to_setting16_state : public robot_state::state {
+	public:
+		static ptr enter(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index);
+		void enter_raw_mode(client *cli);
+		void enter_drive_mode(client *cli);
+		void release();
+		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback_timeout();
+		bool claimed() const;
+		bool freeing() const;
+		uint16_t address16() const;
+		uint8_t run_data_index() const;
+
+	private:
+		robot_state &bot;
+		client &claimed_by;
+		const uint16_t address16_;
+		const uint8_t run_data_index_;
+		unsigned int attempts;
+		static const unsigned int MAX_ATTEMPTS = 20;
+
+		bootloading_low_to_setting16_state(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index);
+		void queue_request();
+		void request_done(const void *buffer, std::size_t length);
+};
+
+
+
+robot_state::state::ptr robot_state::idle_state::enter(robot_state &bot) {
+	ptr p(new idle_state(bot));
 	return p;
 }
 
-robot_state::robot_state(uint64_t address64, class daemon &daemon) : address64(address64), state_(robot_state::IDLE), daemon(daemon), claimed_by(0), address16_(0), run_data_index_(0xFF) {
+robot_state::idle_state::idle_state(robot_state &bot) : bot(bot) {
 }
 
-void robot_state::enter_raw_mode(client *cli) {
-	assert(state_ == IDLE);
+void robot_state::idle_state::enter_raw_mode(client *cli) {
+	// Sanity check.
+	assert(cli);
 
-	DPRINT("Robot claimed for raw mode.");
-
-	state_ = RAW;
-	claimed_by = cli;
+	// Transition to new state.
+	bot.state_ = robot_state::raw_state::enter(bot, *cli);
 }
 
-void robot_state::enter_drive_mode(client *cli) {
-	assert(state_ == IDLE || state_ == FREEING);
+void robot_state::idle_state::enter_drive_mode(client *cli) {
+	// Sanity check.
+	assert(cli);
 
-	DPRINT("Robot claimed for drive mode.");
-
-	// Allocate a new 16-bit address if we don't already have one.
-	uint16_t new_address16 = 0;
-	if (!address16_) {
-		if (!daemon.id16_allocator.available()) {
-			throw resource_allocation_failed();
-		}
-		new_address16 = daemon.id16_allocator.alloc();
+	// Allocate resources.
+	if (!bot.daemon.id16_allocator.available()) {
+		throw resource_allocation_failed();
 	}
-
-	// Allocate a new run data offset if we don't already have one.
-	uint8_t new_run_data_index = 0xFF;
-	if (run_data_index_ == 0xFF) {
-		new_run_data_index = daemon.alloc_rundata_index();
-		if (new_run_data_index == 0xFF) {
-			if (new_address16) {
-				daemon.id16_allocator.free(new_address16);
-			}
-			throw resource_allocation_failed();
-		}
+	const uint8_t rdi = bot.daemon.alloc_rundata_index();
+	if (rdi == 0xFF) {
+		throw resource_allocation_failed();
 	}
+	const uint16_t address16 = bot.daemon.id16_allocator.alloc();
+	assert(address16 != 0xFFFF);
+	bot.daemon.run_data_index_reverse[rdi] = bot.address64;
+	DPRINT(Glib::ustring::compose("Robot %1 allocated 16-bit address %2 and run data offset %3.", tohex(bot.address64, 16), tohex(address16, 4), rdi * sizeof(xbeepacket::RUN_DATA) + 1));
 
-	// Record new state.
-	state_ = robot_state::CONFIGURING;
-	claimed_by = cli;
-	if (new_address16) {
-		address16_ = new_address16;
-	}
-	if (new_run_data_index != 0xFF) {
-		run_data_index_ = new_run_data_index;
-	}
-	daemon.run_data_index_reverse[run_data_index_] = address64;
+	// Scrub the shared memory block.
+	scrub_shm(&bot.daemon.shm->lock, bot.daemon.shm->frames[rdi]);
 
-	DPRINT(Glib::ustring::compose("Using 16-bit address %1, run data frame %2", address16_, run_data_index_));
-
-	// Scrub this robot's shared memory block.
-	daemon.shm->frames[run_data_index_].run_data.flags = 0;
-	daemon.shm->frames[run_data_index_].run_data.drive1_speed = 0;
-	daemon.shm->frames[run_data_index_].run_data.drive2_speed = 0;
-	daemon.shm->frames[run_data_index_].run_data.drive3_speed = 0;
-	daemon.shm->frames[run_data_index_].run_data.drive4_speed = 0;
-	daemon.shm->frames[run_data_index_].run_data.dribbler_speed = 0;
-	daemon.shm->frames[run_data_index_].run_data.chick_power = 0;
-	daemon.shm->frames[run_data_index_].feedback_data.flags = 0;
-	daemon.shm->frames[run_data_index_].feedback_data.outbound_rssi = 0;
-	daemon.shm->frames[run_data_index_].feedback_data.dribbler_speed = 0;
-	daemon.shm->frames[run_data_index_].feedback_data.battery_level = 0;
-	daemon.shm->frames[run_data_index_].feedback_data.faults = 0;
-	daemon.shm->frames[run_data_index_].timestamp.tv_sec = 0;
-	daemon.shm->frames[run_data_index_].timestamp.tv_nsec = 0;
-	daemon.shm->frames[run_data_index_].delivery_mask = 0;
-
-	// Queue a request to set the robot's 16-bit address.
-	queue_set16();
+	// Transition to new state.
+	bot.state_ = robot_state::setting16_state::enter(bot, *cli, address16, rdi);
 }
 
-void robot_state::queue_set16() {
-	DPRINT("Queueing set-16-bit-address request.");
+void robot_state::idle_state::release() {
+	// This indicates confusion.
+	LOG("Releasing idle robot (why?)");
+}
 
-	// Assemble a remote AT command to send MY (set 16-bit address).
+void robot_state::idle_state::on_feedback(uint8_t, const xbeepacket::FEEDBACK_DATA &, const timespec &) {
+	// Ignore this.
+}
+
+void robot_state::idle_state::on_feedback_timeout() {
+	// Ignore this.
+}
+
+bool robot_state::idle_state::claimed() const {
+	return false;
+}
+
+bool robot_state::idle_state::freeing() const {
+	return false;
+}
+
+uint16_t robot_state::idle_state::address16() const {
+	return 0;
+}
+
+uint8_t robot_state::idle_state::run_data_index() const {
+	return 0xFF;
+}
+
+
+
+robot_state::state::ptr robot_state::raw_state::enter(robot_state &bot, client &claimed_by) {
+	ptr p(new raw_state(bot, claimed_by));
+	return p;
+}
+
+robot_state::raw_state::raw_state(robot_state &bot, client &claimed_by) : bot(bot), claimed_by(claimed_by) {
+	DPRINT(Glib::ustring::compose("Robot %1 entering raw mode.", tohex(bot.address64, 16)));
+}
+
+void robot_state::raw_state::enter_raw_mode(client *) {
+	LOG("Claiming a claimed robot.");
+	std::abort();
+}
+
+void robot_state::raw_state::enter_drive_mode(client *) {
+	LOG("Claiming a claimed robot.");
+	std::abort();
+}
+
+void robot_state::raw_state::release() {
+	// Transition to new state.
+	DPRINT(Glib::ustring::compose("Robot %1 released from raw mode.", tohex(bot.address64, 16)));
+	bot.state_ = robot_state::idle_state::enter(bot);
+}
+
+void robot_state::raw_state::on_feedback(uint8_t, const xbeepacket::FEEDBACK_DATA &, const timespec &) {
+	// Ignore this.
+}
+
+void robot_state::raw_state::on_feedback_timeout() {
+	// Ignore this.
+}
+
+bool robot_state::raw_state::claimed() const {
+	return true;
+}
+
+bool robot_state::raw_state::freeing() const {
+	return false;
+}
+
+uint16_t robot_state::raw_state::address16() const {
+	return 0;
+}
+
+uint8_t robot_state::raw_state::run_data_index() const {
+	return 0xFF;
+}
+
+
+
+robot_state::state::ptr robot_state::setting16_state::enter(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index) {
+	ptr p(new setting16_state(bot, claimed_by, address16, run_data_index));
+	return p;
+}
+
+robot_state::setting16_state::setting16_state(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index) : bot(bot), claimed_by(claimed_by), address16_(address16), run_data_index_(run_data_index) {
+	queue_request();
+}
+
+void robot_state::setting16_state::enter_raw_mode(client *) {
+	LOG("Claiming a claimed robot.");
+	std::abort();
+}
+
+void robot_state::setting16_state::enter_drive_mode(client *) {
+	LOG("Claiming a claimed robot.");
+	std::abort();
+}
+
+void robot_state::setting16_state::release() {
+	bot.state_ = releasing16_state::enter(bot, address16_, run_data_index_);
+}
+
+void robot_state::setting16_state::on_feedback(uint8_t, const xbeepacket::FEEDBACK_DATA &, const timespec &) {
+	// Ignore this.
+}
+
+void robot_state::setting16_state::on_feedback_timeout() {
+	// Ignore this.
+}
+
+bool robot_state::setting16_state::claimed() const {
+	return true;
+}
+
+bool robot_state::setting16_state::freeing() const {
+	return false;
+}
+
+uint16_t robot_state::setting16_state::address16() const {
+	return address16_;
+}
+
+uint8_t robot_state::setting16_state::run_data_index() const {
+	return run_data_index_;
+}
+
+void robot_state::setting16_state::queue_request() {
+	DPRINT(Glib::ustring::compose("Queueing request to set robot %1's 16-bit address to %2.", tohex(bot.address64, 16), tohex(address16_, 4)));
+
+	// Assemble the packet.
 	xbeepacket::REMOTE_AT_REQUEST<2> packet;
 	packet.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
-	packet.frame = daemon.frame_number_allocator.alloc();
-	xbeeutil::address_to_bytes(address64, packet.address64);
+	packet.frame = bot.daemon.frame_number_allocator.alloc();
+	xbeeutil::address_to_bytes(bot.address64, packet.address64);
 	packet.address16[0] = 0xFF;
 	packet.address16[1] = 0xFE;
 	packet.options = xbeepacket::REMOTE_AT_REQUEST_OPTION_APPLY;
@@ -137,44 +483,107 @@ void robot_state::queue_set16() {
 
 	// Create a request object, attach a completion callback, and queue it.
 	request::ptr req(request::create(&packet, sizeof(packet), true));
-	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(daemon.frame_number_allocator, &number_allocator<uint8_t>::free), packet.frame))));
-	req->signal_complete().connect(sigc::mem_fun(this, &robot_state::set16_done));
-	daemon.scheduler.queue(req);
+	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &number_allocator<uint8_t>::free), packet.frame))));
+	req->signal_complete().connect(sigc::mem_fun(this, &robot_state::setting16_state::request_done));
+	bot.daemon.scheduler.queue(req);
 }
 
-void robot_state::set16_done(const void *buffer, std::size_t length) {
+void robot_state::setting16_state::request_done(const void *buffer, std::size_t length) {
 	const xbeepacket::REMOTE_AT_RESPONSE &resp = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(buffer);
 
 	// Check length.
 	if (length < sizeof(resp)) {
-		queue_set16();
+		queue_request();
 		return;
 	}
 
 	// Check command.
 	if (resp.command[0] != 'M' || resp.command[1] != 'Y') {
-		queue_set16();
+		queue_request();
 		return;
 	}
 
 	// Check status.
 	if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
 		// No response. Robot is powered down? Not an error, just try again later.
-		queue_set16();
+		queue_request();
 	} else if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK) {
 		// Address was assigned successfully. Next order of business is to
 		// assign the run data offset.
-		queue_set_run_data_offset(0);
+		bot.state_ = settingrdo_state::enter(bot, claimed_by, address16_, run_data_index_);
 	} else {
 		// An error of some unknown type occurred. This should be impossible; it
 		// suggests a logic error in the code and not a radio issue.
-		assert(false);
+		LOG("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
+		std::abort();
 	}
 }
 
-void robot_state::queue_set_run_data_offset(unsigned int counter) {
-	DPRINT("Queueing set-run-data-offset packet.");
-	assert(run_data_index_ != 0xFF);
+
+
+robot_state::state::ptr robot_state::settingrdo_state::enter(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index) {
+	ptr p(new settingrdo_state(bot, claimed_by, address16, run_data_index));
+	return p;
+}
+
+robot_state::settingrdo_state::settingrdo_state(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index) : bot(bot), claimed_by(claimed_by), address16_(address16), run_data_index_(run_data_index) {
+	// Set the RUNNING flag in the run data packet, so that the scheduler will
+	// start soliciting feedback. We will use the receipt of feedback as our
+	// signal to exit the settingrdo state and transition to alive.
+	{
+		rwlock_scoped_acquire acq(&bot.daemon.shm->lock, &pthread_rwlock_wrlock);
+		bot.daemon.shm->frames[run_data_index_].run_data.flags = xbeepacket::RUN_FLAG_RUNNING;
+	}
+
+	// Queue up a request.
+	queue_request();
+}
+
+void robot_state::settingrdo_state::enter_raw_mode(client *) {
+	LOG("Claiming a claimed robot.");
+	std::abort();
+}
+
+void robot_state::settingrdo_state::enter_drive_mode(client *) {
+	LOG("Claiming a claimed robot.");
+	std::abort();
+}
+
+void robot_state::settingrdo_state::release() {
+	bot.state_ = releasing16_state::enter(bot, address16_, run_data_index_);
+}
+
+void robot_state::settingrdo_state::on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency) {
+	// Feedback has been received. The robot is now alive!
+	DPRINT(Glib::ustring::compose("Robot %1 received feedback; becoming alive.", tohex(bot.address64, 16)));
+	put_feedback(&bot.daemon.shm->lock, bot.daemon.shm->frames[run_data_index_], packet, latency, rssi);
+	bot.state_ = alive_state::enter(bot, claimed_by, address16_, run_data_index_);
+}
+
+void robot_state::settingrdo_state::on_feedback_timeout() {
+	// Go back and try resending the 16-bit address.
+	DPRINT(Glib::ustring::compose("Robot %1 timed out on feedback; retrying 16-bit address.", tohex(bot.address64, 16)));
+	bot.state_ = setting16_state::enter(bot, claimed_by, address16_, run_data_index_);
+}
+
+bool robot_state::settingrdo_state::claimed() const {
+	return true;
+}
+
+bool robot_state::settingrdo_state::freeing() const {
+	return false;
+}
+
+uint16_t robot_state::settingrdo_state::address16() const {
+	return address16_;
+}
+
+uint8_t robot_state::settingrdo_state::run_data_index() const {
+	return run_data_index_;
+}
+
+void robot_state::settingrdo_state::queue_request() {
+	DPRINT(Glib::ustring::compose("Queueing request to set robot %1's run data offset to %2.", tohex(bot.address64, 16), run_data_index_ * sizeof(xbeepacket::RUN_DATA) + 1));
 
 	// Assemble a TRANSMIT16 packet containing the run data offset.
 	struct __attribute__((packed)) packet {
@@ -182,7 +591,7 @@ void robot_state::queue_set_run_data_offset(unsigned int counter) {
 		uint8_t value;
 	} packet;
 	packet.hdr.apiid = xbeepacket::TRANSMIT16_APIID;
-	packet.hdr.frame = daemon.frame_number_allocator.alloc();
+	packet.hdr.frame = bot.daemon.frame_number_allocator.alloc();
 	packet.hdr.address[0] = address16_ >> 8;
 	packet.hdr.address[1] = address16_ & 0xFF;
 	packet.hdr.options = 0;
@@ -190,191 +599,249 @@ void robot_state::queue_set_run_data_offset(unsigned int counter) {
 
 	// Create a request object, attach a completion callback, and queue it.
 	request::ptr req(request::create(&packet, sizeof(packet), true));
-	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(daemon.frame_number_allocator, &number_allocator<uint8_t>::free), packet.hdr.frame))));
-	req->signal_complete().connect(sigc::bind(sigc::mem_fun(this, &robot_state::set_run_data_offset_done), counter));
-	daemon.scheduler.queue(req);
+	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &number_allocator<uint8_t>::free), packet.hdr.frame))));
+	req->signal_complete().connect(sigc::mem_fun(this, &robot_state::settingrdo_state::request_done));
+	bot.daemon.scheduler.queue(req);
 }
 
-void robot_state::set_run_data_offset_done(const void *buffer, std::size_t length, unsigned int counter) {
-	assert(run_data_index_ != 0xFF);
+void robot_state::settingrdo_state::request_done(const void *, std::size_t) {
+	// We actually don't do anything here except just retransmit the packet. We
+	// keep flooding until we exit this state, which is caused by either
+	// receiving feedback or timing out on feedback, and has nothing to do with
+	// the RDO setting packet being delivered or not.
+	queue_request();
+}
 
-	const xbeepacket::TRANSMIT_STATUS &resp = *static_cast<const xbeepacket::TRANSMIT_STATUS *>(buffer);
+
+
+robot_state::state::ptr robot_state::alive_state::enter(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index) {
+	ptr p(new alive_state(bot, claimed_by, address16, run_data_index));
+	return p;
+}
+
+robot_state::alive_state::alive_state(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index) : bot(bot), claimed_by(claimed_by), address16_(address16), run_data_index_(run_data_index) {
+	bot.signal_alive.emit();
+}
+
+void robot_state::alive_state::enter_raw_mode(client *) {
+	LOG("Claiming a claimed robot.");
+	std::abort();
+}
+
+void robot_state::alive_state::enter_drive_mode(client *) {
+	LOG("Claiming a claimed robot.");
+	std::abort();
+}
+
+void robot_state::alive_state::release() {
+	bot.state_ = releasing16_state::enter(bot, address16_, run_data_index_);
+}
+
+void robot_state::alive_state::on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency) {
+	// Feedback has been received.
+	DPRINT(Glib::ustring::compose("Robot %1 received feedback.", tohex(bot.address64, 16)));
+	put_feedback(&bot.daemon.shm->lock, bot.daemon.shm->frames[run_data_index_], packet, latency, rssi);
+	bot.signal_feedback.emit();
+}
+
+void robot_state::alive_state::on_feedback_timeout() {
+	// Record that this happened.
+	DPRINT(Glib::ustring::compose("Robot %1 timed out on feedback.", tohex(bot.address64, 16)));
+	uint64_t delivery_mask;
+	{
+		rwlock_scoped_acquire acq(&bot.daemon.shm->lock, &pthread_rwlock_wrlock);
+		bot.daemon.shm->frames[run_data_index_].delivery_mask <<= 1;
+		delivery_mask = bot.daemon.shm->frames[run_data_index_].delivery_mask;
+	}
+
+	// If we have failed 64 times in a row, assume the robot is dead.
+	if (!delivery_mask) {
+		bot.state_ = setting16_state::enter(bot, claimed_by, address16_, run_data_index_);
+		bot.signal_dead.emit();
+	}
+}
+
+bool robot_state::alive_state::claimed() const {
+	return true;
+}
+
+bool robot_state::alive_state::freeing() const {
+	return false;
+}
+
+uint16_t robot_state::alive_state::address16() const {
+	return address16_;
+}
+
+uint8_t robot_state::alive_state::run_data_index() const {
+	return run_data_index_;
+}
+
+
+
+robot_state::state::ptr robot_state::releasing16_state::enter(robot_state &bot, uint16_t address16, uint8_t run_data_index) {
+	ptr p(new releasing16_state(bot, address16, run_data_index));
+	return p;
+}
+
+robot_state::releasing16_state::releasing16_state(robot_state &bot, uint16_t address16, uint8_t run_data_index) : bot(bot), address16_(address16), run_data_index_(run_data_index), attempts(0) {
+	scrub_shm(&bot.daemon.shm->lock, bot.daemon.shm->frames[run_data_index_]);
+	queue_request();
+}
+
+void robot_state::releasing16_state::enter_raw_mode(client *) {
+	LOG("Claiming a freeing robot in raw mode.");
+	std::abort();
+}
+
+void robot_state::releasing16_state::enter_drive_mode(client *cli) {
+	bot.state_ = setting16_state::enter(bot, *cli, address16_, run_data_index_);
+}
+
+void robot_state::releasing16_state::release() {
+	LOG("Releasing a freeing robot (why?).");
+}
+
+void robot_state::releasing16_state::on_feedback(uint8_t, const xbeepacket::FEEDBACK_DATA &, const timespec &) {
+	// Ignore this.
+}
+
+void robot_state::releasing16_state::on_feedback_timeout() {
+	// Ignore this.
+}
+
+bool robot_state::releasing16_state::claimed() const {
+	return false;
+}
+
+bool robot_state::releasing16_state::freeing() const {
+	return true;
+}
+
+uint16_t robot_state::releasing16_state::address16() const {
+	return address16_;
+}
+
+uint8_t robot_state::releasing16_state::run_data_index() const {
+	return run_data_index_;
+}
+
+void robot_state::releasing16_state::queue_request() {
+	DPRINT(Glib::ustring::compose("Queueing request to set robot %1's 16-bit address to FFFF.", tohex(bot.address64, 16)));
+
+	// Assemble the packet.
+	xbeepacket::REMOTE_AT_REQUEST<2> packet;
+	packet.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
+	packet.frame = bot.daemon.frame_number_allocator.alloc();
+	xbeeutil::address_to_bytes(bot.address64, packet.address64);
+	packet.address16[0] = 0xFF;
+	packet.address16[1] = 0xFE;
+	packet.options = xbeepacket::REMOTE_AT_REQUEST_OPTION_APPLY;
+	packet.command[0] = 'M';
+	packet.command[1] = 'Y';
+	packet.value[0] = 0xFF;
+	packet.value[1] = 0xFF;
+
+	// Create a request object, attach a completion callback, and queue it.
+	request::ptr req(request::create(&packet, sizeof(packet), true));
+	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &number_allocator<uint8_t>::free), packet.frame))));
+	req->signal_complete().connect(sigc::mem_fun(this, &robot_state::releasing16_state::request_done));
+	bot.daemon.scheduler.queue(req);
+}
+
+void robot_state::releasing16_state::request_done(const void *buffer, std::size_t length) {
+	const xbeepacket::REMOTE_AT_RESPONSE &resp = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(buffer);
 
 	// Check length.
 	if (length < sizeof(resp)) {
-		queue_set16();
+		queue_request();
+		return;
+	}
+
+	// Check command.
+	if (resp.command[0] != 'M' || resp.command[1] != 'Y') {
+		queue_request();
 		return;
 	}
 
 	// Check status.
-	if (resp.status == xbeepacket::TRANSMIT_STATUS_SUCCESS) {
-		// Packet was transmitted successfully. Check if we've done this as many
-		// times as we need to.
-		if (counter == SET_RUN_DATA_OFFSET_COUNT) {
-			// OK, we're done. Set the run flag in the shared memory packet
-			// structure. This will signal to the scheduler that it should start
-			// soliciting feedback packets from this robot, which will
-			// eventually find their way back to robot_state::on_feedback().
-			DPRINT("Run data offset assumed accepted; expecting feedback.");
-			configuring_feedback_failures = 0;
-			daemon.shm->frames[run_data_index_].run_data.flags = xbeepacket::RUN_FLAG_RUNNING;
-		} else {
-			// Need to send another copy.
-			queue_set_run_data_offset(counter + 1);
+	if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
+		// No response. Robot is powered down? Not an error, just try again up
+		// to a maximum limit of attempts.
+		if (++attempts < MAX_ATTEMPTS) {
+			queue_request();
+			return;
 		}
+	} else if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK) {
+		// Continue below.
 	} else {
-		// Packet was not transmitted successfully. Start over.
-		queue_set16();
+		// An error of some unknown type occurred. This should be impossible; it
+		// suggests a logic error in the code and not a radio issue.
+		LOG("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
+		std::abort();
 	}
+
+	// Address was assigned successfully. Next order of business is to reset the
+	// FPGA.
+	bot.state_ = bootloading_high_state::enter(bot, address16_, run_data_index_);
 }
 
-void robot_state::on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency) {
-	DPRINT("Feedback received.");
 
-	{
-		// Take the lock.
-		rwlock_scoped_acquire acq(&daemon.shm->lock, &pthread_rwlock_wrlock);
 
-		// Save the feedback data into the shared memory block.
-		daemon.shm->frames[run_data_index_].feedback_data = packet;
-
-		// Update the feedback mask.
-		daemon.shm->frames[run_data_index_].delivery_mask <<= 1;
-		daemon.shm->frames[run_data_index_].delivery_mask |= UINT64_C(1);
-
-		// Update the latency estimate.
-		daemon.shm->frames[run_data_index_].latency = latency;
-
-		// Update the inbound RSSI.
-		daemon.shm->frames[run_data_index_].inbound_rssi = rssi;
-	}
-
-	// Notify the client.
-	if (state_ == CONFIGURING) {
-		state_ = ALIVE;
-		signal_alive.emit();
-	} else {
-		signal_feedback.emit();
-	}
+robot_state::state::ptr robot_state::bootloading_high_state::enter(robot_state &bot, uint16_t address16, uint8_t run_data_index) {
+	ptr p(new bootloading_high_state(bot, address16, run_data_index));
+	return p;
 }
 
-void robot_state::on_feedback_timeout() {
-	DPRINT("Timeout waiting for feedback.");
-
-	uint64_t mask;
-
-	{
-		// Take the lock.
-		rwlock_scoped_acquire acq(&daemon.shm->lock, &pthread_rwlock_wrlock);
-
-		// Update the feedback mask and save it for later examination.
-		daemon.shm->frames[run_data_index_].delivery_mask <<= 1;
-		mask = daemon.shm->frames[run_data_index_].delivery_mask;
-	}
-
-	// If we have failed many feedback requests consecutively, assume the robot
-	// is dead, notify the client, and go back to trying to configure.
-	if (state_ == ALIVE && !mask) {
-		DPRINT("64 failures; robot is dead.");
-
-		// Record state.
-		state_ = CONFIGURING;
-
-		// Notify client.
-		signal_dead.emit();
-
-		// Scrub this robot's shared memory block.
-		{
-			rwlock_scoped_acquire acq(&daemon.shm->lock, &pthread_rwlock_wrlock);
-			daemon.shm->frames[run_data_index_].run_data.flags = xbeepacket::RUN_FLAG_RUNNING;
-			daemon.shm->frames[run_data_index_].run_data.drive1_speed = 0;
-			daemon.shm->frames[run_data_index_].run_data.drive2_speed = 0;
-			daemon.shm->frames[run_data_index_].run_data.drive3_speed = 0;
-			daemon.shm->frames[run_data_index_].run_data.drive4_speed = 0;
-			daemon.shm->frames[run_data_index_].run_data.dribbler_speed = 0;
-			daemon.shm->frames[run_data_index_].run_data.chick_power = 0;
-			daemon.shm->frames[run_data_index_].feedback_data.flags = 0;
-			daemon.shm->frames[run_data_index_].feedback_data.outbound_rssi = 0;
-			daemon.shm->frames[run_data_index_].feedback_data.dribbler_speed = 0;
-			daemon.shm->frames[run_data_index_].feedback_data.battery_level = 0;
-			daemon.shm->frames[run_data_index_].feedback_data.faults = 0;
-			daemon.shm->frames[run_data_index_].timestamp.tv_sec = 0;
-			daemon.shm->frames[run_data_index_].timestamp.tv_nsec = 0;
-			daemon.shm->frames[run_data_index_].delivery_mask = 0;
-		}
-
-		// Queue a request to set the robot's 16-bit address.
-		queue_set16();
-		return;
-	}
-
-	// If we're configuring and see a lot of failures, go back and try assigning
-	// the 16-bit address from the beginning.
-	if (state_ == CONFIGURING && ++configuring_feedback_failures == MAX_CONFIGURING_FEEDBACK_FAILURES) {
-		DPRINT("Failed to configure; retrying resource assignment.");
-
-		// No need to notify or change state; this is just a retry.
-		queue_set16();
-		return;
-	}
+robot_state::bootloading_high_state::bootloading_high_state(robot_state &bot, uint16_t address16, uint8_t run_data_index) : bot(bot), address16_(address16), run_data_index_(run_data_index), attempts(0) {
+	queue_request();
 }
 
-void robot_state::release() {
-	DPRINT("Releasing robot.");
-
-	// Scrub the shared memory frame, if we have one.
-	if (run_data_index_ != 0xFF) {
-		rwlock_scoped_acquire acq(&daemon.shm->lock, &pthread_rwlock_wrlock);
-		daemon.shm->frames[run_data_index_].run_data.flags = 0;
-		daemon.shm->frames[run_data_index_].run_data.drive1_speed = 0;
-		daemon.shm->frames[run_data_index_].run_data.drive2_speed = 0;
-		daemon.shm->frames[run_data_index_].run_data.drive3_speed = 0;
-		daemon.shm->frames[run_data_index_].run_data.drive4_speed = 0;
-		daemon.shm->frames[run_data_index_].run_data.dribbler_speed = 0;
-		daemon.shm->frames[run_data_index_].run_data.chick_power = 0;
-		daemon.shm->frames[run_data_index_].feedback_data.flags = 0;
-		daemon.shm->frames[run_data_index_].feedback_data.outbound_rssi = 0;
-		daemon.shm->frames[run_data_index_].feedback_data.dribbler_speed = 0;
-		daemon.shm->frames[run_data_index_].feedback_data.battery_level = 0;
-		daemon.shm->frames[run_data_index_].feedback_data.faults = 0;
-		daemon.shm->frames[run_data_index_].timestamp.tv_sec = 0;
-		daemon.shm->frames[run_data_index_].timestamp.tv_nsec = 0;
-		daemon.shm->frames[run_data_index_].delivery_mask = 0;
-	}
-
-	switch (state_) {
-		case IDLE:
-			// Nothing to do here; we're already released.
-			break;
-
-		case FREEING:
-			// Nothing to do here; we're already on the way to being idle.
-			break;
-
-		case RAW:
-			// OK, just release the claim.
-			state_ = IDLE;
-			claimed_by = 0;
-			break;
-
-		case CONFIGURING:
-		case ALIVE:
-			// Need to deassign, and then later deallocate, the resources.
-			state_ = FREEING;
-			claimed_by = 0;
-			queue_bootload_high(0);
-			break;
-	}
+void robot_state::bootloading_high_state::enter_raw_mode(client *) {
+	LOG("Claiming a freeing robot in raw mode.");
+	std::abort();
 }
 
-void robot_state::queue_bootload_high(unsigned int tries) {
-	DPRINT("Queueing bootload-high request.");
+void robot_state::bootloading_high_state::enter_drive_mode(client *cli) {
+	bot.state_ = bootloading_low_to_setting16_state::enter(bot, *cli, address16_, run_data_index_);
+}
 
-	// Assemble a remote AT command to send D0 (set I/O pin bootload high).
+void robot_state::bootloading_high_state::release() {
+	LOG("Releasing a freeing robot (why?).");
+}
+
+void robot_state::bootloading_high_state::on_feedback(uint8_t, const xbeepacket::FEEDBACK_DATA &, const timespec &) {
+	// Ignore this.
+}
+
+void robot_state::bootloading_high_state::on_feedback_timeout() {
+	// Ignore this.
+}
+
+bool robot_state::bootloading_high_state::claimed() const {
+	return false;
+}
+
+bool robot_state::bootloading_high_state::freeing() const {
+	return true;
+}
+
+uint16_t robot_state::bootloading_high_state::address16() const {
+	return address16_;
+}
+
+uint8_t robot_state::bootloading_high_state::run_data_index() const {
+	return run_data_index_;
+}
+
+void robot_state::bootloading_high_state::queue_request() {
+	DPRINT(Glib::ustring::compose("Queueing request to set robot %1 to bootload mode.", tohex(bot.address64, 16)));
+
+	// Assemble the packet.
 	xbeepacket::REMOTE_AT_REQUEST<1> packet;
 	packet.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
-	packet.frame = daemon.frame_number_allocator.alloc();
-	xbeeutil::address_to_bytes(address64, packet.address64);
+	packet.frame = bot.daemon.frame_number_allocator.alloc();
+	xbeeutil::address_to_bytes(bot.address64, packet.address64);
 	packet.address16[0] = 0xFF;
 	packet.address16[1] = 0xFE;
 	packet.options = xbeepacket::REMOTE_AT_REQUEST_OPTION_APPLY;
@@ -384,55 +851,103 @@ void robot_state::queue_bootload_high(unsigned int tries) {
 
 	// Create a request object, attach a completion callback, and queue it.
 	request::ptr req(request::create(&packet, sizeof(packet), true));
-	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(daemon.frame_number_allocator, &number_allocator<uint8_t>::free), packet.frame))));
-	req->signal_complete().connect(sigc::bind(sigc::mem_fun(this, &robot_state::bootload_high_done), tries));
-	daemon.scheduler.queue(req);
+	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &number_allocator<uint8_t>::free), packet.frame))));
+	req->signal_complete().connect(sigc::mem_fun(this, &robot_state::bootloading_high_state::request_done));
+	bot.daemon.scheduler.queue(req);
 }
 
-void robot_state::bootload_high_done(const void *buffer, std::size_t length, unsigned int tries) {
+void robot_state::bootloading_high_state::request_done(const void *buffer, std::size_t length) {
 	const xbeepacket::REMOTE_AT_RESPONSE &resp = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(buffer);
-
-	// Check for running out of attempts.
-	if (tries == DEASSIGN_TRIES) {
-		queue_bootload_low(0);
-		return;
-	}
 
 	// Check length.
 	if (length < sizeof(resp)) {
-		queue_bootload_high(tries + 1);
+		queue_request();
 		return;
 	}
 
 	// Check command.
 	if (resp.command[0] != 'D' || resp.command[1] != '0') {
-		queue_bootload_high(tries + 1);
+		queue_request();
 		return;
 	}
 
 	// Check status.
 	if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
-		// No response. Try again.
-		queue_bootload_high(tries + 1);
+		// No response. Robot is powered down? Not an error, just try again up
+		// to a maximum limit of attempts.
+		if (++attempts < MAX_ATTEMPTS) {
+			queue_request();
+			return;
+		}
 	} else if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK) {
-		// I/O line was raised successfully. Next order of business is to lower
-		// the line line again.
-		queue_bootload_low(0);
+		// Continue below.
 	} else {
 		// An error of some unknown type occurred. This should be impossible; it
 		// suggests a logic error in the code and not a radio issue.
-		assert(false);
+		LOG("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
+		std::abort();
 	}
+
+	// Bootload line was raised. Next order of business is to lower it again.
+	bot.state_ = bootloading_low_state::enter(bot, address16_, run_data_index_);
 }
 
-void robot_state::queue_bootload_low(unsigned int tries) {
-	DPRINT("Queueing bootload-low request.");
 
-	// Assemble a remote AT command to send D0 (set I/O pin bootload low).
+
+robot_state::state::ptr robot_state::bootloading_low_state::enter(robot_state &bot, uint16_t address16, uint8_t run_data_index) {
+	ptr p(new bootloading_low_state(bot, address16, run_data_index));
+	return p;
+}
+
+robot_state::bootloading_low_state::bootloading_low_state(robot_state &bot, uint16_t address16, uint8_t run_data_index) : bot(bot), address16_(address16), run_data_index_(run_data_index), attempts(0) {
+	queue_request();
+}
+
+void robot_state::bootloading_low_state::enter_raw_mode(client *) {
+	LOG("Claiming a freeing robot in raw mode.");
+	std::abort();
+}
+
+void robot_state::bootloading_low_state::enter_drive_mode(client *cli) {
+	bot.state_ = setting16_state::enter(bot, *cli, address16_, run_data_index_);
+}
+
+void robot_state::bootloading_low_state::release() {
+	LOG("Releasing a freeing robot (why?).");
+}
+
+void robot_state::bootloading_low_state::on_feedback(uint8_t, const xbeepacket::FEEDBACK_DATA &, const timespec &) {
+	// Ignore this.
+}
+
+void robot_state::bootloading_low_state::on_feedback_timeout() {
+	// Ignore this.
+}
+
+bool robot_state::bootloading_low_state::claimed() const {
+	return false;
+}
+
+bool robot_state::bootloading_low_state::freeing() const {
+	return true;
+}
+
+uint16_t robot_state::bootloading_low_state::address16() const {
+	return address16_;
+}
+
+uint8_t robot_state::bootloading_low_state::run_data_index() const {
+	return run_data_index_;
+}
+
+void robot_state::bootloading_low_state::queue_request() {
+	DPRINT(Glib::ustring::compose("Queueing request to set robot %1 out of bootload mode.", tohex(bot.address64, 16)));
+
+	// Assemble the packet.
 	xbeepacket::REMOTE_AT_REQUEST<1> packet;
 	packet.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
-	packet.frame = daemon.frame_number_allocator.alloc();
-	xbeeutil::address_to_bytes(address64, packet.address64);
+	packet.frame = bot.daemon.frame_number_allocator.alloc();
+	xbeeutil::address_to_bytes(bot.address64, packet.address64);
 	packet.address16[0] = 0xFF;
 	packet.address16[1] = 0xFE;
 	packet.options = xbeepacket::REMOTE_AT_REQUEST_OPTION_APPLY;
@@ -442,56 +957,200 @@ void robot_state::queue_bootload_low(unsigned int tries) {
 
 	// Create a request object, attach a completion callback, and queue it.
 	request::ptr req(request::create(&packet, sizeof(packet), true));
-	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(daemon.frame_number_allocator, &number_allocator<uint8_t>::free), packet.frame))));
-	req->signal_complete().connect(sigc::bind(sigc::mem_fun(this, &robot_state::bootload_low_done), tries));
-	daemon.scheduler.queue(req);
+	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &number_allocator<uint8_t>::free), packet.frame))));
+	req->signal_complete().connect(sigc::mem_fun(this, &robot_state::bootloading_low_state::request_done));
+	bot.daemon.scheduler.queue(req);
 }
 
-void robot_state::bootload_low_done(const void *buffer, std::size_t length, unsigned int tries) {
+void robot_state::bootloading_low_state::request_done(const void *buffer, std::size_t length) {
 	const xbeepacket::REMOTE_AT_RESPONSE &resp = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(buffer);
-
-	// Check for running out of attempts.
-	if (tries == DEASSIGN_TRIES) {
-		mark_freed();
-		return;
-	}
 
 	// Check length.
 	if (length < sizeof(resp)) {
-		queue_bootload_low(tries + 1);
+		queue_request();
 		return;
 	}
 
 	// Check command.
 	if (resp.command[0] != 'D' || resp.command[1] != '0') {
-		queue_bootload_low(tries + 1);
+		queue_request();
 		return;
 	}
 
 	// Check status.
 	if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
-		// No response. Try again.
-		queue_bootload_low(tries + 1);
+		// No response. Robot is powered down? Not an error, just try again up
+		// to a maximum limit of attempts.
+		if (++attempts < MAX_ATTEMPTS) {
+			queue_request();
+			return;
+		}
 	} else if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK) {
-		// I/O line was lowered successfully.
-		mark_freed();
+		// Continue below.
 	} else {
 		// An error of some unknown type occurred. This should be impossible; it
 		// suggests a logic error in the code and not a radio issue.
-		assert(false);
+		LOG("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
+		std::abort();
 	}
+
+	// Bootload line was lowered. We are now officially idle.
+	bot.daemon.id16_allocator.free(address16_);
+	bot.daemon.free_rundata_index(run_data_index_);
+	bot.state_ = idle_state::enter(bot);
+	bot.signal_resources_freed.emit();
 }
 
-void robot_state::mark_freed() {
-	state_ = IDLE;
-	if (address16_) {
-		daemon.id16_allocator.free(address16_);
-		address16_ = 0;
+
+
+robot_state::state::ptr robot_state::bootloading_low_to_setting16_state::enter(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index) {
+	ptr p(new bootloading_low_to_setting16_state(bot, claimed_by, address16, run_data_index));
+	return p;
+}
+
+robot_state::bootloading_low_to_setting16_state::bootloading_low_to_setting16_state(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index) : bot(bot), claimed_by(claimed_by), address16_(address16), run_data_index_(run_data_index), attempts(0) {
+	queue_request();
+}
+
+void robot_state::bootloading_low_to_setting16_state::enter_raw_mode(client *) {
+	LOG("Claiming a claimed robot.");
+	std::abort();
+}
+
+void robot_state::bootloading_low_to_setting16_state::enter_drive_mode(client *) {
+	LOG("Claiming a claimed robot.");
+	std::abort();
+}
+
+void robot_state::bootloading_low_to_setting16_state::release() {
+	bot.state_ = bootloading_low_state::enter(bot, address16_, run_data_index_);
+}
+
+void robot_state::bootloading_low_to_setting16_state::on_feedback(uint8_t, const xbeepacket::FEEDBACK_DATA &, const timespec &) {
+	// Ignore this.
+}
+
+void robot_state::bootloading_low_to_setting16_state::on_feedback_timeout() {
+	// Ignore this.
+}
+
+bool robot_state::bootloading_low_to_setting16_state::claimed() const {
+	return true;
+}
+
+bool robot_state::bootloading_low_to_setting16_state::freeing() const {
+	return false;
+}
+
+uint16_t robot_state::bootloading_low_to_setting16_state::address16() const {
+	return address16_;
+}
+
+uint8_t robot_state::bootloading_low_to_setting16_state::run_data_index() const {
+	return run_data_index_;
+}
+
+void robot_state::bootloading_low_to_setting16_state::queue_request() {
+	DPRINT(Glib::ustring::compose("Queueing request to set robot %1 out of bootload mode while claiming.", tohex(bot.address64, 16)));
+
+	// Assemble the packet.
+	xbeepacket::REMOTE_AT_REQUEST<1> packet;
+	packet.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
+	packet.frame = bot.daemon.frame_number_allocator.alloc();
+	xbeeutil::address_to_bytes(bot.address64, packet.address64);
+	packet.address16[0] = 0xFF;
+	packet.address16[1] = 0xFE;
+	packet.options = xbeepacket::REMOTE_AT_REQUEST_OPTION_APPLY;
+	packet.command[0] = 'D';
+	packet.command[1] = '0';
+	packet.value[0] = 4;
+
+	// Create a request object, attach a completion callback, and queue it.
+	request::ptr req(request::create(&packet, sizeof(packet), true));
+	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &number_allocator<uint8_t>::free), packet.frame))));
+	req->signal_complete().connect(sigc::mem_fun(this, &robot_state::bootloading_low_to_setting16_state::request_done));
+	bot.daemon.scheduler.queue(req);
+}
+
+void robot_state::bootloading_low_to_setting16_state::request_done(const void *buffer, std::size_t length) {
+	const xbeepacket::REMOTE_AT_RESPONSE &resp = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(buffer);
+
+	// Check length.
+	if (length < sizeof(resp)) {
+		queue_request();
+		return;
 	}
-	if (run_data_index_ != 0xFF) {
-		daemon.free_rundata_index(run_data_index_);
-		run_data_index_ = 0xFF;
+
+	// Check command.
+	if (resp.command[0] != 'D' || resp.command[1] != '0') {
+		queue_request();
+		return;
 	}
-	signal_resources_freed.emit();
+
+	// Check status.
+	if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
+		// No response. Robot is powered down? Not an error, just try again up
+		// to a maximum limit of attempts.
+		if (++attempts < MAX_ATTEMPTS) {
+			queue_request();
+			return;
+		}
+	} else if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK) {
+		// Continue below.
+	} else {
+		// An error of some unknown type occurred. This should be impossible; it
+		// suggests a logic error in the code and not a radio issue.
+		LOG("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
+		std::abort();
+	}
+
+	// Bootload line was lowered. Go back to configuring so we can drive.
+	bot.state_ = setting16_state::enter(bot, claimed_by, address16_, run_data_index_);
+}
+
+
+
+robot_state::ptr robot_state::create(uint64_t address64, class daemon &daemon) {
+	ptr p(new robot_state(address64, daemon));
+	return p;
+}
+
+robot_state::robot_state(uint64_t address64, class daemon &daemon) : address64(address64), state_(idle_state::enter(*this)), daemon(daemon) {
+}
+
+void robot_state::enter_raw_mode(client *cli) {
+	state_->enter_raw_mode(cli);
+}
+
+void robot_state::enter_drive_mode(client *cli) {
+	state_->enter_drive_mode(cli);
+}
+
+void robot_state::release() {
+	state_->release();
+}
+
+void robot_state::on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency) {
+	state_->on_feedback(rssi, packet, latency);
+}
+
+void robot_state::on_feedback_timeout() {
+	state_->on_feedback_timeout();
+}
+
+bool robot_state::claimed() const {
+	return state_->claimed();
+}
+
+bool robot_state::freeing() const {
+	return state_->freeing();
+}
+
+uint16_t robot_state::address16() const {
+	return state_->address16();
+}
+
+uint8_t robot_state::run_data_index() const {
+	return state_->run_data_index();
 }
 

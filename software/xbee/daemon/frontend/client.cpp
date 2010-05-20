@@ -300,54 +300,36 @@ void client::on_meta_claim(const xbeepacket::META_CLAIM &req) {
 		daemon.robots[req.address] = state;
 	}
 
-	// See what state it's in.
-	switch (state->state()) {
-		case robot_state::IDLE:
-			// Robot is unclaimed and has no resources. Accept the request.
-			break;
+	// If the robot is claimed, reject the request outright.
+	if (state->claimed()) {
+		xbeepacket::META_CLAIM_FAILED resp;
+		resp.hdr.apiid = xbeepacket::META_APIID;
+		resp.hdr.metatype = xbeepacket::CLAIM_FAILED_LOCKED_METATYPE;
+		resp.address = req.address;
+		if (send(sock, &resp, sizeof(resp), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(resp))) {
+			DPRINT("Cannot send data to client!");
+			delete this;
+		}
+		return;
+	}
 
-		case robot_state::FREEING:
-			// Robot is unclaimed but has resources.
-			if (!req.drive_mode) {
-				// We're asking for raw mode. We can't accept this request right
-				// now; instead, we must wait until the resources have been
-				// deallocated. We do this by attaching to a signal that fires
-				// when the resources are freed; when that happens, we just
-				// rerun on_meta_claim() from the top with the same packet (note
-				// that sigc::bind() takes a value-copy, not a reference).
-				// Because we want to allow the client to cancel the pending
-				// claim request by sending a META_RELEASE, we also keep a map
-				// (called pending_raw_claims) from the robot address to the
-				// signal connection that will perform the aforementioned
-				// reinvocation; a META_RELEASE will disconnect the signal
-				// connection, thus preventing the robot from being claimed. If
-				// this client has already requested this robot, just do
-				// nothing.
-				if (!pending_raw_claims.count(req.address)) {
-					pending_raw_claims[req.address] = state->signal_resources_freed.connect(sigc::bind(sigc::mem_fun(this, &client::on_meta_claim), req));
-				}
-				return;
-			}
-			// We're asking for drive mode. We can grant this request even
-			// though some resources are still allocated: we will just reuse
-			// those resources.
-			break;
-
-		case robot_state::RAW:
-		case robot_state::CONFIGURING:
-		case robot_state::ALIVE:
-			// Robot is claimed. Reject the request.
-			{
-				xbeepacket::META_CLAIM_FAILED resp;
-				resp.hdr.apiid = xbeepacket::META_APIID;
-				resp.hdr.metatype = xbeepacket::CLAIM_FAILED_LOCKED_METATYPE;
-				resp.address = req.address;
-				if (send(sock, &resp, sizeof(resp), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(resp))) {
-					DPRINT("Cannot send data to client!");
-					delete this;
-				}
-				return;
-			}
+	// If we're asking for raw mode but the robot is still freeing resources
+	// from its prior drive-mode claim, then we can't accept this request right
+	// now; instead, we must wait until the resources have been deallocated. We
+	// do this by attaching to a signal that fires when the resources are freed;
+	// when that happens, we just rerun on_meta_claim() from the top with the
+	// same packet (note that sigc::bind() takes a value-copy, not a reference).
+	// Because we want to allow the client to cancel the pending claim request
+	// by sending a META_RELEASE, we also keep a map (called pending_raw_claims)
+	// from the robot address to the signal connection that will perform the
+	// aforementioned reinvocation; a META_RELEASE will disconnect the signal
+	// connection, thus preventing the robot from being claimed. If this client
+	// has already requested this robot, just do nothing.
+	if (state->freeing() && !req.drive_mode) {
+		if (!pending_raw_claims.count(req.address)) {
+			pending_raw_claims[req.address] = state->signal_resources_freed.connect(sigc::bind(sigc::mem_fun(this, &client::on_meta_claim), req));
+		}
+		return;
 	}
 
 	// Try to enter the requested mode.
@@ -399,6 +381,7 @@ void client::on_meta_claim(const xbeepacket::META_CLAIM &req) {
 void client::on_meta_release(const xbeepacket::META_RELEASE &req) {
 	if (claimed.count(req.address)) {
 		do_release(req.address);
+		claimed.erase(req.address);
 	}
 }
 
