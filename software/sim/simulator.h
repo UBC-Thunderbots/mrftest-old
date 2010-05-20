@@ -67,6 +67,7 @@ class simulator : public backend, public sigc::trackable {
 		uint32_t frame_counters[2];
 
 		void send(const iovec *, std::size_t);
+		void packet_handler(const std::vector<uint8_t> &data);
 		void queue_response(const void *, std::size_t);
 		bool push_response();
 		void tick();

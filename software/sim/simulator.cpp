@@ -63,6 +63,17 @@ void simulator::send(const iovec *iov, std::size_t iovlen) {
 		total_length += iov[i].iov_len;
 	}
 
+	// If we were to handle the packet immediately, then (1) it would be
+	// unrealistic because a real radio doesn't do that, and (2) it would make
+	// the simulator peg the CPU at 100% because you'd end up with the arbiter
+	// dæmon spewing remote ATMY packets and the simulator hurling back NO_ACK
+	// responses at full speed and making everything else slow and laggy. So
+	// instead, just delay a few milliseconds before actually doing anything
+	// with the packet.
+	Glib::signal_timeout().connect(sigc::bind_return(sigc::bind(sigc::mem_fun(this, &simulator::packet_handler), data), false), 10);
+}
+
+void simulator::packet_handler(const std::vector<uint8_t> &data) {
 	// Dispatch packet based on API ID.
 	if (data[0] == xbeepacket::AT_REQUEST_APIID) {
 		const xbeepacket::AT_REQUEST<2> &req = *reinterpret_cast<const xbeepacket::AT_REQUEST<2> *>(&data[0]);
