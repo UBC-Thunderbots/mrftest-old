@@ -3,9 +3,11 @@
 
 #include "ai/role/role.h"
 
-//
-// Gets the robots to go to their goalie positions.
-//
+/**
+ * Defend the goal area with the robot's life.
+ * If in possesion of a ball, passes to a friendly unit
+ * WILL NOT chase the ball.
+ */
 class goalie : public role {
 	public:
 		//
@@ -28,20 +30,8 @@ class goalie : public role {
 		//
 		void robots_changed();
 
-                //
-                // Before calling this, the goalie shouldn't react to the ball's position.
-                // After, it should.
-                //
-                void start_play();
-
 	protected:
-
-        private:
-				const world::ptr the_world;
-                bool started;
-                point default_pos;
-                point centre_of_goal;
-                static const double STANDBY_DIST = 0.2;		
+		const world::ptr the_world;
 };
 
 #endif

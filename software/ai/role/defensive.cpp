@@ -35,7 +35,6 @@ void defensive::tick_goalie() {
 	} else {
 		// if the goalie doesn't have ball, it should act like a goalie.
 		goalie::ptr temp_role(new goalie(the_world));
-		temp_role->start_play(); 
 		goalie_role = temp_role;
 		std::vector<player::ptr> goalie_only;
 		goalie_only.push_back(the_goalie);
@@ -75,6 +74,9 @@ void defensive::tick() {
 	tick_goalie();
 
 	if (the_robots.size() == 0) return;
+
+	// Sort by distance to ball.
+	// std::sort(the_robots.begin(), the_robots.end(), ai_util::cmp_dist<player::ptr>(the_world->ball()->position()));
 
 	const point self(-the_world->field().length() / 2, 0);
 	const friendly_team& friendly(the_world->friendly);
@@ -132,6 +134,8 @@ void defensive::tick() {
 			if (nearidx == -1) {
 				// ehh... nobody to pass to
 				// Just play around with the ball I guess
+				move::ptr move_tactic(new move(the_robots[rolehasball], the_world));
+				move_tactic->set_position(the_robots[rolehasball]->position());
 			} else {
 				pass::ptr pass_tactic(new pass(the_robots[rolehasball], friendly.get_player(nearidx), the_world));
 				the_tactics.push_back(pass_tactic);

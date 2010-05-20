@@ -1,38 +1,46 @@
 #include "ai/role/goalie.h"
 #include "ai/tactic/move.h"
 
-goalie::goalie(world::ptr world) : the_world(world), started(false), default_pos(-0.45*the_world->field().length(),0), centre_of_goal(-0.5*the_world->field().length(),0){
+#include <iostream>
+
+namespace {
+	const double STANDBY_DIST = 0.2;
+}
+
+goalie::goalie(world::ptr world) : the_world(world) {
 }
 
 void goalie::tick(){
-    /////////////////////////////////
-    // Kenneth 23Jan2010
-    // This is incomplete, the goalie only stays behind the goal and the ball,
-    // it doesn't pass or control the ball yet.
-    /////////////////////////////////
-    if (the_robots.size()<1)
-    {
-        return;
-    }else
-    {
-        move move_tac(the_robots[0], the_world);
-        if (started)
-        {
-            point tempPoint = the_world->ball()->position()-centre_of_goal;
-            tempPoint = tempPoint * (STANDBY_DIST / tempPoint.len());
-            tempPoint += centre_of_goal;
-            move_tac.set_position(tempPoint);
-        }else
-        { 
-	    move_tac.set_position( point(-0.45*the_world->field().length(),0));
-        }
-        move_tac.tick();
-    } 
+
+	if (the_robots.size() < 1) return;
+	if (the_robots.size() > 1) {
+		std::cerr << "goalie role: multiple robots!" << std::endl;
+	}
+
+	const player::ptr me = the_robots[0];
+	const friendly_team& friendly(the_world->friendly);
+
+	// ? Chase the ball if need to.
+	// std::vector<player::ptr> friends = ai_util::get_players(friendly);
+	// std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(the_world->ball()->position()));
+
+	if (me->has_ball()) {
+#warning implement
+		// TODO: implement
+		// Find a friend to pass to.
+	} else {
+		// Generic defence.
+		const point default_pos = point(-0.45*the_world->field().length(), 0);
+		const point centre_of_goal = point(-0.5*the_world->field().length(), 0);
+		move move_tactic(me, the_world);
+		point tempPoint = the_world->ball()->position()-centre_of_goal;
+		tempPoint = tempPoint * (STANDBY_DIST / tempPoint.len());
+		tempPoint += centre_of_goal;
+		move_tactic.set_position(tempPoint);
+		move_tactic.tick();
+	} 
 }
 
 void goalie::robots_changed() {
 }
 
-void goalie::start_play() {
-    started = true;
-}
