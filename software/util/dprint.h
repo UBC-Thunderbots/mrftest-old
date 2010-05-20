@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <stdint.h>
 #include <glibmm.h>
 namespace {
 	void dprint(const char *file, unsigned int line, const Glib::ustring &msg) {
