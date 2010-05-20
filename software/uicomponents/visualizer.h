@@ -99,6 +99,11 @@ class visualizable : public noncopyable {
 				 * the two arcs, in metres
 				 */
 				virtual double defense_area_stretch() const = 0;
+
+				/**
+				 * Fired when any of the field parameters may have changed.
+				 */
+				mutable sigc::signal<void> signal_changed;
 		};
 
 		/**
@@ -209,6 +214,7 @@ class visualizer : public Gtk::DrawingArea, public noncopyable {
 		bool on_motion_notify_event(GdkEventMotion *);
 		bool on_leave_notify_event(GdkEventCrossing *);
 
+		void compute_scales();
 		double xtog(double x) __attribute__((warn_unused_result)) { return  x * scale + xtranslate; }
 		double ytog(double y) __attribute__((warn_unused_result)) { return -y * scale + ytranslate; }
 		double atog(double r) __attribute__((warn_unused_result)) { return -r; }

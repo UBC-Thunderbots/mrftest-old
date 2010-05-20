@@ -17,6 +17,7 @@ visualizer::visualizer(const visualizable &data) : data(data) {
 	add_events(Gdk::LEAVE_NOTIFY_MASK);
 	update_connection = data.signal_visdata_changed.connect(sigc::mem_fun(this, &visualizer::update));
 	update_connection.block();
+	data.field().signal_changed.connect(sigc::mem_fun(this, &visualizer::compute_scales));
 }
 
 void visualizer::on_show() {
@@ -184,15 +185,7 @@ void visualizer::update() {
 
 void visualizer::on_size_allocate(Gtk::Allocation &alloc) {
 	Gtk::DrawingArea::on_size_allocate(alloc);
-
-	int width = alloc.get_width();
-	int height = alloc.get_height();
-	double xscale = width / (data.field().total_length() * 1.01);
-	double yscale = height / (data.field().total_width() * 1.01);
-	scale = std::max(std::min(xscale, yscale), 1e-9);
-	xtranslate = width / 2.0;
-	ytranslate = height / 2.0;
-	Gtk::DrawingArea::on_size_allocate(alloc);
+	compute_scales();
 }
 
 bool visualizer::on_button_press_event(GdkEventButton *evt) {
@@ -305,4 +298,16 @@ draggable::ptr visualizer::object_at(const point &pos) const {
 	return draggable::ptr();
 }
 #endif
+
+void visualizer::compute_scales() {
+	if (data.field().valid()) {
+		int width = get_width();
+		int height = get_height();
+		double xscale = width / (data.field().total_length() * 1.01);
+		double yscale = height / (data.field().total_width() * 1.01);
+		scale = std::max(std::min(xscale, yscale), 1e-9);
+		xtranslate = width / 2.0;
+		ytranslate = height / 2.0;
+	}
+}
 
