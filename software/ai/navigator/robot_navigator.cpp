@@ -164,7 +164,9 @@ bool robot_navigator::check_vector(const point& start, const point& dest, const 
 	const point startdest = dest - start;
 	const double lookahead = std::min(startdest.len(), lookahead_max);
 
-	assert(abs(direction.len() - 1.0) < ai_util::POS_CLOSE);
+	if(abs(direction.len() - 1.0) > ai_util::POS_CLOSE) {
+		std::cerr << " Direction not normalized! " << direction.len() << std::endl;
+	}
 
 	const team * const teams[2] = { &the_world->friendly, &the_world->enemy };
 	for (unsigned int i = 0; i < 2; ++i) {
