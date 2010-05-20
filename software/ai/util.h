@@ -11,15 +11,29 @@ namespace ai_util {
 	//
 	// A comparator that sorts by values in a vector
 	//
-	template<typename T> class SortByTable {
+	template<typename T> class cmp_table {
 		public:
-			SortByTable(const std::vector<T>& tbl) : tbl(tbl) {
+			cmp_table(const std::vector<T>& tbl) : tbl(tbl) {
 			}
 			bool operator()(unsigned int x, unsigned int y) {
 				return tbl[x] > tbl[y];
 			}
 		private:
 			const std::vector<T>& tbl;
+	};
+
+	/**
+	 * A comparator that sorts by a particular distance.
+	 */
+	template<typename T> class cmp_dist {
+		public:
+			cmp_dist(const point& dest) : dest(dest) {
+			}
+			bool operator()(T x, T y) const {
+				return (x->position() - dest).lensq() < (y->position() - dest).lensq();
+			}
+		private:
+			const point& dest;
 	};
 
 	/**
@@ -92,9 +106,10 @@ namespace ai_util {
 	std::vector<player::ptr> get_players(const friendly_team& friendly);
 
 	/**
-	 * Sorts the players by a destination, e.g. some goal post.
+	 * Convert team into vector of robots. 
 	 */
-	template<typename T> std::vector<T> sorted_dist(const std::vector<T>& robots, const point& dest);
+	std::vector<robot::ptr> get_robots(const team& theteam);
+
 }
 
 #endif
