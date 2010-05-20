@@ -2,6 +2,7 @@
 #define AI_UTIL_H
 
 #include "ai/world/world.h"
+#include "ai/world/team.h"
 
 #include <vector>
 
@@ -84,6 +85,16 @@ namespace ai_util {
 	 * Clips a point to a rectangle boundary.
 	 */
 	point clip_point(const point& p, const point& bound1, const point& bound2);
+
+	/**
+	 * Convert friendly into vector of players. 
+	 */
+	std::vector<player::ptr> get_players(const friendly_team& friendly);
+
+	/**
+	 * Sorts the players by a destination, e.g. some goal post.
+	 */
+	template<typename T> std::vector<T> sorted_dist(const std::vector<T>& robots, const point& dest);
 }
 
 #endif

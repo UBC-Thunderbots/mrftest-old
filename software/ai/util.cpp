@@ -170,5 +170,23 @@ namespace ai_util{
 		return ret;
 	}
 
+	std::vector<player::ptr> get_players(const friendly_team& friendly) {
+		std::vector<player::ptr> players(friendly.size());
+		for (size_t i = 0; i < friendly.size(); ++i) {
+			players[i] = friendly.get_player(i);
+		}
+		return players;
+	}
+
+	// Sort enemies by distance from goal.
+	template<typename T> std::vector<T> sorted_dist(const std::vector<T>& robots, const point& dest) {
+		std::vector<T> order(robots.size(), NULL);
+		std::vector<double> dist(robots.size());
+		for (size_t i = 0; i < robots.size(); ++i) {
+			dist[i] = (dest - robots[i]->position()).len();
+			order[i] = robots[i];
+		}
+		sort(order.begin(), order.end(), ai_util::SortByTable<double>(dist));
+	}
 }
 
