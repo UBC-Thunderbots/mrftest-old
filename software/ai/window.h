@@ -21,6 +21,8 @@ class ai_window : public Gtk::Window {
 	private:
 		ai &the_ai;
 		Gtk::Entry playtype_entry;
+		Gtk::Entry end_entry;
+		Gtk::Entry refbox_colour_entry;
 		Gtk::VBox strategy_vbox;
 		Gtk::ComboBoxText strategy_chooser;
 		Gtk::Widget *strategy_controls;
@@ -31,11 +33,15 @@ class ai_window : public Gtk::Window {
 		Gtk::Window vis_window;
 		visualizer vis;
 
+		void on_flip_ends_clicked();
+		void on_flip_refbox_colour_clicked();
 		void on_strategy_changed();
 		void on_rc_changed();
 		void put_strategy_controls();
 		void on_playtype_changed();
 		void on_vis_toggled();
+		void on_flipped_ends();
+		void on_flipped_refbox_colour();
 };
 
 #endif

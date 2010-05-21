@@ -15,7 +15,7 @@ robot::ptr robot::create(bool yellow, unsigned int pattern_index) {
 void robot::update(const SSL_DetectionRobot &packet) {
 	if (packet.has_orientation()) {
 		const point new_pos(packet.x() / 1000.0 * sign, packet.y() / 1000.0 * sign);
-		const double new_ori = angle_mod(packet.orientation() * sign);
+		const double new_ori = angle_mod(packet.orientation() + (sign > 0 ? 0.0 : M_PI));
 		add_prediction_datum(new_pos, new_ori);
 	} else {
 		LOG("Vision packet has robot with no orientation.");

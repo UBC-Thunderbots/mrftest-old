@@ -7,6 +7,7 @@
 #include "util/dprint.h"
 #include "util/sockaddrs.h"
 #include <cerrno>
+#include <cmath>
 #include <cstring>
 #include <stdexcept>
 #include <stdint.h>
@@ -43,7 +44,7 @@ void world::flip_ends() {
 		for (unsigned int j = 0; j < tm.size(); ++j) {
 			robot::ptr bot(tm.get_robot(j));
 			bot->sign = east_ ? -1 : 1;
-			bot->clear_prediction(-bot->position(), angle_mod(-bot->orientation()));
+			bot->clear_prediction(-bot->position(), angle_mod(bot->orientation() + M_PI));
 		}
 	}
 

@@ -61,6 +61,7 @@ namespace {
 			return 1;
 		}
 
+		bool refbox_yellow = false;
 		config conf;
 		if (all) {
 			// Keep all robots in config.
@@ -73,6 +74,7 @@ namespace {
 				}
 			}
 			std::for_each(to_remove.begin(), to_remove.end(), sigc::mem_fun(conf.robots(), &config::robot_set::remove));
+			refbox_yellow = yellow;
 		} else if (custom) {
 #warning WRITE CODE HERE
 			std::cerr << "Custom team building is not supported yet.\n";
@@ -90,6 +92,9 @@ namespace {
 		}
 
 		world::ptr the_world(world::create(conf, xbee_bots));
+		if (refbox_yellow) {
+			the_world->flip_refbox_colour();
+		}
 
 		clocksource_timerfd clk(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND);
 

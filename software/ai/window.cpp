@@ -5,11 +5,25 @@ ai_window::ai_window(ai &ai) : the_ai(ai), strategy_controls(0), rc_controls(0),
 
 	Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox);
 
-	Gtk::HBox *hbox = Gtk::manage(new Gtk::HBox);
-	hbox->pack_start(*Gtk::manage(new Gtk::Label("Play type:")), Gtk::PACK_SHRINK);
+	Gtk::Frame *basic_frame = Gtk::manage(new Gtk::Frame("Basics"));
+	Gtk::Table *basic_table = Gtk::manage(new Gtk::Table(3, 3));
+	basic_table->attach(*Gtk::manage(new Gtk::Label("Play type:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	playtype_entry.set_editable(false);
-	hbox->pack_start(playtype_entry, Gtk::PACK_EXPAND_WIDGET);
-	vbox->pack_start(*hbox, Gtk::PACK_SHRINK);
+	basic_table->attach(playtype_entry, 1, 3, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_table->attach(*Gtk::manage(new Gtk::Label("Defending:")), 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	end_entry.set_editable(false);
+	basic_table->attach(end_entry, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	Gtk::Button *flip_ends_button = Gtk::manage(new Gtk::Button("X"));
+	flip_ends_button->signal_clicked().connect(sigc::mem_fun(this, &ai_window::on_flip_ends_clicked));
+	basic_table->attach(*flip_ends_button, 2, 3, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_table->attach(*Gtk::manage(new Gtk::Label("Refbox Colour:")), 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	refbox_colour_entry.set_editable(false);
+	basic_table->attach(refbox_colour_entry, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	Gtk::Button *flip_refbox_colour_button = Gtk::manage(new Gtk::Button("X"));
+	flip_refbox_colour_button->signal_clicked().connect(sigc::mem_fun(this, &ai_window::on_flip_refbox_colour_clicked));
+	basic_table->attach(*flip_refbox_colour_button, 2, 3, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_frame->add(*basic_table);
+	vbox->pack_start(*basic_frame, Gtk::PACK_SHRINK);
 
 	Gtk::Frame *robots_frame = Gtk::manage(new Gtk::Frame("Robots"));
 	vbox->pack_start(*robots_frame, Gtk::PACK_EXPAND_WIDGET);
@@ -44,12 +58,24 @@ ai_window::ai_window(ai &ai) : the_ai(ai), strategy_controls(0), rc_controls(0),
 	add(*vbox);
 
 	the_ai.the_world->signal_playtype_changed.connect(sigc::mem_fun(this, &ai_window::on_playtype_changed));
+	the_ai.the_world->signal_flipped_ends.connect(sigc::mem_fun(this, &ai_window::on_flipped_ends));
+	the_ai.the_world->signal_flipped_refbox_colour.connect(sigc::mem_fun(this, &ai_window::on_flipped_refbox_colour));
 	on_playtype_changed();
+	on_flipped_ends();
+	on_flipped_refbox_colour();
 
 	show_all();
 
 	vis_window.set_title("AI Visualizer");
 	vis_window.add(vis);
+}
+
+void ai_window::on_flip_ends_clicked() {
+	the_ai.the_world->flip_ends();
+}
+
+void ai_window::on_flip_refbox_colour_clicked() {
+	the_ai.the_world->flip_refbox_colour();
 }
 
 void ai_window::on_strategy_changed() {
@@ -103,5 +129,13 @@ void ai_window::on_vis_toggled() {
 	} else {
 		vis_window.hide_all();
 	}
+}
+
+void ai_window::on_flipped_ends() {
+	end_entry.set_text(the_ai.the_world->east() ? "East" : "West");
+}
+
+void ai_window::on_flipped_refbox_colour() {
+	refbox_colour_entry.set_text(the_ai.the_world->refbox_yellow() ? "Yellow" : "Blue");
 }
 
