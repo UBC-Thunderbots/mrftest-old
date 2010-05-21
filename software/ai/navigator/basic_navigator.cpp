@@ -1,5 +1,4 @@
 #include "ai/navigator/basic_navigator.h"
-#include "geom/angle.h"
 #include <cmath>
 
 basic_navigator::basic_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world) {
@@ -7,8 +6,8 @@ basic_navigator::basic_navigator(player::ptr player, world::ptr world) : the_pla
 	outofbounds_margin = world->field().width() / 20.0;
 	max_lookahead = 1.0;
 	aggression_factor = 2;
-	rotation_angle = 1.0 * PI / 180.0;
-	rotation_thresh = 100 * PI / 180.0;
+	rotation_angle = 1.0 * M_PI / 180.0;
+	rotation_thresh = 100 * M_PI / 180.0;
 }
 
 void basic_navigator::tick() {

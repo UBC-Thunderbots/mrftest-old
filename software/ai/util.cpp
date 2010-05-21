@@ -1,6 +1,5 @@
 #include "ai/util.h"
 #include "util/algorithm.h"
-#include "geom/angle.h"
 
 #include <iostream>
 
@@ -24,7 +23,7 @@ namespace ai_util{
 	}
 
 	double angle_diff(const double& a, const double& b) {
-		return fmod(abs(a - b), PI);
+		return fmod(abs(a - b), M_PI);
 	}
 
 	const std::vector<point> calc_candidates(const world::ptr world) {
@@ -82,7 +81,7 @@ namespace ai_util{
 		}
 		// if the passee is not facing the ball, forget it
 		const double ballori = orientation(ball->position() - passee->position());
-		if (std::fmod(std::abs(ballori - passee->orientation()), PI) > ORI_CLOSE) return false;
+		if (std::fmod(std::abs(ballori - passee->orientation()), M_PI) > ORI_CLOSE) return false;
 		// check if there is some enemy blocking
 		// if(!path_check(ball->position(), passee->position(), w->enemy, SHOOT_ALLOWANCE + robot::MAX_RADIUS + ball::RADIUS)) return false;
 		const point direction = (ball->position() - passee->position()).norm();

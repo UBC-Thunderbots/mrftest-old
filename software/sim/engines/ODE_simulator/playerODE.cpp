@@ -148,7 +148,7 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	for(int index=0;index<4;index++)
 	{
 		wheel_position[index]=point(1,0).rotate(ANGLES[index])*ROBOT_RADIUS;
-		force_direction[index]=point(wheel_position[index].rotate(PI/2).norm());
+		force_direction[index]=point(wheel_position[index].rotate(M_PI/2).norm());
 	}
 	
 }
@@ -508,7 +508,7 @@ dTriMeshDataID playerODE::create_robot_geom()
 	double WideAngle = acos((FRONT_FACE_WIDTH*FRONT_FACE_WIDTH - 2*ROBOT_RADIUS*ROBOT_RADIUS)/(-2*ROBOT_RADIUS*ROBOT_RADIUS));
 
 	//Compute remainder of angles
-	double NarrowAngleSize = (2*PI - WideAngle)/NUM_SIDES;
+	double NarrowAngleSize = (2*M_PI - WideAngle)/NUM_SIDES;
 
 	//calculate the number of faces and vertices
 	unsigned int NumVertices=(NUM_SIDES+2)*2;

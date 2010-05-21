@@ -1,12 +1,10 @@
 #include "geom/angle.h"
 #include <cmath>
 
-const double PI = std::acos(-1.0);
-
 double angle_mod(double a) {
-	a -= 2 * PI * rint(a / (2 * PI));
-	if (a < PI) a += 2 * PI;
-	if (a > PI) a -= 2 * PI;
+	a -= 2 * M_PI * rint(a / (2 * M_PI));
+	if (a < M_PI) a += 2 * M_PI;
+	if (a > M_PI) a -= 2 * M_PI;
 	return a;
 }
 

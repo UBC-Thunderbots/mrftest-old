@@ -1,5 +1,4 @@
 #include "ai/tactic/turn.h"
-#include "geom/angle.h"
 
 turn::turn(player::ptr player) : the_player(player) {
 }
@@ -14,7 +13,7 @@ double turn::d_angle() {
 	double theta = acos(orient.dot(target) / target.len());
 
 	if (target.y < 0)
-		theta = 2 * PI - theta;
+		theta = 2 * M_PI - theta;
 
 	return theta;
 }

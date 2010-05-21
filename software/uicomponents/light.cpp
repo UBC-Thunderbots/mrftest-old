@@ -1,4 +1,3 @@
-#include "geom/angle.h"
 #include "uicomponents/light.h"
 #include <algorithm>
 
@@ -28,10 +27,10 @@ bool light::on_expose_event(GdkEventExpose *) {
 
 	Cairo::RefPtr<Cairo::Context> ctx = get_window()->create_cairo_context();
 	ctx->set_source_rgb(r, g, b);
-	ctx->arc(width / 2.0, height / 2.0, mindim / 2.0, 0.0, 2 * PI);
+	ctx->arc(width / 2.0, height / 2.0, mindim / 2.0, 0.0, 2 * M_PI);
 	ctx->fill();
 	ctx->set_source_rgb(0, 0, 0);
-	ctx->arc(width / 2.0, height / 2.0, mindim / 2.0, 0.0, 2 * PI);
+	ctx->arc(width / 2.0, height / 2.0, mindim / 2.0, 0.0, 2 * M_PI);
 	ctx->stroke();
 
 	// Done.

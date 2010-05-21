@@ -109,8 +109,8 @@ namespace {
 			old_orientation = current_orientation;
 
 			time_step = 1. / 30;
-			max_angular_velocity_accel = PI;
-			max_angular_velocity = 4 * PI;
+			max_angular_velocity_accel = M_PI;
+			max_angular_velocity = 4 * M_PI;
 			max_linear_velocity_accel = 2;
 			max_linear_velocity = 10;
 		}

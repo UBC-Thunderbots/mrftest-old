@@ -155,7 +155,7 @@ void tunable_pid_controller::move(const point &new_position, double new_orientat
 	double new_da = angle_mod(new_orientation - current_orientation);
 	const point &new_dir = (new_position - current_position).rotate(-current_orientation);
 
-	if (new_da > PI) new_da -= 2 * PI;
+	if (new_da > M_PI) new_da -= 2 * M_PI;
 
 	if (!initialized) {
 		initialized = true;

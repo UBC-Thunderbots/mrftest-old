@@ -1,5 +1,4 @@
 #include "ai/navigator/testnavigator.h"
-#include "geom/angle.h"
 #include <iostream>
 #include <cstdlib>
 testnavigator::testnavigator(player::ptr player, world::ptr world) : 
@@ -62,17 +61,17 @@ void testnavigator::tick() {
 	  leftdirection = direction.rotate(rotationangle);
 	  rightdirection = direction.rotate(-rotationangle);
 
-	  if (check_vector(the_player->position(), nowDest, leftdirection.rotate(2.5 * PI / 180.0)))
+	  if (check_vector(the_player->position(), nowDest, leftdirection.rotate(2.5 * M_PI / 180.0)))
 	    {
-	      if (check_vector(the_player->position(), nowDest, leftdirection.rotate(-2.5 * PI / 180.0)))
+	      if (check_vector(the_player->position(), nowDest, leftdirection.rotate(-2.5 * M_PI / 180.0)))
 		{
 		  chooseleft = true;
 		  break;
 		}
 	    }
-	  else if (check_vector(the_player->position(), nowDest, rightdirection.rotate(-2.5 * PI / 180.0)))
+	  else if (check_vector(the_player->position(), nowDest, rightdirection.rotate(-2.5 * M_PI / 180.0)))
 	    {
-	      if (check_vector(the_player->position(), nowDest, rightdirection.rotate(2.5 * PI / 180.0)))
+	      if (check_vector(the_player->position(), nowDest, rightdirection.rotate(2.5 * M_PI / 180.0)))
 		{
 		  chooseleft = false;
 		  break;
@@ -81,13 +80,13 @@ void testnavigator::tick() {
 	  
 	  // if we can't find a path within 90 degrees
 	  // go straight towards our destination
-	  if (rotationangle > 100.0 * PI / 180.0)
+	  if (rotationangle > 100.0 * M_PI / 180.0)
 	    {
 	      leftdirection = rightdirection = direction;
 	      stop = true;
 	      break;
 	    }
-	  rotationangle += 1.0 * PI / 180.0;//rotate by 1 degree each
+	  rotationangle += 1.0 * M_PI / 180.0;//rotate by 1 degree each
 					    //time
 	}
       undiverted = rotationangle < 1e-5;

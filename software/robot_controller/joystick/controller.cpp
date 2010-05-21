@@ -1,12 +1,11 @@
 #include "ai/world/player.h"
-#include "geom/angle.h"
 #include "robot_controller/joystick/joystick.h"
 #include "robot_controller/robot_controller.h"
 #include <gtkmm.h>
 
 namespace {
 	const double MAX_LINEAR_VELOCITY = 1.0;
-	const double MAX_ANGULAR_VELOCITY = PI;
+	const double MAX_ANGULAR_VELOCITY = M_PI;
 	const unsigned int AXIS_FB = 4; // Right stick Y axis.
 	const unsigned int AXIS_LR = 3; // Right stick X axis.
 	const unsigned int AXIS_ROT = 0; // Left stick X axis.
@@ -67,7 +66,7 @@ namespace {
 				if (stick) {
 					// Draw the angular velocity line.
 					double t = stick->axis(AXIS_ROT);
-					t = t / 32767.0 * PI;
+					t = t / 32767.0 * M_PI;
 					const point &rot = point(0.0, -1.0).rotate(t) * width / 2.0;
 					ctx->set_source_rgb(0.0, 1.0, 0.0);
 					ctx->move_to(width / 2.0, height / 2.0);
@@ -80,7 +79,7 @@ namespace {
 					x = (x / 32767.0 / 2.0 + 0.5) * width;
 					y = (y / 32767.0 / 2.0 + 0.5) * height;
 					ctx->set_source_rgb(1.0, 0.0, 0.0);
-					ctx->arc(x, y, 1.0, 0.0, 2.0 * PI);
+					ctx->arc(x, y, 1.0, 0.0, 2.0 * M_PI);
 					ctx->fill();
 				}
 

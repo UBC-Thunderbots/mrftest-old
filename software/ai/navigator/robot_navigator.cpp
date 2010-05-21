@@ -1,5 +1,4 @@
 #include "ai/navigator/robot_navigator.h"
-#include "geom/angle.h"
 #include "ai/util.h"
 
 #include <iostream>
@@ -10,8 +9,8 @@ namespace {
 #warning magic constants
 	const double AVOID_MULT = 1.0;
 	const double AVOID_CONST = 1.0;
-	const double ROTATION_THRESH = 100.0 * PI / 180.0;
-	const double ROTATION_STEP = 1.0 * PI / 180.0;
+	const double ROTATION_THRESH = 100.0 * M_PI / 180.0;
+	const double ROTATION_STEP = 1.0 * M_PI / 180.0;
 }
 
 robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world), dest_initialized(false), ori_initialized(false), outofbounds_margin(the_world->field().width() / 20.0) {

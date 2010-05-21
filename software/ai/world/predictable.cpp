@@ -1,5 +1,4 @@
 #include "ai/world/predictable.h"
-#include "geom/angle.h"
 #include "leastsquares/leastsquares.h"
 #include "util/timestep.h"
 #include <cmath>
@@ -81,11 +80,11 @@ void predictable::add_prediction_datum(const point &pos, double orient) {
 	const double delta_time = timespec_to_double(diff);
 
 	// Move the new orientation value close to the previous value.
-	while (std::fabs(orient - thistory(0)) > PI + 1e-9) {
+	while (std::fabs(orient - thistory(0)) > M_PI + 1e-9) {
 		if (orient > thistory(0)) {
-			orient -= 2 * PI;
+			orient -= 2 * M_PI;
 		} else {
-			orient += 2 * PI;
+			orient += 2 * M_PI;
 		}
 	}
 
@@ -103,8 +102,8 @@ void predictable::add_prediction_datum(const point &pos, double orient) {
 	build_matrices();
 
 	// If the orientation values are getting too big, reduce them to prevent floating point precision loss.
-	while (std::fabs(thistory(0)) > 64 * PI) {
-		double shift = thistory(0) > 0 ? -64 * PI : 64 * PI;
+	while (std::fabs(thistory(0)) > 64 * M_PI) {
+		double shift = thistory(0) > 0 ? -64 * M_PI : 64 * M_PI;
 		for (int i = 0; i < NUM_OLD_POSITIONS; i++) {
 			thistory(i) += shift;
 		}

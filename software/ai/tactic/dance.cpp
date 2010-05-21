@@ -1,5 +1,4 @@
 #include "ai/tactic/dance.h"
-#include "geom/angle.h"
 
 dance::dance(player::ptr player) : the_player(player) {
     ticks = 0;
@@ -12,7 +11,7 @@ void dance::tick()
     
     // Position stays the same, but orientation should turn left and right...
 	the_player->move(the_player->position(),
-                     the_player->orientation()+PI*(((ticks/STEP)%2)?1:-1));
+                     the_player->orientation()+M_PI*(((ticks/STEP)%2)?1:-1));
 
     // keep track of 'clock' tick
     ticks++;
