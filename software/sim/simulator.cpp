@@ -18,6 +18,11 @@
 #include <sys/types.h>
 
 namespace {
+	const uint16_t ADC_MAX = 1023;
+	const double VCC = 3.3;
+	const double DIVIDER_UPPER = 2200.0;
+	const double DIVIDER_LOWER = 470.0;
+
 	/**
 	 * The number of milliseconds between receiving packet and sending its
 	 * response.
@@ -200,7 +205,7 @@ void simulator::packet_handler(const std::vector<uint8_t> &data) {
 							fb.data.outbound_rssi = 40;
 #warning implement dribbler speed support
 							fb.data.dribbler_speed = 0;
-							fb.data.battery_level = static_cast<uint16_t>(bot->battery() * 100.0);
+							fb.data.battery_level = std::min(ADC_MAX, static_cast<uint16_t>(bot->battery() / (DIVIDER_LOWER + DIVIDER_UPPER) * DIVIDER_LOWER / VCC * ADC_MAX));
 #warning implement fault support
 							fb.data.faults = 0;
 							queue_response(&fb, sizeof(fb));
