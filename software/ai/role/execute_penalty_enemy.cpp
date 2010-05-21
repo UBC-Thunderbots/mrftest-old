@@ -78,7 +78,7 @@ bool execute_penalty_enemy::detect_enemy_movement() {
 			robot::ptr robot = enemy.get_robot(i);
 			double dist = fabs(-the_world->field().length() - robot->position().x);
 
-			if (dist >= penalty_mark_length && dist <= restricted_zone_length) {
+			if (dist >= PENALTY_MARK_LENGTH && dist <= RESTRICTED_ZONE_LENGTH) {
 				robots.push_back(i);
 			}
 		}
