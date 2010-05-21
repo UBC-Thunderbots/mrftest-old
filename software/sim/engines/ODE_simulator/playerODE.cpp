@@ -57,8 +57,8 @@ namespace {
 	/// physical radius of the robot in meters
 	const double ROBOT_RADIUS = 0.09;
 	
-	/// Physical mass of the robot in kg
-	const double ROBOT_MASS = 4.0;
+	/// Physical mass of the robot in kg (measured)
+	const double ROBOT_MASS = 2.552;
 	
 	/// Physical height of the robot in m
 	const double ROBOT_HEIGHT = 0.15;
