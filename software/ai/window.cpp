@@ -68,6 +68,7 @@ ai_window::ai_window(ai &ai) : the_ai(ai), strategy_controls(0), rc_controls(0),
 
 	vis_window.set_title("AI Visualizer");
 	vis_window.add(vis);
+	vis_window.signal_delete_event().connect(sigc::hide(sigc::bind_return(sigc::bind(sigc::mem_fun(vis_button, &Gtk::ToggleButton::set_active), false), false)));
 }
 
 void ai_window::on_flip_ends_clicked() {
