@@ -119,10 +119,12 @@ void basic_strategy::reset_all() {
 	for (size_t i = 1; i < the_team.size(); i++) {
 		all_players.push_back(the_team.get_player(i));
 	}
-
+	
+	#warning For special plays, need logic to choose which robot becomes the kicker
 	switch (the_world->playtype()) {
 		case playtype::play:
 			in_play_assignment();
+			std::cout << all_players.size() << " robots set to play" << std::endl;
 			break;
 
 		case playtype::halt:
@@ -176,16 +178,17 @@ void basic_strategy::reset_all() {
 			std::cout << all_players.size() << " robots set to execute penalty friendly" << std::endl;
 			break;
 
+		case playtype::execute_penalty_enemy:
+			// "Ready" signal is meant to signal kicker may proceed,
+			// so no difference on defending side.
+			// May need to detect when the play type needs to be changed to play
 		case playtype::prepare_penalty_enemy:
 			roles.push_back(role::ptr(new prepare_penalty_enemy(the_world)));
 			roles[0]->set_robots(all_players);
-			std::cout << all_players.size() << " robots set to prepare penalty enemy" << std::endl;
-			break;
-
-		case playtype::execute_penalty_enemy:
 			roles.push_back(role::ptr(new execute_penalty_enemy(the_world)));
-			roles[0]->set_robots(all_players);
-			std::cout << all_players.size() << " robots set to execute penalty enemy" << std::endl;
+			roles[1]->set_robots(goalie_only);
+			std::cout << all_players.size() << " robots set to prepare penalty enemy" << std::endl;
+			std::cout << goalie_only.size() << " robots set to execute penalty enemy" << std::endl;
 			break;
 
 		case playtype::execute_direct_free_kick_friendly:
