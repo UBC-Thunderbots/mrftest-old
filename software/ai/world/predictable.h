@@ -89,6 +89,7 @@ class predictable {
 		void lock_time();
 
 	private:
+		bool initialized;
 		ap::real_1d_array xhistory, yhistory, thistory;
 		ap::real_1d_array dhistory; // history vector of time steps
 		ap::real_1d_array weights;

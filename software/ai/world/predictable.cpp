@@ -10,7 +10,7 @@ namespace {
 	const int NUM_OLD_POSITIONS = 10;
 }
 
-predictable::predictable() : orientation_(0.0) {
+predictable::predictable() : initialized(false), orientation_(0.0) {
 	// Record current time.
 	timespec_now(last_datum_timestamp);
 
@@ -65,6 +65,13 @@ double predictable::est_aacceleration() const {
 }
 
 void predictable::add_prediction_datum(const point &pos, double orient) {
+	// If this is our first datum, do a clear instead.
+	if (!initialized) {
+		initialized = true;
+		clear_prediction(pos, orient);
+		return;
+	}
+
 	// Compute delta time and update stamp.
 	timespec now;
 	timespec_now(now);
