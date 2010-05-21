@@ -24,6 +24,7 @@ class execute_kickoff_friendly : public role {
 		//
 		// True if kicker has made contact with the ball.
 		//
+		#warning roles do not persist, so variables cannot be stored!
 		bool contacted_ball;
 
 		//

@@ -135,6 +135,8 @@ void basic_strategy::reset_all() {
 			break;
 
 		case playtype::stop:
+			//TODO: Do we need the stop role?
+			// Seems more sensible for the pl
 			roles.push_back(role::ptr(new stop(the_world)));
 			all_players.push_back(goalie_only[0]);
 			roles[0]->set_robots(all_players);
@@ -205,6 +207,7 @@ void basic_strategy::reset_all() {
 
       		case playtype::execute_direct_free_kick_enemy:
 			#warning A more suitable role should be choosed. Also need to detect when the ball is in play.
+			//Maybe treat the same as normal play, with the rule restrictions being enforced in navigator?
 			roles.push_back(role::ptr(new stop(the_world)));
         		all_players.push_back(goalie_only[0]);
         		roles[0]->set_robots(all_players);
@@ -244,6 +247,8 @@ void basic_strategy::reset_all() {
 		case playtype::halt:
 		case playtype::stop:
 		case playtype::play:
+		case playtype::prepare_penalty_enemy:
+		case playtype::execute_penalty_enemy:
 		case playtype::pit_stop:
 		case playtype::victory_dance:
 			break;
@@ -255,8 +260,6 @@ void basic_strategy::reset_all() {
 		case playtype::execute_kickoff_enemy:
 		case playtype::prepare_penalty_friendly:
 		case playtype::execute_penalty_friendly:
-		case playtype::prepare_penalty_enemy:
-		case playtype::execute_penalty_enemy:
 		case playtype::execute_direct_free_kick_friendly:
 		case playtype::execute_indirect_free_kick_friendly:
 		case playtype::execute_direct_free_kick_enemy:
