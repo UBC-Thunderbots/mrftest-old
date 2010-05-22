@@ -77,12 +77,11 @@ void defensive::tick() {
 	std::sort(the_robots.begin(), the_robots.end(), ai_util::cmp_dist<player::ptr>(the_world->ball()->position()));
 
 	const friendly_team& friendly(the_world->friendly);
-	const point goal(the_world->field().length() / 2, 0);
 
-	int rolehasball = -1;
+	int baller = -1;
 	for(size_t i = 0; i < the_robots.size(); i++) {
 		if(the_robots[i]->has_ball()) {
-			rolehasball = i;
+			baller = i;
 			break;
 		}
 	}
@@ -102,10 +101,10 @@ void defensive::tick() {
 	int busyidx = -1;
 
 	if (teamhasball) {
-		if (rolehasball >= 0) {
+		if (baller >= 0) {
 			// If a player in the role has a ball, then
 			// pass to the other friendly, or wait if there is none.
-			std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(goal));
+			std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(the_world->field().enemy_goal()));
 			int nearidx = -1;
 			for (size_t i = 0; i < friends.size(); ++i) {
 				if (!ai_util::can_pass(the_world, friends[i])) continue;
@@ -117,15 +116,15 @@ void defensive::tick() {
 			if (nearidx == -1) {
 				// ehh... nobody to pass to
 				// Just play around with the ball I guess
-				move::ptr move_tactic(new move(the_robots[rolehasball], the_world));
-				move_tactic->set_position(the_robots[rolehasball]->position());
+				move::ptr move_tactic(new move(the_robots[baller], the_world));
+				move_tactic->set_position(the_robots[baller]->position());
 				the_tactics.push_back(move_tactic);
 			} else {
-				pass::ptr pass_tactic(new pass(the_robots[rolehasball], friends[nearidx], the_world));
+				pass::ptr pass_tactic(new pass(the_robots[baller], friends[nearidx], the_world));
 				the_tactics.push_back(pass_tactic);
 			}
 
-			busyidx = rolehasball;
+			busyidx = baller;
 		} else {
 			// If a player nearest to the goal area has the ball
 			// that player is probably a goalie, chase the ball!
