@@ -104,6 +104,8 @@ software/ai/tactic/pass.h -text
 software/ai/tactic/pass_mode.h -text
 software/ai/tactic/pass_receive.cpp -text
 software/ai/tactic/pass_receive.h -text
+software/ai/tactic/receive.cpp -text
+software/ai/tactic/receive.h -text
 software/ai/tactic/shoot.cpp -text
 software/ai/tactic/shoot.h -text
 software/ai/tactic/tactic.h -text
