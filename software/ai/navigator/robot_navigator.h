@@ -36,25 +36,31 @@ class robot_navigator : public noncopyable {
 		 */
 		void set_orientation(const double& orientation);
 
-#warning Refactor flags
-		void set_robot_avoid_ball_amount(int amount);   
+		/**
+		 * Conditions that the robot must obey.
+		 * By default, nothing is set.
+		 */
+		enum {
+			clip_play_area         = 0x0001, /**< enum Force robot to stay in play area. */
+			avoid_ball_near        = 0x0002, /**< enum Avoid ball for pivoting (probably used for free kick). */
+			avoid_ball_stop        = 0x0004, /**< enum Avoid ball when stop is in play. */
+			avoid_friendly_defence = 0x0008, /**< enum Avoid friendly defence area. */
+			avoid_enemy_defence    = 0x0010, /**< enum Avoid enemy defence area. */
+			stay_own_half          = 0x0020, /**< enum Stay in your own half. */
+			penalty_kick_friendly  = 0x0040, /**< enum Neither goalie nor kicker. Stay away at certain boundary. */
+			penalty_kick_enemy     = 0x0080, /**< enum Neither goalie nor kicker. Stay away at certain boundary. */
+		};
 
-		bool robot_avoids_ball() const {
-			return avoid_ball;
+		/**
+		 * Sets 
+		 */
+		void set_flags(const unsigned int& f) {
+			flags |= f;
 		}
 
-		void set_robot_avoids_ball(bool avoid) {
-			avoid_ball = avoid;
+		void unset_flags(const unsigned int& f) {
+			flags &= ~f;
 		}
-
-		bool robot_avoids_goal();
-		void set_robot_avoids_goal(bool avoid);
-
-		bool robot_stays_on_own_half();
-		void set_robot_stays_on_own_half(bool avoid);
-
-		bool robot_stays_away_from_opponent_goal();
-		void set_robot_stays_away_from_opponent_goal(bool avoid);
 
 	private:
 		bool check_vector(const point& start, const point& dest, const point& direction) const;
@@ -67,15 +73,11 @@ class robot_navigator : public noncopyable {
 		bool position_initialized;
 		bool orientation_initialized;
 
+		// The flags
+		unsigned int flags;
+
 		point target_position;
 		double target_orientation;
-
-		// ALL THIS FUNCTION BELOW HERE SHOULD BE REFACTORED
-		bool avoid_ball;
-		bool avoid_goal;
-		double avoid_goal_amount;
-		bool robot_stays_on_half;
-		bool robot_avoids_opponent_goal;
 };
 
 #endif

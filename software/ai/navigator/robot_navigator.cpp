@@ -1,5 +1,6 @@
 #include "ai/navigator/robot_navigator.h"
 #include "ai/util.h"
+#include "geom/util.h"
 
 #include <iostream>
 #include <cstdlib>
@@ -14,7 +15,7 @@ namespace {
 	const double LOOKAHEAD_MAX = robot::MAX_RADIUS * 10;
 }
 
-robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world), position_initialized(false), orientation_initialized(false) {
+robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world), position_initialized(false), orientation_initialized(false), flags(0) {
 }
 
 double robot_navigator::get_avoidance_factor() const {
@@ -25,23 +26,15 @@ void robot_navigator::tick() {
 	const ball::ptr the_ball(the_world->ball());
 	const field &the_field(the_world->field());
 
-#warning TODO bound the ball if set by flag
-	// BY DEFAULT, NAVIGATOR ALLOWS ROBOT ROAM FREE
-	// if we have the ball, adjust our destination to ensure that we
-	// don't take the ball out of bounds, otherwise, head to our
-	// assigned destination
-	// point wantdest;
-	// if (the_player->has_ball()) {
-	// wantdest = ai_util::clip_point(target_position, point(-the_field.length()/2 + outofbounds_margin, -the_field.width()/2 + outofbounds_margin),
-	//point(the_field.length()/2 - outofbounds_margin, the_field.width()/2 - outofbounds_margin));
-	//} else {
-	//wantdest = target_position;
-	//}
-
 	const point balldist = the_ball->position() - the_player->position();
-	const point wantdest = (position_initialized) ? target_position : the_player->position();
+	point wantdest = (position_initialized) ? target_position : the_player->position();
 	const double wantori = (orientation_initialized) ? target_orientation : atan2(balldist.y, balldist.x);
 	const double distance = (wantdest - the_player->position()).len();
+
+	if (flags & clip_play_area) {
+		wantdest = clip_point(target_position, point(-the_field.length()/2 + the_field.bounds_margin(), -the_field.width()/2 + the_field.bounds_margin()),
+				point(the_field.length()/2 - the_field.bounds_margin(), the_field.width()/2 - the_field.bounds_margin()));
+	}
 
 	// at least face the ball
 	if (distance < ai_util::POS_CLOSE || !position_initialized) {
@@ -114,51 +107,6 @@ void robot_navigator::set_orientation(const double &orientation) {
 	target_orientation = orientation;
 }
 
-#warning Please do something about these functions
-#warning The flags should be refactored somehow
-
-/**
-  get whether the robot avoid it's own goal
- */
-bool robot_navigator::robot_avoids_goal() {
-	return false;
-}
-
-/**
-  make the robot avoid it's own goal
-  \param avoid whether to avoid it's own goal
- */
-void robot_navigator::set_robot_avoids_goal(bool) {
-}
-
-/**
-  get whether the robot is set to stay on it's own half
- */
-bool robot_navigator::robot_stays_on_own_half() {
-	return false;
-}
-
-/**
-  make the robot stay on it's own half
-  \param avoid whether to make robot stay on it's own half
- */
-void robot_navigator::set_robot_stays_on_own_half(bool) {
-}
-
-/**
-  get whether the robot avoid it's opponents goal
- */
-bool robot_navigator::robot_stays_away_from_opponent_goal() {
-	return false;
-}
-
-/**
-  make the robot avoid it's opponents goal
-  \param avoid whether to avoid it's opponents goal
- */
-void robot_navigator::set_robot_stays_away_from_opponent_goal(bool) {
-}
-
 // TODO: use the util functions
 bool robot_navigator::check_vector(const point& start, const point& dest, const point& direction) const {
 	const ball::ptr the_ball(the_world->ball());
@@ -167,6 +115,7 @@ bool robot_navigator::check_vector(const point& start, const point& dest, const 
 
 	if(abs(direction.len() - 1.0) > ai_util::POS_CLOSE) {
 		std::cerr << " Direction not normalized! " << direction.len() << std::endl;
+		return false;
 	}
 
 	const team * const teams[2] = { &the_world->friendly, &the_world->enemy };
@@ -186,7 +135,7 @@ bool robot_navigator::check_vector(const point& start, const point& dest, const 
 		}
 	}
 
-	if(avoid_ball) {
+	if (flags & avoid_ball_near) {
 		const point ballvec = the_ball->position() - start;
 		double proj = ballvec.dot(direction);
 		if (proj > 0) {
