@@ -30,7 +30,7 @@ namespace {
 	const unsigned int DELAY = 10;
 }
 
-simulator::simulator(const config &conf, simulator_engine::ptr engine, clocksource &clk) : conf(conf), engine(engine), host_address16(0xFFFF), sock(AF_INET, SOCK_DGRAM, IPPROTO_UDP) {
+simulator::simulator(const config &conf, simulator_engine::ptr engine, clocksource &clk) : conf(conf), engine(engine), host_address16(0xFFFF), sock(AF_INET, SOCK_DGRAM, IPPROTO_UDP), visdata(*this) {
 	frame_counters[0] = frame_counters[1] = 0;
 	int one = 1;
 	if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &one, sizeof(one)) < 0) {
@@ -38,8 +38,9 @@ simulator::simulator(const config &conf, simulator_engine::ptr engine, clocksour
 	}
 	const config::robot_set &infos(conf.robots());
 	for (unsigned int i = 0; i < infos.size(); ++i) {
-		robots_[infos[i].address] = robot::create(infos[i].address, engine);
+		robots_[infos[i].address] = robot::create(infos[i], engine);
 	}
+	visdata.init();
 	clk.signal_tick.connect(sigc::mem_fun(this, &simulator::tick));
 	Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &simulator::tick_geometry), 1);
 }
@@ -307,6 +308,8 @@ void simulator::tick() {
 			LOG("Error sending vision-type UDP packet.");
 		}
 	}
+
+	visdata.signal_visdata_changed.emit();
 }
 
 bool simulator::tick_geometry() {

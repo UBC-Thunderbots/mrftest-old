@@ -2,12 +2,12 @@
 #include "sim/robot.h"
 #include "util/dprint.h"
 
-robot::ptr robot::create(uint64_t address, simulator_engine::ptr engine) {
-	ptr p(new robot(address, engine));
+robot::ptr robot::create(const config::robot_info &botinfo, simulator_engine::ptr engine) {
+	ptr p(new robot(botinfo, engine));
 	return p;
 }
 
-robot::robot(uint64_t address, simulator_engine::ptr engine) : address(address), engine(engine), powered_(false), battery_(15.0), bootloading_(false), address16_(0xFFFF), run_data_offset_(0xFF) {
+robot::robot(const config::robot_info &botinfo, simulator_engine::ptr engine) : address(botinfo.address), engine(engine), botinfo(botinfo), powered_(false), battery_(15.0), bootloading_(false), address16_(0xFFFF), run_data_offset_(0xFF) {
 }
 
 void robot::powered(bool pwr) {

@@ -3,7 +3,9 @@
 
 #include "sim/player.h"
 #include "sim/engines/engine.h"
+#include "uicomponents/visualizer.h"
 #include "util/byref.h"
+#include "util/config.h"
 #include <glibmm.h>
 
 class simulator;
@@ -18,7 +20,7 @@ class simulator;
  * down and moved onto and off of the field, the set of robots is fixed when the
  * simulator is launched by the contents of the configuration file.
  */
-class robot : public byref {
+class robot : public visualizable::robot {
 	public:
 		/**
 		 * A pointer to a robot.
@@ -42,7 +44,7 @@ class robot : public byref {
 		 * \param engine the simulator engine that will back the robot when it
 		 * is running
 		 */
-		static ptr create(uint64_t address, simulator_engine::ptr engine);
+		static ptr create(const config::robot_info &botinfo, simulator_engine::ptr engine);
 
 		/**
 		 * \return true if the robot is powered, or false if not
@@ -130,8 +132,29 @@ class robot : public byref {
 		 */
 		void remove_player();
 
+		point position() const {
+			return player_ ? player_->position() : point();
+		}
+
+		double orientation() const {
+			return player_ ? player_->orientation() : 0.0;
+		}
+
+		bool visualizer_visible() const {
+			return !!player_;
+		}
+
+		visualizable::colour visualizer_colour() const {
+			return botinfo.yellow ? visualizable::colour(1.0, 1.0, 0.0) : visualizable::colour(0.0, 0.0, 1.0);
+		}
+
+		Glib::ustring visualizer_label() const {
+			return Glib::ustring::compose("%1%2", botinfo.yellow ? 'Y' : 'B', botinfo.pattern_index);
+		}
+
 	private:
 		const simulator_engine::ptr engine;
+		const config::robot_info &botinfo;
 		bool powered_;
 		double battery_;
 		bool bootloading_;
@@ -139,7 +162,7 @@ class robot : public byref {
 		uint8_t run_data_offset_;
 		player::ptr player_;
 
-		robot(uint64_t, simulator_engine::ptr);
+		robot(const config::robot_info &, simulator_engine::ptr);
 };
 
 #endif

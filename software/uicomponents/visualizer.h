@@ -143,6 +143,12 @@ class visualizable : public noncopyable {
 				virtual double orientation() const = 0;
 
 				/**
+				 * \return true if the robot is visible on the field, or false
+				 * if not
+				 */
+				virtual bool visualizer_visible() const = 0;
+
+				/**
 				 * \return The colour of the robot
 				 */
 				virtual visualizable::colour visualizer_colour() const = 0;

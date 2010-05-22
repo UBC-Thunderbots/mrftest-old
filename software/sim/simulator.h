@@ -4,6 +4,7 @@
 #include "sim/ball.h"
 #include "sim/player.h"
 #include "sim/robot.h"
+#include "sim/visdata.h"
 #include "sim/engines/engine.h"
 #include "util/clocksource.h"
 #include "util/config.h"
@@ -42,11 +43,18 @@ class simulator : public backend, public sigc::trackable {
 		simulator(const config &conf, simulator_engine::ptr engine, clocksource &clk);
 
 		/**
-		 * \return all the robots recognized by this simulator, keyed by XBee
+		 * \return All the robots recognized by this simulator, keyed by XBee
 		 * address
 		 */
 		const std::tr1::unordered_map<uint64_t, robot::ptr> &robots() const {
 			return robots_;
+		}
+
+		/**
+		 * \return The ball
+		 */
+		ball::ptr ball() const {
+			return engine->get_ball();
 		}
 
 		/**
@@ -57,6 +65,13 @@ class simulator : public backend, public sigc::trackable {
 		 */
 		robot::ptr find_by16(uint16_t addr) const;
 
+		/**
+		 * \return The visualization data
+		 */
+		const visualizable &visualizer_data() const {
+			return visdata;
+		}
+
 	private:
 		const simulator_engine::ptr engine;
 		std::tr1::unordered_map<uint64_t, robot::ptr> robots_;
@@ -65,6 +80,7 @@ class simulator : public backend, public sigc::trackable {
 		uint16_t host_address16;
 		file_descriptor sock;
 		uint32_t frame_counters[2];
+		simulator_visdata visdata;
 
 		void send(const iovec *, std::size_t);
 		void packet_handler(const std::vector<uint8_t> &data);

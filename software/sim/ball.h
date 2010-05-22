@@ -2,6 +2,7 @@
 #define SIM_BALL_H
 
 #include "geom/point.h"
+#include "uicomponents/visualizer.h"
 #include "util/byref.h"
 #include <glibmm.h>
 
@@ -10,7 +11,7 @@
  * subclass this class and return an instance of the subclass from its
  * simulator_engine::get_ball() method.
  */
-class ball : public byref {
+class ball : public visualizable::ball {
 	public:
 		/**
 		 * A pointer to a ball.

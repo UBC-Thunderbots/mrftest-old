@@ -174,7 +174,7 @@ namespace {
 	};
 }
 
-main_window::main_window(simulator &sim) : sim(sim) {
+main_window::main_window(simulator &sim) : sim(sim), vis(sim.visualizer_data()) {
 	set_title("Thunderbots Simulator");
 
 	Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox);
@@ -183,8 +183,24 @@ main_window::main_window(simulator &sim) : sim(sim) {
 	robots_frame->add(*Gtk::manage(new robots_controls(sim)));
 	vbox->pack_start(*robots_frame, Gtk::PACK_EXPAND_WIDGET);
 
+	vis_button.set_label("Visualizer");
+	vbox->pack_start(vis_button, Gtk::PACK_SHRINK);
+
 	add(*vbox);
 
 	show_all();
+
+	vis_window.set_title("Simulator Visualizer");
+	vis_window.add(vis);
+	vis_button.signal_toggled().connect(sigc::mem_fun(this, &main_window::on_vis_button_toggled));
+	vis_window.signal_delete_event().connect(sigc::hide(sigc::bind_return(sigc::bind(sigc::mem_fun(vis_button, &Gtk::ToggleButton::set_active), false), false)));
+}
+
+void main_window::on_vis_button_toggled() {
+	if (vis_button.get_active()) {
+		vis_window.show_all();
+	} else {
+		vis_window.hide_all();
+	}
 }
 

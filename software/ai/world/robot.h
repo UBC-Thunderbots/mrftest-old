@@ -50,6 +50,10 @@ class robot : public visualizable::robot, public predictable {
 			return predictable::orientation();
 		}
 
+		bool visualizer_visible() const {
+			return true;
+		}
+
 		visualizable::colour visualizer_colour() const {
 			// Enemies are red; overridden in subclass for friendlies.
 			return visualizable::colour(1.0, 0.0, 0.0);

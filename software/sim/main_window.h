@@ -2,6 +2,7 @@
 #define SIM_MAIN_WINDOW_H
 
 #include "sim/simulator.h"
+#include "uicomponents/visualizer.h"
 #include <gtkmm.h>
 
 /**
@@ -17,6 +18,11 @@ class main_window : public Gtk::Window {
 
 	private:
 		simulator &sim;
+		Gtk::ToggleButton vis_button;
+		Gtk::Window vis_window;
+		visualizer vis;
+
+		void on_vis_button_toggled();
 };
 
 #endif

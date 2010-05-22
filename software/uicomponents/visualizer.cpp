@@ -97,48 +97,51 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 	// Draw the players including text.
 	for (unsigned int i = 0; i < data.size(); ++i) {
 		const visualizable::robot::ptr bot(data[i]);
-		const visualizable::colour &clr(bot->visualizer_colour());
-		ctx->set_source_rgb(clr.red, clr.green, clr.blue);
-		ctx->begin_new_path();
-		ctx->arc_negative(xtog(bot->position().x), ytog(bot->position().y), dtog(0.09), atog(bot->orientation() + M_PI_4), atog(bot->orientation() - M_PI_4));
-		ctx->fill();
+		DPRINT(Glib::ustring::compose("Robot at (%1, %2) is %3visible.", bot->position().x, bot->position().y, bot->visualizer_visible() ? "" : "in"));
+		if (bot->visualizer_visible()) {
+			const visualizable::colour &clr(bot->visualizer_colour());
+			ctx->set_source_rgb(clr.red, clr.green, clr.blue);
+			ctx->begin_new_path();
+			ctx->arc_negative(xtog(bot->position().x), ytog(bot->position().y), dtog(0.09), atog(bot->orientation() + M_PI_4), atog(bot->orientation() - M_PI_4));
+			ctx->fill();
 
 #warning IMPLEMENT DRAGGING
 #if 0
-		if (dragging == bot) {
-			ctx->set_source_rgb(1.0, 0.0, 0.0);
-			ctx->begin_new_path();
-			ctx->arc_negative(xtog(bot->position().x), ytog(bot->position().y), dtog(0.09), atog(bot->orientation() + M_PI_4), atog(bot->orientation() - M_PI_4));
-			ctx->line_to(xtog(bot->position().x + 0.09 * std::cos(bot->orientation() + M_PI_4)), ytog(bot->position().y + 0.09 * std::sin(bot->orientation() + M_PI_4)));
-			ctx->stroke();
-		}
+			if (dragging == bot) {
+				ctx->set_source_rgb(1.0, 0.0, 0.0);
+				ctx->begin_new_path();
+				ctx->arc_negative(xtog(bot->position().x), ytog(bot->position().y), dtog(0.09), atog(bot->orientation() + M_PI_4), atog(bot->orientation() - M_PI_4));
+				ctx->line_to(xtog(bot->position().x + 0.09 * std::cos(bot->orientation() + M_PI_4)), ytog(bot->position().y + 0.09 * std::sin(bot->orientation() + M_PI_4)));
+				ctx->stroke();
+			}
 #endif
 
-		ctx->set_source_rgb(0.0, 0.0, 0.0);
-		const Glib::ustring &ustr(bot->visualizer_label());
-		const std::string &str(ustr);
-		Cairo::TextExtents extents;
-		ctx->get_text_extents(str, extents);
-		const double x = xtog(bot->position().x) - extents.x_bearing - extents.width / 2.0;
-		const double y = ytog(bot->position().y) - extents.y_bearing - extents.height / 2.0;
-		ctx->move_to(x, y);
-		ctx->show_text(str);
+			ctx->set_source_rgb(0.0, 0.0, 0.0);
+			const Glib::ustring &ustr(bot->visualizer_label());
+			const std::string &str(ustr);
+			Cairo::TextExtents extents;
+			ctx->get_text_extents(str, extents);
+			const double x = xtog(bot->position().x) - extents.x_bearing - extents.width / 2.0;
+			const double y = ytog(bot->position().y) - extents.y_bearing - extents.height / 2.0;
+			ctx->move_to(x, y);
+			ctx->show_text(str);
 
 #warning IMPLEMENT VELOCITY DRAWING
 #if DRAW_VELOCITY && 0
-		player::ptr plr = player::ptr::cast_dynamic(bot);
-		if (plr) {
-			ctx->begin_new_path();
-			double vx = bot->position().x;
-			double vy = bot->position().y;
-			ctx->move_to(xtog(vx), ytog(vy));
-			const point &reqvel = plr->ui_requested_velocity().rotate(plr->orientation());
-			vx += reqvel.x * DRAW_VELOCITY_SCALE;
-			vy += reqvel.y * DRAW_VELOCITY_SCALE;
-			ctx->line_to(xtog(vx), ytog(vy));
-			ctx->stroke();
-		}
+			player::ptr plr = player::ptr::cast_dynamic(bot);
+			if (plr) {
+				ctx->begin_new_path();
+				double vx = bot->position().x;
+				double vy = bot->position().y;
+				ctx->move_to(xtog(vx), ytog(vy));
+				const point &reqvel = plr->ui_requested_velocity().rotate(plr->orientation());
+				vx += reqvel.x * DRAW_VELOCITY_SCALE;
+				vy += reqvel.y * DRAW_VELOCITY_SCALE;
+				ctx->line_to(xtog(vx), ytog(vy));
+				ctx->stroke();
+			}
 #endif
+		}
 	}
 
 #warning IMPLEMENT VELOCITY DRAGGING
