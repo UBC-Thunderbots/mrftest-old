@@ -21,8 +21,5 @@ void move::tick() {
 	if (position_initialized) navi.set_position(target_position);
 	if (orientation_initialized) navi.set_orientation(target_orientation);
 	navi.tick();
-
-	position_initialized = false;
-	orientation_initialized = false;
 }
 

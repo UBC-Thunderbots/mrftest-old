@@ -40,11 +40,17 @@ class move : public tactic {
 
 		/**
 		 * Sets the target orientation for this move tactic
-		 * If this is not called, robot will face towards the ball.
 		 */
 		void set_orientation(const double& d) {
 			target_orientation = d;
 			orientation_initialized = true;
+		}
+
+		/**
+		 * Makes the robot face the ball.
+		 */
+		void unset_orientation() {
+			orientation_initialized = false;
 		}
 
 #warning TODO: refactor
@@ -52,7 +58,7 @@ class move : public tactic {
 		//make the move tactic avoid the ball
 		//
 		void set_avoid_ball(bool avoid);
-		
+
 	protected:		
 		const player::ptr the_player;
 		double target_orientation;
