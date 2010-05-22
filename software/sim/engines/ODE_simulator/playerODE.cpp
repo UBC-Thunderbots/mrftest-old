@@ -12,30 +12,10 @@ namespace {
 		return atan2(-t[1], t[0]);
 	}
 	
-	//
-	// The maximum acceleration of a robot, in metres per second squared.
-	//
-	//const double BOT_MAX_ACCELERATION = 10.0;
-
-	//
-	// The maximum velocity of a robot, in metres per second.
-	//
-	//const double BOT_MAX_VELOCITY = 5.0;
-	
-	//
-	// The maximum angular velocity of a robot in radians per second
-	//
-	//const double BOT_MAX_A_VELOCITY = 5;
-	
-	//
-	// The maximum angular acceleration of a robot, in radians per second squared
-	//
-	//const double BOT_MAX_A_ACCELERATION = 10.0;
-
-	//
-	// The acceleration due to friction against the ball, in metres per second squared.
-	//
-	//const double BALL_DECELERATION = 6.0;
+	bool isTipped(const dBodyID body){
+		const dReal* t = dBodyGetRotation(body);
+		return fabs(t[8] -1) <  0.1;
+	}
 	
 	/// Conversion Factor from the value used in radio packets (1/4 degree) per 5 ms to motor voltage
 	const double PACKET_TO_VOLTAGE = 0.022281639;
@@ -53,6 +33,9 @@ namespace {
 	
 	/// Gearing ration of the drive train (speed reduction, torque increase)
 	const double GEAR_RATIO = 3.5;
+	
+	/// Radius of the wheel for torque to force calculations
+	const double WHEEL_RADIUS = 0.0254;
 
 	/// physical radius of the robot in meters
 	const double ROBOT_RADIUS = 0.09;
@@ -279,10 +262,14 @@ bool playerODE::robot_contains_shape_ground(dGeomID geom){
 	return (b==body) && (geom!=robotGeomTopCyl);
 }
 
-//paramter is timestep
+/**
+computes the forces for the differential equation and 
+adds them to the robot body
+\param timestep the time between calculations
+*/
 void playerODE::pre_tic(double ){
 
-click++;
+	click++;
 
 	//Current Motor Speed
 	double motor_current[4];
@@ -294,15 +281,15 @@ click++;
 	//unless we determine from collision detection
 	//that the player does have the ball
 
+
 	
 	if(!posSet){
 		
 		//get the current bots velocity	
 		const dReal *cur_vel = dBodyGetLinearVel(body);
-		point the_velocity(cur_vel[0], cur_vel[1]);
 		
-		//rotate it to bot relative
-		the_velocity = the_velocity.rotate(-orientation());
+		//grab current vel and rotate to bot relative
+		const point the_velocity = point(cur_vel[0], cur_vel[1]).rotate(-orientation());
 		
 		//get the angular velocity
 		const dReal * avels =  dBodyGetAngularVel (body);
@@ -315,13 +302,14 @@ click++;
 		
 		dBodyEnable (body);
 		dBodySetDynamic (body);
-		
-		
+		//dBodySetDamping (body, 0.006, 0.006);
+		if(!isTipped(body))
 		for(int index=0;index<4;index++)
 		{
 			//motor desired in this context should be coming from the firmware interpreter
 			wheel_torque=(motor_desired[index]-motor_current[index])*PACKET_TO_VOLTAGE/MOTOR_RESISTANCE*CURRENT_TO_TORQUE*GEAR_RATIO;
-			force = force_direction[index]*wheel_torque/0.0254; //scale by wheel radius
+			wheel_torque -= 0.006*motor_current[index];
+			force = force_direction[index]*wheel_torque/WHEEL_RADIUS; //scale by wheel radius
 			
 			//Adds the force at the wheel positions, at mid-point of the robot(not realistic but should prevent tipping that we can't detect)
 			dBodyAddRelForceAtRelPos(body, force.x, force.y, ROBOT_HEIGHT/2, wheel_position[index].x, wheel_position[index].y, ROBOT_HEIGHT/2);
@@ -345,7 +333,7 @@ click++;
 
 //received data from ai does some checks and stores it,
 //when implemented should pass to firmware interpreter
-void playerODE::move_impl(const point &vel, double avel) {					
+/*void playerODE::move_impl(const point &vel, double avel) {					
 			
 		point new_vel = vel;
 	
@@ -362,7 +350,7 @@ void playerODE::move_impl(const point &vel, double avel) {
 		if(fabs(motor_desired[index])>VOLTAGE_LIMIT/PACKET_TO_VOLTAGE)
 			for(int index2=0;index2<4;index2++)
 				motor_desired[index2]=motor_desired[index2]/motor_desired[index]*VOLTAGE_LIMIT/PACKET_TO_VOLTAGE;
-}
+}*/
 
 
 
@@ -657,16 +645,22 @@ void playerODE::received(const xbeepacket::RUN_DATA &packet) {
 	dribble(packet.dribbler_speed);
 	
 
-
-	//These are used directly in the simulator code, needs to intercepted by a 
-	//firmware intepreter to simulate controller			
-	motor_desired[0] = packet.drive1_speed;
-	motor_desired[1] = packet.drive2_speed;
-	motor_desired[2] = packet.drive3_speed;
-	motor_desired[3] = packet.drive4_speed;
+	//make sure the vehicle is not scrammed
+	if(direct_drive | controlled_drive) {
+		//These are used directly in the simulator code, needs to intercepted by a 
+		//firmware intepreter to simulate controller			
+		motor_desired[0] = packet.drive1_speed;
+		motor_desired[1] = packet.drive2_speed;
+		motor_desired[2] = packet.drive3_speed;
+		motor_desired[3] = packet.drive4_speed;
+	} else {
+		for(uint8_t i=0;i<4;i++)
+			motor_desired[i]=0;
+	}
 	
 	
 	//limit max motor "voltage" to VOLTAGE_LIMIT by scaling the largest component to VOLTAGE_LIMIT if greater
+	//but preserve its orientation
 	for(int index=0;index<4;index++)
 		if(fabs(motor_desired[index])>VOLTAGE_LIMIT/PACKET_TO_VOLTAGE)
 			for(int index2=0;index2<4;index2++)
