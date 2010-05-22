@@ -146,6 +146,8 @@ software/firmware/window.h -text
 software/geom/angle.cpp -text
 software/geom/angle.h -text
 software/geom/point.h -text
+software/geom/util.cpp -text
+software/geom/util.h -text
 software/leastsquares/ap.cpp -text
 software/leastsquares/ap.english.html -text
 software/leastsquares/ap.h -text

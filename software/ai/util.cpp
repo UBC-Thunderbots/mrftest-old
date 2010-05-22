@@ -141,24 +141,6 @@ namespace ai_util{
 		return best_point;
 	}
 
-	point clip_point(const point& p, const point& bound1, const point& bound2) {
-
-		double minx = std::min(bound1.x, bound2.x);
-		double miny = std::min(bound1.y, bound2.y);
-		double maxx = std::max(bound1.x, bound2.x);
-		double maxy = std::max(bound1.y, bound2.y);
-
-		point ret = p;
-
-		if (p.x < minx) ret.x = minx;
-		else if (p.x > maxx) ret.x = maxx;      
-
-		if (p.y < miny) ret.y = miny;
-		else if (p.y > maxy) ret.y = maxy;
-
-		return ret;
-	}
-
 	std::vector<robot::ptr> get_robots(const team& theteam) {
 		std::vector<robot::ptr> robots(theteam.size());
 		for (size_t i = 0; i < theteam.size(); ++i) {

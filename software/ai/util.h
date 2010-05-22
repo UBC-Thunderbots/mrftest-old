@@ -91,11 +91,6 @@ namespace ai_util {
 	size_t calc_best_shot(const player::ptr player, const world::ptr w);
 
 	/**
-	 * Clips a point to a rectangle boundary.
-	 */
-	point clip_point(const point& p, const point& bound1, const point& bound2);
-
-	/**
 	 * Convert team into vector of robots. 
 	 * For any team.
 	 */
