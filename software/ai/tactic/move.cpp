@@ -4,7 +4,11 @@ move::move(player::ptr player, world::ptr world) : the_player(player), navi(play
 	avoid_ball = false;
 }
 
-void move::set_avoid_ball(bool avoid){
+move::move(player::ptr player, world::ptr world, const point& position) : the_player(player), navi(player, world), target_position(position), position_initialized(true), orientation_initialized(false) {
+	avoid_ball = false;
+}
+
+void move::set_avoid_ball(bool avoid) {
 	avoid_ball = avoid;
 }
 

@@ -14,10 +14,16 @@ class move : public tactic {
 		//
 		typedef Glib::RefPtr<move> ptr;
 
-		//
-		// Constructs a new move tactic.
-		//
+		/**
+		 * Standard constructor.
+		 */
 		move(player::ptr player, world::ptr world);
+
+		/**
+		 * Most usage of move tactic only sets position and should thus justify existence of this overloaded constructor.
+		 * \param position Moves the robot to this position.
+		 */
+		move(player::ptr player, world::ptr world, const point& position);
 
 		//
 		// Runs the AI for one time tick.
@@ -49,13 +55,14 @@ class move : public tactic {
 		
 	protected:		
 		const player::ptr the_player;
-		point target_position;
 		double target_orientation;
 		robot_navigator navi;
 
+		point target_position;
 		bool position_initialized;
 		bool orientation_initialized;
 
+		// TODO: refactor
 		bool avoid_ball;
 };
 
