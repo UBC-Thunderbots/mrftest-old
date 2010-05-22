@@ -58,17 +58,6 @@ namespace ai_util {
 	extern const unsigned int SHOOTING_SAMPLE_POINTS;
 
 	/**
-	 * Gets the orientation of a point.
-	 */
-	double orientation(const point& p);
-
-	/**
-	 * Gets the absolute angle difference.
-	 * Guaranteed to be between 0 and PI.
-	 */
-	double angle_diff(const double& a, const double& b);
-
-	/**
 	 * Checks if the path from begin to end is blocked by one team, with some threshold.
 	 * Returns true if path is okay.
 	 */

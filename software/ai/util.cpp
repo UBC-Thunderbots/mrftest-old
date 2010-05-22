@@ -18,14 +18,6 @@ namespace ai_util{
 
 	const unsigned int SHOOTING_SAMPLE_POINTS = 9;
 
-	double orientation(const point& p) {
-		return atan2(p.x, p.y);
-	}
-
-	double angle_diff(const double& a, const double& b) {
-		return fmod(abs(a - b), M_PI);
-	}
-
 	const std::vector<point> calc_candidates(const world::ptr world) {
 		std::vector<point> candidates(SHOOTING_SAMPLE_POINTS);
 		const field &the_field(world->field());
@@ -80,7 +72,7 @@ namespace ai_util{
 			return true;
 		}
 		// if the passee is not facing the ball, forget it
-		const double ballori = orientation(ball->position() - passee->position());
+		const double ballori = (ball->position() - passee->position()).orientation();
 		if (std::fmod(std::abs(ballori - passee->orientation()), M_PI) > ORI_CLOSE) return false;
 		// check if there is some enemy blocking
 		// if(!path_check(ball->position(), passee->position(), w->enemy, SHOOT_ALLOWANCE + robot::MAX_RADIUS + ball::RADIUS)) return false;

@@ -101,6 +101,15 @@ class point {
 			y = q.y;
 			return *this;
 		}
+
+		/**
+		 Orientation, given in range [-pi, pi], 0 is positive x direction, pi/2 is up etc.
+		 This is done by taking atan2 on the y and x values respectively.
+		 Please refer to the atan2 documentation for more information.
+		*/
+		double orientation() const {
+			return atan2(x, y);
+		}
 };
 
 namespace {

@@ -8,3 +8,7 @@ double angle_mod(double a) {
 	return a;
 }
 
+double angle_diff(const double& a, const double& b) {
+	return fmod(fabs(a - b), M_PI);
+}
+
