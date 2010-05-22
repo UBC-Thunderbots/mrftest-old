@@ -1,9 +1,9 @@
 #include "ai/role/defensive.h"
 #include "ai/role/goalie.h"
-#include "ai/tactic/block.h"
 #include "ai/tactic/chase.h"
 #include "ai/tactic/move.h"
 #include "ai/tactic/pass.h"
+#include "ai/tactic/receive.h"
 #include "ai/util.h"
 #include "util/algorithm.h"
 
@@ -131,8 +131,8 @@ void defensive::tick() {
 			// that player is probably a goalie, chase the ball!
 			std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(the_world->field().friendly_goal()));
 			if (friends.size() > 0 && friends[0]->has_ball()) {
-				chase::ptr chase_tactic(new chase(the_robots[0], the_world));
-				the_tactics.push_back(chase_tactic);
+				receive::ptr receive_tactic(new receive(the_robots[0], the_world));
+				the_tactics.push_back(receive_tactic);
 				busyidx = 0;
 			}
 		}

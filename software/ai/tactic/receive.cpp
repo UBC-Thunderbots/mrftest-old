@@ -1,10 +1,10 @@
 #include "ai/tactic/receive.h"
 #include "ai/util.h"
 
-recieve::recieve(player::ptr player, world::ptr world) : the_player(player), the_world(world), navi(player, world) {
+receive::receive(player::ptr player, world::ptr world) : the_player(player), the_world(world), navi(player, world) {
 }
 
-void recieve::tick() {
+void receive::tick() {
 	if (!ai_util::can_pass(the_world, the_player)) {
 		// try to find line of sight
 		// for now just chase ball
