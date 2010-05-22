@@ -81,6 +81,34 @@ class field : public visualizable::field {
 			return defense_area_stretch_;
 		}
 
+		/**
+		 * \return Position of our own goal.
+		 */
+		point friendly_goal() const {
+			return point(-length_ * 0.5, 0);
+		}
+
+		/**
+		 * \return Position of enemy goal.
+		 */
+		point enemy_goal() const {
+			return point(-length_ * 0.5, 0);
+		}
+
+		/**
+		 * \return Position of our goal boundaries (top and bottom).
+		 */
+		std::pair<point, point> friendly_goal_boundary() const {
+			return std::make_pair(point(-length_ * 0.5, -goal_width_), point(-length_ * 0.5, goal_width_));
+		}
+
+		/**
+		 * \return Position of enemy goal boundaries (top and bottom).
+		 */
+		std::pair<point, point> enemy_goal_boundary() const {
+			return std::make_pair(point(length_ * 0.5, -goal_width_), point(-length_ * 0.5, goal_width_));
+		}
+
 	private:
 		bool valid_;
 		double length_;
