@@ -6,6 +6,7 @@
 /**
  * Tactic for doing either chip or kick.
  * By default, kicks at full strength.
+ * Right now, for the sake of testing, the robot is permitted to kick the air.
  */
 class kick : public tactic {
 	public:
@@ -28,7 +29,8 @@ class kick : public tactic {
 		 * Sets the target position for this kick tactic.
 		 */
 		void set_target(const point& p) {
-			the_target = p;
+			kick_target = p;
+			target_initialized = true;
 		}
 
 		/**
@@ -51,20 +53,16 @@ class kick : public tactic {
 
 	protected:
 		const player::ptr the_player;
-
-	protected:		
-
 		turn turn_tactic;
-
-		// Target position
-		point the_target;
 
 		// Holds if this tactic should chip the ball rather than simply kicking it
 		bool should_chip;
-
 		double chip_strength;
-
 		double kick_strength;
+
+		// Target position
+		bool target_initialized;
+		point kick_target;
 };
 
 #endif
