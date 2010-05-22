@@ -11,10 +11,10 @@ namespace {
 	const double AVOID_CONST = 1.0;
 	const double ROTATION_THRESH = 100.0 * M_PI / 180.0;
 	const double ROTATION_STEP = 1.0 * M_PI / 180.0;
+	const double LOOKAHEAD_MAX = robot::MAX_RADIUS * 10;
 }
 
-robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world), dest_initialized(false), ori_initialized(false), outofbounds_margin(the_world->field().width() / 20.0) {
-	lookahead_max = robot::MAX_RADIUS * 10;
+robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world), position_initialized(false), orientation_initialized(false) {
 }
 
 double robot_navigator::get_avoidance_factor() const {
@@ -25,9 +25,6 @@ void robot_navigator::tick() {
 	const ball::ptr the_ball(the_world->ball());
 	const field &the_field(the_world->field());
 
-	// TODO: face towards the ball and stay in same place
-	if (!dest_initialized) return;
-
 #warning TODO bound the ball if set by flag
 	// BY DEFAULT, NAVIGATOR ALLOWS ROBOT ROAM FREE
 	// if we have the ball, adjust our destination to ensure that we
@@ -35,25 +32,30 @@ void robot_navigator::tick() {
 	// assigned destination
 	// point wantdest;
 	// if (the_player->has_ball()) {
-	// wantdest = ai_util::clip_point(curr_dest, point(-the_field.length()/2 + outofbounds_margin, -the_field.width()/2 + outofbounds_margin),
+	// wantdest = ai_util::clip_point(target_position, point(-the_field.length()/2 + outofbounds_margin, -the_field.width()/2 + outofbounds_margin),
 	//point(the_field.length()/2 - outofbounds_margin, the_field.width()/2 - outofbounds_margin));
 	//} else {
-	//wantdest = curr_dest;
+	//wantdest = target_position;
 	//}
 
 	const point balldist = the_ball->position() - the_player->position();
-	const point wantdest = curr_dest;
-	const double wantori = (ori_initialized) ? curr_ori : atan2(balldist.y, balldist.x);
+	const point wantdest = (position_initialized) ? target_position : the_player->position();
+	const double wantori = (orientation_initialized) ? target_orientation : atan2(balldist.y, balldist.x);
 	const double distance = (wantdest - the_player->position()).len();
 
-	// reset orientation settings.
-	ori_initialized = false;
-
 	// at least face the ball
-	if (distance < ai_util::POS_CLOSE) {
+	if (distance < ai_util::POS_CLOSE || !position_initialized) {
 		if (balldist.len() > ai_util::POS_CLOSE) the_player->move(the_player->position(), wantori);
+
+		// DO NOT FORGET! reset orientation settings.
+		orientation_initialized = false;
+		position_initialized = false;
 		return;
 	}
+
+	// reset orientation settings.
+	orientation_initialized = false;
+	position_initialized = false;
 
 	const point direction = (wantdest - the_player->position()).norm();
 
@@ -102,14 +104,14 @@ void robot_navigator::tick() {
 	}
 }
 
-void robot_navigator::set_point(const point &destination) {
-	dest_initialized = true;
-	curr_dest = destination;
+void robot_navigator::set_position(const point &position) {
+	position_initialized = true;
+	target_position = position;
 }
 
 void robot_navigator::set_orientation(const double &orientation) {
-	ori_initialized = true;
-	curr_ori = orientation;
+	orientation_initialized = true;
+	target_orientation = orientation;
 }
 
 #warning Please do something about these functions
@@ -161,7 +163,7 @@ void robot_navigator::set_robot_stays_away_from_opponent_goal(bool) {
 bool robot_navigator::check_vector(const point& start, const point& dest, const point& direction) const {
 	const ball::ptr the_ball(the_world->ball());
 	const point startdest = dest - start;
-	const double lookahead = std::min(startdest.len(), lookahead_max);
+	const double lookahead = std::min(startdest.len(), LOOKAHEAD_MAX);
 
 	if(abs(direction.len() - 1.0) > ai_util::POS_CLOSE) {
 		std::cerr << " Direction not normalized! " << direction.len() << std::endl;

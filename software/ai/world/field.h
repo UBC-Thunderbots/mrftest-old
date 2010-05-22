@@ -109,6 +109,13 @@ class field : public visualizable::field {
 			return std::make_pair(point(length_ * 0.5, -goal_width_), point(-length_ * 0.5, goal_width_));
 		}
 
+		/**
+		 * \return Out of bounds margin.
+		 */
+		double bounds_margin() const {
+			return width_ / 20.0;
+		}
+
 	private:
 		bool valid_;
 		double length_;

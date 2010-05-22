@@ -4,11 +4,14 @@
 #include <iostream>
 
 namespace {
-	double VEL_FACTOR = 0.5;
-	double ACL_FACTOR = 0.125;
+#warning magic constants
+	//const double VEL_FACTOR = 0.5;
+	//const double ACL_FACTOR = 0.125;
+	const double VEL_FACTOR = 0;
+	const double ACL_FACTOR = 0;
 }
 
-chase::chase(player::ptr player, world::ptr world) : the_player(player), the_world(world), move_tactic(player, world) {
+chase::chase(player::ptr player, world::ptr world) : the_player(player), the_world(world), navi(player, world) {
 }
 
 void chase::tick() {
@@ -18,7 +21,7 @@ void chase::tick() {
 	//move_tactic->set_position(the_ball->position()+the_ball->est_velocity()/2);
 	// predict ball position based on velocity and accleration
  	//NOTE THAT MOVING BALL MANUALLY WITH CURSOR CAN GIVE VERY LARGE VELOCITY AND ACCELERATION
-	move_tactic.set_position(the_ball->position() + VEL_FACTOR * the_ball->est_velocity() + ACL_FACTOR * the_ball->est_acceleration());
-	move_tactic.tick();
+	navi.set_position(the_ball->position() + VEL_FACTOR * the_ball->est_velocity() + ACL_FACTOR * the_ball->est_acceleration());
+	navi.tick();
 }
 

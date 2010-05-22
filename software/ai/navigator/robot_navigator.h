@@ -12,7 +12,8 @@
  * - Always orient towards the ball.
  *
  * Thus at every tick:
- * - Call set_point/set_orientation.
+ * - call set_position to change the position
+ * - call set_orientation to change orientation
  */
 class robot_navigator : public noncopyable {
 	public:
@@ -21,10 +22,10 @@ class robot_navigator : public noncopyable {
 		void tick();
 
 		/**
-		 * Sets the desired location.
-		 * you have to call set_orientation to manually set the robot orientation for each time step.
+		 * Sets the desired location for this time step.
+		 * You have to call this function for every tick.
 		 */
-		void set_point(const point& destination);
+		void set_position(const point& position);
 
 		/**
 		 * Normally the navigator sets the robot orientation to be towards the ball.
@@ -63,15 +64,13 @@ class robot_navigator : public noncopyable {
 		const world::ptr the_world;
 
 		// Has destination and orientation been set?
-		bool dest_initialized;
-		bool ori_initialized;
+		bool position_initialized;
+		bool orientation_initialized;
 
-		point curr_dest;
-		double curr_ori;
-		double lookahead_max;
+		point target_position;
+		double target_orientation;
 
 		// ALL THIS FUNCTION BELOW HERE SHOULD BE REFACTORED
-		double outofbounds_margin;//distance to remain from sidelines to prevent from going oob
 		bool avoid_ball;
 		bool avoid_goal;
 		double avoid_goal_amount;

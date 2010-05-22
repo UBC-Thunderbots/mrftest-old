@@ -1,24 +1,19 @@
 #ifndef AI_TACTIC_CHASE_H
 #define AI_TACTIC_CHASE_H
 
-#include "ai/tactic/move.h"
+#include "ai/tactic/tactic.h"
 #include "geom/point.h"
+#include "ai/navigator/robot_navigator.h"
 
-//
-// 
-//
+/**
+ * Chase the ball.
+ */
 class chase : public tactic {
 	public:
 		//
 		// A pointer to this tactic.
 		//
 		typedef Glib::RefPtr<chase> ptr;
-
-		//
-		// Set a target that robot would like to take ball after gaining possesion
-		//
-#warning this function is not implemented in chase.cpp
-		void set_target(point target);
 
 		//
 		// Constructs a new chase tactic. 
@@ -32,13 +27,8 @@ class chase : public tactic {
 
 	protected:
 		const player::ptr the_player;
-
 		const world::ptr the_world;
-
-		move move_tactic;
-		
-		point target;
-
+		robot_navigator navi;
 };
 
 #endif

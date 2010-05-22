@@ -19,14 +19,14 @@ void block::tick() {
 
 		if (p_side > 0 && v_side > 0) {
 			// target is moving towards me, move towards him, but don't bump into him
-			navi.set_point(target->position() + target->est_velocity() * 1.0/GUARD_DIST);
+			navi.set_position(target->position() + target->est_velocity() * 1.0/GUARD_DIST);
 		} else {
 			// I am behind target, move towards where the target's moving for now
-			navi.set_point(target->position() + target->est_velocity());
+			navi.set_position(target->position() + target->est_velocity());
 		}
 	} else {
 		// move towards where the target's moving
-		navi.set_point(target->position() + target->est_velocity());
+		navi.set_position(target->position() + target->est_velocity());
 	}
 	navi.tick();
 }

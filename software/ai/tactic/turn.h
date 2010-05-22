@@ -5,6 +5,9 @@
 #include "ai/world/player.h"
 #include "geom/point.h"
 
+#warning I think this tactic should disappear
+#warning anyone who needs this should simply use move tactic.
+
 //
 // 
 //
