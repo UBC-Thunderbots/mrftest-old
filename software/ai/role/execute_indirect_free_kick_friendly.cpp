@@ -9,8 +9,8 @@ void execute_indirect_free_kick_friendly::tick(){
 	const friendly_team &f_team(the_world->friendly);
 	// Sort players by their distance to our goalpost.
 	// Don't pass to closest player to our goal.
-	std::vector<player::ptr> the_team = ai_util::get_players(f_team);
-	std::sort(the_team.begin(),the_team.end(), ai_util::cmp_dist<player::ptr>(point(-the_world->field().length()/2 , 0)));
+	std::vector<player::ptr> the_team = f_team.get_players();
+	std::sort(the_team.begin(),the_team.end(), ai_util::cmp_dist<player::ptr>(the_world->field().friendly_goal()));
 	unsigned int best_passee = the_team.size();
 	double best_dist = 1e99;
 	// Check for best robot to pass to.
@@ -29,10 +29,9 @@ void execute_indirect_free_kick_friendly::tick(){
 		// No robot can receive the pass. Simply chip the ball forward.
 		kick::ptr tactic (new kick(the_robots[0]));
 		tactic->set_chip();
-		tactic->set_target(point( the_world->field().length()/2 , 0));
+		tactic->set_target(the_world->field().enemy_goal());
 		tactic->tick();
-	}
-	else {
+	} else {
 		pass::ptr tactic (new pass(the_robots[0], the_team[best_passee], the_world));
 		tactic->tick();
 	}

@@ -46,20 +46,15 @@ void defensive::tick_goalie() {
 std::vector<point> defensive::calc_block_positions() const {
 	const enemy_team& enemy(the_world->enemy);
 
-	// Find rays from the goal posts.
-	const point self(-the_world->field().length() / 2, 0);
-	// const point self_top(-the_world->field().length() / 2, -the_world->field().goal_width());
-	// const point self_bot(-the_world->field().length() / 2, the_world->field().goal_width());
-
-	// Sort enemies by distance from goal.
-	std::vector<robot::ptr> enemies = ai_util::get_robots(enemy);
-	std::sort(enemies.begin(), enemies.end(), ai_util::cmp_dist<robot::ptr>(self));
+	// Sort enemies by distance from own goal.
+	std::vector<robot::ptr> enemies = enemy.get_robots();
+	std::sort(enemies.begin(), enemies.end(), ai_util::cmp_dist<robot::ptr>(the_world->field().friendly_goal()));
 
 	// Place waypoints on the defence area.
 	// TODO: calculate proper areas in the future.
 	std::vector<point> waypoints;
 	for (size_t i = 0; i < enemies.size(); ++i) {
-		point half = (enemies[i]->position() + self) * 0.5;
+		point half = (enemies[i]->position() + the_world->field().friendly_goal()) * 0.5;
 		waypoints.push_back(half);
 	}
 
@@ -81,7 +76,6 @@ void defensive::tick() {
 	// DO NOT SORT IT AGAIN!!
 	std::sort(the_robots.begin(), the_robots.end(), ai_util::cmp_dist<player::ptr>(the_world->ball()->position()));
 
-	const point self(-the_world->field().length() / 2, 0);
 	const friendly_team& friendly(the_world->friendly);
 	const point goal(the_world->field().length() / 2, 0);
 
@@ -135,7 +129,7 @@ void defensive::tick() {
 		} else {
 			// If a player nearest to the goal area has the ball
 			// that player is probably a goalie, chase the ball!
-			std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(self));
+			std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(the_world->field().friendly_goal()));
 			if (friends.size() > 0 && friends[0]->has_ball()) {
 				chase::ptr chase_tactic(new chase(the_robots[0], the_world));
 				the_tactics.push_back(chase_tactic);

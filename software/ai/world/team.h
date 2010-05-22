@@ -54,6 +54,11 @@ class team : public byref {
 		 */
 		virtual robot::ptr get_robot(unsigned int index) const = 0;
 
+		/**
+		 * \return A vector of robots.
+		 */
+		virtual std::vector<robot::ptr> get_robots() const = 0;
+
 	protected:
 		/**
 		 * Constructs a new team.
@@ -105,6 +110,13 @@ class enemy_team : public team {
 		robot::ptr get_robot(unsigned int index) const {
 			assert(index < size());
 			return members[index];
+		}
+
+		/**
+		 * \return A vector of robots.
+		 */
+		std::vector<robot::ptr> get_robots() const {
+			return members;
 		}
 
 	private:
@@ -172,6 +184,23 @@ class friendly_team : public team {
 		player::ptr get_player(unsigned int index) const {
 			assert(index < size());
 			return members[index];
+		}
+
+		/**
+		 * \return A vector of players.
+		 */
+		const std::vector<player::ptr>& get_players() const {
+			return members;
+		}
+
+		/**
+		 * \return A vector of robots.
+		 */
+		std::vector<robot::ptr> get_robots() const {
+			std::vector<robot::ptr> robots;
+			for (size_t i = 0; i < members.size(); ++i)
+				robots.push_back(members[i]);
+			return robots;
 		}
 
 	private:

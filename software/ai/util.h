@@ -6,6 +6,9 @@
 
 #include <vector>
 
+/**
+ * Contains a bunch of useful utility functions.
+ */
 namespace ai_util {
 
 	/**
@@ -94,13 +97,13 @@ namespace ai_util {
 	 * Convert team into vector of robots. 
 	 * For any team.
 	 */
-	std::vector<robot::ptr> get_robots(const team& theteam);
+	// std::vector<robot::ptr> get_robots(const team& theteam);
 
 	/**
 	 * Convert friendly into vector of players. 
 	 * For friendly team.
 	 */
-	std::vector<player::ptr> get_players(const friendly_team& friendly);
+	// std::vector<player::ptr> get_players(const friendly_team& friendly);
 
 	/**
 	 * Convert friendly into vector of players, excluding some.
