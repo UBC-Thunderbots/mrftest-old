@@ -654,10 +654,13 @@ void robot_state::alive_state::on_feedback_timeout() {
 		delivery_mask = bot.daemon.shm->frames[run_data_index_].delivery_mask;
 	}
 
-	// If we have failed 64 times in a row, assume the robot is dead.
+	// If we have failed 64 times in a row, assume the robot is dead. Otherwise,
+	// emit the feedback signal to update the UI.
 	if (!delivery_mask) {
 		bot.state_ = setting16_state::enter(bot, claimed_by, address16_, run_data_index_);
 		bot.signal_dead.emit();
+	} else {
+		bot.signal_feedback.emit();
 	}
 }
 
