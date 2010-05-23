@@ -77,7 +77,7 @@ void defensive::tick() {
 	std::sort(the_robots.begin(), the_robots.end(), ai_util::cmp_dist<player::ptr>(the_world->ball()->position()));
 
 	const friendly_team& friendly(the_world->friendly);
-
+	
 	int baller = -1;
 	for(size_t i = 0; i < the_robots.size(); i++) {
 		if(the_robots[i]->has_ball()) {
@@ -93,7 +93,7 @@ void defensive::tick() {
 			break;
 		}
 	}
-
+	  
 	std::vector<player::ptr> friends = ai_util::get_friends(friendly, the_robots);
 
 	// The robot that will do something to the ball (e.g. chase).
@@ -169,7 +169,12 @@ void defensive::tick() {
 		}
 	}
 
+	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
+	if (teamhasball) 
+	  flags |= ai_flags::clip_play_area;
+
 	for (size_t i = 0; i < the_tactics.size(); i++) {
+		the_tactics[i]->set_flags(flags);
 		the_tactics[i]->tick();
 	}
 }

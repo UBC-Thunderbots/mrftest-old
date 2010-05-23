@@ -10,6 +10,11 @@ execute_penalty_enemy::execute_penalty_enemy(world::ptr world) : the_world(world
 }
 
 void execute_penalty_enemy::tick(){
+	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
+	flags &= ~(ai_flags::avoid_friendly_defence);
+	flags &= ~(ai_flags::penalty_kick_enemy);
+	move_to_start->set_flags(flags);
+	move_to_end->set_flags(flags);
 	if (should_patrol) {
 		patrol();		
 	} else {

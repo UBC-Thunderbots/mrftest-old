@@ -25,14 +25,18 @@ void execute_indirect_free_kick_friendly::tick(){
 			}
 		}
 	}
+	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
+	flags &= ~(ai_flags::clip_play_area);
 	if (best_passee == the_team.size()){
 		// No robot can receive the pass. Simply chip the ball forward.
 		kick::ptr tactic (new kick(the_robots[0]));
 		tactic->set_chip();
 		tactic->set_target(the_world->field().enemy_goal());
+		tactic->set_flags(flags);
 		tactic->tick();
 	} else {
 		pass::ptr tactic (new pass(the_robots[0], the_team[best_passee], the_world));
+		tactic->set_flags(flags);
 		tactic->tick();
 	}
 }

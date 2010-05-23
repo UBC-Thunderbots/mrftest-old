@@ -98,8 +98,12 @@ void offensive::tick(){
            chase_ball(i);
         }
     }
-
+    unsigned int flags = ai_flags::calc_flags(the_world->playtype());
+    if (have_ball())
+      flags |= ai_flags::clip_play_area;
+    
     for(unsigned int i=0; i<the_tactics.size(); i++) {
+	the_tactics[i]->set_flags(flags);
         the_tactics[i]->tick();
     }
 }

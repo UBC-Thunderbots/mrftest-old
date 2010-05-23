@@ -11,7 +11,9 @@ prepare_kickoff_friendly::prepare_kickoff_friendly(world::ptr world) : the_world
 }
 
 void prepare_kickoff_friendly::tick(){
+   unsigned int flags = ai_flags::calc_flags(the_world->playtype());
    for(unsigned int i=0; i<the_tactics.size(); i++) {
+	the_tactics[i]->set_flags(flags);
         the_tactics[i]->tick();
    }
 }

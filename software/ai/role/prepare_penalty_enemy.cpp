@@ -10,7 +10,9 @@ prepare_penalty_enemy::prepare_penalty_enemy(world::ptr world) : the_world(world
 }
 
 void prepare_penalty_enemy::tick(){
+	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
 	for (unsigned int i = 0; i < the_tactics.size(); ++i) {
+		the_tactics[i]->set_flags(flags);
 		the_tactics[i]->tick();
 	}
 }

@@ -13,7 +13,9 @@ goalie::goalie(world::ptr world) : the_world(world) {
 }
 
 void goalie::tick() {
-
+	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
+	flags &= ~(ai_flags::avoid_friendly_defence);
+	
 	if (the_robots.size() < 1) return;
 	if (the_robots.size() > 1) {
 		std::cerr << "goalie role: multiple robots!" << std::endl;
@@ -38,13 +40,15 @@ void goalie::tick() {
 		if (nearidx == -1) {
 			move move_tactic(me, the_world);
 			move_tactic.set_position(me->position());
+			move_tactic.set_flags(flags);
 			move_tactic.tick();
 		} else {
 			pass pass_tactic(me, friends[nearidx], the_world);
+			pass_tactic.set_flags(flags);
 			pass_tactic.tick();
 		}
 
-#warning the goalie can't hold the ball for too long, it should chip somewhere very randomly
+#warning the goalie cant hold the ball for too long, it should chip somewhere very randomly
 
 	} else {
 		// Generic defence.
@@ -55,6 +59,7 @@ void goalie::tick() {
 		tempPoint = tempPoint * (STANDBY_DIST / tempPoint.len());
 		tempPoint += centre_of_goal;
 		move_tactic.set_position(tempPoint);
+		move_tactic.set_flags(flags);
 		move_tactic.tick();
 	} 
 }

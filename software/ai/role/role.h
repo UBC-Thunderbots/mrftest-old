@@ -3,6 +3,7 @@
 
 #include "ai/world/world.h"
 #include "util/byref.h"
+#include "ai/flags.h"
 #include <vector>
 #include <glibmm.h>
 

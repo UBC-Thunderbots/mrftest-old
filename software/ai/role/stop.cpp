@@ -19,7 +19,7 @@ stop::stop(world::ptr world) : the_world(world) {
 
 void stop::tick(){
 	const ball::ptr the_ball(the_world->ball());
-
+    unsigned int flags = ai_flags::calc_flags(the_world->playtype());
     for (unsigned int i = 0; i < the_robots.size(); i++)
     {
         double distance = (points[i]-the_ball->position()).len();
@@ -47,6 +47,7 @@ void stop::tick(){
             ////////////////////////
             tactics[i]->set_position(the_robots[i]->position());
         }    */
+	tactics[i]->set_flags(flags);
         tactics[i]->tick();
     } 
 }
