@@ -28,12 +28,6 @@ class simulator : public backend, public sigc::trackable {
 		const config &conf;
 
 		/**
-		 * Fired when the positions of objects on the field change, such as when
-		 * a time tick occurs and robots move.
-		 */
-		sigc::signal<void> signal_field_changed;
-
-		/**
 		 * Constructs a new simulator using the robots found in a configuration
 		 * file.
 		 * \param conf the configuration data to initialize the simulator with

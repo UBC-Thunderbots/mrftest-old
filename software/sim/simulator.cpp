@@ -247,7 +247,6 @@ bool simulator::push_response() {
 
 void simulator::tick() {
 	engine->tick();
-	signal_field_changed.emit();
 
 	// Assume that each camera can see 10% of the other camera's area of the field.
 	static const double LIMIT_MAG = simulator_field::length / 2 * 0.1;
