@@ -111,7 +111,7 @@ namespace {
 			Gtk::Button start_button;
 			Gtk::Button next_button;
 			Gtk::VBox vbox;
-			time_t start_time;
+			time_t start_phase;
 			int phase;
 	};
 
@@ -177,12 +177,12 @@ namespace {
 		} else if (phase == 1) {
 			if (done == 0) {
 				time_steps = 0;
-				time(&start_time);
+				time(&start_phase);
 				done++;
 			}
-			time_t end_time;
-			time(&end_time);
-			double diff = difftime(end_time, start_time);
+			time_t end_phase;
+			time(&end_phase);
+			double diff = difftime(end_phase, start_phase);
 			if(diff >= 6) {
 				done = tasks.size();
 				return;
