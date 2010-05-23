@@ -4,6 +4,7 @@
 #include "ai/strategy/strategy.h"
 #include "ai/tactic/move.h"
 #include <gtkmm.h>
+#include <ctime>
 
 class movement_benchmark : public strategy {
 	public:
@@ -27,6 +28,7 @@ class movement_benchmark : public strategy {
 		point prev_pos;
 		double prev_ori;
 		Gtk::Button reset_button;
+		time_t start_tasks, curr_tasks, end_tasks;
 };
 
 #endif

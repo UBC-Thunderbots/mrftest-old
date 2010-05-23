@@ -122,8 +122,10 @@ void movement_benchmark::tick() {
 		return;
 	}
 	if (done >= tasks.size()) return;
-	if (done == 0) time_steps = 0;
-	else if (done > 0) time_steps++;
+	if (done == 0) {
+		time_steps = 0;
+		time(&start_tasks);
+	} else if (done > 0) time_steps++;
 	const point diff_pos = the_team.get_player(0)->position() - tasks[done].first;
 	//const point vel_pos = the_team.get_player(0)->est_velocity();
 	const point vel_pos = the_team.get_player(0)->position() - prev_pos;
@@ -135,9 +137,12 @@ void movement_benchmark::tick() {
 	if (diff_pos.len() < pos_dis_threshold && vel_pos.len() < pos_vel_threshold && fabs(diff_ori) < ori_dis_threshold && fabs(vel_ori) < ori_vel_threshold) {
 		++done;
 	}
+	time(&curr_tasks);
 	if (done >= tasks.size()) {
+		time(&end_tasks);
+		double diff = difftime(end_tasks, start_tasks);
 		// task completed
-		std::cout << "time steps taken: " << time_steps << std::endl;
+		std::cout << "time steps taken: " << time_steps << " time taken=" << diff << std::endl;
 		return;
 	}
 	prev_ori = the_team.get_player(0)->orientation();
