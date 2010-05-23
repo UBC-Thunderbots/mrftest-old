@@ -41,11 +41,11 @@ namespace {
 	const double MIN_X_PROP = 1;
 	const double MAX_X_PROP = 1.2;
 
-	const double DEF_X_DIFF = 0.54;
+	const double DEF_X_DIFF = 0;
 	const double MIN_X_DIFF = 0;
 	const double MAX_X_DIFF = 1;
 
-	const double DEF_X_INTG = 0.03;
+	const double DEF_X_INTG = 0;
 	const double MIN_X_INTG = 0;
 	const double MAX_X_INTG = 0.05;
 
@@ -70,13 +70,13 @@ namespace {
 	const double MAX_XY_RATIO = 1.4;
 #endif
 
-	const double DEF_A_PROP = 4.5;
-	const double MIN_A_PROP = 4;
+	const double DEF_A_PROP = 4;
+	const double MIN_A_PROP = 1;
 	const double MAX_A_PROP = 5;
 
-	const double DEF_A_DIFF = 0.3;
-	const double MIN_A_DIFF = 0.1;
-	const double MAX_A_DIFF = 0.6;
+	const double DEF_A_DIFF = 0;
+	const double MIN_A_DIFF = 0;
+	const double MAX_A_DIFF = 0;
 
 	enum {
 		PARAM_X_PROP = 0, PARAM_X_DIFF, PARAM_X_INTG,
