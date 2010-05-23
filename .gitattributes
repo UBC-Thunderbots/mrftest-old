@@ -24,6 +24,7 @@ software/Doxyfile -text
 software/Makefile -text
 software/ai/ai.cpp -text
 software/ai/ai.h -text
+software/ai/flags.h -text
 software/ai/main.cpp -text
 software/ai/navigator/basic_navigator.cpp -text
 software/ai/navigator/basic_navigator.h -text
