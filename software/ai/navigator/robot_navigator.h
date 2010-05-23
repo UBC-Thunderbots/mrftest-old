@@ -60,6 +60,11 @@ class robot_navigator : public noncopyable {
 		}
 
 	private:
+	
+		bool dst_ok(point dst);
+	
+		point get_inbounds_point(point dst);
+	
 		bool check_vector(const point& start, const point& dest, const point& direction) const;
 		double get_avoidance_factor() const;
 

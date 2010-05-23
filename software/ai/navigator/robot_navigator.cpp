@@ -22,6 +22,49 @@ double robot_navigator::get_avoidance_factor() const {
 	return AVOID_CONST + AVOID_MULT * the_player->est_velocity().len();
 }
 
+bool robot_navigator::dst_ok(point dst){
+  return  (dst - get_inbounds_point(dst)).len() <= ai_util::POS_CLOSE;
+}
+
+point robot_navigator::get_inbounds_point(point dst){
+
+	const ball::ptr the_ball(the_world->ball());
+	const field &the_field(the_world->field());
+	const point balldist = the_ball->position() - the_player->position();
+	const double distance = (dst - the_player->position()).len();
+
+	point wantdest = dst;
+
+	if (flags & clip_play_area) {
+		wantdest = clip_point(target_position, point(-the_field.length()/2 + the_field.bounds_margin(), -the_field.width()/2 + the_field.bounds_margin()),
+				point(the_field.length()/2 - the_field.bounds_margin(), the_field.width()/2 - the_field.bounds_margin()));
+	}
+	if(flags & avoid_ball_stop){
+	  //need to grab ball distance from somewhere
+	}
+
+	if(flags & avoid_friendly_defence){
+
+	}
+
+	if(flags & avoid_enemy_defence){
+
+	}
+
+	if(flags & stay_own_half){
+
+	}
+
+	if(flags & penalty_kick_friendly){
+
+	}
+
+	if(flags & penalty_kick_enemy){
+
+	}
+	return wantdest;
+}
+
 void robot_navigator::tick() {
 	const ball::ptr the_ball(the_world->ball());
 	const field &the_field(the_world->field());
