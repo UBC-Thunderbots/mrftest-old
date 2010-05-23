@@ -19,6 +19,7 @@ void move::tick() {
 	the_player->dribble(the_player->has_ball()? 1:0);
 	if (position_initialized) navi.set_position(target_position);
 	if (orientation_initialized) navi.set_orientation(target_orientation);
+	navi.set_flags(flags);
 	navi.tick();
 }
 

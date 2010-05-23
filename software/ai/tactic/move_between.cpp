@@ -17,5 +17,6 @@ point move_between::calculate_position() {
 
 void move_between::tick() {
 	move_tactic.set_position(calculate_position());
+	move_tactic.set_flags(flags);
 	move_tactic.tick();
 }

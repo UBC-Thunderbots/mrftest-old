@@ -28,6 +28,7 @@ void block::tick() {
 		// move towards where the target's moving
 		navi.set_position(target->position() + target->est_velocity());
 	}
+	navi.set_flags(flags);
 	navi.tick();
 }
 

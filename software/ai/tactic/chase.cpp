@@ -22,6 +22,7 @@ void chase::tick() {
 	// predict ball position based on velocity and accleration
  	//NOTE THAT MOVING BALL MANUALLY WITH CURSOR CAN GIVE VERY LARGE VELOCITY AND ACCELERATION
 	navi.set_position(the_ball->position() + VEL_FACTOR * the_ball->est_velocity() + ACL_FACTOR * the_ball->est_acceleration());
+	navi.set_flags(flags);
 	navi.tick();
 }
 

@@ -24,6 +24,7 @@ void shoot::tick()
 		// chase if our team does not have the ball
 		if (!has_ball)
 		{
+			chase_tactic.set_flags(flags);
 			chase_tactic.tick();
 		}
 	} 

@@ -33,6 +33,7 @@ void pass::tick() {
 	if (should_wait)
 	{
 		move_tactic.set_position(the_receiver->position());
+		move_tactic.set_flags(flags);
 		move_tactic.tick();
 	}
 	else

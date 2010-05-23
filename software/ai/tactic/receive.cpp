@@ -14,6 +14,7 @@ void receive::tick() {
 		// if this robot is to receive the pass, just stand still and turn towards the passer
 		navi.set_orientation((the_world->ball()->position() - the_player->position()).orientation());
 	}
+	navi.set_flags(flags);
 	navi.tick();
 }
 

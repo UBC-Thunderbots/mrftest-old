@@ -9,6 +9,13 @@
  */
 class tactic : public byref {
 	public:
+		
+		/**
+		 * Default constructor. Sets flags to zero.
+		 */
+		tactic(){
+		  flags = 0;
+		}
 		/**
 		 * A pointer to a tactic.
 		 */
@@ -29,6 +36,13 @@ class tactic : public byref {
 		 * navigator, call player::move().
 		 */
 		virtual void tick() = 0;
+		
+		void set_flags(const unsigned int& f){
+		  flags |= f;
+		}
+		
+  protected:
+      unsigned int flags;
 };
 
 #endif

@@ -11,5 +11,6 @@ void move_between_robots::set_robots(robot::ptr robotA, robot::ptr robotB) {
 
 void move_between_robots::tick() {
 	move_between_tactic.set_points(the_robot1->position(), the_robot2->position());
+	move_between_tactic.set_flags(flags);
 	move_between_tactic.tick();
 }

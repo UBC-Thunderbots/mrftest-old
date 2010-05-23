@@ -52,14 +52,11 @@ class robot_navigator : public noncopyable {
 		};
 
 		/**
-		 * Sets 
+		 * Sets flags permanently.
+		 * There is no method to unset a flag.
 		 */
 		void set_flags(const unsigned int& f) {
 			flags |= f;
-		}
-
-		void unset_flags(const unsigned int& f) {
-			flags &= ~f;
 		}
 
 	private:
