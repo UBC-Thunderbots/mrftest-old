@@ -102,27 +102,27 @@ namespace {
 			Gtk::Widget *get_ui_controls();
 			strategy_factory &get_factory();
 			void tick();
-			void next();
-			void start();
+			void run_turn();
+			void run_bench();
 			void reset();
 		private:
 			mech_tuning_ui ui;
 			tunable_controller* tc;
-			Gtk::Button start_button;
-			Gtk::Button next_button;
+			Gtk::Button run_bench_button;
+			Gtk::Button run_turn_button;
 			Gtk::VBox vbox;
 			time_t start_phase;
 			int phase;
 	};
 
-	mech_tuning::mech_tuning(world::ptr world) : movement_benchmark(world), ui(this), tc(NULL), start_button("Start"), next_button("Next") {
-		start_button.signal_clicked().connect(sigc::mem_fun(this,&mech_tuning::start));
-		next_button.signal_clicked().connect(sigc::mem_fun(this,&mech_tuning::next));
+	mech_tuning::mech_tuning(world::ptr world) : movement_benchmark(world), ui(this), tc(NULL), run_bench_button("Run Benchmark"), run_turn_button("Turning for 5 mins") {
+		run_bench_button.signal_clicked().connect(sigc::mem_fun(this,&mech_tuning::run_bench));
+		run_turn_button.signal_clicked().connect(sigc::mem_fun(this,&mech_tuning::run_turn));
 		done = tasks.size();
 		phase = 0;
 		time_steps = 0;
-		vbox.add(start_button);
-		vbox.add(next_button);
+		vbox.add(run_bench_button);
+		vbox.add(run_turn_button);
 	}
 
 	mech_tuning::~mech_tuning() {
@@ -140,7 +140,17 @@ namespace {
 		ui.reset(tc);
 	}
 
-	void mech_tuning::start() {
+	void mech_tuning::run_bench() {
+		if (tc) {
+			const std::vector<double>& params = ui.read_params();
+			tc->set_params(params);
+		}
+		done = 0;
+		time_steps = 0;
+		phase = 2;
+	}
+
+	void mech_tuning::run_turn() {
 		if (tc) {
 			const std::vector<double>& params = ui.read_params();
 			tc->set_params(params);
@@ -148,16 +158,6 @@ namespace {
 		done = 0;
 		time_steps = 0;
 		phase = 0;
-	}
-
-	void mech_tuning::next() {
-		if (tc) {
-			const std::vector<double>& params = ui.read_params();
-			tc->set_params(params);
-		}
-		done = 0;
-		time_steps = 0;
-		phase = 1;
 	}
 
 	void mech_tuning::tick() {
@@ -172,9 +172,9 @@ namespace {
 			done = 0;
 		}
 		
-		if (phase == 0 || phase == 2) {
+		if (phase == 2) {
 			movement_benchmark::tick();
-		} else if (phase == 1) {
+		} else if (phase == 0) {
 			if (done == 0) {
 				time_steps = 0;
 				time(&start_phase);
@@ -183,16 +183,16 @@ namespace {
 			time_t end_phase;
 			time(&end_phase);
 			double diff = difftime(end_phase, start_phase);
-			if(diff >= 6) {
+			if(diff >= 5 * 60) {
 				done = tasks.size();
 				return;
 			}
 			prev_ori = the_team.get_player(0)->orientation();
 			prev_pos = the_team.get_player(0)->position();
-			if (diff >= 3) {
-				the_team.get_player(0)->move(prev_pos, prev_ori + PI / 2);
+			if (fmod(diff, 6) >= 3) {
+				the_team.get_player(0)->move(prev_pos, prev_ori + 3 * PI / 2);
 			} else {
-				the_team.get_player(0)->move(prev_pos, prev_ori - PI / 2);
+				the_team.get_player(0)->move(prev_pos, prev_ori - 3 * PI / 2);
 			}
 		}
 	}
