@@ -92,7 +92,7 @@ class field : public visualizable::field {
 		 * \return Position of enemy goal.
 		 */
 		point enemy_goal() const {
-			return point(-length_ * 0.5, 0);
+			return point(length_ * 0.5, 0);
 		}
 
 		/**
@@ -106,7 +106,7 @@ class field : public visualizable::field {
 		 * \return Position of enemy goal boundaries (top and bottom).
 		 */
 		std::pair<point, point> enemy_goal_boundary() const {
-			return std::make_pair(point(length_ * 0.5, -goal_width_), point(-length_ * 0.5, goal_width_));
+			return std::make_pair(point(length_ * 0.5, -goal_width_), point(length_ * 0.5, goal_width_));
 		}
 
 		/**
