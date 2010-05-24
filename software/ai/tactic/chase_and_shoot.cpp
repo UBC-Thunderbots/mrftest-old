@@ -1,5 +1,6 @@
 #include "ai/tactic/chase_and_shoot.h"
 #include "geom/angle.h"
+#include "ai/flags.h"
 
 #include <iostream>
 
@@ -60,7 +61,7 @@ void chase_and_shoot::tick()
  		tactic.tick();
  	}else{
  		move_tactic.set_position(robot_dst);
-		move_tactic.set_avoid_ball(true);
+		move_tactic.set_flags(ai_flags::avoid_ball_near);
 		move_tactic.tick(); 	
  	
  	}

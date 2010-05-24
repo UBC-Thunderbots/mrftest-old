@@ -9,13 +9,6 @@
  */
 class tactic : public byref {
 	public:
-		
-		/**
-		 * Default constructor. Sets flags to zero.
-		 */
-		tactic(){
-		  flags = 0;
-		}
 		/**
 		 * A pointer to a tactic.
 		 */
@@ -36,13 +29,29 @@ class tactic : public byref {
 		 * navigator, call player::move().
 		 */
 		virtual void tick() = 0;
-		
-		void set_flags(const unsigned int& f){
-		  flags |= f;
+
+		/**
+		 * Set flags that restrict the movement of the robots.
+		 * Flags are permanent once set.
+		 */
+		void set_flags(const unsigned int& f) {
+			flags |= f;
 		}
-		
-  protected:
-      unsigned int flags;
+
+	protected:
+		/**
+		 * Constructor, flags set to 0 by default.
+		 */
+		tactic() : flags(0) {
+		}
+
+		/**
+		 * Constructor, with flags argument.
+		 */
+		explicit tactic(const unsigned int& f) : flags(f) {
+		}
+
+		unsigned int flags;
 };
 
 #endif

@@ -1,20 +1,12 @@
 #include "ai/tactic/move.h"
 
 move::move(player::ptr player, world::ptr world) : the_player(player), navi(player, world), position_initialized(false), orientation_initialized(false) {
-	avoid_ball = false;
 }
 
-move::move(player::ptr player, world::ptr world, const point& position) : the_player(player), navi(player, world), target_position(position), position_initialized(true), orientation_initialized(false) {
-	avoid_ball = false;
-}
-
-void move::set_avoid_ball(bool avoid) {
-	avoid_ball = avoid;
+move::move(player::ptr player, world::ptr world, const unsigned int& flags, const point& position) : tactic(flags), the_player(player), navi(player, world), target_position(position), position_initialized(true), orientation_initialized(false) {
 }
 
 void move::tick() {
-#warning refactor
-	//navi.set_robot_avoids_ball(avoid_ball);
 #warning logic error, if we use speed sensing then has_ball is always false when not dribbling
 	the_player->dribble(the_player->has_ball()? 1:0);
 	if (position_initialized) navi.set_position(target_position);

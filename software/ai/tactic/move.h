@@ -23,7 +23,7 @@ class move : public tactic {
 		 * Most usage of move tactic only sets position and should thus justify existence of this overloaded constructor.
 		 * \param position Moves the robot to this position.
 		 */
-		move(player::ptr player, world::ptr world, const point& position);
+		move(player::ptr player, world::ptr world, const unsigned int& flags, const point& position);
 
 		//
 		// Runs the AI for one time tick.
@@ -53,23 +53,15 @@ class move : public tactic {
 			orientation_initialized = false;
 		}
 
-#warning TODO: refactor
-		//
-		//make the move tactic avoid the ball
-		//
-		void set_avoid_ball(bool avoid);
-
 	protected:		
 		const player::ptr the_player;
-		double target_orientation;
 		robot_navigator navi;
 
 		point target_position;
+		double target_orientation;
+
 		bool position_initialized;
 		bool orientation_initialized;
-
-		// TODO: refactor
-		bool avoid_ball;
 };
 
 #endif
