@@ -1318,6 +1318,8 @@ static void svdv2x2(double f,
     //
     // Correct signs of SSMAX and SSMIN
     //
+	#warning is this a good default value for tsign?
+	tsign = 1;
     if( pmax==1 )
     {
         tsign = extsignbdsqr(double(1), csr)*extsignbdsqr(double(1), csl)*extsignbdsqr(double(1), f);
