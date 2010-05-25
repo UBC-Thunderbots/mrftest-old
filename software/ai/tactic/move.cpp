@@ -3,8 +3,8 @@
 move::move(player::ptr player, world::ptr world) : the_player(player), navi(player, world), position_initialized(false), orientation_initialized(false) {
 }
 
-move::move(player::ptr player, world::ptr world, const unsigned int& flags, const point& position) : tactic(flags), the_player(player), navi(player, world), target_position(position), position_initialized(true), orientation_initialized(false) {
-}
+// move::move(player::ptr player, world::ptr world, const unsigned int& flags, const point& position) : tactic(flags), the_player(player), navi(player, world), target_position(position), position_initialized(true), orientation_initialized(false) {
+// }
 
 void move::tick() {
 #warning logic error, if we use speed sensing then has_ball is always false when not dribbling

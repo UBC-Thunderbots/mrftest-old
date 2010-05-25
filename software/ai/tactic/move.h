@@ -6,6 +6,8 @@
 
 /**
  * A wrapper around robot navigator.
+ * I.e. this class exist only so that roles do not call navigator directly.
+ * Therefore, me thinks that other tactic should not have instance of this tactic.
  */
 class move : public tactic {
 	public:
@@ -23,7 +25,7 @@ class move : public tactic {
 		 * Most usage of move tactic only sets position and should thus justify existence of this overloaded constructor.
 		 * \param position Moves the robot to this position.
 		 */
-		move(player::ptr player, world::ptr world, const unsigned int& flags, const point& position);
+		// move(player::ptr player, world::ptr world, const unsigned int& flags, const point& position);
 
 		//
 		// Runs the AI for one time tick.
