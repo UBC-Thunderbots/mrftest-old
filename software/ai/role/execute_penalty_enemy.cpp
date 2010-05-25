@@ -10,13 +10,8 @@ execute_penalty_enemy::execute_penalty_enemy(world::ptr world) : the_world(world
 }
 
 void execute_penalty_enemy::tick(){
-	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
-	flags &= ~(ai_flags::avoid_friendly_defence);
-	flags &= ~(ai_flags::penalty_kick_enemy);
-	move_to_start->set_flags(flags);
-	move_to_end->set_flags(flags);
 	if (should_patrol) {
-		patrol();		
+		patrol_tactic->tick();
 	} else {
 		// not at ready position yet
 		if ((the_goalie->position() - starting_position).lensq() > ai_util::POS_CLOSE) {
@@ -43,31 +38,17 @@ void execute_penalty_enemy::tick(){
 void execute_penalty_enemy::robots_changed() {	
 	the_goalie = the_robots[0];
 
-	move_to_start = move::ptr(new move(the_goalie, the_world));
+	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
+	flags &= ~(ai_flags::avoid_friendly_defence);
+	flags &= ~(ai_flags::penalty_kick_enemy);
+
+	move_to_start = move::ptr(new move(the_goalie, the_world, flags));
 	move_to_start->set_position(starting_position);
 
-	move_to_end = move::ptr(new move(the_goalie, the_world));
+	move_to_end = move::ptr(new move(the_goalie, the_world, flags));
 	move_to_end->set_position(ending_position);
-}
 
-void execute_penalty_enemy::patrol() {
-	if (should_go_to_start) {
-		// reached the start position
-		if ((the_goalie->position() - starting_position).lensq() <= ai_util::POS_CLOSE) {
-			should_go_to_start = false;
-			move_to_end->tick();
-		} else {
-			move_to_start->tick();
-		}
-	} else {
-		// reached the end position
-		if ((the_goalie->position() - ending_position).lensq() <= ai_util::POS_CLOSE) {
-			should_go_to_start = true;
-			move_to_start->tick();
-		} else {
-			move_to_end->tick();
-		}
-	}
+	patrol_tactic = patrol::ptr(new patrol(the_goalie, the_world, flags, starting_position, ending_position));
 }
 
 bool execute_penalty_enemy::detect_enemy_movement() {

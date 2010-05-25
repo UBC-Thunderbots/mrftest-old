@@ -3,6 +3,7 @@
 
 #include "ai/role/role.h"
 #include "ai/tactic/move.h"
+#include "ai/tactic/patrol.h"
 
 /**
  * Gets the robots to go to their execute_penalty_enemy positions.
@@ -35,10 +36,6 @@ class execute_penalty_enemy : public role {
 		const world::ptr the_world;
 
 	private:
-		/**
-		 * Patrols between the starting position and ending position.
-		 */
-		void patrol();
 	
 		/**
 		 * Returns whether the shooter has made a move.
@@ -64,6 +61,11 @@ class execute_penalty_enemy : public role {
 		 * The ending position.
 		 */
 		const point ending_position;
+	
+		/**
+		 * The patrol tactic.
+		 */
+		patrol::ptr patrol_tactic;
 
 		/**
 		 * The tactic to move to the starting position.

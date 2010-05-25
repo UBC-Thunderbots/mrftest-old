@@ -22,6 +22,11 @@ class move : public tactic {
 		move(player::ptr player, world::ptr world);
 
 		/**
+		 * Overloaded constructor with flags option.
+		 */
+		move(player::ptr player, world::ptr world, const unsigned int& flags);
+
+		/**
 		 * Most usage of move tactic only sets position and should thus justify existence of this overloaded constructor.
 		 * \param position Moves the robot to this position.
 		 */
@@ -38,6 +43,13 @@ class move : public tactic {
 		void set_position(const point& p) {
 			target_position = p;
 			position_initialized = true;
+		}
+
+		/**
+		 * Gets whether the position is set for this move tactic.
+		 */
+		bool is_position_set() {
+			return position_initialized;
 		}
 
 		/**
