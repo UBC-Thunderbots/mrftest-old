@@ -2,7 +2,6 @@
 #include "geom/point.h"
 #include "geom/angle.h"
 #include "util/timestep.h"
-#include "util/matrix.h"
 #include <cmath>
 #include <iostream>
 
@@ -23,20 +22,17 @@ namespace {
 
 }
 
+
+
 jons_controller::jons_controller(player::ptr plr) : plr(plr), max_acc(10), max_vel(1000), max_Aacc(1), close_param(1.5),position_delta(0.05), orient_delta(0.05)
 {
 }
 
 void jons_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
-	math::matrix<double> Amat(3,3);
-	math::matrix<double> Bmat(3,3);
-	
-	for(int i=0;i<3;i++)
-		for(int j=0;j<3;j++)
-			Amat(i,j)=3*i+j;
-	Bmat=~Amat;
-	std::cout << Bmat << std::endl;
-		
+	Matrix Covariance_Vt(5,5);
+	Matrix Covariance_Vx(5,5);
+	Matrix Covariance_Vy(5,5);
+
 	const point &current_position = plr->position();
 	const double current_orientation = plr->orientation();
 	const point &current_velocity = plr->est_velocity();
@@ -80,10 +76,11 @@ void jons_controller::move(const point &new_position, double new_orientation, po
 
 /**
 This is unnessecary because there is not state to clear
-in this controller.
+in this controller, but it must be implemented.
 */
 void jons_controller::clear() {
 }
+
 
 robot_controller_factory &jons_controller::get_factory() const {
 	return factory;

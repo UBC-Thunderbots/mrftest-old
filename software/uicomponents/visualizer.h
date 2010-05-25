@@ -206,7 +206,6 @@ class visualizer : public Gtk::DrawingArea, public noncopyable {
 
 	private:
 		const visualizable &data;
-#warning implement dragging
 		double scale;
 		double xtranslate, ytranslate;
 		sigc::connection update_connection;

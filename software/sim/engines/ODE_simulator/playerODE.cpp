@@ -660,10 +660,10 @@ void playerODE::received(const xbeepacket::RUN_DATA &packet) {
 	
 	
 	//limit max motor "voltage" to VOLTAGE_LIMIT by scaling the largest component to VOLTAGE_LIMIT if greater
-	//but preserve its orientation
-	for(int index=0;index<4;index++)
+	// but preserve its orientation
+	for(uint8_t index=0;index<4;index++)
 		if(fabs(motor_desired[index])>VOLTAGE_LIMIT/PACKET_TO_VOLTAGE)
-			for(int index2=0;index2<4;index2++)
+			for(int8_t index2=0;index2<4;index2++)
 				motor_desired[index2]=motor_desired[index2]/motor_desired[index]*VOLTAGE_LIMIT/PACKET_TO_VOLTAGE;
 
 

@@ -8,7 +8,9 @@
 #include "geom/point.h"
 #include "util/byref.h"
 #include "util/noncopyable.h"
+#include "util/matrix.h"
 
+typedef math::matrix<double> Matrix;
 
 /**
 Controller to exploit old broken simulator
