@@ -123,6 +123,9 @@ void basic_strategy::reset_all() {
 	#warning For special plays, need logic to choose which robot becomes the kicker
 	switch (the_world->playtype()) {
 		case playtype::play:
+		case playtype::stop:
+		case playtype::execute_direct_free_kick_enemy:
+		case playtype::execute_indirect_free_kick_enemy:
 			in_play_assignment();
 			std::cout << all_players.size() << " robots set to play" << std::endl;
 			break;
@@ -132,15 +135,6 @@ void basic_strategy::reset_all() {
 			all_players.push_back(goalie_only[0]);
 			roles[0]->set_robots(all_players);
 			std::cout << all_players.size() << " robots set to halt" << std::endl;
-			break;
-
-		case playtype::stop:
-			//TODO: Do we need the stop role?
-			// Seems more sensible for the pl
-			roles.push_back(role::ptr(new stop(the_world)));
-			all_players.push_back(goalie_only[0]);
-			roles[0]->set_robots(all_players);
-			std::cout << all_players.size() << " robots set to stop" << std::endl;
 			break;
 
 		case playtype::prepare_kickoff_friendly: 
@@ -203,23 +197,6 @@ void basic_strategy::reset_all() {
 			roles.push_back(role::ptr(new execute_indirect_free_kick_friendly(the_world)));
 			roles[0]->set_robots(all_players);
 			std::cout << all_players.size() << " robots set to execute indirect free kick friendly" << std::endl;
-			break;
-
-      		case playtype::execute_direct_free_kick_enemy:
-			#warning A more suitable role should be choosed. Also need to detect when the ball is in play.
-			//Maybe treat the same as normal play, with the rule restrictions being enforced in navigator?
-			roles.push_back(role::ptr(new stop(the_world)));
-        		all_players.push_back(goalie_only[0]);
-        		roles[0]->set_robots(all_players);
-			std::cout << all_players.size() << " robots set to execute direct free kick enemy" << std::endl;
-			break;
-	
-      		case playtype::execute_indirect_free_kick_enemy:
-			#warning A more suitable role should be choosed. Also need to detect when the ball is in play.
-			roles.push_back(role::ptr(new stop(the_world)));
-        		all_players.push_back(goalie_only[0]);
-        		roles[0]->set_robots(all_players);
-			std::cout << all_players.size() << " robots set to execute indirect free kick enemy" << std::endl;
 			break;
 
 		case playtype::pit_stop:
