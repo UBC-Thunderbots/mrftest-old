@@ -57,12 +57,11 @@ class point {
 		 \return a unit vector in the same direction as this point or a zero length point if input is zero
 		*/
 		point norm() const __attribute__((warn_unused_result)) {
-			double l = len();
-			point p(x / l, y / l);
-			if (std::fabs(p.lensq() - 1.0) < 1.0e-9) {
-				return p;
-			} else {
+			const double l = len();
+			if (l < 1.0e-9) {
 				return point();
+			} else {
+				return point(x / l, y / l);
 			}
 		}
 
@@ -71,7 +70,7 @@ class point {
 		\param rot angle in radians to rotate vector
 		\return the point rotated by rot
 		*/
-		point rotate(double rot) const __attribute__((warn_unused_result)) {
+		point rotate(const double rot) const __attribute__((warn_unused_result)) {
 			return point(x * std::cos(rot) - y * std::sin(rot), x * std::sin(rot) + y * std::cos(rot));
 		}
 
