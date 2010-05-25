@@ -186,6 +186,7 @@ void scheduler::push() {
 		// eligible for feedback), let's just handle this by the slightly hacky
 		// solution of letting the feedback timeout expire and then pushing more
 		// packets.
+		feedback_timeout_connection.disconnect();
 		feedback_timeout_connection = Glib::signal_timeout().connect(sigc::bind_return(sigc::mem_fun(this, &scheduler::on_feedback_timeout), false), TIMEOUT);
 
 		// Next, it's a queued packet's turn if there is one.
