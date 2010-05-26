@@ -33,6 +33,11 @@ point robot_navigator::force_defense_len(point dst){
     return temp;
 }
 
+point robot_navigator::force_offense_len(point dst){
+    point temp = dst;
+    temp.x = std::min(the_world->field().enemy_goal().x - the_world->field().defense_area_radius(), dst.x);
+    return temp;
+}
 point robot_navigator::clip_defense_area(point dst){
  
   if(abs(2*dst.y) <  the_world->field().defense_area_stretch()){
@@ -59,7 +64,33 @@ point robot_navigator::clip_defense_area(point dst){
 
   }
 
+}
 
+point robot_navigator::clip_offense_area(point dst){
+ 
+  if(abs(2*dst.y) <  the_world->field().defense_area_stretch()){
+    return force_offense_len(dst);
+  }else{
+    point a = the_world->field().enemy_goal();
+    a.y += the_world->field().defense_area_stretch()/2;
+    point dir;
+    if( (dst-a).len() <  the_world->field().defense_area_radius() ){
+       dir = (dst-a).norm();
+       dir*=the_world->field().defense_area_radius();
+    }
+
+    a.y -=  the_world->field().defense_area_stretch();
+
+    if( (dst-a).len() <  the_world->field().defense_area_radius() ){
+       dir = (dst-a).norm();
+       dir*=the_world->field().defense_area_radius();
+    }
+
+   if(dir.norm().len()<0.5)return force_defense_len(dst);
+
+   return dir;
+
+  }
 }
 
 point robot_navigator::get_inbounds_point(point dst){
@@ -91,7 +122,7 @@ point robot_navigator::get_inbounds_point(point dst){
 	}
 
 	if(flags & avoid_enemy_defence){
-
+	  wantdest = clip_offense_area(wantdest);
 	}
 
 
