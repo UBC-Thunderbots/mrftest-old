@@ -13,6 +13,7 @@ namespace {
 	const double ROTATION_THRESH = 100.0 * M_PI / 180.0;
 	const double ROTATION_STEP = 1.0 * M_PI / 180.0;
 	const double LOOKAHEAD_MAX = robot::MAX_RADIUS * 10;
+        const double AVOID_BALL_AMOUNT = 500;
 }
 
 robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world), position_initialized(false), orientation_initialized(false), flags(0) {
@@ -24,6 +25,41 @@ double robot_navigator::get_avoidance_factor() const {
 
 bool robot_navigator::dst_ok(point dst){
   return  (dst - get_inbounds_point(dst)).len() <= ai_util::POS_CLOSE;
+}
+
+point robot_navigator::force_defense_len(point dst){
+    point temp = dst;
+    temp.x = std::max(the_world->field().friendly_goal().x + the_world->field().defense_area_radius(), dst.x);
+    return temp;
+}
+
+point robot_navigator::clip_defense_area(point dst){
+ 
+  if(abs(2*dst.y) <  the_world->field().defense_area_stretch()){
+    return force_defense_len(dst);
+  }else{
+    point a = the_world->field().friendly_goal();
+    a.y += the_world->field().defense_area_stretch()/2;
+    point dir;
+    if( (dst-a).len() <  the_world->field().defense_area_radius() ){
+       dir = (dst-a).norm();
+       dir*=the_world->field().defense_area_radius();
+    }
+
+    a.y -=  the_world->field().defense_area_stretch();
+
+    if( (dst-a).len() <  the_world->field().defense_area_radius() ){
+       dir = (dst-a).norm();
+       dir*=the_world->field().defense_area_radius();
+    }
+
+   if(dir.norm().len()<0.5)return force_defense_len(dst);
+
+   return dir;
+
+  }
+
+
 }
 
 point robot_navigator::get_inbounds_point(point dst){
@@ -39,21 +75,25 @@ point robot_navigator::get_inbounds_point(point dst){
 		wantdest = clip_point(target_position, point(-the_field.length()/2 + the_field.bounds_margin(), -the_field.width()/2 + the_field.bounds_margin()),
 				point(the_field.length()/2 - the_field.bounds_margin(), the_field.width()/2 - the_field.bounds_margin()));
 	}
+	if(flags & stay_own_half){
+	  wantdest.x =  std::min(wantdest.x, 0.0);
+	}
 	if(flags & avoid_ball_stop){
 	  //need to grab ball distance from somewhere
+	  point ball_diff = the_ball->position() - wantdest;
+	  if(ball_diff.len()< AVOID_BALL_AMOUNT){
+	    //do stuff
+	  }
 	}
 
 	if(flags & avoid_friendly_defence){
-
+	  wantdest = clip_defense_area(wantdest);
 	}
 
 	if(flags & avoid_enemy_defence){
 
 	}
 
-	if(flags & stay_own_half){
-
-	}
 
 	if(flags & penalty_kick_friendly){
 
@@ -72,12 +112,8 @@ void robot_navigator::tick() {
 	const point balldist = the_ball->position() - the_player->position();
 	point wantdest = (position_initialized) ? target_position : the_player->position();
 	const double wantori = (orientation_initialized) ? target_orientation : atan2(balldist.y, balldist.x);
+	wantdest = get_inbounds_point(wantdest);
 	const double distance = (wantdest - the_player->position()).len();
-
-	if (flags & clip_play_area) {
-		wantdest = clip_point(target_position, point(-the_field.length()/2 + the_field.bounds_margin(), -the_field.width()/2 + the_field.bounds_margin()),
-				point(the_field.length()/2 - the_field.bounds_margin(), the_field.width()/2 - the_field.bounds_margin()));
-	}
 
 	// at least face the ball
 	if (distance < ai_util::POS_CLOSE || !position_initialized) {

@@ -64,7 +64,8 @@ class robot_navigator : public noncopyable {
 		bool dst_ok(point dst);
 	
 		point get_inbounds_point(point dst);
-	
+		point force_defense_len(point dst);
+		point clip_defense_area(point dst);
 		bool check_vector(const point& start, const point& dest, const point& direction) const;
 		double get_avoidance_factor() const;
 
