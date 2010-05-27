@@ -2,11 +2,16 @@
 #define GEOM_UTIL_H
 
 #include "geom/point.h"
-
+#include <vector>
 /*
    Misc geometry utility functions.
    Contains code ported from 2009 version of AI.
  */
+
+	/**
+	*returns a vector of all the points where the line segment intersects the circle
+	*/
+	std::vector<point> lineseg_circle_intersect(point centre, double radius, point segA, point segB); 
 
 /**
  * Clips a point to a rectangle boundary.

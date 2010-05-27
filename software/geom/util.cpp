@@ -1,7 +1,7 @@
 #include "geom/util.h"
 
 #include <cassert>
-
+#include <algorithm>
 namespace {
 	const double eps = 1e-9;
 }
@@ -17,6 +17,42 @@ point clip_point(const point& p, const point& bound1, const point& bound2) {
 	if (p.y < miny) ret.y = miny;
 	else if (p.y > maxy) ret.y = maxy;
 	return ret;
+}
+
+std::vector<point> lineseg_circle_intersect(point centre, double radius, point segA, point segB){
+
+  std::vector<point> ans;
+
+  //take care of 0 length segments
+  if((segB - segA).lensq()<eps)return ans;
+
+  double lenseg = (segB - segA).dot(centre-segA)/(segB-segA).len();
+  point C = segA + lenseg*(segB-segA).norm();
+
+  //if C outside circle no intersections
+  if((C-centre).lensq() > radius*radius + eps) return ans;
+    
+  //if C on circle perimeter return the only intersection
+  if((C-centre).lensq() < radius*radius + eps && (C-centre).lensq() > radius*radius - eps){
+    bool x_ok = C.x >= std::min(segA.x,segB.x)-eps && C.x <= std::max(segA.x,segB.x)+eps;
+    bool y_ok = C.y >= std::min(segA.y,segB.y)-eps && C.y <= std::max(segA.y,segB.y)+eps;
+    if(x_ok && y_ok)ans.push_back(C);
+    return ans;
+  }
+  //first possible intersection
+  double lensegb = radius*radius -(C-centre).lensq();
+  point inter = C - lensegb*(segB-segA).norm();
+  bool x_ok = inter.x >= std::min(segA.x,segB.x)-eps && inter.x <= std::max(segA.x,segB.x)+eps;
+  bool y_ok = inter.y >= std::min(segA.y,segB.y)-eps && inter.y <= std::max(segA.y,segB.y)+eps;
+  if(x_ok && y_ok)ans.push_back(inter);
+  
+  //second possible intersection
+  inter = C + lensegb*(segB-segA).norm();
+  x_ok = inter.x >= std::min(segA.x,segB.x)-eps && inter.x <= std::max(segA.x,segB.x)+eps;
+  y_ok = inter.y >= std::min(segA.y,segB.y)-eps && inter.y <= std::max(segA.y,segB.y)+eps;
+  if(x_ok && y_ok)ans.push_back(inter);
+
+  return ans;
 }
 
 // ported code
