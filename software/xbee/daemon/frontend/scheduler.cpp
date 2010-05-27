@@ -125,14 +125,16 @@ void scheduler::push() {
 					DPRINT(Glib::ustring::compose("Robot %1 is eligible for feedback.", i));
 				} else {
 					packet.data[i].flags = xbeepacket::RUN_FLAG_RUNNING;
-					packet.data[i].drive1_speed = 0;
-					packet.data[i].drive2_speed = 0;
-					packet.data[i].drive3_speed = 0;
-					packet.data[i].drive4_speed = 0;
 					packet.data[i].dribbler_speed = 0;
 					packet.data[i].chick_power = 0;
 					eligible_for_feedback[i] = false;
 					DPRINT(Glib::ustring::compose("Robot %1 is ineligible for feedback.", i));
+				}
+				if (!(packet.data[i].flags & (xbeepacket::RUN_FLAG_DIRECT_DRIVE | xbeepacket::RUN_FLAG_CONTROLLED_DRIVE))) {
+					packet.data[i].drive1_speed = 0;
+					packet.data[i].drive2_speed = 0;
+					packet.data[i].drive3_speed = 0;
+					packet.data[i].drive4_speed = 0;
 				}
 			}
 		}

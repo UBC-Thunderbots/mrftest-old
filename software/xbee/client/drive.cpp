@@ -31,6 +31,10 @@ void xbee_drive_bot::drive_scram() {
 	assert(shm_frame);
 	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
 	shm_frame->run_data.flags &= ~(xbeepacket::RUN_FLAG_DIRECT_DRIVE | xbeepacket::RUN_FLAG_CONTROLLED_DRIVE);
+	shm_frame->run_data.drive1_speed = 0;
+	shm_frame->run_data.drive2_speed = 0;
+	shm_frame->run_data.drive3_speed = 0;
+	shm_frame->run_data.drive4_speed = 0;
 	timespec_now(&shm_frame->timestamp);
 }
 
