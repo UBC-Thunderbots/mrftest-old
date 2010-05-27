@@ -120,7 +120,7 @@ void defensive::tick() {
 				move_tactic->set_position(the_robots[baller]->position());
 				the_tactics.push_back(move_tactic);
 			} else {
-				pass::ptr pass_tactic(new pass(the_robots[baller], friends[nearidx], the_world));
+				pass::ptr pass_tactic(new pass(the_robots[baller], the_world, friends[nearidx]));
 				the_tactics.push_back(pass_tactic);
 			}
 

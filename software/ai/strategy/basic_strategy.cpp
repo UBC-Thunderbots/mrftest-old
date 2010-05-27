@@ -119,6 +119,19 @@ void basic_strategy::reset_all() {
 	for (size_t i = 1; i < the_team.size(); i++) {
 		all_players.push_back(the_team.get_player(i));
 	}
+
+	// shooter for penalty kick
+	std::vector<player::ptr> shooter_only;
+
+	if (all_players.size() > 0) {
+		shooter_only.push_back(all_players[0]);
+	}
+
+	std::vector<player::ptr> non_shooters;
+	
+	for (size_t i = 1; i < all_players.size(); ++i) {
+		non_shooters.push_back(all_players[i]);
+	}
 	
 	#warning For special plays, need logic to choose which robot becomes the kicker
 	switch (the_world->playtype()) {
@@ -170,8 +183,13 @@ void basic_strategy::reset_all() {
 
 		case playtype::execute_penalty_friendly: 
 			roles.push_back(role::ptr(new execute_penalty_friendly(the_world)));
-			roles[0]->set_robots(all_players);
-			std::cout << all_players.size() << " robots set to execute penalty friendly" << std::endl;
+			roles[0]->set_robots(shooter_only);
+
+			roles.push_back(role::ptr(new prepare_penalty_friendly(the_world)));
+			roles[1]->set_robots(non_shooters);
+			
+			std::cout << shooter_only.size() << " robots set to execute penalty friendly" << std::endl;
+			std::cout << non_shooters.size() << " robots set to prepare penalty friendly" << std::endl;
 			break;
 
 		case playtype::execute_penalty_enemy:

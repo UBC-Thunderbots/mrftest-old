@@ -15,6 +15,8 @@ namespace ai_util{
 	const double ORI_CLOSE = 1e-2;
 
 	const double POS_CLOSE = 1e-5;
+	
+	const double VEL_CLOSE = 1e-2;
 
 	const unsigned int SHOOTING_SAMPLE_POINTS = 9;
 

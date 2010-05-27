@@ -43,7 +43,7 @@ void goalie::tick() {
 			move_tactic.set_flags(flags);
 			move_tactic.tick();
 		} else {
-			pass pass_tactic(me, friends[nearidx], the_world);
+			pass pass_tactic(me, the_world, friends[nearidx]);
 			pass_tactic.set_flags(flags);
 			pass_tactic.tick();
 		}

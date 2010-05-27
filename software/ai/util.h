@@ -56,6 +56,11 @@ namespace ai_util {
 	extern const double POS_CLOSE;
 
 	/**
+	 * Velocity epsilon.
+	 */
+	extern const double VEL_CLOSE;
+
+	/**
 	 * Number of points to consider when shooting at the goal.
 	 */
 	extern const unsigned int SHOOTING_SAMPLE_POINTS;

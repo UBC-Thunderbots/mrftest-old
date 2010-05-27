@@ -25,8 +25,8 @@ void execute_penalty_friendly::tick() {
 			if (the_goalie->position().x > the_world->field().length() - PENALTY_MARK_LENGTH) {
 			
 				// goalie is moving away from the opening
-				if ((the_goalie->position().y > 0 && the_goalie->est_velocity().y >= -ai_util::POS_CLOSE) || 
-					(the_goalie->position().y < 0 && the_goalie->est_velocity().y <= ai_util::POS_CLOSE)) {
+				if ((the_goalie->position().y > 0 && the_goalie->est_velocity().y >= -ai_util::VEL_CLOSE) || 
+					(the_goalie->position().y < 0 && the_goalie->est_velocity().y <= ai_util::VEL_CLOSE)) {
 
 					// shoot should automatically find the opening
 					shoot::ptr tactic(new shoot(the_shooter, the_world));

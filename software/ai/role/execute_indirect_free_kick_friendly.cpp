@@ -35,7 +35,7 @@ void execute_indirect_free_kick_friendly::tick(){
 		tactic->set_flags(flags);
 		tactic->tick();
 	} else {
-		pass::ptr tactic (new pass(the_robots[0], the_team[best_passee], the_world));
+		pass::ptr tactic (new pass(the_robots[0], the_world, the_team[best_passee]));
 		tactic->set_flags(flags);
 		tactic->tick();
 	}

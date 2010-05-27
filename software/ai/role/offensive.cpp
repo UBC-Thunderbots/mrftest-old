@@ -31,7 +31,7 @@ void offensive::chase_ball(int index) {
 }
 
 void offensive::pass_ball(int index, int receiver){
-    pass::ptr tactic (new pass(the_robots[index], the_robots[receiver], the_world));
+    pass::ptr tactic (new pass(the_robots[index], the_world, the_robots[receiver]));
     the_tactics.push_back(tactic);
 }
 

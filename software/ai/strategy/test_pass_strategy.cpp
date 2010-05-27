@@ -60,7 +60,7 @@ namespace {
 //		std::cout << passer->est_velocity() << std::endl;
 		if (passer->has_ball()) {
 //			std::cout << "passer has ball" << std::endl;
-			pass pass_tactic(passer, receiver, the_world);
+			pass pass_tactic(passer, the_world, receiver);
 			pass_tactic.tick();
 		} else {
 			chase chase_tactic(passer, the_world);
