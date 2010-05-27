@@ -2,7 +2,7 @@
 #define UTIL_ALGORITHM_H
 
 #include <algorithm>
-
+#include <vector>
 namespace {
 	/**
 	 * Returns true if an element exists within a range, or false if not.
@@ -32,7 +32,8 @@ namespace {
 	/**
 	 * A comparator that sorts by values in a vector
 	 */
-	template<typename T> class cmp_vector {
+	template<typename T> 
+	class cmp_vector {
 		public:
 			cmp_vector(const std::vector<T>& tbl) : tbl(tbl) {
 			}
