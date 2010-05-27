@@ -4,9 +4,9 @@
 #include <algorithm>
 
 namespace {
-	//
-	// Returns true if an element exists within a range, or false if not.
-	//
+	/**
+	 * Returns true if an element exists within a range, or false if not.
+	 */
 	template<typename Titer, typename Telem>
 	bool exists(Titer begin, Titer end, const Telem &elem) {
 		return std::find(begin, end, elem) != end;
@@ -28,6 +28,21 @@ namespace {
 	T clamp(T value, T lower, T upper) {
 		return std::min(std::max(value, lower), upper);
 	}
+
+	/**
+	 * A comparator that sorts by values in a vector
+	 */
+	template<typename T> class cmp_vector {
+		public:
+			cmp_vector(const std::vector<T>& tbl) : tbl(tbl) {
+			}
+			bool operator()(unsigned int x, unsigned int y) {
+				return tbl[x] > tbl[y];
+			}
+		private:
+			const std::vector<T>& tbl;
+	};
+
 }
 
 #endif
