@@ -1,7 +1,7 @@
 #include "ai/tactic/receive.h"
 #include "ai/util.h"
 
-receive::receive(player::ptr player, world::ptr world) : the_player(player), the_world(world), navi(player, world) {
+receive::receive(player::ptr player, world::ptr world) : tactic(player), the_world(world), navi(player, world) {
 }
 
 void receive::tick() {

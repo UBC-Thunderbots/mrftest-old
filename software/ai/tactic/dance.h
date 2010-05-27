@@ -2,7 +2,6 @@
 #define AI_TACTIC_DANCE_H
 
 #include "ai/tactic/tactic.h"
-#include "ai/world/player.h"
 
 //
 // Victory (?) dance.
@@ -30,8 +29,6 @@ class dance : public tactic {
         // This is used as an elementary clock, to give the dance some structure.
         unsigned int ticks;
         
-        // Used to control a robot, and read position.
-        const player::ptr the_player;
 };
 
 #endif

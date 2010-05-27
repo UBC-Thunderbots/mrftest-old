@@ -2,7 +2,6 @@
 #define AI_TACTIC_CHASE_H
 
 #include "ai/tactic/tactic.h"
-#include "geom/point.h"
 #include "ai/navigator/robot_navigator.h"
 
 /**
@@ -26,7 +25,6 @@ class chase : public tactic {
 		void tick();	
 
 	protected:
-		const player::ptr the_player;
 		const world::ptr the_world;
 		robot_navigator navi;
 };

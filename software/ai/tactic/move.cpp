@@ -1,13 +1,13 @@
 #include "ai/tactic/move.h"
 
-move::move(player::ptr player, world::ptr world) : the_player(player), navi(player, world), position_initialized(false), orientation_initialized(false) {
+move::move(player::ptr player, world::ptr world) : tactic(player), navi(player, world), position_initialized(false), orientation_initialized(false) {
 }
 
 
-move::move(player::ptr player, world::ptr world, const unsigned int& flags) : tactic(flags), the_player(player), navi(player, world), position_initialized(false), orientation_initialized(false) {
+move::move(player::ptr player, world::ptr world, const unsigned int& flags) : tactic(player, flags), navi(player, world), position_initialized(false), orientation_initialized(false) {
 }
 
-//move::move(player::ptr player, world::ptr world, const unsigned int& flags, const point& position) : tactic(flags), the_player(player), navi(player, world), target_position(position), position_initialized(true), orientation_initialized(false) {
+//move::move(player::ptr player, world::ptr world, const unsigned int& flags, const point& position) : tactic(player, flags), navi(player, world), target_position(position), position_initialized(true), orientation_initialized(false) {
 //}
 
 void move::tick() {

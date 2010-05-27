@@ -5,7 +5,7 @@
 #warning anyone who needs this should simply use move tactic.
 
 
-turn::turn(player::ptr player) : the_player(player) {
+turn::turn(player::ptr player) : tactic(player) {
 }
 
 void turn::set_direction(const point& dir) {

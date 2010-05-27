@@ -1,6 +1,6 @@
 #include "ai/tactic/block.h"
 
-block::block(player::ptr player, world::ptr world) : the_player(player), navi(player, world) {
+block::block(player::ptr player, world::ptr world) : tactic(player), navi(player, world) {
 }
 
 void block::set_target(robot::ptr target) {

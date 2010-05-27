@@ -5,8 +5,6 @@
 #include "ai/world/player.h"
 #include "geom/point.h"
 
-
-
 //
 // 
 //
@@ -42,8 +40,6 @@ class turn : public tactic {
 		point the_direction;				
 
 	private:
-		const player::ptr the_player;
-		
 		//
 		// Returns the change in angle between the current orientation and the desired orientation.
 		//

@@ -3,7 +3,7 @@
 #include "ai/tactic/move.h"
 #include "ai/util.h"
 
-pass::pass(player::ptr player, world::ptr world, player::ptr receiver) : the_player(player), the_world(world), the_receiver(receiver) {
+pass::pass(player::ptr player, world::ptr world, player::ptr receiver) : tactic(player), the_world(world), the_receiver(receiver) {
 }
 
 void pass::tick() {

@@ -68,7 +68,6 @@ class move : public tactic {
 		}
 
 	protected:		
-		const player::ptr the_player;
 		robot_navigator navi;
 
 		point target_position;

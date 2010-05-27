@@ -4,7 +4,6 @@
 #include "ai/tactic/move.h"
 #include "ai/tactic/block.h"
 #include "ai/tactic/kick.h"
-#include "ai/tactic/move_between_robots.h"
 #include <iostream>
 #include "time.h"
 #include <cstdlib>

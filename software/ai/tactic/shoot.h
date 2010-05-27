@@ -25,8 +25,6 @@ class shoot : public tactic {
 		void tick();
 
 	protected:
-		const player::ptr the_player;
-
 		const world::ptr the_world;
 	
 		chase chase_tactic;

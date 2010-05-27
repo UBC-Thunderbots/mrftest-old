@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-chase_and_shoot::chase_and_shoot(player::ptr player, world::ptr world) : the_world(world), the_player(player), move_tactic(player, world) {
+chase_and_shoot::chase_and_shoot(player::ptr player, world::ptr world) : tactic(player), the_world(world), move_tactic(player, world) {
 
 
 const field &the_field(the_world->field());

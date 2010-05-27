@@ -33,7 +33,6 @@ class chase_and_shoot : public tactic {
 	protected:
 
 		const world::ptr the_world;
-		const player::ptr the_player;
 		move move_tactic;
 		//our target is opponents net
 		point target;

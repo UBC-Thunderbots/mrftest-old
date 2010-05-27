@@ -2,6 +2,7 @@
 #define AI_TACTIC_H
 
 #include "util/byref.h"
+#include "ai/world/player.h"
 #include <glibmm.h>
 
 /**
@@ -45,13 +46,20 @@ class tactic : public byref {
 		tactic() : flags(0) {
 		}
 
+		explicit tactic(player::ptr player) : flags(0), the_player(player) {
+		}
+
 		/**
 		 * Constructor, with flags argument.
 		 */
 		explicit tactic(const unsigned int& f) : flags(f) {
 		}
 
+		explicit tactic(player::ptr player, const unsigned int& f) : flags(f), the_player(player) {
+		}
+
 		unsigned int flags;
+		player::ptr the_player;
 };
 
 #endif

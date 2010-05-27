@@ -37,6 +37,8 @@ class move_between : public tactic {
 
 		point calculate_position();
 
+	private:
+		bool is_initialized;
 };
 
 #endif

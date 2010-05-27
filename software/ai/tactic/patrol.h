@@ -1,7 +1,6 @@
 #ifndef AI_TACTIC_PATROL_H
 #define AI_TACTIC_PATROL_H
 
-#include "ai/navigator/robot_navigator.h"
 #include "ai/tactic/tactic.h"
 #include "ai/tactic/move.h"
 
@@ -38,8 +37,6 @@ class patrol : public tactic {
 		void tick();
 
 	protected:		
-		const player::ptr the_player;
-		robot_navigator navi;
 		bool should_move_to_first;
 
 		point the_position1;

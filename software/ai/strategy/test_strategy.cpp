@@ -3,7 +3,7 @@
 #include "ai/tactic/pass.h"
 #include "ai/tactic/move.h"
 #include "ai/tactic/block.h"
-#include "ai/tactic/move_between_robots.h"
+#include "ai/tactic/move_between.h"
 #include <iostream>
 
 namespace {
@@ -73,8 +73,8 @@ namespace {
 
 		// player #3 tries to move between player #0 and player #2
 		player::ptr interceptor = the_team.get_player(3);
-		move_between_robots move_between_tactic(interceptor, the_world);
-		move_between_tactic.set_robots(passer, receiver);
+		move_between move_between_tactic(interceptor, the_world);
+		move_between_tactic.set_points(passer->position(), receiver->position());
 		move_between_tactic.tick();
 
 		// the rest of the players try to pass to player 0

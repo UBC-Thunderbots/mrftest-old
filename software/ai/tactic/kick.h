@@ -52,7 +52,6 @@ class kick : public tactic {
 		}
 
 	protected:
-		const player::ptr the_player;
 		turn turn_tactic;
 
 		// Holds if this tactic should chip the ball rather than simply kicking it

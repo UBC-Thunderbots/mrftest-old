@@ -18,7 +18,7 @@ TODO:
 
 */
 
-kick::kick(player::ptr player) : the_player(player), turn_tactic(player), should_chip(false), chip_strength(1.0), kick_strength(1.0), target_initialized(false) {
+kick::kick(player::ptr player) : tactic(player), turn_tactic(player), should_chip(false), chip_strength(1.0), kick_strength(1.0), target_initialized(false) {
 }
 
 void kick::tick() {

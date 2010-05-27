@@ -31,7 +31,6 @@ class block : public tactic {
 		void set_target(robot::ptr target);	
 
 	protected:
-		const player::ptr the_player;
 		robot::ptr target;
 		robot_navigator navi;
 };

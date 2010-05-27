@@ -11,7 +11,7 @@ namespace {
 	const double ACL_FACTOR = 0;
 }
 
-chase::chase(player::ptr player, world::ptr world) : the_player(player), the_world(world), navi(player, world) {
+chase::chase(player::ptr player, world::ptr world) : tactic(player), the_world(world), navi(player, world) {
 }
 
 void chase::tick() {

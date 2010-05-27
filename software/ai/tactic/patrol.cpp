@@ -1,16 +1,13 @@
 #include "ai/tactic/patrol.h"
 #include "ai/util.h"
 
-patrol::patrol(player::ptr player, world::ptr world, const unsigned int& flags) : the_player(player), 
-navi(player, world), 
+patrol::patrol(player::ptr player, world::ptr world, const unsigned int& flags) : tactic(player), 
 should_move_to_first(true),
 move_tactic1(new move(player, world, flags)),
 move_tactic2(new move(player, world, flags)) {
 }
 
-patrol::patrol(player::ptr player, world::ptr world, const unsigned int& flags, const point& position1, const point& position2) : tactic(flags), 
-the_player(player), 
-navi(player, world), 
+patrol::patrol(player::ptr player, world::ptr world, const unsigned int& flags, const point& position1, const point& position2) : tactic(player, flags), 
 should_move_to_first(true),
 move_tactic1(new move(player, world, flags)),
 move_tactic2(new move(player, world, flags)) {
