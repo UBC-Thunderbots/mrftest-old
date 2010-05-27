@@ -20,6 +20,14 @@ namespace {
 	bool exists_if(Titer begin, Titer end, Tpred pred) {
 		return std::find_if(begin, end, pred) != end;
 	}
+
+	//
+	// Clamps a value to fall within a given range.
+	//
+	template<typename T>
+	T clamp(T value, T lower, T upper) {
+		return std::min(std::max(value, lower), upper);
+	}
 }
 
 #endif

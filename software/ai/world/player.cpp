@@ -1,16 +1,9 @@
 #include "ai/world/player.h"
 #include "geom/angle.h"
+#include "util/algorithm.h"
 #include "util/dprint.h"
 #include <algorithm>
 #include <cmath>
-
-namespace {
-	double clamp(double value, double limabs) {
-		value = std::min(value, limabs);
-		value = std::max(value, -limabs);
-		return value;
-	}
-}
 
 void player::move(const point &dest, double target_ori) {
 	if (std::isnan(dest.x) || std::isnan(dest.y)) {
@@ -86,10 +79,10 @@ void player::tick(bool scram) {
 		for (unsigned int row = 0; row < 4; ++row)
 			for (unsigned int col = 0; col < 3; ++col)
 				output[row] += matrix[row][col] * input[col];
-		int m1 = static_cast<int>(clamp(output[0], 1023.0));
-		int m2 = static_cast<int>(clamp(output[1], 1023.0));
-		int m3 = static_cast<int>(clamp(output[2], 1023.0));
-		int m4 = static_cast<int>(clamp(output[3], 1023.0));
+		int m1 = clamp(static_cast<int>(output[0]), -1023, 1023);
+		int m2 = clamp(static_cast<int>(output[1]), -1023, 1023);
+		int m3 = clamp(static_cast<int>(output[2]), -1023, 1023);
+		int m4 = clamp(static_cast<int>(output[3]), -1023, 1023);
 		bot->drive_controlled(m1, m2, m3, m4);
 		moved = false;
 	}
