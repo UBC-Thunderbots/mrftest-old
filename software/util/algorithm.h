@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <vector>
+
 namespace {
 	/**
 	 * Returns true if an element exists within a range, or false if not.
