@@ -350,7 +350,7 @@ bool world::on_refbox_readable(Glib::IOCondition) {
 			case ' ': // NORMAL START
 #warning this is horrible, it needs to be rewritten with something useful
 #warning right now it latches into the "execute" state for exactly one packet before changing to "play"
-#warning use the maximum movement distance, record starting position of ball, also assume it's only a valid transition to the "play" play type if there is a robot near the ball of the proper colour that is allowed to move it
+#warning use the maximum movement distance, record starting position of ball, also assume it is only a valid transition to the play play type if there is a robot near the ball of the proper colour that is allowed to move it
 				if (playtype_ == playtype::prepare_kickoff_friendly) {
 					pt = playtype::execute_kickoff_friendly;
 				} else if (playtype_ == playtype::prepare_kickoff_enemy) {
