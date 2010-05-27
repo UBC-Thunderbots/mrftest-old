@@ -107,7 +107,7 @@ class point {
 		 Please refer to the atan2 documentation for more information.
 		*/
 		double orientation() const {
-			return atan2(x, y);
+			return atan2(y, x);
 		}
 };
 
