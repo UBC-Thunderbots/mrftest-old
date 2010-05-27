@@ -83,19 +83,21 @@ void xbee_drive_bot::enable_chicker(bool enable) {
 	}
 }
 
-void xbee_drive_bot::kick() {
+void xbee_drive_bot::kick(unsigned int width) {
 	assert(shm_frame);
+	assert(0 < width && width < 512);
 	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
 	shm_frame->run_data.flags &= ~xbeepacket::RUN_FLAG_CHIP;
-	shm_frame->run_data.chick_power = 0x1FF;
+	shm_frame->run_data.chick_power = width;
 	Glib::signal_timeout().connect_once(sigc::mem_fun(this, &xbee_drive_bot::clear_chick), 250);
 }
 
-void xbee_drive_bot::chip() {
+void xbee_drive_bot::chip(unsigned int width) {
 	assert(shm_frame);
+	assert(0 < width && width < 512);
 	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
 	shm_frame->run_data.flags |= xbeepacket::RUN_FLAG_CHIP;
-	shm_frame->run_data.chick_power = 0x1FF;
+	shm_frame->run_data.chick_power = width;
 	Glib::signal_timeout().connect_once(sigc::mem_fun(this, &xbee_drive_bot::clear_chick), 250);
 }
 

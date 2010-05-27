@@ -41,7 +41,10 @@ tester_window::tester_window(xbee_lowlevel &modem, const config &conf) : modem(m
 
 	chicker_enabled.signal_toggled().connect(sigc::mem_fun(this, &tester_window::on_chicker_enable_change));
 	chicker_enabled.set_sensitive(false);
-	chicker_box.pack_start(chicker_enabled, Gtk::PACK_EXPAND_WIDGET);
+	chicker_box.pack_start(chicker_enabled, Gtk::PACK_SHRINK);
+	chicker_power.get_adjustment()->configure(32, 32, 16384 - 32, 32, 1024, 0);
+	chicker_power.set_digits(0);
+	chicker_box.pack_start(chicker_power, Gtk::PACK_EXPAND_WIDGET);
 	chicker_kick.signal_clicked().connect(sigc::mem_fun(this, &tester_window::on_chicker_kick));
 	chicker_kick.set_sensitive(false);
 	chicker_box.pack_start(chicker_kick, Gtk::PACK_SHRINK);
@@ -187,13 +190,13 @@ void tester_window::on_chicker_enable_change() {
 
 void tester_window::on_chicker_kick() {
 	if (bot) {
-		bot->kick();
+		bot->kick(static_cast<unsigned int>(chicker_power.get_value() + 0.1) / 32);
 	}
 }
 
 void tester_window::on_chicker_chip() {
 	if (bot) {
-		bot->chip();
+		bot->chip(static_cast<unsigned int>(chicker_power.get_value() + 0.1) / 32);
 	}
 }
 

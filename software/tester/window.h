@@ -42,6 +42,7 @@ class tester_window : public Gtk::Window {
 		Gtk::Frame chicker_frame;
 		Gtk::HBox chicker_box;
 		Gtk::CheckButton chicker_enabled;
+		Gtk::HScale chicker_power;
 		Gtk::Button chicker_kick;
 		Gtk::Button chicker_chip;
 		light chicker_status;

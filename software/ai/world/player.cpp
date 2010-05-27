@@ -5,6 +5,13 @@
 #include <algorithm>
 #include <cmath>
 
+namespace {
+	unsigned int chicker_power_to_pulse_width(double power) {
+		const unsigned int MAX_PULSE_WIDTH = 511;
+		return clamp(static_cast<unsigned int>(MAX_PULSE_WIDTH * power), 0U, MAX_PULSE_WIDTH);
+	}
+}
+
 void player::move(const point &dest, double target_ori) {
 	if (std::isnan(dest.x) || std::isnan(dest.y)) {
 		destination = position();
@@ -30,13 +37,21 @@ void player::dribble(double speed) {
 }
 
 void player::kick(double power) {
-	LOG("Kicking is not implemented yet.");
-#warning write code here
+	if (bot->alive()) {
+		unsigned int width = chicker_power_to_pulse_width(power);
+		if (width > 0) {
+			bot->kick(width);
+		}
+	}
 }
 
 void player::chip(double power) {
-	LOG("Chipping is not implemented yet.");
-#warning write code here
+	if (bot->alive()) {
+		unsigned int width = chicker_power_to_pulse_width(power);
+		if (width > 0) {
+			bot->chip(width);
+		}
+	}
 }
 
 bool player::has_ball() const {
@@ -49,6 +64,7 @@ player::ptr player::create(bool yellow, unsigned int pattern_index, xbee_drive_b
 }
 
 player::player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false) {
+	bot->signal_alive.connect(sigc::mem_fun(this, &player::on_bot_alive));
 }
 
 void player::tick(bool scram) {
@@ -86,5 +102,10 @@ void player::tick(bool scram) {
 		bot->drive_controlled(m1, m2, m3, m4);
 		moved = false;
 	}
+}
+
+void player::on_bot_alive() {
+#warning Should the AI control the charger instead?
+	bot->enable_chicker(true);
 }
 

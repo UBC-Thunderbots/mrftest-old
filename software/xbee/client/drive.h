@@ -138,12 +138,12 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 		//
 		// Fires the kicker.
 		//
-		void kick();
+		void kick(unsigned int);
 
 		//
 		// Fires the chipper.
 		//
-		void chip();
+		void chip(unsigned int);
 
 	private:
 		xbee_lowlevel &ll;
