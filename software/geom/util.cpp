@@ -19,11 +19,11 @@ point clip_point(const point& p, const point& bound1, const point& bound2) {
 	return ret;
 }
 
-std::vector<point> lineseg_circle_intersect(point centre, double radius, point segA, point segB){
+std::vector<point> line_circle_intersect(point centre, double radius, point segA, point segB){
 
   std::vector<point> ans;
 
-  //take care of 0 length segments
+  //take care of 0 length segments too much error here
   if((segB - segA).lensq()<eps)return ans;
 
   double lenseg = (segB - segA).dot(centre-segA)/(segB-segA).len();
@@ -34,24 +34,29 @@ std::vector<point> lineseg_circle_intersect(point centre, double radius, point s
     
   //if C on circle perimeter return the only intersection
   if((C-centre).lensq() < radius*radius + eps && (C-centre).lensq() > radius*radius - eps){
-    bool x_ok = C.x >= std::min(segA.x,segB.x)-eps && C.x <= std::max(segA.x,segB.x)+eps;
-    bool y_ok = C.y >= std::min(segA.y,segB.y)-eps && C.y <= std::max(segA.y,segB.y)+eps;
-    if(x_ok && y_ok)ans.push_back(C);
+    ans.push_back(C);
     return ans;
   }
   //first possible intersection
   double lensegb = radius*radius -(C-centre).lensq();
   point inter = C - lensegb*(segB-segA).norm();
-  bool x_ok = inter.x >= std::min(segA.x,segB.x)-eps && inter.x <= std::max(segA.x,segB.x)+eps;
-  bool y_ok = inter.y >= std::min(segA.y,segB.y)-eps && inter.y <= std::max(segA.y,segB.y)+eps;
-  if(x_ok && y_ok)ans.push_back(inter);
-  
-  //second possible intersection
-  inter = C + lensegb*(segB-segA).norm();
-  x_ok = inter.x >= std::min(segA.x,segB.x)-eps && inter.x <= std::max(segA.x,segB.x)+eps;
-  y_ok = inter.y >= std::min(segA.y,segB.y)-eps && inter.y <= std::max(segA.y,segB.y)+eps;
-  if(x_ok && y_ok)ans.push_back(inter);
 
+  ans.push_back( C - lensegb*(segB-segA).norm());
+  ans.push_back( C + lensegb*(segB-segA).norm());
+ 
+  return ans;
+
+}
+
+std::vector<point> lineseg_circle_intersect(point centre, double radius, point segA, point segB){
+  std::vector<point> ans;
+  std::vector<point> poss = line_circle_intersect(centre, radius, segA, segB);
+
+  for(int i =0; i<poss.size(); i++){
+    bool x_ok = poss[i].x <= std::max(segA.x, segB.x)+eps && poss[i].x <= std::min(segA.x, segB.x)-eps; 
+    bool y_ok = poss[i].y <= std::max(segA.y, segB.y)+eps && poss[i].y <= std::min(segA.y, segB.y)-eps;
+    if(x_ok && y_ok)ans.push_back(poss[i]); 
+  }
   return ans;
 }
 

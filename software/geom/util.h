@@ -12,7 +12,10 @@
 	*returns a vector of all the points where the line segment intersects the circle
 	*/
 	std::vector<point> lineseg_circle_intersect(point centre, double radius, point segA, point segB); 
-
+/**
+	*returns a vector of all the points where the line defined by two points intersects the circle
+	*/
+	std::vector<point> line_circle_intersect(point centre, double radius, point segA, point segB); 
 /**
  * Clips a point to a rectangle boundary.
  */
