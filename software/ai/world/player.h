@@ -78,12 +78,6 @@ class player : public robot {
 		 */
 		void tick(bool scram);
 
-		/**
-		 * Receives "robot alive" signals from the XBee client library
-		 * indicating that communication has been started with the robot.
-		 */
-		void on_bot_alive();
-
 		friend class ai;
 		friend class world;
 };

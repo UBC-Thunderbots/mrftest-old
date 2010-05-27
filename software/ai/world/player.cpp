@@ -64,7 +64,6 @@ player::ptr player::create(bool yellow, unsigned int pattern_index, xbee_drive_b
 }
 
 player::player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false) {
-	bot->signal_alive.connect(sigc::mem_fun(this, &player::on_bot_alive));
 }
 
 void player::tick(bool scram) {
@@ -74,6 +73,7 @@ void player::tick(bool scram) {
 		}
 		if (bot->alive()) {
 			bot->drive_scram();
+			bot->enable_chicker(false);
 		}
 		moved = false;
 	} else if (moved) {
@@ -101,11 +101,7 @@ void player::tick(bool scram) {
 		int m4 = clamp(static_cast<int>(output[3]), -1023, 1023);
 		bot->drive_controlled(m1, m2, m3, m4);
 		moved = false;
+		bot->enable_chicker(true);
 	}
-}
-
-void player::on_bot_alive() {
-#warning Should the AI control the charger instead?
-	bot->enable_chicker(true);
 }
 
