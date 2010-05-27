@@ -7,21 +7,29 @@ ai_window::ai_window(ai &ai) : the_ai(ai), strategy_controls(0), rc_controls(0),
 
 	Gtk::Frame *basic_frame = Gtk::manage(new Gtk::Frame("Basics"));
 	Gtk::Table *basic_table = Gtk::manage(new Gtk::Table(3, 3));
-	basic_table->attach(*Gtk::manage(new Gtk::Label("Play type:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_table->attach(*Gtk::manage(new Gtk::Label("Play type override:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	playtype_override_chooser.append_text("<None>");
+	playtype_override_chooser.set_active_text("<None>");
+	for (unsigned int i = 0; i < playtype::count; ++i) {
+		playtype_override_chooser.append_text(playtype::descriptions_generic[i]);
+	}
+	playtype_override_chooser.signal_changed().connect(sigc::mem_fun(this, &ai_window::on_playtype_override_changed));
+	basic_table->attach(playtype_override_chooser, 1, 3, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_table->attach(*Gtk::manage(new Gtk::Label("Play type:")), 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	playtype_entry.set_editable(false);
-	basic_table->attach(playtype_entry, 1, 3, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	basic_table->attach(*Gtk::manage(new Gtk::Label("Defending:")), 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_table->attach(playtype_entry, 1, 3, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_table->attach(*Gtk::manage(new Gtk::Label("Defending:")), 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	end_entry.set_editable(false);
-	basic_table->attach(end_entry, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_table->attach(end_entry, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	Gtk::Button *flip_ends_button = Gtk::manage(new Gtk::Button("X"));
 	flip_ends_button->signal_clicked().connect(sigc::mem_fun(this, &ai_window::on_flip_ends_clicked));
-	basic_table->attach(*flip_ends_button, 2, 3, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	basic_table->attach(*Gtk::manage(new Gtk::Label("Refbox Colour:")), 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_table->attach(*flip_ends_button, 2, 3, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_table->attach(*Gtk::manage(new Gtk::Label("Refbox Colour:")), 0, 1, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	refbox_colour_entry.set_editable(false);
-	basic_table->attach(refbox_colour_entry, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_table->attach(refbox_colour_entry, 1, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	Gtk::Button *flip_refbox_colour_button = Gtk::manage(new Gtk::Button("X"));
 	flip_refbox_colour_button->signal_clicked().connect(sigc::mem_fun(this, &ai_window::on_flip_refbox_colour_clicked));
-	basic_table->attach(*flip_refbox_colour_button, 2, 3, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_table->attach(*flip_refbox_colour_button, 2, 3, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	basic_frame->add(*basic_table);
 	vbox->pack_start(*basic_frame, Gtk::PACK_SHRINK);
 
@@ -69,6 +77,17 @@ ai_window::ai_window(ai &ai) : the_ai(ai), strategy_controls(0), rc_controls(0),
 	vis_window.set_title("AI Visualizer");
 	vis_window.add(vis);
 	vis_window.signal_delete_event().connect(sigc::hide(sigc::bind_return(sigc::bind(sigc::mem_fun(vis_button, &Gtk::ToggleButton::set_active), false), false)));
+}
+
+void ai_window::on_playtype_override_changed() {
+	const Glib::ustring &selected(playtype_override_chooser.get_active_text());
+	for (unsigned int i = 0; i < playtype::count; ++i) {
+		if (selected == playtype::descriptions_generic[i]) {
+			the_ai.the_world->override_playtype(static_cast<playtype::playtype>(i));
+			return;
+		}
+	}
+	the_ai.the_world->clear_playtype_override();
 }
 
 void ai_window::on_flip_ends_clicked() {

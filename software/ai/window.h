@@ -20,6 +20,7 @@ class ai_window : public Gtk::Window {
 
 	private:
 		ai &the_ai;
+		Gtk::ComboBoxText playtype_override_chooser;
 		Gtk::Entry playtype_entry;
 		Gtk::Entry end_entry;
 		Gtk::Entry refbox_colour_entry;
@@ -33,6 +34,7 @@ class ai_window : public Gtk::Window {
 		Gtk::Window vis_window;
 		visualizer vis;
 
+		void on_playtype_override_changed();
 		void on_flip_ends_clicked();
 		void on_flip_refbox_colour_clicked();
 		void on_strategy_changed();

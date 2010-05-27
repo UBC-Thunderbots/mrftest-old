@@ -15,6 +15,8 @@
 #include <vector>
 #include <sigc++/sigc++.h>
 
+class ai_window;
+
 /**
  * Collects all information the AI needs to examine the state of the world and
  * transmit orders to robots.
@@ -119,7 +121,7 @@ class world : public byref {
 		 * \return The current state of play
 		 */
 		playtype::playtype playtype() const {
-			return playtype_;
+			return playtype_override_active ? playtype_override : playtype_;
 		}
 
 		/**
@@ -168,12 +170,17 @@ class world : public byref {
 		SSL_DetectionFrame detections[2];
 		const std::vector<xbee_drive_bot::ptr> xbee_bots;
 		playtype::playtype playtype_;
+		playtype::playtype playtype_override;
+		bool playtype_override_active;
 		class visualizer_view vis_view;
 
 		world(const config &, const std::vector<xbee_drive_bot::ptr> &);
 		bool on_vision_readable(Glib::IOCondition);
 		bool on_refbox_readable(Glib::IOCondition);
-		void playtype(playtype::playtype);
+		void override_playtype(playtype::playtype);
+		void clear_playtype_override();
+
+		friend class ai_window;
 };
 
 #endif

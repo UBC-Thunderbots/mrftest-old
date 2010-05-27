@@ -69,7 +69,12 @@ void world::flip_refbox_colour() {
 	enemy.score(temp);
 
 	// Invert the play type.
-	playtype(playtype::invert[playtype()]);
+	playtype::playtype original_playtype = playtype();
+	playtype_override = playtype::invert[playtype_override];
+	playtype_ = playtype::invert[playtype_];
+	if (playtype() != original_playtype) {
+		signal_playtype_changed.emit();
+	}
 
 	// Fire the signal.
 	signal_flipped_refbox_colour.emit();
@@ -429,17 +434,32 @@ bool world::on_refbox_readable(Glib::IOCondition) {
 		}
 
 		// Lock in the new play type.
-		playtype(pt);
+		if (pt != playtype_) {
+			DPRINT(Glib::ustring::compose("Changing base play type to %1.", playtype::descriptions_generic[pt]));
+			playtype_ = pt;
+			if (!playtype_override_active) {
+				signal_playtype_changed.emit();
+			}
+		}
 	}
 
 	DPRINT("Exit on_refbox_readable (2).");
 	return true;
 }
 
-void world::playtype(playtype::playtype pt) {
-	if (pt != playtype_) {
-		DPRINT(Glib::ustring::compose("Changing play type to %1.", playtype::descriptions_generic[pt]));
-		playtype_ = pt;
+void world::override_playtype(playtype::playtype pt) {
+	if (pt != playtype_override || !playtype_override_active) {
+		DPRINT(Glib::ustring::compose("Setting override play type to %1.", playtype::descriptions_generic[pt]));
+		playtype_override = pt;
+		playtype_override_active = true;
+		signal_playtype_changed.emit();
+	}
+}
+
+void world::clear_playtype_override() {
+	if (playtype_override_active) {
+		DPRINT("Clearing override play type.");
+		playtype_override_active = false;
 		signal_playtype_changed.emit();
 	}
 }
