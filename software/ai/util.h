@@ -130,6 +130,13 @@ namespace ai_util {
 	 * Returns -1 if no valid target is found.
 	 */
 	int choose_best_pass(const world::ptr w, const std::vector<player::ptr>& friends);
+	
+	/**
+	 * Returns the angle of the enemy goal that can be seen from a point.
+	 * Only enemy robots are considered.
+	 * Returns -2*PI if the point is physically inside an enemy robot.
+	 */
+	double get_goal_visibility(const world::ptr w, const point& p);
 }
 
 #endif

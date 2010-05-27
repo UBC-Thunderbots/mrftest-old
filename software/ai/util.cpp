@@ -1,5 +1,6 @@
 #include "ai/util.h"
 #include "util/algorithm.h"
+#include <cmath>
 
 #include <iostream>
 
@@ -24,11 +25,11 @@ namespace ai_util{
 		std::vector<point> candidates(SHOOTING_SAMPLE_POINTS);
 		const field &the_field(world->field());
 
-		const double goal_width = (the_field.goal_width() - robot::MAX_RADIUS) * 2;
+		const double goal_width = the_field.goal_width() - 2*robot::MAX_RADIUS;
 		const double delta = goal_width / SHOOTING_SAMPLE_POINTS;
 
 		for (size_t i = 0; i < SHOOTING_SAMPLE_POINTS; ++i) {
-			point p(the_field.length(), -the_field.goal_width() + robot::MAX_RADIUS + i * delta);
+			point p(the_field.length()/2.0, -the_field.goal_width()/2.0 + robot::MAX_RADIUS + i * delta);
 			candidates[i] = p;
 		}
 		return candidates;
@@ -204,5 +205,31 @@ namespace ai_util{
 		return nearidx;
 	}
 
+	double get_goal_visibility(const world::ptr w, const point& p){
+		std::vector<std::pair<double, int> > events;
+		double l_range = (point(w->field().length()/2.0,-w->field().goal_width()/2.0) - p).orientation();
+		double h_range = (point(w->field().length()/2.0,w->field().goal_width()/2.0) - p).orientation();
+		events.push_back(std::make_pair(l_range,1));
+		events.push_back(std::make_pair(h_range,-1));
+		
+		const team &enemy(w->enemy);
+		for (size_t i = 0; i < enemy.size(); ++i){
+		      point diff = enemy.get_robot(i)->position() - p;
+		      if (diff.len() < robot::MAX_RADIUS + ORI_CLOSE) return -2*acos(-1);
+		      double cent = diff.orientation();
+		      double span = asin(robot::MAX_RADIUS / diff.len());
+		      events.push_back(std::make_pair(cent-span,-1));
+		      events.push_back(std::make_pair(cent+span,1));
+		}
+		sort(events.begin(),events.end());
+		double ans = 0;
+		double cnt = 0;
+		for (size_t i = 0; i < events.size() - 1; i++){
+		      cnt += events[i].second;
+		      if (cnt > 0)
+			    ans += events[i+1].first - events[i].first;
+		}
+		return ans;
+	}
 }
 
