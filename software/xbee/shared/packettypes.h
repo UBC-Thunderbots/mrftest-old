@@ -126,7 +126,7 @@ namespace xbeepacket {
 		signed drive2_speed : 11;
 		signed drive3_speed : 11;
 		signed drive4_speed : 11;
-		signed dribbler_speed : 11;
+		unsigned dribbler_speed : 11;
 		unsigned chick_power : 9;
 	};
 	const uint8_t RUN_FLAG_RUNNING = 0x80;
