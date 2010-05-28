@@ -205,31 +205,39 @@ namespace ai_util{
 		return nearidx;
 	}
 
-	double get_goal_visibility(const world::ptr w, const point& p){
+	double get_goal_visibility(const world::ptr w, const point& p, bool consider_friendly){
 		std::vector<std::pair<double, int> > events;
 		double l_range = (point(w->field().length()/2.0,-w->field().goal_width()/2.0) - p).orientation();
 		double h_range = (point(w->field().length()/2.0,w->field().goal_width()/2.0) - p).orientation();
 		events.push_back(std::make_pair(l_range,1));
 		events.push_back(std::make_pair(h_range,-1));
 		
-		const team &enemy(w->enemy);
-		for (size_t i = 0; i < enemy.size(); ++i){
-		      point diff = enemy.get_robot(i)->position() - p;
-		      if (diff.len() < robot::MAX_RADIUS + ORI_CLOSE) return -2*acos(-1);
+		size_t lim = w->enemy.size();
+		if (consider_friendly) lim += w->friendly.size();
+		for (size_t i = 0; i < lim; ++i){
+		      point diff;
+		      if (i < w->enemy.size()) diff = w->enemy.get_robot(i)->position() - p;
+		      else diff = w->friendly.get_robot(i-w->enemy.size())->position() - p;
+		      if (diff.len() < robot::MAX_RADIUS + ORI_CLOSE)
+			    return -2*acos(-1);
 		      double cent = diff.orientation();
 		      double span = asin(robot::MAX_RADIUS / diff.len());
 		      events.push_back(std::make_pair(cent-span,-1));
 		      events.push_back(std::make_pair(cent+span,1));
 		}
 		sort(events.begin(),events.end());
-		double ans = 0;
+		double best = 0;
+		double sum = 0;
 		double cnt = 0;
 		for (size_t i = 0; i < events.size() - 1; i++){
 		      cnt += events[i].second;
-		      if (cnt > 0)
-			    ans += events[i+1].first - events[i].first;
+		      if (cnt > 0){
+			    sum += events[i+1].first - events[i].first;
+			    if (best < sum) best = sum;
+		      }
+		      else sum = 0;
 		}
-		return ans;
+		return sum;
 	}
 }
 

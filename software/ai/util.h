@@ -132,11 +132,12 @@ namespace ai_util {
 	int choose_best_pass(const world::ptr w, const std::vector<player::ptr>& friends);
 	
 	/**
-	 * Returns the angle of the enemy goal that can be seen from a point.
-	 * Only enemy robots are considered.
-	 * Returns -2*PI if the point is physically inside an enemy robot.
+	 * Returns the length of the largest continuous interval (angle-wise)
+	 * of the enemy goal that can be seen from a point.
+	 * Friendly robots are considered only if consider_friendly is true.
+	 * Returns -2*PI if the point is physically inside a considered robot.
 	 */
-	double get_goal_visibility(const world::ptr w, const point& p);
+	double get_goal_visibility(const world::ptr w, const point& p, bool consider_friendly);
 }
 
 #endif
