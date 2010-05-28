@@ -6,6 +6,15 @@
 #include <cassert>
 #include <cstdlib>
 
+namespace {
+	unsigned int smag(int val) {
+		assert(-1023 <= val && val <= 1023);
+		bool sign = val < 0;
+		unsigned int mag = std::abs(val);
+		return (sign ? 0x400 : 0x000) | mag;
+	}
+}
+
 xbee_drive_bot::xbee_drive_bot(uint64_t address, xbee_lowlevel &ll) : address(address), ll(ll), alive_(false), shm_frame(0) {
 	feedback_.flags = 0;
 	feedback_.outbound_rssi = 0;
@@ -40,17 +49,13 @@ void xbee_drive_bot::drive_scram() {
 
 void xbee_drive_bot::drive_direct(int m1, int m2, int m3, int m4) {
 	assert(shm_frame);
-	assert(-1023 <= m1 && m1 <= 1023);
-	assert(-1023 <= m2 && m2 <= 1023);
-	assert(-1023 <= m3 && m3 <= 1023);
-	assert(-1023 <= m4 && m4 <= 1023);
 	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
 	shm_frame->run_data.flags &= ~xbeepacket::RUN_FLAG_CONTROLLED_DRIVE;
 	shm_frame->run_data.flags |= xbeepacket::RUN_FLAG_DIRECT_DRIVE;
-	shm_frame->run_data.drive1_speed = m1;
-	shm_frame->run_data.drive2_speed = m2;
-	shm_frame->run_data.drive3_speed = m3;
-	shm_frame->run_data.drive4_speed = m4;
+	shm_frame->run_data.drive1_speed = smag(m1);
+	shm_frame->run_data.drive2_speed = smag(m2);
+	shm_frame->run_data.drive3_speed = smag(m3);
+	shm_frame->run_data.drive4_speed = smag(m4);
 	timespec_now(&shm_frame->timestamp);
 }
 
@@ -72,11 +77,8 @@ void xbee_drive_bot::drive_controlled(int m1, int m2, int m3, int m4) {
 
 void xbee_drive_bot::dribble(int power) {
 	assert(shm_frame);
-	assert(-1023 <= power && power <= 1023);
-	bool sign = power < 0;
-	unsigned int magnitude = abs(power);
 	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
-	shm_frame->run_data.dribbler_speed = (sign ? 0x400 : 0x000) | magnitude;
+	shm_frame->run_data.dribbler_speed = smag(power);
 }
 
 void xbee_drive_bot::enable_chicker(bool enable) {
