@@ -73,8 +73,10 @@ void xbee_drive_bot::drive_controlled(int m1, int m2, int m3, int m4) {
 void xbee_drive_bot::dribble(int power) {
 	assert(shm_frame);
 	assert(-1023 <= power && power <= 1023);
+	bool sign = power < 0;
+	unsigned int magnitude = abs(power);
 	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
-	shm_frame->run_data.dribbler_speed = power;
+	shm_frame->run_data.dribbler_speed = (sign ? 0x400 : 0x000) | power;
 }
 
 void xbee_drive_bot::enable_chicker(bool enable) {
