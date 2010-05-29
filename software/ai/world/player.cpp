@@ -103,7 +103,9 @@ void player::tick(bool scram) {
 		moved = false;
 		bot->enable_chicker(true);
 	}
-	bot->dribble(dribble_power);
+	if (bot->alive()) {
+		bot->dribble(dribble_power);
+	}
 	dribble_power = 0;
 }
 
