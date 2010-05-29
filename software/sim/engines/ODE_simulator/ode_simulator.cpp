@@ -25,7 +25,7 @@ namespace {
 	//
 	//
 	//
-	const double CFM = 1E-4;
+	const double CFM = 1E-5;
 	
 	//
 	//
@@ -110,14 +110,7 @@ namespace {
 
 
 			void tick() {	
-
-
-
-				for(unsigned int i=0; i< UPDATES_PER_TICK; i++){
-
-
-				  //	dSpaceCollide (space,this,&sim_engine::nearCallbackThunk);	
-
+				for(unsigned int i=0; i< UPDATES_PER_TICK; i++){	
 						for (unsigned int j = 0; j < the_players.size(); j++) {
 							the_players[j]->pre_tic(timeStep);
 							
@@ -127,8 +120,7 @@ namespace {
 					//check the world for possible collisions
 					//if there are colliding objects then call nearCallback
 					//nearCallback creates all necessary contact points and parameters
-	dSpaceCollide (space,this,&sim_engine::nearCallbackThunk);
-						//	dSpaceCollide (space,this,&sim_engine::nearCallbackThunk);
+	 				dSpaceCollide (space,this,&sim_engine::nearCallbackThunk);
 	 				
 	 				//step the world (have ODE do 1 iterations per step)
 					//dWorldStep (eworld, 1);
@@ -289,12 +281,6 @@ namespace {
 				  dBodyID b1 = dGeomGetBody(o1);
 				  dBodyID b2 = dGeomGetBody(o2);
 
-				  if(o2 == the_ball->ballGeom){
-				    dBodyID temp = b1;
-				    b1 = b2;
-				    b2 = temp;
-				  }
-
 				  dContact contact[3];		// up to 3 contacts per box				  
 				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
 				  	for (i=0; i<numc; i++) {
@@ -336,7 +322,7 @@ namespace {
 					    	contact[i].surface.mu = MU;
 					    	contact[i].surface.soft_cfm = CFM;
 					   	contact[i].surface.soft_erp = ERP;
-					   	contact[i].surface.bounce = 0.5;
+					   	contact[i].surface.bounce = 0.3;
 					   	contact[i].surface.bounce_vel=0.0;
 					      	dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
 					      	dJointAttach (c,b1,b2);
@@ -351,7 +337,6 @@ namespace {
 			//						
 			void handleRobotBallCollision (dGeomID o1, dGeomID o2){
 				int i=0;
-				//make sure body 1 is robot body 2 is ball
 				  dBodyID b1 = dGeomGetBody(o1);
 				  dBodyID b2 = dGeomGetBody(o2);
 				  dContact contact[3];		// up to 3 contacts per box
@@ -359,12 +344,7 @@ namespace {
 				  playerODE::ptr robot = get_player_from_shape(o1);
 				  if(robot == emptyPlayer){
 				  	robot = get_player_from_shape(o2);
-						dBodyID tmp = b2;
-						b2 = b1;
-						b1 = tmp;
 				  }
-
-
 				  if (int numc = dCollide (o1,o2,3,&contact[0].geom,sizeof(dContact))) {
 
 				  	for (i=0; i<numc; i++) {
@@ -374,22 +354,12 @@ namespace {
 						if(robotCollided && !robot->has_chip_set() && !robot->has_kick_set()){
 				   			contact[i].surface.mode =  dContactSoftCFM | dContactSoftERP |dContactBounce;
 				   			contact[i].surface.mu = MU;// 0.1*MU;
-				   			contact[i].surface.soft_cfm = 1E-6;
+				   			contact[i].surface.soft_cfm = CFM;
 				   			contact[i].surface.soft_erp = ERP;
-				     			contact[i].surface.bounce = 0.3;
+				     			contact[i].surface.bounce = 0.2;
 				     			contact[i].surface.bounce_vel=0.0;
 				      			dJointID c = dJointCreateContact (eworld,contactgroup,contact+i);
-							
-							//ball pushes against robot
-							//	if(robot->has_dribble_set()){
-							  //	  dJointAttach (c,b1,b2);
-							  //	}
-
-							//robot pushes against ball
-							//	else{
-							  dJointAttach (c,b2,b1);
-							  //	}
-
+				      			dJointAttach (c,b1,b2);
 						}
 
 				    	}

@@ -49,9 +49,9 @@ class playerODE : public player {
 	
 	bool player_has_ball;
 	
-	bool chip_set, kick_set, dribble_set;	
+	bool chip_set,kick_set;	
 	
-	double chip_strength, kick_strength, dribble_strength;
+	double chip_strength,kick_strength;
 	
 	/**
 	I don't know why we keep track of the ball ID, oh right the retarded hasball
@@ -119,9 +119,6 @@ public:
 			void pre_tic(double TimeStep);
 			
 			void dribble(double speed) ;
-bool has_dribble_set(){
-return dribble_set;
-}
 
 			void kick(double strength) ;
 			
