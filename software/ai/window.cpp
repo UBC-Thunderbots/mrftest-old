@@ -6,7 +6,7 @@ ai_window::ai_window(ai &ai) : the_ai(ai), strategy_controls(0), rc_controls(0),
 	Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox);
 
 	Gtk::Frame *basic_frame = Gtk::manage(new Gtk::Frame("Basics"));
-	Gtk::Table *basic_table = Gtk::manage(new Gtk::Table(3, 3));
+	Gtk::Table *basic_table = Gtk::manage(new Gtk::Table(5, 3));
 	basic_table->attach(*Gtk::manage(new Gtk::Label("Play type override:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	playtype_override_chooser.append_text("<None>");
 	playtype_override_chooser.set_active_text("<None>");
@@ -18,18 +18,26 @@ ai_window::ai_window(ai &ai) : the_ai(ai), strategy_controls(0), rc_controls(0),
 	basic_table->attach(*Gtk::manage(new Gtk::Label("Play type:")), 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	playtype_entry.set_editable(false);
 	basic_table->attach(playtype_entry, 1, 3, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	basic_table->attach(*Gtk::manage(new Gtk::Label("Defending:")), 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_table->attach(*Gtk::manage(new Gtk::Label("Ball Filter:")), 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	ball_filter_chooser.append_text("<None>");
+	ball_filter_chooser.set_active_text("<None>");
+	for (ball_filter::map_type::const_iterator i = ball_filter::all().begin(), iend = ball_filter::all().end(); i != iend; ++i) {
+		ball_filter_chooser.append_text(i->second->name);
+	}
+	ball_filter_chooser.signal_changed().connect(sigc::mem_fun(this, &ai_window::on_ball_filter_changed));
+	basic_table->attach(ball_filter_chooser, 1, 3, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_table->attach(*Gtk::manage(new Gtk::Label("Defending:")), 0, 1, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	end_entry.set_editable(false);
-	basic_table->attach(end_entry, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_table->attach(end_entry, 1, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	Gtk::Button *flip_ends_button = Gtk::manage(new Gtk::Button("X"));
 	flip_ends_button->signal_clicked().connect(sigc::mem_fun(this, &ai_window::on_flip_ends_clicked));
-	basic_table->attach(*flip_ends_button, 2, 3, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	basic_table->attach(*Gtk::manage(new Gtk::Label("Refbox Colour:")), 0, 1, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_table->attach(*flip_ends_button, 2, 3, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_table->attach(*Gtk::manage(new Gtk::Label("Refbox Colour:")), 0, 1, 4, 5, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	refbox_colour_entry.set_editable(false);
-	basic_table->attach(refbox_colour_entry, 1, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_table->attach(refbox_colour_entry, 1, 2, 4, 5, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	Gtk::Button *flip_refbox_colour_button = Gtk::manage(new Gtk::Button("X"));
 	flip_refbox_colour_button->signal_clicked().connect(sigc::mem_fun(this, &ai_window::on_flip_refbox_colour_clicked));
-	basic_table->attach(*flip_refbox_colour_button, 2, 3, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	basic_table->attach(*flip_refbox_colour_button, 2, 3, 4, 5, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	basic_frame->add(*basic_table);
 	vbox->pack_start(*basic_frame, Gtk::PACK_SHRINK);
 
@@ -88,6 +96,16 @@ void ai_window::on_playtype_override_changed() {
 		}
 	}
 	the_ai.the_world->clear_playtype_override();
+}
+
+void ai_window::on_ball_filter_changed() {
+	const Glib::ustring &name(ball_filter_chooser.get_active_text());
+	ball_filter::map_type::const_iterator i = ball_filter::all().find(name.collate_key());
+	if (i != ball_filter::all().end()) {
+		the_ai.the_world->ball_filter(i->second);
+	} else {
+		the_ai.the_world->ball_filter(0);
+	}
 }
 
 void ai_window::on_flip_ends_clicked() {

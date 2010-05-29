@@ -8,8 +8,8 @@ ball::ptr ball::create() {
 ball::ball() : sign(1.0) {
 }
 
-void ball::update(const SSL_DetectionBall &packet) {
-	const point new_pos(packet.x() / 1000.0 * sign, packet.y() / 1000.0 * sign);
+void ball::update(const point &pos) {
+	const point new_pos(pos.x * sign, pos.y * sign);
 	add_prediction_datum(new_pos, 0.0);
 }
 

@@ -48,9 +48,10 @@ class ball : public visualizable::ball, public predictable {
 
 		/**
 		 * Updates the position of the ball using new data.
-		 * \param packet the new data to update with
+		 *
+		 * \param packet the new position, in unswapped field coordinates.
 		 */
-		void update(const SSL_DetectionBall &packet);
+		void update(const point &pos);
 
 		friend class world;
 };

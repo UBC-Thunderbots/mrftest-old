@@ -1,6 +1,7 @@
 #ifndef AI_WORLD_WORLD_H
 #define AI_WORLD_WORLD_H
 
+#include "ai/ball_filter/ball_filter.h"
 #include "ai/world/ball.h"
 #include "ai/world/field.h"
 #include "ai/world/player.h"
@@ -131,6 +132,22 @@ class world : public byref {
 			return vis_view;
 		}
 
+		/**
+		 * \return The currently-active ball filter
+		 */
+		class ball_filter *ball_filter() const {
+			return ball_filter_;
+		}
+
+		/**
+		 * Sets which ball filter should be used.
+		 *
+		 * \param filter the new filter to use
+		 */
+		void ball_filter(class ball_filter *filter) {
+			ball_filter_ = filter;
+		}
+
 	private:
 		class visualizer_view : public visualizable {
 			public:
@@ -173,6 +190,7 @@ class world : public byref {
 		playtype::playtype playtype_override;
 		bool playtype_override_active;
 		class visualizer_view vis_view;
+		class ball_filter *ball_filter_;
 
 		world(const config &, const std::vector<xbee_drive_bot::ptr> &);
 		bool on_vision_readable(Glib::IOCondition);

@@ -80,7 +80,7 @@ void world::flip_refbox_colour() {
 	signal_flipped_refbox_colour.emit();
 }
 
-world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bots) : conf(conf), east_(false), refbox_yellow_(false), vision_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), refbox_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), ball_(ball::create()), xbee_bots(xbee_bots), playtype_(playtype::halt), vis_view(this) {
+world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bots) : conf(conf), east_(false), refbox_yellow_(false), vision_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), refbox_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), ball_(ball::create()), xbee_bots(xbee_bots), playtype_(playtype::halt), vis_view(this), ball_filter_(0) {
 	vision_socket.set_blocking(false);
 	const int one = 1;
 	if (setsockopt(vision_socket, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
@@ -164,32 +164,23 @@ bool world::on_vision_readable(Glib::IOCondition) {
 
 		// Update the ball.
 		{
-#warning use the ball filter here
-			// Find the detection with highest confidence across all cameras
-			// that have sent us data.
-			unsigned int best_detection = -1;
-			int best_index = -1;
-			double best_confidence = 0.0;
+			// Build a vector of all detections so far.
+			std::vector<std::pair<point, double> > balls;
 			for (unsigned int i = 0; i < 2; ++i) {
-				if (detections[i].IsInitialized()) {
-					for (int j = 0; j < detections[i].balls_size(); ++j) {
-						const SSL_DetectionBall &b(detections[i].balls(j));
-						if (b.confidence() > best_confidence) {
-							best_detection = i;
-							best_index = j;
-							best_confidence = b.confidence();
-						}
-					}
+				for (int j = 0; j < detections[i].balls_size(); ++j) {
+					const SSL_DetectionBall &b(detections[i].balls(j));
+					balls.push_back(std::make_pair(point(b.x() / 1000.0, b.y() / 1000.0), b.confidence()));
 				}
 			}
 
-			// Update the ball IF the best position is within the packet we just
-			// received (there's no reason to do anything otherwise, since it
-			// would only result in polluting the least-squares regression
-			// database with old data that is falsely claiming to be new).
-			if (best_detection == det.camera_id()) {
-				ball_->update(det.balls(best_index));
+			// Execute the current ball filter.
+			point pos;
+			if (ball_filter_) {
+				pos = ball_filter_->filter(balls);
 			}
+
+			// Use the result.
+			ball_->update(pos);
 		}
 
 		// Update the robots.

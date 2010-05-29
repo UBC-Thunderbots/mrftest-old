@@ -11,6 +11,7 @@ firmware/mainboard-copro/pingen
 firmware/mainboard-copro/pins.inc
 software/*.d
 software/ai/*.d
+software/ai/ball_filter/*.d
 software/ai/navigator/*.d
 software/ai/role/*.d
 software/ai/strategy/*.d
