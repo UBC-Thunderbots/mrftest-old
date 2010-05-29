@@ -26,7 +26,8 @@ class player : public robot {
 		void move(const point &dest, double ori);
 
 		/**
-		 * Sets the speed of the dribbler motor.
+		 * Sets the speed of the dribbler motor. If this is not invoked by the
+		 * AI in a particular time tick, the dribbler will turn off.
 		 * \param speed the speed to run at, from 0 to 1
 		 */
 		void dribble(double speed);
@@ -58,6 +59,7 @@ class player : public robot {
 		double target_orientation;
 		robot_controller::ptr controller;
 		bool moved;
+		int dribble_power;
 
 		/**
 		 * Constructs a new player object.

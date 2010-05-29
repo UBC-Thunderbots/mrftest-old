@@ -31,9 +31,7 @@ void player::move(const point &dest, double target_ori) {
 }
 
 void player::dribble(double speed) {
-	if (bot->alive()) {
-		bot->dribble(std::min(1023.0, std::max(0.0, speed * 1023.0)));
-	}
+	dribble_power = clamp(static_cast<int>(speed * 1023.0 + 0.5), 0, 1023);
 }
 
 void player::kick(double power) {
@@ -63,7 +61,7 @@ player::ptr player::create(bool yellow, unsigned int pattern_index, xbee_drive_b
 	return p;
 }
 
-player::player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false) {
+player::player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), dribble_power(0) {
 }
 
 void player::tick(bool scram) {
@@ -76,7 +74,9 @@ void player::tick(bool scram) {
 			bot->enable_chicker(false);
 		}
 		moved = false;
-	} else if (moved) {
+		dribble_power = 0;
+	}
+	if (moved) {
 		point vel;
 		double avel;
 		controller->move(destination * sign, angle_mod(target_orientation * sign), vel, avel);
@@ -103,5 +103,7 @@ void player::tick(bool scram) {
 		moved = false;
 		bot->enable_chicker(true);
 	}
+	bot->dribble(dribble_power);
+	dribble_power = 0;
 }
 
