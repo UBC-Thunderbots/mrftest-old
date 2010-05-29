@@ -150,6 +150,8 @@ void robot_navigator::tick() {
 	if(ai_util::ball_close(the_world, the_player)){
           #warning magic constant here need to come up with more intelligent dribble strategy
 	  the_player->dribble(0.5);
+	}else{
+	  the_player->dribble(0.0);
 	}
 
 	// at least face the ball
