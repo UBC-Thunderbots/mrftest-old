@@ -8,9 +8,7 @@
 #include "geom/point.h"
 #include "util/byref.h"
 #include "util/noncopyable.h"
-#include "util/matrix.h"
-
-typedef math::matrix<double> Matrix;
+#include "gpc.h"
 
 /**
 Controller to exploit old broken simulator
@@ -31,6 +29,8 @@ class jons_controller : public robot_controller {
 		player::ptr plr;
 	
 	protected:
+		gpc X_controller;
+		point old_control;
 		double max_acc;
 		double max_vel;
 		double max_Aacc;

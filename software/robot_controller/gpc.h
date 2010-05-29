@@ -1,6 +1,11 @@
+#ifndef _GPC_H
+#define _GPC_H
+
 #include <cstring>
 #include <vector>
+#define __MINMAX_DEFINED
 #include "util/matrix.h"
+
 /**
 An impementation of the a SISO GPC Controller
 */
@@ -41,14 +46,6 @@ class gpc {
 		/// The maximum horizon
 		unsigned int N2;
 		
-	protected:
-	
-		/**
-			after an update this method creates the free_response and step_response vectors
-			it is called in calc_control()
-			\sa update()
-		*/
-		void build_forward();
 		
 	public:
 		
@@ -65,6 +62,15 @@ class gpc {
 			This is a "well dah" 
 		*/
 		~gpc();
+		
+			
+		/**
+			after an update this method creates the free_response and step_response vectors
+			it is called in calc_control()
+			\sa update()
+		*/
+		void build_forward();
+		
 		
 		/**
 			Used to advance the recursive estimator and get an new estimate of theta
@@ -89,7 +95,15 @@ class gpc {
 			\param input the current control action just calculated
 			
 		 */
-		void push_history(double output,double input);
+		void push_history(double input,double output);
+		
+		/**
+			Stores the history nessecary to compute the regression as well
+			as the look ahead prediction, assumes previous output used in update;
+			\param input The current control action just calculated
+			\sa push_history();
+		*/
+		void push_history(double input);
 		
 		/**
 			Gets the uncontrolled response of the system
@@ -113,4 +127,12 @@ class gpc {
 			\return the current number of zeros to approximate to
 		*/
 		double get_numzeros() const;
+
+		/**
+			\return the current theta vector
+		*/
+		std::vector<double> get_parameter_estimates() const;
+
 };
+
+#endif

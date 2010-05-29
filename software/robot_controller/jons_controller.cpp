@@ -26,13 +26,11 @@ namespace {
 
 jons_controller::jons_controller(player::ptr plr) : plr(plr), max_acc(10), max_vel(1000), max_Aacc(1), close_param(1.5),position_delta(0.05), orient_delta(0.05)
 {
+	
 }
 
 void jons_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
-	Matrix Covariance_Vt(5,5);
-	Matrix Covariance_Vx(5,5);
-	Matrix Covariance_Vy(5,5);
-
+	
 	const point &current_position = plr->position();
 	const double current_orientation = plr->orientation();
 	const point &current_velocity = plr->est_velocity();
@@ -49,15 +47,26 @@ void jons_controller::move(const point &new_position, double new_orientation, po
 	//if(abs(plr->est_aacceleration()) > max_Aacc)
 	//	max_Aacc = abs(plr->est_aacceleration());
 
+	
+	/*
 	if(pow(current_angularvel,2)/max_Aacc*close_param < fabs(new_da) && fabs(new_da) > orient_delta)
 		angular_velocity = new_da/fabs(new_da)*max_vel;
 	else
 		angular_velocity=0;
-		
+	*/
+		angular_velocity = new_da;		
 	
 	point new_dir = diff.rotate(-current_orientation);
 	
+	X_controller.update(current_position.rotate(-current_orientation).x);
 	
+	//X_controller.build_forward();
+	double delta_u = X_controller.calc_control(new_position.rotate(-current_orientation).x);
+	linear_velocity = new_dir;
+	linear_velocity.x = old_control.x + delta_u;
+	old_control = linear_velocity;
+	//std::cout << linear_velocity.x <<":" << delta_u <<std::endl;
+/*		
 	new_dir = new_dir.norm();
 	vel_in_dir_travel=current_velocity.dot(diff.norm());
 	
@@ -65,13 +74,15 @@ void jons_controller::move(const point &new_position, double new_orientation, po
 		linear_velocity = max_vel*new_dir;
 	else
 		linear_velocity = new_dir*0;
-		
-	//Fix the problems with unrealistic numbers when the robot is manually moved
-	//if(isnan(linear_velocity.len()) || isinf(linear_velocity.len()) || isinf(-linear_velocity.len()))
-	//	linear_velocity = point(0,0);
-			
-	//if(isnan(angular_velocity) || isinf(angular_velocity) || isinf(-angular_velocity))
-	//	angular_velocity=0;
+*/		
+	X_controller.push_history(linear_velocity.x);
+	
+	
+	std::vector<double> estimates = X_controller.get_parameter_estimates();
+	for(std::vector<double>::iterator index=estimates.begin();index != estimates.end();index++)
+		std::cout << *index << ":";
+	
+	std::cout << std::endl;
 }
 
 /**

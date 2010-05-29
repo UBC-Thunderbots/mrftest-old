@@ -1,7 +1,6 @@
 #include "gpc.h"
-#undef min
-#undef max
 #include <algorithm>
+#include <iostream>
 
 namespace {
 
@@ -41,6 +40,7 @@ gpc::gpc(unsigned int numpoles,unsigned int numzeros,unsigned int N2,unsigned in
 	for(unsigned int index=0;index<covariance_size;index++)
 		covariance(index,index)=initial_uncertainty;
 	
+	
 	double length = std::max(num_poles,num_zeros+1);
 	for(unsigned int index=0;index<(length+N2);index++)
 		prev_inputs.push_back(0);
@@ -51,7 +51,10 @@ gpc::gpc(unsigned int numpoles,unsigned int numzeros,unsigned int N2,unsigned in
 		
 	
 	theta.SetSize(num_zeros+num_poles+1,1);
-	theta.Null();
+	for(unsigned int index=0;index < num_zeros+num_poles+1;index++)
+		theta(index,0)=0;
+	theta(0,0)=1;	
+	theta(num_zeros+1,0)=1;
 }
 
 gpc::~gpc() {
@@ -78,12 +81,16 @@ void gpc::update(double output) {
 
 }
 
-void gpc::push_history(double output,double input) {
+void gpc::push_history(double input,double output) {
 	prev_inputs.insert(prev_inputs.begin(), input);
 	prev_inputs.pop_back();
 	prev_outputs.insert(prev_outputs.begin(), output);
 	prev_outputs.pop_back();
 }	
+
+void gpc::push_history(double input) {
+	push_history(input,current_output);
+}
 
 void gpc::build_forward() {
 	std::vector<double> delta;
@@ -95,12 +102,12 @@ void gpc::build_forward() {
 	A.push_back(1);
 	
 	std::vector<double> U_filtered = conv(prev_inputs,delta);
-		
-	for(unsigned int index=0;index<num_poles;index++)
-		A.push_back(theta(index,1));
 	
 	for(unsigned int index=0;index<(num_zeros+1);index++)
-		B.push_back(theta(num_poles+index,1));
+		B.push_back(theta(index,0));
+			
+	for(unsigned int index=0;index<num_poles;index++)
+		A.push_back(theta(num_zeros+1+index,0));
 		
 	std::vector<double> A_tild = conv(A,delta);
 	std::vector<double> F(A_tild.begin()+1,A_tild.end());
@@ -109,7 +116,9 @@ void gpc::build_forward() {
 	Eprime.push_back(1);
 	std::vector<double> F_s;
 	
-	math::matrix<double> Gmat(Eprime.size()+B.size()-1,Eprime.size()+B.size()-1);
+	//math::matrix<double> Gmat(Eprime.size()+B.size()-1,Eprime.size()+B.size()-1);
+	math::matrix<double> Gmat;
+	Gmat.SetSize(N2,N2);
 	Gmat.Null();
 	
 	for(int index=0;index<static_cast<int>(N2);index++) {
@@ -130,9 +139,11 @@ void gpc::build_forward() {
 			temp += G[index+1+index2] * U_filtered[index2];
 			
 		F_s.push_back(temp);
+		
 		for(int index2 = 0; index2 < static_cast<int>(N2);index2++) {
-			if(index - index2 >=0) 
+			if(index - index2 >=0) {
 				Gmat(index,index2) = G[index - index2];
+			}
 		}
 	}
 	
@@ -156,7 +167,8 @@ double gpc::calc_control(double set_point) {
 	}
 	
 #warning impliment lambda
-	double scale = ((~Gmat)*Gmat)(0,0);
+	double scale = ((~Gmat)*Gmat)(0,0) + 100;
+	
 	return (~Gmat*(Ysp - Fs))(0,0)/scale;
 }
 
@@ -177,3 +189,11 @@ double gpc::get_numzeros() const {
 	return num_zeros;
 }
 
+std::vector<double> gpc::get_parameter_estimates() const {
+	std::vector<double> returnval;
+	
+	for(unsigned int index = 0;index<num_poles+num_zeros+1;index++)
+		returnval.push_back(theta(index,0));
+	
+	return returnval;
+}
