@@ -36,6 +36,8 @@ void chase_and_shoot::tick()
  	point robot_dst = est_ball_pos;
  	point vec = target - est_ball_pos;
  	
+ 	
+ 	
  	if(vec.len()<0.01){
  	//ball already too close to net 
  	//don't try and divide by small number
@@ -46,6 +48,18 @@ void chase_and_shoot::tick()
  	
  	if((robot_dst-the_player->position()).len()>0.2){
  	recent_hit_target=false;
+ 	}
+ 	
+ 	point player_diff_vector = est_ball_pos- the_player->position();
+ 	point target_diff_vector = est_ball_pos- robot_dst;
+ 	
+ 	if(player_diff_vector.len() < target_diff_vector.len()){
+ 		if(player_diff_vector.dot(target_diff_vector) > 0){
+ 			recent_hit_target = true;
+	 	 	 shoot tactic(the_player, the_world);
+	 		tactic.tick();
+	 		return;
+ 		}
  	}
  	
  	if((robot_dst-the_player->position()).len()<0.01){

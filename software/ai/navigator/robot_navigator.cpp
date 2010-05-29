@@ -112,8 +112,9 @@ point robot_navigator::get_inbounds_point(point dst){
 	if(flags & avoid_ball_stop){
 	  //need to grab ball distance from somewhere
 	  point ball_diff = the_ball->position() - wantdest;
+	  //	  point cur_diff = the_ball->position() - 
 	  if(ball_diff.len()< AVOID_BALL_AMOUNT){
-	    //do stuff
+	    
 	  }
 	}
 
@@ -145,6 +146,11 @@ void robot_navigator::tick() {
 	const double wantori = (orientation_initialized) ? target_orientation : atan2(balldist.y, balldist.x);
 	wantdest = get_inbounds_point(wantdest);
 	const double distance = (wantdest - the_player->position()).len();
+
+	if(ai_util::ball_close(the_world, the_player)){
+          #warning magic constant here need to come up with more intelligent dribble strategy
+	  the_player->dribble(0.5);
+	}
 
 	// at least face the ball
 	if (distance < ai_util::POS_CLOSE || !position_initialized) {

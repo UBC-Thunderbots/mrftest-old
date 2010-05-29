@@ -21,6 +21,7 @@ namespace ai_util{
 
 	const unsigned int SHOOTING_SAMPLE_POINTS = 9;
 
+
 	const std::vector<point> calc_candidates(const world::ptr world) {
 		std::vector<point> candidates(SHOOTING_SAMPLE_POINTS);
 		const field &the_field(world->field());
@@ -34,6 +35,20 @@ namespace ai_util{
 		}
 		return candidates;
 	}
+
+  bool ball_close(const world::ptr w, const player::ptr bot){
+
+    point ball_pos = w->ball()->position();
+    point robot_pos = bot->position();
+    double robot_orientation = bot->orientation();
+
+    if((ball_pos - robot_pos).len() > bot->MAX_RADIUS + w->ball()->RADIUS*2)return false;
+
+    point rob_ball = (ball_pos - robot_pos);
+    point rot_rob_ball = rob_ball.rotate(robot_orientation);
+
+    return rob_ball.dot(rot_rob_ball) >0;
+  }
 
 	bool path_check(const point& begin, const point& end, const team& theteam, const double& thresh, const robot::ptr skip) {
 		const point direction = (end - begin).norm();

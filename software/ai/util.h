@@ -65,6 +65,14 @@ namespace ai_util {
 	 */
 	extern const unsigned int SHOOTING_SAMPLE_POINTS;
 
+
+	/**
+	*Checks if the robot is in a position close enough to the ball to start
+	*the dribbler motor would be nice to check for obstacles in the way of ball before doing this
+	*/
+	bool ball_close(const world::ptr w, const player::ptr bot);
+	
+	
 	/**
 	 * Checks if the path from begin to end is blocked by one team, with some threshold.
 	 * Returns true if path is okay.
