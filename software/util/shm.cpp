@@ -1,3 +1,4 @@
+#include "util/misc.h"
 #include "util/shm.h"
 #include <stdexcept>
 #include <cstdlib>
@@ -37,7 +38,7 @@ namespace {
 
 	uint8_t *map_data(file_descriptor &fd, std::size_t sz) {
 		void *ret = mmap(0, sz, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-		if (ret == MAP_FAILED) {
+		if (ret == get_map_failed()) {
 			throw std::runtime_error("Cannot map temporary file!");
 		}
 		return static_cast<uint8_t *>(ret);

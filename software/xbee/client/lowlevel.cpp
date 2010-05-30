@@ -1,5 +1,6 @@
 #define DEBUG 0
 #include "util/dprint.h"
+#include "util/misc.h"
 #include "util/sockaddrs.h"
 #include "util/xbee.h"
 #include "xbee/client/lowlevel.h"
@@ -68,7 +69,7 @@ namespace {
 		Glib::spawn_sync("", args, Glib::SpawnFlags(0), sigc::slot<void>(), &output, &error, &status);
 		std::cout << output;
 		std::cerr << error;
-		if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+		if (!wifexited(status) || wexitstatus(status) != 0) {
 			throw std::runtime_error("Cannot launch arbiter daemon!");
 		}
 	}
@@ -92,7 +93,7 @@ namespace {
 		iovec iov;
 		iov.iov_base = databuf;
 		iov.iov_len = 3;
-		char controlbuf[CMSG_SPACE(sizeof(int))];
+		char controlbuf[cmsg_space(sizeof(int))];
 		msghdr mh;
 		mh.msg_name = 0;
 		mh.msg_namelen = 0;
@@ -107,11 +108,11 @@ namespace {
 		if (databuf[0] != 'S' || databuf[1] != 'H' || databuf[2] != 'M') {
 			throw std::runtime_error("Received wrong message on socket!");
 		}
-		cmsghdr *cmsg = CMSG_FIRSTHDR(&mh);
-		if (cmsg->cmsg_len != CMSG_LEN(sizeof(int)) || cmsg->cmsg_level != SOL_SOCKET || cmsg->cmsg_type != SCM_RIGHTS) {
+		cmsghdr *cmsg = cmsg_firsthdr(&mh);
+		if (cmsg->cmsg_len != cmsg_len(sizeof(int)) || cmsg->cmsg_level != SOL_SOCKET || cmsg->cmsg_type != SCM_RIGHTS) {
 			throw std::runtime_error("Received wrong ancillary data on socket!");
 		}
-		return file_descriptor(reinterpret_cast<const int *>(CMSG_DATA(cmsg))[0]);
+		return file_descriptor(static_cast<const int *>(cmsg_data(cmsg))[0]);
 	}
 }
 

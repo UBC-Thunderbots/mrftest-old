@@ -88,7 +88,7 @@ world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bo
 	}
 	sockaddrs sa;
 	sa.in.sin_family = AF_INET;
-	sa.in.sin_addr.s_addr = htonl(INADDR_ANY);
+	sa.in.sin_addr.s_addr = get_inaddr_any();
 	sa.in.sin_port = htons(10002);
 	std::memset(sa.in.sin_zero, 0, sizeof(sa.in.sin_zero));
 	if (bind(vision_socket, &sa.sa, sizeof(sa.in)) < 0) {
@@ -96,7 +96,7 @@ world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bo
 	}
 	ip_mreqn mcreq;
 	mcreq.imr_multiaddr.s_addr = inet_addr("224.5.23.2");
-	mcreq.imr_address.s_addr = htonl(INADDR_ANY);
+	mcreq.imr_address.s_addr = get_inaddr_any();
 	mcreq.imr_ifindex = 0;
 	if (setsockopt(vision_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mcreq, sizeof(mcreq)) < 0) {
 		LOG("Cannot join multicast group 224.5.23.2 for vision data.");

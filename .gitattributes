@@ -298,6 +298,8 @@ software/util/hungarian.h -text
 software/util/ihex.cpp -text
 software/util/ihex.h -text
 software/util/matrix.h -text
+software/util/misc.cpp -text
+software/util/misc.h -text
 software/util/noncopyable.h -text
 software/util/registerable.h -text
 software/util/rle.cpp -text
@@ -305,6 +307,7 @@ software/util/rle.h -text
 software/util/rwlock.h -text
 software/util/shm.cpp -text
 software/util/shm.h -text
+software/util/sockaddrs.cpp -text
 software/util/sockaddrs.h -text
 software/util/stochastic_local_search.cpp -text
 software/util/stochastic_local_search.h -text

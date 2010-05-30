@@ -1,5 +1,6 @@
 #define DEBUG 0
 #include "util/dprint.h"
+#include "util/misc.h"
 #include "xbee/daemon/frontend/backend.h"
 #include "xbee/daemon/frontend/client.h"
 #include "xbee/daemon/frontend/daemon.h"
@@ -46,7 +47,7 @@ client::client(file_descriptor &sck, class daemon &daemon) : sock(sck), daemon(d
 	iovec iov;
 	iov.iov_base = const_cast<char *>("SHM");
 	iov.iov_len = 3;
-	char control_buffer[CMSG_SPACE(sizeof(int))];
+	char control_buffer[cmsg_space(sizeof(int))];
 	msghdr mh;
 	mh.msg_name = 0;
 	mh.msg_namelen = 0;
@@ -55,11 +56,11 @@ client::client(file_descriptor &sck, class daemon &daemon) : sock(sck), daemon(d
 	mh.msg_control = control_buffer;
 	mh.msg_controllen = sizeof(control_buffer);
 	mh.msg_flags = 0;
-	cmsghdr *cmsg = CMSG_FIRSTHDR(&mh);
-	cmsg->cmsg_len = CMSG_LEN(sizeof(int));
+	cmsghdr *cmsg = cmsg_firsthdr(&mh);
+	cmsg->cmsg_len = cmsg_len(sizeof(int));
 	cmsg->cmsg_level = SOL_SOCKET;
 	cmsg->cmsg_type = SCM_RIGHTS;
-	reinterpret_cast<int *>(CMSG_DATA(cmsg))[0] = daemon.shm.fd();
+	static_cast<int *>(cmsg_data(cmsg))[0] = daemon.shm.fd();
 	sendmsg(sock, &mh, MSG_NOSIGNAL);
 }
 
