@@ -1,4 +1,4 @@
-#include "util/abstract_list_model.h"
+#include "uicomponents/abstract_list_model.h"
 #include <cassert>
 
 abstract_list_model::abstract_list_model() : stamp(1) {

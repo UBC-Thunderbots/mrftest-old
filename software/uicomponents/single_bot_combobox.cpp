@@ -1,5 +1,4 @@
 #include "uicomponents/single_bot_combobox.h"
-#include "util/abstract_list_model.h"
 #include "util/dprint.h"
 #include <cassert>
 

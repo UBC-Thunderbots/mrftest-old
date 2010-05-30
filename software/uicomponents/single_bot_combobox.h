@@ -1,7 +1,7 @@
 #ifndef SINGLE_BOT_COMBOBOX_H
 #define SINGLE_BOT_COMBOBOX_H
 
-#include "util/abstract_list_model.h"
+#include "uicomponents/abstract_list_model.h"
 #include "util/config.h"
 #include <gtkmm.h>
 

@@ -256,6 +256,8 @@ software/tester/permotor_drive.h -text
 software/tester/window.cpp -text
 software/tester/window.h -text
 software/tester/zeroable.h -text
+software/uicomponents/abstract_list_model.cpp -text
+software/uicomponents/abstract_list_model.h -text
 software/uicomponents/battery_meter.cpp -text
 software/uicomponents/battery_meter.h -text
 software/uicomponents/dribbler_meter.cpp -text
@@ -274,8 +276,6 @@ software/uicomponents/success_meter.cpp -text
 software/uicomponents/success_meter.h -text
 software/uicomponents/visualizer.cpp -text
 software/uicomponents/visualizer.h -text
-software/util/abstract_list_model.cpp -text
-software/util/abstract_list_model.h -text
 software/util/algorithm.h -text
 software/util/byref.h -text
 software/util/clocksource.h -text

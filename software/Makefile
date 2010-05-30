@@ -7,13 +7,13 @@ PROJECTS := config simulator test thunderbots xbeeconfig xbeed
 # Here, write a list of the source files and directories for each executable.
 # Directories will be searched for source files recursively.
 #
-SOURCES_config := configeditor util
+SOURCES_config := configeditor uicomponents util
 SOURCES_simulator := geom leastsquares proto sim uicomponents util xbee/daemon/frontend xbee/shared
 SOURCES_steptest := geom leastsquares util xbee steptest.cpp
 SOURCES_test := geom tester uicomponents util xbee/client xbee/shared
 SOURCES_thunderbots := ai geom leastsquares proto robot_controller uicomponents util xbee/client xbee/shared
 SOURCES_xbeeconfig := xbeeconfig.cpp
-SOURCES_xbeed := util/fd.cpp util/shm.cpp util/xbee.cpp xbee/daemon xbee/shared
+SOURCES_xbeed := util xbee/daemon xbee/shared
 
 #
 # Here, write the linker flags to be used for each project.

@@ -1,5 +1,5 @@
 #include "configeditor/window.h"
-#include "util/abstract_list_model.h"
+#include "uicomponents/abstract_list_model.h"
 #include "util/algorithm.h"
 #include <algorithm>
 #include <cassert>
