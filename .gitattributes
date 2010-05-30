@@ -257,6 +257,8 @@ software/tester/window.h -text
 software/tester/zeroable.h -text
 software/uicomponents/battery_meter.cpp -text
 software/uicomponents/battery_meter.h -text
+software/uicomponents/dribbler_meter.cpp -text
+software/uicomponents/dribbler_meter.h -text
 software/uicomponents/inbound_rssi_meter.cpp -text
 software/uicomponents/inbound_rssi_meter.h -text
 software/uicomponents/latency_meter.cpp -text
