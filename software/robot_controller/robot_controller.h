@@ -27,9 +27,9 @@ class robot_controller2 : public byref {
 		 * guaranteed that this function will be called exactly once per timer
 		 * tick.
 		 *
-		 * \param new_position the position to move to, in world coordinates
+		 * \param new_position the position to move to, in team coordinates
 		 * measured in metres
-		 * \param new_orientation the orientation to rotate to in world
+		 * \param new_orientation the orientation to rotate to in team
 		 * coordinates measured in radians
 		 * \param wheel_speeds (output) the speeds of the four wheels to send to
 		 * the robot, in quarters of a degree of motor shaft rotation per five
@@ -73,9 +73,9 @@ class robot_controller : public robot_controller2 {
 		 * guaranteed that this function will be called exactly once per timer
 		 * tick.
 		 *
-		 * \param new_position the position to move to, in world coordinates
+		 * \param new_position the position to move to, in team coordinates
 		 * measured in metres
-		 * \param new_orientation the orientation to rotate to in world
+		 * \param new_orientation the orientation to rotate to in team
 		 * coordinates measured in radians
 		 * \param linear_velocity (output) the linear velocity to move at, in
 		 * robot-relative coordinates (defined as the positive X axis being

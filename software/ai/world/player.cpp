@@ -78,7 +78,7 @@ void player::tick(bool scram) {
 	}
 	if (moved) {
 		int output[4];
-		controller->move(destination * sign, angle_mod(target_orientation * sign), output);
+		controller->move(destination, target_orientation, output);
 		int m1 = clamp(output[0], -1023, 1023);
 		int m2 = clamp(output[1], -1023, 1023);
 		int m3 = clamp(output[2], -1023, 1023);
