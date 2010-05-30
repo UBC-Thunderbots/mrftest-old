@@ -52,7 +52,7 @@ std::vector<point> lineseg_circle_intersect(point centre, double radius, point s
   std::vector<point> ans;
   std::vector<point> poss = line_circle_intersect(centre, radius, segA, segB);
 
-  for(int i =0; i<poss.size(); i++){
+  for(unsigned int i =0; i<poss.size(); i++){
     bool x_ok = poss[i].x <= std::max(segA.x, segB.x)+eps && poss[i].x <= std::min(segA.x, segB.x)-eps; 
     bool y_ok = poss[i].y <= std::max(segA.y, segB.y)+eps && poss[i].y <= std::min(segA.y, segB.y)-eps;
     if(x_ok && y_ok)ans.push_back(poss[i]); 
