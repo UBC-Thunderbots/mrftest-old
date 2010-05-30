@@ -12,7 +12,7 @@ void abstract_list_model::alm_row_changed(unsigned int index) {
 	path.push_back(index);
 	iterator iter;
 	iter.set_stamp(stamp);
-	iter.gobj()->user_data = GUINT_TO_POINTER(index);
+	iter.gobj()->user_data = reinterpret_cast<void *>(index);
 	row_changed(path, iter);
 }
 
@@ -21,7 +21,7 @@ void abstract_list_model::alm_row_inserted(unsigned int index) {
 	path.push_back(index);
 	iterator iter;
 	iter.set_stamp(stamp);
-	iter.gobj()->user_data = GUINT_TO_POINTER(index);
+	iter.gobj()->user_data = reinterpret_cast<void *>(index);
 	row_inserted(path, iter);
 }
 
@@ -51,7 +51,7 @@ GType abstract_list_model::get_column_type_vfunc(int col) const {
 
 bool abstract_list_model::iter_next_vfunc(const iterator &iter, iterator &next) const {
 	assert(iter_is_valid(iter));
-	unsigned int nextindex = GPOINTER_TO_UINT(iter.gobj()->user_data) + 1U;
+	unsigned int nextindex = reinterpret_cast<unsigned int>(iter.gobj()->user_data) + 1U;
 	if (nextindex < alm_rows()) {
 		make_iter_valid(next, nextindex);
 		return true;
@@ -111,17 +111,17 @@ int abstract_list_model::iter_n_root_children_vfunc() const {
 Gtk::TreeModel::Path abstract_list_model::get_path_vfunc(const iterator &iter) const {
 	assert(iter_is_valid(iter));
 	Path p;
-	p.push_back(GPOINTER_TO_UINT(iter.gobj()->user_data));
+	p.push_back(reinterpret_cast<unsigned int>(iter.gobj()->user_data));
 	return p;
 }
 
 bool abstract_list_model::iter_is_valid(const iterator &iter) const {
-	return iter.get_stamp() == stamp && GPOINTER_TO_UINT(iter.gobj()->user_data) < alm_rows();
+	return iter.get_stamp() == stamp && reinterpret_cast<unsigned int>(iter.gobj()->user_data) < alm_rows();
 }
 
 void abstract_list_model::make_iter_valid(iterator &iter, unsigned int index) const {
 	iter.set_stamp(stamp);
-	iter.gobj()->user_data = GUINT_TO_POINTER(index);
+	iter.gobj()->user_data = reinterpret_cast<void *>(index);
 }
 
 void abstract_list_model::make_iter_invalid(iterator &iter) {
@@ -132,14 +132,14 @@ void abstract_list_model::make_iter_invalid(iterator &iter) {
 void abstract_list_model::get_value_vfunc(const iterator &iter, int col, Glib::ValueBase &value) const {
 	assert(iter_is_valid(iter));
 	assert(is_valid_column(col));
-	unsigned int index = GPOINTER_TO_UINT(iter.gobj()->user_data);
+	unsigned int index = reinterpret_cast<unsigned int>(iter.gobj()->user_data);
 	alm_get_value(index, col, value);
 }
 
 void abstract_list_model::set_value_impl(const iterator &iter, int col, const Glib::ValueBase &value) {
 	assert(iter_is_valid(iter));
 	assert(is_valid_column(col));
-	unsigned int index = GPOINTER_TO_UINT(iter.gobj()->user_data);
+	unsigned int index = reinterpret_cast<unsigned int>(iter.gobj()->user_data);
 	alm_set_value(index, col, value);
 }
 

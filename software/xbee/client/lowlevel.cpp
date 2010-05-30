@@ -46,7 +46,7 @@ namespace {
 		// Find out the path name to myself.
 		std::vector<char> buffer(8);
 		ssize_t ssz;
-		while ((ssz = readlink("/proc/self/exe", &buffer[0], buffer.size())) == (ssize_t) buffer.size()) {
+		while ((ssz = readlink("/proc/self/exe", &buffer[0], buffer.size())) == static_cast<ssize_t>(buffer.size())) {
 			buffer.resize(buffer.size() * 2);
 		}
 		if (ssz < 0) {

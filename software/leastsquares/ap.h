@@ -315,7 +315,7 @@ public:
         m_iHigh = iHigh;
         m_iVecSize = iHigh-iLow+1;
         if( Aligned )
-            m_Vec = (T*)ap::amalloc(m_iVecSize*sizeof(T), 16);
+            m_Vec = static_cast<T*>(ap::amalloc(m_iVecSize*sizeof(T), 16));
         else
             m_Vec = new T[m_iVecSize];
     };
@@ -498,7 +498,7 @@ public:
                 n2++;
                 m_iVecSize += n1;
             }
-            m_Vec = (T*)ap::amalloc(m_iVecSize*sizeof(T), 16);
+            m_Vec = static_cast<T*>(ap::amalloc(m_iVecSize*sizeof(T), 16));
         }
         else
             m_Vec = new T[m_iVecSize];

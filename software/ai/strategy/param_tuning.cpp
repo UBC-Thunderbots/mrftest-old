@@ -58,7 +58,7 @@ namespace {
 		tc->set_params(sls->get_params());
 		std::cout << " reset, curr params=";
 		const std::vector<double>& params = sls->get_params();
-		for (int i = 0; i < (int)params.size(); ++i) {
+		for (unsigned int i = 0; i < params.size(); ++i) {
 			std::cout << params[i] << " ";
 		}
 		std::cout << std::endl;
@@ -91,13 +91,13 @@ namespace {
 			std::cout << "setting new params" << std::endl;
 			std::cout << "curr params=";
 			const std::vector<double>& params = sls->get_params();
-			for (int i = 0; i < (int)params.size(); ++i) {
+			for (unsigned int i = 0; i < params.size(); ++i) {
 				std::cout << params[i] << " ";
 			}
 			std::cout << std::endl;
 			const std::vector<double>& best_params = sls->get_best_params();
 			std::cout << "best params=";
-			for (int i = 0; i < (int)best_params.size(); ++i) {
+			for (unsigned int i = 0; i < best_params.size(); ++i) {
 				std::cout << best_params[i] << " ";
 			}
 			std::cout << std::endl;

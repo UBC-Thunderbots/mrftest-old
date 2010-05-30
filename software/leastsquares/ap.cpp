@@ -617,9 +617,9 @@ void* ap::amalloc(size_t size, size_t alignment)
         // no alignment, just call malloc
         //
         void *block = malloc(sizeof(void*)+size);
-        void **p = (void**)block;
+        void **p = static_cast<void**>(block);
         *p = block;
-        return (void*)((char*)block+sizeof(void*));
+        return static_cast<char*>(block)+sizeof(void*);
     }
     else
     {
@@ -627,19 +627,19 @@ void* ap::amalloc(size_t size, size_t alignment)
         // align.
         //
         void *block = malloc(alignment-1+sizeof(void*)+size);
-        char *result = (char*)block+sizeof(void*);
+        char *result = static_cast<char*>(block)+sizeof(void*);
         //if( ((unsigned int)(result))%alignment!=0 )
         //    result += alignment - ((unsigned int)(result))%alignment;
-        if( (result-(char*)0)%alignment!=0 )
-            result += alignment - (result-(char*)0)%alignment;
-        *((void**)(result-sizeof(void*))) = block;
+        if( (result-static_cast<char*>(0))%alignment!=0 )
+            result += alignment - (result-static_cast<char*>(0))%alignment;
+        *(reinterpret_cast<void**>(result-sizeof(void*))) = block;
         return result;
     }
 }
 
 void ap::afree(void *block)
 {
-    void *p = *((void**)((char*)block-sizeof(void*)));
+    void *p = *(reinterpret_cast<void**>(static_cast<char*>(block)-sizeof(void*)));
     free(p);
 }
 
