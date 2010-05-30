@@ -57,7 +57,7 @@ class player : public robot {
 		xbee_drive_bot::ptr bot;
 		point destination;
 		double target_orientation;
-		robot_controller::ptr controller;
+		robot_controller2::ptr controller;
 		bool moved;
 		int dribble_power;
 

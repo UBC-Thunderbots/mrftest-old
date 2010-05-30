@@ -9,16 +9,62 @@ class player;
 class robot_controller_factory;
 
 /**
- * Translates world-coordinate movement requests into robot-relative
- * velocities.
+ * Translates world-coordinate movement requests into robot wheel rotation
+ * speeds.
  */
-class robot_controller : public byref {
+class robot_controller2 : public byref {
 	public:
 		/**
-		 * A pointer to a robot_controller.
+		 * A pointer to a robot_controller2.
 		 */
-		typedef Glib::RefPtr<robot_controller> ptr;
+		typedef Glib::RefPtr<robot_controller2> ptr;
 
+		/**
+		 * Tells the robot controlled by this controller to move to the
+		 * specified target location and orientation.
+		 *
+		 * It is expected that this function will update internal state. It is
+		 * guaranteed that this function will be called exactly once per timer
+		 * tick.
+		 *
+		 * \param new_position the position to move to, in world coordinates
+		 * measured in metres
+		 * \param new_orientation the orientation to rotate to in world
+		 * coordinates measured in radians
+		 * \param wheel_speeds (output) the speeds of the four wheels to send to
+		 * the robot, in quarters of a degree of motor shaft rotation per five
+		 * milliseconds
+		 */
+		virtual void move(const point &new_position, double new_orientation, int (&wheel_speeds)[4]) = 0;
+
+		/**
+		 * Tells the controller to clear its internal state because the robot
+		 * under control is scrammed. The controller should clear any
+		 * integrators and similar structures in order to prevent unexpected
+		 * jumps when driving resumes.
+		 */
+		virtual void clear() = 0;
+
+		/**
+		 * \return The factory that created this controller
+		 */
+		virtual robot_controller_factory &get_factory() const = 0;
+
+	protected:
+		/**
+		 * Constructs a new robot_controller.
+		 */
+		robot_controller2() {
+		}
+};
+
+/**
+ * A compatibility layer for using old robot controllers that prefer to produce
+ * output in the form of linear and angular velocities in robot-relative metres
+ * per second, rather than calculating wheel speeds directly.
+ */
+class robot_controller : public robot_controller2 {
+	public:
 		/**
 		 * Tells the robot controlled by this controller to move to the
 		 * specified target location and orientation.
@@ -39,25 +85,8 @@ class robot_controller : public byref {
 		 */
 		virtual void move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) = 0;
 
-		/**
-		 * Tells the controller to clear its internal state because the robot
-		 * under control is scrammed. The controller should clear any
-		 * integrators and similar structures in order to prevent unexpected
-		 * jumps when driving resumes.
-		 */
-		virtual void clear() = 0;
-
-		/**
-		 * \return The factory that created this controller
-		 */
-		virtual robot_controller_factory &get_factory() const = 0;
-
-	protected:
-		/**
-		 * Constructs a new robot_controller.
-		 */
-		robot_controller() {
-		}
+	private:
+		void move(const point &new_position, double new_orientation, int (&wheel_speeds)[4]);
 };
 
 /**
@@ -77,7 +106,7 @@ class robot_controller_factory : public registerable<robot_controller_factory> {
 		 * ignored; intended to be used only in VERY, VERY special situations)
 		 * \return The new controller
 		 */
-		virtual robot_controller::ptr create_controller(Glib::RefPtr<player> plr, bool yellow, unsigned int index) const = 0;
+		virtual robot_controller2::ptr create_controller(Glib::RefPtr<player> plr, bool yellow, unsigned int index) const = 0;
 
 	protected:
 		/**

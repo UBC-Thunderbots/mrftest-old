@@ -77,28 +77,12 @@ void player::tick(bool scram) {
 		dribble_power = 0;
 	}
 	if (moved) {
-		point vel;
-		double avel;
-		controller->move(destination * sign, angle_mod(target_orientation * sign), vel, avel);
-		static const double matrix[4][3] = {
-			{-42.5995, 27.6645, 4.3175},
-			{-35.9169, -35.9169, 4.3175},
-			{35.9169, -35.9169, 4.3175},
-			{42.5995, 27.6645, 4.3175}
-		};
-		double input[3] = {
-			vel.x,
-			vel.y,
-			avel
-		};
-		double output[4] = {0, 0, 0, 0};
-		for (unsigned int row = 0; row < 4; ++row)
-			for (unsigned int col = 0; col < 3; ++col)
-				output[row] += matrix[row][col] * input[col];
-		int m1 = clamp(static_cast<int>(output[0]), -1023, 1023);
-		int m2 = clamp(static_cast<int>(output[1]), -1023, 1023);
-		int m3 = clamp(static_cast<int>(output[2]), -1023, 1023);
-		int m4 = clamp(static_cast<int>(output[3]), -1023, 1023);
+		int output[4];
+		controller->move(destination * sign, angle_mod(target_orientation * sign), output);
+		int m1 = clamp(output[0], -1023, 1023);
+		int m2 = clamp(output[1], -1023, 1023);
+		int m3 = clamp(output[2], -1023, 1023);
+		int m4 = clamp(output[3], -1023, 1023);
 		bot->drive_controlled(m1, m2, m3, m4);
 		moved = false;
 		bot->enable_chicker(true);
