@@ -17,14 +17,7 @@ namespace {
 	};
 }
 
-team::team() : score_(0) {
-}
-
-void team::score(unsigned int s) {
-	if (s != score_) {
-		score_ = s;
-		signal_score_changed.emit();
-	}
+team::team() {
 }
 
 enemy_team::ptr enemy_team::create() {

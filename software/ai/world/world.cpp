@@ -63,11 +63,6 @@ void world::flip_refbox_colour() {
 	// Change the flag.
 	refbox_yellow_ = !refbox_yellow_;
 
-	// Swap the teams' scores.
-	unsigned int temp = friendly.score();
-	friendly.score(enemy.score());
-	enemy.score(temp);
-
 	// Invert the play type.
 	playtype::playtype original_playtype = playtype();
 	playtype_override = playtype::invert[playtype_override];
@@ -80,7 +75,7 @@ void world::flip_refbox_colour() {
 	signal_flipped_refbox_colour.emit();
 }
 
-world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bots) : conf(conf), east_(false), refbox_yellow_(false), vision_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), refbox_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), ball_(ball::create()), xbee_bots(xbee_bots), playtype_(playtype::halt), vis_view(this), ball_filter_(0) {
+world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bots) : conf(conf), east_(false), refbox_yellow_(false), vision_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), ball_(ball::create()), xbee_bots(xbee_bots), playtype_(playtype::halt), vis_view(this), ball_filter_(0) {
 	vision_socket.set_blocking(false);
 	const int one = 1;
 	if (setsockopt(vision_socket, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
@@ -103,24 +98,10 @@ world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bo
 	}
 	Glib::signal_io().connect(sigc::mem_fun(this, &world::on_vision_readable), vision_socket, Glib::IO_IN);
 
-	refbox_socket.set_blocking(false);
-	if (setsockopt(refbox_socket, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
-		throw std::runtime_error("Cannot set SO_REUSEADDR.");
-	}
-	sa.in.sin_port = htons(10001);
-	if (bind(refbox_socket, &sa.sa, sizeof(sa.in)) < 0) {
-		throw std::runtime_error("Cannot bind to port 10001 for refbox data.");
-	}
-	mcreq.imr_multiaddr.s_addr = inet_addr("224.5.23.1");
-	if (setsockopt(refbox_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mcreq, sizeof(mcreq)) < 0) {
-		LOG("Cannot join multicast group 224.5.23.1 for refbox data.");
-	}
-	Glib::signal_io().connect(sigc::mem_fun(this, &world::on_refbox_readable), refbox_socket, Glib::IO_IN);
+	refbox_.signal_command_changed.connect(sigc::mem_fun(this, &world::on_refbox_command_changed));
 }
 
 bool world::on_vision_readable(Glib::IOCondition) {
-	DPRINT("Enter on_vision_readable.");
-
 	// Receive a packet.
 	uint8_t buffer[65536];
 	ssize_t len = recv(vision_socket, buffer, sizeof(buffer), 0);
@@ -128,7 +109,6 @@ bool world::on_vision_readable(Glib::IOCondition) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
 			LOG("Cannot receive packet from SSL-Vision.");
 		}
-		DPRINT("Exit on_vision_readable (1).");
 		return true;
 	}
 
@@ -136,7 +116,6 @@ bool world::on_vision_readable(Glib::IOCondition) {
 	SSL_WrapperPacket packet;
 	if (!packet.ParseFromArray(buffer, len)) {
 		LOG("Received malformed SSL-Vision packet.");
-		DPRINT("Exit on_vision_readable (2).");
 		return true;
 	}
 
@@ -155,7 +134,6 @@ bool world::on_vision_readable(Glib::IOCondition) {
 		// Check for a sensible camera ID number.
 		if (det.camera_id() >= 2) {
 			LOG(Glib::ustring::compose("Received SSL-Vision packet for unknown camera %1.", det.camera_id()));
-			DPRINT("Exit on_vision_readable (3).");
 			return true;
 		}
 
@@ -279,163 +257,122 @@ bool world::on_vision_readable(Glib::IOCondition) {
 			}
 		}
 		ball_->lock_time();
-		DPRINT("Updating visualizers.");
 		vis_view.signal_visdata_changed.emit();
 	}
 
-	DPRINT("Exit on_vision_readable (4).");
 	return true;
 }
 
-bool world::on_refbox_readable(Glib::IOCondition) {
-	DPRINT("Enter on_refbox_readable.");
-
-	// Receive the packet.
-	struct __attribute__((packed)) {
-		char cmd;
-		uint8_t counter;
-		uint8_t goals_blue;
-		uint8_t goals_yellow;
-		uint16_t time_remaining;
-	} packet;
-	ssize_t len = recv(refbox_socket, &packet, sizeof(packet), 0);
-
-	// Check for valid length.
-	if (len < 0) {
-		if (errno != EAGAIN && errno != EWOULDBLOCK) {
-			LOG("Cannot receive packet from refbox.");
-		}
-		return true;
-	} else if (len != sizeof(packet)) {
-		LOG("Received martian packet from refbox.");
-		DPRINT("Exit on_refbox_readable (1).");
-		return true;
-	}
-
-	// Install the teams's scores.
+void world::on_refbox_command_changed() {
+	// If we don't recognize the command, we will leave the current play
+	// type in force. We need to translate the current play type back to
+	// blue's point of view.
+	playtype::playtype pt = playtype_;
 	if (refbox_yellow_) {
-		friendly.score(packet.goals_yellow);
-		enemy.score(packet.goals_blue);
-	} else {
-		friendly.score(packet.goals_blue);
-		enemy.score(packet.goals_yellow);
+		pt = playtype::invert[pt];
 	}
 
-	// Install the play type.
-	{
-		// If we don't recognize the command, we will leave the current play
-		// type in force. We need to translate the current play type back to
-		// blue's point of view.
-		playtype::playtype pt = playtype_;
-		if (refbox_yellow_) {
-			pt = playtype::invert[pt];
-		}
+	// Compute the play type from blue's point of view based on the incoming
+	// command.
+	switch (refbox_.command()) {
+		case 'H': // HALT
+			pt = playtype::halt;
+			break;
 
-		// Compute the play type from blue's point of view based on the incoming
-		// command.
-		switch (packet.cmd) {
-			case 'H': // HALT
-				pt = playtype::halt;
-				break;
+		case 'S': // STOP
+		case 'z': // END TIMEOUT
+			pt = playtype::stop;
+			break;
 
-			case 'S': // STOP
-			case 'z': // END TIMEOUT
-				pt = playtype::stop;
-				break;
-
-			case ' ': // NORMAL START
+		case ' ': // NORMAL START
 #warning this is horrible, it needs to be rewritten with something useful
 #warning right now it latches into the "execute" state for exactly one packet before changing to "play"
 #warning use the maximum movement distance, record starting position of ball, also assume it is only a valid transition to the play play type if there is a robot near the ball of the proper colour that is allowed to move it
-				if (playtype_ == playtype::prepare_kickoff_friendly) {
-					pt = playtype::execute_kickoff_friendly;
-				} else if (playtype_ == playtype::prepare_kickoff_enemy) {
-					pt = playtype::execute_kickoff_enemy;
-				} else if (playtype_ == playtype::prepare_penalty_friendly) {
-					pt = playtype::execute_penalty_friendly;
-				} else if (playtype_ == playtype::prepare_penalty_enemy) {
-					pt = playtype::execute_penalty_enemy;
-				} else {
-					pt = playtype::play;
-				}
-				break;
-
-			case 's': // FORCE START
+			if (playtype_ == playtype::prepare_kickoff_friendly) {
+				pt = playtype::execute_kickoff_friendly;
+			} else if (playtype_ == playtype::prepare_kickoff_enemy) {
+				pt = playtype::execute_kickoff_enemy;
+			} else if (playtype_ == playtype::prepare_penalty_friendly) {
+				pt = playtype::execute_penalty_friendly;
+			} else if (playtype_ == playtype::prepare_penalty_enemy) {
+				pt = playtype::execute_penalty_enemy;
+			} else {
 				pt = playtype::play;
-				break;
-
-			case 'k': // KICKOFF YELLOW
-				pt = playtype::prepare_kickoff_enemy;
-				break;
-
-			case 'K': // KICKOFF BLUE
-				pt = playtype::prepare_kickoff_friendly;
-				break;
-
-			case 'p': // PENALTY YELLOW
-				pt = playtype::prepare_penalty_enemy;
-				break;
-
-			case 'P': // PENALTY BLUE
-				pt = playtype::prepare_penalty_friendly;
-				break;
-
-			case 'f': // DIRECT FREE KICK YELLOW
-				pt = playtype::execute_direct_free_kick_enemy;
-				break;
-
-			case 'F': // DIRECT FREE KICK BLUE
-				pt = playtype::execute_direct_free_kick_friendly;
-				break;
-
-			case 'i': // INDIRECT FREE KICK YELLOW
-				pt = playtype::execute_indirect_free_kick_enemy;
-				break;
-
-			case 'I': // INDIRECT FREE KICK BLUE
-				pt = playtype::execute_indirect_free_kick_friendly;
-				break;
-
-			case 'h': // HALF TIME
-			case 't': // TIMEOUT YELLOW
-			case 'T': // TIMEOUT BLUE
-				pt = playtype::pit_stop;
-				break;
-
-			case '1': // BEGIN FIRST HALF
-			case '2': // BEGIN SECOND HALF
-			case 'o': // BEGIN OVERTIME 1
-			case 'O': // BEGIN OVERTIME 2
-			case 'a': // BEGIN PENALTY SHOOTOUT
-			case 'g': // GOAL YELLOW
-			case 'G': // GOAL BLUE
-			case 'd': // REVOKE GOAL YELLOW
-			case 'D': // REVOKE GOAL BLUE
-			case 'y': // YELLOW CARD YELLOW
-			case 'Y': // YELLOW CARD BLUE
-			case 'r': // RED CARD YELLOW
-			case 'R': // RED CARD BLUE
-			case 'c': // CANCEL
-				break;
-		}
-
-		// If we are yellow, invert the command.
-		if (refbox_yellow_) {
-			pt = playtype::invert[pt];
-		}
-
-		// Lock in the new play type.
-		if (pt != playtype_) {
-			DPRINT(Glib::ustring::compose("Changing base play type to %1.", playtype::descriptions_generic[pt]));
-			playtype_ = pt;
-			if (!playtype_override_active) {
-				signal_playtype_changed.emit();
 			}
-		}
+			break;
+
+		case 's': // FORCE START
+			pt = playtype::play;
+			break;
+
+		case 'k': // KICKOFF YELLOW
+			pt = playtype::prepare_kickoff_enemy;
+			break;
+
+		case 'K': // KICKOFF BLUE
+			pt = playtype::prepare_kickoff_friendly;
+			break;
+
+		case 'p': // PENALTY YELLOW
+			pt = playtype::prepare_penalty_enemy;
+			break;
+
+		case 'P': // PENALTY BLUE
+			pt = playtype::prepare_penalty_friendly;
+			break;
+
+		case 'f': // DIRECT FREE KICK YELLOW
+			pt = playtype::execute_direct_free_kick_enemy;
+			break;
+
+		case 'F': // DIRECT FREE KICK BLUE
+			pt = playtype::execute_direct_free_kick_friendly;
+			break;
+
+		case 'i': // INDIRECT FREE KICK YELLOW
+			pt = playtype::execute_indirect_free_kick_enemy;
+			break;
+
+		case 'I': // INDIRECT FREE KICK BLUE
+			pt = playtype::execute_indirect_free_kick_friendly;
+			break;
+
+		case 'h': // HALF TIME
+		case 't': // TIMEOUT YELLOW
+		case 'T': // TIMEOUT BLUE
+			pt = playtype::pit_stop;
+			break;
+
+		case '1': // BEGIN FIRST HALF
+		case '2': // BEGIN SECOND HALF
+		case 'o': // BEGIN OVERTIME 1
+		case 'O': // BEGIN OVERTIME 2
+		case 'a': // BEGIN PENALTY SHOOTOUT
+		case 'g': // GOAL YELLOW
+		case 'G': // GOAL BLUE
+		case 'd': // REVOKE GOAL YELLOW
+		case 'D': // REVOKE GOAL BLUE
+		case 'y': // YELLOW CARD YELLOW
+		case 'Y': // YELLOW CARD BLUE
+		case 'r': // RED CARD YELLOW
+		case 'R': // RED CARD BLUE
+		case 'c': // CANCEL
+			break;
 	}
 
-	DPRINT("Exit on_refbox_readable (2).");
-	return true;
+	// If we are yellow, invert the command.
+	if (refbox_yellow_) {
+		pt = playtype::invert[pt];
+	}
+
+	// Lock in the new play type.
+	if (pt != playtype_) {
+		DPRINT(Glib::ustring::compose("Changing base play type to %1.", playtype::descriptions_generic[pt]));
+		playtype_ = pt;
+		if (!playtype_override_active) {
+			signal_playtype_changed.emit();
+		}
+	}
 }
 
 void world::override_playtype(playtype::playtype pt) {

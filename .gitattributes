@@ -127,6 +127,8 @@ software/ai/world/playtype.cpp -text
 software/ai/world/playtype.h -text
 software/ai/world/predictable.cpp -text
 software/ai/world/predictable.h -text
+software/ai/world/refbox.cpp -text
+software/ai/world/refbox.h -text
 software/ai/world/robot.cpp -text
 software/ai/world/robot.h -text
 software/ai/world/team.cpp -text

@@ -6,6 +6,7 @@
 #include "ai/world/field.h"
 #include "ai/world/player.h"
 #include "ai/world/playtype.h"
+#include "ai/world/refbox.h"
 #include "ai/world/team.h"
 #include "uicomponents/visualizer.h"
 #include "util/byref.h"
@@ -181,7 +182,7 @@ class world : public byref {
 		bool east_;
 		bool refbox_yellow_;
 		const file_descriptor vision_socket;
-		const file_descriptor refbox_socket;
+		refbox refbox_;
 		class field field_;
 		ball::ptr ball_;
 		SSL_DetectionFrame detections[2];
@@ -194,7 +195,7 @@ class world : public byref {
 
 		world(const config &, const std::vector<xbee_drive_bot::ptr> &);
 		bool on_vision_readable(Glib::IOCondition);
-		bool on_refbox_readable(Glib::IOCondition);
+		void on_refbox_command_changed();
 		void override_playtype(playtype::playtype);
 		void clear_playtype_override();
 

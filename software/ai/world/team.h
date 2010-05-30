@@ -32,18 +32,6 @@ class team : public byref {
 		sigc::signal<void, unsigned int, robot::ptr> signal_robot_removed;
 
 		/**
-		 * Fired when the team's score changes.
-		 */
-		sigc::signal<void> signal_score_changed;
-
-		/**
-		 * \return The number of points the team has scored.
-		 */
-		unsigned int score() const {
-			return score_;
-		}
-
-		/**
 		 * \return The number of robots on the team.
 		 */
 		virtual std::size_t size() const = 0;
@@ -72,17 +60,6 @@ class team : public byref {
 		virtual void remove(unsigned int index) = 0;
 
 	private:
-		/**
-		 * This team's score.
-		 */
-		unsigned int score_;
-
-		/**
-		 * Sets the team's score.
-		 * \param s the new score
-		 */
-		void score(unsigned int s);
-
 		friend class world;
 };
 
