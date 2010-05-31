@@ -165,6 +165,5 @@ firmware_window::firmware_window(xbee &modem, xmlpp::Element *xmlworld) : impl(n
 }
 
 firmware_window::~firmware_window() {
-	delete impl;
 }
 

@@ -2,6 +2,7 @@
 #define LOG_TOOLS_TOOL_LAUNCHER_H
 
 #include "util/noncopyable.h"
+#include "util/scoped_ptr.h"
 
 class log_tool_launcher_impl;
 
@@ -14,7 +15,7 @@ class log_tool_launcher : public noncopyable {
 		~log_tool_launcher();
 
 	private:
-		log_tool_launcher_impl *impl;
+		scoped_ptr<log_tool_launcher_impl> impl;
 };
 
 #endif

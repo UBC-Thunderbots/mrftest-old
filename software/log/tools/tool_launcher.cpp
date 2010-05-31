@@ -282,6 +282,5 @@ log_tool_launcher::log_tool_launcher() : impl(new log_tool_launcher_impl) {
 }
 
 log_tool_launcher::~log_tool_launcher() {
-	delete impl;
 }
 

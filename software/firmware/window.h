@@ -1,6 +1,7 @@
 #ifndef FIRMWARE_WINDOW_H
 #define FIRMWARE_WINDOW_H
 
+#include "util/scoped_ptr.h"
 #include <libxml++/libxml++.h>
 
 //
@@ -13,7 +14,7 @@ class firmware_window {
 		~firmware_window();
 
 	private:
-		firmware_window_impl *impl;
+		scoped_ptr<firmware_window_impl> impl;
 };
 
 #endif
