@@ -1,8 +1,3 @@
-// Set nonzero to draw velocity vectors.
-#define DRAW_VELOCITY 0
-// Set to the multiplier for visualizing velocity vector lengths.
-#define DRAW_VELOCITY_SCALE 1.0
-
 #define DEBUG 0
 #include "uicomponents/visualizer.h"
 #include "util/dprint.h"
@@ -126,21 +121,14 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 			ctx->move_to(x, y);
 			ctx->show_text(str);
 
-#warning IMPLEMENT VELOCITY DRAWING
-#if DRAW_VELOCITY && 0
-			player::ptr plr = player::ptr::cast_dynamic(bot);
-			if (plr) {
+			if (bot->has_destination()) {
+				const point &pos(bot->position());
+				const point &dest(bot->destination());
 				ctx->begin_new_path();
-				double vx = bot->position().x;
-				double vy = bot->position().y;
-				ctx->move_to(xtog(vx), ytog(vy));
-				const point &reqvel = plr->ui_requested_velocity().rotate(plr->orientation());
-				vx += reqvel.x * DRAW_VELOCITY_SCALE;
-				vy += reqvel.y * DRAW_VELOCITY_SCALE;
-				ctx->line_to(xtog(vx), ytog(vy));
+				ctx->move_to(xtog(pos.x), ytog(pos.y));
+				ctx->line_to(xtog(dest.x), ytog(dest.y));
 				ctx->stroke();
 			}
-#endif
 		}
 	}
 

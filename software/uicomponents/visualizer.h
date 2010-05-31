@@ -157,6 +157,17 @@ class visualizable : public noncopyable {
 				 * \return The text to display over the robot
 				 */
 				virtual Glib::ustring visualizer_label() const = 0;
+
+				/**
+				 * \return true if it is possible to determine the current
+				 * destination of this object
+				 */
+				virtual bool has_destination() const = 0;
+
+				/**
+				 * \return The current destination of the robot
+				 */
+				virtual point destination() const = 0;
 		};
 
 		/**

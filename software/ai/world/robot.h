@@ -6,6 +6,7 @@
 #include "proto/messages_robocup_ssl_detection.pb.h"
 #include "uicomponents/visualizer.h"
 #include "util/byref.h"
+#include <cstdlib>
 #include <glibmm.h>
 
 class ai;
@@ -50,19 +51,6 @@ class robot : public visualizable::robot, public predictable {
 			return predictable::orientation();
 		}
 
-		bool visualizer_visible() const {
-			return true;
-		}
-
-		visualizable::colour visualizer_colour() const {
-			// Enemies are red; overridden in subclass for friendlies.
-			return visualizable::colour(1.0, 0.0, 0.0);
-		}
-
-		Glib::ustring visualizer_label() const {
-			return Glib::ustring::compose("%1%2", yellow ? 'Y' : 'B', pattern_index);
-		}
-
 	protected:
 		double sign;
 
@@ -87,6 +75,27 @@ class robot : public visualizable::robot, public predictable {
 		 * \param packet the new data to update with
 		 */
 		void update(const SSL_DetectionRobot &packet);
+
+		bool visualizer_visible() const {
+			return true;
+		}
+
+		visualizable::colour visualizer_colour() const {
+			// Enemies are red; overridden in subclass for friendlies.
+			return visualizable::colour(1.0, 0.0, 0.0);
+		}
+
+		Glib::ustring visualizer_label() const {
+			return Glib::ustring::compose("%1%2", yellow ? 'Y' : 'B', pattern_index);
+		}
+
+		bool has_destination() const {
+			return false;
+		}
+
+		point destination() const {
+			std::abort();
+		}
 
 		friend class ai;
 		friend class world;

@@ -49,13 +49,9 @@ class player : public robot {
 		 */
 		bool has_ball() const;
 
-		visualizable::colour visualizer_colour() const {
-			return visualizable::colour(0.0, 1.0, 0.0);
-		}
-
 	private:
 		xbee_drive_bot::ptr bot;
-		point destination;
+		point destination_;
 		double target_orientation;
 		robot_controller2::ptr controller;
 		bool moved;
@@ -79,6 +75,18 @@ class player : public robot {
 		 * \param scram whether or not to scram the robot
 		 */
 		void tick(bool scram);
+
+		visualizable::colour visualizer_colour() const {
+			return visualizable::colour(0.0, 1.0, 0.0);
+		}
+
+		bool has_destination() const {
+			return true;
+		}
+
+		point destination() const {
+			return destination_;
+		}
 
 		friend class ai;
 		friend class world;

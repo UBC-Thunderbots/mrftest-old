@@ -6,6 +6,7 @@
 #include "uicomponents/visualizer.h"
 #include "util/byref.h"
 #include "util/config.h"
+#include <cstdlib>
 #include <glibmm.h>
 
 class simulator;
@@ -140,6 +141,18 @@ class robot : public visualizable::robot {
 			return player_ ? player_->orientation() : 0.0;
 		}
 
+	private:
+		const simulator_engine::ptr engine;
+		const config::robot_info &botinfo;
+		bool powered_;
+		double battery_;
+		bool bootloading_;
+		uint16_t address16_;
+		uint8_t run_data_offset_;
+		player::ptr player_;
+
+		robot(const config::robot_info &, simulator_engine::ptr);
+
 		bool visualizer_visible() const {
 			return !!player_;
 		}
@@ -152,17 +165,13 @@ class robot : public visualizable::robot {
 			return Glib::ustring::compose("%1%2", botinfo.yellow ? 'Y' : 'B', botinfo.pattern_index);
 		}
 
-	private:
-		const simulator_engine::ptr engine;
-		const config::robot_info &botinfo;
-		bool powered_;
-		double battery_;
-		bool bootloading_;
-		uint16_t address16_;
-		uint8_t run_data_offset_;
-		player::ptr player_;
+		bool has_destination() const {
+			return false;
+		}
 
-		robot(const config::robot_info &, simulator_engine::ptr);
+		point destination() const {
+			std::abort();
+		}
 };
 
 #endif
