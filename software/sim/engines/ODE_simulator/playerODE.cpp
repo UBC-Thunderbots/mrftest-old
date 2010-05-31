@@ -148,9 +148,9 @@ playerODE::~playerODE () {
 	
 
 	if(Vertices != NULL)
-		delete Vertices;
+		delete[] Vertices;
 	if(Triangles != NULL)
-		delete Triangles;
+		delete[] Triangles;
 	
 	if(wheel_position != NULL)
 		delete[] wheel_position;
