@@ -156,6 +156,7 @@ void defensive::tick() {
 
 	size_t w = 0;
 	for (size_t i = 0; i < waypoints.size(); ++i) {
+		if(i >= the_robots.size()) break;
 		if (w >= waypoints.size()) {
 			// std::cerr << "Defender has nothing to do!" << std::endl;
 			move::ptr move_tactic(new move(the_robots[i], the_world));
