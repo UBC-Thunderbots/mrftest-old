@@ -123,7 +123,7 @@ class world : public byref {
 		 * \return The current state of play
 		 */
 		playtype::playtype playtype() const {
-			return playtype_override_active ? playtype_override : playtype_;
+			return playtype_;
 		}
 
 		/**
@@ -192,12 +192,14 @@ class world : public byref {
 		bool playtype_override_active;
 		class visualizer_view vis_view;
 		class ball_filter *ball_filter_;
+		point playtype_arm_ball_position;
 
 		world(const config &, const std::vector<xbee_drive_bot::ptr> &);
 		bool on_vision_readable(Glib::IOCondition);
-		void on_refbox_command_changed();
 		void override_playtype(playtype::playtype);
 		void clear_playtype_override();
+		void update_playtype();
+		playtype::playtype compute_playtype(playtype::playtype);
 
 		friend class ai_window;
 };

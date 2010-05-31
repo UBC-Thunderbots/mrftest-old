@@ -60,19 +60,15 @@ void world::flip_ends() {
 }
 
 void world::flip_refbox_colour() {
-	// Change the flag.
+	// Update the flag.
 	refbox_yellow_ = !refbox_yellow_;
 
-	// Invert the play type.
-	playtype::playtype original_playtype = playtype();
-	playtype_override = playtype::invert[playtype_override];
+	// Flip the current play type, so that the updater will flip it back and
+	// have the proper "old" value.
 	playtype_ = playtype::invert[playtype_];
-	if (playtype() != original_playtype) {
-		signal_playtype_changed.emit();
-	}
 
-	// Fire the signal.
-	signal_flipped_refbox_colour.emit();
+	// Now run the updater.
+	update_playtype();
 }
 
 world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bots) : conf(conf), east_(false), refbox_yellow_(false), vision_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), ball_(ball::create()), xbee_bots(xbee_bots), playtype_(playtype::halt), vis_view(this), ball_filter_(0) {
@@ -98,7 +94,7 @@ world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bo
 	}
 	Glib::signal_io().connect(sigc::mem_fun(this, &world::on_vision_readable), vision_socket, Glib::IO_IN);
 
-	refbox_.signal_command_changed.connect(sigc::mem_fun(this, &world::on_refbox_command_changed));
+	refbox_.signal_command_changed.connect(sigc::mem_fun(this, &world::update_playtype));
 }
 
 bool world::on_vision_readable(Glib::IOCondition) {
@@ -260,88 +256,164 @@ bool world::on_vision_readable(Glib::IOCondition) {
 		vis_view.signal_visdata_changed.emit();
 	}
 
+	// Movement of the ball may, potentially, result in a play type change.
+	update_playtype();
+
 	return true;
 }
 
-void world::on_refbox_command_changed() {
-	// If we don't recognize the command, we will leave the current play
-	// type in force. We need to translate the current play type back to
-	// blue's point of view.
-	playtype::playtype pt = playtype_;
+void world::override_playtype(playtype::playtype pt) {
+	if (pt != playtype_override || !playtype_override_active) {
+		DPRINT(Glib::ustring::compose("Setting override play type to %1.", playtype::descriptions_generic[pt]));
+		playtype_override = pt;
+		playtype_override_active = true;
+		update_playtype();
+	}
+}
+
+void world::clear_playtype_override() {
+	if (playtype_override_active) {
+		DPRINT("Clearing override play type.");
+		playtype_override_active = false;
+		update_playtype();
+	}
+}
+
+void world::update_playtype() {
+	playtype::playtype old_pt = playtype_;
 	if (refbox_yellow_) {
-		pt = playtype::invert[pt];
+		old_pt = playtype::invert[old_pt];
+	}
+	playtype::playtype new_pt = compute_playtype(old_pt);
+	if (refbox_yellow_) {
+		new_pt = playtype::invert[new_pt];
+	}
+	if (new_pt != playtype_) {
+		playtype_ = new_pt;
+		signal_playtype_changed.emit();
+	}
+}
+
+playtype::playtype world::compute_playtype(playtype::playtype old_pt) {
+	if (playtype_override_active) {
+		return playtype_override;
 	}
 
-	// Compute the play type from blue's point of view based on the incoming
-	// command.
 	switch (refbox_.command()) {
 		case 'H': // HALT
-			pt = playtype::halt;
-			break;
+			return playtype::halt;
 
 		case 'S': // STOP
 		case 'z': // END TIMEOUT
-			pt = playtype::stop;
-			break;
+			return playtype::stop;
 
 		case ' ': // NORMAL START
-#warning this is horrible, it needs to be rewritten with something useful
-#warning right now it latches into the "execute" state for exactly one packet before changing to "play"
-#warning use the maximum movement distance, record starting position of ball, also assume it is only a valid transition to the play play type if there is a robot near the ball of the proper colour that is allowed to move it
-			if (pt == playtype::prepare_kickoff_friendly) {
-				pt = playtype::execute_kickoff_friendly;
-			} else if (pt == playtype::prepare_kickoff_enemy) {
-				pt = playtype::execute_kickoff_enemy;
-			} else if (pt == playtype::prepare_penalty_friendly) {
-				pt = playtype::execute_penalty_friendly;
-			} else if (pt == playtype::prepare_penalty_enemy) {
-				pt = playtype::execute_penalty_enemy;
-			} else {
-				pt = playtype::play;
+			switch (old_pt) {
+				case playtype::prepare_kickoff_friendly:
+					playtype_arm_ball_position = ball_->position();
+					return playtype::execute_kickoff_friendly;
+
+				case playtype::prepare_kickoff_enemy:
+					playtype_arm_ball_position = ball_->position();
+					return playtype::execute_kickoff_enemy;
+
+				case playtype::prepare_penalty_friendly:
+					playtype_arm_ball_position = ball_->position();
+					return playtype::execute_penalty_friendly;
+
+				case playtype::prepare_penalty_enemy:
+					playtype_arm_ball_position = ball_->position();
+					return playtype::execute_penalty_enemy;
+
+				case playtype::execute_kickoff_friendly:
+				case playtype::execute_kickoff_enemy:
+				case playtype::execute_penalty_friendly:
+				case playtype::execute_penalty_enemy:
+					if ((ball_->position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
+						return playtype::play;
+					} else {
+						return old_pt;
+					}
+
+				default:
+					return playtype::play;
 			}
-			break;
-
-		case 's': // FORCE START
-			pt = playtype::play;
-			break;
-
-		case 'k': // KICKOFF YELLOW
-			pt = playtype::prepare_kickoff_enemy;
-			break;
-
-		case 'K': // KICKOFF BLUE
-			pt = playtype::prepare_kickoff_friendly;
-			break;
-
-		case 'p': // PENALTY YELLOW
-			pt = playtype::prepare_penalty_enemy;
-			break;
-
-		case 'P': // PENALTY BLUE
-			pt = playtype::prepare_penalty_friendly;
-			break;
 
 		case 'f': // DIRECT FREE KICK YELLOW
-			pt = playtype::execute_direct_free_kick_enemy;
-			break;
+			if (old_pt == playtype::play) {
+				return playtype::play;
+			} else if (old_pt == playtype::execute_direct_free_kick_enemy) {
+				if ((ball_->position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
+					return playtype::play;
+				} else {
+					return playtype::execute_direct_free_kick_enemy;
+				}
+			} else {
+				playtype_arm_ball_position = ball_->position();
+				return playtype::execute_direct_free_kick_enemy;
+			}
 
 		case 'F': // DIRECT FREE KICK BLUE
-			pt = playtype::execute_direct_free_kick_friendly;
-			break;
+			if (old_pt == playtype::play) {
+				return playtype::play;
+			} else if (old_pt == playtype::execute_direct_free_kick_friendly) {
+				if ((ball_->position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
+					return playtype::play;
+				} else {
+					return playtype::execute_direct_free_kick_friendly;
+				}
+			} else {
+				playtype_arm_ball_position = ball_->position();
+				return playtype::execute_direct_free_kick_friendly;
+			}
 
 		case 'i': // INDIRECT FREE KICK YELLOW
-			pt = playtype::execute_indirect_free_kick_enemy;
-			break;
+			if (old_pt == playtype::play) {
+				return playtype::play;
+			} else if (old_pt == playtype::execute_indirect_free_kick_enemy) {
+				if ((ball_->position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
+					return playtype::play;
+				} else {
+					return playtype::execute_indirect_free_kick_enemy;
+				}
+			} else {
+				playtype_arm_ball_position = ball_->position();
+				return playtype::execute_indirect_free_kick_enemy;
+			}
 
 		case 'I': // INDIRECT FREE KICK BLUE
-			pt = playtype::execute_indirect_free_kick_friendly;
-			break;
+			if (old_pt == playtype::play) {
+				return playtype::play;
+			} else if (old_pt == playtype::execute_indirect_free_kick_friendly) {
+				if ((ball_->position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
+					return playtype::play;
+				} else {
+					return playtype::execute_indirect_free_kick_friendly;
+				}
+			} else {
+				playtype_arm_ball_position = ball_->position();
+				return playtype::execute_indirect_free_kick_friendly;
+			}
+
+		case 's': // FORCE START
+			return playtype::play;
+
+		case 'k': // KICKOFF YELLOW
+			return playtype::prepare_kickoff_enemy;
+
+		case 'K': // KICKOFF BLUE
+			return playtype::prepare_kickoff_friendly;
+
+		case 'p': // PENALTY YELLOW
+			return playtype::prepare_penalty_enemy;
+
+		case 'P': // PENALTY BLUE
+			return playtype::prepare_penalty_friendly;
 
 		case 'h': // HALF TIME
 		case 't': // TIMEOUT YELLOW
 		case 'T': // TIMEOUT BLUE
-			pt = playtype::pit_stop;
-			break;
+			return playtype::pit_stop;
 
 		case '1': // BEGIN FIRST HALF
 		case '2': // BEGIN SECOND HALF
@@ -357,38 +429,8 @@ void world::on_refbox_command_changed() {
 		case 'r': // RED CARD YELLOW
 		case 'R': // RED CARD BLUE
 		case 'c': // CANCEL
-			break;
-	}
-
-	// If we are yellow, invert the command.
-	if (refbox_yellow_) {
-		pt = playtype::invert[pt];
-	}
-
-	// Lock in the new play type.
-	if (pt != playtype_) {
-		DPRINT(Glib::ustring::compose("Changing base play type to %1.", playtype::descriptions_generic[pt]));
-		playtype_ = pt;
-		if (!playtype_override_active) {
-			signal_playtype_changed.emit();
-		}
-	}
-}
-
-void world::override_playtype(playtype::playtype pt) {
-	if (pt != playtype_override || !playtype_override_active) {
-		DPRINT(Glib::ustring::compose("Setting override play type to %1.", playtype::descriptions_generic[pt]));
-		playtype_override = pt;
-		playtype_override_active = true;
-		signal_playtype_changed.emit();
-	}
-}
-
-void world::clear_playtype_override() {
-	if (playtype_override_active) {
-		DPRINT("Clearing override play type.");
-		playtype_override_active = false;
-		signal_playtype_changed.emit();
+		default:
+			return old_pt;
 	}
 }
 
