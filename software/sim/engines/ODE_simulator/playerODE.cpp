@@ -62,7 +62,7 @@ namespace {
 /**
 	Constructor method for the robot model contained in the simulator
 */
-playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : target_velocity(0.0, 0.0), Vertices(0), Triangles(0), kick_set(false), chip_set(false) {
+playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : target_velocity(0.0, 0.0), chip_set(false), kick_set(false), Vertices(0), Triangles(0) {
 
 	updates_per_tick = ups_per_tick;
 	double dribble_radius = 0.005;//half a cm
