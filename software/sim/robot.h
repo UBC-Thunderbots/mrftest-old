@@ -172,6 +172,14 @@ class robot : public visualizable::robot {
 		point destination() const {
 			std::abort();
 		}
+
+		bool visualizer_can_drag() const {
+			return true;
+		}
+
+		void visualizer_drag(const point &pos) {
+			player_->position(pos);
+		}
 };
 
 #endif

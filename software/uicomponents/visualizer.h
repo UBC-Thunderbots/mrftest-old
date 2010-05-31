@@ -107,9 +107,33 @@ class visualizable : public noncopyable {
 		};
 
 		/**
+		 * An object that may be able to be dragged by the user.
+		 */
+		class draggable : public byref {
+			public:
+				/**
+				 * A pointer to a draggable.
+				 */
+				typedef Glib::RefPtr<draggable> ptr;
+
+				/**
+				 * \return true if this object can actually be dragged, or false
+				 * if not
+				 */
+				virtual bool visualizer_can_drag() const = 0;
+
+				/**
+				 * Drags this object to the specified position.
+				 *
+				 * \param pos the position to drag to.
+				 */
+				virtual void visualizer_drag(const point &pos) = 0;
+		};
+
+		/**
 		 * A ball that can be drawn by the visualizer.
 		 */
-		class ball : public byref {
+		class ball : public draggable {
 			public:
 				/**
 				 * A pointer to a ball.
@@ -125,7 +149,7 @@ class visualizable : public noncopyable {
 		/**
 		 * A robot that can be drawn by the visualizer.
 		 */
-		class robot : public byref {
+		class robot : public draggable {
 			public:
 				/**
 				 * A pointer to a robot.
@@ -220,6 +244,8 @@ class visualizer : public Gtk::DrawingArea, public noncopyable {
 		double scale;
 		double xtranslate, ytranslate;
 		sigc::connection update_connection;
+		visualizable::draggable::ptr dragging;
+		visualizable::draggable::ptr veldragging;
 
 		void on_show();
 		void on_hide();
@@ -239,9 +265,7 @@ class visualizer : public Gtk::DrawingArea, public noncopyable {
 		double ytow(double y) __attribute__((warn_unused_result)) { return -(y - ytranslate) / scale; }
 		double atow(double r) __attribute__((warn_unused_result)) { return -r; }
 		double dtow(double d) __attribute__((warn_unused_result)) { return d / scale; }
-#if 0
-		draggable::ptr object_at(const point &pos) const;
-#endif
+		visualizable::draggable::ptr object_at(const point &pos) const;
 };
 
 #endif

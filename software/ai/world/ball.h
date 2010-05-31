@@ -6,6 +6,7 @@
 #include "proto/messages_robocup_ssl_detection.pb.h"
 #include "uicomponents/visualizer.h"
 #include "util/byref.h"
+#include <cstdlib>
 #include <glibmm.h>
 
 class world;
@@ -52,6 +53,14 @@ class ball : public visualizable::ball, public predictable {
 		 * \param packet the new position, in unswapped field coordinates.
 		 */
 		void update(const point &pos);
+
+		bool visualizer_can_drag() const {
+			return false;
+		}
+
+		void visualizer_drag(const point &) {
+			std::abort();
+		}
 
 		friend class world;
 };

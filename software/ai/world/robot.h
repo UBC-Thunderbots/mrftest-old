@@ -97,6 +97,14 @@ class robot : public visualizable::robot, public predictable {
 			std::abort();
 		}
 
+		bool visualizer_can_drag() const {
+			return false;
+		}
+
+		void visualizer_drag(const point &) {
+			std::abort();
+		}
+
 		friend class ai;
 		friend class world;
 };

@@ -34,6 +34,15 @@ class ball : public visualizable::ball {
 		 * \param vel the new velocity, in metres per second field-relative
 		 */
 		virtual void velocity(const point &vel) = 0;
+
+	private:
+		bool visualizer_can_drag() const {
+			return true;
+		}
+
+		void visualizer_drag(const point &pos) {
+			position(pos);
+		}
 };
 
 #endif

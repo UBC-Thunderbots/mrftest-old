@@ -100,8 +100,6 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 			ctx->arc_negative(xtog(bot->position().x), ytog(bot->position().y), dtog(0.09), atog(bot->orientation() + M_PI_4), atog(bot->orientation() - M_PI_4));
 			ctx->fill();
 
-#warning IMPLEMENT DRAGGING
-#if 0
 			if (dragging == bot) {
 				ctx->set_source_rgb(1.0, 0.0, 0.0);
 				ctx->begin_new_path();
@@ -109,7 +107,6 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 				ctx->line_to(xtog(bot->position().x + 0.09 * std::cos(bot->orientation() + M_PI_4)), ytog(bot->position().y + 0.09 * std::sin(bot->orientation() + M_PI_4)));
 				ctx->stroke();
 			}
-#endif
 
 			ctx->set_source_rgb(0.0, 0.0, 0.0);
 			const Glib::ustring &ustr(bot->visualizer_label());
@@ -152,15 +149,12 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 	DPRINT(Glib::ustring::compose("The ball is at (%1, %2) which is (%1, %2) in graphical coordinates with radius (%3).", the_ball->position().x, the_ball->position().y, xtog(the_ball->position().x), ytog(the_ball->position().y), dtog(0.03)));
 	ctx->arc(xtog(the_ball->position().x), ytog(the_ball->position().y), dtog(0.03), 0.0, 2.0 * M_PI);
 	ctx->fill();
-#warning IMPLEMENT DRAGGING
-#if 0
 	if (dragging == the_ball) {
 		ctx->set_source_rgb(1.0, 0.0, 0.0);
 		ctx->begin_new_path();
 		ctx->arc(xtog(the_ball->position().x), ytog(the_ball->position().y), dtog(0.03), 0.0, 2.0 * M_PI);
 		ctx->stroke();
 	}
-#endif
 
 	// Done.
 	DPRINT("Exit on_expose_event (2).");
@@ -181,12 +175,6 @@ void visualizer::on_size_allocate(Gtk::Allocation &alloc) {
 
 bool visualizer::on_button_press_event(GdkEventButton *evt) {
 	Gtk::DrawingArea::on_button_press_event(evt);
-#warning IMPLEMENT DRAGGING
-#if 0
-	if (!draggable) {
-		return true;
-	}
-
 	if (evt->type == GDK_BUTTON_PRESS && evt->button == 1) {
 		// Calculate the location on the field.
 		point click(xtow(evt->x), ytow(evt->y));
@@ -215,80 +203,67 @@ bool visualizer::on_button_press_event(GdkEventButton *evt) {
 		update();
 	}
 
-#endif
 	return true;
 }
 
 bool visualizer::on_button_release_event(GdkEventButton *evt) {
 	Gtk::DrawingArea::on_button_release_event(evt);
-#warning IMPLEMENT DRAGGING
-#if 0
-	if (evt->button == 1) {
-		// Drop the object and redraw the visualizer.
-		dragging.reset();
-		update();
-	} else if (evt->button == 3) {
-		// Drop the object and redraw the visualizer.
-		veldragging.reset();
-		update();
-	}
 
-#endif
+	// Drop the objects and redraw the visualizer.
+	dragging.reset();
+	veldragging.reset();
+	update();
+
 	return true;
 }
 
 bool visualizer::on_motion_notify_event(GdkEventMotion *evt) {
 	Gtk::DrawingArea::on_motion_notify_event(evt);
-#warning IMPLEMENT DRAGGING
-#if 0
 	if (dragging) {
 		// Move the object being dragged.
-		dragging->ext_drag(point(xtow(evt->x), ytow(evt->y)), point());
+		dragging->visualizer_drag(point(xtow(evt->x), ytow(evt->y)));
 		update();
 	} else if (veldragging) {
 		// Update the dragging velocity.
+#warning IMPLEMENT VELOCITY DRAGGING
+#if 0
 		dragged_velocity = point(xtow(evt->x), ytow(evt->y)) - veldragging->position();
 		veldragging->ext_drag(veldragging->position(), dragged_velocity);
 		update();
+#endif
 	}
 
-#endif
 	return true;
 }
 
 bool visualizer::on_leave_notify_event(GdkEventCrossing *evt) {
 	Gtk::DrawingArea::on_leave_notify_event(evt);
-#warning IMPLEMENT DRAGGING
-#if 0
-	// Drop the object and redraw the visualizer.
+
+	// Drop the objects and redraw the visualizer.
 	dragging.reset();
 	veldragging.reset();
 	update();
 
-#endif
 	return true;
 }
 
-#warning IMPLEMENT DRAGGING
-#if 0
-draggable::ptr visualizer::object_at(const point &pos) const {
+visualizable::draggable::ptr visualizer::object_at(const point &pos) const {
 	// Check if it's a player.
-	const team::ptr teams[2] = {west_team, east_team};
-	for (unsigned int i = 0; i < 2; i++) {
-		for (unsigned int j = 0; j < teams[i]->size(); j++) {
-			robot::ptr bot = teams[i]->get_robot(j);
-			if ((bot->position() - pos).len() < 0.09)
-				return bot;
+	for (unsigned int i = 0; i < data.size(); ++i) {
+		const visualizable::robot::ptr bot(data[i]);
+		if ((bot->position() - pos).len() < 0.09 && bot->visualizer_can_drag() && bot->visualizer_visible()) {
+			return bot;
 		}
 	}
 
 	// Check if it's the ball.
-	if ((the_ball->position() - pos).len() < 0.03)
+	const visualizable::ball::ptr the_ball(data.ball());
+	if ((the_ball->position() - pos).len() < 0.03 && the_ball->visualizer_can_drag()) {
 		return the_ball;
+	}
 
-	return draggable::ptr();
+	return visualizable::draggable::ptr();
 }
-#endif
 
 void visualizer::compute_scales() {
 	if (data.field().valid()) {
