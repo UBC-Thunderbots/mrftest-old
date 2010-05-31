@@ -74,17 +74,14 @@ namespace ai_util {
 	
 	
 	/**
-	 * Checks if the path from begin to end is blocked by one team, with some threshold.
-	 * Returns true if path is okay.
+	 * Checks if the path from begin to end is blocked by some robots.
+	 * \param robots a vector of robots/players that blocks the path.
+	 * \param thresh the amount of allowance for the path.
+	 * For passing, use robot::MAX_RADIUS + ball::RADIUS + SHOOT_ALLOWANCE.
+	 * For moving, use robot::MAX_RADIUS * 2 + MOVE_ALLOWANCE.
+	 * \return True if the path is not blocked.
 	 */
-	bool path_check(const point& begin, const point& end, const team& theteam, const double& thresh);
-
-	/**
-	 * Checks if the path from begin to end is blocked by one team, with some threshold.
-	 * Also skips one particular robot.
-	 * Returns true if path is okay.
-	 */
-	bool path_check(const point& begin, const point& end, const team& theteam, const double& thresh, const robot::ptr skip);
+	template<typename R> bool path_check(const point& begin, const point& end, const R& robots, const double thresh);
 
 	/**
 	 * Checks if the passee can get the ball now.
@@ -105,18 +102,6 @@ namespace ai_util {
 	 * If all shots are bad, candidates.size() is returned.
 	 */
 	size_t calc_best_shot(const player::ptr player, const world::ptr w);
-
-	/**
-	 * Convert team into vector of robots. 
-	 * For any team.
-	 */
-	// std::vector<robot::ptr> get_robots(const team& theteam);
-
-	/**
-	 * Convert friendly into vector of players. 
-	 * For friendly team.
-	 */
-	// std::vector<player::ptr> get_players(const friendly_team& friendly);
 
 	/**
 	 * Convert friendly into vector of players, excluding some.
@@ -142,10 +127,10 @@ namespace ai_util {
 	/**
 	 * Returns the length of the largest continuous interval (angle-wise)
 	 * of the enemy goal that can be seen from a point.
-	 * Friendly robots are considered only if consider_friendly is true.
-	 * Returns -2*PI if the point is physically inside a considered robot.
+	 * Having a vector of robots enables one to add imaginary robots/threats.
+	 * Returns 0 if the point is physically inside a considered robot.
 	 */
-	double get_goal_visibility(const world::ptr w, const point& p, bool consider_friendly);
+	double calc_goal_visibility_angle(const field& f, const std::vector<robot::ptr>& robots, const point& p);
 }
 
 #endif

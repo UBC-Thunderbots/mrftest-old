@@ -50,35 +50,16 @@ namespace ai_util{
     return rob_ball.dot(rot_rob_ball) >0;
   }
 
-	bool path_check(const point& begin, const point& end, const team& theteam, const double& thresh, const robot::ptr skip) {
+	template<typename R> bool path_check(const point& begin, const point& end, const R& robots, const double thresh) {
 		const point direction = (end - begin).norm();
 		const double dist = (end - begin).len();
-		for (size_t i = 0; i < theteam.size(); ++i) {
-			const robot::ptr rob = theteam.get_robot(i);
-			if (rob == skip) continue;
-			const point rp = rob->position() - end;
-			const double proj = rp.dot(direction);
-			const double perp = sqrt(rp.dot(rp) - proj * proj);
+		for (size_t i = 0; i < robots.size(); ++i) {
+			const point ray = robots[i]->position() - begin;
+			const double proj = ray.dot(direction);
+			const double perp = fabs(ray.cross(direction));
 			if (proj <= 0) continue;
-			if (proj < dist && perp < thresh) {
+			if (proj < dist && perp < thresh)
 				return false;
-			}
-		}
-		return true;
-	}
-
-	bool path_check(const point& begin, const point& end, const team& theteam, const double& thresh) {
-		const point direction = (end - begin).norm();
-		const double dist = (end - begin).len();
-		for (size_t i = 0; i < theteam.size(); ++i) {
-			const robot::ptr rob = theteam.get_robot(i);
-			const point rp = rob->position() - end;
-			const double proj = rp.dot(direction);
-			const double perp = sqrt(rp.dot(rp) - proj * proj);
-			if (proj <= 0) continue;
-			if (proj < dist && perp < thresh) {
-				return false;
-			}
 		}
 		return true;
 	}
@@ -93,7 +74,7 @@ namespace ai_util{
 		const double ballori = (ball->position() - passee->position()).orientation();
 		if (std::fmod(std::abs(ballori - passee->orientation()), M_PI) > ORI_CLOSE) return false;
 		// check if there is some enemy blocking
-		// if(!path_check(ball->position(), passee->position(), w->enemy, SHOOT_ALLOWANCE + robot::MAX_RADIUS + ball::RADIUS)) return false;
+		// if(!path_check(ball->position(), passee->position(), w->enemy.get_robots(), SHOOT_ALLOWANCE + robot::MAX_RADIUS + ball::RADIUS)) return false;
 		const point direction = (ball->position() - passee->position()).norm();
 		const double dist = (ball->position() - passee->position()).len();
 		for (size_t i = 0; i < w->enemy.size(); ++i) {
@@ -159,22 +140,6 @@ namespace ai_util{
 		return best_point;
 	}
 
-	std::vector<robot::ptr> get_robots(const team& theteam) {
-		std::vector<robot::ptr> robots(theteam.size());
-		for (size_t i = 0; i < theteam.size(); ++i) {
-			robots[i] = theteam.get_robot(i);
-		}
-		return robots;
-	}
-
-	std::vector<player::ptr> get_players(const friendly_team& friendly) {
-		std::vector<player::ptr> players(friendly.size());
-		for (size_t i = 0; i < friendly.size(); ++i) {
-			players[i] = friendly.get_player(i);
-		}
-		return players;
-	}
-
 	std::vector<player::ptr> get_friends(const friendly_team& friendly, const std::vector<player::ptr>& exclude) {
 		std::vector<player::ptr> friends;
 		for (size_t i = 0; i < friendly.size(); ++i) {
@@ -220,7 +185,8 @@ namespace ai_util{
 		return nearidx;
 	}
 
-	double get_goal_visibility(const world::ptr w, const point& p, bool consider_friendly){
+	// this function may be replaced in the future
+	double calc_goal_visibility_angle(const world::ptr w, const point& p, bool consider_friendly){
 		std::vector<std::pair<double, int> > events;
 		double l_range = (point(w->field().length()/2.0,-w->field().goal_width()/2.0) - p).orientation();
 		double h_range = (point(w->field().length()/2.0,w->field().goal_width()/2.0) - p).orientation();
@@ -254,5 +220,38 @@ namespace ai_util{
 		}
 		return sum;
 	}
+
+	double calc_goal_visibility_angle(const field& f, const std::vector<robot::ptr>& robots, const point& p) {
+		std::vector<std::pair<double, int> > events;
+		double l_range = (point(f.length()/2.0,-f.goal_width()/2.0) - p).orientation();
+		double h_range = (point(f.length()/2.0,f.goal_width()/2.0) - p).orientation();
+		events.push_back(std::make_pair(l_range,1));
+		events.push_back(std::make_pair(h_range,-1));
+		for (size_t i = 0; i < robots.size(); ++i) {
+			point diff = robots[i]->position() - p;
+			if (diff.len() < robot::MAX_RADIUS + ORI_CLOSE) {
+				//return -2*acos(-1);
+				return 0;
+			}
+			double cent = diff.orientation();
+			double span = asin(robot::MAX_RADIUS / diff.len());
+			events.push_back(std::make_pair(cent-span,-1));
+			events.push_back(std::make_pair(cent+span,1));
+		}
+		sort(events.begin(),events.end());
+		double best = 0;
+		double sum = 0;
+		double cnt = 0;
+		for (size_t i = 0; i + 1 < events.size(); i++) {
+			cnt += events[i].second;
+			if (cnt > 0){
+				sum += events[i+1].first - events[i].first;
+				if (best < sum) best = sum;
+			}
+			else sum = 0;
+		}
+		return sum;
+	}
+
 }
 
