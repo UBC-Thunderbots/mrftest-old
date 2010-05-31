@@ -288,13 +288,13 @@ void world::on_refbox_command_changed() {
 #warning this is horrible, it needs to be rewritten with something useful
 #warning right now it latches into the "execute" state for exactly one packet before changing to "play"
 #warning use the maximum movement distance, record starting position of ball, also assume it is only a valid transition to the play play type if there is a robot near the ball of the proper colour that is allowed to move it
-			if (playtype_ == playtype::prepare_kickoff_friendly) {
+			if (pt == playtype::prepare_kickoff_friendly) {
 				pt = playtype::execute_kickoff_friendly;
-			} else if (playtype_ == playtype::prepare_kickoff_enemy) {
+			} else if (pt == playtype::prepare_kickoff_enemy) {
 				pt = playtype::execute_kickoff_enemy;
-			} else if (playtype_ == playtype::prepare_penalty_friendly) {
+			} else if (pt == playtype::prepare_penalty_friendly) {
 				pt = playtype::execute_penalty_friendly;
-			} else if (playtype_ == playtype::prepare_penalty_enemy) {
+			} else if (pt == playtype::prepare_penalty_enemy) {
 				pt = playtype::execute_penalty_enemy;
 			} else {
 				pt = playtype::play;
