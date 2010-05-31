@@ -23,7 +23,7 @@ class ball : public visualizable::ball, public predictable {
 		/**
 		 * The approximate radius of the ball.
 		 */
-		static const double RADIUS = 0.0215;
+		static const double RADIUS;
 
 		/**
 		 * \return The position of the robot

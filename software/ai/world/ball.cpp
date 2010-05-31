@@ -1,5 +1,7 @@
 #include "ai/world/ball.h"
 
+const double ball::RADIUS = 0.0215;
+
 ball::ptr ball::create() {
 	ptr p(new ball);
 	return p;

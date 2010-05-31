@@ -25,7 +25,7 @@ class robot : public visualizable::robot, public predictable {
 		/**
 		 * The largest possible radius of a robot, in metres.
 		 */
-		static const double MAX_RADIUS = 0.09;
+		static const double MAX_RADIUS;
 
 		/**
 		 * The colour of the robot.
