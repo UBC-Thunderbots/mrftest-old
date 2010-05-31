@@ -115,7 +115,7 @@ namespace simu_test{
     if (first_tick)
       {
 	stay_here = the_only_player->position();
-	our_navigator = new testnavigator(the_only_player,the_world);
+	our_navigator.reset(new testnavigator(the_only_player,the_world));
 	first_tick = false;
       }
     if ((stay_here - the_only_player->position()).len() > 0.3)
@@ -194,7 +194,7 @@ namespace simu_test{
 		  test_started = true;  
 		  the_only_player->dribble(1);
 		  std::cout << "Dribble - Dribble Executed" << std::endl;
-		  our_navigator = new testnavigator(the_only_player,the_world);
+		  our_navigator.reset(new testnavigator(the_only_player,the_world));
 		  move_to_point.x = -2.0;
 		  move_to_point.y = 0.0;
 		  our_navigator->set_point(move_to_point);
@@ -441,7 +441,7 @@ namespace simu_test{
 	  std::cout << "<<<<<<<<<ROBOT Removed>>>>" << std::endl;
 	  if (plr == the_only_player) {
 		the_only_player.reset();
-		our_navigator = 0;
+		our_navigator.reset(0);
 	  }
 	}
 

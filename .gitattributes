@@ -307,6 +307,7 @@ software/util/registerable.h -text
 software/util/rle.cpp -text
 software/util/rle.h -text
 software/util/rwlock.h -text
+software/util/scoped_ptr.h -text
 software/util/shm.cpp -text
 software/util/shm.h -text
 software/util/sockaddrs.cpp -text

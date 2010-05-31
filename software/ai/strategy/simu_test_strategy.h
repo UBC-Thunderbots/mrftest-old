@@ -1,5 +1,6 @@
 #include "ai/strategy/strategy.h"
 #include "ai/role/role.h"
+#include "util/scoped_ptr.h"
  
  // bool auto_ref_setup=false;
  // point ball_pos, ball_vel, player_pos;
@@ -37,8 +38,7 @@ namespace simu_test{
     bool is_player_in_pos(player::ptr , double , double);
     bool is_ball_in_pos(double , double);
     void finish_test_case();
-#warning THIS IS EVIL. If you weren't breaking hierarchy we wouldn't have to use a raw pointer here!
-    testnavigator *our_navigator;
+    scoped_ptr<testnavigator> our_navigator;
     player::ptr the_only_player;
     bool result[6];
     bool print_msg, print_msg2;
