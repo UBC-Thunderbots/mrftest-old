@@ -159,7 +159,7 @@ void robot_navigator::tick() {
 	wantdest = get_inbounds_point(wantdest);
 	const double distance = (wantdest - the_player->position()).len();
 
-	if(ai_util::ball_close(the_world, the_player)){
+	if(ai_util::ball_close(the_world, the_player) || the_player->has_ball()){
           #warning magic constant here need to come up with more intelligent dribble strategy
 	  the_player->dribble(0.5);
 	}else{
