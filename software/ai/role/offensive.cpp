@@ -6,7 +6,77 @@
 #include "ai/tactic/receive.h"
 #include "ai/util.h"
 
+namespace {
+
+	const double SHOOT_ALLOWANCE = ball::RADIUS;
+
+	const double ENEMY_FACTOR = 1.0;
+	const double CAN_SEE_BALL = 1.0;
+
+	// chop up half the field into 100x100 grid
+	// evaluate some functions
+
+	const int EV_Y = 100;
+	const int EV_X = 100;
+
+};
+
 offensive::offensive(world::ptr world) : the_world(world) {
+}
+
+/**
+ * The scoring function for having the robot in the particular position.
+ */
+double offensive::calc_position_score(const std::vector<robot::ptr>& enemies, const point& pos) const {
+	// Hmm.. not sure if having negative number is a good idea.
+	double score = ai_util::calc_goal_visibility_angle(the_world->field(), enemies, pos);
+	// distance to enemies
+	for (size_t i = 0; i < enemies.size(); ++i) {
+		double dist = (pos - enemies[i]->position()).len();
+		// too close!
+		if(dist < robot::MAX_RADIUS) return -1e99;
+		score += -1.0 / (dist + 1.0);
+	}
+	// TODO: magic constants
+	// whether this point can see the ball
+	if (ai_util::path_check(the_world->ball()->position(), pos, enemies, robot::MAX_RADIUS + ball::RADIUS + SHOOT_ALLOWANCE)) {
+		score += 1.0;
+	}
+	return score;
+}
+
+/**
+ * Assume that role has the ball.
+ * Given:
+ * - enemy positions
+ * - ball
+ * Find where to position the robot so that it has the greatest chance of shooting.
+ * The enemy position is provided as vector so we can add imaginary enemies.
+ * If no position is valid, will simply choose the middle of the field.
+ */
+point offensive::calc_position_best(const std::vector<robot::ptr>& enemies) const {
+	const double x1 = 0;
+	const double x2 = the_world->field().length();
+	const double y1 = -the_world->field().width() / 2;
+	const double y2 = the_world->field().width() / 2;
+
+	const double dx = (x2 - x1) / (EV_X+1);
+	const double dy = (y2 - y1) / (EV_Y+1);
+	double bestscore = 0;
+	point bestpos(0, 0);
+	for(int j = 0; j < EV_Y; ++j) {
+		for(int i = 0; i < EV_X; ++i) {
+			const double x = x1 + dx * (i + 1);
+			const double y = y1 + dy * (j + 1);
+			const point pos = point(x, y);
+			const double score = calc_score(enemies, pos);
+			if(score > bestscore) {
+				bestscore = score;
+				bestpos = pos;
+			}
+		}
+	}
+	return bestpos;
 }
 
 void offensive::move_towards_goal(int index) {
@@ -47,9 +117,6 @@ void offensive::tick() {
 		}
 	}
 
-    unsigned int flags = ai_flags::calc_flags(the_world->playtype());
-    if (haveball) flags |= ai_flags::clip_play_area;
-    
 	// std::vector<player::ptr> friends = ai_util::get_friends(friendly, the_robots);
 
 	if (haveball) {
@@ -110,6 +177,9 @@ void offensive::tick() {
 		}
 	}
 
+    unsigned int flags = ai_flags::calc_flags(the_world->playtype());
+    if (haveball) flags |= ai_flags::clip_play_area;
+    
 	for(size_t i = 0; i < the_tactics.size(); i++) {
 		the_tactics[i]->tick();
 		the_tactics[i]->set_flags(flags);

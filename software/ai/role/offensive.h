@@ -40,6 +40,10 @@ class offensive : public role {
 		// refactor this function?
 		double get_distance_from_goal(int index) const;
 
+		point calc_best(const std::vector<robot::ptr>& enemies) const;
+
+		double calc_score(const std::vector<robot::ptr>& enemies, const point& pos) const;
+
 		// Tells the robot to go towards the goal
 		// refactor this in the future?
 		void move_towards_goal(int index);
