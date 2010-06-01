@@ -30,7 +30,11 @@ class jons_controller : public robot_controller {
 	
 	protected:
 		gpc X_controller;
+		gpc Y_controller;
+		gpc T_controller;
+		
 		point old_control;
+		double old_ang;
 		double max_acc;
 		double max_vel;
 		double max_Aacc;

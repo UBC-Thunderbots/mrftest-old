@@ -38,51 +38,34 @@ void jons_controller::move(const point &new_position, double new_orientation, po
 	point new_linear_velocity;	
 	double current_angularvel = plr->est_avelocity();
 	double vel_in_dir_travel;
+	
 	// relative new direction and angle
 	double new_da = angle_mod(new_orientation - current_orientation);
 	
-	//if(plr->est_acceleration().len() > max_acc)
-	//	max_acc=max_acc + plr->est_acceleration().len();
-
-	//if(abs(plr->est_aacceleration()) > max_Aacc)
-	//	max_Aacc = abs(plr->est_aacceleration());
-
-	
-	/*
-	if(pow(current_angularvel,2)/max_Aacc*close_param < fabs(new_da) && fabs(new_da) > orient_delta)
-		angular_velocity = new_da/fabs(new_da)*max_vel;
-	else
-		angular_velocity=0;
-	*/
-		angular_velocity = new_da;		
+	angular_velocity = new_da;		
 	
 	point new_dir = diff.rotate(-current_orientation);
 	
-	X_controller.update(current_position.rotate(-current_orientation).x);
+	Y_controller.update(current_velocity.rotate(-current_orientation).y);
+	X_controller.update(current_velocity.rotate(-current_orientation).x);
+	T_controller.update(current_angularvel);
 	
-	//X_controller.build_forward();
-	double delta_u = X_controller.calc_control(new_position.rotate(-current_orientation).x);
+	double delta_ux = X_controller.calc_control((new_position-current_position).rotate(-current_orientation).x);
+	double delta_uy = Y_controller.calc_control((new_position-current_position).rotate(-current_orientation).y);
+	double delta_ut = T_controller.calc_control(new_da);
+	
 	linear_velocity = new_dir;
-	linear_velocity.x = old_control.x + delta_u;
+	
+	linear_velocity.x = old_control.x + delta_ux;
+	linear_velocity.y = old_control.y + delta_uy;
+	angular_velocity = old_ang + delta_ut;
+	
 	old_control = linear_velocity;
-	//std::cout << linear_velocity.x <<":" << delta_u <<std::endl;
-/*		
-	new_dir = new_dir.norm();
-	vel_in_dir_travel=current_velocity.dot(diff.norm());
+	old_ang = angular_velocity;
 	
-	if(pow(vel_in_dir_travel,2)/max_acc*close_param < diff.len() && diff.len() > position_delta)
-		linear_velocity = max_vel*new_dir;
-	else
-		linear_velocity = new_dir*0;
-*/		
 	X_controller.push_history(linear_velocity.x);
-	
-	
-	std::vector<double> estimates = X_controller.get_parameter_estimates();
-	for(std::vector<double>::iterator index=estimates.begin();index != estimates.end();index++)
-		std::cout << *index << ":";
-	
-	std::cout << std::endl;
+	Y_controller.push_history(linear_velocity.y);
+	T_controller.push_history(angular_velocity);
 }
 
 /**
