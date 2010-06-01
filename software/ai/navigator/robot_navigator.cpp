@@ -13,7 +13,7 @@ namespace {
 	const double ROTATION_THRESH = 100.0 * M_PI / 180.0;
 	const double ROTATION_STEP = 1.0 * M_PI / 180.0;
 	const double LOOKAHEAD_MAX = robot::MAX_RADIUS * 10;
-        const double AVOID_BALL_AMOUNT = 500;
+        const double AVOID_BALL_AMOUNT = 0.5 ;
 }
 
 robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world), position_initialized(false), orientation_initialized(false), flags(0) {
