@@ -50,6 +50,20 @@ namespace ai_util{
     return rob_ball.dot(rot_rob_ball) >0;
   }
 
+	bool path_check(const point& begin, const point& end, const std::vector<point>& obstacles, const double thresh) {
+		const point direction = (end - begin).norm();
+		const double dist = (end - begin).len();
+		for (size_t i = 0; i < obstacles.size(); ++i) {
+			const point ray = obstacles[i] - begin;
+			const double proj = ray.dot(direction);
+			const double perp = fabs(ray.cross(direction));
+			if (proj <= 0) continue;
+			if (proj < dist && perp < thresh)
+				return false;
+		}
+		return true;
+	}
+
 	bool path_check(const point& begin, const point& end, const std::vector<robot::ptr>& robots, const double thresh) {
 		const point direction = (end - begin).norm();
 		const double dist = (end - begin).len();
@@ -221,14 +235,14 @@ namespace ai_util{
 		return sum;
 	}
 
-	double calc_goal_visibility_angle(const field& f, const std::vector<robot::ptr>& robots, const point& p) {
+	double calc_goal_visibility_angle(const field& f, const std::vector<point>& obstacles, const point& p) {
 		std::vector<std::pair<double, int> > events;
 		double l_range = (point(f.length()/2.0,-f.goal_width()/2.0) - p).orientation();
 		double h_range = (point(f.length()/2.0,f.goal_width()/2.0) - p).orientation();
 		events.push_back(std::make_pair(l_range,1));
 		events.push_back(std::make_pair(h_range,-1));
-		for (size_t i = 0; i < robots.size(); ++i) {
-			point diff = robots[i]->position() - p;
+		for (size_t i = 0; i < obstacles.size(); ++i) {
+			point diff = obstacles[i] - p;
 			if (diff.len() < robot::MAX_RADIUS + ORI_CLOSE) {
 				//return -2*acos(-1);
 				return 0;

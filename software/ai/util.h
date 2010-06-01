@@ -72,7 +72,6 @@ namespace ai_util {
 	*/
 	bool ball_close(const world::ptr w, const player::ptr bot);
 	
-	
 	/**
 	 * Checks if the path from begin to end is blocked by some robots.
 	 * \param robots a vector of robots/players that blocks the path.
@@ -82,6 +81,16 @@ namespace ai_util {
 	 * \return True if the path is not blocked.
 	 */
 	bool path_check(const point& begin, const point& end, const std::vector<robot::ptr>& robots, const double thresh);
+	
+	/**
+	 * Checks if the path from begin to end is blocked by some obstacles.
+	 * \param obstacles a vector of obstacles that blocks the path.
+	 * \param thresh the amount of allowance for the path.
+	 * For passing, use robot::MAX_RADIUS + ball::RADIUS + SHOOT_ALLOWANCE.
+	 * For moving, use robot::MAX_RADIUS * 2 + MOVE_ALLOWANCE.
+	 * \return True if the path is not blocked.
+	 */
+	bool path_check(const point& begin, const point& end, const std::vector<point>& obstacles, const double thresh);
 
 	/**
 	 * Checks if the passee can get the ball now.
@@ -127,10 +136,10 @@ namespace ai_util {
 	/**
 	 * Returns the length of the largest continuous interval (angle-wise)
 	 * of the enemy goal that can be seen from a point.
-	 * Having a vector of robots enables one to add imaginary robots/threats.
+	 * Having a vector of points enables one to add imaginary threats.
 	 * Returns 0 if the point is physically inside a considered robot.
 	 */
-	double calc_goal_visibility_angle(const field& f, const std::vector<robot::ptr>& robots, const point& p);
+	double calc_goal_visibility_angle(const field& f, const std::vector<point>& robots, const point& p);
 }
 
 #endif
