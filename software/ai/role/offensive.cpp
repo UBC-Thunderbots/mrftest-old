@@ -66,7 +66,7 @@ point offensive::calc_position_best(const std::vector<robot::ptr>& enemies) cons
 			const double x = x1 + dx * (i + 1);
 			const double y = y1 + dy * (j + 1);
 			const point pos = point(x, y);
-			const double score = calc_score(enemies, pos);
+			const double score = calc_position_score(enemies, pos);
 			if(score > bestscore) {
 				bestscore = score;
 				bestpos = pos;
