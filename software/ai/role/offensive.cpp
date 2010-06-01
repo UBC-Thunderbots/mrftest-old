@@ -27,19 +27,19 @@ offensive::offensive(world::ptr world) : the_world(world) {
 /**
  * The scoring function for having the robot in the particular position.
  */
-double offensive::calc_position_score(const std::vector<robot::ptr>& enemies, const point& pos) const {
+double offensive::calc_position_score(const std::vector<point>& enemypos, const point& pos) const {
 	// Hmm.. not sure if having negative number is a good idea.
-	double score = ai_util::calc_goal_visibility_angle(the_world->field(), enemies, pos);
+	double score = ai_util::calc_goal_visibility_angle(the_world->field(), enemypos, pos);
 	// distance to enemies
-	for (size_t i = 0; i < enemies.size(); ++i) {
-		double dist = (pos - enemies[i]->position()).len();
+	for (size_t i = 0; i < enemypos.size(); ++i) {
+		double dist = (pos - enemypos[i]).len();
 		// too close!
 		if(dist < robot::MAX_RADIUS) return -1e99;
 		score += -1.0 / (dist + 1.0);
 	}
 	// TODO: magic constants
 	// whether this point can see the ball
-	if (ai_util::path_check(the_world->ball()->position(), pos, enemies, robot::MAX_RADIUS + ball::RADIUS + SHOOT_ALLOWANCE)) {
+	if (ai_util::path_check(the_world->ball()->position(), pos, enemypos, robot::MAX_RADIUS + ball::RADIUS + SHOOT_ALLOWANCE)) {
 		score += 1.0;
 	}
 	return score;
@@ -51,7 +51,7 @@ double offensive::calc_position_score(const std::vector<robot::ptr>& enemies, co
  * The enemy position is provided as vector so we can add imaginary enemies.
  * If no position is valid, will simply choose the middle of the field.
  */
-point offensive::calc_position_best(const std::vector<robot::ptr>& enemies) const {
+point offensive::calc_position_best(const std::vector<point>& enemypos) const {
 	const double x1 = 0;
 	const double x2 = the_world->field().length();
 	const double y1 = -the_world->field().width() / 2;
@@ -66,7 +66,7 @@ point offensive::calc_position_best(const std::vector<robot::ptr>& enemies) cons
 			const double x = x1 + dx * (i + 1);
 			const double y = y1 + dy * (j + 1);
 			const point pos = point(x, y);
-			const double score = calc_position_score(enemies, pos);
+			const double score = calc_position_score(enemypos, pos);
 			if(score > bestscore) {
 				bestscore = score;
 				bestpos = pos;
@@ -80,13 +80,16 @@ point offensive::calc_position_best(const std::vector<robot::ptr>& enemies) cons
  * Calculates n best positions to place the robots.
  */
 std::vector<point> offensive::calc_position_best(const unsigned int n) const {
-	std::vector<robot::ptr> enemies = the_world->enemy.get_robots();
+	const enemy_team& enemy = the_world->enemy;
+	std::vector<point> enemypos;
+	for(size_t i = 0; i < enemy.size(); ++i) {
+		enemypos.push_back(enemy.get_robot(i)->position());
+	}
 	std::vector<point> ret;
 	for(unsigned int i = 0; i < n; ++i) {
-		const point best = calc_position_best(enemies);
+		const point best = calc_position_best(enemypos);
 		ret.push_back(best);
-#warning: currently broken
-		//enemies.push_back(best);
+		enemypos.push_back(best);
 	}
 	return ret;
 }
@@ -172,7 +175,7 @@ void offensive::tick() {
 				move_towards_goal(baller);
 			}
 			for (size_t i = 0; i < the_robots.size(); i++) {
-				if (i == baller) continue;
+				if (static_cast<int>(i) == baller) continue;
 				move_towards_goal(i);
 			}
 		} else {
