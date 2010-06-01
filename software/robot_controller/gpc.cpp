@@ -26,6 +26,7 @@ const double initial_uncertainty = 10;
 
 }
 
+
 gpc::gpc(unsigned int numpoles,unsigned int numzeros,unsigned int N2,unsigned int N1) {
 	this->N1=N1;
 	this->N2=N2;
@@ -54,7 +55,6 @@ gpc::gpc(unsigned int numpoles,unsigned int numzeros,unsigned int N2,unsigned in
 	for(unsigned int index=0;index < num_zeros+num_poles+1;index++)
 		theta(index,0)=0;
 	theta(0,0)=1;	
-	theta(num_zeros+1,0)=1;
 }
 
 gpc::~gpc() {
@@ -110,10 +110,10 @@ void gpc::build_forward() {
 		A.push_back(theta(num_zeros+1+index,0));
 		
 	std::vector<double> A_tild = conv(A,delta);
-	std::vector<double> F(A_tild.begin()+1,A_tild.end());
-	
+	std::vector<double> F(A_tild.begin()+1,A_tild.end());	
 	std::vector<double> Eprime;
 	Eprime.push_back(1);
+	
 	std::vector<double> F_s;
 	
 	//math::matrix<double> Gmat(Eprime.size()+B.size()-1,Eprime.size()+B.size()-1);
@@ -167,7 +167,7 @@ double gpc::calc_control(double set_point) {
 	}
 	
 #warning impliment lambda
-	double scale = ((~Gmat)*Gmat)(0,0) + 100;
+	double scale = ((~Gmat)*Gmat)(0,0) + 1;
 	
 	return (~Gmat*(Ysp - Fs))(0,0)/scale;
 }

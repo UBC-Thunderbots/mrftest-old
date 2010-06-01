@@ -33,6 +33,8 @@ class jons_controller : public robot_controller {
 		gpc Y_controller;
 		gpc T_controller;
 		
+		unsigned int learning_time;
+		
 		point old_control;
 		double old_ang;
 		double max_acc;
