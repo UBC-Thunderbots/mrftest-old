@@ -36,6 +36,8 @@ namespace {
 
 	tunable_pid_controller_factory factory;
 
+	const double DAMP = 0.5;
+
 	// basic
 	const double DEF_X_PROP = 1.15;
 	const double MIN_X_PROP = 1;
@@ -178,7 +180,9 @@ void tunable_pid_controller::move(const point &new_position, double new_orientat
 
 	point accum_pos(0, 0);
 	double accum_ori(0);
-	for (int t = 0; t < 10; ++t) {
+	for (int t = 9; t >= 0; --t) {
+		accum_pos *= DAMP;
+		accum_ori *= DAMP;
 		accum_pos += error_pos[t];
 		accum_ori += error_ori[t];
 	}
