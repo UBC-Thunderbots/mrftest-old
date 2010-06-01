@@ -50,7 +50,7 @@ namespace ai_util{
     return rob_ball.dot(rot_rob_ball) >0;
   }
 
-	template<typename R> bool path_check(const point& begin, const point& end, const R& robots, const double thresh) {
+	bool path_check(const point& begin, const point& end, const std::vector<robot::ptr>& robots, const double thresh) {
 		const point direction = (end - begin).norm();
 		const double dist = (end - begin).len();
 		for (size_t i = 0; i < robots.size(); ++i) {

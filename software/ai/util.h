@@ -81,7 +81,7 @@ namespace ai_util {
 	 * For moving, use robot::MAX_RADIUS * 2 + MOVE_ALLOWANCE.
 	 * \return True if the path is not blocked.
 	 */
-	template<typename R> bool path_check(const point& begin, const point& end, const R& robots, const double thresh);
+	bool path_check(const point& begin, const point& end, const std::vector<robot::ptr>& robots, const double thresh);
 
 	/**
 	 * Checks if the passee can get the ball now.
