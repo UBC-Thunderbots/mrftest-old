@@ -47,9 +47,6 @@ double offensive::calc_position_score(const std::vector<robot::ptr>& enemies, co
 
 /**
  * Assume that role has the ball.
- * Given:
- * - enemy positions
- * - ball
  * Find where to position the robot so that it has the greatest chance of shooting.
  * The enemy position is provided as vector so we can add imaginary enemies.
  * If no position is valid, will simply choose the middle of the field.
@@ -77,6 +74,21 @@ point offensive::calc_position_best(const std::vector<robot::ptr>& enemies) cons
 		}
 	}
 	return bestpos;
+}
+
+/**
+ * Calculates n best positions to place the robots.
+ */
+std::vector<point> offensive::calc_position_best(const unsigned int n) const {
+	std::vector<robot::ptr> enemies = the_world->enemy.get_robots();
+	std::vector<point> ret;
+	for(unsigned int i = 0; i < n; ++i) {
+		const point best = calc_position_best(enemies);
+		ret.push_back(best);
+#warning: currently broken
+		//enemies.push_back(best);
+	}
+	return ret;
 }
 
 void offensive::move_towards_goal(int index) {
