@@ -110,17 +110,23 @@ point robot_navigator::get_inbounds_point(point dst){
 	  wantdest.x =  std::min(wantdest.x, 0.0);
 	}
 	if(flags & avoid_ball_stop){
+
+	  //	  std::cout<<"Navigation Stop"<<std::endl;
 	  //need to grab ball distance from somewhere
 	  point ball_diff =  the_player->position() -  the_ball->position();
 	  //	  point cur_diff = the_ball->position() - 
 	  if(ball_diff.len()< AVOID_BALL_AMOUNT){
-	    if((the_player->position()-wantdest).dot(ball_diff)>=ai_util::POS_CLOSE){
+	    if((the_player->position()-wantdest).dot(ball_diff) < 0){
 	      //destination goes away from the ball destination is ok
 	      //scale the destination so that we stay far enough away from the ball
 	      point from_ball =  (wantdest - the_ball->position());
+
+	      //try and head towards the destination
+	      //scaling the destination if necessary
 	      if(from_ball.len() < AVOID_BALL_AMOUNT){
 		from_ball =  (wantdest - the_ball->position()).norm()*AVOID_BALL_AMOUNT;
-	      }	      
+	      }	
+	  
 	      wantdest = the_ball->position() + from_ball;
 	    }else{
 	      //destination goes closer to the ball we don't want that
