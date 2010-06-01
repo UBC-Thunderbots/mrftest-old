@@ -196,8 +196,8 @@ void offensive::tick() {
     if (haveball) flags |= ai_flags::clip_play_area;
     
 	for(size_t i = 0; i < the_tactics.size(); i++) {
-		the_tactics[i]->tick();
 		the_tactics[i]->set_flags(flags);
+		the_tactics[i]->tick();
     }
 }
 
