@@ -11,8 +11,6 @@ move::move(player::ptr player, world::ptr world, const unsigned int& flags) : ta
 //}
 
 void move::tick() {
-#warning logic error, if we use speed sensing then has_ball is always false when not dribbling
-	the_player->dribble(the_player->has_ball()? 1:0);
 	if (position_initialized) navi.set_position(target_position);
 	if (orientation_initialized) navi.set_orientation(target_orientation);
 	navi.set_flags(flags);

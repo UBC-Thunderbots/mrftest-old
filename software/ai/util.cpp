@@ -1,5 +1,6 @@
 #include "ai/util.h"
 #include "util/algorithm.h"
+#include "geom/angle.h"
 #include <cmath>
 
 #include <iostream>
@@ -36,19 +37,17 @@ namespace ai_util{
 		return candidates;
 	}
 
-  bool ball_close(const world::ptr w, const player::ptr bot){
+	bool ball_close(const world::ptr w, const player::ptr bot){
 
-    point ball_pos = w->ball()->position();
-    point robot_pos = bot->position();
-    double robot_orientation = bot->orientation();
+		point ball_pos = w->ball()->position();
+		point robot_pos = bot->position();
+		double robot_orientation = bot->orientation();
 
-    if((ball_pos - robot_pos).len() > bot->MAX_RADIUS + w->ball()->RADIUS*2)return false;
+		if((ball_pos - robot_pos).len() > bot->MAX_RADIUS + w->ball()->RADIUS*2)return false;
 
-    point rob_ball = (ball_pos - robot_pos);
-    point rot_rob_ball = rob_ball.rotate(robot_orientation);
-
-    return rob_ball.dot(rot_rob_ball) >0;
-  }
+		point rob_ball = (ball_pos - robot_pos);
+		return angle_diff(rob_ball.orientation(), robot_orientation) < M_PI / 2;
+ 	}
 
 	bool path_check(const point& begin, const point& end, const std::vector<point>& obstacles, const double thresh) {
 		const point direction = (end - begin).norm();
