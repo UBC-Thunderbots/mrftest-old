@@ -199,13 +199,9 @@ void simulator::packet_handler(const std::vector<uint8_t> &data) {
 							fb.hdr.options = 0;
 #warning implement chicker support
 							fb.data.flags = xbeepacket::FEEDBACK_FLAG_RUNNING;
-							if (bot->get_player() && bot->get_player()->has_ball()) {
-								fb.data.flags |= xbeepacket::FEEDBACK_FLAG_HAS_BALL;
-							}
 #warning implement outbound RSSI support
 							fb.data.outbound_rssi = 40;
-#warning implement dribbler speed support
-							fb.data.dribbler_speed = 0;
+							fb.data.dribbler_speed = plr ? plr->dribbler_speed() : 0;
 							fb.data.battery_level = std::min(ADC_MAX, static_cast<uint16_t>(bot->battery() / (DIVIDER_LOWER + DIVIDER_UPPER) * DIVIDER_LOWER / VCC * ADC_MAX));
 #warning implement fault support
 							fb.data.faults = 0;

@@ -111,14 +111,13 @@ namespace xbeepacket {
 	struct __attribute__((packed)) FEEDBACK_DATA {
 		uint8_t flags;
 		uint8_t outbound_rssi;
-		int16_t dribbler_speed;
+		uint16_t dribbler_speed;
 		uint16_t battery_level;
 		uint8_t faults;
 	};
 	const uint8_t FEEDBACK_FLAG_RUNNING = 0x80;
 	const uint8_t FEEDBACK_FLAG_CHICKER_READY = 0x01;
 	const uint8_t FEEDBACK_FLAG_CHICKER_FAULT = 0x02;
-	const uint8_t FEEDBACK_FLAG_HAS_BALL = 0x04;
 
 	struct __attribute__((packed)) RUN_DATA {
 		uint8_t flags;

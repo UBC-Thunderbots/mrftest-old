@@ -35,10 +35,10 @@ class player : public byref {
 		virtual double orientation() const = 0;
 
 		/**
-		 * \return true if the player has possession of the ball, or false if
-		 * not
+		 * \return The speed of the dribbler roller, in revolutions per ten
+		 * milliseconds
 		 */
-		virtual bool has_ball() const = 0;
+		virtual unsigned int dribbler_speed() const = 0;
 
 		/**
 		 * Reorients the player.

@@ -47,7 +47,9 @@ class player : public robot {
 		/**
 		 * \return true if this player has control of the ball, or false if not
 		 */
-		bool has_ball() const;
+		bool has_ball() const {
+			return has_ball_;
+		}
 
 	private:
 		xbee_drive_bot::ptr bot;
@@ -55,7 +57,9 @@ class player : public robot {
 		double target_orientation;
 		robot_controller2::ptr controller;
 		bool moved;
-		int dribble_power;
+		int new_dribble_power;
+		int old_dribble_power;
+		bool has_ball_;
 
 		/**
 		 * Constructs a new player object.
@@ -87,6 +91,8 @@ class player : public robot {
 		point destination() const {
 			return destination_;
 		}
+
+		void on_feedback();
 
 		friend class ai;
 		friend class world;

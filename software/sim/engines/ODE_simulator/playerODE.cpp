@@ -237,6 +237,11 @@ bool playerODE::has_ball() const {
 }
 
 
+unsigned int playerODE::dribbler_speed() const {
+	return has_ball() ? 30 : 50;
+}
+
+
 /// Accessor to get the height of the middle of the robot (should be ROBOT_HEIGHT/2)
 double playerODE::get_height() const
 {

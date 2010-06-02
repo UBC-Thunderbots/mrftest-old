@@ -92,6 +92,8 @@ class playerODE : public player {
 	double orientation() const ;
 
 	bool has_ball() const ;
+
+	unsigned int dribbler_speed() const ;
 			
 			
 	bool robot_contains_shape(dGeomID geom);
