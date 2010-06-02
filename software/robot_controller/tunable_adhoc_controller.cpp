@@ -1,0 +1,169 @@
+#include "geom/point.h"
+#include "geom/angle.h"
+#include "ai/world/player.h"
+#include "robot_controller/robot_controller.h"
+#include "robot_controller/tunable_controller.h"
+#include "geom/point.h"
+#include "util/byref.h"
+#include "util/noncopyable.h"
+
+#include <vector>
+#include <glibmm.h>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+
+namespace {
+
+	const double DAMP = 0.5;
+
+	// enumerate the parameters
+	enum { PARAM_PROP = 0, PARAM_DIFF, PARAM_XY_RATIO, PARAM_THRESH, PARAM_A_PROP, PARAM_A_DIFF, };
+
+	const double DEF_PROP = 2.0;
+	const double DEF_DIFF = 0;
+	const double DEF_XY_RATIO = 1.3;
+	const double DEF_THRESH = 1.0;
+	const double DEF_A_PROP = 4;
+	const double DEF_A_DIFF = 0;
+
+	// array of defaults
+	const double arr_def[] = { DEF_PROP, DEF_DIFF, DEF_XY_RATIO, DEF_THRESH, DEF_A_PROP, DEF_A_DIFF, };
+	const int P = sizeof(arr_def) / sizeof(arr_def[0]);
+
+	class tunable_adhoc_controller : public robot_controller, public tunable_controller {
+		public:
+			void move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity);
+			void clear();
+			robot_controller_factory &get_factory() const;
+			tunable_adhoc_controller(player::ptr plr);
+			void set_params(const std::vector<double>& params) {
+				this->param = params;
+			}
+			const std::vector<std::string> get_params_name() const;
+			const std::vector<double>& get_params() const {
+				return param;
+			}
+			const std::vector<double>& get_params_min() const {
+				// TODO: fix
+				return param;
+			}
+			const std::vector<double>& get_params_max() const {
+				// TODO: fix
+				return param;
+			}
+		private:
+			player::ptr plr;
+		protected:
+			bool initialized;
+			std::vector<double> param;
+			// errors in x, y, d
+			std::vector<point> error_pos;
+			std::vector<double> error_ori;
+			point prev_new_pos;
+			double prev_new_ori;
+	};
+
+	const std::vector<double> param_default(arr_def, arr_def + P);
+
+	tunable_adhoc_controller::tunable_adhoc_controller(player::ptr plr) : plr(plr), initialized(false), error_pos(10), error_ori(10) {
+		param = param_default;
+	}
+
+	const std::vector<std::string> tunable_adhoc_controller::get_params_name() const {
+		std::vector<std::string> ret;
+		ret.push_back("Proportional");
+		ret.push_back("Differential");
+		ret.push_back("Y/X Ratio");
+		ret.push_back("Threshold");
+		ret.push_back("Proportional Angle");
+		ret.push_back("Differential Angle");
+		return ret;
+	}
+
+	void tunable_adhoc_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
+		const point &current_position = plr->position();
+		const double current_orientation = plr->orientation();
+
+		// relative new direction and angle
+		double new_da = angle_mod(new_orientation - current_orientation);
+		const point &new_dir = (new_position - current_position).rotate(-current_orientation);
+
+		if (new_da > M_PI) new_da -= 2 * M_PI;
+
+		if (!initialized) {
+			initialized = true;
+			// make error 0
+			for (int t = 9; t > 0; --t) {
+				error_pos[t] = new_dir;
+				error_ori[t] = new_da;
+			}
+			prev_new_pos = new_position;
+			prev_new_ori = new_orientation;
+		}
+
+		// update the previous
+		for (int t = 9; t > 0; --t) {
+			error_pos[t] = error_pos[t - 1];
+			error_ori[t] = error_ori[t - 1];
+		}
+		error_pos[0] = new_dir;
+		error_ori[0] = new_da;
+
+		point accum_pos(0, 0);
+		double accum_ori(0);
+		for (int t = 9; t >= 0; --t) {
+			accum_pos *= DAMP;
+			accum_ori *= DAMP;
+			accum_pos += error_pos[t];
+			accum_ori += error_ori[t];
+		}
+
+		const double px = error_pos[0].x;
+		const double py = error_pos[0].y;
+		const double pa = error_ori[0];
+		point vel = (plr->est_velocity()).rotate(-current_orientation);
+		double vx = -vel.x;
+		double vy = -vel.y;
+		double va = -plr->est_avelocity();
+
+		//const double cx = accum_pos.x;
+		//const double cy = accum_pos.y;
+
+		// check if command has changed
+		if (prev_new_pos.x != new_position.x || prev_new_pos.y != new_position.y || prev_new_ori != new_orientation) {
+			prev_new_pos = new_position;
+			prev_new_ori = new_orientation;
+		}
+
+		linear_velocity.x = px * param[PARAM_PROP] + vx * param[PARAM_DIFF];
+		linear_velocity.y = (py * param[PARAM_PROP] + vy * param[PARAM_DIFF]) * param[PARAM_XY_RATIO];
+		if(linear_velocity.len() > param[PARAM_THRESH]) {
+			linear_velocity *= param[PARAM_THRESH] / linear_velocity.len();
+		}
+		angular_velocity = pa * param[PARAM_A_PROP] + va * param[PARAM_A_DIFF];
+	}
+
+	void tunable_adhoc_controller::clear() {
+#warning WRITE CODE HERE
+	}
+
+	class tunable_adhoc_controller_factory : public robot_controller_factory {
+		public:
+			tunable_adhoc_controller_factory() : robot_controller_factory("Ad Hoc =/") {
+			}
+
+			robot_controller::ptr create_controller(player::ptr plr, bool, unsigned int) const {
+				robot_controller::ptr p(new tunable_adhoc_controller(plr));
+				return p;
+			}
+	};
+
+	tunable_adhoc_controller_factory factory;
+
+	robot_controller_factory &tunable_adhoc_controller::get_factory() const {
+		return factory;
+	}
+
+}
+
