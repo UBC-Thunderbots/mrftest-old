@@ -114,6 +114,7 @@ point robot_navigator::get_inbounds_point(point dst){
 	  //	  std::cout<<"Navigation Stop"<<std::endl;
 	  //need to grab ball distance from somewhere
 	  point ball_diff =  the_player->position() -  the_ball->position();
+	  point ball_dst_diff =  wantdest -  the_ball->position();
 	  //	  point cur_diff = the_ball->position() - 
 	  if(ball_diff.len()< AVOID_BALL_AMOUNT){
 	    if((the_player->position()-wantdest).dot(ball_diff) < 0){
@@ -133,6 +134,11 @@ point robot_navigator::get_inbounds_point(point dst){
 	      //just move as quickly as possible away from ball
 	      wantdest = the_ball->position() + ball_diff.norm()*AVOID_BALL_AMOUNT;
 	    }
+	  }else {
+	    std::vector<point> intersections = lineseg_circle_intersect(the_ball->position(), AVOID_BALL_AMOUNT, the_player->position(), wantdest); 
+	    if(intersections.size()>0){
+		wantdest =  intersections[0];
+	      }	
 	  }
 	}
 
