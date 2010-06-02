@@ -23,6 +23,7 @@ namespace {
 			static const double DECAY_RATE = 0.2063; // half-life = 3 frames
 			static const double DELETE_THRESHOLD = 0.02; // stores < 50 circles
 			list<circle> circles;
+			point last_point;
 
 		public:
 			byrons_filter() : ball_filter("Byron's Filter") {
@@ -34,7 +35,7 @@ namespace {
 
 			point filter(const vector<pair<point, double> > &obs) {
 				point max_point;
-				double max_cert = 0.0;
+				double max_cert = -0.1;
 
 				if (obs.empty()) {
 					for (list<circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
@@ -59,7 +60,8 @@ namespace {
 					}
 
 					if (containing.empty()) {
-
+						if (max_cert < 0)
+						      max_point = last_point;
 						circle c;
 						c.center = max_point;
 						c.certainty = DECAY_RATE;
@@ -95,6 +97,7 @@ namespace {
 						max_point_it = it;
 					}
 				}
+				last_point = max_point_it->center;
 				return max_point_it->center;
 			}
 	};
