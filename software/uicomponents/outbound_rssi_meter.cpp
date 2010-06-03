@@ -18,7 +18,7 @@ void outbound_rssi_meter::set_bot(xbee_drive_bot::ptr bot) {
 }
 
 void outbound_rssi_meter::update() {
-	int rssi = -robot->feedback().outbound_rssi;
+	int rssi = robot->outbound_rssi();
 	if (rssi != last_rssi) {
 		set_fraction((rssi + 255) / 255.0);
 		set_text(Glib::ustring::compose("%1dBm", rssi));

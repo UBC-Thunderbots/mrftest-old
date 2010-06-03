@@ -70,12 +70,30 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 			return alive_;
 		}
 
-		//
-		// Returns the current feedback data.
-		//
-		const xbeepacket::FEEDBACK_DATA &feedback() const {
-			return feedback_;
-		}
+		/**
+		 * \param motor the index of the motor to query, from 0 to 3.
+		 *
+		 * \return true if the requested motor experienced a fault recently, or
+		 * false if not
+		 */
+		bool drive_faulted(unsigned int motor) const;
+
+		/**
+		 * \return true if the dribbler experienced a fault recently, or false
+		 * if not
+		 */
+		bool dribbler_faulted() const;
+
+		/**
+		 * \return The voltage of the robot's battery, in millivolts
+		 */
+		unsigned int battery_voltage() const;
+
+		/**
+		 * \return The speed at which the dribbler motor is spinning, in
+		 * revolutions per minute.
+		 */
+		unsigned int dribbler_speed() const;
 
 		//
 		// Returns the current estimated radio latency.
@@ -84,12 +102,17 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 			return latency_;
 		}
 
-		//
-		// Returns the inbound received signal strength.
-		//
-		uint8_t inbound_rssi() const {
-			return inbound_rssi_;
-		}
+		/**
+		 * \return The outbound received signal strength in dBm (between 0 and
+		 * -255)
+		 */
+		int outbound_rssi() const;
+
+		/**
+		 * \return The inbound received signal strength in dBm (between 0 and
+		 * -255)
+		 */
+		int inbound_rssi() const;
 
 		//
 		// Returns the number of the last 64 packets that were delivered
@@ -98,6 +121,18 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 		unsigned int success_rate() const {
 			return success_rate_;
 		}
+
+		/**
+		 * \return true if the chicker is ready to fire, or false if it is
+		 * disabled or still charging
+		 */
+		bool chicker_ready() const;
+
+		/**
+		 * \return true if the chicker charger experienced a fault recently, or
+		 * false if not
+		 */
+		bool chicker_faulted() const;
 
 		//
 		// Prevents the robot from being scrammed by a timeout, without actually

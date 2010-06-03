@@ -30,6 +30,44 @@ xbee_drive_bot::~xbee_drive_bot() {
 	ll.send(meta_release_packet::create(address));
 }
 
+bool xbee_drive_bot::drive_faulted(unsigned int m) const {
+	assert(m < 4);
+	return !!(feedback_.faults & (1 << m));
+}
+
+bool xbee_drive_bot::dribbler_faulted() const {
+	return !!(feedback_.faults & (1 << 4));
+}
+
+unsigned int xbee_drive_bot::battery_voltage() const {
+	static const unsigned int ADC_MAX = 1023;
+	static const unsigned int VCC = 3300;
+	static const unsigned int DIVIDER_UPPER = 2200;
+	static const unsigned int DIVIDER_LOWER = 470;
+	return feedback_.battery_level * VCC * (DIVIDER_LOWER + DIVIDER_UPPER) / ADC_MAX / DIVIDER_LOWER;
+}
+
+unsigned int xbee_drive_bot::dribbler_speed() const {
+	static const unsigned int TICKS_PER_MINUTE = 10 * 60;
+	return feedback_.dribbler_speed * TICKS_PER_MINUTE;
+}
+
+int xbee_drive_bot::outbound_rssi() const {
+	return -feedback_.outbound_rssi;
+}
+
+int xbee_drive_bot::inbound_rssi() const {
+	return -inbound_rssi_;
+}
+
+bool xbee_drive_bot::chicker_ready() const {
+	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_READY);
+}
+
+bool xbee_drive_bot::chicker_faulted() const {
+	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_FAULT);
+}
+
 void xbee_drive_bot::stamp() {
 	assert(shm_frame);
 	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);

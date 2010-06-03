@@ -42,12 +42,17 @@ void tester_feedback::set_bot(xbee_drive_bot::ptr bot) {
 }
 
 void tester_feedback::update() {
-	for (unsigned int i = 0; i < 5; ++i) {
-		if (robot->feedback().faults & (1 << i)) {
+	for (unsigned int i = 0; i < 4; ++i) {
+		if (robot->drive_faulted(i)) {
 			fault_indicators[i].set_colour(1, 0, 0);
 		} else {
 			fault_indicators[i].set_colour(0, 1, 0);
 		}
+	}
+	if (robot->dribbler_faulted()) {
+		fault_indicators[4].set_colour(1, 0, 0);
+	} else {
+		fault_indicators[4].set_colour(0, 1, 0);
 	}
 }
 

@@ -23,7 +23,7 @@ class battery_meter : public Gtk::ProgressBar, public noncopyable {
 	private:
 		xbee_drive_bot::ptr robot;
 		sigc::connection connection;
-		int last_voltage;
+		unsigned int last_voltage;
 
 		void update();
 };

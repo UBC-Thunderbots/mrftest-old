@@ -202,9 +202,9 @@ void tester_window::on_chicker_chip() {
 
 void tester_window::on_feedback() {
 	if (bot) {
-		if (bot->feedback().flags & xbeepacket::FEEDBACK_FLAG_CHICKER_FAULT) {
+		if (bot->chicker_faulted()) {
 			chicker_status.set_colour(1, 0, 0);
-		} else if (bot->feedback().flags & xbeepacket::FEEDBACK_FLAG_CHICKER_READY) {
+		} else if (bot->chicker_ready()) {
 			chicker_status.set_colour(0, 1, 0);
 		} else {
 			chicker_status.set_colour(0, 0, 0);

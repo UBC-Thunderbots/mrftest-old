@@ -6,7 +6,7 @@
 #include <cmath>
 
 namespace {
-	const unsigned int MAX_DRIBBLER_SPEED = 65;
+	const unsigned int MAX_DRIBBLER_SPEED = 40000;
 	const double DRIBBLER_HAS_BALL_LOAD_FACTOR = 0.75;
 
 	unsigned int chicker_power_to_pulse_width(double power) {
@@ -98,6 +98,6 @@ void player::tick(bool scram) {
 
 void player::on_feedback() {
 	unsigned int threshold_speed = static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED * DRIBBLER_HAS_BALL_LOAD_FACTOR);
-	has_ball_ = bot->feedback().dribbler_speed < threshold_speed;
+	has_ball_ = bot->dribbler_speed() < threshold_speed;
 }
 
