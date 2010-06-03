@@ -7,7 +7,7 @@
 #include "xbee/daemon/frontend/scheduler.h"
 #include "xbee/shared/number_allocator.h"
 #include "xbee/shared/packettypes.h"
-#include <tr1/unordered_map>
+#include <unordered_map>
 #include <vector>
 #include <glibmm.h>
 
@@ -78,7 +78,7 @@ class daemon : public sigc::trackable {
 		//
 		// All robots that are being tracked in some way by the arbiter.
 		//
-		std::tr1::unordered_map<uint64_t, robot_state::ptr> robots;
+		std::unordered_map<uint64_t, robot_state::ptr> robots;
 
 		//
 		// The 64-bit address of the robot that has been assigned each run data

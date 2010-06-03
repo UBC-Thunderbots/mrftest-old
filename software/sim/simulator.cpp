@@ -46,7 +46,7 @@ simulator::simulator(const config &conf, simulator_engine::ptr engine, clocksour
 }
 
 robot::ptr simulator::find_by16(uint16_t addr) const {
-	for (std::tr1::unordered_map<uint64_t, robot::ptr>::const_iterator i = robots_.begin(), iend = robots_.end(); i != iend; ++i) {
+	for (std::unordered_map<uint64_t, robot::ptr>::const_iterator i = robots_.begin(), iend = robots_.end(); i != iend; ++i) {
 		if (i->second->address16() == addr) {
 			return i->second;
 		}
@@ -112,7 +112,7 @@ void simulator::packet_handler(const std::vector<uint8_t> &data) {
 
 		if (req.address16[0] == 0xFF && req.address16[1] == 0xFE) {
 			uint64_t recipient = xbeeutil::address_from_bytes(req.address64);
-			std::tr1::unordered_map<uint64_t, robot::ptr>::const_iterator i = robots_.find(recipient);
+			std::unordered_map<uint64_t, robot::ptr>::const_iterator i = robots_.find(recipient);
 			if (i != robots_.end() && i->second->powered()) {
 				if (data.size() == sizeof(req) + 2 && req.command[0] == 'M' && req.command[1] == 'Y') {
 					uint16_t value = (req.value[0] << 8) | req.value[1];
@@ -177,7 +177,7 @@ void simulator::packet_handler(const std::vector<uint8_t> &data) {
 				}
 			}
 		} else if (recipient == 0xFFFF) {
-			for (std::tr1::unordered_map<uint64_t, robot::ptr>::const_iterator i(robots_.begin()), iend(robots_.end()); i != iend; ++i) {
+			for (std::unordered_map<uint64_t, robot::ptr>::const_iterator i(robots_.begin()), iend(robots_.end()); i != iend; ++i) {
 				robot::ptr bot(i->second);
 				if (bot->powered() && bot->address16() != 0xFFFF && sizeof(req.hdr) + bot->run_data_offset() + sizeof(xbeepacket::RUN_DATA) <= data.size()) {
 					const xbeepacket::RUN_DATA &rundata = *reinterpret_cast<const xbeepacket::RUN_DATA *>(&req.data[bot->run_data_offset()]);
@@ -266,7 +266,7 @@ void simulator::tick() {
 		ball->set_pixel_x(0.0);
 		ball->set_pixel_y(0.0);
 
-		for (std::tr1::unordered_map<uint64_t, robot::ptr>::const_iterator j(robots_.begin()), jend(robots_.end()); j != jend; ++j) {
+		for (std::unordered_map<uint64_t, robot::ptr>::const_iterator j(robots_.begin()), jend(robots_.end()); j != jend; ++j) {
 			robot::ptr bot(j->second);
 			player::ptr plr(bot->get_player());
 			if (plr && plr->position().x * LIMIT_SIGNS[i] > -LIMIT_MAG) {

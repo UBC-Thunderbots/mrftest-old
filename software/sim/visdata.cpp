@@ -6,7 +6,7 @@ simulator_visdata::simulator_visdata(const simulator &sim) : sim(sim) {
 }
 
 void simulator_visdata::init() {
-	for (std::tr1::unordered_map<uint64_t, ::robot::ptr>::const_iterator i = sim.robots().begin(), iend = sim.robots().end(); i != iend; ++i) {
+	for (std::unordered_map<uint64_t, ::robot::ptr>::const_iterator i = sim.robots().begin(), iend = sim.robots().end(); i != iend; ++i) {
 		robots.push_back(i->second);
 	}
 }

@@ -18,7 +18,7 @@
 #include <sys/un.h>
 
 namespace {
-	std::tr1::unordered_set<client *> instances;
+	std::unordered_set<client *> instances;
 }
 
 void client::create(file_descriptor &sock, class daemon &daemon) {
@@ -26,7 +26,7 @@ void client::create(file_descriptor &sock, class daemon &daemon) {
 }
 
 void client::send_to_all(const void *data, std::size_t length) {
-	for (std::tr1::unordered_set<client *>::const_iterator i = instances.begin(), iend = instances.end(); i != iend; ++i) {
+	for (std::unordered_set<client *>::const_iterator i = instances.begin(), iend = instances.end(); i != iend; ++i) {
 		send((*i)->sock, data, length, MSG_NOSIGNAL);
 	}
 }
@@ -338,7 +338,7 @@ void client::on_meta_claim(const xbeepacket::META_CLAIM &req) {
 		try {
 			state->enter_drive_mode(this);
 			claimed.insert(req.address);
-			std::tr1::unordered_map<uint64_t, sigc::connection>::iterator i;
+			std::unordered_map<uint64_t, sigc::connection>::iterator i;
 			i = alive_connections.find(req.address);
 			if (i != alive_connections.end()) {
 				i->second.disconnect();
@@ -430,9 +430,9 @@ void client::on_robot_feedback(uint64_t address) {
 
 void client::do_release(uint64_t address) {
 	daemon.robots[address]->release();
-	std::tr1::unordered_map<uint64_t, sigc::connection> *maps[4] = {&pending_raw_claims, &alive_connections, &dead_connections, &feedback_connections};
+	std::unordered_map<uint64_t, sigc::connection> *maps[4] = {&pending_raw_claims, &alive_connections, &dead_connections, &feedback_connections};
 	for (unsigned int i = 0; i < sizeof(maps) / sizeof(*maps); ++i) {
-		std::tr1::unordered_map<uint64_t, sigc::connection>::iterator j = maps[i]->find(address);
+		std::unordered_map<uint64_t, sigc::connection>::iterator j = maps[i]->find(address);
 		if (j != maps[i]->end()) {
 			j->second.disconnect();
 			maps[i]->erase(j);

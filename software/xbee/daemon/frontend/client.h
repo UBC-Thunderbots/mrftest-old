@@ -6,8 +6,8 @@
 #include "xbee/daemon/frontend/request.h"
 #include "xbee/shared/packettypes.h"
 #include <vector>
-#include <tr1/unordered_map>
-#include <tr1/unordered_set>
+#include <unordered_map>
+#include <unordered_set>
 #include <cstddef>
 #include <glibmm.h>
 #include <stdint.h>
@@ -32,11 +32,11 @@ class client : public noncopyable, public sigc::trackable {
 	private:
 		file_descriptor sock;
 		class daemon &daemon;
-		std::tr1::unordered_set<uint64_t> claimed;
-		std::tr1::unordered_map<uint64_t, sigc::connection> pending_raw_claims;
-		std::tr1::unordered_map<uint64_t, sigc::connection> alive_connections;
-		std::tr1::unordered_map<uint64_t, sigc::connection> dead_connections;
-		std::tr1::unordered_map<uint64_t, sigc::connection> feedback_connections;
+		std::unordered_set<uint64_t> claimed;
+		std::unordered_map<uint64_t, sigc::connection> pending_raw_claims;
+		std::unordered_map<uint64_t, sigc::connection> alive_connections;
+		std::unordered_map<uint64_t, sigc::connection> dead_connections;
+		std::unordered_map<uint64_t, sigc::connection> feedback_connections;
 
 		client(file_descriptor &, class daemon &);
 		~client();

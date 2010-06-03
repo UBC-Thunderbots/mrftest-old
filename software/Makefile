@@ -30,7 +30,7 @@ LDFLAGS_xbeed := $(shell pkg-config --libs glibmm-2.4) -lrt
 #
 # Here, write the compiler flags to be used.
 #
-override CXXFLAGS := -Wall -Wextra -Wold-style-cast -O2 -fomit-frame-pointer -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -pthread $(shell pkg-config --cflags glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf | sed 's/-I/-isystem /g') $(CXXFLAGS) -I.
+override CXXFLAGS := -std=gnu++0x -Wall -Wextra -Wold-style-cast -O2 -fomit-frame-pointer -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -pthread $(shell pkg-config --cflags glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf | sed 's/-I/-isystem /g') $(CXXFLAGS) -I.
 
 #
 # DO NOT MODIFY STUFF BELOW HERE WITHOUT A GOOD REASON.

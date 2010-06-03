@@ -14,7 +14,7 @@
 #include <cstddef>
 #include <queue>
 #include <vector>
-#include <tr1/unordered_map>
+#include <unordered_map>
 #include <stdint.h>
 
 /**
@@ -40,7 +40,7 @@ class simulator : public backend, public sigc::trackable {
 		 * \return All the robots recognized by this simulator, keyed by XBee
 		 * address
 		 */
-		const std::tr1::unordered_map<uint64_t, robot::ptr> &robots() const {
+		const std::unordered_map<uint64_t, robot::ptr> &robots() const {
 			return robots_;
 		}
 
@@ -68,7 +68,7 @@ class simulator : public backend, public sigc::trackable {
 
 	private:
 		const simulator_engine::ptr engine;
-		std::tr1::unordered_map<uint64_t, robot::ptr> robots_;
+		std::unordered_map<uint64_t, robot::ptr> robots_;
 		std::queue<std::vector<uint8_t> > responses;
 		sigc::connection response_push_connection;
 		uint16_t host_address16;
