@@ -29,7 +29,7 @@ void battery_meter::update() {
 	int voltage = robot->feedback().battery_level;
 	if (voltage != last_voltage) {
 		const double volts = voltage / ADC_MAX * VCC / DIVIDER_LOWER * (DIVIDER_LOWER + DIVIDER_UPPER);
-		set_fraction(std::min(1.0, std::max(0.0, (volts - 14.0) / 3.0)));
+		set_fraction(std::min(1.0, std::max(0.0, (volts - 12.0) / 5.0)));
 		set_text(Glib::ustring::compose("%1V", Glib::ustring::format(std::fixed, std::setprecision(2), volts)));
 		last_voltage = voltage;
 	}
