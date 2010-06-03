@@ -8,6 +8,7 @@
 namespace {
 	const unsigned int MAX_DRIBBLER_SPEED = 40000;
 	const double DRIBBLER_HAS_BALL_LOAD_FACTOR = 0.75;
+	const unsigned int BATTERY_CRITICAL_THRESHOLD = 12000;
 
 	unsigned int chicker_power_to_pulse_width(double power) {
 		const unsigned int MAX_PULSE_WIDTH = 511;
@@ -65,7 +66,7 @@ player::player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot)
 }
 
 void player::tick(bool scram) {
-	if (!bot->alive() || scram || !controller) {
+	if (!bot->alive() || scram || !controller || bot->battery_voltage() < BATTERY_CRITICAL_THRESHOLD) {
 		if (controller) {
 			controller->clear();
 		}
