@@ -19,7 +19,7 @@ TODO:
 
 */
 
-kick::kick(player::ptr player) : tactic(player), turn_tactic(player), should_chip(false), chip_strength(1.0), kick_strength(1.0), target_initialized(false) {
+kick::kick(player::ptr player, world::ptr world) : tactic(player), navi(player, world), should_chip(false), chip_strength(1.0), kick_strength(1.0), target_initialized(false) {
 }
 
 void kick::tick() {
@@ -34,11 +34,12 @@ void kick::tick() {
 		return;
 	}
 
+	point dist = kick_target-the_player->position();
+
 	// turn towards the target
-	turn_tactic.set_direction(kick_target);
-	if (angle_diff((kick_target-the_player->position()).orientation(), the_player->orientation()) < TOL) {
-	//if (!turn_tactic.is_turned(TOL)) {
-		turn_tactic.tick();	
+	navi.set_orientation(dist.orientation());
+	if (angle_diff(dist.orientation(), the_player->orientation()) < TOL) {
+		navi.tick();	
 		return;
 	}
 

@@ -3,7 +3,7 @@
 #include "ai/util.h"
 #include <vector>
 
-shoot::shoot(player::ptr player, world::ptr world) : tactic(player), the_world(world), chase_tactic(player, world), kick_tactic(player) {
+shoot::shoot(player::ptr player, world::ptr world) : tactic(player), the_world(world), chase_tactic(player, world), kick_tactic(player, world) {
 }
 
 void shoot::tick()

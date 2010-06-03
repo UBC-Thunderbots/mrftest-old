@@ -10,7 +10,7 @@ void pass::tick() {
 	bool should_pass = ai_util::can_pass(the_world, the_receiver) && the_receiver->est_velocity().len() < ai_util::VEL_CLOSE;
 
 	if (should_pass) {
-		kick::ptr tactic(new kick(the_player));
+		kick::ptr tactic(new kick(the_player, the_world));
 		tactic->set_target(the_receiver->position());
 		tactic->tick();
 	} else {

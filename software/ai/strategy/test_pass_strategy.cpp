@@ -44,7 +44,7 @@ namespace {
 		// kick it to a random place if the receiver has the ball
 		if (receiver->has_ball()) {
 
-			kick kick_tactic(receiver);
+			kick kick_tactic(receiver, the_world);
 
 			srand(time(NULL));
 			double randX = ((rand() % 9)-4)/2.0;

@@ -19,7 +19,7 @@ void execute_kickoff_friendly::avoid_ball(int index){
 }
 
 void execute_kickoff_friendly::kick_ball(int index){
-	kick::ptr tactic( new kick(the_robots[index]));
+	kick::ptr tactic( new kick(the_robots[index], the_world));
 	tactic->set_target(point( the_world->field().length()/10 , 0));
 	tactic->set_kick(KICKER_STRENGTH);
 	the_tactics.push_back(tactic);

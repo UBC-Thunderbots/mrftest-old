@@ -1,7 +1,8 @@
 #ifndef AI_TACTIC_KICK_H
 #define AI_TACTIC_KICK_H
 
-#include "ai/tactic/turn.h"
+#include "ai/tactic/tactic.h"
+#include "ai/navigator/robot_navigator.h"
 
 /**
  * Tactic for doing either chip or kick.
@@ -18,7 +19,7 @@ class kick : public tactic {
 		//
 		// Constructs a new kick tactic.
 		//
-		kick(player::ptr player);
+		kick(player::ptr player, world::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -52,9 +53,9 @@ class kick : public tactic {
 		}
 
 	protected:
-		turn turn_tactic;
+		robot_navigator navi;
 
-		// Holds if this tactic should chip the ball rather than simply kicking it
+		// True to chip instead of kicking.
 		bool should_chip;
 		double chip_strength;
 		double kick_strength;

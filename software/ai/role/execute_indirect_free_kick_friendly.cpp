@@ -29,7 +29,7 @@ void execute_indirect_free_kick_friendly::tick(){
 	flags &= ~(ai_flags::clip_play_area);
 	if (best_passee == the_team.size()){
 		// No robot can receive the pass. Simply chip the ball forward.
-		kick::ptr tactic (new kick(the_robots[0]));
+		kick::ptr tactic (new kick(the_robots[0], the_world));
 		tactic->set_chip();
 		tactic->set_target(the_world->field().enemy_goal());
 		tactic->set_flags(flags);
