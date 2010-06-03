@@ -48,5 +48,7 @@ void kick::tick() {
 	} else {
 		the_player->kick(kick_strength);
 	}
+
+	navi.tick();
 }
 
