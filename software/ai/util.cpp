@@ -114,9 +114,9 @@ namespace ai_util{
 		return true;
 	}
 
-	size_t calc_best_shot(const player::ptr player, const world::ptr world) {
+	int calc_best_shot(const player::ptr player, const world::ptr world) {
 		std::vector<point> candidates = calc_candidates(world);
-		size_t best_point = candidates.size();
+		int best_point = -1;
 		double best_score = -1;
 
 		const team &opponent_team(world->enemy);
@@ -125,9 +125,9 @@ namespace ai_util{
 		for (unsigned int i = 0; i < SHOOTING_SAMPLE_POINTS; ++i) {		
 			point projection = candidates[i] - player->position();
 			score = 0;
-			for (unsigned int i = 0; i < opponent_team.size(); ++i) {
+			for (unsigned int j = 0; j < opponent_team.size(); ++j) {
 #warning TODO: take into account of velocity?
-				point other = opponent_team.get_robot(i)->position() - player->position();
+				point other = opponent_team.get_robot(j)->position() - player->position();
 				proximity = (other).dot(projection.norm());
 				// don't process the robot if it's behind the shooter
 				if (proximity >= robot::MAX_RADIUS) {
@@ -142,12 +142,12 @@ namespace ai_util{
 					}	
 					// use a 1/dist function to determine to score: the closer the opponent robot is to the projection, the higher the score
 					score += 1.0 / dist;
-
-					if (best_point == candidates.size() || score < best_score) {
-						best_point = i;
-						best_score = score;
-					}
 				}
+			}
+			if (best_point == -1 || score < best_score 
+			  || (score == best_score && abs(2*i+1-candidates.size()) < abs(2*best_score+1-candidates.size()))) {
+				best_point = i;
+				best_score = score;
 			}
 		}
 		return best_point;

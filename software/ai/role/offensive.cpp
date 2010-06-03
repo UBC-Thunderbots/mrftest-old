@@ -139,7 +139,7 @@ void offensive::tick() {
 		if (baller != -1) {
 			// someone in this role has the ball
 			if(get_distance_from_goal(baller) < the_world->field().length() / 3) {
-				if (ai_util::calc_best_shot(the_robots[baller],the_world) < ai_util::SHOOTING_SAMPLE_POINTS) {
+				if (ai_util::calc_best_shot(the_robots[baller],the_world) != -1) {
 					the_tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
 				} else {
 					int best_passee = -1;
@@ -148,7 +148,7 @@ void offensive::tick() {
 					// if there is a clear path to the passee and the passee has a clear path to the goal
 					for (size_t j = 0; j < the_robots.size(); j++) {
 						if (static_cast<int>(j) == baller) continue;  
-						if (ai_util::can_pass(the_world,the_robots[j]) && ai_util::calc_best_shot(the_robots[j],the_world) < ai_util::SHOOTING_SAMPLE_POINTS) {
+						if (ai_util::can_pass(the_world,the_robots[j]) && ai_util::calc_best_shot(the_robots[j],the_world) != -1) {
 							double new_dist = (the_robots[j]->position()-the_robots[baller]->position()).len() + get_distance_from_goal(j);
 							if (best_dist > new_dist) {
 								best_dist = new_dist;

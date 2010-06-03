@@ -108,9 +108,9 @@ namespace ai_util {
 	/**
 	 * Returns an integer i, where candidates[i] is the best point to aim for when shooting.
 	 * Here candidates is the vector returned by calc_candidates.
-	 * If all shots are bad, candidates.size() is returned.
+	 * If all shots are bad, -1 is returned.
 	 */
-	size_t calc_best_shot(const player::ptr player, const world::ptr w);
+	int calc_best_shot(const player::ptr player, const world::ptr w);
 
 	/**
 	 * Convert friendly into vector of players, excluding some.

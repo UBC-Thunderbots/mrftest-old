@@ -31,9 +31,9 @@ void shoot::tick()
 	else
 	{
 		std::vector<point> candidates = ai_util::calc_candidates(the_world);
-		size_t best_point = ai_util::calc_best_shot(the_player, the_world);
+		int best_point = ai_util::calc_best_shot(the_player, the_world);
 		// if all the points are equally bad (opponent robot in all projections), just use the first point and pray
-		if (best_point == candidates.size())
+		if (best_point == -1)
 		{
 			best_point = 0;
 		}
