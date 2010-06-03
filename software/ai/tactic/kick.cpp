@@ -36,6 +36,9 @@ void kick::tick() {
 
 	point dist = kick_target-the_player->position();
 
+	// don't forget
+	navi.set_flags(flags);
+
 	// turn towards the target
 	navi.set_orientation(dist.orientation());
 	if (angle_diff(dist.orientation(), the_player->orientation()) < TOL) {
