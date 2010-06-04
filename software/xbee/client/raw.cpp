@@ -3,7 +3,7 @@
 #include <cassert>
 #include <cstdlib>
 
-xbee_raw_bot::xbee_raw_bot(uint64_t address, xbee_lowlevel &ll) : address(address), ll(ll) {
+xbee_raw_bot::xbee_raw_bot(uint64_t address, xbee_lowlevel &ll) : address(address), ll(ll), address16_(0) {
 	ll.signal_receive64.connect(sigc::mem_fun(this, &xbee_raw_bot::on_receive64));
 	ll.signal_meta.connect(sigc::mem_fun(this, &xbee_raw_bot::on_meta));
 }
@@ -14,6 +14,10 @@ xbee_raw_bot::~xbee_raw_bot() {
 
 void xbee_raw_bot::send(packet::ptr p) {
 	ll.send(p);
+}
+
+uint16_t xbee_raw_bot::address16() const {
+	return address16_;
 }
 
 void xbee_raw_bot::on_receive64(uint64_t rx_address, uint8_t rssi, const void *data, std::size_t length) {
@@ -40,6 +44,7 @@ void xbee_raw_bot::on_meta(const void *buffer, std::size_t length) {
 			if (length == sizeof(packet)) {
 				if (packet.address == address) {
 					assert(packet.shm_frame == 0xFF);
+					address16_ = packet.address16;
 					signal_alive.emit();
 				}
 			}

@@ -73,7 +73,7 @@ class robot_state::idle_state : public robot_state::state {
  */
 class robot_state::raw_state : public robot_state::state {
 	public:
-		static ptr enter(robot_state &bot, client &claimed_by);
+		static ptr enter(robot_state &bot, client &claimed_by, uint16_t address16);
 		void enter_raw_mode(client *cli);
 		void enter_drive_mode(client *cli);
 		void release();
@@ -87,8 +87,9 @@ class robot_state::raw_state : public robot_state::state {
 	private:
 		robot_state &bot;
 		client &claimed_by;
+		const uint16_t address16_;
 
-		raw_state(robot_state &bot, client &claimed_by);
+		raw_state(robot_state &bot, client &claimed_by, uint16_t address16);
 };
 
 /**
@@ -308,8 +309,14 @@ void robot_state::idle_state::enter_raw_mode(client *cli) {
 	// Sanity check.
 	assert(cli);
 
+	// Allocate resources.
+	if (!bot.daemon.id16_allocator.available()) {
+		throw resource_allocation_failed();
+	}
+	const uint16_t address16 = bot.daemon.id16_allocator.alloc();
+
 	// Transition to new state.
-	bot.state_ = robot_state::raw_state::enter(bot, *cli);
+	bot.state_ = robot_state::raw_state::enter(bot, *cli, address16);
 }
 
 void robot_state::idle_state::enter_drive_mode(client *cli) {
@@ -367,12 +374,12 @@ uint8_t robot_state::idle_state::run_data_index() const {
 
 
 
-robot_state::state::ptr robot_state::raw_state::enter(robot_state &bot, client &claimed_by) {
-	ptr p(new raw_state(bot, claimed_by));
+robot_state::state::ptr robot_state::raw_state::enter(robot_state &bot, client &claimed_by, uint16_t address16) {
+	ptr p(new raw_state(bot, claimed_by, address16));
 	return p;
 }
 
-robot_state::raw_state::raw_state(robot_state &bot, client &claimed_by) : bot(bot), claimed_by(claimed_by) {
+robot_state::raw_state::raw_state(robot_state &bot, client &claimed_by, uint16_t address16) : bot(bot), claimed_by(claimed_by), address16_(address16) {
 	DPRINT(Glib::ustring::compose("Robot %1 entering raw mode.", tohex(bot.address64, 16)));
 }
 
@@ -409,7 +416,7 @@ bool robot_state::raw_state::freeing() const {
 }
 
 uint16_t robot_state::raw_state::address16() const {
-	return 0;
+	return address16_;
 }
 
 uint8_t robot_state::raw_state::run_data_index() const {

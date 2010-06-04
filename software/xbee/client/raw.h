@@ -64,8 +64,14 @@ class xbee_raw_bot : public byref {
 		//
 		void send(packet::ptr p);
 
+		/**
+		 * \return The 16-bit address allocated to this robot
+		 */
+		uint16_t address16() const;
+
 	private:
 		xbee_lowlevel &ll;
+		uint16_t address16_;
 
 		xbee_raw_bot(uint64_t address, xbee_lowlevel &ll);
 		~xbee_raw_bot();

@@ -372,6 +372,7 @@ void client::on_meta_claim(const xbeepacket::META_CLAIM &req) {
 		resp.hdr.apiid = xbeepacket::META_APIID;
 		resp.hdr.metatype = xbeepacket::ALIVE_METATYPE;
 		resp.address = req.address;
+		resp.address16 = state->address16();
 		resp.shm_frame = 0xFF;
 		if (send(sock, &resp, sizeof(resp), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(resp))) {
 			DPRINT("Cannot send data to client!");
@@ -396,6 +397,7 @@ void client::on_robot_alive(uint64_t address) {
 	packet.hdr.apiid = xbeepacket::META_APIID;
 	packet.hdr.metatype = xbeepacket::ALIVE_METATYPE;
 	packet.address = address;
+	packet.address16 = 0;
 	packet.shm_frame = bot->run_data_index();
 	if (send(sock, &packet, sizeof(packet), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(packet))) {
 		DPRINT("Cannot send data to client!");

@@ -199,9 +199,8 @@ namespace xbeepacket {
 	// erasing of Flash memory.
 	//
 	// The arbiter will first determine whether the claim request should succeed
-	// based on whether any other client has already claimed the robot and also,
-	// if "drive_mode" is nonzero, based on whether the necessary resources can
-	// be allocated.
+	// based on whether any other client has already claimed the robot and
+	// whether the necessary resources can be allocated.
 	//
 	// If the claim request fails outright, a META_CLAIM_FAILED will be returned
 	// immediately indicating the reason for the failure.
@@ -249,17 +248,20 @@ namespace xbeepacket {
 	// feedback packet. The client can examine feedback data and send fresh
 	// drive data using the shared memory area. In this case, "shm_frame"
 	// contains the index of the element of the "frames" array in the shared
-	// memory block that has been allocated for this robot.
+	// memory block that has been allocated for this robot, and "address16"
+	// contains the 16-bit address that the robot has actually accepted.
 	//
 	// If the claim request was for raw mode, the META_ALIVE merely acts as an
 	// acknowledgement that the META_CLAIM was received and accepted; it says
 	// nothing about the actual power state of the robot. The client is expected
 	// to attempt communication with the robot to determine its state. In this
-	// case, "shm_frame" is 0xFF.
+	// case, "shm_frame" is 0xFF and "address16" is the 16-bit address that was
+	// allocated but not assigned to the robot yet.
 	//
 	struct __attribute__((packed)) META_ALIVE {
 		META_HDR hdr;
 		uint64_t address;
+		uint16_t address16;
 		uint8_t shm_frame;
 	};
 	const uint8_t ALIVE_METATYPE = 0x03;
