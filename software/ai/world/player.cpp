@@ -61,7 +61,7 @@ player::ptr player::create(bool yellow, unsigned int pattern_index, xbee_drive_b
 	return p;
 }
 
-player::player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), has_ball_(false) {
+player::player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), has_ball_(false), has_ball_count_(0) {
 	bot->signal_feedback.connect(sigc::mem_fun(this, &player::on_feedback));
 }
 
@@ -100,5 +100,7 @@ void player::tick(bool scram) {
 void player::on_feedback() {
 	unsigned int threshold_speed = static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED * DRIBBLER_HAS_BALL_LOAD_FACTOR);
 	has_ball_ = bot->dribbler_speed() < threshold_speed;
+	if (has_ball_) ++has_ball_count_;
+	else has_ball_count_ = 0;
 }
 

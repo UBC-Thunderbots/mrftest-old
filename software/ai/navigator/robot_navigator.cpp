@@ -13,7 +13,15 @@ namespace {
 	const double ROTATION_THRESH = 100.0 * M_PI / 180.0;
 	const double ROTATION_STEP = 1.0 * M_PI / 180.0;
 	const double LOOKAHEAD_MAX = robot::MAX_RADIUS * 10;
-        const double AVOID_BALL_AMOUNT = 0.5 ;
+
+// as required by the rules
+	const double AVOID_BALL_AMOUNT = 0.5 ;
+
+// hardware dependent dribble parameters
+	const double DRIBBLE_SPEED_LOW  = 0.25;
+	const double DRIBBLE_SPEED_RAMP = 0.05;
+	const double DRIBBLE_SPEED_MAX  = 0.60;
+
 }
 
 robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world), position_initialized(false), orientation_initialized(false), flags(0) {
@@ -171,26 +179,23 @@ void robot_navigator::tick() {
 	wantdest = get_inbounds_point(wantdest);
 	const double distance = (wantdest - the_player->position()).len();
 
-	if((ai_util::ball_close(the_world, the_player) || the_player->has_ball()) && !(flags & avoid_ball_stop)){
-          #warning magic constant here need to come up with more intelligent dribble strategy
-	  the_player->dribble(0.5);
-	}else{
-	  the_player->dribble(0.0);
+	// dribble when it needs to
+	if ((ai_util::ball_close(the_world, the_player) || the_player->has_ball()) && !(flags & avoid_ball_stop)) {
+		const double dribblespeed = std::min(DRIBBLE_SPEED_LOW + DRIBBLE_SPEED_RAMP * the_player->has_ball_count(), DRIBBLE_SPEED_MAX);
+		the_player->dribble(dribblespeed);
+	} else {
+		the_player->dribble(0.0);
 	}
 
-	// at least face the ball
-	if (distance < ai_util::POS_CLOSE || !position_initialized) {
-		if (balldist.len() > ai_util::POS_CLOSE) the_player->move(the_player->position(), wantori);
-
-		// DO NOT FORGET! reset orientation settings.
-		orientation_initialized = false;
-		position_initialized = false;
-		return;
-	}
-
-	// reset orientation settings.
+	// DO NOT FORGET! reset orientation settings.
 	orientation_initialized = false;
 	position_initialized = false;
+
+	// at least face the ball
+	if (distance < ai_util::POS_CLOSE) {
+		if (balldist.len() > ai_util::POS_CLOSE) the_player->move(the_player->position(), wantori);
+		return;
+	}
 
 	const point direction = (wantdest - the_player->position()).norm();
 

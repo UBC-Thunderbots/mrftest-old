@@ -51,6 +51,13 @@ class player : public robot {
 			return has_ball_;
 		}
 
+		/**
+		 * \return amount of ticks the player has the ball.
+		 */
+		int has_ball_count() const {
+			return has_ball_count_;
+		}
+
 	private:
 		xbee_drive_bot::ptr bot;
 		point destination_;
@@ -60,6 +67,7 @@ class player : public robot {
 		int new_dribble_power;
 		int old_dribble_power;
 		bool has_ball_;
+		int has_ball_count_;
 
 		/**
 		 * Constructs a new player object.
