@@ -22,7 +22,7 @@ void battery_meter::set_bot(xbee_drive_bot::ptr bot) {
 void battery_meter::update() {
 	unsigned int voltage = robot->battery_voltage();
 	if (voltage != last_voltage) {
-		set_fraction(std::min(1.0, std::max(0.0, (voltage - 12000) / 5000.0)));
+		set_fraction(std::min(1.0, std::max(0.0, (static_cast<int>(voltage) - 12000) / 5000.0)));
 		set_text(Glib::ustring::compose("%1V", Glib::ustring::format(std::fixed, std::setprecision(2), voltage / 1000.0)));
 		last_voltage = voltage;
 	}
