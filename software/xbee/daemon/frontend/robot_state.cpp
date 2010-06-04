@@ -394,6 +394,7 @@ void robot_state::raw_state::enter_drive_mode(client *) {
 }
 
 void robot_state::raw_state::release() {
+#warning FIGURE OUT A SENSIBLE WAY TO DECIDE WHETHER OR NOT TO FREE THE 16-BIT ADDRESS
 	// Transition to new state.
 	DPRINT(Glib::ustring::compose("Robot %1 released from raw mode.", tohex(bot.address64, 16)));
 	bot.state_ = robot_state::idle_state::enter(bot);
