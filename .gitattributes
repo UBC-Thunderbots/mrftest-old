@@ -111,8 +111,6 @@ software/ai/tactic/receive.h -text
 software/ai/tactic/shoot.cpp -text
 software/ai/tactic/shoot.h -text
 software/ai/tactic/tactic.h -text
-software/ai/tactic/turn.cpp -text
-software/ai/tactic/turn.h -text
 software/ai/util.cpp -text
 software/ai/util.h -text
 software/ai/window.cpp -text
