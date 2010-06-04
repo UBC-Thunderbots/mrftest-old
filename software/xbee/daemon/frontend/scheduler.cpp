@@ -116,11 +116,15 @@ void scheduler::push() {
 			for (unsigned int i = 0; i <= max_index; ++i) {
 				timespec diff;
 				timespec_sub(now, daemon.shm->frames[i].timestamp, diff);
-				if (timespec_cmp(diff, threshold) > 0) {
-					daemon.shm->frames[i].run_data.flags = xbeepacket::RUN_FLAG_RUNNING;
-				}
-				if (daemon.run_data_index_reverse[i] && (daemon.shm->frames[i].run_data.flags & xbeepacket::RUN_FLAG_RUNNING)) {
-					packet.data[i] = daemon.shm->frames[i].run_data;
+				bool timeout = timespec_cmp(diff, threshold) > 0;
+				if (daemon.run_data_index_reverse[i] && ((daemon.shm->frames[i].run_data.flags & xbeepacket::RUN_FLAG_RUNNING) || timeout)) {
+					if (timeout) {
+						packet.data[i].flags = xbeepacket::RUN_FLAG_RUNNING;
+						packet.data[i].dribbler_speed = 0;
+						packet.data[i].chick_power = 0;
+					} else {
+						packet.data[i] = daemon.shm->frames[i].run_data;
+					}
 					eligible_for_feedback[i] = true;
 					DPRINT(Glib::ustring::compose("Robot %1 is eligible for feedback.", i));
 				} else {

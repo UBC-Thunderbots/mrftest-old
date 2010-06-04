@@ -532,7 +532,7 @@ robot_state::settingrdo_state::settingrdo_state(robot_state &bot, client &claime
 	// signal to exit the settingrdo state and transition to alive.
 	{
 		rwlock_scoped_acquire acq(&bot.daemon.shm->lock, &pthread_rwlock_wrlock);
-		bot.daemon.shm->frames[run_data_index_].run_data.flags = xbeepacket::RUN_FLAG_RUNNING;
+		bot.daemon.shm->frames[run_data_index_].run_data.flags |= xbeepacket::RUN_FLAG_RUNNING;
 	}
 
 	// Queue up a request.

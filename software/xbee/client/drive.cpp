@@ -171,16 +171,6 @@ void xbee_drive_bot::on_meta(const void *buffer, std::size_t length) {
 				if (packet.address == address) {
 					assert(packet.shm_frame < xbeepacket::MAX_DRIVE_ROBOTS);
 					shm_frame = &ll.shm->frames[packet.shm_frame];
-					{
-						rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
-						shm_frame->run_data.flags = xbeepacket::RUN_FLAG_RUNNING;
-						shm_frame->run_data.drive1_speed = 0;
-						shm_frame->run_data.drive2_speed = 0;
-						shm_frame->run_data.drive3_speed = 0;
-						shm_frame->run_data.drive4_speed = 0;
-						shm_frame->run_data.dribbler_speed = 0;
-						shm_frame->run_data.chick_power = 0;
-					}
 					alive_ = true;
 					signal_alive.emit();
 				}
