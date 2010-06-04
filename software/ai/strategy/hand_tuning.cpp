@@ -99,17 +99,25 @@ namespace {
 			strategy_factory &get_factory();
 			void tick();
 			void run();
+			void stop();
 			void reset();
 		private:
 			hand_tuning_ui ui;
 			tunable_controller* tc;
 			Gtk::Button run_button;
+			Gtk::Button stop_button;
+			Gtk::CheckButton dribble_checkbutton;
+			Gtk::VBox vbox;
 	};
 
-	hand_tuning::hand_tuning(world::ptr world) : movement_benchmark(world), ui(this), tc(NULL), run_button("Run") {
+	hand_tuning::hand_tuning(world::ptr world) : movement_benchmark(world), ui(this), tc(NULL), run_button("Run"), stop_button("Stop"), dribble_checkbutton("Dribble") {
 		run_button.signal_clicked().connect(sigc::mem_fun(this,&hand_tuning::run));
+		stop_button.signal_clicked().connect(sigc::mem_fun(this,&hand_tuning::stop));
 		done = tasks.size();
 		time_steps = 0;
+		vbox.add(run_button);
+		vbox.add(stop_button);
+		vbox.add(dribble_checkbutton);
 	}
 
 	hand_tuning::~hand_tuning() {
@@ -135,11 +143,26 @@ namespace {
 		time_steps = 0;
 	}
 
+	void hand_tuning::stop() {
+		done = tasks.size();
+	}
+
 	void hand_tuning::tick() {
+		const friendly_team &the_team(the_world->friendly);
+		if (the_team.size() != 1) {
+			std::cerr << "error: must have only 1 robot in the team!" << std::endl;
+			return;
+		}
 		if (tc != tunable_controller::get_instance()) {
 			reset();
 		}
-		movement_benchmark::tick();
+		player::ptr the_player = the_team.get_player(0);
+		if (dribble_checkbutton.get_active() && !the_player->has_ball()) {
+			const point balldist = the_world->ball()->position() - the_player->position();
+			the_player->move(the_world->ball()->position(), atan2(balldist.y, balldist.x));
+		} else {
+			movement_benchmark::tick();
+		}
 	}
 
 	class hand_tuning_factory : public strategy_factory {
