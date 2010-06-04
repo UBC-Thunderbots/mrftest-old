@@ -11,6 +11,7 @@
 #include <ext/functional>
 #include <glibmm.h>
 #include <cerrno>
+#include <cstddef>
 #include <cstring>
 #include <stdint.h>
 #include <sys/types.h>
@@ -189,7 +190,7 @@ void client::on_remote_at_response(const void *buffer, std::size_t length, uint8
 	std::memcpy(newpacket, packet, length);
 
 	// Substitute in original frame number.
-	reinterpret_cast<xbeepacket::REMOTE_AT_RESPONSE *>(newpacket)->frame = original_frame;
+	newpacket[offsetof(xbeepacket::REMOTE_AT_RESPONSE, frame)] = original_frame;
 
 	// Send back-substituted packet to client.
 	ssize_t ret = send(sock, newpacket, length, MSG_NOSIGNAL);
@@ -250,7 +251,7 @@ void client::on_transmit_status(const void *buffer, std::size_t length, uint8_t 
 	std::memcpy(newpacket, packet, length);
 
 	// Substitute in original frame number.
-	reinterpret_cast<xbeepacket::TRANSMIT_STATUS *>(newpacket)->frame = original_frame;
+	newpacket[offsetof(xbeepacket::TRANSMIT_STATUS, frame)] = original_frame;
 
 	// Send back-substituted packet to client.
 	if (send(sock, newpacket, length, MSG_NOSIGNAL) != static_cast<ssize_t>(length)) {
