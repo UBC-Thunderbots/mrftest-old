@@ -107,10 +107,12 @@ namespace {
 			Gtk::Button run_button;
 			Gtk::Button stop_button;
 			Gtk::CheckButton dribble_checkbutton;
+			Gtk::HScale dribble_scale1;
+			Gtk::HScale dribble_scale2;
 			Gtk::VBox vbox;
 	};
 
-	hand_tuning::hand_tuning(world::ptr world) : movement_benchmark(world), ui(this), tc(NULL), run_button("Run"), stop_button("Stop"), dribble_checkbutton("Dribble") {
+	hand_tuning::hand_tuning(world::ptr world) : movement_benchmark(world), ui(this), tc(NULL), run_button("Run"), stop_button("Stop"), dribble_checkbutton("Dribble"),dribble_scale1(0.0, 1.0, 0.01), dribble_scale2(0.0, 1.0, 0.01) {
 		run_button.signal_clicked().connect(sigc::mem_fun(this,&hand_tuning::run));
 		stop_button.signal_clicked().connect(sigc::mem_fun(this,&hand_tuning::stop));
 		done = tasks.size();
@@ -118,6 +120,8 @@ namespace {
 		vbox.add(run_button);
 		vbox.add(stop_button);
 		vbox.add(dribble_checkbutton);
+		vbox.add(dribble_scale1);
+		vbox.add(dribble_scale2);
 	}
 
 	hand_tuning::~hand_tuning() {
@@ -157,6 +161,11 @@ namespace {
 			reset();
 		}
 		player::ptr the_player = the_team.get_player(0);
+		if (!the_player->has_ball()) {
+			the_player->dribble(dribble_scale1.get_value());
+		} else {
+			the_player->dribble(dribble_scale2.get_value());
+		}
 		if (dribble_checkbutton.get_active() && !the_player->has_ball()) {
 			const point balldist = the_world->ball()->position() - the_player->position();
 			the_player->move(the_world->ball()->position(), atan2(balldist.y, balldist.x));
