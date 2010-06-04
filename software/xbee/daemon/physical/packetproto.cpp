@@ -21,7 +21,7 @@ void xbee_packet_stream::send(const iovec *iov, std::size_t iovcnt) {
 
 	assert(total_len < 65536);
 
-	uint8_t header[2] = { total_len / 256, total_len % 256 };
+	uint8_t header[2] = { static_cast<uint8_t>(total_len / 256), static_cast<uint8_t>(total_len % 256) };
 	iovec header_iov;
 	header_iov.iov_base = header;
 	header_iov.iov_len = 2;
