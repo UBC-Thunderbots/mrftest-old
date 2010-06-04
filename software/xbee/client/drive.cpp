@@ -44,7 +44,7 @@ unsigned int xbee_drive_bot::battery_voltage() const {
 	static const unsigned int VCC = 3300;
 	static const unsigned int DIVIDER_UPPER = 2200;
 	static const unsigned int DIVIDER_LOWER = 470;
-	return feedback_.battery_level * VCC * (DIVIDER_LOWER + DIVIDER_UPPER) / ADC_MAX / DIVIDER_LOWER;
+	return feedback_.battery_level * VCC / DIVIDER_LOWER * (DIVIDER_LOWER + DIVIDER_UPPER) / ADC_MAX;
 }
 
 unsigned int xbee_drive_bot::dribbler_speed() const {
