@@ -21,10 +21,11 @@ class success_meter : public Gtk::ProgressBar, public noncopyable {
 
 	private:
 		xbee_drive_bot::ptr robot;
-		sigc::connection connection;
+		sigc::connection update_connection, dead_connection;
 		int last_success;
 
 		void update();
+		void on_bot_dead();
 };
 
 #endif

@@ -7,10 +7,12 @@ success_meter::success_meter() : last_success(-1) {
 }
 
 void success_meter::set_bot(xbee_drive_bot::ptr bot) {
-	connection.disconnect();
+	update_connection.disconnect();
+	dead_connection.disconnect();
 	robot = bot;
 	if (robot) {
-		connection = robot->signal_feedback.connect(sigc::mem_fun(this, &success_meter::update));
+		update_connection = robot->signal_feedback.connect(sigc::mem_fun(this, &success_meter::update));
+		dead_connection = robot->signal_dead.connect(sigc::mem_fun(this, &success_meter::on_bot_dead));
 	}
 	set_fraction(0);
 	set_text("No Data");
@@ -24,5 +26,11 @@ void success_meter::update() {
 		set_text(Glib::ustring::compose("%1/64", success));
 		last_success = success;
 	}
+}
+
+void success_meter::on_bot_dead() {
+	set_fraction(0);
+	set_text("0/64");
+	last_success = 0;
 }
 
