@@ -108,7 +108,7 @@ void serial_port::configure_port() {
 void serial_port::send(iovec *iov, std::size_t iovcnt) {
 #if DEBUG
 	Glib::ustring msg("TX:");
-	for (int i = 0; i < iovcnt; ++i) {
+	for (std::size_t i = 0; i < iovcnt; ++i) {
 		for (unsigned int j = 0; j < iov[i].iov_len; ++j) {
 			msg.push_back(' ');
 			msg.append(tohex(static_cast<const unsigned char *>(iov[i].iov_base)[j], 2));
