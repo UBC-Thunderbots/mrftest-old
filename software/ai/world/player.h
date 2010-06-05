@@ -4,6 +4,7 @@
 #include "ai/world/robot.h"
 #include "robot_controller/robot_controller.h"
 #include "xbee/client/drive.h"
+#include <ctime>
 
 class ai;
 class world;
@@ -52,11 +53,9 @@ class player : public robot {
 		}
 
 		/**
-		 * \return The number of ticks for which the player has held the ball
+		 * \return The number of seconds for which the player has held the ball
 		 */
-		unsigned int has_ball_count() const {
-			return has_ball_count_;
-		}
+		double has_ball_time() const;
 
 		/**
 		 * \return The speed the dribbler would be spinning at given the
@@ -83,8 +82,8 @@ class player : public robot {
 		int new_dribble_power;
 		int old_dribble_power;
 		bool has_ball_;
-		unsigned int has_ball_count_;
 		unsigned int theory_dribble_rpm;
+		timespec has_ball_start;
 
 		/**
 		 * Constructs a new player object.

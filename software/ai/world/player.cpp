@@ -2,6 +2,7 @@
 #include "geom/angle.h"
 #include "util/algorithm.h"
 #include "util/dprint.h"
+#include "util/time.h"
 #include <algorithm>
 #include <cmath>
 
@@ -56,12 +57,24 @@ void player::chip(double power) {
 	}
 }
 
+double player::has_ball_time() const {
+	if (has_ball_) {
+		timespec now;
+		clock_gettime(CLOCK_MONOTONIC, &now);
+		timespec diff;
+		timespec_sub(now, has_ball_start, diff);
+		return diff.tv_sec + diff.tv_nsec / 1000000000.0;
+	} else {
+		return 0.0;
+	}
+}
+
 player::ptr player::create(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) {
 	ptr p(new player(yellow, pattern_index, bot));
 	return p;
 }
 
-player::player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), has_ball_(false), has_ball_count_(0), theory_dribble_rpm(0) {
+player::player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), has_ball_(false), theory_dribble_rpm(0) {
 	bot->signal_feedback.connect(sigc::mem_fun(this, &player::on_feedback));
 }
 
@@ -102,9 +115,7 @@ void player::on_feedback() {
 	unsigned int threshold_speed = static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED * DRIBBLER_HAS_BALL_LOAD_FACTOR);
 	has_ball_ = bot->dribbler_speed() < threshold_speed;
 	if (has_ball_) {
-		++has_ball_count_;
-	} else {
-		has_ball_count_ = 0;
+		clock_gettime(CLOCK_MONOTONIC, &has_ball_start);
 	}
 }
 
