@@ -19,7 +19,7 @@ namespace {
 
 // hardware dependent dribble parameters
 	const double DRIBBLE_SPEED_LOW  = 0.25;
-	const double DRIBBLE_SPEED_RAMP = 0.05;
+	const double DRIBBLE_SPEED_RAMP = 0.01;
 	const double DRIBBLE_SPEED_MAX  = 0.60;
 
 }
@@ -181,7 +181,7 @@ void robot_navigator::tick() {
 
 	// dribble when it needs to
 	if ((ai_util::ball_close(the_world, the_player) || the_player->has_ball()) && !(flags & avoid_ball_stop)) {
-		const double dribblespeed = std::min(DRIBBLE_SPEED_LOW + DRIBBLE_SPEED_RAMP * the_player->has_ball_count(), DRIBBLE_SPEED_MAX);
+		const double dribblespeed = std::min(DRIBBLE_SPEED_LOW + DRIBBLE_SPEED_RAMP * the_player->has_ball_time(), DRIBBLE_SPEED_MAX);
 		the_player->dribble(dribblespeed);
 	} else {
 		the_player->dribble(0.0);
