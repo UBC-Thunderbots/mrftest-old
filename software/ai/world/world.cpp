@@ -200,6 +200,12 @@ bool world::on_vision_readable(Glib::IOCondition) {
 					}
 					bot->seen_this_frame = false;
 					if (bot->vision_failures >= MAX_VISION_FAILURES) {
+						player::ptr plr(player::ptr::cast_dynamic(bot));
+						if (plr) {
+							plr->controller.reset();
+						}
+						bot.reset();
+						plr.reset();
 						tm.remove(j);
 						--j;
 					}
