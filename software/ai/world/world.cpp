@@ -175,9 +175,11 @@ bool world::on_vision_readable(Glib::IOCondition) {
 							team &tm(*teams[m]);
 							for (unsigned int n = 0; n < tm.size(); ++n) {
 								robot::ptr bot(tm.get_robot(n));
-								if (bot->yellow == colour && bot->pattern_index == pattern_index && !bot->seen_this_frame) {
-									bot->seen_this_frame = true;
-									bot->update(detbot);
+								if (bot->yellow == colour && bot->pattern_index == pattern_index) {
+									if (!bot->seen_this_frame) {
+										bot->seen_this_frame = true;
+										bot->update(detbot);
+									}
 									used_data[j][k] = true;
 								}
 							}
