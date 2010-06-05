@@ -15,7 +15,7 @@ class world;
 /**
  * A robot, which may or may not be drivable.
  */
-class robot : public visualizable::robot, public predictable {
+class robot : public visualizable::robot, public predictable, public sigc::trackable {
 	public:
 		/**
 		 * A pointer to a robot.
