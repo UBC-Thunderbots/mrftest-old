@@ -155,7 +155,7 @@ bool xbee_lowlevel::on_readable(Glib::IOCondition cond) {
 		DPRINT("Received transmit status packet.");
 		const xbeepacket::TRANSMIT_STATUS *pkt = reinterpret_cast<const xbeepacket::TRANSMIT_STATUS *>(buffer);
 		if (packets[pkt->frame]) {
-			packets[pkt->frame]->signal_complete().emit();
+			packets[pkt->frame]->signal_complete().emit(pkt);
 			packets[pkt->frame].reset();
 			frame_allocator.free(pkt->frame);
 		}
@@ -163,7 +163,7 @@ bool xbee_lowlevel::on_readable(Glib::IOCondition cond) {
 		DPRINT("Received remote AT command response.");
 		const xbeepacket::REMOTE_AT_RESPONSE *pkt = reinterpret_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(buffer);
 		if (packets[pkt->frame]) {
-			packets[pkt->frame]->signal_complete().emit();
+			packets[pkt->frame]->signal_complete().emit(pkt);
 			packets[pkt->frame].reset();
 			frame_allocator.free(pkt->frame);
 		}

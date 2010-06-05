@@ -28,7 +28,7 @@ class packet : public byref {
 		// A signal emitted once the packet is complete. Only available if the
 		// packet is expecting a response.
 		//
-		sigc::signal<void> &signal_complete() {
+		sigc::signal<void, const void *> &signal_complete() {
 			assert(has_response);
 			return signal_complete_;
 		}
@@ -46,7 +46,7 @@ class packet : public byref {
 		}
 
 	private:
-		sigc::signal<void> signal_complete_;
+		sigc::signal<void, const void *> signal_complete_;
 };
 
 //
