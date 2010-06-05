@@ -52,23 +52,25 @@ class player : public robot {
 		}
 
 		/**
-		 * \return amount of ticks the player has the ball.
+		 * \return The number of ticks for which the player has held the ball
 		 */
-		int has_ball_count() const {
+		unsigned int has_ball_count() const {
 			return has_ball_count_;
 		}
 
 		/**
-		*returns what the dribbler should be spinning at with no load on the 
-		*dribbler motor
-		*/
-		unsigned int theory_dribbler_speed(){
+		 * \return The speed the dribbler would be spinning at given the
+		 * current power level if it were spinning unloaded and if it had been
+		 * given sufficient time to stabilize, in RPM
+		 */
+		unsigned int theory_dribbler_speed() {
 			return theory_dribble_rpm;
 		}
+
 		/**
-		*returns the speed that the dribbler is running at
-		*/
-		unsigned int dribbler_speed(){
+		 * \return The speed the dribbler is running at, in RPM
+		 */
+		unsigned int dribbler_speed() {
 			return bot->dribbler_speed();
 		}
 
@@ -81,8 +83,9 @@ class player : public robot {
 		int new_dribble_power;
 		int old_dribble_power;
 		bool has_ball_;
-		int has_ball_count_;
+		unsigned int has_ball_count_;
 		unsigned int theory_dribble_rpm;
+
 		/**
 		 * Constructs a new player object.
 		 * \param bot the XBee robot being driven
