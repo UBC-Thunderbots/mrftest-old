@@ -3,14 +3,14 @@
 #include "util/dprint.h"
 #include "util/xbee.h"
 #include "xbee/shared/packettypes.h"
+#include <alloca.h>
 #include <cassert>
 
 namespace {
-	const unsigned int TIMEOUT = 3000;
+	const unsigned int TIMEOUT = 2000;
 	const unsigned int MAX_RETRIES = 16;
 
 	struct __attribute__((packed)) COMMAND_PACKET {
-		xbeepacket::TRANSMIT_HDR hdr;
 		uint8_t command;
 		uint8_t address_high;
 		uint8_t address_low;
@@ -18,7 +18,6 @@ namespace {
 	};
 
 	struct __attribute__((packed)) RESPONSE_PACKET {
-		xbeepacket::RECEIVE_HDR hdr;
 		uint8_t command;
 		uint8_t status;
 		uint8_t payload[];
@@ -27,7 +26,7 @@ namespace {
 	const uint8_t COMMAND_STATUS_OK = 0x00;
 }
 
-bootproto::bootproto(xbee &modem, uint64_t bot) : modem(modem), bot(bot), current_state(STATE_NOT_STARTED) {
+bootproto::bootproto(xbee_raw_bot::ptr bot) : bot(bot), current_state(STATE_NOT_STARTED) {
 }
 
 void bootproto::report_error(const Glib::ustring &error) {
@@ -36,7 +35,7 @@ void bootproto::report_error(const Glib::ustring &error) {
 	timeout_connection.disconnect();
 	nullary_callback.disconnect();
 	response_callback.disconnect();
-	sig_error.emit(error);
+	signal_error.emit(error);
 }
 
 void bootproto::enter_bootloader(const sigc::slot<void> &callback) {
@@ -62,7 +61,6 @@ void bootproto::enter_bootloader_send() {
 
 	// Cut old signal connections.
 	packet_received_connection.disconnect();
-	timeout_connection.disconnect();
 
 	// Use up a retry.
 	if (!retries--) {
@@ -71,45 +69,21 @@ void bootproto::enter_bootloader_send() {
 	}
 
 	// Send the packet.
-	xbeepacket::REMOTE_AT_REQUEST<1> pkt;
-	pkt.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
-	pkt.frame = 'E';
-	xbeeutil::address_to_bytes(bot, pkt.address64);
-	pkt.address16[0] = 0xFF;
-	pkt.address16[1] = 0xFE;
-	pkt.options = xbeepacket::REMOTE_AT_REQUEST_OPTION_APPLY;
-	pkt.command[0] = 'D';
-	pkt.command[1] = '0';
-	pkt.value[0] = 5;
-	modem.send(&pkt, sizeof(pkt));
-
-	// Set up signals.
-	packet_received_connection = modem.signal_received().connect(sigc::mem_fun(this, &bootproto::enter_bootloader_receive));
-	timeout_connection = Glib::signal_timeout().connect(sigc::mem_fun(this, &bootproto::enter_bootloader_timeout), TIMEOUT);
+	const uint8_t value = 5;
+	remote_at_packet<1>::ptr pkt(remote_at_packet<1>::create(bot->address, "D0", &value));
+	packet_received_connection = pkt->signal_complete().connect(sigc::mem_fun(this, &bootproto::enter_bootloader_complete));
+	bot->send(pkt);
 }
 
-bool bootproto::enter_bootloader_timeout() {
-	enter_bootloader_send();
-	return false;
-}
-
-void bootproto::enter_bootloader_receive(const void *data, std::size_t length) {
+void bootproto::enter_bootloader_complete(const void *data) {
 	// Check sanity.
 	assert(current_state == STATE_ENTERING_BOOTLOADER);
-	if (length < sizeof(xbeepacket::REMOTE_AT_RESPONSE)) {
-		DPRINT("packet ignored: too short");
-		return;
-	}
 	const xbeepacket::REMOTE_AT_RESPONSE &pkt = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(data);
 	if (pkt.apiid != xbeepacket::REMOTE_AT_RESPONSE_APIID) {
 		DPRINT("packet ignored: wrong API id");
 		return;
 	}
-	if (pkt.frame != 'E') {
-		DPRINT("packet ignored: wrong frame number");
-		return;
-	}
-	if (xbeeutil::address_from_bytes(pkt.address64) != bot) {
+	if (xbeeutil::address_from_bytes(pkt.address64) != bot->address) {
 		DPRINT("packet ignored: wrong source address");
 		return;
 	}
@@ -124,10 +98,10 @@ void bootproto::enter_bootloader_receive(const void *data, std::size_t length) {
 			// Command executed successfully.
 			// Disconnect signals.
 			packet_received_connection.disconnect();
-			timeout_connection.disconnect();
 
-			// Give the bootloader time to quiesce before claiming we're ready.
-			Glib::signal_timeout().connect(sigc::mem_fun(this, &bootproto::enter_bootloader_quiesce), 1000);
+			// Assign the 16-bit address.
+			retries = MAX_RETRIES;
+			assign_address16_send();
 			return;
 
 		case xbeepacket::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE:
@@ -138,6 +112,82 @@ void bootproto::enter_bootloader_receive(const void *data, std::size_t length) {
 		case xbeepacket::REMOTE_AT_RESPONSE_STATUS_ERROR:
 			// Hard error. Don't bother retrying; just report an error.
 			report_error("Cannot enter bootloader mode: Error setting pin state.");
+			return;
+
+		case xbeepacket::REMOTE_AT_RESPONSE_STATUS_INVALID_COMMAND:
+			// Hard error. Don't bother retrying; just report an error.
+			report_error("Cannot enter bootloader mode: AT command rejected.");
+			return;
+
+		case xbeepacket::REMOTE_AT_RESPONSE_STATUS_INVALID_PARAMETER:
+			// Hard error. Don't bother retrying; just report an error.
+			report_error("Cannot enter bootloader mode: AT command parameter rejected.");
+			return;
+
+		default:
+			// Hard error. Don't bother retrying; just report an error.
+			report_error("Cannot enter bootloader mode: Unknown error.");
+			return;
+	}
+}
+
+void bootproto::assign_address16_send() {
+	// Check sanity.
+	assert(current_state == STATE_ENTERING_BOOTLOADER);
+
+	// Cut old signal connections.
+	packet_received_connection.disconnect();
+
+	// Use up a retry.
+	if (!retries--) {
+		report_error("Cannot assign 16-bit address: No response.");
+		return;
+	}
+
+	// Send the packet.
+	DPRINT(Glib::ustring::compose("Assigning robot 16-bit address 0x%1.", tohex(bot->address16(), 4)));
+	uint8_t value[2] = { static_cast<uint8_t>(bot->address16() >> 8), static_cast<uint8_t>(bot->address16() & 0xFF) };
+	remote_at_packet<2>::ptr pkt(remote_at_packet<2>::create(bot->address, "MY", value));
+	packet_received_connection = pkt->signal_complete().connect(sigc::mem_fun(this, &bootproto::assign_address16_complete));
+	bot->send(pkt);
+}
+
+void bootproto::assign_address16_complete(const void *data) {
+	// Check sanity.
+	assert(current_state == STATE_ENTERING_BOOTLOADER);
+	const xbeepacket::REMOTE_AT_RESPONSE &pkt = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(data);
+	if (pkt.apiid != xbeepacket::REMOTE_AT_RESPONSE_APIID) {
+		DPRINT("packet ignored: wrong API id");
+		return;
+	}
+	if (xbeeutil::address_from_bytes(pkt.address64) != bot->address) {
+		DPRINT("packet ignored: wrong source address");
+		return;
+	}
+	if (pkt.command[0] != 'M' || pkt.command[1] != 'Y') {
+		DPRINT("packet ignored: wrong AT command");
+		return;
+	}
+
+	// Check return status.
+	switch (pkt.status) {
+		case xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK:
+			// Command executed successfully.
+			// Disconnect signals.
+			packet_received_connection.disconnect();
+
+			// Give the bootloader time to quiesce before claiming we're ready.
+			Glib::signal_timeout().connect(sigc::mem_fun(this, &bootproto::enter_bootloader_quiesce), 500);
+			return;
+
+		case xbeepacket::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE:
+			// No response from the remote system. Try resending, if we have retries left.
+			assign_address16_send();
+			return;
+
+		case xbeepacket::REMOTE_AT_RESPONSE_STATUS_ERROR:
+			// Hard error. Don't bother retrying; just report an error.
+			report_error("Cannot enter bootloader mode: Error assigning 16-bit address.");
 			return;
 
 		case xbeepacket::REMOTE_AT_RESPONSE_STATUS_INVALID_COMMAND:
@@ -181,21 +231,17 @@ void bootproto::send_no_response(uint8_t command, uint16_t address, const void *
 	timeout_connection.disconnect();
 
 	// Assemble the packet.
-	std::vector<uint8_t> packet(sizeof(COMMAND_PACKET) + data_len);
-	COMMAND_PACKET *pkt = reinterpret_cast<COMMAND_PACKET *>(&packet[0]);
-	pkt->hdr.apiid = xbeepacket::TRANSMIT_APIID;
-	pkt->hdr.frame = 0;
-	xbeeutil::address_to_bytes(bot, pkt->hdr.address);
-	pkt->hdr.options = 0;
+	COMMAND_PACKET *pkt = static_cast<COMMAND_PACKET *>(alloca(sizeof(COMMAND_PACKET) + data_len));
 	pkt->command = command;
 	pkt->address_high = address / 256;
 	pkt->address_low = address % 256;
 	if (data_len) {
-		std::copy(static_cast<const uint8_t *>(data), static_cast<const uint8_t *>(data) + data_len, pkt->payload);
+		std::copy(static_cast<const char *>(data), static_cast<const char *>(data) + data_len, pkt->payload);
 	}
 
 	// Send the packet.
-	modem.send(&packet[0], packet.size());
+	transmit16_packet::ptr tx16(transmit16_packet::create(bot->address16(), false, false, pkt, sizeof(COMMAND_PACKET) + data_len));
+	bot->send(tx16);
 }
 
 void bootproto::send(uint8_t command, uint16_t address, const void *data, std::size_t data_len, std::size_t response_len, const sigc::slot<void, const void *> &callback) {
@@ -210,21 +256,19 @@ void bootproto::send(uint8_t command, uint16_t address, const void *data, std::s
 	// Reset retry counter.
 	retries = MAX_RETRIES;
 
-	// Save data.
-	pending_data.resize(sizeof(COMMAND_PACKET) + data_len);
-	COMMAND_PACKET *pkt = reinterpret_cast<COMMAND_PACKET *>(&pending_data[0]);
-	pkt->hdr.apiid = xbeepacket::TRANSMIT_APIID;
-	pkt->hdr.frame = 0;
-	xbeeutil::address_to_bytes(bot, pkt->hdr.address);
-	pkt->hdr.options = 0;
+	// Assemble the packet.
+	COMMAND_PACKET *pkt = static_cast<COMMAND_PACKET *>(alloca(sizeof(COMMAND_PACKET) + data_len));
 	pkt->command = command;
 	pkt->address_high = address / 256;
 	pkt->address_low = address % 256;
 	if (data_len) {
-		std::copy(static_cast<const uint8_t *>(data), static_cast<const uint8_t *>(data) + data_len, pkt->payload);
+		std::copy(static_cast<const char *>(data), static_cast<const char *>(data) + data_len, pkt->payload);
 	}
-	pending_response_len = response_len;
+	pending_packet = transmit16_packet::create(bot->address16(), false, false, pkt, sizeof(COMMAND_PACKET) + data_len);
+
+	// Save the response parameters.
 	response_callback = callback;
+	pending_response_len = response_len;
 
 	// Send the packet.
 	send_send();
@@ -245,10 +289,10 @@ void bootproto::send_send() {
 	}
 
 	// Send the packet.
-	modem.send(&pending_data[0], pending_data.size());
+	bot->send(pending_packet);
 
 	// Set up signals.
-	packet_received_connection = modem.signal_received().connect(sigc::mem_fun(this, &bootproto::send_receive));
+	packet_received_connection = bot->signal_receive16.connect(sigc::mem_fun(this, &bootproto::send_receive));
 	timeout_connection = Glib::signal_timeout().connect(sigc::mem_fun(this, &bootproto::send_timeout), TIMEOUT);
 }
 
@@ -258,7 +302,7 @@ bool bootproto::send_timeout() {
 	return false;
 }
 
-void bootproto::send_receive(const void *data, std::size_t length) {
+void bootproto::send_receive(uint8_t, const void *data, std::size_t length) {
 	// Check sanity.
 	assert(current_state == STATE_BUSY);
 	if (length < sizeof(RESPONSE_PACKET)) {
@@ -266,14 +310,6 @@ void bootproto::send_receive(const void *data, std::size_t length) {
 		return;
 	}
 	const RESPONSE_PACKET &pkt = *static_cast<const RESPONSE_PACKET *>(data);
-	if (pkt.hdr.apiid != xbeepacket::RECEIVE_APIID) {
-		DPRINT("packet ignored: wrong API id");
-		return;
-	}
-	if (xbeeutil::address_from_bytes(pkt.hdr.address) != bot) {
-		DPRINT("packet ignored: wrong source address");
-		return;
-	}
 
 	// Check return status.
 	switch (pkt.status) {
@@ -336,45 +372,21 @@ void bootproto::exit_bootloader_send() {
 	}
 
 	// Send the packet.
-	xbeepacket::REMOTE_AT_REQUEST<1> pkt;
-	pkt.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
-	pkt.frame = 'E';
-	xbeeutil::address_to_bytes(bot, pkt.address64);
-	pkt.address16[0] = 0xFF;
-	pkt.address16[1] = 0xFE;
-	pkt.options = xbeepacket::REMOTE_AT_REQUEST_OPTION_APPLY;
-	pkt.command[0] = 'D';
-	pkt.command[1] = '0';
-	pkt.value[0] = 4;
-	modem.send(&pkt, sizeof(pkt));
-
-	// Set up signals.
-	packet_received_connection = modem.signal_received().connect(sigc::mem_fun(this, &bootproto::exit_bootloader_receive));
-	timeout_connection = Glib::signal_timeout().connect(sigc::mem_fun(this, &bootproto::exit_bootloader_timeout), TIMEOUT);
+	const uint8_t value = 4;
+	remote_at_packet<1>::ptr pkt(remote_at_packet<1>::create(bot->address, "D0", &value));
+	pkt->signal_complete().connect(sigc::mem_fun(this, &bootproto::exit_bootloader_complete));
+	bot->send(pkt);
 }
 
-bool bootproto::exit_bootloader_timeout() {
-	exit_bootloader_send();
-	return false;
-}
-
-void bootproto::exit_bootloader_receive(const void *data, std::size_t length) {
+void bootproto::exit_bootloader_complete(const void *data) {
 	// Check sanity.
 	assert(current_state == STATE_EXITING_BOOTLOADER);
-	if (length < sizeof(xbeepacket::REMOTE_AT_RESPONSE)) {
-		DPRINT("packet ignored: too short");
-		return;
-	}
 	const xbeepacket::REMOTE_AT_RESPONSE &pkt = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(data);
 	if (pkt.apiid != xbeepacket::REMOTE_AT_RESPONSE_APIID) {
 		DPRINT("packet ignored: wrong API id");
 		return;
 	}
-	if (pkt.frame != 'E') {
-		DPRINT("packet ignored: wrong frame number");
-		return;
-	}
-	if (xbeeutil::address_from_bytes(pkt.address64) != bot) {
+	if (xbeeutil::address_from_bytes(pkt.address64) != bot->address) {
 		DPRINT("packet ignored: wrong source address");
 		return;
 	}
@@ -389,7 +401,6 @@ void bootproto::exit_bootloader_receive(const void *data, std::size_t length) {
 			// Command executed successfully.
 			// Disconnect signals.
 			packet_received_connection.disconnect();
-			timeout_connection.disconnect();
 
 			// Mark new state.
 			current_state = STATE_DONE;

@@ -4,6 +4,7 @@
 #include "firmware/bootproto.h"
 #include "firmware/watchable_operation.h"
 #include "util/ihex.h"
+#include "xbee/client/raw.h"
 
 //
 // An operation to upload data to be burned into the PIC.
@@ -13,7 +14,7 @@ class pic_upload : public watchable_operation, public sigc::trackable {
 		//
 		// Constructs an uploader.
 		//
-		pic_upload(xbee &modem, uint64_t bot, const intel_hex &data);
+		pic_upload(xbee_raw_bot::ptr bot, const intel_hex &data);
 
 		//
 		// Starts the upload process.
@@ -26,8 +27,7 @@ class pic_upload : public watchable_operation, public sigc::trackable {
 		static const unsigned int PAGE_BYTES = 64;
 
 	private:
-		xbee &modem;
-		uint64_t bot;
+		const xbee_raw_bot::ptr bot;
 		const intel_hex &data;
 		bootproto proto;
 		unsigned int pages_written;

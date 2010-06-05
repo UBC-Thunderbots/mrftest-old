@@ -2,6 +2,7 @@
 #define FIRMWARE_EMERGENCY_ERASE_H
 
 #include "firmware/watchable_operation.h"
+#include "xbee/client/raw.h"
 #include <stdint.h>
 
 //
@@ -12,7 +13,7 @@ class emergency_erase : public watchable_operation, public sigc::trackable {
 		//
 		// Constructs an emergency erase object.
 		//
-		emergency_erase(xbee &modem, uint64_t bot);
+		emergency_erase(xbee_raw_bot::ptr bot);
 
 		//
 		// Starts the erase process.
@@ -20,13 +21,11 @@ class emergency_erase : public watchable_operation, public sigc::trackable {
 		void start();
 
 	private:
-		xbee &modem;
-		uint64_t bot;
-		sigc::connection packet_received_connection, timeout_connection;
+		const xbee_raw_bot::ptr bot;
+		sigc::connection complete_connection;
 		
 		void report_error(const Glib::ustring &error);
-		bool timeout();
-		void receive(const void *, std::size_t);
+		void on_complete(const void *);
 };
 
 #endif

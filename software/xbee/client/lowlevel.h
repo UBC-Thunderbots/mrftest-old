@@ -27,9 +27,9 @@ class xbee_lowlevel : public noncopyable {
 		void send(packet::ptr);
 
 		//
-		// Fired when a data packet is received with a 64-bit source address.
+		// Fired when a data packet is received with a 16-bit source address.
 		//
-		sigc::signal<void, uint64_t, uint8_t, const void *, std::size_t> signal_receive64;
+		sigc::signal<void, uint16_t, uint8_t, const void *, std::size_t> signal_receive16;
 
 		//
 		// Fired when a meta packet is received.

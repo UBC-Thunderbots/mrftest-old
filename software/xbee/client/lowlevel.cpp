@@ -146,11 +146,11 @@ bool xbee_lowlevel::on_readable(Glib::IOCondition cond) {
 		throw std::runtime_error("XBee arbiter died!");
 	}
 
-	if (buffer[0] == xbeepacket::RECEIVE64_APIID) {
-		DPRINT("Received data packet with 64-bit address.");
-		const xbeepacket::RECEIVE64_HDR *hdr = reinterpret_cast<const xbeepacket::RECEIVE64_HDR *>(buffer);
-		uint64_t address = xbeeutil::address_from_bytes(hdr->address);
-		signal_receive64.emit(address, hdr->rssi, &buffer[sizeof(*hdr)], ret - sizeof(*hdr));
+	if (buffer[0] == xbeepacket::RECEIVE16_APIID) {
+		DPRINT("Received data packet with 16-bit address.");
+		const xbeepacket::RECEIVE16_HDR *hdr = reinterpret_cast<const xbeepacket::RECEIVE16_HDR *>(buffer);
+		uint16_t address = (hdr->address[0] << 8) | hdr->address[1];
+		signal_receive16.emit(address, hdr->rssi, &buffer[sizeof(*hdr)], ret - sizeof(*hdr));
 	} else if (buffer[0] == xbeepacket::TRANSMIT_STATUS_APIID) {
 		DPRINT("Received transmit status packet.");
 		const xbeepacket::TRANSMIT_STATUS *pkt = reinterpret_cast<const xbeepacket::TRANSMIT_STATUS *>(buffer);

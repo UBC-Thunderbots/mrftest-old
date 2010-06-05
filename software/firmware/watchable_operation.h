@@ -23,23 +23,17 @@ class watchable_operation : public noncopyable {
 		//
 		// Fired whenever progress is made.
 		//
-		sigc::signal<void, double> &signal_progress() {
-			return sig_progress;
-		}
+		sigc::signal<void, double> signal_progress;
 
 		//
 		// Fired when the operation completes.
 		//
-		sigc::signal<void> &signal_finished() {
-			return sig_finished;
-		}
+		sigc::signal<void> signal_finished;
 
 		//
 		// Fired when an error occurs. No further activity should occur.
 		//
-		sigc::signal<void, const Glib::ustring &> &signal_error() {
-			return sig_error;
-		}
+		sigc::signal<void, const Glib::ustring &> signal_error;
 
 		//
 		// Returns the textual status of the current operation stage.
@@ -53,11 +47,6 @@ class watchable_operation : public noncopyable {
 		// The current status (should be set by subclasses).
 		//
 		Glib::ustring status;
-
-	private:
-		sigc::signal<void, double> sig_progress;
-		sigc::signal<void> sig_finished;
-		sigc::signal<void, const Glib::ustring &> sig_error;
 };
 
 #endif

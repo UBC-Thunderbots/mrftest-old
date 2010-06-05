@@ -1,13 +1,14 @@
 #
 # Here, write a list of all the executable binaries the Makefile might generate.
 #
-PROJECTS := config simulator test thunderbots xbeeconfig xbeed
+PROJECTS := config fw simulator test thunderbots xbeeconfig xbeed
 
 #
 # Here, write a list of the source files and directories for each executable.
 # Directories will be searched for source files recursively.
 #
 SOURCES_config := configeditor uicomponents util xbee/client
+SOURCES_fw := firmware uicomponents util xbee/client xbee/shared
 SOURCES_simulator := geom leastsquares proto sim uicomponents util xbee/client xbee/daemon/frontend xbee/shared
 SOURCES_steptest := geom leastsquares util xbee steptest.cpp
 SOURCES_test := geom tester uicomponents util xbee/client xbee/shared
@@ -20,6 +21,7 @@ SOURCES_xbeed := util xbee/daemon xbee/shared
 #
 LDFLAGS_common := $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf) -lrt -lbz2
 LDFLAGS_config := $(LDFLAGS_common)
+LDFLAGS_fw := $(LDFLAGS_common)
 LDFLAGS_simulator := $(LDFLAGS_common)
 LDFLAGS_steptest := $(LDFLAGS_common)
 LDFLAGS_test := $(LDFLAGS_common)

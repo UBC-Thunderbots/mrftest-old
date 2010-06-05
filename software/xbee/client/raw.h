@@ -39,7 +39,7 @@ class xbee_raw_bot : public byref {
 		//
 		// Fired when a data packet is received from this robot.
 		//
-		sigc::signal<void, uint8_t, const void *, std::size_t> signal_receive64;
+		sigc::signal<void, uint8_t, const void *, std::size_t> signal_receive16;
 
 		//
 		// Creates a new xbee_raw_bot and begins attempting to claim the bot.
@@ -75,7 +75,7 @@ class xbee_raw_bot : public byref {
 
 		xbee_raw_bot(uint64_t address, xbee_lowlevel &ll);
 		~xbee_raw_bot();
-		void on_receive64(uint64_t, uint8_t, const void *, std::size_t);
+		void on_receive16(uint16_t, uint8_t, const void *, std::size_t);
 		void on_meta(const void *, std::size_t);
 };
 

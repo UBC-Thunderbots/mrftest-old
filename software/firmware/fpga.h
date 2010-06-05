@@ -4,6 +4,7 @@
 #include "firmware/bootproto.h"
 #include "firmware/watchable_operation.h"
 #include "util/ihex.h"
+#include "xbee/client/raw.h"
 
 //
 // An operation to upload data to be burned into the SPI Flash for the FPGA.
@@ -13,7 +14,7 @@ class fpga_upload : public watchable_operation, public sigc::trackable {
 		//
 		// Constructs an uploader.
 		//
-		fpga_upload(xbee &modem, uint64_t bot, const intel_hex &data);
+		fpga_upload(xbee_raw_bot::ptr bot, const intel_hex &data);
 
 		//
 		// Starts the upload process.
@@ -36,8 +37,7 @@ class fpga_upload : public watchable_operation, public sigc::trackable {
 		static const unsigned int SECTOR_CHUNKS = 16;
 
 	private:
-		xbee &modem;
-		uint64_t bot;
+		const xbee_raw_bot::ptr bot;
 		const intel_hex &data;
 		bootproto proto;
 		unsigned int sectors_erased;

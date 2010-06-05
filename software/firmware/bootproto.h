@@ -1,7 +1,10 @@
 #ifndef FIRMWARE_BOOTPROTO_H
 #define FIRMWARE_BOOTPROTO_H
 
+#include "util/noncopyable.h"
+#include "xbee/client/raw.h"
 #include <stdint.h>
+#include <sigc++/sigc++.h>
 
 //
 // Handles the lower-level protocol of talking to the bootloader.
@@ -31,7 +34,7 @@ class bootproto : public noncopyable, public sigc::trackable {
 		//
 		// Constructs a new bootproto.
 		//
-		bootproto(xbee &modem, uint64_t bot);
+		bootproto(xbee_raw_bot::ptr bot);
 
 		//
 		// Returns the current state of the bootloader.
@@ -43,9 +46,7 @@ class bootproto : public noncopyable, public sigc::trackable {
 		//
 		// Fired if an error occurs.
 		//
-		sigc::signal<void, const Glib::ustring &> &signal_error() {
-			return sig_error;
-		}
+		sigc::signal<void, const Glib::ustring &> signal_error;
 
 		//
 		// Causes the robot to begin entering bootloader mode. The provided slot
@@ -72,14 +73,12 @@ class bootproto : public noncopyable, public sigc::trackable {
 		void exit_bootloader(const sigc::slot<void> &callback);
 
 	private:
-		xbee &modem;
-		uint64_t bot;
-		sigc::signal<void, const Glib::ustring &> sig_error;
+		const xbee_raw_bot::ptr bot;
 		enum state current_state;
 		sigc::slot<void> nullary_callback;
 		sigc::slot<void, const void *> response_callback;
 		unsigned int retries;
-		std::vector<uint8_t> pending_data;
+		packet::ptr pending_packet;
 		std::size_t pending_response_len;
 
 		sigc::connection packet_received_connection;
@@ -88,17 +87,17 @@ class bootproto : public noncopyable, public sigc::trackable {
 		void report_error(const Glib::ustring &error);
 
 		void enter_bootloader_send();
-		bool enter_bootloader_timeout();
-		void enter_bootloader_receive(const void *, std::size_t);
+		void enter_bootloader_complete(const void *);
+		void assign_address16_send();
+		void assign_address16_complete(const void *);
 		bool enter_bootloader_quiesce();
 
 		void send_send();
 		bool send_timeout();
-		void send_receive(const void *, std::size_t);
+		void send_receive(uint8_t, const void *, std::size_t);
 
 		void exit_bootloader_send();
-		bool exit_bootloader_timeout();
-		void exit_bootloader_receive(const void *, std::size_t);
+		void exit_bootloader_complete(const void *);
 };
 
 #endif

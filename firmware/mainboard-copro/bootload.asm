@@ -212,7 +212,6 @@ pagecounter: res 1
 crc_low: res 1
 crc_high: res 1
 xbee_receive_bytes_left: res 1
-xbee_receive_address: res 8
 xbee_receive_checksum: res 1
 xbee_transmit_checksum: res 1
 send_length_temp: res 1
@@ -462,44 +461,36 @@ got_sop:
 	xorlw 0
 	bnz expecting_sop
 
-	; Receive a byte. It should be the LSB of the length, which should be no longer than 111 bytes.
+	; Receive a byte. It should be the LSB of the length, which should be no longer than 105 bytes.
 	rcall receive_byte_semicooked
 	movwf xbee_receive_bytes_left
-	movlw 112
+	movlw 106
 	cpfslt xbee_receive_bytes_left
 	bra expecting_sop
 
 	; Initialize the receive checksum.
 	clrf xbee_receive_checksum
 
-	; Receive the API ID, which should be 0x80 (64-bit receive).
+	; Receive the API ID, which should be 0x81 (16-bit receive).
 	rcall receive_byte_cooked
-	xorlw 0x80
+	xorlw 0x81
 	bnz expecting_sop
 
-	; Receive the remote peer's address.
+	; Receive the remote peer's address, which should be 0x0000.
 	rcall receive_byte_cooked
-	movwf xbee_receive_address + 0
+	xorlw 0x00
+	bnz expecting_sop
 	rcall receive_byte_cooked
-	movwf xbee_receive_address + 1
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 2
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 3
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 4
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 5
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 6
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 7
+	xorlw 0x00
+	bnz expecting_sop
 
 	; Receive the RSSI and discard it.
 	rcall receive_byte_cooked
 
-	; Receive the OPTIONS byte and discard it.
+	; Receive the OPTIONS byte and check that the broadcast flag is clear.
 	rcall receive_byte_cooked
+	andlw 0x02
+	bnz expecting_sop
 
 	; Receive the COMMAND ID and dispatch based on it.
 	rcall receive_byte_cooked
@@ -529,13 +520,16 @@ handle_ident:
 
 	; Send back the IDENT response.
 	rcall send_sop
-	movlw 21
+	movlw 15
 	rcall send_length
+	movlw 0x01
+	rcall send_byte
+	movlw 0x00
+	rcall send_byte
 	movlw 0x00
 	rcall send_byte
 	movlw 0x00
 	rcall send_byte
-	rcall send_address
 	movlw 0x00
 	rcall send_byte
 	movlw COMMAND_IDENT
@@ -593,26 +587,6 @@ send_length:
 
 	; Done.
 	return
-
-
-
-send_address:
-	movf xbee_receive_address + 0, W
-	rcall send_byte
-	movf xbee_receive_address + 1, W
-	rcall send_byte
-	movf xbee_receive_address + 2, W
-	rcall send_byte
-	movf xbee_receive_address + 3, W
-	rcall send_byte
-	movf xbee_receive_address + 4, W
-	rcall send_byte
-	movf xbee_receive_address + 5, W
-	rcall send_byte
-	movf xbee_receive_address + 6, W
-	rcall send_byte
-	movf xbee_receive_address + 7, W
-	bra send_byte
 
 
 
@@ -951,44 +925,36 @@ handle_fpga_write_data_eop:
 	xorlw 0
 	bnz handle_fpga_write_data_eop
 
-	; Receive a byte. It should be the LSB of the length, which should be no longer than 111 bytes.
+	; Receive a byte. It should be the LSB of the length, which should be no longer than 105 bytes.
 	rcall receive_byte_semicooked
 	movwf xbee_receive_bytes_left
-	movlw 112
+	movlw 106
 	cpfslt xbee_receive_bytes_left
 	bra handle_fpga_write_data_eop
 
 	; Initialize the receive checksum.
 	clrf xbee_receive_checksum
 
-	; Receive the API ID, which should be 0x80 (64-bit receive).
+	; Receive the API ID, which should be 0x81 (16-bit receive).
 	rcall receive_byte_cooked
-	xorlw 0x80
+	xorlw 0x81
 	bnz handle_fpga_write_data_eop
 
-	; Receive the remote peer's address.
+	; Receive the remote peer's address, which should be 0x0000.
 	rcall receive_byte_cooked
-	movwf xbee_receive_address + 0
+	xorlw 0x00
+	bnz handle_fpga_write_data_eop
 	rcall receive_byte_cooked
-	movwf xbee_receive_address + 1
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 2
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 3
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 4
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 5
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 6
-	rcall receive_byte_cooked
-	movwf xbee_receive_address + 7
+	xorlw 0x00
+	bnz handle_fpga_write_data_eop
 
 	; Receive the RSSI and discard it.
 	rcall receive_byte_cooked
 
-	; Receive the OPTIONS byte and discard it.
+	; Receive the OPTIONS byte and check that the broadcast flag is clear.
 	rcall receive_byte_cooked
+	andlw 0x02
+	bnz handle_fpga_write_data_eop
 
 	; Receive the COMMAND ID.
 	rcall receive_byte_cooked
@@ -1049,13 +1015,16 @@ handle_fpga_crc_chunk:
 
 	; Start the response. We'll stream the page bitmap and the CRCs to the XBee.
 	rcall send_sop
-	movlw 47
+	movlw 41
 	rcall send_length
+	movlw 0x01
+	rcall send_byte
+	movlw 0x00
+	rcall send_byte
 	movlw 0x00
 	rcall send_byte
 	movlw 0x00
 	rcall send_byte
-	rcall send_address
 	movlw 0x00
 	rcall send_byte
 	movlw COMMAND_FPGA_CRC_CHUNK
@@ -1160,13 +1129,16 @@ handle_pic_read_fuses:
 
 	; Start the response.
 	rcall send_sop
-	movlw 31
+	movlw 25
 	rcall send_length
+	movlw 0x01
+	rcall send_byte
+	movlw 0x00
+	rcall send_byte
 	movlw 0x00
 	rcall send_byte
 	movlw 0x00
 	rcall send_byte
-	rcall send_address
 	movlw 0x00
 	rcall send_byte
 	movlw COMMAND_PIC_READ_FUSES
@@ -1306,13 +1278,16 @@ handle_pic_write_data_write2_loop:
 
 	; Begin sending a response.
 	call send_sop
-	movlw 77
+	movlw 71
 	call send_length
+	movlw 0x01
+	call send_byte
+	movlw 0x00
+	call send_byte
 	movlw 0x00
 	call send_byte
 	movlw 0x00
 	call send_byte
-	call send_address
 	movlw 0x00
 	call send_byte
 	movlw COMMAND_PIC_WRITE_DATA
@@ -1394,13 +1369,16 @@ handle_pic_enable_upgrade_flag2_loop:
 
 	; Start the response.
 	call send_sop
-	movlw 15
+	movlw 9
 	call send_length
+	movlw 0x01
+	call send_byte
+	movlw 0x00
+	call send_byte
 	movlw 0x00
 	call send_byte
 	movlw 0x00
 	call send_byte
-	call send_address
 	movlw 0x00
 	call send_byte
 	movlw COMMAND_PIC_READ_FUSES

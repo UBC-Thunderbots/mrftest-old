@@ -20,6 +20,7 @@ software/ai/world/*.d
 software/config
 software/configeditor/*.d
 software/firmware/*.d
+software/fw
 software/geom/*.d
 software/leastsquares/*.d
 software/log/*.d

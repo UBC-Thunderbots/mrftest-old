@@ -33,23 +33,23 @@ namespace {
 	}
 }
 
-fpga_upload::fpga_upload(xbee &modem, uint64_t bot, const intel_hex &data) : modem(modem), bot(bot), data(data), proto(modem, bot), sectors_erased(0), pages_written(0), chunks_crcd(0) {
+fpga_upload::fpga_upload(xbee_raw_bot::ptr bot, const intel_hex &data) : bot(bot), data(data), proto(bot), sectors_erased(0), pages_written(0), chunks_crcd(0) {
 	DPRINT(Glib::ustring::compose("Constructed fpga_upload with %1 bytes of bitstream.", data.data()[0].size()));
 	status = "Idle";
-	proto.signal_error().connect(signal_error().make_slot());
+	proto.signal_error.connect(signal_error.make_slot());
 }
 
 void fpga_upload::start() {
 	DPRINT("Entering bootloader.");
 	status = "Entering Bootloader";
-	signal_progress().emit(0);
+	signal_progress.emit(0);
 	proto.enter_bootloader(sigc::mem_fun(this, &fpga_upload::enter_bootloader_done));
 }
 
 void fpga_upload::enter_bootloader_done() {
 	DPRINT("Sending COMMAND_IDENT.");
 	status = "Checking Identity";
-	signal_progress().emit(0);
+	signal_progress.emit(0);
 	proto.send(COMMAND_IDENT, 0, 0, 0, 8, sigc::mem_fun(this, &fpga_upload::ident_received));
 }
 
@@ -57,15 +57,15 @@ void fpga_upload::ident_received(const void *response) {
 	DPRINT("IDENT response received.");
 	const IDENT_DATA &ident = *static_cast<const IDENT_DATA *>(response);
 	if (!std::equal(ident.signature, ident.signature + 5, "TBOTS")) {
-		signal_error().emit("Incorrect IDENT signature!");
+		signal_error.emit("Incorrect IDENT signature!");
 		return;
 	}
 	if (ident.manufacturer != 0x20 || ident.memory_type != 0x20 || ident.capacity != 0x15) {
-		signal_error().emit("Incorrect JEDEC ID!");
+		signal_error.emit("Incorrect JEDEC ID!");
 		return;
 	}
 	status = "Uploading";
-	signal_progress().emit(0);
+	signal_progress.emit(0);
 	do_work();
 }
 
@@ -75,8 +75,8 @@ void fpga_upload::do_work() {
 			// We have CRCd as many chunks as are in the HEX file. We're done.
 			DPRINT("Exiting bootloader.");
 			status = "Exiting Bootloader";
-			signal_progress().emit(1);
-			proto.exit_bootloader(signal_finished().make_slot());
+			signal_progress.emit(1);
+			proto.exit_bootloader(signal_finished.make_slot());
 			return;
 		} else if (pages_written == (chunks_crcd + 1) * CHUNK_PAGES) {
 			// We have written a full chunk's worth of pages. CRC the new pages.
@@ -112,7 +112,7 @@ void fpga_upload::do_work() {
 			++pages_written;
 		}
 
-		signal_progress().emit(static_cast<double>(pages_written) / (divup<std::size_t>(divup<std::size_t>(data.data()[0].size(), PAGE_BYTES), CHUNK_PAGES) * CHUNK_PAGES));
+		signal_progress.emit(static_cast<double>(pages_written) / (divup<std::size_t>(divup<std::size_t>(data.data()[0].size(), PAGE_BYTES), CHUNK_PAGES) * CHUNK_PAGES));
 	}
 }
 
@@ -147,7 +147,7 @@ void fpga_upload::crcs_received(const void *response) {
 			DPRINT(Glib::ustring::compose("Page %1 has good CRC (%2).", chunks_crcd * CHUNK_PAGES + i, computed));
 		} else {
 			DPRINT(Glib::ustring::compose("Page %1 had wrong CRC (computed %2, received %3).", chunks_crcd * CHUNK_PAGES + i, computed, words[i + 1]));
-			signal_error().emit("CRC mismatch!");
+			signal_error.emit("CRC mismatch!");
 			return;
 		}
 	}

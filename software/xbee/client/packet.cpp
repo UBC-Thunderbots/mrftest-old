@@ -7,6 +7,36 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+void transmit16_packet::transmit(const file_descriptor &sock, uint8_t frame) const {
+	xbeepacket::TRANSMIT16_HDR hdr;
+	hdr.apiid = xbeepacket::TRANSMIT16_APIID;
+	hdr.frame = frame;
+	hdr.address[0] = dest >> 8;
+	hdr.address[1] = dest & 0xFF;
+	hdr.options = disable_ack ? xbeepacket::TRANSMIT_OPTION_DISABLE_ACK : 0;
+
+	iovec iov[2];
+	iov[0].iov_base = &hdr;
+	iov[0].iov_len = sizeof(hdr);
+	iov[1].iov_base = const_cast<uint8_t *>(&data[0]);
+	iov[1].iov_len = data.size();
+
+	msghdr mh;
+	mh.msg_name = 0;
+	mh.msg_namelen = 0;
+	mh.msg_iov = iov;
+	mh.msg_iovlen = 2;
+	mh.msg_control = 0;
+	mh.msg_controllen = 0;
+	mh.msg_flags = 0;
+
+	DPRINT("Transmitting data packet with 64-bit address.");
+
+	if (sendmsg(sock, &mh, MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(hdr) + data.size())) {
+		throw std::runtime_error("Cannot send packet to XBee arbiter!");
+	}
+}
+
 template<std::size_t value_size>
 void remote_at_packet<value_size>::transmit(const file_descriptor &sock, uint8_t frame) const {
 	xbeepacket::REMOTE_AT_REQUEST<value_size> packet;
@@ -25,6 +55,10 @@ void remote_at_packet<value_size>::transmit(const file_descriptor &sock, uint8_t
 		throw std::runtime_error("Cannot send packet to XBee arbiter!");
 	}
 }
+
+// Instantiate the template for the needed values.
+template class remote_at_packet<1>;
+template class remote_at_packet<2>;
 
 void meta_claim_packet::transmit(const file_descriptor &sock, uint8_t frame) const {
 	assert(!frame);
