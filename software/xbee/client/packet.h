@@ -50,38 +50,6 @@ class packet : public byref {
 };
 
 //
-// A transmit data packet with a 64-bit address.
-//
-class transmit64_packet : public packet {
-	public:
-		//
-		// A pointer to a transmit64_packet.
-		//
-		typedef Glib::RefPtr<transmit64_packet> ptr;
-
-		//
-		// Constructs a new transmit64_packet.
-		//
-		static ptr create(uint64_t dest, bool disable_ack, bool has_response, const void *data, std::size_t length) {
-			ptr p(new transmit64_packet(dest, disable_ack, has_response, data, length));
-			return p;
-		}
-
-		//
-		// Encodes the packet for transmission and sends it over a socket.
-		//
-		void transmit(const file_descriptor &, uint8_t) const;
-
-	private:
-		uint64_t dest;
-		bool disable_ack;
-		std::vector<uint8_t> data;
-
-		transmit64_packet(uint64_t dest, bool disable_ack, bool has_response, const void *data, std::size_t length) : packet(has_response), dest(dest), disable_ack(disable_ack), data(static_cast<const uint8_t *>(data), static_cast<const uint8_t *>(data) + length) {
-		}
-};
-
-//
 // A remote AT command packet.
 //
 template<std::size_t value_size>
