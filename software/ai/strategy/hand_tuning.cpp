@@ -106,21 +106,27 @@ namespace {
 			tunable_controller* tc;
 			Gtk::Button run_button;
 			Gtk::Button stop_button;
+			Gtk::HBox hbox1;
 			Gtk::CheckButton dribble_checkbutton;
 			Gtk::HScale dribble_scale1;
 			Gtk::HScale dribble_scale2;
+			Gtk::Label dribble_label1;
+			Gtk::Label dribble_label2;
 			Gtk::VBox vbox;
 	};
 
-	hand_tuning::hand_tuning(world::ptr world) : movement_benchmark(world), ui(this), tc(NULL), run_button("Run"), stop_button("Stop"), dribble_checkbutton("Dribble"),dribble_scale1(0.0, 1.0, 0.01), dribble_scale2(0.0, 1.0, 0.01) {
+	hand_tuning::hand_tuning(world::ptr world) : movement_benchmark(world), ui(this), tc(NULL), run_button("Run"), stop_button("Stop"), dribble_checkbutton("Dribble"),dribble_scale1(0.0, 1.0, 0.01), dribble_scale2(0.0, 1.0, 0.01), dribble_label1("dribbling speed w/o ball"), dribble_label2("dribbling speed w ball") {
 		run_button.signal_clicked().connect(sigc::mem_fun(this,&hand_tuning::run));
 		stop_button.signal_clicked().connect(sigc::mem_fun(this,&hand_tuning::stop));
 		done = tasks.size();
 		time_steps = 0;
-		vbox.add(run_button);
-		vbox.add(stop_button);
+		hbox1.add(run_button);
+		hbox1.add(stop_button);
+		vbox.add(hbox1);
 		vbox.add(dribble_checkbutton);
+		vbox.add(dribble_label1);
 		vbox.add(dribble_scale1);
+		vbox.add(dribble_label2);
 		vbox.add(dribble_scale2);
 	}
 
@@ -128,7 +134,7 @@ namespace {
 	}
 
 	Gtk::Widget *hand_tuning::get_ui_controls() {
-		return &run_button;
+		return &vbox;
 	}
 
 	void hand_tuning::reset() {
