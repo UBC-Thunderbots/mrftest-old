@@ -58,6 +58,20 @@ class player : public robot {
 			return has_ball_count_;
 		}
 
+		/**
+		*returns what the dribbler should be spinning at with no load on the 
+		*dribbler motor
+		*/
+		unsigned int theory_dribbler_speed(){
+			return theory_dribble_rpm;
+		}
+		/**
+		*returns the speed that the dribbler is running at
+		*/
+		unsigned int dribbler_speed(){
+			return bot->dribbler_speed();
+		}
+
 	private:
 		xbee_drive_bot::ptr bot;
 		point destination_;
@@ -68,7 +82,7 @@ class player : public robot {
 		int old_dribble_power;
 		bool has_ball_;
 		int has_ball_count_;
-
+		unsigned int theory_dribble_rpm;
 		/**
 		 * Constructs a new player object.
 		 * \param bot the XBee robot being driven
