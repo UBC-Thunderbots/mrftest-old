@@ -112,6 +112,8 @@ namespace {
 			Gtk::HScale dribble_scale2;
 			Gtk::Label dribble_label1;
 			Gtk::Label dribble_label2;
+			Gtk::Label dribble_text1;
+			Gtk::Label dribble_text2;
 			Gtk::VBox vbox;
 	};
 
@@ -128,6 +130,8 @@ namespace {
 		vbox.add(dribble_scale1);
 		vbox.add(dribble_label2);
 		vbox.add(dribble_scale2);
+		vbox.add(dribble_text1);
+		vbox.add(dribble_text2);
 	}
 
 	hand_tuning::~hand_tuning() {
@@ -171,6 +175,14 @@ namespace {
 			the_player->dribble(dribble_scale1.get_value());
 		} else {
 			the_player->dribble(dribble_scale2.get_value());
+		}
+		{
+			Glib::ustring text1 = Glib::ustring::compose("Theory dribble %1", the_player->theory_dribbler_speed());
+			dribble_text1.set_label(text1);
+		}
+		{
+			Glib::ustring text2 = Glib::ustring::compose("Actual dribble %1", the_player->dribbler_speed());
+			dribble_text2.set_label(text2);
 		}
 		if (dribble_checkbutton.get_active() && !the_player->has_ball()) {
 			const point balldist = the_world->ball()->position() - the_player->position();
