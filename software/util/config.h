@@ -64,6 +64,14 @@ class config : public noncopyable {
 				//
 				bool contains_pattern(bool yellow, unsigned int pattern_index) const;
 
+				/**
+				 * \param[in] name the name to look for.
+				 *
+				 * \return \c true if \p name is already used by a robot in this
+				 * collection, or \c false if not.
+				 */
+				bool contains_name(const Glib::ustring &name) const;
+
 				//
 				// Adds a new robot.
 				//

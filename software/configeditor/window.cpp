@@ -39,6 +39,7 @@ namespace {
 
 				name_entry.set_activates_default();
 				name_entry.set_tooltip_text("A human-readable name for the robot. Does not affect the system.");
+				name_entry.signal_changed().connect(sigc::mem_fun(this, &add_bot_dialog::update_enable));
 				add_row(name_entry, "Name:", y);
 
 				get_vbox()->pack_start(table, Gtk::PACK_EXPAND_WIDGET);
@@ -122,6 +123,16 @@ namespace {
 				if (robots.contains_pattern(yellow(), pattern_index())) {
 					set_response_sensitive(Gtk::RESPONSE_ACCEPT, false);
 					error_label.set_markup("<i>The lid pattern is already in use</i>");
+					return;
+				}
+				if (name().empty()) {
+					set_response_sensitive(Gtk::RESPONSE_ACCEPT, false);
+					error_label.set_markup("<i>A name must be provided</i>");
+					return;
+				}
+				if (robots.contains_name(name())) {
+					set_response_sensitive(Gtk::RESPONSE_ACCEPT, false);
+					error_label.set_markup("<i>The name is already in use</i>");
 					return;
 				}
 				set_response_sensitive(Gtk::RESPONSE_ACCEPT, true);

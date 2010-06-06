@@ -90,6 +90,15 @@ bool config::robot_set::contains_pattern(bool yellow, unsigned int pattern_index
 	return false;
 }
 
+bool config::robot_set::contains_name(const Glib::ustring &name) const {
+	for (typeof(robots.begin()) i = robots.begin(), iend = robots.end(); i != iend; ++i) {
+		if (i->name == name) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void config::robot_set::add(uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name) {
 	assert(!contains_address(address));
 	assert(!contains_pattern(yellow, pattern_index));
