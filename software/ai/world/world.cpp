@@ -150,7 +150,7 @@ bool world::on_vision_readable(Glib::IOCondition) {
 			// Execute the current ball filter.
 			point pos;
 			if (ball_filter_) {
-				pos = ball_filter_->filter(balls);
+				pos = ball_filter_->filter(balls, friendly, enemy);
 			}
 
 			// Use the result.

@@ -6,7 +6,7 @@ namespace {
 			max_confidence_filter() : ball_filter("Max Confidence") {
 			}
 
-			point filter(const std::vector<std::pair<point, double> > &balls) {
+	                point filter(const std::vector<std::pair<point, double> > &balls, friendly_team &friendly, enemy_team &enemy) {
 				point best;
 				double bestconf = 0.0;
 				for (std::vector<std::pair<point, double> >::const_iterator i = balls.begin(), iend = balls.end(); i != iend; ++i) {

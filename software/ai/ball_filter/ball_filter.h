@@ -5,6 +5,7 @@
 #include "util/registerable.h"
 #include <utility>
 #include <vector>
+#include "ai/world/team.h"
 
 /**
  * An object capable of examining incoming ball information data and filtering
@@ -20,7 +21,7 @@ class ball_filter : public registerable<ball_filter> {
 		 *
 		 * \return The correct position of the ball.
 		 */
-		virtual point filter(const std::vector<std::pair<point, double> > &balls) = 0;
+		virtual point filter(const std::vector<std::pair<point, double> > &balls, friendly_team &friendly, enemy_team &enemy) = 0;
 
 	protected:
 		/**
