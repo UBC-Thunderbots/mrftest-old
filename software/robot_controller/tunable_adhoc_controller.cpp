@@ -120,9 +120,9 @@ namespace {
 		}
 		*/
 
-		const double px = error_pos[0].x;
-		const double py = error_pos[0].y;
-		const double pa = error_ori[0];
+		const double px = new_dir.x;
+		const double py = new_dir.y;
+		const double pa = new_da;
 		point vel = (plr->est_velocity()).rotate(-current_orientation);
 		double vx = -vel.x;
 		double vy = -vel.y;
