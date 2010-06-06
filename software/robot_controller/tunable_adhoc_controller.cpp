@@ -17,22 +17,22 @@ namespace {
 
 	const double DAMP = 0.5;
 
-	const std::string PARAM_NAMES[] = {"Proportional", "Differential", "Y/X Ratio", "Maximum Speed", "Proportional Angle", "Differential Angle", "Maximum Angular Speed", "X/Angle speed ratio compensate"};
+	const std::string PARAM_NAMES[] = {"Proportional", "Differential", "Y/X Ratio", "Maximum Speed", "Proportional Angle", "Differential Angle", "Maximum Angular Speed", "Y/Angle speed ratio compensate"};
 
 	// enumerate the parameters
-	enum { PARAM_PROP = 0, PARAM_DIFF, PARAM_XY_RATIO, PARAM_THRESH, PARAM_A_PROP, PARAM_A_DIFF, PARAM_A_THRESH, PARAM_XA_RATIO };
+	enum { PARAM_PROP = 0, PARAM_DIFF, PARAM_XY_RATIO, PARAM_THRESH, PARAM_A_PROP, PARAM_A_DIFF, PARAM_A_THRESH, PARAM_YA_RATIO };
 
-	const double DEF_PROP = 6.0;
+	const double DEF_PROP = 8.0;
 	const double DEF_DIFF = 0.0;
 	const double DEF_XY_RATIO = 1.3;
-	const double DEF_THRESH = 4.0;
+	const double DEF_THRESH = 3.0;
 	const double DEF_A_PROP = 4.0;
 	const double DEF_A_DIFF = 0.0;
 	const double DEF_A_THRESH = 100.0;
-	const double DEF_XA_RATIO = 0.0;
+	const double DEF_YA_RATIO = 0.0;
 
 	// array of defaults
-	const double ARR_DEF[] = { DEF_PROP, DEF_DIFF, DEF_XY_RATIO, DEF_THRESH, DEF_A_PROP, DEF_A_DIFF, DEF_A_THRESH, DEF_XA_RATIO };
+	const double ARR_DEF[] = { DEF_PROP, DEF_DIFF, DEF_XY_RATIO, DEF_THRESH, DEF_A_PROP, DEF_A_DIFF, DEF_A_THRESH, DEF_YA_RATIO };
 	const int P = sizeof(ARR_DEF) / sizeof(ARR_DEF[0]);
 
 	class tunable_adhoc_controller : public robot_controller, public tunable_controller {
@@ -142,7 +142,7 @@ namespace {
 		if (linear_velocity.len() > param[PARAM_THRESH]) {
 			linear_velocity *= param[PARAM_THRESH] / linear_velocity.len();
 		}
-		angular_velocity = pa * param[PARAM_A_PROP] + va * param[PARAM_A_DIFF] + linear_velocity.x * param[PARAM_XA_RATIO];
+		angular_velocity = pa * param[PARAM_A_PROP] + va * param[PARAM_A_DIFF] + linear_velocity.y * param[PARAM_YA_RATIO];
 		if (angular_velocity > param[PARAM_A_THRESH]) {
 			angular_velocity = param[PARAM_A_THRESH];
 		} else if (angular_velocity < -param[PARAM_A_THRESH]) {
