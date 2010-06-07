@@ -136,6 +136,8 @@ bool config::robot_set::contains_name(const Glib::ustring &name) const {
 void config::robot_set::add(uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name) {
 	assert(!contains_address(address));
 	assert(!contains_pattern(yellow, pattern_index));
+	assert(!name.empty());
+	assert(!contains_name(name));
 	unsigned int index = robots.size();
 	robots.push_back(robot_info(address, yellow, pattern_index, name));
 	signal_robot_added.emit(index);
