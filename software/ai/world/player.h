@@ -62,14 +62,14 @@ class player : public robot {
 		 * current power level if it were spinning unloaded and if it had been
 		 * given sufficient time to stabilize, in RPM
 		 */
-		unsigned int theory_dribbler_speed() {
+		unsigned int theory_dribbler_speed() const {
 			return theory_dribble_rpm;
 		}
 
 		/**
 		 * \return The speed the dribbler is running at, in RPM
 		 */
-		unsigned int dribbler_speed() {
+		unsigned int dribbler_speed() const {
 			return bot->dribbler_speed();
 		}
 
