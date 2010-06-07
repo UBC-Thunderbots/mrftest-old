@@ -94,6 +94,26 @@ class config : public noncopyable {
 				//
 				mutable sigc::signal<void, unsigned int> signal_robot_removed;
 
+				/**
+				 * Sorts the robots in the collection by their 64-bit address.
+				 */
+				void sort_by_address();
+
+				/**
+				 * Sorts the robots in the collection by their lid pattern.
+				 */
+				void sort_by_lid();
+
+				/**
+				 * Sorts the robots in the collection by their name.
+				 */
+				void sort_by_name();
+
+				/**
+				 * Emitted when the collection is sorted.
+				 */
+				mutable sigc::signal<void> signal_sorted;
+
 			private:
 				std::vector<robot_info> robots;
 

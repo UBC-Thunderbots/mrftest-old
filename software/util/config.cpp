@@ -20,6 +20,40 @@ namespace {
 				return bot.address;
 			}
 	};
+
+	/**
+	 * A binary predicate that compares two robots by their 64-bit addresses.
+	 */
+	class compare_by_address : public std::binary_function<const config::robot_info &, const config::robot_info &, bool> {
+		public:
+			bool operator()(const config::robot_info &x, const config::robot_info &y) {
+				return x.address < y.address;
+			}
+	};
+
+	/**
+	 * A binary predicate that compares two robots by their lid patterns.
+	 */
+	class compare_by_lid : public std::binary_function<const config::robot_info &, const config::robot_info &, bool> {
+		public:
+			bool operator()(const config::robot_info &x, const config::robot_info &y) {
+				if (x.yellow != y.yellow) {
+					return x.yellow < y.yellow;
+				} else {
+					return x.pattern_index < y.pattern_index;
+				}
+			}
+	};
+
+	/**
+	 * A binary predicate that compares two robots by their names.
+	 */
+	class compare_by_name : public std::binary_function<const config::robot_info &, const config::robot_info &, bool> {
+		public:
+			bool operator()(const config::robot_info &x, const config::robot_info &y) {
+				return x.name < y.name;
+			}
+	};
 }
 
 config::config() {
@@ -114,6 +148,21 @@ void config::robot_set::remove(uint64_t address) {
 		robots.erase(i);
 		signal_robot_removed.emit(index);
 	}
+}
+
+void config::robot_set::sort_by_address() {
+	std::sort(robots.begin(), robots.end(), compare_by_address());
+	signal_sorted.emit();
+}
+
+void config::robot_set::sort_by_lid() {
+	std::sort(robots.begin(), robots.end(), compare_by_lid());
+	signal_sorted.emit();
+}
+
+void config::robot_set::sort_by_name() {
+	std::sort(robots.begin(), robots.end(), compare_by_name());
+	signal_sorted.emit();
 }
 
 void config::robot_set::save(std::ostream &ofs) const {

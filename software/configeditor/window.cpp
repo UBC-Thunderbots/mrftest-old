@@ -194,16 +194,23 @@ namespace {
 				alm_column_record.add(name_column);
 				robots.signal_robot_added.connect(sigc::mem_fun(this, &robots_model::alm_row_inserted));
 				robots.signal_robot_removed.connect(sigc::mem_fun(this, &robots_model::alm_row_deleted));
+				robots.signal_sorted.connect(sigc::mem_fun(this, &robots_model::on_sorted));
 			}
 
 			unsigned int alm_rows() const {
 				return robots.size();
 			}
+
+			void on_sorted() {
+				for (unsigned int i = 0; i < robots.size(); ++i) {
+					alm_row_changed(i);
+				}
+			}
 	};
 
 	class robots_page : public Gtk::VBox {
 		public:
-			robots_page(config::robot_set &robots) : robots(robots), model(robots_model::create(robots)), view(model), button_box(Gtk::BUTTONBOX_SPREAD), add_button(Gtk::Stock::ADD), remove_button(Gtk::Stock::DELETE) {
+			robots_page(config::robot_set &robots) : robots(robots), model(robots_model::create(robots)), view(model), button_box(Gtk::BUTTONBOX_SPREAD), add_button(Gtk::Stock::ADD), remove_button(Gtk::Stock::DELETE), sort_button("_Sort", true) {
 				view.get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
 				view.get_selection()->signal_changed().connect(sigc::mem_fun(this, &robots_page::selection_changed));
 				view.append_column_numeric("Address", model->address_column, "%016llX");
@@ -217,8 +224,10 @@ namespace {
 				add_button.signal_clicked().connect(sigc::mem_fun(this, &robots_page::add));
 				remove_button.signal_clicked().connect(sigc::mem_fun(this, &robots_page::remove));
 				remove_button.set_sensitive(false);
+				sort_button.signal_clicked().connect(sigc::mem_fun(this, &robots_page::sort));
 				button_box.pack_start(add_button);
 				button_box.pack_start(remove_button);
+				button_box.pack_start(sort_button);
 				pack_start(button_box, Gtk::PACK_SHRINK);
 			}
 
@@ -228,19 +237,23 @@ namespace {
 			Gtk::TreeView view;
 			Gtk::ScrolledWindow scroller;
 			Gtk::HButtonBox button_box;
-			Gtk::Button add_button, remove_button;
+			Gtk::Button add_button, remove_button, sort_button;
+
+			Gtk::Window &find_window() {
+				Gtk::Container *parent = get_parent();
+				Gtk::Window *window = 0;
+				while (!(window = dynamic_cast<Gtk::Window *>(parent))) {
+					parent = parent->get_parent();
+				}
+				return *window;
+			}
 
 			void selection_changed() {
 				remove_button.set_sensitive(view.get_selection()->count_selected_rows() > 0);
 			}
 
 			void add() {
-				Gtk::Container *parent = get_parent();
-				Gtk::Window *window = 0;
-				while (!(window = dynamic_cast<Gtk::Window *>(parent))) {
-					parent = parent->get_parent();
-				}
-				add_bot_dialog dlg(*window, robots);
+				add_bot_dialog dlg(find_window(), robots);
 				if (dlg.run() == Gtk::RESPONSE_ACCEPT) {
 					robots.add(dlg.address(), dlg.yellow(), dlg.pattern_index(), dlg.name());
 				}
@@ -256,6 +269,32 @@ namespace {
 					}
 				}
 				std::for_each(addresses.begin(), addresses.end(), sigc::mem_fun(robots, &config::robot_set::remove));
+			}
+
+			void sort() {
+				Gtk::Dialog dlg("Sort Robots", find_window(), true);
+				Gtk::RadioButtonGroup grp;
+				Gtk::RadioButton by_address_button(grp, "Sort by _Address", true);
+				by_address_button.set_active(true);
+				dlg.get_vbox()->pack_start(by_address_button, Gtk::PACK_SHRINK);
+				Gtk::RadioButton by_lid_button(grp, "Sort by _Lid Pattern", true);
+				dlg.get_vbox()->pack_start(by_lid_button, Gtk::PACK_SHRINK);
+				Gtk::RadioButton by_name_button(grp, "Sort by _Name", true);
+				dlg.get_vbox()->pack_start(by_name_button, Gtk::PACK_SHRINK);
+				dlg.add_button(Gtk::Stock::OK, Gtk::RESPONSE_ACCEPT);
+				dlg.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+				dlg.set_default_response(Gtk::RESPONSE_ACCEPT);
+				dlg.show_all();
+				int resp = dlg.run();
+				if (resp == Gtk::RESPONSE_ACCEPT) {
+					if (by_address_button.get_active()) {
+						robots.sort_by_address();
+					} else if (by_lid_button.get_active()) {
+						robots.sort_by_lid();
+					} else if (by_name_button.get_active()) {
+						robots.sort_by_name();
+					}
+				}
 			}
 	};
 }
