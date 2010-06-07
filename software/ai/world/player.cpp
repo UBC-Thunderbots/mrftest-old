@@ -15,6 +15,30 @@ namespace {
 		const unsigned int MAX_PULSE_WIDTH = 511;
 		return clamp(static_cast<unsigned int>(MAX_PULSE_WIDTH * power), 0U, MAX_PULSE_WIDTH);
 	}
+        
+        //determines how much dribbling to do based off the inputs to the 4 motors
+        int calc_dribble(int wheel_speeds[4]){
+	  	/// Angles in radians that the wheels are located off the forward direction
+	  	const double ANGLES[4] = {0.959931, 2.35619, 3.9269908, 5.32325}; 
+	  	int theta;
+	  	point x_y(0.0,0.0);
+
+		for(int i=0; i<4; i++){
+	    		theta += wheel_speeds[i];
+	    		point speed;
+	    		speed.x = static_cast<double>(wheel_speeds[i]);
+	    		speed = speed.rotate(ANGLES[i]);
+	    		if(i<2){
+	      			speed = speed.rotate(-M_PI/2.0);
+	    		}else{
+	      			speed = speed.rotate(M_PI/2.0);
+	    		}
+	    		x_y.x+=speed.x;
+	    		x_y.y+=speed.y;
+	  	}
+	  	int x = static_cast<int>(x_y.x);
+	  	return std::min(1023, std::max(0, -x));
+	}
 }
 
 void player::move(const point &dest, double target_ori) {
@@ -100,6 +124,14 @@ void player::tick(bool scram) {
 		bot->drive_controlled(m1, m2, m3, m4);
 		moved = false;
 		bot->enable_chicker(true);
+		if (has_ball()){
+		  	int m[4];
+		  	m[0] = m1;
+		  	m[1] = m2;
+		  	m[2] = m3;
+		  	m[3] = m4;
+		  	new_dribble_power = std::max(new_dribble_power, calc_dribble(m));
+		}
 	}
 	if (bot->alive()) {
 		bot->dribble(new_dribble_power);
