@@ -205,14 +205,15 @@ namespace {
 				robots.signal_robot_added.connect(sigc::mem_fun(this, &robots_model::alm_row_inserted));
 				robots.signal_robot_removed.connect(sigc::mem_fun(this, &robots_model::alm_row_deleted));
 				robots.signal_robot_replaced.connect(sigc::mem_fun(this, &robots_model::alm_row_changed));
-				robots.signal_sorted.connect(sigc::mem_fun(this, &robots_model::on_sorted));
+				robots.signal_sorted.connect(sigc::mem_fun(this, &robots_model::on_all_rows_changed));
+				robots.signal_colours_swapped.connect(sigc::mem_fun(this, &robots_model::on_all_rows_changed));
 			}
 
 			unsigned int alm_rows() const {
 				return robots.size();
 			}
 
-			void on_sorted() {
+			void on_all_rows_changed() {
 				for (unsigned int i = 0; i < robots.size(); ++i) {
 					alm_row_changed(i);
 				}
@@ -221,7 +222,7 @@ namespace {
 
 	class robots_page : public Gtk::VBox {
 		public:
-			robots_page(config::robot_set &robots) : robots(robots), model(robots_model::create(robots)), view(model), button_box(Gtk::BUTTONBOX_SPREAD), add_button(Gtk::Stock::ADD), edit_button(Gtk::Stock::EDIT), remove_button(Gtk::Stock::DELETE), sort_button("_Sort", true) {
+			robots_page(config::robot_set &robots) : robots(robots), model(robots_model::create(robots)), view(model), button_box(Gtk::BUTTONBOX_SPREAD), add_button(Gtk::Stock::ADD), edit_button(Gtk::Stock::EDIT), remove_button(Gtk::Stock::DELETE), sort_button("_Sort", true), swap_button("Swap _Colours", true) {
 				view.get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
 				view.get_selection()->signal_changed().connect(sigc::mem_fun(this, &robots_page::selection_changed));
 				view.append_column_numeric("Address", model->address_column, "%016llX");
@@ -238,10 +239,12 @@ namespace {
 				remove_button.signal_clicked().connect(sigc::mem_fun(this, &robots_page::remove));
 				remove_button.set_sensitive(false);
 				sort_button.signal_clicked().connect(sigc::mem_fun(this, &robots_page::sort));
+				swap_button.signal_clicked().connect(sigc::mem_fun(this, &robots_page::swap_colours));
 				button_box.pack_start(add_button);
 				button_box.pack_start(edit_button);
 				button_box.pack_start(remove_button);
 				button_box.pack_start(sort_button);
+				button_box.pack_start(swap_button);
 				pack_start(button_box, Gtk::PACK_SHRINK);
 			}
 
@@ -251,7 +254,7 @@ namespace {
 			Gtk::TreeView view;
 			Gtk::ScrolledWindow scroller;
 			Gtk::HButtonBox button_box;
-			Gtk::Button add_button, edit_button, remove_button, sort_button;
+			Gtk::Button add_button, edit_button, remove_button, sort_button, swap_button;
 
 			Gtk::Window &find_window() {
 				Gtk::Container *parent = get_parent();
@@ -324,6 +327,15 @@ namespace {
 					} else if (by_name_button.get_active()) {
 						robots.sort_by_name();
 					}
+				}
+			}
+
+			void swap_colours() {
+				Gtk::MessageDialog dlg(find_window(), "Are you sure you wish to swap the lid colours of all robots?", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true);
+				dlg.set_title("Thunderbots Configuration");
+				int resp = dlg.run();
+				if (resp == Gtk::RESPONSE_YES) {
+					robots.swap_colours();
 				}
 			}
 	};

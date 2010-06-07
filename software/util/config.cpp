@@ -181,6 +181,13 @@ void config::robot_set::sort_by_name() {
 	signal_sorted.emit();
 }
 
+void config::robot_set::swap_colours() {
+	for (typeof(robots.begin()) i = robots.begin(), iend = robots.end(); i != iend; ++i) {
+		i->yellow = !i->yellow;
+	}
+	signal_colours_swapped.emit();
+}
+
 void config::robot_set::save(std::ostream &ofs) const {
 	{
 		uint32_t num_robots = robots.size();

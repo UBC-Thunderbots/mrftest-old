@@ -136,6 +136,16 @@ class config : public noncopyable {
 				 */
 				mutable sigc::signal<void> signal_sorted;
 
+				/**
+				 * Inverts the colours of all robots in the collection.
+				 */
+				void swap_colours();
+
+				/**
+				 * Emitted when the colours of all robots are swapped.
+				 */
+				mutable sigc::signal<void> signal_colours_swapped;
+
 			private:
 				std::vector<robot_info> robots;
 
