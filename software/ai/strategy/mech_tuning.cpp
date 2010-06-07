@@ -231,9 +231,10 @@ namespace {
 					const double ex = x_scale.get_value();
 					const double ey = y_scale.get_value();
 					const double ea = a_scale.get_value();
-					point next_pos = the_player->position() + point(ex, ey);
-					double next_ori = the_player->orientation() + ea;
-					the_player->move(next_pos, next_ori);
+					//point next_pos = the_player->position() + point(ex, ey);
+					//double next_ori = the_player->orientation() + ea;
+					//the_player->move(next_pos, next_ori);
+					the_player->move(point(ex, ey), ea);
 				}
 				break;
 			case 2:
