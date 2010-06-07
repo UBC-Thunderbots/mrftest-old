@@ -65,11 +65,10 @@ namespace ai_util {
 	 */
 	extern const unsigned int SHOOTING_SAMPLE_POINTS;
 
-
 	/**
-	*Checks if the robot is in a position close enough to the ball to start
-	*the dribbler motor would be nice to check for obstacles in the way of ball before doing this
-	*/
+	 * Checks if the robot is in a position close enough to the ball to start
+	 * the dribbler motor would be nice to check for obstacles in the way of ball before doing this
+	 */
 	bool ball_close(const world::ptr w, const player::ptr bot);
 	
 	/**
@@ -140,6 +139,14 @@ namespace ai_util {
 	 * Returns 0 if the point is physically inside a considered robot.
 	 */
 	double calc_goal_visibility_angle(const field& f, const std::vector<point>& robots, const point& p);
+
+	/**
+	 * Checks if the team posses the ball.
+	 * Useful for strategy to know if team should go offence or defence.
+	 * This function is based on whether a robot has ball,
+	 * or a friendly recently has ball.
+	 */
+	bool posses_ball(const friendly_team& friendly);
 }
 
 #endif

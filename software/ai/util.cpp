@@ -10,6 +10,10 @@ namespace {
 #warning Magic constant
 	const double SHOOT_ALLOWANCE = 1e-1;
 
+	// Let t be time elpased since robot has ball.
+	// If t < this number, then robot is considered to posses the ball.
+	const double HAS_BALL_ALLOWANCE = 2.0;
+
 }
 
 namespace ai_util{
@@ -17,11 +21,10 @@ namespace ai_util{
 	const double ORI_CLOSE = 1e-2;
 
 	const double POS_CLOSE = 1e-5;
-	
+
 	const double VEL_CLOSE = 1e-2;
 
 	const unsigned int SHOOTING_SAMPLE_POINTS = 9;
-
 
 	const std::vector<point> calc_candidates(const world::ptr world) {
 		std::vector<point> candidates(SHOOTING_SAMPLE_POINTS);
@@ -38,16 +41,16 @@ namespace ai_util{
 	}
 
 	bool ball_close(const world::ptr w, const player::ptr bot){
-
 		point ball_pos = w->ball()->position();
 		point robot_pos = bot->position();
-		double robot_orientation = bot->orientation();
+		const double robot_orientation = bot->orientation();
 
-		if((ball_pos - robot_pos).len() > bot->MAX_RADIUS + w->ball()->RADIUS*2)return false;
+		if ((ball_pos - robot_pos).len() > bot->MAX_RADIUS + w->ball()->RADIUS*2)
+			return false;
 
 		point rob_ball = (ball_pos - robot_pos);
 		return angle_diff(rob_ball.orientation(), robot_orientation) < M_PI / 2;
- 	}
+	}
 
 	bool path_check(const point& begin, const point& end, const std::vector<point>& obstacles, const double thresh) {
 		const point direction = (end - begin).norm();
@@ -145,7 +148,7 @@ namespace ai_util{
 				}
 			}
 			if (best_point == -1 || score < best_score 
-			  || (score == best_score && abs(2*i+1-candidates.size()) < abs(2*best_score+1-candidates.size()))) {
+					|| (score == best_score && abs(2*i+1-candidates.size()) < abs(2*best_score+1-candidates.size()))) {
 				best_point = i;
 				best_score = score;
 			}
@@ -205,31 +208,31 @@ namespace ai_util{
 		double h_range = (point(w->field().length()/2.0,w->field().goal_width()/2.0) - p).orientation();
 		events.push_back(std::make_pair(l_range,1));
 		events.push_back(std::make_pair(h_range,-1));
-		
+
 		size_t lim = w->enemy.size();
 		if (consider_friendly) lim += w->friendly.size();
 		for (size_t i = 0; i < lim; ++i){
-		      point diff;
-		      if (i < w->enemy.size()) diff = w->enemy.get_robot(i)->position() - p;
-		      else diff = w->friendly.get_robot(i-w->enemy.size())->position() - p;
-		      if (diff.len() < robot::MAX_RADIUS + ORI_CLOSE)
-			    return -2*acos(-1);
-		      double cent = diff.orientation();
-		      double span = asin(robot::MAX_RADIUS / diff.len());
-		      events.push_back(std::make_pair(cent-span,-1));
-		      events.push_back(std::make_pair(cent+span,1));
+			point diff;
+			if (i < w->enemy.size()) diff = w->enemy.get_robot(i)->position() - p;
+			else diff = w->friendly.get_robot(i-w->enemy.size())->position() - p;
+			if (diff.len() < robot::MAX_RADIUS + ORI_CLOSE)
+				return -2*acos(-1);
+			double cent = diff.orientation();
+			double span = asin(robot::MAX_RADIUS / diff.len());
+			events.push_back(std::make_pair(cent-span,-1));
+			events.push_back(std::make_pair(cent+span,1));
 		}
 		sort(events.begin(),events.end());
 		double best = 0;
 		double sum = 0;
 		double cnt = 0;
 		for (size_t i = 0; i < events.size() - 1; i++){
-		      cnt += events[i].second;
-		      if (cnt > 0){
-			    sum += events[i+1].first - events[i].first;
-			    if (best < sum) best = sum;
-		      }
-		      else sum = 0;
+			cnt += events[i].second;
+			if (cnt > 0){
+				sum += events[i+1].first - events[i].first;
+				if (best < sum) best = sum;
+			} else
+				sum = 0;
 		}
 		return sum;
 	}
@@ -260,11 +263,19 @@ namespace ai_util{
 			if (cnt > 0){
 				sum += events[i+1].first - events[i].first;
 				if (best < sum) best = sum;
-			}
-			else sum = 0;
+			} else
+				sum = 0;
 		}
 		return sum;
 	}
 
+	bool posses_ball(const friendly_team& friendly) {
+		for (size_t i = 0; i < friendly.size(); ++i) {
+			const player::ptr pl = friendly.get_player(i);
+			if (pl->has_ball()) return true;
+			if (pl->has_ball_time() < HAS_BALL_ALLOWANCE) return true;
+		}
+		return false;
+	}
 }
 

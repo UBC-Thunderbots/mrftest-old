@@ -189,7 +189,12 @@ namespace {
 	}
 
 	void mech_tuning::tick() {
-		const friendly_team &the_team(the_world->friendly);
+		const friendly_team &friendly(the_world->friendly);
+
+		if (friendly.size() != 1) {
+			std::cerr << "error: must have only 1 robot in the team!" << std::endl;
+			return;
+		}
 
 		if (tc != tunable_controller::get_instance()) {
 			reset();
@@ -199,8 +204,8 @@ namespace {
 			phase++;
 			done = 0;
 		}
-		
-		player::ptr the_player = the_team.get_player(0);
+
+		const player::ptr the_player = friendly.get_player(0);
 
 		switch(phase) {
 			case 0:
@@ -249,7 +254,7 @@ namespace {
 			strategy::ptr create_strategy(world::ptr world);
 	};
 
-	mech_tuning_factory::mech_tuning_factory() : strategy_factory("Mech Special Benchmark") {
+	mech_tuning_factory::mech_tuning_factory() : strategy_factory("Mech Tuning Benchmark") {
 	}
 
 	strategy::ptr mech_tuning_factory::create_strategy(world::ptr world) {
