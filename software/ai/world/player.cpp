@@ -119,9 +119,10 @@ void player::tick(bool scram) {
 void player::on_feedback() {
 	theory_dribble_rpm =  static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED);
 	unsigned int threshold_speed = static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED * DRIBBLER_HAS_BALL_LOAD_FACTOR);
-	has_ball_ = bot->dribbler_speed() < threshold_speed;
-	if (has_ball_) {
+	bool new_has_ball = bot->dribbler_speed() < threshold_speed;
+	if (new_has_ball && !has_ball_) {
 		clock_gettime(CLOCK_MONOTONIC, &has_ball_start);
 	}
+	has_ball_ = new_has_ball;
 }
 
