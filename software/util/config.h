@@ -95,6 +95,28 @@ class config : public noncopyable {
 				mutable sigc::signal<void, unsigned int> signal_robot_removed;
 
 				/**
+				 * Replaces an existing robot with new data.
+				 *
+				 * \param[in] old_address the XBee address of the robot to
+				 * replace.
+				 *
+				 * \param[in] address the new XBee address to store.
+				 *
+				 * \param[in] yellow the new colour of the robot.
+				 *
+				 * \param[in] pattern_index the new lid pattern index.
+				 *
+				 * \param[in] name the new name.
+				 */
+				void replace(uint64_t old_address, uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name);
+
+				/**
+				 * Emitted when a robot is replaced. Parameter is the index of
+				 * the robot.
+				 */
+				mutable sigc::signal<void, unsigned int> signal_robot_replaced;
+
+				/**
 				 * Sorts the robots in the collection by their 64-bit address.
 				 */
 				void sort_by_address();

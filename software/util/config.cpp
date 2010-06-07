@@ -152,6 +152,20 @@ void config::robot_set::remove(uint64_t address) {
 	}
 }
 
+void config::robot_set::replace(uint64_t old_address, uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name) {
+	std::vector<robot_info>::iterator i = std::find_if(robots.begin(), robots.end(), __gnu_cxx::compose1(std::bind1st(std::equal_to<uint64_t>(), old_address), robot_address()));
+	assert(i != robots.end());
+	assert(address == i->address || !contains_address(address));
+	assert((yellow == i->yellow && pattern_index == i->pattern_index) || !contains_pattern(yellow, pattern_index));
+	assert(!name.empty());
+	assert(name == i->name || !contains_name(name));
+	i->address = address;
+	i->yellow = yellow;
+	i->pattern_index = pattern_index;
+	i->name = name;
+	signal_robot_replaced.emit(i - robots.begin());
+}
+
 void config::robot_set::sort_by_address() {
 	std::sort(robots.begin(), robots.end(), compare_by_address());
 	signal_sorted.emit();
