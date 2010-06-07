@@ -56,7 +56,10 @@ class robot : public visualizable::robot, public predictable, public sigc::track
 
 		/**
 		 * Constructs a new player object.
-		 * \param bot the XBee robot being driven
+		 *
+		 * \param[in] yellow the colour of the new robot.
+		 *
+		 * \param[in] pattern_index the lid pattern index of the new robot.
 		 */
 		robot(bool yellow, unsigned int pattern_index);
 
