@@ -74,7 +74,7 @@ player::ptr player::create(bool yellow, unsigned int pattern_index, xbee_drive_b
 	return p;
 }
 
-player::player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), has_ball_(false), theory_dribble_rpm(0) {
+player::player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), has_ball_(false), theory_dribble_rpm(0), dribble_distance_(0.0) {
 	bot->signal_feedback.connect(sigc::mem_fun(this, &player::on_feedback));
 }
 
@@ -108,6 +108,12 @@ void player::tick(bool scram) {
 	} else {
 		old_dribble_power = new_dribble_power = 0;
 	}
+	if (has_ball()) {
+		dribble_distance_ += (position() - last_dribble_position).len();
+	} else {
+		dribble_distance_ = 0.0;
+	}
+	last_dribble_position = position();
 }
 
 void player::on_feedback() {

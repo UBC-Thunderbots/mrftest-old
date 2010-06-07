@@ -73,6 +73,14 @@ class player : public robot {
 			return bot->dribbler_speed();
 		}
 
+		/**
+		 * \return the distance this player has travelled while dribbling the
+		 * ball, in metres (or \c 0.0 if the player is not dribbling now).
+		 */
+		double dribble_distance() const {
+			return dribble_distance_;
+		}
+
 	private:
 		xbee_drive_bot::ptr bot;
 		point destination_;
@@ -84,6 +92,8 @@ class player : public robot {
 		bool has_ball_;
 		unsigned int theory_dribble_rpm;
 		timespec has_ball_start;
+		double dribble_distance_;
+		point last_dribble_position;
 
 		/**
 		 * Constructs a new player object.
