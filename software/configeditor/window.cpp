@@ -347,6 +347,8 @@ window::window(config &conf) : conf(conf) {
 	add(*notebook);
 
 	notebook->append_page(*Gtk::manage(new robots_page(conf.robots())), "Robots");
+
+	set_default_size(400, 400);
 }
 
 bool window::on_delete_event(GdkEventAny *) {
