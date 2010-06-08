@@ -1,5 +1,7 @@
 #include "ai/ball_filter/ball_filter.h"
 #include "util/timestep.h"
+#include "ai/world/ball.h"
+#include "geom/angle.h"
 #include <cmath>
 #include <list>
 #include <utility>
@@ -24,6 +26,8 @@ namespace {
 			static const double DELETE_THRESHOLD = 0.02; // stores < 50 circles
 			list<circle> circles;
 			point last_point;
+			bool use_closest;
+			unsigned int robot_index;
 
 		public:
 			byrons_filter() : ball_filter("Byron's Filter") {
@@ -37,16 +41,33 @@ namespace {
 				point max_point;
 				double max_cert = -0.1;
 
-				if (obs.empty()) {
+				if (obs.empty() && !use_closest) {
 					for (list<circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
 						it->certainty = (1.0 - DECAY_RATE)*it->certainty;
 					}
 				}
 				else {
-					for (unsigned int i = 0; i < obs.size(); i++) {
-						if (max_cert < obs[i].second) {
-							max_point = obs[i].first;
-							max_cert = obs[i].second;
+					if (obs.empty()) {
+						point orient(1,0);
+						robot::ptr robot;
+						for (unsigned int i = 0; i < friendly.size() + enemy.size(); ++i) {
+							if (i < friendly.size()) {
+								robot = friendly.get_player(i);
+							} else {
+								robot = enemy.get_robot(i - friendly.size());
+							}		
+							if (robot->pattern_index == robot_index) {
+								max_point = robot->position() + (ball::RADIUS + robot::MAX_RADIUS) * orient.rotate(robot->orientation());
+								break;
+							}
+						}
+						max_cert = DECAY_RATE;
+					} else {
+						for (unsigned int i = 0; i < obs.size(); i++) {
+							if (max_cert < obs[i].second) {
+								max_point = obs[i].first;
+								max_cert = obs[i].second;
+							}
 						}
 					}
 
@@ -98,6 +119,35 @@ namespace {
 					}
 				}
 				last_point = max_point_it->center;
+				
+				robot::ptr robot;
+				double min_dist = -1;
+				point ball_ref;
+				bool is_facing_ball;
+				for (unsigned int i = 0; i < friendly.size(); ++i) {
+					robot = friendly.get_player(i);
+
+					ball_ref = last_point - robot->position();
+					is_facing_ball = angle_diff(ball_ref.orientation(), robot->orientation()) < (M_PI / 2);
+					if (is_facing_ball && (min_dist == -1 || ball_ref.lensq() < min_dist)) {
+						robot_index = robot->pattern_index;
+						min_dist = ball_ref.lensq();
+					}
+				}
+
+				for (unsigned int i = 0; i < enemy.size(); ++i) {
+					robot = enemy.get_robot(i);
+
+					ball_ref = last_point - robot->position();
+					is_facing_ball = angle_diff(ball_ref.orientation(), robot->orientation()) < (M_PI / 2);
+					if (is_facing_ball && (min_dist == -1 || ball_ref.lensq() < min_dist)) {
+						robot_index = robot->pattern_index;	
+						min_dist = ball_ref.lensq();			
+					}
+				}
+
+				use_closest = min_dist != -1 && min_dist < robot::MAX_RADIUS + 2 * ball::RADIUS;
+				
 				return max_point_it->center;
 			}
 	};
