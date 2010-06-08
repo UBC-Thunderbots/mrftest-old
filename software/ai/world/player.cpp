@@ -26,13 +26,9 @@ namespace {
 		for(int i=0; i<4; i++){
 	    		theta += wheel_speeds[i];
 	    		point speed;
-	    		speed.x = static_cast<double>(wheel_speeds[i]);
+	    		speed.y = static_cast<double>(wheel_speeds[i]);
+	    		speed.x = 0.0;
 	    		speed = speed.rotate(ANGLES[i]);
-	    		if(i<2){
-	      			speed = speed.rotate(-M_PI/2.0);
-	    		}else{
-	      			speed = speed.rotate(M_PI/2.0);
-	    		}
 	    		x_y.x+=speed.x;
 	    		x_y.y+=speed.y;
 	  	}
