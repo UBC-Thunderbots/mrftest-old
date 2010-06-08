@@ -41,14 +41,26 @@ namespace {
                         point filter(const vector<pair<point, double> > &obs, friendly_team &friendly, enemy_team &enemy) {
 				point max_point;
 				double max_cert = -0.1;
+				bool has_ball = false;
 
-				if (obs.empty() && !use_closest) {
+				for (unsigned int i = 0; i < friendly.size(); ++i) {
+					player::ptr player = friendly.get_player(i);
+					if (player->has_ball()) {						
+						has_ball = true;
+						point orient(1,0);
+						max_point = player->position() + (ball::RADIUS + robot::MAX_RADIUS) * orient.rotate(player->orientation());
+						max_cert = 1.0;
+						break;
+					}
+				}
+
+				if (obs.empty() && !use_closest && !has_ball) {
 					for (list<circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
 						it->certainty = (1.0 - DECAY_RATE)*it->certainty;
 					}
 				}
 				else {
-					if (obs.empty()) {
+					if (obs.empty() && !has_ball) {
 						point orient(1,0);
 						robot::ptr robot;
 						for (unsigned int i = 0; i < friendly.size() + enemy.size(); ++i) {
@@ -63,7 +75,7 @@ namespace {
 							}
 						}
 						max_cert = DEFAULT_CERT;
-					} else {
+					} else if (!has_ball) {
 						for (unsigned int i = 0; i < obs.size(); i++) {
 							if (max_cert < obs[i].second) {
 								max_point = obs[i].first;
