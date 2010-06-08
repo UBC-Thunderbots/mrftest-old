@@ -10,6 +10,8 @@ namespace {
 	const unsigned int MAX_DRIBBLER_SPEED = 40000;
 	const double DRIBBLER_HAS_BALL_LOAD_FACTOR = 0.75;
 	const unsigned int BATTERY_CRITICAL_THRESHOLD = 12000;
+	const int MAX_DRIBBLE_STALL_MILLISECONDS = 2000;
+	const int DRIBBLE_RECOVER_TIME = 1000;
 
 	unsigned int chicker_power_to_pulse_width(double power) {
 		const unsigned int MAX_PULSE_WIDTH = 511;
@@ -89,6 +91,28 @@ double player::has_ball_time() const {
 	}
 }
 
+void player::dribbler_safety() {
+	if (dribble_stall) {
+		timespec now;
+		clock_gettime(CLOCK_MONOTONIC, &now);
+		timespec diff;
+		timespec_sub(now, stall_start, diff);
+		double seconds =  diff.tv_sec + diff.tv_nsec / 1000000000.0;
+		if(seconds * 1000 > MAX_DRIBBLE_STALL_MILLISECONDS){
+		  recover_time_start = now;
+		}
+	}
+}
+
+bool player::dribbler_safe(){
+	timespec now;
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	timespec diff;
+	timespec_sub(now, recover_time_start, diff);
+	double seconds =  diff.tv_sec + diff.tv_nsec / 1000000000.0;
+	return seconds*1000 >  DRIBBLE_RECOVER_TIME;
+}
+
 player::ptr player::create(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) {
 	ptr p(new player(yellow, pattern_index, bot));
 	return p;
@@ -129,6 +153,7 @@ void player::tick(bool scram) {
 		  	new_dribble_power = std::max(new_dribble_power, calc_dribble(m));
 		}
 	}
+	new_dribble_power = (dribbler_safe()) ? new_dribble_power : 0;
 	if (bot->alive()) {
 		bot->dribble(new_dribble_power);
 		old_dribble_power = new_dribble_power;
@@ -151,6 +176,13 @@ void player::on_feedback() {
 	if (new_has_ball && !has_ball_) {
 		clock_gettime(CLOCK_MONOTONIC, &has_ball_start);
 	}
+
+	bool stall = (theory_dribble_rpm > 0)  &&  (bot->dribbler_speed() < 50);
+	if (stall && !dribble_stall) {
+		clock_gettime(CLOCK_MONOTONIC, &stall_start);
+	}
+
+	dribble_stall = stall;
 	has_ball_ = new_has_ball;
 }
 

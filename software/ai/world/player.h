@@ -57,6 +57,7 @@ class player : public robot {
 		 */
 		double has_ball_time() const;
 
+		
 		/**
 		 * \return The speed the dribbler would be spinning at given the
 		 * current power level if it were spinning unloaded and if it had been
@@ -81,6 +82,11 @@ class player : public robot {
 			return dribble_distance_;
 		}
 
+		/**
+		*\return whether the dribbler is safe to use, i.e. won't stall the motor for too long
+		*/
+		bool dribbler_safe();
+
 	private:
 		xbee_drive_bot::ptr bot;
 		point destination_;
@@ -90,8 +96,9 @@ class player : public robot {
 		int new_dribble_power;
 		int old_dribble_power;
 		bool has_ball_;
+		bool dribble_stall;
 		unsigned int theory_dribble_rpm;
-		timespec has_ball_start;
+		timespec has_ball_start, stall_start, recover_time_start;
 		double dribble_distance_;
 		point last_dribble_position;
 
@@ -125,6 +132,11 @@ class player : public robot {
 		point destination() const {
 			return destination_;
 		}
+						
+		/**
+		* process that makes sure that the dribble motor is not stalled for too long
+		*/
+		void dribbler_safety();
 
 		void on_feedback();
 
