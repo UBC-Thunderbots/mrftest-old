@@ -23,6 +23,7 @@ namespace {
 		private:
 			static const double RADIUS = 10.0/TIMESTEPS_PER_SECOND;
 			static const double DECAY_RATE = 0.2063; // half-life = 3 frames
+			static const double DEFAULT_CERT = 0.04; // one half-life to delete
 			static const double DELETE_THRESHOLD = 0.02; // stores < 50 circles
 			list<circle> circles;
 			point last_point;
@@ -61,7 +62,7 @@ namespace {
 								break;
 							}
 						}
-						max_cert = DECAY_RATE;
+						max_cert = DEFAULT_CERT;
 					} else {
 						for (unsigned int i = 0; i < obs.size(); i++) {
 							if (max_cert < obs[i].second) {
@@ -85,7 +86,7 @@ namespace {
 						      max_point = last_point;
 						circle c;
 						c.center = max_point;
-						c.certainty = DECAY_RATE;
+						c.certainty = DEFAULT_CERT;
 						circles.push_back(c);
 					}
 					else {
@@ -129,9 +130,9 @@ namespace {
 
 					ball_ref = last_point - robot->position();
 					is_facing_ball = angle_diff(ball_ref.orientation(), robot->orientation()) < (M_PI / 2);
-					if (is_facing_ball && (min_dist == -1 || ball_ref.lensq() < min_dist)) {
+					if (is_facing_ball && (min_dist == -1 || ball_ref.len() < min_dist)) {
 						robot_index = robot->pattern_index;
-						min_dist = ball_ref.lensq();
+						min_dist = ball_ref.len();
 					}
 				}
 
@@ -140,13 +141,13 @@ namespace {
 
 					ball_ref = last_point - robot->position();
 					is_facing_ball = angle_diff(ball_ref.orientation(), robot->orientation()) < (M_PI / 2);
-					if (is_facing_ball && (min_dist == -1 || ball_ref.lensq() < min_dist)) {
+					if (is_facing_ball && (min_dist == -1 || ball_ref.len() < min_dist)) {
 						robot_index = robot->pattern_index;	
-						min_dist = ball_ref.lensq();			
+						min_dist = ball_ref.len();			
 					}
 				}
 
-				use_closest = min_dist != -1 && min_dist < robot::MAX_RADIUS + 2 * ball::RADIUS;
+				use_closest = min_dist != -1 && min_dist < robot::MAX_RADIUS + 1.2 * ball::RADIUS; // .2 for allowance
 				
 				return max_point_it->center;
 			}
