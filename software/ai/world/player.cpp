@@ -10,32 +10,30 @@ namespace {
 	const unsigned int MAX_DRIBBLER_SPEED = 40000;
 	const double DRIBBLER_HAS_BALL_LOAD_FACTOR = 0.75;
 	const unsigned int BATTERY_CRITICAL_THRESHOLD = 12000;
-	const int MAX_DRIBBLE_STALL_MILLISECONDS = 2000;
-	const int DRIBBLE_RECOVER_TIME = 1000;
+	const unsigned int MAX_DRIBBLE_STALL_MILLISECONDS = 2000;
+	const unsigned int DRIBBLE_RECOVER_TIME = 1000;
 
 	unsigned int chicker_power_to_pulse_width(double power) {
 		const unsigned int MAX_PULSE_WIDTH = 511;
 		return clamp(static_cast<unsigned int>(MAX_PULSE_WIDTH * power), 0U, MAX_PULSE_WIDTH);
 	}
-        
-        //determines how much dribbling to do based off the inputs to the 4 motors
-        int calc_dribble(int wheel_speeds[4]){
-	  	/// Angles in radians that the wheels are located off the forward direction
-	  	const double ANGLES[4] = {0.959931, 2.35619, 3.9269908, 5.32325}; 
-	  	int theta;
-	  	point x_y(0.0,0.0);
 
-		for(int i=0; i<4; i++){
-	    		theta += wheel_speeds[i];
-	    		point speed;
-	    		speed.y = static_cast<double>(wheel_speeds[i]);
-	    		speed.x = 0.0;
-	    		speed = speed.rotate(ANGLES[i]);
-	    		x_y.x+=speed.x;
-	    		x_y.y+=speed.y;
-	  	}
-	  	int x = static_cast<int>(x_y.x);
-	  	return std::min(1023, std::max(0, -x));
+	//determines how much dribbling to do based off the inputs to the 4 motors
+	int calc_dribble(const int (&wheel_speeds)[4]) {
+		/// Angles in radians that the wheels are located off the forward direction
+		static const double ANGLES[4] = {0.959931, 2.35619, 3.9269908, 5.32325}; 
+		int theta;
+		point x_y;
+
+		for (unsigned int i = 0; i < 4; ++i) {
+			theta += wheel_speeds[i];
+			point speed(0.0, wheel_speeds[i]);
+			speed = speed.rotate(ANGLES[i]);
+			x_y.x += speed.x;
+			x_y.y += speed.y;
+		}
+		int x = static_cast<int>(x_y.x);
+		return std::min(1023, std::max(0, -x));
 	}
 }
 
@@ -97,20 +95,20 @@ void player::dribbler_safety() {
 		clock_gettime(CLOCK_MONOTONIC, &now);
 		timespec diff;
 		timespec_sub(now, stall_start, diff);
-		double seconds =  diff.tv_sec + diff.tv_nsec / 1000000000.0;
-		if(seconds * 1000 > MAX_DRIBBLE_STALL_MILLISECONDS){
-		  recover_time_start = now;
+		unsigned int milliseconds = diff.tv_sec * 1000 + diff.tv_nsec / 1000000;
+		if (milliseconds > MAX_DRIBBLE_STALL_MILLISECONDS) {
+			recover_time_start = now;
 		}
 	}
 }
 
-bool player::dribbler_safe(){
+bool player::dribbler_safe() const {
 	timespec now;
 	clock_gettime(CLOCK_MONOTONIC, &now);
 	timespec diff;
 	timespec_sub(now, recover_time_start, diff);
-	double seconds =  diff.tv_sec + diff.tv_nsec / 1000000000.0;
-	return seconds*1000 >  DRIBBLE_RECOVER_TIME;
+	unsigned int milliseconds = diff.tv_sec * 1000 + diff.tv_nsec / 1000000;
+	return milliseconds > DRIBBLE_RECOVER_TIME;
 }
 
 player::ptr player::create(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) {
@@ -137,23 +135,17 @@ void player::tick(bool scram) {
 	if (moved) {
 		int output[4];
 		controller->move(destination_, target_orientation, output);
-		int m1 = clamp(output[0], -1023, 1023);
-		int m2 = clamp(output[1], -1023, 1023);
-		int m3 = clamp(output[2], -1023, 1023);
-		int m4 = clamp(output[3], -1023, 1023);
-		bot->drive_controlled(m1, m2, m3, m4);
+		for (unsigned int i = 0; i < 4; ++i) {
+			output[i] = clamp(output[i], -1023, 1023);
+		}
+		bot->drive_controlled(output[0], output[1], output[2], output[3]);
 		moved = false;
 		bot->enable_chicker(true);
-		if (has_ball()){
-		  	int m[4];
-		  	m[0] = m1;
-		  	m[1] = m2;
-		  	m[2] = m3;
-		  	m[3] = m4;
-		  	new_dribble_power = std::max(new_dribble_power, calc_dribble(m));
+		if (has_ball()) {
+			new_dribble_power = std::max(new_dribble_power, calc_dribble(output));
 		}
 	}
-	new_dribble_power = (dribbler_safe()) ? new_dribble_power : 0;
+	new_dribble_power = dribbler_safe() ? new_dribble_power : 0;
 	if (bot->alive()) {
 		bot->dribble(new_dribble_power);
 		old_dribble_power = new_dribble_power;
@@ -177,7 +169,7 @@ void player::on_feedback() {
 		clock_gettime(CLOCK_MONOTONIC, &has_ball_start);
 	}
 
-	bool stall = (theory_dribble_rpm > 0)  &&  (bot->dribbler_speed() < 50);
+	bool stall = (theory_dribble_rpm > 0) && (bot->dribbler_speed() < 50);
 	if (stall && !dribble_stall) {
 		clock_gettime(CLOCK_MONOTONIC, &stall_start);
 	}

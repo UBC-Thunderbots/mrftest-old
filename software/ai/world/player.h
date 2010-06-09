@@ -83,9 +83,10 @@ class player : public robot {
 		}
 
 		/**
-		*\return whether the dribbler is safe to use, i.e. won't stall the motor for too long
-		*/
-		bool dribbler_safe();
+		 * \return Whether the dribbler is safe to use, i.e. won't stall the
+		 * motor for too long.
+		 */
+		bool dribbler_safe() const;
 
 	private:
 		xbee_drive_bot::ptr bot;
@@ -134,8 +135,9 @@ class player : public robot {
 		}
 						
 		/**
-		* process that makes sure that the dribble motor is not stalled for too long
-		*/
+		 * Process that makes sure that the dribble motor is not stalled for too
+		 * long.
+		 */
 		void dribbler_safety();
 
 		void on_feedback();
