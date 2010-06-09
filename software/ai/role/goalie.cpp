@@ -23,7 +23,7 @@ void goalie::tick() {
 
 	const player::ptr me = the_robots[0];
 
-	if (me->has_ball()) {
+	if (ai_util::posses_ball(the_world, me)) {
 		// TODO: check correctness
 		// Code copied from defensive role
 

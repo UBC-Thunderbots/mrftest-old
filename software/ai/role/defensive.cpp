@@ -7,6 +7,8 @@
 #include "ai/util.h"
 #include "util/algorithm.h"
 
+#include <iostream>
+
 defensive::defensive(world::ptr world) : the_world(world) {
 }
 
@@ -17,7 +19,7 @@ void defensive::move_halfway_between_ball_and_our_goal(int index) {
 	double x_pos  = -1*the_field.length()/2 + (the_field.length()/2 + the_world->ball()->position().x) /2;
 	double y_pos = the_robots[index]->position().y;
 	tactic->set_position(point(x_pos, y_pos));
-	the_tactics[index] = tactic;
+	tactics[index] = tactic;
 }
 
 // TODO: This function is obselete.
@@ -75,22 +77,22 @@ void defensive::tick() {
 
 	const friendly_team& friendly(the_world->friendly);
 
-	bool teamhasball = false;
+	bool teampossesball = false;
 	int baller = -1;
-	for (size_t i = 0; i < the_robots.size(); i++) {
+	for (size_t i = 0; i < the_robots.size(); ++i) {
 		if (ai_util::posses_ball(the_world, the_robots[i])) {
 			baller = i;
-			teamhasball = true;
+			teampossesball = true;
 			break;
 		}
 	}
 
 	std::vector<player::ptr> friends = ai_util::get_friends(friendly, the_robots);
 
-	if (!teamhasball) {
-		for (size_t i = 0; i < friends.size(); i++) {
+	if (!teampossesball) {
+		for (size_t i = 0; i < friends.size(); ++i) {
 			if (ai_util::posses_ball(the_world, friends[i])) {
-				teamhasball = true;
+				teampossesball = true;
 				break;
 			}
 		}
@@ -101,7 +103,7 @@ void defensive::tick() {
 	// TODO: maybe use refpointer instead of integer for safety reasons.
 	int skipme = -1;
 
-	if (teamhasball) {
+	if (teampossesball) {
 		if (baller >= 0) {
 			// If a player in the role has a ball, then
 			// pass to the other friendly, or wait if there is none.
@@ -120,11 +122,11 @@ void defensive::tick() {
 				// Just play around with the ball I guess
 				move::ptr move_tactic(new move(the_robots[baller], the_world));
 				move_tactic->set_position(the_robots[baller]->position());
-				the_tactics[baller] = move_tactic;
+				tactics[baller] = move_tactic;
 			} else {
 				// pass to this person
 				pass::ptr pass_tactic(new pass(the_robots[baller], the_world, friends[passme]));
-				the_tactics[baller] = pass_tactic;
+				tactics[baller] = pass_tactic;
 			}
 
 			skipme = baller;
@@ -134,14 +136,14 @@ void defensive::tick() {
 			std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(the_world->field().friendly_goal()));
 			if (friends.size() > 0 && friends[0]->has_ball()) {
 				receive::ptr receive_tactic(new receive(the_robots[0], the_world));
-				the_tactics[0] = receive_tactic;
+				tactics[0] = receive_tactic;
 				skipme = 0;
 			}
 		}
 	} else {
 		// already sorted by distance to ball
 		chase::ptr chase_tactic(new chase(the_robots[0], the_world));
-		the_tactics[0] = chase_tactic;
+		tactics[0] = chase_tactic;
 		skipme = 0;
 	}
 
@@ -158,34 +160,35 @@ void defensive::tick() {
 	std::vector<size_t> order = ai_util::dist_matching(locations, waypoints);
 
 	size_t w = 0;
-	for (size_t i = 0; i < waypoints.size(); ++i) {
-		if (i >= the_robots.size()) break;
+	for (size_t i = 0; i < the_robots.size(); ++i) {
+		if (static_cast<int>(i) == skipme) continue;
 		if (w >= waypoints.size()) {
-			// std::cerr << "Defender has nothing to do!" << std::endl;
+			std::cerr << "Defender has nothing to do!" << std::endl;
 			move::ptr move_tactic(new move(the_robots[i], the_world));
 			move_tactic->set_position(the_robots[i]->position());
-			the_tactics[i] = move_tactic;
+			tactics[i] = move_tactic;
 		} else {
 			move::ptr move_tactic(new move(the_robots[i], the_world));
-			move_tactic->set_position(waypoints[order[i]]);
-			the_tactics[i] = move_tactic;
-			++w;
+			move_tactic->set_position(waypoints[order[w]]);
+			tactics[i] = move_tactic;
 		}
 	}
 
 	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
-	if (teamhasball) 
-		flags |= ai_flags::clip_play_area;
 
-	for (size_t i = 0; i < the_tactics.size(); ++i) {
-		the_tactics[i]->set_flags(flags);
-		the_tactics[i]->tick();
+	for (size_t i = 0; i < tactics.size(); ++i) {
+		if (static_cast<int>(i) == baller) {
+			tactics[i]->set_flags(flags | ai_flags::clip_play_area);
+		} else {
+			tactics[i]->set_flags(flags);
+		}
+		tactics[i]->tick();
 	}
 }
 
 void defensive::robots_changed() {
-	the_tactics.clear();
-	the_tactics.resize(the_robots.size());
+	tactics.clear();
+	tactics.resize(the_robots.size());
 }
 
 void defensive::set_goalie(const player::ptr goalie) {

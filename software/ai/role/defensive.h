@@ -42,9 +42,6 @@ class defensive : public role {
 		void robots_changed();
 
 		/// TODO: remove this in the future?
-		void move_halfway_between_ball_and_our_goal(int index);
-
-		/// TODO: remove this in the future?
 		void set_goalie(const player::ptr goalie);
 
 	protected:
@@ -55,10 +52,15 @@ class defensive : public role {
 		 */
 		std::vector<point> calc_block_positions() const;
 
-		std::vector<tactic::ptr> the_tactics;
+		/// TODO: remove this in the future?
+		void move_halfway_between_ball_and_our_goal(int index);
 
-	private:
+		/// TODO: This should be removed in the future.
+		void tick_goalie();
+
 		const world::ptr the_world;
+
+		std::vector<tactic::ptr> tactics;
 
 		// TODO: get rid of this message
 		// note that this is a role in role, so the goalie role can still be developed independently.
@@ -67,10 +69,6 @@ class defensive : public role {
 		role::ptr goalie_role;
 		player::ptr the_goalie;
 
-		/**
-		 * This should be removed in the future.
-		 */
-		void tick_goalie();
 };
 
 #endif
