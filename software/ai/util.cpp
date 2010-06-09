@@ -256,8 +256,8 @@ namespace ai_util{
 		return sum;
 	}
 
-	bool posses_ball(const world::ptr w, const player::ptr p) {
-		return pl->has_ball() || pl->has_ball_time() < HAS_BALL_ALLOWANCE || ball_close(w, p);
+	bool posses_ball(const world::ptr w, const player::ptr pl) {
+		return pl->has_ball() || pl->has_ball_time() < HAS_BALL_ALLOWANCE || ball_close(w, pl);
 	}
 
 }
