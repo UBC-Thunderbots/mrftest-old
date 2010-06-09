@@ -17,22 +17,23 @@ namespace {
 
 	const double DAMP = 0.5;
 
-	const std::string PARAM_NAMES[] = {"Proportional", "Differential", "Y/X Ratio", "Maximum Speed", "Proportional Angle", "Differential Angle", "Maximum Angular Speed", "Y/Angle speed ratio compensate"};
+	const std::string PARAM_NAMES[] = {"Proportional", "Differential", "Y/X Ratio", "Maximum Speed", "Maximum Acceleration", "Proportional Angle", "Differential Angle", "Maximum Angular Speed", "Y/Angle speed ratio compensate"};
 
 	// enumerate the parameters
-	enum { PARAM_PROP = 0, PARAM_DIFF, PARAM_XY_RATIO, PARAM_THRESH, PARAM_A_PROP, PARAM_A_DIFF, PARAM_A_THRESH, PARAM_YA_RATIO };
+	enum { PARAM_PROP = 0, PARAM_DIFF, PARAM_XY_RATIO, PARAM_MAX_VEL, PARAM_MAX_ACC, PARAM_A_PROP, PARAM_A_DIFF, PARAM_A_THRESH, PARAM_YA_RATIO };
 
 	const double DEF_PROP = 8.0;
 	const double DEF_DIFF = 0.0;
 	const double DEF_XY_RATIO = 1.3;
-	const double DEF_THRESH = 3.0;
+	const double DEF_MAX_VEL = 3.0;
+	const double DEF_MAX_ACC = 3.0;
 	const double DEF_A_PROP = 4.0;
 	const double DEF_A_DIFF = 0.0;
 	const double DEF_A_THRESH = 100.0;
 	const double DEF_YA_RATIO = 0.0;
 
 	// array of defaults
-	const double ARR_DEF[] = { DEF_PROP, DEF_DIFF, DEF_XY_RATIO, DEF_THRESH, DEF_A_PROP, DEF_A_DIFF, DEF_A_THRESH, DEF_YA_RATIO };
+	const double ARR_DEF[] = { DEF_PROP, DEF_DIFF, DEF_XY_RATIO, DEF_MAX_VEL, DEF_MAX_ACC, DEF_A_PROP, DEF_A_DIFF, DEF_A_THRESH, DEF_YA_RATIO };
 	const int P = sizeof(ARR_DEF) / sizeof(ARR_DEF[0]);
 
 	class tunable_adhoc_controller : public robot_controller, public tunable_controller {
@@ -48,14 +49,6 @@ namespace {
 			const std::vector<double>& get_params() const {
 				return param;
 			}
-			const std::vector<double>& get_params_min() const {
-				// TODO: fix
-				return param;
-			}
-			const std::vector<double>& get_params_max() const {
-				// TODO: fix
-				return param;
-			}
 		private:
 			player::ptr plr;
 		protected:
@@ -66,11 +59,13 @@ namespace {
 			std::vector<double> error_ori;
 			point prev_new_pos;
 			double prev_new_ori;
+			point prev_linear_velocity;
+			double prev_angular_velocity;
 	};
 
 	const std::vector<double> param_default(ARR_DEF, ARR_DEF + P);
 
-	tunable_adhoc_controller::tunable_adhoc_controller(player::ptr plr) : plr(plr), initialized(false), error_pos(10), error_ori(10) {
+	tunable_adhoc_controller::tunable_adhoc_controller(player::ptr plr) : plr(plr), initialized(false), error_pos(10.0), error_ori(10.0), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
 		param = param_default;
 	}
 
@@ -139,15 +134,30 @@ namespace {
 
 		linear_velocity.x = px * param[PARAM_PROP] + vx * param[PARAM_DIFF];
 		linear_velocity.y = (py * param[PARAM_PROP] + vy * param[PARAM_DIFF]) * param[PARAM_XY_RATIO];
-		if (linear_velocity.len() > param[PARAM_THRESH]) {
-			linear_velocity *= param[PARAM_THRESH] / linear_velocity.len();
+
+		// threshold the linear velocity
+		if (linear_velocity.len() > param[PARAM_MAX_VEL]) {
+			linear_velocity *= param[PARAM_MAX_VEL] / linear_velocity.len();
 		}
+
+		// threshold the linear acceleration
+		point accel = linear_velocity - prev_linear_velocity;
+		if (accel.len() > param[PARAM_MAX_ACC]) {
+			accel *= param[PARAM_MAX_ACC] / accel.len();
+			linear_velocity = prev_linear_velocity + accel;
+		}
+
 		angular_velocity = pa * param[PARAM_A_PROP] + va * param[PARAM_A_DIFF] + linear_velocity.y * param[PARAM_YA_RATIO];
+
+		// threshold the angular velocity
 		if (angular_velocity > param[PARAM_A_THRESH]) {
 			angular_velocity = param[PARAM_A_THRESH];
 		} else if (angular_velocity < -param[PARAM_A_THRESH]) {
 			angular_velocity = -param[PARAM_A_THRESH];
 		}
+
+		prev_linear_velocity = linear_velocity;
+		prev_angular_velocity = angular_velocity;
 	}
 
 	void tunable_adhoc_controller::clear() {

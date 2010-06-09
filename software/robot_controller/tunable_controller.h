@@ -8,7 +8,7 @@
  * Parameter tunable robot controller.
  * All tunable robot controller should inherit this class.
  * Parameter is a vector of doubles.
- * Not thread-safe.
+ * NOT thread-safe.
  */
 class tunable_controller {
 	public:
@@ -38,13 +38,19 @@ class tunable_controller {
 
 		/**
 		 * Gets the minimum value of each parameter.
+		 * Unless defined, returns the default value.
 		 */
-		virtual const std::vector<double>& get_params_min() const = 0;
+		virtual const std::vector<double>& get_params_min() const {
+			return get_params();
+		}
 
 		/**
 		 * Gets the maximum value of each parameter.
+		 * Unless defined, returns the default value.
 		 */
-		virtual const std::vector<double>& get_params_max() const = 0;
+		virtual const std::vector<double>& get_params_max() const {
+			return get_params();
+		}
 
 		/**
 		 * Gets one instance of a tunable controller.
