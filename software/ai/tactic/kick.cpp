@@ -24,6 +24,9 @@ kick::kick(player::ptr player, world::ptr world) : tactic(player), navi(player, 
 
 void kick::tick() {
 
+	// don't forget
+	navi.set_flags(flags);
+
 	if (!the_player->has_ball()) {
 		std::cerr << "kick tactic: robot does not have the ball and yet it tries to kick!?" << std::endl;
 		// TODO: for the sake of testing, enable kicking the air
@@ -31,13 +34,11 @@ void kick::tick() {
 
 	if (!target_initialized) {
 		std::cerr << "kick tactic: robot does not know where to kick?" << std::endl;
+		navi.tick();
 		return;
 	}
 
 	point dist = kick_target-the_player->position();
-
-	// don't forget
-	navi.set_flags(flags);
 
 	// turn towards the target
 	navi.set_orientation(dist.orientation());
