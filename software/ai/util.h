@@ -8,22 +8,11 @@
 
 /**
  * Contains a bunch of useful utility functions.
+ * In general, functions that go here are those that
+ * - can be used accross different roles/strategies/tactic.
+ * - will unify definition (such as ball possesion).
  */
 namespace ai_util {
-
-	/**
-	 * A comparator that sorts by values in a vector
-	 */
-	template<typename T> class cmp_table {
-		public:
-			cmp_table(const std::vector<T>& tbl) : tbl(tbl) {
-			}
-			bool operator()(unsigned int x, unsigned int y) {
-				return tbl[x] > tbl[y];
-			}
-		private:
-			const std::vector<T>& tbl;
-	};
 
 	/**
 	 * A comparator that sorts by a particular distance.
@@ -47,18 +36,24 @@ namespace ai_util {
 	 * Orientation epsilon.
 	 * Generally higher than position epsilon.
 	 */
-	extern const double ORI_CLOSE;
+	static const double ORI_CLOSE = 1e-2;
 
 	/**
 	 * Position epsilon.
 	 * Should be set to the accuracy of the image recognizition data.
 	 */
-	extern const double POS_CLOSE;
+	static const double POS_CLOSE = 1e-5;
 
 	/**
 	 * Velocity epsilon.
 	 */
-	extern const double VEL_CLOSE;
+	static const double VEL_CLOSE = 1e-2;
+
+	/**
+	 * Let t be time elpased since robot has ball.
+	 * If t < this number, then robot is considered to posses the ball.
+	 */
+	extern const double HAS_BALL_TIME;
 
 	/**
 	 * Number of points to consider when shooting at the goal.
@@ -70,7 +65,7 @@ namespace ai_util {
 	 * the dribbler motor would be nice to check for obstacles in the way of ball before doing this
 	 */
 	bool ball_close(const world::ptr w, const player::ptr bot);
-	
+
 	/**
 	 * Checks if the path from begin to end is blocked by some robots.
 	 * \param robots a vector of robots/players that blocks the path.
@@ -80,7 +75,7 @@ namespace ai_util {
 	 * \return True if the path is not blocked.
 	 */
 	bool path_check(const point& begin, const point& end, const std::vector<robot::ptr>& robots, const double thresh);
-	
+
 	/**
 	 * Checks if the path from begin to end is blocked by some obstacles.
 	 * \param obstacles a vector of obstacles that blocks the path.
@@ -131,7 +126,7 @@ namespace ai_util {
 	 * Returns -1 if no valid target is found.
 	 */
 	int choose_best_pass(const world::ptr w, const std::vector<player::ptr>& friends);
-	
+
 	/**
 	 * Returns the length of the largest continuous interval (angle-wise)
 	 * of the enemy goal that can be seen from a point.
@@ -141,12 +136,12 @@ namespace ai_util {
 	double calc_goal_visibility_angle(const field& f, const std::vector<point>& robots, const point& p);
 
 	/**
-	 * Checks if the team posses the ball.
+	 * Checks if a player posses the ball.
 	 * Useful for strategy to know if team should go offence or defence.
-	 * This function is based on whether a robot has ball,
-	 * or a friendly recently has ball.
+	 * This function is based on whether the player has ball, or recently has the ball.
 	 */
-	bool posses_ball(const friendly_team& friendly);
+	bool posses_ball(const world::ptr w, const player::ptr p);
+
 }
 
 #endif

@@ -10,19 +10,12 @@ namespace {
 #warning Magic constant
 	const double SHOOT_ALLOWANCE = 1e-1;
 
-	// Let t be time elpased since robot has ball.
-	// If t < this number, then robot is considered to posses the ball.
-	const double HAS_BALL_ALLOWANCE = 2.0;
-
+	const double PI = M_PI;
 }
 
 namespace ai_util{
 
-	const double ORI_CLOSE = 1e-2;
-
-	const double POS_CLOSE = 1e-5;
-
-	const double VEL_CLOSE = 1e-2;
+	const double HAS_BALL_ALLOWANCE = 3.0;
 
 	const unsigned int SHOOTING_SAMPLE_POINTS = 9;
 
@@ -40,16 +33,10 @@ namespace ai_util{
 		return candidates;
 	}
 
-	bool ball_close(const world::ptr w, const player::ptr bot){
-		point ball_pos = w->ball()->position();
-		point robot_pos = bot->position();
-		const double robot_orientation = bot->orientation();
-
-		if ((ball_pos - robot_pos).len() > bot->MAX_RADIUS + w->ball()->RADIUS*2)
-			return false;
-
-		point rob_ball = (ball_pos - robot_pos);
-		return angle_diff(rob_ball.orientation(), robot_orientation) < M_PI / 2;
+	bool ball_close(const world::ptr w, const player::ptr p) {
+		const point dist = w->ball()->position() - p->position();
+		if (dist.len() > p->MAX_RADIUS + w->ball()->RADIUS*2) return false;
+		return angle_diff(dist.orientation(), p->orientation()) < PI / 2;
 	}
 
 	bool path_check(const point& begin, const point& end, const std::vector<point>& obstacles, const double thresh) {
@@ -260,7 +247,7 @@ namespace ai_util{
 		double cnt = 0;
 		for (size_t i = 0; i + 1 < events.size(); i++) {
 			cnt += events[i].second;
-			if (cnt > 0){
+			if (cnt > 0) {
 				sum += events[i+1].first - events[i].first;
 				if (best < sum) best = sum;
 			} else
@@ -269,13 +256,9 @@ namespace ai_util{
 		return sum;
 	}
 
-	bool posses_ball(const friendly_team& friendly) {
-		for (size_t i = 0; i < friendly.size(); ++i) {
-			const player::ptr pl = friendly.get_player(i);
-			if (pl->has_ball()) return true;
-			if (pl->has_ball_time() < HAS_BALL_ALLOWANCE) return true;
-		}
-		return false;
+	bool posses_ball(const world::ptr w, const player::ptr p) {
+		return pl->has_ball() || pl->has_ball_time() < HAS_BALL_ALLOWANCE || ball_close(w, p);
 	}
+
 }
 
