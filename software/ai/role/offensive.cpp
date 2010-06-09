@@ -61,13 +61,13 @@ point offensive::calc_position_best(const std::vector<point>& enemypos) const {
 	const double dy = (y2 - y1) / (EV_Y+1);
 	double bestscore = 0;
 	point bestpos(0, 0);
-	for(int j = 0; j < EV_Y; ++j) {
-		for(int i = 0; i < EV_X; ++i) {
+	for (int j = 0; j < EV_Y; ++j) {
+		for (int i = 0; i < EV_X; ++i) {
 			const double x = x1 + dx * (i + 1);
 			const double y = y1 + dy * (j + 1);
 			const point pos = point(x, y);
 			const double score = calc_position_score(enemypos, pos);
-			if(score > bestscore) {
+			if (score > bestscore) {
 				bestscore = score;
 				bestpos = pos;
 			}
@@ -82,11 +82,11 @@ point offensive::calc_position_best(const std::vector<point>& enemypos) const {
 std::vector<point> offensive::calc_position_best(const unsigned int n) const {
 	const enemy_team& enemy = the_world->enemy;
 	std::vector<point> enemypos;
-	for(size_t i = 0; i < enemy.size(); ++i) {
+	for (size_t i = 0; i < enemy.size(); ++i) {
 		enemypos.push_back(enemy.get_robot(i)->position());
 	}
 	std::vector<point> ret;
-	for(unsigned int i = 0; i < n; ++i) {
+	for (unsigned int i = 0; i < n; ++i) {
 		const point best = calc_position_best(enemypos);
 		ret.push_back(best);
 		enemypos.push_back(best);
@@ -117,16 +117,16 @@ void offensive::tick() {
 	const friendly_team& friendly(the_world->friendly);
 
 	int baller = -1;
-	for(size_t i = 0; i < the_robots.size(); i++) {
-		if(the_robots[i]->has_ball()) {
+	for (size_t i = 0; i < the_robots.size(); i++) {
+		if (the_robots[i]->has_ball()) {
 			baller = i;
 			break;
 		}
 	}
 
 	bool haveball = false;
-	for(size_t i = 0; i < friendly.size(); i++) {
-		if(friendly.get_player(i)->has_ball()) {
+	for (size_t i = 0; i < friendly.size(); i++) {
+		if (friendly.get_player(i)->has_ball()) {
 			haveball = true;
 			break;
 		}
@@ -138,7 +138,7 @@ void offensive::tick() {
 		// someone has the ball
 		if (baller != -1) {
 			// someone in this role has the ball
-			if(get_distance_from_goal(baller) < the_world->field().length() / 3) {
+			if (get_distance_from_goal(baller) < the_world->field().length() / 3) {
 				if (ai_util::calc_best_shot(the_robots[baller],the_world) != -1) {
 					the_tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
 				} else {
