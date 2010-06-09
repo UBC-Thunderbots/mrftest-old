@@ -13,11 +13,7 @@ namespace {
 	const double PI = M_PI;
 }
 
-namespace ai_util{
-
-	const double HAS_BALL_ALLOWANCE = 3.0;
-
-	const unsigned int SHOOTING_SAMPLE_POINTS = 9;
+namespace ai_util {
 
 	const std::vector<point> calc_candidates(const world::ptr world) {
 		std::vector<point> candidates(SHOOTING_SAMPLE_POINTS);

@@ -53,12 +53,12 @@ namespace ai_util {
 	 * Let t be time elpased since robot has ball.
 	 * If t < this number, then robot is considered to posses the ball.
 	 */
-	extern const double HAS_BALL_TIME;
+	static const double HAS_BALL_ALLOWANCE = 3.0;
 
 	/**
 	 * Number of points to consider when shooting at the goal.
 	 */
-	extern const unsigned int SHOOTING_SAMPLE_POINTS;
+	static const unsigned int SHOOTING_SAMPLE_POINTS = 9;
 
 	/**
 	 * Checks if the robot is in a position close enough to the ball to start
