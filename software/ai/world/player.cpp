@@ -10,6 +10,7 @@ namespace {
 	const unsigned int MAX_DRIBBLER_SPEED = 40000;
 	const double DRIBBLER_HAS_BALL_LOAD_FACTOR = 0.75;
 	const unsigned int BATTERY_WARNING_THRESHOLD = 13500;
+	const unsigned int BATTERY_NOWARNING_THRESHOLD = 14500;
 	const unsigned int BATTERY_CRITICAL_THRESHOLD = 12000;
 	const unsigned int MAX_DRIBBLE_STALL_MILLISECONDS = 2000;
 	const unsigned int DRIBBLE_RECOVER_TIME = 1000;
@@ -199,7 +200,11 @@ void player::tick(bool scram) {
 }
 
 void player::on_feedback() {
-	low_battery_message.activate(bot->battery_voltage() < BATTERY_WARNING_THRESHOLD);
+	if (bot->battery_voltage() < BATTERY_WARNING_THRESHOLD) {
+		low_battery_message.activate(true);
+	} else if (bot->battery_voltage() > BATTERY_NOWARNING_THRESHOLD) {
+		low_battery_message.activate(false);
+	}
 	chicker_fault_message.activate(bot->chicker_faulted());
 
 	theory_dribble_rpm =  static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED);
