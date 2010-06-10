@@ -71,7 +71,7 @@ void world::flip_refbox_colour() {
 	update_playtype();
 }
 
-world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bots) : conf(conf), east_(false), refbox_yellow_(false), vision_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), ball_(ball::create()), xbee_bots(xbee_bots), playtype_(playtype::halt), vis_view(this), ball_filter_(0) {
+world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bots) : conf(conf), east_(false), refbox_yellow_(false), vision_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), ball_(ball::create()), xbee_bots(xbee_bots), playtype_(playtype::halt), playtype_override(playtype::halt), playtype_override_active(false), vis_view(this), ball_filter_(0) {
 	vision_socket.set_blocking(false);
 	const int one = 1;
 	if (setsockopt(vision_socket, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
