@@ -19,7 +19,7 @@ namespace {
 		}
 	};
 
-	class byrons_filter : public ball_filter {
+	class circle_filter : public ball_filter {
 		private:
 			static const double RADIUS = 10.0/TIMESTEPS_PER_SECOND;
 			static const double DECAY_RATE = 0.2063; // half-life = 3 frames
@@ -29,42 +29,48 @@ namespace {
 			point last_point;
 			bool use_closest;
 			unsigned int robot_index;
+			unsigned int has_ball_timesteps;
 
 		public:
-			byrons_filter() : ball_filter("Martin's Filter") {
+			circle_filter() : ball_filter("Circle Filter") {
 				circle c;
 				c.center = point(0, 0);
 				c.certainty = DELETE_THRESHOLD;
 				circles.push_back(c);
+				has_ball_timesteps = 0;
 			}
 
                         point filter(const vector<pair<point, double> > &obs, friendly_team &friendly, enemy_team &enemy) {
 				point max_point;
 				double max_cert = -0.1;
-				bool sense_ball = false;
-
-#warning does not look right, and has ball is broken anyways
-#warning and you should create a new filter; don't break the old one.
-				/*
+				point has_ball_point;
+				double has_ball_cert = -0.1;
+			
 				for (unsigned int i = 0; i < friendly.size(); ++i) {
 					player::ptr player = friendly.get_player(i);
 					if (player->sense_ball()) {						
-						sense_ball = true;
+						has_ball_timesteps++;
+
 						point orient(1,0);
-						max_point = player->position() + (ball::RADIUS + robot::MAX_RADIUS) * orient.rotate(player->orientation());
-						max_cert = 1.0;
+						has_ball_point = player->position() + (ball::RADIUS + robot::MAX_RADIUS) * orient.rotate(player->orientation());
+						has_ball_cert = 1.0 - exp(-has_ball_timesteps/5.0);
 						break;
 					}
-				}
-				*/
+				}				
 
-				if (obs.empty() && !use_closest && !sense_ball) {
+				if (has_ball_cert <= 0) {
+					has_ball_timesteps = 0;
+				}
+
+				// There's nothing we can do to add a new obs, so just decay
+				if (obs.empty() && !use_closest && has_ball_cert <= 0) {
 					for (list<circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
 						it->certainty = (1.0 - DECAY_RATE)*it->certainty;
 					}
 				}
 				else {
-					if (obs.empty() && !sense_ball) {
+					// We don't have obs, but the ball was close to another robot before, so pretend the robot has the ball
+					if (obs.empty() && use_closest) {
 						point orient(1,0);
 						robot::ptr robot;
 						for (unsigned int i = 0; i < friendly.size() + enemy.size(); ++i) {
@@ -72,20 +78,25 @@ namespace {
 								robot = friendly.get_player(i);
 							} else {
 								robot = enemy.get_robot(i - friendly.size());
-							}		
+							}
 							if (robot->pattern_index == robot_index) {
 								max_point = robot->position() + (ball::RADIUS + robot::MAX_RADIUS) * orient.rotate(robot->orientation());
 								break;
 							}
 						}
 						max_cert = DEFAULT_CERT;
-					} else if (!sense_ball) {
+					} else {
 						for (unsigned int i = 0; i < obs.size(); i++) {
 							if (max_cert < obs[i].second) {
 								max_point = obs[i].first;
 								max_cert = obs[i].second;
 							}
 						}
+					}
+
+					if (has_ball_cert > max_cert) {
+						max_point = has_ball_point;
+						max_cert = has_ball_cert;
 					}
 
 					vector<circle> containing;
@@ -163,12 +174,12 @@ namespace {
 					}
 				}
 
-				use_closest = min_dist != -1 && min_dist < robot::MAX_RADIUS + 1.2 * ball::RADIUS; // .2 for allowance
+				use_closest = min_dist != -1 && min_dist < robot::MAX_RADIUS + 1.1 * ball::RADIUS; // .1 for allowance
 				
 				return max_point_it->center;
 			}
 	};
 
-	byrons_filter instance;
+	circle_filter instance;
 }
 

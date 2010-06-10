@@ -27,7 +27,7 @@ software/ai/ai.cpp -text
 software/ai/ai.h -text
 software/ai/ball_filter/ball_filter.h -text
 software/ai/ball_filter/byrons_filter.cpp -text
-software/ai/ball_filter/martins_filter.cpp -text
+software/ai/ball_filter/circle_filter.cpp -text
 software/ai/ball_filter/max_confidence_filter.cpp -text
 software/ai/flags.h -text
 software/ai/main.cpp -text
