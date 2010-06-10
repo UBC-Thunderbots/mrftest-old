@@ -14,7 +14,7 @@ namespace {
 	const unsigned int DRIBBLE_RECOVER_TIME = 1000;
 
 	unsigned int chicker_power_to_pulse_width(double power) {
-		const unsigned int MAX_PULSE_WIDTH = 511;
+		const unsigned int MAX_PULSE_WIDTH = 300;
 		return clamp(static_cast<unsigned int>(MAX_PULSE_WIDTH * power), 0U, MAX_PULSE_WIDTH);
 	}
 
