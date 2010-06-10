@@ -30,7 +30,7 @@ void shoot::tick() {
 		kick kick_tactic(the_player, the_world);
 		kick_tactic.set_target(target);
 		kick_tactic.tick();	
-	} else if (!ai_util::posses_ball(the_world, the_player)) {
+	} else if (ai_util::posses_ball(the_world, the_player)) {
 		// We have the ball right but somehow it was momentarily lost.
 		chase chase_tactic(the_player, the_world);
 		chase_tactic.set_flags(flags);
@@ -45,7 +45,7 @@ void shoot::tick() {
 				break;
 			}
 		}
-		if (!the_player->sense_ball()) {
+		if (!teampossesball) {
 			// chase if our team does not have the ball
 			chase chase_tactic(the_player, the_world);
 			chase_tactic.set_flags(flags);
