@@ -14,6 +14,7 @@ void shoot::tick() {
 	if (ai_util::has_ball(the_player)) {
 		// This player has the ball.
 
+		/*
 		std::vector<point> candidates = ai_util::calc_candidates(the_world);
 		int best_point = ai_util::calc_best_shot(the_player, the_world);
 		// if all the points are equally bad (opponent robot in all projections),
@@ -21,10 +22,13 @@ void shoot::tick() {
 		if (best_point == -1) {
 			best_point = rand() % ai_util::SHOOTING_SAMPLE_POINTS;
 		}
+		const point target = candidates[best_point];
+		*/
+		const point target = ai_util::calc_best_shot2(the_world, the_player->position());
 
 		// shoot
 		kick kick_tactic(the_player, the_world);
-		kick_tactic.set_target(candidates[best_point]);
+		kick_tactic.set_target(target);
 		kick_tactic.tick();	
 	} else if (!ai_util::posses_ball(the_world, the_player)) {
 		// We have the ball right but somehow it was momentarily lost.
