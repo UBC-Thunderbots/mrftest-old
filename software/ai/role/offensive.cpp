@@ -196,7 +196,8 @@ void offensive::tick() {
 			} else {
 				// dribble the ball slowly to goal
 				// TODO: can't dribble for too long
-				// move_towards_goal(baller);
+#warning do something more intelligent than just moving towards goal
+				move_towards_goal(baller);
 			}
 			/*
 			for (size_t i = 0; i < the_robots.size(); ++i) {
