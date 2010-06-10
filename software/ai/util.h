@@ -64,7 +64,7 @@ namespace ai_util {
 	/**
 	 * Number of points to consider when shooting at the goal.
 	 */
-	static const unsigned int SHOOTING_SAMPLE_POINTS = 9;
+	static const unsigned int SHOOTING_SAMPLE_POINTS = 11;
 
 	/**
 	 * Checks if the robot is in a position close enough to the ball to start
@@ -113,6 +113,21 @@ namespace ai_util {
 	int calc_best_shot(const player::ptr player, const world::ptr w);
 
 	/**
+	 * Returns the best possible position to shoot the goal based on visibility angle.
+	 * If no position is valid, returns the enemy goal.
+	 * @see calc_goal_visibility_angle()
+	 */
+	point calc_best_shot2(const world::ptr w, const point& p, const bool consider_friendly = true);
+
+	/**
+	 * Returns the length of the largest continuous interval (angle-wise)
+	 * of the enemy goal that can be seen from a point.
+	 * Having a vector of points enables one to add imaginary threats.
+	 * Returns 0 if the point is physically inside a considered robot.
+	 */
+	double calc_goal_visibility_angle(const field& f, const std::vector<point>& robots, const point& p);
+
+	/**
 	 * Convert friendly into vector of players, excluding some.
 	 * Useful for separating robots in the role and those which are not.
 	 */
@@ -132,14 +147,6 @@ namespace ai_util {
 	 * Returns -1 if no valid target is found.
 	 */
 	int choose_best_pass(const world::ptr w, const std::vector<player::ptr>& friends);
-
-	/**
-	 * Returns the length of the largest continuous interval (angle-wise)
-	 * of the enemy goal that can be seen from a point.
-	 * Having a vector of points enables one to add imaginary threats.
-	 * Returns 0 if the point is physically inside a considered robot.
-	 */
-	double calc_goal_visibility_angle(const field& f, const std::vector<point>& robots, const point& p);
 
 	/**
 	 * This defines what having the ball means.
