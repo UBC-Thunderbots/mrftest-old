@@ -22,12 +22,12 @@ namespace {
 	// enumerate the parameters
 	enum { PARAM_PROP = 0, PARAM_DIFF, PARAM_XY_RATIO, PARAM_MAX_VEL, PARAM_MAX_ACC, PARAM_A_PROP, PARAM_A_DIFF, PARAM_A_THRESH, PARAM_YA_RATIO };
 
-	const double DEF_PROP = 8.0;
+	const double DEF_PROP = 10.0;
 	const double DEF_DIFF = 0.0;
-	const double DEF_XY_RATIO = 1.3;
-	const double DEF_MAX_VEL = 3.0;
-	const double DEF_MAX_ACC = 3.0;
-	const double DEF_A_PROP = 4.0;
+	const double DEF_XY_RATIO = 0.81;
+	const double DEF_MAX_VEL = 3.0; // 3.5 is slightly unstable
+	const double DEF_MAX_ACC = 1.0;
+	const double DEF_A_PROP = 6.0;
 	const double DEF_A_DIFF = 0.0;
 	const double DEF_A_THRESH = 100.0;
 	const double DEF_YA_RATIO = 0.0;

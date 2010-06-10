@@ -5,7 +5,7 @@
 #include <iostream>
 
 namespace {
-	const double TOL = 10 / 180.0 * M_PI;
+	const double TOL = 1.0 / 180.0 * M_PI;
 }
 
 /*

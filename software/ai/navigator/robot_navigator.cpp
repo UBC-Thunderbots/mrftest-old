@@ -19,8 +19,8 @@ namespace {
 
 // hardware dependent dribble parameters
 	const double DRIBBLE_SPEED_LOW  = 0.15;
-	const double DRIBBLE_SPEED_RAMP = 0.01;
-	const double DRIBBLE_SPEED_MAX  = 0.45;
+	const double DRIBBLE_SPEED_RAMP = 1.00;
+	const double DRIBBLE_SPEED_MAX  = 0.50;
 
 }
 
