@@ -10,6 +10,7 @@ namespace {
 	const unsigned int BATTERY_WARNING_THRESHOLD = 13500;
 	const unsigned int BATTERY_NOWARNING_THRESHOLD = 14500;
 	const unsigned int BATTERY_WARNING_FILTER_TIME = 5000;
+	const unsigned int CHICKER_FAULT_COUNT_MAX = 3;
 
 	unsigned int smag(int val) {
 		assert(-1023 <= val && val <= 1023);
@@ -19,7 +20,7 @@ namespace {
 	}
 }
 
-xbee_drive_bot::xbee_drive_bot(const Glib::ustring &name, uint64_t address, xbee_lowlevel &ll) : address(address), ll(ll), alive_(false), shm_frame(0), low_battery_message(Glib::ustring::compose("%1 low battery", name)), chicker_fault_message(Glib::ustring::compose("%1 chicker fault", name)) {
+xbee_drive_bot::xbee_drive_bot(const Glib::ustring &name, uint64_t address, xbee_lowlevel &ll) : address(address), ll(ll), alive_(false), shm_frame(0), low_battery_message(Glib::ustring::compose("%1 low battery", name)), chicker_fault_message(Glib::ustring::compose("%1 chicker fault", name)), chicker_fault_count(0) {
 	clock_gettime(CLOCK_MONOTONIC, &feedback_timestamp_);
 	clock_gettime(CLOCK_MONOTONIC, &low_battery_start_time);
 	feedback_interval_.tv_sec = 0;
@@ -228,7 +229,13 @@ void xbee_drive_bot::on_meta(const void *buffer, std::size_t length) {
 							low_battery_message.activate(false);
 						}
 					}
-					chicker_fault_message.activate(chicker_faulted());
+
+					if (chicker_faulted()) {
+						chicker_fault_count = std::min(CHICKER_FAULT_COUNT_MAX, chicker_fault_count + 1);
+					} else {
+						chicker_fault_count = 0;
+					}
+					chicker_fault_message.activate(chicker_fault_count == CHICKER_FAULT_COUNT_MAX);
 
 					signal_feedback.emit();
 				}
