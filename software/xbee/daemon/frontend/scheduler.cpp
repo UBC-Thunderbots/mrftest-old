@@ -125,7 +125,7 @@ void scheduler::push() {
 				timespec diff;
 				timespec_sub(now, daemon.shm->frames[i].timestamp, diff);
 				bool timeout = timespec_cmp(diff, threshold) > 0;
-				if (daemon.run_data_index_reverse[i] && ((daemon.shm->frames[i].run_data.flags & xbeepacket::RUN_FLAG_RUNNING) || timeout)) {
+				if (daemon.run_data_index_reverse[i] && (daemon.shm->frames[i].run_data.flags & xbeepacket::RUN_FLAG_RUNNING)) {
 					if (timeout) {
 						packet.data[i].flags = xbeepacket::RUN_FLAG_RUNNING;
 						packet.data[i].dribbler_speed = 0;

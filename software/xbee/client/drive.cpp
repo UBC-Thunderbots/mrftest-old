@@ -173,6 +173,7 @@ void xbee_drive_bot::on_meta(const void *buffer, std::size_t length) {
 				if (packet.address == address) {
 					assert(packet.shm_frame < xbeepacket::MAX_DRIVE_ROBOTS);
 					shm_frame = &ll.shm->frames[packet.shm_frame];
+					shm_frame->run_data.flags |= xbeepacket::RUN_FLAG_RUNNING;
 					alive_ = true;
 					signal_alive.emit();
 				}
