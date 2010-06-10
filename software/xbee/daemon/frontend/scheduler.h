@@ -41,7 +41,7 @@ class scheduler : public noncopyable {
 		unsigned int last_feedback_index;
 		uint16_t last_feedback_address;
 		sigc::connection feedback_timeout_connection;
-		timespec last_feedback_timestamp;
+		timespec last_feedback_timestamp, last_rundata_timestamp;
 
 		void push();
 		bool on_request_timeout(uint8_t);

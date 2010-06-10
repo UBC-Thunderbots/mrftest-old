@@ -103,6 +103,22 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 		}
 
 		/**
+		 * \return the amount of time between two consecutive feedback packets
+		 * from this robot.
+		 */
+		const timespec &feedback_interval() const {
+			return feedback_interval_;
+		}
+
+		/**
+		 * \return the amount of time between two consecutive run data packets
+		 * sent to the robot team.
+		 */
+		const timespec &run_data_interval() const {
+			return run_data_interval_;
+		}
+
+		/**
 		 * \return The outbound received signal strength in dBm (between 0 and
 		 * -255)
 		 */
@@ -185,7 +201,7 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 		bool alive_;
 		xbeepacket::SHM_FRAME *shm_frame;
 		xbeepacket::FEEDBACK_DATA feedback_;
-		timespec latency_;
+		timespec latency_, feedback_timestamp_, feedback_interval_, run_data_interval_;
 		uint8_t inbound_rssi_;
 		unsigned int success_rate_;
 

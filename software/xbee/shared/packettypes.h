@@ -163,6 +163,7 @@ namespace xbeepacket {
 	//
 	struct __attribute__((packed)) SHM_BLOCK {
 		pthread_rwlock_t lock;
+		timespec run_data_interval;
 		SHM_FRAME frames[MAX_DRIVE_ROBOTS];
 	};
 

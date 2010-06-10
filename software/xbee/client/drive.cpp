@@ -16,6 +16,11 @@ namespace {
 }
 
 xbee_drive_bot::xbee_drive_bot(uint64_t address, xbee_lowlevel &ll) : address(address), ll(ll), alive_(false), shm_frame(0) {
+	clock_gettime(CLOCK_MONOTONIC, &feedback_timestamp_);
+	feedback_interval_.tv_sec = 0;
+	feedback_interval_.tv_nsec = 0;
+	run_data_interval_.tv_sec = 0;
+	run_data_interval_.tv_nsec = 0;
 	feedback_.flags = 0;
 	feedback_.outbound_rssi = 0;
 	feedback_.dribbler_speed = 0;
@@ -190,7 +195,12 @@ void xbee_drive_bot::on_meta(const void *buffer, std::size_t length) {
 						latency_ = shm_frame->latency;
 						inbound_rssi_ = shm_frame->inbound_rssi;
 						success_rate_ = __builtin_popcountll(shm_frame->delivery_mask);
+						run_data_interval_ = ll.shm->run_data_interval;
 					}
+					timespec now;
+					clock_gettime(CLOCK_MONOTONIC, &now);
+					timespec_sub(now, feedback_timestamp_, feedback_interval_);
+					feedback_timestamp_ = now;
 					signal_feedback.emit();
 				}
 			}

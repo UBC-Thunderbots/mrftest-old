@@ -272,6 +272,8 @@ software/uicomponents/battery_meter.cpp -text
 software/uicomponents/battery_meter.h -text
 software/uicomponents/dribbler_meter.cpp -text
 software/uicomponents/dribbler_meter.h -text
+software/uicomponents/feedback_interval_meter.cpp -text
+software/uicomponents/feedback_interval_meter.h -text
 software/uicomponents/inbound_rssi_meter.cpp -text
 software/uicomponents/inbound_rssi_meter.h -text
 software/uicomponents/latency_meter.cpp -text
@@ -280,6 +282,8 @@ software/uicomponents/light.cpp -text
 software/uicomponents/light.h -text
 software/uicomponents/outbound_rssi_meter.cpp -text
 software/uicomponents/outbound_rssi_meter.h -text
+software/uicomponents/run_data_interval_meter.cpp -text
+software/uicomponents/run_data_interval_meter.h -text
 software/uicomponents/single_bot_combobox.cpp -text
 software/uicomponents/single_bot_combobox.h -text
 software/uicomponents/success_meter.cpp -text
