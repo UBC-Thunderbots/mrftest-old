@@ -88,7 +88,7 @@ namespace {
 
 		std::vector<xbee_drive_bot::ptr> xbee_bots;
 		for (unsigned int i = 0; i < conf.robots().size(); ++i) {
-			xbee_bots.push_back(xbee_drive_bot::create(conf.robots()[i].address, modem));
+			xbee_bots.push_back(xbee_drive_bot::create(conf.robots()[i].name, conf.robots()[i].address, modem));
 		}
 
 		world::ptr the_world(world::create(conf, xbee_bots));

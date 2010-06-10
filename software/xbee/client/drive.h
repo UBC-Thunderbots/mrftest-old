@@ -1,6 +1,7 @@
 #ifndef XBEE_CLIENT_DRIVE_H
 #define XBEE_CLIENT_DRIVE_H
 
+#include "uicomponents/annunciator.h"
 #include "util/byref.h"
 #include "xbee/client/packet.h"
 #include "xbee/shared/packettypes.h"
@@ -58,10 +59,7 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 		//
 		// Creates a new xbee_drive_bot and begins attempting to claim the bot.
 		//
-		static ptr create(uint64_t address, xbee_lowlevel &ll) {
-			ptr p(new xbee_drive_bot(address, ll));
-			return p;
-		}
+		static ptr create(const Glib::ustring &name, uint64_t address, xbee_lowlevel &ll);
 
 		//
 		// Returns whether or not the robot is communicating.
@@ -204,8 +202,10 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 		timespec latency_, feedback_timestamp_, feedback_interval_, run_data_interval_;
 		uint8_t inbound_rssi_;
 		unsigned int success_rate_;
+		timespec low_battery_start_time;
+		annunciator::message low_battery_message, chicker_fault_message;
 
-		xbee_drive_bot(uint64_t address, xbee_lowlevel &ll);
+		xbee_drive_bot(const Glib::ustring &name, uint64_t address, xbee_lowlevel &ll);
 		~xbee_drive_bot();
 		void on_meta(const void *, std::size_t);
 		void clear_chick();

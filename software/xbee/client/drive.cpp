@@ -7,6 +7,10 @@
 #include <cstdlib>
 
 namespace {
+	const unsigned int BATTERY_WARNING_THRESHOLD = 13500;
+	const unsigned int BATTERY_NOWARNING_THRESHOLD = 14500;
+	const unsigned int BATTERY_WARNING_FILTER_TIME = 5000;
+
 	unsigned int smag(int val) {
 		assert(-1023 <= val && val <= 1023);
 		bool sign = val < 0;
@@ -15,8 +19,9 @@ namespace {
 	}
 }
 
-xbee_drive_bot::xbee_drive_bot(uint64_t address, xbee_lowlevel &ll) : address(address), ll(ll), alive_(false), shm_frame(0) {
+xbee_drive_bot::xbee_drive_bot(const Glib::ustring &name, uint64_t address, xbee_lowlevel &ll) : address(address), ll(ll), alive_(false), shm_frame(0), low_battery_message(Glib::ustring::compose("%1 low battery", name)), chicker_fault_message(Glib::ustring::compose("%1 chicker fault", name)) {
 	clock_gettime(CLOCK_MONOTONIC, &feedback_timestamp_);
+	clock_gettime(CLOCK_MONOTONIC, &low_battery_start_time);
 	feedback_interval_.tv_sec = 0;
 	feedback_interval_.tv_nsec = 0;
 	run_data_interval_.tv_sec = 0;
@@ -33,6 +38,11 @@ xbee_drive_bot::xbee_drive_bot(uint64_t address, xbee_lowlevel &ll) : address(ad
 
 xbee_drive_bot::~xbee_drive_bot() {
 	ll.send(meta_release_packet::create(address));
+}
+
+xbee_drive_bot::ptr xbee_drive_bot::create(const Glib::ustring &name, uint64_t address, xbee_lowlevel &ll) {
+	ptr p(new xbee_drive_bot(name, address, ll));
+	return p;
 }
 
 bool xbee_drive_bot::drive_faulted(unsigned int m) const {
@@ -198,10 +208,28 @@ void xbee_drive_bot::on_meta(const void *buffer, std::size_t length) {
 						success_rate_ = __builtin_popcountll(shm_frame->delivery_mask);
 						run_data_interval_ = ll.shm->run_data_interval;
 					}
+
 					timespec now;
 					clock_gettime(CLOCK_MONOTONIC, &now);
 					timespec_sub(now, feedback_timestamp_, feedback_interval_);
 					feedback_timestamp_ = now;
+
+					if (battery_voltage() < BATTERY_WARNING_THRESHOLD) {
+						timespec now;
+						clock_gettime(CLOCK_MONOTONIC, &now);
+						timespec diff;
+						timespec_sub(now, low_battery_start_time, diff);
+						if (diff.tv_sec * 1000U + diff.tv_nsec / 1000000U > BATTERY_WARNING_FILTER_TIME) {
+							low_battery_message.activate(true);
+						}
+					} else {
+						clock_gettime(CLOCK_MONOTONIC, &low_battery_start_time);
+						if (battery_voltage() > BATTERY_NOWARNING_THRESHOLD) {
+							low_battery_message.activate(false);
+						}
+					}
+					chicker_fault_message.activate(chicker_faulted());
+
 					signal_feedback.emit();
 				}
 			}

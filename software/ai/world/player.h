@@ -3,7 +3,6 @@
 
 #include "ai/world/robot.h"
 #include "robot_controller/robot_controller.h"
-#include "uicomponents/annunciator.h"
 #include "xbee/client/drive.h"
 #include <ctime>
 
@@ -107,10 +106,9 @@ class player : public robot {
 		bool sense_ball_;
 		bool dribble_stall;
 		unsigned int theory_dribble_rpm;
-		timespec sense_ball_start, sense_ball_end, stall_start, recover_time_start, low_battery_start_time;
+		timespec sense_ball_start, sense_ball_end, stall_start, recover_time_start;
 		double dribble_distance_;
 		point last_dribble_position;
-		annunciator::message low_battery_message, chicker_fault_message;
 
 		/**
 		 * Constructs a new player object.

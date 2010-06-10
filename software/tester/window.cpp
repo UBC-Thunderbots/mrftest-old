@@ -9,7 +9,7 @@
 #include <cassert>
 #include <functional>
 
-tester_window::tester_window(xbee_lowlevel &modem, const config &conf) : modem(modem), bot_frame("Bot"), bot_chooser(conf.robots()), claim_bot_button("Claim"), feedback_frame("Feedback"), drive_frame("Drive"), drive_widget(0), drive_zeroable(0), dribble_frame("Dribble"), dribble_scale(-1023, 1023, 1), chicker_frame("Chicker"), chicker_enabled("Enable"), chicker_kick("Kick"), chicker_chip("Chip") {
+tester_window::tester_window(xbee_lowlevel &modem, const config &conf) : modem(modem), conf(conf), bot_frame("Bot"), bot_chooser(conf.robots()), claim_bot_button("Claim"), feedback_frame("Feedback"), drive_frame("Drive"), drive_widget(0), drive_zeroable(0), dribble_frame("Dribble"), dribble_scale(-1023, 1023, 1), chicker_frame("Chicker"), chicker_enabled("Enable"), chicker_kick("Kick"), chicker_chip("Chip") {
 	set_title("Robot Tester");
 
 	bot_hbox.pack_start(bot_chooser, Gtk::PACK_EXPAND_WIDGET);
@@ -68,7 +68,8 @@ void tester_window::on_claim_toggled() {
 	chicker_enabled.set_active(false);
 
 	if (claim_bot_button.get_active()) {
-		bot = xbee_drive_bot::create(bot_chooser.address(), modem);
+		const config::robot_info &info(conf.robots().find(bot_chooser.address()));
+		bot = xbee_drive_bot::create(info.name, info.address, modem);
 		bot->signal_alive.connect(sigc::mem_fun(this, &tester_window::on_bot_alive));
 		bot->signal_dead.connect(sigc::mem_fun(this, &tester_window::on_bot_dead));
 		bot->signal_claim_failed_locked.connect(sigc::mem_fun(this, &tester_window::on_bot_claim_failed_locked));
