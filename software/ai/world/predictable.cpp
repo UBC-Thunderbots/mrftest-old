@@ -6,7 +6,7 @@
 
 namespace {
 	const int MAX_DEGREE = 3;
-	const int NUM_OLD_POSITIONS = 10;
+	const int NUM_OLD_POSITIONS = 25;
 }
 
 predictable::predictable() : initialized(false), orientation_(0.0) {

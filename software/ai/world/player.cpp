@@ -43,7 +43,7 @@ namespace {
 
 		if (x_y.x < 0) {
 			int x = static_cast<int>(BACKWARDS_SCALING_FACTOR * x_y.x);
-			return std::max(new_dribble_power, -x);
+			return clamp(std::max(new_dribble_power, -x), 0, 1023);
 		} else if (x_y.x > FORWARD_EXEMPTION_AMOUNT) {
 			return CONTINUOUS_IDLE_AMOUNT;
 		}
