@@ -12,6 +12,7 @@ namespace {
 	const unsigned int BATTERY_WARNING_THRESHOLD = 13500;
 	const unsigned int BATTERY_NOWARNING_THRESHOLD = 14500;
 	const unsigned int BATTERY_CRITICAL_THRESHOLD = 12000;
+	const unsigned int BATTERY_WARNING_FILTER_TIME = 5000;
 	const unsigned int MAX_DRIBBLE_STALL_MILLISECONDS = 2000;
 	const unsigned int DRIBBLE_RECOVER_TIME = 1000;
 
@@ -140,6 +141,7 @@ player::ptr player::create(const Glib::ustring &name, bool yellow, unsigned int 
 player::player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(false), theory_dribble_rpm(0), dribble_distance_(0.0), low_battery_message(Glib::ustring::compose("%1 low battery", name)), chicker_fault_message(Glib::ustring::compose("%1 chicker fault", name)) {
 	bot->signal_feedback.connect(sigc::mem_fun(this, &player::on_feedback));
 	clock_gettime(CLOCK_MONOTONIC, &sense_ball_end);
+	clock_gettime(CLOCK_MONOTONIC, &low_battery_start_time);
 }
 
 void player::tick(bool scram) {
@@ -201,9 +203,18 @@ void player::tick(bool scram) {
 
 void player::on_feedback() {
 	if (bot->battery_voltage() < BATTERY_WARNING_THRESHOLD) {
-		low_battery_message.activate(true);
-	} else if (bot->battery_voltage() > BATTERY_NOWARNING_THRESHOLD) {
-		low_battery_message.activate(false);
+		timespec now;
+		clock_gettime(CLOCK_MONOTONIC, &now);
+		timespec diff;
+		timespec_sub(now, low_battery_start_time, diff);
+		if (diff.tv_sec * 1000U + diff.tv_nsec / 1000000U > BATTERY_WARNING_FILTER_TIME) {
+			low_battery_message.activate(true);
+		}
+	} else {
+		clock_gettime(CLOCK_MONOTONIC, &low_battery_start_time);
+		if (bot->battery_voltage() > BATTERY_NOWARNING_THRESHOLD) {
+			low_battery_message.activate(false);
+		}
 	}
 	chicker_fault_message.activate(bot->chicker_faulted());
 

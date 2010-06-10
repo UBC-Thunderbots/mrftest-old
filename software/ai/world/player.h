@@ -107,7 +107,7 @@ class player : public robot {
 		bool sense_ball_;
 		bool dribble_stall;
 		unsigned int theory_dribble_rpm;
-		timespec sense_ball_start, sense_ball_end, stall_start, recover_time_start;
+		timespec sense_ball_start, sense_ball_end, stall_start, recover_time_start, low_battery_start_time;
 		double dribble_distance_;
 		point last_dribble_position;
 		annunciator::message low_battery_message, chicker_fault_message;
