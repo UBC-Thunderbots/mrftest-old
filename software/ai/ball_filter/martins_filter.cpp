@@ -1,5 +1,7 @@
 #include "ai/ball_filter/ball_filter.h"
 #include "util/timestep.h"
+#include "ai/world/ball.h"
+#include "geom/angle.h"
 #include <cmath>
 #include <list>
 #include <utility>
@@ -21,12 +23,15 @@ namespace {
 		private:
 			static const double RADIUS = 10.0/TIMESTEPS_PER_SECOND;
 			static const double DECAY_RATE = 0.2063; // half-life = 3 frames
+			static const double DEFAULT_CERT = 0.04; // one half-life to delete
 			static const double DELETE_THRESHOLD = 0.02; // stores < 50 circles
 			list<circle> circles;
 			point last_point;
+			bool use_closest;
+			unsigned int robot_index;
 
 		public:
-			byrons_filter() : ball_filter("Byron's Filter") {
+			byrons_filter() : ball_filter("Martin's Filter") {
 				circle c;
 				c.center = point(0, 0);
 				c.certainty = DELETE_THRESHOLD;
@@ -36,17 +41,50 @@ namespace {
                         point filter(const vector<pair<point, double> > &obs, friendly_team &friendly, enemy_team &enemy) {
 				point max_point;
 				double max_cert = -0.1;
+				bool sense_ball = false;
 
-				if (obs.empty()) {
+#warning does not look right, and has ball is broken anyways
+#warning and you should create a new filter; don't break the old one.
+				/*
+				for (unsigned int i = 0; i < friendly.size(); ++i) {
+					player::ptr player = friendly.get_player(i);
+					if (player->sense_ball()) {						
+						sense_ball = true;
+						point orient(1,0);
+						max_point = player->position() + (ball::RADIUS + robot::MAX_RADIUS) * orient.rotate(player->orientation());
+						max_cert = 1.0;
+						break;
+					}
+				}
+				*/
+
+				if (obs.empty() && !use_closest && !sense_ball) {
 					for (list<circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
 						it->certainty = (1.0 - DECAY_RATE)*it->certainty;
 					}
 				}
 				else {
-					for (unsigned int i = 0; i < obs.size(); i++) {
-						if (max_cert < obs[i].second) {
-							max_point = obs[i].first;
-							max_cert = obs[i].second;
+					if (obs.empty() && !sense_ball) {
+						point orient(1,0);
+						robot::ptr robot;
+						for (unsigned int i = 0; i < friendly.size() + enemy.size(); ++i) {
+							if (i < friendly.size()) {
+								robot = friendly.get_player(i);
+							} else {
+								robot = enemy.get_robot(i - friendly.size());
+							}		
+							if (robot->pattern_index == robot_index) {
+								max_point = robot->position() + (ball::RADIUS + robot::MAX_RADIUS) * orient.rotate(robot->orientation());
+								break;
+							}
+						}
+						max_cert = DEFAULT_CERT;
+					} else if (!sense_ball) {
+						for (unsigned int i = 0; i < obs.size(); i++) {
+							if (max_cert < obs[i].second) {
+								max_point = obs[i].first;
+								max_cert = obs[i].second;
+							}
 						}
 					}
 
@@ -64,7 +102,7 @@ namespace {
 						      max_point = last_point;
 						circle c;
 						c.center = max_point;
-						c.certainty = DECAY_RATE;
+						c.certainty = DEFAULT_CERT;
 						circles.push_back(c);
 					}
 					else {
@@ -98,6 +136,35 @@ namespace {
 					}
 				}
 				last_point = max_point_it->center;
+				
+				robot::ptr robot;
+				double min_dist = -1;
+				point ball_ref;
+				bool is_facing_ball;
+				for (unsigned int i = 0; i < friendly.size(); ++i) {
+					robot = friendly.get_player(i);
+
+					ball_ref = last_point - robot->position();
+					is_facing_ball = angle_diff(ball_ref.orientation(), robot->orientation()) < (M_PI / 2);
+					if (is_facing_ball && (min_dist == -1 || ball_ref.len() < min_dist)) {
+						robot_index = robot->pattern_index;
+						min_dist = ball_ref.len();
+					}
+				}
+
+				for (unsigned int i = 0; i < enemy.size(); ++i) {
+					robot = enemy.get_robot(i);
+
+					ball_ref = last_point - robot->position();
+					is_facing_ball = angle_diff(ball_ref.orientation(), robot->orientation()) < (M_PI / 2);
+					if (is_facing_ball && (min_dist == -1 || ball_ref.len() < min_dist)) {
+						robot_index = robot->pattern_index;	
+						min_dist = ball_ref.len();			
+					}
+				}
+
+				use_closest = min_dist != -1 && min_dist < robot::MAX_RADIUS + 1.2 * ball::RADIUS; // .2 for allowance
+				
 				return max_point_it->center;
 			}
 	};
