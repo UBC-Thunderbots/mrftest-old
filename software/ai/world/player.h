@@ -59,7 +59,13 @@ class player : public robot {
 		 * \return The number of seconds for which the player has sensed the ball.
 		 */
 		double sense_ball_time() const;
-		
+	
+		/**
+		 * \return The number of seconds elapsed since the player has sensed the ball.
+		 * May stop the AI from panicking if the player losses the ball temporarily.
+		 */
+		double last_sense_ball_time() const;
+	
 		/**
 		 * \return The speed the dribbler would be spinning at given the
 		 * current power level if it were spinning unloaded and if it had been
@@ -101,7 +107,7 @@ class player : public robot {
 		bool sense_ball_;
 		bool dribble_stall;
 		unsigned int theory_dribble_rpm;
-		timespec sense_ball_start, stall_start, recover_time_start;
+		timespec sense_ball_start, sense_ball_end, stall_start, recover_time_start;
 		double dribble_distance_;
 		point last_dribble_position;
 		annunciator::message low_battery_message, chicker_fault_message;

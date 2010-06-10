@@ -56,13 +56,19 @@ namespace ai_util {
 	static const double HAS_BALL_ALLOWANCE = 3.0;
 
 	/**
+	 * Let t be time elpased since robot senses the ball.
+	 * If t >= this number, then robot is considered to have the ball with very high probability.
+	 */
+	static const double HAS_BALL_TIME = 2.0 / 15.0;
+
+	/**
 	 * Number of points to consider when shooting at the goal.
 	 */
 	static const unsigned int SHOOTING_SAMPLE_POINTS = 9;
 
 	/**
 	 * Checks if the robot is in a position close enough to the ball to start
-	 * the dribbler motor would be nice to check for obstacles in the way of ball before doing this
+	 * So close that no other robot can be in the way of this ball.
 	 */
 	bool ball_close(const world::ptr w, const player::ptr bot);
 
@@ -134,6 +140,14 @@ namespace ai_util {
 	 * Returns 0 if the point is physically inside a considered robot.
 	 */
 	double calc_goal_visibility_angle(const field& f, const std::vector<point>& robots, const point& p);
+
+	/**
+	 * This defines what having the ball means.
+	 * It requires some level of intelligence, so perhaps it should be apart from player.
+	 * Maybe this function should depend on the vision.
+	 * Should this return a probability? I don't see the need yet.
+	 */
+	bool has_ball(const player::ptr pl);
 
 	/**
 	 * Checks if a player posses the ball.

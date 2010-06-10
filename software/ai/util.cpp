@@ -186,7 +186,7 @@ namespace ai_util {
 	}
 
 	// this function may be replaced in the future
-	double calc_goal_visibility_angle(const world::ptr w, const point& p, bool consider_friendly){
+	double calc_goal_visibility_angle(const world::ptr w, const point& p, bool consider_friendly) {
 		std::vector<std::pair<double, int> > events;
 		double l_range = (point(w->field().length()/2.0,-w->field().goal_width()/2.0) - p).orientation();
 		double h_range = (point(w->field().length()/2.0,w->field().goal_width()/2.0) - p).orientation();
@@ -195,7 +195,7 @@ namespace ai_util {
 
 		size_t lim = w->enemy.size();
 		if (consider_friendly) lim += w->friendly.size();
-		for (size_t i = 0; i < lim; ++i){
+		for (size_t i = 0; i < lim; ++i) {
 			point diff;
 			if (i < w->enemy.size()) diff = w->enemy.get_robot(i)->position() - p;
 			else diff = w->friendly.get_robot(i-w->enemy.size())->position() - p;
@@ -210,7 +210,7 @@ namespace ai_util {
 		double best = 0;
 		double sum = 0;
 		double cnt = 0;
-		for (size_t i = 0; i < events.size() - 1; i++){
+		for (size_t i = 0; i < events.size() - 1; ++i) {
 			cnt += events[i].second;
 			if (cnt > 0){
 				sum += events[i+1].first - events[i].first;
@@ -242,7 +242,7 @@ namespace ai_util {
 		double best = 0;
 		double sum = 0;
 		double cnt = 0;
-		for (size_t i = 0; i + 1 < events.size(); i++) {
+		for (size_t i = 0; i + 1 < events.size(); ++i) {
 			cnt += events[i].second;
 			if (cnt > 0) {
 				sum += events[i+1].first - events[i].first;
@@ -253,9 +253,12 @@ namespace ai_util {
 		return sum;
 	}
 
+	bool has_ball(const player::ptr pl) {
+		return pl->sense_ball() && pl->sense_ball_time() >= HAS_BALL_TIME;
+	}
+
 	bool posses_ball(const world::ptr w, const player::ptr pl) {
-		// looks broken; will fix soon
-		return pl->sense_ball() || pl->sense_ball_time() < HAS_BALL_ALLOWANCE || ball_close(w, pl);
+		return has_ball(pl) || (pl->last_sense_ball_time() < HAS_BALL_ALLOWANCE && ball_close(w, pl));
 	}
 
 }

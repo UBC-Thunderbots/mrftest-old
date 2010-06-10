@@ -101,6 +101,14 @@ double player::sense_ball_time() const {
 	}
 }
 
+double player::last_sense_ball_time() const {
+	timespec now;
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	timespec diff;
+	timespec_sub(now, sense_ball_end, diff);
+	return diff.tv_sec + diff.tv_nsec / 1000000000.0;
+}
+
 void player::dribbler_safety() {
 	if (dribble_stall) {
 		timespec now;
@@ -130,6 +138,7 @@ player::ptr player::create(const Glib::ustring &name, bool yellow, unsigned int 
 
 player::player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(false), theory_dribble_rpm(0), dribble_distance_(0.0), low_battery_message(Glib::ustring::compose("%1 low battery", name)), chicker_fault_message(Glib::ustring::compose("%1 chicker fault", name)) {
 	bot->signal_feedback.connect(sigc::mem_fun(this, &player::on_feedback));
+	clock_gettime(CLOCK_MONOTONIC, &sense_ball_end);
 }
 
 void player::tick(bool scram) {
@@ -196,8 +205,11 @@ void player::on_feedback() {
 	theory_dribble_rpm =  static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED);
 	unsigned int threshold_speed = static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED * DRIBBLER_HAS_BALL_LOAD_FACTOR);
 	bool new_sense_ball = bot->dribbler_speed() < threshold_speed;
-	if (new_sense_ball && !sense_ball_) {
-		clock_gettime(CLOCK_MONOTONIC, &sense_ball_start);
+	if (new_sense_ball) {
+		clock_gettime(CLOCK_MONOTONIC, &sense_ball_end);
+		if (!sense_ball_) {
+			clock_gettime(CLOCK_MONOTONIC, &sense_ball_start);
+		}
 	}
 
 	bool stall = (theory_dribble_rpm > 0) && (bot->dribbler_speed() < 50);
