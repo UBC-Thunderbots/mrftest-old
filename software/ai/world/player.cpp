@@ -140,8 +140,7 @@ void player::tick(bool scram) {
 		}
 		bot->drive_controlled(output[0], output[1], output[2], output[3]);
 		moved = false;
-#warning CHANGE THIS TO TRUE ONCE THE HARDWARE IS FINISHED AND TESTED
-		bot->enable_chicker(false);
+		bot->enable_chicker(true);
 		if (has_ball()) {
 			new_dribble_power = std::max(new_dribble_power, calc_dribble(output));
 		}
