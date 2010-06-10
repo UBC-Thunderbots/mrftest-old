@@ -1,5 +1,102 @@
 #include "ai/window.h"
+#include "uicomponents/abstract_list_model.h"
 #include "uicomponents/annunciator.h"
+#include "util/algorithm.h"
+#include <cstdlib>
+#include <iomanip>
+
+namespace {
+	/**
+	 * A list model that exposes a collection of interesting statistics about
+	 * all the configured robots.
+	 */
+	class robot_info_model : public Glib::Object, public abstract_list_model {
+		public:
+			/**
+			 * The column that shows the robot's 64-bit address.
+			 */
+			Gtk::TreeModelColumn<uint64_t> address_column;
+
+			/**
+			 * The column that shows the robot's name.
+			 */
+			Gtk::TreeModelColumn<Glib::ustring> name_column;
+
+			/**
+			 * The column that shows the battery level as a percentage.
+			 */
+			Gtk::TreeModelColumn<int> battery_percent_column;
+
+			/**
+			 * The column that shows the battery level as a voltage.
+			 */
+			Gtk::TreeModelColumn<Glib::ustring> battery_voltage_column;
+
+			/**
+			 * Constructs a new robot_info_model.
+			 *
+			 * \param[in] bots the robots to display information about.
+			 *
+			 * \return the new model.
+			 */
+			static Glib::RefPtr<robot_info_model> create(const config &conf, const std::vector<xbee_drive_bot::ptr> &bots) {
+				Glib::RefPtr<robot_info_model> mdl(new robot_info_model(conf, bots));
+				return mdl;
+			}
+
+		private:
+			const config &conf;
+			std::vector<xbee_drive_bot::ptr> bots;
+
+			robot_info_model(const config &conf, const std::vector<xbee_drive_bot::ptr> &bots) : Glib::ObjectBase(typeid(robot_info_model)), conf(conf), bots(bots) {
+				alm_column_record.add(address_column);
+				alm_column_record.add(name_column);
+				alm_column_record.add(battery_percent_column);
+				alm_column_record.add(battery_voltage_column);
+
+				for (unsigned int i = 0; i < bots.size(); ++i) {
+					bots[i]->signal_feedback.connect(sigc::bind(sigc::mem_fun(this, &robot_info_model::alm_row_changed), i));
+				}
+			}
+
+			unsigned int alm_rows() const {
+				return bots.size();
+			}
+
+			void alm_get_value(unsigned int row, unsigned int col, Glib::ValueBase &value) const {
+				if (col == static_cast<unsigned int>(address_column.index())) {
+					Glib::Value<uint64_t> v;
+					v.init(address_column.type());
+					v.set(conf.robots()[row].address);
+					value.init(address_column.type());
+					value = v;
+				} else if (col == static_cast<unsigned int>(name_column.index())) {
+					Glib::Value<Glib::ustring> v;
+					v.init(name_column.type());
+					v.set(conf.robots()[row].name);
+					value.init(name_column.type());
+					value = v;
+				} else if (col == static_cast<unsigned int>(battery_percent_column.index())) {
+					Glib::Value<int> v;
+					v.init(battery_percent_column.type());
+					v.set(bots[row]->alive() ? clamp((static_cast<int>(bots[row]->battery_voltage()) - 12000) * 100 / 5000, 0, 100) : 0);
+					value.init(battery_percent_column.type());
+					value = v;
+				} else if (col == static_cast<unsigned int>(battery_voltage_column.index())) {
+					Glib::Value<Glib::ustring> v;
+					v.init(battery_voltage_column.type());
+					v.set(Glib::ustring::compose("%1V", Glib::ustring::format(std::fixed, std::setprecision(2), bots[row]->battery_voltage() / 1000.0)));
+					value.init(battery_voltage_column.type());
+					value = v;
+				} else {
+					std::abort();
+				}
+			}
+
+			void alm_set_value(unsigned int, unsigned int, const Glib::ValueBase &) {
+			}
+	};
+}
 
 ai_window::ai_window(ai &ai) : the_ai(ai), strategy_controls(0), rc_controls(0), vis(ai.the_world->visualizer_view()) {
 	set_title("AI");
@@ -43,6 +140,20 @@ ai_window::ai_window(ai &ai) : the_ai(ai), strategy_controls(0), rc_controls(0),
 	vbox->pack_start(*basic_frame, Gtk::PACK_SHRINK);
 
 	Gtk::Frame *robots_frame = Gtk::manage(new Gtk::Frame("Robots"));
+	const Glib::RefPtr<robot_info_model> robots_model(robot_info_model::create(ai.the_world->conf, ai.the_world->xbee_bots));
+	Gtk::TreeView *robots_tree = Gtk::manage(new Gtk::TreeView(robots_model));
+	robots_tree->get_selection()->set_mode(Gtk::SELECTION_SINGLE);
+	robots_tree->append_column_numeric("Address", robots_model->address_column, "%016llX");
+	robots_tree->append_column("Name", robots_model->name_column);
+	Gtk::CellRendererProgress *robots_battery_renderer = Gtk::manage(new Gtk::CellRendererProgress);
+	int robots_battery_colnum = robots_tree->append_column("Battery", *robots_battery_renderer) - 1;
+	Gtk::TreeViewColumn *robots_battery_column = robots_tree->get_column(robots_battery_colnum);
+	robots_battery_column->add_attribute(robots_battery_renderer->property_value(), robots_model->battery_percent_column);
+	robots_battery_column->add_attribute(robots_battery_renderer->property_text(), robots_model->battery_voltage_column);
+	Gtk::ScrolledWindow *robots_scroller = Gtk::manage(new Gtk::ScrolledWindow);
+	robots_scroller->add(*robots_tree);
+	robots_scroller->set_shadow_type(Gtk::SHADOW_IN);
+	robots_frame->add(*robots_scroller);
 	vbox->pack_start(*robots_frame, Gtk::PACK_EXPAND_WIDGET);
 
 	Gtk::Frame *strategy_frame = Gtk::manage(new Gtk::Frame("Strategy"));
