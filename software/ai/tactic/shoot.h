@@ -1,12 +1,14 @@
 #ifndef AI_TACTIC_SHOOT_H
 #define AI_TACTIC_SHOOT_H
 
-#include "ai/tactic/chase.h"
-#include "ai/tactic/kick.h"
+#include "ai/world/world.h"
+#include "ai/tactic/tactic.h"
 
-//
-// A tactic controls the operation of a single player doing some activity.
-//
+/**
+ * If in possesion of the ball, tries to shoot to the goal.
+ * If some else in the team has the ball, be ready to receive it.
+ * Otherwise, chase the ball.
+ */
 class shoot : public tactic {
 	public:
 		//
@@ -26,10 +28,6 @@ class shoot : public tactic {
 
 	protected:
 		const world::ptr the_world;
-	
-		chase chase_tactic;
-
-		kick kick_tactic;
 
 };
 
