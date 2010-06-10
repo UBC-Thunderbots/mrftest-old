@@ -82,7 +82,6 @@ void xbee_drive_bot::drive_scram() {
 	shm_frame->run_data.drive2_speed = 0;
 	shm_frame->run_data.drive3_speed = 0;
 	shm_frame->run_data.drive4_speed = 0;
-	timespec_now(&shm_frame->timestamp);
 }
 
 void xbee_drive_bot::drive_direct(int m1, int m2, int m3, int m4) {
@@ -94,7 +93,6 @@ void xbee_drive_bot::drive_direct(int m1, int m2, int m3, int m4) {
 	shm_frame->run_data.drive2_speed = smag(m2);
 	shm_frame->run_data.drive3_speed = smag(m3);
 	shm_frame->run_data.drive4_speed = smag(m4);
-	timespec_now(&shm_frame->timestamp);
 }
 
 void xbee_drive_bot::drive_controlled(int m1, int m2, int m3, int m4) {
@@ -110,7 +108,6 @@ void xbee_drive_bot::drive_controlled(int m1, int m2, int m3, int m4) {
 	shm_frame->run_data.drive2_speed = m2;
 	shm_frame->run_data.drive3_speed = m3;
 	shm_frame->run_data.drive4_speed = m4;
-	timespec_now(&shm_frame->timestamp);
 }
 
 void xbee_drive_bot::dribble(int power) {

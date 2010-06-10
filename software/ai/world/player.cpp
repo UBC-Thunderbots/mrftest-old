@@ -132,17 +132,13 @@ player::player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot)
 }
 
 void player::tick(bool scram) {
+	// Emergency conditions that cause scram of all systems.
 	if (!bot->alive() || scram || !controller || bot->battery_voltage() < BATTERY_CRITICAL_THRESHOLD) {
-		if (controller) {
-			controller->clear();
-		}
-		if (bot->alive()) {
-			bot->drive_scram();
-			bot->enable_chicker(false);
-		}
 		moved = false;
 		new_dribble_power = 0;
 	}
+
+	// Drivetrain and chicker control path.
 	if (moved) {
 		int output[4];
 		controller->move(destination_, target_orientation, output);
@@ -155,15 +151,35 @@ void player::tick(bool scram) {
 		if (has_ball()) {
 			new_dribble_power = calc_dribble(output, new_dribble_power);
 		}
+	} else {
+		if (controller) {
+			controller->clear();
+		}
+		if (bot->alive()) {
+			bot->drive_scram();
+			bot->enable_chicker(false);
+		}
 	}
+
+	// Dribbler control path.
 	new_dribble_power = dribbler_safe() ? new_dribble_power : 0;
-	if (bot->alive()) {
+	if (new_dribble_power) {
 		bot->dribble(new_dribble_power);
 		old_dribble_power = new_dribble_power;
 		new_dribble_power = 0;
 	} else {
+		if (bot->alive()) {
+			bot->dribble(0);
+		}
 		old_dribble_power = new_dribble_power = 0;
 	}
+
+	// Timestamp the robot to notify XBeeD that we're alive and slightly sane.
+	if (bot->alive()) {
+		bot->stamp();
+	}
+
+	// Calculations.
 	if (has_ball()) {
 		dribble_distance_ += (position() - last_dribble_position).len();
 	} else {
