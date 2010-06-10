@@ -19,9 +19,14 @@ namespace {
 	}
 
 	//determines how much dribbling to do based off the inputs to the 4 motors
-	int calc_dribble(const int (&wheel_speeds)[4]) {
+	int calc_dribble(const int (&wheel_speeds)[4], int new_dribble_power) {
 		/// Angles in radians that the wheels are located off the forward direction
 		static const double ANGLES[4] = {0.959931, 2.35619, 3.9269908, 5.32325}; 
+		static const double BACKWARDS_SCALING_FACTOR = 4.0;
+		//if we are moving with this little force forwards exempt the reduction of dribble speed
+		static const double FORWARD_EXEMPTION_AMOUNT = 7.0;
+		//we are expecting to idle the motor so just set the dribble motor to a low set-point
+		static const double CONTINUOUS_IDLE_AMOUNT = 25.0;
 		int theta;
 		point x_y;
 
@@ -32,8 +37,14 @@ namespace {
 			x_y.x += speed.x;
 			x_y.y += speed.y;
 		}
-		int x = static_cast<int>(x_y.x);
-		return std::min(1023, std::max(0, -x));
+	
+		if(x_y.x < 0){
+			int x = static_cast<int>(BACKWARDS_SCALING_FACTOR*x_y.x);
+			return std::max(new_dribble_power, -x);
+		}else if(x_y.x > FORWARD_EXEMPTION_AMOUNT){
+			return CONTINUOUS_IDLE_AMOUNT;
+		}
+		return new_dribble_power;
 	}
 }
 
@@ -142,7 +153,7 @@ void player::tick(bool scram) {
 		moved = false;
 		bot->enable_chicker(true);
 		if (has_ball()) {
-			new_dribble_power = std::max(new_dribble_power, calc_dribble(output));
+		  new_dribble_power = calc_dribble(output, new_dribble_power);
 		}
 	}
 	new_dribble_power = dribbler_safe() ? new_dribble_power : 0;
