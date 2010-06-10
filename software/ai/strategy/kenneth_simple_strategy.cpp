@@ -260,7 +260,8 @@ namespace {
 ////////////////    
     int min_defender_number = 0;
     int min_offender_number = 0;
-    if (goalie_player->has_ball())
+#warning has_ball
+    if (goalie_player->sense_ball())
     {
        min_defender_number = 1;
     }

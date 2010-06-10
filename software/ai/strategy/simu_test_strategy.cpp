@@ -105,6 +105,7 @@ namespace simu_test{
   }
   
   void simu_test_strategy::tick() {
+#warning has ball being used here
 	const ball::ptr the_ball(the_world->ball());
 	const friendly_team &the_team(the_world->friendly);
     tick_count++;
@@ -161,14 +162,14 @@ namespace simu_test{
 	  switch (test_id)
 	    {
 	    case 0: 	//kick
-	      if (the_only_player->has_ball())
+	      if (the_only_player->sense_ball())
 		{ the_only_player->kick(1);
 		  std::cout << "Kick - Kick Executed" << std::endl;
 		  test_started = true;  
 		}
 	      break;
 	    case 1:	//chip
-	      if (the_only_player->has_ball())
+	      if (the_only_player->sense_ball())
 		{ the_only_player->chip(1);
 		  std::cout << "Chip - Chip Executed" << std::endl;
 		  test_started = true;  
@@ -189,7 +190,7 @@ namespace simu_test{
 	      test_started = true;  
 	      break;
 	    case 4:		//dribble
-	      if (the_only_player->has_ball())
+	      if (the_only_player->sense_ball())
 		{ std::cout << "Dribble - Has Ball" << std::endl;
 		  test_started = true;  
 		  the_only_player->dribble(1);
@@ -209,7 +210,7 @@ namespace simu_test{
 		}
 	      break;
 	    case 5:		//receive
-	      if (the_only_player->has_ball())
+	      if (the_only_player->sense_ball())
 		{ std::cout << "Receive - Has Ball" << std::endl;
 		  the_only_player->dribble(1);
 		  std::cout << "Receive - Dribble Executed" << std::endl;
@@ -340,7 +341,7 @@ namespace simu_test{
 	      case 5:		//receive
 		if (!tc_receive_receiving)
 		  {
-		    if (the_only_player->has_ball())
+		    if (the_only_player->sense_ball())
 		      {
 			std::cout << "Test#6 Ball received, wait to see if the ball will bounce off." << std::endl;
 			tc_receive_receiving = true;
@@ -350,7 +351,7 @@ namespace simu_test{
 		      }
 		  }else
 		  {
-		    if (the_only_player->has_ball())
+		    if (the_only_player->sense_ball())
 		      {
 			tc_receive_receive_count++;
 			std::cout << "Test#6 Timestep:" << tc_receive_receive_count << " Still has ball." << std::endl;

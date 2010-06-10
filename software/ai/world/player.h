@@ -46,17 +46,18 @@ class player : public robot {
 		void chip(double power);
 
 		/**
-		 * \return true if this player has control of the ball, or false if not
+		 * \return true if the player senses the ball.
+		 * WARNING!!! This can be a false positive,
+		 * especially if the dribbler is spinning up or down.
 		 */
-		bool has_ball() const {
-			return has_ball_;
+		bool sense_ball() const {
+			return sense_ball_;
 		}
 
 		/**
-		 * \return The number of seconds for which the player has held the ball
+		 * \return The number of seconds for which the player has sensed the ball.
 		 */
-		double has_ball_time() const;
-
+		double sense_ball_time() const;
 		
 		/**
 		 * \return The speed the dribbler would be spinning at given the
@@ -96,10 +97,10 @@ class player : public robot {
 		bool moved;
 		int new_dribble_power;
 		int old_dribble_power;
-		bool has_ball_;
+		bool sense_ball_;
 		bool dribble_stall;
 		unsigned int theory_dribble_rpm;
-		timespec has_ball_start, stall_start, recover_time_start;
+		timespec sense_ball_start, stall_start, recover_time_start;
 		double dribble_distance_;
 		point last_dribble_position;
 

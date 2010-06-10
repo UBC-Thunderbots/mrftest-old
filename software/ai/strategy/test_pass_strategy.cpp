@@ -42,7 +42,8 @@ namespace {
 		move_tactic.tick();
 
 		// kick it to a random place if the receiver has the ball
-		if (receiver->has_ball()) {
+#warning has ball here
+		if (receiver->sense_ball()) {
 
 			kick kick_tactic(receiver, the_world);
 
@@ -57,7 +58,8 @@ namespace {
 
 		player::ptr passer = the_team.get_player(1);
 //		std::cout << passer->est_velocity() << std::endl;
-		if (passer->has_ball()) {
+#warning has ball here
+		if (passer->sense_ball()) {
 //			std::cout << "passer has ball" << std::endl;
 			pass pass_tactic(passer, the_world, receiver);
 			pass_tactic.tick();

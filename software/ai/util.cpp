@@ -88,7 +88,8 @@ namespace ai_util {
 		}
 		for (size_t i = 0; i < w->friendly.size(); ++i) {
 			const player::ptr plr = w->friendly.get_player(i);
-			if (plr->has_ball() || plr == passee) continue;
+#warning has ball here
+			if (plr->sense_ball() || plr == passee) continue;
 			const point rp = plr->position() - passee->position();
 			const double proj = rp.dot(direction);
 			const double perp = sqrt(rp.dot(rp) - proj * proj);
@@ -253,7 +254,8 @@ namespace ai_util {
 	}
 
 	bool posses_ball(const world::ptr w, const player::ptr pl) {
-		return pl->has_ball() || pl->has_ball_time() < HAS_BALL_ALLOWANCE || ball_close(w, pl);
+		// looks broken; will fix soon
+		return pl->sense_ball() || pl->sense_ball_time() < HAS_BALL_ALLOWANCE || ball_close(w, pl);
 	}
 
 }

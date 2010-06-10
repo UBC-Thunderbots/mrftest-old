@@ -9,7 +9,8 @@ execute_penalty_friendly::execute_penalty_friendly(world::ptr world) : the_world
 void execute_penalty_friendly::tick() {
 	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
 
-	if (!the_shooter->has_ball()) {
+#warning has ball here
+	if (!the_shooter->sense_ball()) {
 		chase::ptr tactic(new chase(the_shooter, the_world));
 		tactic->set_flags(flags);
 		tactic->tick();

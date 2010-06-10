@@ -35,9 +35,10 @@ void execute_kickoff_friendly::tick(){
 	for (size_t i = 0; i < the_robots.size(); i++){
 		// If ball is in play, kicker should not touch the ball again
 		// kicker moves back to make way for other players to grab the ball
-		if (contacted_ball && !the_robots[i]->has_ball()) {
+#warning has ball here
+		if (contacted_ball && !the_robots[i]->sense_ball()) {
 			avoid_ball(i);
-		} else if (the_robots[i]->has_ball()){
+		} else if (the_robots[i]->sense_ball()){
 			contacted_ball = true;
 			kick_ball(i);
 		} else{

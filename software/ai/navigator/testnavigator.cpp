@@ -21,7 +21,7 @@ void testnavigator::tick() {
       // if we have the ball, adjust our destination to ensure that we
       // don't take the ball out of bounds, otherwise, head to our
       // assigned destination
-      if (the_player->has_ball())
+      if (the_player->sense_ball())
 	{
      
 	  nowDest = clip_point(currDest,

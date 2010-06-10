@@ -18,9 +18,9 @@ namespace {
 	const double AVOID_BALL_AMOUNT = 0.5 ;
 
 // hardware dependent dribble parameters
-	const double DRIBBLE_SPEED_LOW  = 0.25;
+	const double DRIBBLE_SPEED_LOW  = 0.15;
 	const double DRIBBLE_SPEED_RAMP = 0.01;
-	const double DRIBBLE_SPEED_MAX  = 0.60;
+	const double DRIBBLE_SPEED_MAX  = 0.45;
 
 }
 
@@ -29,10 +29,6 @@ robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_pla
 
 double robot_navigator::get_avoidance_factor() const {
 	return AVOID_CONST + AVOID_MULT * the_player->est_velocity().len();
-}
-
-bool robot_navigator::dst_ok(point dst){
-  return  (dst - get_inbounds_point(dst)).len() <= ai_util::POS_CLOSE;
 }
 
 point robot_navigator::force_defense_len(point dst){
@@ -180,8 +176,9 @@ void robot_navigator::tick() {
 	const double distance = (wantdest - the_player->position()).len();
 
 	// dribble when it needs to
-	if ((ai_util::ball_close(the_world, the_player) || the_player->has_ball()) && !(flags & avoid_ball_stop)) {
-		const double dribblespeed = std::min(DRIBBLE_SPEED_LOW + DRIBBLE_SPEED_RAMP * the_player->has_ball_time(), DRIBBLE_SPEED_MAX);
+#warning has_ball
+	if ((ai_util::ball_close(the_world, the_player) || the_player->sense_ball()) && !(flags & avoid_ball_stop)) {
+		const double dribblespeed = std::min(DRIBBLE_SPEED_LOW + DRIBBLE_SPEED_RAMP * the_player->sense_ball_time(), DRIBBLE_SPEED_MAX);
 		the_player->dribble(dribblespeed);
 	} else {
 		the_player->dribble(0.0);
@@ -244,23 +241,13 @@ void robot_navigator::tick() {
 	}
 }
 
-void robot_navigator::set_position(const point &position) {
-	position_initialized = true;
-	target_position = position;
-}
-
-void robot_navigator::set_orientation(const double &orientation) {
-	orientation_initialized = true;
-	target_orientation = orientation;
-}
-
 // TODO: use the util functions
 bool robot_navigator::check_vector(const point& start, const point& dest, const point& direction) const {
 	const ball::ptr the_ball(the_world->ball());
 	const point startdest = dest - start;
 	const double lookahead = std::min(startdest.len(), LOOKAHEAD_MAX);
 
-	if(abs(direction.len() - 1.0) > ai_util::POS_CLOSE) {
+	if (abs(direction.len() - 1.0) > ai_util::POS_CLOSE) {
 		std::cerr << " Direction not normalized! " << direction.len() << std::endl;
 		return false;
 	}

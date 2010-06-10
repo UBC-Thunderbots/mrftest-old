@@ -25,7 +25,10 @@ class robot_navigator : public noncopyable {
 		 * Sets the desired location for this time step.
 		 * You have to call this function for every tick.
 		 */
-		void set_position(const point& position);
+		void set_position(const point& position) {
+			position_initialized = true;
+			target_position = position;
+		}
 
 		/**
 		 * Normally the navigator sets the robot orientation to be towards the ball.
@@ -34,7 +37,10 @@ class robot_navigator : public noncopyable {
 		 * You have to call this function every timestep.
 		 * \param orientation
 		 */
-		void set_orientation(const double& orientation);
+		void set_orientation(const double& orientation) {
+			orientation_initialized = true;
+			target_orientation = orientation;
+		}
 
 		/**
 		 * Conditions that the robot must obey.
@@ -60,8 +66,6 @@ class robot_navigator : public noncopyable {
 		}
 
 	private:
-	
-		bool dst_ok(point dst);
 	
 		point get_inbounds_point(point dst);
 		point force_defense_len(point dst);

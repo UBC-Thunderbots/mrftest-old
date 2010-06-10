@@ -27,7 +27,8 @@ void kick::tick() {
 	// don't forget
 	navi.set_flags(flags);
 
-	if (!the_player->has_ball()) {
+#warning has ball here
+	if (!the_player->sense_ball()) {
 		std::cerr << "kick tactic: robot does not have the ball and yet it tries to kick!?" << std::endl;
 		// TODO: for the sake of testing, enable kicking the air
 	}

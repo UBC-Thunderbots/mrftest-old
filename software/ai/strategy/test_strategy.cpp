@@ -83,8 +83,9 @@ namespace {
 			player::ptr the_player = the_team.get_player(i);
 
 			pass pass_tactic(the_player, the_world, receiver);
-			if (the_player->has_ball())
-				std::cout << "Player " << i << " has the ball." << std::endl;
+#warning has_ball
+			if (the_player->sense_ball())
+				std::cout << "Player " << i << " sense the ball." << std::endl;
 			pass_tactic.tick();
 		}	
 	}

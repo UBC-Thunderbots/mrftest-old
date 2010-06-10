@@ -171,20 +171,16 @@ namespace {
 			reset();
 		}
 		player::ptr the_player = the_team.get_player(0);
-		if (!the_player->has_ball()) {
+		if (!the_player->sense_ball()) {
 			the_player->dribble(dribble_scale1.get_value());
 		} else {
 			the_player->dribble(dribble_scale2.get_value());
 		}
-		{
-			Glib::ustring text1 = Glib::ustring::compose("Theory dribble %1", the_player->theory_dribbler_speed());
-			dribble_text1.set_label(text1);
-		}
-		{
-			Glib::ustring text2 = Glib::ustring::compose("Actual dribble %1", the_player->dribbler_speed());
-			dribble_text2.set_label(text2);
-		}
-		if (dribble_checkbutton.get_active() && !the_player->has_ball()) {
+		const Glib::ustring text1 = Glib::ustring::compose("Theory dribble %1", the_player->theory_dribbler_speed());
+		const Glib::ustring text2 = Glib::ustring::compose("Actual dribble %1", the_player->dribbler_speed());
+		dribble_text1.set_label(text1);
+		dribble_text2.set_label(text2);
+		if (dribble_checkbutton.get_active() && !the_player->sense_ball()) {
 			const point balldist = the_world->ball()->position() - the_player->position();
 			the_player->move(the_world->ball()->position(), atan2(balldist.y, balldist.x));
 		} else {

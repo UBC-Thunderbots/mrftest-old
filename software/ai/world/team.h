@@ -177,15 +177,6 @@ class friendly_team : public team {
 			return std::vector<robot::ptr>(members.begin(), members.end());
 		}
 
-		/**
-		 * \return True only if one of the players has a ball.
-		 */
-		bool have_ball() const {
-			for (size_t i = 0; i < members.size(); i++)
-				if (members[i]->has_ball()) return true;
-			return false;
-		}
-
 	private:
 		std::vector<player::ptr> members;
 

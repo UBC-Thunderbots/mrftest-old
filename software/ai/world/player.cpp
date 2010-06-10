@@ -88,12 +88,12 @@ void player::chip(double power) {
 	}
 }
 
-double player::has_ball_time() const {
-	if (has_ball_) {
+double player::sense_ball_time() const {
+	if (sense_ball_) {
 		timespec now;
 		clock_gettime(CLOCK_MONOTONIC, &now);
 		timespec diff;
-		timespec_sub(now, has_ball_start, diff);
+		timespec_sub(now, sense_ball_start, diff);
 		return diff.tv_sec + diff.tv_nsec / 1000000000.0;
 	} else {
 		return 0.0;
@@ -127,7 +127,7 @@ player::ptr player::create(bool yellow, unsigned int pattern_index, xbee_drive_b
 	return p;
 }
 
-player::player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), has_ball_(false), theory_dribble_rpm(0), dribble_distance_(0.0) {
+player::player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(false), theory_dribble_rpm(0), dribble_distance_(0.0) {
 	bot->signal_feedback.connect(sigc::mem_fun(this, &player::on_feedback));
 }
 
@@ -148,7 +148,7 @@ void player::tick(bool scram) {
 		bot->drive_controlled(output[0], output[1], output[2], output[3]);
 		moved = false;
 		bot->enable_chicker(true);
-		if (has_ball()) {
+		if (sense_ball()) {
 			new_dribble_power = calc_dribble(output, new_dribble_power);
 		}
 	} else {
@@ -180,7 +180,7 @@ void player::tick(bool scram) {
 	}
 
 	// Calculations.
-	if (has_ball()) {
+	if (sense_ball()) {
 		dribble_distance_ += (position() - last_dribble_position).len();
 	} else {
 		dribble_distance_ = 0.0;
@@ -191,9 +191,9 @@ void player::tick(bool scram) {
 void player::on_feedback() {
 	theory_dribble_rpm =  static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED);
 	unsigned int threshold_speed = static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED * DRIBBLER_HAS_BALL_LOAD_FACTOR);
-	bool new_has_ball = bot->dribbler_speed() < threshold_speed;
-	if (new_has_ball && !has_ball_) {
-		clock_gettime(CLOCK_MONOTONIC, &has_ball_start);
+	bool new_sense_ball = bot->dribbler_speed() < threshold_speed;
+	if (new_sense_ball && !sense_ball_) {
+		clock_gettime(CLOCK_MONOTONIC, &sense_ball_start);
 	}
 
 	bool stall = (theory_dribble_rpm > 0) && (bot->dribbler_speed() < 50);
@@ -202,6 +202,6 @@ void player::on_feedback() {
 	}
 
 	dribble_stall = stall;
-	has_ball_ = new_has_ball;
+	sense_ball_ = new_sense_ball;
 }
 

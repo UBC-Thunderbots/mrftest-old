@@ -26,7 +26,8 @@ void defensive::move_halfway_between_ball_and_our_goal(int index) {
 void defensive::tick_goalie() {
 	if (the_goalie == NULL) return;
 
-	if (the_goalie->has_ball()) {
+#warning has ball here
+	if (the_goalie->sense_ball()) {
 		if (the_robots.size()==0) { // there is no one to pass to
 			//TODO the goalie is the only robot in the field, it should probably kick the ball to the other side of the field ASAP...but this is up to you. 
 		} else {
@@ -134,7 +135,8 @@ void defensive::tick() {
 			// If a player nearest to the goal area has the ball
 			// that player is probably a goalie, chase the ball!
 			std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(the_world->field().friendly_goal()));
-			if (friends.size() > 0 && friends[0]->has_ball()) {
+#warning sense ball here
+			if (friends.size() > 0 && friends[0]->sense_ball()) {
 				receive::ptr receive_tactic(new receive(the_robots[0], the_world));
 				tactics[0] = receive_tactic;
 				skipme = 0;

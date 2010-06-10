@@ -23,7 +23,7 @@ void basic_navigator::tick() {
 	// if we have the ball, adjust our destination to ensure that we
 	// don't take the ball out of bounds, otherwise, head to our
 	// assigned destination
-	if (the_player->has_ball()) {
+	if (the_player->sense_ball()) {
 		nowdest = clip_point(curr_dest, point(-the_field.length()/2 + outofbounds_margin, -the_field.width()/2 + outofbounds_margin),
 				point(the_field.length()/2 - outofbounds_margin, the_field.width()/2 - outofbounds_margin));
 	} else {
@@ -34,7 +34,7 @@ void basic_navigator::tick() {
 
 	// at least face the ball
 	if (direction.len() < 0.01) {
-		if (!the_player->has_ball())
+		if (!the_player->sense_ball())
 			the_player->move(the_player->position(), atan2(balldirection.y, balldirection.x));
 		return;
 	}
@@ -44,7 +44,7 @@ void basic_navigator::tick() {
 
 	point leftdirection = direction;
 	point rightdirection = direction;
-	
+
 	double angle = 0.0;
 
 	bool undiverted = true;
