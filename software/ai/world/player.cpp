@@ -9,6 +9,7 @@
 namespace {
 	const unsigned int MAX_DRIBBLER_SPEED = 40000;
 	const double DRIBBLER_HAS_BALL_LOAD_FACTOR = 0.75;
+	const unsigned int BATTERY_WARNING_THRESHOLD = 13500;
 	const unsigned int BATTERY_CRITICAL_THRESHOLD = 12000;
 	const unsigned int MAX_DRIBBLE_STALL_MILLISECONDS = 2000;
 	const unsigned int DRIBBLE_RECOVER_TIME = 1000;
@@ -122,12 +123,12 @@ bool player::dribbler_safe() const {
 	return milliseconds > DRIBBLE_RECOVER_TIME;
 }
 
-player::ptr player::create(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) {
-	ptr p(new player(yellow, pattern_index, bot));
+player::ptr player::create(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) {
+	ptr p(new player(name, yellow, pattern_index, bot));
 	return p;
 }
 
-player::player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(false), theory_dribble_rpm(0), dribble_distance_(0.0) {
+player::player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(false), theory_dribble_rpm(0), dribble_distance_(0.0), low_battery_message(Glib::ustring::compose("%1 low battery", name)), chicker_fault_message(Glib::ustring::compose("%1 chicker fault", name)) {
 	bot->signal_feedback.connect(sigc::mem_fun(this, &player::on_feedback));
 }
 
@@ -189,6 +190,9 @@ void player::tick(bool scram) {
 }
 
 void player::on_feedback() {
+	low_battery_message.activate(bot->battery_voltage() < BATTERY_WARNING_THRESHOLD);
+	chicker_fault_message.activate(bot->chicker_faulted());
+
 	theory_dribble_rpm =  static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED);
 	unsigned int threshold_speed = static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED * DRIBBLER_HAS_BALL_LOAD_FACTOR);
 	bool new_sense_ball = bot->dribbler_speed() < threshold_speed;

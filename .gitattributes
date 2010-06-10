@@ -265,6 +265,8 @@ software/tester/window.h -text
 software/tester/zeroable.h -text
 software/uicomponents/abstract_list_model.cpp -text
 software/uicomponents/abstract_list_model.h -text
+software/uicomponents/annunciator.cpp -text
+software/uicomponents/annunciator.h -text
 software/uicomponents/battery_meter.cpp -text
 software/uicomponents/battery_meter.h -text
 software/uicomponents/dribbler_meter.cpp -text

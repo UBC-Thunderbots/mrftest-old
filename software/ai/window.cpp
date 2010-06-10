@@ -1,4 +1,5 @@
 #include "ai/window.h"
+#include "uicomponents/annunciator.h"
 
 ai_window::ai_window(ai &ai) : the_ai(ai), strategy_controls(0), rc_controls(0), vis(ai.the_world->visualizer_view()) {
 	set_title("AI");
@@ -70,6 +71,8 @@ ai_window::ai_window(ai &ai) : the_ai(ai), strategy_controls(0), rc_controls(0),
 	vis_button.set_label("Visualizer");
 	vis_button.signal_toggled().connect(sigc::mem_fun(this, &ai_window::on_vis_toggled));
 	vbox->pack_start(vis_button, Gtk::PACK_SHRINK);
+
+	vbox->pack_start(*Gtk::manage(new annunciator), Gtk::PACK_SHRINK);
 
 	add(*vbox);
 

@@ -3,6 +3,7 @@
 
 #include "ai/world/robot.h"
 #include "robot_controller/robot_controller.h"
+#include "uicomponents/annunciator.h"
 #include "xbee/client/drive.h"
 #include <ctime>
 
@@ -103,19 +104,20 @@ class player : public robot {
 		timespec sense_ball_start, stall_start, recover_time_start;
 		double dribble_distance_;
 		point last_dribble_position;
+		annunciator::message low_battery_message, chicker_fault_message;
 
 		/**
 		 * Constructs a new player object.
 		 * \param bot the XBee robot being driven
 		 * \return the new object
 		 */
-		static ptr create(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot);
+		static ptr create(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot);
 
 		/**
 		 * Constructs a new player object.
 		 * \param bot the XBee robot being driven
 		 */
-		player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot);
+		player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot);
 
 		/**
 		 * Drives one tick of time through the robot_controller and to the XBee.
