@@ -32,7 +32,7 @@ namespace {
 		const point LEFT(-1, 0);
 
 		// player 0 is the receiver
-		player::ptr receiver = the_team.get_player(0);
+		const player::ptr receiver = the_team.get_player(0);
 		move move_tactic(receiver, the_world);
 		if ((receiver->position() - LEFT).lensq() > 0.05) 
 			move_tactic.set_position(LEFT);
@@ -42,8 +42,8 @@ namespace {
 		move_tactic.tick();
 
 		// kick it to a random place if the receiver has the ball
-#warning has ball here
-		if (receiver->sense_ball()) {
+		if (ai_util::has_ball(receiver)) {
+			std::cout << "receiver has ball" << std::endl;
 
 			kick kick_tactic(receiver, the_world);
 
@@ -56,11 +56,10 @@ namespace {
 			kick_tactic.tick();
 		}
 
-		player::ptr passer = the_team.get_player(1);
+		const player::ptr passer = the_team.get_player(1);
 //		std::cout << passer->est_velocity() << std::endl;
-#warning has ball here
-		if (passer->sense_ball()) {
-//			std::cout << "passer has ball" << std::endl;
+		if (ai_util::has_ball(passer)) {
+			std::cout << "passer has ball" << std::endl;
 			pass pass_tactic(passer, the_world, receiver);
 			pass_tactic.tick();
 		} else {

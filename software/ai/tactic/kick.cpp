@@ -5,7 +5,7 @@
 #include <iostream>
 
 namespace {
-	const double TOL = 1.0 / 180.0 * M_PI;
+	const double TOL = 3.0 / 180.0 * M_PI;
 }
 
 /*
@@ -39,10 +39,12 @@ void kick::tick() {
 		return;
 	}
 
-	point dist = kick_target-the_player->position();
+	point dist = kick_target - the_player->position();
 
 	// turn towards the target
 	navi.set_orientation(dist.orientation());
+	// and move towards it
+	navi.set_position(target);
 	if (angle_diff(dist.orientation(), the_player->orientation()) > TOL) {
 		navi.tick();	
 		return;
