@@ -9,7 +9,7 @@
 namespace {
 	const unsigned int BATTERY_WARNING_THRESHOLD = 13500;
 	const unsigned int BATTERY_NOWARNING_THRESHOLD = 14500;
-	const unsigned int BATTERY_WARNING_FILTER_TIME = 5000;
+	const unsigned int BATTERY_WARNING_FILTER_TIME = 10000;
 	const unsigned int CHICKER_FAULT_COUNT_MAX = 7;
 
 	unsigned int smag(int val) {
