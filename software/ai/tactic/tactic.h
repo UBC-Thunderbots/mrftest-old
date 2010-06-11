@@ -6,7 +6,8 @@
 #include <glibmm.h>
 
 /**
- * A tactic controls the operation of a single player doing some activity.
+ * A tactic controls the operation of one single player doing a very specific activity.
+ * Tactics are NOT persistent.
  */
 class tactic : public byref {
 	public:
@@ -20,19 +21,22 @@ class tactic : public byref {
 		 * will examine the robot for which it is responsible, determine how it
 		 * wishes that robot to move, and then do one of the following:
 		 *
-		 * If this tactic is layered on top of another tactic, call
-		 * tactic::tick() on that lower-level tactic, OR
+		 * Most tactics should only be a layer on top of a robot navigator.
+		 * Such a tactic may need to call navigator::set_position()
+		 * and navigator::set_flags(). navigator::tick() MUST be called
+		 * before this function ends. OR
 		 *
-		 * If this tactic is the bottom-level tactic and is layered on top of a
-		 * navigator, call navigator::set_point() and then navigator::tick(), OR
+		 * More complex tactics can be layered on top of another tactic, call
+		 * tactic::set_flags() and then tactic::tick() on that lower-level tactic.
 		 *
-		 * If this tactic is the bottom-level tactic and does not use a
-		 * navigator, call player::move().
+		 * Tactic should NEVER call player::move() directly because doing so 
+		 * will ignore any flags that are set.
 		 */
 		virtual void tick() = 0;
 
 		/**
-		 * Set flags that restrict the movement of the robots.
+		 * Set flags that restrict the movement of the robots. Such flags
+		 * are used to enforce rules, such as avoiding the enemy defence area.
 		 * Flags are permanent once set.
 		 */
 		void set_flags(const unsigned int& f) {
@@ -49,17 +53,11 @@ class tactic : public byref {
 		explicit tactic(player::ptr player) : flags(0), the_player(player) {
 		}
 
-		/**
-		 * Constructor, with flags argument.
-		 */
-		explicit tactic(const unsigned int& f) : flags(f) {
-		}
-
 		explicit tactic(player::ptr player, const unsigned int& f) : flags(f), the_player(player) {
 		}
 
 		unsigned int flags;
-		player::ptr the_player;
+		const player::ptr the_player;
 };
 
 #endif
