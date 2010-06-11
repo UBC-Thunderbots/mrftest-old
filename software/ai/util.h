@@ -36,7 +36,7 @@ namespace ai_util {
 	 * Orientation epsilon.
 	 * Generally higher than position epsilon.
 	 */
-	static const double ORI_CLOSE = 1e-2;
+	static const double ORI_CLOSE = 3.0 / 180.0 * M_PI;
 
 	/**
 	 * Position epsilon.

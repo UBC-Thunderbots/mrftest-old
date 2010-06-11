@@ -28,23 +28,19 @@ namespace {
 		const friendly_team &the_team(the_world->friendly);
 		const ball::ptr the_ball(the_world->ball());
 
-		if (the_team.size() != 2)	return;
-
-		const point LEFT(-1, 0);
+		if (the_team.size() != 2) return;
 
 		// player 0 is the receiver
 		const player::ptr receiver = the_team.get_player(0);
 		move move_tactic(receiver, the_world);
-		if ((receiver->position() - LEFT).lensq() > 0.05) 
-			move_tactic.set_position(LEFT);
-		else 
-			move_tactic.set_position(receiver->position());
-
+		move_tactic.set_position(point(0.0, 0.0));
 		move_tactic.tick();
 
+		bool receiverhasball = ai_util::has_ball(receiver);
+
 		// kick it to a random place if the receiver has the ball
-		if (ai_util::has_ball(receiver)) {
-			std::cout << "receiver has ball" << std::endl;
+		if (receiverhasball) {
+			std::cout << "strategy: receiver has ball, shoot randomly" << std::endl;
 
 			kick kick_tactic(receiver, the_world);
 
@@ -60,10 +56,13 @@ namespace {
 		const player::ptr passer = the_team.get_player(1);
 //		std::cout << passer->est_velocity() << std::endl;
 		if (ai_util::has_ball(passer)) {
-			std::cout << "passer has ball" << std::endl;
+			std::cout << "strategy: passer has ball" << std::endl;
 			pass pass_tactic(passer, the_world, receiver);
 			pass_tactic.tick();
+		} else if (receiverhasball) {
+			// receiver has the ball, go somewhere?
 		} else {
+			std::cout << "strategy: chase ball" << std::endl;
 			chase chase_tactic(passer, the_world);
 			chase_tactic.tick();
 		}

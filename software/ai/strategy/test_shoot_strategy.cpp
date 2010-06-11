@@ -19,6 +19,8 @@ namespace {
 
 	void test_shoot_strategy::tick() {
 
+		if (the_world->friendly.size() == 0) return;
+
 		player::ptr shooter = the_world->friendly.get_player(0);
 		shoot shoot_tactic(shooter, the_world);
 		

@@ -6,13 +6,12 @@ receive::receive(player::ptr player, world::ptr world) : tactic(player), the_wor
 
 void receive::tick() {
 	if (!ai_util::can_pass(the_world, the_player)) {
-		// try to find line of sight
-		// for now just chase ball
-		// TODO: implement, calculate rays and stuff
+		// TODO: maybe make the robot face towards the ball first.
+		// TODO: implement, calculate rays and stuff and calculate the best position, but that will be later
 		navi.set_position(the_world->ball()->position());
 	} else {
-		// if this robot is to receive the pass, just stand still and turn towards the passer
-		navi.set_orientation((the_world->ball()->position() - the_player->position()).orientation());
+		// navigator always turn towards ball by default
+		// all we need now is to turn on dribbler
 		navi.set_dribbler();
 	}
 	navi.set_flags(flags);
