@@ -216,8 +216,6 @@ void xbee_drive_bot::on_meta(const void *buffer, std::size_t length) {
 					feedback_timestamp_ = now;
 
 					if (battery_voltage() < BATTERY_WARNING_THRESHOLD) {
-						timespec now;
-						clock_gettime(CLOCK_MONOTONIC, &now);
 						timespec diff;
 						timespec_sub(now, low_battery_start_time, diff);
 						if (diff.tv_sec * 1000U + diff.tv_nsec / 1000000U > BATTERY_WARNING_FILTER_TIME) {
