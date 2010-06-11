@@ -24,12 +24,12 @@ class team : public byref {
 		/**
 		 * Fired when a robot is added to the team.
 		 */
-		sigc::signal<void, unsigned int, robot::ptr> signal_robot_added;
+		mutable sigc::signal<void, unsigned int, robot::ptr> signal_robot_added;
 
 		/**
 		 * Fired when a robot is removed from the team.
 		 */
-		sigc::signal<void, unsigned int, robot::ptr> signal_robot_removed;
+		mutable sigc::signal<void, unsigned int, robot::ptr> signal_robot_removed;
 
 		/**
 		 * \return The number of robots on the team.
@@ -132,12 +132,12 @@ class friendly_team : public team {
 		/**
 		 * Fired when a player is added to the team.
 		 */
-		sigc::signal<void, unsigned int, player::ptr> signal_player_added;
+		mutable sigc::signal<void, unsigned int, player::ptr> signal_player_added;
 
 		/**
 		 * Fired when a player is removed from the team.
 		 */
-		sigc::signal<void, unsigned int, player::ptr> signal_player_removed;
+		mutable sigc::signal<void, unsigned int, player::ptr> signal_player_removed;
 
 		/**
 		 * \return The number of robots on the team

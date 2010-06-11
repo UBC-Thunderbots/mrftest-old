@@ -48,6 +48,10 @@ namespace {
 	}
 }
 
+uint64_t player::address() const {
+	return bot->address;
+}
+
 void player::move(const point &dest, double target_ori) {
 	if (std::isnan(dest.x) || std::isnan(dest.y)) {
 		destination_ = position();

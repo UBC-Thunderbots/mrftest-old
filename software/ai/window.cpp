@@ -23,6 +23,18 @@ namespace {
 			Gtk::TreeModelColumn<Glib::ustring> name_column;
 
 			/**
+			 * The column that shows whether or not radio communication is
+			 * established with this robot.
+			 */
+			Gtk::TreeModelColumn<bool> radio_column;
+
+			/**
+			 * The column that shows whether or not this robot is visible from
+			 * the cameras.
+			 */
+			Gtk::TreeModelColumn<bool> visible_column;
+
+			/**
 			 * The column that shows the battery level in millivolts.
 			 */
 			Gtk::TreeModelColumn<unsigned int> battery_column;
@@ -44,24 +56,50 @@ namespace {
 			 *
 			 * \return the new model.
 			 */
-			static Glib::RefPtr<robot_info_model> create(const config &conf, const std::vector<xbee_drive_bot::ptr> &bots) {
-				Glib::RefPtr<robot_info_model> mdl(new robot_info_model(conf, bots));
+			static Glib::RefPtr<robot_info_model> create(const config &conf, const std::vector<xbee_drive_bot::ptr> &bots, const friendly_team &friendly) {
+				Glib::RefPtr<robot_info_model> mdl(new robot_info_model(conf, bots, friendly));
 				return mdl;
 			}
 
 		private:
 			const config &conf;
 			std::vector<xbee_drive_bot::ptr> bots;
+			std::vector<bool> visible;
 
-			robot_info_model(const config &conf, const std::vector<xbee_drive_bot::ptr> &bots) : Glib::ObjectBase(typeid(robot_info_model)), conf(conf), bots(bots) {
+			robot_info_model(const config &conf, const std::vector<xbee_drive_bot::ptr> &bots, const friendly_team &friendly) : Glib::ObjectBase(typeid(robot_info_model)), conf(conf), bots(bots), visible(bots.size(), false) {
 				alm_column_record.add(address_column);
 				alm_column_record.add(name_column);
+				alm_column_record.add(radio_column);
+				alm_column_record.add(visible_column);
 				alm_column_record.add(battery_column);
 				alm_column_record.add(feedback_interval_column);
 				alm_column_record.add(run_data_interval_column);
 
 				for (unsigned int i = 0; i < bots.size(); ++i) {
 					bots[i]->signal_feedback.connect(sigc::bind(sigc::mem_fun(this, &robot_info_model::alm_row_changed), i));
+					bots[i]->signal_alive.connect(sigc::bind(sigc::mem_fun(this, &robot_info_model::alm_row_changed), i));
+					bots[i]->signal_dead.connect(sigc::bind(sigc::mem_fun(this, &robot_info_model::alm_row_changed), i));
+				}
+
+				friendly.signal_player_added.connect(sigc::mem_fun(this, &robot_info_model::on_player_added));
+				friendly.signal_player_removed.connect(sigc::mem_fun(this, &robot_info_model::on_player_removed));
+			}
+
+			void on_player_added(unsigned int, player::ptr plr) {
+				for (unsigned int i = 0; i < bots.size(); ++i) {
+					if (bots[i]->address == plr->address()) {
+						visible[i] = true;
+						alm_row_changed(i);
+					}
+				}
+			}
+
+			void on_player_removed(unsigned int, player::ptr plr) {
+				for (unsigned int i = 0; i < bots.size(); ++i) {
+					if (bots[i]->address == plr->address()) {
+						visible[i] = false;
+						alm_row_changed(i);
+					}
 				}
 			}
 
@@ -81,6 +119,18 @@ namespace {
 					v.init(name_column.type());
 					v.set(conf.robots()[row].name);
 					value.init(name_column.type());
+					value = v;
+				} else if (col == static_cast<unsigned int>(radio_column.index())) {
+					Glib::Value<bool> v;
+					v.init(visible_column.type());
+					v.set(bots[row]->alive());
+					value.init(visible_column.type());
+					value = v;
+				} else if (col == static_cast<unsigned int>(visible_column.index())) {
+					Glib::Value<bool> v;
+					v.init(visible_column.type());
+					v.set(visible[row]);
+					value.init(visible_column.type());
 					value = v;
 				} else if (col == static_cast<unsigned int>(battery_column.index())) {
 					Glib::Value<unsigned int> v;
@@ -186,11 +236,13 @@ ai_window::ai_window(ai &ai) : the_ai(ai), strategy_controls(0), rc_controls(0),
 	vbox->pack_start(*basic_frame, Gtk::PACK_SHRINK);
 
 	Gtk::Frame *robots_frame = Gtk::manage(new Gtk::Frame("Robots"));
-	const Glib::RefPtr<robot_info_model> robots_model(robot_info_model::create(ai.the_world->conf, ai.the_world->xbee_bots));
+	const Glib::RefPtr<robot_info_model> robots_model(robot_info_model::create(ai.the_world->conf, ai.the_world->xbee_bots, ai.the_world->friendly));
 	Gtk::TreeView *robots_tree = Gtk::manage(new Gtk::TreeView(robots_model));
 	robots_tree->get_selection()->set_mode(Gtk::SELECTION_SINGLE);
 	robots_tree->append_column_numeric("Address", robots_model->address_column, "%016llX");
 	robots_tree->append_column("Name", robots_model->name_column);
+	robots_tree->append_column("R", robots_model->radio_column);
+	robots_tree->append_column("V", robots_model->visible_column);
 	Gtk::CellRendererProgress *robots_battery_renderer = Gtk::manage(new Gtk::CellRendererProgress);
 	int robots_battery_colnum = robots_tree->append_column("Battery", *robots_battery_renderer) - 1;
 	Gtk::TreeViewColumn *robots_battery_column = robots_tree->get_column(robots_battery_colnum);

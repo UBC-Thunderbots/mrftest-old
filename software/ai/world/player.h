@@ -20,6 +20,11 @@ class player : public robot {
 		typedef Glib::RefPtr<player> ptr;
 
 		/**
+		 * \return the player's 64-bit address.
+		 */
+		uint64_t address() const;
+
+		/**
 		 * Instructs the player to move.
 		 * \param dest the destination point to move to
 		 * \param ori the target origin to rotate to
