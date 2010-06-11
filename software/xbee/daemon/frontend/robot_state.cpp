@@ -336,9 +336,6 @@ void robot_state::idle_state::enter_drive_mode(client *cli) {
 	bot.daemon.run_data_index_reverse[rdi] = bot.address64;
 	DPRINT(Glib::ustring::compose("Robot %1 allocated 16-bit address %2 and run data offset %3.", tohex(bot.address64, 16), tohex(address16, 4), rdi * sizeof(xbeepacket::RUN_DATA) + 1));
 
-	// Scrub the shared memory block.
-	scrub_shm(&bot.daemon.shm->lock, bot.daemon.shm->frames[rdi]);
-
 	// Transition to new state.
 	bot.state_ = robot_state::setting16_state::enter(bot, *cli, address16, rdi);
 }
@@ -432,6 +429,7 @@ robot_state::state::ptr robot_state::setting16_state::enter(robot_state &bot, cl
 }
 
 robot_state::setting16_state::setting16_state(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index) : bot(bot), claimed_by(claimed_by), address16_(address16), run_data_index_(run_data_index) {
+	scrub_shm(&bot.daemon.shm->lock, bot.daemon.shm->frames[run_data_index]);
 	queue_request();
 }
 
