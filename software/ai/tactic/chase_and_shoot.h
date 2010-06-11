@@ -18,7 +18,7 @@ class chase_and_shoot : public tactic {
 		//
 		// Set a target that robot would like to take ball after gaining possesion
 		//
-		//void set_target(point target);
+		void set_target(point target);
 
 		//
 		// Constructs a new chase tactic. 
