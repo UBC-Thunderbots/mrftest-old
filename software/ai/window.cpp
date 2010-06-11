@@ -23,34 +23,19 @@ namespace {
 			Gtk::TreeModelColumn<Glib::ustring> name_column;
 
 			/**
-			 * The column that shows the battery level as a percentage.
+			 * The column that shows the battery level in millivolts.
 			 */
-			Gtk::TreeModelColumn<int> battery_percent_column;
+			Gtk::TreeModelColumn<unsigned int> battery_column;
 
 			/**
-			 * The column that shows the battery level as a voltage.
+			 * The column that shows the feedback interval in milliseconds.
 			 */
-			Gtk::TreeModelColumn<Glib::ustring> battery_voltage_column;
+			Gtk::TreeModelColumn<unsigned int> feedback_interval_column;
 
 			/**
-			 * The column that shows the feedback interval as a percentage.
+			 * The column that shows the run data interval in milliseconds.
 			 */
-			Gtk::TreeModelColumn<int> feedback_interval_percent_column;
-
-			/**
-			 * The column that shows the feedback interval as a time.
-			 */
-			Gtk::TreeModelColumn<Glib::ustring> feedback_interval_time_column;
-
-			/**
-			 * The column that shows the run data interval as a percentage.
-			 */
-			Gtk::TreeModelColumn<int> run_data_interval_percent_column;
-
-			/**
-			 * The column that shows the run data interval as a time.
-			 */
-			Gtk::TreeModelColumn<Glib::ustring> run_data_interval_time_column;
+			Gtk::TreeModelColumn<unsigned int> run_data_interval_column;
 
 			/**
 			 * Constructs a new robot_info_model.
@@ -71,12 +56,9 @@ namespace {
 			robot_info_model(const config &conf, const std::vector<xbee_drive_bot::ptr> &bots) : Glib::ObjectBase(typeid(robot_info_model)), conf(conf), bots(bots) {
 				alm_column_record.add(address_column);
 				alm_column_record.add(name_column);
-				alm_column_record.add(battery_percent_column);
-				alm_column_record.add(battery_voltage_column);
-				alm_column_record.add(feedback_interval_percent_column);
-				alm_column_record.add(feedback_interval_time_column);
-				alm_column_record.add(run_data_interval_percent_column);
-				alm_column_record.add(run_data_interval_time_column);
+				alm_column_record.add(battery_column);
+				alm_column_record.add(feedback_interval_column);
+				alm_column_record.add(run_data_interval_column);
 
 				for (unsigned int i = 0; i < bots.size(); ++i) {
 					bots[i]->signal_feedback.connect(sigc::bind(sigc::mem_fun(this, &robot_info_model::alm_row_changed), i));
@@ -100,65 +82,35 @@ namespace {
 					v.set(conf.robots()[row].name);
 					value.init(name_column.type());
 					value = v;
-				} else if (col == static_cast<unsigned int>(battery_percent_column.index())) {
-					Glib::Value<int> v;
-					v.init(battery_percent_column.type());
-					v.set(bots[row]->alive() ? clamp((static_cast<int>(bots[row]->battery_voltage()) - 12000) * 100 / 5000, 0, 100) : 0);
-					value.init(battery_percent_column.type());
+				} else if (col == static_cast<unsigned int>(battery_column.index())) {
+					Glib::Value<unsigned int> v;
+					v.init(battery_column.type());
+					v.set(bots[row]->alive() ? bots[row]->battery_voltage() : 0);
+					value.init(battery_column.type());
 					value = v;
-				} else if (col == static_cast<unsigned int>(battery_voltage_column.index())) {
-					Glib::Value<Glib::ustring> v;
-					v.init(battery_voltage_column.type());
-					v.set(Glib::ustring::compose("%1V", Glib::ustring::format(std::fixed, std::setprecision(2), bots[row]->battery_voltage() / 1000.0)));
-					value.init(battery_voltage_column.type());
-					value = v;
-				} else if (col == static_cast<unsigned int>(feedback_interval_percent_column.index())) {
-					Glib::Value<int> v;
-					v.init(feedback_interval_percent_column.type());
+				} else if (col == static_cast<unsigned int>(feedback_interval_column.index())) {
+					Glib::Value<unsigned int> v;
+					v.init(feedback_interval_column.type());
 					if (bots[row]->alive()) {
 						const timespec &ts(bots[row]->feedback_interval());
-						unsigned int centis = ts.tv_sec * 100U + ts.tv_nsec / 10000000U;
-						v.set(clamp(centis, 0U, 100U));
+						unsigned int ms = ts.tv_sec * 1000U + ts.tv_nsec / 1000000U;
+						v.set(ms);
 					} else {
 						v.set(0);
 					}
-					value.init(feedback_interval_percent_column.type());
+					value.init(feedback_interval_column.type());
 					value = v;
-				} else if (col == static_cast<unsigned int>(feedback_interval_time_column.index())) {
-					Glib::Value<Glib::ustring> v;
-					v.init(feedback_interval_time_column.type());
-					if (bots[row]->alive()) {
-						const timespec &ts(bots[row]->feedback_interval());
-						unsigned int centis = ts.tv_sec * 100U + ts.tv_nsec / 10000000U;
-						v.set(Glib::ustring::compose("%1s", Glib::ustring::format(std::fixed, std::setprecision(2), centis / 100.0)));
-					} else {
-						v.set("No Data");
-					}
-					value.init(feedback_interval_time_column.type());
-					value = v;
-				} else if (col == static_cast<unsigned int>(run_data_interval_percent_column.index())) {
-					Glib::Value<int> v;
-					v.init(run_data_interval_percent_column.type());
+				} else if (col == static_cast<unsigned int>(run_data_interval_column.index())) {
+					Glib::Value<unsigned int> v;
+					v.init(run_data_interval_column.type());
 					if (bots[row]->alive()) {
 						const timespec &ts(bots[row]->run_data_interval());
-						unsigned int centis = ts.tv_sec * 100U + ts.tv_nsec / 10000000U;
-						v.set(clamp(centis, 0U, 100U));
+						unsigned int ms = ts.tv_sec * 1000U + ts.tv_nsec / 1000000U;
+						v.set(ms);
 					} else {
 						v.set(0);
 					}
-					value.init(run_data_interval_percent_column.type());
-					value = v;
-				} else if (col == static_cast<unsigned int>(run_data_interval_time_column.index())) {
-					Glib::Value<Glib::ustring> v;
-					v.init(run_data_interval_time_column.type());
-					if (bots[row]->alive()) {
-						const timespec &ts(bots[row]->run_data_interval());
-						unsigned int centis = ts.tv_sec * 100U + ts.tv_nsec / 10000000U;
-						v.set(Glib::ustring::compose("%1s", Glib::ustring::format(std::fixed, std::setprecision(2), centis / 100.0)));
-					} else {
-						v.set("No Data");
-					}
-					value.init(run_data_interval_time_column.type());
+					value.init(run_data_interval_column.type());
 					value = v;
 				} else {
 					std::abort();
@@ -168,6 +120,28 @@ namespace {
 			void alm_set_value(unsigned int, unsigned int, const Glib::ValueBase &) {
 			}
 	};
+
+	void battery_cell_data_func(Gtk::CellRenderer *r, const Gtk::TreeModel::iterator &iter, const Glib::RefPtr<robot_info_model> model) {
+		unsigned int mv = iter->get_value(model->battery_column);
+		Gtk::CellRendererProgress *rp = dynamic_cast<Gtk::CellRendererProgress *>(r);
+		rp->property_value() = (clamp(mv, 12000U, 17000U) - 12000U) / 50U;
+		if (mv) {
+			rp->property_text() = Glib::ustring::compose("%1V", Glib::ustring::format(std::fixed, std::setprecision(2), mv / 1000.0));
+		} else {
+			rp->property_text() = "No Data";
+		}
+	}
+
+	void interval_cell_data_func(Gtk::CellRenderer *r, const Gtk::TreeModel::iterator &iter, const Gtk::TreeModelColumn<unsigned int> &column) {
+		unsigned int ms = iter->get_value(column);
+		Gtk::CellRendererProgress *rp = dynamic_cast<Gtk::CellRendererProgress *>(r);
+		rp->property_value() = clamp(ms, 0U, 1000U) / 10U;
+		if (ms) {
+			rp->property_text() = Glib::ustring::compose("%1s", Glib::ustring::format(std::fixed, std::setprecision(2), ms / 1000.0));
+		} else {
+			rp->property_text() = "No Data";
+		}
+	}
 }
 
 ai_window::ai_window(ai &ai) : the_ai(ai), strategy_controls(0), rc_controls(0), vis(ai.the_world->visualizer_view()) {
@@ -220,18 +194,15 @@ ai_window::ai_window(ai &ai) : the_ai(ai), strategy_controls(0), rc_controls(0),
 	Gtk::CellRendererProgress *robots_battery_renderer = Gtk::manage(new Gtk::CellRendererProgress);
 	int robots_battery_colnum = robots_tree->append_column("Battery", *robots_battery_renderer) - 1;
 	Gtk::TreeViewColumn *robots_battery_column = robots_tree->get_column(robots_battery_colnum);
-	robots_battery_column->add_attribute(robots_battery_renderer->property_value(), robots_model->battery_percent_column);
-	robots_battery_column->add_attribute(robots_battery_renderer->property_text(), robots_model->battery_voltage_column);
+	robots_battery_column->set_cell_data_func(*robots_battery_renderer, sigc::bind(&battery_cell_data_func, robots_model));
 	Gtk::CellRendererProgress *robots_feedback_interval_renderer = Gtk::manage(new Gtk::CellRendererProgress);
 	int robots_feedback_interval_colnum = robots_tree->append_column("Feedback", *robots_feedback_interval_renderer) - 1;
 	Gtk::TreeViewColumn *robots_feedback_interval_column = robots_tree->get_column(robots_feedback_interval_colnum);
-	robots_feedback_interval_column->add_attribute(robots_feedback_interval_renderer->property_value(), robots_model->feedback_interval_percent_column);
-	robots_feedback_interval_column->add_attribute(robots_feedback_interval_renderer->property_text(), robots_model->feedback_interval_time_column);
+	robots_feedback_interval_column->set_cell_data_func(*robots_feedback_interval_renderer, sigc::bind(&interval_cell_data_func, sigc::ref(robots_model->feedback_interval_column)));
 	Gtk::CellRendererProgress *robots_run_data_interval_renderer = Gtk::manage(new Gtk::CellRendererProgress);
 	int robots_run_data_interval_colnum = robots_tree->append_column("Run Data", *robots_run_data_interval_renderer) - 1;
 	Gtk::TreeViewColumn *robots_run_data_interval_column = robots_tree->get_column(robots_run_data_interval_colnum);
-	robots_run_data_interval_column->add_attribute(robots_run_data_interval_renderer->property_value(), robots_model->run_data_interval_percent_column);
-	robots_run_data_interval_column->add_attribute(robots_run_data_interval_renderer->property_text(), robots_model->run_data_interval_time_column);
+	robots_run_data_interval_column->set_cell_data_func(*robots_run_data_interval_renderer, sigc::bind(&interval_cell_data_func, sigc::ref(robots_model->run_data_interval_column)));
 	Gtk::ScrolledWindow *robots_scroller = Gtk::manage(new Gtk::ScrolledWindow);
 	robots_scroller->add(*robots_tree);
 	robots_scroller->set_shadow_type(Gtk::SHADOW_IN);

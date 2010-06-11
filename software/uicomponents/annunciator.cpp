@@ -77,7 +77,7 @@ namespace {
 		public:
 			Gtk::TreeModelColumn<unsigned int> age_column;
 			Gtk::TreeModelColumn<Glib::ustring> message_column;
-			Gtk::TreeModelColumn<Gdk::Color> colour_column;
+			Gtk::TreeModelColumn<bool> active_column;
 
 			static Glib::RefPtr<messages_alm> instance() {
 				static Glib::RefPtr<messages_alm> inst;
@@ -91,7 +91,7 @@ namespace {
 			messages_alm() : Glib::ObjectBase(typeid(messages_alm)) {
 				alm_column_record.add(age_column);
 				alm_column_record.add(message_column);
-				alm_column_record.add(colour_column);
+				alm_column_record.add(active_column);
 			}
 
 			~messages_alm() {
@@ -114,17 +114,11 @@ namespace {
 					v.set(displayed[row]->text);
 					value.init(message_column.type());
 					value = v;
-				} else if (col == static_cast<unsigned int>(colour_column.index())) {
-					Glib::Value<Gdk::Color> v;
-					v.init(colour_column.type());
-					Gdk::Color c;
-					if (displayed[row]->active()) {
-						c.set_rgb(65535, 32768, 32768);
-					} else {
-						c.set_rgb(65535, 65535, 65535);
-					}
-					v.set(c);
-					value.init(colour_column.type());
+				} else if (col == static_cast<unsigned int>(active_column.index())) {
+					Glib::Value<bool> v;
+					v.init(active_column.type());
+					v.set(displayed[row]->active());
+					value.init(active_column.type());
 					value = v;
 				} else {
 					std::abort();
@@ -136,6 +130,14 @@ namespace {
 
 			friend class annunciator::message;
 	};
+
+	void message_cell_data_func(Gtk::CellRenderer *r, const Gtk::TreeModel::iterator &iter) {
+		Gtk::CellRendererText *rt = dynamic_cast<Gtk::CellRendererText *>(r);
+		rt->property_text() = iter->get_value(messages_alm::instance()->message_column);
+		bool active = iter->get_value(messages_alm::instance()->active_column);
+		rt->property_foreground() = active ? "white" : "black";
+		rt->property_background() = active ? "red" : "white";
+	}
 }
 
 annunciator::message::message(const Glib::ustring &text) : text(text), id(next_id++), active_(false), age_(0), displayed_(false) {
@@ -150,16 +152,15 @@ annunciator::message::~message() {
 void annunciator::message::activate(bool actv) {
 	if (actv != active_) {
 		active_ = actv;
+		for (unsigned int i = 0; i < displayed.size(); ++i) {
+			if (displayed[i] == this) {
+				messages_alm::instance()->alm_row_changed(i);
+			}
+		}
 		one_second_connection.disconnect();
 		if (actv) {
 			age_ = 0;
-			if (displayed_) {
-				for (unsigned int i = 0; i < displayed.size(); ++i) {
-					if (displayed[i] == this) {
-						messages_alm::instance()->alm_row_changed(i);
-					}
-				}
-			} else {
+			if (!displayed_) {
 				unsigned int index = displayed.size();
 				displayed.push_back(this);
 				messages_alm::instance()->alm_row_inserted(index);
@@ -206,8 +207,7 @@ annunciator::annunciator() {
 	Gtk::CellRendererText *message_renderer = Gtk::manage(new Gtk::CellRendererText);
 	int message_colnum = view->append_column("Message", *message_renderer) - 1;
 	Gtk::TreeViewColumn *message_column = view->get_column(message_colnum);
-	message_column->add_attribute(message_renderer->property_text(), messages_alm::instance()->message_column);
-	message_column->add_attribute(message_renderer->property_background_gdk(), messages_alm::instance()->colour_column);
+	message_column->set_cell_data_func(*message_renderer, &message_cell_data_func);
 	add(*view);
 	set_shadow_type(Gtk::SHADOW_IN);
 	set_size_request(-1, 100);
