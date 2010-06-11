@@ -71,31 +71,31 @@ namespace ai_util {
 			return true;
 		}
 		// if the passee is not facing the ball, forget it
-		const double ballori = (ball->position() - passee->position()).orientation();
-		if (std::fmod(std::abs(ballori - passee->orientation()), M_PI) > ORI_CLOSE) return false;
-		// check if there is some enemy blocking
+		const point ray = ball->position() - passee->position();
+		if (angle_diff(ray.orientation(), passee->orientation()) > ORI_PASS_CLOSE)
+			return false;
 		// if(!path_check(ball->position(), passee->position(), w->enemy.get_robots(), SHOOT_ALLOWANCE + robot::MAX_RADIUS + ball::RADIUS)) return false;
-		const point direction = (ball->position() - passee->position()).norm();
-		const double dist = (ball->position() - passee->position()).len();
+		const point direction = ray.norm();
+		const double distance = (ball->position() - passee->position()).len();
 		for (size_t i = 0; i < w->enemy.size(); ++i) {
 			const robot::ptr rob = w->enemy.get_robot(i);
 			const point rp = rob->position() - passee->position();
 			const double proj = rp.dot(direction);
 			const double perp = sqrt(rp.dot(rp) - proj * proj);
 			if (proj <= 0) continue;
-			if (proj < dist && perp < SHOOT_ALLOWANCE + robot::MAX_RADIUS + ball::RADIUS) {
+			if (proj < distance && perp < SHOOT_ALLOWANCE + robot::MAX_RADIUS + ball::RADIUS) {
 				return false;
 			}
 		}
 		for (size_t i = 0; i < w->friendly.size(); ++i) {
 			const player::ptr plr = w->friendly.get_player(i);
 #warning has ball here
-			if (plr->sense_ball() || plr == passee) continue;
+			if (has_ball(plr) || plr == passee) continue;
 			const point rp = plr->position() - passee->position();
 			const double proj = rp.dot(direction);
 			const double perp = sqrt(rp.dot(rp) - proj * proj);
 			if (proj <= 0) continue;
-			if (proj < dist && perp < SHOOT_ALLOWANCE + robot::MAX_RADIUS + ball::RADIUS) {
+			if (proj < distance && perp < SHOOT_ALLOWANCE + robot::MAX_RADIUS + ball::RADIUS) {
 				return false;
 			}
 		}

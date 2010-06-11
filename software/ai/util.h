@@ -33,10 +33,10 @@ namespace ai_util {
 	};
 
 	/**
-	 * Orientation epsilon.
-	 * Generally higher than position epsilon.
+	 * If the robot orientation is within this angle,
+	 * then it can shoot accurately.
 	 */
-	static const double ORI_CLOSE = 3.0 / 180.0 * M_PI;
+	static const double ORI_CLOSE = 1.5 / 180.0 * M_PI;
 
 	/**
 	 * Position epsilon.
@@ -48,6 +48,12 @@ namespace ai_util {
 	 * Velocity epsilon.
 	 */
 	static const double VEL_CLOSE = 1e-2;
+
+	/**
+	 * If the robot is less than this angle away from the ball,
+	 * then it is capable of receiving the ball.
+	 */
+	static const double ORI_PASS_CLOSE = 5.0 / 180.0 * M_PI;
 
 	/**
 	 * Let t be time elpased since robot has ball.
