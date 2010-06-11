@@ -43,6 +43,15 @@ class robot_navigator : public noncopyable {
 		}
 
 		/**
+		 * Turns on dribbler at minimal speed and be ready to dribble to receive the ball.
+		 * You need to call this every tick.
+		 * I don't think you ever want to turn this off once you turn it on.
+		 */
+		void set_dribbler() {
+			need_dribble = true;
+		}
+
+		/**
 		 * Conditions that the robot must obey.
 		 * By default, nothing is set.
 		 */
@@ -87,6 +96,7 @@ class robot_navigator : public noncopyable {
 
 		point target_position;
 		double target_orientation;
+		bool need_dribble;
 };
 
 #endif

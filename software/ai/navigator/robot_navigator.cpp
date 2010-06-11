@@ -19,7 +19,7 @@ namespace {
 
 // hardware dependent dribble parameters
 	const double DRIBBLE_SPEED_LOW  = 0.15;
-	const double DRIBBLE_SPEED_RAMP = 1.00;
+	const double DRIBBLE_SPEED_RAMP = 0.25;
 	const double DRIBBLE_SPEED_MAX  = 0.50;
 
 }
@@ -174,10 +174,16 @@ void robot_navigator::tick() {
 	const double wantori = (orientation_initialized) ? target_orientation : atan2(balldist.y, balldist.x);
 	wantdest = get_inbounds_point(wantdest);
 	const double distance = (wantdest - the_player->position()).len();
+	bool wantdribble;
+	if (flags & avoid_ball_stop) {
+		wantdribble = false;
+	} else {
+		wantdribble = need_dribble || ai_util::ball_close(the_world, the_player) || the_player->sense_ball();
+	}
 
 	// dribble when it needs to
 #warning has_ball
-	if ((ai_util::ball_close(the_world, the_player) || the_player->sense_ball()) && !(flags & avoid_ball_stop)) {
+	if (wantdribble) {
 		const double dribblespeed = std::min(DRIBBLE_SPEED_LOW + DRIBBLE_SPEED_RAMP * the_player->sense_ball_time(), DRIBBLE_SPEED_MAX);
 		the_player->dribble(dribblespeed);
 	} else {
@@ -187,6 +193,7 @@ void robot_navigator::tick() {
 	// DO NOT FORGET! reset orientation settings.
 	orientation_initialized = false;
 	position_initialized = false;
+	need_dribble = true;
 
 	// at least face the ball
 	if (distance < ai_util::POS_CLOSE) {
