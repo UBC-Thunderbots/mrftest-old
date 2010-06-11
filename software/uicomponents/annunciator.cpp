@@ -11,6 +11,8 @@
 #include <sys/wait.h>
 
 namespace {
+	const unsigned int MAX_AGE = 20;
+
 	bool can_siren() {
 		static const std::string cmdline_raw[] = { "beep", "-f", "1", "-l", "10" };
 		static const std::vector<std::string> cmdline(&cmdline_raw[0], &cmdline_raw[sizeof(cmdline_raw) / sizeof(*cmdline_raw)]);
@@ -73,7 +75,9 @@ namespace {
 
 	class messages_alm : public Glib::Object, public abstract_list_model, public noncopyable {
 		public:
+			Gtk::TreeModelColumn<unsigned int> age_column;
 			Gtk::TreeModelColumn<Glib::ustring> message_column;
+			Gtk::TreeModelColumn<Gdk::Color> colour_column;
 
 			static Glib::RefPtr<messages_alm> instance() {
 				static Glib::RefPtr<messages_alm> inst;
@@ -85,7 +89,9 @@ namespace {
 
 		private:
 			messages_alm() : Glib::ObjectBase(typeid(messages_alm)) {
+				alm_column_record.add(age_column);
 				alm_column_record.add(message_column);
+				alm_column_record.add(colour_column);
 			}
 
 			~messages_alm() {
@@ -96,11 +102,29 @@ namespace {
 			}
 
 			void alm_get_value(unsigned int row, unsigned int col, Glib::ValueBase &value) const {
-				if (col == 0) {
+				if (col == static_cast<unsigned int>(age_column.index())) {
+					Glib::Value<unsigned int> v;
+					v.init(age_column.type());
+					v.set(displayed[row]->age());
+					value.init(age_column.type());
+					value = v;
+				} else if (col == static_cast<unsigned int>(message_column.index())) {
 					Glib::Value<Glib::ustring> v;
 					v.init(message_column.type());
 					v.set(displayed[row]->text);
 					value.init(message_column.type());
+					value = v;
+				} else if (col == static_cast<unsigned int>(colour_column.index())) {
+					Glib::Value<Gdk::Color> v;
+					v.init(colour_column.type());
+					Gdk::Color c;
+					if (displayed[row]->active()) {
+						c.set_rgb(65535, 32768, 32768);
+					} else {
+						c.set_rgb(65535, 65535, 65535);
+					}
+					v.set(c);
+					value.init(colour_column.type());
 					value = v;
 				} else {
 					std::abort();
@@ -114,40 +138,76 @@ namespace {
 	};
 }
 
-annunciator::message::message(const Glib::ustring &text) : text(text), id(next_id++), active_(false) {
+annunciator::message::message(const Glib::ustring &text) : text(text), id(next_id++), active_(false), age_(0), displayed_(false) {
 	registered[id] = this;
 }
 
 annunciator::message::~message() {
-	activate(false);
+	hide();
 	registered.erase(id);
 }
 
 void annunciator::message::activate(bool actv) {
 	if (actv != active_) {
 		active_ = actv;
+		one_second_connection.disconnect();
 		if (actv) {
-			unsigned int index = displayed.size();
-			displayed.push_back(this);
-			messages_alm::instance()->alm_row_inserted(index);
+			age_ = 0;
+			if (displayed_) {
+				for (unsigned int i = 0; i < displayed.size(); ++i) {
+					if (displayed[i] == this) {
+						messages_alm::instance()->alm_row_changed(i);
+					}
+				}
+			} else {
+				unsigned int index = displayed.size();
+				displayed.push_back(this);
+				messages_alm::instance()->alm_row_inserted(index);
+				displayed_ = true;
+			}
 			siren();
 		} else {
-			for (unsigned int i = 0; i < displayed.size(); ++i) {
-				if (displayed[i] == this) {
-					messages_alm::instance()->alm_row_deleted(i);
-					displayed.erase(displayed.begin() + i);
-					--i;
-				}
-			}
+			one_second_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &annunciator::message::on_one_second), 1);
 		}
 	}
+}
+
+bool annunciator::message::on_one_second() {
+	if (age_ < MAX_AGE) {
+		++age_;
+		for (unsigned int i = 0; i < displayed.size(); ++i) {
+			if (displayed[i] == this) {
+				messages_alm::instance()->alm_row_changed(i);
+			}
+		}
+		return true;
+	} else {
+		hide();
+		return false;
+	}
+}
+
+void annunciator::message::hide() {
+	for (unsigned int i = 0; i < displayed.size(); ++i) {
+		if (displayed[i] == this) {
+			messages_alm::instance()->alm_row_deleted(i);
+			displayed.erase(displayed.begin() + i);
+			--i;
+		}
+	}
+	displayed_ = false;
 }
 
 annunciator::annunciator() {
 	siren_availability_warner::ensure_exists();
 	Gtk::TreeView *view = Gtk::manage(new Gtk::TreeView(messages_alm::instance()));
 	view->get_selection()->set_mode(Gtk::SELECTION_SINGLE);
-	view->append_column("Message", messages_alm::instance()->message_column);
+	view->append_column("Age", messages_alm::instance()->age_column);
+	Gtk::CellRendererText *message_renderer = Gtk::manage(new Gtk::CellRendererText);
+	int message_colnum = view->append_column("Message", *message_renderer) - 1;
+	Gtk::TreeViewColumn *message_column = view->get_column(message_colnum);
+	message_column->add_attribute(message_renderer->property_text(), messages_alm::instance()->message_column);
+	message_column->add_attribute(message_renderer->property_background_gdk(), messages_alm::instance()->colour_column);
 	add(*view);
 	set_shadow_type(Gtk::SHADOW_IN);
 	set_size_request(-1, 100);

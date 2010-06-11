@@ -15,7 +15,7 @@ class annunciator : public Gtk::ScrolledWindow {
 		 * one or more instances of this class as members, one for each message,
 		 * and will call \c activate to turn them on and off.
 		 */
-		class message : public noncopyable {
+		class message : public noncopyable, public sigc::trackable {
 			public:
 				/**
 				 * Registers a new message source with the annunciator system.
@@ -54,8 +54,22 @@ class annunciator : public Gtk::ScrolledWindow {
 				 */
 				void activate(bool actv);
 
+				/**
+				 * \return the age of the message, in seconds (that is, the
+				 * amount of time since the message was last true).
+				 */
+				unsigned int age() const {
+					return age_;
+				}
+
 			private:
 				bool active_;
+				unsigned int age_;
+				bool displayed_;
+				sigc::connection one_second_connection;
+
+				bool on_one_second();
+				void hide();
 		};
 
 		/**
