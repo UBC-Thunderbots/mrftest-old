@@ -202,9 +202,8 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 		timespec latency_, feedback_timestamp_, feedback_interval_, run_data_interval_;
 		uint8_t inbound_rssi_;
 		unsigned int success_rate_;
-		timespec low_battery_start_time;
+		timespec low_battery_start_time, chicker_fault_start_time;
 		annunciator::message low_battery_message, chicker_fault_message;
-		unsigned int chicker_fault_count;
 
 		xbee_drive_bot(const Glib::ustring &name, uint64_t address, xbee_lowlevel &ll);
 		~xbee_drive_bot();
