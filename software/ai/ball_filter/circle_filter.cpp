@@ -53,7 +53,7 @@ namespace {
 
 						point orient(1,0);
 						has_ball_point = player->position() + (ball::RADIUS + robot::MAX_RADIUS) * orient.rotate(player->orientation());
-						has_ball_cert = 1.0 - exp(-has_ball_timesteps/5.0);
+						has_ball_cert = 1.0 - exp(-has_ball_timesteps / 5.0);
 						break;
 					}
 				}				
@@ -69,22 +69,20 @@ namespace {
 					}
 				}
 				else {
-					// We don't have obs, but the ball was close to another robot before, so pretend the robot has the ball
+					// We don't have obs, but the ball was really close to an enemy robot before, so pretend the robot has the ball
 					if (obs.empty() && use_closest) {
 						point orient(1,0);
 						robot::ptr robot;
-						for (unsigned int i = 0; i < friendly.size() + enemy.size(); ++i) {
-							if (i < friendly.size()) {
-								robot = friendly.get_player(i);
-							} else {
-								robot = enemy.get_robot(i - friendly.size());
-							}
+
+						for (unsigned int i = 0; i < enemy.size(); ++i) {
+							robot = enemy.get_robot(i);
+
 							if (robot->pattern_index == robot_index) {
 								max_point = robot->position() + (ball::RADIUS + robot::MAX_RADIUS) * orient.rotate(robot->orientation());
+								max_cert = DEFAULT_CERT;
 								break;
 							}
 						}
-						max_cert = DEFAULT_CERT;
 					} else {
 						for (unsigned int i = 0; i < obs.size(); i++) {
 							if (max_cert < obs[i].second) {
@@ -151,30 +149,31 @@ namespace {
 				robot::ptr robot;
 				double min_dist = -1;
 				point ball_ref;
-				bool is_facing_ball;
+				use_closest = false;
+
 				for (unsigned int i = 0; i < friendly.size(); ++i) {
 					robot = friendly.get_player(i);
 
 					ball_ref = last_point - robot->position();
-					is_facing_ball = angle_diff(ball_ref.orientation(), robot->orientation()) < (M_PI / 2);
-					if (is_facing_ball && (min_dist == -1 || ball_ref.len() < min_dist)) {
-						robot_index = robot->pattern_index;
+					if (min_dist == -1 || ball_ref.len() < min_dist) {
 						min_dist = ball_ref.len();
 					}
 				}
 
+				bool is_facing_ball;
 				for (unsigned int i = 0; i < enemy.size(); ++i) {
 					robot = enemy.get_robot(i);
 
 					ball_ref = last_point - robot->position();
-					is_facing_ball = angle_diff(ball_ref.orientation(), robot->orientation()) < (M_PI / 2);
+					is_facing_ball = angle_diff(ball_ref.orientation(), robot->orientation()) < (M_PI / 4.0);
 					if (is_facing_ball && (min_dist == -1 || ball_ref.len() < min_dist)) {
+						use_closest = true;
 						robot_index = robot->pattern_index;	
 						min_dist = ball_ref.len();			
 					}
 				}
 
-				use_closest = min_dist != -1 && min_dist < robot::MAX_RADIUS + 1.1 * ball::RADIUS; // .1 for allowance
+				use_closest = use_closest && min_dist != -1 && min_dist < robot::MAX_RADIUS + 1.1 * ball::RADIUS; // .1 for allowance
 				
 				return max_point_it->center;
 			}
