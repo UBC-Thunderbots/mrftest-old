@@ -655,14 +655,14 @@ void robot_state::alive_state::on_feedback(uint8_t rssi, const xbeepacket::FEEDB
 void robot_state::alive_state::on_feedback_timeout() {
 	// Record that this happened.
 	DPRINT(Glib::ustring::compose("Robot %1 timed out on feedback.", tohex(bot.address64, 16)));
-	uint64_t delivery_mask;
+	uint16_t delivery_mask;
 	{
 		rwlock_scoped_acquire acq(&bot.daemon.shm->lock, &pthread_rwlock_wrlock);
 		bot.daemon.shm->frames[run_data_index_].delivery_mask <<= 1;
 		delivery_mask = bot.daemon.shm->frames[run_data_index_].delivery_mask;
 	}
 
-	// If we have failed 64 times in a row, assume the robot is dead. Otherwise,
+	// If we have failed 16 times in a row, assume the robot is dead. Otherwise,
 	// emit the feedback signal to update the UI.
 	if (!delivery_mask) {
 		bot.state_ = setting16_state::enter(bot, claimed_by, address16_, run_data_index_);

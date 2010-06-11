@@ -153,7 +153,7 @@ namespace xbeepacket {
 		RUN_DATA run_data;
 		FEEDBACK_DATA feedback_data;
 		timespec timestamp;
-		uint64_t delivery_mask;
+		uint16_t delivery_mask;
 		timespec latency;
 		uint8_t inbound_rssi;
 	};

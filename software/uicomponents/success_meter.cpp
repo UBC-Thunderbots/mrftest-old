@@ -22,8 +22,8 @@ void success_meter::set_bot(xbee_drive_bot::ptr bot) {
 void success_meter::update() {
 	int success = robot->success_rate();
 	if (success != last_success) {
-		set_fraction(success / 64.0);
-		set_text(Glib::ustring::compose("%1/64", success));
+		set_fraction(success / 16.0);
+		set_text(Glib::ustring::compose("%1/16", success));
 		last_success = success;
 	}
 }

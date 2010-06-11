@@ -128,10 +128,10 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 		 */
 		int inbound_rssi() const;
 
-		//
-		// Returns the number of the last 64 packets that were delivered
-		// successfully.
-		//
+		/**
+		 * \return the number of the last 16 packets that were delivered
+		 * successfully.
+		 */
 		unsigned int success_rate() const {
 			return success_rate_;
 		}

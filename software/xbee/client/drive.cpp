@@ -206,7 +206,7 @@ void xbee_drive_bot::on_meta(const void *buffer, std::size_t length) {
 						feedback_ = shm_frame->feedback_data;
 						latency_ = shm_frame->latency;
 						inbound_rssi_ = shm_frame->inbound_rssi;
-						success_rate_ = __builtin_popcountll(shm_frame->delivery_mask);
+						success_rate_ = __builtin_popcount(shm_frame->delivery_mask);
 						run_data_interval_ = ll.shm->run_data_interval;
 					}
 
