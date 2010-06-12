@@ -2,6 +2,7 @@
 #include "ai/tactic/chase.h"
 #include "ai/tactic/move.h"
 #include "ai/tactic/shoot.h"
+#include "ai/tactic/dribble.h"
 #include "ai/tactic/pass.h"
 #include "ai/tactic/receive.h"
 #include "ai/util.h"
@@ -189,22 +190,20 @@ void offensive::tick() {
 					} else {
 						// dribble towards the goal
 						// TODO: can't dribble for too long
-						move_towards_goal(baller);
-						// tactics[baller] = move::ptr(new move(the_robots[baller], the_world, the_world->field().enemy_goal()));
+#warning do something more intelligent than just moving towards goal
+						dribble::ptr dribble_tactic(new dribble(the_robots[baller], the_world));
+						dribble_tactic->set_position(the_world->field().enemy_goal());
+						tactics[baller] = dribble_tactic;
 					}
 				}
 			} else {
 				// dribble the ball slowly to goal
 				// TODO: can't dribble for too long
 #warning do something more intelligent than just moving towards goal
-				move_towards_goal(baller);
+				dribble::ptr dribble_tactic(new dribble(the_robots[baller], the_world));
+				dribble_tactic->set_position(the_world->field().enemy_goal());
+				tactics[baller] = dribble_tactic;
 			}
-			/*
-			for (size_t i = 0; i < the_robots.size(); ++i) {
-				if (static_cast<int>(i) == baller) continue;
-				move_towards_goal(i);
-			}
-			*/
 		} else {
 			// no one in this role has the ball
 			// prepare to receive some ball
