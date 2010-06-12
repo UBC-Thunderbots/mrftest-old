@@ -7,6 +7,12 @@
 #include <pthread.h>
 
 namespace xbeepacket {
+	const unsigned int MIN_CHANNEL = 0x0B;
+	const unsigned int MAX_CHANNEL = 0x1A;
+	const unsigned int FACTORY_CHANNEL = 0x0C;
+	const unsigned int FACTORY_PANID = 0x3332;
+	const unsigned int THUNDERBOTS_PANID = 0x496C;
+
 	template<std::size_t T_value_length>
 	struct __attribute__((packed)) AT_REQUEST {
 		uint8_t apiid;

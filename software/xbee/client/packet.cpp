@@ -53,6 +53,7 @@ void at_packet<value_size>::transmit(const file_descriptor &sock, uint8_t frame)
 }
 
 // Instantiate the template for the needed values.
+template class at_packet<0>;
 template class at_packet<1>;
 template class at_packet<2>;
 
