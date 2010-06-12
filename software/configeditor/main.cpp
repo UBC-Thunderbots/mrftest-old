@@ -1,11 +1,18 @@
 #include "configeditor/window.h"
 #include "util/config.h"
-#include <iostream>
+#include <clocale>
 #include <gtkmm.h>
+#include <iostream>
 
 namespace {
 	int main_impl(int argc, char **argv) {
-		Gtk::Main app(argc, argv);
+		std::setlocale(LC_ALL, "");
+		Glib::OptionContext option_context;
+		Gtk::Main app(argc, argv, option_context);
+		if (argc != 1) {
+			std::cout << option_context.get_help();
+			return 1;
+		}
 		config conf;
 		window win(conf);
 		win.show_all();

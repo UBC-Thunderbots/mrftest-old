@@ -178,7 +178,7 @@ namespace {
 	}
 
 	int main_impl(int argc, char **argv) {
-		Glib::RefPtr<Glib::MainLoop> loop(Glib::MainLoop::create());
+		std::setlocale(LC_ALL, "");
 		Glib::OptionContext option_context;
 		option_context.set_summary("Runs the remote configurator utility.");
 
@@ -193,11 +193,12 @@ namespace {
 
 		option_context.set_main_group(option_group);
 
-		if (!option_context.parse(argc, argv) || robot.empty()) {
+		if (!option_context.parse(argc, argv) || robot.empty() || argc != 1) {
 			std::cerr << option_context.get_help();
 			return 1;
 		}
 
+		Glib::RefPtr<Glib::MainLoop> loop(Glib::MainLoop::create());
 		const config conf;
 		if (!conf.robots().contains_name(robot)) {
 			std::cerr << "No such robot!\n";
@@ -224,7 +225,6 @@ namespace {
 }
 
 int main(int argc, char **argv) {
-	std::setlocale(LC_ALL, "");
 	try {
 		return main_impl(argc, argv);
 	} catch (const Glib::Exception &exp) {

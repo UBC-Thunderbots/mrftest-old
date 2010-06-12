@@ -7,6 +7,7 @@
 #include "xbee/client/drive.h"
 #include "xbee/client/lowlevel.h"
 #include <algorithm>
+#include <clocale>
 #include <cstdlib>
 #include <iostream>
 #include <vector>
@@ -128,6 +129,8 @@ namespace {
 	};
 
 	int main_impl(int argc, char **argv) {
+		std::setlocale(LC_ALL, "");
+
 		Glib::OptionContext option_context;
 		option_context.set_summary("Runs the Thunderbots control process.");
 
@@ -165,7 +168,7 @@ namespace {
 
 		Gtk::Main app(argc, argv, option_context);
 
-		if (!all && !blue && !yellow && !custom) {
+		if (argc != 1 || (!all && !blue && !yellow && !custom)) {
 			std::cerr << option_context.get_help();
 			return 1;
 		}

@@ -1,12 +1,19 @@
 #include "firmware/window.h"
 #include "util/config.h"
 #include "xbee/client/lowlevel.h"
+#include <clocale>
 #include <gtkmm.h>
 #include <iostream>
 
 namespace {
 	int main_impl(int argc, char **argv) {
-		Gtk::Main m(argc, argv);
+		std::setlocale(LC_ALL, "");
+		Glib::OptionContext option_context;
+		Gtk::Main m(argc, argv, option_context);
+		if (argc != 1) {
+			std::cout << option_context.get_help();
+			return 1;
+		}
 		config conf;
 		if (!conf.robots().size()) {
 			Gtk::MessageDialog md("There are no robots configured. Please run the configuration editor to add some.", false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);

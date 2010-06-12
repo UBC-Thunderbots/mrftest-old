@@ -1,6 +1,7 @@
 #include "xbee/daemon/frontend/already_running.h"
 #include "xbee/daemon/frontend/daemon.h"
 #include "xbee/daemon/physical/packetproto.h"
+#include <clocale>
 #include <exception>
 #include <iostream>
 #include <stdexcept>
@@ -17,6 +18,7 @@ namespace {
 
 	int main_impl(int argc, char **argv) {
 		// Create a GLib main loop object.
+		std::setlocale(LC_ALL, "");
 		Glib::RefPtr<Glib::MainLoop> main_loop(Glib::MainLoop::create());
 
 		// Parse command-line options.
@@ -28,9 +30,13 @@ namespace {
 		Glib::OptionGroup opt_group("xbeed", "Main Options");
 		opt_group.add_entry(daemon_entry, daemonize);
 		Glib::OptionContext opt_context;
-		opt_context.set_description("Launches the XBee multiplexer.");
+		opt_context.set_summary("Launches the XBee multiplexer.");
 		opt_context.set_main_group(opt_group);
 		if (!opt_context.parse(argc, argv)) {
+			return 1;
+		}
+		if (argc != 1) {
+			std::cout << opt_context.get_help();
 			return 1;
 		}
 
