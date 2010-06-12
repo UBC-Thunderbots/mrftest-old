@@ -8,9 +8,9 @@
 TODO:
 - check if the capacitor is ready to allow a kick.
 - calculate the strength that the robot should use.
-*/
+ */
 
-kick::kick(player::ptr player, world::ptr world) : tactic(player), navi(player, world), should_chip(false), chip_strength(1.0), kick_strength(1.0), target_initialized(false) {
+kick::kick(player::ptr player, world::ptr world) : tactic(player), the_world(world), navi(player, world), should_chip(false), chip_strength(1.0), kick_strength(1.0), target_initialized(false) {
 }
 
 void kick::tick() {

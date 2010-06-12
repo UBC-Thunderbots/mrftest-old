@@ -53,6 +53,7 @@ class kick : public tactic {
 		}
 
 	protected:
+		const world::ptr the_world;
 		robot_navigator navi;
 
 		// True to chip instead of kicking.
