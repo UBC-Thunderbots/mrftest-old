@@ -4,19 +4,10 @@
 
 #include <iostream>
 
-namespace {
-	const double TOL = 3.0 / 180.0 * M_PI;
-}
-
 /*
-
 TODO:
-- disable kicking the air once testing is finished
-- what happens if the robot does not have the ball? should this be an error?
 - check if the capacitor is ready to allow a kick.
 - calculate the strength that the robot should use.
-- remove turn tactic, simply use move tactic
-
 */
 
 kick::kick(player::ptr player, world::ptr world) : tactic(player), navi(player, world), should_chip(false), chip_strength(1.0), kick_strength(1.0), target_initialized(false) {
@@ -27,14 +18,14 @@ void kick::tick() {
 	// don't forget
 	navi.set_flags(flags);
 
-#warning has ball here
-	if (!the_player->sense_ball()) {
-		std::cerr << "kick tactic: robot does not have the ball and yet it tries to kick!?" << std::endl;
-		// TODO: for the sake of testing, enable kicking the air
+	if (!ai_util::has_ball(the_player)) {
+		navi.set_position(the_world->ball()->position());
+		navi.tick();
+		return;
 	}
 
 	if (!target_initialized) {
-		std::cerr << "kick tactic: robot does not know where to kick?" << std::endl;
+		std::cerr << "kick: no target specified" << std::endl;
 		navi.tick();
 		return;
 	}
@@ -43,10 +34,12 @@ void kick::tick() {
 
 	// turn towards the target
 	navi.set_orientation(dist.orientation());
-	// and move towards it
+
+	// maybe move towards it?
 	// navi.set_position(kick_target);
-	if (angle_diff(dist.orientation(), the_player->orientation()) > TOL) {
-		navi.tick();	
+
+	if (angle_diff(dist.orientation(), the_player->orientation()) > ai_util::ORI_CLOSE) {
+		navi.tick();
 		return;
 	}
 

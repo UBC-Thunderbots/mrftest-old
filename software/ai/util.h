@@ -36,13 +36,13 @@ namespace ai_util {
 	 * If the robot orientation is within this angle,
 	 * then it can shoot accurately.
 	 */
-	static const double ORI_CLOSE = 1.5 / 180.0 * M_PI;
+	static const double ORI_CLOSE = 3.0 / 180.0 * M_PI;
 
 	/**
 	 * Position epsilon.
 	 * Should be set to the accuracy of the image recognizition data.
 	 */
-	static const double POS_CLOSE = 1e-5;
+	static const double POS_CLOSE = 1e-3;
 
 	/**
 	 * Velocity epsilon.
@@ -122,6 +122,7 @@ namespace ai_util {
 	 * Returns the best possible position to shoot the goal based on visibility angle.
 	 * If no position is valid, returns the enemy goal.
 	 * @see calc_goal_visibility_angle()
+	 * Note that point p is the ball position.
 	 */
 	point calc_best_shot2(const world::ptr w, const point& p, const bool consider_friendly = true);
 

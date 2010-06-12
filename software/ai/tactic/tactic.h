@@ -44,16 +44,10 @@ class tactic : public byref {
 		}
 
 	protected:
-		/**
-		 * Constructor, flags set to 0 by default.
-		 */
-		tactic() : flags(0) {
+		explicit tactic(const player::ptr& player) : flags(0), the_player(player) {
 		}
 
-		explicit tactic(player::ptr player) : flags(0), the_player(player) {
-		}
-
-		explicit tactic(player::ptr player, const unsigned int& f) : flags(f), the_player(player) {
+		explicit tactic(const player::ptr& player, const unsigned int& f) : flags(f), the_player(player) {
 		}
 
 		unsigned int flags;
