@@ -5,6 +5,8 @@
 #include "robot_controller/robot_controller.h"
 #include "xbee/client/drive.h"
 #include <ctime>
+#include <map>
+#include <typeinfo>
 
 class ai;
 class world;
@@ -14,6 +16,28 @@ class world;
  */
 class player : public robot {
 	public:
+		/**
+		 * A state block associated with a player. AI classes that need to store
+		 * permanent state on a per-player basis but that cannot do so inside
+		 * themselves (by reason of being destroyed frequently) should subclass
+		 * this class, add the necessary state information as fields in the
+		 * subclass, and then use the player::get_state and player::set_state
+		 * functions to retrieve and store the state block.
+		 */
+		class state : public byref {
+			public:
+				/**
+				 * A pointer to a state block.
+				 */
+				typedef Glib::RefPtr<state> ptr;
+
+			protected:
+				/**
+				 * Destroys the state block.
+				 */
+				virtual ~state();
+		};
+		
 		/**
 		 * A pointer to a player.
 		 */
@@ -100,6 +124,31 @@ class player : public robot {
 		 */
 		bool dribbler_safe() const;
 
+		/**
+		 * Fetches the state block previously stored by some class.
+		 *
+		 * \param[in] tid the type of the class whose state should be fetched;
+		 * you probably want to pass \c typeid(*this) here.
+		 *
+		 * \return the corresponding state block (which can be cast to a derived
+		 * type with Glib::RefPtr::cast_dynamic), or a null pointer if no state
+		 * is associated with the given class
+		 */
+		state::ptr get_state(const std::type_info &tid) const;
+
+		/**
+		 * Stores a state block for a class. Any previously-stored state block
+		 * for the same class will be dereferenced and, if not pointed to by any
+		 * other pointers, destroyed.
+		 *
+		 * \param[in] tid the type of the class whose state should be stored;
+		 * you probably want to pass \c typeid(*this) here.
+		 *
+		 * \param[in] state the new state to store (which can be a null pointer
+		 * to remove the state).
+		 */
+		void set_state(const std::type_info &tid, state::ptr state);
+
 	private:
 		xbee_drive_bot::ptr bot;
 		point destination_;
@@ -114,6 +163,7 @@ class player : public robot {
 		timespec sense_ball_start, sense_ball_end, stall_start, recover_time_start;
 		double dribble_distance_;
 		point last_dribble_position;
+		std::map<const std::type_info *, state::ptr, bool (*)(const std::type_info *, const std::type_info *)> state_store;
 
 		/**
 		 * Constructs a new player object.

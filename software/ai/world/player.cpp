@@ -46,6 +46,13 @@ namespace {
 		}
 		return new_dribble_power;
 	}
+
+	bool compare_type_infos(const std::type_info *x, const std::type_info *y) {
+		return x->before(*y);
+	}
+}
+
+player::state::~state() {
 }
 
 uint64_t player::address() const {
@@ -134,12 +141,25 @@ bool player::dribbler_safe() const {
 	return milliseconds > DRIBBLE_RECOVER_TIME;
 }
 
+player::state::ptr player::get_state(const std::type_info &tid) const {
+	std::map<const std::type_info *, state::ptr>::const_iterator i = state_store.find(&tid);
+	return i != state_store.end() ? i->second : state::ptr();
+}
+
+void player::set_state(const std::type_info &tid, player::state::ptr state) {
+	if (state) {
+		state_store[&tid] = state;
+	} else {
+		state_store.erase(&tid);
+	}
+}
+
 player::ptr player::create(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) {
 	ptr p(new player(name, yellow, pattern_index, bot));
 	return p;
 }
 
-player::player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(false), theory_dribble_rpm(0), dribble_distance_(0.0) {
+player::player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(false), theory_dribble_rpm(0), dribble_distance_(0.0), state_store(&compare_type_infos) {
 	bot->signal_feedback.connect(sigc::mem_fun(this, &player::on_feedback));
 	clock_gettime(CLOCK_MONOTONIC, &sense_ball_end);
 }
