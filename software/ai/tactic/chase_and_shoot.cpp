@@ -32,7 +32,6 @@ void chase_and_shoot::tick() {
 
 	const ball::ptr the_ball(the_world->ball());
 
-
 	bool recent_hit_target = false;
 	chase_target_state::ptr state(chase_target_state::ptr::cast_dynamic(the_player->get_state(typeid(*this))));
 	if(state)recent_hit_target= state->recent_hit_target;
@@ -90,15 +89,14 @@ void chase_and_shoot::tick() {
 	}
 	std::cout<<"recent hit: "<<recent_hit_target<<std::endl;
 
-	if (state->recent_hit_target){
+	if (state->recent_hit_target) {
 		navi.set_position(the_ball->position());
 		navi.set_orientation((target - the_player->position()).orientation());
 		navi.set_flags(flags);
 		navi.tick();
 	} else {
 		navi.set_position(robot_dst);
-		navi.set_flags(flags);
-		navi.set_flags(ai_flags::avoid_ball_near);
+		navi.set_flags(flags | ai_flags::avoid_ball_near);
 		navi.tick(); 	
 	} 	
 

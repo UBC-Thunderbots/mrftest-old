@@ -10,16 +10,16 @@ pass::pass(player::ptr player, world::ptr world, player::ptr receiver) : tactic(
 }
 
 void pass::tick() {
-	if (!ai_util::has_ball(the_player) || !the_player->sense_ball()) {
+	if (!ai_util::has_ball(the_player)) {
+		/*
 		chase chase_tactic(the_player, the_world);
 		chase_tactic.set_flags(flags);
 		chase_tactic.tick();
-		/*
+		*/
 		chase_and_shoot tactic(the_player, the_world);
 		tactic.set_target(the_receiver->position());
 		tactic.set_flags(flags);
 		tactic.tick();
-		*/
 		return;
 	}
 
