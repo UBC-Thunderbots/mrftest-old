@@ -31,7 +31,7 @@ namespace {
 		if (the_team.size() != 2) return;
 
 		// player 0 is the receiver
-		const player::ptr receiver = the_team.get_player(0);
+		const player::ptr receiver = the_team.get_player(1);
 		move move_tactic(receiver, the_world);
 		move_tactic.set_position(point(0.0, 0.0));
 		move_tactic.tick();
@@ -53,19 +53,21 @@ namespace {
 			kick_tactic.tick();
 		}
 
-		const player::ptr passer = the_team.get_player(1);
+		const player::ptr passer = the_team.get_player(0);
 //		std::cout << passer->est_velocity() << std::endl;
 		if (ai_util::has_ball(passer)) {
 			std::cout << "strategy: passer has ball" << std::endl;
-			pass pass_tactic(passer, the_world, receiver);
-			pass_tactic.tick();
+			//pass pass_tactic(passer, the_world, receiver);
+			//pass_tactic.tick();
 		} else if (receiverhasball) {
 			// receiver has the ball, go somewhere?
 		} else {
 			std::cout << "strategy: chase ball" << std::endl;
-			chase chase_tactic(passer, the_world);
-			chase_tactic.tick();
+			//chase chase_tactic(passer, the_world);
+			//chase_tactic.tick();
 		}
+		pass pass_tactic(passer, the_world, receiver);
+		pass_tactic.tick();
 	}
 
 	Gtk::Widget *test_pass_strategy::get_ui_controls() {

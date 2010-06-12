@@ -33,7 +33,7 @@ namespace {
 				circles.push_back(c);
 			}
 
-                        point filter(const vector<pair<point, double> > &obs, friendly_team &friendly, enemy_team &enemy) {
+			point filter(const vector<pair<point, double> > &obs, friendly_team &friendly, enemy_team &enemy) {
 				point max_point;
 				double max_cert = -0.1;
 
@@ -61,7 +61,7 @@ namespace {
 
 					if (containing.empty()) {
 						if (max_cert < 0)
-						      max_point = last_point;
+							max_point = last_point;
 						circle c;
 						c.center = max_point;
 						c.certainty = DECAY_RATE;

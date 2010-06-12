@@ -19,18 +19,19 @@ void pass::tick() {
 		return;
 	}
 
-	bool should_pass = ai_util::can_pass(the_world, the_receiver);
+	// bool should_pass = ai_util::can_pass(the_world, the_receiver);
 	// do we need this velocity threshold?
 	// && the_receiver->est_velocity().len() < ai_util::VEL_CLOSE;
+	bool should_pass = true;
 
 	if (should_pass) {
-		// std::cout << " pass: let's shoot " << std::endl;
+		std::cout << " pass: let's shoot " << std::endl;
 		kick kick_tactic(the_player, the_world);
 		kick_tactic.set_target(the_receiver->position());
 		kick_tactic.set_flags(flags);
 		kick_tactic.tick();
 	} else {
-		// std::cout << " pass: move to receiver " << std::endl;
+		std::cout << " pass: move to receiver " << std::endl;
 		move move_tactic(the_player, the_world);
 		move_tactic.set_position(the_receiver->position());
 		// ALSO FACE TOWARDS RECEIVER

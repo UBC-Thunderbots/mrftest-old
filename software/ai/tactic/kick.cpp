@@ -42,6 +42,8 @@ void kick::tick() {
 		navi.tick();
 		return;
 	}
+	
+	std::cout << "kick: shoot!" << std::endl;
 
 	if (should_chip) {
 		the_player->chip(chip_strength);

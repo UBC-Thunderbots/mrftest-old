@@ -86,7 +86,7 @@ void pivot::tick() {
 	if((robot_dst-the_player->position()).len()<0.01){
 		state->recent_hit_target = true;
 	}
-	std::cout<<"recent hit: "<<recent_hit_target<<std::endl;
+	// std::cout<<"recent hit: "<<recent_hit_target<<std::endl;
 
 	if (state->recent_hit_target) {
 		navi.set_position(the_ball->position());

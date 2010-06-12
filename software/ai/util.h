@@ -32,11 +32,12 @@ namespace ai_util {
 			const point& dest;
 	};
 
+	// TODO: base this on distance.
 	/**
 	 * If the robot orientation is within this angle,
 	 * then it can shoot accurately.
 	 */
-	static const double ORI_CLOSE = 3.0 / 180.0 * M_PI;
+	static const double ORI_CLOSE = 5.0 / 180.0 * M_PI;
 
 	/**
 	 * Position epsilon.
@@ -53,7 +54,7 @@ namespace ai_util {
 	 * If the robot is less than this angle away from the ball,
 	 * then it is capable of receiving the ball.
 	 */
-	static const double ORI_PASS_CLOSE = 5.0 / 180.0 * M_PI;
+	static const double ORI_PASS_CLOSE = 45.0 / 180.0 * M_PI;
 
 	/**
 	 * Let t be time elpased since robot has ball.
@@ -98,6 +99,8 @@ namespace ai_util {
 	 */
 	bool path_check(const point& begin, const point& end, const std::vector<point>& obstacles, const double thresh);
 
+	// TODO: rename this function so that it is less misleading in what it does.
+	// TODO: maybe the source to a point instead of defaulting to ball.
 	/**
 	 * Checks if the passee can get the ball now.
 	 * Returns false if some robots is blocking line of sight of ball from passee

@@ -68,11 +68,13 @@ void basic_strategy::in_play_assignment() {
 	roles.clear();
 	if (the_team.size() == 0) return;
 
-	goalie::ptr goalie_role(new goalie(the_world));
-	roles.push_back(role::ptr(goalie_role));
-	std::vector<player::ptr> goalie;
-	goalie.push_back(the_team.get_player(0));
-	goalie_role->set_robots(goalie);
+	//goalie::ptr goalie_role(new goalie(the_world));
+	//roles.push_back(role::ptr(goalie_role));
+	//std::vector<player::ptr> goalie;
+	//goalie.push_back(the_team.get_player(0));
+	//goalie_role->set_robots(goalie);
+
+
 
 	defensive::ptr defensive_role(new defensive(the_world));
 	offensive::ptr offensive_role(new offensive(the_world));
@@ -80,6 +82,8 @@ void basic_strategy::in_play_assignment() {
 	roles.push_back(role::ptr(offensive_role));
 	std::vector<player::ptr> defenders;
 	std::vector<player::ptr> offenders;
+
+	offenders.push_back(the_team.get_player(0));
 
 	if (the_team.size() >= 2)
 		offenders.push_back(the_team.get_player(1));

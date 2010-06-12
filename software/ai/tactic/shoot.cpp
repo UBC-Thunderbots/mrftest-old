@@ -39,6 +39,10 @@ void shoot::tick() {
 		chase chase_tactic(the_player, the_world);
 		chase_tactic.set_flags(flags);
 		chase_tactic.tick();
+		//chase_and_shoot tactic(the_player, the_world);
+		//tactic.set_target(the_receiver->position());
+		//tactic.set_flags(flags);
+		//tactic.tick();
 	} else {
 		// This player does not have the ball.
 		// std::cout << " omg no ball, go chase " << the_player->sense_ball() << " last=" << the_player->last_sense_ball_time() << std::endl;

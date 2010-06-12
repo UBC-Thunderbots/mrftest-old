@@ -1,5 +1,6 @@
 #include "ai/role/offensive.h"
 #include "ai/tactic/chase.h"
+#include "ai/tactic/pivot.h"
 #include "ai/tactic/move.h"
 #include "ai/tactic/shoot.h"
 #include "ai/tactic/dribble.h"
@@ -30,6 +31,7 @@ offensive::offensive(world::ptr world) : the_world(world) {
 double offensive::scoring_function(const std::vector<point>& enemypos, const point& pos) const {
 	// Hmm.. not sure if having negative number is a good idea.
 	double score = ai_util::calc_goal_visibility_angle(the_world->field(), enemypos, pos);
+	score *= 1e10;
 	// distance to enemies
 	for (size_t i = 0; i < enemypos.size(); ++i) {
 		double dist = (pos - enemypos[i]).len();
@@ -47,19 +49,22 @@ double offensive::scoring_function(const std::vector<point>& enemypos, const poi
 
 point offensive::calc_position_best(const std::vector<point>& enemypos) const {
 	const double x1 = 0;
-	const double x2 = the_world->field().length();
+	const double x2 = the_world->field().length() / 2;
 	const double y1 = -the_world->field().width() / 2;
 	const double y2 = the_world->field().width() / 2;
 
 	const double dx = (x2 - x1) / (GRIDX+1);
 	const double dy = (y2 - y1) / (GRIDY+1);
-	double bestscore = 0;
+	double bestscore = -1e50;
 	point bestpos(0, 0);
 	for (int j = 0; j < GRIDY; ++j) {
 		for (int i = 0; i < GRIDX; ++i) {
 			const double x = x1 + dx * (i + 1);
 			const double y = y1 + dy * (j + 1);
 			const point pos = point(x, y);
+			// TEMPORARY HACK!!
+			const double goaldist = (pos - the_world->field().enemy_goal()).len();
+			if (goaldist < the_world->field().goal_width()) continue;
 			const double score = scoring_function(enemypos, pos);
 			if (score > bestscore) {
 				bestscore = score;
@@ -130,6 +135,10 @@ void offensive::tick() {
 		}
 	}
 
+	if (baller != -1 && baller != 0) {
+		std::cerr << "offensive: nearest robot don't have the ball??" << std::endl;
+	}
+
 	if (teampossesball) {
 		// someone has the ball
 		if (baller != -1) {
@@ -160,11 +169,16 @@ void offensive::tick() {
 					move_tactic->set_position(waypoints[order[w]]);
 					tactics[i] = move_tactic;
 				}
+				++w;
 			}
 
 			// as for the robot with the ball, make the robot try to shoot the goal, or pass to someone
-			if (get_distance_from_goal(baller) < the_world->field().length() / 3) {
+			if (!ai_util::has_ball(the_robots[baller])) {
+				std::cout << "offensive: chase ball " << std::endl;
+				tactics[baller] = pivot::ptr(new pivot(the_robots[baller], the_world));
+			} else if (get_distance_from_goal(baller) < the_world->field().length() / 3) {
 				if (ai_util::calc_best_shot(the_robots[baller],the_world) != -1) {
+					std::cout << "offensive: i canz shoot " << std::endl;
 					tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
 				} else {
 					int passme = -1;
@@ -181,6 +195,7 @@ void offensive::tick() {
 							}
 						}
 					}
+					std::cout << "offensive: pass to " << passme << std::endl;
 					if (passme != -1) {
 						// found suitable passee, make a pass
 						tactics[baller] = pass::ptr(new pass(the_robots[baller], the_world, the_robots[passme]));
@@ -212,15 +227,45 @@ void offensive::tick() {
 			}
 		}
 	} else {
+		// calculate some good positions for robots not holding the ball
+		std::vector<point> waypoints = calc_position_best(static_cast<int>(the_robots.size()) - 1);
+
+		// other robots not having the ball
+		std::vector<player::ptr> available;
+		std::vector<point> locations;
+		for (size_t i = 1; i < the_robots.size(); ++i) {
+			available.push_back(the_robots[i]);
+			locations.push_back(the_robots[i]->position());
+		}
+
+		std::vector<size_t> order = ai_util::dist_matching(locations, waypoints);
+
+		size_t w = 0;
+		for (size_t i = 1; i < the_robots.size(); ++i) {
+			if (w >= waypoints.size()) {
+				std::cerr << "Offender has nothing to do!" << std::endl;
+				move::ptr move_tactic(new move(the_robots[i], the_world));
+				move_tactic->set_position(the_robots[i]->position());
+				tactics[i] = move_tactic;
+			} else {
+				move::ptr move_tactic(new move(the_robots[i], the_world));
+				move_tactic->set_position(waypoints[order[w]]);
+				tactics[i] = move_tactic;
+			}
+		}
+
+		std::cout << "offensive: chase " << std::endl;
+		tactics[0] = pivot::ptr(new pivot(the_robots[0], the_world));
 		// no one has the ball
 		// just do chase for now
-		for (size_t i = 0; i < the_robots.size(); ++i) {
-			tactics[i] = chase::ptr(new chase(the_robots[i], the_world));
-		}
+		// for (size_t i = 0; i < the_robots.size(); ++i) {
+			//tactics[i] = pivot::ptr(new pivot(the_robots[i], the_world));
+			//tactics[i] = chase::ptr(new chase(the_robots[i], the_world));
+		//}
 	}
 
-    unsigned int flags = ai_flags::calc_flags(the_world->playtype());
-    
+	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
+
 	for (size_t i = 0; i < tactics.size(); ++i) {
 		if (static_cast<int>(i) == baller) {
 			tactics[i]->set_flags(flags | ai_flags::clip_play_area);
@@ -228,7 +273,7 @@ void offensive::tick() {
 			tactics[i]->set_flags(flags);
 		}
 		tactics[i]->tick();
-    }
+	}
 }
 
 void offensive::robots_changed() {

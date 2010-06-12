@@ -14,6 +14,8 @@ namespace {
 	const unsigned int MAX_DRIBBLE_STALL_MILLISECONDS = 2000;
 	const unsigned int DRIBBLE_RECOVER_TIME = 1000;
 
+	const double HAS_BALL_TIME = 0.2;
+
 	unsigned int kicker_power_to_pulse_width(double power) {
 		static const unsigned int MAX_PULSE_WIDTH = 511;
 		static const double MICROS_PER_TICK = 32;
@@ -149,6 +151,10 @@ bool player::dribbler_safe() const {
 	return milliseconds > DRIBBLE_RECOVER_TIME;
 }
 
+bool player::has_ball() const {
+	return sense_ball() && sense_ball_time() >= HAS_BALL_TIME;
+}
+
 player::state::ptr player::get_state(const std::type_info &tid) const {
 	std::map<const std::type_info *, state::ptr>::const_iterator i = state_store.find(&tid);
 	return i != state_store.end() ? i->second : state::ptr();
@@ -189,7 +195,7 @@ void player::tick(bool scram) {
 		bot->drive_controlled(output[0], output[1], output[2], output[3]);
 		moved = false;
 		bot->enable_chicker(true);
-		if (sense_ball()) {
+		if (has_ball()) {
 			new_dribble_power = calc_dribble(output, new_dribble_power);
 		}
 	} else {
@@ -204,6 +210,7 @@ void player::tick(bool scram) {
 
 	// Dribbler control path.
 	new_dribble_power = dribbler_safe() ? new_dribble_power : 0;
+	//std::cout << " dribble at " << new_dribble_power << std::endl;
 	if (new_dribble_power) {
 		bot->dribble(new_dribble_power);
 		old_dribble_power = new_dribble_power;

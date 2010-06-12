@@ -125,6 +125,11 @@ class player : public robot {
 		bool dribbler_safe() const;
 
 		/**
+		 * \return True if the player has the ball with high certainty.
+		 */
+		bool has_ball() const;
+
+		/**
 		 * Fetches the state block previously stored by some class.
 		 *
 		 * \param[in] tid the type of the class whose state should be fetched;

@@ -72,8 +72,10 @@ namespace ai_util {
 		}
 		// if the passee is not facing the ball, forget it
 		const point ray = ball->position() - passee->position();
-		if (angle_diff(ray.orientation(), passee->orientation()) > ORI_PASS_CLOSE)
+		if (angle_diff(ray.orientation(), passee->orientation()) > ORI_PASS_CLOSE) {
+			std::cerr << " angle diff = " << angle_diff(ray.orientation(), passee->orientation()) << std::endl; 
 			return false;
+		}
 		// if(!path_check(ball->position(), passee->position(), w->enemy.get_robots(), SHOOT_ALLOWANCE + robot::MAX_RADIUS + ball::RADIUS)) return false;
 		const point direction = ray.norm();
 		const double distance = (ball->position() - passee->position()).len();
@@ -307,11 +309,16 @@ namespace ai_util {
 	}
 
 	bool has_ball(const player::ptr pl) {
-		return pl->sense_ball() && pl->sense_ball_time() >= HAS_BALL_TIME;
+		return pl->has_ball();
+		//return pl->sense_ball() && pl->sense_ball_time() >= HAS_BALL_TIME;
 	}
 
 	bool posses_ball(const world::ptr w, const player::ptr pl) {
 		return has_ball(pl) || (pl->last_sense_ball_time() < HAS_BALL_ALLOWANCE && ball_close(w, pl));
+	}
+
+	// target is another player
+	double calc_visibility_angle(const std::vector<point>& obstacles, const point& p) {
 	}
 
 }

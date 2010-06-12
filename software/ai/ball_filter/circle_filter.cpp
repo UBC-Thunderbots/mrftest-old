@@ -2,6 +2,7 @@
 #include "util/timestep.h"
 #include "ai/world/ball.h"
 #include "geom/angle.h"
+#include "ai/util.h"
 #include <cmath>
 #include <list>
 #include <utility>
@@ -53,7 +54,13 @@ namespace {
 
 						point orient(1,0);
 						has_ball_point = player->position() + (ball::RADIUS + robot::MAX_RADIUS) * orient.rotate(player->orientation());
-						has_ball_cert = 1.0 - exp(-has_ball_timesteps / 5.0);
+
+						if (player->sense_ball_time() < ai_util::HAS_BALL_TIME) {
+							continue;
+						}
+
+						//has_ball_cert = 1.0 - exp(-has_ball_timesteps / 5.0);
+						has_ball_cert = 1.0 - exp(-player->sense_ball_time() / 5.0);
 						break;
 					}
 				}				
