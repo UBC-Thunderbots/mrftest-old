@@ -184,15 +184,19 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 		//
 		void enable_chicker(bool);
 
-		//
-		// Fires the kicker.
-		//
-		void kick(unsigned int);
+		/**
+		 * Fires the kicker.
+		 *
+		 * \param[in] width the width of the pulse to generate, in 32ms units.
+		 */
+		void kick(unsigned int width);
 
-		//
-		// Fires the chipper.
-		//
-		void chip(unsigned int);
+		/**
+		 * Fires the chipper.
+		 *
+		 * \param[in] width the width of the pulse to generate, in 32ms units.
+		 */
+		void chip(unsigned int width);
 
 	private:
 		xbee_lowlevel &ll;
