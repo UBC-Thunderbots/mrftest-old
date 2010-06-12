@@ -123,7 +123,9 @@ namespace xbeepacket {
 	};
 	const uint8_t FEEDBACK_FLAG_RUNNING = 0x80;
 	const uint8_t FEEDBACK_FLAG_CHICKER_READY = 0x01;
-	const uint8_t FEEDBACK_FLAG_CHICKER_FAULT = 0x02;
+	const uint8_t FEEDBACK_FLAG_CHICKER_CHIP_FAULT = 0x02;
+	const uint8_t FEEDBACK_FLAG_CHICKER_FAULT0 = 0x04;
+	const uint8_t FEEDBACK_FLAG_CHICKER_FAULT150 = 0x08;
 
 	struct __attribute__((packed)) RUN_DATA {
 		uint8_t flags;

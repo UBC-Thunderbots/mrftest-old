@@ -51,7 +51,10 @@ tester_window::tester_window(xbee_lowlevel &modem, const config &conf) : modem(m
 	chicker_chip.signal_clicked().connect(sigc::mem_fun(this, &tester_window::on_chicker_chip));
 	chicker_chip.set_sensitive(false);
 	chicker_box.pack_start(chicker_chip, Gtk::PACK_SHRINK);
-	chicker_box.pack_start(chicker_status, Gtk::PACK_SHRINK);
+	chicker_box.pack_start(chicker_ready_light, Gtk::PACK_SHRINK);
+	chicker_box.pack_start(lt3751_fault_light, Gtk::PACK_SHRINK);
+	chicker_box.pack_start(chicker_low_fault_light, Gtk::PACK_SHRINK);
+	chicker_box.pack_start(chicker_high_fault_light, Gtk::PACK_SHRINK);
 	chicker_frame.add(chicker_box);
 	vbox.pack_start(chicker_frame, Gtk::PACK_SHRINK);
 
@@ -203,16 +206,32 @@ void tester_window::on_chicker_chip() {
 
 void tester_window::on_feedback() {
 	if (bot) {
-		if (bot->chicker_faulted()) {
-			chicker_status.set_colour(1, 0, 0);
-		} else if (bot->chicker_ready()) {
-			chicker_status.set_colour(0, 1, 0);
+		if (bot->chicker_ready()) {
+			chicker_ready_light.set_colour(0, 1, 0);
 		} else {
-			chicker_status.set_colour(0, 0, 0);
+			chicker_ready_light.set_colour(0, 0, 0);
+		}
+		if (bot->lt3751_faulted()) {
+			lt3751_fault_light.set_colour(1, 0, 0);
+		} else {
+			lt3751_fault_light.set_colour(0, 0, 0);
+		}
+		if (bot->chicker_low_faulted()) {
+			chicker_low_fault_light.set_colour(1, 0, 0);
+		} else {
+			chicker_low_fault_light.set_colour(0, 0, 0);
+		}
+		if (bot->chicker_high_faulted()) {
+			chicker_high_fault_light.set_colour(1, 0, 0);
+		} else {
+			chicker_high_fault_light.set_colour(0, 0, 0);
 		}
 		bot->stamp();
 	} else {
-		chicker_status.set_colour(0, 0, 0);
+		chicker_ready_light.set_colour(0, 0, 0);
+		lt3751_fault_light.set_colour(0, 0, 0);
+		chicker_low_fault_light.set_colour(0, 0, 0);
+		chicker_high_fault_light.set_colour(0, 0, 0);
 	}
 }
 

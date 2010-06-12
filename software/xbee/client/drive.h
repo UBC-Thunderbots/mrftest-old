@@ -143,10 +143,23 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 		bool chicker_ready() const;
 
 		/**
-		 * \return true if the chicker charger experienced a fault recently, or
-		 * false if not
+		 * \return \c true if the LT3751 chicker charger chip is faulting, or \c
+		 * false if not.
 		 */
-		bool chicker_faulted() const;
+		bool lt3751_faulted() const;
+
+		/**
+		 * \return \c true if the chicker charger failed to charge above the
+		 * minimum threshold voltage within the allowed time period, or \c false
+		 * if not.
+		 */
+		bool chicker_low_faulted() const;
+
+		/**
+		 * \return \c true if the chicker charger charged above the maximum
+		 * volatge, or \c false if not.
+		 */
+		bool chicker_high_faulted() const;
 
 		//
 		// Prevents the robot from being scrammed by a timeout, without actually
@@ -206,8 +219,8 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 		timespec latency_, feedback_timestamp_, feedback_interval_, run_data_interval_;
 		uint8_t inbound_rssi_;
 		unsigned int success_rate_;
-		timespec low_battery_start_time, chicker_fault_start_time;
-		annunciator::message low_battery_message, chicker_fault_message;
+		timespec low_battery_start_time, lt3751_fault_start_time;
+		annunciator::message low_battery_message, lt3751_fault_message, chicker_low_fault_message, chicker_high_fault_message;
 
 		xbee_drive_bot(const Glib::ustring &name, uint64_t address, xbee_lowlevel &ll);
 		~xbee_drive_bot();

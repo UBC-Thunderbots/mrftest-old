@@ -46,7 +46,7 @@ class tester_window : public Gtk::Window {
 		Gtk::HScale chicker_power;
 		Gtk::Button chicker_kick;
 		Gtk::Button chicker_chip;
-		light chicker_status;
+		light chicker_ready_light, lt3751_fault_light, chicker_low_fault_light, chicker_high_fault_light;
 
 		int key_snoop(Widget *, GdkEventKey *event);
 		void on_claim_toggled();

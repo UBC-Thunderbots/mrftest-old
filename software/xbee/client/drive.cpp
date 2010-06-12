@@ -10,7 +10,7 @@ namespace {
 	const unsigned int BATTERY_WARNING_THRESHOLD = 13500;
 	const unsigned int BATTERY_NOWARNING_THRESHOLD = 14500;
 	const unsigned int BATTERY_WARNING_FILTER_TIME = 10000;
-	const unsigned int CHICKER_FAULT_WARNING_TIME = 500;
+	const unsigned int LT3751_FAULT_WARNING_TIME = 500;
 
 	unsigned int smag(int val) {
 		assert(-1023 <= val && val <= 1023);
@@ -20,10 +20,10 @@ namespace {
 	}
 }
 
-xbee_drive_bot::xbee_drive_bot(const Glib::ustring &name, uint64_t address, xbee_lowlevel &ll) : address(address), ll(ll), alive_(false), shm_frame(0), low_battery_message(Glib::ustring::compose("%1 low battery", name)), chicker_fault_message(Glib::ustring::compose("%1 chicker fault", name)) {
+xbee_drive_bot::xbee_drive_bot(const Glib::ustring &name, uint64_t address, xbee_lowlevel &ll) : address(address), ll(ll), alive_(false), shm_frame(0), low_battery_message(Glib::ustring::compose("%1 low battery", name)), lt3751_fault_message(Glib::ustring::compose("%1 LT3751 fault", name)), chicker_low_fault_message(Glib::ustring::compose("%1 chicker LOW fault", name)), chicker_high_fault_message(Glib::ustring::compose("%1 chicker HIGH fault", name)) {
 	clock_gettime(CLOCK_MONOTONIC, &feedback_timestamp_);
 	clock_gettime(CLOCK_MONOTONIC, &low_battery_start_time);
-	clock_gettime(CLOCK_MONOTONIC, &chicker_fault_start_time);
+	clock_gettime(CLOCK_MONOTONIC, &lt3751_fault_start_time);
 	feedback_interval_.tv_sec = 0;
 	feedback_interval_.tv_nsec = 0;
 	run_data_interval_.tv_sec = 0;
@@ -81,8 +81,16 @@ bool xbee_drive_bot::chicker_ready() const {
 	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_READY);
 }
 
-bool xbee_drive_bot::chicker_faulted() const {
-	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_FAULT);
+bool xbee_drive_bot::lt3751_faulted() const {
+	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_CHIP_FAULT);
+}
+
+bool xbee_drive_bot::chicker_low_faulted() const {
+	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_FAULT0);
+}
+
+bool xbee_drive_bot::chicker_high_faulted() const {
+	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_FAULT150);
 }
 
 void xbee_drive_bot::stamp() {
@@ -229,16 +237,19 @@ void xbee_drive_bot::on_meta(const void *buffer, std::size_t length) {
 						}
 					}
 
-					if (chicker_faulted()) {
+					if (lt3751_faulted()) {
 						timespec diff;
-						timespec_sub(now, chicker_fault_start_time, diff);
-						if (diff.tv_sec * 1000U + diff.tv_nsec / 1000000U > CHICKER_FAULT_WARNING_TIME) {
-							chicker_fault_message.activate(true);
+						timespec_sub(now, lt3751_fault_start_time, diff);
+						if (diff.tv_sec * 1000U + diff.tv_nsec / 1000000U > LT3751_FAULT_WARNING_TIME) {
+							lt3751_fault_message.activate(true);
 						}
 					} else {
-						chicker_fault_start_time = now;
-						chicker_fault_message.activate(false);
+						lt3751_fault_start_time = now;
+						lt3751_fault_message.activate(false);
 					}
+
+					chicker_low_fault_message.activate(chicker_low_faulted());
+					chicker_high_fault_message.activate(chicker_low_faulted());
 
 					signal_feedback.emit();
 				}
