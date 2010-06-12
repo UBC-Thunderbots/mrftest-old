@@ -120,6 +120,33 @@ xbee_lowlevel::xbee_lowlevel() : frame_allocator(1, 255), sock(connect_to_daemon
 	Glib::signal_io().connect(sigc::mem_fun(this, &xbee_lowlevel::on_readable), sock, Glib::IO_IN | Glib::IO_HUP);
 }
 
+bool xbee_lowlevel::claim_universe() {
+	xbeepacket::META_CLAIM_UNIVERSE req;
+	req.hdr.apiid = xbeepacket::META_APIID;
+	req.hdr.metatype = xbeepacket::CLAIM_UNIVERSE_METATYPE;
+	if (::send(sock, &req, sizeof(req), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(req))) {
+		throw std::runtime_error("Cannot send packet to XBee arbiter!");
+	}
+
+	for (;;) {
+		unsigned char buffer[65536];
+		ssize_t ret = recv(sock, buffer, sizeof(buffer), 0);
+		if (ret < 0) {
+			throw std::runtime_error("Cannot talk to XBee arbiter!");
+		}
+		if (!ret) {
+			throw std::runtime_error("XBee arbiter died!");
+		}
+		if (buffer[0] == xbeepacket::META_APIID) {
+			if (buffer[1] == xbeepacket::ALIVE_METATYPE) {
+				return true;
+			} else if (buffer[1] == xbeepacket::CLAIM_FAILED_LOCKED_METATYPE) {
+				return false;
+			}
+		}
+	}
+}
+
 void xbee_lowlevel::send(packet::ptr pkt) {
 	if (pkt->has_response) {
 		uint8_t frame = frame_allocator.alloc();
@@ -155,7 +182,7 @@ bool xbee_lowlevel::on_readable(Glib::IOCondition cond) {
 		DPRINT("Received transmit status packet.");
 		const xbeepacket::TRANSMIT_STATUS *pkt = reinterpret_cast<const xbeepacket::TRANSMIT_STATUS *>(buffer);
 		if (packets[pkt->frame]) {
-			packets[pkt->frame]->signal_complete().emit(pkt);
+			packets[pkt->frame]->signal_complete().emit(pkt, ret);
 			packets[pkt->frame].reset();
 			frame_allocator.free(pkt->frame);
 		}
@@ -163,7 +190,15 @@ bool xbee_lowlevel::on_readable(Glib::IOCondition cond) {
 		DPRINT("Received remote AT command response.");
 		const xbeepacket::REMOTE_AT_RESPONSE *pkt = reinterpret_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(buffer);
 		if (packets[pkt->frame]) {
-			packets[pkt->frame]->signal_complete().emit(pkt);
+			packets[pkt->frame]->signal_complete().emit(pkt, ret);
+			packets[pkt->frame].reset();
+			frame_allocator.free(pkt->frame);
+		}
+	} else if (buffer[0] == xbeepacket::AT_RESPONSE_APIID) {
+		DPRINT("Received AT command response.");
+		const xbeepacket::AT_RESPONSE *pkt = reinterpret_cast<const xbeepacket::AT_RESPONSE *>(buffer);
+		if (packets[pkt->frame]) {
+			packets[pkt->frame]->signal_complete().emit(pkt, ret);
 			packets[pkt->frame].reset();
 			frame_allocator.free(pkt->frame);
 		}

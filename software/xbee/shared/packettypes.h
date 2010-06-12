@@ -179,6 +179,24 @@ namespace xbeepacket {
 	};
 	const uint8_t META_APIID = 0x7E;
 
+	/**
+	 * A META_CLAIM_UNIVERSE packet is sent from a client to the arbiter when
+	 * the client wishes to take exclusive ownership of the entire radio
+	 * spectrum and all robots (for example, if it needs to hop the host XBee
+	 * between different radio channels).
+	 *
+	 * On success, a META_ALIVE is returned with all fields set to zero.
+	 *
+	 * If any other client is even connected to the dæmon,
+	 * META_CLAIM_FAILED_LOCKED is returned.
+	 *
+	 * The client may release the claim by closing its socket.
+	 */
+	struct __attribute__((packed)) META_CLAIM_UNIVERSE {
+		META_HDR hdr;
+	};
+	const uint8_t CLAIM_UNIVERSE_METATYPE = 0x07;
+
 	//
 	// A META_CLAIM packet is sent from a client to the arbiter when the client
 	// wishes to begin communicating with a robot. The "address" field contains

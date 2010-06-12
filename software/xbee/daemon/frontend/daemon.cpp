@@ -65,7 +65,7 @@ namespace {
 	}
 }
 
-daemon::daemon(class backend &backend) : backend(backend), frame_number_allocator(1, 255), id16_allocator(1, 0xFFFD), scheduler(*this), lock_file(open_and_lock_lock_file()), listen_sock(create_listening_socket()), allocated_rundata_indices(xbeepacket::MAX_DRIVE_ROBOTS, false) {
+daemon::daemon(class backend &backend) : backend(backend), frame_number_allocator(1, 255), id16_allocator(1, 0xFFFD), scheduler(*this), universe_claimed(false), lock_file(open_and_lock_lock_file()), listen_sock(create_listening_socket()), allocated_rundata_indices(xbeepacket::MAX_DRIVE_ROBOTS, false) {
 	// Blank the run data index reverse.
 	std::fill(run_data_index_reverse, run_data_index_reverse + xbeepacket::MAX_DRIVE_ROBOTS, UINT64_C(0));
 
@@ -128,8 +128,10 @@ bool daemon::on_accept(Glib::IOCondition) {
 	int newfd = accept(listen_sock, 0, 0);
 	if (newfd >= 0) {
 		file_descriptor fd(newfd);
-		client::create(fd, *this);
-		last_client_disconnected_firer.disconnect();
+		if (!universe_claimed) {
+			client::create(fd, *this);
+			last_client_disconnected_firer.disconnect();
+		}
 	}
 	return true;
 }

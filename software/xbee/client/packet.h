@@ -28,7 +28,7 @@ class packet : public byref {
 		// A signal emitted once the packet is complete. Only available if the
 		// packet is expecting a response.
 		//
-		sigc::signal<void, const void *> &signal_complete() {
+		sigc::signal<void, const void *, std::size_t> &signal_complete() {
 			assert(has_response);
 			return signal_complete_;
 		}
@@ -46,7 +46,7 @@ class packet : public byref {
 		}
 
 	private:
-		sigc::signal<void, const void *> signal_complete_;
+		sigc::signal<void, const void *, std::size_t> signal_complete_;
 };
 
 //
@@ -81,6 +81,48 @@ class transmit16_packet : public packet {
 		}
 };
 
+/**
+ * A local AT command packet.
+ */
+template<std::size_t value_size>
+class at_packet : public packet {
+	public:
+		/**
+		 * A pointer to an at_packet.
+		 */
+		typedef Glib::RefPtr<at_packet<value_size> > ptr;
+
+		/**
+		 * Constructs a new at_packet.
+		 *
+		 * \param[in] command the two-character command to execute.
+		 *
+		 * \param[in] value the value to provide.
+		 */
+		static ptr create(const char *command, const void *value) {
+			ptr p(new at_packet<value_size>(command, value));
+			return p;
+		}
+
+		/**
+		 * Encodes the packet for transmission and sends it over a socket.
+		 *
+		 * \param[in] sock the socket to send over.
+		 *
+		 * \param[in] frame the allocated frame number.
+		 */
+		void transmit(const file_descriptor &sock, uint8_t frame) const;
+
+	private:
+		char command[2];
+		uint8_t value[value_size];
+
+		at_packet(const char *command, const void *value) : packet(true) {
+			std::copy(command, command + 2, this->command);
+			std::copy(static_cast<const uint8_t *>(value), static_cast<const uint8_t *>(value) + value_size, this->value);
+		}
+};
+
 //
 // A remote AT command packet.
 //
@@ -92,11 +134,20 @@ class remote_at_packet : public packet {
 		//
 		typedef Glib::RefPtr<remote_at_packet<value_size> > ptr;
 
-		//
-		// Constructs a new remote_at_packet.
-		//
-		static ptr create(uint64_t dest, const char *command, const void *value) {
-			ptr p(new remote_at_packet<value_size>(dest, command, value));
+		/**
+		 * Constructs a new remote_at_packet.
+		 *
+		 * \param[in] dest the address of the robot to send to.
+		 *
+		 * \param[in] command the two-character command to execute.
+		 *
+		 * \param[in] value the value to provide.
+		 *
+		 * \param[in] apply \c true to apply the change immediately, or \c false
+		 * to queue the command for later application.
+		 */
+		static ptr create(uint64_t dest, const char *command, const void *value, bool apply) {
+			ptr p(new remote_at_packet<value_size>(dest, command, value, apply));
 			return p;
 		}
 
@@ -109,8 +160,9 @@ class remote_at_packet : public packet {
 		uint64_t dest;
 		char command[2];
 		uint8_t value[value_size];
+		bool apply;
 
-		remote_at_packet(uint64_t dest, const char *command, const void *value) : packet(true), dest(dest) {
+		remote_at_packet(uint64_t dest, const char *command, const void *value, bool apply) : packet(true), dest(dest), apply(apply) {
 			std::copy(command, command + 2, this->command);
 			std::copy(static_cast<const uint8_t *>(value), static_cast<const uint8_t *>(value) + value_size, this->value);
 		}

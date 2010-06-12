@@ -339,6 +339,77 @@ namespace {
 				}
 			}
 	};
+
+	class channels_model : public Glib::Object, public abstract_list_model {
+		public:
+			Gtk::TreeModelColumn<unsigned int> channel_column;
+
+			channels_model() : Glib::ObjectBase(typeid(channels_model)) {
+				alm_column_record.add(channel_column);
+			}
+
+			iterator iter_for_channel(unsigned int chan) {
+				assert(MIN_CHANNEL <= chan && chan <= MAX_CHANNEL);
+				Path p;
+				p.push_back(chan - MIN_CHANNEL);
+				return get_iter(p);
+			}
+
+			unsigned int channel_for_iter(const iterator &iter) {
+				const Path &p(get_path(iter));
+				return p.front() + MIN_CHANNEL;
+			}
+
+		private:
+			static const unsigned int MIN_CHANNEL = 0x0B;
+			static const unsigned int MAX_CHANNEL = 0x1A;
+
+			unsigned int alm_rows() const {
+				return MAX_CHANNEL - MIN_CHANNEL + 1;
+			}
+
+			void alm_get_value(unsigned int row, unsigned int col, Glib::ValueBase &value) const {
+				if (col == static_cast<unsigned int>(channel_column.index())) {
+					Glib::Value<unsigned int> v;
+					v.init(channel_column.type());
+					v.set(row + MIN_CHANNEL);
+					value.init(channel_column.type());
+					value = v;
+				} else {
+					std::abort();
+				}
+			}
+
+			void alm_set_value(unsigned int, unsigned int, const Glib::ValueBase &) {
+			}
+	};
+
+	class radio_page : public Gtk::Table {
+		public:
+			radio_page(config &conf) : Gtk::Table(1, 2), conf(conf), model(new channels_model), view(model) {
+				view.pack_start(renderer);
+				view.set_cell_data_func(renderer, sigc::mem_fun(this, &radio_page::cell_data_func));
+				view.set_active(model->iter_for_channel(conf.channel()));
+				view.signal_changed().connect(sigc::mem_fun(this, &radio_page::on_changed));
+				attach(*Gtk::manage(new Gtk::Label("Channel:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				attach(view, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+			}
+
+		private:
+			config &conf;
+			Glib::RefPtr<channels_model> model;
+			Gtk::ComboBox view;
+			Gtk::CellRendererText renderer;
+
+			void on_changed() {
+				conf.channel(model->channel_for_iter(view.get_active()));
+			}
+
+			void cell_data_func(const Gtk::TreeModel::const_iterator &iter) {
+				unsigned int chan = model->channel_for_iter(iter);
+				renderer.property_text() = Glib::ustring::format(std::hex, std::uppercase, std::setw(2), std::setfill(L'0'), chan);
+			}
+	};
 }
 
 window::window(config &conf) : conf(conf) {
@@ -347,6 +418,7 @@ window::window(config &conf) : conf(conf) {
 	add(*notebook);
 
 	notebook->append_page(*Gtk::manage(new robots_page(conf.robots())), "Robots");
+	notebook->append_page(*Gtk::manage(new radio_page(conf)), "Radio");
 
 	set_default_size(400, 400);
 }

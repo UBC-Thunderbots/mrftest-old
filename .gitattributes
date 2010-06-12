@@ -360,3 +360,4 @@ software/xbee/daemon/physical/serial.h -text
 software/xbee/shared/number_allocator.h -text
 software/xbee/shared/packettypes.h -text
 software/xbeeconfig.cpp -text
+software/xbeerconfig.cpp -text

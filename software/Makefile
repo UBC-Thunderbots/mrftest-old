@@ -1,7 +1,7 @@
 #
 # Here, write a list of all the executable binaries the Makefile might generate.
 #
-PROJECTS := config fw simulator test thunderbots xbeeconfig xbeed
+PROJECTS := config fw simulator test thunderbots xbeeconfig xbeed xbeerconfig
 
 #
 # Here, write a list of the source files and directories for each executable.
@@ -13,8 +13,9 @@ SOURCES_simulator := geom leastsquares proto sim uicomponents util xbee/client x
 SOURCES_steptest := geom leastsquares util xbee steptest.cpp
 SOURCES_test := geom tester uicomponents util xbee/client xbee/shared
 SOURCES_thunderbots := ai geom leastsquares proto robot_controller uicomponents util xbee/client xbee/shared
-SOURCES_xbeeconfig := xbeeconfig.cpp
+SOURCES_xbeeconfig := util xbeeconfig.cpp
 SOURCES_xbeed := util xbee/daemon xbee/shared
+SOURCES_xbeerconfig := uicomponents util xbeerconfig.cpp xbee/client xbee/shared
 
 #
 # Here, write the linker flags to be used for each project.
@@ -28,6 +29,7 @@ LDFLAGS_test := $(LDFLAGS_common)
 LDFLAGS_thunderbots := $(LDFLAGS_common)
 LDFLAGS_xbeeconfig := $(LDFLAGS_common)
 LDFLAGS_xbeed := $(shell pkg-config --libs glibmm-2.4) -lrt
+LDFLAGS_xbeerconfig := $(LDFLAGS_common)
 
 #
 # Here, write the compiler flags to be used.

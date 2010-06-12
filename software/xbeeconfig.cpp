@@ -1,7 +1,11 @@
+#include "util/config.h"
+#include <iomanip>
 #include <iostream>
+#include <locale>
 #include <sstream>
 #include <cstdio>
 #include <cstdlib>
+#include <glibmm.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
@@ -107,6 +111,10 @@ namespace {
 }
 
 int main(int argc, char **argv) {
+	std::setlocale(LC_ALL, "");
+
+	config conf;
+
 	const char *path;
 	if (argc == 1) {
 		path = "/dev/xbee";
@@ -239,8 +247,10 @@ connected:
 		goto start_work;
 	}
 
-	std::cout << "Setting radio channel... " << std::flush;
-	send_string(fd, "ATCHE\r");
+	std::cout << "Setting radio channel to " << Glib::ustring::format(std::hex, std::setw(2), std::setfill(L'0'), std::uppercase, conf.channel()) << "... " << std::flush;
+	{
+		send_string(fd, Glib::ustring::compose("ATCH%1\r", Glib::ustring::format(std::hex, std::uppercase, conf.channel())));
+	}
 	if (read_clean_ok(fd)) {
 		std::cout << "OK\n";
 	} else {

@@ -44,11 +44,14 @@ class client : public noncopyable, public sigc::trackable {
 		void on_radio_packet(const std::vector<uint8_t> &);
 		bool on_socket_ready(Glib::IOCondition);
 		void on_packet(void *, std::size_t);
+		void on_at_command(void *, std::size_t);
+		void on_at_response(const void *, std::size_t, uint8_t);
 		void on_remote_at_command(void *, std::size_t);
 		void on_remote_at_response(const void *, std::size_t, uint8_t);
 		void on_transmit(void *, std::size_t);
 		void on_transmit_status(const void *, std::size_t, uint8_t);
 		void on_meta(const void *, std::size_t);
+		void on_meta_claim_universe();
 		void on_meta_claim(const xbeepacket::META_CLAIM &);
 		void on_meta_release(const xbeepacket::META_RELEASE &);
 		void on_robot_alive(uint64_t);

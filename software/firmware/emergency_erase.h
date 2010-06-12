@@ -25,7 +25,7 @@ class emergency_erase : public watchable_operation, public sigc::trackable {
 		sigc::connection complete_connection;
 		
 		void report_error(const Glib::ustring &error);
-		void on_complete(const void *);
+		void on_complete(const void *, std::size_t);
 };
 
 #endif

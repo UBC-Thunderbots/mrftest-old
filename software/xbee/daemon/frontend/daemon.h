@@ -86,6 +86,12 @@ class daemon : public sigc::trackable {
 		//
 		uint64_t run_data_index_reverse[xbeepacket::MAX_DRIVE_ROBOTS];
 
+		/**
+		 * Whether or not the daemon has been exclusively claimed via a
+		 * xbeepacket::META_CLAIM_UNIVERSE request.
+		 */
+		bool universe_claimed;
+
 	private:
 		const file_descriptor lock_file;
 		const file_descriptor listen_sock;

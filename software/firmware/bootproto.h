@@ -87,9 +87,9 @@ class bootproto : public noncopyable, public sigc::trackable {
 		void report_error(const Glib::ustring &error);
 
 		void enter_bootloader_send();
-		void enter_bootloader_complete(const void *);
+		void enter_bootloader_complete(const void *, std::size_t);
 		void assign_address16_send();
-		void assign_address16_complete(const void *);
+		void assign_address16_complete(const void *, std::size_t);
 		bool enter_bootloader_quiesce();
 
 		void send_send();
@@ -97,7 +97,7 @@ class bootproto : public noncopyable, public sigc::trackable {
 		void send_receive(uint8_t, const void *, std::size_t);
 
 		void exit_bootloader_send();
-		void exit_bootloader_complete(const void *);
+		void exit_bootloader_complete(const void *, std::size_t);
 };
 
 #endif

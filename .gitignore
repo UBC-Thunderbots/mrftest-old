@@ -50,3 +50,4 @@ software/xbee/daemon/physical/*.d
 software/xbee/shared/*.d
 software/xbeeconfig
 software/xbeed
+software/xbeerconfig

@@ -70,6 +70,8 @@ config::config() {
 		ifs.read(signature, sizeof(signature));
 		if (std::equal(signature, signature + 8, "TBOTC001")) {
 			load_v1(ifs);
+		} else if (std::equal(signature, signature + 8, "TBOTC002")) {
+			load_v2(ifs);
 		} else {
 			// Unknown version number. Give up.
 		}
@@ -89,12 +91,31 @@ void config::save() const {
 	std::ofstream ofs;
 	ofs.exceptions(std::ios_base::failbit | std::ios_base::badbit);
 	ofs.open(file_path.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
-	ofs.write("TBOTC001", 8);
+	ofs.write("TBOTC002", 8);
 	robots_.save(ofs);
+	{
+		uint8_t ch = channel_;
+		ofs.write(reinterpret_cast<const char *>(&ch), 1);
+	}
+}
+
+void config::channel(unsigned int chan) {
+	assert(0x0B <= chan && chan <= 0x1A);
+	channel_ = chan;
 }
 
 void config::load_v1(std::istream &ifs) {
 	robots_.load_v1(ifs);
+	channel_ = 0x0E;
+}
+
+void config::load_v2(std::istream &ifs) {
+	robots_.load_v2(ifs);
+	{
+		uint8_t ch;
+		ifs.read(reinterpret_cast<char *>(&ch), 1);
+		channel(ch);
+	}
 }
 
 const config::robot_info &config::robot_set::find(uint64_t address) const {
@@ -104,6 +125,15 @@ const config::robot_info &config::robot_set::find(uint64_t address) const {
 		}
 	}
 	throw std::runtime_error("Cannot find robot by address!");
+}
+
+const config::robot_info &config::robot_set::find(const Glib::ustring &name) const {
+	for (typeof(robots.begin()) i(robots.begin()), iend(robots.end()); i != iend; ++i) {
+		if (i->name == name) {
+			return *i;
+		}
+	}
+	throw std::runtime_error("Cannot find robot by name!");
 }
 
 bool config::robot_set::contains_address(uint64_t address) const {
@@ -241,5 +271,9 @@ void config::robot_set::load_v1(std::istream &ifs) {
 		}
 		add(address, yellow, pattern_index, name);
 	}
+}
+
+void config::robot_set::load_v2(std::istream &ifs) {
+	load_v1(ifs);
 }
 

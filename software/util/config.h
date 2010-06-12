@@ -53,6 +53,15 @@ class config : public noncopyable {
 				//
 				const robot_info &find(uint64_t address) const;
 
+				/**
+				 * Gets a robot by its name.
+				 *
+				 * \param[in] name the name of the robot.
+				 *
+				 * \return the robot's information structure.
+				 */
+				const robot_info &find(const Glib::ustring &name) const;
+
 				//
 				// Checks whether a particular address is already in the list.
 				//
@@ -151,6 +160,7 @@ class config : public noncopyable {
 
 				void save(std::ostream &ofs) const;
 				void load_v1(std::istream &ifs);
+				void load_v2(std::istream &ifs);
 
 				friend class config;
 		};
@@ -179,10 +189,27 @@ class config : public noncopyable {
 			return robots_;
 		}
 
+		/**
+		 * \return the radio channel.
+		 */
+		unsigned int channel() const {
+			return channel_;
+		}
+
+		/**
+		 * Sets the radio channel.
+		 *
+		 * \param[in] chan the new channel, which must be between \c 0x0B and \c
+		 * 0x1A.
+		 */
+		void channel(unsigned int chan);
+
 	private:
 		robot_set robots_;
+		unsigned int channel_;
 
 		void load_v1(std::istream &ifs);
+		void load_v2(std::istream &ifs);
 };
 
 #endif

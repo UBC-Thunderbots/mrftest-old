@@ -38,6 +38,25 @@ void transmit16_packet::transmit(const file_descriptor &sock, uint8_t frame) con
 }
 
 template<std::size_t value_size>
+void at_packet<value_size>::transmit(const file_descriptor &sock, uint8_t frame) const {
+	xbeepacket::AT_REQUEST<value_size> packet;
+	packet.apiid = xbeepacket::AT_REQUEST_APIID;
+	packet.frame = frame;
+	std::copy(command, command + 2, packet.command);
+	std::copy(value, value + value_size, packet.value);
+
+	DPRINT("Transmitting AT command packet.");
+
+	if (send(sock, &packet, sizeof(packet), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(packet))) {
+		throw std::runtime_error("Cannot send packet to XBee arbiter!");
+	}
+}
+
+// Instantiate the template for the needed values.
+template class at_packet<1>;
+template class at_packet<2>;
+
+template<std::size_t value_size>
 void remote_at_packet<value_size>::transmit(const file_descriptor &sock, uint8_t frame) const {
 	xbeepacket::REMOTE_AT_REQUEST<value_size> packet;
 	packet.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
@@ -45,7 +64,7 @@ void remote_at_packet<value_size>::transmit(const file_descriptor &sock, uint8_t
 	xbeeutil::address_to_bytes(dest, packet.address64);
 	packet.address16[0] = 0xFF;
 	packet.address16[1] = 0xFE;
-	packet.options = xbeepacket::REMOTE_AT_REQUEST_OPTION_APPLY;
+	packet.options = apply ? xbeepacket::REMOTE_AT_REQUEST_OPTION_APPLY : 0;
 	std::copy(command, command + 2, packet.command);
 	std::copy(value, value + value_size, packet.value);
 
@@ -57,8 +76,11 @@ void remote_at_packet<value_size>::transmit(const file_descriptor &sock, uint8_t
 }
 
 // Instantiate the template for the needed values.
+template class remote_at_packet<0>;
 template class remote_at_packet<1>;
 template class remote_at_packet<2>;
+template class remote_at_packet<3>;
+template class remote_at_packet<4>;
 
 void meta_claim_packet::transmit(const file_descriptor &sock, uint8_t frame) const {
 	assert(!frame);

@@ -21,6 +21,13 @@ class xbee_lowlevel : public noncopyable {
 		//
 		xbee_lowlevel();
 
+		/**
+		 * Claims the entire universe, if possible.
+		 *
+		 * \return \c true if the claim succeeded, or \c false if not.
+		 */
+		bool claim_universe();
+
 		//
 		// Sends a packet.
 		//

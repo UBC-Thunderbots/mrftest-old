@@ -72,6 +72,11 @@ client::~client() {
 	if (instances.empty()) {
 		daemon.last_client_disconnected();
 	}
+
+	// This could only have been true if we were the one who claimed the
+	// universe and were the only client, in which case we should unclaim the
+	// universe.
+	daemon.universe_claimed = false;
 }
 
 void client::connect_frame_dealloc(request::ptr req, uint8_t frame) {
@@ -118,7 +123,7 @@ void client::on_packet(void *buffer, std::size_t length) {
 	switch (static_cast<uint8_t *>(buffer)[0]) {
 		case xbeepacket::AT_REQUEST_APIID:
 		case xbeepacket::AT_REQUEST_QUEUE_APIID:
-			DPRINT("Local AT command not implemented.");
+			on_at_command(buffer, length);
 			break;
 
 		case xbeepacket::REMOTE_AT_REQUEST_APIID:
@@ -137,6 +142,67 @@ void client::on_packet(void *buffer, std::size_t length) {
 		default:
 			DPRINT("Unknown packet type!");
 			break;
+	}
+}
+
+void client::on_at_command(void *buffer, std::size_t length) {
+	xbeepacket::AT_REQUEST<0> *packet = static_cast<xbeepacket::AT_REQUEST<0> *>(buffer);
+
+	// Check packet size.
+	if (length < sizeof(xbeepacket::AT_REQUEST<0>)) {
+		DPRINT("AT command with wrong packet length.");
+		return;
+	}
+
+	// If a frame number was provided, reallocate it.
+	uint8_t original_frame = packet->frame;
+	if (original_frame) {
+		packet->frame = daemon.frame_number_allocator.alloc();
+	}
+
+	// Create a request structure.
+	request::ptr req(request::create(packet, length, original_frame != 0));
+
+	// If a frame number was allocated, attach callbacks.
+	if (original_frame) {
+		// Attach a callback to deallocate the frame number.
+		connect_frame_dealloc(req, packet->frame);
+		// Attach a callback to notify this client.
+		req->signal_complete().connect(sigc::bind(sigc::mem_fun(this, &client::on_at_response), original_frame));
+	}
+
+	// Queue the request with the scheduler.
+	daemon.scheduler.queue(req);
+}
+
+void client::on_at_response(const void *buffer, std::size_t length, uint8_t original_frame) {
+	const xbeepacket::AT_RESPONSE *packet = static_cast<const xbeepacket::AT_RESPONSE *>(buffer);
+
+	// Check API ID.
+	if (packet->apiid != xbeepacket::AT_RESPONSE_APIID) {
+		DPRINT("AT response with wrong API ID.");
+		return;
+	}
+
+	// Check packet size.
+	if (length < sizeof(xbeepacket::AT_RESPONSE)) {
+		DPRINT("AT response with wrong packet length.");
+		return;
+	}
+
+	// Allocate local copy of packet.
+	uint8_t newpacket[length];
+	std::memcpy(newpacket, packet, length);
+
+	// Substitute in original frame number.
+	newpacket[offsetof(xbeepacket::AT_RESPONSE, frame)] = original_frame;
+
+	// Send back-substituted packet to client.
+	ssize_t ret = send(sock, newpacket, length, MSG_NOSIGNAL);
+	if (ret != static_cast<ssize_t>(length)) {
+		DPRINT("Cannot send data to client!");
+		delete this;
+		return;
 	}
 }
 
@@ -272,6 +338,14 @@ void client::on_meta(const void *buffer, std::size_t length) {
 
 	// Dispatch by meta type.
 	switch (packet->metatype) {
+		case xbeepacket::CLAIM_UNIVERSE_METATYPE:
+			if (length == sizeof(xbeepacket::META_CLAIM_UNIVERSE)) {
+				on_meta_claim_universe();
+			} else {
+				DPRINT("Meta with wrong packet length.");
+			}
+			break;
+
 		case xbeepacket::CLAIM_METATYPE:
 			if (length == sizeof(xbeepacket::META_CLAIM)) {
 				on_meta_claim(*static_cast<const xbeepacket::META_CLAIM *>(buffer));
@@ -291,6 +365,32 @@ void client::on_meta(const void *buffer, std::size_t length) {
 		default:
 			DPRINT("Unknown meta type!");
 			break;
+	}
+}
+
+void client::on_meta_claim_universe() {
+	// Only accept the claim request if nobody else is connected.
+	if (instances.size() == 1) {
+		daemon.universe_claimed = true;
+		xbeepacket::META_ALIVE pkt;
+		pkt.hdr.apiid = xbeepacket::META_APIID;
+		pkt.hdr.metatype = xbeepacket::ALIVE_METATYPE;
+		pkt.address = 0;
+		pkt.address16 = 0xFFFF;
+		pkt.shm_frame = 0xFF;
+		if (send(sock, &pkt, sizeof(pkt), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(pkt))) {
+			DPRINT("Cannot send data to client!");
+			delete this;
+		}
+	} else {
+		xbeepacket::META_CLAIM_FAILED pkt;
+		pkt.hdr.apiid = xbeepacket::META_APIID;
+		pkt.hdr.metatype = xbeepacket::CLAIM_FAILED_LOCKED_METATYPE;
+		pkt.address = 0;
+		if (send(sock, &pkt, sizeof(pkt), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(pkt))) {
+			DPRINT("Cannot send data to client!");
+			delete this;
+		}
 	}
 }
 

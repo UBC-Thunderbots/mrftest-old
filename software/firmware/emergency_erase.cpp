@@ -10,7 +10,7 @@ emergency_erase::emergency_erase(xbee_raw_bot::ptr bot) : bot(bot) {
 
 void emergency_erase::start() {
 	const uint8_t value = 4;
-	remote_at_packet<1>::ptr pkt(remote_at_packet<1>::create(bot->address, "D1", &value));
+	remote_at_packet<1>::ptr pkt(remote_at_packet<1>::create(bot->address, "D1", &value, true));
 	complete_connection = pkt->signal_complete().connect(sigc::mem_fun(this, &emergency_erase::on_complete));
 	bot->send(pkt);
 }
@@ -20,7 +20,7 @@ void emergency_erase::report_error(const Glib::ustring &error) {
 	signal_error.emit(error);
 }
 
-void emergency_erase::on_complete(const void *data) {
+void emergency_erase::on_complete(const void *data, std::size_t) {
 	// Check sanity.
 	const xbeepacket::REMOTE_AT_RESPONSE &pkt = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(data);
 	if (pkt.apiid != xbeepacket::REMOTE_AT_RESPONSE_APIID) {

@@ -70,12 +70,12 @@ void bootproto::enter_bootloader_send() {
 
 	// Send the packet.
 	const uint8_t value = 5;
-	remote_at_packet<1>::ptr pkt(remote_at_packet<1>::create(bot->address, "D0", &value));
+	remote_at_packet<1>::ptr pkt(remote_at_packet<1>::create(bot->address, "D0", &value, true));
 	packet_received_connection = pkt->signal_complete().connect(sigc::mem_fun(this, &bootproto::enter_bootloader_complete));
 	bot->send(pkt);
 }
 
-void bootproto::enter_bootloader_complete(const void *data) {
+void bootproto::enter_bootloader_complete(const void *data, std::size_t) {
 	// Check sanity.
 	assert(current_state == STATE_ENTERING_BOOTLOADER);
 	const xbeepacket::REMOTE_AT_RESPONSE &pkt = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(data);
@@ -147,12 +147,12 @@ void bootproto::assign_address16_send() {
 	// Send the packet.
 	DPRINT(Glib::ustring::compose("Assigning robot 16-bit address 0x%1.", tohex(bot->address16(), 4)));
 	uint8_t value[2] = { static_cast<uint8_t>(bot->address16() >> 8), static_cast<uint8_t>(bot->address16() & 0xFF) };
-	remote_at_packet<2>::ptr pkt(remote_at_packet<2>::create(bot->address, "MY", value));
+	remote_at_packet<2>::ptr pkt(remote_at_packet<2>::create(bot->address, "MY", value, true));
 	packet_received_connection = pkt->signal_complete().connect(sigc::mem_fun(this, &bootproto::assign_address16_complete));
 	bot->send(pkt);
 }
 
-void bootproto::assign_address16_complete(const void *data) {
+void bootproto::assign_address16_complete(const void *data, std::size_t) {
 	// Check sanity.
 	assert(current_state == STATE_ENTERING_BOOTLOADER);
 	const xbeepacket::REMOTE_AT_RESPONSE &pkt = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(data);
@@ -373,12 +373,12 @@ void bootproto::exit_bootloader_send() {
 
 	// Send the packet.
 	const uint8_t value = 4;
-	remote_at_packet<1>::ptr pkt(remote_at_packet<1>::create(bot->address, "D0", &value));
+	remote_at_packet<1>::ptr pkt(remote_at_packet<1>::create(bot->address, "D0", &value, true));
 	pkt->signal_complete().connect(sigc::mem_fun(this, &bootproto::exit_bootloader_complete));
 	bot->send(pkt);
 }
 
-void bootproto::exit_bootloader_complete(const void *data) {
+void bootproto::exit_bootloader_complete(const void *data, std::size_t) {
 	// Check sanity.
 	assert(current_state == STATE_EXITING_BOOTLOADER);
 	const xbeepacket::REMOTE_AT_RESPONSE &pkt = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(data);
