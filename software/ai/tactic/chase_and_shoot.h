@@ -5,9 +5,9 @@
 #include "ai/tactic/tactic.h"
 #include "geom/point.h"
 
-//
-// 
-//
+/**
+ * Chases after the ball, and aims by doing a pivoting turn.
+ */
 class chase_and_shoot : public tactic {
 	public:
 		//
@@ -15,10 +15,13 @@ class chase_and_shoot : public tactic {
 		//
 		typedef Glib::RefPtr<chase_and_shoot> ptr;
 
-		//
-		// Set a target that robot would like to take ball after gaining possesion
-		//
-		void set_target(point target);
+		/**
+		 * Set a target that robot would like to aim the ball
+		 * after gaining possesion.
+		 */
+		void set_target(const point& t) {
+			target = t;
+		}
 
 		//
 		// Constructs a new chase tactic. 
