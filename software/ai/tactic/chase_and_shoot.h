@@ -1,8 +1,8 @@
 #ifndef AI_TACTIC_CHASE_AND_SHOOT_H
 #define AI_TACTIC_CHASE_AND_SHOOT_H
 
-#include "ai/tactic/move.h"
-#include "ai/tactic/shoot.h"
+#include "ai/world/world.h"
+#include "ai/tactic/tactic.h"
 #include "geom/point.h"
 
 //
@@ -33,10 +33,7 @@ class chase_and_shoot : public tactic {
 	protected:
 
 		const world::ptr the_world;
-		move move_tactic;
-		//our target is opponents net
 		point target;
-		//shoot::ptr shoot_tactic;
 };
 
 #endif

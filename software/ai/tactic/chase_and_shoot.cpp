@@ -3,102 +3,104 @@
 #include "ai/flags.h"
 #include "ai/tactic/chase.h"
 #include "ai/util.h"
+#include "ai/navigator/robot_navigator.h"
 
 #include <iostream>
 #include <cmath>
 
-namespace{
+namespace {
 
 	class chase_target_state : public player::state {
-	public:
-	  typedef Glib::RefPtr<chase_target_state> ptr;
-	  chase_target_state(bool recent):recent_hit_target(recent){
+		public:
+			typedef Glib::RefPtr<chase_target_state> ptr;
+			chase_target_state(bool recent):recent_hit_target(recent){
 
-	  }
-	  bool recent_hit_target;
+			}
+			bool recent_hit_target;
 	};
 
 }
 
-chase_and_shoot::chase_and_shoot(player::ptr player, world::ptr world) : tactic(player), the_world(world), move_tactic(player, world) {
-
-
-const field &the_field(the_world->field());
-target.x=(the_field.length()/2.0);
-target.y=( 0.0);
-
+chase_and_shoot::chase_and_shoot(player::ptr player, world::ptr world) : tactic(player), the_world(world), target(world->field().enemy_goal()) {
 }
 
+void chase_and_shoot::tick() {
 
-void chase_and_shoot::tick()
-{
+	// use robot navigator instead of storing move tactic.
+	// the reason is that we can't unset flags.
+	robot_navigator navi(the_player, the_world);
+
 	const ball::ptr the_ball(the_world->ball());
- 	
+
 
 	bool recent_hit_target = false;
 	chase_target_state::ptr state(chase_target_state::ptr::cast_dynamic(the_player->get_state(typeid(*this))));
 	if(state)recent_hit_target= state->recent_hit_target;
 	else{
-	  state =chase_target_state::ptr(new chase_target_state(false));
-	the_player->set_state(typeid(*this), state);
+		state =chase_target_state::ptr(new chase_target_state(false));
+		the_player->set_state(typeid(*this), state);
 	}
-	
- 	
- 	//if we have the ball then move to the destination
-	if(ai_util::has_ball(the_player)){
-		move_tactic.set_position(target);
-		move_tactic.set_orientation( (target - the_player->position()).orientation() );
-		state->recent_hit_target = true;
-		return;
- 	}
- 	
 
- 	point est_ball_pos = the_ball->position();
+	// if we have the ball then move to the destination
+	if (ai_util::has_ball(the_player)) {
+		state->recent_hit_target = true;
+		navi.set_position(target);
+		navi.set_orientation((target - the_player->position()).orientation());
+		navi.set_flags(flags);
+		navi.tick();
+		return;
+	}
+
+	point est_ball_pos = the_ball->position();
 	point robot_dst = est_ball_pos;
 	point vec = target - est_ball_pos;
-	
- 	point ball_player_diff = (the_ball->position() - the_player->position());
- 	point target_player_diff = (target - the_player->position());
 
- 	
- 	if(vec.len()<0.01){
- 	//ball already too close to target 
- 	//don't try and divide by small number
- 	}else{
- 	vec = vec/vec.len();
- 	robot_dst -= vec*0.06;
- 	}
- 	
- 	if((robot_dst-the_player->position()).len()>0.1 && !the_player->sense_ball()){
- 	state->recent_hit_target=false;
- 	}
- 	
- 	point player_diff_vector = est_ball_pos- the_player->position();
- 	point target_diff_vector = est_ball_pos- robot_dst;
- 	
- 	if(player_diff_vector.len() < target_diff_vector.len()){
- 		if(player_diff_vector.dot(target_diff_vector) > 0){
- 			state->recent_hit_target = true;
-	 	 	move_tactic.set_position(the_ball->position());
-			move_tactic.set_orientation((target - the_player->position()).orientation());
-	 		move_tactic.tick();
+	point ball_player_diff = (the_ball->position() - the_player->position());
+	point target_player_diff = (target - the_player->position());
+
+
+	if(vec.len()<0.01){
+		//ball already too close to target 
+		//don't try and divide by small number
+	}else{
+		vec = vec/vec.len();
+		robot_dst -= vec*0.06;
+	}
+
+	if((robot_dst-the_player->position()).len()>0.1 && !the_player->sense_ball()){
+		state->recent_hit_target=false;
+	}
+
+	point player_diff_vector = est_ball_pos- the_player->position();
+	point target_diff_vector = est_ball_pos- robot_dst;
+
+	if (player_diff_vector.len() < target_diff_vector.len()) {
+		if (player_diff_vector.dot(target_diff_vector) > 0) {
+			state->recent_hit_target = true;
+			navi.set_position(the_ball->position());
+			navi.set_orientation((target - the_player->position()).orientation());
+			navi.set_flags(flags);
+			navi.tick();
 			return;
- 		}
- 	}
-	
-	if((robot_dst-the_player->position()).len()<0.01){
- 		state->recent_hit_target = true;
- 	}
-std::cout<<"recent hit: "<<recent_hit_target<<std::endl;
+		}
+	}
 
-	if(state->recent_hit_target){
-	  move_tactic.set_position(the_ball->position());
-	  move_tactic.set_orientation((target - the_player->position()).orientation());
-	  move_tactic.tick();
- 	}else{
- 		move_tactic.set_position(robot_dst);
-		move_tactic.set_flags(ai_flags::avoid_ball_near);
-		move_tactic.tick(); 	
- 	} 	
+	if((robot_dst-the_player->position()).len()<0.01){
+		state->recent_hit_target = true;
+	}
+	std::cout<<"recent hit: "<<recent_hit_target<<std::endl;
+
+	if (state->recent_hit_target){
+		navi.set_position(the_ball->position());
+		navi.set_orientation((target - the_player->position()).orientation());
+		navi.set_flags(flags);
+		navi.tick();
+	} else {
+		navi.set_position(robot_dst);
+		navi.set_flags(flags);
+		navi.set_flags(ai_flags::avoid_ball_near);
+		navi.tick(); 	
+	} 	
 
 }
+
