@@ -5,6 +5,7 @@
 #include "util/time.h"
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 
 namespace {
 	const unsigned int MAX_DRIBBLER_SPEED = 40000;
@@ -24,9 +25,9 @@ namespace {
 		static const double ANGLES[4] = {0.959931, 2.35619, 3.9269908, 5.32325}; 
 		static const double BACKWARDS_SCALING_FACTOR = 4.0;
 		//if we are moving with this little force forwards exempt the reduction of dribble speed
-		static const double FORWARD_EXEMPTION_AMOUNT = 30.0;
+		static const double FORWARD_EXEMPTION_AMOUNT = 7.0;
 		//we are expecting to idle the motor so just set the dribble motor to a low set-point
-		static const int CONTINUOUS_IDLE_AMOUNT = 25;
+		static const int CONTINUOUS_IDLE_AMOUNT = 130;
 		int theta;
 		point x_y;
 
