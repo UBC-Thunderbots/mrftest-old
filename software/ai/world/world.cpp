@@ -71,6 +71,10 @@ void world::flip_refbox_colour() {
 	update_playtype();
 }
 
+void world::tick_timestamp() {
+	++timestamp_;
+}
+
 world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bots) : conf(conf), east_(false), refbox_yellow_(false), vision_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), ball_(ball::create()), xbee_bots(xbee_bots), playtype_(playtype::halt), playtype_override(playtype::halt), playtype_override_active(false), vis_view(this), ball_filter_(0) {
 	vision_socket.set_blocking(false);
 	const int one = 1;

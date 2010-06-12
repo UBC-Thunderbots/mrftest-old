@@ -14,6 +14,7 @@
 #include "util/config.h"
 #include "util/fd.h"
 #include "xbee/client/drive.h"
+#include <stdint.h>
 #include <vector>
 #include <sigc++/sigc++.h>
 
@@ -149,6 +150,19 @@ class world : public byref {
 			ball_filter_ = filter;
 		}
 
+		/**
+		 * \return the number of AI ticks that have occurred since program
+		 * startup.
+		 */
+		uint64_t timestamp() const {
+			return timestamp_;
+		}
+
+		/**
+		 * Increments the timestamp.
+		 */
+		void tick_timestamp();
+
 	private:
 		class visualizer_view : public visualizable {
 			public:
@@ -193,6 +207,7 @@ class world : public byref {
 		class visualizer_view vis_view;
 		class ball_filter *ball_filter_;
 		point playtype_arm_ball_position;
+		uint64_t timestamp_;
 
 		world(const config &, const std::vector<xbee_drive_bot::ptr> &);
 		bool on_vision_readable(Glib::IOCondition);

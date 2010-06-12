@@ -16,6 +16,9 @@ void ai::tick() {
 		return;
 	}
 
+	// Increment the global timestamp.
+	the_world->tick_timestamp();
+
 	// First, make the predictors lock in the current time.
 	const team * const teams[2] = { &the_world->friendly, &the_world->enemy };
 	for (unsigned int i = 0; i < 2; ++i) {
