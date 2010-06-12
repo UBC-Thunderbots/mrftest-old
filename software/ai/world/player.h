@@ -167,16 +167,31 @@ class player : public robot {
 
 		/**
 		 * Constructs a new player object.
-		 * \param bot the XBee robot being driven
-		 * \return the new object
+		 *
+		 * \param[in] yellow \c true if the new robot is yellow, or \c false if
+		 * it is blue.
+		 *
+		 * \param[in] pattern_index the index of the vision pattern associated
+		 * with the player.
+		 *
+		 * \param[in] bot the XBee robot being driven
+		 *
+		 * \return the new object.
 		 */
-		static ptr create(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot);
+		static ptr create(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot);
 
 		/**
 		 * Constructs a new player object.
-		 * \param bot the XBee robot being driven
+		 *
+		 * \param[in] yellow \c true if the new robot is yellow, or \c false if
+		 * it is blue.
+		 *
+		 * \param[in] pattern_index the index of the vision pattern associated
+		 * with the player.
+		 *
+		 * \param[in] bot the XBee robot being driven
 		 */
-		player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot);
+		player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot);
 
 		/**
 		 * Drives one tick of time through the robot_controller and to the XBee.

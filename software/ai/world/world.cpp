@@ -222,15 +222,13 @@ bool world::on_vision_readable(Glib::IOCondition) {
 						if (detbot.has_robot_id()) {
 							const unsigned int pattern_index = detbot.robot_id();
 							xbee_drive_bot::ptr xbeebot;
-							Glib::ustring name;
 							for (unsigned int m = 0; m < conf.robots().size(); ++m) {
 								if (conf.robots()[m].yellow == colour && conf.robots()[m].pattern_index == pattern_index) {
 									xbeebot = xbee_bots[m];
-									name = conf.robots()[m].name;
 								}
 							}
 							if (xbeebot) {
-								player::ptr plr(player::create(name, colour, pattern_index, xbeebot));
+								player::ptr plr(player::create(colour, pattern_index, xbeebot));
 								plr->sign = east_ ? -1 : 1;
 								plr->update(detbot);
 								friendly.add(plr);
