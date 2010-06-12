@@ -4,7 +4,9 @@
 #include "ai/tactic/receive.h"
 #include "geom/angle.h"
 #include "ai/util.h"
+
 #include <vector>
+#include <iostream>
 
 shoot::shoot(player::ptr player, world::ptr world) : tactic(player), the_world(world) {
 }
@@ -24,19 +26,22 @@ void shoot::tick() {
 		}
 		const point target = candidates[best_point];
 		*/
-		const point target = ai_util::calc_best_shot2(the_world, the_player->position());
+		const point target = ai_util::calc_best_shot2(the_world, the_world->ball()->position());
+		// std::cout << " target = " << target << std::endl;
 
 		// shoot
 		kick kick_tactic(the_player, the_world);
 		kick_tactic.set_target(target);
 		kick_tactic.tick();	
 	} else if (ai_util::posses_ball(the_world, the_player)) {
+		// std::cout << " chase ball close " << the_player->sense_ball_time() << std::endl;
 		// We have the ball right but somehow it was momentarily lost.
 		chase chase_tactic(the_player, the_world);
 		chase_tactic.set_flags(flags);
 		chase_tactic.tick();
 	} else {
 		// This player does not have the ball.
+		// std::cout << " omg no ball, go chase " << the_player->sense_ball() << " last=" << the_player->last_sense_ball_time() << std::endl;
 
 		bool teampossesball = false;
 		for (unsigned int i = 0; i < friendly.size(); ++i) {
