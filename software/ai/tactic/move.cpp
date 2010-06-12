@@ -3,7 +3,6 @@
 move::move(player::ptr player, world::ptr world) : tactic(player), navi(player, world), position_initialized(false), orientation_initialized(false) {
 }
 
-
 move::move(player::ptr player, world::ptr world, const unsigned int& flags) : tactic(player, flags), navi(player, world), position_initialized(false), orientation_initialized(false) {
 }
 

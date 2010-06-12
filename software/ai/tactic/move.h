@@ -21,10 +21,10 @@ class move : public tactic {
 		 */
 		move(player::ptr player, world::ptr world);
 
-		/**
-		 * Overloaded constructor with flags option.
-		 */
-		move(player::ptr player, world::ptr world, const unsigned int& flags);
+ 		/**
+-		 * Overloaded constructor with flags option.
+ 		 */
+ 		move(player::ptr player, world::ptr world, const unsigned int& flags);
 
 		/**
 		 * Most usage of move tactic only sets position and should thus justify existence of this overloaded constructor.

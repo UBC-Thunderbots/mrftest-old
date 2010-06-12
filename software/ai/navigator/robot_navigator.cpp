@@ -1,5 +1,6 @@
 #include "ai/navigator/robot_navigator.h"
 #include "ai/util.h"
+#include "ai/flags.h"
 #include "geom/util.h"
 
 #include <iostream>
@@ -106,60 +107,59 @@ point robot_navigator::get_inbounds_point(point dst){
 
 	point wantdest = dst;
 
-	if (flags & clip_play_area) {
+	if (flags & ai_flags::clip_play_area) {
 		wantdest = clip_point(target_position, point(-the_field.length()/2 + the_field.bounds_margin(), -the_field.width()/2 + the_field.bounds_margin()),
 				point(the_field.length()/2 - the_field.bounds_margin(), the_field.width()/2 - the_field.bounds_margin()));
 	}
-	if(flags & stay_own_half){
-	  wantdest.x =  std::min(wantdest.x, 0.0);
+	if (flags & ai_flags::stay_own_half) {
+		wantdest.x =  std::min(wantdest.x, 0.0);
 	}
-	if(flags & avoid_ball_stop){
+	if (flags & ai_flags::avoid_ball_stop) {
 
-	  //	  std::cout<<"Navigation Stop"<<std::endl;
-	  //need to grab ball distance from somewhere
-	  point ball_diff =  the_player->position() -  the_ball->position();
-	  point ball_dst_diff =  wantdest -  the_ball->position();
-	  //	  point cur_diff = the_ball->position() - 
-	  if(ball_diff.len()< AVOID_BALL_AMOUNT){
-	    if((the_player->position()-wantdest).dot(ball_diff) < 0){
-	      //destination goes away from the ball destination is ok
-	      //scale the destination so that we stay far enough away from the ball
-	      point from_ball =  (wantdest - the_ball->position());
+		//	  std::cout<<"Navigation Stop"<<std::endl;
+		//need to grab ball distance from somewhere
+		point ball_diff =  the_player->position() -  the_ball->position();
+		point ball_dst_diff =  wantdest -  the_ball->position();
+		//	  point cur_diff = the_ball->position() - 
+		if(ball_diff.len()< AVOID_BALL_AMOUNT){
+			if((the_player->position()-wantdest).dot(ball_diff) < 0){
+				//destination goes away from the ball destination is ok
+				//scale the destination so that we stay far enough away from the ball
+				point from_ball =  (wantdest - the_ball->position());
 
-	      //try and head towards the destination
-	      //scaling the destination if necessary
-	      if(from_ball.len() < AVOID_BALL_AMOUNT){
-		from_ball =  (wantdest - the_ball->position()).norm()*AVOID_BALL_AMOUNT;
-	      }	
-	  
-	      wantdest = the_ball->position() + from_ball;
-	    }else{
-	      //destination goes closer to the ball we don't want that
-	      //just move as quickly as possible away from ball
-	      wantdest = the_ball->position() + ball_diff.norm()*AVOID_BALL_AMOUNT;
-	    }
-	  }else {
-	    std::vector<point> intersections = lineseg_circle_intersect(the_ball->position(), AVOID_BALL_AMOUNT, the_player->position(), wantdest); 
-	    if(intersections.size()>0){
-		wantdest =  intersections[0];
-	      }	
-	  }
-	}
+				//try and head towards the destination
+				//scaling the destination if necessary
+				if(from_ball.len() < AVOID_BALL_AMOUNT){
+					from_ball =  (wantdest - the_ball->position()).norm()*AVOID_BALL_AMOUNT;
+				}	
 
-	if(flags & avoid_friendly_defence){
-	  wantdest = clip_defense_area(wantdest);
+				wantdest = the_ball->position() + from_ball;
+			}else{
+				//destination goes closer to the ball we don't want that
+				//just move as quickly as possible away from ball
+				wantdest = the_ball->position() + ball_diff.norm()*AVOID_BALL_AMOUNT;
+			}
+		}else {
+			std::vector<point> intersections = lineseg_circle_intersect(the_ball->position(), AVOID_BALL_AMOUNT, the_player->position(), wantdest); 
+			if(intersections.size()>0){
+				wantdest =  intersections[0];
+			}	
+		}
 	}
 
-	if(flags & avoid_enemy_defence){
-	  wantdest = clip_offense_area(wantdest);
+	if (flags & ai_flags::avoid_friendly_defence) {
+		wantdest = clip_defense_area(wantdest);
 	}
 
+	if (flags & ai_flags::avoid_enemy_defence) {
+		wantdest = clip_offense_area(wantdest);
+	}
 
-	if(flags & penalty_kick_friendly){
+	if (flags & ai_flags::penalty_kick_friendly) {
 
 	}
 
-	if(flags & penalty_kick_enemy){
+	if (flags & ai_flags::penalty_kick_enemy) {
 
 	}
 	return wantdest;
@@ -174,8 +174,9 @@ void robot_navigator::tick() {
 	const double wantori = (orientation_initialized) ? target_orientation : atan2(balldist.y, balldist.x);
 	wantdest = get_inbounds_point(wantdest);
 	const double distance = (wantdest - the_player->position()).len();
+
 	bool wantdribble;
-	if (flags & avoid_ball_stop) {
+	if (flags & ai_flags::avoid_ball_stop) {
 		wantdribble = false;
 	} else {
 		wantdribble = need_dribble || ai_util::ball_close(the_world, the_player) || ai_util::has_ball(the_player);
@@ -198,6 +199,7 @@ void robot_navigator::tick() {
 	// at least face the ball
 	if (distance < ai_util::POS_CLOSE) {
 		if (balldist.len() > ai_util::POS_CLOSE) the_player->move(the_player->position(), wantori);
+		flags = 0;
 		return;
 	}
 
@@ -235,6 +237,7 @@ void robot_navigator::tick() {
 
 	if(stop) {
 		the_player->move(the_player->position(), wantori);
+		flags = 0;
 		return;
 	}
 
@@ -246,6 +249,8 @@ void robot_navigator::tick() {
 		// maximum warp
 		the_player->move(the_player->position() + selected_direction * std::min(distance, 1.0), wantori);
 	}
+
+	flags = 0;
 }
 
 // TODO: use the util functions
@@ -276,7 +281,7 @@ bool robot_navigator::check_vector(const point& start, const point& dest, const 
 		}
 	}
 
-	if (flags & avoid_ball_near) {
+	if (flags & ai_flags::avoid_ball_near) {
 		const point ballvec = the_ball->position() - start;
 		double proj = ballvec.dot(direction);
 		if (proj > 0) {

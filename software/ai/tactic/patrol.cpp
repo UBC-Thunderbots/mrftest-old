@@ -1,51 +1,61 @@
 #include "ai/tactic/patrol.h"
 #include "ai/util.h"
 
-patrol::patrol(player::ptr player, world::ptr world, const unsigned int& flags) : tactic(player), 
-should_move_to_first(true),
-move_tactic1(new move(player, world, flags)),
-move_tactic2(new move(player, world, flags)) {
+#include <iostream>
+
+namespace {
+
+	class patrol_state : public player::state {
+		public:
+			typedef Glib::RefPtr<patrol_state> ptr;
+			patrol_state(const int& p) : phase(p) {
+			}
+			int phase;
+	};
+
 }
 
-patrol::patrol(player::ptr player, world::ptr world, const unsigned int& flags, const point& position1, const point& position2) : tactic(player, flags), 
-should_move_to_first(true),
-move_tactic1(new move(player, world, flags)),
-move_tactic2(new move(player, world, flags)) {
-	move_tactic1->set_position(position1);
-	move_tactic2->set_position(position2);
-	the_position1 = position1;
-	the_position2 = position2;
+patrol::patrol(player::ptr player, world::ptr world) : tactic(player), navi(player, world), target_initialized(false) {
 }
 
-void patrol::set_targets(const point& position1, const point& position2)
-{
-	move_tactic1->set_position(position1);
-	move_tactic2->set_position(position2);
-	the_position1 = position1;
-	the_position2 = position2;
+patrol::patrol(player::ptr player, world::ptr world, const unsigned int& flags, const point& t1, const point& t2) : tactic(player, flags), navi(player, world), target1(t1), target2(t2), target_initialized(true) {
 }
 
 void patrol::tick() {
-	if (!move_tactic1->is_position_set() || !move_tactic2->is_position_set())
-		return;
+	navi.set_flags(flags);
 
-	if (should_move_to_first) {
+	if (!target_initialized) {
+		std::cerr << "patrol: no target" << std::endl;
+		navi.tick();
+		return;
+	}
+
+	// This state does not require any validation.
+	patrol_state::ptr state(patrol_state::ptr::cast_dynamic(the_player->get_state(typeid(*this))));
+	if (!state) {
+		state = patrol_state::ptr(new patrol_state(0));
+		the_player->set_state(typeid(*this), state);
+	}
+
+	if (state->phase) {
 		// reached the first position
-		if ((the_player->position() - the_position1).lensq() <= ai_util::POS_CLOSE) {
-			should_move_to_first = false;
-			move_tactic2->tick();
-		} else {
-			move_tactic1->tick();
+		if ((the_player->position() - target1).lensq() <= ai_util::POS_CLOSE) {
+			state->phase = 0;
 		}
 	} else {
 		// reached the end position
-		if ((the_player->position() - the_position2).lensq() <= ai_util::POS_CLOSE) {
-			should_move_to_first = true;
-			move_tactic1->tick();
-		} else {
-			move_tactic2->tick();
+		if ((the_player->position() - target2).lensq() <= ai_util::POS_CLOSE) {
+			state->phase = 1;
 		}
 	}
+
+	if (state->phase) {
+		navi.set_position(target1);
+	} else {
+		navi.set_position(target1);
+	}
+
+	navi.tick();
 
 }
 

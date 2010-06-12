@@ -13,8 +13,7 @@ namespace {
 	class chase_target_state : public player::state {
 		public:
 			typedef Glib::RefPtr<chase_target_state> ptr;
-			chase_target_state(bool recent):recent_hit_target(recent){
-
+			chase_target_state(const bool& recent) : recent_hit_target(recent) {
 			}
 			bool recent_hit_target;
 	};
