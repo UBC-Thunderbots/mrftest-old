@@ -2,6 +2,7 @@
 #include "geom/angle.h"
 #include "ai/flags.h"
 #include "ai/tactic/chase.h"
+#include "ai/util.h"
 
 #include <iostream>
 #include <cmath>
@@ -28,7 +29,6 @@ target.y=( 0.0);
 
 }
 
-bool recent_hit_target = false;
 
 void chase_and_shoot::tick()
 {
@@ -45,7 +45,7 @@ void chase_and_shoot::tick()
 	
  	
  	//if we have the ball then move to the destination
-	if(the_player->sense_ball()){
+	if(ai_util::has_ball(the_player)){
 		move_tactic.set_position(target);
 		move_tactic.set_orientation( (target - the_player->position()).orientation() );
 		state->recent_hit_target = true;
@@ -85,10 +85,11 @@ void chase_and_shoot::tick()
 			return;
  		}
  	}
-
+	
 	if((robot_dst-the_player->position()).len()<0.01){
  		state->recent_hit_target = true;
  	}
+std::cout<<"recent hit: "<<recent_hit_target<<std::endl;
 
 	if(state->recent_hit_target){
 	  move_tactic.set_position(the_ball->position());
