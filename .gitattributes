@@ -98,6 +98,8 @@ software/ai/tactic/chase_and_shoot.cpp -text
 software/ai/tactic/chase_and_shoot.h -text
 software/ai/tactic/dance.cpp -text
 software/ai/tactic/dance.h -text
+software/ai/tactic/dribble.cpp -text
+software/ai/tactic/dribble.h -text
 software/ai/tactic/kick.cpp -text
 software/ai/tactic/kick.h -text
 software/ai/tactic/move.cpp -text
