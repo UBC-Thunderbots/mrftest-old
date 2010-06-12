@@ -1,6 +1,6 @@
 #include "ai/tactic/pass.h"
 #include "ai/tactic/chase.h"
-#include "ai/tactic/chase_and_shoot.h"
+#include "ai/tactic/pivot.h"
 #include "ai/tactic/kick.h"
 #include "ai/tactic/move.h"
 #include "ai/util.h"
@@ -12,12 +12,7 @@ pass::pass(player::ptr player, world::ptr world, player::ptr receiver) : tactic(
 
 void pass::tick() {
 	if (!ai_util::has_ball(the_player)) {
-		/*
-		chase chase_tactic(the_player, the_world);
-		chase_tactic.set_flags(flags);
-		chase_tactic.tick();
-		*/
-		chase_and_shoot tactic(the_player, the_world);
+		pivot tactic(the_player, the_world);
 		tactic.set_target(the_receiver->position());
 		tactic.set_flags(flags);
 		tactic.tick();

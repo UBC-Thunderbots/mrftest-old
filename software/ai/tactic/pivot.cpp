@@ -1,4 +1,4 @@
-#include "ai/tactic/chase_and_shoot.h"
+#include "ai/tactic/pivot.h"
 #include "geom/angle.h"
 #include "ai/flags.h"
 #include "ai/tactic/chase.h"
@@ -10,20 +10,20 @@
 
 namespace {
 
-	class chase_target_state : public player::state {
+	class pivot_state : public player::state {
 		public:
-			typedef Glib::RefPtr<chase_target_state> ptr;
-			chase_target_state(const bool& recent) : recent_hit_target(recent) {
+			typedef Glib::RefPtr<pivot_state> ptr;
+			pivot_state(const bool& recent) : recent_hit_target(recent) {
 			}
 			bool recent_hit_target;
 	};
 
 }
 
-chase_and_shoot::chase_and_shoot(player::ptr player, world::ptr world) : tactic(player), the_world(world), target(world->field().enemy_goal()) {
+pivot::pivot(player::ptr player, world::ptr world) : tactic(player), the_world(world), target(world->field().enemy_goal()) {
 }
 
-void chase_and_shoot::tick() {
+void pivot::tick() {
 
 	// use robot navigator instead of storing move tactic.
 	// the reason is that we can't unset flags.
@@ -32,10 +32,10 @@ void chase_and_shoot::tick() {
 	const ball::ptr the_ball(the_world->ball());
 
 	bool recent_hit_target = false;
-	chase_target_state::ptr state(chase_target_state::ptr::cast_dynamic(the_player->get_state(typeid(*this))));
+	pivot_state::ptr state(pivot_state::ptr::cast_dynamic(the_player->get_state(typeid(*this))));
 	if(state)recent_hit_target= state->recent_hit_target;
 	else{
-		state =chase_target_state::ptr(new chase_target_state(false));
+		state =pivot_state::ptr(new pivot_state(false));
 		the_player->set_state(typeid(*this), state);
 	}
 
