@@ -40,10 +40,10 @@ class offensive : public role {
 		 * The enemy position is provided as vector so we can add imaginary enemies.
 		 * If no position is valid, will simply choose the middle of the field.
 		 */
-		point calc_position_best(const std::vector<point>& enemypos) const;
+		point calc_position_best(const std::vector<point>& enemypos, const std::vector<point>& dontblock) const;
 
 		/// The scoring function for having the robot in the particular position.
-		double scoring_function(const std::vector<point>& enemypos, const point& pos) const;
+		double scoring_function(const std::vector<point>& enemypos, const point& pos, const std::vector<point>& dontblock) const;
 
 		/// Calculates n best positions to place the robots.
 		std::vector<point> calc_position_best(const unsigned int n) const;

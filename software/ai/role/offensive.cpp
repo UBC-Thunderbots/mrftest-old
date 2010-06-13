@@ -32,17 +32,15 @@ namespace {
 offensive::offensive(world::ptr world) : the_world(world) {
 }
 
-double offensive::scoring_function(const std::vector<point>& enemypos, const point& pos) const {
+double offensive::scoring_function(const std::vector<point>& enemypos, const point& pos, const std::vector<point>& dontblock) const {
 	// Hmm.. not sure if having negative number is a good idea.
 	std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world->field(), enemypos, pos);
 	double score = bestshot.second;
 
-	{
-		// if this will block the shooter, then don't do it
-		const point ballpos = the_world->ball()->position();
-		std::pair<point, double> shootershot = ai_util::calc_best_shot(the_world->field(), enemypos, ballpos);
-		const point diff1 = (shootershot.first - ballpos);
-		const point diff2 = (pos - ballpos);
+	for (size_t i = 0; i < dontblock.size(); ++i) {
+		std::pair<point, double> shootershot = ai_util::calc_best_shot(the_world->field(), enemypos, dontblock[i]);
+		const point diff1 = (shootershot.first - dontblock[i]);
+		const point diff2 = (pos - dontblock[i]);
 		const double anglediff = angle_diff(diff1.orientation(), diff2.orientation());
 		if (anglediff < 2 * shootershot.second) {
 			return -1e99;
@@ -72,7 +70,7 @@ double offensive::scoring_function(const std::vector<point>& enemypos, const poi
 	return score;
 }
 
-point offensive::calc_position_best(const std::vector<point>& enemypos) const {
+point offensive::calc_position_best(const std::vector<point>& enemypos, const std::vector<point>& dontblock) const {
 	const double x1 = 0;
 	const double x2 = the_world->field().length() / 2;
 	const double y1 = -the_world->field().width() / 2;
@@ -90,7 +88,7 @@ point offensive::calc_position_best(const std::vector<point>& enemypos) const {
 			// TEMPORARY HACK!!
 			const double goaldist = (pos - the_world->field().enemy_goal()).len();
 			if (goaldist < the_world->field().goal_width()) continue;
-			const double score = scoring_function(enemypos, pos);
+			const double score = scoring_function(enemypos, pos, dontblock);
 			if (score > bestscore) {
 				bestscore = score;
 				bestpos = pos;
@@ -106,11 +104,13 @@ std::vector<point> offensive::calc_position_best(const unsigned int n) const {
 	for (size_t i = 0; i < enemy.size(); ++i) {
 		enemypos.push_back(enemy.get_robot(i)->position());
 	}
+	std::vector<point> dontblock;
+	dontblock.push_back(the_world->ball()->position());
 	std::vector<point> ret;
 	for (size_t i = 0; i < n; ++i) {
-		const point best = calc_position_best(enemypos);
+		const point best = calc_position_best(enemypos, dontblock);
 		ret.push_back(best);
-		enemypos.push_back(best);
+		dontblock.push_back(best);
 	}
 	return ret;
 }
