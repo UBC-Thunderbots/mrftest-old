@@ -214,9 +214,14 @@ ai_window::ai_window(ai &ai) : the_ai(ai), strategy_controls(0), rc_controls(0),
 	basic_table->attach(playtype_entry, 1, 3, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	basic_table->attach(*Gtk::manage(new Gtk::Label("Ball Filter:")), 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	ball_filter_chooser.append_text("<None>");
-	ball_filter_chooser.set_active_text("<None>");
 	for (ball_filter::map_type::const_iterator i = ball_filter::all().begin(), iend = ball_filter::all().end(); i != iend; ++i) {
 		ball_filter_chooser.append_text(i->second->name);
+	}
+	ball_filter *ball_filter = the_ai.the_world->ball_filter();
+	if (ball_filter) {
+		ball_filter_chooser.set_active_text(ball_filter->name);
+	} else {
+		ball_filter_chooser.set_active_text("<None>");
 	}
 	ball_filter_chooser.signal_changed().connect(sigc::mem_fun(this, &ai_window::on_ball_filter_changed));
 	basic_table->attach(ball_filter_chooser, 1, 3, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -263,9 +268,14 @@ ai_window::ai_window(ai &ai) : the_ai(ai), strategy_controls(0), rc_controls(0),
 
 	Gtk::Frame *strategy_frame = Gtk::manage(new Gtk::Frame("Strategy"));
 	strategy_chooser.append_text("<Select Strategy>");
-	strategy_chooser.set_active_text("<Select Strategy>");
 	for (strategy_factory::map_type::const_iterator i = strategy_factory::all().begin(), iend = strategy_factory::all().end(); i != iend; ++i) {
 		strategy_chooser.append_text(i->second->name);
+	}
+	const strategy::ptr strategy(the_ai.get_strategy());
+	if (strategy) {
+		strategy_chooser.set_active_text(strategy->get_factory().name);
+	} else {
+		strategy_chooser.set_active_text("<Select Strategy>");
 	}
 	strategy_chooser.signal_changed().connect(sigc::mem_fun(this, &ai_window::on_strategy_changed));
 	strategy_vbox.pack_start(strategy_chooser, Gtk::PACK_SHRINK);
@@ -275,9 +285,14 @@ ai_window::ai_window(ai &ai) : the_ai(ai), strategy_controls(0), rc_controls(0),
 
 	Gtk::Frame *rc_frame = Gtk::manage(new Gtk::Frame("Robot Controller"));
 	rc_chooser.append_text("<Select RC>");
-	rc_chooser.set_active_text("<Select RC>");
 	for (robot_controller_factory::map_type::const_iterator i = robot_controller_factory::all().begin(), iend = robot_controller_factory::all().end(); i != iend; ++i) {
 		rc_chooser.append_text(i->second->name);
+	}
+	robot_controller_factory *robot_controller = the_ai.get_robot_controller_factory();
+	if (robot_controller) {
+		rc_chooser.set_active_text(robot_controller->name);
+	} else {
+		rc_chooser.set_active_text("<Select RC>");
 	}
 	rc_chooser.signal_changed().connect(sigc::mem_fun(this, &ai_window::on_rc_changed));
 	rc_vbox.pack_start(rc_chooser, Gtk::PACK_SHRINK);

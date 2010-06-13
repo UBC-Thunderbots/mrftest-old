@@ -15,6 +15,8 @@ class ai_window : public Gtk::Window {
 	public:
 		/**
 		 * Creates a new main window.
+		 *
+		 * \param[in] ai the AI to observe and control.
 		 */
 		ai_window(ai &ai);
 

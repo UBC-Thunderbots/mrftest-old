@@ -164,6 +164,24 @@ namespace {
 		bool custom = false;
 		option_group.add_entry(custom_entry, custom);
 
+		Glib::OptionEntry strategy_entry;
+		strategy_entry.set_long_name("strategy");
+		strategy_entry.set_description("Selects which strategy should be selected at startup");
+		Glib::ustring strategy_name;
+		option_group.add_entry(strategy_entry, strategy_name);
+
+		Glib::OptionEntry robot_controller_entry;
+		robot_controller_entry.set_long_name("controller");
+		robot_controller_entry.set_description("Selects which robot controller should be selected at startup");
+		Glib::ustring robot_controller_name;
+		option_group.add_entry(robot_controller_entry, robot_controller_name);
+
+		Glib::OptionEntry ball_filter_entry;
+		ball_filter_entry.set_long_name("ball-filter");
+		ball_filter_entry.set_description("Selects which ball filter should be selected at startup");
+		Glib::ustring ball_filter_name;
+		option_group.add_entry(ball_filter_entry, ball_filter_name);
+
 		option_context.set_main_group(option_group);
 
 		Gtk::Main app(argc, argv, option_context);
@@ -213,9 +231,36 @@ namespace {
 			the_world->flip_refbox_colour();
 		}
 
+		if (!ball_filter_name.empty()) {
+			ball_filter::map_type::const_iterator i = ball_filter::all().find(ball_filter_name.collate_key());
+			if (i == ball_filter::all().end()) {
+				std::cout << "There is no ball filter '" << ball_filter_name << "'.\n";
+				return 1;
+			}
+			the_world->ball_filter(i->second);
+		}
+
 		clocksource_timerfd clk(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND);
 
 		ai the_ai(the_world, clk);
+
+		if (!strategy_name.empty()) {
+			strategy_factory::map_type::const_iterator i = strategy_factory::all().find(strategy_name.collate_key());
+			if (i == strategy_factory::all().end()) {
+				std::cout << "There is no strategy '" << strategy_name << "'.\n";
+				return 1;
+			}
+			the_ai.set_strategy(i->second->create_strategy(the_world));
+		}
+
+		if (!robot_controller_name.empty()) {
+			robot_controller_factory::map_type::const_iterator i = robot_controller_factory::all().find(robot_controller_name.collate_key());
+			if (i == robot_controller_factory::all().end()) {
+				std::cout << "There is no robot controller '" << robot_controller_name << "'.\n";
+				return 1;
+			}
+			the_ai.set_robot_controller_factory(i->second);
+		}
 
 		ai_window win(the_ai);
 
