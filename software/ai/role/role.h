@@ -10,7 +10,7 @@
 /**
  * A role manages the operation of a small group of players.
  */
-class role : public byref, public sigc::trackable {
+class role2 : public byref, public sigc::trackable {
 	public:
 		/**
 		 * A pointer to a role.
@@ -30,7 +30,7 @@ class role : public byref, public sigc::trackable {
 		 * detected by implementing robots_changed(), which will be called
 		 * whenever the set of robots changes.
 		 */
-		virtual void tick() = 0;
+		virtual void tick(Cairo::RefPtr<Cairo::Context> overlay) = 0;
 
 		/**
 		 * Called each time the set of robots for which the role is responsible
@@ -61,6 +61,16 @@ class role : public byref, public sigc::trackable {
 		 */
 		std::vector<player::ptr> the_robots;
 };
+
+class role : public role2 {
+	public:
+		virtual void tick() = 0;
+
+	private:
+		void tick(Cairo::RefPtr<Cairo::Context>) {
+			tick();
+		}
+}
 
 #endif
 
