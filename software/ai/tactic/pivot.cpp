@@ -90,14 +90,13 @@ void pivot::tick() {
 
 	if (state->recent_hit_target) {
 		navi.set_position(the_ball->position());
-		navi.set_orientation((target - the_player->position()).orientation());
 		navi.set_flags(flags);
-		navi.tick();
 	} else {
 		navi.set_position(robot_dst);
 		navi.set_flags(flags | ai_flags::avoid_ball_near);
-		navi.tick(); 	
 	} 	
+
+	navi.tick(); 	
 
 }
 

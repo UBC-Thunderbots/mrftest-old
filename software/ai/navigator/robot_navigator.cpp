@@ -188,7 +188,7 @@ void robot_navigator::tick() {
 		const double dribblespeed = std::min(DRIBBLE_SPEED_LOW + DRIBBLE_SPEED_RAMP * the_player->sense_ball_time(), DRIBBLE_SPEED_MAX);
 		the_player->dribble(dribblespeed);
 	} else {
-		the_player->dribble(0.0);
+		the_player->dribble(DRIBBLE_SPEED_LOW);
 	}
 
 	// DO NOT FORGET! reset orientation settings.

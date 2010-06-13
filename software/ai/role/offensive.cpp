@@ -23,6 +23,8 @@ namespace {
 	const int GRIDY = 100;
 	const int GRIDX = 100;
 
+	const double ONE = 1.0 / 180.0 * M_PI;
+
 };
 
 offensive::offensive(world::ptr world) : the_world(world) {
@@ -31,19 +33,32 @@ offensive::offensive(world::ptr world) : the_world(world) {
 double offensive::scoring_function(const std::vector<point>& enemypos, const point& pos) const {
 	// Hmm.. not sure if having negative number is a good idea.
 	double score = ai_util::calc_goal_visibility_angle(the_world->field(), enemypos, pos);
-	score *= 1e10;
+	// TODO: check the line below here
+	// scoring factors:
+	// density of enemy, passing distance, distance to the goal, angle of shooting, angle of receiving
+	// distance toward the closest enemy, travel distance, behind of in front of the enemy
+	// UI for viewing
+	if (!ai_util::path_check(the_world->ball()->position(), pos, enemypos, robot::MAX_RADIUS + ball::RADIUS + SHOOT_ALLOWANCE)) {
+		return -1e99;
+	}
+	// 10 degrees of shooting is 10 points
+	score *= 10.0 / (10.0 * ONE);
+	// want to be as near to our own goal as possible
+	// score -= 1.0 * pos.x;
+	const double balldist = (pos - the_world->ball()->position()).len();
+	const double goaldist = (pos - the_world->field().enemy_goal()).len();
+	const double ratio = std::min(balldist / goaldist, goaldist / balldist);
+	score *= ratio;
 	// distance to enemies
+	/*
 	for (size_t i = 0; i < enemypos.size(); ++i) {
 		double dist = (pos - enemypos[i]).len();
 		// too close!
-		if(dist < robot::MAX_RADIUS) return -1e99;
-		score += -1.0 / (dist + 1.0);
+		if(dist < 2.0 * robot::MAX_RADIUS) return -1e99;
+		// score += 1.0 / (dist + 1.0);
+		// score += dist;
 	}
-	// TODO: magic constants
-	// whether this point can see the ball
-	if (ai_util::path_check(the_world->ball()->position(), pos, enemypos, robot::MAX_RADIUS + ball::RADIUS + SHOOT_ALLOWANCE)) {
-		score += 1.0;
-	}
+	*/
 	return score;
 }
 
@@ -176,50 +191,44 @@ void offensive::tick() {
 			if (!ai_util::has_ball(the_robots[baller])) {
 				std::cout << "offensive: has no ball but posses, chase" << std::endl;
 				tactics[baller] = pivot::ptr(new pivot(the_robots[baller], the_world));
-			} else if (get_distance_from_goal(baller) < the_world->field().length() / 2) {
-				if (ai_util::calc_best_shot(the_robots[baller],the_world) != -1) {
-					std::cout << "offensive: i canz shoot " << std::endl;
-					tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
-				} else {
-					int passme = -1;
-					double passbest = 1e99;
-					// We will try passing to another offensive robot,
-					// if there is a clear path to the passee and the passee has a clear path to the goal
-					for (size_t j = 0; j < the_robots.size(); ++j) {
-						if (static_cast<int>(j) == baller) continue;  
-						if (ai_util::can_pass(the_world, the_robots[j]) && ai_util::calc_best_shot(the_robots[j], the_world) != -1) {
-							double dist = (the_robots[j]->position() - the_robots[baller]->position()).len() + get_distance_from_goal(j);
-							if (passbest > dist) {
-								passbest = dist;
-								passme = j;
-							}
-						}
-					}
-					std::cout << "offensive: pass to " << passme << std::endl;
-					if (passme != -1) {
-						// found suitable passee, make a pass
-						tactics[baller] = pass::ptr(new pass(the_robots[baller], the_world, the_robots[passme]));
-					} else if (get_distance_from_goal(baller) < the_world->field().length()/6) {
-						// very close to goal, so try making a shot anyways
-						tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
-					} else {
-						// dribble towards the goal
-						// TODO: can't dribble for too long
-#warning do something more intelligent than just moving towards goal
-						std::cout << "offensive: dribble to goal " << std::endl;
-						dribble::ptr dribble_tactic(new dribble(the_robots[baller], the_world));
-						dribble_tactic->set_position(the_world->field().enemy_goal());
-						tactics[baller] = dribble_tactic;
+			} else {
+				int shooter = -1;
+				double shooterangle = 0;
+
+				// We will try passing to another offensive robot,
+				// if there is a clear path to the passee and the passee has a clear path to the goal
+				for (size_t j = 0; j < the_robots.size(); ++j) {
+					if (static_cast<int>(j) != baller && !ai_util::can_pass(the_world, the_robots[j])) continue;
+					// if (ai_util::calc_best_shot(the_robots[j], the_world) == -1) continue;
+					if (get_distance_from_goal(j) > the_world->field().length() / 3) continue;
+					// TODO: create another weighting function
+					double angle = ai_util::calc_goal_visibility_angle(the_world, the_robots[j]);
+					// the baller has more importance
+					if (j == baller) angle *= 2.0;
+					if (shooter == -1 || angle > shooterangle) {
+						shooter = j;
+						shooterangle = angle;
 					}
 				}
-			} else {
-				// dribble the ball slowly to goal
-				// TODO: can't dribble for too long
+
+				std::cout << "offensive: who to shoot " << shooter << std::endl;
+				if (shooter == baller) {
+					// i shall shoot
+					tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
+				} else if (shooter != -1) {
+					// found suitable passee, make a pass
+					tactics[baller] = pass::ptr(new pass(the_robots[baller], the_world, the_robots[shooter]));
+				} else if (get_distance_from_goal(baller) < the_world->field().length() / 6) {
+					// very close to goal, so try making a shot anyways
+					tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
+				} else {
+					// dribble towards the goal
+					// TODO: can't dribble for too long
 #warning do something more intelligent than just moving towards goal
-				std::cout << "offensive: dribble to goal " << std::endl;
-				dribble::ptr dribble_tactic(new dribble(the_robots[baller], the_world));
-				dribble_tactic->set_position(the_world->field().enemy_goal());
-				tactics[baller] = dribble_tactic;
+					dribble::ptr dribble_tactic(new dribble(the_robots[baller], the_world));
+					dribble_tactic->set_position(the_world->field().enemy_goal());
+					tactics[baller] = dribble_tactic;
+				}
 			}
 		} else {
 			// no one in this role has the ball
@@ -254,6 +263,7 @@ void offensive::tick() {
 				move_tactic->set_position(waypoints[order[w]]);
 				tactics[i] = move_tactic;
 			}
+			++w;
 		}
 
 		std::cout << "offensive: chase " << std::endl;
@@ -261,8 +271,8 @@ void offensive::tick() {
 		// no one has the ball
 		// just do chase for now
 		// for (size_t i = 0; i < the_robots.size(); ++i) {
-			//tactics[i] = pivot::ptr(new pivot(the_robots[i], the_world));
-			//tactics[i] = chase::ptr(new chase(the_robots[i], the_world));
+		//tactics[i] = pivot::ptr(new pivot(the_robots[i], the_world));
+		//tactics[i] = chase::ptr(new chase(the_robots[i], the_world));
 		//}
 	}
 

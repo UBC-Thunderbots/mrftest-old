@@ -21,6 +21,9 @@ namespace {
 	}
 
 	void test_offensive_strategy::tick() {
+		if (the_world->playtype() == playtype::halt) {
+			return;
+		}
 		const friendly_team &the_team(the_world->friendly);
 		const ball::ptr the_ball(the_world->ball());
 		offensive offensive_role(the_world);

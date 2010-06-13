@@ -11,7 +11,12 @@ void dribble::tick() {
 	} else {
 		// maybe i should face enemy goal by default
 		if (position_initialized) navi.set_position(target_position);
-		if (orientation_initialized) navi.set_orientation(target_orientation);
+		if (orientation_initialized) {
+			navi.set_orientation(target_orientation);
+		} else {
+			const point diff = the_world->field().enemy_goal() - the_player->position();
+			navi.set_orientation(diff.orientation());
+		}
 	}
 	navi.set_flags(flags);
 	navi.tick();

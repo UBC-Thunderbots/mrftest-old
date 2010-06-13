@@ -1,6 +1,7 @@
 #include "ai/tactic/shoot.h"
 #include "ai/tactic/move.h"
 #include "ai/tactic/chase.h"
+#include "ai/tactic/pivot.h"
 #include "ai/tactic/kick.h"
 #include "ai/tactic/receive.h"
 #include "geom/angle.h"
@@ -24,12 +25,17 @@ void shoot::tick() {
 		// calculate where to aim
 		move move_tactic(the_player, the_world);
 		move_tactic.set_orientation(diffangle);
+		move_tactic.set_position(bestshot.first);
+
+		std::cout << " shoot pos=" << bestshot.first << " angle diff = " << angle_diff(diffangle, the_player->orientation()) << " bestshot=" << bestshot.second << std::endl;
 
 		// check if the goal is within shooting range. if so, kick
-		if (angle_diff(diffangle, the_player->orientation()) < bestshot.second / 2) {
+		if (angle_diff(diffangle, the_player->orientation()) < bestshot.second / 4) {
 			std::cout << "shoot: kick to goal" << std::endl;
 			// kick realy really hard
 			the_player->kick(1.0);
+		} else {
+			std::cout << "shoot: aim to goal" << std::endl;
 		}
 
 		move_tactic.set_flags(flags);
@@ -37,13 +43,12 @@ void shoot::tick() {
 	} else if (ai_util::posses_ball(the_world, the_player)) {
 		// std::cout << " chase ball close " << the_player->sense_ball_time() << std::endl;
 		// We have the ball right but somehow it was momentarily lost.
-		chase chase_tactic(the_player, the_world);
-		chase_tactic.set_flags(flags);
-		chase_tactic.tick();
-		//chase_and_shoot tactic(the_player, the_world);
-		//tactic.set_target(the_receiver->position());
-		//tactic.set_flags(flags);
-		//tactic.tick();
+		//chase chase_tactic(the_player, the_world);
+		//chase_tactic.set_flags(flags);
+		//chase_tactic.tick();
+		pivot tactic(the_player, the_world);
+		tactic.set_flags(flags);
+		tactic.tick();
 	} else {
 		// This player does not have the ball.
 		// std::cout << " omg no ball, go chase " << the_player->sense_ball() << " last=" << the_player->last_sense_ball_time() << std::endl;
@@ -57,9 +62,9 @@ void shoot::tick() {
 		}
 		if (!teampossesball) {
 			// chase if our team does not have the ball
-			chase chase_tactic(the_player, the_world);
-			chase_tactic.set_flags(flags);
-			chase_tactic.tick();
+			pivot tactic(the_player, the_world);
+			tactic.set_flags(flags);
+			tactic.tick();
 		} else {
 			// otherwise be ready for receive
 			receive receive_tactic(the_player, the_world);

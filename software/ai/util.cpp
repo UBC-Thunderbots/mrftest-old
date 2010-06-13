@@ -8,7 +8,7 @@
 namespace {
 
 #warning Magic constant
-	const double SHOOT_ALLOWANCE = 1e-1;
+	const double SHOOT_ALLOWANCE = ball::RADIUS;
 
 	const double PI = M_PI;
 	const double EPS = 1e-9;
@@ -92,7 +92,7 @@ namespace ai_util {
 		for (size_t i = 0; i < w->friendly.size(); ++i) {
 			const player::ptr plr = w->friendly.get_player(i);
 #warning has ball here
-			if (has_ball(plr) || plr == passee) continue;
+			if (posses_ball(w, plr) || plr == passee) continue;
 			const point rp = plr->position() - passee->position();
 			const double proj = rp.dot(direction);
 			const double perp = sqrt(rp.dot(rp) - proj * proj);
@@ -198,8 +198,13 @@ namespace ai_util {
 			point diff;
 			if (i < w->enemy.size()) diff = w->enemy.get_robot(i)->position() - p;
 			else diff = w->friendly.get_robot(i-w->enemy.size())->position() - p;
-			if (diff.len() < robot::MAX_RADIUS + ORI_CLOSE)
-				return std::make_pair(w->field().enemy_goal(), 0);
+			if (diff.len() < robot::MAX_RADIUS + ORI_CLOSE) {
+				std::cerr << " too close? " << std::endl;
+				continue;
+				// return std::make_pair(w->field().enemy_goal(), 0);
+			}
+			// temporary hack: ignore robots behind...
+			if (diff.x < 0) continue;
 			double cent = diff.orientation();
 			double span = asin(robot::MAX_RADIUS / diff.len());
 			events.push_back(std::make_pair(cent-span,-1));
@@ -247,6 +252,8 @@ namespace ai_util {
 				//return -2*acos(-1);
 				return 0;
 			}
+			// temporary hack: ignore robots behind...
+			if (diff.x < 0) continue;
 			double cent = diff.orientation();
 			double span = asin(robot::MAX_RADIUS / diff.len());
 			events.push_back(std::make_pair(cent-span,-1));
