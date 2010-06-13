@@ -69,6 +69,25 @@ single_bot_combobox::single_bot_combobox(const config::robot_set &robots) : Gtk:
 	set_active(0);
 }
 
+single_bot_combobox::single_bot_combobox(const config::robot_set &robots, const Glib::ustring &robot) : Gtk::ComboBox(single_bot_combobox_model::create(robots)), robots(robots) {
+	assert(robots.size());
+	Glib::RefPtr<single_bot_combobox_model> model = Glib::RefPtr<single_bot_combobox_model>::cast_static(get_model());
+	pack_start(model->address_column, false);
+	pack_start(model->yellow_column, false);
+	pack_start(model->pattern_index_column, false);
+	pack_start(model->name_column, true);
+	bool found = false;
+	for (unsigned int i = 0; i < robots.size() && !found; ++i) {
+		if (robots[i].name == robot) {
+			set_active(i);
+			found = true;
+		}
+	}
+	if (!found) {
+		set_active(0);
+	}
+}
+
 uint64_t single_bot_combobox::address() const {
 	return robots[get_active_row_number()].address;
 }

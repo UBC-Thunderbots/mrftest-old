@@ -59,9 +59,19 @@ class single_bot_combobox : public Gtk::ComboBox {
 	public:
 		/**
 		 * Constructs a new single_bot_combobox.
-		 * \param robots the robots to display in the box
+		 *
+		 * \param[in] robots the robots to display in the box.
 		 */
 		single_bot_combobox(const config::robot_set &robots);
+
+		/**
+		 * Constructs a new single_bot_combobox.
+		 *
+		 * \param[in] robots the robots to display in the box.
+		 *
+		 * \param[in] robot the name of the robot to select initially.
+		 */
+		single_bot_combobox(const config::robot_set &robots, const Glib::ustring &robot);
 
 		/**
 		 * \return the address of the currently-selected robot, or 0 if no robot

@@ -41,7 +41,7 @@ namespace {
 	};
 }
 
-firmware_window::firmware_window(xbee_lowlevel &modem, const config &conf) : modem(modem), bot_frame("Bot"), bot_controls(conf.robots()), file_frame("Firmware File"), file_fpga_button(file_target_group, "FPGA"), file_pic_button(file_target_group, "PIC"), start_upload_button(Gtk::Stock::EXECUTE), emergency_erase_button("Emergency Erase") {
+firmware_window::firmware_window(xbee_lowlevel &modem, const config &conf, const Glib::ustring &robot, const std::string &filename) : modem(modem), bot_frame("Bot"), bot_controls(conf.robots(), robot), file_frame("Firmware File"), file_fpga_button(file_target_group, "FPGA"), file_pic_button(file_target_group, "PIC"), start_upload_button(Gtk::Stock::EXECUTE), emergency_erase_button("Emergency Erase") {
 	set_title("Firmware Uploader");
 
 	bot_frame.add(bot_controls);
@@ -56,6 +56,9 @@ firmware_window::firmware_window(xbee_lowlevel &modem, const config &conf) : mod
 	filter->set_name("All Files");
 	filter->add_pattern("*");
 	file_chooser.add_filter(*filter);
+	if (!filename.empty()) {
+		file_chooser.set_filename(Glib::filename_to_utf8(filename));
+	}
 	file_vbox.add(file_chooser);
 	file_target_hbox.pack_start(file_fpga_button);
 	file_target_hbox.pack_start(file_pic_button);

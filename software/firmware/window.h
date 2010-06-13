@@ -6,13 +6,14 @@
 #include "util/scoped_ptr.h"
 #include "xbee/client/lowlevel.h"
 #include <gtkmm.h>
+#include <string>
 
 //
 // The user interface for the firmware manager.
 //
 class firmware_window : public Gtk::Window {
 	public:
-		firmware_window(xbee_lowlevel &modem, const config &conf);
+		firmware_window(xbee_lowlevel &modem, const config &conf, const Glib::ustring &robot, const std::string &filename);
 
 	private:
 		xbee_lowlevel &modem;
