@@ -2,9 +2,33 @@
 
 #include <cassert>
 #include <algorithm>
+#include <iostream>
 
 namespace {
 	const double EPS = 1e-9;
+}
+
+std::vector<size_t> dist_matching(const std::vector<point>& v1, const std::vector<point>& v2) {
+	if (v1.size() > 5) {
+#warning TODO: use hungarian matching
+		std::cerr << "geom: WARNING, hungarian not used yet" << std::endl;
+	}
+	std::vector<size_t> order(v2.size());
+	for (size_t i = 0; i < v2.size(); ++i) order[i] = i;
+	std::vector<size_t> best = order;
+	double bestscore = 1e99;
+	const size_t N = std::min(v1.size(), v2.size());
+	do {
+		double score = 0;
+		for (size_t i = 0; i < N; ++i) {
+			score += (v1[i] - v2[order[i]]).len();
+		}
+		if (score < bestscore) {
+			bestscore = score;
+			best = order;
+		}
+	} while(std::next_permutation(order.begin(), order.end()));
+	return best;
 }
 
 std::pair<point, double> angle_sweep_circles(const point& src, const point& p1, const point& p2, const std::vector<point>& obstacles, const double& radius) {
@@ -21,7 +45,7 @@ std::pair<point, double> angle_sweep_circles(const point& src, const point& p1, 
 		}
 		double cent = diff.orientation();
 		double span = asin(radius / diff.len());
-		// better fix?
+		// temporary fix
 		if (cent - span < -M_PI || cent + span > M_PI) continue;
 		events.push_back(std::make_pair(cent-span,-1));
 		events.push_back(std::make_pair(cent+span,1));

@@ -10,6 +10,14 @@
  */
 
 /**
+ * Matches points of two different vectors.
+ * Returns ordering of the matching such that the total distance is minimized.
+ * If order is the returned vector.
+ * Then the i element of v1 is matched with order[i] element of v2.
+ */
+std::vector<size_t> dist_matching(const std::vector<point>& v1, const std::vector<point>& v2);
+
+/**
  * Checks collinearity.
  */
 bool collinear(const point& a, const point& b, const point& c);
