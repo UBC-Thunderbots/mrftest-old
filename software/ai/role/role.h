@@ -15,7 +15,7 @@ class role2 : public byref, public sigc::trackable {
 		/**
 		 * A pointer to a role.
 		 */
-		typedef Glib::RefPtr<role> ptr;
+		typedef Glib::RefPtr<role2> ptr;
 
 		/**
 		 * Runs the role for one time tick. It is expected that the role will
@@ -29,6 +29,9 @@ class role2 : public byref, public sigc::trackable {
 		 * controlling robots that have gone away. This situation can be
 		 * detected by implementing robots_changed(), which will be called
 		 * whenever the set of robots changes.
+		 *
+		 * \param[in] overlay the visualizer's overlay on which to draw
+		 * graphical information.
 		 */
 		virtual void tick(Cairo::RefPtr<Cairo::Context> overlay) = 0;
 
@@ -41,6 +44,8 @@ class role2 : public byref, public sigc::trackable {
 		
 		/**
 		 * Sets the robots controlled by this role.
+		 *
+		 * \param[in] robots the robots the role should control.
 		 */
 		void set_robots(const std::vector<player::ptr> &robots) {
 			the_robots = robots;
@@ -62,15 +67,36 @@ class role2 : public byref, public sigc::trackable {
 		std::vector<player::ptr> the_robots;
 };
 
+/**
+ * A compatibility shim for roles that do not present a visual overlay.
+ */
 class role : public role2 {
 	public:
+		/**
+		 * A pointer to a role.
+		 */
+		typedef Glib::RefPtr<role> ptr;
+
+		/**
+		 * Runs the role for one time tick. It is expected that the role will
+		 * examine the robots for which it is responsible, determine if they
+		 * need to be given new tactics, and then call tactic::tick() for all
+		 * the tactics under this role.
+		 *
+		 * It is possible that the set of robots controlled by the tactic may
+		 * change between one tick and the next. The role must be ready to deal
+		 * with this situation, and must be sure to destroy any tactics
+		 * controlling robots that have gone away. This situation can be
+		 * detected by implementing robots_changed(), which will be called
+		 * whenever the set of robots changes.
+		 */
 		virtual void tick() = 0;
 
 	private:
 		void tick(Cairo::RefPtr<Cairo::Context>) {
 			tick();
 		}
-}
+};
 
 #endif
 
