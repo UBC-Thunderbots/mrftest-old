@@ -9,6 +9,7 @@ emergency_erase::emergency_erase(xbee_raw_bot::ptr bot) : bot(bot) {
 }
 
 void emergency_erase::start() {
+	status = "Emergency Erasing";
 	const uint8_t value = 4;
 	remote_at_packet<1>::ptr pkt(remote_at_packet<1>::create(bot->address, "D1", &value, true));
 	complete_connection = pkt->signal_complete().connect(sigc::mem_fun(this, &emergency_erase::on_complete));
