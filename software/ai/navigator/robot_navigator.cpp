@@ -45,64 +45,39 @@ point robot_navigator::force_offense_len(point dst){
     return temp;
 }
 point robot_navigator::clip_defense_area(point dst){
+
+	//clip the two quater-circles around the defense area
+	point defense_circA = point(the_world->field().friendly_goal().x, the_world->field().defense_area_stretch()/2.0);
+	point defense_circB = point(the_world->field().friendly_goal().x, -(the_world->field().defense_area_stretch()/2.0));
+	point wantdest = clip_circle(defense_circA, the_world->field().defense_area_radius(), wantdest);
+	wantdest = clip_circle(defense_circB, the_world->field().defense_area_radius(), wantdest);
  
-  if(abs(2*dst.y) <  the_world->field().defense_area_stretch()){
-    return force_defense_len(dst);
-  }else{
-    point a = the_world->field().friendly_goal();
-    a.y += the_world->field().defense_area_stretch()/2;
-    point dir;
-    if( (dst-a).len() <  the_world->field().defense_area_radius() ){
-       dir = (dst-a).norm();
-       dir*=the_world->field().defense_area_radius();
-    }
-
-    a.y -=  the_world->field().defense_area_stretch();
-
-    if( (dst-a).len() <  the_world->field().defense_area_radius() ){
-       dir = (dst-a).norm();
-       dir*=the_world->field().defense_area_radius();
-    }
-
-   if(dir.norm().len()<0.5)return force_defense_len(dst);
-
-   return dir;
-
-  }
-
+ 	//clip the square portion of the defense area
+	if(abs(2*dst.y) <  the_world->field().defense_area_stretch()){
+		wantdest = force_defense_len(wantdest);
+	}
+	return wantdest;
+	    
 }
 
 point robot_navigator::clip_offense_area(point dst){
  
-  if(abs(2*dst.y) <  the_world->field().defense_area_stretch()){
-    return force_offense_len(dst);
-  }else{
-    point a = the_world->field().enemy_goal();
-    a.y += the_world->field().defense_area_stretch()/2;
-    point dir;
-    if( (dst-a).len() <  the_world->field().defense_area_radius() ){
-       dir = (dst-a).norm();
-       dir*=the_world->field().defense_area_radius();
-    }
-
-    a.y -=  the_world->field().defense_area_stretch();
-
-    if( (dst-a).len() <  the_world->field().defense_area_radius() ){
-       dir = (dst-a).norm();
-       dir*=the_world->field().defense_area_radius();
-    }
-
-   if(dir.norm().len()<0.5)return force_defense_len(dst);
-
-   return dir;
-
-  }
+ 	//clip the two quater-circles around the defense area
+	point defense_circA = point(the_world->field().enemy_goal().x, the_world->field().defense_area_stretch()/2.0);
+	point defense_circB = point(the_world->field().enemy_goal().x, -(the_world->field().defense_area_stretch()/2.0));
+	point wantdest = clip_circle(defense_circA, the_world->field().defense_area_radius(), wantdest);
+	wantdest = clip_circle(defense_circB, the_world->field().defense_area_radius(), wantdest);
+ 
+	if(abs(2*dst.y) <  the_world->field().defense_area_stretch()){
+    		wantdest = force_offense_len(dst);
+	}
+  	return wantdest;
+  	
 }
 
 point robot_navigator::clip_circle(point circle_centre, double circle_radius, point dst){
 
-  point wantdest = dst;
-
+  		point wantdest = dst;
 		point circle_centre_diff =  the_player->position() -  circle_centre;
 		point ball_dst_diff =  wantdest -  circle_centre;
 
