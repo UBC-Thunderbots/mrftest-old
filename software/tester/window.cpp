@@ -9,7 +9,7 @@
 #include <cassert>
 #include <functional>
 
-tester_window::tester_window(xbee_lowlevel &modem, const config &conf) : modem(modem), conf(conf), bot_frame("Bot"), bot_chooser(conf.robots()), claim_bot_button("Claim"), feedback_frame("Feedback"), drive_frame("Drive"), drive_widget(0), drive_zeroable(0), dribble_frame("Dribble"), dribble_scale(-1023, 1023, 1), chicker_frame("Chicker"), chicker_enabled("Enable"), chicker_kick("Kick"), chicker_chip("Chip"), chicker_ready_light("R"), lt3751_fault_light("3751"), chicker_low_fault_light("L"), chicker_high_fault_light("H") {
+tester_window::tester_window(xbee_lowlevel &modem, const config &conf) : modem(modem), conf(conf), bot_frame("Bot"), bot_chooser(conf.robots()), claim_bot_button("Claim"), feedback_frame("Feedback"), drive_frame("Drive"), drive_widget(0), drive_zeroable(0), dribble_frame("Dribble"), dribble_scale(-1023, 1023, 1), chicker_frame("Chicker"), chicker_enabled("Enable"), chicker_kick("Kick"), chicker_chip("Chip"), chicker_autokick("Autokick"), chicker_autochip("Autochip"), chicker_ready_light("R"), lt3751_fault_light("3751"), chicker_low_fault_light("L"), chicker_high_fault_light("H") {
 	set_title("Robot Tester");
 
 	bot_hbox.pack_start(bot_chooser, Gtk::PACK_EXPAND_WIDGET);
@@ -51,6 +51,12 @@ tester_window::tester_window(xbee_lowlevel &modem, const config &conf) : modem(m
 	chicker_chip.signal_clicked().connect(sigc::mem_fun(this, &tester_window::on_chicker_chip));
 	chicker_chip.set_sensitive(false);
 	chicker_box.pack_start(chicker_chip, Gtk::PACK_SHRINK);
+	chicker_autokick.signal_toggled().connect(sigc::mem_fun(this, &tester_window::on_chicker_autokick_toggled));
+	chicker_autokick.set_sensitive(false);
+	chicker_box.pack_start(chicker_autokick, Gtk::PACK_SHRINK);
+	chicker_autochip.signal_toggled().connect(sigc::mem_fun(this, &tester_window::on_chicker_autochip_toggled));
+	chicker_autochip.set_sensitive(false);
+	chicker_box.pack_start(chicker_autochip, Gtk::PACK_SHRINK);
 	chicker_box.pack_start(chicker_ready_light, Gtk::PACK_SHRINK);
 	chicker_box.pack_start(lt3751_fault_light, Gtk::PACK_SHRINK);
 	chicker_box.pack_start(chicker_low_fault_light, Gtk::PACK_SHRINK);
@@ -88,6 +94,10 @@ void tester_window::on_claim_toggled() {
 		chicker_enabled.set_sensitive(false);
 		chicker_kick.set_sensitive(false);
 		chicker_chip.set_sensitive(false);
+		chicker_autokick.set_sensitive(false);
+		chicker_autokick.set_active(false);
+		chicker_autochip.set_sensitive(false);
+		chicker_autochip.set_active(false);
 		assert(bot->refs() == 1);
 		bot.reset();
 	}
@@ -99,6 +109,8 @@ void tester_window::on_bot_alive() {
 	chicker_enabled.set_sensitive(true);
 	chicker_kick.set_sensitive(true);
 	chicker_chip.set_sensitive(true);
+	chicker_autokick.set_sensitive(true);
+	chicker_autochip.set_sensitive(true);
 	DPRINT("Bot alive.");
 }
 
@@ -204,10 +216,27 @@ void tester_window::on_chicker_chip() {
 	}
 }
 
+void tester_window::on_chicker_autokick_toggled() {
+	if (chicker_autokick.get_active()) {
+		chicker_autochip.set_active(false);
+	}
+}
+
+void tester_window::on_chicker_autochip_toggled() {
+	if (chicker_autochip.get_active()) {
+		chicker_autokick.set_active(false);
+	}
+}
+
 void tester_window::on_feedback() {
 	if (bot) {
 		if (bot->chicker_ready()) {
 			chicker_ready_light.set_colour(0, 1, 0);
+			if (chicker_autokick.get_active()) {
+				Glib::signal_timeout().connect_once(sigc::mem_fun(this, &tester_window::on_chicker_kick), 100);
+			} else if (chicker_autochip.get_active()) {
+				Glib::signal_timeout().connect_once(sigc::mem_fun(this, &tester_window::on_chicker_chip), 100);
+			}
 		} else {
 			chicker_ready_light.set_colour(0, 0, 0);
 		}

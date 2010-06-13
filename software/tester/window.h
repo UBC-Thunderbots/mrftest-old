@@ -46,6 +46,8 @@ class tester_window : public Gtk::Window {
 		Gtk::HScale chicker_power;
 		Gtk::Button chicker_kick;
 		Gtk::Button chicker_chip;
+		Gtk::ToggleButton chicker_autokick;
+		Gtk::ToggleButton chicker_autochip;
 		light chicker_ready_light, lt3751_fault_light, chicker_low_fault_light, chicker_high_fault_light;
 
 		int key_snoop(Widget *, GdkEventKey *event);
@@ -60,6 +62,8 @@ class tester_window : public Gtk::Window {
 		void on_chicker_enable_change();
 		void on_chicker_kick();
 		void on_chicker_chip();
+		void on_chicker_autokick_toggled();
+		void on_chicker_autochip_toggled();
 		void on_feedback();
 };
 
