@@ -3,29 +3,52 @@
 
 #include "geom/point.h"
 #include <vector>
-/*
-   Misc geometry utility functions.
-   Contains code ported from 2009 version of AI.
- */
-	
-	/**
-	*sees whether the line segment intersects the rectangle
-	*/
-	bool line_seg_intersect_rectangle(point seg[2], point recA[4]);
-	
-	/**
-	*sees whether the point lies inside of the rectangle
-	*/
-	bool point_in_rectangle(point pointA, point recA[4]);
-	
-	/**
-	*returns a vector of all the points where the line segment intersects the circlecross product
-	*/
-	std::vector<point> lineseg_circle_intersect(point centre, double radius, point segA, point segB); 
+
 /**
-	*returns a vector of all the points where the line defined by two points intersects the circle
-	*/
-	std::vector<point> line_circle_intersect(point centre, double radius, point segA, point segB); 
+ *  Misc geometry utility functions.
+ *  Contains code ported from 2009 version of AI.
+ */
+
+/**
+ * Checks collinearity.
+ */
+bool collinear(const point& a, const point& b, const point& c);
+
+/**
+ * Angle sweep.
+ * Suppose in this world, all objects are circles of fixed radius.
+ * You are at point src, and you want to shoot a ray between p1 and p2.
+ * Calculates the largest open angle interval that you can shoot.
+ * Returns direction, angle pair
+ * angle is 0 if no answer is found, or input is invalid.
+ * direction is normalized
+ *
+ * Preconditions:
+ * - p1 must be to the right of p2. In other words, if there is a counterclockwise ordering, p1 is before p2 from p's point of view.
+ * - the angle p1, p, p2 must not be greater than 180 degrees.
+ * - p is not between p1 and p2.
+ */
+std::pair<point, double> angle_sweep_circles(const point& src, const point& p1, const point& p2, const std::vector<point>& obstacles, const double& radius);
+
+/**
+ *sees whether the line segment intersects the rectangle
+ */
+bool line_seg_intersect_rectangle(point seg[2], point recA[4]);
+
+/**
+ *sees whether the point lies inside of the rectangle
+ */
+bool point_in_rectangle(point pointA, point recA[4]);
+
+/**
+ *returns a vector of all the points where the line segment intersects the circlecross product
+ */
+std::vector<point> lineseg_circle_intersect(point centre, double radius, point segA, point segB); 
+
+/**
+ *returns a vector of all the points where the line defined by two points intersects the circle
+ */
+std::vector<point> line_circle_intersect(point centre, double radius, point segA, point segB); 
 /**
  * Clips a point to a rectangle boundary.
  */

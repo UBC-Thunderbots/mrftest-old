@@ -2,8 +2,61 @@
 
 #include <cassert>
 #include <algorithm>
+
 namespace {
-	const double eps = 1e-9;
+	const double EPS = 1e-9;
+}
+
+std::pair<point, double> angle_sweep_circles(const point& src, const point& p1, const point& p2, const std::vector<point>& obstacles, const double& radius) {
+	// default value to return if nothing is valid
+	point bestshot = (p1 + p2) * 0.5;
+	if (collinear(src, p1, p2)) return std::make_pair(bestshot, 0);
+	std::vector<std::pair<double, int> > events;
+	events.push_back(std::make_pair((src - p1).orientation(), 1));
+	events.push_back(std::make_pair((src - p2).orientation(), -1));
+	for (size_t i = 0; i < obstacles.size(); ++i) {
+		point diff = obstacles[i] - src;
+		if (diff.len() < radius * 2.0) {
+			return std::make_pair(bestshot, 0);
+		}
+		double cent = diff.orientation();
+		double span = asin(radius / diff.len());
+		// better fix?
+		if (cent - span < -M_PI || cent + span > M_PI) continue;
+		events.push_back(std::make_pair(cent-span,-1));
+		events.push_back(std::make_pair(cent+span,1));
+	}
+	// do angle sweep for largest angle
+	sort(events.begin(), events.end());
+	double best = 0;
+	double sum = 0;
+	double start = 0;
+	double cnt = 0;
+	for (size_t i = 0; i < events.size() - 1; ++i) {
+		cnt += events[i].second;
+		if (cnt > 0) {
+			sum += events[i+1].first - events[i].first;
+			if (best < sum) {
+				best = sum;
+				// shoot ray from point p
+				// intersect with line p1-p2
+				const double mid = start + sum / 2;
+				const point ray = point(cos(mid), sin(mid));
+				const point inter = line_intersect(src, src + ray, p1, p2);
+				bestshot = inter;
+			}
+		} else {
+			sum = 0;
+			start = events[i+1].first;
+		}
+	}
+	return std::make_pair(bestshot, best);
+}
+
+bool collinear(const point& a, const point& b, const point& c) {
+	if ((a - b).lensq() < EPS || (b - c).lensq() < EPS || (a - c).lensq() < EPS)
+		return true;
+	return (abs((b - a).cross(c - a)) < EPS);
 }
 
 point clip_point(const point& p, const point& bound1, const point& bound2) {
@@ -24,16 +77,16 @@ std::vector<point> line_circle_intersect(point centre, double radius, point segA
   std::vector<point> ans;
 
   //take care of 0 length segments too much error here
-  if((segB - segA).lensq()<eps)return ans;
+  if((segB - segA).lensq()<EPS)return ans;
 
   double lenseg = (segB - segA).dot(centre-segA)/(segB-segA).len();
   point C = segA + lenseg*(segB-segA).norm();
 
   //if C outside circle no intersections
-  if((C-centre).lensq() > radius*radius + eps) return ans;
+  if((C-centre).lensq() > radius*radius + EPS) return ans;
     
   //if C on circle perimeter return the only intersection
-  if((C-centre).lensq() < radius*radius + eps && (C-centre).lensq() > radius*radius - eps){
+  if((C-centre).lensq() < radius*radius + EPS && (C-centre).lensq() > radius*radius - EPS){
     ans.push_back(C);
     return ans;
   }
@@ -53,8 +106,8 @@ std::vector<point> lineseg_circle_intersect(point centre, double radius, point s
   std::vector<point> poss = line_circle_intersect(centre, radius, segA, segB);
 
   for(unsigned int i =0; i<poss.size(); i++){
-    bool x_ok = poss[i].x <= std::max(segA.x, segB.x)+eps && poss[i].x >= std::min(segA.x, segB.x)-eps; 
-    bool y_ok = poss[i].y <= std::max(segA.y, segB.y)+eps && poss[i].y >= std::min(segA.y, segB.y)-eps;
+    bool x_ok = poss[i].x <= std::max(segA.x, segB.x)+EPS && poss[i].x >= std::min(segA.x, segB.x)-EPS; 
+    bool y_ok = poss[i].y <= std::max(segA.y, segB.y)+EPS && poss[i].y >= std::min(segA.y, segB.y)-EPS;
     if(x_ok && y_ok)ans.push_back(poss[i]); 
   }
   return ans;
@@ -82,7 +135,7 @@ double line_point_dist(const point &p, const point &a, const point &b) {
 
 // ported code
 inline double sign(const double n) {
-	return n > eps ? 1 : (n < -eps ? -1 : 0);
+	return n > EPS ? 1 : (n < -EPS ? -1 : 0);
 }
 
 // ported code
@@ -109,6 +162,9 @@ bool point_in_rectangle(point pointA, point recA[4]){
    x_ok = x_ok && pointA.x <= std::max(std::max(recA[0].x,recA[1].x),std::max(recA[2].x, recA[3].x)); 
   bool y_ok = pointA.y >= std::min(std::min(recA[0].y,recA[1].y),std::min(recA[2].y, recA[3].y));
   y_ok = y_ok && pointA.y <= std::max(std::max(recA[0].y,recA[1].y),std::max(recA[2].y, recA[3].y));
+
+  // was this missing here??
+  return x_ok && y_ok;
 }
 
 // ported code
@@ -125,7 +181,7 @@ point calcBlockOtherRay(const point& a, const point& c, const point& g) {
 // ported code
 bool goalieBlocksGoalPost(const point& a, const point& b, const point& c, const point& g) {
 	point R = reflect(a - c, g - c);
-	return (R.cross(b - c) < -eps);
+	return (R.cross(b - c) < -EPS);
 }
 
 // ported code
