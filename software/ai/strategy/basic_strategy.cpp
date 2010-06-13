@@ -172,7 +172,6 @@ void basic_strategy::reset_all() {
 
 		case playtype::execute_kickoff_enemy:
 			roles.push_back(role::ptr(new prepare_kickoff_enemy(the_world)));
-		#warning robots should detect when ball is in play, then playtypes should be switched
 			roles[0]->set_robots(all_players);
 			std::cout << all_players.size() << " robots set to execute kickoff enemy" << std::endl;
 			break;
