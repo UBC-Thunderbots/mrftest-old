@@ -72,11 +72,14 @@ namespace {
 						for (vector<circle>::iterator it = containing.begin(); it != containing.end(); ++it) {
 							anti_cert *= 1.0 - (*it).certainty;
 							if (it != containing.begin()) {
-								for (list<circle>::iterator shit = circles.begin(); shit != circles.end(); ++shit) {
-									if( (*shit) == (*it) )
+								list<circle>::iterator shit, next_shit = circles.begin();
+								while (next_shit != circles.end()) {
+									shit = next_shit;
+									++next_shit;
+									if (*shit == *it) {
 										circles.erase(shit);
-								}	
-
+									}
+								}
 							}
 						}
 						anti_cert *= 1.0 - DECAY_RATE;
