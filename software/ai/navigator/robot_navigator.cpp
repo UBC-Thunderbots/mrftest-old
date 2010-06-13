@@ -9,8 +9,8 @@
 namespace {
 
 #warning magic constants
-	const double AVOID_MULT = 1.0;
-	const double AVOID_CONST = 1.0;
+	const double AVOID_MULT = 2.0;
+	const double AVOID_CONST = 1.1;
 	const double ROTATION_THRESH = 100.0 * M_PI / 180.0;
 	const double ROTATION_STEP = 1.0 * M_PI / 180.0;
 	const double LOOKAHEAD_MAX = robot::MAX_RADIUS * 10;
@@ -49,8 +49,9 @@ point robot_navigator::clip_defense_area(point dst){
 	//clip the two quater-circles around the defense area
 	point defense_circA = point(the_world->field().friendly_goal().x, the_world->field().defense_area_stretch()/2.0);
 	point defense_circB = point(the_world->field().friendly_goal().x, -(the_world->field().defense_area_stretch()/2.0));
-	point wantdest = clip_circle(defense_circA, the_world->field().defense_area_radius(), wantdest);
+	point wantdest = clip_circle(defense_circA, the_world->field().defense_area_radius(), dst);
 	wantdest = clip_circle(defense_circB, the_world->field().defense_area_radius(), wantdest);
+	// std::cout << " w" << wantdest << " dA" << defense_circA << " dB" << defense_circB << std::endl;
  
  	//clip the square portion of the defense area
 	if(abs(2*dst.y) <  the_world->field().defense_area_stretch()){
@@ -131,7 +132,9 @@ point robot_navigator::get_inbounds_point(point dst){
 	}
 
 	if (flags & ai_flags::avoid_friendly_defence) {
+		//std::cout<<"defense before "<<wantdest.x<<" "<<wantdest.y<<std::endl;
 		wantdest = clip_defense_area(wantdest);
+		//std::cout<<"defense after  "<<wantdest.x<<" "<<wantdest.y<<std::endl;
 	}
 
 	if (flags & ai_flags::avoid_enemy_defence) {

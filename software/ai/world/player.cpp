@@ -62,6 +62,8 @@ namespace {
 	}
 }
 
+const double player::MAX_DRIBBLE_DIST = 0.30;
+
 player::state::~state() {
 }
 

@@ -49,6 +49,11 @@ class player : public robot {
 		uint64_t address() const;
 
 		/**
+		 * \return the maximum dribble distance.
+		 */
+		static const double MAX_DRIBBLE_DIST;
+
+		/**
 		 * Instructs the player to move.
 		 * \param dest the destination point to move to
 		 * \param ori the target origin to rotate to

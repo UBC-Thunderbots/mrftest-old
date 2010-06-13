@@ -36,7 +36,9 @@ void kick::tick() {
 	navi.set_orientation(dist.orientation());
 
 	// maybe move towards it?
-	navi.set_position(kick_target);
+	if (the_player->dribble_distance() < player::MAX_DRIBBLE_DIST) {
+		navi.set_position(kick_target);
+	}
 
 	if (angle_diff(dist.orientation(), the_player->orientation()) > ai_util::ORI_CLOSE) {
 		navi.tick();

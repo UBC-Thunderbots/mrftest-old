@@ -35,7 +35,10 @@ void shoot::tick() {
 		// calculate where to aim
 		move move_tactic(the_player, the_world);
 		move_tactic.set_orientation(diffangle);
-		move_tactic.set_position(bestshot.first);
+
+		if (the_player->dribble_distance() < player::MAX_DRIBBLE_DIST) {
+			move_tactic.set_position(bestshot.first);
+		}
 
 		std::cout << " shoot pos=" << bestshot.first << " angle diff = " << angle_diff(diffangle, the_player->orientation()) << " bestshot=" << bestshot.second << std::endl;
 

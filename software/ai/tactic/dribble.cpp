@@ -10,7 +10,9 @@ void dribble::tick() {
 		navi.set_position(the_world->ball()->position());
 	} else {
 		// maybe i should face enemy goal by default
-		if (position_initialized) navi.set_position(target_position);
+		if (the_player->dribble_distance() < player::MAX_DRIBBLE_DIST) {
+			if (position_initialized) navi.set_position(target_position);
+		}
 		if (orientation_initialized) {
 			navi.set_orientation(target_orientation);
 		} else {
