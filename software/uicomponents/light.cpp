@@ -1,9 +1,11 @@
 #include "uicomponents/light.h"
 #include <algorithm>
 
-
-
 light::light() : r(0), g(0), b(0) {
+	set_size_request(24, 24);
+}
+
+light::light(const Glib::ustring &label) : label(label), r(0), g(0), b(0) {
 	set_size_request(24, 24);
 }
 
@@ -16,6 +18,14 @@ void light::set_colour(double r, double g, double b) {
 		if (win) {
 			win->invalidate(false);
 		}
+	}
+}
+
+void light::set_label(const Glib::ustring &l) {
+	label = l;
+	const Glib::RefPtr<Gdk::Window> win(get_window());
+	if (win) {
+		win->invalidate(false);
 	}
 }
 
@@ -32,6 +42,15 @@ bool light::on_expose_event(GdkEventExpose *) {
 	ctx->set_source_rgb(0, 0, 0);
 	ctx->arc(width / 2.0, height / 2.0, mindim / 2.0, 0.0, 2 * M_PI);
 	ctx->stroke();
+
+	ctx->set_source_rgb(0.0, 0.0, 0.0);
+	const std::string &str(label);
+	Cairo::TextExtents extents;
+	ctx->get_text_extents(str, extents);
+	const double x = width / 2.0 - extents.x_bearing - extents.width / 2.0;
+	const double y = height / 2.0 - extents.y_bearing - extents.height / 2.0;
+	ctx->move_to(x, y);
+	ctx->show_text(str);
 
 	// Done.
 	return true;

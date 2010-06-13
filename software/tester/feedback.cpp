@@ -22,6 +22,11 @@ tester_feedback::tester_feedback() : Gtk::Table(8, 3, false), battery_label("Bat
 	attach(success_level, 1, 2, 7, 8, Gtk::EXPAND | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
 
 	for (unsigned int i = 0; i < 5; ++i) {
+		if (i < 4) {
+			fault_indicators[i].set_label(Glib::ustring::format(i + 1));
+		} else {
+			fault_indicators[i].set_label("D");
+		}
 		fault_indicator_box.pack_start(fault_indicators[i]);
 	}
 	fault_indicator_frame.add(fault_indicator_box);

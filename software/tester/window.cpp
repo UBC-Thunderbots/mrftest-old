@@ -9,7 +9,7 @@
 #include <cassert>
 #include <functional>
 
-tester_window::tester_window(xbee_lowlevel &modem, const config &conf) : modem(modem), conf(conf), bot_frame("Bot"), bot_chooser(conf.robots()), claim_bot_button("Claim"), feedback_frame("Feedback"), drive_frame("Drive"), drive_widget(0), drive_zeroable(0), dribble_frame("Dribble"), dribble_scale(-1023, 1023, 1), chicker_frame("Chicker"), chicker_enabled("Enable"), chicker_kick("Kick"), chicker_chip("Chip") {
+tester_window::tester_window(xbee_lowlevel &modem, const config &conf) : modem(modem), conf(conf), bot_frame("Bot"), bot_chooser(conf.robots()), claim_bot_button("Claim"), feedback_frame("Feedback"), drive_frame("Drive"), drive_widget(0), drive_zeroable(0), dribble_frame("Dribble"), dribble_scale(-1023, 1023, 1), chicker_frame("Chicker"), chicker_enabled("Enable"), chicker_kick("Kick"), chicker_chip("Chip"), chicker_ready_light("R"), lt3751_fault_light("3751"), chicker_low_fault_light("L"), chicker_high_fault_light("H") {
 	set_title("Robot Tester");
 
 	bot_hbox.pack_start(bot_chooser, Gtk::PACK_EXPAND_WIDGET);
