@@ -75,7 +75,7 @@ void simulator::send(const iovec *iov, std::size_t iovlen) {
 	// responses at full speed and making everything else slow and laggy. So
 	// instead, just delay a few milliseconds before actually doing anything
 	// with the packet.
-	Glib::signal_timeout().connect(sigc::bind_return(sigc::bind(sigc::mem_fun(this, &simulator::packet_handler), data), false), 10);
+	Glib::signal_timeout().connect_once(sigc::bind(sigc::mem_fun(this, &simulator::packet_handler), data), 10);
 }
 
 void simulator::packet_handler(const std::vector<uint8_t> &data) {

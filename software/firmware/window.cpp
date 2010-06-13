@@ -105,7 +105,7 @@ void firmware_window::start_upload() {
 		fpga_upload up(bot, ihex);
 		watchable_pair p(cl, up, 0.01);
 		working_dialog dlg(*this, p);
-		Glib::signal_idle().connect(sigc::bind_return(sigc::mem_fun(p, &watchable_pair::start), false));
+		Glib::signal_idle().connect_once(sigc::mem_fun(p, &watchable_pair::start));
 		dlg.run();
 	} else {
 		intel_hex ihex;
@@ -122,7 +122,7 @@ void firmware_window::start_upload() {
 		pic_upload up(bot, ihex);
 		watchable_pair p(cl, up, 0.01);
 		working_dialog dlg(*this, p);
-		Glib::signal_idle().connect(sigc::bind_return(sigc::mem_fun(p, &watchable_pair::start), false));
+		Glib::signal_idle().connect_once(sigc::mem_fun(p, &watchable_pair::start));
 		dlg.run();
 	}
 	timer.stop();
@@ -144,7 +144,7 @@ void firmware_window::start_emergency_erase() {
 		emergency_erase ee(bot);
 		watchable_pair p(cl, ee, 0.5);
 		working_dialog dlg(*this, p);
-		Glib::signal_idle().connect(sigc::bind_return(sigc::mem_fun(p, &watchable_pair::start), false));
+		Glib::signal_idle().connect_once(sigc::mem_fun(p, &watchable_pair::start), false);
 		resp = dlg.run();
 	}
 	if (resp == Gtk::RESPONSE_ACCEPT) {
