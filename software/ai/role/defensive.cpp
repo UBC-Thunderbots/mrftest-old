@@ -6,6 +6,7 @@
 #include "ai/tactic/receive.h"
 #include "ai/util.h"
 #include "util/algorithm.h"
+#include "geom/util.h"
 
 #include <iostream>
 
@@ -159,7 +160,7 @@ void defensive::tick() {
 		locations.push_back(the_robots[i]->position());
 	}
 
-	std::vector<size_t> order = ai_util::dist_matching(locations, waypoints);
+	std::vector<size_t> order = dist_matching(locations, waypoints);
 
 	size_t w = 0;
 	for (size_t i = 0; i < the_robots.size(); ++i) {

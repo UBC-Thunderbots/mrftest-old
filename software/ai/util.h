@@ -137,15 +137,6 @@ namespace ai_util {
 	std::vector<player::ptr> get_friends(const friendly_team& friendly, const std::vector<player::ptr>& exclude);
 
 	/**
-	 * Matches points of two different vectors.
-	 * Returns ordering of the matching such that the total distance is minimized.
-	 * If order is the returned vector.
-	 * Then the i element of v1 is matched with order[i] element of v2.
-	 * Currently uses a slow brute-force algorithm.
-	 */
-	std::vector<size_t> dist_matching(const std::vector<point>& v1, const std::vector<point>& v2);
-
-	/**
 	 * Finds the best player to pass to based on distance to the enemy goal.
 	 * Returns -1 if no valid target is found.
 	 */

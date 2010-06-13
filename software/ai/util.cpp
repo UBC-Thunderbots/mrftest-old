@@ -1,6 +1,7 @@
 #include "ai/util.h"
 #include "util/algorithm.h"
 #include "geom/angle.h"
+#include "geom/util.h"
 #include <cmath>
 
 #include <iostream>
@@ -146,50 +147,9 @@ namespace ai_util {
 	*/
 
 	std::pair<point, double> calc_best_shot(const field& f, const std::vector<point>& obstacles, const point& p) {
-		std::vector<std::pair<double, int> > events;
-		double l_range = (point(f.length()/2.0,-f.goal_width()/2.0) - p).orientation();
-		double h_range = (point(f.length()/2.0,f.goal_width()/2.0) - p).orientation();
-		events.push_back(std::make_pair(l_range,1));
-		events.push_back(std::make_pair(h_range,-1));
-		for (size_t i = 0; i < obstacles.size(); ++i) {
-			point diff = obstacles[i] - p;
-			if (diff.len() < robot::MAX_RADIUS * 2.0 + POS_CLOSE) {
-				return std::make_pair(f.enemy_goal(), 0);
-			}
-			double cent = diff.orientation();
-			double span = asin(robot::MAX_RADIUS / diff.len());
-			// better fix?
-			if (cent - span < -M_PI || cent + span > M_PI) continue;
-			events.push_back(std::make_pair(cent-span,-1));
-			events.push_back(std::make_pair(cent+span,1));
-		}
-		// do angle sweep for largest angle
-		sort(events.begin(), events.end());
-		point bestshot = f.enemy_goal();
-		double best = 0;
-		double sum = 0;
-		double start = 0;
-		double cnt = 0;
-		for (size_t i = 0; i < events.size() - 1; ++i) {
-			cnt += events[i].second;
-			if (cnt > 0){
-				// this only happens if the goal is in view
-				sum += events[i+1].first - events[i].first;
-				if (best < sum) {
-					best = sum;
-					// shoot ray from robot to goal
-					const double mid = start + sum / 2;
-					if (cos(mid) > EPS) {
-						const double length = (f.enemy_goal().x - p.x) / cos(mid);
-						bestshot = p + point(cos(mid), sin(mid)) * length;
-					}
-				}
-			} else {
-				sum = 0;
-				start = events[i+1].first;
-			}
-		}
-		return std::make_pair(bestshot, best);
+		const point p1 = point(f.length()/2.0,-f.goal_width()/2.0);
+		const point p2 = point(f.length()/2.0,f.goal_width()/2.0);
+		return angle_sweep_circles(p, p1, p2, obstacles, robot::MAX_RADIUS + POS_CLOSE / 2);
 	}
 
 	double calc_goal_visibility_angle(const world::ptr w, const player::ptr pl, const bool consider_friendly) {
@@ -217,28 +177,6 @@ namespace ai_util {
 			friends.push_back(plr);
 		}
 		return friends;
-	}
-
-	std::vector<size_t> dist_matching(const std::vector<point>& v1, const std::vector<point>& v2) {
-		std::vector<size_t> order(v2.size());
-		if (order.size() > 5) {
-			std::cerr << "ai_util: WARNING! dist_matching has too many elements" << std::endl;
-		}
-		for (size_t i = 0; i < v2.size(); ++i) order[i] = i;
-		std::vector<size_t> best = order;
-		double bestscore = 1e99;
-		const size_t N = std::min(v1.size(), v2.size());
-		do {
-			double score = 0;
-			for (size_t i = 0; i < N; ++i) {
-				score += (v1[i] - v2[order[i]]).len();
-			}
-			if (score < bestscore) {
-				bestscore = score;
-				best = order;
-			}
-		} while(std::next_permutation(order.begin(), order.end()));
-		return best;
 	}
 
 	int choose_best_pass(const world::ptr w, const std::vector<player::ptr>& friends) {
