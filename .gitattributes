@@ -31,10 +31,6 @@ software/ai/ball_filter/circle_filter.cpp -text
 software/ai/ball_filter/max_confidence_filter.cpp -text
 software/ai/flags.h -text
 software/ai/main.cpp -text
-software/ai/navigator/basic_navigator.cpp -text
-software/ai/navigator/basic_navigator.h -text
-software/ai/navigator/collisionnavigator.cpp -text
-software/ai/navigator/collisionnavigator.h -text
 software/ai/navigator/robot_navigator.cpp -text
 software/ai/navigator/robot_navigator.h -text
 software/ai/navigator/testnavigator.cpp -text

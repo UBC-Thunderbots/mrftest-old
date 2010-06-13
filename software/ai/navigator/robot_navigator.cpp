@@ -16,7 +16,7 @@ namespace {
 	const double LOOKAHEAD_MAX = robot::MAX_RADIUS * 10;
 
 // as required by the rules
-	const double AVOID_BALL_AMOUNT = 0.5 ;
+  const double AVOID_BALL_AMOUNT = 0.5 + robot::MAX_RADIUS;
 
 // hardware dependent dribble parameters
 	const double DRIBBLE_SPEED_LOW  = 0.15;
