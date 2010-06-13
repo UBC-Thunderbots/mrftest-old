@@ -55,7 +55,7 @@ namespace {
 		engine_name_entry.set_long_name("engine");
 		engine_name_entry.set_short_name('e');
 		engine_name_entry.set_description("Preselects an engine rather than querying for one at startup");
-		engine_name_entry.set_arg_description("\"engine name\"");
+		engine_name_entry.set_arg_description("ENGINE");
 		Glib::ustring engine_name;
 		option_group.add_entry(engine_name_entry, engine_name);
 		option_context.set_main_group(option_group);

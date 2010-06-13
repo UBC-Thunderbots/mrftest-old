@@ -167,18 +167,21 @@ namespace {
 		Glib::OptionEntry strategy_entry;
 		strategy_entry.set_long_name("strategy");
 		strategy_entry.set_description("Selects which strategy should be selected at startup");
+		strategy_entry.set_arg_description("STRATEGY");
 		Glib::ustring strategy_name;
 		option_group.add_entry(strategy_entry, strategy_name);
 
 		Glib::OptionEntry robot_controller_entry;
 		robot_controller_entry.set_long_name("controller");
 		robot_controller_entry.set_description("Selects which robot controller should be selected at startup");
+		robot_controller_entry.set_arg_description("CONTROLLER");
 		Glib::ustring robot_controller_name;
 		option_group.add_entry(robot_controller_entry, robot_controller_name);
 
 		Glib::OptionEntry ball_filter_entry;
 		ball_filter_entry.set_long_name("ball-filter");
 		ball_filter_entry.set_description("Selects which ball filter should be selected at startup");
+		ball_filter_entry.set_arg_description("FILTER");
 		Glib::ustring ball_filter_name;
 		option_group.add_entry(ball_filter_entry, ball_filter_name);
 

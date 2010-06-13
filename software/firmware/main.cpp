@@ -48,6 +48,7 @@ namespace {
 		robot_entry.set_long_name("robot");
 		robot_entry.set_short_name('r');
 		robot_entry.set_description("Selects which robot should be upgraded.");
+		robot_entry.set_arg_description("ROBOT");
 		Glib::ustring robot;
 		option_group.add_entry(robot_entry, robot);
 
@@ -55,6 +56,7 @@ namespace {
 		filename_entry.set_long_name("file");
 		filename_entry.set_short_name('f');
 		filename_entry.set_description("Selects which file should be uploaded.");
+		filename_entry.set_arg_description("FILE");
 		std::string filename;
 		option_group.add_entry_filename(filename_entry, filename);
 

@@ -188,6 +188,7 @@ namespace {
 		robot_entry.set_long_name("robot");
 		robot_entry.set_short_name('r');
 		robot_entry.set_description("Indicates the name of the robot whose XBee should be configured");
+		robot_entry.set_arg_description("ROBOT");
 		Glib::ustring robot;
 		option_group.add_entry(robot_entry, robot);
 
