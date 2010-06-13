@@ -93,6 +93,24 @@ bool seg_crosses_seg(const point& a1, const point& a2, const point &b1, const po
 		* sign((b2 - b1).cross(a2 - b1)) <= 0;
 }
 
+bool line_seg_intersect_rectangle(point seg[2], point recA[4]){
+  bool intersect = point_in_rectangle(seg[0], recA) || point_in_rectangle(seg[1], recA);
+  for(int i = 0; i<4; i++){
+    for(int j=i+1; j<4; j++){
+      intersect = intersect || seg_crosses_seg(seg[0], seg[1], recA[i], recA[j]);
+    }
+  }
+  return intersect;
+}
+
+bool point_in_rectangle(point pointA, point recA[4]){
+
+   bool x_ok = pointA.x >= std::min(std::min(recA[0].x,recA[1].x),std::min(recA[2].x, recA[3].x));
+   x_ok = x_ok && pointA.x <= std::max(std::max(recA[0].x,recA[1].x),std::max(recA[2].x, recA[3].x)); 
+  bool y_ok = pointA.y >= std::min(std::min(recA[0].y,recA[1].y),std::min(recA[2].y, recA[3].y));
+  y_ok = y_ok && pointA.y <= std::max(std::max(recA[0].y,recA[1].y),std::max(recA[2].y, recA[3].y));
+}
+
 // ported code
 point reflect(const point&v, const point& n) {
 	point normal = n / n.len();

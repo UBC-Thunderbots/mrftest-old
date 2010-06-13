@@ -66,7 +66,7 @@ point robot_navigator::clip_offense_area(point dst){
  	//clip the two quater-circles around the defense area
 	point defense_circA = point(the_world->field().enemy_goal().x, the_world->field().defense_area_stretch()/2.0);
 	point defense_circB = point(the_world->field().enemy_goal().x, -(the_world->field().defense_area_stretch()/2.0));
-	point wantdest = clip_circle(defense_circA, the_world->field().defense_area_radius(), wantdest);
+	point wantdest = clip_circle(defense_circA, the_world->field().defense_area_radius(), dst);
 	wantdest = clip_circle(defense_circB, the_world->field().defense_area_radius(), wantdest);
  
 	if(abs(2*dst.y) <  the_world->field().defense_area_stretch()){

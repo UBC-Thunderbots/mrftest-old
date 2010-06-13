@@ -7,9 +7,19 @@
    Misc geometry utility functions.
    Contains code ported from 2009 version of AI.
  */
-
+	
 	/**
-	*returns a vector of all the points where the line segment intersects the circle
+	*sees whether the line segment intersects the rectangle
+	*/
+	bool line_seg_intersect_rectangle(point seg[2], point recA[4]);
+	
+	/**
+	*sees whether the point lies inside of the rectangle
+	*/
+	bool point_in_rectangle(point pointA, point recA[4]);
+	
+	/**
+	*returns a vector of all the points where the line segment intersects the circlecross product
 	*/
 	std::vector<point> lineseg_circle_intersect(point centre, double radius, point segA, point segB); 
 /**
