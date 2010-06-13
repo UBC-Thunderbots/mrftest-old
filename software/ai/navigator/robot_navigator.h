@@ -70,6 +70,8 @@ class robot_navigator : public noncopyable {
 		bool check_vector(const point& start, const point& dest, const point& direction) const;
 		double get_avoidance_factor() const;
 
+		point clip_circle(point circle_centre, double circle_radius, point dst);
+
 		const player::ptr the_player;
 		const world::ptr the_world;
 

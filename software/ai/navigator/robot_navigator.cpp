@@ -23,6 +23,7 @@ namespace {
 	const double DRIBBLE_SPEED_RAMP = 0.25;
 	const double DRIBBLE_SPEED_MAX  = 0.50;
 
+
 }
 
 robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world), position_initialized(false), orientation_initialized(false), flags(0) {
@@ -98,6 +99,42 @@ point robot_navigator::clip_offense_area(point dst){
   }
 }
 
+point robot_navigator::clip_circle(point circle_centre, double circle_radius, point dst){
+
+  point wantdest = dst;
+
+		point circle_centre_diff =  the_player->position() -  circle_centre;
+		point ball_dst_diff =  wantdest -  circle_centre;
+
+		if(circle_centre_diff.len()< circle_radius){
+			if((the_player->position()-wantdest).dot(circle_centre_diff) < 0){
+				//destination goes away from the ball destination is ok
+				//scale the destination so that we stay far enough away from the ball
+				point from_centre =  (wantdest - circle_centre);
+
+				//try and head towards the destination
+				//scaling the destination if necessary
+				if(from_centre.len() < circle_radius){
+					from_centre =  (wantdest - circle_centre).norm()*circle_radius;
+				}	
+
+				wantdest = circle_centre + from_centre;
+			}else{
+				//destination goes closer to the ball we don't want that
+				//just move as quickly as possible away from ball
+				wantdest = circle_centre + circle_centre_diff.norm()*circle_radius;
+			}
+		}else {
+			std::vector<point> intersections = lineseg_circle_intersect(circle_centre, circle_radius, the_player->position(), wantdest); 
+			if(intersections.size()>0){
+				wantdest =  intersections[0];
+			}	
+		}
+		return wantdest;
+
+}
+
+
 point robot_navigator::get_inbounds_point(point dst){
 
 	const ball::ptr the_ball(the_world->ball());
@@ -115,36 +152,7 @@ point robot_navigator::get_inbounds_point(point dst){
 		wantdest.x =  std::min(wantdest.x, 0.0);
 	}
 	if (flags & ai_flags::avoid_ball_stop) {
-
-		//	  std::cout<<"Navigation Stop"<<std::endl;
-		//need to grab ball distance from somewhere
-		point ball_diff =  the_player->position() -  the_ball->position();
-		point ball_dst_diff =  wantdest -  the_ball->position();
-		//	  point cur_diff = the_ball->position() - 
-		if(ball_diff.len()< AVOID_BALL_AMOUNT){
-			if((the_player->position()-wantdest).dot(ball_diff) < 0){
-				//destination goes away from the ball destination is ok
-				//scale the destination so that we stay far enough away from the ball
-				point from_ball =  (wantdest - the_ball->position());
-
-				//try and head towards the destination
-				//scaling the destination if necessary
-				if(from_ball.len() < AVOID_BALL_AMOUNT){
-					from_ball =  (wantdest - the_ball->position()).norm()*AVOID_BALL_AMOUNT;
-				}	
-
-				wantdest = the_ball->position() + from_ball;
-			}else{
-				//destination goes closer to the ball we don't want that
-				//just move as quickly as possible away from ball
-				wantdest = the_ball->position() + ball_diff.norm()*AVOID_BALL_AMOUNT;
-			}
-		}else {
-			std::vector<point> intersections = lineseg_circle_intersect(the_ball->position(), AVOID_BALL_AMOUNT, the_player->position(), wantdest); 
-			if(intersections.size()>0){
-				wantdest =  intersections[0];
-			}	
-		}
+		wantdest = clip_circle(the_ball->position(), AVOID_BALL_AMOUNT, wantdest);
 	}
 
 	if (flags & ai_flags::avoid_friendly_defence) {
