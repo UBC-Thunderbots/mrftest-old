@@ -46,6 +46,20 @@ point robot_navigator::force_offense_len(point dst){
 }
 point robot_navigator::clip_defense_area(point dst){
 
+  point seg[2];
+  seg[0] = the_player->position();
+  seg[1] = dst;
+  point defense_rect[4];
+
+  for(int i=0; i<4; i++){
+    int a = i/2;
+    int b = (i%2) ? -1:1;
+    defense_rect[i] =  point(the_world->field().friendly_goal().x + a*the_world->field().defense_area_radius(),  b*the_world->field().defense_area_stretch()/2.0);
+  }
+
+  if(line_seg_intersect_rectangle(seg, defense_rect)){
+    return force_defense_len(dst);
+  }
 	//clip the two quater-circles around the defense area
 	point defense_circA = point(the_world->field().friendly_goal().x, the_world->field().defense_area_stretch()/2.0);
 	point defense_circB = point(the_world->field().friendly_goal().x, -(the_world->field().defense_area_stretch()/2.0));
@@ -53,25 +67,33 @@ point robot_navigator::clip_defense_area(point dst){
 	wantdest = clip_circle(defense_circB, the_world->field().defense_area_radius(), wantdest);
 	// std::cout << " w" << wantdest << " dA" << defense_circA << " dB" << defense_circB << std::endl;
  
- 	//clip the square portion of the defense area
-	if(abs(2*dst.y) <  the_world->field().defense_area_stretch()){
-		wantdest = force_defense_len(wantdest);
-	}
 	return wantdest;
 	    
 }
 
 point robot_navigator::clip_offense_area(point dst){
- 
+
+  point seg[2];
+  seg[0] = the_player->position();
+  seg[1] = dst;
+  point offense_rect[4];
+
+  for(int i=0; i<4; i++){
+    int a = i/2;
+    int b = (i%2) ? -1:1;
+    offense_rect[i] =  point(the_world->field().enemy_goal().x - a*the_world->field().defense_area_radius(),  b*the_world->field().defense_area_stretch()/2.0);
+  }
+
+  if(line_seg_intersect_rectangle(seg, offense_rect)){
+    return force_offense_len(dst);
+  }
+
  	//clip the two quater-circles around the defense area
 	point defense_circA = point(the_world->field().enemy_goal().x, the_world->field().defense_area_stretch()/2.0);
 	point defense_circB = point(the_world->field().enemy_goal().x, -(the_world->field().defense_area_stretch()/2.0));
 	point wantdest = clip_circle(defense_circA, the_world->field().defense_area_radius(), dst);
 	wantdest = clip_circle(defense_circB, the_world->field().defense_area_radius(), wantdest);
  
-	if(abs(2*dst.y) <  the_world->field().defense_area_stretch()){
-    		wantdest = force_offense_len(dst);
-	}
   	return wantdest;
   	
 }
