@@ -17,8 +17,11 @@ class ai_window : public Gtk::Window {
 		 * Creates a new main window.
 		 *
 		 * \param[in] ai the AI to observe and control.
+		 *
+		 * \param[in] vis \c true to start up with the visualizer visible, or \c
+		 * false to start up with the visualizer invisible.
 		 */
-		ai_window(ai &ai);
+		ai_window(ai &ai, bool vis);
 
 	private:
 		ai &the_ai;

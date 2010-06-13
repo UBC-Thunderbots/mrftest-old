@@ -182,6 +182,20 @@ namespace {
 		Glib::ustring ball_filter_name;
 		option_group.add_entry(ball_filter_entry, ball_filter_name);
 
+		Glib::OptionEntry visualizer_entry;
+		visualizer_entry.set_long_name("visualizer");
+		visualizer_entry.set_short_name('v');
+		visualizer_entry.set_description("Starts with the visualizer displayed");
+		bool visualizer = false;
+		option_group.add_entry(visualizer_entry, visualizer);
+
+		Glib::OptionEntry minimize_entry;
+		minimize_entry.set_long_name("minimize");
+		minimize_entry.set_short_name('m');
+		minimize_entry.set_description("Starts with the control window minimized");
+		bool minimize = false;
+		option_group.add_entry(minimize_entry, minimize);
+
 		option_context.set_main_group(option_group);
 
 		Gtk::Main app(argc, argv, option_context);
@@ -262,7 +276,11 @@ namespace {
 			the_ai.set_robot_controller_factory(i->second);
 		}
 
-		ai_window win(the_ai);
+		ai_window win(the_ai, visualizer);
+
+		if (minimize) {
+			win.iconify();
+		}
 
 		clk.start();
 
