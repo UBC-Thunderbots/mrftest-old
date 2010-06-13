@@ -4,8 +4,8 @@
 #include <gtkmm.h>
 
 namespace {
-	const double MAX_LINEAR_VELOCITY = 1.0;
-	const double MAX_ANGULAR_VELOCITY = M_PI;
+	const double MAX_LINEAR_VELOCITY = 3.0;
+	const double MAX_ANGULAR_VELOCITY = 5.0 * M_PI;
 	const unsigned int AXIS_FB = 4; // Right stick Y axis.
 	const unsigned int AXIS_LR = 3; // Right stick X axis.
 	const unsigned int AXIS_ROT = 0; // Left stick X axis.
