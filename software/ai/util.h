@@ -43,7 +43,7 @@ namespace ai_util {
 	 * Position epsilon.
 	 * Should be set to the accuracy of the image recognizition data.
 	 */
-	static const double POS_CLOSE = 1e-3;
+	static const double POS_CLOSE = robot::MAX_RADIUS / 4.0;
 
 	/**
 	 * Velocity epsilon.
@@ -119,16 +119,16 @@ namespace ai_util {
 	 * Here candidates is the vector returned by calc_candidates.
 	 * If all shots are bad, -1 is returned.
 	 */
-	int calc_best_shot(const player::ptr player, const world::ptr w);
+	int calc_best_shot_old(const player::ptr player, const world::ptr w);
 
 	/**
-	 * Returns the best possible position to shoot the goal based on visibility angle.
-	 * Also returns the angle.
-	 * If no position is valid, returns the enemy goal.
-	 * @see calc_goal_visibility_angle()
-	 * Note that point p is the ball position.
+	 * Finds the length of the largest continuous interval (angle-wise)
+	 * of the enemy goal that can be seen from a point.
+	 * Having a vector of points enables one to add imaginary threats.
+	 * Returns the point as well as the score.
+	 * score is 0 if the point is invalid.
 	 */
-	std::pair<point, double> calc_best_shot2(const world::ptr w, const point& p, const bool consider_friendly = true);
+	std::pair<point, double> calc_best_shot(const field& f, const std::vector<point>& obstacles, const point& p);
 
 	/**
 	 * Returns the length of the largest continuous interval (angle-wise)
@@ -137,14 +137,6 @@ namespace ai_util {
 	 * Returns 0 if the point is physically inside a considered robot.
 	 */
 	double calc_goal_visibility_angle(const world::ptr w, const player::ptr pl, const bool consider_friendly = true);
-
-	/**
-	 * Returns the length of the largest continuous interval (angle-wise)
-	 * of the enemy goal that can be seen from a point.
-	 * Having a vector of points enables one to add imaginary threats.
-	 * Returns 0 if the point is physically inside a considered robot.
-	 */
-	double calc_goal_visibility_angle(const field& f, const std::vector<point>& robots, const point& p);
 
 	/**
 	 * Convert friendly into vector of players, excluding some.

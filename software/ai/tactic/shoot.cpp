@@ -15,10 +15,20 @@ shoot::shoot(player::ptr player, world::ptr world) : tactic(player), the_world(w
 
 void shoot::tick() {
 	const friendly_team &friendly(the_world->friendly);
+	const enemy_team &enemy(the_world->enemy);
 	if (ai_util::has_ball(the_player)) {
 		// This player has the ball.
 
-		const std::pair<point, double> bestshot = ai_util::calc_best_shot2(the_world, the_world->ball()->position());
+		std::vector<point> obstacles;
+		for (size_t i = 0; i < friendly.size(); ++i) {
+			if (friendly.get_player(i) == the_player) continue;
+			obstacles.push_back(friendly.get_player(i)->position());
+		}
+		for (size_t i = 0; i < enemy.size(); ++i) {
+			obstacles.push_back(enemy.get_robot(i)->position());
+		}
+
+		const std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world->field(), obstacles, the_world->ball()->position());
 		const point diff = bestshot.first - the_player->position();
 		const double diffangle = diff.orientation();
 

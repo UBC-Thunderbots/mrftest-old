@@ -7,6 +7,7 @@
 #include "ai/tactic/pass.h"
 #include "ai/tactic/receive.h"
 #include "ai/util.h"
+#include "geom/angle.h"
 
 #include <iostream>
 
@@ -32,7 +33,21 @@ offensive::offensive(world::ptr world) : the_world(world) {
 
 double offensive::scoring_function(const std::vector<point>& enemypos, const point& pos) const {
 	// Hmm.. not sure if having negative number is a good idea.
-	double score = ai_util::calc_goal_visibility_angle(the_world->field(), enemypos, pos);
+	std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world->field(), enemypos, pos);
+	double score = bestshot.second;
+
+	{
+		// TODO: check if this will block the shooter
+		const point ballpos = the_world->ball()->position();
+		std::pair<point, double> shootershot = ai_util::calc_best_shot(the_world->field(), enemypos, ballpos);
+		const point diff1 = (shootershot.first - ballpos);
+		const point diff2 = (pos - ballpos);
+		const double anglediff = angle_diff(diff1.orientation(), diff2.orientation());
+		if (anglediff < 2 * shootershot.second) {
+			return -1e99;
+		}
+	}
+
 	// TODO: check the line below here
 	// scoring factors:
 	// density of enemy, passing distance, distance to the goal, angle of shooting, angle of receiving
@@ -47,8 +62,16 @@ double offensive::scoring_function(const std::vector<point>& enemypos, const poi
 	// score -= 1.0 * pos.x;
 	const double balldist = (pos - the_world->ball()->position()).len();
 	const double goaldist = (pos - the_world->field().enemy_goal()).len();
-	const double ratio = std::min(balldist / goaldist, goaldist / balldist);
-	score *= ratio;
+	const double bigdist = std::max(balldist, goaldist);
+	//const double ratio = std::min(balldist / goaldist, goaldist / balldist);
+	//score *= ratio;
+	/*
+	if (bigdist > the_world->field().length() / 3) {
+		//return -1e99;
+		score /= 100;
+	}
+	*/
+	score /= bigdist;
 	// distance to enemies
 	/*
 	for (size_t i = 0; i < enemypos.size(); ++i) {
@@ -200,11 +223,13 @@ void offensive::tick() {
 				for (size_t j = 0; j < the_robots.size(); ++j) {
 					if (static_cast<int>(j) != baller && !ai_util::can_pass(the_world, the_robots[j])) continue;
 					// if (ai_util::calc_best_shot(the_robots[j], the_world) == -1) continue;
-					if (get_distance_from_goal(j) > the_world->field().length() / 3) continue;
+					if (get_distance_from_goal(j) > the_world->field().length() / 2) continue;
+
 					// TODO: create another weighting function
 					double angle = ai_util::calc_goal_visibility_angle(the_world, the_robots[j]);
+					std::cout << " j=" << j << " angle=" << (angle * 180.0 / M_PI) << std::endl;
 					// the baller has more importance
-					if (j == baller) angle *= 2.0;
+					if (j == baller) angle *= 3.0;
 					if (shooter == -1 || angle > shooterangle) {
 						shooter = j;
 						shooterangle = angle;

@@ -36,7 +36,7 @@ void kick::tick() {
 	navi.set_orientation(dist.orientation());
 
 	// maybe move towards it?
-	// navi.set_position(kick_target);
+	navi.set_position(kick_target);
 
 	if (angle_diff(dist.orientation(), the_player->orientation()) > ai_util::ORI_CLOSE) {
 		navi.tick();

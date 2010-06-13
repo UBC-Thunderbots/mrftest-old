@@ -32,7 +32,7 @@ namespace ai_util {
 
 	bool ball_close(const world::ptr w, const player::ptr p) {
 		const point dist = w->ball()->position() - p->position();
-		if (dist.len() > p->MAX_RADIUS + w->ball()->RADIUS*2) return false;
+		if (dist.len() > robot::MAX_RADIUS + ball::RADIUS * 2) return false;
 		return angle_diff(dist.orientation(), p->orientation()) < PI / 2;
 	}
 
@@ -104,7 +104,7 @@ namespace ai_util {
 		return true;
 	}
 
-	int calc_best_shot(const player::ptr player, const world::ptr world) {
+	int calc_best_shot_old(const player::ptr player, const world::ptr world) {
 		std::vector<point> candidates = calc_candidates(world);
 		int best_point = -1;
 		double best_score = -1;
@@ -143,65 +143,17 @@ namespace ai_util {
 		return best_point;
 	}
 
-	// duplicated code
-	double calc_goal_visibility_angle(const world::ptr w, const player::ptr pl, const bool consider_friendly) {
+	// the function to use for everything
+	std::pair<point, double> calc_best_shot(const field& f, const std::vector<point>& obstacles, const point& p) {
 		std::vector<std::pair<double, int> > events;
-		double l_range = (point(w->field().length()/2.0,-w->field().goal_width()/2.0) - pl->position()).orientation();
-		double h_range = (point(w->field().length()/2.0,w->field().goal_width()/2.0) - pl->position()).orientation();
+		double l_range = (point(f.length()/2.0,-f.goal_width()/2.0) - p).orientation();
+		double h_range = (point(f.length()/2.0,f.goal_width()/2.0) - p).orientation();
 		events.push_back(std::make_pair(l_range,1));
 		events.push_back(std::make_pair(h_range,-1));
-
-		size_t lim = w->enemy.size();
-		if (consider_friendly) lim += w->friendly.size();
-		for (size_t i = 0; i < lim; ++i) {
-			point diff;
-			if (i < w->enemy.size()) {
-				diff = w->enemy.get_robot(i)->position() - pl->position();
-			} else {
-				const player::ptr fpl = w->friendly.get_player(i - w->enemy.size());
-				if (fpl == pl) continue;
-				diff = fpl->position() - pl->position();
-			}
-			if (diff.len() < robot::MAX_RADIUS + ORI_CLOSE)
-				return -2*acos(-1);
-			double cent = diff.orientation();
-			double span = asin(robot::MAX_RADIUS / diff.len());
-			events.push_back(std::make_pair(cent-span,-1));
-			events.push_back(std::make_pair(cent+span,1));
-		}
-		// do angle sweep for largest angle
-		sort(events.begin(),events.end());
-		double best = 0;
-		double sum = 0;
-		double cnt = 0;
-		for (size_t i = 0; i < events.size() - 1; ++i) {
-			cnt += events[i].second;
-			if (cnt > 0){
-				sum += events[i+1].first - events[i].first;
-				if (best < sum) best = sum;
-			} else
-				sum = 0;
-		}
-		return sum;
-	}
-
-	// duplicated code
-	std::pair<point, double> calc_best_shot2(const world::ptr w, const point& p, const bool consider_friendly) {
-		std::vector<std::pair<double, int> > events;
-		double l_range = (point(w->field().length()/2.0,-w->field().goal_width()/2.0) - p).orientation();
-		double h_range = (point(w->field().length()/2.0,w->field().goal_width()/2.0) - p).orientation();
-		events.push_back(std::make_pair(l_range,1));
-		events.push_back(std::make_pair(h_range,-1));
-		size_t lim = w->enemy.size();
-		if (consider_friendly) lim += w->friendly.size();
-		for (size_t i = 0; i < lim; ++i) {
-			point diff;
-			if (i < w->enemy.size()) diff = w->enemy.get_robot(i)->position() - p;
-			else diff = w->friendly.get_robot(i-w->enemy.size())->position() - p;
-			if (diff.len() < robot::MAX_RADIUS + ORI_CLOSE) {
-				std::cerr << " too close? " << std::endl;
-				continue;
-				// return std::make_pair(w->field().enemy_goal(), 0);
+		for (size_t i = 0; i < obstacles.size(); ++i) {
+			point diff = obstacles[i] - p;
+			if (diff.len() < robot::MAX_RADIUS * 2.0 + POS_CLOSE) {
+				return std::make_pair(f.enemy_goal(), 0);
 			}
 			// temporary hack: ignore robots behind...
 			if (diff.x < 0) continue;
@@ -212,7 +164,7 @@ namespace ai_util {
 		}
 		// do angle sweep for largest angle
 		sort(events.begin(), events.end());
-		point bestshot = w->field().enemy_goal();
+		point bestshot = f.enemy_goal();
 		double best = 0;
 		double sum = 0;
 		double start = 0;
@@ -227,7 +179,7 @@ namespace ai_util {
 					// shoot ray from robot to goal
 					const double mid = start + sum / 2;
 					if (cos(mid) > EPS) {
-						const double length = (w->field().enemy_goal().x - p.x) / cos(mid);
+						const double length = (f.enemy_goal().x - p.x) / cos(mid);
 						bestshot = p + point(cos(mid), sin(mid)) * length;
 					}
 				}
@@ -239,40 +191,21 @@ namespace ai_util {
 		return std::make_pair(bestshot, best);
 	}
 
-	// duplicated code
-	double calc_goal_visibility_angle(const field& f, const std::vector<point>& obstacles, const point& p) {
-		std::vector<std::pair<double, int> > events;
-		double l_range = (point(f.length()/2.0,-f.goal_width()/2.0) - p).orientation();
-		double h_range = (point(f.length()/2.0,f.goal_width()/2.0) - p).orientation();
-		events.push_back(std::make_pair(l_range,1));
-		events.push_back(std::make_pair(h_range,-1));
-		for (size_t i = 0; i < obstacles.size(); ++i) {
-			point diff = obstacles[i] - p;
-			if (diff.len() < robot::MAX_RADIUS + ORI_CLOSE) {
-				//return -2*acos(-1);
-				return 0;
+	double calc_goal_visibility_angle(const world::ptr w, const player::ptr pl, const bool consider_friendly) {
+		std::vector<point> obstacles;
+		const enemy_team &enemy(w->enemy);
+		for (size_t i = 0; i < enemy.size(); ++i) {
+			obstacles.push_back(enemy.get_robot(i)->position());
+		}
+		if (consider_friendly) {
+			const friendly_team &friendly(w->friendly);
+			for (size_t i = 0; i < friendly.size(); ++i) {
+				const player::ptr fpl = friendly.get_player(i);
+				if (fpl == pl) continue;
+				obstacles.push_back(fpl->position());
 			}
-			// temporary hack: ignore robots behind...
-			if (diff.x < 0) continue;
-			double cent = diff.orientation();
-			double span = asin(robot::MAX_RADIUS / diff.len());
-			events.push_back(std::make_pair(cent-span,-1));
-			events.push_back(std::make_pair(cent+span,1));
 		}
-		// do angle sweep for largest angle
-		sort(events.begin(),events.end());
-		double best = 0;
-		double sum = 0;
-		double cnt = 0;
-		for (size_t i = 0; i + 1 < events.size(); ++i) {
-			cnt += events[i].second;
-			if (cnt > 0) {
-				sum += events[i+1].first - events[i].first;
-				if (best < sum) best = sum;
-			} else
-				sum = 0;
-		}
-		return sum;
+		return calc_best_shot(w->field(), obstacles, pl->position()).second;
 	}
 
 	std::vector<player::ptr> get_friends(const friendly_team& friendly, const std::vector<player::ptr>& exclude) {
@@ -326,7 +259,7 @@ namespace ai_util {
 	}
 
 	bool posses_ball(const world::ptr w, const player::ptr pl) {
-		return has_ball(pl) || (pl->last_sense_ball_time() < HAS_BALL_ALLOWANCE && ball_close(w, pl));
+		return pl->has_ball() || (pl->last_sense_ball_time() < HAS_BALL_ALLOWANCE && ball_close(w, pl));
 	}
 
 	// target is another player
