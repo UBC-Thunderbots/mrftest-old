@@ -71,7 +71,7 @@ namespace ai_util {
 	/**
 	 * Number of points to consider when shooting at the goal.
 	 */
-	static const unsigned int SHOOTING_SAMPLE_POINTS = 11;
+	// static const unsigned int SHOOTING_SAMPLE_POINTS = 11;
 
 	/**
 	 * Checks if the robot is in a position close enough to the ball to start
@@ -99,7 +99,6 @@ namespace ai_util {
 	 */
 	bool path_check(const point& begin, const point& end, const std::vector<point>& obstacles, const double thresh);
 
-	// TODO: rename this function so that it is less misleading in what it does.
 	// TODO: maybe the source to a point instead of defaulting to ball.
 	/**
 	 * Checks if the passee can get the ball now.
@@ -107,19 +106,12 @@ namespace ai_util {
 	 * Returns false if passee is not facing the ball.
 	 * Returns false if some condition is invalid.
 	 */
-	bool can_pass(const world::ptr w, const player::ptr passee);
+	bool can_receive(const world::ptr w, const player::ptr passee);
 
 	/**
 	 * Calculates the candidates to aim for when shooting at the goal.
 	 */
 	const std::vector<point> calc_candidates(const world::ptr w);
-
-	/**
-	 * Returns an integer i, where candidates[i] is the best point to aim for when shooting.
-	 * Here candidates is the vector returned by calc_candidates.
-	 * If all shots are bad, -1 is returned.
-	 */
-	int calc_best_shot_old(const player::ptr player, const world::ptr w);
 
 	/**
 	 * Finds the length of the largest continuous interval (angle-wise)

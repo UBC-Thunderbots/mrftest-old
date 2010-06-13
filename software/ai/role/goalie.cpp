@@ -32,7 +32,7 @@ void goalie::tick() {
 
 		int nearidx = -1;
 		for (size_t i = 0; i < friends.size(); ++i) {
-			if (!ai_util::can_pass(the_world, friends[i])) continue;
+			if (!ai_util::can_receive(the_world, friends[i])) continue;
 			nearidx = i;
 			break;
 		}

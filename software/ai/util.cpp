@@ -10,12 +10,12 @@ namespace {
 #warning Magic constant
 	const double SHOOT_ALLOWANCE = ball::RADIUS;
 
-	const double PI = M_PI;
 	const double EPS = 1e-9;
 }
 
 namespace ai_util {
 
+	/*
 	const std::vector<point> calc_candidates(const world::ptr world) {
 		std::vector<point> candidates(SHOOTING_SAMPLE_POINTS);
 		const field &the_field(world->field());
@@ -29,11 +29,12 @@ namespace ai_util {
 		}
 		return candidates;
 	}
+	*/
 
 	bool ball_close(const world::ptr w, const player::ptr p) {
 		const point dist = w->ball()->position() - p->position();
 		if (dist.len() > robot::MAX_RADIUS + ball::RADIUS * 2) return false;
-		return angle_diff(dist.orientation(), p->orientation()) < PI / 2;
+		return angle_diff(dist.orientation(), p->orientation()) < M_PI / 2;
 	}
 
 	bool path_check(const point& begin, const point& end, const std::vector<point>& obstacles, const double thresh) {
@@ -64,7 +65,7 @@ namespace ai_util {
 		return true;
 	}
 
-	bool can_pass(const world::ptr w, const player::ptr passee) {
+	bool can_receive(const world::ptr w, const player::ptr passee) {
 		const ball::ptr ball = w->ball();
 		if ((ball->position() - passee->position()).lensq() < POS_CLOSE) {
 			std::cerr << "can_pass: passe too close to ball" << std::endl;
@@ -91,7 +92,6 @@ namespace ai_util {
 		}
 		for (size_t i = 0; i < w->friendly.size(); ++i) {
 			const player::ptr plr = w->friendly.get_player(i);
-#warning has ball here
 			if (posses_ball(w, plr) || plr == passee) continue;
 			const point rp = plr->position() - passee->position();
 			const double proj = rp.dot(direction);
@@ -104,6 +104,8 @@ namespace ai_util {
 		return true;
 	}
 
+	// depecreciated
+	/*
 	int calc_best_shot_old(const player::ptr player, const world::ptr world) {
 		std::vector<point> candidates = calc_candidates(world);
 		int best_point = -1;
@@ -116,7 +118,6 @@ namespace ai_util {
 			point projection = candidates[i] - player->position();
 			score = 0;
 			for (unsigned int j = 0; j < opponent_team.size(); ++j) {
-#warning TODO: take into account of velocity?
 				point other = opponent_team.get_robot(j)->position() - player->position();
 				proximity = (other).dot(projection.norm());
 				// don't process the robot if it's behind the shooter
@@ -142,8 +143,8 @@ namespace ai_util {
 		}
 		return best_point;
 	}
+	*/
 
-	// the function to use for everything
 	std::pair<point, double> calc_best_shot(const field& f, const std::vector<point>& obstacles, const point& p) {
 		std::vector<std::pair<double, int> > events;
 		double l_range = (point(f.length()/2.0,-f.goal_width()/2.0) - p).orientation();
@@ -155,10 +156,10 @@ namespace ai_util {
 			if (diff.len() < robot::MAX_RADIUS * 2.0 + POS_CLOSE) {
 				return std::make_pair(f.enemy_goal(), 0);
 			}
-			// temporary hack: ignore robots behind...
-			if (diff.x < 0) continue;
 			double cent = diff.orientation();
 			double span = asin(robot::MAX_RADIUS / diff.len());
+			// better fix?
+			if (cent - span < -M_PI || cent + span > M_PI) continue;
 			events.push_back(std::make_pair(cent-span,-1));
 			events.push_back(std::make_pair(cent+span,1));
 		}
@@ -220,6 +221,9 @@ namespace ai_util {
 
 	std::vector<size_t> dist_matching(const std::vector<point>& v1, const std::vector<point>& v2) {
 		std::vector<size_t> order(v2.size());
+		if (order.size() > 5) {
+			std::cerr << "ai_util: WARNING! dist_matching has too many elements" << std::endl;
+		}
 		for (size_t i = 0; i < v2.size(); ++i) order[i] = i;
 		std::vector<size_t> best = order;
 		double bestscore = 1e99;
@@ -242,7 +246,7 @@ namespace ai_util {
 		int nearidx = -1;
 		for (size_t i = 0; i < friends.size(); ++i) {
 			// see if this player is on line of sight
-			if (!ai_util::can_pass(w, friends[i])) continue;
+			if (!ai_util::can_receive(w, friends[i])) continue;
 			// choose the most favourable distance
 			const double dist = (friends[i]->position() - w->ball()->position()).len();
 			if (nearidx == -1 || dist < neardist) {

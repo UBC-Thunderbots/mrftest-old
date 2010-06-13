@@ -5,8 +5,9 @@
 #include "ai/tactic/tactic.h"
 
 /**
- * Unlike move, this dribbles the ball as well.
+ * Unlike move, this tries to maintain dribbling on the ball.
  * Also, if the robot loses sense of the ball, tries to pick it up.
+ * Also, limits the distance the robot can dribble.
  */
 class dribble : public tactic {
 	public:

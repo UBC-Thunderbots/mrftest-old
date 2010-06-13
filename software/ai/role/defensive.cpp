@@ -111,7 +111,7 @@ void defensive::tick() {
 			std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(the_world->field().enemy_goal()));
 			int passme = -1;
 			for (size_t i = 0; i < friends.size(); ++i) {
-				if (ai_util::can_pass(the_world, friends[i])) {
+				if (ai_util::can_receive(the_world, friends[i])) {
 					passme = i;
 					break;
 				}

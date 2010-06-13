@@ -17,7 +17,7 @@ void execute_indirect_free_kick_friendly::tick(){
 	// NEVER pass to goalie, presumably closest goal to our goalpost (in case we get an own goal).
 	for (unsigned int i = 1; i < the_team.size(); i++){
 		if (the_team[i] == the_robots[0]) continue;
-		if (ai_util::can_pass(the_world,the_team[i])){ 
+		if (ai_util::can_receive(the_world,the_team[i])){ 
 			double new_dist = (the_team[i]->position()-the_robots[0]->position()).len();
 			if (best_dist > new_dist){
 				best_dist = new_dist;

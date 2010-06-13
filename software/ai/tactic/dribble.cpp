@@ -1,11 +1,11 @@
 #include "ai/tactic/dribble.h"
 #include "ai/util.h"
 
-dribble::dribble(player::ptr player, world::ptr world) : the_world(world), tactic(player), navi(player, world), position_initialized(false), orientation_initialized(false) {
+dribble::dribble(player::ptr player, world::ptr world) : tactic(player), the_world(world), navi(player, world), position_initialized(false), orientation_initialized(false) {
 }
 
 void dribble::tick() {
-	if (!the_player->sense_ball()) {
+	if (!the_player->has_ball()) {
 		// if the robot loses the ball temporarily, go pick it up
 		navi.set_position(the_world->ball()->position());
 	} else {

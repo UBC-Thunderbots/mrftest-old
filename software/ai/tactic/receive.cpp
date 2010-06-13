@@ -5,7 +5,7 @@ receive::receive(player::ptr player, world::ptr world) : tactic(player), the_wor
 }
 
 void receive::tick() {
-	if (!ai_util::can_pass(the_world, the_player)) {
+	if (!ai_util::can_receive(the_world, the_player)) {
 		// TODO: maybe make the robot face towards the ball first.
 		// TODO: implement, calculate rays and stuff and calculate the best position, but that will be later
 		navi.set_position(the_world->ball()->position());
