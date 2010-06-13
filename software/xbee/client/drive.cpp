@@ -249,7 +249,7 @@ void xbee_drive_bot::on_meta(const void *buffer, std::size_t length) {
 					}
 
 					chicker_low_fault_message.activate(chicker_low_faulted());
-					chicker_high_fault_message.activate(chicker_low_faulted());
+					chicker_high_fault_message.activate(chicker_high_faulted());
 
 					signal_feedback.emit();
 				}
