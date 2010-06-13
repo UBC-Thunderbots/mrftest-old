@@ -1,5 +1,6 @@
 #include "ai/strategy/strategy.h"
 #include "ai/tactic/chase.h"
+#include "ai/flags.h"
 
 namespace {
 	class chase_strategy : public strategy {
@@ -18,9 +19,11 @@ namespace {
 
 	void chase_strategy::tick() {
 		const friendly_team &the_team(the_world->friendly);
+		unsigned int flags = ai_flags::calc_flags(the_world->playtype());
 		for (unsigned int i = 0; i < the_team.size(); i++)
 		{
 			chase chaser(the_team.get_player(i), the_world);
+			chaser.set_flags(flags);
 			chaser.tick();
 		}
 	}

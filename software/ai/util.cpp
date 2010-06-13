@@ -144,10 +144,10 @@ namespace ai_util {
 	}
 
 	// duplicated code
-	double calc_goal_visibility_angle(const world::ptr w, const point& p, bool consider_friendly) {
+	double calc_goal_visibility_angle(const world::ptr w, const player::ptr pl, const bool consider_friendly) {
 		std::vector<std::pair<double, int> > events;
-		double l_range = (point(w->field().length()/2.0,-w->field().goal_width()/2.0) - p).orientation();
-		double h_range = (point(w->field().length()/2.0,w->field().goal_width()/2.0) - p).orientation();
+		double l_range = (point(w->field().length()/2.0,-w->field().goal_width()/2.0) - pl->position()).orientation();
+		double h_range = (point(w->field().length()/2.0,w->field().goal_width()/2.0) - pl->position()).orientation();
 		events.push_back(std::make_pair(l_range,1));
 		events.push_back(std::make_pair(h_range,-1));
 
@@ -155,8 +155,13 @@ namespace ai_util {
 		if (consider_friendly) lim += w->friendly.size();
 		for (size_t i = 0; i < lim; ++i) {
 			point diff;
-			if (i < w->enemy.size()) diff = w->enemy.get_robot(i)->position() - p;
-			else diff = w->friendly.get_robot(i-w->enemy.size())->position() - p;
+			if (i < w->enemy.size()) {
+				diff = w->enemy.get_robot(i)->position() - pl->position();
+			} else {
+				const player::ptr fpl = w->friendly.get_player(i - w->enemy.size());
+				if (fpl == pl) continue;
+				diff = fpl->position() - pl->position();
+			}
 			if (diff.len() < robot::MAX_RADIUS + ORI_CLOSE)
 				return -2*acos(-1);
 			double cent = diff.orientation();
@@ -181,7 +186,7 @@ namespace ai_util {
 	}
 
 	// duplicated code
-	point calc_best_shot2(const world::ptr w, const point& p, const bool consider_friendly) {
+	std::pair<point, double> calc_best_shot2(const world::ptr w, const point& p, const bool consider_friendly) {
 		std::vector<std::pair<double, int> > events;
 		double l_range = (point(w->field().length()/2.0,-w->field().goal_width()/2.0) - p).orientation();
 		double h_range = (point(w->field().length()/2.0,w->field().goal_width()/2.0) - p).orientation();
@@ -194,7 +199,7 @@ namespace ai_util {
 			if (i < w->enemy.size()) diff = w->enemy.get_robot(i)->position() - p;
 			else diff = w->friendly.get_robot(i-w->enemy.size())->position() - p;
 			if (diff.len() < robot::MAX_RADIUS + ORI_CLOSE)
-				return w->field().enemy_goal();
+				return std::make_pair(w->field().enemy_goal(), 0);
 			double cent = diff.orientation();
 			double span = asin(robot::MAX_RADIUS / diff.len());
 			events.push_back(std::make_pair(cent-span,-1));
@@ -226,7 +231,7 @@ namespace ai_util {
 				start = events[i+1].first;
 			}
 		}
-		return bestshot;
+		return std::make_pair(bestshot, best);
 	}
 
 	// duplicated code
@@ -318,8 +323,6 @@ namespace ai_util {
 	}
 
 	// target is another player
-	double calc_visibility_angle(const std::vector<point>& obstacles, const point& p) {
-	}
 
 }
 

@@ -123,11 +123,20 @@ namespace ai_util {
 
 	/**
 	 * Returns the best possible position to shoot the goal based on visibility angle.
+	 * Also returns the angle.
 	 * If no position is valid, returns the enemy goal.
 	 * @see calc_goal_visibility_angle()
 	 * Note that point p is the ball position.
 	 */
-	point calc_best_shot2(const world::ptr w, const point& p, const bool consider_friendly = true);
+	std::pair<point, double> calc_best_shot2(const world::ptr w, const point& p, const bool consider_friendly = true);
+
+	/**
+	 * Returns the length of the largest continuous interval (angle-wise)
+	 * of the enemy goal that can be seen from a point.
+	 * Having a vector of points enables one to add imaginary threats.
+	 * Returns 0 if the point is physically inside a considered robot.
+	 */
+	double calc_goal_visibility_angle(const world::ptr w, const player::ptr pl, const bool consider_friendly = true);
 
 	/**
 	 * Returns the length of the largest continuous interval (angle-wise)

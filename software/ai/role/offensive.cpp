@@ -174,9 +174,9 @@ void offensive::tick() {
 
 			// as for the robot with the ball, make the robot try to shoot the goal, or pass to someone
 			if (!ai_util::has_ball(the_robots[baller])) {
-				std::cout << "offensive: chase ball " << std::endl;
+				std::cout << "offensive: has no ball but posses, chase" << std::endl;
 				tactics[baller] = pivot::ptr(new pivot(the_robots[baller], the_world));
-			} else if (get_distance_from_goal(baller) < the_world->field().length() / 3) {
+			} else if (get_distance_from_goal(baller) < the_world->field().length() / 2) {
 				if (ai_util::calc_best_shot(the_robots[baller],the_world) != -1) {
 					std::cout << "offensive: i canz shoot " << std::endl;
 					tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
@@ -206,6 +206,7 @@ void offensive::tick() {
 						// dribble towards the goal
 						// TODO: can't dribble for too long
 #warning do something more intelligent than just moving towards goal
+						std::cout << "offensive: dribble to goal " << std::endl;
 						dribble::ptr dribble_tactic(new dribble(the_robots[baller], the_world));
 						dribble_tactic->set_position(the_world->field().enemy_goal());
 						tactics[baller] = dribble_tactic;
@@ -215,6 +216,7 @@ void offensive::tick() {
 				// dribble the ball slowly to goal
 				// TODO: can't dribble for too long
 #warning do something more intelligent than just moving towards goal
+				std::cout << "offensive: dribble to goal " << std::endl;
 				dribble::ptr dribble_tactic(new dribble(the_robots[baller], the_world));
 				dribble_tactic->set_position(the_world->field().enemy_goal());
 				tactics[baller] = dribble_tactic;

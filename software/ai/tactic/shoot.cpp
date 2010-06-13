@@ -1,4 +1,5 @@
 #include "ai/tactic/shoot.h"
+#include "ai/tactic/move.h"
 #include "ai/tactic/chase.h"
 #include "ai/tactic/kick.h"
 #include "ai/tactic/receive.h"
@@ -16,23 +17,23 @@ void shoot::tick() {
 	if (ai_util::has_ball(the_player)) {
 		// This player has the ball.
 
-		/*
-		std::vector<point> candidates = ai_util::calc_candidates(the_world);
-		int best_point = ai_util::calc_best_shot(the_player, the_world);
-		// if all the points are equally bad (opponent robot in all projections),
-		// do random?
-		if (best_point == -1) {
-			best_point = rand() % ai_util::SHOOTING_SAMPLE_POINTS;
-		}
-		const point target = candidates[best_point];
-		*/
-		const point target = ai_util::calc_best_shot2(the_world, the_world->ball()->position());
-		// std::cout << " target = " << target << std::endl;
+		const std::pair<point, double> bestshot = ai_util::calc_best_shot2(the_world, the_world->ball()->position());
+		const point diff = bestshot.first - the_player->position();
+		const double diffangle = diff.orientation();
 
-		// shoot
-		kick kick_tactic(the_player, the_world);
-		kick_tactic.set_target(target);
-		kick_tactic.tick();	
+		// calculate where to aim
+		move move_tactic(the_player, the_world);
+		move_tactic.set_orientation(diffangle);
+
+		// check if the goal is within shooting range. if so, kick
+		if (angle_diff(diffangle, the_player->orientation()) < bestshot.second / 2) {
+			std::cout << "shoot: kick to goal" << std::endl;
+			// kick realy really hard
+			the_player->kick(1.0);
+		}
+
+		move_tactic.set_flags(flags);
+		move_tactic.tick();	
 	} else if (ai_util::posses_ball(the_world, the_player)) {
 		// std::cout << " chase ball close " << the_player->sense_ball_time() << std::endl;
 		// We have the ball right but somehow it was momentarily lost.
