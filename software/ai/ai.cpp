@@ -33,7 +33,16 @@ void ai::tick() {
 	// If we have a strategy installed, tick it.
 	if (the_strategy) {
 		DPRINT("Tick strategy.");
-		the_strategy->tick();
+		if (overlay) {
+			overlay->save();
+			overlay->set_operator(Cairo::OPERATOR_CLEAR);
+			overlay->paint();
+			overlay->set_operator(Cairo::OPERATOR_OVER);
+		}
+		the_strategy->tick(overlay);
+		if (overlay) {
+			overlay->restore();
+		}
 	}
 
 	// Tick the robots to drive through robot controllers and XBee.
@@ -91,5 +100,9 @@ void ai::set_robot_controller_factory(robot_controller_factory *fact) {
 			plr->controller = the_rc_factory->create_controller(plr, plr->yellow, plr->pattern_index);
 		}
 	}
+}
+
+void ai::set_overlay(Cairo::RefPtr<Cairo::Context> ovl) {
+	overlay = ovl;
 }
 

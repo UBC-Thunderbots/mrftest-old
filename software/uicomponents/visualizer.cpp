@@ -23,6 +23,8 @@ void visualizer::on_show() {
 void visualizer::on_hide() {
 	Gtk::DrawingArea::on_hide();
 	update_connection.block();
+	overlay_.clear();
+	signal_overlay_changed.emit();
 }
 
 bool visualizer::on_expose_event(GdkEventExpose *evt) {
@@ -156,6 +158,12 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 		ctx->stroke();
 	}
 
+	// Draw the overlay.
+	if (overlay_) {
+		ctx->set_source(overlay_, 0.0, 0.0);
+		ctx->paint();
+	}
+
 	// Done.
 	DPRINT("Exit on_expose_event (2).");
 	return true;
@@ -168,8 +176,20 @@ void visualizer::update() {
 	}
 }
 
+Cairo::RefPtr<Cairo::Context> visualizer::overlay() const {
+	if (overlay_) {
+		const Cairo::RefPtr<Cairo::Context> ctx(Cairo::Context::create(overlay_));
+		ctx->translate(xtranslate, ytranslate);
+		ctx->scale(scale, scale);
+		return ctx;
+	} else {
+		return Cairo::RefPtr<Cairo::Context>();
+	}
+}
+
 void visualizer::on_size_allocate(Gtk::Allocation &alloc) {
 	Gtk::DrawingArea::on_size_allocate(alloc);
+	overlay_ = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32, alloc.get_width(), alloc.get_height());
 	compute_scales();
 }
 
@@ -274,6 +294,7 @@ void visualizer::compute_scales() {
 		scale = std::max(std::min(xscale, yscale), 1e-9);
 		xtranslate = width / 2.0;
 		ytranslate = height / 2.0;
+		signal_overlay_changed.emit();
 	}
 }
 

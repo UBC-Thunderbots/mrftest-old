@@ -20,14 +20,14 @@ class ai : public noncopyable {
 		/**
 		 * Constructs a new AI.
 		 *
-		 * \param world the world to operate in
+		 * \param[in] world the world to operate in.
 		 *
-		 * \param clk the clock to run the AI from
+		 * \param[in] clk the clock to run the AI from.
 		 */
 		ai(world::ptr world, clocksource &clk);
 
 		/**
-		 * \return The strategy driving the robots
+		 * \return the strategy driving the robots.
 		 */
 		strategy::ptr get_strategy() const {
 			return the_strategy;
@@ -36,12 +36,12 @@ class ai : public noncopyable {
 		/**
 		 * Sets which strategy is driving the robots.
 		 *
-		 * \param strat the new strategy
+		 * \param[in] strat the new strategy.
 		 */
 		void set_strategy(strategy::ptr strat);
 
 		/**
-		 * \return The robot controller factory driving the robots
+		 * \return the robot controller factory driving the robots.
 		 */
 		robot_controller_factory *get_robot_controller_factory() const {
 			return the_rc_factory;
@@ -51,14 +51,23 @@ class ai : public noncopyable {
 		 * Sets the robot controller factory that creates robot controllers that
 		 * drive the robots.
 		 *
-		 * \param fact the new factory
+		 * \param[in] fact the new factory.
 		 */
 		void set_robot_controller_factory(robot_controller_factory *fact);
+
+		/**
+		 * Sets the overlay context onto which the strategy should draw to
+		 * display data in the visualizer.
+		 *
+		 * \param[in] ovl the new overlay.
+		 */
+		void set_overlay(Cairo::RefPtr<Cairo::Context> ovl);
 
 	private:
 		clocksource &clk;
 		strategy::ptr the_strategy;
 		robot_controller_factory *the_rc_factory;
+		Cairo::RefPtr<Cairo::Context> overlay;
 
 		void tick();
 		void player_added(unsigned int, player::ptr);

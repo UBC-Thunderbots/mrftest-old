@@ -4,6 +4,7 @@
 #include "ai/world/world.h"
 #include "util/byref.h"
 #include "util/registerable.h"
+#include <cairomm/cairomm.h>
 #include <glibmm.h>
 
 namespace Gtk {
@@ -13,15 +14,46 @@ class strategy_factory;
 
 /**
  * A strategy manages the overall operation of a team. Individual AI
- * implementations should extend this class to provide their own strategy.
+ * implementations should extend this class (or its subclass \c strategy) to
+ * provide their own strategy.
  */
-class strategy : public byref, public sigc::trackable {
+class strategy2 : public byref, public sigc::trackable {
 	public:
 		/**
 		 * A pointer to a strategy.
 		 */
-		typedef Glib::RefPtr<strategy> ptr;
+		typedef Glib::RefPtr<strategy2> ptr;
 
+		/**
+		 * Runs the strategy for one time tick. It is expected that the strategy
+		 * will examine the team for which it is responsible, determine if any
+		 * changes need to be made to the roles or the assignments of robots to
+		 * roles, make those changes (by means of role::set_robots()), and then
+		 * call role::tick() for each subsidiary role.
+		 *
+		 * \param[in] overlay a Cairo context that can be drawn to in order to
+		 * create an overlay graphic on the visualizer, which may be a null
+		 * pointer if the visualizer is not displayed.
+		 */
+		virtual void tick(Cairo::RefPtr<Cairo::Context> overlay) = 0;
+
+		/**
+		 * \return the factory that creates this strategy.
+		 */
+		virtual strategy_factory &get_factory() = 0;
+
+		/**
+		 * \return the custom UI controls to manage this strategy, or a null
+		 * pointer if it does not wish to display any controls.
+		 */
+		virtual Gtk::Widget *get_ui_controls() = 0;
+};
+
+/**
+ * A compatibility shim for strategies that do not present a visual overlay.
+ */
+class strategy : public strategy2 {
+	public:
 		/**
 		 * Runs the strategy for one time tick. It is expected that the strategy
 		 * will examine the team for which it is responsible, determine if any
@@ -31,16 +63,10 @@ class strategy : public byref, public sigc::trackable {
 		 */
 		virtual void tick() = 0;
 
-		/**
-		 * \return The factory that creates this strategy
-		 */
-		virtual strategy_factory &get_factory() = 0;
-
-		/**
-		 * \return The custom UI controls to manage this strategy, or a null
-		 * pointer if it does not wish to display any controls
-		 */
-		virtual Gtk::Widget *get_ui_controls() = 0;
+	private:
+		void tick(Cairo::RefPtr<Cairo::Context>) {
+			tick();
+		}
 };
 
 /**

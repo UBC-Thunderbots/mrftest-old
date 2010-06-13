@@ -317,6 +317,7 @@ ai_window::ai_window(ai &ai, bool show_vis) : the_ai(ai), strategy_controls(0), 
 
 	show_all();
 
+	vis.signal_overlay_changed.connect(sigc::mem_fun(this, &ai_window::on_visualizer_overlay_changed));
 	vis_window.set_title("AI Visualizer");
 	vis_window.add(vis);
 	vis_window.signal_delete_event().connect(sigc::hide(sigc::bind_return(sigc::bind(sigc::mem_fun(vis_button, &Gtk::ToggleButton::set_active), false), false)));
@@ -413,5 +414,9 @@ void ai_window::on_flipped_ends() {
 
 void ai_window::on_flipped_refbox_colour() {
 	refbox_colour_entry.set_text(the_ai.the_world->refbox_yellow() ? "Yellow" : "Blue");
+}
+
+void ai_window::on_visualizer_overlay_changed() {
+	the_ai.set_overlay(vis.overlay());
 }
 

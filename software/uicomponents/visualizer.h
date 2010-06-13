@@ -230,7 +230,7 @@ class visualizer : public Gtk::DrawingArea, public noncopyable {
 		/**
 		 * Constructs a new visualizer.
 		 *
-		 * \param data the visualizable data source to display
+		 * \param[in] data the visualizable data source to display.
 		 */
 		visualizer(const visualizable &data);
 
@@ -239,6 +239,17 @@ class visualizer : public Gtk::DrawingArea, public noncopyable {
 		 */
 		void update();
 
+		/**
+		 * \return a context for drawing on the overlay surface that renders on
+		 * top of the visualizer.
+		 */
+		Cairo::RefPtr<Cairo::Context> overlay() const;
+
+		/**
+		 * Fired every time the overlay surface changes.
+		 */
+		mutable sigc::signal<void> signal_overlay_changed;
+
 	private:
 		const visualizable &data;
 		double scale;
@@ -246,6 +257,7 @@ class visualizer : public Gtk::DrawingArea, public noncopyable {
 		sigc::connection update_connection;
 		visualizable::draggable::ptr dragging;
 		visualizable::draggable::ptr veldragging;
+		Cairo::RefPtr<Cairo::ImageSurface> overlay_;
 
 		void on_show();
 		void on_hide();

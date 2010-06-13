@@ -51,6 +51,7 @@ class ai_window : public Gtk::Window {
 		void on_vis_toggled();
 		void on_flipped_ends();
 		void on_flipped_refbox_colour();
+		void on_visualizer_overlay_changed();
 };
 
 #endif
