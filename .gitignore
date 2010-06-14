@@ -22,6 +22,7 @@ software/configeditor/*.d
 software/firmware/*.d
 software/fw
 software/geom/*.d
+software/html
 software/leastsquares/*.d
 software/log/*.d
 software/log/reader/*.d
