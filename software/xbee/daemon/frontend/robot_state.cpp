@@ -645,7 +645,6 @@ void robot_state::alive_state::release() {
 
 void robot_state::alive_state::on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency) {
 	// Feedback has been received.
-	DPRINT(Glib::ustring::compose("Robot %1 received feedback.", tohex(bot.address64, 16)));
 	put_feedback(&bot.daemon.shm->lock, bot.daemon.shm->frames[run_data_index_], packet, latency, rssi);
 	bot.signal_feedback.emit();
 }
