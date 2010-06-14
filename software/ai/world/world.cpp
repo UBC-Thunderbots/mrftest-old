@@ -63,6 +63,9 @@ void world::flip_refbox_colour() {
 	// Update the flag.
 	refbox_yellow_ = !refbox_yellow_;
 
+	// Notify listeners.
+	signal_flipped_refbox_colour.emit();
+
 	// Flip the current play type, so that the updater will flip it back and
 	// have the proper "old" value.
 	playtype_ = playtype::invert[playtype_];
