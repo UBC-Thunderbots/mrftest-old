@@ -27,6 +27,8 @@ namespace {
 
 	const double ONE = 1.0 / 180.0 * M_PI;
 
+	const double NEAR = robot::MAX_RADIUS * 5;
+
 };
 
 offensive::offensive(world::ptr world) : the_world(world) {
@@ -41,6 +43,9 @@ double offensive::scoring_function(const std::vector<point>& enemypos, const poi
 		std::pair<point, double> shootershot = ai_util::calc_best_shot(the_world->field(), enemypos, dontblock[i]);
 		const point diff1 = (shootershot.first - dontblock[i]);
 		const point diff2 = (pos - dontblock[i]);
+		if (diff2.len() < NEAR) {
+			return -1e99;
+		}
 		const double anglediff = angle_diff(diff1.orientation(), diff2.orientation());
 		if (anglediff < 2 * shootershot.second) {
 			return -1e99;
@@ -132,12 +137,17 @@ double offensive::get_distance_from_goal(int index) const {
 }
 
 void offensive::tick() {
+	tick(Cairo::RefPtr<Cairo::Context> ());
+}
+
+void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 	if (the_robots.size() == 0) return;
 
 	// Sort by distance to ball. DO NOT SORT AGAIN!!
 	std::sort(the_robots.begin(), the_robots.end(), ai_util::cmp_dist<player::ptr>(the_world->ball()->position()));
 
 	const friendly_team& friendly(the_world->friendly);
+	const field& the_field = the_world->field();
 
 	bool teampossesball = false;
 	int baller = -1;
@@ -213,7 +223,7 @@ void offensive::tick() {
 					if (get_distance_from_goal(j) > the_world->field().length() / 2) continue;
 
 					// TODO: create another weighting function
-					double angle = ai_util::calc_goal_visibility_angle(the_world, the_robots[j]);
+					double angle = ai_util::calc_goal_visibility_angle(the_world, the_robots[j], false);
 					std::cout << " j=" << j << " angle=" << (angle * 180.0 / M_PI) << std::endl;
 					// the baller has more importance
 					if (j == baller) angle *= 3.0;
@@ -223,10 +233,13 @@ void offensive::tick() {
 					}
 				}
 
+				//if (overlay) overlay->move_to(the_robots[baller]->position().x, the_robots[baller]->position().y);
+
 				std::cout << "offensive: who to shoot " << shooter << std::endl;
 				if (shooter == baller) {
 					// i shall shoot
 					tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
+					//if (overlay) overlay->line_to(the_field.enemy_goal().x, the_field.enemy_goal().y);
 				} else if (shooter != -1) {
 					// found suitable passee, make a pass
 					tactics[baller] = pass::ptr(new pass(the_robots[baller], the_world, the_robots[shooter]));

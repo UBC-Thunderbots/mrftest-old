@@ -206,7 +206,8 @@ void robot_navigator::tick() {
 
 	// at least face the ball
 	if (distance < ai_util::POS_CLOSE) {
-		if (balldist.len() > ai_util::POS_CLOSE) the_player->move(the_player->position(), wantori);
+		//if (balldist.len() > ai_util::POS_CLOSE) 
+		the_player->move(the_player->position(), wantori);
 		flags = 0;
 		return;
 	}

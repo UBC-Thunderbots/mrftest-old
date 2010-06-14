@@ -41,6 +41,7 @@ void kick::tick() {
 	}
 
 	if (angle_diff(dist.orientation(), the_player->orientation()) > ai_util::ORI_CLOSE) {
+		std::cout << "kick: angle diff is " << angle_diff(dist.orientation(), the_player->orientation()) << std::endl;
 		navi.tick();
 		return;
 	}

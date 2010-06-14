@@ -149,7 +149,7 @@ namespace ai_util {
 	std::pair<point, double> calc_best_shot(const field& f, const std::vector<point>& obstacles, const point& p) {
 		const point p1 = point(f.length()/2.0,-f.goal_width()/2.0);
 		const point p2 = point(f.length()/2.0,f.goal_width()/2.0);
-		return angle_sweep_circles(p, p1, p2, obstacles, robot::MAX_RADIUS + POS_CLOSE / 2);
+		return angle_sweep_circles(p, p1, p2, obstacles, robot::MAX_RADIUS);
 	}
 
 	double calc_goal_visibility_angle(const world::ptr w, const player::ptr pl, const bool consider_friendly) {

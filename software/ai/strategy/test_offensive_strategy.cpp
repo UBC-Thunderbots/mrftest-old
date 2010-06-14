@@ -6,10 +6,10 @@
 #include <cstdlib>
 
 namespace {
-	class test_offensive_strategy : public strategy {
+	class test_offensive_strategy : public strategy2 {
 		public:
 			test_offensive_strategy(world::ptr world);
-			void tick();
+			void tick(Cairo::RefPtr<Cairo::Context> overlay);
 			strategy_factory &get_factory();
 			Gtk::Widget *get_ui_controls();
 		private:
@@ -20,7 +20,7 @@ namespace {
 
 	}
 
-	void test_offensive_strategy::tick() {
+	void test_offensive_strategy::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 		if (the_world->playtype() == playtype::halt) {
 			return;
 		}
@@ -34,7 +34,7 @@ namespace {
 		}
 
 		offensive_role.set_robots(offenders);
-		offensive_role.tick();
+		offensive_role.tick(overlay);
 	}
 
 	Gtk::Widget *test_offensive_strategy::get_ui_controls() {
