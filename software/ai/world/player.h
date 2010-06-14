@@ -69,6 +69,13 @@ class player : public robot {
 		void dribble(double speed);
 
 		/**
+		 * Checks whether or not the chicker is ready to use.
+		 *
+		 * \return \c true if the chicker is fully charged, or \c false if not.
+		 */
+		bool chicker_ready() const;
+
+		/**
 		 * Fires the kicker.
 		 * \param power the power to kick at, from 0 to 1
 		 */

@@ -93,6 +93,10 @@ void player::dribble(double speed) {
 	new_dribble_power = clamp(static_cast<int>(speed * 1023.0 + 0.5), 0, 1023);
 }
 
+bool player::chicker_ready() const {
+	return bot->chicker_ready();
+}
+
 void player::kick(double power) {
 	std::cout << "kick(" << power << ")\n";
 	if (bot->alive()) {
