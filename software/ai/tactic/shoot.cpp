@@ -28,7 +28,7 @@ void shoot::tick() {
 			obstacles.push_back(enemy.get_robot(i)->position());
 		}
 
-		const std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world->field(), obstacles, the_world->ball()->position());
+		const std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world->field(), obstacles, the_player->position());
 		const point diff = bestshot.first - the_player->position();
 		const double diffangle = diff.orientation();
 
@@ -36,18 +36,22 @@ void shoot::tick() {
 		move move_tactic(the_player, the_world);
 		move_tactic.set_orientation(diffangle);
 
+		// dribble if possible to
 		if (the_player->dribble_distance() < player::MAX_DRIBBLE_DIST) {
 			move_tactic.set_position(bestshot.first);
 		}
 
-		std::cout << "shoot: pos=" << bestshot.first << " angle diff = " << angle_diff(diffangle, the_player->orientation()) << " bestshot=" << bestshot.second << std::endl;
+		std::cout << "shoot: target=" << bestshot.first << " player angle off=" << angle_diff(diffangle, the_player->orientation()) << " target tolerance=" << bestshot.second << std::endl;
 
 		// check if the goal is within shooting range. if so, kick
 		if (angle_diff(diffangle, the_player->orientation()) < bestshot.second / 4) {
-			std::cout << "shoot: kick to goal" << std::endl;
 			// kick realy really hard
-			if (the_player->chicker_ready())
+			if (the_player->chicker_ready()) {
+				std::cout << "shoot: kick to goal" << std::endl;
 				the_player->kick(1.0);
+			} else {
+				std::cout << "shoot: chicker not ready" << std::endl;
+			}
 		} else {
 			std::cout << "shoot: aim to goal" << std::endl;
 		}

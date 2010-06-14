@@ -48,12 +48,13 @@ void kick::tick() {
 	
 	std::cout << "kick: shoot!" << std::endl;
 
-	if (the_player->chicker_ready())
+	if (the_player->chicker_ready()) {
 		if (should_chip) {
 			the_player->chip(chip_strength);
 		} else {
 			the_player->kick(kick_strength);
 		}
+	}
 
 	navi.tick();
 }
