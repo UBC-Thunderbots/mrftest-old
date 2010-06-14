@@ -14,7 +14,7 @@ namespace {
 	const unsigned int MAX_DRIBBLE_STALL_MILLISECONDS = 2000;
 	const unsigned int DRIBBLE_RECOVER_TIME = 1000;
 
-	const double HAS_BALL_TIME = 0.2;
+	const double HAS_BALL_TIME = 0.3;
 
 	unsigned int kicker_power_to_pulse_width(double power) {
 		static const unsigned int MAX_PULSE_WIDTH = 511;
@@ -94,6 +94,7 @@ void player::dribble(double speed) {
 }
 
 void player::kick(double power) {
+	std::cout << "kick(" << power << ")\n";
 	if (bot->alive()) {
 		unsigned int width = kicker_power_to_pulse_width(power);
 		if (width > 0) {
@@ -106,6 +107,7 @@ void player::kick(double power) {
 }
 
 void player::chip(double power) {
+	std::cout << "chip(" << power << ")\n";
 	if (bot->alive()) {
 		unsigned int width = chipper_power_to_pulse_width(power);
 		if (width > 0) {

@@ -289,7 +289,7 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 			++w;
 		}
 
-		std::cout << "offensive: chase " << std::endl;
+		// std::cout << "offensive: chase " << std::endl;
 		tactics[0] = pivot::ptr(new pivot(the_robots[0], the_world));
 		// no one has the ball
 		// just do chase for now

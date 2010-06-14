@@ -161,14 +161,14 @@ void defensive::tick() {
 		}
 
 		if ((the_robots[0]->position() - the_world->ball()->position()).len() < frienddist) {
-			std::cout << "defensive: chase" << std::endl;
+			// std::cout << "defensive: chase" << std::endl;
 
 			// already sorted by distance to ball
 			pivot::ptr pivot_tactic(new pivot(the_robots[0], the_world));
 			tactics[0] = pivot_tactic;
 			skipme = 0;
 		} else {
-			std::cout << "defensive: nothing special" << std::endl;
+			// std::cout << "defensive: nothing special" << std::endl;
 		}
 	}
 

@@ -46,7 +46,8 @@ void shoot::tick() {
 		if (angle_diff(diffangle, the_player->orientation()) < bestshot.second / 4) {
 			std::cout << "shoot: kick to goal" << std::endl;
 			// kick realy really hard
-			the_player->kick(1.0);
+			if (the_player->chicker_ready())
+				the_player->kick(1.0);
 		} else {
 			std::cout << "shoot: aim to goal" << std::endl;
 		}
