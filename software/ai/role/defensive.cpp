@@ -1,7 +1,8 @@
 #include "ai/role/defensive.h"
 #include "ai/role/goalie.h"
-#include "ai/tactic/chase.h"
+#include "ai/tactic/pivot.h"
 #include "ai/tactic/move.h"
+#include "ai/tactic/shoot.h"
 #include "ai/tactic/pass.h"
 #include "ai/tactic/receive.h"
 #include "ai/util.h"
@@ -90,6 +91,7 @@ void defensive::tick() {
 	}
 
 	std::vector<player::ptr> friends = ai_util::get_friends(friendly, the_robots);
+	std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(the_world->field().enemy_goal()));
 
 	if (!teampossesball) {
 		for (size_t i = 0; i < friends.size(); ++i) {
@@ -107,11 +109,13 @@ void defensive::tick() {
 
 	if (teampossesball) {
 		if (baller >= 0) {
+			std::cout << "defensive: has ball, shoot somewhere" << std::endl;
+
 			// If a player in the role has a ball, then
 			// pass to the other friendly, or wait if there is none.
-			std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(the_world->field().enemy_goal()));
 			int passme = -1;
 			for (size_t i = 0; i < friends.size(); ++i) {
+				if (friends[i]->position().x < the_robots[baller]->position().x) continue;
 				if (ai_util::can_receive(the_world, friends[i])) {
 					passme = i;
 					break;
@@ -122,9 +126,13 @@ void defensive::tick() {
 			if (passme == -1) {
 				// ehh... nobody to pass to
 				// Just play around with the ball I guess
-				move::ptr move_tactic(new move(the_robots[baller], the_world));
-				move_tactic->set_position(the_robots[baller]->position());
-				tactics[baller] = move_tactic;
+				//move::ptr move_tactic(new move(the_robots[baller], the_world));
+				//move_tactic->set_position(the_robots[baller]->position());
+				//tactics[baller] = move_tactic;
+
+				// try for the goal =D
+				shoot::ptr shoot_tactic(new shoot(the_robots[baller], the_world));
+				tactics[baller] = shoot_tactic;
 			} else {
 				// pass to this person
 				pass::ptr pass_tactic(new pass(the_robots[baller], the_world, friends[passme]));
@@ -133,21 +141,35 @@ void defensive::tick() {
 
 			skipme = baller;
 		} else {
+			std::cout << "defensive: get ball from goalie?" << std::endl;
+
 			// If a player nearest to the goal area has the ball
 			// that player is probably a goalie, chase the ball!
 			std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(the_world->field().friendly_goal()));
-#warning sense ball here
-			if (friends.size() > 0 && friends[0]->sense_ball()) {
+
+			if (friends.size() > 0 && ai_util::posses_ball(the_world, friends[0])) {
 				receive::ptr receive_tactic(new receive(the_robots[0], the_world));
 				tactics[0] = receive_tactic;
 				skipme = 0;
 			}
 		}
 	} else {
-		// already sorted by distance to ball
-		chase::ptr chase_tactic(new chase(the_robots[0], the_world));
-		tactics[0] = chase_tactic;
-		skipme = 0;
+
+		double frienddist = 1e99;
+		for (size_t i = 0; i < friends.size(); ++i) {
+			frienddist = std::min(frienddist, (friends[i]->position() - the_world->ball()->position()).len());
+		}
+
+		if ((the_robots[0]->position() - the_world->ball()->position()).len() < frienddist) {
+			std::cout << "defensive: chase" << std::endl;
+
+			// already sorted by distance to ball
+			pivot::ptr pivot_tactic(new pivot(the_robots[0], the_world));
+			tactics[0] = pivot_tactic;
+			skipme = 0;
+		} else {
+			std::cout << "defensive: nothing special" << std::endl;
+		}
 	}
 
 	std::vector<point> waypoints = calc_block_positions();
@@ -166,7 +188,7 @@ void defensive::tick() {
 	for (size_t i = 0; i < the_robots.size(); ++i) {
 		if (static_cast<int>(i) == skipme) continue;
 		if (w >= waypoints.size()) {
-			std::cerr << "Defender has nothing to do!" << std::endl;
+			std::cerr << "defender: nothing to do!" << std::endl;
 			move::ptr move_tactic(new move(the_robots[i], the_world));
 			move_tactic->set_position(the_robots[i]->position());
 			tactics[i] = move_tactic;
@@ -175,6 +197,7 @@ void defensive::tick() {
 			move_tactic->set_position(waypoints[order[w]]);
 			tactics[i] = move_tactic;
 		}
+		++w;
 	}
 
 	unsigned int flags = ai_flags::calc_flags(the_world->playtype());

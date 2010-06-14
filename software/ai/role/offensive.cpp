@@ -195,7 +195,7 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 			for (size_t i = 0; i < the_robots.size(); ++i) {
 				if (static_cast<int>(i) == baller) continue;
 				if (w >= waypoints.size()) {
-					std::cerr << "offender: nothing to do!" << std::endl;
+					std::cout << "offender: nothing to do!" << std::endl;
 					move::ptr move_tactic(new move(the_robots[i], the_world));
 					move_tactic->set_position(the_robots[i]->position());
 					tactics[i] = move_tactic;
@@ -277,7 +277,7 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 		size_t w = 0;
 		for (size_t i = 1; i < the_robots.size(); ++i) {
 			if (w >= waypoints.size()) {
-				std::cerr << "Offender has nothing to do!" << std::endl;
+				std::cout << "offender: nothing to do!" << std::endl;
 				move::ptr move_tactic(new move(the_robots[i], the_world));
 				move_tactic->set_position(the_robots[i]->position());
 				tactics[i] = move_tactic;
