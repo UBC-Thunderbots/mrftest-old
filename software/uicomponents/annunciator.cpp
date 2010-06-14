@@ -50,7 +50,11 @@ namespace {
 
 	void siren() {
 		static const std::vector<std::string> &cmdline(make_siren_cmdline());
-		Glib::spawn_async("", cmdline, Glib::SPAWN_SEARCH_PATH);
+		try {
+			Glib::spawn_async("", cmdline, Glib::SPAWN_SEARCH_PATH);
+		} catch (const Glib::SpawnError &) {
+			// Swallow error.
+		}
 	}
 
 	unsigned int next_id = 0;
