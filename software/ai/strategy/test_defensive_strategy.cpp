@@ -1,5 +1,6 @@
 #include "ai/strategy/strategy.h"
 #include "ai/role/defensive.h"
+#include "ai/role/goalie.h"
 #include "ai/util.h"
 #include <iostream>
 #include "time.h"
@@ -25,15 +26,23 @@ namespace {
 			return;
 		}
 		const friendly_team &the_team(the_world->friendly);
+		if (the_team.size() == 0) return;
+
 		const ball::ptr the_ball(the_world->ball());
 		defensive defensive_role(the_world);
+		goalie goalie_role(the_world);
 		std::vector<player::ptr> offenders;
+		std::vector<player::ptr> goalies;
 
-		for (size_t i = 0; i < the_team.size(); ++i) {
+		goalies.push_back(the_team.get_player(0));
+
+		for (size_t i = 1; i < the_team.size(); ++i) {
 			offenders.push_back(the_team.get_player(i));
 		}
 
+		goalie_role.set_robots(goalies);
 		defensive_role.set_robots(offenders);
+		goalie_role.tick();
 		defensive_role.tick();
 	}
 
@@ -47,7 +56,7 @@ namespace {
 			strategy::ptr create_strategy(world::ptr world);
 	};
 
-	test_defensive_strategy_factory::test_defensive_strategy_factory() : strategy_factory("Test(Defensive) Strategy") {
+	test_defensive_strategy_factory::test_defensive_strategy_factory() : strategy_factory("Test(Defensive & Goalie) Strategy") {
 	}
 
 	strategy::ptr test_defensive_strategy_factory::create_strategy(world::ptr world) {
