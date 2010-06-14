@@ -160,6 +160,11 @@ class player : public robot {
 		 */
 		void set_state(const std::type_info &tid, state::ptr state);
 
+		/**
+		 * The robot's name.
+		 */
+		const Glib::ustring name;
+
 	private:
 		xbee_drive_bot::ptr bot;
 		point destination_;
