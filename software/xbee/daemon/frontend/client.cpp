@@ -32,6 +32,10 @@ void client::send_to_all(const void *data, std::size_t length) {
 	}
 }
 
+bool client::any_connected() {
+	return !instances.empty();
+}
+
 client::client(file_descriptor &sck, class daemon &daemon) : sock(sck), daemon(daemon) {
 	// Connect to signals.
 	DPRINT("Accepted new client connection.");
@@ -70,7 +74,7 @@ client::~client() {
 	std::for_each(claimed.begin(), claimed.end(), sigc::mem_fun(this, &client::do_release));
 	instances.erase(this);
 	if (instances.empty()) {
-		daemon.last_client_disconnected();
+		daemon.check_shutdown();
 	}
 
 	// This could only have been true if we were the one who claimed the

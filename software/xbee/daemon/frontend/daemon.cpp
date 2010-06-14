@@ -119,9 +119,19 @@ void daemon::free_rundata_index(uint8_t index) {
 	run_data_index_reverse[index] = 0;
 }
 
-void daemon::last_client_disconnected() {
-	last_client_disconnected_firer.disconnect();
-	last_client_disconnected_firer = Glib::signal_timeout().connect(sigc::bind_return(sigc::mem_fun(signal_last_client_disconnected, &sigc::signal<void>::emit), false), 2000);
+void daemon::check_shutdown() {
+	check_shutdown_firer.disconnect();
+	if (client::any_connected()) {
+		return;
+	}
+	for (std::unordered_map<uint64_t, robot_state::ptr>::iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
+		const robot_state::ptr state(i->second);
+		if (state->freeing()) {
+			check_shutdown_firer = state->signal_resources_freed.connect(sigc::mem_fun(this, &daemon::check_shutdown));
+			return;
+		}
+	}
+	signal_last_client_disconnected.emit();
 }
 
 bool daemon::on_accept(Glib::IOCondition) {
@@ -130,7 +140,7 @@ bool daemon::on_accept(Glib::IOCondition) {
 		file_descriptor fd(newfd);
 		if (!universe_claimed) {
 			client::create(fd, *this);
-			last_client_disconnected_firer.disconnect();
+			check_shutdown_firer.disconnect();
 		}
 	}
 	return true;

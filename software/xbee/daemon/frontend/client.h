@@ -29,6 +29,11 @@ class client : public noncopyable, public sigc::trackable {
 		//
 		static void send_to_all(const void *data, std::size_t length);
 
+		/**
+		 * \return \c true if any clients are connected, or \c false if not.
+		 */
+		static bool any_connected();
+
 	private:
 		file_descriptor sock;
 		class daemon &daemon;

@@ -41,7 +41,7 @@ class daemon : public sigc::trackable {
 		//
 		// Indicates that the last client has disconnected.
 		//
-		void last_client_disconnected();
+		void check_shutdown();
 
 		//
 		// The backend implementation.
@@ -96,7 +96,7 @@ class daemon : public sigc::trackable {
 		const file_descriptor lock_file;
 		const file_descriptor listen_sock;
 		std::vector<bool> allocated_rundata_indices;
-		sigc::connection last_client_disconnected_firer;
+		sigc::connection check_shutdown_firer;
 
 		bool on_accept(Glib::IOCondition);
 };
