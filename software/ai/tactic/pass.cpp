@@ -23,6 +23,8 @@ namespace{
 
 
 pass::pass(player::ptr player, world::ptr world, player::ptr receiver) : tactic(player), the_world(world), the_receiver(receiver) {
+  //world
+
 }
 
 void pass::tick() {

@@ -209,7 +209,7 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 
 			// as for the robot with the ball, make the robot try to shoot the goal, or pass to someone
 			if (!the_robots[baller]->has_ball()) {
-				std::cout << "offensive: has no ball but posses, chase" << std::endl;
+				// std::cout << "offensive: has no ball but posses, chase" << std::endl;
 				tactics[baller] = pivot::ptr(new pivot(the_robots[baller], the_world));
 			} else {
 				int shooter = -1;
