@@ -16,7 +16,7 @@ namespace {
 	//
 	// How many milliseconds to wait for a feedback packet or response packet before assuming it has been lost.
 	//
-	const unsigned int TIMEOUT = 200;
+	const unsigned int TIMEOUT = 75;
 }
 
 scheduler::scheduler(class daemon &daemon) : daemon(daemon), sent_count(0), next_type(NEXT_QUEUED), last_feedback_index(0) {
