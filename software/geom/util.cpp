@@ -42,7 +42,8 @@ std::pair<point, double> angle_sweep_circles(const point& src, const point& p1, 
 	events.push_back(std::make_pair(angle_mod((p2 - src).orientation() - offangle), -1));
 	for (size_t i = 0; i < obstacles.size(); ++i) {
 		point diff = obstacles[i] - src;
-		if (diff.len() < radius * 2.0) {
+		// warning: temporarily reduced
+		if (diff.len() < radius) {
 			return std::make_pair(bestshot, 0);
 		}
 		const double cent = angle_mod(diff.orientation() - offangle);

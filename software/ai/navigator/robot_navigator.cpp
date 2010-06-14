@@ -251,7 +251,8 @@ void robot_navigator::tick() {
 
 	const point selected_direction = (chooseleft) ? leftdirection : rightdirection;
 
-	if (angle < ai_util::ORI_CLOSE) {
+	//if (angle < ai_util::ORI_CLOSE) {
+	if (angle == 0) {
 		the_player->move(wantdest, wantori);
 	} else {
 		// maximum warp

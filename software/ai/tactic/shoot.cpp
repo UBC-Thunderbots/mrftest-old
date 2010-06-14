@@ -59,6 +59,17 @@ void shoot::tick() {
 		move_tactic.set_flags(flags);
 		move_tactic.tick();	
 	} else if (ai_util::posses_ball(the_world, the_player)) {
+
+		std::vector<point> obstacles;
+		for (size_t i = 0; i < friendly.size(); ++i) {
+			if (friendly.get_player(i) == the_player) continue;
+			obstacles.push_back(friendly.get_player(i)->position());
+		}
+		for (size_t i = 0; i < enemy.size(); ++i) {
+			obstacles.push_back(enemy.get_robot(i)->position());
+		}
+
+		const std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world->field(), obstacles, the_player->position());
 		// std::cout << " chase ball close " << the_player->sense_ball_time() << std::endl;
 		// We have the ball right but somehow it was momentarily lost.
 		//chase chase_tactic(the_player, the_world);
@@ -66,6 +77,7 @@ void shoot::tick() {
 		//chase_tactic.tick();
 		pivot tactic(the_player, the_world);
 		tactic.set_flags(flags);
+		tactic.set_target(bestshot.first);
 		tactic.tick();
 	} else {
 		// This player does not have the ball.
