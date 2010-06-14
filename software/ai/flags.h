@@ -29,7 +29,7 @@ namespace ai_flags {
 		unsigned int calc_flags(playtype::playtype pt){
 			// All robots want to avoid the defence area (except for the goalie)
 			unsigned int flags = avoid_friendly_defence;
-			
+			flags |= avoid_enemy_defence;
 			switch(pt){
 			  case playtype::stop:
 			  case playtype::execute_direct_free_kick_enemy:

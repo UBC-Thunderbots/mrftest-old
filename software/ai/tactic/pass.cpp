@@ -7,6 +7,21 @@
 
 #include <iostream>
 
+namespace{
+
+	class pass_state : public player::state {
+		public:
+			typedef Glib::RefPtr<pass_state> ptr;
+			pass_state(){
+
+			}
+	  player::ptr passer;
+	};
+
+}
+
+
+
 pass::pass(player::ptr player, world::ptr world, player::ptr receiver) : tactic(player), the_world(world), the_receiver(receiver) {
 }
 

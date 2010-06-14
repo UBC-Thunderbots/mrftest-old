@@ -27,7 +27,7 @@ namespace {
 
 	const double ONE = 1.0 / 180.0 * M_PI;
 
-	const double NEAR = robot::MAX_RADIUS * 5;
+	const double NEAR = robot::MAX_RADIUS * 3;
 
 };
 
@@ -47,7 +47,7 @@ double offensive::scoring_function(const std::vector<point>& enemypos, const poi
 			return -1e99;
 		}
 		const double anglediff = angle_diff(diff1.orientation(), diff2.orientation());
-		if (anglediff < 2 * shootershot.second) {
+		if (anglediff * 2 < shootershot.second) {
 			return -1e99;
 		}
 	}
@@ -66,7 +66,7 @@ double offensive::scoring_function(const std::vector<point>& enemypos, const poi
 	// want to be as near to our own goal as possible
 	// score -= 1.0 * pos.x;
 	const double balldist = (pos - the_world->ball()->position()).len();
-	const double goaldist = (pos - the_world->field().enemy_goal()).len();
+	const double goaldist = (pos - bestshot.first).len();
 
 	// divide by largest distance?
 	const double bigdist = std::max(balldist, goaldist);
