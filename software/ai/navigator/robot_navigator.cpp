@@ -205,8 +205,7 @@ void robot_navigator::tick() {
 	need_dribble = true;
 
 	// at least face the ball
-	if (distance < ai_util::POS_CLOSE) {
-		//if (balldist.len() > ai_util::POS_CLOSE) 
+	if (distance < ai_util::POS_EPS) {
 		the_player->move(the_player->position(), wantori);
 		flags = 0;
 		return;
@@ -268,7 +267,7 @@ bool robot_navigator::check_vector(const point& start, const point& dest, const 
 	const point startdest = dest - start;
 	const double lookahead = std::min(startdest.len(), LOOKAHEAD_MAX);
 
-	if (abs(direction.len() - 1.0) > ai_util::POS_CLOSE) {
+	if (abs(direction.len() - 1.0) > ai_util::POS_EPS) {
 		std::cerr << " Direction not normalized! " << direction.len() << std::endl;
 		return false;
 	}

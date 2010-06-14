@@ -197,7 +197,10 @@ namespace ai_util {
 
 	bool has_ball(const player::ptr pl) {
 		return pl->has_ball();
-		//return pl->sense_ball() && pl->sense_ball_time() >= HAS_BALL_TIME;
+	}
+
+	bool has_ball(const world::ptr w, const player::ptr pl) {
+		return pl->has_ball() || ball_close(w, pl);
 	}
 
 	bool posses_ball(const world::ptr w, const player::ptr pl) {

@@ -46,6 +46,11 @@ namespace ai_util {
 	static const double POS_CLOSE = robot::MAX_RADIUS / 4.0;
 
 	/**
+	 * Really really really close.
+	 */
+	static const double POS_EPS = 1e-10;
+
+	/**
 	 * Velocity epsilon.
 	 */
 	static const double VEL_CLOSE = 1e-2;
@@ -143,12 +148,16 @@ namespace ai_util {
 	int choose_best_pass(const world::ptr w, const std::vector<player::ptr>& friends);
 
 	/**
-	 * This defines what having the ball means.
-	 * It requires some level of intelligence, so perhaps it should be apart from player.
-	 * Maybe this function should depend on the vision.
-	 * Should this return a probability? I don't see the need yet.
+	 * Returns true if the ball has the ball with high probability.
+	 * Also depends on AI.
 	 */
 	bool has_ball(const player::ptr pl);
+
+	/**
+	 * Returns true if the ball has the ball with high probability.
+	 * Also depends on AI.
+	 */
+	bool has_ball(const world::ptr w, const player::ptr pl);
 
 	/**
 	 * Checks if a player posses the ball.
