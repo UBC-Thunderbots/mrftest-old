@@ -12,15 +12,17 @@ double angle_mod(double a) {
 	if (a > M_PI) a -= PI2;
 	return a;
 	*/
-	a = fmod(a, PI2); // [0, pi]
-	if (a > M_PI) a -= M_PI;
+	a = fmod(a, PI2); // [-2pi, 2pi]
+	if (a < 0) a += PI2; // [0, 2pi]
+	if (a > M_PI) a -= PI2; // [-pi, pi]
 	return a;
 }
 
 double angle_diff(const double& a, const double& b) {
 	// return fabs(angle_mod(a - b));
-	double diff = fmod(b - a, PI2); // [0, 2pi]
-	if (diff > M_PI) diff = PI2 - diff;
+	double diff = fmod(b - a, PI2); // [-2pi, 2pi]
+	if (diff < 0) diff += PI2; // [0, 2pi]
+	if (diff > M_PI) diff = PI2 - diff; // [0, pi]
 	return diff;
 }
 
