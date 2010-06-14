@@ -83,6 +83,7 @@ software/ai/strategy/simple_strategy1.cpp -text
 software/ai/strategy/simu_test_strategy.cpp -text
 software/ai/strategy/simu_test_strategy.h -text
 software/ai/strategy/strategy.h -text
+software/ai/strategy/test_defensive_strategy.cpp -text
 software/ai/strategy/test_offensive_strategy.cpp -text
 software/ai/strategy/test_pass_strategy.cpp -text
 software/ai/strategy/test_shoot_strategy.cpp -text
