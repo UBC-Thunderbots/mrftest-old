@@ -62,13 +62,14 @@ std::pair<point, double> angle_sweep_circles(const point& src, const point& p1, 
 	double cnt = 0;
 	for (size_t i = 0; i < events.size() - 1; ++i) {
 		cnt += events[i].second;
+		assert(cnt <= 1);
 		if (cnt > 0) {
 			sum += events[i+1].first - events[i].first;
 			if (best < sum) {
 				best = sum;
 				// shoot ray from point p
 				// intersect with line p1-p2
-				const double mid = start + sum / 2;
+				const double mid = start + sum / 2 + offangle;
 				const point ray = point(cos(mid), sin(mid));
 				const point inter = line_intersect(src, src + ray, p1, p2);
 				bestshot = inter;
