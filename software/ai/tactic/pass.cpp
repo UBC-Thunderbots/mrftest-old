@@ -6,16 +6,16 @@
 #include "ai/util.h"
 
 #include <iostream>
+#include <iterator>
 
 namespace{
 
 	class pass_state : public player::state {
 		public:
 			typedef Glib::RefPtr<pass_state> ptr;
-			pass_state(){
-
+	  pass_state(bool is_passer):passer(is_passer){
 			}
-	  player::ptr passer;
+	  bool passer;
 	};
 
 }
@@ -24,7 +24,13 @@ namespace{
 
 pass::pass(player::ptr player, world::ptr world, player::ptr receiver) : tactic(player), the_world(world), the_receiver(receiver) {
   //world
-
+  pass_state::ptr state = pass_state::ptr(new pass_state(false));
+  std::vector<player::ptr> team =  world->friendly.get_players();
+  std::vector<player::ptr>::iterator team_iterator;
+  for(team_iterator = team.begin(); team_iterator < team.end(); team_iterator++){
+    (*team_iterator)->set_state(typeid(*this), state);
+  }
+  player->set_state(typeid(*this), pass_state::ptr(new pass_state(false)));
 }
 
 void pass::tick() {
