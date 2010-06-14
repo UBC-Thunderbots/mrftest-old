@@ -46,7 +46,7 @@ std::pair<point, double> angle_sweep_circles(const point& src, const point& p1, 
 			return std::make_pair(bestshot, 0);
 		}
 		const double cent = angle_mod(diff.orientation() - offangle);
-		const double span = asin(radius / diff.len());
+		const double span = atan2(radius, diff.len());
 		const double range1 = cent - span;
 		const double range2 = cent + span;
 		// temporary fix
@@ -59,7 +59,7 @@ std::pair<point, double> angle_sweep_circles(const point& src, const point& p1, 
 	double best = 0;
 	double sum = 0;
 	double start = 0;
-	double cnt = 0;
+	int cnt = 0;
 	for (size_t i = 0; i < events.size() - 1; ++i) {
 		cnt += events[i].second;
 		assert(cnt <= 1);

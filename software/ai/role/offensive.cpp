@@ -220,13 +220,13 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 				for (size_t j = 0; j < the_robots.size(); ++j) {
 					if (static_cast<int>(j) != baller && !ai_util::can_receive(the_world, the_robots[j])) continue;
 					// if (ai_util::calc_best_shot(the_robots[j], the_world) == -1) continue;
-					if (get_distance_from_goal(j) > the_world->field().length() / 2) continue;
+					// if (get_distance_from_goal(j) > the_world->field().length() / 2) continue;
 
 					// TODO: create another weighting function
 					double angle = ai_util::calc_goal_visibility_angle(the_world, the_robots[j], false);
 					std::cout << " j=" << j << " angle=" << (angle * 180.0 / M_PI) << std::endl;
 					// the baller has more importance
-					if (j == baller) angle *= 3.0;
+					if (j == baller) angle *= 1.5;
 					if (shooter == -1 || angle > shooterangle) {
 						shooter = j;
 						shooterangle = angle;
@@ -248,9 +248,11 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 					tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
 				} else {
 					// dribble towards the goal
-					dribble::ptr dribble_tactic(new dribble(the_robots[baller], the_world));
-					dribble_tactic->set_position(the_world->field().enemy_goal());
-					tactics[baller] = dribble_tactic;
+					//dribble::ptr dribble_tactic(new dribble(the_robots[baller], the_world));
+					//dribble_tactic->set_position(the_world->field().enemy_goal());
+					//tactics[baller] = dribble_tactic;
+					// i shall shoot
+					tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
 				}
 			}
 		} else {
