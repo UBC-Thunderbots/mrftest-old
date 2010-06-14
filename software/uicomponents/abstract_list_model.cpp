@@ -32,11 +32,6 @@ void abstract_list_model::alm_row_deleted(unsigned int index) {
 	row_deleted(path);
 }
 
-void abstract_list_model::alm_rows_reordered(const Glib::ArrayHandle<int> &new_order) {
-	Gtk::TreePath path;
-	rows_reordered(path, new_order);
-}
-
 Gtk::TreeModelFlags abstract_list_model::get_flags_vfunc() const {
 	return Gtk::TREE_MODEL_LIST_ONLY;
 }
