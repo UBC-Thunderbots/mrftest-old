@@ -16,6 +16,18 @@ shoot::shoot(player::ptr player, world::ptr world) : tactic(player), the_world(w
 void shoot::tick() {
 	const friendly_team &friendly(the_world->friendly);
 	const enemy_team &enemy(the_world->enemy);
+
+	std::vector<point> obstacles;
+	for (size_t i = 0; i < friendly.size(); ++i) {
+		if (friendly.get_player(i) == the_player) continue;
+		obstacles.push_back(friendly.get_player(i)->position());
+	}
+	for (size_t i = 0; i < enemy.size(); ++i) {
+		obstacles.push_back(enemy.get_robot(i)->position());
+	}
+
+	const std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world->field(), obstacles, the_player->position());
+
 	if (ai_util::has_ball(the_player)) {
 		// This player has the ball.
 
@@ -28,7 +40,6 @@ void shoot::tick() {
 			obstacles.push_back(enemy.get_robot(i)->position());
 		}
 
-		const std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world->field(), obstacles, the_player->position());
 		const point diff = bestshot.first - the_player->position();
 		const double diffangle = diff.orientation();
 
@@ -60,24 +71,14 @@ void shoot::tick() {
 		move_tactic.tick();	
 	} else if (ai_util::posses_ball(the_world, the_player)) {
 
-		std::vector<point> obstacles;
-		for (size_t i = 0; i < friendly.size(); ++i) {
-			if (friendly.get_player(i) == the_player) continue;
-			obstacles.push_back(friendly.get_player(i)->position());
-		}
-		for (size_t i = 0; i < enemy.size(); ++i) {
-			obstacles.push_back(enemy.get_robot(i)->position());
-		}
-
-		const std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world->field(), obstacles, the_player->position());
 		// std::cout << " chase ball close " << the_player->sense_ball_time() << std::endl;
 		// We have the ball right but somehow it was momentarily lost.
 		//chase chase_tactic(the_player, the_world);
 		//chase_tactic.set_flags(flags);
 		//chase_tactic.tick();
 		pivot tactic(the_player, the_world);
-		tactic.set_flags(flags);
 		tactic.set_target(bestshot.first);
+		tactic.set_flags(flags);
 		tactic.tick();
 	} else {
 		// This player does not have the ball.
@@ -93,6 +94,7 @@ void shoot::tick() {
 		if (!teampossesball) {
 			// chase if our team does not have the ball
 			pivot tactic(the_player, the_world);
+			tactic.set_target(bestshot.first);
 			tactic.set_flags(flags);
 			tactic.tick();
 		} else {
