@@ -1,4 +1,5 @@
 #include "geom/util.h"
+#include "geom/angle.h"
 
 #include <cassert>
 #include <algorithm>
@@ -34,21 +35,24 @@ std::vector<size_t> dist_matching(const std::vector<point>& v1, const std::vecto
 std::pair<point, double> angle_sweep_circles(const point& src, const point& p1, const point& p2, const std::vector<point>& obstacles, const double& radius) {
 	// default value to return if nothing is valid
 	point bestshot = (p1 + p2) * 0.5;
+	const double offangle = (p1 - src).orientation();
 	if (collinear(src, p1, p2)) return std::make_pair(bestshot, 0);
 	std::vector<std::pair<double, int> > events;
-	events.push_back(std::make_pair((src - p1).orientation(), 1));
-	events.push_back(std::make_pair((src - p2).orientation(), -1));
+	events.push_back(std::make_pair(angle_mod((p1 - src).orientation() - offangle), 1));
+	events.push_back(std::make_pair(angle_mod((p2 - src).orientation() - offangle), -1));
 	for (size_t i = 0; i < obstacles.size(); ++i) {
 		point diff = obstacles[i] - src;
 		if (diff.len() < radius * 2.0) {
 			return std::make_pair(bestshot, 0);
 		}
-		double cent = diff.orientation();
-		double span = asin(radius / diff.len());
+		const double cent = angle_mod(diff.orientation() - offangle);
+		const double span = asin(radius / diff.len());
+		const double range1 = cent - span;
+		const double range2 = cent + span;
 		// temporary fix
-		if (cent - span < -M_PI || cent + span > M_PI) continue;
-		events.push_back(std::make_pair(cent-span,-1));
-		events.push_back(std::make_pair(cent+span,1));
+		if (range1 < -M_PI || range2 > M_PI) continue;
+		events.push_back(std::make_pair(range1, -1));
+		events.push_back(std::make_pair(range2, 1));
 	}
 	// do angle sweep for largest angle
 	sort(events.begin(), events.end());
