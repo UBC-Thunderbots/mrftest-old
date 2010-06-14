@@ -50,7 +50,7 @@ void ai::tick() {
 	for (unsigned int i = 0; i < the_world->friendly.size(); ++i) {
 		const player::ptr plr(the_world->friendly.get_player(i));
 		DPRINT(Glib::ustring::compose("Tick player<%1,%2>.", plr->yellow ? 'Y' : 'B', plr->pattern_index));
-		plr->tick(the_world->playtype() == playtype::halt);
+		plr->tick(the_world->playtype() == playtype::halt || !the_strategy);
 	}
 }
 

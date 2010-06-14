@@ -170,17 +170,21 @@ void player::set_state(const std::type_info &tid, player::state::ptr state) {
 	}
 }
 
-player::ptr player::create(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) {
-	ptr p(new player(yellow, pattern_index, bot));
+player::ptr player::create(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) {
+	ptr p(new player(name, yellow, pattern_index, bot));
 	return p;
 }
 
-player::player(bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(false), theory_dribble_rpm(0), dribble_distance_(0.0), state_store(&compare_type_infos) {
+player::player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(false), theory_dribble_rpm(0), dribble_distance_(0.0), state_store(&compare_type_infos), not_moved_message(Glib::ustring::compose("%1 not moved", name)) {
 	bot->signal_feedback.connect(sigc::mem_fun(this, &player::on_feedback));
 	clock_gettime(CLOCK_MONOTONIC, &sense_ball_end);
 }
 
 void player::tick(bool scram) {
+	// Annunciate that we weren't moved if we have a strategy but it never set a
+	// destination.
+	not_moved_message.activate(bot->alive() && !scram && !moved);
+
 	// Emergency conditions that cause scram of all systems.
 	if (!bot->alive() || scram || !controller || bot->battery_voltage() < BATTERY_CRITICAL_THRESHOLD) {
 		moved = false;
