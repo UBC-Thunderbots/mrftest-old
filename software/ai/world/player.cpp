@@ -99,6 +99,9 @@ void player::kick(double power) {
 		if (width > 0) {
 			bot->kick(width);
 		}
+		if (!bot->chicker_ready()) {
+			chick_when_not_ready_message.activate(true);
+		}
 	}
 }
 
@@ -107,6 +110,9 @@ void player::chip(double power) {
 		unsigned int width = chipper_power_to_pulse_width(power);
 		if (width > 0) {
 			bot->chip(width);
+		}
+		if (!bot->chicker_ready()) {
+			chick_when_not_ready_message.activate(true);
 		}
 	}
 }
@@ -175,12 +181,15 @@ player::ptr player::create(const Glib::ustring &name, bool yellow, unsigned int 
 	return p;
 }
 
-player::player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(false), theory_dribble_rpm(0), dribble_distance_(0.0), state_store(&compare_type_infos), not_moved_message(Glib::ustring::compose("%1 not moved", name)) {
+player::player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(false), theory_dribble_rpm(0), dribble_distance_(0.0), state_store(&compare_type_infos), not_moved_message(Glib::ustring::compose("%1 not moved", name)), chick_when_not_ready_message(Glib::ustring::compose("%1 chick when not ready", name)) {
 	bot->signal_feedback.connect(sigc::mem_fun(this, &player::on_feedback));
 	clock_gettime(CLOCK_MONOTONIC, &sense_ball_end);
 }
 
 void player::tick(bool scram) {
+	// This message may have been set earlier, but need not be set any more.
+	chick_when_not_ready_message.activate(false);
+
 	// Annunciate that we weren't moved if we have a strategy but it never set a
 	// destination.
 	not_moved_message.activate(bot->alive() && !scram && !moved);
