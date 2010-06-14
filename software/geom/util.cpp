@@ -46,7 +46,7 @@ std::pair<point, double> angle_sweep_circles(const point& src, const point& p1, 
 			return std::make_pair(bestshot, 0);
 		}
 		const double cent = angle_mod(diff.orientation() - offangle);
-		const double span = atan2(radius, diff.len());
+		const double span = asin(radius / diff.len());
 		const double range1 = cent - span;
 		const double range2 = cent + span;
 		// temporary fix
