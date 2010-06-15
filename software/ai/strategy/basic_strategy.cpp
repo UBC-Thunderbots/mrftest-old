@@ -105,7 +105,7 @@ player::ptr basic_strategy::minus_one_assignment() {
 	roles.clear();
 	if (the_team.size() == 0) return player::ptr();
 
-	if (the_team.size() == 0) return the_team.get_player(0);
+	if (the_team.size() == 1) return the_team.get_player(0);
 
 	goalie::ptr goalie_role(new goalie(the_world));
 	roles.push_back(role::ptr(goalie_role));
@@ -239,23 +239,29 @@ void basic_strategy::reset_all() {
 
 		case playtype::execute_direct_free_kick_friendly:
 			{
-				std::vector<player::ptr> freekicker(1, minus_one_assignment());
-				//roles.push_back(role::ptr(new execute_direct_free_kick_friendly(the_world)));
-				execute_direct_free_kick::ptr freekicker_role = execute_direct_free_kick::ptr(new execute_direct_free_kick(the_world));
-				freekicker_role->set_robots(freekicker);
-				//roles[0]->set_robots(all_players);
-				roles.push_back(freekicker_role);
-				std::cout << all_players.size() << " robots set to execute direct free kick friendly" << std::endl;
+				player::ptr one = minus_one_assignment();
+				if (one) {
+					std::vector<player::ptr> freekicker(1, one);
+					//roles.push_back(role::ptr(new execute_direct_free_kick_friendly(the_world)));
+					execute_direct_free_kick::ptr freekicker_role = execute_direct_free_kick::ptr(new execute_direct_free_kick(the_world));
+					freekicker_role->set_robots(freekicker);
+					//roles[0]->set_robots(all_players);
+					roles.push_back(freekicker_role);
+					std::cout << all_players.size() << " robots set to execute direct free kick friendly" << std::endl;
+				}
 			}
 			break;
 
 		case playtype::execute_indirect_free_kick_friendly:
 			{
-				std::vector<player::ptr> freekicker(1, minus_one_assignment());
-				execute_indirect_free_kick::ptr freekicker_role = execute_indirect_free_kick::ptr(new execute_indirect_free_kick(the_world));
-				freekicker_role->set_robots(freekicker);
-				roles.push_back(freekicker_role);
-				std::cout << all_players.size() << " robots set to execute indirect free kick" << std::endl;
+				player::ptr one = minus_one_assignment();
+				if (one) {
+					std::vector<player::ptr> freekicker(1, one);
+					execute_indirect_free_kick::ptr freekicker_role = execute_indirect_free_kick::ptr(new execute_indirect_free_kick(the_world));
+					freekicker_role->set_robots(freekicker);
+					roles.push_back(freekicker_role);
+					std::cout << all_players.size() << " robots set to execute indirect free kick" << std::endl;
+				}
 			}
 			break;
 

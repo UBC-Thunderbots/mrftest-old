@@ -235,7 +235,7 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 
 			//if (overlay) overlay->move_to(the_robots[baller]->position().x, the_robots[baller]->position().y);
 
-			// std::cout << "offensive: who to shoot " << shooter << std::endl;
+			std::cout << "offensive: who to shoot " << shooter << std::endl;
 			if (shooter == baller) {
 				// i shall shoot
 				tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
@@ -291,7 +291,7 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 			++w;
 		}
 
-		std::cout << "offensive: chase " << std::endl;
+		// std::cout << "offensive: chase " << std::endl;
 		tactics[0] = pivot::ptr(new pivot(the_robots[0], the_world));
 		// no one has the ball
 		// just do chase for now

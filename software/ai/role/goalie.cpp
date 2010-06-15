@@ -72,8 +72,8 @@ void goalie::tick() {
 			reach = ( default_pos.x - ball_position.x ) / ball_velocity.x;
 		point tempPoint = point( default_pos.x, ball_position.y + reach * ball_velocity.y );
 		move move_tactic(me, the_world);
-		printf( "ball velocity: %lf, %lf \n", ball_velocity.x, ball_velocity.y );
-		printf( "stay at: %lf, %lf \n", tempPoint.x, tempPoint.y);
+		//printf( "ball velocity: %lf, %lf \n", ball_velocity.x, ball_velocity.y );
+		//printf( "stay at: %lf, %lf \n", tempPoint.x, tempPoint.y);
 		if( tempPoint.y < goal_width/2 && tempPoint.y > -goal_width/2 )
 		// move if ball move towards the goal
 		{
