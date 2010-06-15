@@ -10,7 +10,6 @@ namespace {
 
 #warning Magic constant
 	const double SHOOT_ALLOWANCE = ball::RADIUS;
-	const double BLOCKING_RANGE = 5/180*3.1415;
 
 	const double EPS = 1e-9;
 }
@@ -82,7 +81,6 @@ namespace ai_util {
 		// if(!path_check(ball->position(), passee->position(), w->enemy.get_robots(), SHOOT_ALLOWANCE + robot::MAX_RADIUS + ball::RADIUS)) return false;
 		const point direction = ray.norm();
 		const double distance = (ball->position() - passee->position()).len();
-		// threshold distance from all enemy players, can't receive if too short
 		for (size_t i = 0; i < w->enemy.size(); ++i) {
 			const robot::ptr rob = w->enemy.get_robot(i);
 			const point rp = rob->position() - passee->position();
@@ -93,16 +91,6 @@ namespace ai_util {
 				return false;
 			}
 		}
-		// no if an enemy robot is in the way
-		for (size_t i = 0; i < w->enemy.size(); ++i) {
-			const robot::ptr rob = w->enemy.get_robot(i);
-			const point rp = rob->position() - passee->position();
-			const double angle_fd = atan2(ray.x,ray.y);
-			const double angle_en = atan2(rp.x,rp.y);
-			if( ray.len() >= rp.len() && angle_fd < angle_en + BLOCKING_RANGE is in radius && angle_fd > angle_en - BLOCKING_RANGE )
-				return false;
-		}
-		// threshold distance from all friendly players, can't receive if too short
 		for (size_t i = 0; i < w->friendly.size(); ++i) {
 			const player::ptr plr = w->friendly.get_player(i);
 			if (posses_ball(w, plr) || plr == passee) continue;

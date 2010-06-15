@@ -191,8 +191,6 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 
 			std::vector<size_t> order = dist_matching(locations, waypoints);
 
-			// move non-ballers to good positions to wait for a pass... but isn't 'waypoints' for this purpose not 'the_robots'
-			// TODO: goto the closest good spot
 			size_t w = 0;
 			for (size_t i = 0; i < the_robots.size(); ++i) {
 				if (static_cast<int>(i) == baller) continue;
@@ -219,7 +217,6 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 
 				// We will try passing to another offensive robot,
 				// if there is a clear path to the passee and the passee has a clear path to the goal
-				// and shoot if we can
 				for (size_t j = 0; j < the_robots.size(); ++j) {
 					if (static_cast<int>(j) != baller && !ai_util::can_receive(the_world, the_robots[j])) continue;
 					// if (ai_util::calc_best_shot(the_robots[j], the_world) == -1) continue;

@@ -60,20 +60,6 @@ void goalie::tick() {
 
 	} else {
 		// Generic defence.
-		const point centre_of_goal = point(-0.5*the_world->field().length(), 0);
-		const point ball = the_world->ball()->position();
-		usleep(266666);// sleep for 1/60 of a second
-		while( ball == the_world->ball()->position() )
-			usleep(1000); // sleep a bit more
-		point direction = ball - the_world->ball()->position();
-		int reach = ( centre_of_goal.y - ball.y ) / direction.y;
-		point block = point( ball.x + reach * direction.x, centre_of_goal.y );
-		move move_tactic(me, the_world);
-		move_tactic.set_position(tempPoint);
-		move_tactic.set_flags(flags);
-		move_tactic.tick();
-
-		/* old version: block between the ball and the centre of the ball
 		const point default_pos = point(-0.45*the_world->field().length(), 0);
 		const point centre_of_goal = point(-0.5*the_world->field().length(), 0);
 		move move_tactic(me, the_world);
@@ -82,7 +68,7 @@ void goalie::tick() {
 		tempPoint += centre_of_goal;
 		move_tactic.set_position(tempPoint);
 		move_tactic.set_flags(flags);
-		move_tactic.tick();*/
+		move_tactic.tick();
 	} 
 }
 
