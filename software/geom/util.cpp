@@ -36,14 +36,20 @@ std::pair<point, double> angle_sweep_circles(const point& src, const point& p1, 
 	// default value to return if nothing is valid
 	point bestshot = (p1 + p2) * 0.5;
 	const double offangle = (p1 - src).orientation();
-	if (collinear(src, p1, p2)) return std::make_pair(bestshot, 0);
+	if (collinear(src, p1, p2)) {
+		std::cerr << "geom: collinear " << src << " " << p1 << " " << p2 << std::endl;
+		std::cerr << (p1 - src) << " " << (p2 - src) << std::endl;
+		std::cerr << (p1 - src).cross(p2 - src) << std::endl;
+		return std::make_pair(bestshot, 0);
+	}
 	std::vector<std::pair<double, int> > events;
-	events.push_back(std::make_pair(angle_mod((p1 - src).orientation() - offangle), 1));
+	events.push_back(std::make_pair(0, 1)); // p1 becomes angle 0
 	events.push_back(std::make_pair(angle_mod((p2 - src).orientation() - offangle), -1));
 	for (size_t i = 0; i < obstacles.size(); ++i) {
 		point diff = obstacles[i] - src;
 		// warning: temporarily reduced
 		if (diff.len() < radius) {
+			std::cerr << "geom: inside" << std::endl;
 			return std::make_pair(bestshot, 0);
 		}
 		const double cent = angle_mod(diff.orientation() - offangle);
@@ -59,9 +65,9 @@ std::pair<point, double> angle_sweep_circles(const point& src, const point& p1, 
 	sort(events.begin(), events.end());
 	double best = 0;
 	double sum = 0;
-	double start = 0;
+	double start = events[0].first;
 	int cnt = 0;
-	for (size_t i = 0; i < events.size() - 1; ++i) {
+	for (size_t i = 0; i + 1 < events.size(); ++i) {
 		cnt += events[i].second;
 		assert(cnt <= 1);
 		if (cnt > 0) {
@@ -71,7 +77,7 @@ std::pair<point, double> angle_sweep_circles(const point& src, const point& p1, 
 				// shoot ray from point p
 				// intersect with line p1-p2
 				const double mid = start + sum / 2 + offangle;
-				const point ray = point(cos(mid), sin(mid));
+				const point ray = point(cos(mid), sin(mid)) * 10.0;
 				const point inter = line_intersect(src, src + ray, p1, p2);
 				bestshot = inter;
 			}
@@ -86,7 +92,7 @@ std::pair<point, double> angle_sweep_circles(const point& src, const point& p1, 
 bool collinear(const point& a, const point& b, const point& c) {
 	if ((a - b).lensq() < EPS || (b - c).lensq() < EPS || (a - c).lensq() < EPS)
 		return true;
-	return (abs((b - a).cross(c - a)) < EPS);
+	return (std::fabs((b - a).cross(c - a)) < EPS);
 }
 
 point clip_point(const point& p, const point& bound1, const point& bound2) {
