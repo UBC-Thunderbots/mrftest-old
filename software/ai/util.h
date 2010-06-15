@@ -85,6 +85,11 @@ namespace ai_util {
 	bool ball_close(const world::ptr w, const player::ptr bot);
 
 	/**
+	 * Checks if a position is inside the friendly defense area
+	 */
+	bool point_in_defense(const world::ptr w, const point& pt);
+
+	/**
 	 * Checks if the path from begin to end is blocked by some robots.
 	 * \param robots a vector of robots/players that blocks the path.
 	 * \param thresh the amount of allowance for the path.
@@ -166,7 +171,6 @@ namespace ai_util {
 	 * This function is based on whether the player has ball, or recently has the ball.
 	 */
 	bool posses_ball(const world::ptr w, const player::ptr p);
-
 }
 
 #endif

@@ -112,7 +112,7 @@ void goalie::tick() {
 	{
 		point ball_position = the_world->ball()->position();
 		//const double defense_width = the_world->field().defense_area_stretch() + the_world->field().defense_area_radius() * 2;
-		if ( ai_util::ball_in_defense( the_world, ball_position ) )
+		if ( ai_util::point_in_defense( the_world, ball_position ) )
 		{
 			chase whoosh (me, the_world);
 			whoosh.set_flags(flags);

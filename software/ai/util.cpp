@@ -37,6 +37,21 @@ namespace ai_util {
 		if (dist.len() > robot::MAX_RADIUS + ball::RADIUS * 2) return false;
 		return angle_diff(dist.orientation(), p->orientation()) < M_PI / 2;
 	}
+	
+	bool point_in_defense(const world::ptr w, const point& pt) {
+		const double defense_stretch = w->field().defense_area_stretch();
+		const double defense_radius = w->field().defense_area_radius();
+		const double field_length = w->field().length();
+		const point pole1 = point(-field_length, defense_stretch/2 + defense_radius);
+		const point pole2 = point(-field_length, -defense_stretch/2 - defense_radius);
+		double dist1 = (pt-pole1).len();
+		double dist2 = (pt-pole2).len();
+		if( pt.x > -field_length/2 && pt.x < -field_length/2 + defense_radius && pt.y > -defense_stretch/2 && pt.y < defense_stretch/2 )
+			return true;
+		if( dist1 < defense_radius || dist2 < defense_radius )
+			return true;
+		return false;
+	}
 
 	bool path_check(const point& begin, const point& end, const std::vector<point>& obstacles, const double thresh) {
 		const point direction = (end - begin).norm();
