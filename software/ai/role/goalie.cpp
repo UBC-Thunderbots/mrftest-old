@@ -61,15 +61,15 @@ void goalie::tick() {
 	} else {
 	
 		// Generic defence. // author: Koko
-		const point default_pos = point(-0.45*the_world->field().length(), 0);
-		const point centre_of_goal = point(-0.5*the_world->field().length(), 0);
+		const point default_pos = point( -0.5 * the_world->field().length() + the_world->field().defense_area_radius(), 0);
+		const point centre_of_goal = point( -0.5*the_world->field().length(), 0);
 		const int field_width = the_world->field().width();
 		point ball_position = the_world->ball()->position();
 		point ball_velocity = the_world->ball()->est_velocity();
-		int reach = ( centre_of_goal.y - ball_velocity.y ) / ball_velocity.y;
-		point tempPoint = point( ball_position.x + reach * ball_velocity.y, centre_of_goal.y );
+		int reach = ( centre_of_goal.x - ball_velocity.x ) / ball_velocity.x;
+		point tempPoint = point( centre_of_goal.x, ball_position.y + reach * ball_velocity.y );
 		move move_tactic(me, the_world);
-		if( tempPoint.x > field_width * 3 / 8 && tempPoint.x < field_width * 5 / 8 )
+		if( tempPoint.y < field_width * 1 / 4 && tempPoint.y > -field_width * 1 / 4 )
 		// move if ball move towards the goal
 		{
 			move_tactic.set_position(tempPoint);
