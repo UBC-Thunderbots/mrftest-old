@@ -2,6 +2,9 @@
 #include <cmath>
 #include "ai/tactic/move.h"
 #include "ai/flags.h"
+
+#include <iostream>
+
 namespace{
 
   const double AVOID_BUFFER = 0.1;
@@ -22,7 +25,7 @@ void kickoff_friendly::tick(){
    std::sort(the_robots.begin(), the_robots.end(),player_cmp_function);
    if(the_world->playtype() == playtype::prepare_kickoff_friendly ){
      if(!team_compliance()){ 
-
+       std::cout<<"team is not in compliance"<<std::endl;
    //we can set non on our half destinations in order to avoid ball
      //this role itself calculates how to abide by rules which involves 
      //not staying in rules for a period of time
