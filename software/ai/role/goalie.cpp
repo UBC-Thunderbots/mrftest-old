@@ -118,6 +118,13 @@ void goalie::tick() {
 			whoosh.set_flags(flags);
 			whoosh.tick();
 		}
+		else
+		{
+			move stay (me, the_world);
+			stay.set_position(me->position());
+			stay.set_flags(flags);
+			stay.tick();
+		}
 	}
 }
 
