@@ -98,8 +98,8 @@ namespace ai_util {
 			const robot::ptr rob = w->enemy.get_robot(i);
 			const point rp = rob->position() - passee->position();
 			const double angle_fd = atan2(ray.x,ray.y);
-			const double angle_en = atan2(rob.x,rob.y);
-			if( ray.len() >= rp.len() && angle_fd < angle_en + BLOCKING_RANGE /*is in radius*/ && angle_fd > angle_en - BLOCKING_RANGE )
+			const double angle_en = atan2(rp.x,rp.y);
+			if( ray.len() >= rp.len() && angle_fd < angle_en + BLOCKING_RANGE is in radius && angle_fd > angle_en - BLOCKING_RANGE )
 				return false;
 		}
 		// threshold distance from all friendly players, can't receive if too short
