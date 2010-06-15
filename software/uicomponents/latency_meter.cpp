@@ -1,4 +1,5 @@
 #include "uicomponents/latency_meter.h"
+#include "util/algorithm.h"
 #include "util/time.h"
 #include <iomanip>
 
@@ -21,7 +22,7 @@ void latency_meter::set_bot(xbee_drive_bot::ptr bot) {
 void latency_meter::update() {
 	int latency = timespec_to_millis(robot->latency()) / 10;
 	if (latency != last_latency) {
-		set_fraction(latency / 100.0);
+		set_fraction(clamp(latency / 100.0, 0.0, 1.0));
 		set_text(Glib::ustring::compose("%1s", Glib::ustring::format(std::fixed, std::setprecision(2), latency / 100.0)));
 		last_latency = latency;
 	}

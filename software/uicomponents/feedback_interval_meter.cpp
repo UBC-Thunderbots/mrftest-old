@@ -1,4 +1,5 @@
 #include "uicomponents/feedback_interval_meter.h"
+#include "util/algorithm.h"
 #include "util/time.h"
 #include <iomanip>
 
@@ -21,7 +22,7 @@ void feedback_interval_meter::set_bot(xbee_drive_bot::ptr bot) {
 void feedback_interval_meter::update() {
 	int feedback_interval = timespec_to_millis(robot->feedback_interval()) / 10;
 	if (feedback_interval != last_feedback_interval) {
-		set_fraction(feedback_interval / 100.0);
+		set_fraction(clamp(feedback_interval / 100.0, 0.0, 1.0));
 		set_text(Glib::ustring::compose("%1s", Glib::ustring::format(std::fixed, std::setprecision(2), feedback_interval / 100.0)));
 		last_feedback_interval = feedback_interval;
 	}
