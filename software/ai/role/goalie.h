@@ -32,6 +32,11 @@ class goalie : public role {
 
 	protected:
 		const world::ptr the_world;
+
+	private:
+
+		void vel_goalie(player::ptr goalie, const unsigned int& flags);
+
 };
 
 #endif

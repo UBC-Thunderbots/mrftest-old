@@ -25,6 +25,7 @@ void execute_penalty_friendly::tick() {
 
 				// shoot should automatically find the opening and chase the ball if we don't have the ball yet
 				shoot::ptr tactic(new shoot(the_shooter, the_world));
+				tactic->set_flags(flags);
 				tactic->tick();
 			}
 				
