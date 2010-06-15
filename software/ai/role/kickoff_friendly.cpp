@@ -35,9 +35,12 @@ void kickoff_friendly::tick(){
 	 if(rule_violation(the_robots[i]->position())){
 	   dst = approach_legal_point(the_robots[i]->position(),i);
 	   flags &= ~ai_flags::stay_own_half;
+	   flags &= ~ai_flags::avoid_ball_stop;
 	 }
+
        move::ptr move_tactic(new move(the_robots[i], the_world));
        move_tactic->set_position(the_robots[i]->position());
+       std::cout<<"called move tactic to "<<the_robots[i]->position().x << " " <<the_robots[i]->position().x<<std::endl;
        move_tactic->set_flags(flags);
        move_tactic->tick();
        }
@@ -89,7 +92,7 @@ bool kickoff_friendly::team_compliance(){
 
 bool kickoff_friendly::rule_violation(point cur_point){
 
-  bool compliant = cur_point.x<0 && (the_world->ball()->position() - cur_point).len() > circle_radius;
+  bool compliant = cur_point.x<0.0 && (the_world->ball()->position() - cur_point).len() > circle_radius;
   return !compliant;
 
 }
@@ -101,7 +104,7 @@ point kickoff_friendly::approach_legal_point(point cur_point,unsigned int robot_
   point wantdst = cur_point;
   if(cur_point.x>0.0){
     if(fabs(cur_point.y) < circle_radius){
-      wantdst.y = (cur_point.y < 0) ? -(circle_radius + AVOID_BUFFER):(circle_radius + AVOID_BUFFER);
+      wantdst.y = (cur_point.y < 0) ? -(1.5*circle_radius + AVOID_BUFFER):(1.5*circle_radius + AVOID_BUFFER);
     }else{
       wantdst.x = -robot_num*the_field.length()/(the_robots.size()+1);
     }
