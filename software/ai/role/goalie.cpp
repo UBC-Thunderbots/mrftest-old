@@ -66,18 +66,22 @@ void goalie::tick() {
 		const int field_width = the_world->field().width();
 		point ball_position = the_world->ball()->position();
 		point ball_velocity = the_world->ball()->est_velocity();
-		int reach = ( centre_of_goal.x - ball_velocity.x ) / ball_velocity.x;
+		double reach;
+		if( ball_velocity.x != 0.0 )
+			reach = ( centre_of_goal.x - ball_velocity.x ) / ball_velocity.x;
 		point tempPoint = point( centre_of_goal.x, ball_position.y + reach * ball_velocity.y );
 		move move_tactic(me, the_world);
-		if( tempPoint.y < field_width * 1 / 4 && tempPoint.y > -field_width * 1 / 4 )
+		printf( "ball velocity: %lf, %lf \n", ball_velocity.x, ball_velocity.y );
+		printf( "stay at: %lf, %lf \n", tempPoint.x, tempPoint.y);
+		//if( tempPoint.y < field_width * 1 / 4 && tempPoint.y > -field_width * 1 / 4 )
 		// move if ball move towards the goal
-		{
+		//{
 			move_tactic.set_position(tempPoint);
-		}
-		else
-		{
-			move_tactic.set_position(me->position());
-		}
+		//}
+		//else
+		//{
+		//	move_tactic.set_position(me->position());
+		//}
 		move_tactic.set_flags(flags);
 		move_tactic.tick();
 		
