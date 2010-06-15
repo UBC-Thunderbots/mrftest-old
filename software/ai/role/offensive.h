@@ -53,10 +53,6 @@ class offensive : public role {
 		/// Calculates n best positions to place the robots.
 		std::vector<point> calc_position_best(const unsigned int n) const;
 
-		// Tells the robot to go towards the goal
-		// refactor this in the future?
-		void move_towards_goal(int index);
-
 		// refactor this function?
 		double get_distance_from_goal(int index) const;
 

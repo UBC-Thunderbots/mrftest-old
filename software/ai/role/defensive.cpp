@@ -109,52 +109,52 @@ void defensive::tick() {
 
 	if (teampossesball) {
 		if (baller >= 0) {
-		
-			if (!the_robots[baller]->has_ball()) {
-				std::cout << "defensive: posses but no ball, chase" << std::endl;
-				tactics[baller] = pivot::ptr(new pivot(the_robots[baller], the_world));
-			} else {
 
-				// If a player in the role has a ball, then
-				// pass to the other friendly, or wait if there is none.
-				int passme = -1;
-				for (size_t i = 0; i < friends.size(); ++i) {
-					if (friends[i]->position().x < the_robots[baller]->position().x) continue;
-					if (ai_util::can_receive(the_world, friends[i])) {
-						passme = i;
-						break;
-					}
-				}
+			//if (!the_robots[baller]->has_ball()) {
+			//std::cout << "defensive: posses but no ball, chase" << std::endl;
+			//tactics[baller] = pivot::ptr(new pivot(the_robots[baller], the_world));
+			//} else {
 
-				// TODO: do something
-				if (passme == -1) {
-					// ehh... nobody to pass to
-					// Just play around with the ball I guess
-					//move::ptr move_tactic(new move(the_robots[baller], the_world));
-					//move_tactic->set_position(the_robots[baller]->position());
-					//tactics[baller] = move_tactic;
-					std::cout << "defensive: has ball, shoot to the goal!" << std::endl;
-
-					// try for the goal =D
-					shoot::ptr shoot_tactic(new shoot(the_robots[baller], the_world));
-					tactics[baller] = shoot_tactic;
-				} else {
-					std::cout << "defensive: has ball, pass to someone" << std::endl;
-				
-					// pass to this person
-					pass::ptr pass_tactic(new pass(the_robots[baller], the_world, friends[passme]));
-					tactics[baller] = pass_tactic;
+			// If a player in the role has a ball, then
+			// pass to the other friendly, or wait if there is none.
+			int passme = -1;
+			for (size_t i = 0; i < friends.size(); ++i) {
+				if (friends[i]->position().x < the_robots[baller]->position().x) continue;
+				if (ai_util::can_receive(the_world, friends[i])) {
+					passme = i;
+					break;
 				}
 			}
+
+			// TODO: do something
+			if (passme == -1) {
+				// ehh... nobody to pass to
+				// Just play around with the ball I guess
+				//move::ptr move_tactic(new move(the_robots[baller], the_world));
+				//move_tactic->set_position(the_robots[baller]->position());
+				//tactics[baller] = move_tactic;
+				std::cout << "defensive: " << the_robots[baller]->name << " has ball, shoot to the goal!" << std::endl;
+
+				// try for the goal =D
+				shoot::ptr shoot_tactic(new shoot(the_robots[baller], the_world));
+				tactics[baller] = shoot_tactic;
+			} else {
+				std::cout << "defensive: " << the_robots[baller]->name << " has ball, pass to " << friends[passme]->name << std::endl;
+
+				// pass to this person
+				pass::ptr pass_tactic(new pass(the_robots[baller], the_world, friends[passme]));
+				tactics[baller] = pass_tactic;
+			}
+			//}
 			skipme = baller;
 		} else {
-		
+
 			// If a player nearest to the goal area has the ball
 			// that player is probably a goalie, chase the ball!
 			std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(the_world->field().friendly_goal()));
 
 			if (friends.size() > 0 && ai_util::posses_ball(the_world, friends[0])) {
-				std::cout << "defensive: get ball from goalie?" << std::endl;
+				std::cout << "defensive: " << the_robots[0]->name << " get ball from goalie?" << std::endl;
 				receive::ptr receive_tactic(new receive(the_robots[0], the_world));
 				tactics[0] = receive_tactic;
 				skipme = 0;
@@ -171,8 +171,8 @@ void defensive::tick() {
 			// std::cout << "defensive: chase" << std::endl;
 
 			// already sorted by distance to ball
-			pivot::ptr pivot_tactic(new pivot(the_robots[0], the_world));
-			tactics[0] = pivot_tactic;
+			shoot::ptr shoot_tactic(new shoot(the_robots[0], the_world));
+			tactics[0] = shoot_tactic;
 			skipme = 0;
 		} else {
 			// std::cout << "defensive: nothing special" << std::endl;
@@ -180,7 +180,7 @@ void defensive::tick() {
 	}
 
 	std::vector<point> waypoints = calc_block_positions();
-	
+
 	std::vector<player::ptr> available;
 	std::vector<point> locations;
 	for (size_t i = 0; i < the_robots.size(); ++i) {
@@ -188,7 +188,7 @@ void defensive::tick() {
 		available.push_back(the_robots[i]);
 		locations.push_back(the_robots[i]->position());
 	}
-	
+
 	// ensure we are only blocking as we need
 	while (waypoints.size() > available.size())
 		waypoints.pop_back();
@@ -199,7 +199,7 @@ void defensive::tick() {
 	for (size_t i = 0; i < the_robots.size(); ++i) {
 		if (static_cast<int>(i) == skipme) continue;
 		if (w >= waypoints.size()) {
-			std::cerr << "defender: nothing to do!" << std::endl;
+			std::cerr << "defender: " << the_robots[i]->name << " nothing to do!" << std::endl;
 			move::ptr move_tactic(new move(the_robots[i], the_world));
 			move_tactic->set_position(the_robots[i]->position());
 			tactics[i] = move_tactic;

@@ -1,9 +1,6 @@
 #include "ai/role/offensive.h"
-#include "ai/tactic/chase.h"
-#include "ai/tactic/pivot.h"
 #include "ai/tactic/move.h"
 #include "ai/tactic/shoot.h"
-#include "ai/tactic/dribble.h"
 #include "ai/tactic/pass.h"
 #include "ai/tactic/receive.h"
 #include "ai/util.h"
@@ -121,13 +118,6 @@ std::vector<point> offensive::calc_position_best(const unsigned int n) const {
 }
 
 // TODO: refactor
-void offensive::move_towards_goal(int index) {
-	move::ptr move_tactic(new move(the_robots[index], the_world));
-	move_tactic->set_position(the_world->field().enemy_goal());
-	tactics[index] = move_tactic;
-}
-
-// TODO: refactor
 double offensive::get_distance_from_goal(int index) const {
 	point pos = the_robots[index]->position();
 	point goal = point(the_world->field().length()/2,0);
@@ -195,7 +185,7 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 			for (size_t i = 0; i < the_robots.size(); ++i) {
 				if (static_cast<int>(i) == baller) continue;
 				if (w >= waypoints.size()) {
-					std::cout << "offender: nothing to do!" << std::endl;
+					std::cout << "offensive: " << the_robots[i] << " nothing to do!" << std::endl;
 					move::ptr move_tactic(new move(the_robots[i], the_world));
 					move_tactic->set_position(the_robots[i]->position());
 					tactics[i] = move_tactic;
@@ -207,11 +197,6 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 				++w;
 			}
 
-			// as for the robot with the ball, make the robot try to shoot the goal, or pass to someone
-			//if (!the_robots[baller]->has_ball()) {
-				// std::cout << "offensive: has no ball but posses, chase" << std::endl;
-				//tactics[baller] = pivot::ptr(new pivot(the_robots[baller], the_world));
-			//} else {
 			int shooter = -1;
 			double shooterangle = 0;
 
@@ -224,7 +209,7 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 
 				// TODO: create another weighting function
 				double angle = ai_util::calc_goal_visibility_angle(the_world, the_robots[j], false);
-				// std::cout << " j=" << j << " angle=" << (angle * 180.0 / M_PI) << std::endl;
+				std::cout << "offensive: " << the_robots[j]->name << " can see=" << (angle * 180.0 / M_PI) << std::endl;
 				// the baller has more importance
 				if (j == baller) angle *= 10.0;
 				if (shooter == -1 || angle > shooterangle) {
@@ -235,27 +220,24 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 
 			//if (overlay) overlay->move_to(the_robots[baller]->position().x, the_robots[baller]->position().y);
 
-			std::cout << "offensive: who to shoot " << shooter << std::endl;
 			if (shooter == baller) {
 				// i shall shoot
 				tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
 				//if (overlay) overlay->line_to(the_field.enemy_goal().x, the_field.enemy_goal().y);
 			} else if (shooter != -1) {
+				std::cout << "offensive: " << the_robots[baller]->name << " pass to " << the_robots[shooter] << std::endl;
 				// found suitable passee, make a pass
 				tactics[baller] = pass::ptr(new pass(the_robots[baller], the_world, the_robots[shooter]));
 			} else if (get_distance_from_goal(baller) < the_world->field().length() / 6) {
 				// very close to goal, so try making a shot anyways
 				tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
 			} else {
-				// dribble towards the goal
-				//dribble::ptr dribble_tactic(new dribble(the_robots[baller], the_world));
-				//dribble_tactic->set_position(the_world->field().enemy_goal());
-				//tactics[baller] = dribble_tactic;
 				// i shall shoot
 				tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
 			}
 			//}
 		} else {
+			std::cout << "offensive: receive" << std::endl;
 			// no one in this role has the ball
 			// prepare to receive some ball
 			for (size_t i = 0; i < the_robots.size(); ++i) {
@@ -279,7 +261,7 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 		size_t w = 0;
 		for (size_t i = 1; i < the_robots.size(); ++i) {
 			if (w >= waypoints.size()) {
-				std::cout << "offender: nothing to do!" << std::endl;
+				std::cout << "offensive: " << the_robots[i] << " nothing to do!" << std::endl;
 				move::ptr move_tactic(new move(the_robots[i], the_world));
 				move_tactic->set_position(the_robots[i]->position());
 				tactics[i] = move_tactic;
@@ -291,14 +273,7 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 			++w;
 		}
 
-		// std::cout << "offensive: chase " << std::endl;
-		tactics[0] = pivot::ptr(new pivot(the_robots[0], the_world));
-		// no one has the ball
-		// just do chase for now
-		// for (size_t i = 0; i < the_robots.size(); ++i) {
-		//tactics[i] = pivot::ptr(new pivot(the_robots[i], the_world));
-		//tactics[i] = chase::ptr(new chase(the_robots[i], the_world));
-		//}
+		tactics[0] = shoot::ptr(new shoot(the_robots[0], the_world));
 	}
 
 	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
