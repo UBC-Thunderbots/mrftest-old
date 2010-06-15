@@ -29,6 +29,7 @@ void shoot::tick() {
 	const std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world->field(), obstacles, the_player->position());
 
 	if (ai_util::has_ball(the_world, the_player)) {
+	//if (the_player->has_ball()) {
 		// This player has the ball.
 
 		std::vector<point> obstacles;
