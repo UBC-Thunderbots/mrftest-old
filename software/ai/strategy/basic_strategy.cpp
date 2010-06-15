@@ -13,8 +13,7 @@
 #include "ai/role/execute_penalty_enemy.h"
 #include "ai/role/victory_dance.h"
 #include "ai/role/execute_penalty_friendly.h"
-#include "ai/role/halt.h"
-#include "ai/role/stop.h"
+
 
 #include <iostream>
 
@@ -182,10 +181,6 @@ void basic_strategy::reset_all() {
 			break;
 
 		case playtype::halt:
-			roles.push_back(role::ptr(new halt));
-			all_players.push_back(goalie_only[0]);
-			roles[0]->set_robots(all_players);
-			std::cout << all_players.size() << " robots set to halt" << std::endl;
 			break;
 
 		case playtype::prepare_kickoff_friendly: 
