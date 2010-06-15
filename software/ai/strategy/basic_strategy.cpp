@@ -184,13 +184,8 @@ void basic_strategy::reset_all() {
 			break;
 
 		case playtype::prepare_kickoff_friendly: 
-			roles.push_back(role::ptr(new prepare_kickoff_friendly(the_world)));
-			roles[0]->set_robots(all_players);
-			std::cout << all_players.size() << " robots set to prepare kickoff friendly" << std::endl;
-			break;
-
 		case playtype::execute_kickoff_friendly: 
-			roles.push_back(role::ptr(new execute_kickoff_friendly(the_world)));
+			roles.push_back(role::ptr(new kickoff_friendly(the_world)));
 			roles[0]->set_robots(all_players);
 			std::cout << all_players.size() << " robots set to execute kickoff friendly" << std::endl;
 			break;

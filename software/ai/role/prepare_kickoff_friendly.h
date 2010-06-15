@@ -10,36 +10,49 @@
 //
 // Gets the robots to go to their prepare_kickoff_friendly positions.
 //
-class prepare_kickoff_friendly : public role {
+class kickoff_friendly : public role {
 	public:
 		//
 		// A pointer to a prepare_kickoff_friendly role.
 		//
-		typedef Glib::RefPtr<prepare_kickoff_friendly> ptr;
+		typedef Glib::RefPtr<kickoff_friendly> ptr;
 
 		//
 		// Constructs a new prepare_kickoff_friendly role.
 		//
-		prepare_kickoff_friendly(world::ptr world);
+		kickoff_friendly(world::ptr world);
 
 		//
 		// Runs the AI for one time tick.
 		//
 		void tick();
+		
+		//
+		//
+		//don't need to do anything here
+		void robots_changed(){
+		}
+		
+	private:
+	
+		//
+		//sees if team is in compliance of rules
+		//
+		bool team_compliance();
+		
+		point approach_legal_point(point cur_point,unsigned int robot_num);
+		
+		//
+		//
+		//
+		world::ptr the_world;
 
 		//
-		// Handles changes to the robot membership.
+		// Is in rule violation
 		//
-		void robots_changed();
-
-	protected:
-		const world::ptr the_world;
-
-                std::vector<move::ptr> the_tactics;
-
-                static const unsigned int NUMBER_OF_STARTING_POSITIONS = 5;
-
-                point starting_positions[NUMBER_OF_STARTING_POSITIONS];
+		bool rule_violation(point cur_point);
+		
+		double circle_radius;
 };
 
 #endif
