@@ -20,7 +20,7 @@ SOURCES_xbeerconfig := uicomponents util xbeerconfig.cpp xbee/client xbee/shared
 #
 # Here, write the linker flags to be used for each project.
 #
-LDFLAGS_common := $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf) -lrt -lbz2
+LDFLAGS_common := $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf) -lrt
 LDFLAGS_config := $(LDFLAGS_common)
 LDFLAGS_fw := $(LDFLAGS_common)
 LDFLAGS_simulator := $(LDFLAGS_common)
