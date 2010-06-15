@@ -151,6 +151,13 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 	DPRINT(Glib::ustring::compose("The ball is at (%1, %2) which is (%1, %2) in graphical coordinates with radius (%3).", the_ball->position().x, the_ball->position().y, xtog(the_ball->position().x), ytog(the_ball->position().y), dtog(0.03)));
 	ctx->arc(xtog(the_ball->position().x), ytog(the_ball->position().y), dtog(0.03), 0.0, 2.0 * M_PI);
 	ctx->fill();
+	ctx->begin_new_path();
+	ctx->move_to(xtog(the_ball->position().x), ytog(the_ball->position().y));
+	{
+		const point &tgt(the_ball->position() + the_ball->velocity());
+		ctx->line_to(xtog(tgt.x), ytog(tgt.y));
+	}
+	ctx->stroke();
 	if (dragging == the_ball) {
 		ctx->set_source_rgb(1.0, 0.0, 0.0);
 		ctx->begin_new_path();

@@ -27,7 +27,7 @@ class ball : public visualizable::ball, public predictable {
 		static const double RADIUS;
 
 		/**
-		 * \return The position of the robot
+		 * \return the position of the robot.
 		 */
 		point position() const {
 			return predictable::position();
@@ -38,7 +38,8 @@ class ball : public visualizable::ball, public predictable {
 
 		/**
 		 * Constructs a new ball object.
-		 * \return The new object
+		 *
+		 * \return the new object.
 		 */
 		static ptr create();
 
@@ -50,7 +51,8 @@ class ball : public visualizable::ball, public predictable {
 		/**
 		 * Updates the position of the ball using new data.
 		 *
-		 * \param packet the new position, in unswapped field coordinates.
+		 * \param[in] pos the new position of the ball, in unswapped field
+		 * coordinates.
 		 */
 		void update(const point &pos);
 
@@ -60,6 +62,10 @@ class ball : public visualizable::ball, public predictable {
 
 		void visualizer_drag(const point &) {
 			std::abort();
+		}
+
+		point velocity() const {
+			return est_velocity();
 		}
 
 		friend class world;

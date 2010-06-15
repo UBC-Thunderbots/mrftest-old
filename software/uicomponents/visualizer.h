@@ -141,9 +141,14 @@ class visualizable : public noncopyable {
 				typedef Glib::RefPtr<ball> ptr;
 
 				/**
-				 * \return The position of the ball
+				 * \return the position of the ball.
 				 */
 				virtual point position() const = 0;
+
+				/**
+				 * \return the velocity of the ball.
+				 */
+				virtual point velocity() const = 0;
 		};
 
 		/**
