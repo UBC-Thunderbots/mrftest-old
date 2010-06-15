@@ -146,11 +146,11 @@ bool world::on_vision_readable(Glib::IOCondition) {
 		// Update the ball.
 		{
 			// Build a vector of all detections so far.
-			std::vector<std::pair<point, double> > balls;
+			std::vector<std::pair<double, point> > balls;
 			for (unsigned int i = 0; i < 2; ++i) {
 				for (int j = 0; j < detections[i].balls_size(); ++j) {
 					const SSL_DetectionBall &b(detections[i].balls(j));
-					balls.push_back(std::make_pair(point(b.x() / 1000.0, b.y() / 1000.0), b.confidence()));
+					balls.push_back(std::make_pair(b.confidence(), point(b.x() / 1000.0, b.y() / 1000.0)));
 				}
 			}
 

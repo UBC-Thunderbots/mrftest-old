@@ -1,4 +1,5 @@
 #include "ai/ball_filter/ball_filter.h"
+#include <algorithm>
 
 namespace {
 	class max_confidence_filter : public ball_filter {
@@ -6,16 +7,8 @@ namespace {
 			max_confidence_filter() : ball_filter("Max Confidence") {
 			}
 
-	                point filter(const std::vector<std::pair<point, double> > &balls, friendly_team &friendly, enemy_team &enemy) {
-				point best;
-				double bestconf = 0.0;
-				for (std::vector<std::pair<point, double> >::const_iterator i = balls.begin(), iend = balls.end(); i != iend; ++i) {
-					if (i->second > bestconf) {
-						best = i->first;
-						bestconf = i->second;
-					}
-				}
-				return best;
+			point filter(const std::vector<std::pair<double, point> > &balls, friendly_team &, enemy_team &) {
+				return std::max_element(balls.begin(), balls.end())->second;
 			}
 	};
 

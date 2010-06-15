@@ -21,7 +21,7 @@ class ball_filter : public registerable<ball_filter> {
 		 *
 		 * \return The correct position of the ball.
 		 */
-		virtual point filter(const std::vector<std::pair<point, double> > &balls, friendly_team &friendly, enemy_team &enemy) = 0;
+		virtual point filter(const std::vector<std::pair<double, point> > &balls, friendly_team &friendly, enemy_team &enemy) = 0;
 
 	protected:
 		/**

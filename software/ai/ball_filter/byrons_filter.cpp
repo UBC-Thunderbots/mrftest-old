@@ -33,7 +33,7 @@ namespace {
 				circles.push_back(c);
 			}
 
-			point filter(const vector<pair<point, double> > &obs, friendly_team &friendly, enemy_team &enemy) {
+			point filter(const vector<pair<double, point> > &obs, friendly_team &, enemy_team &) {
 				point max_point;
 				double max_cert = -0.1;
 
@@ -44,9 +44,9 @@ namespace {
 				}
 				else {
 					for (unsigned int i = 0; i < obs.size(); i++) {
-						if (max_cert < obs[i].second) {
-							max_point = obs[i].first;
-							max_cert = obs[i].second;
+						if (max_cert < obs[i].first) {
+							max_point = obs[i].second;
+							max_cert = obs[i].first;
 						}
 					}
 
