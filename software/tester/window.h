@@ -3,6 +3,7 @@
 
 #include "tester/feedback.h"
 #include "tester/zeroable.h"
+#include "uicomponents/annunciator.h"
 #include "uicomponents/single_bot_combobox.h"
 #include "util/config.h"
 #include "xbee/client/drive.h"
@@ -49,6 +50,7 @@ class tester_window : public Gtk::Window {
 		Gtk::ToggleButton chicker_autokick;
 		Gtk::ToggleButton chicker_autochip;
 		light chicker_ready_light, lt3751_fault_light, chicker_low_fault_light, chicker_high_fault_light;
+		annunciator ann;
 
 		int key_snoop(Widget *, GdkEventKey *event);
 		void on_claim_toggled();

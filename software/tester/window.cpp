@@ -64,6 +64,8 @@ tester_window::tester_window(xbee_lowlevel &modem, const config &conf) : modem(m
 	chicker_frame.add(chicker_box);
 	vbox.pack_start(chicker_frame, Gtk::PACK_SHRINK);
 
+	vbox.pack_start(ann, Gtk::PACK_SHRINK);
+
 	add(vbox);
 
 	Gtk::Main::signal_key_snooper().connect(sigc::mem_fun(this, &tester_window::key_snoop));
