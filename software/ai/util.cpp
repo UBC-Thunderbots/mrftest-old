@@ -75,7 +75,7 @@ namespace ai_util {
 		// if the passee is not facing the ball, forget it
 		const point ray = ball->position() - passee->position();
 		if (angle_diff(ray.orientation(), passee->orientation()) > ORI_PASS_CLOSE) {
-			std::cerr << " angle diff = " << angle_diff(ray.orientation(), passee->orientation()) << std::endl; 
+			// std::cout << "ai_util: angle diff = " << angle_diff(ray.orientation(), passee->orientation()) << std::endl; 
 			return false;
 		}
 		// if(!path_check(ball->position(), passee->position(), w->enemy.get_robots(), SHOOT_ALLOWANCE + robot::MAX_RADIUS + ball::RADIUS)) return false;
@@ -152,7 +152,7 @@ namespace ai_util {
 		return angle_sweep_circles(p, p1, p2, obstacles, robot::MAX_RADIUS);
 	}
 
-	double calc_goal_visibility_angle(const world::ptr w, const player::ptr pl, const bool consider_friendly) {
+	std::pair<point, double> calc_best_shot(const world::ptr w, const player::ptr pl, const bool consider_friendly) {
 		std::vector<point> obstacles;
 		const enemy_team &enemy(w->enemy);
 		for (size_t i = 0; i < enemy.size(); ++i) {
@@ -166,7 +166,11 @@ namespace ai_util {
 				obstacles.push_back(fpl->position());
 			}
 		}
-		return calc_best_shot(w->field(), obstacles, pl->position()).second;
+		return calc_best_shot(w->field(), obstacles, pl->position());
+	}
+
+	double calc_goal_visibility_angle(const world::ptr w, const player::ptr pl, const bool consider_friendly) {
+		return calc_best_shot(w, pl, consider_friendly).second;
 	}
 
 	std::vector<player::ptr> get_friends(const friendly_team& friendly, const std::vector<player::ptr>& exclude) {
@@ -180,19 +184,27 @@ namespace ai_util {
 	}
 
 	int choose_best_pass(const world::ptr w, const std::vector<player::ptr>& friends) {
-		double neardist = 1e99;
-		int nearidx = -1;
+		double bestangle = 0;
+		double bestdist = 1e99;
+		int bestidx = -1;
 		for (size_t i = 0; i < friends.size(); ++i) {
 			// see if this player is on line of sight
 			if (!ai_util::can_receive(w, friends[i])) continue;
 			// choose the most favourable distance
 			const double dist = (friends[i]->position() - w->ball()->position()).len();
-			if (nearidx == -1 || dist < neardist) {
-				neardist = dist;
-				nearidx = i;
+			const double angle = calc_goal_visibility_angle(w, friends[i]);
+			if (bestidx == -1 || angle > bestangle || (angle == bestangle && dist < bestdist)) {
+				bestangle = angle;
+				bestdist = dist;
+				bestidx = i;
 			}
 		}
-		return nearidx;
+		return bestidx;
+	}
+
+	point find_random_shoot_position(const world::ptr w) {
+#warning TODO
+		return w->field().enemy_goal();
 	}
 
 	bool has_ball(const player::ptr pl) {

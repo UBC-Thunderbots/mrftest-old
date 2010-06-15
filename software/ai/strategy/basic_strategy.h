@@ -30,7 +30,19 @@ class basic_strategy : public strategy {
 		 * Assign players when playtype is play.
 		 * This can be overriden for more complex intelligence.
 		 */
-		virtual void in_play_assignment();
+		void in_play_assignment();
+
+		/**
+		 * Assign players when playtype is play.
+		 * This can be overriden for more complex intelligence.
+		 * If there is no player, returns a null refpointer and do nothing.
+		 * If there is only one player, returns that player.
+		 * Otherwise,
+		 * Assigns players as per normal playtype.
+		 * But leave out one offender, so that it can be used for other things like
+		 * free kicks.
+		 */
+		player::ptr minus_one_assignment();
 
 		/**
 		 * Amount of ticks per update.
@@ -45,7 +57,6 @@ class basic_strategy : public strategy {
 		 */
 		std::vector<role::ptr> roles;
 
-	private:
 		const world::ptr the_world;
 		int update_wait;
 };

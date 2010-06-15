@@ -226,7 +226,7 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 					double angle = ai_util::calc_goal_visibility_angle(the_world, the_robots[j], false);
 					std::cout << " j=" << j << " angle=" << (angle * 180.0 / M_PI) << std::endl;
 					// the baller has more importance
-					if (j == baller) angle *= 1.5;
+					if (j == baller) angle *= 10.0;
 					if (shooter == -1 || angle > shooterangle) {
 						shooter = j;
 						shooterangle = angle;

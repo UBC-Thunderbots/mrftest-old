@@ -58,13 +58,13 @@ void shoot::tick() {
 		if (angle_diff(diffangle, the_player->orientation()) < bestshot.second / 2) {
 			// kick realy really hard
 			if (the_player->chicker_ready_time() == 0) {
-				std::cout << "shoot: kick to goal" << std::endl;
+				std::cout << "shoot: kick" << std::endl;
 				the_player->kick(1.0);
 			} else {
 				std::cout << "shoot: chicker not ready" << std::endl;
 			}
 		} else {
-			std::cout << "shoot: aim to goal" << std::endl;
+			std::cout << "shoot: aiming" << std::endl;
 		}
 
 		move_tactic.set_flags(flags);

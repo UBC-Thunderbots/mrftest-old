@@ -86,11 +86,11 @@ class player : public robot {
 		void chip(double power);
 
 		/**
-		 * \return true if the player senses the ball.
+		 * \return the number of consecutive times the robot's dribbler sense the ball.
 		 * WARNING!!! This can be a false positive,
 		 * especially if the dribbler is spinning up or down.
 		 */
-		bool sense_ball() const {
+		int sense_ball() const {
 			return sense_ball_;
 		}
 
@@ -178,7 +178,7 @@ class player : public robot {
 		bool moved;
 		int new_dribble_power;
 		int old_dribble_power;
-		bool sense_ball_;
+		int sense_ball_;
 		bool dribble_stall;
 		unsigned int theory_dribble_rpm;
 		timespec sense_ball_start, sense_ball_end, stall_start, recover_time_start, chicker_last_fire_time;

@@ -15,7 +15,8 @@ namespace {
 	const unsigned int DRIBBLE_RECOVER_TIME = 1000;
 	const unsigned int CHICKER_MIN_INTERVAL = 10000;
 
-	const double HAS_BALL_TIME = 1.0 / 15.0;
+	//const double HAS_BALL_TIME = 2.0 / 15.0;
+	const int HAS_BALL_TIME = 3;
 
 	unsigned int kicker_power_to_pulse_width(double power) {
 		static const unsigned int MAX_PULSE_WIDTH = 511;
@@ -184,7 +185,8 @@ bool player::dribbler_safe() const {
 }
 
 bool player::has_ball() const {
-	return sense_ball() && sense_ball_time() >= HAS_BALL_TIME;
+	return sense_ball() >= HAS_BALL_TIME;
+	// return sense_ball() && sense_ball_time() >= HAS_BALL_TIME;
 }
 
 player::state::ptr player::get_state(const std::type_info &tid) const {
@@ -283,10 +285,13 @@ void player::on_feedback() {
 	unsigned int threshold_speed = static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED * DRIBBLER_HAS_BALL_LOAD_FACTOR);
 	bool new_sense_ball = bot->dribbler_speed() < threshold_speed;
 	if (new_sense_ball) {
+		++sense_ball_;
 		timespec_now(sense_ball_end);
 		if (!sense_ball_) {
 			timespec_now(sense_ball_start);
 		}
+	} else {
+		sense_ball_ = 0;
 	}
 
 	bool stall = (theory_dribble_rpm > 0) && (bot->dribbler_speed() < 50);

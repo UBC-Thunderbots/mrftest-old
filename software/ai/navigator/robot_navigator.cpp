@@ -9,7 +9,7 @@
 namespace {
 
 #warning magic constants
-	const double AVOID_MULT = 2.0;
+	const double AVOID_MULT = 5.0;
 	const double AVOID_CONST = 1.1;
 	const double ROTATION_THRESH = 100.0 * M_PI / 180.0;
 	const double ROTATION_STEP = 1.0 * M_PI / 180.0;

@@ -126,6 +126,7 @@ namespace ai_util {
 	 * score is 0 if the point is invalid.
 	 */
 	std::pair<point, double> calc_best_shot(const field& f, const std::vector<point>& obstacles, const point& p);
+	std::pair<point, double> calc_best_shot(const world::ptr w, const player::ptr pl, const bool consider_friendly = true);
 
 	/**
 	 * Returns the length of the largest continuous interval (angle-wise)
