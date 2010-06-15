@@ -7,6 +7,14 @@
 
 namespace {
 	const double STANDBY_DIST = 0.2;
+
+	class goalie_state : public player::state {
+		public:
+			typedef Glib::RefPtr<goalie_state> ptr;
+	  goalie_state(bool is_goal):is_goalie(is_goal){
+			}
+	  bool is_goalie;
+	};
 }
 
 goalie::goalie(world::ptr world) : the_world(world) {
