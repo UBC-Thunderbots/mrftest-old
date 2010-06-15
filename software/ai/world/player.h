@@ -69,11 +69,9 @@ class player : public robot {
 		void dribble(double speed);
 
 		/**
-		 * Checks whether or not the chicker is ready to use.
-		 *
-		 * \return \c true if the chicker is fully charged, or \c false if not.
+		 * \return the number of milliseconds until the chicker is ready to use.
 		 */
-		bool chicker_ready() const;
+		unsigned int chicker_ready_time() const;
 
 		/**
 		 * Fires the kicker.
@@ -183,7 +181,7 @@ class player : public robot {
 		bool sense_ball_;
 		bool dribble_stall;
 		unsigned int theory_dribble_rpm;
-		timespec sense_ball_start, sense_ball_end, stall_start, recover_time_start;
+		timespec sense_ball_start, sense_ball_end, stall_start, recover_time_start, chicker_last_fire_time;
 		double dribble_distance_;
 		point last_dribble_position;
 		std::map<const std::type_info *, state::ptr, bool (*)(const std::type_info *, const std::type_info *)> state_store;

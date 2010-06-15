@@ -57,7 +57,7 @@ void shoot::tick() {
 		// check if the goal is within shooting range. if so, kick
 		if (angle_diff(diffangle, the_player->orientation()) < bestshot.second / 2) {
 			// kick realy really hard
-			if (the_player->chicker_ready()) {
+			if (the_player->chicker_ready_time() == 0) {
 				std::cout << "shoot: kick to goal" << std::endl;
 				the_player->kick(1.0);
 			} else {

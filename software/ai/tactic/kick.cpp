@@ -48,7 +48,7 @@ void kick::tick() {
 	
 	std::cout << "kick: shoot!" << std::endl;
 
-	if (the_player->chicker_ready()) {
+	if (the_player->chicker_ready_time() == 0) {
 		if (should_chip) {
 			the_player->chip(chip_strength);
 		} else {

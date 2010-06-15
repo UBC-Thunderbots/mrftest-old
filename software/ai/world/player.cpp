@@ -13,6 +13,7 @@ namespace {
 	const unsigned int BATTERY_CRITICAL_THRESHOLD = 12000;
 	const unsigned int MAX_DRIBBLE_STALL_MILLISECONDS = 2000;
 	const unsigned int DRIBBLE_RECOVER_TIME = 1000;
+	const unsigned int CHICKER_MIN_INTERVAL = 10000;
 
 	const double HAS_BALL_TIME = 1.0 / 15.0;
 
@@ -93,18 +94,33 @@ void player::dribble(double speed) {
 	new_dribble_power = clamp(static_cast<int>(speed * 1023.0 + 0.5), 0, 1023);
 }
 
-bool player::chicker_ready() const {
-	return bot->chicker_ready();
+unsigned int player::chicker_ready_time() const {
+	timespec now;
+	timespec_now(now);
+	timespec diff;
+	timespec_sub(now, chicker_last_fire_time, diff);
+	unsigned int millis = diff.tv_sec * 1000 + diff.tv_nsec / 1000000;
+	if (millis < CHICKER_MIN_INTERVAL) {
+		return CHICKER_MIN_INTERVAL - millis;
+	} else if (!bot->alive()) {
+		return 1000;
+	} else if (!bot->chicker_ready()) {
+		return 1000;
+	} else {
+		return 0;
+	}
 }
 
 void player::kick(double power) {
 	std::cout << name << " kick(" << power << ")\n";
 	if (bot->alive()) {
-		unsigned int width = kicker_power_to_pulse_width(power);
-		if (width > 0) {
-			bot->kick(width);
-		}
-		if (!bot->chicker_ready()) {
+		if (!chicker_ready_time()) {
+			unsigned int width = kicker_power_to_pulse_width(power);
+			if (width > 0) {
+				bot->kick(width);
+			}
+			timespec_now(chicker_last_fire_time);
+		} else {
 			chick_when_not_ready_message.activate(true);
 		}
 	}
@@ -113,11 +129,13 @@ void player::kick(double power) {
 void player::chip(double power) {
 	std::cout << name << " chip(" << power << ")\n";
 	if (bot->alive()) {
-		unsigned int width = chipper_power_to_pulse_width(power);
-		if (width > 0) {
-			bot->chip(width);
-		}
-		if (!bot->chicker_ready()) {
+		if (!chicker_ready_time()) {
+			unsigned int width = chipper_power_to_pulse_width(power);
+			if (width > 0) {
+				bot->chip(width);
+			}
+			timespec_now(chicker_last_fire_time);
+		} else {
 			chick_when_not_ready_message.activate(true);
 		}
 	}
@@ -189,7 +207,10 @@ player::ptr player::create(const Glib::ustring &name, bool yellow, unsigned int 
 
 player::player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), name(name), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(false), theory_dribble_rpm(0), dribble_distance_(0.0), state_store(&compare_type_infos), not_moved_message(Glib::ustring::compose("%1 not moved", name)), chick_when_not_ready_message(Glib::ustring::compose("%1 chick when not ready", name)) {
 	bot->signal_feedback.connect(sigc::mem_fun(this, &player::on_feedback));
-	timespec_now(sense_ball_end);
+	timespec now;
+	timespec_now(now);
+	sense_ball_end = now;
+	chicker_last_fire_time = now;
 }
 
 void player::tick(bool scram) {
