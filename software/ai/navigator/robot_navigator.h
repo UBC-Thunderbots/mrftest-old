@@ -71,7 +71,9 @@ class robot_navigator : public noncopyable {
 		double get_avoidance_factor() const;
 
 		point clip_circle(point circle_centre, double circle_radius, point dst);
-
+		
+		// clip the field boundries 
+		point clip_playing_area(point wantdest);
 		const player::ptr the_player;
 		const world::ptr the_world;
 

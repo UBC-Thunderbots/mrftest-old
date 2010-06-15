@@ -17,6 +17,7 @@ namespace {
 
 // as required by the rules
   const double AVOID_BALL_AMOUNT = 0.5 + robot::MAX_RADIUS;
+  //
 
 // hardware dependent dribble parameters
 	const double DRIBBLE_SPEED_LOW  = 0.15;
@@ -132,6 +133,10 @@ point robot_navigator::clip_circle(point circle_centre, double circle_radius, po
 
 }
 
+point robot_navigator::clip_playing_area(point wantdest){
+	const field &the_field(the_world->field());
+   return  clip_point(wantdest, point(-the_field.length()/2 + the_field.bounds_margin(), -the_field.width()/2 + the_field.bounds_margin()), point(the_field.length()/2 - the_field.bounds_margin(), the_field.width()/2 - the_field.bounds_margin()));
+}
 
 point robot_navigator::get_inbounds_point(point dst){
 
@@ -143,14 +148,19 @@ point robot_navigator::get_inbounds_point(point dst){
 	point wantdest = dst;
 
 	if (flags & ai_flags::clip_play_area) {
-		wantdest = clip_point(target_position, point(-the_field.length()/2 + the_field.bounds_margin(), -the_field.width()/2 + the_field.bounds_margin()),
-				point(the_field.length()/2 - the_field.bounds_margin(), the_field.width()/2 - the_field.bounds_margin()));
+	  wantdest = clip_playing_area(wantdest);
 	}
+
 	if (flags & ai_flags::stay_own_half) {
 		wantdest.x =  std::min(wantdest.x, 0.0);
 	}
+
 	if (flags & ai_flags::avoid_ball_stop) {
+	  point before = wantdest;
 		wantdest = clip_circle(the_ball->position(), AVOID_BALL_AMOUNT, wantdest);
+		//don't go out of bounds in order to comply with the rules
+		//just move along in the direction away from the ball while not going out of bounds
+		wantdest = clip_playing_area(wantdest);
 	}
 
 	if (flags & ai_flags::avoid_friendly_defence) {
@@ -170,6 +180,14 @@ point robot_navigator::get_inbounds_point(point dst){
 	if (flags & ai_flags::penalty_kick_enemy) {
 
 	}
+
+	//make sure that we do not ram into the net posts
+	//allow for touching but do not have robots plow through goal net posts	
+	wantdest = clip_circle( the_field.friendly_goal_boundary().first, robot::MAX_RADIUS , wantdest);
+	wantdest = clip_circle( the_field.friendly_goal_boundary().second, robot::MAX_RADIUS , wantdest);
+	wantdest = clip_circle( the_field.enemy_goal_boundary().first, robot::MAX_RADIUS , wantdest);
+	wantdest = clip_circle( the_field.enemy_goal_boundary().second, robot::MAX_RADIUS , wantdest);
+
 	return wantdest;
 }
 
