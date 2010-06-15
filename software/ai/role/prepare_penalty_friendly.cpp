@@ -4,11 +4,11 @@ prepare_penalty_friendly::prepare_penalty_friendly(world::ptr world) : the_world
 	const field& the_field(world->field());
 
 	// Let the first robot to be always the shooter
-	ready_positions[0] = point(the_field.length() - PENALTY_MARK_LENGTH - robot::MAX_RADIUS, 0);
+	ready_positions[0] = point(0.5 * the_field.length() - PENALTY_MARK_LENGTH - robot::MAX_RADIUS, 0);
 		
 	// Let two robots be on the offensive, in case there is a rebound
-	ready_positions[1] = point(the_field.length() - RESTRICTED_ZONE_LENGTH - robot::MAX_RADIUS, -5 * robot::MAX_RADIUS);
-	ready_positions[2] = point(the_field.length() - RESTRICTED_ZONE_LENGTH - robot::MAX_RADIUS, 5 * robot::MAX_RADIUS);
+	ready_positions[1] = point(0.5 * the_field.length() - RESTRICTED_ZONE_LENGTH - robot::MAX_RADIUS, -5 * robot::MAX_RADIUS);
+	ready_positions[2] = point(0.5 * the_field.length() - RESTRICTED_ZONE_LENGTH - robot::MAX_RADIUS, 5 * robot::MAX_RADIUS);
 
 	ready_positions[3] = point(0, 0);
 }

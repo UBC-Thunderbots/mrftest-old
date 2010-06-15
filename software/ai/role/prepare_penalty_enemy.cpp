@@ -3,10 +3,10 @@
 prepare_penalty_enemy::prepare_penalty_enemy(world::ptr world) : the_world(world) {
 	const field& the_field(the_world->field());
 
-	standing_positions[0] = point(-the_field.length() + RESTRICTED_ZONE_LENGTH + robot::MAX_RADIUS, 5 * robot::MAX_RADIUS);
-	standing_positions[1] = point(-the_field.length() + RESTRICTED_ZONE_LENGTH + robot::MAX_RADIUS, 2 * robot::MAX_RADIUS);
-	standing_positions[2] = point(-the_field.length() + RESTRICTED_ZONE_LENGTH + robot::MAX_RADIUS, -2 * robot::MAX_RADIUS);
-	standing_positions[3] = point(-the_field.length() + RESTRICTED_ZONE_LENGTH + robot::MAX_RADIUS, -5 * robot::MAX_RADIUS);
+	standing_positions[0] = point(-0.5 * the_field.length() + RESTRICTED_ZONE_LENGTH + robot::MAX_RADIUS, 5 * robot::MAX_RADIUS);
+	standing_positions[1] = point(-0.5 * the_field.length() + RESTRICTED_ZONE_LENGTH + robot::MAX_RADIUS, 2 * robot::MAX_RADIUS);
+	standing_positions[2] = point(-0.5 * the_field.length() + RESTRICTED_ZONE_LENGTH + robot::MAX_RADIUS, -2 * robot::MAX_RADIUS);
+	standing_positions[3] = point(-0.5 * the_field.length() + RESTRICTED_ZONE_LENGTH + robot::MAX_RADIUS, -5 * robot::MAX_RADIUS);
 }
 
 void prepare_penalty_enemy::tick(){

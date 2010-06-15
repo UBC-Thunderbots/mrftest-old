@@ -3,8 +3,8 @@
 #include "ai/util.h"
 
 execute_penalty_enemy::execute_penalty_enemy(world::ptr world) : the_world(world), 
-	starting_position(-the_world->field().length(), -the_world->field().goal_width() + robot::MAX_RADIUS),
-	ending_position(-the_world->field().length(), the_world->field().goal_width() - robot::MAX_RADIUS) {
+	starting_position(-0.5 * the_world->field().length(), -0.5 * the_world->field().goal_width() + robot::MAX_RADIUS),
+	ending_position(-0.5 * the_world->field().length(), 0.5 * the_world->field().goal_width() - robot::MAX_RADIUS) {
 	should_patrol = true;
 	should_go_to_start = true;
 }
@@ -55,14 +55,14 @@ bool execute_penalty_enemy::detect_enemy_movement() {
 	
 	if (!the_shooter) {
 		const team& enemy = the_world->enemy;
-		const point the_goal(-the_world->field().length(),0);
+		const point the_goal(-0.5 * the_world->field().length(), 0);
 
 		std::vector<int> robots;
 
 		// gets the shooter by looking at the closest enemy robot
 		for (unsigned int i = 0; i < enemy.size(); ++i) {
 			robot::ptr robot = enemy.get_robot(i);
-			double dist = fabs(-the_world->field().length() - robot->position().x);
+			double dist = fabs(-0.5 * the_world->field().length() - robot->position().x);
 
 			if (dist >= PENALTY_MARK_LENGTH && dist <= RESTRICTED_ZONE_LENGTH) {
 				robots.push_back(i);
