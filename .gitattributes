@@ -47,14 +47,14 @@ software/ai/role/execute_penalty_friendly.cpp -text
 software/ai/role/execute_penalty_friendly.h -text
 software/ai/role/goalie.cpp -text
 software/ai/role/goalie.h -text
+software/ai/role/kickoff_friendly.cpp -text
+software/ai/role/kickoff_friendly.h -text
 software/ai/role/offensive.cpp -text
 software/ai/role/offensive.h -text
 software/ai/role/pit_stop.cpp -text
 software/ai/role/pit_stop.h -text
 software/ai/role/prepare_kickoff_enemy.cpp -text
 software/ai/role/prepare_kickoff_enemy.h -text
-software/ai/role/prepare_kickoff_friendly.cpp -text
-software/ai/role/prepare_kickoff_friendly.h -text
 software/ai/role/prepare_penalty_enemy.cpp -text
 software/ai/role/prepare_penalty_enemy.h -text
 software/ai/role/prepare_penalty_friendly.cpp -text

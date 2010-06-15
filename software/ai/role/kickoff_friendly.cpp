@@ -1,4 +1,4 @@
-#include "ai/role/prepare_kickoff_friendly.h"
+#include "ai/role/kickoff_friendly.h"
 #include <cmath>
 #include "ai/tactic/move.h"
 #include "ai/flags.h"
