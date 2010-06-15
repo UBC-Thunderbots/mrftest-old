@@ -3,6 +3,7 @@
 
 #include "uicomponents/annunciator.h"
 #include "util/byref.h"
+#include "util/time.h"
 #include "xbee/client/packet.h"
 #include "xbee/shared/packettypes.h"
 #include <cstddef>
@@ -220,12 +221,14 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 		uint8_t inbound_rssi_;
 		unsigned int success_rate_;
 		timespec low_battery_start_time, lt3751_fault_start_time;
-		annunciator::message low_battery_message, lt3751_fault_message, chicker_low_fault_message, chicker_high_fault_message;
+		annunciator::message low_battery_message, lt3751_fault_message, chicker_low_fault_message, chicker_high_fault_message, chicker_charge_timeout_message;
+		timeout chicker_charge_timeout;
 
 		xbee_drive_bot(const Glib::ustring &name, uint64_t address, xbee_lowlevel &ll);
 		~xbee_drive_bot();
 		void on_meta(const void *, std::size_t);
 		void clear_chick();
+		void on_chicker_charge_timeout();
 };
 
 #endif

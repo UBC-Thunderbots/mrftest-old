@@ -2,6 +2,7 @@
 #define UTIL_TIME_H
 
 #include <ctime>
+#include <sigc++/sigc++.h>
 #include <stdexcept>
 
 namespace {
@@ -86,6 +87,47 @@ namespace {
 		return ts.tv_sec * 1000U + ts.tv_nsec / 1000000U;
 	}
 }
+
+/**
+ * A timer that fires a certain length of time after it is started.
+ */
+class timeout : public sigc::trackable {
+	public:
+		/**
+		 * Constructs a new timeout.
+		 *
+		 * \param[in] period the period of the timeout in milliseconds.
+		 */
+		timeout(unsigned int period);
+
+		/**
+		 * Destroys the timeout.
+		 */
+		~timeout();
+
+		/**
+		 * Starts the timeout. After the period, the signal will fire. If the
+		 * timeout is already running, this function does nothing.
+		 */
+		void start();
+
+		/**
+		 * Stops the timeout. The signal will not fire until after another call
+		 * to start().
+		 */
+		void stop();
+
+		/**
+		 * Fired when the timeout expires. The timeout stops when it expires.
+		 */
+		mutable sigc::signal<void> signal_expired;
+
+	private:
+		const unsigned int period;
+		sigc::connection conn;
+
+		bool on_tick();
+};
 
 #endif
 

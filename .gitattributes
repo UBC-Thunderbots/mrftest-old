@@ -328,6 +328,7 @@ software/util/sockaddrs.cpp -text
 software/util/sockaddrs.h -text
 software/util/stochastic_local_search.cpp -text
 software/util/stochastic_local_search.h -text
+software/util/time.cpp -text
 software/util/time.h -text
 software/util/timestep.h -text
 software/util/xbee.cpp -text
