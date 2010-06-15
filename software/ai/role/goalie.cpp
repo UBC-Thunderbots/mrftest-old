@@ -2,6 +2,7 @@
 #include "ai/role/goalie.h"
 #include "ai/tactic/move.h"
 #include "ai/tactic/pass.h"
+#include "ai/tactic/chase.h"
 
 #include <iostream>
 
@@ -59,35 +60,43 @@ void goalie::tick() {
 #warning the goalie cant hold the ball for too long, it should chip somewhere very randomly
 
 	} else {*/
-	
-		// Generic defence. // author: Koko
-		const point default_pos = point( -0.5 * the_world->field().length() + the_world->field().defense_area_radius(), 0);
-		const point centre_of_goal = point( -0.5*the_world->field().length(), 0);
-		const int field_width = the_world->field().width();
-		const double goal_width = the_world->field().goal_width();
+	point ball_velocity = the_world->ball()->est_velocity();
+	if( ball_velocity.x > ai_util::VEL_CLOSE && ball_velocity.y > ai_util::VEL_CLOSE )
+	{
+		// Generic defense. // author: Koko
+		const point default_pos = point( -0.5 * the_world->field().length() + the_world->field().defense_area_radius(), 0 );
+		const point centre_of_goal = point( -0.5 * the_world->field().length(), 0 );
+		const double defense_width = the_world->field().defense_area_stretch() + the_world->field().defense_area_radius() * 2;
 		point ball_position = the_world->ball()->position();
-		point ball_velocity = the_world->ball()->est_velocity();
-		double reach;
+		ball_velocity = the_world->ball()->est_velocity();
+		double reach = 0.0 ;
+		point tempPoint;
 		if( ball_velocity.x > ai_util::VEL_CLOSE )
+		{
 			reach = ( default_pos.x - ball_position.x ) / ball_velocity.x;
-		point tempPoint = point( default_pos.x, ball_position.y + reach * ball_velocity.y );
+			tempPoint = point( default_pos.x, ball_position.y + reach * ball_velocity.y );
+		}
+		else
+		{
+			tempPoint = default_pos;
+		}
 		move move_tactic(me, the_world);
 		//printf( "ball velocity: %lf, %lf \n", ball_velocity.x, ball_velocity.y );
 		//printf( "stay at: %lf, %lf \n", tempPoint.x, tempPoint.y);
-		if( tempPoint.y < goal_width/2 && tempPoint.y > -goal_width/2 )
+		if( tempPoint.y < defense_width/2 && tempPoint.y > -defense_width/2 )
 		// move if ball move towards the goal
 		{
 			move_tactic.set_position(tempPoint);
 		}
 		else
 		{
-			move_tactic.set_position(me->position());
+			move_tactic.set_position(default_pos);
 		}
 		move_tactic.set_flags(flags);
 		move_tactic.tick();
 		
 		
-		/*// Generic defence. older version
+		/*// Generic defense. older version
 		const point default_pos = point(-0.45*the_world->field().length(), 0);
 		const point centre_of_goal = point(-0.5*the_world->field().length(), 0);
 		move move_tactic(me, the_world);
@@ -98,6 +107,18 @@ void goalie::tick() {
 		move_tactic.set_flags(flags);
 		move_tactic.tick();*/
 	//} 
+	}
+	else
+	{
+		point ball_position = the_world->ball()->position();
+		//const double defense_width = the_world->field().defense_area_stretch() + the_world->field().defense_area_radius() * 2;
+		if ( ai_util::ball_in_defense( the_world, ball_position ) )
+		{
+			chase whoosh (me, the_world);
+			whoosh.set_flags(flags);
+			whoosh.tick();
+		}
+	}
 }
 
 void goalie::robots_changed() {
