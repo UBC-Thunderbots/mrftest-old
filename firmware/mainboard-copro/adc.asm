@@ -27,11 +27,11 @@ ADC_ALIGN_LEFT equ 0
 ADC_ALIGN_RIGHT equ 1
 
 ; Divider is 220k and 2.2k.
-; Threshold for 0 is 1V: ADC reading = 1 / 222200 * 2200 / 3.3 * 1023 = 3
+; Threshold for 0 is 10V: ADC reading = 10 / 222200 * 2200 / 3.3 * 1023 = 31
 ; Threshold for 110V: ADC reading = 110 / 222200 * 2200 / 3.3 * 1023 = 338
 ; Threshold for 150V: ADC reading = 150 / 222200 * 2200 / 3.3 * 1023 = 460
 ; Threshold for 200V: ADC reading = 200 / 222200 * 2200 / 3.3 * 1023 = 614
-CHICKER0_THRESHOLD equ 3
+CHICKER0_THRESHOLD equ 31
 CHICKER110_THRESHOLD equ 338
 CHICKER150_THRESHOLD equ 460
 CHICKER200_THRESHOLD equ 614
