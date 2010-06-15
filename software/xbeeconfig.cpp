@@ -1,4 +1,5 @@
 #include "util/config.h"
+#include "util/time.h"
 #include <iomanip>
 #include <iostream>
 #include <locale>
@@ -54,7 +55,7 @@ namespace {
 
 	bool read_messy_ok(int fd) {
 		timespec end_time, cur_time;
-		if (clock_gettime(CLOCK_MONOTONIC, &end_time) < 0) {std::perror("clock_gettime"); std::exit(1);}
+		timespec_now(end_time);
 		end_time.tv_sec++;
 
 		bool seen_O = false;
@@ -63,7 +64,7 @@ namespace {
 			char ch;
 			int rc;
 
-			if (clock_gettime(CLOCK_MONOTONIC, &cur_time) < 0) {std::perror("clock_gettime"); std::exit(1);}
+			timespec_now(cur_time);
 			if (cur_time.tv_sec > end_time.tv_sec || (cur_time.tv_sec == end_time.tv_sec && cur_time.tv_nsec > end_time.tv_nsec)) return false;
 			rc = read(fd, &ch, 1);
 			if (rc < 0) {std::perror("read"); std::exit(1);}
@@ -86,7 +87,7 @@ namespace {
 
 	std::string read_line(int fd) {
 		timespec end_time, cur_time;
-		if (clock_gettime(CLOCK_MONOTONIC, &end_time) < 0) {std::perror("clock_gettime"); std::exit(1);}
+		timespec_now(end_time);
 		end_time.tv_sec++;
 
 		std::string line;
@@ -94,7 +95,7 @@ namespace {
 			char ch;
 			int rc;
 
-			if (clock_gettime(CLOCK_MONOTONIC, &cur_time) < 0) {std::perror("clock_gettime"); std::exit(1);}
+			timespec_now(cur_time);
 			if (cur_time.tv_sec > end_time.tv_sec || (cur_time.tv_sec == end_time.tv_sec && cur_time.tv_nsec > end_time.tv_nsec)) return "";
 			rc = read(fd, &ch, 1);
 			if (rc < 0) {std::perror("read"); std::exit(1);}

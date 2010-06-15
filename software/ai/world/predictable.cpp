@@ -115,7 +115,7 @@ void predictable::add_prediction_datum(const point &pos, double orient) {
 	buildgeneralleastsquares(thistory, weights, fmatrix, NUM_OLD_POSITIONS, MAX_DEGREE + 1, approxt);
 
 	// Stamp.
-	clock_gettime(CLOCK_MONOTONIC, &last_datum_timestamp);
+	timespec_now(last_datum_timestamp);
 }
 
 void predictable::clear_prediction(const point &pos, double orient) {

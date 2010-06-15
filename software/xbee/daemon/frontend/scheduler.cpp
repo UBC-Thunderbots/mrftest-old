@@ -23,7 +23,7 @@ scheduler::scheduler(class daemon &daemon) : daemon(daemon), sent_count(0), next
 	daemon.backend.signal_received.connect(sigc::mem_fun(this, &scheduler::on_receive));
 	daemon.shm->run_data_interval.tv_sec = 1;
 	daemon.shm->run_data_interval.tv_nsec = 0;
-	clock_gettime(CLOCK_MONOTONIC, &last_rundata_timestamp);
+	timespec_now(last_rundata_timestamp);
 }
 
 void scheduler::queue(request::ptr req) {

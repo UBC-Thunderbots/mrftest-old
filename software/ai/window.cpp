@@ -143,7 +143,7 @@ namespace {
 					v.init(feedback_interval_column.type());
 					if (bots[row]->alive()) {
 						const timespec &ts(bots[row]->feedback_interval());
-						unsigned int ms = ts.tv_sec * 1000U + ts.tv_nsec / 1000000U;
+						unsigned int ms = timespec_to_millis(ts);
 						v.set(ms);
 					} else {
 						v.set(0);
@@ -155,7 +155,7 @@ namespace {
 					v.init(run_data_interval_column.type());
 					if (bots[row]->alive()) {
 						const timespec &ts(bots[row]->run_data_interval());
-						unsigned int ms = ts.tv_sec * 1000U + ts.tv_nsec / 1000000U;
+						unsigned int ms = timespec_to_millis(ts);
 						v.set(ms);
 					} else {
 						v.set(0);

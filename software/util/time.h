@@ -7,7 +7,8 @@
 namespace {
 	/**
 	 * Gets the current time into a timespec.
-	 * \param result the location at which to store the current time
+	 *
+	 * \param[out] result the location at which to store the current time.
 	 */
 	void timespec_now(timespec *result) {
 		if (clock_gettime(CLOCK_MONOTONIC, result) < 0) {
@@ -17,7 +18,8 @@ namespace {
 
 	/**
 	 * Gets the current time into a timespec.
-	 * \param result the location at which to store the current time
+	 *
+	 * \param[out] result the location at which to store the current time.
 	 */
 	void timespec_now(timespec &result) {
 		timespec_now(&result);
@@ -25,9 +27,12 @@ namespace {
 
 	/**
 	 * Subtracts a pair of timespecs.
-	 * \param ts1 the first timespec
-	 * \param ts2 the second timespec
-	 * \param result a location at which to store the value of ts1 - ts2
+	 *
+	 * \param[in] ts1 the first timespec.
+	 *
+	 * \param[in] ts2 the second timespec.
+	 *
+	 * \param[out] result a location at which to store the value of ts1 - ts2.
 	 */
 	void timespec_sub(const timespec &ts1, const timespec &ts2, timespec &result) {
 		if (ts1.tv_nsec >= ts2.tv_nsec) {
@@ -41,9 +46,12 @@ namespace {
 
 	/**
 	 * Compares a pair of timespecs.
-	 * \param ts1 the first timespec
-	 * \param ts2 the second timespec
-	 * \return A positive value if ts1 > ts2, a negative value if ts1 < ts2, or
+	 *
+	 * \param ts1 the first timespec.
+	 *
+	 * \param ts2 the second timespec.
+	 *
+	 * \return a positive value if ts1 > ts2, a negative value if ts1 < ts2, or
 	 * zero of ts1 = ts2.
 	 */
 	int timespec_cmp(const timespec &ts1, const timespec &ts2) {
@@ -58,11 +66,24 @@ namespace {
 
 	/**
 	 * Converts a timespec to a double-precision count of seconds.
-	 * \param ts the timespec to convert
-	 * \return The number of seconds represented by ts
+	 *
+	 * \param[in] ts the timespec to convert.
+	 *
+	 * \return the number of seconds represented by ts.
 	 */
 	double timespec_to_double(const timespec &ts) {
 		return ts.tv_sec + ts.tv_nsec / 1000000000.0;
+	}
+
+	/**
+	 * Converts a timespec to an integer count of milliseconds.
+	 *
+	 * \param[in] ts the timespec to convert.
+	 *
+	 * \return the number of milliseconds represented by ts.
+	 */
+	unsigned int timespec_to_millis(const timespec &ts) {
+		return ts.tv_sec * 1000U + ts.tv_nsec / 1000000U;
 	}
 }
 
