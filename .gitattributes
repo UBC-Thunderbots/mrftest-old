@@ -73,17 +73,11 @@ software/ai/role/victory_dance.h -text
 software/ai/strategy/basic_strategy.cpp -text
 software/ai/strategy/basic_strategy.h -text
 software/ai/strategy/chase_strategy.cpp -text
-software/ai/strategy/defensive_strategy.cpp -text
 software/ai/strategy/hand_tuning.cpp -text
-software/ai/strategy/kenneth_simple_strategy.cpp -text
 software/ai/strategy/mech_tuning.cpp -text
 software/ai/strategy/movement_benchmark.cpp -text
 software/ai/strategy/movement_benchmark.h -text
-software/ai/strategy/offensive_strategy.cpp -text
 software/ai/strategy/param_tuning.cpp -text
-software/ai/strategy/simple_strategy1.cpp -text
-software/ai/strategy/simu_test_strategy.cpp -text
-software/ai/strategy/simu_test_strategy.h -text
 software/ai/strategy/strategy.h -text
 software/ai/strategy/test_defensive_strategy.cpp -text
 software/ai/strategy/test_offensive_strategy.cpp -text
