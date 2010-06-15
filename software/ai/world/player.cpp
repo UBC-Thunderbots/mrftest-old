@@ -102,7 +102,7 @@ unsigned int player::chicker_ready_time() const {
 	timespec_now(now);
 	timespec diff;
 	timespec_sub(now, chicker_last_fire_time, diff);
-	unsigned int millis = diff.tv_sec * 1000 + diff.tv_nsec / 1000000;
+	unsigned int millis = timespec_to_millis(diff);
 	if (millis < CHICKER_MIN_INTERVAL) {
 		return CHICKER_MIN_INTERVAL - millis;
 	} else if (!bot->alive()) {
@@ -215,7 +215,8 @@ player::player(const Glib::ustring &name, bool yellow, unsigned int pattern_inde
 	timespec_now(now);
 	sense_ball_end = now;
 	sense_ball_start = now;
-	chicker_last_fire_time = now;
+	chicker_last_fire_time.tv_sec = 0;
+	chicker_last_fire_time.tv_nsec = 0;
 }
 
 void player::tick(bool scram) {
