@@ -56,7 +56,7 @@ namespace {
 	};
 }
 
-config::config() {
+config::config() : channel_(0x0E) {
 	// Find filename.
 	const Glib::ustring &config_dir = Glib::get_user_config_dir();
 	const std::string &file_path = Glib::filename_from_utf8(config_dir + "/thunderbots/config.dat");
