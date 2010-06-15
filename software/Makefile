@@ -53,6 +53,12 @@ world : $(PROJECTS)
 .SILENT :
 
 #
+# Build the documentation.
+#
+doc :
+	doxygen
+
+#
 # Template of code to generate for each project.
 #
 define project_template
