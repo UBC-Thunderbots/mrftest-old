@@ -93,5 +93,7 @@ namespace {
 				}
 			}
 	};
+
+	chris_filter instance;
 }
 
