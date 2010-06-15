@@ -162,6 +162,13 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 		 */
 		bool chicker_high_faulted() const;
 
+		/**
+		 * \return \c true if the chicker charger timed out waiting for the
+		 * LT3751 to signal completion of the charge process, or \c false if
+		 * not.
+		 */
+		bool chicker_timed_out() const;
+
 		//
 		// Prevents the robot from being scrammed by a timeout, without actually
 		// affecting the current drive parameters.
@@ -222,13 +229,11 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 		unsigned int success_rate_;
 		timespec low_battery_start_time, lt3751_fault_start_time;
 		annunciator::message low_battery_message, lt3751_fault_message, chicker_low_fault_message, chicker_high_fault_message, chicker_charge_timeout_message;
-		timeout chicker_charge_timeout;
 
 		xbee_drive_bot(const Glib::ustring &name, uint64_t address, xbee_lowlevel &ll);
 		~xbee_drive_bot();
 		void on_meta(const void *, std::size_t);
 		void clear_chick();
-		void on_chicker_charge_timeout();
 };
 
 #endif

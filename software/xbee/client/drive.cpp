@@ -21,13 +21,12 @@ namespace {
 	}
 }
 
-xbee_drive_bot::xbee_drive_bot(const Glib::ustring &name, uint64_t address, xbee_lowlevel &ll) : address(address), ll(ll), alive_(false), shm_frame(0), low_battery_message(Glib::ustring::compose("%1 low battery", name)), lt3751_fault_message(Glib::ustring::compose("%1 LT3751 fault", name)), chicker_low_fault_message(Glib::ustring::compose("%1 chicker LOW fault", name)), chicker_high_fault_message(Glib::ustring::compose("%1 chicker HIGH fault", name)), chicker_charge_timeout_message(Glib::ustring::compose("%1 chicker charge timeout", name)), chicker_charge_timeout(CHICKER_CHARGE_TIMEOUT) {
+xbee_drive_bot::xbee_drive_bot(const Glib::ustring &name, uint64_t address, xbee_lowlevel &ll) : address(address), ll(ll), alive_(false), shm_frame(0), low_battery_message(Glib::ustring::compose("%1 low battery", name)), lt3751_fault_message(Glib::ustring::compose("%1 LT3751 fault", name)), chicker_low_fault_message(Glib::ustring::compose("%1 chicker LOW fault", name)), chicker_high_fault_message(Glib::ustring::compose("%1 chicker HIGH fault", name)), chicker_charge_timeout_message(Glib::ustring::compose("%1 chicker charge timeout", name)) {
 	timespec now;
 	timespec_now(now);
 	feedback_timestamp_ = now;
 	low_battery_start_time = now;
 	lt3751_fault_start_time = now;
-	chicker_charge_timeout.signal_expired.connect(sigc::mem_fun(this, &xbee_drive_bot::on_chicker_charge_timeout));
 	feedback_interval_.tv_sec = 0;
 	feedback_interval_.tv_nsec = 0;
 	run_data_interval_.tv_sec = 0;
@@ -97,6 +96,10 @@ bool xbee_drive_bot::chicker_high_faulted() const {
 	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_FAULT150);
 }
 
+bool xbee_drive_bot::chicker_timed_out() const {
+	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_TIMEOUT);
+}
+
 void xbee_drive_bot::stamp() {
 	assert(shm_frame);
 	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
@@ -150,11 +153,8 @@ void xbee_drive_bot::enable_chicker(bool enable) {
 	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
 	if (enable) {
 		shm_frame->run_data.flags |= xbeepacket::RUN_FLAG_CHICKER_ENABLED;
-		chicker_charge_timeout.start();
 	} else {
 		shm_frame->run_data.flags &= ~xbeepacket::RUN_FLAG_CHICKER_ENABLED;
-		chicker_charge_timeout.stop();
-		chicker_charge_timeout_message.activate(false);
 	}
 }
 
@@ -165,8 +165,6 @@ void xbee_drive_bot::kick(unsigned int width) {
 	shm_frame->run_data.flags &= ~xbeepacket::RUN_FLAG_CHIP;
 	shm_frame->run_data.chick_power = width;
 	Glib::signal_timeout().connect_once(sigc::mem_fun(this, &xbee_drive_bot::clear_chick), 250);
-	chicker_charge_timeout.stop();
-	chicker_charge_timeout.start();
 }
 
 void xbee_drive_bot::chip(unsigned int width) {
@@ -176,8 +174,6 @@ void xbee_drive_bot::chip(unsigned int width) {
 	shm_frame->run_data.flags |= xbeepacket::RUN_FLAG_CHIP;
 	shm_frame->run_data.chick_power = width;
 	Glib::signal_timeout().connect_once(sigc::mem_fun(this, &xbee_drive_bot::clear_chick), 250);
-	chicker_charge_timeout.stop();
-	chicker_charge_timeout.start();
 }
 
 void xbee_drive_bot::on_meta(const void *buffer, std::size_t length) {
@@ -207,9 +203,6 @@ void xbee_drive_bot::on_meta(const void *buffer, std::size_t length) {
 					shm_frame->run_data.flags |= xbeepacket::RUN_FLAG_RUNNING;
 					alive_ = true;
 					signal_alive.emit();
-					if (shm_frame->run_data.flags & xbeepacket::RUN_FLAG_CHICKER_ENABLED) {
-						chicker_charge_timeout.start();
-					}
 				}
 			}
 		} else if (metatype == xbeepacket::DEAD_METATYPE) {
@@ -218,8 +211,6 @@ void xbee_drive_bot::on_meta(const void *buffer, std::size_t length) {
 				if (packet.address == address) {
 					alive_ = false;
 					signal_dead.emit();
-					chicker_charge_timeout.stop();
-					chicker_charge_timeout_message.activate(false);
 				}
 			}
 		} else if (metatype == xbeepacket::FEEDBACK_METATYPE) {
@@ -266,11 +257,7 @@ void xbee_drive_bot::on_meta(const void *buffer, std::size_t length) {
 
 					chicker_low_fault_message.activate(chicker_low_faulted());
 					chicker_high_fault_message.activate(chicker_high_faulted());
-
-					if (chicker_ready()) {
-						chicker_charge_timeout.stop();
-						chicker_charge_timeout_message.activate(false);
-					}
+					chicker_charge_timeout_message.activate(chicker_timed_out());
 
 					signal_feedback.emit();
 				}
@@ -284,9 +271,5 @@ void xbee_drive_bot::clear_chick() {
 	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
 	shm_frame->run_data.flags &= ~xbeepacket::RUN_FLAG_CHIP;
 	shm_frame->run_data.chick_power = 0;
-}
-
-void xbee_drive_bot::on_chicker_charge_timeout() {
-	chicker_charge_timeout_message.activate(true);
 }
 
