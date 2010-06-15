@@ -55,6 +55,7 @@ world : $(PROJECTS)
 #
 # Build the documentation.
 #
+.PHONY : doc
 doc :
 	doxygen
 
