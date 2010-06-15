@@ -31,7 +31,7 @@ void goalie::tick() {
 
 	const player::ptr me = the_robots[0];
 
-	if (ai_util::posses_ball(the_world, me)) {
+/*	if (ai_util::posses_ball(the_world, me)) {
 		// TODO: check correctness
 		// Code copied from defensive role
 
@@ -58,7 +58,7 @@ void goalie::tick() {
 
 #warning the goalie cant hold the ball for too long, it should chip somewhere very randomly
 
-	} else {
+	} else {*/
 	
 		// Generic defence. // author: Koko
 		const point default_pos = point( -0.5 * the_world->field().length() + the_world->field().defense_area_radius(), 0);
@@ -96,7 +96,7 @@ void goalie::tick() {
 		move_tactic.set_position(tempPoint);
 		move_tactic.set_flags(flags);
 		move_tactic.tick();*/
-	} 
+	//} 
 }
 
 void goalie::robots_changed() {
