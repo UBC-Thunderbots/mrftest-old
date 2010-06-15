@@ -142,6 +142,7 @@ software/firmware/window.cpp -text
 software/firmware/window.h -text
 software/geom/angle.cpp -text
 software/geom/angle.h -text
+software/geom/point.cpp -text
 software/geom/point.h -text
 software/geom/rect.cpp -text
 software/geom/rect.h -text
