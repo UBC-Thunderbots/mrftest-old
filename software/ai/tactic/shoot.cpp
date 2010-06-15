@@ -28,7 +28,7 @@ void shoot::tick() {
 
 	const std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world->field(), obstacles, the_player->position());
 
-	if (ai_util::has_ball(the_player)) {
+	if (ai_util::has_ball(the_world, the_player)) {
 		// This player has the ball.
 
 		std::vector<point> obstacles;
@@ -71,7 +71,7 @@ void shoot::tick() {
 		move_tactic.tick();	
 	} else if (ai_util::posses_ball(the_world, the_player)) {
 
-		// std::cout << " chase ball close " << the_player->sense_ball_time() << std::endl;
+		std::cout << "shoot: lose ball? " << the_player->sense_ball_time() << std::endl;
 		// We have the ball right but somehow it was momentarily lost.
 		//chase chase_tactic(the_player, the_world);
 		//chase_tactic.set_flags(flags);

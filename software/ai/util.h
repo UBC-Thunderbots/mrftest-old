@@ -40,10 +40,10 @@ namespace ai_util {
 	static const double ORI_CLOSE = 5.0 / 180.0 * M_PI;
 
 	/**
-	 * Position epsilon.
-	 * Should be set to the accuracy of the image recognizition data.
+	 * Somewhat close.
+	 * As in, the ball touching the robot.
 	 */
-	static const double POS_CLOSE = robot::MAX_RADIUS / 4.0;
+	static const double POS_CLOSE = robot::MAX_RADIUS / 2.0;
 
 	/**
 	 * Really really really close.

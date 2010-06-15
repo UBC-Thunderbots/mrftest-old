@@ -208,53 +208,53 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 			}
 
 			// as for the robot with the ball, make the robot try to shoot the goal, or pass to someone
-			if (!the_robots[baller]->has_ball()) {
+			//if (!the_robots[baller]->has_ball()) {
 				// std::cout << "offensive: has no ball but posses, chase" << std::endl;
-				tactics[baller] = pivot::ptr(new pivot(the_robots[baller], the_world));
-			} else {
-				int shooter = -1;
-				double shooterangle = 0;
+				//tactics[baller] = pivot::ptr(new pivot(the_robots[baller], the_world));
+			//} else {
+			int shooter = -1;
+			double shooterangle = 0;
 
-				// We will try passing to another offensive robot,
-				// if there is a clear path to the passee and the passee has a clear path to the goal
-				for (size_t j = 0; j < the_robots.size(); ++j) {
-					if (static_cast<int>(j) != baller && !ai_util::can_receive(the_world, the_robots[j])) continue;
-					// if (ai_util::calc_best_shot(the_robots[j], the_world) == -1) continue;
-					// if (get_distance_from_goal(j) > the_world->field().length() / 2) continue;
+			// We will try passing to another offensive robot,
+			// if there is a clear path to the passee and the passee has a clear path to the goal
+			for (size_t j = 0; j < the_robots.size(); ++j) {
+				if (static_cast<int>(j) != baller && !ai_util::can_receive(the_world, the_robots[j])) continue;
+				// if (ai_util::calc_best_shot(the_robots[j], the_world) == -1) continue;
+				// if (get_distance_from_goal(j) > the_world->field().length() / 2) continue;
 
-					// TODO: create another weighting function
-					double angle = ai_util::calc_goal_visibility_angle(the_world, the_robots[j], false);
-					std::cout << " j=" << j << " angle=" << (angle * 180.0 / M_PI) << std::endl;
-					// the baller has more importance
-					if (j == baller) angle *= 10.0;
-					if (shooter == -1 || angle > shooterangle) {
-						shooter = j;
-						shooterangle = angle;
-					}
-				}
-
-				//if (overlay) overlay->move_to(the_robots[baller]->position().x, the_robots[baller]->position().y);
-
-				std::cout << "offensive: who to shoot " << shooter << std::endl;
-				if (shooter == baller) {
-					// i shall shoot
-					tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
-					//if (overlay) overlay->line_to(the_field.enemy_goal().x, the_field.enemy_goal().y);
-				} else if (shooter != -1) {
-					// found suitable passee, make a pass
-					tactics[baller] = pass::ptr(new pass(the_robots[baller], the_world, the_robots[shooter]));
-				} else if (get_distance_from_goal(baller) < the_world->field().length() / 6) {
-					// very close to goal, so try making a shot anyways
-					tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
-				} else {
-					// dribble towards the goal
-					//dribble::ptr dribble_tactic(new dribble(the_robots[baller], the_world));
-					//dribble_tactic->set_position(the_world->field().enemy_goal());
-					//tactics[baller] = dribble_tactic;
-					// i shall shoot
-					tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
+				// TODO: create another weighting function
+				double angle = ai_util::calc_goal_visibility_angle(the_world, the_robots[j], false);
+				// std::cout << " j=" << j << " angle=" << (angle * 180.0 / M_PI) << std::endl;
+				// the baller has more importance
+				if (j == baller) angle *= 10.0;
+				if (shooter == -1 || angle > shooterangle) {
+					shooter = j;
+					shooterangle = angle;
 				}
 			}
+
+			//if (overlay) overlay->move_to(the_robots[baller]->position().x, the_robots[baller]->position().y);
+
+			// std::cout << "offensive: who to shoot " << shooter << std::endl;
+			if (shooter == baller) {
+				// i shall shoot
+				tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
+				//if (overlay) overlay->line_to(the_field.enemy_goal().x, the_field.enemy_goal().y);
+			} else if (shooter != -1) {
+				// found suitable passee, make a pass
+				tactics[baller] = pass::ptr(new pass(the_robots[baller], the_world, the_robots[shooter]));
+			} else if (get_distance_from_goal(baller) < the_world->field().length() / 6) {
+				// very close to goal, so try making a shot anyways
+				tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
+			} else {
+				// dribble towards the goal
+				//dribble::ptr dribble_tactic(new dribble(the_robots[baller], the_world));
+				//dribble_tactic->set_position(the_world->field().enemy_goal());
+				//tactics[baller] = dribble_tactic;
+				// i shall shoot
+				tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
+			}
+			//}
 		} else {
 			// no one in this role has the ball
 			// prepare to receive some ball
@@ -291,7 +291,7 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 			++w;
 		}
 
-		// std::cout << "offensive: chase " << std::endl;
+		std::cout << "offensive: chase " << std::endl;
 		tactics[0] = pivot::ptr(new pivot(the_robots[0], the_world));
 		// no one has the ball
 		// just do chase for now

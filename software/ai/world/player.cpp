@@ -17,6 +17,8 @@ namespace {
 
 	//const double HAS_BALL_TIME = 2.0 / 15.0;
 	const int HAS_BALL_TIME = 3;
+	const int HAS_BALL_THRESH = 3;
+	const int HAS_BALL_SAMPLE = 5;
 
 	unsigned int kicker_power_to_pulse_width(double power) {
 		static const unsigned int MAX_PULSE_WIDTH = 511;
@@ -185,7 +187,7 @@ bool player::dribbler_safe() const {
 }
 
 bool player::has_ball() const {
-	return sense_ball() >= HAS_BALL_TIME;
+	return sense_ball_ >= HAS_BALL_TIME;
 	// return sense_ball() && sense_ball_time() >= HAS_BALL_TIME;
 }
 
@@ -207,11 +209,12 @@ player::ptr player::create(const Glib::ustring &name, bool yellow, unsigned int 
 	return p;
 }
 
-player::player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), name(name), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(false), theory_dribble_rpm(0), dribble_distance_(0.0), state_store(&compare_type_infos), not_moved_message(Glib::ustring::compose("%1 not moved", name)), chick_when_not_ready_message(Glib::ustring::compose("%1 chick when not ready", name)) {
+player::player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), name(name), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(0), theory_dribble_rpm(0), dribble_distance_(0.0), state_store(&compare_type_infos), not_moved_message(Glib::ustring::compose("%1 not moved", name)), chick_when_not_ready_message(Glib::ustring::compose("%1 chick when not ready", name)) {
 	bot->signal_feedback.connect(sigc::mem_fun(this, &player::on_feedback));
 	timespec now;
 	timespec_now(now);
 	sense_ball_end = now;
+	sense_ball_start = now;
 	chicker_last_fire_time = now;
 }
 
@@ -282,8 +285,8 @@ void player::tick(bool scram) {
 
 void player::on_feedback() {
 	theory_dribble_rpm =  static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED);
-	unsigned int threshold_speed = static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED * DRIBBLER_HAS_BALL_LOAD_FACTOR);
-	bool new_sense_ball = bot->dribbler_speed() < threshold_speed;
+	const unsigned int threshold_speed = static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED * DRIBBLER_HAS_BALL_LOAD_FACTOR);
+	const bool new_sense_ball = bot->dribbler_speed() < threshold_speed;
 	if (new_sense_ball) {
 		++sense_ball_;
 		timespec_now(sense_ball_end);
@@ -293,13 +296,13 @@ void player::on_feedback() {
 	} else {
 		sense_ball_ = 0;
 	}
+	// std::cout << "player: " << name << " sense_ball=" << sense_ball_ << std::endl;
 
-	bool stall = (theory_dribble_rpm > 0) && (bot->dribbler_speed() < 50);
+	const bool stall = (theory_dribble_rpm > 0) && (bot->dribbler_speed() < 50);
 	if (stall && !dribble_stall) {
 		timespec_now(stall_start);
 	}
 
 	dribble_stall = stall;
-	sense_ball_ = new_sense_ball;
 }
 

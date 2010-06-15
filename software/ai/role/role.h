@@ -53,6 +53,17 @@ class role2 : public byref, public sigc::trackable {
 		}
 		
 		/**
+		 * Sets the robots controlled by this role.
+		 *
+		 * \param[in] robots the robots the role should control.
+		 */
+		void set_robot(const player::ptr &robots) {
+			the_robots.clear();
+			the_robots.push_back(robots);
+			robots_changed();
+		}
+		
+		/**
 		 * Removes all robots from this role.
 		 */
 		void clear_robots() {

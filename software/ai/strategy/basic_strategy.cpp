@@ -178,7 +178,7 @@ void basic_strategy::reset_all() {
 		case playtype::execute_direct_free_kick_enemy:
 		case playtype::execute_indirect_free_kick_enemy:
 			in_play_assignment();
-			std::cout << all_players.size() << " robots set to play" << std::endl;
+			std::cout << the_team.size() << " robots set to play" << std::endl;
 			break;
 
 		case playtype::halt:

@@ -215,6 +215,7 @@ void robot_navigator::tick() {
 		the_player->dribble(dribblespeed);
 	} else {
 		the_player->dribble(DRIBBLE_SPEED_LOW);
+		//the_player->dribble(0);
 	}
 
 	// DO NOT FORGET! reset orientation settings.
