@@ -35,7 +35,6 @@ void kickoff_friendly::tick(){
 	 if(rule_violation(the_robots[i]->position())){
 	   dst = approach_legal_point(the_robots[i]->position(),i);
 	   flags &= ~ai_flags::stay_own_half;
-	   flags |= ai_flags::avoid_ball_stop;
 	 }
 
        move::ptr move_tactic(new move(the_robots[i], the_world));

@@ -47,6 +47,7 @@ namespace ai_flags {
 			  case playtype::execute_kickoff_friendly:
 			    flags |= stay_own_half;
 			    flags |= clip_play_area;
+			    flags |= avoid_ball_stop;
 			    break;
 			  
 			  case playtype::execute_direct_free_kick_friendly:
