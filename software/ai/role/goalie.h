@@ -37,6 +37,8 @@ class goalie : public role {
 
 		void vel_goalie(player::ptr goalie, const unsigned int& flags);
 
+		void confidence_goalie(player::ptr goalie, const unsigned int& flags);
+
 };
 
 #endif

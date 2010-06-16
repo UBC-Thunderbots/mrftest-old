@@ -32,7 +32,7 @@ namespace ai_util {
 	}
 	*/
 
-	bool ball_close(const world::ptr w, const player::ptr p) {
+	bool ball_close(const world::ptr w, const robot::ptr p) {
 		const point dist = w->ball()->position() - p->position();
 		if (dist.len() > robot::MAX_RADIUS + ball::RADIUS * 2) return false;
 		return angle_diff(dist.orientation(), p->orientation()) < M_PI / 2;

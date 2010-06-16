@@ -82,7 +82,7 @@ namespace ai_util {
 	 * Checks if the robot is in a position close enough to the ball to start
 	 * So close that no other robot can be in the way of this ball.
 	 */
-	bool ball_close(const world::ptr w, const player::ptr bot);
+	bool ball_close(const world::ptr w, const robot::ptr bot);
 
 	/**
 	 * Checks if a position is inside the friendly defense area
