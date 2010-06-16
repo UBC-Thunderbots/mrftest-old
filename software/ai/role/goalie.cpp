@@ -204,7 +204,7 @@ void goalie::tick() {
 			} else {
 				wantdest.y = 2 * f.width() / 2;
 			}
-			if (fabs(me->position().y) > f.width() / 3) {
+			if (fabs(me->position().y) > f.width() / 4) {
 				wantdest.x = f.friendly_goal().x;
 			}
 		} else {
