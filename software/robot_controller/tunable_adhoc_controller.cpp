@@ -32,6 +32,9 @@ namespace {
 	const double DEF_A_THRESH = 8.0;
 	const double DEF_YA_RATIO = 0.0;
 
+#warning put this magic number as part of the tunable parameter
+	const double DEF_HAS_BALL_RATIO = 0.8;
+
 	// array of defaults
 	const double ARR_DEF[] = { DEF_PROP, DEF_DIFF, DEF_XY_RATIO, DEF_MAX_VEL, DEF_MAX_ACC, DEF_A_PROP, DEF_A_DIFF, DEF_A_THRESH, DEF_YA_RATIO };
 	const int P = sizeof(ARR_DEF) / sizeof(ARR_DEF[0]);
@@ -155,6 +158,13 @@ namespace {
 		} else if (angular_velocity < -param[PARAM_A_THRESH]) {
 			angular_velocity = -param[PARAM_A_THRESH];
 		}
+
+		/*
+		if (plr->has_ball()) {
+			angular_velocity *= DEF_HAS_BALL_RATIO;
+			linear_velocity *= DEF_HAS_BALL_RATIO;
+		}
+		*/
 
 		prev_linear_velocity = linear_velocity;
 		prev_angular_velocity = angular_velocity;
