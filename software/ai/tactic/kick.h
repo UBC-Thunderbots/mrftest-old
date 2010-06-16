@@ -4,6 +4,8 @@
 #include "ai/tactic/tactic.h"
 #include "ai/navigator/robot_navigator.h"
 
+#warning obselete? superceded by pass and shoot
+
 /**
  * Tactic for doing either chip or kick.
  * By default, kicks at full strength.

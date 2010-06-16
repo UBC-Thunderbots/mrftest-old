@@ -2,7 +2,6 @@
 #include "ai/tactic/move.h"
 #include "ai/tactic/chase.h"
 #include "ai/tactic/pivot.h"
-#include "ai/tactic/kick.h"
 #include "ai/tactic/receive.h"
 #include "geom/angle.h"
 #include "ai/util.h"
