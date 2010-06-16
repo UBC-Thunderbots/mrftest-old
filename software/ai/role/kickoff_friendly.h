@@ -33,6 +33,11 @@ class kickoff_friendly : public role {
 		void robots_changed(){
 		}
 		
+		//
+		// Is in rule violation
+		//
+		bool rule_violation(point cur_point);
+		
 	private:
 	
 		//
@@ -47,10 +52,7 @@ class kickoff_friendly : public role {
 		//
 		world::ptr the_world;
 
-		//
-		// Is in rule violation
-		//
-		bool rule_violation(point cur_point);
+
 		
 		double circle_radius;
 };
