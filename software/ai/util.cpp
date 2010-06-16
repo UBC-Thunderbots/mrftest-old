@@ -11,6 +11,8 @@ namespace {
 #warning Magic constant
 	const double SHOOT_ALLOWANCE = ball::RADIUS;
 
+	const double BALL_FRONT_ANGLE = M_PI / 6;
+
 	const double EPS = 1e-9;
 }
 
@@ -38,6 +40,12 @@ namespace ai_util {
 		return angle_diff(dist.orientation(), p->orientation()) < M_PI / 2;
 	}
 	
+	bool ball_front(const world::ptr w, const robot::ptr p) {
+		const point dist = w->ball()->position() - p->position();
+		if (dist.len() > robot::MAX_RADIUS + ball::RADIUS * 2) return false;
+		return angle_diff(dist.orientation(), p->orientation()) < BALL_FRONT_ANGLE;
+	}
+
 	bool point_in_defense(const world::ptr w, const point& pt) {
 		const double defense_stretch = w->field().defense_area_stretch();
 		const double defense_radius = w->field().defense_area_radius();
@@ -222,16 +230,13 @@ namespace ai_util {
 		return w->field().enemy_goal();
 	}
 
-	bool has_ball(const player::ptr pl) {
-		return pl->has_ball();
-	}
-
 	bool has_ball(const world::ptr w, const player::ptr pl) {
-		return pl->has_ball() || ball_close(w, pl);
+		return pl->has_ball() || ball_front(w, pl);
 	}
 
 	bool posses_ball(const world::ptr w, const player::ptr pl) {
-		return pl->has_ball() || (pl->last_sense_ball_time() < HAS_BALL_ALLOWANCE && ball_close(w, pl));
+		//return pl->has_ball() || (pl->last_sense_ball_time() < HAS_BALL_ALLOWANCE && ball_close(w, pl));
+		return pl->has_ball() || ball_close(w, pl);
 	}
 
 	// target is another player

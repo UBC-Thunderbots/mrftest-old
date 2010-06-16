@@ -16,7 +16,7 @@ namespace {
 	const unsigned int CHICKER_MIN_INTERVAL = 10000;
 
 	//const double HAS_BALL_TIME = 2.0 / 15.0;
-	const int HAS_BALL_TIME = 3;
+	const int HAS_BALL_TIME = 2;
 	const int HAS_BALL_THRESH = 3;
 	const int HAS_BALL_SAMPLE = 5;
 

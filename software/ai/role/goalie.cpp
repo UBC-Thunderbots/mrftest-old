@@ -116,12 +116,13 @@ void goalie::confidence_goalie(player::ptr goalie, const unsigned int& flags) {
 			}
 	
 		}
+//		std::cout << "confidence = " << confidence << std::endl;
 
 		const field& f = the_world->field();
 		point dir = (ball_position - back_of_goal).norm();
 
 		point A = line_intersect(back_of_goal, back_of_goal + dir, point(-f.length() / 2, f.goal_width() / 2), point(-f.length() / 2, -f.goal_width() / 2));
-
+		std::cout << "point A = " << A << std::endl;
 		/*
 		std::vector<point> B = line_circle_intersect(point(-f.length() / 2, 0), the_world->field().defense_area_radius(), back_of_goal, back_of_goal + dir);
 		point C;		

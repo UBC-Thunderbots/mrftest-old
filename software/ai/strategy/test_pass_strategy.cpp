@@ -36,7 +36,7 @@ namespace {
 		move_tactic.set_position(point(0.0, 0.0));
 		move_tactic.tick();
 
-		bool receiverhasball = ai_util::has_ball(receiver);
+		bool receiverhasball = ai_util::has_ball(the_world, receiver);
 
 		// kick it to a random place if the receiver has the ball
 		if (receiverhasball) {
@@ -55,7 +55,7 @@ namespace {
 
 		const player::ptr passer = the_team.get_player(0);
 //		std::cout << passer->est_velocity() << std::endl;
-		if (ai_util::has_ball(passer)) {
+		if (ai_util::has_ball(the_world, passer)) {
 			std::cout << "strategy: passer has ball" << std::endl;
 			//pass pass_tactic(passer, the_world, receiver);
 			//pass_tactic.tick();

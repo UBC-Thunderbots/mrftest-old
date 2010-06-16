@@ -172,7 +172,7 @@ namespace {
 			reset();
 		}
 		const player::ptr the_player = the_team.get_player(0);
-		if (!ai_util::has_ball(the_player)) {
+		if (!ai_util::has_ball(the_world, the_player)) {
 			the_player->dribble(dribble_scale1.get_value());
 		} else {
 			the_player->dribble(dribble_scale2.get_value());
@@ -181,7 +181,7 @@ namespace {
 		const Glib::ustring text2 = Glib::ustring::compose("Actual dribble %1", the_player->dribbler_speed());
 		dribble_text1.set_label(text1);
 		dribble_text2.set_label(text2);
-		if (dribble_checkbutton.get_active() && !ai_util::has_ball(the_player)) {
+		if (dribble_checkbutton.get_active() && !ai_util::has_ball(the_world, the_player)) {
 			const point balldist = the_world->ball()->position() - the_player->position();
 			the_player->move(the_world->ball()->position(), atan2(balldist.y, balldist.x));
 		} else {

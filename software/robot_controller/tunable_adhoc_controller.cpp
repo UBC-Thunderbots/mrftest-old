@@ -27,9 +27,9 @@ namespace {
 	const double DEF_XY_RATIO = 0.81;
 	const double DEF_MAX_VEL = 4.0; // 3.0 is stable, 3.5 is slightly unstable
 	const double DEF_MAX_ACC = 1.0;
-	const double DEF_A_PROP = 8.0;
+	const double DEF_A_PROP = 10.0;
 	const double DEF_A_DIFF = 0.0;
-	const double DEF_A_THRESH = 10.0;
+	const double DEF_A_THRESH = 8.0;
 	const double DEF_YA_RATIO = 0.0;
 
 	// array of defaults

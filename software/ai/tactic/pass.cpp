@@ -35,7 +35,7 @@ pass::pass(player::ptr player, world::ptr world, player::ptr receiver) : tactic(
 }
 
 void pass::tick() {
-	if (!ai_util::has_ball(the_player)) {
+	if (!ai_util::has_ball(the_world, the_player)) {
 		pivot tactic(the_player, the_world);
 		tactic.set_target(the_receiver->position());
 		tactic.set_flags(flags);

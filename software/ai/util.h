@@ -157,12 +157,6 @@ namespace ai_util {
 	 * Returns true if the ball has the ball with high probability.
 	 * Also depends on AI.
 	 */
-	bool has_ball(const player::ptr pl);
-
-	/**
-	 * Returns true if the ball has the ball with high probability.
-	 * Also depends on AI.
-	 */
 	bool has_ball(const world::ptr w, const player::ptr pl);
 
 	/**

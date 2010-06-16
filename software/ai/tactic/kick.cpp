@@ -18,7 +18,7 @@ void kick::tick() {
 	// don't forget
 	navi.set_flags(flags);
 
-	if (!ai_util::has_ball(the_player)) {
+	if (!ai_util::has_ball(the_world, the_player)) {
 		navi.set_position(the_world->ball()->position());
 		navi.tick();
 		return;
