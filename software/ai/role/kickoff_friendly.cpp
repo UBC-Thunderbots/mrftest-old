@@ -35,7 +35,7 @@ void kickoff_friendly::tick(){
 	 if(rule_violation(the_robots[i]->position())){
 	   dst = approach_legal_point(the_robots[i]->position(),i);
 	   flags &= ~ai_flags::stay_own_half;
-	   //flags &= ~ai_flags::avoid_ball_stop;
+	   flags |= ai_flags::avoid_ball_stop;
 	 }
 
        move::ptr move_tactic(new move(the_robots[i], the_world));
@@ -104,8 +104,9 @@ point kickoff_friendly::approach_legal_point(point cur_point, unsigned int robot
   const field &the_field(the_world->field());
   point wantdst = cur_point;
   if(cur_point.x>0.0){
-    if(fabs(cur_point.y) < 1.2*circle_radius){
-      wantdst.y = (cur_point.y < 0) ? -(1.2*circle_radius + AVOID_BUFFER):(1.2*circle_radius + AVOID_BUFFER);
+    if(fabs(cur_point.y) < 2.0*circle_radius){
+      wantdst.y = (cur_point.y < 0) ? -(2.0*circle_radius + AVOID_BUFFER):(2.0*circle_radius + AVOID_BUFFER);
+      wantdst.x = cur_point.x + AVOID_BUFFER;
     }else{
       wantdst.x = cur_point.x - 1.0;
     }
