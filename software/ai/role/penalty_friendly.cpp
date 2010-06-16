@@ -13,7 +13,7 @@ penalty_friendly::penalty_friendly(world::ptr world) : the_world(world) {
 	ready_positions[1] = point(0, 0);
 
 	// Let two robots be on the offensive, in case there is a rebound
-	ready_positions[1] = point(0.5 * the_field.length() - RESTRICTED_ZONE_LENGTH - robot::MAX_RADIUS, -5 * robot::MAX_RADIUS);
+	ready_positions[2] = point(0.5 * the_field.length() - RESTRICTED_ZONE_LENGTH - robot::MAX_RADIUS, -5 * robot::MAX_RADIUS);
 	ready_positions[3] = point(0.5 * the_field.length() - RESTRICTED_ZONE_LENGTH - robot::MAX_RADIUS, 5 * robot::MAX_RADIUS);
 
 }
