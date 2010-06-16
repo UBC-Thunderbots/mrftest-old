@@ -35,9 +35,12 @@ class goalie : public role {
 
 	private:
 
-		void vel_goalie(player::ptr goalie, const unsigned int& flags);
+		void run_vel_goalie(player::ptr goalie, const unsigned int& flags);
 
-		void confidence_goalie(player::ptr goalie, const unsigned int& flags);
+		void run_goalie_confidence(player::ptr goalie, const unsigned int& flags);
+
+		/// Old version
+		void run_goalie_old(const unsigned int& flags);
 
 };
 

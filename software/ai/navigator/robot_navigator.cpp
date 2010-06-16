@@ -9,7 +9,7 @@
 namespace {
 
 #warning magic constants
-	const double AVOID_MULT = 5.0;
+	const double AVOID_MULT = 0.5;
 	const double AVOID_CONST = 1.1;
 	const double ROTATION_THRESH = 100.0 * M_PI / 180.0;
 	const double ROTATION_STEP = 1.0 * M_PI / 180.0;
@@ -213,9 +213,10 @@ void robot_navigator::tick() {
 	if (wantdribble) {
 		const double dribblespeed = std::min(DRIBBLE_SPEED_LOW + DRIBBLE_SPEED_RAMP * the_player->sense_ball_time(), DRIBBLE_SPEED_MAX);
 		the_player->dribble(dribblespeed);
+	} else if (flags & ai_flags::avoid_ball_stop) {
+		the_player->dribble(0);
 	} else {
 		the_player->dribble(DRIBBLE_SPEED_LOW);
-		//the_player->dribble(0);
 	}
 
 	// DO NOT FORGET! reset orientation settings.

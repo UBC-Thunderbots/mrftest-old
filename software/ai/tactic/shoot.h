@@ -26,8 +26,16 @@ class shoot : public tactic {
 		//
 		void tick();
 
+		/*
+		 * force to kick somewhere very random.
+		 */
+		void force() {
+			forced = true;
+		}
+
 	protected:
 		const world::ptr the_world;
+		bool forced;
 
 };
 
