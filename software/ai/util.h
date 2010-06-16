@@ -41,19 +41,24 @@ namespace ai_util {
 
 	/**
 	 * Somewhat close.
-	 * As in, the ball touching the robot.
 	 */
-	static const double POS_CLOSE = robot::MAX_RADIUS / 2.0;
+	static const double POS_CLOSE = robot::MAX_RADIUS / 4.0;
 
 	/**
 	 * Really really really close.
+	 * As in, we don't want division by zero.
 	 */
-	static const double POS_EPS = 1e-10;
+	static const double POS_EPS = 1e-12;
 
 	/**
-	 * Velocity epsilon.
+	 * Somewhat stationary.
 	 */
 	static const double VEL_CLOSE = 1e-2;
+
+	/**
+	 * Super stationary.
+	 */
+	static const double VEL_EPS = 1e-12;
 
 	/**
 	 * If the robot is less than this angle away from the ball,
@@ -155,7 +160,7 @@ namespace ai_util {
 
 	/**
 	 * Returns true if the ball has the ball with high probability.
-	 * Also depends on AI.
+	 * Also uses vision.
 	 */
 	bool has_ball(const world::ptr w, const player::ptr pl);
 

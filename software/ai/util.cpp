@@ -232,6 +232,7 @@ namespace ai_util {
 
 	bool has_ball(const world::ptr w, const player::ptr pl) {
 		return pl->has_ball() || ball_front(w, pl);
+		//return pl->sense_ball() >= 2 || ball_front(w, pl);
 	}
 
 	bool posses_ball(const world::ptr w, const player::ptr pl) {

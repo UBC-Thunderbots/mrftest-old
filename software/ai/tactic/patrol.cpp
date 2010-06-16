@@ -2,6 +2,7 @@
 #include "ai/util.h"
 
 #include <iostream>
+#include <cstdlib>
 
 namespace {
 
@@ -37,22 +38,16 @@ void patrol::tick() {
 		the_player->set_state(typeid(*this), state);
 	}
 
-	if (state->phase) {
-		// reached the first position
-		if ((the_player->position() - target1).lensq() <= ai_util::POS_CLOSE) {
-			state->phase = 0;
-		}
-	} else {
-		// reached the end position
-		if ((the_player->position() - target2).lensq() <= ai_util::POS_CLOSE) {
-			state->phase = 1;
-		}
+	if ((the_player->position() - target1).lensq() <= ai_util::POS_CLOSE) {
+		state->phase = 1;
+	} else if ((the_player->position() - target2).lensq() <= ai_util::POS_CLOSE) {
+		state->phase = 0;
 	}
 
-	if (state->phase) {
+	if (!state->phase) {
 		navi.set_position(target1);
 	} else {
-		navi.set_position(target1);
+		navi.set_position(target2);
 	}
 
 	navi.tick();

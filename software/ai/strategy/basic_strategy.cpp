@@ -7,11 +7,9 @@
 #include "ai/role/pit_stop.h"   
 #include "ai/role/prepare_kickoff_enemy.h"
 #include "ai/role/kickoff_friendly.h"             
-#include "ai/role/prepare_penalty_enemy.h"             
-#include "ai/role/prepare_penalty_friendly.h"
-#include "ai/role/execute_penalty_enemy.h"
+#include "ai/role/penalty_friendly.h"
+#include "ai/role/penalty_enemy.h"
 #include "ai/role/victory_dance.h"
-#include "ai/role/execute_penalty_friendly.h"
 
 
 #include <iostream>
@@ -148,25 +146,32 @@ void basic_strategy::reset_all() {
 	// goalie only
 	const std::vector<player::ptr> goalie_only(1, the_team.get_player(0));
 
-	// non goalie
 	std::vector<player::ptr> all_players;
 
 	// goalie is the first player
-	for (size_t i = 1; i < the_team.size(); i++) {
+	for (size_t i = 0; i < the_team.size(); i++) {
 		all_players.push_back(the_team.get_player(i));
+	}
+
+	// non goalie
+	std::vector<player::ptr> all_but_goalie;
+
+	// goalie is the first player
+	for (size_t i = 1; i < the_team.size(); i++) {
+		all_but_goalie.push_back(the_team.get_player(i));
 	}
 
 	// shooter for penalty kick
 	std::vector<player::ptr> shooter_only;
 
-	if (all_players.size() > 0) {
-		shooter_only.push_back(all_players[0]);
+	if (all_but_goalie.size() > 0) {
+		shooter_only.push_back(all_but_goalie[0]);
 	}
 
 	std::vector<player::ptr> non_shooters;
 	
-	for (size_t i = 1; i < all_players.size(); ++i) {
-		non_shooters.push_back(all_players[i]);
+	for (size_t i = 1; i < all_but_goalie.size(); ++i) {
+		non_shooters.push_back(all_but_goalie[i]);
 	}
 	
 	#warning For special plays, need logic to choose which robot becomes the kicker
@@ -185,37 +190,32 @@ void basic_strategy::reset_all() {
 		case playtype::prepare_kickoff_friendly: 
 		case playtype::execute_kickoff_friendly: 
 			roles.push_back(role::ptr(new kickoff_friendly(the_world)));
-			roles[0]->set_robots(all_players);
-			std::cout << all_players.size() << " robots set to execute kickoff friendly" << std::endl;
+			roles[0]->set_robots(all_but_goalie);
+			std::cout << the_team.size() << " robots set to execute kickoff friendly" << std::endl;
 			break;
 
 		case playtype::prepare_kickoff_enemy:
 			roles.push_back(role::ptr(new prepare_kickoff_enemy(the_world)));
-			roles[0]->set_robots(all_players);
-			std::cout << all_players.size() << " robots set to prepare kickoff enemy" << std::endl;
+			roles[0]->set_robots(all_but_goalie);
+			std::cout << the_team.size() << " robots set to prepare kickoff enemy" << std::endl;
 			break;
 
 		case playtype::execute_kickoff_enemy:
 			roles.push_back(role::ptr(new prepare_kickoff_enemy(the_world)));
-			roles[0]->set_robots(all_players);
-			std::cout << all_players.size() << " robots set to execute kickoff enemy" << std::endl;
+			roles[0]->set_robots(all_but_goalie);
+			std::cout << the_team.size() << " robots set to execute kickoff enemy" << std::endl;
 			break;
 
 		case playtype::prepare_penalty_friendly: 
-			roles.push_back(role::ptr(new prepare_penalty_friendly(the_world)));
-			roles[0]->set_robots(all_players);
-			std::cout << all_players.size() << " robots set to prepare penalty friendly" << std::endl;
+			roles.push_back(role::ptr(new penalty_friendly(the_world)));
+			roles[0]->set_robots(all_but_goalie);
+			std::cout << the_team.size() << " robots set to prepare penalty friendly" << std::endl;
 			break;
 
 		case playtype::execute_penalty_friendly: 
-			roles.push_back(role::ptr(new execute_penalty_friendly(the_world)));
-			roles[0]->set_robots(shooter_only);
-
-			roles.push_back(role::ptr(new prepare_penalty_friendly(the_world)));
-			roles[1]->set_robots(non_shooters);
-			
-			std::cout << shooter_only.size() << " robots set to execute penalty friendly" << std::endl;
-			std::cout << non_shooters.size() << " robots set to prepare penalty friendly" << std::endl;
+			roles.push_back(role::ptr(new penalty_friendly(the_world)));
+			roles[0]->set_robots(all_but_goalie);
+			std::cout << the_team.size() << " robots set to execute penalty friendly" << std::endl;
 			break;
 
 		case playtype::execute_penalty_enemy:
@@ -223,12 +223,12 @@ void basic_strategy::reset_all() {
 			// so no difference on defending side.
 			// May need to detect when the play type needs to be changed to play
 		case playtype::prepare_penalty_enemy:
-			roles.push_back(role::ptr(new prepare_penalty_enemy(the_world)));
-			roles[0]->set_robots(all_players);
-			roles.push_back(role::ptr(new execute_penalty_enemy(the_world)));
+			roles.push_back(role::ptr(new penalty_enemy(the_world)));
+			roles[0]->set_robots(all_but_goalie);
+			roles.push_back(role::ptr(new penalty_goalie(the_world)));
 			roles[1]->set_robots(goalie_only);
-			std::cout << all_players.size() << " robots set to prepare penalty enemy" << std::endl;
-			std::cout << goalie_only.size() << " robots set to execute penalty enemy" << std::endl;
+			std::cout << all_but_goalie.size() << " robots set to penalty enemy" << std::endl;
+			std::cout << goalie_only.size() << " robots set to penalty goalie" << std::endl;
 			break;
 
 		case playtype::execute_direct_free_kick_friendly:
@@ -239,9 +239,9 @@ void basic_strategy::reset_all() {
 					//roles.push_back(role::ptr(new execute_direct_free_kick_friendly(the_world)));
 					execute_direct_free_kick::ptr freekicker_role = execute_direct_free_kick::ptr(new execute_direct_free_kick(the_world));
 					freekicker_role->set_robots(freekicker);
-					//roles[0]->set_robots(all_players);
+					//roles[0]->set_robots(all_but_goalie);
 					roles.push_back(freekicker_role);
-					std::cout << all_players.size() << " robots set to execute direct free kick friendly" << std::endl;
+					std::cout << all_but_goalie.size() << " robots set to execute direct free kick friendly" << std::endl;
 				}
 			}
 			break;
@@ -254,23 +254,23 @@ void basic_strategy::reset_all() {
 					execute_indirect_free_kick::ptr freekicker_role = execute_indirect_free_kick::ptr(new execute_indirect_free_kick(the_world));
 					freekicker_role->set_robots(freekicker);
 					roles.push_back(freekicker_role);
-					std::cout << all_players.size() << " robots set to execute indirect free kick" << std::endl;
+					std::cout << all_but_goalie.size() << " robots set to execute indirect free kick" << std::endl;
 				}
 			}
 			break;
 
 		case playtype::pit_stop:
 			roles.push_back(role::ptr(new pit_stop(the_world)));
-			all_players.push_back(goalie_only[0]);
-			roles[0]->set_robots(all_players);
-			std::cout << all_players.size() << " robots set to pit stop" << std::endl;
+			all_but_goalie.push_back(goalie_only[0]);
+			roles[0]->set_robots(all_but_goalie);
+			std::cout << all_but_goalie.size() << " robots set to pit stop" << std::endl;
 			break;		
 
 		case playtype::victory_dance:
 			roles.push_back(role::ptr(new victory_dance));
-			all_players.push_back(goalie_only[0]);
-			roles[0]->set_robots(all_players);
-			std::cout << all_players.size() << " robots set to victory dance" << std::endl;
+			all_but_goalie.push_back(goalie_only[0]);
+			roles[0]->set_robots(all_but_goalie);
+			std::cout << all_but_goalie.size() << " robots set to victory dance" << std::endl;
 			break;
 
 		default:

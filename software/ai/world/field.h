@@ -96,6 +96,22 @@ class field : public visualizable::field {
 		}
 
 		/**
+		 * \return Position of enemy penalty mark.
+		 * 450 mm from enemy goal center.
+		 */
+		point penalty_enemy() const {
+			return point(length_ * 0.5 / 3025.0 * (3025.0 - 450.0), 0);
+		}
+
+		/**
+		 * \return Position of friendly penalty mark.
+		 * 450 mm from friendly goal center.
+		 */
+		point penalty_friendly() const {
+			return point(-length_ * 0.5 / 3025.0 * (3025.0 - 450.0), 0);
+		}
+
+		/**
 		 * \return Position of our goal boundaries (top and bottom).
 		 */
 		std::pair<point, point> friendly_goal_boundary() const {

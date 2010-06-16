@@ -40,7 +40,7 @@ void pivot::tick() {
 	}
 
 	// if we have the ball then move to the destination
-	if (the_player->has_ball()) {
+	if (ai_util::has_ball(the_world, the_player)) {
 		state->recent_hit_target = true;
 		navi.set_position(target);
 		navi.set_orientation((target - the_player->position()).orientation());
