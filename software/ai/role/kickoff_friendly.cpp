@@ -1,8 +1,9 @@
 #include "ai/role/kickoff_friendly.h"
-#include <cmath>
 #include "ai/tactic/move.h"
 #include "ai/flags.h"
+#include "geom/util.h"
 
+#include <cmath>
 #include <iostream>
 
 namespace{
@@ -39,8 +40,6 @@ void kickoff_friendly::tick(){
 
        move::ptr move_tactic(new move(the_robots[i], the_world));
        move_tactic->set_position(dst);
-       std::cout<<"called move tactic to "<<dst.x << " " <<dst.y<<std::endl;
-              std::cout<<"called move tactic to "<<the_robots[i]->position().x << " " <<the_robots[i]->position().y<<std::endl;
        move_tactic->set_flags(flags);
        move_tactic->tick();
        }
@@ -48,10 +47,11 @@ void kickoff_friendly::tick(){
      else{
 #warning do something more intelligent here prepare kickoff than just have one robot chase ball
        unsigned int flags = ai_flags::calc_flags(the_world->playtype());
+      
        for(unsigned int i=0; i<the_robots.size(); i++){
 	 move::ptr move_tactic(new move(the_robots[i], the_world));
 	 if(i==0){
-	   move_tactic->set_position(the_world->ball()->position());
+	   move_tactic->set_position(clip_circle(the_robots[i]->position(),circle_radius ,the_world->ball()->position()));
 	 }else{
 	   move_tactic->set_position(the_robots[i]->position());
 	 }
@@ -110,7 +110,47 @@ point kickoff_friendly::approach_legal_point(point cur_point, unsigned int robot
 		}
 	} else {
 		// put the target position here!!
-		wantdst = cur_point;
+		 wantdst = clip_circle(cur_point, circle_radius, wantdst);
 	}
 	return wantdst;
+
+}
+
+
+
+point kickoff_friendly::clip_circle(point cur_point, double circle_radius, point dst){
+  point circle_centre;
+  circle_centre.x = 0.0;
+  circle_centre.y = 0.0;
+
+  		point wantdest = dst;
+		point circle_centre_diff =  cur_point -  circle_centre;
+		point ball_dst_diff =  wantdest -  circle_centre;
+
+		if(circle_centre_diff.len()< circle_radius){
+			if((cur_point-wantdest).dot(circle_centre_diff) < 0){
+				//destination goes away from the ball destination is ok
+				//scale the destination so that we stay far enough away from the ball
+				point from_centre =  (wantdest - circle_centre);
+
+				//try and head towards the destination
+				//scaling the destination if necessary
+				if(from_centre.len() < circle_radius){
+					from_centre =  (wantdest - circle_centre).norm()*circle_radius;
+				}	
+
+				wantdest = circle_centre + from_centre;
+			}else{
+				//destination goes closer to the ball we don't want that
+				//just move as quickly as possible away from ball
+				wantdest = circle_centre + circle_centre_diff.norm()*circle_radius;
+			}
+		}else {
+			std::vector<point> intersections = lineseg_circle_intersect(circle_centre, circle_radius, cur_point, wantdest); 
+			if(intersections.size()>0){
+				wantdest =  intersections[0];
+			}	
+		}
+		return wantdest;
+
 }

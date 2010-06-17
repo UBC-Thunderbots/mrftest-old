@@ -5,7 +5,7 @@
 #include <vector>
 #include "ai/tactic/move.h"
 #include "geom/point.h"
-
+#include "ai/world/player.h"
 
 //
 // Gets the robots to go to their prepare_kickoff_friendly positions.
@@ -52,6 +52,7 @@ class kickoff_friendly : public role {
 		//
 		world::ptr the_world;
 
+		point clip_circle(point cur_point, double circle_radius, point dst);
 
 		
 		double circle_radius;
