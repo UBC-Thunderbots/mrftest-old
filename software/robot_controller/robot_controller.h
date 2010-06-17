@@ -25,15 +25,17 @@ class robot_controller2 : public byref {
 		 *
 		 * It is expected that this function will update internal state. It is
 		 * guaranteed that this function will be called exactly once per timer
-		 * tick.
+		 * tick, except for those ticks in which clear() is called instead.
 		 *
 		 * \param new_position the position to move to, in team coordinates
-		 * measured in metres
+		 * measured in metres.
+		 *
 		 * \param new_orientation the orientation to rotate to in team
-		 * coordinates measured in radians
+		 * coordinates measured in radians.
+		 *
 		 * \param wheel_speeds (output) the speeds of the four wheels to send to
 		 * the robot, in quarters of a degree of motor shaft rotation per five
-		 * milliseconds
+		 * milliseconds.
 		 */
 		virtual void move(const point &new_position, double new_orientation, int (&wheel_speeds)[4]) = 0;
 
@@ -46,9 +48,26 @@ class robot_controller2 : public byref {
 		virtual void clear() = 0;
 
 		/**
-		 * \return The factory that created this controller
+		 * \return the factory that created this controller.
 		 */
 		virtual robot_controller_factory &get_factory() const = 0;
+
+		/**
+		 * Multiplies a robot-relative velocity tuple by the wheel matrix to
+		 * produce a set of wheel rotation speeds. A robot controller
+		 * implementation may choose to take advantage of this function, or may
+		 * choose to complete ignore it and compute wheel speeds in a different
+		 * way.
+		 *
+		 * \param[in] vel the linear velocity to multiply, in metres per second.
+		 *
+		 * \param[in] avel the angular velocity to multiply, in radians per
+		 * second.
+		 *
+		 * \param[out] wheel_speeds the wheel speeds, in quarters of a degree of
+		 * motor shaft rotation per five milliseconds.
+		 */
+		static void convert_to_wheels(const point &vel, double avel, int (&wheel_speeds)[4]);
 
 	protected:
 		/**
