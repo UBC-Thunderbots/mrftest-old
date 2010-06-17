@@ -93,19 +93,19 @@ bool xbee_drive_bot::chicker_ready() const {
 }
 
 bool xbee_drive_bot::lt3751_faulted() const {
-	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_CHIP_FAULT);
+	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_FAULT_LT3751);
 }
 
 bool xbee_drive_bot::chicker_low_faulted() const {
-	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_FAULT0);
+	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_FAULT_LOW);
 }
 
 bool xbee_drive_bot::chicker_high_faulted() const {
-	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_FAULT150);
+	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_FAULT_HIGH);
 }
 
 bool xbee_drive_bot::chicker_timed_out() const {
-	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_TIMEOUT);
+	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_CHARGE_TIMEOUT);
 }
 
 void xbee_drive_bot::stamp() {
