@@ -27,19 +27,8 @@ ADC_ALIGN_LEFT equ 0
 ADC_ALIGN_RIGHT equ 1
 
 ; Divider is 220k and 2.2k.
-; Threshold for 0 is 10V: ADC reading = 10 / 222200 * 2200 / 3.3 * 1023 = 31
-; Threshold for 110V: ADC reading = 110 / 222200 * 2200 / 3.3 * 1023 = 338
-; Threshold for 150V: ADC reading = 150 / 222200 * 2200 / 3.3 * 1023 = 460
 ; Threshold for 200V: ADC reading = 200 / 222200 * 2200 / 3.3 * 1023 = 614
-CHICKER0_THRESHOLD equ 31
-CHICKER110_THRESHOLD equ 338
-CHICKER150_THRESHOLD equ 460
 CHICKER200_THRESHOLD equ 614
-
-
-
-	udata
-current_value: res 2
 
 
 
@@ -64,9 +53,6 @@ adc:
 	; Drive the SPI bus.
 	SPI_DRIVE
 	
-	; Select proper bank.
-	banksel current_value
-
 	; Turn on the ADC.
 	movlw (1 << ADON)
 	movwf ADCON0
@@ -85,30 +71,21 @@ loop:
 	; Lower /SS to the FPGA.
 	bcf LAT_SPI_SS_FPGA, PIN_SPI_SS_FPGA
 
-	; Read the battery level.
+	; Read and send the battery level.
 	ADC_CONVERT 0, ADC_ALIGN_RIGHT
-	movff ADRESH, current_value + 1
-	movff ADRESL, current_value + 0
+	movf ADRESH, W
+	SPI_SEND_WREG
+	movf ADRESL, W
+	SPI_SEND_WREG
 
-	; Read and check the capacitor level.
-	ADC_CONVERT 5, ADC_ALIGN_LEFT
-	movlw CHICKER0_THRESHOLD >> 2
-	cpfsgt ADRESH
-	bsf current_value + 1, FLAG_CHICKER0
-	movlw CHICKER110_THRESHOLD >> 2
-	cpfslt ADRESH
-	bsf current_value + 1, FLAG_CHICKER110
-	movlw CHICKER150_THRESHOLD >> 2
-	cpfslt ADRESH
-	bsf current_value + 1, FLAG_CHICKER150
+	; Read, check, and send capacitor level.
+	ADC_CONVERT 5, ADC_ALIGN_RIGHT
 	movlw CHICKER200_THRESHOLD >> 2
 	cpfslt ADRESH
 	bra overcharge
-
-	; Send the data.
-	movf current_value + 1, W
+	movf ADRESH, W
 	SPI_SEND_WREG
-	movf current_value + 0, W
+	movf ADRESL, W
 	SPI_SEND_WREG
 
 	; Raise /SS.

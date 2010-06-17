@@ -67,6 +67,14 @@ unsigned int xbee_drive_bot::battery_voltage() const {
 	return feedback_.battery_level * VCC / DIVIDER_LOWER * (DIVIDER_LOWER + DIVIDER_UPPER) / ADC_MAX;
 }
 
+unsigned int xbee_drive_bot::capacitor_voltage() const {
+	static const unsigned int ADC_MAX = 1023;
+	static const unsigned int VCC = 3300;
+	static const unsigned int DIVIDER_UPPER = 220000;
+	static const unsigned int DIVIDER_LOWER = 2200;
+	return feedback_.capacitor_level * VCC / DIVIDER_LOWER * (DIVIDER_LOWER + DIVIDER_UPPER) / ADC_MAX;
+}
+
 unsigned int xbee_drive_bot::dribbler_speed() const {
 	static const unsigned int TICKS_PER_MINUTE = 10 * 60;
 	return feedback_.dribbler_speed * TICKS_PER_MINUTE;

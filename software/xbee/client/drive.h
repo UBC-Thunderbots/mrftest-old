@@ -84,9 +84,14 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 		bool dribbler_faulted() const;
 
 		/**
-		 * \return The voltage of the robot's battery, in millivolts
+		 * \return the voltage of the robot's battery, in millivolts.
 		 */
 		unsigned int battery_voltage() const;
+
+		/**
+		 * \return the voltage of the robot's capacitor, in millivolts.
+		 */
+		unsigned int capacitor_voltage() const;
 
 		/**
 		 * \return The speed at which the dribbler motor is spinning, in

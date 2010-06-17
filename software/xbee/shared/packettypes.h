@@ -119,6 +119,7 @@ namespace xbeepacket {
 		uint8_t outbound_rssi;
 		uint16_t dribbler_speed;
 		uint16_t battery_level;
+		uint16_t capacitor_level;
 		uint8_t faults;
 	};
 	const uint8_t FEEDBACK_FLAG_RUNNING = 0x80;
