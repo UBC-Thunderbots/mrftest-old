@@ -11,8 +11,8 @@
  * Your own class must also extend \c Glib::Object and invoke the following
  * constructors from its own:
  *
- * \li \c Glib::ObjectBase\c (typeid(your_class_name))
- * \li \c Glib::Object()
+ * \li <code>Glib::ObjectBase(typeid(your_class_name))</code>
+ * \li <code>Glib::Object()</code>
  *
  * The \c ObjectBase initialization is permitted because \c Glib::Object
  * virtually extends \c Glib::ObjectBase, and hence responsibility for invoking

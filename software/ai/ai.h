@@ -41,14 +41,14 @@ class ai : public noncopyable {
 		void set_strategy(strategy::ptr strat);
 
 		/**
-		 * \return the robot controller factory driving the robots.
+		 * \return the robot_controller_factory driving the robots.
 		 */
 		robot_controller_factory *get_robot_controller_factory() const {
 			return the_rc_factory;
 		}
 
 		/**
-		 * Sets the robot controller factory that creates robot controllers that
+		 * Sets the robot_controller_factory that creates robot_controllers that
 		 * drive the robots.
 		 *
 		 * \param[in] fact the new factory.
