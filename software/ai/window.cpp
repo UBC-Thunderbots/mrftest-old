@@ -13,11 +13,6 @@ namespace {
 	class robot_info_model : public Glib::Object, public abstract_list_model {
 		public:
 			/**
-			 * The column that shows the robot's 64-bit address.
-			 */
-			Gtk::TreeModelColumn<uint64_t> address_column;
-
-			/**
 			 * The column that shows the robot's name.
 			 */
 			Gtk::TreeModelColumn<Glib::ustring> name_column;
@@ -67,7 +62,6 @@ namespace {
 			std::vector<bool> visible;
 
 			robot_info_model(const config &conf, const std::vector<xbee_drive_bot::ptr> &bots, const friendly_team &friendly) : Glib::ObjectBase(typeid(robot_info_model)), conf(conf), bots(bots), visible(bots.size(), false) {
-				alm_column_record.add(address_column);
 				alm_column_record.add(name_column);
 				alm_column_record.add(radio_column);
 				alm_column_record.add(visible_column);
@@ -108,13 +102,7 @@ namespace {
 			}
 
 			void alm_get_value(unsigned int row, unsigned int col, Glib::ValueBase &value) const {
-				if (col == static_cast<unsigned int>(address_column.index())) {
-					Glib::Value<uint64_t> v;
-					v.init(address_column.type());
-					v.set(conf.robots()[row].address);
-					value.init(address_column.type());
-					value = v;
-				} else if (col == static_cast<unsigned int>(name_column.index())) {
+				if (col == static_cast<unsigned int>(name_column.index())) {
 					Glib::Value<Glib::ustring> v;
 					v.init(name_column.type());
 					v.set(conf.robots()[row].name);
@@ -244,7 +232,6 @@ ai_window::ai_window(ai &ai, bool show_vis) : the_ai(ai), strategy_controls(0), 
 	const Glib::RefPtr<robot_info_model> robots_model(robot_info_model::create(ai.the_world->conf, ai.the_world->xbee_bots, ai.the_world->friendly));
 	Gtk::TreeView *robots_tree = Gtk::manage(new Gtk::TreeView(robots_model));
 	robots_tree->get_selection()->set_mode(Gtk::SELECTION_SINGLE);
-	robots_tree->append_column_numeric("Address", robots_model->address_column, "%016llX");
 	robots_tree->append_column("Name", robots_model->name_column);
 	robots_tree->append_column("R", robots_model->radio_column);
 	robots_tree->append_column("V", robots_model->visible_column);
