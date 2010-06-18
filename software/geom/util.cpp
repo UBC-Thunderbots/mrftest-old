@@ -6,7 +6,11 @@
 #include <iostream>
 
 namespace {
+
 	const double EPS = 1e-9;
+
+	// used for lensq only
+	const double EPS2 = EPS * EPS;
 }
 
 std::vector<size_t> dist_matching(const std::vector<point>& v1, const std::vector<point>& v2) {
@@ -90,7 +94,7 @@ std::pair<point, double> angle_sweep_circles(const point& src, const point& p1, 
 }
 
 bool collinear(const point& a, const point& b, const point& c) {
-	if ((a - b).lensq() < EPS || (b - c).lensq() < EPS || (a - c).lensq() < EPS)
+	if ((a - b).lensq() < EPS2 || (b - c).lensq() < EPS2 || (a - c).lensq() < EPS2)
 		return true;
 	return (std::fabs((b - a).cross(c - a)) < EPS);
 }
@@ -156,21 +160,12 @@ point line_intersect(const point &a, const point &b, const point &c, const point
 }
 
 // ported code
-point calc_block_ray(const point &a, const point &b, const double& radius) {
-	// unit vector and bisector
-	point au = a / a.len();
-	point c = au + b / b.len();
-	// use similar triangle
-	return c * (radius / std::fabs(au.cross(c)));
-}
-
-// ported code
 double line_point_dist(const point &p, const point &a, const point &b) {
 	return (p - a).cross(b - a) / (b - a).len();
 }
 
 // ported code
-inline double sign(const double n) {
+inline int sign(const double n) {
 	return n > EPS ? 1 : (n < -EPS ? -1 : 0);
 }
 
@@ -203,26 +198,50 @@ bool point_in_rectangle(point pointA, point recA[4]){
   return x_ok && y_ok;
 }
 
-// ported code
-point reflect(const point&v, const point& n) {
+point reflect(const point& v, const point& n) {
+	if (n.len() < 0) {
+		std::cerr  << "geom: reflect: zero length" << std::endl;
+		return v;
+	}
 	point normal = n / n.len();
 	return 2 * v.dot(normal) * normal - v;
 }
 
+point reflect(const point& a, const point& b, const point& p) {
+	// Make a as origin.
+	// Rotate by 90 degrees, does not matter which direction?
+	point n = (b - a).rotate(M_PI / 2.0);
+	return a + reflect(p - a, n);
+}
+ 
+point calc_block_side_pos(const point& a, const point& b, const point& p, const double& radius, const double& thresh, const int side) {
+#warning implement
+	return (a + b) / 2.0;
+}
+
 // ported code
-point calcBlockOtherRay(const point& a, const point& c, const point& g) {
+point calc_block_cone(const point &a, const point &b, const double& radius) {
+	// unit vector and bisector
+	point au = a / a.len();
+	point c = au + b / b.len();
+	// use similar triangle
+	return c * (radius / std::fabs(au.cross(c)));
+}
+
+// ported code
+point calc_block_other_ray(const point& a, const point& c, const point& g) {
 	return reflect(a - c, g - c);
 }
 
 // ported code
-bool goalieBlocksGoalPost(const point& a, const point& b, const point& c, const point& g) {
+bool goalie_block_goal_post(const point& a, const point& b, const point& c, const point& g) {
 	point R = reflect(a - c, g - c);
 	return (R.cross(b - c) < -EPS);
 }
 
 // ported code
-point defender_blocks_goal(const point& a, const point& b, const point& c, const point& g, const double& r) {
+point calc_block_cone_defender(const point& a, const point& b, const point& c, const point& g, const double& r) {
 	point R = reflect(a - c, g- c);
-	return calc_block_ray(R, b - c, r) + c;
+	return calc_block_cone(R, b - c, r) + c;
 }
 

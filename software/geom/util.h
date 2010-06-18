@@ -57,6 +57,7 @@ std::vector<point> lineseg_circle_intersect(point centre, double radius, point s
  *returns a vector of all the points where the line defined by two points intersects the circle
  */
 std::vector<point> line_circle_intersect(point centre, double radius, point segA, point segB); 
+
 /**
  * Clips a point to a rectangle boundary.
  */
@@ -72,32 +73,61 @@ point clip_point(const point& p, const point& bound1, const point& bound2);
 point line_intersect(const point &a, const point &b, const point &c, const point &d);
 
 // ported code
-// WARNING: does not work with parallel lines
-// there is a ray that shoots out from origin
-// the ray is bounded by direction vectors a and b
-// want to block this ray with circle of radius r
-// where to position the circle?
-point calc_block_ray(const point &a, const point &b, const double& radius);
-
-// ported code
 // WARNING: output is SIGNED indicating clockwise/counterclockwise direction
 // signed line-point distance
 double line_point_dist(const point &p, const point &a, const point &b);
 
 // ported code
 // tests if 2 line segments crosses each other
+// warning: LOOKS BROKEN
 bool seg_crosses_seg(const point &a1, const point &a2, const point &b1, const point &b2);
 
-// ported code
-// reflects the ray r incident on origin, with normal n
-point reflect(const point&v, const point& n);
+/**
+ * Ported code.
+ * Reflects the ray incident on origin, with normal n
+ */
+point reflect(const point& v, const point& n);
 
-// ported code
-// a = goal post position
-// c = ball position
-// g = goalie position
-// returns the other ray that is not blocked by goalie
-point calcBlockOtherRay(const point& a, const point& c, const point& g);
+/**
+ * Reflects the point p with the line a-b.
+ */
+point reflect(const point& a, const point& b, const point& p);
+
+/**
+ * Suppose there is a cone that shoots down from the ball.
+ * Want to cover as much angle as possible.
+ *
+ * a,b = Goalpost sides; a is the left, b is the right.
+ * p = ball location
+ * r = Robots radius
+ * Defend a particular side:
+ * (not yet implemented) 0 = full center block, will cover half line
+ * 1 = left half, will touch half line
+ * 2 = right half, will touch half line
+ * Defender cannoot be more than thresh distance away from the a-b line.
+ */
+point calc_block_side_pos(const point& a, const point& b, const point& p, const double& radius, const double& thresh, const int side);
+
+/**
+ * there is a cone that shoots out from origin
+ * the cone is bounded by direction vectors a and b
+ * want to block this cone with circle of radius r
+ * where to position the circle?
+ * PRECONDITION: a-b must be counterclockwise from the origin.
+ * PRECONDITION: cone has positive angle, i.e. not just a line.
+ */
+point calc_block_cone(const point &a, const point &b, const double& radius);
+
+/**
+ * Used for defender_blocks_goal
+ * a = goal post side
+ * c = ball position
+ * g = goalie position
+ * returns the other ray/cone boundary that is not blocked by goalie
+ * I.e. if p is return value,
+ * then points to the other side of line p-c is not covered by goalie.
+ */
+point calc_block_other_ray(const point& a, const point& c, const point& g);
 
 // ported code
 // a = goal post position
@@ -105,15 +135,16 @@ point calcBlockOtherRay(const point& a, const point& c, const point& g);
 // c = ball position
 // g = goalie position
 // checks if goalie blocks goal post
-bool goalieBlocksGoalPost(const point& a, const point& b, const point& c, const point& g);
+bool goalie_block_goal_post(const point& a, const point& b, const point& c, const point& g);
 
-// ported code
-// a = goal post position
-// b = other goal post position
-// c = ball position
-// g = goalie position
-// finds a defender position to block the ball
-point defender_blocks_goal(const point& a, const point& b, const point& c, const point& g, const double& r);
+/**
+ * a = goal post position
+ * b = other goal post position
+ * c = ball position
+ * g = goalie position
+ * finds a defender position to block the ball
+ */
+point calc_block_cone_defender(const point& a, const point& b, const point& c, const point& g, const double& r);
 
 #endif
 
