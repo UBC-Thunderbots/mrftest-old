@@ -35,7 +35,7 @@ class shoot : public tactic {
 		 * switches pivot mode on and off.
 		 */
 		void toggle_pivot(const bool& b) {
-			use_pivot == b;
+			use_pivot = b;
 		}
 
 		/**
