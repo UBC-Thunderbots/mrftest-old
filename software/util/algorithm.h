@@ -9,7 +9,7 @@ namespace {
 	 * Returns true if an element exists within a range, or false if not.
 	 */
 	template<typename Titer, typename Telem>
-	bool exists(Titer begin, Titer end, const Telem &elem) {
+	inline bool exists(Titer begin, Titer end, const Telem &elem) {
 		return std::find(begin, end, elem) != end;
 	}
 
@@ -18,16 +18,19 @@ namespace {
 	// predicate, or false if not.
 	//
 	template<typename Titer, typename Tpred>
-	bool exists_if(Titer begin, Titer end, Tpred pred) {
+	inline bool exists_if(Titer begin, Titer end, Tpred pred) {
 		return std::find_if(begin, end, pred) != end;
 	}
 
-	//
-	// Clamps a value to fall within a given range.
-	//
+	/**
+	 * Clamps a value to fall within a given range.
+	 */
 	template<typename T>
-	T clamp(T value, T lower, T upper) {
-		return std::min(std::max(value, lower), upper);
+	inline T clamp(T value, T lower, T upper) {
+		//return std::min(std::max(value, lower), upper);
+		if (value < lower) return lower;
+		if (upper < value) return upper;
+		return value;
 	}
 
 	/**
