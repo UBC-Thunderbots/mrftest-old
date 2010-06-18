@@ -84,7 +84,7 @@ void config::save() const {
 	// Find filename.
 	const Glib::ustring &config_dir = Glib::get_user_config_dir();
 	const std::string &parent_dir = Glib::filename_from_utf8(config_dir + "/thunderbots");
-	mkdir(parent_dir.c_str(), 0755);
+	mkdir(parent_dir.c_str(), 0777);
 	const std::string &file_path = Glib::filename_from_utf8(config_dir + "/thunderbots/config.dat");
 
 	// Save file.
