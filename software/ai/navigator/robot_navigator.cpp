@@ -205,7 +205,7 @@ void robot_navigator::tick() {
 	if (flags & ai_flags::avoid_ball_stop) {
 		wantdribble = false;
 	} else {
-		wantdribble = need_dribble || ai_util::ball_close(the_world, the_player) || the_player->has_ball();
+		wantdribble = need_dribble || ai_util::has_ball(the_world, the_player);
 	}
 
 	// dribble when it needs to

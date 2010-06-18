@@ -232,6 +232,8 @@ void goalie::tick() {
 			tactic.set_flags(flags);
 			tactic.tick();
 		} else {
+			// shoot furthest away from the person
+
 			// shoot to enemy goal, or randomly
 			shoot tactic(me, the_world);
 			tactic.set_flags(flags);

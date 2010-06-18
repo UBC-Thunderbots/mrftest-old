@@ -90,6 +90,15 @@ class enemy_team : public team {
 		}
 
 		/**
+		 * \param index the index of the robot to fetch
+		 * \return The robot
+		 */
+		robot::ptr operator[](unsigned int index) const {
+			assert(index < size());
+			return members[index];
+		}
+
+		/**
 		 * \return A vector of robots.
 		 */
 		std::vector<robot::ptr> get_robots() const {
@@ -159,6 +168,15 @@ class friendly_team : public team {
 		 * \return The player
 		 */
 		player::ptr get_player(unsigned int index) const {
+			assert(index < size());
+			return members[index];
+		}
+
+		/**
+		 * \param index the index of the player to fetch
+		 * \return The player
+		 */
+		player::ptr operator[](unsigned int index) const {
 			assert(index < size());
 			return members[index];
 		}

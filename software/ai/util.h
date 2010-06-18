@@ -165,11 +165,30 @@ namespace ai_util {
 	bool has_ball(const world::ptr w, const player::ptr pl);
 
 	/**
-	 * Checks if a player posses the ball.
-	 * Useful for strategy to know if team should go offence or defence.
-	 * This function is based on whether the player has ball, or recently has the ball.
+	 * Checks if a FRIENDLY PLAYER posses the ball.
 	 */
 	bool posses_ball(const world::ptr w, const player::ptr p);
+
+	/**
+	 * Checks if an ENEMY ROBOT posses the ball.
+	 */
+	bool posses_ball(const world::ptr w, const robot::ptr r);
+
+	/**
+	 * Checks if the enemy team posses the ball.
+	 */
+	bool enemy_posses_ball(const world::ptr w);
+
+	/**
+	 * Checks if friendly team posses the ball.
+	 */
+	bool friendly_posses_ball(const world::ptr w);
+
+	/**
+	 * Returns the player having the ball.
+	 * If none has the ball, return -1.
+	 */
+	int calc_baller(const world::ptr w, const std::vector<player::ptr>& the_robots);
 }
 
 #endif

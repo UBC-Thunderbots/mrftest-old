@@ -186,11 +186,6 @@ bool player::dribbler_safe() const {
 	return milliseconds > DRIBBLE_RECOVER_TIME;
 }
 
-bool player::has_ball() const {
-	return sense_ball_ >= HAS_BALL_TIME;
-	// return sense_ball() && sense_ball_time() >= HAS_BALL_TIME;
-}
-
 player::state::ptr player::get_state(const std::type_info &tid) const {
 	std::map<const std::type_info *, state::ptr>::const_iterator i = state_store.find(&tid);
 	return i != state_store.end() ? i->second : state::ptr();
@@ -243,7 +238,7 @@ void player::tick(bool scram) {
 		bot->drive_controlled(output[0], output[1], output[2], output[3]);
 		moved = false;
 		bot->enable_chicker(true);
-		if (has_ball()) {
+		if (sense_ball_ >= HAS_BALL_TIME) {
 			new_dribble_power = calc_dribble(output, new_dribble_power);
 		}
 	} else {

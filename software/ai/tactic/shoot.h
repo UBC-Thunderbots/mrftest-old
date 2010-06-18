@@ -8,6 +8,11 @@
  * If in possesion of the ball, tries to shoot to the goal.
  * If some else in the team has the ball, be ready to receive it.
  * Otherwise, chase the ball.
+ *
+ * Rules for forced shooting
+ * - if open angle found to goal, shoot it
+ * - if a friendly can see the goal better, pass
+ * - shoot to the side of some enemy robots.
  */
 class shoot : public tactic {
 	public:
@@ -26,7 +31,14 @@ class shoot : public tactic {
 		//
 		void tick();
 
-		/*
+		/**
+		 * switches pivot mode on and off.
+		 */
+		void toggle_pivot(const bool& b) {
+			use_pivot == b;
+		}
+
+		/**
 		 * force to kick somewhere very random.
 		 */
 		void force() {
@@ -36,6 +48,7 @@ class shoot : public tactic {
 	protected:
 		const world::ptr the_world;
 		bool forced;
+		bool use_pivot;
 
 };
 

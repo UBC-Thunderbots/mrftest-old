@@ -14,30 +14,15 @@ namespace {
 	const double BALL_FRONT_ANGLE = M_PI / 6;
 
 	const double EPS = 1e-9;
+
+	const int HAS_BALL_TIME = 2;
 }
 
 namespace ai_util {
 
-	/*
-	const std::vector<point> calc_candidates(const world::ptr world) {
-		std::vector<point> candidates(SHOOTING_SAMPLE_POINTS);
-		const field &the_field(world->field());
-
-		const double goal_width = the_field.goal_width() - 2*robot::MAX_RADIUS;
-		const double delta = goal_width / SHOOTING_SAMPLE_POINTS;
-
-		for (size_t i = 0; i < SHOOTING_SAMPLE_POINTS; ++i) {
-			point p(the_field.length()/2.0, -the_field.goal_width()/2.0 + robot::MAX_RADIUS + i * delta);
-			candidates[i] = p;
-		}
-		return candidates;
-	}
-	*/
-
 	bool ball_close(const world::ptr w, const robot::ptr p) {
 		const point dist = w->ball()->position() - p->position();
-		if (dist.len() > robot::MAX_RADIUS + ball::RADIUS * 2) return false;
-		return angle_diff(dist.orientation(), p->orientation()) < M_PI / 2;
+		return dist.len() > (robot::MAX_RADIUS + ball::RADIUS) * 1.5;
 	}
 	
 	bool ball_front(const world::ptr w, const robot::ptr p) {
@@ -128,47 +113,6 @@ namespace ai_util {
 		return true;
 	}
 
-	// depecreciated
-	/*
-	int calc_best_shot_old(const player::ptr player, const world::ptr world) {
-		std::vector<point> candidates = calc_candidates(world);
-		int best_point = -1;
-		double best_score = -1;
-
-		const team &opponent_team(world->enemy);
-		double proximity, score, dist;
-
-		for (unsigned int i = 0; i < SHOOTING_SAMPLE_POINTS; ++i) {		
-			point projection = candidates[i] - player->position();
-			score = 0;
-			for (unsigned int j = 0; j < opponent_team.size(); ++j) {
-				point other = opponent_team.get_robot(j)->position() - player->position();
-				proximity = (other).dot(projection.norm());
-				// don't process the robot if it's behind the shooter
-				if (proximity >= robot::MAX_RADIUS) {
-					// calculate how close the opponent robot is to our robot in proportion to our projection, 0 if the opponent robot is
-					// at our robot, 1 if the opponent robot is at the target.			
-					// scale_factor = proximity / projection.len();
-
-					dist = sqrt(other.lensq() - proximity * proximity);
-
-					if (dist <= robot::MAX_RADIUS) {
-						break;
-					}	
-					// use a 1/dist function to determine to score: the closer the opponent robot is to the projection, the higher the score
-					score += 1.0 / dist;
-				}
-			}
-			if (best_point == -1 || score < best_score 
-					|| (score == best_score && abs(2*i+1-candidates.size()) < abs(2*best_score+1-candidates.size()))) {
-				best_point = i;
-				best_score = score;
-			}
-		}
-		return best_point;
-	}
-	*/
-
 	std::pair<point, double> calc_best_shot(const field& f, const std::vector<point>& obstacles, const point& p) {
 		const point p1 = point(f.length()/2.0,-f.goal_width()/2.0);
 		const point p2 = point(f.length()/2.0,f.goal_width()/2.0);
@@ -230,17 +174,40 @@ namespace ai_util {
 		return w->field().enemy_goal();
 	}
 
-	bool has_ball(const world::ptr w, const player::ptr pl) {
-		return pl->has_ball() || ball_front(w, pl);
-		//return pl->sense_ball() >= 2 || ball_front(w, pl);
+	bool has_ball(const world::ptr w, const player::ptr p) {
+		return p->sense_ball() >= HAS_BALL_TIME || ball_front(w, p);
 	}
 
-	bool posses_ball(const world::ptr w, const player::ptr pl) {
-		//return pl->has_ball() || (pl->last_sense_ball_time() < HAS_BALL_ALLOWANCE && ball_close(w, pl));
-		return pl->has_ball() || ball_close(w, pl);
+	bool posses_ball(const world::ptr w, const player::ptr p) {
+		return p->sense_ball() >= HAS_BALL_TIME || ball_close(w, p);
 	}
 
-	// target is another player
+	bool posses_ball(const world::ptr w, const robot::ptr r) {
+		return ball_close(w, r);
+	}
+
+	bool enemy_posses_ball(const world::ptr w) {
+		const enemy_team& enemy = w->enemy;
+		for (size_t i = 0; i < enemy.size(); ++i) {
+			if (posses_ball(w, enemy[i])) return true;
+		}
+		return false;
+	}
+
+	bool friendly_posses_ball(const world::ptr w) {
+		const friendly_team& friendly = w->friendly;
+		for (size_t i = 0; i < friendly.size(); ++i) {
+			if (posses_ball(w, friendly[i])) return true;
+		}
+		return false;
+	}
+
+	int calc_baller(const world::ptr w, const std::vector<player::ptr>& the_robots) {
+		for (size_t i = 0; i < the_robots.size(); ++i) {
+			if (posses_ball(w, the_robots[i])) return static_cast<int>(i);
+		}
+		return -1;
+	}
 
 }
 
