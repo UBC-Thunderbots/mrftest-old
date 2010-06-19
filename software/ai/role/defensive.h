@@ -15,8 +15,10 @@
  * While the goalie blocks the  ball's direct line of sight.
  * Defenders block enemy robots.
  * Rules:
- * When goalie is in possesion of a ball, tries to be in line of sight of the goalie to receive the ball.
- * If the defensive is in possesion of a ball, tries to pass to a robot not in defensive role closest to an enemy goal.
+ * When goalie is in possesion of a ball,
+ * tries to be in line of sight of the goalie to receive the ball.
+ * If the defensive is in possesion of a ball,
+ * tries to pass to a robot not in defensive role closest to an enemy goal.
  * If not possible, passes to a defender or goalie (randomly).
  */
 class defensive : public role {
@@ -41,34 +43,18 @@ class defensive : public role {
 		//
 		void robots_changed();
 
-		/// TODO: remove this in the future?
-		void set_goalie(const player::ptr goalie);
-
 	protected:
 
 		/**
-		 * Calculate points which should be used to defend from enemy robots.
-		 * Should be adjusted to take into account of the rules and number of robots in this role.
+		 * Calculate points which should be used to defend from
+		 * enemy robots. Should be adjusted to take into account
+		 * of the rules and number of robots in this role.
 		 */
 		std::vector<point> calc_block_positions() const;
-
-		/// TODO: remove this in the future?
-		void move_halfway_between_ball_and_our_goal(int index);
-
-		/// TODO: This should be removed in the future.
-		void tick_goalie();
 
 		const world::ptr the_world;
 
 		std::vector<tactic::ptr> tactics;
-
-		// TODO: get rid of this message
-		// note that this is a role in role, so the goalie role can still be developed independently.
-		// Normally, the defensive role should just tick the goalie_role.
-		// When the goalie has ball, this role can set the goalie to other tactics such as passing etc., but it should NEVER leave the goalie box.
-		role::ptr goalie_role;
-		player::ptr the_goalie;
-
 };
 
 #endif
