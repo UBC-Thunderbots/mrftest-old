@@ -135,7 +135,7 @@ namespace ai_util {
 	 * Returns the point as well as the score.
 	 * score is 0 if the point is invalid.
 	 */
-	std::pair<point, double> calc_best_shot(const field& f, const std::vector<point>& obstacles, const point& p, const double radius = robot::MAX_RADIUS, const force_shot = false);
+	std::pair<point, double> calc_best_shot(const field& f, const std::vector<point>& obstacles, const point& p, const double radius = robot::MAX_RADIUS, const bool force_shot = false);
 	std::pair<point, double> calc_best_shot(const world::ptr w, const player::ptr pl, const bool consider_friendly = true, const bool force_shoot = false);
 
 	/**

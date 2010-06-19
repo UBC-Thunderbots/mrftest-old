@@ -6,6 +6,8 @@
 #include "geom/angle.h"
 #include "util/dprint.h"
 
+#include "uicomponents/param.h"
+
 #include <vector>
 #include <iostream>
 
@@ -20,7 +22,7 @@ void shoot::tick() {
 	const friendly_team &friendly(the_world->friendly);
 	const enemy_team &enemy(the_world->enemy);
 
-	const std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world, the_player->position(), true, forced);
+	const std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world, the_player, true, forced);
 
 	if (ai_util::has_ball(the_world, the_player)) {
 		// This player has the ball.
