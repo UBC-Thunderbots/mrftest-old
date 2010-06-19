@@ -23,8 +23,8 @@ namespace {
 	const double DRIBBLE_SPEED_LOW  = 0.25;
 	const double DRIBBLE_SPEED_RAMP = 1.00;
 	const double DRIBBLE_SPEED_MAX  = 0.50;
-
-
+  enum {EMPTY, OWN_ROBOT, ENEMY_ROBOT, BALL, ERROR};  
+  double avoidance_distances[5] = {0.0, 1.0, 1.0, 0.5, 0.0};
 }
 
 robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world), position_initialized(false), orientation_initialized(false), flags(0) {
@@ -241,19 +241,31 @@ void robot_navigator::tick() {
 	bool stop = false;
 	bool chooseleft;
 
+	unsigned int right_obstacle = EMPTY;
+	unsigned int left_obstacle = EMPTY;
+	unsigned int obstacle = EMPTY;
+
 	//it shouldn't take that many checks to get a good direction
 	while (true) {
 
 		leftdirection = direction.rotate(angle);
 		rightdirection = direction.rotate(-angle);
 
-		if (check_vector(the_player->position(), wantdest, leftdirection)) {
+		bool left_ok = check_vector(the_player->position(), wantdest, leftdirection);
+		bool right_ok = check_vector(the_player->position(), wantdest, rightdirection);
+
+		if (left_ok) {
 			chooseleft = true;
+			obstacle = left_obstacle;
 			break;
-		} else if (check_vector(the_player->position(), wantdest, rightdirection)) {
+		} else if (right_ok) {
 			chooseleft = false;
+			obstacle = right_obstacle;
 			break;
 		}
+
+		left_obstacle = check_obstacles(the_player->position(), wantdest, leftdirection);
+		right_obstacle = check_obstacles(the_player->position(), wantdest, rightdirection);
 
 		if (angle > ROTATION_THRESH) {
 			leftdirection = rightdirection = direction;
@@ -284,13 +296,17 @@ void robot_navigator::tick() {
 
 // TODO: use the util functions
 bool robot_navigator::check_vector(const point& start, const point& dest, const point& direction) const {
+  return check_obstacles(start, dest, direction) == EMPTY;
+}
+
+unsigned int robot_navigator::check_obstacles(const point& start, const point& dest, const point& direction) const {
 	const ball::ptr the_ball(the_world->ball());
 	const point startdest = dest - start;
 	const double lookahead = std::min(startdest.len(), LOOKAHEAD_MAX);
 
 	if (abs(direction.len() - 1.0) > ai_util::POS_EPS) {
 		std::cerr << " Direction not normalized! " << direction.len() << std::endl;
-		return false;
+		return ERROR;
 	}
 
 	const team * const teams[2] = { &the_world->friendly, &the_world->enemy };
@@ -305,7 +321,7 @@ bool robot_navigator::check_vector(const point& start, const point& dest, const 
 			if (proj <= 0) continue;
 
 			if (proj < lookahead && perp < get_avoidance_factor() * (robot::MAX_RADIUS * 2)) {
-				return false;
+			  return (i==0) ? OWN_ROBOT:ENEMY_ROBOT;
 			}
 		}
 	}
@@ -316,13 +332,10 @@ bool robot_navigator::check_vector(const point& start, const point& dest, const 
 		if (proj > 0) {
 			double perp = sqrt(ballvec.dot(ballvec) - proj * proj);
 			if (proj < lookahead && perp < get_avoidance_factor() * (robot::MAX_RADIUS + ball::RADIUS)) {
-				//std::cout << "Checked FALSE" << std::endl;
-				return false;
+				return BALL;
 			}
 		}
 	}
 
-	//std::cout << "Checked TRUE" << std::endl;
-	return true;
+	return EMPTY;
 }
-

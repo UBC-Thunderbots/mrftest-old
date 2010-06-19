@@ -68,6 +68,7 @@ class robot_navigator : public noncopyable {
 		point clip_defense_area(point dst);
 		point clip_offense_area(point dst);
 		bool check_vector(const point& start, const point& dest, const point& direction) const;
+		unsigned int check_obstacles(const point& start, const point& dest, const point& direction) const;
 		double get_avoidance_factor() const;
 
 		point clip_circle(point circle_centre, double circle_radius, point dst);
