@@ -1,5 +1,6 @@
 #include "ai/role/kickoff_friendly.h"
 #include "ai/tactic/move.h"
+#include "ai/tactic/shoot.h"
 #include "ai/flags.h"
 #include "geom/util.h"
 
@@ -66,13 +67,16 @@ void kickoff_friendly::tick(){
      //do something more intelligent here than just nothing
 #warning do something more intelligent here execute kickoff than just have one robot chase ball
        unsigned int flags = ai_flags::calc_flags(the_world->playtype());
-       for(unsigned int i=0; i<the_robots.size(); i++){
+
+       // handle kicker separately
+       // kicker will just force shoot the ball
+       shoot::ptr shoot_tactic(new shoot(the_robots[0], the_world));
+       shoot_tactic->set_flags(flags);
+       shoot_tactic->force();
+       shoot_tactic->tick();
+       for(unsigned int i=1; i<the_robots.size(); i++){
 	 move::ptr move_tactic(new move(the_robots[i], the_world));
-	 if(i==0){
-	   move_tactic->set_position(the_world->ball()->position());
-	 }else{
-	   move_tactic->set_position(the_robots[i]->position());
-	 }
+	 move_tactic->set_position(the_robots[i]->position());
 	 move_tactic->set_flags(flags);
 	 move_tactic->tick();
        }
