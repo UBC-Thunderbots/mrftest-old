@@ -310,7 +310,7 @@ bool simulator::tick_geometry() {
 	fld->set_field_width(simulator_field::width * 1000);
 	fld->set_boundary_width(250);
 	fld->set_referee_width((simulator_field::total_length - simulator_field::length) / 2 * 1000 - 250);
-	fld->set_goal_width(simulator_field::goal_width);
+	fld->set_goal_width(simulator_field::goal_width * 1000);
 	fld->set_goal_depth(450);
 	fld->set_goal_wall_width(10);
 	fld->set_center_circle_radius(simulator_field::centre_circle_radius * 1000);
