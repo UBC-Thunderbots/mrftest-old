@@ -13,9 +13,19 @@ void byrons_defender::tick() {
 
 	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
 	
+	point ball = the_world->ball()->position();
+			
+	int closest = 0;
+	double minLength = 100;
+	for (size_t i = 0; i < the_world->friendly.size(); ++i) {
+		if ((the_world->friendly.get_player(i)->position() - ball).len() < minLength) {
+			minLength = (the_world->friendly.get_player(i)->position() - ball).len();
+			closest = i; 
+		}
+	}
+	
 	for (size_t index = 0; index < the_robots.size(); ++index) {
-		point ball = the_world->ball()->position();
-		if ((the_robots[index]->position() - ball).len() > 0.4) {
+		if ((the_robots[index]->position() - ball).len() > 1.0 || the_robots[index] != the_world->friendly.get_player(closest)) {
 			move tactic(the_robots[index], the_world);
 			if (the_robots.size() == 2) {
 				if (index == 0) {
@@ -32,6 +42,7 @@ void byrons_defender::tick() {
 			tactic.tick();
 		} else {
 			shoot tactic(the_robots[index], the_world);
+			tactic.force();
 			tactic.set_flags(flags);
 			tactic.tick();
 		}
