@@ -19,7 +19,7 @@ namespace {
 	const double AVOID_BALL_AMOUNT = 0.5 + robot::MAX_RADIUS;
 	double_param AVOID_CONST("Avoid Factor Const", 1.1, 1.0, 2.0);
 	double_param AVOID_MULT("Avoid Factor Mult", 0.5, 0.0, 10.0);
-
+  const double OFFENSIVE_AVOID = 0.2;
 	// hardware dependent dribble parameters
 	const double DRIBBLE_SPEED_LOW  = 0.25;
 	const double DRIBBLE_SPEED_RAMP = 1.00;
@@ -83,7 +83,7 @@ point robot_navigator::clip_offense_area(point dst){
   for(int i=0; i<4; i++){
     int a = i/2;
     int b = (i%2) ? -1:1;
-    offense_rect[i] =  point(the_world->field().enemy_goal().x - a*the_world->field().defense_area_radius(),  b*the_world->field().defense_area_stretch()/2.0);
+    offense_rect[i] =  point(the_world->field().enemy_goal().x +OFFENSIVE_AVOID  - a*(the_world->field().defense_area_radius() + OFFENSIVE_AVOID),  b*the_world->field().defense_area_stretch()/2.0);
   }
 
   if(line_seg_intersect_rectangle(seg, offense_rect)){
@@ -93,8 +93,8 @@ point robot_navigator::clip_offense_area(point dst){
  	//clip the two quater-circles around the defense area
 	point defense_circA = point(the_world->field().enemy_goal().x, the_world->field().defense_area_stretch()/2.0);
 	point defense_circB = point(the_world->field().enemy_goal().x, -(the_world->field().defense_area_stretch()/2.0));
-	point wantdest = clip_circle(defense_circA, the_world->field().defense_area_radius(), dst);
-	wantdest = clip_circle(defense_circB, the_world->field().defense_area_radius(), wantdest);
+	point wantdest = clip_circle(defense_circA, the_world->field().defense_area_radius() + OFFENSIVE_AVOID, dst);
+	wantdest = clip_circle(defense_circB, the_world->field().defense_area_radius() + OFFENSIVE_AVOID, wantdest);
  
   	return wantdest;
   	
