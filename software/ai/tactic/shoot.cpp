@@ -2,8 +2,9 @@
 #include "ai/tactic/move.h"
 #include "ai/tactic/chase.h"
 #include "ai/tactic/pivot.h"
-#include "geom/angle.h"
 #include "ai/util.h"
+#include "geom/angle.h"
+#include "util/dprint.h"
 
 #include <vector>
 #include <iostream>
@@ -51,19 +52,19 @@ void shoot::tick() {
 		}
 
 		const double anglediff = angle_diff(targetori, the_player->orientation());
-		std::cout << "shoot: target=" << bestshot.first << " player angle off=" << anglediff << " target tolerance=" << bestshot.second << std::endl;
+		LOG_INFO(Glib::ustring::compose("target=%1,%2 tolerance=%3 off=%4", bestshot.first.x, bestshot.first.y, bestshot.second, anglediff));
 
 		// check if the goal is within shooting range. if so, kick
 		if (anglediff < bestshot.second / 2) {
 			// kick realy really hard
 			if (the_player->chicker_ready_time() == 0) {
-				std::cout << "shoot: kick" << std::endl;
+				LOG_INFO(Glib::ustring::compose("%1 kick", the_player->name));
 				the_player->kick(1.0);
 			} else {
-				std::cout << "shoot: chicker not ready" << std::endl;
+				LOG_INFO(Glib::ustring::compose("%1 chicker not ready", the_player->name));
 			}
 		} else {
-			std::cout << "shoot: aiming" << std::endl;
+			LOG_DEBUG(Glib::ustring::compose("%1 aiming", the_player->name));
 		}
 
 		move_tactic.set_flags(flags);

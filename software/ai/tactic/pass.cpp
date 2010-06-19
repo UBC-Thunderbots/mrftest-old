@@ -3,6 +3,7 @@
 #include "ai/tactic/move.h"
 #include "ai/util.h"
 #include "geom/angle.h"
+#include "util/dprint.h"
 
 #include <iostream>
 #include <iterator>
@@ -59,10 +60,10 @@ void pass::tick() {
 
 	if (should_pass) {
 		if (the_player->chicker_ready_time() == 0) {
-			std::cout << " pass: shoot " << std::endl;
+			LOG_INFO(Glib::ustring::compose("%1 kick", the_player->name));
 			the_player->kick(1.0);
 		} else {
-			std::cout << " pass: wait for chicker " << std::endl;
+			LOG_INFO(Glib::ustring::compose("%1 chicker not ready", the_player->name));
 		}
 	}
 

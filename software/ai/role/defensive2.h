@@ -41,7 +41,7 @@ class defensive2 : public role {
 		 * - if any of the position == ball position,
 		 *   please use chase/shoot etc
 		 */
-		std::pair<point, std::vector<point> > calc_block_positions(const bool top = true) const;
+		std::pair<point, std::vector<point> > calc_block_positions(const bool top) const;
 
 		void assign(const player::ptr& p, tactic::ptr t);
 

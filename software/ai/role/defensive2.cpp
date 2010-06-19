@@ -13,6 +13,15 @@
 namespace {
 	// minimum distance from the goal post
 	const double MIN_GOALPOST_DIST = 0.05;
+
+	// used to save if the goalie should be on the top or bottom side
+	class defensive2_state : public player::state {
+		public:
+			typedef Glib::RefPtr<defensive2_state> ptr;
+			defensive2_state() : top(false) { }
+			bool top;
+	};
+
 }
 
 defensive2::defensive2(world::ptr world) : the_world(world) {
@@ -25,7 +34,7 @@ void defensive2::assign(const player::ptr& p, tactic::ptr t) {
 			return;
 		}
 	}
-	// ERROR MESSAGE HERE
+	LOG_ERROR("assign unknown robot");
 }
 
 std::pair<point, std::vector<point> > defensive2::calc_block_positions(const bool top) const {
@@ -50,13 +59,6 @@ std::pair<point, std::vector<point> > defensive2::calc_block_positions(const boo
 
 	// goalie and first defender integrated defence
 	// maximum x-distance the goalie can go from own goal.
-	/*
-	point G;
-	if (point_in_defense(the_world, ballpos)) {
-		// panic and shoot out the ball
-		G = ballpos;
-	} else {
-	 */
 	// normally
 	const double maxdist = f.defense_area_radius() - robot::MAX_RADIUS;
 	const point L = line_intersect(goalside, ballpos, f.friendly_goal() + point(maxdist, -1), f.friendly_goal() + point(maxdist, 1));
@@ -66,7 +68,6 @@ std::pair<point, std::vector<point> > defensive2::calc_block_positions(const boo
 	// first defender will block the remaining cone from the ball
 	const point D1 = calc_block_cone_defender(goalside, goalopp, ballpos, G, robot::MAX_RADIUS);
 	waypoints.push_back(D1);
-	//}
 
 	// 2nd defender block nearest enemy sight to goal if needed
 	// what happen if posses ball? skip or what?
@@ -137,6 +138,18 @@ void defensive2::tick() {
 		}
 	}
 
+	// adjust ball position
+	defensive2_state::ptr state(defensive2_state::ptr::cast_dynamic(goalie->get_state(typeid(*this))));
+	if (!state) {
+		state = defensive2_state::ptr(new defensive2_state());
+		goalie->set_state(typeid(*this), state);
+	}
+	if (ballpos.y > the_world->field().width() / 4) {
+		state->top = true;
+	} else if (ballpos.y < -the_world->field().width() / 4) {
+		state->top = false;
+	}
+
 	std::vector<player::ptr> defenders;
 	for (size_t i = 1; i < the_robots.size(); ++i)
 		defenders.push_back(the_robots[i]);
@@ -148,7 +161,7 @@ void defensive2::tick() {
 	const int baller = ai_util::calc_baller(the_world, defenders);
 	// const bool teamball = ai_util::friendly_posses_ball(the_world);
 
-	std::pair<point, std::vector<point> > positions = calc_block_positions();
+	std::pair<point, std::vector<point> > positions = calc_block_positions(state->top);
 	std::vector<point>& waypoints = positions.second;
 
 	// do matching for distances
