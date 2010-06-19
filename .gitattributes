@@ -36,6 +36,8 @@ software/ai/navigator/robot_navigator.cpp -text
 software/ai/navigator/robot_navigator.h -text
 software/ai/navigator/testnavigator.cpp -text
 software/ai/navigator/testnavigator.h -text
+software/ai/role/byrons_defender.cpp -text
+software/ai/role/byrons_defender.h -text
 software/ai/role/defensive.cpp -text
 software/ai/role/defensive.h -text
 software/ai/role/defensive2.cpp -text
@@ -73,6 +75,7 @@ software/ai/strategy/basic_strategy.cpp -text
 software/ai/strategy/basic_strategy.h -text
 software/ai/strategy/better_strategy.cpp -text
 software/ai/strategy/better_strategy.h -text
+software/ai/strategy/byron_test_defensive_strategy.cpp -text
 software/ai/strategy/chase_strategy.cpp -text
 software/ai/strategy/hand_tuning.cpp -text
 software/ai/strategy/mech_tuning.cpp -text
