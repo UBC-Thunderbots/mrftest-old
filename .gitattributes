@@ -281,6 +281,8 @@ software/uicomponents/light.cpp -text
 software/uicomponents/light.h -text
 software/uicomponents/outbound_rssi_meter.cpp -text
 software/uicomponents/outbound_rssi_meter.h -text
+software/uicomponents/param.cpp -text
+software/uicomponents/param.h -text
 software/uicomponents/run_data_interval_meter.cpp -text
 software/uicomponents/run_data_interval_meter.h -text
 software/uicomponents/single_bot_combobox.cpp -text

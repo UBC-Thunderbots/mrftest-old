@@ -72,6 +72,8 @@ config::config() : channel_(0x0E) {
 			load_v1(ifs);
 		} else if (std::equal(signature, signature + 8, "TBOTC002")) {
 			load_v2(ifs);
+		} else if (std::equal(signature, signature + 8, "TBOTC003")) {
+			load_v3(ifs);
 		} else {
 			// Unknown version number. Give up.
 		}
@@ -91,11 +93,40 @@ void config::save() const {
 	std::ofstream ofs;
 	ofs.exceptions(std::ios_base::failbit | std::ios_base::badbit);
 	ofs.open(file_path.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
-	ofs.write("TBOTC002", 8);
+	ofs.write("TBOTC003", 8);
 	robots_.save(ofs);
 	{
 		uint8_t ch = channel_;
 		ofs.write(reinterpret_cast<const char *>(&ch), 1);
+	}
+
+	uint32_t nparams;
+
+	nparams = bool_params.size();
+	ofs.write(reinterpret_cast<const char *>(&nparams), sizeof(nparams));
+	for (typeof(bool_params.begin()) i = bool_params.begin(); i != bool_params.end(); ++i) {
+		const std::string &name(i->first.raw());
+		ofs.write(name.data(), name.size());
+		char value = i->second ? 1 : 0;
+		ofs.write(&value, sizeof(value));
+	}
+
+	nparams = int_params.size();
+	ofs.write(reinterpret_cast<const char *>(&nparams), sizeof(nparams));
+	for (typeof(int_params.begin()) i = int_params.begin(); i != int_params.end(); ++i) {
+		const std::string &name(i->first.raw());
+		ofs.write(name.data(), name.size());
+		int value = i->second;
+		ofs.write(reinterpret_cast<const char *>(&value), sizeof(value));
+	}
+
+	nparams = double_params.size();
+	ofs.write(reinterpret_cast<const char *>(&nparams), sizeof(nparams));
+	for (typeof(double_params.begin()) i = double_params.begin(); i != double_params.end(); ++i) {
+		const std::string &name(i->first.raw());
+		ofs.write(name.data(), name.size());
+		double value = i->second;
+		ofs.write(reinterpret_cast<const char *>(&value), sizeof(value));
 	}
 }
 
@@ -115,6 +146,53 @@ void config::load_v2(std::istream &ifs) {
 		uint8_t ch;
 		ifs.read(reinterpret_cast<char *>(&ch), 1);
 		channel(ch);
+	}
+}
+
+void config::load_v3(std::istream &ifs) {
+	robots_.load_v2(ifs);
+	{
+		uint8_t ch;
+		ifs.read(reinterpret_cast<char *>(&ch), 1);
+		channel(ch);
+	}
+
+	uint32_t nparams;
+
+	ifs.read(reinterpret_cast<char *>(&nparams), 4);
+	while (nparams--) {
+		uint32_t namelen;
+		ifs.read(reinterpret_cast<char *>(&namelen), 4);
+		char buffer[namelen];
+		ifs.read(buffer, sizeof(buffer));
+		Glib::ustring name(buffer, sizeof(buffer));
+		char value;
+		ifs.read(&value, sizeof(value));
+		bool_params[name] = !!value;
+	}
+
+	ifs.read(reinterpret_cast<char *>(&nparams), 4);
+	while (nparams--) {
+		uint32_t namelen;
+		ifs.read(reinterpret_cast<char *>(&namelen), 4);
+		char buffer[namelen];
+		ifs.read(buffer, sizeof(buffer));
+		Glib::ustring name(buffer, sizeof(buffer));
+		int value;
+		ifs.read(reinterpret_cast<char *>(&value), sizeof(value));
+		int_params[name] = value;
+	}
+
+	ifs.read(reinterpret_cast<char *>(&nparams), 4);
+	while (nparams--) {
+		uint32_t namelen;
+		ifs.read(reinterpret_cast<char *>(&namelen), 4);
+		char buffer[namelen];
+		ifs.read(buffer, sizeof(buffer));
+		Glib::ustring name(buffer, sizeof(buffer));
+		double value;
+		ifs.read(reinterpret_cast<char *>(&value), sizeof(value));
+		double_params[name] = value;
 	}
 }
 

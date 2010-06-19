@@ -42,10 +42,25 @@ class scoped_ptr : public noncopyable {
 		}
 
 		/**
-		 * \return The contained object
+		 * \return the contained object.
 		 */
 		T *operator->() const {
 			return obj;
+		}
+
+		/**
+		 * \return the contained object.
+		 */
+		T &ref() const {
+			return *obj;
+		}
+
+		/**
+		 * \return \c true if the pointer is non-null, or \c false if the
+		 * pointer is null.
+		 */
+		operator bool() const {
+			return !!obj;
 		}
 
 	private:

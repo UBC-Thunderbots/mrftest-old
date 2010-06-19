@@ -1,6 +1,7 @@
 #include "ai/window.h"
 #include "ai/world/world.h"
 #include "uicomponents/abstract_list_model.h"
+#include "uicomponents/param.h"
 #include "util/clocksource_timerfd.h"
 #include "util/config.h"
 #include "util/timestep.h"
@@ -242,6 +243,8 @@ namespace {
 		for (unsigned int i = 0; i < conf.robots().size(); ++i) {
 			xbee_bots.push_back(xbee_drive_bot::create(conf.robots()[i].name, conf.robots()[i].address, modem));
 		}
+
+		param::initialized(&conf);
 
 		world::ptr the_world(world::create(conf, xbee_bots));
 		if (refbox_yellow) {

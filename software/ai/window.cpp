@@ -1,6 +1,7 @@
 #include "ai/window.h"
 #include "uicomponents/abstract_list_model.h"
 #include "uicomponents/annunciator.h"
+#include "uicomponents/param.h"
 #include "util/algorithm.h"
 #include <cstdlib>
 #include <iomanip>
@@ -185,6 +186,8 @@ namespace {
 ai_window::ai_window(ai &ai, bool show_vis) : the_ai(ai), strategy_controls(0), rc_controls(0), vis(ai.the_world->visualizer_view()) {
 	set_title("AI");
 
+	Gtk::Notebook *notebook = Gtk::manage(new Gtk::Notebook);
+
 	Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox);
 
 	Gtk::Frame *basic_frame = Gtk::manage(new Gtk::Frame("Basics"));
@@ -293,7 +296,11 @@ ai_window::ai_window(ai &ai, bool show_vis) : the_ai(ai), strategy_controls(0), 
 
 	vbox->pack_start(*Gtk::manage(new annunciator), Gtk::PACK_SHRINK);
 
-	add(*vbox);
+	notebook->append_page(*vbox, "Main");
+
+	notebook->append_page(*Gtk::manage(new param_panel), "Params");
+
+	add(*notebook);
 
 	the_ai.the_world->signal_playtype_changed.connect(sigc::mem_fun(this, &ai_window::on_playtype_changed));
 	the_ai.the_world->signal_flipped_ends.connect(sigc::mem_fun(this, &ai_window::on_flipped_ends));

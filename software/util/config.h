@@ -2,75 +2,112 @@
 #define UTIL_CONFIG_H
 
 #include <istream>
+#include <map>
 #include <ostream>
 #include <vector>
 #include <glibmm.h>
 #include <stdint.h>
 #include "util/noncopyable.h"
 
-//
-// Provides access to the configuration file.
-//
+/**
+ * Provides access to the configuration file.
+ */
 class config : public noncopyable {
 	public:
-		//
-		// The configuration of a single robot.
-		//
+		/**
+		 * The configuration of a single robot.
+		 */
 		struct robot_info {
+			/**
+			 * The robot's XBee address.
+			 */
 			uint64_t address;
+
+			/**
+			 * \c true if the central dot on the robot's lid is yellow, or \c
+			 * false if it is blue.
+			 */
 			bool yellow;
+
+			/**
+			 * The index of the robot's lid pattern in the SSL-Vision pattern
+			 * file.
+			 */
 			unsigned int pattern_index;
+
+			/**
+			 * A human-readable name for the robot.
+			 */
 			Glib::ustring name;
 
-			robot_info() {
-			}
-
+			/**
+			 * Constructs a new robot_info.
+			 *
+			 * \param[in] address the robot's XBee address.
+			 *
+			 * \param[in] yellow \c true if the central dot on the robot's lid
+			 * is yellow, or \c false if it is blue.
+			 *
+			 * \param[in] pattern_index the index in the SSL-Vision pattern file
+			 * of the robot's lid pattern.
+			 *
+			 * \param[in] name a human-readable name for the robot.
+			 */
 			robot_info(uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name) : address(address), yellow(yellow), pattern_index(pattern_index), name(name) {
 			}
 		};
 
-		//
-		// A collection of robot_info objects.
-		//
+		/**
+		 * A collection of robot_info objects.
+		 */
 		class robot_set : public noncopyable {
 			public:
-				//
-				// Returns the number of robots in the list.
-				//
+				/**
+				 * \return the number of robots in the list.
+				 */
 				unsigned int size() const {
 					return robots.size();
 				}
 
-				//
-				// Gets a robot by its position in the list.
-				//
+				/**
+				 * param[in] index the position of the robot in the list.
+				 *
+				 * \return the robot at that position.
+				 */
 				const robot_info &operator[](unsigned int index) const {
 					return robots[index];
 				}
 
-				//
-				// Gets a robot by its 64-bit address.
-				//
+				/**
+				 * \param[in] address the XBee address to look up.
+				 *
+				 * \return the robot's information structure.
+				 */
 				const robot_info &find(uint64_t address) const;
 
 				/**
-				 * Gets a robot by its name.
-				 *
 				 * \param[in] name the name of the robot.
 				 *
 				 * \return the robot's information structure.
 				 */
 				const robot_info &find(const Glib::ustring &name) const;
 
-				//
-				// Checks whether a particular address is already in the list.
-				//
+				/**
+				 * \param[in] address the address to check.
+				 *
+				 * \return \c true if some robot in the collection has the
+				 * address \p address, or \c false if not.
+				 */
 				bool contains_address(uint64_t address) const;
 
-				//
-				// Checks whether a particular vision pattern is already in the
-				// list.
-				//
+				/**
+				 * \param[in] yellow the team colour to look up.
+				 *
+				 * \param[in] pattern_index the pattern index to look up.
+				 *
+				 * \return \c true if a robot in the ocllection has the given
+				 * colour and pattern index, or \c false if not.
+				 */
 				bool contains_pattern(bool yellow, unsigned int pattern_index) const;
 
 				/**
@@ -81,26 +118,35 @@ class config : public noncopyable {
 				 */
 				bool contains_name(const Glib::ustring &name) const;
 
-				//
-				// Adds a new robot.
-				//
+				/**
+				 * Adds a new robot.
+				 *
+				 * \param[in] address the robot's XBee address.
+				 *
+				 * \param[in] yellow \c true to make the central dot on the new
+				 * robot's lid yellow, or \c false if not.
+				 *
+				 * \param[in] name a human-readable name for the ball.
+				 */
 				void add(uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name);
 
-				//
-				// Emitted when a robot is added. Parameter is the index of the
-				// robot.
-				//
+				/**
+				 * Emitted when a robot is added. Parameter is the index of the
+				 * robot.
+				 */
 				mutable sigc::signal<void, unsigned int> signal_robot_added;
 
-				//
-				// Deletes a robot.
-				//
+				/**
+				 * Deletes a robot.
+				 *
+				 * \param[in] address the XBee address of the robot to delete.
+				 */
 				void remove(uint64_t address);
 
-				//
-				// Emitted when a robot is deleted. Parameter is the index of
-				// the robot.
-				//
+				/**
+				 * Emitted when a robot is deleted. Parameter is the index of
+				 * the robot.
+				 */
 				mutable sigc::signal<void, unsigned int> signal_robot_removed;
 
 				/**
@@ -165,26 +211,26 @@ class config : public noncopyable {
 				friend class config;
 		};
 
-		//
-		// Loads the configuration file.
-		//
+		/**
+		 * Loads the configuration file.
+		 */
 		config();
 
-		//
-		// Saves the configuration file.
-		//
+		/**
+		 * Saves the configuration file.
+		 */
 		void save() const;
 
-		//
-		// Returns the set of configured robots.
-		//
+		/**
+		 * \return the set of configured robots.
+		 */
 		const robot_set &robots() const {
 			return robots_;
 		}
 
-		//
-		// Returns the set of configured robots.
-		//
+		/**
+		 * \return the set of configured robots.
+		 */
 		robot_set &robots() {
 			return robots_;
 		}
@@ -204,12 +250,28 @@ class config : public noncopyable {
 		 */
 		void channel(unsigned int chan);
 
+		/**
+		 * The collection of tunable booleans, by name.
+		 */
+		std::map<Glib::ustring, bool> bool_params;
+
+		/**
+		 * The collection of tunable integers, by name.
+		 */
+		std::map<Glib::ustring, int> int_params;
+
+		/**
+		 * The collection of tunable doubles, by name.
+		 */
+		std::map<Glib::ustring, double> double_params;
+
 	private:
 		robot_set robots_;
 		unsigned int channel_;
 
 		void load_v1(std::istream &ifs);
 		void load_v2(std::istream &ifs);
+		void load_v3(std::istream &ifs);
 };
 
 #endif
