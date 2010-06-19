@@ -174,11 +174,11 @@ point robot_navigator::get_inbounds_point(point dst){
 	}
 
 	if (flags & ai_flags::penalty_kick_friendly) {
-
+		wantdest.x =  std::min(wantdest.x, the_field.penalty_enemy().x - 0.400 - (robot::MAX_RADIUS + ai_util::POS_CLOSE));
 	}
 
 	if (flags & ai_flags::penalty_kick_enemy) {
-
+		wantdest.x =  std::max(wantdest.x, the_field.penalty_friendly().x + 0.400 + (robot::MAX_RADIUS + ai_util::POS_CLOSE));
 	}
 
 	//make sure that we do not ram into the net posts

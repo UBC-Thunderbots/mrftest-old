@@ -39,6 +39,7 @@ void penalty_friendly::tick() {
 		// make shooter shoot
 		const player::ptr shooter = the_robots[0];
 		shoot tactic(shooter, the_world);
+		tactic.force();
 		tactic.tick();
 
 		for (size_t i = 1; i < the_robots.size(); ++i) {
