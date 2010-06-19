@@ -6,7 +6,8 @@
 #include "geom/point.h"
 
 /**
- * Chases after the ball, and aims by doing a pivoting turn towards the specified target
+ * Chases after the ball,
+ * and aims by doing a pivoting turn towards the specified target
  * Then chases the target with the ball
  */
 class pivot : public tactic {
@@ -34,10 +35,18 @@ class pivot : public tactic {
 		//
 		void tick();	
 
+		/**
+		 * Enables a player to pivot without approaching the ball.
+		 */
+		void get_ball(const bool& b) {
+			get_ball_ = b;
+		}
+
 	protected:
 
 		const world::ptr the_world;
 		point target;
+		bool get_ball_;
 };
 
 #endif
