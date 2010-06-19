@@ -24,9 +24,7 @@ void shoot::tick() {
 		obstacles.push_back(enemy.get_robot(i)->position());
 	}
 
-#warning enable forced kicking
-
-	const std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world->field(), obstacles, the_player->position());
+	const std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world->field(), obstacles, the_player->position(), forced);
 
 	if (ai_util::has_ball(the_world, the_player)) {
 		// This player has the ball.

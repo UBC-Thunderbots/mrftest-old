@@ -113,13 +113,13 @@ namespace ai_util {
 		return true;
 	}
 
-	std::pair<point, double> calc_best_shot(const field& f, const std::vector<point>& obstacles, const point& p) {
+	std::pair<point, double> calc_best_shot(const field& f, const std::vector<point>& obstacles, const point& p, const double radius) {
 		const point p1 = point(f.length()/2.0,-f.goal_width()/2.0);
 		const point p2 = point(f.length()/2.0,f.goal_width()/2.0);
-		return angle_sweep_circles(p, p1, p2, obstacles, robot::MAX_RADIUS);
+		return angle_sweep_circles(p, p1, p2, obstacles, radius);
 	}
 
-	std::pair<point, double> calc_best_shot(const world::ptr w, const player::ptr pl, const bool consider_friendly) {
+	std::pair<point, double> calc_best_shot(const world::ptr w, const player::ptr pl, const bool consider_friendly, const bool force_shoot) {
 		std::vector<point> obstacles;
 		const enemy_team &enemy(w->enemy);
 		for (size_t i = 0; i < enemy.size(); ++i) {
@@ -133,7 +133,19 @@ namespace ai_util {
 				obstacles.push_back(fpl->position());
 			}
 		}
-		return calc_best_shot(w->field(), obstacles, pl->position());
+		std::pair<point, double> best_shot = calc_best_shot(w->field(), obstacles, pl->position());
+		if (!force_shoot || best_shot.second >= 2*ORI_CLOSE) return best_shot;
+		double radius = robot::MAX_RADIUS;
+		while(best_shot.second < 2*ORI_CLOSE){
+			radius -= robot::MAX_RADIUS / 10.0;
+			if (radius < 0) break;
+			best_shot = calc_best_shot(w->field(), obstacles, pl->position(), radius);
+		}
+		if (best_shot.second >= 2*ORI_CLOSE) return best_shot;
+		// enemy robots still break up the goal into too small intervals, just shoot for center of goal
+		best_shot.first = point(w->field().length()/2.0,0);
+		best_shot.second = std::atan2(w->field().goal_width(),w->field().length())*2.0;
+		return best_shot;
 	}
 
 	double calc_goal_visibility_angle(const world::ptr w, const player::ptr pl, const bool consider_friendly) {
