@@ -30,7 +30,7 @@ class basic_strategy : public strategy {
 		 * Assign players when playtype is play.
 		 * This can be overriden for more complex intelligence.
 		 */
-		void in_play_assignment();
+		virtual void in_play_assignment();
 
 		/**
 		 * Assign players when playtype is play.
@@ -42,7 +42,7 @@ class basic_strategy : public strategy {
 		 * But leave out one offender, so that it can be used for other things like
 		 * free kicks.
 		 */
-		player::ptr minus_one_assignment();
+		virtual player::ptr minus_one_assignment();
 
 		/**
 		 * Amount of ticks per update.
