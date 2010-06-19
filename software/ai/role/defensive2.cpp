@@ -1,13 +1,12 @@
 #include "ai/role/defensive2.h"
-#include "ai/role/goalie.h"
-#include "ai/tactic/pivot.h"
+#include "ai/role/offensive.h"
 #include "ai/tactic/move.h"
 #include "ai/tactic/shoot.h"
 #include "ai/tactic/pass.h"
-#include "ai/tactic/receive.h"
 #include "ai/util.h"
 #include "util/algorithm.h"
 #include "geom/util.h"
+#include "util/dprint.h"
 
 #include <iostream>
 
@@ -19,32 +18,23 @@ namespace {
 defensive2::defensive2(world::ptr world) : the_world(world) {
 }
 
-point defensive2::calc_goalie_pos(const bool top) const {
-	const field& f = the_world->field();
-
-	// maximum x-distance the goalie can go from own goal.
-	const double maxdist = f.defense_area_radius() - robot::MAX_RADIUS;
-
-	// there is ray ballpos to goalside
-	const point& ballpos = the_world->ball()->position();
-	const point goalside = top ? point(-f.length()/2, f.goal_width()/2) : point(-f.length(), -f.goal_width()/2);
-
-	// NOTE! ensure that the ball is radius distance from the left end.
-
-	// point L is the intersection of max goalpost distance and the ray
-	const point L = line_intersect(goalside, ballpos, f.friendly_goal() + point(maxdist, -1), f.friendly_goal() + point(maxdist, 1));
-
-	// block the cone from L
-	if (top) {
-		return L + calc_block_cone(goalside - ballpos, point(0, -1), robot::MAX_RADIUS);
-	} else {
-		return L + calc_block_cone(point(0, 1), goalside - ballpos, robot::MAX_RADIUS);
+void defensive2::assign(const player::ptr& p, tactic::ptr t) {
+	for (size_t i = 0; i < the_robots.size(); ++i) {
+		if (the_robots[i] == p) {
+			tactics[i] = t;
+			return;
+		}
 	}
+	// ERROR MESSAGE HERE
 }
 
-// will always return at least 5 values
-std::vector<point> defensive2::calc_block_positions(const bool top) const {
+std::pair<point, std::vector<point> > defensive2::calc_block_positions(const bool top) const {
 	const enemy_team& enemy(the_world->enemy);
+
+	if (enemy.size() == 0) {
+		std::cerr << "defensive2: no enemy!?" << std::endl;
+	}
+
 	const field& f = the_world->field();
 
 	// Sort enemies by distance from own goal.
@@ -58,116 +48,156 @@ std::vector<point> defensive2::calc_block_positions(const bool top) const {
 	const point goalside = top ? point(-f.length()/2, f.goal_width()/2) : point(-f.length(), -f.goal_width()/2);
 	const point goalopp = top ? point(-f.length()/2, -f.goal_width()/2) : point(-f.length(), f.goal_width()/2);
 
-	// goalie
+	// goalie and first defender integrated defence
 	// maximum x-distance the goalie can go from own goal.
+	/*
+	point G;
+	if (point_in_defense(the_world, ballpos)) {
+		// panic and shoot out the ball
+		G = ballpos;
+	} else {
+	 */
+	// normally
 	const double maxdist = f.defense_area_radius() - robot::MAX_RADIUS;
 	const point L = line_intersect(goalside, ballpos, f.friendly_goal() + point(maxdist, -1), f.friendly_goal() + point(maxdist, 1));
 	const point G = (top) ?  L + calc_block_cone(goalside - ballpos, point(0, -1), robot::MAX_RADIUS)
 		: L + calc_block_cone(point(0, 1), goalside - ballpos, robot::MAX_RADIUS);
-	
+
 	// first defender will block the remaining cone from the ball
 	const point D1 = calc_block_cone_defender(goalside, goalopp, ballpos, G, robot::MAX_RADIUS);
-
-	// 2nd defender block enemy sight to goal if needed
-
-	// block another ray
-	waypoints.push_back(G);
 	waypoints.push_back(D1);
+	//}
 
-	return waypoints;
+	// 2nd defender block nearest enemy sight to goal if needed
+	// what happen if posses ball? skip or what?
+	if (!ai_util::posses_ball(the_world, enemies[0])) {
+		// block this enemy
+		const point D2 = calc_block_cone(goalside, goalopp, enemies[0]->position(), robot::MAX_RADIUS);
+		waypoints.push_back(D2);
+	}
+
+	if (enemy.size() == 1) return std::make_pair(G, waypoints);
+
+	// 3rd defender block 2nd nearest enemy sight to goal
+	const point D3 = calc_block_cone(goalside, goalopp, enemies[1]->position(), robot::MAX_RADIUS);
+	waypoints.push_back(D3);
+
+	// 4th defender go chase?
+	waypoints.push_back(the_world->ball()->position());
+
+	return std::make_pair(G, waypoints);
 }
 
 void defensive2::tick() {
 
-	if (the_robots.size() == 0) return;
+	if (the_robots.size() == 0) {
+		LOG_WARN("no robots");
+		return;
+	}
 
 	const friendly_team& friendly(the_world->friendly);
+	const enemy_team& enemy(the_world->enemy);
+	const point& ballpos = the_world->ball()->position();
 
-	// Sort by distance to ball. DO NOT SORT IT AGAIN!!
-	std::sort(the_robots.begin(), the_robots.end(), ai_util::cmp_dist<player::ptr>(the_world->ball()->position()));
-	std::vector<player::ptr> friends = ai_util::get_friends(friendly, the_robots);
+	if (enemy.size() == 0) {
+		LOG_WARN("no enemy");
 
-	const int baller = ai_util::calc_baller(the_world, the_robots);
-	const bool teamball = ai_util::friendly_posses_ball(the_world);
+		unsigned int flags = ai_flags::calc_flags(the_world->playtype());
+		shoot tactic(the_robots.back(), the_world);
+		tactic.set_flags(flags);
+		tactic.tick();
 
-	// The robot that will do something to the ball (e.g. chase).
-	// Other robots will just go defend or something.
-	// TODO: maybe use refpointer instead of integer for safety reasons.
-	int skipme = -1;
-
-	if (teamball) {
-		if (baller >= 0) {
-
-			std::vector<player::ptr> nonballers;
-			for (size_t i = 0; i < friendly.size(); ++i)
-				if (friendly.get_player(i) != the_robots[baller])
-					nonballers.push_back(friendly[i]);
-
-			int passme = ai_util::choose_best_pass(the_world, nonballers);
-
-			// TODO: do something
-			if (passme == -1) {
-				// ehh... nobody to pass to
-				std::cout << "defensive2: " << the_robots[baller]->name << " has ball, shoot to the goal!" << std::endl;
-
-				// try for the goal =D
-				shoot::ptr shoot_tactic(new shoot(the_robots[baller], the_world));
-				tactics[baller] = shoot_tactic;
-			} else {
-				std::cout << "defensive2: " << the_robots[baller]->name << " has ball, pass to " << nonballers[passme]->name << std::endl;
-
-				// pass to this person
-				pass::ptr pass_tactic(new pass(the_robots[baller], the_world, nonballers[passme]));
-				tactics[baller] = pass_tactic;
-			}
-
-			skipme = baller;
-		} else {
-			// back to normal defensive position
+		for (size_t i = 0; i + 1 < the_robots.size(); ++i) {
+			move tactic(the_robots[i], the_world);
+			tactic.set_flags(flags);
+			tactic.tick();
 		}
-	} else {
+		return;
+	}
 
-		double frienddist = 1e99;
-		for (size_t i = 0; i < friends.size(); ++i) {
-			frienddist = std::min(frienddist, (friends[i]->position() - the_world->ball()->position()).len());
-		}
-
-		if ((the_robots[0]->position() - the_world->ball()->position()).len() < frienddist) {
-			// std::cout << "defensive2: chase" << std::endl;
-			// already sorted by distance to ball
-			shoot::ptr shoot_tactic(new shoot(the_robots[0], the_world));
-			tactics[0] = shoot_tactic;
-			skipme = 0;
-		} else {
-			// std::cout << "defensive2: nothing special" << std::endl;
+	// the robot nearest
+	double nearestdist = 1e99;
+	int nearest = -1;
+	for (size_t i = 0; i < the_robots.size(); ++i) {
+		const double dist = (the_robots[i]->position() - ballpos).len();
+		if (nearest == -1 || dist < nearestdist) {
+			nearestdist = dist;
+			nearest = static_cast<int>(i);
 		}
 	}
 
-	std::vector<point> waypoints = calc_block_positions();
+	// robot 0 is goalie, the others are non-goalie
+	if (!goalie) {
+		goalie = the_robots[0];
+	} else {
+		for (size_t i = 0; i < the_robots.size(); ++i) {
+			if (the_robots[i] != goalie) continue;
+			swap(the_robots[i], the_robots[0]);
+			break;
+		}
+	}
+
+	std::vector<player::ptr> defenders;
+	for (size_t i = 1; i < the_robots.size(); ++i)
+		defenders.push_back(the_robots[i]);
+
+	// Sort by distance to ball. DO NOT SORT IT AGAIN!!
+	std::sort(defenders.begin(), defenders.end(), ai_util::cmp_dist<player::ptr>(the_world->ball()->position()));
+	std::vector<player::ptr> friends = ai_util::get_friends(friendly, defenders);
+
+	const int baller = ai_util::calc_baller(the_world, defenders);
+	// const bool teamball = ai_util::friendly_posses_ball(the_world);
+
+	std::pair<point, std::vector<point> > positions = calc_block_positions();
+	std::vector<point>& waypoints = positions.second;
+
+	// do matching for distances
 
 	std::vector<point> locations;
-	for (size_t i = 0; i < the_robots.size(); ++i) {
-		if (static_cast<int>(i) == skipme) continue;
-		locations.push_back(the_robots[i]->position());
+	for (size_t i = 0; i < defenders.size(); ++i) {
+		locations.push_back(defenders[i]->position());
 	}
 
 	// ensure we are only blocking as we need
-	while (waypoints.size() > locations.size()) waypoints.pop_back();
+	while (waypoints.size() > defenders.size()) waypoints.pop_back();
 
 	std::vector<size_t> order = dist_matching(locations, waypoints);
 
-	size_t w = 0;
-	for (size_t i = 0; i < the_robots.size(); ++i) {
-		if (static_cast<int>(i) == skipme) continue;
+	// do the actual assigmment
+
+	// check if nearest robot
+	if (nearest == 0 || ai_util::point_in_defense(the_world, ballpos)) {
+		LOG_INFO("goalie to shoot");
+		shoot::ptr tactic(new shoot(the_robots[0], the_world));
+		tactic->force();
+		tactics[0] = tactic;
+	} else {
+		move::ptr tactic(new move(the_robots[0], the_world));
+		tactic->set_position(positions.first);
+		tactics[0] = tactic;
+	}
+
+	size_t w = 0; // so we can skip robots as needed
+	for (size_t i = 0; i < defenders.size(); ++i) {
+		// if (static_cast<int>(i) == skipme) continue;
 		if (w >= waypoints.size()) {
-			std::cerr << "defender: " << the_robots[i]->name << " nothing to do!" << std::endl;
-			move::ptr move_tactic(new move(the_robots[i], the_world));
-			move_tactic->set_position(the_robots[i]->position());
-			tactics[i] = move_tactic;
+			LOG_WARN(Glib::ustring::compose("%1 nothing to do", defenders[i]->name));
+			move::ptr tactic(new move(defenders[i], the_world));
+			tactic->set_position(defenders[i]->position());
+			assign(defenders[i], tactic);
+			continue;
+		} 
+
+		const point& target = waypoints[order[w]];
+		if ((target - ballpos).len() < ai_util::POS_EPS || nearest == static_cast<int>(i)) {
+			// should be exact
+			shoot::ptr tactic(new shoot(defenders[i], the_world));
+			tactic->force();
+			assign(defenders[i], tactic);
 		} else {
-			move::ptr move_tactic(new move(the_robots[i], the_world));
-			move_tactic->set_position(waypoints[order[w]]);
-			tactics[i] = move_tactic;
+			move::ptr tactic(new move(defenders[i], the_world));
+			tactic->set_position(waypoints[order[w]]);
+			assign(defenders[i], tactic);
 		}
 		++w;
 	}

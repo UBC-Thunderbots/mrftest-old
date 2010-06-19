@@ -6,6 +6,7 @@
 #include "ai/util.h"
 #include "geom/angle.h"
 #include "geom/util.h"
+#include "util/dprint.h"
 
 #include <iostream>
 
@@ -161,7 +162,7 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 	}
 
 	if (baller != -1 && baller != 0) {
-		std::cerr << "offensive: nearest robot don't have the ball??" << std::endl;
+		LOG_WARN(Glib::ustring::compose("%1 and %2 are near the ball, but only %2 has it", the_robots[0]->name, the_robots[1]->name));
 	}
 
 	if (teampossesball) {
@@ -185,7 +186,7 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 			for (size_t i = 0; i < the_robots.size(); ++i) {
 				if (static_cast<int>(i) == baller) continue;
 				if (w >= waypoints.size()) {
-					std::cout << "offensive: " << the_robots[i] << " nothing to do!" << std::endl;
+					LOG_WARN(Glib::ustring::compose("%1 nothing to do", the_robots[i]->name));
 					move::ptr move_tactic(new move(the_robots[i], the_world));
 					move_tactic->set_position(the_robots[i]->position());
 					tactics[i] = move_tactic;
@@ -209,7 +210,7 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 
 				// TODO: create another weighting function
 				double angle = ai_util::calc_goal_visibility_angle(the_world, the_robots[j], false);
-				std::cout << "offensive: " << the_robots[j]->name << " can see=" << (angle * 180.0 / M_PI) << std::endl;
+				LOG_INFO(Glib::ustring::compose("%1 can see %2 degrees", the_robots[j]->name, angle * 180.0 / M_PI));
 				// the baller has more importance
 				if (j == baller) angle *= 10.0;
 				if (shooter == -1 || angle > shooterangle) {
@@ -225,7 +226,7 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 				tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
 				//if (overlay) overlay->line_to(the_field.enemy_goal().x, the_field.enemy_goal().y);
 			} else if (shooter != -1) {
-				std::cout << "offensive: " << the_robots[baller]->name << " pass to " << the_robots[shooter] << std::endl;
+				LOG_INFO(Glib::ustring::compose("%1 pass to %2", the_robots[baller]->name, the_robots[shooter]->name));
 				// found suitable passee, make a pass
 				tactics[baller] = pass::ptr(new pass(the_robots[baller], the_world, the_robots[shooter]));
 			} else if (get_distance_from_goal(baller) < the_world->field().length() / 6) {
@@ -237,7 +238,7 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 			}
 			//}
 		} else {
-			std::cout << "offensive: receive" << std::endl;
+			LOG_INFO("receive ball");
 			// no one in this role has the ball
 			// prepare to receive some ball
 			for (size_t i = 0; i < the_robots.size(); ++i) {
@@ -261,7 +262,7 @@ void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 		size_t w = 0;
 		for (size_t i = 1; i < the_robots.size(); ++i) {
 			if (w >= waypoints.size()) {
-				std::cout << "offensive: " << the_robots[i] << " nothing to do!" << std::endl;
+				LOG_WARN(Glib::ustring::compose("%1 nothing to do", the_robots[i]->name));
 				move::ptr move_tactic(new move(the_robots[i], the_world));
 				move_tactic->set_position(the_robots[i]->position());
 				tactics[i] = move_tactic;

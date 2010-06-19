@@ -78,6 +78,7 @@ software/ai/strategy/movement_benchmark.cpp -text
 software/ai/strategy/movement_benchmark.h -text
 software/ai/strategy/param_tuning.cpp -text
 software/ai/strategy/strategy.h -text
+software/ai/strategy/test_defensive2_strategy.cpp -text
 software/ai/strategy/test_defensive_strategy.cpp -text
 software/ai/strategy/test_offensive_strategy.cpp -text
 software/ai/strategy/test_pass_strategy.cpp -text

@@ -2,7 +2,7 @@
 #include "ai/util.h"
 #include "ai/tactic/pass.h"
 #include "ai/tactic/shoot.h"
-#include "ai/tactic/pivot.h"
+#include "util/dprint.h"
 
 #include <vector>
 #include <iostream>
@@ -34,14 +34,15 @@ void execute_indirect_free_kick::tick() {
 
 	if (bestpassee >= 0) {
 		// yup... pass to someone
-		std::cout << "execute_indirect_free_kick: pass to " << friends[bestpassee]->name << std::endl;
+		LOG_WARN(Glib::ustring::compose("%1 pass to %2", pl->name, friends[bestpassee]->name));
 		pass tactic(pl, the_world, friends[bestpassee]);
 		tactic.set_flags(flags);
 		tactic.tick();
 	} else {
 		// err... something random?
-		std::cout << "execute_indirect_free_kick: where do I kick? " << std::endl;
-		pivot tactic(pl, the_world);
+		LOG_WARN("forced kicking");
+		shoot tactic(pl, the_world);
+		tactic.force();
 		tactic.set_flags(flags);
 		tactic.tick();
 	}
@@ -78,20 +79,21 @@ void execute_direct_free_kick::tick() {
 	int bestpassee = ai_util::choose_best_pass(the_world, friends);
 
 	if (bestshot.second > 0) {
-		std::cout << "execute_direct_free_kick: shoot! " << std::endl;
+		LOG_WARN("shoot");
 		shoot tactic(pl, the_world);
 		tactic.set_flags(flags);
 		tactic.tick();
 	} else if (bestpassee >= 0) {
 		// yup... pass to someone
-		std::cout << "execute_direct_free_kick: pass to " << friends[bestpassee]->name << std::endl;
+		LOG_WARN(Glib::ustring::compose("%1 pass to %2", pl->name, friends[bestpassee]->name));
 		pass tactic(pl, the_world, friends[bestpassee]);
 		tactic.set_flags(flags);
 		tactic.tick();
 	} else {
 		// err... something random?
-		std::cout << "execute_direct_free_kick: where do I kick? " << std::endl;
-		pivot tactic(pl, the_world);
+		LOG_WARN("forced kicking");
+		shoot tactic(pl, the_world);
+		tactic.force();
 		tactic.set_flags(flags);
 		tactic.tick();
 	}
