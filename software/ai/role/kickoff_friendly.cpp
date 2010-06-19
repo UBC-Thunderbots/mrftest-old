@@ -64,8 +64,6 @@ void kickoff_friendly::tick(){
      }  
    }else if(the_world->playtype() == playtype::execute_kickoff_friendly){
      //we are in execute kickoff
-     //do something more intelligent here than just nothing
-#warning do something more intelligent here execute kickoff than just have one robot chase ball
        unsigned int flags = ai_flags::calc_flags(the_world->playtype());
 
        // handle kicker separately
