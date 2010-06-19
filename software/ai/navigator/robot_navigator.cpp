@@ -24,7 +24,7 @@ namespace {
 	const double DRIBBLE_SPEED_RAMP = 1.00;
 	const double DRIBBLE_SPEED_MAX  = 0.50;
   enum {EMPTY, OWN_ROBOT, ENEMY_ROBOT, BALL, ERROR};  
-  double avoidance_distances[5] = {0.0, 1.0, 1.0, 0.5, 0.0};
+  double correction_distances[5] = {0.0, 1.0, 1.0, 0.5, 0.0};
 }
 
 robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world), position_initialized(false), orientation_initialized(false), flags(0) {
@@ -287,8 +287,9 @@ void robot_navigator::tick() {
 	if (angle == 0) {
 		the_player->move(wantdest, wantori);
 	} else {
+	  double correct_amount = correction_distances[obstacle];
 		// maximum warp
-		the_player->move(the_player->position() + selected_direction * std::min(distance, 1.0), wantori);
+		the_player->move(the_player->position() + selected_direction * std::min(distance, correct_amount), wantori);
 	}
 
 	flags = 0;
