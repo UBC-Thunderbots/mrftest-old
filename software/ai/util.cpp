@@ -22,7 +22,7 @@ namespace ai_util {
 
 	bool ball_close(const world::ptr w, const robot::ptr p) {
 		const point dist = w->ball()->position() - p->position();
-		return dist.len() > (robot::MAX_RADIUS + ball::RADIUS) * 1.5;
+		return dist.len() < (robot::MAX_RADIUS + ball::RADIUS) * 1.5;
 	}
 	
 	bool ball_front(const world::ptr w, const robot::ptr p) {
