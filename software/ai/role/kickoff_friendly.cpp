@@ -51,7 +51,7 @@ void kickoff_friendly::tick(){
        for(unsigned int i=0; i<the_robots.size(); i++){
 	 move::ptr move_tactic(new move(the_robots[i], the_world));
 	 if(i==0){
-	   move_tactic->set_position(clip_circle(the_robots[i]->position(),circle_radius ,the_world->ball()->position()));
+	   move_tactic->set_position(clip_circle(the_robots[i]->position(),circle_radius + AVOID_BUFFER,the_world->ball()->position()));
 	 }else{
 	   move_tactic->set_position(the_robots[i]->position());
 	 }
@@ -110,7 +110,7 @@ point kickoff_friendly::approach_legal_point(point cur_point, unsigned int robot
 		}
 	} else {
 		// put the target position here!!
-		 wantdst = clip_circle(cur_point, circle_radius, wantdst);
+		 wantdst = clip_circle(cur_point, circle_radius + AVOID_BUFFER, wantdst);
 	}
 	return wantdst;
 
