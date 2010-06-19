@@ -2,8 +2,10 @@
 #include "util/algorithm.h"
 #include "geom/angle.h"
 #include "geom/util.h"
-#include <cmath>
 
+#include "uicomponents/param.h"
+
+#include <cmath>
 #include <iostream>
 
 namespace {
@@ -11,18 +13,19 @@ namespace {
 #warning Magic constant
 	const double SHOOT_ALLOWANCE = ball::RADIUS;
 
-	const double BALL_FRONT_ANGLE = M_PI / 6;
 
 	const double EPS = 1e-9;
 
-	const int HAS_BALL_TIME = 2;
+	int_param HAS_BALL_TIME("# of sense ball for has ball to be rue", 3, 2, 10);
+	double_param BALL_CLOSE_FACTOR("ball_close Distance Factor", 1.1, 1.0, 1.5);
+	double_param BALL_FRONT_ANGLE("ball_front Angle", M_PI / 6, 0.0, M_PI / 2);
 }
 
 namespace ai_util {
 
 	bool ball_close(const world::ptr w, const robot::ptr p) {
 		const point dist = w->ball()->position() - p->position();
-		return dist.len() < (robot::MAX_RADIUS + ball::RADIUS) * 1.5;
+		return dist.len() < (robot::MAX_RADIUS + ball::RADIUS) * BALL_CLOSE_FACTOR;
 	}
 	
 	bool ball_front(const world::ptr w, const robot::ptr p) {

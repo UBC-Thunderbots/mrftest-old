@@ -3,28 +3,29 @@
 #include "ai/flags.h"
 #include "geom/util.h"
 
+#include "uicomponents/param.h"
+
 #include <iostream>
 #include <cstdlib>
 
 namespace {
 
 #warning magic constants
-	const double AVOID_MULT = 0.5;
-	const double AVOID_CONST = 1.1;
 	const double ROTATION_THRESH = 100.0 * M_PI / 180.0;
 	const double ROTATION_STEP = 1.0 * M_PI / 180.0;
 	const double LOOKAHEAD_MAX = robot::MAX_RADIUS * 10;
 
-// as required by the rules
-  const double AVOID_BALL_AMOUNT = 0.5 + robot::MAX_RADIUS;
-  //
+	// as required by the rules
+	const double AVOID_BALL_AMOUNT = 0.5 + robot::MAX_RADIUS;
+	double_param AVOID_CONST("Avoid Factor Const", 1.1, 1.0, 2.0);
+	double_param AVOID_MULT("Avoid Factor Mult", 0.5, 0.0, 10.0);
 
-// hardware dependent dribble parameters
+	// hardware dependent dribble parameters
 	const double DRIBBLE_SPEED_LOW  = 0.25;
 	const double DRIBBLE_SPEED_RAMP = 1.00;
 	const double DRIBBLE_SPEED_MAX  = 0.50;
-  enum {EMPTY, OWN_ROBOT, ENEMY_ROBOT, BALL, ERROR};  
-  double correction_distances[5] = {0.0, 1.0, 1.0, 0.5, 0.0};
+	enum {EMPTY, OWN_ROBOT, ENEMY_ROBOT, BALL, ERROR};  
+	double correction_distances[5] = {0.0, 1.0, 1.0, 0.5, 0.0};
 }
 
 robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world), position_initialized(false), orientation_initialized(false), flags(0) {

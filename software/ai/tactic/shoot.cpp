@@ -9,6 +9,10 @@
 #include <vector>
 #include <iostream>
 
+namespace {
+	double_param ALLOWANCE_FACTOR("Scale goal view angle", 0.9, 0.1, 1.0);
+}
+
 shoot::shoot(player::ptr player, world::ptr world) : tactic(player), the_world(world), forced(false), use_pivot(true) {
 }
 
@@ -55,7 +59,7 @@ void shoot::tick() {
 		LOG_INFO(Glib::ustring::compose("target=%1,%2 tolerance=%3 off=%4", bestshot.first.x, bestshot.first.y, bestshot.second, anglediff));
 
 		// check if the goal is within shooting range. if so, kick
-		if (anglediff < bestshot.second / 2) {
+		if (anglediff * 2 < bestshot.second * ALLOWANCE_FACTOR) {
 			// kick realy really hard
 			if (the_player->chicker_ready_time() == 0) {
 				LOG_INFO(Glib::ustring::compose("%1 kick", the_player->name));
