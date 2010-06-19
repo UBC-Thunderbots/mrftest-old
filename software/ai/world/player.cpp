@@ -7,13 +7,16 @@
 #include <cmath>
 #include <iostream>
 
+#include "uicomponents/param.h"
+
 namespace {
 	const unsigned int MAX_DRIBBLER_SPEED = 40000;
-	const double DRIBBLER_HAS_BALL_LOAD_FACTOR = 0.75;
 	const unsigned int BATTERY_CRITICAL_THRESHOLD = 12000;
 	const unsigned int MAX_DRIBBLE_STALL_MILLISECONDS = 2000;
 	const unsigned int DRIBBLE_RECOVER_TIME = 1000;
 	const unsigned int CHICKER_MIN_INTERVAL = 10000;
+
+	double_param DRIBBLER_HAS_BALL_LOAD_FACTOR("Has Ball Load Factor", 0.75, 0.1, 1.0);
 
 	//const double HAS_BALL_TIME = 2.0 / 15.0;
 	const int HAS_BALL_TIME = 2;
