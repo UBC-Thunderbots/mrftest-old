@@ -30,6 +30,7 @@ software/ai/ball_filter/byrons_filter.cpp -text
 software/ai/ball_filter/chris_filter.cpp -text
 software/ai/ball_filter/circle_filter.cpp -text
 software/ai/ball_filter/max_confidence_filter.cpp -text
+software/ai/ball_filter/offensive_filter.cpp -text
 software/ai/flags.h -text
 software/ai/main.cpp -text
 software/ai/navigator/robot_navigator.cpp -text
