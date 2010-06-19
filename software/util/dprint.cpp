@@ -36,6 +36,10 @@ void log_impl(const char *file, unsigned int line, const Glib::ustring &msg, uns
 			level_name = "WARN";
 			break;
 
+		case LOG_LEVEL_ERROR:
+			level_name = "ERROR";
+			break;
+
 		default:
 			level_name = "UNKNOWN LEVEL";
 			break;

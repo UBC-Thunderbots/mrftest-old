@@ -16,10 +16,12 @@ namespace {
 #define LOG_LEVEL_DEBUG 0
 #define LOG_LEVEL_INFO 1
 #define LOG_LEVEL_WARN 2
+#define LOG_LEVEL_ERROR 3
 
 #define LOG_DEBUG(msg) log_impl(__FILE__, __LINE__, msg, LOG_LEVEL_DEBUG)
 #define LOG_INFO(msg) log_impl(__FILE__, __LINE__, msg, LOG_LEVEL_INFO)
 #define LOG_WARN(msg) log_impl(__FILE__, __LINE__, msg, LOG_LEVEL_WARN)
+#define LOG_ERROR(msg) log_impl(__FILE__, __LINE__, msg, LOG_LEVEL_ERROR)
 
 #endif
 

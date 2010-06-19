@@ -1,5 +1,6 @@
 #include "uicomponents/abstract_list_model.h"
 #include "uicomponents/annunciator.h"
+#include "util/dprint.h"
 #include "util/misc.h"
 #include "util/noncopyable.h"
 #include <cstdlib>
@@ -171,6 +172,7 @@ void annunciator::message::activate(bool actv) {
 				displayed_ = true;
 			}
 			siren();
+			LOG_ERROR(text);
 		} else {
 			one_second_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &annunciator::message::on_one_second), 1);
 		}
