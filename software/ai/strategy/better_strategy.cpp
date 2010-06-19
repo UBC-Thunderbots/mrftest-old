@@ -1,6 +1,6 @@
 #include "ai/strategy/better_strategy.h"
 #include "ai/tactic/chase.h"
-#include "ai/role/defensive.h"
+#include "ai/role/defensive2.h"
 #include "ai/role/goalie.h"
 #include "ai/role/offensive.h"
 #include "ai/role/execute_free_kick.h" 
@@ -54,7 +54,7 @@ void better_strategy::in_play_assignment() {
 
 #warning TODO
 
-	defensive::ptr defensive_role(new defensive(the_world));
+	defensive2::ptr defensive_role(new defensive2(the_world));
 	offensive::ptr offensive_role(new offensive(the_world));
 	roles.push_back(role::ptr(defensive_role));
 	roles.push_back(role::ptr(offensive_role));
@@ -97,7 +97,7 @@ player::ptr better_strategy::minus_one_assignment() {
 
 	// other players just sort by distance
 
-	defensive::ptr defensive_role(new defensive(the_world));
+	defensive2::ptr defensive_role(new defensive2(the_world));
 	offensive::ptr offensive_role(new offensive(the_world));
 	roles.push_back(role::ptr(defensive_role));
 	roles.push_back(role::ptr(offensive_role));
