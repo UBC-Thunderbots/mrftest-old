@@ -31,9 +31,9 @@ software/log/writer/*.d
 software/proto/*.cc
 software/proto/*.d
 software/proto/*.h
-software/rctest
 software/robot_controller/*.d
 software/robot_controller/joystick/*.d
+software/rxdata
 software/sim/*.d
 software/sim/engines/*.d
 software/sim/engines/ODE_simulator/*.d
