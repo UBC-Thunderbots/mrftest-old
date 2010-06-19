@@ -175,7 +175,7 @@ param_panel::param_panel() {
 		}
 		Gtk::ScrolledWindow *scroller = Gtk::manage(new Gtk::ScrolledWindow);
 		scroller->add(*param_table);
-		pack_start(*scroller, Gtk::PACK_SHRINK);
+		pack_start(*scroller, Gtk::PACK_EXPAND_WIDGET);
 	}
 
 	Gtk::HButtonBox *hbox = Gtk::manage(new Gtk::HButtonBox(Gtk::BUTTONBOX_CENTER));
