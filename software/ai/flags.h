@@ -29,12 +29,12 @@ namespace ai_flags {
 		unsigned int calc_flags(playtype::playtype pt){
 			// All robots want to avoid the defence area (except for the goalie)
 			unsigned int flags = avoid_friendly_defence;
-			flags |= avoid_enemy_defence;
 			switch(pt){
 			  case playtype::stop:
 			  case playtype::execute_direct_free_kick_enemy:
 			  case playtype::execute_indirect_free_kick_enemy:
 			    flags |= avoid_ball_stop;
+			    flags |= avoid_enemy_defence;
 			    break;
 			    
 			  case playtype::prepare_kickoff_enemy:
@@ -48,7 +48,6 @@ namespace ai_flags {
 			    flags |= stay_own_half;
 			    flags |= clip_play_area;
 			    flags |= avoid_ball_stop;
-				flags &= ~avoid_enemy_defence;
 			    break;
 			  
 			  case playtype::execute_direct_free_kick_friendly:
@@ -60,7 +59,6 @@ namespace ai_flags {
 			  case playtype::prepare_penalty_friendly:
 			  case playtype::execute_penalty_friendly:
 			    flags |= penalty_kick_friendly;
-				flags &= ~avoid_enemy_defence;
 			    break;
 			    
 			  case playtype::prepare_penalty_enemy:
