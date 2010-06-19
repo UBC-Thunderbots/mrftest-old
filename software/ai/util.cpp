@@ -116,28 +116,28 @@ namespace ai_util {
 		return true;
 	}
 
-	std::pair<point, double> calc_best_shot(const field& f, const std::vector<point>& obstacles, const point& p, const double radius) {
+	std::pair<point, double> calc_best_shot(const field& f, const std::vector<point>& obstacles, const point& p, const double radius, const bool force) {
 		const point p1 = point(f.length()/2.0,-f.goal_width()/2.0);
 		const point p2 = point(f.length()/2.0,f.goal_width()/2.0);
 		return angle_sweep_circles(p, p1, p2, obstacles, radius);
 	}
 
-	std::pair<point, double> calc_best_shot(const world::ptr w, const player::ptr pl, const bool consider_friendly, const bool force_shoot) {
+	std::pair<point, double> calc_best_shot(const world::ptr w, const player::ptr pl, const bool consider_friendly, const bool force) {
 		std::vector<point> obstacles;
 		const enemy_team &enemy(w->enemy);
 		for (size_t i = 0; i < enemy.size(); ++i) {
-			obstacles.push_back(enemy.get_robot(i)->position());
+			obstacles.push_back(enemy[i]->position());
 		}
 		if (consider_friendly) {
 			const friendly_team &friendly(w->friendly);
 			for (size_t i = 0; i < friendly.size(); ++i) {
-				const player::ptr fpl = friendly.get_player(i);
+				const player::ptr fpl = friendly[i];
 				if (fpl == pl) continue;
 				obstacles.push_back(fpl->position());
 			}
 		}
 		std::pair<point, double> best_shot = calc_best_shot(w->field(), obstacles, pl->position());
-		if (!force_shoot || best_shot.second >= 2*ORI_CLOSE) return best_shot;
+		if (!force || best_shot.second >= 2*ORI_CLOSE) return best_shot;
 		double radius = robot::MAX_RADIUS;
 		while(best_shot.second < 2*ORI_CLOSE){
 			radius -= robot::MAX_RADIUS / 10.0;

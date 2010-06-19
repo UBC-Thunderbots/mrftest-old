@@ -20,16 +20,7 @@ void shoot::tick() {
 	const friendly_team &friendly(the_world->friendly);
 	const enemy_team &enemy(the_world->enemy);
 
-	std::vector<point> obstacles;
-	for (size_t i = 0; i < friendly.size(); ++i) {
-		if (friendly.get_player(i) == the_player) continue;
-		obstacles.push_back(friendly.get_player(i)->position());
-	}
-	for (size_t i = 0; i < enemy.size(); ++i) {
-		obstacles.push_back(enemy.get_robot(i)->position());
-	}
-
-	const std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world->field(), obstacles, the_player->position(), forced);
+	const std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world, the_player->position(), true, forced);
 
 	if (ai_util::has_ball(the_world, the_player)) {
 		// This player has the ball.
