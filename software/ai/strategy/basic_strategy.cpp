@@ -188,18 +188,20 @@ void basic_strategy::reset_all() {
 			break;
 
 		case playtype::prepare_kickoff_friendly: 
-		case playtype::execute_kickoff_friendly: 
+		case playtype::execute_kickoff_friendly:
+		case playtype::prepare_kickoff_enemy: 
 			roles.push_back(role::ptr(new kickoff_friendly(the_world)));
 			roles[0]->set_robots(all_but_goalie);
 			std::cout << the_team.size() << " robots set to execute kickoff friendly" << std::endl;
 			break;
 
+		/*
 		case playtype::prepare_kickoff_enemy:
 			roles.push_back(role::ptr(new prepare_kickoff_enemy(the_world)));
 			roles[0]->set_robots(all_but_goalie);
 			std::cout << the_team.size() << " robots set to prepare kickoff enemy" << std::endl;
 			break;
-
+		*/
 		// execute_kickoff_enemy isn't here; we use normal play assignment instead
 
 		case playtype::prepare_penalty_friendly: 
@@ -280,6 +282,8 @@ void basic_strategy::reset_all() {
 		case playtype::halt:
 		case playtype::stop:
 		case playtype::play:
+		//delete next line in case we don't use normal play assignment for execute_kickoff_enemy
+		case playtype::execute_kickoff_enemy:
 		case playtype::prepare_penalty_enemy:
 		case playtype::execute_penalty_enemy:
 		case playtype::pit_stop:
@@ -294,7 +298,8 @@ void basic_strategy::reset_all() {
 		case playtype::prepare_kickoff_friendly: 
 		case playtype::execute_kickoff_friendly:
 		case playtype::prepare_kickoff_enemy:
-		case playtype::execute_kickoff_enemy:
+		//uncomment next line in case we don't use normal play assignment for execute_kickoff_enemy
+		//case playtype::execute_kickoff_enemy:
 		case playtype::prepare_penalty_friendly:
 		case playtype::execute_penalty_friendly:
 			roles.push_back(role::ptr((new goalie(the_world))));
