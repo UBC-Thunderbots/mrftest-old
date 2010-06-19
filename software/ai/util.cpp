@@ -16,7 +16,7 @@ namespace {
 
 	const double EPS = 1e-9;
 
-	int_param HAS_BALL_TIME("# of sense ball for has ball to be rue", 3, 2, 10);
+	int_param HAS_BALL_TIME("# of sense ball for has ball to be true", 3, 2, 10);
 	double_param BALL_CLOSE_FACTOR("ball_close Distance Factor", 1.1, 1.0, 1.5);
 	double_param BALL_FRONT_ANGLE("ball_front Angle", M_PI / 8, 0.0, M_PI / 2);
 }
