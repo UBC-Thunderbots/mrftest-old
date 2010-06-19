@@ -24,7 +24,7 @@ void kickoff_friendly::tick(){
    unsigned int flags = ai_flags::calc_flags(the_world->playtype());
 
    std::sort(the_robots.begin(), the_robots.end(),player_cmp_function);
-   if(the_world->playtype() == playtype::prepare_kickoff_friendly ){
+   if(the_world->playtype() == playtype::prepare_kickoff_friendly ||the_world->playtype() == playtype::prepare_kickoff_enemy){
      if(!team_compliance()){ 
        std::cout<<"team is not in compliance"<<std::endl;
    //we can set non on our half destinations in order to avoid ball
@@ -61,7 +61,7 @@ void kickoff_friendly::tick(){
 
 	 //don't worry about the robots that comply with the rules for now
      }  
-   }else{
+   }else if(the_world->playtype() == playtype::execute_kickoff_friendly){
      //we are in execute kickoff
      //do something more intelligent here than just nothing
 #warning do something more intelligent here execute kickoff than just have one robot chase ball
@@ -77,8 +77,17 @@ void kickoff_friendly::tick(){
 	 move_tactic->tick();
        }
 	 //don't worry about the robots that comply with the rules for now
-     }  
+   }else if( the_world->playtype() == playtype::execute_kickoff_enemy){
+      unsigned int flags = ai_flags::calc_flags(the_world->playtype());
+      //TODO: something way less stupid!!!!
+        for(unsigned int i=0; i<the_robots.size(); i++){
+	 move::ptr move_tactic(new move(the_robots[i], the_world));
+	 move_tactic->set_position(the_robots[i]->position());
+	 move_tactic->set_flags(flags);
+	 move_tactic->tick();
+	}
    }
+}
 
 
 bool kickoff_friendly::team_compliance(){
