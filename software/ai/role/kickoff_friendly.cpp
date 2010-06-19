@@ -3,6 +3,7 @@
 #include "ai/tactic/shoot.h"
 #include "ai/flags.h"
 #include "geom/util.h"
+#include "ai/util.h"
 
 #include <cmath>
 #include <iostream>
@@ -69,7 +70,7 @@ void kickoff_friendly::tick(){
        // handle kicker separately
        // kicker will just force shoot the ball
        shoot::ptr shoot_tactic(new shoot(the_robots[0], the_world));
-       shoot_tactic->set_flags(flags);
+       shoot_tactic->set_flags(flags & ~ai_flags::stay_own_half);
        shoot_tactic->force();
        shoot_tactic->tick();
        for(unsigned int i=1; i<the_robots.size(); i++){
@@ -94,7 +95,7 @@ bool kickoff_friendly::team_compliance(){
 
 bool kickoff_friendly::rule_violation(point cur_point){
 
-  bool compliant = cur_point.x<0.0 && (the_world->ball()->position() - cur_point).len() > circle_radius;
+  bool compliant = cur_point.x < -(robot::MAX_RADIUS+ai_util::POS_CLOSE) && (the_world->ball()->position() - cur_point).len() > circle_radius;
   return !compliant;
 
 }

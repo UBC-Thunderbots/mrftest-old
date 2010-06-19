@@ -152,7 +152,7 @@ point robot_navigator::get_inbounds_point(point dst){
 	}
 
 	if (flags & ai_flags::stay_own_half) {
-		wantdest.x =  std::min(wantdest.x, 0.0);
+		wantdest.x =  std::min(wantdest.x, -(robot::MAX_RADIUS + ai_util::POS_CLOSE));
 	}
 
 	if (flags & ai_flags::avoid_ball_stop) {
