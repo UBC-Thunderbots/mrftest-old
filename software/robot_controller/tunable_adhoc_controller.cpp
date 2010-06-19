@@ -24,13 +24,13 @@ namespace {
 
 	const double DEF_PROP = 8.0;
 	const double DEF_DIFF = 0.0;
-	const double DEF_XY_RATIO = 0.81;
-	const double DEF_MAX_VEL = 8.0; // 3.0 is stable, 3.5 is slightly unstable
-	const double DEF_MAX_ACC = 3.0;
-	const double DEF_A_PROP = 20.0;
+	const double DEF_XY_RATIO = 0.81; // or 1.22 for Y/X ratio
+	const double DEF_MAX_VEL = 5.0; // 3 is stable, the max we had is 8, but that can be bad
+	const double DEF_MAX_ACC = 3.0; // 1 is stable 3 is borderline unstable
+	const double DEF_A_PROP = 12.0;
 	const double DEF_A_DIFF = 0.0;
-	const double DEF_A_THRESH = 10.0;
-	const double DEF_YA_RATIO = 10.0; // make it face forwards
+	const double DEF_A_THRESH = 8.0;
+	const double DEF_YA_RATIO = 5.0; // 10.0 to face forwards
 
 #warning put this magic number as part of the tunable parameter
 	const double DEF_HAS_BALL_RATIO = 0.8;
@@ -49,7 +49,7 @@ namespace {
 				this->param = params;
 			}
 			const std::vector<std::string> get_params_name() const;
-			const std::vector<double>& get_params() const {
+			const std::vector<double> get_params() const {
 				return param;
 			}
 		private:

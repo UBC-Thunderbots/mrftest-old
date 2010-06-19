@@ -24,7 +24,7 @@ class tunable_controller {
 		/**
 		 * Gets the array of parameters.
 		 */
-		virtual const std::vector<double>& get_params() const = 0;
+		virtual const std::vector<double> get_params() const = 0;
 
 		/**
 		 * Gets the name of each parameter.
@@ -40,10 +40,10 @@ class tunable_controller {
 		 * Gets the minimum value of each parameter.
 		 * Unless defined, returns the default value.
 		 */
-		virtual const std::vector<double>& get_params_min() const {
+		virtual const std::vector<double> get_params_min() const {
 			std::vector<double> ret = get_params();
 			for (size_t i = 0; i < ret.size(); ++i)
-				ret[i] *= 0.9;
+				ret[i] *= 0.7;
 			return ret;
 		}
 
@@ -51,10 +51,10 @@ class tunable_controller {
 		 * Gets the maximum value of each parameter.
 		 * Unless defined, returns the default value.
 		 */
-		virtual const std::vector<double>& get_params_max() const {
+		virtual const std::vector<double> get_params_max() const {
 			std::vector<double> ret = get_params();
 			for (size_t i = 0; i < ret.size(); ++i)
-				ret[i] *= 1.1;
+				ret[i] *= 1.3;
 			return ret;
 		}
 

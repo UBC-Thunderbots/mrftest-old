@@ -28,15 +28,15 @@ class tunable_pid_controller : public robot_controller, public tunable_controlle
 
 		const std::vector<std::string> get_params_name() const;
 
-		const std::vector<double>& get_params() const {
+		const std::vector<double> get_params() const {
 			return param;
 		}
 
-		const std::vector<double>& get_params_min() const {
+		const std::vector<double> get_params_min() const {
 			return param_min;
 		}
 
-		const std::vector<double>& get_params_max() const {
+		const std::vector<double> get_params_max() const {
 			return param_max;
 		}
 

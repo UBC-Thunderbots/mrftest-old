@@ -25,15 +25,15 @@ class fuzzy_controller : public robot_controller, public tunable_controller {
 			this->param = params;
 		}
 
-		const std::vector<double>& get_params() const {
+		const std::vector<double> get_params() const {
 			return param;
 		}
 
-		const std::vector<double>& get_params_min() const {
+		const std::vector<double> get_params_min() const {
 			return param_min;
 		}
 
-		const std::vector<double>& get_params_max() const {
+		const std::vector<double> get_params_max() const {
 			return param_max;
 		}
 
