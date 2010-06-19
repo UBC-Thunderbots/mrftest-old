@@ -1,6 +1,4 @@
-#define DEBUG 0
 #include "util/algorithm.h"
-#include "util/dprint.h"
 #include "util/rwlock.h"
 #include "util/time.h"
 #include "xbee/daemon/frontend/backend.h"
@@ -56,8 +54,6 @@ void scheduler::push() {
 
 	// Determine what to do next.
 	if (next_type == NEXT_QUEUED) {
-		DPRINT("Sending queued request.");
-
 		// We should send some queued data. Dequeue a request.
 		request::ptr req = pending.front();
 		pending.pop();
@@ -94,8 +90,6 @@ void scheduler::push() {
 			push();
 		}
 	} else {
-		DPRINT("Sending bulk request.");
-
 		// We should send a bulk packet. Assemble the packet.
 		struct __attribute__((packed)) BULK_PACKET {
 			xbeepacket::TRANSMIT16_HDR hdr;
@@ -134,13 +128,11 @@ void scheduler::push() {
 						packet.data[i] = daemon.shm->frames[i].run_data;
 					}
 					eligible_for_feedback[i] = true;
-					DPRINT(Glib::ustring::compose("Robot %1 is eligible for feedback.", i));
 				} else {
 					packet.data[i].flags = xbeepacket::RUN_FLAG_RUNNING;
 					packet.data[i].dribbler_speed = 0;
 					packet.data[i].chick_power = 0;
 					eligible_for_feedback[i] = false;
-					DPRINT(Glib::ustring::compose("Robot %1 is ineligible for feedback.", i));
 				}
 				if (!(packet.data[i].flags & (xbeepacket::RUN_FLAG_DIRECT_DRIVE | xbeepacket::RUN_FLAG_CONTROLLED_DRIVE))) {
 					packet.data[i].drive1_speed = 0;
@@ -173,10 +165,6 @@ void scheduler::push() {
 
 			// Record the timestamp.
 			timespec_now(last_feedback_timestamp);
-
-			DPRINT(Glib::ustring::compose("Requesting feedback from robot %1.", last_feedback_index));
-		} else {
-			DPRINT("Not requesting any feedback.");
 		}
 
 		// Actually send the data.

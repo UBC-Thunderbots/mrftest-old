@@ -1,6 +1,4 @@
-#define DEBUG 0
 #include "firmware/bootproto.h"
-#include "util/dprint.h"
 #include "util/xbee.h"
 #include "xbee/shared/packettypes.h"
 #include <alloca.h>
@@ -80,15 +78,12 @@ void bootproto::enter_bootloader_complete(const void *data, std::size_t) {
 	assert(current_state == STATE_ENTERING_BOOTLOADER);
 	const xbeepacket::REMOTE_AT_RESPONSE &pkt = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(data);
 	if (pkt.apiid != xbeepacket::REMOTE_AT_RESPONSE_APIID) {
-		DPRINT("packet ignored: wrong API id");
 		return;
 	}
 	if (xbeeutil::address_from_bytes(pkt.address64) != bot->address) {
-		DPRINT("packet ignored: wrong source address");
 		return;
 	}
 	if (pkt.command[0] != 'D' || pkt.command[1] != '0') {
-		DPRINT("packet ignored: wrong AT command");
 		return;
 	}
 
@@ -145,7 +140,6 @@ void bootproto::assign_address16_send() {
 	}
 
 	// Send the packet.
-	DPRINT(Glib::ustring::compose("Assigning robot 16-bit address 0x%1.", tohex(bot->address16(), 4)));
 	uint8_t value[2] = { static_cast<uint8_t>(bot->address16() >> 8), static_cast<uint8_t>(bot->address16() & 0xFF) };
 	remote_at_packet<2>::ptr pkt(remote_at_packet<2>::create(bot->address, "MY", value, true));
 	packet_received_connection = pkt->signal_complete().connect(sigc::mem_fun(this, &bootproto::assign_address16_complete));
@@ -157,15 +151,12 @@ void bootproto::assign_address16_complete(const void *data, std::size_t) {
 	assert(current_state == STATE_ENTERING_BOOTLOADER);
 	const xbeepacket::REMOTE_AT_RESPONSE &pkt = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(data);
 	if (pkt.apiid != xbeepacket::REMOTE_AT_RESPONSE_APIID) {
-		DPRINT("packet ignored: wrong API id");
 		return;
 	}
 	if (xbeeutil::address_from_bytes(pkt.address64) != bot->address) {
-		DPRINT("packet ignored: wrong source address");
 		return;
 	}
 	if (pkt.command[0] != 'M' || pkt.command[1] != 'Y') {
-		DPRINT("packet ignored: wrong AT command");
 		return;
 	}
 
@@ -297,7 +288,6 @@ void bootproto::send_send() {
 }
 
 bool bootproto::send_timeout() {
-	DPRINT("timeout on send");
 	send_send();
 	return false;
 }
@@ -306,7 +296,6 @@ void bootproto::send_receive(uint8_t, const void *data, std::size_t length) {
 	// Check sanity.
 	assert(current_state == STATE_BUSY);
 	if (length < sizeof(RESPONSE_PACKET)) {
-		DPRINT("packet ignored: too short");
 		return;
 	}
 	const RESPONSE_PACKET &pkt = *static_cast<const RESPONSE_PACKET *>(data);
@@ -383,15 +372,12 @@ void bootproto::exit_bootloader_complete(const void *data, std::size_t) {
 	assert(current_state == STATE_EXITING_BOOTLOADER);
 	const xbeepacket::REMOTE_AT_RESPONSE &pkt = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(data);
 	if (pkt.apiid != xbeepacket::REMOTE_AT_RESPONSE_APIID) {
-		DPRINT("packet ignored: wrong API id");
 		return;
 	}
 	if (xbeeutil::address_from_bytes(pkt.address64) != bot->address) {
-		DPRINT("packet ignored: wrong source address");
 		return;
 	}
 	if (pkt.command[0] != 'D' || pkt.command[1] != '0') {
-		DPRINT("packet ignored: wrong AT command");
 		return;
 	}
 

@@ -1,10 +1,8 @@
-#define DEBUG 0
 #include "tester/controlled_permotor_drive.h"
 #include "tester/direct_drive.h"
 #include "tester/feedback.h"
 #include "tester/matrix_drive.h"
 #include "tester/window.h"
-#include "util/dprint.h"
 #include <algorithm>
 #include <cassert>
 #include <functional>
@@ -82,7 +80,6 @@ void tester_window::on_claim_toggled() {
 		const config::robot_info &info(conf.robots().find(bot_chooser.address()));
 		bot = xbee_drive_bot::create(info.name, info.address, modem);
 		bot->signal_alive.connect(sigc::mem_fun(this, &tester_window::on_bot_alive));
-		bot->signal_dead.connect(sigc::mem_fun(this, &tester_window::on_bot_dead));
 		bot->signal_claim_failed_locked.connect(sigc::mem_fun(this, &tester_window::on_bot_claim_failed_locked));
 		bot->signal_claim_failed_resource.connect(sigc::mem_fun(this, &tester_window::on_bot_claim_failed_resource));
 		bot->signal_feedback.connect(sigc::mem_fun(this, &tester_window::on_feedback));
@@ -113,11 +110,6 @@ void tester_window::on_bot_alive() {
 	chicker_chip.set_sensitive(true);
 	chicker_autokick.set_sensitive(true);
 	chicker_autochip.set_sensitive(true);
-	DPRINT("Bot alive.");
-}
-
-void tester_window::on_bot_dead() {
-	DPRINT("Bot dead.");
 }
 
 void tester_window::on_bot_claim_failed_locked() {

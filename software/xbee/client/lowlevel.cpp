@@ -1,5 +1,3 @@
-#define DEBUG 0
-#include "util/dprint.h"
 #include "util/misc.h"
 #include "util/sockaddrs.h"
 #include "util/xbee.h"
@@ -60,7 +58,6 @@ namespace {
 		xbeed_path.append("/xbeed");
 
 		// Launch the arbiter.
-		DPRINT(Glib::ustring::compose("Spawning arbiter at %1", Glib::filename_to_utf8(xbeed_path)));
 		std::vector<std::string> args;
 		args.push_back(xbeed_path);
 		args.push_back("--daemon");
@@ -174,12 +171,10 @@ bool xbee_lowlevel::on_readable(Glib::IOCondition cond) {
 	}
 
 	if (buffer[0] == xbeepacket::RECEIVE16_APIID) {
-		DPRINT("Received data packet with 16-bit address.");
 		const xbeepacket::RECEIVE16_HDR *hdr = reinterpret_cast<const xbeepacket::RECEIVE16_HDR *>(buffer);
 		uint16_t address = (hdr->address[0] << 8) | hdr->address[1];
 		signal_receive16.emit(address, hdr->rssi, &buffer[sizeof(*hdr)], ret - sizeof(*hdr));
 	} else if (buffer[0] == xbeepacket::TRANSMIT_STATUS_APIID) {
-		DPRINT("Received transmit status packet.");
 		const xbeepacket::TRANSMIT_STATUS *pkt = reinterpret_cast<const xbeepacket::TRANSMIT_STATUS *>(buffer);
 		if (packets[pkt->frame]) {
 			packets[pkt->frame]->signal_complete().emit(pkt, ret);
@@ -187,7 +182,6 @@ bool xbee_lowlevel::on_readable(Glib::IOCondition cond) {
 			frame_allocator.free(pkt->frame);
 		}
 	} else if (buffer[0] == xbeepacket::REMOTE_AT_RESPONSE_APIID) {
-		DPRINT("Received remote AT command response.");
 		const xbeepacket::REMOTE_AT_RESPONSE *pkt = reinterpret_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(buffer);
 		if (packets[pkt->frame]) {
 			packets[pkt->frame]->signal_complete().emit(pkt, ret);
@@ -195,7 +189,6 @@ bool xbee_lowlevel::on_readable(Glib::IOCondition cond) {
 			frame_allocator.free(pkt->frame);
 		}
 	} else if (buffer[0] == xbeepacket::AT_RESPONSE_APIID) {
-		DPRINT("Received AT command response.");
 		const xbeepacket::AT_RESPONSE *pkt = reinterpret_cast<const xbeepacket::AT_RESPONSE *>(buffer);
 		if (packets[pkt->frame]) {
 			packets[pkt->frame]->signal_complete().emit(pkt, ret);
@@ -203,10 +196,7 @@ bool xbee_lowlevel::on_readable(Glib::IOCondition cond) {
 			frame_allocator.free(pkt->frame);
 		}
 	} else if (buffer[0] == xbeepacket::META_APIID) {
-		DPRINT("Received meta packet.");
 		signal_meta.emit(buffer, ret);
-	} else {
-		DPRINT("Unknown API ID!");
 	}
 
 	return true;

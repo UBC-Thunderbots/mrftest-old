@@ -1,6 +1,4 @@
-#define DEBUG 0
 #include "firmware/emergency_erase.h"
-#include "util/dprint.h"
 #include "util/xbee.h"
 #include "xbee/client/packet.h"
 #include "xbee/shared/packettypes.h"
@@ -25,15 +23,12 @@ void emergency_erase::on_complete(const void *data, std::size_t) {
 	// Check sanity.
 	const xbeepacket::REMOTE_AT_RESPONSE &pkt = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(data);
 	if (pkt.apiid != xbeepacket::REMOTE_AT_RESPONSE_APIID) {
-		DPRINT("packet ignored: wrong API id");
 		return;
 	}
 	if (xbeeutil::address_from_bytes(pkt.address64) != bot->address) {
-		DPRINT("packet ignored: wrong source address");
 		return;
 	}
 	if (pkt.command[0] != 'D' || pkt.command[1] != '1') {
-		DPRINT("packet ignored: wrong AT command");
 		return;
 	}
 

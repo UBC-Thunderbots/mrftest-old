@@ -300,6 +300,7 @@ software/util/config.cpp -text
 software/util/config.h -text
 software/util/crc16.cpp -text
 software/util/crc16.h -text
+software/util/dprint.cpp -text
 software/util/dprint.h -text
 software/util/fd.cpp -text
 software/util/fd.h -text

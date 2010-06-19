@@ -1,4 +1,3 @@
-#define DEBUG 0
 #include "util/dprint.h"
 #include "util/rwlock.h"
 #include "util/xbee.h"
@@ -334,7 +333,6 @@ void robot_state::idle_state::enter_drive_mode(client *cli) {
 	const uint16_t address16 = bot.daemon.id16_allocator.alloc();
 	assert(address16 != 0xFFFF);
 	bot.daemon.run_data_index_reverse[rdi] = bot.address64;
-	DPRINT(Glib::ustring::compose("Robot %1 allocated 16-bit address %2 and run data offset %3.", tohex(bot.address64, 16), tohex(address16, 4), rdi * sizeof(xbeepacket::RUN_DATA) + 1));
 
 	// Transition to new state.
 	bot.state_ = robot_state::setting16_state::enter(bot, *cli, address16, rdi);
@@ -342,7 +340,7 @@ void robot_state::idle_state::enter_drive_mode(client *cli) {
 
 void robot_state::idle_state::release() {
 	// This indicates confusion.
-	LOG("Releasing idle robot (why?)");
+	LOG_WARN("Releasing idle robot (why?)");
 }
 
 void robot_state::idle_state::on_feedback(uint8_t, const xbeepacket::FEEDBACK_DATA &, const timespec &) {
@@ -377,23 +375,21 @@ robot_state::state::ptr robot_state::raw_state::enter(robot_state &bot, client &
 }
 
 robot_state::raw_state::raw_state(robot_state &bot, client &claimed_by, uint16_t address16) : bot(bot), claimed_by(claimed_by), address16_(address16) {
-	DPRINT(Glib::ustring::compose("Robot %1 entering raw mode.", tohex(bot.address64, 16)));
 }
 
 void robot_state::raw_state::enter_raw_mode(client *) {
-	LOG("Claiming a claimed robot.");
+	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
 void robot_state::raw_state::enter_drive_mode(client *) {
-	LOG("Claiming a claimed robot.");
+	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
 void robot_state::raw_state::release() {
 #warning FIGURE OUT A SENSIBLE WAY TO DECIDE WHETHER OR NOT TO FREE THE 16-BIT ADDRESS
 	// Transition to new state.
-	DPRINT(Glib::ustring::compose("Robot %1 released from raw mode.", tohex(bot.address64, 16)));
 	bot.state_ = robot_state::idle_state::enter(bot);
 }
 
@@ -434,12 +430,12 @@ robot_state::setting16_state::setting16_state(robot_state &bot, client &claimed_
 }
 
 void robot_state::setting16_state::enter_raw_mode(client *) {
-	LOG("Claiming a claimed robot.");
+	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
 void robot_state::setting16_state::enter_drive_mode(client *) {
-	LOG("Claiming a claimed robot.");
+	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
@@ -472,8 +468,6 @@ uint8_t robot_state::setting16_state::run_data_index() const {
 }
 
 void robot_state::setting16_state::queue_request() {
-	DPRINT(Glib::ustring::compose("Queueing request to set robot %1's 16-bit address to %2.", tohex(bot.address64, 16), tohex(address16_, 4)));
-
 	// Assemble the packet.
 	xbeepacket::REMOTE_AT_REQUEST<2> packet;
 	packet.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
@@ -520,7 +514,7 @@ void robot_state::setting16_state::request_done(const void *buffer, std::size_t 
 	} else {
 		// An error of some unknown type occurred. This should be impossible; it
 		// suggests a logic error in the code and not a radio issue.
-		LOG("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
+		LOG_WARN("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
 		std::abort();
 	}
 }
@@ -546,12 +540,12 @@ robot_state::settingrdo_state::settingrdo_state(robot_state &bot, client &claime
 }
 
 void robot_state::settingrdo_state::enter_raw_mode(client *) {
-	LOG("Claiming a claimed robot.");
+	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
 void robot_state::settingrdo_state::enter_drive_mode(client *) {
-	LOG("Claiming a claimed robot.");
+	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
@@ -561,14 +555,12 @@ void robot_state::settingrdo_state::release() {
 
 void robot_state::settingrdo_state::on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency) {
 	// Feedback has been received. The robot is now alive!
-	DPRINT(Glib::ustring::compose("Robot %1 received feedback; becoming alive.", tohex(bot.address64, 16)));
 	put_feedback(&bot.daemon.shm->lock, bot.daemon.shm->frames[run_data_index_], packet, latency, rssi);
 	bot.state_ = alive_state::enter(bot, claimed_by, address16_, run_data_index_);
 }
 
 void robot_state::settingrdo_state::on_feedback_timeout() {
 	// Go back and try resending the 16-bit address.
-	DPRINT(Glib::ustring::compose("Robot %1 timed out on feedback; retrying 16-bit address.", tohex(bot.address64, 16)));
 	bot.state_ = setting16_state::enter(bot, claimed_by, address16_, run_data_index_);
 }
 
@@ -589,8 +581,6 @@ uint8_t robot_state::settingrdo_state::run_data_index() const {
 }
 
 void robot_state::settingrdo_state::queue_request() {
-	DPRINT(Glib::ustring::compose("Queueing request to set robot %1's run data offset to %2.", tohex(bot.address64, 16), run_data_index_ * sizeof(xbeepacket::RUN_DATA) + 1));
-
 	// Assemble a TRANSMIT16 packet containing the run data offset.
 	struct __attribute__((packed)) packet {
 		xbeepacket::TRANSMIT16_HDR hdr;
@@ -630,12 +620,12 @@ robot_state::alive_state::alive_state(robot_state &bot, client &claimed_by, uint
 }
 
 void robot_state::alive_state::enter_raw_mode(client *) {
-	LOG("Claiming a claimed robot.");
+	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
 void robot_state::alive_state::enter_drive_mode(client *) {
-	LOG("Claiming a claimed robot.");
+	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
@@ -651,7 +641,6 @@ void robot_state::alive_state::on_feedback(uint8_t rssi, const xbeepacket::FEEDB
 
 void robot_state::alive_state::on_feedback_timeout() {
 	// Record that this happened.
-	DPRINT(Glib::ustring::compose("Robot %1 timed out on feedback.", tohex(bot.address64, 16)));
 	uint16_t delivery_mask;
 	{
 		rwlock_scoped_acquire acq(&bot.daemon.shm->lock, &pthread_rwlock_wrlock);
@@ -698,7 +687,7 @@ robot_state::releasing16_state::releasing16_state(robot_state &bot, uint16_t add
 }
 
 void robot_state::releasing16_state::enter_raw_mode(client *) {
-	LOG("Claiming a freeing robot in raw mode.");
+	LOG_WARN("Claiming a freeing robot in raw mode.");
 	std::abort();
 }
 
@@ -707,7 +696,7 @@ void robot_state::releasing16_state::enter_drive_mode(client *cli) {
 }
 
 void robot_state::releasing16_state::release() {
-	LOG("Releasing a freeing robot (why?).");
+	LOG_WARN("Releasing a freeing robot (why?).");
 }
 
 void robot_state::releasing16_state::on_feedback(uint8_t, const xbeepacket::FEEDBACK_DATA &, const timespec &) {
@@ -735,8 +724,6 @@ uint8_t robot_state::releasing16_state::run_data_index() const {
 }
 
 void robot_state::releasing16_state::queue_request() {
-	DPRINT(Glib::ustring::compose("Queueing request to set robot %1's 16-bit address to FFFF.", tohex(bot.address64, 16)));
-
 	// Assemble the packet.
 	xbeepacket::REMOTE_AT_REQUEST<2> packet;
 	packet.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
@@ -785,7 +772,7 @@ void robot_state::releasing16_state::request_done(const void *buffer, std::size_
 	} else {
 		// An error of some unknown type occurred. This should be impossible; it
 		// suggests a logic error in the code and not a radio issue.
-		LOG("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
+		LOG_WARN("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
 		std::abort();
 	}
 
@@ -806,7 +793,7 @@ robot_state::bootloading_high_state::bootloading_high_state(robot_state &bot, ui
 }
 
 void robot_state::bootloading_high_state::enter_raw_mode(client *) {
-	LOG("Claiming a freeing robot in raw mode.");
+	LOG_WARN("Claiming a freeing robot in raw mode.");
 	std::abort();
 }
 
@@ -815,7 +802,7 @@ void robot_state::bootloading_high_state::enter_drive_mode(client *cli) {
 }
 
 void robot_state::bootloading_high_state::release() {
-	LOG("Releasing a freeing robot (why?).");
+	LOG_WARN("Releasing a freeing robot (why?).");
 }
 
 void robot_state::bootloading_high_state::on_feedback(uint8_t, const xbeepacket::FEEDBACK_DATA &, const timespec &) {
@@ -843,8 +830,6 @@ uint8_t robot_state::bootloading_high_state::run_data_index() const {
 }
 
 void robot_state::bootloading_high_state::queue_request() {
-	DPRINT(Glib::ustring::compose("Queueing request to set robot %1 to bootload mode.", tohex(bot.address64, 16)));
-
 	// Assemble the packet.
 	xbeepacket::REMOTE_AT_REQUEST<1> packet;
 	packet.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
@@ -892,7 +877,7 @@ void robot_state::bootloading_high_state::request_done(const void *buffer, std::
 	} else {
 		// An error of some unknown type occurred. This should be impossible; it
 		// suggests a logic error in the code and not a radio issue.
-		LOG("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
+		LOG_WARN("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
 		std::abort();
 	}
 
@@ -912,7 +897,7 @@ robot_state::bootloading_low_state::bootloading_low_state(robot_state &bot, uint
 }
 
 void robot_state::bootloading_low_state::enter_raw_mode(client *) {
-	LOG("Claiming a freeing robot in raw mode.");
+	LOG_WARN("Claiming a freeing robot in raw mode.");
 	std::abort();
 }
 
@@ -921,7 +906,7 @@ void robot_state::bootloading_low_state::enter_drive_mode(client *cli) {
 }
 
 void robot_state::bootloading_low_state::release() {
-	LOG("Releasing a freeing robot (why?).");
+	LOG_WARN("Releasing a freeing robot (why?).");
 }
 
 void robot_state::bootloading_low_state::on_feedback(uint8_t, const xbeepacket::FEEDBACK_DATA &, const timespec &) {
@@ -949,8 +934,6 @@ uint8_t robot_state::bootloading_low_state::run_data_index() const {
 }
 
 void robot_state::bootloading_low_state::queue_request() {
-	DPRINT(Glib::ustring::compose("Queueing request to set robot %1 out of bootload mode.", tohex(bot.address64, 16)));
-
 	// Assemble the packet.
 	xbeepacket::REMOTE_AT_REQUEST<1> packet;
 	packet.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
@@ -998,7 +981,7 @@ void robot_state::bootloading_low_state::request_done(const void *buffer, std::s
 	} else {
 		// An error of some unknown type occurred. This should be impossible; it
 		// suggests a logic error in the code and not a radio issue.
-		LOG("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
+		LOG_WARN("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
 		std::abort();
 	}
 
@@ -1021,12 +1004,12 @@ robot_state::bootloading_low_to_setting16_state::bootloading_low_to_setting16_st
 }
 
 void robot_state::bootloading_low_to_setting16_state::enter_raw_mode(client *) {
-	LOG("Claiming a claimed robot.");
+	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
 void robot_state::bootloading_low_to_setting16_state::enter_drive_mode(client *) {
-	LOG("Claiming a claimed robot.");
+	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
@@ -1059,8 +1042,6 @@ uint8_t robot_state::bootloading_low_to_setting16_state::run_data_index() const 
 }
 
 void robot_state::bootloading_low_to_setting16_state::queue_request() {
-	DPRINT(Glib::ustring::compose("Queueing request to set robot %1 out of bootload mode while claiming.", tohex(bot.address64, 16)));
-
 	// Assemble the packet.
 	xbeepacket::REMOTE_AT_REQUEST<1> packet;
 	packet.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
@@ -1108,7 +1089,7 @@ void robot_state::bootloading_low_to_setting16_state::request_done(const void *b
 	} else {
 		// An error of some unknown type occurred. This should be impossible; it
 		// suggests a logic error in the code and not a radio issue.
-		LOG("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
+		LOG_WARN("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
 		std::abort();
 	}
 

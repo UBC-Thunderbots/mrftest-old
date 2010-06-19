@@ -1,5 +1,3 @@
-#define DEBUG 0
-#include "util/dprint.h"
 #include "util/misc.h"
 #include "xbee/daemon/frontend/backend.h"
 #include "xbee/daemon/frontend/client.h"
@@ -38,7 +36,6 @@ bool client::any_connected() {
 
 client::client(file_descriptor &sck, class daemon &daemon) : sock(sck), daemon(daemon) {
 	// Connect to signals.
-	DPRINT("Accepted new client connection.");
 	Glib::signal_io().connect(sigc::mem_fun(this, &client::on_socket_ready), sock, Glib::IO_IN | Glib::IO_HUP);
 	daemon.backend.signal_received.connect(sigc::mem_fun(this, &client::on_radio_packet));
 
@@ -70,7 +67,6 @@ client::client(file_descriptor &sck, class daemon &daemon) : sock(sck), daemon(d
 }
 
 client::~client() {
-	DPRINT("Client connection closed.");
 	std::for_each(claimed.begin(), claimed.end(), sigc::mem_fun(this, &client::do_release));
 	instances.erase(this);
 	if (instances.empty()) {
@@ -96,7 +92,6 @@ void client::on_radio_packet(const std::vector<uint8_t> &data) {
 }
 
 bool client::on_socket_ready(Glib::IOCondition cond) {
-	DPRINT("Socket ready.");
 	if ((cond & Glib::IO_HUP) || !(cond & Glib::IO_IN)) {
 		delete this;
 		return false;
@@ -104,7 +99,6 @@ bool client::on_socket_ready(Glib::IOCondition cond) {
 	if (cond & Glib::IO_IN) {
 		uint8_t buffer[65536];
 		ssize_t ret = recv(sock, buffer, sizeof(buffer), MSG_DONTWAIT);
-		DPRINT("Got packet.");
 		if (ret < 0) {
 			if (errno == EAGAIN || errno == EWOULDBLOCK) {
 				return true;
@@ -142,10 +136,6 @@ void client::on_packet(void *buffer, std::size_t length) {
 		case xbeepacket::META_APIID:
 			on_meta(buffer, length);
 			break;
-
-		default:
-			DPRINT("Unknown packet type!");
-			break;
 	}
 }
 
@@ -154,7 +144,6 @@ void client::on_at_command(void *buffer, std::size_t length) {
 
 	// Check packet size.
 	if (length < sizeof(xbeepacket::AT_REQUEST<0>)) {
-		DPRINT("AT command with wrong packet length.");
 		return;
 	}
 
@@ -184,13 +173,11 @@ void client::on_at_response(const void *buffer, std::size_t length, uint8_t orig
 
 	// Check API ID.
 	if (packet->apiid != xbeepacket::AT_RESPONSE_APIID) {
-		DPRINT("AT response with wrong API ID.");
 		return;
 	}
 
 	// Check packet size.
 	if (length < sizeof(xbeepacket::AT_RESPONSE)) {
-		DPRINT("AT response with wrong packet length.");
 		return;
 	}
 
@@ -204,7 +191,6 @@ void client::on_at_response(const void *buffer, std::size_t length, uint8_t orig
 	// Send back-substituted packet to client.
 	ssize_t ret = send(sock, newpacket, length, MSG_NOSIGNAL);
 	if (ret != static_cast<ssize_t>(length)) {
-		DPRINT("Cannot send data to client!");
 		delete this;
 		return;
 	}
@@ -215,7 +201,6 @@ void client::on_remote_at_command(void *buffer, std::size_t length) {
 
 	// Check packet size.
 	if (length < sizeof(xbeepacket::REMOTE_AT_REQUEST<0>)) {
-		DPRINT("Remote AT command with wrong packet length.");
 		return;
 	}
 
@@ -245,13 +230,11 @@ void client::on_remote_at_response(const void *buffer, std::size_t length, uint8
 
 	// Check API ID.
 	if (packet->apiid != xbeepacket::REMOTE_AT_RESPONSE_APIID) {
-		DPRINT("Remote AT response with wrong API ID.");
 		return;
 	}
 
 	// Check packet size.
 	if (length < sizeof(xbeepacket::REMOTE_AT_RESPONSE)) {
-		DPRINT("Remote AT response with wrong packet length.");
 		return;
 	}
 
@@ -265,7 +248,6 @@ void client::on_remote_at_response(const void *buffer, std::size_t length, uint8
 	// Send back-substituted packet to client.
 	ssize_t ret = send(sock, newpacket, length, MSG_NOSIGNAL);
 	if (ret != static_cast<ssize_t>(length)) {
-		DPRINT("Cannot send data to client!");
 		delete this;
 		return;
 	}
@@ -276,7 +258,6 @@ void client::on_transmit(void *buffer, std::size_t length) {
 
 	// Check packet size.
 	if (length < (packet->apiid == xbeepacket::TRANSMIT64_APIID ? 11 : 5)) {
-		DPRINT("Transmit data command with wrong packet length.");
 		return;
 	}
 
@@ -306,13 +287,11 @@ void client::on_transmit_status(const void *buffer, std::size_t length, uint8_t 
 
 	// Check API ID.
 	if (packet->apiid != xbeepacket::TRANSMIT_STATUS_APIID) {
-		DPRINT("Transmit status with wrong API ID.");
 		return;
 	}
 
 	// Check packet size.
 	if (length != sizeof(xbeepacket::TRANSMIT_STATUS)) {
-		DPRINT("Transmit status with wrong packet length.");
 		return;
 	}
 
@@ -325,7 +304,6 @@ void client::on_transmit_status(const void *buffer, std::size_t length, uint8_t 
 
 	// Send back-substituted packet to client.
 	if (send(sock, newpacket, length, MSG_NOSIGNAL) != static_cast<ssize_t>(length)) {
-		DPRINT("Cannot send data to client!");
 		delete this;
 		return;
 	}
@@ -336,7 +314,6 @@ void client::on_meta(const void *buffer, std::size_t length) {
 
 	// Check length.
 	if (length < sizeof(xbeepacket::META_HDR)) {
-		DPRINT("Meta with wrong packet length.");
 		return;
 	}
 
@@ -345,29 +322,19 @@ void client::on_meta(const void *buffer, std::size_t length) {
 		case xbeepacket::CLAIM_UNIVERSE_METATYPE:
 			if (length == sizeof(xbeepacket::META_CLAIM_UNIVERSE)) {
 				on_meta_claim_universe();
-			} else {
-				DPRINT("Meta with wrong packet length.");
 			}
 			break;
 
 		case xbeepacket::CLAIM_METATYPE:
 			if (length == sizeof(xbeepacket::META_CLAIM)) {
 				on_meta_claim(*static_cast<const xbeepacket::META_CLAIM *>(buffer));
-			} else {
-				DPRINT("Meta with wrong packet length.");
 			}
 			break;
 
 		case xbeepacket::RELEASE_METATYPE:
 			if (length == sizeof(xbeepacket::META_RELEASE)) {
 				on_meta_release(*static_cast<const xbeepacket::META_RELEASE *>(buffer));
-			} else {
-				DPRINT("Meta with wrong packet length.");
 			}
-			break;
-
-		default:
-			DPRINT("Unknown meta type!");
 			break;
 	}
 }
@@ -383,7 +350,6 @@ void client::on_meta_claim_universe() {
 		pkt.address16 = 0xFFFF;
 		pkt.shm_frame = 0xFF;
 		if (send(sock, &pkt, sizeof(pkt), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(pkt))) {
-			DPRINT("Cannot send data to client!");
 			delete this;
 		}
 	} else {
@@ -392,7 +358,6 @@ void client::on_meta_claim_universe() {
 		pkt.hdr.metatype = xbeepacket::CLAIM_FAILED_LOCKED_METATYPE;
 		pkt.address = 0;
 		if (send(sock, &pkt, sizeof(pkt), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(pkt))) {
-			DPRINT("Cannot send data to client!");
 			delete this;
 		}
 	}
@@ -413,7 +378,6 @@ void client::on_meta_claim(const xbeepacket::META_CLAIM &req) {
 		resp.hdr.metatype = xbeepacket::CLAIM_FAILED_LOCKED_METATYPE;
 		resp.address = req.address;
 		if (send(sock, &resp, sizeof(resp), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(resp))) {
-			DPRINT("Cannot send data to client!");
 			delete this;
 		}
 		return;
@@ -465,7 +429,6 @@ void client::on_meta_claim(const xbeepacket::META_CLAIM &req) {
 			resp.hdr.metatype = xbeepacket::CLAIM_FAILED_RESOURCE_METATYPE;
 			resp.address = req.address;
 			if (send(sock, &resp, sizeof(resp), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(resp))) {
-				DPRINT("Cannot send data to client!");
 				delete this;
 			}
 		}
@@ -479,7 +442,6 @@ void client::on_meta_claim(const xbeepacket::META_CLAIM &req) {
 		resp.address16 = state->address16();
 		resp.shm_frame = 0xFF;
 		if (send(sock, &resp, sizeof(resp), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(resp))) {
-			DPRINT("Cannot send data to client!");
 			delete this;
 		}
 	}
@@ -504,7 +466,6 @@ void client::on_robot_alive(uint64_t address) {
 	packet.address16 = 0;
 	packet.shm_frame = bot->run_data_index();
 	if (send(sock, &packet, sizeof(packet), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(packet))) {
-		DPRINT("Cannot send data to client!");
 		delete this;
 	}
 }
@@ -517,7 +478,6 @@ void client::on_robot_dead(uint64_t address) {
 	packet.hdr.metatype = xbeepacket::DEAD_METATYPE;
 	packet.address = address;
 	if (send(sock, &packet, sizeof(packet), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(packet))) {
-		DPRINT("Cannot send data to client!");
 		delete this;
 	}
 }
@@ -530,7 +490,6 @@ void client::on_robot_feedback(uint64_t address) {
 	packet.hdr.metatype = xbeepacket::FEEDBACK_METATYPE;
 	packet.address = address;
 	if (send(sock, &packet, sizeof(packet), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(packet))) {
-		DPRINT("Cannot send data to client!");
 		delete this;
 	}
 }

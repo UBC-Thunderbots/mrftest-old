@@ -1,6 +1,4 @@
-#define DEBUG 0
 #include "uicomponents/visualizer.h"
-#include "util/dprint.h"
 #include <cmath>
 
 visualizer::visualizer(const visualizable &data) : data(data) {
@@ -28,8 +26,6 @@ void visualizer::on_hide() {
 }
 
 bool visualizer::on_expose_event(GdkEventExpose *evt) {
-	DPRINT("Enter on_expose_event.");
-
 	Gtk::DrawingArea::on_expose_event(evt);
 
 	int width, height;
@@ -48,7 +44,6 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 
 	// If the field data is invalid, go no further.
 	if (!data.field().valid()) {
-		DPRINT("Exit on_expose_event (1).");
 		return true;
 	}
 
@@ -94,7 +89,6 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 	// Draw the players including text.
 	for (unsigned int i = 0; i < data.size(); ++i) {
 		const visualizable::robot::ptr bot(data[i]);
-		DPRINT(Glib::ustring::compose("Robot at (%1, %2) is %3visible.", bot->position().x, bot->position().y, bot->visualizer_visible() ? "" : "in"));
 		if (bot->visualizer_visible()) {
 			const visualizable::colour &clr(bot->visualizer_colour());
 			ctx->set_source_rgb(clr.red, clr.green, clr.blue);
@@ -148,7 +142,6 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 	const visualizable::ball::ptr the_ball(data.ball());
 	ctx->set_source_rgb(1.0, 0.5, 0.0);
 	ctx->begin_new_path();
-	DPRINT(Glib::ustring::compose("The ball is at (%1, %2) which is (%1, %2) in graphical coordinates with radius (%3).", the_ball->position().x, the_ball->position().y, xtog(the_ball->position().x), ytog(the_ball->position().y), dtog(0.03)));
 	ctx->arc(xtog(the_ball->position().x), ytog(the_ball->position().y), dtog(0.03), 0.0, 2.0 * M_PI);
 	ctx->fill();
 	ctx->begin_new_path();
@@ -172,7 +165,6 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 	}
 
 	// Done.
-	DPRINT("Exit on_expose_event (2).");
 	return true;
 }
 

@@ -1,7 +1,5 @@
-#define DEBUG 0
 #include "firmware/fpga.h"
 #include "util/crc16.h"
-#include "util/dprint.h"
 #include "util/rle.h"
 #include <algorithm>
 #include <cstddef>
@@ -34,27 +32,23 @@ namespace {
 }
 
 fpga_upload::fpga_upload(xbee_raw_bot::ptr bot, const intel_hex &data) : bot(bot), data(data), proto(bot), sectors_erased(0), pages_written(0), chunks_crcd(0) {
-	DPRINT(Glib::ustring::compose("Constructed fpga_upload with %1 bytes of bitstream.", data.data()[0].size()));
 	status = "Idle";
 	proto.signal_error.connect(signal_error.make_slot());
 }
 
 void fpga_upload::start() {
-	DPRINT("Entering bootloader.");
 	status = "Entering Bootloader";
 	signal_progress.emit(0);
 	proto.enter_bootloader(sigc::mem_fun(this, &fpga_upload::enter_bootloader_done));
 }
 
 void fpga_upload::enter_bootloader_done() {
-	DPRINT("Sending COMMAND_IDENT.");
 	status = "Checking Identity";
 	signal_progress.emit(0);
 	proto.send(COMMAND_IDENT, 0, 0, 0, 8, sigc::mem_fun(this, &fpga_upload::ident_received));
 }
 
 void fpga_upload::ident_received(const void *response) {
-	DPRINT("IDENT response received.");
 	const IDENT_DATA &ident = *static_cast<const IDENT_DATA *>(response);
 	if (!std::equal(ident.signature, ident.signature + 5, "TBOTS")) {
 		signal_error.emit("Incorrect IDENT signature!");
@@ -73,7 +67,6 @@ void fpga_upload::do_work() {
 	for (;;) {
 		if (chunks_crcd == divup<std::size_t>(data.data()[0].size(), CHUNK_PAGES * PAGE_BYTES)) {
 			// We have CRCd as many chunks as are in the HEX file. We're done.
-			DPRINT("Exiting bootloader.");
 			status = "Exiting Bootloader";
 			signal_progress.emit(1);
 			proto.exit_bootloader(signal_finished.make_slot());
@@ -81,25 +74,23 @@ void fpga_upload::do_work() {
 		} else if (pages_written == (chunks_crcd + 1) * CHUNK_PAGES) {
 			// We have written a full chunk's worth of pages. CRC the new pages.
 			unsigned int first_page = chunks_crcd * CHUNK_PAGES;
-			DPRINT(Glib::ustring::compose("CRCing pages %1 through %2.", first_page, first_page + CHUNK_PAGES - 1));
 			std::fill(pages_prewritten, pages_prewritten + CHUNK_PAGES, false);
 			proto.send(COMMAND_FPGA_CRC_CHUNK, first_page, 0, 0, 34, sigc::mem_fun(this, &fpga_upload::crcs_received));
 			return;
 		} else if (chunks_crcd == sectors_erased * SECTOR_CHUNKS) {
 			// We have CRCd a full sector's worth of pages. We must erase more before continuing.
 			unsigned int first_page = sectors_erased * SECTOR_CHUNKS * CHUNK_PAGES;
-			DPRINT(Glib::ustring::compose("Erasing pages %1 through %2.", first_page, first_page + SECTOR_CHUNKS * CHUNK_PAGES - 1));
 			std::fill(pages_prewritten, pages_prewritten + CHUNK_PAGES, false);
 			proto.send_no_response(COMMAND_FPGA_ERASE_SECTOR, first_page, 0, 0);
 			++sectors_erased;
 		} else {
 			// We should write a page.
 			if (pages_written >= divup<std::size_t>(data.data()[0].size(), PAGE_BYTES)) {
-				DPRINT(Glib::ustring::compose("Skipping page %1 due to beyond-end-of-data.", pages_written));
+				// Skip this page because it's beyond the end of the data.
 			} else if (pages_prewritten[pages_written % CHUNK_PAGES]) {
-				DPRINT(Glib::ustring::compose("Skipping page %1 due to prewritten bitmap.", pages_written));
+				// Skip this page because it was written properly according to
+				// the bitmap.
 			} else {
-				DPRINT(Glib::ustring::compose("Writing page %1.", pages_written));
 				unsigned char inbuf[PAGE_BYTES];
 				get_page_data(data, pages_written, inbuf);
 				rle_compressor comp(inbuf, PAGE_BYTES);
@@ -128,7 +119,6 @@ void fpga_upload::crcs_received(const void *response) {
 	for (unsigned int i = 0; i < CHUNK_PAGES && chunks_crcd * CHUNK_PAGES + i < divup<std::size_t>(data.data()[0].size(), PAGE_BYTES); ++i) {
 		pages_prewritten[i] = !!(words[0] & (1 << i));
 		if (!pages_prewritten[i]) {
-			DPRINT(Glib::ustring::compose("Page %1 should have been written but wasn't.", chunks_crcd * CHUNK_PAGES + i));
 			all_ok = false;
 		}
 	}
@@ -143,10 +133,7 @@ void fpga_upload::crcs_received(const void *response) {
 		unsigned char pagedata[PAGE_BYTES];
 		get_page_data(data, chunks_crcd * CHUNK_PAGES + i, pagedata);
 		uint16_t computed = crc16::calculate(pagedata, PAGE_BYTES);
-		if (computed == words[i + 1]) {
-			DPRINT(Glib::ustring::compose("Page %1 has good CRC (%2).", chunks_crcd * CHUNK_PAGES + i, computed));
-		} else {
-			DPRINT(Glib::ustring::compose("Page %1 had wrong CRC (computed %2, received %3).", chunks_crcd * CHUNK_PAGES + i, computed, words[i + 1]));
+		if (computed != words[i + 1]) {
 			signal_error.emit("CRC mismatch!");
 			return;
 		}

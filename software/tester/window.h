@@ -55,7 +55,6 @@ class tester_window : public Gtk::Window {
 		int key_snoop(Widget *, GdkEventKey *event);
 		void on_claim_toggled();
 		void on_bot_alive();
-		void on_bot_dead();
 		void on_bot_claim_failed_locked();
 		void on_bot_claim_failed_resource();
 		void on_bot_claim_failed(const Glib::ustring &);

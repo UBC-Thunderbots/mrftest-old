@@ -1,4 +1,3 @@
-#define DEBUG 0
 #include "ai/world/team.h"
 #include "util/dprint.h"
 #include <algorithm>
@@ -39,7 +38,7 @@ void enemy_team::remove(const unsigned int index) {
 	members.erase(members.begin() + index);
 	signal_robot_removed.emit(index, bot);
 	if (bot->refs() != 1) {
-		LOG(Glib::ustring::compose("Leak detected of robot<%1,%2>.", bot->yellow ? 'Y' : 'B', bot->pattern_index));
+		LOG_WARN(Glib::ustring::compose("Leak detected of robot<%1,%2>.", bot->yellow ? 'Y' : 'B', bot->pattern_index));
 	}
 }
 
@@ -64,7 +63,7 @@ void friendly_team::remove(const unsigned int index) {
 	signal_robot_removed.emit(index, bot);
 	signal_player_removed.emit(index, bot);
 	if (bot->refs() != 1) {
-		LOG(Glib::ustring::compose("Leak detected of player<%1,%2>.", bot->yellow ? 'Y' : 'B', bot->pattern_index));
+		LOG_WARN(Glib::ustring::compose("Leak detected of player<%1,%2>.", bot->yellow ? 'Y' : 'B', bot->pattern_index));
 	}
 }
 

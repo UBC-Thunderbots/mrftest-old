@@ -34,7 +34,7 @@ namespace {
 		mcreq.imr_address.s_addr = get_inaddr_any();
 		mcreq.imr_ifindex = 0;
 		if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mcreq, sizeof(mcreq)) < 0) {
-			LOG("Cannot join multicast group 224.5.23.1 for refbox data.");
+			LOG_INFO("Cannot join multicast group 224.5.23.1 for refbox data.");
 		}
 
 		return fd;
@@ -56,11 +56,11 @@ bool refbox::on_readable(Glib::IOCondition) {
 	ssize_t len = recv(fd, &packet, sizeof(packet), 0);
 	if (len < 0) {
 		int err = errno;
-		LOG(Glib::ustring::compose("Cannot receive from refbox socket: %1.", std::strerror(err)));
+		LOG_WARN(Glib::ustring::compose("Cannot receive from refbox socket: %1.", std::strerror(err)));
 		return true;
 	}
 	if (len != static_cast<ssize_t>(sizeof(packet))) {
-		LOG(Glib::ustring::compose("Refbox packet was %1 bytes, expected %2.", len, sizeof(packet)));
+		LOG_WARN(Glib::ustring::compose("Refbox packet was %1 bytes, expected %2.", len, sizeof(packet)));
 		return true;
 	}
 

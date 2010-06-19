@@ -1,4 +1,3 @@
-#define DEBUG 0
 #include "proto/messages_robocup_ssl_detection.pb.h"
 #include "proto/messages_robocup_ssl_geometry.pb.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
@@ -90,10 +89,9 @@ void simulator::packet_handler(const std::vector<uint8_t> &data) {
 
 		if (data.size() == sizeof(req) && req.command[0] == 'M' && req.command[1] == 'Y') {
 			host_address16 = (req.value[0] << 8) | req.value[1];
-			DPRINT(Glib::ustring::compose("Setting host XBee 16-bit address to 0x%1.", tohex(host_address16, 4)));
 			resp.status = xbeepacket::AT_RESPONSE_STATUS_OK;
 		} else {
-			LOG(Glib::ustring::format("Received unsupported local AT command \"%1\".", Glib::ustring(reinterpret_cast<const char *>(req.command), 2)));
+			LOG_WARN(Glib::ustring::format("Received unsupported local AT command \"%1\".", Glib::ustring(reinterpret_cast<const char *>(req.command), 2)));
 			resp.status = xbeepacket::AT_RESPONSE_STATUS_INVALID_COMMAND;
 		}
 
@@ -117,35 +115,32 @@ void simulator::packet_handler(const std::vector<uint8_t> &data) {
 				if (data.size() == sizeof(req) + 2 && req.command[0] == 'M' && req.command[1] == 'Y') {
 					uint16_t value = (req.value[0] << 8) | req.value[1];
 					if (value) {
-						DPRINT(Glib::ustring::compose("Setting a robot's 16-bit address to %1.", value));
 						i->second->address16(value);
 						resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK;
 					} else {
-						LOG("Please don't set a robot's 16-bit address to zero.");
+						LOG_WARN("Please don't set a robot's 16-bit address to zero.");
 						resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_INVALID_PARAMETER;
 					}
 				} else if (data.size() == sizeof(req) + 1 && req.command[0] == 'D' && req.command[1] == '0') {
 					if (req.value[0] == 4) {
-						DPRINT("Exiting a robot from bootload mode.");
 						i->second->bootloading(false);
 						resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK;
 					} else if (req.value[0] == 5) {
-						DPRINT("Entering a robot into bootload mode.");
 						i->second->bootloading(true);
 						resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK;
 					} else {
-						LOG("Please don't set the bootload line to something other than high or low.");
+						LOG_WARN("Please don't set the bootload line to something other than high or low.");
 						resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_INVALID_PARAMETER;
 					}
 				} else {
-					LOG(Glib::ustring::compose("Received unsupported remote AT command \"%1\".", Glib::ustring(reinterpret_cast<const char *>(req.command), 2)));
+					LOG_WARN(Glib::ustring::compose("Received unsupported remote AT command \"%1\".", Glib::ustring(reinterpret_cast<const char *>(req.command), 2)));
 					resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_INVALID_COMMAND;
 				}
 			} else {
 				resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE;
 			}
 		} else {
-			LOG("Please don't use 16-bit addresses to target remote AT commands.");
+			LOG_WARN("Please don't use 16-bit addresses to target remote AT commands.");
 			resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_ERROR;
 		}
 
@@ -166,7 +161,6 @@ void simulator::packet_handler(const std::vector<uint8_t> &data) {
 		if (data.size() == sizeof(req) + 1 && recipient != 0xFFFF) {
 			robot::ptr bot(find_by16(recipient));
 			if (bot) {
-				DPRINT(Glib::ustring::compose("Setting a robot's run data offset to %1.", static_cast<unsigned int>(req.data[0])));
 				bot->run_data_offset(req.data[0]);
 				resp.status = xbeepacket::TRANSMIT_STATUS_SUCCESS;
 			} else {
@@ -221,7 +215,7 @@ void simulator::packet_handler(const std::vector<uint8_t> &data) {
 			queue_response(&resp, sizeof(resp));
 		}
 	} else {
-		LOG(Glib::ustring::compose("Received unsupported XBee packet of type 0x%1.", tohex(data[0], 2)));
+		LOG_WARN(Glib::ustring::compose("Received unsupported XBee packet of type 0x%1.", tohex(data[0], 2)));
 	}
 }
 
@@ -300,7 +294,7 @@ void simulator::tick() {
 		std::memset(sa.in.sin_zero, 0, sizeof(sa.in.sin_zero));
 
 		if (sendto(sock, buffer, sizeof(buffer), MSG_NOSIGNAL, &sa.sa, sizeof(sa.in)) != static_cast<ssize_t>(sizeof(buffer))) {
-			LOG("Error sending vision-type UDP packet.");
+			LOG_WARN("Error sending vision-type UDP packet.");
 		}
 	}
 
@@ -351,7 +345,7 @@ bool simulator::tick_geometry() {
 	std::memset(sa.in.sin_zero, 0, sizeof(sa.in.sin_zero));
 
 	if (sendto(sock, buffer, sizeof(buffer), MSG_NOSIGNAL, &sa.sa, sizeof(sa.in)) != static_cast<ssize_t>(sizeof(buffer))) {
-		LOG("Error sending vision-type UDP packet.");
+		LOG_WARN("Error sending vision-type UDP packet.");
 	}
 
 	return true;

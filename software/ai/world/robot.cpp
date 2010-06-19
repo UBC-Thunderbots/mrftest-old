@@ -20,7 +20,7 @@ void robot::update(const SSL_DetectionRobot &packet) {
 		const double new_ori = angle_mod(packet.orientation() + (sign > 0 ? 0.0 : M_PI));
 		add_prediction_datum(new_pos, new_ori);
 	} else {
-		LOG("Vision packet has robot with no orientation.");
+		LOG_WARN("Vision packet has robot with no orientation.");
 	}
 }
 

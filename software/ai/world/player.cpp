@@ -78,14 +78,14 @@ uint64_t player::address() const {
 void player::move(const point &dest, double target_ori) {
 	if (std::isnan(dest.x) || std::isnan(dest.y)) {
 		destination_ = position();
-		LOG("NaN destination passed to player::move");
+		LOG_WARN("NaN destination passed to player::move");
 	} else {
 		destination_ = dest;
 	}
 
 	if (std::isnan(target_ori)) {
 		target_orientation = orientation();
-		LOG("NaN orientation passed to player::move");
+		LOG_WARN("NaN orientation passed to player::move");
 	} else {
 		target_orientation = target_ori;
 	}

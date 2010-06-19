@@ -1,4 +1,3 @@
-#define DEBUG 0
 #include "ai/world/world.h"
 #include "geom/angle.h"
 #include "proto/messages_robocup_ssl_detection.pb.h"
@@ -97,7 +96,7 @@ world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bo
 	mcreq.imr_address.s_addr = get_inaddr_any();
 	mcreq.imr_ifindex = 0;
 	if (setsockopt(vision_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mcreq, sizeof(mcreq)) < 0) {
-		LOG("Cannot join multicast group 224.5.23.2 for vision data.");
+		LOG_INFO("Cannot join multicast group 224.5.23.2 for vision data.");
 	}
 	Glib::signal_io().connect(sigc::mem_fun(this, &world::on_vision_readable), vision_socket, Glib::IO_IN);
 
@@ -110,7 +109,7 @@ bool world::on_vision_readable(Glib::IOCondition) {
 	ssize_t len = recv(vision_socket, buffer, sizeof(buffer), 0);
 	if (len < 0) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
-			LOG("Cannot receive packet from SSL-Vision.");
+			LOG_WARN("Cannot receive packet from SSL-Vision.");
 		}
 		return true;
 	}
@@ -118,7 +117,7 @@ bool world::on_vision_readable(Glib::IOCondition) {
 	// Decode it.
 	SSL_WrapperPacket packet;
 	if (!packet.ParseFromArray(buffer, len)) {
-		LOG("Received malformed SSL-Vision packet.");
+		LOG_WARN("Received malformed SSL-Vision packet.");
 		return true;
 	}
 
@@ -136,7 +135,7 @@ bool world::on_vision_readable(Glib::IOCondition) {
 
 		// Check for a sensible camera ID number.
 		if (det.camera_id() >= 2) {
-			LOG(Glib::ustring::compose("Received SSL-Vision packet for unknown camera %1.", det.camera_id()));
+			LOG_WARN(Glib::ustring::compose("Received SSL-Vision packet for unknown camera %1.", det.camera_id()));
 			return true;
 		}
 
@@ -281,7 +280,6 @@ bool world::on_vision_readable(Glib::IOCondition) {
 
 void world::override_playtype(playtype::playtype pt) {
 	if (pt != playtype_override || !playtype_override_active) {
-		DPRINT(Glib::ustring::compose("Setting override play type to %1.", playtype::descriptions_generic[pt]));
 		playtype_override = pt;
 		playtype_override_active = true;
 		update_playtype();
@@ -290,7 +288,6 @@ void world::override_playtype(playtype::playtype pt) {
 
 void world::clear_playtype_override() {
 	if (playtype_override_active) {
-		DPRINT("Clearing override play type.");
 		playtype_override_active = false;
 		update_playtype();
 	}
