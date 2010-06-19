@@ -71,8 +71,6 @@ software/ai/role/victory_dance.cpp -text
 software/ai/role/victory_dance.h -text
 software/ai/strategy/basic_strategy.cpp -text
 software/ai/strategy/basic_strategy.h -text
-software/ai/strategy/better_strategy.cpp -text
-software/ai/strategy/better_strategy.h -text
 software/ai/strategy/chase_strategy.cpp -text
 software/ai/strategy/hand_tuning.cpp -text
 software/ai/strategy/mech_tuning.cpp -text
