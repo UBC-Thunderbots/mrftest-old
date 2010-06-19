@@ -174,12 +174,12 @@ void basic_strategy::reset_all() {
 		non_shooters.push_back(all_but_goalie[i]);
 	}
 	
-	#warning For special plays, need logic to choose which robot becomes the kicker
 	switch (the_world->playtype()) {
 		case playtype::play:
 		case playtype::stop:
 		case playtype::execute_direct_free_kick_enemy:
 		case playtype::execute_indirect_free_kick_enemy:
+		case playtype::execute_kickoff_enemy:
 			in_play_assignment();
 			std::cout << the_team.size() << " robots set to play" << std::endl;
 			break;
@@ -200,11 +200,7 @@ void basic_strategy::reset_all() {
 			std::cout << the_team.size() << " robots set to prepare kickoff enemy" << std::endl;
 			break;
 
-		case playtype::execute_kickoff_enemy:
-			roles.push_back(role::ptr(new prepare_kickoff_enemy(the_world)));
-			roles[0]->set_robots(all_but_goalie);
-			std::cout << the_team.size() << " robots set to execute kickoff enemy" << std::endl;
-			break;
+		// execute_kickoff_enemy isn't here; we use normal play assignment instead
 
 		case playtype::prepare_penalty_friendly: 
 			roles.push_back(role::ptr(new penalty_friendly(the_world)));
