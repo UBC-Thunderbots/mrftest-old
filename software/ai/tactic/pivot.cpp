@@ -27,7 +27,7 @@ namespace {
 
 }
 
-pivot::pivot(player::ptr player, world::ptr world) : tactic(player), the_world(world), target(world->field().enemy_goal()), avoid_ball_(true) {
+pivot::pivot(player::ptr player, world::ptr world) : tactic(player), the_world(world), target(world->field().enemy_goal()), avoid_ball_(false) {
 }
 
 void pivot::tick() {
@@ -129,7 +129,7 @@ void pivot::tick_old() {
 	}
 
 	// if we have the ball then move to the destination
-	if (!avoid_ball_ && ai_util::has_ball(the_world, the_player)) {
+	if (ai_util::has_ball(the_world, the_player)) {
 		state->recent_hit_target = true;
 		navi.set_position(target);
 		navi.set_orientation((target - the_player->position()).orientation());
@@ -164,14 +164,12 @@ void pivot::tick_old() {
 
 	if (player_diff_vector.len() < target_diff_vector.len()) {
 		if (player_diff_vector.dot(target_diff_vector) > 0) {
-			if (!avoid_ball_) {
-				state->recent_hit_target = true;
-				navi.set_position(the_ball->position());
-				navi.set_orientation((target - the_player->position()).orientation());
-				navi.set_flags(flags);
-				navi.tick();
-				return;
-			}
+			state->recent_hit_target = true;
+			navi.set_position(the_ball->position());
+			navi.set_orientation((target - the_player->position()).orientation());
+			navi.set_flags(flags);
+			navi.tick();
+			return;
 		}
 	}
 
