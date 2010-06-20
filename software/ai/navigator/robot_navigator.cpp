@@ -26,6 +26,16 @@ namespace {
 	const double DRIBBLE_SPEED_MAX  = 0.50;
 	enum {EMPTY, OWN_ROBOT, ENEMY_ROBOT, BALL, ERROR};  
 	double correction_distances[5] = {0.0, 1.0, 1.0, 0.5, 0.0};
+
+  double robot_set_point[7] = {0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25};
+
+  double get_robot_set_point(int robot_num){
+    if(robot_num >=0 && robot_num<7){
+      return robot_set_point[robot_num];
+    }
+    return DRIBBLE_SPEED_LOW;
+  }
+ 
 }
 
 robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world), position_initialized(false), orientation_initialized(false), flags(0) {
@@ -220,12 +230,12 @@ void robot_navigator::tick() {
 	// dribble when it needs to
 #warning has_ball
 	if (wantdribble) {
-		const double dribblespeed = std::min(DRIBBLE_SPEED_LOW + DRIBBLE_SPEED_RAMP * the_player->sense_ball_time(), DRIBBLE_SPEED_MAX);
+	  const double dribblespeed = std::min(get_robot_set_point(the_player->pattern_index) + DRIBBLE_SPEED_RAMP * the_player->sense_ball_time(), DRIBBLE_SPEED_MAX);
 		the_player->dribble(dribblespeed);
 	} else if (flags & ai_flags::avoid_ball_stop) {
 		the_player->dribble(0);
 	} else {
-		the_player->dribble(DRIBBLE_SPEED_LOW);
+		the_player->dribble(get_robot_set_point(the_player->pattern_index));
 	}
 
 	// DO NOT FORGET! reset orientation settings.
