@@ -32,8 +32,9 @@ namespace {
 		defensive2 defensive2_role(the_world);
 		std::vector<player::ptr> all;
 		for (size_t i = 0; i < the_team.size(); ++i) {
-			all.push_back(the_team.get_player(i));
+			all.push_back(the_team[i]);
 		}
+		defensive2_role.set_goalie(the_team[0]);
 		defensive2_role.set_robots(all);
 		defensive2_role.tick();
 	}

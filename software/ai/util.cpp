@@ -116,7 +116,7 @@ namespace ai_util {
 		return true;
 	}
 
-	std::pair<point, double> calc_best_shot(const field& f, const std::vector<point>& obstacles, const point& p, const double radius, const bool force) {
+	std::pair<point, double> calc_best_shot(const field& f, const std::vector<point>& obstacles, const point& p, const double radius) {
 		const point p1 = point(f.length()/2.0,-f.goal_width()/2.0);
 		const point p2 = point(f.length()/2.0,f.goal_width()/2.0);
 		return angle_sweep_circles(p, p1, p2, obstacles, radius);

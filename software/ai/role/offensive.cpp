@@ -37,6 +37,12 @@ double offensive::scoring_function(const std::vector<point>& enemypos, const poi
 	std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world->field(), enemypos, pos);
 	double score = bestshot.second;
 
+	for (size_t i = 0; i < enemypos.size(); ++i) {
+			if ((enemypos[i] - pos).len() < NEAR) {
+					return -1e99;
+			}
+	}
+
 	for (size_t i = 0; i < dontblock.size(); ++i) {
 		std::pair<point, double> shootershot = ai_util::calc_best_shot(the_world->field(), enemypos, dontblock[i]);
 		const point diff1 = (shootershot.first - dontblock[i]);
