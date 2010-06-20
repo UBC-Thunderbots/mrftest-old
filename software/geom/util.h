@@ -117,9 +117,8 @@ point calc_block_side_pos(const point& a, const point& b, const point& p, const 
  * PRECONDITION: cone has positive angle, i.e. not just a line.
  */
 point calc_block_cone(const point &a, const point &b, const double& radius);
-static inline point calc_block_cone(const point &a, const point &b, const point& p, const double& radius) {
-	return p + calc_block_cone(a - p, b - p, radius);
-}
+
+point calc_block_cone(const point &a, const point &b, const point& p, const double& radius);
 
 /**
  * Used for defender_blocks_goal

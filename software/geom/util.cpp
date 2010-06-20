@@ -228,6 +228,17 @@ point calc_block_cone(const point &a, const point &b, const double& radius) {
 	return c * (radius / std::fabs(au.cross(c)));
 }
 
+point calc_block_cone(const point &a, const point &b, const point& p, const double& radius) {
+	point R = p + calc_block_cone(a - p, b - p, radius);
+	#warning: THIS MAGIC THRESHOLD should be fixed after competition
+	//TODO: Fix this magic number
+	const double MIN_X = std::min(-2.5, (p.x + 3.025) / 2.0 - 3.025);
+	if (R.x < MIN_X){
+		R = (R - p) * ((MIN_X - p.x) / (R.x - p.x)) + p;
+	}
+	return R;
+}
+
 // ported code
 point calc_block_other_ray(const point& a, const point& c, const point& g) {
 	return reflect(a - c, g - c);
@@ -242,6 +253,6 @@ bool goalie_block_goal_post(const point& a, const point& b, const point& c, cons
 // ported code
 point calc_block_cone_defender(const point& a, const point& b, const point& c, const point& g, const double& r) {
 	point R = reflect(a - c, g - c);
-	return calc_block_cone(R, b - c, r) + c;
+	return calc_block_cone(R + c, b, c, r);
 }
 
