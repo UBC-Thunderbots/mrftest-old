@@ -310,6 +310,8 @@ connected:
 		std::cout << "OK\n";
 	}
 
+	std::cout << "===================\nOPERATION SUCCEEDED\n===================\n";
+
 	return 0;
 }
 

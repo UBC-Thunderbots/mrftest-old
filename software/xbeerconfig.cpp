@@ -204,6 +204,9 @@ namespace {
 		try {
 			bool success = do_work(loop, botinfo.address, modem, conf.channel());
 			do_local_at_command<0>(loop, modem, "Rebooting local modem", "FR", 0);
+			if (success) {
+				std::cout << "===================\nOPERATION SUCCEEDED\n===================\n";
+			}
 			return success ? 0 : 1;
 		} catch (...) {
 			try {
