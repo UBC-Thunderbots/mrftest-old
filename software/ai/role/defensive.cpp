@@ -74,7 +74,7 @@ void defensive::tick() {
 				shoot::ptr shoot_tactic(new shoot(the_robots[baller], the_world));
 				tactics[baller] = shoot_tactic;
 			} else {
-				LOG_INFO(Glib::ustring::compose("%1 pass to %2", the_robots[baller]->name, the_robots[passme]->name));
+				LOG_INFO(Glib::ustring::compose("%1 pass to %2", the_robots[baller]->name, friends[passme]->name));
 
 				// pass to this person
 				pass::ptr pass_tactic(new pass(the_robots[baller], the_world, friends[passme]));
