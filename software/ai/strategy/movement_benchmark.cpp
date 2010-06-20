@@ -103,10 +103,10 @@ namespace {
 movement_benchmark::movement_benchmark(world::ptr world) : the_world(world), tasks(default_tasks, default_tasks + default_tasks_n), done(0), prev_pos(0.0, 0.0), prev_ori(0), reset_button("Reset") {
 	time_steps = 0;
 	done = tasks.size();
-	pos_dis_threshold = 1e-1;
-	pos_vel_threshold = 1e-1;
-	ori_dis_threshold = 1e-1;
-	ori_vel_threshold = 1e-1;
+	pos_dis_threshold = 0.2;
+	pos_vel_threshold = 0.2;
+	ori_dis_threshold = 0.2;
+	ori_vel_threshold = 0.2;
 	reset_button.signal_clicked().connect(sigc::mem_fun(this,&movement_benchmark::strategy_reset));
 }
 
