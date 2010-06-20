@@ -106,13 +106,23 @@ point kickoff_friendly::approach_legal_point(point cur_point, unsigned int robot
 	point wantdst = cur_point;
 	if(cur_point.x>-robot::MAX_RADIUS) {
 		wantdst.y = (cur_point.y < 0) ? -(2.0*circle_radius):(2.0*circle_radius);
+		//line the robots up at different widths on the field	
+		if(wantdst.y<0.0){
+		  wantdst.y -= (the_field.width()/2 - fabs(wantdst.y))/5.0;
+		}else{		
+		  wantdst.y += (the_field.width()/2 - fabs(wantdst.y))/5.0;
+		}
+
+		//go to the halfway point on the field
 		if(fabs(cur_point.y) > circle_radius) {
 			// go to the left
-			wantdst.x = cur_point.x - 1.0;
+		  wantdst.x = -the_field.length()/2; 
 		}
+
 	} else {
 		// put the target position here!!
 		 wantdst = clip_circle(cur_point, circle_radius + AVOID_BUFFER, wantdst);
+		 wantdst.x = -the_field.length()/2; 
 	}
 	return wantdst;
 
