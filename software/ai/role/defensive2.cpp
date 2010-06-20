@@ -46,7 +46,8 @@ std::pair<point, std::vector<point> > defensive2::calc_block_positions(const boo
 
 	// Sort enemies by distance from own goal.
 	std::vector<robot::ptr> enemies = enemy.get_robots();
-	std::sort(enemies.begin(), enemies.end(), ai_util::cmp_dist<robot::ptr>(the_world->ball()->position()));
+	//std::sort(enemies.begin(), enemies.end(), ai_util::cmp_dist<robot::ptr>(the_world->ball()->position()));
+	std::sort(enemies.begin(), enemies.end(), ai_util::cmp_dist<robot::ptr>(f.friendly_goal()));
 
 	std::vector<point> waypoints;
 
@@ -58,30 +59,23 @@ std::pair<point, std::vector<point> > defensive2::calc_block_positions(const boo
 	// goalie and first defender integrated defence
 	// maximum x-distance the goalie can go from own goal.
 	// normally
-	const double maxdist = f.defense_area_radius() - robot::MAX_RADIUS;
+	const double maxdist = f.defense_area_radius();
 	const point L = line_intersect(goalside, ballpos, f.friendly_goal() + point(maxdist, -1), f.friendly_goal() + point(maxdist, 1));
-	const point G = (top) ?  L + calc_block_cone(goalside - ballpos, point(0, -1), robot::MAX_RADIUS)
-		: L + calc_block_cone(point(0, 1), goalside - ballpos, robot::MAX_RADIUS);
+	const point G = (top) ?  calc_block_cone(goalside - ballpos + L, point(0, -1) + L, L, robot::MAX_RADIUS)
+		: calc_block_cone(point(0, 1) + L, goalside - ballpos + L, L, robot::MAX_RADIUS);
 
 	// first defender will block the remaining cone from the ball
 	const point D1 = calc_block_cone_defender(goalside, goalopp, ballpos, G, robot::MAX_RADIUS);
 	waypoints.push_back(D1);
 
-	if (enemy.size() == 0) return std::make_pair(G, waypoints);
-
-	// 2nd defender block nearest enemy sight to goal if needed
-	// what happen if posses ball? skip or what?
-	if (!ai_util::posses_ball(the_world, enemies[0])) {
-		// block this enemy
-		const point D2 = calc_block_cone(goalside, goalopp, enemies[0]->position(), robot::MAX_RADIUS);
-		waypoints.push_back(D2);
+	// next two defenders block nearest enemy sights to goal if needed
+	// enemies with ball possession are ignored (they should be handled above)
+	for (size_t i = 0; i < enemies.size() && waypoints.size() < 3; ++i){
+		if (!ai_util::posses_ball(the_world, enemies[i])) {
+			const point D = calc_block_cone(goalside, goalopp, enemies[i]->position(), robot::MAX_RADIUS);
+			waypoints.push_back(D);
+		}
 	}
-
-	if (enemy.size() == 1) return std::make_pair(G, waypoints);
-
-	// 3rd defender block 2nd nearest enemy sight to goal
-	const point D3 = calc_block_cone(goalside, goalopp, enemies[1]->position(), robot::MAX_RADIUS);
-	waypoints.push_back(D3);
 
 	// 4th defender go chase?
 	waypoints.push_back(the_world->ball()->position());
@@ -176,8 +170,6 @@ void defensive2::tick() {
 		move::ptr tactic(new move(the_robots[0], the_world));
 		tactic->set_position(positions.first);
 		tactics[0] = tactic;
-
-		// maybe reassign who to chase?
 	}
 
 	size_t w = 0; // so we can skip robots as needed
