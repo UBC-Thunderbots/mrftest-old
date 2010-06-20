@@ -277,8 +277,8 @@ connected:
 		goto start_work;
 	}
 
-	std::cout << "Setting clear channel threshold to 0dBm... " << std::flush;
-	send_string(fd, "ATCA00\r");
+	std::cout << "Setting clear channel threshold to -36dBm... " << std::flush;
+	send_string(fd, "ATCA24\r");
 	if (read_clean_ok(fd)) {
 		std::cout << "OK\n";
 	} else {

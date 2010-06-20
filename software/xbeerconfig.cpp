@@ -172,7 +172,7 @@ namespace {
 		do_remote_at_command<1>(loop, bot, modem, Glib::ustring::compose("Setting radio channel to %1", tohex(target, 2)), "CH", target, false);
 		do_remote_at_command<2>(loop, bot, modem, "Setting PAN ID to 496C", "ID", 0x496C, false);
 		do_remote_at_command<2>(loop, bot, modem, "Setting 16-bit address to none", "MY", 0xFFFF, false);
-		do_remote_at_command<1>(loop, bot, modem, "Setting clear channel threshold to 0dBm", "CA", 0x00, false);
+		do_remote_at_command<1>(loop, bot, modem, "Setting clear channel threshold to -36dBm", "CA", 0x24, false);
 		do_remote_at_command<0>(loop, bot, modem, "Saving and applying configuration", "WR", 0, true);
 
 		return true;
