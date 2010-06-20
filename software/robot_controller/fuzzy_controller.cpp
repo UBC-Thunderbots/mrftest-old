@@ -18,10 +18,10 @@ namespace {
 
 	fuzzy_controller_factory factory;
 
-	const int P = 4;
-	const double arr_min[P] = {0.0, 0.0, 0.0, 0.0};
-	const double arr_max[P] = {50.0, 5.0, 5.0, 5.0};
-	const double arr_def[P] = {25.4088, 0.855547, 4.91968, 2.13349};
+	const int P = 5;
+	const double arr_min[P] = {0.0, 0.0, 0.0, 0.0, 0.0};
+	const double arr_max[P] = {10.0, 10.0, 10.0, 10.0, 10.0};
+	const double arr_def[P] = {25.4088, 0.855547, 4.91968, 2.13349, 2.0};
 }
 
 const std::vector<double> fuzzy_controller::param_min(arr_min, arr_min + P);
@@ -36,7 +36,7 @@ fuzzy_controller::fuzzy_controller(player::ptr player) : param(4) {
 void fuzzy_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
 	const point &current_position = robot->position();
 	const double current_orientation = robot->orientation();
-	angular_velocity = angle_mod(new_orientation - current_orientation);
+	angular_velocity = param[4]*angle_mod(new_orientation - current_orientation);
 	
 	double distance_factor = (new_position - current_position).len() / param[1];
 	if (distance_factor > 1) distance_factor = 1;
