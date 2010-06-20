@@ -86,6 +86,7 @@ void tester_window::on_claim_toggled() {
 		bot_chooser.set_sensitive(false);
 		feedback.set_bot(bot);
 	} else {
+		drive_chooser.set_active_text("Halt");
 		bot_chooser.set_sensitive(true);
 		feedback.set_bot(xbee_drive_bot::ptr());
 		drive_chooser.set_sensitive(false);
@@ -147,6 +148,7 @@ void tester_window::drive_mode_changed() {
 	// Remove any UI control.
 	if (drive_widget) {
 		drive_box.remove(*drive_widget);
+		delete drive_widget;
 		drive_widget = 0;
 		drive_zeroable = 0;
 	}
@@ -164,17 +166,16 @@ void tester_window::drive_mode_changed() {
 	} else if (cur == "Direct Drive") {
 		// Use the direct drive controls.
 		tester_control_direct_drive *drive = new tester_control_direct_drive(bot);
-		drive = Gtk::manage(drive);
 		drive_widget = drive;
 		drive_zeroable = drive;
 	} else if (cur == "Controlled Per-Motor Drive") {
 		// Use the controlled per-motor drive controls.
-		tester_control_controlled_permotor_drive *drive = Gtk::manage(new tester_control_controlled_permotor_drive(bot));
+		tester_control_controlled_permotor_drive *drive = new tester_control_controlled_permotor_drive(bot);
 		drive_widget = drive;
 		drive_zeroable = drive;
 	} else if (cur == "Matrix Drive") {
 		// Use the matrix drive controls.
-		tester_control_matrix_drive *drive = Gtk::manage(new tester_control_matrix_drive(bot));
+		tester_control_matrix_drive *drive = new tester_control_matrix_drive(bot);
 		drive_widget = drive;
 		drive_zeroable = drive;
 	}
