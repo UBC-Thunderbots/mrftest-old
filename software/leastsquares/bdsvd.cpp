@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
 
 #include "bdsvd.h"
+#include <cassert>
 
 static bool bidiagonalsvddecompositioninternal(ap::real_1d_array& d,
      ap::real_1d_array e,
@@ -1318,8 +1319,7 @@ static void svdv2x2(double f,
     //
     // Correct signs of SSMAX and SSMIN
     //
-	#warning is this a good default value for tsign?
-	tsign = 1;
+    tsign = 0;
     if( pmax==1 )
     {
         tsign = extsignbdsqr(double(1), csr)*extsignbdsqr(double(1), csl)*extsignbdsqr(double(1), f);
@@ -1332,6 +1332,7 @@ static void svdv2x2(double f,
     {
         tsign = extsignbdsqr(double(1), snr)*extsignbdsqr(double(1), snl)*extsignbdsqr(double(1), h);
     }
+    assert(tsign ==0);
     ssmax = extsignbdsqr(ssmax, tsign);
     ssmin = extsignbdsqr(ssmin, tsign*extsignbdsqr(double(1), f)*extsignbdsqr(double(1), h));
 }
