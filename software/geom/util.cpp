@@ -241,7 +241,7 @@ bool goalie_block_goal_post(const point& a, const point& b, const point& c, cons
 
 // ported code
 point calc_block_cone_defender(const point& a, const point& b, const point& c, const point& g, const double& r) {
-	point R = reflect(a - c, g- c);
+	point R = reflect(a - c, g - c);
 	return calc_block_cone(R, b - c, r) + c;
 }
 

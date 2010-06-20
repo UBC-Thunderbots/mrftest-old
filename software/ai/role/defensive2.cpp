@@ -42,10 +42,6 @@ void defensive2::assign(const player::ptr& p, tactic::ptr t) {
 std::pair<point, std::vector<point> > defensive2::calc_block_positions(const bool top) const {
 	const enemy_team& enemy(the_world->enemy);
 
-	if (enemy.size() == 0) {
-		std::cerr << "defensive2: no enemy!?" << std::endl;
-	}
-
 	const field& f = the_world->field();
 
 	// Sort enemies by distance from own goal.
@@ -70,6 +66,8 @@ std::pair<point, std::vector<point> > defensive2::calc_block_positions(const boo
 	// first defender will block the remaining cone from the ball
 	const point D1 = calc_block_cone_defender(goalside, goalopp, ballpos, G, robot::MAX_RADIUS);
 	waypoints.push_back(D1);
+
+	if (enemy.size() == 0) return std::make_pair(G, waypoints);
 
 	// 2nd defender block nearest enemy sight to goal if needed
 	// what happen if posses ball? skip or what?
@@ -102,14 +100,15 @@ void defensive2::tick() {
 	const enemy_team& enemy(the_world->enemy);
 	const point& ballpos = the_world->ball()->position();
 
-	// the robot nearest
-	double nearestdist = 1e99;
-	int nearest = -1;
+	// the robot chaser
+	double chaserdist = 1e99;
+	player::ptr chaser;
 	for (size_t i = 0; i < the_robots.size(); ++i) {
 		const double dist = (the_robots[i]->position() - ballpos).len();
-		if (nearest == -1 || dist < nearestdist) {
-			nearestdist = dist;
-			nearest = static_cast<int>(i);
+		if (dist > ai_util::CHASE_BALL_DIST) continue;
+		if (!chaser || dist < chaserdist) {
+			chaserdist = dist;
+			chaser = the_robots[i];
 		}
 	}
 
@@ -164,8 +163,11 @@ void defensive2::tick() {
 
 	// do the actual assigmment
 
-	// check if nearest robot
-	if (nearest == 0 || ai_util::point_in_defense(the_world, ballpos)) {
+	//const bool goaliechase = (chaser == goalie && ai_util::point_in_defense(the_world, ballpos));
+	const bool goaliechase = (chaser == goalie); // temporary
+
+	// check if chaser robot
+	if (goaliechase) {
 		LOG_INFO("goalie to shoot");
 		shoot::ptr tactic(new shoot(the_robots[0], the_world));
 		tactic->force();
@@ -174,6 +176,8 @@ void defensive2::tick() {
 		move::ptr tactic(new move(the_robots[0], the_world));
 		tactic->set_position(positions.first);
 		tactics[0] = tactic;
+
+		// maybe reassign who to chase?
 	}
 
 	size_t w = 0; // so we can skip robots as needed
@@ -188,7 +192,7 @@ void defensive2::tick() {
 		} 
 
 		const point& target = waypoints[order[w]];
-		if ((target - ballpos).len() < ai_util::POS_EPS || nearest == static_cast<int>(i)) {
+		if (chaser == defenders[i]) {
 			// should be exact
 			shoot::ptr tactic(new shoot(defenders[i], the_world));
 			tactic->force();

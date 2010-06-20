@@ -3,6 +3,7 @@
 
 #include "ai/world/world.h"
 #include "ai/world/team.h"
+#include "uicomponents/param.h"
 
 #include <vector>
 
@@ -31,6 +32,8 @@ namespace ai_util {
 		private:
 			const point& dest;
 	};
+
+	extern double_param CHASE_BALL_DIST;
 
 	// TODO: base this on distance.
 	/**

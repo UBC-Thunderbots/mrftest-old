@@ -3,8 +3,6 @@
 #include "geom/angle.h"
 #include "geom/util.h"
 
-#include "uicomponents/param.h"
-
 #include <cmath>
 #include <iostream>
 
@@ -22,6 +20,8 @@ namespace {
 }
 
 namespace ai_util {
+
+	double_param CHASE_BALL_DIST("How close before chasing", ball::RADIUS * 2, 0.0, ball::RADIUS * 4);
 
 	bool ball_close(const world::ptr w, const robot::ptr p) {
 		const point dist = w->ball()->position() - p->position();
