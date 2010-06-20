@@ -58,7 +58,7 @@ void execute_direct_free_kick::tick() {
 	const friendly_team& friendly(the_world->friendly);
 
 	if (the_robots.size() != 1) {
-		std::cerr << "execute_direct_free_kick: contains " << the_robots.size() << " size " << std::endl;
+		LOG_ERROR(Glib::ustring::compose("there are %1 robots", the_robots.size()));
 	}
 
 	if (the_robots.size() == 0) return;
@@ -67,8 +67,8 @@ void execute_direct_free_kick::tick() {
 
 	std::vector<player::ptr> friends;
 	for (size_t i = 0; i < friendly.size(); ++i)
-		if (friendly.get_player(i) != pl)
-			friends.push_back(pl);
+		if (friendly[i] != pl)
+			friends.push_back(friendly[i]);
 
 	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
 	flags &= ~(ai_flags::clip_play_area);
@@ -79,19 +79,19 @@ void execute_direct_free_kick::tick() {
 	int bestpassee = ai_util::choose_best_pass(the_world, friends);
 
 	if (bestshot.second > 0) {
-		LOG_WARN("shoot");
+		LOG_INFO("shoot");
 		shoot tactic(pl, the_world);
 		tactic.set_flags(flags);
 		tactic.tick();
 	} else if (bestpassee >= 0) {
 		// yup... pass to someone
-		LOG_WARN(Glib::ustring::compose("%1 pass to %2", pl->name, friends[bestpassee]->name));
+		LOG_INFO(Glib::ustring::compose("%1 pass to %2", pl->name, friends[bestpassee]->name));
 		pass tactic(pl, the_world, friends[bestpassee]);
 		tactic.set_flags(flags);
 		tactic.tick();
 	} else {
 		// err... something random?
-		LOG_WARN("forced kicking");
+		LOG_INFO("forced kicking");
 		shoot tactic(pl, the_world);
 		tactic.force();
 		tactic.set_flags(flags);

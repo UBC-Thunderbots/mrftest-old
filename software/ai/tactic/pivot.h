@@ -44,6 +44,8 @@ class pivot : public tactic {
 
 	protected:
 
+		void tick_experimental();	
+
 		const world::ptr the_world;
 		point target;
 		bool get_ball_;

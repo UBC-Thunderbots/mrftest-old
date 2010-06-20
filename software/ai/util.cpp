@@ -8,6 +8,10 @@
 
 namespace {
 
+	const double PIVOT_ORI_CLOSE = 10.0 / 180.0 * M_PI;
+	const double PIVOT_ANGLE = M_PI / 2;
+	double_param PIVOT_DIST("Pivot Distance", 0.08, 0.1, 0.2);
+
 #warning Magic constant
 	const double SHOOT_ALLOWANCE = ball::RADIUS;
 
@@ -197,6 +201,15 @@ namespace ai_util {
 		return p->sense_ball() >= HAS_BALL_TIME || ball_close(w, p);
 	}
 
+	bool friendly_has_ball(const world::ptr w) {
+		const friendly_team& friendly = w->friendly;
+		for (size_t i = 0; i < friendly.size(); ++i) {
+			if (has_ball(w, friendly[i])) return true;
+		}
+		return false;
+	}
+
+	/*
 	bool posses_ball(const world::ptr w, const robot::ptr r) {
 		return ball_close(w, r);
 	}
@@ -208,6 +221,7 @@ namespace ai_util {
 		}
 		return false;
 	}
+	*/
 
 	bool friendly_posses_ball(const world::ptr w) {
 		const friendly_team& friendly = w->friendly;

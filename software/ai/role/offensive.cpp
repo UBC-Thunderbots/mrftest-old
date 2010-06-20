@@ -20,8 +20,8 @@ namespace {
 	// chop up half the field into 100x100 grid
 	// evaluate some functions
 
-	const int GRIDY = 100;
-	const int GRIDX = 100;
+	const int GRIDY = 50;
+	const int GRIDX = 50;
 
 	const double ONE = 1.0 / 180.0 * M_PI;
 

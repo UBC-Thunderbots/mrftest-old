@@ -93,7 +93,7 @@ std::pair<point, std::vector<point> > defensive2::calc_block_positions(const boo
 	// next two defenders block nearest enemy sights to goal if needed
 	// enemies with ball possession are ignored (they should be handled above)
 	for (size_t i = 0; i < enemies.size() && waypoints.size() < 3; ++i){
-			if (!ai_util::posses_ball(the_world, enemies[i])) {
+			if (!ai_util::ball_close(the_world, enemies[i])) {
 					bool blowup = false;
 					point D = calc_block_cone(goalside, goalopp, enemies[i]->position(), robot::MAX_RADIUS);
 					if (D.x > robot::MAX_RADIUS - f.length() / 2) blowup = true;

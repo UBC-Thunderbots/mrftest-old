@@ -48,10 +48,6 @@ software/ai/role/execute_free_kick.cpp -text
 software/ai/role/execute_free_kick.h -text
 software/ai/role/execute_kickoff_friendly.cpp -text
 software/ai/role/execute_kickoff_friendly.h -text
-software/ai/role/execute_penalty_enemy.cpp -text
-software/ai/role/execute_penalty_enemy.h -text
-software/ai/role/execute_penalty_friendly.cpp -text
-software/ai/role/execute_penalty_friendly.h -text
 software/ai/role/goalie.cpp -text
 software/ai/role/goalie.h -text
 software/ai/role/kickoff_friendly.cpp -text

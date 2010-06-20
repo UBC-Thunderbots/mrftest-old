@@ -316,46 +316,48 @@ void robot_navigator::tick() {
 
 // TODO: use the util functions
 bool robot_navigator::check_vector(const point& start, const point& dest, const point& direction) const {
-  return check_obstacles(start, dest, direction) == EMPTY;
+		return check_obstacles(start, dest, direction) == EMPTY;
 }
 
 unsigned int robot_navigator::check_obstacles(const point& start, const point& dest, const point& direction) const {
-	const ball::ptr the_ball(the_world->ball());
-	const point startdest = dest - start;
-	const double lookahead = std::min(startdest.len(), LOOKAHEAD_MAX);
+		const ball::ptr the_ball(the_world->ball());
+		const point startdest = dest - start;
+		const double lookahead = std::min(startdest.len(), LOOKAHEAD_MAX);
 
-	if (abs(direction.len() - 1.0) > ai_util::POS_EPS) {
-		std::cerr << " Direction not normalized! " << direction.len() << std::endl;
-		return ERROR;
-	}
-
-	const team * const teams[2] = { &the_world->friendly, &the_world->enemy };
-	for (unsigned int i = 0; i < 2; ++i) {
-		for (unsigned int j = 0; j < teams[i]->size(); ++j) {
-			const robot::ptr rob(teams[i]->get_robot(j));
-			if(rob == this->the_player) continue;
-			const point rp = rob->position() - start;
-			const double proj = rp.dot(direction);
-			const double perp = sqrt(rp.dot(rp) - proj * proj);
-
-			if (proj <= 0) continue;
-
-			if (proj < lookahead && perp < get_avoidance_factor() * (robot::MAX_RADIUS * 2)) {
-			  return (i==0) ? OWN_ROBOT:ENEMY_ROBOT;
-			}
+		if (abs(direction.len() - 1.0) > ai_util::POS_EPS) {
+				std::cerr << " Direction not normalized! " << direction.len() << std::endl;
+				return ERROR;
 		}
-	}
 
-	if (flags & ai_flags::avoid_ball_near) {
-		const point ballvec = the_ball->position() - start;
-		double proj = ballvec.dot(direction);
-		if (proj > 0) {
-			double perp = sqrt(ballvec.dot(ballvec) - proj * proj);
-			if (proj < lookahead && perp < get_avoidance_factor() * (robot::MAX_RADIUS + ball::RADIUS)) {
-				return BALL;
-			}
+		const team * const teams[2] = { &the_world->friendly, &the_world->enemy };
+		for (unsigned int i = 0; i < 2; ++i) {
+				for (unsigned int j = 0; j < teams[i]->size(); ++j) {
+						const robot::ptr rob(teams[i]->get_robot(j));
+						if(rob == this->the_player) continue;
+						const point rp = rob->position() - start;
+						const double proj = rp.dot(direction);
+						const double perp = sqrt(rp.dot(rp) - proj * proj);
+
+						if (proj <= 0) continue;
+
+						if (proj < lookahead && perp < get_avoidance_factor() * (robot::MAX_RADIUS * 2)) {
+								return (i==0) ? OWN_ROBOT:ENEMY_ROBOT;
+						}
+				}
 		}
-	}
 
-	return EMPTY;
+		if (flags & ai_flags::avoid_ball_near) {
+				const point ballvec = the_ball->position() - start;
+				double proj = ballvec.dot(direction);
+				if (proj > 0) {
+						double perp = sqrt(ballvec.dot(ballvec) - proj * proj);
+						// double distance to ball
+						if (proj < lookahead && perp < get_avoidance_factor() * (robot::MAX_RADIUS + ball::RADIUS * 2)) {
+								return BALL;
+						}
+				}
+		}
+
+		return EMPTY;
 }
+

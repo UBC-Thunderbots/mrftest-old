@@ -175,17 +175,18 @@ namespace ai_util {
 	/**
 	 * Checks if an ENEMY ROBOT posses the ball.
 	 */
-	bool posses_ball(const world::ptr w, const robot::ptr r);
+	// bool posses_ball(const world::ptr w, const robot::ptr r);
 
 	/**
 	 * Checks if the enemy team posses the ball.
 	 */
-	bool enemy_posses_ball(const world::ptr w);
+	// bool enemy_posses_ball(const world::ptr w);
 
 	/**
 	 * Checks if friendly team posses the ball.
 	 */
 	bool friendly_posses_ball(const world::ptr w);
+	bool friendly_has_ball(const world::ptr w);
 
 	/**
 	 * Returns the player having the ball.
