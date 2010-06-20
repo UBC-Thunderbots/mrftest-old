@@ -37,7 +37,8 @@ class stochastic_local_search {
 		void set_cost(double cost);
 		void random_restart();
 		void hill_climb();
+		void revert();
 };
 
-
 #endif
+

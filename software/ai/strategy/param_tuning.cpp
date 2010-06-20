@@ -21,21 +21,31 @@ namespace {
 			strategy_factory &get_factory();
 			void tick();
 			void reset();
+			void hillclimb();
+			void revert();
 		private:
 			const world::ptr the_world;
+			Gtk::Button revert_button;
 			Gtk::Button reset_button;
+			Gtk::Button hillclimb_button;
+			Gtk::VBox vbox;
 			stochastic_local_search* sls;
 			tunable_controller* tc;
 			int sls_counter;
 			int best;
 	};
 
-	param_tuning::param_tuning(world::ptr world) : movement_benchmark(world), the_world(world), reset_button("Reset"), sls(0) {
+	param_tuning::param_tuning(world::ptr world) : movement_benchmark(world), the_world(world), revert_button("Redo from last best"), reset_button("Complete Reset"), hillclimb_button("Hill Climb Again"), sls(0) {
 		sls_counter = 0;
 
 		// override the reset button
+		revert_button.signal_clicked().connect(sigc::mem_fun(this,&param_tuning::revert));
 		reset_button.signal_clicked().connect(sigc::mem_fun(this,&param_tuning::reset));
+		hillclimb_button.signal_clicked().connect(sigc::mem_fun(this,&param_tuning::hillclimb));
 		best = EVALUATION_LIMIT;
+		vbox.add(revert_button);
+		vbox.add(reset_button);
+		vbox.add(hillclimb_button);
 	}
 
 	param_tuning::~param_tuning() {
@@ -43,7 +53,7 @@ namespace {
 	}
 
 	Gtk::Widget *param_tuning::get_ui_controls() {
-		return &reset_button;
+		return &vbox;
 	}
 
 	void param_tuning::reset() {
@@ -55,8 +65,35 @@ namespace {
 		time_steps = 0;
 		best = EVALUATION_LIMIT;
 		sls_counter = 0;
-		tc->set_params(sls->get_params());
+		tc->set_params(sls->get_best_params());
 		std::cout << " reset, curr params=";
+		const std::vector<double>& params = sls->get_best_params();
+		for (unsigned int i = 0; i < params.size(); ++i) {
+			std::cout << params[i] << " ";
+		}
+		std::cout << std::endl;
+	}
+
+	void param_tuning::hillclimb() {
+		const std::vector<double> best_params = sls->get_best_params();
+		sls->hill_climb();
+		tc->set_params(sls->get_params());
+		done = 0;
+		time_steps = 0;
+		std::cout << " hill climb, curr params=";
+		const std::vector<double>& params = sls->get_params();
+		for (unsigned int i = 0; i < params.size(); ++i) {
+			std::cout << params[i] << " ";
+		}
+		std::cout << std::endl;
+	}
+
+	void param_tuning::revert() {
+		sls->revert();
+		tc->set_params(sls->get_best_params());
+		done = 0;
+		time_steps = 0;
+		std::cout << " revert curr params=";
 		const std::vector<double>& params = sls->get_params();
 		for (unsigned int i = 0; i < params.size(); ++i) {
 			std::cout << params[i] << " ";
@@ -95,7 +132,7 @@ namespace {
 				std::cout << params[i] << " ";
 			}
 			std::cout << std::endl;
-			const std::vector<double>& best_params = sls->get_best_params();
+			const std::vector<double> best_params = sls->get_best_params();
 			std::cout << "best params=";
 			for (unsigned int i = 0; i < best_params.size(); ++i) {
 				std::cout << best_params[i] << " ";

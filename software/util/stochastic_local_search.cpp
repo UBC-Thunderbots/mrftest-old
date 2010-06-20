@@ -6,7 +6,7 @@
 #include <iostream>
 using namespace std;
 
-stochastic_local_search::stochastic_local_search(const std::vector<double>& min, const std::vector<double>& max){
+stochastic_local_search::stochastic_local_search(const std::vector<double>& min, const std::vector<double>& max) {
 	srand48(time(NULL));
 	srand(time(NULL));
 	bestCost = std::numeric_limits<double>::max();
@@ -45,7 +45,12 @@ void stochastic_local_search::set_initial(const std::vector<double>& initial) {
 	stale = 0;
 }
 
+void stochastic_local_search::revert() {
+	param_cur = param_best;
+}
+
 void stochastic_local_search::hill_climb() {
+	param_cur = param_best;
 	int tries = 100;
 	while(tries > 0) {
 		--tries;
@@ -63,3 +68,4 @@ void stochastic_local_search::random_restart() {
 	param_best = param_cur;
 	stale = 0;
 }
+

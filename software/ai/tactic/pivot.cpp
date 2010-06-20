@@ -42,16 +42,16 @@ void pivot::tick() {
 	const point tobehind = (ballpos - target).norm(); // points behind
 	const point toplayer = (the_player->position() - ballpos).norm(); // points to the player
 	const double anglediff = angle_diff(tobehind.orientation(), toplayer.orientation()); // angle difference
+	const point playertotarget = target - the_player->position();
+	const double wantori = (-tobehind).orientation();
 
 	point wantdest = ballpos;
 
+	navi.set_orientation(wantori);
+
 	// we can do something to the ball now!
 	if (get_ball_ && ((tobehind.dot(toplayer) > 0 && anglediff < PIVOT_ORI_CLOSE) || ai_util::has_ball(the_world, the_player))) {
-		const point playertotarget = target - the_player->position();
-		if (ai_util::has_ball(the_world, the_player)) {
-			navi.set_position(target);
-			navi.set_orientation(playertotarget.orientation());
-		} else {
+		if (!ai_util::has_ball(the_world, the_player)) {
 			navi.set_position(ballpos);
 		}
 		navi.set_flags(flags);
