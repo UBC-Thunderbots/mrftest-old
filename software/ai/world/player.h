@@ -165,6 +165,12 @@ class player : public robot {
 		 */
 		const Glib::ustring name;
 
+		/**
+		 * If chicker takes this amount of time to recharge,
+		 * then chicker is R.I.P.
+		 */
+		static const unsigned int CHICKER_FOREVER;
+
 	private:
 		xbee_drive_bot::ptr bot;
 		point destination_;

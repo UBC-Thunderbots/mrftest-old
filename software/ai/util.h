@@ -33,8 +33,6 @@ namespace ai_util {
 			const point& dest;
 	};
 
-	extern double_param PIVOT_DIST;
-
 	extern double_param CHASE_BALL_DIST;
 
 	// TODO: base this on distance.
@@ -195,12 +193,6 @@ namespace ai_util {
 	 * If none has the ball, return -1.
 	 */
 	int calc_baller(const world::ptr w, const std::vector<player::ptr>& the_robots);
-
-	/**
-	 * Calc pivot position.
-	 * Useful for freekick roles.
-	 */
-	point calc_pivot_pos(const point& ballpos, const point& target);
 }
 
 #endif

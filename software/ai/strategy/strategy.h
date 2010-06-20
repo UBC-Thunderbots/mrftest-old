@@ -12,6 +12,34 @@ namespace Gtk {
 }
 class strategy_factory;
 
+namespace ai_strategy {
+	/**
+	 * Comparison for candidacy of being a goalie
+	 */
+	class cmp_player_goalie {
+		public:
+		bool operator()(const player::ptr& a, const player::ptr& b) const {
+			if (a->chicker_ready_time() == player::CHICKER_FOREVER) {
+				if (b->chicker_ready_time() != player::CHICKER_FOREVER) return true;
+				return a->name < b->name;
+			}
+			if (b->chicker_ready_time() == player::CHICKER_FOREVER) return false;
+			return a->name < b->name;
+		}
+	};
+
+	/**
+	 * Sorts by chicker readiness.
+	 */
+	class cmp_player_chicker {
+		public:
+			bool operator()(const player::ptr& a, const player::ptr& b) const {
+				if (a->chicker_ready_time() == b->chicker_ready_time()) return a->name < b->name;
+				return a->name < b->name;
+			}
+	};
+}
+
 /**
  * A strategy manages the overall operation of a team. Individual AI
  * implementations should extend this class (or its subclass \c strategy) to

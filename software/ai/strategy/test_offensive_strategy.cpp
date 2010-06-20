@@ -34,7 +34,7 @@ namespace {
 		}
 
 		offensive_role.set_robots(offenders);
-		offensive_role.tick(overlay);
+		offensive_role.tick();
 	}
 
 	Gtk::Widget *test_offensive_strategy::get_ui_controls() {

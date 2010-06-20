@@ -22,19 +22,22 @@ namespace {
 
 	const double OFFENSIVE_AVOID = 0.2;
 	// hardware dependent dribble parameters
-	const double DRIBBLE_SPEED_LOW  = 0.25;
+	const double DRIBBLE_SPEED_LOW  = 0.50; // baha
 	const double DRIBBLE_SPEED_RAMP = 1.00;
-	const double DRIBBLE_SPEED_MAX  = 0.50;
+	const double DRIBBLE_SPEED_MAX  = 0.50; // baha
 	enum {EMPTY = 0, OWN_ROBOT, ENEMY_ROBOT, BALL, ERROR};  
-	double correction_distances[5] = {0.0, 1.0, 1.0, 0.5, 0.0};
+	double correction_distances[5] = {0.0, 1.0, 1.0, 1.0, 0.0};
 
 	double robot_set_point[7] = {0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25};
 
 	double get_robot_set_point(int robot_num){
+		return DRIBBLE_SPEED_LOW;
+		/*
 		if(robot_num >=0 && robot_num<7){
 			return robot_set_point[robot_num];
 		}
 		return DRIBBLE_SPEED_LOW;
+		*/
 	}
 
 }

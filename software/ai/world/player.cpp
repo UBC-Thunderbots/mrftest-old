@@ -69,6 +69,8 @@ namespace {
 	}
 }
 
+const unsigned int player::CHICKER_FOREVER = 1000;
+
 const double player::MAX_DRIBBLE_DIST = 0.30;
 
 player::state::~state() {
@@ -109,9 +111,9 @@ unsigned int player::chicker_ready_time() const {
 	if (millis < CHICKER_MIN_INTERVAL) {
 		return CHICKER_MIN_INTERVAL - millis;
 	} else if (!bot->alive()) {
-		return 1000;
+		return CHICKER_FOREVER;
 	} else if (!bot->chicker_ready()) {
-		return 1000;
+		return CHICKER_FOREVER;
 	} else {
 		return 0;
 	}

@@ -14,6 +14,7 @@
 
 namespace {
 	double_param STANDBY_DIST("Goalie distance to goal post", 0.05, 0.1, 1.0);
+	bool_param USE_OLD_GOALIE("Goalie use old code", false);
 
 	const double LANE_CLEAR_PENALTY = 1.3;
 	const double DIST_ADV_PENALTY = 1.1;
@@ -247,8 +248,8 @@ void goalie::tick() {
 	} else {
 #warning the goalie cant hold the ball for too long, it should chip somewhere very randomly
 		// run_vel_goalie(me, flags);
-		//run_goalie_confidence(me, flags);
-		run_goalie_old(flags);
+		if (USE_OLD_GOALIE) run_goalie_old(flags);
+		else run_goalie_confidence(me, flags);
 	}
 }
 

@@ -23,11 +23,6 @@ class offensive : public role {
 		offensive(world::ptr world);
 
 		//
-		// Runs the AI for one time tick with drawing.
-		//
-		void tick(Cairo::RefPtr<Cairo::Context> overlay);
-
-		//
 		// Runs the AI for one time tick without drawing.
 		//
 		void tick();
@@ -58,8 +53,8 @@ class offensive : public role {
 
 		const world::ptr the_world;
 
-        std::vector<tactic::ptr> tactics;
-	
+		std::vector<tactic::ptr> tactics;
+
 };
 
 #endif

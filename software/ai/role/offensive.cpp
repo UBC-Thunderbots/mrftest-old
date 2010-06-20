@@ -89,8 +89,8 @@ point offensive::calc_position_best(const std::vector<point>& enemypos, const st
 	const double dy = (y2 - y1) / (GRIDY+1);
 	double bestscore = -1e50;
 	point bestpos(0, 0);
-	for (int j = 0; j < GRIDY; ++j) {
-		for (int i = 0; i < GRIDX; ++i) {
+	for (int i = 0; i < GRIDX; ++i) {
+		for (int j = 0; j < GRIDY; ++j) {
 			const double x = x1 + dx * (i + 1);
 			const double y = y1 + dy * (j + 1);
 			const point pos = point(x, y);
@@ -113,6 +113,15 @@ std::vector<point> offensive::calc_position_best(const unsigned int n) const {
 	for (size_t i = 0; i < enemy.size(); ++i) {
 		enemypos.push_back(enemy.get_robot(i)->position());
 	}
+	// TODO: optimize using the matrix below
+	/*
+	bool okaygrid[GRIDX][GRIDY];
+	for (size_t i = 0; i < GRIDX; ++i) {
+		for (size_t j = 0; j < GRIDY; ++j) {
+			okaygrid[i][j] = true;
+		}
+	}
+	*/
 	std::vector<point> dontblock;
 	dontblock.push_back(the_world->ball()->position());
 	std::vector<point> ret;
@@ -134,10 +143,6 @@ double offensive::get_distance_from_goal(int index) const {
 }
 
 void offensive::tick() {
-	tick(Cairo::RefPtr<Cairo::Context> ());
-}
-
-void offensive::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 	if (the_robots.size() == 0) return;
 
 	// Sort by distance to ball. DO NOT SORT AGAIN!!

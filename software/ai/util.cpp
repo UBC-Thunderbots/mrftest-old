@@ -12,9 +12,9 @@ namespace {
 #warning Magic constant
 	const double SHOOT_ALLOWANCE = ball::RADIUS;
 
-
 	const double EPS = 1e-9;
 
+	bool_param HAS_BALL_USE_VISION("has ball use vision", true);
 	int_param HAS_BALL_TIME("# of sense ball for has ball to be true", 5, 2, 10);
 	double_param BALL_CLOSE_FACTOR("ball_close Distance Factor", 1.1, 1.0, 1.5);
 	double_param BALL_FRONT_ANGLE("ball_front angle", M_PI / 8, 0.0, M_PI / 2);
@@ -22,8 +22,6 @@ namespace {
 }
 
 namespace ai_util {
-
-	double_param PIVOT_DIST("Pivot Distance", 0.08, 0.1, 0.2);
 
 	double_param CHASE_BALL_DIST("How close before chasing", ball::RADIUS * 2, 0.0, ball::RADIUS * 4);
 
@@ -194,7 +192,7 @@ namespace ai_util {
 	}
 
 	bool has_ball(const world::ptr w, const player::ptr p) {
-		return p->sense_ball() >= HAS_BALL_TIME || ball_front(w, p);
+		return p->sense_ball() >= HAS_BALL_TIME || (HAS_BALL_USE_VISION && ball_front(w, p));
 	}
 
 	bool posses_ball(const world::ptr w, const player::ptr p) {
@@ -236,12 +234,6 @@ namespace ai_util {
 			if (posses_ball(w, the_robots[i])) return static_cast<int>(i);
 		}
 		return -1;
-	}
-
-	point calc_pivot_pos(const point& ballpos, const point& target) {
-		// do all relative to the ball
-		const point tobehind = (ballpos - target).norm(); // points behind
-		return ballpos + tobehind * PIVOT_DIST;
 	}
 
 }

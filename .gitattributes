@@ -72,7 +72,6 @@ software/ai/role/victory_dance.h -text
 software/ai/strategy/basic_strategy.cpp -text
 software/ai/strategy/basic_strategy.h -text
 software/ai/strategy/better_strategy.cpp -text
-software/ai/strategy/better_strategy.h -text
 software/ai/strategy/byron_test_defensive_strategy.cpp -text
 software/ai/strategy/chase_strategy.cpp -text
 software/ai/strategy/dribble_strategy.cpp -text

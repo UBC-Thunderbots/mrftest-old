@@ -38,9 +38,15 @@ class pivot : public tactic {
 		/**
 		 * Enables a player to pivot without approaching the ball.
 		 */
-		void avoid_ball(const bool& b) {
+		void avoid_ball(const bool& b = true) {
 			avoid_ball_ = b;
 		}
+
+		/**
+		 * Calc pivot position.
+		 * Useful for roles to know if robot is aligned correctly.
+		 */
+		static point calc_pivot_pos(const point& ballpos, const point& target);
 
 	protected:
 
