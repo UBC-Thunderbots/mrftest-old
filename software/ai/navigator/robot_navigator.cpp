@@ -13,29 +13,30 @@ namespace {
 #warning magic constants
 	const double ROTATION_THRESH = 100.0 * M_PI / 180.0;
 	const double ROTATION_STEP = 1.0 * M_PI / 180.0;
-	const double LOOKAHEAD_MAX = robot::MAX_RADIUS * 10;
 
 	// as required by the rules
 	const double AVOID_BALL_AMOUNT = 0.5 + robot::MAX_RADIUS;
-	double_param AVOID_CONST("Avoid Factor Const", 1.1, 1.0, 2.0);
-	double_param AVOID_MULT("Avoid Factor Mult", 0.5, 0.0, 10.0);
-  const double OFFENSIVE_AVOID = 0.2;
+	double_param AVOID_CONST("Navigator avoid factor const", 1.0, 0.9, 2.0);
+	double_param AVOID_MULT("Navigator avoid factor mult", 0.5, 0.0, 10.0);
+	double_param LOOKAHEAD_MAX("Navigator max distance to look ahead", robot::MAX_RADIUS*5, robot::MAX_RADIUS*1, robot::MAX_RADIUS*20);
+
+	const double OFFENSIVE_AVOID = 0.2;
 	// hardware dependent dribble parameters
 	const double DRIBBLE_SPEED_LOW  = 0.25;
 	const double DRIBBLE_SPEED_RAMP = 1.00;
 	const double DRIBBLE_SPEED_MAX  = 0.50;
-	enum {EMPTY, OWN_ROBOT, ENEMY_ROBOT, BALL, ERROR};  
+	enum {EMPTY = 0, OWN_ROBOT, ENEMY_ROBOT, BALL, ERROR};  
 	double correction_distances[5] = {0.0, 1.0, 1.0, 0.5, 0.0};
 
-  double robot_set_point[7] = {0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25};
+	double robot_set_point[7] = {0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25};
 
-  double get_robot_set_point(int robot_num){
-    if(robot_num >=0 && robot_num<7){
-      return robot_set_point[robot_num];
-    }
-    return DRIBBLE_SPEED_LOW;
-  }
- 
+	double get_robot_set_point(int robot_num){
+		if(robot_num >=0 && robot_num<7){
+			return robot_set_point[robot_num];
+		}
+		return DRIBBLE_SPEED_LOW;
+	}
+
 }
 
 robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world), position_initialized(false), orientation_initialized(false), flags(0) {
@@ -316,48 +317,48 @@ void robot_navigator::tick() {
 
 // TODO: use the util functions
 bool robot_navigator::check_vector(const point& start, const point& dest, const point& direction) const {
-		return check_obstacles(start, dest, direction) == EMPTY;
+	return check_obstacles(start, dest, direction) == EMPTY;
 }
 
 unsigned int robot_navigator::check_obstacles(const point& start, const point& dest, const point& direction) const {
-		const ball::ptr the_ball(the_world->ball());
-		const point startdest = dest - start;
-		const double lookahead = std::min(startdest.len(), LOOKAHEAD_MAX);
+	const ball::ptr the_ball(the_world->ball());
+	const point startdest = dest - start;
+	const double lookahead = std::min<double>(startdest.len(), LOOKAHEAD_MAX);
 
-		if (abs(direction.len() - 1.0) > ai_util::POS_EPS) {
-				std::cerr << " Direction not normalized! " << direction.len() << std::endl;
-				return ERROR;
+	if (abs(direction.len() - 1.0) > ai_util::POS_EPS) {
+		std::cerr << " Direction not normalized! " << direction.len() << std::endl;
+		return ERROR;
+	}
+
+	const team * const teams[2] = { &the_world->friendly, &the_world->enemy };
+	for (unsigned int i = 0; i < 2; ++i) {
+		for (unsigned int j = 0; j < teams[i]->size(); ++j) {
+			const robot::ptr rob(teams[i]->get_robot(j));
+			if (rob == the_player) continue;
+			const point rp = rob->position() - start;
+			const double proj = rp.dot(direction);
+			const double perp = sqrt(rp.dot(rp) - proj * proj);
+
+			if (proj <= 0) continue;
+
+			if (proj < lookahead && perp < get_avoidance_factor() * (robot::MAX_RADIUS * 2)) {
+				return (i==0) ? OWN_ROBOT:ENEMY_ROBOT;
+			}
 		}
+	}
 
-		const team * const teams[2] = { &the_world->friendly, &the_world->enemy };
-		for (unsigned int i = 0; i < 2; ++i) {
-				for (unsigned int j = 0; j < teams[i]->size(); ++j) {
-						const robot::ptr rob(teams[i]->get_robot(j));
-						if(rob == this->the_player) continue;
-						const point rp = rob->position() - start;
-						const double proj = rp.dot(direction);
-						const double perp = sqrt(rp.dot(rp) - proj * proj);
-
-						if (proj <= 0) continue;
-
-						if (proj < lookahead && perp < get_avoidance_factor() * (robot::MAX_RADIUS * 2)) {
-								return (i==0) ? OWN_ROBOT:ENEMY_ROBOT;
-						}
-				}
+	if (flags & ai_flags::avoid_ball_near) {
+		const point ballvec = the_ball->position() - start;
+		double proj = ballvec.dot(direction);
+		if (proj > 0) {
+			double perp = sqrt(ballvec.dot(ballvec) - proj * proj);
+			// double distance to ball
+			if (proj < lookahead && perp < get_avoidance_factor() * (robot::MAX_RADIUS + ball::RADIUS * 2)) {
+				return BALL;
+			}
 		}
+	}
 
-		if (flags & ai_flags::avoid_ball_near) {
-				const point ballvec = the_ball->position() - start;
-				double proj = ballvec.dot(direction);
-				if (proj > 0) {
-						double perp = sqrt(ballvec.dot(ballvec) - proj * proj);
-						// double distance to ball
-						if (proj < lookahead && perp < get_avoidance_factor() * (robot::MAX_RADIUS + ball::RADIUS * 2)) {
-								return BALL;
-						}
-				}
-		}
-
-		return EMPTY;
+	return EMPTY;
 }
 
