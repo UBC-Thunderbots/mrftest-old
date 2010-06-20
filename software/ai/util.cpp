@@ -18,7 +18,8 @@ namespace {
 
 	int_param HAS_BALL_TIME("# of sense ball for has ball to be true", 5, 2, 10);
 	double_param BALL_CLOSE_FACTOR("ball_close Distance Factor", 1.1, 1.0, 1.5);
-	double_param BALL_FRONT_ANGLE("ball_front Angle", M_PI / 8, 0.0, M_PI / 2);
+	double_param BALL_FRONT_ANGLE("ball_front angle", M_PI / 8, 0.0, M_PI / 2);
+	double_param BALL_FRONT_FACTOR("ball_front factor", 1.01, 1.00, 1.2);
 }
 
 namespace ai_util {
@@ -32,7 +33,7 @@ namespace ai_util {
 	
 	bool ball_front(const world::ptr w, const robot::ptr p) {
 		const point dist = w->ball()->position() - p->position();
-		if (dist.len() > robot::MAX_RADIUS + ball::RADIUS * 2) return false;
+		if (dist.len() > (robot::MAX_RADIUS + ball::RADIUS) * BALL_FRONT_FACTOR) return false;
 		return angle_diff(dist.orientation(), p->orientation()) < BALL_FRONT_ANGLE;
 	}
 
