@@ -155,14 +155,6 @@ namespace {
 			return false;
 		}
 
-		// Load factory settings.
-		do_remote_at_command<0>(loop, bot, modem, "Loading factory default settings", "RE", 0, true, true);
-
-		// Switch the local modem to the factory default PAN ID and channel to
-		// reacquire contact with the remote.
-		do_local_at_command<2>(loop, modem, Glib::ustring::compose("Switching local modem to PAN ID %1", tohex(xbeepacket::FACTORY_PANID, 4)), "ID", xbeepacket::FACTORY_PANID);
-		do_local_at_command<1>(loop, modem, Glib::ustring::compose("Switching local modem to channel %1", tohex(xbeepacket::FACTORY_CHANNEL, 2)), "CH", xbeepacket::FACTORY_CHANNEL);
-
 		// Configure the modem.
 		do_remote_at_command<0>(loop, bot, modem, "Getting remote firmware version", "VR", 0, true);
 		do_remote_at_command<1>(loop, bot, modem, "Setting API mode with escapes", "AP", 2, false);
