@@ -20,9 +20,11 @@ namespace {
 	double_param AVOID_MULT("Navigator avoid factor mult", 0.5, 0.0, 10.0);
 	double_param LOOKAHEAD_MAX("Navigator max distance to look ahead", robot::MAX_RADIUS*5, robot::MAX_RADIUS*1, robot::MAX_RADIUS*20);
 
+	bool_param CONSTANT_DRIBBLER("Fixed dribbler speed", true);
+
 	const double OFFENSIVE_AVOID = 0.2;
 	// hardware dependent dribble parameters
-	const double DRIBBLE_SPEED_LOW  = 0.50; // baha
+	const double DRIBBLE_SPEED_LOW  = 0.25; // baha
 	const double DRIBBLE_SPEED_RAMP = 1.00;
 	const double DRIBBLE_SPEED_MAX  = 0.50; // baha
 	enum {EMPTY = 0, OWN_ROBOT, ENEMY_ROBOT, BALL, ERROR};  
@@ -30,14 +32,12 @@ namespace {
 
 	double robot_set_point[7] = {0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25};
 
-	double get_robot_set_point(int robot_num){
-		return DRIBBLE_SPEED_LOW;
-		/*
+	inline double get_robot_set_point(int robot_num) {
+		if (CONSTANT_DRIBBLER) return DRIBBLE_SPEED_MAX;
 		if(robot_num >=0 && robot_num<7){
 			return robot_set_point[robot_num];
 		}
 		return DRIBBLE_SPEED_LOW;
-		*/
 	}
 
 }
