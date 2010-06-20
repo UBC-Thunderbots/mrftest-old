@@ -53,7 +53,7 @@ std::pair<point, double> angle_sweep_circles(const point& src, const point& p1, 
 				point diff = obstacles[i] - src;
 				// warning: temporarily reduced
 				if (diff.len() < radius) {
-						std::cerr << "geom: inside" << std::endl;
+						// std::cerr << "geom: inside" << std::endl;
 						return std::make_pair(bestshot, 0);
 				}
 				const double cent = angle_mod(diff.orientation() - offangle);
