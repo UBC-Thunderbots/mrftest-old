@@ -12,7 +12,7 @@
 #include <iostream>
 
 namespace {
-	double_param ALLOWANCE_FACTOR("Scale goal view angle", 0.9, 0.1, 1.0);
+	double_param ALLOWANCE_FACTOR("Scale goal view angle", 0.5, 0.1, 1.0);
 }
 
 shoot::shoot(player::ptr player, world::ptr world) : tactic(player), the_world(world), forced(false), use_pivot(true) {

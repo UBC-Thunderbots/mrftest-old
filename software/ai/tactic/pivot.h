@@ -38,17 +38,19 @@ class pivot : public tactic {
 		/**
 		 * Enables a player to pivot without approaching the ball.
 		 */
-		void get_ball(const bool& b) {
-			get_ball_ = b;
+		void avoid_ball(const bool& b) {
+			avoid_ball_ = b;
 		}
 
 	protected:
 
 		void tick_experimental();	
+		void tick_experimental2();
+		void tick_old();
 
 		const world::ptr the_world;
 		point target;
-		bool get_ball_;
+		bool avoid_ball_;
 };
 
 #endif

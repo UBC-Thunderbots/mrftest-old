@@ -8,8 +8,6 @@
 
 namespace {
 
-	const double PIVOT_ORI_CLOSE = 10.0 / 180.0 * M_PI;
-	const double PIVOT_ANGLE = M_PI / 2;
 	double_param PIVOT_DIST("Pivot Distance", 0.08, 0.1, 0.2);
 
 #warning Magic constant
@@ -18,7 +16,7 @@ namespace {
 
 	const double EPS = 1e-9;
 
-	int_param HAS_BALL_TIME("# of sense ball for has ball to be true", 3, 2, 10);
+	int_param HAS_BALL_TIME("# of sense ball for has ball to be true", 5, 2, 10);
 	double_param BALL_CLOSE_FACTOR("ball_close Distance Factor", 1.1, 1.0, 1.5);
 	double_param BALL_FRONT_ANGLE("ball_front Angle", M_PI / 8, 0.0, M_PI / 2);
 }
@@ -236,6 +234,12 @@ namespace ai_util {
 			if (posses_ball(w, the_robots[i])) return static_cast<int>(i);
 		}
 		return -1;
+	}
+
+	point calc_pivot_pos(const point& ballpos, const point& target) {
+		// do all relative to the ball
+		const point tobehind = (ballpos - target).norm(); // points behind
+		return ballpos + tobehind * PIVOT_DIST;
 	}
 
 }

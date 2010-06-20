@@ -186,6 +186,7 @@ void goalie::tick() {
 	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
 	flags &= ~(ai_flags::avoid_friendly_defence);
 	flags &= ~(ai_flags::avoid_enemy_defence);
+	flags &= ~(ai_flags::avoid_ball_stop);
 
 	if (the_robots.size() < 1) return;
 	if (the_robots.size() > 1) {
