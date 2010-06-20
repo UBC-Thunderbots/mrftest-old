@@ -129,7 +129,7 @@ void pivot::tick_old() {
 	}
 
 	// if we have the ball then move to the destination
-	if (ai_util::has_ball(the_world, the_player)) {
+	if (ai_util::has_ball(the_world, the_player) && ! avoid_ball_) {
 		state->recent_hit_target = true;
 		navi.set_position(target);
 		navi.set_orientation((target - the_player->position()).orientation());
@@ -163,7 +163,7 @@ void pivot::tick_old() {
 	point target_diff_vector = est_ball_pos- robot_dst;
 
 	if (player_diff_vector.len() < target_diff_vector.len()) {
-		if (player_diff_vector.dot(target_diff_vector) > 0) {
+		if (player_diff_vector.dot(target_diff_vector) > 0 && !avoid_ball_) {
 			state->recent_hit_target = true;
 			navi.set_position(the_ball->position());
 			navi.set_orientation((target - the_player->position()).orientation());
@@ -178,7 +178,7 @@ void pivot::tick_old() {
 	}
 	// std::cout<<"recent hit: "<<recent_hit_target<<std::endl;
 
-	if (state->recent_hit_target) {
+	if (state->recent_hit_target && !avoid_ball_) {
 		navi.set_position(the_ball->position());
 		navi.set_flags(flags);
 	} else {
