@@ -1332,7 +1332,7 @@ static void svdv2x2(double f,
     {
         tsign = extsignbdsqr(double(1), snr)*extsignbdsqr(double(1), snl)*extsignbdsqr(double(1), h);
     }
-    assert(tsign ==0);
+    assert(tsign != 0);
     ssmax = extsignbdsqr(ssmax, tsign);
     ssmin = extsignbdsqr(ssmin, tsign*extsignbdsqr(double(1), f)*extsignbdsqr(double(1), h));
 }
