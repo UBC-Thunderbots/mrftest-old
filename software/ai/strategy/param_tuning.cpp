@@ -67,7 +67,7 @@ namespace {
 		sls_counter = 0;
 		tc->set_params(sls->get_best_params());
 		std::cout << " reset, curr params=";
-		const std::vector<double>& params = sls->get_best_params();
+		const std::vector<double> params = sls->get_best_params();
 		for (unsigned int i = 0; i < params.size(); ++i) {
 			std::cout << params[i] << " ";
 		}
@@ -117,6 +117,7 @@ namespace {
 		}
 		if (done >= tasks.size() || time_steps > best) {
 			if (time_steps < best) {
+				std::cout << "good, new params" << std::endl;
 				best = time_steps;
 				sls->set_cost(time_steps);
 				sls->hill_climb();
@@ -125,9 +126,8 @@ namespace {
 				sls->hill_climb();
 			}
 			tc->set_params(sls->get_params());
-			std::cout << "setting new params" << std::endl;
 			std::cout << "curr params=";
-			const std::vector<double>& params = sls->get_params();
+			const std::vector<double> params = sls->get_params();
 			for (unsigned int i = 0; i < params.size(); ++i) {
 				std::cout << params[i] << " ";
 			}
