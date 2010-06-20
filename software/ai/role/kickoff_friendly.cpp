@@ -54,6 +54,8 @@ void kickoff_friendly::tick(){
 	 if(i==0){
 	   move_tactic->set_position(clip_circle(the_robots[i]->position(),circle_radius + AVOID_BUFFER,the_world->ball()->position()));
 	 }else{
+	   point dst = the_robots[i]->position();
+	   dst.x =  -the_world->field().length()/2;
 	   move_tactic->set_position(the_robots[i]->position());
 	 }
 	 move_tactic->set_flags(flags);
