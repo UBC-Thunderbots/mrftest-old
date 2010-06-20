@@ -62,7 +62,7 @@ tester_window::tester_window(xbee_lowlevel &modem, const config &conf) : modem(m
 	chicker_frame.add(chicker_box);
 	vbox.pack_start(chicker_frame, Gtk::PACK_SHRINK);
 
-	vbox.pack_start(ann, Gtk::PACK_SHRINK);
+	vbox.pack_start(ann, Gtk::PACK_EXPAND_WIDGET);
 
 	add(vbox);
 
