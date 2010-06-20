@@ -59,11 +59,13 @@ namespace ai_flags {
 			  case playtype::prepare_penalty_friendly:
 			  case playtype::execute_penalty_friendly:
 			    flags |= penalty_kick_friendly;
+			    flags |= avoid_ball_stop;
 			    break;
 			    
 			  case playtype::prepare_penalty_enemy:
 			  case playtype::execute_penalty_enemy:
 			    flags |= penalty_kick_enemy;
+			    flags |= avoid_ball_stop;
 			    break;
 			    
 			  default: break;

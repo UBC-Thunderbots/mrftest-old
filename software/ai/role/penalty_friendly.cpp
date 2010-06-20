@@ -1,6 +1,7 @@
 #include "ai/role/penalty_friendly.h"
 #include "ai/tactic/shoot.h"
 #include "ai/tactic/move.h"
+#include "ai/flags.h"
 
 #include <iostream>
 
@@ -31,7 +32,8 @@ void penalty_friendly::tick() {
 		for (size_t i = 0; i < the_robots.size(); ++i) {
 			move tactic(the_robots[i], the_world);
 			tactic.set_position(ready_positions[i]);
-			tactic.set_flags(flags);
+			if (i) tactic.set_flags(flags);
+			else tactic.set_flags((flags & ~ai_flags::avoid_ball_stop) | ai_flags::avoid_ball_near);
 			tactic.tick();
 		}
 	} else if (the_world->playtype() == playtype::execute_penalty_friendly) {
@@ -40,6 +42,7 @@ void penalty_friendly::tick() {
 		const player::ptr shooter = the_robots[0];
 		shoot tactic(shooter, the_world);
 		tactic.force();
+		// don't set flags, otherwise robot will try to avoid ball
 		tactic.tick();
 
 		for (size_t i = 1; i < the_robots.size(); ++i) {
