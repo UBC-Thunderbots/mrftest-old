@@ -15,7 +15,7 @@ namespace {
 
 	const double PIVOT_ORI_CLOSE = 10.0 / 180.0 * M_PI;
 	const double PIVOT_ANGLE = M_PI / 2;
-	double_param PIVOT_DIST("Pivot Distance", 0.08, 0.1, 0.2);
+	bool_param PIVOT_USE_NEW("Use new pivot", false);
 
 	class pivot_state : public player::state {
 		public:
@@ -31,8 +31,8 @@ pivot::pivot(player::ptr player, world::ptr world) : tactic(player), the_world(w
 }
 
 void pivot::tick() {
-	//tick_experimental();
-	tick_old();
+	if (PIVOT_USE_NEW) tick_experimental();
+	else tick_old();
 }
 
 void pivot::tick_experimental2() { // CURRENTLY BROKEN
@@ -66,14 +66,14 @@ void pivot::tick_experimental2() { // CURRENTLY BROKEN
 	point ball_player_diff = (the_ball->position() - the_player->position());
 	point target_player_diff = (target - the_player->position());
 
-	const double pivotdist = PIVOT_DIST + robot::MAX_RADIUS + ball::RADIUS;
+	const double pivotdist = ai_util::PIVOT_DIST + robot::MAX_RADIUS + ball::RADIUS;
 
 	if(vec.len()<0.01){
 		//ball already too close to target 
 		//don't try and divide by small number
 	}else{
 		vec = vec/vec.len();
-		robot_dst -= vec*pivotdist;
+		robot_dst -= vec * pivotdist;
 	}
 
 	if((robot_dst-the_player->position()).len()>0.1 && !the_player->sense_ball()){
@@ -145,7 +145,7 @@ void pivot::tick_old() {
 	point ball_player_diff = (the_ball->position() - the_player->position());
 	point target_player_diff = (target - the_player->position());
 
-	const double pivotdist = PIVOT_DIST + robot::MAX_RADIUS + ball::RADIUS;
+	const double pivotdist = ai_util::PIVOT_DIST + robot::MAX_RADIUS + ball::RADIUS;
 
 	if(vec.len()<0.01){
 		//ball already too close to target 

@@ -8,7 +8,6 @@
 
 namespace {
 
-	double_param PIVOT_DIST("Pivot Distance", 0.08, 0.1, 0.2);
 
 #warning Magic constant
 	const double SHOOT_ALLOWANCE = ball::RADIUS;
@@ -23,6 +22,8 @@ namespace {
 }
 
 namespace ai_util {
+
+	double_param PIVOT_DIST("Pivot Distance", 0.08, 0.1, 0.2);
 
 	double_param CHASE_BALL_DIST("How close before chasing", ball::RADIUS * 2, 0.0, ball::RADIUS * 4);
 
