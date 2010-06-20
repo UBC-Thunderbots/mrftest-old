@@ -28,10 +28,9 @@ void kickoff_friendly::tick(){
    std::sort(the_robots.begin(), the_robots.end(),player_cmp_function);
    if(the_world->playtype() == playtype::prepare_kickoff_friendly ||the_world->playtype() == playtype::prepare_kickoff_enemy){
      if(!team_compliance()){ 
-       std::cout<<"team is not in compliance"<<std::endl;
-   //we can set non on our half destinations in order to avoid ball
-     //this role itself calculates how to abide by rules which involves 
-     //not staying in rules for a period of time
+       //we can set non on our half destinations in order to avoid ball
+       //this role itself calculates how to abide by rules which involves 
+       //not staying in rules for a period of time
        for(unsigned int i=0; i<the_robots.size(); i++){
 	 point dst = the_robots[i]->position();
 	 flags |= ai_flags::stay_own_half;
@@ -40,10 +39,10 @@ void kickoff_friendly::tick(){
 	   flags &= ~ai_flags::stay_own_half;
 	 }
 
-       move::ptr move_tactic(new move(the_robots[i], the_world));
-       move_tactic->set_position(dst);
-       move_tactic->set_flags(flags);
-       move_tactic->tick();
+	 move::ptr move_tactic(new move(the_robots[i], the_world));
+	 move_tactic->set_position(dst);
+	 move_tactic->set_flags(flags);
+	 move_tactic->tick();
        }
      }
      else{
