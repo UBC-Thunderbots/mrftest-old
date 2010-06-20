@@ -277,6 +277,15 @@ connected:
 		goto start_work;
 	}
 
+	std::cout << "Setting clear channel threshold to 0dBm... " << std::flush;
+	send_string(fd, "ATCA00\r");
+	if (read_clean_ok(fd)) {
+		std::cout << "OK\n";
+	} else {
+		std::cout << "FAIL\n";
+		goto start_work;
+	}
+
 	std::cout << "Saving configuration... " << std::flush;
 	send_string(fd, "ATWR\r");
 	if (read_clean_ok(fd)) {
