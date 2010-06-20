@@ -323,6 +323,9 @@ playtype::playtype world::compute_playtype(playtype::playtype old_pt) {
 
 	switch (refbox_.command()) {
 		case 'H': // HALT
+		case 'h': // HALF TIME
+		case 't': // TIMEOUT YELLOW
+		case 'T': // TIMEOUT BLUE
 			return playtype::halt;
 
 		case 'S': // STOP
@@ -431,11 +434,6 @@ playtype::playtype world::compute_playtype(playtype::playtype old_pt) {
 
 		case 'P': // PENALTY BLUE
 			return playtype::prepare_penalty_friendly;
-
-		case 'h': // HALF TIME
-		case 't': // TIMEOUT YELLOW
-		case 'T': // TIMEOUT BLUE
-			return playtype::pit_stop;
 
 		case '1': // BEGIN FIRST HALF
 		case '2': // BEGIN SECOND HALF
