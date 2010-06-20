@@ -71,7 +71,7 @@ void kickoff_friendly::tick(){
        // handle kicker separately
        // kicker will just force shoot the ball
        shoot::ptr shoot_tactic(new shoot(the_robots[0], the_world));
-       shoot_tactic->set_flags(flags & ~ai_flags::stay_own_half);
+       shoot_tactic->set_flags(flags & ~ai_flags::stay_own_half & ~ai_flags::avoid_ball_stop);
        shoot_tactic->force();
        shoot_tactic->tick();
        for(unsigned int i=1; i<the_robots.size(); i++){
