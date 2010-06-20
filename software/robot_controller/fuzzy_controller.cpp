@@ -21,14 +21,14 @@ namespace {
 	const int P = 5;
 	const double arr_min[P] = {0.0, 0.0, 0.0, 0.0, 0.0};
 	const double arr_max[P] = {10.0, 10.0, 10.0, 10.0, 10.0};
-	const double arr_def[P] = {25.4088, 0.855547, 4.91968, 2.13349, 2.0};
+	const double arr_def[P] = {7.67194, 0.894323, 1.25709, 1.25709, 2.0};
 }
 
 const std::vector<double> fuzzy_controller::param_min(arr_min, arr_min + P);
 const std::vector<double> fuzzy_controller::param_max(arr_max, arr_max + P);
 const std::vector<double> fuzzy_controller::param_default(arr_def, arr_def + P);
 
-fuzzy_controller::fuzzy_controller(player::ptr player) : param(4) {
+fuzzy_controller::fuzzy_controller(player::ptr player) : param(5) {
 	robot = player;
 	param = param_default;
 }
