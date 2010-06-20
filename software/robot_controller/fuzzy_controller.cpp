@@ -21,7 +21,9 @@ namespace {
 	const int P = 5;
 	const double arr_min[P] = {0.0, 0.0, 0.0, 0.0, 0.0};
 	const double arr_max[P] = {10.0, 10.0, 10.0, 10.0, 10.0};
-	const double arr_def[P] = {7.67194, 0.894323, 1.25709, 1.25709, 2.0};
+	//const double arr_def[P] = {7.67194, 0.894323, 1.25709, 1.25709, 2.0};
+	const double arr_def[P] = {9, .855, .385, 9.8, 7.9};
+	// const double arr_def[P] = {6, .855, .385, 9.8, 7.9};
 }
 
 const std::vector<double> fuzzy_controller::param_min(arr_min, arr_min + P);
