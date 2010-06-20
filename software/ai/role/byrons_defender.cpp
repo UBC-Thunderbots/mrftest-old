@@ -25,7 +25,8 @@ void byrons_defender::tick() {
 	}
 	
 	for (size_t index = 0; index < the_robots.size(); ++index) {
-		if ((the_robots[index]->position() - ball).len() > 1.0 || the_robots[index] != the_world->friendly.get_player(closest)) {
+		//if ((the_robots[index]->position() - ball).len() > 1.0 || the_robots[index] != the_world->friendly.get_player(closest)) {
+		if (true) {
 			move tactic(the_robots[index], the_world);
 			if (the_robots.size() == 2) {
 				if (index == 0) {

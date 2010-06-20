@@ -27,6 +27,11 @@ class tunable_controller {
 		virtual const std::vector<double> get_params() const = 0;
 
 		/**
+		 * Gets the default array of parameters.
+		 */
+		virtual const std::vector<double> get_params_default() const = 0;
+
+		/**
 		 * Gets the name of each parameter.
 		 * Unless defined by the subclass,
 		 * this will always return a vector of question marks.

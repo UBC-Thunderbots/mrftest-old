@@ -32,6 +32,10 @@ class tunable_pid_controller : public robot_controller, public tunable_controlle
 			return param;
 		}
 
+		const std::vector<double> get_params_default() const {
+			return param_default;
+		}
+
 		const std::vector<double> get_params_min() const {
 			return param_min;
 		}

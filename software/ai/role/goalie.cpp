@@ -7,11 +7,13 @@
 #include "geom/angle.h"
 #include "geom/util.h"
 
+#include "uicomponents/param.h"
+
 #include <iostream>
 #include <vector>
 
 namespace {
-	const double STANDBY_DIST = 0.2;
+	double_param STANDBY_DIST("Goalie distance to goal post", 0.05, 0.1, 1.0);
 
 	const double LANE_CLEAR_PENALTY = 1.3;
 	const double DIST_ADV_PENALTY = 1.1;
@@ -244,7 +246,7 @@ void goalie::tick() {
 	} else {
 #warning the goalie cant hold the ball for too long, it should chip somewhere very randomly
 		// run_vel_goalie(me, flags);
-		run_goalie_confidence(me, flags);
+		//run_goalie_confidence(me, flags);
 		run_goalie_old(flags);
 	}
 }

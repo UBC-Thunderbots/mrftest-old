@@ -6,24 +6,24 @@
 #include <iostream>
 using namespace std;
 
-stochastic_local_search::stochastic_local_search(const std::vector<double>& min, const std::vector<double>& max) {
+stochastic_local_search::stochastic_local_search(const std::vector<double>& start, const std::vector<double>& min, const std::vector<double>& max) {
 	srand48(time(NULL));
 	srand(time(NULL));
 	bestCost = std::numeric_limits<double>::max();
 	curCost = bestCost;
-	param_cur = min;
-	param_best = min;
+	param_cur = start;
+	param_best = start;
 	param_min = min;
 	param_max = max;
 	for (uint i = 0; i < min.size(); i++) param_cur[i] = drand48()*(max[i]-min[i]) + min[i];
 	stale = 0;
 }
 
-const std::vector<double>& stochastic_local_search::get_params() const {
+const std::vector<double> stochastic_local_search::get_params() const {
 	return param_cur;
 }
 
-const std::vector<double>& stochastic_local_search::get_best_params() const {
+const std::vector<double> stochastic_local_search::get_best_params() const {
 	return param_best;
 }
 
@@ -65,7 +65,6 @@ void stochastic_local_search::random_restart() {
 	int index = rand()%param_cur.size();
 	param_cur[index] = drand48()*(param_max[index]-param_min[index]) + param_min[index];
 	for (uint i = 0; i < param_min.size(); i++) param_cur[i] = drand48()*(param_max[i]-param_min[i]) + param_min[i];
-	param_best = param_cur;
 	stale = 0;
 }
 

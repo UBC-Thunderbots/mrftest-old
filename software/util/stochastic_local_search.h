@@ -30,9 +30,9 @@ class stochastic_local_search {
 		std::vector<double> param_min;
 		std::vector<double> param_max;
 	public:
-		stochastic_local_search(const std::vector<double>& min, const std::vector<double>& max);
-		const std::vector<double>& get_params() const;
-		const std::vector<double>& get_best_params() const;
+		stochastic_local_search(const std::vector<double>& start, const std::vector<double>& min, const std::vector<double>& max);
+		const std::vector<double> get_params() const;
+		const std::vector<double> get_best_params() const;
 		void set_initial(const std::vector<double>& initial);
 		void set_cost(double cost);
 		void random_restart();

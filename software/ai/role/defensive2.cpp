@@ -8,11 +8,13 @@
 #include "geom/util.h"
 #include "util/dprint.h"
 
+#include "uicomponents/param.h"
+
 #include <iostream>
 
 namespace {
 	// minimum distance from the goal post
-	const double MIN_GOALPOST_DIST = 0.05;
+	double_param MIN_GOALPOST_DIST("Defensive2 distance to goal post", 0.05, 0.1, 1.0);
 
 	// used to save if the goalie should be on the top or bottom side
 	class defensive2_state : public player::state {
@@ -99,22 +101,6 @@ void defensive2::tick() {
 	const friendly_team& friendly(the_world->friendly);
 	const enemy_team& enemy(the_world->enemy);
 	const point& ballpos = the_world->ball()->position();
-
-	if (enemy.size() == 0) {
-		LOG_WARN("no enemy");
-
-		unsigned int flags = ai_flags::calc_flags(the_world->playtype());
-		shoot tactic(the_robots.back(), the_world);
-		tactic.set_flags(flags);
-		tactic.tick();
-
-		for (size_t i = 0; i + 1 < the_robots.size(); ++i) {
-			move tactic(the_robots[i], the_world);
-			tactic.set_flags(flags);
-			tactic.tick();
-		}
-		return;
-	}
 
 	// the robot nearest
 	double nearestdist = 1e99;

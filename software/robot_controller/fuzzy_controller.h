@@ -29,6 +29,8 @@ class fuzzy_controller : public robot_controller, public tunable_controller {
 			return param;
 		}
 
+		const std::vector<double> get_params_default() const;
+
 		const std::vector<double> get_params_min() const {
 			return param_min;
 		}

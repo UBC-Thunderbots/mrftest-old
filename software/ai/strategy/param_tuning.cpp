@@ -60,7 +60,7 @@ namespace {
 		if (sls != NULL) delete sls;
 		tc = tunable_controller::get_instance();
 		if (tc == NULL) return;
-		sls = new stochastic_local_search(tc->get_params_min(), tc->get_params_max());
+		sls = new stochastic_local_search(tc->get_params_default(), tc->get_params_min(), tc->get_params_max());
 		done = 0;
 		time_steps = 0;
 		best = EVALUATION_LIMIT;
@@ -75,13 +75,13 @@ namespace {
 	}
 
 	void param_tuning::hillclimb() {
-		const std::vector<double> best_params = sls->get_best_params();
+		sls->revert();
 		sls->hill_climb();
 		tc->set_params(sls->get_params());
 		done = 0;
 		time_steps = 0;
 		std::cout << " hill climb, curr params=";
-		const std::vector<double>& params = sls->get_params();
+		const std::vector<double> params = sls->get_params();
 		for (unsigned int i = 0; i < params.size(); ++i) {
 			std::cout << params[i] << " ";
 		}
@@ -90,11 +90,11 @@ namespace {
 
 	void param_tuning::revert() {
 		sls->revert();
-		tc->set_params(sls->get_best_params());
+		tc->set_params(sls->get_params());
 		done = 0;
 		time_steps = 0;
 		std::cout << " revert curr params=";
-		const std::vector<double>& params = sls->get_params();
+		const std::vector<double> params = sls->get_params();
 		for (unsigned int i = 0; i < params.size(); ++i) {
 			std::cout << params[i] << " ";
 		}

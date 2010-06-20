@@ -38,6 +38,7 @@ namespace {
 	// array of defaults
 	const double ARR_DEF[] = { DEF_PROP, DEF_DIFF, DEF_XY_RATIO, DEF_MAX_VEL, DEF_MAX_ACC, DEF_A_PROP, DEF_A_DIFF, DEF_A_THRESH, DEF_YA_RATIO };
 	const int P = sizeof(ARR_DEF) / sizeof(ARR_DEF[0]);
+	const std::vector<double> param_default(ARR_DEF, ARR_DEF + P);
 
 	class tunable_adhoc_controller : public robot_controller, public tunable_controller {
 		public:
@@ -52,6 +53,9 @@ namespace {
 			const std::vector<double> get_params() const {
 				return param;
 			}
+			const std::vector<double> get_params_default() const {
+				return param_default;
+			}
 		private:
 			player::ptr plr;
 		protected:
@@ -65,8 +69,6 @@ namespace {
 			point prev_linear_velocity;
 			double prev_angular_velocity;
 	};
-
-	const std::vector<double> param_default(ARR_DEF, ARR_DEF + P);
 
 	tunable_adhoc_controller::tunable_adhoc_controller(player::ptr plr) : plr(plr), initialized(false), error_pos(10.0), error_ori(10.0), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
 		param = param_default;

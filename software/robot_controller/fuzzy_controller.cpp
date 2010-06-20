@@ -28,6 +28,10 @@ const std::vector<double> fuzzy_controller::param_min(arr_min, arr_min + P);
 const std::vector<double> fuzzy_controller::param_max(arr_max, arr_max + P);
 const std::vector<double> fuzzy_controller::param_default(arr_def, arr_def + P);
 
+const std::vector<double> fuzzy_controller::get_params_default() const {
+	return param_default;
+}
+
 fuzzy_controller::fuzzy_controller(player::ptr player) : param(5) {
 	robot = player;
 	param = param_default;
