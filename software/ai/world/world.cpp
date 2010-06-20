@@ -73,6 +73,13 @@ void world::flip_refbox_colour() {
 	update_playtype();
 }
 
+void world::ball_filter(class ball_filter *filt) {
+	if (ball_filter_ != filt) {
+		LOG_DEBUG(Glib::ustring::compose("Changing to ball filter %1.", filt ? filt->name : "<None>"));
+		ball_filter_ = filt;
+	}
+}
+
 void world::tick_timestamp() {
 	++timestamp_;
 }
@@ -303,6 +310,7 @@ void world::update_playtype() {
 		new_pt = playtype::invert[new_pt];
 	}
 	if (new_pt != playtype_) {
+		LOG_DEBUG(Glib::ustring::compose("Play type changed to %1.", playtype::descriptions_generic[new_pt]));
 		playtype_ = new_pt;
 		signal_playtype_changed.emit();
 	}

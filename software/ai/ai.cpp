@@ -61,20 +61,26 @@ void ai::player_removed(unsigned int, player::ptr plr) {
 }
 
 void ai::set_strategy(strategy::ptr strat) {
-	the_strategy = strat;
+	if (the_strategy != strat) {
+		LOG_DEBUG(Glib::ustring::compose("Changing strategy to %1.", strat ? strat->get_factory().name : "<None>"));
+		the_strategy = strat;
+	}
 }
 
 void ai::set_robot_controller_factory(robot_controller_factory *fact) {
-	the_rc_factory = fact;
-	for (unsigned int i = 0; i < the_world->friendly.size(); ++i) {
-		const player::ptr plr(the_world->friendly.get_player(i));
-		if (plr->controller && plr->controller->refs() != 1) {
-			LOG_WARN(Glib::ustring::compose("Leak detected of robot_controller for player<%1,%2>.", plr->yellow ? 'Y' : 'B', plr->pattern_index));
-		}
-		plr->controller.reset();
+	if (the_rc_factory != fact) {
+		LOG_DEBUG(Glib::ustring::compose("Changing robot controller to %1.", fact ? fact->name : "<None>"));
+		the_rc_factory = fact;
+		for (unsigned int i = 0; i < the_world->friendly.size(); ++i) {
+			const player::ptr plr(the_world->friendly.get_player(i));
+			if (plr->controller && plr->controller->refs() != 1) {
+				LOG_WARN(Glib::ustring::compose("Leak detected of robot_controller for player<%1,%2>.", plr->yellow ? 'Y' : 'B', plr->pattern_index));
+			}
+			plr->controller.reset();
 
-		if (the_rc_factory) {
-			plr->controller = the_rc_factory->create_controller(plr, plr->yellow, plr->pattern_index);
+			if (the_rc_factory) {
+				plr->controller = the_rc_factory->create_controller(plr, plr->yellow, plr->pattern_index);
+			}
 		}
 	}
 }

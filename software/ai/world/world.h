@@ -146,9 +146,7 @@ class world : public byref {
 		 *
 		 * \param filter the new filter to use
 		 */
-		void ball_filter(class ball_filter *filter) {
-			ball_filter_ = filter;
-		}
+		void ball_filter(class ball_filter *filter);
 
 		/**
 		 * \return the number of AI ticks that have occurred since program
