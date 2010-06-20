@@ -226,8 +226,7 @@ void defensive2::tick() {
 		}
 
 		unsigned int flags = ai_flags::calc_flags(the_world->playtype());
-		unsigned int goalie_flags = flags & ~ai_flags::avoid_friendly_defence;
-
+		unsigned int goalie_flags = flags & ~(ai_flags::avoid_friendly_defence|ai_flags::avoid_ball_stop);
 		if (baller == 0) {
 				tactics[0]->set_flags(goalie_flags | ai_flags::clip_play_area);
 		} else {
