@@ -231,7 +231,7 @@ void offensive::tick() {
 				LOG_DEBUG(Glib::ustring::compose("%1 can see %2 degrees", the_robots[j]->name, angle * 180.0 / M_PI));
 				// the baller has more importance
 				if (j == baller) angle *= 10.0;
-				if (shooter == -1 || angle > shooterangle) {
+				if (angle > shooterangle) {
 					shooter = j;
 					shooterangle = angle;
 				}
