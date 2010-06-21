@@ -91,7 +91,7 @@ namespace {
 					continue;
 				double ball_dist = (ballpos - the_team.get_player(i)->position()).len();
 				if (ball_dist < best_ball_dist_ignore_chicker){
-					baller_ignore_chicker = baller;
+					baller_ignore_chicker = i;
 					best_ball_dist_ignore_chicker = ball_dist;
 				}
 				if (the_team.get_player(i)->chicker_ready_time() >= player::CHICKER_FOREVER)
@@ -183,7 +183,7 @@ namespace {
 					continue;
 				double ball_dist = (ballpos - the_team.get_player(i)->position()).len();
 				if (ball_dist < best_ball_dist_ignore_chicker){
-					baller_ignore_chicker = baller;
+					baller_ignore_chicker = i;
 					best_ball_dist_ignore_chicker = ball_dist;
 				}
 				if (the_team.get_player(i)->chicker_ready_time() >= player::CHICKER_FOREVER)
