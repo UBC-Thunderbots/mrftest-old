@@ -130,6 +130,12 @@ namespace ai_util {
 	}
 
 	std::pair<point, double> calc_best_shot(const world::ptr w, const player::ptr pl, const bool consider_friendly, const bool force) {
+		if (force){
+			// If we have a force shot, simply return the center of the goal
+			std::pair<point, double> best_shot;
+			best_shot.first = point(w->field().length()/2.0, 0.0);
+			best_shot.second = 2*ORI_CLOSE;
+		}
 		std::vector<point> obstacles;
 		const enemy_team &enemy(w->enemy);
 		for (size_t i = 0; i < enemy.size(); ++i) {
@@ -144,10 +150,8 @@ namespace ai_util {
 			}
 		}
 		std::pair<point, double> best_shot = calc_best_shot(w->field(), obstacles, pl->position());
-		if (!force || best_shot.second >= 2*ORI_CLOSE) return best_shot;
-		// If we have a force shot, simply return the center of the goal
-		best_shot.first = point(w->field().length()/2.0, 0.0);
-		best_shot.second = 2*ORI_CLOSE;		
+		//if (!force || best_shot.second >= 2*ORI_CLOSE) 
+			return best_shot;		
 
 		/*
 		double radius = robot::MAX_RADIUS;

@@ -346,9 +346,9 @@ unsigned int robot_navigator::check_obstacles(const point& start, const point& d
 	for (unsigned int i = 0; i < 2; ++i) {
 	  bool check_avoid = !ball_obstacle;
 	  if(i==0){
-	    check_avoid = !ball_obstacle ||  ENEMY_AVOID;
-	  }else{
 	    check_avoid = !ball_obstacle ||  FRIENDLY_AVOID;
+	  }else{
+	    check_avoid = !ball_obstacle ||  ENEMY_AVOID;
 	  }
 
 	  if(check_avoid){
