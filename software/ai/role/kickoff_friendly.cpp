@@ -67,6 +67,14 @@ void kickoff_friendly::tick(){
    }else if(the_world->playtype() == playtype::execute_kickoff_friendly){
      //we are in execute kickoff
        unsigned int flags = ai_flags::calc_flags(the_world->playtype());
+	// Set lowest numbered robot without chicker fault to be kicker
+	if (the_robots[0]->chicker_ready_time() >= player::CHICKER_FOREVER){
+		for (size_t i = 1; i < the_robots.size(); ++i)
+			if (the_robots[i]->chicker_ready_time() < player::CHICKER_FOREVER){
+				swap(the_robots[0],the_robots[i]);
+				break;
+			}
+	}
 
        // handle kicker separately
        // kicker will just force shoot the ball

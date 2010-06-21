@@ -24,6 +24,14 @@ void penalty_friendly::tick() {
 		std::cerr << "penalty_friendly: no robots " << std::endl;
 		return;
 	}
+	// Set lowest numbered robot without chicker fault to be kicker
+	if (the_robots[0]->chicker_ready_time() >= player::CHICKER_FOREVER){
+		for (size_t i = 1; i < the_robots.size(); ++i)
+			if (the_robots[i]->chicker_ready_time() < player::CHICKER_FOREVER){
+				swap(the_robots[0],the_robots[i]);
+				break;
+			}
+	}
 
 	// flags... hopefully set correct
 	const unsigned int flags = ai_flags::calc_flags(the_world->playtype());
