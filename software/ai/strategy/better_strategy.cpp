@@ -150,7 +150,7 @@ namespace {
 
 		// 3 offenders, 1 defender if we have the ball
 		// otherwise 2 offenders, 2 defenders
-		if (the_team.size() >= 5){
+		if (the_team.size() >= 5) {
 			if (ai_util::friendly_posses_ball(the_world))
 				offenders.push_back(the_team.get_player(4));
 			else

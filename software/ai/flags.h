@@ -54,6 +54,7 @@ namespace ai_flags {
 			  case playtype::execute_indirect_free_kick_friendly:
 			    flags |= avoid_enemy_defence;
 			    flags |= clip_play_area;
+			    flags |= avoid_ball_stop;
 			    break;
 			  
 			  case playtype::prepare_penalty_friendly:

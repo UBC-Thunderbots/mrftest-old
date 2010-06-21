@@ -127,14 +127,27 @@ void defensive2::tick() {
 	// the robot chaser
 	double chaserdist = 1e99;
 	player::ptr chaser;
-	for (size_t i = 0; i < the_robots.size(); ++i) {
-		const double dist = (the_robots[i]->position() - ballpos).len();
+	for (size_t i = 0; i < friendly.size(); ++i) {
+		const double dist = (friendly[i]->position() - ballpos).len();
 		if (dist > ai_util::CHASE_BALL_DIST) continue;
 		if (!chaser || dist < chaserdist) {
 			chaserdist = dist;
-			chaser = the_robots[i];
+			chaser = friendly[i];
 		}
 	}
+
+	if (chaser) LOG_INFO(Glib::ustring::compose("chaser is", chaser->name));
+
+	/*
+	   for (size_t i = 0; i < the_robots.size(); ++i) {
+	   const double dist = (the_robots[i]->position() - ballpos).len();
+	   if (dist > ai_util::CHASE_BALL_DIST) continue;
+	   if (!chaser || dist < chaserdist) {
+	   chaserdist = dist;
+	   chaser = the_robots[i];
+	   }
+	   }
+	 */
 
 	// robot 0 is goalie, the others are non-goalie
 	if (!goalie) {

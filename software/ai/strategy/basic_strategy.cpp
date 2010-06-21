@@ -234,10 +234,8 @@ void basic_strategy::reset_all() {
 				player::ptr one = minus_one_assignment();
 				if (one) {
 					std::vector<player::ptr> freekicker(1, one);
-					//roles.push_back(role::ptr(new execute_direct_free_kick_friendly(the_world)));
 					execute_direct_free_kick::ptr freekicker_role = execute_direct_free_kick::ptr(new execute_direct_free_kick(the_world));
 					freekicker_role->set_robots(freekicker);
-					//roles[0]->set_robots(all_but_goalie);
 					roles.push_back(freekicker_role);
 					std::cout << all_but_goalie.size() << " robots set to execute direct free kick friendly" << std::endl;
 				}

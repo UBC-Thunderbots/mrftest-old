@@ -29,6 +29,7 @@ void execute_indirect_free_kick::tick() {
 
 	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
 	flags &= ~(ai_flags::clip_play_area);
+	flags &= ~(ai_flags::avoid_ball_stop);
 
 	// find someone to pass to
 	int bestpassee = ai_util::choose_best_pass(the_world, friends);
@@ -80,6 +81,7 @@ void execute_direct_free_kick::tick() {
 
 	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
 	flags &= ~(ai_flags::clip_play_area);
+	flags &= ~(ai_flags::avoid_ball_stop);
 
 	std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world, pl);
 
