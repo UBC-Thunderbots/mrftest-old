@@ -82,7 +82,7 @@ void bool_param::set_default() {
 
 int_param::int_param(const Glib::ustring &name, int def, int min, int max) : param(name), min_(min), max_(max), default_(def) {
 	if (!(min <= def && def <= max)) {
-		throw std::runtime_error("P");
+		throw std::runtime_error("Parameter default value out of valid range.");
 	}
 	value_ = def;
 }
@@ -132,7 +132,7 @@ void int_param::set_default() {
 
 double_param::double_param(const Glib::ustring &name, double def, double min, double max) : param(name), min_(min), max_(max), default_(def) {
 	if (!(min <= def && def <= max)) {
-		throw std::runtime_error("P");
+		throw std::runtime_error("Parameter default value out of valid range.");
 	}
 	value_ = def;
 }
