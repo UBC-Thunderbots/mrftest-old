@@ -40,19 +40,6 @@ double offensive::scoring_function(const std::vector<point>& enemypos, const poi
 		}
 	}
 
-	for (size_t i = 0; i < dontblock.size(); ++i) {
-		std::pair<point, double> shootershot = ai_util::calc_best_shot(the_world->field(), enemypos, dontblock[i]);
-		const point diff1 = (shootershot.first - dontblock[i]);
-		const point diff2 = (pos - dontblock[i]);
-		if (diff2.len() < NEAR) {
-			return -1e99;
-		}
-		const double anglediff = angle_diff(diff1.orientation(), diff2.orientation());
-		if (anglediff * 2 < shootershot.second) {
-			return -1e99;
-		}
-	}
-
 	// TODO: check the line below here
 	// scoring factors:
 	// density of enemy, passing distance, distance to the goal, angle of shooting, angle of receiving
@@ -60,6 +47,24 @@ double offensive::scoring_function(const std::vector<point>& enemypos, const poi
 	// UI for viewing
 	if (!ai_util::path_check(the_world->ball()->position(), pos, enemypos, robot::MAX_RADIUS + ball::RADIUS + SHOOT_ALLOWANCE)) {
 		return -1e99;
+	}
+
+	for (size_t i = 0; i < dontblock.size(); ++i) {
+		const point diff2 = (pos - dontblock[i]);
+		if (diff2.len() < NEAR) {
+			return -1e99;
+		}
+	}
+
+	// super expensive calculation
+	for (size_t i = 0; i < dontblock.size(); ++i) {
+		std::pair<point, double> shootershot = ai_util::calc_best_shot(the_world->field(), enemypos, dontblock[i]);
+		const point diff1 = (shootershot.first - dontblock[i]);
+		const point diff2 = (pos - dontblock[i]);
+		const double anglediff = angle_diff(diff1.orientation(), diff2.orientation());
+		if (anglediff * 2 < shootershot.second) {
+			return -1e99;
+		}
 	}
 
 	// 10 degrees of shooting is 10 points
