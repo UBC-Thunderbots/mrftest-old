@@ -37,6 +37,8 @@ namespace ai_util {
 
 	extern double_param CHASE_BALL_DIST;
 
+	extern double_param DRIBBLE_TIMEOUT;
+
 	// TODO: base this on distance.
 	/**
 	 * If the robot orientation is within this angle,

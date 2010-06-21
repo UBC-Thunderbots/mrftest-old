@@ -124,8 +124,8 @@ std::vector<point> offensive::calc_position_best(const unsigned int n) {
 		enemypos.push_back(enemy.get_robot(i)->position());
 	}
 	// TODO: optimize using the matrix below
-	for (size_t i = 0; i < GRIDX; ++i) {
-		for (size_t j = 0; j < GRIDY; ++j) {
+	for (int i = 0; i < GRIDX; ++i) {
+		for (int j = 0; j < GRIDY; ++j) {
 			okaygrid[i][j] = true;
 		}
 	}
@@ -156,7 +156,7 @@ void offensive::tick() {
 	std::sort(the_robots.begin(), the_robots.end(), ai_util::cmp_dist<player::ptr>(the_world->ball()->position()));
 
 	const friendly_team& friendly(the_world->friendly);
-	const field& the_field = the_world->field();
+	// const field& the_field = the_world->field();
 
 	bool teampossesball = false;
 	int baller = -1;
@@ -230,7 +230,7 @@ void offensive::tick() {
 				double angle = ai_util::calc_goal_visibility_angle(the_world, the_robots[j], false);
 				LOG_DEBUG(Glib::ustring::compose("%1 can see %2 degrees", the_robots[j]->name, angle * 180.0 / M_PI));
 				// the baller has more importance
-				if (j == baller) angle *= 10.0;
+				if (static_cast<int>(j) == baller) angle *= 10.0;
 				if (angle > shooterangle) {
 					shooter = j;
 					shooterangle = angle;
@@ -254,6 +254,8 @@ void offensive::tick() {
 				tactics[baller] = shoot_tactic;
 			} else {
 				// i shall shoot
+				shoot::ptr shoot_tactic(new shoot(the_robots[baller], the_world));
+				shoot_tactic->force();
 				tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
 			}
 		} else {

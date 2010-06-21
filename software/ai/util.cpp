@@ -8,23 +8,23 @@
 
 namespace {
 
-
 #warning Magic constant
 	const double SHOOT_ALLOWANCE = ball::RADIUS;
 
 	const double EPS = 1e-9;
 
+	double_param DRIBBLE_TIMEOUT("pass etc, if dribble > this time, shoot sec", 2.0, 0.0, 20.0);
 	bool_param HAS_BALL_USE_VISION("has_ball: use vision", false);
 	bool_param POSSES_BALL_IS_HAS_BALL("posses_ball: is has ball", false);
 	int_param HAS_BALL_TIME("has_ball: # of sense ball for to be true", 2, 1, 10);
 	double_param BALL_CLOSE_FACTOR("ball_close Distance Factor", 1.1, 1.0, 1.5);
 	double_param BALL_FRONT_ANGLE("has_ball_vision: angle (degrees)", 20.0, 0.0, 60.0);
-	double_param BALL_FRONT_FACTOR("has_ball_vision: dist factor", 1.1, 1.00, 2.0);
+	double_param BALL_FRONT_FACTOR("has_ball_vision: dist factor", 0.9, 0.1, 2.0);
 }
 
 namespace ai_util {
 
-	double_param PLAYTYPE_WAIT_TIME("play: time we can prepare", 5.0, 0.0, 10.0);
+	double_param PLAYTYPE_WAIT_TIME("play: time we can prepare", 3.0, 0.0, 10.0);
 
 	//int_param AGGRESIVENESS("aggresiveness", 10, 0, 10);
 

@@ -13,7 +13,6 @@
 
 namespace {
 
-	//const double PIVOT_ORI_CLOSE = 10.0 / 180.0 * M_PI;
 	double_param PIVOT_ORI_CLOSE("Pivot: angle before it goes for ball (degrees)", 10.0, 0.0, 20.0);
 	bool_param PIVOT_USE_NEW("Pivot: use new code", true);
 	double_param PIVOT_DIST("Pivot: distance, in robot radius", 1.5, 0.5, 2.0);

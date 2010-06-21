@@ -121,7 +121,7 @@ void defensive2::tick() {
 	}
 
 	const friendly_team& friendly(the_world->friendly);
-	const enemy_team& enemy(the_world->enemy);
+	// const enemy_team& enemy(the_world->enemy);
 	const point& ballpos = the_world->ball()->position();
 
 	// the robot chaser
@@ -228,7 +228,7 @@ void defensive2::tick() {
 			continue;
 		} 
 
-		const point& target = waypoints[order[w]];
+		// const point& target = waypoints[order[w]];
 		if (chaser == defenders[i]) {
 			// should be exact
 			shoot::ptr shoot_tactic = shoot::ptr(new shoot(defenders[i], the_world));
