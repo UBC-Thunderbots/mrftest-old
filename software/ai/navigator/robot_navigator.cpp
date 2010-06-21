@@ -53,13 +53,13 @@ double robot_navigator::get_avoidance_factor() const {
 
 point robot_navigator::force_defense_len(point dst){
     point temp = dst;
-    temp.x = std::max(the_world->field().friendly_goal().x + the_world->field().defense_area_radius(), dst.x);
+    temp.x = std::max(the_world->field().friendly_goal().x + the_world->field().defense_area_radius() + robot::MAX_RADIUS, dst.x);
     return temp;
 }
 
 point robot_navigator::force_offense_len(point dst){
     point temp = dst;
-    temp.x = std::min(the_world->field().enemy_goal().x - the_world->field().defense_area_radius(), dst.x);
+    temp.x = std::min(the_world->field().enemy_goal().x - (the_world->field().defense_area_radius()+OFFENSIVE_AVOID), dst.x);
     return temp;
 }
 point robot_navigator::clip_defense_area(point dst){
@@ -82,7 +82,7 @@ point robot_navigator::clip_defense_area(point dst){
 	//clip the two quater-circles around the defense area
 	point defense_circA = point(the_world->field().friendly_goal().x, the_world->field().defense_area_stretch()/2.0);
 	point defense_circB = point(the_world->field().friendly_goal().x, -(the_world->field().defense_area_stretch()/2.0));
-	point wantdest = clip_circle(defense_circA, the_world->field().defense_area_radius(), dst);
+	point wantdest = clip_circle(defense_circA, the_world->field().defense_area_radius() + robot::MAX_RADIUS, dst);
 	wantdest = clip_circle(defense_circB, the_world->field().defense_area_radius() +  robot::MAX_RADIUS, wantdest);
 	// std::cout << " w" << wantdest << " dA" << defense_circA << " dB" << defense_circB << std::endl;
  
