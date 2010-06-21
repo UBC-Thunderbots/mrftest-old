@@ -1,6 +1,7 @@
 #ifndef UTIL_CLOCKSOURCE_TIMERFD_H
 #define UTIL_CLOCKSOURCE_TIMERFD_H
 
+#include "uicomponents/annunciator.h"
 #include "util/clocksource.h"
 #include "util/fd.h"
 #include <stdint.h>
@@ -30,6 +31,7 @@ class clocksource_timerfd : public clocksource, public sigc::trackable {
 		file_descriptor tfd;
 		uint64_t nanoseconds;
 		bool running;
+		annunciator::message overflow_message;
 		bool on_readable(Glib::IOCondition);
 };
 

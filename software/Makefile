@@ -14,8 +14,8 @@ SOURCES_simulator := geom leastsquares proto sim uicomponents util xbee/client x
 SOURCES_steptest := geom leastsquares util xbee steptest.cpp
 SOURCES_test := geom tester uicomponents util xbee/client xbee/shared
 SOURCES_thunderbots := ai geom leastsquares proto robot_controller uicomponents util xbee/client xbee/shared
-SOURCES_xbeeconfig := util xbeeconfig.cpp
-SOURCES_xbeed := util xbee/daemon xbee/shared
+SOURCES_xbeeconfig := uicomponents util xbeeconfig.cpp xbee/client
+SOURCES_xbeed := uicomponents util xbee/client xbee/daemon xbee/shared
 SOURCES_xbeerconfig := uicomponents util xbeerconfig.cpp xbee/client xbee/shared
 
 #
@@ -30,7 +30,7 @@ LDFLAGS_steptest := $(LDFLAGS_common)
 LDFLAGS_test := $(LDFLAGS_common)
 LDFLAGS_thunderbots := $(LDFLAGS_common)
 LDFLAGS_xbeeconfig := $(LDFLAGS_common)
-LDFLAGS_xbeed := $(shell pkg-config --libs glibmm-2.4) -lrt
+LDFLAGS_xbeed := $(LDFLAGS_common)
 LDFLAGS_xbeerconfig := $(LDFLAGS_common)
 
 #
