@@ -135,6 +135,7 @@ namespace ai_util {
 			std::pair<point, double> best_shot;
 			best_shot.first = point(w->field().length()/2.0, 0.0);
 			best_shot.second = 2*ORI_CLOSE;
+			return best_shot;
 		}
 		std::vector<point> obstacles;
 		const enemy_team &enemy(w->enemy);
