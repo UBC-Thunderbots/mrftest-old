@@ -67,10 +67,11 @@ point robot_navigator::clip_defense_area(point dst){
   seg[1] = dst;
   point defense_rect[4];
 
+
   for(int i=0; i<4; i++){
     int a = i/2;
     int b = (i%2) ? -1:1;
-    defense_rect[i] =  point(the_world->field().friendly_goal().x + a*the_world->field().defense_area_radius(),  b*the_world->field().defense_area_stretch()/2.0);
+    defense_rect[i] =  point(the_world->field().friendly_goal().x + a*(the_world->field().defense_area_radius() +  robot::MAX_RADIUS),  b*the_world->field().defense_area_stretch()/2.0);
   }
 
   if(line_seg_intersect_rectangle(seg, defense_rect)){
@@ -80,7 +81,7 @@ point robot_navigator::clip_defense_area(point dst){
 	point defense_circA = point(the_world->field().friendly_goal().x, the_world->field().defense_area_stretch()/2.0);
 	point defense_circB = point(the_world->field().friendly_goal().x, -(the_world->field().defense_area_stretch()/2.0));
 	point wantdest = clip_circle(defense_circA, the_world->field().defense_area_radius(), dst);
-	wantdest = clip_circle(defense_circB, the_world->field().defense_area_radius(), wantdest);
+	wantdest = clip_circle(defense_circB, the_world->field().defense_area_radius() +  robot::MAX_RADIUS, wantdest);
 	// std::cout << " w" << wantdest << " dA" << defense_circA << " dB" << defense_circB << std::endl;
  
 	return wantdest;
