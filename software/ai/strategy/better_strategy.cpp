@@ -82,8 +82,20 @@ namespace {
 		if (the_team.size() >= 3)
 			defenders.push_back(the_team.get_player(2));
 
-		if (the_team.size() >= 4)
-			offenders.push_back(the_team.get_player(3));
+		if (the_team.size() >= 4){
+			switch(the_world->playtype()){
+				case playtype::execute_direct_free_kick_enemy:
+				case playtype::execute_indirect_free_kick_enemy:
+				case playtype::prepare_kickoff_enemy:
+				case playtype::execute_kickoff_enemy:
+				case playtype::prepare_penalty_enemy:
+				case playtype::execute_penalty_enemy:
+					defenders.push_back(the_team.get_player(3));
+					break;
+				default:
+					offenders.push_back(the_team.get_player(3));
+			}
+		}
 
 		// 3 offenders, 1 defender if we have the ball
 		// otherwise 2 offenders, 2 defenders
