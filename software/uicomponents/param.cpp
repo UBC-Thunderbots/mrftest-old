@@ -3,6 +3,8 @@
 #include "util/config.h"
 #include <cassert>
 #include <cstdlib>
+#include <iomanip>
+#include <stdexcept>
 
 namespace {
 	std::vector<param *> instances;
@@ -79,7 +81,10 @@ void bool_param::set_default() {
 }
 
 int_param::int_param(const Glib::ustring &name, int def, int min, int max) : param(name), min_(min), max_(max), default_(def) {
-	value_ = clamp(def, min_, max_);
+	if (!(min <= def && def <= max)) {
+		throw std::runtime_error("P");
+	}
+	value_ = def;
 }
 
 Gtk::Widget &int_param::widget() {
@@ -126,13 +131,16 @@ void int_param::set_default() {
 }
 
 double_param::double_param(const Glib::ustring &name, double def, double min, double max) : param(name), min_(min), max_(max), default_(def) {
-	value_ = clamp(def, min_, max_);
+	if (!(min <= def && def <= max)) {
+		throw std::runtime_error("P");
+	}
+	value_ = def;
 }
 
 Gtk::Widget &double_param::widget() {
 	if (!widget_) {
 		widget_.reset(new Gtk::Entry);
-		widget_->set_text(Glib::ustring::format(value_));
+		widget_->set_text(Glib::ustring::format(std::setprecision(8), value_));
 	}
 	return widget_.ref();
 }
@@ -155,7 +163,7 @@ void double_param::apply() {
 
 void double_param::revert() {
 	if (widget_) {
-		widget_->set_text(Glib::ustring::format(value_));
+		widget_->set_text(Glib::ustring::format(std::setprecision(8), value_));
 	}
 }
 
@@ -169,14 +177,14 @@ void double_param::load() {
 		value_ = clamp(iter->second, min_, max_);
 	}
 	if (widget_) {
-		widget_->set_text(Glib::ustring::format(value_));
+		widget_->set_text(Glib::ustring::format(std::setprecision(8), value_));
 	}
 }
 
 void double_param::set_default() {
 	value_ = default_;
 	if (widget_) {
-		widget_->set_text(Glib::ustring::format(value_));
+		widget_->set_text(Glib::ustring::format(std::setprecision(8), value_));
 	}
 }
 
