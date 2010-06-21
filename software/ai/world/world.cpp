@@ -27,7 +27,7 @@ namespace {
 	 * cause a failure to be counted which will then be zeroed out a moment
 	 * later as the camera which can see the robot sends its packet).
 	 */
-	static const unsigned int MAX_VISION_FAILURES = 15;
+	static const unsigned int MAX_VISION_FAILURES = 120;
 }
 
 world::ptr world::create(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bots) {
