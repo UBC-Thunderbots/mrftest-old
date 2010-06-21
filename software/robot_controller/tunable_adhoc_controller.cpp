@@ -14,11 +14,14 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include <cassert>
 
 namespace {
 
-	bool_param SLOW_PID_ANGULAR("Slow PID if translating", true);
+	bool_param PID_SLOW_ANGULAR("PID: Slow if translating", false);
+	bool_param PID_FLIP_SLOWDOWN("PID: flip trans/ang slowdown", false);
 
+	const double SLOWDOWN = 2.0;
 	const double DAMP = 0.5;
 
 	const std::string PARAM_NAMES[] = {"Proportional", "Differential", "Y/X Ratio", "Maximum Speed", "Maximum Acceleration", "Proportional Angle", "Differential Angle", "Maximum Angular Speed", "Y/Angle speed ratio compensate"};
@@ -26,14 +29,14 @@ namespace {
 	// enumerate the parameters
 	enum { PARAM_PROP = 0, PARAM_DIFF, PARAM_XY_RATIO, PARAM_MAX_VEL, PARAM_MAX_ACC, PARAM_A_PROP, PARAM_A_DIFF, PARAM_A_THRESH, PARAM_YA_RATIO };
 
-	const double DEF_PROP = 10.0; // 8 - 10
+	const double DEF_PROP = 8.0; // 8 - 10
 	const double DEF_DIFF = 0.0;
 	const double DEF_XY_RATIO = 0.81;
 	const double DEF_MAX_VEL = 6.0; // 4 - 6
 	const double DEF_MAX_ACC = 3.0; // 1 - 3
-	const double DEF_A_PROP = 10.0; // 10 - ?
+	const double DEF_A_PROP = 8.0; // 10 - ?
 	const double DEF_A_DIFF = 0.0;
-	const double DEF_A_THRESH = 10.0; // 8 - ?
+	const double DEF_A_THRESH = 8.0; // 8 - ?
 	const double DEF_YA_RATIO = 5.0; // 0 - 5 to face forwards
 
 #warning put this magic number as part of the tunable parameter
@@ -166,14 +169,24 @@ namespace {
 		}
 
 		// threshold even more
-		if (SLOW_PID_ANGULAR) angular_velocity *= (param[PARAM_MAX_VEL] - linear_velocity.len()) / param[PARAM_MAX_VEL];
+		if (PID_SLOW_ANGULAR) {
+			if (PID_FLIP_SLOWDOWN) {
+				double slowdown = (SLOWDOWN * param[PARAM_A_THRESH] - std::fabs(angular_velocity)) / (SLOWDOWN * param[PARAM_A_THRESH]);
+				assert(std::fabs(slowdown) < 1.1);
+				linear_velocity *= slowdown;
+			} else {
+				double slowdown = (SLOWDOWN * param[PARAM_MAX_VEL] - linear_velocity.len()) / (SLOWDOWN * param[PARAM_MAX_VEL]);
+				assert(std::fabs(slowdown) < 1.1);
+				angular_velocity *= slowdown;
+			}
+		}
 
 		/*
-		if (plr->has_ball()) {
-			angular_velocity *= DEF_HAS_BALL_RATIO;
-			linear_velocity *= DEF_HAS_BALL_RATIO;
-		}
-		*/
+		   if (plr->has_ball()) {
+		   angular_velocity *= DEF_HAS_BALL_RATIO;
+		   linear_velocity *= DEF_HAS_BALL_RATIO;
+		   }
+		 */
 
 		prev_linear_velocity = linear_velocity;
 		prev_angular_velocity = angular_velocity;
