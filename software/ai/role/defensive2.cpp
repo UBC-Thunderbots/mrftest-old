@@ -14,7 +14,7 @@
 
 namespace {
 	// minimum distance from the goal post
-	double_param MIN_GOALPOST_DIST("Defensive2 distance to goal post", 0.03, 0.1, 1.0);
+	double_param MIN_GOALPOST_DIST("Defensive2 distance to goal post", 0.03, 0.03, 1.0);
 	const double MAX_GOALIE_DIST = robot::MAX_RADIUS * 2;
 
 	// used to save if the goalie should be on the top or bottom side

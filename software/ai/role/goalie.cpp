@@ -13,7 +13,7 @@
 #include <vector>
 
 namespace {
-	double_param STANDBY_DIST("Goalie distance to goal post", 0.05, 0.1, 1.0);
+	double_param STANDBY_DIST("Goalie distance to goal post", 0.05, 0.05, 1.0);
 	bool_param USE_OLD_GOALIE("Goalie use old code", false);
 
 	const double LANE_CLEAR_PENALTY = 1.3;
