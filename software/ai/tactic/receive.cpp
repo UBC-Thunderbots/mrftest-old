@@ -1,5 +1,6 @@
 #include "ai/tactic/receive.h"
 #include "ai/util.h"
+#include "ai/flags.h"
 
 receive::receive(player::ptr player, world::ptr world) : tactic(player), the_world(world), navi(player, world) {
 }
@@ -14,7 +15,7 @@ void receive::tick() {
 		// all we need now is to turn on dribbler
 		navi.set_dribbler();
 	}
-	navi.set_flags(flags);
+	navi.set_flags(flags | ai_flags::clip_play_area);
 	navi.tick();
 }
 
