@@ -18,7 +18,7 @@ namespace {
 	int_param HAS_BALL_TIME("# of sense ball for has ball to be true", 2, 1, 10);
 	double_param BALL_CLOSE_FACTOR("ball_close Distance Factor", 1.1, 1.0, 1.5);
 	double_param BALL_FRONT_ANGLE("ball_front angle", M_PI / 6, 0.0, M_PI / 2);
-	double_param BALL_FRONT_FACTOR("ball_front factor", 1.05, 1.00, 1.2);
+	double_param BALL_FRONT_FACTOR("ball_front factor", 1.09, 1.00, 1.3);
 }
 
 namespace ai_util {

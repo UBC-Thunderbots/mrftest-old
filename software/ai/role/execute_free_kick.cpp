@@ -23,8 +23,8 @@ void execute_indirect_free_kick::tick() {
 
 	std::vector<player::ptr> friends;
 	for (size_t i = 0; i < friendly.size(); ++i)
-		if (friendly.get_player(i) != pl)
-			friends.push_back(pl);
+		if (friendly[i] != pl)
+			friends.push_back(friendly[i]);
 
 	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
 	flags &= ~(ai_flags::clip_play_area);

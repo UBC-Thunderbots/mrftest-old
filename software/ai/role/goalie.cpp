@@ -109,7 +109,10 @@ void goalie::run_goalie_confidence(player::ptr goalie, const unsigned int& flags
 	   */
 
 	move move_tactic(goalie, the_world);
-	move_tactic.set_position(A + dir * confidence * f.defense_area_radius());
+	point G = A + dir * confidence * f.defense_area_radius();
+	G.x = std::max(G.x, - f.length() / 2 + robot::MAX_RADIUS);
+	//move_tactic.set_position(A + dir * confidence * f.defense_area_radius());
+	move_tactic.set_position(G);
 	move_tactic.set_flags(flags);
 	move_tactic.tick();
 }

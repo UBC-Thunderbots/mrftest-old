@@ -76,6 +76,7 @@ std::pair<point, std::vector<point> > defensive2::calc_block_positions(const boo
 			const double touchdist = std::min(-ball2side.x / 2, MAX_GOALIE_DIST);
 			const point perp = (top) ? touchvec.rotate(-M_PI/2) : touchvec.rotate(M_PI/2); 
 			G = goalside + touchvec * touchdist + perp * robot::MAX_RADIUS;
+			G.x = std::max(G.x, - f.length() / 2 + robot::MAX_RADIUS);
 	}
 
 	// first defender will block the remaining cone from the ball
