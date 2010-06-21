@@ -51,7 +51,6 @@ class pivot : public tactic {
 	protected:
 
 		void tick_experimental();	
-		void tick_experimental2();
 		void tick_old();
 
 		const world::ptr the_world;

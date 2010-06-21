@@ -13,9 +13,10 @@
 
 namespace {
 
-	const double PIVOT_ORI_CLOSE = 10.0 / 180.0 * M_PI;
-	bool_param PIVOT_USE_NEW("Use new pivot", true);
-	double_param PIVOT_DIST("Pivot Distance, x robot radius", 1.1, 0.5, 2.0);
+	//const double PIVOT_ORI_CLOSE = 10.0 / 180.0 * M_PI;
+	double_param PIVOT_ORI_CLOSE("Pivot angle in degrees", 5.0, 0.0, 20.0);
+	bool_param PIVOT_USE_NEW("Pivot new code", true);
+	double_param PIVOT_DIST("Pivot distance, in robot radius", 1.1, 0.5, 2.0);
 
 	class pivot_state : public player::state {
 		public:
@@ -40,83 +41,6 @@ pivot::pivot(player::ptr player, world::ptr world) : tactic(player), the_world(w
 void pivot::tick() {
 	if (PIVOT_USE_NEW) tick_experimental();
 	else tick_old();
-}
-
-void pivot::tick_experimental2() { // CURRENTLY BROKEN
-
-	// use robot navigator instead of storing move tactic.
-	// the reason is that we can't unset flags.
-	robot_navigator navi(the_player, the_world);
-
-	const ball::ptr the_ball(the_world->ball());
-
-	pivot_state::ptr state(pivot_state::ptr::cast_dynamic(the_player->get_state(typeid(*this))));
-	if(!state) {
-		state = pivot_state::ptr(new pivot_state(false));
-		the_player->set_state(typeid(*this), state);
-	}
-
-	// if we have the ball then move to the destination
-	if (!avoid_ball_ && ai_util::has_ball(the_world, the_player)) {
-		state->recent_hit_target = true;
-		navi.set_position(target);
-		navi.set_orientation((target - the_player->position()).orientation());
-		navi.set_flags(flags);
-		navi.tick();
-		return;
-	}
-
-	point est_ball_pos = the_ball->position();
-	point robot_dst = est_ball_pos;
-	point vec = target - est_ball_pos;
-
-	point ball_player_diff = (the_ball->position() - the_player->position());
-	point target_player_diff = (target - the_player->position());
-
-	const double pivotdist = PIVOT_DIST * robot::MAX_RADIUS + robot::MAX_RADIUS + ball::RADIUS;
-
-	if(vec.len()<0.01){
-		//ball already too close to target 
-		//don't try and divide by small number
-	}else{
-		vec = vec/vec.len();
-		robot_dst -= vec * pivotdist;
-	}
-
-	if((robot_dst-the_player->position()).len()>0.1 && !the_player->sense_ball()){
-		state->recent_hit_target=false;
-	}
-
-	point player_diff_vector = est_ball_pos- the_player->position();
-	point target_diff_vector = est_ball_pos- robot_dst;
-
-	if (player_diff_vector.len() < target_diff_vector.len()) {
-		if (player_diff_vector.dot(target_diff_vector) > 0) {
-			state->recent_hit_target = true;
-			navi.set_position(the_ball->position());
-			// navi.set_orientation((target - the_player->position()).orientation());
-			navi.set_flags(flags);
-			navi.tick();
-			return;
-		}
-	}
-
-	if ((robot_dst-the_player->position()).len()<0.01){
-		state->recent_hit_target = true;
-	}
-
-	// std::cout<<"recent hit: "<<recent_hit_target<<std::endl;
-
-	if (state->recent_hit_target) {
-		navi.set_position(the_ball->position());
-		navi.set_flags(flags);
-	} else {
-		navi.set_position(robot_dst);
-		navi.set_flags(flags | ai_flags::avoid_ball_near);
-	} 	
-
-	navi.tick(); 	
-
 }
 
 void pivot::tick_old() {
@@ -226,7 +150,7 @@ void pivot::tick_experimental() {
 
 	// we can do something to the ball now!
 	//if (!avoid_ball_ && (dest - playerpos).len() < ai_util::POS_CLOSE) {
-	if (!avoid_ball_ && angle_diff(ball2dest.orientation(), ball2player.orientation()) < PIVOT_ORI_CLOSE) {
+	if (!avoid_ball_ && angle_diff(ball2dest.orientation(), ball2player.orientation()) < degrees2radians(PIVOT_ORI_CLOSE)) {
 		if (!ai_util::has_ball(the_world, the_player)) {
 			navi.set_position(ballpos);
 		}
@@ -235,10 +159,8 @@ void pivot::tick_experimental() {
 		return;
 	}
 
-	flags |= ai_flags::avoid_ball_near;
-
 	navi.set_position(dest);
-	navi.set_flags(flags);
+	navi.set_flags(flags | ai_flags::avoid_ball_near);
 	navi.tick();
 }
 

@@ -15,6 +15,7 @@ namespace {
 	const double EPS = 1e-9;
 
 	bool_param HAS_BALL_USE_VISION("has ball use vision", true);
+	bool_param POSSES_BALL_IS_HAS_BALL("posses ball is has ball", true);
 	int_param HAS_BALL_TIME("# of sense ball for has ball to be true", 2, 1, 10);
 	double_param BALL_CLOSE_FACTOR("ball_close Distance Factor", 1.1, 1.0, 1.5);
 	double_param BALL_FRONT_ANGLE("ball_front angle", M_PI / 6, 0.0, M_PI / 2);
@@ -201,6 +202,7 @@ namespace ai_util {
 	}
 
 	bool posses_ball(const world::ptr w, const player::ptr p) {
+		if (POSSES_BALL_IS_HAS_BALL) return has_ball(w, p);
 		return has_ball(w, p) || ball_close(w, p);
 	}
 
