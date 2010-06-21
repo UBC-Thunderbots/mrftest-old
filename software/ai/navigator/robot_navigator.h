@@ -70,9 +70,9 @@ class robot_navigator : public noncopyable {
 		bool check_vector(const point& start, const point& dest, const point& direction) const;
 		unsigned int check_obstacles(const point& start, const point& dest, const point& direction) const;
 		double get_avoidance_factor() const;
-
+		bool check_ball(const point& start, const point& dest, const point& direction) const;
 		point clip_circle(point circle_centre, double circle_radius, point dst);
-		
+		bool ball_obstacle;
 		// clip the field boundries 
 		point clip_playing_area(point wantdest);
 		const player::ptr the_player;
