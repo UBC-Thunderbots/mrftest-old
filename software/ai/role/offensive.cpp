@@ -249,7 +249,9 @@ void offensive::tick() {
 				tactics[baller] = pass::ptr(new pass(the_robots[baller], the_world, the_robots[shooter]));
 			} else if (get_distance_from_goal(baller) < the_world->field().length() / 6) {
 				// very close to goal, so try making a shot anyways
-				tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
+				shoot::ptr shoot_tactic(new shoot(the_robots[baller], the_world));
+				shoot_tactic->force();
+				tactics[baller] = shoot_tactic;
 			} else {
 				// i shall shoot
 				tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
