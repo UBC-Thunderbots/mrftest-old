@@ -78,6 +78,7 @@ software/ai/strategy/chase_strategy.cpp -text
 software/ai/strategy/cowardly_strategy.cpp -text
 software/ai/strategy/dribble_strategy.cpp -text
 software/ai/strategy/dribble_strategy.h -text
+software/ai/strategy/even_better_strategy.cpp -text
 software/ai/strategy/hand_tuning.cpp -text
 software/ai/strategy/mech_tuning.cpp -text
 software/ai/strategy/movement_benchmark.cpp -text
