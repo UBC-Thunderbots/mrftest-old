@@ -2,7 +2,7 @@
 #define AI_TACTIC_KICK_H
 
 #include "ai/tactic/tactic.h"
-#include "ai/navigator/robot_navigator.h"
+#include "ai/world/world.h"
 
 /**
  * Tactic for FORCED KICKING!!!
@@ -53,7 +53,6 @@ class kick : public tactic {
 
 	protected:
 		const world::ptr the_world;
-		robot_navigator navi;
 
 		// True to chip instead of kicking.
 		bool should_chip;

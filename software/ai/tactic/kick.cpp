@@ -3,6 +3,8 @@
 #include "geom/angle.h"
 #include "util/dprint.h"
 
+#include "ai/navigator/robot_navigator.h"
+
 #include <iostream>
 
 /*
@@ -11,10 +13,11 @@ TODO:
 - calculate the strength that the robot should use.
  */
 
-kick::kick(player::ptr player, world::ptr world) : tactic(player), the_world(world), navi(player, world), should_chip(false), strength(1.0), kick_target(the_world->field().enemy_goal()) {
+kick::kick(player::ptr player, world::ptr world) : tactic(player), the_world(world), should_chip(false), strength(1.0), kick_target(the_world->field().enemy_goal()) {
 }
 
 void kick::tick() {
+	robot_navigator navi(the_player, the_world);
 
 	// don't forget
 	navi.set_flags(flags);
@@ -31,9 +34,9 @@ void kick::tick() {
 	navi.set_orientation(dist.orientation());
 
 	// maybe move towards it?
-	if (the_player->dribble_distance() < player::MAX_DRIBBLE_DIST) {
-		navi.set_position(kick_target);
-	}
+	//if (the_player->dribble_distance() < player::MAX_DRIBBLE_DIST) {
+		//navi.set_position(kick_target);
+	//}
 
 	const double anglediff = angle_diff(dist.orientation(), the_player->orientation());
 	if (anglediff > ai_util::ORI_CLOSE) {
@@ -41,7 +44,7 @@ void kick::tick() {
 		navi.tick();
 		return;
 	}
-	
+
 	if (the_player->chicker_ready_time() == 0) {
 		if (should_chip) {
 			LOG_INFO(Glib::ustring::compose("%1 kick", the_player->name));
