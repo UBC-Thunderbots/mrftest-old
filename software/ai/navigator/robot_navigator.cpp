@@ -208,8 +208,8 @@ point robot_navigator::get_inbounds_point(point dst){
 
 	point dir = wantdest - the_player->position();
 	if(dir.x<0.0){
-	  if(the_player->position().x >= std::min(the_field.friendly_goal_boundary().first.y, the_field.friendly_goal_boundary().second.y) &&
-	     the_player->position().x <=  std::max(the_field.friendly_goal_boundary().first.y, the_field.friendly_goal_boundary().second.y)){
+	  if(the_player->position().y >= std::min(the_field.friendly_goal_boundary().first.y, the_field.friendly_goal_boundary().second.y) &&
+	     the_player->position().y <=  std::max(the_field.friendly_goal_boundary().first.y, the_field.friendly_goal_boundary().second.y)){
 	    wantdest.x = std::max(the_field.friendly_goal_boundary().first.x + robot::MAX_RADIUS, wantdest.x);
 	  }
 	}
