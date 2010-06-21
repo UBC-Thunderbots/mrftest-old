@@ -15,10 +15,10 @@ namespace {
 	const double EPS = 1e-9;
 
 	bool_param HAS_BALL_USE_VISION("has ball use vision", true);
-	int_param HAS_BALL_TIME("# of sense ball for has ball to be true", 5, 2, 10);
+	int_param HAS_BALL_TIME("# of sense ball for has ball to be true", 2, 1, 10);
 	double_param BALL_CLOSE_FACTOR("ball_close Distance Factor", 1.1, 1.0, 1.5);
-	double_param BALL_FRONT_ANGLE("ball_front angle", M_PI / 8, 0.0, M_PI / 2);
-	double_param BALL_FRONT_FACTOR("ball_front factor", 1.01, 1.00, 1.2);
+	double_param BALL_FRONT_ANGLE("ball_front angle", M_PI / 6, 0.0, M_PI / 2);
+	double_param BALL_FRONT_FACTOR("ball_front factor", 1.05, 1.00, 1.2);
 }
 
 namespace ai_util {
@@ -192,11 +192,16 @@ namespace ai_util {
 	}
 
 	bool has_ball(const world::ptr w, const player::ptr p) {
-		return p->sense_ball() >= HAS_BALL_TIME || (HAS_BALL_USE_VISION && ball_front(w, p));
+		// return p->sense_ball() >= HAS_BALL_TIME || (HAS_BALL_USE_VISION && ball_front(w, p));
+		if (HAS_BALL_USE_VISION) {
+			return p->sense_ball() >= HAS_BALL_TIME || ball_front(w, p);
+		} else {
+			return p->sense_ball() >= HAS_BALL_TIME;
+		}
 	}
 
 	bool posses_ball(const world::ptr w, const player::ptr p) {
-		return p->sense_ball() >= HAS_BALL_TIME || ball_close(w, p);
+		return has_ball(w, p) || ball_close(w, p);
 	}
 
 	bool friendly_has_ball(const world::ptr w) {

@@ -16,12 +16,10 @@ namespace {
 	const unsigned int DRIBBLE_RECOVER_TIME = 1000;
 	const unsigned int CHICKER_MIN_INTERVAL = 10000;
 
-	double_param DRIBBLER_HAS_BALL_LOAD_FACTOR("Has Ball Load Factor", 0.75, 0.1, 1.0);
+	double_param DRIBBLER_HAS_BALL_LOAD_FACTOR("Has Ball Load Factor", 0.8, 0.1, 3.0);
 
 	//const double HAS_BALL_TIME = 2.0 / 15.0;
 	const int HAS_BALL_TIME = 2;
-	const int HAS_BALL_THRESH = 3;
-	const int HAS_BALL_SAMPLE = 5;
 
 	unsigned int kicker_power_to_pulse_width(double power) {
 		static const unsigned int MAX_PULSE_WIDTH = 511;
@@ -287,7 +285,7 @@ void player::tick(bool scram) {
 void player::on_feedback() {
 	theory_dribble_rpm =  static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED);
 	const unsigned int threshold_speed = static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED * DRIBBLER_HAS_BALL_LOAD_FACTOR);
-	const bool new_sense_ball = bot->dribbler_speed() < threshold_speed;
+	bool new_sense_ball = (bot->dribbler_speed() > 0) && (theory_dribble_rpm > 0) && (bot->dribbler_speed() < threshold_speed);
 	if (new_sense_ball) {
 		++sense_ball_;
 		timespec_now(sense_ball_end);

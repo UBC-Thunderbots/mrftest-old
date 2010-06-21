@@ -5,6 +5,12 @@
 #include "ai/tactic/tactic.h"
 #include <vector>
 
+namespace {
+	// temporary
+	const int GRIDY = 50;
+	const int GRIDX = 50;
+}
+
 /**
  * Gets the robots to go to their offensive positions.
  * Tries to receive the ball if defender or goalie has it.
@@ -40,13 +46,13 @@ class offensive : public role {
 		 * The enemy position is provided as vector so we can add imaginary enemies.
 		 * If no position is valid, will simply choose the middle of the field.
 		 */
-		point calc_position_best(const std::vector<point>& enemypos, const std::vector<point>& dontblock) const;
+		point calc_position_best(const std::vector<point>& enemypos, const std::vector<point>& dontblock);
 
 		/// The scoring function for having the robot in the particular position.
 		double scoring_function(const std::vector<point>& enemypos, const point& pos, const std::vector<point>& dontblock) const;
 
 		/// Calculates n best positions to place the robots.
-		std::vector<point> calc_position_best(const unsigned int n) const;
+		std::vector<point> calc_position_best(const unsigned int n);
 
 		// refactor this function?
 		double get_distance_from_goal(int index) const;
@@ -54,6 +60,8 @@ class offensive : public role {
 		const world::ptr the_world;
 
 		std::vector<tactic::ptr> tactics;
+
+		bool okaygrid[GRIDX][GRIDY];
 
 };
 

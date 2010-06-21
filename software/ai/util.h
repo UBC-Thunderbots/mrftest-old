@@ -45,7 +45,7 @@ namespace ai_util {
 	/**
 	 * Somewhat close.
 	 */
-	static const double POS_CLOSE = robot::MAX_RADIUS / 8.0;
+	static const double POS_CLOSE = robot::MAX_RADIUS / 4.0;
 
 	/**
 	 * Really really really close.

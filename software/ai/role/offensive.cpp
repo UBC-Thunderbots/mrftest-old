@@ -20,9 +20,6 @@ namespace {
 	// chop up half the field into 100x100 grid
 	// evaluate some functions
 
-	const int GRIDY = 50;
-	const int GRIDX = 50;
-
 	const double ONE = 1.0 / 180.0 * M_PI;
 
 	const double NEAR = robot::MAX_RADIUS * 3;
@@ -38,9 +35,9 @@ double offensive::scoring_function(const std::vector<point>& enemypos, const poi
 	double score = bestshot.second;
 
 	for (size_t i = 0; i < enemypos.size(); ++i) {
-			if ((enemypos[i] - pos).len() < NEAR) {
-					return -1e99;
-			}
+		if ((enemypos[i] - pos).len() < NEAR) {
+			return -1e99;
+		}
 	}
 
 	for (size_t i = 0; i < dontblock.size(); ++i) {
@@ -79,7 +76,7 @@ double offensive::scoring_function(const std::vector<point>& enemypos, const poi
 	return score;
 }
 
-point offensive::calc_position_best(const std::vector<point>& enemypos, const std::vector<point>& dontblock) const {
+point offensive::calc_position_best(const std::vector<point>& enemypos, const std::vector<point>& dontblock) {
 	const double x1 = 0;
 	const double x2 = the_world->field().length() / 2;
 	const double y1 = -the_world->field().width() / 2;
@@ -91,13 +88,21 @@ point offensive::calc_position_best(const std::vector<point>& enemypos, const st
 	point bestpos(0, 0);
 	for (int i = 0; i < GRIDX; ++i) {
 		for (int j = 0; j < GRIDY; ++j) {
+			if (!okaygrid[i][j]) continue;
 			const double x = x1 + dx * (i + 1);
 			const double y = y1 + dy * (j + 1);
 			const point pos = point(x, y);
 			// TEMPORARY HACK!!
 			const double goaldist = (pos - the_world->field().enemy_goal()).len();
-			if (goaldist < the_world->field().goal_width()) continue;
+			if (goaldist < the_world->field().goal_width()) {
+				okaygrid[i][j] = false;
+				continue;
+			}
 			const double score = scoring_function(enemypos, pos, dontblock);
+			if (score < -1e50) {
+				okaygrid[i][j] = false;
+				continue;
+			}
 			if (score > bestscore) {
 				bestscore = score;
 				bestpos = pos;
@@ -107,21 +112,18 @@ point offensive::calc_position_best(const std::vector<point>& enemypos, const st
 	return bestpos;
 }
 
-std::vector<point> offensive::calc_position_best(const unsigned int n) const {
+std::vector<point> offensive::calc_position_best(const unsigned int n) {
 	const enemy_team& enemy = the_world->enemy;
 	std::vector<point> enemypos;
 	for (size_t i = 0; i < enemy.size(); ++i) {
 		enemypos.push_back(enemy.get_robot(i)->position());
 	}
 	// TODO: optimize using the matrix below
-	/*
-	bool okaygrid[GRIDX][GRIDY];
 	for (size_t i = 0; i < GRIDX; ++i) {
 		for (size_t j = 0; j < GRIDY; ++j) {
 			okaygrid[i][j] = true;
 		}
 	}
-	*/
 	std::vector<point> dontblock;
 	dontblock.push_back(the_world->ball()->position());
 	std::vector<point> ret;
@@ -221,7 +223,7 @@ void offensive::tick() {
 
 				// TODO: create another weighting function
 				double angle = ai_util::calc_goal_visibility_angle(the_world, the_robots[j], false);
-				LOG_INFO(Glib::ustring::compose("%1 can see %2 degrees", the_robots[j]->name, angle * 180.0 / M_PI));
+				LOG_DEBUG(Glib::ustring::compose("%1 can see %2 degrees", the_robots[j]->name, angle * 180.0 / M_PI));
 				// the baller has more importance
 				if (j == baller) angle *= 10.0;
 				if (shooter == -1 || angle > shooterangle) {
@@ -247,7 +249,6 @@ void offensive::tick() {
 				// i shall shoot
 				tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
 			}
-			//}
 		} else {
 			LOG_INFO("receive ball");
 			// no one in this role has the ball
@@ -298,6 +299,7 @@ void offensive::tick() {
 		}
 		tactics[i]->tick();
 	}
+
 }
 
 void offensive::robots_changed() {

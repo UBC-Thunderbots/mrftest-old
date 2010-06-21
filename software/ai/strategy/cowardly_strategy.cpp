@@ -12,6 +12,8 @@
 #include "ai/role/victory_dance.h"
 #include "ai/util.h"
 
+#include "uicomponents/param.h"
+
 #include <iostream>
 
 namespace {

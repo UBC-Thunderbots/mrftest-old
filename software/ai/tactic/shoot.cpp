@@ -58,7 +58,7 @@ void shoot::tick() {
 				LOG_INFO(Glib::ustring::compose("%1 kick", the_player->name));
 				the_player->kick(1.0);
 			} else {
-				LOG_INFO(Glib::ustring::compose("%1 chicker not ready", the_player->name));
+				LOG_DEBUG(Glib::ustring::compose("%1 chicker not ready", the_player->name));
 			}
 		} else {
 			LOG_DEBUG(Glib::ustring::compose("%1 aiming", the_player->name));

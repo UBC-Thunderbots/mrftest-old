@@ -24,9 +24,9 @@ namespace {
 
 	const double OFFENSIVE_AVOID = 0.2;
 	// hardware dependent dribble parameters
-	const double DRIBBLE_SPEED_LOW  = 0.25; // baha
+	const double DRIBBLE_SPEED_LOW  = 0.25;
 	const double DRIBBLE_SPEED_RAMP = 1.00;
-	const double DRIBBLE_SPEED_MAX  = 0.50; // baha
+	const double DRIBBLE_SPEED_MAX  = 0.50;
 	enum {EMPTY = 0, OWN_ROBOT, ENEMY_ROBOT, BALL, ERROR};  
 	double correction_distances[5] = {0.0, 1.0, 1.0, 1.0, 0.0};
 
