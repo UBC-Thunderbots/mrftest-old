@@ -106,6 +106,8 @@ void config::save() const {
 	ofs.write(reinterpret_cast<const char *>(&nparams), sizeof(nparams));
 	for (typeof(bool_params.begin()) i = bool_params.begin(); i != bool_params.end(); ++i) {
 		const std::string &name(i->first.raw());
+		uint32_t namelen = name.size();
+		ofs.write(reinterpret_cast<const char *>(&namelen), sizeof(namelen));
 		ofs.write(name.data(), name.size());
 		char value = i->second ? 1 : 0;
 		ofs.write(&value, sizeof(value));
@@ -115,6 +117,8 @@ void config::save() const {
 	ofs.write(reinterpret_cast<const char *>(&nparams), sizeof(nparams));
 	for (typeof(int_params.begin()) i = int_params.begin(); i != int_params.end(); ++i) {
 		const std::string &name(i->first.raw());
+		uint32_t namelen = name.size();
+		ofs.write(reinterpret_cast<const char *>(&namelen), sizeof(namelen));
 		ofs.write(name.data(), name.size());
 		int value = i->second;
 		ofs.write(reinterpret_cast<const char *>(&value), sizeof(value));
@@ -124,6 +128,8 @@ void config::save() const {
 	ofs.write(reinterpret_cast<const char *>(&nparams), sizeof(nparams));
 	for (typeof(double_params.begin()) i = double_params.begin(); i != double_params.end(); ++i) {
 		const std::string &name(i->first.raw());
+		uint32_t namelen = name.size();
+		ofs.write(reinterpret_cast<const char *>(&namelen), sizeof(namelen));
 		ofs.write(name.data(), name.size());
 		double value = i->second;
 		ofs.write(reinterpret_cast<const char *>(&value), sizeof(value));
