@@ -16,7 +16,7 @@ namespace {
 
 	// as required by the rules
 	const double AVOID_BALL_AMOUNT = 0.5 + robot::MAX_RADIUS;
-	double_param AVOID_CONST("Navigator avoid factor const", 1.0, 0.9, 2.0);
+	double_param AVOID_CONST("Navigator avoid factor const", 1.1, 0.9, 2.0);
 	double_param AVOID_MULT("Navigator avoid factor mult", 0.01, 0.0, 10.0);
 	double_param LOOKAHEAD_MAX("Navigator max distance to look ahead", robot::MAX_RADIUS*5, robot::MAX_RADIUS*1, robot::MAX_RADIUS*20);
 
