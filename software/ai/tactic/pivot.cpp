@@ -14,8 +14,7 @@
 namespace {
 
 	const double PIVOT_ORI_CLOSE = 10.0 / 180.0 * M_PI;
-	const double PIVOT_ANGLE = M_PI / 2;
-	bool_param PIVOT_USE_NEW("Use new pivot", false);
+	bool_param PIVOT_USE_NEW("Use new pivot", true);
 	double_param PIVOT_DIST("Pivot Distance, x robot radius", 1.0, 0.5, 2.0);
 
 	class pivot_state : public player::state {
@@ -25,7 +24,6 @@ namespace {
 			}
 			bool recent_hit_target;
 	};
-
 	
 }
 
@@ -223,8 +221,12 @@ void pivot::tick_experimental() {
 	const point playerpos = the_player->position();
 	const point dest = calc_pivot_pos(ballpos, target);
 
+	const point ball2dest = dest - ballpos;
+	const point ball2player = playerpos - ballpos;
+
 	// we can do something to the ball now!
-	if (!avoid_ball_ && (dest - playerpos).len() < ai_util::POS_CLOSE) {
+	//if (!avoid_ball_ && (dest - playerpos).len() < ai_util::POS_CLOSE) {
+	if (!avoid_ball_ && angle_diff(ball2dest.orientation(), ball2player.orientation()) < PIVOT_ORI_CLOSE) {
 		if (!ai_util::has_ball(the_world, the_player)) {
 			navi.set_position(ballpos);
 		}

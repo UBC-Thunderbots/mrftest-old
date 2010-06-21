@@ -7,8 +7,8 @@
 
 namespace {
 	// temporary
-	const int GRIDY = 50;
-	const int GRIDX = 50;
+	const int GRIDY = 25;
+	const int GRIDX = 25;
 }
 
 /**
