@@ -57,15 +57,11 @@ namespace {
 }
 
 config::config() : channel_(0x0E) {
-	// Find filename.
-	const Glib::ustring &config_dir = Glib::get_user_config_dir();
-	const std::string &file_path = Glib::filename_from_utf8(config_dir + "/thunderbots/config.dat");
-
 	// Load file.
 	std::ifstream ifs;
 	try {
 		ifs.exceptions(std::ios_base::eofbit | std::ios_base::failbit | std::ios_base::badbit);
-		ifs.open(file_path.c_str(), std::ios::in | std::ios::binary);
+		ifs.open("config.dat", std::ios::in | std::ios::binary);
 		char signature[8];
 		ifs.read(signature, sizeof(signature));
 		if (std::equal(signature, signature + 8, "TBOTC001")) {
@@ -83,16 +79,10 @@ config::config() : channel_(0x0E) {
 }
 
 void config::save() const {
-	// Find filename.
-	const Glib::ustring &config_dir = Glib::get_user_config_dir();
-	const std::string &parent_dir = Glib::filename_from_utf8(config_dir + "/thunderbots");
-	mkdir(parent_dir.c_str(), 0777);
-	const std::string &file_path = Glib::filename_from_utf8(config_dir + "/thunderbots/config.dat");
-
 	// Save file.
 	std::ofstream ofs;
 	ofs.exceptions(std::ios_base::failbit | std::ios_base::badbit);
-	ofs.open(file_path.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
+	ofs.open("config.dat", std::ios::out | std::ios::trunc | std::ios::binary);
 	ofs.write("TBOTC003", 8);
 	robots_.save(ofs);
 	{

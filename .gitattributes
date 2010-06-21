@@ -134,6 +134,7 @@ software/ai/world/team.cpp -text
 software/ai/world/team.h -text
 software/ai/world/world.cpp -text
 software/ai/world/world.h -text
+software/config.dat -text
 software/configeditor/main.cpp -text
 software/configeditor/window.cpp -text
 software/configeditor/window.h -text
