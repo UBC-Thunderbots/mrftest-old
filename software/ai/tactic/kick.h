@@ -4,12 +4,10 @@
 #include "ai/tactic/tactic.h"
 #include "ai/navigator/robot_navigator.h"
 
-#warning obselete? superceded by pass and shoot
-
 /**
- * Tactic for doing either chip or kick.
+ * Tactic for FORCED KICKING!!!
  * By default, kicks at full strength.
- * Right now, for the sake of testing, the robot is permitted to kick the air.
+ * If not set a target, will just kick in whatever direction it is facing.
  */
 class kick : public tactic {
 	public:
@@ -33,7 +31,6 @@ class kick : public tactic {
 		 */
 		void set_target(const point& p) {
 			kick_target = p;
-			target_initialized = true;
 		}
 
 		/**
@@ -41,7 +38,7 @@ class kick : public tactic {
 		 * Value between 0 and 1.
 		 */
 		void set_chip(const double& s = 1.0) {
-			chip_strength = s;
+			strength = s;
 			should_chip = true;
 		}
 
@@ -50,7 +47,7 @@ class kick : public tactic {
 		 * Value between 0 and 1.
 		 */
 		void set_kick(const double& k = 1.0) {
-			kick_strength = k;
+			strength = k;
 			should_chip = false;
 		}
 
@@ -60,11 +57,9 @@ class kick : public tactic {
 
 		// True to chip instead of kicking.
 		bool should_chip;
-		double chip_strength;
-		double kick_strength;
+		double strength;
 
 		// Target position
-		bool target_initialized;
 		point kick_target;
 };
 

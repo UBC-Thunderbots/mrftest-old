@@ -24,7 +24,7 @@ namespace {
 
 namespace ai_util {
 
-	double_param PLAYTYPE_WAIT_TIME("play: time we can prepare", 4.0, 0.0, 10.0);
+	double_param PLAYTYPE_WAIT_TIME("play: time we can prepare", 5.0, 0.0, 10.0);
 
 	//int_param AGGRESIVENESS("aggresiveness", 10, 0, 10);
 

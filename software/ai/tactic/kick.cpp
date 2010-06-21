@@ -1,6 +1,7 @@
 #include "ai/tactic/kick.h"
 #include "ai/util.h"
 #include "geom/angle.h"
+#include "util/dprint.h"
 
 #include <iostream>
 
@@ -10,7 +11,7 @@ TODO:
 - calculate the strength that the robot should use.
  */
 
-kick::kick(player::ptr player, world::ptr world) : tactic(player), the_world(world), navi(player, world), should_chip(false), chip_strength(1.0), kick_strength(1.0), target_initialized(false) {
+kick::kick(player::ptr player, world::ptr world) : tactic(player), the_world(world), navi(player, world), should_chip(false), strength(1.0), kick_target(the_world->field().enemy_goal()) {
 }
 
 void kick::tick() {
@@ -20,12 +21,6 @@ void kick::tick() {
 
 	if (!ai_util::has_ball(the_world, the_player)) {
 		navi.set_position(the_world->ball()->position());
-		navi.tick();
-		return;
-	}
-
-	if (!target_initialized) {
-		std::cerr << "kick: no target specified" << std::endl;
 		navi.tick();
 		return;
 	}
@@ -40,20 +35,23 @@ void kick::tick() {
 		navi.set_position(kick_target);
 	}
 
-	if (angle_diff(dist.orientation(), the_player->orientation()) > ai_util::ORI_CLOSE) {
-		std::cout << "kick: angle diff is " << angle_diff(dist.orientation(), the_player->orientation()) << std::endl;
+	const double anglediff = angle_diff(dist.orientation(), the_player->orientation());
+	if (anglediff > ai_util::ORI_CLOSE) {
+		LOG_DEBUG(Glib::ustring::compose("%1 aiming angle_diff is %2", the_player->name, anglediff));
 		navi.tick();
 		return;
 	}
 	
-	std::cout << "kick: shoot!" << std::endl;
-
 	if (the_player->chicker_ready_time() == 0) {
 		if (should_chip) {
-			the_player->chip(chip_strength);
+			LOG_INFO(Glib::ustring::compose("%1 kick", the_player->name));
+			the_player->chip(strength);
 		} else {
-			the_player->kick(kick_strength);
+			LOG_INFO(Glib::ustring::compose("%1 chip", the_player->name));
+			the_player->kick(strength);
 		}
+	} else {
+		LOG_INFO(Glib::ustring::compose("%1 chicker not ready", the_player->name));
 	}
 
 	navi.tick();
