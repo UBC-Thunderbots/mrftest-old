@@ -14,7 +14,7 @@ namespace {
 
 	const double EPS = 1e-9;
 
-	bool_param HAS_BALL_USE_VISION("has_ball: use vision", true);
+	bool_param HAS_BALL_USE_VISION("has_ball: use vision", false);
 	bool_param POSSES_BALL_IS_HAS_BALL("posses_ball: is has ball", false);
 	int_param HAS_BALL_TIME("has_ball: # of sense ball for to be true", 2, 1, 10);
 	double_param BALL_CLOSE_FACTOR("ball_close Distance Factor", 1.1, 1.0, 1.5);

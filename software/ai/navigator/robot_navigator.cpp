@@ -20,7 +20,7 @@ namespace {
 	double_param AVOID_MULT("Navigator avoid factor mult", 0.01, 0.0, 10.0);
 	double_param LOOKAHEAD_MAX("Navigator max distance to look ahead", robot::MAX_RADIUS*5, robot::MAX_RADIUS*1, robot::MAX_RADIUS*20);
 
-	bool_param CONSTANT_DRIBBLER("Fixed dribbler speed", true);
+	bool_param CONSTANT_DRIBBLER("Fixed dribbler speed", false);
 	bool_param ENEMY_AVOID("Avoid Enemy Near Ball", true);
 	bool_param FRIENDLY_AVOID("Avoid Friendly Near Ball", true);
 
