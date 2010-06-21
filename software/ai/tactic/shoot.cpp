@@ -12,7 +12,8 @@
 #include <iostream>
 
 namespace {
-	double_param ALLOWANCE_FACTOR("Scale goal view angle", 0.5, 0.1, 1.0);
+	double_param ALLOWANCE_FACTOR("shoot: scale goal view angle", 0.5, 0.1, 1.0);
+	double_param SHOOT_KICK_ANGLE("shoot: angle it can see before it should kick (degrees)", 5.0, 1.0, 20.0);
 }
 
 shoot::shoot(player::ptr player, world::ptr world) : tactic(player), the_world(world), forced(false), use_pivot(true) {
@@ -44,7 +45,7 @@ void shoot::tick() {
 		move_tactic.set_orientation(targetori);
 
 		// dribble if possible to
-		if (the_player->dribble_distance() < player::MAX_DRIBBLE_DIST) {
+		if (bestshot.second < degrees2radians(SHOOT_KICK_ANGLE) && the_player->dribble_distance() < player::MAX_DRIBBLE_DIST) {
 			move_tactic.set_position(bestshot.first);
 		}
 

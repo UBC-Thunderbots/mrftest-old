@@ -14,27 +14,29 @@ namespace {
 
 	const double EPS = 1e-9;
 
-	bool_param HAS_BALL_USE_VISION("has ball use vision", true);
-	bool_param POSSES_BALL_IS_HAS_BALL("posses ball is has ball", true);
-	int_param HAS_BALL_TIME("# of sense ball for has ball to be true", 2, 1, 10);
+	bool_param HAS_BALL_USE_VISION("has_ball: use vision", true);
+	bool_param POSSES_BALL_IS_HAS_BALL("posses_ball: is has ball", true);
+	int_param HAS_BALL_TIME("has_ball: # of sense ball for to be true", 2, 1, 10);
 	double_param BALL_CLOSE_FACTOR("ball_close Distance Factor", 1.1, 1.0, 1.5);
-	double_param BALL_FRONT_ANGLE("ball_front angle", M_PI / 6, 0.0, M_PI / 2);
-	double_param BALL_FRONT_FACTOR("ball_front factor", 1.09, 1.00, 1.3);
+	double_param BALL_FRONT_ANGLE("has_ball_vision: angle (degrees)", 10.0, 0.0, 60.0);
+	double_param BALL_FRONT_FACTOR("has_ball_vision: dist factor", 1.1, 1.00, 2.0);
 }
 
 namespace ai_util {
 
-	double_param CHASE_BALL_DIST("How close before chasing", ball::RADIUS * 2, 0.0, ball::RADIUS * 4);
+	//int_param AGGRESIVENESS("aggresiveness", 10, 0, 10);
+
+	double_param CHASE_BALL_DIST("chase: How close before chasing", ball::RADIUS * 2, 0.0, ball::RADIUS * 4);
 
 	bool ball_close(const world::ptr w, const robot::ptr p) {
 		const point dist = w->ball()->position() - p->position();
 		return dist.len() < (robot::MAX_RADIUS + ball::RADIUS) * BALL_CLOSE_FACTOR;
 	}
 	
-	bool ball_front(const world::ptr w, const robot::ptr p) {
+	bool has_ball_vision(const world::ptr w, const robot::ptr p) {
 		const point dist = w->ball()->position() - p->position();
 		if (dist.len() > (robot::MAX_RADIUS + ball::RADIUS) * BALL_FRONT_FACTOR) return false;
-		return angle_diff(dist.orientation(), p->orientation()) < BALL_FRONT_ANGLE;
+		return angle_diff(dist.orientation(), p->orientation()) < degrees2radians(BALL_FRONT_ANGLE);
 	}
 
 	bool point_in_defense(const world::ptr w, const point& pt) {
@@ -193,9 +195,9 @@ namespace ai_util {
 	}
 
 	bool has_ball(const world::ptr w, const player::ptr p) {
-		// return p->sense_ball() >= HAS_BALL_TIME || (HAS_BALL_USE_VISION && ball_front(w, p));
+		// return p->sense_ball() >= HAS_BALL_TIME || (HAS_BALL_USE_VISION && has_ball_vision(w, p));
 		if (HAS_BALL_USE_VISION) {
-			return p->sense_ball() >= HAS_BALL_TIME || ball_front(w, p);
+			return p->sense_ball() >= HAS_BALL_TIME || has_ball_vision(w, p);
 		} else {
 			return p->sense_ball() >= HAS_BALL_TIME;
 		}

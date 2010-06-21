@@ -293,7 +293,11 @@ void offensive::tick() {
 			++w;
 		}
 
-		tactics[0] = shoot::ptr(new shoot(the_robots[0], the_world));
+		{
+			shoot::ptr shoot_tactic = shoot::ptr(new shoot(the_robots[0], the_world));
+			shoot_tactic->toggle_pivot(false);
+			tactics[0] = shoot_tactic;
+		}
 	}
 
 	unsigned int flags = ai_flags::calc_flags(the_world->playtype());

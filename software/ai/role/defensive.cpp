@@ -104,10 +104,11 @@ void defensive::tick() {
 		if ((the_robots[0]->position() - the_world->ball()->position()).len() < frienddist) {
 			// std::cout << "defensive: chase" << std::endl;
 
-			// already sorted by distance to ball
-			shoot::ptr shoot_tactic(new shoot(the_robots[0], the_world));
+			shoot::ptr shoot_tactic = shoot::ptr(new shoot(the_robots[0], the_world));
+
 			// want to get rid of the ball ASAP!
 			shoot_tactic->force();
+			shoot_tactic->toggle_pivot(false);
 			tactics[0] = shoot_tactic;
 			skipme = 0;
 		} else {
