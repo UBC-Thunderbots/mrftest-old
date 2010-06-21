@@ -23,6 +23,7 @@ namespace {
 	bool_param CONSTANT_DRIBBLER("Fixed dribbler speed", false);
 	bool_param ENEMY_AVOID("Avoid Enemy Near Ball", true);
 	bool_param FRIENDLY_AVOID("Avoid Friendly Near Ball", true);
+	double_param NEAR_BALL_THRESHOLD("Distance to be considered near ball", robot::MAX_RADIUS * 5, robot::MAX_RADIUS*1, robot::MAX_RADIUS*20);
 
 	const double OFFENSIVE_AVOID = 0.2;
 	// hardware dependent dribble parameters
@@ -282,6 +283,8 @@ void robot_navigator::tick() {
 
 		ball_obstacle = ball_obstacle ||  check_ball(the_player->position(), wantdest, leftdirection) ;
 		ball_obstacle = ball_obstacle ||  check_ball(the_player->position(), wantdest, rightdirection);
+		// Don't avoid obstacles if we're close to ball
+		ball_obstacle = ball_obstacle || ((the_player->position()-the_ball->position()).len() < NEAR_BALL_THRESHOLD);
 
 		bool left_ok = check_vector(the_player->position(), wantdest, leftdirection);
 		bool right_ok = check_vector(the_player->position(), wantdest, rightdirection);
