@@ -56,6 +56,11 @@ class param : public noncopyable {
 		 */
 		virtual void load() = 0;
 
+		/**
+		 * Sets the parameter to its default value.
+		 */
+		virtual void set_default() = 0;
+
 	protected:
 		/**
 		 * Constructs a new parameter. Should only happen at startup time.
@@ -95,12 +100,14 @@ class bool_param : public param {
 	private:
 		scoped_ptr<Gtk::CheckButton> widget_;
 		bool value_;
+		const bool default_;
 
 		Gtk::Widget &widget();
 		void apply();
 		void revert();
 		bool needs_label() const;
 		void load();
+		void set_default();
 };
 
 /**
@@ -134,12 +141,14 @@ class int_param : public param {
 		int value_;
 		const int min_;
 		const int max_;
+		const int default_;
 
 		Gtk::Widget &widget();
 		void apply();
 		void revert();
 		bool needs_label() const;
 		void load();
+		void set_default();
 };
 
 /**
@@ -173,12 +182,14 @@ class double_param : public param {
 		double value_;
 		const double min_;
 		const double max_;
+		const double default_;
 
 		Gtk::Widget &widget();
 		void apply();
 		void revert();
 		bool needs_label() const;
 		void load();
+		void set_default();
 };
 
 /**
@@ -195,6 +206,7 @@ class param_panel : public Gtk::VBox {
 		void on_apply_clicked();
 		void on_save_clicked();
 		void on_revert_clicked();
+		void on_defaults_clicked();
 };
 
 #endif

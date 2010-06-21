@@ -32,7 +32,7 @@ param::~param() {
 	}
 }
 
-bool_param::bool_param(const Glib::ustring &name, bool def) : param(name) {
+bool_param::bool_param(const Glib::ustring &name, bool def) : param(name), default_(def) {
 	value_ = def;
 }
 
@@ -71,7 +71,14 @@ void bool_param::load() {
 	}
 }
 
-int_param::int_param(const Glib::ustring &name, int def, int min, int max) : param(name), min_(min), max_(max) {
+void bool_param::set_default() {
+	value_ = default_;
+	if (widget_) {
+		widget_->set_active(value_);
+	}
+}
+
+int_param::int_param(const Glib::ustring &name, int def, int min, int max) : param(name), min_(min), max_(max), default_(def) {
 	value_ = clamp(def, min_, max_);
 }
 
@@ -111,7 +118,14 @@ void int_param::load() {
 	}
 }
 
-double_param::double_param(const Glib::ustring &name, double def, double min, double max) : param(name), min_(min), max_(max) {
+void int_param::set_default() {
+	value_ = default_;
+	if (widget_) {
+		widget_->set_value(value_);
+	}
+}
+
+double_param::double_param(const Glib::ustring &name, double def, double min, double max) : param(name), min_(min), max_(max), default_(def) {
 	value_ = clamp(def, min_, max_);
 }
 
@@ -159,6 +173,13 @@ void double_param::load() {
 	}
 }
 
+void double_param::set_default() {
+	value_ = default_;
+	if (widget_) {
+		widget_->set_text(Glib::ustring::format(value_));
+	}
+}
+
 param_panel::param_panel() {
 	if (!instances.empty()) {
 		Gtk::Table *param_table = Gtk::manage(new Gtk::Table(instances.size(), 2));
@@ -188,6 +209,9 @@ param_panel::param_panel() {
 	Gtk::Button *revert_button = Gtk::manage(new Gtk::Button(Gtk::Stock::CLEAR));
 	revert_button->signal_clicked().connect(sigc::mem_fun(this, &param_panel::on_revert_clicked));
 	hbox->pack_start(*revert_button);
+	Gtk::Button *defaults_button = Gtk::manage(new Gtk::Button("Defaults"));
+	defaults_button->signal_clicked().connect(sigc::mem_fun(this, &param_panel::on_defaults_clicked));
+	hbox->pack_start(*defaults_button);
 	pack_start(*hbox, Gtk::PACK_SHRINK);
 }
 
@@ -209,3 +233,10 @@ void param_panel::on_revert_clicked() {
 		(*i)->revert();
 	}
 }
+
+void param_panel::on_defaults_clicked() {
+	for (typeof(instances.begin()) i = instances.begin(); i != instances.end(); ++i) {
+		(*i)->set_default();
+	}
+}
+
