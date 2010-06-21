@@ -7,6 +7,8 @@
 #include "util/byref.h"
 #include "util/noncopyable.h"
 
+#include "uicomponents/param.h"
+
 #include <vector>
 #include <glibmm.h>
 #include <cmath>
@@ -15,6 +17,8 @@
 
 namespace {
 
+	bool_param SLOW_PID_ANGULAR("Slow PID if translating", true);
+
 	const double DAMP = 0.5;
 
 	const std::string PARAM_NAMES[] = {"Proportional", "Differential", "Y/X Ratio", "Maximum Speed", "Maximum Acceleration", "Proportional Angle", "Differential Angle", "Maximum Angular Speed", "Y/Angle speed ratio compensate"};
@@ -22,14 +26,14 @@ namespace {
 	// enumerate the parameters
 	enum { PARAM_PROP = 0, PARAM_DIFF, PARAM_XY_RATIO, PARAM_MAX_VEL, PARAM_MAX_ACC, PARAM_A_PROP, PARAM_A_DIFF, PARAM_A_THRESH, PARAM_YA_RATIO };
 
-	const double DEF_PROP = 8.0;
+	const double DEF_PROP = 10.0; // 8 - 10
 	const double DEF_DIFF = 0.0;
 	const double DEF_XY_RATIO = 0.81;
-	const double DEF_MAX_VEL = 5.0; // 4 - 6
+	const double DEF_MAX_VEL = 6.0; // 4 - 6
 	const double DEF_MAX_ACC = 3.0; // 1 - 3
 	const double DEF_A_PROP = 10.0; // 10 - ?
 	const double DEF_A_DIFF = 0.0;
-	const double DEF_A_THRESH = 8.0; // 8 - ?
+	const double DEF_A_THRESH = 10.0; // 8 - ?
 	const double DEF_YA_RATIO = 5.0; // 0 - 5 to face forwards
 
 #warning put this magic number as part of the tunable parameter
@@ -160,6 +164,9 @@ namespace {
 		} else if (angular_velocity < -param[PARAM_A_THRESH]) {
 			angular_velocity = -param[PARAM_A_THRESH];
 		}
+
+		// threshold even more
+		if (SLOW_PID_ANGULAR) angular_velocity *= (param[PARAM_MAX_VEL] - linear_velocity.len()) / param[PARAM_MAX_VEL];
 
 		/*
 		if (plr->has_ball()) {
