@@ -295,7 +295,7 @@ void offensive::tick() {
 
 		{
 			shoot::ptr shoot_tactic = shoot::ptr(new shoot(the_robots[0], the_world));
-			shoot_tactic->toggle_pivot(false);
+			shoot_tactic->set_pivot(false);
 			tactics[0] = shoot_tactic;
 		}
 	}

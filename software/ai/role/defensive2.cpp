@@ -208,7 +208,7 @@ void defensive2::tick() {
 		LOG_INFO("goalie to shoot");
 		shoot::ptr shoot_tactic = shoot::ptr(new shoot(the_robots[0], the_world));
 		shoot_tactic->force();
-		shoot_tactic->toggle_pivot(false);
+		shoot_tactic->set_pivot(false);
 		tactics[0] = shoot_tactic;
 	} else {
 		move::ptr tactic(new move(the_robots[0], the_world));
@@ -233,7 +233,7 @@ void defensive2::tick() {
 			// should be exact
 			shoot::ptr shoot_tactic = shoot::ptr(new shoot(defenders[i], the_world));
 			shoot_tactic->force();
-			shoot_tactic->toggle_pivot(false);
+			shoot_tactic->set_pivot(false);
 			assign(defenders[i], shoot_tactic);
 		} else {
 			move::ptr tactic(new move(defenders[i], the_world));

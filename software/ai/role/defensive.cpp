@@ -108,7 +108,7 @@ void defensive::tick() {
 
 			// want to get rid of the ball ASAP!
 			shoot_tactic->force();
-			shoot_tactic->toggle_pivot(false);
+			shoot_tactic->set_pivot(false);
 			tactics[0] = shoot_tactic;
 			skipme = 0;
 		} else {

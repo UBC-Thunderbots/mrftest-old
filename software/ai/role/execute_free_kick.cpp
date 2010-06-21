@@ -36,9 +36,10 @@ void execute_indirect_free_kick::tick() {
 	int bestpassee = ai_util::choose_best_pass(the_world, friends);
 
 	if (the_world->playtype_time() > ai_util::PLAYTYPE_WAIT_TIME) {
-		// err... something random?
 		LOG_INFO("forced kicking");
-		kick tactic(pl, the_world);
+		//kick tactic(pl, the_world);
+		shoot tactic(pl, the_world);
+		tactic.force();
 		tactic.set_flags(flags);
 		tactic.tick();
 	} else if (bestpassee >= 0) {
@@ -89,7 +90,9 @@ void execute_direct_free_kick::tick() {
 	if (the_world->playtype_time() > ai_util::PLAYTYPE_WAIT_TIME) {
 		// err... something random?
 		LOG_INFO("forced kicking");
-		kick tactic(pl, the_world);
+		//kick tactic(pl, the_world);
+		shoot tactic(pl, the_world);
+		tactic.force();
 		tactic.set_flags(flags);
 		tactic.tick();
 	} else if (bestshot.second > 0) {
