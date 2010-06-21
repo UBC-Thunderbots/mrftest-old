@@ -145,6 +145,11 @@ namespace ai_util {
 		}
 		std::pair<point, double> best_shot = calc_best_shot(w->field(), obstacles, pl->position());
 		if (!force || best_shot.second >= 2*ORI_CLOSE) return best_shot;
+		// If we have a force shot, simply return the center of the goal
+		best_shot.first = point(w->field().length()/2.0, 0.0);
+		best_shot.second = 2*ORI_CLOSE;		
+
+		/*
 		double radius = robot::MAX_RADIUS;
 		while(best_shot.second < 2*ORI_CLOSE){
 			radius -= robot::MAX_RADIUS / 10.0;
@@ -155,6 +160,7 @@ namespace ai_util {
 		// enemy robots still break up the goal into too small intervals, just shoot for center of goal
 		best_shot.first = point(w->field().length()/2.0,0);
 		best_shot.second = std::atan2(w->field().goal_width(),w->field().length())*2.0;
+		*/
 		return best_shot;
 	}
 
