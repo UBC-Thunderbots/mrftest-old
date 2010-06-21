@@ -108,6 +108,8 @@ world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bo
 	Glib::signal_io().connect(sigc::mem_fun(this, &world::on_vision_readable), vision_socket, Glib::IO_IN);
 
 	refbox_.signal_command_changed.connect(sigc::mem_fun(this, &world::update_playtype));
+
+	timespec_now(playtype_time_);
 }
 
 bool world::on_vision_readable(Glib::IOCondition) {
@@ -300,6 +302,14 @@ void world::clear_playtype_override() {
 	}
 }
 
+double world::playtype_time() const {
+	timespec now;
+	timespec_now(now);
+	timespec diff;
+	timespec_sub(now, playtype_time_, diff);
+	return timespec_to_double(diff);
+}
+
 void world::update_playtype() {
 	playtype::playtype old_pt = playtype_;
 	if (refbox_yellow_) {
@@ -313,6 +323,8 @@ void world::update_playtype() {
 		LOG_DEBUG(Glib::ustring::compose("Play type changed to %1.", playtype::descriptions_generic[new_pt]));
 		playtype_ = new_pt;
 		signal_playtype_changed.emit();
+
+		timespec_now(playtype_time_);
 	}
 }
 

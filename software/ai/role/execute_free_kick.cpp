@@ -1,6 +1,7 @@
 #include "ai/role/execute_free_kick.h"
 #include "ai/util.h"
 #include "ai/tactic/pass.h"
+#include "ai/tactic/pivot.h"
 #include "ai/tactic/shoot.h"
 #include "util/dprint.h"
 
@@ -39,12 +40,19 @@ void execute_indirect_free_kick::tick() {
 		tactic.set_flags(flags);
 		tactic.tick();
 	} else {
-		// err... something random?
-		LOG_WARN("forced kicking");
-		shoot tactic(pl, the_world);
-		tactic.force();
-		tactic.set_flags(flags);
-		tactic.tick();
+		if (the_world->playtype_time() > ai_util::PLAYTYPE_WAIT_TIME) {
+			// err... something random?
+			LOG_INFO("forced kicking");
+			shoot tactic(pl, the_world);
+			tactic.force();
+			tactic.set_flags(flags);
+			tactic.tick();
+		} else {
+			pivot tactic(pl, the_world);
+			tactic.set_target(the_world->field().enemy_goal());
+			tactic.set_flags(flags);
+			tactic.tick();
+		}
 	}
 }
 
@@ -90,12 +98,19 @@ void execute_direct_free_kick::tick() {
 		tactic.set_flags(flags);
 		tactic.tick();
 	} else {
-		// err... something random?
-		LOG_INFO("forced kicking");
-		shoot tactic(pl, the_world);
-		tactic.force();
-		tactic.set_flags(flags);
-		tactic.tick();
+		if (the_world->playtype_time() > ai_util::PLAYTYPE_WAIT_TIME) {
+			// err... something random?
+			LOG_INFO("forced kicking");
+			shoot tactic(pl, the_world);
+			tactic.force();
+			tactic.set_flags(flags);
+			tactic.tick();
+		} else {
+			pivot tactic(pl, the_world);
+			tactic.set_target(the_world->field().enemy_goal());
+			tactic.set_flags(flags);
+			tactic.tick();
+		}
 	}
 }
 

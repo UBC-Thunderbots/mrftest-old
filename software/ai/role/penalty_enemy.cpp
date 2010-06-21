@@ -37,8 +37,8 @@ void penalty_goalie::tick() {
 	if (the_robots.size() == 0) return;
 
 	const field& f = the_world->field();
-	const point starting_position(-0.5 * f.length(), -0.35 * f.goal_width() + robot::MAX_RADIUS);
-	const point ending_position(-0.5 * f.length(), 0.35 * f.goal_width() - robot::MAX_RADIUS);
+	const point starting_position(-0.5 * f.length(), - 0.5 * robot::MAX_RADIUS);
+	const point ending_position(-0.5 * f.length(), 0.5 * robot::MAX_RADIUS);
 
 	unsigned int flags = 0;
 	patrol tactic(the_robots[0], the_world, flags, starting_position, ending_position);

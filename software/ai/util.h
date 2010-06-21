@@ -33,6 +33,8 @@ namespace ai_util {
 			const point& dest;
 	};
 
+	extern double_param PLAYTYPE_WAIT_TIME;
+
 	extern double_param CHASE_BALL_DIST;
 
 	// TODO: base this on distance.

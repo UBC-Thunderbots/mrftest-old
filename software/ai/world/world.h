@@ -161,6 +161,11 @@ class world : public byref {
 		 */
 		void tick_timestamp();
 
+		/**
+		 * Playtype time.
+		 */
+		double playtype_time() const;
+
 	private:
 		class visualizer_view : public visualizable {
 			public:
@@ -206,6 +211,7 @@ class world : public byref {
 		class ball_filter *ball_filter_;
 		point playtype_arm_ball_position;
 		uint64_t timestamp_;
+		timespec playtype_time_;
 
 		world(const config &, const std::vector<xbee_drive_bot::ptr> &);
 		bool on_vision_readable(Glib::IOCondition);

@@ -67,6 +67,8 @@ namespace {
 		roles.clear();
 		if (the_team.size() == 0) return;
 
+		// const vector<player::ptr> players = the_team.get_players();
+
 		defensive2::ptr defensive_role(new defensive2(the_world));
 		offensive::ptr offensive_role(new offensive(the_world));
 		roles.push_back(role::ptr(defensive_role));

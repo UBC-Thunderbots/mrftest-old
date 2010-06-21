@@ -24,6 +24,8 @@ namespace {
 
 namespace ai_util {
 
+	double_param PLAYTYPE_WAIT_TIME("play: time we can prepare", 4.0, 0.0, 10.0);
+
 	//int_param AGGRESIVENESS("aggresiveness", 10, 0, 10);
 
 	double_param CHASE_BALL_DIST("chase: How close before chasing", ball::RADIUS * 2, 0.0, ball::RADIUS * 4);
