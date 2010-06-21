@@ -17,6 +17,9 @@ namespace {
 	double_param MIN_GOALPOST_DIST("Defensive2 distance to goal post", 0.03, 0.03, 1.0);
 	const double MAX_GOALIE_DIST = robot::MAX_RADIUS * 2;
 
+	bool_param USE_GOALIE_RUSH("defensive2: use goalie rush when ball threatening", FALSE);
+	double_param BALL_DANGEROUS_SPEED("defensive2: threatening ball horizontal speed", 3.0, 1.0, 10.0); 
+
 	// used to save if the goalie should be on the top or bottom side
 	class defensive2_state : public player::state {
 		public:
@@ -199,10 +202,22 @@ void defensive2::tick() {
 	std::vector<size_t> order = dist_matching(locations, waypoints);
 
 	// do the actual assigmment
-
+	point ballvel = the_world->ball()->est_velocity();
+	point rushpos = line_intersect(ballpos, ballpos + ballvel, 
+					point(-the_world->field().length()/2.0 + robot::MAX_RADIUS, 1.0),
+					point(-the_world->field().length()/2.0 + robot::MAX_RADIUS, -1.0));
+	const bool goalierush = USE_GOALIE_RUSH && ballvel.x < -BALL_DANGEROUS_SPEED 
+                              && (std::fabs(rushpos.y) < the_world->field().goal_width()/2.0);
 	//const bool goaliechase = (chaser == goalie && ai_util::point_in_defense(the_world, ballpos));
 	const bool goaliechase = ai_util::point_in_defense(the_world, ballpos);
-
+	
+	// check if goalie should rush
+	if (goalierush){
+		LOG_INFO("goalie to rush");
+		move::ptr tactic(new move(the_robots[0], the_world));
+		tactic->set_position(rushpos);
+		tactics[0] = tactic;
+	}
 	// check if chaser robot
 	if (goaliechase) {
 		LOG_INFO("goalie to shoot");
