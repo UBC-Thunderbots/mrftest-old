@@ -43,15 +43,6 @@ class param : public noncopyable {
 		virtual void revert() = 0;
 
 		/**
-		 * Indicates whether the parameter's name should be displayed in the UI
-		 * or whether the controls include a display of the name.
-		 *
-		 * \return \c true if a label should be attached by the UI framework, or
-		 * \c false if the parameter control includes the name.
-		 */
-		virtual bool needs_label() const = 0;
-
-		/**
 		 * Loads the parameter value from the configuration file.
 		 */
 		virtual void load() = 0;
@@ -105,7 +96,6 @@ class bool_param : public param {
 		Gtk::Widget &widget();
 		void apply();
 		void revert();
-		bool needs_label() const;
 		void load();
 		void set_default();
 };
@@ -146,7 +136,6 @@ class int_param : public param {
 		Gtk::Widget &widget();
 		void apply();
 		void revert();
-		bool needs_label() const;
 		void load();
 		void set_default();
 };
@@ -187,7 +176,6 @@ class double_param : public param {
 		Gtk::Widget &widget();
 		void apply();
 		void revert();
-		bool needs_label() const;
 		void load();
 		void set_default();
 };

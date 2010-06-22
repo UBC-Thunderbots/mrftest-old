@@ -65,10 +65,6 @@ void bool_param::revert() {
 	}
 }
 
-bool bool_param::needs_label() const {
-	return false;
-}
-
 void bool_param::load() {
 	typeof(conf->bool_params.begin()) iter = conf->bool_params.find(name);
 	if (iter != conf->bool_params.end()) {
@@ -113,10 +109,6 @@ void int_param::revert() {
 	if (widget_) {
 		widget_->set_value(value_);
 	}
-}
-
-bool int_param::needs_label() const {
-	return true;
 }
 
 void int_param::load() {
@@ -173,10 +165,6 @@ void double_param::revert() {
 	}
 }
 
-bool double_param::needs_label() const {
-	return true;
-}
-
 void double_param::load() {
 	typeof(conf->double_params.begin()) iter = conf->double_params.find(name);
 	if (iter != conf->double_params.end()) {
@@ -200,12 +188,8 @@ param_panel::param_panel() {
 		unsigned int y = 0;
 		for (typeof(instances.begin()) i = instances.begin(); i != instances.end(); ++i) {
 			param *par = *i;
-			if (par->needs_label()) {
-				param_table->attach(*Gtk::manage(new Gtk::Label(par->name)), 0, 1, y, y + 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				param_table->attach(par->widget(), 1, 2, y, y + 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-			} else {
-				param_table->attach(par->widget(), 0, 2, y, y + 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-			}
+			param_table->attach(par->widget(), 0, 1, y, y + 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+			param_table->attach(*Gtk::manage(new Gtk::Label(par->name, Gtk::ALIGN_LEFT)), 1, 2, y, y + 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 			++y;
 		}
 		Gtk::ScrolledWindow *scroller = Gtk::manage(new Gtk::ScrolledWindow);
