@@ -20,16 +20,20 @@ namespace {
 	double_param AVOID_MULT("Navigator avoid factor mult", 0.01, 0.0, 10.0);
 	double_param LOOKAHEAD_MAX("Navigator max distance to look ahead", robot::MAX_RADIUS*5, robot::MAX_RADIUS*1, robot::MAX_RADIUS*20);
 
-	bool_param CONSTANT_DRIBBLER("Fixed dribbler speed", false);
 	bool_param ENEMY_AVOID("Avoid Enemy Near Ball", true);
 	bool_param FRIENDLY_AVOID("Avoid Friendly Near Ball", true);
 	double_param NEAR_BALL_THRESHOLD("Distance to be considered near ball", robot::MAX_RADIUS * 5, robot::MAX_RADIUS*1, robot::MAX_RADIUS*20);
 
+	bool_param CONSTANT_DRIBBLER("dribbler: fixed speed", false);
+	double_param DRIBBLE_SPEED_LOW("dribble: low speed", 0.25, 0.05, 0.80);
+	double_param DRIBBLE_SPEED_RAMP("dribble: ramp speed", 1.00, 0.00, 10.00);
+	double_param DRIBBLE_SPEED_MAX("dribble: max speed", 0.60, 0.10, 0.90);
+	//const double DRIBBLE_SPEED_LOW  = 0.25;
+	//const double DRIBBLE_SPEED_RAMP = 1.00;
+	//const double DRIBBLE_SPEED_MAX  = 0.50;
+
 	const double OFFENSIVE_AVOID = 0.2;
 	// hardware dependent dribble parameters
-	const double DRIBBLE_SPEED_LOW  = 0.25;
-	const double DRIBBLE_SPEED_RAMP = 1.00;
-	const double DRIBBLE_SPEED_MAX  = 0.50;
 	enum {EMPTY = 0, OWN_ROBOT, ENEMY_ROBOT, BALL, ERROR};  
 	double correction_distances[5] = {0.0, 1.0, 1.0, 1.0, 0.0};
 
@@ -238,7 +242,7 @@ void robot_navigator::tick() {
 	// dribble when it needs to
 #warning has_ball
 	if (wantdribble) {
-	  const double dribblespeed = std::min(get_robot_set_point(the_player->pattern_index) + DRIBBLE_SPEED_RAMP * the_player->sense_ball_time(), DRIBBLE_SPEED_MAX);
+	  const double dribblespeed = std::min<double>(get_robot_set_point(the_player->pattern_index) + DRIBBLE_SPEED_RAMP * the_player->sense_ball_time(), DRIBBLE_SPEED_MAX);
 		the_player->dribble(dribblespeed);
 	} else if (flags & ai_flags::avoid_ball_stop) {
 		the_player->dribble(0);
