@@ -4,6 +4,7 @@
 #include "ai/util.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
+#include "ai/tactic/shoot.h"
 
 #include <iostream>
 #include <iterator>
@@ -44,19 +45,19 @@ void pass::tick() {
 		return;
 	}
 
-	/*
+	
 	if (the_player->sense_ball_time() > ai_util::DRIBBLE_TIMEOUT) {
-		shoot tactic(pl, the_world);
+		shoot tactic(the_player, the_world);
 		tactic.force();
 		tactic.set_flags(flags);
 		tactic.tick();
 		return;
 	}
-	*/
+	
 
 	const point diff = the_receiver->position() - the_player->position();
 	const double anglediff = angle_diff(diff.orientation(), the_player->orientation());
-	bool should_pass = (anglediff < ai_util::ORI_CLOSE) && (ai_util::can_receive(the_world, the_receiver) || the_player->sense_ball_time() > ai_util::DRIBBLE_TIMEOUT);
+	bool should_pass = (anglediff < ai_util::ORI_CLOSE) && (ai_util::can_receive(the_world, the_receiver) /*|| the_player->sense_ball_time() > ai_util::DRIBBLE_TIMEOUT*/);
 
 	// do we need this velocity threshold?
 	// && the_receiver->est_velocity().len() < ai_util::VEL_CLOSE;
