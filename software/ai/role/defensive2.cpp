@@ -173,9 +173,9 @@ void defensive2::tick() {
 		goalie->set_state(typeid(*this), state);
 	}
 	if (ballpos.y > robot::MAX_RADIUS * 2) {
-		state->top = true;
-	} else if (ballpos.y < -robot::MAX_RADIUS * 2) {
 		state->top = false;
+	} else if (ballpos.y < -robot::MAX_RADIUS * 2) {
+		state->top = true;
 	}
 
 	std::vector<player::ptr> defenders;
