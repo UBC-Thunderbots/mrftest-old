@@ -14,7 +14,7 @@ namespace {
 	const unsigned int BATTERY_CRITICAL_THRESHOLD = 12000;
 	const unsigned int MAX_DRIBBLE_STALL_MILLISECONDS = 2000;
 	const unsigned int DRIBBLE_RECOVER_TIME = 1000;
-	const unsigned int CHICKER_MIN_INTERVAL = 10000;
+	const unsigned int CHICKER_MIN_INTERVAL = 5500;
 
 	double_param DRIBBLER_HAS_BALL_LOAD_FACTOR("Has Ball Load Factor", 0.8, 0.1, 3.0);
 
