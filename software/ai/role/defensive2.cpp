@@ -203,7 +203,9 @@ void defensive2::tick() {
 
 	// do the actual assigmment
 	point ballvel = the_world->ball()->est_velocity();
-	point rushpos = line_intersect(ballpos, ballpos + ballvel, 
+	point rushpos;
+	if (ballvel.x < -BALL_DANGEROUS_SPEED)
+		rushpos = line_intersect(ballpos, ballpos + ballvel, 
 					point(-the_world->field().length()/2.0 + robot::MAX_RADIUS, 1.0),
 					point(-the_world->field().length()/2.0 + robot::MAX_RADIUS, -1.0));
 	const bool goalierush = USE_GOALIE_RUSH && ballvel.x < -BALL_DANGEROUS_SPEED 
