@@ -5,7 +5,7 @@ namespace {
 	//
 	// The number of AI timesteps per second.
 	//
-	const unsigned int TIMESTEPS_PER_SECOND = 30;
+	const unsigned int TIMESTEPS_PER_SECOND = 15;
 }
 
 #endif
