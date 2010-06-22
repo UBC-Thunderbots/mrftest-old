@@ -1,6 +1,7 @@
 #include "uicomponents/param.h"
 #include "util/algorithm.h"
 #include "util/config.h"
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <iomanip>
@@ -9,12 +10,17 @@
 namespace {
 	std::vector<param *> instances;
 	config *conf = 0;
+
+	bool order_params_by_name(const param * const p1, const param * const p2) {
+		return p1->name.casefold() < p2->name.casefold();
+	}
 }
 
 void param::initialized(config *c) {
 	assert(c);
 	assert(!conf);
 	conf = c;
+	std::sort(instances.begin(), instances.end(), &order_params_by_name);
 	for (typeof(instances.begin()) i = instances.begin(); i != instances.end(); ++i) {
 		(*i)->load();
 	}
