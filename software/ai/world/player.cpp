@@ -97,7 +97,7 @@ void player::move(const point &dest, double target_ori) {
 }
 
 void player::dribble(double speed) {
-	new_dribble_power = clamp(static_cast<int>(speed * 1023.0 + 0.5), 0, 1023);
+  new_dribble_power = clamp(static_cast<int>(speed * 1023.0 + copysign(0.5, speed)), -1023, 1023);
 }
 
 unsigned int player::chicker_ready_time() const {
