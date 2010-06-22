@@ -285,7 +285,7 @@ void offensive::tick() {
 			const point ballpos = the_world->ball()->position();
 			for (size_t i = 0; i < enemy.size(); ++i) {
 				point enemy_pos = enemy.get_robot(i)->position();
-				if ((enemy_pos - ballpos).len() < 0.5 + robot::MAX_RADIUS)
+				if ((enemy_pos - ballpos).len() > 0.5 + robot::MAX_RADIUS)
 					block_targets.push_back(enemy.get_robot(i));
 			}
 			std::sort(block_targets.begin(),block_targets.end(), ai_util::cmp_dist<robot::ptr>(the_world->field().friendly_goal()));
