@@ -17,8 +17,8 @@ namespace {
 	double_param MIN_GOALPOST_DIST("defensive2: distance to goal post", 0.03, 0.03, 1.0);
 	double_param MAX_GOALIE_DIST("defensive2: goalie dist (robot radius)", 2.0, 0.0, 10.0);
 
-	bool_param USE_GOALIE_RUSH("defensive2: use goalie rush when ball threatening", FALSE);
-	double_param BALL_DANGEROUS_SPEED("defensive2: threatening ball horizontal speed", 3.0, 1.0, 10.0); 
+	bool_param USE_GOALIE_RUSH("defensive2: use goalie rush when ball threatening", TRUE);
+	double_param BALL_DANGEROUS_SPEED("defensive2: threatening ball horizontal speed", 3.0, 0.1, 10.0); 
 	double_param DEFENSIVE2_SHRINK("defensive2: shrink robot radius", 0.9, 0.0, 2.0);
 
 	// used to save if the goalie should be on the top or bottom side
@@ -207,7 +207,7 @@ void defensive2::tick() {
 	// do the actual assigmment
 	point ballvel = the_world->ball()->est_velocity();
 	point rushpos, goalpos;
-	if (ballvel.x < -BALL_DANGEROUS_SPEED){
+	if (ballvel.len() > BALL_DANGEROUS_SPEED && ballvel.x < -1e-6){
 		rushpos = line_intersect(ballpos, ballpos + ballvel, 
 					point(-the_world->field().length()/2.0 + robot::MAX_RADIUS, 1.0),
 					point(-the_world->field().length()/2.0 + robot::MAX_RADIUS, -1.0));
@@ -215,8 +215,9 @@ void defensive2::tick() {
 		goalpos = line_intersect(ballpos, ballpos + ballvel, 
 					point(-the_world->field().length()/2.0, 1.0),
 					point(-the_world->field().length()/2.0, -1.0));
+		LOG_INFO(Glib::ustring::compose("ball heading towards our side of the field: rushpos.y = %1, goalpos.y = %2", rushpos.y, goalpos.y));
 	}
-	const bool goalierush = USE_GOALIE_RUSH && ballvel.x < -BALL_DANGEROUS_SPEED 
+	const bool goalierush = USE_GOALIE_RUSH && ballvel.len() > BALL_DANGEROUS_SPEED && ballvel.x < -1e-6 
                               && (std::min(std::fabs(goalpos.y),std::fabs(rushpos.y)) < the_world->field().goal_width()/2.0);
 	//const bool goaliechase = (chaser == goalie && ai_util::point_in_defense(the_world, ballpos));
 	const bool goaliechase = ai_util::point_in_defense(the_world, ballpos);
