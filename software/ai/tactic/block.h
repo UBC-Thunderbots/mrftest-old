@@ -32,7 +32,7 @@ class block : public tactic {
 
 	protected:
 		robot::ptr target;
-		robot_navigator navi;
+		world::ptr the_world;
 };
 
 #endif

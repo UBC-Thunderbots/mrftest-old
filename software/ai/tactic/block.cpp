@@ -1,6 +1,8 @@
 #include "ai/tactic/block.h"
+#include "ai/tactic/move.h"
+#include "util/dprint.h"
 
-block::block(player::ptr player, world::ptr world) : tactic(player), navi(player, world) {
+block::block(player::ptr player, world::ptr world) : tactic(player), the_world(world) {
 }
 
 void block::set_target(robot::ptr target) {
@@ -8,27 +10,25 @@ void block::set_target(robot::ptr target) {
 }		
 
 void block::tick() {
-	const double GUARD_DIST = 20;
-	point p = the_player->position() - target->position();
-
-	if (p.cross(target->est_velocity()) == 0) {		
-		// in the target's line of velocity
-		const point UP(0,1);
-		double p_side = p.cross(UP); 
-		double v_side = target->est_velocity().cross(UP);
-
-		if (p_side > 0 && v_side > 0) {
-			// target is moving towards me, move towards him, but don't bump into him
-			navi.set_position(target->position() + target->est_velocity() * 1.0/GUARD_DIST);
-		} else {
-			// I am behind target, move towards where the target's moving for now
-			navi.set_position(target->position() + target->est_velocity());
-		}
-	} else {
-		// move towards where the target's moving
-		navi.set_position(target->position() + target->est_velocity());
+	if (!target){
+		LOG_DEBUG(Glib::ustring::compose("%1 does not have a target to block!", the_player->name));
+		move move_tactic(the_player, the_world);
+		move_tactic.set_position(the_player->position());
+		move_tactic.set_flags(flags);
+		move_tactic.tick();
+		return;
 	}
-	navi.set_flags(flags);
-	navi.tick();
+	const field& the_field = the_world->field();
+	LOG_DEBUG(Glib::ustring::compose("%1 aiming", the_player->name));
+	const point goal = point(-the_field.length()/2.0, 0);
+	point dir = target->position() - goal;
+	point offset = dir.norm() * (2*robot::MAX_RADIUS);
+
+	point dest = (dir - offset) + goal;
+	move move_tactic(the_player, the_world);
+	move_tactic.set_position(dest);
+	move_tactic.set_orientation(dir.orientation());
+	move_tactic.set_flags(flags);
+	move_tactic.tick();
 }
 
