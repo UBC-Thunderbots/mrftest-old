@@ -15,7 +15,7 @@ namespace {
 
 	double_param PIVOT_ORI_CLOSE("Pivot: angle before it goes for ball (degrees)", 20.0, 0.0, 80.0);
 	bool_param PIVOT_USE_NEW("Pivot: use new code", true);
-	double_param PIVOT_DIST("Pivot: distance, in robot radius", 1.5, 0.5, 2.0);
+	double_param PIVOT_DIST("Pivot: distance, in robot radius", 1.8, 0.5, 2.0);
 
 	class pivot_state : public player::state {
 		public:
