@@ -203,13 +203,18 @@ void defensive2::tick() {
 
 	// do the actual assigmment
 	point ballvel = the_world->ball()->est_velocity();
-	point rushpos;
-	if (ballvel.x < -BALL_DANGEROUS_SPEED)
+	point rushpos, goalpos;
+	if (ballvel.x < -BALL_DANGEROUS_SPEED){
 		rushpos = line_intersect(ballpos, ballpos + ballvel, 
 					point(-the_world->field().length()/2.0 + robot::MAX_RADIUS, 1.0),
 					point(-the_world->field().length()/2.0 + robot::MAX_RADIUS, -1.0));
+
+		goalpos = line_intersect(ballpos, ballpos + ballvel, 
+					point(-the_world->field().length()/2.0, 1.0),
+					point(-the_world->field().length()/2.0, -1.0));
+	}
 	const bool goalierush = USE_GOALIE_RUSH && ballvel.x < -BALL_DANGEROUS_SPEED 
-                              && (std::fabs(rushpos.y) < the_world->field().goal_width()/2.0);
+                              && (std::min(std::fabs(goalpos.y),std::fabs(rushpos.y)) < the_world->field().goal_width()/2.0);
 	//const bool goaliechase = (chaser == goalie && ai_util::point_in_defense(the_world, ballpos));
 	const bool goaliechase = ai_util::point_in_defense(the_world, ballpos);
 	
@@ -217,6 +222,8 @@ void defensive2::tick() {
 	if (goalierush){
 		LOG_INFO("goalie to rush");
 		move::ptr tactic(new move(the_robots[0], the_world));
+		rushpos.y = std::min(rushpos.y, the_world->field().goal_width()/2.0);
+		rushpos.y = std::max(rushpos.y, -the_world->field().goal_width()/2.0);
 		tactic->set_position(rushpos);
 		tactics[0] = tactic;
 	}
