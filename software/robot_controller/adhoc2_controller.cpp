@@ -21,9 +21,9 @@ namespace {
 
 	bool_param ADHOC_SLOW_ANGULAR("AdHoc2: Slow if translating", true);
 	bool_param ADHOC_FLIP_SLOWDOWN("AdHoc2: flip trans/ang slowdown", false);
-	double_param ADHOC_SLOWDOWN("AdHoc2: slowdown (CARE)", 1.1, 0.1, 8.0);
-	double_param ADHOC_PROP("AdHoc2: prop", 10, 0.0, 20.0);
-	double_param ADHOC_MAX_VEL("AdHoc2: max vel", 8, 0.0, 20.0);
+	double_param ADHOC_SLOWDOWN("AdHoc2: slowdown (CARE)", 1.5, 0.1, 8.0);
+	double_param ADHOC_PROP("AdHoc2: prop", 8, 0.0, 20.0);
+	double_param ADHOC_MAX_VEL("AdHoc2: max vel", 6, 0.0, 20.0);
 	double_param ADHOC_MAX_ACC("AdHoc2: max acc", 3, 0.0, 20.0);
 	double_param ADHOC_A_PROP("AdHoc2: angle prop", 12, 0.0, 50.0);
 	double_param ADHOC_A_THRESH("AdHoc2: angle thresh", 12, 0.0, 50.0);
