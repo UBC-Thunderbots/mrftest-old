@@ -5,13 +5,16 @@
 #include "geom/util.h"
 #include "ai/util.h"
 
+#include "uicomponents/param.h"
+
 #include <cmath>
 #include <iostream>
 
-namespace{
+namespace {
 
-  const double AVOID_BUFFER = 0.1;
-  bool player_cmp_function (player::ptr i,player::ptr j) { return (i->pattern_index < j->pattern_index); }
+	const double AVOID_BUFFER = 0.1;
+
+	bool player_cmp_function (player::ptr i,player::ptr j) { return (i->pattern_index < j->pattern_index); }
 
 }
 
@@ -20,8 +23,7 @@ const field &the_field(the_world->field());
   circle_radius =  the_field.centre_circle_radius();
 }
 
-void kickoff_friendly::tick(){
-
+void kickoff_friendly::tick() {
 
    unsigned int flags = ai_flags::calc_flags(the_world->playtype());
 
@@ -64,34 +66,37 @@ void kickoff_friendly::tick(){
 
 	 //don't worry about the robots that comply with the rules for now
      }  
-   }else if(the_world->playtype() == playtype::execute_kickoff_friendly){
-     //we are in execute kickoff
-       unsigned int flags = ai_flags::calc_flags(the_world->playtype());
-	// Set lowest numbered robot without chicker fault to be kicker
-	if (the_robots[0]->chicker_ready_time() >= player::CHICKER_FOREVER){
-		for (size_t i = 1; i < the_robots.size(); ++i)
-			if (the_robots[i]->chicker_ready_time() < player::CHICKER_FOREVER){
-				swap(the_robots[0],the_robots[i]);
-				break;
-			}
-	}
+   } else if(the_world->playtype() == playtype::execute_kickoff_friendly) {
+	   //we are in execute kickoff
+	   unsigned int flags = ai_flags::calc_flags(the_world->playtype());
+	   // Set lowest numbered robot without chicker fault to be kicker
+	   if (the_robots[0]->chicker_ready_time() >= player::CHICKER_FOREVER){
+		   for (size_t i = 1; i < the_robots.size(); ++i)
+			   if (the_robots[i]->chicker_ready_time() < player::CHICKER_FOREVER){
+				   swap(the_robots[0],the_robots[i]);
+				   break;
+			   }
+	   }
 
-       // handle kicker separately
-       // kicker will just force shoot the ball
-       shoot::ptr shoot_tactic(new shoot(the_robots[0], the_world));
-       shoot_tactic->set_flags(flags & ~ai_flags::stay_own_half & ~ai_flags::avoid_ball_stop);
-       shoot_tactic->force();
-       shoot_tactic->tick();
-       for(unsigned int i=1; i<the_robots.size(); i++){
-	 move::ptr move_tactic(new move(the_robots[i], the_world));
-	 move_tactic->set_position(the_robots[i]->position());
-	 move_tactic->set_flags(flags);
-	 move_tactic->tick();
-       }
-	 //don't worry about the robots that comply with the rules for now
+	   // NO FLAGS
+	   // handle kicker separately
+	   // kicker will just force shoot the ball
+	   shoot::ptr shoot_tactic(new shoot(the_robots[0], the_world));
+	   // shoot_tactic->set_flags(flags & ~ai_flags::stay_own_half & ~ai_flags::avoid_ball_stop);
+	   if (the_world->playtype_time() > ai_util::PLAYTYPE_WAIT_TIME) {
+		   shoot_tactic->force();
+	   }
+	   shoot_tactic->tick();
+
+	   for(unsigned int i=1; i<the_robots.size(); i++){
+		   move::ptr move_tactic(new move(the_robots[i], the_world));
+		   move_tactic->set_position(the_robots[i]->position());
+		   move_tactic->set_flags(flags);
+		   move_tactic->tick();
+	   }
+	   //don't worry about the robots that comply with the rules for now
    } // execute kickoff enemy isn't here; we use normal play assignment instead
 }
-
 
 bool kickoff_friendly::team_compliance(){
   for(int i=0; i< the_robots.size(); i++){

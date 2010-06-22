@@ -49,7 +49,10 @@ void penalty_friendly::tick() {
 		// make shooter shoot
 		const player::ptr shooter = the_robots[0];
 		shoot tactic(shooter, the_world);
-		tactic.force();
+		if (the_world->playtype_time() > ai_util::PLAYTYPE_WAIT_TIME) {
+			tactic.force();
+			tactic.set_pivot(false);
+		}
 		// don't set flags, otherwise robot will try to avoid ball
 		tactic.tick();
 

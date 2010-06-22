@@ -23,9 +23,9 @@ namespace {
 
 namespace ai_util {
 
-	double_param DRIBBLE_TIMEOUT("pass etc, if dribble > this time, shoot sec", 2.0, 0.0, 20.0);
+	double_param DRIBBLE_TIMEOUT("if dribble > this time, force shoot (sec)", 2.0, 0.0, 20.0);
 
-	double_param PLAYTYPE_WAIT_TIME("play: time we can get ready", 3.0, 0.0, 10.0);
+	double_param PLAYTYPE_WAIT_TIME("play: time we can get ready (sec)", 3.0, -1e99, 10.0);
 
 	//int_param AGGRESIVENESS("aggresiveness", 10, 0, 10);
 

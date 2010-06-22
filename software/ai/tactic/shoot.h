@@ -39,6 +39,13 @@ class shoot : public tactic {
 		}
 
 		/**
+		 * toggles if dribbling is allowed.
+		 */
+		void set_dribble(const bool& b) {
+			allow_dribble = b;
+		}
+
+		/**
 		 * force to kick somewhere very random.
 		 */
 		void force() {
@@ -49,6 +56,7 @@ class shoot : public tactic {
 		const world::ptr the_world;
 		bool forced;
 		bool use_pivot;
+		bool allow_dribble;
 
 };
 
