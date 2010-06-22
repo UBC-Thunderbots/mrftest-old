@@ -44,7 +44,7 @@ namespace ai_util {
 	 * If the robot orientation is within this angle,
 	 * then it can shoot accurately.
 	 */
-	static const double ORI_CLOSE = 5.0 / 180.0 * M_PI;
+	extern double_param ORI_CLOSE;
 
 	/**
 	 * Somewhat close.

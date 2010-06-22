@@ -31,6 +31,8 @@ namespace ai_util {
 
 	double_param CHASE_BALL_DIST("chase: How close before chasing", ball::RADIUS * 2, 0.0, ball::RADIUS * 4);
 
+	double_param ORI_CLOSE("kick: general accuracy (rads)", 5.0 * M_PI / 180.0, 0, M_PI / 2);
+
 	bool ball_close(const world::ptr w, const robot::ptr p) {
 		const point dist = w->ball()->position() - p->position();
 		return dist.len() < (robot::MAX_RADIUS + ball::RADIUS) * BALL_CLOSE_FACTOR;
