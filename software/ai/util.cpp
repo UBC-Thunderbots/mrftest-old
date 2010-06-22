@@ -247,6 +247,18 @@ namespace ai_util {
 	*/
 
 	bool friendly_posses_ball(const world::ptr w) {
+		switch(w->playtype()){
+			case playtype::execute_direct_free_kick_enemy:
+			case playtype::execute_indirect_free_kick_enemy:
+			case playtype::prepare_kickoff_enemy:
+			case playtype::execute_kickoff_enemy:
+			case playtype::prepare_penalty_enemy:
+			case playtype::execute_penalty_enemy:
+				return false;
+				break;
+			default:
+				break;
+		}
 		const friendly_team& friendly = w->friendly;
 		for (size_t i = 0; i < friendly.size(); ++i) {
 			if (posses_ball(w, friendly[i])) return true;
