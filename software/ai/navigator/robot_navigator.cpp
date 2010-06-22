@@ -36,8 +36,26 @@ namespace {
 
 	double robot_set_point[7] = {0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25};
 
+ double_param BOT_0("BOT0 dribble low", 0.25, 0.05, 0.80);
+ double_param BOT_1("BOT1 dribble low", 0.25, 0.05, 0.80);
+ double_param BOT_2("BOT2 dribble low", 0.25, 0.05, 0.80);
+ double_param BOT_3("BOT3 dribble low", 0.25, 0.05, 0.80);
+ double_param BOT_4("BOT4 dribble low", 0.25, 0.05, 0.80);
+ double_param BOT_5("BOT5 dribble low", 0.25, 0.05, 0.80);
+ double_param BOT_6("BOT5 dribble low", 0.25, 0.05, 0.80);
+
 	inline double get_robot_set_point(int robot_num) {
 		if (CONSTANT_DRIBBLER) return DRIBBLE_SPEED_MAX;
+
+		switch(robot_num){
+		case 0: return BOT_0;
+		case 1: return BOT_1;
+		case 2: return BOT_2;
+		case 3: return BOT_3;
+		case 4: return BOT_4;
+		case 5: return BOT_5;
+		case 6: return BOT_6;
+		};
 		if(robot_num >=0 && robot_num<7){
 			return robot_set_point[robot_num];
 		}
