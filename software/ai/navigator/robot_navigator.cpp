@@ -16,21 +16,18 @@ namespace {
 
 	// as required by the rules
 	const double AVOID_BALL_AMOUNT = 0.5 + robot::MAX_RADIUS;
-	double_param AVOID_CONST("Navigator avoid factor const", 1.1, 0.9, 2.0);
-	double_param AVOID_MULT("Navigator avoid factor mult", 0.01, 0.0, 10.0);
-	double_param LOOKAHEAD_MAX("Navigator max distance to look ahead", robot::MAX_RADIUS*5, robot::MAX_RADIUS*1, robot::MAX_RADIUS*20);
+	double_param AVOID_CONST("navigator: avoid factor const", 1.1, 0.9, 2.0);
+	double_param AVOID_MULT("navigator: avoid factor mult", 0.01, 0.0, 10.0);
+	double_param LOOKAHEAD_MAX("navigator: max distance to look ahead", robot::MAX_RADIUS*5, robot::MAX_RADIUS*1, robot::MAX_RADIUS*20);
 
-	bool_param ENEMY_AVOID("Avoid Enemy Near Ball", true);
-	bool_param FRIENDLY_AVOID("Avoid Friendly Near Ball", true);
-	double_param NEAR_BALL_THRESHOLD("Distance to be considered near ball", robot::MAX_RADIUS * 5, robot::MAX_RADIUS*1, robot::MAX_RADIUS*20);
+	bool_param ENEMY_AVOID("navigator: avoid Enemy Near Ball", true);
+	bool_param FRIENDLY_AVOID("navigator: avoid Friendly Near Ball", true);
+	double_param NEAR_BALL_THRESHOLD("navigator: distance to be considered near ball", robot::MAX_RADIUS * 5, robot::MAX_RADIUS*1, robot::MAX_RADIUS*20);
 
-	bool_param CONSTANT_DRIBBLER("dribbler: fixed speed", false);
+	bool_param CONSTANT_DRIBBLER("dribble: fixed speed", false);
 	double_param DRIBBLE_SPEED_LOW("dribble: low speed", 0.25, 0.05, 0.80);
 	double_param DRIBBLE_SPEED_RAMP("dribble: ramp speed", 1.00, 0.00, 10.00);
 	double_param DRIBBLE_SPEED_MAX("dribble: max speed", 0.60, 0.10, 0.90);
-	//const double DRIBBLE_SPEED_LOW  = 0.25;
-	//const double DRIBBLE_SPEED_RAMP = 1.00;
-	//const double DRIBBLE_SPEED_MAX  = 0.50;
 
 	const double OFFENSIVE_AVOID = 0.2;
 	// hardware dependent dribble parameters
