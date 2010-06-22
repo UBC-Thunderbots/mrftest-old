@@ -18,8 +18,8 @@
 
 namespace {
 
-	bool_param PID_SLOW_ANGULAR("PID: Slow if translating", false);
-	bool_param PID_FLIP_SLOWDOWN("PID: flip trans/ang slowdown", false);
+	//bool_param PID_SLOW_ANGULAR("PID: Slow if translating", false);
+	//bool_param PID_FLIP_SLOWDOWN("PID: flip trans/ang slowdown", false);
 
 	const double SLOWDOWN = 2.0;
 	const double DAMP = 0.5;
@@ -169,6 +169,7 @@ namespace {
 		}
 
 		// threshold even more
+		/*
 		if (PID_SLOW_ANGULAR) {
 			if (PID_FLIP_SLOWDOWN) {
 				double slowdown = (SLOWDOWN * param[PARAM_A_THRESH] - std::fabs(angular_velocity)) / (SLOWDOWN * param[PARAM_A_THRESH]);
@@ -180,6 +181,7 @@ namespace {
 				angular_velocity *= slowdown;
 			}
 		}
+		*/
 
 		/*
 		   if (plr->has_ball()) {

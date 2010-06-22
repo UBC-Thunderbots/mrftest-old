@@ -1,0 +1,150 @@
+#include "geom/point.h"
+#include "geom/angle.h"
+#include "ai/world/player.h"
+#include "robot_controller/robot_controller.h"
+#include "robot_controller/tunable_controller.h"
+#include "geom/point.h"
+#include "util/byref.h"
+#include "util/noncopyable.h"
+
+#include "util/algorithm.h"
+#include "uicomponents/param.h"
+
+#include <vector>
+#include <glibmm.h>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <cassert>
+
+namespace {
+
+	bool_param ADHOC_SLOW_ANGULAR("AdHoc2: Slow if translating", true);
+	bool_param ADHOC_FLIP_SLOWDOWN("AdHoc2: flip trans/ang slowdown", false);
+	double_param ADHOC_SLOWDOWN("AdHoc2: slowdown (CARE)", 1.1, 0.1, 8.0);
+	double_param ADHOC_PROP("AdHoc2: prop", 10, 0.0, 20.0);
+	double_param ADHOC_MAX_VEL("AdHoc2: max vel", 8, 0.0, 20.0);
+	double_param ADHOC_MAX_ACC("AdHoc2: max acc", 3, 0.0, 20.0);
+	double_param ADHOC_A_PROP("AdHoc2: angle prop", 12, 0.0, 50.0);
+	double_param ADHOC_A_THRESH("AdHoc2: angle thresh", 12, 0.0, 50.0);
+
+	const double ADHOC_XY_RATIO = 0.81;
+	const double ADHOC_DIFF = 0.0;
+	const double ADHOC_A_DIFF = 0.0;
+	const double ADHOC_YA_RATIO = 0.0; // 0 - 5 to face forwards
+
+	class adhoc2_controller : public robot_controller {
+		public:
+			void move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity);
+			void clear();
+			robot_controller_factory &get_factory() const;
+			adhoc2_controller(player::ptr plr);
+		protected:
+			player::ptr plr;
+			bool initialized;
+			// errors in x, y, d
+			point prev_new_pos;
+			double prev_new_ori;
+			point prev_linear_velocity;
+			double prev_angular_velocity;
+	};
+
+	adhoc2_controller::adhoc2_controller(player::ptr plr) : plr(plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
+	}
+
+	void adhoc2_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
+		const point &current_position = plr->position();
+		const double current_orientation = plr->orientation();
+
+		// relative new direction and angle
+		double new_da = angle_mod(new_orientation - current_orientation);
+		const point &new_dir = (new_position - current_position).rotate(-current_orientation);
+
+		if (new_da > M_PI) new_da -= 2 * M_PI;
+
+		if (!initialized) {
+			initialized = true;
+			prev_new_pos = new_position;
+			prev_new_ori = new_orientation;
+		}
+
+		const double px = new_dir.x;
+		const double py = new_dir.y;
+		const double pa = new_da;
+		point vel = (plr->est_velocity()).rotate(-current_orientation);
+		double vx = -vel.x;
+		double vy = -vel.y;
+		double va = -plr->est_avelocity();
+
+		//const double cx = accum_pos.x;
+		//const double cy = accum_pos.y;
+
+		// check if command has changed
+		if (prev_new_pos.x != new_position.x || prev_new_pos.y != new_position.y || prev_new_ori != new_orientation) {
+			prev_new_pos = new_position;
+			prev_new_ori = new_orientation;
+		}
+
+		linear_velocity.x = px * ADHOC_PROP + vx * ADHOC_DIFF;
+		linear_velocity.y = (py * ADHOC_PROP + vy * ADHOC_DIFF) * ADHOC_XY_RATIO;
+
+		// threshold the linear velocity
+		if (linear_velocity.len() > ADHOC_MAX_VEL) {
+			linear_velocity *= ADHOC_MAX_VEL / linear_velocity.len();
+		}
+
+		// threshold the linear acceleration
+		point accel = linear_velocity - prev_linear_velocity;
+		if (accel.len() > ADHOC_MAX_ACC) {
+			accel *= ADHOC_MAX_ACC / accel.len();
+			linear_velocity = prev_linear_velocity + accel;
+		}
+
+		angular_velocity = pa * ADHOC_A_PROP + va * ADHOC_A_DIFF + linear_velocity.y * ADHOC_YA_RATIO;
+		angular_velocity = clamp<double>(angular_velocity, -ADHOC_A_THRESH, ADHOC_A_THRESH);
+
+		// threshold even more
+		if (ADHOC_SLOW_ANGULAR) {
+			if (ADHOC_FLIP_SLOWDOWN) {
+				double slowdown = (ADHOC_SLOWDOWN * ADHOC_A_THRESH - std::fabs(angular_velocity)) / (ADHOC_SLOWDOWN * ADHOC_A_THRESH);
+				if (std::fabs(slowdown) > 1.1) {
+					std::cerr << "adhoc2: spin up" << std::endl;
+					slowdown = 1;
+				}
+				linear_velocity *= slowdown;
+			} else {
+				double slowdown = (ADHOC_SLOWDOWN * ADHOC_MAX_VEL - linear_velocity.len()) / (ADHOC_SLOWDOWN * ADHOC_MAX_VEL);
+				if (std::fabs(slowdown) > 1.1) {
+					std::cerr << "adhoc2: spin up" << std::endl;
+					slowdown = 1;
+				}
+				angular_velocity *= slowdown;
+			}
+		}
+
+		prev_linear_velocity = linear_velocity;
+		prev_angular_velocity = angular_velocity;
+	}
+
+	void adhoc2_controller::clear() {
+	}
+
+	class adhoc2_controller_factory : public robot_controller_factory {
+		public:
+			adhoc2_controller_factory() : robot_controller_factory("adhoc2") {
+			}
+
+			robot_controller::ptr create_controller(player::ptr plr, bool, unsigned int) const {
+				robot_controller::ptr p(new adhoc2_controller(plr));
+				return p;
+			}
+	};
+
+	adhoc2_controller_factory factory;
+
+	robot_controller_factory &adhoc2_controller::get_factory() const {
+		return factory;
+	}
+
+}
+
