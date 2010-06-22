@@ -14,11 +14,12 @@
 
 namespace {
 	// minimum distance from the goal post
-	double_param MIN_GOALPOST_DIST("Defensive2 distance to goal post", 0.03, 0.03, 1.0);
-	const double MAX_GOALIE_DIST = robot::MAX_RADIUS * 2;
+	double_param MIN_GOALPOST_DIST("defensive2: distance to goal post", 0.03, 0.03, 1.0);
+	double_param MAX_GOALIE_DIST("defensive2: goalie dist (robot radius)", 2.0, 0.0, 10.0);
 
 	bool_param USE_GOALIE_RUSH("defensive2: use goalie rush when ball threatening", FALSE);
 	double_param BALL_DANGEROUS_SPEED("defensive2: threatening ball horizontal speed", 3.0, 1.0, 10.0); 
+	double_param DEFENSIVE2_SHRINK("defensive2: shrink robot radius", 0.9, 0.0, 2.0);
 
 	// used to save if the goalie should be on the top or bottom side
 	class defensive2_state : public player::state {
@@ -60,6 +61,8 @@ std::pair<point, std::vector<point> > defensive2::calc_block_positions(const boo
 	const point goalside = top ? point(-f.length()/2, f.goal_width()/2) : point(-f.length()/2, -f.goal_width()/2);
 	const point goalopp = top ? point(-f.length()/2, -f.goal_width()/2) : point(-f.length()/2, f.goal_width()/2);
 
+	const double radius = robot::MAX_RADIUS * DEFENSIVE2_SHRINK;
+
 	point G;
 	/*
 	   {
@@ -68,26 +71,26 @@ std::pair<point, std::vector<point> > defensive2::calc_block_positions(const boo
 	// normally
 	const double maxdist = f.defense_area_radius();
 	const point L = line_intersect(goalside, ballpos, f.friendly_goal() + point(maxdist, -1), f.friendly_goal() + point(maxdist, 1));
-	G = (top) ? calc_block_cone(goalside - ballpos + L, point(0, -1) + L, L, robot::MAX_RADIUS)
-	: calc_block_cone(point(0, 1) + L, goalside - ballpos + L, L, robot::MAX_RADIUS);
+	G = (top) ? calc_block_cone(goalside - ballpos + L, point(0, -1) + L, L, shrink)
+	: calc_block_cone(point(0, 1) + L, goalside - ballpos + L, L, shrink);
 	}
 	 */
 	{
 		// distance on the goalside - ball line that the robot touches
 		const point ball2side = goalside - ballpos;
 		const point touchvec = -ball2side.norm(); // side to ball
-		const double touchdist = std::min(-ball2side.x / 2, MAX_GOALIE_DIST);
+		const double touchdist = std::min(-ball2side.x / 2, MAX_GOALIE_DIST * robot::MAX_RADIUS);
 		const point perp = (top) ? touchvec.rotate(-M_PI/2) : touchvec.rotate(M_PI/2); 
-		G = goalside + touchvec * touchdist + perp * robot::MAX_RADIUS;
+		G = goalside + touchvec * touchdist + perp * radius;
 #warning a hack right now
-		G.x = std::max(G.x, - f.length() / 2 + robot::MAX_RADIUS);
+		G.x = std::max(G.x, - f.length() / 2 + radius);
 	}
 
 	// first defender will block the remaining cone from the ball
 	{
-		point D1 = calc_block_cone_defender(goalside, goalopp, ballpos, G, robot::MAX_RADIUS);
+		point D1 = calc_block_cone_defender(goalside, goalopp, ballpos, G, radius);
 		bool blowup = false;
-		if (D1.x > robot::MAX_RADIUS - f.length() / 2) blowup = true;
+		if (D1.x > radius - f.length() / 2) blowup = true;
 		if (std::fabs(D1.y) > f.width() / 4) blowup = true;
 		if (blowup) {
 			D1 = (f.friendly_goal() + ballpos) / 2;
@@ -100,7 +103,7 @@ std::pair<point, std::vector<point> > defensive2::calc_block_positions(const boo
 	for (size_t i = 0; i < enemies.size() && waypoints.size() < 3; ++i){
 		if (!ai_util::ball_close(the_world, enemies[i])) {
 			bool blowup = false;
-			point D = calc_block_cone(goalside, goalopp, enemies[i]->position(), robot::MAX_RADIUS);
+			point D = calc_block_cone(goalside, goalopp, enemies[i]->position(), radius);
 			if (D.x > robot::MAX_RADIUS - f.length() / 2) blowup = true;
 			if (std::fabs(D.y) > f.width() / 4) blowup = true;
 			if (blowup) {
