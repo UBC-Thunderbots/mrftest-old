@@ -10,7 +10,11 @@
 
 #include <iostream>
 
+#include "uicomponents/param.h"
+
 namespace {
+
+	bool_param OFFENSIVE_PIVOT("offensive: use pivot", true);
 
 	const double SHOOT_ALLOWANCE = ball::RADIUS;
 
@@ -241,7 +245,9 @@ void offensive::tick() {
 
 			if (shooter == baller) {
 				// i shall shoot
-				tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
+				shoot::ptr shoot_tactic(new shoot(the_robots[baller], the_world));
+				if (OFFENSIVE_PIVOT) shoot_tactic->set_pivot(false);
+				tactics[baller] = shoot_tactic;
 				//if (overlay) overlay->line_to(the_field.enemy_goal().x, the_field.enemy_goal().y);
 			} else if (shooter != -1) {
 				LOG_INFO(Glib::ustring::compose("%1 pass to %2", the_robots[baller]->name, the_robots[shooter]->name));
@@ -251,11 +257,13 @@ void offensive::tick() {
 				// very close to goal, so try making a shot anyways
 				shoot::ptr shoot_tactic(new shoot(the_robots[baller], the_world));
 				shoot_tactic->force();
+				if (OFFENSIVE_PIVOT) shoot_tactic->set_pivot(false);
 				tactics[baller] = shoot_tactic;
 			} else {
 				// i shall shoot
 				shoot::ptr shoot_tactic(new shoot(the_robots[baller], the_world));
 				shoot_tactic->force();
+				if (OFFENSIVE_PIVOT) shoot_tactic->set_pivot(false);
 				tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
 			}
 		} else {
@@ -297,7 +305,7 @@ void offensive::tick() {
 
 		{
 			shoot::ptr shoot_tactic = shoot::ptr(new shoot(the_robots[0], the_world));
-			shoot_tactic->set_pivot(false);
+			if (OFFENSIVE_PIVOT) shoot_tactic->set_pivot(false);
 			tactics[0] = shoot_tactic;
 		}
 	}

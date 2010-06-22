@@ -13,14 +13,14 @@
 
 namespace {
 
-	double_param PIVOT_ORI_CLOSE("Pivot: angle before it goes for ball (degrees)", 10.0, 0.0, 20.0);
+	double_param PIVOT_ORI_CLOSE("Pivot: angle before it goes for ball (degrees)", 20.0, 0.0, 80.0);
 	bool_param PIVOT_USE_NEW("Pivot: use new code", true);
 	double_param PIVOT_DIST("Pivot: distance, in robot radius", 1.5, 0.5, 2.0);
 
 	class pivot_state : public player::state {
 		public:
 			typedef Glib::RefPtr<pivot_state> ptr;
-			pivot_state(const bool& recent) : recent_hit_target(recent) {
+			pivot_state() : recent_hit_target(false) {
 			}
 			bool recent_hit_target;
 	};
@@ -54,7 +54,7 @@ void pivot::tick_old() {
 	pivot_state::ptr state(pivot_state::ptr::cast_dynamic(the_player->get_state(typeid(*this))));
 	if(state)recent_hit_target= state->recent_hit_target;
 	else{
-		state =pivot_state::ptr(new pivot_state(false));
+		state =pivot_state::ptr(new pivot_state());
 		the_player->set_state(typeid(*this), state);
 	}
 
@@ -133,6 +133,14 @@ void pivot::tick_experimental() {
 
 	const point ballpos = the_world->ball()->position();
 
+	/*
+	pivot_state::ptr state(pivot_state::ptr::cast_dynamic(the_player->get_state(typeid(*this))));
+	if(!state) {
+		state = pivot_state::ptr(new pivot_state(false));
+		the_player->set_state(typeid(*this), state);
+	}
+	*/
+
 	// invalid target
 	if ((target - ballpos).len() < ai_util::POS_EPS) {
 		LOG_WARN("ball is already in destination");
@@ -145,7 +153,13 @@ void pivot::tick_experimental() {
 	const point dest = calc_pivot_pos(ballpos, target);
 
 	const point ball2dest = dest - ballpos;
-	const point ball2player = playerpos - ballpos;
+	point ball2player = playerpos - ballpos;
+
+	// H A C K
+	if (ball2player.len() < ai_util::POS_CLOSE) {
+		const double ori = the_player->orientation();
+		ball2player = -point(cos(ori), sin(ori));
+	}
 
 	// we can do something to the ball now!
 	//if (!avoid_ball_ && (dest - playerpos).len() < ai_util::POS_CLOSE) {
