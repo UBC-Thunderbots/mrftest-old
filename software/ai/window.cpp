@@ -71,9 +71,11 @@ namespace {
 				alm_column_record.add(run_data_interval_column);
 
 				for (unsigned int i = 0; i < bots.size(); ++i) {
-					bots[i]->signal_feedback.connect(sigc::bind(sigc::mem_fun(this, &robot_info_model::alm_row_changed), i));
-					bots[i]->signal_alive.connect(sigc::bind(sigc::mem_fun(this, &robot_info_model::alm_row_changed), i));
-					bots[i]->signal_dead.connect(sigc::bind(sigc::mem_fun(this, &robot_info_model::alm_row_changed), i));
+					if (bots[i]) {
+						bots[i]->signal_feedback.connect(sigc::bind(sigc::mem_fun(this, &robot_info_model::alm_row_changed), i));
+						bots[i]->signal_alive.connect(sigc::bind(sigc::mem_fun(this, &robot_info_model::alm_row_changed), i));
+						bots[i]->signal_dead.connect(sigc::bind(sigc::mem_fun(this, &robot_info_model::alm_row_changed), i));
+					}
 				}
 
 				friendly.signal_player_added.connect(sigc::mem_fun(this, &robot_info_model::on_player_added));
@@ -82,7 +84,7 @@ namespace {
 
 			void on_player_added(unsigned int, player::ptr plr) {
 				for (unsigned int i = 0; i < bots.size(); ++i) {
-					if (bots[i]->address == plr->address()) {
+					if (bots[i] && bots[i]->address == plr->address()) {
 						visible[i] = true;
 						alm_row_changed(i);
 					}
@@ -91,7 +93,7 @@ namespace {
 
 			void on_player_removed(unsigned int, player::ptr plr) {
 				for (unsigned int i = 0; i < bots.size(); ++i) {
-					if (bots[i]->address == plr->address()) {
+					if (bots[i] && bots[i]->address == plr->address()) {
 						visible[i] = false;
 						alm_row_changed(i);
 					}
@@ -112,7 +114,7 @@ namespace {
 				} else if (col == static_cast<unsigned int>(radio_column.index())) {
 					Glib::Value<bool> v;
 					v.init(visible_column.type());
-					v.set(bots[row]->alive());
+					v.set(bots[row] ? bots[row]->alive() : false);
 					value.init(visible_column.type());
 					value = v;
 				} else if (col == static_cast<unsigned int>(visible_column.index())) {
@@ -124,13 +126,13 @@ namespace {
 				} else if (col == static_cast<unsigned int>(battery_column.index())) {
 					Glib::Value<unsigned int> v;
 					v.init(battery_column.type());
-					v.set(bots[row]->alive() ? bots[row]->battery_voltage() : 0);
+					v.set(bots[row] ? (bots[row]->alive() ? bots[row]->battery_voltage() : 0) : 0);
 					value.init(battery_column.type());
 					value = v;
 				} else if (col == static_cast<unsigned int>(feedback_interval_column.index())) {
 					Glib::Value<unsigned int> v;
 					v.init(feedback_interval_column.type());
-					if (bots[row]->alive()) {
+					if (bots[row] && bots[row]->alive()) {
 						const timespec &ts(bots[row]->feedback_interval());
 						unsigned int ms = timespec_to_millis(ts);
 						v.set(ms);
@@ -142,7 +144,7 @@ namespace {
 				} else if (col == static_cast<unsigned int>(run_data_interval_column.index())) {
 					Glib::Value<unsigned int> v;
 					v.init(run_data_interval_column.type());
-					if (bots[row]->alive()) {
+					if (bots[row] && bots[row]->alive()) {
 						const timespec &ts(bots[row]->run_data_interval());
 						unsigned int ms = timespec_to_millis(ts);
 						v.set(ms);

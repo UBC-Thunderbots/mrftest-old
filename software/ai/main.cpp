@@ -39,24 +39,15 @@ namespace {
 			 *
 			 * \return the new model.
 			 */
-			static Glib::RefPtr<team_customizer_model> create(const config &conf) {
+			static Glib::RefPtr<team_customizer_model> create(config &conf) {
 				Glib::RefPtr<team_customizer_model> p(new team_customizer_model(conf));
 				return p;
 			}
 
-			/**
-			 * \return a vector containing \c true if a robot is friendly or \c
-			 * false if it is enemy.
-			 */
-			const std::vector<bool> &friendly() const {
-				return friendly_;
-			}
-
 		private:
-			const config &conf;
-			std::vector<bool> friendly_;
+			config &conf;
 
-			team_customizer_model(const config &conf) : Glib::ObjectBase(typeid(team_customizer_model)), conf(conf), friendly_(conf.robots().size(), true) {
+			team_customizer_model(config &conf) : Glib::ObjectBase(typeid(team_customizer_model)), conf(conf) {
 				alm_column_record.add(friendly_column);
 				alm_column_record.add(name_column);
 			}
@@ -69,7 +60,7 @@ namespace {
 				if (col == static_cast<unsigned int>(friendly_column.index())) {
 					Glib::Value<bool> v;
 					v.init(friendly_column.type());
-					v.set(friendly_[row]);
+					v.set(conf.robots()[row].friendly);
 					value.init(friendly_column.type());
 					value = v;
 				} else if (col == static_cast<unsigned int>(name_column.index())) {
@@ -89,14 +80,14 @@ namespace {
 					v.init(friendly_column.type());
 					Glib::ValueBase &vb(v);
 					vb = value;
-					friendly_[row] = v.get();
+					conf.robots()[row].friendly = v.get();
 				}
 			}
 	};
 
 	class custom_team_builder : public Gtk::Window {
 		public:
-			custom_team_builder(config &conf) : conf(conf), model(team_customizer_model::create(conf)) {
+			custom_team_builder(config &conf) : model(team_customizer_model::create(conf)) {
 				set_title("Thunderbots AI");
 				set_default_size(200, 200);
 
@@ -113,20 +104,7 @@ namespace {
 			}
 
 		private:
-			config &conf;
 			Glib::RefPtr<team_customizer_model> model;
-
-			bool on_delete_event(GdkEventAny *) {
-				std::vector<uint64_t> to_remove;
-				const std::vector<bool> &friendly(model->friendly());
-				for (unsigned int i = 0; i < conf.robots().size(); ++i) {
-					if (!friendly[i]) {
-						to_remove.push_back(conf.robots()[i].address);
-					}
-				}
-				std::for_each(to_remove.begin(), to_remove.end(), sigc::mem_fun(conf.robots(), &config::robot_set::remove));
-				return false;
-			}
 	};
 
 	int main_impl(int argc, char **argv) {
@@ -218,16 +196,15 @@ namespace {
 		bool refbox_yellow = false;
 		config conf;
 		if (all) {
-			// Keep all robots in config.
+			// Leave all robots as friendly.
 		} else if (blue || yellow) {
-			// Keep only blue or yellow robots.
+			// Make only the specified colour of robot be friendly.
 			std::vector<uint64_t> to_remove;
 			for (unsigned int i = 0; i < conf.robots().size(); ++i) {
 				if (conf.robots()[i].yellow != yellow) {
-					to_remove.push_back(conf.robots()[i].address);
+					conf.robots()[i].friendly = false;
 				}
 			}
-			std::for_each(to_remove.begin(), to_remove.end(), sigc::mem_fun(conf.robots(), &config::robot_set::remove));
 			refbox_yellow = yellow;
 		} else if (custom) {
 			custom_team_builder builder(conf);
@@ -241,7 +218,11 @@ namespace {
 
 		std::vector<xbee_drive_bot::ptr> xbee_bots;
 		for (unsigned int i = 0; i < conf.robots().size(); ++i) {
-			xbee_bots.push_back(xbee_drive_bot::create(conf.robots()[i].name, conf.robots()[i].address, modem));
+			if (conf.robots()[i].friendly) {
+				xbee_bots.push_back(xbee_drive_bot::create(conf.robots()[i].name, conf.robots()[i].address, modem));
+			} else {
+				xbee_bots.push_back(xbee_drive_bot::ptr());
+			}
 		}
 
 		param::initialized(&conf);

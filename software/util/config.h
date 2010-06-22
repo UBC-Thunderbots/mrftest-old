@@ -41,6 +41,11 @@ class config : public noncopyable {
 			Glib::ustring name;
 
 			/**
+			 * Whether the robot is friendly, when running inside the AI.
+			 */
+			mutable bool friendly;
+
+			/**
 			 * Constructs a new robot_info.
 			 *
 			 * \param[in] address the robot's XBee address.
@@ -53,7 +58,7 @@ class config : public noncopyable {
 			 *
 			 * \param[in] name a human-readable name for the robot.
 			 */
-			robot_info(uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name) : address(address), yellow(yellow), pattern_index(pattern_index), name(name) {
+			robot_info(uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name) : address(address), yellow(yellow), pattern_index(pattern_index), name(name), friendly(true) {
 			}
 		};
 
