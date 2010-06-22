@@ -221,7 +221,7 @@ void defensive2::tick() {
 		tactics[0] = tactic;
 	}
 	// check if chaser robot
-	if (goaliechase) {
+	else if (goaliechase) {
 		LOG_INFO("goalie to shoot");
 		shoot::ptr shoot_tactic = shoot::ptr(new shoot(the_robots[0], the_world));
 		shoot_tactic->force();
