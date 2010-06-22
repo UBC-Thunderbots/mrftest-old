@@ -24,9 +24,14 @@ void shoot::tick() {
 	const enemy_team &enemy(the_world->enemy);
 
 	const std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world, the_player, true, forced);
+	
+	if (forced) {
+		allow_dribble = false;
+	}
 
 	if (ai_util::has_ball(the_world, the_player)) {
 		// This player has the ball.
+		LOG_INFO("The player has the ball.");
 
 		std::vector<point> obstacles;
 		for (size_t i = 0; i < friendly.size(); ++i) {
