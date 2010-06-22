@@ -18,7 +18,7 @@ namespace {
 	double_param MAX_GOALIE_DIST("defensive2: goalie dist (robot radius)", 2.0, 0.0, 10.0);
 
 	bool_param USE_GOALIE_RUSH("defensive2: use goalie rush when ball threatening", TRUE);
-	double_param BALL_DANGEROUS_SPEED("defensive2: threatening ball horizontal speed", 3.0, 0.1, 10.0); 
+	double_param BALL_DANGEROUS_SPEED("defensive2: threatening ball speed", 0.1, 0.1, 10.0); 
 	double_param DEFENSIVE2_SHRINK("defensive2: shrink robot radius", 0.9, 0.0, 2.0);
 
 	// used to save if the goalie should be on the top or bottom side
@@ -209,8 +209,8 @@ void defensive2::tick() {
 	point rushpos, goalpos;
 	if (ballvel.len() > BALL_DANGEROUS_SPEED && ballvel.x < -1e-6){
 		rushpos = line_intersect(ballpos, ballpos + ballvel, 
-					point(-the_world->field().length()/2.0 + robot::MAX_RADIUS, 1.0),
-					point(-the_world->field().length()/2.0 + robot::MAX_RADIUS, -1.0));
+					point(-the_world->field().length()/2.0 + 1.5*robot::MAX_RADIUS, 1.0),
+					point(-the_world->field().length()/2.0 + 1.5*robot::MAX_RADIUS, -1.0));
 
 		goalpos = line_intersect(ballpos, ballpos + ballvel, 
 					point(-the_world->field().length()/2.0, 1.0),
