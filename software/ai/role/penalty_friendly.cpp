@@ -2,6 +2,7 @@
 #include "ai/tactic/shoot.h"
 #include "ai/tactic/move.h"
 #include "ai/flags.h"
+#include "ai/util.h"
 
 #include <iostream>
 
