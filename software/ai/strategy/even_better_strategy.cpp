@@ -130,6 +130,8 @@ namespace {
 			case playtype::prepare_penalty_enemy:
 			case playtype::execute_penalty_enemy:
 				preferred_offender_number--;
+				if (preferred_offender_number < 1)
+					preferred_offender_number = 1;
 				break;
 			default:
 				if (the_team.size() >= 5 && ai_util::friendly_posses_ball(the_world))
@@ -217,6 +219,8 @@ namespace {
 			case playtype::prepare_penalty_enemy:
 			case playtype::execute_penalty_enemy:
 				preferred_offender_number--;
+				if (preferred_offender_number < 1)
+					preferred_offender_number = 1;
 				break;
 			default:
 				if (the_team.size() >= 5 && ai_util::friendly_posses_ball(the_world))
