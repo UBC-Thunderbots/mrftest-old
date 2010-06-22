@@ -41,11 +41,11 @@ namespace {
 		std::make_pair(point(2.5, 0), 0),
 		std::make_pair(point(0.5, 1.2), PI),
 		std::make_pair(point(1, -0.6), 0),
-		std::make_pair(point(2, 0.6), PI/2),
+		/*std::make_pair(point(2, 0.6), PI/2),
 		std::make_pair(point(1, -0.6), -PI/2),
 		std::make_pair(point(0.5, 0), 0),
 		std::make_pair(point(2.5, 0.6), -PI/2),
-		std::make_pair(point(1.2, 0), 0),
+		std::make_pair(point(1.2, 0), 0),*/
 	};
 #endif
 
