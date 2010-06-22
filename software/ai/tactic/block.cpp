@@ -2,6 +2,13 @@
 #include "ai/tactic/move.h"
 #include "util/dprint.h"
 
+#include "uicomponents/param.h"
+
+namespace{
+	double_param BLOCK_ENEMY_DISTANCE("block: number of robot radii to stay away from enemy when blocking", 1.0, 0.0, 4.0);
+}
+
+
 block::block(player::ptr player, world::ptr world) : tactic(player), the_world(world) {
 }
 
@@ -22,7 +29,7 @@ void block::tick() {
 	LOG_DEBUG(Glib::ustring::compose("%1 aiming", the_player->name));
 	const point goal = point(-the_field.length()/2.0, 0);
 	point dir = target->position() - goal;
-	point offset = dir.norm() * (2*robot::MAX_RADIUS);
+	point offset = dir.norm() * std::min((BLOCK_ENEMY_DISTANCE*robot::MAX_RADIUS), std::max(dir.len() - robot::MAX_RADIUS, 0.0));
 
 	point dest = (dir - offset) + goal;
 	move move_tactic(the_player, the_world);
