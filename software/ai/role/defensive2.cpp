@@ -245,7 +245,7 @@ void defensive2::tick() {
 		for (size_t i = 0; i < defenders.size(); ++i)
 			if (order[i] == 0)
 				closest_defender = static_cast<int>(i);
-		if ((defenders[closest_defender]->position() - waypoints[0]).len() > DEFENSIVE_DIST)
+		if (closest_defender != -1 && (defenders[closest_defender]->position() - waypoints[0]).len() > DEFENSIVE_DIST)
 			tactic->set_position(point(-the_world->field().length()/2.0+1.5*robot::MAX_RADIUS, 0));
 		else tactic->set_position(positions.first);
 		tactics[0] = tactic;
