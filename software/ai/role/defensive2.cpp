@@ -20,6 +20,7 @@ namespace {
 	bool_param USE_GOALIE_RUSH("defensive2: use goalie rush when ball threatening", TRUE);
 	double_param BALL_DANGEROUS_SPEED("defensive2: threatening ball speed", 0.1, 0.1, 10.0); 
 	double_param DEFENSIVE2_SHRINK("defensive2: shrink robot radius", 0.9, 0.0, 2.0);
+	double_param DEFENSIVE_DIST("defensive2: goalie will block center of goal when defender farther than this distance", 0.5, 0.1, 10.0);
 
 	// used to save if the goalie should be on the top or bottom side
 	class defensive2_state : public player::state {
@@ -240,7 +241,13 @@ void defensive2::tick() {
 		tactics[0] = shoot_tactic;
 	} else {
 		move::ptr tactic(new move(the_robots[0], the_world));
-		tactic->set_position(positions.first);
+		int closest_defender = - 1;
+		for (size_t i = 0; i < defenders.size(); ++i)
+			if (order[i] == 0)
+				closest_defender = static_cast<int>(i);
+		if ((defenders[closest_defender]->position() - waypoints[0]).len() > DEFENSIVE_DIST)
+			tactic->set_position(point(-the_world->field().length()/2.0+1.5*robot::MAX_RADIUS, 0));
+		else tactic->set_position(positions.first);
 		tactics[0] = tactic;
 		if (chaser == goalie && defenders.size() > 0) chaser = defenders[0];
 	}
