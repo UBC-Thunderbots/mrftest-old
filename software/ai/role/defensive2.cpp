@@ -91,7 +91,7 @@ std::pair<point, std::vector<point> > defensive2::calc_block_positions(const boo
 	{
 		point D1 = calc_block_cone_defender(goalside, goalopp, ballpos, G, radius);
 		bool blowup = false;
-		if (D1.x > radius - f.length() / 2) blowup = true;
+		if (D1.x < robot::MAX_RADIUS - f.length() / 2 + f.defense_area_stretch()) blowup = true;
 		if (std::fabs(D1.y) > f.width() / 4) blowup = true;
 		if (blowup) {
 			D1 = (f.friendly_goal() + ballpos) / 2;
@@ -105,7 +105,7 @@ std::pair<point, std::vector<point> > defensive2::calc_block_positions(const boo
 		if (!ai_util::ball_close(the_world, enemies[i])) {
 			bool blowup = false;
 			point D = calc_block_cone(goalside, goalopp, enemies[i]->position(), radius);
-			if (D.x > robot::MAX_RADIUS - f.length() / 2) blowup = true;
+			if (D.x < robot::MAX_RADIUS - f.length() / 2 + f.defense_area_stretch()) blowup = true;
 			if (std::fabs(D.y) > f.width() / 4) blowup = true;
 			if (blowup) {
 				D = (f.friendly_goal() + enemies[i]->position()) / 2;
