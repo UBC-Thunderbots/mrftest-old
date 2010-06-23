@@ -34,7 +34,7 @@ void block::tick() {
 	point dest = (dir - offset) + goal;
 	move move_tactic(the_player, the_world);
 	move_tactic.set_position(dest);
-	move_tactic.set_orientation(dir.orientation());
+	move_tactic.set_orientation((-dir).orientation());
 	move_tactic.set_flags(flags);
 	move_tactic.tick();
 }
