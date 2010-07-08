@@ -62,6 +62,13 @@ doc :
 	doxygen
 
 #
+# Gather all the protocol buffers input files.
+#
+PROTOBUF_INPUTS := $(wildcard proto/*.proto)
+PROTOBUF_CCS := $(PROTOBUF_INPUTS:.proto=.pb.cc)
+PROTOBUF_HS := $(PROTOBUF_INPUTS:.proto=.pb.h)
+
+#
 # Template of code to generate for each project.
 #
 define project_template
@@ -70,7 +77,11 @@ define project_template
 #
 CPP_SOURCES_EXPANDED_$(1) := $$(shell find $$(SOURCES_$(1)) -name .svn -prune -o -name '*.cpp' -print)
 ALL_CPP_FILES += $$(CPP_SOURCES_EXPANDED_$(1))
-CC_SOURCES_EXPANDED_$(1) := $$(shell find $$(SOURCES_$(1)) -name .svn -prune -o -name '*.cc' -print)
+ifneq (,$$(filter proto,$$(SOURCES_$(1))))
+CC_SOURCES_EXPANDED_$(1) := $(PROTOBUF_CCS)
+else
+CC_SOURCES_EXPANDED_$(1) :=
+endif
 
 $(1) : $$(CPP_SOURCES_EXPANDED_$(1):.cpp=.o) $$(CC_SOURCES_EXPANDED_$(1):.cc=.o)
 	echo "  LD $$@"
@@ -81,13 +92,6 @@ endef
 # Generate the code for the projects.
 #
 $(eval $(foreach proj,$(PROJECTS),$(call project_template,$(proj))))
-
-#
-# Gather all the protocol buffers input files.
-#
-PROTOBUF_INPUTS := $(wildcard proto/*.proto)
-PROTOBUF_CCS := $(PROTOBUF_INPUTS:.proto=.pb.cc)
-PROTOBUF_HS := $(PROTOBUF_INPUTS:.proto=.pb.h)
 
 #
 # Rule to make a .d file from a .cpp file.
