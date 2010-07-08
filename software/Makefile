@@ -73,6 +73,7 @@ ALL_CPP_FILES += $$(CPP_SOURCES_EXPANDED_$(1))
 CC_SOURCES_EXPANDED_$(1) := $$(shell find $$(SOURCES_$(1)) -name .svn -prune -o -name '*.cc' -print)
 
 $(1) : $$(CPP_SOURCES_EXPANDED_$(1):.cpp=.o) $$(CC_SOURCES_EXPANDED_$(1):.cc=.o)
+	echo "  LD $$@"
 	$$(CXX) $$(CXXFLAGS) -o$$@ $$+ $$(LDFLAGS_$(1))
 endef
 
@@ -99,12 +100,21 @@ PROTOBUF_HS := $(PROTOBUF_INPUTS:.proto=.pb.h)
 # force protoc to be run before dependency calculation begins.
 #
 %.d : %.cpp $(PROTOBUF_HS)
+	echo "  DEP $@"
 	$(CXX) $(CXXFLAGS) -MT '$(@:.d=.o) $@' -MM -MF $@ $< || { $(RM) $@; false; }
+
+#
+# Rule to make a .o file from a .cpp file.
+#
+%.o : %.cpp
+	echo "  CXX $@"
+	$(CXX) $(CXXFLAGS) -o$@ -c $<
 
 #
 # Rule to make a .pb.cc and a .pb.h file from a .proto file.
 #
 proto/%.pb.cc proto/%.pb.h : proto/%.proto
+	echo "  PROTOC $@"
 	protoc --proto_path=proto --cpp_out=proto $<
 .SECONDARY : $(PROTOBUF_CCS) $(PROTOBUF_HS)
 
@@ -113,6 +123,7 @@ proto/%.pb.cc proto/%.pb.h : proto/%.proto
 # because the generated code otherwise triggers warnings.
 #
 proto/%.pb.o : proto/%.pb.cc $(PROTOBUF_HS)
+	echo "  CXX $@"
 	$(CXX) $(CXXFLAGS) -o$@ -c -Wno-extra $<
 
 #
