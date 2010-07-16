@@ -10,6 +10,8 @@ firmware/mainboard-copro/*.map
 firmware/mainboard-copro/pingen
 firmware/mainboard-copro/pins.inc
 software/*.d
+software/.cproject
+software/.project
 software/ai/*.d
 software/ai/ball_filter/*.d
 software/ai/navigator/*.d
@@ -38,6 +40,7 @@ software/sim/*.d
 software/sim/engines/*.d
 software/sim/engines/ODE_simulator/*.d
 software/simulator
+software/tags
 software/test
 software/tester/*.d
 software/thunderbots
