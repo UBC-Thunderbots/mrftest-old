@@ -62,6 +62,13 @@ doc :
 	doxygen
 
 #
+# Build a cross-reference database.
+#
+.PHONY : tags
+tags :
+	ctags -R
+
+#
 # Gather all the protocol buffers input files.
 #
 PROTOBUF_INPUTS := $(wildcard proto/*.proto)
