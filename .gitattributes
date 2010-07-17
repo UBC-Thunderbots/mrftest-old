@@ -247,6 +247,7 @@ software/sim/engines/ODE_simulator/ballODE.h -text
 software/sim/engines/ODE_simulator/ode_simulator.cpp -text
 software/sim/engines/ODE_simulator/playerODE.cpp -text
 software/sim/engines/ODE_simulator/playerODE.h -text
+software/sim/engines/ODE_simulator/player_shapes.h -text
 software/sim/engines/engine.h -text
 software/sim/field.h -text
 software/sim/main.cpp -text
