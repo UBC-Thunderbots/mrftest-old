@@ -131,7 +131,7 @@ class config : public noncopyable {
 				 * \param[in] yellow \c true to make the central dot on the new
 				 * robot's lid yellow, or \c false if not.
 				 *
-				 * \param[in] name a human-readable name for the ball.
+				 * \param[in] name a human-readable name for the robot.
 				 */
 				void add(uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name);
 
