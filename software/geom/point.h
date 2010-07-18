@@ -30,7 +30,7 @@ class Point {
 		 *
 		 * \param[in] x the <var>x</var> value of the Point.
 		 *
-		 * \param[in] y the <var>y</var. value of the Point.
+		 * \param[in] y the <var>y</var> value of the Point.
 		 */
 		Point(double x, double y) : x(x), y(y) {
 		}
