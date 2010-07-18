@@ -117,7 +117,7 @@ class XBeeRobot : public ByRef {
 		 *
 		 * \return A new XBeeRobot object
 		 */
-		static ptr create(uint64_t address64, class XBeeDaemon &daemon);
+		static ptr create(uint64_t address64, XBeeDaemon &daemon);
 
 		/**
 		 * Switches the robot into raw mode.
@@ -210,9 +210,9 @@ class XBeeRobot : public ByRef {
 
 	private:
 		RobotState::ptr state_;
-		class XBeeDaemon &daemon;
+		XBeeDaemon &daemon;
 
-		XBeeRobot(uint64_t address64, class XBeeDaemon &daemon);
+		XBeeRobot(uint64_t address64, XBeeDaemon &daemon);
 
 		friend class IdleState;
 		friend class RawState;

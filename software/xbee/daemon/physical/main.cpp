@@ -44,7 +44,7 @@ namespace {
 		XBeePacketStream pstream;
 
 		// Create the main application.
-		class XBeeDaemon d(pstream);
+		XBeeDaemon d(pstream);
 
 		// Configure the serial port.
 		pstream.configure_port();

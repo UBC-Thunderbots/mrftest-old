@@ -17,7 +17,7 @@ namespace {
 	const unsigned int TIMEOUT = 75;
 }
 
-XBeeScheduler::XBeeScheduler(class XBeeDaemon &daemon) : daemon(daemon), sent_count(0), next_type(NEXT_QUEUED), last_feedback_index(0) {
+XBeeScheduler::XBeeScheduler(XBeeDaemon &daemon) : daemon(daemon), sent_count(0), next_type(NEXT_QUEUED), last_feedback_index(0) {
 	daemon.backend.signal_received.connect(sigc::mem_fun(this, &XBeeScheduler::on_receive));
 	daemon.shm->run_data_interval.tv_sec = 1;
 	daemon.shm->run_data_interval.tv_nsec = 0;

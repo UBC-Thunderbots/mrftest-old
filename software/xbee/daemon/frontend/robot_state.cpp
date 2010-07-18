@@ -1099,12 +1099,12 @@ void XBeeRobot::BootloadingLowToSetting16State::request_done(const void *buffer,
 
 
 
-XBeeRobot::ptr XBeeRobot::create(uint64_t address64, class XBeeDaemon &daemon) {
+XBeeRobot::ptr XBeeRobot::create(uint64_t address64, XBeeDaemon &daemon) {
 	ptr p(new XBeeRobot(address64, daemon));
 	return p;
 }
 
-XBeeRobot::XBeeRobot(uint64_t address64, class XBeeDaemon &daemon) : address64(address64), state_(IdleState::enter(*this)), daemon(daemon) {
+XBeeRobot::XBeeRobot(uint64_t address64, XBeeDaemon &daemon) : address64(address64), state_(IdleState::enter(*this)), daemon(daemon) {
 }
 
 void XBeeRobot::enter_raw_mode(XBeeClient *cli) {

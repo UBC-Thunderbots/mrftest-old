@@ -18,7 +18,7 @@ class SimulatorVisData : public Visualizable {
 		 */
 		SimulatorVisData(const Simulator &sim);
 
-		const class Visualizable::Field &field() const;
+		const Visualizable::Field &field() const;
 		Visualizable::Ball::ptr ball() const;
 		std::size_t size() const;
 		Visualizable::Robot::ptr operator[](unsigned int index) const;

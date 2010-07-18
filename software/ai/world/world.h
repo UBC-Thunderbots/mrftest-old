@@ -90,7 +90,7 @@ class World : public ByRef {
 		/**
 		 * \return The Field
 		 */
-		const class Field &field() const {
+		const Field &field() const {
 			return field_;
 		}
 
@@ -137,7 +137,7 @@ class World : public ByRef {
 		/**
 		 * \return The currently-active ball filter
 		 */
-		class BallFilter *ball_filter() const {
+		BallFilter *ball_filter() const {
 			return ball_filter_;
 		}
 
@@ -146,7 +146,7 @@ class World : public ByRef {
 		 *
 		 * \param filter the new filter to use
 		 */
-		void ball_filter(class BallFilter *filter);
+		void ball_filter(BallFilter *filter);
 
 		/**
 		 * \return the number of AI ticks that have occurred since program
@@ -172,7 +172,7 @@ class World : public ByRef {
 				VisualizerView(const World * const w) : the_world(w) {
 				}
 
-				const class Visualizable::Field &field() const {
+				const Visualizable::Field &field() const {
 					return the_world->field();
 				}
 
@@ -200,15 +200,15 @@ class World : public ByRef {
 		bool refbox_yellow_;
 		const FileDescriptor vision_socket;
 		RefBox refbox_;
-		class Field field_;
+		Field field_;
 		Ball::ptr ball_;
 		SSL_DetectionFrame detections[2];
 		const std::vector<XBeeDriveBot::ptr> xbee_bots;
 		PlayType::PlayType playtype_;
 		PlayType::PlayType playtype_override;
 		bool playtype_override_active;
-		class VisualizerView vis_view;
-		class BallFilter *ball_filter_;
+		VisualizerView vis_view;
+		BallFilter *ball_filter_;
 		Point playtype_arm_ball_position;
 		uint64_t timestamp_;
 		timespec playtype_time_;

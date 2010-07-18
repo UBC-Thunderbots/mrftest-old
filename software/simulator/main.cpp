@@ -70,7 +70,7 @@ namespace {
 		if (engine) {
 			TimerFDClockSource clk((UINT64_C(1000000000) + TIMESTEPS_PER_SECOND / 2) / TIMESTEPS_PER_SECOND);
 			Simulator sim(conf, engine, clk);
-			class XBeeDaemon d(sim);
+			XBeeDaemon d(sim);
 			MainWindow win(sim);
 			clk.start();
 			Gtk::Main::run(win);

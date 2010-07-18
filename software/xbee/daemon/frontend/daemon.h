@@ -21,7 +21,7 @@ class XBeeDaemon : public sigc::trackable {
 		//
 		// Constructs a new XBeeDaemon.
 		//
-		XBeeDaemon(class BackEnd &backend);
+		XBeeDaemon(BackEnd &backend);
 
 		//
 		// Destroys a XBeeDaemon.
@@ -46,7 +46,7 @@ class XBeeDaemon : public sigc::trackable {
 		//
 		// The backend implementation.
 		//
-		class BackEnd &backend;
+		BackEnd &backend;
 
 		//
 		// The shared memory block shared with clients.
@@ -66,7 +66,7 @@ class XBeeDaemon : public sigc::trackable {
 		//
 		// The XBeeScheduler that schedules delivery of packets.
 		//
-		class XBeeScheduler scheduler;
+		XBeeScheduler scheduler;
 
 		//
 		// A signal fired when the last client disconnects from the XBeeDaemon. The

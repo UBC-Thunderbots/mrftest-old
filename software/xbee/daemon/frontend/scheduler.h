@@ -19,7 +19,7 @@ class XBeeScheduler : public NonCopyable {
 		//
 		// Constructs a new XBeeScheduler.
 		//
-		XBeeScheduler(class XBeeDaemon &);
+		XBeeScheduler(XBeeDaemon &);
 
 		//
 		// Queues a new unicast packet for transmission.
@@ -27,7 +27,7 @@ class XBeeScheduler : public NonCopyable {
 		void queue(XBeeRequest::ptr req);
 
 	private:
-		class XBeeDaemon &daemon;
+		XBeeDaemon &daemon;
 		std::queue<XBeeRequest::ptr> pending;
 		struct sent_request {
 			XBeeRequest::ptr data;

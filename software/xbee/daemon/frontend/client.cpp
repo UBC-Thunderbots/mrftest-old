@@ -20,7 +20,7 @@ namespace {
 	std::unordered_set<XBeeClient *> instances;
 }
 
-void XBeeClient::create(FileDescriptor &sock, class XBeeDaemon &daemon) {
+void XBeeClient::create(FileDescriptor &sock, XBeeDaemon &daemon) {
 	new XBeeClient(sock, daemon);
 }
 
@@ -34,7 +34,7 @@ bool XBeeClient::any_connected() {
 	return !instances.empty();
 }
 
-XBeeClient::XBeeClient(FileDescriptor &sck, class XBeeDaemon &daemon) : sock(sck), daemon(daemon) {
+XBeeClient::XBeeClient(FileDescriptor &sck, XBeeDaemon &daemon) : sock(sck), daemon(daemon) {
 	// Connect to signals.
 	Glib::signal_io().connect(sigc::mem_fun(this, &XBeeClient::on_socket_ready), sock, Glib::IO_IN | Glib::IO_HUP);
 	daemon.backend.signal_received.connect(sigc::mem_fun(this, &XBeeClient::on_radio_packet));

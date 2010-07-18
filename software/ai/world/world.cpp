@@ -73,7 +73,7 @@ void World::flip_refbox_colour() {
 	update_playtype();
 }
 
-void World::ball_filter(class BallFilter *filt) {
+void World::ball_filter(BallFilter *filt) {
 	if (ball_filter_ != filt) {
 		LOG_DEBUG(Glib::ustring::compose("Changing to ball filter %1.", filt ? filt->name : "<None>"));
 		ball_filter_ = filt;
