@@ -8,37 +8,37 @@
 using namespace std;
 
 namespace {
-	struct circle {
-		point center;
+	struct Circle {
+		Point center;
 		double certainty;
 
-		bool operator==(circle other) {
+		bool operator==(Circle other) {
 			return (center - other.center).len() < 0.001;
 		}
 	};
 
-	class byrons_filter : public ball_filter {
+	class ByronsFilter : public BallFilter {
 		private:
 			static const double RADIUS = 10.0/TIMESTEPS_PER_SECOND;
 			static const double DECAY_RATE = 0.2063; // half-life = 3 frames
 			static const double DELETE_THRESHOLD = 0.02; // stores < 50 circles
-			list<circle> circles;
-			point last_point;
+			list<Circle> circles;
+			Point last_point;
 
 		public:
-			byrons_filter() : ball_filter("Byron's Filter") {
-				circle c;
-				c.center = point(0, 0);
+			ByronsFilter() : BallFilter("Byron's Filter") {
+				Circle c;
+				c.center = Point(0, 0);
 				c.certainty = DELETE_THRESHOLD;
 				circles.push_back(c);
 			}
 
-			point filter(const vector<pair<double, point> > &obs, friendly_team &, enemy_team &) {
-				point max_point;
+			Point filter(const vector<pair<double, Point> > &obs, FriendlyTeam &, EnemyTeam &) {
+				Point max_point;
 				double max_cert = -0.1;
 
 				if (obs.empty()) {
-					for (list<circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
+					for (list<Circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
 						it->certainty = (1.0 - DECAY_RATE)*it->certainty;
 					}
 				}
@@ -50,8 +50,8 @@ namespace {
 						}
 					}
 
-					vector<circle> containing;
-					for (list<circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
+					vector<Circle> containing;
+					for (list<Circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
 						if ((max_point - it->center).len() < RADIUS) {
 							containing.push_back(*it);
 							it->center = max_point;
@@ -62,17 +62,17 @@ namespace {
 					if (containing.empty()) {
 						if (max_cert < 0)
 							max_point = last_point;
-						circle c;
+						Circle c;
 						c.center = max_point;
 						c.certainty = DECAY_RATE;
 						circles.push_back(c);
 					}
 					else {
 						double anti_cert = 1.0;
-						for (vector<circle>::iterator it = containing.begin(); it != containing.end(); ++it) {
+						for (vector<Circle>::iterator it = containing.begin(); it != containing.end(); ++it) {
 							anti_cert *= 1.0 - (*it).certainty;
 							if (it != containing.begin()) {
-								list<circle>::iterator shit, next_shit = circles.begin();
+								list<Circle>::iterator shit, next_shit = circles.begin();
 								while (next_shit != circles.end()) {
 									shit = next_shit;
 									++next_shit;
@@ -86,15 +86,15 @@ namespace {
 						containing[0].certainty = 1.0 - anti_cert;
 					}
 
-					for (list<circle>::iterator it = circles.begin(); it != circles.end(); ) {
+					for (list<Circle>::iterator it = circles.begin(); it != circles.end(); ) {
 						if (it->certainty < DELETE_THRESHOLD) it = circles.erase(it);
 						else ++it;
 					}
 				}
 
 				max_cert = 0.0;
-				list<circle>::iterator max_point_it = circles.begin();
-				for (list<circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
+				list<Circle>::iterator max_point_it = circles.begin();
+				for (list<Circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
 					if (max_cert < it->certainty) {
 						max_cert = it->certainty;
 						max_point_it = it;
@@ -105,6 +105,6 @@ namespace {
 			}
 	};
 
-	byrons_filter instance;
+	ByronsFilter instance;
 }
 

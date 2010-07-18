@@ -8,7 +8,7 @@
 // TODO: Ignore this message
 // Kenneth: PLEASE READ THIS BEFORE UPDATING.
 // 1) the_goalie is guaranteed to be non-empty
-// 2) the_robots may be empty(i.e. the defensive role only has one goalie, which is stored separately). In this case the defensive role should just tick the goalie role and do nothing else.
+// 2) the_robots may be empty(i.e. the defensive role only has one goalie, which is stored separately). In this case the defensive role should just tick the Goalie role and do nothing else.
 // 3) If the goalie has ball and there are at least two robots on the field, the the_robots has at least one robot.
 
 /**
@@ -21,17 +21,17 @@
  * tries to pass to a robot not in defensive role closest to an enemy goal.
  * If not possible, passes to a defender or goalie (randomly).
  */
-class defensive : public role {
+class Defensive : public Role {
 	public:
 		//
-		// A pointer to a defensive role.
+		// A pointer to a Defensive Role.
 		//
-		typedef Glib::RefPtr<defensive> ptr;
+		typedef Glib::RefPtr<Defensive> ptr;
 
 		//
-		// Constructs a new defensive role.
+		// Constructs a new Defensive Role.
 		//
-		defensive(world::ptr world);
+		Defensive(World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -48,13 +48,13 @@ class defensive : public role {
 		/**
 		 * Calculate points which should be used to defend from
 		 * enemy robots. Should be adjusted to take into account
-		 * of the rules and number of robots in this role.
+		 * of the rules and number of robots in this Role.
 		 */
-		std::vector<point> calc_block_positions() const;
+		std::vector<Point> calc_block_positions() const;
 
-		const world::ptr the_world;
+		const World::ptr the_world;
 
-		std::vector<tactic::ptr> tactics;
+		std::vector<Tactic::ptr> tactics;
 };
 
 #endif

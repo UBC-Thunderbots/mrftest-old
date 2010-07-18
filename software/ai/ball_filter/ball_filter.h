@@ -11,7 +11,7 @@
  * An object capable of examining incoming ball information data and filtering
  * it to determine which detections are real and which are spurious.
  */
-class ball_filter : public registerable<ball_filter> {
+class BallFilter : public Registerable<BallFilter> {
 	public:
 		/**
 		 * Performs a filtering operation.
@@ -21,15 +21,15 @@ class ball_filter : public registerable<ball_filter> {
 		 *
 		 * \return The correct position of the ball.
 		 */
-		virtual point filter(const std::vector<std::pair<double, point> > &balls, friendly_team &friendly, enemy_team &enemy) = 0;
+		virtual Point filter(const std::vector<std::pair<double, Point> > &balls, FriendlyTeam &friendly, EnemyTeam &enemy) = 0;
 
 	protected:
 		/**
-		 * Constructs a new ball_filter.
+		 * Constructs a new BallFilter.
 		 *
 		 * \param name the name of the filter.
 		 */
-		ball_filter(const Glib::ustring &name) : registerable<ball_filter>(name) {
+		BallFilter(const Glib::ustring &name) : Registerable<BallFilter>(name) {
 		}
 };
 

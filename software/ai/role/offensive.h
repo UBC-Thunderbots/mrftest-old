@@ -16,17 +16,17 @@ namespace {
  * Tries to receive the ball if defender or goalie has it.
  * If in possesion of ball, tries to find best positions to shoot and score.
  */
-class offensive : public role {
+class Offensive : public Role {
 	public:
 		//
-		// A pointer to a offensive role.
+		// A pointer to a Offensive Role.
 		//
-		typedef Glib::RefPtr<offensive> ptr;
+		typedef Glib::RefPtr<Offensive> ptr;
 
 		//
-		// Constructs a new offensive role.
+		// Constructs a new Offensive Role.
 		//
-		offensive(world::ptr world);
+		Offensive(World::ptr world);
 
 		//
 		// Runs the AI for one time tick without drawing.
@@ -46,20 +46,20 @@ class offensive : public role {
 		 * The enemy position is provided as vector so we can add imaginary enemies.
 		 * If no position is valid, will simply choose the middle of the field.
 		 */
-		point calc_position_best(const std::vector<point>& enemypos, const std::vector<point>& dontblock);
+		Point calc_position_best(const std::vector<Point>& enemypos, const std::vector<Point>& dontblock);
 
 		/// The scoring function for having the robot in the particular position.
-		double scoring_function(const std::vector<point>& enemypos, const point& pos, const std::vector<point>& dontblock) const;
+		double scoring_function(const std::vector<Point>& enemypos, const Point& pos, const std::vector<Point>& dontblock) const;
 
 		/// Calculates n best positions to place the robots.
-		std::vector<point> calc_position_best(const unsigned int n);
+		std::vector<Point> calc_position_best(const unsigned int n);
 
 		// refactor this function?
 		double get_distance_from_goal(int index) const;
 
-		const world::ptr the_world;
+		const World::ptr the_world;
 
-		std::vector<tactic::ptr> tactics;
+		std::vector<Tactic::ptr> tactics;
 
 		bool okaygrid[GRIDX][GRIDY];
 

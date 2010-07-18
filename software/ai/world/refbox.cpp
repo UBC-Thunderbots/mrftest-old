@@ -10,8 +10,8 @@
 #include <sys/types.h>
 
 namespace {
-	file_descriptor create_socket() {
-		file_descriptor fd(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	FileDescriptor create_socket() {
+		FileDescriptor fd(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 		fd.set_blocking(false);
 
@@ -20,7 +20,7 @@ namespace {
 			throw std::runtime_error("Cannot set SO_REUSEADDR.");
 		}
 
-		sockaddrs sa;
+		SockAddrs sa;
 		sa.in.sin_family = AF_INET;
 		sa.in.sin_addr.s_addr = get_inaddr_any();
 		sa.in.sin_port = htons(10001);
@@ -41,11 +41,11 @@ namespace {
 	}
 }
 
-refbox::refbox() : fd(create_socket()), command_('H'), goals_blue_(0), goals_yellow_(0), time_remaining_(0) {
-	Glib::signal_io().connect(sigc::mem_fun(this, &refbox::on_readable), fd, Glib::IO_IN);
+RefBox::RefBox() : fd(create_socket()), command_('H'), goals_blue_(0), goals_yellow_(0), time_remaining_(0) {
+	Glib::signal_io().connect(sigc::mem_fun(this, &RefBox::on_readable), fd, Glib::IO_IN);
 }
 
-bool refbox::on_readable(Glib::IOCondition) {
+bool RefBox::on_readable(Glib::IOCondition) {
 	struct __attribute__((packed)) {
 		char cmd;
 		unsigned char cmd_counter;

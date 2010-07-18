@@ -2,64 +2,64 @@
 #include "sim/simulator.h"
 #include "sim/visdata.h"
 
-simulator_visdata::simulator_visdata(const simulator &sim) : sim(sim) {
+SimulatorVisData::SimulatorVisData(const Simulator &sim) : sim(sim) {
 }
 
-void simulator_visdata::init() {
-	for (std::unordered_map<uint64_t, ::robot::ptr>::const_iterator i = sim.robots().begin(), iend = sim.robots().end(); i != iend; ++i) {
+void SimulatorVisData::init() {
+	for (std::unordered_map<uint64_t, ::SimulatorRobot::ptr>::const_iterator i = sim.robots().begin(), iend = sim.robots().end(); i != iend; ++i) {
 		robots.push_back(i->second);
 	}
 }
 
-const class visualizable::field &simulator_visdata::field() const {
+const class Visualizable::Field &SimulatorVisData::field() const {
 	return fld;
 }
 
-visualizable::ball::ptr simulator_visdata::ball() const {
+Visualizable::Ball::ptr SimulatorVisData::ball() const {
 	return sim.ball();
 }
 
-std::size_t simulator_visdata::size() const {
+std::size_t SimulatorVisData::size() const {
 	return robots.size();
 }
 
-visualizable::robot::ptr simulator_visdata::operator[](unsigned int index) const {
+Visualizable::Robot::ptr SimulatorVisData::operator[](unsigned int index) const {
 	return robots[index];
 }
 
-bool simulator_visdata::sim_field::valid() const {
+bool SimulatorVisData::SimulatorVisField::valid() const {
 	return true;
 }
 
-double simulator_visdata::sim_field::length() const {
-	return simulator_field::length;
+double SimulatorVisData::SimulatorVisField::length() const {
+	return SimulatorField::length;
 }
 
-double simulator_visdata::sim_field::total_length() const {
-	return simulator_field::total_length;
+double SimulatorVisData::SimulatorVisField::total_length() const {
+	return SimulatorField::total_length;
 }
 
-double simulator_visdata::sim_field::width() const {
-	return simulator_field::width;
+double SimulatorVisData::SimulatorVisField::width() const {
+	return SimulatorField::width;
 }
 
-double simulator_visdata::sim_field::total_width() const {
-	return simulator_field::total_width;
+double SimulatorVisData::SimulatorVisField::total_width() const {
+	return SimulatorField::total_width;
 }
 
-double simulator_visdata::sim_field::goal_width() const {
-	return simulator_field::goal_width;
+double SimulatorVisData::SimulatorVisField::goal_width() const {
+	return SimulatorField::goal_width;
 }
 
-double simulator_visdata::sim_field::centre_circle_radius() const {
-	return simulator_field::centre_circle_radius;
+double SimulatorVisData::SimulatorVisField::centre_circle_radius() const {
+	return SimulatorField::centre_circle_radius;
 }
 
-double simulator_visdata::sim_field::defense_area_radius() const {
-	return simulator_field::defense_area_radius;
+double SimulatorVisData::SimulatorVisField::defense_area_radius() const {
+	return SimulatorField::defense_area_radius;
 }
 
-double simulator_visdata::sim_field::defense_area_stretch() const {
-	return simulator_field::defense_area_stretch;
+double SimulatorVisData::SimulatorVisField::defense_area_stretch() const {
+	return SimulatorField::defense_area_stretch;
 }
 

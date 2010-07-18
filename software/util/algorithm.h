@@ -37,9 +37,9 @@ namespace {
 	 * A comparator that sorts by values in a vector
 	 */
 	template<typename T> 
-	class cmp_vector {
+	class CmpVector {
 		public:
-			cmp_vector(const std::vector<T>& tbl) : tbl(tbl) {
+			CmpVector(const std::vector<T>& tbl) : tbl(tbl) {
 			}
 			bool operator()(unsigned int x, unsigned int y) {
 				return tbl[x] > tbl[y];

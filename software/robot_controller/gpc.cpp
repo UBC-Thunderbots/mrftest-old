@@ -27,7 +27,7 @@ const double initial_uncertainty = 10;
 }
 
 
-gpc::gpc(unsigned int numpoles,unsigned int numzeros,unsigned int N2,unsigned int N1) {
+GPC::GPC(unsigned int numpoles,unsigned int numzeros,unsigned int N2,unsigned int N1) {
 	this->N1=N1;
 	this->N2=N2;
 	
@@ -57,12 +57,12 @@ gpc::gpc(unsigned int numpoles,unsigned int numzeros,unsigned int N2,unsigned in
 	theta(0,0)=1;	
 }
 
-gpc::~gpc() {
+GPC::~GPC() {
 }
 
 
 
-void gpc::update(double output) {
+void GPC::update(double output) {
 	current_output = output;
 	math::matrix<double> regressor(num_zeros+num_poles+1,1);
 	math::matrix<double> kalman_gain(num_zeros+num_poles+1,1);
@@ -81,18 +81,18 @@ void gpc::update(double output) {
 
 }
 
-void gpc::push_history(double input,double output) {
+void GPC::push_history(double input,double output) {
 	prev_inputs.insert(prev_inputs.begin(), input);
 	prev_inputs.pop_back();
 	prev_outputs.insert(prev_outputs.begin(), output);
 	prev_outputs.pop_back();
 }	
 
-void gpc::push_history(double input) {
+void GPC::push_history(double input) {
 	push_history(input,current_output);
 }
 
-void gpc::build_forward() {
+void GPC::build_forward() {
 	std::vector<double> delta;
 	delta.push_back(1);
 	delta.push_back(-1);
@@ -154,7 +154,7 @@ void gpc::build_forward() {
 	step_response = temp;	
 }
 
-double gpc::calc_control(double set_point) {
+double GPC::calc_control(double set_point) {
 	build_forward();
 	
 	math::matrix<double> Gmat(N2-N1,1);
@@ -172,24 +172,24 @@ double gpc::calc_control(double set_point) {
 	return (~Gmat*(Ysp - Fs))(0,0)/scale;
 }
 
-const std::vector<double>& gpc::get_free_response()  const {
+const std::vector<double>& GPC::get_free_response()  const {
 	return free_response;
 }
 
 
-const std::vector<double>& gpc::get_step_response() const {
+const std::vector<double>& GPC::get_step_response() const {
 	return step_response;
 }
 
-double gpc::get_numpoles() const {
+double GPC::get_numpoles() const {
 	return num_poles;
 }
 
-double gpc::get_numzeros() const {
+double GPC::get_numzeros() const {
 	return num_zeros;
 }
 
-std::vector<double> gpc::get_parameter_estimates() const {
+std::vector<double> GPC::get_parameter_estimates() const {
 	std::vector<double> returnval;
 	
 	for(unsigned int index = 0;index<num_poles+num_zeros+1;index++)

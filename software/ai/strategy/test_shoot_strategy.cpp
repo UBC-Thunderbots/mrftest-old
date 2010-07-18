@@ -3,51 +3,51 @@
 #include <iostream>
 
 namespace {
-	class test_shoot_strategy : public strategy {
+	class TestShootStrategy : public Strategy {
 		public:
-			test_shoot_strategy(world::ptr world);
+			TestShootStrategy(World::ptr world);
 			void tick();
-			strategy_factory &get_factory();
+			StrategyFactory &get_factory();
 			Gtk::Widget *get_ui_controls();
 		private:
-			const world::ptr the_world;
+			const World::ptr the_world;
 	};
 
-	test_shoot_strategy::test_shoot_strategy(world::ptr world) : the_world(world) {
+	TestShootStrategy::TestShootStrategy(World::ptr world) : the_world(world) {
 
 	}
 
-	void test_shoot_strategy::tick() {
+	void TestShootStrategy::tick() {
 
 		if (the_world->friendly.size() == 0) return;
 
-		player::ptr shooter = the_world->friendly.get_player(0);
-		shoot shoot_tactic(shooter, the_world);
+		Player::ptr shooter = the_world->friendly.get_player(0);
+		Shoot shoot_tactic(shooter, the_world);
 		
 		shoot_tactic.tick();	
 	}
 
-	Gtk::Widget *test_shoot_strategy::get_ui_controls() {
+	Gtk::Widget *TestShootStrategy::get_ui_controls() {
 		return 0;
 	}
 
-	class test_shoot_strategy_factory : public strategy_factory {
+	class TestShootStrategyFactory : public StrategyFactory {
 		public:
-			test_shoot_strategy_factory();
-			strategy::ptr create_strategy(world::ptr world);
+			TestShootStrategyFactory();
+			Strategy::ptr create_strategy(World::ptr world);
 	};
 
-	test_shoot_strategy_factory::test_shoot_strategy_factory() : strategy_factory("Test(Shoot) Strategy") {
+	TestShootStrategyFactory::TestShootStrategyFactory() : StrategyFactory("Test(Shoot) Strategy") {
 	}
 
-	strategy::ptr test_shoot_strategy_factory::create_strategy(world::ptr world) {
-		strategy::ptr s(new test_shoot_strategy(world));
+	Strategy::ptr TestShootStrategyFactory::create_strategy(World::ptr world) {
+		Strategy::ptr s(new TestShootStrategy(world));
 		return s;
 	}
 
-	test_shoot_strategy_factory factory;
+	TestShootStrategyFactory factory;
 
-	strategy_factory &test_shoot_strategy::get_factory() {
+	StrategyFactory &TestShootStrategy::get_factory() {
 		return factory;
 	}
 }

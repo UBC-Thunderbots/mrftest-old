@@ -12,7 +12,7 @@
 // registerable implementations.
 //
 template<typename T>
-class registerable : public noncopyable {
+class Registerable : public NonCopyable {
 	public:
 		//
 		// The type of a map from collation key of object name to object.
@@ -24,7 +24,7 @@ class registerable : public noncopyable {
 		// collation keys.
 		//
 		static const map_type &all() {
-			typedef typename std::vector<registerable<T> *>::const_iterator iter_type;
+			typedef typename std::vector<Registerable<T> *>::const_iterator iter_type;
 			for (iter_type i = precache().begin(), iend = precache().end(); i != iend; ++i) {
 				T *obj = dynamic_cast<T *>(*i);
 				const std::string &key = obj->name.collate_key();
@@ -44,22 +44,22 @@ class registerable : public noncopyable {
 
 	protected:
 		//
-		// Constructs a new registerable object and registers it.
+		// Constructs a new Registerable object and registers it.
 		//
-		registerable(const Glib::ustring &the_name) : name(the_name) {
+		Registerable(const Glib::ustring &the_name) : name(the_name) {
 			precache().push_back(this);
 		}
 
 		//
-		// Destroys a registerable object. Does not unregister it, because we
+		// Destroys a Registerable object. Does not unregister it, because we
 		// might have some global object destruction order issues.
 		//
-		virtual ~registerable() {
+		virtual ~Registerable() {
 		}
 
 	private:
-		static std::vector<registerable<T> *> &precache() {
-			static std::vector<registerable<T> *> v;
+		static std::vector<Registerable<T> *> &precache() {
+			static std::vector<Registerable<T> *> v;
 			return v;
 		}
 

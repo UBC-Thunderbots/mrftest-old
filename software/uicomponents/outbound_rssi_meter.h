@@ -7,20 +7,20 @@
 //
 // A meter showing outbound RSSI to a robot.
 //
-class outbound_rssi_meter : public Gtk::ProgressBar, public noncopyable {
+class OutboundRSSIMeter : public Gtk::ProgressBar, public NonCopyable {
 	public:
 		//
-		// Constructs an outbound_rssi_meter with no robot.
+		// Constructs an OutboundRSSIMeter with no robot.
 		//
-		outbound_rssi_meter();
+		OutboundRSSIMeter();
 
 		//
 		// Sets which robot this RSSI meter will monitor.
 		//
-		void set_bot(xbee_drive_bot::ptr bot);
+		void set_bot(XBeeDriveBot::ptr bot);
 
 	private:
-		xbee_drive_bot::ptr robot;
+		XBeeDriveBot::ptr robot;
 		sigc::connection connection;
 		int last_rssi;
 

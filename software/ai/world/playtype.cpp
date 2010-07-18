@@ -1,6 +1,6 @@
 #include "ai/world/playtype.h"
 
-const Glib::ustring playtype::descriptions_generic[] = {
+const Glib::ustring PlayType::DESCRIPTIONS_GENERIC[] = {
 	"Halt",
 	"Stop",
 	"Play",
@@ -20,7 +20,7 @@ const Glib::ustring playtype::descriptions_generic[] = {
 	"Victory Dance",
 };
 
-const Glib::ustring playtype::descriptions_west[] = {
+const Glib::ustring PlayType::DESCRIPTIONS_WEST[] = {
 	"Halt",
 	"Stop",
 	"Play",
@@ -40,23 +40,23 @@ const Glib::ustring playtype::descriptions_west[] = {
 	"Victory Dance",
 };
 
-const playtype::playtype playtype::invert[] = {
-	halt,
-	stop,
-	play,
-	prepare_kickoff_enemy,
-	execute_kickoff_enemy,
-	prepare_kickoff_friendly,
-	execute_kickoff_friendly,
-	prepare_penalty_enemy,
-	execute_penalty_enemy,
-	prepare_penalty_friendly,
-	execute_penalty_friendly,
-	execute_direct_free_kick_enemy,
-	execute_indirect_free_kick_enemy,
-	execute_direct_free_kick_friendly,
-	execute_indirect_free_kick_friendly,
-	pit_stop,
-	victory_dance,
+const PlayType::PlayType PlayType::INVERT[] = {
+	HALT,
+	STOP,
+	PLAY,
+	PREPARE_KICKOFF_ENEMY,
+	EXECUTE_KICKOFF_ENEMY,
+	PREPARE_KICKOFF_FRIENDLY,
+	EXECUTE_KICKOFF_FRIENDLY,
+	PREPARE_PENALTY_ENEMY,
+	EXECUTE_PENALTY_ENEMY,
+	PREPARE_PENALTY_FRIENDLY,
+	EXECUTE_PENALTY_FRIENDLY,
+	EXECUTE_DIRECT_FREE_KICK_ENEMY,
+	EXECUTE_INDIRECT_FREE_KICK_ENEMY,
+	EXECUTE_DIRECT_FREE_KICK_FRIENDLY,
+	EXECUTE_INDIRECT_FREE_KICK_FRIENDLY,
+	PIT_STOP,
+	VICTORY_DANCE,
 };
 

@@ -9,7 +9,7 @@ namespace {
 	const int NUM_OLD_POSITIONS = 140;
 }
 
-predictable::predictable() : initialized(false), orientation_(0.0) {
+Predictable::Predictable() : initialized(false), orientation_(0.0) {
 	// Record current time.
 	timespec_now(last_datum_timestamp);
 
@@ -31,39 +31,39 @@ predictable::predictable() : initialized(false), orientation_(0.0) {
 	approxt.setlength(MAX_DEGREE + 1);
 }
 
-point predictable::future_position(double delta_time) const {
+Point Predictable::future_position(double delta_time) const {
 	double xx = 0, yy = 0;
 	for (int i = MAX_DEGREE; i >= 0; i--){
 		xx = xx * delta_time + approxx(i);
 		yy = yy * delta_time + approxy(i);
 	}
-	return point(xx, yy);
+	return Point(xx, yy);
 }
 
-double predictable::future_orientation(double delta_time) const {
+double Predictable::future_orientation(double delta_time) const {
 	double tt = 0;
 	for (int i = MAX_DEGREE; i >= 0; i--)
 		tt = tt * delta_time + approxt(i);
 	return tt;
 }
 
-point predictable::est_velocity() const {
-	return point(approxx(1), approxy(1));
+Point Predictable::est_velocity() const {
+	return Point(approxx(1), approxy(1));
 }
 
-double predictable::est_avelocity() const {
+double Predictable::est_avelocity() const {
 	return approxt(1);
 }
 
-point predictable::est_acceleration() const {
-	return point(approxx(2), approxy(2)) * 2;
+Point Predictable::est_acceleration() const {
+	return Point(approxx(2), approxy(2)) * 2;
 }
 
-double predictable::est_aacceleration() const {
+double Predictable::est_aacceleration() const {
 	return approxt(2) * 2;
 }
 
-void predictable::add_prediction_datum(const point &pos, double orient) {
+void Predictable::add_prediction_datum(const Point &pos, double orient) {
 	// If this is our first datum, do a clear instead.
 	if (!initialized) {
 		initialized = true;
@@ -118,7 +118,7 @@ void predictable::add_prediction_datum(const point &pos, double orient) {
 	timespec_now(last_datum_timestamp);
 }
 
-void predictable::clear_prediction(const point &pos, double orient) {
+void Predictable::clear_prediction(const Point &pos, double orient) {
 	// Mark the current time as the most recent datum stamp.
 	timespec_now(last_datum_timestamp);
 
@@ -138,7 +138,7 @@ void predictable::clear_prediction(const point &pos, double orient) {
 	buildgeneralleastsquares(thistory, weights, fmatrix, NUM_OLD_POSITIONS, MAX_DEGREE + 1, approxt);
 }
 
-void predictable::lock_time() {
+void Predictable::lock_time() {
 	// Compute the delta time since the last datum.
 	timespec now;
 	timespec_now(now);
@@ -151,7 +151,7 @@ void predictable::lock_time() {
 	orientation_ = future_orientation(delta_time);
 }
 
-void predictable::build_matrices(){
+void Predictable::build_matrices(){
 	double dd = 0; // dd is always nonpositive
 	for (int i = 0; i < NUM_OLD_POSITIONS; i++) {
 		if (i) dd -= dhistory(i - 1);

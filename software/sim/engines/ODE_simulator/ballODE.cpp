@@ -6,18 +6,18 @@
 ballODE.h has the following:
 
 public:
-typedef Glib::RefPtr<ballODE> ptr;
+typedef Glib::RefPtr<BallODE> ptr;
 dWorldID world;
 
 
 private:
-point the_position, the_velocity;
+Point the_position, the_velocity;
 
 
 */
 
 			
-			ballODE::ballODE(dWorldID dworld, dSpaceID dspace, double radius, double mass) : the_position(0.0, 0.0), the_velocity(0.0, 0.0) {
+			BallODE::BallODE(dWorldID dworld, dSpaceID dspace, double radius, double mass) : the_position(0.0, 0.0), the_velocity(0.0, 0.0) {
 
 				world = dworld;
 				
@@ -37,7 +37,7 @@ point the_position, the_velocity;
 				 //dBodySetMaxAngularSpeed (body, 5.0);
 
 			}
-			double ballODE::get_height() const
+			double BallODE::get_height() const
 			{
 				const dReal *t = dBodyGetPosition (body);
 				return t[2];
@@ -46,7 +46,7 @@ point the_position, the_velocity;
 		/*
 		
 		
-			ballODE::ballODE(dWorldID dworld, dSpaceID dspace, double radius): the_position(0.0, 0.0), the_velocity(0.0, 0.0){
+			BallODE::BallODE(dWorldID dworld, dSpaceID dspace, double radius): the_position(0.0, 0.0), the_velocity(0.0, 0.0){
 			
 				world = dworld;
 				dMass m;
@@ -61,12 +61,12 @@ point the_position, the_velocity;
 				dGeomSetBody (ballGeom,body);
 				dSpaceAdd (dspace, ballGeom);
 				dBodySetLinearDamping (body, 0.9);
-				 field::ptr fldd(new simulator_field);
+				 field::ptr fldd(new SimulatorField);
 				 fld = fldd;
 			
 			}
 			
-			ballODE::ballODE(dWorldID dworld, dSpaceID dspace): the_position(0.0, 0.0), the_velocity(0.0, 0.0){
+			BallODE::BallODE(dWorldID dworld, dSpaceID dspace): the_position(0.0, 0.0), the_velocity(0.0, 0.0){
 			
 				world = dworld;
 				dMass m;
@@ -86,24 +86,24 @@ point the_position, the_velocity;
 				//dBodySetLinearDamping (body, 0.2);
 				dBodySetAngularDamping (body,0.5);
 				dBodySetMaxAngularSpeed (body, 5.0);
-				 field::ptr fldd(new simulator_field);
+				 field::ptr fldd(new SimulatorField);
 				 fld = fldd;
 			
 			}
 */
-			ballODE::~ballODE(){
+			BallODE::~BallODE(){
 
 
 
 			}
 			
-			double ballODE::getRadius(){
+			double BallODE::getRadius(){
 
 				return dradius;
 			}
 			
-			point ballODE::position() const {
-				point p;
+			Point BallODE::position() const {
+				Point p;
 				const dReal *t = dBodyGetPosition (body);
 				p.x = t[0];
 				p.y = t[1];
@@ -111,36 +111,36 @@ point the_position, the_velocity;
 				return p;
 			}
 
-			point ballODE::velocity() const {
+			Point BallODE::velocity() const {
 				return the_velocity;
 			}
 
-			point ballODE::acceleration() const {
+			Point BallODE::acceleration() const {
 
-					return point(0.0, 0.0);
+					return Point(0.0, 0.0);
 			}
 
-			void ballODE::position(const point &pos) {
+			void BallODE::position(const Point &pos) {
 				const dReal *t = dBodyGetPosition (body);
 				
 				dBodySetPosition(body, pos.x, pos.y, t[2]);
 
 			}
 
-			void ballODE::velocity(const point &vel) {
+			void BallODE::velocity(const Point &vel) {
 				dBodySetLinearVel(body, vel.x, vel.y, 0.0);
 				dBodySetAngularVel (body, 0.0, 0.0, 0.0);
 
 			}
 
-			bool ballODE::in_goal() {
-				point p;
+			bool BallODE::in_goal() {
+				Point p;
 				const dReal *t = dBodyGetPosition (body);
 				p.x = t[0];
 				p.y = t[1];
-				double len = simulator_field::length;
+				double len = SimulatorField::length;
 				if(p.x>len/2|| p.x<-len/2){
-				double width = simulator_field::goal_width;
+				double width = SimulatorField::goal_width;
 
 					if(p.y<width/2 && p.y>(-width/2)){
 						//double height = t[2];

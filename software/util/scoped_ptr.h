@@ -8,31 +8,31 @@
  * target.
  */
 template<typename T>
-class scoped_ptr : public noncopyable {
+class ScopedPtr : public NonCopyable {
 	public:
 		/**
-		 * Constructs a new scoped_ptr with no object.
+		 * Constructs a new ScopedPtr with no object.
 		 */
-		scoped_ptr() : obj(0) {
+		ScopedPtr() : obj(0) {
 		}
 
 		/**
-		 * Constructs a new scoped_ptr pointing to an object.
+		 * Constructs a new ScopedPtr pointing to an object.
 		 *
 		 * \param o the new object to point to.
 		 */
-		scoped_ptr(T *o) : obj(o) {
+		ScopedPtr(T *o) : obj(o) {
 		}
 
 		/**
 		 * Destroys the pointed-to object.
 		 */
-		~scoped_ptr() {
+		~ScopedPtr() {
 			delete obj;
 		}
 
 		/**
-		 * Resets the scoped_ptr to point at another object.
+		 * Resets the ScopedPtr to point at another object.
 		 *
 		 * \param o the new object to point to.
 		 */

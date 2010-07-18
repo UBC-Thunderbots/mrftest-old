@@ -11,22 +11,22 @@
 #include <vector>
 #include <glibmm.h>
 
-class backend;
+class BackEnd;
 
 //
 // A running XBee arbiter dæmon.
 //
-class daemon : public sigc::trackable {
+class XBeeDaemon : public sigc::trackable {
 	public:
 		//
-		// Constructs a new daemon.
+		// Constructs a new XBeeDaemon.
 		//
-		daemon(class backend &backend);
+		XBeeDaemon(class BackEnd &backend);
 
 		//
-		// Destroys a daemon.
+		// Destroys a XBeeDaemon.
 		//
-		~daemon();
+		~XBeeDaemon();
 
 		//
 		// Allocates a new offset in the run data packet. Returns 0xFF on failure.
@@ -46,30 +46,30 @@ class daemon : public sigc::trackable {
 		//
 		// The backend implementation.
 		//
-		class backend &backend;
+		class BackEnd &backend;
 
 		//
 		// The shared memory block shared with clients.
 		//
-		shmblock<xbeepacket::SHM_BLOCK> shm;
+		ShmBlock<XBeePacketTypes::SHM_BLOCK> shm;
 
 		//
 		// An allocator that allocates frame numbers.
 		//
-		number_allocator<uint8_t> frame_number_allocator;
+		NumberAllocator<uint8_t> frame_number_allocator;
 
 		//
 		// An allocator that allocates 16-bit addresses.
 		//
-		number_allocator<uint16_t> id16_allocator;
+		NumberAllocator<uint16_t> id16_allocator;
 
 		//
-		// The scheduler that schedules delivery of packets.
+		// The XBeeScheduler that schedules delivery of packets.
 		//
-		class scheduler scheduler;
+		class XBeeScheduler scheduler;
 
 		//
-		// A signal fired when the last client disconnects from the daemon. The
+		// A signal fired when the last client disconnects from the XBeeDaemon. The
 		// application may connect to this signal to terminate its process, or
 		// may ignore it and keep running allowing further connections.
 		//
@@ -78,23 +78,23 @@ class daemon : public sigc::trackable {
 		//
 		// All robots that are being tracked in some way by the arbiter.
 		//
-		std::unordered_map<uint64_t, robot_state::ptr> robots;
+		std::unordered_map<uint64_t, XBeeRobot::ptr> robots;
 
 		//
 		// The 64-bit address of the robot that has been assigned each run data
 		// index (or zero of no robot is using the index).
 		//
-		uint64_t run_data_index_reverse[xbeepacket::MAX_DRIVE_ROBOTS];
+		uint64_t run_data_index_reverse[XBeePacketTypes::MAX_DRIVE_ROBOTS];
 
 		/**
-		 * Whether or not the daemon has been exclusively claimed via a
-		 * xbeepacket::META_CLAIM_UNIVERSE request.
+		 * Whether or not the XBeeDaemon has been exclusively claimed via a
+		 * XBeePacketTypes::META_CLAIM_UNIVERSE request.
 		 */
 		bool universe_claimed;
 
 	private:
-		const file_descriptor lock_file;
-		const file_descriptor listen_sock;
+		const FileDescriptor lock_file;
+		const FileDescriptor listen_sock;
 		std::vector<bool> allocated_rundata_indices;
 		sigc::connection check_shutdown_firer;
 

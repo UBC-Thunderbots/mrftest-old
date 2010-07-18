@@ -7,16 +7,16 @@
 #include <vector>
 
 /**
- * A really basic strategy that satisfies the rule.
+ * A really basic Strategy that satisfies the rule.
  * Most strategies should derive this function and overide in_play_assignment().
  * Assumes that the first robot is always the goalie.
  */
-class basic_strategy : public strategy {
+class BasicStrategy : public Strategy {
 	public:
-		basic_strategy(world::ptr world);
+		BasicStrategy(World::ptr world);
 		void tick();
 
-		strategy_factory &get_factory();
+		StrategyFactory &get_factory();
 		Gtk::Widget *get_ui_controls();
 
 	protected:
@@ -42,12 +42,12 @@ class basic_strategy : public strategy {
 		 * But leave out one offender, so that it can be used for other things like
 		 * free kicks.
 		 */
-		virtual player::ptr minus_one_assignment();
+		virtual Player::ptr minus_one_assignment();
 
 		/**
 		 * Amount of ticks per update.
 		 * To save processing time, we only update if necessary.
-		 * By default, the basic_strategy will update every 5 turns.
+		 * By default, the BasicStrategy will update every 5 turns.
 		 * This is used only when playtype is play.
 		 */
 		int update_wait_turns;
@@ -55,9 +55,9 @@ class basic_strategy : public strategy {
 		/**
 		 * Robot roles.
 		 */
-		std::vector<role::ptr> roles;
+		std::vector<Role::ptr> roles;
 
-		const world::ptr the_world;
+		const World::ptr the_world;
 		int update_wait;
 };
 

@@ -8,12 +8,12 @@
 #include <sys/types.h>
 
 namespace {
-	class umask_modifier : public noncopyable {
+	class UMaskModifier : public NonCopyable {
 		public:
-			umask_modifier(mode_t newmode) : oldmode(umask(newmode)) {
+			UMaskModifier(mode_t newmode) : oldmode(umask(newmode)) {
 			}
 
-			~umask_modifier() {
+			~UMaskModifier() {
 				umask(oldmode);
 			}
 
@@ -21,14 +21,14 @@ namespace {
 			mode_t oldmode;
 	};
 
-	file_descriptor create_new_temp_file(std::size_t sz) {
-		umask_modifier um(0077);
+	FileDescriptor create_new_temp_file(std::size_t sz) {
+		UMaskModifier um(0077);
 		char path[] = "/tmp/xbeed.XXXXXX";
 		int ret = mkstemp(path);
 		if (ret < 0) {
 			throw std::runtime_error("Cannot create temporary file!");
 		}
-		file_descriptor fd(ret);
+		FileDescriptor fd(ret);
 		unlink(path);
 		if (ftruncate(fd, sz) < 0) {
 			throw std::runtime_error("Cannot resize temporary file!");
@@ -36,7 +36,7 @@ namespace {
 		return fd;
 	}
 
-	uint8_t *map_data(file_descriptor &fd, std::size_t sz) {
+	uint8_t *map_data(FileDescriptor &fd, std::size_t sz) {
 		void *ret = mmap(0, sz, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 		if (ret == get_map_failed()) {
 			throw std::runtime_error("Cannot map temporary file!");
@@ -45,13 +45,13 @@ namespace {
 	}
 }
 
-raw_shmblock::raw_shmblock(std::size_t sz) : fd_(create_new_temp_file(sz)), size_(sz), data_(map_data(fd_, size_)) {
+RawShmBlock::RawShmBlock(std::size_t sz) : fd_(create_new_temp_file(sz)), size_(sz), data_(map_data(fd_, size_)) {
 }
 
-raw_shmblock::raw_shmblock(file_descriptor fd, std::size_t sz) : fd_(fd), size_(sz), data_(map_data(fd_, size_)) {
+RawShmBlock::RawShmBlock(FileDescriptor fd, std::size_t sz) : fd_(fd), size_(sz), data_(map_data(fd_, size_)) {
 }
 
-raw_shmblock::~raw_shmblock() {
+RawShmBlock::~RawShmBlock() {
 	munmap(data_, size_);
 }
 

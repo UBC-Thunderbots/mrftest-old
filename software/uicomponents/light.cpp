@@ -1,15 +1,15 @@
 #include "uicomponents/light.h"
 #include <algorithm>
 
-light::light() : r(0), g(0), b(0) {
+Light::Light() : r(0), g(0), b(0) {
 	set_size_request(24, 24);
 }
 
-light::light(const Glib::ustring &label) : label(label), r(0), g(0), b(0) {
+Light::Light(const Glib::ustring &label) : label(label), r(0), g(0), b(0) {
 	set_size_request(24, 24);
 }
 
-void light::set_colour(double r, double g, double b) {
+void Light::set_colour(double r, double g, double b) {
 	if (r != this->r || g != this->g || b != this->b) {
 		this->r = r;
 		this->g = g;
@@ -21,7 +21,7 @@ void light::set_colour(double r, double g, double b) {
 	}
 }
 
-void light::set_label(const Glib::ustring &l) {
+void Light::set_label(const Glib::ustring &l) {
 	label = l;
 	const Glib::RefPtr<Gdk::Window> win(get_window());
 	if (win) {
@@ -29,7 +29,7 @@ void light::set_label(const Glib::ustring &l) {
 	}
 }
 
-bool light::on_expose_event(GdkEventExpose *) {
+bool Light::on_expose_event(GdkEventExpose *) {
 	int width, height;
 	get_window()->get_size(width, height);
 

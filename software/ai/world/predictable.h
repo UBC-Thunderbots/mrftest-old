@@ -8,18 +8,18 @@
 /**
  * An object whose velocity can be predicted based on a collection of prior positions.
  */
-class predictable {
+class Predictable {
 	public:
 		/**
-		 * Constructs a new predictable object.
+		 * Constructs a new Predictable object.
 		 */
-		predictable();
+		Predictable();
 
 		/**
 		 * \return The predicted position at the instant lock_time() was last
 		 * called
 		 */
-		point position() const __attribute__((warn_unused_result)) {
+		Point position() const __attribute__((warn_unused_result)) {
 			return position_;
 		}
 
@@ -35,7 +35,7 @@ class predictable {
 		 * \return The predicted position delta_time after the most recent
 		 * invocation of add_prediction_datum
 		 */
-		point future_position(double delta_time) const __attribute__((warn_unused_result));
+		Point future_position(double delta_time) const __attribute__((warn_unused_result));
 
 		/**
 		 * \return The predicted orientation delta_time after the most recent
@@ -46,7 +46,7 @@ class predictable {
 		/**
 		 * \return The predicted linear velocity
 		 */
-		point est_velocity() const __attribute__((warn_unused_result));
+		Point est_velocity() const __attribute__((warn_unused_result));
 
 		/**
 		 * \return The predicted angular velocity
@@ -56,7 +56,7 @@ class predictable {
 		/**
 		 * \return The predicted linear acceleration
 		 */
-		point est_acceleration() const __attribute__((warn_unused_result));
+		Point est_acceleration() const __attribute__((warn_unused_result));
 
 		/**
 		 * \return The predicted angular acceleration
@@ -69,7 +69,7 @@ class predictable {
 		 * \param pos the new position of the object
 		 * \param orientation the new orientation of the object
 		 */
-		void add_prediction_datum(const point &pos, double orientation);
+		void add_prediction_datum(const Point &pos, double orientation);
 
 		/**
 		 * Clears the prediction engine so that it estimates zero acceleration
@@ -80,7 +80,7 @@ class predictable {
 		 * \param pos the current position of the object
 		 * \param orientation the current orientation of the object
 		 */
-		void clear_prediction(const point &pos, double orientation);
+		void clear_prediction(const Point &pos, double orientation);
 
 		/**
 		 * Captures the current instant as the time for which position() and
@@ -96,7 +96,7 @@ class predictable {
 		ap::real_2d_array fmatrix;
 		ap::real_1d_array approxx, approxy, approxt;
 		timespec last_datum_timestamp;
-		point position_;
+		Point position_;
 		double orientation_;
 
 		// Updates matrices used to build the least squares prediction.

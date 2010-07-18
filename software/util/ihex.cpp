@@ -54,13 +54,13 @@ namespace {
 
 
 
-void intel_hex::add_section(unsigned int start, unsigned int length) {
-	the_sections.push_back(section(start, length));
+void IntelHex::add_section(unsigned int start, unsigned int length) {
+	the_sections.push_back(Section(start, length));
 }
 
 
 
-void intel_hex::load(const Glib::ustring &filename) {
+void IntelHex::load(const Glib::ustring &filename) {
 	// Allocate space to hold the new data.
 	std::vector<std::vector<unsigned char> > new_data(the_sections.size());
 
@@ -129,7 +129,7 @@ void intel_hex::load(const Glib::ustring &filename) {
 				unsigned int byte_address = real_address + i;
 				bool found = false;
 				for (unsigned int j = 0; j < the_sections.size(); ++j) {
-					const section &sec = the_sections[j];
+					const Section &sec = the_sections[j];
 					if (sec.start() <= byte_address && byte_address < sec.start() + sec.length()) {
 						found = true;
 						std::vector<unsigned char> &d = new_data[j];

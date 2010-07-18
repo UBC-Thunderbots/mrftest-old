@@ -11,14 +11,14 @@
 #include <sys/un.h>
 
 namespace {
-	bool connect_to_existing_daemon(file_descriptor &sock) {
+	bool connect_to_existing_daemon(FileDescriptor &sock) {
 		// Calculate path.
 		const Glib::ustring &cache_dir = Glib::get_user_cache_dir();
 		const std::string &socket_path = Glib::filename_from_utf8(cache_dir + "/thunderbots-xbeed-sock");
 
 		// Create a socket.
-		file_descriptor tmp(PF_UNIX, SOCK_SEQPACKET, 0);
-		sockaddrs sa;
+		FileDescriptor tmp(PF_UNIX, SOCK_SEQPACKET, 0);
+		SockAddrs sa;
 		sa.un.sun_family = AF_UNIX;
 		if (socket_path.size() > sizeof(sa.un.sun_path)) throw std::runtime_error("Path too long!");
 		std::copy(socket_path.begin(), socket_path.end(), &sa.un.sun_path[0]);
@@ -71,8 +71,8 @@ namespace {
 		}
 	}
 
-	file_descriptor connect_to_daemon() {
-		file_descriptor sock;
+	FileDescriptor connect_to_daemon() {
+		FileDescriptor sock;
 
 		// Loop forever, until something works.
 		for (;;) {
@@ -85,7 +85,7 @@ namespace {
 		}
 	}
 
-	file_descriptor receive_shm_fd(const file_descriptor &sock) {
+	FileDescriptor receive_shm_fd(const FileDescriptor &sock) {
 		char databuf[3];
 		iovec iov;
 		iov.iov_base = databuf;
@@ -109,18 +109,18 @@ namespace {
 		if (cmsg->cmsg_len != cmsg_len(sizeof(int)) || cmsg->cmsg_level != SOL_SOCKET || cmsg->cmsg_type != SCM_RIGHTS) {
 			throw std::runtime_error("Received wrong ancillary data on socket!");
 		}
-		return file_descriptor(static_cast<const int *>(cmsg_data(cmsg))[0]);
+		return FileDescriptor(static_cast<const int *>(cmsg_data(cmsg))[0]);
 	}
 }
 
-xbee_lowlevel::xbee_lowlevel() : frame_allocator(1, 255), sock(connect_to_daemon()), shm(receive_shm_fd(sock)) {
-	Glib::signal_io().connect(sigc::mem_fun(this, &xbee_lowlevel::on_readable), sock, Glib::IO_IN | Glib::IO_HUP);
+XBeeLowLevel::XBeeLowLevel() : frame_allocator(1, 255), sock(connect_to_daemon()), shm(receive_shm_fd(sock)) {
+	Glib::signal_io().connect(sigc::mem_fun(this, &XBeeLowLevel::on_readable), sock, Glib::IO_IN | Glib::IO_HUP);
 }
 
-bool xbee_lowlevel::claim_universe() {
-	xbeepacket::META_CLAIM_UNIVERSE req;
-	req.hdr.apiid = xbeepacket::META_APIID;
-	req.hdr.metatype = xbeepacket::CLAIM_UNIVERSE_METATYPE;
+bool XBeeLowLevel::claim_universe() {
+	XBeePacketTypes::META_CLAIM_UNIVERSE req;
+	req.hdr.apiid = XBeePacketTypes::META_APIID;
+	req.hdr.metatype = XBeePacketTypes::CLAIM_UNIVERSE_METATYPE;
 	if (::send(sock, &req, sizeof(req), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(req))) {
 		throw std::runtime_error("Cannot send packet to XBee arbiter!");
 	}
@@ -134,17 +134,17 @@ bool xbee_lowlevel::claim_universe() {
 		if (!ret) {
 			throw std::runtime_error("XBee arbiter died!");
 		}
-		if (buffer[0] == xbeepacket::META_APIID) {
-			if (buffer[1] == xbeepacket::ALIVE_METATYPE) {
+		if (buffer[0] == XBeePacketTypes::META_APIID) {
+			if (buffer[1] == XBeePacketTypes::ALIVE_METATYPE) {
 				return true;
-			} else if (buffer[1] == xbeepacket::CLAIM_FAILED_LOCKED_METATYPE) {
+			} else if (buffer[1] == XBeePacketTypes::CLAIM_FAILED_LOCKED_METATYPE) {
 				return false;
 			}
 		}
 	}
 }
 
-void xbee_lowlevel::send(packet::ptr pkt) {
+void XBeeLowLevel::send(XBeePacket::ptr pkt) {
 	if (pkt->has_response) {
 		uint8_t frame = frame_allocator.alloc();
 		packets[frame] = pkt;
@@ -154,7 +154,7 @@ void xbee_lowlevel::send(packet::ptr pkt) {
 	}
 }
 
-bool xbee_lowlevel::on_readable(Glib::IOCondition cond) {
+bool XBeeLowLevel::on_readable(Glib::IOCondition cond) {
 	if (cond & Glib::IO_HUP) {
 		throw std::runtime_error("XBee arbiter died!");
 	}
@@ -170,32 +170,32 @@ bool xbee_lowlevel::on_readable(Glib::IOCondition cond) {
 		throw std::runtime_error("XBee arbiter died!");
 	}
 
-	if (buffer[0] == xbeepacket::RECEIVE16_APIID) {
-		const xbeepacket::RECEIVE16_HDR *hdr = reinterpret_cast<const xbeepacket::RECEIVE16_HDR *>(buffer);
+	if (buffer[0] == XBeePacketTypes::RECEIVE16_APIID) {
+		const XBeePacketTypes::RECEIVE16_HDR *hdr = reinterpret_cast<const XBeePacketTypes::RECEIVE16_HDR *>(buffer);
 		uint16_t address = (hdr->address[0] << 8) | hdr->address[1];
 		signal_receive16.emit(address, hdr->rssi, &buffer[sizeof(*hdr)], ret - sizeof(*hdr));
-	} else if (buffer[0] == xbeepacket::TRANSMIT_STATUS_APIID) {
-		const xbeepacket::TRANSMIT_STATUS *pkt = reinterpret_cast<const xbeepacket::TRANSMIT_STATUS *>(buffer);
+	} else if (buffer[0] == XBeePacketTypes::TRANSMIT_STATUS_APIID) {
+		const XBeePacketTypes::TRANSMIT_STATUS *pkt = reinterpret_cast<const XBeePacketTypes::TRANSMIT_STATUS *>(buffer);
 		if (packets[pkt->frame]) {
 			packets[pkt->frame]->signal_complete().emit(pkt, ret);
 			packets[pkt->frame].reset();
 			frame_allocator.free(pkt->frame);
 		}
-	} else if (buffer[0] == xbeepacket::REMOTE_AT_RESPONSE_APIID) {
-		const xbeepacket::REMOTE_AT_RESPONSE *pkt = reinterpret_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(buffer);
+	} else if (buffer[0] == XBeePacketTypes::REMOTE_AT_RESPONSE_APIID) {
+		const XBeePacketTypes::REMOTE_AT_RESPONSE *pkt = reinterpret_cast<const XBeePacketTypes::REMOTE_AT_RESPONSE *>(buffer);
 		if (packets[pkt->frame]) {
 			packets[pkt->frame]->signal_complete().emit(pkt, ret);
 			packets[pkt->frame].reset();
 			frame_allocator.free(pkt->frame);
 		}
-	} else if (buffer[0] == xbeepacket::AT_RESPONSE_APIID) {
-		const xbeepacket::AT_RESPONSE *pkt = reinterpret_cast<const xbeepacket::AT_RESPONSE *>(buffer);
+	} else if (buffer[0] == XBeePacketTypes::AT_RESPONSE_APIID) {
+		const XBeePacketTypes::AT_RESPONSE *pkt = reinterpret_cast<const XBeePacketTypes::AT_RESPONSE *>(buffer);
 		if (packets[pkt->frame]) {
 			packets[pkt->frame]->signal_complete().emit(pkt, ret);
 			packets[pkt->frame].reset();
 			frame_allocator.free(pkt->frame);
 		}
-	} else if (buffer[0] == xbeepacket::META_APIID) {
+	} else if (buffer[0] == XBeePacketTypes::META_APIID) {
 		signal_meta.emit(buffer, ret);
 	}
 

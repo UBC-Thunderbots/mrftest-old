@@ -7,35 +7,35 @@
 
 namespace {
 
-	class jons_controller_factory : public robot_controller_factory {
+	class JonsControllerFactory : public RobotControllerFactory {
 		public:
-			jons_controller_factory() : robot_controller_factory("JONS RC") {
+			JonsControllerFactory() : RobotControllerFactory("JONS RC") {
 			}
 
-			robot_controller::ptr create_controller(player::ptr plr, bool, unsigned int) const {
-				robot_controller::ptr p(new jons_controller(plr));
+			RobotController::ptr create_controller(Player::ptr plr, bool, unsigned int) const {
+				RobotController::ptr p(new JonsController(plr));
 				return p;
 			}
 	};
 
-	jons_controller_factory factory;
+	JonsControllerFactory factory;
 
 }
 
 
 
-jons_controller::jons_controller(player::ptr plr) : plr(plr), max_acc(10), max_vel(1000), max_Aacc(1), close_param(1.5),position_delta(0.05), orient_delta(0.05)
+JonsController::JonsController(Player::ptr plr) : plr(plr), max_acc(10), max_vel(1000), max_Aacc(1), close_param(1.5),position_delta(0.05), orient_delta(0.05)
 {
 	learning_time=0;
 }
 
-void jons_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
+void JonsController::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
 	
-	const point &current_position = plr->position();
+	const Point &current_position = plr->position();
 	const double current_orientation = plr->orientation();
-	const point &current_velocity = plr->est_velocity();
-	const point diff = new_position - current_position;
-	point new_linear_velocity;	
+	const Point &current_velocity = plr->est_velocity();
+	const Point diff = new_position - current_position;
+	Point new_linear_velocity;	
 	double current_angularvel = plr->est_avelocity();
 	
 	// relative new direction and angle
@@ -43,7 +43,7 @@ void jons_controller::move(const point &new_position, double new_orientation, po
 	
 	angular_velocity = new_da;		
 	
-	point new_dir = diff.rotate(-current_orientation);
+	Point new_dir = diff.rotate(-current_orientation);
 	
 	//X_controller.update(current_velocity.rotate(-current_orientation).x);
 	//Y_controller.update(current_velocity.rotate(-current_orientation).y);
@@ -76,11 +76,11 @@ void jons_controller::move(const point &new_position, double new_orientation, po
 This is unnessecary because there is not state to clear
 in this controller, but it must be implemented.
 */
-void jons_controller::clear() {
+void JonsController::clear() {
 }
 
 
-robot_controller_factory &jons_controller::get_factory() const {
+RobotControllerFactory &JonsController::get_factory() const {
 	return factory;
 }
 

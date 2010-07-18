@@ -7,19 +7,19 @@
 #include "geom/point.h"
 
 //
-// Gets the robots to go to their prepare_kickoff_enemy positions.
+// Gets the robots to go to their prepare kickoff enemy positions.
 //
-class prepare_kickoff_enemy : public role {
+class PrepareKickoffEnemy : public Role {
 	public:
 		//
-		// A pointer to a prepare_kickoff_enemy role.
+		// A pointer to a PrepareKickoffEnemy Role.
 		//
-		typedef Glib::RefPtr<prepare_kickoff_enemy> ptr;
+		typedef Glib::RefPtr<PrepareKickoffEnemy> ptr;
 
 		//
-		// Constructs a new prepare_kickoff_enemy role.
+		// Constructs a new PrepareKickoffEnemy Role.
 		//
-		prepare_kickoff_enemy(world::ptr world);
+		PrepareKickoffEnemy(World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -32,13 +32,13 @@ class prepare_kickoff_enemy : public role {
 		void robots_changed();
 
 	protected:
-		const world::ptr the_world;
+		const World::ptr the_world;
 
-                std::vector<move::ptr> the_tactics;	
+                std::vector<Move::ptr> the_tactics;	
 
                 static const unsigned int NUMBER_OF_STARTING_POSITIONS = 5;
 
-                point starting_positions[NUMBER_OF_STARTING_POSITIONS];
+                Point starting_positions[NUMBER_OF_STARTING_POSITIONS];
 
 };
 

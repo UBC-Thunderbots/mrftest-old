@@ -4,9 +4,9 @@
 #include <cassert>
 
 namespace {
-	class robot_comparator {
+	class RobotComparator {
 		public:
-			bool operator()(robot::ptr bot1, robot::ptr bot2) const {
+			bool operator()(Robot::ptr bot1, Robot::ptr bot2) const {
 				if (bot1->yellow != bot2->yellow) {
 					return bot2->yellow;
 				} else {
@@ -16,25 +16,25 @@ namespace {
 	};
 }
 
-team::team() {
+Team::Team() {
 }
 
-enemy_team::ptr enemy_team::create() {
-	ptr p(new enemy_team);
+EnemyTeam::ptr EnemyTeam::create() {
+	ptr p(new EnemyTeam);
 	return p;
 }
 
-void enemy_team::add(robot::ptr bot) {
+void EnemyTeam::add(Robot::ptr bot) {
 	assert(bot);
-	const std::vector<robot::ptr>::iterator i = std::lower_bound(members.begin(), members.end(), bot, robot_comparator());
+	const std::vector<Robot::ptr>::iterator i = std::lower_bound(members.begin(), members.end(), bot, RobotComparator());
 	const unsigned int index = std::distance(members.begin(), i);
 	members.insert(i, bot);
 	signal_robot_added.emit(index, bot);
 }
 
-void enemy_team::remove(const unsigned int index) {
+void EnemyTeam::remove(const unsigned int index) {
 	assert(index < size());
-	const robot::ptr bot(members[index]);
+	const Robot::ptr bot(members[index]);
 	members.erase(members.begin() + index);
 	signal_robot_removed.emit(index, bot);
 	if (bot->refs() != 1) {
@@ -42,23 +42,23 @@ void enemy_team::remove(const unsigned int index) {
 	}
 }
 
-friendly_team::ptr friendly_team::create() {
-	ptr p(new friendly_team);
+FriendlyTeam::ptr FriendlyTeam::create() {
+	ptr p(new FriendlyTeam);
 	return p;
 }
 
-void friendly_team::add(player::ptr bot) {
+void FriendlyTeam::add(Player::ptr bot) {
 	assert(bot);
-	const std::vector<player::ptr>::iterator i = std::lower_bound(members.begin(), members.end(), bot, robot_comparator());
+	const std::vector<Player::ptr>::iterator i = std::lower_bound(members.begin(), members.end(), bot, RobotComparator());
 	const unsigned int index = std::distance(members.begin(), i);
 	members.insert(i, bot);
 	signal_robot_added.emit(index, bot);
 	signal_player_added.emit(index, bot);
 }
 
-void friendly_team::remove(const unsigned int index) {
+void FriendlyTeam::remove(const unsigned int index) {
 	assert(index < size());
-	const player::ptr bot(members[index]);
+	const Player::ptr bot(members[index]);
 	members.erase(members.begin() + index);
 	signal_robot_removed.emit(index, bot);
 	signal_player_removed.emit(index, bot);

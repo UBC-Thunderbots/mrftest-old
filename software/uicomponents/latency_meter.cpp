@@ -3,23 +3,23 @@
 #include "util/time.h"
 #include <iomanip>
 
-latency_meter::latency_meter() : last_latency(-1) {
+LatencyMeter::LatencyMeter() : last_latency(-1) {
 	set_fraction(0);
 	set_text("No Data");
 }
 
-void latency_meter::set_bot(xbee_drive_bot::ptr bot) {
+void LatencyMeter::set_bot(XBeeDriveBot::ptr bot) {
 	connection.disconnect();
 	robot = bot;
 	if (robot) {
-		connection = robot->signal_feedback.connect(sigc::mem_fun(this, &latency_meter::update));
+		connection = robot->signal_feedback.connect(sigc::mem_fun(this, &LatencyMeter::update));
 	}
 	set_fraction(0);
 	set_text("No Data");
 	last_latency = -1;
 }
 
-void latency_meter::update() {
+void LatencyMeter::update() {
 	int latency = timespec_to_millis(robot->latency()) / 10;
 	if (latency != last_latency) {
 		set_fraction(clamp(latency / 100.0, 0.0, 1.0));

@@ -7,12 +7,12 @@
 //
 // A generic operation whose progress can be observed.
 //
-class watchable_operation : public noncopyable {
+class WatchableOperation : public NonCopyable {
 	public:
 		//
 		// Destroys the object.
 		//
-		virtual ~watchable_operation() {
+		virtual ~WatchableOperation() {
 		}
 
 		//

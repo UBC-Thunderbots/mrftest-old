@@ -11,18 +11,18 @@
 #include <glibmm.h>
 #include <stdint.h>
 
-class xbee_lowlevel;
+class XBeeLowLevel;
 
 //
 // Allows access to a robot in drive mode. Drive mode is used to drive the
 // robot, for example in the control process or the tester.
 //
-class xbee_drive_bot : public byref, public sigc::trackable {
+class XBeeDriveBot : public ByRef, public sigc::trackable {
 	public:
 		//
-		// A pointer to an xbee_drive_bot.
+		// A pointer to an XBeeDriveBot.
 		//
-		typedef Glib::RefPtr<xbee_drive_bot> ptr;
+		typedef Glib::RefPtr<XBeeDriveBot> ptr;
 
 		//
 		// The 64-bit address of this robot.
@@ -58,9 +58,9 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 		sigc::signal<void> signal_claim_failed_resource;
 
 		//
-		// Creates a new xbee_drive_bot and begins attempting to claim the bot.
+		// Creates a new XBeeDriveBot and begins attempting to claim the bot.
 		//
-		static ptr create(const Glib::ustring &name, uint64_t address, xbee_lowlevel &ll);
+		static ptr create(const Glib::ustring &name, uint64_t address, XBeeLowLevel &ll);
 
 		//
 		// Returns whether or not the robot is communicating.
@@ -225,18 +225,18 @@ class xbee_drive_bot : public byref, public sigc::trackable {
 		void chip(unsigned int width);
 
 	private:
-		xbee_lowlevel &ll;
+		XBeeLowLevel &ll;
 		bool alive_;
-		xbeepacket::SHM_FRAME *shm_frame;
-		xbeepacket::FEEDBACK_DATA feedback_;
+		XBeePacketTypes::SHM_FRAME *shm_frame;
+		XBeePacketTypes::FEEDBACK_DATA feedback_;
 		timespec latency_, feedback_timestamp_, feedback_interval_, run_data_interval_;
 		uint8_t inbound_rssi_;
 		unsigned int success_rate_;
 		timespec low_battery_start_time, lt3751_fault_start_time;
-		annunciator::message low_battery_message, lt3751_fault_message, chicker_low_fault_message, chicker_high_fault_message, chicker_charge_timeout_message;
+		Annunciator::message low_battery_message, lt3751_fault_message, chicker_low_fault_message, chicker_high_fault_message, chicker_charge_timeout_message;
 
-		xbee_drive_bot(const Glib::ustring &name, uint64_t address, xbee_lowlevel &ll);
-		~xbee_drive_bot();
+		XBeeDriveBot(const Glib::ustring &name, uint64_t address, XBeeLowLevel &ll);
+		~XBeeDriveBot();
 		void on_meta(const void *, std::size_t);
 		void clear_chick();
 };

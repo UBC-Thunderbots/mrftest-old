@@ -5,18 +5,18 @@
 
 namespace {
 
-	class fuzzy_controller_factory : public robot_controller_factory {
+	class FuzzyControllerFactory : public RobotControllerFactory {
 		public:
-			fuzzy_controller_factory() : robot_controller_factory("Fuzzy RC") {
+			FuzzyControllerFactory() : RobotControllerFactory("Fuzzy RC") {
 			}
 
-			robot_controller::ptr create_controller(player::ptr player, bool, unsigned int) const {
-				robot_controller::ptr p(new fuzzy_controller (player));
+			RobotController::ptr create_controller(Player::ptr player, bool, unsigned int) const {
+				RobotController::ptr p(new FuzzyController (player));
 				return p;
 			}
 	};
 
-	fuzzy_controller_factory factory;
+	FuzzyControllerFactory factory;
 
 	const int P = 5;
 	const double arr_min[P] = {3.0, 0.0, 0.0, 3.0, 3.0};
@@ -25,21 +25,21 @@ namespace {
 	const double arr_def[P] = {6, .855, .385, 6, 6};
 }
 
-const std::vector<double> fuzzy_controller::param_min(arr_min, arr_min + P);
-const std::vector<double> fuzzy_controller::param_max(arr_max, arr_max + P);
-const std::vector<double> fuzzy_controller::param_default(arr_def, arr_def + P);
+const std::vector<double> FuzzyController::param_min(arr_min, arr_min + P);
+const std::vector<double> FuzzyController::param_max(arr_max, arr_max + P);
+const std::vector<double> FuzzyController::param_default(arr_def, arr_def + P);
 
-const std::vector<double> fuzzy_controller::get_params_default() const {
+const std::vector<double> FuzzyController::get_params_default() const {
 	return param_default;
 }
 
-fuzzy_controller::fuzzy_controller(player::ptr player) : param(5) {
+FuzzyController::FuzzyController(Player::ptr player) : param(5) {
 	robot = player;
 	param = param_default;
 }
 
-void fuzzy_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
-	const point &current_position = robot->position();
+void FuzzyController::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
+	const Point &current_position = robot->position();
 	const double current_orientation = robot->orientation();
 	angular_velocity = param[4]*angle_mod(new_orientation - current_orientation);
 	
@@ -50,7 +50,7 @@ void fuzzy_controller::move(const point &new_position, double new_orientation, p
 	
 	if (linear_velocity.len()!=0) linear_velocity = linear_velocity / linear_velocity.len() * distance_factor * param[0];
 	
-	point stopping_velocity = (-robot->est_velocity()).rotate(-current_orientation);
+	Point stopping_velocity = (-robot->est_velocity()).rotate(-current_orientation);
 	if (stopping_velocity.len()!=0) stopping_velocity = stopping_velocity / stopping_velocity.len() * param[0];
 	
 	double velocity_factor = ((robot->est_velocity()).len() / param[0]) * param[2];
@@ -62,11 +62,11 @@ void fuzzy_controller::move(const point &new_position, double new_orientation, p
 	linear_velocity = distance_factor*linear_velocity+(1-distance_factor)*(velocity_factor*stopping_velocity + (1-velocity_factor)*linear_velocity);
 }
 
-void fuzzy_controller::clear() {
+void FuzzyController::clear() {
 #warning WRITE CODE HERE
 }
 
-robot_controller_factory &fuzzy_controller::get_factory() const {
+RobotControllerFactory &FuzzyController::get_factory() const {
 	return factory;
 }
 

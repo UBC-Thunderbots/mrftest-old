@@ -7,7 +7,7 @@
 // This exception is thrown if an attempt is made to bring a robot into drive
 // mode but sufficient resources are not available to do so.
 //
-class resource_allocation_failed : public std::exception {
+class ResourceAllocationFailed : public std::exception {
 	public:
 		//
 		// Returns a string message describing the situation.

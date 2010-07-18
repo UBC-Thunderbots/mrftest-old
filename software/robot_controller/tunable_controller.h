@@ -10,11 +10,11 @@
  * Parameter is a vector of doubles.
  * NOT thread-safe.
  */
-class tunable_controller {
+class TunableController {
 	public:
-		tunable_controller();
+		TunableController();
 
-		~tunable_controller();
+		~TunableController();
 
 		/**
 		 * Changes the controller parameters.
@@ -67,7 +67,7 @@ class tunable_controller {
 		 * Gets one instance of a tunable controller.
 		 * Returns NULL if no such controller exist.
 		 */
-		static tunable_controller* get_instance();
+		static TunableController* get_instance();
 };
 
 #endif

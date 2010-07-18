@@ -8,12 +8,12 @@
 /**
  * Provides the ability to receive referee box packets.
  */
-class refbox : public noncopyable, public sigc::trackable {
+class RefBox : public NonCopyable, public sigc::trackable {
 	public:
 		/**
-		 * Constructs a new refbox.
+		 * Constructs a new RefBox.
 		 */
-		refbox();
+		RefBox();
 
 		/**
 		 * \return The current command character
@@ -49,7 +49,7 @@ class refbox : public noncopyable, public sigc::trackable {
 		}
 
 	private:
-		const file_descriptor fd;
+		const FileDescriptor fd;
 		char command_;
 		unsigned char goals_blue_, goals_yellow_;
 		unsigned short time_remaining_;

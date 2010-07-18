@@ -5,6 +5,7 @@
 #include <cstddef>
 
 namespace {
+#warning unportable, replace with objects with proper serialization
 	struct __attribute__((packed)) IDENT_DATA {
 		uint8_t signature[5];
 		uint8_t manufacturer;
@@ -22,33 +23,33 @@ namespace {
 		return (num + den - 1) / den;
 	}
 
-	void get_page_data(const intel_hex &data, unsigned int page, unsigned char (&buffer)[fpga_upload::PAGE_BYTES]) {
-		std::fill(buffer, buffer + fpga_upload::PAGE_BYTES, 0xFF);
-		unsigned int byte = page * fpga_upload::PAGE_BYTES;
+	void get_page_data(const IntelHex &data, unsigned int page, unsigned char (&buffer)[FPGAUpload::PAGE_BYTES]) {
+		std::fill(buffer, buffer + FPGAUpload::PAGE_BYTES, 0xFF);
+		unsigned int byte = page * FPGAUpload::PAGE_BYTES;
 		if (byte < data.data()[0].size()) {
-			std::copy(&data.data()[0][byte], &data.data()[0][std::min<std::size_t>(byte + fpga_upload::PAGE_BYTES, data.data()[0].size())], buffer);
+			std::copy(&data.data()[0][byte], &data.data()[0][std::min<std::size_t>(byte + FPGAUpload::PAGE_BYTES, data.data()[0].size())], buffer);
 		}
 	}
 }
 
-fpga_upload::fpga_upload(xbee_raw_bot::ptr bot, const intel_hex &data) : bot(bot), data(data), proto(bot), sectors_erased(0), pages_written(0), chunks_crcd(0) {
+FPGAUpload::FPGAUpload(XBeeRawBot::ptr bot, const IntelHex &data) : bot(bot), data(data), proto(bot), sectors_erased(0), pages_written(0), chunks_crcd(0) {
 	status = "Idle";
 	proto.signal_error.connect(signal_error.make_slot());
 }
 
-void fpga_upload::start() {
+void FPGAUpload::start() {
 	status = "Entering Bootloader";
 	signal_progress.emit(0);
-	proto.enter_bootloader(sigc::mem_fun(this, &fpga_upload::enter_bootloader_done));
+	proto.enter_bootloader(sigc::mem_fun(this, &FPGAUpload::enter_bootloader_done));
 }
 
-void fpga_upload::enter_bootloader_done() {
+void FPGAUpload::enter_bootloader_done() {
 	status = "Checking Identity";
 	signal_progress.emit(0);
-	proto.send(COMMAND_IDENT, 0, 0, 0, 8, sigc::mem_fun(this, &fpga_upload::ident_received));
+	proto.send(COMMAND_IDENT, 0, 0, 0, 8, sigc::mem_fun(this, &FPGAUpload::ident_received));
 }
 
-void fpga_upload::ident_received(const void *response) {
+void FPGAUpload::ident_received(const void *response) {
 	const IDENT_DATA &ident = *static_cast<const IDENT_DATA *>(response);
 	if (!std::equal(ident.signature, ident.signature + 5, "TBOTS")) {
 		signal_error.emit("Incorrect IDENT signature!");
@@ -63,7 +64,7 @@ void fpga_upload::ident_received(const void *response) {
 	do_work();
 }
 
-void fpga_upload::do_work() {
+void FPGAUpload::do_work() {
 	for (;;) {
 		if (chunks_crcd == divup<std::size_t>(data.data()[0].size(), CHUNK_PAGES * PAGE_BYTES)) {
 			// We have CRCd as many chunks as are in the HEX file. We're done.
@@ -75,7 +76,7 @@ void fpga_upload::do_work() {
 			// We have written a full chunk's worth of pages. CRC the new pages.
 			unsigned int first_page = chunks_crcd * CHUNK_PAGES;
 			std::fill(pages_prewritten, pages_prewritten + CHUNK_PAGES, false);
-			proto.send(COMMAND_FPGA_CRC_CHUNK, first_page, 0, 0, 34, sigc::mem_fun(this, &fpga_upload::crcs_received));
+			proto.send(COMMAND_FPGA_CRC_CHUNK, first_page, 0, 0, 34, sigc::mem_fun(this, &FPGAUpload::crcs_received));
 			return;
 		} else if (chunks_crcd == sectors_erased * SECTOR_CHUNKS) {
 			// We have CRCd a full sector's worth of pages. We must erase more before continuing.
@@ -93,7 +94,7 @@ void fpga_upload::do_work() {
 			} else {
 				unsigned char inbuf[PAGE_BYTES];
 				get_page_data(data, pages_written, inbuf);
-				rle_compressor comp(inbuf, PAGE_BYTES);
+				RLECompressor comp(inbuf, PAGE_BYTES);
 				while (!comp.done()) {
 					unsigned char rlebuf[97];
 					std::size_t len = comp.next(rlebuf, sizeof(rlebuf));
@@ -107,7 +108,7 @@ void fpga_upload::do_work() {
 	}
 }
 
-void fpga_upload::crcs_received(const void *response) {
+void FPGAUpload::crcs_received(const void *response) {
 	// Decode the received data.
 	uint16_t words[CHUNK_PAGES + 1];
 	for (unsigned int i = 0; i < CHUNK_PAGES + 1; ++i) {
@@ -132,7 +133,7 @@ void fpga_upload::crcs_received(const void *response) {
 	for (unsigned int i = 0; i < CHUNK_PAGES && chunks_crcd * CHUNK_PAGES + i < divup<std::size_t>(data.data()[0].size(), PAGE_BYTES); ++i) {
 		unsigned char pagedata[PAGE_BYTES];
 		get_page_data(data, chunks_crcd * CHUNK_PAGES + i, pagedata);
-		uint16_t computed = crc16::calculate(pagedata, PAGE_BYTES);
+		uint16_t computed = CRC16::calculate(pagedata, PAGE_BYTES);
 		if (computed != words[i + 1]) {
 			signal_error.emit("CRC mismatch!");
 			return;

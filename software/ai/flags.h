@@ -3,70 +3,70 @@
 
 #include "ai/world/playtype.h"
 
-namespace ai_flags {
+namespace AIFlags {
 	/**
 	 * Navigator flags for special rules.
 	 * Roles set flags in tactics, and tactics pass the flags to navigators.
 	 */
 	enum {
-		clip_play_area         = 0x0001, /**< enum Force robot to stay in play area. */
-		avoid_ball_near        = 0x0002, /**< enum Avoid ball for pivoting (probably used for free kick). */
-		avoid_ball_stop        = 0x0004, /**< enum Avoid ball when stop is in play. */
-		avoid_friendly_defence = 0x0008, /**< enum Avoid friendly defence area. */
-		avoid_enemy_defence    = 0x0010, /**< enum Avoid enemy defence area. */
-		stay_own_half          = 0x0020, /**< enum Stay in your own half. */
-		penalty_kick_friendly  = 0x0040, /**< enum Neither goalie nor kicker. Stay away at certain boundary. */
-		penalty_kick_enemy     = 0x0080, /**< enum Neither goalie nor kicker. Stay away at certain boundary. */
+		CLIP_PLAY_AREA         = 0x0001, /**< enum Force robot to stay in play area. */
+		AVOID_BALL_NEAR        = 0x0002, /**< enum Avoid ball for pivoting (probably used for free kick). */
+		AVOID_BALL_STOP        = 0x0004, /**< enum Avoid ball when stop is in play. */
+		AVOID_FRIENDLY_DEFENSE = 0x0008, /**< enum Avoid friendly defence area. */
+		AVOID_ENEMY_DEFENSE    = 0x0010, /**< enum Avoid enemy defence area. */
+		STAY_OWN_HALF          = 0x0020, /**< enum Stay in your own half. */
+		PENALTY_KICK_FRIENDLY  = 0x0040, /**< enum Neither goalie nor kicker. Stay away at certain boundary. */
+		PENALTY_KICK_ENEMY     = 0x0080, /**< enum Neither goalie nor kicker. Stay away at certain boundary. */
 	};
 	
 	namespace {
 		/**
-		* Returns the correct flags for a common player,
-		* i.e. a player that is NOT a goalie or the free kicker.
+		* Returns the correct flags for a common Player,
+		* i.e. a Player that is NOT a goalie or the free kicker.
 		* Assume our team does not have the ball, unless the play type indicates otherwise.
 		* The flags for those should be modified in the corresponding roles.
 		*/
-		unsigned int calc_flags(playtype::playtype pt){
+		unsigned int calc_flags(PlayType::PlayType pt){
 			// All robots want to avoid the defence area (except for the goalie)
-			unsigned int flags = avoid_friendly_defence;
+			unsigned int flags = AVOID_FRIENDLY_DEFENSE;
 			switch(pt){
-			  case playtype::stop:
-			  case playtype::execute_direct_free_kick_enemy:
-			  case playtype::execute_indirect_free_kick_enemy:
-			    flags |= avoid_ball_stop;
-			    flags |= avoid_enemy_defence;
+			  case PlayType::STOP:
+			  case PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY:
+			  case PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY:
+			    flags |= AVOID_BALL_STOP;
+			    flags |= AVOID_ENEMY_DEFENSE;
 			    break;
 			    
-			  case playtype::prepare_kickoff_enemy:
-			  case playtype::execute_kickoff_enemy:
-			    flags |= avoid_ball_stop;
-			    flags |= stay_own_half;
+			  case PlayType::PREPARE_KICKOFF_ENEMY:
+			  case PlayType::EXECUTE_KICKOFF_ENEMY:
+			    flags |= AVOID_BALL_STOP;
+			    flags |= STAY_OWN_HALF;
 			    break;
 			    
-			  case playtype::prepare_kickoff_friendly:
-			  case playtype::execute_kickoff_friendly:
-			    flags |= stay_own_half;
-			    flags |= clip_play_area;
-			    flags |= avoid_ball_stop;
+			  case PlayType::PREPARE_KICKOFF_FRIENDLY:
+			  case PlayType::EXECUTE_KICKOFF_FRIENDLY:
+			    flags |= STAY_OWN_HALF;
+			    flags |= CLIP_PLAY_AREA;
+			    flags |= AVOID_BALL_STOP;
 			    break;
 			  
-			  case playtype::execute_direct_free_kick_friendly:
-			  case playtype::execute_indirect_free_kick_friendly:
-			    flags |= avoid_enemy_defence;
-			    flags |= clip_play_area;
-			    flags |= avoid_ball_stop;
+			  case PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY:
+			  case PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY:
+			    flags |= AVOID_ENEMY_DEFENSE;
+			    flags |= CLIP_PLAY_AREA;
+			    flags |= AVOID_BALL_STOP;
 			    break;
 			  
-			  case playtype::prepare_penalty_friendly:
-			  case playtype::execute_penalty_friendly:
-			    flags |= penalty_kick_friendly;
-			    flags |= avoid_ball_stop;
+			  case PlayType::PREPARE_PENALTY_FRIENDLY:
+			  case PlayType::EXECUTE_PENALTY_FRIENDLY:
+			    flags |= PENALTY_KICK_FRIENDLY;
+			    flags |= AVOID_BALL_STOP;
 			    break;
 			    
-			  case playtype::prepare_penalty_enemy:
-			  case playtype::execute_penalty_enemy:
-			    flags |= penalty_kick_enemy;
-			    flags |= avoid_ball_stop;
+			  case PlayType::PREPARE_PENALTY_ENEMY:
+			  case PlayType::EXECUTE_PENALTY_ENEMY:
+			    flags |= PENALTY_KICK_ENEMY;
+			    flags |= AVOID_BALL_STOP;
 			    break;
 			    
 			  default: break;

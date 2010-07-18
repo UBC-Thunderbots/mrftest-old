@@ -21,7 +21,7 @@ namespace {
 	}
 }
 
-xbee_drive_bot::xbee_drive_bot(const Glib::ustring &name, uint64_t address, xbee_lowlevel &ll) : address(address), ll(ll), alive_(false), shm_frame(0), low_battery_message(Glib::ustring::compose("%1 low battery", name)), lt3751_fault_message(Glib::ustring::compose("%1 LT3751 fault", name)), chicker_low_fault_message(Glib::ustring::compose("%1 chicker LOW fault", name)), chicker_high_fault_message(Glib::ustring::compose("%1 chicker HIGH fault", name)), chicker_charge_timeout_message(Glib::ustring::compose("%1 chicker charge timeout", name)) {
+XBeeDriveBot::XBeeDriveBot(const Glib::ustring &name, uint64_t address, XBeeLowLevel &ll) : address(address), ll(ll), alive_(false), shm_frame(0), low_battery_message(Glib::ustring::compose("%1 low battery", name)), lt3751_fault_message(Glib::ustring::compose("%1 LT3751 fault", name)), chicker_low_fault_message(Glib::ustring::compose("%1 chicker LOW fault", name)), chicker_high_fault_message(Glib::ustring::compose("%1 chicker HIGH fault", name)), chicker_charge_timeout_message(Glib::ustring::compose("%1 chicker charge timeout", name)) {
 	timespec now;
 	timespec_now(now);
 	feedback_timestamp_ = now;
@@ -36,30 +36,30 @@ xbee_drive_bot::xbee_drive_bot(const Glib::ustring &name, uint64_t address, xbee
 	feedback_.dribbler_speed = 0;
 	feedback_.battery_level = 0;
 	feedback_.faults = 0;
-	ll.signal_meta.connect(sigc::mem_fun(this, &xbee_drive_bot::on_meta));
-	packet::ptr p(meta_claim_packet::create(address, true));
+	ll.signal_meta.connect(sigc::mem_fun(this, &XBeeDriveBot::on_meta));
+	XBeePacket::ptr p(MetaClaimPacket::create(address, true));
 	ll.send(p);
 }
 
-xbee_drive_bot::~xbee_drive_bot() {
-	ll.send(meta_release_packet::create(address));
+XBeeDriveBot::~XBeeDriveBot() {
+	ll.send(MetaReleasePacket::create(address));
 }
 
-xbee_drive_bot::ptr xbee_drive_bot::create(const Glib::ustring &name, uint64_t address, xbee_lowlevel &ll) {
-	ptr p(new xbee_drive_bot(name, address, ll));
+XBeeDriveBot::ptr XBeeDriveBot::create(const Glib::ustring &name, uint64_t address, XBeeLowLevel &ll) {
+	ptr p(new XBeeDriveBot(name, address, ll));
 	return p;
 }
 
-bool xbee_drive_bot::drive_faulted(unsigned int m) const {
+bool XBeeDriveBot::drive_faulted(unsigned int m) const {
 	assert(m < 4);
 	return !!(feedback_.faults & (1 << m));
 }
 
-bool xbee_drive_bot::dribbler_faulted() const {
+bool XBeeDriveBot::dribbler_faulted() const {
 	return !!(feedback_.faults & (1 << 4));
 }
 
-unsigned int xbee_drive_bot::battery_voltage() const {
+unsigned int XBeeDriveBot::battery_voltage() const {
 	static const unsigned int ADC_MAX = 1023;
 	static const unsigned int VCC = 3300;
 	static const unsigned int DIVIDER_UPPER = 2200;
@@ -67,7 +67,7 @@ unsigned int xbee_drive_bot::battery_voltage() const {
 	return feedback_.battery_level * VCC / DIVIDER_LOWER * (DIVIDER_LOWER + DIVIDER_UPPER) / ADC_MAX;
 }
 
-unsigned int xbee_drive_bot::capacitor_voltage() const {
+unsigned int XBeeDriveBot::capacitor_voltage() const {
 	static const unsigned int ADC_MAX = 1023;
 	static const unsigned int VCC = 3300;
 	static const unsigned int DIVIDER_UPPER = 220000;
@@ -75,158 +75,158 @@ unsigned int xbee_drive_bot::capacitor_voltage() const {
 	return feedback_.capacitor_level * VCC / DIVIDER_LOWER * (DIVIDER_LOWER + DIVIDER_UPPER) / ADC_MAX;
 }
 
-unsigned int xbee_drive_bot::dribbler_speed() const {
+unsigned int XBeeDriveBot::dribbler_speed() const {
 	static const unsigned int TICKS_PER_MINUTE = 10 * 60;
 	return feedback_.dribbler_speed * TICKS_PER_MINUTE;
 }
 
-int xbee_drive_bot::outbound_rssi() const {
+int XBeeDriveBot::outbound_rssi() const {
 	return -feedback_.outbound_rssi;
 }
 
-int xbee_drive_bot::inbound_rssi() const {
+int XBeeDriveBot::inbound_rssi() const {
 	return -inbound_rssi_;
 }
 
-bool xbee_drive_bot::chicker_ready() const {
-	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_READY);
+bool XBeeDriveBot::chicker_ready() const {
+	return !!(feedback_.flags & XBeePacketTypes::FEEDBACK_FLAG_CHICKER_READY);
 }
 
-bool xbee_drive_bot::lt3751_faulted() const {
-	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_FAULT_LT3751);
+bool XBeeDriveBot::lt3751_faulted() const {
+	return !!(feedback_.flags & XBeePacketTypes::FEEDBACK_FLAG_CHICKER_FAULT_LT3751);
 }
 
-bool xbee_drive_bot::chicker_low_faulted() const {
-	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_FAULT_LOW);
+bool XBeeDriveBot::chicker_low_faulted() const {
+	return !!(feedback_.flags & XBeePacketTypes::FEEDBACK_FLAG_CHICKER_FAULT_LOW);
 }
 
-bool xbee_drive_bot::chicker_high_faulted() const {
-	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_FAULT_HIGH);
+bool XBeeDriveBot::chicker_high_faulted() const {
+	return !!(feedback_.flags & XBeePacketTypes::FEEDBACK_FLAG_CHICKER_FAULT_HIGH);
 }
 
-bool xbee_drive_bot::chicker_timed_out() const {
-	return !!(feedback_.flags & xbeepacket::FEEDBACK_FLAG_CHICKER_CHARGE_TIMEOUT);
+bool XBeeDriveBot::chicker_timed_out() const {
+	return !!(feedback_.flags & XBeePacketTypes::FEEDBACK_FLAG_CHICKER_CHARGE_TIMEOUT);
 }
 
-void xbee_drive_bot::stamp() {
+void XBeeDriveBot::stamp() {
 	assert(shm_frame);
-	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
+	RWLockScopedAcquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
 	timespec_now(&shm_frame->timestamp);
 }
 
-void xbee_drive_bot::drive_scram() {
+void XBeeDriveBot::drive_scram() {
 	assert(shm_frame);
-	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
-	shm_frame->run_data.flags &= ~(xbeepacket::RUN_FLAG_DIRECT_DRIVE | xbeepacket::RUN_FLAG_CONTROLLED_DRIVE);
+	RWLockScopedAcquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
+	shm_frame->run_data.flags &= ~(XBeePacketTypes::RUN_FLAG_DIRECT_DRIVE | XBeePacketTypes::RUN_FLAG_CONTROLLED_DRIVE);
 	shm_frame->run_data.drive1_speed = 0;
 	shm_frame->run_data.drive2_speed = 0;
 	shm_frame->run_data.drive3_speed = 0;
 	shm_frame->run_data.drive4_speed = 0;
 }
 
-void xbee_drive_bot::drive_direct(int m1, int m2, int m3, int m4) {
+void XBeeDriveBot::drive_direct(int m1, int m2, int m3, int m4) {
 	assert(shm_frame);
-	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
-	shm_frame->run_data.flags &= ~xbeepacket::RUN_FLAG_CONTROLLED_DRIVE;
-	shm_frame->run_data.flags |= xbeepacket::RUN_FLAG_DIRECT_DRIVE;
+	RWLockScopedAcquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
+	shm_frame->run_data.flags &= ~XBeePacketTypes::RUN_FLAG_CONTROLLED_DRIVE;
+	shm_frame->run_data.flags |= XBeePacketTypes::RUN_FLAG_DIRECT_DRIVE;
 	shm_frame->run_data.drive1_speed = smag(m1);
 	shm_frame->run_data.drive2_speed = smag(m2);
 	shm_frame->run_data.drive3_speed = smag(m3);
 	shm_frame->run_data.drive4_speed = smag(m4);
 }
 
-void xbee_drive_bot::drive_controlled(int m1, int m2, int m3, int m4) {
+void XBeeDriveBot::drive_controlled(int m1, int m2, int m3, int m4) {
 	assert(shm_frame);
 	assert(-1023 <= m1 && m1 <= 1023);
 	assert(-1023 <= m2 && m2 <= 1023);
 	assert(-1023 <= m3 && m3 <= 1023);
 	assert(-1023 <= m4 && m4 <= 1023);
-	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
-	shm_frame->run_data.flags &= ~xbeepacket::RUN_FLAG_DIRECT_DRIVE;
-	shm_frame->run_data.flags |= xbeepacket::RUN_FLAG_CONTROLLED_DRIVE;
+	RWLockScopedAcquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
+	shm_frame->run_data.flags &= ~XBeePacketTypes::RUN_FLAG_DIRECT_DRIVE;
+	shm_frame->run_data.flags |= XBeePacketTypes::RUN_FLAG_CONTROLLED_DRIVE;
 	shm_frame->run_data.drive1_speed = m1;
 	shm_frame->run_data.drive2_speed = m2;
 	shm_frame->run_data.drive3_speed = m3;
 	shm_frame->run_data.drive4_speed = m4;
 }
 
-void xbee_drive_bot::dribble(int power) {
+void XBeeDriveBot::dribble(int power) {
 	assert(shm_frame);
-	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
+	RWLockScopedAcquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
 	shm_frame->run_data.dribbler_speed = smag(power);
 }
 
-void xbee_drive_bot::enable_chicker(bool enable) {
+void XBeeDriveBot::enable_chicker(bool enable) {
 	assert(shm_frame);
-	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
+	RWLockScopedAcquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
 	if (enable) {
-		shm_frame->run_data.flags |= xbeepacket::RUN_FLAG_CHICKER_ENABLED;
+		shm_frame->run_data.flags |= XBeePacketTypes::RUN_FLAG_CHICKER_ENABLED;
 	} else {
-		shm_frame->run_data.flags &= ~xbeepacket::RUN_FLAG_CHICKER_ENABLED;
+		shm_frame->run_data.flags &= ~XBeePacketTypes::RUN_FLAG_CHICKER_ENABLED;
 	}
 }
 
-void xbee_drive_bot::kick(unsigned int width) {
+void XBeeDriveBot::kick(unsigned int width) {
 	assert(shm_frame);
 	assert(0 < width && width < 512);
-	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
-	shm_frame->run_data.flags &= ~xbeepacket::RUN_FLAG_CHIP;
+	RWLockScopedAcquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
+	shm_frame->run_data.flags &= ~XBeePacketTypes::RUN_FLAG_CHIP;
 	shm_frame->run_data.chick_power = width;
-	Glib::signal_timeout().connect_once(sigc::mem_fun(this, &xbee_drive_bot::clear_chick), 250);
+	Glib::signal_timeout().connect_once(sigc::mem_fun(this, &XBeeDriveBot::clear_chick), 250);
 }
 
-void xbee_drive_bot::chip(unsigned int width) {
+void XBeeDriveBot::chip(unsigned int width) {
 	assert(shm_frame);
 	assert(0 < width && width < 512);
-	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
-	shm_frame->run_data.flags |= xbeepacket::RUN_FLAG_CHIP;
+	RWLockScopedAcquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
+	shm_frame->run_data.flags |= XBeePacketTypes::RUN_FLAG_CHIP;
 	shm_frame->run_data.chick_power = width;
-	Glib::signal_timeout().connect_once(sigc::mem_fun(this, &xbee_drive_bot::clear_chick), 250);
+	Glib::signal_timeout().connect_once(sigc::mem_fun(this, &XBeeDriveBot::clear_chick), 250);
 }
 
-void xbee_drive_bot::on_meta(const void *buffer, std::size_t length) {
-	if (length >= sizeof(xbeepacket::META_HDR)) {
-		uint8_t metatype = static_cast<const xbeepacket::META_HDR *>(buffer)->metatype;
+void XBeeDriveBot::on_meta(const void *buffer, std::size_t length) {
+	if (length >= sizeof(XBeePacketTypes::META_HDR)) {
+		uint8_t metatype = static_cast<const XBeePacketTypes::META_HDR *>(buffer)->metatype;
 		
-		if (metatype == xbeepacket::CLAIM_FAILED_LOCKED_METATYPE) {
-			const xbeepacket::META_CLAIM_FAILED &packet = *static_cast<const xbeepacket::META_CLAIM_FAILED *>(buffer);
+		if (metatype == XBeePacketTypes::CLAIM_FAILED_LOCKED_METATYPE) {
+			const XBeePacketTypes::META_CLAIM_FAILED &packet = *static_cast<const XBeePacketTypes::META_CLAIM_FAILED *>(buffer);
 			if (length == sizeof(packet)) {
 				if (packet.address == address) {
 					signal_claim_failed_locked.emit();
 				}
 			}
-		} else if (metatype == xbeepacket::CLAIM_FAILED_RESOURCE_METATYPE) {
-			const xbeepacket::META_CLAIM_FAILED &packet = *static_cast<const xbeepacket::META_CLAIM_FAILED *>(buffer);
+		} else if (metatype == XBeePacketTypes::CLAIM_FAILED_RESOURCE_METATYPE) {
+			const XBeePacketTypes::META_CLAIM_FAILED &packet = *static_cast<const XBeePacketTypes::META_CLAIM_FAILED *>(buffer);
 			if (length == sizeof(packet)) {
 				if (packet.address == address) {
 					signal_claim_failed_resource.emit();
 				}
 			}
-		} else if (metatype == xbeepacket::ALIVE_METATYPE) {
-			const xbeepacket::META_ALIVE &packet = *static_cast<const xbeepacket::META_ALIVE *>(buffer);
+		} else if (metatype == XBeePacketTypes::ALIVE_METATYPE) {
+			const XBeePacketTypes::META_ALIVE &packet = *static_cast<const XBeePacketTypes::META_ALIVE *>(buffer);
 			if (length == sizeof(packet)) {
 				if (packet.address == address) {
-					assert(packet.shm_frame < xbeepacket::MAX_DRIVE_ROBOTS);
+					assert(packet.shm_frame < XBeePacketTypes::MAX_DRIVE_ROBOTS);
 					shm_frame = &ll.shm->frames[packet.shm_frame];
-					shm_frame->run_data.flags |= xbeepacket::RUN_FLAG_RUNNING;
+					shm_frame->run_data.flags |= XBeePacketTypes::RUN_FLAG_RUNNING;
 					alive_ = true;
 					signal_alive.emit();
 				}
 			}
-		} else if (metatype == xbeepacket::DEAD_METATYPE) {
-			const xbeepacket::META_DEAD &packet = *static_cast<const xbeepacket::META_DEAD *>(buffer);
+		} else if (metatype == XBeePacketTypes::DEAD_METATYPE) {
+			const XBeePacketTypes::META_DEAD &packet = *static_cast<const XBeePacketTypes::META_DEAD *>(buffer);
 			if (length == sizeof(packet)) {
 				if (packet.address == address) {
 					alive_ = false;
 					signal_dead.emit();
 				}
 			}
-		} else if (metatype == xbeepacket::FEEDBACK_METATYPE) {
-			const xbeepacket::META_FEEDBACK &packet = *static_cast<const xbeepacket::META_FEEDBACK *>(buffer);
+		} else if (metatype == XBeePacketTypes::FEEDBACK_METATYPE) {
+			const XBeePacketTypes::META_FEEDBACK &packet = *static_cast<const XBeePacketTypes::META_FEEDBACK *>(buffer);
 			if (length == sizeof(packet)) {
 				if (packet.address == address) {
 					{
-						rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
+						RWLockScopedAcquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
 						feedback_ = shm_frame->feedback_data;
 						latency_ = shm_frame->latency;
 						inbound_rssi_ = shm_frame->inbound_rssi;
@@ -274,10 +274,10 @@ void xbee_drive_bot::on_meta(const void *buffer, std::size_t length) {
 	}
 }
 
-void xbee_drive_bot::clear_chick() {
+void XBeeDriveBot::clear_chick() {
 	assert(shm_frame);
-	rwlock_scoped_acquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
-	shm_frame->run_data.flags &= ~xbeepacket::RUN_FLAG_CHIP;
+	RWLockScopedAcquire acq(&ll.shm->lock, &pthread_rwlock_rdlock);
+	shm_frame->run_data.flags &= ~XBeePacketTypes::RUN_FLAG_CHIP;
 	shm_frame->run_data.chick_power = 0;
 }
 

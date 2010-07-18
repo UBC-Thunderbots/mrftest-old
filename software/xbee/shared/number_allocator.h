@@ -10,12 +10,12 @@
 // An object that manages allocating index numbers.
 //
 template<typename T>
-class number_allocator : public noncopyable, public sigc::trackable {
+class NumberAllocator : public NonCopyable, public sigc::trackable {
 	public:
 		//
 		// Constructs a new allocator.
 		//
-		number_allocator(T minimum, T maximum) {
+		NumberAllocator(T minimum, T maximum) {
 			// Do not optimize this to a "for" loop.
 			// It is NOT equivalent.
 			// It handles the case of maximum == FOO_MAX properly.

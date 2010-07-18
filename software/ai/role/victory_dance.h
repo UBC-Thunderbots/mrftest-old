@@ -5,19 +5,19 @@
 #include "ai/tactic/dance.h"
 
 //
-// Gets the robots to go to their victory_dance positions.
+// Gets the robots to go to their victory dance positions.
 //
-class victory_dance : public role {
+class VictoryDance : public Role {
 	public:
 		//
-		// A pointer to a victory_dance role.
+		// A pointer to a VictoryDance Role.
 		//
-		typedef Glib::RefPtr<victory_dance> ptr;
+		typedef Glib::RefPtr<VictoryDance> ptr;
 
 		//
-		// Constructs a new victory_dance role.
+		// Constructs a new VictoryDance Role.
 		//
-		victory_dance();
+		VictoryDance();
 
 		//
 		// Runs the AI for one time tick.
@@ -30,7 +30,7 @@ class victory_dance : public role {
 		void robots_changed();
 
 	protected:
-        std::vector<dance::ptr> the_tactics;
+        std::vector<Dance::ptr> the_tactics;
 		
 };
 

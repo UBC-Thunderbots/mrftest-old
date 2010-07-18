@@ -1,6 +1,6 @@
 #include "geom/point.h"
 
-bool operator<(const point &p, const point &q) {
+bool operator<(const Point &p, const Point &q) {
 	if (p.x != q.x) {
 		return p.x < q.x;
 	} else {

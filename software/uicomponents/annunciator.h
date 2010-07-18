@@ -7,7 +7,7 @@
 /**
  * An annunciator panel that displays a collection of important messages.
  */
-class annunciator : public Gtk::ScrolledWindow {
+class Annunciator : public Gtk::ScrolledWindow {
 	public:
 		/**
 		 * A message that can be displayed in the annunciator panel. It is
@@ -15,7 +15,7 @@ class annunciator : public Gtk::ScrolledWindow {
 		 * one or more instances of this class as members, one for each message,
 		 * and will call \c activate to turn them on and off.
 		 */
-		class message : public noncopyable, public sigc::trackable {
+		class message : public NonCopyable, public sigc::trackable {
 			public:
 				/**
 				 * Registers a new message source with the annunciator system.
@@ -75,12 +75,12 @@ class annunciator : public Gtk::ScrolledWindow {
 		/**
 		 * Constructs a new annunciator panel ready to add to a window.
 		 */
-		annunciator();
+		Annunciator();
 
 		/**
 		 * Destroys an annunciator panel.
 		 */
-		~annunciator();
+		~Annunciator();
 };
 
 #endif

@@ -16,17 +16,17 @@
 #include <stdexcept>
 
 namespace {
-	class state_machine : public noncopyable, public sigc::trackable {
+	class StateMachine : public NonCopyable, public sigc::trackable {
 		public:
-			state_machine(Glib::RefPtr<Glib::MainLoop> loop, const xbee_raw_bot::ptr bot) : loop(loop), bot(bot) {
-				conn = bot->signal_alive.connect(sigc::mem_fun(this, &state_machine::on_alive));
-				bot->signal_claim_failed.connect(sigc::mem_fun(this, &state_machine::on_claim_failed));
+			StateMachine(Glib::RefPtr<Glib::MainLoop> loop, const XBeeRawBot::ptr bot) : loop(loop), bot(bot) {
+				conn = bot->signal_alive.connect(sigc::mem_fun(this, &StateMachine::on_alive));
+				bot->signal_claim_failed.connect(sigc::mem_fun(this, &StateMachine::on_claim_failed));
 				std::memset(seen_indices, 0, sizeof(seen_indices));
 			}
 
 		private:
 			const Glib::RefPtr<Glib::MainLoop> loop;
-			const xbee_raw_bot::ptr bot;
+			const XBeeRawBot::ptr bot;
 			sigc::connection conn;
 			bool seen_indices[128];
 			int16_t data[128][32];
@@ -44,18 +44,18 @@ namespace {
 			void do_set16() {
 				conn.disconnect();
 				uint8_t value[2] = { static_cast<uint8_t>(bot->address16() >> 8), static_cast<uint8_t>(bot->address16() & 0xFF) };
-				remote_at_packet<2>::ptr pkt(remote_at_packet<2>::create(bot->address, "MY", value, true));
-				conn = pkt->signal_complete().connect(sigc::mem_fun(this, &state_machine::done_set16));
+				RemoteATPacket<2>::ptr pkt(RemoteATPacket<2>::create(bot->address, "MY", value, true));
+				conn = pkt->signal_complete().connect(sigc::mem_fun(this, &StateMachine::done_set16));
 				bot->send(pkt);
 			}
 
 			void done_set16(const void *data, std::size_t) {
 				// Check sanity.
-				const xbeepacket::REMOTE_AT_RESPONSE &pkt = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(data);
-				if (pkt.apiid != xbeepacket::REMOTE_AT_RESPONSE_APIID) {
+				const XBeePacketTypes::REMOTE_AT_RESPONSE &pkt = *static_cast<const XBeePacketTypes::REMOTE_AT_RESPONSE *>(data);
+				if (pkt.apiid != XBeePacketTypes::REMOTE_AT_RESPONSE_APIID) {
 					return;
 				}
-				if (xbeeutil::address_from_bytes(pkt.address64) != bot->address) {
+				if (XBeeUtil::address_from_bytes(pkt.address64) != bot->address) {
 					return;
 				}
 				if (pkt.command[0] != 'M' || pkt.command[1] != 'Y') {
@@ -64,32 +64,32 @@ namespace {
 
 				// Check return status.
 				switch (pkt.status) {
-					case xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK:
+					case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_OK:
 						// Command executed successfully.
 						// Disconnect signals.
 						conn.disconnect();
 						std::cout << "16-bit address assigned OK. Waiting for data.\n";
-						conn = bot->signal_receive16.connect(sigc::mem_fun(this, &state_machine::on_receive16));
+						conn = bot->signal_receive16.connect(sigc::mem_fun(this, &StateMachine::on_receive16));
 						return;
 
-					case xbeepacket::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE:
+					case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE:
 						// No response from the remote system. Try resending, if we have retries left.
 						do_set16();
 						return;
 
-					case xbeepacket::REMOTE_AT_RESPONSE_STATUS_ERROR:
+					case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_ERROR:
 						// Hard error. Don't bother retrying; just report an error.
 						std::cout << "Error assigning 16-bit address.\n";
 						loop->quit();
 						return;
 
-					case xbeepacket::REMOTE_AT_RESPONSE_STATUS_INVALID_COMMAND:
+					case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_COMMAND:
 						// Hard error. Don't bother retrying; just report an error.
 						std::cout << "AT command rejected.\n";
 						loop->quit();
 						return;
 
-					case xbeepacket::REMOTE_AT_RESPONSE_STATUS_INVALID_PARAMETER:
+					case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_PARAMETER:
 						// Hard error. Don't bother retrying; just report an error.
 						std::cout << "AT command parameter rejected.\n";
 						loop->quit();
@@ -103,6 +103,7 @@ namespace {
 				}
 			}
 
+#warning unportable, replace with proper encoding/decoding
 			struct __attribute__((packed)) RXDATA {
 				uint8_t index;
 				uint16_t data[32];
@@ -170,16 +171,16 @@ namespace {
 		}
 
 		Glib::RefPtr<Glib::MainLoop> loop(Glib::MainLoop::create());
-		const config conf;
+		const Config conf;
 		if (!conf.robots().contains_name(robot)) {
 			std::cerr << "No such robot!\n";
 			return 1;
 		}
-		const config::robot_info &botinfo(conf.robots().find(robot));
-		xbee_lowlevel modem;
+		const Config::RobotInfo &botinfo(conf.robots().find(robot));
+		XBeeLowLevel modem;
 
-		const xbee_raw_bot::ptr bot(xbee_raw_bot::create(botinfo.address, modem));
-		state_machine sm(loop, bot);
+		const XBeeRawBot::ptr bot(XBeeRawBot::create(botinfo.address, modem));
+		StateMachine sm(loop, bot);
 		loop->run();
 
 		return 0;

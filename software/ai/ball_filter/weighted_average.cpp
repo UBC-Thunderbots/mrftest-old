@@ -1,18 +1,18 @@
 #include "ai/ball_filter/ball_filter.h"
 
 namespace {
-	class weighted_average_filter : public ball_filter {
+	class WeightedAverageFilter : public BallFilter {
 		public:
-			weighted_average_filter() : ball_filter("Weighted Average Filter") {
+			WeightedAverageFilter() : BallFilter("Weighted Average Filter") {
 			}
 
-			point filter(const std::vector<std::pair<double, point> > &balls, friendly_team &, enemy_team &) {
+			Point filter(const std::vector<std::pair<double, Point> > &balls, FriendlyTeam &, EnemyTeam &) {
 				if (balls.empty()) {
-					return point();
+					return Point();
 				} else {
-					point p;
+					Point p;
 					double total_confidence = 0;
-					for (std::vector<std::pair<double, point> >::const_iterator i = balls.begin(); i != balls.end(); ++i) {
+					for (std::vector<std::pair<double, Point> >::const_iterator i = balls.begin(); i != balls.end(); ++i) {
 						p += i->second * i->first;
 						total_confidence += i->first;
 					}

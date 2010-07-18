@@ -9,18 +9,18 @@
 #include <cstdlib>
 #include <glibmm.h>
 
-class ai;
-class world;
+class AI;
+class World;
 
 /**
  * A robot, which may or may not be drivable.
  */
-class robot : public visualizable::robot, public predictable, public sigc::trackable {
+class Robot : public Visualizable::Robot, public Predictable, public sigc::trackable {
 	public:
 		/**
-		 * A pointer to a robot.
+		 * A pointer to a Robot.
 		 */
-		typedef Glib::RefPtr<robot> ptr;
+		typedef Glib::RefPtr<Robot> ptr;
 
 		/**
 		 * The largest possible radius of a robot, in metres.
@@ -40,41 +40,41 @@ class robot : public visualizable::robot, public predictable, public sigc::track
 		/**
 		 * \return The position of the robot.
 		 */
-		point position() const {
-			return predictable::position();
+		Point position() const {
+			return Predictable::position();
 		}
 
 		/**
 		 * \return The orientation of the robot.
 		 */
 		double orientation() const {
-			return predictable::orientation();
+			return Predictable::orientation();
 		}
 
 	protected:
 		double sign;
 
 		/**
-		 * Constructs a new player object.
+		 * Constructs a new Player object.
 		 *
 		 * \param[in] yellow the colour of the new robot.
 		 *
 		 * \param[in] pattern_index the lid pattern index of the new robot.
 		 */
-		robot(bool yellow, unsigned int pattern_index);
+		Robot(bool yellow, unsigned int pattern_index);
 
 	private:
 		unsigned int vision_failures;
 		bool seen_this_frame;
 
 		/**
-		 * Constructs a new non-drivable robot object.
+		 * Constructs a new non-drivable Robot object.
 		 * \return the new object
 		 */
 		static ptr create(bool yellow, unsigned int pattern_index);
 
 		/**
-		 * Updates the position of the player using new data.
+		 * Updates the position of the Player using new data.
 		 * \param packet the new data to update with
 		 */
 		void update(const SSL_DetectionRobot &packet);
@@ -83,9 +83,9 @@ class robot : public visualizable::robot, public predictable, public sigc::track
 			return true;
 		}
 
-		visualizable::colour visualizer_colour() const {
+		Visualizable::RobotColour visualizer_colour() const {
 			// Enemies are red; overridden in subclass for friendlies.
-			return visualizable::colour(1.0, 0.0, 0.0);
+			return Visualizable::RobotColour(1.0, 0.0, 0.0);
 		}
 
 		Glib::ustring visualizer_label() const {
@@ -96,7 +96,7 @@ class robot : public visualizable::robot, public predictable, public sigc::track
 			return false;
 		}
 
-		point destination() const {
+		Point destination() const {
 			std::abort();
 		}
 
@@ -104,12 +104,12 @@ class robot : public visualizable::robot, public predictable, public sigc::track
 			return false;
 		}
 
-		void visualizer_drag(const point &) {
+		void visualizer_drag(const Point &) {
 			std::abort();
 		}
 
-		friend class ai;
-		friend class world;
+		friend class AI;
+		friend class World;
 };
 
 #endif

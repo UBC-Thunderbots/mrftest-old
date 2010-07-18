@@ -14,23 +14,23 @@ namespace {
 	const unsigned int BTN_KICK = 0; // A.
 	const unsigned int BTN_CHIP = 2; // X.
 
-	class joystick_controller_factory : public robot_controller_factory {
+	class JoystickControllerFactory : public RobotControllerFactory {
 		public:
-			joystick_controller_factory() : robot_controller_factory("Joystick") {
+			JoystickControllerFactory() : RobotControllerFactory("Joystick") {
 			}
 
-			robot_controller::ptr create_controller(player::ptr plr, bool yellow, unsigned int index) const;
+			RobotController::ptr create_controller(Player::ptr plr, bool yellow, unsigned int index) const;
 	};
 
-	joystick_controller_factory factory;
+	JoystickControllerFactory factory;
 
-	class joystick_display_rectangle : public Gtk::DrawingArea {
+	class JoystickDisplayRectangle : public Gtk::DrawingArea {
 		public:
-			joystick_display_rectangle() {
+			JoystickDisplayRectangle() {
 				set_size_request(128, 128);
 			}
 
-			void set_stick(joystick::ptr p) {
+			void set_stick(Joystick::ptr p) {
 				stick = p;
 			}
 
@@ -67,7 +67,7 @@ namespace {
 					// Draw the angular velocity line.
 					double t = stick->axis(AXIS_ROT);
 					t = t / 32767.0 * M_PI;
-					const point &rot = point(0.0, -1.0).rotate(t) * width / 2.0;
+					const Point &rot = Point(0.0, -1.0).rotate(t) * width / 2.0;
 					ctx->set_source_rgb(0.0, 1.0, 0.0);
 					ctx->move_to(width / 2.0, height / 2.0);
 					ctx->line_to(rot.x + width / 2.0, rot.y + height / 2.0);
@@ -87,30 +87,30 @@ namespace {
 			}
 
 		private:
-			joystick::ptr stick;
+			Joystick::ptr stick;
 	};
 
-	class joystick_controller : public robot_controller, public Gtk::VBox {
+	class JoystickController : public RobotController, public Gtk::VBox {
 		public:
 #warning figure out a better UI so we can avoid passing colour and index into a robot controller
-			joystick_controller(player::ptr plr, bool yellow, unsigned int index);
+			JoystickController(Player::ptr plr, bool yellow, unsigned int index);
 
-			~joystick_controller();
+			~JoystickController();
 
-			void move(const point &, double, point &linear_velocity, double &angular_velocity);
+			void move(const Point &, double, Point &linear_velocity, double &angular_velocity);
 
 			void clear() {
 			}
 
-			robot_controller_factory &get_factory() const {
+			RobotControllerFactory &get_factory() const {
 				return factory;
 			}
 
 		private:
-			player::ptr plr;
-			joystick::ptr stick;
+			Player::ptr plr;
+			Joystick::ptr stick;
 			Gtk::ComboBoxText joybox;
-			joystick_display_rectangle disp;
+			JoystickDisplayRectangle disp;
 			sigc::connection move_connection;
 			bool prev_chick;
 
@@ -118,35 +118,35 @@ namespace {
 				move_connection.disconnect();
 				int idx = joybox.get_active_row_number();
 				if (idx > 0) {
-					stick = joystick::create(joystick::list()[idx - 1].first);
+					stick = Joystick::create(Joystick::list()[idx - 1].first);
 				} else {
 					stick.reset();
 				}
 				disp.set_stick(stick);
-				move_connection = stick->signal_moved().connect(sigc::mem_fun(disp, &joystick_display_rectangle::update));
+				move_connection = stick->signal_moved().connect(sigc::mem_fun(disp, &JoystickDisplayRectangle::update));
 			}
 	};
 
-	robot_controller::ptr joystick_controller_factory::create_controller(player::ptr plr, bool yellow, unsigned int index) const {
-		robot_controller::ptr p(new joystick_controller(plr, yellow, index));
+	RobotController::ptr JoystickControllerFactory::create_controller(Player::ptr plr, bool yellow, unsigned int index) const {
+		RobotController::ptr p(new JoystickController(plr, yellow, index));
 		return p;
 	}
 
-	class joystick_controller_ui : public Gtk::Window {
+	class JoystickControllerUI : public Gtk::Window {
 		public:
-			joystick_controller_ui() : abs_check("Absolute") {
+			JoystickControllerUI() : abs_check("Absolute") {
 				set_title("Joystick Configuration");
 				vbox.pack_start(abs_check, false, false);
 				vbox.pack_start(book, true, true);
 				add(vbox);
 			}
 
-			void add_controller(joystick_controller &ctl, const Glib::ustring &title) {
+			void add_controller(JoystickController &ctl, const Glib::ustring &title) {
 				book.append_page(ctl, title);
 				show_all();
 			}
 
-			void remove_controller(joystick_controller &ctl) {
+			void remove_controller(JoystickController &ctl) {
 				book.remove_page(ctl);
 				if (!book.get_n_pages())
 					hide_all();
@@ -168,18 +168,18 @@ namespace {
 			Gtk::Notebook book;
 	};
 
-	joystick_controller_ui &get_ui() {
-		static joystick_controller_ui ui;
+	JoystickControllerUI &get_ui() {
+		static JoystickControllerUI ui;
 		return ui;
 	}
 
-	joystick_controller::joystick_controller(player::ptr plr, bool yellow, unsigned int index) : plr(plr), prev_chick(false) {
+	JoystickController::JoystickController(Player::ptr plr, bool yellow, unsigned int index) : plr(plr), prev_chick(false) {
 		joybox.append_text("<Choose Joystick>");
-		const std::vector<std::pair<Glib::ustring, Glib::ustring> > &sticks = joystick::list();
+		const std::vector<std::pair<Glib::ustring, Glib::ustring> > &sticks = Joystick::list();
 		for (unsigned int i = 0; i < sticks.size(); i++)
 			joybox.append_text(Glib::ustring::compose("%1 [%2]", sticks[i].second, sticks[i].first));
 		joybox.set_active_text("<Choose Joystick>");
-		joybox.signal_changed().connect(sigc::mem_fun(this, &joystick_controller::joy_changed));
+		joybox.signal_changed().connect(sigc::mem_fun(this, &JoystickController::joy_changed));
 		pack_start(joybox, false, false);
 
 		pack_start(disp, true, true);
@@ -187,11 +187,11 @@ namespace {
 		get_ui().add_controller(*this, Glib::ustring::compose("%1 %2", yellow ? "Yellow" : "Blue", index));
 	}
 
-	joystick_controller::~joystick_controller() {
+	JoystickController::~JoystickController() {
 		get_ui().remove_controller(*this);
 	}
 
-	void joystick_controller::move(const point &, double, point &linear_velocity, double &angular_velocity) {
+	void JoystickController::move(const Point &, double, Point &linear_velocity, double &angular_velocity) {
 		if (stick) {
 			if (get_ui().absolute()) {
 				// World coordinates.

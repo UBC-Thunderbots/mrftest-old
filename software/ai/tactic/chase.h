@@ -7,17 +7,17 @@
 /**
  * Chase the ball.
  */
-class chase : public tactic {
+class Chase : public Tactic {
 	public:
 		//
-		// A pointer to this tactic.
+		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<chase> ptr;
+		typedef Glib::RefPtr<Chase> ptr;
 
 		//
-		// Constructs a new chase tactic. 
+		// Constructs a new Chase Tactic. 
 		//
-		chase(player::ptr player, world::ptr world);
+		Chase(Player::ptr player, World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -25,8 +25,8 @@ class chase : public tactic {
 		void tick();	
 
 	protected:
-		const world::ptr the_world;
-		robot_navigator navi;
+		const World::ptr the_world;
+		RobotNavigator navi;
 };
 
 #endif

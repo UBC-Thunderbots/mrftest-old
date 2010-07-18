@@ -12,8 +12,8 @@ namespace {
 	/**
 	 * Resets the shared memory block to a sensible initial state.
 	 */
-	void scrub_shm(pthread_rwlock_t *lck, xbeepacket::SHM_FRAME &frame) {
-		rwlock_scoped_acquire acq(lck, &pthread_rwlock_wrlock);
+	void scrub_shm(pthread_rwlock_t *lck, XBeePacketTypes::SHM_FRAME &frame) {
+		RWLockScopedAcquire acq(lck, &pthread_rwlock_wrlock);
 		frame.run_data.flags = 0;
 		frame.run_data.drive1_speed = 0;
 		frame.run_data.drive2_speed = 0;
@@ -35,8 +35,8 @@ namespace {
 	 * Stores feedback into the shared memory block as well as updating other
 	 * miscellaneous fields.
 	 */
-	void put_feedback(pthread_rwlock_t *lck, xbeepacket::SHM_FRAME &frame, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency, uint8_t rssi) {
-		rwlock_scoped_acquire acq(lck, &pthread_rwlock_wrlock);
+	void put_feedback(pthread_rwlock_t *lck, XBeePacketTypes::SHM_FRAME &frame, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency, uint8_t rssi) {
+		RWLockScopedAcquire acq(lck, &pthread_rwlock_wrlock);
 		frame.feedback_data = packet;
 		frame.delivery_mask = (frame.delivery_mask << 1) | 1;
 		frame.latency = latency;
@@ -48,13 +48,13 @@ namespace {
  * A robot is in this state if it is not claimed by a client and if it has no
  * allocated resources.
  */
-class robot_state::idle_state : public robot_state::state {
+class XBeeRobot::IdleState : public XBeeRobot::RobotState {
 	public:
-		static ptr enter(robot_state &bot);
-		void enter_raw_mode(client *cli);
-		void enter_drive_mode(client *cli);
+		static ptr enter(XBeeRobot &bot);
+		void enter_raw_mode(XBeeClient *cli);
+		void enter_drive_mode(XBeeClient *cli);
 		void release();
-		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency);
 		void on_feedback_timeout();
 		bool claimed() const;
 		bool freeing() const;
@@ -62,21 +62,21 @@ class robot_state::idle_state : public robot_state::state {
 		uint8_t run_data_index() const;
 
 	private:
-		robot_state &bot;
+		XBeeRobot &bot;
 
-		idle_state(robot_state &bot);
+		IdleState(XBeeRobot &bot);
 };
 
 /**
  * A robot is in this state if it has been claimed by a client in raw mode.
  */
-class robot_state::raw_state : public robot_state::state {
+class XBeeRobot::RawState : public XBeeRobot::RobotState {
 	public:
-		static ptr enter(robot_state &bot, client &claimed_by, uint16_t address16);
-		void enter_raw_mode(client *cli);
-		void enter_drive_mode(client *cli);
+		static ptr enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16);
+		void enter_raw_mode(XBeeClient *cli);
+		void enter_drive_mode(XBeeClient *cli);
 		void release();
-		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency);
 		void on_feedback_timeout();
 		bool claimed() const;
 		bool freeing() const;
@@ -84,24 +84,24 @@ class robot_state::raw_state : public robot_state::state {
 		uint8_t run_data_index() const;
 
 	private:
-		robot_state &bot;
-		client &claimed_by;
+		XBeeRobot &bot;
+		XBeeClient &claimed_by;
 		const uint16_t address16_;
 
-		raw_state(robot_state &bot, client &claimed_by, uint16_t address16);
+		RawState(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16);
 };
 
 /**
  * A robot is in this state if it has been claimed by a client in drive mode but
  * the robot has not yet been given a 16-bit address.
  */
-class robot_state::setting16_state : public robot_state::state {
+class XBeeRobot::Setting16State : public XBeeRobot::RobotState {
 	public:
-		static ptr enter(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index);
-		void enter_raw_mode(client *cli);
-		void enter_drive_mode(client *cli);
+		static ptr enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
+		void enter_raw_mode(XBeeClient *cli);
+		void enter_drive_mode(XBeeClient *cli);
 		void release();
-		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency);
 		void on_feedback_timeout();
 		bool claimed() const;
 		bool freeing() const;
@@ -109,12 +109,12 @@ class robot_state::setting16_state : public robot_state::state {
 		uint8_t run_data_index() const;
 
 	private:
-		robot_state &bot;
-		client &claimed_by;
+		XBeeRobot &bot;
+		XBeeClient &claimed_by;
 		const uint16_t address16_;
 		const uint8_t run_data_index_;
 
-		setting16_state(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index);
+		Setting16State(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
 		void queue_request();
 		void request_done(const void *buffer, std::size_t length);
 };
@@ -123,13 +123,13 @@ class robot_state::setting16_state : public robot_state::state {
  * A robot is in this state if it has been claimed by a client in drive mode and
  * has been given a 16-bit address but has not yet been given a run data offset.
  */
-class robot_state::settingrdo_state : public robot_state::state {
+class XBeeRobot::SettingRDOState : public XBeeRobot::RobotState {
 	public:
-		static ptr enter(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index);
-		void enter_raw_mode(client *cli);
-		void enter_drive_mode(client *cli);
+		static ptr enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
+		void enter_raw_mode(XBeeClient *cli);
+		void enter_drive_mode(XBeeClient *cli);
 		void release();
-		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency);
 		void on_feedback_timeout();
 		bool claimed() const;
 		bool freeing() const;
@@ -137,12 +137,12 @@ class robot_state::settingrdo_state : public robot_state::state {
 		uint8_t run_data_index() const;
 
 	private:
-		robot_state &bot;
-		client &claimed_by;
+		XBeeRobot &bot;
+		XBeeClient &claimed_by;
 		const uint16_t address16_;
 		const uint8_t run_data_index_;
 
-		settingrdo_state(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index);
+		SettingRDOState(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
 		void queue_request();
 		void request_done(const void *buffer, std::size_t length);
 };
@@ -152,13 +152,13 @@ class robot_state::settingrdo_state : public robot_state::state {
  * has been given a 16-bit address and a run data offset and is therefore alive
  * and ready to drive.
  */
-class robot_state::alive_state : public robot_state::state {
+class XBeeRobot::AliveState : public XBeeRobot::RobotState {
 	public:
-		static ptr enter(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index);
-		void enter_raw_mode(client *cli);
-		void enter_drive_mode(client *cli);
+		static ptr enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
+		void enter_raw_mode(XBeeClient *cli);
+		void enter_drive_mode(XBeeClient *cli);
 		void release();
-		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency);
 		void on_feedback_timeout();
 		bool claimed() const;
 		bool freeing() const;
@@ -166,25 +166,25 @@ class robot_state::alive_state : public robot_state::state {
 		uint8_t run_data_index() const;
 
 	private:
-		robot_state &bot;
-		client &claimed_by;
+		XBeeRobot &bot;
+		XBeeClient &claimed_by;
 		const uint16_t address16_;
 		const uint8_t run_data_index_;
 
-		alive_state(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index);
+		AliveState(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
 };
 
 /**
  * A robot is in this state if it has been released from drive mode and needs
  * its 16-bit address clearing.
  */
-class robot_state::releasing16_state : public robot_state::state {
+class XBeeRobot::Releasing16State : public XBeeRobot::RobotState {
 	public:
-		static ptr enter(robot_state &bot, uint16_t address16, uint8_t run_data_index);
-		void enter_raw_mode(client *cli);
-		void enter_drive_mode(client *cli);
+		static ptr enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index);
+		void enter_raw_mode(XBeeClient *cli);
+		void enter_drive_mode(XBeeClient *cli);
 		void release();
-		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency);
 		void on_feedback_timeout();
 		bool claimed() const;
 		bool freeing() const;
@@ -192,13 +192,13 @@ class robot_state::releasing16_state : public robot_state::state {
 		uint8_t run_data_index() const;
 
 	private:
-		robot_state &bot;
+		XBeeRobot &bot;
 		const uint16_t address16_;
 		const uint8_t run_data_index_;
 		unsigned int attempts;
 		static const unsigned int MAX_ATTEMPTS = 20;
 
-		releasing16_state(robot_state &bot, uint16_t address16, uint8_t run_data_index);
+		Releasing16State(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index);
 		void queue_request();
 		void request_done(const void *buffer, std::size_t length);
 };
@@ -207,13 +207,13 @@ class robot_state::releasing16_state : public robot_state::state {
  * A robot is in this state if it has been released from drive mode and needs
  * its bootload line to go high to reset the FPGA and clear the run data offset.
  */
-class robot_state::bootloading_high_state : public robot_state::state {
+class XBeeRobot::BootloadingHighState : public XBeeRobot::RobotState {
 	public:
-		static ptr enter(robot_state &bot, uint16_t address16, uint8_t run_data_index);
-		void enter_raw_mode(client *cli);
-		void enter_drive_mode(client *cli);
+		static ptr enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index);
+		void enter_raw_mode(XBeeClient *cli);
+		void enter_drive_mode(XBeeClient *cli);
 		void release();
-		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency);
 		void on_feedback_timeout();
 		bool claimed() const;
 		bool freeing() const;
@@ -221,13 +221,13 @@ class robot_state::bootloading_high_state : public robot_state::state {
 		uint8_t run_data_index() const;
 
 	private:
-		robot_state &bot;
+		XBeeRobot &bot;
 		const uint16_t address16_;
 		const uint8_t run_data_index_;
 		unsigned int attempts;
 		static const unsigned int MAX_ATTEMPTS = 20;
 
-		bootloading_high_state(robot_state &bot, uint16_t address16, uint8_t run_data_index);
+		BootloadingHighState(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index);
 		void queue_request();
 		void request_done(const void *buffer, std::size_t length);
 };
@@ -236,13 +236,13 @@ class robot_state::bootloading_high_state : public robot_state::state {
  * A robot is in this state if it has had its bootload line set high but has not
  * yet had it returned to low.
  */
-class robot_state::bootloading_low_state : public robot_state::state {
+class XBeeRobot::BootloadingLowState : public XBeeRobot::RobotState {
 	public:
-		static ptr enter(robot_state &bot, uint16_t address16, uint8_t run_data_index);
-		void enter_raw_mode(client *cli);
-		void enter_drive_mode(client *cli);
+		static ptr enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index);
+		void enter_raw_mode(XBeeClient *cli);
+		void enter_drive_mode(XBeeClient *cli);
 		void release();
-		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency);
 		void on_feedback_timeout();
 		bool claimed() const;
 		bool freeing() const;
@@ -250,13 +250,13 @@ class robot_state::bootloading_low_state : public robot_state::state {
 		uint8_t run_data_index() const;
 
 	private:
-		robot_state &bot;
+		XBeeRobot &bot;
 		const uint16_t address16_;
 		const uint8_t run_data_index_;
 		unsigned int attempts;
 		static const unsigned int MAX_ATTEMPTS = 20;
 
-		bootloading_low_state(robot_state &bot, uint16_t address16, uint8_t run_data_index);
+		BootloadingLowState(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index);
 		void queue_request();
 		void request_done(const void *buffer, std::size_t length);
 };
@@ -268,13 +268,13 @@ class robot_state::bootloading_low_state : public robot_state::state {
  * bootload line (in order to bring the FPGA back online) and then consider
  * itself claimed, rather than proceeding to the idle state.
  */
-class robot_state::bootloading_low_to_setting16_state : public robot_state::state {
+class XBeeRobot::BootloadingLowToSetting16State : public XBeeRobot::RobotState {
 	public:
-		static ptr enter(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index);
-		void enter_raw_mode(client *cli);
-		void enter_drive_mode(client *cli);
+		static ptr enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
+		void enter_raw_mode(XBeeClient *cli);
+		void enter_drive_mode(XBeeClient *cli);
 		void release();
-		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency);
 		void on_feedback_timeout();
 		bool claimed() const;
 		bool freeing() const;
@@ -282,214 +282,214 @@ class robot_state::bootloading_low_to_setting16_state : public robot_state::stat
 		uint8_t run_data_index() const;
 
 	private:
-		robot_state &bot;
-		client &claimed_by;
+		XBeeRobot &bot;
+		XBeeClient &claimed_by;
 		const uint16_t address16_;
 		const uint8_t run_data_index_;
 		unsigned int attempts;
 		static const unsigned int MAX_ATTEMPTS = 20;
 
-		bootloading_low_to_setting16_state(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index);
+		BootloadingLowToSetting16State(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
 		void queue_request();
 		void request_done(const void *buffer, std::size_t length);
 };
 
 
 
-robot_state::state::ptr robot_state::idle_state::enter(robot_state &bot) {
-	ptr p(new idle_state(bot));
+XBeeRobot::RobotState::ptr XBeeRobot::IdleState::enter(XBeeRobot &bot) {
+	ptr p(new IdleState(bot));
 	return p;
 }
 
-robot_state::idle_state::idle_state(robot_state &bot) : bot(bot) {
+XBeeRobot::IdleState::IdleState(XBeeRobot &bot) : bot(bot) {
 }
 
-void robot_state::idle_state::enter_raw_mode(client *cli) {
+void XBeeRobot::IdleState::enter_raw_mode(XBeeClient *cli) {
 	// Sanity check.
 	assert(cli);
 
 	// Allocate resources.
 	if (!bot.daemon.id16_allocator.available()) {
-		throw resource_allocation_failed();
+		throw ResourceAllocationFailed();
 	}
 	const uint16_t address16 = bot.daemon.id16_allocator.alloc();
 
 	// Transition to new state.
-	bot.state_ = robot_state::raw_state::enter(bot, *cli, address16);
+	bot.state_ = XBeeRobot::RawState::enter(bot, *cli, address16);
 }
 
-void robot_state::idle_state::enter_drive_mode(client *cli) {
+void XBeeRobot::IdleState::enter_drive_mode(XBeeClient *cli) {
 	// Sanity check.
 	assert(cli);
 
 	// Allocate resources.
 	if (!bot.daemon.id16_allocator.available()) {
-		throw resource_allocation_failed();
+		throw ResourceAllocationFailed();
 	}
 	const uint8_t rdi = bot.daemon.alloc_rundata_index();
 	if (rdi == 0xFF) {
-		throw resource_allocation_failed();
+		throw ResourceAllocationFailed();
 	}
 	const uint16_t address16 = bot.daemon.id16_allocator.alloc();
 	assert(address16 != 0xFFFF);
 	bot.daemon.run_data_index_reverse[rdi] = bot.address64;
 
 	// Transition to new state.
-	bot.state_ = robot_state::setting16_state::enter(bot, *cli, address16, rdi);
+	bot.state_ = XBeeRobot::Setting16State::enter(bot, *cli, address16, rdi);
 }
 
-void robot_state::idle_state::release() {
+void XBeeRobot::IdleState::release() {
 	// This indicates confusion.
 	LOG_WARN("Releasing idle robot (why?)");
 }
 
-void robot_state::idle_state::on_feedback(uint8_t, const xbeepacket::FEEDBACK_DATA &, const timespec &) {
+void XBeeRobot::IdleState::on_feedback(uint8_t, const XBeePacketTypes::FEEDBACK_DATA &, const timespec &) {
 	// Ignore this.
 }
 
-void robot_state::idle_state::on_feedback_timeout() {
+void XBeeRobot::IdleState::on_feedback_timeout() {
 	// Ignore this.
 }
 
-bool robot_state::idle_state::claimed() const {
+bool XBeeRobot::IdleState::claimed() const {
 	return false;
 }
 
-bool robot_state::idle_state::freeing() const {
+bool XBeeRobot::IdleState::freeing() const {
 	return false;
 }
 
-uint16_t robot_state::idle_state::address16() const {
+uint16_t XBeeRobot::IdleState::address16() const {
 	return 0;
 }
 
-uint8_t robot_state::idle_state::run_data_index() const {
+uint8_t XBeeRobot::IdleState::run_data_index() const {
 	return 0xFF;
 }
 
 
 
-robot_state::state::ptr robot_state::raw_state::enter(robot_state &bot, client &claimed_by, uint16_t address16) {
-	ptr p(new raw_state(bot, claimed_by, address16));
+XBeeRobot::RobotState::ptr XBeeRobot::RawState::enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16) {
+	ptr p(new RawState(bot, claimed_by, address16));
 	return p;
 }
 
-robot_state::raw_state::raw_state(robot_state &bot, client &claimed_by, uint16_t address16) : bot(bot), claimed_by(claimed_by), address16_(address16) {
+XBeeRobot::RawState::RawState(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16) : bot(bot), claimed_by(claimed_by), address16_(address16) {
 }
 
-void robot_state::raw_state::enter_raw_mode(client *) {
+void XBeeRobot::RawState::enter_raw_mode(XBeeClient *) {
 	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
-void robot_state::raw_state::enter_drive_mode(client *) {
+void XBeeRobot::RawState::enter_drive_mode(XBeeClient *) {
 	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
-void robot_state::raw_state::release() {
+void XBeeRobot::RawState::release() {
 #warning FIGURE OUT A SENSIBLE WAY TO DECIDE WHETHER OR NOT TO FREE THE 16-BIT ADDRESS
 	// Transition to new state.
-	bot.state_ = robot_state::idle_state::enter(bot);
+	bot.state_ = XBeeRobot::IdleState::enter(bot);
 }
 
-void robot_state::raw_state::on_feedback(uint8_t, const xbeepacket::FEEDBACK_DATA &, const timespec &) {
+void XBeeRobot::RawState::on_feedback(uint8_t, const XBeePacketTypes::FEEDBACK_DATA &, const timespec &) {
 	// Ignore this.
 }
 
-void robot_state::raw_state::on_feedback_timeout() {
+void XBeeRobot::RawState::on_feedback_timeout() {
 	// Ignore this.
 }
 
-bool robot_state::raw_state::claimed() const {
+bool XBeeRobot::RawState::claimed() const {
 	return true;
 }
 
-bool robot_state::raw_state::freeing() const {
+bool XBeeRobot::RawState::freeing() const {
 	return false;
 }
 
-uint16_t robot_state::raw_state::address16() const {
+uint16_t XBeeRobot::RawState::address16() const {
 	return address16_;
 }
 
-uint8_t robot_state::raw_state::run_data_index() const {
+uint8_t XBeeRobot::RawState::run_data_index() const {
 	return 0xFF;
 }
 
 
 
-robot_state::state::ptr robot_state::setting16_state::enter(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index) {
-	ptr p(new setting16_state(bot, claimed_by, address16, run_data_index));
+XBeeRobot::RobotState::ptr XBeeRobot::Setting16State::enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index) {
+	ptr p(new Setting16State(bot, claimed_by, address16, run_data_index));
 	return p;
 }
 
-robot_state::setting16_state::setting16_state(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index) : bot(bot), claimed_by(claimed_by), address16_(address16), run_data_index_(run_data_index) {
+XBeeRobot::Setting16State::Setting16State(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index) : bot(bot), claimed_by(claimed_by), address16_(address16), run_data_index_(run_data_index) {
 	scrub_shm(&bot.daemon.shm->lock, bot.daemon.shm->frames[run_data_index]);
 	queue_request();
 }
 
-void robot_state::setting16_state::enter_raw_mode(client *) {
+void XBeeRobot::Setting16State::enter_raw_mode(XBeeClient *) {
 	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
-void robot_state::setting16_state::enter_drive_mode(client *) {
+void XBeeRobot::Setting16State::enter_drive_mode(XBeeClient *) {
 	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
-void robot_state::setting16_state::release() {
-	bot.state_ = releasing16_state::enter(bot, address16_, run_data_index_);
+void XBeeRobot::Setting16State::release() {
+	bot.state_ = Releasing16State::enter(bot, address16_, run_data_index_);
 }
 
-void robot_state::setting16_state::on_feedback(uint8_t, const xbeepacket::FEEDBACK_DATA &, const timespec &) {
+void XBeeRobot::Setting16State::on_feedback(uint8_t, const XBeePacketTypes::FEEDBACK_DATA &, const timespec &) {
 	// Ignore this.
 }
 
-void robot_state::setting16_state::on_feedback_timeout() {
+void XBeeRobot::Setting16State::on_feedback_timeout() {
 	// Ignore this.
 }
 
-bool robot_state::setting16_state::claimed() const {
+bool XBeeRobot::Setting16State::claimed() const {
 	return true;
 }
 
-bool robot_state::setting16_state::freeing() const {
+bool XBeeRobot::Setting16State::freeing() const {
 	return false;
 }
 
-uint16_t robot_state::setting16_state::address16() const {
+uint16_t XBeeRobot::Setting16State::address16() const {
 	return address16_;
 }
 
-uint8_t robot_state::setting16_state::run_data_index() const {
+uint8_t XBeeRobot::Setting16State::run_data_index() const {
 	return run_data_index_;
 }
 
-void robot_state::setting16_state::queue_request() {
+void XBeeRobot::Setting16State::queue_request() {
 	// Assemble the packet.
-	xbeepacket::REMOTE_AT_REQUEST<2> packet;
-	packet.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
+	XBeePacketTypes::REMOTE_AT_REQUEST<2> packet;
+	packet.apiid = XBeePacketTypes::REMOTE_AT_REQUEST_APIID;
 	packet.frame = bot.daemon.frame_number_allocator.alloc();
-	xbeeutil::address_to_bytes(bot.address64, packet.address64);
+	XBeeUtil::address_to_bytes(bot.address64, packet.address64);
 	packet.address16[0] = 0xFF;
 	packet.address16[1] = 0xFE;
-	packet.options = xbeepacket::REMOTE_AT_REQUEST_OPTION_APPLY;
+	packet.options = XBeePacketTypes::REMOTE_AT_REQUEST_OPTION_APPLY;
 	packet.command[0] = 'M';
 	packet.command[1] = 'Y';
 	packet.value[0] = address16_ >> 8;
 	packet.value[1] = address16_ & 0xFF;
 
-	// Create a request object, attach a completion callback, and queue it.
-	request::ptr req(request::create(&packet, sizeof(packet), true));
-	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &number_allocator<uint8_t>::free), packet.frame))));
-	req->signal_complete().connect(sigc::mem_fun(this, &robot_state::setting16_state::request_done));
+	// Create a XBeeRequest object, attach a completion callback, and queue it.
+	XBeeRequest::ptr req(XBeeRequest::create(&packet, sizeof(packet), true));
+	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &NumberAllocator<uint8_t>::free), packet.frame))));
+	req->signal_complete().connect(sigc::mem_fun(this, &XBeeRobot::Setting16State::request_done));
 	bot.daemon.scheduler.queue(req);
 }
 
-void robot_state::setting16_state::request_done(const void *buffer, std::size_t length) {
-	const xbeepacket::REMOTE_AT_RESPONSE &resp = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(buffer);
+void XBeeRobot::Setting16State::request_done(const void *buffer, std::size_t length) {
+	const XBeePacketTypes::REMOTE_AT_RESPONSE &resp = *static_cast<const XBeePacketTypes::REMOTE_AT_RESPONSE *>(buffer);
 
 	// Check length.
 	if (length < sizeof(resp)) {
@@ -504,13 +504,13 @@ void robot_state::setting16_state::request_done(const void *buffer, std::size_t 
 	}
 
 	// Check status.
-	if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
+	if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
 		// No response. Robot is powered down? Not an error, just try again later.
 		queue_request();
-	} else if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK) {
+	} else if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_OK) {
 		// Address was assigned successfully. Next order of business is to
 		// assign the run data offset.
-		bot.state_ = settingrdo_state::enter(bot, claimed_by, address16_, run_data_index_);
+		bot.state_ = SettingRDOState::enter(bot, claimed_by, address16_, run_data_index_);
 	} else {
 		// An error of some unknown type occurred. This should be impossible; it
 		// suggests a logic error in the code and not a radio issue.
@@ -521,86 +521,86 @@ void robot_state::setting16_state::request_done(const void *buffer, std::size_t 
 
 
 
-robot_state::state::ptr robot_state::settingrdo_state::enter(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index) {
-	ptr p(new settingrdo_state(bot, claimed_by, address16, run_data_index));
+XBeeRobot::RobotState::ptr XBeeRobot::SettingRDOState::enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index) {
+	ptr p(new SettingRDOState(bot, claimed_by, address16, run_data_index));
 	return p;
 }
 
-robot_state::settingrdo_state::settingrdo_state(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index) : bot(bot), claimed_by(claimed_by), address16_(address16), run_data_index_(run_data_index) {
-	// Set the RUNNING flag in the run data packet, so that the scheduler will
+XBeeRobot::SettingRDOState::SettingRDOState(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index) : bot(bot), claimed_by(claimed_by), address16_(address16), run_data_index_(run_data_index) {
+	// Set the RUNNING flag in the run data packet, so that the XBeeScheduler will
 	// start soliciting feedback. We will use the receipt of feedback as our
 	// signal to exit the settingrdo state and transition to alive.
 	{
-		rwlock_scoped_acquire acq(&bot.daemon.shm->lock, &pthread_rwlock_wrlock);
-		bot.daemon.shm->frames[run_data_index_].run_data.flags |= xbeepacket::RUN_FLAG_RUNNING;
+		RWLockScopedAcquire acq(&bot.daemon.shm->lock, &pthread_rwlock_wrlock);
+		bot.daemon.shm->frames[run_data_index_].run_data.flags |= XBeePacketTypes::RUN_FLAG_RUNNING;
 	}
 
-	// Queue up a request.
+	// Queue up a XBeeRequest.
 	queue_request();
 }
 
-void robot_state::settingrdo_state::enter_raw_mode(client *) {
+void XBeeRobot::SettingRDOState::enter_raw_mode(XBeeClient *) {
 	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
-void robot_state::settingrdo_state::enter_drive_mode(client *) {
+void XBeeRobot::SettingRDOState::enter_drive_mode(XBeeClient *) {
 	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
-void robot_state::settingrdo_state::release() {
-	bot.state_ = releasing16_state::enter(bot, address16_, run_data_index_);
+void XBeeRobot::SettingRDOState::release() {
+	bot.state_ = Releasing16State::enter(bot, address16_, run_data_index_);
 }
 
-void robot_state::settingrdo_state::on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency) {
+void XBeeRobot::SettingRDOState::on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency) {
 	// Feedback has been received. The robot is now alive!
 	put_feedback(&bot.daemon.shm->lock, bot.daemon.shm->frames[run_data_index_], packet, latency, rssi);
-	bot.state_ = alive_state::enter(bot, claimed_by, address16_, run_data_index_);
+	bot.state_ = AliveState::enter(bot, claimed_by, address16_, run_data_index_);
 }
 
-void robot_state::settingrdo_state::on_feedback_timeout() {
+void XBeeRobot::SettingRDOState::on_feedback_timeout() {
 	// Go back and try resending the 16-bit address.
-	bot.state_ = setting16_state::enter(bot, claimed_by, address16_, run_data_index_);
+	bot.state_ = Setting16State::enter(bot, claimed_by, address16_, run_data_index_);
 }
 
-bool robot_state::settingrdo_state::claimed() const {
+bool XBeeRobot::SettingRDOState::claimed() const {
 	return true;
 }
 
-bool robot_state::settingrdo_state::freeing() const {
+bool XBeeRobot::SettingRDOState::freeing() const {
 	return false;
 }
 
-uint16_t robot_state::settingrdo_state::address16() const {
+uint16_t XBeeRobot::SettingRDOState::address16() const {
 	return address16_;
 }
 
-uint8_t robot_state::settingrdo_state::run_data_index() const {
+uint8_t XBeeRobot::SettingRDOState::run_data_index() const {
 	return run_data_index_;
 }
 
-void robot_state::settingrdo_state::queue_request() {
+void XBeeRobot::SettingRDOState::queue_request() {
 	// Assemble a TRANSMIT16 packet containing the run data offset.
 	struct __attribute__((packed)) packet {
-		xbeepacket::TRANSMIT16_HDR hdr;
+		XBeePacketTypes::TRANSMIT16_HDR hdr;
 		uint8_t value;
 	} packet;
-	packet.hdr.apiid = xbeepacket::TRANSMIT16_APIID;
+	packet.hdr.apiid = XBeePacketTypes::TRANSMIT16_APIID;
 	packet.hdr.frame = bot.daemon.frame_number_allocator.alloc();
 	packet.hdr.address[0] = address16_ >> 8;
 	packet.hdr.address[1] = address16_ & 0xFF;
 	packet.hdr.options = 0;
-	packet.value = run_data_index_ * sizeof(xbeepacket::RUN_DATA) + 1;
+	packet.value = run_data_index_ * sizeof(XBeePacketTypes::RUN_DATA) + 1;
 
-	// Create a request object, attach a completion callback, and queue it.
-	request::ptr req(request::create(&packet, sizeof(packet), true));
-	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &number_allocator<uint8_t>::free), packet.hdr.frame))));
-	req->signal_complete().connect(sigc::mem_fun(this, &robot_state::settingrdo_state::request_done));
+	// Create a XBeeRequest object, attach a completion callback, and queue it.
+	XBeeRequest::ptr req(XBeeRequest::create(&packet, sizeof(packet), true));
+	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &NumberAllocator<uint8_t>::free), packet.hdr.frame))));
+	req->signal_complete().connect(sigc::mem_fun(this, &XBeeRobot::SettingRDOState::request_done));
 	bot.daemon.scheduler.queue(req);
 }
 
-void robot_state::settingrdo_state::request_done(const void *, std::size_t) {
+void XBeeRobot::SettingRDOState::request_done(const void *, std::size_t) {
 	// We actually don't do anything here except just retransmit the packet. We
 	// keep flooding until we exit this state, which is caused by either
 	// receiving feedback or timing out on feedback, and has nothing to do with
@@ -610,40 +610,40 @@ void robot_state::settingrdo_state::request_done(const void *, std::size_t) {
 
 
 
-robot_state::state::ptr robot_state::alive_state::enter(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index) {
-	ptr p(new alive_state(bot, claimed_by, address16, run_data_index));
+XBeeRobot::RobotState::ptr XBeeRobot::AliveState::enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index) {
+	ptr p(new AliveState(bot, claimed_by, address16, run_data_index));
 	return p;
 }
 
-robot_state::alive_state::alive_state(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index) : bot(bot), claimed_by(claimed_by), address16_(address16), run_data_index_(run_data_index) {
+XBeeRobot::AliveState::AliveState(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index) : bot(bot), claimed_by(claimed_by), address16_(address16), run_data_index_(run_data_index) {
 	bot.signal_alive.emit();
 }
 
-void robot_state::alive_state::enter_raw_mode(client *) {
+void XBeeRobot::AliveState::enter_raw_mode(XBeeClient *) {
 	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
-void robot_state::alive_state::enter_drive_mode(client *) {
+void XBeeRobot::AliveState::enter_drive_mode(XBeeClient *) {
 	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
-void robot_state::alive_state::release() {
-	bot.state_ = releasing16_state::enter(bot, address16_, run_data_index_);
+void XBeeRobot::AliveState::release() {
+	bot.state_ = Releasing16State::enter(bot, address16_, run_data_index_);
 }
 
-void robot_state::alive_state::on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency) {
+void XBeeRobot::AliveState::on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency) {
 	// Feedback has been received.
 	put_feedback(&bot.daemon.shm->lock, bot.daemon.shm->frames[run_data_index_], packet, latency, rssi);
 	bot.signal_feedback.emit();
 }
 
-void robot_state::alive_state::on_feedback_timeout() {
+void XBeeRobot::AliveState::on_feedback_timeout() {
 	// Record that this happened.
 	uint16_t delivery_mask;
 	{
-		rwlock_scoped_acquire acq(&bot.daemon.shm->lock, &pthread_rwlock_wrlock);
+		RWLockScopedAcquire acq(&bot.daemon.shm->lock, &pthread_rwlock_wrlock);
 		bot.daemon.shm->frames[run_data_index_].delivery_mask <<= 1;
 		delivery_mask = bot.daemon.shm->frames[run_data_index_].delivery_mask;
 	}
@@ -651,101 +651,101 @@ void robot_state::alive_state::on_feedback_timeout() {
 	// If we have failed 16 times in a row, assume the robot is dead. Otherwise,
 	// emit the feedback signal to update the UI.
 	if (!delivery_mask) {
-		bot.state_ = setting16_state::enter(bot, claimed_by, address16_, run_data_index_);
+		bot.state_ = Setting16State::enter(bot, claimed_by, address16_, run_data_index_);
 		bot.signal_dead.emit();
 	} else {
 		bot.signal_feedback.emit();
 	}
 }
 
-bool robot_state::alive_state::claimed() const {
+bool XBeeRobot::AliveState::claimed() const {
 	return true;
 }
 
-bool robot_state::alive_state::freeing() const {
+bool XBeeRobot::AliveState::freeing() const {
 	return false;
 }
 
-uint16_t robot_state::alive_state::address16() const {
+uint16_t XBeeRobot::AliveState::address16() const {
 	return address16_;
 }
 
-uint8_t robot_state::alive_state::run_data_index() const {
+uint8_t XBeeRobot::AliveState::run_data_index() const {
 	return run_data_index_;
 }
 
 
 
-robot_state::state::ptr robot_state::releasing16_state::enter(robot_state &bot, uint16_t address16, uint8_t run_data_index) {
-	ptr p(new releasing16_state(bot, address16, run_data_index));
+XBeeRobot::RobotState::ptr XBeeRobot::Releasing16State::enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index) {
+	ptr p(new Releasing16State(bot, address16, run_data_index));
 	return p;
 }
 
-robot_state::releasing16_state::releasing16_state(robot_state &bot, uint16_t address16, uint8_t run_data_index) : bot(bot), address16_(address16), run_data_index_(run_data_index), attempts(0) {
+XBeeRobot::Releasing16State::Releasing16State(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index) : bot(bot), address16_(address16), run_data_index_(run_data_index), attempts(0) {
 	scrub_shm(&bot.daemon.shm->lock, bot.daemon.shm->frames[run_data_index_]);
 	queue_request();
 }
 
-void robot_state::releasing16_state::enter_raw_mode(client *) {
+void XBeeRobot::Releasing16State::enter_raw_mode(XBeeClient *) {
 	LOG_WARN("Claiming a freeing robot in raw mode.");
 	std::abort();
 }
 
-void robot_state::releasing16_state::enter_drive_mode(client *cli) {
-	bot.state_ = setting16_state::enter(bot, *cli, address16_, run_data_index_);
+void XBeeRobot::Releasing16State::enter_drive_mode(XBeeClient *cli) {
+	bot.state_ = Setting16State::enter(bot, *cli, address16_, run_data_index_);
 }
 
-void robot_state::releasing16_state::release() {
+void XBeeRobot::Releasing16State::release() {
 	LOG_WARN("Releasing a freeing robot (why?).");
 }
 
-void robot_state::releasing16_state::on_feedback(uint8_t, const xbeepacket::FEEDBACK_DATA &, const timespec &) {
+void XBeeRobot::Releasing16State::on_feedback(uint8_t, const XBeePacketTypes::FEEDBACK_DATA &, const timespec &) {
 	// Ignore this.
 }
 
-void robot_state::releasing16_state::on_feedback_timeout() {
+void XBeeRobot::Releasing16State::on_feedback_timeout() {
 	// Ignore this.
 }
 
-bool robot_state::releasing16_state::claimed() const {
+bool XBeeRobot::Releasing16State::claimed() const {
 	return false;
 }
 
-bool robot_state::releasing16_state::freeing() const {
+bool XBeeRobot::Releasing16State::freeing() const {
 	return true;
 }
 
-uint16_t robot_state::releasing16_state::address16() const {
+uint16_t XBeeRobot::Releasing16State::address16() const {
 	return address16_;
 }
 
-uint8_t robot_state::releasing16_state::run_data_index() const {
+uint8_t XBeeRobot::Releasing16State::run_data_index() const {
 	return run_data_index_;
 }
 
-void robot_state::releasing16_state::queue_request() {
+void XBeeRobot::Releasing16State::queue_request() {
 	// Assemble the packet.
-	xbeepacket::REMOTE_AT_REQUEST<2> packet;
-	packet.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
+	XBeePacketTypes::REMOTE_AT_REQUEST<2> packet;
+	packet.apiid = XBeePacketTypes::REMOTE_AT_REQUEST_APIID;
 	packet.frame = bot.daemon.frame_number_allocator.alloc();
-	xbeeutil::address_to_bytes(bot.address64, packet.address64);
+	XBeeUtil::address_to_bytes(bot.address64, packet.address64);
 	packet.address16[0] = 0xFF;
 	packet.address16[1] = 0xFE;
-	packet.options = xbeepacket::REMOTE_AT_REQUEST_OPTION_APPLY;
+	packet.options = XBeePacketTypes::REMOTE_AT_REQUEST_OPTION_APPLY;
 	packet.command[0] = 'M';
 	packet.command[1] = 'Y';
 	packet.value[0] = 0xFF;
 	packet.value[1] = 0xFF;
 
-	// Create a request object, attach a completion callback, and queue it.
-	request::ptr req(request::create(&packet, sizeof(packet), true));
-	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &number_allocator<uint8_t>::free), packet.frame))));
-	req->signal_complete().connect(sigc::mem_fun(this, &robot_state::releasing16_state::request_done));
+	// Create a XBeeRequest object, attach a completion callback, and queue it.
+	XBeeRequest::ptr req(XBeeRequest::create(&packet, sizeof(packet), true));
+	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &NumberAllocator<uint8_t>::free), packet.frame))));
+	req->signal_complete().connect(sigc::mem_fun(this, &XBeeRobot::Releasing16State::request_done));
 	bot.daemon.scheduler.queue(req);
 }
 
-void robot_state::releasing16_state::request_done(const void *buffer, std::size_t length) {
-	const xbeepacket::REMOTE_AT_RESPONSE &resp = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(buffer);
+void XBeeRobot::Releasing16State::request_done(const void *buffer, std::size_t length) {
+	const XBeePacketTypes::REMOTE_AT_RESPONSE &resp = *static_cast<const XBeePacketTypes::REMOTE_AT_RESPONSE *>(buffer);
 
 	// Check length.
 	if (length < sizeof(resp)) {
@@ -760,14 +760,14 @@ void robot_state::releasing16_state::request_done(const void *buffer, std::size_
 	}
 
 	// Check status.
-	if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
+	if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
 		// No response. Robot is powered down? Not an error, just try again up
 		// to a maximum limit of attempts.
 		if (++attempts < MAX_ATTEMPTS) {
 			queue_request();
 			return;
 		}
-	} else if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK) {
+	} else if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_OK) {
 		// Continue below.
 	} else {
 		// An error of some unknown type occurred. This should be impossible; it
@@ -778,79 +778,79 @@ void robot_state::releasing16_state::request_done(const void *buffer, std::size_
 
 	// Address was assigned successfully. Next order of business is to reset the
 	// FPGA.
-	bot.state_ = bootloading_high_state::enter(bot, address16_, run_data_index_);
+	bot.state_ = BootloadingHighState::enter(bot, address16_, run_data_index_);
 }
 
 
 
-robot_state::state::ptr robot_state::bootloading_high_state::enter(robot_state &bot, uint16_t address16, uint8_t run_data_index) {
-	ptr p(new bootloading_high_state(bot, address16, run_data_index));
+XBeeRobot::RobotState::ptr XBeeRobot::BootloadingHighState::enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index) {
+	ptr p(new BootloadingHighState(bot, address16, run_data_index));
 	return p;
 }
 
-robot_state::bootloading_high_state::bootloading_high_state(robot_state &bot, uint16_t address16, uint8_t run_data_index) : bot(bot), address16_(address16), run_data_index_(run_data_index), attempts(0) {
+XBeeRobot::BootloadingHighState::BootloadingHighState(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index) : bot(bot), address16_(address16), run_data_index_(run_data_index), attempts(0) {
 	queue_request();
 }
 
-void robot_state::bootloading_high_state::enter_raw_mode(client *) {
+void XBeeRobot::BootloadingHighState::enter_raw_mode(XBeeClient *) {
 	LOG_WARN("Claiming a freeing robot in raw mode.");
 	std::abort();
 }
 
-void robot_state::bootloading_high_state::enter_drive_mode(client *cli) {
-	bot.state_ = bootloading_low_to_setting16_state::enter(bot, *cli, address16_, run_data_index_);
+void XBeeRobot::BootloadingHighState::enter_drive_mode(XBeeClient *cli) {
+	bot.state_ = BootloadingLowToSetting16State::enter(bot, *cli, address16_, run_data_index_);
 }
 
-void robot_state::bootloading_high_state::release() {
+void XBeeRobot::BootloadingHighState::release() {
 	LOG_WARN("Releasing a freeing robot (why?).");
 }
 
-void robot_state::bootloading_high_state::on_feedback(uint8_t, const xbeepacket::FEEDBACK_DATA &, const timespec &) {
+void XBeeRobot::BootloadingHighState::on_feedback(uint8_t, const XBeePacketTypes::FEEDBACK_DATA &, const timespec &) {
 	// Ignore this.
 }
 
-void robot_state::bootloading_high_state::on_feedback_timeout() {
+void XBeeRobot::BootloadingHighState::on_feedback_timeout() {
 	// Ignore this.
 }
 
-bool robot_state::bootloading_high_state::claimed() const {
+bool XBeeRobot::BootloadingHighState::claimed() const {
 	return false;
 }
 
-bool robot_state::bootloading_high_state::freeing() const {
+bool XBeeRobot::BootloadingHighState::freeing() const {
 	return true;
 }
 
-uint16_t robot_state::bootloading_high_state::address16() const {
+uint16_t XBeeRobot::BootloadingHighState::address16() const {
 	return address16_;
 }
 
-uint8_t robot_state::bootloading_high_state::run_data_index() const {
+uint8_t XBeeRobot::BootloadingHighState::run_data_index() const {
 	return run_data_index_;
 }
 
-void robot_state::bootloading_high_state::queue_request() {
+void XBeeRobot::BootloadingHighState::queue_request() {
 	// Assemble the packet.
-	xbeepacket::REMOTE_AT_REQUEST<1> packet;
-	packet.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
+	XBeePacketTypes::REMOTE_AT_REQUEST<1> packet;
+	packet.apiid = XBeePacketTypes::REMOTE_AT_REQUEST_APIID;
 	packet.frame = bot.daemon.frame_number_allocator.alloc();
-	xbeeutil::address_to_bytes(bot.address64, packet.address64);
+	XBeeUtil::address_to_bytes(bot.address64, packet.address64);
 	packet.address16[0] = 0xFF;
 	packet.address16[1] = 0xFE;
-	packet.options = xbeepacket::REMOTE_AT_REQUEST_OPTION_APPLY;
+	packet.options = XBeePacketTypes::REMOTE_AT_REQUEST_OPTION_APPLY;
 	packet.command[0] = 'D';
 	packet.command[1] = '0';
 	packet.value[0] = 5;
 
-	// Create a request object, attach a completion callback, and queue it.
-	request::ptr req(request::create(&packet, sizeof(packet), true));
-	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &number_allocator<uint8_t>::free), packet.frame))));
-	req->signal_complete().connect(sigc::mem_fun(this, &robot_state::bootloading_high_state::request_done));
+	// Create a XBeeRequest object, attach a completion callback, and queue it.
+	XBeeRequest::ptr req(XBeeRequest::create(&packet, sizeof(packet), true));
+	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &NumberAllocator<uint8_t>::free), packet.frame))));
+	req->signal_complete().connect(sigc::mem_fun(this, &XBeeRobot::BootloadingHighState::request_done));
 	bot.daemon.scheduler.queue(req);
 }
 
-void robot_state::bootloading_high_state::request_done(const void *buffer, std::size_t length) {
-	const xbeepacket::REMOTE_AT_RESPONSE &resp = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(buffer);
+void XBeeRobot::BootloadingHighState::request_done(const void *buffer, std::size_t length) {
+	const XBeePacketTypes::REMOTE_AT_RESPONSE &resp = *static_cast<const XBeePacketTypes::REMOTE_AT_RESPONSE *>(buffer);
 
 	// Check length.
 	if (length < sizeof(resp)) {
@@ -865,14 +865,14 @@ void robot_state::bootloading_high_state::request_done(const void *buffer, std::
 	}
 
 	// Check status.
-	if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
+	if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
 		// No response. Robot is powered down? Not an error, just try again up
 		// to a maximum limit of attempts.
 		if (++attempts < MAX_ATTEMPTS) {
 			queue_request();
 			return;
 		}
-	} else if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK) {
+	} else if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_OK) {
 		// Continue below.
 	} else {
 		// An error of some unknown type occurred. This should be impossible; it
@@ -882,79 +882,79 @@ void robot_state::bootloading_high_state::request_done(const void *buffer, std::
 	}
 
 	// Bootload line was raised. Next order of business is to lower it again.
-	bot.state_ = bootloading_low_state::enter(bot, address16_, run_data_index_);
+	bot.state_ = BootloadingLowState::enter(bot, address16_, run_data_index_);
 }
 
 
 
-robot_state::state::ptr robot_state::bootloading_low_state::enter(robot_state &bot, uint16_t address16, uint8_t run_data_index) {
-	ptr p(new bootloading_low_state(bot, address16, run_data_index));
+XBeeRobot::RobotState::ptr XBeeRobot::BootloadingLowState::enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index) {
+	ptr p(new BootloadingLowState(bot, address16, run_data_index));
 	return p;
 }
 
-robot_state::bootloading_low_state::bootloading_low_state(robot_state &bot, uint16_t address16, uint8_t run_data_index) : bot(bot), address16_(address16), run_data_index_(run_data_index), attempts(0) {
+XBeeRobot::BootloadingLowState::BootloadingLowState(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index) : bot(bot), address16_(address16), run_data_index_(run_data_index), attempts(0) {
 	queue_request();
 }
 
-void robot_state::bootloading_low_state::enter_raw_mode(client *) {
+void XBeeRobot::BootloadingLowState::enter_raw_mode(XBeeClient *) {
 	LOG_WARN("Claiming a freeing robot in raw mode.");
 	std::abort();
 }
 
-void robot_state::bootloading_low_state::enter_drive_mode(client *cli) {
-	bot.state_ = setting16_state::enter(bot, *cli, address16_, run_data_index_);
+void XBeeRobot::BootloadingLowState::enter_drive_mode(XBeeClient *cli) {
+	bot.state_ = Setting16State::enter(bot, *cli, address16_, run_data_index_);
 }
 
-void robot_state::bootloading_low_state::release() {
+void XBeeRobot::BootloadingLowState::release() {
 	LOG_WARN("Releasing a freeing robot (why?).");
 }
 
-void robot_state::bootloading_low_state::on_feedback(uint8_t, const xbeepacket::FEEDBACK_DATA &, const timespec &) {
+void XBeeRobot::BootloadingLowState::on_feedback(uint8_t, const XBeePacketTypes::FEEDBACK_DATA &, const timespec &) {
 	// Ignore this.
 }
 
-void robot_state::bootloading_low_state::on_feedback_timeout() {
+void XBeeRobot::BootloadingLowState::on_feedback_timeout() {
 	// Ignore this.
 }
 
-bool robot_state::bootloading_low_state::claimed() const {
+bool XBeeRobot::BootloadingLowState::claimed() const {
 	return false;
 }
 
-bool robot_state::bootloading_low_state::freeing() const {
+bool XBeeRobot::BootloadingLowState::freeing() const {
 	return true;
 }
 
-uint16_t robot_state::bootloading_low_state::address16() const {
+uint16_t XBeeRobot::BootloadingLowState::address16() const {
 	return address16_;
 }
 
-uint8_t robot_state::bootloading_low_state::run_data_index() const {
+uint8_t XBeeRobot::BootloadingLowState::run_data_index() const {
 	return run_data_index_;
 }
 
-void robot_state::bootloading_low_state::queue_request() {
+void XBeeRobot::BootloadingLowState::queue_request() {
 	// Assemble the packet.
-	xbeepacket::REMOTE_AT_REQUEST<1> packet;
-	packet.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
+	XBeePacketTypes::REMOTE_AT_REQUEST<1> packet;
+	packet.apiid = XBeePacketTypes::REMOTE_AT_REQUEST_APIID;
 	packet.frame = bot.daemon.frame_number_allocator.alloc();
-	xbeeutil::address_to_bytes(bot.address64, packet.address64);
+	XBeeUtil::address_to_bytes(bot.address64, packet.address64);
 	packet.address16[0] = 0xFF;
 	packet.address16[1] = 0xFE;
-	packet.options = xbeepacket::REMOTE_AT_REQUEST_OPTION_APPLY;
+	packet.options = XBeePacketTypes::REMOTE_AT_REQUEST_OPTION_APPLY;
 	packet.command[0] = 'D';
 	packet.command[1] = '0';
 	packet.value[0] = 4;
 
-	// Create a request object, attach a completion callback, and queue it.
-	request::ptr req(request::create(&packet, sizeof(packet), true));
-	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &number_allocator<uint8_t>::free), packet.frame))));
-	req->signal_complete().connect(sigc::mem_fun(this, &robot_state::bootloading_low_state::request_done));
+	// Create a XBeeRequest object, attach a completion callback, and queue it.
+	XBeeRequest::ptr req(XBeeRequest::create(&packet, sizeof(packet), true));
+	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &NumberAllocator<uint8_t>::free), packet.frame))));
+	req->signal_complete().connect(sigc::mem_fun(this, &XBeeRobot::BootloadingLowState::request_done));
 	bot.daemon.scheduler.queue(req);
 }
 
-void robot_state::bootloading_low_state::request_done(const void *buffer, std::size_t length) {
-	const xbeepacket::REMOTE_AT_RESPONSE &resp = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(buffer);
+void XBeeRobot::BootloadingLowState::request_done(const void *buffer, std::size_t length) {
+	const XBeePacketTypes::REMOTE_AT_RESPONSE &resp = *static_cast<const XBeePacketTypes::REMOTE_AT_RESPONSE *>(buffer);
 
 	// Check length.
 	if (length < sizeof(resp)) {
@@ -969,14 +969,14 @@ void robot_state::bootloading_low_state::request_done(const void *buffer, std::s
 	}
 
 	// Check status.
-	if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
+	if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
 		// No response. Robot is powered down? Not an error, just try again up
 		// to a maximum limit of attempts.
 		if (++attempts < MAX_ATTEMPTS) {
 			queue_request();
 			return;
 		}
-	} else if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK) {
+	} else if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_OK) {
 		// Continue below.
 	} else {
 		// An error of some unknown type occurred. This should be impossible; it
@@ -988,81 +988,81 @@ void robot_state::bootloading_low_state::request_done(const void *buffer, std::s
 	// Bootload line was lowered. We are now officially idle.
 	bot.daemon.id16_allocator.free(address16_);
 	bot.daemon.free_rundata_index(run_data_index_);
-	bot.state_ = idle_state::enter(bot);
+	bot.state_ = IdleState::enter(bot);
 	bot.signal_resources_freed.emit();
 }
 
 
 
-robot_state::state::ptr robot_state::bootloading_low_to_setting16_state::enter(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index) {
-	ptr p(new bootloading_low_to_setting16_state(bot, claimed_by, address16, run_data_index));
+XBeeRobot::RobotState::ptr XBeeRobot::BootloadingLowToSetting16State::enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index) {
+	ptr p(new BootloadingLowToSetting16State(bot, claimed_by, address16, run_data_index));
 	return p;
 }
 
-robot_state::bootloading_low_to_setting16_state::bootloading_low_to_setting16_state(robot_state &bot, client &claimed_by, uint16_t address16, uint8_t run_data_index) : bot(bot), claimed_by(claimed_by), address16_(address16), run_data_index_(run_data_index), attempts(0) {
+XBeeRobot::BootloadingLowToSetting16State::BootloadingLowToSetting16State(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index) : bot(bot), claimed_by(claimed_by), address16_(address16), run_data_index_(run_data_index), attempts(0) {
 	queue_request();
 }
 
-void robot_state::bootloading_low_to_setting16_state::enter_raw_mode(client *) {
+void XBeeRobot::BootloadingLowToSetting16State::enter_raw_mode(XBeeClient *) {
 	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
-void robot_state::bootloading_low_to_setting16_state::enter_drive_mode(client *) {
+void XBeeRobot::BootloadingLowToSetting16State::enter_drive_mode(XBeeClient *) {
 	LOG_WARN("Claiming a claimed robot.");
 	std::abort();
 }
 
-void robot_state::bootloading_low_to_setting16_state::release() {
-	bot.state_ = bootloading_low_state::enter(bot, address16_, run_data_index_);
+void XBeeRobot::BootloadingLowToSetting16State::release() {
+	bot.state_ = BootloadingLowState::enter(bot, address16_, run_data_index_);
 }
 
-void robot_state::bootloading_low_to_setting16_state::on_feedback(uint8_t, const xbeepacket::FEEDBACK_DATA &, const timespec &) {
+void XBeeRobot::BootloadingLowToSetting16State::on_feedback(uint8_t, const XBeePacketTypes::FEEDBACK_DATA &, const timespec &) {
 	// Ignore this.
 }
 
-void robot_state::bootloading_low_to_setting16_state::on_feedback_timeout() {
+void XBeeRobot::BootloadingLowToSetting16State::on_feedback_timeout() {
 	// Ignore this.
 }
 
-bool robot_state::bootloading_low_to_setting16_state::claimed() const {
+bool XBeeRobot::BootloadingLowToSetting16State::claimed() const {
 	return true;
 }
 
-bool robot_state::bootloading_low_to_setting16_state::freeing() const {
+bool XBeeRobot::BootloadingLowToSetting16State::freeing() const {
 	return false;
 }
 
-uint16_t robot_state::bootloading_low_to_setting16_state::address16() const {
+uint16_t XBeeRobot::BootloadingLowToSetting16State::address16() const {
 	return address16_;
 }
 
-uint8_t robot_state::bootloading_low_to_setting16_state::run_data_index() const {
+uint8_t XBeeRobot::BootloadingLowToSetting16State::run_data_index() const {
 	return run_data_index_;
 }
 
-void robot_state::bootloading_low_to_setting16_state::queue_request() {
+void XBeeRobot::BootloadingLowToSetting16State::queue_request() {
 	// Assemble the packet.
-	xbeepacket::REMOTE_AT_REQUEST<1> packet;
-	packet.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
+	XBeePacketTypes::REMOTE_AT_REQUEST<1> packet;
+	packet.apiid = XBeePacketTypes::REMOTE_AT_REQUEST_APIID;
 	packet.frame = bot.daemon.frame_number_allocator.alloc();
-	xbeeutil::address_to_bytes(bot.address64, packet.address64);
+	XBeeUtil::address_to_bytes(bot.address64, packet.address64);
 	packet.address16[0] = 0xFF;
 	packet.address16[1] = 0xFE;
-	packet.options = xbeepacket::REMOTE_AT_REQUEST_OPTION_APPLY;
+	packet.options = XBeePacketTypes::REMOTE_AT_REQUEST_OPTION_APPLY;
 	packet.command[0] = 'D';
 	packet.command[1] = '0';
 	packet.value[0] = 4;
 
-	// Create a request object, attach a completion callback, and queue it.
-	request::ptr req(request::create(&packet, sizeof(packet), true));
-	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &number_allocator<uint8_t>::free), packet.frame))));
-	req->signal_complete().connect(sigc::mem_fun(this, &robot_state::bootloading_low_to_setting16_state::request_done));
+	// Create a XBeeRequest object, attach a completion callback, and queue it.
+	XBeeRequest::ptr req(XBeeRequest::create(&packet, sizeof(packet), true));
+	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &NumberAllocator<uint8_t>::free), packet.frame))));
+	req->signal_complete().connect(sigc::mem_fun(this, &XBeeRobot::BootloadingLowToSetting16State::request_done));
 	bot.daemon.scheduler.queue(req);
 }
 
-void robot_state::bootloading_low_to_setting16_state::request_done(const void *buffer, std::size_t length) {
-	const xbeepacket::REMOTE_AT_RESPONSE &resp = *static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(buffer);
+void XBeeRobot::BootloadingLowToSetting16State::request_done(const void *buffer, std::size_t length) {
+	const XBeePacketTypes::REMOTE_AT_RESPONSE &resp = *static_cast<const XBeePacketTypes::REMOTE_AT_RESPONSE *>(buffer);
 
 	// Check length.
 	if (length < sizeof(resp)) {
@@ -1077,14 +1077,14 @@ void robot_state::bootloading_low_to_setting16_state::request_done(const void *b
 	}
 
 	// Check status.
-	if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
+	if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
 		// No response. Robot is powered down? Not an error, just try again up
 		// to a maximum limit of attempts.
 		if (++attempts < MAX_ATTEMPTS) {
 			queue_request();
 			return;
 		}
-	} else if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK) {
+	} else if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_OK) {
 		// Continue below.
 	} else {
 		// An error of some unknown type occurred. This should be impossible; it
@@ -1094,52 +1094,52 @@ void robot_state::bootloading_low_to_setting16_state::request_done(const void *b
 	}
 
 	// Bootload line was lowered. Go back to configuring so we can drive.
-	bot.state_ = setting16_state::enter(bot, claimed_by, address16_, run_data_index_);
+	bot.state_ = Setting16State::enter(bot, claimed_by, address16_, run_data_index_);
 }
 
 
 
-robot_state::ptr robot_state::create(uint64_t address64, class daemon &daemon) {
-	ptr p(new robot_state(address64, daemon));
+XBeeRobot::ptr XBeeRobot::create(uint64_t address64, class XBeeDaemon &daemon) {
+	ptr p(new XBeeRobot(address64, daemon));
 	return p;
 }
 
-robot_state::robot_state(uint64_t address64, class daemon &daemon) : address64(address64), state_(idle_state::enter(*this)), daemon(daemon) {
+XBeeRobot::XBeeRobot(uint64_t address64, class XBeeDaemon &daemon) : address64(address64), state_(IdleState::enter(*this)), daemon(daemon) {
 }
 
-void robot_state::enter_raw_mode(client *cli) {
+void XBeeRobot::enter_raw_mode(XBeeClient *cli) {
 	state_->enter_raw_mode(cli);
 }
 
-void robot_state::enter_drive_mode(client *cli) {
+void XBeeRobot::enter_drive_mode(XBeeClient *cli) {
 	state_->enter_drive_mode(cli);
 }
 
-void robot_state::release() {
+void XBeeRobot::release() {
 	state_->release();
 }
 
-void robot_state::on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency) {
+void XBeeRobot::on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency) {
 	state_->on_feedback(rssi, packet, latency);
 }
 
-void robot_state::on_feedback_timeout() {
+void XBeeRobot::on_feedback_timeout() {
 	state_->on_feedback_timeout();
 }
 
-bool robot_state::claimed() const {
+bool XBeeRobot::claimed() const {
 	return state_->claimed();
 }
 
-bool robot_state::freeing() const {
+bool XBeeRobot::freeing() const {
 	return state_->freeing();
 }
 
-uint16_t robot_state::address16() const {
+uint16_t XBeeRobot::address16() const {
 	return state_->address16();
 }
 
-uint8_t robot_state::run_data_index() const {
+uint8_t XBeeRobot::run_data_index() const {
 	return state_->run_data_index();
 }
 

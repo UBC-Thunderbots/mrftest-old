@@ -7,32 +7,32 @@
 #include <cstdlib>
 
 namespace {
-	class test_defensive_strategy : public strategy2 {
+	class TestDefensiveStrategy : public Strategy2 {
 		public:
-			test_defensive_strategy(world::ptr world);
+			TestDefensiveStrategy(World::ptr world);
 			void tick(Cairo::RefPtr<Cairo::Context> overlay);
-			strategy_factory &get_factory();
+			StrategyFactory &get_factory();
 			Gtk::Widget *get_ui_controls();
 		private:
-			const world::ptr the_world;
+			const World::ptr the_world;
 	};
 
-	test_defensive_strategy::test_defensive_strategy(world::ptr world) : the_world(world) {
+	TestDefensiveStrategy::TestDefensiveStrategy(World::ptr world) : the_world(world) {
 
 	}
 
-	void test_defensive_strategy::tick(Cairo::RefPtr<Cairo::Context> overlay) {
-		if (the_world->playtype() == playtype::halt) {
+	void TestDefensiveStrategy::tick(Cairo::RefPtr<Cairo::Context> overlay) {
+		if (the_world->playtype() == PlayType::HALT) {
 			return;
 		}
-		const friendly_team &the_team(the_world->friendly);
+		const FriendlyTeam &the_team(the_world->friendly);
 		if (the_team.size() == 0) return;
 
-		const ball::ptr the_ball(the_world->ball());
-		byrons_defender defensive_role(the_world);
-		goalie goalie_role(the_world);
-		std::vector<player::ptr> defenders;
-		std::vector<player::ptr> goalies;
+		const Ball::ptr the_ball(the_world->ball());
+		ByronsDefender defensive_role(the_world);
+		Goalie goalie_role(the_world);
+		std::vector<Player::ptr> defenders;
+		std::vector<Player::ptr> goalies;
 
 		goalies.push_back(the_team.get_player(0));
 
@@ -46,27 +46,27 @@ namespace {
 		defensive_role.tick();
 	}
 
-	Gtk::Widget *test_defensive_strategy::get_ui_controls() {
+	Gtk::Widget *TestDefensiveStrategy::get_ui_controls() {
 		return 0;
 	}
 
-	class test_defensive_strategy_factory : public strategy_factory {
+	class TestDefensiveStrategyFactory : public StrategyFactory {
 		public:
-			test_defensive_strategy_factory();
-			strategy::ptr create_strategy(world::ptr world);
+			TestDefensiveStrategyFactory();
+			Strategy::ptr create_strategy(World::ptr world);
 	};
 
-	test_defensive_strategy_factory::test_defensive_strategy_factory() : strategy_factory("Byron's Test Defender Strategy") {
+	TestDefensiveStrategyFactory::TestDefensiveStrategyFactory() : StrategyFactory("Byron's Test Defender Strategy") {
 	}
 
-	strategy::ptr test_defensive_strategy_factory::create_strategy(world::ptr world) {
-		strategy::ptr s(new test_defensive_strategy(world));
+	Strategy::ptr TestDefensiveStrategyFactory::create_strategy(World::ptr world) {
+		Strategy::ptr s(new TestDefensiveStrategy(world));
 		return s;
 	}
 
-	test_defensive_strategy_factory factory;
+	TestDefensiveStrategyFactory factory;
 
-	strategy_factory &test_defensive_strategy::get_factory() {
+	StrategyFactory &TestDefensiveStrategy::get_factory() {
 		return factory;
 	}
 }

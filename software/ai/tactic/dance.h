@@ -6,17 +6,17 @@
 //
 // Victory (?) dance.
 //
-class dance : public tactic {
+class Dance : public Tactic {
 	public:
 		//
-		// A pointer to this tactic.
+		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<dance> ptr;
+		typedef Glib::RefPtr<Dance> ptr;
 
 		//
-		// Constructs a new dance tactic.
+		// Constructs a new Dance Tactic.
 		//
-		dance(player::ptr player);
+		Dance(Player::ptr player);
 
 		//
 		// Runs the AI for one time tick.

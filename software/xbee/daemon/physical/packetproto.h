@@ -9,12 +9,12 @@
 //
 // Allows sending and receiving packets to the XBee.
 //
-class xbee_packet_stream : public backend, public sigc::trackable {
+class XBeePacketStream : public BackEnd, public sigc::trackable {
 	public:
 		//
-		// Constructs a new xbee_packet_stream.
+		// Constructs a new XBeePacketStream.
 		//
-		xbee_packet_stream();
+		XBeePacketStream();
 
 		//
 		// Configures the serial port.
@@ -29,7 +29,7 @@ class xbee_packet_stream : public backend, public sigc::trackable {
 		void send(const iovec *iov, std::size_t iovcnt);
 
 	private:
-		xbee_byte_stream bstream;
+		XBeeByteStream bstream;
 		bool sop_seen;
 		uint16_t length;
 		uint8_t length_seen;

@@ -16,30 +16,30 @@
 
 namespace {
 
-	class dribble_strategy_factory : public strategy_factory {
+	class DribbleStrategyFactory : public StrategyFactory {
 		public:
-			dribble_strategy_factory();
-			strategy::ptr create_strategy(world::ptr world);
+			DribbleStrategyFactory();
+			Strategy::ptr create_strategy(World::ptr world);
 	};
 
-	dribble_strategy_factory::dribble_strategy_factory() : strategy_factory("Dribble Strategy") {
+	DribbleStrategyFactory::DribbleStrategyFactory() : StrategyFactory("Dribble Strategy") {
 	}
 
-	strategy::ptr dribble_strategy_factory::create_strategy(world::ptr world) {
-		strategy::ptr s(new dribble_strategy(world));
+	Strategy::ptr DribbleStrategyFactory::create_strategy(World::ptr world) {
+		Strategy::ptr s(new DribbleStrategy(world));
 		return s;
 	}
 
-	dribble_strategy_factory factory;
+	DribbleStrategyFactory factory;
 }
 
-dribble_strategy::dribble_strategy(world::ptr world) : the_world(world) {
+DribbleStrategy::DribbleStrategy(World::ptr world) : the_world(world) {
 	update_wait =0;
 }
 
-void dribble_strategy::tick() {	
+void DribbleStrategy::tick() {	
 	
-	const friendly_team &the_team(the_world->friendly);
+	const FriendlyTeam &the_team(the_world->friendly);
 	update_wait = (update_wait+1) %15;
 	
 	for(unsigned int i=0; i<the_team.size(); i++){
@@ -61,14 +61,14 @@ void dribble_strategy::tick() {
 
 }
 
-Gtk::Widget *dribble_strategy::get_ui_controls() {
+Gtk::Widget *DribbleStrategy::get_ui_controls() {
 	return NULL;
 }
 
 
 
 
-strategy_factory &dribble_strategy::get_factory() {
+StrategyFactory &DribbleStrategy::get_factory() {
 	return factory;
 }
 

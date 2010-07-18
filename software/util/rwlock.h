@@ -10,12 +10,12 @@
 //
 // An acquisition of a read-write lock.
 //
-class rwlock_scoped_acquire : public noncopyable {
+class RWLockScopedAcquire : public NonCopyable {
 	public:
 		//
 		// Acquires the lock.
 		//
-		rwlock_scoped_acquire(pthread_rwlock_t *lock, typeof(pthread_rwlock_rdlock) acquire_fn) : lock(lock) {
+		RWLockScopedAcquire(pthread_rwlock_t *lock, typeof(pthread_rwlock_rdlock) acquire_fn) : lock(lock) {
 			if (acquire_fn(lock) != 0) {
 				throw std::runtime_error("Cannot acquire rwlock!");
 			}
@@ -24,7 +24,7 @@ class rwlock_scoped_acquire : public noncopyable {
 		//
 		// Releases the lock.
 		//
-		~rwlock_scoped_acquire() {
+		~RWLockScopedAcquire() {
 			if (pthread_rwlock_unlock(lock) != 0) {
 				std::cerr << "Cannot release rwlock!\n";
 				std::abort();

@@ -41,10 +41,10 @@ namespace {
 		}
 
 		// Open the serial port.
-		xbee_packet_stream pstream;
+		XBeePacketStream pstream;
 
 		// Create the main application.
-		class daemon d(pstream);
+		class XBeeDaemon d(pstream);
 
 		// Configure the serial port.
 		pstream.configure_port();
@@ -64,7 +64,7 @@ namespace {
 			if (chdir("/") < 0) {
 				throw std::runtime_error("Cannot move to root directory!");
 			}
-			file_descriptor null_fd("/dev/null", O_RDWR);
+			FileDescriptor null_fd("/dev/null", O_RDWR);
 			if (dup2(null_fd, 0) < 0 || dup2(null_fd, 1) < 0 || dup2(null_fd, 2) < 0) {
 				throw std::runtime_error("Cannot redirect standard streams to /dev/null!");
 			}
@@ -81,7 +81,7 @@ namespace {
 int main(int argc, char **argv) {
 	try {
 		return main_impl(argc, argv);
-	} catch (const already_running &exp) {
+	} catch (const AlreadyRunning &exp) {
 		// No need to show a message for this case.
 		return 0;
 	} catch (const Glib::Exception &exp) {

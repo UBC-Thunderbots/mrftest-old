@@ -10,12 +10,12 @@
 //
 // A clock source implemented using the Linux timerfd mechanism.
 //
-class clocksource_timerfd : public clocksource, public sigc::trackable {
+class TimerFDClockSource : public ClockSource, public sigc::trackable {
 	public:
 		//
-		// Constructs a new clocksource that fires at the specified interval.
+		// Constructs a new ClockSource that fires at the specified interval.
 		//
-		clocksource_timerfd(uint64_t nanoseconds);
+		TimerFDClockSource(uint64_t nanoseconds);
 
 		//
 		// Starts the clock source.
@@ -28,10 +28,10 @@ class clocksource_timerfd : public clocksource, public sigc::trackable {
 		void stop();
 
 	private:
-		file_descriptor tfd;
+		FileDescriptor tfd;
 		uint64_t nanoseconds;
 		bool running;
-		annunciator::message overflow_message;
+		Annunciator::message overflow_message;
 		bool on_readable(Glib::IOCondition);
 };
 

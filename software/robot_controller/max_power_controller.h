@@ -9,20 +9,20 @@
 #include "util/byref.h"
 #include "util/noncopyable.h"
 
-class max_power_controller : public robot_controller {
+class MaxPowerController : public RobotController {
 	public:
 
-		void move(const point &new_position, double new_orientation, point &lienar_velocity, double &angular_velocity);
+		void move(const Point &new_position, double new_orientation, Point &lienar_velocity, double &angular_velocity);
 
 		void clear();
 
-		robot_controller_factory &get_factory() const;
+		RobotControllerFactory &get_factory() const;
 
-		max_power_controller(player::ptr plr);
+		MaxPowerController(Player::ptr plr);
 
 	protected:
 	private:
-		player::ptr plr;
+		Player::ptr plr;
 };
 
 #endif

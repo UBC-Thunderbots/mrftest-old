@@ -9,22 +9,22 @@
 //
 // A block of shared memory backed by a file.
 //
-class raw_shmblock : public noncopyable {
+class RawShmBlock : public NonCopyable {
 	public:
 		//
 		// Creates a new shared memory block in a new file.
 		//
-		raw_shmblock(std::size_t);
+		RawShmBlock(std::size_t);
 
 		//
 		// Opens an existing shared memory block backed by an open file.
 		//
-		raw_shmblock(file_descriptor, std::size_t);
+		RawShmBlock(FileDescriptor, std::size_t);
 
 		//
 		// Destroys a shared memory block.
 		//
-		~raw_shmblock();
+		~RawShmBlock();
 
 		//
 		// Returns the size of the shared memory block.
@@ -69,7 +69,7 @@ class raw_shmblock : public noncopyable {
 		}
 
 	private:
-		file_descriptor fd_;
+		FileDescriptor fd_;
 		std::size_t size_;
 		uint8_t *data_;
 };
@@ -78,18 +78,18 @@ class raw_shmblock : public noncopyable {
 // A shared memory block containing an object of a particular type.
 //
 template<typename T>
-class shmblock : public noncopyable {
+class ShmBlock : public NonCopyable {
 	public:
 		//
 		// Creates a new shared memory block in a new file.
 		//
-		shmblock() : raw(sizeof(T)) {
+		ShmBlock() : raw(sizeof(T)) {
 		}
 
 		//
 		// Opens an existing shared memory block backed by an open file.
 		//
-		shmblock(file_descriptor fd) : raw(fd, sizeof(T)) {
+		ShmBlock(FileDescriptor fd) : raw(fd, sizeof(T)) {
 		}
 
 		//
@@ -128,7 +128,7 @@ class shmblock : public noncopyable {
 		}
 
 	private:
-		raw_shmblock raw;
+		RawShmBlock raw;
 };
 
 #endif

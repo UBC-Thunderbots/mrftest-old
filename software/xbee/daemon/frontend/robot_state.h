@@ -8,46 +8,46 @@
 #include <glibmm.h>
 #include <stdint.h>
 
-class client;
-class daemon;
+class XBeeClient;
+class XBeeDaemon;
 
 /*
  * All the data corresponding to a single robot tracked by this arbiter.
  */
-class robot_state : public byref {
+class XBeeRobot : public ByRef {
 	public:
 		/**
-		 * A pointer to a robot_state.
+		 * A pointer to a XBeeRobot.
 		 */
-		typedef Glib::RefPtr<robot_state> ptr;
+		typedef Glib::RefPtr<XBeeRobot> ptr;
 
 		/**
 		 * An individual state that a robot can be in is represented by a
 		 * subclass of this class, and the current state of the robot is held in
 		 * a pointer.
 		 */
-		class state : public byref, public sigc::trackable {
+		class RobotState : public ByRef, public sigc::trackable {
 			public:
 				/**
-				 * A pointer to a state.
+				 * A pointer to a RobotState.
 				 */
-				typedef Glib::RefPtr<state> ptr;
+				typedef Glib::RefPtr<RobotState> ptr;
 
 				/**
 				 * Switches the robot into raw mode.
 				 *
-				 * \param cli the client who requested the claim
+				 * \param cli the XBeeClient who requested the claim
 				 */
-				virtual void enter_raw_mode(client *cli) = 0;
+				virtual void enter_raw_mode(XBeeClient *cli) = 0;
 
 				/**
 				 * Attempts to switch the robot into drive mode. May throw
 				 * resource_allocation_error if insufficient resources are
 				 * available.
 				 *
-				 * \param cli the client who requested the claim
+				 * \param cli the XBeeClient who requested the claim
 				 */
-				virtual void enter_drive_mode(client *cli) = 0;
+				virtual void enter_drive_mode(XBeeClient *cli) = 0;
 
 				/**
 				 * Unclaims the robot and, if it was in drive mode, starts
@@ -65,7 +65,7 @@ class robot_state : public byref {
 				 *
 				 * \param latency the amount of time the packet took to arrive
 				 */
-				virtual void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency) = 0;
+				virtual void on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency) = 0;
 
 				/**
 				 * Invoked when a feedback packet was expected from this robot
@@ -98,41 +98,41 @@ class robot_state : public byref {
 				virtual uint8_t run_data_index() const = 0;
 		};
 
-		class idle_state;
-		class raw_state;
-		class setting16_state;
-		class settingrdo_state;
-		class alive_state;
-		class releasing16_state;
-		class bootloading_high_state;
-		class bootloading_low_state;
-		class bootloading_low_to_setting16_state;
+		class IdleState;
+		class RawState;
+		class Setting16State;
+		class SettingRDOState;
+		class AliveState;
+		class Releasing16State;
+		class BootloadingHighState;
+		class BootloadingLowState;
+		class BootloadingLowToSetting16State;
 
 		/**
-		 * Constructs a new state corresponding to a dead, unclaimed robot.
+		 * Constructs a new RobotState corresponding to a dead, unclaimed robot.
 		 *
 		 * \param address64 the 64-bit address of the robot to create
 		 *
 		 * \param daemon the dæmon used to communicate with this robot
 		 *
-		 * \return A new robot_state object
+		 * \return A new XBeeRobot object
 		 */
-		static ptr create(uint64_t address64, class daemon &daemon);
+		static ptr create(uint64_t address64, class XBeeDaemon &daemon);
 
 		/**
 		 * Switches the robot into raw mode.
 		 *
-		 * \param cli the client who requested the claim
+		 * \param cli the XBeeClient who requested the claim
 		 */
-		void enter_raw_mode(client *cli);
+		void enter_raw_mode(XBeeClient *cli);
 
 		/**
 		 * Attempts to switch the robot into drive mode. May throw
 		 * resource_allocation_error if insufficient resources are available.
 		 *
-		 * \param cli the client who requested the claim
+		 * \param cli the XBeeClient who requested the claim
 		 */
-		void enter_drive_mode(client *cli);
+		void enter_drive_mode(XBeeClient *cli);
 
 		/**
 		 * Unclaims the robot and, if it was in drive mode, starts releasing
@@ -150,7 +150,7 @@ class robot_state : public byref {
 		 *
 		 * \param latency the amount of time the packet took to arrive
 		 */
-		void on_feedback(uint8_t rssi, const xbeepacket::FEEDBACK_DATA &packet, const timespec &latency);
+		void on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency);
 
 		/**
 		 * Invoked when a feedback packet was expected from this robot but was
@@ -209,20 +209,20 @@ class robot_state : public byref {
 		sigc::signal<void> signal_feedback;
 
 	private:
-		state::ptr state_;
-		class daemon &daemon;
+		RobotState::ptr state_;
+		class XBeeDaemon &daemon;
 
-		robot_state(uint64_t address64, class daemon &daemon);
+		XBeeRobot(uint64_t address64, class XBeeDaemon &daemon);
 
-		friend class idle_state;
-		friend class raw_state;
-		friend class setting16_state;
-		friend class settingrdo_state;
-		friend class alive_state;
-		friend class releasing16_state;
-		friend class bootloading_high_state;
-		friend class bootloading_low_state;
-		friend class bootloading_low_to_setting16_state;
+		friend class IdleState;
+		friend class RawState;
+		friend class Setting16State;
+		friend class SettingRDOState;
+		friend class AliveState;
+		friend class Releasing16State;
+		friend class BootloadingHighState;
+		friend class BootloadingLowState;
+		friend class BootloadingLowToSetting16State;
 };
 
 #endif

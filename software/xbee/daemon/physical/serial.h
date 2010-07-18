@@ -13,12 +13,12 @@
 //
 // A serial port running at 250,000 baud.
 //
-class serial_port : public noncopyable, public sigc::trackable {
+class SerialPort : public NonCopyable, public sigc::trackable {
 	public:
 		//
-		// Constructs a new serial_port. Opens but does not configure the port.
+		// Constructs a new SerialPort. Opens but does not configure the port.
 		//
-		serial_port();
+		SerialPort();
 
 		//
 		// Configures the port.
@@ -38,7 +38,7 @@ class serial_port : public noncopyable, public sigc::trackable {
 		void send(iovec *iov, std::size_t iovcnt);
 
 	private:
-		const file_descriptor port;
+		const FileDescriptor port;
 		sigc::signal<void, const void *, std::size_t> sig_received;
 		bool on_readable(Glib::IOCondition);
 };

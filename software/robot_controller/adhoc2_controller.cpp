@@ -19,46 +19,46 @@
 
 namespace {
 
-	bool_param ADHOC_SLOW_ANGULAR("AdHoc2: Slow if translating", true);
-	bool_param ADHOC_FLIP_SLOWDOWN("AdHoc2: flip trans/ang slowdown", false);
-	double_param ADHOC_SLOWDOWN("AdHoc2: slowdown (CARE)", 1.5, 0.1, 8.0);
-	double_param ADHOC_PROP("AdHoc2: prop", 8, 0.0, 20.0);
-	double_param ADHOC_MAX_VEL("AdHoc2: max vel", 6, 0.0, 20.0);
-	double_param ADHOC_MAX_ACC("AdHoc2: max acc", 3, 0.0, 20.0);
-	double_param ADHOC_A_PROP("AdHoc2: angle prop", 12, 0.0, 50.0);
-	double_param ADHOC_A_THRESH("AdHoc2: angle thresh", 12, 0.0, 50.0);
+	BoolParam ADHOC_SLOW_ANGULAR("AdHoc2: Slow if translating", true);
+	BoolParam ADHOC_FLIP_SLOWDOWN("AdHoc2: flip trans/ang slowdown", false);
+	DoubleParam ADHOC_SLOWDOWN("AdHoc2: slowdown (CARE)", 1.5, 0.1, 8.0);
+	DoubleParam ADHOC_PROP("AdHoc2: prop", 8, 0.0, 20.0);
+	DoubleParam ADHOC_MAX_VEL("AdHoc2: max vel", 6, 0.0, 20.0);
+	DoubleParam ADHOC_MAX_ACC("AdHoc2: max acc", 3, 0.0, 20.0);
+	DoubleParam ADHOC_A_PROP("AdHoc2: angle prop", 12, 0.0, 50.0);
+	DoubleParam ADHOC_A_THRESH("AdHoc2: angle thresh", 12, 0.0, 50.0);
 
 	const double ADHOC_XY_RATIO = 0.81;
 	const double ADHOC_DIFF = 0.0;
 	const double ADHOC_A_DIFF = 0.0;
 	const double ADHOC_YA_RATIO = 0.0; // 0 - 5 to face forwards
 
-	class adhoc2_controller : public robot_controller {
+	class AdHoc2Controller : public RobotController {
 		public:
-			void move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity);
+			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 			void clear();
-			robot_controller_factory &get_factory() const;
-			adhoc2_controller(player::ptr plr);
+			RobotControllerFactory &get_factory() const;
+			AdHoc2Controller(Player::ptr plr);
 		protected:
-			player::ptr plr;
+			Player::ptr plr;
 			bool initialized;
 			// errors in x, y, d
-			point prev_new_pos;
+			Point prev_new_pos;
 			double prev_new_ori;
-			point prev_linear_velocity;
+			Point prev_linear_velocity;
 			double prev_angular_velocity;
 	};
 
-	adhoc2_controller::adhoc2_controller(player::ptr plr) : plr(plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
+	AdHoc2Controller::AdHoc2Controller(Player::ptr plr) : plr(plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
 	}
 
-	void adhoc2_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
-		const point &current_position = plr->position();
+	void AdHoc2Controller::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
+		const Point &current_position = plr->position();
 		const double current_orientation = plr->orientation();
 
 		// relative new direction and angle
 		double new_da = angle_mod(new_orientation - current_orientation);
-		const point &new_dir = (new_position - current_position).rotate(-current_orientation);
+		const Point &new_dir = (new_position - current_position).rotate(-current_orientation);
 
 		if (new_da > M_PI) new_da -= 2 * M_PI;
 
@@ -71,7 +71,7 @@ namespace {
 		const double px = new_dir.x;
 		const double py = new_dir.y;
 		const double pa = new_da;
-		point vel = (plr->est_velocity()).rotate(-current_orientation);
+		Point vel = (plr->est_velocity()).rotate(-current_orientation);
 		double vx = -vel.x;
 		double vy = -vel.y;
 		double va = -plr->est_avelocity();
@@ -94,7 +94,7 @@ namespace {
 		}
 
 		// threshold the linear acceleration
-		point accel = linear_velocity - prev_linear_velocity;
+		Point accel = linear_velocity - prev_linear_velocity;
 		if (accel.len() > ADHOC_MAX_ACC) {
 			accel *= ADHOC_MAX_ACC / accel.len();
 			linear_velocity = prev_linear_velocity + accel;
@@ -126,23 +126,23 @@ namespace {
 		prev_angular_velocity = angular_velocity;
 	}
 
-	void adhoc2_controller::clear() {
+	void AdHoc2Controller::clear() {
 	}
 
-	class adhoc2_controller_factory : public robot_controller_factory {
+	class AdHoc2ControllerFactory : public RobotControllerFactory {
 		public:
-			adhoc2_controller_factory() : robot_controller_factory("adhoc2") {
+			AdHoc2ControllerFactory() : RobotControllerFactory("adhoc2") {
 			}
 
-			robot_controller::ptr create_controller(player::ptr plr, bool, unsigned int) const {
-				robot_controller::ptr p(new adhoc2_controller(plr));
+			RobotController::ptr create_controller(Player::ptr plr, bool, unsigned int) const {
+				RobotController::ptr p(new AdHoc2Controller(plr));
 				return p;
 			}
 	};
 
-	adhoc2_controller_factory factory;
+	AdHoc2ControllerFactory factory;
 
-	robot_controller_factory &adhoc2_controller::get_factory() const {
+	RobotControllerFactory &AdHoc2Controller::get_factory() const {
 		return factory;
 	}
 

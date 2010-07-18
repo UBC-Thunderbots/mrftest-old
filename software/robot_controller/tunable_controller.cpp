@@ -4,19 +4,19 @@
 #include <cassert>
 
 namespace {
-	std::set<tunable_controller*> instances;
+	std::set<TunableController*> instances;
 }
 
-tunable_controller* tunable_controller::get_instance() {
+TunableController* TunableController::get_instance() {
 	if (instances.empty()) return NULL;
 	return *instances.begin();
 }
 
-tunable_controller::tunable_controller() {
+TunableController::TunableController() {
 	instances.insert(this);
 }
 
-tunable_controller::~tunable_controller() {
+TunableController::~TunableController() {
 	assert(instances.find(this) != instances.end());
 	instances.erase(this);
 }

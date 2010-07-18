@@ -6,19 +6,19 @@
 #include "ai/tactic/move.h"
 
 //
-// Gets the robots to go to their prepare_penalty_friendly positions.
+// Gets the robots to go to their prepare penalty friendly positions.
 //
-class prepare_penalty_friendly : public role {
+class PreparePenaltyFriendly : public Role {
 	public:
 		//
-		// A pointer to a prepare_penalty_friendly role.
+		// A pointer to a PreparePenaltyFriendly Role.
 		//
-		typedef Glib::RefPtr<prepare_penalty_friendly> ptr;
+		typedef Glib::RefPtr<PreparePenaltyFriendly> ptr;
 
 		//
-		// Constructs a new prepare_penalty_friendly role.
+		// Constructs a new PreparePenaltyFriendly Role.
 		//
-		prepare_penalty_friendly(world::ptr world);
+		PreparePenaltyFriendly(World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -31,7 +31,7 @@ class prepare_penalty_friendly : public role {
 		void robots_changed();
 
 	protected:
-		const world::ptr the_world;
+		const World::ptr the_world;
 
 		/**
 		 * The distance between the penalty mark and the mid point of the two goal posts as described in the rules.
@@ -44,17 +44,17 @@ class prepare_penalty_friendly : public role {
 		const static double RESTRICTED_ZONE_LENGTH = 0.85;
 
 	private:
-		std::vector<move::ptr> the_tactics;
+		std::vector<Move::ptr> the_tactics;
 
 		/**
-		 * Maximum number of robots that can be assigned to this role.
+		 * Maximum number of robots that can be assigned to this Role.
 		 */
 		const static unsigned int NUMBER_OF_READY_POSITIONS = 4;
 
 		/**
-		 * The positions that the robots should move to for this role.
+		 * The positions that the robots should move to for this Role.
 		 */
-		point ready_positions[NUMBER_OF_READY_POSITIONS];
+		Point ready_positions[NUMBER_OF_READY_POSITIONS];
 };
 
 #endif

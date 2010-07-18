@@ -7,12 +7,12 @@
 //
 // The main window.
 //
-class window : public Gtk::Window {
+class Window : public Gtk::Window {
 	public:
-		window(config &conf);
+		Window(Config &conf);
 
 	private:
-		config &conf;
+		Config &conf;
 
 		virtual bool on_delete_event(GdkEventAny *);
 };

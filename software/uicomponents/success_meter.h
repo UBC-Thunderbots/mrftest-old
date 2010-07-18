@@ -7,20 +7,20 @@
 //
 // A meter showing the communication success of a robot.
 //
-class success_meter : public Gtk::ProgressBar, public noncopyable {
+class SuccessMeter : public Gtk::ProgressBar, public NonCopyable {
 	public:
 		//
-		// Constructs a success_meter with no robot.
+		// Constructs a SuccessMeter with no robot.
 		//
-		success_meter();
+		SuccessMeter();
 
 		//
 		// Sets which robot this success meter will monitor.
 		//
-		void set_bot(xbee_drive_bot::ptr bot);
+		void set_bot(XBeeDriveBot::ptr bot);
 
 	private:
-		xbee_drive_bot::ptr robot;
+		XBeeDriveBot::ptr robot;
 		sigc::connection update_connection, dead_connection;
 		int last_success;
 

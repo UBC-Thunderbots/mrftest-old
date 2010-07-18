@@ -11,12 +11,12 @@
 #include <stdexcept>
 
 namespace {
-	class response_holder : public noncopyable {
+	class ResponseHolder : public NonCopyable {
 		public:
-			response_holder(const Glib::RefPtr<Glib::MainLoop> loop) : length(0), response(0), loop(loop) {
+			ResponseHolder(const Glib::RefPtr<Glib::MainLoop> loop) : length(0), response(0), loop(loop) {
 			}
 
-			~response_holder() {
+			~ResponseHolder() {
 				delete [] static_cast<char *>(response);
 			}
 
@@ -35,9 +35,9 @@ namespace {
 			const Glib::RefPtr<Glib::MainLoop> loop;
 	};
 
-	class no_response_error : public std::exception {
+	class NoResponseError : public std::exception {
 		public:
-			no_response_error() {
+			NoResponseError() {
 			}
 
 			const char *what() const throw() {
@@ -52,33 +52,33 @@ namespace {
 	}
 
 	template<std::size_t length>
-	unsigned int do_local_at_command(const Glib::RefPtr<Glib::MainLoop> loop, xbee_lowlevel &modem, const Glib::ustring &message, const char *command, unsigned int param) {
+	unsigned int do_local_at_command(const Glib::RefPtr<Glib::MainLoop> loop, XBeeLowLevel &modem, const Glib::ustring &message, const char *command, unsigned int param) {
 		std::cout << message << "... " << std::flush;
 		uint8_t parambytes[length];
 		build_param(param, parambytes, length);
-		packet::ptr pkt(at_packet<length>::create(command, parambytes));
-		response_holder resph(loop);
-		pkt->signal_complete().connect(sigc::mem_fun(resph, &response_holder::handle_response));
+		XBeePacket::ptr pkt(ATPacket<length>::create(command, parambytes));
+		ResponseHolder resph(loop);
+		pkt->signal_complete().connect(sigc::mem_fun(resph, &ResponseHolder::handle_response));
 		modem.send(pkt);
 		loop->run();
-		const xbeepacket::AT_RESPONSE &resp(*static_cast<const xbeepacket::AT_RESPONSE *>(resph.response));
+		const XBeePacketTypes::AT_RESPONSE &resp(*static_cast<const XBeePacketTypes::AT_RESPONSE *>(resph.response));
 		if (resp.command[0] != command[0] || resp.command[1] != command[1]) {
 			std::cout << "FAIL\n";
 			throw std::runtime_error("Modem returned response to wrong local AT command.");
-		} else if (resp.status == xbeepacket::AT_RESPONSE_STATUS_OK) {
+		} else if (resp.status == XBeePacketTypes::AT_RESPONSE_STATUS_OK) {
 			std::cout << "OK\n";
 			unsigned int retval = 0;
-			for (unsigned int i = 0; i < resph.length - sizeof(xbeepacket::AT_RESPONSE); ++i) {
+			for (unsigned int i = 0; i < resph.length - sizeof(XBeePacketTypes::AT_RESPONSE); ++i) {
 				retval = (retval << 8) | resp.value[i];
 			}
 			return retval;
-		} else if (resp.status == xbeepacket::AT_RESPONSE_STATUS_ERROR) {
+		} else if (resp.status == XBeePacketTypes::AT_RESPONSE_STATUS_ERROR) {
 			std::cout << "FAIL\n";
 			throw std::runtime_error("Modem returned general error to local AT command.");
-		} else if (resp.status == xbeepacket::AT_RESPONSE_STATUS_INVALID_COMMAND) {
+		} else if (resp.status == XBeePacketTypes::AT_RESPONSE_STATUS_INVALID_COMMAND) {
 			std::cout << "FAIL\n";
 			throw std::runtime_error("Modem indicated invalid local AT command.");
-		} else if (resp.status == xbeepacket::AT_RESPONSE_STATUS_INVALID_PARAMETER) {
+		} else if (resp.status == XBeePacketTypes::AT_RESPONSE_STATUS_INVALID_PARAMETER) {
 			std::cout << "FAIL\n";
 			throw std::runtime_error("Modem indicated invalid parameter value to local AT command.");
 		} else {
@@ -88,42 +88,42 @@ namespace {
 	}
 
 	template<std::size_t length>
-	unsigned int do_remote_at_command(const Glib::RefPtr<Glib::MainLoop> loop, uint64_t bot, xbee_lowlevel &modem, const Glib::ustring &message, const char *command, unsigned int param, bool apply, bool permit_no_response = false) {
+	unsigned int do_remote_at_command(const Glib::RefPtr<Glib::MainLoop> loop, uint64_t bot, XBeeLowLevel &modem, const Glib::ustring &message, const char *command, unsigned int param, bool apply, bool permit_no_response = false) {
 		std::cout << message << "... " << std::flush;
 		uint8_t parambytes[length];
 		build_param(param, parambytes, length);
-		packet::ptr pkt(remote_at_packet<length>::create(bot, command, parambytes, apply));
-		response_holder resph(loop);
-		pkt->signal_complete().connect(sigc::mem_fun(resph, &response_holder::handle_response));
+		XBeePacket::ptr pkt(RemoteATPacket<length>::create(bot, command, parambytes, apply));
+		ResponseHolder resph(loop);
+		pkt->signal_complete().connect(sigc::mem_fun(resph, &ResponseHolder::handle_response));
 		modem.send(pkt);
 		loop->run();
-		const xbeepacket::REMOTE_AT_RESPONSE &resp(*static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(resph.response));
+		const XBeePacketTypes::REMOTE_AT_RESPONSE &resp(*static_cast<const XBeePacketTypes::REMOTE_AT_RESPONSE *>(resph.response));
 		if (resp.command[0] != command[0] || resp.command[1] != command[1]) {
 			std::cout << "FAIL\n";
 			throw std::runtime_error("Modem returned response to wrong remote AT command.");
-		} else if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK) {
+		} else if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_OK) {
 			std::cout << "OK\n";
 			unsigned int retval = 0;
-			for (unsigned int i = 0; i < resph.length - sizeof(xbeepacket::AT_RESPONSE); ++i) {
+			for (unsigned int i = 0; i < resph.length - sizeof(XBeePacketTypes::AT_RESPONSE); ++i) {
 				retval = (retval << 8) | resp.value[i];
 			}
 			return retval;
-		} else if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_ERROR) {
+		} else if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_ERROR) {
 			std::cout << "FAIL\n";
 			throw std::runtime_error("Modem returned general error to local AT command.");
-		} else if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_INVALID_COMMAND) {
+		} else if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_COMMAND) {
 			std::cout << "FAIL\n";
 			throw std::runtime_error("Modem indicated invalid local AT command.");
-		} else if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_INVALID_PARAMETER) {
+		} else if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_PARAMETER) {
 			std::cout << "FAIL\n";
 			throw std::runtime_error("Modem indicated invalid parameter value to local AT command.");
-		} else if (resp.status == xbeepacket::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
+		} else if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
 			if (permit_no_response) {
 				std::cout << "OK\n";
 				return 0;
 			} else {
 				std::cout << "FAIL\n";
-				throw no_response_error();
+				throw NoResponseError();
 			}
 		} else {
 			std::cout << "FAIL\n";
@@ -131,13 +131,13 @@ namespace {
 		}
 	}
 
-	bool do_work(Glib::RefPtr<Glib::MainLoop> loop, uint64_t bot, xbee_lowlevel &modem, unsigned int target) {
+	bool do_work(Glib::RefPtr<Glib::MainLoop> loop, uint64_t bot, XBeeLowLevel &modem, unsigned int target) {
 		// First phase, search for the modem on all channels and both PAN IDs.
-		static const unsigned int PANIDS[] = { xbeepacket::THUNDERBOTS_PANID, xbeepacket::FACTORY_PANID };
+		static const unsigned int PANIDS[] = { XBeePacketTypes::THUNDERBOTS_PANID, XBeePacketTypes::FACTORY_PANID };
 		bool found = false;
 		for (unsigned int i = 0; i < sizeof(PANIDS) / sizeof(*PANIDS) && !found; ++i) {
 			do_local_at_command<2>(loop, modem, Glib::ustring::compose("Switching local modem to PAN ID %1", tohex(PANIDS[i], 4)), "ID", PANIDS[i]);
-			for (unsigned int j = xbeepacket::MIN_CHANNEL; j <= xbeepacket::MAX_CHANNEL && !found; ++j) {
+			for (unsigned int j = XBeePacketTypes::MIN_CHANNEL; j <= XBeePacketTypes::MAX_CHANNEL && !found; ++j) {
 				do_local_at_command<1>(loop, modem, Glib::ustring::compose("Switching local modem to channel %1", tohex(j, 2)), "CH", j);
 				try {
 					unsigned int version = do_remote_at_command<0>(loop, bot, modem, "Getting remote firmware version", "VR", 0, true);
@@ -145,7 +145,7 @@ namespace {
 						std::cout << "WARNING --- WARNING --- WARNING\nFirmware version is less than 10E6. Consider upgrading!\nWARNING --- WARNING --- WARNING\n";
 					}
 					found = true;
-				} catch (const no_response_error &) {
+				} catch (const NoResponseError &) {
 					// Swallow.
 				}
 			}
@@ -193,13 +193,13 @@ namespace {
 		}
 
 		Glib::RefPtr<Glib::MainLoop> loop(Glib::MainLoop::create());
-		const config conf;
+		const Config conf;
 		if (!conf.robots().contains_name(robot)) {
 			std::cerr << "No such robot!\n";
 			return 1;
 		}
-		const config::robot_info &botinfo(conf.robots().find(robot));
-		xbee_lowlevel modem;
+		const Config::RobotInfo &botinfo(conf.robots().find(robot));
+		XBeeLowLevel modem;
 
 		try {
 			bool success = do_work(loop, botinfo.address, modem, conf.channel());

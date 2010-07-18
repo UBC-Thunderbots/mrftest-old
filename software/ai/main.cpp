@@ -20,7 +20,7 @@ namespace {
 	 * A list model that allows the user to mark each robot as friendly or
 	 * enemy.
 	 */
-	class team_customizer_model : public Glib::Object, public abstract_list_model {
+	class TeamCustomizerModel : public Glib::Object, public AbstractListModel {
 		public:
 			/**
 			 * A column indicating the state of the robot.
@@ -39,15 +39,15 @@ namespace {
 			 *
 			 * \return the new model.
 			 */
-			static Glib::RefPtr<team_customizer_model> create(config &conf) {
-				Glib::RefPtr<team_customizer_model> p(new team_customizer_model(conf));
+			static Glib::RefPtr<TeamCustomizerModel> create(Config &conf) {
+				Glib::RefPtr<TeamCustomizerModel> p(new TeamCustomizerModel(conf));
 				return p;
 			}
 
 		private:
-			config &conf;
+			Config &conf;
 
-			team_customizer_model(config &conf) : Glib::ObjectBase(typeid(team_customizer_model)), conf(conf) {
+			TeamCustomizerModel(Config &conf) : Glib::ObjectBase(typeid(TeamCustomizerModel)), conf(conf) {
 				alm_column_record.add(friendly_column);
 				alm_column_record.add(name_column);
 			}
@@ -85,9 +85,9 @@ namespace {
 			}
 	};
 
-	class custom_team_builder : public Gtk::Window {
+	class CustomTeamBuilder : public Gtk::Window {
 		public:
-			custom_team_builder(config &conf) : model(team_customizer_model::create(conf)) {
+			CustomTeamBuilder(Config &conf) : model(TeamCustomizerModel::create(conf)) {
 				set_title("Thunderbots AI");
 				set_default_size(200, 200);
 
@@ -104,7 +104,7 @@ namespace {
 			}
 
 		private:
-			Glib::RefPtr<team_customizer_model> model;
+			Glib::RefPtr<TeamCustomizerModel> model;
 	};
 
 	int main_impl(int argc, char **argv) {
@@ -194,7 +194,7 @@ namespace {
 		}
 
 		bool refbox_yellow = false;
-		config conf;
+		Config conf;
 		if (all) {
 			// Leave all robots as friendly.
 		} else if (blue || yellow) {
@@ -207,47 +207,47 @@ namespace {
 			}
 			refbox_yellow = yellow;
 		} else if (custom) {
-			custom_team_builder builder(conf);
+			CustomTeamBuilder builder(conf);
 			Gtk::Main::run(builder);
 		} else {
 			std::cerr << "WTF happened?\n";
 			return 1;
 		}
 
-		xbee_lowlevel modem;
+		XBeeLowLevel modem;
 
-		std::vector<xbee_drive_bot::ptr> xbee_bots;
+		std::vector<XBeeDriveBot::ptr> xbee_bots;
 		for (unsigned int i = 0; i < conf.robots().size(); ++i) {
 			if (conf.robots()[i].friendly) {
-				xbee_bots.push_back(xbee_drive_bot::create(conf.robots()[i].name, conf.robots()[i].address, modem));
+				xbee_bots.push_back(XBeeDriveBot::create(conf.robots()[i].name, conf.robots()[i].address, modem));
 			} else {
-				xbee_bots.push_back(xbee_drive_bot::ptr());
+				xbee_bots.push_back(XBeeDriveBot::ptr());
 			}
 		}
 
-		param::initialized(&conf);
+		Param::initialized(&conf);
 
-		world::ptr the_world(world::create(conf, xbee_bots));
+		World::ptr the_world(World::create(conf, xbee_bots));
 		if (refbox_yellow) {
 			the_world->flip_refbox_colour();
 		}
 
 		if (!ball_filter_name.empty()) {
-			ball_filter::map_type::const_iterator i = ball_filter::all().find(ball_filter_name.collate_key());
-			if (i == ball_filter::all().end()) {
+			BallFilter::map_type::const_iterator i = BallFilter::all().find(ball_filter_name.collate_key());
+			if (i == BallFilter::all().end()) {
 				std::cout << "There is no ball filter '" << ball_filter_name << "'.\n";
 				return 1;
 			}
 			the_world->ball_filter(i->second);
 		}
 
-		clocksource_timerfd clk(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND);
+		TimerFDClockSource clk(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND);
 
-		ai the_ai(the_world, clk);
+		AI the_ai(the_world, clk);
 
 		if (!strategy_name.empty()) {
-			strategy_factory::map_type::const_iterator i = strategy_factory::all().find(strategy_name.collate_key());
-			if (i == strategy_factory::all().end()) {
+			StrategyFactory::map_type::const_iterator i = StrategyFactory::all().find(strategy_name.collate_key());
+			if (i == StrategyFactory::all().end()) {
 				std::cout << "There is no strategy '" << strategy_name << "'.\n";
 				return 1;
 			}
@@ -255,15 +255,15 @@ namespace {
 		}
 
 		if (!robot_controller_name.empty()) {
-			robot_controller_factory::map_type::const_iterator i = robot_controller_factory::all().find(robot_controller_name.collate_key());
-			if (i == robot_controller_factory::all().end()) {
+			RobotControllerFactory::map_type::const_iterator i = RobotControllerFactory::all().find(robot_controller_name.collate_key());
+			if (i == RobotControllerFactory::all().end()) {
 				std::cout << "There is no robot controller '" << robot_controller_name << "'.\n";
 				return 1;
 			}
 			the_ai.set_robot_controller_factory(i->second);
 		}
 
-		ai_window win(the_ai, visualizer);
+		AIWindow win(the_ai, visualizer);
 
 		if (minimize) {
 			win.iconify();

@@ -4,7 +4,7 @@
 //
 // The dimensions of the field.
 //
-class simulator_field {
+class SimulatorField {
 	public:
 		//
 		// The length of the field, from goal to goal, in metres.

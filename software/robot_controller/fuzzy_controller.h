@@ -10,16 +10,16 @@
 #include "util/noncopyable.h"
 #include "robot_controller/tunable_controller.h"
 
-class fuzzy_controller : public robot_controller, public tunable_controller {
+class FuzzyController : public RobotController, public TunableController {
 	public:
 
-		void move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity);
+		void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 
 		void clear();
 
-		robot_controller_factory &get_factory() const;
+		RobotControllerFactory &get_factory() const;
 
-		fuzzy_controller(player::ptr player);
+		FuzzyController(Player::ptr player);
 		
 	 	void set_params(const std::vector<double>& params) {
 			this->param = params;
@@ -40,7 +40,7 @@ class fuzzy_controller : public robot_controller, public tunable_controller {
 		}
 
 	protected:
-		player::ptr robot;
+		Player::ptr robot;
 		
 		static const std::vector<double> param_min;
 		static const std::vector<double> param_max;

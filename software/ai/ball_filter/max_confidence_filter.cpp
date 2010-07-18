@@ -2,16 +2,16 @@
 #include <algorithm>
 
 namespace {
-	class max_confidence_filter : public ball_filter {
+	class MaxConfidenceFilter : public BallFilter {
 		public:
-			max_confidence_filter() : ball_filter("Max Confidence") {
+			MaxConfidenceFilter() : BallFilter("Max Confidence") {
 			}
 
-			point filter(const std::vector<std::pair<double, point> > &balls, friendly_team &, enemy_team &) {
+			Point filter(const std::vector<std::pair<double, Point> > &balls, FriendlyTeam &, EnemyTeam &) {
 				return std::max_element(balls.begin(), balls.end())->second;
 			}
 	};
 
-	max_confidence_filter instance;
+	MaxConfidenceFilter instance;
 }
 

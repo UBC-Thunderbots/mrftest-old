@@ -30,12 +30,12 @@ namespace {
 	static const unsigned int MAX_VISION_FAILURES = 120;
 }
 
-world::ptr world::create(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bots) {
-	ptr p(new world(conf, xbee_bots));
+World::ptr World::create(const Config &conf, const std::vector<XBeeDriveBot::ptr> &xbee_bots) {
+	ptr p(new World(conf, xbee_bots));
 	return p;
 }
 
-void world::flip_ends() {
+void World::flip_ends() {
 	// Change the flag.
 	east_ = !east_;
 
@@ -44,11 +44,11 @@ void world::flip_ends() {
 	ball_->clear_prediction(-ball_->position(), angle_mod(-ball_->orientation()));
 
 	// Swap the robots.
-	static team * const teams[2] = { &friendly, &enemy };
+	static Team * const teams[2] = { &friendly, &enemy };
 	for (unsigned int i = 0; i < 2; ++i) {
-		const team &tm(*teams[i]);
+		const Team &tm(*teams[i]);
 		for (unsigned int j = 0; j < tm.size(); ++j) {
-			robot::ptr bot(tm.get_robot(j));
+			Robot::ptr bot(tm.get_robot(j));
 			bot->sign = east_ ? -1 : 1;
 			bot->clear_prediction(-bot->position(), angle_mod(bot->orientation() + M_PI));
 		}
@@ -58,7 +58,7 @@ void world::flip_ends() {
 	signal_flipped_ends.emit();
 }
 
-void world::flip_refbox_colour() {
+void World::flip_refbox_colour() {
 	// Update the flag.
 	refbox_yellow_ = !refbox_yellow_;
 
@@ -67,30 +67,30 @@ void world::flip_refbox_colour() {
 
 	// Flip the current play type, so that the updater will flip it back and
 	// have the proper "old" value.
-	playtype_ = playtype::invert[playtype_];
+	playtype_ = PlayType::INVERT[playtype_];
 
 	// Now run the updater.
 	update_playtype();
 }
 
-void world::ball_filter(class ball_filter *filt) {
+void World::ball_filter(class BallFilter *filt) {
 	if (ball_filter_ != filt) {
 		LOG_DEBUG(Glib::ustring::compose("Changing to ball filter %1.", filt ? filt->name : "<None>"));
 		ball_filter_ = filt;
 	}
 }
 
-void world::tick_timestamp() {
+void World::tick_timestamp() {
 	++timestamp_;
 }
 
-world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bots) : conf(conf), east_(false), refbox_yellow_(false), vision_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), ball_(ball::create()), xbee_bots(xbee_bots), playtype_(playtype::halt), playtype_override(playtype::halt), playtype_override_active(false), vis_view(this), ball_filter_(0) {
+World::World(const Config &conf, const std::vector<XBeeDriveBot::ptr> &xbee_bots) : conf(conf), east_(false), refbox_yellow_(false), vision_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), ball_(Ball::create()), xbee_bots(xbee_bots), playtype_(PlayType::HALT), playtype_override(PlayType::HALT), playtype_override_active(false), vis_view(this), ball_filter_(0) {
 	vision_socket.set_blocking(false);
 	const int one = 1;
 	if (setsockopt(vision_socket, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
 		throw std::runtime_error("Cannot set SO_REUSEADDR.");
 	}
-	sockaddrs sa;
+	SockAddrs sa;
 	sa.in.sin_family = AF_INET;
 	sa.in.sin_addr.s_addr = get_inaddr_any();
 	sa.in.sin_port = htons(10002);
@@ -105,14 +105,14 @@ world::world(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bo
 	if (setsockopt(vision_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mcreq, sizeof(mcreq)) < 0) {
 		LOG_INFO("Cannot join multicast group 224.5.23.2 for vision data.");
 	}
-	Glib::signal_io().connect(sigc::mem_fun(this, &world::on_vision_readable), vision_socket, Glib::IO_IN);
+	Glib::signal_io().connect(sigc::mem_fun(this, &World::on_vision_readable), vision_socket, Glib::IO_IN);
 
-	refbox_.signal_command_changed.connect(sigc::mem_fun(this, &world::update_playtype));
+	refbox_.signal_command_changed.connect(sigc::mem_fun(this, &World::update_playtype));
 
 	timespec_now(playtype_time_);
 }
 
-bool world::on_vision_readable(Glib::IOCondition) {
+bool World::on_vision_readable(Glib::IOCondition) {
 	// Receive a packet.
 	uint8_t buffer[65536];
 	ssize_t len = recv(vision_socket, buffer, sizeof(buffer), 0);
@@ -154,16 +154,16 @@ bool world::on_vision_readable(Glib::IOCondition) {
 		// Update the ball.
 		{
 			// Build a vector of all detections so far.
-			std::vector<std::pair<double, point> > balls;
+			std::vector<std::pair<double, Point> > balls;
 			for (unsigned int i = 0; i < 2; ++i) {
 				for (int j = 0; j < detections[i].balls_size(); ++j) {
 					const SSL_DetectionBall &b(detections[i].balls(j));
-					balls.push_back(std::make_pair(b.confidence(), point(b.x() / 1000.0, b.y() / 1000.0)));
+					balls.push_back(std::make_pair(b.confidence(), Point(b.x() / 1000.0, b.y() / 1000.0)));
 				}
 			}
 
 			// Execute the current ball filter.
-			point pos;
+			Point pos;
 			if (ball_filter_) {
 				pos = ball_filter_->filter(balls, friendly, enemy);
 			}
@@ -175,7 +175,7 @@ bool world::on_vision_readable(Glib::IOCondition) {
 		// Update the robots.
 		{
 			std::vector<bool> used_data[2];
-			static team * const teams[2] = { &friendly, &enemy };
+			static Team * const teams[2] = { &friendly, &enemy };
 			static const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> &(SSL_DetectionFrame::*const colour_fns[2])() const = { &SSL_DetectionFrame::robots_yellow, &SSL_DetectionFrame::robots_blue };
 			static const bool colours[2] = { true, false };
 			for (unsigned int j = 0; j < 2; ++j) {
@@ -187,9 +187,9 @@ bool world::on_vision_readable(Glib::IOCondition) {
 					if (detbot.has_robot_id()) {
 						const unsigned int pattern_index = detbot.robot_id();
 						for (unsigned int m = 0; m < 2; ++m) {
-							team &tm(*teams[m]);
+							Team &tm(*teams[m]);
 							for (unsigned int n = 0; n < tm.size(); ++n) {
-								robot::ptr bot(tm.get_robot(n));
+								Robot::ptr bot(tm.get_robot(n));
 								if (bot->yellow == colour && bot->pattern_index == pattern_index) {
 									if (!bot->seen_this_frame) {
 										bot->seen_this_frame = true;
@@ -205,9 +205,9 @@ bool world::on_vision_readable(Glib::IOCondition) {
 
 			// Count failures.
 			for (unsigned int i = 0; i < 2; ++i) {
-				team &tm(*teams[i]);
+				Team &tm(*teams[i]);
 				for (unsigned int j = 0; j < tm.size(); ++j) {
-					robot::ptr bot(tm.get_robot(j));
+					Robot::ptr bot(tm.get_robot(j));
 					if (!bot->seen_this_frame) {
 						++bot->vision_failures;
 					} else {
@@ -215,7 +215,7 @@ bool world::on_vision_readable(Glib::IOCondition) {
 					}
 					bot->seen_this_frame = false;
 					if (bot->vision_failures >= MAX_VISION_FAILURES) {
-						player::ptr plr(player::ptr::cast_dynamic(bot));
+						Player::ptr plr(Player::ptr::cast_dynamic(bot));
 						if (plr) {
 							plr->controller.reset();
 						}
@@ -236,7 +236,7 @@ bool world::on_vision_readable(Glib::IOCondition) {
 						const SSL_DetectionRobot &detbot(rep.Get(k));
 						if (detbot.has_robot_id()) {
 							const unsigned int pattern_index = detbot.robot_id();
-							xbee_drive_bot::ptr xbeebot;
+							XBeeDriveBot::ptr xbeebot;
 							Glib::ustring name;
 							for (unsigned int m = 0; m < conf.robots().size(); ++m) {
 								if (conf.robots()[m].yellow == colour && conf.robots()[m].pattern_index == pattern_index) {
@@ -245,12 +245,12 @@ bool world::on_vision_readable(Glib::IOCondition) {
 								}
 							}
 							if (xbeebot) {
-								player::ptr plr(player::create(name, colour, pattern_index, xbeebot));
+								Player::ptr plr(Player::create(name, colour, pattern_index, xbeebot));
 								plr->sign = east_ ? -1 : 1;
 								plr->update(detbot);
 								friendly.add(plr);
 							} else {
-								robot::ptr bot(robot::create(colour, pattern_index));
+								Robot::ptr bot(Robot::create(colour, pattern_index));
 								bot->sign = east_ ? -1 : 1;
 								bot->update(detbot);
 								enemy.add(bot);
@@ -264,16 +264,16 @@ bool world::on_vision_readable(Glib::IOCondition) {
 
 	// Notify any attached visualizers. Because visualizers call position() and
 	// orientation() on robots and the ball, and because those objects are
-	// predictable and hence implement those functions as estimates based on a
+	// Predictable and hence implement those functions as estimates based on a
 	// delta time, we need to lock the prediction timestamps of those objects
 	// before handing them to the visualizer for rendering, otherwise we won't
 	// actually see them move!
 	{
-		static team * const teams[2] = { &friendly, &enemy };
+		static Team * const teams[2] = { &friendly, &enemy };
 		for (unsigned int i = 0; i < 2; ++i) {
-			const team &tm(*teams[i]);
+			const Team &tm(*teams[i]);
 			for (unsigned int j = 0; j < tm.size(); ++j) {
-				const robot::ptr bot(tm.get_robot(j));
+				const Robot::ptr bot(tm.get_robot(j));
 				bot->lock_time();
 			}
 		}
@@ -287,7 +287,7 @@ bool world::on_vision_readable(Glib::IOCondition) {
 	return true;
 }
 
-void world::override_playtype(playtype::playtype pt) {
+void World::override_playtype(PlayType::PlayType pt) {
 	if (pt != playtype_override || !playtype_override_active) {
 		playtype_override = pt;
 		playtype_override_active = true;
@@ -295,14 +295,14 @@ void world::override_playtype(playtype::playtype pt) {
 	}
 }
 
-void world::clear_playtype_override() {
+void World::clear_playtype_override() {
 	if (playtype_override_active) {
 		playtype_override_active = false;
 		update_playtype();
 	}
 }
 
-double world::playtype_time() const {
+double World::playtype_time() const {
 	timespec now;
 	timespec_now(now);
 	timespec diff;
@@ -310,17 +310,17 @@ double world::playtype_time() const {
 	return timespec_to_double(diff);
 }
 
-void world::update_playtype() {
-	playtype::playtype old_pt = playtype_;
+void World::update_playtype() {
+	PlayType::PlayType old_pt = playtype_;
 	if (refbox_yellow_) {
-		old_pt = playtype::invert[old_pt];
+		old_pt = PlayType::INVERT[old_pt];
 	}
-	playtype::playtype new_pt = compute_playtype(old_pt);
+	PlayType::PlayType new_pt = compute_playtype(old_pt);
 	if (refbox_yellow_) {
-		new_pt = playtype::invert[new_pt];
+		new_pt = PlayType::INVERT[new_pt];
 	}
 	if (new_pt != playtype_) {
-		LOG_DEBUG(Glib::ustring::compose("Play type changed to %1.", playtype::descriptions_generic[new_pt]));
+		LOG_DEBUG(Glib::ustring::compose("Play type changed to %1.", PlayType::DESCRIPTIONS_GENERIC[new_pt]));
 		playtype_ = new_pt;
 		signal_playtype_changed.emit();
 
@@ -328,7 +328,7 @@ void world::update_playtype() {
 	}
 }
 
-playtype::playtype world::compute_playtype(playtype::playtype old_pt) {
+PlayType::PlayType World::compute_playtype(PlayType::PlayType old_pt) {
 	if (playtype_override_active) {
 		return playtype_override;
 	}
@@ -338,114 +338,114 @@ playtype::playtype world::compute_playtype(playtype::playtype old_pt) {
 		case 'h': // HALF TIME
 		case 't': // TIMEOUT YELLOW
 		case 'T': // TIMEOUT BLUE
-			return playtype::halt;
+			return PlayType::HALT;
 
 		case 'S': // STOP
 		case 'z': // END TIMEOUT
-			return playtype::stop;
+			return PlayType::STOP;
 
 		case ' ': // NORMAL START
 			switch (old_pt) {
-				case playtype::prepare_kickoff_friendly:
+				case PlayType::PREPARE_KICKOFF_FRIENDLY:
 					playtype_arm_ball_position = ball_->position();
-					return playtype::execute_kickoff_friendly;
+					return PlayType::EXECUTE_KICKOFF_FRIENDLY;
 
-				case playtype::prepare_kickoff_enemy:
+				case PlayType::PREPARE_KICKOFF_ENEMY:
 					playtype_arm_ball_position = ball_->position();
-					return playtype::execute_kickoff_enemy;
+					return PlayType::EXECUTE_KICKOFF_ENEMY;
 
-				case playtype::prepare_penalty_friendly:
+				case PlayType::PREPARE_PENALTY_FRIENDLY:
 					playtype_arm_ball_position = ball_->position();
-					return playtype::execute_penalty_friendly;
+					return PlayType::EXECUTE_PENALTY_FRIENDLY;
 
-				case playtype::prepare_penalty_enemy:
+				case PlayType::PREPARE_PENALTY_ENEMY:
 					playtype_arm_ball_position = ball_->position();
-					return playtype::execute_penalty_enemy;
+					return PlayType::EXECUTE_PENALTY_ENEMY;
 
-				case playtype::execute_kickoff_friendly:
-				case playtype::execute_kickoff_enemy:
-				case playtype::execute_penalty_friendly:
-				case playtype::execute_penalty_enemy:
+				case PlayType::EXECUTE_KICKOFF_FRIENDLY:
+				case PlayType::EXECUTE_KICKOFF_ENEMY:
+				case PlayType::EXECUTE_PENALTY_FRIENDLY:
+				case PlayType::EXECUTE_PENALTY_ENEMY:
 					if ((ball_->position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
-						return playtype::play;
+						return PlayType::PLAY;
 					} else {
 						return old_pt;
 					}
 
 				default:
-					return playtype::play;
+					return PlayType::PLAY;
 			}
 
 		case 'f': // DIRECT FREE KICK YELLOW
-			if (old_pt == playtype::play) {
-				return playtype::play;
-			} else if (old_pt == playtype::execute_direct_free_kick_enemy) {
+			if (old_pt == PlayType::PLAY) {
+				return PlayType::PLAY;
+			} else if (old_pt == PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) {
 				if ((ball_->position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
-					return playtype::play;
+					return PlayType::PLAY;
 				} else {
-					return playtype::execute_direct_free_kick_enemy;
+					return PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY;
 				}
 			} else {
 				playtype_arm_ball_position = ball_->position();
-				return playtype::execute_direct_free_kick_enemy;
+				return PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY;
 			}
 
 		case 'F': // DIRECT FREE KICK BLUE
-			if (old_pt == playtype::play) {
-				return playtype::play;
-			} else if (old_pt == playtype::execute_direct_free_kick_friendly) {
+			if (old_pt == PlayType::PLAY) {
+				return PlayType::PLAY;
+			} else if (old_pt == PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) {
 				if ((ball_->position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
-					return playtype::play;
+					return PlayType::PLAY;
 				} else {
-					return playtype::execute_direct_free_kick_friendly;
+					return PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY;
 				}
 			} else {
 				playtype_arm_ball_position = ball_->position();
-				return playtype::execute_direct_free_kick_friendly;
+				return PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY;
 			}
 
 		case 'i': // INDIRECT FREE KICK YELLOW
-			if (old_pt == playtype::play) {
-				return playtype::play;
-			} else if (old_pt == playtype::execute_indirect_free_kick_enemy) {
+			if (old_pt == PlayType::PLAY) {
+				return PlayType::PLAY;
+			} else if (old_pt == PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY) {
 				if ((ball_->position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
-					return playtype::play;
+					return PlayType::PLAY;
 				} else {
-					return playtype::execute_indirect_free_kick_enemy;
+					return PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY;
 				}
 			} else {
 				playtype_arm_ball_position = ball_->position();
-				return playtype::execute_indirect_free_kick_enemy;
+				return PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY;
 			}
 
 		case 'I': // INDIRECT FREE KICK BLUE
-			if (old_pt == playtype::play) {
-				return playtype::play;
-			} else if (old_pt == playtype::execute_indirect_free_kick_friendly) {
+			if (old_pt == PlayType::PLAY) {
+				return PlayType::PLAY;
+			} else if (old_pt == PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY) {
 				if ((ball_->position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
-					return playtype::play;
+					return PlayType::PLAY;
 				} else {
-					return playtype::execute_indirect_free_kick_friendly;
+					return PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY;
 				}
 			} else {
 				playtype_arm_ball_position = ball_->position();
-				return playtype::execute_indirect_free_kick_friendly;
+				return PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY;
 			}
 
 		case 's': // FORCE START
-			return playtype::play;
+			return PlayType::PLAY;
 
 		case 'k': // KICKOFF YELLOW
-			return playtype::prepare_kickoff_enemy;
+			return PlayType::PREPARE_KICKOFF_ENEMY;
 
 		case 'K': // KICKOFF BLUE
-			return playtype::prepare_kickoff_friendly;
+			return PlayType::PREPARE_KICKOFF_FRIENDLY;
 
 		case 'p': // PENALTY YELLOW
-			return playtype::prepare_penalty_enemy;
+			return PlayType::PREPARE_PENALTY_ENEMY;
 
 		case 'P': // PENALTY BLUE
-			return playtype::prepare_penalty_friendly;
+			return PlayType::PREPARE_PENALTY_FRIENDLY;
 
 		case '1': // BEGIN FIRST HALF
 		case '2': // BEGIN SECOND HALF

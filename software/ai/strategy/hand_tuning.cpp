@@ -10,22 +10,22 @@
 
 namespace {
 
-	class hand_tuning;
+	class HandTuning;
 
 	/** Enables parameter tuning by hand.
 	 */
-	class hand_tuning_ui : public Gtk::Window {
+	class HandTuningUI : public Gtk::Window {
 		public:
-			hand_tuning_ui(hand_tuning* h) : ht(h) {
+			HandTuningUI(HandTuning* h) : ht(h) {
 				set_title("Parameters");
 				//vbox.add(button);
-				//button.signal_clicked().connect(sigc::mem_fun(this, &hand_tuning_ui::run));
+				//button.signal_clicked().connect(sigc::mem_fun(this, &HandTuningUI::run));
 				//button.set_label("Run!");
 				//add(vbox);
 				add(table);
 			}
 
-			~hand_tuning_ui() {
+			~HandTuningUI() {
 				for (size_t i = 0; i < entries.size(); ++i) {
 					table.remove(*entries[i]);
 					table.remove(*labels[i]);
@@ -37,7 +37,7 @@ namespace {
 			// void run();
 
 			/// Resets the parameters on the ui.
-			void reset(tunable_controller* tc) {
+			void reset(TunableController* tc) {
 				for (size_t i = 0; i < entries.size(); ++i) {
 					table.remove(*entries[i]);
 					table.remove(*labels[i]);
@@ -89,22 +89,22 @@ namespace {
 			// Gtk::Button button;
 			std::vector<Gtk::Label*> labels;
 			std::vector<Gtk::Entry*> entries;
-			hand_tuning* ht;
+			HandTuning* ht;
 	};
 
-	class hand_tuning : public movement_benchmark {
+	class HandTuning : public MovementBenchmark {
 		public:
-			hand_tuning(world::ptr);
-			~hand_tuning();
+			HandTuning(World::ptr);
+			~HandTuning();
 			Gtk::Widget *get_ui_controls();
-			strategy_factory &get_factory();
+			StrategyFactory &get_factory();
 			void tick();
 			void run();
 			void stop();
 			void reset();
 		private:
-			hand_tuning_ui ui;
-			tunable_controller* tc;
+			HandTuningUI ui;
+			TunableController* tc;
 			Gtk::Button run_button;
 			Gtk::Button stop_button;
 			Gtk::HBox hbox1;
@@ -118,9 +118,9 @@ namespace {
 			Gtk::VBox vbox;
 	};
 
-	hand_tuning::hand_tuning(world::ptr world) : movement_benchmark(world), ui(this), tc(NULL), run_button("Run"), stop_button("Stop"), dribble_checkbutton("Dribble"),dribble_scale1(0.0, 1.0, 0.01), dribble_scale2(0.0, 1.0, 0.01), dribble_label1("dribbling speed w/o ball"), dribble_label2("dribbling speed w ball") {
-		run_button.signal_clicked().connect(sigc::mem_fun(this,&hand_tuning::run));
-		stop_button.signal_clicked().connect(sigc::mem_fun(this,&hand_tuning::stop));
+	HandTuning::HandTuning(World::ptr world) : MovementBenchmark(world), ui(this), tc(NULL), run_button("Run"), stop_button("Stop"), dribble_checkbutton("Dribble"),dribble_scale1(0.0, 1.0, 0.01), dribble_scale2(0.0, 1.0, 0.01), dribble_label1("dribbling speed w/o ball"), dribble_label2("dribbling speed w ball") {
+		run_button.signal_clicked().connect(sigc::mem_fun(this,&HandTuning::run));
+		stop_button.signal_clicked().connect(sigc::mem_fun(this,&HandTuning::stop));
 		done = tasks.size();
 		time_steps = 0;
 		hbox1.add(run_button);
@@ -135,21 +135,21 @@ namespace {
 		vbox.add(dribble_text2);
 	}
 
-	hand_tuning::~hand_tuning() {
+	HandTuning::~HandTuning() {
 	}
 
-	Gtk::Widget *hand_tuning::get_ui_controls() {
+	Gtk::Widget *HandTuning::get_ui_controls() {
 		return &vbox;
 	}
 
-	void hand_tuning::reset() {
-		tc = tunable_controller::get_instance();
+	void HandTuning::reset() {
+		tc = TunableController::get_instance();
 		time_steps = 0;
 		done = tasks.size();
 		ui.reset(tc);
 	}
 
-	void hand_tuning::run() {
+	void HandTuning::run() {
 		if (tc) {
 			const std::vector<double>& params = ui.read_params();
 			tc->set_params(params);
@@ -158,21 +158,21 @@ namespace {
 		time_steps = 0;
 	}
 
-	void hand_tuning::stop() {
+	void HandTuning::stop() {
 		done = tasks.size();
 	}
 
-	void hand_tuning::tick() {
-		const friendly_team &the_team(the_world->friendly);
+	void HandTuning::tick() {
+		const FriendlyTeam &the_team(the_world->friendly);
 		if (the_team.size() != 1) {
 			std::cerr << "error: must have only 1 robot in the team!" << std::endl;
 			return;
 		}
-		if (tc != tunable_controller::get_instance()) {
+		if (tc != TunableController::get_instance()) {
 			reset();
 		}
-		const player::ptr the_player = the_team.get_player(0);
-		if (!ai_util::has_ball(the_world, the_player)) {
+		const Player::ptr the_player = the_team.get_player(0);
+		if (!AIUtil::has_ball(the_world, the_player)) {
 			the_player->dribble(dribble_scale1.get_value());
 		} else {
 			the_player->dribble(dribble_scale2.get_value());
@@ -181,31 +181,31 @@ namespace {
 		const Glib::ustring text2 = Glib::ustring::compose("Actual dribble %1", the_player->dribbler_speed());
 		dribble_text1.set_label(text1);
 		dribble_text2.set_label(text2);
-		if (dribble_checkbutton.get_active() && !ai_util::has_ball(the_world, the_player)) {
-			const point balldist = the_world->ball()->position() - the_player->position();
+		if (dribble_checkbutton.get_active() && !AIUtil::has_ball(the_world, the_player)) {
+			const Point balldist = the_world->ball()->position() - the_player->position();
 			the_player->move(the_world->ball()->position(), atan2(balldist.y, balldist.x));
 		} else {
-			movement_benchmark::tick();
+			MovementBenchmark::tick();
 		}
 	}
 
-	class hand_tuning_factory : public strategy_factory {
+	class HandTuningFactory : public StrategyFactory {
 		public:
-			hand_tuning_factory();
-			strategy::ptr create_strategy(world::ptr world);
+			HandTuningFactory();
+			Strategy::ptr create_strategy(World::ptr world);
 	};
 
-	hand_tuning_factory::hand_tuning_factory() : strategy_factory("Hand Tune & Move Benchmark") {
+	HandTuningFactory::HandTuningFactory() : StrategyFactory("Hand Tune & Move Benchmark") {
 	}
 
-	strategy::ptr hand_tuning_factory::create_strategy(world::ptr world) {
-		strategy::ptr s(new hand_tuning(world));
+	Strategy::ptr HandTuningFactory::create_strategy(World::ptr world) {
+		Strategy::ptr s(new HandTuning(world));
 		return s;
 	}
 
-	hand_tuning_factory factory;
+	HandTuningFactory factory;
 
-	strategy_factory &hand_tuning::get_factory() {
+	StrategyFactory &HandTuning::get_factory() {
 		return factory;
 	}
 

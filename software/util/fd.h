@@ -7,14 +7,15 @@
 // A file descriptor that is safely closed on destruction.
 // Ownership semantics are equivalent to std::auto_ptr.
 //
-class file_descriptor {
+class FileDescriptor {
 	private:
 		//
 		// This is an implementation detail used to help with copying.
 		//
-		class file_descriptor_ref {
+#warning just make it use byref like everything else
+		class FileDescriptorRef {
 			public:
-				file_descriptor_ref(int newfd) : fd(newfd) {
+				FileDescriptorRef(int newfd) : fd(newfd) {
 				}
 
 				int fd;
@@ -22,66 +23,66 @@ class file_descriptor {
 
 	public:
 		//
-		// Constructs a new file_descriptor with a descriptor.
+		// Constructs a new FileDescriptor with a descriptor.
 		//
-		static file_descriptor create(int fd) {
-			file_descriptor obj;
+		static FileDescriptor create(int fd) {
+			FileDescriptor obj;
 			obj = fd;
 			return obj;
 		}
 
 		//
-		// Constructs a new file_descriptor with no descriptor.
+		// Constructs a new FileDescriptor with no descriptor.
 		//
-		file_descriptor() : fd(-1) {
+		FileDescriptor() : fd(-1) {
 		}
 
 		//
-		// Helps to copy a file_descriptor object.
+		// Helps to copy a FileDescriptor object.
 		//
-		file_descriptor(file_descriptor_ref ref) : fd(ref.fd) {
+		FileDescriptor(FileDescriptorRef ref) : fd(ref.fd) {
 			assert(fd >= 0);
 		}
 
 		//
-		// Constructs a new file_descriptor by trying to open a file.
+		// Constructs a new FileDescriptor by trying to open a file.
 		//
-		file_descriptor(const char *file, int flags);
+		FileDescriptor(const char *file, int flags);
 
 		//
-		// Constructs a new file_descriptor for a socket.
+		// Constructs a new FileDescriptor for a socket.
 		//
-		file_descriptor(int pf, int type, int proto);
+		FileDescriptor(int pf, int type, int proto);
 
 		//
-		// Copies a file_descriptor, transferring ownership.
+		// Copies a FileDescriptor, transferring ownership.
 		//
-		file_descriptor(file_descriptor &copyref) {
+		FileDescriptor(FileDescriptor &copyref) {
 			assert(copyref.fd != -1);
 			fd = copyref.fd;
 			copyref.fd = -1;
 		}
 
 		//
-		// Destroys a file_descriptor.
+		// Destroys a FileDescriptor.
 		//
-		~file_descriptor() {
+		~FileDescriptor() {
 			close();
 		}
 
 		//
-		// Helps to copy a file_descriptor object.
+		// Helps to copy a FileDescriptor object.
 		//
-		operator file_descriptor_ref() {
+		operator FileDescriptorRef() {
 			int value = fd;
 			fd = -1;
-			return file_descriptor_ref(value);
+			return FileDescriptorRef(value);
 		}
 
 		//
-		// Assigns a new value to a file_descriptor.
+		// Assigns a new value to a FileDescriptor.
 		//
-		file_descriptor &operator=(file_descriptor &assgref) {
+		FileDescriptor &operator=(FileDescriptor &assgref) {
 			assert(assgref.fd != -1);
 			if (assgref.fd != fd) {
 				close();
@@ -92,9 +93,9 @@ class file_descriptor {
 		}
 
 		//
-		// Assigns a new value to a file_descriptor.
+		// Assigns a new value to a FileDescriptor.
 		//
-		file_descriptor &operator=(file_descriptor_ref assgref) {
+		FileDescriptor &operator=(FileDescriptorRef assgref) {
 			assert(assgref.fd != -1);
 			close();
 			fd = assgref.fd;

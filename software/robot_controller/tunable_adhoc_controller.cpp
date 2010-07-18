@@ -18,8 +18,8 @@
 
 namespace {
 
-	//bool_param PID_SLOW_ANGULAR("PID: Slow if translating", false);
-	//bool_param PID_FLIP_SLOWDOWN("PID: flip trans/ang slowdown", false);
+	//BoolParam PID_SLOW_ANGULAR("PID: Slow if translating", false);
+	//BoolParam PID_FLIP_SLOWDOWN("PID: flip trans/ang slowdown", false);
 
 	const double SLOWDOWN = 2.0;
 	const double DAMP = 0.5;
@@ -47,12 +47,12 @@ namespace {
 	const int P = sizeof(ARR_DEF) / sizeof(ARR_DEF[0]);
 	const std::vector<double> param_default(ARR_DEF, ARR_DEF + P);
 
-	class tunable_adhoc_controller : public robot_controller, public tunable_controller {
+	class TunableAdHocController : public RobotController, public TunableController {
 		public:
-			void move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity);
+			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 			void clear();
-			robot_controller_factory &get_factory() const;
-			tunable_adhoc_controller(player::ptr plr);
+			RobotControllerFactory &get_factory() const;
+			TunableAdHocController(Player::ptr plr);
 			void set_params(const std::vector<double>& params) {
 				this->param = params;
 			}
@@ -64,34 +64,34 @@ namespace {
 				return param_default;
 			}
 		private:
-			player::ptr plr;
+			Player::ptr plr;
 		protected:
 			bool initialized;
 			std::vector<double> param;
 			// errors in x, y, d
-			std::vector<point> error_pos;
+			std::vector<Point> error_pos;
 			std::vector<double> error_ori;
-			point prev_new_pos;
+			Point prev_new_pos;
 			double prev_new_ori;
-			point prev_linear_velocity;
+			Point prev_linear_velocity;
 			double prev_angular_velocity;
 	};
 
-	tunable_adhoc_controller::tunable_adhoc_controller(player::ptr plr) : plr(plr), initialized(false), error_pos(10.0), error_ori(10.0), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
+	TunableAdHocController::TunableAdHocController(Player::ptr plr) : plr(plr), initialized(false), error_pos(10.0), error_ori(10.0), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
 		param = param_default;
 	}
 
-	const std::vector<std::string> tunable_adhoc_controller::get_params_name() const {
+	const std::vector<std::string> TunableAdHocController::get_params_name() const {
 		return std::vector<std::string>(PARAM_NAMES, PARAM_NAMES + P);
 	}
 
-	void tunable_adhoc_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
-		const point &current_position = plr->position();
+	void TunableAdHocController::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
+		const Point &current_position = plr->position();
 		const double current_orientation = plr->orientation();
 
 		// relative new direction and angle
 		double new_da = angle_mod(new_orientation - current_orientation);
-		const point &new_dir = (new_position - current_position).rotate(-current_orientation);
+		const Point &new_dir = (new_position - current_position).rotate(-current_orientation);
 
 		if (new_da > M_PI) new_da -= 2 * M_PI;
 
@@ -117,7 +117,7 @@ namespace {
 		*/
 
 		/*
-		point accum_pos(0, 0);
+		Point accum_pos(0, 0);
 		double accum_ori(0);
 		for (int t = 9; t >= 0; --t) {
 			accum_pos *= DAMP;
@@ -130,7 +130,7 @@ namespace {
 		const double px = new_dir.x;
 		const double py = new_dir.y;
 		const double pa = new_da;
-		point vel = (plr->est_velocity()).rotate(-current_orientation);
+		Point vel = (plr->est_velocity()).rotate(-current_orientation);
 		double vx = -vel.x;
 		double vy = -vel.y;
 		double va = -plr->est_avelocity();
@@ -153,7 +153,7 @@ namespace {
 		}
 
 		// threshold the linear acceleration
-		point accel = linear_velocity - prev_linear_velocity;
+		Point accel = linear_velocity - prev_linear_velocity;
 		if (accel.len() > param[PARAM_MAX_ACC]) {
 			accel *= param[PARAM_MAX_ACC] / accel.len();
 			linear_velocity = prev_linear_velocity + accel;
@@ -194,24 +194,24 @@ namespace {
 		prev_angular_velocity = angular_velocity;
 	}
 
-	void tunable_adhoc_controller::clear() {
+	void TunableAdHocController::clear() {
 #warning WRITE CODE HERE
 	}
 
-	class tunable_adhoc_controller_factory : public robot_controller_factory {
+	class TunableAdHocControllerFactory : public RobotControllerFactory {
 		public:
-			tunable_adhoc_controller_factory() : robot_controller_factory("Ad Hoc =D") {
+			TunableAdHocControllerFactory() : RobotControllerFactory("Ad Hoc =D") {
 			}
 
-			robot_controller::ptr create_controller(player::ptr plr, bool, unsigned int) const {
-				robot_controller::ptr p(new tunable_adhoc_controller(plr));
+			RobotController::ptr create_controller(Player::ptr plr, bool, unsigned int) const {
+				RobotController::ptr p(new TunableAdHocController(plr));
 				return p;
 			}
 	};
 
-	tunable_adhoc_controller_factory factory;
+	TunableAdHocControllerFactory factory;
 
-	robot_controller_factory &tunable_adhoc_controller::get_factory() const {
+	RobotControllerFactory &TunableAdHocController::get_factory() const {
 		return factory;
 	}
 

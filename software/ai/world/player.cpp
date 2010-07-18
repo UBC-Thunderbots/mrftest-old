@@ -16,7 +16,7 @@ namespace {
 	const unsigned int DRIBBLE_RECOVER_TIME = 1000;
 	const unsigned int CHICKER_MIN_INTERVAL = 5500;
 
-	double_param DRIBBLER_HAS_BALL_LOAD_FACTOR("Has Ball Load Factor", 0.8, 0.1, 3.0);
+	DoubleParam DRIBBLER_HAS_BALL_LOAD_FACTOR("Has Ball Load Factor", 0.8, 0.1, 3.0);
 
 	//const double HAS_BALL_TIME = 2.0 / 15.0;
 	const int HAS_BALL_TIME = 2;
@@ -43,11 +43,11 @@ namespace {
 		//we are expecting to idle the motor so just set the dribble motor to a low set-point
 		static const int CONTINUOUS_IDLE_AMOUNT = 130;
 		int theta;
-		point x_y;
+		Point x_y;
 
 		for (unsigned int i = 0; i < 4; ++i) {
 			theta += wheel_speeds[i];
-			point speed(0.0, wheel_speeds[i]);
+			Point speed(0.0, wheel_speeds[i]);
 			speed = speed.rotate(ANGLES[i]);
 			x_y.x += speed.x;
 			x_y.y += speed.y;
@@ -67,18 +67,18 @@ namespace {
 	}
 }
 
-const unsigned int player::CHICKER_FOREVER = 1000;
+const unsigned int Player::CHICKER_FOREVER = 1000;
 
-const double player::MAX_DRIBBLE_DIST = 0.30;
+const double Player::MAX_DRIBBLE_DIST = 0.30;
 
-player::state::~state() {
+Player::State::~State() {
 }
 
-uint64_t player::address() const {
+uint64_t Player::address() const {
 	return bot->address;
 }
 
-void player::move(const point &dest, double target_ori) {
+void Player::move(const Point &dest, double target_ori) {
 	if (std::isnan(dest.x) || std::isnan(dest.y)) {
 		destination_ = position();
 		LOG_WARN("NaN destination passed to player::move");
@@ -96,11 +96,11 @@ void player::move(const point &dest, double target_ori) {
 	moved = true;
 }
 
-void player::dribble(double speed) {
+void Player::dribble(double speed) {
   new_dribble_power = clamp(static_cast<int>(speed * 1023.0 + copysign(0.5, speed)), -1023, 1023);
 }
 
-unsigned int player::chicker_ready_time() const {
+unsigned int Player::chicker_ready_time() const {
 	timespec now;
 	timespec_now(now);
 	timespec diff;
@@ -117,7 +117,7 @@ unsigned int player::chicker_ready_time() const {
 	}
 }
 
-void player::kick(double power) {
+void Player::kick(double power) {
 	std::cout << name << " kick(" << power << ")\n";
 	if (bot->alive()) {
 		if (!chicker_ready_time()) {
@@ -132,7 +132,7 @@ void player::kick(double power) {
 	}
 }
 
-void player::chip(double power) {
+void Player::chip(double power) {
 	std::cout << name << " chip(" << power << ")\n";
 	if (bot->alive()) {
 		if (!chicker_ready_time()) {
@@ -147,7 +147,7 @@ void player::chip(double power) {
 	}
 }
 
-double player::sense_ball_time() const {
+double Player::sense_ball_time() const {
 	if (sense_ball_) {
 		timespec now;
 		timespec_now(now);
@@ -159,7 +159,7 @@ double player::sense_ball_time() const {
 	}
 }
 
-double player::last_sense_ball_time() const {
+double Player::last_sense_ball_time() const {
 	timespec now;
 	timespec_now(now);
 	timespec diff;
@@ -167,7 +167,7 @@ double player::last_sense_ball_time() const {
 	return timespec_to_double(diff);
 }
 
-void player::dribbler_safety() {
+void Player::dribbler_safety() {
 	if (dribble_stall) {
 		timespec now;
 		timespec_now(now);
@@ -180,7 +180,7 @@ void player::dribbler_safety() {
 	}
 }
 
-bool player::dribbler_safe() const {
+bool Player::dribbler_safe() const {
 	timespec now;
 	timespec_now(now);
 	timespec diff;
@@ -189,12 +189,12 @@ bool player::dribbler_safe() const {
 	return milliseconds > DRIBBLE_RECOVER_TIME;
 }
 
-player::state::ptr player::get_state(const std::type_info &tid) const {
-	std::map<const std::type_info *, state::ptr>::const_iterator i = state_store.find(&tid);
-	return i != state_store.end() ? i->second : state::ptr();
+Player::State::ptr Player::get_state(const std::type_info &tid) const {
+	std::map<const std::type_info *, State::ptr>::const_iterator i = state_store.find(&tid);
+	return i != state_store.end() ? i->second : State::ptr();
 }
 
-void player::set_state(const std::type_info &tid, player::state::ptr state) {
+void Player::set_state(const std::type_info &tid, Player::State::ptr state) {
 	if (state) {
 		state_store[&tid] = state;
 	} else {
@@ -202,13 +202,13 @@ void player::set_state(const std::type_info &tid, player::state::ptr state) {
 	}
 }
 
-player::ptr player::create(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) {
-	ptr p(new player(name, yellow, pattern_index, bot));
+Player::ptr Player::create(const Glib::ustring &name, bool yellow, unsigned int pattern_index, XBeeDriveBot::ptr bot) {
+	ptr p(new Player(name, yellow, pattern_index, bot));
 	return p;
 }
 
-player::player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot) : robot(yellow, pattern_index), name(name), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(0), theory_dribble_rpm(0), dribble_distance_(0.0), state_store(&compare_type_infos), not_moved_message(Glib::ustring::compose("%1 not moved", name)), chick_when_not_ready_message(Glib::ustring::compose("%1 chick when not ready", name)) {
-	bot->signal_feedback.connect(sigc::mem_fun(this, &player::on_feedback));
+Player::Player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, XBeeDriveBot::ptr bot) : Robot(yellow, pattern_index), name(name), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(0), theory_dribble_rpm(0), dribble_distance_(0.0), state_store(&compare_type_infos), not_moved_message(Glib::ustring::compose("%1 not moved", name)), chick_when_not_ready_message(Glib::ustring::compose("%1 chick when not ready", name)) {
+	bot->signal_feedback.connect(sigc::mem_fun(this, &Player::on_feedback));
 	timespec now;
 	timespec_now(now);
 	sense_ball_end = now;
@@ -217,11 +217,11 @@ player::player(const Glib::ustring &name, bool yellow, unsigned int pattern_inde
 	chicker_last_fire_time.tv_nsec = 0;
 }
 
-void player::tick(bool scram) {
+void Player::tick(bool scram) {
 	// This message may have been set earlier, but need not be set any more.
 	chick_when_not_ready_message.activate(false);
 
-	// Annunciate that we weren't moved if we have a strategy but it never set a
+	// Annunciate that we weren't moved if we have a Strategy but it never set a
 	// destination.
 	not_moved_message.activate(bot->alive() && !scram && !moved);
 
@@ -282,7 +282,7 @@ void player::tick(bool scram) {
 	last_dribble_position = position();
 }
 
-void player::on_feedback() {
+void Player::on_feedback() {
 	theory_dribble_rpm =  static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED);
 	const unsigned int threshold_speed = static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED * DRIBBLER_HAS_BALL_LOAD_FACTOR);
 	bool new_sense_ball = (bot->dribbler_speed() > 0) && (theory_dribble_rpm > 0) && (bot->dribbler_speed() < threshold_speed);

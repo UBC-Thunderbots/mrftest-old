@@ -14,28 +14,28 @@
 
 namespace {
 	// minimum distance from the goal post
-	double_param MIN_GOALPOST_DIST("defensive2: distance to goal post", 0.03, 0.03, 1.0);
-	double_param MAX_GOALIE_DIST("defensive2: goalie dist (robot radius)", 2.0, 0.0, 10.0);
+	DoubleParam MIN_GOALPOST_DIST("defensive2: distance to goal post", 0.03, 0.03, 1.0);
+	DoubleParam MAX_GOALIE_DIST("defensive2: goalie dist (robot radius)", 2.0, 0.0, 10.0);
 
-	bool_param USE_GOALIE_RUSH("defensive2: use goalie rush when ball threatening", TRUE);
-	double_param BALL_DANGEROUS_SPEED("defensive2: threatening ball speed", 0.1, 0.1, 10.0); 
-	double_param DEFENSIVE2_SHRINK("defensive2: shrink robot radius", 0.9, 0.0, 2.0);
-	double_param DEFENSIVE_DIST("defensive2: goalie will block center of goal when defender farther than this distance", 0.5, 0.1, 10.0);
+	BoolParam USE_GOALIE_RUSH("defensive2: use goalie rush when ball threatening", TRUE);
+	DoubleParam BALL_DANGEROUS_SPEED("defensive2: threatening ball speed", 0.1, 0.1, 10.0); 
+	DoubleParam DEFENSIVE2_SHRINK("defensive2: shrink robot radius", 0.9, 0.0, 2.0);
+	DoubleParam DEFENSIVE_DIST("defensive2: goalie will block center of goal when defender farther than this distance", 0.5, 0.1, 10.0);
 
 	// used to save if the goalie should be on the top or bottom side
-	class defensive2_state : public player::state {
+	class Defensive2State : public Player::State {
 		public:
-			typedef Glib::RefPtr<defensive2_state> ptr;
-			defensive2_state() : top(false) { }
+			typedef Glib::RefPtr<Defensive2State> ptr;
+			Defensive2State() : top(false) { }
 			bool top;
 	};
 
 }
 
-defensive2::defensive2(world::ptr world) : the_world(world) {
+Defensive2::Defensive2(World::ptr world) : the_world(world) {
 }
 
-void defensive2::assign(const player::ptr& p, tactic::ptr t) {
+void Defensive2::assign(const Player::ptr& p, Tactic::ptr t) {
 	for (size_t i = 0; i < the_robots.size(); ++i) {
 		if (the_robots[i] == p) {
 			tactics[i] = t;
@@ -45,43 +45,43 @@ void defensive2::assign(const player::ptr& p, tactic::ptr t) {
 	LOG_ERROR("assign unknown robot");
 }
 
-std::pair<point, std::vector<point> > defensive2::calc_block_positions(const bool top) const {
-	const enemy_team& enemy(the_world->enemy);
+std::pair<Point, std::vector<Point> > Defensive2::calc_block_positions(const bool top) const {
+	const EnemyTeam& enemy(the_world->enemy);
 
-	const field& f = the_world->field();
+	const Field& f = the_world->field();
 
 	// Sort enemies by distance from own goal.
-	std::vector<robot::ptr> enemies = enemy.get_robots();
-	//std::sort(enemies.begin(), enemies.end(), ai_util::cmp_dist<robot::ptr>(the_world->ball()->position()));
-	std::sort(enemies.begin(), enemies.end(), ai_util::cmp_dist<robot::ptr>(f.friendly_goal()));
+	std::vector<Robot::ptr> enemies = enemy.get_robots();
+	//std::sort(enemies.begin(), enemies.end(), AIUtil::CmpDist<Robot::ptr>(the_world->ball()->position()));
+	std::sort(enemies.begin(), enemies.end(), AIUtil::CmpDist<Robot::ptr>(f.friendly_goal()));
 
-	std::vector<point> waypoints;
+	std::vector<Point> waypoints;
 
 	// there is cone ball to goal sides, bounded by 1 rays.
-	const point& ballpos = the_world->ball()->position();
-	const point goalside = top ? point(-f.length()/2, f.goal_width()/2) : point(-f.length()/2, -f.goal_width()/2);
-	const point goalopp = top ? point(-f.length()/2, -f.goal_width()/2) : point(-f.length()/2, f.goal_width()/2);
+	const Point& ballpos = the_world->ball()->position();
+	const Point goalside = top ? Point(-f.length()/2, f.goal_width()/2) : Point(-f.length()/2, -f.goal_width()/2);
+	const Point goalopp = top ? Point(-f.length()/2, -f.goal_width()/2) : Point(-f.length()/2, f.goal_width()/2);
 
-	const double radius = robot::MAX_RADIUS * DEFENSIVE2_SHRINK;
+	const double radius = Robot::MAX_RADIUS * DEFENSIVE2_SHRINK;
 
-	point G;
+	Point G;
 	/*
 	   {
 	// goalie and first defender integrated defence
 	// maximum x-distance the goalie can go from own goal.
 	// normally
 	const double maxdist = f.defense_area_radius();
-	const point L = line_intersect(goalside, ballpos, f.friendly_goal() + point(maxdist, -1), f.friendly_goal() + point(maxdist, 1));
-	G = (top) ? calc_block_cone(goalside - ballpos + L, point(0, -1) + L, L, shrink)
-	: calc_block_cone(point(0, 1) + L, goalside - ballpos + L, L, shrink);
+	const Point L = line_intersect(goalside, ballpos, f.friendly_goal() + Point(maxdist, -1), f.friendly_goal() + Point(maxdist, 1));
+	G = (top) ? calc_block_cone(goalside - ballpos + L, Point(0, -1) + L, L, shrink)
+	: calc_block_cone(Point(0, 1) + L, goalside - ballpos + L, L, shrink);
 	}
 	 */
 	{
 		// distance on the goalside - ball line that the robot touches
-		const point ball2side = goalside - ballpos;
-		const point touchvec = -ball2side.norm(); // side to ball
-		const double touchdist = std::min(-ball2side.x / 2, MAX_GOALIE_DIST * robot::MAX_RADIUS);
-		const point perp = (top) ? touchvec.rotate(-M_PI/2) : touchvec.rotate(M_PI/2); 
+		const Point ball2side = goalside - ballpos;
+		const Point touchvec = -ball2side.norm(); // side to ball
+		const double touchdist = std::min(-ball2side.x / 2, MAX_GOALIE_DIST * Robot::MAX_RADIUS);
+		const Point perp = (top) ? touchvec.rotate(-M_PI/2) : touchvec.rotate(M_PI/2); 
 		G = goalside + touchvec * touchdist + perp * radius;
 #warning a hack right now
 		G.x = std::max(G.x, - f.length() / 2 + radius);
@@ -89,9 +89,9 @@ std::pair<point, std::vector<point> > defensive2::calc_block_positions(const boo
 
 	// first defender will block the remaining cone from the ball
 	{
-		point D1 = calc_block_cone_defender(goalside, goalopp, ballpos, G, radius);
+		Point D1 = calc_block_cone_defender(goalside, goalopp, ballpos, G, radius);
 		bool blowup = false;
-		if (D1.x < robot::MAX_RADIUS - f.length() / 2 + f.defense_area_stretch()) blowup = true;
+		if (D1.x < Robot::MAX_RADIUS - f.length() / 2 + f.defense_area_stretch()) blowup = true;
 		if (std::fabs(D1.y) > f.width() / 4) blowup = true;
 		if (blowup) {
 			D1 = (f.friendly_goal() + ballpos) / 2;
@@ -102,10 +102,10 @@ std::pair<point, std::vector<point> > defensive2::calc_block_positions(const boo
 	// next two defenders block nearest enemy sights to goal if needed
 	// enemies with ball possession are ignored (they should be handled above)
 	for (size_t i = 0; i < enemies.size() && waypoints.size() < 3; ++i){
-		if (!ai_util::ball_close(the_world, enemies[i])) {
+		if (!AIUtil::ball_close(the_world, enemies[i])) {
 			bool blowup = false;
-			point D = calc_block_cone(goalside, goalopp, enemies[i]->position(), radius);
-			if (D.x < robot::MAX_RADIUS - f.length() / 2 + f.defense_area_stretch()) blowup = true;
+			Point D = calc_block_cone(goalside, goalopp, enemies[i]->position(), radius);
+			if (D.x < Robot::MAX_RADIUS - f.length() / 2 + f.defense_area_stretch()) blowup = true;
 			if (std::fabs(D.y) > f.width() / 4) blowup = true;
 			if (blowup) {
 				D = (f.friendly_goal() + enemies[i]->position()) / 2;
@@ -120,23 +120,23 @@ std::pair<point, std::vector<point> > defensive2::calc_block_positions(const boo
 	return std::make_pair(G, waypoints);
 }
 
-void defensive2::tick() {
+void Defensive2::tick() {
 
 	if (the_robots.size() == 0) {
 		LOG_WARN("no robots");
 		return;
 	}
 
-	const friendly_team& friendly(the_world->friendly);
-	// const enemy_team& enemy(the_world->enemy);
-	const point& ballpos = the_world->ball()->position();
+	const FriendlyTeam& friendly(the_world->friendly);
+	// const EnemyTeam& enemy(the_world->enemy);
+	const Point& ballpos = the_world->ball()->position();
 
 	// the robot chaser
 	double chaserdist = 1e99;
-	player::ptr chaser;
+	Player::ptr chaser;
 	for (size_t i = 0; i < friendly.size(); ++i) {
 		const double dist = (friendly[i]->position() - ballpos).len();
-		if (dist > ai_util::CHASE_BALL_DIST) continue;
+		if (dist > AIUtil::CHASE_BALL_DIST) continue;
 		if (!chaser || dist < chaserdist) {
 			chaserdist = dist;
 			chaser = friendly[i];
@@ -148,7 +148,7 @@ void defensive2::tick() {
 	/*
 	   for (size_t i = 0; i < the_robots.size(); ++i) {
 	   const double dist = (the_robots[i]->position() - ballpos).len();
-	   if (dist > ai_util::CHASE_BALL_DIST) continue;
+	   if (dist > AIUtil::CHASE_BALL_DIST) continue;
 	   if (!chaser || dist < chaserdist) {
 	   chaserdist = dist;
 	   chaser = the_robots[i];
@@ -168,34 +168,34 @@ void defensive2::tick() {
 	}
 
 	// adjust ball position
-	defensive2_state::ptr state(defensive2_state::ptr::cast_dynamic(goalie->get_state(typeid(*this))));
+	Defensive2State::ptr state(Defensive2State::ptr::cast_dynamic(goalie->get_state(typeid(*this))));
 	if (!state) {
-		state = defensive2_state::ptr(new defensive2_state());
+		state = Defensive2State::ptr(new Defensive2State());
 		goalie->set_state(typeid(*this), state);
 	}
-	if (ballpos.y > robot::MAX_RADIUS * 2) {
+	if (ballpos.y > Robot::MAX_RADIUS * 2) {
 		state->top = true;
-	} else if (ballpos.y < -robot::MAX_RADIUS * 2) {
+	} else if (ballpos.y < -Robot::MAX_RADIUS * 2) {
 		state->top = false;
 	}
 
-	std::vector<player::ptr> defenders;
+	std::vector<Player::ptr> defenders;
 	for (size_t i = 1; i < the_robots.size(); ++i)
 		defenders.push_back(the_robots[i]);
 
 	// Sort by distance to ball. DO NOT SORT IT AGAIN!!
-	std::sort(defenders.begin(), defenders.end(), ai_util::cmp_dist<player::ptr>(the_world->ball()->position()));
-	std::vector<player::ptr> friends = ai_util::get_friends(friendly, defenders);
+	std::sort(defenders.begin(), defenders.end(), AIUtil::CmpDist<Player::ptr>(the_world->ball()->position()));
+	std::vector<Player::ptr> friends = AIUtil::get_friends(friendly, defenders);
 
-	const int baller = ai_util::calc_baller(the_world, defenders);
-	// const bool teamball = ai_util::friendly_posses_ball(the_world);
+	const int baller = AIUtil::calc_baller(the_world, defenders);
+	// const bool teamball = AIUtil::friendly_posses_ball(the_world);
 
-	std::pair<point, std::vector<point> > positions = calc_block_positions(state->top);
-	std::vector<point>& waypoints = positions.second;
+	std::pair<Point, std::vector<Point> > positions = calc_block_positions(state->top);
+	std::vector<Point>& waypoints = positions.second;
 
 	// do matching for distances
 
-	std::vector<point> locations;
+	std::vector<Point> locations;
 	for (size_t i = 0; i < defenders.size(); ++i) {
 		locations.push_back(defenders[i]->position());
 	}
@@ -206,27 +206,27 @@ void defensive2::tick() {
 	std::vector<size_t> order = dist_matching(locations, waypoints);
 
 	// do the actual assigmment
-	point ballvel = the_world->ball()->est_velocity();
-	point rushpos, goalpos;
+	Point ballvel = the_world->ball()->est_velocity();
+	Point rushpos, goalpos;
 	if (ballvel.len() > BALL_DANGEROUS_SPEED && ballvel.x < -1e-6){
 		rushpos = line_intersect(ballpos, ballpos + ballvel, 
-					point(-the_world->field().length()/2.0 + 1.5*robot::MAX_RADIUS, 1.0),
-					point(-the_world->field().length()/2.0 + 1.5*robot::MAX_RADIUS, -1.0));
+					Point(-the_world->field().length()/2.0 + 1.5*Robot::MAX_RADIUS, 1.0),
+					Point(-the_world->field().length()/2.0 + 1.5*Robot::MAX_RADIUS, -1.0));
 
 		goalpos = line_intersect(ballpos, ballpos + ballvel, 
-					point(-the_world->field().length()/2.0, 1.0),
-					point(-the_world->field().length()/2.0, -1.0));
+					Point(-the_world->field().length()/2.0, 1.0),
+					Point(-the_world->field().length()/2.0, -1.0));
 		LOG_INFO(Glib::ustring::compose("ball heading towards our side of the field: rushpos.y = %1, goalpos.y = %2", rushpos.y, goalpos.y));
 	}
 	const bool goalierush = USE_GOALIE_RUSH && ballvel.len() > BALL_DANGEROUS_SPEED && ballvel.x < -1e-6 
                               && (std::min(std::fabs(goalpos.y),std::fabs(rushpos.y)) < the_world->field().goal_width()/2.0);
-	//const bool goaliechase = (chaser == goalie && ai_util::point_in_defense(the_world, ballpos));
-	const bool goaliechase = ai_util::point_in_defense(the_world, ballpos);
+	//const bool goaliechase = (chaser == goalie && AIUtil::point_in_defense(the_world, ballpos));
+	const bool goaliechase = AIUtil::point_in_defense(the_world, ballpos);
 	
 	// check if goalie should rush
 	if (goalierush){
 		LOG_INFO("goalie to rush");
-		move::ptr tactic(new move(the_robots[0], the_world));
+		Move::ptr tactic(new Move(the_robots[0], the_world));
 		rushpos.y = std::min(rushpos.y, the_world->field().goal_width()/2.0);
 		rushpos.y = std::max(rushpos.y, -the_world->field().goal_width()/2.0);
 		tactic->set_position(rushpos);
@@ -235,18 +235,18 @@ void defensive2::tick() {
 	// check if chaser robot
 	else if (goaliechase) {
 		LOG_INFO("goalie to shoot");
-		shoot::ptr shoot_tactic = shoot::ptr(new shoot(the_robots[0], the_world));
+		Shoot::ptr shoot_tactic = Shoot::ptr(new Shoot(the_robots[0], the_world));
 		shoot_tactic->force();
 		shoot_tactic->set_pivot(false);
 		tactics[0] = shoot_tactic;
 	} else {
-		move::ptr tactic(new move(the_robots[0], the_world));
+		Move::ptr tactic(new Move(the_robots[0], the_world));
 		int closest_defender = - 1;
 		for (size_t i = 0; i < defenders.size(); ++i)
 			if (order[i] == 0)
 				closest_defender = static_cast<int>(i);
 		if (closest_defender != -1 && (defenders[closest_defender]->position() - waypoints[0]).len() > DEFENSIVE_DIST)
-			tactic->set_position(point(-the_world->field().length()/2.0+1.5*robot::MAX_RADIUS, 0));
+			tactic->set_position(Point(-the_world->field().length()/2.0+1.5*Robot::MAX_RADIUS, 0));
 		else tactic->set_position(positions.first);
 		tactics[0] = tactic;
 		if (chaser == goalie && defenders.size() > 0) chaser = defenders[0];
@@ -257,38 +257,38 @@ void defensive2::tick() {
 		// if (static_cast<int>(i) == skipme) continue;
 		if (w >= waypoints.size()) {
 			LOG_WARN(Glib::ustring::compose("%1 nothing to do", defenders[i]->name));
-			move::ptr tactic(new move(defenders[i], the_world));
+			Move::ptr tactic(new Move(defenders[i], the_world));
 			tactic->set_position(defenders[i]->position());
 			assign(defenders[i], tactic);
 			continue;
 		} 
 
-		// const point& target = waypoints[order[w]];
+		// const Point& target = waypoints[order[w]];
 		if (chaser == defenders[i]) {
 			// should be exact
-			shoot::ptr shoot_tactic = shoot::ptr(new shoot(defenders[i], the_world));
+			Shoot::ptr shoot_tactic = Shoot::ptr(new Shoot(defenders[i], the_world));
 			shoot_tactic->force();
 			shoot_tactic->set_pivot(false);
 			assign(defenders[i], shoot_tactic);
 		} else {
-			move::ptr tactic(new move(defenders[i], the_world));
+			Move::ptr tactic(new Move(defenders[i], the_world));
 			tactic->set_position(waypoints[order[w]]);
 			assign(defenders[i], tactic);
 		}
 		++w;
 	}
 
-	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
-	unsigned int goalie_flags = flags & ~(ai_flags::avoid_friendly_defence|ai_flags::avoid_ball_stop);
+	unsigned int flags = AIFlags::calc_flags(the_world->playtype());
+	unsigned int goalie_flags = flags & ~(AIFlags::AVOID_FRIENDLY_DEFENSE|AIFlags::AVOID_BALL_STOP);
 	if (baller == 0) {
-		tactics[0]->set_flags(goalie_flags | ai_flags::clip_play_area);
+		tactics[0]->set_flags(goalie_flags | AIFlags::CLIP_PLAY_AREA);
 	} else {
 		tactics[0]->set_flags(goalie_flags);
 	}
 	tactics[0]->tick();
 	for (size_t i = 1; i < tactics.size(); ++i) {
 		if (static_cast<int>(i) == baller) {
-			tactics[i]->set_flags(flags | ai_flags::clip_play_area);
+			tactics[i]->set_flags(flags | AIFlags::CLIP_PLAY_AREA);
 		} else {
 			tactics[i]->set_flags(flags);
 		}
@@ -296,7 +296,7 @@ void defensive2::tick() {
 	}
 }
 
-void defensive2::robots_changed() {
+void Defensive2::robots_changed() {
 	tactics.clear();
 	tactics.resize(the_robots.size());
 }

@@ -6,19 +6,19 @@
 #include "ai/tactic/move.h"
 
 //
-// Gets the robots to go to their penalty_enemy positions.
+// Gets the robots to go to their enemy penalty kick positions.
 //
-class penalty_enemy : public role {
+class PenaltyEnemy : public Role {
 	public:
 		//
-		// A pointer to a penalty_enemy role.
+		// A pointer to a PenaltyEnemy Role.
 		//
-		typedef Glib::RefPtr<penalty_enemy> ptr;
+		typedef Glib::RefPtr<PenaltyEnemy> ptr;
 
 		//
-		// Constructs a new penalty_enemy role.
+		// Constructs a new PenaltyEnemy Role.
 		//
-		penalty_enemy(world::ptr world);
+		PenaltyEnemy(World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -28,7 +28,7 @@ class penalty_enemy : public role {
 		void robots_changed();
 
 	protected:
-		const world::ptr the_world;
+		const World::ptr the_world;
 
 		/**
 		 * The distance between the baseline and the line behind which the robots must stand.
@@ -36,28 +36,28 @@ class penalty_enemy : public role {
 		const static double RESTRICTED_ZONE_LENGTH = 0.85;
 
 		/**
-		* Maximum number of positions that can be assigned for this role.
+		* Maximum number of positions that can be assigned for this Role.
 		*/
 		const static unsigned int NUM_POSITIONS = 4;
 
 		/**
-		* The designated standing positions for this role.
+		* The designated standing positions for this Role.
 		*/
-		point standing_positions[NUM_POSITIONS];
+		Point standing_positions[NUM_POSITIONS];
 };
 
-class penalty_goalie : public role {
+class PenaltyGoalie : public Role {
 	public:
-		typedef Glib::RefPtr<penalty_goalie> ptr;
+		typedef Glib::RefPtr<PenaltyGoalie> ptr;
 
-		penalty_goalie(world::ptr world);
+		PenaltyGoalie(World::ptr world);
 
 		void tick();
 
 		void robots_changed();
 
 	protected:
-		const world::ptr the_world;
+		const World::ptr the_world;
 };
 
 #endif

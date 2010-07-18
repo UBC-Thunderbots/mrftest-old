@@ -8,23 +8,23 @@
 #include <glibmm.h>
 
 /**
- * A role manages the operation of a small group of players.
+ * A Role manages the operation of a small group of players.
  */
-class role2 : public byref, public sigc::trackable {
+class Role2 : public ByRef, public sigc::trackable {
 	public:
 		/**
-		 * A pointer to a role.
+		 * A pointer to a Role.
 		 */
-		typedef Glib::RefPtr<role2> ptr;
+		typedef Glib::RefPtr<Role2> ptr;
 
 		/**
-		 * Runs the role for one time tick. It is expected that the role will
+		 * Runs the Role for one time tick. It is expected that the Role will
 		 * examine the robots for which it is responsible, determine if they
-		 * need to be given new tactics, and then call tactic::tick() for all
-		 * the tactics under this role.
+		 * need to be given new tactics, and then call Tactic::tick() for all
+		 * the tactics under this Role.
 		 *
-		 * It is possible that the set of robots controlled by the tactic may
-		 * change between one tick and the next. The role must be ready to deal
+		 * It is possible that the set of robots controlled by the Tactic may
+		 * change between one tick and the next. The Role must be ready to deal
 		 * with this situation, and must be sure to destroy any tactics
 		 * controlling robots that have gone away. This situation can be
 		 * detected by implementing robots_changed(), which will be called
@@ -36,35 +36,35 @@ class role2 : public byref, public sigc::trackable {
 		virtual void tick(Cairo::RefPtr<Cairo::Context> overlay) = 0;
 
 		/**
-		 * Called each time the set of robots for which the role is responsible
-		 * has changed. It is expected that the role will examine the robots and
+		 * Called each time the set of robots for which the Role is responsible
+		 * has changed. It is expected that the Role will examine the robots and
 		 * determine if any changes need to be made.
 		 */
 		virtual void robots_changed() = 0;
 		
 		/**
-		 * Sets the robots controlled by this role.
+		 * Sets the robots controlled by this Role.
 		 *
-		 * \param[in] robots the robots the role should control.
+		 * \param[in] robots the robots the Role should control.
 		 */
-		void set_robots(const std::vector<player::ptr> &robots) {
+		void set_robots(const std::vector<Player::ptr> &robots) {
 			the_robots = robots;
 			robots_changed();
 		}
 		
 		/**
-		 * Sets the robots controlled by this role.
+		 * Sets the robots controlled by this Role.
 		 *
-		 * \param[in] robots the robots the role should control.
+		 * \param[in] robots the robots the Role should control.
 		 */
-		void set_robot(const player::ptr &robots) {
+		void set_robot(const Player::ptr &robots) {
 			the_robots.clear();
 			the_robots.push_back(robots);
 			robots_changed();
 		}
 		
 		/**
-		 * Removes all robots from this role.
+		 * Removes all robots from this Role.
 		 */
 		void clear_robots() {
 			the_robots.clear();
@@ -73,29 +73,29 @@ class role2 : public byref, public sigc::trackable {
 
 	protected:
 		/**
-		 * The robots that this role controls.
+		 * The robots that this Role controls.
 		 */
-		std::vector<player::ptr> the_robots;
+		std::vector<Player::ptr> the_robots;
 };
 
 /**
  * A compatibility shim for roles that do not present a visual overlay.
  */
-class role : public role2 {
+class Role : public Role2 {
 	public:
 		/**
-		 * A pointer to a role.
+		 * A pointer to a Role.
 		 */
-		typedef Glib::RefPtr<role> ptr;
+		typedef Glib::RefPtr<Role> ptr;
 
 		/**
-		 * Runs the role for one time tick. It is expected that the role will
+		 * Runs the Role for one time tick. It is expected that the Role will
 		 * examine the robots for which it is responsible, determine if they
-		 * need to be given new tactics, and then call tactic::tick() for all
-		 * the tactics under this role.
+		 * need to be given new tactics, and then call Tactic::tick() for all
+		 * the tactics under this Role.
 		 *
-		 * It is possible that the set of robots controlled by the tactic may
-		 * change between one tick and the next. The role must be ready to deal
+		 * It is possible that the set of robots controlled by the Tactic may
+		 * change between one tick and the next. The Role must be ready to deal
 		 * with this situation, and must be sure to destroy any tactics
 		 * controlling robots that have gone away. This situation can be
 		 * detected by implementing robots_changed(), which will be called

@@ -7,19 +7,19 @@
 #include "geom/point.h"
 
 //
-// Gets the robots to go to their pit_stop positions.
+// Gets the robots to go to their pit stop positions.
 //
-class pit_stop : public role {
+class PitStop : public Role {
 	public:
 		//
-		// A pointer to a pit_stop role.
+		// A pointer to a PitStop Role.
 		//
-		typedef Glib::RefPtr<pit_stop> ptr;
+		typedef Glib::RefPtr<PitStop> ptr;
 
 		//
-		// Constructs a new pit_stop role.
+		// Constructs a new PitStop Role.
 		//
-		pit_stop(world::ptr world);
+		PitStop(World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -32,8 +32,8 @@ class pit_stop : public role {
 		void robots_changed();
 
 	protected:
-		const world::ptr the_world;
-                std::vector<move::ptr> the_tactics;	
+		const World::ptr the_world;
+                std::vector<Move::ptr> the_tactics;	
 };
 
 #endif

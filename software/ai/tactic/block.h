@@ -6,19 +6,19 @@
 
 /**
  * Calculates an optimal defensive point to blocks an enemy AI.
- * TODO: This tactic does not look right.
+ * TODO: This Tactic does not look right.
  */
-class block : public tactic {
+class Block : public Tactic {
 	public:
 		//
-		// A pointer to this tactic.
+		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<block> ptr;
+		typedef Glib::RefPtr<Block> ptr;
 
 		//
-		// Constructs a new block tactic. 
+		// Constructs a new Block Tactic. 
 		//
-		block(player::ptr player, world::ptr world);
+		Block(Player::ptr player, World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -26,13 +26,13 @@ class block : public tactic {
 		void tick();
 
 		/**
-		 * Sets the target for the block tactic.
+		 * Sets the target for the Block Tactic.
 		 */
-		void set_target(robot::ptr target);	
+		void set_target(Robot::ptr target);	
 
 	protected:
-		robot::ptr target;
-		world::ptr the_world;
+		Robot::ptr target;
+		World::ptr the_world;
 };
 
 #endif

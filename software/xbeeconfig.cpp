@@ -114,7 +114,7 @@ namespace {
 int main(int argc, char **argv) {
 	std::setlocale(LC_ALL, "");
 
-	config conf;
+	Config conf;
 
 	const char *path;
 	if (argc == 1) {

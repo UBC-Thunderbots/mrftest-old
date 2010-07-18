@@ -11,24 +11,24 @@
 namespace {
 	const Glib::ustring DEFAULT_ENGINE("Open Dynamics Engine Simulator");
 
-	simulator_engine::ptr create_engine(const Glib::ustring &name) {
-		const simulator_engine_factory::map_type &m = simulator_engine_factory::all();
+	SimulatorEngine::ptr create_engine(const Glib::ustring &name) {
+		const SimulatorEngineFactory::map_type &m = SimulatorEngineFactory::all();
 		if (name.size()) {
-			simulator_engine_factory::map_type::const_iterator i = m.find(name.collate_key());
+			SimulatorEngineFactory::map_type::const_iterator i = m.find(name.collate_key());
 			if (i != m.end()) {
 				return i->second->create_engine();
 			} else {
 				std::cerr << "There is no engine named '" << name << "'. The available engines are:\n";
-				for (simulator_engine_factory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
+				for (SimulatorEngineFactory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 					std::cerr << i->second->name << '\n';
 				}
-				return simulator_engine::ptr();
+				return SimulatorEngine::ptr();
 			}
 		} else {
 			Gtk::Dialog dlg("Thunderbots Simulator", true);
 			dlg.get_vbox()->pack_start(*Gtk::manage(new Gtk::Label("Select an engine:")), Gtk::PACK_SHRINK);
 			Gtk::ComboBoxText combo;
-			for (simulator_engine_factory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
+			for (SimulatorEngineFactory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 				combo.append_text(i->second->name);
 			}
 			combo.set_active_text(DEFAULT_ENGINE);
@@ -39,7 +39,7 @@ namespace {
 			dlg.show_all();
 			const int resp = dlg.run();
 			if (resp != Gtk::RESPONSE_OK) {
-				return simulator_engine::ptr();
+				return SimulatorEngine::ptr();
 			}
 			return create_engine(combo.get_active_text());
 		}
@@ -65,13 +65,13 @@ namespace {
 			std::cout << option_context.get_help();
 			return 1;
 		}
-		config conf;
-		simulator_engine::ptr engine(create_engine(engine_name));
+		Config conf;
+		SimulatorEngine::ptr engine(create_engine(engine_name));
 		if (engine) {
-			clocksource_timerfd clk((UINT64_C(1000000000) + TIMESTEPS_PER_SECOND / 2) / TIMESTEPS_PER_SECOND);
-			simulator sim(conf, engine, clk);
-			class daemon d(sim);
-			main_window win(sim);
+			TimerFDClockSource clk((UINT64_C(1000000000) + TIMESTEPS_PER_SECOND / 2) / TIMESTEPS_PER_SECOND);
+			Simulator sim(conf, engine, clk);
+			class XBeeDaemon d(sim);
+			MainWindow win(sim);
 			clk.start();
 			Gtk::Main::run(win);
 		}

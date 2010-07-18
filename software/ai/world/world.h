@@ -18,23 +18,23 @@
 #include <vector>
 #include <sigc++/sigc++.h>
 
-class ai_window;
+class AIWindow;
 
 /**
  * Collects all information the AI needs to examine the state of the world and
  * transmit orders to robots.
  */
-class world : public byref {
+class World : public ByRef {
 	public:
 		/**
-		 * A pointer to a world object.
+		 * A pointer to a World object.
 		 */
-		typedef Glib::RefPtr<world> ptr;
+		typedef Glib::RefPtr<World> ptr;
 
 		/**
 		 * The configuration file.
 		 */
-		const config &conf;
+		const Config &conf;
 
 		/**
 		 * Fired when a detection packet is received.
@@ -57,7 +57,7 @@ class world : public byref {
 		sigc::signal<void> signal_flipped_ends;
 
 		/**
-		 * Fired when the local team's colour with respect to the referee box
+		 * Fired when the local team's RobotColour with respect to the referee box
 		 * changes.
 		 */
 		sigc::signal<void> signal_flipped_refbox_colour;
@@ -65,32 +65,32 @@ class world : public byref {
 		/**
 		 * The friendly team.
 		 */
-		friendly_team friendly;
+		FriendlyTeam friendly;
 
 		/**
 		 * The enemy team.
 		 */
-		enemy_team enemy;
+		EnemyTeam enemy;
 
 		/**
-		 * Creates a new world object.
+		 * Creates a new World object.
 		 * \param conf the configuration file
 		 * \param xbee_bots the robots to drive
 		 * \return The new object
 		 */
-		static ptr create(const config &conf, const std::vector<xbee_drive_bot::ptr> &xbee_bots);
+		static ptr create(const Config &conf, const std::vector<XBeeDriveBot::ptr> &xbee_bots);
 
 		/**
 		 * \return The ball
 		 */
-		::ball::ptr ball() const {
+		::Ball::ptr ball() const {
 			return ball_;
 		}
 
 		/**
-		 * \return The field
+		 * \return The Field
 		 */
-		const class field &field() const {
+		const class Field &field() const {
 			return field_;
 		}
 
@@ -123,21 +123,21 @@ class world : public byref {
 		/**
 		 * \return The current state of play
 		 */
-		playtype::playtype playtype() const {
+		PlayType::PlayType playtype() const {
 			return playtype_;
 		}
 
 		/**
-		 * \return A visualizable view of the world
+		 * \return A Visualizable view of the world
 		 */
-		const visualizable &visualizer_view() const {
+		const Visualizable &visualizer_view() const {
 			return vis_view;
 		}
 
 		/**
 		 * \return The currently-active ball filter
 		 */
-		class ball_filter *ball_filter() const {
+		class BallFilter *ball_filter() const {
 			return ball_filter_;
 		}
 
@@ -146,7 +146,7 @@ class world : public byref {
 		 *
 		 * \param filter the new filter to use
 		 */
-		void ball_filter(class ball_filter *filter);
+		void ball_filter(class BallFilter *filter);
 
 		/**
 		 * \return the number of AI ticks that have occurred since program
@@ -167,16 +167,16 @@ class world : public byref {
 		double playtype_time() const;
 
 	private:
-		class visualizer_view : public visualizable {
+		class VisualizerView : public Visualizable {
 			public:
-				visualizer_view(const world * const w) : the_world(w) {
+				VisualizerView(const World * const w) : the_world(w) {
 				}
 
-				const class visualizable::field &field() const {
+				const class Visualizable::Field &field() const {
 					return the_world->field();
 				}
 
-				visualizable::ball::ptr ball() const {
+				Visualizable::Ball::ptr ball() const {
 					return the_world->ball();
 				}
 
@@ -184,7 +184,7 @@ class world : public byref {
 					return the_world->friendly.size() + the_world->enemy.size();
 				}
 
-				visualizable::robot::ptr operator[](unsigned int index) const {
+				Visualizable::Robot::ptr operator[](unsigned int index) const {
 					if (index < the_world->friendly.size()) {
 						return the_world->friendly.get_robot(index);
 					} else {
@@ -193,34 +193,34 @@ class world : public byref {
 				}
 
 			private:
-				const world * const the_world;
+				const World * const the_world;
 		};
 
 		bool east_;
 		bool refbox_yellow_;
-		const file_descriptor vision_socket;
-		refbox refbox_;
-		class field field_;
-		ball::ptr ball_;
+		const FileDescriptor vision_socket;
+		RefBox refbox_;
+		class Field field_;
+		Ball::ptr ball_;
 		SSL_DetectionFrame detections[2];
-		const std::vector<xbee_drive_bot::ptr> xbee_bots;
-		playtype::playtype playtype_;
-		playtype::playtype playtype_override;
+		const std::vector<XBeeDriveBot::ptr> xbee_bots;
+		PlayType::PlayType playtype_;
+		PlayType::PlayType playtype_override;
 		bool playtype_override_active;
-		class visualizer_view vis_view;
-		class ball_filter *ball_filter_;
-		point playtype_arm_ball_position;
+		class VisualizerView vis_view;
+		class BallFilter *ball_filter_;
+		Point playtype_arm_ball_position;
 		uint64_t timestamp_;
 		timespec playtype_time_;
 
-		world(const config &, const std::vector<xbee_drive_bot::ptr> &);
+		World(const Config &, const std::vector<XBeeDriveBot::ptr> &);
 		bool on_vision_readable(Glib::IOCondition);
-		void override_playtype(playtype::playtype);
+		void override_playtype(PlayType::PlayType);
 		void clear_playtype_override();
 		void update_playtype();
-		playtype::playtype compute_playtype(playtype::playtype);
+		PlayType::PlayType compute_playtype(PlayType::PlayType);
 
-		friend class ai_window;
+		friend class AIWindow;
 };
 
 #endif

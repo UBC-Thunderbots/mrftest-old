@@ -6,15 +6,15 @@
 //
 // A clock source that fires as quickly as possible.
 //
-class clocksource_quick : public clocksource, public sigc::trackable {
+class QuickClockSource : public ClockSource, public sigc::trackable {
 	public:
 		//
-		// Starts the clocksource.
+		// Starts the ClockSource.
 		//
 		void start();
 
 		//
-		// Stops the clocksource.
+		// Stops the ClockSource.
 		//
 		void stop();
 

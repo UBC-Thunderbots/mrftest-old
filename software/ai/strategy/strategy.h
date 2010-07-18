@@ -10,20 +10,20 @@
 namespace Gtk {
 	class Widget;
 }
-class strategy_factory;
+class StrategyFactory;
 
-namespace ai_strategy {
+namespace AIStrategy {
 	/**
 	 * Comparison for candidacy of being a goalie
 	 */
-	class cmp_player_goalie {
+	class CmpPlayerGoalie {
 		public:
-		bool operator()(const player::ptr& a, const player::ptr& b) const {
-			if (a->chicker_ready_time() == player::CHICKER_FOREVER) {
-				if (b->chicker_ready_time() != player::CHICKER_FOREVER) return true;
+		bool operator()(const Player::ptr& a, const Player::ptr& b) const {
+			if (a->chicker_ready_time() == Player::CHICKER_FOREVER) {
+				if (b->chicker_ready_time() != Player::CHICKER_FOREVER) return true;
 				return a->name < b->name;
 			}
-			if (b->chicker_ready_time() == player::CHICKER_FOREVER) return false;
+			if (b->chicker_ready_time() == Player::CHICKER_FOREVER) return false;
 			return a->name < b->name;
 		}
 	};
@@ -31,9 +31,9 @@ namespace ai_strategy {
 	/**
 	 * Sorts by chicker readiness.
 	 */
-	class cmp_player_chicker {
+	class CmpPlayerChicker {
 		public:
-			bool operator()(const player::ptr& a, const player::ptr& b) const {
+			bool operator()(const Player::ptr& a, const Player::ptr& b) const {
 				if (a->chicker_ready_time() == b->chicker_ready_time()) return a->name < b->name;
 				return a->name < b->name;
 			}
@@ -41,23 +41,23 @@ namespace ai_strategy {
 }
 
 /**
- * A strategy manages the overall operation of a team. Individual AI
- * implementations should extend this class (or its subclass \c strategy) to
+ * A Strategy manages the overall operation of a team. Individual AI
+ * implementations should extend this class (or its subclass \c Strategy) to
  * provide their own strategy.
  */
-class strategy2 : public byref, public sigc::trackable {
+class Strategy2 : public ByRef, public sigc::trackable {
 	public:
 		/**
-		 * A pointer to a strategy.
+		 * A pointer to a Strategy.
 		 */
-		typedef Glib::RefPtr<strategy2> ptr;
+		typedef Glib::RefPtr<Strategy2> ptr;
 
 		/**
-		 * Runs the strategy for one time tick. It is expected that the strategy
+		 * Runs the Strategy for one time tick. It is expected that the Strategy
 		 * will examine the team for which it is responsible, determine if any
 		 * changes need to be made to the roles or the assignments of robots to
-		 * roles, make those changes (by means of role::set_robots()), and then
-		 * call role::tick() for each subsidiary role.
+		 * roles, make those changes (by means of Role::set_robots()), and then
+		 * call Role::tick() for each subsidiary Role.
 		 *
 		 * \param[in] overlay a Cairo context that can be drawn to in order to
 		 * create an overlay graphic on the visualizer, which may be a null
@@ -66,12 +66,12 @@ class strategy2 : public byref, public sigc::trackable {
 		virtual void tick(Cairo::RefPtr<Cairo::Context> overlay) = 0;
 
 		/**
-		 * \return the factory that creates this strategy.
+		 * \return the factory that creates this Strategy.
 		 */
-		virtual strategy_factory &get_factory() = 0;
+		virtual StrategyFactory &get_factory() = 0;
 
 		/**
-		 * \return the custom UI controls to manage this strategy, or a null
+		 * \return the custom UI controls to manage this Strategy, or a null
 		 * pointer if it does not wish to display any controls.
 		 */
 		virtual Gtk::Widget *get_ui_controls() = 0;
@@ -80,14 +80,14 @@ class strategy2 : public byref, public sigc::trackable {
 /**
  * A compatibility shim for strategies that do not present a visual overlay.
  */
-class strategy : public strategy2 {
+class Strategy : public Strategy2 {
 	public:
 		/**
-		 * Runs the strategy for one time tick. It is expected that the strategy
+		 * Runs the Strategy for one time tick. It is expected that the Strategy
 		 * will examine the team for which it is responsible, determine if any
 		 * changes need to be made to the roles or the assignments of robots to
-		 * roles, make those changes (by means of role::set_robots()), and then
-		 * call role::tick() for each subsidiary role.
+		 * roles, make those changes (by means of Role::set_robots()), and then
+		 * call Role::tick() for each subsidiary Role.
 		 */
 		virtual void tick() = 0;
 
@@ -98,31 +98,31 @@ class strategy : public strategy2 {
 };
 
 /**
- * A factory for creating strategy objects. An individual AI implementation should
- * extend this class to provide an object which can constructs its "strategy"
+ * A factory for creating Strategy objects. An individual AI implementation should
+ * extend this class to provide an object which can constructs its "Strategy"
  * objects.
  */
-class strategy_factory : public registerable<strategy_factory> {
+class StrategyFactory : public Registerable<StrategyFactory> {
 	public:
 		/**
-		 * Constructs a new strategy.
+		 * Constructs a new Strategy.
 		 *
-		 * \param world the world
+		 * \param World the World
 		 *
-		 * \return The new strategy
+		 * \return The new Strategy
 		 */
-		virtual strategy::ptr create_strategy(world::ptr world) = 0;
+		virtual Strategy::ptr create_strategy(World::ptr world) = 0;
 
 	protected:
 		/**
-		 * Constructs a strategy_factory. This should be invoked from the
+		 * Constructs a StrategyFactory. This should be invoked from the
 		 * subclass constructor when an instance of the subclass is constructed
 		 * at application startup by declaring a global variable of the
 		 * subclass.
 		 *
-		 * \param name a human-readable name for the strategy
+		 * \param name a human-readable name for the Strategy
 		 */
-		strategy_factory(const Glib::ustring &name) : registerable<strategy_factory>(name) {
+		StrategyFactory(const Glib::ustring &name) : Registerable<StrategyFactory>(name) {
 		}
 };
 

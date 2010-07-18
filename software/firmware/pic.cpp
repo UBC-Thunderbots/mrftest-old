@@ -3,6 +3,7 @@
 #include <cstddef>
 
 namespace {
+#warning unportable, replace with objects with proper serialization
 	struct __attribute__((packed)) IDENT_DATA {
 		uint8_t signature[5];
 		uint8_t manufacturer;
@@ -20,11 +21,11 @@ namespace {
 		return (num + den - 1) / den;
 	}
 
-	void get_page_data(const intel_hex &data, unsigned int page, unsigned char (&buffer)[pic_upload::PAGE_BYTES]) {
-		std::fill(buffer, buffer + pic_upload::PAGE_BYTES, 0xFF);
-		unsigned int byte = page * pic_upload::PAGE_BYTES;
+	void get_page_data(const IntelHex &data, unsigned int page, unsigned char (&buffer)[PICUpload::PAGE_BYTES]) {
+		std::fill(buffer, buffer + PICUpload::PAGE_BYTES, 0xFF);
+		unsigned int byte = page * PICUpload::PAGE_BYTES;
 		if (byte < data.data()[0].size()) {
-			std::copy(&data.data()[0][byte], &data.data()[0][std::min<std::size_t>(byte + pic_upload::PAGE_BYTES, data.data()[0].size())], buffer);
+			std::copy(&data.data()[0][byte], &data.data()[0][std::min<std::size_t>(byte + PICUpload::PAGE_BYTES, data.data()[0].size())], buffer);
 		}
 	}
 
@@ -48,24 +49,24 @@ namespace {
 	};
 }
 
-pic_upload::pic_upload(xbee_raw_bot::ptr bot, const intel_hex &data) : bot(bot), data(data), proto(bot), pages_written(0) {
+PICUpload::PICUpload(XBeeRawBot::ptr bot, const IntelHex &data) : bot(bot), data(data), proto(bot), pages_written(0) {
 	status = "Idle";
 	proto.signal_error.connect(signal_error.make_slot());
 }
 
-void pic_upload::start() {
+void PICUpload::start() {
 	status = "Entering Bootloader";
 	signal_progress.emit(0);
-	proto.enter_bootloader(sigc::mem_fun(this, &pic_upload::enter_bootloader_done));
+	proto.enter_bootloader(sigc::mem_fun(this, &PICUpload::enter_bootloader_done));
 }
 
-void pic_upload::enter_bootloader_done() {
+void PICUpload::enter_bootloader_done() {
 	status = "Checking Identity";
 	signal_progress.emit(0);
-	proto.send(COMMAND_IDENT, 0, 0, 0, 8, sigc::mem_fun(this, &pic_upload::ident_received));
+	proto.send(COMMAND_IDENT, 0, 0, 0, 8, sigc::mem_fun(this, &PICUpload::ident_received));
 }
 
-void pic_upload::ident_received(const void *response) {
+void PICUpload::ident_received(const void *response) {
 	const IDENT_DATA &ident = *static_cast<const IDENT_DATA *>(response);
 	if (!std::equal(ident.signature, ident.signature + 5, "TBOTS")) {
 		signal_error.emit("Incorrect IDENT signature!");
@@ -73,10 +74,10 @@ void pic_upload::ident_received(const void *response) {
 	}
 	status = "Checking Fuses";
 	signal_progress.emit(0);
-	proto.send(COMMAND_PIC_READ_FUSES, 0, 0, 0, 18, sigc::mem_fun(this, &pic_upload::fuses_received));
+	proto.send(COMMAND_PIC_READ_FUSES, 0, 0, 0, 18, sigc::mem_fun(this, &PICUpload::fuses_received));
 }
 
-void pic_upload::fuses_received(const void *response) {
+void PICUpload::fuses_received(const void *response) {
 	const uint8_t *fuses = static_cast<const uint8_t *>(response);
 	if (fuses[17] != UINT8_C(0x12) || (fuses[16] & UINT8_C(0xE0)) != UINT8_C(0x00)) {
 		signal_error.emit("Device ID mismatch; please check proper chip type!");
@@ -93,20 +94,20 @@ void pic_upload::fuses_received(const void *response) {
 	do_work();
 }
 
-void pic_upload::do_work() {
+void PICUpload::do_work() {
 	if (pages_written < divup<std::size_t>(data.data()[1].size(), PAGE_BYTES)) {
 		// We should write a page. The address is offset by 0x800 to advance by
 		// the size of the boot block, and 0x4000 to move into the staging area.
-		proto.send(COMMAND_PIC_WRITE_DATA, pages_written * PAGE_BYTES + 0x4800, &data.data()[1][pages_written * PAGE_BYTES], PAGE_BYTES, PAGE_BYTES, sigc::mem_fun(this, &pic_upload::page_written));
+		proto.send(COMMAND_PIC_WRITE_DATA, pages_written * PAGE_BYTES + 0x4800, &data.data()[1][pages_written * PAGE_BYTES], PAGE_BYTES, PAGE_BYTES, sigc::mem_fun(this, &PICUpload::page_written));
 	} else {
 		// All pages are written. Set the upgrade flag.
-		proto.send(COMMAND_PIC_ENABLE_UPGRADE, 0, 0, 0, 2, sigc::mem_fun(this, &pic_upload::upgrade_enabled));
+		proto.send(COMMAND_PIC_ENABLE_UPGRADE, 0, 0, 0, 2, sigc::mem_fun(this, &PICUpload::upgrade_enabled));
 	}
 
 	signal_progress.emit(static_cast<double>(pages_written) / divup<std::size_t>(data.data()[1].size(), PAGE_BYTES));
 }
 
-void pic_upload::page_written(const void *response) {
+void PICUpload::page_written(const void *response) {
 	const unsigned char *ptr = static_cast<const unsigned char *>(response);
 	if (std::equal(ptr, ptr + PAGE_BYTES, &data.data()[1][pages_written * PAGE_BYTES])) {
 		++pages_written;
@@ -116,7 +117,7 @@ void pic_upload::page_written(const void *response) {
 	}
 }
 
-void pic_upload::upgrade_enabled(const void *response) {
+void PICUpload::upgrade_enabled(const void *response) {
 	const unsigned char *ptr = static_cast<const unsigned char *>(response);
 	if (ptr[0] == 0x12 && ptr[1] == 0x34) {
 		status = "Exiting Bootloader";

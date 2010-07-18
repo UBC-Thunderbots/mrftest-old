@@ -6,22 +6,22 @@
 //
 // 
 //
-class move_between : public tactic {
+class MoveBetween : public Tactic {
 	public:
 		//
-		// A pointer to this tactic.
+		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<move_between> ptr;
+		typedef Glib::RefPtr<MoveBetween> ptr;
 
 		//
-		// Constructs a new move between tactic. 
+		// Constructs a new move between Tactic. 
 		//
-		move_between(player::ptr player, world::ptr world);
+		MoveBetween(Player::ptr player, World::ptr world);
 
 		//
 		// Sets the two points in which to move between
 		//
-		void set_points(const point& p1, const point& p2);
+		void set_points(const Point& p1, const Point& p2);
 
 		//
 		// Runs the AI for one time tick.
@@ -30,12 +30,12 @@ class move_between : public tactic {
 
 	protected:
 
-		move move_tactic;
+		Move move_tactic;
 
 		// The two points in which to move between
-		point the_point1, the_point2;
+		Point the_point1, the_point2;
 
-		point calculate_position();
+		Point calculate_position();
 
 	private:
 		bool is_initialized;

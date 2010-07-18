@@ -3,11 +3,11 @@
 #include <vector>
 #include <cassert>
 
-xbee_byte_stream::xbee_byte_stream() : received_escape(false) {
-	port.signal_received().connect(sigc::mem_fun(this, &xbee_byte_stream::bytes_received));
+XBeeByteStream::XBeeByteStream() : received_escape(false) {
+	port.signal_received().connect(sigc::mem_fun(this, &XBeeByteStream::bytes_received));
 }
 
-void xbee_byte_stream::send_sop() {
+void XBeeByteStream::send_sop() {
 	static const uint8_t SOP = 0x7E;
 	iovec iov;
 	iov.iov_base = const_cast<uint8_t *>(&SOP);
@@ -15,7 +15,7 @@ void xbee_byte_stream::send_sop() {
 	port.send(&iov, 1);
 }
 
-void xbee_byte_stream::send(const iovec *iov, std::size_t iovlen) {
+void XBeeByteStream::send(const iovec *iov, std::size_t iovlen) {
 	static const uint8_t ESCAPE_STRINGS[4][2] = {
 		{0x7D, 0x7E ^ 0x20},
 		{0x7D, 0x7D ^ 0x20},
@@ -62,7 +62,7 @@ void xbee_byte_stream::send(const iovec *iov, std::size_t iovlen) {
 	port.send(&newiov[0], newiov.size());
 }
 
-void xbee_byte_stream::bytes_received(const void *data, std::size_t len) {
+void XBeeByteStream::bytes_received(const void *data, std::size_t len) {
 	static const uint8_t SPECIAL[2] = {0x7E, 0x7D};
 	const uint8_t *dptr = static_cast<const uint8_t *>(data);
 

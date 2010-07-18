@@ -23,18 +23,18 @@ namespace {
 	// params = 5
 	// param := [prop x, diff x, y/x ratio, prop r, diff r]
 
-	class tunable_pid_controller_factory : public robot_controller_factory {
+	class TunablePIDControllerFactory : public RobotControllerFactory {
 		public:
-			tunable_pid_controller_factory() : robot_controller_factory("Tunable PID") {
+			TunablePIDControllerFactory() : RobotControllerFactory("Tunable PID") {
 			}
 
-			robot_controller::ptr create_controller(player::ptr plr, bool, unsigned int) const {
-				robot_controller::ptr p(new tunable_pid_controller(plr));
+			RobotController::ptr create_controller(Player::ptr plr, bool, unsigned int) const {
+				RobotController::ptr p(new TunablePIDController(plr));
 				return p;
 			}
 	};
 
-	tunable_pid_controller_factory factory;
+	TunablePIDControllerFactory factory;
 
 	const double DAMP = 0.5;
 
@@ -124,15 +124,15 @@ namespace {
 
 }
 
-const std::vector<double> tunable_pid_controller::param_min(arr_min, arr_min + P);
-const std::vector<double> tunable_pid_controller::param_max(arr_max, arr_max + P);
-const std::vector<double> tunable_pid_controller::param_default(arr_def, arr_def + P);
+const std::vector<double> TunablePIDController::param_min(arr_min, arr_min + P);
+const std::vector<double> TunablePIDController::param_max(arr_max, arr_max + P);
+const std::vector<double> TunablePIDController::param_default(arr_def, arr_def + P);
 
-tunable_pid_controller::tunable_pid_controller(player::ptr plr) : plr(plr), initialized(false), error_pos(10), error_ori(10) {
+TunablePIDController::TunablePIDController(Player::ptr plr) : plr(plr), initialized(false), error_pos(10), error_ori(10) {
 	param = param_default;
 }
 
-const std::vector<std::string> tunable_pid_controller::get_params_name() const {
+const std::vector<std::string> TunablePIDController::get_params_name() const {
 	std::vector<std::string> ret;
 	ret.push_back("Proportional X");
 	ret.push_back("Differential X");
@@ -149,13 +149,13 @@ const std::vector<std::string> tunable_pid_controller::get_params_name() const {
 	return ret;
 }
 
-void tunable_pid_controller::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
-	const point &current_position = plr->position();
+void TunablePIDController::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
+	const Point &current_position = plr->position();
 	const double current_orientation = plr->orientation();
 
 	// relative new direction and angle
 	double new_da = angle_mod(new_orientation - current_orientation);
-	const point &new_dir = (new_position - current_position).rotate(-current_orientation);
+	const Point &new_dir = (new_position - current_position).rotate(-current_orientation);
 
 	if (new_da > M_PI) new_da -= 2 * M_PI;
 
@@ -178,7 +178,7 @@ void tunable_pid_controller::move(const point &new_position, double new_orientat
 	error_pos[0] = new_dir;
 	error_ori[0] = new_da;
 
-	point accum_pos(0, 0);
+	Point accum_pos(0, 0);
 	double accum_ori(0);
 	for (int t = 9; t >= 0; --t) {
 		accum_pos *= DAMP;
@@ -190,7 +190,7 @@ void tunable_pid_controller::move(const point &new_position, double new_orientat
 	const double px = error_pos[0].x;
 	const double py = error_pos[0].y;
 	const double pa = error_ori[0];
-	point vel = (plr->est_velocity()).rotate(-current_orientation);
+	Point vel = (plr->est_velocity()).rotate(-current_orientation);
 	double vx = -vel.x;
 	double vy = -vel.y;
 	double va = -plr->est_avelocity();
@@ -223,11 +223,11 @@ void tunable_pid_controller::move(const point &new_position, double new_orientat
 	angular_velocity = pa * param[PARAM_A_PROP] + va * param[PARAM_A_DIFF];
 }
 
-void tunable_pid_controller::clear() {
+void TunablePIDController::clear() {
 #warning WRITE CODE HERE
 }
 
-robot_controller_factory &tunable_pid_controller::get_factory() const {
+RobotControllerFactory &TunablePIDController::get_factory() const {
 	return factory;
 }
 

@@ -7,7 +7,7 @@
 // An object that should be passed around by means of a Glib::RefPtr<> rather
 // than by copying.
 //
-class byref : public noncopyable {
+class ByRef : public NonCopyable {
 	public:
 		//
 		// Adds one to the object's reference count. This should only be called
@@ -36,19 +36,19 @@ class byref : public noncopyable {
 
 	protected:
 		//
-		// Constructs a new byref. The object is assumed to have one reference.
+		// Constructs a new ByRef. The object is assumed to have one reference.
 		//
-		byref() : refs_(1) {
+		ByRef() : refs_(1) {
 		}
 
 		//
-		// Destroys a byref. This is here even though it doesn't do anything
+		// Destroys a ByRef. This is here even though it doesn't do anything
 		// because it forces destructors all the way down the inheritance
 		// hierarchy to be virtual, which ensures that when a reference-counted
 		// object loses its last pointer, the "delete this" in unreference()
 		// invokes the correct destructor.
 		//
-		virtual ~byref() {
+		virtual ~ByRef() {
 		}
 
 	private:

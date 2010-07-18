@@ -8,19 +8,19 @@
 #include <linux/joystick.h>
 
 namespace {
-	file_descriptor open_device(const Glib::ustring &filename) {
+	FileDescriptor open_device(const Glib::ustring &filename) {
 		const std::string &fn = Glib::filename_from_utf8(Glib::ustring::compose("/dev/input/%1", filename));
 		int desc = open(fn.c_str(), O_RDONLY | O_NONBLOCK);
 		if (desc < 0)
 			throw std::runtime_error("Error opening joystick!");
-		return file_descriptor::create(desc);
+		return FileDescriptor::create(desc);
 	}
 
 	bool list_inited = false;
 	std::vector<std::pair<Glib::ustring, Glib::ustring> > list_data;
 }
 
-joystick::joystick(const Glib::ustring &filename) : fd(open_device(filename)), stick_filename(filename) {
+Joystick::Joystick(const Glib::ustring &filename) : fd(open_device(filename)), stick_filename(filename) {
 	char buffer[128];
 	if (ioctl(fd, JSIOCGNAME(sizeof(buffer)), buffer) < 0)
 		throw std::runtime_error("JSIOCGNAME failed!");
@@ -35,10 +35,10 @@ joystick::joystick(const Glib::ustring &filename) : fd(open_device(filename)), s
 		throw std::runtime_error("JSIOCGBUTTONS failed!");
 	buttons_data.resize(ch, false);
 
-	Glib::signal_io().connect(sigc::mem_fun(this, &joystick::on_readable), fd, Glib::IO_IN);
+	Glib::signal_io().connect(sigc::mem_fun(this, &Joystick::on_readable), fd, Glib::IO_IN);
 }
 
-bool joystick::on_readable(Glib::IOCondition) {
+bool Joystick::on_readable(Glib::IOCondition) {
 	js_event events[32];
 	ssize_t len = read(fd, &events, sizeof(events));
 	if (len < 0 && errno != EINTR && errno != EAGAIN && errno != EWOULDBLOCK)
@@ -63,13 +63,13 @@ bool joystick::on_readable(Glib::IOCondition) {
 	return true;
 }
 
-const std::vector<std::pair<Glib::ustring, Glib::ustring> > &joystick::list() {
+const std::vector<std::pair<Glib::ustring, Glib::ustring> > &Joystick::list() {
 	if (!list_inited) {
 		Glib::Dir dir("/dev/input");
 		for (Glib::Dir::const_iterator i = dir.begin(), iend = dir.end(); i != iend; ++i) {
 			const Glib::ustring &filename = Glib::filename_to_utf8(*i);
 			if (filename[0] == 'j' && filename[1] == 's') {
-				joystick js(filename);
+				Joystick js(filename);
 				list_data.push_back(std::make_pair(filename, js.name()));
 			}
 		}

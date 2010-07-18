@@ -6,28 +6,28 @@ namespace {
 	/**
 	 * Controls for manipulating a single robot in the simulator.
 	 */
-	class robot_controls : public Gtk::Table {
+	class RobotControls : public Gtk::Table {
 		public:
 			/**
 			 * Constructs a new control widget.
-			 * \param sim the simulator to control
+			 * \param sim the Simulator to control
 			 */
-			robot_controls(simulator &sim) : Gtk::Table(5, 2), sim(sim) {
+			RobotControls(Simulator &sim) : Gtk::Table(5, 2), sim(sim) {
 				unsigned int y = 0;
 
 				power_button.set_sensitive(false);
 				power_button.set_label("On");
-				power_button.signal_toggled().connect(sigc::mem_fun(this, &robot_controls::on_power_switched));
+				power_button.signal_toggled().connect(sigc::mem_fun(this, &RobotControls::on_power_switched));
 				add_form_row(power_button, "Robot power:", y);
 
 				field_button.set_sensitive(false);
 				field_button.set_label("Place");
-				field_button.signal_toggled().connect(sigc::mem_fun(this, &robot_controls::on_field_switched));
+				field_button.signal_toggled().connect(sigc::mem_fun(this, &RobotControls::on_field_switched));
 				add_form_row(field_button, "On field:", y);
 
 				battery_scale.set_sensitive(false);
 				battery_scale.get_adjustment()->configure(0.0, 0.0, 17.0, 0.1, 1.0, 0.0);
-				battery_scale.get_adjustment()->signal_value_changed().connect(sigc::mem_fun(this, &robot_controls::on_battery_moved));
+				battery_scale.get_adjustment()->signal_value_changed().connect(sigc::mem_fun(this, &RobotControls::on_battery_moved));
 				add_form_row(battery_scale, "Battery:", y);
 
 				address64_entry.set_editable(false);
@@ -51,7 +51,7 @@ namespace {
 			void set_robot(uint64_t address) {
 				bot = sim.robots().find(address)->second;
 				connection.disconnect();
-				connection = bot->signal_changed.connect(sigc::mem_fun(this, &robot_controls::on_changed));
+				connection = bot->signal_changed.connect(sigc::mem_fun(this, &RobotControls::on_changed));
 				on_changed();
 			}
 
@@ -65,8 +65,8 @@ namespace {
 			}
 
 		private:
-			simulator &sim;
-			robot::ptr bot;
+			Simulator &sim;
+			SimulatorRobot::ptr bot;
 			sigc::connection connection;
 			Gtk::ToggleButton power_button;
 			Gtk::ToggleButton field_button;
@@ -134,19 +134,19 @@ namespace {
 	/**
 	 * Controls for manipulating the robots in the simulator.
 	 */
-	class robots_controls : public Gtk::VBox {
+	class RobotsControls : public Gtk::VBox {
 		public:
 			/**
 			 * Constructs a new robots control widget.
-			 * \param sim the simulator to control
+			 * \param sim the Simulator to control
 			 */
-			robots_controls(simulator &sim) : sim(sim), robots_list_model(single_bot_combobox_model::create(sim.conf.robots())), robots_list(robots_list_model), controls(sim) {
+			RobotsControls(Simulator &sim) : sim(sim), robots_list_model(SingleBotComboBoxModel::create(sim.conf.robots())), robots_list(robots_list_model), controls(sim) {
 				robots_list.append_column("Address", robots_list_model->address_column);
 				robots_list.append_column("Colour", robots_list_model->yellow_column);
 				robots_list.append_column("Pattern", robots_list_model->pattern_index_column);
 				robots_list.append_column("Name", robots_list_model->name_column);
 				robots_list.get_selection()->set_mode(Gtk::SELECTION_SINGLE);
-				robots_list.get_selection()->signal_changed().connect(sigc::mem_fun(this, &robots_controls::on_list_selection_changed));
+				robots_list.get_selection()->signal_changed().connect(sigc::mem_fun(this, &RobotsControls::on_list_selection_changed));
 				Gtk::ScrolledWindow *scroller = Gtk::manage(new Gtk::ScrolledWindow);
 				scroller->set_shadow_type(Gtk::SHADOW_IN);
 				scroller->add(robots_list);
@@ -156,10 +156,10 @@ namespace {
 			}
 
 		private:
-			simulator &sim;
-			single_bot_combobox_model::ptr robots_list_model;
+			Simulator &sim;
+			SingleBotComboBoxModel::ptr robots_list_model;
 			Gtk::TreeView robots_list;
-			robot_controls controls;
+			RobotControls controls;
 
 			void on_list_selection_changed() {
 				const Gtk::TreeSelection::ListHandle_Path &sel = robots_list.get_selection()->get_selected_rows();
@@ -174,13 +174,13 @@ namespace {
 	};
 }
 
-main_window::main_window(simulator &sim) : sim(sim), vis(sim.visualizer_data()) {
+MainWindow::MainWindow(Simulator &sim) : sim(sim), vis(sim.visualizer_data()) {
 	set_title("Thunderbots Simulator");
 
 	Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox);
 
 	Gtk::Frame *robots_frame = Gtk::manage(new Gtk::Frame("Robots"));
-	robots_frame->add(*Gtk::manage(new robots_controls(sim)));
+	robots_frame->add(*Gtk::manage(new RobotsControls(sim)));
 	vbox->pack_start(*robots_frame, Gtk::PACK_EXPAND_WIDGET);
 
 	vis_button.set_label("Visualizer");
@@ -192,11 +192,11 @@ main_window::main_window(simulator &sim) : sim(sim), vis(sim.visualizer_data()) 
 
 	vis_window.set_title("Simulator Visualizer");
 	vis_window.add(vis);
-	vis_button.signal_toggled().connect(sigc::mem_fun(this, &main_window::on_vis_button_toggled));
+	vis_button.signal_toggled().connect(sigc::mem_fun(this, &MainWindow::on_vis_button_toggled));
 	vis_window.signal_delete_event().connect(sigc::hide(sigc::bind_return(sigc::bind(sigc::mem_fun(vis_button, &Gtk::ToggleButton::set_active), false), false)));
 }
 
-void main_window::on_vis_button_toggled() {
+void MainWindow::on_vis_button_toggled() {
 	if (vis_button.get_active()) {
 		vis_window.show_all();
 	} else {

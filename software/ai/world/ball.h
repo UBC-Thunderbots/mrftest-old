@@ -9,17 +9,17 @@
 #include <cstdlib>
 #include <glibmm.h>
 
-class world;
+class World;
 
 /**
  * The ball.
  */
-class ball : public visualizable::ball, public predictable {
+class Ball : public Visualizable::Ball, public Predictable {
 	public:
 		/**
-		 * A pointer to a ball.
+		 * A pointer to a Ball.
 		 */
-		typedef Glib::RefPtr<ball> ptr;
+		typedef Glib::RefPtr<Ball> ptr;
 
 		/**
 		 * The approximate radius of the ball.
@@ -29,24 +29,24 @@ class ball : public visualizable::ball, public predictable {
 		/**
 		 * \return the position of the robot.
 		 */
-		point position() const {
-			return predictable::position();
+		Point position() const {
+			return Predictable::position();
 		}
 
 	private:
 		double sign;
 
 		/**
-		 * Constructs a new ball object.
+		 * Constructs a new Ball object.
 		 *
 		 * \return the new object.
 		 */
 		static ptr create();
 
 		/**
-		 * Constructs a new ball object.
+		 * Constructs a new Ball object.
 		 */
-		ball();
+		Ball();
 
 		/**
 		 * Updates the position of the ball using new data.
@@ -54,21 +54,21 @@ class ball : public visualizable::ball, public predictable {
 		 * \param[in] pos the new position of the ball, in unswapped field
 		 * coordinates.
 		 */
-		void update(const point &pos);
+		void update(const Point &pos);
 
 		bool visualizer_can_drag() const {
 			return false;
 		}
 
-		void visualizer_drag(const point &) {
+		void visualizer_drag(const Point &) {
 			std::abort();
 		}
 
-		point velocity() const {
+		Point velocity() const {
 			return est_velocity();
 		}
 
-		friend class world;
+		friend class World;
 };
 
 #endif

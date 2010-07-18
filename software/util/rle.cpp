@@ -6,9 +6,9 @@
 
 
 
-rle_compressor::rle_compressor(const void *data, std::size_t length) : cur_run(0) {
+RLECompressor::RLECompressor(const void *data, std::size_t length) : cur_run(0) {
 	// Compute the CRC16 of the input data.
-	uint16_t crc = crc16::calculate(data, length);
+	uint16_t crc = CRC16::calculate(data, length);
 
 	// First, break the input into a sequence of blocks where all bytes in the
 	// same block are equal.
@@ -54,12 +54,12 @@ rle_compressor::rle_compressor(const void *data, std::size_t length) : cur_run(0
 	runs.push_back(rle_run(false, 1, 0, crc));
 }
 
-bool rle_compressor::done() const {
+bool RLECompressor::done() const {
 	// We're finished when we have no more runs to encode.
 	return cur_run == runs.size();
 }
 
-std::size_t rle_compressor::next(void *buffer, std::size_t length) {
+std::size_t RLECompressor::next(void *buffer, std::size_t length) {
 	// Sanity check.
 	assert(!done());
 
@@ -91,15 +91,15 @@ std::size_t rle_compressor::next(void *buffer, std::size_t length) {
 
 
 
-rle_compressor::rle_run::rle_run(bool is_repeat, std::size_t length, const unsigned char *data, uint16_t crc) : is_repeat(is_repeat), length(length), data(data), crc(crc) {
+RLECompressor::rle_run::rle_run(bool is_repeat, std::size_t length, const unsigned char *data, uint16_t crc) : is_repeat(is_repeat), length(length), data(data), crc(crc) {
 }
 
-bool rle_compressor::rle_run::done() const {
+bool RLECompressor::rle_run::done() const {
 	// We're finished when all data for this run has been encoded.
 	return !length;
 }
 
-std::size_t rle_compressor::rle_run::encode(void *buffer, std::size_t buflen) {
+std::size_t RLECompressor::rle_run::encode(void *buffer, std::size_t buflen) {
 	unsigned char *bufptr = static_cast<unsigned char *>(buffer);
 	assert(!done());
 

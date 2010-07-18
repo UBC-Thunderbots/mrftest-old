@@ -1,17 +1,17 @@
 #include "util/clocksource_quick.h"
 #include <glibmm.h>
 
-bool clocksource_quick::on_idle() {
+bool QuickClockSource::on_idle() {
 	signal_tick.emit();
 	return true;
 }
 
-void clocksource_quick::start() {
+void QuickClockSource::start() {
 	connection.disconnect();
-	connection = Glib::signal_idle().connect(sigc::mem_fun(this, &clocksource_quick::on_idle));
+	connection = Glib::signal_idle().connect(sigc::mem_fun(this, &QuickClockSource::on_idle));
 }
 
-void clocksource_quick::stop() {
+void QuickClockSource::stop() {
 	connection.disconnect();
 }
 

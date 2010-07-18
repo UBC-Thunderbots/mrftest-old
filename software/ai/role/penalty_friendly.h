@@ -6,17 +6,17 @@
 /*
  * Does a penalty friendly
  */
-class penalty_friendly : public role {
+class PenaltyFriendly : public Role {
 	public:
 		//
-		// A pointer to a penalty_friendly role.
+		// A pointer to a PenaltyFriendly Role.
 		//
-		typedef Glib::RefPtr<penalty_friendly> ptr;
+		typedef Glib::RefPtr<PenaltyFriendly> ptr;
 
 		//
-		// Constructs a new penalty_friendly role.
+		// Constructs a new PenaltyFriendly Role.
 		//
-		penalty_friendly(world::ptr world);
+		PenaltyFriendly(World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -29,7 +29,7 @@ class penalty_friendly : public role {
 		void robots_changed();
 
 	protected:
-		const world::ptr the_world;
+		const World::ptr the_world;
 
 		/**
 		 * The distance between the penalty mark and the mid point of the two goal posts as described in the rules.
@@ -44,14 +44,14 @@ class penalty_friendly : public role {
 		//std::vector<tacti::ptr> the_tactics;
 
 		/**
-		 * Maximum number of robots that can be assigned to this role.
+		 * Maximum number of robots that can be assigned to this Role.
 		 */
 		const static unsigned int NUMBER_OF_READY_POSITIONS = 4;
 
 		/**
-		 * The positions that the robots should move to for this role.
+		 * The positions that the robots should move to for this Role.
 		 */
-		point ready_positions[NUMBER_OF_READY_POSITIONS];
+		Point ready_positions[NUMBER_OF_READY_POSITIONS];
 };
 
 #endif

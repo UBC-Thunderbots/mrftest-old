@@ -19,7 +19,7 @@ namespace {
 		Gtk::Main::quit();
 	}
 
-	void on_feedback_cli(double fraction, const watchable_operation &op) {
+	void on_feedback_cli(double fraction, const WatchableOperation &op) {
 		std::cout << '\r' << op.get_status() << ": " << static_cast<unsigned int>(fraction * 100.0) << "%             " << std::flush;
 	}
 
@@ -28,11 +28,11 @@ namespace {
 		Gtk::Main::quit();
 	}
 
-	void run_operation_cli(watchable_operation &op) {
+	void run_operation_cli(WatchableOperation &op) {
 		op.signal_error.connect(&on_error_cli);
 		op.signal_progress.connect(sigc::bind(&on_feedback_cli, sigc::ref(op)));
 		op.signal_finished.connect(&on_finished_cli);
-		Glib::signal_idle().connect_once(sigc::mem_fun(op, &watchable_operation::start));
+		Glib::signal_idle().connect_once(sigc::mem_fun(op, &WatchableOperation::start));
 		Gtk::Main::run();
 	}
 
@@ -85,46 +85,46 @@ namespace {
 			std::cout << option_context.get_help();
 			return 1;
 		}
-		config conf;
+		Config conf;
 		if (!conf.robots().size()) {
 			Gtk::MessageDialog md("There are no robots configured. Please run the configuration editor to add some.", false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
 			md.set_title("Thunderbots Firmware Uploader");
 			md.run();
 			return 0;
 		}
-		xbee_lowlevel modem;
+		XBeeLowLevel modem;
 		if (fpga || pic || emergency_erase) {
 			if (!conf.robots().contains_name(robot)) {
 				std::cout << "There is no robot named '" << robot << "'.\n";
 				return 1;
 			}
-			const config::robot_info &botinfo(conf.robots().find(robot));
-			const xbee_raw_bot::ptr bot(xbee_raw_bot::create(botinfo.address, modem));
-			claim cl(bot);
+			const Config::RobotInfo &botinfo(conf.robots().find(robot));
+			const XBeeRawBot::ptr bot(XBeeRawBot::create(botinfo.address, modem));
+			Claim cl(bot);
 			if (fpga) {
-				intel_hex ihex;
+				IntelHex ihex;
 				ihex.add_section(0, 16 * 1024 * 1024 / 8);
 				ihex.load(filename);
-				fpga_upload up(bot, ihex);
-				watchable_pair p(cl, up, 0.01);
+				FPGAUpload up(bot, ihex);
+				WatchablePair p(cl, up, 0.01);
 				run_operation_cli(p);
 			} else if (pic) {
-				intel_hex ihex;
+				IntelHex ihex;
 				ihex.add_section(0x0, 0x800);
 				ihex.add_section(0x800, 0x3FFF - 0x800 + 1);
 				ihex.add_section(0x300000, 16);
 				ihex.load(filename);
-				pic_upload up(bot, ihex);
-				watchable_pair p(cl, up, 0.01);
+				PICUpload up(bot, ihex);
+				WatchablePair p(cl, up, 0.01);
 				run_operation_cli(p);
 			} else if (emergency_erase) {
-				::emergency_erase ee(bot);
-				watchable_pair p(cl, ee, 0.5);
+				::EmergencyErase ee(bot);
+				WatchablePair p(cl, ee, 0.5);
 				run_operation_cli(p);
 			}
 			return 0;
 		} else {
-			firmware_window win(modem, conf, robot, filename);
+			FirmwareWindow win(modem, conf, robot, filename);
 			Gtk::Main::run(win);
 		}
 		return 0;

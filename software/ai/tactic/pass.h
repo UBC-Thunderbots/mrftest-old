@@ -8,17 +8,17 @@
 /**
  * Tactic to pass to another player.
  */
-class pass : public tactic {
+class Pass : public Tactic {
 	public:
 		//
-		// A pointer to this tactic.
+		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<pass> ptr;
+		typedef Glib::RefPtr<Pass> ptr;
 
 		/**
-		 * Constructs a new pass tactic with receiver set.
+		 * Constructs a new Pass Tactic with receiver set.
 		 */
-		pass(player::ptr player, world::ptr world, player::ptr receiver);
+		Pass(Player::ptr player, World::ptr world, Player::ptr receiver);
 
 		/**
 		 * Runs the AI for one time tick.
@@ -26,12 +26,12 @@ class pass : public tactic {
 		void tick();	
 
 	protected:
-		const world::ptr the_world;
+		const World::ptr the_world;
 		
 		/**
 		 * Pointer to the receiver of the pass.
 		 */
-		const player::ptr the_receiver;		
+		const Player::ptr the_receiver;		
 };
 
 #endif

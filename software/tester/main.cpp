@@ -14,15 +14,15 @@ namespace {
 			std::cout << option_context.get_help();
 			return 1;
 		}
-		config conf;
+		Config conf;
 		if (!conf.robots().size()) {
 			Gtk::MessageDialog md("There are no robots configured. Please run the configuration editor to add some.", false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
 			md.set_title("Thunderbots Tester");
 			md.run();
 			return 0;
 		}
-		xbee_lowlevel modem;
-		tester_window win(modem, conf);
+		XBeeLowLevel modem;
+		TesterWindow win(modem, conf);
 		Gtk::Main::run(win);
 		return 0;
 	}

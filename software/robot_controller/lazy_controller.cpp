@@ -5,34 +5,34 @@
 
 namespace {
 
-	class lazy_controller_factory : public robot_controller_factory {
+	class LazyControllerFactory : public RobotControllerFactory {
 		public:
-			lazy_controller_factory() : robot_controller_factory("Lazy RC") {
+			LazyControllerFactory() : RobotControllerFactory("Lazy RC") {
 			}
 
-			robot_controller::ptr create_controller(player::ptr plr, bool, unsigned int) const {
-				robot_controller::ptr p(new lazy_controller(plr));
+			RobotController::ptr create_controller(Player::ptr plr, bool, unsigned int) const {
+				RobotController::ptr p(new LazyController(plr));
 				return p;
 			}
 	};
 
-	lazy_controller_factory factory;
+	LazyControllerFactory factory;
 
 }
 
-lazy_controller::lazy_controller(player::ptr plr) : plr(plr) {
+LazyController::LazyController(Player::ptr plr) : plr(plr) {
 }
 
-void lazy_controller::move(const point &, double new_orientation, point &linear_velocity, double &angular_velocity) {
+void LazyController::move(const Point &, double new_orientation, Point &linear_velocity, double &angular_velocity) {
 	const double current_orientation = plr->orientation();
 	angular_velocity = angle_mod(new_orientation - current_orientation);
-	linear_velocity = point();
+	linear_velocity = Point();
 }
 
-void lazy_controller::clear() {
+void LazyController::clear() {
 }
 
-robot_controller_factory &lazy_controller::get_factory() const {
+RobotControllerFactory &LazyController::get_factory() const {
 	return factory;
 }
 

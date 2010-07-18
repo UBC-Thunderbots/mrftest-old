@@ -13,18 +13,18 @@ namespace {
 	const double OVERSHOOT_AMOUNT = 0.01;
 }
 
-chase::chase(player::ptr player, world::ptr world) : tactic(player), the_world(world), navi(player, world) {
+Chase::Chase(Player::ptr player, World::ptr world) : Tactic(player), the_world(world), navi(player, world) {
 }
 
-void chase::tick() {
-	const ball::ptr the_ball(the_world->ball());
+void Chase::tick() {
+	const Ball::ptr the_ball(the_world->ball());
 	// predict ball position based on velocity and accleration
 	//NOTE THAT MOVING BALL MANUALLY WITH CURSOR CAN GIVE VERY LARGE VELOCITY AND ACCELERATION
-	//point pos = the_ball->position() + VEL_FACTOR * the_ball->est_velocity() + ACL_FACTOR * the_ball->est_acceleration();
-	const point pos = the_ball->position();
+	//Point pos = the_ball->position() + VEL_FACTOR * the_ball->est_velocity() + ACL_FACTOR * the_ball->est_acceleration();
+	const Point pos = the_ball->position();
 
-	//point player_ball_direction = (the_ball->position()-the_player->position()).norm();
-	//point ball_direction = (the_ball->est_velocity()).norm();
+	//Point player_ball_direction = (the_ball->position()-the_player->position()).norm();
+	//Point ball_direction = (the_ball->est_velocity()).norm();
 
 	// I disagree with the statement below:
 	// the robot controller is SUPPOSED to do all that.

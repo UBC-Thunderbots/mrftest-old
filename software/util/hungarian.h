@@ -8,12 +8,12 @@
 //
 // Uses the Hungarian algorithm to perform a maximum-weight bipartite matching.
 //
-class hungarian {
+class Hungarian {
 public:
 	//
 	// Constructs a new Hungarian. The "size" parameter indicates how many elements are in the left and right sets.
 	//
-	hungarian(std::size_t size);
+	Hungarian(std::size_t size);
 
 	//
 	// Returns the dimension of the Hungarian matrix.

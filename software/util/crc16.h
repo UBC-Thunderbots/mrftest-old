@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <stdint.h>
 
-namespace crc16 {
+namespace CRC16 {
 	uint16_t calculate(const void *, std::size_t) __attribute__((warn_unused_result));
 }
 

@@ -1,11 +1,11 @@
 #include "ai/tactic/dance.h"
 
-dance::dance(player::ptr player) : tactic(player) {
+Dance::Dance(Player::ptr player) : Tactic(player) {
     ticks = 0;
 }
 
 // Rotate left right left right left right.
-void dance::tick()
+void Dance::tick()
 {
     #define STEP 15 // how many steps it takes for robot to change direction
     

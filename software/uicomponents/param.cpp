@@ -8,15 +8,15 @@
 #include <stdexcept>
 
 namespace {
-	std::vector<param *> instances;
-	config *conf = 0;
+	std::vector<Param *> instances;
+	Config *conf = 0;
 
-	bool order_params_by_name(const param * const p1, const param * const p2) {
+	bool order_params_by_name(const Param * const p1, const Param * const p2) {
 		return p1->name.casefold() < p2->name.casefold();
 	}
 }
 
-void param::initialized(config *c) {
+void Param::initialized(Config *c) {
 	assert(c);
 	assert(!conf);
 	conf = c;
@@ -26,11 +26,11 @@ void param::initialized(config *c) {
 	}
 }
 
-param::param(const Glib::ustring &name) : name(name) {
+Param::Param(const Glib::ustring &name) : name(name) {
 	instances.push_back(this);
 }
 
-param::~param() {
+Param::~Param() {
 	for (typeof(instances.begin()) i = instances.begin(); i != instances.end(); ) {
 		if (*i == this) {
 			i = instances.erase(i);
@@ -40,11 +40,11 @@ param::~param() {
 	}
 }
 
-bool_param::bool_param(const Glib::ustring &name, bool def) : param(name), default_(def) {
+BoolParam::BoolParam(const Glib::ustring &name, bool def) : Param(name), default_(def) {
 	value_ = def;
 }
 
-Gtk::Widget &bool_param::widget() {
+Gtk::Widget &BoolParam::widget() {
 	if (!widget_) {
 		widget_.reset(new Gtk::CheckButton(name));
 		widget_->set_active(value_);
@@ -52,20 +52,20 @@ Gtk::Widget &bool_param::widget() {
 	return widget_.ref();
 }
 
-void bool_param::apply() {
+void BoolParam::apply() {
 	if (widget_) {
 		value_ = widget_->get_active();
 		conf->bool_params[name] = value_;
 	}
 }
 
-void bool_param::revert() {
+void BoolParam::revert() {
 	if (widget_) {
 		widget_->set_active(value_);
 	}
 }
 
-void bool_param::load() {
+void BoolParam::load() {
 	typeof(conf->bool_params.begin()) iter = conf->bool_params.find(name);
 	if (iter != conf->bool_params.end()) {
 		value_ = iter->second;
@@ -75,21 +75,21 @@ void bool_param::load() {
 	}
 }
 
-void bool_param::set_default() {
+void BoolParam::set_default() {
 	value_ = default_;
 	if (widget_) {
 		widget_->set_active(value_);
 	}
 }
 
-int_param::int_param(const Glib::ustring &name, int def, int min, int max) : param(name), min_(min), max_(max), default_(def) {
+IntParam::IntParam(const Glib::ustring &name, int def, int min, int max) : Param(name), min_(min), max_(max), default_(def) {
 	if (!(min <= def && def <= max)) {
 		throw std::runtime_error("Parameter default value out of valid range.");
 	}
 	value_ = def;
 }
 
-Gtk::Widget &int_param::widget() {
+Gtk::Widget &IntParam::widget() {
 	if (!widget_) {
 		widget_.reset(new Gtk::HScale);
 		widget_->set_digits(0);
@@ -98,20 +98,20 @@ Gtk::Widget &int_param::widget() {
 	return widget_.ref();
 }
 
-void int_param::apply() {
+void IntParam::apply() {
 	if (widget_) {
 		value_ = static_cast<int>(widget_->get_value());
 		conf->int_params[name] = value_;
 	}
 }
 
-void int_param::revert() {
+void IntParam::revert() {
 	if (widget_) {
 		widget_->set_value(value_);
 	}
 }
 
-void int_param::load() {
+void IntParam::load() {
 	typeof(conf->int_params.begin()) iter = conf->int_params.find(name);
 	if (iter != conf->int_params.end()) {
 		value_ = clamp(iter->second, min_, max_);
@@ -121,21 +121,21 @@ void int_param::load() {
 	}
 }
 
-void int_param::set_default() {
+void IntParam::set_default() {
 	value_ = default_;
 	if (widget_) {
 		widget_->set_value(value_);
 	}
 }
 
-double_param::double_param(const Glib::ustring &name, double def, double min, double max) : param(name), min_(min), max_(max), default_(def) {
+DoubleParam::DoubleParam(const Glib::ustring &name, double def, double min, double max) : Param(name), min_(min), max_(max), default_(def) {
 	if (!(min <= def && def <= max)) {
 		throw std::runtime_error("Parameter default value out of valid range.");
 	}
 	value_ = def;
 }
 
-Gtk::Widget &double_param::widget() {
+Gtk::Widget &DoubleParam::widget() {
 	if (!widget_) {
 		widget_.reset(new Gtk::Entry);
 		widget_->set_text(Glib::ustring::format(std::setprecision(8), value_));
@@ -143,7 +143,7 @@ Gtk::Widget &double_param::widget() {
 	return widget_.ref();
 }
 
-void double_param::apply() {
+void DoubleParam::apply() {
 	if (widget_) {
 		const std::string &txt(widget_->get_text());
 		if (txt.empty()) {
@@ -159,13 +159,13 @@ void double_param::apply() {
 	}
 }
 
-void double_param::revert() {
+void DoubleParam::revert() {
 	if (widget_) {
 		widget_->set_text(Glib::ustring::format(std::setprecision(8), value_));
 	}
 }
 
-void double_param::load() {
+void DoubleParam::load() {
 	typeof(conf->double_params.begin()) iter = conf->double_params.find(name);
 	if (iter != conf->double_params.end()) {
 		value_ = clamp(iter->second, min_, max_);
@@ -175,19 +175,19 @@ void double_param::load() {
 	}
 }
 
-void double_param::set_default() {
+void DoubleParam::set_default() {
 	value_ = default_;
 	if (widget_) {
 		widget_->set_text(Glib::ustring::format(std::setprecision(8), value_));
 	}
 }
 
-param_panel::param_panel() {
+ParamPanel::ParamPanel() {
 	if (!instances.empty()) {
 		Gtk::Table *param_table = Gtk::manage(new Gtk::Table(instances.size(), 2));
 		unsigned int y = 0;
 		for (typeof(instances.begin()) i = instances.begin(); i != instances.end(); ++i) {
-			param *par = *i;
+			Param *par = *i;
 			param_table->attach(par->widget(), 0, 1, y, y + 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 			param_table->attach(*Gtk::manage(new Gtk::Label(par->name, Gtk::ALIGN_LEFT)), 1, 2, y, y + 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 			++y;
@@ -199,40 +199,40 @@ param_panel::param_panel() {
 
 	Gtk::HButtonBox *hbox = Gtk::manage(new Gtk::HButtonBox(Gtk::BUTTONBOX_CENTER));
 	Gtk::Button *apply_button = Gtk::manage(new Gtk::Button(Gtk::Stock::APPLY));
-	apply_button->signal_clicked().connect(sigc::mem_fun(this, &param_panel::on_apply_clicked));
+	apply_button->signal_clicked().connect(sigc::mem_fun(this, &ParamPanel::on_apply_clicked));
 	hbox->pack_start(*apply_button);
 	Gtk::Button *save_button = Gtk::manage(new Gtk::Button(Gtk::Stock::SAVE));
-	save_button->signal_clicked().connect(sigc::mem_fun(this, &param_panel::on_save_clicked));
+	save_button->signal_clicked().connect(sigc::mem_fun(this, &ParamPanel::on_save_clicked));
 	hbox->pack_start(*save_button);
 	Gtk::Button *revert_button = Gtk::manage(new Gtk::Button(Gtk::Stock::CLEAR));
-	revert_button->signal_clicked().connect(sigc::mem_fun(this, &param_panel::on_revert_clicked));
+	revert_button->signal_clicked().connect(sigc::mem_fun(this, &ParamPanel::on_revert_clicked));
 	hbox->pack_start(*revert_button);
 	Gtk::Button *defaults_button = Gtk::manage(new Gtk::Button("Defaults"));
-	defaults_button->signal_clicked().connect(sigc::mem_fun(this, &param_panel::on_defaults_clicked));
+	defaults_button->signal_clicked().connect(sigc::mem_fun(this, &ParamPanel::on_defaults_clicked));
 	hbox->pack_start(*defaults_button);
 	pack_start(*hbox, Gtk::PACK_SHRINK);
 }
 
-void param_panel::on_apply_clicked() {
+void ParamPanel::on_apply_clicked() {
 	for (typeof(instances.begin()) i = instances.begin(); i != instances.end(); ++i) {
 		(*i)->apply();
 	}
 }
 
-void param_panel::on_save_clicked() {
+void ParamPanel::on_save_clicked() {
 	for (typeof(instances.begin()) i = instances.begin(); i != instances.end(); ++i) {
 		(*i)->apply();
 	}
 	conf->save();
 }
 
-void param_panel::on_revert_clicked() {
+void ParamPanel::on_revert_clicked() {
 	for (typeof(instances.begin()) i = instances.begin(); i != instances.end(); ++i) {
 		(*i)->revert();
 	}
 }
 
-void param_panel::on_defaults_clicked() {
+void ParamPanel::on_defaults_clicked() {
 	for (typeof(instances.begin()) i = instances.begin(); i != instances.end(); ++i) {
 		(*i)->set_default();
 	}

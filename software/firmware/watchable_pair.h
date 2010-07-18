@@ -4,20 +4,20 @@
 #include "firmware/watchable_operation.h"
 
 /**
- * An implementation of watchable_operation that delegates to a pair of
+ * An implementation of WatchableOperation that delegates to a pair of
  * sub-operations.
  */
-class watchable_pair : public watchable_operation {
+class WatchablePair : public WatchableOperation {
 	public:
 		/**
-		 * Constructs a new watchable_pair.
+		 * Constructs a new WatchablePair.
 		 *
 		 * \param op1 the first operation to execute.
 		 * \param op2 the second operation to execute.
 		 * \param weight the fraction of the progress bar that should be
 		 * dedicated to the first operation.
 		 */
-		watchable_pair(watchable_operation &op1, watchable_operation &op2, double weight);
+		WatchablePair(WatchableOperation &op1, WatchableOperation &op2, double weight);
 
 		/**
 		 * Starts the operation. The operation will execute the first
@@ -27,8 +27,8 @@ class watchable_pair : public watchable_operation {
 		void start();
 
 	private:
-		watchable_operation &op1;
-		watchable_operation &op2;
+		WatchableOperation &op1;
+		WatchableOperation &op2;
 		double weight;
 
 		void on_op1_progress(double);

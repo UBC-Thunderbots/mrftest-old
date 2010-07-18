@@ -10,9 +10,9 @@
 #include <stdint.h>
 
 namespace {
-	class bot_info_dialog : public Gtk::Dialog {
+	class BotInfoDialog : public Gtk::Dialog {
 		public:
-			bot_info_dialog(Gtk::Window &parent, const config::robot_set &robots, const config::robot_info *old) : Gtk::Dialog("Add Bot", parent, true), robots(robots), old(old), table(4, 2, false), yellow_button(colour_group, "Yellow"), blue_button(colour_group, "Blue") {
+			BotInfoDialog(Gtk::Window &parent, const Config::RobotSet &robots, const Config::RobotInfo *old) : Gtk::Dialog("Add Bot", parent, true), robots(robots), old(old), table(4, 2, false), yellow_button(colour_group, "Yellow"), blue_button(colour_group, "Blue") {
 				unsigned int y = 0;
 
 				address_entry.set_text("0000000000000000");
@@ -20,14 +20,14 @@ namespace {
 				address_entry.set_max_length(16);
 				address_entry.set_activates_default();
 				address_entry.set_tooltip_text("The 64-bit hexadecimal hardware address of the XBee radio module on this robot. For real robots, read the serial number from the XBee chip. For simulation, pick a random number (e.g. 1, 2, 3, 4, etc.).");
-				address_entry.signal_changed().connect(sigc::mem_fun(this, &bot_info_dialog::update_enable));
+				address_entry.signal_changed().connect(sigc::mem_fun(this, &BotInfoDialog::update_enable));
 				add_row(address_entry, "XBee Address:", y);
 
 				yellow_button.set_tooltip_text("Sets the colour of the central dot on the lid to be yellow. This does not necessarily have anything to do with which team the robot plays for.");
-				yellow_button.signal_toggled().connect(sigc::mem_fun(this, &bot_info_dialog::update_enable));
+				yellow_button.signal_toggled().connect(sigc::mem_fun(this, &BotInfoDialog::update_enable));
 				colour_hbox.pack_start(yellow_button, Gtk::PACK_EXPAND_WIDGET);
 				blue_button.set_tooltip_text("Sets the colour of the central dot on the lid to be blue. This does not necessarily have anything to do with which team the robot plays for.");
-				blue_button.signal_toggled().connect(sigc::mem_fun(this, &bot_info_dialog::update_enable));
+				blue_button.signal_toggled().connect(sigc::mem_fun(this, &BotInfoDialog::update_enable));
 				colour_hbox.pack_start(blue_button, Gtk::PACK_EXPAND_WIDGET);
 				add_row(colour_hbox, "Lid Colour:", y);
 
@@ -35,12 +35,12 @@ namespace {
 				pattern_index_spin.set_digits(0);
 				pattern_index_spin.set_activates_default();
 				pattern_index_spin.set_tooltip_text("The offset into SSL-Vision's pattern image file of this robot's pattern. Also, the ID number of the robot as it appears in SSL-Vision's graphical client program.");
-				pattern_index_spin.signal_value_changed().connect(sigc::mem_fun(this, &bot_info_dialog::update_enable));
+				pattern_index_spin.signal_value_changed().connect(sigc::mem_fun(this, &BotInfoDialog::update_enable));
 				add_row(pattern_index_spin, "Lid Pattern Index:", y);
 
 				name_entry.set_activates_default();
 				name_entry.set_tooltip_text("A human-readable name for the robot. Does not affect the system.");
-				name_entry.signal_changed().connect(sigc::mem_fun(this, &bot_info_dialog::update_enable));
+				name_entry.signal_changed().connect(sigc::mem_fun(this, &BotInfoDialog::update_enable));
 				add_row(name_entry, "Name:", y);
 
 				get_vbox()->pack_start(table, Gtk::PACK_EXPAND_WIDGET);
@@ -84,8 +84,8 @@ namespace {
 			}
 
 		private:
-			const config::robot_set &robots;
-			const config::robot_info *old;
+			const Config::RobotSet &robots;
+			const Config::RobotInfo *old;
 
 			Gtk::Table table;
 			Gtk::Entry address_entry;
@@ -150,20 +150,20 @@ namespace {
 			}
 	};
 
-	class robots_model : public Glib::Object, public abstract_list_model {
+	class RobotsModel : public Glib::Object, public AbstractListModel {
 		public:
 			Gtk::TreeModelColumn<uint64_t> address_column;
 			Gtk::TreeModelColumn<bool> yellow_column;
 			Gtk::TreeModelColumn<unsigned int> pattern_index_column;
 			Gtk::TreeModelColumn<Glib::ustring> name_column;
 
-			static Glib::RefPtr<robots_model> create(const config::robot_set &robots) {
-				Glib::RefPtr<robots_model> p(new robots_model(robots));
+			static Glib::RefPtr<RobotsModel> create(const Config::RobotSet &robots) {
+				Glib::RefPtr<RobotsModel> p(new RobotsModel(robots));
 				return p;
 			}
 
 		private:
-			const config::robot_set &robots;
+			const Config::RobotSet &robots;
 			unsigned int size_;
 
 			void alm_get_value(unsigned int row, unsigned int col, Glib::ValueBase &value) const {
@@ -197,16 +197,16 @@ namespace {
 			void alm_set_value(unsigned int, unsigned int, const Glib::ValueBase &) {
 			}
 
-			robots_model(const config::robot_set &robots) : Glib::ObjectBase(typeid(robots_model)), Glib::Object(), abstract_list_model(), robots(robots), size_(0) {
+			RobotsModel(const Config::RobotSet &robots) : Glib::ObjectBase(typeid(RobotsModel)), Glib::Object(), AbstractListModel(), robots(robots), size_(0) {
 				alm_column_record.add(address_column);
 				alm_column_record.add(yellow_column);
 				alm_column_record.add(pattern_index_column);
 				alm_column_record.add(name_column);
-				robots.signal_robot_added.connect(sigc::mem_fun(this, &robots_model::alm_row_inserted));
-				robots.signal_robot_removed.connect(sigc::mem_fun(this, &robots_model::alm_row_deleted));
-				robots.signal_robot_replaced.connect(sigc::mem_fun(this, &robots_model::alm_row_changed));
-				robots.signal_sorted.connect(sigc::mem_fun(this, &robots_model::on_all_rows_changed));
-				robots.signal_colours_swapped.connect(sigc::mem_fun(this, &robots_model::on_all_rows_changed));
+				robots.signal_robot_added.connect(sigc::mem_fun(this, &RobotsModel::alm_row_inserted));
+				robots.signal_robot_removed.connect(sigc::mem_fun(this, &RobotsModel::alm_row_deleted));
+				robots.signal_robot_replaced.connect(sigc::mem_fun(this, &RobotsModel::alm_row_changed));
+				robots.signal_sorted.connect(sigc::mem_fun(this, &RobotsModel::on_all_rows_changed));
+				robots.signal_colours_swapped.connect(sigc::mem_fun(this, &RobotsModel::on_all_rows_changed));
 			}
 
 			unsigned int alm_rows() const {
@@ -220,11 +220,11 @@ namespace {
 			}
 	};
 
-	class robots_page : public Gtk::VBox {
+	class RobotsPage : public Gtk::VBox {
 		public:
-			robots_page(config::robot_set &robots) : robots(robots), model(robots_model::create(robots)), view(model), button_box(Gtk::BUTTONBOX_SPREAD), add_button(Gtk::Stock::ADD), edit_button(Gtk::Stock::EDIT), remove_button(Gtk::Stock::DELETE), sort_button("_Sort", true), swap_button("Swap _Colours", true) {
+			RobotsPage(Config::RobotSet &robots) : robots(robots), model(RobotsModel::create(robots)), view(model), button_box(Gtk::BUTTONBOX_SPREAD), add_button(Gtk::Stock::ADD), edit_button(Gtk::Stock::EDIT), remove_button(Gtk::Stock::DELETE), sort_button("_Sort", true), swap_button("Swap _Colours", true) {
 				view.get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
-				view.get_selection()->signal_changed().connect(sigc::mem_fun(this, &robots_page::selection_changed));
+				view.get_selection()->signal_changed().connect(sigc::mem_fun(this, &RobotsPage::selection_changed));
 				view.append_column_numeric("Address", model->address_column, "%016llX");
 				view.append_column("Yellow?", model->yellow_column);
 				view.append_column("Pattern Index", model->pattern_index_column);
@@ -233,13 +233,13 @@ namespace {
 				scroller.set_shadow_type(Gtk::SHADOW_IN);
 				pack_start(scroller, Gtk::PACK_EXPAND_WIDGET);
 
-				add_button.signal_clicked().connect(sigc::mem_fun(this, &robots_page::add));
-				edit_button.signal_clicked().connect(sigc::mem_fun(this, &robots_page::edit));
+				add_button.signal_clicked().connect(sigc::mem_fun(this, &RobotsPage::add));
+				edit_button.signal_clicked().connect(sigc::mem_fun(this, &RobotsPage::edit));
 				edit_button.set_sensitive(false);
-				remove_button.signal_clicked().connect(sigc::mem_fun(this, &robots_page::remove));
+				remove_button.signal_clicked().connect(sigc::mem_fun(this, &RobotsPage::remove));
 				remove_button.set_sensitive(false);
-				sort_button.signal_clicked().connect(sigc::mem_fun(this, &robots_page::sort));
-				swap_button.signal_clicked().connect(sigc::mem_fun(this, &robots_page::swap_colours));
+				sort_button.signal_clicked().connect(sigc::mem_fun(this, &RobotsPage::sort));
+				swap_button.signal_clicked().connect(sigc::mem_fun(this, &RobotsPage::swap_colours));
 				button_box.pack_start(add_button);
 				button_box.pack_start(edit_button);
 				button_box.pack_start(remove_button);
@@ -249,8 +249,8 @@ namespace {
 			}
 
 		private:
-			config::robot_set &robots;
-			Glib::RefPtr<robots_model> model;
+			Config::RobotSet &robots;
+			Glib::RefPtr<RobotsModel> model;
 			Gtk::TreeView view;
 			Gtk::ScrolledWindow scroller;
 			Gtk::HButtonBox button_box;
@@ -272,7 +272,7 @@ namespace {
 			}
 
 			void add() {
-				bot_info_dialog dlg(find_window(), robots, 0);
+				BotInfoDialog dlg(find_window(), robots, 0);
 				if (dlg.run() == Gtk::RESPONSE_ACCEPT) {
 					robots.add(dlg.address(), dlg.yellow(), dlg.pattern_index(), dlg.name());
 				}
@@ -283,8 +283,8 @@ namespace {
 				if (sel.size() == 1) {
 					const Gtk::TreePath &path = *sel.begin();
 					if (path.size() == 1) {
-						const config::robot_info &old = robots[path[0]];
-						bot_info_dialog dlg(find_window(), robots, &old);
+						const Config::RobotInfo &old = robots[path[0]];
+						BotInfoDialog dlg(find_window(), robots, &old);
 						if (dlg.run() == Gtk::RESPONSE_ACCEPT) {
 							robots.replace(old.address, dlg.address(), dlg.yellow(), dlg.pattern_index(), dlg.name());
 						}
@@ -301,7 +301,7 @@ namespace {
 						addresses.push_back(robots[path[0]].address);
 					}
 				}
-				std::for_each(addresses.begin(), addresses.end(), sigc::mem_fun(robots, &config::robot_set::remove));
+				std::for_each(addresses.begin(), addresses.end(), sigc::mem_fun(robots, &Config::RobotSet::remove));
 			}
 
 			void sort() {
@@ -340,11 +340,11 @@ namespace {
 			}
 	};
 
-	class channels_model : public Glib::Object, public abstract_list_model {
+	class ChannelsModel : public Glib::Object, public AbstractListModel {
 		public:
 			Gtk::TreeModelColumn<unsigned int> channel_column;
 
-			channels_model() : Glib::ObjectBase(typeid(channels_model)) {
+			ChannelsModel() : Glib::ObjectBase(typeid(ChannelsModel)) {
 				alm_column_record.add(channel_column);
 			}
 
@@ -384,20 +384,20 @@ namespace {
 			}
 	};
 
-	class radio_page : public Gtk::Table {
+	class RadioPage : public Gtk::Table {
 		public:
-			radio_page(config &conf) : Gtk::Table(1, 2), conf(conf), model(new channels_model), view(model) {
+			RadioPage(Config &conf) : Gtk::Table(1, 2), conf(conf), model(new ChannelsModel), view(model) {
 				view.pack_start(renderer);
-				view.set_cell_data_func(renderer, sigc::mem_fun(this, &radio_page::cell_data_func));
+				view.set_cell_data_func(renderer, sigc::mem_fun(this, &RadioPage::cell_data_func));
 				view.set_active(model->iter_for_channel(conf.channel()));
-				view.signal_changed().connect(sigc::mem_fun(this, &radio_page::on_changed));
+				view.signal_changed().connect(sigc::mem_fun(this, &RadioPage::on_changed));
 				attach(*Gtk::manage(new Gtk::Label("Channel:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				attach(view, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 			}
 
 		private:
-			config &conf;
-			Glib::RefPtr<channels_model> model;
+			Config &conf;
+			Glib::RefPtr<ChannelsModel> model;
 			Gtk::ComboBox view;
 			Gtk::CellRendererText renderer;
 
@@ -412,18 +412,18 @@ namespace {
 	};
 }
 
-window::window(config &conf) : conf(conf) {
+Window::Window(Config &conf) : conf(conf) {
 	set_title("Thunderbots Configuration");
 	Gtk::Notebook *notebook = Gtk::manage(new Gtk::Notebook);
 	add(*notebook);
 
-	notebook->append_page(*Gtk::manage(new robots_page(conf.robots())), "Robots");
-	notebook->append_page(*Gtk::manage(new radio_page(conf)), "Radio");
+	notebook->append_page(*Gtk::manage(new RobotsPage(conf.robots())), "Robots");
+	notebook->append_page(*Gtk::manage(new RadioPage(conf)), "Radio");
 
 	set_default_size(400, 400);
 }
 
-bool window::on_delete_event(GdkEventAny *) {
+bool Window::on_delete_event(GdkEventAny *) {
 	conf.save();
 	return false;
 }

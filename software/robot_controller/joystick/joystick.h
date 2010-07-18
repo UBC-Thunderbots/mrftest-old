@@ -8,18 +8,18 @@
 //
 // Allows access to a joystick device.
 //
-class joystick : public byref, public sigc::trackable {
+class Joystick : public ByRef, public sigc::trackable {
 	public:
 		//
-		// A pointer to a joystick.
+		// A pointer to a Joystick.
 		//
-		typedef Glib::RefPtr<joystick> ptr;
+		typedef Glib::RefPtr<Joystick> ptr;
 
 		//
 		// Opens a joystick.
 		//
 		static ptr create(const Glib::ustring &filename) {
-			ptr p(new joystick(filename));
+			ptr p(new Joystick(filename));
 			return p;
 		}
 
@@ -66,14 +66,14 @@ class joystick : public byref, public sigc::trackable {
 		static const std::vector<std::pair<Glib::ustring, Glib::ustring> > &list();
 
 	private:
-		const file_descriptor fd;
+		const FileDescriptor fd;
 		std::vector<int> axes_data;
 		std::vector<bool> buttons_data;
 		Glib::ustring stick_filename;
 		Glib::ustring stick_name;
 		sigc::signal<void> sig_moved;
 
-		joystick(const Glib::ustring &filename);
+		Joystick(const Glib::ustring &filename);
 		bool on_readable(Glib::IOCondition);
 };
 

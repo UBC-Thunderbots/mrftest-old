@@ -6,10 +6,10 @@
 //
 // A generic "light" that can be made to glow any colour.
 //
-class light : public Gtk::DrawingArea {
+class Light : public Gtk::DrawingArea {
 	public:
-		light();
-		light(const Glib::ustring &label);
+		Light();
+		Light(const Glib::ustring &label);
 		void set_colour(double r, double g, double b);
 		void set_label(const Glib::ustring &label);
 

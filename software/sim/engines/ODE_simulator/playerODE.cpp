@@ -62,7 +62,7 @@ namespace {
 /**
 	Constructor method for the robot model contained in the simulator
 */
-playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : target_velocity(0.0, 0.0), chip_set(false), kick_set(false), Vertices(0), Triangles(0) {
+PlayerODE::PlayerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : target_velocity(0.0, 0.0), chip_set(false), kick_set(false), Vertices(0), Triangles(0) {
 
 	updates_per_tick = ups_per_tick;
 	double dribble_radius = 0.005;//half a cm
@@ -125,20 +125,20 @@ playerODE::playerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, doubl
 	dSpaceAdd (dspace, dribbleArmR);
 
 
-		wheel_position = new point[4];
-		force_direction = new point[4];
+		wheel_position = new Point[4];
+		force_direction = new Point[4];
 		
 	for(int index=0;index<4;index++)
 	{
-		wheel_position[index]=point(1,0).rotate(ANGLES[index])*ROBOT_RADIUS;
-		force_direction[index]=point(wheel_position[index].rotate(M_PI/2).norm());
+		wheel_position[index]=Point(1,0).rotate(ANGLES[index])*ROBOT_RADIUS;
+		force_direction[index]=Point(wheel_position[index].rotate(M_PI/2).norm());
 	}
 	
 }
 
 
 
-playerODE::~playerODE () {
+PlayerODE::~PlayerODE () {
 	//dJointGroupDestroy (contactgroup);
 	dGeomDestroy(robotGeomTop);
 	dGeomDestroy(robotGeomTopCyl);
@@ -161,9 +161,9 @@ playerODE::~playerODE () {
 	//dBodyDestroy (body2);
 }
 /**
-this should only be called from simulator during collision detection
+this should only be called from Simulator during collision detection
 */
-void playerODE::set_has_ball(){
+void PlayerODE::set_has_ball(){
 
 //std::cout<<"set has ball"<<std::endl;
 player_has_ball = true;
@@ -172,7 +172,7 @@ player_has_ball = true;
 /**
 used to decide whether to add a contact joint for a robot collision
 */
-bool playerODE::hasContactPenetration(dVector3 pos){
+bool PlayerODE::hasContactPenetration(dVector3 pos){
 	//if(dGeomBoxPointDepth (dGeomID box, dReal x, dReal y, dReal z);
 	//((GeomBox)
 	// robotGeomTop).pointDepth(pos)<0
@@ -183,9 +183,9 @@ bool playerODE::hasContactPenetration(dVector3 pos){
 
 	const dReal *p = dBodyGetPosition (body);
 
-	point ball_loc(pos[0], pos[1]);
-	point play_loc(p[0], p[1]);
-	point play_ball_diff = ball_loc - play_loc;
+	Point ball_loc(pos[0], pos[1]);
+	Point play_loc(p[0], p[1]);
+	Point play_ball_diff = ball_loc - play_loc;
 	play_ball_diff = play_ball_diff.rotate(-orientation());
 
 	bool face = play_ball_diff.x>=x_len/2 && (play_ball_diff.y*x_len) <= (play_ball_diff.x*y_len);
@@ -200,11 +200,11 @@ bool playerODE::hasContactPenetration(dVector3 pos){
 /**
 sees whether the contact joint penetrates the face of the robot
 */
-bool playerODE::hasContactWithFace(dVector3 pos){
+bool PlayerODE::hasContactWithFace(dVector3 pos){
 	const dReal *p = dBodyGetPosition (body);
-	point ball_loc(pos[0], pos[1]);
-	point play_loc(p[0], p[1]);
-	point play_ball_diff = ball_loc - play_loc;
+	Point ball_loc(pos[0], pos[1]);
+	Point play_loc(p[0], p[1]);
+	Point play_ball_diff = ball_loc - play_loc;
 	play_ball_diff = play_ball_diff.rotate(-orientation());
 	bool face = play_ball_diff.x>=x_len/2 && (play_ball_diff.y*x_len) < (play_ball_diff.x*y_len);
 
@@ -216,14 +216,14 @@ bool playerODE::hasContactWithFace(dVector3 pos){
 
 
 /// Accessor method to get the robots position
-point playerODE::position() const {
+Point PlayerODE::position() const {
 	const dReal *t = dBodyGetPosition (body);
-	return point(t[0], t[1]);
+	return Point(t[0], t[1]);
 }
 
 
 /// Accessor method to get the robots orientation
-double playerODE::orientation() const {
+double PlayerODE::orientation() const {
 	return orientationFromMatrix(dBodyGetRotation(body));
 }
 
@@ -232,25 +232,25 @@ double playerODE::orientation() const {
 Returns whether or not a given robot has the ball. 
 Has ball is determined from the collision detection from the previous timestep
 */
-bool playerODE::has_ball() const {	
+bool PlayerODE::has_ball() const {	
 	return player_has_ball;
 }
 
 
-unsigned int playerODE::dribbler_speed() const {
+unsigned int PlayerODE::dribbler_speed() const {
 	return has_ball() ? 30 : 50;
 }
 
 
 /// Accessor to get the height of the middle of the robot (should be ROBOT_HEIGHT/2)
-double playerODE::get_height() const
+double PlayerODE::get_height() const
 {
 	const dReal *t = dBodyGetPosition (body);
 	return t[2];
 }
 
 
-bool playerODE::robot_contains_shape(dGeomID geom){
+bool PlayerODE::robot_contains_shape(dGeomID geom){
 //if(geom==dribbleArmL){
 //std::cout<<"left Arm collide"<<std::endl;
 //}
@@ -260,7 +260,7 @@ bool playerODE::robot_contains_shape(dGeomID geom){
 }
 //robot_contains_shape_ground(dGeomID geom)
 
-bool playerODE::robot_contains_shape_ground(dGeomID geom){
+bool PlayerODE::robot_contains_shape_ground(dGeomID geom){
 
 
 	dBodyID b = dGeomGetBody(geom);
@@ -272,14 +272,14 @@ computes the forces for the differential equation and
 adds them to the robot body
 \param timestep the time between calculations
 */
-void playerODE::pre_tic(double ){
+void PlayerODE::pre_tic(double ){
 
 	click++;
 
 	//Current Motor Speed
 	double motor_current[4];
 	double wheel_torque;
-	point force;
+	Point force;
 	
 
 	//player doesn't have ball
@@ -294,7 +294,7 @@ void playerODE::pre_tic(double ){
 		const dReal *cur_vel = dBodyGetLinearVel(body);
 		
 		//grab current vel and rotate to bot relative
-		const point the_velocity = point(cur_vel[0], cur_vel[1]).rotate(-orientation());
+		const Point the_velocity = Point(cur_vel[0], cur_vel[1]).rotate(-orientation());
 		
 		//get the angular velocity
 		const dReal * avels =  dBodyGetAngularVel (body);
@@ -338,9 +338,9 @@ void playerODE::pre_tic(double ){
 
 //received data from ai does some checks and stores it,
 //when implemented should pass to firmware interpreter
-/*void playerODE::move_impl(const point &vel, double avel) {					
+/*void PlayerODE::move_impl(const Point &vel, double avel) {					
 			
-		point new_vel = vel;
+		Point new_vel = vel;
 	
 	//These are used directly in the simulator code, needs to intercepted by a 
 	//firmware intepreter to simulate controller			
@@ -359,7 +359,7 @@ void playerODE::pre_tic(double ){
 
 
 
-void playerODE::dribble(double speed) {
+void PlayerODE::dribble(double speed) {
 
 	double max_Angular_vel = 5.0;
 
@@ -372,7 +372,7 @@ void playerODE::dribble(double speed) {
 	//std::cout<<"dribble"<< t[0]<<" "<<t[1]<<" "<<t[2]<<std::endl;
 
 	//std::cout<<"dribble speed: "<<speed<<std::endl;
-	point torqueAxis(0,1);
+	Point torqueAxis(0,1);
 	torqueAxis = torqueAxis.rotate(orientation());
 
 	torqueAxis*=appliedTorque;
@@ -380,7 +380,7 @@ void playerODE::dribble(double speed) {
 	if(has_ball()){
 
 
-		point ball_turn;
+		Point ball_turn;
 		ball_turn.x = t[0];
 		ball_turn.y = t[1];
 		if(! (ball_turn.len() > max_Angular_vel)){
@@ -388,7 +388,7 @@ void playerODE::dribble(double speed) {
 			//std::cout<<"dribble"<<speed<<std::endl;
 			//std::cout<<"dribble"<< t[0]<<" "<<t[1]<<" "<<t[2]<<std::endl;
 			//dBodyAddTorque(dGeomGetBody(ballGeom), torqueAxis.x, torqueAxis.y, 0.0);
-			//point directionp(1,0);
+			//Point directionp(1,0);
 			//directionp = directionp.rotate(orientation());
 			//directionp = -directionp*forceMax*speed;
 			//dBodyAddForce(dGeomGetBody(ballGeom), directionp.x, directionp.y, 0.0);
@@ -396,7 +396,7 @@ void playerODE::dribble(double speed) {
 		}
 //			double forceMax = 0.1;
 //			std::cout<<"dribble"<<speed<<std::endl;
-//			point directionp(1,0);
+//			Point directionp(1,0);
 //			directionp = directionp.rotate(orientation());
 //			directionp = -directionp*forceMax*speed;
 //			dBodyAddForce(dGeomGetBody(ballGeom), directionp.x, directionp.y, 0.0);
@@ -404,7 +404,7 @@ void playerODE::dribble(double speed) {
 	}
 }
 
-void playerODE::kick(double strength) {
+void PlayerODE::kick(double strength) {
 	
 	if(has_ball()){
 		kick_strength = strength;
@@ -413,13 +413,13 @@ void playerODE::kick(double strength) {
 
 }
 
-bool playerODE::execute_kick() {
+bool PlayerODE::execute_kick() {
 
 	double strength = kick_strength;
 	double maximum_impulse = 1.0;
-	point direction(1.0, 0.0);
+	Point direction(1.0, 0.0);
 	direction = direction.rotate(orientation());
-	point impulse = strength*maximum_impulse*direction;
+	Point impulse = strength*maximum_impulse*direction;
 	double zimpulse = strength*maximum_impulse/sqrt(2.0);
 
 	if(has_ball()){
@@ -436,7 +436,7 @@ bool playerODE::execute_kick() {
 
 }
 
-void playerODE::chip(double strength) {
+void PlayerODE::chip(double strength) {
 
 
 	if(has_ball()){
@@ -446,15 +446,15 @@ void playerODE::chip(double strength) {
 
 }
 
-bool playerODE::execute_chip() {
+bool PlayerODE::execute_chip() {
 
 	double strength = chip_strength;
 	//std::cout<<"chip strength: "<<strength<<std::endl;
 	double maximum_impulse = 1.0;
 
-	point direction(1.0/sqrt(2.0), 0.0);
+	Point direction(1.0/sqrt(2.0), 0.0);
 	direction = direction.rotate(orientation());
-	point impulse = strength*maximum_impulse*direction;
+	Point impulse = strength*maximum_impulse*direction;
 
 	double zimpulse = strength*maximum_impulse/sqrt(2.0);
 
@@ -474,27 +474,27 @@ bool playerODE::execute_chip() {
 
 }
 
-void playerODE::position(const point &pos) {
+void PlayerODE::position(const Point &pos) {
 	posSet = true;
 	dBodySetPosition(body, pos.x, pos.y, ROBOT_HEIGHT/2+0.01);
 }
 
-void playerODE::velocity(const point &vel) {
+void PlayerODE::velocity(const Point &vel) {
 	dBodySetLinearVel(body,vel.x,vel.y,0.0);
 }
 
-void playerODE::orientation(double orient) {
+void PlayerODE::orientation(double orient) {
 	posSet=true;
 	dMatrix3 RotationMatrix;
 	dRFromAxisAndAngle (RotationMatrix, 0.0, 0.0, 1.0, orient);
 	dBodySetRotation (body, RotationMatrix);
 }
 
-void playerODE::avelocity(double avel) {
+void PlayerODE::avelocity(double avel) {
 	dBodySetAngularVel (body, 0.0, 0.0, avel);
 }
 
-dTriMeshDataID playerODE::create_robot_geom()
+dTriMeshDataID PlayerODE::create_robot_geom()
 {
 
 	//Compute angle for front face (Cosine Law)
@@ -625,20 +625,20 @@ dTriMeshDataID playerODE::create_robot_geom()
 	const uint8_t RUN_FLAG_FEEDBACK = 0x40;
 */
 
-void playerODE::received(const xbeepacket::RUN_DATA &packet) {
+void PlayerODE::received(const XBeePacketTypes::RUN_DATA &packet) {
 	
-	assert(packet.flags&xbeepacket::RUN_FLAG_RUNNING);
+	assert(packet.flags&XBeePacketTypes::RUN_FLAG_RUNNING);
 	
 	// These two aren't used for now because we don't have a firmware simulator
-	direct_drive = packet.flags&xbeepacket::RUN_FLAG_DIRECT_DRIVE;
-	controlled_drive = packet.flags&xbeepacket::RUN_FLAG_CONTROLLED_DRIVE;
+	direct_drive = packet.flags&XBeePacketTypes::RUN_FLAG_DIRECT_DRIVE;
+	controlled_drive = packet.flags&XBeePacketTypes::RUN_FLAG_CONTROLLED_DRIVE;
 
 	
 
 	// These settings are being passed directly for now, we should probably put code in to handle the fact that packets can arrive whenever
 	// and that we could get more than one kick packet
-	if(packet.flags&xbeepacket::RUN_FLAG_CHICKER_ENABLED) {
-		if(packet.flags&xbeepacket::RUN_FLAG_CHIP){
+	if(packet.flags&XBeePacketTypes::RUN_FLAG_CHICKER_ENABLED) {
+		if(packet.flags&XBeePacketTypes::RUN_FLAG_CHIP){
 			chip(packet.chick_power);
 		
 		}else{

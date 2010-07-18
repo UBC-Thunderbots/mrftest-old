@@ -34,13 +34,13 @@ namespace {
 	
 
 	//
-	// A simulator_engine.
+	// A SimulatorEngine.
 	//
-	class sim_engine : public simulator_engine {
+	class SimEngine : public SimulatorEngine {
 		private:
-			ballODE::ptr the_ball;
-			std::vector<playerODE::ptr> the_players;
-			playerODE::ptr emptyPlayer;
+			BallODE::ptr the_ball;
+			std::vector<PlayerODE::ptr> the_players;
+			PlayerODE::ptr emptyPlayer;
 		public:
 			double timeStep;
 			dWorldID eworld;
@@ -57,7 +57,7 @@ namespace {
 				return false;
 			}
 
-			sim_engine(){
+			SimEngine(){
 				dInitODE();
 				timeStep = 1.0/(static_cast<double>(TIMESTEPS_PER_SECOND)*static_cast<double>(UPDATES_PER_TICK));
 				eworld = dWorldCreate(); 
@@ -77,20 +77,20 @@ namespace {
   				double wall_thickness = 0.0127; //
   				
 				//build a wall around the playing field
-  				wall[0] = dCreateBox (space, simulator_field::total_length + 2*wall_thickness, wall_thickness, wall_height);
-				wall[1] = dCreateBox (space, simulator_field::total_length + 2*wall_thickness, wall_thickness, wall_height);  			
-				wall[2] = dCreateBox (space, wall_thickness, simulator_field::total_width-2*wall_thickness, wall_height);
-				wall[3] = dCreateBox (space, wall_thickness, simulator_field::total_width-2*wall_thickness, wall_height);
-  				dGeomSetPosition (wall[0],  0,  (simulator_field::total_width/2 + wall_thickness/2),  (wall_height/2));
-  				dGeomSetPosition (wall[1],  0, -(simulator_field::total_width/2 + wall_thickness/2),  (wall_height/2));
-  				dGeomSetPosition (wall[2],  (simulator_field::total_length/2 + wall_thickness/2), 0,  (wall_height/2));
-  				dGeomSetPosition (wall[3], - (simulator_field::total_length/2 + wall_thickness/2), 0,  (wall_height/2));
+  				wall[0] = dCreateBox (space, SimulatorField::total_length + 2*wall_thickness, wall_thickness, wall_height);
+				wall[1] = dCreateBox (space, SimulatorField::total_length + 2*wall_thickness, wall_thickness, wall_height);  			
+				wall[2] = dCreateBox (space, wall_thickness, SimulatorField::total_width-2*wall_thickness, wall_height);
+				wall[3] = dCreateBox (space, wall_thickness, SimulatorField::total_width-2*wall_thickness, wall_height);
+  				dGeomSetPosition (wall[0],  0,  (SimulatorField::total_width/2 + wall_thickness/2),  (wall_height/2));
+  				dGeomSetPosition (wall[1],  0, -(SimulatorField::total_width/2 + wall_thickness/2),  (wall_height/2));
+  				dGeomSetPosition (wall[2],  (SimulatorField::total_length/2 + wall_thickness/2), 0,  (wall_height/2));
+  				dGeomSetPosition (wall[3], - (SimulatorField::total_length/2 + wall_thickness/2), 0,  (wall_height/2));
 				//set possible penetration for collisions
     				
     				dWorldSetContactSurfaceLayer(eworld, 0.1);
 				contactgroup = dJointGroupCreate (0);
 
-				ballODE::ptr b(new ballODE(eworld, space));
+				BallODE::ptr b(new BallODE(eworld, space));
 				the_ball = b;
 				
  				//dWorldSetLinearDamping (eworld, 0.02);
@@ -100,7 +100,7 @@ namespace {
  				
 			}
 			
-			~sim_engine(){
+			~SimEngine(){
 				the_players.clear();
  				the_ball.reset();
  				dWorldDestroy (eworld);
@@ -117,12 +117,12 @@ namespace {
 						}
 					//std::cout << "Player: " << the_players[0]->get_height() << ": The Ball: " << the_ball->get_height() << std::endl;
 					//std::cout<<"tick Start"<<std::endl;
-					//check the world for possible collisions
+					//check the World for possible collisions
 					//if there are colliding objects then call nearCallback
 					//nearCallback creates all necessary contact points and parameters
-	 				dSpaceCollide (space,this,&sim_engine::nearCallbackThunk);
+	 				dSpaceCollide (space,this,&SimEngine::nearCallbackThunk);
 	 				
-	 				//step the world (have ODE do 1 iterations per step)
+	 				//step the World (have ODE do 1 iterations per step)
 					//dWorldStep (eworld, 1);
 					dWorldSetQuickStepNumIterations (eworld, 50);
 					
@@ -140,22 +140,22 @@ namespace {
 			void setWorld(dWorldID world) {
 				eworld = world;
 			}
-			ball::ptr get_ball() {
+			SimulatorBall::ptr get_ball() {
 				return the_ball;
 			}
 
-			player::ptr add_player() {
-				playerODE::ptr	 p(new playerODE(eworld, space, the_ball->ballGeom, static_cast<double>(UPDATES_PER_TICK)));
-				point cur =p->position();
+			SimulatorPlayer::ptr add_player() {
+				PlayerODE::ptr	 p(new PlayerODE(eworld, space, the_ball->ballGeom, static_cast<double>(UPDATES_PER_TICK)));
+				Point cur =p->position();
 				
-				point balpos = the_ball->position();
-				point c = balpos-cur;
+				Point balpos = the_ball->position();
+				Point c = balpos-cur;
 				if(c.len()<0.101){
 					cur.x+=0.1; 
 				}
 				
 				for (unsigned int i = 0; i < the_players.size(); i++) {
-					point b = the_players[i]->position();
+					Point b = the_players[i]->position();
 					c = cur-b;
 					if(c.len()<0.15){
 					cur.x+=0.2;
@@ -163,13 +163,13 @@ namespace {
 				}
 				
 				p->position(cur);
-				p->velocity(point());
+				p->velocity(Point());
 				the_players.push_back(p);
 				return p;
 			}
 			
 			
-			playerODE::ptr get_player_from_shape(dGeomID shape){
+			PlayerODE::ptr get_player_from_shape(dGeomID shape){
 				for (unsigned int i = 0; i < the_players.size(); i++) {
 					if (the_players[i]->robot_contains_shape(shape)) {
 						return the_players[i];
@@ -179,7 +179,7 @@ namespace {
 			}
 
 			
-			playerODE::ptr get_player_from_shape_ground(dGeomID shape){
+			PlayerODE::ptr get_player_from_shape_ground(dGeomID shape){
 				for (unsigned int i = 0; i < the_players.size(); i++) {
 					if (the_players[i]->robot_contains_shape_ground(shape)) {
 						return the_players[i];
@@ -189,9 +189,9 @@ namespace {
 			}
 			
 			
-			void remove_player(player::ptr p) {
+			void remove_player(SimulatorPlayer::ptr p) {
 				for (unsigned int i = 0; i < the_players.size(); i++) {
-					if (player::ptr::cast_static(the_players[i]) == p) {
+					if (SimulatorPlayer::ptr::cast_static(the_players[i]) == p) {
 						the_players.erase(the_players.begin() + i);
 						return;
 					}
@@ -262,7 +262,7 @@ namespace {
 
 				double frict = MU*6;
 				int i=0;
-				 playerODE::ptr robot = emptyPlayer;
+				 PlayerODE::ptr robot = emptyPlayer;
 				 
 				 for(unsigned int i=0; i<the_players.size(); i++){
 					 if(the_players[i]->has_ball()){
@@ -310,8 +310,8 @@ namespace {
 				  
 				  dContact contact[num_contact];		// up to 3 contacts per box
 				  
-				  playerODE::ptr robot1 = get_player_from_shape(o1);
-				  playerODE::ptr robot2 = get_player_from_shape(o2);
+				  PlayerODE::ptr robot1 = get_player_from_shape(o1);
+				  PlayerODE::ptr robot2 = get_player_from_shape(o2);
 				  
 				  if((robot1 != emptyPlayer || robot2 != emptyPlayer)){
 				  	handleRobotBallCollision(o1,o2);
@@ -341,7 +341,7 @@ namespace {
 				  dBodyID b2 = dGeomGetBody(o2);
 				  dContact contact[3];		// up to 3 contacts per box
 				  
-				  playerODE::ptr robot = get_player_from_shape(o1);
+				  PlayerODE::ptr robot = get_player_from_shape(o1);
 				  if(robot == emptyPlayer){
 				  	robot = get_player_from_shape(o2);
 				  }
@@ -375,8 +375,8 @@ namespace {
 				  dBodyID b1 = dGeomGetBody(o1);
 				  dBodyID b2 = dGeomGetBody(o2);
 
-				playerODE::ptr robot1 = get_player_from_shape(o1);
-				playerODE::ptr robot2 = get_player_from_shape(o2);
+				PlayerODE::ptr robot1 = get_player_from_shape(o1);
+				PlayerODE::ptr robot2 = get_player_from_shape(o2);
 
 						if(robot1 || robot2){
 							return;
@@ -406,12 +406,12 @@ namespace {
 				
 				//const dReal* pos1 = dGeomGetPosition (o1);
 				//const dReal* pos2 = dGeomGetPosition (o2);
-				//point p1 = point(pos1[0],pos1[1]);
-				//point p2 = point(pos2[0],pos2[1]);
-				//point dis = p1-p2;
+				//Point p1 = Point(pos1[0],pos1[1]);
+				//Point p2 = Point(pos2[0],pos2[1]);
+				//Point dis = p1-p2;
 				
-				playerODE::ptr robot1 = get_player_from_shape(o1);
-				playerODE::ptr robot2 = get_player_from_shape(o2);
+				PlayerODE::ptr robot1 = get_player_from_shape(o1);
+				PlayerODE::ptr robot2 = get_player_from_shape(o2);
 				
 				//if (dis.len>0.02) we assume that are components from same robot
 				//as such we will ignore it
@@ -444,7 +444,7 @@ namespace {
 			}
 
 			//			
-			//This gets called every time we have two shpaes in the world that intersect
+			//This gets called every time we have two shpaes in the World that intersect
 			//for every pair of intersecting shapes we need to decide what to do with them
 			//
 			void nearCallback (dGeomID o1, dGeomID o2)
@@ -480,11 +480,11 @@ namespace {
 			}
 			
 			static void nearCallbackThunk(void *data, dGeomID o1, dGeomID o2) {
-				sim_engine *engine = reinterpret_cast<sim_engine *>(data);
+				SimEngine *engine = reinterpret_cast<SimEngine *>(data);
 				engine->nearCallback(o1, o2);
 			}
 			
-			simulator_engine_factory &get_factory();
+			SimulatorEngineFactory &get_factory();
 
 
 	};
@@ -492,23 +492,23 @@ namespace {
 	//
 	// A factory for creating sim_engines.
 	//
-	class sim_engine_factory : public simulator_engine_factory {
+	class SimEngineFactory : public SimulatorEngineFactory {
 		public:
-			sim_engine_factory() : simulator_engine_factory("Open Dynamics Engine Simulator") {
+			SimEngineFactory() : SimulatorEngineFactory("Open Dynamics Engine Simulator") {
 			}
 
-			simulator_engine::ptr create_engine() {
-				simulator_engine::ptr p(new sim_engine);
+			SimulatorEngine::ptr create_engine() {
+				SimulatorEngine::ptr p(new SimEngine);
 				return p;
 			}
 	};
 
 	//
-	// The global instance of sim_engine_factory.
+	// The global instance of SimEngineFactory.
 	//
-	sim_engine_factory fact;
+	SimEngineFactory fact;
 
-	simulator_engine_factory &sim_engine::get_factory() {
+	SimulatorEngineFactory &SimEngine::get_factory() {
 		return fact;
 	}
 }

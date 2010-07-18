@@ -5,16 +5,16 @@
 #include "uicomponents/visualizer.h"
 #include "util/noncopyable.h"
 
-class world;
+class World;
 
 /**
  * Provides the AI with a way to get the dimensions of the field. The dimensions
  * of the field are provided by SSL-Vision or the simulator.
  */
-class field : public visualizable::field {
+class Field : public Visualizable::Field {
 	public:
 		/**
-		 * \return true if the data in the field is valid, or false if not
+		 * \return true if the data in the Field is valid, or false if not
 		 */
 		bool valid() const {
 			return valid_;
@@ -84,45 +84,45 @@ class field : public visualizable::field {
 		/**
 		 * \return Position of our own goal.
 		 */
-		point friendly_goal() const {
-			return point(-length_ * 0.5, 0);
+		Point friendly_goal() const {
+			return Point(-length_ * 0.5, 0);
 		}
 
 		/**
 		 * \return Position of enemy goal.
 		 */
-		point enemy_goal() const {
-			return point(length_ * 0.5, 0);
+		Point enemy_goal() const {
+			return Point(length_ * 0.5, 0);
 		}
 
 		/**
 		 * \return Position of enemy penalty mark.
 		 * 450 mm from enemy goal center.
 		 */
-		point penalty_enemy() const {
-			return point(length_ * 0.5 / 3025.0 * (3025.0 - 450.0), 0);
+		Point penalty_enemy() const {
+			return Point(length_ * 0.5 / 3025.0 * (3025.0 - 450.0), 0);
 		}
 
 		/**
 		 * \return Position of friendly penalty mark.
 		 * 450 mm from friendly goal center.
 		 */
-		point penalty_friendly() const {
-			return point(-length_ * 0.5 / 3025.0 * (3025.0 - 450.0), 0);
+		Point penalty_friendly() const {
+			return Point(-length_ * 0.5 / 3025.0 * (3025.0 - 450.0), 0);
 		}
 
 		/**
 		 * \return Position of our goal boundaries (top and bottom).
 		 */
-		std::pair<point, point> friendly_goal_boundary() const {
-			return std::make_pair(point(-length_ * 0.5, -0.5*goal_width_), point(-length_ * 0.5, 0.5*goal_width_));
+		std::pair<Point, Point> friendly_goal_boundary() const {
+			return std::make_pair(Point(-length_ * 0.5, -0.5*goal_width_), Point(-length_ * 0.5, 0.5*goal_width_));
 		}
 
 		/**
 		 * \return Position of enemy goal boundaries (top and bottom).
 		 */
-		std::pair<point, point> enemy_goal_boundary() const {
-			return std::make_pair(point(length_ * 0.5, -0.5*goal_width_), point(length_ * 0.5, 0.5*goal_width_));
+		std::pair<Point, Point> enemy_goal_boundary() const {
+			return std::make_pair(Point(length_ * 0.5, -0.5*goal_width_), Point(length_ * 0.5, 0.5*goal_width_));
 		}
 
 		/**
@@ -144,19 +144,19 @@ class field : public visualizable::field {
 		double defense_area_stretch_;
 
 		/**
-		 * Constructs a new field object.
+		 * Constructs a new Field object.
 		 */
-		field();
+		Field();
 
 		/**
-		 * Updates the field object with new geometry data from SSL-Vision or
+		 * Updates the Field object with new geometry data from SSL-Vision or
 		 * the simulator.
 		 *
 		 * \param packet packet the new data
 		 */
 		void update(const SSL_GeometryFieldSize &packet);
 
-		friend class world;
+		friend class World;
 };
 
 #endif

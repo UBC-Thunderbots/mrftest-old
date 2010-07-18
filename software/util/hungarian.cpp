@@ -11,10 +11,10 @@ namespace {
 	}
 }
 
-hungarian::hungarian(std::size_t size) : weights(size, std::vector<double>(size, 0.0)), mx(size, std::numeric_limits<unsigned int>::max()), my(size, std::numeric_limits<unsigned int>::max()) {
+Hungarian::Hungarian(std::size_t size) : weights(size, std::vector<double>(size, 0.0)), mx(size, std::numeric_limits<unsigned int>::max()), my(size, std::numeric_limits<unsigned int>::max()) {
 }
 
-void hungarian::execute() {
+void Hungarian::execute() {
 	// Meddlest-thou not in the affairs of Hungarian algorithms, for thou art crunchy and go well with Ketchup.
 	// This was understood by Robert, communicated by Simon, written by Chris, and obfuscated by Anton.
 	const unsigned int N = weights.size();

@@ -13,33 +13,33 @@ TODO:
 - calculate the strength that the robot should use.
  */
 
-kick::kick(player::ptr player, world::ptr world) : tactic(player), the_world(world), should_chip(false), strength(1.0), kick_target(the_world->field().enemy_goal()) {
+Kick::Kick(Player::ptr player, World::ptr world) : Tactic(player), the_world(world), should_chip(false), strength(1.0), kick_target(the_world->field().enemy_goal()) {
 }
 
-void kick::tick() {
-	robot_navigator navi(the_player, the_world);
+void Kick::tick() {
+	RobotNavigator navi(the_player, the_world);
 
 	// don't forget
 	navi.set_flags(flags);
 
-	if (!ai_util::has_ball(the_world, the_player)) {
+	if (!AIUtil::has_ball(the_world, the_player)) {
 		navi.set_position(the_world->ball()->position());
 		navi.tick();
 		return;
 	}
 
-	point dist = kick_target - the_player->position();
+	Point dist = kick_target - the_player->position();
 
 	// turn towards the target
 	navi.set_orientation(dist.orientation());
 
 	// maybe move towards it?
-	//if (the_player->dribble_distance() < player::MAX_DRIBBLE_DIST) {
+	//if (the_player->dribble_distance() < Player::MAX_DRIBBLE_DIST) {
 		//navi.set_position(kick_target);
 	//}
 
 	const double anglediff = angle_diff(dist.orientation(), the_player->orientation());
-	if (anglediff > ai_util::ORI_CLOSE) {
+	if (anglediff > AIUtil::ORI_CLOSE) {
 		LOG_DEBUG(Glib::ustring::compose("%1 aiming angle_diff is %2", the_player->name, anglediff));
 		navi.tick();
 		return;

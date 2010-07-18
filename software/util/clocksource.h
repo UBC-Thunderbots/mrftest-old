@@ -6,7 +6,7 @@
 /**
  * A source of timer ticks. A clock source is initially stopped.
  */
-class clocksource {
+class ClockSource {
 	public:
 		/**
 		 * Fired on each clock tick.

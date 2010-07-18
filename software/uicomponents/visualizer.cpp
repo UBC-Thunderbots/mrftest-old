@@ -1,31 +1,31 @@
 #include "uicomponents/visualizer.h"
 #include <cmath>
 
-visualizer::visualizer(const visualizable &data) : data(data) {
+Visualizer::Visualizer(const Visualizable &data) : data(data) {
 	set_size_request(600, 600);
 	add_events(Gdk::POINTER_MOTION_MASK);
 	add_events(Gdk::BUTTON_PRESS_MASK);
 	add_events(Gdk::BUTTON_RELEASE_MASK);
 	add_events(Gdk::ENTER_NOTIFY_MASK);
 	add_events(Gdk::LEAVE_NOTIFY_MASK);
-	update_connection = data.signal_visdata_changed.connect(sigc::mem_fun(this, &visualizer::update));
+	update_connection = data.signal_visdata_changed.connect(sigc::mem_fun(this, &Visualizer::update));
 	update_connection.block();
-	data.field().signal_changed.connect(sigc::mem_fun(this, &visualizer::compute_scales));
+	data.field().signal_changed.connect(sigc::mem_fun(this, &Visualizer::compute_scales));
 }
 
-void visualizer::on_show() {
+void Visualizer::on_show() {
 	Gtk::DrawingArea::on_show();
 	update_connection.unblock();
 }
 
-void visualizer::on_hide() {
+void Visualizer::on_hide() {
 	Gtk::DrawingArea::on_hide();
 	update_connection.block();
 	overlay_.clear();
 	signal_overlay_changed.emit();
 }
 
-bool visualizer::on_expose_event(GdkEventExpose *evt) {
+bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 	Gtk::DrawingArea::on_expose_event(evt);
 
 	int width, height;
@@ -88,9 +88,9 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 
 	// Draw the players including text.
 	for (unsigned int i = 0; i < data.size(); ++i) {
-		const visualizable::robot::ptr bot(data[i]);
+		const Visualizable::Robot::ptr bot(data[i]);
 		if (bot->visualizer_visible()) {
-			const visualizable::colour &clr(bot->visualizer_colour());
+			const Visualizable::RobotColour &clr(bot->visualizer_colour());
 			ctx->set_source_rgb(clr.red, clr.green, clr.blue);
 			ctx->begin_new_path();
 			ctx->arc_negative(xtog(bot->position().x), ytog(bot->position().y), dtog(0.09), atog(bot->orientation() + M_PI_4), atog(bot->orientation() - M_PI_4));
@@ -115,8 +115,8 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 			ctx->show_text(str);
 
 			if (bot->has_destination()) {
-				const point &pos(bot->position());
-				const point &dest(bot->destination());
+				const Point &pos(bot->position());
+				const Point &dest(bot->destination());
 				ctx->begin_new_path();
 				ctx->move_to(xtog(pos.x), ytog(pos.y));
 				ctx->line_to(xtog(dest.x), ytog(dest.y));
@@ -131,7 +131,7 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 	if (veldragging) {
 		ctx->set_source_rgb(0.0, 0.0, 0.0);
 		ctx->begin_new_path();
-		const point &pos = veldragging->position();
+		const Point &pos = veldragging->position();
 		ctx->move_to(xtog(pos.x), ytog(pos.y));
 		ctx->line_to(xtog(pos.x + dragged_velocity.x), ytog(pos.y + dragged_velocity.y));
 		ctx->stroke();
@@ -139,7 +139,7 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 #endif
 
 	// Draw the ball.
-	const visualizable::ball::ptr the_ball(data.ball());
+	const Visualizable::Ball::ptr the_ball(data.ball());
 	ctx->set_source_rgb(1.0, 0.5, 0.0);
 	ctx->begin_new_path();
 	ctx->arc(xtog(the_ball->position().x), ytog(the_ball->position().y), dtog(0.03), 0.0, 2.0 * M_PI);
@@ -147,7 +147,7 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 	ctx->begin_new_path();
 	ctx->move_to(xtog(the_ball->position().x), ytog(the_ball->position().y));
 	{
-		const point &tgt(the_ball->position() + the_ball->velocity());
+		const Point &tgt(the_ball->position() + the_ball->velocity());
 		ctx->line_to(xtog(tgt.x), ytog(tgt.y));
 	}
 	ctx->stroke();
@@ -168,14 +168,14 @@ bool visualizer::on_expose_event(GdkEventExpose *evt) {
 	return true;
 }
 
-void visualizer::update() {
+void Visualizer::update() {
 	const Glib::RefPtr<Gdk::Window> win(get_window());
 	if (win) {
 		win->invalidate(false);
 	}
 }
 
-Cairo::RefPtr<Cairo::Context> visualizer::overlay() const {
+Cairo::RefPtr<Cairo::Context> Visualizer::overlay() const {
 	if (overlay_) {
 		const Cairo::RefPtr<Cairo::Context> ctx(Cairo::Context::create(overlay_));
 		ctx->translate(xtranslate, ytranslate);
@@ -186,17 +186,17 @@ Cairo::RefPtr<Cairo::Context> visualizer::overlay() const {
 	}
 }
 
-void visualizer::on_size_allocate(Gtk::Allocation &alloc) {
+void Visualizer::on_size_allocate(Gtk::Allocation &alloc) {
 	Gtk::DrawingArea::on_size_allocate(alloc);
 	overlay_ = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32, alloc.get_width(), alloc.get_height());
 	compute_scales();
 }
 
-bool visualizer::on_button_press_event(GdkEventButton *evt) {
+bool Visualizer::on_button_press_event(GdkEventButton *evt) {
 	Gtk::DrawingArea::on_button_press_event(evt);
 	if (evt->type == GDK_BUTTON_PRESS && evt->button == 1) {
 		// Calculate the location on the field.
-		point click(xtow(evt->x), ytow(evt->y));
+		Point click(xtow(evt->x), ytow(evt->y));
 
 		// Clear any currently-dragged object.
 		dragging.reset();
@@ -209,7 +209,7 @@ bool visualizer::on_button_press_event(GdkEventButton *evt) {
 		update();
 	} else if (evt->type == GDK_BUTTON_PRESS && evt->button == 3) {
 		// Calculate the location on the field.
-		point click(xtow(evt->x), ytow(evt->y));
+		Point click(xtow(evt->x), ytow(evt->y));
 
 		// Clear any currently-dragged object.
 		dragging.reset();
@@ -225,7 +225,7 @@ bool visualizer::on_button_press_event(GdkEventButton *evt) {
 	return true;
 }
 
-bool visualizer::on_button_release_event(GdkEventButton *evt) {
+bool Visualizer::on_button_release_event(GdkEventButton *evt) {
 	Gtk::DrawingArea::on_button_release_event(evt);
 
 	// Drop the objects and redraw the visualizer.
@@ -236,17 +236,17 @@ bool visualizer::on_button_release_event(GdkEventButton *evt) {
 	return true;
 }
 
-bool visualizer::on_motion_notify_event(GdkEventMotion *evt) {
+bool Visualizer::on_motion_notify_event(GdkEventMotion *evt) {
 	Gtk::DrawingArea::on_motion_notify_event(evt);
 	if (dragging) {
 		// Move the object being dragged.
-		dragging->visualizer_drag(point(xtow(evt->x), ytow(evt->y)));
+		dragging->visualizer_drag(Point(xtow(evt->x), ytow(evt->y)));
 		update();
 	} else if (veldragging) {
 		// Update the dragging velocity.
 #warning IMPLEMENT VELOCITY DRAGGING
 #if 0
-		dragged_velocity = point(xtow(evt->x), ytow(evt->y)) - veldragging->position();
+		dragged_velocity = Point(xtow(evt->x), ytow(evt->y)) - veldragging->position();
 		veldragging->ext_drag(veldragging->position(), dragged_velocity);
 		update();
 #endif
@@ -255,7 +255,7 @@ bool visualizer::on_motion_notify_event(GdkEventMotion *evt) {
 	return true;
 }
 
-bool visualizer::on_leave_notify_event(GdkEventCrossing *evt) {
+bool Visualizer::on_leave_notify_event(GdkEventCrossing *evt) {
 	Gtk::DrawingArea::on_leave_notify_event(evt);
 
 	// Drop the objects and redraw the visualizer.
@@ -266,25 +266,25 @@ bool visualizer::on_leave_notify_event(GdkEventCrossing *evt) {
 	return true;
 }
 
-visualizable::draggable::ptr visualizer::object_at(const point &pos) const {
+Visualizable::Draggable::ptr Visualizer::object_at(const Point &pos) const {
 	// Check if it's a player.
 	for (unsigned int i = 0; i < data.size(); ++i) {
-		const visualizable::robot::ptr bot(data[i]);
+		const Visualizable::Robot::ptr bot(data[i]);
 		if ((bot->position() - pos).len() < 0.09 && bot->visualizer_can_drag() && bot->visualizer_visible()) {
 			return bot;
 		}
 	}
 
 	// Check if it's the ball.
-	const visualizable::ball::ptr the_ball(data.ball());
+	const Visualizable::Ball::ptr the_ball(data.ball());
 	if ((the_ball->position() - pos).len() < 0.03 && the_ball->visualizer_can_drag()) {
 		return the_ball;
 	}
 
-	return visualizable::draggable::ptr();
+	return Visualizable::Draggable::ptr();
 }
 
-void visualizer::compute_scales() {
+void Visualizer::compute_scales() {
 	if (data.field().valid()) {
 		int width = get_width();
 		int height = get_height();

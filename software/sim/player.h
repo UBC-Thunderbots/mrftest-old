@@ -9,25 +9,25 @@
 /**
  * A player, as seen by a simulation engine. An individual engine is expected to
  * subclass this class and return instances of the subclass from its
- * simulator_engine::add_player(bool) method.
+ * SimulatorEngine::add_player(bool) method.
  */
-class player : public byref {
+class SimulatorPlayer : public ByRef {
 	public:
 		/**
-		 * A pointer to a player.
+		 * A pointer to a SimulatorPlayer.
 		 */
-		typedef Glib::RefPtr<player> ptr;
+		typedef Glib::RefPtr<SimulatorPlayer> ptr;
 
 		/**
 		 * \return the position of the player, in metres from field centre
 		 */
-		virtual point position() const = 0;
+		virtual Point position() const = 0;
 
 		/**
 		 * Moves the player.
 		 * \param pos the new position, in metres from field centre
 		 */
-		virtual void position(const point &pos) = 0;
+		virtual void position(const Point &pos) = 0;
 
 		/**
 		 * \return the orientation of the player, in radians from field east
@@ -50,7 +50,7 @@ class player : public byref {
 		 * Sets the velocity of the player.
 		 * \param vel the new velocity, in metres per second field-relative
 		 */
-		virtual void velocity(const point &vel) = 0;
+		virtual void velocity(const Point &vel) = 0;
 
 		/**
 		 * Sets the angular velocity of the player.
@@ -62,7 +62,7 @@ class player : public byref {
 		 * Handles a "radio" packet received from the AI.
 		 * \param packet the packet
 		 */
-		virtual void received(const xbeepacket::RUN_DATA &packet) = 0;
+		virtual void received(const XBeePacketTypes::RUN_DATA &packet) = 0;
 };
 
 #endif

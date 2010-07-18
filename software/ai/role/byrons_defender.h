@@ -5,17 +5,17 @@
 #include "ai/tactic/tactic.h"
 #include <vector>
 
-class byrons_defender : public role {
+class ByronsDefender : public Role {
 	public:
 		//
-		// A pointer to a byrons_defender role.
+		// A pointer to a ByronsDefender role.
 		//
-		typedef Glib::RefPtr<byrons_defender> ptr;
+		typedef Glib::RefPtr<ByronsDefender> ptr;
 
 		//
-		// Constructs a new byrons_defender role.
+		// Constructs a new ByronsDefender role.
 		//
-		byrons_defender(world::ptr world);
+		ByronsDefender(World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -23,13 +23,13 @@ class byrons_defender : public role {
 		void tick();
 
 		//
-		// Handles changes to the robot membership.
+		// Handles changes to the Robot membership.
 		//
 		void robots_changed();
 
 	protected:
 	
-		const world::ptr the_world;
+		const World::ptr the_world;
 
 };
 

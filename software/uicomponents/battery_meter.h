@@ -8,20 +8,20 @@
 //
 // A meter showing the battery level of a robot.
 //
-class battery_meter : public Gtk::ProgressBar, public noncopyable {
+class BatteryMeter : public Gtk::ProgressBar, public NonCopyable {
 	public:
 		//
-		// Constructs a battery_meter with no robot.
+		// Constructs a BatteryMeter with no robot.
 		//
-		battery_meter();
+		BatteryMeter();
 
 		//
 		// Sets which robot this battery meter will monitor.
 		//
-		void set_bot(xbee_drive_bot::ptr bot);
+		void set_bot(XBeeDriveBot::ptr bot);
 
 	private:
-		xbee_drive_bot::ptr robot;
+		XBeeDriveBot::ptr robot;
 		sigc::connection connection;
 		unsigned int last_voltage;
 

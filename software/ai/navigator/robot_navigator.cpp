@@ -15,19 +15,19 @@ namespace {
 	const double ROTATION_STEP = 1.0 * M_PI / 180.0;
 
 	// as required by the rules
-	const double AVOID_BALL_AMOUNT = 0.5 + robot::MAX_RADIUS;
-	double_param AVOID_CONST("navigator: avoid factor const", 1.1, 0.9, 2.0);
-	double_param AVOID_MULT("navigator: avoid factor mult", 0.01, 0.0, 10.0);
-	double_param LOOKAHEAD_MAX("navigator: max distance to look ahead", robot::MAX_RADIUS*5, robot::MAX_RADIUS*1, robot::MAX_RADIUS*20);
+	const double AVOID_BALL_AMOUNT = 0.5 + Robot::MAX_RADIUS;
+	DoubleParam AVOID_CONST("navigator: avoid factor const", 1.1, 0.9, 2.0);
+	DoubleParam AVOID_MULT("navigator: avoid factor mult", 0.01, 0.0, 10.0);
+	DoubleParam LOOKAHEAD_MAX("navigator: max distance to look ahead", Robot::MAX_RADIUS*5, Robot::MAX_RADIUS*1, Robot::MAX_RADIUS*20);
 
-	bool_param ENEMY_AVOID("navigator: avoid Enemy Near Ball", true);
-	bool_param FRIENDLY_AVOID("navigator: avoid Friendly Near Ball", true);
-	double_param NEAR_BALL_THRESHOLD("navigator: distance to be considered near ball", robot::MAX_RADIUS * 5, robot::MAX_RADIUS*1, robot::MAX_RADIUS*20);
+	BoolParam ENEMY_AVOID("navigator: avoid Enemy Near Ball", true);
+	BoolParam FRIENDLY_AVOID("navigator: avoid Friendly Near Ball", true);
+	DoubleParam NEAR_BALL_THRESHOLD("navigator: distance to be considered near ball", Robot::MAX_RADIUS * 5, Robot::MAX_RADIUS*1, Robot::MAX_RADIUS*20);
 
-	bool_param CONSTANT_DRIBBLER("dribble: fixed speed", false);
-	double_param DRIBBLE_SPEED_LOW("dribble: low speed", 0.25, 0.05, 0.80);
-	double_param DRIBBLE_SPEED_RAMP("dribble: ramp speed", 1.00, 0.00, 10.00);
-	double_param DRIBBLE_SPEED_MAX("dribble: max speed", 0.60, 0.10, 0.90);
+	BoolParam CONSTANT_DRIBBLER("dribble: fixed speed", false);
+	DoubleParam DRIBBLE_SPEED_LOW("dribble: low speed", 0.25, 0.05, 0.80);
+	DoubleParam DRIBBLE_SPEED_RAMP("dribble: ramp speed", 1.00, 0.00, 10.00);
+	DoubleParam DRIBBLE_SPEED_MAX("dribble: max speed", 0.60, 0.10, 0.90);
 
 	const double OFFENSIVE_AVOID = 0.2;
 	// hardware dependent dribble parameters
@@ -36,13 +36,13 @@ namespace {
 
 	double robot_set_point[7] = {0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25};
 
-	double_param BOT_0("BOT0 dribble low", 0.25, 0.05, 0.80);
-	double_param BOT_1("BOT1 dribble low", 0.25, 0.05, 0.80);
-	double_param BOT_2("BOT2 dribble low", 0.25, 0.05, 0.80);
-	double_param BOT_3("BOT3 dribble low", 0.25, 0.05, 0.80);
-	double_param BOT_4("BOT4 dribble low", 0.25, 0.05, 0.80);
-	double_param BOT_5("BOT5 dribble low", 0.25, 0.05, 0.80);
-	double_param BOT_6("BOT5 dribble low", 0.25, 0.05, 0.80);
+	DoubleParam BOT_0("BOT0 dribble low", 0.25, 0.05, 0.80);
+	DoubleParam BOT_1("BOT1 dribble low", 0.25, 0.05, 0.80);
+	DoubleParam BOT_2("BOT2 dribble low", 0.25, 0.05, 0.80);
+	DoubleParam BOT_3("BOT3 dribble low", 0.25, 0.05, 0.80);
+	DoubleParam BOT_4("BOT4 dribble low", 0.25, 0.05, 0.80);
+	DoubleParam BOT_5("BOT5 dribble low", 0.25, 0.05, 0.80);
+	DoubleParam BOT_6("BOT5 dribble low", 0.25, 0.05, 0.80);
 
 	inline double get_robot_set_point(int robot_num) {
 		if (CONSTANT_DRIBBLER) return DRIBBLE_SPEED_MAX;
@@ -66,63 +66,63 @@ namespace {
 
 }
 
-robot_navigator::robot_navigator(player::ptr player, world::ptr world) : the_player(player), the_world(world), position_initialized(false), orientation_initialized(false), flags(0) {
+RobotNavigator::RobotNavigator(Player::ptr player, World::ptr world) : the_player(player), the_world(world), position_initialized(false), orientation_initialized(false), flags(0) {
 }
 
-double robot_navigator::get_avoidance_factor() const {
+double RobotNavigator::get_avoidance_factor() const {
 	return AVOID_CONST + AVOID_MULT * the_player->est_velocity().len();
 }
 
-point robot_navigator::force_defense_len(point dst){
-    point temp = dst;
-    temp.x = std::max(the_world->field().friendly_goal().x + the_world->field().defense_area_radius() + robot::MAX_RADIUS, dst.x);
+Point RobotNavigator::force_defense_len(Point dst){
+    Point temp = dst;
+    temp.x = std::max(the_world->field().friendly_goal().x + the_world->field().defense_area_radius() + Robot::MAX_RADIUS, dst.x);
     return temp;
 }
 
-point robot_navigator::force_offense_len(point dst){
-    point temp = dst;
+Point RobotNavigator::force_offense_len(Point dst){
+    Point temp = dst;
     temp.x = std::min(the_world->field().enemy_goal().x - (the_world->field().defense_area_radius()+OFFENSIVE_AVOID), dst.x);
     return temp;
 }
-point robot_navigator::clip_defense_area(point dst){
+Point RobotNavigator::clip_defense_area(Point dst){
 
-  point seg[2];
+  Point seg[2];
   seg[0] = the_player->position();
   seg[1] = dst;
-  point defense_rect[4];
+  Point defense_rect[4];
 
 
   for(int i=0; i<4; i++){
     int a = i/2;
     int b = (i%2) ? -1:1;
-    defense_rect[i] =  point(the_world->field().friendly_goal().x + a*(the_world->field().defense_area_radius() +  robot::MAX_RADIUS),  b*the_world->field().defense_area_stretch()/2.0);
+    defense_rect[i] =  Point(the_world->field().friendly_goal().x + a*(the_world->field().defense_area_radius() +  Robot::MAX_RADIUS),  b*the_world->field().defense_area_stretch()/2.0);
   }
 
   if(line_seg_intersect_rectangle(seg, defense_rect)){
     return force_defense_len(dst);
   }
 	//clip the two quater-circles around the defense area
-	point defense_circA = point(the_world->field().friendly_goal().x, the_world->field().defense_area_stretch()/2.0);
-	point defense_circB = point(the_world->field().friendly_goal().x, -(the_world->field().defense_area_stretch()/2.0));
-	point wantdest = clip_circle(defense_circA, the_world->field().defense_area_radius() + robot::MAX_RADIUS, dst);
-	wantdest = clip_circle(defense_circB, the_world->field().defense_area_radius() +  robot::MAX_RADIUS, wantdest);
+	Point defense_circA = Point(the_world->field().friendly_goal().x, the_world->field().defense_area_stretch()/2.0);
+	Point defense_circB = Point(the_world->field().friendly_goal().x, -(the_world->field().defense_area_stretch()/2.0));
+	Point wantdest = clip_circle(defense_circA, the_world->field().defense_area_radius() + Robot::MAX_RADIUS, dst);
+	wantdest = clip_circle(defense_circB, the_world->field().defense_area_radius() +  Robot::MAX_RADIUS, wantdest);
 	// std::cout << " w" << wantdest << " dA" << defense_circA << " dB" << defense_circB << std::endl;
  
 	return wantdest;
 	    
 }
 
-point robot_navigator::clip_offense_area(point dst){
+Point RobotNavigator::clip_offense_area(Point dst){
 
-  point seg[2];
+  Point seg[2];
   seg[0] = the_player->position();
   seg[1] = dst;
-  point offense_rect[4];
+  Point offense_rect[4];
 
   for(int i=0; i<4; i++){
     int a = i/2;
     int b = (i%2) ? -1:1;
-    offense_rect[i] =  point(the_world->field().enemy_goal().x +OFFENSIVE_AVOID  - a*(the_world->field().defense_area_radius() + OFFENSIVE_AVOID),  b*the_world->field().defense_area_stretch()/2.0);
+    offense_rect[i] =  Point(the_world->field().enemy_goal().x +OFFENSIVE_AVOID  - a*(the_world->field().defense_area_radius() + OFFENSIVE_AVOID),  b*the_world->field().defense_area_stretch()/2.0);
   }
 
   if(line_seg_intersect_rectangle(seg, offense_rect)){
@@ -130,26 +130,26 @@ point robot_navigator::clip_offense_area(point dst){
   }
 
  	//clip the two quater-circles around the defense area
-	point defense_circA = point(the_world->field().enemy_goal().x, the_world->field().defense_area_stretch()/2.0);
-	point defense_circB = point(the_world->field().enemy_goal().x, -(the_world->field().defense_area_stretch()/2.0));
-	point wantdest = clip_circle(defense_circA, the_world->field().defense_area_radius() + OFFENSIVE_AVOID, dst);
+	Point defense_circA = Point(the_world->field().enemy_goal().x, the_world->field().defense_area_stretch()/2.0);
+	Point defense_circB = Point(the_world->field().enemy_goal().x, -(the_world->field().defense_area_stretch()/2.0));
+	Point wantdest = clip_circle(defense_circA, the_world->field().defense_area_radius() + OFFENSIVE_AVOID, dst);
 	wantdest = clip_circle(defense_circB, the_world->field().defense_area_radius() + OFFENSIVE_AVOID, wantdest);
  
   	return wantdest;
   	
 }
 
-point robot_navigator::clip_circle(point circle_centre, double circle_radius, point dst){
+Point RobotNavigator::clip_circle(Point circle_centre, double circle_radius, Point dst){
 
-  		point wantdest = dst;
-		point circle_centre_diff =  the_player->position() -  circle_centre;
-		point ball_dst_diff =  wantdest -  circle_centre;
+  		Point wantdest = dst;
+		Point circle_centre_diff =  the_player->position() -  circle_centre;
+		Point ball_dst_diff =  wantdest -  circle_centre;
 
 		if(circle_centre_diff.len()< circle_radius){
 			if((the_player->position()-wantdest).dot(circle_centre_diff) < 0){
 				//destination goes away from the ball destination is ok
 				//scale the destination so that we stay far enough away from the ball
-				point from_centre =  (wantdest - circle_centre);
+				Point from_centre =  (wantdest - circle_centre);
 
 				//try and head towards the destination
 				//scaling the destination if necessary
@@ -164,7 +164,7 @@ point robot_navigator::clip_circle(point circle_centre, double circle_radius, po
 				wantdest = circle_centre + circle_centre_diff.norm()*circle_radius;
 			}
 		}else {
-			std::vector<point> intersections = lineseg_circle_intersect(circle_centre, circle_radius, the_player->position(), wantdest); 
+			std::vector<Point> intersections = lineseg_circle_intersect(circle_centre, circle_radius, the_player->position(), wantdest); 
 			if(intersections.size()>0){
 				wantdest =  intersections[0];
 			}	
@@ -173,87 +173,87 @@ point robot_navigator::clip_circle(point circle_centre, double circle_radius, po
 
 }
 
-point robot_navigator::clip_playing_area(point wantdest){
-	const field &the_field(the_world->field());
-   return  clip_point(wantdest, point(-the_field.length()/2 + the_field.bounds_margin(), -the_field.width()/2 + the_field.bounds_margin()), point(the_field.length()/2 - the_field.bounds_margin(), the_field.width()/2 - the_field.bounds_margin()));
+Point RobotNavigator::clip_playing_area(Point wantdest){
+	const Field &the_field(the_world->field());
+   return  clip_point(wantdest, Point(-the_field.length()/2 + the_field.bounds_margin(), -the_field.width()/2 + the_field.bounds_margin()), Point(the_field.length()/2 - the_field.bounds_margin(), the_field.width()/2 - the_field.bounds_margin()));
 }
 
-point robot_navigator::get_inbounds_point(point dst){
+Point RobotNavigator::get_inbounds_point(Point dst){
 
-	const ball::ptr the_ball(the_world->ball());
-	const field &the_field(the_world->field());
-	const point balldist = the_ball->position() - the_player->position();
+	const Ball::ptr the_ball(the_world->ball());
+	const Field &the_field(the_world->field());
+	const Point balldist = the_ball->position() - the_player->position();
 	const double distance = (dst - the_player->position()).len();
 
-	point wantdest = dst;
+	Point wantdest = dst;
 
-	if (flags & ai_flags::clip_play_area) {
+	if (flags & AIFlags::CLIP_PLAY_AREA) {
 	  wantdest = clip_playing_area(wantdest);
 	}
 
-	if (flags & ai_flags::stay_own_half) {
-		wantdest.x =  std::min(wantdest.x, -(robot::MAX_RADIUS + ai_util::POS_CLOSE));
+	if (flags & AIFlags::STAY_OWN_HALF) {
+		wantdest.x =  std::min(wantdest.x, -(Robot::MAX_RADIUS + AIUtil::POS_CLOSE));
 	}
 
-	if (flags & ai_flags::avoid_ball_stop) {
-	  point before = wantdest;
+	if (flags & AIFlags::AVOID_BALL_STOP) {
+	  Point before = wantdest;
 		wantdest = clip_circle(the_ball->position(), AVOID_BALL_AMOUNT, wantdest);
 		//don't go out of bounds in order to comply with the rules
 		//just move along in the direction away from the ball while not going out of bounds
 		wantdest = clip_playing_area(wantdest);
 	}
 
-	if (flags & ai_flags::avoid_friendly_defence) {
+	if (flags & AIFlags::AVOID_FRIENDLY_DEFENSE) {
 		//std::cout<<"defense before "<<wantdest.x<<" "<<wantdest.y<<std::endl;
 		wantdest = clip_defense_area(wantdest);
 		//std::cout<<"defense after  "<<wantdest.x<<" "<<wantdest.y<<std::endl;
 	}
 
-	if (flags & ai_flags::avoid_enemy_defence) {
+	if (flags & AIFlags::AVOID_ENEMY_DEFENSE) {
 		wantdest = clip_offense_area(wantdest);
 	}
 
-	if (flags & ai_flags::penalty_kick_friendly) {
-		wantdest.x =  std::min(wantdest.x, the_field.penalty_enemy().x - 0.400 - (robot::MAX_RADIUS + ai_util::POS_CLOSE));
+	if (flags & AIFlags::PENALTY_KICK_FRIENDLY) {
+		wantdest.x =  std::min(wantdest.x, the_field.penalty_enemy().x - 0.400 - (Robot::MAX_RADIUS + AIUtil::POS_CLOSE));
 	}
 
-	if (flags & ai_flags::penalty_kick_enemy) {
-		wantdest.x =  std::max(wantdest.x, the_field.penalty_friendly().x + 0.400 + (robot::MAX_RADIUS + ai_util::POS_CLOSE));
+	if (flags & AIFlags::PENALTY_KICK_ENEMY) {
+		wantdest.x =  std::max(wantdest.x, the_field.penalty_friendly().x + 0.400 + (Robot::MAX_RADIUS + AIUtil::POS_CLOSE));
 	}
 
 	//make sure that we do not ram into the net posts
 	//allow for touching but do not have robots plow through goal net posts	
-	wantdest = clip_circle( the_field.friendly_goal_boundary().first, robot::MAX_RADIUS , wantdest);
-	wantdest = clip_circle( the_field.friendly_goal_boundary().second, robot::MAX_RADIUS , wantdest);
-	wantdest = clip_circle( the_field.enemy_goal_boundary().first, robot::MAX_RADIUS , wantdest);
-	wantdest = clip_circle( the_field.enemy_goal_boundary().second, robot::MAX_RADIUS , wantdest);
+	wantdest = clip_circle( the_field.friendly_goal_boundary().first, Robot::MAX_RADIUS , wantdest);
+	wantdest = clip_circle( the_field.friendly_goal_boundary().second, Robot::MAX_RADIUS , wantdest);
+	wantdest = clip_circle( the_field.enemy_goal_boundary().first, Robot::MAX_RADIUS , wantdest);
+	wantdest = clip_circle( the_field.enemy_goal_boundary().second, Robot::MAX_RADIUS , wantdest);
 
-	point dir = wantdest - the_player->position();
+	Point dir = wantdest - the_player->position();
 	if(dir.x<0.0){
 	  if(the_player->position().y >= std::min(the_field.friendly_goal_boundary().first.y, the_field.friendly_goal_boundary().second.y) &&
 	     the_player->position().y <=  std::max(the_field.friendly_goal_boundary().first.y, the_field.friendly_goal_boundary().second.y)){
-	    wantdest.x = std::max(the_field.friendly_goal_boundary().first.x + robot::MAX_RADIUS, wantdest.x);
+	    wantdest.x = std::max(the_field.friendly_goal_boundary().first.x + Robot::MAX_RADIUS, wantdest.x);
 	  }
 	}
 
 	return wantdest;
 }
 
-void robot_navigator::tick() {
-	const ball::ptr the_ball(the_world->ball());
-	const field &the_field(the_world->field());
+void RobotNavigator::tick() {
+	const Ball::ptr the_ball(the_world->ball());
+	const Field &the_field(the_world->field());
 
-	const point balldist = the_ball->position() - the_player->position();
-	point wantdest = (position_initialized) ? target_position : the_player->position();
+	const Point balldist = the_ball->position() - the_player->position();
+	Point wantdest = (position_initialized) ? target_position : the_player->position();
 	const double wantori = (orientation_initialized) ? target_orientation : atan2(balldist.y, balldist.x);
 	wantdest = get_inbounds_point(wantdest);
 	const double distance = (wantdest - the_player->position()).len();
 
 	bool wantdribble;
-	if (flags & ai_flags::avoid_ball_stop) {
+	if (flags & AIFlags::AVOID_BALL_STOP) {
 		wantdribble = false;
 	} else {
-		wantdribble = need_dribble || ai_util::has_ball(the_world, the_player);
+		wantdribble = need_dribble || AIUtil::has_ball(the_world, the_player);
 	}
 
 	// dribble when it needs to
@@ -261,7 +261,7 @@ void robot_navigator::tick() {
 	if (wantdribble) {
 	  const double dribblespeed = std::min<double>(get_robot_set_point(the_player->pattern_index) + DRIBBLE_SPEED_RAMP * the_player->sense_ball_time(), DRIBBLE_SPEED_MAX);
 		the_player->dribble(dribblespeed);
-	} else if (flags & ai_flags::avoid_ball_stop) {
+	} else if (flags & AIFlags::AVOID_BALL_STOP) {
 		the_player->dribble(0);
 	} else {
 		the_player->dribble(get_robot_set_point(the_player->pattern_index));
@@ -273,16 +273,16 @@ void robot_navigator::tick() {
 	need_dribble = true;
 
 	// at least face the ball
-	if (distance < ai_util::POS_EPS) {
+	if (distance < AIUtil::POS_EPS) {
 		the_player->move(the_player->position(), wantori);
 		flags = 0;
 		return;
 	}
 
-	const point direction = (wantdest - the_player->position()).norm();
+	const Point direction = (wantdest - the_player->position()).norm();
 
-	point leftdirection = direction;
-	point rightdirection = direction;
+	Point leftdirection = direction;
+	Point rightdirection = direction;
 
 	double angle = 0.0;
 
@@ -337,9 +337,9 @@ void robot_navigator::tick() {
 		return;
 	}
 
-	const point selected_direction = (chooseleft) ? leftdirection : rightdirection;
+	const Point selected_direction = (chooseleft) ? leftdirection : rightdirection;
 
-	//if (angle < ai_util::ORI_CLOSE) {
+	//if (angle < AIUtil::ORI_CLOSE) {
 	if (angle == 0) {
 		the_player->move(wantdest, wantori);
 	} else {
@@ -352,21 +352,21 @@ void robot_navigator::tick() {
 }
 
 // TODO: use the util functions
-bool robot_navigator::check_vector(const point& start, const point& dest, const point& direction) const {
+bool RobotNavigator::check_vector(const Point& start, const Point& dest, const Point& direction) const {
 	return check_obstacles(start, dest, direction) == EMPTY;
 }
 
-unsigned int robot_navigator::check_obstacles(const point& start, const point& dest, const point& direction) const {
-	const ball::ptr the_ball(the_world->ball());
-	const point startdest = dest - start;
+unsigned int RobotNavigator::check_obstacles(const Point& start, const Point& dest, const Point& direction) const {
+	const Ball::ptr the_ball(the_world->ball());
+	const Point startdest = dest - start;
 	const double lookahead = std::min<double>(startdest.len(), LOOKAHEAD_MAX);
 
-	if (abs(direction.len() - 1.0) > ai_util::POS_EPS) {
+	if (abs(direction.len() - 1.0) > AIUtil::POS_EPS) {
 		std::cerr << " Direction not normalized! " << direction.len() << std::endl;
 		return ERROR;
 	}
 
-	const team * const teams[2] = { &the_world->friendly, &the_world->enemy };
+	const Team * const teams[2] = { &the_world->friendly, &the_world->enemy };
 	for (unsigned int i = 0; i < 2; ++i) {
 	  bool check_avoid = !ball_obstacle;
 	  if(i==0){
@@ -377,28 +377,28 @@ unsigned int robot_navigator::check_obstacles(const point& start, const point& d
 
 	  if(check_avoid){
 		for (unsigned int j = 0; j < teams[i]->size(); ++j) {
-			const robot::ptr rob(teams[i]->get_robot(j));
+			const Robot::ptr rob(teams[i]->get_robot(j));
 			if (rob == the_player) continue;
-			const point rp = rob->position() - start;
+			const Point rp = rob->position() - start;
 			const double proj = rp.dot(direction);
 			const double perp = sqrt(rp.dot(rp) - proj * proj);
 
 			if (proj <= 0) continue;
 
-			if (proj < lookahead && perp < get_avoidance_factor() * (robot::MAX_RADIUS * 2)) {
+			if (proj < lookahead && perp < get_avoidance_factor() * (Robot::MAX_RADIUS * 2)) {
 				return (i==0) ? OWN_ROBOT:ENEMY_ROBOT;
 			}
 		}
 	  }
 	}
 
-	if (flags & ai_flags::avoid_ball_near) {
-		const point ballvec = the_ball->position() - start;
+	if (flags & AIFlags::AVOID_BALL_NEAR) {
+		const Point ballvec = the_ball->position() - start;
 		double proj = ballvec.dot(direction);
 		if (proj > 0) {
 			double perp = sqrt(ballvec.dot(ballvec) - proj * proj);
 			// double distance to ball
-			if (proj < lookahead && perp < get_avoidance_factor() * (robot::MAX_RADIUS + ball::RADIUS * 2)) {
+			if (proj < lookahead && perp < get_avoidance_factor() * (Robot::MAX_RADIUS + Ball::RADIUS * 2)) {
 				return BALL;
 			}
 		}
@@ -408,22 +408,22 @@ unsigned int robot_navigator::check_obstacles(const point& start, const point& d
 }
 
 
-bool robot_navigator::check_ball(const point& start, const point& dest, const point& direction) const {
-	const ball::ptr the_ball(the_world->ball());
-	const point startdest = dest - start;
+bool RobotNavigator::check_ball(const Point& start, const Point& dest, const Point& direction) const {
+	const Ball::ptr the_ball(the_world->ball());
+	const Point startdest = dest - start;
 	const double lookahead = std::min<double>(startdest.len(), LOOKAHEAD_MAX);
 
-	if (abs(direction.len() - 1.0) > ai_util::POS_EPS) {
+	if (abs(direction.len() - 1.0) > AIUtil::POS_EPS) {
 		std::cerr << " Direction not normalized! " << direction.len() << std::endl;
 		return false;
 	}
 
-		const point ballvec = the_ball->position() - start;
+		const Point ballvec = the_ball->position() - start;
 		double proj = ballvec.dot(direction);
 		if (proj > 0) {
 			double perp = sqrt(ballvec.dot(ballvec) - proj * proj);
 			// double distance to ball
-			if (proj < lookahead && perp < get_avoidance_factor() * (robot::MAX_RADIUS + ball::RADIUS * 2)) {
+			if (proj < lookahead && perp < get_avoidance_factor() * (Robot::MAX_RADIUS + Ball::RADIUS * 2)) {
 				return true;
 			}
 		}

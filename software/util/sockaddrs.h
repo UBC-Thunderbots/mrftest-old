@@ -6,7 +6,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
-union sockaddrs {
+union SockAddrs {
 	sockaddr sa;
 	sockaddr_in in;
 	sockaddr_un un;

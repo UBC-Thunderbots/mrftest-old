@@ -15,27 +15,27 @@ Controller to exploit old broken simulator
 This class is more or less obsolete, however, current use could 
 result in much needed hilarity with our current robots
 */
-class jons_controller : public robot_controller {
+class JonsController : public RobotController {
 	public:
 
-		void move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity);
+		void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 
 		void clear();
 
-		robot_controller_factory &get_factory() const;
+		RobotControllerFactory &get_factory() const;
 
-		jons_controller(player::ptr plr);
+		JonsController(Player::ptr plr);
 	private:
-		player::ptr plr;
+		Player::ptr plr;
 	
 	protected:
-		gpc X_controller;
-		gpc Y_controller;
-		gpc T_controller;
+		GPC X_controller;
+		GPC Y_controller;
+		GPC T_controller;
 		
 		unsigned int learning_time;
 		
-		point old_control;
+		Point old_control;
 		double old_ang;
 		double max_acc;
 		double max_vel;

@@ -9,12 +9,12 @@
 /**
  * A collection of data that can be visualized.
  */
-class visualizable : public noncopyable {
+class Visualizable : public NonCopyable {
 	public:
 		/**
-		 * An encoding of a colour.
+		 * An encoding of the colour of a robot.
 		 */
-		class colour {
+		class RobotColour {
 			public:
 				/**
 				 * The red component, from 0 to 1.
@@ -32,7 +32,7 @@ class visualizable : public noncopyable {
 				double blue;
 
 				/**
-				 * Constructs a new colour.
+				 * Constructs a new RobotColour.
 				 *
 				 * \param red the red component
 				 *
@@ -40,17 +40,17 @@ class visualizable : public noncopyable {
 				 *
 				 * \param blue the blue component
 				 */
-				colour(double red, double green, double blue) : red(red), green(green), blue(blue) {
+				RobotColour(double red, double green, double blue) : red(red), green(green), blue(blue) {
 				}
 		};
 
 		/**
 		 * A collection of dimensions describing the shape of the field.
 		 */
-		class field : public noncopyable {
+		class Field : public NonCopyable {
 			public:
 				/**
-				 * \return true if the geometry data in the field is valid, or
+				 * \return true if the geometry data in the Field is valid, or
 				 * false if not
 				 */
 				virtual bool valid() const = 0;
@@ -101,7 +101,7 @@ class visualizable : public noncopyable {
 				virtual double defense_area_stretch() const = 0;
 
 				/**
-				 * Fired when any of the field parameters may have changed.
+				 * Fired when any of the Field parameters may have changed.
 				 */
 				mutable sigc::signal<void> signal_changed;
 		};
@@ -109,12 +109,12 @@ class visualizable : public noncopyable {
 		/**
 		 * An object that may be able to be dragged by the user.
 		 */
-		class draggable : public byref {
+		class Draggable : public ByRef {
 			public:
 				/**
-				 * A pointer to a draggable.
+				 * A pointer to a Draggable.
 				 */
-				typedef Glib::RefPtr<draggable> ptr;
+				typedef Glib::RefPtr<Draggable> ptr;
 
 				/**
 				 * \return true if this object can actually be dragged, or false
@@ -127,63 +127,63 @@ class visualizable : public noncopyable {
 				 *
 				 * \param pos the position to drag to.
 				 */
-				virtual void visualizer_drag(const point &pos) = 0;
+				virtual void visualizer_drag(const Point &pos) = 0;
 		};
 
 		/**
-		 * A ball that can be drawn by the visualizer.
+		 * A ball that can be drawn by the Visualizer.
 		 */
-		class ball : public draggable {
+		class Ball : public Draggable {
 			public:
 				/**
-				 * A pointer to a ball.
+				 * A pointer to a Ball.
 				 */
-				typedef Glib::RefPtr<ball> ptr;
+				typedef Glib::RefPtr<Ball> ptr;
 
 				/**
 				 * \return the position of the ball.
 				 */
-				virtual point position() const = 0;
+				virtual Point position() const = 0;
 
 				/**
 				 * \return the velocity of the ball.
 				 */
-				virtual point velocity() const = 0;
+				virtual Point velocity() const = 0;
 		};
 
 		/**
-		 * A robot that can be drawn by the visualizer.
+		 * A Robot that can be drawn by the Visualizer.
 		 */
-		class robot : public draggable {
+		class Robot : public Draggable {
 			public:
 				/**
-				 * A pointer to a robot.
+				 * A pointer to a Robot.
 				 */
-				typedef Glib::RefPtr<robot> ptr;
+				typedef Glib::RefPtr<Robot> ptr;
 
 				/**
-				 * \return The position of the robot
+				 * \return The position of the Robot
 				 */
-				virtual point position() const = 0;
+				virtual Point position() const = 0;
 
 				/**
-				 * \return The orientation of the robot
+				 * \return The orientation of the Robot
 				 */
 				virtual double orientation() const = 0;
 
 				/**
-				 * \return true if the robot is visible on the field, or false
+				 * \return true if the Robot is visible on the field, or false
 				 * if not
 				 */
 				virtual bool visualizer_visible() const = 0;
 
 				/**
-				 * \return The colour of the robot
+				 * \return The colour of the Robot
 				 */
-				virtual visualizable::colour visualizer_colour() const = 0;
+				virtual Visualizable::RobotColour visualizer_colour() const = 0;
 
 				/**
-				 * \return The text to display over the robot
+				 * \return The text to display over the Robot
 				 */
 				virtual Glib::ustring visualizer_label() const = 0;
 
@@ -194,9 +194,9 @@ class visualizable : public noncopyable {
 				virtual bool has_destination() const = 0;
 
 				/**
-				 * \return The current destination of the robot
+				 * \return The current destination of the Robot
 				 */
-				virtual point destination() const = 0;
+				virtual Point destination() const = 0;
 		};
 
 		/**
@@ -207,12 +207,12 @@ class visualizable : public noncopyable {
 		/**
 		 * \return The field
 		 */
-		virtual const visualizable::field &field() const = 0;
+		virtual const Visualizable::Field &field() const = 0;
 
 		/**
 		 * \return The ball
 		 */
-		virtual visualizable::ball::ptr ball() const = 0;
+		virtual Visualizable::Ball::ptr ball() const = 0;
 
 		/**
 		 * \return The number of robots.
@@ -220,33 +220,33 @@ class visualizable : public noncopyable {
 		virtual std::size_t size() const = 0;
 
 		/**
-		 * \param index the index of the robot to retreive
+		 * \param index the index of the Robot to retreive
 		 *
-		 * \return The robot
+		 * \return The Robot
 		 */
-		virtual visualizable::robot::ptr operator[](unsigned int index) const = 0;
+		virtual Visualizable::Robot::ptr operator[](unsigned int index) const = 0;
 };
 
 /**
  * Displays a view of the field.
  */
-class visualizer : public Gtk::DrawingArea, public noncopyable {
+class Visualizer : public Gtk::DrawingArea, public NonCopyable {
 	public:
 		/**
-		 * Constructs a new visualizer.
+		 * Constructs a new Visualizer.
 		 *
-		 * \param[in] data the visualizable data source to display.
+		 * \param[in] data the Visualizable data source to display.
 		 */
-		visualizer(const visualizable &data);
+		Visualizer(const Visualizable &data);
 
 		/**
-		 * Redraws the visualizer.
+		 * Redraws the Visualizer.
 		 */
 		void update();
 
 		/**
 		 * \return a context for drawing on the overlay surface that renders on
-		 * top of the visualizer.
+		 * top of the Visualizer.
 		 */
 		Cairo::RefPtr<Cairo::Context> overlay() const;
 
@@ -256,12 +256,12 @@ class visualizer : public Gtk::DrawingArea, public noncopyable {
 		mutable sigc::signal<void> signal_overlay_changed;
 
 	private:
-		const visualizable &data;
+		const Visualizable &data;
 		double scale;
 		double xtranslate, ytranslate;
 		sigc::connection update_connection;
-		visualizable::draggable::ptr dragging;
-		visualizable::draggable::ptr veldragging;
+		Visualizable::Draggable::ptr dragging;
+		Visualizable::Draggable::ptr veldragging;
 		Cairo::RefPtr<Cairo::ImageSurface> overlay_;
 
 		void on_show();
@@ -282,7 +282,7 @@ class visualizer : public Gtk::DrawingArea, public noncopyable {
 		double ytow(double y) __attribute__((warn_unused_result)) { return -(y - ytranslate) / scale; }
 		double atow(double r) __attribute__((warn_unused_result)) { return -r; }
 		double dtow(double d) __attribute__((warn_unused_result)) { return d / scale; }
-		visualizable::draggable::ptr object_at(const point &pos) const;
+		Visualizable::Draggable::ptr object_at(const Point &pos) const;
 };
 
 #endif

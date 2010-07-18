@@ -2,43 +2,43 @@
 #include <ode/ode.h>
 
 //
-// The back-end behind an ODE ball object.
+// The back-end behind an ODE SimulatorBall object.
 // 
 //
-class ballODE : public ball {
+class BallODE : public SimulatorBall {
 	public:
 
-			typedef Glib::RefPtr<ballODE> ptr;
+			typedef Glib::RefPtr<BallODE> ptr;
 			dWorldID world;
 			dBodyID body;
 			dGeomID ballGeom;
 			dMass m;
 			
 			
-			ballODE(dWorldID dworld, dSpaceID dspace, double radius   = 0.042672/2, double mass = 0.046);
+			BallODE(dWorldID dworld, dSpaceID dspace, double radius   = 0.042672/2, double mass = 0.046);
 			
-			/*ballODE(dWorldID dworld, dSpaceID dspace, double radius);
+			/*BallODE(dWorldID dworld, dSpaceID dspace, double radius);
 			
-			ballODE(dWorldID dworld, dSpaceID dspace);
+			BallODE(dWorldID dworld, dSpaceID dspace);
 			*/
-			~ballODE();
+			~BallODE();
 
-			point position() const;
+			Point position() const;
 
-			point velocity() const;
+			Point velocity() const;
 
-			point acceleration() const;
+			Point acceleration() const;
 			double get_height() const;
 
 			double getRadius();
 
-			void position(const point &pos);
-			void velocity(const point &vel);
+			void position(const Point &pos);
+			void velocity(const Point &vel);
 
 			bool in_goal();
 
 	private:
-			point the_position, the_velocity;
+			Point the_position, the_velocity;
 			 double dradius;
 			
 

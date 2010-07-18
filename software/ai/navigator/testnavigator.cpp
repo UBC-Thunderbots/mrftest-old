@@ -1,22 +1,22 @@
 #include "ai/navigator/testnavigator.h"
 #include <iostream>
 #include <cstdlib>
-testnavigator::testnavigator(player::ptr player, world::ptr world) : 
+TestNavigator::TestNavigator(Player::ptr player, World::ptr world) : 
   the_player(player), the_world(world), destInitialized(false), outOfBoundsMargin(the_world->field().width() / 20.0),
   maxLookahead(1.0), aggression_factor(2)
 {
 
 }
 
-void testnavigator::tick() {
-  const field &the_field(the_world->field());
-  const ball::ptr the_ball(the_world->ball());
+void TestNavigator::tick() {
+  const Field &the_field(the_world->field());
+  const Ball::ptr the_ball(the_world->ball());
 
   //tell it which way to go
   if(destInitialized)
     {
       
-      point nowDest;
+      Point nowDest;
 
       // if we have the ball, adjust our destination to ensure that we
       // don't take the ball out of bounds, otherwise, head to our
@@ -26,9 +26,9 @@ void testnavigator::tick() {
 	{
      
 	  nowDest = clip_point(currDest,
-			       point(-the_field.length()/2 + outOfBoundsMargin,
+			       Point(-the_field.length()/2 + outOfBoundsMargin,
 				     -the_field.width()/2 + outOfBoundsMargin),
-			       point(the_field.length()/2 - outOfBoundsMargin,
+			       Point(the_field.length()/2 - outOfBoundsMargin,
 				     the_field.width()/2 - outOfBoundsMargin));
 	}
       else
@@ -36,7 +36,7 @@ void testnavigator::tick() {
 	  nowDest = currDest;
 	}
 
-      point direction = nowDest - the_player->position();
+      Point direction = nowDest - the_player->position();
 
       if (direction.len() < 0.01)
 	{
@@ -46,8 +46,8 @@ void testnavigator::tick() {
       double dirlen = direction.len();
       direction = direction / direction.len();
 
-      point leftdirection = direction;
-      point rightdirection = direction;
+      Point leftdirection = direction;
+      Point rightdirection = direction;
 
       double rotationangle = 0.0;
 
@@ -93,12 +93,12 @@ void testnavigator::tick() {
       undiverted = rotationangle < 1e-5;
       if(stop)
 	{
-	  point balldest = the_ball->position() - the_player->position();
+	  Point balldest = the_ball->position() - the_player->position();
 	  the_player->move(the_player->position(), atan2(balldest.y, balldest.x));
 	}
       else
 	{
-	  point selected_direction;
+	  Point selected_direction;
 	  if (chooseleft)
 	    {
 	      // select the left vector
@@ -112,31 +112,31 @@ void testnavigator::tick() {
 	  
 	  if (undiverted)
 	    {
-	      point balldest = the_ball->position() - the_player->position();
+	      Point balldest = the_ball->position() - the_player->position();
 	      the_player->move(nowDest, atan2(balldest.y, balldest.x));
 	    }
 	  else
 	    {
 	      // maximum warp
-	      point balldest = the_ball->position() - the_player->position();
+	      Point balldest = the_ball->position() - the_player->position();
 	      the_player->move(the_player->position() + selected_direction*std::min(dirlen,1.0), atan2(balldest.y, balldest.x));
 	    }
 	}
     }
 }
 
-void testnavigator::set_point(const point &destination) {
+void TestNavigator::set_point(const Point &destination) {
   //set new destinatin point
   destInitialized = true;
   /*currDest = clip_point(destination,
-			point(-the_field->length()/2,-the_field->width()/2),
-			point(the_field->length()/2,the_field->width()/2));*/
+			Point(-the_field->length()/2,-the_field->width()/2),
+			Point(the_field->length()/2,the_field->width()/2));*/
   currDest = destination;
 }
 
-point testnavigator::clip_point(point p, point bound1, point bound2)
+Point TestNavigator::clip_point(Point p, Point bound1, Point bound2)
 {
-  point rv;
+  Point rv;
 
   double minx,maxx,miny,maxy;
 
@@ -191,23 +191,23 @@ point testnavigator::clip_point(point p, point bound1, point bound2)
   return rv;
 }
 
-bool testnavigator::check_vector(point start, point dest, point direction)
+bool TestNavigator::check_vector(Point start, Point dest, Point direction)
 {
 
-  point startdest = dest - start;
+  Point startdest = dest - start;
 
   double lookahead = std::min(startdest.len(), maxLookahead);
 
-  const team * const teams[2] = { &the_world->friendly, &the_world->enemy };
+  const Team * const teams[2] = { &the_world->friendly, &the_world->enemy };
   for (unsigned int i = 0; i < 2; ++i)
     {
       for (unsigned int j = 0; j < teams[i]->size(); ++j)
 	{
-	  const robot::ptr rob(teams[i]->get_robot(j));
+	  const Robot::ptr rob(teams[i]->get_robot(j));
 	  
 	  if(rob != this->the_player)
 	    {
-	      point rp = rob->position() - start;
+	      Point rp = rob->position() - start;
 	      //rp/= rp.len();
 	      double len = rp.dot(direction);
 
@@ -216,7 +216,7 @@ bool testnavigator::check_vector(point start, point dest, point direction)
 		{
 		  double d = sqrt(rp.dot(rp) - len*len);
 	      
-		  if (len < lookahead && d < 2*aggression_factor*robot::MAX_RADIUS)
+		  if (len < lookahead && d < 2*aggression_factor*Robot::MAX_RADIUS)
 		    {
 		      //std::cout << "Checked FALSE" << std::endl;
 		      return false;

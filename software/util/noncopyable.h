@@ -4,24 +4,24 @@
 //
 // An object that should not be copied or assigned.
 //
-class noncopyable {
+class NonCopyable {
 	protected:
 		//
 		// Noncopyable objects can still be constructed.
 		//
-		noncopyable() {
+		NonCopyable() {
 		}
 
 	private:
 		//
 		// Prevents objects from being copied.
 		//
-		noncopyable(const noncopyable &copyref);
+		NonCopyable(const NonCopyable &copyref);
 
 		//
 		// Prevents objects from being assigned to one another.
 		//
-		noncopyable &operator=(const noncopyable &assgref);
+		NonCopyable &operator=(const NonCopyable &assgref);
 };
 
 #endif

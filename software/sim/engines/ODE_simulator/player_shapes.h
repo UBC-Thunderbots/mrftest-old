@@ -3,7 +3,7 @@
 #include "geom/point.h"
 #include <cmath>
 
-namespace player_shape{
+namespace PlayerShape{
 
 	const unsigned int CHOPPED_CIRCLE_APPROX = 50;
 	const unsigned int NUM_POINTS = CHOPPED_CIRCLE_APPROX*2;//number of points that define this convex hull
@@ -14,13 +14,13 @@ namespace player_shape{
 	unsigned int polygons[PLANE_COUNT + PLANE_COUNT*4 + 2*CHOPPED_CIRCLE_APPROX];
 	const unsigned int POINT_COUNT = 100;
 
-	std::vector<point> get_chopped_circle(double radius, double face_width){
+	std::vector<Point> get_chopped_circle(double radius, double face_width){
 
 		double face_depth = sqrt(radius*radius - (face_width/2.0)*(face_width/2.0));
-		std::vector<point> ans;
+		std::vector<Point> ans;
 
-		point first(face_depth, face_width/2.0);
-		point last(face_depth, -face_width/2.0);
+		Point first(face_depth, face_width/2.0);
+		Point last(face_depth, -face_width/2.0);
 
 		double angle_face = acos(first.cross(last)/(radius*radius));
 		double angle_step = (2*M_PI - angle_face)/(CHOPPED_CIRCLE_APPROX-1);
@@ -34,14 +34,14 @@ namespace player_shape{
 	}
 
 	dGeomID get_player_geom(dSpaceID space, double height, double radius, double face_width){
-		std::vector<point> circle = get_chopped_circle(radius, face_width);
+		std::vector<Point> circle = get_chopped_circle(radius, face_width);
 		//fill in the planes
 		bool top= true;
 	
 		//fill in all of the planes
 		for(unsigned int i=0; i < PLANE_COUNT; i++){
 			if(i<circle.size()){//either the face or the round part of the robot	
-				point temp = circle[i] + circle[(i+1)%circle.size()];
+				Point temp = circle[i] + circle[(i+1)%circle.size()];
 				temp/=2;
 				double len = temp.len();
 				temp = temp.norm();
@@ -67,7 +67,7 @@ namespace player_shape{
 		//fill in the points
 		for(unsigned int i=0; i<NUM_POINTS; i++){
 			unsigned int circle_pt = i%circle.size();
-			point point_2d = circle[circle_pt];
+			Point point_2d = circle[circle_pt];
 			points[3*i] = point_2d.x;
 			points[3*i+1] = point_2d.y;
 			

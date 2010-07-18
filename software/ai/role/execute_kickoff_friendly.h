@@ -7,19 +7,19 @@
 /**
  * Executes the kickoff for the kicking robot.
  */
-class execute_kickoff_friendly : public role {
+class ExecuteKickoffFriendly : public Role {
 	public:
 		/**
-		 * A pointer to a execute_kickoff_friendly role.
+		 * A pointer to a ExecuteKickoffFriendly Role.
 		 */
-		typedef Glib::RefPtr<execute_kickoff_friendly> ptr;
+		typedef Glib::RefPtr<ExecuteKickoffFriendly> ptr;
 
 		/**
-		 * Constructs a new execute_kickoff_friendly role.
+		 * Constructs a new ExecuteKickoffFriendly Role.
 		 *
 		 * \param world the world
 		 */
-		execute_kickoff_friendly(world::ptr world);
+		ExecuteKickoffFriendly(World::ptr world);
 
 		//
 		// True if kicker has made contact with the ball.
@@ -53,8 +53,8 @@ class execute_kickoff_friendly : public role {
 		void robots_changed();
 
 	private:
-		const world::ptr the_world;
-		std::vector<tactic::ptr> the_tactics;
+		const World::ptr the_world;
+		std::vector<Tactic::ptr> the_tactics;
 };
 
 #endif

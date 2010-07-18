@@ -44,10 +44,10 @@ namespace {
 	}
 }
 
-serial_port::serial_port() : port("/dev/xbee", O_RDWR | O_NOCTTY) {
+SerialPort::SerialPort() : port("/dev/xbee", O_RDWR | O_NOCTTY) {
 }
 
-void serial_port::configure_port() {
+void SerialPort::configure_port() {
 	// Try to configure the custom divisor to give 250,000 baud.
 	serial_struct cur_serinfo, new_serinfo;
 	if (ioctl(port, TIOCGSERIAL, &cur_serinfo) < 0)
@@ -87,10 +87,10 @@ void serial_port::configure_port() {
 	}
 
 	// Register for readability notifications.
-	Glib::signal_io().connect(sigc::mem_fun(this, &serial_port::on_readable), port, Glib::IO_IN);
+	Glib::signal_io().connect(sigc::mem_fun(this, &SerialPort::on_readable), port, Glib::IO_IN);
 }
 
-void serial_port::send(iovec *iov, std::size_t iovcnt) {
+void SerialPort::send(iovec *iov, std::size_t iovcnt) {
 	while (iovcnt) {
 		ssize_t written = writev(port, iov, static_cast<int>(iovcnt));
 		if (written < 0) {
@@ -112,7 +112,7 @@ void serial_port::send(iovec *iov, std::size_t iovcnt) {
 	}
 }
 
-bool serial_port::on_readable(Glib::IOCondition) {
+bool SerialPort::on_readable(Glib::IOCondition) {
 	uint8_t buffer[256];
 	ssize_t ret = read(port, buffer, sizeof(buffer));
 	if (ret < 0)

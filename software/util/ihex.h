@@ -7,7 +7,7 @@
 //
 // An Intel HEX file.
 //
-class intel_hex {
+class IntelHex {
 	public:
 		//
 		// Adds a section descriptor.
@@ -27,9 +27,9 @@ class intel_hex {
 		}
 
 	private:
-		class section {
+		class Section {
 			public:
-				section(unsigned int start, unsigned int length) : start_(start), length_(length) {
+				Section(unsigned int start, unsigned int length) : start_(start), length_(length) {
 				}
 
 				unsigned int start() const {
@@ -44,7 +44,7 @@ class intel_hex {
 				unsigned int start_, length_;
 		};
 
-		std::vector<section> the_sections;
+		std::vector<Section> the_sections;
 		std::vector<std::vector<unsigned char> > the_data;
 };
 

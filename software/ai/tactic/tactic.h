@@ -6,18 +6,18 @@
 #include <glibmm.h>
 
 /**
- * A tactic controls the operation of one single player doing a very specific activity.
+ * A Tactic controls the operation of one single player doing a very specific activity.
  * Tactics are NOT persistent.
  */
-class tactic : public byref {
+class Tactic : public ByRef {
 	public:
 		/**
-		 * A pointer to a tactic.
+		 * A pointer to a Tactic.
 		 */
-		typedef Glib::RefPtr<tactic> ptr;
+		typedef Glib::RefPtr<Tactic> ptr;
 
 		/**
-		 * Runs the tactic for one time tick. It is expected that the tactic
+		 * Runs the Tactic for one time tick. It is expected that the Tactic
 		 * will examine the robot for which it is responsible, determine how it
 		 * wishes that robot to move, and then do one of the following:
 		 *
@@ -27,9 +27,9 @@ class tactic : public byref {
 		 * before this function ends. OR
 		 *
 		 * More complex tactics can be layered on top of another tactic, call
-		 * tactic::set_flags() and then tactic::tick() on that lower-level tactic.
+		 * Tactic::set_flags() and then Tactic::tick() on that lower-level Tactic.
 		 *
-		 * Tactic should NEVER call player::move() directly because doing so 
+		 * Tactic should NEVER call Player::move() directly because doing so 
 		 * will ignore any flags that are set.
 		 */
 		virtual void tick() = 0;
@@ -44,14 +44,14 @@ class tactic : public byref {
 		}
 
 	protected:
-		explicit tactic(const player::ptr& player) : flags(0), the_player(player) {
+		explicit Tactic(const Player::ptr& player) : flags(0), the_player(player) {
 		}
 
-		explicit tactic(const player::ptr& player, const unsigned int& f) : flags(f), the_player(player) {
+		explicit Tactic(const Player::ptr& player, const unsigned int& f) : flags(f), the_player(player) {
 		}
 
 		unsigned int flags;
-		const player::ptr the_player;
+		const Player::ptr the_player;
 };
 
 #endif

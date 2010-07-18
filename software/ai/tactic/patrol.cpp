@@ -6,23 +6,23 @@
 
 namespace {
 
-	class patrol_state : public player::state {
+	class PatrolState : public Player::State {
 		public:
-			typedef Glib::RefPtr<patrol_state> ptr;
-			patrol_state(const int& p) : phase(p) {
+			typedef Glib::RefPtr<PatrolState> ptr;
+			PatrolState(const int& p) : phase(p) {
 			}
 			int phase;
 	};
 
 }
 
-patrol::patrol(player::ptr player, world::ptr world) : tactic(player), navi(player, world), target_initialized(false) {
+Patrol::Patrol(Player::ptr player, World::ptr world) : Tactic(player), navi(player, world), target_initialized(false) {
 }
 
-patrol::patrol(player::ptr player, world::ptr world, const unsigned int& flags, const point& t1, const point& t2) : tactic(player, flags), navi(player, world), target1(t1), target2(t2), target_initialized(true) {
+Patrol::Patrol(Player::ptr player, World::ptr world, const unsigned int& flags, const Point& t1, const Point& t2) : Tactic(player, flags), navi(player, world), target1(t1), target2(t2), target_initialized(true) {
 }
 
-void patrol::tick() {
+void Patrol::tick() {
 	navi.set_flags(flags);
 
 	if (!target_initialized) {
@@ -32,15 +32,15 @@ void patrol::tick() {
 	}
 
 	// This state does not require any validation.
-	patrol_state::ptr state(patrol_state::ptr::cast_dynamic(the_player->get_state(typeid(*this))));
+	PatrolState::ptr state(PatrolState::ptr::cast_dynamic(the_player->get_state(typeid(*this))));
 	if (!state) {
-		state = patrol_state::ptr(new patrol_state(0));
+		state = PatrolState::ptr(new PatrolState(0));
 		the_player->set_state(typeid(*this), state);
 	}
 
-	if ((the_player->position() - target1).lensq() <= ai_util::POS_CLOSE) {
+	if ((the_player->position() - target1).lensq() <= AIUtil::POS_CLOSE) {
 		state->phase = 1;
-	} else if ((the_player->position() - target2).lensq() <= ai_util::POS_CLOSE) {
+	} else if ((the_player->position() - target2).lensq() <= AIUtil::POS_CLOSE) {
 		state->phase = 0;
 	}
 

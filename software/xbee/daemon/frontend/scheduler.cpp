@@ -17,19 +17,19 @@ namespace {
 	const unsigned int TIMEOUT = 75;
 }
 
-scheduler::scheduler(class daemon &daemon) : daemon(daemon), sent_count(0), next_type(NEXT_QUEUED), last_feedback_index(0) {
-	daemon.backend.signal_received.connect(sigc::mem_fun(this, &scheduler::on_receive));
+XBeeScheduler::XBeeScheduler(class XBeeDaemon &daemon) : daemon(daemon), sent_count(0), next_type(NEXT_QUEUED), last_feedback_index(0) {
+	daemon.backend.signal_received.connect(sigc::mem_fun(this, &XBeeScheduler::on_receive));
 	daemon.shm->run_data_interval.tv_sec = 1;
 	daemon.shm->run_data_interval.tv_nsec = 0;
 	timespec_now(last_rundata_timestamp);
 }
 
-void scheduler::queue(request::ptr req) {
+void XBeeScheduler::queue(XBeeRequest::ptr req) {
 	pending.push(req);
 	push();
 }
 
-void scheduler::push() {
+void XBeeScheduler::push() {
 	// If packets are outstanding, do nothing. We will be signalled when a
 	// response arrives or timeout expires, at which point we can repush.
 	if (sent_count > 0) {
@@ -38,7 +38,7 @@ void scheduler::push() {
 
 	// Compute whether there is any data available to send of each type.
 	bool has_queued = !pending.empty();
-	bool has_bulk = exists_if(daemon.run_data_index_reverse, daemon.run_data_index_reverse + xbeepacket::MAX_DRIVE_ROBOTS, std::bind2nd(std::not_equal_to<uint64_t>(), UINT64_C(0)));
+	bool has_bulk = exists_if(daemon.run_data_index_reverse, daemon.run_data_index_reverse + XBeePacketTypes::MAX_DRIVE_ROBOTS, std::bind2nd(std::not_equal_to<uint64_t>(), UINT64_C(0)));
 
 	// If there is no data at all to send, do nothing.
 	if (!has_queued && !has_bulk) {
@@ -54,11 +54,11 @@ void scheduler::push() {
 
 	// Determine what to do next.
 	if (next_type == NEXT_QUEUED) {
-		// We should send some queued data. Dequeue a request.
-		request::ptr req = pending.front();
+		// We should send some queued data. Dequeue a XBeeRequest.
+		XBeeRequest::ptr req = pending.front();
 		pending.pop();
 
-		// If the request will expect a response, then record it as outstanding
+		// If the XBeeRequest will expect a response, then record it as outstanding
 		// and register a timeout so we're sure delivery is successful at least
 		// over the local USB, to the local radio. We will then do nothing
 		// further.
@@ -67,7 +67,7 @@ void scheduler::push() {
 			assert(frame);
 			assert(!sent[frame].data);
 			sent[frame].data = req;
-			sent[frame].timeout_connection = Glib::signal_timeout().connect(sigc::bind(sigc::mem_fun(this, &scheduler::on_request_timeout), frame), TIMEOUT);
+			sent[frame].timeout_connection = Glib::signal_timeout().connect(sigc::bind(sigc::mem_fun(this, &XBeeScheduler::on_request_timeout), frame), TIMEOUT);
 			++sent_count;
 		}
 
@@ -81,7 +81,7 @@ void scheduler::push() {
 		next_type = NEXT_BULK;
 
 		// If we will be getting a response, do nothing yet; we should wait for
-		// this request to be complete before we move on and push more data. On
+		// this XBeeRequest to be complete before we move on and push more data. On
 		// the other hand, if we will not be getting any response anyway, we
 		// can't possibly know when the packet is "finished" and thus when we
 		// can move on to the next packet... so we might as well do it right
@@ -92,20 +92,20 @@ void scheduler::push() {
 	} else {
 		// We should send a bulk packet. Assemble the packet.
 		struct __attribute__((packed)) BULK_PACKET {
-			xbeepacket::TRANSMIT16_HDR hdr;
+			XBeePacketTypes::TRANSMIT16_HDR hdr;
 			uint8_t pad;
-			xbeepacket::RUN_DATA data[xbeepacket::MAX_DRIVE_ROBOTS];
+			XBeePacketTypes::RUN_DATA data[XBeePacketTypes::MAX_DRIVE_ROBOTS];
 			uint8_t pad2;
 		} packet;
 		unsigned int max_index = 0;
-		for (unsigned int i = 0; i < xbeepacket::MAX_DRIVE_ROBOTS; ++i) {
+		for (unsigned int i = 0; i < XBeePacketTypes::MAX_DRIVE_ROBOTS; ++i) {
 			if (daemon.run_data_index_reverse[i]) {
 				max_index = i;
 			}
 		}
-		bool eligible_for_feedback[xbeepacket::MAX_DRIVE_ROBOTS];
+		bool eligible_for_feedback[XBeePacketTypes::MAX_DRIVE_ROBOTS];
 		{
-			rwlock_scoped_acquire acq(&daemon.shm->lock, &pthread_rwlock_wrlock);
+			RWLockScopedAcquire acq(&daemon.shm->lock, &pthread_rwlock_wrlock);
 			timespec now;
 			timespec_now(now);
 			timespec run_data_interval;
@@ -119,9 +119,9 @@ void scheduler::push() {
 				timespec diff;
 				timespec_sub(now, daemon.shm->frames[i].timestamp, diff);
 				bool timeout = timespec_cmp(diff, threshold) > 0;
-				if (daemon.run_data_index_reverse[i] && (daemon.shm->frames[i].run_data.flags & xbeepacket::RUN_FLAG_RUNNING)) {
+				if (daemon.run_data_index_reverse[i] && (daemon.shm->frames[i].run_data.flags & XBeePacketTypes::RUN_FLAG_RUNNING)) {
 					if (timeout) {
-						packet.data[i].flags = xbeepacket::RUN_FLAG_RUNNING;
+						packet.data[i].flags = XBeePacketTypes::RUN_FLAG_RUNNING;
 						packet.data[i].dribbler_speed = 0;
 						packet.data[i].chick_power = 0;
 					} else {
@@ -129,12 +129,12 @@ void scheduler::push() {
 					}
 					eligible_for_feedback[i] = true;
 				} else {
-					packet.data[i].flags = xbeepacket::RUN_FLAG_RUNNING;
+					packet.data[i].flags = XBeePacketTypes::RUN_FLAG_RUNNING;
 					packet.data[i].dribbler_speed = 0;
 					packet.data[i].chick_power = 0;
 					eligible_for_feedback[i] = false;
 				}
-				if (!(packet.data[i].flags & (xbeepacket::RUN_FLAG_DIRECT_DRIVE | xbeepacket::RUN_FLAG_CONTROLLED_DRIVE))) {
+				if (!(packet.data[i].flags & (XBeePacketTypes::RUN_FLAG_DIRECT_DRIVE | XBeePacketTypes::RUN_FLAG_CONTROLLED_DRIVE))) {
 					packet.data[i].drive1_speed = 0;
 					packet.data[i].drive2_speed = 0;
 					packet.data[i].drive3_speed = 0;
@@ -142,14 +142,14 @@ void scheduler::push() {
 				}
 			}
 		}
-		packet.hdr.apiid = xbeepacket::TRANSMIT16_APIID;
+		packet.hdr.apiid = XBeePacketTypes::TRANSMIT16_APIID;
 		packet.hdr.frame = 0;
 		packet.hdr.address[0] = 0xFF;
 		packet.hdr.address[1] = 0xFF;
-		packet.hdr.options = xbeepacket::TRANSMIT_OPTION_DISABLE_ACK;
+		packet.hdr.options = XBeePacketTypes::TRANSMIT_OPTION_DISABLE_ACK;
 		packet.pad = 0;
 		packet.pad2 = 0;
-		std::size_t length = sizeof(xbeepacket::TRANSMIT16_HDR) + (max_index + 1) * sizeof(xbeepacket::RUN_DATA) + 2;
+		std::size_t length = sizeof(XBeePacketTypes::TRANSMIT16_HDR) + (max_index + 1) * sizeof(XBeePacketTypes::RUN_DATA) + 2;
 
 		// Check if any robots are eligible to send feedback.
 		bool any_eligible_for_feedback = exists(eligible_for_feedback, eligible_for_feedback + max_index + 1, true);
@@ -161,7 +161,7 @@ void scheduler::push() {
 			last_feedback_address = daemon.robots[daemon.run_data_index_reverse[last_feedback_index]]->address16();
 
 			// Set the feedback flag in this robot's outbound data block.
-			packet.data[last_feedback_index].flags |= xbeepacket::RUN_FLAG_FEEDBACK;
+			packet.data[last_feedback_index].flags |= XBeePacketTypes::RUN_FLAG_FEEDBACK;
 
 			// Record the timestamp.
 			timespec_now(last_feedback_timestamp);
@@ -189,7 +189,7 @@ void scheduler::push() {
 		// solution of letting the feedback timeout expire and then pushing more
 		// packets.
 		feedback_timeout_connection.disconnect();
-		feedback_timeout_connection = Glib::signal_timeout().connect(sigc::bind_return(sigc::mem_fun(this, &scheduler::on_feedback_timeout), false), TIMEOUT);
+		feedback_timeout_connection = Glib::signal_timeout().connect(sigc::bind_return(sigc::mem_fun(this, &XBeeScheduler::on_feedback_timeout), false), TIMEOUT);
 
 		// Next, it's a queued packet's turn if there is one.
 		next_type = NEXT_QUEUED;
@@ -198,9 +198,9 @@ void scheduler::push() {
 	push();
 }
 
-bool scheduler::on_request_timeout(uint8_t frame) {
-	// Resend the request.
-	request::ptr req = sent[frame].data;
+bool XBeeScheduler::on_request_timeout(uint8_t frame) {
+	// Resend the XBeeRequest.
+	XBeeRequest::ptr req = sent[frame].data;
 	iovec iov;
 	iov.iov_base = const_cast<uint8_t *>(&req->data()[0]);
 	iov.iov_len = req->data().size();
@@ -210,15 +210,15 @@ bool scheduler::on_request_timeout(uint8_t frame) {
 	return true;
 }
 
-void scheduler::on_feedback_timeout() {
-	// Whatever happens, give up on waiting for this request.
+void XBeeScheduler::on_feedback_timeout() {
+	// Whatever happens, give up on waiting for this XBeeRequest.
 	--sent_count;
 
 	// See if we can report the timeout to someone who cares.
 	uint64_t address64 = daemon.run_data_index_reverse[last_feedback_index];
 	if (address64) {
 		// OK, there's still a robot at this run data index.
-		robot_state::ptr bot(daemon.robots[address64]);
+		XBeeRobot::ptr bot(daemon.robots[address64]);
 		if (bot->address16() == last_feedback_address) {
 			// OK, the bot at this run data index has the same 16-bit address as
 			// the one that was there when we sent the original bulk packet. We
@@ -231,10 +231,10 @@ void scheduler::on_feedback_timeout() {
 	push();
 }
 
-void scheduler::on_receive(const std::vector<uint8_t> &data) {
-	if (data[0] == xbeepacket::AT_RESPONSE_APIID || data[0] == xbeepacket::REMOTE_AT_RESPONSE_APIID || data[0] == xbeepacket::TRANSMIT_STATUS_APIID) {
-		// We're receiving an XBee-layer response to a queued request. Use the
-		// frame number to dispatch the request to the proper handlers.
+void XBeeScheduler::on_receive(const std::vector<uint8_t> &data) {
+	if (data[0] == XBeePacketTypes::AT_RESPONSE_APIID || data[0] == XBeePacketTypes::REMOTE_AT_RESPONSE_APIID || data[0] == XBeePacketTypes::TRANSMIT_STATUS_APIID) {
+		// We're receiving an XBee-layer response to a queued XBeeRequest. Use the
+		// frame number to dispatch the XBeeRequest to the proper handlers.
 		uint8_t frame = data[1];
 		if (sent[frame].data) {
 			// This matches a sent frame.
@@ -250,11 +250,11 @@ void scheduler::on_receive(const std::vector<uint8_t> &data) {
 			// This does not match a sent frame. It could be some old crud from
 			// a previous run accumulating in the serial buffer. Just ignore it.
 		}
-	} else if (data[0] == xbeepacket::RECEIVE16_APIID) {
+	} else if (data[0] == XBeePacketTypes::RECEIVE16_APIID) {
 		// We're receiving a feedback packet from a robot.
 		const struct __attribute__((packed)) FEEDBACK_PACKET {
-			xbeepacket::RECEIVE16_HDR hdr;
-			xbeepacket::FEEDBACK_DATA data;
+			XBeePacketTypes::RECEIVE16_HDR hdr;
+			XBeePacketTypes::FEEDBACK_DATA data;
 		} &packet = *reinterpret_cast<const FEEDBACK_PACKET *>(&data[0]);
 
 		// Check for proper length.
@@ -270,7 +270,7 @@ void scheduler::on_receive(const std::vector<uint8_t> &data) {
 		}
 
 		// Check flags.
-		if (!(packet.data.flags & xbeepacket::FEEDBACK_FLAG_RUNNING)) {
+		if (!(packet.data.flags & XBeePacketTypes::FEEDBACK_FLAG_RUNNING)) {
 			return;
 		}
 
@@ -278,7 +278,7 @@ void scheduler::on_receive(const std::vector<uint8_t> &data) {
 		// robot hanging off this run data index, pass the feedback to it.
 		uint64_t address64 = daemon.run_data_index_reverse[last_feedback_index];
 		if (address64) {
-			robot_state::ptr bot(daemon.robots[address64]);
+			XBeeRobot::ptr bot(daemon.robots[address64]);
 			if (bot->address16() == last_feedback_address) {
 				timespec now;
 				timespec_now(now);

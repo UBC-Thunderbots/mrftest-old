@@ -11,9 +11,9 @@
 //
 // A particular back-end that wishes to handle all packets transmitted and
 // produce received packets must subclass this class and pass said subclass into
-// the constructor of the daemon class.
+// the constructor of the XBeeDaemon class.
 //
-class backend : public noncopyable {
+class BackEnd : public NonCopyable {
 	public:
 		//
 		// Invoked when a packet is received. The subclass is expected to
@@ -23,15 +23,15 @@ class backend : public noncopyable {
 		sigc::signal<void, const std::vector<uint8_t> &> signal_received;
 
 		//
-		// Creates a new backend object.
+		// Creates a new BackEnd object.
 		//
-		backend() {
+		BackEnd() {
 		}
 
 		//
-		// Destroys a backend object.
+		// Destroys a BackEnd object.
 		//
-		virtual ~backend() {
+		virtual ~BackEnd() {
 		}
 
 		//

@@ -1,14 +1,14 @@
 #include "sim/robot.h"
 
-robot::ptr robot::create(const config::robot_info &botinfo, simulator_engine::ptr engine) {
-	ptr p(new robot(botinfo, engine));
+SimulatorRobot::ptr SimulatorRobot::create(const Config::RobotInfo &botinfo, SimulatorEngine::ptr engine) {
+	ptr p(new SimulatorRobot(botinfo, engine));
 	return p;
 }
 
-robot::robot(const config::robot_info &botinfo, simulator_engine::ptr engine) : address(botinfo.address), engine(engine), botinfo(botinfo), powered_(false), battery_(15.0), bootloading_(false), address16_(0xFFFF), run_data_offset_(0xFF) {
+SimulatorRobot::SimulatorRobot(const Config::RobotInfo &botinfo, SimulatorEngine::ptr engine) : address(botinfo.address), engine(engine), botinfo(botinfo), powered_(false), battery_(15.0), bootloading_(false), address16_(0xFFFF), run_data_offset_(0xFF) {
 }
 
-void robot::powered(bool pwr) {
+void SimulatorRobot::powered(bool pwr) {
 	if (pwr != powered_) {
 		powered_ = pwr;
 		if (!powered_) {
@@ -21,14 +21,14 @@ void robot::powered(bool pwr) {
 	}
 }
 
-void robot::battery(double bat) {
+void SimulatorRobot::battery(double bat) {
 	if (bat != battery_) {
 		battery_ = bat;
 		signal_changed.emit();
 	}
 }
 
-void robot::bootloading(bool bl) {
+void SimulatorRobot::bootloading(bool bl) {
 	if (bl != bootloading_) {
 		bootloading_ = bl;
 		if (bootloading_) {
@@ -46,28 +46,28 @@ void robot::bootloading(bool bl) {
 	}
 }
 
-void robot::address16(uint16_t addr) {
+void SimulatorRobot::address16(uint16_t addr) {
 	if (addr != address16_) {
 		address16_ = addr;
 		signal_changed.emit();
 	}
 }
 
-void robot::run_data_offset(uint8_t offset) {
+void SimulatorRobot::run_data_offset(uint8_t offset) {
 	if (offset != run_data_offset_) {
 		run_data_offset_ = offset;
 		signal_changed.emit();
 	}
 }
 
-void robot::add_player() {
+void SimulatorRobot::add_player() {
 	if (!player_) {
 		player_ = engine->add_player();
 		signal_changed.emit();
 	}
 }
 
-void robot::remove_player() {
+void SimulatorRobot::remove_player() {
 	if (player_) {
 		engine->remove_player(player_);
 		player_.reset();

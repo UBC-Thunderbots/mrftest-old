@@ -16,9 +16,9 @@
  * - call set_orientation to change orientation
  * - call set_flags to set flags.
  */
-class robot_navigator : public noncopyable {
+class RobotNavigator : public NonCopyable {
 	public:
-		robot_navigator(player::ptr player, world::ptr world);
+		RobotNavigator(Player::ptr player, World::ptr world);
 
 		void tick();
 
@@ -26,7 +26,7 @@ class robot_navigator : public noncopyable {
 		 * Sets the desired location for this time step.
 		 * You have to call this function for every tick.
 		 */
-		void set_position(const point& position) {
+		void set_position(const Point& position) {
 			position_initialized = true;
 			target_position = position;
 		}
@@ -44,7 +44,7 @@ class robot_navigator : public noncopyable {
 		}
 
 		/**
-		 * Turns on dribbler at minimal speed and be ready to dribble to receive the ball.
+		 * Turns on dribbler at minimal speed and be ready to dribble to Receive the ball.
 		 * You need to call this every tick.
 		 * I don't think you ever want to turn this off once you turn it on.
 		 */
@@ -62,21 +62,21 @@ class robot_navigator : public noncopyable {
 
 	private:
 	
-		point get_inbounds_point(point dst);
-		point force_defense_len(point dst);
-		point force_offense_len(point dst);
-		point clip_defense_area(point dst);
-		point clip_offense_area(point dst);
-		bool check_vector(const point& start, const point& dest, const point& direction) const;
-		unsigned int check_obstacles(const point& start, const point& dest, const point& direction) const;
+		Point get_inbounds_point(Point dst);
+		Point force_defense_len(Point dst);
+		Point force_offense_len(Point dst);
+		Point clip_defense_area(Point dst);
+		Point clip_offense_area(Point dst);
+		bool check_vector(const Point& start, const Point& dest, const Point& direction) const;
+		unsigned int check_obstacles(const Point& start, const Point& dest, const Point& direction) const;
 		double get_avoidance_factor() const;
-		bool check_ball(const point& start, const point& dest, const point& direction) const;
-		point clip_circle(point circle_centre, double circle_radius, point dst);
+		bool check_ball(const Point& start, const Point& dest, const Point& direction) const;
+		Point clip_circle(Point circle_centre, double circle_radius, Point dst);
 		bool ball_obstacle;
 		// clip the field boundries 
-		point clip_playing_area(point wantdest);
-		const player::ptr the_player;
-		const world::ptr the_world;
+		Point clip_playing_area(Point wantdest);
+		const Player::ptr the_player;
+		const World::ptr the_world;
 
 		// Has destination and orientation been set?
 		bool position_initialized;
@@ -85,7 +85,7 @@ class robot_navigator : public noncopyable {
 		// The flags
 		unsigned int flags;
 
-		point target_position;
+		Point target_position;
 		double target_orientation;
 		bool need_dribble;
 };

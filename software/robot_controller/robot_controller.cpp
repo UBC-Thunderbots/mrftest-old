@@ -1,6 +1,6 @@
 #include "robot_controller/robot_controller.h"
 
-void robot_controller2::convert_to_wheels(const point &vel, double avel, int (&wheel_speeds)[4]) {
+void RobotController2::convert_to_wheels(const Point &vel, double avel, int (&wheel_speeds)[4]) {
 	static const double WHEEL_MATRIX[4][3] = {
 		{-42.5995, 27.6645, 4.3175},
 		{-35.9169, -35.9169, 4.3175},
@@ -16,8 +16,8 @@ void robot_controller2::convert_to_wheels(const point &vel, double avel, int (&w
 		wheel_speeds[row] = static_cast<int>(output[row]);
 }
 
-void robot_controller::move(const point &new_position, double new_orientation, int (&wheel_speeds)[4]) {
-	point vel;
+void RobotController::move(const Point &new_position, double new_orientation, int (&wheel_speeds)[4]) {
+	Point vel;
 	double avel;
 	move(new_position, new_orientation, vel, avel);
 	convert_to_wheels(vel, avel, wheel_speeds);

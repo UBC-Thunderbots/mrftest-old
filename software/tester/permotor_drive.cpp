@@ -1,6 +1,6 @@
 #include "tester/permotor_drive.h"
 
-tester_control_permotor_drive::tester_control_permotor_drive(xbee_drive_bot::ptr bot) : Gtk::Table(4, 2, false), robot(bot), drive1_label("Drive 1:"), drive2_label("Drive 2:"), drive3_label("Drive 3:"), drive4_label("Drive 4:"), drive1_scale(-1023, 1023, 1), drive2_scale(-1023, 1023, 1), drive3_scale(-1023, 1023, 1), drive4_scale(-1023, 1023, 1) {
+TesterControlPerMotorDrive::TesterControlPerMotorDrive(XBeeDriveBot::ptr bot) : Gtk::Table(4, 2, false), robot(bot), drive1_label("Drive 1:"), drive2_label("Drive 2:"), drive3_label("Drive 3:"), drive4_label("Drive 4:"), drive1_scale(-1023, 1023, 1), drive2_scale(-1023, 1023, 1), drive3_scale(-1023, 1023, 1), drive4_scale(-1023, 1023, 1) {
 	attach(drive1_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
 	attach(drive2_label, 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
 	attach(drive3_label, 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
@@ -19,13 +19,13 @@ tester_control_permotor_drive::tester_control_permotor_drive(xbee_drive_bot::ptr
 	drive2_scale.set_value(0);
 	drive3_scale.set_value(0);
 	drive4_scale.set_value(0);
-	drive1_scale.signal_value_changed().connect(sigc::mem_fun(this, &tester_control_permotor_drive::on_change));
-	drive2_scale.signal_value_changed().connect(sigc::mem_fun(this, &tester_control_permotor_drive::on_change));
-	drive3_scale.signal_value_changed().connect(sigc::mem_fun(this, &tester_control_permotor_drive::on_change));
-	drive4_scale.signal_value_changed().connect(sigc::mem_fun(this, &tester_control_permotor_drive::on_change));
+	drive1_scale.signal_value_changed().connect(sigc::mem_fun(this, &TesterControlPerMotorDrive::on_change));
+	drive2_scale.signal_value_changed().connect(sigc::mem_fun(this, &TesterControlPerMotorDrive::on_change));
+	drive3_scale.signal_value_changed().connect(sigc::mem_fun(this, &TesterControlPerMotorDrive::on_change));
+	drive4_scale.signal_value_changed().connect(sigc::mem_fun(this, &TesterControlPerMotorDrive::on_change));
 }
 
-void tester_control_permotor_drive::on_change() {
+void TesterControlPerMotorDrive::on_change() {
 	if (robot) {
 		int m1 = static_cast<int16_t>(drive1_scale.get_value());
 		int m2 = static_cast<int16_t>(drive2_scale.get_value());
@@ -35,7 +35,7 @@ void tester_control_permotor_drive::on_change() {
 	}
 }
 
-void tester_control_permotor_drive::zero() {
+void TesterControlPerMotorDrive::zero() {
 	drive1_scale.set_value(0);
 	drive2_scale.set_value(0);
 	drive3_scale.set_value(0);

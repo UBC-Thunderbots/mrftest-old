@@ -12,30 +12,30 @@
 // which, if it provokes a response, may or may not have callback functions to
 // be invoked to handle the response.
 //
-class request : public byref {
+class XBeeRequest : public ByRef {
 	public:
 		//
-		// A pointer to a request.
+		// A pointer to a XBeeRequest.
 		//
-		typedef Glib::RefPtr<request> ptr;
+		typedef Glib::RefPtr<XBeeRequest> ptr;
 
 		//
-		// Constructs a new request. The data is copied.
+		// Constructs a new XBeeRequest. The data is copied.
 		//
 		static ptr create(const void *data, std::size_t length, bool has_response) {
-			ptr p(new request(data, length, has_response));
+			ptr p(new XBeeRequest(data, length, has_response));
 			return p;
 		}
 
 		//
-		// Returns the data for the request.
+		// Returns the data for the XBeeRequest.
 		//
 		const std::vector<uint8_t> &data() const {
 			return data_;
 		}
 
 		//
-		// Returns whether or not the request is expecting a response.
+		// Returns whether or not the XBeeRequest is expecting a response.
 		//
 		bool has_response() const {
 			return has_response_;
@@ -54,7 +54,7 @@ class request : public byref {
 		bool has_response_;
 		sigc::signal<void, const void *, std::size_t> signal_complete_;
 
-		request(const void *data, std::size_t length, bool has_response) : data_(static_cast<const uint8_t *>(data), static_cast<const uint8_t *>(data) + length), has_response_(has_response) {
+		XBeeRequest(const void *data, std::size_t length, bool has_response) : data_(static_cast<const uint8_t *>(data), static_cast<const uint8_t *>(data) + length), has_response_(has_response) {
 			if (has_response) {
 				assert(static_cast<const uint8_t *>(data)[1]);
 			}

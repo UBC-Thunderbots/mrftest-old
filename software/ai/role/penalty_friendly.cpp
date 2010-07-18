@@ -6,51 +6,51 @@
 
 #include <iostream>
 
-penalty_friendly::penalty_friendly(world::ptr world) : the_world(world) {
-	const field& the_field(world->field());
+PenaltyFriendly::PenaltyFriendly(World::ptr world) : the_world(world) {
+	const Field& the_field(world->field());
 
 	// Let the first robot to be always the shooter
-	ready_positions[0] = point(0.5 * the_field.length() - PENALTY_MARK_LENGTH - robot::MAX_RADIUS, 0);
+	ready_positions[0] = Point(0.5 * the_field.length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0);
 
-	ready_positions[1] = point(0, 0);
+	ready_positions[1] = Point(0, 0);
 
 	// Let two robots be on the offensive, in case there is a rebound
-	ready_positions[2] = point(0.5 * the_field.length() - RESTRICTED_ZONE_LENGTH - robot::MAX_RADIUS, -5 * robot::MAX_RADIUS);
-	ready_positions[3] = point(0.5 * the_field.length() - RESTRICTED_ZONE_LENGTH - robot::MAX_RADIUS, 5 * robot::MAX_RADIUS);
+	ready_positions[2] = Point(0.5 * the_field.length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, -5 * Robot::MAX_RADIUS);
+	ready_positions[3] = Point(0.5 * the_field.length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, 5 * Robot::MAX_RADIUS);
 
 }
 
-void penalty_friendly::tick() {
+void PenaltyFriendly::tick() {
 	if (the_robots.size() == 0) {
 		std::cerr << "penalty_friendly: no robots " << std::endl;
 		return;
 	}
 	// Set lowest numbered robot without chicker fault to be kicker
-	if (the_robots[0]->chicker_ready_time() >= player::CHICKER_FOREVER){
+	if (the_robots[0]->chicker_ready_time() >= Player::CHICKER_FOREVER){
 		for (size_t i = 1; i < the_robots.size(); ++i)
-			if (the_robots[i]->chicker_ready_time() < player::CHICKER_FOREVER){
+			if (the_robots[i]->chicker_ready_time() < Player::CHICKER_FOREVER){
 				swap(the_robots[0],the_robots[i]);
 				break;
 			}
 	}
 
 	// flags... hopefully set correct
-	const unsigned int flags = ai_flags::calc_flags(the_world->playtype());
+	const unsigned int flags = AIFlags::calc_flags(the_world->playtype());
 
-	if (the_world->playtype() == playtype::prepare_penalty_friendly) {
+	if (the_world->playtype() == PlayType::PREPARE_PENALTY_FRIENDLY) {
 		for (size_t i = 0; i < the_robots.size(); ++i) {
-			move tactic(the_robots[i], the_world);
+			Move tactic(the_robots[i], the_world);
 			tactic.set_position(ready_positions[i]);
 			if (i) tactic.set_flags(flags);
-			else tactic.set_flags((flags & ~ai_flags::avoid_ball_stop) | ai_flags::avoid_ball_near);
+			else tactic.set_flags((flags & ~AIFlags::AVOID_BALL_STOP) | AIFlags::AVOID_BALL_NEAR);
 			tactic.tick();
 		}
-	} else if (the_world->playtype() == playtype::execute_penalty_friendly) {
+	} else if (the_world->playtype() == PlayType::EXECUTE_PENALTY_FRIENDLY) {
 
 		// make shooter shoot
-		const player::ptr shooter = the_robots[0];
-		shoot tactic(shooter, the_world);
-		if (the_world->playtype_time() > ai_util::PLAYTYPE_WAIT_TIME) {
+		const Player::ptr shooter = the_robots[0];
+		Shoot tactic(shooter, the_world);
+		if (the_world->playtype_time() > AIUtil::PLAYTYPE_WAIT_TIME) {
 			tactic.force();
 			tactic.set_pivot(false);
 		}
@@ -58,7 +58,7 @@ void penalty_friendly::tick() {
 		tactic.tick();
 
 		for (size_t i = 1; i < the_robots.size(); ++i) {
-			move tactic(the_robots[i], the_world);
+			Move tactic(the_robots[i], the_world);
 			tactic.set_position(ready_positions[i]);
 			tactic.set_flags(flags);
 			tactic.tick();
@@ -68,7 +68,7 @@ void penalty_friendly::tick() {
 	}
 }
 
-void penalty_friendly::robots_changed() {
+void PenaltyFriendly::robots_changed() {
 
 }
 

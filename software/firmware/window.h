@@ -11,17 +11,17 @@
 //
 // The user interface for the firmware manager.
 //
-class firmware_window : public Gtk::Window {
+class FirmwareWindow : public Gtk::Window {
 	public:
-		firmware_window(xbee_lowlevel &modem, const config &conf, const Glib::ustring &robot, const std::string &filename);
+		FirmwareWindow(XBeeLowLevel &modem, const Config &conf, const Glib::ustring &robot, const std::string &filename);
 
 	private:
-		xbee_lowlevel &modem;
+		XBeeLowLevel &modem;
 
 		Gtk::VBox vbox;
 
 		Gtk::Frame bot_frame;
-		single_bot_combobox bot_controls;
+		SingleBotComboBox bot_controls;
 
 		Gtk::Frame file_frame;
 		Gtk::VBox file_vbox;

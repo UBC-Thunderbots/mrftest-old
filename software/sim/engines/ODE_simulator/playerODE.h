@@ -5,9 +5,9 @@
 
 
 /** 
-The back-end behind an ODE player object.
+The back-end behind an ODE SimulatorPlayer object.
 */
-class playerODE : public player {
+class PlayerODE : public SimulatorPlayer {
 	
 	public:
 		double x_len;
@@ -16,7 +16,7 @@ class playerODE : public player {
 	
 
 	
-	typedef Glib::RefPtr<playerODE> ptr;
+	typedef Glib::RefPtr<PlayerODE> ptr;
 	
 	private:
 	///The rectangular geometry for the front collision
@@ -44,7 +44,7 @@ class playerODE : public player {
 	bool posSet;
 	
 	///Some vectors for keeping track of the robot
-	point target_velocity, unrotated_target_velocity;
+	Point target_velocity, unrotated_target_velocity;
 	
 	
 	bool player_has_ball;
@@ -65,8 +65,8 @@ class playerODE : public player {
 	double fcex,fcey,torquez;
 	dVector3 *Vertices;
 	unsigned int *Triangles;
-	point* wheel_position;
-	point* force_direction;
+	Point* wheel_position;
+	Point* force_direction;
 	
 	///Target wheel velocities in quarter of a degree per 5 milliseconds
 	double motor_desired[4];
@@ -80,14 +80,14 @@ class playerODE : public player {
 
 	public:
 
-	playerODE( dWorldID dworld, dSpaceID dspace,  dGeomID ballGeom, double ups_per_tick);
-	~playerODE();
+	PlayerODE( dWorldID dworld, dSpaceID dspace,  dGeomID ballGeom, double ups_per_tick);
+	~PlayerODE();
 
 	double get_height() const;
 			
 	void update();
 
-	point position() const ;
+	Point position() const ;
 
 	double orientation() const ;
 
@@ -107,7 +107,7 @@ protected:
 				\param vel desired robot velocity for control
 				\param avel desired robot angular velocity
 			*/
-			void move_impl(const point &vel, double avel) ;
+			void move_impl(const Point &vel, double avel) ;
 			
 public:
 			bool hasContactPenetration(dVector3 pos); 
@@ -139,15 +139,15 @@ public:
 private:			
 			bool execute_chip() ;
 public:
-			void position(const point &pos);
+			void position(const Point &pos);
 
-			void velocity(const point &vel);
+			void velocity(const Point &vel);
 
 			void orientation(double orient);
 
 			void avelocity(double avel);
 
-			void received(const xbeepacket::RUN_DATA &);
+			void received(const XBeePacketTypes::RUN_DATA &);
 			
 			void createJointBetweenB1B2();
 

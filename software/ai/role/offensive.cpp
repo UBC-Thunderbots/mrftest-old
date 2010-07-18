@@ -15,10 +15,10 @@
 
 namespace {
 
-	bool_param OFFENSIVE_PIVOT("offensive: use pivot", true);
-	bool_param OFFENSIVE_BLOCK("offensive: use block when enemy has the ball", false);
+	BoolParam OFFENSIVE_PIVOT("offensive: use pivot", true);
+	BoolParam OFFENSIVE_BLOCK("offensive: use block when enemy has the ball", false);
 
-	const double SHOOT_ALLOWANCE = ball::RADIUS;
+	const double SHOOT_ALLOWANCE = Ball::RADIUS;
 
 	const double ENEMY_FACTOR = 1.0;
 	const double CAN_SEE_BALL = 1.0;
@@ -28,16 +28,16 @@ namespace {
 
 	const double ONE = 1.0 / 180.0 * M_PI;
 
-	const double NEAR = robot::MAX_RADIUS * 3;
+	const double NEAR = Robot::MAX_RADIUS * 3;
 
 };
 
-offensive::offensive(world::ptr world) : the_world(world) {
+Offensive::Offensive(World::ptr world) : the_world(world) {
 }
 
-double offensive::scoring_function(const std::vector<point>& enemypos, const point& pos, const std::vector<point>& dontblock) const {
+double Offensive::scoring_function(const std::vector<Point>& enemypos, const Point& pos, const std::vector<Point>& dontblock) const {
 	// Hmm.. not sure if having negative number is a good idea.
-	std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world->field(), enemypos, pos);
+	std::pair<Point, double> bestshot = AIUtil::calc_best_shot(the_world->field(), enemypos, pos);
 	double score = bestshot.second;
 
 	for (size_t i = 0; i < enemypos.size(); ++i) {
@@ -51,12 +51,12 @@ double offensive::scoring_function(const std::vector<point>& enemypos, const poi
 	// density of enemy, passing distance, distance to the goal, angle of shooting, angle of receiving
 	// distance toward the closest enemy, travel distance, behind of in front of the enemy
 	// UI for viewing
-	if (!ai_util::path_check(the_world->ball()->position(), pos, enemypos, robot::MAX_RADIUS + ball::RADIUS + SHOOT_ALLOWANCE)) {
+	if (!AIUtil::path_check(the_world->ball()->position(), pos, enemypos, Robot::MAX_RADIUS + Ball::RADIUS + SHOOT_ALLOWANCE)) {
 		return -1e99;
 	}
 
 	for (size_t i = 0; i < dontblock.size(); ++i) {
-		const point diff2 = (pos - dontblock[i]);
+		const Point diff2 = (pos - dontblock[i]);
 		if (diff2.len() < NEAR) {
 			return -1e99;
 		}
@@ -64,9 +64,9 @@ double offensive::scoring_function(const std::vector<point>& enemypos, const poi
 
 	// super expensive calculation
 	for (size_t i = 0; i < dontblock.size(); ++i) {
-		std::pair<point, double> shootershot = ai_util::calc_best_shot(the_world->field(), enemypos, dontblock[i]);
-		const point diff1 = (shootershot.first - dontblock[i]);
-		const point diff2 = (pos - dontblock[i]);
+		std::pair<Point, double> shootershot = AIUtil::calc_best_shot(the_world->field(), enemypos, dontblock[i]);
+		const Point diff1 = (shootershot.first - dontblock[i]);
+		const Point diff2 = (pos - dontblock[i]);
 		const double anglediff = angle_diff(diff1.orientation(), diff2.orientation());
 		if (anglediff * 2 < shootershot.second) {
 			return -1e99;
@@ -87,7 +87,7 @@ double offensive::scoring_function(const std::vector<point>& enemypos, const poi
 	return score;
 }
 
-point offensive::calc_position_best(const std::vector<point>& enemypos, const std::vector<point>& dontblock) {
+Point Offensive::calc_position_best(const std::vector<Point>& enemypos, const std::vector<Point>& dontblock) {
 	const double x1 = 0;
 	const double x2 = the_world->field().length() / 2;
 	const double y1 = -the_world->field().width() / 2;
@@ -96,13 +96,13 @@ point offensive::calc_position_best(const std::vector<point>& enemypos, const st
 	const double dx = (x2 - x1) / (GRIDX+1);
 	const double dy = (y2 - y1) / (GRIDY+1);
 	double bestscore = -1e50;
-	point bestpos(0, 0);
+	Point bestpos(0, 0);
 	for (int i = 0; i < GRIDX; ++i) {
 		for (int j = 0; j < GRIDY; ++j) {
 			if (!okaygrid[i][j]) continue;
 			const double x = x1 + dx * (i + 1);
 			const double y = y1 + dy * (j + 1);
-			const point pos = point(x, y);
+			const Point pos = Point(x, y);
 			// TEMPORARY HACK!!
 			const double goaldist = (pos - the_world->field().enemy_goal()).len();
 			if (goaldist < the_world->field().goal_width()) {
@@ -123,9 +123,9 @@ point offensive::calc_position_best(const std::vector<point>& enemypos, const st
 	return bestpos;
 }
 
-std::vector<point> offensive::calc_position_best(const unsigned int n) {
-	const enemy_team& enemy = the_world->enemy;
-	std::vector<point> enemypos;
+std::vector<Point> Offensive::calc_position_best(const unsigned int n) {
+	const EnemyTeam& enemy = the_world->enemy;
+	std::vector<Point> enemypos;
 	for (size_t i = 0; i < enemy.size(); ++i) {
 		enemypos.push_back(enemy.get_robot(i)->position());
 	}
@@ -135,11 +135,11 @@ std::vector<point> offensive::calc_position_best(const unsigned int n) {
 			okaygrid[i][j] = true;
 		}
 	}
-	std::vector<point> dontblock;
+	std::vector<Point> dontblock;
 	dontblock.push_back(the_world->ball()->position());
-	std::vector<point> ret;
+	std::vector<Point> ret;
 	for (size_t i = 0; i < n; ++i) {
-		const point best = calc_position_best(enemypos, dontblock);
+		const Point best = calc_position_best(enemypos, dontblock);
 		ret.push_back(best);
 		dontblock.push_back(best);
 	}
@@ -147,38 +147,38 @@ std::vector<point> offensive::calc_position_best(const unsigned int n) {
 }
 
 // TODO: refactor
-double offensive::get_distance_from_goal(int index) const {
-	point pos = the_robots[index]->position();
-	point goal = point(the_world->field().length()/2,0);
-	point dist = goal-pos;
+double Offensive::get_distance_from_goal(int index) const {
+	Point pos = the_robots[index]->position();
+	Point goal = Point(the_world->field().length()/2,0);
+	Point dist = goal-pos;
 	double distance = dist.len();
 	return distance;
 }
 
-void offensive::tick() {
+void Offensive::tick() {
 	if (the_robots.size() == 0) return;
 
 	// Sort by distance to ball. DO NOT SORT AGAIN!!
-	std::sort(the_robots.begin(), the_robots.end(), ai_util::cmp_dist<player::ptr>(the_world->ball()->position()));
+	std::sort(the_robots.begin(), the_robots.end(), AIUtil::CmpDist<Player::ptr>(the_world->ball()->position()));
 
-	const friendly_team& friendly(the_world->friendly);
-	// const field& the_field = the_world->field();
+	const FriendlyTeam& friendly(the_world->friendly);
+	// const Field& the_field = the_world->field();
 
 	bool teampossesball = false;
 	int baller = -1;
 	for (size_t i = 0; i < the_robots.size(); ++i) {
-		if (ai_util::posses_ball(the_world, the_robots[i])) {
+		if (AIUtil::posses_ball(the_world, the_robots[i])) {
 			baller = i;
 			teampossesball = true;
 			break;
 		}
 	}
 
-	std::vector<player::ptr> friends = ai_util::get_friends(friendly, the_robots);
+	std::vector<Player::ptr> friends = AIUtil::get_friends(friendly, the_robots);
 
 	if (!teampossesball) {
 		for (size_t i = 0; i < friends.size(); ++i) {
-			if (ai_util::posses_ball(the_world, friends[i])) {
+			if (AIUtil::posses_ball(the_world, friends[i])) {
 				teampossesball = true;
 				break;
 			}
@@ -193,11 +193,11 @@ void offensive::tick() {
 		// someone has the ball
 		if (baller != -1) {
 			// calculate some good positions for robots not holding the ball
-			std::vector<point> waypoints = calc_position_best(static_cast<int>(the_robots.size()) - 1);
+			std::vector<Point> waypoints = calc_position_best(static_cast<int>(the_robots.size()) - 1);
 
 			// other robots not having the ball
-			std::vector<player::ptr> available;
-			std::vector<point> locations;
+			std::vector<Player::ptr> available;
+			std::vector<Point> locations;
 			for (size_t i = 0; i < the_robots.size(); ++i) {
 				if (static_cast<int>(i) == baller) continue;
 				available.push_back(the_robots[i]);
@@ -211,11 +211,11 @@ void offensive::tick() {
 				if (static_cast<int>(i) == baller) continue;
 				if (w >= waypoints.size()) {
 					LOG_WARN(Glib::ustring::compose("%1 nothing to do", the_robots[i]->name));
-					move::ptr move_tactic(new move(the_robots[i], the_world));
+					Move::ptr move_tactic(new Move(the_robots[i], the_world));
 					move_tactic->set_position(the_robots[i]->position());
 					tactics[i] = move_tactic;
 				} else {
-					move::ptr move_tactic(new move(the_robots[i], the_world));
+					Move::ptr move_tactic(new Move(the_robots[i], the_world));
 					move_tactic->set_position(waypoints[order[w]]);
 					tactics[i] = move_tactic;
 				}
@@ -228,12 +228,12 @@ void offensive::tick() {
 			// We will try passing to another offensive robot,
 			// if there is a clear path to the passee and the passee has a clear path to the goal
 			for (size_t j = 0; j < the_robots.size(); ++j) {
-				if (static_cast<int>(j) != baller && !ai_util::can_receive(the_world, the_robots[j])) continue;
-				// if (ai_util::calc_best_shot(the_robots[j], the_world) == -1) continue;
+				if (static_cast<int>(j) != baller && !AIUtil::can_receive(the_world, the_robots[j])) continue;
+				// if (AIUtil::calc_best_shot(the_robots[j], the_world) == -1) continue;
 				// if (get_distance_from_goal(j) > the_world->field().length() / 2) continue;
 
 				// TODO: create another weighting function
-				double angle = ai_util::calc_goal_visibility_angle(the_world, the_robots[j], false);
+				double angle = AIUtil::calc_goal_visibility_angle(the_world, the_robots[j], false);
 				LOG_DEBUG(Glib::ustring::compose("%1 can see %2 degrees", the_robots[j]->name, angle * 180.0 / M_PI));
 				// the baller has more importance
 				if (static_cast<int>(j) == baller) angle *= 10.0;
@@ -247,52 +247,52 @@ void offensive::tick() {
 
 			if (shooter == baller) {
 				// i shall shoot
-				shoot::ptr shoot_tactic(new shoot(the_robots[baller], the_world));
+				Shoot::ptr shoot_tactic(new Shoot(the_robots[baller], the_world));
 				if (OFFENSIVE_PIVOT) shoot_tactic->set_pivot(false);
 				tactics[baller] = shoot_tactic;
 				//if (overlay) overlay->line_to(the_field.enemy_goal().x, the_field.enemy_goal().y);
 			} else if (shooter != -1) {
 				LOG_INFO(Glib::ustring::compose("%1 pass to %2", the_robots[baller]->name, the_robots[shooter]->name));
 				// found suitable passee, make a pass
-				tactics[baller] = pass::ptr(new pass(the_robots[baller], the_world, the_robots[shooter]));
+				tactics[baller] = Pass::ptr(new Pass(the_robots[baller], the_world, the_robots[shooter]));
 			} else if (get_distance_from_goal(baller) < the_world->field().length() / 6) {
 				// very close to goal, so try making a shot anyways
-				shoot::ptr shoot_tactic(new shoot(the_robots[baller], the_world));
+				Shoot::ptr shoot_tactic(new Shoot(the_robots[baller], the_world));
 				shoot_tactic->force();
 				if (OFFENSIVE_PIVOT) shoot_tactic->set_pivot(false);
 				tactics[baller] = shoot_tactic;
 			} else {
 				// i shall shoot
-				shoot::ptr shoot_tactic(new shoot(the_robots[baller], the_world));
+				Shoot::ptr shoot_tactic(new Shoot(the_robots[baller], the_world));
 				shoot_tactic->force();
 				if (OFFENSIVE_PIVOT) shoot_tactic->set_pivot(false);
-				tactics[baller] = shoot::ptr(new shoot(the_robots[baller], the_world));
+				tactics[baller] = Shoot::ptr(new Shoot(the_robots[baller], the_world));
 			}
 		} else {
 			LOG_INFO("receive ball");
 			// no one in this role has the ball
 			// prepare to receive some ball
 			for (size_t i = 0; i < the_robots.size(); ++i) {
-				tactics[i] = receive::ptr(new receive(the_robots[i], the_world));
+				tactics[i] = Receive::ptr(new Receive(the_robots[i], the_world));
 			}
 		}
 	} else {
 		// calculate some good positions for robots not holding the ball
-		std::vector<point> waypoints;
-		std::vector<robot::ptr> block_targets;
+		std::vector<Point> waypoints;
+		std::vector<Robot::ptr> block_targets;
 		if (OFFENSIVE_BLOCK){
-			const enemy_team& enemy = the_world->enemy;
-			const point ballpos = the_world->ball()->position();
+			const EnemyTeam& enemy = the_world->enemy;
+			const Point ballpos = the_world->ball()->position();
 			for (size_t i = 0; i < enemy.size(); ++i) {
-				point enemy_pos = enemy.get_robot(i)->position();
-				if ((enemy_pos - ballpos).len() > 0.5 + robot::MAX_RADIUS)
+				Point enemy_pos = enemy.get_robot(i)->position();
+				if ((enemy_pos - ballpos).len() > 0.5 + Robot::MAX_RADIUS)
 					block_targets.push_back(enemy.get_robot(i));
 			}
-			std::sort(block_targets.begin(),block_targets.end(), ai_util::cmp_dist<robot::ptr>(the_world->field().friendly_goal()));
+			std::sort(block_targets.begin(),block_targets.end(), AIUtil::CmpDist<Robot::ptr>(the_world->field().friendly_goal()));
 			for (size_t i = 0; i < block_targets.size() && waypoints.size() + 1 < the_robots.size(); i++)
 				waypoints.push_back(block_targets[i]->position());
 			if (waypoints.size() + 1 < the_robots.size()){
-				std::vector<point> temp = calc_position_best(static_cast<int>(the_robots.size()) - 1 - waypoints.size());
+				std::vector<Point> temp = calc_position_best(static_cast<int>(the_robots.size()) - 1 - waypoints.size());
 				for (size_t i = 0; i < temp.size(); i++)
 					waypoints.push_back(temp[i]);
 			}
@@ -300,8 +300,8 @@ void offensive::tick() {
 		else waypoints = calc_position_best(static_cast<int>(the_robots.size()) - 1);
 
 		// other robots not having the ball
-		std::vector<player::ptr> available;
-		std::vector<point> locations;
+		std::vector<Player::ptr> available;
+		std::vector<Point> locations;
 		for (size_t i = 1; i < the_robots.size(); ++i) {
 			available.push_back(the_robots[i]);
 			locations.push_back(the_robots[i]->position());
@@ -313,16 +313,16 @@ void offensive::tick() {
 			for (size_t i = 1; i < the_robots.size(); ++i) {
 				if (w >= waypoints.size()) {
 					LOG_WARN(Glib::ustring::compose("%1 nothing to do", the_robots[i]->name));
-					move::ptr move_tactic(new move(the_robots[i], the_world));
+					Move::ptr move_tactic(new Move(the_robots[i], the_world));
 					move_tactic->set_position(the_robots[i]->position());
 					tactics[i] = move_tactic;
 				} else if (order[w] < block_targets.size()){
-					block::ptr block_tactic(new block(the_robots[i], the_world));
+					Block::ptr block_tactic(new Block(the_robots[i], the_world));
 					block_tactic->set_target(block_targets[order[w]]);
 					tactics[i] = block_tactic;
 				}
 				else{
-					move::ptr move_tactic(new move(the_robots[i], the_world));
+					Move::ptr move_tactic(new Move(the_robots[i], the_world));
 					move_tactic->set_position(waypoints[order[w]]);
 					tactics[i] = move_tactic;
 				}
@@ -334,11 +334,11 @@ void offensive::tick() {
 			for (size_t i = 1; i < the_robots.size(); ++i) {
 				if (w >= waypoints.size()) {
 					LOG_WARN(Glib::ustring::compose("%1 nothing to do", the_robots[i]->name));
-					move::ptr move_tactic(new move(the_robots[i], the_world));
+					Move::ptr move_tactic(new Move(the_robots[i], the_world));
 					move_tactic->set_position(the_robots[i]->position());
 					tactics[i] = move_tactic;
 				} else {
-					move::ptr move_tactic(new move(the_robots[i], the_world));
+					Move::ptr move_tactic(new Move(the_robots[i], the_world));
 					move_tactic->set_position(waypoints[order[w]]);
 					tactics[i] = move_tactic;
 				}
@@ -347,17 +347,17 @@ void offensive::tick() {
 		}
 		
 		{
-			shoot::ptr shoot_tactic = shoot::ptr(new shoot(the_robots[0], the_world));
+			Shoot::ptr shoot_tactic = Shoot::ptr(new Shoot(the_robots[0], the_world));
 			if (OFFENSIVE_PIVOT) shoot_tactic->set_pivot(false);
 			tactics[0] = shoot_tactic;
 		}
 	}
 
-	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
+	unsigned int flags = AIFlags::calc_flags(the_world->playtype());
 
 	for (size_t i = 0; i < tactics.size(); ++i) {
 		if (static_cast<int>(i) == baller) {
-			tactics[i]->set_flags(flags | ai_flags::clip_play_area);
+			tactics[i]->set_flags(flags | AIFlags::CLIP_PLAY_AREA);
 		} else {
 			tactics[i]->set_flags(flags);
 		}
@@ -366,7 +366,7 @@ void offensive::tick() {
 
 }
 
-void offensive::robots_changed() {
+void Offensive::robots_changed() {
 	tactics.clear();
 	tactics.resize(the_robots.size());
 }

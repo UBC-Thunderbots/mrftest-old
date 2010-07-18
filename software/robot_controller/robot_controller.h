@@ -5,19 +5,19 @@
 #include "util/byref.h"
 #include "util/registerable.h"
 
-class player;
-class robot_controller_factory;
+class Player;
+class RobotControllerFactory;
 
 /**
  * Translates world-coordinate movement requests into robot wheel rotation
  * speeds.
  */
-class robot_controller2 : public byref {
+class RobotController2 : public ByRef {
 	public:
 		/**
-		 * A pointer to a robot_controller2.
+		 * A pointer to a RobotController2.
 		 */
-		typedef Glib::RefPtr<robot_controller2> ptr;
+		typedef Glib::RefPtr<RobotController2> ptr;
 
 		/**
 		 * Tells the robot controlled by this controller to move to the
@@ -37,7 +37,7 @@ class robot_controller2 : public byref {
 		 * the robot, in quarters of a degree of motor shaft rotation per five
 		 * milliseconds.
 		 */
-		virtual void move(const point &new_position, double new_orientation, int (&wheel_speeds)[4]) = 0;
+		virtual void move(const Point &new_position, double new_orientation, int (&wheel_speeds)[4]) = 0;
 
 		/**
 		 * Tells the controller to clear its internal state because the robot
@@ -50,7 +50,7 @@ class robot_controller2 : public byref {
 		/**
 		 * \return the factory that created this controller.
 		 */
-		virtual robot_controller_factory &get_factory() const = 0;
+		virtual RobotControllerFactory &get_factory() const = 0;
 
 		/**
 		 * Multiplies a robot-relative velocity tuple by the wheel matrix to
@@ -67,13 +67,13 @@ class robot_controller2 : public byref {
 		 * \param[out] wheel_speeds the wheel speeds, in quarters of a degree of
 		 * motor shaft rotation per five milliseconds.
 		 */
-		static void convert_to_wheels(const point &vel, double avel, int (&wheel_speeds)[4]);
+		static void convert_to_wheels(const Point &vel, double avel, int (&wheel_speeds)[4]);
 
 	protected:
 		/**
-		 * Constructs a new robot_controller.
+		 * Constructs a new RobotController.
 		 */
-		robot_controller2() {
+		RobotController2() {
 		}
 };
 
@@ -82,7 +82,7 @@ class robot_controller2 : public byref {
  * output in the form of linear and angular velocities in robot-relative metres
  * per second, rather than calculating wheel speeds directly.
  */
-class robot_controller : public robot_controller2 {
+class RobotController : public RobotController2 {
 	public:
 		/**
 		 * Tells the robot controlled by this controller to move to the
@@ -102,19 +102,19 @@ class robot_controller : public robot_controller2 {
 		 * \param angular_velocity (output) the angular velocity to rotate at,
 		 * with positive being to the left
 		 */
-		virtual void move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) = 0;
+		virtual void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) = 0;
 
 	private:
-		void move(const point &new_position, double new_orientation, int (&wheel_speeds)[4]);
+		void move(const Point &new_position, double new_orientation, int (&wheel_speeds)[4]);
 };
 
 /**
  * A factory to construct robot_controllers.
  */ 
-class robot_controller_factory : public registerable<robot_controller_factory> {
+class RobotControllerFactory : public Registerable<RobotControllerFactory> {
 	public:
 		/**
-		 * Constructs a new robot_controller.
+		 * Constructs a new RobotController.
 		 *
 		 * \param plr the robot being controlled (a reference should be kept;
 		 * the controller must call only inspection methods on the object as
@@ -125,17 +125,17 @@ class robot_controller_factory : public registerable<robot_controller_factory> {
 		 * ignored; intended to be used only in VERY, VERY special situations)
 		 * \return The new controller
 		 */
-		virtual robot_controller2::ptr create_controller(Glib::RefPtr<player> plr, bool yellow, unsigned int index) const = 0;
+		virtual RobotController2::ptr create_controller(Glib::RefPtr<Player> plr, bool yellow, unsigned int index) const = 0;
 
 	protected:
 		/**
-		 * Constructs a robot_controller_factory. This is intended to be called
+		 * Constructs a RobotControllerFactory. This is intended to be called
 		 * from a subclass constructor as a result of a global variable holding
 		 * an instance of the subclass coming into scope at application startup.
 		 *
 		 * \param name a human-readable name for the factory
 		 */
-		robot_controller_factory(const Glib::ustring &name) : registerable<robot_controller_factory>(name) {
+		RobotControllerFactory(const Glib::ustring &name) : Registerable<RobotControllerFactory>(name) {
 		}
 };
 

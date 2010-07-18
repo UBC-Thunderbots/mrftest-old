@@ -9,12 +9,12 @@
 //
 // An operation to upload data to be burned into the PIC.
 //
-class pic_upload : public watchable_operation, public sigc::trackable {
+class PICUpload : public WatchableOperation, public sigc::trackable {
 	public:
 		//
 		// Constructs an uploader.
 		//
-		pic_upload(xbee_raw_bot::ptr bot, const intel_hex &data);
+		PICUpload(XBeeRawBot::ptr bot, const IntelHex &data);
 
 		//
 		// Starts the upload process.
@@ -27,9 +27,9 @@ class pic_upload : public watchable_operation, public sigc::trackable {
 		static const unsigned int PAGE_BYTES = 64;
 
 	private:
-		const xbee_raw_bot::ptr bot;
-		const intel_hex &data;
-		bootproto proto;
+		const XBeeRawBot::ptr bot;
+		const IntelHex &data;
+		BootProto proto;
 		unsigned int pages_written;
 
 		void enter_bootloader_done();

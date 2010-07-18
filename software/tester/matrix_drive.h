@@ -5,13 +5,13 @@
 #include "xbee/client/drive.h"
 #include <gtkmm.h>
 
-class tester_control_matrix_drive : public Gtk::Table, public zeroable {
+class TesterControlMatrixDrive : public Gtk::Table, public Zeroable {
 	public:
-		tester_control_matrix_drive(xbee_drive_bot::ptr);
+		TesterControlMatrixDrive(XBeeDriveBot::ptr);
 		void zero();
 
 	private:
-		xbee_drive_bot::ptr robot;
+		XBeeDriveBot::ptr robot;
 
 		Gtk::Label drive1_label;
 		Gtk::Label drive2_label;

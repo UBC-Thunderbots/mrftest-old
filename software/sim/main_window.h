@@ -8,19 +8,19 @@
 /**
  * The main window providing a GUI for the simulator.
  */
-class main_window : public Gtk::Window {
+class MainWindow : public Gtk::Window {
 	public:
 		/**
 		 * Constructs a new main window.
-		 * \param sim the simulator the window is displaying
+		 * \param sim the Simulator the window is displaying
 		 */
-		main_window(simulator &sim);
+		MainWindow(Simulator &sim);
 
 	private:
-		simulator &sim;
+		Simulator &sim;
 		Gtk::ToggleButton vis_button;
 		Gtk::Window vis_window;
-		visualizer vis;
+		Visualizer vis;
 
 		void on_vis_button_toggled();
 };

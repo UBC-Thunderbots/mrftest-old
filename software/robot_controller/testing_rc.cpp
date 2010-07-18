@@ -6,24 +6,24 @@ namespace {
 	//
 	// The robot controller.
 	//
-	class testing_rc : public robot_controller {
+	class TestingRC : public RobotController {
 		public:
 			//
 			// Constructs a new controller.
 			//
-			testing_rc(player::ptr plr);
+			TestingRC(Player::ptr plr);
 
 			//
 			// Constructs a new controller.
 			//
 			// Parameters:
 			//  target_position
-			//   location the player wants to be in world coordinate
+			//   location the player wants to be in World coordinate
 			//
 			//  target_orientation
 			//   direction the player wants to have
 			//
-			void move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity);
+			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 
 			//
 			// Clears accumulated data.
@@ -34,16 +34,16 @@ namespace {
 			//
 			// Returns the factory.
 			//
-			robot_controller_factory &get_factory() const;
+			RobotControllerFactory &get_factory() const;
 
 		private:
-			player::ptr plr;
+			Player::ptr plr;
 
 			double get_velocity(double d, double v0, double v1, double max_vel, double max_accel);
 
 			bool initialized;
 
-			point old_position;
+			Point old_position;
 			double old_orientation;
 
 			double time_step;
@@ -55,10 +55,10 @@ namespace {
 			double max_linear_velocity_accel;
 	};
 
-	testing_rc::testing_rc(player::ptr plr) : plr(plr), initialized(false) {
+	TestingRC::TestingRC(Player::ptr plr) : plr(plr), initialized(false) {
 	}
 
-	double testing_rc::get_velocity(double s, double v0, double v1, double max_vel, double max_accel) {
+	double TestingRC::get_velocity(double s, double v0, double v1, double max_vel, double max_accel) {
 		// std::cout << s << ' ' << v0 << ' ' << v1 << ' ' << max_vel << ' '<< max_accel << std::endl;
 		if (s == 0 && v0 == v1) return 0;
 		if (s < 0) return get_velocity(-s, -v0, -v1, max_vel, max_accel);
@@ -101,8 +101,8 @@ namespace {
 		return v0 - max_accel * time_step;	
 	}
 
-	void testing_rc::move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity) {
-		const point &current_position = plr->position();
+	void TestingRC::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
+		const Point &current_position = plr->position();
 		const double current_orientation = plr->orientation();
 		if (!initialized) {
 			old_position = current_position;
@@ -115,33 +115,33 @@ namespace {
 			max_linear_velocity = 10;
 		}
 
-		const point &lin_vel = (current_position - old_position) / time_step;
+		const Point &lin_vel = (current_position - old_position) / time_step;
 		double da = angle_mod(new_orientation - current_orientation);
-		const point &d = (new_position - current_position).rotate(-current_orientation);
+		const Point &d = (new_position - current_position).rotate(-current_orientation);
 		old_position = current_position;
 		old_orientation = current_orientation;
 
-		point tmp(get_velocity(d.x, lin_vel.x, 0, max_linear_velocity, max_linear_velocity_accel),
+		Point tmp(get_velocity(d.x, lin_vel.x, 0, max_linear_velocity, max_linear_velocity_accel),
 				get_velocity(d.y, lin_vel.y, 0, max_linear_velocity, max_linear_velocity_accel));
 
 		linear_velocity = d;
 		angular_velocity = da;
 	}
 
-	class testing_rc_factory : public robot_controller_factory {
+	class TestingRCFactory : public RobotControllerFactory {
 		public:
-			testing_rc_factory() : robot_controller_factory("Testing RC") {
+			TestingRCFactory() : RobotControllerFactory("Testing RC") {
 			}
 
-			robot_controller::ptr create_controller(player::ptr plr, bool, unsigned int) const {
-				robot_controller::ptr p(new testing_rc(plr));
+			RobotController::ptr create_controller(Player::ptr plr, bool, unsigned int) const {
+				RobotController::ptr p(new TestingRC(plr));
 				return p;
 			}
 	};
 
-	testing_rc_factory factory;
+	TestingRCFactory factory;
 
-	robot_controller_factory &testing_rc::get_factory() const {
+	RobotControllerFactory &TestingRC::get_factory() const {
 		return factory;
 	}
 }

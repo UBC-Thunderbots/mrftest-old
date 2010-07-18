@@ -9,40 +9,40 @@
 #include <map>
 #include <typeinfo>
 
-class ai;
-class world;
+class AI;
+class World;
 
 /**
  * A player is a robot that can be driven.
  */
-class player : public robot {
+class Player : public Robot {
 	public:
 		/**
-		 * A state block associated with a player. AI classes that need to store
+		 * A state block associated with a Player. AI classes that need to store
 		 * permanent state on a per-player basis but that cannot do so inside
 		 * themselves (by reason of being destroyed frequently) should subclass
 		 * this class, add the necessary state information as fields in the
-		 * subclass, and then use the player::get_state and player::set_state
+		 * subclass, and then use the Player::get_state and Player::set_state
 		 * functions to retrieve and store the state block.
 		 */
-		class state : public byref {
+		class State : public ByRef {
 			public:
 				/**
-				 * A pointer to a state block.
+				 * A pointer to a State block.
 				 */
-				typedef Glib::RefPtr<state> ptr;
+				typedef Glib::RefPtr<State> ptr;
 
 			protected:
 				/**
-				 * Destroys the state block.
+				 * Destroys the State block.
 				 */
-				virtual ~state();
+				virtual ~State();
 		};
 		
 		/**
-		 * A pointer to a player.
+		 * A pointer to a Player.
 		 */
-		typedef Glib::RefPtr<player> ptr;
+		typedef Glib::RefPtr<Player> ptr;
 
 		/**
 		 * \return the player's 64-bit address.
@@ -59,7 +59,7 @@ class player : public robot {
 		 * \param dest the destination point to move to
 		 * \param ori the target origin to rotate to
 		 */
-		void move(const point &dest, double ori);
+		void move(const Point &dest, double ori);
 
 		/**
 		 * Sets the speed of the dribbler motor. If this is not invoked by the
@@ -136,29 +136,29 @@ class player : public robot {
 		bool dribbler_safe() const;
 
 		/**
-		 * Fetches the state block previously stored by some class.
+		 * Fetches the State block previously stored by some class.
 		 *
-		 * \param[in] tid the type of the class whose state should be fetched;
+		 * \param[in] tid the type of the class whose State should be fetched;
 		 * you probably want to pass \c typeid(*this) here.
 		 *
-		 * \return the corresponding state block (which can be cast to a derived
-		 * type with Glib::RefPtr::cast_dynamic), or a null pointer if no state
+		 * \return the corresponding State block (which can be cast to a derived
+		 * type with Glib::RefPtr::cast_dynamic), or a null pointer if no State
 		 * is associated with the given class
 		 */
-		state::ptr get_state(const std::type_info &tid) const;
+		State::ptr get_state(const std::type_info &tid) const;
 
 		/**
-		 * Stores a state block for a class. Any previously-stored state block
+		 * Stores a State block for a class. Any previously-stored State block
 		 * for the same class will be dereferenced and, if not pointed to by any
 		 * other pointers, destroyed.
 		 *
-		 * \param[in] tid the type of the class whose state should be stored;
+		 * \param[in] tid the type of the class whose State should be stored;
 		 * you probably want to pass \c typeid(*this) here.
 		 *
-		 * \param[in] state the new state to store (which can be a null pointer
-		 * to remove the state).
+		 * \param[in] state the new State to store (which can be a null pointer
+		 * to remove the State).
 		 */
-		void set_state(const std::type_info &tid, state::ptr state);
+		void set_state(const std::type_info &tid, State::ptr state);
 
 		/**
 		 * The robot's name.
@@ -172,10 +172,10 @@ class player : public robot {
 		static const unsigned int CHICKER_FOREVER;
 
 	private:
-		xbee_drive_bot::ptr bot;
-		point destination_;
+		XBeeDriveBot::ptr bot;
+		Point destination_;
 		double target_orientation;
-		robot_controller2::ptr controller;
+		RobotController2::ptr controller;
 		bool moved;
 		int new_dribble_power;
 		int old_dribble_power;
@@ -184,12 +184,12 @@ class player : public robot {
 		unsigned int theory_dribble_rpm;
 		timespec sense_ball_start, sense_ball_end, stall_start, recover_time_start, chicker_last_fire_time;
 		double dribble_distance_;
-		point last_dribble_position;
-		std::map<const std::type_info *, state::ptr, bool (*)(const std::type_info *, const std::type_info *)> state_store;
-		annunciator::message not_moved_message, chick_when_not_ready_message;
+		Point last_dribble_position;
+		std::map<const std::type_info *, State::ptr, bool (*)(const std::type_info *, const std::type_info *)> state_store;
+		Annunciator::message not_moved_message, chick_when_not_ready_message;
 
 		/**
-		 * Constructs a new player object.
+		 * Constructs a new Player object.
 		 *
 		 * \param[in] name the robot's name.
 		 *
@@ -203,10 +203,10 @@ class player : public robot {
 		 *
 		 * \return the new object.
 		 */
-		static ptr create(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot);
+		static ptr create(const Glib::ustring &name, bool yellow, unsigned int pattern_index, XBeeDriveBot::ptr bot);
 
 		/**
-		 * Constructs a new player object.
+		 * Constructs a new Player object.
 		 *
 		 * \param[in] name the robot's name.
 		 *
@@ -218,23 +218,23 @@ class player : public robot {
 		 *
 		 * \param[in] bot the XBee robot being driven
 		 */
-		player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, xbee_drive_bot::ptr bot);
+		Player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, XBeeDriveBot::ptr bot);
 
 		/**
-		 * Drives one tick of time through the robot_controller and to the XBee.
+		 * Drives one tick of time through the RobotController and to the XBee.
 		 * \param scram whether or not to scram the robot
 		 */
 		void tick(bool scram);
 
-		visualizable::colour visualizer_colour() const {
-			return visualizable::colour(0.0, 1.0, 0.0);
+		Visualizable::RobotColour visualizer_colour() const {
+			return Visualizable::RobotColour(0.0, 1.0, 0.0);
 		}
 
 		bool has_destination() const {
 			return true;
 		}
 
-		point destination() const {
+		Point destination() const {
 			return destination_;
 		}
 						
@@ -246,8 +246,8 @@ class player : public robot {
 
 		void on_feedback();
 
-		friend class ai;
-		friend class world;
+		friend class AI;
+		friend class World;
 };
 
 #endif

@@ -29,31 +29,31 @@ namespace {
 	const unsigned int DELAY = 10;
 }
 
-simulator::simulator(const config &conf, simulator_engine::ptr engine, clocksource &clk) : conf(conf), engine(engine), host_address16(0xFFFF), sock(AF_INET, SOCK_DGRAM, IPPROTO_UDP), visdata(*this) {
+Simulator::Simulator(const Config &conf, SimulatorEngine::ptr engine, ClockSource &clk) : conf(conf), engine(engine), host_address16(0xFFFF), sock(AF_INET, SOCK_DGRAM, IPPROTO_UDP), visdata(*this) {
 	frame_counters[0] = frame_counters[1] = 0;
 	int one = 1;
 	if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &one, sizeof(one)) < 0) {
 		throw std::runtime_error("Cannot enable broadcast on SSL-Vision socket.");
 	}
-	const config::robot_set &infos(conf.robots());
+	const Config::RobotSet &infos(conf.robots());
 	for (unsigned int i = 0; i < infos.size(); ++i) {
-		robots_[infos[i].address] = robot::create(infos[i], engine);
+		robots_[infos[i].address] = SimulatorRobot::create(infos[i], engine);
 	}
 	visdata.init();
-	clk.signal_tick.connect(sigc::mem_fun(this, &simulator::tick));
-	Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &simulator::tick_geometry), 1);
+	clk.signal_tick.connect(sigc::mem_fun(this, &Simulator::tick));
+	Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &Simulator::tick_geometry), 1);
 }
 
-robot::ptr simulator::find_by16(uint16_t addr) const {
-	for (std::unordered_map<uint64_t, robot::ptr>::const_iterator i = robots_.begin(), iend = robots_.end(); i != iend; ++i) {
+SimulatorRobot::ptr Simulator::find_by16(uint16_t addr) const {
+	for (std::unordered_map<uint64_t, SimulatorRobot::ptr>::const_iterator i = robots_.begin(), iend = robots_.end(); i != iend; ++i) {
 		if (i->second->address16() == addr) {
 			return i->second;
 		}
 	}
-	return robot::ptr();
+	return SimulatorRobot::ptr();
 }
 
-void simulator::send(const iovec *iov, std::size_t iovlen) {
+void Simulator::send(const iovec *iov, std::size_t iovlen) {
 	// Coalesce buffers.
 	std::size_t total_length = 0;
 	for (unsigned int i = 0; i < iovlen; ++i) {
@@ -74,125 +74,125 @@ void simulator::send(const iovec *iov, std::size_t iovlen) {
 	// responses at full speed and making everything else slow and laggy. So
 	// instead, just delay a few milliseconds before actually doing anything
 	// with the packet.
-	Glib::signal_timeout().connect_once(sigc::bind(sigc::mem_fun(this, &simulator::packet_handler), data), 10);
+	Glib::signal_timeout().connect_once(sigc::bind(sigc::mem_fun(this, &Simulator::packet_handler), data), 10);
 }
 
-void simulator::packet_handler(const std::vector<uint8_t> &data) {
+void Simulator::packet_handler(const std::vector<uint8_t> &data) {
 	// Dispatch packet based on API ID.
-	if (data[0] == xbeepacket::AT_REQUEST_APIID) {
-		const xbeepacket::AT_REQUEST<2> &req = *reinterpret_cast<const xbeepacket::AT_REQUEST<2> *>(&data[0]);
+	if (data[0] == XBeePacketTypes::AT_REQUEST_APIID) {
+		const XBeePacketTypes::AT_REQUEST<2> &req = *reinterpret_cast<const XBeePacketTypes::AT_REQUEST<2> *>(&data[0]);
 
-		xbeepacket::AT_RESPONSE resp;
-		resp.apiid = xbeepacket::AT_RESPONSE_APIID;
+		XBeePacketTypes::AT_RESPONSE resp;
+		resp.apiid = XBeePacketTypes::AT_RESPONSE_APIID;
 		resp.frame = req.frame;
 		std::copy(&req.command[0], &req.command[2], &resp.command[0]);
 
 		if (data.size() == sizeof(req) && req.command[0] == 'M' && req.command[1] == 'Y') {
 			host_address16 = (req.value[0] << 8) | req.value[1];
-			resp.status = xbeepacket::AT_RESPONSE_STATUS_OK;
+			resp.status = XBeePacketTypes::AT_RESPONSE_STATUS_OK;
 		} else {
 			LOG_WARN(Glib::ustring::format("Received unsupported local AT command \"%1\".", Glib::ustring(reinterpret_cast<const char *>(req.command), 2)));
-			resp.status = xbeepacket::AT_RESPONSE_STATUS_INVALID_COMMAND;
+			resp.status = XBeePacketTypes::AT_RESPONSE_STATUS_INVALID_COMMAND;
 		}
 
 		if (req.frame) {
 			queue_response(&resp, sizeof(resp));
 		}
-	} else if (data[0] == xbeepacket::REMOTE_AT_REQUEST_APIID) {
-		const xbeepacket::REMOTE_AT_REQUEST<0> &req = *reinterpret_cast<const xbeepacket::REMOTE_AT_REQUEST<0> *>(&data[0]);
+	} else if (data[0] == XBeePacketTypes::REMOTE_AT_REQUEST_APIID) {
+		const XBeePacketTypes::REMOTE_AT_REQUEST<0> &req = *reinterpret_cast<const XBeePacketTypes::REMOTE_AT_REQUEST<0> *>(&data[0]);
 
-		xbeepacket::REMOTE_AT_RESPONSE resp;
-		resp.apiid = xbeepacket::REMOTE_AT_RESPONSE_APIID;
+		XBeePacketTypes::REMOTE_AT_RESPONSE resp;
+		resp.apiid = XBeePacketTypes::REMOTE_AT_RESPONSE_APIID;
 		resp.frame = req.frame;
 		std::copy(&req.address64[0], &req.address64[8], &resp.address64[0]);
 		std::copy(&req.address16[0], &req.address16[2], &resp.address16[0]);
 		std::copy(&req.command[0], &req.command[2], &resp.command[0]);
 
 		if (req.address16[0] == 0xFF && req.address16[1] == 0xFE) {
-			uint64_t recipient = xbeeutil::address_from_bytes(req.address64);
-			std::unordered_map<uint64_t, robot::ptr>::const_iterator i = robots_.find(recipient);
+			uint64_t recipient = XBeeUtil::address_from_bytes(req.address64);
+			std::unordered_map<uint64_t, SimulatorRobot::ptr>::const_iterator i = robots_.find(recipient);
 			if (i != robots_.end() && i->second->powered()) {
 				if (data.size() == sizeof(req) + 2 && req.command[0] == 'M' && req.command[1] == 'Y') {
 					uint16_t value = (req.value[0] << 8) | req.value[1];
 					if (value) {
 						i->second->address16(value);
-						resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK;
+						resp.status = XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_OK;
 					} else {
 						LOG_WARN("Please don't set a robot's 16-bit address to zero.");
-						resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_INVALID_PARAMETER;
+						resp.status = XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_PARAMETER;
 					}
 				} else if (data.size() == sizeof(req) + 1 && req.command[0] == 'D' && req.command[1] == '0') {
 					if (req.value[0] == 4) {
 						i->second->bootloading(false);
-						resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK;
+						resp.status = XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_OK;
 					} else if (req.value[0] == 5) {
 						i->second->bootloading(true);
-						resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_OK;
+						resp.status = XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_OK;
 					} else {
 						LOG_WARN("Please don't set the bootload line to something other than high or low.");
-						resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_INVALID_PARAMETER;
+						resp.status = XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_PARAMETER;
 					}
 				} else {
 					LOG_WARN(Glib::ustring::compose("Received unsupported remote AT command \"%1\".", Glib::ustring(reinterpret_cast<const char *>(req.command), 2)));
-					resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_INVALID_COMMAND;
+					resp.status = XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_COMMAND;
 				}
 			} else {
-				resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE;
+				resp.status = XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE;
 			}
 		} else {
 			LOG_WARN("Please don't use 16-bit addresses to target remote AT commands.");
-			resp.status = xbeepacket::REMOTE_AT_RESPONSE_STATUS_ERROR;
+			resp.status = XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_ERROR;
 		}
 
 		if (req.frame) {
 			queue_response(&resp, sizeof(resp));
 		}
-	} else if (data[0] == xbeepacket::TRANSMIT16_APIID) {
+	} else if (data[0] == XBeePacketTypes::TRANSMIT16_APIID) {
 		const struct __attribute__((packed)) TX16 {
-			xbeepacket::TRANSMIT16_HDR hdr;
+			XBeePacketTypes::TRANSMIT16_HDR hdr;
 			uint8_t data[];
 		} &req = *reinterpret_cast<const TX16 *>(&data[0]);
 
-		xbeepacket::TRANSMIT_STATUS resp;
-		resp.apiid = xbeepacket::TRANSMIT_STATUS_APIID;
+		XBeePacketTypes::TRANSMIT_STATUS resp;
+		resp.apiid = XBeePacketTypes::TRANSMIT_STATUS_APIID;
 		resp.frame = req.hdr.frame;
 
 		uint16_t recipient = (req.hdr.address[0] << 8) | req.hdr.address[1];
 		if (data.size() == sizeof(req) + 1 && recipient != 0xFFFF) {
-			robot::ptr bot(find_by16(recipient));
+			SimulatorRobot::ptr bot(find_by16(recipient));
 			if (bot) {
 				bot->run_data_offset(req.data[0]);
-				resp.status = xbeepacket::TRANSMIT_STATUS_SUCCESS;
+				resp.status = XBeePacketTypes::TRANSMIT_STATUS_SUCCESS;
 			} else {
-				if (req.hdr.options & xbeepacket::TRANSMIT_OPTION_DISABLE_ACK) {
-					resp.status = xbeepacket::TRANSMIT_STATUS_SUCCESS;
+				if (req.hdr.options & XBeePacketTypes::TRANSMIT_OPTION_DISABLE_ACK) {
+					resp.status = XBeePacketTypes::TRANSMIT_STATUS_SUCCESS;
 				} else {
-					resp.status = xbeepacket::TRANSMIT_STATUS_NO_ACK;
+					resp.status = XBeePacketTypes::TRANSMIT_STATUS_NO_ACK;
 				}
 			}
 		} else if (recipient == 0xFFFF) {
-			for (std::unordered_map<uint64_t, robot::ptr>::const_iterator i(robots_.begin()), iend(robots_.end()); i != iend; ++i) {
-				robot::ptr bot(i->second);
-				if (bot->powered() && bot->address16() != 0xFFFF && sizeof(req.hdr) + bot->run_data_offset() + sizeof(xbeepacket::RUN_DATA) <= data.size()) {
-					const xbeepacket::RUN_DATA &rundata = *reinterpret_cast<const xbeepacket::RUN_DATA *>(&req.data[bot->run_data_offset()]);
-					if (rundata.flags & xbeepacket::RUN_FLAG_RUNNING) {
-						player::ptr plr(bot->get_player());
+			for (std::unordered_map<uint64_t, SimulatorRobot::ptr>::const_iterator i(robots_.begin()), iend(robots_.end()); i != iend; ++i) {
+				SimulatorRobot::ptr bot(i->second);
+				if (bot->powered() && bot->address16() != 0xFFFF && sizeof(req.hdr) + bot->run_data_offset() + sizeof(XBeePacketTypes::RUN_DATA) <= data.size()) {
+					const XBeePacketTypes::RUN_DATA &rundata = *reinterpret_cast<const XBeePacketTypes::RUN_DATA *>(&req.data[bot->run_data_offset()]);
+					if (rundata.flags & XBeePacketTypes::RUN_FLAG_RUNNING) {
+						SimulatorPlayer::ptr plr(bot->get_player());
 						if (plr) {
 							plr->received(rundata);
 						}
-						if (rundata.flags & xbeepacket::RUN_FLAG_FEEDBACK) {
+						if (rundata.flags & XBeePacketTypes::RUN_FLAG_FEEDBACK) {
 							struct __attribute__((packed)) FEEDBACK {
-								xbeepacket::RECEIVE16_HDR hdr;
-								xbeepacket::FEEDBACK_DATA data;
+								XBeePacketTypes::RECEIVE16_HDR hdr;
+								XBeePacketTypes::FEEDBACK_DATA data;
 							} fb;
-							fb.hdr.apiid = xbeepacket::RECEIVE16_APIID;
+							fb.hdr.apiid = XBeePacketTypes::RECEIVE16_APIID;
 							fb.hdr.address[0] = bot->address16() >> 8;
 							fb.hdr.address[1] = bot->address16() & 0xFF;
 #warning implement inbound RSSI support
 							fb.hdr.rssi = 40;
 							fb.hdr.options = 0;
 #warning implement chicker support
-							fb.data.flags = xbeepacket::FEEDBACK_FLAG_RUNNING;
+							fb.data.flags = XBeePacketTypes::FEEDBACK_FLAG_RUNNING;
 #warning implement outbound RSSI support
 							fb.data.outbound_rssi = 40;
 							fb.data.dribbler_speed = plr ? plr->dribbler_speed() : 0;
@@ -204,10 +204,10 @@ void simulator::packet_handler(const std::vector<uint8_t> &data) {
 					}
 				}
 			}
-			if (req.hdr.options & xbeepacket::TRANSMIT_OPTION_DISABLE_ACK) {
-				resp.status = xbeepacket::TRANSMIT_STATUS_SUCCESS;
+			if (req.hdr.options & XBeePacketTypes::TRANSMIT_OPTION_DISABLE_ACK) {
+				resp.status = XBeePacketTypes::TRANSMIT_STATUS_SUCCESS;
 			} else {
-				resp.status = xbeepacket::TRANSMIT_STATUS_NO_ACK;
+				resp.status = XBeePacketTypes::TRANSMIT_STATUS_NO_ACK;
 			}
 		}
 
@@ -219,15 +219,15 @@ void simulator::packet_handler(const std::vector<uint8_t> &data) {
 	}
 }
 
-void simulator::queue_response(const void *buffer, std::size_t size) {
+void Simulator::queue_response(const void *buffer, std::size_t size) {
 	const uint8_t *p(static_cast<const uint8_t *>(buffer));
 	responses.push(std::vector<uint8_t>(p, p + size));
 	if (!response_push_connection.connected()) {
-		response_push_connection = Glib::signal_timeout().connect(sigc::mem_fun(this, &simulator::push_response), DELAY);
+		response_push_connection = Glib::signal_timeout().connect(sigc::mem_fun(this, &Simulator::push_response), DELAY);
 	}
 }
 
-bool simulator::push_response() {
+bool Simulator::push_response() {
 	if (!responses.empty()) {
 		signal_received.emit(responses.front());
 		responses.pop();
@@ -235,11 +235,11 @@ bool simulator::push_response() {
 	return !responses.empty();
 }
 
-void simulator::tick() {
+void Simulator::tick() {
 	engine->tick();
 
 	// Assume that each camera can see 10% of the other camera's area of the field.
-	static const double LIMIT_MAG = simulator_field::length / 2 * 0.1;
+	static const double LIMIT_MAG = SimulatorField::length / 2 * 0.1;
 	static const double LIMIT_SIGNS[2] = { -1.0, +1.0 };
 
 	for (unsigned int i = 0; i < 2; ++i) {
@@ -253,19 +253,19 @@ void simulator::tick() {
 		SSL_DetectionBall *ball(det->add_balls());
 		ball->set_confidence(1.0);
 #warning add ball area
-		const point &ball_pos(engine->get_ball()->position());
+		const Point &ball_pos(engine->get_ball()->position());
 		ball->set_x(ball_pos.x * 1000);
 		ball->set_y(ball_pos.y * 1000);
 #warning add pixel locations
 		ball->set_pixel_x(0.0);
 		ball->set_pixel_y(0.0);
 
-		for (std::unordered_map<uint64_t, robot::ptr>::const_iterator j(robots_.begin()), jend(robots_.end()); j != jend; ++j) {
-			robot::ptr bot(j->second);
-			player::ptr plr(bot->get_player());
+		for (std::unordered_map<uint64_t, SimulatorRobot::ptr>::const_iterator j(robots_.begin()), jend(robots_.end()); j != jend; ++j) {
+			SimulatorRobot::ptr bot(j->second);
+			SimulatorPlayer::ptr plr(bot->get_player());
 			if (plr && plr->position().x * LIMIT_SIGNS[i] > -LIMIT_MAG) {
 				SSL_DetectionRobot *elem;
-				const config::robot_info &info(conf.robots().find(j->first));
+				const Config::RobotInfo &info(conf.robots().find(j->first));
 				if (info.yellow) {
 					elem = det->add_robots_yellow();
 				} else {
@@ -273,7 +273,7 @@ void simulator::tick() {
 				}
 				elem->set_confidence(1.0);
 				elem->set_robot_id(info.pattern_index);
-				const point &pos(plr->position());
+				const Point &pos(plr->position());
 				elem->set_x(pos.x * 1000);
 				elem->set_y(pos.y * 1000);
 				elem->set_orientation(plr->orientation());
@@ -287,7 +287,7 @@ void simulator::tick() {
 		uint8_t buffer[packet.ByteSize()];
 		packet.SerializeToArray(buffer, sizeof(buffer));
 
-		sockaddrs sa;
+		SockAddrs sa;
 		sa.in.sin_family = AF_INET;
 		sa.in.sin_addr.s_addr = inet_addr("127.255.255.255");
 		sa.in.sin_port = htons(10002);
@@ -301,21 +301,21 @@ void simulator::tick() {
 	visdata.signal_visdata_changed.emit();
 }
 
-bool simulator::tick_geometry() {
+bool Simulator::tick_geometry() {
 	SSL_WrapperPacket packet;
 	SSL_GeometryData *geom(packet.mutable_geometry());
 	SSL_GeometryFieldSize *fld(geom->mutable_field());
 	fld->set_line_width(10);
-	fld->set_field_length(simulator_field::length * 1000);
-	fld->set_field_width(simulator_field::width * 1000);
+	fld->set_field_length(SimulatorField::length * 1000);
+	fld->set_field_width(SimulatorField::width * 1000);
 	fld->set_boundary_width(250);
-	fld->set_referee_width((simulator_field::total_length - simulator_field::length) / 2 * 1000 - 250);
-	fld->set_goal_width(simulator_field::goal_width * 1000);
+	fld->set_referee_width((SimulatorField::total_length - SimulatorField::length) / 2 * 1000 - 250);
+	fld->set_goal_width(SimulatorField::goal_width * 1000);
 	fld->set_goal_depth(450);
 	fld->set_goal_wall_width(10);
-	fld->set_center_circle_radius(simulator_field::centre_circle_radius * 1000);
-	fld->set_defense_radius(simulator_field::defense_area_radius * 1000);
-	fld->set_defense_stretch(simulator_field::defense_area_stretch * 1000);
+	fld->set_center_circle_radius(SimulatorField::centre_circle_radius * 1000);
+	fld->set_defense_radius(SimulatorField::defense_area_radius * 1000);
+	fld->set_defense_stretch(SimulatorField::defense_area_stretch * 1000);
 	fld->set_free_kick_from_defense_dist(200);
 	fld->set_penalty_spot_from_field_line_dist(450);
 	fld->set_penalty_line_from_spot_dist(400);
@@ -338,7 +338,7 @@ bool simulator::tick_geometry() {
 	uint8_t buffer[packet.ByteSize()];
 	packet.SerializeToArray(buffer, sizeof(buffer));
 
-	sockaddrs sa;
+	SockAddrs sa;
 	sa.in.sin_family = AF_INET;
 	sa.in.sin_addr.s_addr = inet_addr("127.255.255.255");
 	sa.in.sin_port = htons(10002);

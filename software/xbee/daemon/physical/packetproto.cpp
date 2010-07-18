@@ -4,12 +4,12 @@
 #include <vector>
 #include <cassert>
 
-xbee_packet_stream::xbee_packet_stream() : sop_seen(false) {
-	bstream.signal_sop_received().connect(sigc::mem_fun(this, &xbee_packet_stream::on_sop));
-	bstream.signal_bytes_received().connect(sigc::mem_fun(this, &xbee_packet_stream::on_bytes));
+XBeePacketStream::XBeePacketStream() : sop_seen(false) {
+	bstream.signal_sop_received().connect(sigc::mem_fun(this, &XBeePacketStream::on_sop));
+	bstream.signal_bytes_received().connect(sigc::mem_fun(this, &XBeePacketStream::on_bytes));
 }
 
-void xbee_packet_stream::send(const iovec *iov, std::size_t iovcnt) {
+void XBeePacketStream::send(const iovec *iov, std::size_t iovcnt) {
 	uint8_t checksum = 0xFF;
 	std::size_t total_len = 0;
 	for (std::size_t i = 0; i < iovcnt; ++i) {
@@ -39,14 +39,14 @@ void xbee_packet_stream::send(const iovec *iov, std::size_t iovcnt) {
 	bstream.send(&newiov[0], newiov.size());
 }
 
-void xbee_packet_stream::on_sop() {
+void XBeePacketStream::on_sop() {
 	sop_seen = true;
 	length_seen = 0;
 	length = 0;
 	buffer.clear();
 }
 
-void xbee_packet_stream::on_bytes(const void *bytes, size_t len) {
+void XBeePacketStream::on_bytes(const void *bytes, size_t len) {
 	if (!sop_seen) {
 		return;
 	}

@@ -6,7 +6,7 @@
 //
 // A collection of utility functions for XBee.
 //
-namespace xbeeutil {
+namespace XBeeUtil {
 	//
 	// Converts a bot address from a uint64_t to an array of bytes.
 	//

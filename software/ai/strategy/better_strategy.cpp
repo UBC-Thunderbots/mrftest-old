@@ -17,64 +17,64 @@
 namespace {
 
 	/**
-	 * A really basic strategy that satisfies the rule.
+	 * A really basic Strategy that satisfies the rule.
 	 * Most strategies should derive this function and overide in_play_assignment().
 	 * Assumes that the first robot is always the goalie.
 	 */
-	class better_strategy : public basic_strategy {
+	class BetterStrategy : public BasicStrategy {
 		public:
-			better_strategy(world::ptr w);
+			BetterStrategy(World::ptr w);
 
-			strategy_factory &get_factory();
+			StrategyFactory &get_factory();
 			Gtk::Widget *get_ui_controls();
 
 		protected:
 
 			void in_play_assignment();
 
-			player::ptr minus_one_assignment();
+			Player::ptr minus_one_assignment();
 	};
 
 
-	class better_strategy_factory : public strategy_factory {
+	class BetterStrategyFactory : public StrategyFactory {
 		public:
-			better_strategy_factory();
-			strategy::ptr create_strategy(world::ptr world);
+			BetterStrategyFactory();
+			Strategy::ptr create_strategy(World::ptr world);
 	};
 
-	better_strategy_factory::better_strategy_factory() : strategy_factory("Better than Basic Strategy") {
+	BetterStrategyFactory::BetterStrategyFactory() : StrategyFactory("Better than Basic Strategy") {
 	}
 
-	strategy::ptr better_strategy_factory::create_strategy(world::ptr world) {
-		strategy::ptr s(new better_strategy(world));
+	Strategy::ptr BetterStrategyFactory::create_strategy(World::ptr world) {
+		Strategy::ptr s(new BetterStrategy(world));
 		return s;
 	}
 
-	better_strategy_factory factory;
+	BetterStrategyFactory factory;
 
-	better_strategy::better_strategy(world::ptr w) : basic_strategy(w) {
+	BetterStrategy::BetterStrategy(World::ptr w) : BasicStrategy(w) {
 	}
 
-	Gtk::Widget *better_strategy::get_ui_controls() {
+	Gtk::Widget *BetterStrategy::get_ui_controls() {
 		return NULL;
 	}
 
-	void better_strategy::in_play_assignment() {
-		const friendly_team &the_team(the_world->friendly);
+	void BetterStrategy::in_play_assignment() {
+		const FriendlyTeam &the_team(the_world->friendly);
 
 		// TODO: SORT
 
 		roles.clear();
 		if (the_team.size() == 0) return;
 
-		// const vector<player::ptr> players = the_team.get_players();
+		// const vector<Player::ptr> players = the_team.get_players();
 
-		defensive2::ptr defensive_role(new defensive2(the_world));
-		offensive::ptr offensive_role(new offensive(the_world));
-		roles.push_back(role::ptr(defensive_role));
-		roles.push_back(role::ptr(offensive_role));
-		std::vector<player::ptr> defenders;
-		std::vector<player::ptr> offenders;
+		Defensive2::ptr defensive_role(new Defensive2(the_world));
+		Offensive::ptr offensive_role(new Offensive(the_world));
+		roles.push_back(Role::ptr(defensive_role));
+		roles.push_back(Role::ptr(offensive_role));
+		std::vector<Player::ptr> defenders;
+		std::vector<Player::ptr> offenders;
 
 		defenders.push_back(the_team.get_player(0));
 
@@ -86,12 +86,12 @@ namespace {
 
 		if (the_team.size() >= 4){
 			switch(the_world->playtype()){
-				case playtype::execute_direct_free_kick_enemy:
-				case playtype::execute_indirect_free_kick_enemy:
-				case playtype::prepare_kickoff_enemy:
-				case playtype::execute_kickoff_enemy:
-				case playtype::prepare_penalty_enemy:
-				case playtype::execute_penalty_enemy:
+				case PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY:
+				case PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY:
+				case PlayType::PREPARE_KICKOFF_ENEMY:
+				case PlayType::EXECUTE_KICKOFF_ENEMY:
+				case PlayType::PREPARE_PENALTY_ENEMY:
+				case PlayType::EXECUTE_PENALTY_ENEMY:
 					defenders.push_back(the_team.get_player(3));
 					break;
 				default:
@@ -102,7 +102,7 @@ namespace {
 		// 3 offenders, 1 defender if we have the ball
 		// otherwise 2 offenders, 2 defenders
 		if (the_team.size() >= 5){
-			if (ai_util::friendly_posses_ball(the_world))
+			if (AIUtil::friendly_posses_ball(the_world))
 				offenders.push_back(the_team.get_player(4));
 			else
 				defenders.push_back(the_team.get_player(4));
@@ -110,7 +110,7 @@ namespace {
 
 		// If we have ball and ball is on non-goalie defender, switch this defender to offender
 		// and switch robot 4 back to defender
-		if (defenders.size() >= 2 && ai_util::posses_ball(the_world,defenders[1]))
+		if (defenders.size() >= 2 && AIUtil::posses_ball(the_world,defenders[1]))
 			std::swap(defenders[1],offenders[offenders.size()-1]);
 		// extra players become offenders
 		for (size_t i = 5; i < the_team.size(); ++i)
@@ -121,25 +121,25 @@ namespace {
 		offensive_role->set_robots(offenders);
 	}
 
-	player::ptr better_strategy::minus_one_assignment() {
+	Player::ptr BetterStrategy::minus_one_assignment() {
 
 		// TODO: SORT
 
-		const friendly_team &the_team(the_world->friendly);
+		const FriendlyTeam &the_team(the_world->friendly);
 
 		roles.clear();
-		if (the_team.size() == 0) return player::ptr();
+		if (the_team.size() == 0) return Player::ptr();
 
 		if (the_team.size() == 1) return the_team.get_player(0);
 
 		// other players just sort by distance
 
-		defensive2::ptr defensive_role(new defensive2(the_world));
-		offensive::ptr offensive_role(new offensive(the_world));
-		roles.push_back(role::ptr(defensive_role));
-		roles.push_back(role::ptr(offensive_role));
-		std::vector<player::ptr> defenders;
-		std::vector<player::ptr> offenders;
+		Defensive2::ptr defensive_role(new Defensive2(the_world));
+		Offensive::ptr offensive_role(new Offensive(the_world));
+		roles.push_back(Role::ptr(defensive_role));
+		roles.push_back(Role::ptr(offensive_role));
+		std::vector<Player::ptr> defenders;
+		std::vector<Player::ptr> offenders;
 
 		defenders.push_back(the_team.get_player(0));
 		if (the_team.size() >= 3)
@@ -151,7 +151,7 @@ namespace {
 		// 3 offenders, 1 defender if we have the ball
 		// otherwise 2 offenders, 2 defenders
 		if (the_team.size() >= 5) {
-			if (ai_util::friendly_posses_ball(the_world))
+			if (AIUtil::friendly_posses_ball(the_world))
 				offenders.push_back(the_team.get_player(4));
 			else
 				defenders.push_back(the_team.get_player(4));
@@ -168,7 +168,7 @@ namespace {
 		return the_team.get_player(1);
 	}
 
-	strategy_factory &better_strategy::get_factory() {
+	StrategyFactory &BetterStrategy::get_factory() {
 		return factory;
 	}
 

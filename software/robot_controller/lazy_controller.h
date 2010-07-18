@@ -9,20 +9,20 @@
 #include "util/byref.h"
 #include "util/noncopyable.h"
 
-class lazy_controller : public robot_controller {
+class LazyController : public RobotController {
 	public:
 
-		void move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity);
+		void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 
 		void clear();
 
-		robot_controller_factory &get_factory() const;
+		RobotControllerFactory &get_factory() const;
 
-		lazy_controller(player::ptr plr);
+		LazyController(Player::ptr plr);
 
 	protected:
 	private:
-		player::ptr plr;
+		Player::ptr plr;
 };
 
 #endif

@@ -7,20 +7,20 @@
 //
 // A meter showing dribbler speed for a robot.
 //
-class dribbler_meter : public Gtk::ProgressBar, public noncopyable {
+class DribblerMeter : public Gtk::ProgressBar, public NonCopyable {
 	public:
 		//
-		// Constructs an dribbler_meter with no robot.
+		// Constructs an DribblerMeter with no robot.
 		//
-		dribbler_meter();
+		DribblerMeter();
 
 		//
 		// Sets which robot this dribbler meter will monitor.
 		//
-		void set_bot(xbee_drive_bot::ptr bot);
+		void set_bot(XBeeDriveBot::ptr bot);
 
 	private:
-		xbee_drive_bot::ptr robot;
+		XBeeDriveBot::ptr robot;
 		sigc::connection connection;
 		unsigned int last_speed;
 

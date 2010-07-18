@@ -15,16 +15,16 @@
 #include <sys/types.h>
 
 namespace {
-	file_descriptor open_and_lock_lock_file() {
+	FileDescriptor open_and_lock_lock_file() {
 		// Calculate filenames.
 		const Glib::ustring &cache_dir = Glib::get_user_cache_dir();
 		const std::string &lock_path = Glib::filename_from_utf8(cache_dir + "/thunderbots-xbeed-lock");
 
 		// Try to lock the lock file.
-		file_descriptor lock_file(lock_path.c_str(), O_CREAT | O_RDWR);
+		FileDescriptor lock_file(lock_path.c_str(), O_CREAT | O_RDWR);
 		if (flock(lock_file, LOCK_EX | LOCK_NB) < 0) {
 			if (errno == EWOULDBLOCK || errno == EAGAIN) {
-				throw already_running();
+				throw AlreadyRunning();
 			} else {
 				throw std::runtime_error("Cannot lock lock file!");
 			}
@@ -33,7 +33,7 @@ namespace {
 		return lock_file;
 	}
 
-	file_descriptor create_listening_socket() {
+	FileDescriptor create_listening_socket() {
 		// Compute the path to the socket.
 		const Glib::ustring &cache_dir = Glib::get_user_cache_dir();
 		const std::string &socket_path = Glib::filename_from_utf8(cache_dir + "/thunderbots-xbeed-sock");
@@ -42,10 +42,10 @@ namespace {
 		unlink(socket_path.c_str());
 
 		// Create the listening socket.
-		file_descriptor listen_sock(PF_UNIX, SOCK_SEQPACKET, 0);
+		FileDescriptor listen_sock(PF_UNIX, SOCK_SEQPACKET, 0);
 
 		// Bind it to the path.
-		sockaddrs sa;
+		SockAddrs sa;
 		sa.un.sun_family = AF_UNIX;
 		if (socket_path.size() > sizeof(sa.un.sun_path)) {
 			throw std::runtime_error("Path too long!");
@@ -65,9 +65,9 @@ namespace {
 	}
 }
 
-daemon::daemon(class backend &backend) : backend(backend), frame_number_allocator(1, 255), id16_allocator(1, 0xFFFD), scheduler(*this), universe_claimed(false), lock_file(open_and_lock_lock_file()), listen_sock(create_listening_socket()), allocated_rundata_indices(xbeepacket::MAX_DRIVE_ROBOTS, false) {
+XBeeDaemon::XBeeDaemon(class BackEnd &backend) : backend(backend), frame_number_allocator(1, 255), id16_allocator(1, 0xFFFD), scheduler(*this), universe_claimed(false), lock_file(open_and_lock_lock_file()), listen_sock(create_listening_socket()), allocated_rundata_indices(XBeePacketTypes::MAX_DRIVE_ROBOTS, false) {
 	// Blank the run data index reverse.
-	std::fill(run_data_index_reverse, run_data_index_reverse + xbeepacket::MAX_DRIVE_ROBOTS, UINT64_C(0));
+	std::fill(run_data_index_reverse, run_data_index_reverse + XBeePacketTypes::MAX_DRIVE_ROBOTS, UINT64_C(0));
 
 	// Initialize the rwlock.
 	pthread_rwlockattr_t attrib;
@@ -85,24 +85,24 @@ daemon::daemon(class backend &backend) : backend(backend), frame_number_allocato
 	}
 
 	// Compose and send a request to set the local XBee's 16-bit address to 0.
-	xbeepacket::AT_REQUEST<2> packet;
-	packet.apiid = xbeepacket::AT_REQUEST_APIID;
+	XBeePacketTypes::AT_REQUEST<2> packet;
+	packet.apiid = XBeePacketTypes::AT_REQUEST_APIID;
 	packet.frame = frame_number_allocator.alloc();
 	packet.command[0] = 'M';
 	packet.command[1] = 'Y';
 	packet.value[0] = 0x00;
 	packet.value[1] = 0x00;
-	scheduler.queue(request::create(&packet, sizeof(packet), true));
+	scheduler.queue(XBeeRequest::create(&packet, sizeof(packet), true));
 
 	// Connect a signal to fire when clients connect.
-	Glib::signal_io().connect(sigc::mem_fun(this, &daemon::on_accept), listen_sock, Glib::IO_IN);
+	Glib::signal_io().connect(sigc::mem_fun(this, &XBeeDaemon::on_accept), listen_sock, Glib::IO_IN);
 }
 
-daemon::~daemon() {
+XBeeDaemon::~XBeeDaemon() {
 	pthread_rwlock_destroy(&shm->lock);
 }
 
-uint8_t daemon::alloc_rundata_index() {
+uint8_t XBeeDaemon::alloc_rundata_index() {
 	for (unsigned int i = 0; i < allocated_rundata_indices.size(); ++i) {
 		if (!allocated_rundata_indices[i]) {
 			allocated_rundata_indices[i] = true;
@@ -112,34 +112,34 @@ uint8_t daemon::alloc_rundata_index() {
 	return UINT8_C(0xFF);
 }
 
-void daemon::free_rundata_index(uint8_t index) {
+void XBeeDaemon::free_rundata_index(uint8_t index) {
 	assert(index < allocated_rundata_indices.size());
 	assert(allocated_rundata_indices[index]);
 	allocated_rundata_indices[index] = false;
 	run_data_index_reverse[index] = 0;
 }
 
-void daemon::check_shutdown() {
+void XBeeDaemon::check_shutdown() {
 	check_shutdown_firer.disconnect();
-	if (client::any_connected()) {
+	if (XBeeClient::any_connected()) {
 		return;
 	}
-	for (std::unordered_map<uint64_t, robot_state::ptr>::iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
-		const robot_state::ptr state(i->second);
+	for (std::unordered_map<uint64_t, XBeeRobot::ptr>::iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
+		const XBeeRobot::ptr state(i->second);
 		if (state->freeing()) {
-			check_shutdown_firer = state->signal_resources_freed.connect(sigc::mem_fun(this, &daemon::check_shutdown));
+			check_shutdown_firer = state->signal_resources_freed.connect(sigc::mem_fun(this, &XBeeDaemon::check_shutdown));
 			return;
 		}
 	}
 	signal_last_client_disconnected.emit();
 }
 
-bool daemon::on_accept(Glib::IOCondition) {
+bool XBeeDaemon::on_accept(Glib::IOCondition) {
 	int newfd = accept(listen_sock, 0, 0);
 	if (newfd >= 0) {
-		file_descriptor fd(newfd);
+		FileDescriptor fd(newfd);
 		if (!universe_claimed) {
-			client::create(fd, *this);
+			XBeeClient::create(fd, *this);
 			check_shutdown_firer.disconnect();
 		}
 	}

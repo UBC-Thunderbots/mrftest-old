@@ -7,18 +7,18 @@
 #include <glibmm.h>
 #include <stdint.h>
 
-class xbee_lowlevel;
+class XBeeLowLevel;
 
 //
 // Allows access to a robot in raw mode. Raw mode is used to send and receive
 // radio packets directly to and from the robot, for example when bootloading.
 //
-class xbee_raw_bot : public byref {
+class XBeeRawBot : public ByRef {
 	public:
 		//
-		// A pointer to an xbee_raw_bot.
+		// A pointer to an XBeeRawBot.
 		//
-		typedef Glib::RefPtr<xbee_raw_bot> ptr;
+		typedef Glib::RefPtr<XBeeRawBot> ptr;
 
 		//
 		// The 64-bit address of this robot.
@@ -42,7 +42,7 @@ class xbee_raw_bot : public byref {
 		sigc::signal<void, uint8_t, const void *, std::size_t> signal_receive16;
 
 		//
-		// Creates a new xbee_raw_bot and begins attempting to claim the bot.
+		// Creates a new XBeeRawBot and begins attempting to claim the bot.
 		// You should connect to signal_alive to detect when you have been given
 		// exclusive access to the robot. You should also connect to
 		// signal_claim_failed to detect if your claim request is rejected. You
@@ -52,17 +52,17 @@ class xbee_raw_bot : public byref {
 		// one of the signals if the arbiter is in the process of deassigning
 		// allocated resources from the robot before granting it to you.
 		//
-		static ptr create(uint64_t address, xbee_lowlevel &ll) {
-			ptr p(new xbee_raw_bot(address, ll));
+		static ptr create(uint64_t address, XBeeLowLevel &ll) {
+			ptr p(new XBeeRawBot(address, ll));
 			return p;
 		}
 
 		//
-		// Sends a packet to this robot. You are responsible for ensuring that
+		// Sends a XBeePacket to this robot. You are responsible for ensuring that
 		// the robot's address is filled in properly and that you are not
 		// accidentally sending data to the wrong robot!
 		//
-		void send(packet::ptr p);
+		void send(XBeePacket::ptr p);
 
 		/**
 		 * \return The 16-bit address allocated to this robot
@@ -70,11 +70,11 @@ class xbee_raw_bot : public byref {
 		uint16_t address16() const;
 
 	private:
-		xbee_lowlevel &ll;
+		XBeeLowLevel &ll;
 		uint16_t address16_;
 
-		xbee_raw_bot(uint64_t address, xbee_lowlevel &ll);
-		~xbee_raw_bot();
+		XBeeRawBot(uint64_t address, XBeeLowLevel &ll);
+		~XBeeRawBot();
 		void on_receive16(uint16_t, uint8_t, const void *, std::size_t);
 		void on_meta(const void *, std::size_t);
 };

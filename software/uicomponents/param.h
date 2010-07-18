@@ -6,13 +6,13 @@
 #include <gtkmm.h>
 #include <vector>
 
-class config;
+class Config;
 
 /**
  * A generic parameter that can be edited and whose value can be stored in the
  * configuration file.
  */
-class param : public noncopyable {
+class Param : public NonCopyable {
 	public:
 		/**
 		 * Informs the subsystem that the environment has been initialized and
@@ -20,7 +20,7 @@ class param : public noncopyable {
 		 *
 		 * \param[in] conf the configuration to use.
 		 */
-		static void initialized(config *conf);
+		static void initialized(Config *conf);
 
 		/**
 		 * The name of the parameter.
@@ -58,18 +58,18 @@ class param : public noncopyable {
 		 *
 		 * \param[in] name the name of the parameter.
 		 */
-		param(const Glib::ustring &name);
+		Param(const Glib::ustring &name);
 
 		/**
 		 * Destroys a parameter. Should only happen at shutdown time.
 		 */
-		~param();
+		~Param();
 };
 
 /**
  * A boolean parameter that can be edited by means of a checkbox.
  */
-class bool_param : public param {
+class BoolParam : public Param {
 	public:
 		/**
 		 * Constructs a new boolean parameter. Should only happen at startup
@@ -79,7 +79,7 @@ class bool_param : public param {
 		 *
 		 * \param[in] def the default value of the parameter.
 		 */
-		bool_param(const Glib::ustring &name, bool def);
+		BoolParam(const Glib::ustring &name, bool def);
 
 		/**
 		 * \return the value of the parameter.
@@ -89,7 +89,7 @@ class bool_param : public param {
 		}
 
 	private:
-		scoped_ptr<Gtk::CheckButton> widget_;
+		ScopedPtr<Gtk::CheckButton> widget_;
 		bool value_;
 		const bool default_;
 
@@ -103,7 +103,7 @@ class bool_param : public param {
 /**
  * An integer parameter that can be edited by means of a scale slider.
  */
-class int_param : public param {
+class IntParam : public Param {
 	public:
 		/**
 		 * Constructs a new integer parameter. Should only happen at startup
@@ -117,7 +117,7 @@ class int_param : public param {
 		 *
 		 * \param[in] max the maximum value of the parameter.
 		 */
-		int_param(const Glib::ustring &name, int def, int min, int max);
+		IntParam(const Glib::ustring &name, int def, int min, int max);
 
 		/**
 		 * \return the value of the parameter.
@@ -127,7 +127,7 @@ class int_param : public param {
 		}
 
 	private:
-		scoped_ptr<Gtk::HScale> widget_;
+		ScopedPtr<Gtk::HScale> widget_;
 		int value_;
 		const int min_;
 		const int max_;
@@ -143,7 +143,7 @@ class int_param : public param {
 /**
  * A floating-point parameter that can be edited by means of a text field.
  */
-class double_param : public param {
+class DoubleParam : public Param {
 	public:
 		/**
 		 * Constructs a new double parameter. Should only happen at startup
@@ -157,7 +157,7 @@ class double_param : public param {
 		 *
 		 * \param[in] max the maximum value of the parameter.
 		 */
-		double_param(const Glib::ustring &name, double def, double min, double max);
+		DoubleParam(const Glib::ustring &name, double def, double min, double max);
 
 		/**
 		 * \return the value of the parameter.
@@ -167,7 +167,7 @@ class double_param : public param {
 		}
 
 	private:
-		scoped_ptr<Gtk::Entry> widget_;
+		ScopedPtr<Gtk::Entry> widget_;
 		double value_;
 		const double min_;
 		const double max_;
@@ -183,12 +183,12 @@ class double_param : public param {
 /**
  * A control that allows displaying and editing parameters.
  */
-class param_panel : public Gtk::VBox {
+class ParamPanel : public Gtk::VBox {
 	public:
 		/**
-		 * Constructs a new param_panel.
+		 * Constructs a new ParamPanel.
 		 */
-		param_panel();
+		ParamPanel();
 
 	private:
 		void on_apply_clicked();

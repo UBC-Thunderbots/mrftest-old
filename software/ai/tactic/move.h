@@ -7,30 +7,30 @@
 /**
  * A wrapper around robot navigator.
  * I.e. this class exist only so that roles do not call navigator directly.
- * Therefore, me thinks that other tactic should not have instance of this tactic.
+ * Therefore, me thinks that other Tactic should not have instance of this Tactic.
  */
-class move : public tactic {
+class Move : public Tactic {
 	public:
 		//
-		// A pointer to this tactic.
+		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<move> ptr;
+		typedef Glib::RefPtr<Move> ptr;
 
 		/**
 		 * Standard constructor.
 		 */
-		move(player::ptr player, world::ptr world);
+		Move(Player::ptr player, World::ptr world);
 
  		/**
 -		 * Overloaded constructor with flags option.
  		 */
- 		move(player::ptr player, world::ptr world, const unsigned int& flags);
+ 		Move(Player::ptr player, World::ptr world, const unsigned int& flags);
 
 		/**
-		 * Most usage of move tactic only sets position and should thus justify existence of this overloaded constructor.
+		 * Most usage of Move Tactic only sets position and should thus justify existence of this overloaded constructor.
 		 * \param position Moves the robot to this position.
 		 */
-		// move(player::ptr player, world::ptr world, const unsigned int& flags, const point& position);
+		// Move(Player::ptr player, World::ptr world, const unsigned int& flags, const Point& position);
 
 		//
 		// Runs the AI for one time tick.
@@ -38,22 +38,22 @@ class move : public tactic {
 		void tick();
 
 		/**
-		 * Sets the target position for this move tactic
+		 * Sets the target position for this Move Tactic
 		 */
-		void set_position(const point& p) {
+		void set_position(const Point& p) {
 			target_position = p;
 			position_initialized = true;
 		}
 
 		/**
-		 * Gets whether the position is set for this move tactic.
+		 * Gets whether the position is set for this Move Tactic.
 		 */
 		bool is_position_set() {
 			return position_initialized;
 		}
 
 		/**
-		 * Sets the target orientation for this move tactic
+		 * Sets the target orientation for this Move Tactic
 		 */
 		void set_orientation(const double& d) {
 			target_orientation = d;
@@ -68,9 +68,9 @@ class move : public tactic {
 		}
 
 	protected:		
-		robot_navigator navi;
+		RobotNavigator navi;
 
-		point target_position;
+		Point target_position;
 		double target_orientation;
 
 		bool position_initialized;

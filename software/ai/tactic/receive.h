@@ -10,17 +10,17 @@
  * Perhaps watch out for other robots trying to block its line of sight.
  * NOTE: Unlike pass_receive, this does not require knowledge of the passer.
  */
-class receive : public tactic {
+class Receive : public Tactic {
 	public:
 		//
-		// A pointer to this tactic.
+		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<receive> ptr;
+		typedef Glib::RefPtr<Receive> ptr;
 
 		//
-		// Constructs a new receive tactic. 
+		// Constructs a new Receive Tactic. 
 		//
-		receive(player::ptr player, world::ptr world);
+		Receive(Player::ptr player, World::ptr world);
 		
 		//
 		// Runs the AI for one time tick.
@@ -28,8 +28,8 @@ class receive : public tactic {
 		void tick();	
 
 	protected:
-		const world::ptr the_world;
-		robot_navigator navi;
+		const World::ptr the_world;
+		RobotNavigator navi;
 };
 
 #endif

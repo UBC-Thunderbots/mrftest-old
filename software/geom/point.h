@@ -7,102 +7,102 @@
 /**
  * A point or vector in 2D space.
  */
-class point {
+class Point {
 	public:
 		/**
-		 * The X coordinate of the point.
+		 * The X coordinate of the Point.
 		 */
 		double x;
 
 		/**
-		 * The Y coordinate of the point.
+		 * The Y coordinate of the Point.
 		 */
 		double y;
 
 		/**
 		 * Creates the origin.
 		 */
-		point() : x(0.0), y(0.0) {
+		Point() : x(0.0), y(0.0) {
 		}
 
 		/**
-		 * Creates a point at arbitrary coordinates.
+		 * Creates a Point at arbitrary coordinates.
 		 *
-		 * \param[in] x the <var>x</var> value of the point.
+		 * \param[in] x the <var>x</var> value of the Point.
 		 *
-		 * \param[in] y the <var>y</var. value of the point.
+		 * \param[in] y the <var>y</var. value of the Point.
 		 */
-		point(double x, double y) : x(x), y(y) {
+		Point(double x, double y) : x(x), y(y) {
 		}
 
 		/**
-		 * Creates a copy of a point.
+		 * Creates a copy of a Point.
 		 *
-		 * \param[in] p the point to duplicate.
+		 * \param[in] p the Point to duplicate.
 		 */
-		point(const point &p) : x(p.x), y(p.y) {
+		Point(const Point &p) : x(p.x), y(p.y) {
 		}
 
 		/**
-		 * \return the square of the length of the point.
+		 * \return the square of the length of the Point.
 		 */
 		double lensq() const __attribute__((warn_unused_result)) {
 			return x * x + y * y;
 		}
 
 		/**
-		 * \return the length of the point.
+		 * \return the length of the Point.
 		 */
 		double len() const __attribute__((warn_unused_result)) {
 			return std::sqrt(lensq());
 		}
 
 		/**
-		 * \return a unit vector in the same direction as this point, or a zero
-		 * length point if this point is zero.
+		 * \return a unit vector in the same direction as this Point, or a zero
+		 * length Point if this Point is zero.
 		 */
-		point norm() const __attribute__((warn_unused_result)) {
+		Point norm() const __attribute__((warn_unused_result)) {
 			const double l = len();
 			if (l < 1.0e-9) {
-				return point();
+				return Point();
 			} else {
-				return point(x / l, y / l);
+				return Point(x / l, y / l);
 			}
 		}
 
 		/**
-		 * Rotates this point by an angle.
+		 * Rotates this Point by an angle.
 		 *
 		 * \param[in] rot the angle in radians to rotate the vector.
 		 *
-		 * \return the point rotated by rot.
+		 * \return the Point rotated by rot.
 		 */
-		point rotate(const double rot) const __attribute__((warn_unused_result)) {
+		Point rotate(const double rot) const __attribute__((warn_unused_result)) {
 			const double s = std::sin(rot);
 			const double c = std::cos(rot);
-			return point(x * c - y * s, x * s + y * c);
+			return Point(x * c - y * s, x * s + y * c);
 		}
 
 		/**
 		 * Takes the dot product of two vectors.
 		 *
-		 * \param[in] other the point to dot against.
+		 * \param[in] other the Point to dot against.
 		 * 
 		 * \return the dot product of the points.
 		 */
-		double dot(const point &other) const __attribute__((warn_unused_result)) {
+		double dot(const Point &other) const __attribute__((warn_unused_result)) {
 			return x * other.x + y * other.y;
 		}
 
 		/**
 		 * Takes the cross product of two vectors.
 		 *
-		 * \param[in] other the point to cross with.
+		 * \param[in] other the Point to cross with.
 		 *
 		 * \return the <var>z</var> component of the 3-dimensional cross product
 		 * \c this × \c other.
 		 */
-		double cross(const point &other) const __attribute__((warn_unused_result)) {
+		double cross(const Point &other) const __attribute__((warn_unused_result)) {
 			return x * other.y - y * other.x;
 		}
 
@@ -114,7 +114,7 @@ class point {
 		 *
 		 * \return this vector.
 		 */
-		point &operator=(const point &q) {
+		Point &operator=(const Point &q) {
 			x = q.x;
 			y = q.y;
 			return *this;
@@ -134,68 +134,68 @@ namespace {
 	/**
 	 * Adds two points.
 	 *
-	 * \param[in] p the first point.
+	 * \param[in] p the first Point.
 	 *
-	 * \param[in] q the second point.
+	 * \param[in] q the second Point.
 	 *
 	 * \return the vector-sum of the two points.
 	 */
-	point operator+(const point &p, const point &q) __attribute__((warn_unused_result));
-	point operator+(const point &p, const point &q) {
-		return point(p.x + q.x, p.y + q.y);
+	Point operator+(const Point &p, const Point &q) __attribute__((warn_unused_result));
+	Point operator+(const Point &p, const Point &q) {
+		return Point(p.x + q.x, p.y + q.y);
 	}
 
 	/**
-	 * Adds an offset to a point.
+	 * Adds an offset to a Point.
 	 *
-	 * \param[in,out] p the point to add the offset to.
+	 * \param[in,out] p the Point to add the offset to.
 	 *
 	 * \param[in] q the offset to add.
 	 *
 	 * \return \p p.
 	 */
-	point &operator+=(point &p, const point &q) {
+	Point &operator+=(Point &p, const Point &q) {
 		p.x += q.x;
 		p.y += q.y;
 		return p;
 	}
 
 	/**
-	 * Negates a point.
+	 * Negates a Point.
 	 *
-	 * \param[in] p the point to negate.
+	 * \param[in] p the Point to negate.
 	 *
 	 * \return \c −p.
 	 */
-	point operator-(const point &p) __attribute__((warn_unused_result));
-	point operator-(const point &p) {
-		return point(-p.x, -p.y);
+	Point operator-(const Point &p) __attribute__((warn_unused_result));
+	Point operator-(const Point &p) {
+		return Point(-p.x, -p.y);
 	}
 
 	/**
 	 * Subtracts two points.
 	 *
-	 * \param[in] p the point to subtract from.
+	 * \param[in] p the Point to subtract from.
 	 *
-	 * \param[in] q the point to subtract.
+	 * \param[in] q the Point to subtract.
 	 *
 	 * \return the vector-difference of the two points.
 	 */
-	point operator-(const point &p, const point &q) __attribute__((warn_unused_result));
-	point operator-(const point &p, const point &q) {
-		return point(p.x - q.x, p.y - q.y);
+	Point operator-(const Point &p, const Point &q) __attribute__((warn_unused_result));
+	Point operator-(const Point &p, const Point &q) {
+		return Point(p.x - q.x, p.y - q.y);
 	}
 
 	/**
-	 * Subtracts an offset from a point.
+	 * Subtracts an offset from a Point.
 	 *
-	 * \param[in,out] p the point to subtract the offset from.
+	 * \param[in,out] p the Point to subtract the offset from.
 	 *
 	 * \param[in] q the offset to subtract.
 	 *
 	 * \return p.
 	 */
-	point &operator-=(point &p, const point &q) {
+	Point &operator-=(Point &p, const Point &q) {
 		p.x -= q.x;
 		p.y -= q.y;
 		return p;
@@ -210,9 +210,9 @@ namespace {
 	 *
 	 * \return the scaled vector.
 	 */
-	point operator*(double s, const point &p) __attribute__((warn_unused_result));
-	point operator*(double s, const point &p) {
-		return point(p.x * s, p.y * s);
+	Point operator*(double s, const Point &p) __attribute__((warn_unused_result));
+	Point operator*(double s, const Point &p) {
+		return Point(p.x * s, p.y * s);
 	}
 
 	/**
@@ -224,9 +224,9 @@ namespace {
 	 *
 	 * \return the scaled vector.
 	 */
-	point operator*(const point &p, double s) __attribute__((warn_unused_result));
-	point operator*(const point &p, double s) {
-		return point(p.x * s, p.y * s);
+	Point operator*(const Point &p, double s) __attribute__((warn_unused_result));
+	Point operator*(const Point &p, double s) {
+		return Point(p.x * s, p.y * s);
 	}
 
 	/**
@@ -238,7 +238,7 @@ namespace {
 	 *
 	 * \return \p p.
 	 */
-	point &operator*=(point &p, double s) {
+	Point &operator*=(Point &p, double s) {
 		p.x *= s;
 		p.y *= s;
 		return p;
@@ -253,9 +253,9 @@ namespace {
 	 *
 	 * \return the scaled vector.
 	 */
-	point operator/(const point &p, double s) __attribute__((warn_unused_result));
-	point operator/(const point &p, double s) {
-		return point(p.x / s, p.y / s);
+	Point operator/(const Point &p, double s) __attribute__((warn_unused_result));
+	Point operator/(const Point &p, double s) {
+		return Point(p.x / s, p.y / s);
 	}
 
 	/**
@@ -267,7 +267,7 @@ namespace {
 	 *
 	 * \return \p p.
 	 */
-	point &operator/=(point &p, double s) {
+	Point &operator/=(Point &p, double s) {
 		p.x /= s;
 		p.y /= s;
 		return p;
@@ -278,11 +278,11 @@ namespace {
 	 *
 	 * \param[in] os the stream to print to.
 	 *
-	 * \param[in] p the point to print.
+	 * \param[in] p the Point to print.
 	 *
 	 * \return \p os.
 	 */
-	std::ostream &operator<<(std::ostream &os, const point &p) {
+	std::ostream &operator<<(std::ostream &os, const Point &p) {
 		os << '(' << p.x << ',' << p.y << ')';
 		return os;
 	}
@@ -292,13 +292,13 @@ namespace {
  * Orders two vectors suitably for sorting. Vectors are ordered first by
  * <var>x</var> coordinate and then by <var>y</var> coordinate.
  *
- * \param[in] p the first point.
+ * \param[in] p the first Point.
  *
- * \param[in] q the second point.
+ * \param[in] q the second Point.
  *
  * \return \c true if \p p < \p q, or \c false otherwise.
  */
-bool operator<(const point &p, const point &q);
+bool operator<(const Point &p, const Point &q);
 
 #endif
 

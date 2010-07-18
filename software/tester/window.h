@@ -13,30 +13,30 @@
 //
 // The user interface for the tester.
 //
-class tester_window : public Gtk::Window {
+class TesterWindow : public Gtk::Window {
 	public:
-		tester_window(xbee_lowlevel &modem, const config &conf);
+		TesterWindow(XBeeLowLevel &modem, const Config &conf);
 
 	private:
-		xbee_lowlevel &modem;
-		const config &conf;
-		xbee_drive_bot::ptr bot;
+		XBeeLowLevel &modem;
+		const Config &conf;
+		XBeeDriveBot::ptr bot;
 
 		Gtk::VBox vbox;
 
 		Gtk::Frame bot_frame;
 		Gtk::HBox bot_hbox;
-		single_bot_combobox bot_chooser;
+		SingleBotComboBox bot_chooser;
 		Gtk::ToggleButton claim_bot_button;
 
 		Gtk::Frame feedback_frame;
-		tester_feedback feedback;
+		TesterFeedback feedback;
 
 		Gtk::Frame drive_frame;
 		Gtk::VBox drive_box;
 		Gtk::ComboBoxText drive_chooser;
 		Gtk::Widget *drive_widget;
-		zeroable *drive_zeroable;
+		Zeroable *drive_zeroable;
 
 		Gtk::Frame dribble_frame;
 		Gtk::HScale dribble_scale;
@@ -49,8 +49,8 @@ class tester_window : public Gtk::Window {
 		Gtk::Button chicker_chip;
 		Gtk::ToggleButton chicker_autokick;
 		Gtk::ToggleButton chicker_autochip;
-		light chicker_ready_light, lt3751_fault_light, chicker_low_fault_light, chicker_high_fault_light;
-		annunciator ann;
+		Light chicker_ready_light, lt3751_fault_light, chicker_low_fault_light, chicker_high_fault_light;
+		Annunciator ann;
 
 		int key_snoop(Widget *, GdkEventKey *event);
 		void on_claim_toggled();

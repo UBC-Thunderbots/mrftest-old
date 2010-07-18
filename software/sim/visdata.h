@@ -4,27 +4,27 @@
 #include "uicomponents/visualizer.h"
 #include <vector>
 
-class simulator;
+class Simulator;
 
 /**
- * An implementation of visualizable that displays data from the simulator.
+ * An implementation of Visualizable that displays data from the simulator.
  */
-class simulator_visdata : public visualizable {
+class SimulatorVisData : public Visualizable {
 	public:
 		/**
-		 * Constructs a new simulator_visdata.
+		 * Constructs a new SimulatorVisData.
 		 *
-		 * \param sim the simulator to visualize
+		 * \param sim the Simulator to visualize
 		 */
-		simulator_visdata(const simulator &sim);
+		SimulatorVisData(const Simulator &sim);
 
-		const class visualizable::field &field() const;
-		visualizable::ball::ptr ball() const;
+		const class Visualizable::Field &field() const;
+		Visualizable::Ball::ptr ball() const;
 		std::size_t size() const;
-		visualizable::robot::ptr operator[](unsigned int index) const;
+		Visualizable::Robot::ptr operator[](unsigned int index) const;
 
 	private:
-		class sim_field : public visualizable::field {
+		class SimulatorVisField : public Visualizable::Field {
 			public:
 				bool valid() const;
 				double length() const;
@@ -37,13 +37,13 @@ class simulator_visdata : public visualizable {
 				double defense_area_stretch() const;
 		};
 
-		const simulator &sim;
-		sim_field fld;
-		std::vector<visualizable::robot::ptr> robots;
+		const Simulator &sim;
+		SimulatorVisField fld;
+		std::vector<Visualizable::Robot::ptr> robots;
 
 		void init();
 
-		friend class simulator;
+		friend class Simulator;
 };
 
 #endif

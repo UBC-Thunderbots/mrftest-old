@@ -12,11 +12,11 @@
 
 namespace {
 	//
-	// A unary functor that accepts a robot_info and returns its address.
+	// A unary functor that accepts a RobotInfo and returns its address.
 	//
-	class robot_address : public std::unary_function<const config::robot_info &, uint64_t> {
+	class RobotAddress : public std::unary_function<const Config::RobotInfo &, uint64_t> {
 		public:
-			uint64_t operator()(const config::robot_info &bot) const {
+			uint64_t operator()(const Config::RobotInfo &bot) const {
 				return bot.address;
 			}
 	};
@@ -24,9 +24,9 @@ namespace {
 	/**
 	 * A binary predicate that compares two robots by their 64-bit addresses.
 	 */
-	class compare_by_address : public std::binary_function<const config::robot_info &, const config::robot_info &, bool> {
+	class CompareByAddress : public std::binary_function<const Config::RobotInfo &, const Config::RobotInfo &, bool> {
 		public:
-			bool operator()(const config::robot_info &x, const config::robot_info &y) {
+			bool operator()(const Config::RobotInfo &x, const Config::RobotInfo &y) {
 				return x.address < y.address;
 			}
 	};
@@ -34,9 +34,9 @@ namespace {
 	/**
 	 * A binary predicate that compares two robots by their lid patterns.
 	 */
-	class compare_by_lid : public std::binary_function<const config::robot_info &, const config::robot_info &, bool> {
+	class CompareByLid : public std::binary_function<const Config::RobotInfo &, const Config::RobotInfo &, bool> {
 		public:
-			bool operator()(const config::robot_info &x, const config::robot_info &y) {
+			bool operator()(const Config::RobotInfo &x, const Config::RobotInfo &y) {
 				if (x.yellow != y.yellow) {
 					return x.yellow < y.yellow;
 				} else {
@@ -48,15 +48,15 @@ namespace {
 	/**
 	 * A binary predicate that compares two robots by their names.
 	 */
-	class compare_by_name : public std::binary_function<const config::robot_info &, const config::robot_info &, bool> {
+	class CompareByName : public std::binary_function<const Config::RobotInfo &, const Config::RobotInfo &, bool> {
 		public:
-			bool operator()(const config::robot_info &x, const config::robot_info &y) {
+			bool operator()(const Config::RobotInfo &x, const Config::RobotInfo &y) {
 				return x.name < y.name;
 			}
 	};
 }
 
-config::config() : channel_(0x0E) {
+Config::Config() : channel_(0x0E) {
 	// Load file.
 	std::ifstream ifs;
 	try {
@@ -78,7 +78,7 @@ config::config() : channel_(0x0E) {
 	}
 }
 
-void config::save() const {
+void Config::save() const {
 	// Save file.
 	std::ofstream ofs;
 	ofs.exceptions(std::ios_base::failbit | std::ios_base::badbit);
@@ -126,17 +126,17 @@ void config::save() const {
 	}
 }
 
-void config::channel(unsigned int chan) {
+void Config::channel(unsigned int chan) {
 	assert(0x0B <= chan && chan <= 0x1A);
 	channel_ = chan;
 }
 
-void config::load_v1(std::istream &ifs) {
+void Config::load_v1(std::istream &ifs) {
 	robots_.load_v1(ifs);
 	channel_ = 0x0E;
 }
 
-void config::load_v2(std::istream &ifs) {
+void Config::load_v2(std::istream &ifs) {
 	robots_.load_v2(ifs);
 	{
 		uint8_t ch;
@@ -145,7 +145,7 @@ void config::load_v2(std::istream &ifs) {
 	}
 }
 
-void config::load_v3(std::istream &ifs) {
+void Config::load_v3(std::istream &ifs) {
 	robots_.load_v2(ifs);
 	{
 		uint8_t ch;
@@ -192,7 +192,7 @@ void config::load_v3(std::istream &ifs) {
 	}
 }
 
-const config::robot_info &config::robot_set::find(uint64_t address) const {
+const Config::RobotInfo &Config::RobotSet::find(uint64_t address) const {
 	for (typeof(robots.begin()) i(robots.begin()), iend(robots.end()); i != iend; ++i) {
 		if (i->address == address) {
 			return *i;
@@ -201,7 +201,7 @@ const config::robot_info &config::robot_set::find(uint64_t address) const {
 	throw std::runtime_error("Cannot find robot by address!");
 }
 
-const config::robot_info &config::robot_set::find(const Glib::ustring &name) const {
+const Config::RobotInfo &Config::RobotSet::find(const Glib::ustring &name) const {
 	for (typeof(robots.begin()) i(robots.begin()), iend(robots.end()); i != iend; ++i) {
 		if (i->name == name) {
 			return *i;
@@ -210,7 +210,7 @@ const config::robot_info &config::robot_set::find(const Glib::ustring &name) con
 	throw std::runtime_error("Cannot find robot by name!");
 }
 
-bool config::robot_set::contains_address(uint64_t address) const {
+bool Config::RobotSet::contains_address(uint64_t address) const {
 	for (typeof(robots.begin()) i = robots.begin(), iend = robots.end(); i != iend; ++i) {
 		if (i->address == address) {
 			return true;
@@ -219,7 +219,7 @@ bool config::robot_set::contains_address(uint64_t address) const {
 	return false;
 }
 
-bool config::robot_set::contains_pattern(bool yellow, unsigned int pattern_index) const {
+bool Config::RobotSet::contains_pattern(bool yellow, unsigned int pattern_index) const {
 	for (typeof(robots.begin()) i = robots.begin(), iend = robots.end(); i != iend; ++i) {
 		if (i->yellow == yellow && i->pattern_index == pattern_index) {
 			return true;
@@ -228,7 +228,7 @@ bool config::robot_set::contains_pattern(bool yellow, unsigned int pattern_index
 	return false;
 }
 
-bool config::robot_set::contains_name(const Glib::ustring &name) const {
+bool Config::RobotSet::contains_name(const Glib::ustring &name) const {
 	for (typeof(robots.begin()) i = robots.begin(), iend = robots.end(); i != iend; ++i) {
 		if (i->name == name) {
 			return true;
@@ -237,18 +237,18 @@ bool config::robot_set::contains_name(const Glib::ustring &name) const {
 	return false;
 }
 
-void config::robot_set::add(uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name) {
+void Config::RobotSet::add(uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name) {
 	assert(!contains_address(address));
 	assert(!contains_pattern(yellow, pattern_index));
 	assert(!name.empty());
 	assert(!contains_name(name));
 	unsigned int index = robots.size();
-	robots.push_back(robot_info(address, yellow, pattern_index, name));
+	robots.push_back(RobotInfo(address, yellow, pattern_index, name));
 	signal_robot_added.emit(index);
 }
 
-void config::robot_set::remove(uint64_t address) {
-	std::vector<robot_info>::iterator i = std::find_if(robots.begin(), robots.end(), __gnu_cxx::compose1(std::bind1st(std::equal_to<uint64_t>(), address), robot_address()));
+void Config::RobotSet::remove(uint64_t address) {
+	std::vector<RobotInfo>::iterator i = std::find_if(robots.begin(), robots.end(), __gnu_cxx::compose1(std::bind1st(std::equal_to<uint64_t>(), address), RobotAddress()));
 	if (i != robots.end()) {
 		unsigned int index = i - robots.begin();
 		robots.erase(i);
@@ -256,8 +256,8 @@ void config::robot_set::remove(uint64_t address) {
 	}
 }
 
-void config::robot_set::replace(uint64_t old_address, uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name) {
-	std::vector<robot_info>::iterator i = std::find_if(robots.begin(), robots.end(), __gnu_cxx::compose1(std::bind1st(std::equal_to<uint64_t>(), old_address), robot_address()));
+void Config::RobotSet::replace(uint64_t old_address, uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name) {
+	std::vector<RobotInfo>::iterator i = std::find_if(robots.begin(), robots.end(), __gnu_cxx::compose1(std::bind1st(std::equal_to<uint64_t>(), old_address), RobotAddress()));
 	assert(i != robots.end());
 	assert(address == i->address || !contains_address(address));
 	assert((yellow == i->yellow && pattern_index == i->pattern_index) || !contains_pattern(yellow, pattern_index));
@@ -270,34 +270,34 @@ void config::robot_set::replace(uint64_t old_address, uint64_t address, bool yel
 	signal_robot_replaced.emit(i - robots.begin());
 }
 
-void config::robot_set::sort_by_address() {
-	std::sort(robots.begin(), robots.end(), compare_by_address());
+void Config::RobotSet::sort_by_address() {
+	std::sort(robots.begin(), robots.end(), CompareByAddress());
 	signal_sorted.emit();
 }
 
-void config::robot_set::sort_by_lid() {
-	std::sort(robots.begin(), robots.end(), compare_by_lid());
+void Config::RobotSet::sort_by_lid() {
+	std::sort(robots.begin(), robots.end(), CompareByLid());
 	signal_sorted.emit();
 }
 
-void config::robot_set::sort_by_name() {
-	std::sort(robots.begin(), robots.end(), compare_by_name());
+void Config::RobotSet::sort_by_name() {
+	std::sort(robots.begin(), robots.end(), CompareByName());
 	signal_sorted.emit();
 }
 
-void config::robot_set::swap_colours() {
+void Config::RobotSet::swap_colours() {
 	for (typeof(robots.begin()) i = robots.begin(), iend = robots.end(); i != iend; ++i) {
 		i->yellow = !i->yellow;
 	}
 	signal_colours_swapped.emit();
 }
 
-void config::robot_set::save(std::ostream &ofs) const {
+void Config::RobotSet::save(std::ostream &ofs) const {
 	{
 		uint32_t num_robots = robots.size();
 		ofs.write(reinterpret_cast<const char *>(&num_robots), 4);
 	}
-	for (std::vector<robot_info>::const_iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
+	for (std::vector<RobotInfo>::const_iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
 		ofs.write(reinterpret_cast<const char *>(&i->address), 8);
 		{
 			uint8_t ui = i->yellow ? 0xFF : 0;
@@ -316,7 +316,7 @@ void config::robot_set::save(std::ostream &ofs) const {
 	}
 }
 
-void config::robot_set::load_v1(std::istream &ifs) {
+void Config::RobotSet::load_v1(std::istream &ifs) {
 	uint32_t num_robots;
 	ifs.read(reinterpret_cast<char *>(&num_robots), 4);
 	while (num_robots--) {
@@ -347,7 +347,7 @@ void config::robot_set::load_v1(std::istream &ifs) {
 	}
 }
 
-void config::robot_set::load_v2(std::istream &ifs) {
+void Config::RobotSet::load_v2(std::istream &ifs) {
 	load_v1(ifs);
 }
 

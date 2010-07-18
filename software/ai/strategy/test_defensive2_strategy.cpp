@@ -7,30 +7,30 @@
 #include <cstdlib>
 
 namespace {
-	class test_defensive2_strategy : public strategy2 {
+	class TestDefensive2Strategy : public Strategy2 {
 		public:
-			test_defensive2_strategy(world::ptr world);
+			TestDefensive2Strategy(World::ptr world);
 			void tick(Cairo::RefPtr<Cairo::Context> overlay);
-			strategy_factory &get_factory();
+			StrategyFactory &get_factory();
 			Gtk::Widget *get_ui_controls();
 		private:
-			const world::ptr the_world;
+			const World::ptr the_world;
 	};
 
-	test_defensive2_strategy::test_defensive2_strategy(world::ptr world) : the_world(world) {
+	TestDefensive2Strategy::TestDefensive2Strategy(World::ptr world) : the_world(world) {
 
 	}
 
-	void test_defensive2_strategy::tick(Cairo::RefPtr<Cairo::Context> overlay) {
-		if (the_world->playtype() == playtype::halt) {
+	void TestDefensive2Strategy::tick(Cairo::RefPtr<Cairo::Context> overlay) {
+		if (the_world->playtype() == PlayType::HALT) {
 			return;
 		}
-		const friendly_team &the_team(the_world->friendly);
+		const FriendlyTeam &the_team(the_world->friendly);
 		if (the_team.size() == 0) return;
 
-		const ball::ptr the_ball(the_world->ball());
-		defensive2 defensive2_role(the_world);
-		std::vector<player::ptr> all;
+		const Ball::ptr the_ball(the_world->ball());
+		Defensive2 defensive2_role(the_world);
+		std::vector<Player::ptr> all;
 		for (size_t i = 0; i < the_team.size(); ++i) {
 			all.push_back(the_team[i]);
 		}
@@ -39,27 +39,27 @@ namespace {
 		defensive2_role.tick();
 	}
 
-	Gtk::Widget *test_defensive2_strategy::get_ui_controls() {
+	Gtk::Widget *TestDefensive2Strategy::get_ui_controls() {
 		return 0;
 	}
 
-	class test_defensive2_strategy_factory : public strategy_factory {
+	class TestDefensive2StrategyFactory : public StrategyFactory {
 		public:
-			test_defensive2_strategy_factory();
-			strategy::ptr create_strategy(world::ptr world);
+			TestDefensive2StrategyFactory();
+			Strategy::ptr create_strategy(World::ptr world);
 	};
 
-	test_defensive2_strategy_factory::test_defensive2_strategy_factory() : strategy_factory("Test(Defensive V2) Strategy") {
+	TestDefensive2StrategyFactory::TestDefensive2StrategyFactory() : StrategyFactory("Test(Defensive V2) Strategy") {
 	}
 
-	strategy::ptr test_defensive2_strategy_factory::create_strategy(world::ptr world) {
-		strategy::ptr s(new test_defensive2_strategy(world));
+	Strategy::ptr TestDefensive2StrategyFactory::create_strategy(World::ptr world) {
+		Strategy::ptr s(new TestDefensive2Strategy(world));
 		return s;
 	}
 
-	test_defensive2_strategy_factory factory;
+	TestDefensive2StrategyFactory factory;
 
-	strategy_factory &test_defensive2_strategy::get_factory() {
+	StrategyFactory &TestDefensive2Strategy::get_factory() {
 		return factory;
 	}
 }

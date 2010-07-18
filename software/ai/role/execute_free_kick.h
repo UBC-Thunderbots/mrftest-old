@@ -7,38 +7,38 @@
  * Execute an indirect free kick.
  * Should only contain one robot.
  */
-class execute_indirect_free_kick : public role {
+class ExecuteIndirectFreeKick : public Role {
 	public:
 
-		typedef Glib::RefPtr<execute_indirect_free_kick> ptr;
+		typedef Glib::RefPtr<ExecuteIndirectFreeKick> ptr;
 
-		execute_indirect_free_kick(world::ptr world);
+		ExecuteIndirectFreeKick(World::ptr world);
 
 		void tick();
 
 		void robots_changed();
 
 	private:
-		const world::ptr the_world;
+		const World::ptr the_world;
 };
 
 /**
  * Execute a direct free kick.
  * Should only contain one robot.
  */
-class execute_direct_free_kick : public role {
+class ExecuteDirectFreeKick : public Role {
 	public:
 
-		typedef Glib::RefPtr<execute_direct_free_kick> ptr;
+		typedef Glib::RefPtr<ExecuteDirectFreeKick> ptr;
 
-		execute_direct_free_kick(world::ptr world);
+		ExecuteDirectFreeKick(World::ptr world);
 
 		void tick();
 
 		void robots_changed();
 
 	private:
-		const world::ptr the_world;
+		const World::ptr the_world;
 };
 
 #endif

@@ -5,13 +5,13 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-void transmit16_packet::transmit(const file_descriptor &sock, uint8_t frame) const {
-	xbeepacket::TRANSMIT16_HDR hdr;
-	hdr.apiid = xbeepacket::TRANSMIT16_APIID;
+void Transmit16Packet::transmit(const FileDescriptor &sock, uint8_t frame) const {
+	XBeePacketTypes::TRANSMIT16_HDR hdr;
+	hdr.apiid = XBeePacketTypes::TRANSMIT16_APIID;
 	hdr.frame = frame;
 	hdr.address[0] = dest >> 8;
 	hdr.address[1] = dest & 0xFF;
-	hdr.options = disable_ack ? xbeepacket::TRANSMIT_OPTION_DISABLE_ACK : 0;
+	hdr.options = disable_ack ? XBeePacketTypes::TRANSMIT_OPTION_DISABLE_ACK : 0;
 
 	iovec iov[2];
 	iov[0].iov_base = &hdr;
@@ -34,9 +34,9 @@ void transmit16_packet::transmit(const file_descriptor &sock, uint8_t frame) con
 }
 
 template<std::size_t value_size>
-void at_packet<value_size>::transmit(const file_descriptor &sock, uint8_t frame) const {
-	xbeepacket::AT_REQUEST<value_size> packet;
-	packet.apiid = xbeepacket::AT_REQUEST_APIID;
+void ATPacket<value_size>::transmit(const FileDescriptor &sock, uint8_t frame) const {
+	XBeePacketTypes::AT_REQUEST<value_size> packet;
+	packet.apiid = XBeePacketTypes::AT_REQUEST_APIID;
 	packet.frame = frame;
 	std::copy(command, command + 2, packet.command);
 	std::copy(value, value + value_size, packet.value);
@@ -47,19 +47,19 @@ void at_packet<value_size>::transmit(const file_descriptor &sock, uint8_t frame)
 }
 
 // Instantiate the template for the needed values.
-template class at_packet<0>;
-template class at_packet<1>;
-template class at_packet<2>;
+template class ATPacket<0>;
+template class ATPacket<1>;
+template class ATPacket<2>;
 
 template<std::size_t value_size>
-void remote_at_packet<value_size>::transmit(const file_descriptor &sock, uint8_t frame) const {
-	xbeepacket::REMOTE_AT_REQUEST<value_size> packet;
-	packet.apiid = xbeepacket::REMOTE_AT_REQUEST_APIID;
+void RemoteATPacket<value_size>::transmit(const FileDescriptor &sock, uint8_t frame) const {
+	XBeePacketTypes::REMOTE_AT_REQUEST<value_size> packet;
+	packet.apiid = XBeePacketTypes::REMOTE_AT_REQUEST_APIID;
 	packet.frame = frame;
-	xbeeutil::address_to_bytes(dest, packet.address64);
+	XBeeUtil::address_to_bytes(dest, packet.address64);
 	packet.address16[0] = 0xFF;
 	packet.address16[1] = 0xFE;
-	packet.options = apply ? xbeepacket::REMOTE_AT_REQUEST_OPTION_APPLY : 0;
+	packet.options = apply ? XBeePacketTypes::REMOTE_AT_REQUEST_OPTION_APPLY : 0;
 	std::copy(command, command + 2, packet.command);
 	std::copy(value, value + value_size, packet.value);
 
@@ -69,18 +69,18 @@ void remote_at_packet<value_size>::transmit(const file_descriptor &sock, uint8_t
 }
 
 // Instantiate the template for the needed values.
-template class remote_at_packet<0>;
-template class remote_at_packet<1>;
-template class remote_at_packet<2>;
-template class remote_at_packet<3>;
-template class remote_at_packet<4>;
+template class RemoteATPacket<0>;
+template class RemoteATPacket<1>;
+template class RemoteATPacket<2>;
+template class RemoteATPacket<3>;
+template class RemoteATPacket<4>;
 
-void meta_claim_packet::transmit(const file_descriptor &sock, uint8_t frame) const {
+void MetaClaimPacket::transmit(const FileDescriptor &sock, uint8_t frame) const {
 	assert(!frame);
 
-	xbeepacket::META_CLAIM packet;
-	packet.hdr.apiid = xbeepacket::META_APIID;
-	packet.hdr.metatype = xbeepacket::CLAIM_METATYPE;
+	XBeePacketTypes::META_CLAIM packet;
+	packet.hdr.apiid = XBeePacketTypes::META_APIID;
+	packet.hdr.metatype = XBeePacketTypes::CLAIM_METATYPE;
 	packet.address = address;
 	packet.drive_mode = drive_mode ? 1 : 0;
 
@@ -89,12 +89,12 @@ void meta_claim_packet::transmit(const file_descriptor &sock, uint8_t frame) con
 	}
 }
 
-void meta_release_packet::transmit(const file_descriptor &sock, uint8_t frame) const {
+void MetaReleasePacket::transmit(const FileDescriptor &sock, uint8_t frame) const {
 	assert(!frame);
 
-	xbeepacket::META_RELEASE packet;
-	packet.hdr.apiid = xbeepacket::META_APIID;
-	packet.hdr.metatype = xbeepacket::RELEASE_METATYPE;
+	XBeePacketTypes::META_RELEASE packet;
+	packet.hdr.apiid = XBeePacketTypes::META_APIID;
+	packet.hdr.metatype = XBeePacketTypes::RELEASE_METATYPE;
 	packet.address = address;
 
 	if (send(sock, &packet, sizeof(packet), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(packet))) {

@@ -6,19 +6,19 @@
 #include "ai/tactic/move.h"
 
 //
-// Gets the robots to go to their prepare_penalty_enemy positions.
+// Gets the robots to go to their prepare penalty enemy positions.
 //
-class prepare_penalty_enemy : public role {
+class PreparePenaltyEnemy : public Role {
 	public:
 		//
-		// A pointer to a prepare_penalty_enemy role.
+		// A pointer to a PreparePenaltyEnemy Role.
 		//
-		typedef Glib::RefPtr<prepare_penalty_enemy> ptr;
+		typedef Glib::RefPtr<PreparePenaltyEnemy> ptr;
 
 		//
-		// Constructs a new prepare_penalty_enemy role.
+		// Constructs a new PreparePenaltyEnemy Role.
 		//
-		prepare_penalty_enemy(world::ptr world);
+		PreparePenaltyEnemy(World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -31,7 +31,7 @@ class prepare_penalty_enemy : public role {
 		void robots_changed();
 
 	protected:
-		const world::ptr the_world;
+		const World::ptr the_world;
 
 	private:
 		/**
@@ -42,17 +42,17 @@ class prepare_penalty_enemy : public role {
 		/**
 		* The tactics to be executed to move the robots.
 		*/
-		std::vector<move::ptr> the_tactics;
+		std::vector<Move::ptr> the_tactics;
 
 		/**
-		* Maximum number of positions that can be assigned for this role.
+		* Maximum number of positions that can be assigned for this Role.
 		*/
 		const static unsigned int NUM_POSITIONS = 4;
 
 		/**
-		* The designated standing positions for this role.
+		* The designated standing positions for this Role.
 		*/
-		point standing_positions[NUM_POSITIONS];
+		Point standing_positions[NUM_POSITIONS];
 };
 
 #endif

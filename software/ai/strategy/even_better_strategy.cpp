@@ -18,63 +18,63 @@
 namespace {
 
 	/**
-	 * A really basic strategy that satisfies the rule.
+	 * A really basic Strategy that satisfies the rule.
 	 * Most strategies should derive this function and overide in_play_assignment().
 	 * Assumes that the first robot is always the goalie.
 	 */
-	class even_better_strategy : public basic_strategy {
+	class EvenBetterStrategy : public BasicStrategy {
 		public:
-			even_better_strategy(world::ptr w);
+			EvenBetterStrategy(World::ptr w);
 
-			strategy_factory &get_factory();
+			StrategyFactory &get_factory();
 			Gtk::Widget *get_ui_controls();
 
 		protected:
 
 			void in_play_assignment();
 
-			player::ptr minus_one_assignment();
+			Player::ptr minus_one_assignment();
 	};
 
 
-	class even_better_strategy_factory : public strategy_factory {
+	class EvenBetterStrategyFactory : public StrategyFactory {
 		public:
-			even_better_strategy_factory();
-			strategy::ptr create_strategy(world::ptr world);
+			EvenBetterStrategyFactory();
+			Strategy::ptr create_strategy(World::ptr world);
 	};
 
-	even_better_strategy_factory::even_better_strategy_factory() : strategy_factory("Even Better than Better Strategy") {
+	EvenBetterStrategyFactory::EvenBetterStrategyFactory() : StrategyFactory("Even Better than Better Strategy") {
 	}
 
-	strategy::ptr even_better_strategy_factory::create_strategy(world::ptr world) {
-		strategy::ptr s(new even_better_strategy(world));
+	Strategy::ptr EvenBetterStrategyFactory::create_strategy(World::ptr world) {
+		Strategy::ptr s(new EvenBetterStrategy(world));
 		return s;
 	}
 
-	even_better_strategy_factory factory;
+	EvenBetterStrategyFactory factory;
 
-	even_better_strategy::even_better_strategy(world::ptr w) : basic_strategy(w) {
+	EvenBetterStrategy::EvenBetterStrategy(World::ptr w) : BasicStrategy(w) {
 	}
 
-	Gtk::Widget *even_better_strategy::get_ui_controls() {
+	Gtk::Widget *EvenBetterStrategy::get_ui_controls() {
 		return NULL;
 	}
 
-	void even_better_strategy::in_play_assignment() {
-		const friendly_team &the_team(the_world->friendly);
-		const point ballpos = the_world->ball()->position();
+	void EvenBetterStrategy::in_play_assignment() {
+		const FriendlyTeam &the_team(the_world->friendly);
+		const Point ballpos = the_world->ball()->position();
 
 		roles.clear();
 		if (the_team.size() == 0) return;
 
-		// const vector<player::ptr> players = the_team.get_players();
+		// const vector<Player::ptr> players = the_team.get_players();
 
-		defensive2::ptr defensive_role(new defensive2(the_world));
-		offensive::ptr offensive_role(new offensive(the_world));
-		roles.push_back(role::ptr(defensive_role));
-		roles.push_back(role::ptr(offensive_role));
-		std::vector<player::ptr> defenders;
-		std::vector<player::ptr> offenders;
+		Defensive2::ptr defensive_role(new Defensive2(the_world));
+		Offensive::ptr offensive_role(new Offensive(the_world));
+		roles.push_back(Role::ptr(defensive_role));
+		roles.push_back(Role::ptr(offensive_role));
+		std::vector<Player::ptr> defenders;
+		std::vector<Player::ptr> offenders;
 
 		// TODO: change the following
 		// For now, goalie is always lowest numbered robot
@@ -94,7 +94,7 @@ namespace {
 					baller_ignore_chicker = i;
 					best_ball_dist_ignore_chicker = ball_dist;
 				}
-				if (the_team.get_player(i)->chicker_ready_time() >= player::CHICKER_FOREVER)
+				if (the_team.get_player(i)->chicker_ready_time() >= Player::CHICKER_FOREVER)
 					continue;
 				if (ball_dist < best_ball_dist){
 					baller = i;
@@ -108,14 +108,14 @@ namespace {
 			}
 		}
 
-		std::vector<player::ptr> rem_players;
+		std::vector<Player::ptr> rem_players;
 		for (size_t i = 0; i < the_team.size(); i++){
 			if (static_cast<int>(i) == goalie_index) continue;
 			if (static_cast<int>(i) == baller) continue;
 			if (baller == -1 && static_cast<int>(i) == baller_ignore_chicker) continue;
 			rem_players.push_back(the_team.get_player(i));
 		}
-		std::sort(rem_players.begin(), rem_players.end(), ai_util::cmp_dist<player::ptr>(point(-the_world->field().length()/2.0,0.0)));
+		std::sort(rem_players.begin(), rem_players.end(), AIUtil::CmpDist<Player::ptr>(Point(-the_world->field().length()/2.0,0.0)));
 
 		// preferred_offender_number includes the offender assigned above (closest player to ball)
 		// 3 players => 1 offender
@@ -123,18 +123,18 @@ namespace {
 		// 5 players => 2 offenders;
 		int preferred_offender_number = std::max(1, static_cast<int>(the_team.size()) - 3);
 		switch(the_world->playtype()){
-			case playtype::execute_direct_free_kick_enemy:
-			case playtype::execute_indirect_free_kick_enemy:
-			case playtype::prepare_kickoff_enemy:
-			case playtype::execute_kickoff_enemy:
-			case playtype::prepare_penalty_enemy:
-			case playtype::execute_penalty_enemy:
+			case PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY:
+			case PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY:
+			case PlayType::PREPARE_KICKOFF_ENEMY:
+			case PlayType::EXECUTE_KICKOFF_ENEMY:
+			case PlayType::PREPARE_PENALTY_ENEMY:
+			case PlayType::EXECUTE_PENALTY_ENEMY:
 				preferred_offender_number--;
 				if (preferred_offender_number < 1)
 					preferred_offender_number = 1;
 				break;
 			default:
-				if (the_team.size() >= 5 && ai_util::friendly_posses_ball(the_world))
+				if (the_team.size() >= 5 && AIUtil::friendly_posses_ball(the_world))
 					preferred_offender_number++;
 		}
 		// preferred_defender_number includes goalie
@@ -152,23 +152,23 @@ namespace {
 		offensive_role->set_robots(offenders);
 	}
 
-	player::ptr even_better_strategy::minus_one_assignment() {
-		const friendly_team &the_team(the_world->friendly);
-		const point ballpos = the_world->ball()->position();
+	Player::ptr EvenBetterStrategy::minus_one_assignment() {
+		const FriendlyTeam &the_team(the_world->friendly);
+		const Point ballpos = the_world->ball()->position();
 
 		roles.clear();
-		if (the_team.size() == 0) return player::ptr();
+		if (the_team.size() == 0) return Player::ptr();
 
 		if (the_team.size() == 1) return the_team.get_player(0);
 
-		// const vector<player::ptr> players = the_team.get_players();
+		// const vector<Player::ptr> players = the_team.get_players();
 
-		defensive2::ptr defensive_role(new defensive2(the_world));
-		offensive::ptr offensive_role(new offensive(the_world));
-		roles.push_back(role::ptr(defensive_role));
-		roles.push_back(role::ptr(offensive_role));
-		std::vector<player::ptr> defenders;
-		std::vector<player::ptr> offenders;
+		Defensive2::ptr defensive_role(new Defensive2(the_world));
+		Offensive::ptr offensive_role(new Offensive(the_world));
+		roles.push_back(Role::ptr(defensive_role));
+		roles.push_back(Role::ptr(offensive_role));
+		std::vector<Player::ptr> defenders;
+		std::vector<Player::ptr> offenders;
 
 		// TODO: change the following
 		// For now, goalie is always lowest numbered robot
@@ -188,7 +188,7 @@ namespace {
 					baller_ignore_chicker = i;
 					best_ball_dist_ignore_chicker = ball_dist;
 				}
-				if (the_team.get_player(i)->chicker_ready_time() >= player::CHICKER_FOREVER)
+				if (the_team.get_player(i)->chicker_ready_time() >= Player::CHICKER_FOREVER)
 					continue;
 				if (ball_dist < best_ball_dist){
 					baller = i;
@@ -197,14 +197,14 @@ namespace {
 			}
 		}
 
-		std::vector<player::ptr> rem_players;
+		std::vector<Player::ptr> rem_players;
 		for (size_t i = 0; i < the_team.size(); i++){
 			if (static_cast<int>(i) == goalie_index) continue;
 			if (static_cast<int>(i) == baller) continue;
 			if (baller == -1 && static_cast<int>(i) == baller_ignore_chicker) continue;
 			rem_players.push_back(the_team.get_player(i));
 		}
-		std::sort(rem_players.begin(), rem_players.end(), ai_util::cmp_dist<player::ptr>(point(-the_world->field().length()/2.0,0.0)));
+		std::sort(rem_players.begin(), rem_players.end(), AIUtil::CmpDist<Player::ptr>(Point(-the_world->field().length()/2.0,0.0)));
 
 		// preferred_offender_number includes the assigned kicker (closest player to ball)
 		// 3 players => 1 offender
@@ -212,18 +212,18 @@ namespace {
 		// 5 players => 2 offenders;
 		int preferred_offender_number = std::max(1, static_cast<int>(the_team.size()) - 3);
 		switch(the_world->playtype()){
-			case playtype::execute_direct_free_kick_enemy:
-			case playtype::execute_indirect_free_kick_enemy:
-			case playtype::prepare_kickoff_enemy:
-			case playtype::execute_kickoff_enemy:
-			case playtype::prepare_penalty_enemy:
-			case playtype::execute_penalty_enemy:
+			case PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY:
+			case PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY:
+			case PlayType::PREPARE_KICKOFF_ENEMY:
+			case PlayType::EXECUTE_KICKOFF_ENEMY:
+			case PlayType::PREPARE_PENALTY_ENEMY:
+			case PlayType::EXECUTE_PENALTY_ENEMY:
 				preferred_offender_number--;
 				if (preferred_offender_number < 1)
 					preferred_offender_number = 1;
 				break;
 			default:
-				if (the_team.size() >= 5 && ai_util::friendly_posses_ball(the_world))
+				if (the_team.size() >= 5 && AIUtil::friendly_posses_ball(the_world))
 					preferred_offender_number++;
 		}
 		// preferred_defender_number includes goalie
@@ -246,7 +246,7 @@ namespace {
 			return the_team.get_player(baller_ignore_chicker);
 	}
 
-	strategy_factory &even_better_strategy::get_factory() {
+	StrategyFactory &EvenBetterStrategy::get_factory() {
 		return factory;
 	}
 

@@ -9,7 +9,7 @@
 /**
 An impementation of the a SISO GPC Controller
 */
-class gpc {
+class GPC {
 
 	private: 
 		/// The Covariance matrix for the internal recursive least squares
@@ -56,12 +56,12 @@ class gpc {
 			\param N2 The maximum horizon to look to 
 			\param N1 The mimimum horizon to look to
 		*/
-		gpc(unsigned int numpoles=5, unsigned int numzeros=5,unsigned int N2=20,unsigned int N1=0);
+		GPC(unsigned int numpoles=5, unsigned int numzeros=5,unsigned int N2=20,unsigned int N1=0);
 		
 		/**
 			This is a "well dah" 
 		*/
-		~gpc();
+		~GPC();
 		
 			
 		/**

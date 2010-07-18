@@ -4,47 +4,47 @@
 
 #include <iostream>
 
-penalty_enemy::penalty_enemy(world::ptr world) : the_world(world) {
-	const field& the_field(the_world->field());
+PenaltyEnemy::PenaltyEnemy(World::ptr world) : the_world(world) {
+	const Field& the_field(the_world->field());
 
-	standing_positions[0] = point(-0.5 * the_field.length() + RESTRICTED_ZONE_LENGTH + robot::MAX_RADIUS, 5 * robot::MAX_RADIUS);
-	standing_positions[1] = point(-0.5 * the_field.length() + RESTRICTED_ZONE_LENGTH + robot::MAX_RADIUS, 2 * robot::MAX_RADIUS);
-	standing_positions[2] = point(-0.5 * the_field.length() + RESTRICTED_ZONE_LENGTH + robot::MAX_RADIUS, -2 * robot::MAX_RADIUS);
-	standing_positions[3] = point(-0.5 * the_field.length() + RESTRICTED_ZONE_LENGTH + robot::MAX_RADIUS, -5 * robot::MAX_RADIUS);
+	standing_positions[0] = Point(-0.5 * the_field.length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 5 * Robot::MAX_RADIUS);
+	standing_positions[1] = Point(-0.5 * the_field.length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 2 * Robot::MAX_RADIUS);
+	standing_positions[2] = Point(-0.5 * the_field.length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, -2 * Robot::MAX_RADIUS);
+	standing_positions[3] = Point(-0.5 * the_field.length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, -5 * Robot::MAX_RADIUS);
 }
 
-void penalty_enemy::tick() {
-	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
+void PenaltyEnemy::tick() {
+	unsigned int flags = AIFlags::calc_flags(the_world->playtype());
 	for (unsigned int i = 0; i < the_robots.size(); ++i) {
-		move tactic(the_robots[i], the_world);
+		Move tactic(the_robots[i], the_world);
 		tactic.set_position(standing_positions[i]);
 		tactic.set_flags(flags);
 		tactic.tick();
 	}
 }
 
-void penalty_enemy::robots_changed() {
+void PenaltyEnemy::robots_changed() {
 }
 
-penalty_goalie::penalty_goalie(world::ptr world) : the_world(world) {
+PenaltyGoalie::PenaltyGoalie(World::ptr world) : the_world(world) {
 }
 
-void penalty_goalie::tick() {
+void PenaltyGoalie::tick() {
 	if (the_robots.size() != 1) {
 		std::cerr << "penalty_enemy: we only want 1 goalie!" << std::endl;
 	}
 
 	if (the_robots.size() == 0) return;
 
-	const field& f = the_world->field();
-	const point starting_position(-0.5 * f.length(), - 0.5 * robot::MAX_RADIUS);
-	const point ending_position(-0.5 * f.length(), 0.5 * robot::MAX_RADIUS);
+	const Field& f = the_world->field();
+	const Point starting_position(-0.5 * f.length(), - 0.5 * Robot::MAX_RADIUS);
+	const Point ending_position(-0.5 * f.length(), 0.5 * Robot::MAX_RADIUS);
 
 	unsigned int flags = 0;
-	patrol tactic(the_robots[0], the_world, flags, starting_position, ending_position);
+	Patrol tactic(the_robots[0], the_world, flags, starting_position, ending_position);
 	tactic.tick();
 }
 
-void penalty_goalie::robots_changed() {
+void PenaltyGoalie::robots_changed() {
 }
 

@@ -59,47 +59,47 @@ namespace {
 	}
 
 	unsigned int next_id = 0;
-	std::unordered_map<unsigned int, annunciator::message *> registered;
-	std::vector<annunciator::message *> displayed;
+	std::unordered_map<unsigned int, Annunciator::message *> registered;
+	std::vector<Annunciator::message *> displayed;
 
-	class siren_availability_warner : public noncopyable {
+	class SirenAvailabilityWarner : public NonCopyable {
 		public:
 			static void ensure_exists() {
-				static siren_availability_warner instance;
+				static SirenAvailabilityWarner instance;
 			}
 
 		private:
-			annunciator::message msg;
+			Annunciator::message msg;
 
-			siren_availability_warner() : msg("\"beep\" executable unavailable, no annunciator sirens") {
+			SirenAvailabilityWarner() : msg("\"beep\" executable unavailable, no annunciator sirens") {
 				if (!can_siren()) {
 					msg.activate(true);
 				}
 			}
 	};
 
-	class messages_alm : public Glib::Object, public abstract_list_model, public noncopyable {
+	class MessagesALM : public Glib::Object, public AbstractListModel, public NonCopyable {
 		public:
 			Gtk::TreeModelColumn<unsigned int> age_column;
 			Gtk::TreeModelColumn<Glib::ustring> message_column;
 			Gtk::TreeModelColumn<bool> active_column;
 
-			static Glib::RefPtr<messages_alm> instance() {
-				static Glib::RefPtr<messages_alm> inst;
+			static Glib::RefPtr<MessagesALM> instance() {
+				static Glib::RefPtr<MessagesALM> inst;
 				if (!inst) {
-					inst = Glib::RefPtr<messages_alm>(new messages_alm);
+					inst = Glib::RefPtr<MessagesALM>(new MessagesALM);
 				}
 				return inst;
 			}
 
 		private:
-			messages_alm() : Glib::ObjectBase(typeid(messages_alm)) {
+			MessagesALM() : Glib::ObjectBase(typeid(MessagesALM)) {
 				alm_column_record.add(age_column);
 				alm_column_record.add(message_column);
 				alm_column_record.add(active_column);
 			}
 
-			~messages_alm() {
+			~MessagesALM() {
 			}
 
 			unsigned int alm_rows() const {
@@ -133,33 +133,33 @@ namespace {
 			void alm_set_value(unsigned int, unsigned int, const Glib::ValueBase &) {
 			}
 
-			friend class annunciator::message;
+			friend class Annunciator::message;
 	};
 
 	void message_cell_data_func(Gtk::CellRenderer *r, const Gtk::TreeModel::iterator &iter) {
 		Gtk::CellRendererText *rt = dynamic_cast<Gtk::CellRendererText *>(r);
-		rt->property_text() = iter->get_value(messages_alm::instance()->message_column);
-		bool active = iter->get_value(messages_alm::instance()->active_column);
+		rt->property_text() = iter->get_value(MessagesALM::instance()->message_column);
+		bool active = iter->get_value(MessagesALM::instance()->active_column);
 		rt->property_foreground() = active ? "white" : "black";
 		rt->property_background() = active ? "red" : "white";
 	}
 }
 
-annunciator::message::message(const Glib::ustring &text) : text(text), id(next_id++), active_(false), age_(0), displayed_(false) {
+Annunciator::message::message(const Glib::ustring &text) : text(text), id(next_id++), active_(false), age_(0), displayed_(false) {
 	registered[id] = this;
 }
 
-annunciator::message::~message() {
+Annunciator::message::~message() {
 	hide();
 	registered.erase(id);
 }
 
-void annunciator::message::activate(bool actv) {
+void Annunciator::message::activate(bool actv) {
 	if (actv != active_) {
 		active_ = actv;
 		for (unsigned int i = 0; i < displayed.size(); ++i) {
 			if (displayed[i] == this) {
-				messages_alm::instance()->alm_row_changed(i);
+				MessagesALM::instance()->alm_row_changed(i);
 			}
 		}
 		one_second_connection.disconnect();
@@ -168,23 +168,23 @@ void annunciator::message::activate(bool actv) {
 			if (!displayed_) {
 				unsigned int index = displayed.size();
 				displayed.push_back(this);
-				messages_alm::instance()->alm_row_inserted(index);
+				MessagesALM::instance()->alm_row_inserted(index);
 				displayed_ = true;
 			}
 			siren();
 			LOG_ERROR(text);
 		} else {
-			one_second_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &annunciator::message::on_one_second), 1);
+			one_second_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &Annunciator::message::on_one_second), 1);
 		}
 	}
 }
 
-bool annunciator::message::on_one_second() {
+bool Annunciator::message::on_one_second() {
 	if (age_ < MAX_AGE) {
 		++age_;
 		for (unsigned int i = 0; i < displayed.size(); ++i) {
 			if (displayed[i] == this) {
-				messages_alm::instance()->alm_row_changed(i);
+				MessagesALM::instance()->alm_row_changed(i);
 			}
 		}
 		return true;
@@ -194,10 +194,10 @@ bool annunciator::message::on_one_second() {
 	}
 }
 
-void annunciator::message::hide() {
+void Annunciator::message::hide() {
 	for (unsigned int i = 0; i < displayed.size(); ++i) {
 		if (displayed[i] == this) {
-			messages_alm::instance()->alm_row_deleted(i);
+			MessagesALM::instance()->alm_row_deleted(i);
 			displayed.erase(displayed.begin() + i);
 			--i;
 		}
@@ -205,11 +205,11 @@ void annunciator::message::hide() {
 	displayed_ = false;
 }
 
-annunciator::annunciator() {
-	siren_availability_warner::ensure_exists();
-	Gtk::TreeView *view = Gtk::manage(new Gtk::TreeView(messages_alm::instance()));
+Annunciator::Annunciator() {
+	SirenAvailabilityWarner::ensure_exists();
+	Gtk::TreeView *view = Gtk::manage(new Gtk::TreeView(MessagesALM::instance()));
 	view->get_selection()->set_mode(Gtk::SELECTION_SINGLE);
-	view->append_column("Age", messages_alm::instance()->age_column);
+	view->append_column("Age", MessagesALM::instance()->age_column);
 	Gtk::CellRendererText *message_renderer = Gtk::manage(new Gtk::CellRendererText);
 	int message_colnum = view->append_column("Message", *message_renderer) - 1;
 	Gtk::TreeViewColumn *message_column = view->get_column(message_colnum);
@@ -219,6 +219,6 @@ annunciator::annunciator() {
 	set_size_request(-1, 100);
 }
 
-annunciator::~annunciator() {
+Annunciator::~Annunciator() {
 }
 

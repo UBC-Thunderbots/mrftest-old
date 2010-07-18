@@ -8,12 +8,12 @@
 //
 // An in-progress attempt to signal an emergency erase.
 //
-class emergency_erase : public watchable_operation, public sigc::trackable {
+class EmergencyErase : public WatchableOperation, public sigc::trackable {
 	public:
 		//
 		// Constructs an emergency erase object.
 		//
-		emergency_erase(xbee_raw_bot::ptr bot);
+		EmergencyErase(XBeeRawBot::ptr bot);
 
 		//
 		// Starts the erase process.
@@ -21,7 +21,7 @@ class emergency_erase : public watchable_operation, public sigc::trackable {
 		void start();
 
 	private:
-		const xbee_raw_bot::ptr bot;
+		const XBeeRawBot::ptr bot;
 		sigc::connection complete_connection;
 		
 		void report_error(const Glib::ustring &error);

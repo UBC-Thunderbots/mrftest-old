@@ -4,7 +4,7 @@
 //
 // An object that can be set to zero.
 //
-class zeroable {
+class Zeroable {
 	public:
 		//
 		// Zeroes the object.

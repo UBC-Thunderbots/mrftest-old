@@ -10,25 +10,25 @@
  * and aims by doing a pivoting turn towards the specified target
  * Then chases the target with the ball
  */
-class pivot : public tactic {
+class Pivot : public Tactic {
 	public:
 		//
-		// A pointer to this tactic.
+		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<pivot> ptr;
+		typedef Glib::RefPtr<Pivot> ptr;
 
 		/**
 		 * Set a target that robot would like to aim the ball
 		 * after gaining possesion.
 		 */
-		void set_target(const point& t) {
+		void set_target(const Point& t) {
 			target = t;
 		}
 
 		/**
-		* Constructs a new pivot tactic. 
+		* Constructs a new Pivot Tactic. 
 		*/
-		pivot(player::ptr player, world::ptr world);
+		Pivot(Player::ptr player, World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -46,15 +46,15 @@ class pivot : public tactic {
 		 * Calc pivot position.
 		 * Useful for roles to know if robot is aligned correctly.
 		 */
-		static point calc_pivot_pos(const point& ballpos, const point& target);
+		static Point calc_pivot_pos(const Point& ballpos, const Point& target);
 
 	protected:
 
 		void tick_experimental();	
 		void tick_old();
 
-		const world::ptr the_world;
-		point target;
+		const World::ptr the_world;
+		Point target;
 		bool avoid_ball_;
 };
 

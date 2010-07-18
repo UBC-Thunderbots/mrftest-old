@@ -10,17 +10,17 @@
 //
 // Gets the robots to go to their prepare_kickoff_friendly positions.
 //
-class kickoff_friendly : public role {
+class KickoffFriendly : public Role {
 	public:
 		//
-		// A pointer to a prepare_kickoff_friendly role.
+		// A pointer to a KickoffFriendly Role.
 		//
-		typedef Glib::RefPtr<kickoff_friendly> ptr;
+		typedef Glib::RefPtr<KickoffFriendly> ptr;
 
 		//
-		// Constructs a new prepare_kickoff_friendly role.
+		// Constructs a new KickoffFriendly Role.
 		//
-		kickoff_friendly(world::ptr world);
+		KickoffFriendly(World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -36,7 +36,7 @@ class kickoff_friendly : public role {
 		//
 		// Is in rule violation
 		//
-		bool rule_violation(point cur_point);
+		bool rule_violation(Point cur_point);
 		
 	private:
 	
@@ -45,14 +45,14 @@ class kickoff_friendly : public role {
 		//
 		bool team_compliance();
 		
-		point approach_legal_point(point cur_point,unsigned int robot_num);
+		Point approach_legal_point(Point cur_point,unsigned int robot_num);
 		
 		//
 		//
 		//
-		world::ptr the_world;
+		World::ptr the_world;
 
-		point clip_circle(point cur_point, double circle_radius, point dst);
+		Point clip_circle(Point cur_point, double circle_radius, Point dst);
 
 		
 		double circle_radius;

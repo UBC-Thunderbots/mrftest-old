@@ -9,12 +9,12 @@
 //
 // Handles the lower-level protocol of talking to the bootloader.
 //
-class bootproto : public noncopyable, public sigc::trackable {
+class BootProto : public NonCopyable, public sigc::trackable {
 	public:
 		//
 		// The states the robot can be in.
 		//
-		enum state {
+		enum State {
 			// No packets sent yet.
 			STATE_NOT_STARTED,
 			// Trying to go into bootloader mode.
@@ -32,14 +32,14 @@ class bootproto : public noncopyable, public sigc::trackable {
 		};
 
 		//
-		// Constructs a new bootproto.
+		// Constructs a new BootProto.
 		//
-		bootproto(xbee_raw_bot::ptr bot);
+		BootProto(XBeeRawBot::ptr bot);
 
 		//
 		// Returns the current state of the bootloader.
 		//
-		state state() const {
+		State state() const {
 			return current_state;
 		}
 
@@ -73,12 +73,12 @@ class bootproto : public noncopyable, public sigc::trackable {
 		void exit_bootloader(const sigc::slot<void> &callback);
 
 	private:
-		const xbee_raw_bot::ptr bot;
-		enum state current_state;
+		const XBeeRawBot::ptr bot;
+		enum State current_state;
 		sigc::slot<void> nullary_callback;
 		sigc::slot<void, const void *> response_callback;
 		unsigned int retries;
-		packet::ptr pending_packet;
+		XBeePacket::ptr pending_packet;
 		std::size_t pending_response_len;
 
 		sigc::connection packet_received_connection;

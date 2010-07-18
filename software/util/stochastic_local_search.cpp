@@ -6,7 +6,7 @@
 #include <iostream>
 using namespace std;
 
-stochastic_local_search::stochastic_local_search(const std::vector<double>& start, const std::vector<double>& min, const std::vector<double>& max) {
+StochasticLocalSearch::StochasticLocalSearch(const std::vector<double>& start, const std::vector<double>& min, const std::vector<double>& max) {
 	srand48(time(NULL));
 	srand(time(NULL));
 	bestCost = std::numeric_limits<double>::max();
@@ -16,15 +16,15 @@ stochastic_local_search::stochastic_local_search(const std::vector<double>& star
 	param_max = max;
 }
 
-const std::vector<double> stochastic_local_search::get_params() const {
+const std::vector<double> StochasticLocalSearch::get_params() const {
 	return param_cur;
 }
 
-const std::vector<double> stochastic_local_search::get_best_params() const {
+const std::vector<double> StochasticLocalSearch::get_best_params() const {
 	return param_best;
 }
 
-void stochastic_local_search::set_cost(double cost) {
+void StochasticLocalSearch::set_cost(double cost) {
 	if (cost < bestCost) {
 		param_best = param_cur;
 		bestCost = cost;
@@ -33,11 +33,11 @@ void stochastic_local_search::set_cost(double cost) {
 	}
 }
 
-void stochastic_local_search::revert() {
+void StochasticLocalSearch::revert() {
 	param_cur = param_best;
 }
 
-void stochastic_local_search::hill_climb() {
+void StochasticLocalSearch::hill_climb() {
 	param_cur = param_best;
 	int tries = 100;
 	while(tries > 0) {
@@ -50,7 +50,7 @@ void stochastic_local_search::hill_climb() {
 }
 
 /*
-void stochastic_local_search::random_restart() {
+void StochasticLocalSearch::random_restart() {
 	int index = rand()%param_cur.size();
 	param_cur[index] = drand48()*(param_max[index]-param_min[index]) + param_min[index];
 	for (uint i = 0; i < param_min.size(); i++) param_cur[i] = drand48()*(param_max[i]-param_min[i]) + param_min[i];

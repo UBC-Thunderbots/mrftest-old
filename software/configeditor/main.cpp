@@ -13,8 +13,8 @@ namespace {
 			std::cout << option_context.get_help();
 			return 1;
 		}
-		config conf;
-		window win(conf);
+		Config conf;
+		Window win(conf);
 		win.show_all();
 		Gtk::Main::run(win);
 		return 0;

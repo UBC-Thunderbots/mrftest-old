@@ -11,7 +11,7 @@
 /**
  * A window for controlling the AI.
  */
-class ai_window : public Gtk::Window {
+class AIWindow : public Gtk::Window {
 	public:
 		/**
 		 * Creates a new main window.
@@ -21,10 +21,10 @@ class ai_window : public Gtk::Window {
 		 * \param[in] vis \c true to start up with the visualizer visible, or \c
 		 * false to start up with the visualizer invisible.
 		 */
-		ai_window(ai &ai, bool vis);
+		AIWindow(AI &ai, bool vis);
 
 	private:
-		ai &the_ai;
+		AI &the_ai;
 		Gtk::ComboBoxText playtype_override_chooser;
 		Gtk::Entry playtype_entry;
 		Gtk::ComboBoxText ball_filter_chooser;
@@ -38,7 +38,7 @@ class ai_window : public Gtk::Window {
 		Gtk::Widget *rc_controls;
 		Gtk::ToggleButton vis_button;
 		Gtk::Window vis_window;
-		visualizer vis;
+		Visualizer vis;
 
 		void on_playtype_override_changed();
 		void on_ball_filter_changed();

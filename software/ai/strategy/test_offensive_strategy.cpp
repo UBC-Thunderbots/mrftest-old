@@ -6,28 +6,28 @@
 #include <cstdlib>
 
 namespace {
-	class test_offensive_strategy : public strategy2 {
+	class TestOffensiveStrategy : public Strategy2 {
 		public:
-			test_offensive_strategy(world::ptr world);
+			TestOffensiveStrategy(World::ptr world);
 			void tick(Cairo::RefPtr<Cairo::Context> overlay);
-			strategy_factory &get_factory();
+			StrategyFactory &get_factory();
 			Gtk::Widget *get_ui_controls();
 		private:
-			const world::ptr the_world;
+			const World::ptr the_world;
 	};
 
-	test_offensive_strategy::test_offensive_strategy(world::ptr world) : the_world(world) {
+	TestOffensiveStrategy::TestOffensiveStrategy(World::ptr world) : the_world(world) {
 
 	}
 
-	void test_offensive_strategy::tick(Cairo::RefPtr<Cairo::Context> overlay) {
-		if (the_world->playtype() == playtype::halt) {
+	void TestOffensiveStrategy::tick(Cairo::RefPtr<Cairo::Context> overlay) {
+		if (the_world->playtype() == PlayType::HALT) {
 			return;
 		}
-		const friendly_team &the_team(the_world->friendly);
-		const ball::ptr the_ball(the_world->ball());
-		offensive offensive_role(the_world);
-		std::vector<player::ptr> offenders;
+		const FriendlyTeam &the_team(the_world->friendly);
+		const Ball::ptr the_ball(the_world->ball());
+		Offensive offensive_role(the_world);
+		std::vector<Player::ptr> offenders;
 
 		for (size_t i = 0; i < the_team.size(); ++i) {
 			offenders.push_back(the_team.get_player(i));
@@ -37,27 +37,27 @@ namespace {
 		offensive_role.tick();
 	}
 
-	Gtk::Widget *test_offensive_strategy::get_ui_controls() {
+	Gtk::Widget *TestOffensiveStrategy::get_ui_controls() {
 		return 0;
 	}
 
-	class test_offensive_strategy_factory : public strategy_factory {
+	class TestOffensiveStrategyFactory : public StrategyFactory {
 		public:
-			test_offensive_strategy_factory();
-			strategy::ptr create_strategy(world::ptr world);
+			TestOffensiveStrategyFactory();
+			Strategy::ptr create_strategy(World::ptr world);
 	};
 
-	test_offensive_strategy_factory::test_offensive_strategy_factory() : strategy_factory("Test(Offensive) Strategy") {
+	TestOffensiveStrategyFactory::TestOffensiveStrategyFactory() : StrategyFactory("Test(Offensive) Strategy") {
 	}
 
-	strategy::ptr test_offensive_strategy_factory::create_strategy(world::ptr world) {
-		strategy::ptr s(new test_offensive_strategy(world));
+	Strategy::ptr TestOffensiveStrategyFactory::create_strategy(World::ptr world) {
+		Strategy::ptr s(new TestOffensiveStrategy(world));
 		return s;
 	}
 
-	test_offensive_strategy_factory factory;
+	TestOffensiveStrategyFactory factory;
 
-	strategy_factory &test_offensive_strategy::get_factory() {
+	StrategyFactory &TestOffensiveStrategy::get_factory() {
 		return factory;
 	}
 }

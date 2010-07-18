@@ -7,20 +7,20 @@
 //
 // A meter showing the communication latency of a robot.
 //
-class latency_meter : public Gtk::ProgressBar, public noncopyable {
+class LatencyMeter : public Gtk::ProgressBar, public NonCopyable {
 	public:
 		//
-		// Constructs a latency_meter with no robot.
+		// Constructs a LatencyMeter with no robot.
 		//
-		latency_meter();
+		LatencyMeter();
 
 		//
 		// Sets which robot this latency meter will monitor.
 		//
-		void set_bot(xbee_drive_bot::ptr bot);
+		void set_bot(XBeeDriveBot::ptr bot);
 
 	private:
-		xbee_drive_bot::ptr robot;
+		XBeeDriveBot::ptr robot;
 		sigc::connection connection;
 		int last_latency;
 

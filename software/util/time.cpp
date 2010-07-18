@@ -1,23 +1,23 @@
 #include "util/time.h"
 #include <glibmm.h>
 
-timeout::timeout(unsigned int period) : period(period) {
+Timeout::Timeout(unsigned int period) : period(period) {
 }
 
-timeout::~timeout() {
+Timeout::~Timeout() {
 }
 
-void timeout::start() {
+void Timeout::start() {
 	if (!conn.connected()) {
-		conn = Glib::signal_timeout().connect(sigc::mem_fun(this, &timeout::on_tick), period);
+		conn = Glib::signal_timeout().connect(sigc::mem_fun(this, &Timeout::on_tick), period);
 	}
 }
 
-void timeout::stop() {
+void Timeout::stop() {
 	conn.disconnect();
 }
 
-bool timeout::on_tick() {
+bool Timeout::on_tick() {
 	conn.disconnect();
 	signal_expired.emit();
 	return false;

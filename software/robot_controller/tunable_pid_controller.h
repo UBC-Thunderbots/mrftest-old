@@ -11,16 +11,16 @@
 #include <vector>
 #include <glibmm.h>
 
-class tunable_pid_controller : public robot_controller, public tunable_controller {
+class TunablePIDController : public RobotController, public TunableController {
 	public:
 
-		void move(const point &new_position, double new_orientation, point &linear_velocity, double &angular_velocity);
+		void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 
 		void clear();
 
-		robot_controller_factory &get_factory() const;
+		RobotControllerFactory &get_factory() const;
 
-		tunable_pid_controller(player::ptr plr);
+		TunablePIDController(Player::ptr plr);
 
 	 	void set_params(const std::vector<double>& params) {
 			this->param = params;
@@ -45,7 +45,7 @@ class tunable_pid_controller : public robot_controller, public tunable_controlle
 		}
 
 	private:
-		player::ptr plr;
+		Player::ptr plr;
 
 	protected:
 
@@ -58,10 +58,10 @@ class tunable_pid_controller : public robot_controller, public tunable_controlle
 		std::vector<double> param;
 
 		// errors in x, y, d
-		std::vector<point> error_pos;
+		std::vector<Point> error_pos;
 		std::vector<double> error_ori;
 		
-		point prev_new_pos;
+		Point prev_new_pos;
 		double prev_new_ori;
 };
 

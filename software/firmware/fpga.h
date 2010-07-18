@@ -9,12 +9,12 @@
 //
 // An operation to upload data to be burned into the SPI Flash for the FPGA.
 //
-class fpga_upload : public watchable_operation, public sigc::trackable {
+class FPGAUpload : public WatchableOperation, public sigc::trackable {
 	public:
 		//
 		// Constructs an uploader.
 		//
-		fpga_upload(xbee_raw_bot::ptr bot, const intel_hex &data);
+		FPGAUpload(XBeeRawBot::ptr bot, const IntelHex &data);
 
 		//
 		// Starts the upload process.
@@ -37,9 +37,9 @@ class fpga_upload : public watchable_operation, public sigc::trackable {
 		static const unsigned int SECTOR_CHUNKS = 16;
 
 	private:
-		const xbee_raw_bot::ptr bot;
-		const intel_hex &data;
-		bootproto proto;
+		const XBeeRawBot::ptr bot;
+		const IntelHex &data;
+		BootProto proto;
 		unsigned int sectors_erased;
 		unsigned int pages_written;
 		unsigned int chunks_crcd;

@@ -6,14 +6,14 @@
 #include <gtkmm.h>
 
 /**
- * The tree model used by a single_bot_combobox.
+ * The tree model used by a SingleBotComboBox.
  */
-class single_bot_combobox_model : public Glib::Object, public abstract_list_model {
+class SingleBotComboBoxModel : public Glib::Object, public AbstractListModel {
 	public:
 		/**
-		 * A pointer to a single_bot_combobox_model.
+		 * A pointer to a SingleBotComboBoxModel.
 		 */
-		typedef Glib::RefPtr<single_bot_combobox_model> ptr;
+		typedef Glib::RefPtr<SingleBotComboBoxModel> ptr;
 
 		/**
 		 * A column containing the robot's XBee address.
@@ -39,12 +39,12 @@ class single_bot_combobox_model : public Glib::Object, public abstract_list_mode
 		 * Constructs a new single_robot_combobox_model.
 		 * \param robots the robots to display
 		 */
-		static ptr create(const config::robot_set &robots);
+		static ptr create(const Config::RobotSet &robots);
 
 	private:
-		const config::robot_set &robots;
+		const Config::RobotSet &robots;
 
-		single_bot_combobox_model(const config::robot_set &robots);
+		SingleBotComboBoxModel(const Config::RobotSet &robots);
 		unsigned int alm_rows() const;
 		void alm_get_value(unsigned int row, unsigned int col, Glib::ValueBase &value) const;
 		void alm_set_value(unsigned int, unsigned int, const Glib::ValueBase &);
@@ -55,23 +55,23 @@ class single_bot_combobox_model : public Glib::Object, public abstract_list_mode
 /**
  * A combo box that allows the user to select a single robot.
  */
-class single_bot_combobox : public Gtk::ComboBox {
+class SingleBotComboBox : public Gtk::ComboBox {
 	public:
 		/**
-		 * Constructs a new single_bot_combobox.
+		 * Constructs a new SingleBotComboBox.
 		 *
 		 * \param[in] robots the robots to display in the box.
 		 */
-		single_bot_combobox(const config::robot_set &robots);
+		SingleBotComboBox(const Config::RobotSet &robots);
 
 		/**
-		 * Constructs a new single_bot_combobox.
+		 * Constructs a new SingleBotComboBox.
 		 *
 		 * \param[in] robots the robots to display in the box.
 		 *
 		 * \param[in] robot the name of the robot to select initially.
 		 */
-		single_bot_combobox(const config::robot_set &robots, const Glib::ustring &robot);
+		SingleBotComboBox(const Config::RobotSet &robots, const Glib::ustring &robot);
 
 		/**
 		 * \return the address of the currently-selected robot, or 0 if no robot
@@ -80,7 +80,7 @@ class single_bot_combobox : public Gtk::ComboBox {
 		uint64_t address() const;
 
 	private:
-		const config::robot_set &robots;
+		const Config::RobotSet &robots;
 };
 
 #endif

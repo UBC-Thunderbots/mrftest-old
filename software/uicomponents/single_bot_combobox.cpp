@@ -2,25 +2,25 @@
 #include "util/dprint.h"
 #include <cassert>
 
-single_bot_combobox_model::ptr single_bot_combobox_model::create(const config::robot_set &robots) {
-	ptr p(new single_bot_combobox_model(robots));
+SingleBotComboBoxModel::ptr SingleBotComboBoxModel::create(const Config::RobotSet &robots) {
+	ptr p(new SingleBotComboBoxModel(robots));
 	return p;
 }
 
-single_bot_combobox_model::single_bot_combobox_model(const config::robot_set &robots) : Glib::ObjectBase(typeid(single_bot_combobox_model)), robots(robots) {
+SingleBotComboBoxModel::SingleBotComboBoxModel(const Config::RobotSet &robots) : Glib::ObjectBase(typeid(SingleBotComboBoxModel)), robots(robots) {
 	alm_column_record.add(address_column);
 	alm_column_record.add(yellow_column);
 	alm_column_record.add(pattern_index_column);
 	alm_column_record.add(name_column);
-	robots.signal_robot_added.connect(sigc::mem_fun(this, &single_bot_combobox_model::on_robot_added));
-	robots.signal_robot_removed.connect(sigc::mem_fun(this, &single_bot_combobox_model::on_robot_removed));
+	robots.signal_robot_added.connect(sigc::mem_fun(this, &SingleBotComboBoxModel::on_robot_added));
+	robots.signal_robot_removed.connect(sigc::mem_fun(this, &SingleBotComboBoxModel::on_robot_removed));
 }
 
-unsigned int single_bot_combobox_model::alm_rows() const {
+unsigned int SingleBotComboBoxModel::alm_rows() const {
 	return robots.size();
 }
 
-void single_bot_combobox_model::alm_get_value(unsigned int row, unsigned int col, Glib::ValueBase &value) const {
+void SingleBotComboBoxModel::alm_get_value(unsigned int row, unsigned int col, Glib::ValueBase &value) const {
 	if (col == 0) {
 		Glib::Value<Glib::ustring> v;
 		v.init(address_column.type());
@@ -48,20 +48,20 @@ void single_bot_combobox_model::alm_get_value(unsigned int row, unsigned int col
 	}
 }
 
-void single_bot_combobox_model::alm_set_value(unsigned int, unsigned int, const Glib::ValueBase &) {
+void SingleBotComboBoxModel::alm_set_value(unsigned int, unsigned int, const Glib::ValueBase &) {
 }
 
-void single_bot_combobox_model::on_robot_added(unsigned int index) {
+void SingleBotComboBoxModel::on_robot_added(unsigned int index) {
 	alm_row_inserted(index);
 }
 
-void single_bot_combobox_model::on_robot_removed(unsigned int index) {
+void SingleBotComboBoxModel::on_robot_removed(unsigned int index) {
 	alm_row_deleted(index);
 }
 
-single_bot_combobox::single_bot_combobox(const config::robot_set &robots) : Gtk::ComboBox(single_bot_combobox_model::create(robots)), robots(robots) {
+SingleBotComboBox::SingleBotComboBox(const Config::RobotSet &robots) : Gtk::ComboBox(SingleBotComboBoxModel::create(robots)), robots(robots) {
 	assert(robots.size());
-	Glib::RefPtr<single_bot_combobox_model> model = Glib::RefPtr<single_bot_combobox_model>::cast_static(get_model());
+	Glib::RefPtr<SingleBotComboBoxModel> model = Glib::RefPtr<SingleBotComboBoxModel>::cast_static(get_model());
 	pack_start(model->address_column, false);
 	pack_start(model->yellow_column, false);
 	pack_start(model->pattern_index_column, false);
@@ -69,9 +69,9 @@ single_bot_combobox::single_bot_combobox(const config::robot_set &robots) : Gtk:
 	set_active(0);
 }
 
-single_bot_combobox::single_bot_combobox(const config::robot_set &robots, const Glib::ustring &robot) : Gtk::ComboBox(single_bot_combobox_model::create(robots)), robots(robots) {
+SingleBotComboBox::SingleBotComboBox(const Config::RobotSet &robots, const Glib::ustring &robot) : Gtk::ComboBox(SingleBotComboBoxModel::create(robots)), robots(robots) {
 	assert(robots.size());
-	Glib::RefPtr<single_bot_combobox_model> model = Glib::RefPtr<single_bot_combobox_model>::cast_static(get_model());
+	Glib::RefPtr<SingleBotComboBoxModel> model = Glib::RefPtr<SingleBotComboBoxModel>::cast_static(get_model());
 	pack_start(model->address_column, false);
 	pack_start(model->yellow_column, false);
 	pack_start(model->pattern_index_column, false);
@@ -88,7 +88,7 @@ single_bot_combobox::single_bot_combobox(const config::robot_set &robots, const 
 	}
 }
 
-uint64_t single_bot_combobox::address() const {
+uint64_t SingleBotComboBox::address() const {
 	return robots[get_active_row_number()].address;
 }
 

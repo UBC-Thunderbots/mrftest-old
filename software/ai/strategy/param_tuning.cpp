@@ -6,61 +6,61 @@
 #include <cmath>
 
 // Parameter Tuning based on movement benchmark
-// To change tasks, make use of movement_benchmark
+// To change tasks, make use of MovementBenchmark
 
 namespace {
 
 	const int TUNING_ITERATIONS = 1000;
 	const int EVALUATION_LIMIT = 1500;
 
-	class param_tuning : public movement_benchmark {
+	class ParamTuning : public MovementBenchmark {
 		public:
-			param_tuning(world::ptr world);
-			~param_tuning();
+			ParamTuning(World::ptr world);
+			~ParamTuning();
 			Gtk::Widget *get_ui_controls();
-			strategy_factory &get_factory();
+			StrategyFactory &get_factory();
 			void tick();
 			void reset();
 			void hillclimb();
 			void revert();
 		private:
-			const world::ptr the_world;
+			const World::ptr the_world;
 			Gtk::Button revert_button;
 			Gtk::Button reset_button;
 			Gtk::Button hillclimb_button;
 			Gtk::VBox vbox;
-			stochastic_local_search* sls;
-			tunable_controller* tc;
+			StochasticLocalSearch* sls;
+			TunableController* tc;
 			int sls_counter;
 			int best;
 	};
 
-	param_tuning::param_tuning(world::ptr world) : movement_benchmark(world), the_world(world), revert_button("Redo from last best"), reset_button("Complete Reset"), hillclimb_button("Hill Climb Again"), sls(0) {
+	ParamTuning::ParamTuning(World::ptr world) : MovementBenchmark(world), the_world(world), revert_button("Redo from last best"), reset_button("Complete Reset"), hillclimb_button("Hill Climb Again"), sls(0) {
 		sls_counter = 0;
 
 		// override the reset button
-		revert_button.signal_clicked().connect(sigc::mem_fun(this,&param_tuning::revert));
-		reset_button.signal_clicked().connect(sigc::mem_fun(this,&param_tuning::reset));
-		hillclimb_button.signal_clicked().connect(sigc::mem_fun(this,&param_tuning::hillclimb));
+		revert_button.signal_clicked().connect(sigc::mem_fun(this,&ParamTuning::revert));
+		reset_button.signal_clicked().connect(sigc::mem_fun(this,&ParamTuning::reset));
+		hillclimb_button.signal_clicked().connect(sigc::mem_fun(this,&ParamTuning::hillclimb));
 		best = EVALUATION_LIMIT;
 		vbox.add(revert_button);
 		vbox.add(reset_button);
 		vbox.add(hillclimb_button);
 	}
 
-	param_tuning::~param_tuning() {
+	ParamTuning::~ParamTuning() {
 		if(sls != NULL) delete sls;
 	}
 
-	Gtk::Widget *param_tuning::get_ui_controls() {
+	Gtk::Widget *ParamTuning::get_ui_controls() {
 		return &vbox;
 	}
 
-	void param_tuning::reset() {
+	void ParamTuning::reset() {
 		if (sls != NULL) delete sls;
-		tc = tunable_controller::get_instance();
+		tc = TunableController::get_instance();
 		if (tc == NULL) return;
-		sls = new stochastic_local_search(tc->get_params_default(), tc->get_params_min(), tc->get_params_max());
+		sls = new StochasticLocalSearch(tc->get_params_default(), tc->get_params_min(), tc->get_params_max());
 		done = 0;
 		time_steps = 0;
 		best = EVALUATION_LIMIT;
@@ -74,7 +74,7 @@ namespace {
 		std::cout << std::endl;
 	}
 
-	void param_tuning::hillclimb() {
+	void ParamTuning::hillclimb() {
 		sls->revert();
 		sls->hill_climb();
 		tc->set_params(sls->get_params());
@@ -88,7 +88,7 @@ namespace {
 		std::cout << std::endl;
 	}
 
-	void param_tuning::revert() {
+	void ParamTuning::revert() {
 		sls->revert();
 		tc->set_params(sls->get_params());
 		done = 0;
@@ -101,8 +101,8 @@ namespace {
 		std::cout << std::endl;
 	}
 
-	void param_tuning::tick() {
-		if (tc == NULL || tc != tunable_controller::get_instance()) {
+	void ParamTuning::tick() {
+		if (tc == NULL || tc != TunableController::get_instance()) {
 			reset();
 			return;
 		}
@@ -142,26 +142,26 @@ namespace {
 			done = 0;
 			time_steps = 0;
 		}
-		movement_benchmark::tick();
+		MovementBenchmark::tick();
 	}
 
-	class param_tuning_factory : public strategy_factory {
+	class ParamTuningFactory : public StrategyFactory {
 		public:
-			param_tuning_factory();
-			strategy::ptr create_strategy(world::ptr world);
+			ParamTuningFactory();
+			Strategy::ptr create_strategy(World::ptr world);
 	};
 
-	param_tuning_factory::param_tuning_factory() : strategy_factory("Param Tuning") {
+	ParamTuningFactory::ParamTuningFactory() : StrategyFactory("Param Tuning") {
 	}
 
-	strategy::ptr param_tuning_factory::create_strategy(world::ptr world) {
-		strategy::ptr s(new param_tuning(world));
+	Strategy::ptr ParamTuningFactory::create_strategy(World::ptr world) {
+		Strategy::ptr s(new ParamTuning(world));
 		return s;
 	}
 
-	param_tuning_factory factory;
+	ParamTuningFactory factory;
 
-	strategy_factory &param_tuning::get_factory() {
+	StrategyFactory &ParamTuning::get_factory() {
 		return factory;
 	}
 

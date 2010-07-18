@@ -24,18 +24,18 @@
  * You must arrange to invoke alm_row_changed(), alm_row_inserted(),
  * alm_row_deleted(), and alm_rows_reordered() at the appropriate times.
  */
-class abstract_list_model : public Gtk::TreeModel {
+class AbstractListModel : public Gtk::TreeModel {
 	protected:
 		/**
-		 * Constructs a new abstract_list_model. You are expected to call this
+		 * Constructs a new AbstractListModel. You are expected to call this
 		 * constructor from your subclass.
 		 */
-		abstract_list_model();
+		AbstractListModel();
 
 		/**
-		 * Destroys an abstract_list_model.
+		 * Destroys an AbstractListModel.
 		 */
-		virtual ~abstract_list_model();
+		virtual ~AbstractListModel();
 
 		/**
 		 * You must override this method.

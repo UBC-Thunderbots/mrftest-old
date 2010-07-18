@@ -8,29 +8,29 @@ namespace {
 	const double KICKER_STRENGTH = 0.1;
 }
 
-execute_kickoff_friendly::execute_kickoff_friendly(world::ptr world) : the_world(world) {
+ExecuteKickoffFriendly::ExecuteKickoffFriendly(World::ptr world) : the_world(world) {
 	contacted_ball = false;
 }
 
-void execute_kickoff_friendly::avoid_ball(int index){
-	move::ptr tactic(new move(the_robots[index], the_world));
-	tactic->set_position(point( -1 * the_world->field().length()/2, 0));
+void ExecuteKickoffFriendly::avoid_ball(int index){
+	Move::ptr tactic(new Move(the_robots[index], the_world));
+	tactic->set_position(Point( -1 * the_world->field().length()/2, 0));
 	the_tactics.push_back(tactic);
 }
 
-void execute_kickoff_friendly::kick_ball(int index){
-	kick::ptr tactic( new kick(the_robots[index], the_world));
-	tactic->set_target(point( the_world->field().length()/10 , 0));
+void ExecuteKickoffFriendly::kick_ball(int index){
+	Kick::ptr tactic( new Kick(the_robots[index], the_world));
+	tactic->set_target(Point( the_world->field().length()/10 , 0));
 	tactic->set_kick(KICKER_STRENGTH);
 	the_tactics.push_back(tactic);
 }
 
-void execute_kickoff_friendly::chase_ball(int index) {
-	chase::ptr tactic( new chase(the_robots[index], the_world));
+void ExecuteKickoffFriendly::chase_ball(int index) {
+	Chase::ptr tactic( new Chase(the_robots[index], the_world));
 	the_tactics.push_back(tactic);
 }
 
-void execute_kickoff_friendly::tick(){
+void ExecuteKickoffFriendly::tick(){
 	the_tactics.clear();
 	for (size_t i = 0; i < the_robots.size(); i++){
 		// If ball is in play, kicker should not touch the ball again
@@ -45,14 +45,14 @@ void execute_kickoff_friendly::tick(){
 			chase_ball(i);
 		}
 	}
-	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
+	unsigned int flags = AIFlags::calc_flags(the_world->playtype());
 	for(unsigned int i=0; i<the_tactics.size(); i++) {
 		the_tactics[i]->set_flags(flags);
 	        the_tactics[i]->tick();
 	}
 }
 
-void execute_kickoff_friendly::robots_changed() {
+void ExecuteKickoffFriendly::robots_changed() {
 	contacted_ball = false;
 	tick();
 }

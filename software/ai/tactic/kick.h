@@ -9,17 +9,17 @@
  * By default, kicks at full strength.
  * If not set a target, will just kick in whatever direction it is facing.
  */
-class kick : public tactic {
+class Kick : public Tactic {
 	public:
 		//
-		// A pointer to this tactic.
+		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<kick> ptr;
+		typedef Glib::RefPtr<Kick> ptr;
 
 		//
-		// Constructs a new kick tactic.
+		// Constructs a new Kick Tactic.
 		//
-		kick(player::ptr player, world::ptr world);
+		Kick(Player::ptr player, World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -27,9 +27,9 @@ class kick : public tactic {
 		void tick();
 
 		/**
-		 * Sets the target position for this kick tactic.
+		 * Sets the target position for this Kick Tactic.
 		 */
-		void set_target(const point& p) {
+		void set_target(const Point& p) {
 			kick_target = p;
 		}
 
@@ -52,14 +52,14 @@ class kick : public tactic {
 		}
 
 	protected:
-		const world::ptr the_world;
+		const World::ptr the_world;
 
 		// True to chip instead of kicking.
 		bool should_chip;
 		double strength;
 
 		// Target position
-		point kick_target;
+		Point kick_target;
 };
 
 #endif

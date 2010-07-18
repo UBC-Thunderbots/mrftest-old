@@ -1,4 +1,4 @@
-// This warning is issued by the definition of MAP_FAILED.
+// This warning is issued by the definitions of these macros.
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 
 #include "util/misc.h"

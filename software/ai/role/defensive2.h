@@ -10,11 +10,11 @@
  * The first robot is defined to be the goalkeeper by default.
  * The goal is to completely block the goalpost.
  */
-class defensive2 : public role {
+class Defensive2 : public Role {
 	public:
-		typedef Glib::RefPtr<defensive2> ptr;
+		typedef Glib::RefPtr<Defensive2> ptr;
 
-		defensive2(world::ptr world);
+		Defensive2(World::ptr world);
 
 		void tick();
 
@@ -23,7 +23,7 @@ class defensive2 : public role {
 		/**
 		 * Specifically chooses this player to be the goalie.
 		 */
-		void set_goalie(player::ptr p) {
+		void set_goalie(Player::ptr p) {
 			goalie = p;
 		}
 
@@ -33,22 +33,22 @@ class defensive2 : public role {
 		 * Calculate points which should be used to defend
 		 * from enemy robots.
 		 * Should be adjusted to take into account of the rules
-		 * and number of robots in this role.
+		 * and number of robots in this Role.
 		 * Returns a pair
 		 * - goalie position
 		 * - other robots position
 		 * Note:
 		 * - if any of the position == ball position,
-		 *   please use chase/shoot etc
+		 *   please use Chase/Shoot etc
 		 */
-		std::pair<point, std::vector<point> > calc_block_positions(const bool top) const;
+		std::pair<Point, std::vector<Point> > calc_block_positions(const bool top) const;
 
-		void assign(const player::ptr& p, tactic::ptr t);
+		void assign(const Player::ptr& p, Tactic::ptr t);
 
-		const world::ptr the_world;
+		const World::ptr the_world;
 
-		player::ptr goalie;
-		std::vector<tactic::ptr> tactics;
+		Player::ptr goalie;
+		std::vector<Tactic::ptr> tactics;
 
 };
 

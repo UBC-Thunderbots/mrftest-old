@@ -14,17 +14,17 @@
  * - if a friendly can see the goal better, pass
  * - shoot to the side of some enemy robots.
  */
-class shoot : public tactic {
+class Shoot : public Tactic {
 	public:
 		//
-		// A pointer to this tactic.
+		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<shoot> ptr;
+		typedef Glib::RefPtr<Shoot> ptr;
 
 		//
-		// Constructs a new pass receive tactic. 
+		// Constructs a new pass receive Tactic. 
 		//
-		shoot(player::ptr player, world::ptr world);
+		Shoot(Player::ptr player, World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -53,7 +53,7 @@ class shoot : public tactic {
 		}
 
 	protected:
-		const world::ptr the_world;
+		const World::ptr the_world;
 		bool forced;
 		bool use_pivot;
 		bool allow_dribble;

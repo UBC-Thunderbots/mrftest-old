@@ -13,22 +13,22 @@ namespace {
 
 	const double PI = M_PI;
 
-	class mech_tuning;
+	class MechTuning;
 
 	/** Enables parameter tuning by hand.
 	 */
-	class mech_tuning_ui : public Gtk::Window {
+	class MechTuningUI : public Gtk::Window {
 		public:
-			mech_tuning_ui(mech_tuning* h) : ht(h) {
+			MechTuningUI(MechTuning* h) : ht(h) {
 				set_title("Parameters");
 				//vbox.add(button);
-				//button.signal_clicked().connect(sigc::mem_fun(this, &mech_tuning_ui::run));
+				//button.signal_clicked().connect(sigc::mem_fun(this, &MechTuningUI::run));
 				//button.set_label("Run!");
 				//add(vbox);
 				add(table);
 			}
 
-			~mech_tuning_ui() {
+			~MechTuningUI() {
 				for (size_t i = 0; i < entries.size(); ++i) {
 					table.remove(*entries[i]);
 					table.remove(*labels[i]);
@@ -40,7 +40,7 @@ namespace {
 			// void run();
 
 			/// Resets the parameters on the ui.
-			void reset(tunable_controller* tc) {
+			void reset(TunableController* tc) {
 				for (size_t i = 0; i < entries.size(); ++i) {
 					table.remove(*entries[i]);
 					table.remove(*labels[i]);
@@ -90,23 +90,23 @@ namespace {
 			Gtk::Table table;
 			std::vector<Gtk::Label*> labels;
 			std::vector<Gtk::Entry*> entries;
-			mech_tuning* ht;
+			MechTuning* ht;
 	};
 
-	class mech_tuning : public movement_benchmark {
+	class MechTuning : public MovementBenchmark {
 		public:
-			mech_tuning(world::ptr);
-			~mech_tuning();
+			MechTuning(World::ptr);
+			~MechTuning();
 			Gtk::Widget *get_ui_controls();
-			strategy_factory &get_factory();
+			StrategyFactory &get_factory();
 			void tick();
 			void run_turn();
 			void run_bench();
 			void run_err();
 			void reset();
 		private:
-			mech_tuning_ui ui;
-			tunable_controller* tc;
+			MechTuningUI ui;
+			TunableController* tc;
 			Gtk::Button run_bench_button;
 			Gtk::Button run_turn_button;
 			Gtk::Button run_err_button;
@@ -119,11 +119,11 @@ namespace {
 			int phase;
 	};
 
-	mech_tuning::mech_tuning(world::ptr world) : movement_benchmark(world), ui(this), tc(NULL), run_bench_button("Run Benchmark"), run_turn_button("Turning for 5 mins"), run_err_button("Run error for x/y/angle"), reset_button("reset"), x_scale(-2.0, 2.0, 0.01), y_scale(-2.0, 2.0, 0.01), a_scale(-4.0, 4.0, 0.01) {
-		run_bench_button.signal_clicked().connect(sigc::mem_fun(this,&mech_tuning::run_bench));
-		run_turn_button.signal_clicked().connect(sigc::mem_fun(this,&mech_tuning::run_turn));
-		run_err_button.signal_clicked().connect(sigc::mem_fun(this,&mech_tuning::run_err));
-		reset_button.signal_clicked().connect(sigc::mem_fun(this,&mech_tuning::reset));
+	MechTuning::MechTuning(World::ptr world) : MovementBenchmark(world), ui(this), tc(NULL), run_bench_button("Run Benchmark"), run_turn_button("Turning for 5 mins"), run_err_button("Run error for x/y/angle"), reset_button("reset"), x_scale(-2.0, 2.0, 0.01), y_scale(-2.0, 2.0, 0.01), a_scale(-4.0, 4.0, 0.01) {
+		run_bench_button.signal_clicked().connect(sigc::mem_fun(this,&MechTuning::run_bench));
+		run_turn_button.signal_clicked().connect(sigc::mem_fun(this,&MechTuning::run_turn));
+		run_err_button.signal_clicked().connect(sigc::mem_fun(this,&MechTuning::run_err));
+		reset_button.signal_clicked().connect(sigc::mem_fun(this,&MechTuning::reset));
 		done = tasks.size();
 		phase = 0;
 		time_steps = 0;
@@ -140,15 +140,15 @@ namespace {
 		a_scale.set_value(0);
 	}
 
-	mech_tuning::~mech_tuning() {
+	MechTuning::~MechTuning() {
 	}
 
-	Gtk::Widget *mech_tuning::get_ui_controls() {
+	Gtk::Widget *MechTuning::get_ui_controls() {
 		return &vbox;
 	}
 
-	void mech_tuning::reset() {
-		tc = tunable_controller::get_instance();
+	void MechTuning::reset() {
+		tc = TunableController::get_instance();
 		time_steps = 0;
 		phase = 3;
 		done = tasks.size();
@@ -158,7 +158,7 @@ namespace {
 		a_scale.set_value(0);
 	}
 
-	void mech_tuning::run_bench() {
+	void MechTuning::run_bench() {
 		if (tc) {
 			const std::vector<double>& params = ui.read_params();
 			tc->set_params(params);
@@ -168,7 +168,7 @@ namespace {
 		phase = 2;
 	}
 
-	void mech_tuning::run_turn() {
+	void MechTuning::run_turn() {
 		if (tc) {
 			const std::vector<double>& params = ui.read_params();
 			tc->set_params(params);
@@ -178,7 +178,7 @@ namespace {
 		phase = 0;
 	}
 
-	void mech_tuning::run_err() {
+	void MechTuning::run_err() {
 		if (tc) {
 			const std::vector<double>& params = ui.read_params();
 			tc->set_params(params);
@@ -188,15 +188,15 @@ namespace {
 		phase = 1;
 	}
 
-	void mech_tuning::tick() {
-		const friendly_team &friendly(the_world->friendly);
+	void MechTuning::tick() {
+		const FriendlyTeam &friendly(the_world->friendly);
 
 		if (friendly.size() != 1) {
 			std::cerr << "error: must have only 1 robot in the team!" << std::endl;
 			return;
 		}
 
-		if (tc != tunable_controller::get_instance()) {
+		if (tc != TunableController::get_instance()) {
 			reset();
 		}
 
@@ -205,7 +205,7 @@ namespace {
 			done = 0;
 		}
 
-		const player::ptr the_player = friendly.get_player(0);
+		const Player::ptr the_player = friendly.get_player(0);
 
 		switch(phase) {
 			case 0:
@@ -236,35 +236,35 @@ namespace {
 					const double ex = x_scale.get_value();
 					const double ey = y_scale.get_value();
 					const double ea = a_scale.get_value();
-					//point next_pos = the_player->position() + point(ex, ey);
+					//Point next_pos = the_player->position() + Point(ex, ey);
 					//double next_ori = the_player->orientation() + ea;
 					//the_player->move(next_pos, next_ori);
-					the_player->move(point(ex, ey), ea);
+					the_player->move(Point(ex, ey), ea);
 				}
 				break;
 			case 2:
-				movement_benchmark::tick();
+				MovementBenchmark::tick();
 				break;
 		}
 	}
 
-	class mech_tuning_factory : public strategy_factory {
+	class MechTuningFactory : public StrategyFactory {
 		public:
-			mech_tuning_factory();
-			strategy::ptr create_strategy(world::ptr world);
+			MechTuningFactory();
+			Strategy::ptr create_strategy(World::ptr world);
 	};
 
-	mech_tuning_factory::mech_tuning_factory() : strategy_factory("Mech Tuning Benchmark") {
+	MechTuningFactory::MechTuningFactory() : StrategyFactory("Mech Tuning Benchmark") {
 	}
 
-	strategy::ptr mech_tuning_factory::create_strategy(world::ptr world) {
-		strategy::ptr s(new mech_tuning(world));
+	Strategy::ptr MechTuningFactory::create_strategy(World::ptr world) {
+		Strategy::ptr s(new MechTuning(world));
 		return s;
 	}
 
-	mech_tuning_factory factory;
+	MechTuningFactory factory;
 
-	strategy_factory &mech_tuning::get_factory() {
+	StrategyFactory &MechTuning::get_factory() {
 		return factory;
 	}
 

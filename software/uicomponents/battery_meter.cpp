@@ -3,23 +3,23 @@
 #include <iomanip>
 #include <limits>
 
-battery_meter::battery_meter() : last_voltage(std::numeric_limits<unsigned int>::max()) {
+BatteryMeter::BatteryMeter() : last_voltage(std::numeric_limits<unsigned int>::max()) {
 	set_fraction(0);
 	set_text("No Data");
 }
 
-void battery_meter::set_bot(xbee_drive_bot::ptr bot) {
+void BatteryMeter::set_bot(XBeeDriveBot::ptr bot) {
 	connection.disconnect();
 	robot = bot;
 	if (robot) {
-		connection = robot->signal_feedback.connect(sigc::mem_fun(this, &battery_meter::update));
+		connection = robot->signal_feedback.connect(sigc::mem_fun(this, &BatteryMeter::update));
 	}
 	set_fraction(0);
 	set_text("No Data");
 	last_voltage = std::numeric_limits<unsigned int>::max();
 }
 
-void battery_meter::update() {
+void BatteryMeter::update() {
 	unsigned int voltage = robot->battery_voltage();
 	if (voltage != last_voltage) {
 		set_fraction(std::min(1.0, std::max(0.0, (static_cast<int>(voltage) - 12000) / 5000.0)));

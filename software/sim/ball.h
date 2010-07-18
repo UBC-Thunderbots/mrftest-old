@@ -9,38 +9,38 @@
 /**
  * The ball, as seen by a simulation engine. An individual engine is expected to
  * subclass this class and return an instance of the subclass from its
- * simulator_engine::get_ball() method.
+ * SimulatorEngine::get_ball() method.
  */
-class ball : public visualizable::ball {
+class SimulatorBall : public Visualizable::Ball {
 	public:
 		/**
-		 * A pointer to a ball.
+		 * A pointer to a SimulatorBall.
 		 */
-		typedef Glib::RefPtr<ball> ptr;
+		typedef Glib::RefPtr<SimulatorBall> ptr;
 
 		/**
 		 * \return The position of the ball, in metres from field centre
 		 */
-		virtual point position() const __attribute__((warn_unused_result)) = 0;
+		virtual Point position() const __attribute__((warn_unused_result)) = 0;
 
 		/**
 		 * Moves the ball.
 		 * \param pos the new location of the ball, in metres from field centre
 		 */
-		virtual void position(const point &pos) = 0;
+		virtual void position(const Point &pos) = 0;
 
 		/**
 		 * Sets the ball's velocity.
 		 * \param vel the new velocity, in metres per second field-relative
 		 */
-		virtual void velocity(const point &vel) = 0;
+		virtual void velocity(const Point &vel) = 0;
 
 	private:
 		bool visualizer_can_drag() const {
 			return true;
 		}
 
-		void visualizer_drag(const point &pos) {
+		void visualizer_drag(const Point &pos) {
 			position(pos);
 		}
 };

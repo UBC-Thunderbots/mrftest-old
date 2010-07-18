@@ -16,13 +16,13 @@
 //
 // Displays feedback from the robot.
 //
-class tester_feedback : public Gtk::Table {
+class TesterFeedback : public Gtk::Table {
 	public:
-		tester_feedback();
-		void set_bot(xbee_drive_bot::ptr bot);
+		TesterFeedback();
+		void set_bot(XBeeDriveBot::ptr bot);
 
 	private:
-		xbee_drive_bot::ptr robot;
+		XBeeDriveBot::ptr robot;
 
 		Gtk::Label battery_label;
 		Gtk::Label dribbler_label;
@@ -33,18 +33,18 @@ class tester_feedback : public Gtk::Table {
 		Gtk::Label run_data_interval_label;
 		Gtk::Label success_label;
 
-		battery_meter battery_level;
-		dribbler_meter dribbler_level;
-		outbound_rssi_meter out_rssi_level;
-		inbound_rssi_meter in_rssi_level;
-		latency_meter latency_level;
-		feedback_interval_meter feedback_interval_level;
-		run_data_interval_meter run_data_interval_level;
-		success_meter success_level;
+		BatteryMeter battery_level;
+		DribblerMeter dribbler_level;
+		OutboundRSSIMeter out_rssi_level;
+		InboundRSSIMeter in_rssi_level;
+		LatencyMeter latency_level;
+		FeedbackIntervalMeter feedback_interval_level;
+		RunDataIntervalMeter run_data_interval_level;
+		SuccessMeter success_level;
 
 		Gtk::Frame fault_indicator_frame;
 		Gtk::HBox fault_indicator_box;
-		light fault_indicators[5];
+		Light fault_indicators[5];
 
 		sigc::connection connection;
 

@@ -3,9 +3,9 @@
 
 #include "tester/permotor_drive.h"
 
-class tester_control_direct_drive : public tester_control_permotor_drive {
+class TesterControlDirectDrive : public TesterControlPerMotorDrive {
 	public:
-		tester_control_direct_drive(xbee_drive_bot::ptr bot) : tester_control_permotor_drive(bot) {
+		TesterControlDirectDrive(XBeeDriveBot::ptr bot) : TesterControlPerMotorDrive(bot) {
 		}
 
 		void drive(int m1, int m2, int m3, int m4) {

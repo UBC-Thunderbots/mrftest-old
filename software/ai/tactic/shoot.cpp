@@ -12,28 +12,28 @@
 #include <iostream>
 
 namespace {
-	double_param ALLOWANCE_FACTOR("shoot: scale goal view angle", 0.5, 0.1, 1.0);
-	double_param SHOOT_KICK_ANGLE("shoot: angle it can see before it should kick (degrees)", 5.0, 1.0, 20.0);
+	DoubleParam ALLOWANCE_FACTOR("shoot: scale goal view angle", 0.5, 0.1, 1.0);
+	DoubleParam SHOOT_KICK_ANGLE("shoot: angle it can see before it should kick (degrees)", 5.0, 1.0, 20.0);
 }
 
-shoot::shoot(player::ptr player, world::ptr world) : tactic(player), the_world(world), forced(false), use_pivot(true), allow_dribble(true) {
+Shoot::Shoot(Player::ptr player, World::ptr world) : Tactic(player), the_world(world), forced(false), use_pivot(true), allow_dribble(true) {
 }
 
-void shoot::tick() {
-	const friendly_team &friendly(the_world->friendly);
-	const enemy_team &enemy(the_world->enemy);
+void Shoot::tick() {
+	const FriendlyTeam &friendly(the_world->friendly);
+	const EnemyTeam &enemy(the_world->enemy);
 
-	const std::pair<point, double> bestshot = ai_util::calc_best_shot(the_world, the_player, true, forced);
+	const std::pair<Point, double> bestshot = AIUtil::calc_best_shot(the_world, the_player, true, forced);
 	
 	if (forced) {
 		allow_dribble = false;
 	}
 
-	if (ai_util::has_ball(the_world, the_player)) {
+	if (AIUtil::has_ball(the_world, the_player)) {
 		// This player has the ball.
 		LOG_INFO("The player has the ball.");
 
-		std::vector<point> obstacles;
+		std::vector<Point> obstacles;
 		for (size_t i = 0; i < friendly.size(); ++i) {
 			if (friendly.get_player(i) == the_player) continue;
 			obstacles.push_back(friendly[i]->position());
@@ -42,15 +42,15 @@ void shoot::tick() {
 			obstacles.push_back(enemy[i]->position());
 		}
 
-		const point diff = bestshot.first - the_player->position();
+		const Point diff = bestshot.first - the_player->position();
 		const double targetori = diff.orientation();
 
 		// calculate where to aim
-		move move_tactic(the_player, the_world);
+		Move move_tactic(the_player, the_world);
 		move_tactic.set_orientation(targetori);
 
 		// dribble if possible to
-		if (allow_dribble && bestshot.second < degrees2radians(SHOOT_KICK_ANGLE) && the_player->dribble_distance() < player::MAX_DRIBBLE_DIST) {
+		if (allow_dribble && bestshot.second < degrees2radians(SHOOT_KICK_ANGLE) && the_player->dribble_distance() < Player::MAX_DRIBBLE_DIST) {
 			move_tactic.set_position(bestshot.first);
 		}
 
@@ -73,12 +73,12 @@ void shoot::tick() {
 		move_tactic.set_flags(flags);
 		move_tactic.tick();	
 	} else if (use_pivot) {
-		pivot tactic(the_player, the_world);
+		Pivot tactic(the_player, the_world);
 		tactic.set_target(bestshot.first);
 		tactic.set_flags(flags);
 		tactic.tick();
 	} else {
-		chase chase_tactic(the_player, the_world);
+		Chase chase_tactic(the_player, the_world);
 		chase_tactic.set_flags(flags);
 		chase_tactic.tick();
 	}

@@ -3,65 +3,65 @@
 
 #include <glibmm.h>
 
-namespace playtype {
+namespace PlayType {
 	//
 	// A state of play.
 	//
-	enum playtype {
+	enum PlayType {
 		// Robots are not permitted to move.
-		halt,
+		HALT,
 
 		// Robots are allowed anywhere outside a circle around the ball.
-		stop,
+		STOP,
 
 		// Game is running normally.
-		play,
+		PLAY,
 
 		// Robot gets ready to take a kickoff.
-		prepare_kickoff_friendly,
+		PREPARE_KICKOFF_FRIENDLY,
 
 		// Kickoff is occurring but ball has not yet moved.
-		execute_kickoff_friendly,
+		EXECUTE_KICKOFF_FRIENDLY,
 
 		// Robot gets ready to take a kickoff.
-		prepare_kickoff_enemy,
+		PREPARE_KICKOFF_ENEMY,
 
 		// Kickoff is occurring but ball has not yet moved.
-		execute_kickoff_enemy,
+		EXECUTE_KICKOFF_ENEMY,
 
 		// Robot gets ready to take a penalty kick.
-		prepare_penalty_friendly,
+		PREPARE_PENALTY_FRIENDLY,
 
 		// Penalty kick is occurring but ball has not yet moved.
-		execute_penalty_friendly,
+		EXECUTE_PENALTY_FRIENDLY,
 
 		// Robot gets ready to take a penalty kick.
-		prepare_penalty_enemy,
+		PREPARE_PENALTY_ENEMY,
 
 		// Penalty kick is occurring but ball has not yet moved.
-		execute_penalty_enemy,
+		EXECUTE_PENALTY_ENEMY,
 
 		// Direct free kick is occurring but ball has not yet moved.
-		execute_direct_free_kick_friendly,
+		EXECUTE_DIRECT_FREE_KICK_FRIENDLY,
 
 		// Indirect free kick is occurring but ball has not yet moved.
-		execute_indirect_free_kick_friendly,
+		EXECUTE_INDIRECT_FREE_KICK_FRIENDLY,
 
 		// Direct free kick is occurring but ball has not yet moved.
-		execute_direct_free_kick_enemy,
+		EXECUTE_DIRECT_FREE_KICK_ENEMY,
 
 		// Indirect free kick is occurring but ball has not yet moved.
-		execute_indirect_free_kick_enemy,
+		EXECUTE_INDIRECT_FREE_KICK_ENEMY,
 
 		// Robots move to the edge of the field.
-		pit_stop,
+		PIT_STOP,
 
 		// Robots do fancy stuff.
-		victory_dance,
+		VICTORY_DANCE,
 
 		// A counter of the number of legal playtypes. Put new types
 		// before this.
-		count,
+		COUNT,
 	};
 
 	//
@@ -69,21 +69,21 @@ namespace playtype {
 	// These descriptions simply use the words "friendly" and "enemy", and
 	// are appropriate for the real-world system.
 	//
-	extern const Glib::ustring descriptions_generic[];
+	extern const Glib::ustring DESCRIPTIONS_GENERIC[];
 
 	//
 	// Descriptions of the play types from the west team's point of view.
 	// These descriptions use the words "west" and "east", and are appropriate
 	// for the simulator.
 	//
-	extern const Glib::ustring descriptions_west[];
+	extern const Glib::ustring DESCRIPTIONS_WEST[];
 
 	//
 	// Directional inversions of the play types. An element in this array
 	// contains the play type as the east team would see it, if the index into
 	// the array is the play type as the west team would see it.
 	//
-	extern const playtype invert[];
+	extern const PlayType INVERT[];
 }
 
 #endif

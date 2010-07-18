@@ -17,27 +17,27 @@
 #include <sys/un.h>
 
 namespace {
-	std::unordered_set<client *> instances;
+	std::unordered_set<XBeeClient *> instances;
 }
 
-void client::create(file_descriptor &sock, class daemon &daemon) {
-	new client(sock, daemon);
+void XBeeClient::create(FileDescriptor &sock, class XBeeDaemon &daemon) {
+	new XBeeClient(sock, daemon);
 }
 
-void client::send_to_all(const void *data, std::size_t length) {
-	for (std::unordered_set<client *>::const_iterator i = instances.begin(), iend = instances.end(); i != iend; ++i) {
+void XBeeClient::send_to_all(const void *data, std::size_t length) {
+	for (std::unordered_set<XBeeClient *>::const_iterator i = instances.begin(), iend = instances.end(); i != iend; ++i) {
 		send((*i)->sock, data, length, MSG_NOSIGNAL);
 	}
 }
 
-bool client::any_connected() {
+bool XBeeClient::any_connected() {
 	return !instances.empty();
 }
 
-client::client(file_descriptor &sck, class daemon &daemon) : sock(sck), daemon(daemon) {
+XBeeClient::XBeeClient(FileDescriptor &sck, class XBeeDaemon &daemon) : sock(sck), daemon(daemon) {
 	// Connect to signals.
-	Glib::signal_io().connect(sigc::mem_fun(this, &client::on_socket_ready), sock, Glib::IO_IN | Glib::IO_HUP);
-	daemon.backend.signal_received.connect(sigc::mem_fun(this, &client::on_radio_packet));
+	Glib::signal_io().connect(sigc::mem_fun(this, &XBeeClient::on_socket_ready), sock, Glib::IO_IN | Glib::IO_HUP);
+	daemon.backend.signal_received.connect(sigc::mem_fun(this, &XBeeClient::on_radio_packet));
 
 	// Record our own existence.
 	instances.insert(this);
@@ -66,8 +66,8 @@ client::client(file_descriptor &sck, class daemon &daemon) : sock(sck), daemon(d
 	sendmsg(sock, &mh, MSG_NOSIGNAL);
 }
 
-client::~client() {
-	std::for_each(claimed.begin(), claimed.end(), sigc::mem_fun(this, &client::do_release));
+XBeeClient::~XBeeClient() {
+	std::for_each(claimed.begin(), claimed.end(), sigc::mem_fun(this, &XBeeClient::do_release));
 	instances.erase(this);
 	if (instances.empty()) {
 		daemon.check_shutdown();
@@ -79,19 +79,19 @@ client::~client() {
 	daemon.universe_claimed = false;
 }
 
-void client::connect_frame_dealloc(request::ptr req, uint8_t frame) {
-	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(daemon.frame_number_allocator, &number_allocator<uint8_t>::free), frame))));
+void XBeeClient::connect_frame_dealloc(XBeeRequest::ptr req, uint8_t frame) {
+	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(daemon.frame_number_allocator, &NumberAllocator<uint8_t>::free), frame))));
 }
 
-void client::on_radio_packet(const std::vector<uint8_t> &data) {
-	if (data[0] == xbeepacket::RECEIVE64_APIID || data[0] == xbeepacket::RECEIVE16_APIID) {
+void XBeeClient::on_radio_packet(const std::vector<uint8_t> &data) {
+	if (data[0] == XBeePacketTypes::RECEIVE64_APIID || data[0] == XBeePacketTypes::RECEIVE16_APIID) {
 		if (send(sock, &data[0], data.size(), MSG_NOSIGNAL) != static_cast<ssize_t>(data.size())) {
 			delete this;
 		}
 	}
 }
 
-bool client::on_socket_ready(Glib::IOCondition cond) {
+bool XBeeClient::on_socket_ready(Glib::IOCondition cond) {
 	if ((cond & Glib::IO_HUP) || !(cond & Glib::IO_IN)) {
 		delete this;
 		return false;
@@ -111,7 +111,7 @@ bool client::on_socket_ready(Glib::IOCondition cond) {
 	return true;
 }
 
-void client::on_packet(void *buffer, std::size_t length) {
+void XBeeClient::on_packet(void *buffer, std::size_t length) {
 	// Check length.
 	if (!length) {
 		return;
@@ -119,31 +119,31 @@ void client::on_packet(void *buffer, std::size_t length) {
 
 	// Dispatch by API ID.
 	switch (static_cast<uint8_t *>(buffer)[0]) {
-		case xbeepacket::AT_REQUEST_APIID:
-		case xbeepacket::AT_REQUEST_QUEUE_APIID:
+		case XBeePacketTypes::AT_REQUEST_APIID:
+		case XBeePacketTypes::AT_REQUEST_QUEUE_APIID:
 			on_at_command(buffer, length);
 			break;
 
-		case xbeepacket::REMOTE_AT_REQUEST_APIID:
+		case XBeePacketTypes::REMOTE_AT_REQUEST_APIID:
 			on_remote_at_command(buffer, length);
 			break;
 
-		case xbeepacket::TRANSMIT64_APIID:
-		case xbeepacket::TRANSMIT16_APIID:
+		case XBeePacketTypes::TRANSMIT64_APIID:
+		case XBeePacketTypes::TRANSMIT16_APIID:
 			on_transmit(buffer, length);
 			break;
 
-		case xbeepacket::META_APIID:
+		case XBeePacketTypes::META_APIID:
 			on_meta(buffer, length);
 			break;
 	}
 }
 
-void client::on_at_command(void *buffer, std::size_t length) {
-	xbeepacket::AT_REQUEST<0> *packet = static_cast<xbeepacket::AT_REQUEST<0> *>(buffer);
+void XBeeClient::on_at_command(void *buffer, std::size_t length) {
+	XBeePacketTypes::AT_REQUEST<0> *packet = static_cast<XBeePacketTypes::AT_REQUEST<0> *>(buffer);
 
 	// Check packet size.
-	if (length < sizeof(xbeepacket::AT_REQUEST<0>)) {
+	if (length < sizeof(XBeePacketTypes::AT_REQUEST<0>)) {
 		return;
 	}
 
@@ -153,31 +153,31 @@ void client::on_at_command(void *buffer, std::size_t length) {
 		packet->frame = daemon.frame_number_allocator.alloc();
 	}
 
-	// Create a request structure.
-	request::ptr req(request::create(packet, length, original_frame != 0));
+	// Create a XBeeRequest structure.
+	XBeeRequest::ptr req(XBeeRequest::create(packet, length, original_frame != 0));
 
 	// If a frame number was allocated, attach callbacks.
 	if (original_frame) {
 		// Attach a callback to deallocate the frame number.
 		connect_frame_dealloc(req, packet->frame);
 		// Attach a callback to notify this client.
-		req->signal_complete().connect(sigc::bind(sigc::mem_fun(this, &client::on_at_response), original_frame));
+		req->signal_complete().connect(sigc::bind(sigc::mem_fun(this, &XBeeClient::on_at_response), original_frame));
 	}
 
-	// Queue the request with the scheduler.
+	// Queue the XBeeRequest with the XBeeScheduler.
 	daemon.scheduler.queue(req);
 }
 
-void client::on_at_response(const void *buffer, std::size_t length, uint8_t original_frame) {
-	const xbeepacket::AT_RESPONSE *packet = static_cast<const xbeepacket::AT_RESPONSE *>(buffer);
+void XBeeClient::on_at_response(const void *buffer, std::size_t length, uint8_t original_frame) {
+	const XBeePacketTypes::AT_RESPONSE *packet = static_cast<const XBeePacketTypes::AT_RESPONSE *>(buffer);
 
 	// Check API ID.
-	if (packet->apiid != xbeepacket::AT_RESPONSE_APIID) {
+	if (packet->apiid != XBeePacketTypes::AT_RESPONSE_APIID) {
 		return;
 	}
 
 	// Check packet size.
-	if (length < sizeof(xbeepacket::AT_RESPONSE)) {
+	if (length < sizeof(XBeePacketTypes::AT_RESPONSE)) {
 		return;
 	}
 
@@ -186,7 +186,7 @@ void client::on_at_response(const void *buffer, std::size_t length, uint8_t orig
 	std::memcpy(newpacket, packet, length);
 
 	// Substitute in original frame number.
-	newpacket[offsetof(xbeepacket::AT_RESPONSE, frame)] = original_frame;
+	newpacket[offsetof(XBeePacketTypes::AT_RESPONSE, frame)] = original_frame;
 
 	// Send back-substituted packet to client.
 	ssize_t ret = send(sock, newpacket, length, MSG_NOSIGNAL);
@@ -196,11 +196,11 @@ void client::on_at_response(const void *buffer, std::size_t length, uint8_t orig
 	}
 }
 
-void client::on_remote_at_command(void *buffer, std::size_t length) {
-	xbeepacket::REMOTE_AT_REQUEST<0> *packet = static_cast<xbeepacket::REMOTE_AT_REQUEST<0> *>(buffer);
+void XBeeClient::on_remote_at_command(void *buffer, std::size_t length) {
+	XBeePacketTypes::REMOTE_AT_REQUEST<0> *packet = static_cast<XBeePacketTypes::REMOTE_AT_REQUEST<0> *>(buffer);
 
 	// Check packet size.
-	if (length < sizeof(xbeepacket::REMOTE_AT_REQUEST<0>)) {
+	if (length < sizeof(XBeePacketTypes::REMOTE_AT_REQUEST<0>)) {
 		return;
 	}
 
@@ -210,31 +210,31 @@ void client::on_remote_at_command(void *buffer, std::size_t length) {
 		packet->frame = daemon.frame_number_allocator.alloc();
 	}
 
-	// Create a request structure.
-	request::ptr req(request::create(packet, length, original_frame != 0));
+	// Create a XBeeRequest structure.
+	XBeeRequest::ptr req(XBeeRequest::create(packet, length, original_frame != 0));
 
 	// If a frame number was allocated, attach callbacks.
 	if (original_frame) {
 		// Attach a callback to deallocate the frame number.
 		connect_frame_dealloc(req, packet->frame);
 		// Attach a callback to notify this client.
-		req->signal_complete().connect(sigc::bind(sigc::mem_fun(this, &client::on_remote_at_response), original_frame));
+		req->signal_complete().connect(sigc::bind(sigc::mem_fun(this, &XBeeClient::on_remote_at_response), original_frame));
 	}
 
-	// Queue the request with the scheduler.
+	// Queue the XBeeRequest with the XBeeScheduler.
 	daemon.scheduler.queue(req);
 }
 
-void client::on_remote_at_response(const void *buffer, std::size_t length, uint8_t original_frame) {
-	const xbeepacket::REMOTE_AT_RESPONSE *packet = static_cast<const xbeepacket::REMOTE_AT_RESPONSE *>(buffer);
+void XBeeClient::on_remote_at_response(const void *buffer, std::size_t length, uint8_t original_frame) {
+	const XBeePacketTypes::REMOTE_AT_RESPONSE *packet = static_cast<const XBeePacketTypes::REMOTE_AT_RESPONSE *>(buffer);
 
 	// Check API ID.
-	if (packet->apiid != xbeepacket::REMOTE_AT_RESPONSE_APIID) {
+	if (packet->apiid != XBeePacketTypes::REMOTE_AT_RESPONSE_APIID) {
 		return;
 	}
 
 	// Check packet size.
-	if (length < sizeof(xbeepacket::REMOTE_AT_RESPONSE)) {
+	if (length < sizeof(XBeePacketTypes::REMOTE_AT_RESPONSE)) {
 		return;
 	}
 
@@ -243,7 +243,7 @@ void client::on_remote_at_response(const void *buffer, std::size_t length, uint8
 	std::memcpy(newpacket, packet, length);
 
 	// Substitute in original frame number.
-	newpacket[offsetof(xbeepacket::REMOTE_AT_RESPONSE, frame)] = original_frame;
+	newpacket[offsetof(XBeePacketTypes::REMOTE_AT_RESPONSE, frame)] = original_frame;
 
 	// Send back-substituted packet to client.
 	ssize_t ret = send(sock, newpacket, length, MSG_NOSIGNAL);
@@ -253,11 +253,11 @@ void client::on_remote_at_response(const void *buffer, std::size_t length, uint8
 	}
 }
 
-void client::on_transmit(void *buffer, std::size_t length) {
-	xbeepacket::TRANSMIT64_HDR *packet = static_cast<xbeepacket::TRANSMIT64_HDR *>(buffer);
+void XBeeClient::on_transmit(void *buffer, std::size_t length) {
+	XBeePacketTypes::TRANSMIT64_HDR *packet = static_cast<XBeePacketTypes::TRANSMIT64_HDR *>(buffer);
 
 	// Check packet size.
-	if (length < (packet->apiid == xbeepacket::TRANSMIT64_APIID ? 11 : 5)) {
+	if (length < (packet->apiid == XBeePacketTypes::TRANSMIT64_APIID ? 11 : 5)) {
 		return;
 	}
 
@@ -267,31 +267,31 @@ void client::on_transmit(void *buffer, std::size_t length) {
 		packet->frame = daemon.frame_number_allocator.alloc();
 	}
 
-	// Create a request structure.
-	request::ptr req(request::create(packet, length, original_frame != 0));
+	// Create a XBeeRequest structure.
+	XBeeRequest::ptr req(XBeeRequest::create(packet, length, original_frame != 0));
 
 	// If a frame number was allocated, attach callbacks.
 	if (original_frame) {
 		// Attach a callback to deallocate the frame number.
 		connect_frame_dealloc(req, packet->frame);
 		// Attach a callback to notify this client.
-		req->signal_complete().connect(sigc::bind(sigc::mem_fun(this, &client::on_transmit_status), original_frame));
+		req->signal_complete().connect(sigc::bind(sigc::mem_fun(this, &XBeeClient::on_transmit_status), original_frame));
 	}
 
-	// Queue the request with the scheduler.
+	// Queue the XBeeRequest with the XBeeScheduler.
 	daemon.scheduler.queue(req);
 }
 
-void client::on_transmit_status(const void *buffer, std::size_t length, uint8_t original_frame) {
-	const xbeepacket::TRANSMIT_STATUS *packet = static_cast<const xbeepacket::TRANSMIT_STATUS *>(buffer);
+void XBeeClient::on_transmit_status(const void *buffer, std::size_t length, uint8_t original_frame) {
+	const XBeePacketTypes::TRANSMIT_STATUS *packet = static_cast<const XBeePacketTypes::TRANSMIT_STATUS *>(buffer);
 
 	// Check API ID.
-	if (packet->apiid != xbeepacket::TRANSMIT_STATUS_APIID) {
+	if (packet->apiid != XBeePacketTypes::TRANSMIT_STATUS_APIID) {
 		return;
 	}
 
 	// Check packet size.
-	if (length != sizeof(xbeepacket::TRANSMIT_STATUS)) {
+	if (length != sizeof(XBeePacketTypes::TRANSMIT_STATUS)) {
 		return;
 	}
 
@@ -300,7 +300,7 @@ void client::on_transmit_status(const void *buffer, std::size_t length, uint8_t 
 	std::memcpy(newpacket, packet, length);
 
 	// Substitute in original frame number.
-	newpacket[offsetof(xbeepacket::TRANSMIT_STATUS, frame)] = original_frame;
+	newpacket[offsetof(XBeePacketTypes::TRANSMIT_STATUS, frame)] = original_frame;
 
 	// Send back-substituted packet to client.
 	if (send(sock, newpacket, length, MSG_NOSIGNAL) != static_cast<ssize_t>(length)) {
@@ -309,43 +309,43 @@ void client::on_transmit_status(const void *buffer, std::size_t length, uint8_t 
 	}
 }
 
-void client::on_meta(const void *buffer, std::size_t length) {
-	const xbeepacket::META_HDR *packet = static_cast<const xbeepacket::META_HDR *>(buffer);
+void XBeeClient::on_meta(const void *buffer, std::size_t length) {
+	const XBeePacketTypes::META_HDR *packet = static_cast<const XBeePacketTypes::META_HDR *>(buffer);
 
 	// Check length.
-	if (length < sizeof(xbeepacket::META_HDR)) {
+	if (length < sizeof(XBeePacketTypes::META_HDR)) {
 		return;
 	}
 
 	// Dispatch by meta type.
 	switch (packet->metatype) {
-		case xbeepacket::CLAIM_UNIVERSE_METATYPE:
-			if (length == sizeof(xbeepacket::META_CLAIM_UNIVERSE)) {
+		case XBeePacketTypes::CLAIM_UNIVERSE_METATYPE:
+			if (length == sizeof(XBeePacketTypes::META_CLAIM_UNIVERSE)) {
 				on_meta_claim_universe();
 			}
 			break;
 
-		case xbeepacket::CLAIM_METATYPE:
-			if (length == sizeof(xbeepacket::META_CLAIM)) {
-				on_meta_claim(*static_cast<const xbeepacket::META_CLAIM *>(buffer));
+		case XBeePacketTypes::CLAIM_METATYPE:
+			if (length == sizeof(XBeePacketTypes::META_CLAIM)) {
+				on_meta_claim(*static_cast<const XBeePacketTypes::META_CLAIM *>(buffer));
 			}
 			break;
 
-		case xbeepacket::RELEASE_METATYPE:
-			if (length == sizeof(xbeepacket::META_RELEASE)) {
-				on_meta_release(*static_cast<const xbeepacket::META_RELEASE *>(buffer));
+		case XBeePacketTypes::RELEASE_METATYPE:
+			if (length == sizeof(XBeePacketTypes::META_RELEASE)) {
+				on_meta_release(*static_cast<const XBeePacketTypes::META_RELEASE *>(buffer));
 			}
 			break;
 	}
 }
 
-void client::on_meta_claim_universe() {
+void XBeeClient::on_meta_claim_universe() {
 	// Only accept the claim request if nobody else is connected.
 	if (instances.size() == 1) {
 		daemon.universe_claimed = true;
-		xbeepacket::META_ALIVE pkt;
-		pkt.hdr.apiid = xbeepacket::META_APIID;
-		pkt.hdr.metatype = xbeepacket::ALIVE_METATYPE;
+		XBeePacketTypes::META_ALIVE pkt;
+		pkt.hdr.apiid = XBeePacketTypes::META_APIID;
+		pkt.hdr.metatype = XBeePacketTypes::ALIVE_METATYPE;
 		pkt.address = 0;
 		pkt.address16 = 0xFFFF;
 		pkt.shm_frame = 0xFF;
@@ -353,9 +353,9 @@ void client::on_meta_claim_universe() {
 			delete this;
 		}
 	} else {
-		xbeepacket::META_CLAIM_FAILED pkt;
-		pkt.hdr.apiid = xbeepacket::META_APIID;
-		pkt.hdr.metatype = xbeepacket::CLAIM_FAILED_LOCKED_METATYPE;
+		XBeePacketTypes::META_CLAIM_FAILED pkt;
+		pkt.hdr.apiid = XBeePacketTypes::META_APIID;
+		pkt.hdr.metatype = XBeePacketTypes::CLAIM_FAILED_LOCKED_METATYPE;
 		pkt.address = 0;
 		if (send(sock, &pkt, sizeof(pkt), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(pkt))) {
 			delete this;
@@ -363,19 +363,19 @@ void client::on_meta_claim_universe() {
 	}
 }
 
-void client::on_meta_claim(const xbeepacket::META_CLAIM &req) {
+void XBeeClient::on_meta_claim(const XBeePacketTypes::META_CLAIM &req) {
 	// Look up the state of the requested robot.
-	robot_state::ptr state = daemon.robots[req.address];
+	XBeeRobot::ptr state = daemon.robots[req.address];
 	if (!state) {
-		state = robot_state::create(req.address, daemon);
+		state = XBeeRobot::create(req.address, daemon);
 		daemon.robots[req.address] = state;
 	}
 
 	// If the robot is claimed, reject the request outright.
 	if (state->claimed()) {
-		xbeepacket::META_CLAIM_FAILED resp;
-		resp.hdr.apiid = xbeepacket::META_APIID;
-		resp.hdr.metatype = xbeepacket::CLAIM_FAILED_LOCKED_METATYPE;
+		XBeePacketTypes::META_CLAIM_FAILED resp;
+		resp.hdr.apiid = XBeePacketTypes::META_APIID;
+		resp.hdr.metatype = XBeePacketTypes::CLAIM_FAILED_LOCKED_METATYPE;
 		resp.address = req.address;
 		if (send(sock, &resp, sizeof(resp), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(resp))) {
 			delete this;
@@ -397,7 +397,7 @@ void client::on_meta_claim(const xbeepacket::META_CLAIM &req) {
 	// has already requested this robot, just do nothing.
 	if (state->freeing() && !req.drive_mode) {
 		if (!pending_raw_claims.count(req.address)) {
-			pending_raw_claims[req.address] = state->signal_resources_freed.connect(sigc::bind(sigc::mem_fun(this, &client::on_meta_claim), req));
+			pending_raw_claims[req.address] = state->signal_resources_freed.connect(sigc::bind(sigc::mem_fun(this, &XBeeClient::on_meta_claim), req));
 		}
 		return;
 	}
@@ -420,13 +420,13 @@ void client::on_meta_claim(const xbeepacket::META_CLAIM &req) {
 			if (i != feedback_connections.end()) {
 				i->second.disconnect();
 			}
-			alive_connections[req.address] = state->signal_alive.connect(sigc::bind(sigc::mem_fun(this, &client::on_robot_alive), req.address));
-			dead_connections[req.address] = state->signal_dead.connect(sigc::bind(sigc::mem_fun(this, &client::on_robot_dead), req.address));
-			feedback_connections[req.address] = state->signal_feedback.connect(sigc::bind(sigc::mem_fun(this, &client::on_robot_feedback), req.address));
-		} catch (const resource_allocation_failed &exp) {
-			xbeepacket::META_CLAIM_FAILED resp;
-			resp.hdr.apiid = xbeepacket::META_APIID;
-			resp.hdr.metatype = xbeepacket::CLAIM_FAILED_RESOURCE_METATYPE;
+			alive_connections[req.address] = state->signal_alive.connect(sigc::bind(sigc::mem_fun(this, &XBeeClient::on_robot_alive), req.address));
+			dead_connections[req.address] = state->signal_dead.connect(sigc::bind(sigc::mem_fun(this, &XBeeClient::on_robot_dead), req.address));
+			feedback_connections[req.address] = state->signal_feedback.connect(sigc::bind(sigc::mem_fun(this, &XBeeClient::on_robot_feedback), req.address));
+		} catch (const ResourceAllocationFailed &exp) {
+			XBeePacketTypes::META_CLAIM_FAILED resp;
+			resp.hdr.apiid = XBeePacketTypes::META_APIID;
+			resp.hdr.metatype = XBeePacketTypes::CLAIM_FAILED_RESOURCE_METATYPE;
 			resp.address = req.address;
 			if (send(sock, &resp, sizeof(resp), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(resp))) {
 				delete this;
@@ -435,9 +435,9 @@ void client::on_meta_claim(const xbeepacket::META_CLAIM &req) {
 	} else {
 		state->enter_raw_mode(this);
 		claimed.insert(req.address);
-		xbeepacket::META_ALIVE resp;
-		resp.hdr.apiid = xbeepacket::META_APIID;
-		resp.hdr.metatype = xbeepacket::ALIVE_METATYPE;
+		XBeePacketTypes::META_ALIVE resp;
+		resp.hdr.apiid = XBeePacketTypes::META_APIID;
+		resp.hdr.metatype = XBeePacketTypes::ALIVE_METATYPE;
 		resp.address = req.address;
 		resp.address16 = state->address16();
 		resp.shm_frame = 0xFF;
@@ -447,21 +447,21 @@ void client::on_meta_claim(const xbeepacket::META_CLAIM &req) {
 	}
 }
 
-void client::on_meta_release(const xbeepacket::META_RELEASE &req) {
+void XBeeClient::on_meta_release(const XBeePacketTypes::META_RELEASE &req) {
 	if (claimed.count(req.address)) {
 		do_release(req.address);
 		claimed.erase(req.address);
 	}
 }
 
-void client::on_robot_alive(uint64_t address) {
+void XBeeClient::on_robot_alive(uint64_t address) {
 	assert(claimed.count(address));
 
-	robot_state::ptr bot(daemon.robots[address]);
+	XBeeRobot::ptr bot(daemon.robots[address]);
 
-	xbeepacket::META_ALIVE packet;
-	packet.hdr.apiid = xbeepacket::META_APIID;
-	packet.hdr.metatype = xbeepacket::ALIVE_METATYPE;
+	XBeePacketTypes::META_ALIVE packet;
+	packet.hdr.apiid = XBeePacketTypes::META_APIID;
+	packet.hdr.metatype = XBeePacketTypes::ALIVE_METATYPE;
 	packet.address = address;
 	packet.address16 = 0;
 	packet.shm_frame = bot->run_data_index();
@@ -470,31 +470,31 @@ void client::on_robot_alive(uint64_t address) {
 	}
 }
 
-void client::on_robot_dead(uint64_t address) {
+void XBeeClient::on_robot_dead(uint64_t address) {
 	assert(claimed.count(address));
 
-	xbeepacket::META_DEAD packet;
-	packet.hdr.apiid = xbeepacket::META_APIID;
-	packet.hdr.metatype = xbeepacket::DEAD_METATYPE;
+	XBeePacketTypes::META_DEAD packet;
+	packet.hdr.apiid = XBeePacketTypes::META_APIID;
+	packet.hdr.metatype = XBeePacketTypes::DEAD_METATYPE;
 	packet.address = address;
 	if (send(sock, &packet, sizeof(packet), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(packet))) {
 		delete this;
 	}
 }
 
-void client::on_robot_feedback(uint64_t address) {
+void XBeeClient::on_robot_feedback(uint64_t address) {
 	assert(claimed.count(address));
 
-	xbeepacket::META_FEEDBACK packet;
-	packet.hdr.apiid = xbeepacket::META_APIID;
-	packet.hdr.metatype = xbeepacket::FEEDBACK_METATYPE;
+	XBeePacketTypes::META_FEEDBACK packet;
+	packet.hdr.apiid = XBeePacketTypes::META_APIID;
+	packet.hdr.metatype = XBeePacketTypes::FEEDBACK_METATYPE;
 	packet.address = address;
 	if (send(sock, &packet, sizeof(packet), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(packet))) {
 		delete this;
 	}
 }
 
-void client::do_release(uint64_t address) {
+void XBeeClient::do_release(uint64_t address) {
 	daemon.robots[address]->release();
 	std::unordered_map<uint64_t, sigc::connection> *maps[4] = {&pending_raw_claims, &alive_connections, &dead_connections, &feedback_connections};
 	for (unsigned int i = 0; i < sizeof(maps) / sizeof(*maps); ++i) {

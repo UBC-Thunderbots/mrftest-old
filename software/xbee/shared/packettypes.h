@@ -6,7 +6,8 @@
 #include <stdint.h>
 #include <pthread.h>
 
-namespace xbeepacket {
+#warning these are unportable, should prefer proper encoding/decoding functions/classes
+namespace XBeePacketTypes {
 	const unsigned int MIN_CHANNEL = 0x0B;
 	const unsigned int MAX_CHANNEL = 0x1A;
 	const unsigned int FACTORY_CHANNEL = 0x0C;

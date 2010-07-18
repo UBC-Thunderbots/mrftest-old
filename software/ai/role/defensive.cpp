@@ -10,21 +10,21 @@
 
 #include <iostream>
 
-defensive::defensive(world::ptr world) : the_world(world) {
+Defensive::Defensive(World::ptr world) : the_world(world) {
 }
 
-std::vector<point> defensive::calc_block_positions() const {
-	const enemy_team& enemy(the_world->enemy);
+std::vector<Point> Defensive::calc_block_positions() const {
+	const EnemyTeam& enemy(the_world->enemy);
 
 	// Sort enemies by distance from own goal.
-	std::vector<robot::ptr> enemies = enemy.get_robots();
-	std::sort(enemies.begin(), enemies.end(), ai_util::cmp_dist<robot::ptr>(the_world->field().friendly_goal()));
+	std::vector<Robot::ptr> enemies = enemy.get_robots();
+	std::sort(enemies.begin(), enemies.end(), AIUtil::CmpDist<Robot::ptr>(the_world->field().friendly_goal()));
 
 	// Place waypoints on the defence area.
 	// TODO: calculate proper areas in the future.
-	std::vector<point> waypoints;
+	std::vector<Point> waypoints;
 	for (size_t i = 0; i < enemies.size(); ++i) {
-		point half = (enemies[i]->position() + the_world->field().friendly_goal()) * 0.5;
+		Point half = (enemies[i]->position() + the_world->field().friendly_goal()) * 0.5;
 		waypoints.push_back(half);
 	}
 
@@ -33,19 +33,19 @@ std::vector<point> defensive::calc_block_positions() const {
 	return waypoints;
 }
 
-void defensive::tick() {
+void Defensive::tick() {
 
 	if (the_robots.size() == 0) return;
 
 	// Sort by distance to ball. DO NOT SORT IT AGAIN!!
-	std::sort(the_robots.begin(), the_robots.end(), ai_util::cmp_dist<player::ptr>(the_world->ball()->position()));
+	std::sort(the_robots.begin(), the_robots.end(), AIUtil::CmpDist<Player::ptr>(the_world->ball()->position()));
 
-	const friendly_team& friendly(the_world->friendly);
-	const int baller = ai_util::calc_baller(the_world, the_robots);
-	const bool teampossesball = ai_util::friendly_posses_ball(the_world);
+	const FriendlyTeam& friendly(the_world->friendly);
+	const int baller = AIUtil::calc_baller(the_world, the_robots);
+	const bool teampossesball = AIUtil::friendly_posses_ball(the_world);
 
-	std::vector<player::ptr> friends = ai_util::get_friends(friendly, the_robots);
-	std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(the_world->field().enemy_goal()));
+	std::vector<Player::ptr> friends = AIUtil::get_friends(friendly, the_robots);
+	std::sort(friends.begin(), friends.end(), AIUtil::CmpDist<Player::ptr>(the_world->field().enemy_goal()));
 
 	// The robot that will do something to the ball (e.g. chase).
 	// Other robots will just go defend or something.
@@ -60,7 +60,7 @@ void defensive::tick() {
 			int passme = -1;
 			for (size_t i = 0; i < friends.size(); ++i) {
 				if (friends[i]->position().x < the_robots[baller]->position().x) continue;
-				if (ai_util::can_receive(the_world, friends[i])) {
+				if (AIUtil::can_receive(the_world, friends[i])) {
 					passme = i;
 					break;
 				}
@@ -71,13 +71,13 @@ void defensive::tick() {
 				LOG_INFO(Glib::ustring::compose("%1 shoot", the_robots[baller]->name));
 
 				// try for the goal =D
-				shoot::ptr shoot_tactic(new shoot(the_robots[baller], the_world));
+				Shoot::ptr shoot_tactic(new Shoot(the_robots[baller], the_world));
 				tactics[baller] = shoot_tactic;
 			} else {
 				LOG_INFO(Glib::ustring::compose("%1 pass to %2", the_robots[baller]->name, friends[passme]->name));
 
 				// pass to this person
-				pass::ptr pass_tactic(new pass(the_robots[baller], the_world, friends[passme]));
+				Pass::ptr pass_tactic(new Pass(the_robots[baller], the_world, friends[passme]));
 				tactics[baller] = pass_tactic;
 			}
 			skipme = baller;
@@ -85,11 +85,11 @@ void defensive::tick() {
 
 			// If a player nearest to the goal area has the ball
 			// that player is probably a goalie, chase the ball!
-			std::sort(friends.begin(), friends.end(), ai_util::cmp_dist<player::ptr>(the_world->field().friendly_goal()));
+			std::sort(friends.begin(), friends.end(), AIUtil::CmpDist<Player::ptr>(the_world->field().friendly_goal()));
 
-			if (friends.size() > 0 && ai_util::posses_ball(the_world, friends[0])) {
+			if (friends.size() > 0 && AIUtil::posses_ball(the_world, friends[0])) {
 				LOG_INFO(Glib::ustring::compose("%1 get ball from goalie", the_robots[0]->name));
-				receive::ptr receive_tactic(new receive(the_robots[0], the_world));
+				Receive::ptr receive_tactic(new Receive(the_robots[0], the_world));
 				tactics[0] = receive_tactic;
 				skipme = 0;
 			}
@@ -104,7 +104,7 @@ void defensive::tick() {
 		if ((the_robots[0]->position() - the_world->ball()->position()).len() < frienddist) {
 			// std::cout << "defensive: chase" << std::endl;
 
-			shoot::ptr shoot_tactic = shoot::ptr(new shoot(the_robots[0], the_world));
+			Shoot::ptr shoot_tactic = Shoot::ptr(new Shoot(the_robots[0], the_world));
 
 			// want to get rid of the ball ASAP!
 			shoot_tactic->force();
@@ -116,10 +116,10 @@ void defensive::tick() {
 		}
 	}
 
-	std::vector<point> waypoints = calc_block_positions();
+	std::vector<Point> waypoints = calc_block_positions();
 
-	std::vector<player::ptr> available;
-	std::vector<point> locations;
+	std::vector<Player::ptr> available;
+	std::vector<Point> locations;
 	for (size_t i = 0; i < the_robots.size(); ++i) {
 		if (static_cast<int>(i) == skipme) continue;
 		available.push_back(the_robots[i]);
@@ -137,22 +137,22 @@ void defensive::tick() {
 		if (static_cast<int>(i) == skipme) continue;
 		if (w >= waypoints.size()) {
 			LOG_WARN(Glib::ustring::compose("%1 nothing to do", the_robots[i]->name));
-			move::ptr move_tactic(new move(the_robots[i], the_world));
+			Move::ptr move_tactic(new Move(the_robots[i], the_world));
 			move_tactic->set_position(the_robots[i]->position());
 			tactics[i] = move_tactic;
 		} else {
-			move::ptr move_tactic(new move(the_robots[i], the_world));
+			Move::ptr move_tactic(new Move(the_robots[i], the_world));
 			move_tactic->set_position(waypoints[order[w]]);
 			tactics[i] = move_tactic;
 		}
 		++w;
 	}
 
-	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
+	unsigned int flags = AIFlags::calc_flags(the_world->playtype());
 
 	for (size_t i = 0; i < tactics.size(); ++i) {
 		if (static_cast<int>(i) == baller) {
-			tactics[i]->set_flags(flags | ai_flags::clip_play_area);
+			tactics[i]->set_flags(flags | AIFlags::CLIP_PLAY_AREA);
 		} else {
 			tactics[i]->set_flags(flags);
 		}
@@ -160,7 +160,7 @@ void defensive::tick() {
 	}
 }
 
-void defensive::robots_changed() {
+void Defensive::robots_changed() {
 	tactics.clear();
 	tactics.resize(the_robots.size());
 }

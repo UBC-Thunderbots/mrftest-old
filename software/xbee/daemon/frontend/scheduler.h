@@ -9,28 +9,28 @@
 #include <glibmm.h>
 #include <stdint.h>
 
-class daemon;
+class XBeeDaemon;
 
 //
 // A packet scheduler that manages when packets should be sent over the radio.
 //
-class scheduler : public noncopyable {
+class XBeeScheduler : public NonCopyable {
 	public:
 		//
-		// Constructs a new scheduler.
+		// Constructs a new XBeeScheduler.
 		//
-		scheduler(class daemon &);
+		XBeeScheduler(class XBeeDaemon &);
 
 		//
 		// Queues a new unicast packet for transmission.
 		//
-		void queue(request::ptr req);
+		void queue(XBeeRequest::ptr req);
 
 	private:
-		class daemon &daemon;
-		std::queue<request::ptr> pending;
+		class XBeeDaemon &daemon;
+		std::queue<XBeeRequest::ptr> pending;
 		struct sent_request {
-			request::ptr data;
+			XBeeRequest::ptr data;
 			sigc::connection timeout_connection;
 		} sent[256];
 		unsigned int sent_count;

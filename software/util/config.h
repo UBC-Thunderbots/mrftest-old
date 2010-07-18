@@ -12,12 +12,12 @@
 /**
  * Provides access to the configuration file.
  */
-class config : public noncopyable {
+class Config : public NonCopyable {
 	public:
 		/**
 		 * The configuration of a single robot.
 		 */
-		struct robot_info {
+		struct RobotInfo {
 			/**
 			 * The robot's XBee address.
 			 */
@@ -46,7 +46,7 @@ class config : public noncopyable {
 			mutable bool friendly;
 
 			/**
-			 * Constructs a new robot_info.
+			 * Constructs a new RobotInfo.
 			 *
 			 * \param[in] address the robot's XBee address.
 			 *
@@ -58,14 +58,14 @@ class config : public noncopyable {
 			 *
 			 * \param[in] name a human-readable name for the robot.
 			 */
-			robot_info(uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name) : address(address), yellow(yellow), pattern_index(pattern_index), name(name), friendly(true) {
+			RobotInfo(uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name) : address(address), yellow(yellow), pattern_index(pattern_index), name(name), friendly(true) {
 			}
 		};
 
 		/**
-		 * A collection of robot_info objects.
+		 * A collection of RobotInfo objects.
 		 */
-		class robot_set : public noncopyable {
+		class RobotSet : public NonCopyable {
 			public:
 				/**
 				 * \return the number of robots in the list.
@@ -79,7 +79,7 @@ class config : public noncopyable {
 				 *
 				 * \return the robot at that position.
 				 */
-				const robot_info &operator[](unsigned int index) const {
+				const RobotInfo &operator[](unsigned int index) const {
 					return robots[index];
 				}
 
@@ -88,14 +88,14 @@ class config : public noncopyable {
 				 *
 				 * \return the robot's information structure.
 				 */
-				const robot_info &find(uint64_t address) const;
+				const RobotInfo &find(uint64_t address) const;
 
 				/**
 				 * \param[in] name the name of the robot.
 				 *
 				 * \return the robot's information structure.
 				 */
-				const robot_info &find(const Glib::ustring &name) const;
+				const RobotInfo &find(const Glib::ustring &name) const;
 
 				/**
 				 * \param[in] address the address to check.
@@ -207,19 +207,19 @@ class config : public noncopyable {
 				mutable sigc::signal<void> signal_colours_swapped;
 
 			private:
-				std::vector<robot_info> robots;
+				std::vector<RobotInfo> robots;
 
 				void save(std::ostream &ofs) const;
 				void load_v1(std::istream &ifs);
 				void load_v2(std::istream &ifs);
 
-				friend class config;
+				friend class Config;
 		};
 
 		/**
 		 * Loads the configuration file.
 		 */
-		config();
+		Config();
 
 		/**
 		 * Saves the configuration file.
@@ -229,14 +229,14 @@ class config : public noncopyable {
 		/**
 		 * \return the set of configured robots.
 		 */
-		const robot_set &robots() const {
+		const RobotSet &robots() const {
 			return robots_;
 		}
 
 		/**
 		 * \return the set of configured robots.
 		 */
-		robot_set &robots() {
+		RobotSet &robots() {
 			return robots_;
 		}
 
@@ -271,7 +271,7 @@ class config : public noncopyable {
 		std::map<Glib::ustring, double> double_params;
 
 	private:
-		robot_set robots_;
+		RobotSet robots_;
 		unsigned int channel_;
 
 		void load_v1(std::istream &ifs);

@@ -8,17 +8,17 @@
  * If in possesion of a ball, passes to a friendly unit
  * WILL NOT chase the ball.
  */
-class goalie : public role {
+class Goalie : public Role {
 	public:
 		//
-		// A pointer to a goalie role.
+		// A pointer to a Goalie Role.
 		//
-		typedef Glib::RefPtr<goalie> ptr;
+		typedef Glib::RefPtr<Goalie> ptr;
 
 		//
-		// Constructs a new goalie role.
+		// Constructs a new Goalie Role.
 		//
-		goalie(world::ptr world);
+		Goalie(World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -31,13 +31,13 @@ class goalie : public role {
 		void robots_changed();
 
 	protected:
-		const world::ptr the_world;
+		const World::ptr the_world;
 
 	private:
 
-		void run_vel_goalie(player::ptr goalie, const unsigned int& flags);
+		void run_vel_goalie(Player::ptr goalie, const unsigned int& flags);
 
-		void run_goalie_confidence(player::ptr goalie, const unsigned int& flags);
+		void run_goalie_confidence(Player::ptr goalie, const unsigned int& flags);
 
 		/// Old version
 		void run_goalie_old(const unsigned int& flags);
