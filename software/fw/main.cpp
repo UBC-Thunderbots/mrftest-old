@@ -118,7 +118,7 @@ namespace {
 				WatchablePair p(cl, up, 0.01);
 				run_operation_cli(p);
 			} else if (emergency_erase) {
-				::EmergencyErase ee(bot);
+				EmergencyErase ee(bot);
 				WatchablePair p(cl, ee, 0.5);
 				run_operation_cli(p);
 			}

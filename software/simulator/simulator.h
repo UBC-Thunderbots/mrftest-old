@@ -47,7 +47,7 @@ class Simulator : public BackEnd, public sigc::trackable {
 		/**
 		 * \return The ball
 		 */
-		::SimulatorBall::ptr ball() const {
+		SimulatorBall::ptr ball() const {
 			return engine->get_ball();
 		}
 

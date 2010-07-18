@@ -83,7 +83,7 @@ class World : public ByRef {
 		/**
 		 * \return The ball
 		 */
-		::Ball::ptr ball() const {
+		Ball::ptr ball() const {
 			return ball_;
 		}
 
