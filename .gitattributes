@@ -238,6 +238,7 @@ software/sim/simulator.cpp -text
 software/sim/simulator.h -text
 software/sim/visdata.cpp -text
 software/sim/visdata.h -text
+software/style.txt -text
 software/tester/controlled_permotor_drive.h -text
 software/tester/direct_drive.h -text
 software/tester/feedback.cpp -text

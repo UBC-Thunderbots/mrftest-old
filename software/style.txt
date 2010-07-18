@@ -1,0 +1,172 @@
+Coding Style Guidelines
+=======================
+
+
+
+Whitespace and Indentation
+--------------------------
+
+Code shall be indented by one level for each lexical scope, under access-level keywords (public, private, and protected) inside class bodies, and both before and after case labels in a switch statement. This indentation shall be represented as a single tab character per level. This permits each user to indent lexical scopes by whatever screen distance they prefer simply by setting their editor's tab size.
+
+Tabs shall not be used for aligning columns of text. The appropriate level of indentation shall be determined for the table as a whole (based on its lexical scope), and spaces shall be used to align the columns. This ensures that differing tab sizes between users will not misalign the table.
+
+Braces shall be placed on the same line as their associated opening code (class name, function name, or control flow construct), or on a fresh line if opening a block in a place where a block is NOT usually used (for example, if it is necessary to ensure destructors for locals are invoked at precisely a desired point). Braces shall be preceded by a space.
+
+Parentheses associated with control flow constructs shall have a space between the name of the construct and the opening paranthesis. Parentheses associated with function calls shall not have this space. A space shall appear after, but not before, each comma separating parameters to functions or templates (in both declarations and invocations/instantiations).
+
+Expressions shall be spread out using spaces, but in no case shall spaces appear adjacent to a paranthesis on the inside.
+
+Parantheses shall not be used around the value provided to the "return" statement. Parentheses may be left out of expressions where the operator precedence is intuitive (e.g. addition and multiplication), but should be left in where it is unintuitive, even if they are not semantically necessary (e.g. logical and bitwise operations, including the bit-shift operators masquerading as I/O read and write operators).
+
+Lines shall be permitted to extend to whatever width is natural for the statement, rather than being wrapped at an arbitrary width.
+
+The keyword "template" and the associated parameters in angle brackets shall appear on a separate line prior to the main declaration or definition of the templated type or function.
+
+Example of correct indentation:
+
+template<typename T>
+class MyClass {
+	// An example of a table in a comment.
+	//
+	// Byte Offset | Length | Value
+	//      0      |    4   | Packet ID
+	//      4      |    4   | Packet Length
+	//      8      |    n   | Packet Payload
+	//  ^       ^    ^    ^
+	//  \-------+----+----+-- These are all spaces...
+	// ... but to the left of the comment slashes are tabs.
+	public:
+		MyClass() {
+			// statements
+		}
+
+		int function() {
+			switch (x) {
+				case 0:
+				case 1:
+					// statements
+					break;
+
+				case 2:
+					// statements
+					do_stuff();
+					break;
+			}
+
+			return (x + 1) * 2 + 7;
+		}
+
+	private:
+		int x;
+};
+
+
+
+Names
+-----
+
+Names of types (such as classes, structs, unions, enums, "typename"-type template parameters, and typedefs) as well as namespaces shall be in camel case with a leading capital letter, such as MyClass.
+
+Names of compile-time constants (such as #defines (though these should be avoided if possible), static const class members, const globals, and enum elements) shall be in all capitals with underscores separating words, such as MY_CONSTANT.
+
+Names of global variables (including file-scope globals), non-const static members, const non-static members, parameters, local variables, and functions (member or not, static or not) shall be in all lowercase with underscores separating words, such as my_function.
+
+Names of files shall be in all lowercase with underscores separating words (and shall match the name of their main contained class, if they contain a class) and shall end with ".h" or ".cpp", such as my_class.h and my_class.cpp.
+
+
+
+Miscellaneous Language Features
+-------------------------------
+
+Avoid the use of C-style casts ("(int) x") and function-style casts ("int(x)") at all costs. Casting should be avoided where possible and, if strictly necessary, should be done via the static_cast, dynamic_cast, const_cast, and reinterpret_cast keywords (the latter two should also be avoided strongly unless there is a clear need for their use).
+
+Avoid std::string for storing strings that are related to user input or output. Use Glib::ustring for these to allow proper handling of Unicode code points.
+
+Ask around before implementing something that feels like it should have been implemented by someone else already. It might already have been.
+
+If you're doing something that relies on variables having specific sizes, use the C99-style types provided in <stdint.h>: int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, and uint64_t.
+
+If you're converting between integers and pointers, don't. If you're still converting between integers and pointers, use uintptr_t or intptr_t on the integer side. Note that it's still illegal to store pointers to functions or pointers to class members in these (just as it's illegal to store pointers to functions or pointers to class members in variables of type void*).
+
+Primitives (char/short/int/long/intN_t/float/double/pointers) should generally be passed to functions by value. Non-primitives should generally be passed by const reference. Parameters used to return data should be passed by nonconst reference.
+
+An attempt should be made to ensure that classes follow basic const-correctness rules. This is more important when objects have value semantics than when they have reference semantics.
+
+When writing constructors, non-static member variables shall as much as possible be initialized through the use of initializer lists, not through assignment statements in the constructor body. It is permitted to omit the initializer list entry for an object member whose default constructor is desired, but remember that primitive members are NOT zero-filled unless explicitly mentioned in the initializer list. If extensive code is needed to compute the initial value of a member, consider whether that code should be moved to a file-scope global function which can itself be invoked in the initializer list.
+
+When a function returns an object, you need to keep the object around for the duration of the scope that invoked the function but no longer, and you do not need to perform any non-const operations on the object, use a const reference to the return value:
+
+	void caller() {
+		const Foo &foo = callee();
+		foo.do_something();
+	}
+
+This causes the lifetime of the return value, "foo", to be extended to the end of "callee"'s scope, but may potentially avoid unnecessary copies of the object from temporaries. This does not work with a non-const reference.
+
+
+
+Pointers
+--------
+
+Raw pointers shall be avoided unless absolutely unavoidable.
+
+If your object needs to be created in a scope, live its life, and die at the end of the scope (possibly the lifetime of an enclosing object), make it extend NonCopyable (to prevent it from being copied unnecessarily) and instantiate it as a local variable or class member.
+
+If your object needs to be put into a container or provided as a return value but is lightweight and has value semantics, consider making it copyable (by not extending NonCopyable) and using it by value.
+
+If your object can be tied to a single scope but needs to be created and destroyed at intermediate points in time during the lifetime of that scope (e.g. class member that needs to be destroyed and recreated during the life of the object) or needs to be substitutable with subclasses of itself, consider extending NonCopyable and having users of your class store ScopedPtrs to it. Remember that ScopedPtrs are themselves NonCopyable and thus cannot be stored in containers.
+
+If your object needs reference semantics and full ability to be passed around and stored in many locations simultaneously, make your class extend ByRef, make your constructors private, and provide static create() functions that return Glib::RefPtr<YourClass>.
+
+The correct way to write such static create functions is:
+
+	Glib::RefPtr<YourClass> YourClass::create(int x, int y, int z) {
+		Glib::RefPtr<YourClass> p(new YourClass(x, y, z));
+		return p;
+	}
+
+Do not try to combine the constructor invocation with the return statement. It is easy to accidentally violate exception safety and create a memory leak by trying to combine multiple statements here. It is better to make the constructor invocation a single complete statement.
+
+
+
+Documentation
+-------------
+
+All public and protected types, functions, variables, and constants shall be documented in Doxygen style such as the following:
+
+/**
+ * Performs the foo operation on this Bazquux.
+ *
+ * \param[in] x the X coordinate of the operation.
+ *
+ * \param[in] y the Y coordinate of the operation.
+ *
+ * \return the fooed Bazquux.
+ */
+
+In the case of a simple getter function that retrieves a value without performing any complex operations, it is permissible to include only a "\return" line and omit the summary text altogether.
+
+It is recommended that the following style be used for a single-line comment within code:
+
+// This is a comment about the following line.
+
+The following style can be used if substantial exposition is needed:
+
+/*
+ * This is the first line of a long comment.
+ * This is a second line.
+ */
+
+but consider splitting the code out into a separate function in this case and Doxygenizing it.
+
+Try to avoid writing "TODO:" comments. Instead, use the #warning preprocessor directive so that the need for fixing is more apparent to others.
+
+
+
+Spelling
+--------
+
+Use Canadian spelling, which is often British but occasionally American. Examples, "colour", "neighbour", and "honour", but "aluminum" (not "aluminium").
+
+Exceptions:
+Use "defense" in lieu of "defence" (and similarly "offense"). Rationale: similarity to "defensive", etc.
