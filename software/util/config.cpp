@@ -4,9 +4,12 @@
 #include <cassert>
 #include <fstream>
 #include <functional>
-#include <stdexcept>
-#include <ext/functional>
 #include <glibmm.h>
+#include <libgen.h>
+#include <stdexcept>
+#include <string>
+#include <unistd.h>
+#include <ext/functional>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -54,6 +57,33 @@ namespace {
 				return x.name < y.name;
 			}
 	};
+
+	/**
+	 * @return the directory in which the running executable is stored.
+	 */
+	std::string get_bin_directory() {
+		std::vector<char> buffer(64);
+		ssize_t retval;
+		while ((retval = readlink("/proc/self/exe", &buffer[0], buffer.size())) == static_cast<ssize_t>(buffer.size())) {
+			buffer.resize(buffer.size() * 2);
+		}
+		if (retval < 0) {
+			throw std::runtime_error("Cannot get path to binary!");
+		}
+		if (retval < static_cast<ssize_t>(buffer.size())) {
+			buffer[retval] = '\0';
+		} else {
+			buffer.push_back('\0');
+		}
+		return dirname(&buffer[0]);
+	}
+
+	/**
+	 * @return the filename of the config file.
+	 */
+	std::string get_filename() {
+		return get_bin_directory() + "/config.dat";
+	}
 }
 
 Config::Config() : channel_(0x0E) {
@@ -61,7 +91,8 @@ Config::Config() : channel_(0x0E) {
 	std::ifstream ifs;
 	try {
 		ifs.exceptions(std::ios_base::eofbit | std::ios_base::failbit | std::ios_base::badbit);
-		ifs.open("config.dat", std::ios::in | std::ios::binary);
+		const std::string &filename = get_filename();
+		ifs.open(filename.c_str(), std::ios::in | std::ios::binary);
 		char signature[8];
 		ifs.read(signature, sizeof(signature));
 		if (std::equal(signature, signature + 8, "TBOTC001")) {
@@ -82,7 +113,8 @@ void Config::save() const {
 	// Save file.
 	std::ofstream ofs;
 	ofs.exceptions(std::ios_base::failbit | std::ios_base::badbit);
-	ofs.open("config.dat", std::ios::out | std::ios::trunc | std::ios::binary);
+	const std::string &filename = get_filename();
+	ofs.open(filename.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
 	ofs.write("TBOTC003", 8);
 	robots_.save(ofs);
 	{
