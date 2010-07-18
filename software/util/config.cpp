@@ -82,7 +82,7 @@ namespace {
 	 * @return the filename of the config file.
 	 */
 	std::string get_filename() {
-		return get_bin_directory() + "/config.dat";
+		return get_bin_directory() + "/../config.dat";
 	}
 }
 

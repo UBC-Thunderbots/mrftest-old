@@ -47,7 +47,7 @@ override CXXFLAGS := -std=gnu++0x -Wall -Wextra -Wold-style-cast -O2 -fomit-fram
 # The target to build everything.
 #
 .PHONY : world
-world : $(PROJECTS)
+world : $(addprefix bin/,$(PROJECTS))
 
 #
 # Prevent echoing of compilation commands.
@@ -90,8 +90,11 @@ else
 CC_SOURCES_EXPANDED_$(1) :=
 endif
 
-$(1) : $$(CPP_SOURCES_EXPANDED_$(1):.cpp=.o) $$(CC_SOURCES_EXPANDED_$(1):.cc=.o)
+OBJS_$(1) := $$(addprefix obj/,$$(CPP_SOURCES_EXPANDED_$(1):.cpp=.o) $$(CC_SOURCES_EXPANDED_$(1):.cc=.o))
+
+bin/$(1) : $$(OBJS_$(1))
 	echo "  LD $$@"
+	mkdir -p bin
 	$$(CXX) $$(CXXFLAGS) -o$$@ $$+ $$(LDFLAGS_$(1))
 endef
 
@@ -110,15 +113,17 @@ $(eval $(foreach proj,$(PROJECTS),$(call project_template,$(proj))))
 # solve this, just make all ".d" files depend on the protobuf ".h" files, to
 # force protoc to be run before dependency calculation begins.
 #
-%.d : %.cpp $(PROTOBUF_HS)
+obj/%.d : %.cpp $(PROTOBUF_HS)
 	echo "  DEP $@"
+	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -MT '$(@:.d=.o) $@' -MM -MF $@ $< || { $(RM) $@; false; }
 
 #
 # Rule to make a .o file from a .cpp file.
 #
-%.o : %.cpp
+obj/%.o : %.cpp
 	echo "  CXX $@"
+	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -o$@ -c $<
 
 #
@@ -133,20 +138,20 @@ proto/%.pb.cc proto/%.pb.h : proto/%.proto
 # Customized rule to compile a protocol-buffers-generated C++ source file,
 # because the generated code otherwise triggers warnings.
 #
-proto/%.pb.o : proto/%.pb.cc $(PROTOBUF_HS)
+obj/proto/%.pb.o : proto/%.pb.cc $(PROTOBUF_HS)
 	echo "  CXX $@"
+	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -o$@ -c -Wno-extra $<
 
 #
 # Include all the dependency files.
 #
+ALL_D_FILES=$(addprefix obj/,$(ALL_CPP_FILES:.cpp=.d))
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),cleanbin)
-ifneq ($(MAKECMDGOALS),cleandep)
 ifneq ($(MAKECMDGOALS),cleanobj)
 ifneq ($(MAKECMDGOALS),cleanpb)
-include $(ALL_CPP_FILES:.cpp=.d)
-endif
+include $(ALL_D_FILES)
 endif
 endif
 endif
@@ -156,25 +161,21 @@ endif
 # Rule to make only the dependency files.
 #
 .PHONY : dep
-dep : $(ALL_CPP_FILES:.cpp=.d)
+dep : $(ALL_D_FILES)
 
 #
 # Rules to clean.
 #
 .PHONY : clean
-clean : cleanbin cleandep cleanobj cleanpb
+clean : cleanbin cleanobj cleanpb
 
 .PHONY : cleanbin
 cleanbin :
-	$(RM) $(PROJECTS)
-
-.PHONY : cleandep
-cleandep :
-	find . ! -path '*/.svn*' -name '*.d' -delete
+	$(RM) -r bin
 
 .PHONY : cleanobj
 cleanobj :
-	find . ! -path '*/.svn*' -name '*.o' -delete
+	$(RM) -r obj
 
 .PHONY : cleanpb
 cleanpb :
