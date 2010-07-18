@@ -38,9 +38,9 @@ class RLECompressor {
 		std::size_t next(void *buffer, std::size_t length);
 
 	private:
-		class rle_run {
+		class RLERun {
 			public:
-				rle_run(bool is_repeat, std::size_t length, const unsigned char *data, uint16_t crc = 0);
+				RLERun(bool is_repeat, std::size_t length, const unsigned char *data, uint16_t crc = 0);
 				bool done() const;
 				std::size_t encode(void *buffer, std::size_t buflen);
 
@@ -51,7 +51,7 @@ class RLECompressor {
 				uint16_t crc;
 		};
 
-		std::vector<rle_run> runs;
+		std::vector<RLERun> runs;
 		unsigned int cur_run;
 };
 

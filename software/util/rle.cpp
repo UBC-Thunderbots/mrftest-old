@@ -35,7 +35,7 @@ RLECompressor::RLECompressor(const void *data, std::size_t length) : cur_run(0) 
 		while (block_num < blocks.size()) {
 			// It's worth generating a repeat run if the block is 3 bytes long.
 			if (blocks[block_num].first >= 3) {
-				runs.push_back(rle_run(true, blocks[block_num].first, blocks[block_num].second));
+				runs.push_back(RLERun(true, blocks[block_num].first, blocks[block_num].second));
 				++block_num;
 			} else {
 				// Want to generate a literal run; make it as long as we can.
@@ -45,13 +45,13 @@ RLECompressor::RLECompressor(const void *data, std::size_t length) : cur_run(0) 
 					length += blocks[block_num].first;
 					++block_num;
 				}
-				runs.push_back(rle_run(false, length, src));
+				runs.push_back(RLERun(false, length, src));
 			}
 		}
 	}
 
 	// Add the termination marker.
-	runs.push_back(rle_run(false, 1, 0, crc));
+	runs.push_back(RLERun(false, 1, 0, crc));
 }
 
 bool RLECompressor::done() const {
@@ -91,15 +91,15 @@ std::size_t RLECompressor::next(void *buffer, std::size_t length) {
 
 
 
-RLECompressor::rle_run::rle_run(bool is_repeat, std::size_t length, const unsigned char *data, uint16_t crc) : is_repeat(is_repeat), length(length), data(data), crc(crc) {
+RLECompressor::RLERun::RLERun(bool is_repeat, std::size_t length, const unsigned char *data, uint16_t crc) : is_repeat(is_repeat), length(length), data(data), crc(crc) {
 }
 
-bool RLECompressor::rle_run::done() const {
+bool RLECompressor::RLERun::done() const {
 	// We're finished when all data for this run has been encoded.
 	return !length;
 }
 
-std::size_t RLECompressor::rle_run::encode(void *buffer, std::size_t buflen) {
+std::size_t RLECompressor::RLERun::encode(void *buffer, std::size_t buflen) {
 	unsigned char *bufptr = static_cast<unsigned char *>(buffer);
 	assert(!done());
 
