@@ -281,8 +281,6 @@ software/uicomponents/visualizer.h -text
 software/util/algorithm.h -text
 software/util/byref.h -text
 software/util/clocksource.h -text
-software/util/clocksource_master.cpp -text
-software/util/clocksource_master.h -text
 software/util/clocksource_quick.cpp -text
 software/util/clocksource_quick.h -text
 software/util/clocksource_timerfd.cpp -text
