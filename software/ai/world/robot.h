@@ -55,7 +55,7 @@ class Robot : public Visualizable::Robot, public Predictable, public sigc::track
 		double sign;
 
 		/**
-		 * Constructs a new Player object.
+		 * Constructs a new Robot object.
 		 *
 		 * \param[in] yellow the colour of the new robot.
 		 *
@@ -74,7 +74,7 @@ class Robot : public Visualizable::Robot, public Predictable, public sigc::track
 		static ptr create(bool yellow, unsigned int pattern_index);
 
 		/**
-		 * Updates the position of the Player using new data.
+		 * Updates the position of the Robot using new data.
 		 * \param packet the new data to update with
 		 */
 		void update(const SSL_DetectionRobot &packet);
