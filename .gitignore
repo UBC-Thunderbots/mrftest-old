@@ -26,10 +26,6 @@ software/fw
 software/geom/*.d
 software/html
 software/leastsquares/*.d
-software/log/*.d
-software/log/reader/*.d
-software/log/tools/*.d
-software/log/writer/*.d
 software/proto/*.cc
 software/proto/*.d
 software/proto/*.h
