@@ -11,8 +11,8 @@ void VictoryDance::tick(){
 
 void VictoryDance::robots_changed() {
     the_tactics.clear();
-    for(unsigned int i=0; i<the_robots.size(); i++) {
-        Dance::ptr tactic( new Dance(the_robots[i]));
+    for(unsigned int i=0; i<robots.size(); i++) {
+        Dance::ptr tactic( new Dance(robots[i]));
         the_tactics.push_back(tactic);
     }
 }

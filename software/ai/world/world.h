@@ -169,31 +169,31 @@ class World : public ByRef {
 	private:
 		class VisualizerView : public Visualizable {
 			public:
-				VisualizerView(const World * const w) : the_world(w) {
+				VisualizerView(const World * const w) : world(w) {
 				}
 
 				const Visualizable::Field &field() const {
-					return the_world->field();
+					return world->field();
 				}
 
 				Visualizable::Ball::ptr ball() const {
-					return the_world->ball();
+					return world->ball();
 				}
 
 				std::size_t size() const {
-					return the_world->friendly.size() + the_world->enemy.size();
+					return world->friendly.size() + world->enemy.size();
 				}
 
 				Visualizable::Robot::ptr operator[](unsigned int index) const {
-					if (index < the_world->friendly.size()) {
-						return the_world->friendly.get_robot(index);
+					if (index < world->friendly.size()) {
+						return world->friendly.get_robot(index);
 					} else {
-						return the_world->enemy.get_robot(index - the_world->friendly.size());
+						return world->enemy.get_robot(index - world->friendly.size());
 					}
 				}
 
 			private:
-				const World * const the_world;
+				const World * const world;
 		};
 
 		bool east_;

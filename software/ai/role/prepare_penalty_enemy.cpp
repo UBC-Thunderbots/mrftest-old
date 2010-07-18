@@ -20,9 +20,9 @@ void PreparePenaltyEnemy::tick(){
 void PreparePenaltyEnemy::robots_changed() {
 	the_tactics.clear();
 
-	for (unsigned int i = 0; i < the_robots.size(); ++i) {
+	for (unsigned int i = 0; i < robots.size(); ++i) {
 		if (i < NUM_POSITIONS) {
-			Move::ptr tactic(new Move(the_robots[i], the_world));
+			Move::ptr tactic(new Move(robots[i], the_world));
 			tactic->set_position(standing_positions[i]);	
 			the_tactics.push_back(tactic);
 		}

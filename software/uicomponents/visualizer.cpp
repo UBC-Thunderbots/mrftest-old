@@ -139,22 +139,22 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 #endif
 
 	// Draw the ball.
-	const Visualizable::Ball::ptr the_ball(data.ball());
+	const Visualizable::Ball::ptr ball(data.ball());
 	ctx->set_source_rgb(1.0, 0.5, 0.0);
 	ctx->begin_new_path();
-	ctx->arc(xtog(the_ball->position().x), ytog(the_ball->position().y), dtog(0.03), 0.0, 2.0 * M_PI);
+	ctx->arc(xtog(ball->position().x), ytog(ball->position().y), dtog(0.03), 0.0, 2.0 * M_PI);
 	ctx->fill();
 	ctx->begin_new_path();
-	ctx->move_to(xtog(the_ball->position().x), ytog(the_ball->position().y));
+	ctx->move_to(xtog(ball->position().x), ytog(ball->position().y));
 	{
-		const Point &tgt(the_ball->position() + the_ball->velocity());
+		const Point &tgt(ball->position() + ball->velocity());
 		ctx->line_to(xtog(tgt.x), ytog(tgt.y));
 	}
 	ctx->stroke();
-	if (dragging == the_ball) {
+	if (dragging == ball) {
 		ctx->set_source_rgb(1.0, 0.0, 0.0);
 		ctx->begin_new_path();
-		ctx->arc(xtog(the_ball->position().x), ytog(the_ball->position().y), dtog(0.03), 0.0, 2.0 * M_PI);
+		ctx->arc(xtog(ball->position().x), ytog(ball->position().y), dtog(0.03), 0.0, 2.0 * M_PI);
 		ctx->stroke();
 	}
 
@@ -276,9 +276,9 @@ Visualizable::Draggable::ptr Visualizer::object_at(const Point &pos) const {
 	}
 
 	// Check if it's the ball.
-	const Visualizable::Ball::ptr the_ball(data.ball());
-	if ((the_ball->position() - pos).len() < 0.03 && the_ball->visualizer_can_drag()) {
-		return the_ball;
+	const Visualizable::Ball::ptr ball(data.ball());
+	if ((ball->position() - pos).len() < 0.03 && ball->visualizer_can_drag()) {
+		return ball;
 	}
 
 	return Visualizable::Draggable::ptr();

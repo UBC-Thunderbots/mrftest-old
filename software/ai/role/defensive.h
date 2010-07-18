@@ -8,8 +8,8 @@
 // TODO: Ignore this message
 // Kenneth: PLEASE READ THIS BEFORE UPDATING.
 // 1) the_goalie is guaranteed to be non-empty
-// 2) the_robots may be empty(i.e. the defensive role only has one goalie, which is stored separately). In this case the defensive role should just tick the Goalie role and do nothing else.
-// 3) If the goalie has ball and there are at least two robots on the field, the the_robots has at least one robot.
+// 2) robots may be empty(i.e. the defensive role only has one goalie, which is stored separately). In this case the defensive role should just tick the Goalie role and do nothing else.
+// 3) If the goalie has ball and there are at least two robots on the field, the robots has at least one robot.
 
 /**
  * While the goalie blocks the  ball's direct line of sight.

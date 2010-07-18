@@ -46,7 +46,7 @@ class Registerable : public NonCopyable {
 		//
 		// Constructs a new Registerable object and registers it.
 		//
-		Registerable(const Glib::ustring &the_name) : name(the_name) {
+		Registerable(const Glib::ustring &name) : name(name) {
 			precache().push_back(this);
 		}
 

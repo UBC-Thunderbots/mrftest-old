@@ -185,7 +185,7 @@ namespace {
 	}
 }
 
-AIWindow::AIWindow(AI &ai, bool show_vis) : the_ai(ai), strategy_controls(0), rc_controls(0), vis(ai.the_world->visualizer_view()) {
+AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), strategy_controls(0), rc_controls(0), vis(ai.world->visualizer_view()) {
 	set_title("AI");
 
 	Gtk::Notebook *notebook = Gtk::manage(new Gtk::Notebook);
@@ -210,7 +210,7 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : the_ai(ai), strategy_controls(0), rc
 	for (BallFilter::map_type::const_iterator i = BallFilter::all().begin(), iend = BallFilter::all().end(); i != iend; ++i) {
 		ball_filter_chooser.append_text(i->second->name);
 	}
-	BallFilter *ball_filter = the_ai.the_world->ball_filter();
+	BallFilter *ball_filter = ai.world->ball_filter();
 	if (ball_filter) {
 		ball_filter_chooser.set_active_text(ball_filter->name);
 	} else {
@@ -234,7 +234,7 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : the_ai(ai), strategy_controls(0), rc
 	vbox->pack_start(*basic_frame, Gtk::PACK_SHRINK);
 
 	Gtk::Frame *robots_frame = Gtk::manage(new Gtk::Frame("Robots"));
-	const Glib::RefPtr<RobotInfoModel> robots_model(RobotInfoModel::create(ai.the_world->conf, ai.the_world->xbee_bots, ai.the_world->friendly));
+	const Glib::RefPtr<RobotInfoModel> robots_model(RobotInfoModel::create(ai.world->conf, ai.world->xbee_bots, ai.world->friendly));
 	Gtk::TreeView *robots_tree = Gtk::manage(new Gtk::TreeView(robots_model));
 	robots_tree->get_selection()->set_mode(Gtk::SELECTION_SINGLE);
 	robots_tree->append_column("Name", robots_model->name_column);
@@ -263,7 +263,7 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : the_ai(ai), strategy_controls(0), rc
 	for (StrategyFactory::map_type::const_iterator i = StrategyFactory::all().begin(), iend = StrategyFactory::all().end(); i != iend; ++i) {
 		strategy_chooser.append_text(i->second->name);
 	}
-	const Strategy::ptr strategy(the_ai.get_strategy());
+	const Strategy::ptr strategy(ai.get_strategy());
 	if (strategy) {
 		strategy_chooser.set_active_text(strategy->get_factory().name);
 	} else {
@@ -280,7 +280,7 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : the_ai(ai), strategy_controls(0), rc
 	for (RobotControllerFactory::map_type::const_iterator i = RobotControllerFactory::all().begin(), iend = RobotControllerFactory::all().end(); i != iend; ++i) {
 		rc_chooser.append_text(i->second->name);
 	}
-	RobotControllerFactory *robot_controller = the_ai.get_robot_controller_factory();
+	RobotControllerFactory *robot_controller = ai.get_robot_controller_factory();
 	if (robot_controller) {
 		rc_chooser.set_active_text(robot_controller->name);
 	} else {
@@ -304,9 +304,9 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : the_ai(ai), strategy_controls(0), rc
 
 	add(*notebook);
 
-	the_ai.the_world->signal_playtype_changed.connect(sigc::mem_fun(this, &AIWindow::on_playtype_changed));
-	the_ai.the_world->signal_flipped_ends.connect(sigc::mem_fun(this, &AIWindow::on_flipped_ends));
-	the_ai.the_world->signal_flipped_refbox_colour.connect(sigc::mem_fun(this, &AIWindow::on_flipped_refbox_colour));
+	ai.world->signal_playtype_changed.connect(sigc::mem_fun(this, &AIWindow::on_playtype_changed));
+	ai.world->signal_flipped_ends.connect(sigc::mem_fun(this, &AIWindow::on_flipped_ends));
+	ai.world->signal_flipped_refbox_colour.connect(sigc::mem_fun(this, &AIWindow::on_flipped_refbox_colour));
 	on_playtype_changed();
 	on_flipped_ends();
 	on_flipped_refbox_colour();
@@ -326,38 +326,38 @@ void AIWindow::on_playtype_override_changed() {
 	const Glib::ustring &selected(playtype_override_chooser.get_active_text());
 	for (unsigned int i = 0; i < PlayType::COUNT; ++i) {
 		if (selected == PlayType::DESCRIPTIONS_GENERIC[i]) {
-			the_ai.the_world->override_playtype(static_cast<PlayType::PlayType>(i));
+			ai.world->override_playtype(static_cast<PlayType::PlayType>(i));
 			return;
 		}
 	}
-	the_ai.the_world->clear_playtype_override();
+	ai.world->clear_playtype_override();
 }
 
 void AIWindow::on_ball_filter_changed() {
 	const Glib::ustring &name(ball_filter_chooser.get_active_text());
 	BallFilter::map_type::const_iterator i = BallFilter::all().find(name.collate_key());
 	if (i != BallFilter::all().end()) {
-		the_ai.the_world->ball_filter(i->second);
+		ai.world->ball_filter(i->second);
 	} else {
-		the_ai.the_world->ball_filter(0);
+		ai.world->ball_filter(0);
 	}
 }
 
 void AIWindow::on_flip_ends_clicked() {
-	the_ai.the_world->flip_ends();
+	ai.world->flip_ends();
 }
 
 void AIWindow::on_flip_refbox_colour_clicked() {
-	the_ai.the_world->flip_refbox_colour();
+	ai.world->flip_refbox_colour();
 }
 
 void AIWindow::on_strategy_changed() {
 	const Glib::ustring &name(strategy_chooser.get_active_text());
 	StrategyFactory::map_type::const_iterator i = StrategyFactory::all().find(name.collate_key());
 	if (i != StrategyFactory::all().end()) {
-		the_ai.set_strategy(i->second->create_strategy(the_ai.the_world));
+		ai.set_strategy(i->second->create_strategy(ai.world));
 	} else {
-		the_ai.set_strategy(Strategy::ptr());
+		ai.set_strategy(Strategy::ptr());
 	}
 	put_strategy_controls();
 }
@@ -366,9 +366,9 @@ void AIWindow::on_rc_changed() {
 	const Glib::ustring &name(rc_chooser.get_active_text());
 	RobotControllerFactory::map_type::const_iterator i = RobotControllerFactory::all().find(name.collate_key());
 	if (i != RobotControllerFactory::all().end()) {
-		the_ai.set_robot_controller_factory(i->second);
+		ai.set_robot_controller_factory(i->second);
 	} else {
-		the_ai.set_robot_controller_factory(0);
+		ai.set_robot_controller_factory(0);
 	}
 }
 
@@ -378,7 +378,7 @@ void AIWindow::put_strategy_controls() {
 		strategy_controls = 0;
 	}
 
-	const Strategy::ptr strat(the_ai.get_strategy());
+	const Strategy::ptr strat(ai.get_strategy());
 	if (strat) {
 		strategy_controls = strat->get_ui_controls();
 		if (!strategy_controls) {
@@ -393,7 +393,7 @@ void AIWindow::put_strategy_controls() {
 }
 
 void AIWindow::on_playtype_changed() {
-	playtype_entry.set_text(PlayType::DESCRIPTIONS_GENERIC[the_ai.the_world->playtype()]);
+	playtype_entry.set_text(PlayType::DESCRIPTIONS_GENERIC[ai.world->playtype()]);
 }
 
 void AIWindow::on_vis_toggled() {
@@ -405,14 +405,14 @@ void AIWindow::on_vis_toggled() {
 }
 
 void AIWindow::on_flipped_ends() {
-	end_entry.set_text(the_ai.the_world->east() ? "East" : "West");
+	end_entry.set_text(ai.world->east() ? "East" : "West");
 }
 
 void AIWindow::on_flipped_refbox_colour() {
-	refbox_colour_entry.set_text(the_ai.the_world->refbox_yellow() ? "Yellow" : "Blue");
+	refbox_colour_entry.set_text(ai.world->refbox_yellow() ? "Yellow" : "Blue");
 }
 
 void AIWindow::on_visualizer_overlay_changed() {
-	the_ai.set_overlay(vis.overlay());
+	ai.set_overlay(vis.overlay());
 }
 

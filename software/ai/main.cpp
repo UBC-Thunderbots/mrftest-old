@@ -227,9 +227,9 @@ namespace {
 
 		Param::initialized(&conf);
 
-		World::ptr the_world(World::create(conf, xbee_bots));
+		World::ptr world(World::create(conf, xbee_bots));
 		if (refbox_yellow) {
-			the_world->flip_refbox_colour();
+			world->flip_refbox_colour();
 		}
 
 		if (!ball_filter_name.empty()) {
@@ -238,12 +238,12 @@ namespace {
 				std::cout << "There is no ball filter '" << ball_filter_name << "'.\n";
 				return 1;
 			}
-			the_world->ball_filter(i->second);
+			world->ball_filter(i->second);
 		}
 
 		TimerFDClockSource clk(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND);
 
-		AI the_ai(the_world, clk);
+		AI ai(world, clk);
 
 		if (!strategy_name.empty()) {
 			StrategyFactory::map_type::const_iterator i = StrategyFactory::all().find(strategy_name.collate_key());
@@ -251,7 +251,7 @@ namespace {
 				std::cout << "There is no strategy '" << strategy_name << "'.\n";
 				return 1;
 			}
-			the_ai.set_strategy(i->second->create_strategy(the_world));
+			ai.set_strategy(i->second->create_strategy(world));
 		}
 
 		if (!robot_controller_name.empty()) {
@@ -260,10 +260,10 @@ namespace {
 				std::cout << "There is no robot controller '" << robot_controller_name << "'.\n";
 				return 1;
 			}
-			the_ai.set_robot_controller_factory(i->second);
+			ai.set_robot_controller_factory(i->second);
 		}
 
-		AIWindow win(the_ai, visualizer);
+		AIWindow win(ai, visualizer);
 
 		if (minimize) {
 			win.iconify();

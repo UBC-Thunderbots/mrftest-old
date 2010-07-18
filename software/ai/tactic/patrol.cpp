@@ -32,15 +32,15 @@ void Patrol::tick() {
 	}
 
 	// This state does not require any validation.
-	PatrolState::ptr state(PatrolState::ptr::cast_dynamic(the_player->get_state(typeid(*this))));
+	PatrolState::ptr state(PatrolState::ptr::cast_dynamic(player->get_state(typeid(*this))));
 	if (!state) {
 		state = PatrolState::ptr(new PatrolState(0));
-		the_player->set_state(typeid(*this), state);
+		player->set_state(typeid(*this), state);
 	}
 
-	if ((the_player->position() - target1).lensq() <= AIUtil::POS_CLOSE) {
+	if ((player->position() - target1).lensq() <= AIUtil::POS_CLOSE) {
 		state->phase = 1;
-	} else if ((the_player->position() - target2).lensq() <= AIUtil::POS_CLOSE) {
+	} else if ((player->position() - target2).lensq() <= AIUtil::POS_CLOSE) {
 		state->phase = 0;
 	}
 

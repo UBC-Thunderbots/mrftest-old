@@ -24,7 +24,7 @@ class AIWindow : public Gtk::Window {
 		AIWindow(AI &ai, bool vis);
 
 	private:
-		AI &the_ai;
+		AI &ai;
 		Gtk::ComboBoxText playtype_override_chooser;
 		Gtk::Entry playtype_entry;
 		Gtk::ComboBoxText ball_filter_chooser;

@@ -44,7 +44,7 @@ class IntelHex {
 				unsigned int start_, length_;
 		};
 
-		std::vector<Section> the_sections;
+		std::vector<Section> sections;
 		std::vector<std::vector<unsigned char> > the_data;
 };
 

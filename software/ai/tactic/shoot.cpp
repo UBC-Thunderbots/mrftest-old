@@ -23,62 +23,62 @@ void Shoot::tick() {
 	const FriendlyTeam &friendly(the_world->friendly);
 	const EnemyTeam &enemy(the_world->enemy);
 
-	const std::pair<Point, double> bestshot = AIUtil::calc_best_shot(the_world, the_player, true, forced);
+	const std::pair<Point, double> bestshot = AIUtil::calc_best_shot(the_world, player, true, forced);
 	
 	if (forced) {
 		allow_dribble = false;
 	}
 
-	if (AIUtil::has_ball(the_world, the_player)) {
+	if (AIUtil::has_ball(the_world, player)) {
 		// This player has the ball.
 		LOG_INFO("The player has the ball.");
 
 		std::vector<Point> obstacles;
 		for (size_t i = 0; i < friendly.size(); ++i) {
-			if (friendly.get_player(i) == the_player) continue;
+			if (friendly.get_player(i) == player) continue;
 			obstacles.push_back(friendly[i]->position());
 		}
 		for (size_t i = 0; i < enemy.size(); ++i) {
 			obstacles.push_back(enemy[i]->position());
 		}
 
-		const Point diff = bestshot.first - the_player->position();
+		const Point diff = bestshot.first - player->position();
 		const double targetori = diff.orientation();
 
 		// calculate where to aim
-		Move move_tactic(the_player, the_world);
+		Move move_tactic(player, the_world);
 		move_tactic.set_orientation(targetori);
 
 		// dribble if possible to
-		if (allow_dribble && bestshot.second < degrees2radians(SHOOT_KICK_ANGLE) && the_player->dribble_distance() < Player::MAX_DRIBBLE_DIST) {
+		if (allow_dribble && bestshot.second < degrees2radians(SHOOT_KICK_ANGLE) && player->dribble_distance() < Player::MAX_DRIBBLE_DIST) {
 			move_tactic.set_position(bestshot.first);
 		}
 
-		const double anglediff = angle_diff(targetori, the_player->orientation());
+		const double anglediff = angle_diff(targetori, player->orientation());
 		LOG_INFO(Glib::ustring::compose("target=%1,%2 tolerance=%3 off=%4", bestshot.first.x, bestshot.first.y, bestshot.second, anglediff));
 
 		// check if the goal is within shooting range. if so, kick
 		if (anglediff * 2 < bestshot.second * ALLOWANCE_FACTOR) {
 			// kick realy really hard
-			if (the_player->chicker_ready_time() == 0) {
-				LOG_INFO(Glib::ustring::compose("%1 kick", the_player->name));
-				the_player->kick(1.0);
+			if (player->chicker_ready_time() == 0) {
+				LOG_INFO(Glib::ustring::compose("%1 kick", player->name));
+				player->kick(1.0);
 			} else {
-				LOG_DEBUG(Glib::ustring::compose("%1 chicker not ready", the_player->name));
+				LOG_DEBUG(Glib::ustring::compose("%1 chicker not ready", player->name));
 			}
 		} else {
-			LOG_DEBUG(Glib::ustring::compose("%1 aiming", the_player->name));
+			LOG_DEBUG(Glib::ustring::compose("%1 aiming", player->name));
 		}
 
 		move_tactic.set_flags(flags);
 		move_tactic.tick();	
 	} else if (use_pivot) {
-		Pivot tactic(the_player, the_world);
+		Pivot tactic(player, the_world);
 		tactic.set_target(bestshot.first);
 		tactic.set_flags(flags);
 		tactic.tick();
 	} else {
-		Chase chase_tactic(the_player, the_world);
+		Chase chase_tactic(player, the_world);
 		chase_tactic.set_flags(flags);
 		chase_tactic.tick();
 	}

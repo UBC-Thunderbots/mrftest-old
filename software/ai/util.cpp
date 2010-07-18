@@ -266,9 +266,9 @@ namespace AIUtil {
 		return false;
 	}
 
-	int calc_baller(const World::ptr w, const std::vector<Player::ptr>& the_robots) {
-		for (size_t i = 0; i < the_robots.size(); ++i) {
-			if (posses_ball(w, the_robots[i])) return static_cast<int>(i);
+	int calc_baller(const World::ptr w, const std::vector<Player::ptr>& robots) {
+		for (size_t i = 0; i < robots.size(); ++i) {
+			if (posses_ball(w, robots[i])) return static_cast<int>(i);
 		}
 		return -1;
 	}

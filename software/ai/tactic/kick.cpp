@@ -17,44 +17,44 @@ Kick::Kick(Player::ptr player, World::ptr world) : Tactic(player), the_world(wor
 }
 
 void Kick::tick() {
-	RobotNavigator navi(the_player, the_world);
+	RobotNavigator navi(player, the_world);
 
 	// don't forget
 	navi.set_flags(flags);
 
-	if (!AIUtil::has_ball(the_world, the_player)) {
+	if (!AIUtil::has_ball(the_world, player)) {
 		navi.set_position(the_world->ball()->position());
 		navi.tick();
 		return;
 	}
 
-	Point dist = kick_target - the_player->position();
+	Point dist = kick_target - player->position();
 
 	// turn towards the target
 	navi.set_orientation(dist.orientation());
 
 	// maybe move towards it?
-	//if (the_player->dribble_distance() < Player::MAX_DRIBBLE_DIST) {
+	//if (player->dribble_distance() < Player::MAX_DRIBBLE_DIST) {
 		//navi.set_position(kick_target);
 	//}
 
-	const double anglediff = angle_diff(dist.orientation(), the_player->orientation());
+	const double anglediff = angle_diff(dist.orientation(), player->orientation());
 	if (anglediff > AIUtil::ORI_CLOSE) {
-		LOG_DEBUG(Glib::ustring::compose("%1 aiming angle_diff is %2", the_player->name, anglediff));
+		LOG_DEBUG(Glib::ustring::compose("%1 aiming angle_diff is %2", player->name, anglediff));
 		navi.tick();
 		return;
 	}
 
-	if (the_player->chicker_ready_time() == 0) {
+	if (player->chicker_ready_time() == 0) {
 		if (should_chip) {
-			LOG_INFO(Glib::ustring::compose("%1 kick", the_player->name));
-			the_player->chip(strength);
+			LOG_INFO(Glib::ustring::compose("%1 kick", player->name));
+			player->chip(strength);
 		} else {
-			LOG_INFO(Glib::ustring::compose("%1 chip", the_player->name));
-			the_player->kick(strength);
+			LOG_INFO(Glib::ustring::compose("%1 chip", player->name));
+			player->kick(strength);
 		}
 	} else {
-		LOG_INFO(Glib::ustring::compose("%1 chicker not ready", the_player->name));
+		LOG_INFO(Glib::ustring::compose("%1 chicker not ready", player->name));
 	}
 
 	navi.tick();

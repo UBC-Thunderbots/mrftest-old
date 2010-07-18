@@ -45,21 +45,21 @@ class Role2 : public ByRef, public sigc::trackable {
 		/**
 		 * Sets the robots controlled by this Role.
 		 *
-		 * \param[in] robots the robots the Role should control.
+		 * \param[in] r the robots the Role should control.
 		 */
-		void set_robots(const std::vector<Player::ptr> &robots) {
-			the_robots = robots;
+		void set_robots(const std::vector<Player::ptr> &r) {
+			robots = r;
 			robots_changed();
 		}
 		
 		/**
-		 * Sets the robots controlled by this Role.
+		 * Sets the one and only robot controlled by this Role.
 		 *
-		 * \param[in] robots the robots the Role should control.
+		 * \param[in] r the robot the Role should control.
 		 */
-		void set_robot(const Player::ptr &robots) {
-			the_robots.clear();
-			the_robots.push_back(robots);
+		void set_robot(const Player::ptr &r) {
+			robots.clear();
+			robots.push_back(r);
 			robots_changed();
 		}
 		
@@ -67,7 +67,7 @@ class Role2 : public ByRef, public sigc::trackable {
 		 * Removes all robots from this Role.
 		 */
 		void clear_robots() {
-			the_robots.clear();
+			robots.clear();
 			robots_changed();
 		}
 
@@ -75,7 +75,7 @@ class Role2 : public ByRef, public sigc::trackable {
 		/**
 		 * The robots that this Role controls.
 		 */
-		std::vector<Player::ptr> the_robots;
+		std::vector<Player::ptr> robots;
 };
 
 /**

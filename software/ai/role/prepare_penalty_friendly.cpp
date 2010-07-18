@@ -24,8 +24,8 @@ void PreparePenaltyFriendly::tick() {
 void PreparePenaltyFriendly::robots_changed() {
 	the_tactics.clear();
 
-	for (unsigned int i = 0; i < the_robots.size(); ++i) {
-		Move::ptr tactic(new Move(the_robots[i], the_world));
+	for (unsigned int i = 0; i < robots.size(); ++i) {
+		Move::ptr tactic(new Move(robots[i], the_world));
 		the_tactics.push_back(tactic);
 
 		// if shooter

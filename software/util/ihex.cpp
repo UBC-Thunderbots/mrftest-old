@@ -55,14 +55,14 @@ namespace {
 
 
 void IntelHex::add_section(unsigned int start, unsigned int length) {
-	the_sections.push_back(Section(start, length));
+	sections.push_back(Section(start, length));
 }
 
 
 
 void IntelHex::load(const Glib::ustring &filename) {
 	// Allocate space to hold the new data.
-	std::vector<std::vector<unsigned char> > new_data(the_sections.size());
+	std::vector<std::vector<unsigned char> > new_data(sections.size());
 
 	// Open the file.
 	std::ifstream ifs(Glib::filename_from_utf8(filename).c_str());
@@ -128,8 +128,8 @@ void IntelHex::load(const Glib::ustring &filename) {
 			for (unsigned int i = 0; i < data_length; ++i) {
 				unsigned int byte_address = real_address + i;
 				bool found = false;
-				for (unsigned int j = 0; j < the_sections.size(); ++j) {
-					const Section &sec = the_sections[j];
+				for (unsigned int j = 0; j < sections.size(); ++j) {
+					const Section &sec = sections[j];
 					if (sec.start() <= byte_address && byte_address < sec.start() + sec.length()) {
 						found = true;
 						std::vector<unsigned char> &d = new_data[j];

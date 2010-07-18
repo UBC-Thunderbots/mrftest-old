@@ -37,8 +37,8 @@ Pass::Pass(Player::ptr player, World::ptr world, Player::ptr receiver) : Tactic(
 }
 
 void Pass::tick() {
-	if (!AIUtil::has_ball(the_world, the_player)) {
-		Pivot tactic(the_player, the_world);
+	if (!AIUtil::has_ball(the_world, player)) {
+		Pivot tactic(player, the_world);
 		tactic.set_target(the_receiver->position());
 		tactic.set_flags(flags);
 		tactic.tick();
@@ -46,8 +46,8 @@ void Pass::tick() {
 	}
 
 	
-	if (the_player->sense_ball_time() > AIUtil::DRIBBLE_TIMEOUT) {
-		Shoot tactic(the_player, the_world);
+	if (player->sense_ball_time() > AIUtil::DRIBBLE_TIMEOUT) {
+		Shoot tactic(player, the_world);
 		tactic.force();
 		tactic.set_flags(flags);
 		tactic.tick();
@@ -55,27 +55,27 @@ void Pass::tick() {
 	}
 	
 
-	const Point diff = the_receiver->position() - the_player->position();
-	const double anglediff = angle_diff(diff.orientation(), the_player->orientation());
-	bool should_pass = (anglediff < AIUtil::ORI_CLOSE) && (AIUtil::can_receive(the_world, the_receiver) /*|| the_player->sense_ball_time() > AIUtil::DRIBBLE_TIMEOUT*/);
+	const Point diff = the_receiver->position() - player->position();
+	const double anglediff = angle_diff(diff.orientation(), player->orientation());
+	bool should_pass = (anglediff < AIUtil::ORI_CLOSE) && (AIUtil::can_receive(the_world, the_receiver) /*|| player->sense_ball_time() > AIUtil::DRIBBLE_TIMEOUT*/);
 
 	// do we need this velocity threshold?
 	// && the_receiver->est_velocity().len() < AIUtil::VEL_CLOSE;
 
-	Move move_tactic(the_player, the_world);
+	Move move_tactic(player, the_world);
 
-	if (the_player->dribble_distance() < Player::MAX_DRIBBLE_DIST) {
+	if (player->dribble_distance() < Player::MAX_DRIBBLE_DIST) {
 		move_tactic.set_position(the_receiver->position());
 	}
 
 	move_tactic.set_orientation(diff.orientation());
 
 	if (should_pass) {
-		if (the_player->chicker_ready_time() == 0) {
-			LOG_INFO(Glib::ustring::compose("%1 kick", the_player->name));
-			the_player->kick(1.0);
+		if (player->chicker_ready_time() == 0) {
+			LOG_INFO(Glib::ustring::compose("%1 kick", player->name));
+			player->kick(1.0);
 		} else {
-			LOG_INFO(Glib::ustring::compose("%1 chicker not ready", the_player->name));
+			LOG_INFO(Glib::ustring::compose("%1 chicker not ready", player->name));
 		}
 	}
 

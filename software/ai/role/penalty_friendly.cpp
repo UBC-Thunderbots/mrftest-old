@@ -21,15 +21,15 @@ PenaltyFriendly::PenaltyFriendly(World::ptr world) : the_world(world) {
 }
 
 void PenaltyFriendly::tick() {
-	if (the_robots.size() == 0) {
+	if (robots.size() == 0) {
 		std::cerr << "penalty_friendly: no robots " << std::endl;
 		return;
 	}
 	// Set lowest numbered robot without chicker fault to be kicker
-	if (the_robots[0]->chicker_ready_time() >= Player::CHICKER_FOREVER){
-		for (size_t i = 1; i < the_robots.size(); ++i)
-			if (the_robots[i]->chicker_ready_time() < Player::CHICKER_FOREVER){
-				swap(the_robots[0],the_robots[i]);
+	if (robots[0]->chicker_ready_time() >= Player::CHICKER_FOREVER){
+		for (size_t i = 1; i < robots.size(); ++i)
+			if (robots[i]->chicker_ready_time() < Player::CHICKER_FOREVER){
+				swap(robots[0],robots[i]);
 				break;
 			}
 	}
@@ -38,8 +38,8 @@ void PenaltyFriendly::tick() {
 	const unsigned int flags = AIFlags::calc_flags(the_world->playtype());
 
 	if (the_world->playtype() == PlayType::PREPARE_PENALTY_FRIENDLY) {
-		for (size_t i = 0; i < the_robots.size(); ++i) {
-			Move tactic(the_robots[i], the_world);
+		for (size_t i = 0; i < robots.size(); ++i) {
+			Move tactic(robots[i], the_world);
 			tactic.set_position(ready_positions[i]);
 			if (i) tactic.set_flags(flags);
 			else tactic.set_flags((flags & ~AIFlags::AVOID_BALL_STOP) | AIFlags::AVOID_BALL_NEAR);
@@ -48,7 +48,7 @@ void PenaltyFriendly::tick() {
 	} else if (the_world->playtype() == PlayType::EXECUTE_PENALTY_FRIENDLY) {
 
 		// make shooter shoot
-		const Player::ptr shooter = the_robots[0];
+		const Player::ptr shooter = robots[0];
 		Shoot tactic(shooter, the_world);
 		if (the_world->playtype_time() > AIUtil::PLAYTYPE_WAIT_TIME) {
 			tactic.force();
@@ -57,8 +57,8 @@ void PenaltyFriendly::tick() {
 		// don't set flags, otherwise robot will try to avoid ball
 		tactic.tick();
 
-		for (size_t i = 1; i < the_robots.size(); ++i) {
-			Move tactic(the_robots[i], the_world);
+		for (size_t i = 1; i < robots.size(); ++i) {
+			Move tactic(robots[i], the_world);
 			tactic.set_position(ready_positions[i]);
 			tactic.set_flags(flags);
 			tactic.tick();

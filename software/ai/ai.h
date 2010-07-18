@@ -15,7 +15,7 @@ class AI : public NonCopyable {
 		/**
 		 * The world in which the AI is running.
 		 */
-		const World::ptr the_world;
+		const World::ptr world;
 
 		/**
 		 * Constructs a new AI.
@@ -30,7 +30,7 @@ class AI : public NonCopyable {
 		 * \return the Strategy driving the robots.
 		 */
 		Strategy::ptr get_strategy() const {
-			return the_strategy;
+			return strategy;
 		}
 
 		/**
@@ -44,7 +44,7 @@ class AI : public NonCopyable {
 		 * \return the RobotControllerFactory driving the robots.
 		 */
 		RobotControllerFactory *get_robot_controller_factory() const {
-			return the_rc_factory;
+			return rc_factory;
 		}
 
 		/**
@@ -65,8 +65,8 @@ class AI : public NonCopyable {
 
 	private:
 		ClockSource &clk;
-		Strategy::ptr the_strategy;
-		RobotControllerFactory *the_rc_factory;
+		Strategy::ptr strategy;
+		RobotControllerFactory *rc_factory;
 		Cairo::RefPtr<Cairo::Context> overlay;
 
 		void tick();

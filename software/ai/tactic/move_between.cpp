@@ -11,7 +11,7 @@ void MoveBetween::set_points(const Point& p1, const Point& p2) {
 
 Point MoveBetween::calculate_position() {
 	Point line = the_point2 - the_point1;
-	Point pos = the_player->position() - the_point1;
+	Point pos = player->position() - the_point1;
 	double proj = pos.dot(line.norm());
 
 	// closest point in between the two points will be point 1
@@ -20,7 +20,7 @@ Point MoveBetween::calculate_position() {
 	} 
 
 	line = the_point1 - the_point2;
-	pos = the_player->position() - the_point2;
+	pos = player->position() - the_point2;
 	proj = pos.dot(line.norm());
 
 	// closest point in between the two points will be point 2

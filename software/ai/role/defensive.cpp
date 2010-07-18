@@ -35,16 +35,16 @@ std::vector<Point> Defensive::calc_block_positions() const {
 
 void Defensive::tick() {
 
-	if (the_robots.size() == 0) return;
+	if (robots.size() == 0) return;
 
 	// Sort by distance to ball. DO NOT SORT IT AGAIN!!
-	std::sort(the_robots.begin(), the_robots.end(), AIUtil::CmpDist<Player::ptr>(the_world->ball()->position()));
+	std::sort(robots.begin(), robots.end(), AIUtil::CmpDist<Player::ptr>(the_world->ball()->position()));
 
 	const FriendlyTeam& friendly(the_world->friendly);
-	const int baller = AIUtil::calc_baller(the_world, the_robots);
+	const int baller = AIUtil::calc_baller(the_world, robots);
 	const bool teampossesball = AIUtil::friendly_posses_ball(the_world);
 
-	std::vector<Player::ptr> friends = AIUtil::get_friends(friendly, the_robots);
+	std::vector<Player::ptr> friends = AIUtil::get_friends(friendly, robots);
 	std::sort(friends.begin(), friends.end(), AIUtil::CmpDist<Player::ptr>(the_world->field().enemy_goal()));
 
 	// The robot that will do something to the ball (e.g. chase).
@@ -59,7 +59,7 @@ void Defensive::tick() {
 			// pass to the other friendly, or wait if there is none.
 			int passme = -1;
 			for (size_t i = 0; i < friends.size(); ++i) {
-				if (friends[i]->position().x < the_robots[baller]->position().x) continue;
+				if (friends[i]->position().x < robots[baller]->position().x) continue;
 				if (AIUtil::can_receive(the_world, friends[i])) {
 					passme = i;
 					break;
@@ -68,16 +68,16 @@ void Defensive::tick() {
 
 			// TODO: do something
 			if (passme == -1) {
-				LOG_INFO(Glib::ustring::compose("%1 shoot", the_robots[baller]->name));
+				LOG_INFO(Glib::ustring::compose("%1 shoot", robots[baller]->name));
 
 				// try for the goal =D
-				Shoot::ptr shoot_tactic(new Shoot(the_robots[baller], the_world));
+				Shoot::ptr shoot_tactic(new Shoot(robots[baller], the_world));
 				tactics[baller] = shoot_tactic;
 			} else {
-				LOG_INFO(Glib::ustring::compose("%1 pass to %2", the_robots[baller]->name, friends[passme]->name));
+				LOG_INFO(Glib::ustring::compose("%1 pass to %2", robots[baller]->name, friends[passme]->name));
 
 				// pass to this person
-				Pass::ptr pass_tactic(new Pass(the_robots[baller], the_world, friends[passme]));
+				Pass::ptr pass_tactic(new Pass(robots[baller], the_world, friends[passme]));
 				tactics[baller] = pass_tactic;
 			}
 			skipme = baller;
@@ -88,8 +88,8 @@ void Defensive::tick() {
 			std::sort(friends.begin(), friends.end(), AIUtil::CmpDist<Player::ptr>(the_world->field().friendly_goal()));
 
 			if (friends.size() > 0 && AIUtil::posses_ball(the_world, friends[0])) {
-				LOG_INFO(Glib::ustring::compose("%1 get ball from goalie", the_robots[0]->name));
-				Receive::ptr receive_tactic(new Receive(the_robots[0], the_world));
+				LOG_INFO(Glib::ustring::compose("%1 get ball from goalie", robots[0]->name));
+				Receive::ptr receive_tactic(new Receive(robots[0], the_world));
 				tactics[0] = receive_tactic;
 				skipme = 0;
 			}
@@ -101,10 +101,10 @@ void Defensive::tick() {
 			frienddist = std::min(frienddist, (friends[i]->position() - the_world->ball()->position()).len());
 		}
 
-		if ((the_robots[0]->position() - the_world->ball()->position()).len() < frienddist) {
+		if ((robots[0]->position() - the_world->ball()->position()).len() < frienddist) {
 			// std::cout << "defensive: chase" << std::endl;
 
-			Shoot::ptr shoot_tactic = Shoot::ptr(new Shoot(the_robots[0], the_world));
+			Shoot::ptr shoot_tactic = Shoot::ptr(new Shoot(robots[0], the_world));
 
 			// want to get rid of the ball ASAP!
 			shoot_tactic->force();
@@ -120,10 +120,10 @@ void Defensive::tick() {
 
 	std::vector<Player::ptr> available;
 	std::vector<Point> locations;
-	for (size_t i = 0; i < the_robots.size(); ++i) {
+	for (size_t i = 0; i < robots.size(); ++i) {
 		if (static_cast<int>(i) == skipme) continue;
-		available.push_back(the_robots[i]);
-		locations.push_back(the_robots[i]->position());
+		available.push_back(robots[i]);
+		locations.push_back(robots[i]->position());
 	}
 
 	// ensure we are only blocking as we need
@@ -133,15 +133,15 @@ void Defensive::tick() {
 	std::vector<size_t> order = dist_matching(locations, waypoints);
 
 	size_t w = 0;
-	for (size_t i = 0; i < the_robots.size(); ++i) {
+	for (size_t i = 0; i < robots.size(); ++i) {
 		if (static_cast<int>(i) == skipme) continue;
 		if (w >= waypoints.size()) {
-			LOG_WARN(Glib::ustring::compose("%1 nothing to do", the_robots[i]->name));
-			Move::ptr move_tactic(new Move(the_robots[i], the_world));
-			move_tactic->set_position(the_robots[i]->position());
+			LOG_WARN(Glib::ustring::compose("%1 nothing to do", robots[i]->name));
+			Move::ptr move_tactic(new Move(robots[i], the_world));
+			move_tactic->set_position(robots[i]->position());
 			tactics[i] = move_tactic;
 		} else {
-			Move::ptr move_tactic(new Move(the_robots[i], the_world));
+			Move::ptr move_tactic(new Move(robots[i], the_world));
 			move_tactic->set_position(waypoints[order[w]]);
 			tactics[i] = move_tactic;
 		}
@@ -162,6 +162,6 @@ void Defensive::tick() {
 
 void Defensive::robots_changed() {
 	tactics.clear();
-	tactics.resize(the_robots.size());
+	tactics.resize(robots.size());
 }
 

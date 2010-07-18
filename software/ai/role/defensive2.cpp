@@ -36,8 +36,8 @@ Defensive2::Defensive2(World::ptr world) : the_world(world) {
 }
 
 void Defensive2::assign(const Player::ptr& p, Tactic::ptr t) {
-	for (size_t i = 0; i < the_robots.size(); ++i) {
-		if (the_robots[i] == p) {
+	for (size_t i = 0; i < robots.size(); ++i) {
+		if (robots[i] == p) {
 			tactics[i] = t;
 			return;
 		}
@@ -122,7 +122,7 @@ std::pair<Point, std::vector<Point> > Defensive2::calc_block_positions(const boo
 
 void Defensive2::tick() {
 
-	if (the_robots.size() == 0) {
+	if (robots.size() == 0) {
 		LOG_WARN("no robots");
 		return;
 	}
@@ -146,23 +146,23 @@ void Defensive2::tick() {
 	if (chaser) LOG_INFO(Glib::ustring::compose("chaser is", chaser->name));
 
 	/*
-	   for (size_t i = 0; i < the_robots.size(); ++i) {
-	   const double dist = (the_robots[i]->position() - ballpos).len();
+	   for (size_t i = 0; i < robots.size(); ++i) {
+	   const double dist = (robots[i]->position() - ballpos).len();
 	   if (dist > AIUtil::CHASE_BALL_DIST) continue;
 	   if (!chaser || dist < chaserdist) {
 	   chaserdist = dist;
-	   chaser = the_robots[i];
+	   chaser = robots[i];
 	   }
 	   }
 	 */
 
 	// robot 0 is goalie, the others are non-goalie
 	if (!goalie) {
-		goalie = the_robots[0];
+		goalie = robots[0];
 	} else {
-		for (size_t i = 0; i < the_robots.size(); ++i) {
-			if (the_robots[i] != goalie) continue;
-			swap(the_robots[i], the_robots[0]);
+		for (size_t i = 0; i < robots.size(); ++i) {
+			if (robots[i] != goalie) continue;
+			swap(robots[i], robots[0]);
 			break;
 		}
 	}
@@ -180,8 +180,8 @@ void Defensive2::tick() {
 	}
 
 	std::vector<Player::ptr> defenders;
-	for (size_t i = 1; i < the_robots.size(); ++i)
-		defenders.push_back(the_robots[i]);
+	for (size_t i = 1; i < robots.size(); ++i)
+		defenders.push_back(robots[i]);
 
 	// Sort by distance to ball. DO NOT SORT IT AGAIN!!
 	std::sort(defenders.begin(), defenders.end(), AIUtil::CmpDist<Player::ptr>(the_world->ball()->position()));
@@ -226,7 +226,7 @@ void Defensive2::tick() {
 	// check if goalie should rush
 	if (goalierush){
 		LOG_INFO("goalie to rush");
-		Move::ptr tactic(new Move(the_robots[0], the_world));
+		Move::ptr tactic(new Move(robots[0], the_world));
 		rushpos.y = std::min(rushpos.y, the_world->field().goal_width()/2.0);
 		rushpos.y = std::max(rushpos.y, -the_world->field().goal_width()/2.0);
 		tactic->set_position(rushpos);
@@ -235,12 +235,12 @@ void Defensive2::tick() {
 	// check if chaser robot
 	else if (goaliechase) {
 		LOG_INFO("goalie to shoot");
-		Shoot::ptr shoot_tactic = Shoot::ptr(new Shoot(the_robots[0], the_world));
+		Shoot::ptr shoot_tactic = Shoot::ptr(new Shoot(robots[0], the_world));
 		shoot_tactic->force();
 		shoot_tactic->set_pivot(false);
 		tactics[0] = shoot_tactic;
 	} else {
-		Move::ptr tactic(new Move(the_robots[0], the_world));
+		Move::ptr tactic(new Move(robots[0], the_world));
 		int closest_defender = - 1;
 		for (size_t i = 0; i < defenders.size(); ++i)
 			if (order[i] == 0)
@@ -298,6 +298,6 @@ void Defensive2::tick() {
 
 void Defensive2::robots_changed() {
 	tactics.clear();
-	tactics.resize(the_robots.size());
+	tactics.resize(robots.size());
 }
 

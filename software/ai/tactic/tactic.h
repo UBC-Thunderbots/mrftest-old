@@ -44,14 +44,14 @@ class Tactic : public ByRef {
 		}
 
 	protected:
-		explicit Tactic(const Player::ptr& player) : flags(0), the_player(player) {
+		explicit Tactic(const Player::ptr& player) : flags(0), player(player) {
 		}
 
-		explicit Tactic(const Player::ptr& player, const unsigned int& f) : flags(f), the_player(player) {
+		explicit Tactic(const Player::ptr& player, const unsigned int& f) : flags(f), player(player) {
 		}
 
 		unsigned int flags;
-		const Player::ptr the_player;
+		const Player::ptr player;
 };
 
 #endif

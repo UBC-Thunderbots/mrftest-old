@@ -23,7 +23,7 @@ void Chase::tick() {
 	//Point pos = the_ball->position() + VEL_FACTOR * the_ball->est_velocity() + ACL_FACTOR * the_ball->est_acceleration();
 	const Point pos = the_ball->position();
 
-	//Point player_ball_direction = (the_ball->position()-the_player->position()).norm();
+	//Point player_ball_direction = (the_ball->position()-player->position()).norm();
 	//Point ball_direction = (the_ball->est_velocity()).norm();
 
 	// I disagree with the statement below:

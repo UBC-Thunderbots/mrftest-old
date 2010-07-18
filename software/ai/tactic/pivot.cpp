@@ -46,23 +46,23 @@ void Pivot::tick_old() {
 
 	// use robot navigator instead of storing Move Tactic.
 	// the reason is that we can't unset flags.
-	RobotNavigator navi(the_player, the_world);
+	RobotNavigator navi(player, the_world);
 
 	const Ball::ptr the_ball(the_world->ball());
 
 	bool recent_hit_target = false;
-	PivotState::ptr state(PivotState::ptr::cast_dynamic(the_player->get_state(typeid(*this))));
+	PivotState::ptr state(PivotState::ptr::cast_dynamic(player->get_state(typeid(*this))));
 	if(state)recent_hit_target= state->recent_hit_target;
 	else{
 		state =PivotState::ptr(new PivotState());
-		the_player->set_state(typeid(*this), state);
+		player->set_state(typeid(*this), state);
 	}
 
 	// if we have the ball then move to the destination
-	if (AIUtil::has_ball(the_world, the_player) && ! avoid_ball_) {
+	if (AIUtil::has_ball(the_world, player) && ! avoid_ball_) {
 		state->recent_hit_target = true;
 		navi.set_position(target);
-		navi.set_orientation((target - the_player->position()).orientation());
+		navi.set_orientation((target - player->position()).orientation());
 		navi.set_flags(flags);
 		navi.tick();
 		return;
@@ -72,8 +72,8 @@ void Pivot::tick_old() {
 	Point robot_dst = est_ball_pos;
 	Point vec = target - est_ball_pos;
 
-	Point ball_player_diff = (the_ball->position() - the_player->position());
-	Point target_player_diff = (target - the_player->position());
+	Point ball_player_diff = (the_ball->position() - player->position());
+	Point target_player_diff = (target - player->position());
 
 	const double pivotdist = PIVOT_DIST * Robot::MAX_RADIUS + Robot::MAX_RADIUS + Ball::RADIUS;
 
@@ -85,15 +85,15 @@ void Pivot::tick_old() {
 		robot_dst -= vec * pivotdist;
 	}
 
-	if((robot_dst-the_player->position()).len()>0.1 && !the_player->sense_ball()){
+	if((robot_dst-player->position()).len()>0.1 && !player->sense_ball()){
 		state->recent_hit_target=false;
 	}
 
-	Point player_diff_vector = est_ball_pos- the_player->position();
+	Point player_diff_vector = est_ball_pos- player->position();
 	Point target_diff_vector = est_ball_pos- robot_dst;
 
 	// just to prevent my head from blowing up
-	Point ball2player = -(est_ball_pos- the_player->position());
+	Point ball2player = -(est_ball_pos- player->position());
 	Point ball2dest = -(est_ball_pos- robot_dst);
 
 	if (angle_diff(ball2player.orientation(), ball2dest.orientation()) < M_PI / 6) {
@@ -101,14 +101,14 @@ void Pivot::tick_old() {
 		if (player_diff_vector.dot(target_diff_vector) > 0 && !avoid_ball_) {
 			state->recent_hit_target = true;
 			navi.set_position(the_ball->position());
-			// navi.set_orientation((target - the_player->position()).orientation());
+			// navi.set_orientation((target - player->position()).orientation());
 			navi.set_flags(flags);
 			navi.tick();
 			return;
 		}
 	}
 
-	if((robot_dst-the_player->position()).len()<0.01){
+	if((robot_dst-player->position()).len()<0.01){
 		state->recent_hit_target = true;
 	}
 	// std::cout<<"recent hit: "<<recent_hit_target<<std::endl;
@@ -129,15 +129,15 @@ void Pivot::tick_experimental() {
 
 	// use robot navigator instead of storing Move Tactic.
 	// the reason is that we can't unset flags.
-	RobotNavigator navi(the_player, the_world);
+	RobotNavigator navi(player, the_world);
 
 	const Point ballpos = the_world->ball()->position();
 
 	/*
-	PivotState::ptr state(PivotState::ptr::cast_dynamic(the_player->get_state(typeid(*this))));
+	PivotState::ptr state(PivotState::ptr::cast_dynamic(player->get_state(typeid(*this))));
 	if(!state) {
 		state = PivotState::ptr(new PivotState(false));
-		the_player->set_state(typeid(*this), state);
+		player->set_state(typeid(*this), state);
 	}
 	*/
 
@@ -149,7 +149,7 @@ void Pivot::tick_experimental() {
 		return;
 	}
 
-	const Point playerpos = the_player->position();
+	const Point playerpos = player->position();
 	const Point dest = calc_pivot_pos(ballpos, target);
 
 	const Point ball2dest = dest - ballpos;
@@ -157,14 +157,14 @@ void Pivot::tick_experimental() {
 
 	// H A C K
 	if (ball2player.len() < AIUtil::POS_CLOSE) {
-		const double ori = the_player->orientation();
+		const double ori = player->orientation();
 		ball2player = -Point(cos(ori), sin(ori));
 	}
 
 	// we can do something to the ball now!
 	//if (!avoid_ball_ && (dest - playerpos).len() < AIUtil::POS_CLOSE) {
 	if (!avoid_ball_ && angle_diff(ball2dest.orientation(), ball2player.orientation()) < degrees2radians(PIVOT_ORI_CLOSE)) {
-		if (!AIUtil::has_ball(the_world, the_player)) {
+		if (!AIUtil::has_ball(the_world, player)) {
 			navi.set_position(ballpos);
 		}
 		navi.set_flags(flags);

@@ -27,21 +27,21 @@ void KickoffFriendly::tick() {
 
    unsigned int flags = AIFlags::calc_flags(the_world->playtype());
 
-   std::sort(the_robots.begin(), the_robots.end(),player_cmp_function);
+   std::sort(robots.begin(), robots.end(),player_cmp_function);
    if(the_world->playtype() == PlayType::PREPARE_KICKOFF_FRIENDLY ||the_world->playtype() == PlayType::PREPARE_KICKOFF_ENEMY){
      if(!team_compliance()){ 
        //we can set non on our half destinations in order to avoid ball
        //this role itself calculates how to abide by rules which involves 
        //not staying in rules for a period of time
-       for(unsigned int i=0; i<the_robots.size(); i++){
-	 Point dst = the_robots[i]->position();
+       for(unsigned int i=0; i<robots.size(); i++){
+	 Point dst = robots[i]->position();
 	 flags |= AIFlags::STAY_OWN_HALF;
-	 if(rule_violation(the_robots[i]->position())){
-	   dst = approach_legal_point(the_robots[i]->position(),i);
+	 if(rule_violation(robots[i]->position())){
+	   dst = approach_legal_point(robots[i]->position(),i);
 	   flags &= ~AIFlags::STAY_OWN_HALF;
 	 }
 
-	 Move::ptr move_tactic(new Move(the_robots[i], the_world));
+	 Move::ptr move_tactic(new Move(robots[i], the_world));
 	 move_tactic->set_position(dst);
 	 move_tactic->set_flags(flags);
 	 move_tactic->tick();
@@ -51,14 +51,14 @@ void KickoffFriendly::tick() {
 #warning do something more intelligent here prepare kickoff than just have one robot chase ball
        unsigned int flags = AIFlags::calc_flags(the_world->playtype());
       
-       for(unsigned int i=0; i<the_robots.size(); i++){
-	 Move::ptr move_tactic(new Move(the_robots[i], the_world));
+       for(unsigned int i=0; i<robots.size(); i++){
+	 Move::ptr move_tactic(new Move(robots[i], the_world));
 	 if(i==0){
-	   move_tactic->set_position(clip_circle(the_robots[i]->position(),circle_radius + AVOID_BUFFER,the_world->ball()->position()));
+	   move_tactic->set_position(clip_circle(robots[i]->position(),circle_radius + AVOID_BUFFER,the_world->ball()->position()));
 	 }else{
-	   Point dst = the_robots[i]->position();
+	   Point dst = robots[i]->position();
 	   dst.x =  -the_world->field().length()/2;
-	   move_tactic->set_position(the_robots[i]->position());
+	   move_tactic->set_position(robots[i]->position());
 	 }
 	 move_tactic->set_flags(flags);
 	 move_tactic->tick();
@@ -70,10 +70,10 @@ void KickoffFriendly::tick() {
 	   //we are in execute kickoff
 	   unsigned int flags = AIFlags::calc_flags(the_world->playtype());
 	   // Set lowest numbered robot without chicker fault to be kicker
-	   if (the_robots[0]->chicker_ready_time() >= Player::CHICKER_FOREVER){
-		   for (size_t i = 1; i < the_robots.size(); ++i)
-			   if (the_robots[i]->chicker_ready_time() < Player::CHICKER_FOREVER){
-				   swap(the_robots[0],the_robots[i]);
+	   if (robots[0]->chicker_ready_time() >= Player::CHICKER_FOREVER){
+		   for (size_t i = 1; i < robots.size(); ++i)
+			   if (robots[i]->chicker_ready_time() < Player::CHICKER_FOREVER){
+				   swap(robots[0],robots[i]);
 				   break;
 			   }
 	   }
@@ -81,16 +81,16 @@ void KickoffFriendly::tick() {
 	   // NO FLAGS
 	   // handle kicker separately
 	   // kicker will just force shoot the ball
-	   Shoot::ptr shoot_tactic(new Shoot(the_robots[0], the_world));
+	   Shoot::ptr shoot_tactic(new Shoot(robots[0], the_world));
 	   // shoot_tactic->set_flags(flags & ~AIFlags::STAY_OWN_HALF & ~AIFlags::AVOID_BALL_STOP);
 	   if (the_world->playtype_time() > AIUtil::PLAYTYPE_WAIT_TIME) {
 		   shoot_tactic->force();
 	   }
 	   shoot_tactic->tick();
 
-	   for(unsigned int i=1; i<the_robots.size(); i++){
-		   Move::ptr move_tactic(new Move(the_robots[i], the_world));
-		   move_tactic->set_position(the_robots[i]->position());
+	   for(unsigned int i=1; i<robots.size(); i++){
+		   Move::ptr move_tactic(new Move(robots[i], the_world));
+		   move_tactic->set_position(robots[i]->position());
 		   move_tactic->set_flags(flags);
 		   move_tactic->tick();
 	   }
@@ -99,8 +99,8 @@ void KickoffFriendly::tick() {
 }
 
 bool KickoffFriendly::team_compliance(){
-  for(int i=0; i< the_robots.size(); i++){
-    if(rule_violation(the_robots[i]->position())){
+  for(int i=0; i< robots.size(); i++){
+    if(rule_violation(robots[i]->position())){
       return false;
     }
   }
