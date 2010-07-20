@@ -130,7 +130,7 @@ obj/%.o : %.cpp
 # Rule to make a .pb.cc and a .pb.h file from a .proto file.
 #
 proto/%.pb.cc proto/%.pb.h : proto/%.proto
-	echo "  PROTOC	$@"
+	echo "  PROTO	$@"
 	protoc --proto_path=proto --cpp_out=proto $<
 .SECONDARY : $(PROTOBUF_CCS) $(PROTOBUF_HS)
 
