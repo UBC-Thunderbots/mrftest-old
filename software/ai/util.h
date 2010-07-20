@@ -196,7 +196,7 @@ namespace AIUtil {
 	 * Returns the player having the ball.
 	 * If none has the ball, return -1.
 	 */
-	int calc_baller(const World::ptr w, const std::vector<Player::ptr>& robots);
+	int calc_baller(const World::ptr w, const std::vector<Player::ptr>& players);
 }
 
 #endif
