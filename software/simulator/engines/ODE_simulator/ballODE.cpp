@@ -6,7 +6,6 @@
 ballODE.h has the following:
 
 public:
-typedef Glib::RefPtr<BallODE> ptr;
 dWorldID world;
 
 

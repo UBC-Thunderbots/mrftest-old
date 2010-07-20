@@ -1,7 +1,7 @@
 #ifndef XBEE_DAEMON_FRONTEND_REQUEST_H
 #define XBEE_DAEMON_FRONTEND_REQUEST_H
 
-#include "util/byref.h"
+#include "util/memory.h"
 #include <cassert>
 #include <vector>
 #include <glibmm.h>
@@ -15,15 +15,10 @@
 class XBeeRequest : public ByRef {
 	public:
 		//
-		// A pointer to a XBeeRequest.
-		//
-		typedef Glib::RefPtr<XBeeRequest> ptr;
-
-		//
 		// Constructs a new XBeeRequest. The data is copied.
 		//
-		static ptr create(const void *data, std::size_t length, bool has_response) {
-			ptr p(new XBeeRequest(data, length, has_response));
+		static RefPtr<XBeeRequest> create(const void *data, std::size_t length, bool has_response) {
+			RefPtr<XBeeRequest> p(new XBeeRequest(data, length, has_response));
 			return p;
 		}
 

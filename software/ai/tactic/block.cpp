@@ -9,10 +9,10 @@ namespace{
 }
 
 
-Block::Block(Player::ptr player, World::ptr world) : Tactic(player), the_world(world) {
+Block::Block(RefPtr<Player> player, RefPtr<World> world) : Tactic(player), the_world(world) {
 }
 
-void Block::set_target(Robot::ptr target) {
+void Block::set_target(RefPtr<Robot> target) {
 	this->target = target;
 }		
 

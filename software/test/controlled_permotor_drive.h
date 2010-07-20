@@ -5,7 +5,7 @@
 
 class TesterControlControlledPerMotorDrive : public TesterControlPerMotorDrive {
 	public:
-		TesterControlControlledPerMotorDrive(XBeeDriveBot::ptr bot) : TesterControlPerMotorDrive(bot) {
+		TesterControlControlledPerMotorDrive(RefPtr<XBeeDriveBot> bot) : TesterControlPerMotorDrive(bot) {
 		}
 
 		void drive(int m1, int m2, int m3, int m4) {

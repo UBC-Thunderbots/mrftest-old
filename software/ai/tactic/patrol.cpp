@@ -8,7 +8,6 @@ namespace {
 
 	class PatrolState : public Player::State {
 		public:
-			typedef Glib::RefPtr<PatrolState> ptr;
 			PatrolState(const int& p) : phase(p) {
 			}
 			int phase;
@@ -16,10 +15,10 @@ namespace {
 
 }
 
-Patrol::Patrol(Player::ptr player, World::ptr world) : Tactic(player), navi(player, world), target_initialized(false) {
+Patrol::Patrol(RefPtr<Player> player, RefPtr<World> world) : Tactic(player), navi(player, world), target_initialized(false) {
 }
 
-Patrol::Patrol(Player::ptr player, World::ptr world, const unsigned int& flags, const Point& t1, const Point& t2) : Tactic(player, flags), navi(player, world), target1(t1), target2(t2), target_initialized(true) {
+Patrol::Patrol(RefPtr<Player> player, RefPtr<World> world, const unsigned int& flags, const Point& t1, const Point& t2) : Tactic(player, flags), navi(player, world), target1(t1), target2(t2), target_initialized(true) {
 }
 
 void Patrol::tick() {
@@ -32,9 +31,9 @@ void Patrol::tick() {
 	}
 
 	// This state does not require any validation.
-	PatrolState::ptr state(PatrolState::ptr::cast_dynamic(player->get_state(typeid(*this))));
+	RefPtr<PatrolState> state(RefPtr<PatrolState>::cast_dynamic(player->get_state(typeid(*this))));
 	if (!state) {
-		state = PatrolState::ptr(new PatrolState(0));
+		state = RefPtr<PatrolState>(new PatrolState(0));
 		player->set_state(typeid(*this), state);
 	}
 

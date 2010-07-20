@@ -189,12 +189,12 @@ bool Player::dribbler_safe() const {
 	return milliseconds > DRIBBLE_RECOVER_TIME;
 }
 
-Player::State::ptr Player::get_state(const std::type_info &tid) const {
-	std::map<const std::type_info *, State::ptr>::const_iterator i = state_store.find(&tid);
-	return i != state_store.end() ? i->second : State::ptr();
+RefPtr<Player::State> Player::get_state(const std::type_info &tid) const {
+	std::map<const std::type_info *, RefPtr<State> >::const_iterator i = state_store.find(&tid);
+	return i != state_store.end() ? i->second : RefPtr<State>();
 }
 
-void Player::set_state(const std::type_info &tid, Player::State::ptr state) {
+void Player::set_state(const std::type_info &tid, RefPtr<Player::State> state) {
 	if (state) {
 		state_store[&tid] = state;
 	} else {
@@ -202,12 +202,12 @@ void Player::set_state(const std::type_info &tid, Player::State::ptr state) {
 	}
 }
 
-Player::ptr Player::create(const Glib::ustring &name, bool yellow, unsigned int pattern_index, XBeeDriveBot::ptr bot) {
-	ptr p(new Player(name, yellow, pattern_index, bot));
+RefPtr<Player> Player::create(const Glib::ustring &name, bool yellow, unsigned int pattern_index, RefPtr<XBeeDriveBot> bot) {
+	RefPtr<Player> p(new Player(name, yellow, pattern_index, bot));
 	return p;
 }
 
-Player::Player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, XBeeDriveBot::ptr bot) : Robot(yellow, pattern_index), name(name), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(0), theory_dribble_rpm(0), dribble_distance_(0.0), state_store(&compare_type_infos), not_moved_message(Glib::ustring::compose("%1 not moved", name)), chick_when_not_ready_message(Glib::ustring::compose("%1 chick when not ready", name)) {
+Player::Player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, RefPtr<XBeeDriveBot> bot) : Robot(yellow, pattern_index), name(name), bot(bot), target_orientation(0.0), moved(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(0), theory_dribble_rpm(0), dribble_distance_(0.0), state_store(&compare_type_infos), not_moved_message(Glib::ustring::compose("%1 not moved", name)), chick_when_not_ready_message(Glib::ustring::compose("%1 chick when not ready", name)) {
 	bot->signal_feedback.connect(sigc::mem_fun(this, &Player::on_feedback));
 	timespec now;
 	timespec_now(now);

@@ -45,7 +45,7 @@ class XBeeClient : public NonCopyable, public sigc::trackable {
 
 		XBeeClient(FileDescriptor &, XBeeDaemon &);
 		~XBeeClient();
-		void connect_frame_dealloc(XBeeRequest::ptr, uint8_t);
+		void connect_frame_dealloc(RefPtr<XBeeRequest>, uint8_t);
 		void on_radio_packet(const std::vector<uint8_t> &);
 		bool on_socket_ready(Glib::IOCondition);
 		void on_packet(void *, std::size_t);

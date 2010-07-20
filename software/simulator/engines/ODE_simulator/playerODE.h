@@ -16,8 +16,6 @@ class PlayerODE : public SimulatorPlayer {
 	
 
 	
-	typedef Glib::RefPtr<PlayerODE> ptr;
-	
 	private:
 	///The rectangular geometry for the front collision
 	dGeomID robotGeomTop;

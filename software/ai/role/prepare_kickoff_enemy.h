@@ -12,14 +12,9 @@
 class PrepareKickoffEnemy : public Role {
 	public:
 		//
-		// A pointer to a PrepareKickoffEnemy Role.
-		//
-		typedef Glib::RefPtr<PrepareKickoffEnemy> ptr;
-
-		//
 		// Constructs a new PrepareKickoffEnemy Role.
 		//
-		PrepareKickoffEnemy(World::ptr world);
+		PrepareKickoffEnemy(RefPtr<World> world);
 
 		//
 		// Runs the AI for one time tick.
@@ -32,9 +27,9 @@ class PrepareKickoffEnemy : public Role {
 		void robots_changed();
 
 	protected:
-		const World::ptr the_world;
+		const RefPtr<World> the_world;
 
-                std::vector<Move::ptr> the_tactics;	
+                std::vector<RefPtr<Move> > the_tactics;	
 
                 static const unsigned int NUMBER_OF_STARTING_POSITIONS = 5;
 

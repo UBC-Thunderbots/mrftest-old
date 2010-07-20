@@ -4,8 +4,8 @@
 #include "simulator/player.h"
 #include "simulator/engines/engine.h"
 #include "uicomponents/visualizer.h"
-#include "util/byref.h"
 #include "util/config.h"
+#include "util/memory.h"
 #include <cstdlib>
 #include <glibmm.h>
 
@@ -24,11 +24,6 @@ class Simulator;
 class SimulatorRobot : public Visualizable::Robot {
 	public:
 		/**
-		 * A pointer to a SimulatorRobot.
-		 */
-		typedef Glib::RefPtr<SimulatorRobot> ptr;
-
-		/**
 		 * The XBee address of the robot.
 		 */
 		const uint64_t address;
@@ -45,7 +40,7 @@ class SimulatorRobot : public Visualizable::Robot {
 		 * \param engine the simulator engine that will back the robot when it
 		 * is running
 		 */
-		static ptr create(const Config::RobotInfo &botinfo, SimulatorEngine::ptr engine);
+		static RefPtr<SimulatorRobot> create(const Config::RobotInfo &botinfo, RefPtr<SimulatorEngine> engine);
 
 		/**
 		 * \return true if the robot is powered, or false if not
@@ -117,7 +112,7 @@ class SimulatorRobot : public Visualizable::Robot {
 		 * robot is not currently in a state where it is backed by an engine
 		 * SimulatorPlayer
 		 */
-		SimulatorPlayer::ptr get_player() const {
+		RefPtr<SimulatorPlayer> get_player() const {
 			return player_;
 		}
 
@@ -142,16 +137,16 @@ class SimulatorRobot : public Visualizable::Robot {
 		}
 
 	private:
-		const SimulatorEngine::ptr engine;
+		const RefPtr<SimulatorEngine> engine;
 		const Config::RobotInfo &botinfo;
 		bool powered_;
 		double battery_;
 		bool bootloading_;
 		uint16_t address16_;
 		uint8_t run_data_offset_;
-		SimulatorPlayer::ptr player_;
+		RefPtr<SimulatorPlayer> player_;
 
-		SimulatorRobot(const Config::RobotInfo &, SimulatorEngine::ptr);
+		SimulatorRobot(const Config::RobotInfo &, RefPtr<SimulatorEngine>);
 
 		bool visualizer_visible() const {
 			return !!player_;

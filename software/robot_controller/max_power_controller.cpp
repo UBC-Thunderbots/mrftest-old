@@ -10,8 +10,8 @@ namespace {
 			MaxPowerControllerFactory() : RobotControllerFactory("MAX POWER RC") {
 			}
 
-			RobotController::ptr create_controller(Player::ptr plr, bool, unsigned int) const {
-				RobotController::ptr p(new MaxPowerController(plr));
+			RefPtr<RobotController2> create_controller(RefPtr<Player> plr, bool, unsigned int) const {
+				RefPtr<RobotController2> p(new MaxPowerController(plr));
 				return p;
 			}
 	};
@@ -20,7 +20,7 @@ namespace {
 
 }
 
-MaxPowerController::MaxPowerController(Player::ptr plr) : plr(plr) {
+MaxPowerController::MaxPowerController(RefPtr<Player> plr) : plr(plr) {
 }
 
 void MaxPowerController::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {

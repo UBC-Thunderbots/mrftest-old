@@ -26,7 +26,7 @@ namespace {
 	const uint8_t COMMAND_STATUS_OK = 0x00;
 }
 
-BootProto::BootProto(XBeeRawBot::ptr bot) : bot(bot), current_state(STATE_NOT_STARTED) {
+BootProto::BootProto(RefPtr<XBeeRawBot> bot) : bot(bot), current_state(STATE_NOT_STARTED) {
 }
 
 void BootProto::report_error(const Glib::ustring &error) {
@@ -70,7 +70,7 @@ void BootProto::enter_bootloader_send() {
 
 	// Send the packet.
 	const uint8_t value = 5;
-	RemoteATPacket<1>::ptr pkt(RemoteATPacket<1>::create(bot->address, "D0", &value, true));
+	RefPtr<RemoteATPacket<1> > pkt(RemoteATPacket<1>::create(bot->address, "D0", &value, true));
 	packet_received_connection = pkt->signal_complete().connect(sigc::mem_fun(this, &BootProto::enter_bootloader_complete));
 	bot->send(pkt);
 }
@@ -143,7 +143,7 @@ void BootProto::assign_address16_send() {
 
 	// Send the packet.
 	uint8_t value[2] = { static_cast<uint8_t>(bot->address16() >> 8), static_cast<uint8_t>(bot->address16() & 0xFF) };
-	RemoteATPacket<2>::ptr pkt(RemoteATPacket<2>::create(bot->address, "MY", value, true));
+	RefPtr<RemoteATPacket<2> > pkt(RemoteATPacket<2>::create(bot->address, "MY", value, true));
 	packet_received_connection = pkt->signal_complete().connect(sigc::mem_fun(this, &BootProto::assign_address16_complete));
 	bot->send(pkt);
 }
@@ -233,7 +233,7 @@ void BootProto::send_no_response(uint8_t command, uint16_t address, const void *
 	}
 
 	// Send the packet.
-	Transmit16Packet::ptr tx16(Transmit16Packet::create(bot->address16(), false, false, pkt, sizeof(COMMAND_PACKET) + data_len));
+	RefPtr<Transmit16Packet> tx16(Transmit16Packet::create(bot->address16(), false, false, pkt, sizeof(COMMAND_PACKET) + data_len));
 	bot->send(tx16);
 }
 
@@ -364,7 +364,7 @@ void BootProto::exit_bootloader_send() {
 
 	// Send the packet.
 	const uint8_t value = 4;
-	RemoteATPacket<1>::ptr pkt(RemoteATPacket<1>::create(bot->address, "D0", &value, true));
+	RefPtr<RemoteATPacket<1> > pkt(RemoteATPacket<1>::create(bot->address, "D0", &value, true));
 	pkt->signal_complete().connect(sigc::mem_fun(this, &BootProto::exit_bootloader_complete));
 	bot->send(pkt);
 }

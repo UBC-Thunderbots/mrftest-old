@@ -3,7 +3,7 @@
 
 #include "uicomponents/single_bot_combobox.h"
 #include "util/config.h"
-#include "util/scoped_ptr.h"
+#include "util/memory.h"
 #include "xbee/client/lowlevel.h"
 #include <gtkmm.h>
 #include <string>

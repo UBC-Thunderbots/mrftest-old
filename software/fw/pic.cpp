@@ -49,7 +49,7 @@ namespace {
 	};
 }
 
-PICUpload::PICUpload(XBeeRawBot::ptr bot, const IntelHex &data) : bot(bot), data(data), proto(bot), pages_written(0) {
+PICUpload::PICUpload(RefPtr<XBeeRawBot> bot, const IntelHex &data) : bot(bot), data(data), proto(bot), pages_written(0) {
 	status = "Idle";
 	proto.signal_error.connect(signal_error.make_slot());
 }

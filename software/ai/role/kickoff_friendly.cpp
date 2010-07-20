@@ -14,11 +14,11 @@ namespace {
 
 	const double AVOID_BUFFER = 0.1;
 
-	bool player_cmp_function (Player::ptr i,Player::ptr j) { return (i->pattern_index < j->pattern_index); }
+	bool player_cmp_function (RefPtr<Player> i,RefPtr<Player> j) { return (i->pattern_index < j->pattern_index); }
 
 }
 
-KickoffFriendly::KickoffFriendly(World::ptr world) : the_world(world){
+KickoffFriendly::KickoffFriendly(RefPtr<World> world) : the_world(world){
 const Field &the_field(the_world->field());
   circle_radius =  the_field.centre_circle_radius();
 }
@@ -41,7 +41,7 @@ void KickoffFriendly::tick() {
 	   flags &= ~AIFlags::STAY_OWN_HALF;
 	 }
 
-	 Move::ptr move_tactic(new Move(robots[i], the_world));
+	 RefPtr<Move> move_tactic(new Move(robots[i], the_world));
 	 move_tactic->set_position(dst);
 	 move_tactic->set_flags(flags);
 	 move_tactic->tick();
@@ -52,7 +52,7 @@ void KickoffFriendly::tick() {
        unsigned int flags = AIFlags::calc_flags(the_world->playtype());
       
        for(unsigned int i=0; i<robots.size(); i++){
-	 Move::ptr move_tactic(new Move(robots[i], the_world));
+	 RefPtr<Move> move_tactic(new Move(robots[i], the_world));
 	 if(i==0){
 	   move_tactic->set_position(clip_circle(robots[i]->position(),circle_radius + AVOID_BUFFER,the_world->ball()->position()));
 	 }else{
@@ -81,7 +81,7 @@ void KickoffFriendly::tick() {
 	   // NO FLAGS
 	   // handle kicker separately
 	   // kicker will just force shoot the ball
-	   Shoot::ptr shoot_tactic(new Shoot(robots[0], the_world));
+	   RefPtr<Shoot> shoot_tactic(new Shoot(robots[0], the_world));
 	   // shoot_tactic->set_flags(flags & ~AIFlags::STAY_OWN_HALF & ~AIFlags::AVOID_BALL_STOP);
 	   if (the_world->playtype_time() > AIUtil::PLAYTYPE_WAIT_TIME) {
 		   shoot_tactic->force();
@@ -89,7 +89,7 @@ void KickoffFriendly::tick() {
 	   shoot_tactic->tick();
 
 	   for(unsigned int i=1; i<robots.size(); i++){
-		   Move::ptr move_tactic(new Move(robots[i], the_world));
+		   RefPtr<Move> move_tactic(new Move(robots[i], the_world));
 		   move_tactic->set_position(robots[i]->position());
 		   move_tactic->set_flags(flags);
 		   move_tactic->tick();

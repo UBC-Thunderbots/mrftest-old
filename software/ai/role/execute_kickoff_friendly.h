@@ -10,16 +10,11 @@
 class ExecuteKickoffFriendly : public Role {
 	public:
 		/**
-		 * A pointer to a ExecuteKickoffFriendly Role.
-		 */
-		typedef Glib::RefPtr<ExecuteKickoffFriendly> ptr;
-
-		/**
 		 * Constructs a new ExecuteKickoffFriendly Role.
 		 *
 		 * \param world the world
 		 */
-		ExecuteKickoffFriendly(World::ptr world);
+		ExecuteKickoffFriendly(RefPtr<World> world);
 
 		//
 		// True if kicker has made contact with the ball.
@@ -53,8 +48,8 @@ class ExecuteKickoffFriendly : public Role {
 		void robots_changed();
 
 	private:
-		const World::ptr the_world;
-		std::vector<Tactic::ptr> the_tactics;
+		const RefPtr<World> the_world;
+		std::vector<RefPtr<Tactic> > the_tactics;
 };
 
 #endif

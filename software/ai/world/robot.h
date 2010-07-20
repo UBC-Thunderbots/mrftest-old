@@ -5,7 +5,7 @@
 #include "geom/point.h"
 #include "proto/messages_robocup_ssl_detection.pb.h"
 #include "uicomponents/visualizer.h"
-#include "util/byref.h"
+#include "util/memory.h"
 #include <cstdlib>
 #include <glibmm.h>
 
@@ -17,11 +17,6 @@ class World;
  */
 class Robot : public Visualizable::Robot, public Predictable, public sigc::trackable {
 	public:
-		/**
-		 * A pointer to a Robot.
-		 */
-		typedef Glib::RefPtr<Robot> ptr;
-
 		/**
 		 * The largest possible radius of a robot, in metres.
 		 */
@@ -71,7 +66,7 @@ class Robot : public Visualizable::Robot, public Predictable, public sigc::track
 		 * Constructs a new non-drivable Robot object.
 		 * \return the new object
 		 */
-		static ptr create(bool yellow, unsigned int pattern_index);
+		static RefPtr<Robot> create(bool yellow, unsigned int pattern_index);
 
 		/**
 		 * Updates the position of the Robot using new data.

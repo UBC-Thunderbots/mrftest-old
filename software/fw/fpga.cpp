@@ -32,7 +32,7 @@ namespace {
 	}
 }
 
-FPGAUpload::FPGAUpload(XBeeRawBot::ptr bot, const IntelHex &data) : bot(bot), data(data), proto(bot), sectors_erased(0), pages_written(0), chunks_crcd(0) {
+FPGAUpload::FPGAUpload(RefPtr<XBeeRawBot> bot, const IntelHex &data) : bot(bot), data(data), proto(bot), sectors_erased(0), pages_written(0), chunks_crcd(0) {
 	status = "Idle";
 	proto.signal_error.connect(signal_error.make_slot());
 }

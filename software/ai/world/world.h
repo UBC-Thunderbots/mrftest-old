@@ -9,10 +9,10 @@
 #include "ai/world/refbox.h"
 #include "ai/world/team.h"
 #include "uicomponents/visualizer.h"
-#include "util/byref.h"
 #include "util/clocksource.h"
 #include "util/config.h"
 #include "util/fd.h"
+#include "util/memory.h"
 #include "xbee/client/drive.h"
 #include <stdint.h>
 #include <vector>
@@ -26,11 +26,6 @@ class AIWindow;
  */
 class World : public ByRef {
 	public:
-		/**
-		 * A pointer to a World object.
-		 */
-		typedef Glib::RefPtr<World> ptr;
-
 		/**
 		 * The configuration file.
 		 */
@@ -78,12 +73,12 @@ class World : public ByRef {
 		 * \param xbee_bots the robots to drive
 		 * \return The new object
 		 */
-		static ptr create(const Config &conf, const std::vector<XBeeDriveBot::ptr> &xbee_bots);
+		static RefPtr<World> create(const Config &conf, const std::vector<RefPtr<XBeeDriveBot> > &xbee_bots);
 
 		/**
 		 * \return The ball
 		 */
-		Ball::ptr ball() const {
+		RefPtr<Ball> ball() const {
 			return ball_;
 		}
 
@@ -176,7 +171,7 @@ class World : public ByRef {
 					return world->field();
 				}
 
-				Visualizable::Ball::ptr ball() const {
+				RefPtr<Visualizable::Ball> ball() const {
 					return world->ball();
 				}
 
@@ -184,7 +179,7 @@ class World : public ByRef {
 					return world->friendly.size() + world->enemy.size();
 				}
 
-				Visualizable::Robot::ptr operator[](unsigned int index) const {
+				RefPtr<Visualizable::Robot> operator[](unsigned int index) const {
 					if (index < world->friendly.size()) {
 						return world->friendly.get_robot(index);
 					} else {
@@ -201,9 +196,9 @@ class World : public ByRef {
 		const FileDescriptor vision_socket;
 		RefBox refbox_;
 		Field field_;
-		Ball::ptr ball_;
+		RefPtr<Ball> ball_;
 		SSL_DetectionFrame detections[2];
-		const std::vector<XBeeDriveBot::ptr> xbee_bots;
+		const std::vector<RefPtr<XBeeDriveBot> > xbee_bots;
 		PlayType::PlayType playtype_;
 		PlayType::PlayType playtype_override;
 		bool playtype_override_active;
@@ -213,7 +208,7 @@ class World : public ByRef {
 		uint64_t timestamp_;
 		timespec playtype_time_;
 
-		World(const Config &, const std::vector<XBeeDriveBot::ptr> &);
+		World(const Config &, const std::vector<RefPtr<XBeeDriveBot> > &);
 		bool on_vision_readable(Glib::IOCondition);
 		void override_playtype(PlayType::PlayType);
 		void clear_playtype_override();

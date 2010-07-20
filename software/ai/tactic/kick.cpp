@@ -13,7 +13,7 @@ TODO:
 - calculate the strength that the robot should use.
  */
 
-Kick::Kick(Player::ptr player, World::ptr world) : Tactic(player), the_world(world), should_chip(false), strength(1.0), kick_target(the_world->field().enemy_goal()) {
+Kick::Kick(RefPtr<Player> player, RefPtr<World> world) : Tactic(player), the_world(world), should_chip(false), strength(1.0), kick_target(the_world->field().enemy_goal()) {
 }
 
 void Kick::tick() {

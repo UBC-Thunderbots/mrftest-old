@@ -24,13 +24,13 @@ class XBeeScheduler : public NonCopyable {
 		//
 		// Queues a new unicast packet for transmission.
 		//
-		void queue(XBeeRequest::ptr req);
+		void queue(RefPtr<XBeeRequest> req);
 
 	private:
 		XBeeDaemon &daemon;
-		std::queue<XBeeRequest::ptr> pending;
+		std::queue<RefPtr<XBeeRequest> > pending;
 		struct sent_request {
-			XBeeRequest::ptr data;
+			RefPtr<XBeeRequest> data;
 			sigc::connection timeout_connection;
 		} sent[256];
 		unsigned int sent_count;

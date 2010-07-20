@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-PenaltyFriendly::PenaltyFriendly(World::ptr world) : the_world(world) {
+PenaltyFriendly::PenaltyFriendly(RefPtr<World> world) : the_world(world) {
 	const Field& the_field(world->field());
 
 	// Let the first robot to be always the shooter
@@ -48,7 +48,7 @@ void PenaltyFriendly::tick() {
 	} else if (the_world->playtype() == PlayType::EXECUTE_PENALTY_FRIENDLY) {
 
 		// make shooter shoot
-		const Player::ptr shooter = robots[0];
+		const RefPtr<Player> shooter = robots[0];
 		Shoot tactic(shooter, the_world);
 		if (the_world->playtype_time() > AIUtil::PLAYTYPE_WAIT_TIME) {
 			tactic.force();

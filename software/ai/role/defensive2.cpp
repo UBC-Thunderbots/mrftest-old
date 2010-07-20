@@ -25,17 +25,16 @@ namespace {
 	// used to save if the goalie should be on the top or bottom side
 	class Defensive2State : public Player::State {
 		public:
-			typedef Glib::RefPtr<Defensive2State> ptr;
 			Defensive2State() : top(false) { }
 			bool top;
 	};
 
 }
 
-Defensive2::Defensive2(World::ptr world) : the_world(world) {
+Defensive2::Defensive2(RefPtr<World> world) : the_world(world) {
 }
 
-void Defensive2::assign(const Player::ptr& p, Tactic::ptr t) {
+void Defensive2::assign(const RefPtr<Player>& p, RefPtr<Tactic> t) {
 	for (size_t i = 0; i < robots.size(); ++i) {
 		if (robots[i] == p) {
 			tactics[i] = t;
@@ -51,9 +50,9 @@ std::pair<Point, std::vector<Point> > Defensive2::calc_block_positions(const boo
 	const Field& f = the_world->field();
 
 	// Sort enemies by distance from own goal.
-	std::vector<Robot::ptr> enemies = enemy.get_robots();
-	//std::sort(enemies.begin(), enemies.end(), AIUtil::CmpDist<Robot::ptr>(the_world->ball()->position()));
-	std::sort(enemies.begin(), enemies.end(), AIUtil::CmpDist<Robot::ptr>(f.friendly_goal()));
+	std::vector<RefPtr<Robot> > enemies = enemy.get_robots();
+	//std::sort(enemies.begin(), enemies.end(), AIUtil::CmpDist<RefPtr<Robot> >(the_world->ball()->position()));
+	std::sort(enemies.begin(), enemies.end(), AIUtil::CmpDist<RefPtr<Robot> >(f.friendly_goal()));
 
 	std::vector<Point> waypoints;
 
@@ -133,7 +132,7 @@ void Defensive2::tick() {
 
 	// the robot chaser
 	double chaserdist = 1e99;
-	Player::ptr chaser;
+	RefPtr<Player> chaser;
 	for (size_t i = 0; i < friendly.size(); ++i) {
 		const double dist = (friendly[i]->position() - ballpos).len();
 		if (dist > AIUtil::CHASE_BALL_DIST) continue;
@@ -168,9 +167,9 @@ void Defensive2::tick() {
 	}
 
 	// adjust ball position
-	Defensive2State::ptr state(Defensive2State::ptr::cast_dynamic(goalie->get_state(typeid(*this))));
+	RefPtr<Defensive2State> state(RefPtr<Defensive2State>::cast_dynamic(goalie->get_state(typeid(*this))));
 	if (!state) {
-		state = Defensive2State::ptr(new Defensive2State());
+		state = RefPtr<Defensive2State>(new Defensive2State());
 		goalie->set_state(typeid(*this), state);
 	}
 	if (ballpos.y > Robot::MAX_RADIUS * 2) {
@@ -179,13 +178,13 @@ void Defensive2::tick() {
 		state->top = false;
 	}
 
-	std::vector<Player::ptr> defenders;
+	std::vector<RefPtr<Player> > defenders;
 	for (size_t i = 1; i < robots.size(); ++i)
 		defenders.push_back(robots[i]);
 
 	// Sort by distance to ball. DO NOT SORT IT AGAIN!!
-	std::sort(defenders.begin(), defenders.end(), AIUtil::CmpDist<Player::ptr>(the_world->ball()->position()));
-	std::vector<Player::ptr> friends = AIUtil::get_friends(friendly, defenders);
+	std::sort(defenders.begin(), defenders.end(), AIUtil::CmpDist<RefPtr<Player> >(the_world->ball()->position()));
+	std::vector<RefPtr<Player> > friends = AIUtil::get_friends(friendly, defenders);
 
 	const int baller = AIUtil::calc_baller(the_world, defenders);
 	// const bool teamball = AIUtil::friendly_posses_ball(the_world);
@@ -226,7 +225,7 @@ void Defensive2::tick() {
 	// check if goalie should rush
 	if (goalierush){
 		LOG_INFO("goalie to rush");
-		Move::ptr tactic(new Move(robots[0], the_world));
+		RefPtr<Move> tactic(new Move(robots[0], the_world));
 		rushpos.y = std::min(rushpos.y, the_world->field().goal_width()/2.0);
 		rushpos.y = std::max(rushpos.y, -the_world->field().goal_width()/2.0);
 		tactic->set_position(rushpos);
@@ -235,12 +234,12 @@ void Defensive2::tick() {
 	// check if chaser robot
 	else if (goaliechase) {
 		LOG_INFO("goalie to shoot");
-		Shoot::ptr shoot_tactic = Shoot::ptr(new Shoot(robots[0], the_world));
+		RefPtr<Shoot> shoot_tactic = RefPtr<Shoot>(new Shoot(robots[0], the_world));
 		shoot_tactic->force();
 		shoot_tactic->set_pivot(false);
 		tactics[0] = shoot_tactic;
 	} else {
-		Move::ptr tactic(new Move(robots[0], the_world));
+		RefPtr<Move> tactic(new Move(robots[0], the_world));
 		int closest_defender = - 1;
 		for (size_t i = 0; i < defenders.size(); ++i)
 			if (order[i] == 0)
@@ -257,7 +256,7 @@ void Defensive2::tick() {
 		// if (static_cast<int>(i) == skipme) continue;
 		if (w >= waypoints.size()) {
 			LOG_WARN(Glib::ustring::compose("%1 nothing to do", defenders[i]->name));
-			Move::ptr tactic(new Move(defenders[i], the_world));
+			RefPtr<Move> tactic(new Move(defenders[i], the_world));
 			tactic->set_position(defenders[i]->position());
 			assign(defenders[i], tactic);
 			continue;
@@ -266,12 +265,12 @@ void Defensive2::tick() {
 		// const Point& target = waypoints[order[w]];
 		if (chaser == defenders[i]) {
 			// should be exact
-			Shoot::ptr shoot_tactic = Shoot::ptr(new Shoot(defenders[i], the_world));
+			RefPtr<Shoot> shoot_tactic = RefPtr<Shoot>(new Shoot(defenders[i], the_world));
 			shoot_tactic->force();
 			shoot_tactic->set_pivot(false);
 			assign(defenders[i], shoot_tactic);
 		} else {
-			Move::ptr tactic(new Move(defenders[i], the_world));
+			RefPtr<Move> tactic(new Move(defenders[i], the_world));
 			tactic->set_position(waypoints[order[w]]);
 			assign(defenders[i], tactic);
 		}

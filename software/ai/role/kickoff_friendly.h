@@ -13,14 +13,9 @@
 class KickoffFriendly : public Role {
 	public:
 		//
-		// A pointer to a KickoffFriendly Role.
-		//
-		typedef Glib::RefPtr<KickoffFriendly> ptr;
-
-		//
 		// Constructs a new KickoffFriendly Role.
 		//
-		KickoffFriendly(World::ptr world);
+		KickoffFriendly(RefPtr<World> world);
 
 		//
 		// Runs the AI for one time tick.
@@ -50,7 +45,7 @@ class KickoffFriendly : public Role {
 		//
 		//
 		//
-		World::ptr the_world;
+		RefPtr<World> the_world;
 
 		Point clip_circle(Point cur_point, double circle_radius, Point dst);
 

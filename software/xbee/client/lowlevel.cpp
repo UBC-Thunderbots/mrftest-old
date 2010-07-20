@@ -144,7 +144,7 @@ bool XBeeLowLevel::claim_universe() {
 	}
 }
 
-void XBeeLowLevel::send(XBeePacket::ptr pkt) {
+void XBeeLowLevel::send(RefPtr<XBeePacket> pkt) {
 	if (pkt->has_response) {
 		uint8_t frame = frame_allocator.alloc();
 		packets[frame] = pkt;

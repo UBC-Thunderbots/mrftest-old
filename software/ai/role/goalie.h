@@ -11,14 +11,9 @@
 class Goalie : public Role {
 	public:
 		//
-		// A pointer to a Goalie Role.
-		//
-		typedef Glib::RefPtr<Goalie> ptr;
-
-		//
 		// Constructs a new Goalie Role.
 		//
-		Goalie(World::ptr world);
+		Goalie(RefPtr<World> world);
 
 		//
 		// Runs the AI for one time tick.
@@ -31,13 +26,13 @@ class Goalie : public Role {
 		void robots_changed();
 
 	protected:
-		const World::ptr the_world;
+		const RefPtr<World> the_world;
 
 	private:
 
-		void run_vel_goalie(Player::ptr goalie, const unsigned int& flags);
+		void run_vel_goalie(RefPtr<Player> goalie, const unsigned int& flags);
 
-		void run_goalie_confidence(Player::ptr goalie, const unsigned int& flags);
+		void run_goalie_confidence(RefPtr<Player> goalie, const unsigned int& flags);
 
 		/// Old version
 		void run_goalie_old(const unsigned int& flags);

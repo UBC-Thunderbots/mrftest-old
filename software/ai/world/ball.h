@@ -5,7 +5,7 @@
 #include "geom/point.h"
 #include "proto/messages_robocup_ssl_detection.pb.h"
 #include "uicomponents/visualizer.h"
-#include "util/byref.h"
+#include "util/memory.h"
 #include <cstdlib>
 #include <glibmm.h>
 
@@ -16,11 +16,6 @@ class World;
  */
 class Ball : public Visualizable::Ball, public Predictable {
 	public:
-		/**
-		 * A pointer to a Ball.
-		 */
-		typedef Glib::RefPtr<Ball> ptr;
-
 		/**
 		 * The approximate radius of the ball.
 		 */
@@ -41,7 +36,7 @@ class Ball : public Visualizable::Ball, public Predictable {
 		 *
 		 * \return the new object.
 		 */
-		static ptr create();
+		static RefPtr<Ball> create();
 
 		/**
 		 * Constructs a new Ball object.

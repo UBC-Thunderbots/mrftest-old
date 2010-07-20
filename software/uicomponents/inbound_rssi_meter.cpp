@@ -7,7 +7,7 @@ InboundRSSIMeter::InboundRSSIMeter() : last_rssi(-1) {
 	set_text("No Data");
 }
 
-void InboundRSSIMeter::set_bot(XBeeDriveBot::ptr bot) {
+void InboundRSSIMeter::set_bot(RefPtr<XBeeDriveBot> bot) {
 	connection.disconnect();
 	robot = bot;
 	if (robot) {

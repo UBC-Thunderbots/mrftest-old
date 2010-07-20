@@ -32,7 +32,7 @@ namespace {
 
 };
 
-Offensive::Offensive(World::ptr world) : the_world(world) {
+Offensive::Offensive(RefPtr<World> world) : the_world(world) {
 }
 
 double Offensive::scoring_function(const std::vector<Point>& enemypos, const Point& pos, const std::vector<Point>& dontblock) const {
@@ -159,7 +159,7 @@ void Offensive::tick() {
 	if (robots.size() == 0) return;
 
 	// Sort by distance to ball. DO NOT SORT AGAIN!!
-	std::sort(robots.begin(), robots.end(), AIUtil::CmpDist<Player::ptr>(the_world->ball()->position()));
+	std::sort(robots.begin(), robots.end(), AIUtil::CmpDist<RefPtr<Player> >(the_world->ball()->position()));
 
 	const FriendlyTeam& friendly(the_world->friendly);
 	// const Field& the_field = the_world->field();
@@ -174,7 +174,7 @@ void Offensive::tick() {
 		}
 	}
 
-	std::vector<Player::ptr> friends = AIUtil::get_friends(friendly, robots);
+	std::vector<RefPtr<Player> > friends = AIUtil::get_friends(friendly, robots);
 
 	if (!teampossesball) {
 		for (size_t i = 0; i < friends.size(); ++i) {
@@ -196,7 +196,7 @@ void Offensive::tick() {
 			std::vector<Point> waypoints = calc_position_best(static_cast<int>(robots.size()) - 1);
 
 			// other robots not having the ball
-			std::vector<Player::ptr> available;
+			std::vector<RefPtr<Player> > available;
 			std::vector<Point> locations;
 			for (size_t i = 0; i < robots.size(); ++i) {
 				if (static_cast<int>(i) == baller) continue;
@@ -211,11 +211,11 @@ void Offensive::tick() {
 				if (static_cast<int>(i) == baller) continue;
 				if (w >= waypoints.size()) {
 					LOG_WARN(Glib::ustring::compose("%1 nothing to do", robots[i]->name));
-					Move::ptr move_tactic(new Move(robots[i], the_world));
+					RefPtr<Move> move_tactic(new Move(robots[i], the_world));
 					move_tactic->set_position(robots[i]->position());
 					tactics[i] = move_tactic;
 				} else {
-					Move::ptr move_tactic(new Move(robots[i], the_world));
+					RefPtr<Move> move_tactic(new Move(robots[i], the_world));
 					move_tactic->set_position(waypoints[order[w]]);
 					tactics[i] = move_tactic;
 				}
@@ -247,39 +247,39 @@ void Offensive::tick() {
 
 			if (shooter == baller) {
 				// i shall shoot
-				Shoot::ptr shoot_tactic(new Shoot(robots[baller], the_world));
+				RefPtr<Shoot> shoot_tactic(new Shoot(robots[baller], the_world));
 				if (OFFENSIVE_PIVOT) shoot_tactic->set_pivot(false);
 				tactics[baller] = shoot_tactic;
 				//if (overlay) overlay->line_to(the_field.enemy_goal().x, the_field.enemy_goal().y);
 			} else if (shooter != -1) {
 				LOG_INFO(Glib::ustring::compose("%1 pass to %2", robots[baller]->name, robots[shooter]->name));
 				// found suitable passee, make a pass
-				tactics[baller] = Pass::ptr(new Pass(robots[baller], the_world, robots[shooter]));
+				tactics[baller] = RefPtr<Pass>(new Pass(robots[baller], the_world, robots[shooter]));
 			} else if (get_distance_from_goal(baller) < the_world->field().length() / 6) {
 				// very close to goal, so try making a shot anyways
-				Shoot::ptr shoot_tactic(new Shoot(robots[baller], the_world));
+				RefPtr<Shoot> shoot_tactic(new Shoot(robots[baller], the_world));
 				shoot_tactic->force();
 				if (OFFENSIVE_PIVOT) shoot_tactic->set_pivot(false);
 				tactics[baller] = shoot_tactic;
 			} else {
 				// i shall shoot
-				Shoot::ptr shoot_tactic(new Shoot(robots[baller], the_world));
+				RefPtr<Shoot> shoot_tactic(new Shoot(robots[baller], the_world));
 				shoot_tactic->force();
 				if (OFFENSIVE_PIVOT) shoot_tactic->set_pivot(false);
-				tactics[baller] = Shoot::ptr(new Shoot(robots[baller], the_world));
+				tactics[baller] = RefPtr<Shoot>(new Shoot(robots[baller], the_world));
 			}
 		} else {
 			LOG_INFO("receive ball");
 			// no one in this role has the ball
 			// prepare to receive some ball
 			for (size_t i = 0; i < robots.size(); ++i) {
-				tactics[i] = Receive::ptr(new Receive(robots[i], the_world));
+				tactics[i] = RefPtr<Receive>(new Receive(robots[i], the_world));
 			}
 		}
 	} else {
 		// calculate some good positions for robots not holding the ball
 		std::vector<Point> waypoints;
-		std::vector<Robot::ptr> block_targets;
+		std::vector<RefPtr<Robot> > block_targets;
 		if (OFFENSIVE_BLOCK){
 			const EnemyTeam& enemy = the_world->enemy;
 			const Point ballpos = the_world->ball()->position();
@@ -288,7 +288,7 @@ void Offensive::tick() {
 				if ((enemy_pos - ballpos).len() > 0.5 + Robot::MAX_RADIUS)
 					block_targets.push_back(enemy.get_robot(i));
 			}
-			std::sort(block_targets.begin(),block_targets.end(), AIUtil::CmpDist<Robot::ptr>(the_world->field().friendly_goal()));
+			std::sort(block_targets.begin(),block_targets.end(), AIUtil::CmpDist<RefPtr<Robot> >(the_world->field().friendly_goal()));
 			for (size_t i = 0; i < block_targets.size() && waypoints.size() + 1 < robots.size(); i++)
 				waypoints.push_back(block_targets[i]->position());
 			if (waypoints.size() + 1 < robots.size()){
@@ -300,7 +300,7 @@ void Offensive::tick() {
 		else waypoints = calc_position_best(static_cast<int>(robots.size()) - 1);
 
 		// other robots not having the ball
-		std::vector<Player::ptr> available;
+		std::vector<RefPtr<Player> > available;
 		std::vector<Point> locations;
 		for (size_t i = 1; i < robots.size(); ++i) {
 			available.push_back(robots[i]);
@@ -313,16 +313,16 @@ void Offensive::tick() {
 			for (size_t i = 1; i < robots.size(); ++i) {
 				if (w >= waypoints.size()) {
 					LOG_WARN(Glib::ustring::compose("%1 nothing to do", robots[i]->name));
-					Move::ptr move_tactic(new Move(robots[i], the_world));
+					RefPtr<Move> move_tactic(new Move(robots[i], the_world));
 					move_tactic->set_position(robots[i]->position());
 					tactics[i] = move_tactic;
 				} else if (order[w] < block_targets.size()){
-					Block::ptr block_tactic(new Block(robots[i], the_world));
+					RefPtr<Block> block_tactic(new Block(robots[i], the_world));
 					block_tactic->set_target(block_targets[order[w]]);
 					tactics[i] = block_tactic;
 				}
 				else{
-					Move::ptr move_tactic(new Move(robots[i], the_world));
+					RefPtr<Move> move_tactic(new Move(robots[i], the_world));
 					move_tactic->set_position(waypoints[order[w]]);
 					tactics[i] = move_tactic;
 				}
@@ -334,11 +334,11 @@ void Offensive::tick() {
 			for (size_t i = 1; i < robots.size(); ++i) {
 				if (w >= waypoints.size()) {
 					LOG_WARN(Glib::ustring::compose("%1 nothing to do", robots[i]->name));
-					Move::ptr move_tactic(new Move(robots[i], the_world));
+					RefPtr<Move> move_tactic(new Move(robots[i], the_world));
 					move_tactic->set_position(robots[i]->position());
 					tactics[i] = move_tactic;
 				} else {
-					Move::ptr move_tactic(new Move(robots[i], the_world));
+					RefPtr<Move> move_tactic(new Move(robots[i], the_world));
 					move_tactic->set_position(waypoints[order[w]]);
 					tactics[i] = move_tactic;
 				}
@@ -347,7 +347,7 @@ void Offensive::tick() {
 		}
 		
 		{
-			Shoot::ptr shoot_tactic = Shoot::ptr(new Shoot(robots[0], the_world));
+			RefPtr<Shoot> shoot_tactic = RefPtr<Shoot>(new Shoot(robots[0], the_world));
 			if (OFFENSIVE_PIVOT) shoot_tactic->set_pivot(false);
 			tactics[0] = shoot_tactic;
 		}

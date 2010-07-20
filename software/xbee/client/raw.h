@@ -1,7 +1,7 @@
 #ifndef XBEE_CLIENT_RAW_H
 #define XBEE_CLIENT_RAW_H
 
-#include "util/byref.h"
+#include "util/memory.h"
 #include "xbee/client/packet.h"
 #include <cstddef>
 #include <glibmm.h>
@@ -15,11 +15,6 @@ class XBeeLowLevel;
 //
 class XBeeRawBot : public ByRef {
 	public:
-		//
-		// A pointer to an XBeeRawBot.
-		//
-		typedef Glib::RefPtr<XBeeRawBot> ptr;
-
 		//
 		// The 64-bit address of this robot.
 		//
@@ -52,8 +47,8 @@ class XBeeRawBot : public ByRef {
 		// one of the signals if the arbiter is in the process of deassigning
 		// allocated resources from the robot before granting it to you.
 		//
-		static ptr create(uint64_t address, XBeeLowLevel &ll) {
-			ptr p(new XBeeRawBot(address, ll));
+		static RefPtr<XBeeRawBot> create(uint64_t address, XBeeLowLevel &ll) {
+			RefPtr<XBeeRawBot> p(new XBeeRawBot(address, ll));
 			return p;
 		}
 
@@ -62,7 +57,7 @@ class XBeeRawBot : public ByRef {
 		// the robot's address is filled in properly and that you are not
 		// accidentally sending data to the wrong robot!
 		//
-		void send(XBeePacket::ptr p);
+		void send(RefPtr<XBeePacket> p);
 
 		/**
 		 * \return The 16-bit address allocated to this robot

@@ -1,6 +1,6 @@
 #include "ai/role/pit_stop.h"
 
-PitStop::PitStop(World::ptr world) : the_world(world) {
+PitStop::PitStop(RefPtr<World> world) : the_world(world) {
 }
 
 void PitStop::tick(){
@@ -12,7 +12,7 @@ void PitStop::tick(){
 void PitStop::robots_changed() {
     the_tactics.clear();
     for(unsigned int i=0; i<robots.size() ; i++) {
-        Move::ptr tactic( new Move(robots[i], the_world));
+        RefPtr<Move> tactic( new Move(robots[i], the_world));
         the_tactics.push_back(tactic);
     }
     

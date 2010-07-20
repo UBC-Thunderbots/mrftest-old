@@ -50,7 +50,7 @@ namespace {
  */
 class XBeeRobot::IdleState : public XBeeRobot::RobotState {
 	public:
-		static ptr enter(XBeeRobot &bot);
+		static RefPtr<RobotState> enter(XBeeRobot &bot);
 		void enter_raw_mode(XBeeClient *cli);
 		void enter_drive_mode(XBeeClient *cli);
 		void release();
@@ -72,7 +72,7 @@ class XBeeRobot::IdleState : public XBeeRobot::RobotState {
  */
 class XBeeRobot::RawState : public XBeeRobot::RobotState {
 	public:
-		static ptr enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16);
+		static RefPtr<RobotState> enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16);
 		void enter_raw_mode(XBeeClient *cli);
 		void enter_drive_mode(XBeeClient *cli);
 		void release();
@@ -97,7 +97,7 @@ class XBeeRobot::RawState : public XBeeRobot::RobotState {
  */
 class XBeeRobot::Setting16State : public XBeeRobot::RobotState {
 	public:
-		static ptr enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
+		static RefPtr<RobotState> enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
 		void enter_raw_mode(XBeeClient *cli);
 		void enter_drive_mode(XBeeClient *cli);
 		void release();
@@ -125,7 +125,7 @@ class XBeeRobot::Setting16State : public XBeeRobot::RobotState {
  */
 class XBeeRobot::SettingRDOState : public XBeeRobot::RobotState {
 	public:
-		static ptr enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
+		static RefPtr<RobotState> enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
 		void enter_raw_mode(XBeeClient *cli);
 		void enter_drive_mode(XBeeClient *cli);
 		void release();
@@ -154,7 +154,7 @@ class XBeeRobot::SettingRDOState : public XBeeRobot::RobotState {
  */
 class XBeeRobot::AliveState : public XBeeRobot::RobotState {
 	public:
-		static ptr enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
+		static RefPtr<RobotState> enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
 		void enter_raw_mode(XBeeClient *cli);
 		void enter_drive_mode(XBeeClient *cli);
 		void release();
@@ -180,7 +180,7 @@ class XBeeRobot::AliveState : public XBeeRobot::RobotState {
  */
 class XBeeRobot::Releasing16State : public XBeeRobot::RobotState {
 	public:
-		static ptr enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index);
+		static RefPtr<RobotState> enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index);
 		void enter_raw_mode(XBeeClient *cli);
 		void enter_drive_mode(XBeeClient *cli);
 		void release();
@@ -209,7 +209,7 @@ class XBeeRobot::Releasing16State : public XBeeRobot::RobotState {
  */
 class XBeeRobot::BootloadingHighState : public XBeeRobot::RobotState {
 	public:
-		static ptr enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index);
+		static RefPtr<RobotState> enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index);
 		void enter_raw_mode(XBeeClient *cli);
 		void enter_drive_mode(XBeeClient *cli);
 		void release();
@@ -238,7 +238,7 @@ class XBeeRobot::BootloadingHighState : public XBeeRobot::RobotState {
  */
 class XBeeRobot::BootloadingLowState : public XBeeRobot::RobotState {
 	public:
-		static ptr enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index);
+		static RefPtr<RobotState> enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index);
 		void enter_raw_mode(XBeeClient *cli);
 		void enter_drive_mode(XBeeClient *cli);
 		void release();
@@ -270,7 +270,7 @@ class XBeeRobot::BootloadingLowState : public XBeeRobot::RobotState {
  */
 class XBeeRobot::BootloadingLowToSetting16State : public XBeeRobot::RobotState {
 	public:
-		static ptr enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
+		static RefPtr<RobotState> enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
 		void enter_raw_mode(XBeeClient *cli);
 		void enter_drive_mode(XBeeClient *cli);
 		void release();
@@ -296,8 +296,8 @@ class XBeeRobot::BootloadingLowToSetting16State : public XBeeRobot::RobotState {
 
 
 
-XBeeRobot::RobotState::ptr XBeeRobot::IdleState::enter(XBeeRobot &bot) {
-	ptr p(new IdleState(bot));
+RefPtr<XBeeRobot::RobotState> XBeeRobot::IdleState::enter(XBeeRobot &bot) {
+	RefPtr<RobotState> p(new IdleState(bot));
 	return p;
 }
 
@@ -369,8 +369,8 @@ uint8_t XBeeRobot::IdleState::run_data_index() const {
 
 
 
-XBeeRobot::RobotState::ptr XBeeRobot::RawState::enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16) {
-	ptr p(new RawState(bot, claimed_by, address16));
+RefPtr<XBeeRobot::RobotState> XBeeRobot::RawState::enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16) {
+	RefPtr<RobotState> p(new RawState(bot, claimed_by, address16));
 	return p;
 }
 
@@ -419,8 +419,8 @@ uint8_t XBeeRobot::RawState::run_data_index() const {
 
 
 
-XBeeRobot::RobotState::ptr XBeeRobot::Setting16State::enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index) {
-	ptr p(new Setting16State(bot, claimed_by, address16, run_data_index));
+RefPtr<XBeeRobot::RobotState> XBeeRobot::Setting16State::enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index) {
+	RefPtr<RobotState> p(new Setting16State(bot, claimed_by, address16, run_data_index));
 	return p;
 }
 
@@ -482,7 +482,7 @@ void XBeeRobot::Setting16State::queue_request() {
 	packet.value[1] = address16_ & 0xFF;
 
 	// Create a XBeeRequest object, attach a completion callback, and queue it.
-	XBeeRequest::ptr req(XBeeRequest::create(&packet, sizeof(packet), true));
+	RefPtr<XBeeRequest> req(XBeeRequest::create(&packet, sizeof(packet), true));
 	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &NumberAllocator<uint8_t>::free), packet.frame))));
 	req->signal_complete().connect(sigc::mem_fun(this, &XBeeRobot::Setting16State::request_done));
 	bot.daemon.scheduler.queue(req);
@@ -521,8 +521,8 @@ void XBeeRobot::Setting16State::request_done(const void *buffer, std::size_t len
 
 
 
-XBeeRobot::RobotState::ptr XBeeRobot::SettingRDOState::enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index) {
-	ptr p(new SettingRDOState(bot, claimed_by, address16, run_data_index));
+RefPtr<XBeeRobot::RobotState> XBeeRobot::SettingRDOState::enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index) {
+	RefPtr<RobotState> p(new SettingRDOState(bot, claimed_by, address16, run_data_index));
 	return p;
 }
 
@@ -594,7 +594,7 @@ void XBeeRobot::SettingRDOState::queue_request() {
 	packet.value = run_data_index_ * sizeof(XBeePacketTypes::RUN_DATA) + 1;
 
 	// Create a XBeeRequest object, attach a completion callback, and queue it.
-	XBeeRequest::ptr req(XBeeRequest::create(&packet, sizeof(packet), true));
+	RefPtr<XBeeRequest> req(XBeeRequest::create(&packet, sizeof(packet), true));
 	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &NumberAllocator<uint8_t>::free), packet.hdr.frame))));
 	req->signal_complete().connect(sigc::mem_fun(this, &XBeeRobot::SettingRDOState::request_done));
 	bot.daemon.scheduler.queue(req);
@@ -610,8 +610,8 @@ void XBeeRobot::SettingRDOState::request_done(const void *, std::size_t) {
 
 
 
-XBeeRobot::RobotState::ptr XBeeRobot::AliveState::enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index) {
-	ptr p(new AliveState(bot, claimed_by, address16, run_data_index));
+RefPtr<XBeeRobot::RobotState> XBeeRobot::AliveState::enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index) {
+	RefPtr<RobotState> p(new AliveState(bot, claimed_by, address16, run_data_index));
 	return p;
 }
 
@@ -676,8 +676,8 @@ uint8_t XBeeRobot::AliveState::run_data_index() const {
 
 
 
-XBeeRobot::RobotState::ptr XBeeRobot::Releasing16State::enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index) {
-	ptr p(new Releasing16State(bot, address16, run_data_index));
+RefPtr<XBeeRobot::RobotState> XBeeRobot::Releasing16State::enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index) {
+	RefPtr<RobotState> p(new Releasing16State(bot, address16, run_data_index));
 	return p;
 }
 
@@ -738,7 +738,7 @@ void XBeeRobot::Releasing16State::queue_request() {
 	packet.value[1] = 0xFF;
 
 	// Create a XBeeRequest object, attach a completion callback, and queue it.
-	XBeeRequest::ptr req(XBeeRequest::create(&packet, sizeof(packet), true));
+	RefPtr<XBeeRequest> req(XBeeRequest::create(&packet, sizeof(packet), true));
 	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &NumberAllocator<uint8_t>::free), packet.frame))));
 	req->signal_complete().connect(sigc::mem_fun(this, &XBeeRobot::Releasing16State::request_done));
 	bot.daemon.scheduler.queue(req);
@@ -783,8 +783,8 @@ void XBeeRobot::Releasing16State::request_done(const void *buffer, std::size_t l
 
 
 
-XBeeRobot::RobotState::ptr XBeeRobot::BootloadingHighState::enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index) {
-	ptr p(new BootloadingHighState(bot, address16, run_data_index));
+RefPtr<XBeeRobot::RobotState> XBeeRobot::BootloadingHighState::enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index) {
+	RefPtr<RobotState> p(new BootloadingHighState(bot, address16, run_data_index));
 	return p;
 }
 
@@ -843,7 +843,7 @@ void XBeeRobot::BootloadingHighState::queue_request() {
 	packet.value[0] = 5;
 
 	// Create a XBeeRequest object, attach a completion callback, and queue it.
-	XBeeRequest::ptr req(XBeeRequest::create(&packet, sizeof(packet), true));
+	RefPtr<XBeeRequest> req(XBeeRequest::create(&packet, sizeof(packet), true));
 	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &NumberAllocator<uint8_t>::free), packet.frame))));
 	req->signal_complete().connect(sigc::mem_fun(this, &XBeeRobot::BootloadingHighState::request_done));
 	bot.daemon.scheduler.queue(req);
@@ -887,8 +887,8 @@ void XBeeRobot::BootloadingHighState::request_done(const void *buffer, std::size
 
 
 
-XBeeRobot::RobotState::ptr XBeeRobot::BootloadingLowState::enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index) {
-	ptr p(new BootloadingLowState(bot, address16, run_data_index));
+RefPtr<XBeeRobot::RobotState> XBeeRobot::BootloadingLowState::enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index) {
+	RefPtr<RobotState> p(new BootloadingLowState(bot, address16, run_data_index));
 	return p;
 }
 
@@ -947,7 +947,7 @@ void XBeeRobot::BootloadingLowState::queue_request() {
 	packet.value[0] = 4;
 
 	// Create a XBeeRequest object, attach a completion callback, and queue it.
-	XBeeRequest::ptr req(XBeeRequest::create(&packet, sizeof(packet), true));
+	RefPtr<XBeeRequest> req(XBeeRequest::create(&packet, sizeof(packet), true));
 	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &NumberAllocator<uint8_t>::free), packet.frame))));
 	req->signal_complete().connect(sigc::mem_fun(this, &XBeeRobot::BootloadingLowState::request_done));
 	bot.daemon.scheduler.queue(req);
@@ -994,8 +994,8 @@ void XBeeRobot::BootloadingLowState::request_done(const void *buffer, std::size_
 
 
 
-XBeeRobot::RobotState::ptr XBeeRobot::BootloadingLowToSetting16State::enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index) {
-	ptr p(new BootloadingLowToSetting16State(bot, claimed_by, address16, run_data_index));
+RefPtr<XBeeRobot::RobotState> XBeeRobot::BootloadingLowToSetting16State::enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index) {
+	RefPtr<RobotState> p(new BootloadingLowToSetting16State(bot, claimed_by, address16, run_data_index));
 	return p;
 }
 
@@ -1055,7 +1055,7 @@ void XBeeRobot::BootloadingLowToSetting16State::queue_request() {
 	packet.value[0] = 4;
 
 	// Create a XBeeRequest object, attach a completion callback, and queue it.
-	XBeeRequest::ptr req(XBeeRequest::create(&packet, sizeof(packet), true));
+	RefPtr<XBeeRequest> req(XBeeRequest::create(&packet, sizeof(packet), true));
 	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(bot.daemon.frame_number_allocator, &NumberAllocator<uint8_t>::free), packet.frame))));
 	req->signal_complete().connect(sigc::mem_fun(this, &XBeeRobot::BootloadingLowToSetting16State::request_done));
 	bot.daemon.scheduler.queue(req);
@@ -1099,8 +1099,8 @@ void XBeeRobot::BootloadingLowToSetting16State::request_done(const void *buffer,
 
 
 
-XBeeRobot::ptr XBeeRobot::create(uint64_t address64, XBeeDaemon &daemon) {
-	ptr p(new XBeeRobot(address64, daemon));
+RefPtr<XBeeRobot> XBeeRobot::create(uint64_t address64, XBeeDaemon &daemon) {
+	RefPtr<XBeeRobot> p(new XBeeRobot(address64, daemon));
 	return p;
 }
 

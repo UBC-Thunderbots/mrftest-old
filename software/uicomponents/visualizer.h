@@ -2,7 +2,7 @@
 #define UICOMPONENTS_VISUALIZER_H
 
 #include "geom/point.h"
-#include "util/byref.h"
+#include "util/memory.h"
 #include "util/noncopyable.h"
 #include <gtkmm.h>
 
@@ -112,11 +112,6 @@ class Visualizable : public NonCopyable {
 		class Draggable : public ByRef {
 			public:
 				/**
-				 * A pointer to a Draggable.
-				 */
-				typedef Glib::RefPtr<Draggable> ptr;
-
-				/**
 				 * \return true if this object can actually be dragged, or false
 				 * if not
 				 */
@@ -136,11 +131,6 @@ class Visualizable : public NonCopyable {
 		class Ball : public Draggable {
 			public:
 				/**
-				 * A pointer to a Ball.
-				 */
-				typedef Glib::RefPtr<Ball> ptr;
-
-				/**
 				 * \return the position of the ball.
 				 */
 				virtual Point position() const = 0;
@@ -156,11 +146,6 @@ class Visualizable : public NonCopyable {
 		 */
 		class Robot : public Draggable {
 			public:
-				/**
-				 * A pointer to a Robot.
-				 */
-				typedef Glib::RefPtr<Robot> ptr;
-
 				/**
 				 * \return The position of the Robot
 				 */
@@ -212,7 +197,7 @@ class Visualizable : public NonCopyable {
 		/**
 		 * \return The ball
 		 */
-		virtual Visualizable::Ball::ptr ball() const = 0;
+		virtual RefPtr<Visualizable::Ball> ball() const = 0;
 
 		/**
 		 * \return The number of robots.
@@ -224,7 +209,7 @@ class Visualizable : public NonCopyable {
 		 *
 		 * \return The Robot
 		 */
-		virtual Visualizable::Robot::ptr operator[](unsigned int index) const = 0;
+		virtual RefPtr<Visualizable::Robot> operator[](unsigned int index) const = 0;
 };
 
 /**
@@ -260,8 +245,8 @@ class Visualizer : public Gtk::DrawingArea, public NonCopyable {
 		double scale;
 		double xtranslate, ytranslate;
 		sigc::connection update_connection;
-		Visualizable::Draggable::ptr dragging;
-		Visualizable::Draggable::ptr veldragging;
+		RefPtr<Visualizable::Draggable> dragging;
+		RefPtr<Visualizable::Draggable> veldragging;
 		Cairo::RefPtr<Cairo::ImageSurface> overlay_;
 
 		void on_show();
@@ -282,7 +267,7 @@ class Visualizer : public Gtk::DrawingArea, public NonCopyable {
 		double ytow(double y) __attribute__((warn_unused_result)) { return -(y - ytranslate) / scale; }
 		double atow(double r) __attribute__((warn_unused_result)) { return -r; }
 		double dtow(double d) __attribute__((warn_unused_result)) { return d / scale; }
-		Visualizable::Draggable::ptr object_at(const Point &pos) const;
+		RefPtr<Visualizable::Draggable> object_at(const Point &pos) const;
 };
 
 #endif

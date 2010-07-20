@@ -14,7 +14,6 @@ namespace {
 
 	class PassState : public Player::State {
 		public:
-			typedef Glib::RefPtr<PassState> ptr;
 			PassState(bool is_passer):passer(is_passer){
 			}
 			bool passer;
@@ -23,16 +22,16 @@ namespace {
 }
 */
 
-Pass::Pass(Player::ptr player, World::ptr world, Player::ptr receiver) : Tactic(player), the_world(world), the_receiver(receiver) {
+Pass::Pass(RefPtr<Player> player, RefPtr<World> world, RefPtr<Player> receiver) : Tactic(player), the_world(world), the_receiver(receiver) {
 	//world
 	/*
-	PassState::ptr state = PassState::ptr(new PassState(false));
-	std::vector<Player::ptr> team =  world->friendly.get_players();
-	std::vector<Player::ptr>::iterator team_iterator;
+	RefPtr<PassState> state = RefPtr<PassState>(new PassState(false));
+	std::vector<RefPtr<Player> > team =  world->friendly.get_players();
+	std::vector<RefPtr<Player> >::iterator team_iterator;
 	for(team_iterator = team.begin(); team_iterator < team.end(); team_iterator++){
 		(*team_iterator)->set_state(typeid(*this), state);
 	}
-	player->set_state(typeid(*this), PassState::ptr(new PassState(false)));
+	player->set_state(typeid(*this), PassRefPtr<State>(new PassState(false)));
 	*/
 }
 

@@ -7,11 +7,11 @@
 
 class TesterControlMatrixDrive : public Gtk::Table, public Zeroable {
 	public:
-		TesterControlMatrixDrive(XBeeDriveBot::ptr);
+		TesterControlMatrixDrive(RefPtr<XBeeDriveBot>);
 		void zero();
 
 	private:
-		XBeeDriveBot::ptr robot;
+		RefPtr<XBeeDriveBot> robot;
 
 		Gtk::Label drive1_label;
 		Gtk::Label drive2_label;

@@ -12,26 +12,26 @@
 namespace {
 	class TestPassStrategy : public Strategy {
 		public:
-			TestPassStrategy(World::ptr world);
+			TestPassStrategy(RefPtr<World> world);
 			void tick();
 			StrategyFactory &get_factory();
 			Gtk::Widget *get_ui_controls();
 		private:
-			const World::ptr the_world;
+			const RefPtr<World> the_world;
 	};
 
-	TestPassStrategy::TestPassStrategy(World::ptr world) : the_world(world) {
+	TestPassStrategy::TestPassStrategy(RefPtr<World> world) : the_world(world) {
 
 	}
 
 	void TestPassStrategy::tick() {
 		const FriendlyTeam &the_team(the_world->friendly);
-		const Ball::ptr the_ball(the_world->ball());
+		const RefPtr<Ball> the_ball(the_world->ball());
 
 		if (the_team.size() != 2) return;
 
 		// player 0 is the receiver
-		const Player::ptr receiver = the_team.get_player(1);
+		const RefPtr<Player> receiver = the_team.get_player(1);
 		Move move_tactic(receiver, the_world);
 		move_tactic.set_position(Point(0.0, 0.0));
 		move_tactic.tick();
@@ -53,7 +53,7 @@ namespace {
 			kick_tactic.tick();
 		}
 
-		const Player::ptr passer = the_team.get_player(0);
+		const RefPtr<Player> passer = the_team.get_player(0);
 //		std::cout << passer->est_velocity() << std::endl;
 		if (AIUtil::has_ball(the_world, passer)) {
 			std::cout << "strategy: passer has ball" << std::endl;
@@ -77,14 +77,14 @@ namespace {
 	class TestPassStrategyFactory : public StrategyFactory {
 		public:
 			TestPassStrategyFactory();
-			Strategy::ptr create_strategy(World::ptr world);
+			RefPtr<Strategy2> create_strategy(RefPtr<World> world);
 	};
 
 	TestPassStrategyFactory::TestPassStrategyFactory() : StrategyFactory("Test(Pass) Strategy") {
 	}
 
-	Strategy::ptr TestPassStrategyFactory::create_strategy(World::ptr world) {
-		Strategy::ptr s(new TestPassStrategy(world));
+	RefPtr<Strategy2> TestPassStrategyFactory::create_strategy(RefPtr<World> world) {
+		RefPtr<Strategy2> s(new TestPassStrategy(world));
 		return s;
 	}
 

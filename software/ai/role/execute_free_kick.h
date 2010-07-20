@@ -10,16 +10,14 @@
 class ExecuteIndirectFreeKick : public Role {
 	public:
 
-		typedef Glib::RefPtr<ExecuteIndirectFreeKick> ptr;
-
-		ExecuteIndirectFreeKick(World::ptr world);
+		ExecuteIndirectFreeKick(RefPtr<World> world);
 
 		void tick();
 
 		void robots_changed();
 
 	private:
-		const World::ptr the_world;
+		const RefPtr<World> the_world;
 };
 
 /**
@@ -29,16 +27,14 @@ class ExecuteIndirectFreeKick : public Role {
 class ExecuteDirectFreeKick : public Role {
 	public:
 
-		typedef Glib::RefPtr<ExecuteDirectFreeKick> ptr;
-
-		ExecuteDirectFreeKick(World::ptr world);
+		ExecuteDirectFreeKick(RefPtr<World> world);
 
 		void tick();
 
 		void robots_changed();
 
 	private:
-		const World::ptr the_world;
+		const RefPtr<World> the_world;
 };
 
 #endif

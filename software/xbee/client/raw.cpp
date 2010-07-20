@@ -7,7 +7,7 @@
 XBeeRawBot::XBeeRawBot(uint64_t address, XBeeLowLevel &ll) : address(address), ll(ll), address16_(0) {
 	ll.signal_receive16.connect(sigc::mem_fun(this, &XBeeRawBot::on_receive16));
 	ll.signal_meta.connect(sigc::mem_fun(this, &XBeeRawBot::on_meta));
-	XBeePacket::ptr pkt(MetaClaimPacket::create(address, false));
+	RefPtr<XBeePacket> pkt(MetaClaimPacket::create(address, false));
 	ll.send(pkt);
 }
 
@@ -15,7 +15,7 @@ XBeeRawBot::~XBeeRawBot() {
 	ll.send(MetaReleasePacket::create(address));
 }
 
-void XBeeRawBot::send(XBeePacket::ptr p) {
+void XBeeRawBot::send(RefPtr<XBeePacket> p) {
 	ll.send(p);
 }
 

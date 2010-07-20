@@ -1,6 +1,6 @@
 #include "ai/role/prepare_penalty_friendly.h"
 
-PreparePenaltyFriendly::PreparePenaltyFriendly(World::ptr world) : the_world(world) {
+PreparePenaltyFriendly::PreparePenaltyFriendly(RefPtr<World> world) : the_world(world) {
 	const Field& the_field(world->field());
 
 	// Let the first robot to be always the shooter
@@ -25,7 +25,7 @@ void PreparePenaltyFriendly::robots_changed() {
 	the_tactics.clear();
 
 	for (unsigned int i = 0; i < robots.size(); ++i) {
-		Move::ptr tactic(new Move(robots[i], the_world));
+		RefPtr<Move> tactic(new Move(robots[i], the_world));
 		the_tactics.push_back(tactic);
 
 		// if shooter

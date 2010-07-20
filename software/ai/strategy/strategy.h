@@ -2,7 +2,7 @@
 #define AI_STRATEGY_H
 
 #include "ai/world/world.h"
-#include "util/byref.h"
+#include "util/memory.h"
 #include "util/registerable.h"
 #include <cairomm/cairomm.h>
 #include <glibmm.h>
@@ -18,7 +18,7 @@ namespace AIStrategy {
 	 */
 	class CmpPlayerGoalie {
 		public:
-		bool operator()(const Player::ptr& a, const Player::ptr& b) const {
+		bool operator()(const RefPtr<Player>& a, const RefPtr<Player>& b) const {
 			if (a->chicker_ready_time() == Player::CHICKER_FOREVER) {
 				if (b->chicker_ready_time() != Player::CHICKER_FOREVER) return true;
 				return a->name < b->name;
@@ -33,7 +33,7 @@ namespace AIStrategy {
 	 */
 	class CmpPlayerChicker {
 		public:
-			bool operator()(const Player::ptr& a, const Player::ptr& b) const {
+			bool operator()(const RefPtr<Player>& a, const RefPtr<Player>& b) const {
 				if (a->chicker_ready_time() == b->chicker_ready_time()) return a->name < b->name;
 				return a->name < b->name;
 			}
@@ -47,11 +47,6 @@ namespace AIStrategy {
  */
 class Strategy2 : public ByRef, public sigc::trackable {
 	public:
-		/**
-		 * A pointer to a Strategy.
-		 */
-		typedef Glib::RefPtr<Strategy2> ptr;
-
 		/**
 		 * Runs the Strategy for one time tick. It is expected that the Strategy
 		 * will examine the team for which it is responsible, determine if any
@@ -111,7 +106,7 @@ class StrategyFactory : public Registerable<StrategyFactory> {
 		 *
 		 * \return The new Strategy
 		 */
-		virtual Strategy::ptr create_strategy(World::ptr world) = 0;
+		virtual RefPtr<Strategy2> create_strategy(RefPtr<World> world) = 0;
 
 	protected:
 		/**

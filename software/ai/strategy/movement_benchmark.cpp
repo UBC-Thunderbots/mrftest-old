@@ -18,14 +18,14 @@ namespace {
 	class MovementBenchmarkFactory : public StrategyFactory {
 		public:
 			MovementBenchmarkFactory();
-			Strategy::ptr create_strategy(World::ptr world);
+			RefPtr<Strategy2> create_strategy(RefPtr<World> world);
 	};
 
 	MovementBenchmarkFactory::MovementBenchmarkFactory() : StrategyFactory("Movement Benchmark (Obselete)") {
 	}
 
-	Strategy::ptr MovementBenchmarkFactory::create_strategy(World::ptr world) {
-		Strategy::ptr s(new MovementBenchmark(world));
+	RefPtr<Strategy2> MovementBenchmarkFactory::create_strategy(RefPtr<World> world) {
+		RefPtr<Strategy2> s(new MovementBenchmark(world));
 		return s;
 	}
 
@@ -100,7 +100,7 @@ namespace {
 
 }
 
-MovementBenchmark::MovementBenchmark(World::ptr world) : the_world(world), tasks(default_tasks, default_tasks + default_tasks_n), done(0), prev_pos(0.0, 0.0), prev_ori(0), reset_button("Reset") {
+MovementBenchmark::MovementBenchmark(RefPtr<World> world) : the_world(world), tasks(default_tasks, default_tasks + default_tasks_n), done(0), prev_pos(0.0, 0.0), prev_ori(0), reset_button("Reset") {
 	time_steps = 0;
 	done = tasks.size();
 	pos_dis_threshold = 0.2;
@@ -157,7 +157,7 @@ Gtk::Widget *MovementBenchmark::get_ui_controls() {
 	return &reset_button;
 }
 
-void MovementBenchmark::robot_removed(unsigned int index, Player::ptr r){
+void MovementBenchmark::robot_removed(unsigned int index, RefPtr<Player> r){
 }
 
 StrategyFactory &MovementBenchmark::get_factory() {

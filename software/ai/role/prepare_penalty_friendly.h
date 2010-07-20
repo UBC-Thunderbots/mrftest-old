@@ -11,14 +11,9 @@
 class PreparePenaltyFriendly : public Role {
 	public:
 		//
-		// A pointer to a PreparePenaltyFriendly Role.
-		//
-		typedef Glib::RefPtr<PreparePenaltyFriendly> ptr;
-
-		//
 		// Constructs a new PreparePenaltyFriendly Role.
 		//
-		PreparePenaltyFriendly(World::ptr world);
+		PreparePenaltyFriendly(RefPtr<World> world);
 
 		//
 		// Runs the AI for one time tick.
@@ -31,7 +26,7 @@ class PreparePenaltyFriendly : public Role {
 		void robots_changed();
 
 	protected:
-		const World::ptr the_world;
+		const RefPtr<World> the_world;
 
 		/**
 		 * The distance between the penalty mark and the mid point of the two goal posts as described in the rules.
@@ -44,7 +39,7 @@ class PreparePenaltyFriendly : public Role {
 		const static double RESTRICTED_ZONE_LENGTH = 0.85;
 
 	private:
-		std::vector<Move::ptr> the_tactics;
+		std::vector<RefPtr<Move> > the_tactics;
 
 		/**
 		 * Maximum number of robots that can be assigned to this Role.

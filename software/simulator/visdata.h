@@ -19,9 +19,9 @@ class SimulatorVisData : public Visualizable {
 		SimulatorVisData(const Simulator &sim);
 
 		const Visualizable::Field &field() const;
-		Visualizable::Ball::ptr ball() const;
+		RefPtr<Visualizable::Ball> ball() const;
 		std::size_t size() const;
-		Visualizable::Robot::ptr operator[](unsigned int index) const;
+		RefPtr<Visualizable::Robot> operator[](unsigned int index) const;
 
 	private:
 		class SimulatorVisField : public Visualizable::Field {
@@ -39,7 +39,7 @@ class SimulatorVisData : public Visualizable {
 
 		const Simulator &sim;
 		SimulatorVisField fld;
-		std::vector<Visualizable::Robot::ptr> robots;
+		std::vector<RefPtr<Visualizable::Robot> > robots;
 
 		void init();
 

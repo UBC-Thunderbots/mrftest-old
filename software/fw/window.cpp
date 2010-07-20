@@ -88,7 +88,7 @@ void FirmwareWindow::start_upload() {
 	if (!address) {
 		return;
 	}
-	const XBeeRawBot::ptr bot(XBeeRawBot::create(address, modem));
+	const RefPtr<XBeeRawBot> bot(XBeeRawBot::create(address, modem));
 	Claim cl(bot);
 
 	Glib::Timer timer;
@@ -139,7 +139,7 @@ void FirmwareWindow::start_emergency_erase() {
 		if (!address) {
 			return;
 		}
-		const XBeeRawBot::ptr bot(XBeeRawBot::create(address, modem));
+		const RefPtr<XBeeRawBot> bot(XBeeRawBot::create(address, modem));
 		Claim cl(bot);
 		EmergencyErase ee(bot);
 		WatchablePair p(cl, ee, 0.5);

@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-PenaltyEnemy::PenaltyEnemy(World::ptr world) : the_world(world) {
+PenaltyEnemy::PenaltyEnemy(RefPtr<World> world) : the_world(world) {
 	const Field& the_field(the_world->field());
 
 	standing_positions[0] = Point(-0.5 * the_field.length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 5 * Robot::MAX_RADIUS);
@@ -26,7 +26,7 @@ void PenaltyEnemy::tick() {
 void PenaltyEnemy::robots_changed() {
 }
 
-PenaltyGoalie::PenaltyGoalie(World::ptr world) : the_world(world) {
+PenaltyGoalie::PenaltyGoalie(RefPtr<World> world) : the_world(world) {
 }
 
 void PenaltyGoalie::tick() {

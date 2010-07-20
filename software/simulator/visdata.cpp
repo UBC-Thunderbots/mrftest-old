@@ -6,7 +6,7 @@ SimulatorVisData::SimulatorVisData(const Simulator &sim) : sim(sim) {
 }
 
 void SimulatorVisData::init() {
-	for (std::unordered_map<uint64_t, SimulatorRobot::ptr>::const_iterator i = sim.robots().begin(), iend = sim.robots().end(); i != iend; ++i) {
+	for (std::unordered_map<uint64_t, RefPtr<SimulatorRobot> >::const_iterator i = sim.robots().begin(), iend = sim.robots().end(); i != iend; ++i) {
 		robots.push_back(i->second);
 	}
 }
@@ -15,7 +15,7 @@ const class Visualizable::Field &SimulatorVisData::field() const {
 	return fld;
 }
 
-Visualizable::Ball::ptr SimulatorVisData::ball() const {
+RefPtr<Visualizable::Ball> SimulatorVisData::ball() const {
 	return sim.ball();
 }
 
@@ -23,7 +23,7 @@ std::size_t SimulatorVisData::size() const {
 	return robots.size();
 }
 
-Visualizable::Robot::ptr SimulatorVisData::operator[](unsigned int index) const {
+RefPtr<Visualizable::Robot> SimulatorVisData::operator[](unsigned int index) const {
 	return robots[index];
 }
 

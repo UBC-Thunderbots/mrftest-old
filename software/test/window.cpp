@@ -88,7 +88,7 @@ void TesterWindow::on_claim_toggled() {
 	} else {
 		drive_chooser.set_active_text("Halt");
 		bot_chooser.set_sensitive(true);
-		feedback.set_bot(XBeeDriveBot::ptr());
+		feedback.set_bot(RefPtr<XBeeDriveBot>());
 		drive_chooser.set_sensitive(false);
 		dribble_scale.set_sensitive(false);
 		chicker_enabled.set_sensitive(false);

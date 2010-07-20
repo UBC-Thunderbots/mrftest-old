@@ -1,8 +1,8 @@
 #ifndef ROBOT_CONTROLLER_JOYSTICK_JOYSTICK_H
 #define ROBOT_CONTROLLER_JOYSTICK_JOYSTICK_H
 
-#include "util/byref.h"
 #include "util/fd.h"
+#include "util/memory.h"
 #include <glibmm.h>
 
 //
@@ -11,15 +11,10 @@
 class Joystick : public ByRef, public sigc::trackable {
 	public:
 		//
-		// A pointer to a Joystick.
-		//
-		typedef Glib::RefPtr<Joystick> ptr;
-
-		//
 		// Opens a joystick.
 		//
-		static ptr create(const Glib::ustring &filename) {
-			ptr p(new Joystick(filename));
+		static RefPtr<Joystick> create(const Glib::ustring &filename) {
+			RefPtr<Joystick> p(new Joystick(filename));
 			return p;
 		}
 

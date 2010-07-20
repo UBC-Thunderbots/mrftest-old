@@ -25,7 +25,7 @@ namespace {
 	 */
 	class CowardlyStrategy : public BasicStrategy {
 		public:
-			CowardlyStrategy(World::ptr w);
+			CowardlyStrategy(RefPtr<World> w);
 
 			StrategyFactory &get_factory();
 			Gtk::Widget *get_ui_controls();
@@ -34,26 +34,26 @@ namespace {
 
 			void in_play_assignment();
 
-			Player::ptr minus_one_assignment();
+			RefPtr<Player> minus_one_assignment();
 	};
 
 	class CowardlyStrategyFactory : public StrategyFactory {
 		public:
 			CowardlyStrategyFactory();
-			Strategy::ptr create_strategy(World::ptr world);
+			RefPtr<Strategy2> create_strategy(RefPtr<World> world);
 	};
 
 	CowardlyStrategyFactory::CowardlyStrategyFactory() : StrategyFactory("Cowardly Strategy") {
 	}
 
-	Strategy::ptr CowardlyStrategyFactory::create_strategy(World::ptr world) {
-		Strategy::ptr s(new CowardlyStrategy(world));
+	RefPtr<Strategy2> CowardlyStrategyFactory::create_strategy(RefPtr<World> world) {
+		RefPtr<Strategy2> s(new CowardlyStrategy(world));
 		return s;
 	}
 
 	CowardlyStrategyFactory factory;
 
-	CowardlyStrategy::CowardlyStrategy(World::ptr w) : BasicStrategy(w) {
+	CowardlyStrategy::CowardlyStrategy(RefPtr<World> w) : BasicStrategy(w) {
 	}
 
 	Gtk::Widget *CowardlyStrategy::get_ui_controls() {
@@ -68,12 +68,12 @@ namespace {
 		roles.clear();
 		if (the_team.size() == 0) return;
 
-		Defensive2::ptr defensive_role(new Defensive2(the_world));
-		Offensive::ptr offensive_role(new Offensive(the_world));
-		roles.push_back(Role::ptr(defensive_role));
-		roles.push_back(Role::ptr(offensive_role));
-		std::vector<Player::ptr> defenders;
-		std::vector<Player::ptr> offenders;
+		RefPtr<Defensive2> defensive_role(new Defensive2(the_world));
+		RefPtr<Offensive> offensive_role(new Offensive(the_world));
+		roles.push_back(RefPtr<Role>(defensive_role));
+		roles.push_back(RefPtr<Role>(offensive_role));
+		std::vector<RefPtr<Player> > defenders;
+		std::vector<RefPtr<Player> > offenders;
 
 		defenders.push_back(the_team.get_player(0));
 
@@ -102,25 +102,25 @@ namespace {
 		offensive_role->set_robots(offenders);
 	}
 
-	Player::ptr CowardlyStrategy::minus_one_assignment() {
+	RefPtr<Player> CowardlyStrategy::minus_one_assignment() {
 
 		// TODO: SORT
 
 		const FriendlyTeam &the_team(the_world->friendly);
 
 		roles.clear();
-		if (the_team.size() == 0) return Player::ptr();
+		if (the_team.size() == 0) return RefPtr<Player>();
 
 		if (the_team.size() == 1) return the_team.get_player(0);
 
 		// other players just sort by distance
 
-		Defensive2::ptr defensive_role(new Defensive2(the_world));
-		Offensive::ptr offensive_role(new Offensive(the_world));
-		roles.push_back(Role::ptr(defensive_role));
-		roles.push_back(Role::ptr(offensive_role));
-		std::vector<Player::ptr> defenders;
-		std::vector<Player::ptr> offenders;
+		RefPtr<Defensive2> defensive_role(new Defensive2(the_world));
+		RefPtr<Offensive> offensive_role(new Offensive(the_world));
+		roles.push_back(RefPtr<Role>(defensive_role));
+		roles.push_back(RefPtr<Role>(offensive_role));
+		std::vector<RefPtr<Player> > defenders;
+		std::vector<RefPtr<Player> > offenders;
 
 		defenders.push_back(the_team.get_player(0));
 		if (the_team.size() >= 3)

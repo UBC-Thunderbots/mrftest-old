@@ -11,14 +11,9 @@
 class PreparePenaltyEnemy : public Role {
 	public:
 		//
-		// A pointer to a PreparePenaltyEnemy Role.
-		//
-		typedef Glib::RefPtr<PreparePenaltyEnemy> ptr;
-
-		//
 		// Constructs a new PreparePenaltyEnemy Role.
 		//
-		PreparePenaltyEnemy(World::ptr world);
+		PreparePenaltyEnemy(RefPtr<World> world);
 
 		//
 		// Runs the AI for one time tick.
@@ -31,7 +26,7 @@ class PreparePenaltyEnemy : public Role {
 		void robots_changed();
 
 	protected:
-		const World::ptr the_world;
+		const RefPtr<World> the_world;
 
 	private:
 		/**
@@ -42,7 +37,7 @@ class PreparePenaltyEnemy : public Role {
 		/**
 		* The tactics to be executed to move the robots.
 		*/
-		std::vector<Move::ptr> the_tactics;
+		std::vector<RefPtr<Move> > the_tactics;
 
 		/**
 		* Maximum number of positions that can be assigned for this Role.

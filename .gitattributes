@@ -282,7 +282,6 @@ software/uicomponents/success_meter.h -text
 software/uicomponents/visualizer.cpp -text
 software/uicomponents/visualizer.h -text
 software/util/algorithm.h -text
-software/util/byref.h -text
 software/util/clocksource.h -text
 software/util/clocksource_quick.cpp -text
 software/util/clocksource_quick.h -text
@@ -302,14 +301,16 @@ software/util/hungarian.h -text
 software/util/ihex.cpp -text
 software/util/ihex.h -text
 software/util/matrix.h -text
+software/util/memory.cpp -text
+software/util/memory.h -text
 software/util/misc.cpp -text
 software/util/misc.h -text
+software/util/noncopyable.cpp -text
 software/util/noncopyable.h -text
 software/util/registerable.h -text
 software/util/rle.cpp -text
 software/util/rle.h -text
 software/util/rwlock.h -text
-software/util/scoped_ptr.h -text
 software/util/shm.cpp -text
 software/util/shm.h -text
 software/util/sockaddrs.cpp -text

@@ -20,7 +20,7 @@ class TesterWindow : public Gtk::Window {
 	private:
 		XBeeLowLevel &modem;
 		const Config &conf;
-		XBeeDriveBot::ptr bot;
+		RefPtr<XBeeDriveBot> bot;
 
 		Gtk::VBox vbox;
 

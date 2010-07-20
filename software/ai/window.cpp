@@ -52,17 +52,17 @@ namespace {
 			 *
 			 * \return the new model.
 			 */
-			static Glib::RefPtr<RobotInfoModel> create(const Config &conf, const std::vector<XBeeDriveBot::ptr> &bots, const FriendlyTeam &friendly) {
+			static Glib::RefPtr<RobotInfoModel> create(const Config &conf, const std::vector<RefPtr<XBeeDriveBot> > &bots, const FriendlyTeam &friendly) {
 				Glib::RefPtr<RobotInfoModel> mdl(new RobotInfoModel(conf, bots, friendly));
 				return mdl;
 			}
 
 		private:
 			const Config &conf;
-			std::vector<XBeeDriveBot::ptr> bots;
+			std::vector<RefPtr<XBeeDriveBot> > bots;
 			std::vector<bool> visible;
 
-			RobotInfoModel(const Config &conf, const std::vector<XBeeDriveBot::ptr> &bots, const FriendlyTeam &friendly) : Glib::ObjectBase(typeid(RobotInfoModel)), conf(conf), bots(bots), visible(bots.size(), false) {
+			RobotInfoModel(const Config &conf, const std::vector<RefPtr<XBeeDriveBot> > &bots, const FriendlyTeam &friendly) : Glib::ObjectBase(typeid(RobotInfoModel)), conf(conf), bots(bots), visible(bots.size(), false) {
 				alm_column_record.add(name_column);
 				alm_column_record.add(radio_column);
 				alm_column_record.add(visible_column);
@@ -82,7 +82,7 @@ namespace {
 				friendly.signal_player_removed.connect(sigc::mem_fun(this, &RobotInfoModel::on_player_removed));
 			}
 
-			void on_player_added(unsigned int, Player::ptr plr) {
+			void on_player_added(unsigned int, RefPtr<Player> plr) {
 				for (unsigned int i = 0; i < bots.size(); ++i) {
 					if (bots[i] && bots[i]->address == plr->address()) {
 						visible[i] = true;
@@ -91,7 +91,7 @@ namespace {
 				}
 			}
 
-			void on_player_removed(unsigned int, Player::ptr plr) {
+			void on_player_removed(unsigned int, RefPtr<Player> plr) {
 				for (unsigned int i = 0; i < bots.size(); ++i) {
 					if (bots[i] && bots[i]->address == plr->address()) {
 						visible[i] = false;
@@ -263,7 +263,7 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), strategy_controls(0), rc_con
 	for (StrategyFactory::map_type::const_iterator i = StrategyFactory::all().begin(), iend = StrategyFactory::all().end(); i != iend; ++i) {
 		strategy_chooser.append_text(i->second->name);
 	}
-	const Strategy::ptr strategy(ai.get_strategy());
+	const RefPtr<Strategy2> strategy(ai.get_strategy());
 	if (strategy) {
 		strategy_chooser.set_active_text(strategy->get_factory().name);
 	} else {
@@ -357,7 +357,7 @@ void AIWindow::on_strategy_changed() {
 	if (i != StrategyFactory::all().end()) {
 		ai.set_strategy(i->second->create_strategy(ai.world));
 	} else {
-		ai.set_strategy(Strategy::ptr());
+		ai.set_strategy(RefPtr<Strategy2>());
 	}
 	put_strategy_controls();
 }
@@ -378,7 +378,7 @@ void AIWindow::put_strategy_controls() {
 		strategy_controls = 0;
 	}
 
-	const Strategy::ptr strat(ai.get_strategy());
+	const RefPtr<Strategy2> strat(ai.get_strategy());
 	if (strat) {
 		strategy_controls = strat->get_ui_controls();
 		if (!strategy_controls) {

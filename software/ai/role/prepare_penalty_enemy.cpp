@@ -1,6 +1,6 @@
 #include "ai/role/prepare_penalty_enemy.h"
 
-PreparePenaltyEnemy::PreparePenaltyEnemy(World::ptr world) : the_world(world) {
+PreparePenaltyEnemy::PreparePenaltyEnemy(RefPtr<World> world) : the_world(world) {
 	const Field& the_field(the_world->field());
 
 	standing_positions[0] = Point(-0.5 * the_field.length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 5 * Robot::MAX_RADIUS);
@@ -22,7 +22,7 @@ void PreparePenaltyEnemy::robots_changed() {
 
 	for (unsigned int i = 0; i < robots.size(); ++i) {
 		if (i < NUM_POSITIONS) {
-			Move::ptr tactic(new Move(robots[i], the_world));
+			RefPtr<Move> tactic(new Move(robots[i], the_world));
 			tactic->set_position(standing_positions[i]);	
 			the_tactics.push_back(tactic);
 		}

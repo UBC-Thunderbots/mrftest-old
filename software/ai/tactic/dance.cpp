@@ -1,6 +1,6 @@
 #include "ai/tactic/dance.h"
 
-Dance::Dance(Player::ptr player) : Tactic(player) {
+Dance::Dance(RefPtr<Player> player) : Tactic(player) {
     ticks = 0;
 }
 

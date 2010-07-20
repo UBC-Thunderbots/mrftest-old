@@ -22,7 +22,7 @@
 class Defensive3 {
 	public:
 
-		Defensive3(const World::ptr world);
+		Defensive3(const RefPtr<World> world);
 
 		void tick();
 
@@ -31,15 +31,15 @@ class Defensive3 {
 		 * The first player added will become a goalie.
 		 * To override, please use set_goalie.
 		 */
-		void add_player(Player::ptr player);
+		void add_player(RefPtr<Player> player);
 
 		/**
 		 * WARNING! Used only after a player goes missing.
 		 * Please use pop_player() if possible.
 		 */
-		void remove_player(Player::ptr player);
+		void remove_player(RefPtr<Player> player);
 
-		bool has_player(Player::ptr player) const {
+		bool has_player(RefPtr<Player> player) const {
 			return players.find(player) != players.end();
 		}
 
@@ -55,7 +55,7 @@ class Defensive3 {
 		 * Calling this function implies adding the player to this role,
 		 * if not already so.
 		 */
-		void set_goalie(Player::ptr player);
+		void set_goalie(RefPtr<Player> player);
 
 		/**
 		 * Chooses and removes one player from this role.
@@ -63,7 +63,7 @@ class Defensive3 {
 		 *
 		 * \return a suitable player, or null if this role has nobody.
 		 */
-		Player::ptr pop_player();
+		RefPtr<Player> pop_player();
 
 		/**
 		 * Makes a player go after the ball.
@@ -71,7 +71,7 @@ class Defensive3 {
 		 * The behaviour of this function is to be determined in the near future.
 		 * Q: What if you don't want anybody from this role to go after the ball?
 		 */
-		void set_chaser(Player::ptr player);
+		void set_chaser(RefPtr<Player> player);
 
 	protected:
 
@@ -82,16 +82,16 @@ class Defensive3 {
 		 */
 		void calc_block_positions();
 
-		const World::ptr world;
+		const RefPtr<World> world;
 
-		std::set<Player::ptr> players;
+		std::set<RefPtr<Player> > players;
 
 		Point goalie_position;
 
 		/// Ordered by importance.
 		std::vector<Point> defender_positions;
 
-		Player::ptr goalie;
+		RefPtr<Player> goalie;
 
 		/// Should goalie defend the top part of the net?
 		bool goalie_guard_top;

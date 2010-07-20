@@ -11,7 +11,7 @@
 namespace {
 	const Glib::ustring DEFAULT_ENGINE("Open Dynamics Engine Simulator");
 
-	SimulatorEngine::ptr create_engine(const Glib::ustring &name) {
+	RefPtr<SimulatorEngine> create_engine(const Glib::ustring &name) {
 		const SimulatorEngineFactory::map_type &m = SimulatorEngineFactory::all();
 		if (name.size()) {
 			SimulatorEngineFactory::map_type::const_iterator i = m.find(name.collate_key());
@@ -22,7 +22,7 @@ namespace {
 				for (SimulatorEngineFactory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 					std::cerr << i->second->name << '\n';
 				}
-				return SimulatorEngine::ptr();
+				return RefPtr<SimulatorEngine>();
 			}
 		} else {
 			Gtk::Dialog dlg("Thunderbots Simulator", true);
@@ -39,7 +39,7 @@ namespace {
 			dlg.show_all();
 			const int resp = dlg.run();
 			if (resp != Gtk::RESPONSE_OK) {
-				return SimulatorEngine::ptr();
+				return RefPtr<SimulatorEngine>();
 			}
 			return create_engine(combo.get_active_text());
 		}
@@ -66,7 +66,7 @@ namespace {
 			return 1;
 		}
 		Config conf;
-		SimulatorEngine::ptr engine(create_engine(engine_name));
+		RefPtr<SimulatorEngine> engine(create_engine(engine_name));
 		if (engine) {
 			TimerFDClockSource clk((UINT64_C(1000000000) + TIMESTEPS_PER_SECOND / 2) / TIMESTEPS_PER_SECOND);
 			Simulator sim(conf, engine, clk);

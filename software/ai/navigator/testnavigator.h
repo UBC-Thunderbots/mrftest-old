@@ -8,15 +8,15 @@
 
 class TestNavigator : public NonCopyable {
  public:
-  TestNavigator(Player::ptr player, World::ptr world);
+  TestNavigator(RefPtr<Player> player, RefPtr<World> world);
   void tick();
   void set_point(const Point& destination);
  private:
   Point clip_point(Point p, Point bound1, Point bound2);
   bool check_vector(Point start, Point dest, Point direction);
 
-  const Player::ptr the_player;
-  const World::ptr the_world;
+  const RefPtr<Player> the_player;
+  const RefPtr<World> the_world;
   bool destInitialized;//has a destination been specified?
   Point currDest;//current destination
   float outOfBoundsMargin;//distance to remain from sidelines to prevent from going oob

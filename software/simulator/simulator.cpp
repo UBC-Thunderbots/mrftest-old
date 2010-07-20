@@ -29,7 +29,7 @@ namespace {
 	const unsigned int DELAY = 10;
 }
 
-Simulator::Simulator(const Config &conf, SimulatorEngine::ptr engine, ClockSource &clk) : conf(conf), engine(engine), host_address16(0xFFFF), sock(AF_INET, SOCK_DGRAM, IPPROTO_UDP), visdata(*this) {
+Simulator::Simulator(const Config &conf, RefPtr<SimulatorEngine> engine, ClockSource &clk) : conf(conf), engine(engine), host_address16(0xFFFF), sock(AF_INET, SOCK_DGRAM, IPPROTO_UDP), visdata(*this) {
 	frame_counters[0] = frame_counters[1] = 0;
 	int one = 1;
 	if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &one, sizeof(one)) < 0) {
@@ -44,13 +44,13 @@ Simulator::Simulator(const Config &conf, SimulatorEngine::ptr engine, ClockSourc
 	Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &Simulator::tick_geometry), 1);
 }
 
-SimulatorRobot::ptr Simulator::find_by16(uint16_t addr) const {
-	for (std::unordered_map<uint64_t, SimulatorRobot::ptr>::const_iterator i = robots_.begin(), iend = robots_.end(); i != iend; ++i) {
+RefPtr<SimulatorRobot> Simulator::find_by16(uint16_t addr) const {
+	for (std::unordered_map<uint64_t, RefPtr<SimulatorRobot> >::const_iterator i = robots_.begin(), iend = robots_.end(); i != iend; ++i) {
 		if (i->second->address16() == addr) {
 			return i->second;
 		}
 	}
-	return SimulatorRobot::ptr();
+	return RefPtr<SimulatorRobot>();
 }
 
 void Simulator::send(const iovec *iov, std::size_t iovlen) {
@@ -110,7 +110,7 @@ void Simulator::packet_handler(const std::vector<uint8_t> &data) {
 
 		if (req.address16[0] == 0xFF && req.address16[1] == 0xFE) {
 			uint64_t recipient = XBeeUtil::address_from_bytes(req.address64);
-			std::unordered_map<uint64_t, SimulatorRobot::ptr>::const_iterator i = robots_.find(recipient);
+			std::unordered_map<uint64_t, RefPtr<SimulatorRobot> >::const_iterator i = robots_.find(recipient);
 			if (i != robots_.end() && i->second->powered()) {
 				if (data.size() == sizeof(req) + 2 && req.command[0] == 'M' && req.command[1] == 'Y') {
 					uint16_t value = (req.value[0] << 8) | req.value[1];
@@ -159,7 +159,7 @@ void Simulator::packet_handler(const std::vector<uint8_t> &data) {
 
 		uint16_t recipient = (req.hdr.address[0] << 8) | req.hdr.address[1];
 		if (data.size() == sizeof(req) + 1 && recipient != 0xFFFF) {
-			SimulatorRobot::ptr bot(find_by16(recipient));
+			RefPtr<SimulatorRobot> bot(find_by16(recipient));
 			if (bot) {
 				bot->run_data_offset(req.data[0]);
 				resp.status = XBeePacketTypes::TRANSMIT_STATUS_SUCCESS;
@@ -171,12 +171,12 @@ void Simulator::packet_handler(const std::vector<uint8_t> &data) {
 				}
 			}
 		} else if (recipient == 0xFFFF) {
-			for (std::unordered_map<uint64_t, SimulatorRobot::ptr>::const_iterator i(robots_.begin()), iend(robots_.end()); i != iend; ++i) {
-				SimulatorRobot::ptr bot(i->second);
+			for (std::unordered_map<uint64_t, RefPtr<SimulatorRobot> >::const_iterator i(robots_.begin()), iend(robots_.end()); i != iend; ++i) {
+				RefPtr<SimulatorRobot> bot(i->second);
 				if (bot->powered() && bot->address16() != 0xFFFF && sizeof(req.hdr) + bot->run_data_offset() + sizeof(XBeePacketTypes::RUN_DATA) <= data.size()) {
 					const XBeePacketTypes::RUN_DATA &rundata = *reinterpret_cast<const XBeePacketTypes::RUN_DATA *>(&req.data[bot->run_data_offset()]);
 					if (rundata.flags & XBeePacketTypes::RUN_FLAG_RUNNING) {
-						SimulatorPlayer::ptr plr(bot->get_player());
+						RefPtr<SimulatorPlayer> plr(bot->get_player());
 						if (plr) {
 							plr->received(rundata);
 						}
@@ -260,9 +260,9 @@ void Simulator::tick() {
 		ball->set_pixel_x(0.0);
 		ball->set_pixel_y(0.0);
 
-		for (std::unordered_map<uint64_t, SimulatorRobot::ptr>::const_iterator j(robots_.begin()), jend(robots_.end()); j != jend; ++j) {
-			SimulatorRobot::ptr bot(j->second);
-			SimulatorPlayer::ptr plr(bot->get_player());
+		for (std::unordered_map<uint64_t, RefPtr<SimulatorRobot> >::const_iterator j(robots_.begin()), jend(robots_.end()); j != jend; ++j) {
+			RefPtr<SimulatorRobot> bot(j->second);
+			RefPtr<SimulatorPlayer> plr(bot->get_player());
 			if (plr && plr->position().x * LIMIT_SIGNS[i] > -LIMIT_MAG) {
 				SSL_DetectionRobot *elem;
 				const Config::RobotInfo &info(conf.robots().find(j->first));

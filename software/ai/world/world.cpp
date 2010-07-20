@@ -30,8 +30,8 @@ namespace {
 	static const unsigned int MAX_VISION_FAILURES = 120;
 }
 
-World::ptr World::create(const Config &conf, const std::vector<XBeeDriveBot::ptr> &xbee_bots) {
-	ptr p(new World(conf, xbee_bots));
+RefPtr<World> World::create(const Config &conf, const std::vector<RefPtr<XBeeDriveBot> > &xbee_bots) {
+	RefPtr<World> p(new World(conf, xbee_bots));
 	return p;
 }
 
@@ -48,7 +48,7 @@ void World::flip_ends() {
 	for (unsigned int i = 0; i < 2; ++i) {
 		const Team &tm(*teams[i]);
 		for (unsigned int j = 0; j < tm.size(); ++j) {
-			Robot::ptr bot(tm.get_robot(j));
+			RefPtr<Robot> bot(tm.get_robot(j));
 			bot->sign = east_ ? -1 : 1;
 			bot->clear_prediction(-bot->position(), angle_mod(bot->orientation() + M_PI));
 		}
@@ -84,7 +84,7 @@ void World::tick_timestamp() {
 	++timestamp_;
 }
 
-World::World(const Config &conf, const std::vector<XBeeDriveBot::ptr> &xbee_bots) : conf(conf), east_(false), refbox_yellow_(false), vision_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), ball_(Ball::create()), xbee_bots(xbee_bots), playtype_(PlayType::HALT), playtype_override(PlayType::HALT), playtype_override_active(false), vis_view(this), ball_filter_(0) {
+World::World(const Config &conf, const std::vector<RefPtr<XBeeDriveBot> > &xbee_bots) : conf(conf), east_(false), refbox_yellow_(false), vision_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP), ball_(Ball::create()), xbee_bots(xbee_bots), playtype_(PlayType::HALT), playtype_override(PlayType::HALT), playtype_override_active(false), vis_view(this), ball_filter_(0) {
 	vision_socket.set_blocking(false);
 	const int one = 1;
 	if (setsockopt(vision_socket, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
@@ -189,7 +189,7 @@ bool World::on_vision_readable(Glib::IOCondition) {
 						for (unsigned int m = 0; m < 2; ++m) {
 							Team &tm(*teams[m]);
 							for (unsigned int n = 0; n < tm.size(); ++n) {
-								Robot::ptr bot(tm.get_robot(n));
+								RefPtr<Robot> bot(tm.get_robot(n));
 								if (bot->yellow == colour && bot->pattern_index == pattern_index) {
 									if (!bot->seen_this_frame) {
 										bot->seen_this_frame = true;
@@ -207,7 +207,7 @@ bool World::on_vision_readable(Glib::IOCondition) {
 			for (unsigned int i = 0; i < 2; ++i) {
 				Team &tm(*teams[i]);
 				for (unsigned int j = 0; j < tm.size(); ++j) {
-					Robot::ptr bot(tm.get_robot(j));
+					RefPtr<Robot> bot(tm.get_robot(j));
 					if (!bot->seen_this_frame) {
 						++bot->vision_failures;
 					} else {
@@ -215,7 +215,7 @@ bool World::on_vision_readable(Glib::IOCondition) {
 					}
 					bot->seen_this_frame = false;
 					if (bot->vision_failures >= MAX_VISION_FAILURES) {
-						Player::ptr plr(Player::ptr::cast_dynamic(bot));
+						RefPtr<Player> plr(RefPtr<Player>::cast_dynamic(bot));
 						if (plr) {
 							plr->controller.reset();
 						}
@@ -236,7 +236,7 @@ bool World::on_vision_readable(Glib::IOCondition) {
 						const SSL_DetectionRobot &detbot(rep.Get(k));
 						if (detbot.has_robot_id()) {
 							const unsigned int pattern_index = detbot.robot_id();
-							XBeeDriveBot::ptr xbeebot;
+							RefPtr<XBeeDriveBot> xbeebot;
 							Glib::ustring name;
 							for (unsigned int m = 0; m < conf.robots().size(); ++m) {
 								if (conf.robots()[m].yellow == colour && conf.robots()[m].pattern_index == pattern_index) {
@@ -245,12 +245,12 @@ bool World::on_vision_readable(Glib::IOCondition) {
 								}
 							}
 							if (xbeebot) {
-								Player::ptr plr(Player::create(name, colour, pattern_index, xbeebot));
+								RefPtr<Player> plr(Player::create(name, colour, pattern_index, xbeebot));
 								plr->sign = east_ ? -1 : 1;
 								plr->update(detbot);
 								friendly.add(plr);
 							} else {
-								Robot::ptr bot(Robot::create(colour, pattern_index));
+								RefPtr<Robot> bot(Robot::create(colour, pattern_index));
 								bot->sign = east_ ? -1 : 1;
 								bot->update(detbot);
 								enemy.add(bot);
@@ -273,7 +273,7 @@ bool World::on_vision_readable(Glib::IOCondition) {
 		for (unsigned int i = 0; i < 2; ++i) {
 			const Team &tm(*teams[i]);
 			for (unsigned int j = 0; j < tm.size(); ++j) {
-				const Robot::ptr bot(tm.get_robot(j));
+				const RefPtr<Robot> bot(tm.get_robot(j));
 				bot->lock_time();
 			}
 		}

@@ -56,7 +56,7 @@ namespace {
 		std::cout << message << "... " << std::flush;
 		uint8_t parambytes[length];
 		build_param(param, parambytes, length);
-		XBeePacket::ptr pkt(ATPacket<length>::create(command, parambytes));
+		RefPtr<XBeePacket> pkt(ATPacket<length>::create(command, parambytes));
 		ResponseHolder resph(loop);
 		pkt->signal_complete().connect(sigc::mem_fun(resph, &ResponseHolder::handle_response));
 		modem.send(pkt);
@@ -92,7 +92,7 @@ namespace {
 		std::cout << message << "... " << std::flush;
 		uint8_t parambytes[length];
 		build_param(param, parambytes, length);
-		XBeePacket::ptr pkt(RemoteATPacket<length>::create(bot, command, parambytes, apply));
+		RefPtr<XBeePacket> pkt(RemoteATPacket<length>::create(bot, command, parambytes, apply));
 		ResponseHolder resph(loop);
 		pkt->signal_complete().connect(sigc::mem_fun(resph, &ResponseHolder::handle_response));
 		modem.send(pkt);

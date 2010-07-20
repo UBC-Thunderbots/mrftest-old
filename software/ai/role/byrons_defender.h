@@ -8,14 +8,9 @@
 class ByronsDefender : public Role {
 	public:
 		//
-		// A pointer to a ByronsDefender role.
-		//
-		typedef Glib::RefPtr<ByronsDefender> ptr;
-
-		//
 		// Constructs a new ByronsDefender role.
 		//
-		ByronsDefender(World::ptr world);
+		ByronsDefender(RefPtr<World> world);
 
 		//
 		// Runs the AI for one time tick.
@@ -29,7 +24,7 @@ class ByronsDefender : public Role {
 
 	protected:
 	
-		const World::ptr the_world;
+		const RefPtr<World> the_world;
 
 };
 

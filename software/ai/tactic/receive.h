@@ -13,14 +13,9 @@
 class Receive : public Tactic {
 	public:
 		//
-		// A pointer to this Tactic.
-		//
-		typedef Glib::RefPtr<Receive> ptr;
-
-		//
 		// Constructs a new Receive Tactic. 
 		//
-		Receive(Player::ptr player, World::ptr world);
+		Receive(RefPtr<Player> player, RefPtr<World> world);
 		
 		//
 		// Runs the AI for one time tick.
@@ -28,7 +23,7 @@ class Receive : public Tactic {
 		void tick();	
 
 	protected:
-		const World::ptr the_world;
+		const RefPtr<World> the_world;
 		RobotNavigator navi;
 };
 

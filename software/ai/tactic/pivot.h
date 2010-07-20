@@ -12,11 +12,6 @@
  */
 class Pivot : public Tactic {
 	public:
-		//
-		// A pointer to this Tactic.
-		//
-		typedef Glib::RefPtr<Pivot> ptr;
-
 		/**
 		 * Set a target that robot would like to aim the ball
 		 * after gaining possesion.
@@ -28,7 +23,7 @@ class Pivot : public Tactic {
 		/**
 		* Constructs a new Pivot Tactic. 
 		*/
-		Pivot(Player::ptr player, World::ptr world);
+		Pivot(RefPtr<Player> player, RefPtr<World> world);
 
 		//
 		// Runs the AI for one time tick.
@@ -53,7 +48,7 @@ class Pivot : public Tactic {
 		void tick_experimental();	
 		void tick_old();
 
-		const World::ptr the_world;
+		const RefPtr<World> the_world;
 		Point target;
 		bool avoid_ball_;
 };

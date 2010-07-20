@@ -10,11 +10,6 @@
 class VictoryDance : public Role {
 	public:
 		//
-		// A pointer to a VictoryDance Role.
-		//
-		typedef Glib::RefPtr<VictoryDance> ptr;
-
-		//
 		// Constructs a new VictoryDance Role.
 		//
 		VictoryDance();
@@ -30,7 +25,7 @@ class VictoryDance : public Role {
 		void robots_changed();
 
 	protected:
-        std::vector<Dance::ptr> the_tactics;
+        std::vector<RefPtr<Dance> > the_tactics;
 		
 };
 

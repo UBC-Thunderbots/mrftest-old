@@ -1,8 +1,8 @@
 #ifndef XBEE_CLIENT_PACKET_H
 #define XBEE_CLIENT_PACKET_H
 
-#include "util/byref.h"
 #include "util/fd.h"
+#include "util/memory.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -14,11 +14,6 @@
 //
 class XBeePacket : public ByRef {
 	public:
-		//
-		// A pointer to a XBeePacket.
-		//
-		typedef Glib::RefPtr<XBeePacket> ptr;
-
 		//
 		// Whether or not the radio sends a response to the packet.
 		//
@@ -55,15 +50,10 @@ class XBeePacket : public ByRef {
 class Transmit16Packet : public XBeePacket {
 	public:
 		//
-		// A pointer to a transmit64_packet.
-		//
-		typedef Glib::RefPtr<Transmit16Packet> ptr;
-
-		//
 		// Constructs a new Transmit16Packet.
 		//
-		static ptr create(uint16_t dest, bool disable_ack, bool has_response, const void *data, std::size_t length) {
-			ptr p(new Transmit16Packet(dest, disable_ack, has_response, data, length));
+		static RefPtr<Transmit16Packet> create(uint16_t dest, bool disable_ack, bool has_response, const void *data, std::size_t length) {
+			RefPtr<Transmit16Packet> p(new Transmit16Packet(dest, disable_ack, has_response, data, length));
 			return p;
 		}
 
@@ -88,19 +78,14 @@ template<std::size_t value_size>
 class ATPacket : public XBeePacket {
 	public:
 		/**
-		 * A pointer to an ATPacket.
-		 */
-		typedef Glib::RefPtr<ATPacket<value_size> > ptr;
-
-		/**
 		 * Constructs a new ATPacket.
 		 *
 		 * \param[in] command the two-character command to execute.
 		 *
 		 * \param[in] value the value to provide.
 		 */
-		static ptr create(const char *command, const void *value) {
-			ptr p(new ATPacket<value_size>(command, value));
+		static RefPtr<ATPacket> create(const char *command, const void *value) {
+			RefPtr<ATPacket> p(new ATPacket<value_size>(command, value));
 			return p;
 		}
 
@@ -129,11 +114,6 @@ class ATPacket : public XBeePacket {
 template<std::size_t value_size>
 class RemoteATPacket : public XBeePacket {
 	public:
-		//
-		// A pointer to a RemoteATPacket.
-		//
-		typedef Glib::RefPtr<RemoteATPacket<value_size> > ptr;
-
 		/**
 		 * Constructs a new RemoteATPacket.
 		 *
@@ -146,8 +126,8 @@ class RemoteATPacket : public XBeePacket {
 		 * \param[in] apply \c true to apply the change immediately, or \c false
 		 * to queue the command for later application.
 		 */
-		static ptr create(uint64_t dest, const char *command, const void *value, bool apply) {
-			ptr p(new RemoteATPacket<value_size>(dest, command, value, apply));
+		static RefPtr<RemoteATPacket> create(uint64_t dest, const char *command, const void *value, bool apply) {
+			RefPtr<RemoteATPacket> p(new RemoteATPacket<value_size>(dest, command, value, apply));
 			return p;
 		}
 
@@ -174,15 +154,10 @@ class RemoteATPacket : public XBeePacket {
 class MetaClaimPacket : public XBeePacket {
 	public:
 		//
-		// A pointer to a MetaClaimPacket.
-		//
-		typedef Glib::RefPtr<MetaClaimPacket> ptr;
-
-		//
 		// Constructs a new MetaClaimPacket.
 		//
-		static ptr create(uint64_t address, bool drive_mode) {
-			ptr p(new MetaClaimPacket(address, drive_mode));
+		static RefPtr<MetaClaimPacket> create(uint64_t address, bool drive_mode) {
+			RefPtr<MetaClaimPacket> p(new MetaClaimPacket(address, drive_mode));
 			return p;
 		}
 
@@ -205,15 +180,10 @@ class MetaClaimPacket : public XBeePacket {
 class MetaReleasePacket : public XBeePacket {
 	public:
 		//
-		// A pointer to a MetaReleasePacket.
-		//
-		typedef Glib::RefPtr<MetaReleasePacket> ptr;
-
-		//
 		// Constructs a new MetaReleasePacket.
 		//
-		static ptr create(uint64_t address) {
-			ptr p(new MetaReleasePacket(address));
+		static RefPtr<MetaReleasePacket> create(uint64_t address) {
+			RefPtr<MetaReleasePacket> p(new MetaReleasePacket(address));
 			return p;
 		}
 

@@ -8,7 +8,7 @@ DribblerMeter::DribblerMeter() : last_speed(std::numeric_limits<unsigned int>::m
 	set_text("No Data");
 }
 
-void DribblerMeter::set_bot(XBeeDriveBot::ptr bot) {
+void DribblerMeter::set_bot(RefPtr<XBeeDriveBot> bot) {
 	connection.disconnect();
 	robot = bot;
 	if (robot) {

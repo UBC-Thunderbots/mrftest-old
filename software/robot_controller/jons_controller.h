@@ -6,7 +6,7 @@
 #include "ai/world/player.h"
 #include "robot_controller/robot_controller.h"
 #include "geom/point.h"
-#include "util/byref.h"
+#include "util/memory.h"
 #include "util/noncopyable.h"
 #include "gpc.h"
 
@@ -24,9 +24,9 @@ class JonsController : public RobotController {
 
 		RobotControllerFactory &get_factory() const;
 
-		JonsController(Player::ptr plr);
+		JonsController(RefPtr<Player> plr);
 	private:
-		Player::ptr plr;
+		RefPtr<Player> plr;
 	
 	protected:
 		GPC X_controller;

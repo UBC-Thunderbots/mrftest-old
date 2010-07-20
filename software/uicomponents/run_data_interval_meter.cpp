@@ -8,7 +8,7 @@ RunDataIntervalMeter::RunDataIntervalMeter() : last_run_data_interval(-1) {
 	set_text("No Data");
 }
 
-void RunDataIntervalMeter::set_bot(XBeeDriveBot::ptr bot) {
+void RunDataIntervalMeter::set_bot(RefPtr<XBeeDriveBot> bot) {
 	connection.disconnect();
 	robot = bot;
 	if (robot) {

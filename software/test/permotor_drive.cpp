@@ -1,6 +1,6 @@
 #include "test/permotor_drive.h"
 
-TesterControlPerMotorDrive::TesterControlPerMotorDrive(XBeeDriveBot::ptr bot) : Gtk::Table(4, 2, false), robot(bot), drive1_label("Drive 1:"), drive2_label("Drive 2:"), drive3_label("Drive 3:"), drive4_label("Drive 4:"), drive1_scale(-1023, 1023, 1), drive2_scale(-1023, 1023, 1), drive3_scale(-1023, 1023, 1), drive4_scale(-1023, 1023, 1) {
+TesterControlPerMotorDrive::TesterControlPerMotorDrive(RefPtr<XBeeDriveBot> bot) : Gtk::Table(4, 2, false), robot(bot), drive1_label("Drive 1:"), drive2_label("Drive 2:"), drive3_label("Drive 3:"), drive4_label("Drive 4:"), drive1_scale(-1023, 1023, 1), drive2_scale(-1023, 1023, 1), drive3_scale(-1023, 1023, 1), drive4_scale(-1023, 1023, 1) {
 	attach(drive1_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
 	attach(drive2_label, 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
 	attach(drive3_label, 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);

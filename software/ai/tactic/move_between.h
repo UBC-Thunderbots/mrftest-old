@@ -9,14 +9,9 @@
 class MoveBetween : public Tactic {
 	public:
 		//
-		// A pointer to this Tactic.
-		//
-		typedef Glib::RefPtr<MoveBetween> ptr;
-
-		//
 		// Constructs a new move between Tactic. 
 		//
-		MoveBetween(Player::ptr player, World::ptr world);
+		MoveBetween(RefPtr<Player> player, RefPtr<World> world);
 
 		//
 		// Sets the two points in which to move between

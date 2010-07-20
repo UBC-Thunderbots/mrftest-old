@@ -2,7 +2,7 @@
 #include "ai/util.h"
 #include "ai/flags.h"
 
-Receive::Receive(Player::ptr player, World::ptr world) : Tactic(player), the_world(world), navi(player, world) {
+Receive::Receive(RefPtr<Player> player, RefPtr<World> world) : Tactic(player), the_world(world), navi(player, world) {
 }
 
 void Receive::tick() {

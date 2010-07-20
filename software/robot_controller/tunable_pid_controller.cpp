@@ -28,8 +28,8 @@ namespace {
 			TunablePIDControllerFactory() : RobotControllerFactory("Tunable PID") {
 			}
 
-			RobotController::ptr create_controller(Player::ptr plr, bool, unsigned int) const {
-				RobotController::ptr p(new TunablePIDController(plr));
+			RefPtr<RobotController2> create_controller(RefPtr<Player> plr, bool, unsigned int) const {
+				RefPtr<RobotController2> p(new TunablePIDController(plr));
 				return p;
 			}
 	};
@@ -128,7 +128,7 @@ const std::vector<double> TunablePIDController::param_min(arr_min, arr_min + P);
 const std::vector<double> TunablePIDController::param_max(arr_max, arr_max + P);
 const std::vector<double> TunablePIDController::param_default(arr_def, arr_def + P);
 
-TunablePIDController::TunablePIDController(Player::ptr plr) : plr(plr), initialized(false), error_pos(10), error_ori(10) {
+TunablePIDController::TunablePIDController(RefPtr<Player> plr) : plr(plr), initialized(false), error_pos(10), error_ori(10) {
 	param = param_default;
 }
 
