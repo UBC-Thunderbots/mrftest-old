@@ -43,6 +43,10 @@ class Defensive3 : public NonCopyable {
 			return players.find(player) != players.end();
 		}
 
+		size_t size() const {
+			return players.size();
+		}
+
 		/**
 		 * WARNING! NEVER call this unless playtype is penalty enemy/victory/pitstop,
 		 * or the team has only one player.
