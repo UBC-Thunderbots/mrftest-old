@@ -48,6 +48,12 @@ class Defensive3 : public NonCopyable {
 		}
 
 		/**
+		 * DEPRECATED function to hack old strategies.
+		 * Reset all players.
+		 */
+		void deprecated_set_players(std::vector<RefPtr<Player> >& ps) __attribute__ ((deprecated));
+
+		/**
 		 * WARNING! NEVER call this unless playtype is penalty enemy/victory/pitstop,
 		 * or the team has only one player.
 		 */

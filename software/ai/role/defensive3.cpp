@@ -333,3 +333,13 @@ void Defensive3::set_chaser(RefPtr<Player> player) {
 	// do something
 }
 
+void Defensive3::deprecated_set_players(std::vector<RefPtr<Player> >& ps) {
+	goalie.clear();
+	players.clear();
+	if (ps.size() == 0) return;
+	goalie = ps[0];
+	for (size_t i = 0; i < ps.size(); ++i) {
+		players.insert(ps[i]);
+	}
+}
+
