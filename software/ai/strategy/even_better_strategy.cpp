@@ -61,16 +61,16 @@ namespace {
 	}
 
 	void EvenBetterStrategy::in_play_assignment() {
-		const FriendlyTeam &the_team(the_world->friendly);
-		const Point ballpos = the_world->ball()->position();
+		const FriendlyTeam &the_team(world->friendly);
+		const Point ballpos = world->ball()->position();
 
 		roles.clear();
 		if (the_team.size() == 0) return;
 
 		// const vector<RefPtr<Player> > players = the_team.get_players();
 
-		RefPtr<Defensive2> defensive_role(new Defensive2(the_world));
-		RefPtr<Offensive> offensive_role(new Offensive(the_world));
+		RefPtr<Defensive2> defensive_role(new Defensive2(world));
+		RefPtr<Offensive> offensive_role(new Offensive(world));
 		roles.push_back(RefPtr<Role>(defensive_role));
 		roles.push_back(RefPtr<Role>(offensive_role));
 		std::vector<RefPtr<Player> > defenders;
@@ -115,14 +115,14 @@ namespace {
 			if (baller == -1 && static_cast<int>(i) == baller_ignore_chicker) continue;
 			rem_players.push_back(the_team.get_player(i));
 		}
-		std::sort(rem_players.begin(), rem_players.end(), AIUtil::CmpDist<RefPtr<Player> >(Point(-the_world->field().length()/2.0,0.0)));
+		std::sort(rem_players.begin(), rem_players.end(), AIUtil::CmpDist<RefPtr<Player> >(Point(-world->field().length()/2.0,0.0)));
 
 		// preferred_offender_number includes the offender assigned above (closest player to ball)
 		// 3 players => 1 offender
 		// 4 players => 1 offender
 		// 5 players => 2 offenders;
 		int preferred_offender_number = std::max(1, static_cast<int>(the_team.size()) - 3);
-		switch(the_world->playtype()){
+		switch(world->playtype()){
 			case PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY:
 			case PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY:
 			case PlayType::PREPARE_KICKOFF_ENEMY:
@@ -134,7 +134,7 @@ namespace {
 					preferred_offender_number = 1;
 				break;
 			default:
-				if (the_team.size() >= 5 && AIUtil::friendly_posses_ball(the_world))
+				if (the_team.size() >= 5 && AIUtil::friendly_posses_ball(world))
 					preferred_offender_number++;
 		}
 		// preferred_defender_number includes goalie
@@ -153,8 +153,8 @@ namespace {
 	}
 
 	RefPtr<Player> EvenBetterStrategy::minus_one_assignment() {
-		const FriendlyTeam &the_team(the_world->friendly);
-		const Point ballpos = the_world->ball()->position();
+		const FriendlyTeam &the_team(world->friendly);
+		const Point ballpos = world->ball()->position();
 
 		roles.clear();
 		if (the_team.size() == 0) return RefPtr<Player>();
@@ -163,8 +163,8 @@ namespace {
 
 		// const vector<RefPtr<Player> > players = the_team.get_players();
 
-		RefPtr<Defensive2> defensive_role(new Defensive2(the_world));
-		RefPtr<Offensive> offensive_role(new Offensive(the_world));
+		RefPtr<Defensive2> defensive_role(new Defensive2(world));
+		RefPtr<Offensive> offensive_role(new Offensive(world));
 		roles.push_back(RefPtr<Role>(defensive_role));
 		roles.push_back(RefPtr<Role>(offensive_role));
 		std::vector<RefPtr<Player> > defenders;
@@ -204,14 +204,14 @@ namespace {
 			if (baller == -1 && static_cast<int>(i) == baller_ignore_chicker) continue;
 			rem_players.push_back(the_team.get_player(i));
 		}
-		std::sort(rem_players.begin(), rem_players.end(), AIUtil::CmpDist<RefPtr<Player> >(Point(-the_world->field().length()/2.0,0.0)));
+		std::sort(rem_players.begin(), rem_players.end(), AIUtil::CmpDist<RefPtr<Player> >(Point(-world->field().length()/2.0,0.0)));
 
 		// preferred_offender_number includes the assigned kicker (closest player to ball)
 		// 3 players => 1 offender
 		// 4 players => 1 offender
 		// 5 players => 2 offenders;
 		int preferred_offender_number = std::max(1, static_cast<int>(the_team.size()) - 3);
-		switch(the_world->playtype()){
+		switch(world->playtype()){
 			case PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY:
 			case PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY:
 			case PlayType::PREPARE_KICKOFF_ENEMY:
@@ -223,7 +223,7 @@ namespace {
 					preferred_offender_number = 1;
 				break;
 			default:
-				if (the_team.size() >= 5 && AIUtil::friendly_posses_ball(the_world))
+				if (the_team.size() >= 5 && AIUtil::friendly_posses_ball(world))
 					preferred_offender_number++;
 		}
 		// preferred_defender_number includes goalie

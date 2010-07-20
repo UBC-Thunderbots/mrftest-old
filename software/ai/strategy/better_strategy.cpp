@@ -60,7 +60,7 @@ namespace {
 	}
 
 	void BetterStrategy::in_play_assignment() {
-		const FriendlyTeam &the_team(the_world->friendly);
+		const FriendlyTeam &the_team(world->friendly);
 
 		// TODO: SORT
 
@@ -69,8 +69,8 @@ namespace {
 
 		// const vector<RefPtr<Player> > players = the_team.get_players();
 
-		RefPtr<Defensive2> defensive_role(new Defensive2(the_world));
-		RefPtr<Offensive> offensive_role(new Offensive(the_world));
+		RefPtr<Defensive2> defensive_role(new Defensive2(world));
+		RefPtr<Offensive> offensive_role(new Offensive(world));
 		roles.push_back(RefPtr<Role>(defensive_role));
 		roles.push_back(RefPtr<Role>(offensive_role));
 		std::vector<RefPtr<Player> > defenders;
@@ -85,7 +85,7 @@ namespace {
 			defenders.push_back(the_team.get_player(2));
 
 		if (the_team.size() >= 4){
-			switch(the_world->playtype()){
+			switch(world->playtype()){
 				case PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY:
 				case PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY:
 				case PlayType::PREPARE_KICKOFF_ENEMY:
@@ -102,7 +102,7 @@ namespace {
 		// 3 offenders, 1 defender if we have the ball
 		// otherwise 2 offenders, 2 defenders
 		if (the_team.size() >= 5){
-			if (AIUtil::friendly_posses_ball(the_world))
+			if (AIUtil::friendly_posses_ball(world))
 				offenders.push_back(the_team.get_player(4));
 			else
 				defenders.push_back(the_team.get_player(4));
@@ -110,7 +110,7 @@ namespace {
 
 		// If we have ball and ball is on non-goalie defender, switch this defender to offender
 		// and switch robot 4 back to defender
-		if (defenders.size() >= 2 && AIUtil::posses_ball(the_world,defenders[1]))
+		if (defenders.size() >= 2 && AIUtil::posses_ball(world,defenders[1]))
 			std::swap(defenders[1],offenders[offenders.size()-1]);
 		// extra players become offenders
 		for (size_t i = 5; i < the_team.size(); ++i)
@@ -125,7 +125,7 @@ namespace {
 
 		// TODO: SORT
 
-		const FriendlyTeam &the_team(the_world->friendly);
+		const FriendlyTeam &the_team(world->friendly);
 
 		roles.clear();
 		if (the_team.size() == 0) return RefPtr<Player>();
@@ -134,8 +134,8 @@ namespace {
 
 		// other players just sort by distance
 
-		RefPtr<Defensive2> defensive_role(new Defensive2(the_world));
-		RefPtr<Offensive> offensive_role(new Offensive(the_world));
+		RefPtr<Defensive2> defensive_role(new Defensive2(world));
+		RefPtr<Offensive> offensive_role(new Offensive(world));
 		roles.push_back(RefPtr<Role>(defensive_role));
 		roles.push_back(RefPtr<Role>(offensive_role));
 		std::vector<RefPtr<Player> > defenders;
@@ -151,7 +151,7 @@ namespace {
 		// 3 offenders, 1 defender if we have the ball
 		// otherwise 2 offenders, 2 defenders
 		if (the_team.size() >= 5) {
-			if (AIUtil::friendly_posses_ball(the_world))
+			if (AIUtil::friendly_posses_ball(world))
 				offenders.push_back(the_team.get_player(4));
 			else
 				defenders.push_back(the_team.get_player(4));

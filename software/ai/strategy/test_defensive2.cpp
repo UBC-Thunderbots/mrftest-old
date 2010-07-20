@@ -1,15 +1,11 @@
 #include "ai/strategy/strategy.h"
 #include "ai/role/defensive2.h"
-#include "ai/role/goalie.h"
 #include "ai/util.h"
-#include <iostream>
-#include "time.h"
-#include <cstdlib>
 
 namespace {
-	class TestDefensive2Strategy : public Strategy2 {
+	class TestDefensive2 : public Strategy2 {
 		public:
-			TestDefensive2Strategy(RefPtr<World> world);
+			TestDefensive2(RefPtr<World> world);
 			void tick(Cairo::RefPtr<Cairo::Context> overlay);
 			StrategyFactory &get_factory();
 			Gtk::Widget *get_ui_controls();
@@ -17,11 +13,11 @@ namespace {
 			const RefPtr<World> the_world;
 	};
 
-	TestDefensive2Strategy::TestDefensive2Strategy(RefPtr<World> world) : the_world(world) {
+	TestDefensive2::TestDefensive2(RefPtr<World> world) : the_world(world) {
 
 	}
 
-	void TestDefensive2Strategy::tick(Cairo::RefPtr<Cairo::Context> overlay) {
+	void TestDefensive2::tick(Cairo::RefPtr<Cairo::Context> overlay) {
 		if (the_world->playtype() == PlayType::HALT) {
 			return;
 		}
@@ -39,27 +35,27 @@ namespace {
 		defensive2_role.tick();
 	}
 
-	Gtk::Widget *TestDefensive2Strategy::get_ui_controls() {
+	Gtk::Widget *TestDefensive2::get_ui_controls() {
 		return 0;
 	}
 
-	class TestDefensive2StrategyFactory : public StrategyFactory {
+	class TestDefensive2Factory : public StrategyFactory {
 		public:
-			TestDefensive2StrategyFactory();
+			TestDefensive2Factory();
 			RefPtr<Strategy2> create_strategy(RefPtr<World> world);
 	};
 
-	TestDefensive2StrategyFactory::TestDefensive2StrategyFactory() : StrategyFactory("Test(Defensive V2) Strategy") {
+	TestDefensive2Factory::TestDefensive2Factory() : StrategyFactory("Test Defensive V2 Role") {
 	}
 
-	RefPtr<Strategy2> TestDefensive2StrategyFactory::create_strategy(RefPtr<World> world) {
-		RefPtr<Strategy2> s(new TestDefensive2Strategy(world));
+	RefPtr<Strategy2> TestDefensive2Factory::create_strategy(RefPtr<World> world) {
+		RefPtr<Strategy2> s(new TestDefensive2(world));
 		return s;
 	}
 
-	TestDefensive2StrategyFactory factory;
+	TestDefensive2Factory factory;
 
-	StrategyFactory &TestDefensive2Strategy::get_factory() {
+	StrategyFactory &TestDefensive2::get_factory() {
 		return factory;
 	}
 }

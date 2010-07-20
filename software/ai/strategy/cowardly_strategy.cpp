@@ -61,15 +61,15 @@ namespace {
 	}
 
 	void CowardlyStrategy::in_play_assignment() {
-		const FriendlyTeam &the_team(the_world->friendly);
+		const FriendlyTeam &the_team(world->friendly);
 
 		// TODO: SORT
 
 		roles.clear();
 		if (the_team.size() == 0) return;
 
-		RefPtr<Defensive2> defensive_role(new Defensive2(the_world));
-		RefPtr<Offensive> offensive_role(new Offensive(the_world));
+		RefPtr<Defensive2> defensive_role(new Defensive2(world));
+		RefPtr<Offensive> offensive_role(new Offensive(world));
 		roles.push_back(RefPtr<Role>(defensive_role));
 		roles.push_back(RefPtr<Role>(offensive_role));
 		std::vector<RefPtr<Player> > defenders;
@@ -91,7 +91,7 @@ namespace {
 
 		// If we have ball and ball is on non-goalie defender, switch this defender to offender
 		// and switch robot 4 back to defender
-		if (defenders.size() >= 2 && AIUtil::posses_ball(the_world,defenders[1]))
+		if (defenders.size() >= 2 && AIUtil::posses_ball(world,defenders[1]))
 			std::swap(defenders[1],offenders[offenders.size()-1]);
 		// extra players become offenders
 		for (size_t i = 5; i < the_team.size(); ++i)
@@ -106,7 +106,7 @@ namespace {
 
 		// TODO: SORT
 
-		const FriendlyTeam &the_team(the_world->friendly);
+		const FriendlyTeam &the_team(world->friendly);
 
 		roles.clear();
 		if (the_team.size() == 0) return RefPtr<Player>();
@@ -115,8 +115,8 @@ namespace {
 
 		// other players just sort by distance
 
-		RefPtr<Defensive2> defensive_role(new Defensive2(the_world));
-		RefPtr<Offensive> offensive_role(new Offensive(the_world));
+		RefPtr<Defensive2> defensive_role(new Defensive2(world));
+		RefPtr<Offensive> offensive_role(new Offensive(world));
 		roles.push_back(RefPtr<Role>(defensive_role));
 		roles.push_back(RefPtr<Role>(offensive_role));
 		std::vector<RefPtr<Player> > defenders;

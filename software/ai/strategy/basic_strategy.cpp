@@ -10,6 +10,7 @@
 #include "ai/role/penalty_friendly.h"
 #include "ai/role/penalty_enemy.h"
 #include "ai/role/victory_dance.h"
+#include "util/dprint.h"
 
 
 #include <iostream>
@@ -33,19 +34,64 @@ namespace {
 	BasicStrategyFactory factory;
 }
 
-BasicStrategy::BasicStrategy(RefPtr<World> world) : the_world(world) {
+BasicStrategy::BasicStrategy(RefPtr<World> world) : world(world), defensive3(world), offensive(world) {
 	update_wait = 0;
-	update_wait_turns = 5;
-	the_world->friendly.signal_robot_added.connect(sigc::hide(sigc::hide(sigc::mem_fun(this, &BasicStrategy::reset_all))));
-	the_world->friendly.signal_robot_removed.connect(sigc::hide(sigc::hide(sigc::mem_fun(this, &BasicStrategy::reset_all))));
-	the_world->signal_playtype_changed.connect(sigc::mem_fun(this, &BasicStrategy::reset_all));
+	update_wait_turns = 0;
+	world->friendly.signal_player_added.connect(sigc::mem_fun(this, &BasicStrategy::player_added));
+	world->friendly.signal_player_removed.connect(sigc::mem_fun(this, &BasicStrategy::player_removed));
+	world->signal_playtype_changed.connect(sigc::mem_fun(this, &BasicStrategy::playtype_changed));
+}
+
+void BasicStrategy::player_added(unsigned int index, RefPtr<Player> player) {
+#warning TODO a proper non stateless strategy must do this correctly
+	const FriendlyTeam &friendly(world->friendly);
+	if (!goalie) {
+		if (friendly.size() != 1) {
+			LOG_ERROR("goalie assignment problem");
+		}
+		goalie = player;
+	}
+	// remove the line below when the function is no longer broken
+	reset_all();
+}
+
+void BasicStrategy::player_removed(unsigned int index, RefPtr<Player> player) {
+#warning TODO a proper non stateless strategy must do this correctly
+	const FriendlyTeam &friendly(world->friendly);
+	if (friendly.size() == 0) {
+		goalie.clear();
+		return;
+	}
+	if (player == goalie) {
+		// if there are no more defenders, make an offender into defender
+		// pull a player from defender, and make it goalie
+	}
+	// remove the line below when the function is no longer broken
+	reset_all();
+}
+
+int BasicStrategy::calc_num_offenders() const {
+#warning TODO copy from EvenBetterStrategy::in_play_assignment
+	const FriendlyTeam &friendly(world->friendly);
+	if (friendly.size() == 0) return 0;
+	if (friendly.size() == 1) return 0;
+	if (friendly.size() >= 4) return 2;
+	return 1;
+}
+
+void BasicStrategy::playtype_changed() {
+	// some notes
+	// during a penalty kick, pull all robots from all the default roles
+	// once normal play resumes, place back all the robots into the respective roles
+#warning TODO fix
+	reset_all();
 }
 
 void BasicStrategy::tick() {
 	update_wait++;
 	if (update_wait >= update_wait_turns) {
 		update_wait = 0;
-		if (the_world->playtype() == PlayType::PLAY)
+		if (world->playtype() == PlayType::PLAY)
 			in_play_assignment();
 	}
 	for (size_t i = 0; i < roles.size(); i++) {
@@ -58,19 +104,20 @@ Gtk::Widget *BasicStrategy::get_ui_controls() {
 }
 
 void BasicStrategy::in_play_assignment() {
-	const FriendlyTeam &the_team(the_world->friendly);
+	const FriendlyTeam &the_team(world->friendly);
+#warning TODO this function needs to be redone completely
 
 	roles.clear();
 	if (the_team.size() == 0) return;
 
-	RefPtr<Goalie> goalie_role(new Goalie(the_world));
+	RefPtr<Goalie> goalie_role(new Goalie(world));
 	roles.push_back(RefPtr<Role>(goalie_role));
 	std::vector<RefPtr<Player> > goalie;
 	goalie.push_back(the_team.get_player(0));
 	goalie_role->set_robots(goalie);
 
-	RefPtr<Defensive> defensive_role(new Defensive(the_world));
-	RefPtr<Offensive> offensive_role(new Offensive(the_world));
+	RefPtr<Defensive> defensive_role(new Defensive(world));
+	RefPtr<Offensive> offensive_role(new Offensive(world));
 	roles.push_back(RefPtr<Role>(defensive_role));
 	roles.push_back(RefPtr<Role>(offensive_role));
 	std::vector<RefPtr<Player> > defenders;
@@ -97,21 +144,22 @@ void BasicStrategy::in_play_assignment() {
 }
 
 RefPtr<Player> BasicStrategy::minus_one_assignment() {
-	const FriendlyTeam &the_team(the_world->friendly);
+	const FriendlyTeam &the_team(world->friendly);
+#warning TODO this function needs to be redone completely
 
 	roles.clear();
 	if (the_team.size() == 0) return RefPtr<Player>();
 
 	if (the_team.size() == 1) return the_team.get_player(0);
 
-	RefPtr<Goalie> goalie_role(new Goalie(the_world));
+	RefPtr<Goalie> goalie_role(new Goalie(world));
 	roles.push_back(RefPtr<Role>(goalie_role));
 	std::vector<RefPtr<Player> > goalie;
 	goalie.push_back(the_team.get_player(0));
 	goalie_role->set_robots(goalie);
 
-	RefPtr<Defensive> defensive_role(new Defensive(the_world));
-	RefPtr<Offensive> offensive_role(new Offensive(the_world));
+	RefPtr<Defensive> defensive_role(new Defensive(world));
+	RefPtr<Offensive> offensive_role(new Offensive(world));
 	roles.push_back(RefPtr<Role>(defensive_role));
 	roles.push_back(RefPtr<Role>(offensive_role));
 	std::vector<RefPtr<Player> > defenders;
@@ -137,7 +185,7 @@ RefPtr<Player> BasicStrategy::minus_one_assignment() {
 }
 
 void BasicStrategy::reset_all() {
-	const FriendlyTeam &the_team(the_world->friendly);
+	const FriendlyTeam &the_team(world->friendly);
 
 	roles.clear();
 
@@ -174,7 +222,7 @@ void BasicStrategy::reset_all() {
 		non_shooters.push_back(all_but_goalie[i]);
 	}
 	
-	switch (the_world->playtype()) {
+	switch (world->playtype()) {
 		case PlayType::PLAY:
 		case PlayType::STOP:
 		case PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY:
@@ -190,14 +238,14 @@ void BasicStrategy::reset_all() {
 		case PlayType::PREPARE_KICKOFF_FRIENDLY: 
 		case PlayType::EXECUTE_KICKOFF_FRIENDLY:
 		case PlayType::PREPARE_KICKOFF_ENEMY: 
-			roles.push_back(RefPtr<Role>(new KickoffFriendly(the_world)));
+			roles.push_back(RefPtr<Role>(new KickoffFriendly(world)));
 			roles[0]->set_robots(all_but_goalie);
 			std::cout << the_team.size() << " robots set to execute kickoff friendly" << std::endl;
 			break;
 
 		/*
 		case PlayType::PREPARE_KICKOFF_ENEMY:
-			roles.push_back(RefPtr<Role>(new PrepareKickoffEnemy(the_world)));
+			roles.push_back(RefPtr<Role>(new PrepareKickoffEnemy(world)));
 			roles[0]->set_robots(all_but_goalie);
 			std::cout << the_team.size() << " robots set to prepare kickoff enemy" << std::endl;
 			break;
@@ -205,13 +253,13 @@ void BasicStrategy::reset_all() {
 		// EXECUTE_KICKOFF_ENEMY isn't here; we use normal play assignment instead
 
 		case PlayType::PREPARE_PENALTY_FRIENDLY: 
-			roles.push_back(RefPtr<Role>(new PenaltyFriendly(the_world)));
+			roles.push_back(RefPtr<Role>(new PenaltyFriendly(world)));
 			roles[0]->set_robots(all_but_goalie);
 			std::cout << the_team.size() << " robots set to prepare penalty friendly" << std::endl;
 			break;
 
 		case PlayType::EXECUTE_PENALTY_FRIENDLY: 
-			roles.push_back(RefPtr<Role>(new PenaltyFriendly(the_world)));
+			roles.push_back(RefPtr<Role>(new PenaltyFriendly(world)));
 			roles[0]->set_robots(all_but_goalie);
 			std::cout << the_team.size() << " robots set to execute penalty friendly" << std::endl;
 			break;
@@ -221,9 +269,9 @@ void BasicStrategy::reset_all() {
 			// so no difference on defending side.
 			// May need to detect when the play type needs to be changed to play
 		case PlayType::PREPARE_PENALTY_ENEMY:
-			roles.push_back(RefPtr<Role>(new PenaltyEnemy(the_world)));
+			roles.push_back(RefPtr<Role>(new PenaltyEnemy(world)));
 			roles[0]->set_robots(all_but_goalie);
-			roles.push_back(RefPtr<Role>(new PenaltyGoalie(the_world)));
+			roles.push_back(RefPtr<Role>(new PenaltyGoalie(world)));
 			roles[1]->set_robots(goalie_only);
 			std::cout << all_but_goalie.size() << " robots set to penalty enemy" << std::endl;
 			std::cout << goalie_only.size() << " robots set to penalty goalie" << std::endl;
@@ -234,7 +282,7 @@ void BasicStrategy::reset_all() {
 				RefPtr<Player> one = minus_one_assignment();
 				if (one) {
 					std::vector<RefPtr<Player> > freekicker(1, one);
-					RefPtr<ExecuteDirectFreeKick> freekicker_role = RefPtr<ExecuteDirectFreeKick>(new ExecuteDirectFreeKick(the_world));
+					RefPtr<ExecuteDirectFreeKick> freekicker_role = RefPtr<ExecuteDirectFreeKick>(new ExecuteDirectFreeKick(world));
 					freekicker_role->set_robots(freekicker);
 					roles.push_back(freekicker_role);
 					std::cout << all_but_goalie.size() << " robots set to execute direct free kick friendly" << std::endl;
@@ -247,7 +295,7 @@ void BasicStrategy::reset_all() {
 				RefPtr<Player> one = minus_one_assignment();
 				if (one) {
 					std::vector<RefPtr<Player> > freekicker(1, one);
-					RefPtr<ExecuteIndirectFreeKick> freekicker_role = RefPtr<ExecuteIndirectFreeKick>(new ExecuteIndirectFreeKick(the_world));
+					RefPtr<ExecuteIndirectFreeKick> freekicker_role = RefPtr<ExecuteIndirectFreeKick>(new ExecuteIndirectFreeKick(world));
 					freekicker_role->set_robots(freekicker);
 					roles.push_back(freekicker_role);
 					std::cout << all_but_goalie.size() << " robots set to execute indirect free kick" << std::endl;
@@ -256,7 +304,7 @@ void BasicStrategy::reset_all() {
 			break;
 
 		case PlayType::PIT_STOP:
-			roles.push_back(RefPtr<Role>(new PitStop(the_world)));
+			roles.push_back(RefPtr<Role>(new PitStop(world)));
 			all_but_goalie.push_back(goalie_only[0]);
 			roles[0]->set_robots(all_but_goalie);
 			std::cout << all_but_goalie.size() << " robots set to pit stop" << std::endl;
@@ -276,7 +324,7 @@ void BasicStrategy::reset_all() {
 
 	// Only assign Goalie role for valid play type
 	// In these cases the Goalie role is the last role in the vector.
-	switch (the_world->playtype()) {
+	switch (world->playtype()) {
 		case PlayType::HALT:
 		case PlayType::STOP:
 		case PlayType::PLAY:
@@ -300,7 +348,7 @@ void BasicStrategy::reset_all() {
 		//case PlayType::EXECUTE_KICKOFF_ENEMY:
 		case PlayType::PREPARE_PENALTY_FRIENDLY:
 		case PlayType::EXECUTE_PENALTY_FRIENDLY:
-			roles.push_back(RefPtr<Role>((new Goalie(the_world))));
+			roles.push_back(RefPtr<Role>((new Goalie(world))));
 			roles[roles.size()-1]->set_robots(goalie_only);
 			break;
 	}
@@ -325,10 +373,10 @@ StrategyFactory &BasicStrategy::get_factory() {
   //////////////////////
   void kenneth_simple_strategy::in_play_assignment(void)
   {
-    const FriendlyTeam &the_team(the_world->friendly);
-	const Team &the_other_team(the_world->enemy);
-	const RefPtr<Ball> the_ball(the_world->ball());
-	const Field &the_field(the_world->field());
+    const FriendlyTeam &the_team(world->friendly);
+	const Team &the_other_team(world->enemy);
+	const RefPtr<Ball> the_ball(world->ball());
+	const Field &the_field(world->field());
     if (the_team.size()<1)
     {
        roles.clear();
@@ -337,7 +385,7 @@ StrategyFactory &BasicStrategy::get_factory() {
     if (the_team.size()==1)
     {
        roles.clear();
-       RefPtr<Defensive> defensive_role = RefPtr<Defensive>(new Defensive(the_world));
+       RefPtr<Defensive> defensive_role = RefPtr<Defensive>(new Defensive(world));
        defensive_role->set_goalie(goalie_player);
        roles.push_back(RefPtr<Role>(defensive_role));
        return;
@@ -528,15 +576,15 @@ StrategyFactory &BasicStrategy::get_factory() {
 //    roles.push_back(tempRole);
     if (offenders.size() > 0)
     {
-        roles.push_back(RefPtr<Role>(new Offensive(the_world)));
+        roles.push_back(RefPtr<Role>(new Offensive(world)));
         roles[roles.size()-1]->set_robots(offenders);
     }
-    RefPtr<Defensive> defensive_role = RefPtr<Defensive>(new Defensive(the_world));
+    RefPtr<Defensive> defensive_role = RefPtr<Defensive>(new Defensive(world));
     defensive_role->set_goalie(goalie_player);
     roles.push_back(RefPtr<Role>(defensive_role));
     if (defenders.size() > 0)
     {
-//        roles.push_back(RefPtr<Role>(new Defensive(the_world)));
+//        roles.push_back(RefPtr<Role>(new Defensive(world)));
         roles[roles.size()-1]->set_robots(defenders);
     }
 //	std::cout << "IT IS HERE !!!!!!!!!!!!!!!!!" << std::endl;
