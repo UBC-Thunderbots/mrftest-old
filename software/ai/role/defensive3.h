@@ -19,7 +19,7 @@
  *   since we are moving to stateful AI
  * - must not have more defenders than 1 + number of enemy players
  */
-class Defensive3 {
+class Defensive3 : public NonCopyable {
 	public:
 
 		Defensive3(const RefPtr<World> world);
