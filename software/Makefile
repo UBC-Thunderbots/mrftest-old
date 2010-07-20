@@ -152,7 +152,9 @@ ifneq ($(MAKECMDGOALS),cleanbin)
 ifneq ($(MAKECMDGOALS),cleanobj)
 ifneq ($(MAKECMDGOALS),cleanpb)
 ifneq ($(MAKECMDGOALS),tags)
+ifneq ($(MAKECMDGOALS),doc)
 include $(ALL_D_FILES)
+endif
 endif
 endif
 endif
