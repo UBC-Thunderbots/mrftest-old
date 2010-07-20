@@ -93,7 +93,7 @@ endif
 OBJS_$(1) := $$(addprefix obj/,$$(CPP_SOURCES_EXPANDED_$(1):.cpp=.o) $$(CC_SOURCES_EXPANDED_$(1):.cc=.o))
 
 bin/$(1) : $$(OBJS_$(1))
-	echo "  LD $$@"
+	echo "  LD	$$@"
 	mkdir -p bin
 	$$(CXX) $$(CXXFLAGS) -o$$@ $$+ $$(LDFLAGS_$(1))
 endef
@@ -114,7 +114,7 @@ $(eval $(foreach proj,$(PROJECTS),$(call project_template,$(proj))))
 # force protoc to be run before dependency calculation begins.
 #
 obj/%.d : %.cpp $(PROTOBUF_HS)
-	echo "  DEP $@"
+	echo "  DEP	$@"
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -MT '$(@:.d=.o) $@' -MM -MF $@ $< || { $(RM) $@; false; }
 
@@ -122,7 +122,7 @@ obj/%.d : %.cpp $(PROTOBUF_HS)
 # Rule to make a .o file from a .cpp file.
 #
 obj/%.o : %.cpp
-	echo "  CXX $@"
+	echo "  CXX	$@"
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -o$@ -c $<
 
@@ -130,7 +130,7 @@ obj/%.o : %.cpp
 # Rule to make a .pb.cc and a .pb.h file from a .proto file.
 #
 proto/%.pb.cc proto/%.pb.h : proto/%.proto
-	echo "  PROTOC $@"
+	echo "  PROTOC	$@"
 	protoc --proto_path=proto --cpp_out=proto $<
 .SECONDARY : $(PROTOBUF_CCS) $(PROTOBUF_HS)
 
@@ -139,7 +139,7 @@ proto/%.pb.cc proto/%.pb.h : proto/%.proto
 # because the generated code otherwise triggers warnings.
 #
 obj/proto/%.pb.o : proto/%.pb.cc $(PROTOBUF_HS)
-	echo "  CXX $@"
+	echo "  CXX	$@"
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -o$@ -c -Wno-extra $<
 
