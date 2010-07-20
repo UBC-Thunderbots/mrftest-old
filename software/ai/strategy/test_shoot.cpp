@@ -37,7 +37,7 @@ namespace {
 			RefPtr<Strategy2> create_strategy(RefPtr<World> world);
 	};
 
-	TestShootStrategyFactory::TestShootStrategyFactory() : StrategyFactory("Test(Shoot) Strategy") {
+	TestShootStrategyFactory::TestShootStrategyFactory() : StrategyFactory("Test Shoot Tactic") {
 	}
 
 	RefPtr<Strategy2> TestShootStrategyFactory::create_strategy(RefPtr<World> world) {
