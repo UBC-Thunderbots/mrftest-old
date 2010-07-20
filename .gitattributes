@@ -45,6 +45,8 @@ software/ai/role/defensive.cpp -text
 software/ai/role/defensive.h -text
 software/ai/role/defensive2.cpp -text
 software/ai/role/defensive2.h -text
+software/ai/role/defensive3.cpp -text
+software/ai/role/defensive3.h -text
 software/ai/role/execute_free_kick.cpp -text
 software/ai/role/execute_free_kick.h -text
 software/ai/role/execute_kickoff_friendly.cpp -text
