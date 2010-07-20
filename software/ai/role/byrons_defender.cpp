@@ -24,16 +24,16 @@ void ByronsDefender::tick() {
 		}
 	}
 	
-	for (size_t index = 0; index < robots.size(); ++index) {
+	for (size_t index = 0; index < players.size(); ++index) {
 		//if ((robots[index]->position() - ball).len() > 1.0 || robots[index] != the_world->friendly.get_player(closest)) {
 		if (true) {
-			Move tactic(robots[index], the_world);
-			if (robots.size() == 2) {
+			Move tactic(players[index], the_world);
+			if (players.size() == 2) {
 				if (index == 0) {
-					if (robots[0]->position().y > robots[1]->position().y) ball.y+=0.4;
+					if (players[0]->position().y > players[1]->position().y) ball.y+=0.4;
 					else ball.y-=0.4;
 				} else {
-					if (robots[0]->position().y < robots[1]->position().y) ball.y+=0.4;
+					if (players[0]->position().y < players[1]->position().y) ball.y+=0.4;
 					else ball.y-=0.4;
 				}
 			}
@@ -42,7 +42,7 @@ void ByronsDefender::tick() {
 			tactic.set_flags(flags);
 			tactic.tick();
 		} else {
-			Shoot tactic(robots[index], the_world);
+			Shoot tactic(players[index], the_world);
 			tactic.force();
 			tactic.set_flags(flags);
 			tactic.tick();
@@ -50,6 +50,6 @@ void ByronsDefender::tick() {
 	}
 }
 
-void ByronsDefender::robots_changed() {
+void ByronsDefender::players_changed() {
 }
 

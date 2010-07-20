@@ -116,9 +116,9 @@ namespace {
 		for (size_t i = 5; i < the_team.size(); ++i)
 			offenders.push_back(the_team.get_player(i));
 
-		defensive_role->set_robots(defenders);
+		defensive_role->set_players(defenders);
 		defensive_role->set_goalie(the_team.get_player(0));
-		offensive_role->set_robots(offenders);
+		offensive_role->set_players(offenders);
 	}
 
 	RefPtr<Player> BetterStrategy::minus_one_assignment() {
@@ -161,9 +161,9 @@ namespace {
 		for (size_t i = 5; i < the_team.size(); ++i)
 			offenders.push_back(the_team.get_player(i));
 
-		defensive_role->set_robots(defenders);
+		defensive_role->set_players(defenders);
 		defensive_role->set_goalie(the_team.get_player(0));
-		offensive_role->set_robots(offenders);
+		offensive_role->set_players(offenders);
 
 		return the_team.get_player(1);
 	}

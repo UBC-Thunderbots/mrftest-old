@@ -33,7 +33,7 @@ namespace {
 			offenders.push_back(the_team.get_player(i));
 		}
 
-		offensive_role.set_robots(offenders);
+		offensive_role.set_players(offenders);
 		offensive_role.tick();
 	}
 

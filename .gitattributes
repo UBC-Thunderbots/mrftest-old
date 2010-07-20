@@ -68,6 +68,8 @@ software/ai/role/prepare_kickoff_enemy.h -text
 software/ai/role/role.h -text
 software/ai/role/victory_dance.cpp -text
 software/ai/role/victory_dance.h -text
+software/ai/strategy/basic2_strategy.cpp -text
+software/ai/strategy/basic2_strategy.h -text
 software/ai/strategy/basic_strategy.cpp -text
 software/ai/strategy/basic_strategy.h -text
 software/ai/strategy/better_strategy.cpp -text

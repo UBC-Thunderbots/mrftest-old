@@ -119,7 +119,7 @@ void Goalie::run_goalie_confidence(RefPtr<Player> goalie, const unsigned int& fl
 void Goalie::run_goalie_old(const unsigned int& flags) {
 	const Point default_pos = Point(-0.45*the_world->field().length(), 0);
 	const Point centre_of_goal = Point(-0.5*the_world->field().length(), 0);
-	const RefPtr<Player> me = robots[0];
+	const RefPtr<Player> me = players[0];
 	Move move_tactic(me, the_world);
 	Point tempPoint = the_world->ball()->position()-centre_of_goal;
 	tempPoint = tempPoint * (STANDBY_DIST / tempPoint.len());
@@ -191,12 +191,12 @@ void Goalie::tick() {
 	flags &= ~(AIFlags::AVOID_ENEMY_DEFENSE);
 	flags &= ~(AIFlags::AVOID_BALL_STOP);
 
-	if (robots.size() < 1) return;
-	if (robots.size() > 1) {
+	if (players.size() < 1) return;
+	if (players.size() > 1) {
 		std::cerr << "goalie role: multiple robots!" << std::endl;
 	}
 
-	const RefPtr<Player> me = robots[0];
+	const RefPtr<Player> me = players[0];
 
 	if (the_world->playtype() == PlayType::PREPARE_KICKOFF_FRIENDLY
 			|| the_world->playtype() == PlayType::PREPARE_KICKOFF_ENEMY) {
@@ -255,6 +255,6 @@ void Goalie::tick() {
 	}
 }
 
-void Goalie::robots_changed() {
+void Goalie::players_changed() {
 }
 

@@ -31,7 +31,7 @@ namespace {
 			all.push_back(the_team[i]);
 		}
 		defensive2_role.set_goalie(the_team[0]);
-		defensive2_role.set_robots(all);
+		defensive2_role.set_players(all);
 		defensive2_role.tick();
 	}
 

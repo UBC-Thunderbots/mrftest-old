@@ -16,7 +16,7 @@ class Defensive2 : public Role {
 
 		void tick();
 
-		void robots_changed();
+		void players_changed();
 
 		/**
 		 * Specifically chooses this player to be the goalie.

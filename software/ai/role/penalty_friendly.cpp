@@ -21,15 +21,15 @@ PenaltyFriendly::PenaltyFriendly(RefPtr<World> world) : the_world(world) {
 }
 
 void PenaltyFriendly::tick() {
-	if (robots.size() == 0) {
+	if (players.size() == 0) {
 		std::cerr << "penalty_friendly: no robots " << std::endl;
 		return;
 	}
 	// Set lowest numbered robot without chicker fault to be kicker
-	if (robots[0]->chicker_ready_time() >= Player::CHICKER_FOREVER){
-		for (size_t i = 1; i < robots.size(); ++i)
-			if (robots[i]->chicker_ready_time() < Player::CHICKER_FOREVER){
-				swap(robots[0],robots[i]);
+	if (players[0]->chicker_ready_time() >= Player::CHICKER_FOREVER){
+		for (size_t i = 1; i < players.size(); ++i)
+			if (players[i]->chicker_ready_time() < Player::CHICKER_FOREVER){
+				swap(players[0],players[i]);
 				break;
 			}
 	}
@@ -38,8 +38,8 @@ void PenaltyFriendly::tick() {
 	const unsigned int flags = AIFlags::calc_flags(the_world->playtype());
 
 	if (the_world->playtype() == PlayType::PREPARE_PENALTY_FRIENDLY) {
-		for (size_t i = 0; i < robots.size(); ++i) {
-			Move tactic(robots[i], the_world);
+		for (size_t i = 0; i < players.size(); ++i) {
+			Move tactic(players[i], the_world);
 			tactic.set_position(ready_positions[i]);
 			if (i) tactic.set_flags(flags);
 			else tactic.set_flags((flags & ~AIFlags::AVOID_BALL_STOP) | AIFlags::AVOID_BALL_NEAR);
@@ -48,7 +48,7 @@ void PenaltyFriendly::tick() {
 	} else if (the_world->playtype() == PlayType::EXECUTE_PENALTY_FRIENDLY) {
 
 		// make shooter shoot
-		const RefPtr<Player> shooter = robots[0];
+		const RefPtr<Player> shooter = players[0];
 		Shoot tactic(shooter, the_world);
 		if (the_world->playtype_time() > AIUtil::PLAYTYPE_WAIT_TIME) {
 			tactic.force();
@@ -57,8 +57,8 @@ void PenaltyFriendly::tick() {
 		// don't set flags, otherwise robot will try to avoid ball
 		tactic.tick();
 
-		for (size_t i = 1; i < robots.size(); ++i) {
-			Move tactic(robots[i], the_world);
+		for (size_t i = 1; i < players.size(); ++i) {
+			Move tactic(players[i], the_world);
 			tactic.set_position(ready_positions[i]);
 			tactic.set_flags(flags);
 			tactic.tick();
@@ -68,7 +68,7 @@ void PenaltyFriendly::tick() {
 	}
 }
 
-void PenaltyFriendly::robots_changed() {
+void PenaltyFriendly::players_changed() {
 
 }
 

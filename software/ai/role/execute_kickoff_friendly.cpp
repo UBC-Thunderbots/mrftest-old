@@ -13,32 +13,32 @@ ExecuteKickoffFriendly::ExecuteKickoffFriendly(RefPtr<World> world) : the_world(
 }
 
 void ExecuteKickoffFriendly::avoid_ball(int index){
-	RefPtr<Move> tactic(new Move(robots[index], the_world));
+	RefPtr<Move> tactic(new Move(players[index], the_world));
 	tactic->set_position(Point( -1 * the_world->field().length()/2, 0));
 	the_tactics.push_back(tactic);
 }
 
 void ExecuteKickoffFriendly::kick_ball(int index){
-	RefPtr<Kick> tactic( new Kick(robots[index], the_world));
+	RefPtr<Kick> tactic( new Kick(players[index], the_world));
 	tactic->set_target(Point( the_world->field().length()/10 , 0));
 	tactic->set_kick(KICKER_STRENGTH);
 	the_tactics.push_back(tactic);
 }
 
 void ExecuteKickoffFriendly::chase_ball(int index) {
-	RefPtr<Chase> tactic( new Chase(robots[index], the_world));
+	RefPtr<Chase> tactic( new Chase(players[index], the_world));
 	the_tactics.push_back(tactic);
 }
 
 void ExecuteKickoffFriendly::tick(){
 	the_tactics.clear();
-	for (size_t i = 0; i < robots.size(); i++){
+	for (size_t i = 0; i < players.size(); i++){
 		// If ball is in play, kicker should not touch the ball again
 		// kicker moves back to make way for other players to grab the ball
 #warning has ball here
-		if (contacted_ball && !robots[i]->sense_ball()) {
+		if (contacted_ball && !players[i]->sense_ball()) {
 			avoid_ball(i);
-		} else if (robots[i]->sense_ball()){
+		} else if (players[i]->sense_ball()){
 			contacted_ball = true;
 			kick_ball(i);
 		} else{
@@ -52,7 +52,7 @@ void ExecuteKickoffFriendly::tick(){
 	}
 }
 
-void ExecuteKickoffFriendly::robots_changed() {
+void ExecuteKickoffFriendly::players_changed() {
 	contacted_ball = false;
 	tick();
 }

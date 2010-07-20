@@ -51,7 +51,7 @@ class Strategy2 : public ByRef, public sigc::trackable {
 		 * Runs the Strategy for one time tick. It is expected that the Strategy
 		 * will examine the team for which it is responsible, determine if any
 		 * changes need to be made to the roles or the assignments of robots to
-		 * roles, make those changes (by means of Role::set_robots()), and then
+		 * roles, make those changes (by means of Role::set_players()), and then
 		 * call Role::tick() for each subsidiary Role.
 		 *
 		 * \param[in] overlay a Cairo context that can be drawn to in order to
@@ -81,7 +81,7 @@ class Strategy : public Strategy2 {
 		 * Runs the Strategy for one time tick. It is expected that the Strategy
 		 * will examine the team for which it is responsible, determine if any
 		 * changes need to be made to the roles or the assignments of robots to
-		 * roles, make those changes (by means of Role::set_robots()), and then
+		 * roles, make those changes (by means of Role::set_players()), and then
 		 * call Role::tick() for each subsidiary Role.
 		 */
 		virtual void tick() = 0;

@@ -24,11 +24,11 @@ class PitStop : public Role {
 		//
 		// Handles changes to the robot membership.
 		//
-		void robots_changed();
+		void players_changed();
 
 	protected:
 		const RefPtr<World> the_world;
-                std::vector<RefPtr<Move> > the_tactics;	
+		std::vector<RefPtr<Move> > the_tactics;
 };
 
 #endif

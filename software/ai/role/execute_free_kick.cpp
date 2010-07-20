@@ -15,13 +15,13 @@ ExecuteIndirectFreeKick::ExecuteIndirectFreeKick(RefPtr<World> world) : the_worl
 void ExecuteIndirectFreeKick::tick() {
 	const FriendlyTeam& friendly(the_world->friendly);
 
-	if (robots.size() != 1) {
-		std::cerr << "execute_indirect_free_kick: contains " << robots.size() << " size " << std::endl;
+	if (players.size() != 1) {
+		std::cerr << "execute_indirect_free_kick: contains " << players.size() << " size " << std::endl;
 	}
 
-	if (robots.size() == 0) return;
+	if (players.size() == 0) return;
 
-	const RefPtr<Player> pl = robots[0];
+	const RefPtr<Player> pl = players[0];
 
 	std::vector<RefPtr<Player> > friends;
 	for (size_t i = 0; i < friendly.size(); ++i)
@@ -51,7 +51,7 @@ void ExecuteIndirectFreeKick::tick() {
 	}*/
 }
 
-void ExecuteIndirectFreeKick::robots_changed() {
+void ExecuteIndirectFreeKick::players_changed() {
 }
 
 ExecuteDirectFreeKick::ExecuteDirectFreeKick(RefPtr<World> world) : the_world(world) {
@@ -60,13 +60,13 @@ ExecuteDirectFreeKick::ExecuteDirectFreeKick(RefPtr<World> world) : the_world(wo
 void ExecuteDirectFreeKick::tick() {
 	const FriendlyTeam& friendly(the_world->friendly);
 
-	if (robots.size() != 1) {
-		LOG_ERROR(Glib::ustring::compose("there are %1 robots", robots.size()));
+	if (players.size() != 1) {
+		LOG_ERROR(Glib::ustring::compose("there are %1 robots", players.size()));
 	}
 
-	if (robots.size() == 0) return;
+	if (players.size() == 0) return;
 
-	const RefPtr<Player> pl = robots[0];
+	const RefPtr<Player> pl = players[0];
 
 	std::vector<RefPtr<Player> > friends;
 	for (size_t i = 0; i < friendly.size(); ++i)
@@ -104,6 +104,6 @@ void ExecuteDirectFreeKick::tick() {
 	}*/
 }
 
-void ExecuteDirectFreeKick::robots_changed() {
+void ExecuteDirectFreeKick::players_changed() {
 }
 

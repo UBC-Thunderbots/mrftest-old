@@ -61,11 +61,11 @@ namespace {
 	}
 
 	void EvenBetterStrategy::in_play_assignment() {
-		const FriendlyTeam &the_team(world->friendly);
+		const FriendlyTeam &friendly(world->friendly);
 		const Point ballpos = world->ball()->position();
 
 		roles.clear();
-		if (the_team.size() == 0) return;
+		if (friendly.size() == 0) return;
 
 		// const vector<RefPtr<Player> > players = the_team.get_players();
 
@@ -79,22 +79,22 @@ namespace {
 		// TODO: change the following
 		// For now, goalie is always lowest numbered robot
 		int goalie_index = 0;
-		defenders.push_back(the_team.get_player(goalie_index));
+		defenders.push_back(friendly.get_player(goalie_index));
 
 		int baller = -1;
 		int baller_ignore_chicker = -1;
-		if (the_team.size() >= 2){
+		if (friendly.size() >= 2){
 			double best_ball_dist = 1e50;
 			double best_ball_dist_ignore_chicker = 1e50;
-			for (size_t i = 0; i < the_team.size(); i++){
+			for (size_t i = 0; i < friendly.size(); i++){
 				if (static_cast<int>(i) == goalie_index)
 					continue;
-				double ball_dist = (ballpos - the_team.get_player(i)->position()).len();
+				double ball_dist = (ballpos - friendly.get_player(i)->position()).len();
 				if (ball_dist < best_ball_dist_ignore_chicker){
 					baller_ignore_chicker = i;
 					best_ball_dist_ignore_chicker = ball_dist;
 				}
-				if (the_team.get_player(i)->chicker_ready_time() >= Player::CHICKER_FOREVER)
+				if (friendly.get_player(i)->chicker_ready_time() >= Player::CHICKER_FOREVER)
 					continue;
 				if (ball_dist < best_ball_dist){
 					baller = i;
@@ -102,18 +102,18 @@ namespace {
 				}
 			}
 			if (baller != -1)
-				offenders.push_back(the_team.get_player(baller));
+				offenders.push_back(friendly.get_player(baller));
 			else{ // unlikely case that all robots have chicker faults
-				offenders.push_back(the_team.get_player(baller_ignore_chicker));
+				offenders.push_back(friendly.get_player(baller_ignore_chicker));
 			}
 		}
 
 		std::vector<RefPtr<Player> > rem_players;
-		for (size_t i = 0; i < the_team.size(); i++){
+		for (size_t i = 0; i < friendly.size(); i++){
 			if (static_cast<int>(i) == goalie_index) continue;
 			if (static_cast<int>(i) == baller) continue;
 			if (baller == -1 && static_cast<int>(i) == baller_ignore_chicker) continue;
-			rem_players.push_back(the_team.get_player(i));
+			rem_players.push_back(friendly.get_player(i));
 		}
 		std::sort(rem_players.begin(), rem_players.end(), AIUtil::CmpDist<RefPtr<Player> >(Point(-world->field().length()/2.0,0.0)));
 
@@ -121,7 +121,7 @@ namespace {
 		// 3 players => 1 offender
 		// 4 players => 1 offender
 		// 5 players => 2 offenders;
-		int preferred_offender_number = std::max(1, static_cast<int>(the_team.size()) - 3);
+		int preferred_offender_number = std::max(1, static_cast<int>(friendly.size()) - 3);
 		switch(world->playtype()){
 			case PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY:
 			case PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY:
@@ -134,11 +134,11 @@ namespace {
 					preferred_offender_number = 1;
 				break;
 			default:
-				if (the_team.size() >= 5 && AIUtil::friendly_posses_ball(world))
+				if (friendly.size() >= 5 && AIUtil::friendly_posses_ball(world))
 					preferred_offender_number++;
 		}
 		// preferred_defender_number includes goalie
-		int preferred_defender_number = the_team.size() - preferred_offender_number;
+		int preferred_defender_number = friendly.size() - preferred_offender_number;
 		//TODO: assign robots not only based on distance to friendly goal, but also on chicker faults
 		size_t i;
 		for (i = 0; defenders.size() < preferred_defender_number; i++){
@@ -147,9 +147,9 @@ namespace {
 		for (; i < rem_players.size(); i++){
 			offenders.push_back(rem_players[i]);
 		}
-		defensive_role->set_robots(defenders);
-		defensive_role->set_goalie(the_team.get_player(goalie_index));
-		offensive_role->set_robots(offenders);
+		defensive_role->set_players(defenders);
+		defensive_role->set_goalie(friendly.get_player(goalie_index));
+		offensive_role->set_players(offenders);
 	}
 
 	RefPtr<Player> EvenBetterStrategy::minus_one_assignment() {
@@ -236,9 +236,9 @@ namespace {
 		for (; i < rem_players.size(); i++){
 			offenders.push_back(rem_players[i]);
 		}
-		defensive_role->set_robots(defenders);
+		defensive_role->set_players(defenders);
 		defensive_role->set_goalie(the_team.get_player(goalie_index));
-		offensive_role->set_robots(offenders);
+		offensive_role->set_players(offenders);
 
 		if (baller != -1)
 			return the_team.get_player(baller);

@@ -20,7 +20,7 @@ class PenaltyEnemy : public Role {
 		//
 		void tick();
 
-		void robots_changed();
+		void players_changed();
 
 	protected:
 		const RefPtr<World> the_world;
@@ -47,7 +47,7 @@ class PenaltyGoalie : public Role {
 
 		void tick();
 
-		void robots_changed();
+		void players_changed();
 
 	protected:
 		const RefPtr<World> the_world;

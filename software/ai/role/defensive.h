@@ -36,7 +36,7 @@ class Defensive : public Role {
 		//
 		// Handles changes to the robot membership.
 		//
-		void robots_changed();
+		void players_changed();
 
 	protected:
 

@@ -14,7 +14,7 @@ class ExecuteIndirectFreeKick : public Role {
 
 		void tick();
 
-		void robots_changed();
+		void players_changed();
 
 	private:
 		const RefPtr<World> the_world;
@@ -31,7 +31,7 @@ class ExecuteDirectFreeKick : public Role {
 
 		void tick();
 
-		void robots_changed();
+		void players_changed();
 
 	private:
 		const RefPtr<World> the_world;

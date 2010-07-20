@@ -24,16 +24,16 @@ class PrepareKickoffEnemy : public Role {
 		//
 		// Handles changes to the robot membership.
 		//
-		void robots_changed();
+		void players_changed();
 
 	protected:
 		const RefPtr<World> the_world;
 
-                std::vector<RefPtr<Move> > the_tactics;	
+		std::vector<RefPtr<Move> > the_tactics;
 
-                static const unsigned int NUMBER_OF_STARTING_POSITIONS = 5;
+		static const unsigned int NUMBER_OF_STARTING_POSITIONS = 5;
 
-                Point starting_positions[NUMBER_OF_STARTING_POSITIONS];
+		Point starting_positions[NUMBER_OF_STARTING_POSITIONS];
 
 };
 

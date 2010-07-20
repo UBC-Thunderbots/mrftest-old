@@ -4,15 +4,9 @@ PitStop::PitStop(RefPtr<World> world) : the_world(world) {
 }
 
 void PitStop::tick(){
-   for(unsigned int i=0; i<the_tactics.size(); i++) {
-        the_tactics[i]->tick();
-   }
-}
-
-void PitStop::robots_changed() {
     the_tactics.clear();
-    for(unsigned int i=0; i<robots.size() ; i++) {
-        RefPtr<Move> tactic( new Move(robots[i], the_world));
+    for(unsigned int i=0; i<players.size() ; i++) {
+        RefPtr<Move> tactic( new Move(players[i], the_world));
         the_tactics.push_back(tactic);
     }
     
@@ -22,4 +16,10 @@ void PitStop::robots_changed() {
         double x_pos = -1 * the_field.length()/2 + 0.2*i;
         the_tactics[i]->set_position( Point(x_pos, y_pos) );
     }
+	for(unsigned int i=0; i<the_tactics.size(); i++) {
+		the_tactics[i]->tick();
+	}
+}
+
+void PitStop::players_changed() {
 }

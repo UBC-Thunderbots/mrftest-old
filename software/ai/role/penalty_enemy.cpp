@@ -15,36 +15,36 @@ PenaltyEnemy::PenaltyEnemy(RefPtr<World> world) : the_world(world) {
 
 void PenaltyEnemy::tick() {
 	unsigned int flags = AIFlags::calc_flags(the_world->playtype());
-	for (unsigned int i = 0; i < robots.size(); ++i) {
-		Move tactic(robots[i], the_world);
+	for (unsigned int i = 0; i < players.size(); ++i) {
+		Move tactic(players[i], the_world);
 		tactic.set_position(standing_positions[i]);
 		tactic.set_flags(flags);
 		tactic.tick();
 	}
 }
 
-void PenaltyEnemy::robots_changed() {
+void PenaltyEnemy::players_changed() {
 }
 
 PenaltyGoalie::PenaltyGoalie(RefPtr<World> world) : the_world(world) {
 }
 
 void PenaltyGoalie::tick() {
-	if (robots.size() != 1) {
+	if (players.size() != 1) {
 		std::cerr << "penalty_enemy: we only want 1 goalie!" << std::endl;
 	}
 
-	if (robots.size() == 0) return;
+	if (players.size() == 0) return;
 
 	const Field& f = the_world->field();
 	const Point starting_position(-0.5 * f.length(), - 0.5 * Robot::MAX_RADIUS);
 	const Point ending_position(-0.5 * f.length(), 0.5 * Robot::MAX_RADIUS);
 
 	unsigned int flags = 0;
-	Patrol tactic(robots[0], the_world, flags, starting_position, ending_position);
+	Patrol tactic(players[0], the_world, flags, starting_position, ending_position);
 	tactic.tick();
 }
 
-void PenaltyGoalie::robots_changed() {
+void PenaltyGoalie::players_changed() {
 }
 

@@ -9,10 +9,10 @@ void VictoryDance::tick(){
     }
 }
 
-void VictoryDance::robots_changed() {
+void VictoryDance::players_changed() {
     the_tactics.clear();
-    for(unsigned int i=0; i<robots.size(); i++) {
-        RefPtr<Dance> tactic( new Dance(robots[i]));
+    for(unsigned int i=0; i<players.size(); i++) {
+        RefPtr<Dance> tactic( new Dance(players[i]));
         the_tactics.push_back(tactic);
     }
 }

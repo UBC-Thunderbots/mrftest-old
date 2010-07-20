@@ -8,96 +8,68 @@
 #include <vector>
 
 /**
- * A Role manages the operation of a small group of players.
+ * A Role manages the operation of a group of players.
  */
-class Role2 : public ByRef, public sigc::trackable {
+class Role : public ByRef, public sigc::trackable {
 	public:
 		/**
 		 * Runs the Role for one time tick. It is expected that the Role will
-		 * examine the robots for which it is responsible, determine if they
+		 * examine the players for which it is responsible, determine if they
 		 * need to be given new tactics, and then call Tactic::tick() for all
 		 * the tactics under this Role.
 		 *
+		 * WARNING
+		 * Current architecture reassigns players every tick.
+		 * A Role must be prepared for this.
+		 *
+		 * Old note:
 		 * It is possible that the set of robots controlled by the Tactic may
 		 * change between one tick and the next. The Role must be ready to deal
 		 * with this situation, and must be sure to destroy any tactics
-		 * controlling robots that have gone away. This situation can be
+		 * controlling players that have gone away. This situation can be
 		 * detected by implementing robots_changed(), which will be called
-		 * whenever the set of robots changes.
+		 * whenever the set of players changes.
 		 *
-		 * \param[in] overlay the visualizer's overlay on which to draw
-		 * graphical information.
 		 */
-		virtual void tick(Cairo::RefPtr<Cairo::Context> overlay) = 0;
+		virtual void tick() = 0;
 
 		/**
-		 * Called each time the set of robots for which the Role is responsible
-		 * has changed. It is expected that the Role will examine the robots and
+		 * Sets the players controlled by this Role.
+		 *
+		 * \param[in] ps the players the Role should control.
+		 */
+		void set_players(const std::vector<RefPtr<Player> > &ps) {
+			players = ps;
+			players_changed();
+		}
+
+		/**
+		 * Removes all players from this Role.
+		 */
+		void clear_players() {
+			players.clear();
+			players_changed();
+		}
+
+		/**
+		 * Called each time the set of players for which the Role is responsible
+		 * has been reassigned.
+		 * It is expected that the Role will examine the players and
 		 * determine if any changes need to be made.
-		 */
-		virtual void robots_changed() = 0;
-		
-		/**
-		 * Sets the robots controlled by this Role.
 		 *
-		 * \param[in] r the robots the Role should control.
+		 * NOTE
+		 * - This function is redundant in a stateless AI because players are reassigned
+		 *   every tick.
+		 * - It does not matter if the set of players stay the same. As long as
+		 *   players are reassigned, this function is called.
 		 */
-		void set_robots(const std::vector<RefPtr<Player> > &r) {
-			robots = r;
-			robots_changed();
-		}
-		
-		/**
-		 * Sets the one and only robot controlled by this Role.
-		 *
-		 * \param[in] r the robot the Role should control.
-		 */
-		void set_robot(const RefPtr<Player> &r) {
-			robots.clear();
-			robots.push_back(r);
-			robots_changed();
-		}
-		
-		/**
-		 * Removes all robots from this Role.
-		 */
-		void clear_robots() {
-			robots.clear();
-			robots_changed();
-		}
+		virtual void players_changed() = 0;
 
 	protected:
 		/**
 		 * The robots that this Role controls.
 		 */
-		std::vector<RefPtr<Player> > robots;
-};
-
-/**
- * A compatibility shim for roles that do not present a visual overlay.
- */
-class Role : public Role2 {
-	public:
-		/**
-		 * Runs the Role for one time tick. It is expected that the Role will
-		 * examine the robots for which it is responsible, determine if they
-		 * need to be given new tactics, and then call Tactic::tick() for all
-		 * the tactics under this Role.
-		 *
-		 * It is possible that the set of robots controlled by the Tactic may
-		 * change between one tick and the next. The Role must be ready to deal
-		 * with this situation, and must be sure to destroy any tactics
-		 * controlling robots that have gone away. This situation can be
-		 * detected by implementing robots_changed(), which will be called
-		 * whenever the set of robots changes.
-		 */
-		virtual void tick() = 0;
-
-	private:
-		void tick(Cairo::RefPtr<Cairo::Context>) {
-			tick();
-		}
+		std::vector<RefPtr<Player> > players;
 };
 
 #endif
-

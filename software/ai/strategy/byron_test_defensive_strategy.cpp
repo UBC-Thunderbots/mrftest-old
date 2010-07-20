@@ -40,8 +40,8 @@ namespace {
 			defenders.push_back(the_team.get_player(i));
 		}
 
-		goalie_role.set_robots(goalies);
-		defensive_role.set_robots(defenders);
+		goalie_role.set_players(goalies);
+		defensive_role.set_players(defenders);
 		goalie_role.tick();
 		defensive_role.tick();
 	}

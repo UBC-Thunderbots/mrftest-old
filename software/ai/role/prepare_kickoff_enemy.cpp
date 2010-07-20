@@ -11,20 +11,20 @@ PrepareKickoffEnemy::PrepareKickoffEnemy(RefPtr<World> world) : the_world(world)
 }
 
 void PrepareKickoffEnemy::tick(){
-   unsigned int flags = AIFlags::calc_flags(the_world->playtype());
-   for(unsigned int i=0; i<the_tactics.size(); i++) {
-	the_tactics[i]->set_flags(flags);
-        the_tactics[i]->tick();
-   }
-}
-
-void PrepareKickoffEnemy::robots_changed() {
     the_tactics.clear();
-    for(unsigned int i=0; i<robots.size() ; i++) {
-        RefPtr<Move> tactic( new Move(robots[i], the_world));
+    for(unsigned int i=0; i<players.size() ; i++) {
+        RefPtr<Move> tactic( new Move(players[i], the_world));
         the_tactics.push_back(tactic);
         if(i<NUMBER_OF_STARTING_POSITIONS) {
             the_tactics[i]->set_position(starting_positions[i]);
         }
     }
+	unsigned int flags = AIFlags::calc_flags(the_world->playtype());
+	for(unsigned int i=0; i<the_tactics.size(); i++) {
+	the_tactics[i]->set_flags(flags);
+		the_tactics[i]->tick();
+	}
+}
+
+void PrepareKickoffEnemy::players_changed() {
 }

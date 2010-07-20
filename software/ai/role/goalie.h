@@ -23,7 +23,7 @@ class Goalie : public Role {
 		//
 		// Handles changes to the robot membership.
 		//
-		void robots_changed();
+		void players_changed();
 
 	protected:
 		const RefPtr<World> the_world;

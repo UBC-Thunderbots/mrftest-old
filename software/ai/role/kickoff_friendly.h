@@ -25,7 +25,7 @@ class KickoffFriendly : public Role {
 		//
 		//
 		//don't need to do anything here
-		void robots_changed(){
+		void players_changed(){
 		}
 		
 		//

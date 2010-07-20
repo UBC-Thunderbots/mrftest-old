@@ -22,7 +22,7 @@ class VictoryDance : public Role {
 		//
 		// Handles changes to the robot membership.
 		//
-		void robots_changed();
+		void players_changed();
 
 	protected:
         std::vector<RefPtr<Dance> > the_tactics;

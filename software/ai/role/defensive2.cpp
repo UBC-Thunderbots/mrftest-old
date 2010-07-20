@@ -35,8 +35,8 @@ Defensive2::Defensive2(RefPtr<World> world) : the_world(world) {
 }
 
 void Defensive2::assign(const RefPtr<Player>& p, RefPtr<Tactic> t) {
-	for (size_t i = 0; i < robots.size(); ++i) {
-		if (robots[i] == p) {
+	for (size_t i = 0; i < players.size(); ++i) {
+		if (players[i] == p) {
 			tactics[i] = t;
 			return;
 		}
@@ -121,7 +121,10 @@ std::pair<Point, std::vector<Point> > Defensive2::calc_block_positions(const boo
 
 void Defensive2::tick() {
 
-	if (robots.size() == 0) {
+	tactics.clear();
+	tactics.resize(players.size());
+
+	if (players.size() == 0) {
 		LOG_WARN("no robots");
 		return;
 	}
@@ -157,11 +160,11 @@ void Defensive2::tick() {
 
 	// robot 0 is goalie, the others are non-goalie
 	if (!goalie) {
-		goalie = robots[0];
+		goalie = players[0];
 	} else {
-		for (size_t i = 0; i < robots.size(); ++i) {
-			if (robots[i] != goalie) continue;
-			swap(robots[i], robots[0]);
+		for (size_t i = 0; i < players.size(); ++i) {
+			if (players[i] != goalie) continue;
+			swap(players[i], players[0]);
 			break;
 		}
 	}
@@ -179,8 +182,8 @@ void Defensive2::tick() {
 	}
 
 	std::vector<RefPtr<Player> > defenders;
-	for (size_t i = 1; i < robots.size(); ++i)
-		defenders.push_back(robots[i]);
+	for (size_t i = 1; i < players.size(); ++i)
+		defenders.push_back(players[i]);
 
 	// Sort by distance to ball. DO NOT SORT IT AGAIN!!
 	std::sort(defenders.begin(), defenders.end(), AIUtil::CmpDist<RefPtr<Player> >(the_world->ball()->position()));
@@ -225,7 +228,7 @@ void Defensive2::tick() {
 	// check if goalie should rush
 	if (goalierush){
 		LOG_INFO("goalie to rush");
-		RefPtr<Move> tactic(new Move(robots[0], the_world));
+		RefPtr<Move> tactic(new Move(players[0], the_world));
 		rushpos.y = std::min(rushpos.y, the_world->field().goal_width()/2.0);
 		rushpos.y = std::max(rushpos.y, -the_world->field().goal_width()/2.0);
 		tactic->set_position(rushpos);
@@ -234,12 +237,12 @@ void Defensive2::tick() {
 	// check if chaser robot
 	else if (goaliechase) {
 		LOG_INFO("goalie to shoot");
-		RefPtr<Shoot> shoot_tactic = RefPtr<Shoot>(new Shoot(robots[0], the_world));
+		RefPtr<Shoot> shoot_tactic = RefPtr<Shoot>(new Shoot(players[0], the_world));
 		shoot_tactic->force();
 		shoot_tactic->set_pivot(false);
 		tactics[0] = shoot_tactic;
 	} else {
-		RefPtr<Move> tactic(new Move(robots[0], the_world));
+		RefPtr<Move> tactic(new Move(players[0], the_world));
 		int closest_defender = - 1;
 		for (size_t i = 0; i < defenders.size(); ++i)
 			if (order[i] == 0)
@@ -295,8 +298,5 @@ void Defensive2::tick() {
 	}
 }
 
-void Defensive2::robots_changed() {
-	tactics.clear();
-	tactics.resize(robots.size());
+void Defensive2::players_changed() {
 }
-

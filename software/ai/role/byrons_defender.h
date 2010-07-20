@@ -20,7 +20,7 @@ class ByronsDefender : public Role {
 		//
 		// Handles changes to the Robot membership.
 		//
-		void robots_changed();
+		void players_changed();
 
 	protected:
 	
