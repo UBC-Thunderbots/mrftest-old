@@ -16,7 +16,7 @@ class SimulatorPlayer : public ByRef {
 		/**
 		 * A pointer to a SimulatorPlayer.
 		 */
-		typedef RefPtr<SimulatorPlayer> ptr;
+		typedef RefPtr<SimulatorPlayer> Ptr;
 
 		/**
 		 * \return the position of the player, in metres from field centre

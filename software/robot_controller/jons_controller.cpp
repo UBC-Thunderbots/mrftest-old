@@ -12,8 +12,8 @@ namespace {
 			JonsControllerFactory() : RobotControllerFactory("JONS RC") {
 			}
 
-			RobotController::ptr create_controller(Player::ptr plr, bool, unsigned int) const {
-				RobotController::ptr p(new JonsController(plr));
+			RobotController::Ptr create_controller(Player::Ptr plr, bool, unsigned int) const {
+				RobotController::Ptr p(new JonsController(plr));
 				return p;
 			}
 	};
@@ -24,7 +24,7 @@ namespace {
 
 
 
-JonsController::JonsController(Player::ptr plr) : plr(plr), max_acc(10), max_vel(1000), max_Aacc(1), close_param(1.5),position_delta(0.05), orient_delta(0.05)
+JonsController::JonsController(Player::Ptr plr) : plr(plr), max_acc(10), max_vel(1000), max_Aacc(1), close_param(1.5),position_delta(0.05), orient_delta(0.05)
 {
 	learning_time=0;
 }

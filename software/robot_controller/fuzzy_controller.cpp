@@ -10,8 +10,8 @@ namespace {
 			FuzzyControllerFactory() : RobotControllerFactory("Fuzzy RC") {
 			}
 
-			RobotController::ptr create_controller(Player::ptr player, bool, unsigned int) const {
-				RobotController::ptr p(new FuzzyController (player));
+			RobotController::Ptr create_controller(Player::Ptr player, bool, unsigned int) const {
+				RobotController::Ptr p(new FuzzyController (player));
 				return p;
 			}
 	};
@@ -33,7 +33,7 @@ const std::vector<double> FuzzyController::get_params_default() const {
 	return param_default;
 }
 
-FuzzyController::FuzzyController(Player::ptr player) : param(5) {
+FuzzyController::FuzzyController(Player::Ptr player) : param(5) {
 	robot = player;
 	param = param_default;
 }

@@ -10,12 +10,12 @@ class ByronsDefender : public Role {
 		//
 		// A pointer to a ByronsDefender role.
 		//
-		typedef RefPtr<ByronsDefender> ptr;
+		typedef RefPtr<ByronsDefender> Ptr;
 
 		//
 		// Constructs a new ByronsDefender role.
 		//
-		ByronsDefender(World::ptr world);
+		ByronsDefender(World::Ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -29,7 +29,7 @@ class ByronsDefender : public Role {
 
 	protected:
 	
-		const World::ptr the_world;
+		const World::Ptr the_world;
 
 };
 

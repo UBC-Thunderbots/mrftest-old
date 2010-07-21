@@ -9,15 +9,15 @@
 namespace {
 	class TestStrategy : public Strategy {
 		public:
-			TestStrategy(World::ptr world);
+			TestStrategy(World::Ptr world);
 			void tick();
 			StrategyFactory &get_factory();
 			Gtk::Widget *get_ui_controls();
 		private:
-			const World::ptr the_world;
+			const World::Ptr the_world;
 	};
 
-	TestStrategy::TestStrategy(World::ptr world) : the_world(world) {
+	TestStrategy::TestStrategy(World::Ptr world) : the_world(world) {
 
 	}
 
@@ -25,7 +25,7 @@ namespace {
 
 	void TestStrategy::tick() {
 		const FriendlyTeam &the_team(the_world->friendly);
-		const Ball::ptr the_ball(the_world->ball());
+		const Ball::Ptr the_ball(the_world->ball());
 
 		if (the_team.size() < 5)	return;
 
@@ -33,12 +33,12 @@ namespace {
 		const Point RIGHT(1.5, 0);
 
 		// player 0 patrols
-		Player::ptr receiver = the_team.get_player(0);
+		Player::Ptr receiver = the_team.get_player(0);
 		Move move_tactic(receiver, the_world);
 //		std::cout << receiver->position() << std::endl;
 
 		// player 1 tries to block player 0
-		Player::ptr blocker = the_team.get_player(1);
+		Player::Ptr blocker = the_team.get_player(1);
 		Block block_tactic(blocker, the_world);
 		block_tactic.set_target(receiver);
 		block_tactic.tick();
@@ -60,7 +60,7 @@ namespace {
 		
 		// player #2 stands at a particular spot
 		const Point STAND(-1,1);
-		Player::ptr passer = the_team.get_player(2);
+		Player::Ptr passer = the_team.get_player(2);
 //		std::cout << passer->position() << std::endl;
 		if ((passer->position() - STAND).lensq() > 0.05) {
 			Move m_tactic(passer, the_world);
@@ -72,7 +72,7 @@ namespace {
 		}
 
 		// player #3 tries to move between player #0 and player #2
-		Player::ptr interceptor = the_team.get_player(3);
+		Player::Ptr interceptor = the_team.get_player(3);
 		MoveBetween move_between_tactic(interceptor, the_world);
 		move_between_tactic.set_points(passer->position(), receiver->position());
 		move_between_tactic.tick();
@@ -80,7 +80,7 @@ namespace {
 		// the rest of the players try to pass to player 0
 		for (unsigned int i = 4; i < the_team.size(); i++)
 		{
-			Player::ptr the_player = the_team.get_player(i);
+			Player::Ptr the_player = the_team.get_player(i);
 
 			Pass pass_tactic(the_player, the_world, receiver);
 #warning has_ball
@@ -97,14 +97,14 @@ namespace {
 	class TestStrategyFactory : public StrategyFactory {
 		public:
 			TestStrategyFactory();
-			Strategy::ptr create_strategy(World::ptr world);
+			Strategy::Ptr create_strategy(World::Ptr world);
 	};
 
 	TestStrategyFactory::TestStrategyFactory() : StrategyFactory("Test(Tactics) Strategy") {
 	}
 
-	Strategy::ptr TestStrategyFactory::create_strategy(World::ptr world) {
-		Strategy::ptr s(new TestStrategy(world));
+	Strategy::Ptr TestStrategyFactory::create_strategy(World::Ptr world) {
+		Strategy::Ptr s(new TestStrategy(world));
 		return s;
 	}
 

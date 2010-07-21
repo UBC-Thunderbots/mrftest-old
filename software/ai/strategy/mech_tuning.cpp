@@ -95,7 +95,7 @@ namespace {
 
 	class MechTuning : public MovementBenchmark {
 		public:
-			MechTuning(World::ptr);
+			MechTuning(World::Ptr);
 			~MechTuning();
 			Gtk::Widget *get_ui_controls();
 			StrategyFactory &get_factory();
@@ -119,7 +119,7 @@ namespace {
 			int phase;
 	};
 
-	MechTuning::MechTuning(World::ptr world) : MovementBenchmark(world), ui(this), tc(NULL), run_bench_button("Run Benchmark"), run_turn_button("Turning for 5 mins"), run_err_button("Run error for x/y/angle"), reset_button("reset"), x_scale(-2.0, 2.0, 0.01), y_scale(-2.0, 2.0, 0.01), a_scale(-4.0, 4.0, 0.01) {
+	MechTuning::MechTuning(World::Ptr world) : MovementBenchmark(world), ui(this), tc(NULL), run_bench_button("Run Benchmark"), run_turn_button("Turning for 5 mins"), run_err_button("Run error for x/y/angle"), reset_button("reset"), x_scale(-2.0, 2.0, 0.01), y_scale(-2.0, 2.0, 0.01), a_scale(-4.0, 4.0, 0.01) {
 		run_bench_button.signal_clicked().connect(sigc::mem_fun(this,&MechTuning::run_bench));
 		run_turn_button.signal_clicked().connect(sigc::mem_fun(this,&MechTuning::run_turn));
 		run_err_button.signal_clicked().connect(sigc::mem_fun(this,&MechTuning::run_err));
@@ -205,7 +205,7 @@ namespace {
 			done = 0;
 		}
 
-		const Player::ptr the_player = friendly.get_player(0);
+		const Player::Ptr the_player = friendly.get_player(0);
 
 		switch(phase) {
 			case 0:
@@ -251,14 +251,14 @@ namespace {
 	class MechTuningFactory : public StrategyFactory {
 		public:
 			MechTuningFactory();
-			Strategy::ptr create_strategy(World::ptr world);
+			Strategy::Ptr create_strategy(World::Ptr world);
 	};
 
 	MechTuningFactory::MechTuningFactory() : StrategyFactory("Mech Tuning Benchmark") {
 	}
 
-	Strategy::ptr MechTuningFactory::create_strategy(World::ptr world) {
-		Strategy::ptr s(new MechTuning(world));
+	Strategy::Ptr MechTuningFactory::create_strategy(World::Ptr world) {
+		Strategy::Ptr s(new MechTuning(world));
 		return s;
 	}
 

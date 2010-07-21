@@ -11,12 +11,12 @@ class MoveBetween : public Tactic {
 		//
 		// A pointer to this Tactic.
 		//
-		typedef RefPtr<MoveBetween> ptr;
+		typedef RefPtr<MoveBetween> Ptr;
 
 		//
 		// Constructs a new move between Tactic. 
 		//
-		MoveBetween(Player::ptr player, World::ptr world);
+		MoveBetween(Player::Ptr player, World::Ptr world);
 
 		//
 		// Sets the two points in which to move between

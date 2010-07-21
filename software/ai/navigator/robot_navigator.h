@@ -18,7 +18,7 @@
  */
 class RobotNavigator : public NonCopyable {
 	public:
-		RobotNavigator(Player::ptr player, World::ptr world);
+		RobotNavigator(Player::Ptr player, World::Ptr world);
 
 		void tick();
 
@@ -75,8 +75,8 @@ class RobotNavigator : public NonCopyable {
 		bool ball_obstacle;
 		// clip the field boundries 
 		Point clip_playing_area(Point wantdest);
-		const Player::ptr the_player;
-		const World::ptr the_world;
+		const Player::Ptr the_player;
+		const World::Ptr the_world;
 
 		// Has destination and orientation been set?
 		bool position_initialized;

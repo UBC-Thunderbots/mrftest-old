@@ -16,7 +16,7 @@ class PlayerODE : public SimulatorPlayer {
 	
 
 	
-	typedef RefPtr<PlayerODE> ptr;
+	typedef RefPtr<PlayerODE> Ptr;
 	
 	private:
 	///The rectangular geometry for the front collision

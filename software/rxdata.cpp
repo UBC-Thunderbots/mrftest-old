@@ -18,7 +18,7 @@
 namespace {
 	class StateMachine : public NonCopyable, public sigc::trackable {
 		public:
-			StateMachine(Glib::RefPtr<Glib::MainLoop> loop, const XBeeRawBot::ptr bot) : loop(loop), bot(bot) {
+			StateMachine(Glib::RefPtr<Glib::MainLoop> loop, const XBeeRawBot::Ptr bot) : loop(loop), bot(bot) {
 				conn = bot->signal_alive.connect(sigc::mem_fun(this, &StateMachine::on_alive));
 				bot->signal_claim_failed.connect(sigc::mem_fun(this, &StateMachine::on_claim_failed));
 				std::memset(seen_indices, 0, sizeof(seen_indices));
@@ -26,7 +26,7 @@ namespace {
 
 		private:
 			const Glib::RefPtr<Glib::MainLoop> loop;
-			const XBeeRawBot::ptr bot;
+			const XBeeRawBot::Ptr bot;
 			sigc::connection conn;
 			bool seen_indices[128];
 			int16_t data[128][32];
@@ -44,7 +44,7 @@ namespace {
 			void do_set16() {
 				conn.disconnect();
 				uint8_t value[2] = { static_cast<uint8_t>(bot->address16() >> 8), static_cast<uint8_t>(bot->address16() & 0xFF) };
-				RemoteATPacket<2>::ptr pkt(RemoteATPacket<2>::create(bot->address, "MY", value, true));
+				RemoteATPacket<2>::Ptr pkt(RemoteATPacket<2>::create(bot->address, "MY", value, true));
 				conn = pkt->signal_complete().connect(sigc::mem_fun(this, &StateMachine::done_set16));
 				bot->send(pkt);
 			}
@@ -179,7 +179,7 @@ namespace {
 		const Config::RobotInfo &botinfo(conf.robots().find(robot));
 		XBeeLowLevel modem;
 
-		const XBeeRawBot::ptr bot(XBeeRawBot::create(botinfo.address, modem));
+		const XBeeRawBot::Ptr bot(XBeeRawBot::create(botinfo.address, modem));
 		StateMachine sm(loop, bot);
 		loop->run();
 

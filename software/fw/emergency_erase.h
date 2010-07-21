@@ -13,7 +13,7 @@ class EmergencyErase : public WatchableOperation, public sigc::trackable {
 		//
 		// Constructs an emergency erase object.
 		//
-		EmergencyErase(XBeeRawBot::ptr bot);
+		EmergencyErase(XBeeRawBot::Ptr bot);
 
 		//
 		// Starts the erase process.
@@ -21,7 +21,7 @@ class EmergencyErase : public WatchableOperation, public sigc::trackable {
 		void start();
 
 	private:
-		const XBeeRawBot::ptr bot;
+		const XBeeRawBot::Ptr bot;
 		sigc::connection complete_connection;
 		
 		void report_error(const Glib::ustring &error);

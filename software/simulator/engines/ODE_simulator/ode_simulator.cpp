@@ -38,9 +38,9 @@ namespace {
 	//
 	class SimEngine : public SimulatorEngine {
 		private:
-			BallODE::ptr the_ball;
-			std::vector<PlayerODE::ptr> the_players;
-			PlayerODE::ptr emptyPlayer;
+			BallODE::Ptr the_ball;
+			std::vector<PlayerODE::Ptr> the_players;
+			PlayerODE::Ptr emptyPlayer;
 		public:
 			double timeStep;
 			dWorldID eworld;
@@ -90,7 +90,7 @@ namespace {
     				dWorldSetContactSurfaceLayer(eworld, 0.1);
 				contactgroup = dJointGroupCreate (0);
 
-				BallODE::ptr b(new BallODE(eworld, space));
+				BallODE::Ptr b(new BallODE(eworld, space));
 				the_ball = b;
 				
  				//dWorldSetLinearDamping (eworld, 0.02);
@@ -140,12 +140,12 @@ namespace {
 			void setWorld(dWorldID world) {
 				eworld = world;
 			}
-			SimulatorBall::ptr get_ball() {
+			SimulatorBall::Ptr get_ball() {
 				return the_ball;
 			}
 
-			SimulatorPlayer::ptr add_player() {
-				PlayerODE::ptr	 p(new PlayerODE(eworld, space, the_ball->ballGeom, static_cast<double>(UPDATES_PER_TICK)));
+			SimulatorPlayer::Ptr add_player() {
+				PlayerODE::Ptr	 p(new PlayerODE(eworld, space, the_ball->ballGeom, static_cast<double>(UPDATES_PER_TICK)));
 				Point cur =p->position();
 				
 				Point balpos = the_ball->position();
@@ -169,7 +169,7 @@ namespace {
 			}
 			
 			
-			PlayerODE::ptr get_player_from_shape(dGeomID shape){
+			PlayerODE::Ptr get_player_from_shape(dGeomID shape){
 				for (unsigned int i = 0; i < the_players.size(); i++) {
 					if (the_players[i]->robot_contains_shape(shape)) {
 						return the_players[i];
@@ -179,7 +179,7 @@ namespace {
 			}
 
 			
-			PlayerODE::ptr get_player_from_shape_ground(dGeomID shape){
+			PlayerODE::Ptr get_player_from_shape_ground(dGeomID shape){
 				for (unsigned int i = 0; i < the_players.size(); i++) {
 					if (the_players[i]->robot_contains_shape_ground(shape)) {
 						return the_players[i];
@@ -189,9 +189,9 @@ namespace {
 			}
 			
 			
-			void remove_player(SimulatorPlayer::ptr p) {
+			void remove_player(SimulatorPlayer::Ptr p) {
 				for (unsigned int i = 0; i < the_players.size(); i++) {
-					if (SimulatorPlayer::ptr::cast_static(the_players[i]) == p) {
+					if (SimulatorPlayer::Ptr::cast_static(the_players[i]) == p) {
 						the_players.erase(the_players.begin() + i);
 						return;
 					}
@@ -262,7 +262,7 @@ namespace {
 
 				double frict = MU*6;
 				int i=0;
-				 PlayerODE::ptr robot = emptyPlayer;
+				 PlayerODE::Ptr robot = emptyPlayer;
 				 
 				 for(unsigned int i=0; i<the_players.size(); i++){
 					 if(the_players[i]->has_ball()){
@@ -310,8 +310,8 @@ namespace {
 				  
 				  dContact contact[num_contact];		// up to 3 contacts per box
 				  
-				  PlayerODE::ptr robot1 = get_player_from_shape(o1);
-				  PlayerODE::ptr robot2 = get_player_from_shape(o2);
+				  PlayerODE::Ptr robot1 = get_player_from_shape(o1);
+				  PlayerODE::Ptr robot2 = get_player_from_shape(o2);
 				  
 				  if((robot1 != emptyPlayer || robot2 != emptyPlayer)){
 				  	handleRobotBallCollision(o1,o2);
@@ -341,7 +341,7 @@ namespace {
 				  dBodyID b2 = dGeomGetBody(o2);
 				  dContact contact[3];		// up to 3 contacts per box
 				  
-				  PlayerODE::ptr robot = get_player_from_shape(o1);
+				  PlayerODE::Ptr robot = get_player_from_shape(o1);
 				  if(robot == emptyPlayer){
 				  	robot = get_player_from_shape(o2);
 				  }
@@ -375,8 +375,8 @@ namespace {
 				  dBodyID b1 = dGeomGetBody(o1);
 				  dBodyID b2 = dGeomGetBody(o2);
 
-				PlayerODE::ptr robot1 = get_player_from_shape(o1);
-				PlayerODE::ptr robot2 = get_player_from_shape(o2);
+				PlayerODE::Ptr robot1 = get_player_from_shape(o1);
+				PlayerODE::Ptr robot2 = get_player_from_shape(o2);
 
 						if(robot1 || robot2){
 							return;
@@ -410,8 +410,8 @@ namespace {
 				//Point p2 = Point(pos2[0],pos2[1]);
 				//Point dis = p1-p2;
 				
-				PlayerODE::ptr robot1 = get_player_from_shape(o1);
-				PlayerODE::ptr robot2 = get_player_from_shape(o2);
+				PlayerODE::Ptr robot1 = get_player_from_shape(o1);
+				PlayerODE::Ptr robot2 = get_player_from_shape(o2);
 				
 				//if (dis.len>0.02) we assume that are components from same robot
 				//as such we will ignore it
@@ -497,8 +497,8 @@ namespace {
 			SimEngineFactory() : SimulatorEngineFactory("Open Dynamics Engine Simulator") {
 			}
 
-			SimulatorEngine::ptr create_engine() {
-				SimulatorEngine::ptr p(new SimEngine);
+			SimulatorEngine::Ptr create_engine() {
+				SimulatorEngine::Ptr p(new SimEngine);
 				return p;
 			}
 	};

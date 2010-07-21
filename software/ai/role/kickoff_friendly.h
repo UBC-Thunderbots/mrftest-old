@@ -15,12 +15,12 @@ class KickoffFriendly : public Role {
 		//
 		// A pointer to a KickoffFriendly Role.
 		//
-		typedef RefPtr<KickoffFriendly> ptr;
+		typedef RefPtr<KickoffFriendly> Ptr;
 
 		//
 		// Constructs a new KickoffFriendly Role.
 		//
-		KickoffFriendly(World::ptr world);
+		KickoffFriendly(World::Ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -50,7 +50,7 @@ class KickoffFriendly : public Role {
 		//
 		//
 		//
-		World::ptr the_world;
+		World::Ptr the_world;
 
 		Point clip_circle(Point cur_point, double circle_radius, Point dst);
 

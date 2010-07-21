@@ -24,7 +24,7 @@ XBeeScheduler::XBeeScheduler(XBeeDaemon &daemon) : daemon(daemon), sent_count(0)
 	timespec_now(last_rundata_timestamp);
 }
 
-void XBeeScheduler::queue(XBeeRequest::ptr req) {
+void XBeeScheduler::queue(XBeeRequest::Ptr req) {
 	pending.push(req);
 	push();
 }
@@ -55,7 +55,7 @@ void XBeeScheduler::push() {
 	// Determine what to do next.
 	if (next_type == NEXT_QUEUED) {
 		// We should send some queued data. Dequeue a XBeeRequest.
-		XBeeRequest::ptr req = pending.front();
+		XBeeRequest::Ptr req = pending.front();
 		pending.pop();
 
 		// If the XBeeRequest will expect a response, then record it as outstanding
@@ -200,7 +200,7 @@ void XBeeScheduler::push() {
 
 bool XBeeScheduler::on_request_timeout(uint8_t frame) {
 	// Resend the XBeeRequest.
-	XBeeRequest::ptr req = sent[frame].data;
+	XBeeRequest::Ptr req = sent[frame].data;
 	iovec iov;
 	iov.iov_base = const_cast<uint8_t *>(&req->data()[0]);
 	iov.iov_len = req->data().size();
@@ -218,7 +218,7 @@ void XBeeScheduler::on_feedback_timeout() {
 	uint64_t address64 = daemon.run_data_index_reverse[last_feedback_index];
 	if (address64) {
 		// OK, there's still a robot at this run data index.
-		XBeeRobot::ptr bot(daemon.robots[address64]);
+		XBeeRobot::Ptr bot(daemon.robots[address64]);
 		if (bot->address16() == last_feedback_address) {
 			// OK, the bot at this run data index has the same 16-bit address as
 			// the one that was there when we sent the original bulk packet. We
@@ -278,7 +278,7 @@ void XBeeScheduler::on_receive(const std::vector<uint8_t> &data) {
 		// robot hanging off this run data index, pass the feedback to it.
 		uint64_t address64 = daemon.run_data_index_reverse[last_feedback_index];
 		if (address64) {
-			XBeeRobot::ptr bot(daemon.robots[address64]);
+			XBeeRobot::Ptr bot(daemon.robots[address64]);
 			if (bot->address16() == last_feedback_address) {
 				timespec now;
 				timespec_now(now);

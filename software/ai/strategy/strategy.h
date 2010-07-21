@@ -18,7 +18,7 @@ namespace AIStrategy {
 	 */
 	class CmpPlayerGoalie {
 		public:
-		bool operator()(const Player::ptr& a, const Player::ptr& b) const {
+		bool operator()(const Player::Ptr& a, const Player::Ptr& b) const {
 			if (a->chicker_ready_time() == Player::CHICKER_FOREVER) {
 				if (b->chicker_ready_time() != Player::CHICKER_FOREVER) return true;
 				return a->name < b->name;
@@ -33,7 +33,7 @@ namespace AIStrategy {
 	 */
 	class CmpPlayerChicker {
 		public:
-			bool operator()(const Player::ptr& a, const Player::ptr& b) const {
+			bool operator()(const Player::Ptr& a, const Player::Ptr& b) const {
 				if (a->chicker_ready_time() == b->chicker_ready_time()) return a->name < b->name;
 				return a->name < b->name;
 			}
@@ -50,7 +50,7 @@ class Strategy2 : public ByRef, public sigc::trackable {
 		/**
 		 * A pointer to a Strategy.
 		 */
-		typedef RefPtr<Strategy2> ptr;
+		typedef RefPtr<Strategy2> Ptr;
 
 		/**
 		 * Runs the Strategy for one time tick. It is expected that the Strategy
@@ -111,7 +111,7 @@ class StrategyFactory : public Registerable<StrategyFactory> {
 		 *
 		 * \return The new Strategy
 		 */
-		virtual Strategy::ptr create_strategy(World::ptr world) = 0;
+		virtual Strategy::Ptr create_strategy(World::Ptr world) = 0;
 
 	protected:
 		/**

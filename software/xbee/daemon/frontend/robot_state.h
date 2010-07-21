@@ -19,7 +19,7 @@ class XBeeRobot : public ByRef {
 		/**
 		 * A pointer to a XBeeRobot.
 		 */
-		typedef RefPtr<XBeeRobot> ptr;
+		typedef RefPtr<XBeeRobot> Ptr;
 
 		/**
 		 * An individual state that a robot can be in is represented by a
@@ -31,7 +31,7 @@ class XBeeRobot : public ByRef {
 				/**
 				 * A pointer to a RobotState.
 				 */
-				typedef RefPtr<RobotState> ptr;
+				typedef RefPtr<RobotState> Ptr;
 
 				/**
 				 * Switches the robot into raw mode.
@@ -117,7 +117,7 @@ class XBeeRobot : public ByRef {
 		 *
 		 * \return A new XBeeRobot object
 		 */
-		static ptr create(uint64_t address64, XBeeDaemon &daemon);
+		static Ptr create(uint64_t address64, XBeeDaemon &daemon);
 
 		/**
 		 * Switches the robot into raw mode.
@@ -209,7 +209,7 @@ class XBeeRobot : public ByRef {
 		sigc::signal<void> signal_feedback;
 
 	private:
-		RobotState::ptr state_;
+		RobotState::Ptr state_;
 		XBeeDaemon &daemon;
 
 		XBeeRobot(uint64_t address64, XBeeDaemon &daemon);

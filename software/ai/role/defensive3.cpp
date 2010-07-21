@@ -24,7 +24,7 @@ namespace {
 
 }
 
-Defensive3::Defensive3(const World::ptr world) : world(world) {
+Defensive3::Defensive3(const World::Ptr world) : world(world) {
 	// goalie_guard_top initialization is optional
 }
 
@@ -34,8 +34,8 @@ void Defensive3::calc_block_positions() {
 	const Field& f = world->field();
 
 	// Sort enemies by distance from own goal.
-	std::vector<Robot::ptr> enemies = enemy.get_robots();
-	std::sort(enemies.begin(), enemies.end(), AIUtil::CmpDist<Robot::ptr>(f.friendly_goal()));
+	std::vector<Robot::Ptr> enemies = enemy.get_robots();
+	std::sort(enemies.begin(), enemies.end(), AIUtil::CmpDist<Robot::Ptr>(f.friendly_goal()));
 
 	defender_positions.clear();
 
@@ -92,7 +92,7 @@ void Defensive3::tick() {
 
 	// stateful ai can have empty roles
 	if (players.size() == 0) return;
-	std::map<Player::ptr, Tactic::ptr> tactics;
+	std::map<Player::Ptr, Tactic::Ptr> tactics;
 
 	const FriendlyTeam& friendly(world->friendly);
 
@@ -100,7 +100,7 @@ void Defensive3::tick() {
 
 	// the robot chaser
 	double chaserdist = 1e99;
-	Player::ptr chaser;
+	Player::Ptr chaser;
 	for (size_t i = 0; i < friendly.size(); ++i) {
 		const double dist = (friendly[i]->position() - ballpos).len();
 		if (dist > AIUtil::CHASE_BALL_DIST) continue;
@@ -126,9 +126,9 @@ void Defensive3::tick() {
 		goalie_guard_top = false;
 	}
 
-	Player::ptr baller;
-	std::vector<Player::ptr> defenders;
-	for (std::set<Player::ptr>::iterator it = players.begin(); it != players.end(); ++it) {
+	Player::Ptr baller;
+	std::vector<Player::Ptr> defenders;
+	for (std::set<Player::Ptr>::iterator it = players.begin(); it != players.end(); ++it) {
 #warning more than 1 player may posses ball
 		if (AIUtil::posses_ball(world, *it)) baller = *it;
 		if (*it == goalie) continue;
@@ -136,7 +136,7 @@ void Defensive3::tick() {
 	}
 
 	// Sort by distance to ball. DO NOT SORT IT AGAIN!!
-	std::sort(defenders.begin(), defenders.end(), AIUtil::CmpDist<Player::ptr>(world->ball()->position()));
+	std::sort(defenders.begin(), defenders.end(), AIUtil::CmpDist<Player::Ptr>(world->ball()->position()));
 
 	calc_block_positions();
 
@@ -173,19 +173,19 @@ void Defensive3::tick() {
 #warning goalie should defend the middle if no other defenders exist
 	if (goalierush){ // check if goalie should rush
 		LOG_INFO("goalie to rush");
-		Move::ptr tactic(new Move(goalie, world));
+		Move::Ptr tactic(new Move(goalie, world));
 		rushpos.y = std::min(rushpos.y, world->field().goal_width()/2.0);
 		rushpos.y = std::max(rushpos.y, -world->field().goal_width()/2.0);
 		tactic->set_position(rushpos);
 		tactics[goalie] = tactic;
 	} else if (goaliechase) { // check if chaser robot
 		LOG_INFO("goalie to shoot");
-		Shoot::ptr shoot_tactic = Shoot::ptr(new Shoot(goalie, world));
+		Shoot::Ptr shoot_tactic = Shoot::Ptr(new Shoot(goalie, world));
 		shoot_tactic->force();
 		shoot_tactic->set_pivot(false);
 		tactics[goalie] = shoot_tactic;
 	} else {
-		Move::ptr tactic(new Move(goalie, world));
+		Move::Ptr tactic(new Move(goalie, world));
 		int closest_defender = - 1;
 		for (size_t i = 0; i < defenders.size(); ++i) {
 			if (order[i] == 0) {
@@ -202,17 +202,17 @@ void Defensive3::tick() {
 	size_t w = 0; // so we can skip players as needed
 	for (size_t i = 0; i < defenders.size(); ++i) {
 		if (chaser == defenders[i]) { // should be exact
-			Shoot::ptr shoot_tactic = Shoot::ptr(new Shoot(defenders[i], world));
+			Shoot::Ptr shoot_tactic = Shoot::Ptr(new Shoot(defenders[i], world));
 			shoot_tactic->force();
 			shoot_tactic->set_pivot(false);
 			tactics[defenders[i]] = shoot_tactic;
 		} else if (w >= defender_positions.size()) {
 			LOG_WARN(Glib::ustring::compose("%1 nothing to do", defenders[i]->name));
-			Move::ptr tactic(new Move(defenders[i], world));
+			Move::Ptr tactic(new Move(defenders[i], world));
 			tactic->set_position(defenders[i]->position());
 			tactics[defenders[i]] = tactic;
 		} else {
-			Move::ptr tactic(new Move(defenders[i], world));
+			Move::Ptr tactic(new Move(defenders[i], world));
 			tactic->set_position(defender_positions[order[w]]);
 			tactics[defenders[i]] = tactic;
 			++w;
@@ -238,7 +238,7 @@ void Defensive3::tick() {
 	}
 }
 
-void Defensive3::add_player(Player::ptr player) {
+void Defensive3::add_player(Player::Ptr player) {
 	if (!player) {
 		LOG_ERROR("null player");
 		return;
@@ -256,7 +256,7 @@ void Defensive3::add_player(Player::ptr player) {
 	players.insert(player);
 }
 
-void Defensive3::remove_player(Player::ptr player) {
+void Defensive3::remove_player(Player::Ptr player) {
 	if (!player) {
 		LOG_ERROR("null player");
 		return;
@@ -293,7 +293,7 @@ void Defensive3::clear_players() {
 	goalie.clear();
 }
 
-void Defensive3::set_goalie(Player::ptr player) {
+void Defensive3::set_goalie(Player::Ptr player) {
 	if (!player) {
 		LOG_ERROR("null player");
 		return;
@@ -302,8 +302,8 @@ void Defensive3::set_goalie(Player::ptr player) {
 	players.insert(goalie);
 }
 
-Player::ptr Defensive3::pop_player() {
-	Player::ptr player;
+Player::Ptr Defensive3::pop_player() {
+	Player::Ptr player;
 	if (players.size() == 0) {
 		LOG_ERROR("role has no robots");
 		return player;
@@ -315,7 +315,7 @@ Player::ptr Defensive3::pop_player() {
 		return player;
 	}
 #warning TODO find better mechanism
-	for (std::set<Player::ptr>::iterator it = players.begin(); it != players.end(); ++it) {
+	for (std::set<Player::Ptr>::iterator it = players.begin(); it != players.end(); ++it) {
 		if (goalie == *it) continue;
 		player = *it;
 		break;
@@ -324,7 +324,7 @@ Player::ptr Defensive3::pop_player() {
 	return player;
 }
 
-void Defensive3::set_chaser(Player::ptr player) {
+void Defensive3::set_chaser(Player::Ptr player) {
 #warning fix
 	if (!player) {
 		LOG_INFO("nobody chase the ball?");
@@ -333,7 +333,7 @@ void Defensive3::set_chaser(Player::ptr player) {
 	// do something
 }
 
-void Defensive3::deprecated_set_players(std::vector<Player::ptr>& ps) {
+void Defensive3::deprecated_set_players(std::vector<Player::Ptr>& ps) {
 	goalie.clear();
 	players.clear();
 	if (ps.size() == 0) return;

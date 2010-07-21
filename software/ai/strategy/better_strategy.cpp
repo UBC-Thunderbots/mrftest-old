@@ -23,7 +23,7 @@ namespace {
 	 */
 	class BetterStrategy : public BasicStrategy {
 		public:
-			BetterStrategy(World::ptr w);
+			BetterStrategy(World::Ptr w);
 
 			StrategyFactory &get_factory();
 			Gtk::Widget *get_ui_controls();
@@ -32,27 +32,27 @@ namespace {
 
 			void in_play_assignment();
 
-			Player::ptr minus_one_assignment();
+			Player::Ptr minus_one_assignment();
 	};
 
 
 	class BetterStrategyFactory : public StrategyFactory {
 		public:
 			BetterStrategyFactory();
-			Strategy::ptr create_strategy(World::ptr world);
+			Strategy::Ptr create_strategy(World::Ptr world);
 	};
 
 	BetterStrategyFactory::BetterStrategyFactory() : StrategyFactory("Better than Basic Strategy") {
 	}
 
-	Strategy::ptr BetterStrategyFactory::create_strategy(World::ptr world) {
-		Strategy::ptr s(new BetterStrategy(world));
+	Strategy::Ptr BetterStrategyFactory::create_strategy(World::Ptr world) {
+		Strategy::Ptr s(new BetterStrategy(world));
 		return s;
 	}
 
 	BetterStrategyFactory factory;
 
-	BetterStrategy::BetterStrategy(World::ptr w) : BasicStrategy(w) {
+	BetterStrategy::BetterStrategy(World::Ptr w) : BasicStrategy(w) {
 	}
 
 	Gtk::Widget *BetterStrategy::get_ui_controls() {
@@ -67,14 +67,14 @@ namespace {
 		roles.clear();
 		if (the_team.size() == 0) return;
 
-		// const vector<Player::ptr> players = the_team.get_players();
+		// const vector<Player::Ptr> players = the_team.get_players();
 
-		Defensive2::ptr defensive_role(new Defensive2(world));
-		Offensive::ptr offensive_role(new Offensive(world));
-		roles.push_back(Role::ptr(defensive_role));
-		roles.push_back(Role::ptr(offensive_role));
-		std::vector<Player::ptr> defenders;
-		std::vector<Player::ptr> offenders;
+		Defensive2::Ptr defensive_role(new Defensive2(world));
+		Offensive::Ptr offensive_role(new Offensive(world));
+		roles.push_back(Role::Ptr(defensive_role));
+		roles.push_back(Role::Ptr(offensive_role));
+		std::vector<Player::Ptr> defenders;
+		std::vector<Player::Ptr> offenders;
 
 		defenders.push_back(the_team.get_player(0));
 
@@ -121,25 +121,25 @@ namespace {
 		offensive_role->set_players(offenders);
 	}
 
-	Player::ptr BetterStrategy::minus_one_assignment() {
+	Player::Ptr BetterStrategy::minus_one_assignment() {
 
 		// TODO: SORT
 
 		const FriendlyTeam &the_team(world->friendly);
 
 		roles.clear();
-		if (the_team.size() == 0) return Player::ptr();
+		if (the_team.size() == 0) return Player::Ptr();
 
 		if (the_team.size() == 1) return the_team.get_player(0);
 
 		// other players just sort by distance
 
-		Defensive2::ptr defensive_role(new Defensive2(world));
-		Offensive::ptr offensive_role(new Offensive(world));
-		roles.push_back(Role::ptr(defensive_role));
-		roles.push_back(Role::ptr(offensive_role));
-		std::vector<Player::ptr> defenders;
-		std::vector<Player::ptr> offenders;
+		Defensive2::Ptr defensive_role(new Defensive2(world));
+		Offensive::Ptr offensive_role(new Offensive(world));
+		roles.push_back(Role::Ptr(defensive_role));
+		roles.push_back(Role::Ptr(offensive_role));
+		std::vector<Player::Ptr> defenders;
+		std::vector<Player::Ptr> offenders;
 
 		defenders.push_back(the_team.get_player(0));
 		if (the_team.size() >= 3)

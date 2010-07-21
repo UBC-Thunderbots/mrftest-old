@@ -15,7 +15,7 @@ class AI : public NonCopyable {
 		/**
 		 * The world in which the AI is running.
 		 */
-		const World::ptr world;
+		const World::Ptr world;
 
 		/**
 		 * Constructs a new AI.
@@ -24,12 +24,12 @@ class AI : public NonCopyable {
 		 *
 		 * \param[in] clk the clock to run the AI from.
 		 */
-		AI(World::ptr world, ClockSource &clk);
+		AI(World::Ptr world, ClockSource &clk);
 
 		/**
 		 * \return the Strategy driving the robots.
 		 */
-		Strategy::ptr get_strategy() const {
+		Strategy::Ptr get_strategy() const {
 			return strategy;
 		}
 
@@ -38,7 +38,7 @@ class AI : public NonCopyable {
 		 *
 		 * \param[in] strat the new Strategy.
 		 */
-		void set_strategy(Strategy::ptr strat);
+		void set_strategy(Strategy::Ptr strat);
 
 		/**
 		 * \return the RobotControllerFactory driving the robots.
@@ -65,13 +65,13 @@ class AI : public NonCopyable {
 
 	private:
 		ClockSource &clk;
-		Strategy::ptr strategy;
+		Strategy::Ptr strategy;
 		RobotControllerFactory *rc_factory;
 		Cairo::RefPtr<Cairo::Context> overlay;
 
 		void tick();
-		void player_added(unsigned int, Player::ptr);
-		void player_removed(unsigned int, Player::ptr);
+		void player_added(unsigned int, Player::Ptr);
+		void player_removed(unsigned int, Player::Ptr);
 };
 
 #endif

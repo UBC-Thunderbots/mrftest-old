@@ -34,20 +34,20 @@ class Simulator : public BackEnd, public sigc::trackable {
 		 * \param engine the engine to drive the simulator with
 		 * \param clk the clock source to drive the simulator with
 		 */
-		Simulator(const Config &conf, SimulatorEngine::ptr engine, ClockSource &clk);
+		Simulator(const Config &conf, SimulatorEngine::Ptr engine, ClockSource &clk);
 
 		/**
 		 * \return All the robots recognized by this simulator, keyed by XBee
 		 * address
 		 */
-		const std::unordered_map<uint64_t, SimulatorRobot::ptr> &robots() const {
+		const std::unordered_map<uint64_t, SimulatorRobot::Ptr> &robots() const {
 			return robots_;
 		}
 
 		/**
 		 * \return The ball
 		 */
-		SimulatorBall::ptr ball() const {
+		SimulatorBall::Ptr ball() const {
 			return engine->get_ball();
 		}
 
@@ -57,7 +57,7 @@ class Simulator : public BackEnd, public sigc::trackable {
 		 * \return The robot matching the address, or a null pointer if no robot
 		 * has the address
 		 */
-		SimulatorRobot::ptr find_by16(uint16_t addr) const;
+		SimulatorRobot::Ptr find_by16(uint16_t addr) const;
 
 		/**
 		 * \return The visualization data
@@ -67,8 +67,8 @@ class Simulator : public BackEnd, public sigc::trackable {
 		}
 
 	private:
-		const SimulatorEngine::ptr engine;
-		std::unordered_map<uint64_t, SimulatorRobot::ptr> robots_;
+		const SimulatorEngine::Ptr engine;
+		std::unordered_map<uint64_t, SimulatorRobot::Ptr> robots_;
 		std::queue<std::vector<uint8_t> > responses;
 		sigc::connection response_push_connection;
 		uint16_t host_address16;

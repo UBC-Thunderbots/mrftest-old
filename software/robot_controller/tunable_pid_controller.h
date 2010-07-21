@@ -20,7 +20,7 @@ class TunablePIDController : public RobotController, public TunableController {
 
 		RobotControllerFactory &get_factory() const;
 
-		TunablePIDController(Player::ptr plr);
+		TunablePIDController(Player::Ptr plr);
 
 	 	void set_params(const std::vector<double>& params) {
 			this->param = params;
@@ -45,7 +45,7 @@ class TunablePIDController : public RobotController, public TunableController {
 		}
 
 	private:
-		Player::ptr plr;
+		Player::Ptr plr;
 
 	protected:
 

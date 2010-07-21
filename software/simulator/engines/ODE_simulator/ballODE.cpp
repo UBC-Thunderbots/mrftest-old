@@ -6,7 +6,7 @@
 ballODE.h has the following:
 
 public:
-typedef RefPtr<BallODE> ptr;
+typedef RefPtr<BallODE> Ptr;
 dWorldID world;
 
 
@@ -61,7 +61,7 @@ Point the_position, the_velocity;
 				dGeomSetBody (ballGeom,body);
 				dSpaceAdd (dspace, ballGeom);
 				dBodySetLinearDamping (body, 0.9);
-				 field::ptr fldd(new SimulatorField);
+				 field::Ptr fldd(new SimulatorField);
 				 fld = fldd;
 			
 			}
@@ -86,7 +86,7 @@ Point the_position, the_velocity;
 				//dBodySetLinearDamping (body, 0.2);
 				dBodySetAngularDamping (body,0.5);
 				dBodySetMaxAngularSpeed (body, 5.0);
-				 field::ptr fldd(new SimulatorField);
+				 field::Ptr fldd(new SimulatorField);
 				 fld = fldd;
 			
 			}

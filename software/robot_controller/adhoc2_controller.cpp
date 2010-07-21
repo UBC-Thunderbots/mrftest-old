@@ -38,9 +38,9 @@ namespace {
 			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 			void clear();
 			RobotControllerFactory &get_factory() const;
-			AdHoc2Controller(Player::ptr plr);
+			AdHoc2Controller(Player::Ptr plr);
 		protected:
-			Player::ptr plr;
+			Player::Ptr plr;
 			bool initialized;
 			// errors in x, y, d
 			Point prev_new_pos;
@@ -49,7 +49,7 @@ namespace {
 			double prev_angular_velocity;
 	};
 
-	AdHoc2Controller::AdHoc2Controller(Player::ptr plr) : plr(plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
+	AdHoc2Controller::AdHoc2Controller(Player::Ptr plr) : plr(plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
 	}
 
 	void AdHoc2Controller::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
@@ -134,8 +134,8 @@ namespace {
 			AdHoc2ControllerFactory() : RobotControllerFactory("adhoc2") {
 			}
 
-			RobotController::ptr create_controller(Player::ptr plr, bool, unsigned int) const {
-				RobotController::ptr p(new AdHoc2Controller(plr));
+			RobotController::Ptr create_controller(Player::Ptr plr, bool, unsigned int) const {
+				RobotController::Ptr p(new AdHoc2Controller(plr));
 				return p;
 			}
 	};

@@ -9,15 +9,15 @@
 namespace {
 	class TestDefensiveStrategy : public Strategy2 {
 		public:
-			TestDefensiveStrategy(World::ptr world);
+			TestDefensiveStrategy(World::Ptr world);
 			void tick(Cairo::RefPtr<Cairo::Context> overlay);
 			StrategyFactory &get_factory();
 			Gtk::Widget *get_ui_controls();
 		private:
-			const World::ptr the_world;
+			const World::Ptr the_world;
 	};
 
-	TestDefensiveStrategy::TestDefensiveStrategy(World::ptr world) : the_world(world) {
+	TestDefensiveStrategy::TestDefensiveStrategy(World::Ptr world) : the_world(world) {
 
 	}
 
@@ -28,11 +28,11 @@ namespace {
 		const FriendlyTeam &the_team(the_world->friendly);
 		if (the_team.size() == 0) return;
 
-		const Ball::ptr the_ball(the_world->ball());
+		const Ball::Ptr the_ball(the_world->ball());
 		ByronsDefender defensive_role(the_world);
 		Goalie goalie_role(the_world);
-		std::vector<Player::ptr> defenders;
-		std::vector<Player::ptr> goalies;
+		std::vector<Player::Ptr> defenders;
+		std::vector<Player::Ptr> goalies;
 
 		goalies.push_back(the_team.get_player(0));
 
@@ -53,14 +53,14 @@ namespace {
 	class TestDefensiveStrategyFactory : public StrategyFactory {
 		public:
 			TestDefensiveStrategyFactory();
-			Strategy::ptr create_strategy(World::ptr world);
+			Strategy::Ptr create_strategy(World::Ptr world);
 	};
 
 	TestDefensiveStrategyFactory::TestDefensiveStrategyFactory() : StrategyFactory("Byron's Test Defender Strategy") {
 	}
 
-	Strategy::ptr TestDefensiveStrategyFactory::create_strategy(World::ptr world) {
-		Strategy::ptr s(new TestDefensiveStrategy(world));
+	Strategy::Ptr TestDefensiveStrategyFactory::create_strategy(World::Ptr world) {
+		Strategy::Ptr s(new TestDefensiveStrategy(world));
 		return s;
 	}
 

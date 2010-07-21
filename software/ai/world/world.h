@@ -29,7 +29,7 @@ class World : public ByRef {
 		/**
 		 * A pointer to a World object.
 		 */
-		typedef RefPtr<World> ptr;
+		typedef RefPtr<World> Ptr;
 
 		/**
 		 * The configuration file.
@@ -78,12 +78,12 @@ class World : public ByRef {
 		 * \param xbee_bots the robots to drive
 		 * \return The new object
 		 */
-		static ptr create(const Config &conf, const std::vector<XBeeDriveBot::ptr> &xbee_bots);
+		static Ptr create(const Config &conf, const std::vector<XBeeDriveBot::Ptr> &xbee_bots);
 
 		/**
 		 * \return The ball
 		 */
-		Ball::ptr ball() const {
+		Ball::Ptr ball() const {
 			return ball_;
 		}
 
@@ -176,7 +176,7 @@ class World : public ByRef {
 					return world->field();
 				}
 
-				Visualizable::Ball::ptr ball() const {
+				Visualizable::Ball::Ptr ball() const {
 					return world->ball();
 				}
 
@@ -184,7 +184,7 @@ class World : public ByRef {
 					return world->friendly.size() + world->enemy.size();
 				}
 
-				Visualizable::Robot::ptr operator[](unsigned int index) const {
+				Visualizable::Robot::Ptr operator[](unsigned int index) const {
 					if (index < world->friendly.size()) {
 						return world->friendly.get_robot(index);
 					} else {
@@ -201,9 +201,9 @@ class World : public ByRef {
 		const FileDescriptor vision_socket;
 		RefBox refbox_;
 		Field field_;
-		Ball::ptr ball_;
+		Ball::Ptr ball_;
 		SSL_DetectionFrame detections[2];
-		const std::vector<XBeeDriveBot::ptr> xbee_bots;
+		const std::vector<XBeeDriveBot::Ptr> xbee_bots;
 		PlayType::PlayType playtype_;
 		PlayType::PlayType playtype_override;
 		bool playtype_override_active;
@@ -213,7 +213,7 @@ class World : public ByRef {
 		uint64_t timestamp_;
 		timespec playtype_time_;
 
-		World(const Config &, const std::vector<XBeeDriveBot::ptr> &);
+		World(const Config &, const std::vector<XBeeDriveBot::Ptr> &);
 		bool on_vision_readable(Glib::IOCondition);
 		void override_playtype(PlayType::PlayType);
 		void clear_playtype_override();

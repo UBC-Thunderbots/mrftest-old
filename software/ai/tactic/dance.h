@@ -11,12 +11,12 @@ class Dance : public Tactic {
 		//
 		// A pointer to this Tactic.
 		//
-		typedef RefPtr<Dance> ptr;
+		typedef RefPtr<Dance> Ptr;
 
 		//
 		// Constructs a new Dance Tactic.
 		//
-		Dance(Player::ptr player);
+		Dance(Player::Ptr player);
 
 		//
 		// Runs the AI for one time tick.

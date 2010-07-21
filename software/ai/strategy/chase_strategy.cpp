@@ -5,16 +5,16 @@
 namespace {
 	class ChaseStrategy : public Strategy {
 		public:
-			ChaseStrategy(World::ptr world);
+			ChaseStrategy(World::Ptr world);
 			void tick();
 			void set_playtype(PlayType::PlayType t);
-			const World::ptr the_world;
+			const World::Ptr the_world;
 			StrategyFactory &get_factory();
 			Gtk::Widget *get_ui_controls();
 		private:
 	};
 
-	ChaseStrategy::ChaseStrategy(World::ptr world) : the_world(world) {
+	ChaseStrategy::ChaseStrategy(World::Ptr world) : the_world(world) {
 	}
 
 	void ChaseStrategy::tick() {
@@ -38,14 +38,14 @@ namespace {
 	class ChaseStrategyFactory : public StrategyFactory {
 		public:
 			ChaseStrategyFactory();
-			Strategy::ptr create_strategy(World::ptr world);
+			Strategy::Ptr create_strategy(World::Ptr world);
 	};
 
 	ChaseStrategyFactory::ChaseStrategyFactory() : StrategyFactory("Chase Strategy") {
 	}
 
-	Strategy::ptr ChaseStrategyFactory::create_strategy(World::ptr world) {
-		Strategy::ptr s(new ChaseStrategy(world));
+	Strategy::Ptr ChaseStrategyFactory::create_strategy(World::Ptr world) {
+		Strategy::Ptr s(new ChaseStrategy(world));
 		return s;
 	}
 

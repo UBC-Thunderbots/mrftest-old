@@ -19,7 +19,7 @@ class Ball : public Visualizable::Ball, public Predictable {
 		/**
 		 * A pointer to a Ball.
 		 */
-		typedef RefPtr<Ball> ptr;
+		typedef RefPtr<Ball> Ptr;
 
 		/**
 		 * The approximate radius of the ball.
@@ -41,7 +41,7 @@ class Ball : public Visualizable::Ball, public Predictable {
 		 *
 		 * \return the new object.
 		 */
-		static ptr create();
+		static Ptr create();
 
 		/**
 		 * Constructs a new Ball object.

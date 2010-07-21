@@ -20,7 +20,7 @@ class Robot : public Visualizable::Robot, public Predictable, public sigc::track
 		/**
 		 * A pointer to a Robot.
 		 */
-		typedef RefPtr<Robot> ptr;
+		typedef RefPtr<Robot> Ptr;
 
 		/**
 		 * The largest possible radius of a robot, in metres.
@@ -71,7 +71,7 @@ class Robot : public Visualizable::Robot, public Predictable, public sigc::track
 		 * Constructs a new non-drivable Robot object.
 		 * \return the new object
 		 */
-		static ptr create(bool yellow, unsigned int pattern_index);
+		static Ptr create(bool yellow, unsigned int pattern_index);
 
 		/**
 		 * Updates the position of the Robot using new data.

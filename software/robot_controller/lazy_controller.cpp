@@ -10,8 +10,8 @@ namespace {
 			LazyControllerFactory() : RobotControllerFactory("Lazy RC") {
 			}
 
-			RobotController::ptr create_controller(Player::ptr plr, bool, unsigned int) const {
-				RobotController::ptr p(new LazyController(plr));
+			RobotController::Ptr create_controller(Player::Ptr plr, bool, unsigned int) const {
+				RobotController::Ptr p(new LazyController(plr));
 				return p;
 			}
 	};
@@ -20,7 +20,7 @@ namespace {
 
 }
 
-LazyController::LazyController(Player::ptr plr) : plr(plr) {
+LazyController::LazyController(Player::Ptr plr) : plr(plr) {
 }
 
 void LazyController::move(const Point &, double new_orientation, Point &linear_velocity, double &angular_velocity) {

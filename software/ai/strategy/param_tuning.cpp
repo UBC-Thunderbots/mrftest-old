@@ -15,7 +15,7 @@ namespace {
 
 	class ParamTuning : public MovementBenchmark {
 		public:
-			ParamTuning(World::ptr world);
+			ParamTuning(World::Ptr world);
 			~ParamTuning();
 			Gtk::Widget *get_ui_controls();
 			StrategyFactory &get_factory();
@@ -24,7 +24,7 @@ namespace {
 			void hillclimb();
 			void revert();
 		private:
-			const World::ptr the_world;
+			const World::Ptr the_world;
 			Gtk::Button revert_button;
 			Gtk::Button reset_button;
 			Gtk::Button hillclimb_button;
@@ -35,7 +35,7 @@ namespace {
 			int best;
 	};
 
-	ParamTuning::ParamTuning(World::ptr world) : MovementBenchmark(world), the_world(world), revert_button("Redo from last best"), reset_button("Complete Reset"), hillclimb_button("Hill Climb Again"), sls(0) {
+	ParamTuning::ParamTuning(World::Ptr world) : MovementBenchmark(world), the_world(world), revert_button("Redo from last best"), reset_button("Complete Reset"), hillclimb_button("Hill Climb Again"), sls(0) {
 		sls_counter = 0;
 
 		// override the reset button
@@ -148,14 +148,14 @@ namespace {
 	class ParamTuningFactory : public StrategyFactory {
 		public:
 			ParamTuningFactory();
-			Strategy::ptr create_strategy(World::ptr world);
+			Strategy::Ptr create_strategy(World::Ptr world);
 	};
 
 	ParamTuningFactory::ParamTuningFactory() : StrategyFactory("Param Tuning") {
 	}
 
-	Strategy::ptr ParamTuningFactory::create_strategy(World::ptr world) {
-		Strategy::ptr s(new ParamTuning(world));
+	Strategy::Ptr ParamTuningFactory::create_strategy(World::Ptr world) {
+		Strategy::Ptr s(new ParamTuning(world));
 		return s;
 	}
 

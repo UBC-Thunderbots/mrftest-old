@@ -24,9 +24,9 @@ class JonsController : public RobotController {
 
 		RobotControllerFactory &get_factory() const;
 
-		JonsController(Player::ptr plr);
+		JonsController(Player::Ptr plr);
 	private:
-		Player::ptr plr;
+		Player::Ptr plr;
 	
 	protected:
 		GPC X_controller;

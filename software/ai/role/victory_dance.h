@@ -12,7 +12,7 @@ class VictoryDance : public Role {
 		//
 		// A pointer to a VictoryDance Role.
 		//
-		typedef RefPtr<VictoryDance> ptr;
+		typedef RefPtr<VictoryDance> Ptr;
 
 		//
 		// Constructs a new VictoryDance Role.
@@ -30,7 +30,7 @@ class VictoryDance : public Role {
 		void players_changed();
 
 	protected:
-        std::vector<Dance::ptr> the_tactics;
+        std::vector<Dance::Ptr> the_tactics;
 		
 };
 

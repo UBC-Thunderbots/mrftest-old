@@ -19,7 +19,7 @@ namespace {
 
 	class PivotState : public Player::State {
 		public:
-			typedef RefPtr<PivotState> ptr;
+			typedef RefPtr<PivotState> Ptr;
 			PivotState() : recent_hit_target(false) {
 			}
 			bool recent_hit_target;
@@ -34,7 +34,7 @@ Point Pivot::calc_pivot_pos(const Point& ballpos, const Point& target) {
 	return ballpos + tobehind * pivotdist;
 }
 
-Pivot::Pivot(Player::ptr player, World::ptr world) : Tactic(player), the_world(world), target(world->field().enemy_goal()), avoid_ball_(false) {
+Pivot::Pivot(Player::Ptr player, World::Ptr world) : Tactic(player), the_world(world), target(world->field().enemy_goal()), avoid_ball_(false) {
 }
 
 void Pivot::tick() {
@@ -48,13 +48,13 @@ void Pivot::tick_old() {
 	// the reason is that we can't unset flags.
 	RobotNavigator navi(player, the_world);
 
-	const Ball::ptr the_ball(the_world->ball());
+	const Ball::Ptr the_ball(the_world->ball());
 
 	bool recent_hit_target = false;
-	PivotState::ptr state(PivotState::ptr::cast_dynamic(player->get_state(typeid(*this))));
+	PivotState::Ptr state(PivotState::Ptr::cast_dynamic(player->get_state(typeid(*this))));
 	if(state)recent_hit_target= state->recent_hit_target;
 	else{
-		state =PivotState::ptr(new PivotState());
+		state =PivotState::Ptr(new PivotState());
 		player->set_state(typeid(*this), state);
 	}
 
@@ -134,9 +134,9 @@ void Pivot::tick_experimental() {
 	const Point ballpos = the_world->ball()->position();
 
 	/*
-	PivotState::ptr state(PivotState::ptr::cast_dynamic(player->get_state(typeid(*this))));
+	PivotState::Ptr state(PivotState::Ptr::cast_dynamic(player->get_state(typeid(*this))));
 	if(!state) {
-		state = PivotState::ptr(new PivotState(false));
+		state = PivotState::Ptr(new PivotState(false));
 		player->set_state(typeid(*this), state);
 	}
 	*/

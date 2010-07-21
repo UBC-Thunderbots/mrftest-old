@@ -12,9 +12,9 @@
  */
 class Defensive2 : public Role {
 	public:
-		typedef RefPtr<Defensive2> ptr;
+		typedef RefPtr<Defensive2> Ptr;
 
-		Defensive2(World::ptr world);
+		Defensive2(World::Ptr world);
 
 		void tick();
 
@@ -23,7 +23,7 @@ class Defensive2 : public Role {
 		/**
 		 * Specifically chooses this player to be the goalie.
 		 */
-		void set_goalie(Player::ptr p) {
+		void set_goalie(Player::Ptr p) {
 			goalie = p;
 		}
 
@@ -43,12 +43,12 @@ class Defensive2 : public Role {
 		 */
 		std::pair<Point, std::vector<Point> > calc_block_positions(const bool top) const;
 
-		void assign(const Player::ptr& p, Tactic::ptr t);
+		void assign(const Player::Ptr& p, Tactic::Ptr t);
 
-		const World::ptr the_world;
+		const World::Ptr the_world;
 
-		Player::ptr goalie;
-		std::vector<Tactic::ptr> tactics;
+		Player::Ptr goalie;
+		std::vector<Tactic::Ptr> tactics;
 
 };
 

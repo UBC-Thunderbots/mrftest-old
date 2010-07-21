@@ -14,7 +14,7 @@ class Claim : public WatchableOperation {
 		 *
 		 * \param bot the robot to wait for.
 		 */
-		Claim(XBeeRawBot::ptr bot);
+		Claim(XBeeRawBot::Ptr bot);
 
 		/**
 		 * Starts waiting for the robot to become alive.
@@ -22,7 +22,7 @@ class Claim : public WatchableOperation {
 		void start();
 
 	private:
-		const XBeeRawBot::ptr bot;
+		const XBeeRawBot::Ptr bot;
 		bool started, already_alive, already_failed;
 
 		void on_alive();

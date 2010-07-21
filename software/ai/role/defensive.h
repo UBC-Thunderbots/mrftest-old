@@ -26,12 +26,12 @@ class Defensive : public Role {
 		//
 		// A pointer to a Defensive Role.
 		//
-		typedef RefPtr<Defensive> ptr;
+		typedef RefPtr<Defensive> Ptr;
 
 		//
 		// Constructs a new Defensive Role.
 		//
-		Defensive(World::ptr world);
+		Defensive(World::Ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -52,9 +52,9 @@ class Defensive : public Role {
 		 */
 		std::vector<Point> calc_block_positions() const;
 
-		const World::ptr the_world;
+		const World::Ptr the_world;
 
-		std::vector<Tactic::ptr> tactics;
+		std::vector<Tactic::Ptr> tactics;
 };
 
 #endif

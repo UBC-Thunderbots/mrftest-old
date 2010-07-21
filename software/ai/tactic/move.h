@@ -14,23 +14,23 @@ class Move : public Tactic {
 		//
 		// A pointer to this Tactic.
 		//
-		typedef RefPtr<Move> ptr;
+		typedef RefPtr<Move> Ptr;
 
 		/**
 		 * Standard constructor.
 		 */
-		Move(Player::ptr player, World::ptr world);
+		Move(Player::Ptr player, World::Ptr world);
 
  		/**
 -		 * Overloaded constructor with flags option.
  		 */
- 		Move(Player::ptr player, World::ptr world, const unsigned int& flags);
+ 		Move(Player::Ptr player, World::Ptr world, const unsigned int& flags);
 
 		/**
 		 * Most usage of Move Tactic only sets position and should thus justify existence of this overloaded constructor.
 		 * \param position Moves the robot to this position.
 		 */
-		// Move(Player::ptr player, World::ptr world, const unsigned int& flags, const Point& position);
+		// Move(Player::Ptr player, World::Ptr world, const unsigned int& flags, const Point& position);
 
 		//
 		// Runs the AI for one time tick.

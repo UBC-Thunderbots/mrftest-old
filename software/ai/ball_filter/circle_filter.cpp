@@ -48,7 +48,7 @@ namespace {
 				double has_ball_cert = -0.1;
 			
 				for (unsigned int i = 0; i < friendly.size(); ++i) {
-					Player::ptr player = friendly.get_player(i);
+					Player::Ptr player = friendly.get_player(i);
 					if (player->sense_ball()) {						
 						has_ball_timesteps++;
 
@@ -79,7 +79,7 @@ namespace {
 					// We don't have obs, but the ball was really close to an enemy robot before, so pretend the robot has the ball
 					if (obs.empty() && use_closest) {
 						Point orient(1,0);
-						Robot::ptr robot;
+						Robot::Ptr robot;
 
 						for (unsigned int i = 0; i < enemy.size(); ++i) {
 							robot = enemy.get_robot(i);
@@ -153,7 +153,7 @@ namespace {
 				}
 				last_point = max_point_it->center;
 				
-				Robot::ptr robot;
+				Robot::Ptr robot;
 				double min_dist = -1;
 				Point ball_ref;
 				use_closest = false;

@@ -1,11 +1,11 @@
 #include "simulator/robot.h"
 
-SimulatorRobot::ptr SimulatorRobot::create(const Config::RobotInfo &botinfo, SimulatorEngine::ptr engine) {
-	ptr p(new SimulatorRobot(botinfo, engine));
+SimulatorRobot::Ptr SimulatorRobot::create(const Config::RobotInfo &botinfo, SimulatorEngine::Ptr engine) {
+	Ptr p(new SimulatorRobot(botinfo, engine));
 	return p;
 }
 
-SimulatorRobot::SimulatorRobot(const Config::RobotInfo &botinfo, SimulatorEngine::ptr engine) : address(botinfo.address), engine(engine), botinfo(botinfo), powered_(false), battery_(15.0), bootloading_(false), address16_(0xFFFF), run_data_offset_(0xFF) {
+SimulatorRobot::SimulatorRobot(const Config::RobotInfo &botinfo, SimulatorEngine::Ptr engine) : address(botinfo.address), engine(engine), botinfo(botinfo), powered_(false), battery_(15.0), bootloading_(false), address16_(0xFFFF), run_data_offset_(0xFF) {
 }
 
 void SimulatorRobot::powered(bool pwr) {

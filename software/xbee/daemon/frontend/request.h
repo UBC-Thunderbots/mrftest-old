@@ -17,13 +17,13 @@ class XBeeRequest : public ByRef {
 		//
 		// A pointer to a XBeeRequest.
 		//
-		typedef RefPtr<XBeeRequest> ptr;
+		typedef RefPtr<XBeeRequest> Ptr;
 
 		//
 		// Constructs a new XBeeRequest. The data is copied.
 		//
-		static ptr create(const void *data, std::size_t length, bool has_response) {
-			ptr p(new XBeeRequest(data, length, has_response));
+		static Ptr create(const void *data, std::size_t length, bool has_response) {
+			Ptr p(new XBeeRequest(data, length, has_response));
 			return p;
 		}
 

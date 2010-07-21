@@ -21,12 +21,12 @@ class Offensive : public Role {
 		//
 		// A pointer to a Offensive Role.
 		//
-		typedef RefPtr<Offensive> ptr;
+		typedef RefPtr<Offensive> Ptr;
 
 		//
 		// Constructs a new Offensive Role.
 		//
-		Offensive(World::ptr world);
+		Offensive(World::Ptr world);
 
 		//
 		// Runs the AI for one time tick without drawing.
@@ -57,9 +57,9 @@ class Offensive : public Role {
 		// refactor this function?
 		double get_distance_from_goal(int index) const;
 
-		const World::ptr the_world;
+		const World::Ptr the_world;
 
-		std::vector<Tactic::ptr> tactics;
+		std::vector<Tactic::Ptr> tactics;
 
 		bool okaygrid[GRIDX][GRIDY];
 

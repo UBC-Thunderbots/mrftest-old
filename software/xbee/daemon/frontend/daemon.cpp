@@ -124,8 +124,8 @@ void XBeeDaemon::check_shutdown() {
 	if (XBeeClient::any_connected()) {
 		return;
 	}
-	for (std::unordered_map<uint64_t, XBeeRobot::ptr>::iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
-		const XBeeRobot::ptr state(i->second);
+	for (std::unordered_map<uint64_t, XBeeRobot::Ptr>::iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
+		const XBeeRobot::Ptr state(i->second);
 		if (state->freeing()) {
 			check_shutdown_firer = state->signal_resources_freed.connect(sigc::mem_fun(this, &XBeeDaemon::check_shutdown));
 			return;

@@ -17,7 +17,7 @@ class XBeePacket : public ByRef {
 		//
 		// A pointer to a XBeePacket.
 		//
-		typedef RefPtr<XBeePacket> ptr;
+		typedef RefPtr<XBeePacket> Ptr;
 
 		//
 		// Whether or not the radio sends a response to the packet.
@@ -57,13 +57,13 @@ class Transmit16Packet : public XBeePacket {
 		//
 		// A pointer to a transmit64_packet.
 		//
-		typedef RefPtr<Transmit16Packet> ptr;
+		typedef RefPtr<Transmit16Packet> Ptr;
 
 		//
 		// Constructs a new Transmit16Packet.
 		//
-		static ptr create(uint16_t dest, bool disable_ack, bool has_response, const void *data, std::size_t length) {
-			ptr p(new Transmit16Packet(dest, disable_ack, has_response, data, length));
+		static Ptr create(uint16_t dest, bool disable_ack, bool has_response, const void *data, std::size_t length) {
+			Ptr p(new Transmit16Packet(dest, disable_ack, has_response, data, length));
 			return p;
 		}
 
@@ -90,7 +90,7 @@ class ATPacket : public XBeePacket {
 		/**
 		 * A pointer to an ATPacket.
 		 */
-		typedef RefPtr<ATPacket<value_size> > ptr;
+		typedef RefPtr<ATPacket<value_size> > Ptr;
 
 		/**
 		 * Constructs a new ATPacket.
@@ -99,8 +99,8 @@ class ATPacket : public XBeePacket {
 		 *
 		 * \param[in] value the value to provide.
 		 */
-		static ptr create(const char *command, const void *value) {
-			ptr p(new ATPacket<value_size>(command, value));
+		static Ptr create(const char *command, const void *value) {
+			Ptr p(new ATPacket<value_size>(command, value));
 			return p;
 		}
 
@@ -132,7 +132,7 @@ class RemoteATPacket : public XBeePacket {
 		//
 		// A pointer to a RemoteATPacket.
 		//
-		typedef RefPtr<RemoteATPacket<value_size> > ptr;
+		typedef RefPtr<RemoteATPacket<value_size> > Ptr;
 
 		/**
 		 * Constructs a new RemoteATPacket.
@@ -146,8 +146,8 @@ class RemoteATPacket : public XBeePacket {
 		 * \param[in] apply \c true to apply the change immediately, or \c false
 		 * to queue the command for later application.
 		 */
-		static ptr create(uint64_t dest, const char *command, const void *value, bool apply) {
-			ptr p(new RemoteATPacket<value_size>(dest, command, value, apply));
+		static Ptr create(uint64_t dest, const char *command, const void *value, bool apply) {
+			Ptr p(new RemoteATPacket<value_size>(dest, command, value, apply));
 			return p;
 		}
 
@@ -176,13 +176,13 @@ class MetaClaimPacket : public XBeePacket {
 		//
 		// A pointer to a MetaClaimPacket.
 		//
-		typedef RefPtr<MetaClaimPacket> ptr;
+		typedef RefPtr<MetaClaimPacket> Ptr;
 
 		//
 		// Constructs a new MetaClaimPacket.
 		//
-		static ptr create(uint64_t address, bool drive_mode) {
-			ptr p(new MetaClaimPacket(address, drive_mode));
+		static Ptr create(uint64_t address, bool drive_mode) {
+			Ptr p(new MetaClaimPacket(address, drive_mode));
 			return p;
 		}
 
@@ -207,13 +207,13 @@ class MetaReleasePacket : public XBeePacket {
 		//
 		// A pointer to a MetaReleasePacket.
 		//
-		typedef RefPtr<MetaReleasePacket> ptr;
+		typedef RefPtr<MetaReleasePacket> Ptr;
 
 		//
 		// Constructs a new MetaReleasePacket.
 		//
-		static ptr create(uint64_t address) {
-			ptr p(new MetaReleasePacket(address));
+		static Ptr create(uint64_t address) {
+			Ptr p(new MetaReleasePacket(address));
 			return p;
 		}
 

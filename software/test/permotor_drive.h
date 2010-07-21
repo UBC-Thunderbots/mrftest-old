@@ -7,12 +7,12 @@
 
 class TesterControlPerMotorDrive : public Gtk::Table, public Zeroable {
 	public:
-		TesterControlPerMotorDrive(XBeeDriveBot::ptr);
+		TesterControlPerMotorDrive(XBeeDriveBot::Ptr);
 		void zero();
 		virtual void drive(int m1, int m2, int m3, int m4) = 0;
 
 	protected:
-		XBeeDriveBot::ptr robot;
+		XBeeDriveBot::Ptr robot;
 
 	private:
 		Gtk::Label drive1_label;

@@ -18,11 +18,11 @@ class MaxPowerController : public RobotController {
 
 		RobotControllerFactory &get_factory() const;
 
-		MaxPowerController(Player::ptr plr);
+		MaxPowerController(Player::Ptr plr);
 
 	protected:
 	private:
-		Player::ptr plr;
+		Player::Ptr plr;
 };
 
 #endif

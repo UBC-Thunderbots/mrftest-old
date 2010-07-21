@@ -19,7 +19,7 @@ class FuzzyController : public RobotController, public TunableController {
 
 		RobotControllerFactory &get_factory() const;
 
-		FuzzyController(Player::ptr player);
+		FuzzyController(Player::Ptr player);
 		
 	 	void set_params(const std::vector<double>& params) {
 			this->param = params;
@@ -40,7 +40,7 @@ class FuzzyController : public RobotController, public TunableController {
 		}
 
 	protected:
-		Player::ptr robot;
+		Player::Ptr robot;
 		
 		static const std::vector<double> param_min;
 		static const std::vector<double> param_max;

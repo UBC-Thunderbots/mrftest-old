@@ -18,11 +18,11 @@ class LinearController : public RobotController {
 
 		RobotControllerFactory &get_factory() const;
 
-		LinearController(Player::ptr plr);
+		LinearController(Player::Ptr plr);
 
 	protected:
 	private:
-		Player::ptr plr;
+		Player::Ptr plr;
 };
 
 #endif

@@ -15,7 +15,7 @@ class Role : public ByRef, public sigc::trackable {
 		/**
 		 * A pointer to a Role.
 		 */
-		typedef RefPtr<Role> ptr;
+		typedef RefPtr<Role> Ptr;
 
 		/**
 		 * Runs the Role for one time tick. It is expected that the Role will
@@ -43,7 +43,7 @@ class Role : public ByRef, public sigc::trackable {
 		 *
 		 * \param[in] ps the players the Role should control.
 		 */
-		void set_players(const std::vector<Player::ptr> &ps) {
+		void set_players(const std::vector<Player::Ptr> &ps) {
 			players = ps;
 			players_changed();
 		}
@@ -74,7 +74,7 @@ class Role : public ByRef, public sigc::trackable {
 		/**
 		 * The robots that this Role controls.
 		 */
-		std::vector<Player::ptr> players;
+		std::vector<Player::Ptr> players;
 };
 
 #endif

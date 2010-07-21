@@ -37,7 +37,7 @@ XBeeDriveBot::XBeeDriveBot(const Glib::ustring &name, uint64_t address, XBeeLowL
 	feedback_.battery_level = 0;
 	feedback_.faults = 0;
 	ll.signal_meta.connect(sigc::mem_fun(this, &XBeeDriveBot::on_meta));
-	XBeePacket::ptr p(MetaClaimPacket::create(address, true));
+	XBeePacket::Ptr p(MetaClaimPacket::create(address, true));
 	ll.send(p);
 }
 
@@ -45,8 +45,8 @@ XBeeDriveBot::~XBeeDriveBot() {
 	ll.send(MetaReleasePacket::create(address));
 }
 
-XBeeDriveBot::ptr XBeeDriveBot::create(const Glib::ustring &name, uint64_t address, XBeeLowLevel &ll) {
-	ptr p(new XBeeDriveBot(name, address, ll));
+XBeeDriveBot::Ptr XBeeDriveBot::create(const Glib::ustring &name, uint64_t address, XBeeLowLevel &ll) {
+	Ptr p(new XBeeDriveBot(name, address, ll));
 	return p;
 }
 

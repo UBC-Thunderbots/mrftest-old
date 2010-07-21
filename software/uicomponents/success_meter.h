@@ -17,10 +17,10 @@ class SuccessMeter : public Gtk::ProgressBar, public NonCopyable {
 		//
 		// Sets which robot this success meter will monitor.
 		//
-		void set_bot(XBeeDriveBot::ptr bot);
+		void set_bot(XBeeDriveBot::Ptr bot);
 
 	private:
-		XBeeDriveBot::ptr robot;
+		XBeeDriveBot::Ptr robot;
 		sigc::connection update_connection, dead_connection;
 		int last_success;
 

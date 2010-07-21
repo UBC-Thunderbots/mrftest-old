@@ -26,7 +26,7 @@ class SimulatorRobot : public Visualizable::Robot {
 		/**
 		 * A pointer to a SimulatorRobot.
 		 */
-		typedef RefPtr<SimulatorRobot> ptr;
+		typedef RefPtr<SimulatorRobot> Ptr;
 
 		/**
 		 * The XBee address of the robot.
@@ -45,7 +45,7 @@ class SimulatorRobot : public Visualizable::Robot {
 		 * \param engine the simulator engine that will back the robot when it
 		 * is running
 		 */
-		static ptr create(const Config::RobotInfo &botinfo, SimulatorEngine::ptr engine);
+		static Ptr create(const Config::RobotInfo &botinfo, SimulatorEngine::Ptr engine);
 
 		/**
 		 * \return true if the robot is powered, or false if not
@@ -117,7 +117,7 @@ class SimulatorRobot : public Visualizable::Robot {
 		 * robot is not currently in a state where it is backed by an engine
 		 * SimulatorPlayer
 		 */
-		SimulatorPlayer::ptr get_player() const {
+		SimulatorPlayer::Ptr get_player() const {
 			return player_;
 		}
 
@@ -142,16 +142,16 @@ class SimulatorRobot : public Visualizable::Robot {
 		}
 
 	private:
-		const SimulatorEngine::ptr engine;
+		const SimulatorEngine::Ptr engine;
 		const Config::RobotInfo &botinfo;
 		bool powered_;
 		double battery_;
 		bool bootloading_;
 		uint16_t address16_;
 		uint8_t run_data_offset_;
-		SimulatorPlayer::ptr player_;
+		SimulatorPlayer::Ptr player_;
 
-		SimulatorRobot(const Config::RobotInfo &, SimulatorEngine::ptr);
+		SimulatorRobot(const Config::RobotInfo &, SimulatorEngine::Ptr);
 
 		bool visualizer_visible() const {
 			return !!player_;

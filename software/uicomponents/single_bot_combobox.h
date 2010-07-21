@@ -13,7 +13,7 @@ class SingleBotComboBoxModel : public Glib::Object, public AbstractListModel {
 		/**
 		 * A pointer to a SingleBotComboBoxModel.
 		 */
-		typedef Glib::RefPtr<SingleBotComboBoxModel> ptr;
+		typedef Glib::RefPtr<SingleBotComboBoxModel> Ptr;
 
 		/**
 		 * A column containing the robot's XBee address.
@@ -39,7 +39,7 @@ class SingleBotComboBoxModel : public Glib::Object, public AbstractListModel {
 		 * Constructs a new single_robot_combobox_model.
 		 * \param robots the robots to display
 		 */
-		static ptr create(const Config::RobotSet &robots);
+		static Ptr create(const Config::RobotSet &robots);
 
 	private:
 		const Config::RobotSet &robots;

@@ -2,8 +2,8 @@
 #include "util/dprint.h"
 #include <cassert>
 
-SingleBotComboBoxModel::ptr SingleBotComboBoxModel::create(const Config::RobotSet &robots) {
-	ptr p(new SingleBotComboBoxModel(robots));
+SingleBotComboBoxModel::Ptr SingleBotComboBoxModel::create(const Config::RobotSet &robots) {
+	Ptr p(new SingleBotComboBoxModel(robots));
 	return p;
 }
 

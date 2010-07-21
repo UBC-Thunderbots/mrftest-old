@@ -216,18 +216,18 @@ namespace {
 
 		XBeeLowLevel modem;
 
-		std::vector<XBeeDriveBot::ptr> xbee_bots;
+		std::vector<XBeeDriveBot::Ptr> xbee_bots;
 		for (unsigned int i = 0; i < conf.robots().size(); ++i) {
 			if (conf.robots()[i].friendly) {
 				xbee_bots.push_back(XBeeDriveBot::create(conf.robots()[i].name, conf.robots()[i].address, modem));
 			} else {
-				xbee_bots.push_back(XBeeDriveBot::ptr());
+				xbee_bots.push_back(XBeeDriveBot::Ptr());
 			}
 		}
 
 		Param::initialized(&conf);
 
-		World::ptr world(World::create(conf, xbee_bots));
+		World::Ptr world(World::create(conf, xbee_bots));
 		if (refbox_yellow) {
 			world->flip_refbox_colour();
 		}

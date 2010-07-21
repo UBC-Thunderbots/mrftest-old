@@ -30,7 +30,7 @@ class Player : public Robot {
 				/**
 				 * A pointer to a State block.
 				 */
-				typedef RefPtr<State> ptr;
+				typedef RefPtr<State> Ptr;
 
 			protected:
 				/**
@@ -42,7 +42,7 @@ class Player : public Robot {
 		/**
 		 * A pointer to a Player.
 		 */
-		typedef RefPtr<Player> ptr;
+		typedef RefPtr<Player> Ptr;
 
 		/**
 		 * \return the player's 64-bit address.
@@ -145,7 +145,7 @@ class Player : public Robot {
 		 * type with RefPtr::cast_dynamic), or a null pointer if no State
 		 * is associated with the given class
 		 */
-		State::ptr get_state(const std::type_info &tid) const;
+		State::Ptr get_state(const std::type_info &tid) const;
 
 		/**
 		 * Stores a State block for a class. Any previously-stored State block
@@ -158,7 +158,7 @@ class Player : public Robot {
 		 * \param[in] state the new State to store (which can be a null pointer
 		 * to remove the State).
 		 */
-		void set_state(const std::type_info &tid, State::ptr state);
+		void set_state(const std::type_info &tid, State::Ptr state);
 
 		/**
 		 * The robot's name.
@@ -172,10 +172,10 @@ class Player : public Robot {
 		static const unsigned int CHICKER_FOREVER;
 
 	private:
-		XBeeDriveBot::ptr bot;
+		XBeeDriveBot::Ptr bot;
 		Point destination_;
 		double target_orientation;
-		RobotController2::ptr controller;
+		RobotController2::Ptr controller;
 		bool moved;
 		int new_dribble_power;
 		int old_dribble_power;
@@ -185,7 +185,7 @@ class Player : public Robot {
 		timespec sense_ball_start, sense_ball_end, stall_start, recover_time_start, chicker_last_fire_time;
 		double dribble_distance_;
 		Point last_dribble_position;
-		std::map<const std::type_info *, State::ptr, bool (*)(const std::type_info *, const std::type_info *)> state_store;
+		std::map<const std::type_info *, State::Ptr, bool (*)(const std::type_info *, const std::type_info *)> state_store;
 		Annunciator::message not_moved_message, chick_when_not_ready_message;
 
 		/**
@@ -203,7 +203,7 @@ class Player : public Robot {
 		 *
 		 * \return the new object.
 		 */
-		static ptr create(const Glib::ustring &name, bool yellow, unsigned int pattern_index, XBeeDriveBot::ptr bot);
+		static Ptr create(const Glib::ustring &name, bool yellow, unsigned int pattern_index, XBeeDriveBot::Ptr bot);
 
 		/**
 		 * Constructs a new Player object.
@@ -218,7 +218,7 @@ class Player : public Robot {
 		 *
 		 * \param[in] bot the XBee robot being driven
 		 */
-		Player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, XBeeDriveBot::ptr bot);
+		Player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, XBeeDriveBot::Ptr bot);
 
 		/**
 		 * Drives one tick of time through the RobotController and to the XBee.

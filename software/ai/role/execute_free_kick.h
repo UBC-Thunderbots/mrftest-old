@@ -10,16 +10,16 @@
 class ExecuteIndirectFreeKick : public Role {
 	public:
 
-		typedef RefPtr<ExecuteIndirectFreeKick> ptr;
+		typedef RefPtr<ExecuteIndirectFreeKick> Ptr;
 
-		ExecuteIndirectFreeKick(World::ptr world);
+		ExecuteIndirectFreeKick(World::Ptr world);
 
 		void tick();
 
 		void players_changed();
 
 	private:
-		const World::ptr the_world;
+		const World::Ptr the_world;
 };
 
 /**
@@ -29,16 +29,16 @@ class ExecuteIndirectFreeKick : public Role {
 class ExecuteDirectFreeKick : public Role {
 	public:
 
-		typedef RefPtr<ExecuteDirectFreeKick> ptr;
+		typedef RefPtr<ExecuteDirectFreeKick> Ptr;
 
-		ExecuteDirectFreeKick(World::ptr world);
+		ExecuteDirectFreeKick(World::Ptr world);
 
 		void tick();
 
 		void players_changed();
 
 	private:
-		const World::ptr the_world;
+		const World::Ptr the_world;
 };
 
 #endif

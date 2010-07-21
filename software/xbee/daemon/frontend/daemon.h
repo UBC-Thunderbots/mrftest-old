@@ -78,7 +78,7 @@ class XBeeDaemon : public sigc::trackable {
 		//
 		// All robots that are being tracked in some way by the arbiter.
 		//
-		std::unordered_map<uint64_t, XBeeRobot::ptr> robots;
+		std::unordered_map<uint64_t, XBeeRobot::Ptr> robots;
 
 		//
 		// The 64-bit address of the robot that has been assigned each run data

@@ -17,10 +17,10 @@ class OutboundRSSIMeter : public Gtk::ProgressBar, public NonCopyable {
 		//
 		// Sets which robot this RSSI meter will monitor.
 		//
-		void set_bot(XBeeDriveBot::ptr bot);
+		void set_bot(XBeeDriveBot::Ptr bot);
 
 	private:
-		XBeeDriveBot::ptr robot;
+		XBeeDriveBot::Ptr robot;
 		sigc::connection connection;
 		int last_rssi;
 

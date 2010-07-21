@@ -10,8 +10,8 @@ namespace {
 			LinearControllerFactory() : RobotControllerFactory("Linear RC") {
 			}
 
-			RobotController::ptr create_controller(Player::ptr plr, bool, unsigned int) const {
-				RobotController::ptr p(new LinearController(plr));
+			RobotController::Ptr create_controller(Player::Ptr plr, bool, unsigned int) const {
+				RobotController::Ptr p(new LinearController(plr));
 				return p;
 			}
 	};
@@ -20,7 +20,7 @@ namespace {
 
 }
 
-LinearController::LinearController(Player::ptr plr) : plr(plr) {
+LinearController::LinearController(Player::Ptr plr) : plr(plr) {
 }
 
 void LinearController::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {

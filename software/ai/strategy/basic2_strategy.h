@@ -17,7 +17,7 @@
  */
 class Basic2 : public Strategy {
 	public:
-		Basic2(World::ptr world);
+		Basic2(World::Ptr world);
 
 		void tick();
 
@@ -26,9 +26,9 @@ class Basic2 : public Strategy {
 
 	protected:
 
-		void player_added(unsigned int index, Player::ptr player);
+		void player_added(unsigned int index, Player::Ptr player);
 
-		void player_removed(unsigned int index, Player::ptr player);
+		void player_removed(unsigned int index, Player::Ptr player);
 
 		void playtype_changed();
 
@@ -49,20 +49,20 @@ class Basic2 : public Strategy {
 		 */
 		int calc_num_offenders() const;
 
-		const World::ptr world;
+		const World::Ptr world;
 
 		/// needed to keep track of state transitions
 		PlayType::PlayType prev_playtype;
 
 		/// always keep track of offenders and defenders
-		std::set<Player::ptr > defenders, offenders;
+		std::set<Player::Ptr > defenders, offenders;
 		Offensive offensive;
 		Defensive3 defensive;
-		Player::ptr goalie;
+		Player::Ptr goalie;
 
 		/// used for special plays
-		Player::ptr executor;
-		Role::ptr executor_role;
+		Player::Ptr executor;
+		Role::Ptr executor_role;
 };
 
 #endif

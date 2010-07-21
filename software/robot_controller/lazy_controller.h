@@ -18,11 +18,11 @@ class LazyController : public RobotController {
 
 		RobotControllerFactory &get_factory() const;
 
-		LazyController(Player::ptr plr);
+		LazyController(Player::Ptr plr);
 
 	protected:
 	private:
-		Player::ptr plr;
+		Player::Ptr plr;
 };
 
 #endif

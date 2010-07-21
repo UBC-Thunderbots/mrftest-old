@@ -17,10 +17,10 @@ class DribblerMeter : public Gtk::ProgressBar, public NonCopyable {
 		//
 		// Sets which robot this dribbler meter will monitor.
 		//
-		void set_bot(XBeeDriveBot::ptr bot);
+		void set_bot(XBeeDriveBot::Ptr bot);
 
 	private:
-		XBeeDriveBot::ptr robot;
+		XBeeDriveBot::Ptr robot;
 		sigc::connection connection;
 		unsigned int last_speed;
 

@@ -19,12 +19,12 @@ class Shoot : public Tactic {
 		//
 		// A pointer to this Tactic.
 		//
-		typedef RefPtr<Shoot> ptr;
+		typedef RefPtr<Shoot> Ptr;
 
 		//
 		// Constructs a new pass receive Tactic. 
 		//
-		Shoot(Player::ptr player, World::ptr world);
+		Shoot(Player::Ptr player, World::Ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -53,7 +53,7 @@ class Shoot : public Tactic {
 		}
 
 	protected:
-		const World::ptr the_world;
+		const World::Ptr the_world;
 		bool forced;
 		bool use_pivot;
 		bool allow_dribble;

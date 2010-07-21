@@ -33,7 +33,7 @@ TesterFeedback::TesterFeedback() : Gtk::Table(8, 3, false), battery_label("Batte
 	attach(fault_indicator_frame, 2, 3, 0, 8, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL, 3, 0);
 }
 
-void TesterFeedback::set_bot(XBeeDriveBot::ptr bot) {
+void TesterFeedback::set_bot(XBeeDriveBot::Ptr bot) {
 	connection.disconnect();
 	battery_level.set_bot(bot);
 	dribbler_level.set_bot(bot);

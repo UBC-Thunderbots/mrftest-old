@@ -18,7 +18,7 @@ class XBeeRawBot : public ByRef {
 		//
 		// A pointer to an XBeeRawBot.
 		//
-		typedef RefPtr<XBeeRawBot> ptr;
+		typedef RefPtr<XBeeRawBot> Ptr;
 
 		//
 		// The 64-bit address of this robot.
@@ -52,8 +52,8 @@ class XBeeRawBot : public ByRef {
 		// one of the signals if the arbiter is in the process of deassigning
 		// allocated resources from the robot before granting it to you.
 		//
-		static ptr create(uint64_t address, XBeeLowLevel &ll) {
-			ptr p(new XBeeRawBot(address, ll));
+		static Ptr create(uint64_t address, XBeeLowLevel &ll) {
+			Ptr p(new XBeeRawBot(address, ll));
 			return p;
 		}
 
@@ -62,7 +62,7 @@ class XBeeRawBot : public ByRef {
 		// the robot's address is filled in properly and that you are not
 		// accidentally sending data to the wrong robot!
 		//
-		void send(XBeePacket::ptr p);
+		void send(XBeePacket::Ptr p);
 
 		/**
 		 * \return The 16-bit address allocated to this robot

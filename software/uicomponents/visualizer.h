@@ -114,7 +114,7 @@ class Visualizable : public NonCopyable {
 				/**
 				 * A pointer to a Draggable.
 				 */
-				typedef RefPtr<Draggable> ptr;
+				typedef RefPtr<Draggable> Ptr;
 
 				/**
 				 * \return true if this object can actually be dragged, or false
@@ -138,7 +138,7 @@ class Visualizable : public NonCopyable {
 				/**
 				 * A pointer to a Ball.
 				 */
-				typedef RefPtr<Ball> ptr;
+				typedef RefPtr<Ball> Ptr;
 
 				/**
 				 * \return the position of the ball.
@@ -159,7 +159,7 @@ class Visualizable : public NonCopyable {
 				/**
 				 * A pointer to a Robot.
 				 */
-				typedef RefPtr<Robot> ptr;
+				typedef RefPtr<Robot> Ptr;
 
 				/**
 				 * \return The position of the Robot
@@ -212,7 +212,7 @@ class Visualizable : public NonCopyable {
 		/**
 		 * \return The ball
 		 */
-		virtual Visualizable::Ball::ptr ball() const = 0;
+		virtual Visualizable::Ball::Ptr ball() const = 0;
 
 		/**
 		 * \return The number of robots.
@@ -224,7 +224,7 @@ class Visualizable : public NonCopyable {
 		 *
 		 * \return The Robot
 		 */
-		virtual Visualizable::Robot::ptr operator[](unsigned int index) const = 0;
+		virtual Visualizable::Robot::Ptr operator[](unsigned int index) const = 0;
 };
 
 /**
@@ -260,8 +260,8 @@ class Visualizer : public Gtk::DrawingArea, public NonCopyable {
 		double scale;
 		double xtranslate, ytranslate;
 		sigc::connection update_connection;
-		Visualizable::Draggable::ptr dragging;
-		Visualizable::Draggable::ptr veldragging;
+		Visualizable::Draggable::Ptr dragging;
+		Visualizable::Draggable::Ptr veldragging;
 		Cairo::RefPtr<Cairo::ImageSurface> overlay_;
 
 		void on_show();
@@ -282,7 +282,7 @@ class Visualizer : public Gtk::DrawingArea, public NonCopyable {
 		double ytow(double y) __attribute__((warn_unused_result)) { return -(y - ytranslate) / scale; }
 		double atow(double r) __attribute__((warn_unused_result)) { return -r; }
 		double dtow(double d) __attribute__((warn_unused_result)) { return d / scale; }
-		Visualizable::Draggable::ptr object_at(const Point &pos) const;
+		Visualizable::Draggable::Ptr object_at(const Point &pos) const;
 };
 
 #endif

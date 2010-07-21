@@ -8,7 +8,7 @@ FeedbackIntervalMeter::FeedbackIntervalMeter() : last_feedback_interval(-1) {
 	set_text("No Data");
 }
 
-void FeedbackIntervalMeter::set_bot(XBeeDriveBot::ptr bot) {
+void FeedbackIntervalMeter::set_bot(XBeeDriveBot::Ptr bot) {
 	connection.disconnect();
 	robot = bot;
 	if (robot) {

@@ -1,6 +1,6 @@
 #include "test/matrix_drive.h"
 
-TesterControlMatrixDrive::TesterControlMatrixDrive(XBeeDriveBot::ptr bot) : Gtk::Table(3, 2), robot(bot), drive1_label("Vx:"), drive2_label("Vy:"), drive3_label("Vt:"), drive1_scale(-10, 10, .1), drive2_scale(-10, 10, .1), drive3_scale(-20, 20, .1) {
+TesterControlMatrixDrive::TesterControlMatrixDrive(XBeeDriveBot::Ptr bot) : Gtk::Table(3, 2), robot(bot), drive1_label("Vx:"), drive2_label("Vy:"), drive3_label("Vt:"), drive1_scale(-10, 10, .1), drive2_scale(-10, 10, .1), drive3_scale(-20, 20, .1) {
 	attach(drive1_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
 	attach(drive2_label, 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
 	attach(drive3_label, 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);

@@ -8,7 +8,7 @@ LatencyMeter::LatencyMeter() : last_latency(-1) {
 	set_text("No Data");
 }
 
-void LatencyMeter::set_bot(XBeeDriveBot::ptr bot) {
+void LatencyMeter::set_bot(XBeeDriveBot::Ptr bot) {
 	connection.disconnect();
 	robot = bot;
 	if (robot) {

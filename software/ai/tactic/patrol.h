@@ -13,19 +13,19 @@ class Patrol : public Tactic {
 		//
 		// A pointer to this Tactic.
 		//
-		typedef RefPtr<Patrol> ptr;
+		typedef RefPtr<Patrol> Ptr;
 
 		/**
 		 * Standard constructor.
 		 */
-		Patrol(Player::ptr player, World::ptr world);
+		Patrol(Player::Ptr player, World::Ptr world);
 
 		/**
 		 * Most usage of Move Tactic only sets position and should thus justify existence of this overloaded constructor.
 		 * \param position1 The first position for patrol
 		 * \param position2 The second position for patrol
 		 */
-		Patrol(Player::ptr player, World::ptr world, const unsigned int& flags, const Point& t1, const Point& t2);
+		Patrol(Player::Ptr player, World::Ptr world, const unsigned int& flags, const Point& t1, const Point& t2);
 
 		/**
 		 * Set the targets for the patrol.

@@ -22,7 +22,7 @@
 class Defensive3 : public NonCopyable {
 	public:
 
-		Defensive3(const World::ptr world);
+		Defensive3(const World::Ptr world);
 
 		void tick();
 
@@ -31,15 +31,15 @@ class Defensive3 : public NonCopyable {
 		 * The first player added will become a goalie.
 		 * To override, please use set_goalie.
 		 */
-		void add_player(Player::ptr player);
+		void add_player(Player::Ptr player);
 
 		/**
 		 * WARNING! Used only after a player goes missing.
 		 * Please use pop_player() if possible.
 		 */
-		void remove_player(Player::ptr player);
+		void remove_player(Player::Ptr player);
 
-		bool has_player(Player::ptr player) const {
+		bool has_player(Player::Ptr player) const {
 			return players.find(player) != players.end();
 		}
 
@@ -51,7 +51,7 @@ class Defensive3 : public NonCopyable {
 		 * DEPRECATED function to hack old strategies.
 		 * Reset all players.
 		 */
-		void deprecated_set_players(std::vector<Player::ptr>& ps) __attribute__ ((deprecated));
+		void deprecated_set_players(std::vector<Player::Ptr>& ps) __attribute__ ((deprecated));
 
 		/**
 		 * WARNING! NEVER call this unless playtype is penalty enemy/victory/pitstop,
@@ -65,7 +65,7 @@ class Defensive3 : public NonCopyable {
 		 * Calling this function implies adding the player to this role,
 		 * if not already so.
 		 */
-		void set_goalie(Player::ptr player);
+		void set_goalie(Player::Ptr player);
 
 		/**
 		 * Chooses and removes one player from this role.
@@ -73,7 +73,7 @@ class Defensive3 : public NonCopyable {
 		 *
 		 * \return a suitable player, or null if this role has nobody.
 		 */
-		Player::ptr pop_player();
+		Player::Ptr pop_player();
 
 		/**
 		 * Makes a player go after the ball.
@@ -81,7 +81,7 @@ class Defensive3 : public NonCopyable {
 		 * The behaviour of this function is to be determined in the near future.
 		 * Q: What if you don't want anybody from this role to go after the ball?
 		 */
-		void set_chaser(Player::ptr player);
+		void set_chaser(Player::Ptr player);
 
 	protected:
 
@@ -92,16 +92,16 @@ class Defensive3 : public NonCopyable {
 		 */
 		void calc_block_positions();
 
-		const World::ptr world;
+		const World::Ptr world;
 
-		std::set<Player::ptr> players;
+		std::set<Player::Ptr> players;
 
 		Point goalie_position;
 
 		/// Ordered by importance.
 		std::vector<Point> defender_positions;
 
-		Player::ptr goalie;
+		Player::Ptr goalie;
 
 		/// Should goalie defend the top part of the net?
 		bool goalie_guard_top;

@@ -14,7 +14,7 @@ class Tactic : public ByRef {
 		/**
 		 * A pointer to a Tactic.
 		 */
-		typedef RefPtr<Tactic> ptr;
+		typedef RefPtr<Tactic> Ptr;
 
 		/**
 		 * Runs the Tactic for one time tick. It is expected that the Tactic
@@ -44,14 +44,14 @@ class Tactic : public ByRef {
 		}
 
 	protected:
-		explicit Tactic(const Player::ptr& player) : flags(0), player(player) {
+		explicit Tactic(const Player::Ptr& player) : flags(0), player(player) {
 		}
 
-		explicit Tactic(const Player::ptr& player, const unsigned int& f) : flags(f), player(player) {
+		explicit Tactic(const Player::Ptr& player, const unsigned int& f) : flags(f), player(player) {
 		}
 
 		unsigned int flags;
-		const Player::ptr player;
+		const Player::Ptr player;
 };
 
 #endif

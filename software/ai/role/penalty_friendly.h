@@ -11,12 +11,12 @@ class PenaltyFriendly : public Role {
 		//
 		// A pointer to a PenaltyFriendly Role.
 		//
-		typedef RefPtr<PenaltyFriendly> ptr;
+		typedef RefPtr<PenaltyFriendly> Ptr;
 
 		//
 		// Constructs a new PenaltyFriendly Role.
 		//
-		PenaltyFriendly(World::ptr world);
+		PenaltyFriendly(World::Ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -29,7 +29,7 @@ class PenaltyFriendly : public Role {
 		void players_changed();
 
 	protected:
-		const World::ptr the_world;
+		const World::Ptr the_world;
 
 		/**
 		 * The distance between the penalty mark and the mid point of the two goal posts as described in the rules.
@@ -41,7 +41,7 @@ class PenaltyFriendly : public Role {
 		 */
 		const static double RESTRICTED_ZONE_LENGTH = 0.85;
 
-		//std::vector<tacti::ptr> the_tactics;
+		//std::vector<tacti::Ptr> the_tactics;
 
 		/**
 		 * Maximum number of robots that can be assigned to this Role.

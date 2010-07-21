@@ -22,7 +22,7 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		//
 		// A pointer to an XBeeDriveBot.
 		//
-		typedef RefPtr<XBeeDriveBot> ptr;
+		typedef RefPtr<XBeeDriveBot> Ptr;
 
 		//
 		// The 64-bit address of this robot.
@@ -60,7 +60,7 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		//
 		// Creates a new XBeeDriveBot and begins attempting to claim the bot.
 		//
-		static ptr create(const Glib::ustring &name, uint64_t address, XBeeLowLevel &ll);
+		static Ptr create(const Glib::ustring &name, uint64_t address, XBeeLowLevel &ll);
 
 		//
 		// Returns whether or not the robot is communicating.

@@ -8,7 +8,7 @@
 class BallODE : public SimulatorBall {
 	public:
 
-			typedef RefPtr<BallODE> ptr;
+			typedef RefPtr<BallODE> Ptr;
 			dWorldID world;
 			dBodyID body;
 			dGeomID ballGeom;

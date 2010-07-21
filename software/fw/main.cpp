@@ -99,7 +99,7 @@ namespace {
 				return 1;
 			}
 			const Config::RobotInfo &botinfo(conf.robots().find(robot));
-			const XBeeRawBot::ptr bot(XBeeRawBot::create(botinfo.address, modem));
+			const XBeeRawBot::Ptr bot(XBeeRawBot::create(botinfo.address, modem));
 			Claim cl(bot);
 			if (fpga) {
 				IntelHex ihex;

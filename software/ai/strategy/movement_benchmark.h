@@ -8,16 +8,16 @@
 
 class MovementBenchmark : public Strategy {
 	public:
-		MovementBenchmark(World::ptr world);
+		MovementBenchmark(World::Ptr world);
 		void tick();
 		void set_playtype(PlayType::PlayType t);
 		StrategyFactory &get_factory();
 		Gtk::Widget *get_ui_controls();
 		void robot_added(void);
-		void robot_removed(unsigned int index, Player::ptr r);
+		void robot_removed(unsigned int index, Player::Ptr r);
 		void strategy_reset();
 	protected:
-		const World::ptr the_world;
+		const World::Ptr the_world;
 		std::vector<std::pair<Point, double> > tasks;
 		int time_steps;
 		size_t done;
