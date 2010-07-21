@@ -50,7 +50,7 @@ class Strategy2 : public ByRef, public sigc::trackable {
 		/**
 		 * A pointer to a Strategy.
 		 */
-		typedef Glib::RefPtr<Strategy2> ptr;
+		typedef RefPtr<Strategy2> ptr;
 
 		/**
 		 * Runs the Strategy for one time tick. It is expected that the Strategy

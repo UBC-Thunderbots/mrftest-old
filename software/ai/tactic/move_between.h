@@ -11,7 +11,7 @@ class MoveBetween : public Tactic {
 		//
 		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<MoveBetween> ptr;
+		typedef RefPtr<MoveBetween> ptr;
 
 		//
 		// Constructs a new move between Tactic. 

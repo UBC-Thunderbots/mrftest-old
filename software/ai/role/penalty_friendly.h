@@ -11,7 +11,7 @@ class PenaltyFriendly : public Role {
 		//
 		// A pointer to a PenaltyFriendly Role.
 		//
-		typedef Glib::RefPtr<PenaltyFriendly> ptr;
+		typedef RefPtr<PenaltyFriendly> ptr;
 
 		//
 		// Constructs a new PenaltyFriendly Role.

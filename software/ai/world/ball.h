@@ -19,7 +19,7 @@ class Ball : public Visualizable::Ball, public Predictable {
 		/**
 		 * A pointer to a Ball.
 		 */
-		typedef Glib::RefPtr<Ball> ptr;
+		typedef RefPtr<Ball> ptr;
 
 		/**
 		 * The approximate radius of the ball.

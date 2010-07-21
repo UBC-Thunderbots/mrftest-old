@@ -15,7 +15,7 @@ class KickoffFriendly : public Role {
 		//
 		// A pointer to a KickoffFriendly Role.
 		//
-		typedef Glib::RefPtr<KickoffFriendly> ptr;
+		typedef RefPtr<KickoffFriendly> ptr;
 
 		//
 		// Constructs a new KickoffFriendly Role.

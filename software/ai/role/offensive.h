@@ -21,7 +21,7 @@ class Offensive : public Role {
 		//
 		// A pointer to a Offensive Role.
 		//
-		typedef Glib::RefPtr<Offensive> ptr;
+		typedef RefPtr<Offensive> ptr;
 
 		//
 		// Constructs a new Offensive Role.

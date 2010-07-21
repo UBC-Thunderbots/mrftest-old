@@ -12,7 +12,7 @@ class ExecuteKickoffFriendly : public Role {
 		/**
 		 * A pointer to a ExecuteKickoffFriendly Role.
 		 */
-		typedef Glib::RefPtr<ExecuteKickoffFriendly> ptr;
+		typedef RefPtr<ExecuteKickoffFriendly> ptr;
 
 		/**
 		 * Constructs a new ExecuteKickoffFriendly Role.

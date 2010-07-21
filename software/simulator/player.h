@@ -16,7 +16,7 @@ class SimulatorPlayer : public ByRef {
 		/**
 		 * A pointer to a SimulatorPlayer.
 		 */
-		typedef Glib::RefPtr<SimulatorPlayer> ptr;
+		typedef RefPtr<SimulatorPlayer> ptr;
 
 		/**
 		 * \return the position of the player, in metres from field centre

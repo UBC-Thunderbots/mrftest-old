@@ -17,7 +17,7 @@ class RobotController2 : public ByRef {
 		/**
 		 * A pointer to a RobotController2.
 		 */
-		typedef Glib::RefPtr<RobotController2> ptr;
+		typedef RefPtr<RobotController2> ptr;
 
 		/**
 		 * Tells the robot controlled by this controller to move to the
@@ -125,7 +125,7 @@ class RobotControllerFactory : public Registerable<RobotControllerFactory> {
 		 * ignored; intended to be used only in VERY, VERY special situations)
 		 * \return The new controller
 		 */
-		virtual RobotController2::ptr create_controller(Glib::RefPtr<Player> plr, bool yellow, unsigned int index) const = 0;
+		virtual RobotController2::ptr create_controller(RefPtr<Player> plr, bool yellow, unsigned int index) const = 0;
 
 	protected:
 		/**

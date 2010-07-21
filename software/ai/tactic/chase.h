@@ -12,7 +12,7 @@ class Chase : public Tactic {
 		//
 		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<Chase> ptr;
+		typedef RefPtr<Chase> ptr;
 
 		//
 		// Constructs a new Chase Tactic. 

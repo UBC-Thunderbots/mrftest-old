@@ -19,7 +19,7 @@ class Shoot : public Tactic {
 		//
 		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<Shoot> ptr;
+		typedef RefPtr<Shoot> ptr;
 
 		//
 		// Constructs a new pass receive Tactic. 

@@ -13,7 +13,7 @@ class Block : public Tactic {
 		//
 		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<Block> ptr;
+		typedef RefPtr<Block> ptr;
 
 		//
 		// Constructs a new Block Tactic. 

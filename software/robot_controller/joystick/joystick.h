@@ -13,7 +13,7 @@ class Joystick : public ByRef, public sigc::trackable {
 		//
 		// A pointer to a Joystick.
 		//
-		typedef Glib::RefPtr<Joystick> ptr;
+		typedef RefPtr<Joystick> ptr;
 
 		//
 		// Opens a joystick.

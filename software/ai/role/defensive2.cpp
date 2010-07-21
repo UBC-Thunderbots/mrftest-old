@@ -25,7 +25,7 @@ namespace {
 	// used to save if the goalie should be on the top or bottom side
 	class Defensive2State : public Player::State {
 		public:
-			typedef Glib::RefPtr<Defensive2State> ptr;
+			typedef RefPtr<Defensive2State> ptr;
 			Defensive2State() : top(false) { }
 			bool top;
 	};

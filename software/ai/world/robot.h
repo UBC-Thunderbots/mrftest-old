@@ -20,7 +20,7 @@ class Robot : public Visualizable::Robot, public Predictable, public sigc::track
 		/**
 		 * A pointer to a Robot.
 		 */
-		typedef Glib::RefPtr<Robot> ptr;
+		typedef RefPtr<Robot> ptr;
 
 		/**
 		 * The largest possible radius of a robot, in metres.

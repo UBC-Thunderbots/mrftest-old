@@ -21,7 +21,7 @@ namespace {
 
 	class GoalieState : public Player::State {
 		public:
-			typedef Glib::RefPtr<GoalieState> ptr;
+			typedef RefPtr<GoalieState> ptr;
 			GoalieState(bool is_goal):is_goalie(is_goal){
 			}
 			bool is_goalie;

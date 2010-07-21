@@ -14,7 +14,7 @@ class PrepareKickoffEnemy : public Role {
 		//
 		// A pointer to a PrepareKickoffEnemy Role.
 		//
-		typedef Glib::RefPtr<PrepareKickoffEnemy> ptr;
+		typedef RefPtr<PrepareKickoffEnemy> ptr;
 
 		//
 		// Constructs a new PrepareKickoffEnemy Role.

@@ -15,7 +15,7 @@ class Pivot : public Tactic {
 		//
 		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<Pivot> ptr;
+		typedef RefPtr<Pivot> ptr;
 
 		/**
 		 * Set a target that robot would like to aim the ball

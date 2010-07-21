@@ -10,7 +10,7 @@ class ByronsDefender : public Role {
 		//
 		// A pointer to a ByronsDefender role.
 		//
-		typedef Glib::RefPtr<ByronsDefender> ptr;
+		typedef RefPtr<ByronsDefender> ptr;
 
 		//
 		// Constructs a new ByronsDefender role.

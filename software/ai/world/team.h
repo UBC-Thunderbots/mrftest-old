@@ -19,7 +19,7 @@ class Team : public ByRef {
 		/**
 		 * A pointer to a Team.
 		 */
-		typedef Glib::RefPtr<Team> ptr;
+		typedef RefPtr<Team> ptr;
 
 		/**
 		 * Fired when a robot is added to the team.
@@ -71,7 +71,7 @@ class EnemyTeam : public Team {
 		/**
 		 * A pointer to a Team.
 		 */
-		typedef Glib::RefPtr<EnemyTeam> ptr;
+		typedef RefPtr<EnemyTeam> ptr;
 
 		/**
 		 * \return The number of robots on the team
@@ -136,7 +136,7 @@ class FriendlyTeam : public Team {
 		/**
 		 * A pointer to a Team.
 		 */
-		typedef Glib::RefPtr<FriendlyTeam> ptr;
+		typedef RefPtr<FriendlyTeam> ptr;
 
 		/**
 		 * Fired when a player is added to the team.

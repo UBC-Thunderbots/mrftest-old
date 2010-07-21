@@ -13,7 +13,7 @@ class Goalie : public Role {
 		//
 		// A pointer to a Goalie Role.
 		//
-		typedef Glib::RefPtr<Goalie> ptr;
+		typedef RefPtr<Goalie> ptr;
 
 		//
 		// Constructs a new Goalie Role.

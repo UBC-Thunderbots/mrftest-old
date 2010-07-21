@@ -14,7 +14,7 @@ class PitStop : public Role {
 		//
 		// A pointer to a PitStop Role.
 		//
-		typedef Glib::RefPtr<PitStop> ptr;
+		typedef RefPtr<PitStop> ptr;
 
 		//
 		// Constructs a new PitStop Role.

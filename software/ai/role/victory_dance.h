@@ -12,7 +12,7 @@ class VictoryDance : public Role {
 		//
 		// A pointer to a VictoryDance Role.
 		//
-		typedef Glib::RefPtr<VictoryDance> ptr;
+		typedef RefPtr<VictoryDance> ptr;
 
 		//
 		// Constructs a new VictoryDance Role.

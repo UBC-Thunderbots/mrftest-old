@@ -13,7 +13,7 @@ class PenaltyEnemy : public Role {
 		//
 		// A pointer to a PenaltyEnemy Role.
 		//
-		typedef Glib::RefPtr<PenaltyEnemy> ptr;
+		typedef RefPtr<PenaltyEnemy> ptr;
 
 		//
 		// Constructs a new PenaltyEnemy Role.
@@ -48,7 +48,7 @@ class PenaltyEnemy : public Role {
 
 class PenaltyGoalie : public Role {
 	public:
-		typedef Glib::RefPtr<PenaltyGoalie> ptr;
+		typedef RefPtr<PenaltyGoalie> ptr;
 
 		PenaltyGoalie(World::ptr world);
 

@@ -22,7 +22,7 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		//
 		// A pointer to an XBeeDriveBot.
 		//
-		typedef Glib::RefPtr<XBeeDriveBot> ptr;
+		typedef RefPtr<XBeeDriveBot> ptr;
 
 		//
 		// The 64-bit address of this robot.

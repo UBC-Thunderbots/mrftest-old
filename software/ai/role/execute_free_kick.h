@@ -10,7 +10,7 @@
 class ExecuteIndirectFreeKick : public Role {
 	public:
 
-		typedef Glib::RefPtr<ExecuteIndirectFreeKick> ptr;
+		typedef RefPtr<ExecuteIndirectFreeKick> ptr;
 
 		ExecuteIndirectFreeKick(World::ptr world);
 
@@ -29,7 +29,7 @@ class ExecuteIndirectFreeKick : public Role {
 class ExecuteDirectFreeKick : public Role {
 	public:
 
-		typedef Glib::RefPtr<ExecuteDirectFreeKick> ptr;
+		typedef RefPtr<ExecuteDirectFreeKick> ptr;
 
 		ExecuteDirectFreeKick(World::ptr world);
 

@@ -14,7 +14,7 @@ namespace {
 
 	class PassState : public Player::State {
 		public:
-			typedef Glib::RefPtr<PassState> ptr;
+			typedef RefPtr<PassState> ptr;
 			PassState(bool is_passer):passer(is_passer){
 			}
 			bool passer;

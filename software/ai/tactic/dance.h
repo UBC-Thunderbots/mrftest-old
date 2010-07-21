@@ -11,7 +11,7 @@ class Dance : public Tactic {
 		//
 		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<Dance> ptr;
+		typedef RefPtr<Dance> ptr;
 
 		//
 		// Constructs a new Dance Tactic.

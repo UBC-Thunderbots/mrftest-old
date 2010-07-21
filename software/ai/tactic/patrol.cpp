@@ -8,7 +8,7 @@ namespace {
 
 	class PatrolState : public Player::State {
 		public:
-			typedef Glib::RefPtr<PatrolState> ptr;
+			typedef RefPtr<PatrolState> ptr;
 			PatrolState(const int& p) : phase(p) {
 			}
 			int phase;

@@ -15,7 +15,7 @@ class Receive : public Tactic {
 		//
 		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<Receive> ptr;
+		typedef RefPtr<Receive> ptr;
 
 		//
 		// Constructs a new Receive Tactic. 

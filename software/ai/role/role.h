@@ -15,7 +15,7 @@ class Role : public ByRef, public sigc::trackable {
 		/**
 		 * A pointer to a Role.
 		 */
-		typedef Glib::RefPtr<Role> ptr;
+		typedef RefPtr<Role> ptr;
 
 		/**
 		 * Runs the Role for one time tick. It is expected that the Role will

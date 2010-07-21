@@ -26,7 +26,7 @@ class Defensive : public Role {
 		//
 		// A pointer to a Defensive Role.
 		//
-		typedef Glib::RefPtr<Defensive> ptr;
+		typedef RefPtr<Defensive> ptr;
 
 		//
 		// Constructs a new Defensive Role.

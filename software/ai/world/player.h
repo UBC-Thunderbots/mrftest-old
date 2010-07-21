@@ -30,7 +30,7 @@ class Player : public Robot {
 				/**
 				 * A pointer to a State block.
 				 */
-				typedef Glib::RefPtr<State> ptr;
+				typedef RefPtr<State> ptr;
 
 			protected:
 				/**
@@ -42,7 +42,7 @@ class Player : public Robot {
 		/**
 		 * A pointer to a Player.
 		 */
-		typedef Glib::RefPtr<Player> ptr;
+		typedef RefPtr<Player> ptr;
 
 		/**
 		 * \return the player's 64-bit address.
@@ -142,7 +142,7 @@ class Player : public Robot {
 		 * you probably want to pass \c typeid(*this) here.
 		 *
 		 * \return the corresponding State block (which can be cast to a derived
-		 * type with Glib::RefPtr::cast_dynamic), or a null pointer if no State
+		 * type with RefPtr::cast_dynamic), or a null pointer if no State
 		 * is associated with the given class
 		 */
 		State::ptr get_state(const std::type_info &tid) const;

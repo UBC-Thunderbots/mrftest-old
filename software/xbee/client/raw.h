@@ -18,7 +18,7 @@ class XBeeRawBot : public ByRef {
 		//
 		// A pointer to an XBeeRawBot.
 		//
-		typedef Glib::RefPtr<XBeeRawBot> ptr;
+		typedef RefPtr<XBeeRawBot> ptr;
 
 		//
 		// The 64-bit address of this robot.

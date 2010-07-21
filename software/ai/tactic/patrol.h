@@ -13,7 +13,7 @@ class Patrol : public Tactic {
 		//
 		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<Patrol> ptr;
+		typedef RefPtr<Patrol> ptr;
 
 		/**
 		 * Standard constructor.

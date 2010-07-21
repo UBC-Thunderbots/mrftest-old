@@ -14,7 +14,7 @@ class Kick : public Tactic {
 		//
 		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<Kick> ptr;
+		typedef RefPtr<Kick> ptr;
 
 		//
 		// Constructs a new Kick Tactic.

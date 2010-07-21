@@ -16,7 +16,7 @@ class SimulatorBall : public Visualizable::Ball {
 		/**
 		 * A pointer to a SimulatorBall.
 		 */
-		typedef Glib::RefPtr<SimulatorBall> ptr;
+		typedef RefPtr<SimulatorBall> ptr;
 
 		/**
 		 * \return The position of the ball, in metres from field centre

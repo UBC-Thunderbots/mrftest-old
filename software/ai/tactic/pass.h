@@ -13,7 +13,7 @@ class Pass : public Tactic {
 		//
 		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<Pass> ptr;
+		typedef RefPtr<Pass> ptr;
 
 		/**
 		 * Constructs a new Pass Tactic with receiver set.

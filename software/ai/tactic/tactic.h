@@ -14,7 +14,7 @@ class Tactic : public ByRef {
 		/**
 		 * A pointer to a Tactic.
 		 */
-		typedef Glib::RefPtr<Tactic> ptr;
+		typedef RefPtr<Tactic> ptr;
 
 		/**
 		 * Runs the Tactic for one time tick. It is expected that the Tactic

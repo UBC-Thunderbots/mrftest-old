@@ -19,7 +19,7 @@ class SimulatorEngine : public ByRef {
 		/**
 		 * A pointer to a SimulatorEngine.
 		 */
-		typedef Glib::RefPtr<SimulatorEngine> ptr;
+		typedef RefPtr<SimulatorEngine> ptr;
 
 		/**
 		 * Runs a time tick. The engine should update the positions of all its

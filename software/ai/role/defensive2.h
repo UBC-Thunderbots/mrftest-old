@@ -12,7 +12,7 @@
  */
 class Defensive2 : public Role {
 	public:
-		typedef Glib::RefPtr<Defensive2> ptr;
+		typedef RefPtr<Defensive2> ptr;
 
 		Defensive2(World::ptr world);
 

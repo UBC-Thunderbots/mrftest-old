@@ -26,7 +26,7 @@ class SimulatorRobot : public Visualizable::Robot {
 		/**
 		 * A pointer to a SimulatorRobot.
 		 */
-		typedef Glib::RefPtr<SimulatorRobot> ptr;
+		typedef RefPtr<SimulatorRobot> ptr;
 
 		/**
 		 * The XBee address of the robot.

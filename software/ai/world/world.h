@@ -29,7 +29,7 @@ class World : public ByRef {
 		/**
 		 * A pointer to a World object.
 		 */
-		typedef Glib::RefPtr<World> ptr;
+		typedef RefPtr<World> ptr;
 
 		/**
 		 * The configuration file.

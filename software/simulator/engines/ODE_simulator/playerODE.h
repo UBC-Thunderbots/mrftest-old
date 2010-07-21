@@ -16,7 +16,7 @@ class PlayerODE : public SimulatorPlayer {
 	
 
 	
-	typedef Glib::RefPtr<PlayerODE> ptr;
+	typedef RefPtr<PlayerODE> ptr;
 	
 	private:
 	///The rectangular geometry for the front collision

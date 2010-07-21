@@ -17,7 +17,7 @@ class XBeePacket : public ByRef {
 		//
 		// A pointer to a XBeePacket.
 		//
-		typedef Glib::RefPtr<XBeePacket> ptr;
+		typedef RefPtr<XBeePacket> ptr;
 
 		//
 		// Whether or not the radio sends a response to the packet.
@@ -57,7 +57,7 @@ class Transmit16Packet : public XBeePacket {
 		//
 		// A pointer to a transmit64_packet.
 		//
-		typedef Glib::RefPtr<Transmit16Packet> ptr;
+		typedef RefPtr<Transmit16Packet> ptr;
 
 		//
 		// Constructs a new Transmit16Packet.
@@ -90,7 +90,7 @@ class ATPacket : public XBeePacket {
 		/**
 		 * A pointer to an ATPacket.
 		 */
-		typedef Glib::RefPtr<ATPacket<value_size> > ptr;
+		typedef RefPtr<ATPacket<value_size> > ptr;
 
 		/**
 		 * Constructs a new ATPacket.
@@ -132,7 +132,7 @@ class RemoteATPacket : public XBeePacket {
 		//
 		// A pointer to a RemoteATPacket.
 		//
-		typedef Glib::RefPtr<RemoteATPacket<value_size> > ptr;
+		typedef RefPtr<RemoteATPacket<value_size> > ptr;
 
 		/**
 		 * Constructs a new RemoteATPacket.
@@ -176,7 +176,7 @@ class MetaClaimPacket : public XBeePacket {
 		//
 		// A pointer to a MetaClaimPacket.
 		//
-		typedef Glib::RefPtr<MetaClaimPacket> ptr;
+		typedef RefPtr<MetaClaimPacket> ptr;
 
 		//
 		// Constructs a new MetaClaimPacket.
@@ -207,7 +207,7 @@ class MetaReleasePacket : public XBeePacket {
 		//
 		// A pointer to a MetaReleasePacket.
 		//
-		typedef Glib::RefPtr<MetaReleasePacket> ptr;
+		typedef RefPtr<MetaReleasePacket> ptr;
 
 		//
 		// Constructs a new MetaReleasePacket.

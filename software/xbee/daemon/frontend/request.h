@@ -17,7 +17,7 @@ class XBeeRequest : public ByRef {
 		//
 		// A pointer to a XBeeRequest.
 		//
-		typedef Glib::RefPtr<XBeeRequest> ptr;
+		typedef RefPtr<XBeeRequest> ptr;
 
 		//
 		// Constructs a new XBeeRequest. The data is copied.

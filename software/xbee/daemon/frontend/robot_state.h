@@ -19,7 +19,7 @@ class XBeeRobot : public ByRef {
 		/**
 		 * A pointer to a XBeeRobot.
 		 */
-		typedef Glib::RefPtr<XBeeRobot> ptr;
+		typedef RefPtr<XBeeRobot> ptr;
 
 		/**
 		 * An individual state that a robot can be in is represented by a
@@ -31,7 +31,7 @@ class XBeeRobot : public ByRef {
 				/**
 				 * A pointer to a RobotState.
 				 */
-				typedef Glib::RefPtr<RobotState> ptr;
+				typedef RefPtr<RobotState> ptr;
 
 				/**
 				 * Switches the robot into raw mode.

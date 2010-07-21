@@ -19,7 +19,7 @@ namespace {
 
 	class PivotState : public Player::State {
 		public:
-			typedef Glib::RefPtr<PivotState> ptr;
+			typedef RefPtr<PivotState> ptr;
 			PivotState() : recent_hit_target(false) {
 			}
 			bool recent_hit_target;

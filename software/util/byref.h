@@ -2,16 +2,17 @@
 #define UTIL_BYREF_H
 
 #include "util/noncopyable.h"
+#include <glibmm.h>
 
 /**
- * An object that should be passed around by means of a Glib::RefPtr<> rather
+ * An object that should be passed around by means of a RefPtr<> rather
  * than by copying.
  */
 class ByRef : public NonCopyable {
 	public:
 		/**
 		 * Adds one to the object's reference count. This should only be called
-		 * by Glib::RefPtr, not by application code.
+		 * by RefPtr, not by application code.
 		 */
 		void reference() {
 			++refs_;
@@ -19,7 +20,7 @@ class ByRef : public NonCopyable {
 
 		/**
 		 * Subtracts one from the object's reference count. This should only be
-		 * called by Glib::RefPtr, not by application code.
+		 * called by RefPtr, not by application code.
 		 */
 		void unreference() {
 			if (!--refs_) {
@@ -58,6 +59,8 @@ class ByRef : public NonCopyable {
 		 */
 		unsigned int refs_;
 };
+
+using Glib::RefPtr;
 
 #endif
 

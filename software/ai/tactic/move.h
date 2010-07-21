@@ -14,7 +14,7 @@ class Move : public Tactic {
 		//
 		// A pointer to this Tactic.
 		//
-		typedef Glib::RefPtr<Move> ptr;
+		typedef RefPtr<Move> ptr;
 
 		/**
 		 * Standard constructor.

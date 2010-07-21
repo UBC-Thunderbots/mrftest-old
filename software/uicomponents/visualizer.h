@@ -114,7 +114,7 @@ class Visualizable : public NonCopyable {
 				/**
 				 * A pointer to a Draggable.
 				 */
-				typedef Glib::RefPtr<Draggable> ptr;
+				typedef RefPtr<Draggable> ptr;
 
 				/**
 				 * \return true if this object can actually be dragged, or false
@@ -138,7 +138,7 @@ class Visualizable : public NonCopyable {
 				/**
 				 * A pointer to a Ball.
 				 */
-				typedef Glib::RefPtr<Ball> ptr;
+				typedef RefPtr<Ball> ptr;
 
 				/**
 				 * \return the position of the ball.
@@ -159,7 +159,7 @@ class Visualizable : public NonCopyable {
 				/**
 				 * A pointer to a Robot.
 				 */
-				typedef Glib::RefPtr<Robot> ptr;
+				typedef RefPtr<Robot> ptr;
 
 				/**
 				 * \return The position of the Robot
