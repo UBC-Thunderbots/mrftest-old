@@ -13,17 +13,18 @@ class ByRef : public NonCopyable {
 		 * Adds one to the object's reference count. This should only be called
 		 * by Glib::RefPtr, not by application code.
 		 */
-		virtual void reference() {
-			refs_++;
+		void reference() {
+			++refs_;
 		}
 
 		/**
 		 * Subtracts one from the object's reference count. This should only be
 		 * called by Glib::RefPtr, not by application code.
 		 */
-		virtual void unreference() {
-			if (!--refs_)
+		void unreference() {
+			if (!--refs_) {
 				delete this;
+			}
 		}
 
 		/**
