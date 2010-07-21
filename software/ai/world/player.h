@@ -34,6 +34,11 @@ class Player : public Robot {
 
 			protected:
 				/**
+				 * Constructs a new State block.
+				 */
+				State();
+
+				/**
 				 * Destroys the State block.
 				 */
 				virtual ~State();

@@ -71,6 +71,9 @@ const unsigned int Player::CHICKER_FOREVER = 1000;
 
 const double Player::MAX_DRIBBLE_DIST = 0.30;
 
+Player::State::State() {
+}
+
 Player::State::~State() {
 }
 
