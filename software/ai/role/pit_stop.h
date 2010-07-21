@@ -12,9 +12,14 @@
 class PitStop : public Role {
 	public:
 		//
+		// A pointer to a PitStop Role.
+		//
+		typedef Glib::RefPtr<PitStop> ptr;
+
+		//
 		// Constructs a new PitStop Role.
 		//
-		PitStop(RefPtr<World> world);
+		PitStop(World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -27,8 +32,8 @@ class PitStop : public Role {
 		void players_changed();
 
 	protected:
-		const RefPtr<World> the_world;
-		std::vector<RefPtr<Move> > the_tactics;
+		const World::ptr the_world;
+		std::vector<Move::ptr> the_tactics;
 };
 
 #endif

@@ -16,7 +16,7 @@ namespace {
 	DoubleParam SHOOT_KICK_ANGLE("shoot: angle it can see before it should kick (degrees)", 5.0, 1.0, 20.0);
 }
 
-Shoot::Shoot(RefPtr<Player> player, RefPtr<World> world) : Tactic(player), the_world(world), forced(false), use_pivot(true), allow_dribble(true) {
+Shoot::Shoot(Player::ptr player, World::ptr world) : Tactic(player), the_world(world), forced(false), use_pivot(true), allow_dribble(true) {
 }
 
 void Shoot::tick() {

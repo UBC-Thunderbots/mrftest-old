@@ -3,7 +3,7 @@
 
 #include "geom/point.h"
 #include "uicomponents/visualizer.h"
-#include "util/memory.h"
+#include "util/byref.h"
 #include <glibmm.h>
 
 /**
@@ -13,6 +13,11 @@
  */
 class SimulatorBall : public Visualizable::Ball {
 	public:
+		/**
+		 * A pointer to a SimulatorBall.
+		 */
+		typedef Glib::RefPtr<SimulatorBall> ptr;
+
 		/**
 		 * \return The position of the ball, in metres from field centre
 		 */

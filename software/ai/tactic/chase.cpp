@@ -13,11 +13,11 @@ namespace {
 	const double OVERSHOOT_AMOUNT = 0.01;
 }
 
-Chase::Chase(RefPtr<Player> player, RefPtr<World> world) : Tactic(player), the_world(world), navi(player, world) {
+Chase::Chase(Player::ptr player, World::ptr world) : Tactic(player), the_world(world), navi(player, world) {
 }
 
 void Chase::tick() {
-	const RefPtr<Ball> the_ball(the_world->ball());
+	const Ball::ptr the_ball(the_world->ball());
 	// predict ball position based on velocity and accleration
 	//NOTE THAT MOVING BALL MANUALLY WITH CURSOR CAN GIVE VERY LARGE VELOCITY AND ACCELERATION
 	//Point pos = the_ball->position() + VEL_FACTOR * the_ball->est_velocity() + ACL_FACTOR * the_ball->est_acceleration();

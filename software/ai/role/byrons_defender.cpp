@@ -6,7 +6,7 @@
 #include "geom/util.h"
 #include <iostream>
 
-ByronsDefender::ByronsDefender(RefPtr<World> world) : the_world(world) {
+ByronsDefender::ByronsDefender(World::ptr world) : the_world(world) {
 }
 
 void ByronsDefender::tick() {

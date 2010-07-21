@@ -14,7 +14,7 @@ class FPGAUpload : public WatchableOperation, public sigc::trackable {
 		//
 		// Constructs an uploader.
 		//
-		FPGAUpload(RefPtr<XBeeRawBot> bot, const IntelHex &data);
+		FPGAUpload(XBeeRawBot::ptr bot, const IntelHex &data);
 
 		//
 		// Starts the upload process.
@@ -37,7 +37,7 @@ class FPGAUpload : public WatchableOperation, public sigc::trackable {
 		static const unsigned int SECTOR_CHUNKS = 16;
 
 	private:
-		const RefPtr<XBeeRawBot> bot;
+		const XBeeRawBot::ptr bot;
 		const IntelHex &data;
 		BootProto proto;
 		unsigned int sectors_erased;

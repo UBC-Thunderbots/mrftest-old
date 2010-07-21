@@ -88,7 +88,7 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 
 	// Draw the players including text.
 	for (unsigned int i = 0; i < data.size(); ++i) {
-		const RefPtr<Visualizable::Robot> bot(data[i]);
+		const Visualizable::Robot::ptr bot(data[i]);
 		if (bot->visualizer_visible()) {
 			const Visualizable::RobotColour &clr(bot->visualizer_colour());
 			ctx->set_source_rgb(clr.red, clr.green, clr.blue);
@@ -139,7 +139,7 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 #endif
 
 	// Draw the ball.
-	const RefPtr<Visualizable::Ball> ball(data.ball());
+	const Visualizable::Ball::ptr ball(data.ball());
 	ctx->set_source_rgb(1.0, 0.5, 0.0);
 	ctx->begin_new_path();
 	ctx->arc(xtog(ball->position().x), ytog(ball->position().y), dtog(0.03), 0.0, 2.0 * M_PI);
@@ -266,22 +266,22 @@ bool Visualizer::on_leave_notify_event(GdkEventCrossing *evt) {
 	return true;
 }
 
-RefPtr<Visualizable::Draggable> Visualizer::object_at(const Point &pos) const {
+Visualizable::Draggable::ptr Visualizer::object_at(const Point &pos) const {
 	// Check if it's a player.
 	for (unsigned int i = 0; i < data.size(); ++i) {
-		const RefPtr<Visualizable::Robot> bot(data[i]);
+		const Visualizable::Robot::ptr bot(data[i]);
 		if ((bot->position() - pos).len() < 0.09 && bot->visualizer_can_drag() && bot->visualizer_visible()) {
 			return bot;
 		}
 	}
 
 	// Check if it's the ball.
-	const RefPtr<Visualizable::Ball> ball(data.ball());
+	const Visualizable::Ball::ptr ball(data.ball());
 	if ((ball->position() - pos).len() < 0.03 && ball->visualizer_can_drag()) {
 		return ball;
 	}
 
-	return RefPtr<Visualizable::Draggable>();
+	return Visualizable::Draggable::ptr();
 }
 
 void Visualizer::compute_scales() {

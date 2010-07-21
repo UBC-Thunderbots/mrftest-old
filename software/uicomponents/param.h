@@ -2,7 +2,7 @@
 #define UICOMPONENTS_PARAM_H
 
 #include "util/noncopyable.h"
-#include "util/memory.h"
+#include "util/scoped_ptr.h"
 #include <gtkmm.h>
 #include <vector>
 

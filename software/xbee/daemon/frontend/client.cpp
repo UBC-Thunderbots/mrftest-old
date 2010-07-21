@@ -79,7 +79,7 @@ XBeeClient::~XBeeClient() {
 	daemon.universe_claimed = false;
 }
 
-void XBeeClient::connect_frame_dealloc(RefPtr<XBeeRequest> req, uint8_t frame) {
+void XBeeClient::connect_frame_dealloc(XBeeRequest::ptr req, uint8_t frame) {
 	req->signal_complete().connect(sigc::hide(sigc::hide(sigc::bind(sigc::mem_fun(daemon.frame_number_allocator, &NumberAllocator<uint8_t>::free), frame))));
 }
 
@@ -154,7 +154,7 @@ void XBeeClient::on_at_command(void *buffer, std::size_t length) {
 	}
 
 	// Create a XBeeRequest structure.
-	RefPtr<XBeeRequest> req(XBeeRequest::create(packet, length, original_frame != 0));
+	XBeeRequest::ptr req(XBeeRequest::create(packet, length, original_frame != 0));
 
 	// If a frame number was allocated, attach callbacks.
 	if (original_frame) {
@@ -211,7 +211,7 @@ void XBeeClient::on_remote_at_command(void *buffer, std::size_t length) {
 	}
 
 	// Create a XBeeRequest structure.
-	RefPtr<XBeeRequest> req(XBeeRequest::create(packet, length, original_frame != 0));
+	XBeeRequest::ptr req(XBeeRequest::create(packet, length, original_frame != 0));
 
 	// If a frame number was allocated, attach callbacks.
 	if (original_frame) {
@@ -268,7 +268,7 @@ void XBeeClient::on_transmit(void *buffer, std::size_t length) {
 	}
 
 	// Create a XBeeRequest structure.
-	RefPtr<XBeeRequest> req(XBeeRequest::create(packet, length, original_frame != 0));
+	XBeeRequest::ptr req(XBeeRequest::create(packet, length, original_frame != 0));
 
 	// If a frame number was allocated, attach callbacks.
 	if (original_frame) {
@@ -365,7 +365,7 @@ void XBeeClient::on_meta_claim_universe() {
 
 void XBeeClient::on_meta_claim(const XBeePacketTypes::META_CLAIM &req) {
 	// Look up the state of the requested robot.
-	RefPtr<XBeeRobot> state = daemon.robots[req.address];
+	XBeeRobot::ptr state = daemon.robots[req.address];
 	if (!state) {
 		state = XBeeRobot::create(req.address, daemon);
 		daemon.robots[req.address] = state;
@@ -457,7 +457,7 @@ void XBeeClient::on_meta_release(const XBeePacketTypes::META_RELEASE &req) {
 void XBeeClient::on_robot_alive(uint64_t address) {
 	assert(claimed.count(address));
 
-	RefPtr<XBeeRobot> bot(daemon.robots[address]);
+	XBeeRobot::ptr bot(daemon.robots[address]);
 
 	XBeePacketTypes::META_ALIVE packet;
 	packet.hdr.apiid = XBeePacketTypes::META_APIID;

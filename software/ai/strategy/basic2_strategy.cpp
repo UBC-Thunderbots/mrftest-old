@@ -17,14 +17,14 @@ namespace {
 	class Basic2Factory : public StrategyFactory {
 		public:
 			Basic2Factory();
-			RefPtr<Strategy2> create_strategy(RefPtr<World> world);
+			Strategy2::ptr create_strategy(World::ptr world);
 	};
 
 	Basic2Factory::Basic2Factory() : StrategyFactory("Basic V2") {
 	}
 
-	RefPtr<Strategy2> Basic2Factory::create_strategy(RefPtr<World> world) {
-		RefPtr<Strategy2> s(new Basic2(world));
+	Strategy2::ptr Basic2Factory::create_strategy(World::ptr world) {
+		Strategy2::ptr s(new Basic2(world));
 		return s;
 	}
 
@@ -48,14 +48,14 @@ namespace {
 
 }
 
-Basic2::Basic2(RefPtr<World> world) : world(world), defensive(world), offensive(world) {
+Basic2::Basic2(World::ptr world) : world(world), defensive(world), offensive(world) {
 	world->friendly.signal_player_added.connect(sigc::mem_fun(this, &Basic2::player_added));
 	world->friendly.signal_player_removed.connect(sigc::mem_fun(this, &Basic2::player_removed));
 	world->signal_playtype_changed.connect(sigc::mem_fun(this, &Basic2::playtype_changed));
 	prev_playtype = world->playtype();
 }
 
-void Basic2::player_added(unsigned int index, RefPtr<Player> player) {
+void Basic2::player_added(unsigned int index, Player::ptr player) {
 	const FriendlyTeam &friendly(world->friendly);
 	if (!goalie) {
 		if (friendly.size() != 1) {
@@ -66,7 +66,7 @@ void Basic2::player_added(unsigned int index, RefPtr<Player> player) {
 #warning TODO reassign roles
 }
 
-void Basic2::player_removed(unsigned int index, RefPtr<Player> player) {
+void Basic2::player_removed(unsigned int index, Player::ptr player) {
 	// the use of this is justified
 	reset_assignments();
 }
@@ -130,14 +130,14 @@ int Basic2::calc_num_offenders() const {
 		}
 	}
 
-	std::vector<RefPtr<Player> > rem_players;
+	std::vector<Player::ptr > rem_players;
 	for (size_t i = 0; i < friendly.size(); i++){
 		if (static_cast<int>(i) == goalie_index) continue;
 		if (static_cast<int>(i) == baller) continue;
 		if (baller == -1 && static_cast<int>(i) == baller_ignore_chicker) continue;
 		rem_players.push_back(friendly[i]);
 	}
-	std::sort(rem_players.begin(), rem_players.end(), AIUtil::CmpDist<RefPtr<Player> >(Point(-world->field().length()/2.0,0.0)));
+	std::sort(rem_players.begin(), rem_players.end(), AIUtil::CmpDist<Player::ptr >(Point(-world->field().length()/2.0,0.0)));
 
 	// preferred_offender_number includes the assigned kicker (closest player to ball)
 	// 3 players => 1 offender

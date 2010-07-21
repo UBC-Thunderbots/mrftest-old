@@ -8,25 +8,25 @@ namespace {
 	const double KICKER_STRENGTH = 0.1;
 }
 
-ExecuteKickoffFriendly::ExecuteKickoffFriendly(RefPtr<World> world) : the_world(world) {
+ExecuteKickoffFriendly::ExecuteKickoffFriendly(World::ptr world) : the_world(world) {
 	contacted_ball = false;
 }
 
 void ExecuteKickoffFriendly::avoid_ball(int index){
-	RefPtr<Move> tactic(new Move(players[index], the_world));
+	Move::ptr tactic(new Move(players[index], the_world));
 	tactic->set_position(Point( -1 * the_world->field().length()/2, 0));
 	the_tactics.push_back(tactic);
 }
 
 void ExecuteKickoffFriendly::kick_ball(int index){
-	RefPtr<Kick> tactic( new Kick(players[index], the_world));
+	Kick::ptr tactic( new Kick(players[index], the_world));
 	tactic->set_target(Point( the_world->field().length()/10 , 0));
 	tactic->set_kick(KICKER_STRENGTH);
 	the_tactics.push_back(tactic);
 }
 
 void ExecuteKickoffFriendly::chase_ball(int index) {
-	RefPtr<Chase> tactic( new Chase(players[index], the_world));
+	Chase::ptr tactic( new Chase(players[index], the_world));
 	the_tactics.push_back(tactic);
 }
 

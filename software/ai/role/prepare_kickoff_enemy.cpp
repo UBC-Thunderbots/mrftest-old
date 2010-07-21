@@ -1,6 +1,6 @@
 #include "ai/role/prepare_kickoff_enemy.h"
 
-PrepareKickoffEnemy::PrepareKickoffEnemy(RefPtr<World> world) : the_world(world) {
+PrepareKickoffEnemy::PrepareKickoffEnemy(World::ptr world) : the_world(world) {
 	const Field &the_field(the_world->field());
     // The position of the goalie should not be specified.
     // Goalie is in the Goalie Role, not in this Role
@@ -13,7 +13,7 @@ PrepareKickoffEnemy::PrepareKickoffEnemy(RefPtr<World> world) : the_world(world)
 void PrepareKickoffEnemy::tick(){
     the_tactics.clear();
     for(unsigned int i=0; i<players.size() ; i++) {
-        RefPtr<Move> tactic( new Move(players[i], the_world));
+        Move::ptr tactic( new Move(players[i], the_world));
         the_tactics.push_back(tactic);
         if(i<NUMBER_OF_STARTING_POSITIONS) {
             the_tactics[i]->set_position(starting_positions[i]);

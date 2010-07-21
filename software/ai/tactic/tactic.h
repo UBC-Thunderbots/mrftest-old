@@ -1,8 +1,8 @@
 #ifndef AI_TACTIC_H
 #define AI_TACTIC_H
 
+#include "util/byref.h"
 #include "ai/world/player.h"
-#include "util/memory.h"
 #include <glibmm.h>
 
 /**
@@ -11,6 +11,11 @@
  */
 class Tactic : public ByRef {
 	public:
+		/**
+		 * A pointer to a Tactic.
+		 */
+		typedef Glib::RefPtr<Tactic> ptr;
+
 		/**
 		 * Runs the Tactic for one time tick. It is expected that the Tactic
 		 * will examine the robot for which it is responsible, determine how it
@@ -39,14 +44,14 @@ class Tactic : public ByRef {
 		}
 
 	protected:
-		explicit Tactic(const RefPtr<Player>& player) : flags(0), player(player) {
+		explicit Tactic(const Player::ptr& player) : flags(0), player(player) {
 		}
 
-		explicit Tactic(const RefPtr<Player>& player, const unsigned int& f) : flags(f), player(player) {
+		explicit Tactic(const Player::ptr& player, const unsigned int& f) : flags(f), player(player) {
 		}
 
 		unsigned int flags;
-		const RefPtr<Player> player;
+		const Player::ptr player;
 };
 
 #endif

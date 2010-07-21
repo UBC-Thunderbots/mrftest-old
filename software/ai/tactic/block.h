@@ -11,9 +11,14 @@
 class Block : public Tactic {
 	public:
 		//
+		// A pointer to this Tactic.
+		//
+		typedef Glib::RefPtr<Block> ptr;
+
+		//
 		// Constructs a new Block Tactic. 
 		//
-		Block(RefPtr<Player> player, RefPtr<World> world);
+		Block(Player::ptr player, World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -23,11 +28,11 @@ class Block : public Tactic {
 		/**
 		 * Sets the target for the Block Tactic.
 		 */
-		void set_target(RefPtr<Robot> target);	
+		void set_target(Robot::ptr target);	
 
 	protected:
-		RefPtr<Robot> target;
-		RefPtr<World> the_world;
+		Robot::ptr target;
+		World::ptr the_world;
 };
 
 #endif

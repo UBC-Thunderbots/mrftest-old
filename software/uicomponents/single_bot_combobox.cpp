@@ -2,8 +2,8 @@
 #include "util/dprint.h"
 #include <cassert>
 
-Glib::RefPtr<SingleBotComboBoxModel> SingleBotComboBoxModel::create(const Config::RobotSet &robots) {
-	Glib::RefPtr<SingleBotComboBoxModel> p(new SingleBotComboBoxModel(robots));
+SingleBotComboBoxModel::ptr SingleBotComboBoxModel::create(const Config::RobotSet &robots) {
+	ptr p(new SingleBotComboBoxModel(robots));
 	return p;
 }
 

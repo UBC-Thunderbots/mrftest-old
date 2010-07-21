@@ -10,15 +10,15 @@
 
 #include <iostream>
 
-Defensive::Defensive(RefPtr<World> world) : the_world(world) {
+Defensive::Defensive(World::ptr world) : the_world(world) {
 }
 
 std::vector<Point> Defensive::calc_block_positions() const {
 	const EnemyTeam& enemy(the_world->enemy);
 
 	// Sort enemies by distance from own goal.
-	std::vector<RefPtr<Robot> > enemies = enemy.get_robots();
-	std::sort(enemies.begin(), enemies.end(), AIUtil::CmpDist<RefPtr<Robot> >(the_world->field().friendly_goal()));
+	std::vector<Robot::ptr> enemies = enemy.get_robots();
+	std::sort(enemies.begin(), enemies.end(), AIUtil::CmpDist<Robot::ptr>(the_world->field().friendly_goal()));
 
 	// Place waypoints on the defence area.
 	// TODO: calculate proper areas in the future.
@@ -40,14 +40,14 @@ void Defensive::tick() {
 	if (players.size() == 0) return;
 
 	// Sort by distance to ball. DO NOT SORT IT AGAIN!!
-	std::sort(players.begin(), players.end(), AIUtil::CmpDist<RefPtr<Player> >(the_world->ball()->position()));
+	std::sort(players.begin(), players.end(), AIUtil::CmpDist<Player::ptr>(the_world->ball()->position()));
 
 	const FriendlyTeam& friendly(the_world->friendly);
 	const int baller = AIUtil::calc_baller(the_world, players);
 	const bool teampossesball = AIUtil::friendly_posses_ball(the_world);
 
-	std::vector<RefPtr<Player> > friends = AIUtil::get_friends(friendly, players);
-	std::sort(friends.begin(), friends.end(), AIUtil::CmpDist<RefPtr<Player> >(the_world->field().enemy_goal()));
+	std::vector<Player::ptr> friends = AIUtil::get_friends(friendly, players);
+	std::sort(friends.begin(), friends.end(), AIUtil::CmpDist<Player::ptr>(the_world->field().enemy_goal()));
 
 	// The robot that will do something to the ball (e.g. chase).
 	// Other robots will just go defend or something.
@@ -73,13 +73,13 @@ void Defensive::tick() {
 				LOG_INFO(Glib::ustring::compose("%1 shoot", players[baller]->name));
 
 				// try for the goal =D
-				RefPtr<Shoot> shoot_tactic(new Shoot(players[baller], the_world));
+				Shoot::ptr shoot_tactic(new Shoot(players[baller], the_world));
 				tactics[baller] = shoot_tactic;
 			} else {
 				LOG_INFO(Glib::ustring::compose("%1 pass to %2", players[baller]->name, friends[passme]->name));
 
 				// pass to this person
-				RefPtr<Pass> pass_tactic(new Pass(players[baller], the_world, friends[passme]));
+				Pass::ptr pass_tactic(new Pass(players[baller], the_world, friends[passme]));
 				tactics[baller] = pass_tactic;
 			}
 			skipme = baller;
@@ -87,11 +87,11 @@ void Defensive::tick() {
 
 			// If a player nearest to the goal area has the ball
 			// that player is probably a goalie, chase the ball!
-			std::sort(friends.begin(), friends.end(), AIUtil::CmpDist<RefPtr<Player> >(the_world->field().friendly_goal()));
+			std::sort(friends.begin(), friends.end(), AIUtil::CmpDist<Player::ptr>(the_world->field().friendly_goal()));
 
 			if (friends.size() > 0 && AIUtil::posses_ball(the_world, friends[0])) {
 				LOG_INFO(Glib::ustring::compose("%1 get ball from goalie", players[0]->name));
-				RefPtr<Receive> receive_tactic(new Receive(players[0], the_world));
+				Receive::ptr receive_tactic(new Receive(players[0], the_world));
 				tactics[0] = receive_tactic;
 				skipme = 0;
 			}
@@ -106,7 +106,7 @@ void Defensive::tick() {
 		if ((players[0]->position() - the_world->ball()->position()).len() < frienddist) {
 			// std::cout << "defensive: chase" << std::endl;
 
-			RefPtr<Shoot> shoot_tactic = RefPtr<Shoot>(new Shoot(players[0], the_world));
+			Shoot::ptr shoot_tactic = Shoot::ptr(new Shoot(players[0], the_world));
 
 			// want to get rid of the ball ASAP!
 			shoot_tactic->force();
@@ -120,7 +120,7 @@ void Defensive::tick() {
 
 	std::vector<Point> waypoints = calc_block_positions();
 
-	std::vector<RefPtr<Player> > available;
+	std::vector<Player::ptr> available;
 	std::vector<Point> locations;
 	for (size_t i = 0; i < players.size(); ++i) {
 		if (static_cast<int>(i) == skipme) continue;
@@ -139,11 +139,11 @@ void Defensive::tick() {
 		if (static_cast<int>(i) == skipme) continue;
 		if (w >= waypoints.size()) {
 			LOG_WARN(Glib::ustring::compose("%1 nothing to do", players[i]->name));
-			RefPtr<Move> move_tactic(new Move(players[i], the_world));
+			Move::ptr move_tactic(new Move(players[i], the_world));
 			move_tactic->set_position(players[i]->position());
 			tactics[i] = move_tactic;
 		} else {
-			RefPtr<Move> move_tactic(new Move(players[i], the_world));
+			Move::ptr move_tactic(new Move(players[i], the_world));
 			move_tactic->set_position(waypoints[order[w]]);
 			tactics[i] = move_tactic;
 		}

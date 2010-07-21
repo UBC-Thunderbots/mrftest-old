@@ -2,7 +2,7 @@
 #define XBEE_CLIENT_DRIVE_H
 
 #include "uicomponents/annunciator.h"
-#include "util/memory.h"
+#include "util/byref.h"
 #include "util/time.h"
 #include "xbee/client/packet.h"
 #include "xbee/shared/packettypes.h"
@@ -19,6 +19,11 @@ class XBeeLowLevel;
 //
 class XBeeDriveBot : public ByRef, public sigc::trackable {
 	public:
+		//
+		// A pointer to an XBeeDriveBot.
+		//
+		typedef Glib::RefPtr<XBeeDriveBot> ptr;
+
 		//
 		// The 64-bit address of this robot.
 		//
@@ -55,7 +60,7 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		//
 		// Creates a new XBeeDriveBot and begins attempting to claim the bot.
 		//
-		static RefPtr<XBeeDriveBot> create(const Glib::ustring &name, uint64_t address, XBeeLowLevel &ll);
+		static ptr create(const Glib::ustring &name, uint64_t address, XBeeLowLevel &ll);
 
 		//
 		// Returns whether or not the robot is communicating.

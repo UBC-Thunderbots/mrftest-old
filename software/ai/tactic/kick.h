@@ -12,9 +12,14 @@
 class Kick : public Tactic {
 	public:
 		//
+		// A pointer to this Tactic.
+		//
+		typedef Glib::RefPtr<Kick> ptr;
+
+		//
 		// Constructs a new Kick Tactic.
 		//
-		Kick(RefPtr<Player> player, RefPtr<World> world);
+		Kick(Player::ptr player, World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -47,7 +52,7 @@ class Kick : public Tactic {
 		}
 
 	protected:
-		const RefPtr<World> the_world;
+		const World::ptr the_world;
 
 		// True to chip instead of kicking.
 		bool should_chip;

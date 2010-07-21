@@ -6,7 +6,7 @@
 #include "ai/world/player.h"
 #include "robot_controller/robot_controller.h"
 #include "geom/point.h"
-#include "util/memory.h"
+#include "util/byref.h"
 #include "util/noncopyable.h"
 #include "robot_controller/tunable_controller.h"
 
@@ -19,7 +19,7 @@ class FuzzyController : public RobotController, public TunableController {
 
 		RobotControllerFactory &get_factory() const;
 
-		FuzzyController(RefPtr<Player> player);
+		FuzzyController(Player::ptr player);
 		
 	 	void set_params(const std::vector<double>& params) {
 			this->param = params;
@@ -40,7 +40,7 @@ class FuzzyController : public RobotController, public TunableController {
 		}
 
 	protected:
-		RefPtr<Player> robot;
+		Player::ptr robot;
 		
 		static const std::vector<double> param_min;
 		static const std::vector<double> param_max;

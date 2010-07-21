@@ -6,7 +6,7 @@
 #include "ai/world/player.h"
 #include "robot_controller/robot_controller.h"
 #include "geom/point.h"
-#include "util/memory.h"
+#include "util/byref.h"
 #include "util/noncopyable.h"
 
 class LazyController : public RobotController {
@@ -18,11 +18,11 @@ class LazyController : public RobotController {
 
 		RobotControllerFactory &get_factory() const;
 
-		LazyController(RefPtr<Player> plr);
+		LazyController(Player::ptr plr);
 
 	protected:
 	private:
-		RefPtr<Player> plr;
+		Player::ptr plr;
 };
 
 #endif

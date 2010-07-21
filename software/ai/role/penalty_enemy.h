@@ -11,9 +11,14 @@
 class PenaltyEnemy : public Role {
 	public:
 		//
+		// A pointer to a PenaltyEnemy Role.
+		//
+		typedef Glib::RefPtr<PenaltyEnemy> ptr;
+
+		//
 		// Constructs a new PenaltyEnemy Role.
 		//
-		PenaltyEnemy(RefPtr<World> world);
+		PenaltyEnemy(World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -23,7 +28,7 @@ class PenaltyEnemy : public Role {
 		void players_changed();
 
 	protected:
-		const RefPtr<World> the_world;
+		const World::ptr the_world;
 
 		/**
 		 * The distance between the baseline and the line behind which the robots must stand.
@@ -43,14 +48,16 @@ class PenaltyEnemy : public Role {
 
 class PenaltyGoalie : public Role {
 	public:
-		PenaltyGoalie(RefPtr<World> world);
+		typedef Glib::RefPtr<PenaltyGoalie> ptr;
+
+		PenaltyGoalie(World::ptr world);
 
 		void tick();
 
 		void players_changed();
 
 	protected:
-		const RefPtr<World> the_world;
+		const World::ptr the_world;
 };
 
 #endif

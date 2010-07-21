@@ -1,7 +1,7 @@
 #include "ai/navigator/testnavigator.h"
 #include <iostream>
 #include <cstdlib>
-TestNavigator::TestNavigator(RefPtr<Player> player, RefPtr<World> world) : 
+TestNavigator::TestNavigator(Player::ptr player, World::ptr world) : 
   the_player(player), the_world(world), destInitialized(false), outOfBoundsMargin(the_world->field().width() / 20.0),
   maxLookahead(1.0), aggression_factor(2)
 {
@@ -10,7 +10,7 @@ TestNavigator::TestNavigator(RefPtr<Player> player, RefPtr<World> world) :
 
 void TestNavigator::tick() {
   const Field &the_field(the_world->field());
-  const RefPtr<Ball> the_ball(the_world->ball());
+  const Ball::ptr the_ball(the_world->ball());
 
   //tell it which way to go
   if(destInitialized)
@@ -203,7 +203,7 @@ bool TestNavigator::check_vector(Point start, Point dest, Point direction)
     {
       for (unsigned int j = 0; j < teams[i]->size(); ++j)
 	{
-	  const RefPtr<Robot> rob(teams[i]->get_robot(j));
+	  const Robot::ptr rob(teams[i]->get_robot(j));
 	  
 	  if(rob != this->the_player)
 	    {

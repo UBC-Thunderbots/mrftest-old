@@ -34,7 +34,7 @@ class BootProto : public NonCopyable, public sigc::trackable {
 		//
 		// Constructs a new BootProto.
 		//
-		BootProto(RefPtr<XBeeRawBot> bot);
+		BootProto(XBeeRawBot::ptr bot);
 
 		//
 		// Returns the current state of the bootloader.
@@ -73,12 +73,12 @@ class BootProto : public NonCopyable, public sigc::trackable {
 		void exit_bootloader(const sigc::slot<void> &callback);
 
 	private:
-		const RefPtr<XBeeRawBot> bot;
+		const XBeeRawBot::ptr bot;
 		enum State current_state;
 		sigc::slot<void> nullary_callback;
 		sigc::slot<void, const void *> response_callback;
 		unsigned int retries;
-		RefPtr<XBeePacket> pending_packet;
+		XBeePacket::ptr pending_packet;
 		std::size_t pending_response_len;
 
 		sigc::connection packet_received_connection;

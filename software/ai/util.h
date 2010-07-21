@@ -19,8 +19,8 @@ namespace AIUtil {
 	 * A comparator that sorts by a particular distance.
 	 * To be used together with std::sort.
 	 * E.g.
-	 * std::vector<RefPtr<Robot> > enemies = AIUtil::get_robots(enemy);
-	 * std::sort(enemies.begin(), enemies.end(), AIUtil::CmpDist<RefPtr<Robot> >(goal));
+	 * std::vector<Robot::ptr> enemies = AIUtil::get_robots(enemy);
+	 * std::sort(enemies.begin(), enemies.end(), AIUtil::CmpDist<Robot::ptr>(goal));
 	 */
 	template<typename T> class CmpDist {
 		public:
@@ -94,12 +94,12 @@ namespace AIUtil {
 	 * Checks if the robot is in a position close enough to the ball to start
 	 * So close that no other robot can be in the way of this ball.
 	 */
-	bool ball_close(const RefPtr<World> w, const RefPtr<Robot> bot);
+	bool ball_close(const World::ptr w, const Robot::ptr bot);
 
 	/**
 	 * Checks if a position is inside the friendly defense area
 	 */
-	bool point_in_defense(const RefPtr<World> w, const Point& pt);
+	bool point_in_defense(const World::ptr w, const Point& pt);
 
 	/**
 	 * Checks if the path from begin to end is blocked by some robots.
@@ -109,7 +109,7 @@ namespace AIUtil {
 	 * For moving, use Robot::MAX_RADIUS * 2 + MOVE_ALLOWANCE.
 	 * \return True if the path is not blocked.
 	 */
-	bool path_check(const Point& begin, const Point& end, const std::vector<RefPtr<Robot> >& robots, const double thresh);
+	bool path_check(const Point& begin, const Point& end, const std::vector<Robot::ptr>& robots, const double thresh);
 
 	/**
 	 * Checks if the path from begin to end is blocked by some obstacles.
@@ -128,12 +128,12 @@ namespace AIUtil {
 	 * Returns false if passee is not facing the ball.
 	 * Returns false if some condition is invalid.
 	 */
-	bool can_receive(const RefPtr<World> w, const RefPtr<Player> passee);
+	bool can_receive(const World::ptr w, const Player::ptr passee);
 
 	/**
 	 * Calculates the candidates to aim for when shooting at the goal.
 	 */
-	const std::vector<Point> calc_candidates(const RefPtr<World> w);
+	const std::vector<Point> calc_candidates(const World::ptr w);
 
 	/**
 	 * Finds the length of the largest continuous interval (angle-wise)
@@ -143,7 +143,7 @@ namespace AIUtil {
 	 * score is 0 if the point is invalid.
 	 */
 	std::pair<Point, double> calc_best_shot(const Field& f, const std::vector<Point>& obstacles, const Point& p, const double radius = Robot::MAX_RADIUS);
-	std::pair<Point, double> calc_best_shot(const RefPtr<World> w, const RefPtr<Player> pl, const bool consider_friendly = true, const bool force_shoot = false);
+	std::pair<Point, double> calc_best_shot(const World::ptr w, const Player::ptr pl, const bool consider_friendly = true, const bool force_shoot = false);
 
 	/**
 	 * Returns the length of the largest continuous interval (angle-wise)
@@ -151,52 +151,52 @@ namespace AIUtil {
 	 * Having a vector of points enables one to add imaginary threats.
 	 * Returns 0 if the point is physically inside a considered robot.
 	 */
-	double calc_goal_visibility_angle(const RefPtr<World> w, const RefPtr<Player> pl, const bool consider_friendly = true);
+	double calc_goal_visibility_angle(const World::ptr w, const Player::ptr pl, const bool consider_friendly = true);
 
 	/**
 	 * Convert friendly into vector of players, excluding some.
 	 * Useful for separating robots in the Role and those which are not.
 	 */
-	std::vector<RefPtr<Player> > get_friends(const FriendlyTeam& friendly, const std::vector<RefPtr<Player> >& exclude);
+	std::vector<Player::ptr> get_friends(const FriendlyTeam& friendly, const std::vector<Player::ptr>& exclude);
 
 	/**
 	 * Finds the best player to pass to based on distance to the enemy goal.
 	 * Returns -1 if no valid target is found.
 	 */
-	int choose_best_pass(const RefPtr<World> w, const std::vector<RefPtr<Player> >& friends);
+	int choose_best_pass(const World::ptr w, const std::vector<Player::ptr>& friends);
 
 	/**
 	 * Returns true if the ball has the ball with high probability.
 	 * Also uses vision.
 	 */
-	bool has_ball(const RefPtr<World> w, const RefPtr<Player> pl);
+	bool has_ball(const World::ptr w, const Player::ptr pl);
 
 	/**
 	 * Checks if a FRIENDLY PLAYER posses the ball.
 	 */
-	bool posses_ball(const RefPtr<World> w, const RefPtr<Player> p);
+	bool posses_ball(const World::ptr w, const Player::ptr p);
 
 	/**
 	 * Checks if an ENEMY ROBOT posses the ball.
 	 */
-	// bool posses_ball(const RefPtr<World> w, const RefPtr<Robot> r);
+	// bool posses_ball(const World::ptr w, const Robot::ptr r);
 
 	/**
 	 * Checks if the enemy team posses the ball.
 	 */
-	// bool enemy_posses_ball(const RefPtr<World> w);
+	// bool enemy_posses_ball(const World::ptr w);
 
 	/**
 	 * Checks if friendly team posses the ball.
 	 */
-	bool friendly_posses_ball(const RefPtr<World> w);
-	bool friendly_has_ball(const RefPtr<World> w);
+	bool friendly_posses_ball(const World::ptr w);
+	bool friendly_has_ball(const World::ptr w);
 
 	/**
 	 * Returns the player having the ball.
 	 * If none has the ball, return -1.
 	 */
-	int calc_baller(const RefPtr<World> w, const std::vector<RefPtr<Player> >& players);
+	int calc_baller(const World::ptr w, const std::vector<Player::ptr>& players);
 }
 
 #endif

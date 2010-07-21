@@ -66,7 +66,7 @@ namespace {
 
 }
 
-RobotNavigator::RobotNavigator(RefPtr<Player> player, RefPtr<World> world) : the_player(player), the_world(world), position_initialized(false), orientation_initialized(false), flags(0) {
+RobotNavigator::RobotNavigator(Player::ptr player, World::ptr world) : the_player(player), the_world(world), position_initialized(false), orientation_initialized(false), flags(0) {
 }
 
 double RobotNavigator::get_avoidance_factor() const {
@@ -180,7 +180,7 @@ Point RobotNavigator::clip_playing_area(Point wantdest){
 
 Point RobotNavigator::get_inbounds_point(Point dst){
 
-	const RefPtr<Ball> the_ball(the_world->ball());
+	const Ball::ptr the_ball(the_world->ball());
 	const Field &the_field(the_world->field());
 	const Point balldist = the_ball->position() - the_player->position();
 	const double distance = (dst - the_player->position()).len();
@@ -240,7 +240,7 @@ Point RobotNavigator::get_inbounds_point(Point dst){
 }
 
 void RobotNavigator::tick() {
-	const RefPtr<Ball> the_ball(the_world->ball());
+	const Ball::ptr the_ball(the_world->ball());
 	const Field &the_field(the_world->field());
 
 	const Point balldist = the_ball->position() - the_player->position();
@@ -357,7 +357,7 @@ bool RobotNavigator::check_vector(const Point& start, const Point& dest, const P
 }
 
 unsigned int RobotNavigator::check_obstacles(const Point& start, const Point& dest, const Point& direction) const {
-	const RefPtr<Ball> the_ball(the_world->ball());
+	const Ball::ptr the_ball(the_world->ball());
 	const Point startdest = dest - start;
 	const double lookahead = std::min<double>(startdest.len(), LOOKAHEAD_MAX);
 
@@ -377,7 +377,7 @@ unsigned int RobotNavigator::check_obstacles(const Point& start, const Point& de
 
 	  if(check_avoid){
 		for (unsigned int j = 0; j < teams[i]->size(); ++j) {
-			const RefPtr<Robot> rob(teams[i]->get_robot(j));
+			const Robot::ptr rob(teams[i]->get_robot(j));
 			if (rob == the_player) continue;
 			const Point rp = rob->position() - start;
 			const double proj = rp.dot(direction);
@@ -409,7 +409,7 @@ unsigned int RobotNavigator::check_obstacles(const Point& start, const Point& de
 
 
 bool RobotNavigator::check_ball(const Point& start, const Point& dest, const Point& direction) const {
-	const RefPtr<Ball> the_ball(the_world->ball());
+	const Ball::ptr the_ball(the_world->ball());
 	const Point startdest = dest - start;
 	const double lookahead = std::min<double>(startdest.len(), LOOKAHEAD_MAX);
 

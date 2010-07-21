@@ -1,6 +1,6 @@
 #include "fw/claim.h"
 
-Claim::Claim(RefPtr<XBeeRawBot> bot) : bot(bot), started(false), already_alive(false), already_failed(false) {
+Claim::Claim(XBeeRawBot::ptr bot) : bot(bot), started(false), already_alive(false), already_failed(false) {
 	bot->signal_alive.connect(sigc::mem_fun(this, &Claim::on_alive));
 	bot->signal_claim_failed.connect(sigc::mem_fun(this, &Claim::on_failed));
 	status = "Claiming";

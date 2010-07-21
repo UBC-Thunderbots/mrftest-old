@@ -2,7 +2,7 @@
 #define SIM_PLAYER_H
 
 #include "geom/point.h"
-#include "util/memory.h"
+#include "util/byref.h"
 #include "xbee/shared/packettypes.h"
 #include <glibmm.h>
 
@@ -13,6 +13,11 @@
  */
 class SimulatorPlayer : public ByRef {
 	public:
+		/**
+		 * A pointer to a SimulatorPlayer.
+		 */
+		typedef Glib::RefPtr<SimulatorPlayer> ptr;
+
 		/**
 		 * \return the position of the player, in metres from field centre
 		 */

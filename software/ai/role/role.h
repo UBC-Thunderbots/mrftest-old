@@ -1,17 +1,22 @@
 #ifndef AI_ROLE_H
 #define AI_ROLE_H
 
-#include "ai/flags.h"
 #include "ai/world/world.h"
-#include "util/memory.h"
-#include <glibmm.h>
+#include "util/byref.h"
+#include "ai/flags.h"
 #include <vector>
+#include <glibmm.h>
 
 /**
  * A Role manages the operation of a group of players.
  */
 class Role : public ByRef, public sigc::trackable {
 	public:
+		/**
+		 * A pointer to a Role.
+		 */
+		typedef Glib::RefPtr<Role> ptr;
+
 		/**
 		 * Runs the Role for one time tick. It is expected that the Role will
 		 * examine the players for which it is responsible, determine if they
@@ -38,7 +43,7 @@ class Role : public ByRef, public sigc::trackable {
 		 *
 		 * \param[in] ps the players the Role should control.
 		 */
-		void set_players(const std::vector<RefPtr<Player> > &ps) {
+		void set_players(const std::vector<Player::ptr> &ps) {
 			players = ps;
 			players_changed();
 		}
@@ -69,7 +74,7 @@ class Role : public ByRef, public sigc::trackable {
 		/**
 		 * The robots that this Role controls.
 		 */
-		std::vector<RefPtr<Player> > players;
+		std::vector<Player::ptr> players;
 };
 
 #endif

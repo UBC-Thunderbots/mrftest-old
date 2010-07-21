@@ -66,7 +66,7 @@ namespace {
 
 		private:
 			Simulator &sim;
-			RefPtr<SimulatorRobot> bot;
+			SimulatorRobot::ptr bot;
 			sigc::connection connection;
 			Gtk::ToggleButton power_button;
 			Gtk::ToggleButton field_button;
@@ -157,7 +157,7 @@ namespace {
 
 		private:
 			Simulator &sim;
-			RefPtr<SingleBotComboBoxModel> robots_list_model;
+			SingleBotComboBoxModel::ptr robots_list_model;
 			Gtk::TreeView robots_list;
 			RobotControls controls;
 

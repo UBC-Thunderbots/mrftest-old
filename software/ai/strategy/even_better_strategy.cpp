@@ -24,7 +24,7 @@ namespace {
 	 */
 	class EvenBetterStrategy : public BasicStrategy {
 		public:
-			EvenBetterStrategy(RefPtr<World> w);
+			EvenBetterStrategy(World::ptr w);
 
 			StrategyFactory &get_factory();
 			Gtk::Widget *get_ui_controls();
@@ -33,27 +33,27 @@ namespace {
 
 			void in_play_assignment();
 
-			RefPtr<Player> minus_one_assignment();
+			Player::ptr minus_one_assignment();
 	};
 
 
 	class EvenBetterStrategyFactory : public StrategyFactory {
 		public:
 			EvenBetterStrategyFactory();
-			RefPtr<Strategy2> create_strategy(RefPtr<World> world);
+			Strategy::ptr create_strategy(World::ptr world);
 	};
 
 	EvenBetterStrategyFactory::EvenBetterStrategyFactory() : StrategyFactory("Even Better than Better Strategy") {
 	}
 
-	RefPtr<Strategy2> EvenBetterStrategyFactory::create_strategy(RefPtr<World> world) {
-		RefPtr<Strategy2> s(new EvenBetterStrategy(world));
+	Strategy::ptr EvenBetterStrategyFactory::create_strategy(World::ptr world) {
+		Strategy::ptr s(new EvenBetterStrategy(world));
 		return s;
 	}
 
 	EvenBetterStrategyFactory factory;
 
-	EvenBetterStrategy::EvenBetterStrategy(RefPtr<World> w) : BasicStrategy(w) {
+	EvenBetterStrategy::EvenBetterStrategy(World::ptr w) : BasicStrategy(w) {
 	}
 
 	Gtk::Widget *EvenBetterStrategy::get_ui_controls() {
@@ -67,14 +67,14 @@ namespace {
 		roles.clear();
 		if (friendly.size() == 0) return;
 
-		// const vector<RefPtr<Player> > players = the_team.get_players();
+		// const vector<Player::ptr> players = the_team.get_players();
 
-		RefPtr<Defensive2> defensive_role(new Defensive2(world));
-		RefPtr<Offensive> offensive_role(new Offensive(world));
-		roles.push_back(RefPtr<Role>(defensive_role));
-		roles.push_back(RefPtr<Role>(offensive_role));
-		std::vector<RefPtr<Player> > defenders;
-		std::vector<RefPtr<Player> > offenders;
+		Defensive2::ptr defensive_role(new Defensive2(world));
+		Offensive::ptr offensive_role(new Offensive(world));
+		roles.push_back(Role::ptr(defensive_role));
+		roles.push_back(Role::ptr(offensive_role));
+		std::vector<Player::ptr> defenders;
+		std::vector<Player::ptr> offenders;
 
 		// TODO: change the following
 		// For now, goalie is always lowest numbered robot
@@ -108,14 +108,14 @@ namespace {
 			}
 		}
 
-		std::vector<RefPtr<Player> > rem_players;
+		std::vector<Player::ptr> rem_players;
 		for (size_t i = 0; i < friendly.size(); i++){
 			if (static_cast<int>(i) == goalie_index) continue;
 			if (static_cast<int>(i) == baller) continue;
 			if (baller == -1 && static_cast<int>(i) == baller_ignore_chicker) continue;
 			rem_players.push_back(friendly.get_player(i));
 		}
-		std::sort(rem_players.begin(), rem_players.end(), AIUtil::CmpDist<RefPtr<Player> >(Point(-world->field().length()/2.0,0.0)));
+		std::sort(rem_players.begin(), rem_players.end(), AIUtil::CmpDist<Player::ptr>(Point(-world->field().length()/2.0,0.0)));
 
 		// preferred_offender_number includes the offender assigned above (closest player to ball)
 		// 3 players => 1 offender
@@ -152,23 +152,23 @@ namespace {
 		offensive_role->set_players(offenders);
 	}
 
-	RefPtr<Player> EvenBetterStrategy::minus_one_assignment() {
+	Player::ptr EvenBetterStrategy::minus_one_assignment() {
 		const FriendlyTeam &the_team(world->friendly);
 		const Point ballpos = world->ball()->position();
 
 		roles.clear();
-		if (the_team.size() == 0) return RefPtr<Player>();
+		if (the_team.size() == 0) return Player::ptr();
 
 		if (the_team.size() == 1) return the_team.get_player(0);
 
-		// const vector<RefPtr<Player> > players = the_team.get_players();
+		// const vector<Player::ptr> players = the_team.get_players();
 
-		RefPtr<Defensive2> defensive_role(new Defensive2(world));
-		RefPtr<Offensive> offensive_role(new Offensive(world));
-		roles.push_back(RefPtr<Role>(defensive_role));
-		roles.push_back(RefPtr<Role>(offensive_role));
-		std::vector<RefPtr<Player> > defenders;
-		std::vector<RefPtr<Player> > offenders;
+		Defensive2::ptr defensive_role(new Defensive2(world));
+		Offensive::ptr offensive_role(new Offensive(world));
+		roles.push_back(Role::ptr(defensive_role));
+		roles.push_back(Role::ptr(offensive_role));
+		std::vector<Player::ptr> defenders;
+		std::vector<Player::ptr> offenders;
 
 		// TODO: change the following
 		// For now, goalie is always lowest numbered robot
@@ -197,14 +197,14 @@ namespace {
 			}
 		}
 
-		std::vector<RefPtr<Player> > rem_players;
+		std::vector<Player::ptr> rem_players;
 		for (size_t i = 0; i < the_team.size(); i++){
 			if (static_cast<int>(i) == goalie_index) continue;
 			if (static_cast<int>(i) == baller) continue;
 			if (baller == -1 && static_cast<int>(i) == baller_ignore_chicker) continue;
 			rem_players.push_back(the_team.get_player(i));
 		}
-		std::sort(rem_players.begin(), rem_players.end(), AIUtil::CmpDist<RefPtr<Player> >(Point(-world->field().length()/2.0,0.0)));
+		std::sort(rem_players.begin(), rem_players.end(), AIUtil::CmpDist<Player::ptr>(Point(-world->field().length()/2.0,0.0)));
 
 		// preferred_offender_number includes the assigned kicker (closest player to ball)
 		// 3 players => 1 offender

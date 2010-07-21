@@ -6,7 +6,7 @@ SuccessMeter::SuccessMeter() : last_success(-1) {
 	set_text("No Data");
 }
 
-void SuccessMeter::set_bot(RefPtr<XBeeDriveBot> bot) {
+void SuccessMeter::set_bot(XBeeDriveBot::ptr bot) {
 	update_connection.disconnect();
 	dead_connection.disconnect();
 	robot = bot;

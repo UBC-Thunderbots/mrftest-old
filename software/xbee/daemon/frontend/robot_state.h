@@ -1,7 +1,7 @@
 #ifndef XBEE_DAEMON_FRONTEND_ROBOT_STATE_H
 #define XBEE_DAEMON_FRONTEND_ROBOT_STATE_H
 
-#include "util/memory.h"
+#include "util/byref.h"
 #include "xbee/shared/packettypes.h"
 #include <cstddef>
 #include <ctime>
@@ -17,12 +17,22 @@ class XBeeDaemon;
 class XBeeRobot : public ByRef {
 	public:
 		/**
+		 * A pointer to a XBeeRobot.
+		 */
+		typedef Glib::RefPtr<XBeeRobot> ptr;
+
+		/**
 		 * An individual state that a robot can be in is represented by a
 		 * subclass of this class, and the current state of the robot is held in
 		 * a pointer.
 		 */
 		class RobotState : public ByRef, public sigc::trackable {
 			public:
+				/**
+				 * A pointer to a RobotState.
+				 */
+				typedef Glib::RefPtr<RobotState> ptr;
+
 				/**
 				 * Switches the robot into raw mode.
 				 *
@@ -107,7 +117,7 @@ class XBeeRobot : public ByRef {
 		 *
 		 * \return A new XBeeRobot object
 		 */
-		static RefPtr<XBeeRobot> create(uint64_t address64, XBeeDaemon &daemon);
+		static ptr create(uint64_t address64, XBeeDaemon &daemon);
 
 		/**
 		 * Switches the robot into raw mode.
@@ -199,7 +209,7 @@ class XBeeRobot : public ByRef {
 		sigc::signal<void> signal_feedback;
 
 	private:
-		RefPtr<RobotState> state_;
+		RobotState::ptr state_;
 		XBeeDaemon &daemon;
 
 		XBeeRobot(uint64_t address64, XBeeDaemon &daemon);

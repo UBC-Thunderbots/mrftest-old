@@ -2,8 +2,8 @@
 
 const double Ball::RADIUS = 0.0215;
 
-RefPtr<Ball> Ball::create() {
-	RefPtr<Ball> p(new Ball);
+Ball::ptr Ball::create() {
+	ptr p(new Ball);
 	return p;
 }
 

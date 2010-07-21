@@ -17,6 +17,11 @@ class SimulatorEngineFactory;
 class SimulatorEngine : public ByRef {
 	public:
 		/**
+		 * A pointer to a SimulatorEngine.
+		 */
+		typedef Glib::RefPtr<SimulatorEngine> ptr;
+
+		/**
 		 * Runs a time tick. The engine should update the positions of all its
 		 * players and the ball.
 		 */
@@ -27,20 +32,20 @@ class SimulatorEngine : public ByRef {
 		 * must always return the same SimulatorBall object!
 		 * \return The SimulatorBall object
 		 */
-		virtual RefPtr<SimulatorBall> get_ball() = 0;
+		virtual SimulatorBall::ptr get_ball() = 0;
 
 		/**
 		 * Called to create a new SimulatorPlayer. The engine must keep a pointer to the
 		 * new object so that SimulatorEngine::tick() can move the SimulatorPlayer.
 		 * \return The new SimulatorPlayer object
 		 */
-		virtual RefPtr<SimulatorPlayer> add_player() = 0;
+		virtual SimulatorPlayer::ptr add_player() = 0;
 
 		/**
 		 * Called to remove from the simulation an existing SimulatorPlayer.
 		 * \param SimulatorPlayer the SimulatorPlayer to remove
 		 */
-		virtual void remove_player(RefPtr<SimulatorPlayer> player) = 0;
+		virtual void remove_player(SimulatorPlayer::ptr player) = 0;
 
 		/**
 		 * Called to retrieve the engine-specific UI controls that will be placed
@@ -68,7 +73,7 @@ class SimulatorEngineFactory : public Registerable<SimulatorEngineFactory> {
 		 * Constructs a new SimulatorEngine.
 		 * \return The new engine
 		 */
-		virtual RefPtr<SimulatorEngine> create_engine() = 0;
+		virtual SimulatorEngine::ptr create_engine() = 0;
 
 	protected:
 		/**

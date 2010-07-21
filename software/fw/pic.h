@@ -14,7 +14,7 @@ class PICUpload : public WatchableOperation, public sigc::trackable {
 		//
 		// Constructs an uploader.
 		//
-		PICUpload(RefPtr<XBeeRawBot> bot, const IntelHex &data);
+		PICUpload(XBeeRawBot::ptr bot, const IntelHex &data);
 
 		//
 		// Starts the upload process.
@@ -27,7 +27,7 @@ class PICUpload : public WatchableOperation, public sigc::trackable {
 		static const unsigned int PAGE_BYTES = 64;
 
 	private:
-		const RefPtr<XBeeRawBot> bot;
+		const XBeeRawBot::ptr bot;
 		const IntelHex &data;
 		BootProto proto;
 		unsigned int pages_written;

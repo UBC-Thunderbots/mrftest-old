@@ -21,16 +21,17 @@ namespace {
 
 	class GoalieState : public Player::State {
 		public:
+			typedef Glib::RefPtr<GoalieState> ptr;
 			GoalieState(bool is_goal):is_goalie(is_goal){
 			}
 			bool is_goalie;
 	};
 }
 
-Goalie::Goalie(RefPtr<World> world) : the_world(world) {
+Goalie::Goalie(World::ptr world) : the_world(world) {
 }
 
-void Goalie::run_goalie_confidence(RefPtr<Player> goalie, const unsigned int& flags) {
+void Goalie::run_goalie_confidence(Player::ptr goalie, const unsigned int& flags) {
 
 	const Team& enemy(the_world->enemy);
 	const FriendlyTeam &friendly(the_world->friendly);
@@ -49,14 +50,14 @@ void Goalie::run_goalie_confidence(RefPtr<Player> goalie, const unsigned int& fl
 	}
 
 	if (has_shot_robot) {
-		RefPtr<Robot> shot_robot = enemy.get_robot(shot_robot_idx);
+		Robot::ptr shot_robot = enemy.get_robot(shot_robot_idx);
 		Point shot_pos = shot_robot->position() - back_of_goal;
 
 		for (size_t i = 0; i < enemy.size(); ++i) {
 			if (i == shot_robot_idx)
 				continue;
 
-			RefPtr<Robot> robot = enemy.get_robot(i);
+			Robot::ptr robot = enemy.get_robot(i);
 			Point robot_pos = robot->position() - back_of_goal;
 
 			std::vector<Point> obstacles;
@@ -69,7 +70,7 @@ void Goalie::run_goalie_confidence(RefPtr<Player> goalie, const unsigned int& fl
 
 			// 0 is always goalie
 			for (size_t i = 1; i < friendly.size(); ++i) {
-				const RefPtr<Player> fpl = friendly.get_player(i);
+				const Player::ptr fpl = friendly.get_player(i);
 				obstacles.push_back(fpl->position());
 			}
 
@@ -119,7 +120,7 @@ void Goalie::run_goalie_confidence(RefPtr<Player> goalie, const unsigned int& fl
 void Goalie::run_goalie_old(const unsigned int& flags) {
 	const Point default_pos = Point(-0.45*the_world->field().length(), 0);
 	const Point centre_of_goal = Point(-0.5*the_world->field().length(), 0);
-	const RefPtr<Player> me = players[0];
+	const Player::ptr me = players[0];
 	Move move_tactic(me, the_world);
 	Point tempPoint = the_world->ball()->position()-centre_of_goal;
 	tempPoint = tempPoint * (STANDBY_DIST / tempPoint.len());
@@ -129,7 +130,7 @@ void Goalie::run_goalie_old(const unsigned int& flags) {
 	move_tactic.tick();
 }
 
-void Goalie::run_vel_goalie(RefPtr<Player> me, const unsigned int& flags) {
+void Goalie::run_vel_goalie(Player::ptr me, const unsigned int& flags) {
 	Point ball_velocity = the_world->ball()->est_velocity();
 	if (ball_velocity.len() > AIUtil::VEL_CLOSE)
 	{
@@ -196,7 +197,7 @@ void Goalie::tick() {
 		std::cerr << "goalie role: multiple robots!" << std::endl;
 	}
 
-	const RefPtr<Player> me = players[0];
+	const Player::ptr me = players[0];
 
 	if (the_world->playtype() == PlayType::PREPARE_KICKOFF_FRIENDLY
 			|| the_world->playtype() == PlayType::PREPARE_KICKOFF_ENEMY) {
@@ -225,7 +226,7 @@ void Goalie::tick() {
 	if (AIUtil::posses_ball(the_world, me)) {
 		// find someone to pass to
 		const FriendlyTeam& friendly = the_world->friendly;
-		std::vector<RefPtr<Player> > friends;
+		std::vector<Player::ptr> friends;
 		for (size_t i = 0; i < friendly.size(); ++i) {
 			if (friendly.get_player(i) == me) continue;
 			friends.push_back(me);

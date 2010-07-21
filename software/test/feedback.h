@@ -19,10 +19,10 @@
 class TesterFeedback : public Gtk::Table {
 	public:
 		TesterFeedback();
-		void set_bot(RefPtr<XBeeDriveBot> bot);
+		void set_bot(XBeeDriveBot::ptr bot);
 
 	private:
-		RefPtr<XBeeDriveBot> robot;
+		XBeeDriveBot::ptr robot;
 
 		Gtk::Label battery_label;
 		Gtk::Label dribbler_label;

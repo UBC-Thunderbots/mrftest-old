@@ -18,10 +18,10 @@ class BatteryMeter : public Gtk::ProgressBar, public NonCopyable {
 		//
 		// Sets which robot this battery meter will monitor.
 		//
-		void set_bot(RefPtr<XBeeDriveBot> bot);
+		void set_bot(XBeeDriveBot::ptr bot);
 
 	private:
-		RefPtr<XBeeDriveBot> robot;
+		XBeeDriveBot::ptr robot;
 		sigc::connection connection;
 		unsigned int last_voltage;
 

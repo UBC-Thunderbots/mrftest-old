@@ -24,9 +24,14 @@
 class Defensive : public Role {
 	public:
 		//
+		// A pointer to a Defensive Role.
+		//
+		typedef Glib::RefPtr<Defensive> ptr;
+
+		//
 		// Constructs a new Defensive Role.
 		//
-		Defensive(RefPtr<World> world);
+		Defensive(World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -47,9 +52,9 @@ class Defensive : public Role {
 		 */
 		std::vector<Point> calc_block_positions() const;
 
-		const RefPtr<World> the_world;
+		const World::ptr the_world;
 
-		std::vector<RefPtr<Tactic> > tactics;
+		std::vector<Tactic::ptr> tactics;
 };
 
 #endif

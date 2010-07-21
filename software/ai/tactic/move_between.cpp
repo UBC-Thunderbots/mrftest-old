@@ -1,6 +1,6 @@
 #include "ai/tactic/move_between.h"
 
-MoveBetween::MoveBetween(RefPtr<Player> player, RefPtr<World> world) : Tactic(player), move_tactic(player, world), is_initialized(false) {
+MoveBetween::MoveBetween(Player::ptr player, World::ptr world) : Tactic(player), move_tactic(player, world), is_initialized(false) {
 }
 
 void MoveBetween::set_points(const Point& p1, const Point& p2) {

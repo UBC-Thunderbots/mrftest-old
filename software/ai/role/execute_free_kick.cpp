@@ -9,7 +9,7 @@
 #include <vector>
 #include <iostream>
 
-ExecuteIndirectFreeKick::ExecuteIndirectFreeKick(RefPtr<World> world) : the_world(world) {
+ExecuteIndirectFreeKick::ExecuteIndirectFreeKick(World::ptr world) : the_world(world) {
 }
 
 void ExecuteIndirectFreeKick::tick() {
@@ -21,9 +21,9 @@ void ExecuteIndirectFreeKick::tick() {
 
 	if (players.size() == 0) return;
 
-	const RefPtr<Player> pl = players[0];
+	const Player::ptr pl = players[0];
 
-	std::vector<RefPtr<Player> > friends;
+	std::vector<Player::ptr> friends;
 	for (size_t i = 0; i < friendly.size(); ++i)
 		if (friendly[i] != pl)
 			friends.push_back(friendly[i]);
@@ -54,7 +54,7 @@ void ExecuteIndirectFreeKick::tick() {
 void ExecuteIndirectFreeKick::players_changed() {
 }
 
-ExecuteDirectFreeKick::ExecuteDirectFreeKick(RefPtr<World> world) : the_world(world) {
+ExecuteDirectFreeKick::ExecuteDirectFreeKick(World::ptr world) : the_world(world) {
 }
 
 void ExecuteDirectFreeKick::tick() {
@@ -66,9 +66,9 @@ void ExecuteDirectFreeKick::tick() {
 
 	if (players.size() == 0) return;
 
-	const RefPtr<Player> pl = players[0];
+	const Player::ptr pl = players[0];
 
-	std::vector<RefPtr<Player> > friends;
+	std::vector<Player::ptr> friends;
 	for (size_t i = 0; i < friendly.size(); ++i)
 		if (friendly[i] != pl)
 			friends.push_back(friendly[i]);

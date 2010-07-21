@@ -13,7 +13,7 @@
  */
 class DribbleStrategy : public Strategy {
 	public:
-		DribbleStrategy(RefPtr<World> world);
+		DribbleStrategy(World::ptr world);
 		void tick();
 
 		StrategyFactory &get_factory();
@@ -21,7 +21,7 @@ class DribbleStrategy : public Strategy {
 
 	protected:
 
-		const RefPtr<World> the_world;
+		const World::ptr the_world;
 		int update_wait;
 		int dribble_speed;
 };

@@ -10,9 +10,14 @@
 class Chase : public Tactic {
 	public:
 		//
+		// A pointer to this Tactic.
+		//
+		typedef Glib::RefPtr<Chase> ptr;
+
+		//
 		// Constructs a new Chase Tactic. 
 		//
-		Chase(RefPtr<Player> player, RefPtr<World> world);
+		Chase(Player::ptr player, World::ptr world);
 
 		//
 		// Runs the AI for one time tick.
@@ -20,7 +25,7 @@ class Chase : public Tactic {
 		void tick();	
 
 	protected:
-		const RefPtr<World> the_world;
+		const World::ptr the_world;
 		RobotNavigator navi;
 };
 

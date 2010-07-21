@@ -5,15 +5,15 @@
 namespace {
 	class TestShootStrategy : public Strategy {
 		public:
-			TestShootStrategy(RefPtr<World> world);
+			TestShootStrategy(World::ptr world);
 			void tick();
 			StrategyFactory &get_factory();
 			Gtk::Widget *get_ui_controls();
 		private:
-			const RefPtr<World> the_world;
+			const World::ptr the_world;
 	};
 
-	TestShootStrategy::TestShootStrategy(RefPtr<World> world) : the_world(world) {
+	TestShootStrategy::TestShootStrategy(World::ptr world) : the_world(world) {
 
 	}
 
@@ -21,7 +21,7 @@ namespace {
 
 		if (the_world->friendly.size() == 0) return;
 
-		RefPtr<Player> shooter = the_world->friendly.get_player(0);
+		Player::ptr shooter = the_world->friendly.get_player(0);
 		Shoot shoot_tactic(shooter, the_world);
 		
 		shoot_tactic.tick();	
@@ -34,14 +34,14 @@ namespace {
 	class TestShootStrategyFactory : public StrategyFactory {
 		public:
 			TestShootStrategyFactory();
-			RefPtr<Strategy2> create_strategy(RefPtr<World> world);
+			Strategy2::ptr create_strategy(World::ptr world);
 	};
 
 	TestShootStrategyFactory::TestShootStrategyFactory() : StrategyFactory("Test Shoot Tactic") {
 	}
 
-	RefPtr<Strategy2> TestShootStrategyFactory::create_strategy(RefPtr<World> world) {
-		RefPtr<Strategy2> s(new TestShootStrategy(world));
+	Strategy2::ptr TestShootStrategyFactory::create_strategy(World::ptr world) {
+		Strategy2::ptr s(new TestShootStrategy(world));
 		return s;
 	}
 

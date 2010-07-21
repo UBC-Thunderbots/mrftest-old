@@ -13,7 +13,7 @@
  */
 class BasicStrategy : public Strategy {
 	public:
-		BasicStrategy(RefPtr<World> w);
+		BasicStrategy(World::ptr w);
 		void tick();
 
 		StrategyFactory &get_factory();
@@ -42,7 +42,7 @@ class BasicStrategy : public Strategy {
 		 * But leave out one offender, so that it can be used for other things like
 		 * free kicks.
 		 */
-		virtual RefPtr<Player> minus_one_assignment();
+		virtual Player::ptr minus_one_assignment();
 
 		/**
 		 * Amount of ticks per update.
@@ -55,9 +55,9 @@ class BasicStrategy : public Strategy {
 		/**
 		 * Robot roles.
 		 */
-		std::vector<RefPtr<Role> > roles;
+		std::vector<Role::ptr> roles;
 
-		const RefPtr<World> world;
+		const World::ptr world;
 		int update_wait;
 };
 

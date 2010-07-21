@@ -3,13 +3,13 @@
 #include "xbee/client/packet.h"
 #include "xbee/shared/packettypes.h"
 
-EmergencyErase::EmergencyErase(RefPtr<XBeeRawBot> bot) : bot(bot) {
+EmergencyErase::EmergencyErase(XBeeRawBot::ptr bot) : bot(bot) {
 }
 
 void EmergencyErase::start() {
 	status = "Emergency Erasing";
 	const uint8_t value = 4;
-	RefPtr<RemoteATPacket<1> > pkt(RemoteATPacket<1>::create(bot->address, "D1", &value, true));
+	RemoteATPacket<1>::ptr pkt(RemoteATPacket<1>::create(bot->address, "D1", &value, true));
 	complete_connection = pkt->signal_complete().connect(sigc::mem_fun(this, &EmergencyErase::on_complete));
 	bot->send(pkt);
 }

@@ -2,7 +2,7 @@
 #define ROBOT_CONTROLLER_ROBOT_CONTROLLER_H
 
 #include "geom/point.h"
-#include "util/memory.h"
+#include "util/byref.h"
 #include "util/registerable.h"
 
 class Player;
@@ -14,6 +14,11 @@ class RobotControllerFactory;
  */
 class RobotController2 : public ByRef {
 	public:
+		/**
+		 * A pointer to a RobotController2.
+		 */
+		typedef Glib::RefPtr<RobotController2> ptr;
+
 		/**
 		 * Tells the robot controlled by this controller to move to the
 		 * specified target location and orientation.
@@ -120,7 +125,7 @@ class RobotControllerFactory : public Registerable<RobotControllerFactory> {
 		 * ignored; intended to be used only in VERY, VERY special situations)
 		 * \return The new controller
 		 */
-		virtual RefPtr<RobotController2> create_controller(Glib::RefPtr<Player> plr, bool yellow, unsigned int index) const = 0;
+		virtual RobotController2::ptr create_controller(Glib::RefPtr<Player> plr, bool yellow, unsigned int index) const = 0;
 
 	protected:
 		/**

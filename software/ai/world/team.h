@@ -3,7 +3,7 @@
 
 #include "ai/world/player.h"
 #include "ai/world/robot.h"
-#include "util/memory.h"
+#include "util/byref.h"
 #include <cassert>
 #include <cstddef>
 #include <vector>
@@ -17,14 +17,19 @@ class World;
 class Team : public ByRef {
 	public:
 		/**
+		 * A pointer to a Team.
+		 */
+		typedef Glib::RefPtr<Team> ptr;
+
+		/**
 		 * Fired when a robot is added to the team.
 		 */
-		mutable sigc::signal<void, unsigned int, RefPtr<Robot> > signal_robot_added;
+		mutable sigc::signal<void, unsigned int, Robot::ptr> signal_robot_added;
 
 		/**
 		 * Fired when a robot is removed from the team.
 		 */
-		mutable sigc::signal<void, unsigned int, RefPtr<Robot> > signal_robot_removed;
+		mutable sigc::signal<void, unsigned int, Robot::ptr> signal_robot_removed;
 
 		/**
 		 * \return The number of robots on the team.
@@ -35,12 +40,12 @@ class Team : public ByRef {
 		 * \param index the index of the robot to fetch
 		 * \return The robot
 		 */
-		virtual RefPtr<Robot> get_robot(unsigned int index) const = 0;
+		virtual Robot::ptr get_robot(unsigned int index) const = 0;
 
 		/**
 		 * \return A vector of robots.
 		 */
-		virtual std::vector<RefPtr<Robot> > get_robots() const = 0;
+		virtual std::vector<Robot::ptr> get_robots() const = 0;
 
 	protected:
 		/**
@@ -64,6 +69,11 @@ class Team : public ByRef {
 class EnemyTeam : public Team {
 	public:
 		/**
+		 * A pointer to a Team.
+		 */
+		typedef Glib::RefPtr<EnemyTeam> ptr;
+
+		/**
 		 * \return The number of robots on the team
 		 */
 		std::size_t size() const {
@@ -74,7 +84,7 @@ class EnemyTeam : public Team {
 		 * \param index the index of the robot to fetch
 		 * \return The robot
 		 */
-		RefPtr<Robot> get_robot(unsigned int index) const {
+		Robot::ptr get_robot(unsigned int index) const {
 			assert(index < size());
 			return members[index];
 		}
@@ -83,7 +93,7 @@ class EnemyTeam : public Team {
 		 * \param index the index of the robot to fetch
 		 * \return The robot
 		 */
-		RefPtr<Robot> operator[](unsigned int index) const {
+		Robot::ptr operator[](unsigned int index) const {
 			assert(index < size());
 			return members[index];
 		}
@@ -91,23 +101,23 @@ class EnemyTeam : public Team {
 		/**
 		 * \return A vector of robots.
 		 */
-		std::vector<RefPtr<Robot> > get_robots() const {
+		std::vector<Robot::ptr> get_robots() const {
 			return members;
 		}
 
 	private:
-		std::vector<RefPtr<Robot> > members;
+		std::vector<Robot::ptr> members;
 
 		/**
-		 * Creates a new EnemyTeam.
+		 * Creates a new Team.
 		 */
-		static RefPtr<EnemyTeam> create();
+		static ptr create();
 
 		/**
 		 * Adds a robot to the team.
 		 * \param bot the robot to add
 		 */
-		void add(RefPtr<Robot> bot);
+		void add(Robot::ptr bot);
 
 		/**
 		 * Removes a robot from the team.
@@ -124,14 +134,19 @@ class EnemyTeam : public Team {
 class FriendlyTeam : public Team {
 	public:
 		/**
+		 * A pointer to a Team.
+		 */
+		typedef Glib::RefPtr<FriendlyTeam> ptr;
+
+		/**
 		 * Fired when a player is added to the team.
 		 */
-		mutable sigc::signal<void, unsigned int, RefPtr<Player> > signal_player_added;
+		mutable sigc::signal<void, unsigned int, Player::ptr> signal_player_added;
 
 		/**
 		 * Fired when a player is removed from the team.
 		 */
-		mutable sigc::signal<void, unsigned int, RefPtr<Player> > signal_player_removed;
+		mutable sigc::signal<void, unsigned int, Player::ptr> signal_player_removed;
 
 		/**
 		 * \return The number of robots on the team
@@ -144,7 +159,7 @@ class FriendlyTeam : public Team {
 		 * \param index the index of the robot to fetch
 		 * \return The robot
 		 */
-		RefPtr<Robot> get_robot(unsigned int index) const {
+		Robot::ptr get_robot(unsigned int index) const {
 			return get_player(index);
 		}
 
@@ -152,7 +167,7 @@ class FriendlyTeam : public Team {
 		 * \param index the index of the player to fetch
 		 * \return The player
 		 */
-		RefPtr<Player> get_player(unsigned int index) const {
+		Player::ptr get_player(unsigned int index) const {
 			assert(index < size());
 			return members[index];
 		}
@@ -161,7 +176,7 @@ class FriendlyTeam : public Team {
 		 * \param index the index of the player to fetch
 		 * \return The player
 		 */
-		RefPtr<Player> operator[](unsigned int index) const {
+		Player::ptr operator[](unsigned int index) const {
 			assert(index < size());
 			return members[index];
 		}
@@ -169,30 +184,30 @@ class FriendlyTeam : public Team {
 		/**
 		 * \return A vector of players.
 		 */
-		const std::vector<RefPtr<Player> > &get_players() const {
+		const std::vector<Player::ptr>& get_players() const {
 			return members;
 		}
 
 		/**
 		 * \return A vector of robots.
 		 */
-		std::vector<RefPtr<Robot> > get_robots() const {
-			return std::vector<RefPtr<Robot> >(members.begin(), members.end());
+		std::vector<Robot::ptr> get_robots() const {
+			return std::vector<Robot::ptr>(members.begin(), members.end());
 		}
 
 	private:
-		std::vector<RefPtr<Player> > members;
+		std::vector<Player::ptr> members;
 
 		/**
-		 * Creates a new FriendlyTeam.
+		 * Creates a new Team.
 		 */
-		static RefPtr<FriendlyTeam> create();
+		static ptr create();
 
 		/**
 		 * Adds a player to the team.
 		 * \param bot the player to add
 		 */
-		void add(RefPtr<Player> bot);
+		void add(Player::ptr bot);
 
 		/**
 		 * Removes a player from the team.

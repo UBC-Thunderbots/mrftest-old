@@ -11,7 +11,7 @@ namespace {
 			//
 			// Constructs a new controller.
 			//
-			TestingRC(RefPtr<Player> plr);
+			TestingRC(Player::ptr plr);
 
 			//
 			// Constructs a new controller.
@@ -37,7 +37,7 @@ namespace {
 			RobotControllerFactory &get_factory() const;
 
 		private:
-			RefPtr<Player> plr;
+			Player::ptr plr;
 
 			double get_velocity(double d, double v0, double v1, double max_vel, double max_accel);
 
@@ -55,7 +55,7 @@ namespace {
 			double max_linear_velocity_accel;
 	};
 
-	TestingRC::TestingRC(RefPtr<Player> plr) : plr(plr), initialized(false) {
+	TestingRC::TestingRC(Player::ptr plr) : plr(plr), initialized(false) {
 	}
 
 	double TestingRC::get_velocity(double s, double v0, double v1, double max_vel, double max_accel) {
@@ -133,8 +133,8 @@ namespace {
 			TestingRCFactory() : RobotControllerFactory("Testing RC") {
 			}
 
-			RefPtr<RobotController2> create_controller(RefPtr<Player> plr, bool, unsigned int) const {
-				RefPtr<RobotController2> p(new TestingRC(plr));
+			RobotController::ptr create_controller(Player::ptr plr, bool, unsigned int) const {
+				RobotController::ptr p(new TestingRC(plr));
 				return p;
 			}
 	};

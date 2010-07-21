@@ -5,18 +5,18 @@
 namespace {
 	class TestDefensive : public Strategy {
 		public:
-			TestDefensive(RefPtr<World> world);
+			TestDefensive(World::ptr world);
 			void tick();
 			StrategyFactory &get_factory();
 			Gtk::Widget *get_ui_controls();
-			void player_added(unsigned int, RefPtr<Player> player);
-			void player_removed(unsigned int, RefPtr<Player> player);
+			void player_added(unsigned int, Player::ptr player);
+			void player_removed(unsigned int, Player::ptr player);
 		private:
-			const RefPtr<World> world;
+			const World::ptr world;
 			Defensive3 defensive;
 	};
 
-	TestDefensive::TestDefensive(RefPtr<World> world) : world(world), defensive(world) {
+	TestDefensive::TestDefensive(World::ptr world) : world(world), defensive(world) {
 		world->friendly.signal_player_added.connect(sigc::mem_fun(this, &TestDefensive::player_added));
 		world->friendly.signal_player_removed.connect(sigc::mem_fun(this, &TestDefensive::player_removed));
 	}
@@ -25,11 +25,11 @@ namespace {
 		defensive.tick();
 	}
 
-	void TestDefensive::player_added(unsigned int, RefPtr<Player> player) {
+	void TestDefensive::player_added(unsigned int, Player::ptr player) {
 		defensive.add_player(player);
 	}
 
-	void TestDefensive::player_removed(unsigned int, RefPtr<Player> player) {
+	void TestDefensive::player_removed(unsigned int, Player::ptr player) {
 		defensive.remove_player(player);
 	}
 
@@ -40,14 +40,14 @@ namespace {
 	class TestDefensiveFactory : public StrategyFactory {
 		public:
 			TestDefensiveFactory();
-			RefPtr<Strategy2> create_strategy(RefPtr<World> world);
+			Strategy2::ptr create_strategy(World::ptr world);
 	};
 
 	TestDefensiveFactory::TestDefensiveFactory() : StrategyFactory("Test Defensive V3 Role") {
 	}
 
-	RefPtr<Strategy2> TestDefensiveFactory::create_strategy(RefPtr<World> world) {
-		RefPtr<Strategy2> s(new TestDefensive(world));
+	Strategy2::ptr TestDefensiveFactory::create_strategy(World::ptr world) {
+		Strategy2::ptr s(new TestDefensive(world));
 		return s;
 	}
 

@@ -19,9 +19,14 @@ namespace {
 class Offensive : public Role {
 	public:
 		//
+		// A pointer to a Offensive Role.
+		//
+		typedef Glib::RefPtr<Offensive> ptr;
+
+		//
 		// Constructs a new Offensive Role.
 		//
-		Offensive(RefPtr<World> world);
+		Offensive(World::ptr world);
 
 		//
 		// Runs the AI for one time tick without drawing.
@@ -52,9 +57,9 @@ class Offensive : public Role {
 		// refactor this function?
 		double get_distance_from_goal(int index) const;
 
-		const RefPtr<World> the_world;
+		const World::ptr the_world;
 
-		std::vector<RefPtr<Tactic> > tactics;
+		std::vector<Tactic::ptr> tactics;
 
 		bool okaygrid[GRIDX][GRIDY];
 

@@ -19,21 +19,21 @@ namespace {
 	class DribbleStrategyFactory : public StrategyFactory {
 		public:
 			DribbleStrategyFactory();
-			RefPtr<Strategy2> create_strategy(RefPtr<World> world);
+			Strategy::ptr create_strategy(World::ptr world);
 	};
 
 	DribbleStrategyFactory::DribbleStrategyFactory() : StrategyFactory("Dribble Strategy") {
 	}
 
-	RefPtr<Strategy2> DribbleStrategyFactory::create_strategy(RefPtr<World> world) {
-		RefPtr<Strategy2> s(new DribbleStrategy(world));
+	Strategy::ptr DribbleStrategyFactory::create_strategy(World::ptr world) {
+		Strategy::ptr s(new DribbleStrategy(world));
 		return s;
 	}
 
 	DribbleStrategyFactory factory;
 }
 
-DribbleStrategy::DribbleStrategy(RefPtr<World> world) : the_world(world) {
+DribbleStrategy::DribbleStrategy(World::ptr world) : the_world(world) {
 	update_wait =0;
 }
 

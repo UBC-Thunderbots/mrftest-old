@@ -8,6 +8,7 @@
 class BallODE : public SimulatorBall {
 	public:
 
+			typedef Glib::RefPtr<BallODE> ptr;
 			dWorldID world;
 			dBodyID body;
 			dGeomID ballGeom;

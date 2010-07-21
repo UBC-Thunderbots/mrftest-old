@@ -8,15 +8,15 @@
 namespace {
 	class TestOffensiveStrategy : public Strategy2 {
 		public:
-			TestOffensiveStrategy(RefPtr<World> world);
+			TestOffensiveStrategy(World::ptr world);
 			void tick(Cairo::RefPtr<Cairo::Context> overlay);
 			StrategyFactory &get_factory();
 			Gtk::Widget *get_ui_controls();
 		private:
-			const RefPtr<World> the_world;
+			const World::ptr the_world;
 	};
 
-	TestOffensiveStrategy::TestOffensiveStrategy(RefPtr<World> world) : the_world(world) {
+	TestOffensiveStrategy::TestOffensiveStrategy(World::ptr world) : the_world(world) {
 
 	}
 
@@ -25,9 +25,9 @@ namespace {
 			return;
 		}
 		const FriendlyTeam &the_team(the_world->friendly);
-		const RefPtr<Ball> the_ball(the_world->ball());
+		const Ball::ptr the_ball(the_world->ball());
 		Offensive offensive_role(the_world);
-		std::vector<RefPtr<Player> > offenders;
+		std::vector<Player::ptr> offenders;
 
 		for (size_t i = 0; i < the_team.size(); ++i) {
 			offenders.push_back(the_team.get_player(i));
@@ -44,14 +44,14 @@ namespace {
 	class TestOffensiveStrategyFactory : public StrategyFactory {
 		public:
 			TestOffensiveStrategyFactory();
-			RefPtr<Strategy2> create_strategy(RefPtr<World> world);
+			Strategy::ptr create_strategy(World::ptr world);
 	};
 
 	TestOffensiveStrategyFactory::TestOffensiveStrategyFactory() : StrategyFactory("Test(Offensive) Strategy") {
 	}
 
-	RefPtr<Strategy2> TestOffensiveStrategyFactory::create_strategy(RefPtr<World> world) {
-		RefPtr<Strategy2> s(new TestOffensiveStrategy(world));
+	Strategy::ptr TestOffensiveStrategyFactory::create_strategy(World::ptr world) {
+		Strategy::ptr s(new TestOffensiveStrategy(world));
 		return s;
 	}
 

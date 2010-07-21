@@ -31,7 +31,7 @@ class XBeeLowLevel : public NonCopyable {
 		//
 		// Sends a packet.
 		//
-		void send(RefPtr<XBeePacket>);
+		void send(XBeePacket::ptr);
 
 		//
 		// Fired when a data packet is received with a 16-bit source address.
@@ -46,7 +46,7 @@ class XBeeLowLevel : public NonCopyable {
 	private:
 		NumberAllocator<uint8_t> frame_allocator;
 		const FileDescriptor sock;
-		RefPtr<XBeePacket> packets[256];
+		XBeePacket::ptr packets[256];
 
 		bool on_readable(Glib::IOCondition);
 

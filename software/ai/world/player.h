@@ -26,12 +26,23 @@ class Player : public Robot {
 		 * functions to retrieve and store the state block.
 		 */
 		class State : public ByRef {
+			public:
+				/**
+				 * A pointer to a State block.
+				 */
+				typedef Glib::RefPtr<State> ptr;
+
 			protected:
 				/**
 				 * Destroys the State block.
 				 */
 				virtual ~State();
 		};
+		
+		/**
+		 * A pointer to a Player.
+		 */
+		typedef Glib::RefPtr<Player> ptr;
 
 		/**
 		 * \return the player's 64-bit address.
@@ -134,7 +145,7 @@ class Player : public Robot {
 		 * type with Glib::RefPtr::cast_dynamic), or a null pointer if no State
 		 * is associated with the given class
 		 */
-		RefPtr<State> get_state(const std::type_info &tid) const;
+		State::ptr get_state(const std::type_info &tid) const;
 
 		/**
 		 * Stores a State block for a class. Any previously-stored State block
@@ -147,7 +158,7 @@ class Player : public Robot {
 		 * \param[in] state the new State to store (which can be a null pointer
 		 * to remove the State).
 		 */
-		void set_state(const std::type_info &tid, RefPtr<State> state);
+		void set_state(const std::type_info &tid, State::ptr state);
 
 		/**
 		 * The robot's name.
@@ -161,10 +172,10 @@ class Player : public Robot {
 		static const unsigned int CHICKER_FOREVER;
 
 	private:
-		RefPtr<XBeeDriveBot> bot;
+		XBeeDriveBot::ptr bot;
 		Point destination_;
 		double target_orientation;
-		RefPtr<RobotController2> controller;
+		RobotController2::ptr controller;
 		bool moved;
 		int new_dribble_power;
 		int old_dribble_power;
@@ -174,7 +185,7 @@ class Player : public Robot {
 		timespec sense_ball_start, sense_ball_end, stall_start, recover_time_start, chicker_last_fire_time;
 		double dribble_distance_;
 		Point last_dribble_position;
-		std::map<const std::type_info *, RefPtr<State>, bool (*)(const std::type_info *, const std::type_info *)> state_store;
+		std::map<const std::type_info *, State::ptr, bool (*)(const std::type_info *, const std::type_info *)> state_store;
 		Annunciator::message not_moved_message, chick_when_not_ready_message;
 
 		/**
@@ -192,7 +203,7 @@ class Player : public Robot {
 		 *
 		 * \return the new object.
 		 */
-		static RefPtr<Player> create(const Glib::ustring &name, bool yellow, unsigned int pattern_index, RefPtr<XBeeDriveBot> bot);
+		static ptr create(const Glib::ustring &name, bool yellow, unsigned int pattern_index, XBeeDriveBot::ptr bot);
 
 		/**
 		 * Constructs a new Player object.
@@ -207,7 +218,7 @@ class Player : public Robot {
 		 *
 		 * \param[in] bot the XBee robot being driven
 		 */
-		Player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, RefPtr<XBeeDriveBot> bot);
+		Player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, XBeeDriveBot::ptr bot);
 
 		/**
 		 * Drives one tick of time through the RobotController and to the XBee.

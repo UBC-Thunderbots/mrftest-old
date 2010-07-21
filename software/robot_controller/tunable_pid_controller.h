@@ -5,7 +5,7 @@
 #include "robot_controller/robot_controller.h"
 #include "robot_controller/tunable_controller.h"
 #include "geom/point.h"
-#include "util/memory.h"
+#include "util/byref.h"
 #include "util/noncopyable.h"
 
 #include <vector>
@@ -20,7 +20,7 @@ class TunablePIDController : public RobotController, public TunableController {
 
 		RobotControllerFactory &get_factory() const;
 
-		TunablePIDController(RefPtr<Player> plr);
+		TunablePIDController(Player::ptr plr);
 
 	 	void set_params(const std::vector<double>& params) {
 			this->param = params;
@@ -45,7 +45,7 @@ class TunablePIDController : public RobotController, public TunableController {
 		}
 
 	private:
-		RefPtr<Player> plr;
+		Player::ptr plr;
 
 	protected:
 

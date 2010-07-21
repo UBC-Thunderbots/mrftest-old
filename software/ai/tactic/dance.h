@@ -9,9 +9,14 @@
 class Dance : public Tactic {
 	public:
 		//
+		// A pointer to this Tactic.
+		//
+		typedef Glib::RefPtr<Dance> ptr;
+
+		//
 		// Constructs a new Dance Tactic.
 		//
-		Dance(RefPtr<Player> player);
+		Dance(Player::ptr player);
 
 		//
 		// Runs the AI for one time tick.
