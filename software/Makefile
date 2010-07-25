@@ -149,11 +149,13 @@ obj/proto/%.pb.o : proto/%.pb.cc $(PROTOBUF_HS)
 ALL_D_FILES=$(addprefix obj/,$(ALL_CPP_FILES:.cpp=.d))
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),cleanbin)
+ifneq ($(MAKECMDGOALS),cleandoc)
 ifneq ($(MAKECMDGOALS),cleanobj)
 ifneq ($(MAKECMDGOALS),cleanpb)
 ifneq ($(MAKECMDGOALS),tags)
 ifneq ($(MAKECMDGOALS),doc)
 include $(ALL_D_FILES)
+endif
 endif
 endif
 endif
@@ -171,11 +173,15 @@ dep : $(ALL_D_FILES)
 # Rules to clean.
 #
 .PHONY : clean
-clean : cleanbin cleanobj cleanpb
+clean : cleanbin cleandoc cleanobj cleanpb
 
 .PHONY : cleanbin
 cleanbin :
 	$(RM) -r bin
+
+.PHONY : cleandoc
+cleandoc :
+	$(RM) -r html
 
 .PHONY : cleanobj
 cleanobj :
