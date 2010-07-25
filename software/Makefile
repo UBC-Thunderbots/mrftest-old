@@ -152,9 +152,11 @@ ifneq ($(MAKECMDGOALS),cleanbin)
 ifneq ($(MAKECMDGOALS),cleandoc)
 ifneq ($(MAKECMDGOALS),cleanobj)
 ifneq ($(MAKECMDGOALS),cleanpb)
+ifneq ($(MAKECMDGOALS),cleantags)
 ifneq ($(MAKECMDGOALS),tags)
 ifneq ($(MAKECMDGOALS),doc)
 include $(ALL_D_FILES)
+endif
 endif
 endif
 endif
@@ -173,7 +175,7 @@ dep : $(ALL_D_FILES)
 # Rules to clean.
 #
 .PHONY : clean
-clean : cleanbin cleandoc cleanobj cleanpb
+clean : cleanbin cleandoc cleanobj cleanpb cleantags
 
 .PHONY : cleanbin
 cleanbin :
@@ -190,3 +192,7 @@ cleanobj :
 .PHONY : cleanpb
 cleanpb :
 	$(RM) $(PROTOBUF_CCS) $(PROTOBUF_HS)
+
+.PHONY : cleantags
+cleantags :
+	$(RM) tags
