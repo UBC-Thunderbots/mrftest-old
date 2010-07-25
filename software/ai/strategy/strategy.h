@@ -1,129 +1,250 @@
-#ifndef AI_STRATEGY_H
-#define AI_STRATEGY_H
+#ifndef AI_STRATEGY_STRATEGY_H
+#define AI_STRATEGY_STRATEGY_H
 
 #include "ai/world/world.h"
 #include "util/byref.h"
 #include "util/registerable.h"
-#include <cairomm/cairomm.h>
-#include <glibmm.h>
+#include <cstddef>
+#include <sigc++/sigc++.h>
 
-namespace Gtk {
-	class Widget;
-}
 class StrategyFactory;
 
-namespace AIStrategy {
-	/**
-	 * Comparison for candidacy of being a goalie
-	 */
-	class CmpPlayerGoalie {
-		public:
-		bool operator()(const Player::Ptr& a, const Player::Ptr& b) const {
-			if (a->chicker_ready_time() == Player::CHICKER_FOREVER) {
-				if (b->chicker_ready_time() != Player::CHICKER_FOREVER) return true;
-				return a->name < b->name;
-			}
-			if (b->chicker_ready_time() == Player::CHICKER_FOREVER) return false;
-			return a->name < b->name;
-		}
-	};
-
-	/**
-	 * Sorts by chicker readiness.
-	 */
-	class CmpPlayerChicker {
-		public:
-			bool operator()(const Player::Ptr& a, const Player::Ptr& b) const {
-				if (a->chicker_ready_time() == b->chicker_ready_time()) return a->name < b->name;
-				return a->name < b->name;
-			}
-	};
-}
-
 /**
- * A Strategy manages the overall operation of a team. Individual AI
- * implementations should extend this class (or its subclass \c Strategy) to
- * provide their own strategy.
+ * A Strategy manages the operation of the entire team during a segment of time.
+ * Each Strategy is suitable to be created and assigned to the team during some
+ * specific play type or play types; the Coach makes the decision about when to
+ * assign a Strategy to the team. The Strategy then runs the team until deciding
+ * that it is no longer suitable (perhaps because the play type changed to one
+ * with which it is unfamiliar) or until the Coach decides to remove the
+ * Strategy from play.
+ *
+ * To implement a Strategy, one must:
+ * <ul>
+ * <li>Subclass Strategy</li>
+ * <li>In the subclass, override the virtual functions corresponding to the play
+ * types one is interested in handling</li>
+ * <li>Subclass StrategyFactory</li>
+ * <li>In the subclass, override all the pure virtual functions</li>
+ * <li>Create an instance of the StrategyFactory in the form of a file-scope
+ * global variable</li>
+ * </ul>
  */
-class Strategy2 : public ByRef, public sigc::trackable {
+class Strategy : public ByRef, public sigc::trackable {
 	public:
 		/**
 		 * A pointer to a Strategy.
 		 */
-		typedef RefPtr<Strategy2> Ptr;
+		typedef RefPtr<Strategy> Ptr;
 
 		/**
-		 * Runs the Strategy for one time tick. It is expected that the Strategy
-		 * will examine the team for which it is responsible, determine if any
-		 * changes need to be made to the roles or the assignments of robots to
-		 * roles, make those changes (by means of Role::set_players()), and then
-		 * call Role::tick() for each subsidiary Role.
+		 * Finds the StrategyFactory that constructed this Strategy. Subclasses
+		 * must override this function to return a reference to the global
+		 * instance of their corresponding StrategyFactory.
 		 *
-		 * \param[in] overlay a Cairo context that can be drawn to in order to
-		 * create an overlay graphic on the visualizer, which may be a null
-		 * pointer if the visualizer is not displayed.
+		 * \return a reference to the StrategyFactory instance.
 		 */
-		virtual void tick(Cairo::RefPtr<Cairo::Context> overlay) = 0;
+		virtual StrategyFactory &get_factory() const = 0;
 
 		/**
-		 * \return the factory that creates this Strategy.
+		 * Invoked once per time tick when the game is in PlayType::HALT.
+		 * Subclasses may override this function to provide their own logic.
+		 * Most subclasses will have no reason to override this function.
 		 */
-		virtual StrategyFactory &get_factory() = 0;
+		virtual void halt();
 
 		/**
-		 * \return the custom UI controls to manage this Strategy, or a null
-		 * pointer if it does not wish to display any controls.
+		 * Invoked once per time tick when the game is in PlayType::STOP.
+		 * Subclasses may override this function to provide their own logic.
+		 * Most subclasses should not override this function. The default
+		 * implementation causes the strategy to resign control, which is
+		 * appropriate for a stoppage in play as it allows the Coach to choose
+		 * a new Strategy when a special play is issued.
 		 */
-		virtual Gtk::Widget *get_ui_controls() = 0;
-};
+		virtual void stop();
 
-/**
- * A compatibility shim for strategies that do not present a visual overlay.
- */
-class Strategy : public Strategy2 {
-	public:
 		/**
-		 * Runs the Strategy for one time tick. It is expected that the Strategy
-		 * will examine the team for which it is responsible, determine if any
-		 * changes need to be made to the roles or the assignments of robots to
-		 * roles, make those changes (by means of Role::set_players()), and then
-		 * call Role::tick() for each subsidiary Role.
+		 * Invoked once per time tick when the game is in PlayType::PLAY.
+		 * Subclasses may override this function to provide their own logic.
 		 */
-		virtual void tick() = 0;
+		virtual void play();
+
+		/**
+		 * Invoked once per time tick when the game is in
+		 * PlayType::PREPARE_KICKOFF_FRIENDLY. Subclasses may override this
+		 * function to provide their own logic.
+		 */
+		virtual void prepare_kickoff_friendly();
+
+		/**
+		 * Invoked once per time tick when the game is in
+		 * PlayType::EXECUTE_KICKOFF_FRIENDLY. Subclasses may override this
+		 * function to provide their own logic.
+		 */
+		virtual void execute_kickoff_friendly();
+
+		/**
+		 * Invoked once per time tick when the game is in
+		 * PlayType::PREPARE_KICKOFF_ENEMY. Subclasses may override this
+		 * function to provide their own logic.
+		 */
+		virtual void prepare_kickoff_enemy();
+
+		/**
+		 * Invoked once per time tick when the game is in
+		 * PlayType::EXECUTE_KICKOFF_ENEMY. Subclasses may override this
+		 * function to provide their own logic.
+		 */
+		virtual void execute_kickoff_enemy();
+
+		/**
+		 * Invoked once per time tick when the game is in
+		 * PlayType::PREPARE_PENALTY_FRIENDLY. Subclasses may override this
+		 * function to provide their own logic.
+		 */
+		virtual void prepare_penalty_friendly();
+
+		/**
+		 * Invoked once per time tick when the game is in
+		 * PlayType::EXECUTE_PENALTY_FRIENDLY. Subclasses may override this
+		 * function to provide their own logic.
+		 */
+		virtual void execute_penalty_friendly();
+
+		/**
+		 * Invoked once per time tick when the game is in
+		 * PlayType::PREPARE_PENALTY_ENEMY. Subclasses may override this
+		 * function to provide their own logic.
+		 */
+		virtual void prepare_penalty_enemy();
+
+		/**
+		 * Invoked once per time tick when the game is in
+		 * PlayType::EXECUTE_PENALTY_ENEMY. Subclasses may override this
+		 * function to provide their own logic.
+		 */
+		virtual void execute_penalty_enemy();
+
+		/**
+		 * Invoked once per time tick when the game is in
+		 * PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY. Subclasses may override
+		 * this function to provide their own logic.
+		 */
+		virtual void execute_direct_free_kick_friendly();
+
+		/**
+		 * Invoked once per time tick when the game is in
+		 * PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY. Subclasses may
+		 * override this function to provide their own logic.
+		 */
+		virtual void execute_indirect_free_kick_friendly();
+
+		/**
+		 * Invoked once per time tick when the game is in
+		 * PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY. Subclasses may override
+		 * this function to provide their own logic.
+		 */
+		virtual void execute_direct_free_kick_enemy();
+
+		/**
+		 * Invoked once per time tick when the game is in
+		 * PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY. Subclasses may override
+		 * this function to provide their own logic.
+		 */
+		virtual void execute_indirect_free_kick_enemy();
+
+		/**
+		 * \return \c true if this Strategy has resigned control over the team,
+		 * or \c false if not.
+		 */
+		bool has_resigned() const;
+
+		/**
+		 * Dispatches a time tick to the appropriate handler function. This
+		 * function is intended to be called by the framework and should not be
+		 * touched by the AI.
+		 */
+		void tick();
+
+	protected:
+		/**
+		 * The World in which the Strategy lives.
+		 */
+		const World::Ptr world;
+
+		/**
+		 * Constructs a new Strategy. Subclasses should call this constructor
+		 * from their own constructors.
+		 *
+		 * \param[in] world the World in which the Strategy lives.
+		 */
+		Strategy(const World::Ptr &world);
+
+		/**
+		 * Destroys a Strategy.
+		 */
+		~Strategy();
+
+		/**
+		 * A subclass can invoke this function if it determines that it no
+		 * longer wishes to control the team. The Coach will look for another
+		 * Strategy to assign.
+		 */
+		void resign();
 
 	private:
-		void tick(Cairo::RefPtr<Cairo::Context>) {
-			tick();
-		}
+		bool has_resigned_;
 };
 
 /**
- * A factory for creating Strategy objects. An individual AI implementation should
- * extend this class to provide an object which can constructs its "Strategy"
- * objects.
+ * A StrategyFactory is used to construct a particular type of Strategy. The
+ * factory permits the Coach to discover all the available types of Strategy and
+ * to interrogate each StrategyFactory about what play types its corresponding
+ * Strategy is suitable to play.
  */
 class StrategyFactory : public Registerable<StrategyFactory> {
 	public:
 		/**
-		 * Constructs a new Strategy.
-		 *
-		 * \param World the World
-		 *
-		 * \return The new Strategy
+		 * A pointer to the first play type in an array of play types the
+		 * corresponding Strategy is willing to handle.
 		 */
-		virtual Strategy::Ptr create_strategy(World::Ptr world) = 0;
+		const PlayType::PlayType * const handled_play_types;
+
+		/**
+		 * The number of elements in the \ref handled_play_types array.
+		 */
+		const std::size_t handled_play_types_size;
+
+		/**
+		 * Constructs a new instance of the Strategy corresponding to this
+		 * StrategyFactory.
+		 *
+		 * \param[in] world the World in which the new Strategy should live.
+		 *
+		 * \return the new Strategy.
+		 */
+		virtual Strategy::Ptr create_strategy(const World::Ptr &world) const = 0;
 
 	protected:
 		/**
-		 * Constructs a StrategyFactory. This should be invoked from the
-		 * subclass constructor when an instance of the subclass is constructed
-		 * at application startup by declaring a global variable of the
-		 * subclass.
+		 * Constructs a new StrategyFactory. Subclasses should call this
+		 * constructor from their own constructors.
 		 *
-		 * \param name a human-readable name for the Strategy
+		 * \param[in] name a human-readable name for this Strategy.
+		 *
+		 * \param[in] handled_play_types a pointer to the first play type in an
+		 * array of play types the corresponding Strategy is willing to handle;
+		 * the array must be allocated in static memory and remain alive
+		 * forever.
+		 *
+		 * \param[in] handled_play_types_size the number of elements in the \p
+		 * handled_play_types array.
 		 */
-		StrategyFactory(const Glib::ustring &name) : Registerable<StrategyFactory>(name) {
-		}
+		StrategyFactory(const Glib::ustring &name, const PlayType::PlayType *handled_play_types, std::size_t handled_play_types_size);
+
+		/**
+		 * Destroys a StrategyFactory.
+		 */
+		~StrategyFactory();
 };
 
 #endif

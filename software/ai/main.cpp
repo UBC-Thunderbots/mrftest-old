@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <clocale>
 #include <cstdlib>
+#include <ctime>
 #include <iostream>
 #include <vector>
 #include <stdint.h>
@@ -109,6 +110,7 @@ namespace {
 
 	int main_impl(int argc, char **argv) {
 		std::setlocale(LC_ALL, "");
+		std::srand(std::time(0));
 
 		Glib::OptionContext option_context;
 		option_context.set_summary("Runs the Thunderbots control process.");
@@ -143,12 +145,12 @@ namespace {
 		bool custom = false;
 		option_group.add_entry(custom_entry, custom);
 
-		Glib::OptionEntry strategy_entry;
-		strategy_entry.set_long_name("strategy");
-		strategy_entry.set_description("Selects which strategy should be selected at startup");
-		strategy_entry.set_arg_description("STRATEGY");
-		Glib::ustring strategy_name;
-		option_group.add_entry(strategy_entry, strategy_name);
+		Glib::OptionEntry coach_entry;
+		coach_entry.set_long_name("coach");
+		coach_entry.set_description("Selects which coach should be selected at startup");
+		coach_entry.set_arg_description("COACH");
+		Glib::ustring coach_name;
+		option_group.add_entry(coach_entry, coach_name);
 
 		Glib::OptionEntry robot_controller_entry;
 		robot_controller_entry.set_long_name("controller");
@@ -245,13 +247,13 @@ namespace {
 
 		AI ai(world, clk);
 
-		if (!strategy_name.empty()) {
-			StrategyFactory::map_type::const_iterator i = StrategyFactory::all().find(strategy_name.collate_key());
-			if (i == StrategyFactory::all().end()) {
-				std::cout << "There is no strategy '" << strategy_name << "'.\n";
+		if (!coach_name.empty()) {
+			CoachFactory::map_type::const_iterator i = CoachFactory::all().find(coach_name.collate_key());
+			if (i == CoachFactory::all().end()) {
+				std::cout << "There is no coach '" << coach_name << "'.\n";
 				return 1;
 			}
-			ai.set_strategy(i->second->create_strategy(world));
+			ai.set_coach(i->second->create_coach(world));
 		}
 
 		if (!robot_controller_name.empty()) {

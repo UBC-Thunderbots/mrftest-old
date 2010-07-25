@@ -1,6 +1,6 @@
 #include "ai/world/playtype.h"
 
-const Glib::ustring PlayType::DESCRIPTIONS_GENERIC[] = {
+const Glib::ustring PlayType::DESCRIPTIONS_GENERIC[COUNT] = {
 	"Halt",
 	"Stop",
 	"Play",
@@ -16,11 +16,9 @@ const Glib::ustring PlayType::DESCRIPTIONS_GENERIC[] = {
 	"Indirect Free Friendly",
 	"Direct Free Enemy",
 	"Indirect Free Enemy",
-	"Pit Stop",
-	"Victory Dance",
 };
 
-const Glib::ustring PlayType::DESCRIPTIONS_WEST[] = {
+const Glib::ustring PlayType::DESCRIPTIONS_WEST[COUNT] = {
 	"Halt",
 	"Stop",
 	"Play",
@@ -36,11 +34,9 @@ const Glib::ustring PlayType::DESCRIPTIONS_WEST[] = {
 	"Indirect Free West",
 	"Direct Free East",
 	"Indirect Free East",
-	"Pit Stop",
-	"Victory Dance",
 };
 
-const PlayType::PlayType PlayType::INVERT[] = {
+const PlayType::PlayType PlayType::INVERT[COUNT] = {
 	HALT,
 	STOP,
 	PLAY,
@@ -56,7 +52,5 @@ const PlayType::PlayType PlayType::INVERT[] = {
 	EXECUTE_INDIRECT_FREE_KICK_ENEMY,
 	EXECUTE_DIRECT_FREE_KICK_FRIENDLY,
 	EXECUTE_INDIRECT_FREE_KICK_FRIENDLY,
-	PIT_STOP,
-	VICTORY_DANCE,
 };
 

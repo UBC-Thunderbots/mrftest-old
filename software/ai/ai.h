@@ -1,7 +1,7 @@
 #ifndef AI_AI_H
 #define AI_AI_H
 
-#include "ai/strategy/strategy.h"
+#include "ai/coach/coach.h"
 #include "ai/world/world.h"
 #include "robot_controller/robot_controller.h"
 #include "util/clocksource.h"
@@ -13,32 +13,30 @@
 class AI : public NonCopyable {
 	public:
 		/**
-		 * The world in which the AI is running.
+		 * The World in which the AI is running.
 		 */
 		const World::Ptr world;
 
 		/**
 		 * Constructs a new AI.
 		 *
-		 * \param[in] world the world to operate in.
+		 * \param[in] world the World to operate in.
 		 *
 		 * \param[in] clk the clock to run the AI from.
 		 */
-		AI(World::Ptr world, ClockSource &clk);
+		AI(const World::Ptr &world, ClockSource &clk);
 
 		/**
-		 * \return the Strategy driving the robots.
+		 * \return the Coach managing the AI.
 		 */
-		Strategy::Ptr get_strategy() const {
-			return strategy;
-		}
+		Coach::Ptr get_coach() const;
 
 		/**
-		 * Sets which Strategy is driving the robots.
+		 * Sets which Coach is managing the AI.
 		 *
-		 * \param[in] strat the new Strategy.
+		 * \param[in] c the new Coach.
 		 */
-		void set_strategy(Strategy::Ptr strat);
+		void set_coach(Coach::Ptr c);
 
 		/**
 		 * \return the RobotControllerFactory driving the robots.
@@ -55,19 +53,10 @@ class AI : public NonCopyable {
 		 */
 		void set_robot_controller_factory(RobotControllerFactory *fact);
 
-		/**
-		 * Sets the overlay context onto which the Strategy should draw to
-		 * display data in the visualizer.
-		 *
-		 * \param[in] ovl the new overlay.
-		 */
-		void set_overlay(Cairo::RefPtr<Cairo::Context> ovl);
-
 	private:
 		ClockSource &clk;
-		Strategy::Ptr strategy;
+		Coach::Ptr coach;
 		RobotControllerFactory *rc_factory;
-		Cairo::RefPtr<Cairo::Context> overlay;
 
 		void tick();
 		void player_added(unsigned int, Player::Ptr);

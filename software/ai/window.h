@@ -2,9 +2,6 @@
 #define AI_WINDOW_H
 
 #include "ai/ai.h"
-#include "ai/strategy/strategy.h"
-#include "ai/world/world.h"
-#include "robot_controller/robot_controller.h"
 #include "uicomponents/visualizer.h"
 #include <gtkmm.h>
 
@@ -30,9 +27,12 @@ class AIWindow : public Gtk::Window {
 		Gtk::ComboBoxText ball_filter_chooser;
 		Gtk::Entry end_entry;
 		Gtk::Entry refbox_colour_entry;
-		Gtk::VBox strategy_vbox;
-		Gtk::ComboBoxText strategy_chooser;
-		Gtk::Widget *strategy_controls;
+		Gtk::VBox coach_vbox;
+		Gtk::ComboBoxText coach_chooser;
+		Gtk::HBox strategy_hbox;
+		Gtk::Label strategy_label;
+		Gtk::Entry strategy_entry;
+		Gtk::Widget *coach_controls;
 		Gtk::VBox rc_vbox;
 		Gtk::ComboBoxText rc_chooser;
 		Gtk::Widget *rc_controls;
@@ -44,14 +44,14 @@ class AIWindow : public Gtk::Window {
 		void on_ball_filter_changed();
 		void on_flip_ends_clicked();
 		void on_flip_refbox_colour_clicked();
-		void on_strategy_changed();
+		void on_coach_changed();
 		void on_rc_changed();
-		void put_strategy_controls();
+		void put_coach_controls();
 		void on_playtype_changed();
 		void on_vis_toggled();
 		void on_flipped_ends();
 		void on_flipped_refbox_colour();
-		void on_visualizer_overlay_changed();
+		void on_strategy_changed(Strategy::Ptr strat);
 };
 
 #endif

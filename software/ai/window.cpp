@@ -185,7 +185,7 @@ namespace {
 	}
 }
 
-AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), strategy_controls(0), rc_controls(0), vis(ai.world->visualizer_view()) {
+AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), playtype_override_chooser(), playtype_entry(), ball_filter_chooser(), end_entry(), refbox_colour_entry(), coach_vbox(), coach_chooser(), strategy_hbox(), strategy_label("Strategy:"), strategy_entry(), coach_controls(0), rc_vbox(), rc_chooser(), rc_controls(0), vis_button(), vis_window(), vis(ai.world->visualizer_view()) {
 	set_title("AI");
 
 	Gtk::Notebook *notebook = Gtk::manage(new Gtk::Notebook);
@@ -258,22 +258,30 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), strategy_controls(0), rc_con
 	robots_frame->add(*robots_scroller);
 	vbox->pack_start(*robots_frame, Gtk::PACK_EXPAND_WIDGET);
 
-	Gtk::Frame *strategy_frame = Gtk::manage(new Gtk::Frame("Strategy"));
-	strategy_chooser.append_text("<Select Strategy>");
-	for (StrategyFactory::map_type::const_iterator i = StrategyFactory::all().begin(), iend = StrategyFactory::all().end(); i != iend; ++i) {
-		strategy_chooser.append_text(i->second->name);
+	Gtk::Frame *coach_frame = Gtk::manage(new Gtk::Frame("Coach"));
+	coach_chooser.append_text("<Select Coach>");
+	for (CoachFactory::map_type::const_iterator i = CoachFactory::all().begin(), iend = CoachFactory::all().end(); i != iend; ++i) {
+		coach_chooser.append_text(i->second->name);
 	}
-	const Strategy::Ptr strategy(ai.get_strategy());
-	if (strategy) {
-		strategy_chooser.set_active_text(strategy->get_factory().name);
+	const Coach::Ptr coach(ai.get_coach());
+	if (coach) {
+		coach_chooser.set_active_text(coach->get_factory().name);
 	} else {
-		strategy_chooser.set_active_text("<Select Strategy>");
+		coach_chooser.set_active_text("<Select Coach>");
 	}
-	strategy_chooser.signal_changed().connect(sigc::mem_fun(this, &AIWindow::on_strategy_changed));
-	strategy_vbox.pack_start(strategy_chooser, Gtk::PACK_SHRINK);
-	put_strategy_controls();
-	strategy_frame->add(strategy_vbox);
-	vbox->pack_start(*strategy_frame, Gtk::PACK_SHRINK);
+	coach_chooser.signal_changed().connect(sigc::mem_fun(this, &AIWindow::on_coach_changed));
+	coach_vbox.pack_start(coach_chooser, Gtk::PACK_SHRINK);
+	strategy_hbox.pack_start(strategy_label, Gtk::PACK_SHRINK);
+	if (coach) {
+		coach->signal_strategy_changed.connect(sigc::mem_fun(this, &AIWindow::on_strategy_changed));
+	}
+	strategy_entry.set_text("<None>");
+	strategy_entry.set_editable(false);
+	strategy_hbox.pack_start(strategy_entry, Gtk::PACK_EXPAND_WIDGET);
+	coach_vbox.pack_start(strategy_hbox, Gtk::PACK_SHRINK);
+	put_coach_controls();
+	coach_frame->add(coach_vbox);
+	vbox->pack_start(*coach_frame, Gtk::PACK_SHRINK);
 
 	Gtk::Frame *rc_frame = Gtk::manage(new Gtk::Frame("Robot Controller"));
 	rc_chooser.append_text("<Select RC>");
@@ -313,7 +321,6 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), strategy_controls(0), rc_con
 
 	show_all();
 
-	vis.signal_overlay_changed.connect(sigc::mem_fun(this, &AIWindow::on_visualizer_overlay_changed));
 	vis_window.set_title("AI Visualizer");
 	vis_window.add(vis);
 	vis_window.signal_delete_event().connect(sigc::hide(sigc::bind_return(sigc::bind(sigc::mem_fun(vis_button, &Gtk::ToggleButton::set_active), false), false)));
@@ -351,15 +358,17 @@ void AIWindow::on_flip_refbox_colour_clicked() {
 	ai.world->flip_refbox_colour();
 }
 
-void AIWindow::on_strategy_changed() {
-	const Glib::ustring &name(strategy_chooser.get_active_text());
-	StrategyFactory::map_type::const_iterator i = StrategyFactory::all().find(name.collate_key());
-	if (i != StrategyFactory::all().end()) {
-		ai.set_strategy(i->second->create_strategy(ai.world));
+void AIWindow::on_coach_changed() {
+	const Glib::ustring &name(coach_chooser.get_active_text());
+	CoachFactory::map_type::const_iterator i = CoachFactory::all().find(name.collate_key());
+	if (i != CoachFactory::all().end()) {
+		const Coach::Ptr c(i->second->create_coach(ai.world));
+		ai.set_coach(c);
+		c->signal_strategy_changed.connect(sigc::mem_fun(this, &AIWindow::on_strategy_changed));
 	} else {
-		ai.set_strategy(Strategy::Ptr());
+		ai.set_coach(Coach::Ptr());
 	}
-	put_strategy_controls();
+	put_coach_controls();
 }
 
 void AIWindow::on_rc_changed() {
@@ -372,24 +381,24 @@ void AIWindow::on_rc_changed() {
 	}
 }
 
-void AIWindow::put_strategy_controls() {
-	if (strategy_controls) {
-		strategy_vbox.remove(*strategy_controls);
-		strategy_controls = 0;
+void AIWindow::put_coach_controls() {
+	if (coach_controls) {
+		coach_vbox.remove(*coach_controls);
+		coach_controls = 0;
 	}
 
-	const Strategy::Ptr strat(ai.get_strategy());
-	if (strat) {
-		strategy_controls = strat->get_ui_controls();
-		if (!strategy_controls) {
-			strategy_controls = Gtk::manage(new Gtk::Label("No controls."));
+	const Coach::Ptr c(ai.get_coach());
+	if (c) {
+		coach_controls = c->get_ui_controls();
+		if (!coach_controls) {
+			coach_controls = Gtk::manage(new Gtk::Label("No controls."));
 		}
 	} else {
-		strategy_controls = Gtk::manage(new Gtk::Label("No strategy selected."));
+		coach_controls = Gtk::manage(new Gtk::Label("No coach selected."));
 	}
 
-	strategy_vbox.pack_start(*strategy_controls, Gtk::PACK_EXPAND_WIDGET);
-	strategy_controls->show_all();
+	coach_vbox.pack_start(*coach_controls, Gtk::PACK_EXPAND_WIDGET);
+	coach_controls->show_all();
 }
 
 void AIWindow::on_playtype_changed() {
@@ -412,7 +421,7 @@ void AIWindow::on_flipped_refbox_colour() {
 	refbox_colour_entry.set_text(ai.world->refbox_yellow() ? "Yellow" : "Blue");
 }
 
-void AIWindow::on_visualizer_overlay_changed() {
-	ai.set_overlay(vis.overlay());
+void AIWindow::on_strategy_changed(Strategy::Ptr strat) {
+	strategy_entry.set_text(strat ? strat->get_factory().name : "<None>");
 }
 
