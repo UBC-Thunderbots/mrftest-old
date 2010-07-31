@@ -2,28 +2,13 @@
 #define AI_NAVIGATOR_NAVIGATOR_H
 
 #include "ai/world/player.h"
+#include "ai/world/robot.h"
 #include "ai/world/world.h"
 #include "geom/point.h"
 #include "util/noncopyable.h"
 #include <utility>
+#include <map>
 
-/**
- * Single instance of TeamNavigator handles navigation for all players on the controllable team
- */
-class TeamNavigator : public NonCopyable {
-	public:
-		Navigator(World::Ptr world);
-		
-		/**
-		* This function is intended to be called really early in the ai
-		* this will be check the team and clear out all robots with no signals
-		* so that pointers can be cleared and there are no leaks
-		*/
-		pre_tic();
-		void tick();
-	private:
-	
-};
 
 /**
  * A player's view of navigation
@@ -32,11 +17,16 @@ class TeamNavigator : public NonCopyable {
  * navigators there is a one-to-one relation between 
  * players and Navigators
  */
-class Navigator : public NonCopyable {
+class Navigator : public ByRef {
 
 	public:
+		/**
+		 * A pointer to a Navigator object.
+		 */
+		typedef RefPtr<Navigator> Ptr;	
+	
 		Navigator(Player::Ptr player, World::Ptr world);
-		~Navigator();
+
 		/**
 		 * Sets the desired location.
 		 * the error parameter defines a circle where the robot is "close enough" to 
@@ -55,7 +45,6 @@ class Navigator : public NonCopyable {
 		 * \param orientation
 		 */
 		void set_orientation(const double& orientation, double error) {
-			orientation_initialized = true;
 			target_orientation.first = orientation;
 			target_orientation.second = error;
 		}
@@ -104,6 +93,54 @@ class Navigator : public NonCopyable {
 		unsigned int flags;
 	private:
 	
+};
+
+
+/**
+ * Single instance of TeamNavigator handles navigation for all players on the controllable team
+ */
+class TeamNavigator : public NonCopyable, public sigc::trackable{
+	public:
+		TeamNavigator(World::Ptr world):the_world(world){
+			the_world->friendly.signal_player_removed.connect(sigc::mem_fun(this, &TeamNavigator::on_player_removed));
+			the_world->friendly.signal_player_added.connect(sigc::mem_fun(this, &TeamNavigator::on_player_added));
+			the_world->enemy.signal_robot_removed.connect(sigc::mem_fun(this, &TeamNavigator::on_enemy_removed));
+			the_world->enemy.signal_robot_added.connect(sigc::mem_fun(this, &TeamNavigator::on_enemy_added));
+		}
+		
+		/**
+		* map from player to the player's navigator
+		* the rest of the ai operates on the player's navigator, not the team navigator
+		*/
+		std::map<Player::Ptr, Navigator::Ptr> navis;
+		
+	private:
+
+	
+		void tick();
+		
+		/**
+		* When a player is added will need to make a new player navigator for it
+		*/
+		void on_player_added(unsigned int, Player::Ptr play);
+		
+		/**
+		* When a player is removed will need to destroy player navigator for it
+		*/		
+		void on_player_removed(unsigned int, Player::Ptr play);
+		
+		/**
+		* We may want to keep tabs on the enemy
+		*/
+		void on_enemy_added(unsigned int, Robot::Ptr bot);
+		
+		/**
+		* We may want to keep tabs on the enemy
+		*/		
+		void on_enemy_removed(unsigned int, Robot::Ptr bot);
+	
+		const World::Ptr the_world;
+
 };
 
 #endif
