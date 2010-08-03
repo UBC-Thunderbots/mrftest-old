@@ -14,11 +14,18 @@
 #include <sys/types.h>
 
 namespace {
-	//
-	// A unary functor that accepts a RobotInfo and returns its address.
-	//
+	/**
+	 * A unary functor that accepts a RobotInfo and returns its address.
+	 */
 	class RobotAddress : public std::unary_function<const Config::RobotInfo &, uint64_t> {
 		public:
+			/**
+			 * Executes the functor.
+			 *
+			 * @param bot the RobotInfo to examine.
+			 *
+			 * @return the address of the robot.
+			 */
 			uint64_t operator()(const Config::RobotInfo &bot) const {
 				return bot.address;
 			}
@@ -29,6 +36,16 @@ namespace {
 	 */
 	class CompareByAddress : public std::binary_function<const Config::RobotInfo &, const Config::RobotInfo &, bool> {
 		public:
+			/**
+			 * Executes the functor.
+			 *
+			 * @param x the first RobotInfo to examine.
+			 *
+			 * @param y the second RobotInfo to examine.
+			 *
+			 * @return \c true if \p x has an address less than that of \c y, or
+			 * \c false if not.
+			 */
 			bool operator()(const Config::RobotInfo &x, const Config::RobotInfo &y) {
 				return x.address < y.address;
 			}
@@ -39,6 +56,17 @@ namespace {
 	 */
 	class CompareByLid : public std::binary_function<const Config::RobotInfo &, const Config::RobotInfo &, bool> {
 		public:
+			/**
+			 * Executes the functor.
+			 *
+			 * @param x the first RobotInfo to examine.
+			 *
+			 * @param y the second RobotInfo to examine.
+			 *
+			 * @return \c true if \p x comes before \p y when ordered by lid
+			 * patterns, with colour serving as the major parameter and pattern
+			 * index as the minor parameter, or \c false if not.
+			 */
 			bool operator()(const Config::RobotInfo &x, const Config::RobotInfo &y) {
 				if (x.yellow != y.yellow) {
 					return x.yellow < y.yellow;
@@ -53,6 +81,16 @@ namespace {
 	 */
 	class CompareByName : public std::binary_function<const Config::RobotInfo &, const Config::RobotInfo &, bool> {
 		public:
+			/**
+			 * Executes the functor.
+			 *
+			 * @param x the first RobotInfo to examine.
+			 *
+			 * @param y the second RobotInfo to examine.
+			 *
+			 * @return \c true if the name of \p x comes lexicographically
+			 * before the name of \c y, or \c false if not.
+			 */
 			bool operator()(const Config::RobotInfo &x, const Config::RobotInfo &y) {
 				return x.name < y.name;
 			}
