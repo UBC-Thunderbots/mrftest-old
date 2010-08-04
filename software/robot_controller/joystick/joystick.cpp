@@ -1,19 +1,20 @@
 #include "robot_controller/joystick/joystick.h"
-#include <stdexcept>
+#include <cassert>
 #include <cerrno>
+#include <fcntl.h>
+#include <stdexcept>
+#include <linux/joystick.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
-#include <linux/joystick.h>
 
 namespace {
-	FileDescriptor open_device(const Glib::ustring &filename) {
+	FileDescriptor::Ptr open_device(const Glib::ustring &filename) {
 		const std::string &fn = Glib::filename_from_utf8(Glib::ustring::compose("/dev/input/%1", filename));
 		int desc = open(fn.c_str(), O_RDONLY | O_NONBLOCK);
 		if (desc < 0)
 			throw std::runtime_error("Error opening joystick!");
-		return FileDescriptor::create(desc);
+		return FileDescriptor::create_from_fd(desc);
 	}
 
 	bool list_inited = false;
@@ -22,25 +23,25 @@ namespace {
 
 Joystick::Joystick(const Glib::ustring &filename) : fd(open_device(filename)), stick_filename(filename) {
 	char buffer[128];
-	if (ioctl(fd, JSIOCGNAME(sizeof(buffer)), buffer) < 0)
+	if (ioctl(fd->fd(), JSIOCGNAME(sizeof(buffer)), buffer) < 0)
 		throw std::runtime_error("JSIOCGNAME failed!");
 	stick_name = Glib::ustring(buffer);
 
 	char ch;
-	if (ioctl(fd, JSIOCGAXES, &ch) < 0)
+	if (ioctl(fd->fd(), JSIOCGAXES, &ch) < 0)
 		throw std::runtime_error("JSIOCGAXES failed!");
 	axes_data.resize(ch, 0);
 
-	if (ioctl(fd, JSIOCGBUTTONS, &ch) < 0)
+	if (ioctl(fd->fd(), JSIOCGBUTTONS, &ch) < 0)
 		throw std::runtime_error("JSIOCGBUTTONS failed!");
 	buttons_data.resize(ch, false);
 
-	Glib::signal_io().connect(sigc::mem_fun(this, &Joystick::on_readable), fd, Glib::IO_IN);
+	Glib::signal_io().connect(sigc::mem_fun(this, &Joystick::on_readable), fd->fd(), Glib::IO_IN);
 }
 
 bool Joystick::on_readable(Glib::IOCondition) {
 	js_event events[32];
-	ssize_t len = read(fd, &events, sizeof(events));
+	ssize_t len = read(fd->fd(), &events, sizeof(events));
 	if (len < 0 && errno != EINTR && errno != EAGAIN && errno != EWOULDBLOCK)
 		throw std::runtime_error("Error reading from joystick!");
 

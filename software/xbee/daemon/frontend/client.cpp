@@ -20,13 +20,13 @@ namespace {
 	std::unordered_set<XBeeClient *> instances;
 }
 
-void XBeeClient::create(FileDescriptor &sock, XBeeDaemon &daemon) {
+void XBeeClient::create(FileDescriptor::Ptr sock, XBeeDaemon &daemon) {
 	new XBeeClient(sock, daemon);
 }
 
 void XBeeClient::send_to_all(const void *data, std::size_t length) {
 	for (std::unordered_set<XBeeClient *>::const_iterator i = instances.begin(), iend = instances.end(); i != iend; ++i) {
-		send((*i)->sock, data, length, MSG_NOSIGNAL);
+		send((*i)->sock->fd(), data, length, MSG_NOSIGNAL);
 	}
 }
 
@@ -34,16 +34,16 @@ bool XBeeClient::any_connected() {
 	return !instances.empty();
 }
 
-XBeeClient::XBeeClient(FileDescriptor &sck, XBeeDaemon &daemon) : sock(sck), daemon(daemon) {
+XBeeClient::XBeeClient(FileDescriptor::Ptr sck, XBeeDaemon &daemon) : sock(sck), daemon(daemon) {
 	// Connect to signals.
-	Glib::signal_io().connect(sigc::mem_fun(this, &XBeeClient::on_socket_ready), sock, Glib::IO_IN | Glib::IO_HUP);
+	Glib::signal_io().connect(sigc::mem_fun(this, &XBeeClient::on_socket_ready), sock->fd(), Glib::IO_IN | Glib::IO_HUP);
 	daemon.backend.signal_received.connect(sigc::mem_fun(this, &XBeeClient::on_radio_packet));
 
 	// Record our own existence.
 	instances.insert(this);
 
 	// Send the welcome message.
-	send(sock, "XBEE", 4, MSG_NOSIGNAL);
+	send(sock->fd(), "XBEE", 4, MSG_NOSIGNAL);
 
 	// Send the second-level welcome with attached SHM file descriptor.
 	iovec iov;
@@ -63,7 +63,7 @@ XBeeClient::XBeeClient(FileDescriptor &sck, XBeeDaemon &daemon) : sock(sck), dae
 	cmsg->cmsg_level = SOL_SOCKET;
 	cmsg->cmsg_type = SCM_RIGHTS;
 	static_cast<int *>(cmsg_data(cmsg))[0] = daemon.shm.fd();
-	sendmsg(sock, &mh, MSG_NOSIGNAL);
+	sendmsg(sock->fd(), &mh, MSG_NOSIGNAL);
 }
 
 XBeeClient::~XBeeClient() {
@@ -85,7 +85,7 @@ void XBeeClient::connect_frame_dealloc(XBeeRequest::Ptr req, uint8_t frame) {
 
 void XBeeClient::on_radio_packet(const std::vector<uint8_t> &data) {
 	if (data[0] == XBeePacketTypes::RECEIVE64_APIID || data[0] == XBeePacketTypes::RECEIVE16_APIID) {
-		if (send(sock, &data[0], data.size(), MSG_NOSIGNAL) != static_cast<ssize_t>(data.size())) {
+		if (send(sock->fd(), &data[0], data.size(), MSG_NOSIGNAL) != static_cast<ssize_t>(data.size())) {
 			delete this;
 		}
 	}
@@ -98,7 +98,7 @@ bool XBeeClient::on_socket_ready(Glib::IOCondition cond) {
 	}
 	if (cond & Glib::IO_IN) {
 		uint8_t buffer[65536];
-		ssize_t ret = recv(sock, buffer, sizeof(buffer), MSG_DONTWAIT);
+		ssize_t ret = recv(sock->fd(), buffer, sizeof(buffer), MSG_DONTWAIT);
 		if (ret < 0) {
 			if (errno == EAGAIN || errno == EWOULDBLOCK) {
 				return true;
@@ -189,7 +189,7 @@ void XBeeClient::on_at_response(const void *buffer, std::size_t length, uint8_t 
 	newpacket[offsetof(XBeePacketTypes::AT_RESPONSE, frame)] = original_frame;
 
 	// Send back-substituted packet to client.
-	ssize_t ret = send(sock, newpacket, length, MSG_NOSIGNAL);
+	ssize_t ret = send(sock->fd(), newpacket, length, MSG_NOSIGNAL);
 	if (ret != static_cast<ssize_t>(length)) {
 		delete this;
 		return;
@@ -246,7 +246,7 @@ void XBeeClient::on_remote_at_response(const void *buffer, std::size_t length, u
 	newpacket[offsetof(XBeePacketTypes::REMOTE_AT_RESPONSE, frame)] = original_frame;
 
 	// Send back-substituted packet to client.
-	ssize_t ret = send(sock, newpacket, length, MSG_NOSIGNAL);
+	ssize_t ret = send(sock->fd(), newpacket, length, MSG_NOSIGNAL);
 	if (ret != static_cast<ssize_t>(length)) {
 		delete this;
 		return;
@@ -303,7 +303,7 @@ void XBeeClient::on_transmit_status(const void *buffer, std::size_t length, uint
 	newpacket[offsetof(XBeePacketTypes::TRANSMIT_STATUS, frame)] = original_frame;
 
 	// Send back-substituted packet to client.
-	if (send(sock, newpacket, length, MSG_NOSIGNAL) != static_cast<ssize_t>(length)) {
+	if (send(sock->fd(), newpacket, length, MSG_NOSIGNAL) != static_cast<ssize_t>(length)) {
 		delete this;
 		return;
 	}
@@ -349,7 +349,7 @@ void XBeeClient::on_meta_claim_universe() {
 		pkt.address = 0;
 		pkt.address16 = 0xFFFF;
 		pkt.shm_frame = 0xFF;
-		if (send(sock, &pkt, sizeof(pkt), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(pkt))) {
+		if (send(sock->fd(), &pkt, sizeof(pkt), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(pkt))) {
 			delete this;
 		}
 	} else {
@@ -357,7 +357,7 @@ void XBeeClient::on_meta_claim_universe() {
 		pkt.hdr.apiid = XBeePacketTypes::META_APIID;
 		pkt.hdr.metatype = XBeePacketTypes::CLAIM_FAILED_LOCKED_METATYPE;
 		pkt.address = 0;
-		if (send(sock, &pkt, sizeof(pkt), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(pkt))) {
+		if (send(sock->fd(), &pkt, sizeof(pkt), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(pkt))) {
 			delete this;
 		}
 	}
@@ -377,7 +377,7 @@ void XBeeClient::on_meta_claim(const XBeePacketTypes::META_CLAIM &req) {
 		resp.hdr.apiid = XBeePacketTypes::META_APIID;
 		resp.hdr.metatype = XBeePacketTypes::CLAIM_FAILED_LOCKED_METATYPE;
 		resp.address = req.address;
-		if (send(sock, &resp, sizeof(resp), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(resp))) {
+		if (send(sock->fd(), &resp, sizeof(resp), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(resp))) {
 			delete this;
 		}
 		return;
@@ -428,7 +428,7 @@ void XBeeClient::on_meta_claim(const XBeePacketTypes::META_CLAIM &req) {
 			resp.hdr.apiid = XBeePacketTypes::META_APIID;
 			resp.hdr.metatype = XBeePacketTypes::CLAIM_FAILED_RESOURCE_METATYPE;
 			resp.address = req.address;
-			if (send(sock, &resp, sizeof(resp), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(resp))) {
+			if (send(sock->fd(), &resp, sizeof(resp), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(resp))) {
 				delete this;
 			}
 		}
@@ -441,7 +441,7 @@ void XBeeClient::on_meta_claim(const XBeePacketTypes::META_CLAIM &req) {
 		resp.address = req.address;
 		resp.address16 = state->address16();
 		resp.shm_frame = 0xFF;
-		if (send(sock, &resp, sizeof(resp), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(resp))) {
+		if (send(sock->fd(), &resp, sizeof(resp), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(resp))) {
 			delete this;
 		}
 	}
@@ -465,7 +465,7 @@ void XBeeClient::on_robot_alive(uint64_t address) {
 	packet.address = address;
 	packet.address16 = 0;
 	packet.shm_frame = bot->run_data_index();
-	if (send(sock, &packet, sizeof(packet), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(packet))) {
+	if (send(sock->fd(), &packet, sizeof(packet), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(packet))) {
 		delete this;
 	}
 }
@@ -477,7 +477,7 @@ void XBeeClient::on_robot_dead(uint64_t address) {
 	packet.hdr.apiid = XBeePacketTypes::META_APIID;
 	packet.hdr.metatype = XBeePacketTypes::DEAD_METATYPE;
 	packet.address = address;
-	if (send(sock, &packet, sizeof(packet), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(packet))) {
+	if (send(sock->fd(), &packet, sizeof(packet), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(packet))) {
 		delete this;
 	}
 }
@@ -489,7 +489,7 @@ void XBeeClient::on_robot_feedback(uint64_t address) {
 	packet.hdr.apiid = XBeePacketTypes::META_APIID;
 	packet.hdr.metatype = XBeePacketTypes::FEEDBACK_METATYPE;
 	packet.address = address;
-	if (send(sock, &packet, sizeof(packet), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(packet))) {
+	if (send(sock->fd(), &packet, sizeof(packet), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(packet))) {
 		delete this;
 	}
 }

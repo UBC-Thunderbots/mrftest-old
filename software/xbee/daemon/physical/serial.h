@@ -38,7 +38,7 @@ class SerialPort : public NonCopyable, public sigc::trackable {
 		void send(iovec *iov, std::size_t iovcnt);
 
 	private:
-		const FileDescriptor port;
+		const FileDescriptor::Ptr port;
 		sigc::signal<void, const void *, std::size_t> sig_received;
 		bool on_readable(Glib::IOCondition);
 };

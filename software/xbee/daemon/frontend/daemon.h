@@ -93,8 +93,8 @@ class XBeeDaemon : public sigc::trackable {
 		bool universe_claimed;
 
 	private:
-		const FileDescriptor lock_file;
-		const FileDescriptor listen_sock;
+		const FileDescriptor::Ptr lock_file;
+		const FileDescriptor::Ptr listen_sock;
 		std::vector<bool> allocated_rundata_indices;
 		sigc::connection check_shutdown_firer;
 

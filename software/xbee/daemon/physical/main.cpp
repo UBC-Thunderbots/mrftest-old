@@ -64,7 +64,7 @@ namespace {
 			if (chdir("/") < 0) {
 				throw std::runtime_error("Cannot move to root directory!");
 			}
-			FileDescriptor null_fd("/dev/null", O_RDWR);
+			const FileDescriptor::Ptr null_fd(FileDescriptor::create_open("/dev/null", O_RDWR, 0));
 			if (dup2(null_fd, 0) < 0 || dup2(null_fd, 1) < 0 || dup2(null_fd, 2) < 0) {
 				throw std::runtime_error("Cannot redirect standard streams to /dev/null!");
 			}

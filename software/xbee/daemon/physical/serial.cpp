@@ -44,28 +44,28 @@ namespace {
 	}
 }
 
-SerialPort::SerialPort() : port("/dev/xbee", O_RDWR | O_NOCTTY) {
+SerialPort::SerialPort() : port(FileDescriptor::create_open("/dev/xbee", O_RDWR | O_NOCTTY, 0)) {
 }
 
 void SerialPort::configure_port() {
 	// Try to configure the custom divisor to give 250,000 baud.
 	serial_struct cur_serinfo, new_serinfo;
-	if (ioctl(port, TIOCGSERIAL, &cur_serinfo) < 0)
+	if (ioctl(port->fd(), TIOCGSERIAL, &cur_serinfo) < 0)
 		throw std::runtime_error("Cannot get serial port configuration!");
 	new_serinfo = cur_serinfo;
 	new_serinfo.flags &= ~ASYNC_SPD_MASK;
 	new_serinfo.flags |= ASYNC_SPD_CUST;
 	new_serinfo.custom_divisor = new_serinfo.baud_base / 250000;
 	while (!is_serinfo_ok(cur_serinfo)) {
-		if (ioctl(port, TIOCSSERIAL, &new_serinfo) < 0)
+		if (ioctl(port->fd(), TIOCSSERIAL, &new_serinfo) < 0)
 			throw std::runtime_error("Cannot set serial port configuration!");
-		if (ioctl(port, TIOCGSERIAL, &cur_serinfo) < 0)
+		if (ioctl(port->fd(), TIOCGSERIAL, &cur_serinfo) < 0)
 			throw std::runtime_error("Cannot get serial port configuration!");
 	}
 
 	// Try to configure the regular terminal to 38,400 baud (which means to use the custom divisor).
 	termios cur_tios, new_tios;
-	if (tcgetattr(port, &cur_tios) < 0)
+	if (tcgetattr(port->fd(), &cur_tios) < 0)
 		throw std::runtime_error("Cannot get serial port configuration!");
 	new_tios = cur_tios;
 	cfmakeraw(&new_tios);
@@ -80,19 +80,19 @@ void SerialPort::configure_port() {
 	new_tios.c_cc[VMIN] = 0;
 	new_tios.c_cc[VTIME] = 0;
 	while (!is_tios_ok(cur_tios)) {
-		if (tcsetattr(port, TCSAFLUSH, &new_tios) < 0)
+		if (tcsetattr(port->fd(), TCSAFLUSH, &new_tios) < 0)
 			throw std::runtime_error("Cannot set serial port configuration!");
-		if (tcgetattr(port, &cur_tios) < 0)
+		if (tcgetattr(port->fd(), &cur_tios) < 0)
 			throw std::runtime_error("Cannot get serial port configuration!");
 	}
 
 	// Register for readability notifications.
-	Glib::signal_io().connect(sigc::mem_fun(this, &SerialPort::on_readable), port, Glib::IO_IN);
+	Glib::signal_io().connect(sigc::mem_fun(this, &SerialPort::on_readable), port->fd(), Glib::IO_IN);
 }
 
 void SerialPort::send(iovec *iov, std::size_t iovcnt) {
 	while (iovcnt) {
-		ssize_t written = writev(port, iov, static_cast<int>(iovcnt));
+		ssize_t written = writev(port->fd(), iov, static_cast<int>(iovcnt));
 		if (written < 0) {
 			throw std::runtime_error("Cannot write to serial port!");
 		}
@@ -114,7 +114,7 @@ void SerialPort::send(iovec *iov, std::size_t iovcnt) {
 
 bool SerialPort::on_readable(Glib::IOCondition) {
 	uint8_t buffer[256];
-	ssize_t ret = read(port, buffer, sizeof(buffer));
+	ssize_t ret = read(port->fd(), buffer, sizeof(buffer));
 	if (ret < 0)
 		throw std::runtime_error("Cannot read from serial port!");
 

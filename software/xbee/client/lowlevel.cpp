@@ -11,34 +11,33 @@
 #include <sys/un.h>
 
 namespace {
-	bool connect_to_existing_daemon(FileDescriptor &sock) {
+	FileDescriptor::Ptr connect_to_existing_daemon() {
 		// Calculate path.
 		const Glib::ustring &cache_dir = Glib::get_user_cache_dir();
 		const std::string &socket_path = Glib::filename_from_utf8(cache_dir + "/thunderbots-xbeed-sock");
 
 		// Create a socket.
-		FileDescriptor tmp(PF_UNIX, SOCK_SEQPACKET, 0);
+		const FileDescriptor::Ptr sock(FileDescriptor::create_socket(PF_UNIX, SOCK_SEQPACKET, 0));
 		SockAddrs sa;
 		sa.un.sun_family = AF_UNIX;
 		if (socket_path.size() > sizeof(sa.un.sun_path)) throw std::runtime_error("Path too long!");
 		std::copy(socket_path.begin(), socket_path.end(), &sa.un.sun_path[0]);
 		std::fill(&sa.un.sun_path[socket_path.size()], &sa.un.sun_path[sizeof(sa.un.sun_path) / sizeof(*sa.un.sun_path)], '\0');
-		if (connect(tmp, &sa.sa, sizeof(sa.un)) < 0) {
-			if (errno == ECONNREFUSED) return false;
+		if (connect(sock->fd(), &sa.sa, sizeof(sa.un)) < 0) {
+			if (errno == ECONNREFUSED) return FileDescriptor::Ptr();
 			throw std::runtime_error("Cannot connect to arbiter daemon!");
 		}
 
 		// Read the signature string from the daemon. If this fails, we may have
 		// hit the race condition when the daemon is dying.
 		char buffer[4];
-		if (recv(tmp, buffer, sizeof(buffer), 0) != sizeof(buffer))
-			return false;
+		if (recv(sock->fd(), buffer, sizeof(buffer), 0) != sizeof(buffer))
+			return FileDescriptor::Ptr();
 		if (buffer[0] != 'X' || buffer[1] != 'B' || buffer[2] != 'E' || buffer[3] != 'E')
-			return false;
+			return FileDescriptor::Ptr();
 
 		// Return the socket.
-		sock = tmp;
-		return true;
+		return sock;
 	}
 
 	void launch_daemon() {
@@ -71,21 +70,21 @@ namespace {
 		}
 	}
 
-	FileDescriptor connect_to_daemon() {
-		FileDescriptor sock;
-
+	FileDescriptor::Ptr connect_to_daemon() {
 		// Loop forever, until something works.
 		for (;;) {
 			// Try connecting to an already-running daemon.
-			if (connect_to_existing_daemon(sock))
+			const FileDescriptor::Ptr sock(connect_to_existing_daemon());
+			if (sock) {
 				return sock;
+			}
 
 			// Try launching a new daemon.
 			launch_daemon();
 		}
 	}
 
-	FileDescriptor receive_shm_fd(const FileDescriptor &sock) {
+	FileDescriptor::Ptr receive_shm_fd(const FileDescriptor::Ptr sock) {
 		char databuf[3];
 		iovec iov;
 		iov.iov_base = databuf;
@@ -109,25 +108,25 @@ namespace {
 		if (cmsg->cmsg_len != cmsg_len(sizeof(int)) || cmsg->cmsg_level != SOL_SOCKET || cmsg->cmsg_type != SCM_RIGHTS) {
 			throw std::runtime_error("Received wrong ancillary data on socket!");
 		}
-		return FileDescriptor(static_cast<const int *>(cmsg_data(cmsg))[0]);
+		return FileDescriptor::create_from_fd(static_cast<const int *>(cmsg_data(cmsg))[0]);
 	}
 }
 
 XBeeLowLevel::XBeeLowLevel() : frame_allocator(1, 255), sock(connect_to_daemon()), shm(receive_shm_fd(sock)) {
-	Glib::signal_io().connect(sigc::mem_fun(this, &XBeeLowLevel::on_readable), sock, Glib::IO_IN | Glib::IO_HUP);
+	Glib::signal_io().connect(sigc::mem_fun(this, &XBeeLowLevel::on_readable), sock->fd(), Glib::IO_IN | Glib::IO_HUP);
 }
 
 bool XBeeLowLevel::claim_universe() {
 	XBeePacketTypes::META_CLAIM_UNIVERSE req;
 	req.hdr.apiid = XBeePacketTypes::META_APIID;
 	req.hdr.metatype = XBeePacketTypes::CLAIM_UNIVERSE_METATYPE;
-	if (::send(sock, &req, sizeof(req), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(req))) {
+	if (::send(sock->fd(), &req, sizeof(req), MSG_NOSIGNAL) != static_cast<ssize_t>(sizeof(req))) {
 		throw std::runtime_error("Cannot send packet to XBee arbiter!");
 	}
 
 	for (;;) {
 		unsigned char buffer[65536];
-		ssize_t ret = recv(sock, buffer, sizeof(buffer), 0);
+		ssize_t ret = recv(sock->fd(), buffer, sizeof(buffer), 0);
 		if (ret < 0) {
 			throw std::runtime_error("Cannot talk to XBee arbiter!");
 		}
@@ -162,7 +161,7 @@ bool XBeeLowLevel::on_readable(Glib::IOCondition cond) {
 		throw std::runtime_error("File descriptor error!");
 	}
 	unsigned char buffer[65536];
-	ssize_t ret = recv(sock, buffer, sizeof(buffer), 0);
+	ssize_t ret = recv(sock->fd(), buffer, sizeof(buffer), 0);
 	if (ret < 0) {
 		throw std::runtime_error("Cannot talk to XBee arbiter!");
 	}

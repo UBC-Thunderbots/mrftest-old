@@ -29,10 +29,10 @@ namespace {
 	const unsigned int DELAY = 10;
 }
 
-Simulator::Simulator(const Config &conf, SimulatorEngine::Ptr engine, ClockSource &clk) : conf(conf), engine(engine), host_address16(0xFFFF), sock(AF_INET, SOCK_DGRAM, IPPROTO_UDP), visdata(*this) {
+Simulator::Simulator(const Config &conf, SimulatorEngine::Ptr engine, ClockSource &clk) : conf(conf), engine(engine), host_address16(0xFFFF), sock(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)), visdata(*this) {
 	frame_counters[0] = frame_counters[1] = 0;
 	int one = 1;
-	if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &one, sizeof(one)) < 0) {
+	if (setsockopt(sock->fd(), SOL_SOCKET, SO_BROADCAST, &one, sizeof(one)) < 0) {
 		throw std::runtime_error("Cannot enable broadcast on SSL-Vision socket.");
 	}
 	const Config::RobotSet &infos(conf.robots());
@@ -293,7 +293,7 @@ void Simulator::tick() {
 		sa.in.sin_port = htons(10002);
 		std::memset(sa.in.sin_zero, 0, sizeof(sa.in.sin_zero));
 
-		if (sendto(sock, buffer, sizeof(buffer), MSG_NOSIGNAL, &sa.sa, sizeof(sa.in)) != static_cast<ssize_t>(sizeof(buffer))) {
+		if (sendto(sock->fd(), buffer, sizeof(buffer), MSG_NOSIGNAL, &sa.sa, sizeof(sa.in)) != static_cast<ssize_t>(sizeof(buffer))) {
 			LOG_WARN("Error sending vision-type UDP packet.");
 		}
 	}
@@ -344,7 +344,7 @@ bool Simulator::tick_geometry() {
 	sa.in.sin_port = htons(10002);
 	std::memset(sa.in.sin_zero, 0, sizeof(sa.in.sin_zero));
 
-	if (sendto(sock, buffer, sizeof(buffer), MSG_NOSIGNAL, &sa.sa, sizeof(sa.in)) != static_cast<ssize_t>(sizeof(buffer))) {
+	if (sendto(sock->fd(), buffer, sizeof(buffer), MSG_NOSIGNAL, &sa.sa, sizeof(sa.in)) != static_cast<ssize_t>(sizeof(buffer))) {
 		LOG_WARN("Error sending vision-type UDP packet.");
 	}
 

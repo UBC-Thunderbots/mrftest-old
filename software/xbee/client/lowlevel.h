@@ -45,7 +45,7 @@ class XBeeLowLevel : public NonCopyable {
 
 	private:
 		NumberAllocator<uint8_t> frame_allocator;
-		const FileDescriptor sock;
+		const FileDescriptor::Ptr sock;
 		XBeePacket::Ptr packets[256];
 
 		bool on_readable(Glib::IOCondition);

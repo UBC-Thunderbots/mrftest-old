@@ -198,7 +198,7 @@ class World : public ByRef {
 
 		bool east_;
 		bool refbox_yellow_;
-		const FileDescriptor vision_socket;
+		const FileDescriptor::Ptr vision_socket;
 		RefBox refbox_;
 		Field field_;
 		Ball::Ptr ball_;

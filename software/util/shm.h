@@ -25,7 +25,7 @@ class RawShmBlock : public NonCopyable {
 		 *
 		 * \param[in] sz the size of the block, in bytes.
 		 */
-		RawShmBlock(FileDescriptor fd, std::size_t sz);
+		RawShmBlock(FileDescriptor::Ptr fd, std::size_t sz);
 
 		/**
 		 * Destroys a shared memory block.
@@ -75,7 +75,7 @@ class RawShmBlock : public NonCopyable {
 		}
 
 	private:
-		FileDescriptor fd_;
+		FileDescriptor::Ptr fd_;
 		std::size_t size_;
 		uint8_t *data_;
 };
@@ -99,7 +99,7 @@ class ShmBlock : public NonCopyable {
 		 *
 		 * \param fd the descriptor of the open file.
 		 */
-		ShmBlock(FileDescriptor fd) : raw(fd, sizeof(T)) {
+		ShmBlock(FileDescriptor::Ptr fd) : raw(fd, sizeof(T)) {
 		}
 
 		/**

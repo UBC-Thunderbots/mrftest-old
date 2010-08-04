@@ -72,7 +72,7 @@ class Simulator : public BackEnd, public sigc::trackable {
 		std::queue<std::vector<uint8_t> > responses;
 		sigc::connection response_push_connection;
 		uint16_t host_address16;
-		FileDescriptor sock;
+		const FileDescriptor::Ptr sock;
 		uint32_t frame_counters[2];
 		SimulatorVisData visdata;
 

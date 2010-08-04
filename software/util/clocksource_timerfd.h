@@ -31,8 +31,8 @@ class TimerFDClockSource : public ClockSource, public sigc::trackable {
 		void stop();
 
 	private:
-		FileDescriptor tfd;
-		uint64_t nanoseconds;
+		const FileDescriptor::Ptr tfd;
+		const uint64_t nanoseconds;
 		bool running;
 		Annunciator::message overflow_message;
 		bool on_readable(Glib::IOCondition);

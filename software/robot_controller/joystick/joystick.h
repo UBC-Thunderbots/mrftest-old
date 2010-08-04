@@ -66,7 +66,7 @@ class Joystick : public ByRef, public sigc::trackable {
 		static const std::vector<std::pair<Glib::ustring, Glib::ustring> > &list();
 
 	private:
-		const FileDescriptor fd;
+		const FileDescriptor::Ptr fd;
 		std::vector<int> axes_data;
 		std::vector<bool> buttons_data;
 		Glib::ustring stick_filename;

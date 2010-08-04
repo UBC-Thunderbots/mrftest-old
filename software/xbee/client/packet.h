@@ -36,7 +36,7 @@ class XBeePacket : public ByRef {
 		//
 		// Encodes the packet for transmission and sends it over a socket.
 		//
-		virtual void transmit(const FileDescriptor &sock, uint8_t frame) const = 0;
+		virtual void transmit(FileDescriptor::Ptr sock, uint8_t frame) const = 0;
 
 	protected:
 		//
@@ -70,7 +70,7 @@ class Transmit16Packet : public XBeePacket {
 		//
 		// Encodes the XBeePacket for transmission and sends it over a socket.
 		//
-		void transmit(const FileDescriptor &, uint8_t) const;
+		void transmit(FileDescriptor::Ptr , uint8_t) const;
 
 	private:
 		uint16_t dest;
@@ -111,7 +111,7 @@ class ATPacket : public XBeePacket {
 		 *
 		 * \param[in] frame the allocated frame number.
 		 */
-		void transmit(const FileDescriptor &sock, uint8_t frame) const;
+		void transmit(FileDescriptor::Ptr sock, uint8_t frame) const;
 
 	private:
 		char command[2];
@@ -154,7 +154,7 @@ class RemoteATPacket : public XBeePacket {
 		//
 		// Encodes the XBeePacket for transmission and sends it over a socket.
 		//
-		void transmit(const FileDescriptor &, uint8_t) const;
+		void transmit(FileDescriptor::Ptr , uint8_t) const;
 
 	private:
 		uint64_t dest;
@@ -189,7 +189,7 @@ class MetaClaimPacket : public XBeePacket {
 		//
 		// Transmits the XBeePacket.
 		//
-		void transmit(const FileDescriptor &, uint8_t) const;
+		void transmit(FileDescriptor::Ptr , uint8_t) const;
 
 	private:
 		uint64_t address;
@@ -220,7 +220,7 @@ class MetaReleasePacket : public XBeePacket {
 		//
 		// Transmits the XBeePacket.
 		//
-		void transmit(const FileDescriptor &, uint8_t) const;
+		void transmit(FileDescriptor::Ptr , uint8_t) const;
 
 	private:
 		uint64_t address;

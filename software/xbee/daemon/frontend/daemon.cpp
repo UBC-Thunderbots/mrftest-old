@@ -15,14 +15,14 @@
 #include <sys/types.h>
 
 namespace {
-	FileDescriptor open_and_lock_lock_file() {
+	FileDescriptor::Ptr open_and_lock_lock_file() {
 		// Calculate filenames.
 		const Glib::ustring &cache_dir = Glib::get_user_cache_dir();
 		const std::string &lock_path = Glib::filename_from_utf8(cache_dir + "/thunderbots-xbeed-lock");
 
 		// Try to lock the lock file.
-		FileDescriptor lock_file(lock_path.c_str(), O_CREAT | O_RDWR);
-		if (flock(lock_file, LOCK_EX | LOCK_NB) < 0) {
+		const FileDescriptor::Ptr lock_file(FileDescriptor::create_open(lock_path.c_str(), O_CREAT | O_RDWR, 0666));
+		if (flock(lock_file->fd(), LOCK_EX | LOCK_NB) < 0) {
 			if (errno == EWOULDBLOCK || errno == EAGAIN) {
 				throw AlreadyRunning();
 			} else {
@@ -33,7 +33,7 @@ namespace {
 		return lock_file;
 	}
 
-	FileDescriptor create_listening_socket() {
+	FileDescriptor::Ptr create_listening_socket() {
 		// Compute the path to the socket.
 		const Glib::ustring &cache_dir = Glib::get_user_cache_dir();
 		const std::string &socket_path = Glib::filename_from_utf8(cache_dir + "/thunderbots-xbeed-sock");
@@ -42,7 +42,7 @@ namespace {
 		unlink(socket_path.c_str());
 
 		// Create the listening socket.
-		FileDescriptor listen_sock(PF_UNIX, SOCK_SEQPACKET, 0);
+		const FileDescriptor::Ptr listen_sock(FileDescriptor::create_socket(PF_UNIX, SOCK_SEQPACKET, 0));
 
 		// Bind it to the path.
 		SockAddrs sa;
@@ -95,7 +95,7 @@ XBeeDaemon::XBeeDaemon(BackEnd &backend) : backend(backend), frame_number_alloca
 	scheduler.queue(XBeeRequest::create(&packet, sizeof(packet), true));
 
 	// Connect a signal to fire when clients connect.
-	Glib::signal_io().connect(sigc::mem_fun(this, &XBeeDaemon::on_accept), listen_sock, Glib::IO_IN);
+	Glib::signal_io().connect(sigc::mem_fun(this, &XBeeDaemon::on_accept), listen_sock->fd(), Glib::IO_IN);
 }
 
 XBeeDaemon::~XBeeDaemon() {
@@ -137,7 +137,7 @@ void XBeeDaemon::check_shutdown() {
 bool XBeeDaemon::on_accept(Glib::IOCondition) {
 	int newfd = accept(listen_sock, 0, 0);
 	if (newfd >= 0) {
-		FileDescriptor fd(newfd);
+		const FileDescriptor::Ptr fd(FileDescriptor::create_from_fd(newfd));
 		if (!universe_claimed) {
 			XBeeClient::create(fd, *this);
 			check_shutdown_firer.disconnect();

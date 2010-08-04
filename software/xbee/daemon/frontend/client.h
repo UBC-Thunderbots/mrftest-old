@@ -22,7 +22,7 @@ class XBeeClient : public NonCopyable, public sigc::trackable {
 		//
 		// Constructs a new XBeeClient.
 		//
-		static void create(FileDescriptor &sock, XBeeDaemon &daemon);
+		static void create(FileDescriptor::Ptr sock, XBeeDaemon &daemon);
 
 		//
 		// Sends a packet to all existent clients.
@@ -35,7 +35,7 @@ class XBeeClient : public NonCopyable, public sigc::trackable {
 		static bool any_connected();
 
 	private:
-		FileDescriptor sock;
+		const FileDescriptor::Ptr sock;
 		XBeeDaemon &daemon;
 		std::unordered_set<uint64_t> claimed;
 		std::unordered_map<uint64_t, sigc::connection> pending_raw_claims;
@@ -43,7 +43,7 @@ class XBeeClient : public NonCopyable, public sigc::trackable {
 		std::unordered_map<uint64_t, sigc::connection> dead_connections;
 		std::unordered_map<uint64_t, sigc::connection> feedback_connections;
 
-		XBeeClient(FileDescriptor &, XBeeDaemon &);
+		XBeeClient(FileDescriptor::Ptr, XBeeDaemon &);
 		~XBeeClient();
 		void connect_frame_dealloc(XBeeRequest::Ptr, uint8_t);
 		void on_radio_packet(const std::vector<uint8_t> &);

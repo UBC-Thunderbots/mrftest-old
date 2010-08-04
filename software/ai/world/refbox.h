@@ -49,7 +49,7 @@ class RefBox : public NonCopyable, public sigc::trackable {
 		}
 
 	private:
-		const FileDescriptor fd;
+		const FileDescriptor::Ptr fd;
 		char command_;
 		unsigned char goals_blue_, goals_yellow_;
 		unsigned short time_remaining_;
