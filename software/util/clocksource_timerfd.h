@@ -7,24 +7,27 @@
 #include <stdint.h>
 #include <glibmm.h>
 
-//
-// A clock source implemented using the Linux timerfd mechanism.
-//
+/**
+ * A clock source implemented using the Linux timerfd mechanism.
+ */
 class TimerFDClockSource : public ClockSource, public sigc::trackable {
 	public:
-		//
-		// Constructs a new ClockSource that fires at the specified interval.
-		//
+		/**
+		 * Constructs a new ClockSource that fires at the specified interval.
+		 *
+		 * \param[in] nanoseconds the number of nanoseconds between consecutive
+		 * firings of the timer.
+		 */
 		TimerFDClockSource(uint64_t nanoseconds);
 
-		//
-		// Starts the clock source.
-		//
+		/**
+		 * Starts the clock source.
+		 */
 		void start();
 
-		//
-		// Stops the clock source.
-		//
+		/**
+		 * Stops the clock source.
+		 */
 		void stop();
 
 	private:
