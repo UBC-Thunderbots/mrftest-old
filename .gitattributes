@@ -236,6 +236,8 @@ software/util/ihex.h -text
 software/util/matrix.h -text
 software/util/misc.cpp -text
 software/util/misc.h -text
+software/util/mutex.cpp -text
+software/util/mutex.h -text
 software/util/noncopyable.h -text
 software/util/registerable.h -text
 software/util/rle.cpp -text
