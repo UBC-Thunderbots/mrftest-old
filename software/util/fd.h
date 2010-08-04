@@ -33,6 +33,8 @@ class FileDescriptor : public ByRef {
 		 *
 		 * \param[in] mode the permissions to create a new file with, if
 		 * \c O_CREAT is included in \p flags.
+		 *
+		 * \return the new FileDescriptor.
 		 */
 		static Ptr create_open(const char *file, int flags, mode_t mode);
 
@@ -45,6 +47,8 @@ class FileDescriptor : public ByRef {
 		 *
 		 * \param[in] proto the specific protocol to create a socket for, or 0
 		 * to use the default protocol for a given \c pf and \c type.
+		 *
+		 * \return the new FileDescriptor.
 		 */
 		static Ptr create_socket(int pf, int type, int proto);
 
