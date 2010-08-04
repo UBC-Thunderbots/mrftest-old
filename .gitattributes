@@ -225,6 +225,8 @@ software/util/crc16.cpp -text
 software/util/crc16.h -text
 software/util/dprint.cpp -text
 software/util/dprint.h -text
+software/util/exception.cpp -text
+software/util/exception.h -text
 software/util/fd.cpp -text
 software/util/fd.h -text
 software/util/hungarian.cpp -text
