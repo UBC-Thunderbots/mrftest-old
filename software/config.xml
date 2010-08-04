@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thunderbots>
+<players>
+<player address="0013a200403c2de8" colour="yellow" pattern="0" name="bot0"/>
+<player address="0013a2004053a1da" colour="yellow" pattern="1" name="bot1"/>
+<player address="0013a20040091538" colour="blue" pattern="2" name="bot2"/>
+<player address="0013a200405300ff" colour="yellow" pattern="3" name="bot3"/>
+<player address="0013a200403c2dec" colour="yellow" pattern="4" name="bot4"/>
+<player address="0013a200403c2dda" colour="yellow" pattern="5" name="bot5"/>
+<player address="0013a200405300fd" colour="yellow" pattern="6" name="bot6"/>
+</players>
+<radio channel="e"/>
+<params>
+<bool-param name="AdHoc2: flip trans/ang slowdown">false</bool-param>
+<bool-param name="AdHoc2: Slow if translating">true</bool-param>
+<bool-param name="dribble: fixed speed">false</bool-param>
+<bool-param name="has_ball: use vision">false</bool-param>
+<bool-param name="navigator: avoid Enemy Near Ball">true</bool-param>
+<bool-param name="navigator: avoid Friendly Near Ball">true</bool-param>
+<bool-param name="posses_ball: is has ball">false</bool-param>
+<int-param name="has_ball: # of sense ball for to be true">2</int-param>
+<double-param name="AdHoc2: angle prop">12</double-param>
+<double-param name="AdHoc2: angle thresh">12</double-param>
+<double-param name="AdHoc2: max acc">3</double-param>
+<double-param name="AdHoc2: max vel">6</double-param>
+<double-param name="AdHoc2: prop">8</double-param>
+<double-param name="AdHoc2: slowdown (CARE)">1.5</double-param>
+<double-param name="ball_close Distance Factor">1.1</double-param>
+<double-param name="BOT0 dribble low">0.25</double-param>
+<double-param name="BOT1 dribble low">0.25</double-param>
+<double-param name="BOT2 dribble low">0.25</double-param>
+<double-param name="BOT3 dribble low">0.25</double-param>
+<double-param name="BOT4 dribble low">0.25</double-param>
+<double-param name="BOT5 dribble low">0.25</double-param>
+<double-param name="chase: How close before chasing">0.043</double-param>
+<double-param name="dribble: low speed">0.25</double-param>
+<double-param name="dribble: max speed">0.6</double-param>
+<double-param name="dribble: ramp speed">1</double-param>
+<double-param name="Has Ball Load Factor">0.8</double-param>
+<double-param name="has_ball_vision: angle (degrees)">20</double-param>
+<double-param name="has_ball_vision: dist factor">0.9</double-param>
+<double-param name="if dribble &gt; this time, force shoot (sec)">2</double-param>
+<double-param name="kick: general accuracy (rads)">0.087266463</double-param>
+<double-param name="navigator: avoid factor const">1.1</double-param>
+<double-param name="navigator: avoid factor mult">0.01</double-param>
+<double-param name="navigator: distance to be considered near ball">0.45</double-param>
+<double-param name="navigator: max distance to look ahead">0.45</double-param>
+<double-param name="play: time we can get ready (sec)">3</double-param>
+</params>
+</thunderbots>

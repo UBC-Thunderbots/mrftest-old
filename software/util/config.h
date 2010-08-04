@@ -1,13 +1,17 @@
 #ifndef UTIL_CONFIG_H
 #define UTIL_CONFIG_H
 
+#include <glibmm.h>
 #include <istream>
 #include <map>
 #include <ostream>
-#include <vector>
-#include <glibmm.h>
 #include <stdint.h>
+#include <vector>
 #include "util/noncopyable.h"
+
+namespace xmlpp {
+	class Element;
+}
 
 /**
  * Provides access to the configuration file.
@@ -209,9 +213,8 @@ class Config : public NonCopyable {
 			private:
 				std::vector<RobotInfo> robots;
 
-				void save(std::ostream &ofs) const;
-				void load_v1(std::istream &ifs);
-				void load_v2(std::istream &ifs);
+				void load(const xmlpp::Element *players);
+				void save(xmlpp::Element *players) const;
 
 				friend class Config;
 		};
@@ -273,10 +276,6 @@ class Config : public NonCopyable {
 	private:
 		RobotSet robots_;
 		unsigned int channel_;
-
-		void load_v1(std::istream &ifs);
-		void load_v2(std::istream &ifs);
-		void load_v3(std::istream &ifs);
 };
 
 #endif

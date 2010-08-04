@@ -68,7 +68,7 @@ software/ai/world/team.cpp -text
 software/ai/world/team.h -text
 software/ai/world/world.cpp -text
 software/ai/world/world.h -text
-software/config.dat -text
+software/config.xml -text
 software/config/main.cpp -text
 software/config/window.cpp -text
 software/config/window.h -text

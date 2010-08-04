@@ -5,11 +5,14 @@
 #include <fstream>
 #include <functional>
 #include <glibmm.h>
+#include <iomanip>
 #include <libgen.h>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <unistd.h>
 #include <ext/functional>
+#include <libxml++/libxml++.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -120,7 +123,32 @@ namespace {
 	 * @return the filename of the config file.
 	 */
 	std::string get_filename() {
-		return get_bin_directory() + "/../config.dat";
+		return get_bin_directory() + "/../config.xml";
+	}
+
+	/**
+	 * Finds the only child element of a parent with a given name.
+	 *
+	 * @param parent the parent element to search.
+	 *
+	 * @param name the name of the child to look for.
+	 *
+	 * @return the child element, or null if no (or more than one) child had the
+	 * requested name.
+	 */
+	xmlpp::Element *find_child_element(const xmlpp::Element *parent, const Glib::ustring &name) {
+		const xmlpp::Node::NodeList &children = parent->get_children(name);
+		xmlpp::Element *found = 0;
+		for (xmlpp::Node::NodeList::const_iterator i = children.begin(), iend = children.end(); i != iend; ++i) {
+			xmlpp::Element *elt = dynamic_cast<xmlpp::Element *>(*i);
+			if (elt) {
+				if (found) {
+					return 0;
+				}
+				found = elt;
+			}
+		}
+		return found;
 	}
 }
 
@@ -130,20 +158,81 @@ Config::Config() : channel_(0x0E) {
 	try {
 		ifs.exceptions(std::ios_base::eofbit | std::ios_base::failbit | std::ios_base::badbit);
 		const std::string &filename = get_filename();
-		ifs.open(filename.c_str(), std::ios::in | std::ios::binary);
-		char signature[8];
-		ifs.read(signature, sizeof(signature));
-		if (std::equal(signature, signature + 8, "TBOTC001")) {
-			load_v1(ifs);
-		} else if (std::equal(signature, signature + 8, "TBOTC002")) {
-			load_v2(ifs);
-		} else if (std::equal(signature, signature + 8, "TBOTC003")) {
-			load_v3(ifs);
-		} else {
-			// Unknown version number. Give up.
-		}
+		ifs.open(filename.c_str(), std::ios::in);
 	} catch (const std::ifstream::failure &exp) {
 		// Swallow.
+		return;
+	}
+
+	ifs.exceptions(std::ios_base::goodbit);
+	xmlpp::DomParser parser;
+	parser.set_substitute_entities(true);
+	parser.parse_stream(ifs);
+	if (parser) {
+		const xmlpp::Document *document = parser.get_document();
+		const xmlpp::Element *root = document->get_root_node();
+		if (root) {
+			const xmlpp::Element *players = find_child_element(root, "players");
+			if (players) {
+				robots_.load(players);
+			}
+
+			const xmlpp::Element *radio = find_child_element(root, "radio");
+			if (radio) {
+				const Glib::ustring &channel_string = radio->get_attribute_value("channel");
+				std::istringstream iss(channel_string);
+				iss >> std::hex >> channel_;
+			}
+
+			const xmlpp::Element *params = find_child_element(root, "params");
+			if (params) {
+				const xmlpp::Node::NodeList &bool_param_list = params->get_children("bool-param");
+				for (xmlpp::Node::NodeList::const_iterator i = bool_param_list.begin(), iend = bool_param_list.end(); i != iend; ++i) {
+					const xmlpp::Element *bool_param = dynamic_cast<xmlpp::Element *>(*i);
+					if (bool_param) {
+						const Glib::ustring &name = bool_param->get_attribute_value("name");
+						const xmlpp::TextNode *value_node = bool_param->get_child_text();
+						if (value_node) {
+							const Glib::ustring &value_string = value_node->get_content();
+							bool value = value_string == "true";
+							bool_params[name] = value;
+						}
+					}
+				}
+
+				const xmlpp::Node::NodeList &int_param_list = params->get_children("int-param");
+				for (xmlpp::Node::NodeList::const_iterator i = int_param_list.begin(), iend = int_param_list.end(); i != iend; ++i) {
+					const xmlpp::Element *int_param = dynamic_cast<xmlpp::Element *>(*i);
+					if (int_param) {
+						const Glib::ustring &name = int_param->get_attribute_value("name");
+						const xmlpp::TextNode *value_node = int_param->get_child_text();
+						if (value_node) {
+							const Glib::ustring &value_string = value_node->get_content();
+							std::istringstream iss(value_string);
+							int value;
+							iss >> value;
+							int_params[name] = value;
+						}
+					}
+				}
+
+				const xmlpp::Node::NodeList &double_param_list = params->get_children("double-param");
+				for (xmlpp::Node::NodeList::const_iterator i = double_param_list.begin(), iend = double_param_list.end(); i != iend; ++i) {
+					const xmlpp::Element *double_param = dynamic_cast<xmlpp::Element *>(*i);
+					if (double_param) {
+						const Glib::ustring &name = double_param->get_attribute_value("name");
+						const xmlpp::TextNode *value_node = double_param->get_child_text();
+						if (value_node) {
+							const Glib::ustring &value_string = value_node->get_content();
+							std::istringstream iss(value_string);
+							double value;
+							iss >> value;
+							double_params[name] = value;
+						}
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -153,113 +242,50 @@ void Config::save() const {
 	ofs.exceptions(std::ios_base::failbit | std::ios_base::badbit);
 	const std::string &filename = get_filename();
 	ofs.open(filename.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
-	ofs.write("TBOTC003", 8);
-	robots_.save(ofs);
-	{
-		uint8_t ch = channel_;
-		ofs.write(reinterpret_cast<const char *>(&ch), 1);
+	xmlpp::Document document;
+	xmlpp::Element *root = document.create_root_node("thunderbots");
+	root->add_child_text("\n");
+
+	if (robots_.size() > 0) {
+		xmlpp::Element *players = root->add_child("players");
+		robots_.save(players);
+		root->add_child_text("\n");
 	}
 
-	uint32_t nparams;
+	xmlpp::Element *radio = root->add_child("radio");
+	radio->set_attribute("channel", Glib::ustring::format(std::hex, channel_));
+	root->add_child_text("\n");
 
-	nparams = bool_params.size();
-	ofs.write(reinterpret_cast<const char *>(&nparams), sizeof(nparams));
-	for (typeof(bool_params.begin()) i = bool_params.begin(); i != bool_params.end(); ++i) {
-		const std::string &name(i->first.raw());
-		uint32_t namelen = name.size();
-		ofs.write(reinterpret_cast<const char *>(&namelen), sizeof(namelen));
-		ofs.write(name.data(), name.size());
-		char value = i->second ? 1 : 0;
-		ofs.write(&value, sizeof(value));
+	xmlpp::Element *params = root->add_child("params");
+	if (!bool_params.empty() || !int_params.empty() || !double_params.empty()) {
+		params->add_child_text("\n");
 	}
+	for (std::map<Glib::ustring, bool>::const_iterator i = bool_params.begin(), iend = bool_params.end(); i != iend; ++i) {
+		xmlpp::Element *bool_param = params->add_child("bool-param");
+		bool_param->set_attribute("name", i->first);
+		bool_param->add_child_text(i->second ? "true" : "false");
+		params->add_child_text("\n");
+	}
+	for (std::map<Glib::ustring, int>::const_iterator i = int_params.begin(), iend = int_params.end(); i != iend; ++i) {
+		xmlpp::Element *int_param = params->add_child("int-param");
+		int_param->set_attribute("name", i->first);
+		int_param->add_child_text(Glib::ustring::format(i->second));
+		params->add_child_text("\n");
+	}
+	for (std::map<Glib::ustring, double>::const_iterator i = double_params.begin(), iend = double_params.end(); i != iend; ++i) {
+		xmlpp::Element *double_param = params->add_child("double-param");
+		double_param->set_attribute("name", i->first);
+		double_param->add_child_text(Glib::ustring::format(std::setprecision(9), i->second));
+		params->add_child_text("\n");
+	}
+	root->add_child_text("\n");
 
-	nparams = int_params.size();
-	ofs.write(reinterpret_cast<const char *>(&nparams), sizeof(nparams));
-	for (typeof(int_params.begin()) i = int_params.begin(); i != int_params.end(); ++i) {
-		const std::string &name(i->first.raw());
-		uint32_t namelen = name.size();
-		ofs.write(reinterpret_cast<const char *>(&namelen), sizeof(namelen));
-		ofs.write(name.data(), name.size());
-		int value = i->second;
-		ofs.write(reinterpret_cast<const char *>(&value), sizeof(value));
-	}
-
-	nparams = double_params.size();
-	ofs.write(reinterpret_cast<const char *>(&nparams), sizeof(nparams));
-	for (typeof(double_params.begin()) i = double_params.begin(); i != double_params.end(); ++i) {
-		const std::string &name(i->first.raw());
-		uint32_t namelen = name.size();
-		ofs.write(reinterpret_cast<const char *>(&namelen), sizeof(namelen));
-		ofs.write(name.data(), name.size());
-		double value = i->second;
-		ofs.write(reinterpret_cast<const char *>(&value), sizeof(value));
-	}
+	document.write_to_stream(ofs, "UTF-8");
 }
 
 void Config::channel(unsigned int chan) {
 	assert(0x0B <= chan && chan <= 0x1A);
 	channel_ = chan;
-}
-
-void Config::load_v1(std::istream &ifs) {
-	robots_.load_v1(ifs);
-	channel_ = 0x0E;
-}
-
-void Config::load_v2(std::istream &ifs) {
-	robots_.load_v2(ifs);
-	{
-		uint8_t ch;
-		ifs.read(reinterpret_cast<char *>(&ch), 1);
-		channel(ch);
-	}
-}
-
-void Config::load_v3(std::istream &ifs) {
-	robots_.load_v2(ifs);
-	{
-		uint8_t ch;
-		ifs.read(reinterpret_cast<char *>(&ch), 1);
-		channel(ch);
-	}
-
-	uint32_t nparams;
-
-	ifs.read(reinterpret_cast<char *>(&nparams), 4);
-	while (nparams--) {
-		uint32_t namelen;
-		ifs.read(reinterpret_cast<char *>(&namelen), 4);
-		char buffer[namelen];
-		ifs.read(buffer, sizeof(buffer));
-		Glib::ustring name(buffer, sizeof(buffer));
-		char value;
-		ifs.read(&value, sizeof(value));
-		bool_params[name] = !!value;
-	}
-
-	ifs.read(reinterpret_cast<char *>(&nparams), 4);
-	while (nparams--) {
-		uint32_t namelen;
-		ifs.read(reinterpret_cast<char *>(&namelen), 4);
-		char buffer[namelen];
-		ifs.read(buffer, sizeof(buffer));
-		Glib::ustring name(buffer, sizeof(buffer));
-		int value;
-		ifs.read(reinterpret_cast<char *>(&value), sizeof(value));
-		int_params[name] = value;
-	}
-
-	ifs.read(reinterpret_cast<char *>(&nparams), 4);
-	while (nparams--) {
-		uint32_t namelen;
-		ifs.read(reinterpret_cast<char *>(&namelen), 4);
-		char buffer[namelen];
-		ifs.read(buffer, sizeof(buffer));
-		Glib::ustring name(buffer, sizeof(buffer));
-		double value;
-		ifs.read(reinterpret_cast<char *>(&value), sizeof(value));
-		double_params[name] = value;
-	}
 }
 
 const Config::RobotInfo &Config::RobotSet::find(uint64_t address) const {
@@ -362,62 +388,40 @@ void Config::RobotSet::swap_colours() {
 	signal_colours_swapped.emit();
 }
 
-void Config::RobotSet::save(std::ostream &ofs) const {
-	{
-		uint32_t num_robots = robots.size();
-		ofs.write(reinterpret_cast<const char *>(&num_robots), 4);
+void Config::RobotSet::load(const xmlpp::Element *players) {
+	const xmlpp::Node::NodeList &player_list = players->get_children("player");
+	for (xmlpp::Node::NodeList::const_iterator i = player_list.begin(), iend = player_list.end(); i != iend; ++i) {
+		xmlpp::Element *player = dynamic_cast<xmlpp::Element *>(*i);
+		if (player) {
+			const Glib::ustring &address_string = player->get_attribute_value("address");
+			uint64_t address = 0;
+			{
+				std::istringstream iss(address_string);
+				iss >> std::hex >> address;
+			}
+			const Glib::ustring &colour_string = player->get_attribute_value("colour");
+			bool yellow = colour_string == "yellow";
+			const Glib::ustring &pattern_index_string = player->get_attribute_value("pattern");
+			unsigned int pattern_index = 0;
+			{
+				std::istringstream iss(pattern_index_string);
+				iss >> pattern_index;
+			}
+			const Glib::ustring &name = player->get_attribute_value("name");
+			add(address, yellow, pattern_index, name);
+		}
 	}
+}
+
+void Config::RobotSet::save(xmlpp::Element *players) const {
+	players->add_child_text("\n");
 	for (std::vector<RobotInfo>::const_iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
-		ofs.write(reinterpret_cast<const char *>(&i->address), 8);
-		{
-			uint8_t ui = i->yellow ? 0xFF : 0;
-			ofs.write(reinterpret_cast<const char *>(&ui), 1);
-		}
-		{
-			uint32_t ui = i->pattern_index;
-			ofs.write(reinterpret_cast<const char *>(&ui), 4);
-		}
-		const std::string &encoded(i->name);
-		{
-			uint32_t len = encoded.size();
-			ofs.write(reinterpret_cast<const char *>(&len), 4);
-			ofs.write(encoded.data(), len);
-		}
+		xmlpp::Element *player = players->add_child("player");
+		player->set_attribute("address", Glib::ustring::format(std::hex, std::setw(16), std::setfill(L'0'), i->address));
+		player->set_attribute("colour", i->yellow ? "yellow" : "blue");
+		player->set_attribute("pattern", Glib::ustring::format(i->pattern_index));
+		player->set_attribute("name", i->name);
+		players->add_child_text("\n");
 	}
-}
-
-void Config::RobotSet::load_v1(std::istream &ifs) {
-	uint32_t num_robots;
-	ifs.read(reinterpret_cast<char *>(&num_robots), 4);
-	while (num_robots--) {
-		uint64_t address;
-		ifs.read(reinterpret_cast<char *>(&address), 8);
-		bool yellow;
-		{
-			uint8_t ui;
-			ifs.read(reinterpret_cast<char *>(&ui), 1);
-			yellow = !!ui;
-		}
-		unsigned int pattern_index;
-		{
-			uint32_t ui;
-			ifs.read(reinterpret_cast<char *>(&ui), 4);
-			pattern_index = ui;
-		}
-		Glib::ustring name;
-		{
-			uint32_t len;
-			ifs.read(reinterpret_cast<char *>(&len), 4);
-			char raw[len];
-			ifs.read(raw, len);
-			std::string encoded(raw, len);
-			name = encoded;
-		}
-		add(address, yellow, pattern_index, name);
-	}
-}
-
-void Config::RobotSet::load_v2(std::istream &ifs) {
-	load_v1(ifs);
 }
 

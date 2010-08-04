@@ -21,7 +21,7 @@ SOURCES_xbeerconfig := uicomponents util xbeerconfig.cpp xbee/client xbee/shared
 #
 # Here, write the linker flags to be used for each project.
 #
-LDFLAGS_common := -Wl,--as-needed -Wl,-O1 $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf) -lrt
+LDFLAGS_common := -Wl,--as-needed -Wl,-O1 $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf libxml++-2.6) -lrt
 LDFLAGS_ai := $(LDFLAGS_common)
 LDFLAGS_config := $(LDFLAGS_common)
 LDFLAGS_fw := $(LDFLAGS_common)
@@ -36,7 +36,7 @@ LDFLAGS_xbeerconfig := $(LDFLAGS_common)
 #
 # Here, write the compiler flags to be used.
 #
-override CXXFLAGS := -std=gnu++0x -Wall -Wextra -Wold-style-cast -O2 -fomit-frame-pointer -g -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -pthread $(shell pkg-config --cflags glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf | sed 's/-I/-isystem /g') $(CXXFLAGS) -I.
+override CXXFLAGS := -std=gnu++0x -Wall -Wextra -Wold-style-cast -O2 -fomit-frame-pointer -g -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -pthread $(shell pkg-config --cflags glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf libxml++-2.6 | sed 's/-I/-isystem /g') $(CXXFLAGS) -I.
 
 #
 # DO NOT MODIFY STUFF BELOW HERE WITHOUT A GOOD REASON.
