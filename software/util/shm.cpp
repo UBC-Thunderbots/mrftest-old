@@ -1,5 +1,6 @@
 #include "util/misc.h"
 #include "util/shm.h"
+#include "util/umask.h"
 #include <stdexcept>
 #include <cstdlib>
 #include <unistd.h>
@@ -8,21 +9,8 @@
 #include <sys/types.h>
 
 namespace {
-	class UMaskModifier : public NonCopyable {
-		public:
-			UMaskModifier(mode_t newmode) : oldmode(umask(newmode)) {
-			}
-
-			~UMaskModifier() {
-				umask(oldmode);
-			}
-
-		private:
-			mode_t oldmode;
-	};
-
 	FileDescriptor::Ptr create_new_temp_file(std::size_t sz) {
-		UMaskModifier um(0077);
+		UMaskScopedModification um(0077);
 		char path[] = "/tmp/xbeed.XXXXXX";
 		int ret = mkstemp(path);
 		if (ret < 0) {
