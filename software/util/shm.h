@@ -71,11 +71,11 @@ class RawShmBlock : public NonCopyable {
 		 * \return the file descriptor holding the shared memory block.
 		 */
 		int fd() const {
-			return fd_;
+			return fd_->fd();
 		}
 
 	private:
-		FileDescriptor::Ptr fd_;
+		const FileDescriptor::Ptr fd_;
 		std::size_t size_;
 		uint8_t *data_;
 };
