@@ -53,6 +53,18 @@ class FileDescriptor : public ByRef {
 		static Ptr create_socket(int pf, int type, int proto);
 
 		/**
+		 * Constructs a new FileDescriptor by calling \c \c mkstemp(3) with the
+		 * specified filename pattern concatenated to the appropriate temporary
+		 * directory, from environment variables \c TMPDIR, \c TMP, or \c TEMP
+		 * or else a hardcoded default. The file will have been unlinked.
+		 *
+		 * \param[in] pattern the pattern for the filename.
+		 *
+		 * \return the new descriptor.
+		 */
+		static Ptr create_temp(const char *pattern);
+
+		/**
 		 * Destroys a FileDescriptor.
 		 */
 		~FileDescriptor();
@@ -81,6 +93,7 @@ class FileDescriptor : public ByRef {
 		FileDescriptor(int fd);
 		FileDescriptor(const char *file, int flags, mode_t mode);
 		FileDescriptor(int pf, int type, int proto);
+		FileDescriptor(const char *pattern);
 };
 
 #endif

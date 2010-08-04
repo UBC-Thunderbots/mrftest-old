@@ -1,9 +1,13 @@
 #include "util/exception.h"
 #include "util/fd.h"
+#include <cstdlib>
+#include <fcntl.h>
+#include <glibmm.h>
+#include <string>
+#include <unistd.h>
+#include <vector>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <unistd.h>
-#include <fcntl.h>
 
 FileDescriptor::Ptr FileDescriptor::create_from_fd(int fd) {
 	const Ptr p(new FileDescriptor(fd));
@@ -17,6 +21,11 @@ FileDescriptor::Ptr FileDescriptor::create_open(const char *file, int flags, mod
 
 FileDescriptor::Ptr FileDescriptor::create_socket(int pf, int type, int proto) {
 	const Ptr p(new FileDescriptor(pf, type, proto));
+	return p;
+}
+
+FileDescriptor::Ptr FileDescriptor::create_temp(const char *pattern) {
+	const Ptr p(new FileDescriptor(pattern));
 	return p;
 }
 
@@ -75,6 +84,25 @@ FileDescriptor::FileDescriptor(const char *file, int flags, mode_t mode) : fd_(o
 FileDescriptor::FileDescriptor(int af, int type, int proto) : fd_(socket(af, type, proto)) {
 	if (fd_ < 0) {
 		throw SystemError("socket", errno);
+	}
+}
+
+FileDescriptor::FileDescriptor(const char *pattern) {
+	const std::string &tmpdir = Glib::get_tmp_dir();
+	std::vector<char> filename(tmpdir.begin(), tmpdir.end());
+	filename.push_back('/');
+	for (const char *ptr = pattern; *ptr; ++ptr) {
+		filename.push_back(*ptr);
+	}
+	filename.push_back('\0');
+	fd_ = mkstemp(&filename[0]);
+	if (fd_ < 0) {
+		throw SystemError("mkstemp", errno);
+	}
+	if (unlink(&filename[0]) < 0) {
+		int saved_errno = errno;
+		::close(fd_);
+		throw SystemError("unlink", saved_errno);
 	}
 }
 

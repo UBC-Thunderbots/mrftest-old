@@ -10,15 +10,8 @@
 
 namespace {
 	FileDescriptor::Ptr create_new_temp_file(std::size_t sz) {
-		UMaskScopedModification um(0077);
-		char path[] = "/tmp/xbeed.XXXXXX";
-		int ret = mkstemp(path);
-		if (ret < 0) {
-			throw std::runtime_error("Cannot create temporary file!");
-		}
-		const FileDescriptor::Ptr fd(FileDescriptor::create_from_fd(ret));
-		unlink(path);
-		if (ftruncate(fd, sz) < 0) {
+		const FileDescriptor::Ptr fd(FileDescriptor::create_temp("xbeed.XXXXXX"));
+		if (ftruncate(fd->fd(), sz) < 0) {
 			throw std::runtime_error("Cannot resize temporary file!");
 		}
 		return fd;
