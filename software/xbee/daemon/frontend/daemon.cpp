@@ -52,12 +52,12 @@ namespace {
 		}
 		std::copy(socket_path.begin(), socket_path.end(), &sa.un.sun_path[0]);
 		std::fill(&sa.un.sun_path[socket_path.size()], &sa.un.sun_path[sizeof(sa.un.sun_path) / sizeof(*sa.un.sun_path)], '\0');
-		if (bind(listen_sock, &sa.sa, sizeof(sa.un)) < 0) {
+		if (bind(listen_sock->fd(), &sa.sa, sizeof(sa.un)) < 0) {
 			throw std::runtime_error("Cannot bind UNIX-domain socket!");
 		}
 
 		// Listen for incoming connections.
-		if (listen(listen_sock, SOMAXCONN) < 0) {
+		if (listen(listen_sock->fd(), SOMAXCONN) < 0) {
 			throw std::runtime_error("Cannot listen on UNIX-domain socket!");
 		}
 
@@ -135,7 +135,7 @@ void XBeeDaemon::check_shutdown() {
 }
 
 bool XBeeDaemon::on_accept(Glib::IOCondition) {
-	int newfd = accept(listen_sock, 0, 0);
+	int newfd = accept(listen_sock->fd(), 0, 0);
 	if (newfd >= 0) {
 		const FileDescriptor::Ptr fd(FileDescriptor::create_from_fd(newfd));
 		if (!universe_claimed) {

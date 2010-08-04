@@ -98,7 +98,7 @@ namespace {
 		mh.msg_control = controlbuf;
 		mh.msg_controllen = sizeof(controlbuf);
 		mh.msg_flags = 0;
-		if (recvmsg(sock, &mh, 0) != 3) {
+		if (recvmsg(sock->fd(), &mh, 0) != 3) {
 			throw std::runtime_error("Cannot receive from socket!");
 		}
 		if (databuf[0] != 'S' || databuf[1] != 'H' || databuf[2] != 'M') {
