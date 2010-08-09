@@ -75,6 +75,24 @@ Names of files shall be in all lowercase with underscores separating words (and 
 
 
 
+Order of Class Members
+----------------------
+
+Within a class, first have a "public:" tag, then all the public members, then the same for protected and private.
+
+Within an access level, list members in this order:
+1. Typedefs
+2. Constants (static const members)
+3. Variables
+4. Static functions and operators
+5. Constructors
+6. Destructors
+7. Member functions and operators
+
+There should never be a private static function in a class body. As such a function is not associated with an instance of the class and cannot be called from anywhere other than the file implementing the class, such a function should be made file-scope, that is, placed within the anonymous namespace in the source file.
+
+
+
 Miscellaneous Language Features
 -------------------------------
 
