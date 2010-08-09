@@ -13,6 +13,44 @@ template<typename T>
 class RefPtr {
 	public:
 		/**
+		 * Performs a \c static_cast on a RefPtr.
+		 *
+		 * \tparam U the type to \c static_cast from.
+		 *
+		 * \param[in] pu the pointer to cast.
+		 *
+		 * \return a RefPtr pointing to the result of performing a \c
+		 * static_cast<T> on <code>pu</code>'s underlying pointer.
+		 */
+		template<typename U>
+		static RefPtr<T> cast_static(const RefPtr<U> &pu) {
+			T *pt = static_cast<T *>(pu.operator->());
+			if (pt) {
+				pt->reference();
+			}
+			return RefPtr<T>(pt);
+		}
+
+		/**
+		 * Performs a \c dynamic_cast on a RefPtr.
+		 *
+		 * \tparam U the type to \c dynamic_cast from.
+		 *
+		 * \param[in] pu the pointer to cast.
+		 *
+		 * \return a RefPtr pointing to the result of performing a \c
+		 * dynamic_cast<T> on <code>pu</code>'s underlying pointer.
+		 */
+		template<typename U>
+		static RefPtr<T> cast_dynamic(const RefPtr<U> &pu) {
+			T *pt = dynamic_cast<T *>(pu.operator->());
+			if (pt) {
+				pt->reference();
+			}
+			return RefPtr<T>(pt);
+		}
+
+		/**
 		 * Constructs a new null RefPtr.
 		 */
 		RefPtr() : obj(0) {
@@ -153,44 +191,6 @@ class RefPtr {
 		 */
 		void swap(RefPtr<T> &other) {
 			std::swap(obj, other.obj);
-		}
-
-		/**
-		 * Performs a \c static_cast on a RefPtr.
-		 *
-		 * \tparam U the type to \c static_cast from.
-		 *
-		 * \param[in] pu the pointer to cast.
-		 *
-		 * \return a RefPtr pointing to the result of performing a \c
-		 * static_cast<T> on <code>pu</code>'s underlying pointer.
-		 */
-		template<typename U>
-		static RefPtr<T> cast_static(const RefPtr<U> &pu) {
-			T *pt = static_cast<T *>(pu.operator->());
-			if (pt) {
-				pt->reference();
-			}
-			return RefPtr<T>(pt);
-		}
-
-		/**
-		 * Performs a \c dynamic_cast on a RefPtr.
-		 *
-		 * \tparam U the type to \c dynamic_cast from.
-		 *
-		 * \param[in] pu the pointer to cast.
-		 *
-		 * \return a RefPtr pointing to the result of performing a \c
-		 * dynamic_cast<T> on <code>pu</code>'s underlying pointer.
-		 */
-		template<typename U>
-		static RefPtr<T> cast_dynamic(const RefPtr<U> &pu) {
-			T *pt = dynamic_cast<T *>(pu.operator->());
-			if (pt) {
-				pt->reference();
-			}
-			return RefPtr<T>(pt);
 		}
 
 	private:
