@@ -235,7 +235,7 @@ Point calc_block_cone(const Point &a, const Point &b, const Point& p, const doub
 		Point R = p + calc_block_cone(a - p, b - p, radius);
 		/*
 #warning: THIS MAGIC THRESHOLD should be fixed after competition
-		//TODO: Fix this magic number
+#warning TODO: Fix this magic number
 		const double MIN_X = std::min(-2.5, (p.x + 3.025) / 2.0 - 3.025);
 		if (R.x < MIN_X){
 				R = (R - p) * ((MIN_X - p.x) / (R.x - p.x)) + p;

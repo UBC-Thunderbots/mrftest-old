@@ -351,7 +351,7 @@ void RobotNavigator::tick() {
 	flags = 0;
 }
 
-// TODO: use the util functions
+#warning TODO: use the util functions
 bool RobotNavigator::check_vector(const Point& start, const Point& dest, const Point& direction) const {
 	return check_obstacles(start, dest, direction) == EMPTY;
 }

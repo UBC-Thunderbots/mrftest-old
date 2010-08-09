@@ -39,7 +39,6 @@ namespace AIUtil {
 
 	extern DoubleParam DRIBBLE_TIMEOUT;
 
-	// TODO: base this on distance.
 	/**
 	 * If the robot orientation is within this angle,
 	 * then it can shoot accurately.
@@ -121,7 +120,6 @@ namespace AIUtil {
 	 */
 	bool path_check(const Point& begin, const Point& end, const std::vector<Point>& obstacles, const double thresh);
 
-	// TODO: maybe the source to a point instead of defaulting to ball.
 	/**
 	 * Checks if the passee can get the ball now.
 	 * Returns false if some robots is blocking line of sight of ball from passee

@@ -31,6 +31,7 @@ namespace AIUtil {
 
 	DoubleParam CHASE_BALL_DIST("chase: How close before chasing", Ball::RADIUS * 2, 0.0, Ball::RADIUS * 4);
 
+#warning TODO: base this on distance
 	DoubleParam ORI_CLOSE("kick: general accuracy (rads)", 5.0 * M_PI / 180.0, 0, M_PI / 2);
 
 	bool ball_close(const World::Ptr w, const Robot::Ptr p) {
@@ -87,6 +88,7 @@ namespace AIUtil {
 		return true;
 	}
 
+#warning TODO: maybe the source to a point instead of defaulting to ball
 	bool can_receive(const World::Ptr w, const Player::Ptr passee) {
 		const Ball::Ptr ball = w->ball();
 		if ((ball->position() - passee->position()).lensq() < POS_CLOSE) {
