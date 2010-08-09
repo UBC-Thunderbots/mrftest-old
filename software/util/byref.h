@@ -243,6 +243,8 @@ class ByRef : public NonCopyable {
 		/**
 		 * Returns the reference count of the object. This can be used to check
 		 * for leaking references at the expected point of destruction.
+		 *
+		 * \return the reference count.
 		 */
 		unsigned int refs() const {
 			return refs_;
