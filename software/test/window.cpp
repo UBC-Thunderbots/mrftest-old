@@ -160,7 +160,7 @@ void TesterWindow::drive_mode_changed() {
 	const Glib::ustring &cur = drive_chooser.get_active_text();
 	if (cur == "Halt") {
 		// No controls, but need to scram the drive motors.
-		if (bot) {
+		if (bot.is()) {
 			bot->drive_scram();
 		}
 	} else if (cur == "Direct Drive") {
@@ -188,25 +188,25 @@ void TesterWindow::drive_mode_changed() {
 }
 
 void TesterWindow::on_dribble_change() {
-	if (bot) {
+	if (bot.is()) {
 		bot->dribble(dribble_scale.get_value());
 	}
 }
 
 void TesterWindow::on_chicker_enable_change() {
-	if (bot) {
+	if (bot.is()) {
 		bot->enable_chicker(chicker_enabled.get_active());
 	}
 }
 
 void TesterWindow::on_chicker_kick() {
-	if (bot) {
+	if (bot.is()) {
 		bot->kick(static_cast<unsigned int>(chicker_power.get_value() + 0.1) / 32);
 	}
 }
 
 void TesterWindow::on_chicker_chip() {
-	if (bot) {
+	if (bot.is()) {
 		bot->chip(static_cast<unsigned int>(chicker_power.get_value() + 0.1) / 32);
 	}
 }
@@ -224,7 +224,7 @@ void TesterWindow::on_chicker_autochip_toggled() {
 }
 
 void TesterWindow::on_feedback() {
-	if (bot) {
+	if (bot.is()) {
 		if (bot->chicker_ready()) {
 			chicker_ready_light.set_colour(0, 1, 0);
 			if (chicker_autokick.get_active()) {

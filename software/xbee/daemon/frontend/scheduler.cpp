@@ -65,7 +65,7 @@ void XBeeScheduler::push() {
 		if (req->has_response()) {
 			uint8_t frame = req->data()[1];
 			assert(frame);
-			assert(!sent[frame].data);
+			assert(!sent[frame].data.is());
 			sent[frame].data = req;
 			sent[frame].timeout_connection = Glib::signal_timeout().connect(sigc::bind(sigc::mem_fun(this, &XBeeScheduler::on_request_timeout), frame), TIMEOUT);
 			++sent_count;
@@ -236,7 +236,7 @@ void XBeeScheduler::on_receive(const std::vector<uint8_t> &data) {
 		// We're receiving an XBee-layer response to a queued XBeeRequest. Use the
 		// frame number to dispatch the XBeeRequest to the proper handlers.
 		uint8_t frame = data[1];
-		if (sent[frame].data) {
+		if (sent[frame].data.is()) {
 			// This matches a sent frame.
 			assert(sent[frame].data->has_response());
 			sent[frame].data->signal_complete().emit(&data[0], data.size());

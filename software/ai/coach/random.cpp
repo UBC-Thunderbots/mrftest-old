@@ -39,7 +39,7 @@ namespace {
 
 	void RandomCoach::tick() {
 		// If there is no Strategy or if it has resigned, choose a new one.
-		if (!get_strategy() || (get_strategy() && get_strategy()->has_resigned())) {
+		if (!get_strategy().is() || (get_strategy().is() && get_strategy()->has_resigned())) {
 			const std::vector<StrategyFactory *> &factories = Coach::get_strategies_by_play_type(world->playtype());
 			if (factories.empty()) {
 				clear_strategy();
@@ -49,7 +49,7 @@ namespace {
 		}
 
 		// If there is a Strategy, run it.
-		if (get_strategy()) {
+		if (get_strategy().is()) {
 			get_strategy()->tick();
 		}
 	}

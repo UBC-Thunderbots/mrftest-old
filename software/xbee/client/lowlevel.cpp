@@ -75,7 +75,7 @@ namespace {
 		for (;;) {
 			// Try connecting to an already-running daemon.
 			const FileDescriptor::Ptr sock(connect_to_existing_daemon());
-			if (sock) {
+			if (sock.is()) {
 				return sock;
 			}
 
@@ -175,21 +175,21 @@ bool XBeeLowLevel::on_readable(Glib::IOCondition cond) {
 		signal_receive16.emit(address, hdr->rssi, &buffer[sizeof(*hdr)], ret - sizeof(*hdr));
 	} else if (buffer[0] == XBeePacketTypes::TRANSMIT_STATUS_APIID) {
 		const XBeePacketTypes::TRANSMIT_STATUS *pkt = reinterpret_cast<const XBeePacketTypes::TRANSMIT_STATUS *>(buffer);
-		if (packets[pkt->frame]) {
+		if (packets[pkt->frame].is()) {
 			packets[pkt->frame]->signal_complete().emit(pkt, ret);
 			packets[pkt->frame].reset();
 			frame_allocator.free(pkt->frame);
 		}
 	} else if (buffer[0] == XBeePacketTypes::REMOTE_AT_RESPONSE_APIID) {
 		const XBeePacketTypes::REMOTE_AT_RESPONSE *pkt = reinterpret_cast<const XBeePacketTypes::REMOTE_AT_RESPONSE *>(buffer);
-		if (packets[pkt->frame]) {
+		if (packets[pkt->frame].is()) {
 			packets[pkt->frame]->signal_complete().emit(pkt, ret);
 			packets[pkt->frame].reset();
 			frame_allocator.free(pkt->frame);
 		}
 	} else if (buffer[0] == XBeePacketTypes::AT_RESPONSE_APIID) {
 		const XBeePacketTypes::AT_RESPONSE *pkt = reinterpret_cast<const XBeePacketTypes::AT_RESPONSE *>(buffer);
-		if (packets[pkt->frame]) {
+		if (packets[pkt->frame].is()) {
 			packets[pkt->frame]->signal_complete().emit(pkt, ret);
 			packets[pkt->frame].reset();
 			frame_allocator.free(pkt->frame);

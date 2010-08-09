@@ -44,7 +44,7 @@ void TesterFeedback::set_bot(XBeeDriveBot::Ptr bot) {
 	run_data_interval_level.set_bot(bot);
 	success_level.set_bot(bot);
 	robot = bot;
-	if (robot) {
+	if (robot.is()) {
 		connection = robot->signal_feedback.connect(sigc::mem_fun(this, &TesterFeedback::update));
 	}
 	for (unsigned int i = 0; i < 5; ++i) {

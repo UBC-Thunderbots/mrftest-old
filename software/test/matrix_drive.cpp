@@ -32,7 +32,7 @@ void TesterControlMatrixDrive::on_change() {
 		{35.9169, -35.9169, 4.3175},
 		{42.5995, 27.6645, 4.3175}
 	};
-	if (robot) {
+	if (robot.is()) {
 		double input[3] = {
 			drive1_scale.get_value(),
 			drive2_scale.get_value(),

@@ -238,11 +238,11 @@ bool Visualizer::on_button_release_event(GdkEventButton *evt) {
 
 bool Visualizer::on_motion_notify_event(GdkEventMotion *evt) {
 	Gtk::DrawingArea::on_motion_notify_event(evt);
-	if (dragging) {
+	if (dragging.is()) {
 		// Move the object being dragged.
 		dragging->visualizer_drag(Point(xtow(evt->x), ytow(evt->y)));
 		update();
-	} else if (veldragging) {
+	} else if (veldragging.is()) {
 		// Update the dragging velocity.
 #warning IMPLEMENT VELOCITY DRAGGING
 #if 0

@@ -11,7 +11,7 @@ RunDataIntervalMeter::RunDataIntervalMeter() : last_run_data_interval(-1) {
 void RunDataIntervalMeter::set_bot(XBeeDriveBot::Ptr bot) {
 	connection.disconnect();
 	robot = bot;
-	if (robot) {
+	if (robot.is()) {
 		connection = robot->signal_feedback.connect(sigc::mem_fun(this, &RunDataIntervalMeter::update));
 	}
 	set_fraction(0);

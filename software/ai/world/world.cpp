@@ -216,7 +216,7 @@ bool World::on_vision_readable(Glib::IOCondition) {
 					bot->seen_this_frame = false;
 					if (bot->vision_failures >= MAX_VISION_FAILURES) {
 						Player::Ptr plr(Player::Ptr::cast_dynamic(bot));
-						if (plr) {
+						if (plr.is()) {
 							plr->controller.reset();
 						}
 						bot.reset();
@@ -244,7 +244,7 @@ bool World::on_vision_readable(Glib::IOCondition) {
 									name = conf.robots()[m].name;
 								}
 							}
-							if (xbeebot) {
+							if (xbeebot.is()) {
 								Player::Ptr plr(Player::create(name, colour, pattern_index, xbeebot));
 								plr->sign = east_ ? -1 : 1;
 								plr->update(detbot);

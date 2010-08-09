@@ -26,7 +26,7 @@ TesterControlPerMotorDrive::TesterControlPerMotorDrive(XBeeDriveBot::Ptr bot) : 
 }
 
 void TesterControlPerMotorDrive::on_change() {
-	if (robot) {
+	if (robot.is()) {
 		int m1 = static_cast<int16_t>(drive1_scale.get_value());
 		int m2 = static_cast<int16_t>(drive2_scale.get_value());
 		int m3 = static_cast<int16_t>(drive3_scale.get_value());

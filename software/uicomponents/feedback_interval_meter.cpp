@@ -11,7 +11,7 @@ FeedbackIntervalMeter::FeedbackIntervalMeter() : last_feedback_interval(-1) {
 void FeedbackIntervalMeter::set_bot(XBeeDriveBot::Ptr bot) {
 	connection.disconnect();
 	robot = bot;
-	if (robot) {
+	if (robot.is()) {
 		connection = robot->signal_feedback.connect(sigc::mem_fun(this, &FeedbackIntervalMeter::update));
 	}
 	set_fraction(0);

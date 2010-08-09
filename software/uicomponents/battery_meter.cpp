@@ -11,7 +11,7 @@ BatteryMeter::BatteryMeter() : last_voltage(std::numeric_limits<unsigned int>::m
 void BatteryMeter::set_bot(XBeeDriveBot::Ptr bot) {
 	connection.disconnect();
 	robot = bot;
-	if (robot) {
+	if (robot.is()) {
 		connection = robot->signal_feedback.connect(sigc::mem_fun(this, &BatteryMeter::update));
 	}
 	set_fraction(0);

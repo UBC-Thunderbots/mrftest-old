@@ -61,14 +61,14 @@ void SimulatorRobot::run_data_offset(uint8_t offset) {
 }
 
 void SimulatorRobot::add_player() {
-	if (!player_) {
+	if (!player_.is()) {
 		player_ = engine->add_player();
 		signal_changed.emit();
 	}
 }
 
 void SimulatorRobot::remove_player() {
-	if (player_) {
+	if (player_.is()) {
 		engine->remove_player(player_);
 		player_.reset();
 		signal_changed.emit();

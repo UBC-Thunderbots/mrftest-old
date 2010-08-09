@@ -198,7 +198,7 @@ Player::State::Ptr Player::get_state(const std::type_info &tid) const {
 }
 
 void Player::set_state(const std::type_info &tid, Player::State::Ptr state) {
-	if (state) {
+	if (state.is()) {
 		state_store[&tid] = state;
 	} else {
 		state_store.erase(&tid);
@@ -229,7 +229,7 @@ void Player::tick(bool scram) {
 	not_moved_message.activate(bot->alive() && !scram && !moved);
 
 	// Emergency conditions that cause scram of all systems.
-	if (!bot->alive() || scram || !controller || bot->battery_voltage() < BATTERY_CRITICAL_THRESHOLD) {
+	if (!bot->alive() || scram || !controller.is() || bot->battery_voltage() < BATTERY_CRITICAL_THRESHOLD) {
 		moved = false;
 		new_dribble_power = 0;
 	}
@@ -248,7 +248,7 @@ void Player::tick(bool scram) {
 			new_dribble_power = calc_dribble(output, new_dribble_power);
 		}
 	} else {
-		if (controller) {
+		if (controller.is()) {
 			controller->clear();
 		}
 		if (bot->alive()) {

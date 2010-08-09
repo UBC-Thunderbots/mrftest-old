@@ -10,7 +10,7 @@ void SuccessMeter::set_bot(XBeeDriveBot::Ptr bot) {
 	update_connection.disconnect();
 	dead_connection.disconnect();
 	robot = bot;
-	if (robot) {
+	if (robot.is()) {
 		update_connection = robot->signal_feedback.connect(sigc::mem_fun(this, &SuccessMeter::update));
 		dead_connection = robot->signal_dead.connect(sigc::mem_fun(this, &SuccessMeter::on_bot_dead));
 	}

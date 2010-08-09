@@ -160,7 +160,7 @@ void Simulator::packet_handler(const std::vector<uint8_t> &data) {
 		uint16_t recipient = (req.hdr.address[0] << 8) | req.hdr.address[1];
 		if (data.size() == sizeof(req) + 1 && recipient != 0xFFFF) {
 			SimulatorRobot::Ptr bot(find_by16(recipient));
-			if (bot) {
+			if (bot.is()) {
 				bot->run_data_offset(req.data[0]);
 				resp.status = XBeePacketTypes::TRANSMIT_STATUS_SUCCESS;
 			} else {
@@ -177,7 +177,7 @@ void Simulator::packet_handler(const std::vector<uint8_t> &data) {
 					const XBeePacketTypes::RUN_DATA &rundata = *reinterpret_cast<const XBeePacketTypes::RUN_DATA *>(&req.data[bot->run_data_offset()]);
 					if (rundata.flags & XBeePacketTypes::RUN_FLAG_RUNNING) {
 						SimulatorPlayer::Ptr plr(bot->get_player());
-						if (plr) {
+						if (plr.is()) {
 							plr->received(rundata);
 						}
 						if (rundata.flags & XBeePacketTypes::RUN_FLAG_FEEDBACK) {
@@ -195,7 +195,7 @@ void Simulator::packet_handler(const std::vector<uint8_t> &data) {
 							fb.data.flags = XBeePacketTypes::FEEDBACK_FLAG_RUNNING;
 #warning implement outbound RSSI support
 							fb.data.outbound_rssi = 40;
-							fb.data.dribbler_speed = plr ? plr->dribbler_speed() : 0;
+							fb.data.dribbler_speed = plr.is() ? plr->dribbler_speed() : 0;
 							fb.data.battery_level = std::min(ADC_MAX, static_cast<uint16_t>(bot->battery() / (DIVIDER_LOWER + DIVIDER_UPPER) * DIVIDER_LOWER / VCC * ADC_MAX));
 #warning implement fault support
 							fb.data.faults = 0;
@@ -263,7 +263,7 @@ void Simulator::tick() {
 		for (std::unordered_map<uint64_t, SimulatorRobot::Ptr>::const_iterator j(robots_.begin()), jend(robots_.end()); j != jend; ++j) {
 			SimulatorRobot::Ptr bot(j->second);
 			SimulatorPlayer::Ptr plr(bot->get_player());
-			if (plr && plr->position().x * LIMIT_SIGNS[i] > -LIMIT_MAG) {
+			if (plr.is() && plr->position().x * LIMIT_SIGNS[i] > -LIMIT_MAG) {
 				SSL_DetectionRobot *elem;
 				const Config::RobotInfo &info(conf.robots().find(j->first));
 				if (info.yellow) {

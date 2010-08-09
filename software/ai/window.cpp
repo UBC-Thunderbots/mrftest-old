@@ -71,7 +71,7 @@ namespace {
 				alm_column_record.add(run_data_interval_column);
 
 				for (unsigned int i = 0; i < bots.size(); ++i) {
-					if (bots[i]) {
+					if (bots[i].is()) {
 						bots[i]->signal_feedback.connect(sigc::bind(sigc::mem_fun(this, &RobotInfoModel::alm_row_changed), i));
 						bots[i]->signal_alive.connect(sigc::bind(sigc::mem_fun(this, &RobotInfoModel::alm_row_changed), i));
 						bots[i]->signal_dead.connect(sigc::bind(sigc::mem_fun(this, &RobotInfoModel::alm_row_changed), i));
@@ -84,7 +84,7 @@ namespace {
 
 			void on_player_added(unsigned int, Player::Ptr plr) {
 				for (unsigned int i = 0; i < bots.size(); ++i) {
-					if (bots[i] && bots[i]->address == plr->address()) {
+					if (bots[i].is() && bots[i]->address == plr->address()) {
 						visible[i] = true;
 						alm_row_changed(i);
 					}
@@ -93,7 +93,7 @@ namespace {
 
 			void on_player_removed(unsigned int, Player::Ptr plr) {
 				for (unsigned int i = 0; i < bots.size(); ++i) {
-					if (bots[i] && bots[i]->address == plr->address()) {
+					if (bots[i].is() && bots[i]->address == plr->address()) {
 						visible[i] = false;
 						alm_row_changed(i);
 					}
@@ -114,7 +114,7 @@ namespace {
 				} else if (col == static_cast<unsigned int>(radio_column.index())) {
 					Glib::Value<bool> v;
 					v.init(visible_column.type());
-					v.set(bots[row] ? bots[row]->alive() : false);
+					v.set(bots[row].is() ? bots[row]->alive() : false);
 					value.init(visible_column.type());
 					value = v;
 				} else if (col == static_cast<unsigned int>(visible_column.index())) {
@@ -126,13 +126,13 @@ namespace {
 				} else if (col == static_cast<unsigned int>(battery_column.index())) {
 					Glib::Value<unsigned int> v;
 					v.init(battery_column.type());
-					v.set(bots[row] ? (bots[row]->alive() ? bots[row]->battery_voltage() : 0) : 0);
+					v.set(bots[row].is() ? (bots[row]->alive() ? bots[row]->battery_voltage() : 0) : 0);
 					value.init(battery_column.type());
 					value = v;
 				} else if (col == static_cast<unsigned int>(feedback_interval_column.index())) {
 					Glib::Value<unsigned int> v;
 					v.init(feedback_interval_column.type());
-					if (bots[row] && bots[row]->alive()) {
+					if (bots[row].is() && bots[row]->alive()) {
 						const timespec &ts(bots[row]->feedback_interval());
 						unsigned int ms = timespec_to_millis(ts);
 						v.set(ms);
@@ -144,7 +144,7 @@ namespace {
 				} else if (col == static_cast<unsigned int>(run_data_interval_column.index())) {
 					Glib::Value<unsigned int> v;
 					v.init(run_data_interval_column.type());
-					if (bots[row] && bots[row]->alive()) {
+					if (bots[row].is() && bots[row]->alive()) {
 						const timespec &ts(bots[row]->run_data_interval());
 						unsigned int ms = timespec_to_millis(ts);
 						v.set(ms);
@@ -264,7 +264,7 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), playtype_override_chooser(),
 		coach_chooser.append_text(i->second->name);
 	}
 	const Coach::Ptr coach(ai.get_coach());
-	if (coach) {
+	if (coach.is()) {
 		coach_chooser.set_active_text(coach->get_factory().name);
 	} else {
 		coach_chooser.set_active_text("<Select Coach>");
@@ -272,7 +272,7 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), playtype_override_chooser(),
 	coach_chooser.signal_changed().connect(sigc::mem_fun(this, &AIWindow::on_coach_changed));
 	coach_vbox.pack_start(coach_chooser, Gtk::PACK_SHRINK);
 	strategy_hbox.pack_start(strategy_label, Gtk::PACK_SHRINK);
-	if (coach) {
+	if (coach.is()) {
 		coach->signal_strategy_changed.connect(sigc::mem_fun(this, &AIWindow::on_strategy_changed));
 	}
 	strategy_entry.set_text("<None>");
@@ -388,7 +388,7 @@ void AIWindow::put_coach_controls() {
 	}
 
 	const Coach::Ptr c(ai.get_coach());
-	if (c) {
+	if (c.is()) {
 		coach_controls = c->get_ui_controls();
 		if (!coach_controls) {
 			coach_controls = Gtk::manage(new Gtk::Label("No controls."));
@@ -422,6 +422,6 @@ void AIWindow::on_flipped_refbox_colour() {
 }
 
 void AIWindow::on_strategy_changed(Strategy::Ptr strat) {
-	strategy_entry.set_text(strat ? strat->get_factory().name : "<None>");
+	strategy_entry.set_text(strat.is() ? strat->get_factory().name : "<None>");
 }
 

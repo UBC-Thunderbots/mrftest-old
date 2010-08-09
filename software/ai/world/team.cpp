@@ -25,7 +25,7 @@ EnemyTeam::Ptr EnemyTeam::create() {
 }
 
 void EnemyTeam::add(Robot::Ptr bot) {
-	assert(bot);
+	assert(bot.is());
 	const std::vector<Robot::Ptr>::iterator i = std::lower_bound(members.begin(), members.end(), bot, RobotComparator());
 	const unsigned int index = std::distance(members.begin(), i);
 	members.insert(i, bot);
@@ -48,7 +48,7 @@ FriendlyTeam::Ptr FriendlyTeam::create() {
 }
 
 void FriendlyTeam::add(Player::Ptr bot) {
-	assert(bot);
+	assert(bot.is());
 	const std::vector<Player::Ptr>::iterator i = std::lower_bound(members.begin(), members.end(), bot, RobotComparator());
 	const unsigned int index = std::distance(members.begin(), i);
 	members.insert(i, bot);

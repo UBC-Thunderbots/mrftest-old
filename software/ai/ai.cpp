@@ -13,7 +13,7 @@ Coach::Ptr AI::get_coach() const {
 
 void AI::set_coach(Coach::Ptr c) {
 	if (coach != c) {
-		LOG_DEBUG(Glib::ustring::compose("Changing coach to %1.", c ? c->get_factory().name : "<None>"));
+		LOG_DEBUG(Glib::ustring::compose("Changing coach to %1.", c.is() ? c->get_factory().name : "<None>"));
 		coach = c;
 	}
 }
@@ -38,14 +38,14 @@ void AI::tick() {
 	}
 
 	// If we have a Coach installed, tick it. It will drive the rest of the AI.
-	if (coach) {
+	if (coach.is()) {
 		coach->tick();
 	}
 
 	// Tick the robots to drive through robot controllers and XBee.
 	for (unsigned int i = 0; i < world->friendly.size(); ++i) {
 		const Player::Ptr plr(world->friendly.get_player(i));
-		plr->tick(world->playtype() == PlayType::HALT || !coach || (coach && !coach->get_strategy()));
+		plr->tick(world->playtype() == PlayType::HALT || !coach.is() || (coach.is() && !coach->get_strategy().is()));
 	}
 }
 
@@ -56,7 +56,7 @@ void AI::player_added(unsigned int, Player::Ptr plr) {
 }
 
 void AI::player_removed(unsigned int, Player::Ptr plr) {
-	if (plr->controller && plr->controller->refs() != 1) {
+	if (plr->controller.is() && plr->controller->refs() != 1) {
 		LOG_WARN(Glib::ustring::compose("Leak detected of robot_controller for player<%1,%2>.", plr->yellow ? 'Y' : 'B', plr->pattern_index));
 	}
 	plr->controller.reset();
@@ -68,7 +68,7 @@ void AI::set_robot_controller_factory(RobotControllerFactory *fact) {
 		rc_factory = fact;
 		for (unsigned int i = 0; i < world->friendly.size(); ++i) {
 			const Player::Ptr plr(world->friendly.get_player(i));
-			if (plr->controller && plr->controller->refs() != 1) {
+			if (plr->controller.is() && plr->controller->refs() != 1) {
 				LOG_WARN(Glib::ustring::compose("Leak detected of robot_controller for player<%1,%2>.", plr->yellow ? 'Y' : 'B', plr->pattern_index));
 			}
 			plr->controller.reset();

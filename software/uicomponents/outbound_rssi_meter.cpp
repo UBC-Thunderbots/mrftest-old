@@ -9,7 +9,7 @@ OutboundRSSIMeter::OutboundRSSIMeter() : last_rssi(-1) {
 void OutboundRSSIMeter::set_bot(XBeeDriveBot::Ptr bot) {
 	connection.disconnect();
 	robot = bot;
-	if (robot) {
+	if (robot.is()) {
 		connection = robot->signal_feedback.connect(sigc::mem_fun(this, &OutboundRSSIMeter::update));
 	}
 	set_fraction(0);

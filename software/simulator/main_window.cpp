@@ -83,10 +83,10 @@ namespace {
 			}
 
 			void on_changed() {
-				if (bot) {
+				if (bot.is()) {
 					power_button.set_active(bot->powered());
 					power_button.set_sensitive(true);
-					field_button.set_active(!!bot->get_player());
+					field_button.set_active(bot->get_player().is());
 					field_button.set_sensitive(true);
 					battery_scale.set_value(bot->battery());
 					battery_scale.set_sensitive(true);
@@ -109,13 +109,13 @@ namespace {
 			}
 
 			void on_power_switched() {
-				if (bot) {
+				if (bot.is()) {
 					bot->powered(power_button.get_active());
 				}
 			}
 
 			void on_field_switched() {
-				if (bot) {
+				if (bot.is()) {
 					if (field_button.get_active()) {
 						bot->add_player();
 					} else {
@@ -125,7 +125,7 @@ namespace {
 			}
 
 			void on_battery_moved() {
-				if (bot) {
+				if (bot.is()) {
 					bot->battery(battery_scale.get_value());
 				}
 			}

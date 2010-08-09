@@ -366,7 +366,7 @@ void XBeeClient::on_meta_claim_universe() {
 void XBeeClient::on_meta_claim(const XBeePacketTypes::META_CLAIM &req) {
 	// Look up the state of the requested robot.
 	XBeeRobot::Ptr state = daemon.robots[req.address];
-	if (!state) {
+	if (!state.is()) {
 		state = XBeeRobot::create(req.address, daemon);
 		daemon.robots[req.address] = state;
 	}

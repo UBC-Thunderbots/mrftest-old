@@ -134,11 +134,11 @@ class SimulatorRobot : public Visualizable::Robot {
 		void remove_player();
 
 		Point position() const {
-			return player_ ? player_->position() : Point();
+			return player_.is() ? player_->position() : Point();
 		}
 
 		double orientation() const {
-			return player_ ? player_->orientation() : 0.0;
+			return player_.is() ? player_->orientation() : 0.0;
 		}
 
 	private:
@@ -154,7 +154,7 @@ class SimulatorRobot : public Visualizable::Robot {
 		SimulatorRobot(const Config::RobotInfo &, SimulatorEngine::Ptr);
 
 		bool visualizer_visible() const {
-			return !!player_;
+			return player_.is();
 		}
 
 		Visualizable::RobotColour visualizer_colour() const {

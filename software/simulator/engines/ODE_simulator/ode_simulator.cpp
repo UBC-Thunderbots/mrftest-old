@@ -378,7 +378,7 @@ namespace {
 				PlayerODE::Ptr robot1 = get_player_from_shape(o1);
 				PlayerODE::Ptr robot2 = get_player_from_shape(o2);
 
-						if(robot1 || robot2){
+						if(robot1.is() || robot2.is()){
 							return;
 						}
 

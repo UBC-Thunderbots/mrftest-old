@@ -63,7 +63,7 @@ namespace {
 				ctx->line_to(width, height / 2.0);
 				ctx->stroke();
 
-				if (stick) {
+				if (stick.is()) {
 					// Draw the angular velocity line.
 					double t = stick->axis(AXIS_ROT);
 					t = t / 32767.0 * M_PI;
@@ -192,7 +192,7 @@ namespace {
 	}
 
 	void JoystickController::move(const Point &, double, Point &linear_velocity, double &angular_velocity) {
-		if (stick) {
+		if (stick.is()) {
 			if (get_ui().absolute()) {
 				// World coordinates.
 				// Positive world X is east.

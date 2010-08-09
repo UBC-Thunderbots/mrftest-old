@@ -67,7 +67,7 @@ namespace {
 		}
 		Config conf;
 		SimulatorEngine::Ptr engine(create_engine(engine_name));
-		if (engine) {
+		if (engine.is()) {
 			TimerFDClockSource clk((UINT64_C(1000000000) + TIMESTEPS_PER_SECOND / 2) / TIMESTEPS_PER_SECOND);
 			Simulator sim(conf, engine, clk);
 			XBeeDaemon d(sim);
