@@ -45,7 +45,7 @@ void AI::tick() {
 	// Tick the robots to drive through robot controllers and XBee.
 	for (unsigned int i = 0; i < world->friendly.size(); ++i) {
 		const Player::Ptr plr(world->friendly.get_player(i));
-		plr->tick(world->playtype() == PlayType::HALT || !coach.is() || (coach.is() && !coach->get_strategy().is()));
+		plr->tick(world->playtype() == PlayType::HALT || !coach.is() || !coach->get_strategy().is());
 	}
 }
 
