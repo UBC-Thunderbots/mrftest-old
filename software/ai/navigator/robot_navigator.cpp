@@ -66,8 +66,7 @@ namespace {
 
 }
 
-RobotNavigator::RobotNavigator(Player::Ptr player, World::Ptr world) : the_player(player), the_world(world), position_initialized(false), orientation_initialized(false), flags(0) {
-}
+
 
 double RobotNavigator::get_avoidance_factor() const {
 	return AVOID_CONST + AVOID_MULT * the_player->est_velocity().len();
@@ -244,8 +243,8 @@ void RobotNavigator::tick() {
 	const Field &the_field(the_world->field());
 
 	const Point balldist = the_ball->position() - the_player->position();
-	Point wantdest = (position_initialized) ? target_position : the_player->position();
-	const double wantori = (orientation_initialized) ? target_orientation : atan2(balldist.y, balldist.x);
+	Point wantdest =  target_position.first;
+	const double wantori = target_orientation.first;
 	wantdest = get_inbounds_point(wantdest);
 	const double distance = (wantdest - the_player->position()).len();
 
@@ -267,10 +266,7 @@ void RobotNavigator::tick() {
 		the_player->dribble(get_robot_set_point(the_player->pattern_index));
 	}
 
-	// DO NOT FORGET! reset orientation settings.
-	orientation_initialized = false;
-	position_initialized = false;
-	need_dribble = true;
+
 
 	// at least face the ball
 	if (distance < AIUtil::POS_EPS) {
@@ -431,3 +427,17 @@ bool RobotNavigator::check_ball(const Point& start, const Point& dest, const Poi
 	return false;
 }
 
+		/**
+		* When a player is added will need to make a new player navigator for it
+		*/
+Navigator::Ptr TeamRobotNavigator::create_navigator(Player::Ptr play){
+  RobotNavigator::Ptr rn(new RobotNavigator(play, the_world));
+  return rn;
+}
+		
+  void TeamRobotNavigator::tick(){
+    std::vector<Player::Ptr> pl =  the_world->friendly.get_players();
+    for(int i=0; i<pl.size(); i++){
+      ( RefPtr<RobotNavigator>::cast_static(navis[pl[i]->address()]))->tick();
+    }
+  }

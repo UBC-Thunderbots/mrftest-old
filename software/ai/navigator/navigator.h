@@ -1,6 +1,7 @@
 #ifndef AI_NAVIGATOR_NAVIGATOR_H
 #define AI_NAVIGATOR_NAVIGATOR_H
 
+#include "util/registerable.h"
 #include "ai/world/player.h"
 #include "ai/world/robot.h"
 #include "ai/world/world.h"
@@ -8,7 +9,7 @@
 #include "util/noncopyable.h"
 #include <utility>
 #include <map>
-
+#include <glibmm.h>
 
 /**
  * A player's view of navigation
@@ -17,15 +18,19 @@
  * navigators there is a one-to-one relation between 
  * players and Navigators
  */
-class Navigator : public ByRef {
+class Navigator : public ByRef{
 
 	public:
 		/**
 		 * A pointer to a Navigator object.
 		 */
-		typedef RefPtr<Navigator> Ptr;	
+		typedef RefPtr<Navigator> Ptr;
+		
+		const Player::Ptr the_player;
+		const World::Ptr the_world;	
 	
-		Navigator(Player::Ptr player, World::Ptr world);
+		Navigator(Player::Ptr player, World::Ptr world):the_player(player), the_world(world){
+		}
 
 		/**
 		 * Sets the desired location.
@@ -91,6 +96,9 @@ class Navigator : public ByRef {
 		*
 		*/
 		unsigned int flags;
+		
+
+		
 	private:
 	
 };
@@ -99,47 +107,52 @@ class Navigator : public ByRef {
 /**
  * Single instance of TeamNavigator handles navigation for all players on the controllable team
  */
-class TeamNavigator : public NonCopyable, public sigc::trackable{
+class TeamNavigator : public ByRef, public sigc::trackable{
 	public:
+	
+		/**
+		 * A pointer to a TeamNavigator object.
+		 */
+		typedef RefPtr<TeamNavigator> Ptr;
+	
 		TeamNavigator(World::Ptr world):the_world(world){
 			the_world->friendly.signal_player_removed.connect(sigc::mem_fun(this, &TeamNavigator::on_player_removed));
 			the_world->friendly.signal_player_added.connect(sigc::mem_fun(this, &TeamNavigator::on_player_added));
-			the_world->enemy.signal_robot_removed.connect(sigc::mem_fun(this, &TeamNavigator::on_enemy_removed));
-			the_world->enemy.signal_robot_added.connect(sigc::mem_fun(this, &TeamNavigator::on_enemy_added));
 		}
 		
 		/**
 		* map from player to the player's navigator
 		* the rest of the ai operates on the player's navigator, not the team navigator
 		*/
-		std::map<Player::Ptr, Navigator::Ptr> navis;
-		
-	private:
 
-	
-		void tick();
 		
+		Navigator::Ptr operator[](Player::Ptr p){
+			return navis[p->address()];
+		}
+	
+	
+		virtual void tick()=0;
+		
+	protected:
 		/**
 		* When a player is added will need to make a new player navigator for it
 		*/
-		void on_player_added(unsigned int, Player::Ptr play);
+		void on_player_added(unsigned int, Player::Ptr play){
+			navis.insert(std::pair<uint64_t, Navigator::Ptr>(play->address(), create_navigator(play)));
+		}
 		
 		/**
 		* When a player is removed will need to destroy player navigator for it
 		*/		
-		void on_player_removed(unsigned int, Player::Ptr play);
+		void on_player_removed(unsigned int, Player::Ptr play){
+			navis.erase(play->address());
+		}
 		
-		/**
-		* We may want to keep tabs on the enemy
-		*/
-		void on_enemy_added(unsigned int, Robot::Ptr bot);
-		
-		/**
-		* We may want to keep tabs on the enemy
-		*/		
-		void on_enemy_removed(unsigned int, Robot::Ptr bot);
-	
+		virtual Navigator::Ptr create_navigator(Player::Ptr play)=0;
+				
 		const World::Ptr the_world;
+		
+		std::map<uint64_t, Navigator::Ptr> navis;	
 
 };
 
