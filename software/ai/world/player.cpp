@@ -67,6 +67,7 @@ namespace {
 	}
 }
 
+#warning why the hell is this number so small?
 const unsigned int Player::CHICKER_FOREVER = 1000;
 
 const double Player::MAX_DRIBBLE_DIST = 0.30;

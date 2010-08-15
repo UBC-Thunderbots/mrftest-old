@@ -99,6 +99,7 @@ std::pair<Point, double> angle_sweep_circles(const Point& src, const Point& p1, 
 				return (std::fabs((b - a).cross(c - a)) < EPS);
 		}
 
+#warning this should accept a Rect rather than two points
 Point clip_point(const Point& p, const Point& bound1, const Point& bound2) {
 		const double minx = std::min(bound1.x, bound2.x);
 		const double miny = std::min(bound1.y, bound2.y);
@@ -177,6 +178,7 @@ inline int sign(const double n) {
 						* sign((b2 - b1).cross(a2 - b1)) <= 0;
 		}
 
+#warning use pass-by-reference
 bool line_seg_intersect_rectangle(Point seg[2], Point recA[4]){
 		bool intersect = point_in_rectangle(seg[0], recA) || point_in_rectangle(seg[1], recA);
 		for(int i = 0; i<4; i++){
@@ -187,6 +189,7 @@ bool line_seg_intersect_rectangle(Point seg[2], Point recA[4]){
 		return intersect;
 }
 
+#warning use pass-by-reference
 bool point_in_rectangle(Point pointA, Point recA[4]){
 
 		bool x_ok = pointA.x >= std::min(std::min(recA[0].x,recA[1].x),std::min(recA[2].x, recA[3].x));
@@ -199,10 +202,12 @@ bool point_in_rectangle(Point pointA, Point recA[4]){
 }
 
 Point reflect(const Point& v, const Point& n) {
+#warning do you mean "n.len() < EPS"? also use assert().
 		if (n.len() < 0) {
 				std::cerr  << "geom: reflect: zero length" << std::endl;
 				return v;
 		}
+#warning that's what ".norm()" is there for
 		Point normal = n / n.len();
 		return 2 * v.dot(normal) * normal - v;
 }
