@@ -63,6 +63,7 @@ class Rect {
 		*/
 		void translate(const Point &offset);		
 		
+	private:
 		Point min_corner;
 		Point diag;
 };
