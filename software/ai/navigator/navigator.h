@@ -52,9 +52,8 @@ class Navigator : public ByRef{
 		 * \param[in] error the radius of a circle where the robot is "close
 		 * enough" to its target.
 		 */
-		void set_position(const Point& position, double error) {
-			target_position.first = position;
-			target_position.second = error;
+		void set_position(const std::pair<Point,double> &position) {
+			target_position=position;
 		}
 
 		/**
@@ -68,9 +67,8 @@ class Navigator : public ByRef{
 		 * \param[in] error the number of radians inside of which the robot is
 		 * "close enough" to its target orientaton.
 		 */
-		void set_orientation(const double& orientation, double error) {
-			target_orientation.first = orientation;
-			target_orientation.second = error;
+		void set_orientation(const std::pair<double,double> &orientation) {
+			target_orientation=orientation;
 		}
 
 		/**
@@ -86,6 +84,10 @@ class Navigator : public ByRef{
 		 */
 		void set_dribbler(bool dribble) {
 			need_dribble = dribble;
+		}
+
+		bool get_dribbler(){
+			return need_dribble;
 		}
 
 		/**
@@ -105,8 +107,14 @@ class Navigator : public ByRef{
 		void unset_flags(unsigned int f) {
 			flags &= ~f;
 		}
+		
+		/**
+		 * returns a copy or the flags set
+		 */
+		unsigned int get_flags(){
+			return flags;
+		}
 
-	protected:
 		/**
 		 * A target position and an error.
 		 */ 
@@ -116,6 +124,8 @@ class Navigator : public ByRef{
 		 * A target orientation and an error.
 		 */
 		std::pair<double,double> target_orientation;
+
+	protected:
 		
 		/*
 		 * \c true if the robot should dribble when it has the ball, or \c false
@@ -191,7 +201,10 @@ class TeamNavigator : public ByRef, public sigc::trackable{
 			navis.erase(play->address());
 		}
 		
-		virtual Navigator::Ptr create_navigator(Player::Ptr play)=0;
+		virtual Navigator::Ptr create_navigator(Player::Ptr play){
+			Navigator::Ptr rn(new Navigator(play, the_world));
+			return rn;
+		}
 				
 		const World::Ptr the_world;
 		

@@ -1,4 +1,4 @@
-#include "ai/navigator/robot_navigator.h"
+#include "ai/navigator/greedy_navigator.h"
 #include "ai/util.h"
 #include "ai/flags.h"
 #include "geom/util.h"
@@ -68,22 +68,22 @@ namespace {
 
 
 
-double RobotNavigator::get_avoidance_factor() const {
+double TeamGreedyNavigator::get_avoidance_factor() const {
 	return AVOID_CONST + AVOID_MULT * the_player->est_velocity().len();
 }
 
-Point RobotNavigator::force_defense_len(Point dst){
+Point TeamGreedyNavigator::force_defense_len(Point dst){
     Point temp = dst;
     temp.x = std::max(the_world->field().friendly_goal().x + the_world->field().defense_area_radius() + Robot::MAX_RADIUS, dst.x);
     return temp;
 }
 
-Point RobotNavigator::force_offense_len(Point dst){
+Point TeamGreedyNavigator::force_offense_len(Point dst){
     Point temp = dst;
     temp.x = std::min(the_world->field().enemy_goal().x - (the_world->field().defense_area_radius()+OFFENSIVE_AVOID), dst.x);
     return temp;
 }
-Point RobotNavigator::clip_defense_area(Point dst){
+Point TeamGreedyNavigator::clip_defense_area(Point dst){
 
   Point seg[2];
   seg[0] = the_player->position();
@@ -111,7 +111,7 @@ Point RobotNavigator::clip_defense_area(Point dst){
 	    
 }
 
-Point RobotNavigator::clip_offense_area(Point dst){
+Point TeamGreedyNavigator::clip_offense_area(Point dst){
 
   Point seg[2];
   seg[0] = the_player->position();
@@ -138,7 +138,7 @@ Point RobotNavigator::clip_offense_area(Point dst){
   	
 }
 
-Point RobotNavigator::clip_circle(Point circle_centre, double circle_radius, Point dst){
+Point TeamGreedyNavigator::clip_circle(Point circle_centre, double circle_radius, Point dst){
 
   		Point wantdest = dst;
 		Point circle_centre_diff =  the_player->position() -  circle_centre;
@@ -172,12 +172,12 @@ Point RobotNavigator::clip_circle(Point circle_centre, double circle_radius, Poi
 
 }
 
-Point RobotNavigator::clip_playing_area(Point wantdest){
+Point TeamGreedyNavigator::clip_playing_area(Point wantdest){
 	const Field &the_field(the_world->field());
    return  clip_point(wantdest, Point(-the_field.length()/2 + the_field.bounds_margin(), -the_field.width()/2 + the_field.bounds_margin()), Point(the_field.length()/2 - the_field.bounds_margin(), the_field.width()/2 - the_field.bounds_margin()));
 }
 
-Point RobotNavigator::get_inbounds_point(Point dst){
+Point TeamGreedyNavigator::get_inbounds_point(Point dst){
 
 	const Ball::Ptr the_ball(the_world->ball());
 	const Field &the_field(the_world->field());
@@ -238,7 +238,15 @@ Point RobotNavigator::get_inbounds_point(Point dst){
 	return wantdest;
 }
 
-void RobotNavigator::tick() {
+void TeamGreedyNavigator::tick(Player::Ptr play) {
+
+  Navigator::Ptr nv = navis[play->address()];
+  the_player =play;
+  target_position = nv->target_position;
+  target_orientation = nv->target_orientation;
+  flags = nv->get_flags();
+  need_dribble = nv->get_dribbler();
+
 	const Ball::Ptr the_ball(the_world->ball());
 	const Field &the_field(the_world->field());
 
@@ -329,7 +337,7 @@ void RobotNavigator::tick() {
 
 	if(stop) {
 		the_player->move(the_player->position(), wantori);
-		flags = 0;
+		//	flags = 0;
 		return;
 	}
 
@@ -344,15 +352,15 @@ void RobotNavigator::tick() {
 		the_player->move(the_player->position() + selected_direction * std::min(distance, correct_amount), wantori);
 	}
 
-	flags = 0;
+	//	flags = 0;
 }
 
 #warning TODO: use the util functions
-bool RobotNavigator::check_vector(const Point& start, const Point& dest, const Point& direction) const {
+bool TeamGreedyNavigator::check_vector(const Point& start, const Point& dest, const Point& direction) const {
 	return check_obstacles(start, dest, direction) == EMPTY;
 }
 
-unsigned int RobotNavigator::check_obstacles(const Point& start, const Point& dest, const Point& direction) const {
+unsigned int TeamGreedyNavigator::check_obstacles(const Point& start, const Point& dest, const Point& direction) const {
 	const Ball::Ptr the_ball(the_world->ball());
 	const Point startdest = dest - start;
 	const double lookahead = std::min<double>(startdest.len(), LOOKAHEAD_MAX);
@@ -404,7 +412,7 @@ unsigned int RobotNavigator::check_obstacles(const Point& start, const Point& de
 }
 
 
-bool RobotNavigator::check_ball(const Point& start, const Point& dest, const Point& direction) const {
+bool TeamGreedyNavigator::check_ball(const Point& start, const Point& dest, const Point& direction) const {
 	const Ball::Ptr the_ball(the_world->ball());
 	const Point startdest = dest - start;
 	const double lookahead = std::min<double>(startdest.len(), LOOKAHEAD_MAX);
@@ -426,18 +434,10 @@ bool RobotNavigator::check_ball(const Point& start, const Point& dest, const Poi
 	
 	return false;
 }
-
-		/**
-		* When a player is added will need to make a new player navigator for it
-		*/
-Navigator::Ptr TeamRobotNavigator::create_navigator(Player::Ptr play){
-  RobotNavigator::Ptr rn(new RobotNavigator(play, the_world));
-  return rn;
-}
 		
-  void TeamRobotNavigator::tick(){
+  void TeamGreedyNavigator::tick(){
     std::vector<Player::Ptr> pl =  the_world->friendly.get_players();
     for(int i=0; i<pl.size(); i++){
-      ( RefPtr<RobotNavigator>::cast_static(navis[pl[i]->address()]))->tick();
+      tick(pl[i]);
     }
   }
