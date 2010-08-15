@@ -4,19 +4,21 @@
 #include "xbee/client/drive.h"
 #include <gtkmm.h>
 
-//
-// A meter showing the communication success of a robot.
-//
+/**
+ * A meter showing the communication success of a robot.
+ */
 class SuccessMeter : public Gtk::ProgressBar, public NonCopyable {
 	public:
-		//
-		// Constructs a SuccessMeter with no robot.
-		//
+		/**
+		 * Constructs a SuccessMeter with no robot.
+		 */
 		SuccessMeter();
 
-		//
-		// Sets which robot this success meter will monitor.
-		//
+		/**
+		 * Sets which robot this success meter will monitor.
+		 *
+		 * \param[in] bot the robot to monitor.
+		 */
 		void set_bot(XBeeDriveBot::Ptr bot);
 
 	private:

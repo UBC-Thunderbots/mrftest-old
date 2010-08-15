@@ -12,7 +12,7 @@ class Claim : public WatchableOperation {
 		/**
 		 * Constructs a new Claim.
 		 *
-		 * \param bot the robot to wait for.
+		 * \param[in] bot the robot to wait for.
 		 */
 		Claim(XBeeRawBot::Ptr bot);
 

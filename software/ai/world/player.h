@@ -18,12 +18,12 @@ class World;
 class Player : public Robot {
 	public:
 		/**
-		 * A state block associated with a Player. AI classes that need to store
-		 * permanent state on a per-player basis but that cannot do so inside
-		 * themselves (by reason of being destroyed frequently) should subclass
-		 * this class, add the necessary state information as fields in the
-		 * subclass, and then use the Player::get_state and Player::set_state
-		 * functions to retrieve and store the state block.
+		 * A state block associated with a Player. %AI classes that need to
+		 * store permanent state on a per-player basis but that cannot do so
+		 * inside themselves (by reason of being destroyed frequently) should
+		 * subclass this class, add the necessary state information as fields in
+		 * the subclass, and then use the Player::get_state and
+		 * Player::set_state functions to retrieve and store the state block.
 		 */
 		class State : public ByRef {
 			public:
@@ -50,93 +50,120 @@ class Player : public Robot {
 		typedef RefPtr<Player> Ptr;
 
 		/**
+		 * Gets the player's 64-bit address.
+		 *
 		 * \return the player's 64-bit address.
 		 */
 		uint64_t address() const;
 
 		/**
-		 * \return the maximum dribble distance.
+		 * The maximum dribble distance.
 		 */
 		static const double MAX_DRIBBLE_DIST;
 
 		/**
 		 * Instructs the player to move.
-		 * \param dest the destination point to move to
-		 * \param ori the target origin to rotate to
+		 *
+		 * \param[in] dest the destination point to move to.
+		 *
+		 * \param[in] ori the target origin to rotate to.
 		 */
 		void move(const Point &dest, double ori);
 
 		/**
 		 * Sets the speed of the dribbler motor. If this is not invoked by the
-		 * AI in a particular time tick, the dribbler will turn off.
-		 * \param speed the speed to run at, from 0 to 1
+		 * %AI in a particular time tick, the dribbler will turn off.
+		 *
+		 * \param[in] speed the speed to run at, from 0 to 1.
 		 */
 		void dribble(double speed);
 
 		/**
+		 * Gets the delay until the chicker is ready.
+		 *
 		 * \return the number of milliseconds until the chicker is ready to use.
 		 */
 		unsigned int chicker_ready_time() const;
 
 		/**
 		 * Fires the kicker.
-		 * \param power the power to kick at, from 0 to 1
+		 *
+		 * \param[in] power the power to kick at, from 0 to 1.
 		 */
 		void kick(double power);
 
 		/**
 		 * Fires the chipper.
-		 * \param power the power to chip at, from 0 to 1
+		 *
+		 * \param[in] power the power to chip at, from 0 to 1.
 		 */
 		void chip(double power);
 
 		/**
-		 * \return the number of consecutive times the robot's dribbler sense the ball.
-		 * WARNING!!! This can be a false positive,
+		 * Gets the number of times the dribbler motor has sensed load
+		 * proportional to having the ball. This can have false positives,
 		 * especially if the dribbler is spinning up or down.
+		 *
+		 * \return the number of consecutive times the robot's dribbler sensed
+		 * the ball.
 		 */
 		int sense_ball() const {
 			return sense_ball_;
 		}
 
 		/**
-		 * \return The number of seconds for which the player has sensed the ball.
+		 * Gets the number of seconds the dribbler motor has sensed load
+		 * proportional to having the ball. This can have false positives,
+		 * especially if the dribbler is spinning up or down.
+		 *
+		 * \return the number of seconds for which the robot's dribbler sensed
+		 * the ball.
 		 */
 		double sense_ball_time() const;
 	
 		/**
-		 * \return The number of seconds elapsed since the player has sensed the ball.
-		 * May stop the AI from panicking if the player losses the ball temporarily.
+		 * Gets the number of seconds since the player stopped sending the ball
+		 * on its dribbler. This can be used to detect a momentary loss of
+		 * sensing as compared to a complete genuine loss of ball.
+		 *
+		 * \return the number of seconds elapsed since the player last sensed
+		 * the ball.
 		 */
 		double last_sense_ball_time() const;
 	
 		/**
-		 * \return The speed the dribbler would be spinning at given the
-		 * current power level if it were spinning unloaded and if it had been
-		 * given sufficient time to stabilize, in RPM
+		 * Gets the speed the dribbler would be spinning at given the current
+		 * power level if it were unloaded and had finished spinning up.
+		 *
+		 * \return the theoretical dribbler speed, in RPM.
 		 */
 		unsigned int theory_dribbler_speed() const {
 			return theory_dribble_rpm;
 		}
 
 		/**
-		 * \return The speed the dribbler is running at, in RPM
+		 * Gets the current speed the dribbler is spinning.
+		 *
+		 * \return the dribbler speed, in RPM.
 		 */
 		unsigned int dribbler_speed() const {
 			return bot->dribbler_speed();
 		}
 
 		/**
-		 * \return the distance this player has travelled while dribbling the
-		 * ball, in metres (or \c 0.0 if the player is not dribbling now).
+		 * Gets the distance the player has travelled while dribbling the ball.
+		 *
+		 * \return the distance in metres.
 		 */
 		double dribble_distance() const {
 			return dribble_distance_;
 		}
 
 		/**
-		 * \return Whether the dribbler is safe to use, i.e. won't stall the
-		 * motor for too long.
+		 * Checks whether the dribbler is currently safe to use (i.e. isn't too
+		 * hot from stallling a lot).
+		 *
+		 * \return \c true if the dribbler can be used, or \c false if not.
 		 */
 		bool dribbler_safe() const;
 
@@ -148,7 +175,7 @@ class Player : public Robot {
 		 *
 		 * \return the corresponding State block (which can be cast to a derived
 		 * type with RefPtr::cast_dynamic), or a null pointer if no State
-		 * is associated with the given class
+		 * is associated with the given class.
 		 */
 		State::Ptr get_state(const std::type_info &tid) const;
 
@@ -171,8 +198,8 @@ class Player : public Robot {
 		const Glib::ustring name;
 
 		/**
-		 * If chicker takes this amount of time to recharge,
-		 * then chicker is R.I.P.
+		 * The value returned by chicker_ready_time() const if the chicker is
+		 * probably never going to be ready.
 		 */
 		static const unsigned int CHICKER_FOREVER;
 
@@ -204,7 +231,7 @@ class Player : public Robot {
 		 * \param[in] pattern_index the index of the vision pattern associated
 		 * with the player.
 		 *
-		 * \param[in] bot the XBee robot being driven
+		 * \param[in] bot the XBee robot being driven.
 		 *
 		 * \return the new object.
 		 */
@@ -221,13 +248,14 @@ class Player : public Robot {
 		 * \param[in] pattern_index the index of the vision pattern associated
 		 * with the player.
 		 *
-		 * \param[in] bot the XBee robot being driven
+		 * \param[in] bot the XBee robot being driven.
 		 */
 		Player(const Glib::ustring &name, bool yellow, unsigned int pattern_index, XBeeDriveBot::Ptr bot);
 
 		/**
 		 * Drives one tick of time through the RobotController and to the XBee.
-		 * \param scram whether or not to scram the robot
+		 *
+		 * \param[in] scram whether or not to scram the robot.
 		 */
 		void tick(bool scram);
 

@@ -12,10 +12,11 @@
 class Simulator;
 
 /**
- * A simulation of an actual physical robot. This is different from the SimulatorPlayer
- * class in that a SimulatorPlayer is a live, driving SimulatorRobot provided by an engine,
- * whereas a SimulatorRobot may actually be powered off, crashed, off the field, unclaimed,
- * or otherwise not driving normally.
+ * A simulation of an actual physical robot. This is different from the
+ * SimulatorPlayer class in that a SimulatorPlayer is a live, driving
+ * SimulatorRobot provided by an engine, whereas a SimulatorRobot may actually
+ * be powered off, crashed, off the field, unclaimed, or otherwise not driving
+ * normally.
  *
  * While the set of players in existence may change as robots are powered up and
  * down and moved onto and off of the field, the set of robots is fixed when the
@@ -39,16 +40,20 @@ class SimulatorRobot : public Visualizable::Robot {
 		sigc::signal<void> signal_changed;
 
 		/**
-		 * Creates a new SimulatorRobot. The robot is initially located off the field and
-		 * its power switch is initially off.
-		 * \param address the robot's address
-		 * \param engine the simulator engine that will back the robot when it
-		 * is running
+		 * Creates a new SimulatorRobot. The robot is initially located off the
+		 * field and its power switch is initially off.
+		 *
+		 * \param[in] address the robot's address.
+		 *
+		 * \param[in] engine the simulator engine that will back the robot when
+		 * it is running.
 		 */
 		static Ptr create(const Config::RobotInfo &botinfo, SimulatorEngine::Ptr engine);
 
 		/**
-		 * \return true if the robot is powered, or false if not
+		 * Checks whether the robot is powered.
+		 *
+		 * \return \c true if the robot is powered, or \c false if not.
 		 */
 		bool powered() const {
 			return powered_;
@@ -56,12 +61,16 @@ class SimulatorRobot : public Visualizable::Robot {
 
 		/**
 		 * Powers the robot up or down.
-		 * \param pwr true to power the robot up, or false to power it down
+		 *
+		 * \param[in] pwr \c true to power the robot up, or \c false to power it
+		 * down.
 		 */
 		void powered(bool pwr);
 
 		/**
-		 * \return the voltage of this robot's battery
+		 * Returns the voltage of this robot's battery.
+		 *
+		 * \return the voltage of this robot's battery.
 		 */
 		double battery() const {
 			return battery_;
@@ -69,12 +78,15 @@ class SimulatorRobot : public Visualizable::Robot {
 
 		/**
 		 * Sets the voltage of the robot's battery.
-		 * \param bat the battery voltage
+		 *
+		 * \param[in] bat the battery voltage.
 		 */
 		void battery(double bat);
 
 		/**
-		 * \return true if the robot is bootloading, or false if not
+		 * Checks if the robot is bootloading.
+		 *
+		 * \return \c true if the robot is bootloading, or \c false if not.
 		 */
 		bool bootloading() const {
 			return bootloading_;
@@ -82,12 +94,15 @@ class SimulatorRobot : public Visualizable::Robot {
 
 		/**
 		 * Puts the robot into or out of bootload mode.
-		 * \param bl true to enter bootload mode, or false to exit it
+		 *
+		 * \param[in] bl \c true to enter bootload mode, or \c false to exit it.
 		 */
 		void bootloading(bool bl);
 
 		/**
-		 * \return The robot's currently-assigned 16-bit address
+		 * Returns the robot's currently-assigned 16-bit address.
+		 *
+		 * \return the robot's currently-assigned 16-bit address.
 		 */
 		uint16_t address16() const {
 			return address16_;
@@ -95,12 +110,15 @@ class SimulatorRobot : public Visualizable::Robot {
 
 		/**
 		 * Sets the robot's 16-bit address.
-		 * \param addr the new address
+		 *
+		 * \param[in] addr the new address.
 		 */
 		void address16(uint16_t addr);
 
 		/**
-		 * \return The robot's currently-assigned run data offset
+		 * Returns the robot's currently-assigned run data offset.
+		 *
+		 * \return the robot's currently-assigned run data offset.
 		 */
 		uint8_t run_data_offset() const {
 			return run_data_offset_;
@@ -108,14 +126,17 @@ class SimulatorRobot : public Visualizable::Robot {
 
 		/**
 		 * Sets the robot's run data offset.
-		 * \param offset the new offset
+		 *
+		 * \param[in] offset the new offset.
 		 */
 		void run_data_offset(uint8_t offset);
 
 		/**
-		 * \return The engine SimulatorPlayer backing the robot, or a null pointer if the
-		 * robot is not currently in a state where it is backed by an engine
-		 * SimulatorPlayer
+		 * Returns the backing SimulatorPlayer.
+		 *
+		 * \return the engine SimulatorPlayer backing the robot, or a null
+		 * pointer if the robot is not currently in a state where it is backed
+		 * by an engine SimulatorPlayer.
 		 */
 		SimulatorPlayer::Ptr get_player() const {
 			return player_;

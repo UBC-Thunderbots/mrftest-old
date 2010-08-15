@@ -4,19 +4,21 @@
 #include "xbee/client/drive.h"
 #include <gtkmm.h>
 
-//
-// A meter showing the communication latency of a robot.
-//
+/**
+ * A meter showing the communication latency of a robot.
+ */
 class LatencyMeter : public Gtk::ProgressBar, public NonCopyable {
 	public:
-		//
-		// Constructs a LatencyMeter with no robot.
-		//
+		/**
+		 * Constructs a LatencyMeter with no robot.
+		 */
 		LatencyMeter();
 
-		//
-		// Sets which robot this latency meter will monitor.
-		//
+		/**
+		 * Sets which robot this latency meter will monitor.
+		 *
+		 * \param[in] bot the robot to monitor.
+		 */
 		void set_bot(XBeeDriveBot::Ptr bot);
 
 	private:

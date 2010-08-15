@@ -9,7 +9,7 @@
 /**
  * A player, as seen by a simulation engine. An individual engine is expected to
  * subclass this class and return instances of the subclass from its
- * SimulatorEngine::add_player(bool) method.
+ * SimulatorEngine::add_player() method.
  */
 class SimulatorPlayer : public ByRef {
 	public:
@@ -19,48 +19,59 @@ class SimulatorPlayer : public ByRef {
 		typedef RefPtr<SimulatorPlayer> Ptr;
 
 		/**
-		 * \return the position of the player, in metres from field centre
+		 * Retrns the player's position.
+		 *
+		 * \return the position of the player, in metres from field centre.
 		 */
 		virtual Point position() const = 0;
 
 		/**
 		 * Moves the player.
-		 * \param pos the new position, in metres from field centre
+		 *
+		 * \param[in] pos the new position, in metres from field centre.
 		 */
 		virtual void position(const Point &pos) = 0;
 
 		/**
-		 * \return the orientation of the player, in radians from field east
+		 * Returns the player's orientation.
+		 *
+		 * \return the orientation of the player, in radians from field east.
 		 */
 		virtual double orientation() const = 0;
 
 		/**
-		 * \return The speed of the dribbler roller, in revolutions per ten
-		 * milliseconds
+		 * Returns the dribbler's speed.
+		 *
+		 * \return the speed of the dribbler roller, in revolutions per ten
+		 * milliseconds.
 		 */
 		virtual unsigned int dribbler_speed() const = 0;
 
 		/**
 		 * Reorients the player.
-		 * \param ori the new orientation, in radians from field east
+		 *
+		 * \param[in] ori the new orientation, in radians from field east.
 		 */
 		virtual void orientation(double ori) = 0;
 
 		/**
 		 * Sets the velocity of the player.
-		 * \param vel the new velocity, in metres per second field-relative
+		 *
+		 * \param[in] vel the new velocity, in metres per second field-relative.
 		 */
 		virtual void velocity(const Point &vel) = 0;
 
 		/**
 		 * Sets the angular velocity of the player.
-		 * \param avel the new angular velocity, in radians per second
+		 *
+		 * \param[in] avel the new angular velocity, in radians per second.
 		 */
 		virtual void avelocity(double avel) = 0;
 
 		/**
 		 * Handles a "radio" packet received from the AI.
-		 * \param packet the packet
+		 *
+		 * \param[in] packet the packet.
 		 */
 		virtual void received(const XBeePacketTypes::RUN_DATA &packet) = 0;
 };

@@ -11,19 +11,23 @@
 
 class XBeeDaemon;
 
-//
-// A packet scheduler that manages when packets should be sent over the radio.
-//
+/**
+ * A packet scheduler that manages when packets should be sent over the radio.
+ */
 class XBeeScheduler : public NonCopyable {
 	public:
-		//
-		// Constructs a new XBeeScheduler.
-		//
-		XBeeScheduler(XBeeDaemon &);
+		/**
+		 * Constructs a new XBeeScheduler.
+		 *
+		 * \param[in] d the dæmon for which to schedule packets.
+		 */
+		XBeeScheduler(XBeeDaemon &d);
 
-		//
-		// Queues a new unicast packet for transmission.
-		//
+		/**
+		 * Queues a new unicast packet for transmission.
+		 *
+		 * \param[in] req the packet to queue.
+		 */
 		void queue(XBeeRequest::Ptr req);
 
 	private:

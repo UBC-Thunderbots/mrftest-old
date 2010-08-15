@@ -5,8 +5,8 @@
 
 /**
  * An abstract implementation of \c Gtk::TreeModel that provides a starting
- * %point for implementing list-based models based on data structures that can
- * be accessed randomly by index (such as \c std::vector).
+ * point for implementing list-based models based on data structures that can be
+ * accessed randomly by index (such as \c std::vector).
  *
  * Your own class must also extend \c Glib::Object and invoke the following
  * constructors from its own:
@@ -21,8 +21,8 @@
  *
  * You must override all pure-virtual functions as described below.
  *
- * You must arrange to invoke alm_row_changed(), alm_row_inserted(),
- * alm_row_deleted(), and alm_rows_reordered() at the appropriate times.
+ * You must arrange to invoke alm_row_changed(), alm_row_inserted(), and
+ * alm_row_deleted() at the appropriate times.
  */
 class AbstractListModel : public Gtk::TreeModel {
 	protected:
@@ -38,14 +38,14 @@ class AbstractListModel : public Gtk::TreeModel {
 		virtual ~AbstractListModel();
 
 		/**
-		 * You must override this method.
+		 * You must override this. Gets the number of rows in the model.
 		 *
 		 * \return the number of rows in the data model.
 		 */
 		virtual unsigned int alm_rows() const = 0;
 
 		/**
-		 * You must override this.
+		 * You must override this. Gets the value at a position in the model.
 		 *
 		 * \param[in] row the row number of the cell whose data should be
 		 * fetched.
@@ -59,8 +59,9 @@ class AbstractListModel : public Gtk::TreeModel {
 		virtual void alm_get_value(unsigned int row, unsigned int col, Glib::ValueBase &value) const = 0;
 
 		/**
-		 * You must override this. If your data model should be read-only, you
-		 * should do nothing in this function.
+		 * You must override this. Sets the value at a position in the model. If
+		 * your data model should be read-only, you should do nothing in this
+		 * function.
 		 *
 		 * \param[in] row the row number of the cell whose data should be
 		 * stored.

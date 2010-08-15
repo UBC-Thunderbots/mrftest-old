@@ -1,10 +1,9 @@
 #include "simulator/ball.h"
 #include <ode/ode.h>
 
-//
-// The back-end behind an ODE SimulatorBall object.
-// 
-//
+/**
+ * The back-end behind an ODE SimulatorBall object.
+ */ 
 class BallODE : public SimulatorBall {
 	public:
 

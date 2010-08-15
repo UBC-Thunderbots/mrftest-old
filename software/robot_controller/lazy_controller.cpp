@@ -3,6 +3,8 @@
 #include "geom/angle.h"
 #include <cmath>
 
+#warning this class needs Doxygen comments in its header file
+
 namespace {
 
 	class LazyControllerFactory : public RobotControllerFactory {

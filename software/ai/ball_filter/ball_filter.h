@@ -16,10 +16,10 @@ class BallFilter : public Registerable<BallFilter> {
 		/**
 		 * Performs a filtering operation.
 		 *
-		 * \param balls the set of balls detected by the two cameras, along with
-		 * their associated confidence levels
+		 * \param[in] balls the set of balls detected by the two cameras, along
+		 * with their associated confidence levels.
 		 *
-		 * \return The correct position of the ball.
+		 * \return the correct position of the ball.
 		 */
 		virtual Point filter(const std::vector<std::pair<double, Point> > &balls, FriendlyTeam &friendly, EnemyTeam &enemy) = 0;
 
@@ -27,7 +27,7 @@ class BallFilter : public Registerable<BallFilter> {
 		/**
 		 * Constructs a new BallFilter.
 		 *
-		 * \param name the name of the filter.
+		 * \param[in] name the name of the filter.
 		 */
 		BallFilter(const Glib::ustring &name) : Registerable<BallFilter>(name) {
 		}

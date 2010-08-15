@@ -4,19 +4,21 @@
 #include "xbee/client/drive.h"
 #include <gtkmm.h>
 
-//
-// A meter showing the communication feedback interval of a robot.
-//
+/**
+ * A meter showing the communication feedback interval of a robot.
+ */
 class FeedbackIntervalMeter : public Gtk::ProgressBar, public NonCopyable {
 	public:
-		//
-		// Constructs a FeedbackIntervalMeter with no robot.
-		//
+		/**
+		 * Constructs a FeedbackIntervalMeter with no robot.
+		 */
 		FeedbackIntervalMeter();
 
-		//
-		// Sets which robot this feedback interval meter will monitor.
-		//
+		/**
+		 * Sets which robot this feedback interval meter will monitor.
+		 *
+		 * \param[in] bot the robot to monitor.
+		 */
 		void set_bot(XBeeDriveBot::Ptr bot);
 
 	private:

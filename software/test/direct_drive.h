@@ -3,8 +3,17 @@
 
 #include "test/permotor_drive.h"
 
+/**
+ * Allows driving the robot by choosing a power level for each of the four
+ * wheels.
+ */
 class TesterControlDirectDrive : public TesterControlPerMotorDrive {
 	public:
+		/**
+		 * Constructs a new TesterControlDirectDrive.
+		 *
+		 * \param[in] bot the robot to control.
+		 */
 		TesterControlDirectDrive(XBeeDriveBot::Ptr bot) : TesterControlPerMotorDrive(bot) {
 		}
 

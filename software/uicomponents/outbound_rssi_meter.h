@@ -4,19 +4,21 @@
 #include "xbee/client/drive.h"
 #include <gtkmm.h>
 
-//
-// A meter showing outbound RSSI to a robot.
-//
+/**
+ * A meter showing outbound RSSI to a robot.
+ */
 class OutboundRSSIMeter : public Gtk::ProgressBar, public NonCopyable {
 	public:
-		//
-		// Constructs an OutboundRSSIMeter with no robot.
-		//
+		/**
+		 * Constructs an OutboundRSSIMeter with no robot.
+		 */
 		OutboundRSSIMeter();
 
-		//
-		// Sets which robot this RSSI meter will monitor.
-		//
+		/**
+		 * Sets which robot this RSSI meter will monitor.
+		 *
+		 * \param[in] bot the robot to monitor.
+		 */
 		void set_bot(XBeeDriveBot::Ptr bot);
 
 	private:

@@ -11,10 +11,10 @@
 #include "gpc.h"
 
 /**
-Controller to exploit old broken simulator
-This class is more or less obsolete, however, current use could 
-result in much needed hilarity with our current robots
-*/
+ * Controller to exploit old broken simulator. This class is more or less
+ * obsolete; however, current use could result in much needed hilarity with our
+ * current robots.
+ */
 class JonsController : public RobotController {
 	public:
 

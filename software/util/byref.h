@@ -261,8 +261,8 @@ class ByRef : public NonCopyable {
 		 * Destroys a ByRef. This is here even though it doesn't do anything
 		 * because it forces destructors all the way down the inheritance
 		 * hierarchy to be virtual, which ensures that when a reference-counted
-		 * object loses its last pointer, the "delete this" in unreference()
-		 * invokes the correct destructor.
+		 * object loses its last pointer, the <code>delete this</code> in
+		 * unreference() invokes the correct destructor.
 		 */
 		virtual ~ByRef() {
 		}

@@ -5,6 +5,8 @@
 #include <cmath>
 #include <iostream>
 
+#warning this class needs Doxygen comments in its header file
+
 namespace {
 
 	class JonsControllerFactory : public RobotControllerFactory {

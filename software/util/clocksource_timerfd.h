@@ -13,7 +13,8 @@
 class TimerFDClockSource : public ClockSource, public sigc::trackable {
 	public:
 		/**
-		 * Constructs a new ClockSource that fires at the specified interval.
+		 * Constructs a new TimerFDClockSource that fires at the specified
+		 * interval.
 		 *
 		 * \param[in] nanoseconds the number of nanoseconds between consecutive
 		 * firings of the timer.

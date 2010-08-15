@@ -4,19 +4,21 @@
 #include "xbee/client/drive.h"
 #include <gtkmm.h>
 
-//
-// A meter showing dribbler speed for a robot.
-//
+/**
+ * A meter showing dribbler speed for a robot.
+ */
 class DribblerMeter : public Gtk::ProgressBar, public NonCopyable {
 	public:
-		//
-		// Constructs an DribblerMeter with no robot.
-		//
+		/**
+		 * Constructs an DribblerMeter with no robot.
+		 */
 		DribblerMeter();
 
-		//
-		// Sets which robot this dribbler meter will monitor.
-		//
+		/**
+		 * Sets which robot this dribbler meter will monitor.
+		 *
+		 * \param[in] bot the robot to monitor.
+		 */
 		void set_bot(XBeeDriveBot::Ptr bot);
 
 	private:

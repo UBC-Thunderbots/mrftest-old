@@ -36,8 +36,9 @@ class SingleBotComboBoxModel : public Glib::Object, public AbstractListModel {
 		Gtk::TreeModelColumn<Glib::ustring> name_column;
 
 		/**
-		 * Constructs a new single_robot_combobox_model.
-		 * \param robots the robots to display
+		 * Constructs a new SingleRobotComboBoxModel.
+		 *
+		 * \param[in] robots the robots to display.
 		 */
 		static Ptr create(const Config::RobotSet &robots);
 
@@ -74,6 +75,8 @@ class SingleBotComboBox : public Gtk::ComboBox {
 		SingleBotComboBox(const Config::RobotSet &robots, const Glib::ustring &robot);
 
 		/**
+		 * Returns the address of the currently-selected robot.
+		 *
 		 * \return the address of the currently-selected robot, or 0 if no robot
 		 * is currently selected.
 		 */

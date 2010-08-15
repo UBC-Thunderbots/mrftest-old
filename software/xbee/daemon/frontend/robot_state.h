@@ -11,7 +11,7 @@
 class XBeeClient;
 class XBeeDaemon;
 
-/*
+/**
  * All the data corresponding to a single robot tracked by this arbiter.
  */
 class XBeeRobot : public ByRef {
@@ -36,7 +36,7 @@ class XBeeRobot : public ByRef {
 				/**
 				 * Switches the robot into raw mode.
 				 *
-				 * \param cli the XBeeClient who requested the claim
+				 * \param[in] cli the XBeeClient who requested the claim.
 				 */
 				virtual void enter_raw_mode(XBeeClient *cli) = 0;
 
@@ -45,7 +45,7 @@ class XBeeRobot : public ByRef {
 				 * resource_allocation_error if insufficient resources are
 				 * available.
 				 *
-				 * \param cli the XBeeClient who requested the claim
+				 * \param[in] cli the XBeeClient who requested the claim.
 				 */
 				virtual void enter_drive_mode(XBeeClient *cli) = 0;
 
@@ -59,11 +59,12 @@ class XBeeRobot : public ByRef {
 				 * Invoked when a feedback packet is received over the radio
 				 * from this robot.
 				 *
-				 * \param rssi the signal strength of the received packet
+				 * \param[in] rssi the signal strength of the received packet.
 				 *
-				 * \param packet the received data
+				 * \param[in] packet the received data.
 				 *
-				 * \param latency the amount of time the packet took to arrive
+				 * \param[in] latency the amount of time the packet took to
+				 * arrive.
 				 */
 				virtual void on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency) = 0;
 
@@ -74,25 +75,33 @@ class XBeeRobot : public ByRef {
 				virtual void on_feedback_timeout() = 0;
 
 				/**
-				 * \return true if this robot is claimed by some client, or
-				 * false if not
+				 * Checks if the robot is claimed.
+				 *
+				 * \return \c true if this robot is claimed by some client, or
+				 * \c false if not
 				 */
 				virtual bool claimed() const = 0;
 
 				/**
-				 * \return true if this robot is in the process of freeing
-				 * resources from a prior drive-mode claim, or false if not
+				 * Checks if this robot is freeing allocated resources.
+				 *
+				 * \return \c true if this robot is in the process of freeing
+				 * resources from a prior drive-mode claim, or \c false if not
 				 */
 				virtual bool freeing() const = 0;
 
 				/**
-				 * \return The 16-bit address of the robot, or 0 if no address
+				 * Returns the 16-bit address of the robot.
+				 *
+				 * \return the 16-bit address of the robot, or 0 if no address
 				 * has been allocated.
 				 */
 				virtual uint16_t address16() const = 0;
 
 				/**
-				 * \return The index within the run data packet where data for
+				 * Returns the run data index of the robot.
+				 *
+				 * \return the index within the run data packet where data for
 				 * this robot is stored.
 				 */
 				virtual uint8_t run_data_index() const = 0;
@@ -111,26 +120,28 @@ class XBeeRobot : public ByRef {
 		/**
 		 * Constructs a new RobotState corresponding to a dead, unclaimed robot.
 		 *
-		 * \param address64 the 64-bit address of the robot to create
+		 * \param[in] address64 the 64-bit address of the robot to create.
 		 *
-		 * \param daemon the dæmon used to communicate with this robot
+		 * \param[in] daemon the dæmon used to communicate with this robot.
 		 *
-		 * \return A new XBeeRobot object
+		 * \return a new XBeeRobot object.
 		 */
 		static Ptr create(uint64_t address64, XBeeDaemon &daemon);
 
 		/**
 		 * Switches the robot into raw mode.
 		 *
-		 * \param cli the XBeeClient who requested the claim
+		 * \param[in] cli the XBeeClient who requested the claim.
 		 */
 		void enter_raw_mode(XBeeClient *cli);
 
 		/**
-		 * Attempts to switch the robot into drive mode. May throw
-		 * resource_allocation_error if insufficient resources are available.
+		 * Attempts to switch the robot into drive mode.
 		 *
-		 * \param cli the XBeeClient who requested the claim
+		 * \param[in] cli the XBeeClient who requested the claim.
+		 *
+		 * \exception ResourceAllocationFailed insufficient resources are
+		 * available.
 		 */
 		void enter_drive_mode(XBeeClient *cli);
 
@@ -144,11 +155,11 @@ class XBeeRobot : public ByRef {
 		 * Invoked when a feedback packet is received over the radio from this
 		 * robot.
 		 *
-		 * \param rssi the signal strength of the received packet
+		 * \param[in] rssi the signal strength of the received packet.
 		 *
-		 * \param packet the received data
+		 * \param[in] packet the received data.
 		 *
-		 * \param latency the amount of time the packet took to arrive
+		 * \param[in] latency the amount of time the packet took to arrive.
 		 */
 		void on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency);
 
@@ -159,24 +170,33 @@ class XBeeRobot : public ByRef {
 		void on_feedback_timeout();
 
 		/**
-		 * \return true if this robot is claimed by some client, or false if not
+		 * Checks if the robot is claimed.
+		 *
+		 * \return \c true if this robot is claimed by some client, or \c false
+		 * if not.
 		 */
 		bool claimed() const;
 
 		/**
-		 * \return true if this robot is in the process of freeing resources
-		 * from a prior drive-mode claim, or false if not
+		 * Checks if the robot is freeing resources.
+		 *
+		 * \return \c true if this robot is in the process of freeing resources
+		 * from a prior drive-mode claim, or \c false if not.
 		 */
 		bool freeing() const;
 
 		/**
-		 * \return The 16-bit address of the robot, or 0 if no address has been
+		 * Returns the robot's 16-bit address.
+		 *
+		 * \return the 16-bit address of the robot, or 0 if no address has been
 		 * allocated.
 		 */
 		uint16_t address16() const;
 
 		/**
-		 * \return The index within the run data packet where data for this
+		 * Returns the robot's run data index.
+		 *
+		 * \return the index within the run data packet where data for this
 		 * robot is stored.
 		 */
 		uint8_t run_data_index() const;

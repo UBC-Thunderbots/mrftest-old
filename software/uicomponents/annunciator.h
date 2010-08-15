@@ -40,6 +40,8 @@ class Annunciator : public Gtk::ScrolledWindow {
 				const unsigned int id;
 
 				/**
+				 * Checks whether the message is active.
+				 *
 				 * \return \c true if the message is active, or \c false if not.
 				 */
 				bool active() const {
@@ -55,8 +57,10 @@ class Annunciator : public Gtk::ScrolledWindow {
 				void activate(bool actv);
 
 				/**
+				 * Returns the age of the message.
+				 *
 				 * \return the age of the message, in seconds (that is, the
-				 * amount of time since the message was last true).
+				 * amount of time since the message was last active).
 				 */
 				unsigned int age() const {
 					return age_;

@@ -13,77 +13,83 @@
 
 class BackEnd;
 
-//
-// A running XBee arbiter dæmon.
-//
+/**
+ * A running XBee arbiter dæmon.
+ */
 class XBeeDaemon : public sigc::trackable {
 	public:
-		//
-		// Constructs a new XBeeDaemon.
-		//
+		/**
+		 * Constructs a new XBeeDaemon.
+		 *
+		 * \param[in] backend the back-end driver.
+		 */
 		XBeeDaemon(BackEnd &backend);
 
-		//
-		// Destroys a XBeeDaemon.
-		//
+		/**
+		 * Destroys a XBeeDaemon.
+		 */
 		~XBeeDaemon();
 
-		//
-		// Allocates a new offset in the run data packet. Returns 0xFF on failure.
-		//
+		/**
+		 * Allocates a new offset in the run data packet.
+		 *
+		 * \return the new offset, or \c 0xFF if no offsets are available.
+		 */
 		uint8_t alloc_rundata_index();
 
-		//
-		// Frees an offset in the run data packet.
-		//
-		void free_rundata_index(uint8_t);
+		/**
+		 * Frees an offset in the run data packet.
+		 *
+		 * \param[in] offset the offset to free.
+		 */
+		void free_rundata_index(uint8_t offset);
 
-		//
-		// Indicates that the last client has disconnected.
-		//
+		/**
+		 * Indicates that the last client has disconnected.
+		 */
 		void check_shutdown();
 
-		//
-		// The backend implementation.
-		//
+		/**
+		 * The backend implementation.
+		 */
 		BackEnd &backend;
 
-		//
-		// The shared memory block shared with clients.
-		//
+		/**
+		 * The shared memory block shared with clients.
+		 */
 		ShmBlock<XBeePacketTypes::SHM_BLOCK> shm;
 
-		//
-		// An allocator that allocates frame numbers.
-		//
+		/**
+		 * An allocator that allocates frame numbers.
+		 */
 		NumberAllocator<uint8_t> frame_number_allocator;
 
-		//
-		// An allocator that allocates 16-bit addresses.
-		//
+		/**
+		 * An allocator that allocates 16-bit addresses.
+		 */
 		NumberAllocator<uint16_t> id16_allocator;
 
-		//
-		// The XBeeScheduler that schedules delivery of packets.
-		//
+		/**
+		 * The XBeeScheduler that schedules delivery of packets.
+		 */
 		XBeeScheduler scheduler;
 
-		//
-		// A signal fired when the last client disconnects from the XBeeDaemon. The
-		// application may connect to this signal to terminate its process, or
-		// may ignore it and keep running allowing further connections.
-		//
+		/**
+		 * A signal fired when the last client disconnects from the XBeeDaemon. The
+		 * application may connect to this signal to terminate its process, or
+		 * may ignore it and keep running allowing further connections.
+		 */
 		sigc::signal<void> signal_last_client_disconnected;
 
-		//
-		// All robots that are being tracked in some way by the arbiter.
-		//
+		/**
+		 * All robots that are being tracked in some way by the arbiter.
+		 */
 		std::unordered_map<uint64_t, XBeeRobot::Ptr> robots;
 
-		//
-		// The 64-bit address of the robot that has been assigned each run data
-		// index (or zero of no robot is using the index).
-		//
+		/**
+		 * The 64-bit address of the robot that has been assigned each run data
+		 * index (or zero of no robot is using the index).
+		 */
 		uint64_t run_data_index_reverse[XBeePacketTypes::MAX_DRIVE_ROBOTS];
 
 		/**

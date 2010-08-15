@@ -42,6 +42,8 @@ class ScopedPtr : public NonCopyable {
 		}
 
 		/**
+		 * Gets the contained object.
+		 *
 		 * \return the contained object.
 		 */
 		T *operator->() const {
@@ -49,6 +51,8 @@ class ScopedPtr : public NonCopyable {
 		}
 
 		/**
+		 * Gets the contained object.
+		 *
 		 * \return the contained object.
 		 */
 		T &ref() const {
@@ -56,6 +60,8 @@ class ScopedPtr : public NonCopyable {
 		}
 
 		/**
+		 * Checks whether or not the ScopedPtr is set.
+		 *
 		 * \return \c true if the pointer is non-null, or \c false if the
 		 * pointer is null.
 		 */

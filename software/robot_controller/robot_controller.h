@@ -27,15 +27,15 @@ class RobotController2 : public ByRef {
 		 * guaranteed that this function will be called exactly once per timer
 		 * tick, except for those ticks in which clear() is called instead.
 		 *
-		 * \param new_position the position to move to, in team coordinates
+		 * \param[in] new_position the position to move to, in team coordinates
 		 * measured in metres.
 		 *
-		 * \param new_orientation the orientation to rotate to in team
+		 * \param[in] new_orientation the orientation to rotate to in team
 		 * coordinates measured in radians.
 		 *
-		 * \param wheel_speeds (output) the speeds of the four wheels to send to
-		 * the robot, in quarters of a degree of motor shaft rotation per five
-		 * milliseconds.
+		 * \param[in] wheel_speeds (output) the speeds of the four wheels to
+		 * send to the robot, in quarters of a degree of motor shaft rotation
+		 * per five milliseconds.
 		 */
 		virtual void move(const Point &new_position, double new_orientation, int (&wheel_speeds)[4]) = 0;
 
@@ -71,7 +71,7 @@ class RobotController2 : public ByRef {
 
 	protected:
 		/**
-		 * Constructs a new RobotController.
+		 * Constructs a new RobotController2.
 		 */
 		RobotController2() {
 		}
@@ -92,15 +92,18 @@ class RobotController : public RobotController2 {
 		 * guaranteed that this function will be called exactly once per timer
 		 * tick.
 		 *
-		 * \param new_position the position to move to, in team coordinates
-		 * measured in metres
-		 * \param new_orientation the orientation to rotate to in team
-		 * coordinates measured in radians
-		 * \param linear_velocity (output) the linear velocity to move at, in
-		 * robot-relative coordinates (defined as the positive X axis being
-		 * forward and the positive Y axis being left)
-		 * \param angular_velocity (output) the angular velocity to rotate at,
-		 * with positive being to the left
+		 * \param[in] new_position the position to move to, in team coordinates
+		 * measured in metres.
+		 *
+		 * \param[in] new_orientation the orientation to rotate to in team
+		 * coordinates measured in radians.
+		 *
+		 * \param[in] linear_velocity (output) the linear velocity to move at,
+		 * in robot-relative coordinates (defined as the positive X axis being
+		 * forward and the positive Y axis being left).
+		 *
+		 * \param[in] angular_velocity (output) the angular velocity to rotate
+		 * at, with positive being to the left.
 		 */
 		virtual void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) = 0;
 
@@ -109,21 +112,24 @@ class RobotController : public RobotController2 {
 };
 
 /**
- * A factory to construct robot_controllers.
+ * A factory to construct \ref RobotController2 "RobotController2s".
  */ 
 class RobotControllerFactory : public Registerable<RobotControllerFactory> {
 	public:
 		/**
 		 * Constructs a new RobotController.
 		 *
-		 * \param plr the robot being controlled (a reference should be kept;
-		 * the controller must call only inspection methods on the object as
-		 * mutation methods are intended to be called from the AI)
-		 * \param yellow the colour of the robot (should generally be ignored;
-		 * intended to be used only in VERY, VERY special situations)
-		 * \param index the pattern index of the robot (should generally be
-		 * ignored; intended to be used only in VERY, VERY special situations)
-		 * \return The new controller
+		 * \param[in] plr the robot being controlled (a reference should be
+		 * kept; the controller must call only inspection methods on the object
+		 * as mutation methods are intended to be called from the AI).
+		 *
+		 * \param[in] yellow the colour of the robot (should generally be
+		 * ignored; intended to be used only in VERY, VERY special situations).
+		 *
+		 * \param[in] index the pattern index of the robot (should generally be
+		 * ignored; intended to be used only in VERY, VERY special situations).
+		 *
+		 * \return the new controller.
 		 */
 		virtual RobotController2::Ptr create_controller(RefPtr<Player> plr, bool yellow, unsigned int index) const = 0;
 
@@ -133,7 +139,7 @@ class RobotControllerFactory : public Registerable<RobotControllerFactory> {
 		 * from a subclass constructor as a result of a global variable holding
 		 * an instance of the subclass coming into scope at application startup.
 		 *
-		 * \param name a human-readable name for the factory
+		 * \param[in] name a human-readable name for the factory.
 		 */
 		RobotControllerFactory(const Glib::ustring &name) : Registerable<RobotControllerFactory>(name) {
 		}

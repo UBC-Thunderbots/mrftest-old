@@ -6,6 +6,8 @@
 #include "geom/angle.h"
 #include <cassert>
 
+#warning this class needs Doxygen comments in its header file
+
 namespace {
 
 	double orientationFromMatrix(const dReal *t){

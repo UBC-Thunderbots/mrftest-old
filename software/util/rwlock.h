@@ -7,23 +7,28 @@
 #include <cstdlib>
 #include <pthread.h>
 
-//
-// An acquisition of a read-write lock.
-//
+/**
+ * An acquisition of a read-write lock.
+ */
 class RWLockScopedAcquire : public NonCopyable {
 	public:
-		//
-		// Acquires the lock.
-		//
+		/**
+		 * Acquires the lock.
+		 *
+		 * \param[in] lock the lock to acquire.
+		 *
+		 * \param[in] acquire_fn the lock acquisition function, one of \c
+		 * pthread_rwlock_rdlock or \c pthread_rwlock_wrlock.
+		 */
 		RWLockScopedAcquire(pthread_rwlock_t *lock, typeof(pthread_rwlock_rdlock) acquire_fn) : lock(lock) {
 			if (acquire_fn(lock) != 0) {
 				throw std::runtime_error("Cannot acquire rwlock!");
 			}
 		}
 
-		//
-		// Releases the lock.
-		//
+		/**
+		 * Releases the lock.
+		 */
 		~RWLockScopedAcquire() {
 			if (pthread_rwlock_unlock(lock) != 0) {
 				std::cerr << "Cannot release rwlock!\n";

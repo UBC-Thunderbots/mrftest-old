@@ -11,6 +11,10 @@
 namespace {
 	/**
 	 * Resets the shared memory block to a sensible initial state.
+	 *
+	 * \param[in] lck the rwlock protecting the shared memory frame.
+	 *
+	 * \param[in] frame the shared memory frame to scrub.
 	 */
 	void scrub_shm(pthread_rwlock_t *lck, XBeePacketTypes::SHM_FRAME &frame) {
 		RWLockScopedAcquire acq(lck, &pthread_rwlock_wrlock);
@@ -34,6 +38,16 @@ namespace {
 	/**
 	 * Stores feedback into the shared memory block as well as updating other
 	 * miscellaneous fields.
+	 *
+	 * \param[in] lck the rwlock protecting the shared memory frame.
+	 *
+	 * \param[in] frame the shared memory frame to fill in.
+	 *
+	 * \param[in] packet a packet to pull feedback data from.
+	 *
+	 * \param[in] latency the latency value to store.
+	 *
+	 * \param[in] rssi the inbound RSSI value to store.
 	 */
 	void put_feedback(pthread_rwlock_t *lck, XBeePacketTypes::SHM_FRAME &frame, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency, uint8_t rssi) {
 		RWLockScopedAcquire acq(lck, &pthread_rwlock_wrlock);
@@ -50,7 +64,13 @@ namespace {
  */
 class XBeeRobot::IdleState : public XBeeRobot::RobotState {
 	public:
+		/**
+		 * Moves a robot into this state.
+		 *
+		 * \param[in] bot the robot whose state should be changed.
+		 */
 		static Ptr enter(XBeeRobot &bot);
+
 		void enter_raw_mode(XBeeClient *cli);
 		void enter_drive_mode(XBeeClient *cli);
 		void release();
@@ -72,7 +92,17 @@ class XBeeRobot::IdleState : public XBeeRobot::RobotState {
  */
 class XBeeRobot::RawState : public XBeeRobot::RobotState {
 	public:
+		/**
+		 * Moves a robot into this state.
+		 *
+		 * \param[in] bot the robot whose state should be changed.
+		 *
+		 * \param[in] claimed_by the client who claimed the robot.
+		 *
+		 * \param[in] address16 the 16-bit address allocated for the robot.
+		 */
 		static Ptr enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16);
+
 		void enter_raw_mode(XBeeClient *cli);
 		void enter_drive_mode(XBeeClient *cli);
 		void release();
@@ -97,7 +127,19 @@ class XBeeRobot::RawState : public XBeeRobot::RobotState {
  */
 class XBeeRobot::Setting16State : public XBeeRobot::RobotState {
 	public:
+		/**
+		 * Moves a robot into this state.
+		 *
+		 * \param[in] bot the robot whose state should be changed.
+		 *
+		 * \param[in] claimed_by the client who claimed the robot.
+		 *
+		 * \param[in] address16 the 16-bit address allocated for the robot.
+		 *
+		 * \param[in] run_data_index the run data index allocated for the robot.
+		 */
 		static Ptr enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
+
 		void enter_raw_mode(XBeeClient *cli);
 		void enter_drive_mode(XBeeClient *cli);
 		void release();
@@ -125,7 +167,19 @@ class XBeeRobot::Setting16State : public XBeeRobot::RobotState {
  */
 class XBeeRobot::SettingRDOState : public XBeeRobot::RobotState {
 	public:
+		/**
+		 * Moves a robot into this state.
+		 *
+		 * \param[in] bot the robot whose state should be changed.
+		 *
+		 * \param[in] claimed_by the client who claimed the robot.
+		 *
+		 * \param[in] address16 the 16-bit address allocated for the robot.
+		 *
+		 * \param[in] run_data_index the run data index allocated for the robot.
+		 */
 		static Ptr enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
+
 		void enter_raw_mode(XBeeClient *cli);
 		void enter_drive_mode(XBeeClient *cli);
 		void release();
@@ -154,7 +208,19 @@ class XBeeRobot::SettingRDOState : public XBeeRobot::RobotState {
  */
 class XBeeRobot::AliveState : public XBeeRobot::RobotState {
 	public:
+		/**
+		 * Moves a robot into this state.
+		 *
+		 * \param[in] bot the robot whose state should be changed.
+		 *
+		 * \param[in] claimed_by the client who claimed the robot.
+		 *
+		 * \param[in] address16 the 16-bit address allocated for the robot.
+		 *
+		 * \param[in] run_data_index the run data index allocated for the robot.
+		 */
 		static Ptr enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
+
 		void enter_raw_mode(XBeeClient *cli);
 		void enter_drive_mode(XBeeClient *cli);
 		void release();
@@ -180,7 +246,17 @@ class XBeeRobot::AliveState : public XBeeRobot::RobotState {
  */
 class XBeeRobot::Releasing16State : public XBeeRobot::RobotState {
 	public:
+		/**
+		 * Moves a robot into this state.
+		 *
+		 * \param[in] bot the robot whose state should be changed.
+		 *
+		 * \param[in] address16 the 16-bit address allocated for the robot.
+		 *
+		 * \param[in] run_data_index the run data index allocated for the robot.
+		 */
 		static Ptr enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index);
+
 		void enter_raw_mode(XBeeClient *cli);
 		void enter_drive_mode(XBeeClient *cli);
 		void release();
@@ -209,7 +285,17 @@ class XBeeRobot::Releasing16State : public XBeeRobot::RobotState {
  */
 class XBeeRobot::BootloadingHighState : public XBeeRobot::RobotState {
 	public:
+		/**
+		 * Moves a robot into this state.
+		 *
+		 * \param[in] bot the robot whose state should be changed.
+		 *
+		 * \param[in] address16 the 16-bit address allocated for the robot.
+		 *
+		 * \param[in] run_data_index the run data index allocated for the robot.
+		 */
 		static Ptr enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index);
+
 		void enter_raw_mode(XBeeClient *cli);
 		void enter_drive_mode(XBeeClient *cli);
 		void release();
@@ -238,7 +324,17 @@ class XBeeRobot::BootloadingHighState : public XBeeRobot::RobotState {
  */
 class XBeeRobot::BootloadingLowState : public XBeeRobot::RobotState {
 	public:
+		/**
+		 * Moves a robot into this state.
+		 *
+		 * \param[in] bot the robot whose state should be changed.
+		 *
+		 * \param[in] address16 the 16-bit address allocated for the robot.
+		 *
+		 * \param[in] run_data_index the run data index allocated for the robot.
+		 */
 		static Ptr enter(XBeeRobot &bot, uint16_t address16, uint8_t run_data_index);
+
 		void enter_raw_mode(XBeeClient *cli);
 		void enter_drive_mode(XBeeClient *cli);
 		void release();
@@ -270,7 +366,19 @@ class XBeeRobot::BootloadingLowState : public XBeeRobot::RobotState {
  */
 class XBeeRobot::BootloadingLowToSetting16State : public XBeeRobot::RobotState {
 	public:
+		/**
+		 * Moves a robot into this state.
+		 *
+		 * \param[in] bot the robot whose state should be changed.
+		 *
+		 * \param[in] claimed_by the client who claimed the robot.
+		 *
+		 * \param[in] address16 the 16-bit address allocated for the robot.
+		 *
+		 * \param[in] run_data_index the run data index allocated for the robot.
+		 */
 		static Ptr enter(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index);
+
 		void enter_raw_mode(XBeeClient *cli);
 		void enter_drive_mode(XBeeClient *cli);
 		void release();

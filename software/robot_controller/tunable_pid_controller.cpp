@@ -8,6 +8,8 @@
 
 #define LINEAR_XY
 
+#warning this class needs Doxygen comments in its header
+
 namespace {
 
 	// std::ofstream dout("pid.csv");

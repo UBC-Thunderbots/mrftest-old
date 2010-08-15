@@ -4,19 +4,21 @@
 #include "xbee/client/drive.h"
 #include <gtkmm.h>
 
-//
-// A meter showing the communication run data interval of a robot.
-//
+/**
+ * A meter showing the communication run data interval of a robot.
+ */
 class RunDataIntervalMeter : public Gtk::ProgressBar, public NonCopyable {
 	public:
-		//
-		// Constructs a RunDataIntervalMeter with no robot.
-		//
+		/**
+		 * Constructs a RunDataIntervalMeter with no robot.
+		 */
 		RunDataIntervalMeter();
 
-		//
-		// Sets which robot this run data interval meter will monitor.
-		//
+		/**
+		 * Sets which robot this run data interval meter will monitor.
+		 *
+		 * \param[in] bot the robot to monitor.
+		 */
 		void set_bot(XBeeDriveBot::Ptr bot);
 
 	private:

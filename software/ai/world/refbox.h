@@ -16,7 +16,9 @@ class RefBox : public NonCopyable, public sigc::trackable {
 		RefBox();
 
 		/**
-		 * \return The current command character
+		 * Gets the current command character.
+		 *
+		 * \return the current command character.
 		 */
 		char command() const {
 			return command_;
@@ -28,21 +30,27 @@ class RefBox : public NonCopyable, public sigc::trackable {
 		sigc::signal<void> signal_command_changed;
 
 		/**
-		 * \return The current number of goals awarded to the blue team.
+		 * Gets the blue team's score.
+		 *
+		 * \return the current number of goals awarded to the blue team.
 		 */
 		unsigned int goals_blue() const {
 			return goals_blue_;
 		}
 
 		/**
-		 * \return The current number of goals awarded to the yellow team.
+		 * Gets the yellow team's score.
+		 *
+		 * \return the current number of goals awarded to the yellow team.
 		 */
 		unsigned int goals_yellow() const {
 			return goals_yellow_;
 		}
 
 		/**
-		 * \return The number of seconds remaining in the current game stage.
+		 * Gets the time remaining in the current game stage.
+		 *
+		 * \return the number of seconds remaining in the current game stage.
 		 */
 		unsigned int time_remaining() const {
 			return time_remaining_;

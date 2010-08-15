@@ -11,14 +11,14 @@
 #include <stdint.h>
 #include <glibmm.h>
 
-//
-// Allows access to the XBee radio modem, via the arbiter daemon.
-//
+/**
+ * Allows access to the XBee radio modem, via the arbiter daemon.
+ */
 class XBeeLowLevel : public NonCopyable {
 	public:
-		//
-		// Connects to the arbiter daemon, launching it if necessary.
-		//
+		/**
+		 * Connects to the arbiter dæmon, launching it if necessary.
+		 */
 		XBeeLowLevel();
 
 		/**
@@ -28,19 +28,21 @@ class XBeeLowLevel : public NonCopyable {
 		 */
 		bool claim_universe();
 
-		//
-		// Sends a packet.
-		//
-		void send(XBeePacket::Ptr);
+		/**
+		 * Sends a packet.
+		 *
+		 * \param[in] p the packet to send.
+		 */
+		void send(XBeePacket::Ptr p);
 
-		//
-		// Fired when a data packet is received with a 16-bit source address.
-		//
+		/**
+		 * Fired when a data packet is received with a 16-bit source address.
+		 */
 		sigc::signal<void, uint16_t, uint8_t, const void *, std::size_t> signal_receive16;
 
-		//
-		// Fired when a meta packet is received.
-		//
+		/**
+		 * Fired when a meta packet is received.
+		 */
 		sigc::signal<void, const void *, std::size_t> signal_meta;
 
 	private:
@@ -51,9 +53,9 @@ class XBeeLowLevel : public NonCopyable {
 		bool on_readable(Glib::IOCondition);
 
 	public:
-		//
-		// The shared memory block shared with the dæmon.
-		//
+		/**
+		 * The shared memory block shared with the dæmon.
+		 */
 		ShmBlock<XBeePacketTypes::SHM_BLOCK> shm;
 };
 

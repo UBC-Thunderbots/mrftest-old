@@ -74,28 +74,40 @@ class World : public ByRef {
 
 		/**
 		 * Creates a new World object.
-		 * \param conf the configuration file
-		 * \param xbee_bots the robots to drive
-		 * \return The new object
+		 *
+		 * \param[in] conf the configuration file.
+		 *
+		 * \param[in] xbee_bots the robots to drive.
+		 *
+		 * \return the new object.
 		 */
 		static Ptr create(const Config &conf, const std::vector<XBeeDriveBot::Ptr> &xbee_bots);
 
 		/**
-		 * \return The ball
+		 * Gets the ball.
+		 *
+		 * \return the Ball.
 		 */
 		Ball::Ptr ball() const {
 			return ball_;
 		}
 
 		/**
-		 * \return The Field
+		 * Gets the field.
+		 *
+		 * \return the Field.
 		 */
 		const Field &field() const {
 			return field_;
 		}
 
 		/**
-		 * \return Which end of the physical field the local team is defending
+		 * Gets the end of the physical field the friendly team is defending.
+		 * 
+		 * \return \c true if the friendly team is defending the "east" end of
+		 * the field (the end Which end whose SSL-Vision coordinate are
+		 * positive), or \c false if the friendly team is defending the "west"
+		 * end.
 		 */
 		bool east() const {
 			return east_;
@@ -107,8 +119,11 @@ class World : public ByRef {
 		void flip_ends();
 
 		/**
-		 * \return Which colour the local team considers itself to be with
-		 * respect to referee box commands
+		 * Gets the colour of the friendly team for the purpose of referee box
+		 * commands.
+		 *
+		 * \return \c true if the friendly team is yellow, or \c false if it is
+		 * blue.
 		 */
 		bool refbox_yellow() const {
 			return refbox_yellow_;
@@ -121,21 +136,27 @@ class World : public ByRef {
 		void flip_refbox_colour();
 
 		/**
-		 * \return The current state of play
+		 * Gets the current state of play.
+		 *
+		 * \return the current state of play.
 		 */
 		PlayType::PlayType playtype() const {
 			return playtype_;
 		}
 
 		/**
-		 * \return A Visualizable view of the world
+		 * Gets a view of the world for a Visualizer.
+		 *
+		 * \return a Visualizable view of the world.
 		 */
 		const Visualizable &visualizer_view() const {
 			return vis_view;
 		}
 
 		/**
-		 * \return The currently-active ball filter
+		 * Gets the current ball filter.
+		 *
+		 * \return the currently-active ball filter.
 		 */
 		BallFilter *ball_filter() const {
 			return ball_filter_;
@@ -144,13 +165,14 @@ class World : public ByRef {
 		/**
 		 * Sets which ball filter should be used.
 		 *
-		 * \param filter the new filter to use
+		 * \param filter the new filter to use.
 		 */
 		void ball_filter(BallFilter *filter);
 
 		/**
-		 * \return the number of AI ticks that have occurred since program
-		 * startup.
+		 * Gets the elapsed time since program startup.
+		 *
+		 * \return the elapsed time, in AI ticks.
 		 */
 		uint64_t timestamp() const {
 			return timestamp_;
@@ -162,7 +184,9 @@ class World : public ByRef {
 		void tick_timestamp();
 
 		/**
-		 * Playtype time.
+		 * Gets the length of time the current play type has been active.
+		 *
+		 * \return the time in seconds.
 		 */
 		double playtype_time() const;
 

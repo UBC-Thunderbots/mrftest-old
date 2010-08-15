@@ -153,6 +153,8 @@ class Strategy : public ByRef, public sigc::trackable {
 		virtual void execute_indirect_free_kick_enemy();
 
 		/**
+		 * Checks if the Strategy has resigned.
+		 *
 		 * \return \c true if this Strategy has resigned control over the team,
 		 * or \c false if not.
 		 */

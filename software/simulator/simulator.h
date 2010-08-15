@@ -30,22 +30,29 @@ class Simulator : public BackEnd, public sigc::trackable {
 		/**
 		 * Constructs a new Simulator using the robots found in a configuration
 		 * file.
-		 * \param conf the configuration data to initialize the simulator with
-		 * \param engine the engine to drive the simulator with
-		 * \param clk the clock source to drive the simulator with
+		 *
+		 * \param[in] conf the configuration data to initialize the simulator
+		 * with.
+		 * \param[in] engine the engine to drive the simulator with.
+		 *
+		 * \param[in] clk the clock source to drive the simulator with.
 		 */
 		Simulator(const Config &conf, SimulatorEngine::Ptr engine, ClockSource &clk);
 
 		/**
-		 * \return All the robots recognized by this simulator, keyed by XBee
-		 * address
+		 * Returns all the robots recognized by this simulator.
+		 *
+		 * \return all the robots recognized by this simulator, keyed by XBee
+		 * address.
 		 */
 		const std::unordered_map<uint64_t, SimulatorRobot::Ptr> &robots() const {
 			return robots_;
 		}
 
 		/**
-		 * \return The ball
+		 * Returns the ball.
+		 *
+		 * \return the ball.
 		 */
 		SimulatorBall::Ptr ball() const {
 			return engine->get_ball();
@@ -53,14 +60,18 @@ class Simulator : public BackEnd, public sigc::trackable {
 
 		/**
 		 * Searches for a robot by its 16-bit address.
-		 * \param addr the address to search for
-		 * \return The robot matching the address, or a null pointer if no robot
-		 * has the address
+		 *
+		 * \param[in] addr the address to search for.
+		 *
+		 * \return the robot matching the address, or a null pointer if no robot
+		 * has the address.
 		 */
 		SimulatorRobot::Ptr find_by16(uint16_t addr) const;
 
 		/**
-		 * \return The visualization data
+		 * Returns the visualization data.
+		 *
+		 * \return the visualization data.
 		 */
 		const Visualizable &visualizer_data() const {
 			return visdata;

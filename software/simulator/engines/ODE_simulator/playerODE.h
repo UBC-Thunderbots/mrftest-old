@@ -5,8 +5,8 @@
 
 
 /** 
-The back-end behind an ODE SimulatorPlayer object.
-*/
+ * The back-end behind an ODE SimulatorPlayer object.
+ */
 class PlayerODE : public SimulatorPlayer {
 	
 	public:
@@ -19,31 +19,50 @@ class PlayerODE : public SimulatorPlayer {
 	typedef RefPtr<PlayerODE> Ptr;
 	
 	private:
-	///The rectangular geometry for the front collision
+	/**
+	 * The rectangular geometry for the front collision.
+	 */
 	dGeomID robotGeomTop;
 	
-	///The Cylindrical geometry for most collisions
+	/**
+	 * The Cylindrical geometry for most collisions.
+	 */
 	dGeomID robotGeomTopCyl;
 	
-	///not used
+	/**
+	 * This is not used.
+	 */
 	dGeomID dribbleArmL;
 	
-	///not used
+	/**
+	 * This is not used.
+	 */
 	dGeomID dribbleArmR;
 	
-	///we need to interact with the simulator world so store its ID here
+	/**
+	 * We need to interact with the simulator world so store its ID here.
+	 */
 	dWorldID world;
 	
-	///The ID for the robots body in the simulator
+	/**
+	 * The ID for the robot's body in the simulator.
+	 */
 	dBodyID body;
 	
-	///The mass object for the robot, keeps track of things like inertial moments
+	/**
+	 * The mass object for the robot (keeps track of things like inertial
+	 * moments).
+	 */
 	dMass mass;
 	
-	/// We are moving the robot
+	/**
+	 * Whether we are moving the robot.
+	 */
 	bool posSet;
 	
-	///Some vectors for keeping track of the robot
+	/**
+	 * Some vectors for keeping track of the robot.
+	 */
 	Point target_velocity, unrotated_target_velocity;
 	
 	
@@ -54,9 +73,9 @@ class PlayerODE : public SimulatorPlayer {
 	double chip_strength,kick_strength;
 	
 	/**
-	I don't know why we keep track of the ball ID, oh right the retarded hasball
-	routine Number 1
-	*/
+	 * I don't know why we keep track of the ball ID, oh right the retarded
+	 * hasball routine Number 1.
+	 */
 	dGeomID ballGeom;
 	
 	
@@ -68,13 +87,19 @@ class PlayerODE : public SimulatorPlayer {
 	Point* wheel_position;
 	Point* force_direction;
 	
-	///Target wheel velocities in quarter of a degree per 5 milliseconds
+	/**
+	 * Target wheel velocities in quarter of a degree per 5 milliseconds.
+	 */
 	double motor_desired[4];
 
-	///Should the robot run in direct drive mode
+	/**
+	 * Should the robot run in direct drive mode?
+	 */
 	bool direct_drive;
 
-	///Should the robot run in controlled drive mode
+	/**
+	 * Should the robot run in controlled drive mode?
+	 */
 	bool controlled_drive;
 
 
@@ -103,10 +128,12 @@ protected:
 
 			
 			/**
-				method for the AI to control the robots movement
-				\param vel desired robot velocity for control
-				\param avel desired robot angular velocity
-			*/
+			 * Controls the robot's movement.
+			 *
+			 * \param[in] vel desired robot velocity for control.
+			 *
+			 * \param[in] avel desired robot angular velocity.
+			 */
 			void move_impl(const Point &vel, double avel) ;
 			
 public:
@@ -114,8 +141,9 @@ public:
 			
 			bool hasContactWithFace(dVector3 pos);
 			/**
-			call this when we find a robot ball collision may do some additional testing beyond this to make sure "has ball"
-			*/
+			 * Called when we find a robot-ball collision. May do some
+			 * additional testing beyond this to make sure "has ball".
+			 */
 			void set_has_ball();
 
 			void pre_tic(double TimeStep);

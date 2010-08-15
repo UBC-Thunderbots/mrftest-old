@@ -33,7 +33,8 @@ namespace {
 	 *
 	 * \param[in] ts2 the second timespec.
 	 *
-	 * \param[out] result a location at which to store the value of ts1 - ts2.
+	 * \param[out] result a location at which to store the value of \p ts1 − \p
+	 * ts2.
 	 */
 	void timespec_sub(const timespec &ts1, const timespec &ts2, timespec &result) {
 		if (ts1.tv_nsec >= ts2.tv_nsec) {
@@ -52,8 +53,8 @@ namespace {
 	 *
 	 * \param ts2 the second timespec.
 	 *
-	 * \return a positive value if ts1 > ts2, a negative value if ts1 < ts2, or
-	 * zero of ts1 = ts2.
+	 * \return a positive value if \p ts1 > \p ts2, a negative value if \p ts1 <
+	 * \p ts2, or zero if \p ts1 = \p ts2.
 	 */
 	int timespec_cmp(const timespec &ts1, const timespec &ts2) {
 		if (ts1.tv_sec != ts2.tv_sec) {
@@ -70,7 +71,7 @@ namespace {
 	 *
 	 * \param[in] ts the timespec to convert.
 	 *
-	 * \return the number of seconds represented by ts.
+	 * \return the number of seconds represented by \p ts.
 	 */
 	double timespec_to_double(const timespec &ts) {
 		return ts.tv_sec + ts.tv_nsec / 1000000000.0;
@@ -81,7 +82,7 @@ namespace {
 	 *
 	 * \param[in] ts the timespec to convert.
 	 *
-	 * \return the number of milliseconds represented by ts.
+	 * \return the number of milliseconds represented by \p ts.
 	 */
 	unsigned int timespec_to_millis(const timespec &ts) {
 		return ts.tv_sec * 1000U + ts.tv_nsec / 1000000U;

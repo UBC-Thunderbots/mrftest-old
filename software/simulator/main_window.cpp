@@ -10,7 +10,8 @@ namespace {
 		public:
 			/**
 			 * Constructs a new control widget.
-			 * \param sim the Simulator to control
+			 *
+			 * \param[in] sim the Simulator to control.
 			 */
 			RobotControls(Simulator &sim) : Gtk::Table(5, 2), sim(sim) {
 				unsigned int y = 0;
@@ -46,7 +47,8 @@ namespace {
 
 			/**
 			 * Sets the controls to display information about a robot.
-			 * \param address the address of the robot to display
+			 *
+			 * \param[in] address the address of the robot to display.
 			 */
 			void set_robot(uint64_t address) {
 				bot = sim.robots().find(address)->second;
@@ -138,7 +140,8 @@ namespace {
 		public:
 			/**
 			 * Constructs a new robots control widget.
-			 * \param sim the Simulator to control
+			 *
+			 * \param[in] sim the Simulator to control.
 			 */
 			RobotsControls(Simulator &sim) : sim(sim), robots_list_model(SingleBotComboBoxModel::create(sim.conf.robots())), robots_list(robots_list_model), controls(sim) {
 				robots_list.append_column("Address", robots_list_model->address_column);

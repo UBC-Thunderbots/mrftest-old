@@ -3,19 +3,19 @@
 
 #include "util/clocksource.h"
 
-//
-// A clock source that fires as quickly as possible.
-//
+/**
+ * A clock source that fires as quickly as possible.
+ */
 class QuickClockSource : public ClockSource, public sigc::trackable {
 	public:
-		//
-		// Starts the ClockSource.
-		//
+		/**
+		 * Starts the ClockSource.
+		 */
 		void start();
 
-		//
-		// Stops the ClockSource.
-		//
+		/**
+		 * Stops the ClockSource.
+		 */
 		void stop();
 
 	private:

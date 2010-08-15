@@ -75,6 +75,8 @@ class FileDescriptor : public ByRef {
 		void close();
 
 		/**
+		 * Gets the actual file descriptor.
+		 *
 		 * \return the descriptor.
 		 */
 		int fd() const;

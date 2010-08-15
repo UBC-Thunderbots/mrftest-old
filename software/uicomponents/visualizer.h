@@ -34,11 +34,11 @@ class Visualizable : public NonCopyable {
 				/**
 				 * Constructs a new RobotColour.
 				 *
-				 * \param red the red component
+				 * \param[in] red the red component, from 0 to 1.
 				 *
-				 * \param green the green component
+				 * \param[in] green the green component, from 0 to 1.
 				 *
-				 * \param blue the blue component
+				 * \param[in[ blue the blue component, from 0 to 1.
 				 */
 				RobotColour(double red, double green, double blue) : red(red), green(green), blue(blue) {
 				}
@@ -50,53 +50,74 @@ class Visualizable : public NonCopyable {
 		class Field : public NonCopyable {
 			public:
 				/**
+				 * Checks whether the data is valid.
+				 *
 				 * \return true if the geometry data in the Field is valid, or
-				 * false if not
+				 * false if not.
 				 */
 				virtual bool valid() const = 0;
 
 				/**
-				 * \return The length of the field, from goal to goal, in metres
+				 * Returns the length of the field.
+				 *
+				 * \return the length of the field, from goal to goal, in
+				 * metres.
 				 */
 				virtual double length() const = 0;
 
 				/**
-				 * \return The length of the field, including the boundary and referee
-				 * area, in metres
+				 * Returns the total length of the field.
+				 *
+				 * \return the length of the field, including the boundary and
+				 * referee area, in metres.
 				 */
 				virtual double total_length() const = 0;
 
 				/**
-				 * \return The width of the field, from sideline to sideline, in metres
+				 * Returns the width of the field.
+				 *
+				 * \return the width of the field, from sideline to sideline, in
+				 * metres.
 				 */
 				virtual double width() const = 0;
 
 				/**
-				 * \return The width of the field, including the boundary and referee
-				 * area, in metres
+				 * Returns the total width of the field.
+				 *
+				 * \return the width of the field, including the boundary and
+				 * referee area, in metres.
 				 */
 				virtual double total_width() const = 0;
 
 				/**
-				 * \return The width of the goal, symmetric above and below the
-				 * centreline, from goalpost to goalpost, in metres
+				 * Returns the width of the goal.
+				 *
+				 * \return the width of the goal, symmetric above and below the
+				 * centreline, from goalpost to goalpost, in metres.
 				 */
 				virtual double goal_width() const = 0;
 
 				/**
-				 * \return The radius of the centre circle, in metres
+				 * Returns the radius of the centre circle.
+				 *
+				 * \return the radius of the centre circle, in metres.
 				 */
 				virtual double centre_circle_radius() const = 0;
 
 				/**
-				 * \return The radius of the arcs at the top and bottom of the defense
-				 * area, in metres
+				 * Returns the radius of the arcs at the top and bottom of the
+				 * defense area.
+				 *
+				 * \return the radius of the arcs at the top and bottom of the
+				 * defense area, in metres.
 				 */
 				virtual double defense_area_radius() const = 0;
 
 				/**
-				 * \return The width of the straight part of the defense area between
-				 * the two arcs, in metres
+				 * Returns the width of the straight part of the defense area.
+				 *
+				 * \return the width of the straight part of the defense area
+				 * between the two arcs, in metres.
 				 */
 				virtual double defense_area_stretch() const = 0;
 
@@ -117,15 +138,17 @@ class Visualizable : public NonCopyable {
 				typedef RefPtr<Draggable> Ptr;
 
 				/**
+				 * Checks if the object can actually be dragged.
+				 *
 				 * \return true if this object can actually be dragged, or false
-				 * if not
+				 * if not.
 				 */
 				virtual bool visualizer_can_drag() const = 0;
 
 				/**
 				 * Drags this object to the specified position.
 				 *
-				 * \param pos the position to drag to.
+				 * \param[in] pos the position to drag to.
 				 */
 				virtual void visualizer_drag(const Point &pos) = 0;
 		};
@@ -141,11 +164,15 @@ class Visualizable : public NonCopyable {
 				typedef RefPtr<Ball> Ptr;
 
 				/**
+				 * Returns the position of the ball.
+				 *
 				 * \return the position of the ball.
 				 */
 				virtual Point position() const = 0;
 
 				/**
+				 * Returns the velocity of the ball.
+				 *
 				 * \return the velocity of the ball.
 				 */
 				virtual Point velocity() const = 0;
@@ -162,39 +189,53 @@ class Visualizable : public NonCopyable {
 				typedef RefPtr<Robot> Ptr;
 
 				/**
-				 * \return The position of the Robot
+				 * Returns the position of the robot.
+				 *
+				 * \return the position of the Robot.
 				 */
 				virtual Point position() const = 0;
 
 				/**
-				 * \return The orientation of the Robot
+				 * Returns the orientation of the robot.
+				 *
+				 * \return the orientation of the Robot.
 				 */
 				virtual double orientation() const = 0;
 
 				/**
+				 * Checks whether the robot is visible.
+				 *
 				 * \return true if the Robot is visible on the field, or false
-				 * if not
+				 * if not.
 				 */
 				virtual bool visualizer_visible() const = 0;
 
 				/**
-				 * \return The colour of the Robot
+				 * Returns the colour of the robot.
+				 *
+				 * \return the colour of the Robot.
 				 */
 				virtual Visualizable::RobotColour visualizer_colour() const = 0;
 
 				/**
-				 * \return The text to display over the Robot
+				 * Returns the text to display over the robot.
+				 *
+				 * \return the text to display over the Robot.
 				 */
 				virtual Glib::ustring visualizer_label() const = 0;
 
 				/**
+				 * Checks whether the robot has a definite destination.
+				 *
 				 * \return true if it is possible to determine the current
-				 * destination of this object
+				 * destination of this object.
 				 */
 				virtual bool has_destination() const = 0;
 
 				/**
-				 * \return The current destination of the Robot
+				 * Returns the current destination of the robot.
+				 *
+				 * \return the current destination of the Robot.
 				 */
 				virtual Point destination() const = 0;
 		};
@@ -205,24 +246,32 @@ class Visualizable : public NonCopyable {
 		mutable sigc::signal<void> signal_visdata_changed;
 
 		/**
-		 * \return The field
+		 * Returns the field.
+		 *
+		 * \return the field.
 		 */
 		virtual const Visualizable::Field &field() const = 0;
 
 		/**
-		 * \return The ball
+		 * Returns the ball.
+		 *
+		 * \return the ball.
 		 */
 		virtual Visualizable::Ball::Ptr ball() const = 0;
 
 		/**
-		 * \return The number of robots.
+		 * Returns the number of robots in the world.
+		 *
+		 * \return the number of robots.
 		 */
 		virtual std::size_t size() const = 0;
 
 		/**
-		 * \param index the index of the Robot to retreive
+		 * Fetches a robot.
 		 *
-		 * \return The Robot
+		 * \param[in] index the index of the Robot to retrieve.
+		 *
+		 * \return the Robot.
 		 */
 		virtual Visualizable::Robot::Ptr operator[](unsigned int index) const = 0;
 };
@@ -245,6 +294,8 @@ class Visualizer : public Gtk::DrawingArea, public NonCopyable {
 		void update();
 
 		/**
+		 * Returns the overlay context.
+		 *
 		 * \return a context for drawing on the overlay surface that renders on
 		 * top of the Visualizer.
 		 */

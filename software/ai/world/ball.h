@@ -27,7 +27,9 @@ class Ball : public Visualizable::Ball, public Predictable {
 		static const double RADIUS;
 
 		/**
-		 * \return the position of the robot.
+		 * Gets the position of the ball.
+		 *
+		 * \return the position of the Ball.
 		 */
 		Point position() const {
 			return Predictable::position();

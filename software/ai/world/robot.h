@@ -38,14 +38,18 @@ class Robot : public Visualizable::Robot, public Predictable, public sigc::track
 		const unsigned int pattern_index;
 
 		/**
-		 * \return The position of the robot.
+		 * Gets the position of the robot.
+		 *
+		 * \return the position of the robot.
 		 */
 		Point position() const {
 			return Predictable::position();
 		}
 
 		/**
-		 * \return The orientation of the robot.
+		 * Gets the orientation of the robot.
+		 *
+		 * \return the orientation of the robot.
 		 */
 		double orientation() const {
 			return Predictable::orientation();
@@ -69,13 +73,19 @@ class Robot : public Visualizable::Robot, public Predictable, public sigc::track
 
 		/**
 		 * Constructs a new non-drivable Robot object.
-		 * \return the new object
+		 *
+		 * \param[in] yellow the colour of the new robot.
+		 *
+		 * \param[in] pattern_index the lid pattern index of the new robot.
+		 *
+		 * \return the new object.
 		 */
 		static Ptr create(bool yellow, unsigned int pattern_index);
 
 		/**
 		 * Updates the position of the Robot using new data.
-		 * \param packet the new data to update with
+		 *
+		 * \param[in] packet the new data to update with.
 		 */
 		void update(const SSL_DetectionRobot &packet);
 

@@ -28,50 +28,57 @@ class SimulatorEngine : public ByRef {
 		virtual void tick() = 0;
 
 		/**
-		 * Called to retrieve the engine's specific SimulatorBall object. A given engine
+		 * Retrieves the engine's specific SimulatorBall object. A given engine
 		 * must always return the same SimulatorBall object!
-		 * \return The SimulatorBall object
+		 *
+		 * \return the SimulatorBall object.
 		 */
 		virtual SimulatorBall::Ptr get_ball() = 0;
 
 		/**
-		 * Called to create a new SimulatorPlayer. The engine must keep a pointer to the
-		 * new object so that SimulatorEngine::tick() can move the SimulatorPlayer.
-		 * \return The new SimulatorPlayer object
+		 * Creates a new SimulatorPlayer. The engine must keep a pointer to the
+		 * new object so that SimulatorEngine::tick() can move the
+		 * SimulatorPlayer.
+		 *
+		 * \return the new SimulatorPlayer object.
 		 */
 		virtual SimulatorPlayer::Ptr add_player() = 0;
 
 		/**
-		 * Called to remove from the simulation an existing SimulatorPlayer.
-		 * \param SimulatorPlayer the SimulatorPlayer to remove
+		 * Removes from the simulation an existing SimulatorPlayer.
+		 *
+		 * \param [in] player the SimulatorPlayer to remove.
 		 */
 		virtual void remove_player(SimulatorPlayer::Ptr player) = 0;
 
 		/**
-		 * Called to retrieve the engine-specific UI controls that will be placed
-		 * in the simulator window when this engine is activated.
-		 * \return The UI controls to display, or null to not display controls
+		 * Retrieves the engine-specific UI controls that will be placed in the
+		 * simulator window when this engine is activated.
+		 *
+		 * \return the UI controls to display, or null to not display controls.
 		 */
 		virtual Gtk::Widget *get_ui_controls() = 0;
 
 		/**
-		 * Called to retrieve the factory object that created the engine.
-		 * \return The engine factory that created the engine
+		 * Retrieves the factory object that created the engine.
+		 *
+		 * \return the engine factory that created the engine.
 		 */
 		virtual SimulatorEngineFactory &get_factory() = 0;
 };
 
 /**
- * A factory for creating simulator_engines. An individual implementation should
- * extend this class to provide a class which can create objects of a particular
- * derived implementation of SimulatorEngine, and then create a single instance
- * of the factory in a global variable.
+ * A factory for creating \ref SimulatorEngine "SimulatorEngines". An individual
+ * implementation should extend this class to provide a class which can create
+ * objects of a particular derived implementation of SimulatorEngine, and then
+ * create a single instance of the factory in a global variable.
  */
 class SimulatorEngineFactory : public Registerable<SimulatorEngineFactory> {
 	public:
 		/**
 		 * Constructs a new SimulatorEngine.
-		 * \return The new engine
+		 *
+		 * \return the new engine.
 		 */
 		virtual SimulatorEngine::Ptr create_engine() = 0;
 
@@ -80,7 +87,8 @@ class SimulatorEngineFactory : public Registerable<SimulatorEngineFactory> {
 		 * Constructs a SimulatorEngineFactory. This should be invoked at
 		 * application startup (by creating a global variable instance of the
 		 * implementing class) to register the factory.
-		 * \param name a short string naming the factory
+		 *
+		 * \param[in] name a short string naming the factory.
 		 */
 		SimulatorEngineFactory(const Glib::ustring &name) : Registerable<SimulatorEngineFactory>(name) {
 		}

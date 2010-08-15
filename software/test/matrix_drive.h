@@ -5,9 +5,19 @@
 #include "xbee/client/drive.h"
 #include <gtkmm.h>
 
+/**
+ * Allows driving the robot by specifying the <var>x</var> and <var>y</var>
+ * components of the robot's linear velocity and its angular velocity.
+ */
 class TesterControlMatrixDrive : public Gtk::Table, public Zeroable {
 	public:
-		TesterControlMatrixDrive(XBeeDriveBot::Ptr);
+		/**
+		 * Constructs a new TesterControlMatrixDrive.
+		 *
+		 * \param[in] bot the robot to control.
+		 */
+		TesterControlMatrixDrive(XBeeDriveBot::Ptr bot);
+
 		void zero();
 
 	private:

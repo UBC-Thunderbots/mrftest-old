@@ -6,24 +6,28 @@
 #include "util/ihex.h"
 #include "xbee/client/raw.h"
 
-//
-// An operation to upload data to be burned into the PIC.
-//
+/**
+ * An operation to upload data to be burned into the PIC.
+ */
 class PICUpload : public WatchableOperation, public sigc::trackable {
 	public:
-		//
-		// Constructs an uploader.
-		//
+		/**
+		 * Constructs a PICUpload.
+		 *
+		 * \param[in] bot the robot whose PIC firmware should be upgraded.
+		 *
+		 * \param[in] data the new firmware to upload.
+		 */
 		PICUpload(XBeeRawBot::Ptr bot, const IntelHex &data);
 
-		//
-		// Starts the upload process.
-		//
+		/**
+		 * Starts the upload process.
+		 */
 		void start();
 
-		//
-		// The number of bytes in a page.
-		//
+		/**
+		 * The number of bytes in a page.
+		 */
 		static const unsigned int PAGE_BYTES = 64;
 
 	private:

@@ -7,7 +7,7 @@
 
 #include <vector>
 
-/**
+/*
  * Contains a bunch of useful utility functions.
  * In general, functions that go here are those that
  * - can be used accross different roles/strategies/tactic.
@@ -17,15 +17,36 @@ namespace AIUtil {
 
 	/**
 	 * A comparator that sorts by a particular distance.
-	 * To be used together with std::sort.
-	 * E.g.
+	 *
+	 * Example:
+	 * \code
 	 * std::vector<Robot::Ptr> enemies = AIUtil::get_robots(enemy);
 	 * std::sort(enemies.begin(), enemies.end(), AIUtil::CmpDist<Robot::Ptr>(goal));
+	 * \endcode
+	 *
+	 * \tparam T the type of object whose distances should be compared.
 	 */
 	template<typename T> class CmpDist {
 		public:
+			/**
+			 * Creates a comparator.
+			 *
+			 * \param[in] dest the point by distances to which the objects
+			 * should be compared.
+			 */
 			CmpDist(const Point& dest) : dest(dest) {
 			}
+
+			/**
+			 * Compares two objects.
+			 *
+			 * \param[in] x the first object.
+			 *
+			 * \param[in] y the second object.
+			 *
+			 * \return \c true if \p x is closer to the destination than \c y,
+			 * or \c false if not.
+			 */
 			bool operator()(T x, T y) const {
 				return (x->position() - dest).lensq() < (y->position() - dest).lensq();
 			}
@@ -92,85 +113,181 @@ namespace AIUtil {
 	/**
 	 * Checks if the robot is in a position close enough to the ball to start
 	 * So close that no other robot can be in the way of this ball.
+	 *
+	 * \param[in] w the World in which to perform the check.
+	 *
+	 * \param[in] bot the Robot to check.
 	 */
 	bool ball_close(const World::Ptr w, const Robot::Ptr bot);
 
 	/**
-	 * Checks if a position is inside the friendly defense area
+	 * Checks if a position is inside the friendly defense area.
+	 *
+	 * \param[in] w the World in which to perform the check.
+	 *
+	 * \param[in] pt the Point to check.
 	 */
 	bool point_in_defense(const World::Ptr w, const Point& pt);
 
 	/**
-	 * Checks if the path from begin to end is blocked by some robots.
-	 * \param robots a vector of robots/players that blocks the path.
-	 * \param thresh the amount of allowance for the path.
-	 * For passing, use Robot::MAX_RADIUS + ball::RADIUS + SHOOT_ALLOWANCE.
-	 * For moving, use Robot::MAX_RADIUS * 2 + MOVE_ALLOWANCE.
-	 * \return True if the path is not blocked.
+	 * Checks if the path from \p begin to \p end is blocked by some robots.
+	 *
+	 * \param[in] begin the beginning of the path.
+	 *
+	 * \param[in] end the end of the path.
+	 *
+	 * \param[in] robots a vector of robots/players that blocks the path.
+	 *
+	 * \param[in] thresh the amount of allowance for the path (for passing, use
+	 * <code>Robot::MAX_RADIUS + Ball::RADIUS + AIUtil::SHOOT_ALLOWANCE</code>;
+	 * for moving, use <code>Robot::MAX_RADIUS * 2 +
+	 * AIUtil::MOVE_ALLOWANCE</code>).
+	 *
+	 * \return \c true if the path is not blocked.
 	 */
 	bool path_check(const Point& begin, const Point& end, const std::vector<Robot::Ptr>& robots, const double thresh);
 
 	/**
-	 * Checks if the path from begin to end is blocked by some obstacles.
-	 * \param obstacles a vector of obstacles that blocks the path.
-	 * \param thresh the amount of allowance for the path.
-	 * For passing, use Robot::MAX_RADIUS + ball::RADIUS + SHOOT_ALLOWANCE.
-	 * For moving, use Robot::MAX_RADIUS * 2 + MOVE_ALLOWANCE.
-	 * \return True if the path is not blocked.
+	 * Checks if the path from \p begin to \p end is blocked by some obstacles.
+	 *
+	 * \param[in] begin the beginning of the path.
+	 *
+	 * \param[in] end the end of the path.
+	 *
+	 * \param[in] obstacles a vector of obstacles that blocks the path.
+	 *
+	 * \param[in] thresh the amount of allowance for the path (for passing, use
+	 * <code>Robot::MAX_RADIUS + Ball::RADIUS + AIUtil::SHOOT_ALLOWANCE</code>;
+	 * for moving, use <code>Robot::MAX_RADIUS * 2 +
+	 * AIUtil::MOVE_ALLOWANCE</code>).
+	 *
+	 * \return \c true if the path is not blocked.
 	 */
 	bool path_check(const Point& begin, const Point& end, const std::vector<Point>& obstacles, const double thresh);
 
 	/**
 	 * Checks if the passee can get the ball now.
-	 * Returns false if some robots is blocking line of sight of ball from passee
-	 * Returns false if passee is not facing the ball.
-	 * Returns false if some condition is invalid.
+	 *
+	 * \param[in] w the World in which to check.
+	 *
+	 * \param[in] passee the Player trying to receive the ball.
+	 *
+	 * \return \c false if some robots is blocking line of sight of ball from
+	 * \p passee, if \p passee is not facing the ball, or if some condition is
+	 * invalid, or \c true otherwise.
 	 */
 	bool can_receive(const World::Ptr w, const Player::Ptr passee);
 
 	/**
 	 * Calculates the candidates to aim for when shooting at the goal.
+	 *
+	 * \param[in] w the World in which to calculate.
+	 *
+	 * \return a collection of open points in the goal.
 	 */
 	const std::vector<Point> calc_candidates(const World::Ptr w);
 
 	/**
-	 * Finds the length of the largest continuous interval (angle-wise)
-	 * of the enemy goal that can be seen from a point.
-	 * Having a vector of points enables one to add imaginary threats.
-	 * Returns the point as well as the score.
-	 * score is 0 if the point is invalid.
+	 * Finds the length of the largest continuous interval (angle-wise) of the
+	 * enemy goal that can be seen from a point. Having a vector of points
+	 * enables one to add imaginary threats.
+	 *
+	 * \param[in] f the Field in which to search.
+	 *
+	 * \param[in] obstacles the obstacles that potentially block the goal.
+	 *
+	 * \param[in] p the origin point from which to look.
+	 *
+	 * \param[in] radius ?
+	 *
+	 * \return a pair \c (p, s) where \c p is the middle of the best interval
+	 * and \c s is the score of that interval, where a score of 0 means no point
+	 * could be found.
 	 */
 	std::pair<Point, double> calc_best_shot(const Field& f, const std::vector<Point>& obstacles, const Point& p, const double radius = Robot::MAX_RADIUS);
+
+	/**
+	 * Finds the length of the largest continuous interval (angle-wise) of the
+	 * enemy goal that can be seen from a point. Having a vector of points
+	 * enables one to add imaginary threats.
+	 *
+	 * \param[in] w the World in which to search.
+	 *
+	 * \param[in] pl the Player from whose position to look.
+	 *
+	 * \param[in] consider_friendly ?
+	 *
+	 * \param[in] force_shoot ?
+	 *
+	 * \return a pair \c (p, s) where \c p is the middle of the best interval
+	 * and \c s is the score of that interval, where a score of 0 means no point
+	 * could be found.
+	 */
 	std::pair<Point, double> calc_best_shot(const World::Ptr w, const Player::Ptr pl, const bool consider_friendly = true, const bool force_shoot = false);
 
 	/**
-	 * Returns the length of the largest continuous interval (angle-wise)
-	 * of the enemy goal that can be seen from a point.
-	 * Having a vector of points enables one to add imaginary threats.
-	 * Returns 0 if the point is physically inside a considered robot.
+	 * Returns the length of the largest continuous interval (angle-wise) of the
+	 * enemy goal that can be seen from a point. Having a vector of points
+	 * enables one to add imaginary threats.
+	 *
+	 * \param[in] w the World in which to search.
+	 *
+	 * \param[in] pl the Player from whose position to look.
+	 *
+	 * \param[in] consider_friendly ?
+	 *
+	 * \return the length of the interval, or 0 if the point is physically
+	 * inside a considered robot.
 	 */
 	double calc_goal_visibility_angle(const World::Ptr w, const Player::Ptr pl, const bool consider_friendly = true);
 
 	/**
-	 * Convert friendly into vector of players, excluding some.
-	 * Useful for separating robots in the Role and those which are not.
+	 * Converts \p friendly into a \c vector of \ref Player "Players", excluding
+	 * some of them. Useful for separating robots in the Role and those which
+	 * are not.
+	 *
+	 * \param[in] friendly the team whose \ref Player "Players" to return.
+	 *
+	 * \param[in] exclude the \ref Player "Players" to exclude.
+	 *
+	 * \return all the \ref Player "Players" in \p friendly except for those in
+	 * \p exclude.
 	 */
 	std::vector<Player::Ptr> get_friends(const FriendlyTeam& friendly, const std::vector<Player::Ptr>& exclude);
 
 	/**
 	 * Finds the best player to pass to based on distance to the enemy goal.
-	 * Returns -1 if no valid target is found.
+	 *
+	 * \param[in] w the World in which to search.
+	 *
+	 * \param[in] friends the \ref Player "Players" to consider.
+	 *
+	 * \return ?, or -1 if no valid target is found.
 	 */
 	int choose_best_pass(const World::Ptr w, const std::vector<Player::Ptr>& friends);
 
 	/**
-	 * Returns true if the ball has the ball with high probability.
-	 * Also uses vision.
+	 * Checks whether a player probably has the ball. Uses dribbler sensing and
+	 * also, if enabled in the parameters table, vision.
+	 *
+	 * \param[in] w the World in which to check.
+	 *
+	 * \param[in] p the Player to consider.
+	 *
+	 * \return \c true if \p pl has the ball with high probability.
 	 */
 	bool has_ball(const World::Ptr w, const Player::Ptr pl);
 
 	/**
-	 * Checks if a FRIENDLY PLAYER posses the ball.
+	 * Checks if a FRIENDLY PLAYER posses the ball. Possession is defined as
+	 * either having the ball or, if enabled in the parameters table, also the
+	 * ball being close to the player.
+	 *
+	 * \param[in] w the World in which to check.
+	 *
+	 * \param[in] p the Player to consider.
+	 *
+	 * \return \c true if \p p possesses the ball.
 	 */
 	bool posses_ball(const World::Ptr w, const Player::Ptr p);
 
@@ -185,14 +302,32 @@ namespace AIUtil {
 	// bool enemy_posses_ball(const World::Ptr w);
 
 	/**
-	 * Checks if friendly team posses the ball.
+	 * Checks if the friendly team possesses the ball.
+	 *
+	 * \param[in] w the World in which to check.
+	 *
+	 * \return \c true if the friendly team possesses the ball.
 	 */
 	bool friendly_posses_ball(const World::Ptr w);
+
+	/**
+	 * Checks if the friendly team has the ball.
+	 *
+	 * \param[in] w the World in which to check.
+	 *
+	 * \return \c true if the friendly team has the ball.
+	 */
 	bool friendly_has_ball(const World::Ptr w);
 
 	/**
-	 * Returns the player having the ball.
-	 * If none has the ball, return -1.
+	 * Determines which player has the ball.
+	 *
+	 * \param[in] w the World in which to check.
+	 *
+	 * \param[in] players the \ref Player "Players" to examine.
+	 *
+	 * \return the index in \p players of the Player that has the ball, or -1 if
+	 * none have the ball.
 	 */
 	int calc_baller(const World::Ptr w, const std::vector<Player::Ptr>& players);
 }

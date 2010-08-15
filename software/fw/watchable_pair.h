@@ -12,9 +12,11 @@ class WatchablePair : public WatchableOperation {
 		/**
 		 * Constructs a new WatchablePair.
 		 *
-		 * \param op1 the first operation to execute.
-		 * \param op2 the second operation to execute.
-		 * \param weight the fraction of the progress bar that should be
+		 * \param[in] op1 the first operation to execute.
+		 *
+		 * \param[in] op2 the second operation to execute.
+		 *
+		 * \param[in] weight the fraction of the progress bar that should be
 		 * dedicated to the first operation.
 		 */
 		WatchablePair(WatchableOperation &op1, WatchableOperation &op2, double weight);

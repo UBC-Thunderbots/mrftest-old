@@ -3,6 +3,8 @@
 #include "geom/angle.h"
 #include <cmath>
 
+#warning this class needs Doxygen comments in its header
+
 namespace {
 
 	class MaxPowerControllerFactory : public RobotControllerFactory {

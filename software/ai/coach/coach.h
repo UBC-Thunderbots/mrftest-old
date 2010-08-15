@@ -71,12 +71,17 @@ class Coach : public ByRef {
 		virtual void tick() = 0;
 
 		/**
+		 * Returns the GTK widget for this Coach, which will be integrated into
+		 * the AI's user interface.
+		 *
 		 * \return a GUI widget containing the controls for this Coach, or a
 		 * null pointer if no GUI widgets are needed for this Coach.
 		 */
 		virtual Gtk::Widget *get_ui_controls() = 0;
 
 		/**
+		 * Returns the Strategy currently selected by the Coach.
+		 *
 		 * \return the currently-selected Strategy.
 		 */
 		Strategy::Ptr get_strategy() const;

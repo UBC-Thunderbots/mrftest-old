@@ -19,19 +19,24 @@ class SimulatorBall : public Visualizable::Ball {
 		typedef RefPtr<SimulatorBall> Ptr;
 
 		/**
-		 * \return The position of the ball, in metres from field centre
+		 * Returns the position of the ball.
+		 *
+		 * \return the position of the ball, in metres from field centre.
 		 */
 		virtual Point position() const __attribute__((warn_unused_result)) = 0;
 
 		/**
 		 * Moves the ball.
-		 * \param pos the new location of the ball, in metres from field centre
+		 *
+		 * \param[in] pos the new location of the ball, in metres from field
+		 * centre.
 		 */
 		virtual void position(const Point &pos) = 0;
 
 		/**
 		 * Sets the ball's velocity.
-		 * \param vel the new velocity, in metres per second field-relative
+		 *
+		 * \param[in] vel the new velocity, in metres per second field-relative.
 		 */
 		virtual void velocity(const Point &vel) = 0;
 

@@ -10,11 +10,18 @@
 #include "xbee/client/lowlevel.h"
 #include <gtkmm.h>
 
-//
-// The user interface for the tester.
-//
+/**
+ * The user interface for the tester.
+ */
 class TesterWindow : public Gtk::Window {
 	public:
+		/**
+		 * Creates a new TesterWindow.
+		 *
+		 * \param[in] modem the modem to use to talk to robots.
+		 *
+		 * \param[in] conf the configuration file containing the robots to test.
+		 */
 		TesterWindow(XBeeLowLevel &modem, const Config &conf);
 
 	private:

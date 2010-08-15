@@ -14,22 +14,32 @@
 
 class XBeeDaemon;
 
-//
-// Manages all the state associated with a client's connection to this dæmon.
-//
+/**
+ * Manages all the state associated with a client's connection to this dæmon.
+ */
 class XBeeClient : public NonCopyable, public sigc::trackable {
 	public:
-		//
-		// Constructs a new XBeeClient.
-		//
+		/**
+		 * Constructs a new XBeeClient.
+		 *
+		 * \param[in] sock the socket connected to the client.
+		 *
+		 * \param[in] daemon the dæmon to which the client is connected.
+		 */
 		static void create(FileDescriptor::Ptr sock, XBeeDaemon &daemon);
 
-		//
-		// Sends a packet to all existent clients.
-		//
+		/**
+		 * Sends a packet to all existent clients.
+		 *
+		 * \param[in] data the data to send.
+		 *
+		 * \param[in] length the length of \p data, in bytes.
+		 */
 		static void send_to_all(const void *data, std::size_t length);
 
 		/**
+		 * Checks whether or not any clients are currently connected.
+		 *
 		 * \return \c true if any clients are connected, or \c false if not.
 		 */
 		static bool any_connected();

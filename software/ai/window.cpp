@@ -162,6 +162,18 @@ namespace {
 			}
 	};
 
+	/**
+	 * Translates a robot battery level into appropriate values for a
+	 * progress-bar-type tree cell renderer to display.
+	 *
+	 * \param[in] r the renderer for the cell in which to display the battery
+	 * level.
+	 *
+	 * \param[in] iter an iterator pointing at the row corresponding to the
+	 * robot whose battery level should be displayed.
+	 *
+	 * \param[in] model the model containing the robots.
+	 */
 	void battery_cell_data_func(Gtk::CellRenderer *r, const Gtk::TreeModel::iterator &iter, const Glib::RefPtr<RobotInfoModel> model) {
 		unsigned int mv = iter->get_value(model->battery_column);
 		Gtk::CellRendererProgress *rp = dynamic_cast<Gtk::CellRendererProgress *>(r);
@@ -173,6 +185,19 @@ namespace {
 		}
 	}
 
+	/**
+	 * Translates a time interval into appropriate values for a
+	 * progress-bar-type tree cell renderer to display.
+	 *
+	 * \param[in] r the renderer for the cell in which to display the interval.
+	 *
+	 * \param[in] iter an iterator pointing at the row corresponding to the
+	 * robot whose interval should be displayed.
+	 *
+	 * \param[in] model the model containing the robots.
+	 *
+	 * \param[in] the column containing the interval to display.
+	 */
 	void interval_cell_data_func(Gtk::CellRenderer *r, const Gtk::TreeModel::iterator &iter, const Gtk::TreeModelColumn<unsigned int> &column) {
 		unsigned int ms = iter->get_value(column);
 		Gtk::CellRendererProgress *rp = dynamic_cast<Gtk::CellRendererProgress *>(r);

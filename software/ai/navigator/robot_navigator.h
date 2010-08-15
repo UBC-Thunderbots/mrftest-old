@@ -4,17 +4,32 @@
 #include "navigator.h"
 /**
  * Note about the default behaviour:
- * - Does not have any clipping (all flags are off).
- * - Always orient towards the ball.
+ * <ul>
+ * <li>Does not have any clipping (all flags are off).</li>
+ * <li>Always orient towards the ball.</li>
+ * </ul>
  *
  * Thus at every tick:
- * - call set_position to change the position
- * - call set_orientation to change orientation
- * - call set_flags to set flags.
+ * <ul>
+ * <li>call set_position to change the position</li>
+ * <li>call set_orientation to change orientation</li>
+ * <li>call set_flags to set flags.</li>
+ * </ul>
  */
 class RobotNavigator : public Navigator {
 	public:	
+		/**
+		 * A pointer to a RobotNavigator.
+		 */
 		typedef RefPtr<RobotNavigator> Ptr;
+
+		/**
+		 * Creates a new RobotNavigator.
+		 *
+		 * \param[in] player the Player to navigate.
+		 *
+		 * \param[in] world the World in which to navigate.
+		 */
 		RobotNavigator(Player::Ptr player, World::Ptr world): Navigator(player, world){
 		}
 		

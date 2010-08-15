@@ -12,7 +12,8 @@ class MainWindow : public Gtk::Window {
 	public:
 		/**
 		 * Constructs a new main window.
-		 * \param sim the Simulator the window is displaying
+		 *
+		 * \param[in] sim the Simulator the window is displaying.
 		 */
 		MainWindow(Simulator &sim);
 

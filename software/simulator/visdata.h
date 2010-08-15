@@ -14,13 +14,38 @@ class SimulatorVisData : public Visualizable {
 		/**
 		 * Constructs a new SimulatorVisData.
 		 *
-		 * \param sim the Simulator to visualize
+		 * \param[in] sim the Simulator to visualize.
 		 */
 		SimulatorVisData(const Simulator &sim);
 
+		/**
+		 * Returns the field to visualize.
+		 *
+		 * \return the field.
+		 */
 		const Visualizable::Field &field() const;
+
+		/**
+		 * Returns the ball to visualize.
+		 *
+		 * \return the ball.
+		 */
 		Visualizable::Ball::Ptr ball() const;
+
+		/**
+		 * Returns the number of robots.
+		 *
+		 * \return the number of robots.
+		 */
 		std::size_t size() const;
+
+		/**
+		 * Fetches a robot.
+		 *
+		 * \param[in] index the number of the robot to fetch.
+		 *
+		 * \return the robot.
+		 */
 		Visualizable::Robot::Ptr operator[](unsigned int index) const;
 
 	private:

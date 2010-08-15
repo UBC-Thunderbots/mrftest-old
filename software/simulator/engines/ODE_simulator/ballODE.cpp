@@ -1,6 +1,8 @@
 #include "simulator/field.h"
 #include "simulator/engines/ODE_simulator/ballODE.h"
 #include <iostream>
+
+#warning this class needs Doxygen comments in its header file
 /*
 
 ballODE.h has the following:

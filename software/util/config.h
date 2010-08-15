@@ -72,6 +72,8 @@ class Config : public NonCopyable {
 		class RobotSet : public NonCopyable {
 			public:
 				/**
+				 * Gets the size of the list.
+				 *
 				 * \return the number of robots in the list.
 				 */
 				unsigned int size() const {
@@ -79,7 +81,9 @@ class Config : public NonCopyable {
 				}
 
 				/**
-				 * param[in] index the position of the robot in the list.
+				 * Fetches a robot from the list.
+				 *
+				 * \param[in] index the position of the robot in the list.
 				 *
 				 * \return the robot at that position.
 				 */
@@ -88,6 +92,8 @@ class Config : public NonCopyable {
 				}
 
 				/**
+				 * Finds a robot by 64-bit address.
+				 *
 				 * \param[in] address the XBee address to look up.
 				 *
 				 * \return the robot's information structure.
@@ -95,6 +101,8 @@ class Config : public NonCopyable {
 				const RobotInfo &find(uint64_t address) const;
 
 				/**
+				 * Finds a robot by name.
+				 *
 				 * \param[in] name the name of the robot.
 				 *
 				 * \return the robot's information structure.
@@ -102,6 +110,8 @@ class Config : public NonCopyable {
 				const RobotInfo &find(const Glib::ustring &name) const;
 
 				/**
+				 * Checks whether or not there is a robot with a 64-bit address.
+				 *
 				 * \param[in] address the address to check.
 				 *
 				 * \return \c true if some robot in the collection has the
@@ -110,6 +120,8 @@ class Config : public NonCopyable {
 				bool contains_address(uint64_t address) const;
 
 				/**
+				 * Checks whether or not there is a robot with a lid pattern.
+				 *
 				 * \param[in] yellow the team colour to look up.
 				 *
 				 * \param[in] pattern_index the pattern index to look up.
@@ -120,6 +132,8 @@ class Config : public NonCopyable {
 				bool contains_pattern(bool yellow, unsigned int pattern_index) const;
 
 				/**
+				 * Checks whether or not there is a robot with a name.
+				 *
 				 * \param[in] name the name to look for.
 				 *
 				 * \return \c true if \p name is already used by a robot in this
@@ -134,6 +148,9 @@ class Config : public NonCopyable {
 				 *
 				 * \param[in] yellow \c true to make the central dot on the new
 				 * robot's lid yellow, or \c false if not.
+				 *
+				 * \param[in] pattern_index the index of the robot's lid
+				 * pattern.
 				 *
 				 * \param[in] name a human-readable name for the robot.
 				 */
@@ -230,6 +247,8 @@ class Config : public NonCopyable {
 		void save() const;
 
 		/**
+		 * Gets the set of configured robots.
+		 *
 		 * \return the set of configured robots.
 		 */
 		const RobotSet &robots() const {
@@ -237,6 +256,8 @@ class Config : public NonCopyable {
 		}
 
 		/**
+		 * Gets the set of configured robots.
+		 *
 		 * \return the set of configured robots.
 		 */
 		RobotSet &robots() {
@@ -244,6 +265,8 @@ class Config : public NonCopyable {
 		}
 
 		/**
+		 * Gets the radio channel.
+		 *
 		 * \return the radio channel.
 		 */
 		unsigned int channel() const {

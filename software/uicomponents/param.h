@@ -28,6 +28,8 @@ class Param : public NonCopyable {
 		const Glib::ustring name;
 
 		/**
+		 * Returns the UI control used to edit the parameter.
+		 *
 		 * \return the UI control used to edit the parameter.
 		 */
 		virtual Gtk::Widget &widget() = 0;
@@ -82,6 +84,8 @@ class BoolParam : public Param {
 		BoolParam(const Glib::ustring &name, bool def);
 
 		/**
+		 * Returns the value of the parameter.
+		 *
 		 * \return the value of the parameter.
 		 */
 		operator bool() const {
@@ -120,6 +124,8 @@ class IntParam : public Param {
 		IntParam(const Glib::ustring &name, int def, int min, int max);
 
 		/**
+		 * Returns the value of the parameter.
+		 *
 		 * \return the value of the parameter.
 		 */
 		operator int() const {
@@ -160,6 +166,8 @@ class DoubleParam : public Param {
 		DoubleParam(const Glib::ustring &name, double def, double min, double max);
 
 		/**
+		 * Returns the value of the parameter.
+		 *
 		 * \return the value of the parameter.
 		 */
 		operator double() const {

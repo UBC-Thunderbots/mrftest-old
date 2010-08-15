@@ -13,12 +13,21 @@
 #include <cstddef>
 #include <gtkmm.h>
 
-//
-// Displays feedback from the robot.
-//
+/**
+ * Displays feedback from the robot.
+ */
 class TesterFeedback : public Gtk::Table {
 	public:
+		/**
+		 * Creates a new TesterFeedback.
+		 */
 		TesterFeedback();
+
+		/**
+		 * Sets which bot this feedback object will monitor.
+		 *
+		 * \param[in] bot the robot to monitor.
+		 */
 		void set_bot(XBeeDriveBot::Ptr bot);
 
 	private:

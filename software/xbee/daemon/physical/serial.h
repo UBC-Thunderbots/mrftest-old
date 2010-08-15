@@ -10,31 +10,38 @@
 #include <sigc++/sigc++.h>
 #include <sys/uio.h>
 
-//
-// A serial port running at 250,000 baud.
-//
+/**
+ * A serial port running at 250,000 baud.
+ */
 class SerialPort : public NonCopyable, public sigc::trackable {
 	public:
-		//
-		// Constructs a new SerialPort. Opens but does not configure the port.
-		//
+		/*
+		 * Constructs a new SerialPort. Opens but does not configure the port.
+		 */
 		SerialPort();
 
-		//
-		// Configures the port.
-		//
+		/**
+		 * Configures the port.
+		 */
 		void configure_port();
 
-		//
-		// Invoked when a byte arrives on the port.
-		//
+		/**
+		 * Returns the signal invoked when a byte arrives on the port.
+		 *
+		 * \return the signal.
+		 */
 		sigc::signal<void, const void *, std::size_t> &signal_received() {
 			return sig_received;
 		}
 
-		//
-		// Sends a string of bytes to the port.
-		//
+		/**
+		 * Sends a string of bytes to the port.
+		 *
+		 * \param[in] iov a pointer to an array of iovecs to gather to find the
+		 * bytes to send.
+		 *
+		 * \param[in] iovcnt the number of iovecs in the \p iov array.
+		 */
 		void send(iovec *iov, std::size_t iovcnt);
 
 	private:

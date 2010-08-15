@@ -22,28 +22,35 @@ class Team : public ByRef {
 		typedef RefPtr<Team> Ptr;
 
 		/**
-		 * Fired when a robot is added to the team.
+		 * Fired when a Robot is added to the team.
 		 */
 		mutable sigc::signal<void, unsigned int, Robot::Ptr> signal_robot_added;
 
 		/**
-		 * Fired when a robot is removed from the team.
+		 * Fired when a Robot is removed from the team.
 		 */
 		mutable sigc::signal<void, unsigned int, Robot::Ptr> signal_robot_removed;
 
 		/**
-		 * \return The number of robots on the team.
+		 * Gets the size of the team.
+		 *
+		 * \return the number of robots on the team.
 		 */
 		virtual std::size_t size() const = 0;
 
 		/**
-		 * \param index the index of the robot to fetch
-		 * \return The robot
+		 * Gets a robot from the team.
+		 *
+		 * \param[in] index the index of the robot to fetch.
+		 *
+		 * \return the robot.
 		 */
 		virtual Robot::Ptr get_robot(unsigned int index) const = 0;
 
 		/**
-		 * \return A vector of robots.
+		 * Converts the team into a \c vector.
+		 *
+		 * \return all the \ref Robot "Robots" on the team.
 		 */
 		virtual std::vector<Robot::Ptr> get_robots() const = 0;
 
@@ -55,7 +62,8 @@ class Team : public ByRef {
 
 		/**
 		 * Removes a robot from the team.
-		 * \param index the index of the robot to remove
+		 *
+		 * \param[in] index the index of the robot to remove.
 		 */
 		virtual void remove(unsigned int index) = 0;
 
@@ -73,34 +81,27 @@ class EnemyTeam : public Team {
 		 */
 		typedef RefPtr<EnemyTeam> Ptr;
 
-		/**
-		 * \return The number of robots on the team
-		 */
 		std::size_t size() const {
 			return members.size();
 		}
 
-		/**
-		 * \param index the index of the robot to fetch
-		 * \return The robot
-		 */
 		Robot::Ptr get_robot(unsigned int index) const {
 			assert(index < size());
 			return members[index];
 		}
 
 		/**
-		 * \param index the index of the robot to fetch
-		 * \return The robot
+		 * Gets an enemy robot.
+		 *
+		 * \param[in] index the index of the robot to fetch.
+		 *
+		 * \return the robot.
 		 */
 		Robot::Ptr operator[](unsigned int index) const {
 			assert(index < size());
 			return members[index];
 		}
 
-		/**
-		 * \return A vector of robots.
-		 */
 		std::vector<Robot::Ptr> get_robots() const {
 			return members;
 		}
@@ -109,19 +110,23 @@ class EnemyTeam : public Team {
 		std::vector<Robot::Ptr> members;
 
 		/**
-		 * Creates a new Team.
+		 * Creates a new EnemyTeam.
+		 *
+		 * \return the new EnemyTeam.
 		 */
 		static Ptr create();
 
 		/**
 		 * Adds a robot to the team.
-		 * \param bot the robot to add
+		 *
+		 * \param[in] bot the robot to add.
 		 */
 		void add(Robot::Ptr bot);
 
 		/**
 		 * Removes a robot from the team.
-		 * \param index the index of the robot to remove
+		 *
+		 * \param[in] index the index of the robot to remove.
 		 */
 		void remove(unsigned int index);
 
@@ -134,38 +139,40 @@ class EnemyTeam : public Team {
 class FriendlyTeam : public Team {
 	public:
 		/**
-		 * A pointer to a Team.
+		 * A pointer to a FriendlyTeam.
 		 */
 		typedef RefPtr<FriendlyTeam> Ptr;
 
 		/**
-		 * Fired when a player is added to the team.
+		 * Fired when a Player is added to the team. Using this signal instead
+		 * of \ref signal_robot_added avoids the need to cast the Robot::Ptr to
+		 * a Player::Ptr.
 		 */
 		mutable sigc::signal<void, unsigned int, Player::Ptr> signal_player_added;
 
 		/**
-		 * Fired when a player is removed from the team.
+		 * Fired when a Player is removed from the team. Using this signal
+		 * instead of \ref signal_robot_removed avoids the need to cast the
+		 * Robot::Ptr to a Player::Ptr.
 		 */
 		mutable sigc::signal<void, unsigned int, Player::Ptr> signal_player_removed;
 
-		/**
-		 * \return The number of robots on the team
-		 */
 		std::size_t size() const {
 			return members.size();
 		}
 
-		/**
-		 * \param index the index of the robot to fetch
-		 * \return The robot
-		 */
 		Robot::Ptr get_robot(unsigned int index) const {
 			return get_player(index);
 		}
 
 		/**
-		 * \param index the index of the player to fetch
-		 * \return The player
+		 * Gets a Player from this team. Using this function instead of
+		 * get_robot(unsigned int) const avoids the need to cast the returned
+		 * Robot::Ptr to a Player::Ptr.
+		 *
+		 * \param[in] index the index of the player to fetch.
+		 *
+		 * \return the player.
 		 */
 		Player::Ptr get_player(unsigned int index) const {
 			assert(index < size());
@@ -173,8 +180,11 @@ class FriendlyTeam : public Team {
 		}
 
 		/**
-		 * \param index the index of the player to fetch
-		 * \return The player
+		 * Gets a Player from this team.
+		 *
+		 * \param[in] index the index of the player to fetch.
+		 *
+		 * \return the player.
 		 */
 		Player::Ptr operator[](unsigned int index) const {
 			assert(index < size());
@@ -182,15 +192,14 @@ class FriendlyTeam : public Team {
 		}
 
 		/**
-		 * \return A vector of players.
+		 * Converts the FriendlyTeam into a \c vector.
+		 *
+		 * \return all the \ref Player "Players" on the team.
 		 */
 		const std::vector<Player::Ptr>& get_players() const {
 			return members;
 		}
 
-		/**
-		 * \return A vector of robots.
-		 */
 		std::vector<Robot::Ptr> get_robots() const {
 			return std::vector<Robot::Ptr>(members.begin(), members.end());
 		}
@@ -199,19 +208,23 @@ class FriendlyTeam : public Team {
 		std::vector<Player::Ptr> members;
 
 		/**
-		 * Creates a new Team.
+		 * Creates a new FriendlyTeam.
+		 *
+		 * \return the new FriendlyTeam.
 		 */
 		static Ptr create();
 
 		/**
 		 * Adds a player to the team.
-		 * \param bot the player to add
+		 *
+		 * \param[in] bot the player to add.
 		 */
 		void add(Player::Ptr bot);
 
 		/**
 		 * Removes a player from the team.
-		 * \param index the index of the robot to remove
+		 *
+		 * \param[in] index the index of the robot to remove.
 		 */
 		void remove(unsigned int index);
 

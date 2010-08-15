@@ -9,6 +9,12 @@ namespace {
 		public:
 			StrategyFactory &get_factory() const;
 			void stop();
+
+			/**
+			 * Creates a new StopStrategy.
+			 *
+			 * \param[in] world the World in which to operate.
+			 */
 			static Strategy::Ptr create(const World::Ptr &world);
 
 		private:

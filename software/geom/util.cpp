@@ -93,6 +93,7 @@ std::pair<Point, double> angle_sweep_circles(const Point& src, const Point& p1, 
 		return std::make_pair(bestshot, best);
 }
 
+#warning this function needs descriptions of its parameters and return value in Doxygen in geom/util.h
 		bool collinear(const Point& a, const Point& b, const Point& c) {
 				if ((a - b).lensq() < EPS2 || (b - c).lensq() < EPS2 || (a - c).lensq() < EPS2)
 						return true;
@@ -171,6 +172,7 @@ inline int sign(const double n) {
 }
 
 // ported code
+#warning this code looks broken (or so geom/util.h used to claim)
 		bool seg_crosses_seg(const Point& a1, const Point& a2, const Point &b1, const Point &b2) {
 				return sign((a2 - a1).cross(b1 - a1))
 						* sign((a2 - a1).cross(b2 - a1)) <= 0 &&
@@ -225,6 +227,7 @@ Point calc_block_side_pos(const Point& a, const Point& b, const Point& p, const 
 }
 
 // ported code
+#warning the comments for this function in geom/util.h are unclear: why isn't the answer always (0,0) which covers the entire cone?
 Point calc_block_cone(const Point &a, const Point &b, const double& radius) {
 		if (a.len() < EPS || b.len() < EPS) {
 				std::cerr << "geom: block cone zero vectors" << std::endl;
@@ -236,6 +239,7 @@ Point calc_block_cone(const Point &a, const Point &b, const double& radius) {
 		return c * (radius / std::fabs(au.cross(c)));
 }
 
+#warning comment this function in geom/util.h
 Point calc_block_cone(const Point &a, const Point &b, const Point& p, const double& radius) {
 		Point R = p + calc_block_cone(a - p, b - p, radius);
 		/*
@@ -250,17 +254,21 @@ Point calc_block_cone(const Point &a, const Point &b, const Point& p, const doub
 }
 
 // ported code
+#warning Doxygenize this in geom/util.h
+#warning what is the "goal post side" (parameter a)?
 Point calc_block_other_ray(const Point& a, const Point& c, const Point& g) {
 		return reflect(a - c, g - c);
 }
 
 // ported code
+#warning Doxygenize this in geom/util.h; also, the comments there are unclear (what does it actually do?)
 bool goalie_block_goal_post(const Point& a, const Point& b, const Point& c, const Point& g) {
 		Point R = reflect(a - c, g - c);
 		return (R.cross(b - c) < -EPS);
 }
 
 // ported code
+#warning Doxygenize this in geom/util.h; also, the comments there are unclear (what does it actually do?)
 Point calc_block_cone_defender(const Point& a, const Point& b, const Point& c, const Point& g, const double& r) {
 		Point R = reflect(a - c, g - c);
 		// std::cout << (R + c) << std::endl;

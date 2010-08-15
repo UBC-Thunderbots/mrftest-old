@@ -8,7 +8,7 @@
 #include "util/noncopyable.h"
 
 /**
- * A complete AI.
+ * A complete %AI.
  */
 class AI : public NonCopyable {
 	public:
@@ -27,6 +27,8 @@ class AI : public NonCopyable {
 		AI(const World::Ptr &world, ClockSource &clk);
 
 		/**
+		 * Gets the Coach managing the AI.
+		 *
 		 * \return the Coach managing the AI.
 		 */
 		Coach::Ptr get_coach() const;
@@ -39,6 +41,8 @@ class AI : public NonCopyable {
 		void set_coach(Coach::Ptr c);
 
 		/**
+		 * Gets the RobotControllerFactory driving the robots.
+		 *
 		 * \return the RobotControllerFactory driving the robots.
 		 */
 		RobotControllerFactory *get_robot_controller_factory() const {
@@ -46,8 +50,8 @@ class AI : public NonCopyable {
 		}
 
 		/**
-		 * Sets the RobotControllerFactory that creates robot_controllers that
-		 * drive the robots.
+		 * Sets the RobotControllerFactory that creates \ref RobotController
+		 * "RobotControllers" that drive the robots.
 		 *
 		 * \param[in] fact the new factory.
 		 */

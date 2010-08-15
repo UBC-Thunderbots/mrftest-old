@@ -33,6 +33,8 @@ class RawShmBlock : public NonCopyable {
 		~RawShmBlock();
 
 		/**
+		 * Gets the size of the shared memory block.
+		 *
 		 * \return the size of the shared memory block.
 		 */
 		std::size_t size() const {
@@ -40,6 +42,8 @@ class RawShmBlock : public NonCopyable {
 		}
 
 		/**
+		 * Gets a pointer to the first byte of the block.
+		 *
 		 * \return a pointer to the first byte of the block.
 		 */
 		operator void *() {
@@ -47,6 +51,8 @@ class RawShmBlock : public NonCopyable {
 		}
 
 		/**
+		 * Gets a pointer to the first byte of the block.
+		 *
 		 * \returns a pointer to the first byte of the block.
 		 */
 		operator const void *() const {
@@ -54,6 +60,8 @@ class RawShmBlock : public NonCopyable {
 		}
 
 		/**
+		 * Gets a pointer to the first byte of the block.
+		 *
 		 * \return a pointer to the first byte of the block.
 		 */
 		void *get() {
@@ -61,6 +69,8 @@ class RawShmBlock : public NonCopyable {
 		}
 
 		/**
+		 * Gets a pointer to the first byte of the block.
+		 *
 		 * \return a pointer to the first byte of the block.
 		 */
 		const void *get() const {
@@ -68,6 +78,8 @@ class RawShmBlock : public NonCopyable {
 		}
 
 		/**
+		 * Gets the file descriptor holding the shared memory block.
+		 *
 		 * \return the file descriptor holding the shared memory block.
 		 */
 		int fd() const {
@@ -97,12 +109,14 @@ class ShmBlock : public NonCopyable {
 		/**
 		 * Opens an existing shared memory block backed by an open file.
 		 *
-		 * \param fd the descriptor of the open file.
+		 * \param[in] fd the descriptor of the open file.
 		 */
 		ShmBlock(FileDescriptor::Ptr fd) : raw(fd, sizeof(T)) {
 		}
 
 		/**
+		 * Gets a pointer to the object stored in the shared memory block.
+		 *
 		 * \return a pointer to the underlying object.
 		 */
 		operator T *() {
@@ -110,6 +124,8 @@ class ShmBlock : public NonCopyable {
 		}
 
 		/** 
+		 * Gets a pointer to the object stored in the shared memory block.
+		 *
 		 * \return a pointer to the underlying object.
 		 */
 		operator const T *() const {
@@ -117,6 +133,8 @@ class ShmBlock : public NonCopyable {
 		}
 
 		/**
+		 * Gets a pointer to the object stored in the shared memory block.
+		 *
 		 * \return a pointer to the underlying object.
 		 */
 		T *operator->() {
@@ -124,6 +142,8 @@ class ShmBlock : public NonCopyable {
 		}
 
 		/** 
+		 * Gets a pointer to the object stored in the shared memory block.
+		 *
 		 * \return a pointer to the underlying object.
 		 */
 		const T *operator->() const {
@@ -131,6 +151,8 @@ class ShmBlock : public NonCopyable {
 		}
 
 		/**
+		 * Gets the file descriptor holding the shared memory block.
+		 *
 		 * \return the file descriptor holding the shared memory block.
 		 */
 		int fd() const {

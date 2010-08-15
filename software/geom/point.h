@@ -44,6 +44,8 @@ class Point {
 		}
 
 		/**
+		 * Returns the square of the length of the Point.
+		 *
 		 * \return the square of the length of the Point.
 		 */
 		double lensq() const __attribute__((warn_unused_result)) {
@@ -51,6 +53,8 @@ class Point {
 		}
 
 		/**
+		 * Returns the length of the Point.
+		 *
 		 * \return the length of the Point.
 		 */
 		double len() const __attribute__((warn_unused_result)) {
@@ -58,8 +62,10 @@ class Point {
 		}
 
 		/**
-		 * \return a unit vector in the same direction as this Point, or a zero
-		 * length Point if this Point is zero.
+		 * Returns the unit vector in the same direction as this Point.
+		 *
+		 * \return a unit vector in the same direction as this Point, or a
+		 * zero-length Point if this Point is zero.
 		 */
 		Point norm() const __attribute__((warn_unused_result)) {
 			const double l = len();
@@ -100,7 +106,7 @@ class Point {
 		 * \param[in] other the Point to cross with.
 		 *
 		 * \return the <var>z</var> component of the 3-dimensional cross product
-		 * \c this × \c other.
+		 * \p *this × \p other.
 		 */
 		double cross(const Point &other) const __attribute__((warn_unused_result)) {
 			return x * other.y - y * other.x;
@@ -121,6 +127,8 @@ class Point {
 		}
 
 		/**
+		 * Returns the direction of this vector.
+		 *
 		 * \return the direction of this vector, in the range [-π, π], with 0
 		 * being the positive <var>x</var> direction, π/2 being up, etc. (in
 		 * actuality, this is <code>std::atan2(y, x)</code>).

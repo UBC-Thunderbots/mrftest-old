@@ -6,26 +6,31 @@
 #include <vector>
 #include <cstddef>
 
-//
-// Allows sending and receiving packets to the XBee.
-//
+/**
+ * Allows sending and receiving packets to the XBee.
+ */
 class XBeePacketStream : public BackEnd, public sigc::trackable {
 	public:
-		//
-		// Constructs a new XBeePacketStream.
-		//
+		/**
+		 * Constructs a new XBeePacketStream.
+		 */
 		XBeePacketStream();
 
-		//
-		// Configures the serial port.
-		//
+		/**
+		 * Configures the serial port.
+		 */
 		void configure_port() {
 			bstream.configure_port();
 		}
 
-		//
-		// Sends a packet.
-		//
+		/**
+		 * Sends a packet.
+		 *
+		 * \param[in] iov a pointer to an array of iovecs to gather to find the
+		 * bytes to send.
+		 *
+		 * \param[in] iovcnt the number of iovecs in the \p iov array.
+		 */
 		void send(const iovec *iov, std::size_t iovcnt);
 
 	private:

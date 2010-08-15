@@ -6,34 +6,38 @@
 #include "util/ihex.h"
 #include "xbee/client/raw.h"
 
-//
-// An operation to upload data to be burned into the SPI Flash for the FPGA.
-//
+/**
+ * An operation to upload data to be burned into the SPI Flash for the FPGA.
+ */
 class FPGAUpload : public WatchableOperation, public sigc::trackable {
 	public:
-		//
-		// Constructs an uploader.
-		//
+		/**
+		 * Constructs an uploader.
+		 *
+		 * \param[in] bot the robot whose firmware should be upgraded.
+		 *
+		 * \param[in] data the firmware to upload.
+		 */
 		FPGAUpload(XBeeRawBot::Ptr bot, const IntelHex &data);
 
-		//
-		// Starts the upload process.
-		//
+		/**
+		 * Starts the upload process.
+		 */
 		void start();
 
-		//
-		// The number of bytes in a page.
-		//
+		/**
+		 * The number of bytes in a page.
+		 */
 		static const unsigned int PAGE_BYTES = 256;
 
-		//
-		// The number of pages in a chunk.
-		//
+		/**
+		 * The number of pages in a chunk.
+		 */
 		static const unsigned int CHUNK_PAGES = 16;
 
-		//
-		// The number of chunks in a sector.
-		//
+		/**
+		 * The number of chunks in a sector.
+		 */
 		static const unsigned int SECTOR_CHUNKS = 16;
 
 	private:

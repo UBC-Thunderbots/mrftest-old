@@ -11,9 +11,10 @@
 #include <ctime>
 
 namespace {
-	//
-	// How many milliseconds to wait for a feedback packet or response packet before assuming it has been lost.
-	//
+	/**
+	 * How many milliseconds to wait for a feedback packet or response packet
+	 * before assuming it has been lost.
+	 */
 	const unsigned int TIMEOUT = 75;
 }
 

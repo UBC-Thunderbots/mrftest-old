@@ -6,6 +6,8 @@
 #include <iostream>
 using namespace std;
 
+#warning the header file util/stochastic_local_search.h needs Doxygen comments on its functions.
+
 StochasticLocalSearch::StochasticLocalSearch(const std::vector<double>& start, const std::vector<double>& min, const std::vector<double>& max) {
 	srand48(time(NULL));
 	srand(time(NULL));

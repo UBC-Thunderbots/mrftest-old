@@ -8,11 +8,24 @@
 #include <gtkmm.h>
 #include <string>
 
-//
-// The user interface for the firmware manager.
-//
+/**
+ * The user interface for the firmware manager.
+ */
 class FirmwareWindow : public Gtk::Window {
 	public:
+		/**
+		 * Constructs a new FirmwareWindow.
+		 *
+		 * \param[in] modem the local modem to use to communicate with robots.
+		 *
+		 * \param[in] conf the configuration file listing the robots.
+		 *
+		 * \param[in] robot the name of the robot to pre-select in the list, or
+		 * empty to not pre-select any robot.
+		 *
+		 * \param[in] filename the filename to pre-select in the chooser, or
+		 * empty to not pre-select any file.
+		 */
 		FirmwareWindow(XBeeLowLevel &modem, const Config &conf, const Glib::ustring &robot, const std::string &filename);
 
 	private:

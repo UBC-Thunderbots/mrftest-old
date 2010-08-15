@@ -3,6 +3,8 @@
 #include "geom/point.h"
 #include <cmath>
 
+#warning this file needs Doxygen comments
+
 namespace PlayerShape{
 
 	const unsigned int CHOPPED_CIRCLE_APPROX = 50;

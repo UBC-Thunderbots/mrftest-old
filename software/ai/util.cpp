@@ -23,17 +23,21 @@ namespace {
 
 namespace AIUtil {
 
+#warning document this in ai/util.h
 	DoubleParam DRIBBLE_TIMEOUT("if dribble > this time, force shoot (sec)", 2.0, 0.0, 20.0);
 
+#warning document this in ai/util.h
 	DoubleParam PLAYTYPE_WAIT_TIME("play: time we can get ready (sec)", 3.0, -1e99, 10.0);
 
 	//IntParam AGGRESIVENESS("aggresiveness", 10, 0, 10);
 
+#warning document this in ai/util.h
 	DoubleParam CHASE_BALL_DIST("chase: How close before chasing", Ball::RADIUS * 2, 0.0, Ball::RADIUS * 4);
 
 #warning TODO: base this on distance
 	DoubleParam ORI_CLOSE("kick: general accuracy (rads)", 5.0 * M_PI / 180.0, 0, M_PI / 2);
 
+#warning see the Doxygen comment for this function: to start what?
 	bool ball_close(const World::Ptr w, const Robot::Ptr p) {
 		const Point dist = w->ball()->position() - p->position();
 		return dist.len() < (Robot::MAX_RADIUS + Ball::RADIUS) * BALL_CLOSE_FACTOR;
@@ -128,12 +132,17 @@ namespace AIUtil {
 		return true;
 	}
 
+#warning document the radius parameter in ai/util.h
+#warning document the meaning of "score" in the return value (e.g. its range of values)
 	std::pair<Point, double> calc_best_shot(const Field& f, const std::vector<Point>& obstacles, const Point& p, const double radius) {
 		const Point p1 = Point(f.length()/2.0,-f.goal_width()/2.0);
 		const Point p2 = Point(f.length()/2.0,f.goal_width()/2.0);
 		return angle_sweep_circles(p, p1, p2, obstacles, radius);
 	}
 
+#warning document the meaning of "score" in the return value (e.g. its range of values)
+#warning document the consider_friendly parameter in ai/util.h
+#warning document the force_shoot parameter in ai/util.h
 	std::pair<Point, double> calc_best_shot(const World::Ptr w, const Player::Ptr pl, const bool consider_friendly, const bool force) {
 		if (force){
 			// If we have a force shot, simply return the center of the goal
@@ -174,6 +183,9 @@ namespace AIUtil {
 		return best_shot;
 	}
 
+#warning document the consider_friendly parameter in ai/util.h
+#warning document what unit the return value is in in ai/util.h
+#warning document in the note about the zero-return case what "the point" refers to (is it the position of "pl"?) in ai/util.h
 	double calc_goal_visibility_angle(const World::Ptr w, const Player::Ptr pl, const bool consider_friendly) {
 		return calc_best_shot(w, pl, consider_friendly).second;
 	}
@@ -188,6 +200,7 @@ namespace AIUtil {
 		return friends;
 	}
 
+#warning document the meaning of the return value of this (is it an index into the vector?)
 	int choose_best_pass(const World::Ptr w, const std::vector<Player::Ptr>& friends) {
 		double bestangle = 0;
 		double bestdist = 1e99;
