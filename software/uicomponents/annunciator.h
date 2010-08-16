@@ -15,19 +15,19 @@ class Annunciator : public Gtk::ScrolledWindow {
 		 * one or more instances of this class as members, one for each message,
 		 * and will call \c activate to turn them on and off.
 		 */
-		class message : public NonCopyable, public sigc::trackable {
+		class Message : public NonCopyable, public sigc::trackable {
 			public:
 				/**
 				 * Registers a new message source with the annunciator system.
 				 *
 				 * \param[in] text the text of the message.
 				 */
-				message(const Glib::ustring &text);
+				Message(const Glib::ustring &text);
 
 				/**
 				 * Unregisters the message source.
 				 */
-				~message();
+				~Message();
 
 				/**
 				 * The text of the message.

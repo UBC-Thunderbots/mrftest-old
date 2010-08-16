@@ -218,7 +218,7 @@ class Player : public Robot {
 		double dribble_distance_;
 		Point last_dribble_position;
 		std::map<const std::type_info *, State::Ptr, bool (*)(const std::type_info *, const std::type_info *)> state_store;
-		Annunciator::message not_moved_message, chick_when_not_ready_message;
+		Annunciator::Message not_moved_message, chick_when_not_ready_message;
 
 		/**
 		 * Constructs a new Player object.

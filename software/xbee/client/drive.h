@@ -299,7 +299,7 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		uint8_t inbound_rssi_;
 		unsigned int success_rate_;
 		timespec low_battery_start_time, lt3751_fault_start_time;
-		Annunciator::message low_battery_message, lt3751_fault_message, chicker_low_fault_message, chicker_high_fault_message, chicker_charge_timeout_message;
+		Annunciator::Message low_battery_message, lt3751_fault_message, chicker_low_fault_message, chicker_high_fault_message, chicker_charge_timeout_message;
 
 		XBeeDriveBot(const Glib::ustring &name, uint64_t address, XBeeLowLevel &ll);
 		~XBeeDriveBot();

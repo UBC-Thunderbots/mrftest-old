@@ -59,8 +59,8 @@ namespace {
 	}
 
 	unsigned int next_id = 0;
-	std::unordered_map<unsigned int, Annunciator::message *> registered;
-	std::vector<Annunciator::message *> displayed;
+	std::unordered_map<unsigned int, Annunciator::Message *> registered;
+	std::vector<Annunciator::Message *> displayed;
 
 	class SirenAvailabilityWarner : public NonCopyable {
 		public:
@@ -69,7 +69,7 @@ namespace {
 			}
 
 		private:
-			Annunciator::message msg;
+			Annunciator::Message msg;
 
 			SirenAvailabilityWarner() : msg("\"beep\" executable unavailable, no annunciator sirens") {
 				if (!can_siren()) {
@@ -133,7 +133,7 @@ namespace {
 			void alm_set_value(unsigned int, unsigned int, const Glib::ValueBase &) {
 			}
 
-			friend class Annunciator::message;
+			friend class Annunciator::Message;
 	};
 
 	void message_cell_data_func(Gtk::CellRenderer *r, const Gtk::TreeModel::iterator &iter) {
@@ -145,16 +145,16 @@ namespace {
 	}
 }
 
-Annunciator::message::message(const Glib::ustring &text) : text(text), id(next_id++), active_(false), age_(0), displayed_(false) {
+Annunciator::Message::Message(const Glib::ustring &text) : text(text), id(next_id++), active_(false), age_(0), displayed_(false) {
 	registered[id] = this;
 }
 
-Annunciator::message::~message() {
+Annunciator::Message::~Message() {
 	hide();
 	registered.erase(id);
 }
 
-void Annunciator::message::activate(bool actv) {
+void Annunciator::Message::activate(bool actv) {
 	if (actv != active_) {
 		active_ = actv;
 		for (unsigned int i = 0; i < displayed.size(); ++i) {
@@ -174,12 +174,12 @@ void Annunciator::message::activate(bool actv) {
 			siren();
 			LOG_ERROR(text);
 		} else {
-			one_second_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &Annunciator::message::on_one_second), 1);
+			one_second_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &Annunciator::Message::on_one_second), 1);
 		}
 	}
 }
 
-bool Annunciator::message::on_one_second() {
+bool Annunciator::Message::on_one_second() {
 	if (age_ < MAX_AGE) {
 		++age_;
 		for (unsigned int i = 0; i < displayed.size(); ++i) {
@@ -194,7 +194,7 @@ bool Annunciator::message::on_one_second() {
 	}
 }
 
-void Annunciator::message::hide() {
+void Annunciator::Message::hide() {
 	for (unsigned int i = 0; i < displayed.size(); ++i) {
 		if (displayed[i] == this) {
 			MessagesALM::instance()->alm_row_deleted(i);
