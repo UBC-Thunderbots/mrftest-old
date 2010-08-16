@@ -1,23 +1,24 @@
 #ifndef XBEE_DAEMON_FRONTEND_ALREADY_RUNNING_H
 #define XBEE_DAEMON_FRONTEND_ALREADY_RUNNING_H
 
-#include <exception>
+#include <stdexcept>
 
 /**
  * This exception is thrown if an attempt is made to construct a XBeeDaemon object
  * while an arbiter is already running (as detected by the lock file being
  * locked).
  */
-class AlreadyRunning : public std::exception {
+class AlreadyRunning : public std::runtime_error {
 	public:
 		/**
-		 * Returns a string message describing the situation.
-		 *
-		 * \return the message.
+		 * Constructs a new AlreadyRunning.
 		 */
-		const char *what() const throw() {
-			return "An XBee arbiter is already running.";
-		}
+		AlreadyRunning();
+
+		/**
+		 * Destroys the AlreadyRunning.
+		 */
+		~AlreadyRunning() throw ();
 };
 
 #endif

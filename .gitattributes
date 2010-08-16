@@ -263,6 +263,7 @@ software/xbee/client/packet.cpp -text
 software/xbee/client/packet.h -text
 software/xbee/client/raw.cpp -text
 software/xbee/client/raw.h -text
+software/xbee/daemon/frontend/already_running.cpp -text
 software/xbee/daemon/frontend/already_running.h -text
 software/xbee/daemon/frontend/backend.h -text
 software/xbee/daemon/frontend/client.cpp -text
@@ -270,6 +271,7 @@ software/xbee/daemon/frontend/client.h -text
 software/xbee/daemon/frontend/daemon.cpp -text
 software/xbee/daemon/frontend/daemon.h -text
 software/xbee/daemon/frontend/request.h -text
+software/xbee/daemon/frontend/resource_allocation_failed.cpp -text
 software/xbee/daemon/frontend/resource_allocation_failed.h -text
 software/xbee/daemon/frontend/robot_state.cpp -text
 software/xbee/daemon/frontend/robot_state.h -text
