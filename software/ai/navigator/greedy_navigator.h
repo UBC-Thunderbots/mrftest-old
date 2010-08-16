@@ -3,7 +3,7 @@
 
 #include "navigator.h"
 
-
+#warning this class needs Doxygen comments
 class TeamGreedyNavigator : protected TeamNavigator{
 	protected:
 		virtual void tick();

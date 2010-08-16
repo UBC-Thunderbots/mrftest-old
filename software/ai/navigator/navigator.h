@@ -48,9 +48,6 @@ class Navigator : public ByRef{
 		 * Sets the desired location.
 		 *
 		 * \param[in] position the desired target for the robot.
-		 *
-		 * \param[in] error the radius of a circle where the robot is "close
-		 * enough" to its target.
 		 */
 		void set_position(const std::pair<Point,double> &position) {
 			target_position=position;
@@ -63,9 +60,6 @@ class Navigator : public ByRef{
 		 * function every timestep.
 		 *
 		 * \param[in] orientation the desired orientation for the robot.
-		 *
-		 * \param[in] error the number of radians inside of which the robot is
-		 * "close enough" to its target orientaton.
 		 */
 		void set_orientation(const std::pair<double,double> &orientation) {
 			target_orientation=orientation;
@@ -109,7 +103,9 @@ class Navigator : public ByRef{
 		}
 		
 		/**
-		 * returns a copy or the flags set
+		 * Returns the current flags.
+		 *
+		 * \return the current flags.
 		 */
 		unsigned int get_flags(){
 			return flags;
