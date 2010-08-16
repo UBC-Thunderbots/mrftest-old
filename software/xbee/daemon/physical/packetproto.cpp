@@ -46,7 +46,7 @@ void XBeePacketStream::on_sop() {
 	buffer.clear();
 }
 
-void XBeePacketStream::on_bytes(const void *bytes, size_t len) {
+void XBeePacketStream::on_bytes(const void *bytes, std::size_t len) {
 	if (!sop_seen) {
 		return;
 	}
