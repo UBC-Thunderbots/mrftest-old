@@ -123,7 +123,7 @@ class Field : public Visualizable::Field {
 		 * the enemy goal.
 		 */
 		Point penalty_enemy() const {
-			return Point(length_ * 0.5 / 3025.0 * (3025.0 - 450.0), 0);
+			return Point(length_ * 0.5 / 3.025 * (3.025 - 0.450), 0);
 		}
 
 		/**
@@ -133,7 +133,7 @@ class Field : public Visualizable::Field {
 		 * the friendly goal.
 		 */
 		Point penalty_friendly() const {
-			return Point(-length_ * 0.5 / 3025.0 * (3025.0 - 450.0), 0);
+			return Point(-length_ * 0.5 / 3.025 * (3.025 - 0.450), 0);
 		}
 
 		/**
