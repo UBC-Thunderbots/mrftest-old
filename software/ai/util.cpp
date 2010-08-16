@@ -220,11 +220,6 @@ namespace AIUtil {
 		return bestidx;
 	}
 
-	Point find_random_shoot_position(const World::Ptr w) {
-#warning TODO
-		return w->field().enemy_goal();
-	}
-
 	bool has_ball(const World::Ptr w, const Player::Ptr p) {
 		// return p->sense_ball() >= HAS_BALL_TIME || (HAS_BALL_USE_VISION && has_ball_vision(w, p));
 		if (HAS_BALL_USE_VISION) {
