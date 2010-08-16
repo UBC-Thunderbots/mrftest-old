@@ -17,7 +17,7 @@ class Rect {
 		/**
 		 * Creates a new Rect from a corner and a size.
 		 *
-		 * \param[in] top_left the top-left corner of the rectangle.
+		 * \param[in] sw_corner the south-west corner of the rectangle.
 		 *
 		 * \param[in] width the width of the rectangle.
 		 *

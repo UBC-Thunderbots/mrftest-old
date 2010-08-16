@@ -272,7 +272,7 @@ namespace AIUtil {
 	 *
 	 * \param[in] w the World in which to check.
 	 *
-	 * \param[in] p the Player to consider.
+	 * \param[in] pl the Player to consider.
 	 *
 	 * \return \c true if \p pl has the ball with high probability.
 	 */

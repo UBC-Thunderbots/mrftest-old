@@ -43,7 +43,7 @@ class SimulatorRobot : public Visualizable::Robot {
 		 * Creates a new SimulatorRobot. The robot is initially located off the
 		 * field and its power switch is initially off.
 		 *
-		 * \param[in] address the robot's address.
+		 * \param[in] botinfo the information describing the robot.
 		 *
 		 * \param[in] engine the simulator engine that will back the robot when
 		 * it is running.

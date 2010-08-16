@@ -66,7 +66,7 @@ class Coach : public ByRef {
 		 * <li>Check if there is no Strategy and, if so, select and instantiate
 		 * a new Strategy appropriate to the current play type</li>
 		 * <li>If there is a Strategy, call its Strategy::tick() function</li>
-		 * </ul>
+		 * </ol>
 		 */
 		virtual void tick() = 0;
 

@@ -234,30 +234,30 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		 * Drives the four motors with distinct power levels independently. Each
 		 * parameter is a power level between -1023 and +1023.
 		 *
-		 * \param[in] a the power level of the front-left motor.
+		 * \param[in] m1 the power level of the front-left motor.
 		 *
-		 * \param[in] b the power level of the back-left motor.
+		 * \param[in] m2 the power level of the back-left motor.
 		 *
-		 * \param[in] c the power level of the back-right motor.
+		 * \param[in] m3 the power level of the back-right motor.
 		 *
-		 * \param[in] d the power level of the front-right motor.
+		 * \param[in] m4 the power level of the front-right motor.
 		 */
-		void drive_direct(int a, int b, int c, int d);
+		void drive_direct(int m1, int m2, int m3, int m4);
 
 		/**
 		 * Drives the four motors through the control loops. Each parameter is a
 		 * motor speed measured in quarters of a degree of motor shaft rotation
 		 * per five milliseconds between -1023 and +1023.
 		 *
-		 * \param[in] a the speed of the front-left motor.
+		 * \param[in] m1 the speed of the front-left motor.
 		 *
-		 * \param[in] b the speed of the back-left motor.
+		 * \param[in] m2 the speed of the back-left motor.
 		 *
-		 * \param[in] c the speed of the back-right motor.
+		 * \param[in] m3 the speed of the back-right motor.
 		 *
-		 * \param[in] d the speed of the front-right motor.
+		 * \param[in] m4 the speed of the front-right motor.
 		 */
-		void drive_controlled(int, int, int, int);
+		void drive_controlled(int m1, int m2, int m3, int m4);
 
 		/**
 		 * Sets the power level of the dribbler. The parameter is a power level

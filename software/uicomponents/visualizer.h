@@ -38,7 +38,7 @@ class Visualizable : public NonCopyable {
 				 *
 				 * \param[in] green the green component, from 0 to 1.
 				 *
-				 * \param[in[ blue the blue component, from 0 to 1.
+				 * \param[in] blue the blue component, from 0 to 1.
 				 */
 				RobotColour(double red, double green, double blue) : red(red), green(green), blue(blue) {
 				}
