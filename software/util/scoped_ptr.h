@@ -65,7 +65,7 @@ class ScopedPtr : public NonCopyable {
 		 * \return \c true if the pointer is non-null, or \c false if the
 		 * pointer is null.
 		 */
-		operator bool() const {
+		bool is() const {
 			return !!obj;
 		}
 

@@ -45,7 +45,7 @@ BoolParam::BoolParam(const Glib::ustring &name, bool def) : Param(name), default
 }
 
 Gtk::Widget &BoolParam::widget() {
-	if (!widget_) {
+	if (!widget_.is()) {
 		widget_.reset(new Gtk::CheckButton(name));
 		widget_->set_active(value_);
 	}
@@ -53,14 +53,14 @@ Gtk::Widget &BoolParam::widget() {
 }
 
 void BoolParam::apply() {
-	if (widget_) {
+	if (widget_.is()) {
 		value_ = widget_->get_active();
 		conf->bool_params[name] = value_;
 	}
 }
 
 void BoolParam::revert() {
-	if (widget_) {
+	if (widget_.is()) {
 		widget_->set_active(value_);
 	}
 }
@@ -70,14 +70,14 @@ void BoolParam::load() {
 	if (iter != conf->bool_params.end()) {
 		value_ = iter->second;
 	}
-	if (widget_) {
+	if (widget_.is()) {
 		widget_->set_active(value_);
 	}
 }
 
 void BoolParam::set_default() {
 	value_ = default_;
-	if (widget_) {
+	if (widget_.is()) {
 		widget_->set_active(value_);
 	}
 }
@@ -90,7 +90,7 @@ IntParam::IntParam(const Glib::ustring &name, int def, int min, int max) : Param
 }
 
 Gtk::Widget &IntParam::widget() {
-	if (!widget_) {
+	if (!widget_.is()) {
 		widget_.reset(new Gtk::HScale);
 		widget_->set_digits(0);
 		widget_->get_adjustment()->configure(value_, min_, max_, 1, 10, 0);
@@ -99,14 +99,14 @@ Gtk::Widget &IntParam::widget() {
 }
 
 void IntParam::apply() {
-	if (widget_) {
+	if (widget_.is()) {
 		value_ = static_cast<int>(widget_->get_value());
 		conf->int_params[name] = value_;
 	}
 }
 
 void IntParam::revert() {
-	if (widget_) {
+	if (widget_.is()) {
 		widget_->set_value(value_);
 	}
 }
@@ -116,14 +116,14 @@ void IntParam::load() {
 	if (iter != conf->int_params.end()) {
 		value_ = clamp(iter->second, min_, max_);
 	}
-	if (widget_) {
+	if (widget_.is()) {
 		widget_->set_value(value_);
 	}
 }
 
 void IntParam::set_default() {
 	value_ = default_;
-	if (widget_) {
+	if (widget_.is()) {
 		widget_->set_value(value_);
 	}
 }
@@ -136,7 +136,7 @@ DoubleParam::DoubleParam(const Glib::ustring &name, double def, double min, doub
 }
 
 Gtk::Widget &DoubleParam::widget() {
-	if (!widget_) {
+	if (!widget_.is()) {
 		widget_.reset(new Gtk::Entry);
 		widget_->set_text(Glib::ustring::format(std::setprecision(8), value_));
 	}
@@ -144,7 +144,7 @@ Gtk::Widget &DoubleParam::widget() {
 }
 
 void DoubleParam::apply() {
-	if (widget_) {
+	if (widget_.is()) {
 		const std::string &txt(widget_->get_text());
 		if (txt.empty()) {
 			return;
@@ -160,7 +160,7 @@ void DoubleParam::apply() {
 }
 
 void DoubleParam::revert() {
-	if (widget_) {
+	if (widget_.is()) {
 		widget_->set_text(Glib::ustring::format(std::setprecision(8), value_));
 	}
 }
@@ -170,14 +170,14 @@ void DoubleParam::load() {
 	if (iter != conf->double_params.end()) {
 		value_ = clamp(iter->second, min_, max_);
 	}
-	if (widget_) {
+	if (widget_.is()) {
 		widget_->set_text(Glib::ustring::format(std::setprecision(8), value_));
 	}
 }
 
 void DoubleParam::set_default() {
 	value_ = default_;
-	if (widget_) {
+	if (widget_.is()) {
 		widget_->set_text(Glib::ustring::format(std::setprecision(8), value_));
 	}
 }
