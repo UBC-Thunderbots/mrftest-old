@@ -221,11 +221,6 @@ Point reflect(const Point& a, const Point& b, const Point& p) {
 		return a + reflect(p - a, n);
 }
 
-Point calc_block_side_pos(const Point& a, const Point& b, const Point& p, const double& radius, const double& thresh, const int side) {
-#warning implement
-		return (a + b) / 2.0;
-}
-
 // ported code
 #warning the comments for this function in geom/util.h are unclear: why isn't the answer always (0,0) which covers the entire cone?
 Point calc_block_cone(const Point &a, const Point &b, const double& radius) {

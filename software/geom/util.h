@@ -195,21 +195,6 @@ Point reflect(const Point& v, const Point& n);
 Point reflect(const Point& a, const Point& b, const Point& p);
 
 /**
- * Suppose there is a cone that shoots down from the ball.
- * Want to cover as much angle as possible.
- *
- * a,b = Goalpost sides; a is the left, b is the right.
- * p = ball location
- * r = Robots radius
- * Defend a particular side:
- * (not yet implemented) 0 = full center block, will cover half line
- * 1 = left half, will touch half line
- * 2 = right half, will touch half line
- * Defender cannoot be more than thresh distance away from the a-b line.
- */
-Point calc_block_side_pos(const Point& a, const Point& b, const Point& p, const double& radius, const double& thresh, const int side);
-
-/**
  * Given a cone shooting from the origin, determines the location at which to
  * place a circle to block as much as possible of the cone.
  *
