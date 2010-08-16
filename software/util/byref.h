@@ -223,24 +223,6 @@ namespace std {
 class ByRef : public NonCopyable {
 	public:
 		/**
-		 * Adds one to the object's reference count. This should only be called
-		 * by RefPtr, not by application code.
-		 */
-		void reference() {
-			++refs_;
-		}
-
-		/**
-		 * Subtracts one from the object's reference count. This should only be
-		 * called by RefPtr, not by application code.
-		 */
-		void unreference() {
-			if (!--refs_) {
-				delete this;
-			}
-		}
-
-		/**
 		 * Returns the reference count of the object. This can be used to check
 		 * for leaking references at the expected point of destruction.
 		 *
@@ -272,6 +254,24 @@ class ByRef : public NonCopyable {
 		 * The reference count of the object.
 		 */
 		unsigned int refs_;
+
+		/**
+		 * Adds one to the object's reference count.
+		 */
+		void reference() {
+			++refs_;
+		}
+
+		/**
+		 * Subtracts one from the object's reference count.
+		 */
+		void unreference() {
+			if (!--refs_) {
+				delete this;
+			}
+		}
+
+		template<typename T> friend class RefPtr;
 };
 
 #endif
