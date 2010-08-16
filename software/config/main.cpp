@@ -1,12 +1,12 @@
 #include "config/window.h"
 #include "util/config.h"
-#include <clocale>
 #include <gtkmm.h>
 #include <iostream>
+#include <locale>
 
 namespace {
 	int main_impl(int argc, char **argv) {
-		std::setlocale(LC_ALL, "");
+		std::locale::global(std::locale(""));
 		Glib::OptionContext option_context;
 		Gtk::Main app(argc, argv, option_context);
 		if (argc != 1) {

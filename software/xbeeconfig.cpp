@@ -112,7 +112,7 @@ namespace {
 }
 
 int main(int argc, char **argv) {
-	std::setlocale(LC_ALL, "");
+	std::locale::global(std::locale(""));
 
 	Config conf;
 

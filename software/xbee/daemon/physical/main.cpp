@@ -1,9 +1,9 @@
 #include "xbee/daemon/frontend/already_running.h"
 #include "xbee/daemon/frontend/daemon.h"
 #include "xbee/daemon/physical/packetproto.h"
-#include <clocale>
 #include <exception>
 #include <iostream>
+#include <locale>
 #include <stdexcept>
 #include <glibmm.h>
 #include <fcntl.h>
@@ -18,7 +18,7 @@ namespace {
 
 	int main_impl(int argc, char **argv) {
 		// Create a GLib main loop object.
-		std::setlocale(LC_ALL, "");
+		std::locale::global(std::locale(""));
 		Glib::RefPtr<Glib::MainLoop> main_loop(Glib::MainLoop::create());
 
 		// Parse command-line options.

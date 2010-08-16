@@ -3,10 +3,10 @@
 #include "util/clocksource_timerfd.h"
 #include "util/timestep.h"
 #include "xbee/daemon/frontend/daemon.h"
-#include <clocale>
 #include <exception>
 #include <gtkmm.h>
 #include <iostream>
+#include <locale>
 
 namespace {
 	const Glib::ustring DEFAULT_ENGINE("Open Dynamics Engine Simulator");
@@ -46,7 +46,7 @@ namespace {
 	}
 
 	int main_impl(int argc, char **argv) {
-		std::setlocale(LC_ALL, "");
+		std::locale::global(std::locale(""));
 		Glib::OptionContext option_context;
 		option_context.set_summary("Runs the Thunderbots simulator.");
 

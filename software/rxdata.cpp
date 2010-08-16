@@ -6,13 +6,13 @@
 #include "xbee/client/packet.h"
 #include "xbee/client/raw.h"
 #include "xbee/shared/packettypes.h"
-#include <clocale>
 #include <cstdlib>
 #include <cstring>
 #include <exception>
 #include <fstream>
 #include <glibmm.h>
 #include <iostream>
+#include <locale>
 #include <stdexcept>
 
 namespace {
@@ -149,7 +149,7 @@ namespace {
 	};
 
 	int main_impl(int argc, char **argv) {
-		std::setlocale(LC_ALL, "");
+		std::locale::global(std::locale(""));
 		Glib::OptionContext option_context;
 		option_context.set_summary("Runs the testing data dumper.");
 

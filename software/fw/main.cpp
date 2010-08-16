@@ -9,9 +9,9 @@
 #include "util/noncopyable.h"
 #include "xbee/client/lowlevel.h"
 #include "xbee/client/raw.h"
-#include <clocale>
 #include <gtkmm.h>
 #include <iostream>
+#include <locale>
 
 namespace {
 	void on_error_cli(const Glib::ustring &message) {
@@ -37,7 +37,7 @@ namespace {
 	}
 
 	int main_impl(int argc, char **argv) {
-		std::setlocale(LC_ALL, "");
+		std::locale::global(std::locale(""));
 
 		Glib::OptionContext option_context;
 		option_context.set_summary("Runs the firmware uploader.");

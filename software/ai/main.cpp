@@ -8,10 +8,10 @@
 #include "xbee/client/drive.h"
 #include "xbee/client/lowlevel.h"
 #include <algorithm>
-#include <clocale>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <locale>
 #include <vector>
 #include <stdint.h>
 #include <gtkmm.h>
@@ -119,7 +119,7 @@ namespace {
 	};
 
 	int main_impl(int argc, char **argv) {
-		std::setlocale(LC_ALL, "");
+		std::locale::global(std::locale(""));
 		std::srand(std::time(0));
 
 		Glib::OptionContext option_context;

@@ -2,12 +2,12 @@
 #include "util/dprint.h"
 #include "util/noncopyable.h"
 #include "xbee/client/lowlevel.h"
-#include <clocale>
 #include <cstdlib>
 #include <cstring>
 #include <exception>
 #include <glibmm.h>
 #include <iostream>
+#include <locale>
 #include <stdexcept>
 
 namespace {
@@ -171,7 +171,7 @@ namespace {
 	}
 
 	int main_impl(int argc, char **argv) {
-		std::setlocale(LC_ALL, "");
+		std::locale::global(std::locale(""));
 		Glib::OptionContext option_context;
 		option_context.set_summary("Runs the remote configurator utility.");
 
