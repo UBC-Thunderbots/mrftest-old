@@ -21,7 +21,7 @@ namespace {
 	 * \return \c true if \p elem exists in the range [\p begin, \p end), or \c false if not.
 	 */
 	template<typename Titer, typename Telem>
-	inline bool exists(Titer begin, Titer end, const Telem &elem) {
+	bool exists(Titer begin, Titer end, const Telem &elem) {
 		return std::find(begin, end, elem) != end;
 	}
 
@@ -43,7 +43,7 @@ namespace {
 	 * \p end) such that \c pred(e) returns \c true, or \c false if not.
 	 */
 	template<typename Titer, typename Tpred>
-	inline bool exists_if(Titer begin, Titer end, Tpred pred) {
+	bool exists_if(Titer begin, Titer end, Tpred pred) {
 		return std::find_if(begin, end, pred) != end;
 	}
 
@@ -62,11 +62,8 @@ namespace {
 	 * \p upper].
 	 */
 	template<typename T>
-	inline T clamp(T value, T lower, T upper) {
-		//return std::min(std::max(value, lower), upper);
-		if (value < lower) return lower;
-		if (upper < value) return upper;
-		return value;
+	T clamp(T value, T lower, T upper) {
+		return std::min(std::max(value, lower), upper);
 	}
 
 	/**
