@@ -2,6 +2,7 @@
 #define UTIL_ALGORITHM_H
 
 #include <algorithm>
+#include <functional>
 #include <vector>
 
 namespace {
@@ -67,38 +68,48 @@ namespace {
 	}
 
 	/**
-	 * A comparator that sorts numbers by values in a vector. A number \c x is
-	 * said to precede a number \c y if the vector \c tbl is such that \c tbl[x]
-	 * > \c tbl[y].
+	 * A comparator that orders small nonnegative integers based on the ordering
+	 * of objects in a vector at corresponding positions.
+	 *
+	 * \tparam T the type of elements in the lookup table.
+	 *
+	 * \tparam Comp the type of the comparator between lookup table elements
+	 * (defaults to \c std::less<T>).
 	 */
-	template<typename T> 
-	class CmpVector {
+	template<typename T, typename Comp = std::less<T> > 
+	class IndexComparator {
 		public:
 			/**
-			 * Constructs a new CmpVector.
+			 * Constructs a new IndexComparator.
 			 *
-			 * \param[in] tbl the lookup table to use.
+			 * \param[in] tbl the lookup table to use, which is not copied and
+			 * must remain valid until the IndexComparator has been destroyed.
+			 *
+			 * \param[in] comp the comparator to use (defaults to \c Comp()).
 			 */
-			CmpVector(const std::vector<T>& tbl) : tbl(tbl) {
+			IndexComparator(const std::vector<T> &tbl, Comp comp = Comp()) : tbl(tbl), comp(comp) {
 			}
 
 			/**
 			 * Executes a comparison.
 			 *
+			 * \pre 0 ≤ \p x, \p y < \c tbl.size().
+			 *
 			 * \param[in] x the first number to compare.
 			 *
 			 * \param[in] y the second number to compare.
 			 *
-			 * \return \c true if \c x should precede \c y, that is, if \c
-			 * tbl[x] > \c tbl[y], or \c false if not.
+			 * \return \c true if \p x should precede \p y, that is, if
+			 * <code>comp(tbl[x], tbl[y])</code>, or \c false if not.
 			 */
-			bool operator()(unsigned int x, unsigned int y) {
-				return tbl[x] > tbl[y];
+			bool operator()(unsigned int x, unsigned int y) const {
+				return comp(tbl[x], tbl[y]);
 			}
-		private:
-			const std::vector<T>& tbl;
-	};
 
+		private:
+			const std::vector<T> &tbl;
+			const Comp comp;
+	};
 }
 
 #endif
