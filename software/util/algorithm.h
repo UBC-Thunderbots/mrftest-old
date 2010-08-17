@@ -62,7 +62,7 @@ namespace {
 	 * \p upper].
 	 */
 	template<typename T>
-	T clamp(T value, T lower, T upper) {
+	T clamp(const T &value, const T &lower, const T &upper) {
 		return std::min(std::max(value, lower), upper);
 	}
 
