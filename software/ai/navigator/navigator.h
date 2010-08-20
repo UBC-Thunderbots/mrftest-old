@@ -23,16 +23,6 @@ class Navigator : public ByRef{
 		 * A pointer to a Navigator object.
 		 */
 		typedef RefPtr<Navigator> Ptr;
-		
-		/**
-		 * The player being navigated.
-		 */
-		const Player::Ptr the_player;
-
-		/**
-		 * The world in which to navigate.
-		 */
-		const World::Ptr the_world;	
 	
 		/**
 		 * Constructs a new Navigator.
@@ -41,7 +31,7 @@ class Navigator : public ByRef{
 		 *
 		 * \param[in] world the World in which to navigate.
 		 */
-		Navigator(Player::Ptr player, World::Ptr world):the_player(player), the_world(world){
+		Navigator(Player::Ptr player, World::Ptr world){
 		}
 
 		/**
@@ -121,7 +111,7 @@ class Navigator : public ByRef{
 		 */
 		std::pair<double,double> target_orientation;
 
-	protected:
+	private:
 		
 		/*
 		 * \c true if the robot should dribble when it has the ball, or \c false
@@ -134,10 +124,6 @@ class Navigator : public ByRef{
 		 */
 		unsigned int flags;
 		
-
-		
-	private:
-	
 };
 
 
