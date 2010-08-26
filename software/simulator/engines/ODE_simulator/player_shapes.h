@@ -7,14 +7,14 @@
 
 namespace PlayerShape{
 
-	const unsigned int CHOPPED_CIRCLE_APPROX = 50;
+	const unsigned int CHOPPED_CIRCLE_APPROX = 15;
 	const unsigned int NUM_POINTS = CHOPPED_CIRCLE_APPROX*2;//number of points that define this convex hull
 	const unsigned int  PLANE_COUNT = CHOPPED_CIRCLE_APPROX + 2;
 
 	dReal planes[PLANE_COUNT*4];
 	dReal points[3*NUM_POINTS];
 	unsigned int polygons[PLANE_COUNT + PLANE_COUNT*4 + 2*CHOPPED_CIRCLE_APPROX];
-	const unsigned int POINT_COUNT = 100;
+	const unsigned int POINT_COUNT = 30;
 
 	std::vector<Point> get_chopped_circle(double radius, double face_width){
 
@@ -60,7 +60,7 @@ namespace PlayerShape{
 			}else{//the bottom part of the robot shape
 				planes[4*i]= 0.0;
 				planes[4*i+1]= 0.0;
-				planes[4*i+2]= 1.0;
+				planes[4*i+2]= -1.0;
 				planes[4*i+3]= height/2.0;
 				top = true;
 			}
@@ -86,9 +86,9 @@ namespace PlayerShape{
 			if(i<circle.size()){//either the face or the round part of the robot	
 				polygons[j++]=4;
 				polygons[j++]=i;
-				polygons[j++]=(i+1)%circle.size();
-				polygons[j++]=((i+1)%circle.size())+circle.size();
 				polygons[j++]=i+circle.size();
+				polygons[j++]=((i+1)%circle.size())+circle.size();
+				polygons[j++]=(i+1)%circle.size();				
 			}else if(top){//the top part of the robot shape
 				polygons[j++]=circle.size();
 				for(unsigned int k=0; k<circle.size(); k++){
@@ -97,7 +97,7 @@ namespace PlayerShape{
 				top = false;
 			}else{//the bottom part of the robot shape
 				polygons[j++]=circle.size();
-				for(unsigned int k=0; k<circle.size(); k++){
+				for(int k=circle.size()-1; k>=0; k--){
 					polygons[j++] = k + circle.size();
 				}
 				top = true;
