@@ -3,95 +3,122 @@
 
 #include "navigator.h"
 
-#warning this class needs Doxygen comments
 /**
- * This is a port of the 2010 navigator into the 2010-2011 framework
- * the navigator handles all players individually, greadily choosing a direction towards
- * the target while avoiding obstacles
+ * This is a port of the 2010 navigator into the 2010–2011 framework. The
+ * navigator handles all players individually, greedily choosing a direction
+ * towards the target while avoiding obstacles.
  * 
- * the greedy choice sometimes fails, since a player may need to back up to go around said obstacle,
- * it also fails to give the controller any detail in intended path, which could result in optimization
- * 
+ * The greedy choice sometimes fails, since a player may need to back up to go
+ * around said obstacle; it also fails to give the controller any detail in
+ * intended path, which could result in optimization.
  */
 class TeamGreedyNavigator : protected TeamNavigator{
 	protected:
 		/**
-		 * executes one tick for the entire team
+		 * Executes one tick for the entire team.
 		 */
 		virtual void tick();
 	private:
 		bool ball_obstacle;
 	
 		/**
-		 * this chooses the next direction for the given player
-		 *\param[in] play the Player to navigate.
+		 * Chooses the next direction for the given player.
+		 *
+		 * \param[in] play the Player to navigate.
 		 */
 		void tick(Player::Ptr play);
 		/**
-		 * This function clips the destination to the allowed playing area
+		 * Clips the destination to the allowed playing area.
 		 *
-		 *\param[in] Point dst
+		 * \param[in] dst the destination to clip.
+		 *
+		 * \return the clipped destination.
 		 */	
 		Point get_inbounds_point(Point dst);
 		
 		/**
-		 * This function clips the destination to the allowed playing area
+		 * Clips the destination to the allowed playing area.
 		 *
-		 *\param[in] Point dst
+		 * \param[in] dst the destination to clip.
+		 *
+		 * \return the clipped destination
 		 */
 		Point force_defense_len(Point dst);
 		
 		/**
-		 * This function clips the destination to the allowed playing area
+		 * Clips the destination to the allowed playing area.
 		 *
-		 *\param[in] Point dst
+		 * \param[in] dst the destination to clip.
+		 *
+		 * \return the clipped destination.
 		 */
 		Point force_offense_len(Point dst);
 		
 		/**
-		 * This function clips the destination to the allowed playing area
+		 * Clips the destination to the allowed playing area.
 		 *
-		 *\param[in] Point dst
+		 * \param[in] dst the destination to clip.
+		 *
+		 * \return the clipped destination.
 		 */		
 		Point clip_defense_area(Point dst);
 		
 		/**
-		 * This function clips the destination to the allowed playing area
+		 * Clips the destination to the allowed playing area.
 		 *
-		 *\param[in] Point dst
+		 * \param[in] dst the destination to clip.
+		 *
+		 * \return the clipped destination.
 		 */
 		Point clip_offense_area(Point dst);
 		
 		/**
-		 * This function checks to see if the given direction is free of obstacles
-		 */		
+		 * Checks to see if the given direction is free of obstacles.
+		 */
+#warning document parameters and return value
 		bool check_vector(const Point& start, const Point& dest, const Point& direction) const;
 		
 		/**
 		 * This function returns a list of obstacles given a certain direction
 		 */
+#warning document parameters and return value
 		unsigned int check_obstacles(const Point& start, const Point& dest, const Point& direction) const;
 		
 		/**
-		 * returns a number specifying to what degree the robot should avoid abotacles
+		 * Returns a number specifying to what degree the robot should avoid
+		 * obstacles.
+		 *
+		 * \return the avoidance factor.
 		 */
 		double get_avoidance_factor() const;
 		
 		/**
-		 *checks if the ball is in the way, given a robot's desired path
+		 * Checks if the ball is in the way, given a robot's desired path.
 		 */
+#warning document parameters and return value
 		bool check_ball(const Point& start, const Point& dest, const Point& direction) const;
 		
 		/**
-		 * Clips a point so that it does not intersect a given circle
+		 * Clips a point so that it does not intersect a given circle.
+		 *
+		 * \param[in] circle_centre the centre of the circle.
+		 *
+		 * \param[in] circle_radius the radius of the circle.
+		 *
+		 * \param[in] dst the point to clip.
+		 *
+		 * \return the nearest point to \p dst that does not lie within the
+		 * circle.
 		 */
 		Point clip_circle(Point circle_centre, double circle_radius, Point dst);
 		
 
 		/**
-		 * This function clips the destination to the allowed playing area
+		 * Clips the destination to the allowed playing area.
 		 *
-		 *\param[in] Point dst
+		 * \param[in] wantdest the destination to clip.
+		 *
+		 * \return the clipped destination.
 		 */
 		Point clip_playing_area(Point wantdest);
 		
