@@ -314,7 +314,11 @@ void PlayerODE::pre_tic(double ){
 		for(int index=0;index<4;index++)
 		{
 			//motor desired in this context should be coming from the firmware interpreter
-			wheel_torque=(motor_desired[index]-motor_current[index])*PACKET_TO_VOLTAGE/MOTOR_RESISTANCE*CURRENT_TO_TORQUE*GEAR_RATIO;
+		  	double voltage = (motor_desired[index]-motor_current[index])*PACKET_TO_VOLTAGE;
+		  	voltage = std::max(-15.0, voltage);
+		  	voltage = std::min(15.0, voltage);
+
+			wheel_torque=voltage/MOTOR_RESISTANCE*CURRENT_TO_TORQUE*GEAR_RATIO;
 			wheel_torque -= 0.006*motor_current[index];
 			force = force_direction[index]*wheel_torque/WHEEL_RADIUS; //scale by wheel radius
 			
