@@ -1,10 +1,10 @@
 #include "ai/ai.h"
 #include "util/dprint.h"
 
-AI::AI(const World::Ptr &world, ClockSource &clk) : world(world), clk(clk), coach(), rc_factory(0) {
+AI::AI(World &world, ClockSource &clk) : world(world), clk(clk), coach(), rc_factory(0) {
 	clk.signal_tick.connect(sigc::mem_fun(this, &AI::tick));
-	world->friendly.signal_player_added.connect(sigc::mem_fun(this, &AI::player_added));
-	world->friendly.signal_player_removed.connect(sigc::mem_fun(this, &AI::player_removed));
+	world.friendly.signal_player_added.connect(sigc::mem_fun(this, &AI::player_added));
+	world.friendly.signal_player_removed.connect(sigc::mem_fun(this, &AI::player_removed));
 }
 
 Coach::Ptr AI::get_coach() const {
@@ -20,15 +20,15 @@ void AI::set_coach(Coach::Ptr c) {
 
 void AI::tick() {
 	// If the field geometry is not yet valid, do nothing.
-	if (!world->field().valid()) {
+	if (!world.field().valid()) {
 		return;
 	}
 
 	// Increment the global timestamp.
-	world->tick_timestamp();
+	world.tick_timestamp();
 
 	// First, make the predictors lock in the current time.
-	const Team * const teams[2] = { &world->friendly, &world->enemy };
+	const Team * const teams[2] = { &world.friendly, &world.enemy };
 	for (unsigned int i = 0; i < 2; ++i) {
 		const Team &tm(*teams[i]);
 		for (unsigned int j = 0; j < tm.size(); ++j) {
@@ -43,9 +43,9 @@ void AI::tick() {
 	}
 
 	// Tick the robots to drive through robot controllers and XBee.
-	for (unsigned int i = 0; i < world->friendly.size(); ++i) {
-		const Player::Ptr plr(world->friendly.get_player(i));
-		plr->tick(world->playtype() == PlayType::HALT || !coach.is() || !coach->get_strategy().is());
+	for (unsigned int i = 0; i < world.friendly.size(); ++i) {
+		const Player::Ptr plr(world.friendly.get_player(i));
+		plr->tick(world.playtype() == PlayType::HALT || !coach.is() || !coach->get_strategy().is());
 	}
 }
 
@@ -66,8 +66,8 @@ void AI::set_robot_controller_factory(RobotControllerFactory *fact) {
 	if (rc_factory != fact) {
 		LOG_DEBUG(Glib::ustring::compose("Changing robot controller to %1.", fact ? fact->name : "<None>"));
 		rc_factory = fact;
-		for (unsigned int i = 0; i < world->friendly.size(); ++i) {
-			const Player::Ptr plr(world->friendly.get_player(i));
+		for (unsigned int i = 0; i < world.friendly.size(); ++i) {
+			const Player::Ptr plr(world.friendly.get_player(i));
 			if (plr->controller.is() && plr->controller->refs() != 1) {
 				LOG_WARN(Glib::ustring::compose("Leak detected of robot_controller for player<%1,%2>.", plr->yellow ? 'Y' : 'B', plr->pattern_index));
 			}

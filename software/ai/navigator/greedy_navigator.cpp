@@ -74,13 +74,13 @@ double TeamGreedyNavigator::get_avoidance_factor() const {
 
 Point TeamGreedyNavigator::force_defense_len(Point dst){
     Point temp = dst;
-    temp.x = std::max(the_world->field().friendly_goal().x + the_world->field().defense_area_radius() + Robot::MAX_RADIUS, dst.x);
+    temp.x = std::max(the_world.field().friendly_goal().x + the_world.field().defense_area_radius() + Robot::MAX_RADIUS, dst.x);
     return temp;
 }
 
 Point TeamGreedyNavigator::force_offense_len(Point dst){
     Point temp = dst;
-    temp.x = std::min(the_world->field().enemy_goal().x - (the_world->field().defense_area_radius()+OFFENSIVE_AVOID), dst.x);
+    temp.x = std::min(the_world.field().enemy_goal().x - (the_world.field().defense_area_radius()+OFFENSIVE_AVOID), dst.x);
     return temp;
 }
 Point TeamGreedyNavigator::clip_defense_area(Point dst){
@@ -94,17 +94,17 @@ Point TeamGreedyNavigator::clip_defense_area(Point dst){
   for(int i=0; i<4; i++){
     int a = i/2;
     int b = (i%2) ? -1:1;
-    defense_rect[i] =  Point(the_world->field().friendly_goal().x + a*(the_world->field().defense_area_radius() +  Robot::MAX_RADIUS),  b*the_world->field().defense_area_stretch()/2.0);
+    defense_rect[i] =  Point(the_world.field().friendly_goal().x + a*(the_world.field().defense_area_radius() +  Robot::MAX_RADIUS),  b*the_world.field().defense_area_stretch()/2.0);
   }
 
   if(line_seg_intersect_rectangle(seg, defense_rect)){
     return force_defense_len(dst);
   }
 	//clip the two quater-circles around the defense area
-	Point defense_circA = Point(the_world->field().friendly_goal().x, the_world->field().defense_area_stretch()/2.0);
-	Point defense_circB = Point(the_world->field().friendly_goal().x, -(the_world->field().defense_area_stretch()/2.0));
-	Point wantdest = clip_circle(defense_circA, the_world->field().defense_area_radius() + Robot::MAX_RADIUS, dst);
-	wantdest = clip_circle(defense_circB, the_world->field().defense_area_radius() +  Robot::MAX_RADIUS, wantdest);
+	Point defense_circA = Point(the_world.field().friendly_goal().x, the_world.field().defense_area_stretch()/2.0);
+	Point defense_circB = Point(the_world.field().friendly_goal().x, -(the_world.field().defense_area_stretch()/2.0));
+	Point wantdest = clip_circle(defense_circA, the_world.field().defense_area_radius() + Robot::MAX_RADIUS, dst);
+	wantdest = clip_circle(defense_circB, the_world.field().defense_area_radius() +  Robot::MAX_RADIUS, wantdest);
 	// std::cout << " w" << wantdest << " dA" << defense_circA << " dB" << defense_circB << std::endl;
  
 	return wantdest;
@@ -121,7 +121,7 @@ Point TeamGreedyNavigator::clip_offense_area(Point dst){
   for(int i=0; i<4; i++){
     int a = i/2;
     int b = (i%2) ? -1:1;
-    offense_rect[i] =  Point(the_world->field().enemy_goal().x +OFFENSIVE_AVOID  - a*(the_world->field().defense_area_radius() + OFFENSIVE_AVOID),  b*the_world->field().defense_area_stretch()/2.0);
+    offense_rect[i] =  Point(the_world.field().enemy_goal().x +OFFENSIVE_AVOID  - a*(the_world.field().defense_area_radius() + OFFENSIVE_AVOID),  b*the_world.field().defense_area_stretch()/2.0);
   }
 
   if(line_seg_intersect_rectangle(seg, offense_rect)){
@@ -129,10 +129,10 @@ Point TeamGreedyNavigator::clip_offense_area(Point dst){
   }
 
  	//clip the two quater-circles around the defense area
-	Point defense_circA = Point(the_world->field().enemy_goal().x, the_world->field().defense_area_stretch()/2.0);
-	Point defense_circB = Point(the_world->field().enemy_goal().x, -(the_world->field().defense_area_stretch()/2.0));
-	Point wantdest = clip_circle(defense_circA, the_world->field().defense_area_radius() + OFFENSIVE_AVOID, dst);
-	wantdest = clip_circle(defense_circB, the_world->field().defense_area_radius() + OFFENSIVE_AVOID, wantdest);
+	Point defense_circA = Point(the_world.field().enemy_goal().x, the_world.field().defense_area_stretch()/2.0);
+	Point defense_circB = Point(the_world.field().enemy_goal().x, -(the_world.field().defense_area_stretch()/2.0));
+	Point wantdest = clip_circle(defense_circA, the_world.field().defense_area_radius() + OFFENSIVE_AVOID, dst);
+	wantdest = clip_circle(defense_circB, the_world.field().defense_area_radius() + OFFENSIVE_AVOID, wantdest);
  
   	return wantdest;
   	
@@ -173,14 +173,14 @@ Point TeamGreedyNavigator::clip_circle(Point circle_centre, double circle_radius
 }
 
 Point TeamGreedyNavigator::clip_playing_area(Point wantdest){
-	const Field &the_field(the_world->field());
+	const Field &the_field(the_world.field());
    return  clip_point(wantdest, Point(-the_field.length()/2 + the_field.bounds_margin(), -the_field.width()/2 + the_field.bounds_margin()), Point(the_field.length()/2 - the_field.bounds_margin(), the_field.width()/2 - the_field.bounds_margin()));
 }
 
 Point TeamGreedyNavigator::get_inbounds_point(Point dst){
 
-	const Ball::Ptr the_ball(the_world->ball());
-	const Field &the_field(the_world->field());
+	const Ball::Ptr the_ball(the_world.ball());
+	const Field &the_field(the_world.field());
 	const Point balldist = the_ball->position() - the_player->position();
 	const double distance = (dst - the_player->position()).len();
 
@@ -247,8 +247,8 @@ void TeamGreedyNavigator::tick(Player::Ptr play) {
   flags = nv->get_flags();
   need_dribble = nv->get_dribbler();
 
-	const Ball::Ptr the_ball(the_world->ball());
-	const Field &the_field(the_world->field());
+	const Ball::Ptr the_ball(the_world.ball());
+	const Field &the_field(the_world.field());
 
 	const Point balldist = the_ball->position() - the_player->position();
 	Point wantdest =  target_position.first;
@@ -361,7 +361,7 @@ bool TeamGreedyNavigator::check_vector(const Point& start, const Point& dest, co
 }
 
 unsigned int TeamGreedyNavigator::check_obstacles(const Point& start, const Point& dest, const Point& direction) const {
-	const Ball::Ptr the_ball(the_world->ball());
+	const Ball::Ptr the_ball(the_world.ball());
 	const Point startdest = dest - start;
 	const double lookahead = std::min<double>(startdest.len(), LOOKAHEAD_MAX);
 
@@ -370,7 +370,7 @@ unsigned int TeamGreedyNavigator::check_obstacles(const Point& start, const Poin
 		return ERROR;
 	}
 
-	const Team * const teams[2] = { &the_world->friendly, &the_world->enemy };
+	const Team * const teams[2] = { &the_world.friendly, &the_world.enemy };
 	for (unsigned int i = 0; i < 2; ++i) {
 	  bool check_avoid = !ball_obstacle;
 	  if(i==0){
@@ -401,7 +401,7 @@ unsigned int TeamGreedyNavigator::check_obstacles(const Point& start, const Poin
 
 
 bool TeamGreedyNavigator::check_ball(const Point& start, const Point& dest, const Point& direction) const {
-	const Ball::Ptr the_ball(the_world->ball());
+	const Ball::Ptr the_ball(the_world.ball());
 	const Point startdest = dest - start;
 	const double lookahead = std::min<double>(startdest.len(), LOOKAHEAD_MAX);
 
@@ -424,7 +424,7 @@ bool TeamGreedyNavigator::check_ball(const Point& start, const Point& dest, cons
 }
 		
   void TeamGreedyNavigator::tick(){
-    std::vector<Player::Ptr> pl =  the_world->friendly.get_players();
+    std::vector<Player::Ptr> pl =  the_world.friendly.get_players();
     for(int i=0; i<pl.size(); i++){
       tick(pl[i]);
     }

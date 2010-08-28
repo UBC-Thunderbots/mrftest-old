@@ -15,7 +15,7 @@ class AI : public NonCopyable {
 		/**
 		 * The World in which the AI is running.
 		 */
-		const World::Ptr world;
+		World &world;
 
 		/**
 		 * Constructs a new AI.
@@ -24,7 +24,7 @@ class AI : public NonCopyable {
 		 *
 		 * \param[in] clk the clock to run the AI from.
 		 */
-		AI(const World::Ptr &world, ClockSource &clk);
+		AI(World &world, ClockSource &clk);
 
 		/**
 		 * Gets the Coach managing the AI.

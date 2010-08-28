@@ -30,9 +30,32 @@ namespace {
 	static const unsigned int MAX_VISION_FAILURES = 120;
 }
 
-World::Ptr World::create(const Config &conf, const std::vector<XBeeDriveBot::Ptr> &xbee_bots) {
-	Ptr p(new World(conf, xbee_bots));
-	return p;
+World::World(const Config &conf, const std::vector<XBeeDriveBot::Ptr> &xbee_bots) : conf(conf), east_(false), refbox_yellow_(false), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)), ball_(Ball::create()), xbee_bots(xbee_bots), playtype_(PlayType::HALT), playtype_override(PlayType::HALT), playtype_override_active(false), vis_view(this), ball_filter_(0) {
+	vision_socket->set_blocking(false);
+	const int one = 1;
+	if (setsockopt(vision_socket->fd(), SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
+		throw std::runtime_error("Cannot set SO_REUSEADDR.");
+	}
+	SockAddrs sa;
+	sa.in.sin_family = AF_INET;
+	sa.in.sin_addr.s_addr = get_inaddr_any();
+	sa.in.sin_port = htons(10002);
+	std::memset(sa.in.sin_zero, 0, sizeof(sa.in.sin_zero));
+	if (bind(vision_socket->fd(), &sa.sa, sizeof(sa.in)) < 0) {
+		throw std::runtime_error("Cannot bind to port 10002 for vision data.");
+	}
+	ip_mreqn mcreq;
+	mcreq.imr_multiaddr.s_addr = inet_addr("224.5.23.2");
+	mcreq.imr_address.s_addr = get_inaddr_any();
+	mcreq.imr_ifindex = 0;
+	if (setsockopt(vision_socket->fd(), IPPROTO_IP, IP_ADD_MEMBERSHIP, &mcreq, sizeof(mcreq)) < 0) {
+		LOG_INFO("Cannot join multicast group 224.5.23.2 for vision data.");
+	}
+	Glib::signal_io().connect(sigc::mem_fun(this, &World::on_vision_readable), vision_socket->fd(), Glib::IO_IN);
+
+	refbox_.signal_command_changed.connect(sigc::mem_fun(this, &World::update_playtype));
+
+	timespec_now(playtype_time_);
 }
 
 void World::flip_ends() {
@@ -82,34 +105,6 @@ void World::ball_filter(BallFilter *filt) {
 
 void World::tick_timestamp() {
 	++timestamp_;
-}
-
-World::World(const Config &conf, const std::vector<XBeeDriveBot::Ptr> &xbee_bots) : conf(conf), east_(false), refbox_yellow_(false), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)), ball_(Ball::create()), xbee_bots(xbee_bots), playtype_(PlayType::HALT), playtype_override(PlayType::HALT), playtype_override_active(false), vis_view(this), ball_filter_(0) {
-	vision_socket->set_blocking(false);
-	const int one = 1;
-	if (setsockopt(vision_socket->fd(), SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
-		throw std::runtime_error("Cannot set SO_REUSEADDR.");
-	}
-	SockAddrs sa;
-	sa.in.sin_family = AF_INET;
-	sa.in.sin_addr.s_addr = get_inaddr_any();
-	sa.in.sin_port = htons(10002);
-	std::memset(sa.in.sin_zero, 0, sizeof(sa.in.sin_zero));
-	if (bind(vision_socket->fd(), &sa.sa, sizeof(sa.in)) < 0) {
-		throw std::runtime_error("Cannot bind to port 10002 for vision data.");
-	}
-	ip_mreqn mcreq;
-	mcreq.imr_multiaddr.s_addr = inet_addr("224.5.23.2");
-	mcreq.imr_address.s_addr = get_inaddr_any();
-	mcreq.imr_ifindex = 0;
-	if (setsockopt(vision_socket->fd(), IPPROTO_IP, IP_ADD_MEMBERSHIP, &mcreq, sizeof(mcreq)) < 0) {
-		LOG_INFO("Cannot join multicast group 224.5.23.2 for vision data.");
-	}
-	Glib::signal_io().connect(sigc::mem_fun(this, &World::on_vision_readable), vision_socket->fd(), Glib::IO_IN);
-
-	refbox_.signal_command_changed.connect(sigc::mem_fun(this, &World::update_playtype));
-
-	timespec_now(playtype_time_);
 }
 
 bool World::on_vision_readable(Glib::IOCondition) {

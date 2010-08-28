@@ -118,7 +118,7 @@ namespace AIUtil {
 	 *
 	 * \param[in] bot the Robot to check.
 	 */
-	bool ball_close(const World::Ptr w, const Robot::Ptr bot);
+	bool ball_close(World &w, const Robot::Ptr bot);
 
 	/**
 	 * Checks if a position is inside the friendly defense area.
@@ -127,7 +127,7 @@ namespace AIUtil {
 	 *
 	 * \param[in] pt the Point to check.
 	 */
-	bool point_in_defense(const World::Ptr w, const Point& pt);
+	bool point_in_defense(World &w, const Point& pt);
 
 	/**
 	 * Checks if the path from \p begin to \p end is blocked by some robots.
@@ -176,7 +176,7 @@ namespace AIUtil {
 	 * \p passee, if \p passee is not facing the ball, or if some condition is
 	 * invalid, or \c true otherwise.
 	 */
-	bool can_receive(const World::Ptr w, const Player::Ptr passee);
+	bool can_receive(World &w, const Player::Ptr passee);
 
 	/**
 	 * Calculates the candidates to aim for when shooting at the goal.
@@ -185,7 +185,7 @@ namespace AIUtil {
 	 *
 	 * \return a collection of open points in the goal.
 	 */
-	const std::vector<Point> calc_candidates(const World::Ptr w);
+	const std::vector<Point> calc_candidates(World &w);
 
 	/**
 	 * Finds the length of the largest continuous interval (angle-wise) of the
@@ -223,7 +223,7 @@ namespace AIUtil {
 	 * and \c s is the score of that interval, where a score of 0 means no point
 	 * could be found.
 	 */
-	std::pair<Point, double> calc_best_shot(const World::Ptr w, const Player::Ptr pl, const bool consider_friendly = true, const bool force_shoot = false);
+	std::pair<Point, double> calc_best_shot(World &w, const Player::Ptr pl, const bool consider_friendly = true, const bool force_shoot = false);
 
 	/**
 	 * Returns the length of the largest continuous interval (angle-wise) of the
@@ -239,7 +239,7 @@ namespace AIUtil {
 	 * \return the length of the interval, or 0 if the point is physically
 	 * inside a considered robot.
 	 */
-	double calc_goal_visibility_angle(const World::Ptr w, const Player::Ptr pl, const bool consider_friendly = true);
+	double calc_goal_visibility_angle(World &w, const Player::Ptr pl, const bool consider_friendly = true);
 
 	/**
 	 * Converts \p friendly into a \c vector of \ref Player "Players", excluding
@@ -264,7 +264,7 @@ namespace AIUtil {
 	 *
 	 * \return ?, or -1 if no valid target is found.
 	 */
-	int choose_best_pass(const World::Ptr w, const std::vector<Player::Ptr>& friends);
+	int choose_best_pass(World &w, const std::vector<Player::Ptr>& friends);
 
 	/**
 	 * Checks whether a player probably has the ball. Uses dribbler sensing and
@@ -276,7 +276,7 @@ namespace AIUtil {
 	 *
 	 * \return \c true if \p pl has the ball with high probability.
 	 */
-	bool has_ball(const World::Ptr w, const Player::Ptr pl);
+	bool has_ball(World &w, const Player::Ptr pl);
 
 	/**
 	 * Checks if a FRIENDLY PLAYER posses the ball. Possession is defined as
@@ -289,17 +289,17 @@ namespace AIUtil {
 	 *
 	 * \return \c true if \p p possesses the ball.
 	 */
-	bool posses_ball(const World::Ptr w, const Player::Ptr p);
+	bool posses_ball(World &w, const Player::Ptr p);
 
 	/**
 	 * Checks if an ENEMY ROBOT posses the ball.
 	 */
-	// bool posses_ball(const World::Ptr w, const Robot::Ptr r);
+	// bool posses_ball(World &w, const Robot::Ptr r);
 
 	/**
 	 * Checks if the enemy team posses the ball.
 	 */
-	// bool enemy_posses_ball(const World::Ptr w);
+	// bool enemy_posses_ball(World &w);
 
 	/**
 	 * Checks if the friendly team possesses the ball.
@@ -308,7 +308,7 @@ namespace AIUtil {
 	 *
 	 * \return \c true if the friendly team possesses the ball.
 	 */
-	bool friendly_posses_ball(const World::Ptr w);
+	bool friendly_posses_ball(World &w);
 
 	/**
 	 * Checks if the friendly team has the ball.
@@ -317,7 +317,7 @@ namespace AIUtil {
 	 *
 	 * \return \c true if the friendly team has the ball.
 	 */
-	bool friendly_has_ball(const World::Ptr w);
+	bool friendly_has_ball(World &w);
 
 	/**
 	 * Determines which player has the ball.
@@ -329,7 +329,7 @@ namespace AIUtil {
 	 * \return the index in \p players of the Player that has the ball, or -1 if
 	 * none have the ball.
 	 */
-	int calc_baller(const World::Ptr w, const std::vector<Player::Ptr>& players);
+	int calc_baller(World &w, const std::vector<Player::Ptr>& players);
 }
 
 #endif

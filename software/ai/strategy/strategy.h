@@ -171,7 +171,7 @@ class Strategy : public ByRef, public sigc::trackable {
 		/**
 		 * The World in which the Strategy lives.
 		 */
-		const World::Ptr world;
+		World &world;
 
 		/**
 		 * Constructs a new Strategy. Subclasses should call this constructor
@@ -179,7 +179,7 @@ class Strategy : public ByRef, public sigc::trackable {
 		 *
 		 * \param[in] world the World in which the Strategy lives.
 		 */
-		Strategy(const World::Ptr &world);
+		Strategy(World &world);
 
 		/**
 		 * Destroys a Strategy.
@@ -224,7 +224,7 @@ class StrategyFactory : public Registerable<StrategyFactory> {
 		 *
 		 * \return the new Strategy.
 		 */
-		virtual Strategy::Ptr create_strategy(const World::Ptr &world) const = 0;
+		virtual Strategy::Ptr create_strategy(World &world) const = 0;
 
 	protected:
 		/**

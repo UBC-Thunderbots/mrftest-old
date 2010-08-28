@@ -15,10 +15,10 @@ namespace {
 			 *
 			 * \param[in] world the World in which to operate.
 			 */
-			static Strategy::Ptr create(const World::Ptr &world);
+			static Strategy::Ptr create(World &world);
 
 		private:
-			StopStrategy(const World::Ptr &world);
+			StopStrategy(World &world);
 			~StopStrategy();
 			void on_play_type_changed();
 	};
@@ -30,7 +30,7 @@ namespace {
 		public:
 			StopStrategyFactory();
 			~StopStrategyFactory();
-			Strategy::Ptr create_strategy(const World::Ptr &world) const;
+			Strategy::Ptr create_strategy(World &world) const;
 	};
 
 	/**
@@ -53,20 +53,20 @@ namespace {
 #warning TODO something sensible
 	}
 
-	Strategy::Ptr StopStrategy::create(const World::Ptr &world) {
+	Strategy::Ptr StopStrategy::create(World &world) {
 		const Strategy::Ptr p(new StopStrategy(world));
 		return p;
 	}
 
-	StopStrategy::StopStrategy(const World::Ptr &world) : Strategy(world) {
-		world->signal_playtype_changed.connect(sigc::mem_fun(this, &StopStrategy::on_play_type_changed));
+	StopStrategy::StopStrategy(World &world) : Strategy(world) {
+		world.signal_playtype_changed.connect(sigc::mem_fun(this, &StopStrategy::on_play_type_changed));
 	}
 
 	StopStrategy::~StopStrategy() {
 	}
 
 	void StopStrategy::on_play_type_changed() {
-		if (world->playtype() != PlayType::STOP) {
+		if (world.playtype() != PlayType::STOP) {
 			resign();
 		}
 	}
@@ -77,7 +77,7 @@ namespace {
 	StopStrategyFactory::~StopStrategyFactory() {
 	}
 
-	Strategy::Ptr StopStrategyFactory::create_strategy(const World::Ptr &world) const {
+	Strategy::Ptr StopStrategyFactory::create_strategy(World &world) const {
 		return StopStrategy::create(world);
 	}
 }

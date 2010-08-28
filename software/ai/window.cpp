@@ -210,7 +210,7 @@ namespace {
 	}
 }
 
-AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), playtype_override_chooser(), playtype_entry(), ball_filter_chooser(), end_entry(), refbox_colour_entry(), coach_vbox(), coach_chooser(), strategy_hbox(), strategy_label("Strategy:"), strategy_entry(), coach_controls(0), rc_vbox(), rc_chooser(), rc_controls(0), vis_button(), vis_window(), vis(ai.world->visualizer_view()) {
+AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), playtype_override_chooser(), playtype_entry(), ball_filter_chooser(), end_entry(), refbox_colour_entry(), coach_vbox(), coach_chooser(), strategy_hbox(), strategy_label("Strategy:"), strategy_entry(), coach_controls(0), rc_vbox(), rc_chooser(), rc_controls(0), vis_button(), vis_window(), vis(ai.world.visualizer_view()) {
 	set_title("AI");
 
 	Gtk::Notebook *notebook = Gtk::manage(new Gtk::Notebook);
@@ -235,7 +235,7 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), playtype_override_chooser(),
 	for (BallFilter::map_type::const_iterator i = BallFilter::all().begin(), iend = BallFilter::all().end(); i != iend; ++i) {
 		ball_filter_chooser.append_text(i->second->name);
 	}
-	BallFilter *ball_filter = ai.world->ball_filter();
+	BallFilter *ball_filter = ai.world.ball_filter();
 	if (ball_filter) {
 		ball_filter_chooser.set_active_text(ball_filter->name);
 	} else {
@@ -259,7 +259,7 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), playtype_override_chooser(),
 	vbox->pack_start(*basic_frame, Gtk::PACK_SHRINK);
 
 	Gtk::Frame *robots_frame = Gtk::manage(new Gtk::Frame("Robots"));
-	const Glib::RefPtr<RobotInfoModel> robots_model(RobotInfoModel::create(ai.world->conf, ai.world->xbee_bots, ai.world->friendly));
+	const Glib::RefPtr<RobotInfoModel> robots_model(RobotInfoModel::create(ai.world.conf, ai.world.xbee_bots, ai.world.friendly));
 	Gtk::TreeView *robots_tree = Gtk::manage(new Gtk::TreeView(robots_model));
 	robots_tree->get_selection()->set_mode(Gtk::SELECTION_SINGLE);
 	robots_tree->append_column("Name", robots_model->name_column);
@@ -337,9 +337,9 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), playtype_override_chooser(),
 
 	add(*notebook);
 
-	ai.world->signal_playtype_changed.connect(sigc::mem_fun(this, &AIWindow::on_playtype_changed));
-	ai.world->signal_flipped_ends.connect(sigc::mem_fun(this, &AIWindow::on_flipped_ends));
-	ai.world->signal_flipped_refbox_colour.connect(sigc::mem_fun(this, &AIWindow::on_flipped_refbox_colour));
+	ai.world.signal_playtype_changed.connect(sigc::mem_fun(this, &AIWindow::on_playtype_changed));
+	ai.world.signal_flipped_ends.connect(sigc::mem_fun(this, &AIWindow::on_flipped_ends));
+	ai.world.signal_flipped_refbox_colour.connect(sigc::mem_fun(this, &AIWindow::on_flipped_refbox_colour));
 	on_playtype_changed();
 	on_flipped_ends();
 	on_flipped_refbox_colour();
@@ -358,29 +358,29 @@ void AIWindow::on_playtype_override_changed() {
 	const Glib::ustring &selected(playtype_override_chooser.get_active_text());
 	for (unsigned int i = 0; i < PlayType::COUNT; ++i) {
 		if (selected == PlayType::DESCRIPTIONS_GENERIC[i]) {
-			ai.world->override_playtype(static_cast<PlayType::PlayType>(i));
+			ai.world.override_playtype(static_cast<PlayType::PlayType>(i));
 			return;
 		}
 	}
-	ai.world->clear_playtype_override();
+	ai.world.clear_playtype_override();
 }
 
 void AIWindow::on_ball_filter_changed() {
 	const Glib::ustring &name(ball_filter_chooser.get_active_text());
 	BallFilter::map_type::const_iterator i = BallFilter::all().find(name.collate_key());
 	if (i != BallFilter::all().end()) {
-		ai.world->ball_filter(i->second);
+		ai.world.ball_filter(i->second);
 	} else {
-		ai.world->ball_filter(0);
+		ai.world.ball_filter(0);
 	}
 }
 
 void AIWindow::on_flip_ends_clicked() {
-	ai.world->flip_ends();
+	ai.world.flip_ends();
 }
 
 void AIWindow::on_flip_refbox_colour_clicked() {
-	ai.world->flip_refbox_colour();
+	ai.world.flip_refbox_colour();
 }
 
 void AIWindow::on_coach_changed() {
@@ -427,7 +427,7 @@ void AIWindow::put_coach_controls() {
 }
 
 void AIWindow::on_playtype_changed() {
-	playtype_entry.set_text(PlayType::DESCRIPTIONS_GENERIC[ai.world->playtype()]);
+	playtype_entry.set_text(PlayType::DESCRIPTIONS_GENERIC[ai.world.playtype()]);
 }
 
 void AIWindow::on_vis_toggled() {
@@ -439,11 +439,11 @@ void AIWindow::on_vis_toggled() {
 }
 
 void AIWindow::on_flipped_ends() {
-	end_entry.set_text(ai.world->east() ? "East" : "West");
+	end_entry.set_text(ai.world.east() ? "East" : "West");
 }
 
 void AIWindow::on_flipped_refbox_colour() {
-	refbox_colour_entry.set_text(ai.world->refbox_yellow() ? "Yellow" : "Blue");
+	refbox_colour_entry.set_text(ai.world.refbox_yellow() ? "Yellow" : "Blue");
 }
 
 void AIWindow::on_strategy_changed(Strategy::Ptr strat) {

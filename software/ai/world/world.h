@@ -9,10 +9,10 @@
 #include "ai/world/refbox.h"
 #include "ai/world/team.h"
 #include "uicomponents/visualizer.h"
-#include "util/byref.h"
 #include "util/clocksource.h"
 #include "util/config.h"
 #include "util/fd.h"
+#include "util/noncopyable.h"
 #include "xbee/client/drive.h"
 #include <stdint.h>
 #include <vector>
@@ -24,13 +24,8 @@ class AIWindow;
  * Collects all information the AI needs to examine the state of the world and
  * transmit orders to robots.
  */
-class World : public ByRef {
+class World : public NonCopyable {
 	public:
-		/**
-		 * A pointer to a World object.
-		 */
-		typedef RefPtr<World> Ptr;
-
 		/**
 		 * The configuration file.
 		 */
@@ -78,10 +73,8 @@ class World : public ByRef {
 		 * \param[in] conf the configuration file.
 		 *
 		 * \param[in] xbee_bots the robots to drive.
-		 *
-		 * \return the new object.
 		 */
-		static Ptr create(const Config &conf, const std::vector<XBeeDriveBot::Ptr> &xbee_bots);
+		World(const Config &conf, const std::vector<XBeeDriveBot::Ptr> &xbee_bots);
 
 		/**
 		 * Gets the ball.
@@ -237,7 +230,6 @@ class World : public ByRef {
 		uint64_t timestamp_;
 		timespec playtype_time_;
 
-		World(const Config &, const std::vector<XBeeDriveBot::Ptr> &);
 		bool on_vision_readable(Glib::IOCondition);
 		void override_playtype(PlayType::PlayType);
 		void clear_playtype_override();

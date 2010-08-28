@@ -52,7 +52,7 @@ bool Strategy::has_resigned() const {
 }
 
 void Strategy::tick() {
-	switch (world->playtype()) {
+	switch (world.playtype()) {
 		case PlayType::HALT:
 			halt();
 			return;
@@ -119,7 +119,7 @@ void Strategy::tick() {
 	throw std::out_of_range("Play type number is out of range!");
 }
 
-Strategy::Strategy(const World::Ptr &world) : world(world), has_resigned_(false) {
+Strategy::Strategy(World &world) : world(world), has_resigned_(false) {
 }
 
 Strategy::~Strategy() {

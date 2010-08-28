@@ -27,7 +27,7 @@ const std::vector<StrategyFactory *> &Coach::get_strategies_by_play_type(PlayTyp
 	return vectors[pt];
 }
 
-Coach::Coach(const World::Ptr &world) : world(world), strategy() {
+Coach::Coach(World &world) : world(world), strategy() {
 }
 
 Coach::~Coach() {

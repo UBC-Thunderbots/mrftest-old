@@ -31,7 +31,7 @@ class Navigator : public ByRef{
 		 *
 		 * \param[in] world the World in which to navigate.
 		 */
-		Navigator(Player::Ptr player, World::Ptr world){
+		Navigator(Player::Ptr player, World &world){
 		}
 
 		/**
@@ -144,9 +144,9 @@ class TeamNavigator : public ByRef, public sigc::trackable{
 		 *
 		 * \param[in] world the World in which to navigate.
 		 */
-		TeamNavigator(World::Ptr world):the_world(world){
-			the_world->friendly.signal_player_removed.connect(sigc::mem_fun(this, &TeamNavigator::on_player_removed));
-			the_world->friendly.signal_player_added.connect(sigc::mem_fun(this, &TeamNavigator::on_player_added));
+		TeamNavigator(World &world):the_world(world){
+			the_world.friendly.signal_player_removed.connect(sigc::mem_fun(this, &TeamNavigator::on_player_removed));
+			the_world.friendly.signal_player_added.connect(sigc::mem_fun(this, &TeamNavigator::on_player_added));
 		}
 		
 		/**
@@ -188,7 +188,7 @@ class TeamNavigator : public ByRef, public sigc::trackable{
 			return rn;
 		}
 				
-		const World::Ptr the_world;
+		World &the_world;
 		
 		std::map<uint64_t, Navigator::Ptr> navis;	
 

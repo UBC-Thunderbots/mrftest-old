@@ -239,9 +239,9 @@ namespace {
 
 		Param::initialized(&conf);
 
-		World::Ptr world(World::create(conf, xbee_bots));
+		World world(conf, xbee_bots);
 		if (refbox_yellow) {
-			world->flip_refbox_colour();
+			world.flip_refbox_colour();
 		}
 
 		if (!ball_filter_name.empty()) {
@@ -250,7 +250,7 @@ namespace {
 				std::cout << "There is no ball filter '" << ball_filter_name << "'.\n";
 				return 1;
 			}
-			world->ball_filter(i->second);
+			world.ball_filter(i->second);
 		}
 
 		TimerFDClockSource clk(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND);

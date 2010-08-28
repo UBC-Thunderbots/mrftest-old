@@ -102,7 +102,7 @@ class Coach : public ByRef {
 		/**
 		 * The World in which the Coach lives.
 		 */
-		const World::Ptr world;
+		World &world;
 
 		/**
 		 * Creates a new Coach. Subclasses should call this constructor from
@@ -110,7 +110,7 @@ class Coach : public ByRef {
 		 *
 		 * \param[in] world the World in which the Coach lives.
 		 */
-		Coach(const World::Ptr &world);
+		Coach(World &world);
 
 		/**
 		 * Destroys a Coach.
@@ -154,7 +154,7 @@ class CoachFactory : public Registerable<CoachFactory> {
 		 *
 		 * \return the new Coach.
 		 */
-		virtual Coach::Ptr create_coach(const World::Ptr &world) const = 0;
+		virtual Coach::Ptr create_coach(World &world) const = 0;
 
 	protected:
 		/**

@@ -20,8 +20,8 @@ namespace {
 	DoubleParam BALL_FRONT_ANGLE("has_ball_vision: angle (degrees)", 20.0, 0.0, 60.0);
 	DoubleParam BALL_FRONT_FACTOR("has_ball_vision: dist factor", 0.9, 0.1, 2.0);
 
-	bool has_ball_vision(const World::Ptr w, const Robot::Ptr p) {
-		const Point dist = w->ball()->position() - p->position();
+	bool has_ball_vision(World &w, const Robot::Ptr p) {
+		const Point dist = w.ball()->position() - p->position();
 		if (dist.len() > (Robot::MAX_RADIUS + Ball::RADIUS) * BALL_FRONT_FACTOR) return false;
 		return angle_diff(dist.orientation(), p->orientation()) < degrees2radians(BALL_FRONT_ANGLE);
 	}
@@ -42,15 +42,15 @@ DoubleParam AIUtil::CHASE_BALL_DIST("chase: How close before chasing", Ball::RAD
 DoubleParam AIUtil::ORI_CLOSE("kick: general accuracy (rads)", 5.0 * M_PI / 180.0, 0, M_PI / 2);
 
 #warning see the Doxygen comment for this function: to start what?
-bool AIUtil::ball_close(const World::Ptr w, const Robot::Ptr p) {
-	const Point dist = w->ball()->position() - p->position();
+bool AIUtil::ball_close(World &w, const Robot::Ptr p) {
+	const Point dist = w.ball()->position() - p->position();
 	return dist.len() < (Robot::MAX_RADIUS + Ball::RADIUS) * BALL_CLOSE_FACTOR;
 }
 
-bool AIUtil::point_in_defense(const World::Ptr w, const Point& pt) {
-	const double defense_stretch = w->field().defense_area_stretch();
-	const double defense_radius = w->field().defense_area_radius();
-	const double field_length = w->field().length();
+bool AIUtil::point_in_defense(World &w, const Point& pt) {
+	const double defense_stretch = w.field().defense_area_stretch();
+	const double defense_radius = w.field().defense_area_radius();
+	const double field_length = w.field().length();
 	const Point pole1 = Point(-field_length, defense_stretch/2 + defense_radius);
 	const Point pole2 = Point(-field_length, -defense_stretch/2 - defense_radius);
 	double dist1 = (pt-pole1).len();
@@ -91,8 +91,8 @@ bool AIUtil::path_check(const Point& begin, const Point& end, const std::vector<
 }
 
 #warning TODO: maybe the source to a point instead of defaulting to ball
-bool AIUtil::can_receive(const World::Ptr w, const Player::Ptr passee) {
-	const Ball::Ptr ball = w->ball();
+bool AIUtil::can_receive(World &w, const Player::Ptr passee) {
+	const Ball::Ptr ball = w.ball();
 	if ((ball->position() - passee->position()).lensq() < POS_CLOSE) {
 		std::cerr << "can_pass: passe too close to ball" << std::endl;
 		return true;
@@ -103,11 +103,11 @@ bool AIUtil::can_receive(const World::Ptr w, const Player::Ptr passee) {
 		// std::cout << "AIUtil: angle diff = " << angle_diff(ray.orientation(), passee->orientation()) << std::endl; 
 		return false;
 	}
-	// if(!path_check(ball->position(), passee->position(), w->enemy.get_robots(), SHOOT_ALLOWANCE + Robot::MAX_RADIUS + Ball::RADIUS)) return false;
+	// if(!path_check(ball->position(), passee->position(), w.enemy.get_robots(), SHOOT_ALLOWANCE + Robot::MAX_RADIUS + Ball::RADIUS)) return false;
 	const Point direction = ray.norm();
 	const double distance = (ball->position() - passee->position()).len();
-	for (size_t i = 0; i < w->enemy.size(); ++i) {
-		const Robot::Ptr rob = w->enemy.get_robot(i);
+	for (size_t i = 0; i < w.enemy.size(); ++i) {
+		const Robot::Ptr rob = w.enemy.get_robot(i);
 		const Point rp = rob->position() - passee->position();
 		const double proj = rp.dot(direction);
 		const double perp = sqrt(rp.dot(rp) - proj * proj);
@@ -116,8 +116,8 @@ bool AIUtil::can_receive(const World::Ptr w, const Player::Ptr passee) {
 			return false;
 		}
 	}
-	for (size_t i = 0; i < w->friendly.size(); ++i) {
-		const Player::Ptr plr = w->friendly.get_player(i);
+	for (size_t i = 0; i < w.friendly.size(); ++i) {
+		const Player::Ptr plr = w.friendly.get_player(i);
 		if (posses_ball(w, plr) || plr == passee) continue;
 		const Point rp = plr->position() - passee->position();
 		const double proj = rp.dot(direction);
@@ -141,28 +141,28 @@ std::pair<Point, double> AIUtil::calc_best_shot(const Field& f, const std::vecto
 #warning document the meaning of "score" in the return value (e.g. its range of values)
 #warning document the consider_friendly parameter in ai/util.h
 #warning document the force_shoot parameter in ai/util.h
-std::pair<Point, double> AIUtil::calc_best_shot(const World::Ptr w, const Player::Ptr pl, const bool consider_friendly, const bool force) {
+std::pair<Point, double> AIUtil::calc_best_shot(World &w, const Player::Ptr pl, const bool consider_friendly, const bool force) {
 	if (force){
 		// If we have a force shot, simply return the center of the goal
 		std::pair<Point, double> best_shot;
-		best_shot.first = Point(w->field().length()/2.0, 0.0);
+		best_shot.first = Point(w.field().length()/2.0, 0.0);
 		best_shot.second = 2*ORI_CLOSE;
 		return best_shot;
 	}
 	std::vector<Point> obstacles;
-	const EnemyTeam &enemy(w->enemy);
+	const EnemyTeam &enemy(w.enemy);
 	for (size_t i = 0; i < enemy.size(); ++i) {
 		obstacles.push_back(enemy[i]->position());
 	}
 	if (consider_friendly) {
-		const FriendlyTeam &friendly(w->friendly);
+		const FriendlyTeam &friendly(w.friendly);
 		for (size_t i = 0; i < friendly.size(); ++i) {
 			const Player::Ptr fpl = friendly[i];
 			if (fpl == pl) continue;
 			obstacles.push_back(fpl->position());
 		}
 	}
-	std::pair<Point, double> best_shot = calc_best_shot(w->field(), obstacles, pl->position());
+	std::pair<Point, double> best_shot = calc_best_shot(w.field(), obstacles, pl->position());
 	//if (!force || best_shot.second >= 2*ORI_CLOSE) 
 		return best_shot;		
 
@@ -171,12 +171,12 @@ std::pair<Point, double> AIUtil::calc_best_shot(const World::Ptr w, const Player
 	while(best_shot.second < 2*ORI_CLOSE){
 		radius -= Robot::MAX_RADIUS / 10.0;
 		if (radius < 0) break;
-		best_shot = calc_best_shot(w->field(), obstacles, pl->position(), radius);
+		best_shot = calc_best_shot(w.field(), obstacles, pl->position(), radius);
 	}
 	if (best_shot.second >= 2*ORI_CLOSE) return best_shot;
 	// enemy robots still break up the goal into too small intervals, just shoot for center of goal
-	best_shot.first = Point(w->field().length()/2.0,0);
-	best_shot.second = std::atan2(w->field().goal_width(),w->field().length())*2.0;
+	best_shot.first = Point(w.field().length()/2.0,0);
+	best_shot.second = std::atan2(w.field().goal_width(),w.field().length())*2.0;
 	*/
 	return best_shot;
 }
@@ -184,7 +184,7 @@ std::pair<Point, double> AIUtil::calc_best_shot(const World::Ptr w, const Player
 #warning document the consider_friendly parameter in ai/util.h
 #warning document what unit the return value is in in ai/util.h
 #warning document in the note about the zero-return case what "the point" refers to (is it the position of "pl"?) in ai/util.h
-double AIUtil::calc_goal_visibility_angle(const World::Ptr w, const Player::Ptr pl, const bool consider_friendly) {
+double AIUtil::calc_goal_visibility_angle(World &w, const Player::Ptr pl, const bool consider_friendly) {
 	return calc_best_shot(w, pl, consider_friendly).second;
 }
 
@@ -199,7 +199,7 @@ std::vector<Player::Ptr> AIUtil::get_friends(const FriendlyTeam& friendly, const
 }
 
 #warning document the meaning of the return value of this (is it an index into the vector?)
-int AIUtil::choose_best_pass(const World::Ptr w, const std::vector<Player::Ptr>& friends) {
+int AIUtil::choose_best_pass(World &w, const std::vector<Player::Ptr>& friends) {
 	double bestangle = 0;
 	double bestdist = 1e99;
 	int bestidx = -1;
@@ -207,7 +207,7 @@ int AIUtil::choose_best_pass(const World::Ptr w, const std::vector<Player::Ptr>&
 		// see if this player is on line of sight
 		if (!AIUtil::can_receive(w, friends[i])) continue;
 		// choose the most favourable distance
-		const double dist = (friends[i]->position() - w->ball()->position()).len();
+		const double dist = (friends[i]->position() - w.ball()->position()).len();
 		const double angle = calc_goal_visibility_angle(w, friends[i]);
 		if (bestidx == -1 || angle > bestangle || (angle == bestangle && dist < bestdist)) {
 			bestangle = angle;
@@ -218,7 +218,7 @@ int AIUtil::choose_best_pass(const World::Ptr w, const std::vector<Player::Ptr>&
 	return bestidx;
 }
 
-bool AIUtil::has_ball(const World::Ptr w, const Player::Ptr p) {
+bool AIUtil::has_ball(World &w, const Player::Ptr p) {
 	// return p->sense_ball() >= HAS_BALL_TIME || (HAS_BALL_USE_VISION && has_ball_vision(w, p));
 	if (HAS_BALL_USE_VISION) {
 		return p->sense_ball() >= HAS_BALL_TIME || has_ball_vision(w, p);
@@ -227,13 +227,13 @@ bool AIUtil::has_ball(const World::Ptr w, const Player::Ptr p) {
 	}
 }
 
-bool AIUtil::posses_ball(const World::Ptr w, const Player::Ptr p) {
+bool AIUtil::posses_ball(World &w, const Player::Ptr p) {
 	if (POSSES_BALL_IS_HAS_BALL) return has_ball(w, p);
 	return has_ball(w, p) || ball_close(w, p);
 }
 
-bool AIUtil::friendly_has_ball(const World::Ptr w) {
-	const FriendlyTeam& friendly = w->friendly;
+bool AIUtil::friendly_has_ball(World &w) {
+	const FriendlyTeam& friendly = w.friendly;
 	for (size_t i = 0; i < friendly.size(); ++i) {
 		if (has_ball(w, friendly[i])) return true;
 	}
@@ -241,12 +241,12 @@ bool AIUtil::friendly_has_ball(const World::Ptr w) {
 }
 
 /*
-bool AIUtil::posses_ball(const World::Ptr w, const Robot::Ptr r) {
+bool AIUtil::posses_ball(World &w, const Robot::Ptr r) {
 	return ball_close(w, r);
 }
 
-bool AIUtil::enemy_posses_ball(const World::Ptr w) {
-	const EnemyTeam& enemy = w->enemy;
+bool AIUtil::enemy_posses_ball(World &w) {
+	const EnemyTeam& enemy = w.enemy;
 	for (size_t i = 0; i < enemy.size(); ++i) {
 		if (posses_ball(w, enemy[i])) return true;
 	}
@@ -254,8 +254,8 @@ bool AIUtil::enemy_posses_ball(const World::Ptr w) {
 }
 */
 
-bool AIUtil::friendly_posses_ball(const World::Ptr w) {
-	switch(w->playtype()){
+bool AIUtil::friendly_posses_ball(World &w) {
+	switch(w.playtype()){
 		case PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY:
 		case PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY:
 		case PlayType::PREPARE_KICKOFF_ENEMY:
@@ -267,14 +267,14 @@ bool AIUtil::friendly_posses_ball(const World::Ptr w) {
 		default:
 			break;
 	}
-	const FriendlyTeam& friendly = w->friendly;
+	const FriendlyTeam& friendly = w.friendly;
 	for (size_t i = 0; i < friendly.size(); ++i) {
 		if (posses_ball(w, friendly[i])) return true;
 	}
 	return false;
 }
 
-int AIUtil::calc_baller(const World::Ptr w, const std::vector<Player::Ptr>& players) {
+int AIUtil::calc_baller(World &w, const std::vector<Player::Ptr>& players) {
 	for (size_t i = 0; i < players.size(); ++i) {
 		if (posses_ball(w, players[i])) return static_cast<int>(i);
 	}
