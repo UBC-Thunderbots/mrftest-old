@@ -1,7 +1,7 @@
 #ifndef AI_COACH_COACH_H
 #define AI_COACH_COACH_H
 
-#include "ai/strategy/strategy.h"
+#include "ai/hl/strategy.h"
 #include "util/byref.h"
 #include "util/registerable.h"
 #include <vector>
