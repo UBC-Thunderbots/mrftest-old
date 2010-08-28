@@ -36,6 +36,7 @@ software/ai/ball_filter/weighted_average.cpp -text
 software/ai/coach/coach.cpp -text
 software/ai/coach/coach.h -text
 software/ai/coach/random.cpp -text
+software/ai/flags.cpp -text
 software/ai/flags.h -text
 software/ai/main.cpp -text
 software/ai/navigator/greedy_navigator.cpp -text

@@ -396,18 +396,6 @@ unsigned int TeamGreedyNavigator::check_obstacles(const Point& start, const Poin
 	  }
 	}
 
-	if (flags & AIFlags::AVOID_BALL_NEAR) {
-		const Point ballvec = the_ball->position() - start;
-		double proj = ballvec.dot(direction);
-		if (proj > 0) {
-			double perp = sqrt(ballvec.dot(ballvec) - proj * proj);
-			// double distance to ball
-			if (proj < lookahead && perp < get_avoidance_factor() * (Robot::MAX_RADIUS + Ball::RADIUS * 2)) {
-				return BALL;
-			}
-		}
-	}
-
 	return EMPTY;
 }
 
