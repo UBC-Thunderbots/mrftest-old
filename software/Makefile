@@ -7,7 +7,7 @@ PROJECTS := ai config fw rxdata simulator test xbeeconfig xbeed xbeerconfig
 # Here, write a list of the source files and directories for each executable.
 # Directories will be searched for source files recursively.
 #
-SOURCES_ai := ai geom leastsquares proto robot_controller uicomponents util xbee/client xbee/shared
+SOURCES_ai := ai geom leastsquares proto uicomponents util xbee/client xbee/shared
 SOURCES_config := config uicomponents util xbee/client
 SOURCES_fw := fw uicomponents util xbee/client xbee/shared
 SOURCES_rxdata := rxdata.cpp uicomponents util xbee/client xbee/shared
