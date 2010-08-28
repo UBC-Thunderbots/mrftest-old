@@ -175,9 +175,7 @@ player_has_ball = true;
 used to decide whether to add a contact joint for a robot collision
 */
 bool PlayerODE::hasContactPenetration(dVector3 pos){
-	//if(dGeomBoxPointDepth (dGeomID box, dReal x, dReal y, dReal z);
-	//((GeomBox)
-	// robotGeomTop).pointDepth(pos)<0
+
 	if(dGeomBoxPointDepth (robotGeomTop, pos[0], pos[1], pos[2])<0){
 		return true;
 	}
@@ -253,18 +251,11 @@ double PlayerODE::get_height() const
 
 
 bool PlayerODE::robot_contains_shape(dGeomID geom){
-//if(geom==dribbleArmL){
-//std::cout<<"left Arm collide"<<std::endl;
-//}
-
 	dBodyID b = dGeomGetBody(geom);
 	return (b==body);
 }
-//robot_contains_shape_ground(dGeomID geom)
 
 bool PlayerODE::robot_contains_shape_ground(dGeomID geom){
-
-
 	dBodyID b = dGeomGetBody(geom);
 	return (b==body) && (geom!=robotGeomTopCyl);
 }
@@ -282,13 +273,6 @@ void PlayerODE::pre_tic(double ){
 	double motor_current[4];
 	double wheel_torque;
 	Point force;
-	
-
-	//player doesn't have ball
-	//unless we determine from collision detection
-	//that the player does have the ball
-
-
 	
 	if(!posSet){
 		
@@ -341,73 +325,7 @@ void PlayerODE::pre_tic(double ){
 	posSet=false;
 }
 
-
-//received data from ai does some checks and stores it,
-//when implemented should pass to firmware interpreter
-/*void PlayerODE::move_impl(const Point &vel, double avel) {					
-			
-		Point new_vel = vel;
-	
-	//These are used directly in the simulator code, needs to intercepted by a 
-	//firmware intepreter to simulate controller			
-	motor_desired[0] = -42.5995*new_vel.x +  27.6645*new_vel.y + 4.3175*avel; 
-	motor_desired[1] = -35.9169*new_vel.x + -35.9169*new_vel.y + 4.3175*avel;
-	motor_desired[2] =  35.9169*new_vel.x + -35.9169*new_vel.y + 4.3175*avel;
-	motor_desired[3] =  42.5995*new_vel.x +  27.6645*new_vel.y + 4.3175*avel;		
-	
-	
-	//limit max motor "voltage" to VOLTAGE_LIMIT by scaling the largest component to VOLTAGE_LIMIT if greater
-	for(int index=0;index<4;index++)
-		if(fabs(motor_desired[index])>VOLTAGE_LIMIT/PACKET_TO_VOLTAGE)
-			for(int index2=0;index2<4;index2++)
-				motor_desired[index2]=motor_desired[index2]/motor_desired[index]*VOLTAGE_LIMIT/PACKET_TO_VOLTAGE;
-}*/
-
-
-
 void PlayerODE::dribble(double speed) {
-
-	double max_Angular_vel = 5.0;
-
-	if(speed<0 || speed>1)return;
-
-	double maxTorque = 0.00001;//static_cast<double>(TIMESTEPS_PER_SECOND); //is this realistic???			
-	double appliedTorque = -(speed*maxTorque);
-
-	const dReal * t = dBodyGetAngularVel (dGeomGetBody(ballGeom));
-	//std::cout<<"dribble"<< t[0]<<" "<<t[1]<<" "<<t[2]<<std::endl;
-
-	//std::cout<<"dribble speed: "<<speed<<std::endl;
-	Point torqueAxis(0,1);
-	torqueAxis = torqueAxis.rotate(orientation());
-
-	torqueAxis*=appliedTorque;
-
-	if(has_ball()){
-
-
-		Point ball_turn;
-		ball_turn.x = t[0];
-		ball_turn.y = t[1];
-		if(! (ball_turn.len() > max_Angular_vel)){
-			//double forceMax = 0.1;
-			//std::cout<<"dribble"<<speed<<std::endl;
-			//std::cout<<"dribble"<< t[0]<<" "<<t[1]<<" "<<t[2]<<std::endl;
-			//dBodyAddTorque(dGeomGetBody(ballGeom), torqueAxis.x, torqueAxis.y, 0.0);
-			//Point directionp(1,0);
-			//directionp = directionp.rotate(orientation());
-			//directionp = -directionp*forceMax*speed;
-			//dBodyAddForce(dGeomGetBody(ballGeom), directionp.x, directionp.y, 0.0);
-
-		}
-//			double forceMax = 0.1;
-//			std::cout<<"dribble"<<speed<<std::endl;
-//			Point directionp(1,0);
-//			directionp = directionp.rotate(orientation());
-//			directionp = -directionp*forceMax*speed;
-//			dBodyAddForce(dGeomGetBody(ballGeom), directionp.x, directionp.y, 0.0);
-
-	}
 }
 
 void PlayerODE::kick(double strength) {
@@ -420,7 +338,6 @@ void PlayerODE::kick(double strength) {
 }
 
 bool PlayerODE::execute_kick() {
-
 	double strength = kick_strength;
 	double maximum_impulse = 1.0;
 	Point direction(1.0, 0.0);
@@ -429,55 +346,40 @@ bool PlayerODE::execute_kick() {
 	double zimpulse = strength*maximum_impulse/sqrt(2.0);
 
 	if(has_ball()){
-	 	std::cout<<"attempting chipping"<<robotGeomTop<<" "<<click<<std::endl;
 		dVector3 force;
-
 		dWorldImpulseToForce (world, 1.0/(static_cast<double>(TIMESTEPS_PER_SECOND)*updates_per_tick),
 				impulse.x, impulse.y,zimpulse, force);
-
 		dBodyAddForce(dGeomGetBody(ballGeom), force[0], force[1], force[2]);
 	}
 	return has_ball();
-	//return true;
-
 }
 
 void PlayerODE::chip(double strength) {
-
-
 	if(has_ball()){
 	chip_strength = strength;
 	chip_set = true;
 	}
-
 }
 
 bool PlayerODE::execute_chip() {
-
 	double strength = chip_strength;
-	//std::cout<<"chip strength: "<<strength<<std::endl;
 	double maximum_impulse = 1.0;
 
 	Point direction(1.0/sqrt(2.0), 0.0);
 	direction = direction.rotate(orientation());
 	Point impulse = strength*maximum_impulse*direction;
-
 	double zimpulse = strength*maximum_impulse/sqrt(2.0);
 
 	if(has_ball()){
-	 	std::cout<<"attempting chipping"<<robotGeomTop<<" "<<click<<std::endl;
 		dVector3 force;
 
 		dWorldImpulseToForce (world, 1.0/(static_cast<double>(TIMESTEPS_PER_SECOND)*updates_per_tick),
 				impulse.x, impulse.y,zimpulse, force);
-
 		dBodyAddForce(dGeomGetBody(ballGeom), force[0], force[1], force[2]);
 		
 	}
 	
 	return has_ball();
-	
-
 }
 
 void PlayerODE::position(const Point &pos) {
@@ -612,24 +514,6 @@ dTriMeshDataID PlayerODE::create_robot_geom()
 	return triMesh;
 
 }
-
-/*
-	struct __attribute__((packed)) RUN_DATA {
-		uint8_t flags;
-		signed drive1_speed : 11;
-		signed drive2_speed : 11;
-		signed drive3_speed : 11;
-		signed drive4_speed : 11;
-		signed dribbler_speed : 11;
-		unsigned chick_power : 9;
-	};
-	const uint8_t RUN_FLAG_RUNNING = 0x80;
-	const uint8_t RUN_FLAG_DIRECT_DRIVE = 0x01;
-	const uint8_t RUN_FLAG_CONTROLLED_DRIVE = 0x02;
-	const uint8_t RUN_FLAG_CHICKER_ENABLED = 0x04;
-	const uint8_t RUN_FLAG_CHIP = 0x08;
-	const uint8_t RUN_FLAG_FEEDBACK = 0x40;
-*/
 
 void PlayerODE::received(const XBeePacketTypes::RUN_DATA &packet) {
 	

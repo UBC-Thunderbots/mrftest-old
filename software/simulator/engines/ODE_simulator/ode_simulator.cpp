@@ -63,14 +63,9 @@ namespace {
 				eworld = dWorldCreate(); 
 				dWorldSetGravity (eworld,0,0.0,GRAVITY);
 				space = dSimpleSpaceCreate(0);
-				//space = dHashSpaceCreate(0);
-				
+
   				ground = dCreatePlane (space,0,0,1,0);
-  				//wall[0] = dCreatePlane(space,1,0,0,fld->total_length()/2);
-  				//wall[1] = dCreatePlane(space,1,0,0,-fld->total_length()/2);
-  				//wall[2] = dCreatePlane(space,0,1,0,fld->total_width()/2);
-  				//wall[3] = dCreatePlane(space,0,1,0,-fld->total_width()/2);
-  				
+	
   				
   				
   				double wall_height = 20.5; //1/2 meter
@@ -115,25 +110,18 @@ namespace {
 							the_players[j]->pre_tic(timeStep);
 							
 						}
-					//std::cout << "Player: " << the_players[0]->get_height() << ": The Ball: " << the_ball->get_height() << std::endl;
-					//std::cout<<"tick Start"<<std::endl;
+
 					//check the World for possible collisions
 					//if there are colliding objects then call nearCallback
 					//nearCallback creates all necessary contact points and parameters
 	 				dSpaceCollide (space,this,&SimEngine::nearCallbackThunk);
 	 				
 	 				//step the World (have ODE do 1 iterations per step)
-					//dWorldStep (eworld, 1);
 					dWorldSetQuickStepNumIterations (eworld, 50);
-					
-					//double timeStep = 1.0/static_cast<double>(UPDATES_PER_TICK);
-					
 					dWorldQuickStep(eworld, timeStep);
-					//dWorldStep(eworld,timeStep);
 					
 					//remove all the contact points that we created in this step
 					dJointGroupEmpty (contactgroup);
-					//std::cout<<"tick End"<<std::endl;
 				
 				}
 			}
