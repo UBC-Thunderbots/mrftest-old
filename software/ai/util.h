@@ -7,9 +7,10 @@
 
 #include <vector>
 
-/*
+/**
  * Contains a bunch of useful utility functions.
- * In general, functions that go here are those that
+ * In general, the functions that go here:
+ * - do geometric calculations, without containing any form of INTELLIGENCE.
  * - can be used accross different roles/strategies/tactic.
  * - will unify definition (such as ball possesion).
  */
@@ -106,11 +107,6 @@ namespace AIUtil {
 	static const double HAS_BALL_TIME = 2.0 / 15.0;
 
 	/**
-	 * Number of points to consider when shooting at the goal.
-	 */
-	// static const unsigned int SHOOTING_SAMPLE_POINTS = 11;
-
-	/**
 	 * Checks if the robot is in a position close enough to the ball to start
 	 * So close that no other robot can be in the way of this ball.
 	 *
@@ -188,9 +184,9 @@ namespace AIUtil {
 	const std::vector<Point> calc_candidates(World &w);
 
 	/**
-	 * Finds the length of the largest continuous interval (angle-wise) of the
-	 * enemy goal that can be seen from a point. Having a vector of points
-	 * enables one to add imaginary threats.
+	 * Calculates the best possible point to shoot the ball.
+	 * Specifially, finds the length of the largest continuous interval (angle-wise) of the enemy goal that can be seen from a point.
+	 * Having a vector of points enables one to add imaginary threats.
 	 *
 	 * \param[in] f the Field in which to search.
 	 *
@@ -198,32 +194,28 @@ namespace AIUtil {
 	 *
 	 * \param[in] p the origin point from which to look.
 	 *
-	 * \param[in] radius ?
+	 * \param[in] radius the radius of the obstacles.
+	 * By default, uses robot radius.
 	 *
 	 * \return a pair \c (p, s) where \c p is the middle of the best interval
-	 * and \c s is the score of that interval, where a score of 0 means no point
-	 * could be found.
+	 * and \c s is the angle of that interval, where a score of 0 means the enemy goal cannot be seen.
 	 */
 	std::pair<Point, double> calc_best_shot(const Field& f, const std::vector<Point>& obstacles, const Point& p, const double radius = Robot::MAX_RADIUS);
 
 	/**
-	 * Finds the length of the largest continuous interval (angle-wise) of the
-	 * enemy goal that can be seen from a point. Having a vector of points
-	 * enables one to add imaginary threats.
+	 * Calculates the best possible point to shoot the ball.
+	 * Specifially, finds the length of the largest continuous interval (angle-wise) of the enemy goal that can be seen from a point.
 	 *
 	 * \param[in] w the World in which to search.
 	 *
 	 * \param[in] pl the Player from whose position to look.
 	 *
-	 * \param[in] consider_friendly ?
-	 *
-	 * \param[in] force_shoot ?
+	 * \param[in] consider_friendly treat friendly players as obstacles.
 	 *
 	 * \return a pair \c (p, s) where \c p is the middle of the best interval
-	 * and \c s is the score of that interval, where a score of 0 means no point
-	 * could be found.
+	 * and \c s is the angle of that interval, where a score of 0 means the enemy goal cannot be seen.
 	 */
-	std::pair<Point, double> calc_best_shot(World &w, const Player::Ptr pl, const bool consider_friendly = true, const bool force_shoot = false);
+	std::pair<Point, double> calc_best_shot(const World &w, const Player::Ptr pl, const bool consider_friendly = true);
 
 	/**
 	 * Returns the length of the largest continuous interval (angle-wise) of the
@@ -234,12 +226,11 @@ namespace AIUtil {
 	 *
 	 * \param[in] pl the Player from whose position to look.
 	 *
-	 * \param[in] consider_friendly ?
+	 * \param[in] consider_friendly treat friendly players as obstacles.
 	 *
-	 * \return the length of the interval, or 0 if the point is physically
-	 * inside a considered robot.
+	 * \return the angle of the interval, and 0 if the enemy goal cannot be seen.
 	 */
-	double calc_goal_visibility_angle(World &w, const Player::Ptr pl, const bool consider_friendly = true);
+	double calc_goal_visibility_angle(const World &w, const Player::Ptr pl, const bool consider_friendly = true);
 
 	/**
 	 * Converts \p friendly into a \c vector of \ref Player "Players", excluding

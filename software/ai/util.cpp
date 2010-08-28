@@ -130,25 +130,13 @@ bool AIUtil::can_receive(World &w, const Player::Ptr passee) {
 	return true;
 }
 
-#warning document the radius parameter in ai/util.h
-#warning document the meaning of "score" in the return value (e.g. its range of values)
 std::pair<Point, double> AIUtil::calc_best_shot(const Field& f, const std::vector<Point>& obstacles, const Point& p, const double radius) {
 	const Point p1 = Point(f.length()/2.0,-f.goal_width()/2.0);
 	const Point p2 = Point(f.length()/2.0,f.goal_width()/2.0);
 	return angle_sweep_circles(p, p1, p2, obstacles, radius);
 }
 
-#warning document the meaning of "score" in the return value (e.g. its range of values)
-#warning document the consider_friendly parameter in ai/util.h
-#warning document the force_shoot parameter in ai/util.h
-std::pair<Point, double> AIUtil::calc_best_shot(World &w, const Player::Ptr pl, const bool consider_friendly, const bool force) {
-	if (force){
-		// If we have a force shot, simply return the center of the goal
-		std::pair<Point, double> best_shot;
-		best_shot.first = Point(w.field().length()/2.0, 0.0);
-		best_shot.second = 2*ORI_CLOSE;
-		return best_shot;
-	}
+std::pair<Point, double> AIUtil::calc_best_shot(const World &w, const Player::Ptr pl, const bool consider_friendly) {
 	std::vector<Point> obstacles;
 	const EnemyTeam &enemy(w.enemy);
 	for (size_t i = 0; i < enemy.size(); ++i) {
@@ -163,28 +151,10 @@ std::pair<Point, double> AIUtil::calc_best_shot(World &w, const Player::Ptr pl, 
 		}
 	}
 	std::pair<Point, double> best_shot = calc_best_shot(w.field(), obstacles, pl->position());
-	//if (!force || best_shot.second >= 2*ORI_CLOSE) 
-		return best_shot;		
-
-	/*
-	double radius = Robot::MAX_RADIUS;
-	while(best_shot.second < 2*ORI_CLOSE){
-		radius -= Robot::MAX_RADIUS / 10.0;
-		if (radius < 0) break;
-		best_shot = calc_best_shot(w.field(), obstacles, pl->position(), radius);
-	}
-	if (best_shot.second >= 2*ORI_CLOSE) return best_shot;
-	// enemy robots still break up the goal into too small intervals, just shoot for center of goal
-	best_shot.first = Point(w.field().length()/2.0,0);
-	best_shot.second = std::atan2(w.field().goal_width(),w.field().length())*2.0;
-	*/
 	return best_shot;
 }
 
-#warning document the consider_friendly parameter in ai/util.h
-#warning document what unit the return value is in in ai/util.h
-#warning document in the note about the zero-return case what "the point" refers to (is it the position of "pl"?) in ai/util.h
-double AIUtil::calc_goal_visibility_angle(World &w, const Player::Ptr pl, const bool consider_friendly) {
+double AIUtil::calc_goal_visibility_angle(const World &w, const Player::Ptr pl, const bool consider_friendly) {
 	return calc_best_shot(w, pl, consider_friendly).second;
 }
 
