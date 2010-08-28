@@ -1,5 +1,5 @@
-#ifndef AI_STRATEGY_STRATEGY_H
-#define AI_STRATEGY_STRATEGY_H
+#ifndef AI_HL_STRATEGY_H
+#define AI_HL_STRATEGY_H
 
 #include "ai/world/world.h"
 #include "util/byref.h"

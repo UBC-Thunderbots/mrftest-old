@@ -1,4 +1,4 @@
-#include "ai/strategy/strategy.h"
+#include "ai/hl/strategy.h"
 
 namespace {
 	/**

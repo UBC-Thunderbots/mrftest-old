@@ -38,6 +38,9 @@ software/ai/coach/coach.h -text
 software/ai/coach/random.cpp -text
 software/ai/flags.cpp -text
 software/ai/flags.h -text
+software/ai/hl/stop_strategy.cpp -text
+software/ai/hl/strategy.cpp -text
+software/ai/hl/strategy.h -text
 software/ai/main.cpp -text
 software/ai/navigator/greedy_navigator.cpp -text
 software/ai/navigator/greedy_navigator.h -text
@@ -66,9 +69,6 @@ software/ai/robot_controller/tunable_controller.cpp -text
 software/ai/robot_controller/tunable_controller.h -text
 software/ai/robot_controller/tunable_pid_controller.cpp -text
 software/ai/robot_controller/tunable_pid_controller.h -text
-software/ai/strategy/stop.cpp -text
-software/ai/strategy/strategy.cpp -text
-software/ai/strategy/strategy.h -text
 software/ai/util.cpp -text
 software/ai/util.h -text
 software/ai/window.cpp -text
