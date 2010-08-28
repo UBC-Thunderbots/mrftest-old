@@ -3,7 +3,7 @@
 
 #include "ai/world/player.h"
 #include "ai/world/robot.h"
-#include "util/byref.h"
+#include "util/noncopyable.h"
 #include <cassert>
 #include <cstddef>
 #include <vector>
@@ -14,13 +14,8 @@ class World;
 /**
  * A Team is a collection of robots.
  */
-class Team : public ByRef {
+class Team : public NonCopyable {
 	public:
-		/**
-		 * A pointer to a Team.
-		 */
-		typedef RefPtr<Team> Ptr;
-
 		/**
 		 * Fired when a Robot is added to the team.
 		 */
@@ -76,11 +71,6 @@ class Team : public ByRef {
  */
 class EnemyTeam : public Team {
 	public:
-		/**
-		 * A pointer to a Team.
-		 */
-		typedef RefPtr<EnemyTeam> Ptr;
-
 		std::size_t size() const {
 			return members.size();
 		}
@@ -110,13 +100,6 @@ class EnemyTeam : public Team {
 		std::vector<Robot::Ptr> members;
 
 		/**
-		 * Creates a new EnemyTeam.
-		 *
-		 * \return the new EnemyTeam.
-		 */
-		static Ptr create();
-
-		/**
 		 * Adds a robot to the team.
 		 *
 		 * \param[in] bot the robot to add.
@@ -138,11 +121,6 @@ class EnemyTeam : public Team {
  */
 class FriendlyTeam : public Team {
 	public:
-		/**
-		 * A pointer to a FriendlyTeam.
-		 */
-		typedef RefPtr<FriendlyTeam> Ptr;
-
 		/**
 		 * Fired when a Player is added to the team. Using this signal instead
 		 * of \ref signal_robot_added avoids the need to cast the Robot::Ptr to
@@ -206,13 +184,6 @@ class FriendlyTeam : public Team {
 
 	private:
 		std::vector<Player::Ptr> members;
-
-		/**
-		 * Creates a new FriendlyTeam.
-		 *
-		 * \return the new FriendlyTeam.
-		 */
-		static Ptr create();
 
 		/**
 		 * Adds a player to the team.

@@ -19,11 +19,6 @@ namespace {
 Team::Team() {
 }
 
-EnemyTeam::Ptr EnemyTeam::create() {
-	Ptr p(new EnemyTeam);
-	return p;
-}
-
 void EnemyTeam::add(Robot::Ptr bot) {
 	assert(bot.is());
 	const std::vector<Robot::Ptr>::iterator i = std::lower_bound(members.begin(), members.end(), bot, RobotComparator());
@@ -40,11 +35,6 @@ void EnemyTeam::remove(const unsigned int index) {
 	if (bot->refs() != 1) {
 		LOG_WARN(Glib::ustring::compose("Leak detected of robot<%1,%2>.", bot->yellow ? 'Y' : 'B', bot->pattern_index));
 	}
-}
-
-FriendlyTeam::Ptr FriendlyTeam::create() {
-	Ptr p(new FriendlyTeam);
-	return p;
 }
 
 void FriendlyTeam::add(Player::Ptr bot) {
