@@ -1,8 +1,8 @@
 #ifndef AI_WORLD_PLAYER_H
 #define AI_WORLD_PLAYER_H
 
+#include "ai/robot_controller/robot_controller.h"
 #include "ai/world/robot.h"
-#include "robot_controller/robot_controller.h"
 #include "uicomponents/annunciator.h"
 #include "xbee/client/drive.h"
 #include <ctime>

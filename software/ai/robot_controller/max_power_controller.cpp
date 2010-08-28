@@ -1,4 +1,4 @@
-#include "max_power_controller.h"
+#include "ai/robot_controller/max_power_controller.h"
 #include "geom/point.h"
 #include "geom/angle.h"
 #include <cmath>

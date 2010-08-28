@@ -1,4 +1,4 @@
-#include "lazy_controller.h"
+#include "ai/robot_controller/lazy_controller.h"
 #include "geom/point.h"
 #include "geom/angle.h"
 #include <cmath>

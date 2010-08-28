@@ -1,15 +1,15 @@
-#ifndef ROBOT_CONTROLLER_LINEAR_CONTROLLER_H
-#define ROBOT_CONTROLLER_LINEAR_CONTROLLER_H
+#ifndef AI_ROBOT_CONTROLLER_LAZY_CONTROLLER_H
+#define AI_ROBOT_CONTROLLER_LAZY_CONTROLLER_H
 
 #include <map>
 #include <glibmm.h>
 #include "ai/world/player.h"
-#include "robot_controller/robot_controller.h"
+#include "ai/robot_controller/robot_controller.h"
 #include "geom/point.h"
 #include "util/byref.h"
 #include "util/noncopyable.h"
 
-class LinearController : public RobotController {
+class LazyController : public RobotController {
 	public:
 
 		void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
@@ -18,7 +18,7 @@ class LinearController : public RobotController {
 
 		RobotControllerFactory &get_factory() const;
 
-		LinearController(Player::Ptr plr);
+		LazyController(Player::Ptr plr);
 
 	protected:
 	private:

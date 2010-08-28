@@ -1,6 +1,6 @@
 #include "ai/world/player.h"
-#include "robot_controller/joystick/joystick.h"
-#include "robot_controller/robot_controller.h"
+#include "ai/robot_controller/joystick/joystick.h"
+#include "ai/robot_controller/robot_controller.h"
 #include <gtkmm.h>
 
 namespace {

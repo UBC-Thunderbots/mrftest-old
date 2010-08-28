@@ -1,4 +1,4 @@
-#include "jons_controller.h"
+#include "ai/robot_controller/jons_controller.h"
 #include "geom/point.h"
 #include "geom/angle.h"
 #include "util/timestep.h"

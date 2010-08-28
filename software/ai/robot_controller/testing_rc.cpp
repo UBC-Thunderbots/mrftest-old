@@ -1,6 +1,6 @@
 #include "ai/world/player.h"
 #include "geom/angle.h"
-#include "robot_controller/robot_controller.h"
+#include "ai/robot_controller/robot_controller.h"
 
 namespace {
 	//
