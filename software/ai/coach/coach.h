@@ -15,7 +15,7 @@ namespace AI {
 	class CoachFactory;
 
 	/**
-	 * A Coach is responsible for choosing \ref Strategy "Strategies" to run. The
+	 * A Coach is responsible for choosing \ref HL::Strategy "Strategies" to run. The
 	 * Coach must choose a Strategy to run whenever no Strategy is currently
 	 * assigned (such as at the start of a game and after a Strategy resigns). The
 	 * Coach may also choose to forcefully destroy a Strategy if it determines the
@@ -88,7 +88,7 @@ namespace AI {
 			HL::Strategy::Ptr get_strategy() const;
 
 			/**
-			 * Finds all the \ref Strategy "Strategies" that are suitable for use
+			 * Finds all the \ref HL::Strategy "Strategies" that are suitable for use
 			 * with a particular play type.
 			 *
 			 * \param[in] pt the play type to look for
