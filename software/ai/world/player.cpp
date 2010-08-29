@@ -9,6 +9,8 @@
 
 #include "uicomponents/param.h"
 
+using namespace AI;
+
 namespace {
 	const unsigned int MAX_DRIBBLER_SPEED = 40000;
 	const unsigned int BATTERY_CRITICAL_THRESHOLD = 12000;

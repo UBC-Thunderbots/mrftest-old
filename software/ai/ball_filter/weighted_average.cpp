@@ -1,5 +1,7 @@
 #include "ai/ball_filter/ball_filter.h"
 
+using namespace AI;
+
 namespace {
 	class WeightedAverageFilter : public BallFilter {
 		public:

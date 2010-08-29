@@ -1,5 +1,7 @@
 #include "ai/robot_controller/robot_controller.h"
 
+using namespace AI::RobotController;
+
 void RobotController2::convert_to_wheels(const Point &vel, double avel, int (&wheel_speeds)[4]) {
 	static const double WHEEL_MATRIX[4][3] = {
 		{-42.5995, 27.6645, 4.3175},

@@ -9,21 +9,25 @@
 #include "util/byref.h"
 #include "util/noncopyable.h"
 
-class MaxPowerController : public RobotController {
-	public:
+namespace AI {
+	namespace RobotController {
+		class MaxPowerController : public RobotController {
+			public:
 
-		void move(const Point &new_position, double new_orientation, Point &lienar_velocity, double &angular_velocity);
+				void move(const Point &new_position, double new_orientation, Point &lienar_velocity, double &angular_velocity);
 
-		void clear();
+				void clear();
 
-		RobotControllerFactory &get_factory() const;
+				RobotControllerFactory &get_factory() const;
 
-		MaxPowerController(Player::Ptr plr);
+				MaxPowerController(Player::Ptr plr);
 
-	protected:
-	private:
-		Player::Ptr plr;
-};
+			protected:
+			private:
+				Player::Ptr plr;
+		};
+	}
+}
 
 #endif
 

@@ -10,44 +10,48 @@
 #include "util/noncopyable.h"
 #include "ai/robot_controller/tunable_controller.h"
 
-class FuzzyController : public RobotController, public TunableController {
-	public:
+namespace AI {
+	namespace RobotController {
+		class FuzzyController : public RobotController, public TunableController {
+			public:
 
-		void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
+				void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 
-		void clear();
+				void clear();
 
-		RobotControllerFactory &get_factory() const;
+				RobotControllerFactory &get_factory() const;
 
-		FuzzyController(Player::Ptr player);
-		
-	 	void set_params(const std::vector<double>& params) {
-			this->param = params;
-		}
+				FuzzyController(Player::Ptr player);
 
-		const std::vector<double> get_params() const {
-			return param;
-		}
+				void set_params(const std::vector<double>& params) {
+					this->param = params;
+				}
 
-		const std::vector<double> get_params_default() const;
+				const std::vector<double> get_params() const {
+					return param;
+				}
 
-		const std::vector<double> get_params_min() const {
-			return param_min;
-		}
+				const std::vector<double> get_params_default() const;
 
-		const std::vector<double> get_params_max() const {
-			return param_max;
-		}
+				const std::vector<double> get_params_min() const {
+					return param_min;
+				}
 
-	protected:
-		Player::Ptr robot;
-		
-		static const std::vector<double> param_min;
-		static const std::vector<double> param_max;
-		static const std::vector<double> param_default;
+				const std::vector<double> get_params_max() const {
+					return param_max;
+				}
 
-		std::vector<double> param;
-};
+			protected:
+				Player::Ptr robot;
+
+				static const std::vector<double> param_min;
+				static const std::vector<double> param_max;
+				static const std::vector<double> param_default;
+
+				std::vector<double> param;
+		};
+	}
+}
 
 #endif
 

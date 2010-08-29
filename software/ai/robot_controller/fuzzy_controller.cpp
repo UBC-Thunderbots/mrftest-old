@@ -3,6 +3,8 @@
 #include "geom/angle.h"
 #include <cmath>
 
+using namespace AI::RobotController;
+
 #warning this class needs Doxygen comments in its header
 
 namespace {
@@ -12,7 +14,7 @@ namespace {
 			FuzzyControllerFactory() : RobotControllerFactory("Fuzzy RC") {
 			}
 
-			RobotController::Ptr create_controller(Player::Ptr player, bool, unsigned int) const {
+			RobotController::Ptr create_controller(AI::Player::Ptr player, bool, unsigned int) const {
 				RobotController::Ptr p(new FuzzyController (player));
 				return p;
 			}

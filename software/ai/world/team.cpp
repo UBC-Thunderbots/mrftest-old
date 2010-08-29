@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cassert>
 
+using namespace AI;
+
 namespace {
 	class RobotComparator {
 		public:

@@ -14,8 +14,8 @@
  * - can be used accross different roles/strategies/tactic.
  * - will unify definition (such as ball possesion).
  */
-namespace AIUtil {
-
+namespace AI {
+	namespace Util {
 	/**
 	 * A comparator that sorts by a particular distance.
 	 *
@@ -321,6 +321,7 @@ namespace AIUtil {
 	 * none have the ball.
 	 */
 	int calc_baller(World &w, const std::vector<Player::Ptr>& players);
+}
 }
 
 #endif

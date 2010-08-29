@@ -6,6 +6,8 @@
 #include <cstdlib>
 #include <iomanip>
 
+using namespace AI;
+
 namespace {
 	/**
 	 * A list model that exposes a collection of interesting statistics about
@@ -210,7 +212,7 @@ namespace {
 	}
 }
 
-AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), playtype_override_chooser(), playtype_entry(), ball_filter_chooser(), end_entry(), refbox_colour_entry(), coach_vbox(), coach_chooser(), strategy_hbox(), strategy_label("Strategy:"), strategy_entry(), coach_controls(0), rc_vbox(), rc_chooser(), rc_controls(0), vis_button(), vis_window(), vis(ai.world.visualizer_view()) {
+Window::Window(AI &ai, bool show_vis) : ai(ai), playtype_override_chooser(), playtype_entry(), ball_filter_chooser(), end_entry(), refbox_colour_entry(), coach_vbox(), coach_chooser(), strategy_hbox(), strategy_label("Strategy:"), strategy_entry(), coach_controls(0), rc_vbox(), rc_chooser(), rc_controls(0), vis_button(), vis_window(), vis(ai.world.visualizer_view()) {
 	set_title("AI");
 
 	Gtk::Notebook *notebook = Gtk::manage(new Gtk::Notebook);
@@ -225,7 +227,7 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), playtype_override_chooser(),
 	for (unsigned int i = 0; i < PlayType::COUNT; ++i) {
 		playtype_override_chooser.append_text(PlayType::DESCRIPTIONS_GENERIC[i]);
 	}
-	playtype_override_chooser.signal_changed().connect(sigc::mem_fun(this, &AIWindow::on_playtype_override_changed));
+	playtype_override_chooser.signal_changed().connect(sigc::mem_fun(this, &Window::on_playtype_override_changed));
 	basic_table->attach(playtype_override_chooser, 1, 3, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	basic_table->attach(*Gtk::manage(new Gtk::Label("Play type:")), 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	playtype_entry.set_editable(false);
@@ -241,19 +243,19 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), playtype_override_chooser(),
 	} else {
 		ball_filter_chooser.set_active_text("<None>");
 	}
-	ball_filter_chooser.signal_changed().connect(sigc::mem_fun(this, &AIWindow::on_ball_filter_changed));
+	ball_filter_chooser.signal_changed().connect(sigc::mem_fun(this, &Window::on_ball_filter_changed));
 	basic_table->attach(ball_filter_chooser, 1, 3, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	basic_table->attach(*Gtk::manage(new Gtk::Label("Defending:")), 0, 1, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	end_entry.set_editable(false);
 	basic_table->attach(end_entry, 1, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	Gtk::Button *flip_ends_button = Gtk::manage(new Gtk::Button("X"));
-	flip_ends_button->signal_clicked().connect(sigc::mem_fun(this, &AIWindow::on_flip_ends_clicked));
+	flip_ends_button->signal_clicked().connect(sigc::mem_fun(this, &Window::on_flip_ends_clicked));
 	basic_table->attach(*flip_ends_button, 2, 3, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	basic_table->attach(*Gtk::manage(new Gtk::Label("Refbox Colour:")), 0, 1, 4, 5, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	refbox_colour_entry.set_editable(false);
 	basic_table->attach(refbox_colour_entry, 1, 2, 4, 5, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	Gtk::Button *flip_refbox_colour_button = Gtk::manage(new Gtk::Button("X"));
-	flip_refbox_colour_button->signal_clicked().connect(sigc::mem_fun(this, &AIWindow::on_flip_refbox_colour_clicked));
+	flip_refbox_colour_button->signal_clicked().connect(sigc::mem_fun(this, &Window::on_flip_refbox_colour_clicked));
 	basic_table->attach(*flip_refbox_colour_button, 2, 3, 4, 5, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	basic_frame->add(*basic_table);
 	vbox->pack_start(*basic_frame, Gtk::PACK_SHRINK);
@@ -294,11 +296,11 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), playtype_override_chooser(),
 	} else {
 		coach_chooser.set_active_text("<Select Coach>");
 	}
-	coach_chooser.signal_changed().connect(sigc::mem_fun(this, &AIWindow::on_coach_changed));
+	coach_chooser.signal_changed().connect(sigc::mem_fun(this, &Window::on_coach_changed));
 	coach_vbox.pack_start(coach_chooser, Gtk::PACK_SHRINK);
 	strategy_hbox.pack_start(strategy_label, Gtk::PACK_SHRINK);
 	if (coach.is()) {
-		coach->signal_strategy_changed.connect(sigc::mem_fun(this, &AIWindow::on_strategy_changed));
+		coach->signal_strategy_changed.connect(sigc::mem_fun(this, &Window::on_strategy_changed));
 	}
 	strategy_entry.set_text("<None>");
 	strategy_entry.set_editable(false);
@@ -310,23 +312,23 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), playtype_override_chooser(),
 
 	Gtk::Frame *rc_frame = Gtk::manage(new Gtk::Frame("Robot Controller"));
 	rc_chooser.append_text("<Select RC>");
-	for (RobotControllerFactory::map_type::const_iterator i = RobotControllerFactory::all().begin(), iend = RobotControllerFactory::all().end(); i != iend; ++i) {
+	for (RobotController::RobotControllerFactory::map_type::const_iterator i = RobotController::RobotControllerFactory::all().begin(), iend = RobotController::RobotControllerFactory::all().end(); i != iend; ++i) {
 		rc_chooser.append_text(i->second->name);
 	}
-	RobotControllerFactory *robot_controller = ai.get_robot_controller_factory();
+	RobotController::RobotControllerFactory *robot_controller = ai.get_robot_controller_factory();
 	if (robot_controller) {
 		rc_chooser.set_active_text(robot_controller->name);
 	} else {
 		rc_chooser.set_active_text("<Select RC>");
 	}
-	rc_chooser.signal_changed().connect(sigc::mem_fun(this, &AIWindow::on_rc_changed));
+	rc_chooser.signal_changed().connect(sigc::mem_fun(this, &Window::on_rc_changed));
 	rc_vbox.pack_start(rc_chooser, Gtk::PACK_SHRINK);
 	rc_frame->add(rc_vbox);
 	vbox->pack_start(*rc_frame, Gtk::PACK_SHRINK);
 
 	vis_button.set_label("Visualizer");
 	vis_button.set_active(show_vis);
-	vis_button.signal_toggled().connect(sigc::mem_fun(this, &AIWindow::on_vis_toggled));
+	vis_button.signal_toggled().connect(sigc::mem_fun(this, &Window::on_vis_toggled));
 	vbox->pack_start(vis_button, Gtk::PACK_SHRINK);
 
 	vbox->pack_start(*Gtk::manage(new Annunciator), Gtk::PACK_EXPAND_WIDGET);
@@ -337,9 +339,9 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), playtype_override_chooser(),
 
 	add(*notebook);
 
-	ai.world.signal_playtype_changed.connect(sigc::mem_fun(this, &AIWindow::on_playtype_changed));
-	ai.world.signal_flipped_ends.connect(sigc::mem_fun(this, &AIWindow::on_flipped_ends));
-	ai.world.signal_flipped_refbox_colour.connect(sigc::mem_fun(this, &AIWindow::on_flipped_refbox_colour));
+	ai.world.signal_playtype_changed.connect(sigc::mem_fun(this, &Window::on_playtype_changed));
+	ai.world.signal_flipped_ends.connect(sigc::mem_fun(this, &Window::on_flipped_ends));
+	ai.world.signal_flipped_refbox_colour.connect(sigc::mem_fun(this, &Window::on_flipped_refbox_colour));
 	on_playtype_changed();
 	on_flipped_ends();
 	on_flipped_refbox_colour();
@@ -354,7 +356,7 @@ AIWindow::AIWindow(AI &ai, bool show_vis) : ai(ai), playtype_override_chooser(),
 	}
 }
 
-void AIWindow::on_playtype_override_changed() {
+void Window::on_playtype_override_changed() {
 	const Glib::ustring &selected(playtype_override_chooser.get_active_text());
 	for (unsigned int i = 0; i < PlayType::COUNT; ++i) {
 		if (selected == PlayType::DESCRIPTIONS_GENERIC[i]) {
@@ -365,7 +367,7 @@ void AIWindow::on_playtype_override_changed() {
 	ai.world.clear_playtype_override();
 }
 
-void AIWindow::on_ball_filter_changed() {
+void Window::on_ball_filter_changed() {
 	const Glib::ustring &name(ball_filter_chooser.get_active_text());
 	BallFilter::map_type::const_iterator i = BallFilter::all().find(name.collate_key());
 	if (i != BallFilter::all().end()) {
@@ -375,38 +377,38 @@ void AIWindow::on_ball_filter_changed() {
 	}
 }
 
-void AIWindow::on_flip_ends_clicked() {
+void Window::on_flip_ends_clicked() {
 	ai.world.flip_ends();
 }
 
-void AIWindow::on_flip_refbox_colour_clicked() {
+void Window::on_flip_refbox_colour_clicked() {
 	ai.world.flip_refbox_colour();
 }
 
-void AIWindow::on_coach_changed() {
+void Window::on_coach_changed() {
 	const Glib::ustring &name(coach_chooser.get_active_text());
 	CoachFactory::map_type::const_iterator i = CoachFactory::all().find(name.collate_key());
 	if (i != CoachFactory::all().end()) {
 		const Coach::Ptr c(i->second->create_coach(ai.world));
 		ai.set_coach(c);
-		c->signal_strategy_changed.connect(sigc::mem_fun(this, &AIWindow::on_strategy_changed));
+		c->signal_strategy_changed.connect(sigc::mem_fun(this, &Window::on_strategy_changed));
 	} else {
 		ai.set_coach(Coach::Ptr());
 	}
 	put_coach_controls();
 }
 
-void AIWindow::on_rc_changed() {
+void Window::on_rc_changed() {
 	const Glib::ustring &name(rc_chooser.get_active_text());
-	RobotControllerFactory::map_type::const_iterator i = RobotControllerFactory::all().find(name.collate_key());
-	if (i != RobotControllerFactory::all().end()) {
+	RobotController::RobotControllerFactory::map_type::const_iterator i = RobotController::RobotControllerFactory::all().find(name.collate_key());
+	if (i != RobotController::RobotControllerFactory::all().end()) {
 		ai.set_robot_controller_factory(i->second);
 	} else {
 		ai.set_robot_controller_factory(0);
 	}
 }
 
-void AIWindow::put_coach_controls() {
+void Window::put_coach_controls() {
 	if (coach_controls) {
 		coach_vbox.remove(*coach_controls);
 		coach_controls = 0;
@@ -426,11 +428,11 @@ void AIWindow::put_coach_controls() {
 	coach_controls->show_all();
 }
 
-void AIWindow::on_playtype_changed() {
+void Window::on_playtype_changed() {
 	playtype_entry.set_text(PlayType::DESCRIPTIONS_GENERIC[ai.world.playtype()]);
 }
 
-void AIWindow::on_vis_toggled() {
+void Window::on_vis_toggled() {
 	if (vis_button.get_active()) {
 		vis_window.show_all();
 	} else {
@@ -438,15 +440,15 @@ void AIWindow::on_vis_toggled() {
 	}
 }
 
-void AIWindow::on_flipped_ends() {
+void Window::on_flipped_ends() {
 	end_entry.set_text(ai.world.east() ? "East" : "West");
 }
 
-void AIWindow::on_flipped_refbox_colour() {
+void Window::on_flipped_refbox_colour() {
 	refbox_colour_entry.set_text(ai.world.refbox_yellow() ? "Yellow" : "Blue");
 }
 
-void AIWindow::on_strategy_changed(Strategy::Ptr strat) {
+void Window::on_strategy_changed(HL::Strategy::Ptr strat) {
 	strategy_entry.set_text(strat.is() ? strat->get_factory().name : "<None>");
 }
 

@@ -11,6 +11,8 @@
 #include <stdexcept>
 #include <stdint.h>
 
+using namespace AI;
+
 namespace {
 	/**
 	 * The number of metres the ball must move from a kickoff or similar

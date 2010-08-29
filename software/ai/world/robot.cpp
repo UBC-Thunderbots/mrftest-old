@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <cmath>
 
+using namespace AI;
+
 const double Robot::MAX_RADIUS = 0.09;
 
 Robot::Robot(bool yellow, unsigned int pattern_index) : yellow(yellow), pattern_index(pattern_index), sign(1.0), vision_failures(0), seen_this_frame(false) {

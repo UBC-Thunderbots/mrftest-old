@@ -1,5 +1,8 @@
 #include "ai/hl/strategy.h"
 
+using namespace AI;
+using namespace HL;
+
 namespace {
 	/**
 	 * Manages the robots during a stoppage in place (that is, when the game is

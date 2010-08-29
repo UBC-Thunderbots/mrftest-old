@@ -8,6 +8,9 @@
 #include <iostream>
 #include <cstdlib>
 
+using namespace AI;
+using namespace Navigator;
+
 namespace {
 
 #warning magic constants
@@ -191,7 +194,7 @@ Point TeamGreedyNavigator::get_inbounds_point(Point dst){
 	}
 
 	if (flags & AIFlags::STAY_OWN_HALF) {
-		wantdest.x =  std::min(wantdest.x, -(Robot::MAX_RADIUS + AIUtil::POS_CLOSE));
+		wantdest.x =  std::min(wantdest.x, -(Robot::MAX_RADIUS + ::AI::Util::POS_CLOSE));
 	}
 
 	if (flags & AIFlags::AVOID_BALL_STOP) {
@@ -213,11 +216,11 @@ Point TeamGreedyNavigator::get_inbounds_point(Point dst){
 	}
 
 	if (flags & AIFlags::PENALTY_KICK_FRIENDLY) {
-		wantdest.x =  std::min(wantdest.x, the_field.penalty_enemy().x - 0.400 - (Robot::MAX_RADIUS + AIUtil::POS_CLOSE));
+		wantdest.x =  std::min(wantdest.x, the_field.penalty_enemy().x - 0.400 - (Robot::MAX_RADIUS + ::AI::Util::POS_CLOSE));
 	}
 
 	if (flags & AIFlags::PENALTY_KICK_ENEMY) {
-		wantdest.x =  std::max(wantdest.x, the_field.penalty_friendly().x + 0.400 + (Robot::MAX_RADIUS + AIUtil::POS_CLOSE));
+		wantdest.x =  std::max(wantdest.x, the_field.penalty_friendly().x + 0.400 + (Robot::MAX_RADIUS + ::AI::Util::POS_CLOSE));
 	}
 
 	//make sure that we do not ram into the net posts
@@ -260,7 +263,7 @@ void TeamGreedyNavigator::tick(Player::Ptr play) {
 	if (flags & AIFlags::AVOID_BALL_STOP) {
 		wantdribble = false;
 	} else {
-		wantdribble = need_dribble || AIUtil::has_ball(the_world, the_player);
+		wantdribble = need_dribble || ::AI::Util::has_ball(the_world, the_player);
 	}
 
 	// dribble when it needs to
@@ -277,7 +280,7 @@ void TeamGreedyNavigator::tick(Player::Ptr play) {
 
 
 	// at least face the ball
-	if (distance < AIUtil::POS_EPS) {
+	if (distance < ::AI::Util::POS_EPS) {
 		the_player->move(the_player->position(), wantori);
 		flags = 0;
 		return;
@@ -343,7 +346,7 @@ void TeamGreedyNavigator::tick(Player::Ptr play) {
 
 	const Point selected_direction = (chooseleft) ? leftdirection : rightdirection;
 
-	//if (angle < AIUtil::ORI_CLOSE) {
+	//if (angle < ::AI::Util::ORI_CLOSE) {
 	if (angle == 0) {
 		the_player->move(wantdest, wantori);
 	} else {
@@ -365,7 +368,7 @@ unsigned int TeamGreedyNavigator::check_obstacles(const Point& start, const Poin
 	const Point startdest = dest - start;
 	const double lookahead = std::min<double>(startdest.len(), LOOKAHEAD_MAX);
 
-	if (abs(direction.len() - 1.0) > AIUtil::POS_EPS) {
+	if (abs(direction.len() - 1.0) > ::AI::Util::POS_EPS) {
 		std::cerr << " Direction not normalized! " << direction.len() << std::endl;
 		return ERROR;
 	}
@@ -405,7 +408,7 @@ bool TeamGreedyNavigator::check_ball(const Point& start, const Point& dest, cons
 	const Point startdest = dest - start;
 	const double lookahead = std::min<double>(startdest.len(), LOOKAHEAD_MAX);
 
-	if (abs(direction.len() - 1.0) > AIUtil::POS_EPS) {
+	if (abs(direction.len() - 1.0) > ::AI::Util::POS_EPS) {
 		std::cerr << " Direction not normalized! " << direction.len() << std::endl;
 		return false;
 	}

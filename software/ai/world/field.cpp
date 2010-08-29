@@ -1,5 +1,7 @@
 #include "ai/world/field.h"
 
+using namespace AI;
+
 Field::Field() : valid_(false), length_(0), total_length_(0), width_(0), total_width_(0), goal_width_(0), centre_circle_radius_(0), defense_area_radius_(0), defense_area_stretch_(0) {
 }
 

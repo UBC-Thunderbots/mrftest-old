@@ -1,6 +1,8 @@
 #include "ai/hl/strategy.h"
 #include <stdexcept>
 
+using namespace AI::HL;
+
 void Strategy::halt() {
 }
 

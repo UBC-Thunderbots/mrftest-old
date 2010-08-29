@@ -2,6 +2,8 @@
 #include "geom/angle.h"
 #include "ai/robot_controller/robot_controller.h"
 
+using namespace AI::RobotController;
+
 namespace {
 	//
 	// The robot controller.
@@ -11,7 +13,7 @@ namespace {
 			//
 			// Constructs a new controller.
 			//
-			TestingRC(Player::Ptr plr);
+			TestingRC(AI::Player::Ptr plr);
 
 			//
 			// Constructs a new controller.
@@ -37,7 +39,7 @@ namespace {
 			RobotControllerFactory &get_factory() const;
 
 		private:
-			Player::Ptr plr;
+			AI::Player::Ptr plr;
 
 			double get_velocity(double d, double v0, double v1, double max_vel, double max_accel);
 
@@ -55,7 +57,7 @@ namespace {
 			double max_linear_velocity_accel;
 	};
 
-	TestingRC::TestingRC(Player::Ptr plr) : plr(plr), initialized(false) {
+	TestingRC::TestingRC(AI::Player::Ptr plr) : plr(plr), initialized(false) {
 	}
 
 	double TestingRC::get_velocity(double s, double v0, double v1, double max_vel, double max_accel) {
@@ -133,7 +135,7 @@ namespace {
 			TestingRCFactory() : RobotControllerFactory("Testing RC") {
 			}
 
-			RobotController::Ptr create_controller(Player::Ptr plr, bool, unsigned int) const {
+			RobotController::Ptr create_controller(AI::Player::Ptr plr, bool, unsigned int) const {
 				RobotController::Ptr p(new TestingRC(plr));
 				return p;
 			}

@@ -6,6 +6,8 @@
 #include <iostream>
 #include <fstream>
 
+using namespace AI::RobotController;
+
 #define LINEAR_XY
 
 #warning this class needs Doxygen comments in its header
@@ -30,7 +32,7 @@ namespace {
 			TunablePIDControllerFactory() : RobotControllerFactory("Tunable PID") {
 			}
 
-			RobotController::Ptr create_controller(Player::Ptr plr, bool, unsigned int) const {
+			RobotController::Ptr create_controller(AI::Player::Ptr plr, bool, unsigned int) const {
 				RobotController::Ptr p(new TunablePIDController(plr));
 				return p;
 			}

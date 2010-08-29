@@ -1,5 +1,7 @@
 #include "ai/world/ball.h"
 
+using namespace AI;
+
 const double Ball::RADIUS = 0.0215;
 
 Ball::Ptr Ball::create() {

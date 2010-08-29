@@ -17,6 +17,8 @@
 #include <fstream>
 #include <cassert>
 
+using namespace AI::RobotController;
+
 namespace {
 
 	BoolParam ADHOC_SLOW_ANGULAR("AdHoc2: Slow if translating", true);
@@ -38,9 +40,9 @@ namespace {
 			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 			void clear();
 			RobotControllerFactory &get_factory() const;
-			AdHoc2Controller(Player::Ptr plr);
+			AdHoc2Controller(AI::Player::Ptr plr);
 		protected:
-			Player::Ptr plr;
+			AI::Player::Ptr plr;
 			bool initialized;
 			// errors in x, y, d
 			Point prev_new_pos;
@@ -49,7 +51,7 @@ namespace {
 			double prev_angular_velocity;
 	};
 
-	AdHoc2Controller::AdHoc2Controller(Player::Ptr plr) : plr(plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
+	AdHoc2Controller::AdHoc2Controller(AI::Player::Ptr plr) : plr(plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
 	}
 
 	void AdHoc2Controller::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
@@ -134,7 +136,7 @@ namespace {
 			AdHoc2ControllerFactory() : RobotControllerFactory("adhoc2") {
 			}
 
-			RobotController::Ptr create_controller(Player::Ptr plr, bool, unsigned int) const {
+			RobotController::Ptr create_controller(AI::Player::Ptr plr, bool, unsigned int) const {
 				RobotController::Ptr p(new AdHoc2Controller(plr));
 				return p;
 			}

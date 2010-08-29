@@ -6,6 +6,8 @@
 #include <utility>
 #include <vector>
 
+using namespace AI;
+
 namespace {
 	class Circle {
 		public:

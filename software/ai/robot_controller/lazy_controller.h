@@ -9,21 +9,25 @@
 #include "util/byref.h"
 #include "util/noncopyable.h"
 
-class LazyController : public RobotController {
-	public:
+namespace AI {
+	namespace RobotController {
+		class LazyController : public RobotController {
+			public:
 
-		void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
+				void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 
-		void clear();
+				void clear();
 
-		RobotControllerFactory &get_factory() const;
+				RobotControllerFactory &get_factory() const;
 
-		LazyController(Player::Ptr plr);
+				LazyController(Player::Ptr plr);
 
-	protected:
-	private:
-		Player::Ptr plr;
-};
+			protected:
+			private:
+				Player::Ptr plr;
+		};
+	}
+}
 
 #endif
 

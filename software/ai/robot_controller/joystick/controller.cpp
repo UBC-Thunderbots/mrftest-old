@@ -3,6 +3,8 @@
 #include "ai/robot_controller/robot_controller.h"
 #include <gtkmm.h>
 
+using namespace AI::RobotController;
+
 namespace {
 	const double MAX_LINEAR_VELOCITY = 3.0;
 	const double MAX_ANGULAR_VELOCITY = 5.0 * M_PI;
@@ -19,7 +21,7 @@ namespace {
 			JoystickControllerFactory() : RobotControllerFactory("Joystick") {
 			}
 
-			RobotController::Ptr create_controller(Player::Ptr plr, bool yellow, unsigned int index) const;
+			RobotController::Ptr create_controller(AI::Player::Ptr plr, bool yellow, unsigned int index) const;
 	};
 
 	JoystickControllerFactory factory;
@@ -93,7 +95,7 @@ namespace {
 	class JoystickController : public RobotController, public Gtk::VBox {
 		public:
 #warning figure out a better UI so we can avoid passing colour and index into a robot controller
-			JoystickController(Player::Ptr plr, bool yellow, unsigned int index);
+			JoystickController(AI::Player::Ptr plr, bool yellow, unsigned int index);
 
 			~JoystickController();
 
@@ -107,7 +109,7 @@ namespace {
 			}
 
 		private:
-			Player::Ptr plr;
+			AI::Player::Ptr plr;
 			Joystick::Ptr stick;
 			Gtk::ComboBoxText joybox;
 			JoystickDisplayRectangle disp;
@@ -127,7 +129,7 @@ namespace {
 			}
 	};
 
-	RobotController::Ptr JoystickControllerFactory::create_controller(Player::Ptr plr, bool yellow, unsigned int index) const {
+	RobotController::Ptr JoystickControllerFactory::create_controller(AI::Player::Ptr plr, bool yellow, unsigned int index) const {
 		RobotController::Ptr p(new JoystickController(plr, yellow, index));
 		return p;
 	}
@@ -173,7 +175,7 @@ namespace {
 		return ui;
 	}
 
-	JoystickController::JoystickController(Player::Ptr plr, bool yellow, unsigned int index) : plr(plr), prev_chick(false) {
+	JoystickController::JoystickController(AI::Player::Ptr plr, bool yellow, unsigned int index) : plr(plr), prev_chick(false) {
 		joybox.append_text("<Choose Joystick>");
 		const std::vector<std::pair<Glib::ustring, Glib::ustring> > &sticks = Joystick::list();
 		for (unsigned int i = 0; i < sticks.size(); i++)

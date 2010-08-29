@@ -1,6 +1,8 @@
 #include "ai/ball_filter/ball_filter.h"
 #include <algorithm>
 
+using namespace AI;
+
 namespace {
 	class MaxConfidenceFilter : public BallFilter {
 		public:

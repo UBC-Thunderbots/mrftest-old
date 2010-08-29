@@ -239,14 +239,14 @@ namespace {
 
 		Param::initialized(&conf);
 
-		World world(conf, xbee_bots);
+		AI::World world(conf, xbee_bots);
 		if (refbox_yellow) {
 			world.flip_refbox_colour();
 		}
 
 		if (!ball_filter_name.empty()) {
-			BallFilter::map_type::const_iterator i = BallFilter::all().find(ball_filter_name.collate_key());
-			if (i == BallFilter::all().end()) {
+			AI::BallFilter::map_type::const_iterator i = AI::BallFilter::all().find(ball_filter_name.collate_key());
+			if (i == AI::BallFilter::all().end()) {
 				std::cout << "There is no ball filter '" << ball_filter_name << "'.\n";
 				return 1;
 			}
@@ -255,11 +255,11 @@ namespace {
 
 		TimerFDClockSource clk(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND);
 
-		AI ai(world, clk);
+		AI::AI ai(world, clk);
 
 		if (!coach_name.empty()) {
-			CoachFactory::map_type::const_iterator i = CoachFactory::all().find(coach_name.collate_key());
-			if (i == CoachFactory::all().end()) {
+			AI::CoachFactory::map_type::const_iterator i = AI::CoachFactory::all().find(coach_name.collate_key());
+			if (i == AI::CoachFactory::all().end()) {
 				std::cout << "There is no coach '" << coach_name << "'.\n";
 				return 1;
 			}
@@ -267,15 +267,15 @@ namespace {
 		}
 
 		if (!robot_controller_name.empty()) {
-			RobotControllerFactory::map_type::const_iterator i = RobotControllerFactory::all().find(robot_controller_name.collate_key());
-			if (i == RobotControllerFactory::all().end()) {
+			AI::RobotController::RobotControllerFactory::map_type::const_iterator i = AI::RobotController::RobotControllerFactory::all().find(robot_controller_name.collate_key());
+			if (i == AI::RobotController::RobotControllerFactory::all().end()) {
 				std::cout << "There is no robot controller '" << robot_controller_name << "'.\n";
 				return 1;
 			}
 			ai.set_robot_controller_factory(i->second);
 		}
 
-		AIWindow win(ai, visualizer);
+		AI::Window win(ai, visualizer);
 
 		if (minimize) {
 			win.iconify();

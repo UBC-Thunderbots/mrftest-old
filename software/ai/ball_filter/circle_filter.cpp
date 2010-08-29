@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+using namespace AI;
 using namespace std;
 
 namespace {
@@ -55,7 +56,7 @@ namespace {
 						Point orient(1,0);
 						has_ball_point = player->position() + (Ball::RADIUS + Robot::MAX_RADIUS) * orient.rotate(player->orientation());
 
-						if (player->sense_ball_time() < AIUtil::HAS_BALL_TIME) {
+						if (player->sense_ball_time() < Util::HAS_BALL_TIME) {
 							continue;
 						}
 
