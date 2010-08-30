@@ -6,17 +6,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 
-namespace {
-	std::string logfilename() {
-		return Glib::filename_from_utf8(Glib::ustring::compose("/tmp/thunderbots-%1.log", getpid()));
-	}
-
-	std::ofstream &logfile() {
-		static std::ofstream ofs(logfilename(), std::ios_base::out | std::ios_base::app);
-		return ofs;
-	}
-}
-
 void log_impl(const char *file, unsigned int line, const Glib::ustring &msg, unsigned int level) {
 	std::time_t stamp;
 	std::time(&stamp);
@@ -44,7 +33,6 @@ void log_impl(const char *file, unsigned int line, const Glib::ustring &msg, uns
 			level_name = "UNKNOWN LEVEL";
 			break;
 	}
-	logfile() << level_name << " [" << buffer << "] [" << file << ':' << line << "] " << msg << '\n';
 	if (level >= LOG_LEVEL_INFO) {
 		std::cout << level_name << " [" << buffer << "] [" << file << ':' << line << "] " << msg << '\n';
 	}

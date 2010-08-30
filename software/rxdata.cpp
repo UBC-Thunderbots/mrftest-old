@@ -18,7 +18,7 @@
 namespace {
 	class StateMachine : public NonCopyable, public sigc::trackable {
 		public:
-			StateMachine(Glib::RefPtr<Glib::MainLoop> loop, const XBeeRawBot::Ptr bot) : loop(loop), bot(bot) {
+			StateMachine(Glib::RefPtr<Glib::MainLoop> loop, const XBeeRawBot::Ptr bot, const std::string &file) : loop(loop), bot(bot), file(file) {
 				conn = bot->signal_alive.connect(sigc::mem_fun(this, &StateMachine::on_alive));
 				bot->signal_claim_failed.connect(sigc::mem_fun(this, &StateMachine::on_claim_failed));
 				std::memset(seen_indices, 0, sizeof(seen_indices));
@@ -27,6 +27,7 @@ namespace {
 		private:
 			const Glib::RefPtr<Glib::MainLoop> loop;
 			const XBeeRawBot::Ptr bot;
+			const std::string file;
 			sigc::connection conn;
 			bool seen_indices[128];
 			int16_t data[128][32];
@@ -135,7 +136,7 @@ namespace {
 				}
 				std::cout << '\n';
 				if (seen_all) {
-					std::ofstream ofs("/tmp/data.txt");
+					std::ofstream ofs(file);
 					for (unsigned int i = 0; i < 128; ++i) {
 						for (unsigned int j = 0; j < 8; ++j) {
 							for (unsigned int k = 0; k < 4; ++k) {
@@ -147,7 +148,7 @@ namespace {
 							ofs << '\n';
 						}
 					}
-					std::cout << "Data dumped to /tmp/data.txt.\n";
+					std::cout << "Data dumped to " << file << ".\n";
 					loop->quit();
 				}
 			}
@@ -168,10 +169,23 @@ namespace {
 		Glib::ustring robot;
 		option_group.add_entry(robot_entry, robot);
 
+		Glib::OptionEntry file_entry;
+		file_entry.set_long_name("file");
+		file_entry.set_short_name('f');
+		file_entry.set_description("Indicates the file into which data should be stored");
+		file_entry.set_arg_description("FILE");
+		std::string file;
+		option_group.add_entry_filename(file_entry, file);
+
 		option_context.set_main_group(option_group);
 
 		if (!option_context.parse(argc, argv) || robot.empty() || argc != 1) {
 			std::cerr << option_context.get_help();
+			return 1;
+		}
+
+		if (file.empty()) {
+			std::cerr << "Filename is required!\n";
 			return 1;
 		}
 
@@ -185,7 +199,7 @@ namespace {
 		XBeeLowLevel modem;
 
 		const XBeeRawBot::Ptr bot(XBeeRawBot::create(botinfo.address, modem));
-		StateMachine sm(loop, bot);
+		StateMachine sm(loop, bot, file);
 		loop->run();
 
 		return 0;
