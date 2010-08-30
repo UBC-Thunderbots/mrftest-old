@@ -258,7 +258,7 @@ namespace AI {
 		bool has_ball(World &w, const Player::Ptr pl);
 
 		/**
-		 * Checks if a FRIENDLY PLAYER posses the ball.
+		 * Checks if a FRIENDLY PLAYER possesses the ball.
 		 * Possession is defined as either having the ball or, if enabled in the parameters table, also the ball being close to the player.
 		 *
 		 * \param[in] w the World in which to check.
@@ -270,12 +270,12 @@ namespace AI {
 		bool posses_ball(World &w, const Player::Ptr p);
 
 		/**
-		 * Checks if an ENEMY ROBOT posses the ball.
+		 * Checks if an ENEMY ROBOT possesses the ball.
 		 */
 		// bool posses_ball(World &w, const Robot::Ptr r);
 
 		/**
-		 * Checks if the enemy team posses the ball.
+		 * Checks if the enemy team possesses the ball.
 		 */
 		// bool enemy_posses_ball(World &w);
 
