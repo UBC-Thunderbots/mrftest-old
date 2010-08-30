@@ -1,12 +1,12 @@
 #include "fw/claim.h"
 #include "fw/emergency_erase.h"
 #include "fw/fpga.h"
+#include "fw/ihex.h"
 #include "fw/pic.h"
 #include "fw/watchable_pair.h"
 #include "fw/window.h"
 #include "uicomponents/single_bot_combobox.h"
 #include "util/config.h"
-#include "util/ihex.h"
 #include "xbee/client/raw.h"
 #include <gtkmm.h>
 #include <iomanip>

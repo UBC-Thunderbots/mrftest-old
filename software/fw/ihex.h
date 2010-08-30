@@ -1,5 +1,5 @@
-#ifndef UTIL_IHEX_H
-#define UTIL_IHEX_H
+#ifndef FW_IHEX_H
+#define FW_IHEX_H
 
 #include <vector>
 #include <glibmm.h>

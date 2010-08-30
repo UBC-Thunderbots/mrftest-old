@@ -103,6 +103,8 @@ software/fw/emergency_erase.cpp -text
 software/fw/emergency_erase.h -text
 software/fw/fpga.cpp -text
 software/fw/fpga.h -text
+software/fw/ihex.cpp -text
+software/fw/ihex.h -text
 software/fw/main.cpp -text
 software/fw/pic.cpp -text
 software/fw/pic.h -text
@@ -230,8 +232,6 @@ software/util/fd.cpp -text
 software/util/fd.h -text
 software/util/hungarian.cpp -text
 software/util/hungarian.h -text
-software/util/ihex.cpp -text
-software/util/ihex.h -text
 software/util/matrix.h -text
 software/util/misc.cpp -text
 software/util/misc.h -text

@@ -2,8 +2,8 @@
 #define FIRMWARE_PIC_H
 
 #include "fw/bootproto.h"
+#include "fw/ihex.h"
 #include "fw/watchable_operation.h"
-#include "util/ihex.h"
 #include "xbee/client/raw.h"
 
 /**
