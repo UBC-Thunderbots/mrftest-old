@@ -87,48 +87,5 @@ namespace {
 	}
 }
 
-/**
- * A timer that fires a certain length of time after it is started.
- */
-class Timeout : public sigc::trackable {
-	public:
-		/**
-		 * Constructs a new Timeout.
-		 *
-		 * \param[in] period the period of the Timeout in milliseconds.
-		 */
-		Timeout(unsigned int period);
-
-		/**
-		 * Destroys the Timeout.
-		 */
-		~Timeout();
-
-		/**
-		 * Starts the Timeout.
-		 * After the period, the signal will fire.
-		 * If the Timeout is already running, this function does nothing.
-		 */
-		void start();
-
-		/**
-		 * Stops the Timeout.
-		 * The signal will not fire until after another call to start().
-		 */
-		void stop();
-
-		/**
-		 * Fired when the Timeout expires.
-		 * The Timeout stops when it expires.
-		 */
-		mutable sigc::signal<void> signal_expired;
-
-	private:
-		const unsigned int period;
-		sigc::connection conn;
-
-		bool on_tick();
-};
-
 #endif
 

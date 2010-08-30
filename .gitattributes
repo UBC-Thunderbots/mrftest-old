@@ -215,8 +215,6 @@ software/uicomponents/visualizer.h -text
 software/util/algorithm.h -text
 software/util/byref.h -text
 software/util/clocksource.h -text
-software/util/clocksource_quick.cpp -text
-software/util/clocksource_quick.h -text
 software/util/clocksource_timerfd.cpp -text
 software/util/clocksource_timerfd.h -text
 software/util/codec.h -text
@@ -249,7 +247,6 @@ software/util/sockaddrs.cpp -text
 software/util/sockaddrs.h -text
 software/util/stochastic_local_search.cpp -text
 software/util/stochastic_local_search.h -text
-software/util/time.cpp -text
 software/util/time.h -text
 software/util/timestep.h -text
 software/util/umask.cpp -text
