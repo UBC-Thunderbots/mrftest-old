@@ -6,23 +6,38 @@ namespace {
 }
 
 double angle_mod(double a) {
-	/*
-	a -= 2 * M_PI * rint(a / (PI2));
-	if (a < M_PI) a += PI2;
-	if (a > M_PI) a -= PI2;
-	return a;
-	*/
-	a = fmod(a, PI2); // [-2pi, 2pi]
-	if (a < 0) a += PI2; // [0, 2pi]
-	if (a > M_PI) a -= PI2; // [-pi, pi]
+	// Bring the angle to [−2π, 2π].
+	a = std::fmod(a, PI2);
+	// Bring the angle to [0, 2π].
+	if (a < 0) {
+		a += PI2;
+	}
+	// Bring the angle to [−π, π].
+	if (a > M_PI) {
+		a -= PI2;
+	}
 	return a;
 }
 
-double angle_diff(const double& a, const double& b) {
-	// return fabs(angle_mod(a - b));
-	double diff = fmod(b - a, PI2); // [-2pi, 2pi]
-	if (diff < 0) diff += PI2; // [0, 2pi]
-	if (diff > M_PI) diff = PI2 - diff; // [0, pi]
+double angle_diff(double a, double b) {
+	// Bring the angle to [−2π, 2π].
+	double diff = std::fmod(b - a, PI2);
+	// Bring the angle to [0, 2π].
+	if (diff < 0) {
+		diff += PI2;
+	}
+	// Bring the angle to [0, π].
+	if (diff > M_PI) {
+		diff = PI2 - diff;
+	}
 	return diff;
+}
+
+double degrees2radians(double x) {
+	return x * M_PI / 180.0;
+}
+
+double radians2degrees(double x) {
+	return x * 180.0 / M_PI;
 }
 

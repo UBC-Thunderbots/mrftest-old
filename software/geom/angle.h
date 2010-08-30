@@ -23,7 +23,7 @@ double angle_mod(double angle) __attribute__((const));
  *
  * \return the angle between \p a and \p b, in the range [0, π].
  */
-double angle_diff(const double& a, const double& b);
+double angle_diff(double a, double b) __attribute__((const));
 
 /**
  * Converts an angle in degrees into radians.
@@ -32,9 +32,7 @@ double angle_diff(const double& a, const double& b);
  *
  * \return the result of the conversion.
  */
-static inline double degrees2radians(const double& x) {
-	return x * M_PI / 180.0;
-}
+double degrees2radians(double x) __attribute__((const));
 
 /**
  * Converts an angle in radians into degrees.
@@ -43,9 +41,7 @@ static inline double degrees2radians(const double& x) {
  *
  * \return the result of the conversion.
  */
-static inline double radians2degrees(const double& x) {
-	return x * 180.0 / M_PI;
-}
+double radians2degrees(double x) __attribute__((const));
 
 #endif
 
