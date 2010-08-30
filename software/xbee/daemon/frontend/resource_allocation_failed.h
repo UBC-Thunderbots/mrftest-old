@@ -4,8 +4,7 @@
 #include <stdexcept>
 
 /**
- * Thrown if an attempt is made to bring a robot into drive mode but sufficient
- * resources are not available to do so.
+ * Thrown if an attempt is made to bring a robot into drive mode but sufficient resources are not available to do so.
  */
 class ResourceAllocationFailed : public std::runtime_error {
 	public:

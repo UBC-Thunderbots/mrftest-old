@@ -56,15 +56,11 @@ namespace {
 				const std::vector<std::pair<double, Point> >::const_iterator &best_obs(obs.begin()+best_pos);
 
 				if (best_obs != obs.end()) {
-					// All the circles that contain the ball should be combined
-					// into one single circle having the multiplicative
-					// combination of the certainties of the original circles,
-					// and having a centre point at the ball. If no circles
-					// contain the ball, we will instead create a new circle
-					// containing the ball with a default level of certainty.
+					// All the circles that contain the ball should be combined into one single circle.
+					// It should have the multiplicative combination of the certainties of the original circles, and a centre point at the ball.
+					// If no circles contain the ball, we will instead create a new circle containing the ball with a default level of certainty.
 
-					// Compute the new certainty and delete the existing
-					// circles.
+					// Compute the new certainty and delete the existing circles.
 					double recip_certainty = 1.0;
 					for (std::list<Circle>::iterator i = circles.begin(); i != circles.end(); ) {
 						if ((best_obs->second - i->centre).len() < RADIUS) {
@@ -75,15 +71,13 @@ namespace {
 						}
 					}
 
-					// Decay the other circles, deleting any that fall below the
-					// threshold.
+					// Decay the other circles, deleting any that fall below the threshold.
 					decay(true);
 
 					// Create the new circle.
 					circles.push_back(Circle(best_obs->second, 1.0 - recip_certainty * (1.0 - DECAY_RATE)));
 				} else {
-					// Decay the circles, but keep them around even if below the
-					// threshold so we don't end up with no circles at all.
+					// Decay the circles, but keep them around even if below the threshold so we don't end up with no circles at all.
 					// They'll all be deleted next time we get a detection.
 					decay(false);
 				}

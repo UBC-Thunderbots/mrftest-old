@@ -20,11 +20,9 @@ class FirmwareWindow : public Gtk::Window {
 		 *
 		 * \param[in] conf the configuration file listing the robots.
 		 *
-		 * \param[in] robot the name of the robot to pre-select in the list, or
-		 * empty to not pre-select any robot.
+		 * \param[in] robot the name of the robot to pre-select in the list, or empty to not pre-select any robot.
 		 *
-		 * \param[in] filename the filename to pre-select in the chooser, or
-		 * empty to not pre-select any file.
+		 * \param[in] filename the filename to pre-select in the chooser, or empty to not pre-select any file.
 		 */
 		FirmwareWindow(XBeeLowLevel &modem, const Config &conf, const Glib::ustring &robot, const std::string &filename);
 

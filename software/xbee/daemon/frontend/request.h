@@ -8,9 +8,8 @@
 #include <stdint.h>
 
 /**
- * A packet to be sent to the XBee which may or may not provoke a response and
- * which, if it provokes a response, may or may not have callback functions to
- * be invoked to handle the response.
+ * A packet to be sent to the XBee which may or may not provoke a response and which,
+ * if it provokes a response, may or may not have callback functions to be invoked to handle the response.
  */
 class XBeeRequest : public ByRef {
 	public:
@@ -26,8 +25,7 @@ class XBeeRequest : public ByRef {
 		 *
 		 * \param[in] length the number of bytes in \p data.
 		 *
-		 * \param[in] has_response \c true if the modem will send a response to
-		 * the request, or \c false if not.
+		 * \param[in] has_response \c true if the modem will send a response to the request, or \c false if not.
 		 */
 		static Ptr create(const void *data, std::size_t length, bool has_response) {
 			Ptr p(new XBeeRequest(data, length, has_response));

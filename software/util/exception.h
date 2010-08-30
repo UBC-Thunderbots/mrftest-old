@@ -5,8 +5,7 @@
 #include <stdexcept>
 
 /**
- * An exception that indicates that an attempt to fetch an error message for an
- * error code itself failed.
+ * An exception that indicates that an attempt to fetch an error message for an error code itself failed.
  */
 class ErrorMessageError : public std::runtime_error {
 	public:
@@ -37,8 +36,7 @@ class SystemError : public std::runtime_error {
 };
 
 /**
- * An exception that corresponds to an attempt to open a file that does not
- * exist.
+ * An exception that corresponds to an attempt to open a file that does not exist.
  */
 class FileNotFoundError : public SystemError {
 	public:

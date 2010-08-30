@@ -10,8 +10,8 @@
 class XBeeLowLevel;
 
 /**
- * Allows access to a robot in raw mode. Raw mode is used to send and receive
- * radio packets directly to and from the robot, for example when bootloading.
+ * Allows access to a robot in raw mode.
+ * Raw mode is used to send and receive radio packets directly to and from the robot, for example when bootloading.
  */
 class XBeeRawBot : public ByRef {
 	public:
@@ -31,8 +31,7 @@ class XBeeRawBot : public ByRef {
 		sigc::signal<void> signal_alive;
 
 		/**
-		 * Fired if the claim request failed because another client already owns
-		 * the robot.
+		 * Fired if the claim request failed because another client already owns the robot.
 		 */
 		sigc::signal<void> signal_claim_failed;
 
@@ -43,14 +42,10 @@ class XBeeRawBot : public ByRef {
 
 		/**
 		 * Creates a new XBeeRawBot and begins attempting to claim the bot.
-		 * You should connect to signal_alive to detect when you have been given
-		 * exclusive access to the robot. You should also connect to
-		 * signal_claim_failed to detect if your claim request is rejected. You
-		 * should gracefully handle the situation where neither signal has been
-		 * delivered yet, because it is possible for a nontrivial amount of time
-		 * to pass between the construction of the object and the delivery of
-		 * one of the signals if the arbiter is in the process of deassigning
-		 * allocated resources from the robot before granting it to you.
+		 * You should connect to signal_alive to detect when you have been given exclusive access to the robot.
+		 * You should also connect to signal_claim_failed to detect if your claim request is rejected.
+		 * If the arbiter is deassigning resources from the robot, it may wait a long time before firing either signal.
+		 * Therefore, you must gracefully handle this situation.
 		 *
 		 * \param[in] address the 64-bit address of the robot to claim.
 		 *
@@ -64,18 +59,17 @@ class XBeeRawBot : public ByRef {
 		}
 
 		/**
-		 * Sends a XBeePacket to this robot. You are responsible for ensuring that
-		 * the robot's address is filled in properly and that you are not
-		 * accidentally sending data to the wrong robot!
+		 * Sends a XBeePacket to this robot.
+		 * You are responsible for ensuring that the robot's address is filled in properly and that you are not accidentally sending data to the wrong robot!
 		 *
 		 * \param[in] p the packet to send.
 		 */
 		void send(XBeePacket::Ptr p);
 
 		/**
-		 * Gets the robot's allocated 16-bit address. Note that the arbiter
-		 * allocates a 16-bit address that will not conflict with other robots,
-		 * but does \em not actually assign the address to the robot!
+		 * Gets the robot's allocated 16-bit address.
+		 * This address will not conflict with other robots.
+		 * However, the arbiter does \em not actually assign the address to the robot!
 		 *
 		 * \return the 16-bit address allocated to this robot.
 		 */

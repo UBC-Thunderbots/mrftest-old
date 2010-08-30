@@ -10,8 +10,7 @@ using namespace AI;
 
 namespace {
 	/**
-	 * A list model that exposes a collection of interesting statistics about
-	 * all the configured robots.
+	 * A list model that exposes a collection of interesting statistics about all the configured robots.
 	 */
 	class RobotInfoModel : public Glib::Object, public AbstractListModel {
 		public:
@@ -21,14 +20,12 @@ namespace {
 			Gtk::TreeModelColumn<Glib::ustring> name_column;
 
 			/**
-			 * The column that shows whether or not radio communication is
-			 * established with this robot.
+			 * The column that shows whether or not radio communication is established with this robot.
 			 */
 			Gtk::TreeModelColumn<bool> radio_column;
 
 			/**
-			 * The column that shows whether or not this robot is visible from
-			 * the cameras.
+			 * The column that shows whether or not this robot is visible from the cameras.
 			 */
 			Gtk::TreeModelColumn<bool> visible_column;
 
@@ -165,14 +162,11 @@ namespace {
 	};
 
 	/**
-	 * Translates a robot battery level into appropriate values for a
-	 * progress-bar-type tree cell renderer to display.
+	 * Translates a robot battery level into appropriate values for a progress-bar-type tree cell renderer to display.
 	 *
-	 * \param[in] r the renderer for the cell in which to display the battery
-	 * level.
+	 * \param[in] r the renderer for the cell in which to display the battery level.
 	 *
-	 * \param[in] iter an iterator pointing at the row corresponding to the
-	 * robot whose battery level should be displayed.
+	 * \param[in] iter an iterator pointing at the row corresponding to the robot whose battery level should be displayed.
 	 *
 	 * \param[in] model the model containing the robots.
 	 */
@@ -188,13 +182,11 @@ namespace {
 	}
 
 	/**
-	 * Translates a time interval into appropriate values for a
-	 * progress-bar-type tree cell renderer to display.
+	 * Translates a time interval into appropriate values for a progress-bar-type tree cell renderer to display.
 	 *
 	 * \param[in] r the renderer for the cell in which to display the interval.
 	 *
-	 * \param[in] iter an iterator pointing at the row corresponding to the
-	 * robot whose interval should be displayed.
+	 * \param[in] iter an iterator pointing at the row corresponding to the robot whose interval should be displayed.
 	 *
 	 * \param[in] model the model containing the robots.
 	 *

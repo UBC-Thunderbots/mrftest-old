@@ -14,8 +14,8 @@
 class XBeeLowLevel;
 
 /**
- * Allows access to a robot in drive mode. Drive mode is used to drive the
- * robot, for example in the control process or the tester.
+ * Allows access to a robot in drive mode.
+ * Drive mode is used to drive the robot, for example in the control process or the tester.
  */
 class XBeeDriveBot : public ByRef, public sigc::trackable {
 	public:
@@ -45,15 +45,14 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		sigc::signal<void> signal_feedback;
 
 		/**
-		 * Fired if the claim request failed because another client already owns
-		 * the robot. You should destroy the object.
+		 * Fired if the claim request failed because another client already owns the robot.
+		 * You should destroy the object.
 		 */
 		sigc::signal<void> signal_claim_failed_locked;
 
 		/**
-		 * Fired if the claim request failed because there were not enough radio
-		 * resources available to configure the robot. You should destroy the
-		 * object.
+		 * Fired if the claim request failed because there were not enough radio resources available to configure the robot.
+		 * You should destroy the object.
 		 */
 		sigc::signal<void> signal_claim_failed_resource;
 
@@ -84,16 +83,14 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		 *
 		 * \param motor the index of the motor to query, from 0 to 3.
 		 *
-		 * \return \c true if the requested motor experienced a fault recently,
-		 * or \c false if not.
+		 * \return \c true if the requested motor experienced a fault recently, or \c false if not.
 		 */
 		bool drive_faulted(unsigned int motor) const;
 
 		/**
 		 * Checks whether the dribbler motor is faulted.
 		 *
-		 * \return \c true if the dribbler experienced a fault recently, or \c
-		 * false if not.
+		 * \return \c true if the dribbler experienced a fault recently, or \c false if not.
 		 */
 		bool dribbler_faulted() const;
 
@@ -114,8 +111,7 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		/**
 		 * Checks the dribbler speed.
 		 *
-		 * \return the speed at which the dribbler motor is spinning, in
-		 * revolutions per minute.
+		 * \return the speed at which the dribbler motor is spinning, in revolutions per minute.
 		 */
 		unsigned int dribbler_speed() const;
 
@@ -131,8 +127,7 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		/**
 		 * Returns the feedback interval.
 		 *
-		 * \return the amount of time between two consecutive feedback packets
-		 * from this robot.
+		 * \return the amount of time between two consecutive feedback packets from this robot.
 		 */
 		const timespec &feedback_interval() const {
 			return feedback_interval_;
@@ -141,8 +136,7 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		/**
 		 * Returns the interval between outbound run data packets.
 		 *
-		 * \return the amount of time between two consecutive run data packets
-		 * sent to the robot team.
+		 * \return the amount of time between two consecutive run data packets sent to the robot team.
 		 */
 		const timespec &run_data_interval() const {
 			return run_data_interval_;
@@ -151,26 +145,21 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		/**
 		 * Returns the outbound signal strength for packets sent to this robot.
 		 *
-		 * \return the outbound received signal strength in dBm (between 0 and
-		 * -255).
+		 * \return the outbound received signal strength in dBm (between 0 and -255).
 		 */
 		int outbound_rssi() const;
 
 		/**
-		 * Returns the inbound signal strength for packets received from this
-		 * robot.
+		 * Returns the inbound signal strength for packets received from this robot.
 		 *
-		 * \return the inbound received signal strength in dBm (between 0 and
-		 * -255).
+		 * \return the inbound received signal strength in dBm (between 0 and -255).
 		 */
 		int inbound_rssi() const;
 
 		/**
-		 * Returns the success rate of feedback packets solicited from this
-		 * robot.
+		 * Returns the success rate of feedback packets solicited from this robot.
 		 *
-		 * \return the number of the last 16 packets that were delivered
-		 * successfully.
+		 * \return the number of the last 16 packets that were delivered successfully.
 		 */
 		unsigned int success_rate() const {
 			return success_rate_;
@@ -179,49 +168,40 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		/**
 		 * Checks whether the chicker is ready.
 		 *
-		 * \return \c true if the chicker is ready to fire, or \c false if it is
-		 * disabled or still charging.
+		 * \return \c true if the chicker is ready to fire, or \c false if it is disabled or still charging.
 		 */
 		bool chicker_ready() const;
 
 		/**
 		 * Checks whether the LT3751 is faulting.
 		 *
-		 * \return \c true if the LT3751 chicker charger chip is faulting, or \c
-		 * false if not.
+		 * \return \c true if the LT3751 chicker charger chip is faulting, or \c false if not.
 		 */
 		bool lt3751_faulted() const;
 
 		/**
-		 * Checks whether the chicker timed out passing the low voltage
-		 * threshold.
+		 * Checks whether the chicker timed out passing the low voltage threshold.
 		 *
-		 * \return \c true if the chicker charger failed to charge above the
-		 * minimum threshold voltage within the allowed time period, or \c false
-		 * if not.
+		 * \return \c true if the chicker charger failed to charge above the minimum threshold voltage within the allowed time period, or \c false if not.
 		 */
 		bool chicker_low_faulted() const;
 
 		/**
 		 * Checks whether the chicker went over its maximum voltage.
 		 *
-		 * \return \c true if the chicker charger charged above the maximum
-		 * volatge, or \c false if not.
+		 * \return \c true if the chicker charger charged above the maximum volatge, or \c false if not.
 		 */
 		bool chicker_high_faulted() const;
 
 		/**
 		 * Checks whether the chicker timed out charging.
 		 *
-		 * \return \c true if the chicker charger timed out waiting for the
-		 * LT3751 to signal completion of the charge process, or \c false if
-		 * not.
+		 * \return \c true if the chicker charger timed out waiting for the LT3751 to signal completion of the charge process, or \c false if not.
 		 */
 		bool chicker_timed_out() const;
 
 		/**
-		 * Prevents the robot from being scrammed by a timeout, without actually
-		 * affecting the current drive parameters.
+		 * Prevents the robot from being scrammed by a timeout, without actually affecting the current drive parameters.
 		 */
 		void stamp();
 
@@ -231,8 +211,8 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		void drive_scram();
 
 		/**
-		 * Drives the four motors with distinct power levels independently. Each
-		 * parameter is a power level between -1023 and +1023.
+		 * Drives the four motors with distinct power levels independently.
+		 * Each parameter is a power level between -1023 and +1023.
 		 *
 		 * \param[in] m1 the power level of the front-left motor.
 		 *
@@ -245,9 +225,8 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		void drive_direct(int m1, int m2, int m3, int m4);
 
 		/**
-		 * Drives the four motors through the control loops. Each parameter is a
-		 * motor speed measured in quarters of a degree of motor shaft rotation
-		 * per five milliseconds between -1023 and +1023.
+		 * Drives the four motors through the control loops.
+		 * Each parameter is a motor speed measured in quarters of a degree of motor shaft rotation per five milliseconds between -1023 and +1023.
 		 *
 		 * \param[in] m1 the speed of the front-left motor.
 		 *
@@ -260,9 +239,9 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		void drive_controlled(int m1, int m2, int m3, int m4);
 
 		/**
-		 * Sets the power level of the dribbler. The parameter is a power level
-		 * between -1023 and +1023. A power level of zero applies dynamic
-		 * braking to the dribbler motor.
+		 * Sets the power level of the dribbler.
+		 * The parameter is a power level between -1023 and +1023.
+		 * A power level of zero applies dynamic braking to the dribbler motor.
 		 *
 		 * \param[in] p the power level.
 		 */
@@ -271,8 +250,7 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		/**
 		 * Enables or disables the chicker subsystem.
 		 *
-		 * \param[in] en \c true to enable the subsystem and begin charging, or
-		 * \c false to disable the subsystem and shut off the charger.
+		 * \param[in] en \c true to enable the subsystem and begin charging, or \c false to disable the subsystem and shut off the charger.
 		 */
 		void enable_chicker(bool en);
 

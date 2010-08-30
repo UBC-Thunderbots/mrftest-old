@@ -7,9 +7,8 @@
 #include <glibmm.h>
 
 /**
- * A player, as seen by a simulation engine. An individual engine is expected to
- * subclass this class and return instances of the subclass from its
- * SimulatorEngine::add_player() method.
+ * A player, as seen by a simulation engine.
+ * An individual engine is expected to subclass this class and return instances of the subclass from its SimulatorEngine::add_player() method.
  */
 class SimulatorPlayer : public ByRef {
 	public:
@@ -42,8 +41,7 @@ class SimulatorPlayer : public ByRef {
 		/**
 		 * Returns the dribbler's speed.
 		 *
-		 * \return the speed of the dribbler roller, in revolutions per ten
-		 * milliseconds.
+		 * \return the speed of the dribbler roller, in revolutions per ten milliseconds.
 		 */
 		virtual unsigned int dribbler_speed() const = 0;
 

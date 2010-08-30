@@ -4,8 +4,7 @@
 #include "test/permotor_drive.h"
 
 /**
- * Allows driving the robot by choosing a speed for each of the four wheels and
- * having the on-board firmware run a control loop to maintain that speed.
+ * Allows driving the robot by choosing a speed for each of the four wheels and having the on-board firmware run a control loop to maintain that speed.
  */
 class TesterControlControlledPerMotorDrive : public TesterControlPerMotorDrive {
 	public:

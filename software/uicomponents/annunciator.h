@@ -10,10 +10,9 @@
 class Annunciator : public Gtk::ScrolledWindow {
 	public:
 		/**
-		 * A message that can be displayed in the annunciator panel. It is
-		 * expected that an object that wishes to announce messages will contain
-		 * one or more instances of this class as members, one for each message,
-		 * and will call \c activate to turn them on and off.
+		 * A message that can be displayed in the annunciator panel.
+		 * It is expected that an object that wishes to announce messages will contain one or more instances of this class as members,
+		 * one for each message, and will call \c activate to turn them on and off.
 		 */
 		class Message : public NonCopyable, public sigc::trackable {
 			public:
@@ -51,16 +50,14 @@ class Annunciator : public Gtk::ScrolledWindow {
 				/**
 				 * Sets whether the message is active or not.
 				 *
-				 * \param[in] actv \c true to activate the message, or \c false
-				 * to deactivate it.
+				 * \param[in] actv \c true to activate the message, or \c false to deactivate it.
 				 */
 				void activate(bool actv);
 
 				/**
 				 * Returns the age of the message.
 				 *
-				 * \return the age of the message, in seconds (that is, the
-				 * amount of time since the message was last active).
+				 * \return the age of the message, in seconds (that is, the amount of time since the message was last active).
 				 */
 				unsigned int age() const {
 					return age_;

@@ -4,8 +4,7 @@
 #include "fw/watchable_operation.h"
 
 /**
- * An implementation of WatchableOperation that delegates to a pair of
- * sub-operations.
+ * An implementation of WatchableOperation that delegates to a pair of sub-operations.
  */
 class WatchablePair : public WatchableOperation {
 	public:
@@ -16,15 +15,13 @@ class WatchablePair : public WatchableOperation {
 		 *
 		 * \param[in] op2 the second operation to execute.
 		 *
-		 * \param[in] weight the fraction of the progress bar that should be
-		 * dedicated to the first operation.
+		 * \param[in] weight the fraction of the progress bar that should be dedicated to the first operation.
 		 */
 		WatchablePair(WatchableOperation &op1, WatchableOperation &op2, double weight);
 
 		/**
-		 * Starts the operation. The operation will execute the first
-		 * sub-operation; if this finishes successfully, the second
-		 * sub-operation will be started.
+		 * Starts the operation.
+		 * The operation will execute the first sub-operation; if this finishes successfully, the second sub-operation will be started.
 		 */
 		void start();
 

@@ -33,8 +33,7 @@ namespace {
 	 *
 	 * \param[in] ts2 the second timespec.
 	 *
-	 * \param[out] result a location at which to store the value of \p ts1 − \p
-	 * ts2.
+	 * \param[out] result a location at which to store the value of \p ts1 − \p ts2.
 	 */
 	void timespec_sub(const timespec &ts1, const timespec &ts2, timespec &result) {
 		if (ts1.tv_nsec >= ts2.tv_nsec) {
@@ -53,8 +52,7 @@ namespace {
 	 *
 	 * \param ts2 the second timespec.
 	 *
-	 * \return a positive value if \p ts1 > \p ts2, a negative value if \p ts1 <
-	 * \p ts2, or zero if \p ts1 = \p ts2.
+	 * \return a positive value if \p ts1 > \p ts2, a negative value if \p ts1 < \p ts2, or zero if \p ts1 = \p ts2.
 	 */
 	int timespec_cmp(const timespec &ts1, const timespec &ts2) {
 		if (ts1.tv_sec != ts2.tv_sec) {
@@ -107,19 +105,21 @@ class Timeout : public sigc::trackable {
 		~Timeout();
 
 		/**
-		 * Starts the Timeout. After the period, the signal will fire. If the
-		 * Timeout is already running, this function does nothing.
+		 * Starts the Timeout.
+		 * After the period, the signal will fire.
+		 * If the Timeout is already running, this function does nothing.
 		 */
 		void start();
 
 		/**
-		 * Stops the Timeout. The signal will not fire until after another call
-		 * to start().
+		 * Stops the Timeout.
+		 * The signal will not fire until after another call to start().
 		 */
 		void stop();
 
 		/**
-		 * Fired when the Timeout expires. The Timeout stops when it expires.
+		 * Fired when the Timeout expires.
+		 * The Timeout stops when it expires.
 		 */
 		mutable sigc::signal<void> signal_expired;
 

@@ -84,30 +84,28 @@ namespace PlayType {
 		EXECUTE_INDIRECT_FREE_KICK_ENEMY,
 
 		/**
-		 * A counter of the number of legal playtypes. Put new types before
-		 * this.
+		 * A counter of the number of legal playtypes.
+		 * Put new types before this.
 		 */
 		COUNT,
 	};
 
 	/*
 	 * Descriptions of the play types from a generic team's point of view.
-	 * These descriptions simply use the words "friendly" and "enemy", and
-	 * are appropriate for the real-world system.
+	 * These descriptions simply use the words "friendly" and "enemy", and are appropriate for the AI application.
 	 */
 	extern const Glib::ustring DESCRIPTIONS_GENERIC[COUNT];
 
 	/*
 	 * Descriptions of the play types from the west team's point of view.
-	 * These descriptions use the words "west" and "east", and are appropriate
-	 * for the simulator.
+	 * These descriptions use the words "west" and "east", and are appropriate for the simulator application.
 	 */
 	extern const Glib::ustring DESCRIPTIONS_WEST[COUNT];
 
 	/*
-	 * Directional inversions of the play types. An element in this array
-	 * contains the play type as the east team would see it, if the index into
-	 * the array is the play type as the west team would see it.
+	 * Directional inversions of the play types.
+	 * An element in this array contains the play type as the east team would see it,
+	 * if the index into the array is the play type as the west team would see it.
 	 */
 	extern const PlayType INVERT[COUNT];
 }

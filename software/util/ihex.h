@@ -5,12 +5,10 @@
 #include <glibmm.h>
 
 /**
- * An Intel HEX file. A HEX file can contain memory for many different addresses
- * with many different layouts. To be generic, this class allows the caller to
- * define which ranges of addresses are valid before loading the file. The
- * caller does this by calling the add_section(unsigned int, unsigned int)
- * function. The load(const Glib::ustring &) function will refuse to load a HEX
- * file that contains data outside the predefined sections.
+ * An Intel HEX file. A HEX file can contain memory for many different addresses with many different layouts.
+ * To be generic, this class allows the caller to define which ranges of addresses are valid before loading the file.
+ * The caller does this by calling the add_section(unsigned int, unsigned int) function.
+ * The load(const Glib::ustring &) function will refuse to load a HEX file that contains data outside the predefined sections.
  */
 class IntelHex {
 	public:

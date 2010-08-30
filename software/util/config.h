@@ -28,14 +28,12 @@ class Config : public NonCopyable {
 			uint64_t address;
 
 			/**
-			 * \c true if the central dot on the robot's lid is yellow, or \c
-			 * false if it is blue.
+			 * \c true if the central dot on the robot's lid is yellow, or \c false if it is blue.
 			 */
 			bool yellow;
 
 			/**
-			 * The index of the robot's lid pattern in the SSL-Vision pattern
-			 * file.
+			 * The index of the robot's lid pattern in the SSL-Vision pattern file.
 			 */
 			unsigned int pattern_index;
 
@@ -54,11 +52,9 @@ class Config : public NonCopyable {
 			 *
 			 * \param[in] address the robot's XBee address.
 			 *
-			 * \param[in] yellow \c true if the central dot on the robot's lid
-			 * is yellow, or \c false if it is blue.
+			 * \param[in] yellow \c true if the central dot on the robot's lid is yellow, or \c false if it is blue.
 			 *
-			 * \param[in] pattern_index the index in the SSL-Vision pattern file
-			 * of the robot's lid pattern.
+			 * \param[in] pattern_index the index in the SSL-Vision pattern file of the robot's lid pattern.
 			 *
 			 * \param[in] name a human-readable name for the robot.
 			 */
@@ -114,8 +110,7 @@ class Config : public NonCopyable {
 				 *
 				 * \param[in] address the address to check.
 				 *
-				 * \return \c true if some robot in the collection has the
-				 * address \p address, or \c false if not.
+				 * \return \c true if some robot in the collection has the address \p address, or \c false if not.
 				 */
 				bool contains_address(uint64_t address) const;
 
@@ -126,8 +121,7 @@ class Config : public NonCopyable {
 				 *
 				 * \param[in] pattern_index the pattern index to look up.
 				 *
-				 * \return \c true if a robot in the ocllection has the given
-				 * colour and pattern index, or \c false if not.
+				 * \return \c true if a robot in the ocllection has the given colour and pattern index, or \c false if not.
 				 */
 				bool contains_pattern(bool yellow, unsigned int pattern_index) const;
 
@@ -136,8 +130,7 @@ class Config : public NonCopyable {
 				 *
 				 * \param[in] name the name to look for.
 				 *
-				 * \return \c true if \p name is already used by a robot in this
-				 * collection, or \c false if not.
+				 * \return \c true if \p name is already used by a robot in this collection, or \c false if not.
 				 */
 				bool contains_name(const Glib::ustring &name) const;
 
@@ -146,19 +139,17 @@ class Config : public NonCopyable {
 				 *
 				 * \param[in] address the robot's XBee address.
 				 *
-				 * \param[in] yellow \c true to make the central dot on the new
-				 * robot's lid yellow, or \c false if not.
+				 * \param[in] yellow \c true to make the central dot on the new robot's lid yellow, or \c false if not.
 				 *
-				 * \param[in] pattern_index the index of the robot's lid
-				 * pattern.
+				 * \param[in] pattern_index the index of the robot's lid pattern.
 				 *
 				 * \param[in] name a human-readable name for the robot.
 				 */
 				void add(uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name);
 
 				/**
-				 * Emitted when a robot is added. Parameter is the index of the
-				 * robot.
+				 * Emitted when a robot is added.
+				 * Parameter is the index of the robot.
 				 */
 				mutable sigc::signal<void, unsigned int> signal_robot_added;
 
@@ -170,16 +161,15 @@ class Config : public NonCopyable {
 				void remove(uint64_t address);
 
 				/**
-				 * Emitted when a robot is deleted. Parameter is the index of
-				 * the robot.
+				 * Emitted when a robot is deleted.
+				 * Parameter is the index of the robot.
 				 */
 				mutable sigc::signal<void, unsigned int> signal_robot_removed;
 
 				/**
 				 * Replaces an existing robot with new data.
 				 *
-				 * \param[in] old_address the XBee address of the robot to
-				 * replace.
+				 * \param[in] old_address the XBee address of the robot to replace.
 				 *
 				 * \param[in] address the new XBee address to store.
 				 *
@@ -192,8 +182,8 @@ class Config : public NonCopyable {
 				void replace(uint64_t old_address, uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name);
 
 				/**
-				 * Emitted when a robot is replaced. Parameter is the index of
-				 * the robot.
+				 * Emitted when a robot is replaced.
+				 * Parameter is the index of the robot.
 				 */
 				mutable sigc::signal<void, unsigned int> signal_robot_replaced;
 
@@ -276,8 +266,7 @@ class Config : public NonCopyable {
 		/**
 		 * Sets the radio channel.
 		 *
-		 * \param[in] chan the new channel, which must be between \c 0x0B and \c
-		 * 0x1A.
+		 * \param[in] chan the new channel, which must be between \c 0x0B and \c 0x1A.
 		 */
 		void channel(unsigned int chan);
 

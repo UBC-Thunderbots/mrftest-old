@@ -64,8 +64,7 @@ class Point {
 		/**
 		 * Returns the unit vector in the same direction as this Point.
 		 *
-		 * \return a unit vector in the same direction as this Point, or a
-		 * zero-length Point if this Point is zero.
+		 * \return a unit vector in the same direction as this Point, or a zero-length Point if this Point is zero.
 		 */
 		Point norm() const __attribute__((warn_unused_result)) {
 			const double l = len();
@@ -105,8 +104,7 @@ class Point {
 		 *
 		 * \param[in] other the Point to cross with.
 		 *
-		 * \return the <var>z</var> component of the 3-dimensional cross product
-		 * \p *this × \p other.
+		 * \return the <var>z</var> component of the 3-dimensional cross product \p *this × \p other.
 		 */
 		double cross(const Point &other) const __attribute__((warn_unused_result)) {
 			return x * other.y - y * other.x;
@@ -115,8 +113,7 @@ class Point {
 		/**
 		 * Assigns one vector to another.
 		 *
-		 * \param[in] q the vector whose value should be copied into this
-		 * vector.
+		 * \param[in] q the vector whose value should be copied into this vector.
 		 *
 		 * \return this vector.
 		 */
@@ -129,9 +126,8 @@ class Point {
 		/**
 		 * Returns the direction of this vector.
 		 *
-		 * \return the direction of this vector, in the range [-π, π], with 0
-		 * being the positive <var>x</var> direction, π/2 being up, etc. (in
-		 * actuality, this is <code>std::atan2(y, x)</code>).
+		 * \return the direction of this vector, in the range [-π, π], with 0 being the positive <var>x</var> direction, π/2 being up, etc.
+		 * (in actuality, this is <code>std::atan2(y, x)</code>).
 		 */
 		double orientation() const __attribute__((warn_unused_result)) {
 			return std::atan2(y, x);
@@ -297,8 +293,8 @@ namespace {
 }
 
 /**
- * Orders two vectors suitably for sorting. Vectors are ordered first by
- * <var>x</var> coordinate and then by <var>y</var> coordinate.
+ * Orders two vectors suitably for sorting.
+ * Vectors are ordered first by <var>x</var> coordinate and then by <var>y</var> coordinate.
  *
  * \param[in] p the first Point.
  *

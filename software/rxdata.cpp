@@ -73,30 +73,35 @@ namespace {
 						return;
 
 					case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE:
-						// No response from the remote system. Try resending, if we have retries left.
+						// No response from the remote system.
+						// Try resending, if we have retries left.
 						do_set16();
 						return;
 
 					case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_ERROR:
-						// Hard error. Don't bother retrying; just report an error.
+						// Hard error.
+						// Don't bother retrying; just report an error.
 						std::cout << "Error assigning 16-bit address.\n";
 						loop->quit();
 						return;
 
 					case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_COMMAND:
-						// Hard error. Don't bother retrying; just report an error.
+						// Hard error.
+						// Don't bother retrying; just report an error.
 						std::cout << "AT command rejected.\n";
 						loop->quit();
 						return;
 
 					case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_PARAMETER:
-						// Hard error. Don't bother retrying; just report an error.
+						// Hard error.
+						// Don't bother retrying; just report an error.
 						std::cout << "AT command parameter rejected.\n";
 						loop->quit();
 						return;
 
 					default:
-						// Hard error. Don't bother retrying; just report an error.
+						// Hard error.
+						// Don't bother retrying; just report an error.
 						std::cout << "Unknown error.\n";
 						loop->quit();
 						return;

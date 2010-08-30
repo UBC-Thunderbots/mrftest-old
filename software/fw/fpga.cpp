@@ -89,8 +89,7 @@ void FPGAUpload::do_work() {
 			if (pages_written >= divup<std::size_t>(data.data()[0].size(), PAGE_BYTES)) {
 				// Skip this page because it's beyond the end of the data.
 			} else if (pages_prewritten[pages_written % CHUNK_PAGES]) {
-				// Skip this page because it was written properly according to
-				// the bitmap.
+				// Skip this page because it was written properly according to the bitmap.
 			} else {
 				unsigned char inbuf[PAGE_BYTES];
 				get_page_data(data, pages_written, inbuf);

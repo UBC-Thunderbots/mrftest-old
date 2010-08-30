@@ -102,27 +102,32 @@ void BootProto::enter_bootloader_complete(const void *data, std::size_t) {
 			return;
 
 		case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE:
-			// No response from the remote system. Try resending, if we have retries left.
+			// No response from the remote system.
+			// Try resending, if we have retries left.
 			enter_bootloader_send();
 			return;
 
 		case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_ERROR:
-			// Hard error. Don't bother retrying; just report an error.
+			// Hard error.
+			// Don't bother retrying; just report an error.
 			report_error("Cannot enter bootloader mode: Error setting pin state.");
 			return;
 
 		case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_COMMAND:
-			// Hard error. Don't bother retrying; just report an error.
+			// Hard error.
+			// Don't bother retrying; just report an error.
 			report_error("Cannot enter bootloader mode: AT command rejected.");
 			return;
 
 		case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_PARAMETER:
-			// Hard error. Don't bother retrying; just report an error.
+			// Hard error.
+			// Don't bother retrying; just report an error.
 			report_error("Cannot enter bootloader mode: AT command parameter rejected.");
 			return;
 
 		default:
-			// Hard error. Don't bother retrying; just report an error.
+			// Hard error.
+			// Don't bother retrying; just report an error.
 			report_error("Cannot enter bootloader mode: Unknown error.");
 			return;
 	}
@@ -174,27 +179,32 @@ void BootProto::assign_address16_complete(const void *data, std::size_t) {
 			return;
 
 		case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE:
-			// No response from the remote system. Try resending, if we have retries left.
+			// No response from the remote system.
+			// Try resending, if we have retries left.
 			assign_address16_send();
 			return;
 
 		case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_ERROR:
-			// Hard error. Don't bother retrying; just report an error.
+			// Hard error.
+			// Don't bother retrying; just report an error.
 			report_error("Cannot enter bootloader mode: Error assigning 16-bit address.");
 			return;
 
 		case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_COMMAND:
-			// Hard error. Don't bother retrying; just report an error.
+			// Hard error.
+			// Don't bother retrying; just report an error.
 			report_error("Cannot enter bootloader mode: AT command rejected.");
 			return;
 
 		case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_PARAMETER:
-			// Hard error. Don't bother retrying; just report an error.
+			// Hard error.
+			// Don't bother retrying; just report an error.
 			report_error("Cannot enter bootloader mode: AT command parameter rejected.");
 			return;
 
 		default:
-			// Hard error. Don't bother retrying; just report an error.
+			// Hard error.
+			// Don't bother retrying; just report an error.
 			report_error("Cannot enter bootloader mode: Unknown error.");
 			return;
 	}
@@ -204,7 +214,8 @@ bool BootProto::enter_bootloader_quiesce() {
 	// Check sanity.
 	assert(current_state == STATE_ENTERING_BOOTLOADER);
 
-	// We're now in the bootloader. Mark state.
+	// We're now in the bootloader.
+	// Mark state.
 	current_state = STATE_READY;
 
 	// Notify the client.
@@ -325,7 +336,8 @@ void BootProto::send_receive(uint8_t, const void *data, std::size_t length) {
 			return;
 
 		default:
-			// Hard error. Don't bother retrying; just report an error.
+			// Hard error.
+			// Don't bother retrying; just report an error.
 			report_error("Communication error: Unknown error.");
 			return;
 	}
@@ -398,27 +410,32 @@ void BootProto::exit_bootloader_complete(const void *data, std::size_t) {
 			return;
 
 		case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE:
-			// No response from the remote system. Try resending, if we have retries left.
+			// No response from the remote system.
+			// Try resending, if we have retries left.
 			exit_bootloader_send();
 			return;
 
 		case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_ERROR:
-			// Hard error. Don't bother retrying; just report an error.
+			// Hard error.
+			// Don't bother retrying; just report an error.
 			report_error("Cannot exit bootloader mode: Error setting pin state.");
 			return;
 
 		case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_COMMAND:
-			// Hard error. Don't bother retrying; just report an error.
+			// Hard error.
+			// Don't bother retrying; just report an error.
 			report_error("Cannot exit bootloader mode: AT command rejected.");
 			return;
 
 		case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_PARAMETER:
-			// Hard error. Don't bother retrying; just report an error.
+			// Hard error.
+			// Don't bother retrying; just report an error.
 			report_error("Cannot exit bootloader mode: AT command parameter rejected.");
 			return;
 
 		default:
-			// Hard error. Don't bother retrying; just report an error.
+			// Hard error.
+			// Don't bother retrying; just report an error.
 			report_error("Cannot exit bootloader mode: Unknown error.");
 			return;
 	}

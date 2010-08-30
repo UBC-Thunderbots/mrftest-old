@@ -17,8 +17,7 @@ class RWLockScopedAcquire : public NonCopyable {
 		 *
 		 * \param[in] lock the lock to acquire.
 		 *
-		 * \param[in] acquire_fn the lock acquisition function, one of \c
-		 * pthread_rwlock_rdlock or \c pthread_rwlock_wrlock.
+		 * \param[in] acquire_fn the lock acquisition function, one of \c pthread_rwlock_rdlock or \c pthread_rwlock_wrlock.
 		 */
 		RWLockScopedAcquire(pthread_rwlock_t *lock, typeof(pthread_rwlock_rdlock) acquire_fn) : lock(lock) {
 			if (acquire_fn(lock) != 0) {

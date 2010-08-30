@@ -6,8 +6,7 @@
 #include <gtkmm.h>
 
 /**
- * The superclass of all drive control panels that have four sliders
- * independently controlling the four wheels.
+ * The superclass of all drive control panels that have four sliders independently controlling the four wheels.
  */
 class TesterControlPerMotorDrive : public Gtk::Table, public Zeroable {
 	public:

@@ -58,8 +58,7 @@ namespace {
 	 *
 	 * \param[in] buffer the data to extract from.
 	 *
-	 * \param[in,out] i an index into the buffer at which to extract, which will
-	 * be incremented by the number of bytes consumed.
+	 * \param[in,out] i an index into the buffer at which to extract, which will be incremented by the number of bytes consumed.
 	 *
 	 * \return the integer.
 	 */
@@ -72,8 +71,7 @@ namespace {
 	 *
 	 * \param[in] buffer the data to extract from.
 	 *
-	 * \param[in,out] i an index into the buffer at which to extract, which will
-	 * be incremented by the number of bytes consumed.
+	 * \param[in,out] i an index into the buffer at which to extract, which will be incremented by the number of bytes consumed.
 	 *
 	 * \return the integer.
 	 */
@@ -88,8 +86,7 @@ namespace {
 	 *
 	 * \param[in] buffer the data to extract from.
 	 *
-	 * \param[in,out] i an index into the buffer at which to extract, which will
-	 * be incremented by the number of bytes consumed.
+	 * \param[in,out] i an index into the buffer at which to extract, which will be incremented by the number of bytes consumed.
 	 *
 	 * \return the integer.
 	 */
@@ -104,8 +101,7 @@ namespace {
 	 *
 	 * \param[in] buffer the data to extract from.
 	 *
-	 * \param[in,out] i an index into the buffer at which to extract, which will
-	 * be incremented by the number of bytes consumed.
+	 * \param[in,out] i an index into the buffer at which to extract, which will be incremented by the number of bytes consumed.
 	 *
 	 * \return the integer.
 	 */
@@ -120,8 +116,7 @@ namespace {
 	 *
 	 * \param[in] buffer the data to extract from.
 	 *
-	 * \param[in,out] i an index into the buffer at which to extract, which will
-	 * be incremented by the number of bytes consumed.
+	 * \param[in,out] i an index into the buffer at which to extract, which will be incremented by the number of bytes consumed.
 	 *
 	 * \return the integer.
 	 */
@@ -134,8 +129,7 @@ namespace {
 	 *
 	 * \param[in] buffer the data to extract from.
 	 *
-	 * \param[in,out] i an index into the buffer at which to extract, which will
-	 * be incremented by the number of bytes consumed.
+	 * \param[in,out] i an index into the buffer at which to extract, which will be incremented by the number of bytes consumed.
 	 *
 	 * \return the integer.
 	 */
@@ -148,8 +142,7 @@ namespace {
 	 *
 	 * \param[in] buffer the data to extract from.
 	 *
-	 * \param[in,out] i an index into the buffer at which to extract, which will
-	 * be incremented by the number of bytes consumed.
+	 * \param[in,out] i an index into the buffer at which to extract, which will be incremented by the number of bytes consumed.
 	 *
 	 * \return the integer.
 	 */
@@ -162,8 +155,7 @@ namespace {
 	 *
 	 * \param[in] buffer the data to extract from.
 	 *
-	 * \param[in,out] i an index into the buffer at which to extract, which will
-	 * be incremented by the number of bytes consumed.
+	 * \param[in,out] i an index into the buffer at which to extract, which will be incremented by the number of bytes consumed.
 	 *
 	 * \return the integer.
 	 */

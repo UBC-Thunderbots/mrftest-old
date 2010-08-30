@@ -4,7 +4,7 @@
 #include "geom/point.h"
 #include <vector>
 
-/**
+/*
  * Misc geometry utility functions.
  * Contains code ported since 2009.
  *
@@ -20,8 +20,7 @@
  *
  * \param[in] v2 the second set of points.
  *
- * \return the order of the matching, such that element <var>i</var> of input
- * \p v1 is matched with element \c order[<var>i</var>] of \p v2.
+ * \return the order of the matching, such that element <var>i</var> of input \p v1 is matched with element \c order[<var>i</var>] of \p v2.
  */
 std::vector<size_t> dist_matching(const std::vector<Point>& v1, const std::vector<Point>& v2);
 
@@ -73,8 +72,7 @@ std::pair<Point, double> angle_sweep_circles(const Point& src, const Point& p1, 
  *
  * \param[in] recA the corners of the rectangle.
  *
- * \return \c true if any part of the segment lies inside the rectangle, or \c
- * false if the entire segment lies outside the rectangle.
+ * \return \c true if any part of the segment lies inside the rectangle, or \c false if the entire segment lies outside the rectangle.
  */
 bool line_seg_intersect_rectangle(Point seg[2], Point recA[4]);
 
@@ -106,7 +104,8 @@ bool point_in_rectangle(Point pointA, Point recA[4]);
 std::vector<Point> lineseg_circle_intersect(Point centre, double radius, Point segA, Point segB); 
 
 /**
- * Finds the points of intersection between a circle and a line. There may be zero, one, or two such points.
+ * Finds the points of intersection between a circle and a line.
+ * There may be zero, one, or two such points.
  *
  * \param[in] centre the centre of the circle.
  *
@@ -160,8 +159,7 @@ Point line_intersect(const Point &a, const Point &b, const Point &c, const Point
  * \param[in] b another point on the line.
  *
  * \return the signed distance from the point to the line,
- * with a negative number indicating that the point is counterclockwise of the line
- * and a positive number indicating that the point is clockwise of the line.
+ * with a negative number indicating that the point is counterclockwise of the line and a positive number indicating that the point is clockwise of the line.
  */
 double line_point_dist(const Point &p, const Point &a, const Point &b);
 
@@ -207,9 +205,7 @@ Point reflect(const Point& v, const Point& n);
 Point reflect(const Point& a, const Point& b, const Point& p);
 
 /**
- * Given a cone shooting from the origin,
- * determines the furthest location from the origin,
- * at which to place a circle to block the cone.
+ * Given a cone shooting from the origin, determines the furthest location from the origin, at which to place a circle to block the cone.
  *
  * \pre The cone must have nonzero area.
  *
@@ -226,9 +222,7 @@ Point reflect(const Point& a, const Point& b, const Point& p);
 Point calc_block_cone(const Point &a, const Point &b, const double& radius);
 
 /**
- * Given a cone shooting from a point P,
- * determines the furthest location from P,
- * at which to place a circle to block the cone.
+ * Given a cone shooting from a point P, determines the furthest location from P, at which to place a circle to block the cone.
  *
  * \pre The cone must have nonzero area.
  *

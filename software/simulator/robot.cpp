@@ -32,14 +32,12 @@ void SimulatorRobot::bootloading(bool bl) {
 	if (bl != bootloading_) {
 		bootloading_ = bl;
 		if (bootloading_) {
-			// The transition into bootloader mode will result in the PIC
-			// shutting down operation of the FPGA, which causes the FPGA to
-			// its on-board state consisting of the run data offset.
+			// The transition into bootloader mode will result in the PIC shutting down operation of the FPGA,
+			// which causes the FPGA to lose its on-board state consisting of the run data offset.
 			run_data_offset_ = 0xFF;
 		} else {
-			// The transition out of bootloader mode will result in the PIC
-			// pulsing the XBee's RESET line, which causes the XBee to lose its
-			// on-board state consisting of its 16-bit address.
+			// The transition out of bootloader mode will result in the PIC/ pulsing the XBee's RESET line,
+			// which causes the XBee to lose its on-board state consisting of its 16-bit address.
 			address16_ = 0xFFFF;
 		}
 		signal_changed.emit();

@@ -16,8 +16,7 @@ namespace AI {
 			 *
 			 * \param[in] ai the AI to observe and control.
 			 *
-			 * \param[in] vis \c true to start up with the visualizer visible, or \c
-			 * false to start up with the visualizer invisible.
+			 * \param[in] vis \c true to start up with the visualizer visible, or \c false to start up with the visualizer invisible.
 			 */
 			Window(AI &ai, bool vis);
 

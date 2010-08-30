@@ -5,8 +5,10 @@
 #include <vector>
 
 /**
- * Parameter tunable robot controller. All tunable robot controller should
- * inherit this class. Parameter is a vector of doubles. NOT thread-safe.
+ * Parameter tunable robot controller.
+ * All tunable robot controller should inherit this class.
+ * The parameter is a vector of doubles.
+ * This class is not thread-safe.
  */
 class TunableController {
 	public:
@@ -42,8 +44,8 @@ class TunableController {
 		virtual const std::vector<double> get_params_default() const = 0;
 
 		/**
-		 * Gets the name of each parameter. Unless defined by the subclass, this
-		 * will always return a vector of question marks.
+		 * Gets the name of each parameter.
+		 * Unless defined by the subclass, this will always return a vector of question marks.
 		 *
 		 * \return the parameters' names.
 		 */
@@ -53,8 +55,8 @@ class TunableController {
 		}
 
 		/**
-		 * Gets the minimum value of each parameter. Unless defined, returns the
-		 * default value.
+		 * Gets the minimum value of each parameter.
+		 * Unless defined, returns 70% of the current values.
 		 *
 		 * \return the minimum values.
 		 */
@@ -66,8 +68,8 @@ class TunableController {
 		}
 
 		/**
-		 * Gets the maximum value of each parameter. Unless defined, returns the
-		 * default value.
+		 * Gets the maximum value of each parameter.
+		 * Unless defined, returns 130% of the current value.
 		 *
 		 * \return the maximum values.
 		 */
@@ -79,10 +81,9 @@ class TunableController {
 		}
 
 		/**
-		 * Gets one instance of a tunable controller. Returns NULL if no such
-		 * controller exist.
+		 * Gets one instance of a tunable controller.
 		 *
-		 * \return the current TunableController.
+		 * \return the current TunableController, or a null pointer if none exists.
 		 */
 		static TunableController* get_instance();
 };

@@ -26,8 +26,7 @@ class XBeePacketStream : public BackEnd, public sigc::trackable {
 		/**
 		 * Sends a packet.
 		 *
-		 * \param[in] iov a pointer to an array of iovecs to gather to find the
-		 * bytes to send.
+		 * \param[in] iov a pointer to an array of iovecs to gather to find the bytes to send.
 		 *
 		 * \param[in] iovcnt the number of iovecs in the \p iov array.
 		 */

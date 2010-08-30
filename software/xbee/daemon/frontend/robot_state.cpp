@@ -36,8 +36,7 @@ namespace {
 	}
 
 	/**
-	 * Stores feedback into the shared memory block as well as updating other
-	 * miscellaneous fields.
+	 * Stores feedback into the shared memory block as well as updating other miscellaneous fields.
 	 *
 	 * \param[in] lck the rwlock protecting the shared memory frame.
 	 *
@@ -59,8 +58,7 @@ namespace {
 }
 
 /**
- * A robot is in this state if it is not claimed by a client and if it has no
- * allocated resources.
+ * A robot is in this state if it is not claimed by a client and it has no allocated resources.
  */
 class XBeeRobot::IdleState : public XBeeRobot::RobotState {
 	public:
@@ -122,8 +120,7 @@ class XBeeRobot::RawState : public XBeeRobot::RobotState {
 };
 
 /**
- * A robot is in this state if it has been claimed by a client in drive mode but
- * the robot has not yet been given a 16-bit address.
+ * A robot is in this state if it has been claimed by a client in drive mode but has not yet been given a 16-bit address.
  */
 class XBeeRobot::Setting16State : public XBeeRobot::RobotState {
 	public:
@@ -162,8 +159,8 @@ class XBeeRobot::Setting16State : public XBeeRobot::RobotState {
 };
 
 /**
- * A robot is in this state if it has been claimed by a client in drive mode and
- * has been given a 16-bit address but has not yet been given a run data offset.
+ * A robot is in this state if it has been claimed by a client in drive mode and has a 16-bit address,
+ * but has not yet been given a run data offset.
  */
 class XBeeRobot::SettingRDOState : public XBeeRobot::RobotState {
 	public:
@@ -202,9 +199,8 @@ class XBeeRobot::SettingRDOState : public XBeeRobot::RobotState {
 };
 
 /**
- * A robot is in this state if it has been claimed by a client in drive mode and
- * has been given a 16-bit address and a run data offset and is therefore alive
- * and ready to drive.
+ * A robot is in this state if it has been claimed by a client in drive mode and has a 16-bit address and a run data offset.
+ * The robot is therefore alive and ready to drive.
  */
 class XBeeRobot::AliveState : public XBeeRobot::RobotState {
 	public:
@@ -241,8 +237,7 @@ class XBeeRobot::AliveState : public XBeeRobot::RobotState {
 };
 
 /**
- * A robot is in this state if it has been released from drive mode and needs
- * its 16-bit address clearing.
+ * A robot is in this state if it has been released from drive mode and needs its 16-bit address clearing.
  */
 class XBeeRobot::Releasing16State : public XBeeRobot::RobotState {
 	public:
@@ -280,8 +275,8 @@ class XBeeRobot::Releasing16State : public XBeeRobot::RobotState {
 };
 
 /**
- * A robot is in this state if it has been released from drive mode and needs
- * its bootload line to go high to reset the FPGA and clear the run data offset.
+ * A robot is in this state if it has been released from drive mode and needs its bootload line to go high.
+ * This will reset the FPGA and clear the run data offset.
  */
 class XBeeRobot::BootloadingHighState : public XBeeRobot::RobotState {
 	public:
@@ -319,8 +314,7 @@ class XBeeRobot::BootloadingHighState : public XBeeRobot::RobotState {
 };
 
 /**
- * A robot is in this state if it has had its bootload line set high but has not
- * yet had it returned to low.
+ * A robot is in this state if it has had its bootload line set high but has not yet had it returned to low.
  */
 class XBeeRobot::BootloadingLowState : public XBeeRobot::RobotState {
 	public:
@@ -358,11 +352,16 @@ class XBeeRobot::BootloadingLowState : public XBeeRobot::RobotState {
 };
 
 /**
- * A robot is in this state if it has had its bootload line set high, is in the
- * process of setting it low, and received a "drive mode" claim request during
- * the time period where this statement was true, and hence must lower the
- * bootload line (in order to bring the FPGA back online) and then consider
- * itself claimed, rather than proceeding to the idle state.
+ * A robot is in this state if the following sequence of events occurred:
+ * <ol>
+ * <li>The robot is in drive mode.</li>
+ * <li>The robot is released.</li>
+ * <li>The robot's 16-bit address is cleared.</li>
+ * <li>The robot's bootload line has gone high.</li>
+ * <li>The robot received a request to enter drive mode.</li>
+ * </ol>
+ *
+ * The bootload line needs to go low to bring the FPGA online, after which the robot is claimed.
  */
 class XBeeRobot::BootloadingLowToSetting16State : public XBeeRobot::RobotState {
 	public:
@@ -613,15 +612,17 @@ void XBeeRobot::Setting16State::request_done(const void *buffer, std::size_t len
 
 	// Check status.
 	if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
-		// No response. Robot is powered down? Not an error, just try again later.
+		// No response.
+		// Robot is powered down?
+		// Not an error, just try again later.
 		queue_request();
 	} else if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_OK) {
-		// Address was assigned successfully. Next order of business is to
-		// assign the run data offset.
+		// Address was assigned successfully.
+		// Next order of business is to assign the run data offset.
 		bot.state_ = SettingRDOState::enter(bot, claimed_by, address16_, run_data_index_);
 	} else {
-		// An error of some unknown type occurred. This should be impossible; it
-		// suggests a logic error in the code and not a radio issue.
+		// An error of some unknown type occurred.
+		// This should be impossible; it suggests a logic error in the code and not a radio issue.
 		LOG_WARN("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
 		std::abort();
 	}
@@ -635,9 +636,9 @@ XBeeRobot::RobotState::Ptr XBeeRobot::SettingRDOState::enter(XBeeRobot &bot, XBe
 }
 
 XBeeRobot::SettingRDOState::SettingRDOState(XBeeRobot &bot, XBeeClient &claimed_by, uint16_t address16, uint8_t run_data_index) : bot(bot), claimed_by(claimed_by), address16_(address16), run_data_index_(run_data_index) {
-	// Set the RUNNING flag in the run data packet, so that the XBeeScheduler will
-	// start soliciting feedback. We will use the receipt of feedback as our
-	// signal to exit the settingrdo state and transition to alive.
+	// Set the RUNNING flag in the run data packet.
+	// This makes the XBeeScheduler solicit feedback.
+	// Receipt of feedback is our signal to exit the settingrdo state and transition to alive.
 	{
 		RWLockScopedAcquire acq(&bot.daemon.shm->lock, &pthread_rwlock_wrlock);
 		bot.daemon.shm->frames[run_data_index_].run_data.flags |= XBeePacketTypes::RUN_FLAG_RUNNING;
@@ -662,7 +663,8 @@ void XBeeRobot::SettingRDOState::release() {
 }
 
 void XBeeRobot::SettingRDOState::on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency) {
-	// Feedback has been received. The robot is now alive!
+	// Feedback has been received.
+	// The robot is now alive!
 	put_feedback(&bot.daemon.shm->lock, bot.daemon.shm->frames[run_data_index_], packet, latency, rssi);
 	bot.state_ = AliveState::enter(bot, claimed_by, address16_, run_data_index_);
 }
@@ -709,10 +711,10 @@ void XBeeRobot::SettingRDOState::queue_request() {
 }
 
 void XBeeRobot::SettingRDOState::request_done(const void *, std::size_t) {
-	// We actually don't do anything here except just retransmit the packet. We
-	// keep flooding until we exit this state, which is caused by either
-	// receiving feedback or timing out on feedback, and has nothing to do with
-	// the RDO setting packet being delivered or not.
+	// We actually don't do anything here except just retransmit the packet.
+	// We keep flooding until we exit this state,
+	// which is caused by either receiving feedback or timing out on feedback, 
+	// and has nothing to do with the RDO setting packet being delivered or not.
 	queue_request();
 }
 
@@ -756,8 +758,8 @@ void XBeeRobot::AliveState::on_feedback_timeout() {
 		delivery_mask = bot.daemon.shm->frames[run_data_index_].delivery_mask;
 	}
 
-	// If we have failed 16 times in a row, assume the robot is dead. Otherwise,
-	// emit the feedback signal to update the UI.
+	// If we have failed 16 times in a row, assume the robot is dead.
+	// Otherwise, emit the feedback signal to update the UI.
 	if (!delivery_mask) {
 		bot.state_ = Setting16State::enter(bot, claimed_by, address16_, run_data_index_);
 		bot.signal_dead.emit();
@@ -869,8 +871,9 @@ void XBeeRobot::Releasing16State::request_done(const void *buffer, std::size_t l
 
 	// Check status.
 	if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
-		// No response. Robot is powered down? Not an error, just try again up
-		// to a maximum limit of attempts.
+		// No response.
+		// Robot is powered down?
+		// Not an error, just try again up to a maximum limit of attempts.
 		if (++attempts < MAX_ATTEMPTS) {
 			queue_request();
 			return;
@@ -878,14 +881,14 @@ void XBeeRobot::Releasing16State::request_done(const void *buffer, std::size_t l
 	} else if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_OK) {
 		// Continue below.
 	} else {
-		// An error of some unknown type occurred. This should be impossible; it
-		// suggests a logic error in the code and not a radio issue.
+		// An error of some unknown type occurred.
+		// This should be impossible; it suggests a logic error in the code and not a radio issue.
 		LOG_WARN("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
 		std::abort();
 	}
 
-	// Address was assigned successfully. Next order of business is to reset the
-	// FPGA.
+	// Address was assigned successfully.
+	// Next order of business is to reset the FPGA.
 	bot.state_ = BootloadingHighState::enter(bot, address16_, run_data_index_);
 }
 
@@ -974,8 +977,9 @@ void XBeeRobot::BootloadingHighState::request_done(const void *buffer, std::size
 
 	// Check status.
 	if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
-		// No response. Robot is powered down? Not an error, just try again up
-		// to a maximum limit of attempts.
+		// No response.
+		// Robot is powered down?
+		// Not an error, just try again up to a maximum limit of attempts.
 		if (++attempts < MAX_ATTEMPTS) {
 			queue_request();
 			return;
@@ -983,13 +987,14 @@ void XBeeRobot::BootloadingHighState::request_done(const void *buffer, std::size
 	} else if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_OK) {
 		// Continue below.
 	} else {
-		// An error of some unknown type occurred. This should be impossible; it
-		// suggests a logic error in the code and not a radio issue.
+		// An error of some unknown type occurred.
+		// This should be impossible; it suggests a logic error in the code and not a radio issue.
 		LOG_WARN("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
 		std::abort();
 	}
 
-	// Bootload line was raised. Next order of business is to lower it again.
+	// Bootload line was raised.
+	// Next order of business is to lower it again.
 	bot.state_ = BootloadingLowState::enter(bot, address16_, run_data_index_);
 }
 
@@ -1078,8 +1083,9 @@ void XBeeRobot::BootloadingLowState::request_done(const void *buffer, std::size_
 
 	// Check status.
 	if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
-		// No response. Robot is powered down? Not an error, just try again up
-		// to a maximum limit of attempts.
+		// No response.
+		// Robot is powered down?
+		// Not an error, just try again up to a maximum limit of attempts.
 		if (++attempts < MAX_ATTEMPTS) {
 			queue_request();
 			return;
@@ -1087,13 +1093,14 @@ void XBeeRobot::BootloadingLowState::request_done(const void *buffer, std::size_
 	} else if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_OK) {
 		// Continue below.
 	} else {
-		// An error of some unknown type occurred. This should be impossible; it
-		// suggests a logic error in the code and not a radio issue.
+		// An error of some unknown type occurred.
+		// This should be impossible; it suggests a logic error in the code and not a radio issue.
 		LOG_WARN("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
 		std::abort();
 	}
 
-	// Bootload line was lowered. We are now officially idle.
+	// Bootload line was lowered.
+	// We are now officially idle.
 	bot.daemon.id16_allocator.free(address16_);
 	bot.daemon.free_rundata_index(run_data_index_);
 	bot.state_ = IdleState::enter(bot);
@@ -1186,8 +1193,9 @@ void XBeeRobot::BootloadingLowToSetting16State::request_done(const void *buffer,
 
 	// Check status.
 	if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE) {
-		// No response. Robot is powered down? Not an error, just try again up
-		// to a maximum limit of attempts.
+		// No response.
+		// Robot is powered down?
+		// Not an error, just try again up to a maximum limit of attempts.
 		if (++attempts < MAX_ATTEMPTS) {
 			queue_request();
 			return;
@@ -1195,13 +1203,14 @@ void XBeeRobot::BootloadingLowToSetting16State::request_done(const void *buffer,
 	} else if (resp.status == XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_OK) {
 		// Continue below.
 	} else {
-		// An error of some unknown type occurred. This should be impossible; it
-		// suggests a logic error in the code and not a radio issue.
+		// An error of some unknown type occurred.
+		// This should be impossible; it suggests a logic error in the code and not a radio issue.
 		LOG_WARN("A REMOTE AT RESPONSE packet has an error code that makes no sense.");
 		std::abort();
 	}
 
-	// Bootload line was lowered. Go back to configuring so we can drive.
+	// Bootload line was lowered.
+	// Go back to configuring so we can drive.
 	bot.state_ = Setting16State::enter(bot, claimed_by, address16_, run_data_index_);
 }
 

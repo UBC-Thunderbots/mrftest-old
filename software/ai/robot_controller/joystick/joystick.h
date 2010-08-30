@@ -18,8 +18,7 @@ class Joystick : public ByRef, public sigc::trackable {
 		/**
 		 * Opens a joystick.
 		 *
-		 * \param[in] filename the name of the \c /dev/input file exporting the
-		 * joystick data.
+		 * \param[in] filename the name of the \c /dev/input file exporting the joystick data.
 		 *
 		 * \return the new Joystick object.
 		 */

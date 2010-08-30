@@ -46,8 +46,7 @@ namespace {
 			 *
 			 * @param y the second RobotInfo to examine.
 			 *
-			 * @return \c true if \p x has an address less than that of \c y, or
-			 * \c false if not.
+			 * @return \c true if \p x has an address less than that of \c y, or \c false if not.
 			 */
 			bool operator()(const Config::RobotInfo &x, const Config::RobotInfo &y) {
 				return x.address < y.address;
@@ -66,9 +65,8 @@ namespace {
 			 *
 			 * @param y the second RobotInfo to examine.
 			 *
-			 * @return \c true if \p x comes before \p y when ordered by lid
-			 * patterns, with colour serving as the major parameter and pattern
-			 * index as the minor parameter, or \c false if not.
+			 * @return \c true if \p x comes before \p y when ordered by lid patterns,
+			 * with colour serving as the major parameter and pattern index as the minor parameter, or \c false if not.
 			 */
 			bool operator()(const Config::RobotInfo &x, const Config::RobotInfo &y) {
 				if (x.yellow != y.yellow) {
@@ -91,8 +89,7 @@ namespace {
 			 *
 			 * @param y the second RobotInfo to examine.
 			 *
-			 * @return \c true if the name of \p x comes lexicographically
-			 * before the name of \c y, or \c false if not.
+			 * @return \c true if the name of \p x comes lexicographically before the name of \c y, or \c false if not.
 			 */
 			bool operator()(const Config::RobotInfo &x, const Config::RobotInfo &y) {
 				return x.name < y.name;
@@ -133,8 +130,7 @@ namespace {
 	 *
 	 * @param name the name of the child to look for.
 	 *
-	 * @return the child element, or null if no (or more than one) child had the
-	 * requested name.
+	 * @return the child element, or null if no (or more than one) child had the requested name.
 	 */
 	xmlpp::Element *find_child_element(const xmlpp::Element *parent, const Glib::ustring &name) {
 		const xmlpp::Node::NodeList &children = parent->get_children(name);

@@ -123,16 +123,14 @@ namespace AI {
 	class FriendlyTeam : public Team {
 		public:
 			/**
-			 * Fired when a Player is added to the team. Using this signal instead
-			 * of \ref signal_robot_added avoids the need to cast the Robot::Ptr to
-			 * a Player::Ptr.
+			 * Fired when a Player is added to the team.
+			 * Using this signal instead of \ref signal_robot_added avoids the need to cast the Robot::Ptr to a Player::Ptr.
 			 */
 			mutable sigc::signal<void, unsigned int, Player::Ptr> signal_player_added;
 
 			/**
-			 * Fired when a Player is removed from the team. Using this signal
-			 * instead of \ref signal_robot_removed avoids the need to cast the
-			 * Robot::Ptr to a Player::Ptr.
+			 * Fired when a Player is removed from the team.
+			 * Using this signal instead of \ref signal_robot_removed avoids the need to cast the Robot::Ptr to a Player::Ptr.
 			 */
 			mutable sigc::signal<void, unsigned int, Player::Ptr> signal_player_removed;
 
@@ -145,9 +143,8 @@ namespace AI {
 			}
 
 			/**
-			 * Gets a Player from this team. Using this function instead of
-			 * get_robot(unsigned int) const avoids the need to cast the returned
-			 * Robot::Ptr to a Player::Ptr.
+			 * Gets a Player from this team.
+			 * Using this function instead of get_robot(unsigned int) const avoids the need to cast the returned Robot::Ptr to a Player::Ptr.
 			 *
 			 * \param[in] index the index of the player to fetch.
 			 *

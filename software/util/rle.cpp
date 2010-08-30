@@ -10,8 +10,7 @@ RLECompressor::RLECompressor(const void *data, std::size_t length) : cur_run(0) 
 	// Compute the CRC16 of the input data.
 	uint16_t crc = CRC16::calculate(data, length);
 
-	// First, break the input into a sequence of blocks where all bytes in the
-	// same block are equal.
+	// First, break the input into a sequence of blocks where all bytes in the same block are equal.
 	std::vector<std::pair<std::size_t, const unsigned char *> > blocks;
 	{
 		const unsigned char *src = static_cast<const unsigned char *>(data);
@@ -27,9 +26,8 @@ RLECompressor::RLECompressor(const void *data, std::size_t length) : cur_run(0) 
 		}
 	}
 
-	// Now turn the blocks into runs by electing, based on the length of each
-	// block, whether to generate a repeat run or whether to generate or add to
-	// a literal run.
+	// Now turn the blocks into runs by electing, based on the length of each block,
+	// whether to generate a repeat run or whether to generate or add to a literal run.
 	{
 		unsigned int block_num = 0;
 		while (block_num < blocks.size()) {
@@ -80,10 +78,8 @@ std::size_t RLECompressor::next(void *buffer, std::size_t length) {
 				// More runs to go. Keep working.
 			}
 		} else {
-			// The current run has more encoding to do. If it were able to do
-			// it, it would have already done it. That it returned without
-			// finishing itself signals that we have run out of buffer space.
-			// Thus, return immediately.
+			// The current run has more encoding to do. If it were able to do it, it would have already done it.
+			// That it returned without finishing itself signals that we have run out of buffer space. Thus, return immediately.
 			return encoded;
 		}
 	}
@@ -104,9 +100,8 @@ std::size_t RLECompressor::RLERun::encode(void *buffer, std::size_t buflen) {
 	assert(!done());
 
 	if (is_repeat) {
-		// Here, "length" is the number of occurrences of the repeating byte
-		// that have yet to be encoded. Keep pushing until we run out of either
-		// occurrences or buffer space.
+		// Here, "length" is the number of occurrences of the repeating byte that have yet to be encoded.
+		// Keep pushing until we run out of either occurrences or buffer space.
 		std::size_t generated = 0;
 		while (buflen >= 2 && length > 0) {
 			// We can only encode up to 127 occurrences in one output chunk.
@@ -123,8 +118,8 @@ std::size_t RLECompressor::RLERun::encode(void *buffer, std::size_t buflen) {
 		// Keep pushing until we run out of either data or buffer space.
 		std::size_t generated = 0;
 		while (buflen >= 2 && length > 0) {
-			// We can only encode up to 127 bytes in one output chunk. We are
-			// also not allowed to overflow the output buffer.
+			// We can only encode up to 127 bytes in one output chunk.
+			// We are also not allowed to overflow the output buffer.
 			unsigned char s = std::min<std::size_t>(127U, std::min<std::size_t>(buflen - 1, length));
 			*bufptr++ = s;
 			--buflen;
@@ -138,10 +133,8 @@ std::size_t RLECompressor::RLERun::encode(void *buffer, std::size_t buflen) {
 		}
 		return generated;
 	} else {
-		// This is a termination marker. Here, "length" is set to 1 if the
-		// marker has not yet been written, or 0 if it has. Writing the marker
-		// requires 3 bytes of buffer space (one for the code and two for the
-		// CRC).
+		// This is a termination marker. Here, "length" is set to 1 if the marker has not yet been written, or 0 if it has.
+		// Writing the marker requires 3 bytes of buffer space (one for the code and two for the CRC).
 		if (buflen >= 3) {
 			bufptr[0] = 0;
 			bufptr[1] = crc / 256;

@@ -28,8 +28,8 @@ namespace {
 			throw std::runtime_error("Cannot connect to arbiter daemon!");
 		}
 
-		// Read the signature string from the daemon. If this fails, we may have
-		// hit the race condition when the daemon is dying.
+		// Read the signature string from the daemon.
+		// If this fails, we may have hit the race condition when the daemon is dying.
 		char buffer[4];
 		if (recv(sock->fd(), buffer, sizeof(buffer), 0) != sizeof(buffer))
 			return FileDescriptor::Ptr();

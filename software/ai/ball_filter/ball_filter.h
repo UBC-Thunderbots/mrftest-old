@@ -9,16 +9,14 @@
 
 namespace AI {
 	/**
-	 * An object capable of examining incoming ball information data and filtering
-	 * it to determine which detections are real and which are spurious.
+	 * An object capable of examining incoming ball information data and filtering it to determine which detections are real and which are spurious.
 	 */
 	class BallFilter : public Registerable<BallFilter> {
 		public:
 			/**
 			 * Performs a filtering operation.
 			 *
-			 * \param[in] balls the set of balls detected by the two cameras, along
-			 * with their associated confidence levels.
+			 * \param[in] balls the set of balls detected by the two cameras, along with their associated confidence levels.
 			 *
 			 * \param[in] friendly the friendly team.
 			 *

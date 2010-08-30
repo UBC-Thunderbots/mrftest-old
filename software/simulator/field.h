@@ -17,8 +17,7 @@ class SimulatorField {
 		static const double total_length = 7.40;
 
 		/**
-		 * The width of the field, from sideline to sideline, in the Y
-		 * direction.
+		 * The width of the field, from sideline to sideline, in the Y direction.
 		 */
 		static const double width = 4.05;
 

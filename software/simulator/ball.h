@@ -7,9 +7,8 @@
 #include <glibmm.h>
 
 /**
- * The ball, as seen by a simulation engine. An individual engine is expected to
- * subclass this class and return an instance of the subclass from its
- * SimulatorEngine::get_ball() method.
+ * The ball, as seen by a simulation engine.
+ * An individual engine is expected to subclass this class and return an instance of the subclass from its SimulatorEngine::get_ball() method.
  */
 class SimulatorBall : public Visualizable::Ball {
 	public:
@@ -28,8 +27,7 @@ class SimulatorBall : public Visualizable::Ball {
 		/**
 		 * Moves the ball.
 		 *
-		 * \param[in] pos the new location of the ball, in metres from field
-		 * centre.
+		 * \param[in] pos the new location of the ball, in metres from field centre.
 		 */
 		virtual void position(const Point &pos) = 0;
 

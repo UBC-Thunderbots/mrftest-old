@@ -7,13 +7,11 @@
 #include <sys/un.h>
 
 /**
- * Allows easy access to different types of network socket address structures
- * without the need for casts.
+ * Allows easy access to different types of network socket address structures without the need for casts.
  */
 union SockAddrs {
 	/**
-	 * The generic address structure, for use with functions like \c bind() and
-	 * \c connect().
+	 * The generic address structure, for use with functions like \c bind() and \c connect().
 	 */
 	sockaddr sa;
 
@@ -29,8 +27,7 @@ union SockAddrs {
 };
 
 /**
- * Returns INADDR_ANY properly translated to network byte order, avoiding the
- * "old style cast" warning issued by using the constant directly.
+ * Returns INADDR_ANY properly translated to network byte order, avoiding the "old style cast" warning issued by using the constant directly.
  *
  * \return \c htonl(INADDR_ANY).
  */

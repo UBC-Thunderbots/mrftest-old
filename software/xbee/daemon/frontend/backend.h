@@ -9,16 +9,14 @@
 #include <stdint.h>
 
 /**
- * A particular back-end that wishes to handle all packets transmitted and
- * produce received packets must subclass this class and pass said subclass into
- * the constructor of the XBeeDaemon class.
+ * A particular back-end that wishes to handle all packets transmitted and produce received packets must subclass this class.
+ * It must then pass said subclass into the constructor of the XBeeDaemon class.
  */
 class BackEnd : public NonCopyable {
 	public:
 		/**
-		 * Invoked when a packet is received. The subclass is expected to
-		 * trigger this signal in order to inject a received packet into the
-		 * system.
+		 * Invoked when a packet is received.
+		 * The subclass is expected to trigger this signal in order to inject a received packet into the system.
 		 */
 		sigc::signal<void, const std::vector<uint8_t> &> signal_received;
 
@@ -35,11 +33,10 @@ class BackEnd : public NonCopyable {
 		}
 
 		/**
-		 * Sends a packet. The subclass is expected to implement this class to
-		 * send the given packet.
+		 * Sends a packet.
+		 * The subclass is expected to implement this class to send the given packet.
 		 *
-		 * \param[in] iov a pointer to an array of iovecs to gather to find the
-		 * bytes to send.
+		 * \param[in] iov a pointer to an array of iovecs to gather to find the bytes to send.
 		 *
 		 * \param[in] iovcnt the number of iovecs in the \p iov array.
 		 */

@@ -19,8 +19,7 @@ class RefPtr {
 		 *
 		 * \param[in] pu the pointer to cast.
 		 *
-		 * \return a RefPtr pointing to the result of performing a \c
-		 * static_cast<T> on <code>pu</code>'s underlying pointer.
+		 * \return a RefPtr pointing to the result of performing a \c static_cast<T> on <code>pu</code>'s underlying pointer.
 		 */
 		template<typename U>
 		static RefPtr<T> cast_static(const RefPtr<U> &pu) {
@@ -38,8 +37,7 @@ class RefPtr {
 		 *
 		 * \param[in] pu the pointer to cast.
 		 *
-		 * \return a RefPtr pointing to the result of performing a \c
-		 * dynamic_cast<T> on <code>pu</code>'s underlying pointer.
+		 * \return a RefPtr pointing to the result of performing a \c dynamic_cast<T> on <code>pu</code>'s underlying pointer.
 		 */
 		template<typename U>
 		static RefPtr<T> cast_dynamic(const RefPtr<U> &pu) {
@@ -57,13 +55,11 @@ class RefPtr {
 		}
 
 		/**
-		 * Constructs a new RefPtr by taking ownership of an object. The
-		 * object's reference count is not incremented; it is assumed that the
-		 * object has been freshly constructed and has a single reference that
-		 * will be inherited by the new RefPtr.
+		 * Constructs a new RefPtr by taking ownership of an object.
+		 * The object's reference count is not incremented;
+		 * it is assumed that the object has been freshly constructed and has a single reference that will be inherited by the new RefPtr.
 		 *
-		 * \param[in] p a pointer to the object to take ownership of, or a null
-		 * pointer to create a null RefPtr.
+		 * \param[in] p a pointer to the object to take ownership of, or a null pointer to create a null RefPtr.
 		 */
 		explicit RefPtr(T *p) : obj(p) {
 		}
@@ -80,8 +76,7 @@ class RefPtr {
 		}
 
 		/**
-		 * Converts a RefPtr pointing to a derived type into a RefPtr pointing
-		 * to a base type.
+		 * Converts a RefPtr pointing to a derived type into a RefPtr pointing to a base type.
 		 *
 		 * \tparam U the derived type.
 		 *
@@ -125,13 +120,11 @@ class RefPtr {
 		}
 
 		/**
-		 * Takes ownership of a new object. The object's reference count is not
-		 * incremented; it is assumed that the object has been freshly
-		 * constructed and has a single reference that will be inherited by this
-		 * RefPtr.
+		 * Takes ownership of a new object.
+		 * The object's reference count is not incremented;
+		 * it is assumed that the object has been freshly constructed and has a single reference that will be inherited by this RefPtr.
 		 *
-		 * \param[in] p a pointer to the object to take ownership of, or a null
-		 * pointer to turn this RefPtr into a null RefPtr.
+		 * \param[in] p a pointer to the object to take ownership of, or a null pointer to turn this RefPtr into a null RefPtr.
 		 */
 		void reset(T *p) {
 			reset();
@@ -139,8 +132,7 @@ class RefPtr {
 		}
 
 		/**
-		 * Invokes a function or accesses a variable in the object pointed to by
-		 * this RefPtr.
+		 * Invokes a function or accesses a variable in the object pointed to by this RefPtr.
 		 *
 		 * \return a pointer to the pointed-to object.
 		 */
@@ -149,26 +141,24 @@ class RefPtr {
 		}
 
 		/**
-		 * Compares two RefPtrs. Two RefPtrs are considered equal if they point
-		 * at the same object or if they are both null.
+		 * Compares two RefPtrs.
+		 * Two RefPtrs are considered equal if they point at the same object or if they are both null.
 		 *
 		 * \param[in] other the RefPtr to compare to.
 		 *
-		 * \return \c true if \c this and \p other are equal, or \c false if
-		 * not.
+		 * \return \c true if \c this and \p other are equal, or \c false if not.
 		 */
 		bool operator==(const RefPtr<T> &other) const {
 			return obj == other.obj;
 		}
 
 		/**
-		 * Compares two RefPtrs. Two RefPtrs are considered equal if they point
-		 * at the same object or if they are both null.
+		 * Compares two RefPtrs.
+		 * Two RefPtrs are considered equal if they point at the same object or if they are both null.
 		 *
 		 * \param[in] other the RefPtr to compare to.
 		 *
-		 * \return \c true if \c this and \p other are unequal, or \c false if
-		 * not.
+		 * \return \c true if \c this and \p other are unequal, or \c false if not.
 		 */
 		bool operator!=(const RefPtr<T> &other) const {
 			return obj != other.obj;
@@ -177,8 +167,7 @@ class RefPtr {
 		/**
 		 * Checks whether this RefPtr is null or not.
 		 *
-		 * \return \c true if this RefPtr points to an object, or \c false if it
-		 * is null.
+		 * \return \c true if this RefPtr points to an object, or \c false if it is null.
 		 */
 		bool is() const {
 			return obj != 0;
@@ -199,10 +188,9 @@ class RefPtr {
 
 namespace std {
 	/**
-	 * Swaps two \ref RefPtr "RefPtrs". Note that this is an override introduced
-	 * into the \c std namespace and not a template specialization and is
-	 * therefore technically illegal; that said, there exists no way to
-	 * specialize \c std::swap on a template type, so this is the best solution.
+	 * Swaps two \ref RefPtr "RefPtrs".
+	 * Note that this is an override introduced into the \c std namespace and not a template specialization and is therefore technically illegal;
+	 * that said, there exists no way to specialize \c std::swap on a template type, so this is the best solution.
 	 *
 	 * \tparam T the type to which the \ref RefPtr "RefPtrs" point.
 	 *
@@ -217,14 +205,13 @@ namespace std {
 }
 
 /**
- * An object that should be passed around by means of a RefPtr<> rather
- * than by copying.
+ * An object that should be passed around by means of a RefPtr<> rather than by copying.
  */
 class ByRef : public NonCopyable {
 	public:
 		/**
-		 * Returns the reference count of the object. This can be used to check
-		 * for leaking references at the expected point of destruction.
+		 * Returns the reference count of the object.
+		 * This can be used to check for leaking references at the expected point of destruction.
 		 *
 		 * \return the reference count.
 		 */
@@ -234,17 +221,16 @@ class ByRef : public NonCopyable {
 
 	protected:
 		/**
-		 * Constructs a new ByRef. The object is assumed to have one reference.
+		 * Constructs a new ByRef.
+		 * The object is assumed to have one reference.
 		 */
 		ByRef() : refs_(1) {
 		}
 
 		/**
-		 * Destroys a ByRef. This is here even though it doesn't do anything
-		 * because it forces destructors all the way down the inheritance
-		 * hierarchy to be virtual, which ensures that when a reference-counted
-		 * object loses its last pointer, the <code>delete this</code> in
-		 * unreference() invokes the correct destructor.
+		 * Destroys a ByRef.
+		 * This is here even though it doesn't do anything because it forces destructors all the way down the inheritance hierarchy to be virtual,
+		 * which ensures that when a reference-counted object loses its last pointer, the <code>delete this</code> invokes the correct destructor.
 		 */
 		virtual ~ByRef() {
 		}

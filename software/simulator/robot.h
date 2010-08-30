@@ -12,15 +12,12 @@
 class Simulator;
 
 /**
- * A simulation of an actual physical robot. This is different from the
- * SimulatorPlayer class in that a SimulatorPlayer is a live, driving
- * SimulatorRobot provided by an engine, whereas a SimulatorRobot may actually
- * be powered off, crashed, off the field, unclaimed, or otherwise not driving
- * normally.
+ * A simulation of an actual physical robot.
+ * This is different from the SimulatorPlayer class in that a SimulatorPlayer is a live, driving SimulatorRobot provided by an engine,
+ * whereas a SimulatorRobot may actually be powered off, crashed, off the field, unclaimed, or otherwise not driving normally.
  *
- * While the set of players in existence may change as robots are powered up and
- * down and moved onto and off of the field, the set of robots is fixed when the
- * simulator is launched by the contents of the configuration file.
+ * While the set of players in existence may change as robots are powered up and down and moved onto and off of the field,
+ * the set of robots is fixed when the simulator is launched by the contents of the configuration file.
  */
 class SimulatorRobot : public Visualizable::Robot {
 	public:
@@ -40,13 +37,12 @@ class SimulatorRobot : public Visualizable::Robot {
 		sigc::signal<void> signal_changed;
 
 		/**
-		 * Creates a new SimulatorRobot. The robot is initially located off the
-		 * field and its power switch is initially off.
+		 * Creates a new SimulatorRobot.
+		 * The robot is initially located off the field and its power switch is initially off.
 		 *
 		 * \param[in] botinfo the information describing the robot.
 		 *
-		 * \param[in] engine the simulator engine that will back the robot when
-		 * it is running.
+		 * \param[in] engine the simulator engine that will back the robot when it is running.
 		 */
 		static Ptr create(const Config::RobotInfo &botinfo, SimulatorEngine::Ptr engine);
 
@@ -62,8 +58,7 @@ class SimulatorRobot : public Visualizable::Robot {
 		/**
 		 * Powers the robot up or down.
 		 *
-		 * \param[in] pwr \c true to power the robot up, or \c false to power it
-		 * down.
+		 * \param[in] pwr \c true to power the robot up, or \c false to power it down.
 		 */
 		void powered(bool pwr);
 
@@ -134,23 +129,20 @@ class SimulatorRobot : public Visualizable::Robot {
 		/**
 		 * Returns the backing SimulatorPlayer.
 		 *
-		 * \return the engine SimulatorPlayer backing the robot, or a null
-		 * pointer if the robot is not currently in a state where it is backed
-		 * by an engine SimulatorPlayer.
+		 * \return the engine SimulatorPlayer backing the robot,
+		 * or a null pointer if the robot is not currently in a state where it is backed by an engine SimulatorPlayer.
 		 */
 		SimulatorPlayer::Ptr get_player() const {
 			return player_;
 		}
 
 		/**
-		 * Places this robot on the field and attaches it to the engine, if not
-		 * already done.
+		 * Places this robot on the field and attaches it to the engine, if not already done.
 		 */
 		void add_player();
 
 		/**
-		 * Removes this robot from the field and detaches it from the engine, if
-		 * it is on the field.
+		 * Removes this robot from the field and detaches it from the engine, if it is on the field.
 		 */
 		void remove_player();
 

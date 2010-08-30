@@ -25,8 +25,8 @@ class XBeePacket : public ByRef {
 		const bool has_response;
 
 		/**
-		 * Returns the signal emitted once the packet is complete. Only
-		 * available if the packet is expecting a response.
+		 * Returns the signal emitted once the packet is complete.
+		 * Only available if the packet is expecting a response.
 		 *
 		 * \return the signal.
 		 */
@@ -40,8 +40,7 @@ class XBeePacket : public ByRef {
 		 *
 		 * \param[in] sock the socket over which to send the packet.
 		 *
-		 * \param[in] frame the frame ID allocated for this packet, used to
-		 * match the subsequent response.
+		 * \param[in] frame the frame ID allocated for this packet, used to match the subsequent response.
 		 */
 		virtual void transmit(FileDescriptor::Ptr sock, uint8_t frame) const = 0;
 
@@ -49,8 +48,7 @@ class XBeePacket : public ByRef {
 		/**
 		 * Constructs a new XBeePacket.
 		 *
-		 * \param[in] has_response \c true if there will be a response to the
-		 * packet, or \c false if not.
+		 * \param[in] has_response \c true if there will be a response to the packet, or \c false if not.
 		 */
 		XBeePacket(bool has_response) : has_response(has_response) {
 		}
@@ -72,16 +70,13 @@ class Transmit16Packet : public XBeePacket {
 		/**
 		 * Constructs a new Transmit16Packet.
 		 *
-		 * \param[in] dest the 16-bit address of the XBee to send the data to,
-		 * or \c 0xFFFF to broadcast the packet.
+		 * \param[in] dest the 16-bit address of the XBee to send the data to, or \c 0xFFFF to broadcast the packet.
 		 *
-		 * \param[in] disable_ack \c true to order the modem to send and forget
-		 * the packet, or \c false to solicit MAC-layer acknowledgements and
-		 * perform automatic retransmission at the MAC layer.
+		 * \param[in] disable_ack \c true to order the modem to send and forget the packet,
+		 * or \c false to solicit MAC-layer acknowledgements and perform automatic retransmission at the MAC layer.
 		 *
-		 * \param[in] has_response \c true to request a Transmit Status packet
-		 * indicating the outcome of the request, or \c false if no response is
-		 * needed.
+		 * \param[in] has_response \c true to request a Transmit Status packet indicating the outcome of the request,
+		 * or \c false if no response is needed.
 		 *
 		 * \param[in] data the payload to send in the packet.
 		 *
@@ -162,8 +157,7 @@ class RemoteATPacket : public XBeePacket {
 		 *
 		 * \param[in] value the value to provide.
 		 *
-		 * \param[in] apply \c true to apply the change immediately, or \c false
-		 * to queue the command for later application.
+		 * \param[in] apply \c true to apply the change immediately, or \c false to queue the command for later application.
 		 */
 		static Ptr create(uint64_t dest, const char *command, const void *value, bool apply) {
 			Ptr p(new RemoteATPacket<value_size>(dest, command, value, apply));
@@ -199,8 +193,7 @@ class MetaClaimPacket : public XBeePacket {
 		 *
 		 * \param[in] address the 64-bit address of the robot to claim.
 		 *
-		 * \param[in] drive_mode \c true to claim the robot in drive mode, or \c
-		 * false to claim it in raw mode.
+		 * \param[in] drive_mode \c true to claim the robot in drive mode, or \c false to claim it in raw mode.
 		 */
 		static Ptr create(uint64_t address, bool drive_mode) {
 			Ptr p(new MetaClaimPacket(address, drive_mode));

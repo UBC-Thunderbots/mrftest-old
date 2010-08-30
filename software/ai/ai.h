@@ -51,8 +51,7 @@ namespace AI {
 			}
 
 			/**
-			 * Sets the RobotControllerFactory that creates \ref RobotController
-			 * "RobotControllers" that drive the robots.
+			 * Sets the RobotControllerFactory that creates \ref RobotController "RobotControllers" that drive the robots.
 			 *
 			 * \param[in] fact the new factory.
 			 */

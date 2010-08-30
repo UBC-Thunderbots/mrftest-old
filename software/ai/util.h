@@ -7,22 +7,26 @@
 
 #include <vector>
 
-/**
- * Contains a bunch of useful utility functions.
- * In general, the functions that go here:
- * - do geometric calculations, without containing any form of INTELLIGENCE.
- * - can be used accross different roles/strategies/tactic.
- * - will unify definition (such as ball possesion).
- */
 namespace AI {
+	/**
+	 * Contains a bunch of useful utility functions.
+	 * 
+	 * In general, the functions that go here:
+	 * <ul>
+	 * <li>do geometric calculations, without containing any form of INTELLIGENCE,</li>
+	 * <li>can be used accross different strategies/tactics/navigators, and</li>
+	 * <li>will unify definitions of concepts such as ball possesion</li>
+	 * </ul>
+	 */
 	namespace Util {
 	/**
-	 * A comparator that sorts by a particular distance.
+	 * A comparator that sorts by the distance to a target point.
+	 * Objects that are closer to the target point are considered to precede objects that are further away.
 	 *
 	 * Example:
 	 * \code
-	 * std::vector<Robot::Ptr> enemies = AIUtil::get_robots(enemy);
-	 * std::sort(enemies.begin(), enemies.end(), AIUtil::CmpDist<Robot::Ptr>(goal));
+	 * std::vector<Robot::Ptr> enemies = AI::Util::get_robots(enemy);
+	 * std::sort(enemies.begin(), enemies.end(), AI::Util::CmpDist<Robot::Ptr>(goal));
 	 * \endcode
 	 *
 	 * \tparam T the type of object whose distances should be compared.
@@ -32,8 +36,7 @@ namespace AI {
 			/**
 			 * Creates a comparator.
 			 *
-			 * \param[in] dest the point by distances to which the objects
-			 * should be compared.
+			 * \param[in] dest the point by distances to which the objects should be compared.
 			 */
 			CmpDist(const Point& dest) : dest(dest) {
 			}
@@ -45,8 +48,7 @@ namespace AI {
 			 *
 			 * \param[in] y the second object.
 			 *
-			 * \return \c true if \p x is closer to the destination than \c y,
-			 * or \c false if not.
+			 * \return \c true if \p x is closer to the destination than \c y, or \c false if not.
 			 */
 			bool operator()(T x, T y) const {
 				return (x->position() - dest).lensq() < (y->position() - dest).lensq();
@@ -62,8 +64,7 @@ namespace AI {
 	extern DoubleParam DRIBBLE_TIMEOUT;
 
 	/**
-	 * If the robot orientation is within this angle,
-	 * then it can shoot accurately.
+	 * If the robot orientation is within this angle, then it can shoot accurately.
 	 */
 	extern DoubleParam ORI_CLOSE;
 
@@ -89,26 +90,22 @@ namespace AI {
 	static const double VEL_EPS = 1e-12;
 
 	/**
-	 * If the robot is less than this angle away from the ball,
-	 * then it is capable of receiving the ball.
+	 * If the robot is less than this angle away from the ball, then it is capable of receiving the ball.
 	 */
 	static const double ORI_PASS_CLOSE = 45.0 / 180.0 * M_PI;
 
 	/**
-	 * Let t be time elpased since robot has ball.
-	 * If t < this number, then robot is considered to posses the ball.
+	 * The amount of time the robot is allowed to not detect the ball before it is considered to have lost it.
 	 */
 	static const double HAS_BALL_ALLOWANCE = 3.0;
 
 	/**
-	 * Let t be time elpased since robot senses the ball.
-	 * If t >= this number, then robot is considered to have the ball with very high probability.
+	 * The amount of time the robot must detect the ball before it is considered to have it.
 	 */
 	static const double HAS_BALL_TIME = 2.0 / 15.0;
 
 	/**
-	 * Checks if the robot is in a position close enough to the ball to start
-	 * So close that no other robot can be in the way of this ball.
+	 * Checks if the robot is in a position close enough to the ball to start so close that no other robot can be in the way of this ball.
 	 *
 	 * \param[in] w the World in which to perform the check.
 	 *
@@ -134,12 +131,11 @@ namespace AI {
 	 *
 	 * \param[in] robots a vector of robots/players that blocks the path.
 	 *
-	 * \param[in] thresh the amount of allowance for the path (for passing, use
-	 * <code>Robot::MAX_RADIUS + Ball::RADIUS + AIUtil::SHOOT_ALLOWANCE</code>;
-	 * for moving, use <code>Robot::MAX_RADIUS * 2 +
-	 * AIUtil::MOVE_ALLOWANCE</code>).
+	 * \param[in] thresh the amount of allowance for the path
+	 * (for passing, use <code>Robot::MAX_RADIUS + Ball::RADIUS + AIUtil::SHOOT_ALLOWANCE</code>;
+	 * for moving, use <code>Robot::MAX_RADIUS * 2 + AIUtil::MOVE_ALLOWANCE</code>).
 	 *
-	 * \return \c true if the path is not blocked.
+	 * \return \c true if the path is free, or \c false if it is blocked.
 	 */
 	bool path_check(const Point& begin, const Point& end, const std::vector<Robot::Ptr>& robots, const double thresh);
 
@@ -152,12 +148,11 @@ namespace AI {
 	 *
 	 * \param[in] obstacles a vector of obstacles that blocks the path.
 	 *
-	 * \param[in] thresh the amount of allowance for the path (for passing, use
-	 * <code>Robot::MAX_RADIUS + Ball::RADIUS + AIUtil::SHOOT_ALLOWANCE</code>;
-	 * for moving, use <code>Robot::MAX_RADIUS * 2 +
-	 * AIUtil::MOVE_ALLOWANCE</code>).
+	 * \param[in] thresh the amount of allowance for the path
+	 * (for passing, use <code>Robot::MAX_RADIUS + Ball::RADIUS + AIUtil::SHOOT_ALLOWANCE</code>;
+	 * for moving, use <code>Robot::MAX_RADIUS * 2 + AIUtil::MOVE_ALLOWANCE</code>).
 	 *
-	 * \return \c true if the path is not blocked.
+	 * \return \c true if the path is free, or \c false if it is blocked.
 	 */
 	bool path_check(const Point& begin, const Point& end, const std::vector<Point>& obstacles, const double thresh);
 
@@ -168,9 +163,8 @@ namespace AI {
 	 *
 	 * \param[in] passee the Player trying to receive the ball.
 	 *
-	 * \return \c false if some robots is blocking line of sight of ball from
-	 * \p passee, if \p passee is not facing the ball, or if some condition is
-	 * invalid, or \c true otherwise.
+	 * \return \c false if some robots is blocking line of sight of ball from \p passee,
+	 * if \p passee is not facing the ball, or if some condition is invalid, or \c true otherwise.
 	 */
 	bool can_receive(World &w, const Player::Ptr passee);
 
@@ -194,11 +188,10 @@ namespace AI {
 	 *
 	 * \param[in] p the origin point from which to look.
 	 *
-	 * \param[in] radius the radius of the obstacles.
-	 * By default, uses robot radius.
+	 * \param[in] radius the radius of the obstacles (by default, uses robot radius).
 	 *
-	 * \return a pair \c (p, s) where \c p is the middle of the best interval
-	 * and \c s is the angle of that interval, where a score of 0 means the enemy goal cannot be seen.
+	 * \return a pair \c (p, s) where \c p is the middle of the best interval and \c s is the angle of that interval,
+	 * where a score of 0 means the enemy goal cannot be seen.
 	 */
 	std::pair<Point, double> calc_best_shot(const Field& f, const std::vector<Point>& obstacles, const Point& p, const double radius = Robot::MAX_RADIUS);
 
@@ -210,39 +203,34 @@ namespace AI {
 	 *
 	 * \param[in] pl the Player from whose position to look.
 	 *
-	 * \param[in] consider_friendly treat friendly players as obstacles.
+	 * \param[in] consider_friendly whether to treat friendly players as obstacles.
 	 *
-	 * \return a pair \c (p, s) where \c p is the middle of the best interval
-	 * and \c s is the angle of that interval, where a score of 0 means the enemy goal cannot be seen.
+	 * \return a pair \c (p, s) where \c p is the middle of the best interval and \c s is the angle of that interval,
+	 * where a score of 0 means the enemy goal cannot be seen.
 	 */
 	std::pair<Point, double> calc_best_shot(const World &w, const Player::Ptr pl, const bool consider_friendly = true);
 
 	/**
-	 * Returns the length of the largest continuous interval (angle-wise) of the
-	 * enemy goal that can be seen from a point. Having a vector of points
-	 * enables one to add imaginary threats.
+	 * Returns the length of the largest continuous interval (angle-wise) of the enemy goal that can be seen from a point.
 	 *
 	 * \param[in] w the World in which to search.
 	 *
 	 * \param[in] pl the Player from whose position to look.
 	 *
-	 * \param[in] consider_friendly treat friendly players as obstacles.
+	 * \param[in] consider_friendly whether to treat friendly players as obstacles.
 	 *
 	 * \return the angle of the interval, and 0 if the enemy goal cannot be seen.
 	 */
 	double calc_goal_visibility_angle(const World &w, const Player::Ptr pl, const bool consider_friendly = true);
 
 	/**
-	 * Converts \p friendly into a \c vector of \ref Player "Players", excluding
-	 * some of them. Useful for separating robots in the Role and those which
-	 * are not.
+	 * Converts \p friendly into a \c vector of \ref Player "Players", excluding some of them.
 	 *
 	 * \param[in] friendly the team whose \ref Player "Players" to return.
 	 *
 	 * \param[in] exclude the \ref Player "Players" to exclude.
 	 *
-	 * \return all the \ref Player "Players" in \p friendly except for those in
-	 * \p exclude.
+	 * \return all the \ref Player "Players" in \p friendly except for those in \p exclude.
 	 */
 	std::vector<Player::Ptr> get_friends(const FriendlyTeam& friendly, const std::vector<Player::Ptr>& exclude);
 
@@ -258,8 +246,8 @@ namespace AI {
 	int choose_best_pass(World &w, const std::vector<Player::Ptr>& friends);
 
 	/**
-	 * Checks whether a player probably has the ball. Uses dribbler sensing and
-	 * also, if enabled in the parameters table, vision.
+	 * Checks whether a player probably has the ball.
+	 * Uses dribbler sensing and also, if enabled in the parameters table, vision.
 	 *
 	 * \param[in] w the World in which to check.
 	 *
@@ -270,9 +258,8 @@ namespace AI {
 	bool has_ball(World &w, const Player::Ptr pl);
 
 	/**
-	 * Checks if a FRIENDLY PLAYER posses the ball. Possession is defined as
-	 * either having the ball or, if enabled in the parameters table, also the
-	 * ball being close to the player.
+	 * Checks if a FRIENDLY PLAYER posses the ball.
+	 * Possession is defined as either having the ball or, if enabled in the parameters table, also the ball being close to the player.
 	 *
 	 * \param[in] w the World in which to check.
 	 *
@@ -317,8 +304,7 @@ namespace AI {
 	 *
 	 * \param[in] players the \ref Player "Players" to examine.
 	 *
-	 * \return the index in \p players of the Player that has the ball, or -1 if
-	 * none have the ball.
+	 * \return the index in \p players of the Player that has the ball, or -1 if none have the ball.
 	 */
 	int calc_baller(World &w, const std::vector<Player::Ptr>& players);
 }

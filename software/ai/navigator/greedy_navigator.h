@@ -6,13 +6,11 @@
 namespace AI {
 	namespace Navigator {
 		/**
-		 * This is a port of the 2010 navigator into the 2010–2011 framework. The
-		 * navigator handles all players individually, greedily choosing a direction
-		 * towards the target while avoiding obstacles.
+		 * This is a port of the 2010 navigator into the 2010–2011 framework.
+		 * The navigator handles all players individually, greedily choosing a direction towards the target while avoiding obstacles.
 		 * 
-		 * The greedy choice sometimes fails, since a player may need to back up to go
-		 * around said obstacle; it also fails to give the controller any detail in
-		 * intended path, which could result in optimization.
+		 * The greedy choice sometimes fails, since a player may need to back up to go around said obstacle;
+		 * it also fails to give the controller any detail in intended path, which could result in optimization.
 		 */
 		class TeamGreedyNavigator : protected TeamNavigator{
 			protected:
@@ -87,8 +85,7 @@ namespace AI {
 				unsigned int check_obstacles(const Point& start, const Point& dest, const Point& direction) const;
 
 				/**
-				 * Returns a number specifying to what degree the robot should avoid
-				 * obstacles.
+				 * Returns a number specifying to what degree the robot should avoid obstacles.
 				 *
 				 * \return the avoidance factor.
 				 */
@@ -109,8 +106,7 @@ namespace AI {
 				 *
 				 * \param[in] dst the point to clip.
 				 *
-				 * \return the nearest point to \p dst that does not lie within the
-				 * circle.
+				 * \return the nearest point to \p dst that does not lie within the circle.
 				 */
 				Point clip_circle(Point circle_centre, double circle_radius, Point dst);
 

@@ -5,9 +5,8 @@
 
 namespace AIFlags {
 	/**
-	 * Flags indicating how robots comply with game rules. Flags are set by the
-	 * Strategy and examined by the Navigator to determine which potential paths
-	 * are legal.
+	 * Flags indicating how robots comply with game rules.
+	 * Flags are set by the Strategy and examined by the Navigator to determine which potential paths are legal.
 	 */
 	enum {
 		/**
@@ -36,23 +35,23 @@ namespace AIFlags {
 		STAY_OWN_HALF = 0x0020,
 
 		/**
-		 * Neither goalie nor kicker. Stay away at certain boundary.
+		 * Neither goalie nor kicker.
+		 * Stay away at certain boundary.
 		 */
 		PENALTY_KICK_FRIENDLY = 0x0040,
 
 		/**
-		 * Neither goalie nor kicker. Stay away at certain boundary.
+		 * Neither goalie nor kicker.
+		 * Stay away at certain boundary.
 		 */
 		PENALTY_KICK_ENEMY = 0x0080,
 	};
 
 	/**
-	 * Returns the correct flags for a common Player, i.e. a Player that is \em
-	 * not a goalie or the free kicker.
+	 * Returns the correct flags for a common Player, i.e. a Player that is \em not a goalie or the free kicker.
 	 *
-	 * Assume our team does not have the ball, unless the play type indicates
-	 * otherwise. The flags for those should be modified in the corresponding
-	 * roles.
+	 * Assumes our team does not have the ball, unless the play type indicates otherwise.
+	 * If this is not true, the caller should modify the flags appropriately.
 	 *
 	 * \param[in] pt the current play type.
 	 *

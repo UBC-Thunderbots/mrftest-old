@@ -122,8 +122,8 @@ void Predictable::clear_prediction(const Point &pos, double orient) {
 	// Mark the current time as the most recent datum stamp.
 	timespec_now(last_datum_timestamp);
 
-	// Fill the current position and orientation into all history cells. This
-	// means that the object appears to be stationary.
+	// Fill the current position and orientation into all history cells.
+	// This means that the object appears to be stationary.
 	for (int i = 0; i < NUM_OLD_POSITIONS; ++i) {
 		xhistory(i) = pos.x;
 		yhistory(i) = pos.y;

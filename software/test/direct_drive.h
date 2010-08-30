@@ -4,8 +4,7 @@
 #include "test/permotor_drive.h"
 
 /**
- * Allows driving the robot by choosing a power level for each of the four
- * wheels.
+ * Allows driving the robot by choosing a power level for each of the four wheels.
  */
 class TesterControlDirectDrive : public TesterControlPerMotorDrive {
 	public:

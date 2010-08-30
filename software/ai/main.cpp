@@ -18,8 +18,7 @@
 
 namespace {
 	/**
-	 * A list model that allows the user to mark each robot as friendly or
-	 * enemy.
+	 * A list model that allows the user to mark each robot as friendly or enemy.
 	 */
 	class TeamCustomizerModel : public Glib::Object, public AbstractListModel {
 		public:
@@ -87,16 +86,14 @@ namespace {
 	};
 
 	/**
-	 * A window containing controls to allow the user to build a custom team
-	 * consisting of an arbitrary subset of configured robots.
+	 * A window containing controls to allow the user to build a custom team consisting of an arbitrary subset of configured robots.
 	 */
 	class CustomTeamBuilder : public Gtk::Window {
 		public:
 			/**
 			 * Constructs a new CustomTeamBuilder.
 			 *
-			 * \param[in] conf the configuration file containing the robots that
-			 * should be offered to the user.
+			 * \param[in] conf the configuration file containing the robots that should be offered to the user.
 			 */
 			CustomTeamBuilder(Config &conf) : model(TeamCustomizerModel::create(conf)) {
 				set_title("Thunderbots AI");

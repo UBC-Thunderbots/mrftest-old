@@ -96,11 +96,12 @@ void PICUpload::fuses_received(const void *response) {
 
 void PICUpload::do_work() {
 	if (pages_written < divup<std::size_t>(data.data()[1].size(), PAGE_BYTES)) {
-		// We should write a page. The address is offset by 0x800 to advance by
-		// the size of the boot block, and 0x4000 to move into the staging area.
+		// We should write a page.
+		// The address is offset by 0x800 to advance by the size of the boot block, and 0x4000 to move into the staging area.
 		proto.send(COMMAND_PIC_WRITE_DATA, pages_written * PAGE_BYTES + 0x4800, &data.data()[1][pages_written * PAGE_BYTES], PAGE_BYTES, PAGE_BYTES, sigc::mem_fun(this, &PICUpload::page_written));
 	} else {
-		// All pages are written. Set the upgrade flag.
+		// All pages are written.
+		// Set the upgrade flag.
 		proto.send(COMMAND_PIC_ENABLE_UPGRADE, 0, 0, 0, 2, sigc::mem_fun(this, &PICUpload::upgrade_enabled));
 	}
 

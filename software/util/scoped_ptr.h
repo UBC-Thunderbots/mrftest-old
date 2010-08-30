@@ -4,8 +4,7 @@
 #include "util/noncopyable.h"
 
 /**
- * A smart pointer that can never be copied, but can be repointed to a new
- * target.
+ * A smart pointer that can never be copied, but can be repointed to a new target.
  */
 template<typename T>
 class ScopedPtr : public NonCopyable {
@@ -62,8 +61,7 @@ class ScopedPtr : public NonCopyable {
 		/**
 		 * Checks whether or not the ScopedPtr is set.
 		 *
-		 * \return \c true if the pointer is non-null, or \c false if the
-		 * pointer is null.
+		 * \return \c true if the pointer is non-null, or \c false if the pointer is null.
 		 */
 		bool is() const {
 			return !!obj;

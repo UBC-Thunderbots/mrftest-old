@@ -4,8 +4,7 @@
 #include "xbee/daemon/physical/serial.h"
 
 /**
- * Performs the escaping necessary to provide a categorized byte stream to and
- * from the XBee.
+ * Performs the escaping necessary to provide a categorized byte stream to and from the XBee.
  */
 class XBeeByteStream : public NonCopyable, public sigc::trackable {
 	public:
@@ -22,8 +21,7 @@ class XBeeByteStream : public NonCopyable, public sigc::trackable {
 		}
 
 		/**
-		 * Returns the signal invoked when the start-of-packet delimiter is
-		 * received.
+		 * Returns the signal invoked when the start-of-packet delimiter is received.
 		 *
 		 * \return the signal.
 		 */
@@ -48,8 +46,7 @@ class XBeeByteStream : public NonCopyable, public sigc::trackable {
 		/**
 		 * Sends a string of bytes to the port.
 		 *
-		 * \param[in] iov a pointer to an array of iovecs to gather to find the
-		 * bytes to send.
+		 * \param[in] iov a pointer to an array of iovecs to gather to find the bytes to send.
 		 *
 		 * \param[in] iovcnt the number of iovecs in the \p iov array.
 		 */

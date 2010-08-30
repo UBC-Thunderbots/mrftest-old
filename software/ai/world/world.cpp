@@ -15,19 +15,14 @@ using namespace AI;
 
 namespace {
 	/**
-	 * The number of metres the ball must move from a kickoff or similar
-	 * playtype until we consider that the ball has been moved and is free to be
-	 * approached by either team.
+	 * The number of metres the ball must move from a kickoff or similar until we consider that the ball is free to be approached by either team.
 	 */
 	static const double BALL_FREE_DISTANCE = 0.09;
 
 	/**
-	 * The number of vision failures to tolerate before assuming the robot is
-	 * gone and removing it from the system. Note that this should be fairly
-	 * high because the vision failure count includes instances of a packet
-	 * arriving from a camera that cannot see the robot (this is expected to
-	 * cause a failure to be counted which will then be zeroed out a moment
-	 * later as the camera which can see the robot sends its packet).
+	 * The number of vision failures to tolerate before assuming the robot is gone and removing it from the system.
+	 * Note that this should be fairly high because the failure count includes instances of a packet arriving from a camera that cannot see the robot
+	 * (this is expected to cause a failure to be counted which will then be zeroed out a moment later as the other camera sends its packet).
 	 */
 	static const unsigned int MAX_VISION_FAILURES = 120;
 }
@@ -90,8 +85,7 @@ void World::flip_refbox_colour() {
 	// Notify listeners.
 	signal_flipped_refbox_colour.emit();
 
-	// Flip the current play type, so that the updater will flip it back and
-	// have the proper "old" value.
+	// Flip the current play type, so that the updater will flip it back and have the proper "old" value.
 	playtype_ = PlayType::INVERT[playtype_];
 
 	// Now run the updater.
@@ -259,12 +253,13 @@ bool World::on_vision_readable(Glib::IOCondition) {
 		}
 	}
 
-	// Notify any attached visualizers. Because visualizers call position() and
-	// orientation() on robots and the ball, and because those objects are
-	// Predictable and hence implement those functions as estimates based on a
-	// delta time, we need to lock the prediction timestamps of those objects
-	// before handing them to the visualizer for rendering, otherwise we won't
-	// actually see them move!
+	// Notify any attached visualizers.
+	// Because visualizers call position() and orientation() on robots and the ball,
+	// and because those objects are Predictable and hence implement those functions as estimates based on a delta time,
+	// we need to lock the prediction timestamps of those objects before handing them to the visualizer for rendering,
+	// otherwise we won't actually see them move!
+	//
+	// This time-locking will not affect the AI because the AI cannot be running at the same time that we receive a packet.
 	{
 		static Team * const teams[2] = { &friendly, &enemy };
 		for (unsigned int i = 0; i < 2; ++i) {

@@ -9,16 +9,15 @@ namespace AI {
 	class World;
 
 	/**
-	 * Provides the AI with a way to get the dimensions of the field. The dimensions
-	 * of the field are provided by SSL-Vision or the simulator.
+	 * Provides the AI with a way to get the dimensions of the field.
+	 * The dimensions of the field are provided by SSL-Vision or the simulator.
 	 */
 	class Field : public Visualizable::Field {
 		public:
 			/**
 			 * Checks if the field data is valid yet.
 			 *
-			 * \return \c true if the data in the Field is valid, or \c false if
-			 * not.
+			 * \return \c true if the data in the Field is valid, or \c false if not.
 			 */
 			bool valid() const {
 				return valid_;
@@ -61,8 +60,7 @@ namespace AI {
 			}
 
 			/**
-			 * Gets the width of the goal, symmetric above and below the centreline,
-			 * from goalpost to goalpost.
+			 * Gets the width of the goal, symmetric above and below the centreline, from goalpost to goalpost.
 			 *
 			 * \return the width of the goal in metres.
 			 */
@@ -80,8 +78,7 @@ namespace AI {
 			}
 
 			/**
-			 * Gets the radius of the arcs at the top and bottom of the defense
-			 * areas.
+			 * Gets the radius of the arcs at the top and bottom of the defense areas.
 			 *
 			 * \return the radius of the arcs in metres.
 			 */
@@ -90,8 +87,7 @@ namespace AI {
 			}
 
 			/**
-			 * Gets the width of the straight parts of the defense areas between
-			 * their pairs of arcs.
+			 * Gets the width of the straight parts of the defense areas between their pairs of arcs.
 			 *
 			 * \return the width of the straight parts in metres.
 			 */
@@ -120,8 +116,7 @@ namespace AI {
 			/**
 			 * Gets the position of the penalty mark near the enemy goal.
 			 *
-			 * \return the position of the penalty mark, 450mm from the centre of
-			 * the enemy goal.
+			 * \return the position of the penalty mark, 450mm from the centre of the enemy goal.
 			 */
 			Point penalty_enemy() const {
 				return Point(length_ * 0.5 / 3.025 * (3.025 - 0.450), 0);
@@ -130,8 +125,7 @@ namespace AI {
 			/**
 			 * Gets the position of the penalty mark near the friendly goal.
 			 *
-			 * \return the position of the penalty mark, 450 mm from the centre of
-			 * the friendly goal.
+			 * \return the position of the penalty mark, 450 mm from the centre of the friendly goal.
 			 */
 			Point penalty_friendly() const {
 				return Point(-length_ * 0.5 / 3.025 * (3.025 - 0.450), 0);
@@ -156,8 +150,7 @@ namespace AI {
 			}
 
 			/**
-			 * Gets the margin for being out of bounds on the top or bottom of the
-			 * field.
+			 * Gets the margin for being out of bounds on the top or bottom of the field.
 			 *
 			 * \return the margin, in metres.
 			 */
@@ -182,8 +175,7 @@ namespace AI {
 			Field();
 
 			/**
-			 * Updates the Field object with new geometry data from SSL-Vision or
-			 * the simulator.
+			 * Updates the Field object with new geometry data from SSL-Vision or the simulator.
 			 *
 			 * \param packet packet the new data.
 			 */

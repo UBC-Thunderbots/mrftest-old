@@ -28,11 +28,10 @@ class Simulator : public BackEnd, public sigc::trackable {
 		const Config &conf;
 
 		/**
-		 * Constructs a new Simulator using the robots found in a configuration
-		 * file.
+		 * Constructs a new Simulator using the robots found in a configuration file.
 		 *
-		 * \param[in] conf the configuration data to initialize the simulator
-		 * with.
+		 * \param[in] conf the configuration data to initialize the simulator with.
+		 *
 		 * \param[in] engine the engine to drive the simulator with.
 		 *
 		 * \param[in] clk the clock source to drive the simulator with.
@@ -42,8 +41,7 @@ class Simulator : public BackEnd, public sigc::trackable {
 		/**
 		 * Returns all the robots recognized by this simulator.
 		 *
-		 * \return all the robots recognized by this simulator, keyed by XBee
-		 * address.
+		 * \return all the robots recognized by this simulator, keyed by XBee address.
 		 */
 		const std::unordered_map<uint64_t, SimulatorRobot::Ptr> &robots() const {
 			return robots_;
@@ -63,8 +61,7 @@ class Simulator : public BackEnd, public sigc::trackable {
 		 *
 		 * \param[in] addr the address to search for.
 		 *
-		 * \return the robot matching the address, or a null pointer if no robot
-		 * has the address.
+		 * \return the robot matching the address, or a null pointer if no robot has the address.
 		 */
 		SimulatorRobot::Ptr find_by16(uint16_t addr) const;
 

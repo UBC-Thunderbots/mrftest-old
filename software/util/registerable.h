@@ -8,11 +8,9 @@
 #include <glibmm.h>
 
 /**
- * A generic, templatized class to handle interfaces that should have
- * registerable implementations.
+ * A generic, templatized class to handle interfaces that should have registerable implementations.
  *
- * \tparam T the type that is actually registerable (that is, the type of the
- * subclass of this class).
+ * \tparam T the type that is actually registerable (that is, the type of the subclass of this class).
  */
 template<typename T>
 class Registerable : public NonCopyable {
@@ -23,8 +21,7 @@ class Registerable : public NonCopyable {
 		typedef std::map<std::string, T *> map_type;
 
 		/**
-		 * Gets a map of all currently-registered objects, keyed by their names'
-		 * collation keys.
+		 * Gets a map of all currently-registered objects, keyed by their names' collation keys.
 		 *
 		 * \return the map of registered objects of this type.
 		 */
@@ -58,8 +55,7 @@ class Registerable : public NonCopyable {
 		}
 
 		/**
-		 * Destroys a Registerable object. Does not unregister it, because we
-		 * might have some global object destruction order issues.
+		 * Destroys a Registerable object. Does not unregister it, because we might have some global object destruction order issues.
 		 */
 		virtual ~Registerable() {
 		}

@@ -13,23 +13,22 @@ class GPC {
 
 	private: 
 		/**
-		 * The Covariance matrix for the internal recursive least squares.
+		 * The covariance matrix for the internal recursive least squares.
 		 */
 		math::matrix<double> covariance;
 		
 		/**
-		 * The storage vector for the parameters resulting from the least
-		 * squares.
+		 * The storage vector for the parameters resulting from the least squares.
 		 */
 		math::matrix<double> theta;
 		
 		/**
-		 * A vector of previous inputs to the system to be controlled.
+		 * The previous inputs to the system to be controlled.
 		 */
 		std::vector<double> prev_inputs;
 		
 		/**
-		 * A vector of previous outputs from the system to be controlled.
+		 * The previous outputs from the system to be controlled.
 		 */
 		std::vector<double> prev_outputs;
 		
@@ -45,13 +44,12 @@ class GPC {
 		unsigned int num_poles;
 		
 		/**
-		 * A vector containing the future reponse of the system if the control
-		 * signal stays the same.
+		 * The future response of the system if the control signal stays the same.
 		 */
 		std::vector<double> free_response;
 		
 		/**
-		 * A vector containing the step response of the system.
+		 * The step response of the system.
 		 */
 		std::vector<double> step_response;
 		
@@ -76,11 +74,9 @@ class GPC {
 		/**
 		 * Creates a GPC controller.
 		 *
-		 * \param[in] numpoles the number of poles to approximate the system
-		 * with.
+		 * \param[in] numpoles the number of poles to approximate the system with.
 		 *
-		 * \param[in] numzeros the number of zeros to approximate the system
-		 * with.
+		 * \param[in] numzeros the number of zeros to approximate the system with.
 		 *
 		 * \param[in] N2 the maximum horizon to look to.
 		 *
@@ -95,8 +91,8 @@ class GPC {
 		
 			
 		/**
-		 * After an update this method creates the free_response and
-		 * step_response vectors. It is called in calc_control(double).
+		 * After an update this method creates the free_response and step_response vectors.
+		 * It is called in calc_control(double).
 		 *
 		 * \sa update(double)
 		 */
@@ -104,8 +100,8 @@ class GPC {
 		
 		
 		/**
-		 * Used to advance the recursive estimator and get an new estimate of
-		 * theta. This should be called first in an interation.
+		 * Used to advance the recursive estimator and get an new estimate of theta.
+		 * This should be called first in an interation.
 		 *
 		 * \param[in] output current output of system to be controlled.
 		 */
@@ -113,8 +109,7 @@ class GPC {
 		
 		/**
 		 * Used to calculate the change in control action for this time step.
-		 * This should be called after update(double) but before
-		 * push_history(double, double).
+		 * This should be called after update(double) but before push_history(double, double).
 		 *
 		 * \param[in] set_point the desired setpoint for the Horizon.
 		 *
@@ -125,17 +120,17 @@ class GPC {
 		double calc_control(double set_point);
 		 
 		/**
-		 * Stores the history nessecry to compute the regresson as well as the
-		 * look ahead prediction.
+		 * Stores the history nessecry to compute the regresson as well as the look ahead prediction.
 		 *
 		 * \param[in] input the current control action just calculated.
+		 *
 		 * \param[in] output current output of the system to be controlled.
 		 */
 		void push_history(double input,double output);
 		
 		/**
-		 * Stores the history necessary to compute the regression as well as the
-		 * look ahead prediction, assumes previous output used in update.
+		 * Stores the history necessary to compute the regression as well as the look ahead prediction.
+		 * Assumes previous output used in update.
 		 *
 		 * \param[in] input the current control action just calculated.
 		 *
@@ -146,29 +141,35 @@ class GPC {
 		/**
 		 * Gets the uncontrolled response of the system.
 		 *
-		 * \return vector containing the future response of the system.
+		 * \return the future response of the system.
 		 */
 		const std::vector<double>& get_free_response() const;
 		
 		/**
-		 * Gets the Step response of the system.
+		 * Gets the step response of the system.
 		 *
-		 * \return vector containing the step response of the system.
+		 * \return the step response of the system.
 		 */
 		const std::vector<double>& get_step_response() const;
 		
 		
 		/**
+		 * Gets the current number of poles to approximate to.
+		 *
 		 * \return the current number of poles to approximate to.
 		 */
 		double get_numpoles() const;
 		
 		/**
+		 * Gets the current number of zeros to approximate to.
+		 *
 		 * \return the current number of zeros to approximate to.
 		 */
 		double get_numzeros() const;
 
 		/**
+		 * Gets the current theta vector.
+		 *
 		 * \return the current theta vector.
 		 */
 		std::vector<double> get_parameter_estimates() const;

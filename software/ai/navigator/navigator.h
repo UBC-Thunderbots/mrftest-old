@@ -16,8 +16,7 @@ namespace AI {
 		/**
 		 * A player's view of navigation.
 		 *
-		 * The TeamNavigator has all the copies of individual navigators there is a
-		 * one-to-one relation between players and Navigators.
+		 * The TeamNavigator has all the copies of individual navigators there is a one-to-one relation between players and Navigators.
 		 */
 		class Navigator : public ByRef{
 			public:
@@ -46,10 +45,10 @@ namespace AI {
 				}
 
 				/**
-				 * Normally the navigator sets the robot orientation to be towards the
-				 * ball. Use this if you want to override this behaviour. This only sets
-				 * the desired orientation for one timestep. You have to call this
-				 * function every timestep.
+				 * Normally the navigator sets the robot orientation to be towards the ball.
+				 * Use this if you want to override this behaviour.
+				 * This only sets the desired orientation for one timestep.
+				 * You have to call this function every timestep.
 				 *
 				 * \param[in] orientation the desired orientation for the robot.
 				 */
@@ -58,15 +57,13 @@ namespace AI {
 				}
 
 				/**
-				 * Turns on dribbler at minimal speed and be ready to dribble to Receive
-				 * the ball.
+				 * Turns on dribbler at minimal speed and be ready to dribble to Receive the ball.
 				 *
 				 * You need to call this every tick.
 				 *
 				 * I don't think you ever want to turn this off once you turn it on.
 				 *
-				 * \param[in] dribble \c true to turn the dribbler on, or \c false to
-				 * turn it off.
+				 * \param[in] dribble \c true to turn the dribbler on, or \c false to turn it off.
 				 */
 				void set_dribbler(bool dribble) {
 					need_dribble = dribble;
@@ -115,13 +112,12 @@ namespace AI {
 
 			private:
 
-				/*
-				 * \c true if the robot should dribble when it has the ball, or \c false
-				 * if not.
+				/**
+				 * \c true if the robot should dribble when it has the ball, or \c false if not.
 				 */
 				bool need_dribble;
 
-				/*
+				/**
 				 * The flags currently in force for this Navigator.
 				 */
 				unsigned int flags;
@@ -130,8 +126,7 @@ namespace AI {
 
 
 		/**
-		 * Single instance of TeamNavigator handles navigation for all players on the
-		 * controllable team.
+		 * Single instance of TeamNavigator handles navigation for all players on the controllable team.
 		 */
 		class TeamNavigator : public ByRef, public sigc::trackable{
 			public:
@@ -154,8 +149,7 @@ namespace AI {
 				/**
 				 * A map from player to the player's navigator.
 				 *
-				 * The rest of the AI operates on the player's navigator, not the team
-				 * navigator.
+				 * The rest of the AI operates on the player's navigator, not the team navigator.
 				 *
 				 * \param[in] p the player whose navigator to fetch.
 				 *
@@ -170,16 +164,14 @@ namespace AI {
 
 			protected:
 				/**
-				 * When a player is added will need to make a new player navigator for
-				 * it.
+				 * When a player is added will need to make a new player navigator for it.
 				 */
 				void on_player_added(unsigned int, Player::Ptr play){
 					navis.insert(std::pair<uint64_t, Navigator::Ptr>(play->address(), create_navigator(play)));
 				}
 
 				/**
-				 * When a player is removed will need to destroy player navigator for
-				 * it.
+				 * When a player is removed will need to destroy player navigator for it.
 				 */		
 				void on_player_removed(unsigned int, Player::Ptr play){
 					navis.erase(play->address());

@@ -23,8 +23,7 @@ namespace {
 	const double DIVIDER_LOWER = 470.0;
 
 	/**
-	 * The number of milliseconds between receiving packet and sending its
-	 * response.
+	 * The number of milliseconds between receiving packet and sending its response.
 	 */
 	const unsigned int DELAY = 10;
 }
@@ -67,13 +66,10 @@ void Simulator::send(const iovec *iov, std::size_t iovlen) {
 		total_length += iov[i].iov_len;
 	}
 
-	// If we were to handle the packet immediately, then (1) it would be
-	// unrealistic because a real radio doesn't do that, and (2) it would make
-	// the simulator peg the CPU at 100% because you'd end up with the arbiter
-	// dæmon spewing remote ATMY packets and the simulator hurling back NO_ACK
-	// responses at full speed and making everything else slow and laggy. So
-	// instead, just delay a few milliseconds before actually doing anything
-	// with the packet.
+	// If we were to handle the packet immediately, then
+	// (1) it would be unrealistic because a real radio doesn't do that, and
+	// (2) it would peg the CPU at 100% because the arbiter would spew remote ATMY packets and the simulator would hurl back NO_ACK responses at full speed.
+	// So instead, just delay a few milliseconds before actually doing anything with the packet.
 	Glib::signal_timeout().connect_once(sigc::bind(sigc::mem_fun(this, &Simulator::packet_handler), data), 10);
 }
 

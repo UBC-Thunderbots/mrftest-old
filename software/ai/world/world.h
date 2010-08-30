@@ -22,8 +22,7 @@ namespace AI {
 	class Window;
 
 	/**
-	 * Collects all information the AI needs to examine the state of the world and
-	 * transmit orders to robots.
+	 * Collects all information the AI needs to examine the state of the world and transmit orders to robots.
 	 */
 	class World : public NonCopyable {
 		public:
@@ -53,8 +52,7 @@ namespace AI {
 			sigc::signal<void> signal_flipped_ends;
 
 			/**
-			 * Fired when the local team's RobotColour with respect to the referee box
-			 * changes.
+			 * Fired when the local team's RobotColour with respect to the referee box changes.
 			 */
 			sigc::signal<void> signal_flipped_refbox_colour;
 
@@ -98,10 +96,9 @@ namespace AI {
 			/**
 			 * Gets the end of the physical field the friendly team is defending.
 			 * 
-			 * \return \c true if the friendly team is defending the "east" end of
-			 * the field (the end Which end whose SSL-Vision coordinate are
-			 * positive), or \c false if the friendly team is defending the "west"
-			 * end.
+			 * \return \c true if the friendly team is defending the "east" end of the field
+			 * (the end Which end whose SSL-Vision coordinate are positive),
+			 * or \c false if the friendly team is defending the "west" end.
 			 */
 			bool east() const {
 				return east_;
@@ -113,19 +110,16 @@ namespace AI {
 			void flip_ends();
 
 			/**
-			 * Gets the colour of the friendly team for the purpose of referee box
-			 * commands.
+			 * Gets the colour of the friendly team for the purpose of referee box commands.
 			 *
-			 * \return \c true if the friendly team is yellow, or \c false if it is
-			 * blue.
+			 * \return \c true if the friendly team is yellow, or \c false if it is blue.
 			 */
 			bool refbox_yellow() const {
 				return refbox_yellow_;
 			}
 
 			/**
-			 * Inverts which colour the local team should be considered to be with
-			 * respect to referee box commands.
+			 * Inverts which colour the local team should be considered to be with respect to referee box commands.
 			 */
 			void flip_refbox_colour();
 

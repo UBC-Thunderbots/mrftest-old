@@ -227,8 +227,7 @@ void Player::tick(bool scram) {
 	// This message may have been set earlier, but need not be set any more.
 	chick_when_not_ready_message.activate(false);
 
-	// Annunciate that we weren't moved if we have a Strategy but it never set a
-	// destination.
+	// Annunciate that we weren't moved if we have a Strategy but it never set a destination.
 	not_moved_message.activate(bot->alive() && !scram && !moved);
 
 	// Emergency conditions that cause scram of all systems.

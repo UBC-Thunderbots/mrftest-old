@@ -9,14 +9,12 @@
 class Config;
 
 /**
- * A generic parameter that can be edited and whose value can be stored in the
- * configuration file.
+ * A generic parameter that can be edited and whose value can be stored in the configuration file.
  */
 class Param : public NonCopyable {
 	public:
 		/**
-		 * Informs the subsystem that the environment has been initialized and
-		 * provides a configuration object to load values from.
+		 * Informs the subsystem that the environment has been initialized and provides a configuration object to load values from.
 		 *
 		 * \param[in] conf the configuration to use.
 		 */
@@ -56,14 +54,16 @@ class Param : public NonCopyable {
 
 	protected:
 		/**
-		 * Constructs a new parameter. Should only happen at startup time.
+		 * Constructs a new parameter.
+		 * Should only happen at startup time.
 		 *
 		 * \param[in] name the name of the parameter.
 		 */
 		Param(const Glib::ustring &name);
 
 		/**
-		 * Destroys a parameter. Should only happen at shutdown time.
+		 * Destroys a parameter.
+		 * Should only happen at shutdown time.
 		 */
 		~Param();
 };
@@ -74,8 +74,8 @@ class Param : public NonCopyable {
 class BoolParam : public Param {
 	public:
 		/**
-		 * Constructs a new boolean parameter. Should only happen at startup
-		 * time.
+		 * Constructs a new boolean parameter.
+		 * Should only happen at startup time.
 		 *
 		 * \param[in] name the name of the parameter.
 		 *
@@ -110,8 +110,8 @@ class BoolParam : public Param {
 class IntParam : public Param {
 	public:
 		/**
-		 * Constructs a new integer parameter. Should only happen at startup
-		 * time.
+		 * Constructs a new integer parameter.
+		 * Should only happen at startup time.
 		 *
 		 * \param[in] name the name of the parameter.
 		 *
@@ -152,8 +152,8 @@ class IntParam : public Param {
 class DoubleParam : public Param {
 	public:
 		/**
-		 * Constructs a new double parameter. Should only happen at startup
-		 * time.
+		 * Constructs a new double parameter.
+		 * Should only happen at startup time.
 		 *
 		 * \param[in] name the name of the parameter.
 		 *

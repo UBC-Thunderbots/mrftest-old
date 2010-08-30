@@ -76,7 +76,7 @@ void JonsController::move(const Point &new_position, double new_orientation, Poi
 	T_controller.push_history(angular_velocity,current_angularvel);
 }
 
-/**
+/*
 This is unnessecary because there is not state to clear
 in this controller, but it must be implemented.
 */

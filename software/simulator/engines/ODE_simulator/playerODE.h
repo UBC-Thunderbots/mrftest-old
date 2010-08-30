@@ -141,8 +141,8 @@ public:
 			
 			bool hasContactWithFace(dVector3 pos);
 			/**
-			 * Called when we find a robot-ball collision. May do some
-			 * additional testing beyond this to make sure "has ball".
+			 * Called when we find a robot-ball collision.
+			 * May do some additional testing beyond this to make sure "has ball".
 			 */
 			void set_has_ball();
 

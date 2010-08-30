@@ -77,8 +77,7 @@ class SingleBotComboBox : public Gtk::ComboBox {
 		/**
 		 * Returns the address of the currently-selected robot.
 		 *
-		 * \return the address of the currently-selected robot, or 0 if no robot
-		 * is currently selected.
+		 * \return the address of the currently-selected robot, or 0 if no robot is currently selected.
 		 */
 		uint64_t address() const;
 

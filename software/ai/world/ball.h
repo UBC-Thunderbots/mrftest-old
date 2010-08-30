@@ -54,8 +54,7 @@ namespace AI {
 			/**
 			 * Updates the position of the ball using new data.
 			 *
-			 * \param[in] pos the new position of the ball, in unswapped field
-			 * coordinates.
+			 * \param[in] pos the new position of the ball, in unswapped field coordinates.
 			 */
 			void update(const Point &pos);
 

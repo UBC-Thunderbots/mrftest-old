@@ -37,7 +37,8 @@ void AI::AI::tick() {
 		}
 	}
 
-	// If we have a Coach installed, tick it. It will drive the rest of the AI.
+	// If we have a Coach installed, tick it.
+	// It will drive the rest of the AI.
 	if (coach.is()) {
 		coach->tick();
 	}

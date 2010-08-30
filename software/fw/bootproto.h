@@ -75,19 +75,17 @@ class BootProto : public NonCopyable, public sigc::trackable {
 		/**
 		 * Causes the robot to begin entering bootloader mode.
 		 *
-		 * \param[in] callback a callback to invoke once bootloader mode is
-		 * active.
+		 * \param[in] callback a callback to invoke once bootloader mode is active.
 		 */
 		void enter_bootloader(const sigc::slot<void> &callback);
 
 		/**
-		 * Causes a request to be sent to the robot. The request is such that no
-		 * response packet is expected.
+		 * Causes a request to be sent to the robot.
+		 * The request is such that no response packet is expected.
 		 *
 		 * \param[in] command the bootloader command.
 		 *
-		 * \param[in] address the memory address on which to execute the
-		 * command.
+		 * \param[in] address the memory address on which to execute the command.
 		 *
 		 * \param[in] data the data associated with the command.
 		 *
@@ -100,26 +98,22 @@ class BootProto : public NonCopyable, public sigc::trackable {
 		 *
 		 * \param[in] command the bootloader command.
 		 *
-		 * \param[in] address the memory address on which to execute the
-		 * command.
+		 * \param[in] address the memory address on which to execute the command.
 		 *
 		 * \param[in] data the data associated with the command.
 		 *
 		 * \param[in] data_len the length, in bytes, of \p data.
 		 *
-		 * \param[in] response_len the length, in bytes, of the expected
-		 * response.
+		 * \param[in] response_len the length, in bytes, of the expected response.
 		 *
-		 * \param[in] callback a callback to invoke when the response is
-		 * received.
+		 * \param[in] callback a callback to invoke when the response is received.
 		 */
 		void send(uint8_t command, uint16_t address, const void *data, std::size_t data_len, std::size_t response_len, const sigc::slot<void, const void *> &callback);
 
 		/**
 		 * Causes the robot to begin exiting bootloader mode.
 		 *
-		 * \param[in] callback a callback to invoke once bootloader mode has
-		 * been exited.
+		 * \param[in] callback a callback to invoke once bootloader mode has been exited.
 		 */
 		void exit_bootloader(const sigc::slot<void> &callback);
 

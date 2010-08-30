@@ -5,8 +5,7 @@ using namespace HL;
 
 namespace {
 	/**
-	 * Manages the robots during a stoppage in place (that is, when the game is
-	 * in PlayType::STOP).
+	 * Manages the robots during a stoppage in place (that is, when the game is in PlayType::STOP).
 	 */
 	class StopStrategy : public Strategy {
 		public:

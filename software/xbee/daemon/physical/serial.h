@@ -16,7 +16,8 @@
 class SerialPort : public NonCopyable, public sigc::trackable {
 	public:
 		/*
-		 * Constructs a new SerialPort. Opens but does not configure the port.
+		 * Constructs a new SerialPort.
+		 * Opens but does not configure the port.
 		 */
 		SerialPort();
 
@@ -37,8 +38,7 @@ class SerialPort : public NonCopyable, public sigc::trackable {
 		/**
 		 * Sends a string of bytes to the port.
 		 *
-		 * \param[in] iov a pointer to an array of iovecs to gather to find the
-		 * bytes to send.
+		 * \param[in] iov a pointer to an array of iovecs to gather to find the bytes to send.
 		 *
 		 * \param[in] iovcnt the number of iovecs in the \p iov array.
 		 */

@@ -162,8 +162,6 @@ All public and protected types, functions, variables, and constants shall be doc
  * \return the fooed Bazquux.
  */
 
-In the case of a simple getter function that retrieves a value without performing any complex operations, it is permissible to include only a "\return" line and omit the summary text altogether.
-
 It is recommended that the following style be used for a single-line comment within code:
 
 // This is a comment about the following line.
@@ -188,3 +186,12 @@ Use Canadian spelling, which is often British but occasionally American. Example
 
 Exceptions:
 Use "defense" in lieu of "defence" (and similarly "offense"). Rationale: similarity to "defensive", etc.
+
+
+
+Line Width
+----------
+
+For regular source code, no maximum line width is mandated. Hard line breaks within statements shall not be used; instead, the line shall be as wide as necessary to accomodate the statement. If the line looks too large, it should probably be broken into multiple statements.
+
+For comments (including Doxygen comments), each sentence should start on a new line (in Doxygen comments, paragraphs are set apart by two line breaks). A single sentence should generally occupy a single line, unless it becomes very large (e.g. larger than around 150 columns), in which case it should be wrapped at the most natural breaking point (e.g. after a semicolon or a comma or before or after a parenthetical).

@@ -22,9 +22,8 @@ class XBeeRobot : public ByRef {
 		typedef RefPtr<XBeeRobot> Ptr;
 
 		/**
-		 * An individual state that a robot can be in is represented by a
-		 * subclass of this class, and the current state of the robot is held in
-		 * a pointer.
+		 * An individual state that a robot can be in is represented by a subclass of this class.
+		 * The current state of the robot is held in a pointer to an instance of such a class.
 		 */
 		class RobotState : public ByRef, public sigc::trackable {
 			public:
@@ -41,68 +40,60 @@ class XBeeRobot : public ByRef {
 				virtual void enter_raw_mode(XBeeClient *cli) = 0;
 
 				/**
-				 * Attempts to switch the robot into drive mode. May throw
-				 * resource_allocation_error if insufficient resources are
-				 * available.
+				 * Attempts to switch the robot into drive mode.
 				 *
 				 * \param[in] cli the XBeeClient who requested the claim.
+				 *
+				 * \exception ResourceAllocationError insufficient resources are available.
 				 */
 				virtual void enter_drive_mode(XBeeClient *cli) = 0;
 
 				/**
-				 * Unclaims the robot and, if it was in drive mode, starts
-				 * releasing resources.
+				 * Unclaims the robot and, if it was in drive mode, starts releasing resources.
 				 */
 				virtual void release() = 0;
 
 				/**
-				 * Invoked when a feedback packet is received over the radio
-				 * from this robot.
+				 * Invoked when a feedback packet is received over the radio from this robot.
 				 *
 				 * \param[in] rssi the signal strength of the received packet.
 				 *
 				 * \param[in] packet the received data.
 				 *
-				 * \param[in] latency the amount of time the packet took to
-				 * arrive.
+				 * \param[in] latency the amount of time the packet took to arrive.
 				 */
 				virtual void on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency) = 0;
 
 				/**
-				 * Invoked when a feedback packet was expected from this robot
-				 * but was not received.
+				 * Invoked when a feedback packet was expected from this robot but was not received.
 				 */
 				virtual void on_feedback_timeout() = 0;
 
 				/**
 				 * Checks if the robot is claimed.
 				 *
-				 * \return \c true if this robot is claimed by some client, or
-				 * \c false if not
+				 * \return \c true if this robot is claimed by some client, or \c false if not
 				 */
 				virtual bool claimed() const = 0;
 
 				/**
 				 * Checks if this robot is freeing allocated resources.
 				 *
-				 * \return \c true if this robot is in the process of freeing
-				 * resources from a prior drive-mode claim, or \c false if not
+				 * \return \c true if this robot is freeing resources from a prior drive-mode claim, or \c false if not
 				 */
 				virtual bool freeing() const = 0;
 
 				/**
 				 * Returns the 16-bit address of the robot.
 				 *
-				 * \return the 16-bit address of the robot, or 0 if no address
-				 * has been allocated.
+				 * \return the 16-bit address of the robot, or 0 if no address has been allocated.
 				 */
 				virtual uint16_t address16() const = 0;
 
 				/**
 				 * Returns the run data index of the robot.
 				 *
-				 * \return the index within the run data packet where data for
-				 * this robot is stored.
+				 * \return the index within the run data packet where data for this robot is stored.
 				 */
 				virtual uint8_t run_data_index() const = 0;
 		};
@@ -140,20 +131,17 @@ class XBeeRobot : public ByRef {
 		 *
 		 * \param[in] cli the XBeeClient who requested the claim.
 		 *
-		 * \exception ResourceAllocationFailed insufficient resources are
-		 * available.
+		 * \exception ResourceAllocationFailed insufficient resources are available.
 		 */
 		void enter_drive_mode(XBeeClient *cli);
 
 		/**
-		 * Unclaims the robot and, if it was in drive mode, starts releasing
-		 * resources.
+		 * Unclaims the robot and, if it was in drive mode, starts releasing resources.
 		 */
 		void release();
 
 		/**
-		 * Invoked when a feedback packet is received over the radio from this
-		 * robot.
+		 * Invoked when a feedback packet is received over the radio from this robot.
 		 *
 		 * \param[in] rssi the signal strength of the received packet.
 		 *
@@ -164,40 +152,35 @@ class XBeeRobot : public ByRef {
 		void on_feedback(uint8_t rssi, const XBeePacketTypes::FEEDBACK_DATA &packet, const timespec &latency);
 
 		/**
-		 * Invoked when a feedback packet was expected from this robot but was
-		 * not received.
+		 * Invoked when a feedback packet was expected from this robot but was not received.
 		 */
 		void on_feedback_timeout();
 
 		/**
 		 * Checks if the robot is claimed.
 		 *
-		 * \return \c true if this robot is claimed by some client, or \c false
-		 * if not.
+		 * \return \c true if this robot is claimed by some client, or \c false if not.
 		 */
 		bool claimed() const;
 
 		/**
 		 * Checks if the robot is freeing resources.
 		 *
-		 * \return \c true if this robot is in the process of freeing resources
-		 * from a prior drive-mode claim, or \c false if not.
+		 * \return \c true if this robot is freeing resources from a prior drive-mode claim, or \c false if not.
 		 */
 		bool freeing() const;
 
 		/**
 		 * Returns the robot's 16-bit address.
 		 *
-		 * \return the 16-bit address of the robot, or 0 if no address has been
-		 * allocated.
+		 * \return the 16-bit address of the robot, or 0 if no address has been allocated.
 		 */
 		uint16_t address16() const;
 
 		/**
 		 * Returns the robot's run data index.
 		 *
-		 * \return the index within the run data packet where data for this
-		 * robot is stored.
+		 * \return the index within the run data packet where data for this robot is stored.
 		 */
 		uint8_t run_data_index() const;
 
@@ -207,8 +190,7 @@ class XBeeRobot : public ByRef {
 		const uint64_t address64;
 
 		/**
-		 * Fired when all allocated resources have been assigned and the robot is
-		 * alive and ready to drive.
+		 * Fired when all allocated resources have been assigned and the robot is alive and ready to drive.
 		 */
 		sigc::signal<void> signal_alive;
 
@@ -218,8 +200,7 @@ class XBeeRobot : public ByRef {
 		sigc::signal<void> signal_dead;
 
 		/**
-		 * Fired when all assigned resources have been freed during a shutdown
-		 * procedure.
+		 * Fired when all assigned resources have been freed during a shutdown procedure.
 		 */
 		sigc::signal<void> signal_resources_freed;
 

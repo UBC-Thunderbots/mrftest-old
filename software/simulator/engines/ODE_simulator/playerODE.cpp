@@ -61,7 +61,7 @@ namespace {
 	int click =0;
 }
 
-/**
+/*
 	Constructor method for the robot model contained in the simulator
 */
 PlayerODE::PlayerODE (dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : target_velocity(0.0, 0.0), chip_set(false), kick_set(false), Vertices(0), Triangles(0) {
@@ -162,7 +162,7 @@ PlayerODE::~PlayerODE () {
 		
 	//dBodyDestroy (body2);
 }
-/**
+/*
 this should only be called from Simulator during collision detection
 */
 void PlayerODE::set_has_ball(){
@@ -171,7 +171,7 @@ void PlayerODE::set_has_ball(){
 player_has_ball = true;
 }
 
-/**
+/*
 used to decide whether to add a contact joint for a robot collision
 */
 bool PlayerODE::hasContactPenetration(dVector3 pos){
@@ -197,7 +197,7 @@ bool PlayerODE::hasContactPenetration(dVector3 pos){
 	return false;
 }
 
-/**
+/*
 sees whether the contact joint penetrates the face of the robot
 */
 bool PlayerODE::hasContactWithFace(dVector3 pos){
@@ -215,20 +215,20 @@ bool PlayerODE::hasContactWithFace(dVector3 pos){
 }
 
 
-/// Accessor method to get the robots position
+// Accessor method to get the robots position
 Point PlayerODE::position() const {
 	const dReal *t = dBodyGetPosition (body);
 	return Point(t[0], t[1]);
 }
 
 
-/// Accessor method to get the robots orientation
+// Accessor method to get the robots orientation
 double PlayerODE::orientation() const {
 	return orientationFromMatrix(dBodyGetRotation(body));
 }
 
 
-/**
+/*
 Returns whether or not a given robot has the ball. 
 Has ball is determined from the collision detection from the previous timestep
 */
@@ -242,7 +242,7 @@ unsigned int PlayerODE::dribbler_speed() const {
 }
 
 
-/// Accessor to get the height of the middle of the robot (should be ROBOT_HEIGHT/2)
+// Accessor to get the height of the middle of the robot (should be ROBOT_HEIGHT/2)
 double PlayerODE::get_height() const
 {
 	const dReal *t = dBodyGetPosition (body);
@@ -260,9 +260,8 @@ bool PlayerODE::robot_contains_shape_ground(dGeomID geom){
 	return (b==body) && (geom!=robotGeomTopCyl);
 }
 
-/**
-computes the forces for the differential equation and 
-adds them to the robot body
+/*
+computes the forces for the differential equation and adds them to the robot body
 \param timestep the time between calculations
 */
 void PlayerODE::pre_tic(double ){
@@ -525,8 +524,8 @@ void PlayerODE::received(const XBeePacketTypes::RUN_DATA &packet) {
 
 	
 
-	// These settings are being passed directly for now, we should probably put code in to handle the fact that packets can arrive whenever
-	// and that we could get more than one kick packet
+	// These settings are being passed directly for now,
+	// we should probably put code in to handle the fact that packets can arrive whenever and that we could get more than one kick packet
 	if(packet.flags&XBeePacketTypes::RUN_FLAG_CHICKER_ENABLED) {
 		if(packet.flags&XBeePacketTypes::RUN_FLAG_CHIP){
 			chip(packet.chick_power);
@@ -542,8 +541,7 @@ void PlayerODE::received(const XBeePacketTypes::RUN_DATA &packet) {
 
 	//make sure the vehicle is not scrammed
 	if(direct_drive | controlled_drive) {
-		//These are used directly in the simulator code, needs to intercepted by a 
-		//firmware intepreter to simulate controller			
+		//These are used directly in the simulator code, needs to intercepted by a firmware intepreter to simulate controller			
 		motor_desired[0] = packet.drive1_speed;
 		motor_desired[1] = packet.drive2_speed;
 		motor_desired[2] = packet.drive3_speed;
@@ -554,8 +552,7 @@ void PlayerODE::received(const XBeePacketTypes::RUN_DATA &packet) {
 	}
 	
 	
-	//limit max motor "voltage" to VOLTAGE_LIMIT by scaling the largest component to VOLTAGE_LIMIT if greater
-	// but preserve its orientation
+	//limit max motor "voltage" to VOLTAGE_LIMIT by scaling the largest component to VOLTAGE_LIMIT if greater but preserve its orientation
 	for(uint8_t index=0;index<4;index++)
 		if(fabs(motor_desired[index])>VOLTAGE_LIMIT/PACKET_TO_VOLTAGE)
 			for(int8_t index2=0;index2<4;index2++)

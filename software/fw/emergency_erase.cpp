@@ -44,27 +44,32 @@ void EmergencyErase::on_complete(const void *data, std::size_t) {
 			return;
 
 		case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE:
-			// No response from the remote system. Try resending, if we have retries left.
+			// No response from the remote system.
+			// Try resending, if we have retries left.
 			report_error("Cannot signal emergency erase: No response.");
 			return;
 
 		case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_ERROR:
-			// Hard error. Don't bother retrying; just report an error.
+			// Hard error.
+			// Don't bother retrying; just report an error.
 			report_error("Cannot signal emergency erase: Error setting pin state.");
 			return;
 
 		case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_COMMAND:
-			// Hard error. Don't bother retrying; just report an error.
+			// Hard error.
+			// Don't bother retrying; just report an error.
 			report_error("Cannot signal emergency erase: AT command rejected.");
 			return;
 
 		case XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_PARAMETER:
-			// Hard error. Don't bother retrying; just report an error.
+			// Hard error.
+			// Don't bother retrying; just report an error.
 			report_error("Cannot signal emergency erase: AT command parameter rejected.");
 			return;
 
 		default:
-			// Hard error. Don't bother retrying; just report an error.
+			// Hard error.
+			// Don't bother retrying; just report an error.
 			report_error("Cannot signal emergency erase: Unknown error.");
 			return;
 	}

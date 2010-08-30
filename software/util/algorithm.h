@@ -27,8 +27,7 @@ namespace {
 	}
 
 	/**
-	 * Checks if an element exists within an iterator range that satisfies a
-	 * predicate.
+	 * Checks if an element exists within an iterator range that satisfies a predicate.
 	 *
 	 * \tparam Titer the type of the iterators.
 	 *
@@ -59,8 +58,7 @@ namespace {
 	 *
 	 * \param[in] upper the maximum legal value.
 	 *
-	 * \return the nearest value to \p value that lies in the range [\p lower,
-	 * \p upper].
+	 * \return the nearest value to \p value that lies in the range [\p lower, \p upper].
 	 */
 	template<typename T>
 	T clamp(const T &value, const T &lower, const T &upper) {
@@ -68,13 +66,11 @@ namespace {
 	}
 
 	/**
-	 * A comparator that orders small nonnegative integers based on the ordering
-	 * of objects in a vector at corresponding positions.
+	 * A comparator that orders small nonnegative integers based on the ordering of objects in a vector at corresponding positions.
 	 *
 	 * \tparam T the type of elements in the lookup table.
 	 *
-	 * \tparam Comp the type of the comparator between lookup table elements
-	 * (defaults to \c std::less<T>).
+	 * \tparam Comp the type of the comparator between lookup table elements (defaults to \c std::less<T>).
 	 */
 	template<typename T, typename Comp = std::less<T> > 
 	class IndexComparator {
@@ -82,8 +78,7 @@ namespace {
 			/**
 			 * Constructs a new IndexComparator.
 			 *
-			 * \param[in] tbl the lookup table to use, which is not copied and
-			 * must remain valid until the IndexComparator has been destroyed.
+			 * \param[in] tbl the lookup table to use, which is not copied and must remain valid until the IndexComparator has been destroyed.
 			 *
 			 * \param[in] comp the comparator to use (defaults to \c Comp()).
 			 */
@@ -99,8 +94,7 @@ namespace {
 			 *
 			 * \param[in] y the second number to compare.
 			 *
-			 * \return \c true if \p x should precede \p y, that is, if
-			 * <code>comp(tbl[x], tbl[y])</code>, or \c false if not.
+			 * \return \c true if \p x should precede \p y, that is, if <code>comp(tbl[x], tbl[y])</code>, or \c false if not.
 			 */
 			bool operator()(unsigned int x, unsigned int y) const {
 				return comp(tbl[x], tbl[y]);

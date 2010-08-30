@@ -17,8 +17,7 @@ class FileDescriptor : public ByRef {
 		/**
 		 * Constructs a new FileDescriptor with a descriptor.
 		 *
-		 * \param[in] fd the existing file descriptor, of which ownership is
-		 * taken.
+		 * \param[in] fd the existing file descriptor, of which ownership is taken.
 		 *
 		 * \return a new FileDescriptor owning \p fd.
 		 */
@@ -31,8 +30,7 @@ class FileDescriptor : public ByRef {
 		 *
 		 * \param[in] flags the file flags to use as per \c open(2).
 		 *
-		 * \param[in] mode the permissions to create a new file with, if
-		 * \c O_CREAT is included in \p flags.
+		 * \param[in] mode the permissions to create a new file with, if \c O_CREAT is included in \p flags.
 		 *
 		 * \return the new FileDescriptor.
 		 */
@@ -45,20 +43,17 @@ class FileDescriptor : public ByRef {
 		 *
 		 * \param[in] type the type of socket to create.
 		 *
-		 * \param[in] proto the specific protocol to create a socket for, or 0
-		 * to use the default protocol for a given \c pf and \c type.
+		 * \param[in] proto the specific protocol to create a socket for, or 0 to use the default protocol for a given \c pf and \c type.
 		 *
 		 * \return the new FileDescriptor.
 		 */
 		static Ptr create_socket(int pf, int type, int proto);
 
 		/**
-		 * Constructs a new FileDescriptor by calling \c \c mkstemp(3) with the
-		 * specified filename pattern concatenated to the appropriate temporary
-		 * directory, from environment variables \c TMPDIR, \c TMP, or \c TEMP
-		 * or else a hardcoded default. The file will have been unlinked.
+		 * Constructs a FileDescriptor that refers to a unique file that has not been opened by any other process,
+		 * and that does not have any name on disk.
 		 *
-		 * \param[in] pattern the pattern for the filename.
+		 * \param[in] pattern the pattern for the filename, which must be suitable for \c mkstemp().
 		 *
 		 * \return the new descriptor.
 		 */
@@ -84,8 +79,7 @@ class FileDescriptor : public ByRef {
 		/**
 		 * Sets whether the descriptor is blocking.
 		 *
-		 * \param[in] block \c true to set the descriptor to blocking mode, or
-		 * \c false to set the descriptor to non-blocking mode.
+		 * \param[in] block \c true to set the descriptor to blocking mode, or \c false to set the descriptor to non-blocking mode.
 		 */
 		void set_blocking(bool block) const;
 

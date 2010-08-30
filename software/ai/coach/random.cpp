@@ -5,8 +5,9 @@ using namespace AI;
 
 namespace {
 	/**
-	 * A Coach that picks randomly from the available \ref Strategy "Strategies"
-	 * for a given play type.
+	 * A Coach that picks randomly from the available \ref Strategy "Strategies" for a given play type.
+	 * This coach also never forcefully removes a Strategy from play.
+	 * It only acts when the current Strategy resigns.
 	 */
 	class RandomCoach : public Coach {
 		public:

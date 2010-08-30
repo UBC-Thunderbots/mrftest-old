@@ -52,48 +52,42 @@ class Visualizable : public NonCopyable {
 				/**
 				 * Checks whether the data is valid.
 				 *
-				 * \return true if the geometry data in the Field is valid, or
-				 * false if not.
+				 * \return true if the geometry data in the Field is valid, or false if not.
 				 */
 				virtual bool valid() const = 0;
 
 				/**
 				 * Returns the length of the field.
 				 *
-				 * \return the length of the field, from goal to goal, in
-				 * metres.
+				 * \return the length of the field, from goal to goal, in metres.
 				 */
 				virtual double length() const = 0;
 
 				/**
 				 * Returns the total length of the field.
 				 *
-				 * \return the length of the field, including the boundary and
-				 * referee area, in metres.
+				 * \return the length of the field, including the boundary and referee area, in metres.
 				 */
 				virtual double total_length() const = 0;
 
 				/**
 				 * Returns the width of the field.
 				 *
-				 * \return the width of the field, from sideline to sideline, in
-				 * metres.
+				 * \return the width of the field, from sideline to sideline, in metres.
 				 */
 				virtual double width() const = 0;
 
 				/**
 				 * Returns the total width of the field.
 				 *
-				 * \return the width of the field, including the boundary and
-				 * referee area, in metres.
+				 * \return the width of the field, including the boundary and referee area, in metres.
 				 */
 				virtual double total_width() const = 0;
 
 				/**
 				 * Returns the width of the goal.
 				 *
-				 * \return the width of the goal, symmetric above and below the
-				 * centreline, from goalpost to goalpost, in metres.
+				 * \return the width of the goal, symmetric above and below the centreline, from goalpost to goalpost, in metres.
 				 */
 				virtual double goal_width() const = 0;
 
@@ -108,16 +102,14 @@ class Visualizable : public NonCopyable {
 				 * Returns the radius of the arcs at the top and bottom of the
 				 * defense area.
 				 *
-				 * \return the radius of the arcs at the top and bottom of the
-				 * defense area, in metres.
+				 * \return the radius of the arcs at the top and bottom of the defense area, in metres.
 				 */
 				virtual double defense_area_radius() const = 0;
 
 				/**
 				 * Returns the width of the straight part of the defense area.
 				 *
-				 * \return the width of the straight part of the defense area
-				 * between the two arcs, in metres.
+				 * \return the width of the straight part of the defense area between the two arcs, in metres.
 				 */
 				virtual double defense_area_stretch() const = 0;
 
@@ -140,8 +132,7 @@ class Visualizable : public NonCopyable {
 				/**
 				 * Checks if the object can actually be dragged.
 				 *
-				 * \return true if this object can actually be dragged, or false
-				 * if not.
+				 * \return true if this object can actually be dragged, or false if not.
 				 */
 				virtual bool visualizer_can_drag() const = 0;
 
@@ -205,8 +196,7 @@ class Visualizable : public NonCopyable {
 				/**
 				 * Checks whether the robot is visible.
 				 *
-				 * \return true if the Robot is visible on the field, or false
-				 * if not.
+				 * \return true if the Robot is visible on the field, or false if not.
 				 */
 				virtual bool visualizer_visible() const = 0;
 
@@ -227,8 +217,7 @@ class Visualizable : public NonCopyable {
 				/**
 				 * Checks whether the robot has a definite destination.
 				 *
-				 * \return true if it is possible to determine the current
-				 * destination of this object.
+				 * \return true if it is possible to determine the current destination of this object.
 				 */
 				virtual bool has_destination() const = 0;
 
@@ -296,8 +285,7 @@ class Visualizer : public Gtk::DrawingArea, public NonCopyable {
 		/**
 		 * Returns the overlay context.
 		 *
-		 * \return a context for drawing on the overlay surface that renders on
-		 * top of the Visualizer.
+		 * \return a context for drawing on the overlay surface that renders on top of the Visualizer.
 		 */
 		Cairo::RefPtr<Cairo::Context> overlay() const;
 

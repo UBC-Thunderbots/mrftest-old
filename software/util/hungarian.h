@@ -8,22 +8,24 @@
 /**
  * Uses the Hungarian algorithm to perform a maximum-weight bipartite matching.
  *
+ * In other terms, given a square matrix of <var>N</var> rows and columns,
+ * and given a number in each cell, selects <var>N</var> of those cells such that:
+ * <ul>
+ * <li>No two cells in the same row or column are chosen, and</li>
+ * <li>The sum of values in the cells is maximized</li>
+ * </ul>
+ *
  * Usage:
  * <ol>
- * <li>You create a new Hungarian object with some size. The object contains two
- * node-sets, named <var>X</var> and <var>Y</var>, each of the given size.</li>
- * <li>You define the weight of matching each node in the <var>X</var> set with
- * every node in the <var>Y</var> set, using the
- * weight(std::size_t, std::size_t) function.</li>
- * <li>You call execute(). This computes a matching where every node in
- * <var>X</var> is matched with exactly one element in <var>Y</var> (and
- * consequently vice-versa) such that no other matching exists that has a higher
- * total weight, where the total weight of a matching is defined as the sum of
- * the weights specified for all the matched pairs.</li>
- * <li>You read off the matching by either calling matchX(std::size_t) const to
- * determine which element in <var>Y</var> matches with each element in
- * <var>X</var>, or by calling matchY(std::size_t) const to determine which
- * element in <var>X</var> matches with each element in <var>Y</var>.</li>
+ * <li>You create a new Hungarian object with some size.
+ * The object contains two node-sets, named <var>X</var> and <var>Y</var>, each of the given size.</li>
+ * <li>You define the weight of matching each node in the <var>X</var> set with every node in the <var>Y</var> set,
+ * using the weight(std::size_t, std::size_t) function.</li>
+ * <li>You call execute(). This computes a matching where every node in <var>X</var> is matched with exactly one element in <var>Y</var>
+ * (and consequently vice-versa) such that no other matching exists that has a higher total weight,
+ * where the total weight of a matching is defined as the sum of the weights specified for all the matched pairs.</li>
+ * <li>You read off the matching by either calling matchX(std::size_t) const to determine which element in <var>Y</var> matches with each element in <var>X</var>,
+ * or by calling matchY(std::size_t) const to determine which element in <var>X</var> matches with each element in <var>Y</var>.</li>
  * </ol>
  */
 class Hungarian {
@@ -82,8 +84,7 @@ public:
 	 *
 	 * \param[in] x the index of a node in the <var>X</var> set.
 	 *
-	 * \return the index of the node in the <var>Y</var> set that is matched
-	 * with node \p x.
+	 * \return the index of the node in the <var>Y</var> set that is matched with node \p x.
 	 */
 	std::size_t matchX(std::size_t x) const {
 		assert(x < mx.size());
@@ -95,8 +96,7 @@ public:
 	 *
 	 * \param[in] y the index of a node in the <var>Y</var> set.
 	 *
-	 * \return the index of the node in the <var>X</var> set that is matched
-	 * with node \p y.
+	 * \return the index of the node in the <var>X</var> set that is matched with node \p y.
 	 */
 	std::size_t matchY(std::size_t y) const {
 		assert(y < my.size());
