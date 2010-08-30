@@ -4,9 +4,13 @@
 #include "geom/point.h"
 #include <vector>
 
-/*
+/**
  * Misc geometry utility functions.
- * Contains code ported from 2009 version of AI.
+ * Contains code ported since 2009.
+ *
+ * PLEASE FOLLOW THE DEFINITION:
+ * - LINE a line of infinite length
+ * - SEGMENT a line of finite length
  */
 
 /**
@@ -22,17 +26,26 @@
 std::vector<size_t> dist_matching(const std::vector<Point>& v1, const std::vector<Point>& v2);
 
 /**
- * Checks collinearity.
+ * Checks if 3 points are collinear.
+ *
+ * \param[in] a a point
+ *
+ * \param[in] b a point
+ *
+ * \param[in] c a point
+ *
+ * \returns true if any two points are within EPS distance to each other.
  */
 bool collinear(const Point& a, const Point& b, const Point& c);
 
 /**
- * Performs an angle sweep. Suppose in this world, all objects are circles of
- * fixed radius. You are at point \p src, and you want to shoot a ray between \p
- * p1 and \p p2. This function calculates the largest open angle interval that
- * you can shoot.
+ * Performs an angle sweep.
+ * Suppose in this world, all objects are circles of fixed radius.
+ * You are at point \p src, and you want to shoot a ray between \p p1 and \p p2.
+ * This function calculates the largest open angle interval that you can shoot.
  *
- * \pre \p p1 must be to the right of \p p2. In other words, if there is a counterclockwise ordering, \p p1 is before \p p2 from \p src's point of view.
+ * \pre \p p1 must be to the right of \p p2.
+ * In other words, if there is a counterclockwise ordering, \p p1 is before \p p2 from \p src's point of view.
  *
  * \pre The angle \p p1, \p src, \p p2 must not be greater than 180 degrees.
  *
@@ -48,9 +61,8 @@ bool collinear(const Point& a, const Point& b, const Point& c);
  *
  * \param[in] radius the radii of the obstacles.
  *
- * \return the best direction to shoot and the size of the angle centred around
- * that direction that is completely free of obstacles, or <code>(<var>p</var>,
- * 0)</code> for some unspecified <var>p</var> if there is no free path.
+ * \return the best direction to shoot and the size of the angle centred around that direction that is completely free of obstacles,
+ * or <code>(<var>p</var>, 0)</code> for some unspecified <var>p</var> if there is no free path.
  */
 std::pair<Point, double> angle_sweep_circles(const Point& src, const Point& p1, const Point& p2, const std::vector<Point>& obstacles, const double& radius);
 
@@ -73,14 +85,13 @@ bool line_seg_intersect_rectangle(Point seg[2], Point recA[4]);
  *
  * \param[in] recA the corners of the rectangle.
  *
- * \return \c true if \p pointA lies inside the rectangle, or \c false if it
- * lies outside.
+ * \return \c true if \p pointA lies inside the rectangle, or \c false if it lies outside.
  */
 bool point_in_rectangle(Point pointA, Point recA[4]);
 
 /**
- * Finds the points of intersection between a circle and a line segment. There
- * may be zero, one, or two such points.
+ * Finds the points of intersection between a circle and a line segment.
+ * There may be zero, one, or two such points.
  *
  * \param[in] centre the centre of the circle.
  *
@@ -95,8 +106,7 @@ bool point_in_rectangle(Point pointA, Point recA[4]);
 std::vector<Point> lineseg_circle_intersect(Point centre, double radius, Point segA, Point segB); 
 
 /**
- * Finds the points of intersection between a circle and a line. There may be
- * zero, one, or two such points.
+ * Finds the points of intersection between a circle and a line. There may be zero, one, or two such points.
  *
  * \param[in] centre the centre of the circle.
  *
@@ -149,9 +159,9 @@ Point line_intersect(const Point &a, const Point &b, const Point &c, const Point
  *
  * \param[in] b another point on the line.
  *
- * \return the signed distance from the point to the line, with a negative
- * number indicating that the point is counterclockwise of the line and a
- * positive number indicating that the point is clockwise of the line.
+ * \return the signed distance from the point to the line,
+ * with a negative number indicating that the point is counterclockwise of the line
+ * and a positive number indicating that the point is clockwise of the line.
  */
 double line_point_dist(const Point &p, const Point &a, const Point &b);
 
@@ -173,9 +183,11 @@ bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Po
 /**
  * Reflects a ray incident on origin given the normal of the reflecting plane.
  *
+ * \pre the normal vector cannot have length smaller than EPS.
+ *
  * \param[in] v the incident ray to reflect.
  *
- * \param[in] n the normal vector to the reflecting plane.
+ * \param[in] n the vector normal to the reflecting plane.
  *
  * \return the reflected ray.
  */
@@ -195,8 +207,9 @@ Point reflect(const Point& v, const Point& n);
 Point reflect(const Point& a, const Point& b, const Point& p);
 
 /**
- * Given a cone shooting from the origin, determines the location at which to
- * place a circle to block as much as possible of the cone.
+ * Given a cone shooting from the origin,
+ * determines the furthest location from the origin,
+ * at which to place a circle to block the cone.
  *
  * \pre The cone must have nonzero area.
  *
@@ -212,6 +225,25 @@ Point reflect(const Point& a, const Point& b, const Point& p);
  */
 Point calc_block_cone(const Point &a, const Point &b, const double& radius);
 
+/**
+ * Given a cone shooting from a point P,
+ * determines the furthest location from P,
+ * at which to place a circle to block the cone.
+ *
+ * \pre The cone must have nonzero area.
+ *
+ * \pre \p b must be counterclockwise of \p a.
+ *
+ * \param[in] a the starting angle of the cone.
+ *
+ * \param[in] b the ending angle of the cone.
+ *
+ * \param[in] radius the radius of the circle with which to block the cone.
+ *
+ * \param[in] p the source of the cone.
+ *
+ * \return the blocking position.
+ */
 Point calc_block_cone(const Point &a, const Point &b, const Point& p, const double& radius);
 
 /**
@@ -234,11 +266,18 @@ Point calc_block_other_ray(const Point& a, const Point& c, const Point& g);
 bool goalie_block_goal_post(const Point& a, const Point& b, const Point& c, const Point& g);
 
 /**
- * a = goal post position
- * b = other goal post position
- * c = ball position
- * g = goalie position
- * finds a defender position to block the ball
+ * Calculates a defender position to block the ball.
+ * Warning: I don't know what orientation the goal posts have to be.
+ *
+ * \pre the goalie is between the two goal posts, as seen from the ball.
+ *
+ * \param[in] a ??? goal post position
+ *
+ * \param[in] b ??? other goal post position
+ *
+ * \param[in] c ball position
+ *
+ * \param[in] g goalie position
  */
 Point calc_block_cone_defender(const Point& a, const Point& b, const Point& c, const Point& g, const double& r);
 

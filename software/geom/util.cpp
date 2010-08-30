@@ -259,7 +259,7 @@ bool goalie_block_goal_post(const Point& a, const Point& b, const Point& c, cons
 }
 
 // ported code
-#warning Doxygenize this in geom/util.h; also, the comments there are unclear (what does it actually do?)
+#warning figure out a and b
 Point calc_block_cone_defender(const Point& a, const Point& b, const Point& c, const Point& g, const double& r) {
 	Point R = reflect(a - c, g - c);
 	// std::cout << (R + c) << std::endl;
