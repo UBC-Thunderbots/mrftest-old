@@ -189,15 +189,15 @@ Point TeamGreedyNavigator::get_inbounds_point(Point dst){
 
 	Point wantdest = dst;
 
-	if (flags & AIFlags::CLIP_PLAY_AREA) {
+	if (flags & Flags::CLIP_PLAY_AREA) {
 	  wantdest = clip_playing_area(wantdest);
 	}
 
-	if (flags & AIFlags::STAY_OWN_HALF) {
+	if (flags & Flags::STAY_OWN_HALF) {
 		wantdest.x =  std::min(wantdest.x, -(Robot::MAX_RADIUS + ::AI::Util::POS_CLOSE));
 	}
 
-	if (flags & AIFlags::AVOID_BALL_STOP) {
+	if (flags & Flags::AVOID_BALL_STOP) {
 	  Point before = wantdest;
 		wantdest = clip_circle(the_ball->position(), AVOID_BALL_AMOUNT, wantdest);
 		//don't go out of bounds in order to comply with the rules
@@ -205,21 +205,21 @@ Point TeamGreedyNavigator::get_inbounds_point(Point dst){
 		wantdest = clip_playing_area(wantdest);
 	}
 
-	if (flags & AIFlags::AVOID_FRIENDLY_DEFENSE) {
+	if (flags & Flags::AVOID_FRIENDLY_DEFENSE) {
 		//std::cout<<"defense before "<<wantdest.x<<" "<<wantdest.y<<std::endl;
 		wantdest = clip_defense_area(wantdest);
 		//std::cout<<"defense after  "<<wantdest.x<<" "<<wantdest.y<<std::endl;
 	}
 
-	if (flags & AIFlags::AVOID_ENEMY_DEFENSE) {
+	if (flags & Flags::AVOID_ENEMY_DEFENSE) {
 		wantdest = clip_offense_area(wantdest);
 	}
 
-	if (flags & AIFlags::PENALTY_KICK_FRIENDLY) {
+	if (flags & Flags::PENALTY_KICK_FRIENDLY) {
 		wantdest.x =  std::min(wantdest.x, the_field.penalty_enemy().x - 0.400 - (Robot::MAX_RADIUS + ::AI::Util::POS_CLOSE));
 	}
 
-	if (flags & AIFlags::PENALTY_KICK_ENEMY) {
+	if (flags & Flags::PENALTY_KICK_ENEMY) {
 		wantdest.x =  std::max(wantdest.x, the_field.penalty_friendly().x + 0.400 + (Robot::MAX_RADIUS + ::AI::Util::POS_CLOSE));
 	}
 
@@ -260,7 +260,7 @@ void TeamGreedyNavigator::tick(Player::Ptr play) {
 	const double distance = (wantdest - the_player->position()).len();
 
 	bool wantdribble;
-	if (flags & AIFlags::AVOID_BALL_STOP) {
+	if (flags & Flags::AVOID_BALL_STOP) {
 		wantdribble = false;
 	} else {
 		wantdribble = need_dribble || ::AI::Util::has_ball(the_world, the_player);
@@ -271,7 +271,7 @@ void TeamGreedyNavigator::tick(Player::Ptr play) {
 	if (wantdribble) {
 	  const double dribblespeed = std::min<double>(get_robot_set_point(the_player->pattern_index) + DRIBBLE_SPEED_RAMP * the_player->sense_ball_time(), DRIBBLE_SPEED_MAX);
 		the_player->dribble(dribblespeed);
-	} else if (flags & AIFlags::AVOID_BALL_STOP) {
+	} else if (flags & Flags::AVOID_BALL_STOP) {
 		the_player->dribble(0);
 	} else {
 		the_player->dribble(get_robot_set_point(the_player->pattern_index));

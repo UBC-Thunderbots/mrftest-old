@@ -1,6 +1,6 @@
 #include "ai/flags.h"
 
-unsigned int AIFlags::calc_flags(PlayType::PlayType pt) {
+unsigned int AI::Flags::calc_flags(PlayType::PlayType pt) {
 	// All robots want to avoid the defence area (except for the goalie)
 	unsigned int flags = AVOID_FRIENDLY_DEFENSE;
 	switch(pt) {
