@@ -38,7 +38,7 @@ namespace AI {
 				 *
 				 * \param[in] dest the point by distances to which the objects should be compared.
 				 */
-				CmpDist(const Point& dest) : dest(dest) {
+				CmpDist(const Point dest) : dest(dest) {
 				}
 
 				/**
@@ -50,11 +50,12 @@ namespace AI {
 				 *
 				 * \return \c true if \p x is closer to the destination than \c y, or \c false if not.
 				 */
-				bool operator()(T x, T y) const {
+				bool operator()(const T &x, const T &y) const {
 					return (x->position() - dest).lensq() < (y->position() - dest).lensq();
 				}
+
 			private:
-				const Point& dest;
+				const Point dest;
 		};
 
 		extern DoubleParam PLAYTYPE_WAIT_TIME;
@@ -111,7 +112,7 @@ namespace AI {
 		 *
 		 * \param[in] bot the Robot to check.
 		 */
-		bool ball_close(World &w, const Robot::Ptr bot);
+		bool ball_close(const World &w, const Robot::Ptr bot);
 
 		/**
 		 * Checks if a position is inside the friendly defense area.
@@ -120,7 +121,7 @@ namespace AI {
 		 *
 		 * \param[in] pt the Point to check.
 		 */
-		bool point_in_defense(World &w, const Point& pt);
+		bool point_in_defense(const World &w, const Point pt);
 
 		/**
 		 * Checks if the path from \p begin to \p end is blocked by some robots.
@@ -137,7 +138,7 @@ namespace AI {
 		 *
 		 * \return \c true if the path is free, or \c false if it is blocked.
 		 */
-		bool path_check(const Point& begin, const Point& end, const std::vector<Robot::Ptr>& robots, const double thresh);
+		bool path_check(const Point begin, const Point end, const std::vector<Robot::Ptr> &robots, const double thresh);
 
 		/**
 		 * Checks if the path from \p begin to \p end is blocked by some obstacles.
@@ -154,7 +155,7 @@ namespace AI {
 		 *
 		 * \return \c true if the path is free, or \c false if it is blocked.
 		 */
-		bool path_check(const Point& begin, const Point& end, const std::vector<Point>& obstacles, const double thresh);
+		bool path_check(const Point begin, const Point end, const std::vector<Point> &obstacles, const double thresh);
 
 		/**
 		 * Checks if the passee can get the ball now.
@@ -166,7 +167,7 @@ namespace AI {
 		 * \return \c false if some robots is blocking line of sight of ball from \p passee,
 		 * if \p passee is not facing the ball, or if some condition is invalid, or \c true otherwise.
 		 */
-		bool can_receive(World &w, const Player::Ptr passee);
+		bool can_receive(const World &w, const Player::Ptr passee);
 
 		/**
 		 * Calculates the candidates to aim for when shooting at the goal.
@@ -175,7 +176,7 @@ namespace AI {
 		 *
 		 * \return a collection of open points in the goal.
 		 */
-		const std::vector<Point> calc_candidates(World &w);
+		const std::vector<Point> calc_candidates(const World &w);
 
 		/**
 		 * Calculates the best possible point to shoot the ball.
@@ -193,7 +194,7 @@ namespace AI {
 		 * \return a pair \c (p, s) where \c p is the middle of the best interval and \c s is the angle of that interval,
 		 * where a score of 0 means the enemy goal cannot be seen.
 		 */
-		std::pair<Point, double> calc_best_shot(const Field& f, const std::vector<Point>& obstacles, const Point& p, const double radius = Robot::MAX_RADIUS);
+		std::pair<Point, double> calc_best_shot(const Field &f, const std::vector<Point> &obstacles, const Point p, const double radius = Robot::MAX_RADIUS);
 
 		/**
 		 * Calculates the best possible point to shoot the ball.
@@ -232,7 +233,7 @@ namespace AI {
 		 *
 		 * \return all the \ref Player "Players" in \p friendly except for those in \p exclude.
 		 */
-		std::vector<Player::Ptr> get_friends(const FriendlyTeam& friendly, const std::vector<Player::Ptr>& exclude);
+		std::vector<Player::Ptr> get_friends(const FriendlyTeam &friendly, const std::vector<Player::Ptr> &exclude);
 
 		/**
 		 * Finds the best player to pass to based on distance to the enemy goal.
@@ -243,7 +244,7 @@ namespace AI {
 		 *
 		 * \return ?, or -1 if no valid target is found.
 		 */
-		int choose_best_pass(World &w, const std::vector<Player::Ptr>& friends);
+		int choose_best_pass(const World &w, const std::vector<Player::Ptr> &friends);
 
 		/**
 		 * Checks whether a player probably has the ball.
@@ -255,7 +256,7 @@ namespace AI {
 		 *
 		 * \return \c true if \p pl has the ball with high probability.
 		 */
-		bool has_ball(World &w, const Player::Ptr pl);
+		bool has_ball(const World &w, const Player::Ptr pl);
 
 		/**
 		 * Checks if a FRIENDLY PLAYER possesses the ball.
@@ -267,17 +268,7 @@ namespace AI {
 		 *
 		 * \return \c true if \p p possesses the ball.
 		 */
-		bool posses_ball(World &w, const Player::Ptr p);
-
-		/**
-		 * Checks if an ENEMY ROBOT possesses the ball.
-		 */
-		// bool posses_ball(World &w, const Robot::Ptr r);
-
-		/**
-		 * Checks if the enemy team possesses the ball.
-		 */
-		// bool enemy_posses_ball(World &w);
+		bool posses_ball(const World &w, const Player::Ptr p);
 
 		/**
 		 * Checks if the friendly team possesses the ball.
@@ -286,7 +277,7 @@ namespace AI {
 		 *
 		 * \return \c true if the friendly team possesses the ball.
 		 */
-		bool friendly_posses_ball(World &w);
+		bool friendly_posses_ball(const World &w);
 
 		/**
 		 * Checks if the friendly team has the ball.
@@ -295,7 +286,7 @@ namespace AI {
 		 *
 		 * \return \c true if the friendly team has the ball.
 		 */
-		bool friendly_has_ball(World &w);
+		bool friendly_has_ball(const World &w);
 
 		/**
 		 * Determines which player has the ball.
@@ -306,7 +297,7 @@ namespace AI {
 		 *
 		 * \return the index in \p players of the Player that has the ball, or -1 if none have the ball.
 		 */
-		int calc_baller(World &w, const std::vector<Player::Ptr>& players);
+		int calc_baller(const World &w, const std::vector<Player::Ptr> &players);
 	}
 }
 
