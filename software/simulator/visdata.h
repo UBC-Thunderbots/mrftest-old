@@ -30,7 +30,7 @@ class SimulatorVisData : public Visualizable {
 		 *
 		 * \return the ball.
 		 */
-		Visualizable::Ball::Ptr ball() const;
+		const Visualizable::Ball &ball() const;
 
 		/**
 		 * Returns the number of robots.
@@ -46,11 +46,13 @@ class SimulatorVisData : public Visualizable {
 		 *
 		 * \return the robot.
 		 */
-		Visualizable::Robot::Ptr operator[](unsigned int index) const;
+		const Visualizable::Robot &operator[](unsigned int index) const;
 
 	private:
 		class SimulatorVisField : public Visualizable::Field {
 			public:
+				SimulatorVisField();
+				~SimulatorVisField();
 				bool valid() const;
 				double length() const;
 				double total_length() const;
@@ -62,9 +64,37 @@ class SimulatorVisData : public Visualizable {
 				double defense_area_stretch() const;
 		};
 
+		class SimulatorVisRobot : public Visualizable::Robot {
+			public:
+				SimulatorVisRobot(SimulatorRobot::Ptr bot);
+				~SimulatorVisRobot();
+				Point position() const;
+				double orientation() const;
+				bool visualizer_visible() const;
+				Visualizable::RobotColour visualizer_colour() const;
+				Glib::ustring visualizer_label() const;
+				bool has_destination() const;
+				Point destination() const;
+
+			private:
+				SimulatorRobot::Ptr bot;
+		};
+
+		class SimulatorVisBall : public Visualizable::Ball {
+			public:
+				SimulatorVisBall(SimulatorBall::Ptr ball);
+				~SimulatorVisBall();
+				Point position() const;
+				Point velocity() const;
+
+			private:
+				SimulatorBall::Ptr ball;
+		};
+
 		const Simulator &sim;
 		SimulatorVisField fld;
-		std::vector<Visualizable::Robot::Ptr> robots;
+		SimulatorVisBall ball_;
+		std::vector<SimulatorVisRobot> robots;
 
 		void init();
 

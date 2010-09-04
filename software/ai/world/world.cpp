@@ -27,7 +27,7 @@ namespace {
 	static const unsigned int MAX_VISION_FAILURES = 120;
 }
 
-World::World(const Config &conf, const std::vector<XBeeDriveBot::Ptr> &xbee_bots) : conf(conf), east_(false), refbox_yellow_(false), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)), ball_(Ball::create()), xbee_bots(xbee_bots), playtype_(PlayType::HALT), playtype_override(PlayType::HALT), playtype_override_active(false), vis_view(this), ball_filter_(0) {
+World::World(const Config &conf, const std::vector<XBeeDriveBot::Ptr> &xbee_bots) : conf(conf), east_(false), refbox_yellow_(false), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)), ball_(), xbee_bots(xbee_bots), playtype_(PlayType::HALT), playtype_override(PlayType::HALT), playtype_override_active(false), vis_view(this), ball_filter_(0) {
 	vision_socket->set_blocking(false);
 	const int one = 1;
 	if (setsockopt(vision_socket->fd(), SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
@@ -60,8 +60,8 @@ void World::flip_ends() {
 	east_ = !east_;
 
 	// Swap the ball.
-	ball_->sign = east_ ? -1 : 1;
-	ball_->clear_prediction(-ball_->position(), angle_mod(-ball_->orientation()));
+	ball_.sign = east_ ? -1 : 1;
+	ball_.clear_prediction(-ball_.position(), angle_mod(-ball_.orientation()));
 
 	// Swap the robots.
 	static Team * const teams[2] = { &friendly, &enemy };
@@ -160,7 +160,7 @@ bool World::on_vision_readable(Glib::IOCondition) {
 			}
 
 			// Use the result.
-			ball_->update(pos);
+			ball_.update(pos);
 		}
 
 		// Update the robots.
@@ -269,7 +269,7 @@ bool World::on_vision_readable(Glib::IOCondition) {
 				bot->lock_time();
 			}
 		}
-		ball_->lock_time();
+		ball_.lock_time();
 		vis_view.signal_visdata_changed.emit();
 	}
 
@@ -339,26 +339,26 @@ PlayType::PlayType World::compute_playtype(PlayType::PlayType old_pt) {
 		case ' ': // NORMAL START
 			switch (old_pt) {
 				case PlayType::PREPARE_KICKOFF_FRIENDLY:
-					playtype_arm_ball_position = ball_->position();
+					playtype_arm_ball_position = ball_.position();
 					return PlayType::EXECUTE_KICKOFF_FRIENDLY;
 
 				case PlayType::PREPARE_KICKOFF_ENEMY:
-					playtype_arm_ball_position = ball_->position();
+					playtype_arm_ball_position = ball_.position();
 					return PlayType::EXECUTE_KICKOFF_ENEMY;
 
 				case PlayType::PREPARE_PENALTY_FRIENDLY:
-					playtype_arm_ball_position = ball_->position();
+					playtype_arm_ball_position = ball_.position();
 					return PlayType::EXECUTE_PENALTY_FRIENDLY;
 
 				case PlayType::PREPARE_PENALTY_ENEMY:
-					playtype_arm_ball_position = ball_->position();
+					playtype_arm_ball_position = ball_.position();
 					return PlayType::EXECUTE_PENALTY_ENEMY;
 
 				case PlayType::EXECUTE_KICKOFF_FRIENDLY:
 				case PlayType::EXECUTE_KICKOFF_ENEMY:
 				case PlayType::EXECUTE_PENALTY_FRIENDLY:
 				case PlayType::EXECUTE_PENALTY_ENEMY:
-					if ((ball_->position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
+					if ((ball_.position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
 						return PlayType::PLAY;
 					} else {
 						return old_pt;
@@ -372,13 +372,13 @@ PlayType::PlayType World::compute_playtype(PlayType::PlayType old_pt) {
 			if (old_pt == PlayType::PLAY) {
 				return PlayType::PLAY;
 			} else if (old_pt == PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) {
-				if ((ball_->position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
+				if ((ball_.position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
 					return PlayType::PLAY;
 				} else {
 					return PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY;
 				}
 			} else {
-				playtype_arm_ball_position = ball_->position();
+				playtype_arm_ball_position = ball_.position();
 				return PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY;
 			}
 
@@ -386,13 +386,13 @@ PlayType::PlayType World::compute_playtype(PlayType::PlayType old_pt) {
 			if (old_pt == PlayType::PLAY) {
 				return PlayType::PLAY;
 			} else if (old_pt == PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) {
-				if ((ball_->position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
+				if ((ball_.position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
 					return PlayType::PLAY;
 				} else {
 					return PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY;
 				}
 			} else {
-				playtype_arm_ball_position = ball_->position();
+				playtype_arm_ball_position = ball_.position();
 				return PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY;
 			}
 
@@ -400,13 +400,13 @@ PlayType::PlayType World::compute_playtype(PlayType::PlayType old_pt) {
 			if (old_pt == PlayType::PLAY) {
 				return PlayType::PLAY;
 			} else if (old_pt == PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY) {
-				if ((ball_->position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
+				if ((ball_.position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
 					return PlayType::PLAY;
 				} else {
 					return PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY;
 				}
 			} else {
-				playtype_arm_ball_position = ball_->position();
+				playtype_arm_ball_position = ball_.position();
 				return PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY;
 			}
 
@@ -414,13 +414,13 @@ PlayType::PlayType World::compute_playtype(PlayType::PlayType old_pt) {
 			if (old_pt == PlayType::PLAY) {
 				return PlayType::PLAY;
 			} else if (old_pt == PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY) {
-				if ((ball_->position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
+				if ((ball_.position() - playtype_arm_ball_position).len() > BALL_FREE_DISTANCE) {
 					return PlayType::PLAY;
 				} else {
 					return PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY;
 				}
 			} else {
-				playtype_arm_ball_position = ball_->position();
+				playtype_arm_ball_position = ball_.position();
 				return PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY;
 			}
 

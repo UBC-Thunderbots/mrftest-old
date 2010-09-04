@@ -5,7 +5,7 @@
 #include "geom/point.h"
 #include "proto/messages_robocup_ssl_detection.pb.h"
 #include "uicomponents/visualizer.h"
-#include "util/byref.h"
+#include "util/noncopyable.h"
 #include <cstdlib>
 #include <glibmm.h>
 
@@ -15,13 +15,8 @@ namespace AI {
 	/**
 	 * The ball.
 	 */
-	class Ball : public Visualizable::Ball, public Predictable {
+	class Ball : public Visualizable::Ball, public Predictable, public NonCopyable {
 		public:
-			/**
-			 * A pointer to a Ball.
-			 */
-			typedef RefPtr<Ball> Ptr;
-
 			/**
 			 * The approximate radius of the ball.
 			 */
@@ -38,13 +33,6 @@ namespace AI {
 
 		private:
 			double sign;
-
-			/**
-			 * Constructs a new Ball object.
-			 *
-			 * \return the new object.
-			 */
-			static Ptr create();
 
 			/**
 			 * Constructs a new Ball object.

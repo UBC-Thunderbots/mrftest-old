@@ -10,7 +10,7 @@
  * The ball, as seen by a simulation engine.
  * An individual engine is expected to subclass this class and return an instance of the subclass from its SimulatorEngine::get_ball() method.
  */
-class SimulatorBall : public Visualizable::Ball {
+class SimulatorBall : public ByRef {
 	public:
 		/**
 		 * A pointer to a SimulatorBall.
@@ -30,6 +30,13 @@ class SimulatorBall : public Visualizable::Ball {
 		 * \param[in] pos the new location of the ball, in metres from field centre.
 		 */
 		virtual void position(const Point &pos) = 0;
+
+		/**
+		 * Returns the velocity of the ball.
+		 *
+		 * \return the velocity of the ball, in metres per second.
+		 */
+		virtual Point velocity() const __attribute__((warn_unused_result)) = 0;
 
 		/**
 		 * Sets the ball's velocity.

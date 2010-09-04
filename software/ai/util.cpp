@@ -24,7 +24,7 @@ namespace {
 	DoubleParam BALL_FRONT_FACTOR("has_ball_vision: dist factor", 0.9, 0.1, 2.0);
 
 	bool has_ball_vision(World &w, const Robot::Ptr p) {
-		const Point dist = w.ball()->position() - p->position();
+		const Point dist = w.ball().position() - p->position();
 		if (dist.len() > (Robot::MAX_RADIUS + Ball::RADIUS) * BALL_FRONT_FACTOR) return false;
 		return angle_diff(dist.orientation(), p->orientation()) < degrees2radians(BALL_FRONT_ANGLE);
 	}
@@ -46,7 +46,7 @@ DoubleParam Util::ORI_CLOSE("kick: general accuracy (rads)", 5.0 * M_PI / 180.0,
 
 #warning see the Doxygen comment for this function: to start what?
 bool Util::ball_close(World &w, const Robot::Ptr p) {
-	const Point dist = w.ball()->position() - p->position();
+	const Point dist = w.ball().position() - p->position();
 	return dist.len() < (Robot::MAX_RADIUS + Ball::RADIUS) * BALL_CLOSE_FACTOR;
 }
 
@@ -95,20 +95,20 @@ bool Util::path_check(const Point& begin, const Point& end, const std::vector<Ro
 
 #warning TODO: maybe the source to a point instead of defaulting to ball
 bool Util::can_receive(World &w, const Player::Ptr passee) {
-	const Ball::Ptr ball = w.ball();
-	if ((ball->position() - passee->position()).lensq() < POS_CLOSE) {
+	const Ball &ball = w.ball();
+	if ((ball.position() - passee->position()).lensq() < POS_CLOSE) {
 		std::cerr << "can_pass: passe too close to ball" << std::endl;
 		return true;
 	}
 	// if the passee is not facing the ball, forget it
-	const Point ray = ball->position() - passee->position();
+	const Point ray = ball.position() - passee->position();
 	if (angle_diff(ray.orientation(), passee->orientation()) > ORI_PASS_CLOSE) {
 		// std::cout << "Util: angle diff = " << angle_diff(ray.orientation(), passee->orientation()) << std::endl; 
 		return false;
 	}
 	// if(!path_check(ball->position(), passee->position(), w.enemy.get_robots(), SHOOT_ALLOWANCE + Robot::MAX_RADIUS + Ball::RADIUS)) return false;
 	const Point direction = ray.norm();
-	const double distance = (ball->position() - passee->position()).len();
+	const double distance = (ball.position() - passee->position()).len();
 	for (size_t i = 0; i < w.enemy.size(); ++i) {
 		const Robot::Ptr rob = w.enemy.get_robot(i);
 		const Point rp = rob->position() - passee->position();
@@ -180,7 +180,7 @@ int Util::choose_best_pass(World &w, const std::vector<Player::Ptr>& friends) {
 		// see if this player is on line of sight
 		if (!Util::can_receive(w, friends[i])) continue;
 		// choose the most favourable distance
-		const double dist = (friends[i]->position() - w.ball()->position()).len();
+		const double dist = (friends[i]->position() - w.ball().position()).len();
 		const double angle = calc_goal_visibility_angle(w, friends[i]);
 		if (bestidx == -1 || angle > bestangle || (angle == bestangle && dist < bestdist)) {
 			bestangle = angle;

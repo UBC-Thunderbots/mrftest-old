@@ -19,7 +19,7 @@ class Simulator;
  * While the set of players in existence may change as robots are powered up and down and moved onto and off of the field,
  * the set of robots is fixed when the simulator is launched by the contents of the configuration file.
  */
-class SimulatorRobot : public Visualizable::Robot {
+class SimulatorRobot : public ByRef {
 	public:
 		/**
 		 * A pointer to a SimulatorRobot.
@@ -146,6 +146,33 @@ class SimulatorRobot : public Visualizable::Robot {
 		 */
 		void remove_player();
 
+		/**
+		 * Checks whether this robot has an associated engine player.
+		 *
+		 * \return \c true if there is an engine player, or \c false if not.
+		 */
+		bool has_player() {
+			return player_.is();
+		}
+
+		/**
+		 * Returns the colour of the robot.
+		 *
+		 * \return \c true if the robot is yellow, or \c false if blue.
+		 */
+		bool yellow() {
+			return botinfo.yellow;
+		}
+
+		/**
+		 * Returns the pattern index of the robot.
+		 *
+		 * \return the pattern index.
+		 */
+		unsigned int pattern_index() {
+			return botinfo.pattern_index;
+		}
+
 		Point position() const {
 			return player_.is() ? player_->position() : Point();
 		}
@@ -165,34 +192,6 @@ class SimulatorRobot : public Visualizable::Robot {
 		SimulatorPlayer::Ptr player_;
 
 		SimulatorRobot(const Config::RobotInfo &, SimulatorEngine::Ptr);
-
-		bool visualizer_visible() const {
-			return player_.is();
-		}
-
-		Visualizable::RobotColour visualizer_colour() const {
-			return botinfo.yellow ? Visualizable::RobotColour(1.0, 1.0, 0.0) : Visualizable::RobotColour(0.0, 0.0, 1.0);
-		}
-
-		Glib::ustring visualizer_label() const {
-			return Glib::ustring::compose("%1%2", botinfo.yellow ? 'Y' : 'B', botinfo.pattern_index);
-		}
-
-		bool has_destination() const {
-			return false;
-		}
-
-		Point destination() const {
-			std::abort();
-		}
-
-		bool visualizer_can_drag() const {
-			return true;
-		}
-
-		void visualizer_drag(const Point &pos) {
-			player_->position(pos);
-		}
 };
 
 #endif

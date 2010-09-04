@@ -120,40 +120,10 @@ class Visualizable : public NonCopyable {
 		};
 
 		/**
-		 * An object that may be able to be dragged by the user.
-		 */
-		class Draggable : public ByRef {
-			public:
-				/**
-				 * A pointer to a Draggable.
-				 */
-				typedef RefPtr<Draggable> Ptr;
-
-				/**
-				 * Checks if the object can actually be dragged.
-				 *
-				 * \return true if this object can actually be dragged, or false if not.
-				 */
-				virtual bool visualizer_can_drag() const = 0;
-
-				/**
-				 * Drags this object to the specified position.
-				 *
-				 * \param[in] pos the position to drag to.
-				 */
-				virtual void visualizer_drag(const Point &pos) = 0;
-		};
-
-		/**
 		 * A ball that can be drawn by the Visualizer.
 		 */
-		class Ball : public Draggable {
+		class Ball {
 			public:
-				/**
-				 * A pointer to a Ball.
-				 */
-				typedef RefPtr<Ball> Ptr;
-
 				/**
 				 * Returns the position of the ball.
 				 *
@@ -172,13 +142,8 @@ class Visualizable : public NonCopyable {
 		/**
 		 * A Robot that can be drawn by the Visualizer.
 		 */
-		class Robot : public Draggable {
+		class Robot {
 			public:
-				/**
-				 * A pointer to a Robot.
-				 */
-				typedef RefPtr<Robot> Ptr;
-
 				/**
 				 * Returns the position of the robot.
 				 *
@@ -246,7 +211,7 @@ class Visualizable : public NonCopyable {
 		 *
 		 * \return the ball.
 		 */
-		virtual Visualizable::Ball::Ptr ball() const = 0;
+		virtual const Visualizable::Ball &ball() const = 0;
 
 		/**
 		 * Returns the number of robots in the world.
@@ -262,7 +227,7 @@ class Visualizable : public NonCopyable {
 		 *
 		 * \return the Robot.
 		 */
-		virtual Visualizable::Robot::Ptr operator[](unsigned int index) const = 0;
+		virtual const Visualizable::Robot &operator[](unsigned int index) const = 0;
 };
 
 /**
@@ -299,18 +264,12 @@ class Visualizer : public Gtk::DrawingArea, public NonCopyable {
 		double scale;
 		double xtranslate, ytranslate;
 		sigc::connection update_connection;
-		Visualizable::Draggable::Ptr dragging;
-		Visualizable::Draggable::Ptr veldragging;
 		Cairo::RefPtr<Cairo::ImageSurface> overlay_;
 
 		void on_show();
 		void on_hide();
 		void on_size_allocate(Gtk::Allocation &);
 		bool on_expose_event(GdkEventExpose *);
-		bool on_button_press_event(GdkEventButton *);
-		bool on_button_release_event(GdkEventButton *);
-		bool on_motion_notify_event(GdkEventMotion *);
-		bool on_leave_notify_event(GdkEventCrossing *);
 
 		void compute_scales();
 		double xtog(double x) __attribute__((warn_unused_result)) { return  x * scale + xtranslate; }
@@ -321,7 +280,6 @@ class Visualizer : public Gtk::DrawingArea, public NonCopyable {
 		double ytow(double y) __attribute__((warn_unused_result)) { return -(y - ytranslate) / scale; }
 		double atow(double r) __attribute__((warn_unused_result)) { return -r; }
 		double dtow(double d) __attribute__((warn_unused_result)) { return d / scale; }
-		Visualizable::Draggable::Ptr object_at(const Point &pos) const;
 };
 
 #endif

@@ -4,11 +4,6 @@ using namespace AI;
 
 const double Ball::RADIUS = 0.0215;
 
-Ball::Ptr Ball::create() {
-	Ptr p(new Ball);
-	return p;
-}
-
 Ball::Ball() : sign(1.0) {
 }
 

@@ -16,7 +16,7 @@ namespace AI {
 	/**
 	 * A robot, which may or may not be drivable.
 	 */
-	class Robot : public Visualizable::Robot, public Predictable, public sigc::trackable {
+	class Robot : public Visualizable::Robot, public Predictable, public ByRef, public sigc::trackable {
 		public:
 			/**
 			 * A pointer to a Robot.
@@ -54,6 +54,16 @@ namespace AI {
 			 */
 			double orientation() const {
 				return Predictable::orientation();
+			}
+
+			/**
+			 * Gets the implementation of Visualizer::Visualizable::Robot backed
+			 * by this Robot.
+			 *
+			 * \return the visualizable robot.
+			 */
+			const Visualizable::Robot &visualizable() const {
+				return *this;
 			}
 
 		protected:

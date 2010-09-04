@@ -80,7 +80,7 @@ namespace AI {
 			 *
 			 * \return the Ball.
 			 */
-			Ball::Ptr ball() const {
+			const Ball &ball() const {
 				return ball_;
 			}
 
@@ -188,7 +188,7 @@ namespace AI {
 						return world->field();
 					}
 
-					Visualizable::Ball::Ptr ball() const {
+					const Visualizable::Ball &ball() const {
 						return world->ball();
 					}
 
@@ -196,11 +196,11 @@ namespace AI {
 						return world->friendly.size() + world->enemy.size();
 					}
 
-					Visualizable::Robot::Ptr operator[](unsigned int index) const {
+					const Visualizable::Robot &operator[](unsigned int index) const {
 						if (index < world->friendly.size()) {
-							return world->friendly.get_robot(index);
+							return world->friendly.get_robot(index)->visualizable();
 						} else {
-							return world->enemy.get_robot(index - world->friendly.size());
+							return world->enemy.get_robot(index - world->friendly.size())->visualizable();
 						}
 					}
 
@@ -213,7 +213,7 @@ namespace AI {
 			const FileDescriptor::Ptr vision_socket;
 			RefBox refbox_;
 			Field field_;
-			Ball::Ptr ball_;
+			Ball ball_;
 			SSL_DetectionFrame detections[2];
 			const std::vector<XBeeDriveBot::Ptr> xbee_bots;
 			PlayType::PlayType playtype_;

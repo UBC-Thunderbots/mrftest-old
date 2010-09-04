@@ -182,9 +182,9 @@ Point TeamGreedyNavigator::clip_playing_area(Point wantdest){
 
 Point TeamGreedyNavigator::get_inbounds_point(Point dst){
 
-	const Ball::Ptr the_ball(the_world.ball());
+	const Ball &the_ball(the_world.ball());
 	const Field &the_field(the_world.field());
-	const Point balldist = the_ball->position() - the_player->position();
+	const Point balldist = the_ball.position() - the_player->position();
 	const double distance = (dst - the_player->position()).len();
 
 	Point wantdest = dst;
@@ -199,7 +199,7 @@ Point TeamGreedyNavigator::get_inbounds_point(Point dst){
 
 	if (flags & Flags::AVOID_BALL_STOP) {
 	  Point before = wantdest;
-		wantdest = clip_circle(the_ball->position(), AVOID_BALL_AMOUNT, wantdest);
+		wantdest = clip_circle(the_ball.position(), AVOID_BALL_AMOUNT, wantdest);
 		//don't go out of bounds in order to comply with the rules
 		//just move along in the direction away from the ball while not going out of bounds
 		wantdest = clip_playing_area(wantdest);
@@ -250,10 +250,10 @@ void TeamGreedyNavigator::tick(Player::Ptr play) {
   flags = nv->get_flags();
   need_dribble = nv->get_dribbler();
 
-	const Ball::Ptr the_ball(the_world.ball());
+	const Ball &the_ball(the_world.ball());
 	const Field &the_field(the_world.field());
 
-	const Point balldist = the_ball->position() - the_player->position();
+	const Point balldist = the_ball.position() - the_player->position();
 	Point wantdest =  target_position.first;
 	const double wantori = target_orientation.first;
 	wantdest = get_inbounds_point(wantdest);
@@ -312,7 +312,7 @@ void TeamGreedyNavigator::tick(Player::Ptr play) {
 		ball_obstacle = ball_obstacle ||  check_ball(the_player->position(), wantdest, leftdirection) ;
 		ball_obstacle = ball_obstacle ||  check_ball(the_player->position(), wantdest, rightdirection);
 		// Don't avoid obstacles if we're close to ball
-		ball_obstacle = ball_obstacle || ((the_player->position()-the_ball->position()).len() < NEAR_BALL_THRESHOLD);
+		ball_obstacle = ball_obstacle || ((the_player->position()-the_ball.position()).len() < NEAR_BALL_THRESHOLD);
 
 		bool left_ok = check_vector(the_player->position(), wantdest, leftdirection);
 		bool right_ok = check_vector(the_player->position(), wantdest, rightdirection);
@@ -364,7 +364,7 @@ bool TeamGreedyNavigator::check_vector(const Point& start, const Point& dest, co
 }
 
 unsigned int TeamGreedyNavigator::check_obstacles(const Point& start, const Point& dest, const Point& direction) const {
-	const Ball::Ptr the_ball(the_world.ball());
+	const Ball &the_ball(the_world.ball());
 	const Point startdest = dest - start;
 	const double lookahead = std::min<double>(startdest.len(), LOOKAHEAD_MAX);
 
@@ -404,7 +404,7 @@ unsigned int TeamGreedyNavigator::check_obstacles(const Point& start, const Poin
 
 
 bool TeamGreedyNavigator::check_ball(const Point& start, const Point& dest, const Point& direction) const {
-	const Ball::Ptr the_ball(the_world.ball());
+	const Ball &the_ball(the_world.ball());
 	const Point startdest = dest - start;
 	const double lookahead = std::min<double>(startdest.len(), LOOKAHEAD_MAX);
 
@@ -413,7 +413,7 @@ bool TeamGreedyNavigator::check_ball(const Point& start, const Point& dest, cons
 		return false;
 	}
 
-		const Point ballvec = the_ball->position() - start;
+		const Point ballvec = the_ball.position() - start;
 		double proj = ballvec.dot(direction);
 		if (proj > 0) {
 			double perp = sqrt(ballvec.dot(ballvec) - proj * proj);
