@@ -52,10 +52,6 @@ software/ai/navigator/navigator.h -text
 software/ai/robot_controller/adhoc2_controller.cpp -text
 software/ai/robot_controller/fuzzy_controller.cpp -text
 software/ai/robot_controller/fuzzy_controller.h -text
-software/ai/robot_controller/gpc.cpp -text
-software/ai/robot_controller/gpc.h -text
-software/ai/robot_controller/jons_controller.cpp -text
-software/ai/robot_controller/jons_controller.h -text
 software/ai/robot_controller/joystick/controller.cpp -text
 software/ai/robot_controller/joystick/joystick.cpp -text
 software/ai/robot_controller/joystick/joystick.h -text
