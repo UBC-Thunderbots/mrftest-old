@@ -59,15 +59,8 @@ software/ai/robot_controller/jons_controller.h -text
 software/ai/robot_controller/joystick/controller.cpp -text
 software/ai/robot_controller/joystick/joystick.cpp -text
 software/ai/robot_controller/joystick/joystick.h -text
-software/ai/robot_controller/lazy_controller.cpp -text
-software/ai/robot_controller/lazy_controller.h -text
-software/ai/robot_controller/linear_controller.cpp -text
-software/ai/robot_controller/linear_controller.h -text
-software/ai/robot_controller/max_power_controller.cpp -text
-software/ai/robot_controller/max_power_controller.h -text
 software/ai/robot_controller/robot_controller.cpp -text
 software/ai/robot_controller/robot_controller.h -text
-software/ai/robot_controller/testing_rc.cpp -text
 software/ai/robot_controller/tunable_adhoc_controller.cpp -text
 software/ai/robot_controller/tunable_controller.cpp -text
 software/ai/robot_controller/tunable_controller.h -text
