@@ -1,6 +1,5 @@
 #include "geom/point.h"
 #include "geom/angle.h"
-#include "ai/world/player.h"
 #include "ai/robot_controller/robot_controller.h"
 #include "ai/robot_controller/tunable_controller.h"
 #include "geom/point.h"
@@ -16,7 +15,11 @@
 #include <fstream>
 #include <cassert>
 
-using namespace AI::RobotController;
+using AI::RC::RobotController;
+using AI::RC::OldRobotController;
+using AI::RC::RobotControllerFactory;
+using AI::RC::TunableController;
+using namespace AI::RC::W;
 
 namespace {
 
@@ -49,12 +52,12 @@ namespace {
 	const int P = sizeof(ARR_DEF) / sizeof(ARR_DEF[0]);
 	const std::vector<double> param_default(ARR_DEF, ARR_DEF + P);
 
-	class TunableAdHocController : public RobotController, public TunableController {
+	class TunableAdHocController : public OldRobotController, public TunableController {
 		public:
 			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 			void clear();
 			RobotControllerFactory &get_factory() const;
-			TunableAdHocController(AI::Player::Ptr plr);
+			TunableAdHocController(Player::Ptr plr);
 			void set_params(const std::vector<double>& params) {
 				this->param = params;
 			}
@@ -65,8 +68,6 @@ namespace {
 			const std::vector<double> get_params_default() const {
 				return param_default;
 			}
-		private:
-			AI::Player::Ptr plr;
 		protected:
 			bool initialized;
 			std::vector<double> param;
@@ -79,7 +80,7 @@ namespace {
 			double prev_angular_velocity;
 	};
 
-	TunableAdHocController::TunableAdHocController(AI::Player::Ptr plr) : plr(plr), initialized(false), error_pos(10.0), error_ori(10.0), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
+	TunableAdHocController::TunableAdHocController(Player::Ptr plr) : OldRobotController(plr), initialized(false), error_pos(10.0), error_ori(10.0), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
 		param = param_default;
 	}
 
@@ -88,8 +89,8 @@ namespace {
 	}
 
 	void TunableAdHocController::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
-		const Point &current_position = plr->position();
-		const double current_orientation = plr->orientation();
+		const Point &current_position = player->position();
+		const double current_orientation = player->orientation();
 
 		// relative new direction and angle
 		double new_da = angle_mod(new_orientation - current_orientation);
@@ -132,10 +133,10 @@ namespace {
 		const double px = new_dir.x;
 		const double py = new_dir.y;
 		const double pa = new_da;
-		Point vel = (plr->est_velocity()).rotate(-current_orientation);
+		Point vel = (player->est_velocity()).rotate(-current_orientation);
 		double vx = -vel.x;
 		double vy = -vel.y;
-		double va = -plr->est_avelocity();
+		double va = -player->est_avelocity();
 
 		//const double cx = accum_pos.x;
 		//const double cy = accum_pos.y;
@@ -186,7 +187,7 @@ namespace {
 		*/
 
 		/*
-		   if (plr->has_ball()) {
+		   if (player->has_ball()) {
 		   angular_velocity *= DEF_HAS_BALL_RATIO;
 		   linear_velocity *= DEF_HAS_BALL_RATIO;
 		   }
@@ -205,7 +206,7 @@ namespace {
 			TunableAdHocControllerFactory() : RobotControllerFactory("Ad Hoc =D") {
 			}
 
-			RobotController::Ptr create_controller(AI::Player::Ptr plr, bool, unsigned int) const {
+			RobotController::Ptr create_controller(Player::Ptr plr) const {
 				RobotController::Ptr p(new TunableAdHocController(plr));
 				return p;
 			}

@@ -1,82 +1,103 @@
 #include "ai/ai.h"
 #include "util/dprint.h"
+#include "util/objectstore.h"
 
-AI::AI::AI(World &world, ClockSource &clk) : world(world), clk(clk), coach(), rc_factory(0) {
-	clk.signal_tick.connect(sigc::mem_fun(this, &AI::tick));
-	world.friendly.signal_player_added.connect(sigc::mem_fun(this, &AI::player_added));
-	world.friendly.signal_player_removed.connect(sigc::mem_fun(this, &AI::player_removed));
+using AI::AIPackage;
+using AI::BE::Backend;
+
+namespace {
+	/**
+	 * The private per-player state maintained by the AIPackage.
+	 */
+	struct PrivateState : public ObjectStore::Element {
+		/**
+		 * A pointer to a PrivateState.
+		 */
+		typedef RefPtr<PrivateState> Ptr;
+
+		/**
+		 * The robot controller driving the player.
+		 */
+		AI::RC::RobotController::Ptr robot_controller;
+	};
 }
 
-AI::Coach::Ptr AI::AI::get_coach() const {
-	return coach;
+AIPackage::AIPackage(Backend &backend) : backend(backend), coach(AI::Coach::Coach::Ptr(0)), navigator(AI::Nav::Navigator::Ptr(0)), robot_controller_factory(0) {
+	backend.signal_tick().connect(sigc::mem_fun(this, &AIPackage::tick));
+	backend.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &AIPackage::player_added));
+	backend.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &AIPackage::player_removed));
+	robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &AIPackage::robot_controller_factory_changed));
 }
 
-void AI::AI::set_coach(Coach::Ptr c) {
-	if (coach != c) {
-		LOG_DEBUG(Glib::ustring::compose("Changing coach to %1.", c.is() ? c->get_factory().name : "<None>"));
-		coach = c;
-	}
+AIPackage::~AIPackage() {
 }
 
-void AI::AI::tick() {
+void AIPackage::tick() {
 	// If the field geometry is not yet valid, do nothing.
-	if (!world.field().valid()) {
+	if (!backend.field().valid()) {
 		return;
 	}
 
-	// Increment the global timestamp.
-	world.tick_timestamp();
-
-	// First, make the predictors lock in the current time.
-	const Team * const teams[2] = { &world.friendly, &world.enemy };
-	for (unsigned int i = 0; i < 2; ++i) {
-		const Team &tm(*teams[i]);
-		for (unsigned int j = 0; j < tm.size(); ++j) {
-			const Robot::Ptr bot(tm.get_robot(j));
-			bot->lock_time();
+	// If we have a Coach installed, tick it.
+	AI::Coach::Coach::Ptr c = coach;
+	if (c.is()) {
+		c->tick();
+		// If we have a Strategy installed, tick it.
+		AI::HL::Strategy::Ptr strategy = backend.strategy();
+		if (strategy.is()) {
+			strategy->tick();
+			// If we have a Navigator installed, tick it.
+			AI::Nav::Navigator::Ptr nav = navigator;
+			if (nav.is()) {
+				nav->tick();
+			}
 		}
 	}
 
-	// If we have a Coach installed, tick it.
-	// It will drive the rest of the AI.
-	if (coach.is()) {
-		coach->tick();
-	}
-
-	// Tick the robots to drive through robot controllers and XBee.
-	for (unsigned int i = 0; i < world.friendly.size(); ++i) {
-		const Player::Ptr plr(world.friendly.get_player(i));
-		plr->tick(world.playtype() == PlayType::HALT || !coach.is() || !coach->get_strategy().is());
+	// Tick all the RobotControllers.
+	for (std::size_t i = 0; i < backend.friendly_team().size(); ++i) {
+		AI::BE::Player::Ptr plr = backend.friendly_team().get(i);
+		PrivateState::Ptr state = PrivateState::Ptr::cast_dynamic(plr->object_store()[typeid(*this)]);
+		AI::RC::RobotController::Ptr rc = state->robot_controller;
+		if (rc.is()) {
+			rc->tick();
+		}
 	}
 }
 
-void AI::AI::player_added(unsigned int, Player::Ptr plr) {
-	if (rc_factory) {
-		plr->controller = rc_factory->create_controller(plr, plr->yellow, plr->pattern_index);
+void AIPackage::player_added(std::size_t idx) {
+	AI::BE::Player::Ptr plr = backend.friendly_team().get(idx);
+	PrivateState::Ptr state(new PrivateState);
+	if (robot_controller_factory) {
+		state->robot_controller = robot_controller_factory->create_controller(plr);
+	}
+	plr->object_store()[typeid(*this)] = state;
+}
+
+void AIPackage::player_removed(std::size_t idx) {
+	// Even though normally an ObjectStore clears its contents automatically when destroyed,
+	// here, we need to clear our state block explicitly,
+	// because otherwise there would be a circular reference from Player to PrivateState to RobotController to Player.
+	AI::BE::Player::Ptr plr = backend.friendly_team().get(idx);
+	PrivateState::Ptr state = PrivateState::Ptr::cast_dynamic(plr->object_store()[typeid(*this)]);
+	plr->object_store()[typeid(*this)].reset();
+	if (state->robot_controller.is() && state->robot_controller->refs() != 1) {
+		LOG_WARN("Leak detected of robot_controller.");
 	}
 }
 
-void AI::AI::player_removed(unsigned int, Player::Ptr plr) {
-	if (plr->controller.is() && plr->controller->refs() != 1) {
-		LOG_WARN(Glib::ustring::compose("Leak detected of robot_controller for player<%1,%2>.", plr->yellow ? 'Y' : 'B', plr->pattern_index));
-	}
-	plr->controller.reset();
-}
+void AIPackage::robot_controller_factory_changed() {
+	LOG_DEBUG(Glib::ustring::compose("Changing robot controller to %1.", robot_controller_factory ? robot_controller_factory->name : "<None>"));
+	for (unsigned int i = 0; i < backend.friendly_team().size(); ++i) {
+		AI::BE::Player::Ptr plr = backend.friendly_team().get(i);
+		PrivateState::Ptr state = PrivateState::Ptr::cast_dynamic(plr->object_store()[typeid(*this)]);
+		if (state->robot_controller.is() && state->robot_controller->refs() != 1) {
+			LOG_WARN("Leak detected of robot_controller.");
+		}
+		state->robot_controller.reset();
 
-void AI::AI::set_robot_controller_factory(RobotController::RobotControllerFactory *fact) {
-	if (rc_factory != fact) {
-		LOG_DEBUG(Glib::ustring::compose("Changing robot controller to %1.", fact ? fact->name : "<None>"));
-		rc_factory = fact;
-		for (unsigned int i = 0; i < world.friendly.size(); ++i) {
-			const Player::Ptr plr(world.friendly.get_player(i));
-			if (plr->controller.is() && plr->controller->refs() != 1) {
-				LOG_WARN(Glib::ustring::compose("Leak detected of robot_controller for player<%1,%2>.", plr->yellow ? 'Y' : 'B', plr->pattern_index));
-			}
-			plr->controller.reset();
-
-			if (rc_factory) {
-				plr->controller = rc_factory->create_controller(plr, plr->yellow, plr->pattern_index);
-			}
+		if (robot_controller_factory) {
+			state->robot_controller = robot_controller_factory->create_controller(plr);
 		}
 	}
 }

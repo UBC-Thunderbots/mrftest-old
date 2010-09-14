@@ -6,7 +6,10 @@
 #include <iostream>
 #include <fstream>
 
-using namespace AI::RobotController;
+using AI::RC::TunablePIDController;
+using AI::RC::RobotController;
+using AI::RC::RobotControllerFactory;
+using namespace AI::RC::W;
 
 #define LINEAR_XY
 
@@ -32,7 +35,7 @@ namespace {
 			TunablePIDControllerFactory() : RobotControllerFactory("Tunable PID") {
 			}
 
-			RobotController::Ptr create_controller(AI::Player::Ptr plr, bool, unsigned int) const {
+			RobotController::Ptr create_controller(Player::Ptr plr) const {
 				RobotController::Ptr p(new TunablePIDController(plr));
 				return p;
 			}
@@ -132,7 +135,7 @@ const std::vector<double> TunablePIDController::param_min(arr_min, arr_min + P);
 const std::vector<double> TunablePIDController::param_max(arr_max, arr_max + P);
 const std::vector<double> TunablePIDController::param_default(arr_def, arr_def + P);
 
-TunablePIDController::TunablePIDController(Player::Ptr plr) : plr(plr), initialized(false), error_pos(10), error_ori(10) {
+TunablePIDController::TunablePIDController(AI::RC::W::Player::Ptr plr) : OldRobotController(plr), initialized(false), error_pos(10), error_ori(10) {
 	param = param_default;
 }
 
@@ -154,8 +157,8 @@ const std::vector<std::string> TunablePIDController::get_params_name() const {
 }
 
 void TunablePIDController::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
-	const Point &current_position = plr->position();
-	const double current_orientation = plr->orientation();
+	const Point &current_position = player->position();
+	const double current_orientation = player->orientation();
 
 	// relative new direction and angle
 	double new_da = angle_mod(new_orientation - current_orientation);
@@ -194,10 +197,10 @@ void TunablePIDController::move(const Point &new_position, double new_orientatio
 	const double px = error_pos[0].x;
 	const double py = error_pos[0].y;
 	const double pa = error_ori[0];
-	Point vel = (plr->est_velocity()).rotate(-current_orientation);
+	Point vel = (player->est_velocity()).rotate(-current_orientation);
 	double vx = -vel.x;
 	double vy = -vel.y;
-	double va = -plr->est_avelocity();
+	double va = -player->est_avelocity();
 
 	const double cx = accum_pos.x;
 	const double cy = accum_pos.y;

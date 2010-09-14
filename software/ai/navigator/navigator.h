@@ -1,24 +1,31 @@
 #ifndef AI_NAVIGATOR_NAVIGATOR_H
 #define AI_NAVIGATOR_NAVIGATOR_H
 
-#include "util/registerable.h"
-#include "ai/world/player.h"
-#include "ai/world/robot.h"
-#include "ai/world/world.h"
+#include "ai/navigator/world.h"
 #include "geom/point.h"
-#include "util/noncopyable.h"
-#include <utility>
-#include <map>
+#include "util/byref.h"
+#include "util/registerable.h"
 #include <glibmm.h>
+#include <map>
+#include <utility>
 
 namespace AI {
-	namespace Navigator {
+	namespace Nav {
+		class NavigatorFactory;
+
 		/**
-		 * A player's view of navigation.
+		 * A Navigator path-plans a team on behalf of a strategy.
 		 *
-		 * The TeamNavigator has all the copies of individual navigators there is a one-to-one relation between players and Navigators.
+		 * To implement a Navigator, one must:
+		 * <ul>
+		 * <li>Subclass Navigator</li>
+		 * <li>In the subclass, override all the pure virtual functions</li>
+		 * <li>Subclass NavigatorFactory</li>
+		 * <li>In the subclass, override all the pure virtual functions</li>
+		 * <li>Create an instance of the NavigatorFactory in the form of a file-scope global variable</li>
+		 * </ul>
 		 */
-		class Navigator : public ByRef{
+		class Navigator : public ByRef {
 			public:
 				/**
 				 * A pointer to a Navigator object.
@@ -26,165 +33,66 @@ namespace AI {
 				typedef RefPtr<Navigator> Ptr;
 
 				/**
-				 * Constructs a new Navigator.
+				 * Finds the NavigatorFactory that constructed this Navigator.
+				 * Subclasses must override this function to return a reference to the global instance of their corresponding NavigatorFactory.
 				 *
-				 * \param[in] player the Player to navigate.
-				 *
-				 * \param[in] world the World in which to navigate.
+				 * \return a reference to the NavigatorFactory instance.
 				 */
-				Navigator(Player::Ptr player, World &world){
-				}
+				virtual NavigatorFactory &factory() const = 0;
 
 				/**
-				 * Sets the desired location.
-				 *
-				 * \param[in] position the desired target for the robot.
+				 * Reads the requested destinations from the players using W::Player::destination and W::Player::flags,
+				 * then orders paths to be followed with W::Player::path.
 				 */
-				void set_position(const std::pair<Point,double> &position) {
-					target_position=position;
-				}
-
-				/**
-				 * Normally the navigator sets the robot orientation to be towards the ball.
-				 * Use this if you want to override this behaviour.
-				 * This only sets the desired orientation for one timestep.
-				 * You have to call this function every timestep.
-				 *
-				 * \param[in] orientation the desired orientation for the robot.
-				 */
-				void set_orientation(const std::pair<double,double> &orientation) {
-					target_orientation=orientation;
-				}
-
-				/**
-				 * Turns on dribbler at minimal speed and be ready to dribble to Receive the ball.
-				 *
-				 * You need to call this every tick.
-				 *
-				 * I don't think you ever want to turn this off once you turn it on.
-				 *
-				 * \param[in] dribble \c true to turn the dribbler on, or \c false to turn it off.
-				 */
-				void set_dribbler(bool dribble) {
-					need_dribble = dribble;
-				}
-
-				bool get_dribbler(){
-					return need_dribble;
-				}
-
-				/**
-				 * Sets flags.
-				 *
-				 * \param[in] f the flags to enable.
-				 */
-				void set_flags(unsigned int f) {
-					flags |= f;
-				}
-
-				/**
-				 * Clears flags.
-				 *
-				 * \param[in] f the flags to disable.
-				 */
-				void unset_flags(unsigned int f) {
-					flags &= ~f;
-				}
-
-				/**
-				 * Returns the current flags.
-				 *
-				 * \return the current flags.
-				 */
-				unsigned int get_flags(){
-					return flags;
-				}
-
-				/**
-				 * A target position and an error.
-				 */ 
-				std::pair<Point,double> target_position;
-
-				/**
-				 * A target orientation and an error.
-				 */
-				std::pair<double,double> target_orientation;
-
-			private:
-
-				/**
-				 * \c true if the robot should dribble when it has the ball, or \c false if not.
-				 */
-				bool need_dribble;
-
-				/**
-				 * The flags currently in force for this Navigator.
-				 */
-				unsigned int flags;
-
-		};
-
-
-		/**
-		 * Single instance of TeamNavigator handles navigation for all players on the controllable team.
-		 */
-		class TeamNavigator : public ByRef, public sigc::trackable{
-			public:
-
-				/**
-				 * A pointer to a TeamNavigator object.
-				 */
-				typedef RefPtr<TeamNavigator> Ptr;
-
-				/**
-				 * Constructs a new TeamNavigator.
-				 *
-				 * \param[in] world the World in which to navigate.
-				 */
-				TeamNavigator(World &world):the_world(world){
-					the_world.friendly.signal_player_removed.connect(sigc::mem_fun(this, &TeamNavigator::on_player_removed));
-					the_world.friendly.signal_player_added.connect(sigc::mem_fun(this, &TeamNavigator::on_player_added));
-				}
-
-				/**
-				 * A map from player to the player's navigator.
-				 *
-				 * The rest of the AI operates on the player's navigator, not the team navigator.
-				 *
-				 * \param[in] p the player whose navigator to fetch.
-				 *
-				 * \return the navigator for the player.
-				 */
-				Navigator::Ptr operator[](Player::Ptr p){
-					return navis[p->address()];
-				}
-
-
-				virtual void tick()=0;
+				virtual void tick() = 0;
 
 			protected:
 				/**
-				 * When a player is added will need to make a new player navigator for it.
+				 * The World in which to navigate.
 				 */
-				void on_player_added(unsigned int, Player::Ptr play){
-					navis.insert(std::pair<uint64_t, Navigator::Ptr>(play->address(), create_navigator(play)));
-				}
+				AI::Nav::W::World &world;
 
 				/**
-				 * When a player is removed will need to destroy player navigator for it.
-				 */		
-				void on_player_removed(unsigned int, Player::Ptr play){
-					navis.erase(play->address());
-				}
+				 * Constructs a new Navigator.
+				 *
+				 * \param[in] world the World in which to navigate.
+				 */
+				Navigator(AI::Nav::W::World &world);
 
-				virtual Navigator::Ptr create_navigator(Player::Ptr play){
-					Navigator::Ptr rn(new Navigator(play, the_world));
-					return rn;
-				}
+				/**
+				 * Destroys a navigator.
+				 */
+				~Navigator();
+		};
+		
+		/**
+		 * A NavigatorFactory is used to construct a particular type of Navigator.
+		 * The factory permits the UI to discover all the available types of Navigator.
+		 */
+		class NavigatorFactory : public Registerable<NavigatorFactory> {
+			public:
+				/**
+				 * Constructs a new instance of the Navigator corresponding to this NavigatorFactory.
+				 *
+				 * \param[in] world the World in which the new Navigator should live.
+				 *
+				 * \return the new Navigator.
+				 */
+				virtual Navigator::Ptr create_navigator(AI::Nav::W::World &world) const = 0;
 
-				World &the_world;
+			protected:
+				/**
+				 * Constructs a new NavigatorFactory.
+				 * Subclasses should call this constructor from their own constructors.
+				 *
+				 * \param[in] name a human-readable name for this Navigator.
+				 */
+				NavigatorFactory(const Glib::ustring &name);
 
-				std::map<uint64_t, Navigator::Ptr> navis;	
+				/**
+				 * Destroys a NavigatorFactory.
+				 */
+				~NavigatorFactory();
 		};
 	}
 }

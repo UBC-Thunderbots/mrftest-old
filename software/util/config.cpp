@@ -65,15 +65,10 @@ namespace {
 			 *
 			 * @param y the second RobotInfo to examine.
 			 *
-			 * @return \c true if \p x comes before \p y when ordered by lid patterns,
-			 * with colour serving as the major parameter and pattern index as the minor parameter, or \c false if not.
+			 * @return \c true if \p x comes before \p y when ordered by lid patterns, or \c false if not.
 			 */
 			bool operator()(const Config::RobotInfo &x, const Config::RobotInfo &y) {
-				if (x.yellow != y.yellow) {
-					return x.yellow < y.yellow;
-				} else {
-					return x.pattern_index < y.pattern_index;
-				}
+				return x.pattern_index < y.pattern_index;
 			}
 	};
 
@@ -311,9 +306,9 @@ bool Config::RobotSet::contains_address(uint64_t address) const {
 	return false;
 }
 
-bool Config::RobotSet::contains_pattern(bool yellow, unsigned int pattern_index) const {
+bool Config::RobotSet::contains_pattern(unsigned int pattern_index) const {
 	for (typeof(robots.begin()) i = robots.begin(), iend = robots.end(); i != iend; ++i) {
-		if (i->yellow == yellow && i->pattern_index == pattern_index) {
+		if (i->pattern_index == pattern_index) {
 			return true;
 		}
 	}
@@ -329,13 +324,13 @@ bool Config::RobotSet::contains_name(const Glib::ustring &name) const {
 	return false;
 }
 
-void Config::RobotSet::add(uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name) {
+void Config::RobotSet::add(uint64_t address, unsigned int pattern_index, const Glib::ustring &name) {
 	assert(!contains_address(address));
-	assert(!contains_pattern(yellow, pattern_index));
+	assert(!contains_pattern(pattern_index));
 	assert(!name.empty());
 	assert(!contains_name(name));
 	unsigned int index = robots.size();
-	robots.push_back(RobotInfo(address, yellow, pattern_index, name));
+	robots.push_back(RobotInfo(address, pattern_index, name));
 	signal_robot_added.emit(index);
 }
 
@@ -348,15 +343,14 @@ void Config::RobotSet::remove(uint64_t address) {
 	}
 }
 
-void Config::RobotSet::replace(uint64_t old_address, uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name) {
+void Config::RobotSet::replace(uint64_t old_address, uint64_t address, unsigned int pattern_index, const Glib::ustring &name) {
 	std::vector<RobotInfo>::iterator i = std::find_if(robots.begin(), robots.end(), __gnu_cxx::compose1(std::bind1st(std::equal_to<uint64_t>(), old_address), RobotAddress()));
 	assert(i != robots.end());
 	assert(address == i->address || !contains_address(address));
-	assert((yellow == i->yellow && pattern_index == i->pattern_index) || !contains_pattern(yellow, pattern_index));
+	assert(pattern_index == i->pattern_index || !contains_pattern(pattern_index));
 	assert(!name.empty());
 	assert(name == i->name || !contains_name(name));
 	i->address = address;
-	i->yellow = yellow;
 	i->pattern_index = pattern_index;
 	i->name = name;
 	signal_robot_replaced.emit(i - robots.begin());
@@ -377,13 +371,6 @@ void Config::RobotSet::sort_by_name() {
 	signal_sorted.emit();
 }
 
-void Config::RobotSet::swap_colours() {
-	for (typeof(robots.begin()) i = robots.begin(), iend = robots.end(); i != iend; ++i) {
-		i->yellow = !i->yellow;
-	}
-	signal_colours_swapped.emit();
-}
-
 void Config::RobotSet::load(const xmlpp::Element *players) {
 	const xmlpp::Node::NodeList &player_list = players->get_children("player");
 	for (xmlpp::Node::NodeList::const_iterator i = player_list.begin(), iend = player_list.end(); i != iend; ++i) {
@@ -395,8 +382,6 @@ void Config::RobotSet::load(const xmlpp::Element *players) {
 				std::istringstream iss(address_string);
 				iss >> std::hex >> address;
 			}
-			const Glib::ustring &colour_string = player->get_attribute_value("colour");
-			bool yellow = colour_string == "yellow";
 			const Glib::ustring &pattern_index_string = player->get_attribute_value("pattern");
 			unsigned int pattern_index = 0;
 			{
@@ -404,7 +389,7 @@ void Config::RobotSet::load(const xmlpp::Element *players) {
 				iss >> pattern_index;
 			}
 			const Glib::ustring &name = player->get_attribute_value("name");
-			add(address, yellow, pattern_index, name);
+			add(address, pattern_index, name);
 		}
 	}
 }
@@ -414,7 +399,6 @@ void Config::RobotSet::save(xmlpp::Element *players) const {
 	for (std::vector<RobotInfo>::const_iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
 		xmlpp::Element *player = players->add_child("player");
 		player->set_attribute("address", Glib::ustring::format(std::hex, std::setw(16), std::setfill(L'0'), i->address));
-		player->set_attribute("colour", i->yellow ? "yellow" : "blue");
 		player->set_attribute("pattern", Glib::ustring::format(i->pattern_index));
 		player->set_attribute("name", i->name);
 		players->add_child_text("\n");

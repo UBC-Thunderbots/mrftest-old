@@ -145,7 +145,6 @@ namespace {
 			 */
 			RobotsControls(Simulator &sim) : sim(sim), robots_list_model(SingleBotComboBoxModel::create(sim.conf.robots())), robots_list(robots_list_model), controls(sim) {
 				robots_list.append_column("Address", robots_list_model->address_column);
-				robots_list.append_column("Colour", robots_list_model->yellow_column);
 				robots_list.append_column("Pattern", robots_list_model->pattern_index_column);
 				robots_list.append_column("Name", robots_list_model->name_column);
 				robots_list.get_selection()->set_mode(Gtk::SELECTION_SINGLE);
@@ -177,7 +176,7 @@ namespace {
 	};
 }
 
-MainWindow::MainWindow(Simulator &sim) : sim(sim), vis(sim.visualizer_data()) {
+MainWindow::MainWindow(Simulator &sim) : sim(sim) {
 	set_title("Thunderbots Simulator");
 
 	Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox);
@@ -186,24 +185,8 @@ MainWindow::MainWindow(Simulator &sim) : sim(sim), vis(sim.visualizer_data()) {
 	robots_frame->add(*Gtk::manage(new RobotsControls(sim)));
 	vbox->pack_start(*robots_frame, Gtk::PACK_EXPAND_WIDGET);
 
-	vis_button.set_label("Visualizer");
-	vbox->pack_start(vis_button, Gtk::PACK_SHRINK);
-
 	add(*vbox);
 
 	show_all();
-
-	vis_window.set_title("Simulator Visualizer");
-	vis_window.add(vis);
-	vis_button.signal_toggled().connect(sigc::mem_fun(this, &MainWindow::on_vis_button_toggled));
-	vis_window.signal_delete_event().connect(sigc::hide(sigc::bind_return(sigc::bind(sigc::mem_fun(vis_button, &Gtk::ToggleButton::set_active), false), false)));
-}
-
-void MainWindow::on_vis_button_toggled() {
-	if (vis_button.get_active()) {
-		vis_window.show_all();
-	} else {
-		vis_window.hide_all();
-	}
 }
 

@@ -1,13 +1,11 @@
 #include "ai/coach/coach.h"
 #include <cassert>
 
-using namespace AI;
+using AI::Coach::Coach;
+using AI::Coach::CoachFactory;
+using namespace AI::Coach::W;
 
-HL::Strategy::Ptr Coach::get_strategy() const {
-	return strategy;
-}
-
-const std::vector<HL::StrategyFactory *> &Coach::get_strategies_by_play_type(PlayType::PlayType pt) {
+const std::vector<AI::HL::StrategyFactory *> &Coach::get_strategies_by_play_type(PlayType::PlayType pt) {
 	static bool initialized = false;
 	static std::vector<HL::StrategyFactory *> vectors[PlayType::COUNT];
 
@@ -29,25 +27,10 @@ const std::vector<HL::StrategyFactory *> &Coach::get_strategies_by_play_type(Pla
 	return vectors[pt];
 }
 
-Coach::Coach(World &world) : world(world), strategy() {
+Coach::Coach(World &world) : world(world) {
 }
 
 Coach::~Coach() {
-}
-
-void Coach::clear_strategy() {
-	set_strategy(HL::Strategy::Ptr());
-}
-
-void Coach::set_strategy(const HL::Strategy::Ptr &strat) {
-	if (strategy != strat) {
-		strategy = strat;
-		signal_strategy_changed.emit(strategy);
-	}
-}
-
-void Coach::set_strategy(const HL::StrategyFactory *fact) {
-	set_strategy(fact->create_strategy(world));
 }
 
 CoachFactory::CoachFactory(const Glib::ustring &name) : Registerable<CoachFactory>(name) {

@@ -1,8 +1,12 @@
 #include "ai/robot_controller/robot_controller.h"
 
-using namespace AI::RobotController;
+using AI::RC::RobotController;
+using AI::RC::OldRobotController;
+using AI::RC::OldRobotController2;
+using AI::RC::RobotControllerFactory;
+using namespace AI::RC::W;
 
-void RobotController2::convert_to_wheels(const Point &vel, double avel, int (&wheel_speeds)[4]) {
+void RobotController::convert_to_wheels(const Point &vel, double avel, int (&wheel_speeds)[4]) {
 	static const double WHEEL_MATRIX[4][3] = {
 		{-42.5995, 27.6645, 4.3175},
 		{-35.9169, -35.9169, 4.3175},
@@ -18,10 +22,39 @@ void RobotController2::convert_to_wheels(const Point &vel, double avel, int (&wh
 		wheel_speeds[row] = static_cast<int>(output[row]);
 }
 
-void RobotController::move(const Point &new_position, double new_orientation, int (&wheel_speeds)[4]) {
+RobotController::RobotController(AI::RC::W::Player::Ptr player) : player(player) {
+}
+
+RobotController::~RobotController() {
+}
+
+OldRobotController2::OldRobotController2(AI::RC::W::Player::Ptr player) : RobotController(player) {
+}
+
+OldRobotController2::~OldRobotController2() {
+}
+
+void OldRobotController2::tick() {
+	const std::vector<std::pair<std::pair<Point, double>, timespec> > &path = player->path();
+	if (path.empty()) {
+		clear();
+	} else {
+		int wheels[4];
+		move(path[0].first.first, path[0].first.second, wheels);
+		player->drive(wheels);
+	}
+}
+
+void OldRobotController::move(const Point &new_position, double new_orientation, int (&wheel_speeds)[4]) {
 	Point vel;
 	double avel;
 	move(new_position, new_orientation, vel, avel);
 	convert_to_wheels(vel, avel, wheel_speeds);
+}
+
+OldRobotController::OldRobotController(AI::RC::W::Player::Ptr player) : OldRobotController2(player) {
+}
+
+OldRobotController::~OldRobotController() {
 }
 

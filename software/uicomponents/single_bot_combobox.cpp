@@ -9,7 +9,6 @@ SingleBotComboBoxModel::Ptr SingleBotComboBoxModel::create(const Config::RobotSe
 
 SingleBotComboBoxModel::SingleBotComboBoxModel(const Config::RobotSet &robots) : Glib::ObjectBase(typeid(SingleBotComboBoxModel)), robots(robots) {
 	alm_column_record.add(address_column);
-	alm_column_record.add(yellow_column);
 	alm_column_record.add(pattern_index_column);
 	alm_column_record.add(name_column);
 	robots.signal_robot_added.connect(sigc::mem_fun(this, &SingleBotComboBoxModel::on_robot_added));
@@ -21,25 +20,19 @@ unsigned int SingleBotComboBoxModel::alm_rows() const {
 }
 
 void SingleBotComboBoxModel::alm_get_value(unsigned int row, unsigned int col, Glib::ValueBase &value) const {
-	if (col == 0) {
+	if (col == static_cast<unsigned int>(address_column.index())) {
 		Glib::Value<Glib::ustring> v;
 		v.init(address_column.type());
 		v.set(tohex(robots[row].address, 16));
 		value.init(address_column.type());
 		value = v;
-	} else if (col == 1) {
-		Glib::Value<Glib::ustring> v;
-		v.init(yellow_column.type());
-		v.set(robots[row].yellow ? "Y" : "B");
-		value.init(yellow_column.type());
-		value = v;
-	} else if (col == 2) {
+	} else if (col == static_cast<unsigned int>(pattern_index_column.index())) {
 		Glib::Value<unsigned int> v;
 		v.init(pattern_index_column.type());
 		v.set(robots[row].pattern_index);
 		value.init(pattern_index_column.type());
 		value = v;
-	} else if (col == 3) {
+	} else if (col == static_cast<unsigned int>(name_column.index())) {
 		Glib::Value<Glib::ustring> v;
 		v.init(name_column.type());
 		v.set(robots[row].name);
@@ -63,7 +56,6 @@ SingleBotComboBox::SingleBotComboBox(const Config::RobotSet &robots) : Gtk::Comb
 	assert(robots.size());
 	Glib::RefPtr<SingleBotComboBoxModel> model = Glib::RefPtr<SingleBotComboBoxModel>::cast_static(get_model());
 	pack_start(model->address_column, false);
-	pack_start(model->yellow_column, false);
 	pack_start(model->pattern_index_column, false);
 	pack_start(model->name_column, true);
 	set_active(0);
@@ -73,7 +65,6 @@ SingleBotComboBox::SingleBotComboBox(const Config::RobotSet &robots, const Glib:
 	assert(robots.size());
 	Glib::RefPtr<SingleBotComboBoxModel> model = Glib::RefPtr<SingleBotComboBoxModel>::cast_static(get_model());
 	pack_start(model->address_column, false);
-	pack_start(model->yellow_column, false);
 	pack_start(model->pattern_index_column, false);
 	pack_start(model->name_column, true);
 	bool found = false;

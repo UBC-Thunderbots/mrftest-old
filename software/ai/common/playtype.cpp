@@ -1,6 +1,6 @@
-#include "ai/world/playtype.h"
+#include "ai/common/playtype.h"
 
-const Glib::ustring PlayType::DESCRIPTIONS_GENERIC[COUNT] = {
+const Glib::ustring AI::Common::PlayType::DESCRIPTIONS_GENERIC[COUNT] = {
 	"Halt",
 	"Stop",
 	"Play",
@@ -18,7 +18,7 @@ const Glib::ustring PlayType::DESCRIPTIONS_GENERIC[COUNT] = {
 	"Indirect Free Enemy",
 };
 
-const Glib::ustring PlayType::DESCRIPTIONS_WEST[COUNT] = {
+const Glib::ustring AI::Common::PlayType::DESCRIPTIONS_WEST[COUNT] = {
 	"Halt",
 	"Stop",
 	"Play",
@@ -36,7 +36,7 @@ const Glib::ustring PlayType::DESCRIPTIONS_WEST[COUNT] = {
 	"Indirect Free East",
 };
 
-const PlayType::PlayType PlayType::INVERT[COUNT] = {
+const AI::Common::PlayType::PlayType AI::Common::PlayType::INVERT[COUNT] = {
 	HALT,
 	STOP,
 	PLAY,

@@ -28,7 +28,7 @@ namespace {
 	const unsigned int DELAY = 10;
 }
 
-Simulator::Simulator(const Config &conf, SimulatorEngine::Ptr engine, ClockSource &clk) : conf(conf), engine(engine), host_address16(0xFFFF), sock(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)), visdata(*this) {
+Simulator::Simulator(const Config &conf, SimulatorEngine::Ptr engine, ClockSource &clk) : conf(conf), engine(engine), host_address16(0xFFFF), sock(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
 	frame_counters[0] = frame_counters[1] = 0;
 	int one = 1;
 	if (setsockopt(sock->fd(), SOL_SOCKET, SO_BROADCAST, &one, sizeof(one)) < 0) {
@@ -38,7 +38,6 @@ Simulator::Simulator(const Config &conf, SimulatorEngine::Ptr engine, ClockSourc
 	for (unsigned int i = 0; i < infos.size(); ++i) {
 		robots_[infos[i].address] = SimulatorRobot::create(infos[i], engine);
 	}
-	visdata.init();
 	clk.signal_tick.connect(sigc::mem_fun(this, &Simulator::tick));
 	Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &Simulator::tick_geometry), 1);
 }
@@ -262,7 +261,7 @@ void Simulator::tick() {
 			if (plr.is() && plr->position().x * LIMIT_SIGNS[i] > -LIMIT_MAG) {
 				SSL_DetectionRobot *elem;
 				const Config::RobotInfo &info(conf.robots().find(j->first));
-				if (info.yellow) {
+				if (bot->yellow()) {
 					elem = det->add_robots_yellow();
 				} else {
 					elem = det->add_robots_blue();
@@ -293,8 +292,6 @@ void Simulator::tick() {
 			LOG_WARN("Error sending vision-type UDP packet.");
 		}
 	}
-
-	visdata.signal_visdata_changed.emit();
 }
 
 bool Simulator::tick_geometry() {

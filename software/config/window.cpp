@@ -12,7 +12,7 @@
 namespace {
 	class BotInfoDialog : public Gtk::Dialog {
 		public:
-			BotInfoDialog(Gtk::Window &parent, const Config::RobotSet &robots, const Config::RobotInfo *old) : Gtk::Dialog("Add Bot", parent, true), robots(robots), old(old), table(4, 2, false), yellow_button(colour_group, "Yellow"), blue_button(colour_group, "Blue") {
+			BotInfoDialog(Gtk::Window &parent, const Config::RobotSet &robots, const Config::RobotInfo *old) : Gtk::Dialog("Add Bot", parent, true), robots(robots), old(old), table(3, 2, false), yellow_button(colour_group, "Yellow"), blue_button(colour_group, "Blue") {
 				unsigned int y = 0;
 
 				address_entry.set_text("0000000000000000");
@@ -22,14 +22,6 @@ namespace {
 				address_entry.set_tooltip_text("The 64-bit hexadecimal hardware address of the XBee radio module on this robot. For real robots, read the serial number from the XBee chip. For simulation, pick a random number (e.g. 1, 2, 3, 4, etc.).");
 				address_entry.signal_changed().connect(sigc::mem_fun(this, &BotInfoDialog::update_enable));
 				add_row(address_entry, "XBee Address:", y);
-
-				yellow_button.set_tooltip_text("Sets the colour of the central dot on the lid to be yellow. This does not necessarily have anything to do with which team the robot plays for.");
-				yellow_button.signal_toggled().connect(sigc::mem_fun(this, &BotInfoDialog::update_enable));
-				colour_hbox.pack_start(yellow_button, Gtk::PACK_EXPAND_WIDGET);
-				blue_button.set_tooltip_text("Sets the colour of the central dot on the lid to be blue. This does not necessarily have anything to do with which team the robot plays for.");
-				blue_button.signal_toggled().connect(sigc::mem_fun(this, &BotInfoDialog::update_enable));
-				colour_hbox.pack_start(blue_button, Gtk::PACK_EXPAND_WIDGET);
-				add_row(colour_hbox, "Lid Colour:", y);
 
 				pattern_index_spin.get_adjustment()->configure(0.0, 0.0, 127.0, 1.0, 10.0, 0.0);
 				pattern_index_spin.set_digits(0);
@@ -55,7 +47,6 @@ namespace {
 
 				if (old) {
 					address_entry.set_text(Glib::ustring::format(std::hex, std::setw(16), std::setfill(L'0'), old->address));
-					(old->yellow ? yellow_button : blue_button).set_active();
 					pattern_index_spin.set_value(old->pattern_index);
 					name_entry.set_text(old->name);
 				}
@@ -130,7 +121,7 @@ namespace {
 					error_label.set_markup("<i>The XBee address is already in use</i>");
 					return;
 				}
-				if ((!old || yellow() != old->yellow || pattern_index() != old->pattern_index) && robots.contains_pattern(yellow(), pattern_index())) {
+				if ((!old || pattern_index() != old->pattern_index) && robots.contains_pattern(pattern_index())) {
 					set_response_sensitive(Gtk::RESPONSE_ACCEPT, false);
 					error_label.set_markup("<i>The lid pattern is already in use</i>");
 					return;
@@ -153,7 +144,6 @@ namespace {
 	class RobotsModel : public Glib::Object, public AbstractListModel {
 		public:
 			Gtk::TreeModelColumn<uint64_t> address_column;
-			Gtk::TreeModelColumn<bool> yellow_column;
 			Gtk::TreeModelColumn<unsigned int> pattern_index_column;
 			Gtk::TreeModelColumn<Glib::ustring> name_column;
 
@@ -167,25 +157,19 @@ namespace {
 			unsigned int size_;
 
 			void alm_get_value(unsigned int row, unsigned int col, Glib::ValueBase &value) const {
-				if (col == 0) {
+				if (col == static_cast<unsigned int>(address_column.index())) {
 					Glib::Value<uint64_t> v;
 					v.init(address_column.type());
 					v.set(robots[row].address);
 					value.init(address_column.type());
 					value = v;
-				} else if (col == 1) {
-					Glib::Value<bool> v;
-					v.init(yellow_column.type());
-					v.set(robots[row].yellow);
-					value.init(yellow_column.type());
-					value = v;
-				} else if (col == 2) {
+				} else if (col == static_cast<unsigned int>(pattern_index_column.index())) {
 					Glib::Value<unsigned int> v;
 					v.init(pattern_index_column.type());
 					v.set(robots[row].pattern_index);
 					value.init(pattern_index_column.type());
 					value = v;
-				} else if (col == 3) {
+				} else if (col == static_cast<unsigned int>(name_column.index())) {
 					Glib::Value<Glib::ustring> v;
 					v.init(name_column.type());
 					v.set(robots[row].name);
@@ -199,14 +183,12 @@ namespace {
 
 			RobotsModel(const Config::RobotSet &robots) : Glib::ObjectBase(typeid(RobotsModel)), Glib::Object(), AbstractListModel(), robots(robots), size_(0) {
 				alm_column_record.add(address_column);
-				alm_column_record.add(yellow_column);
 				alm_column_record.add(pattern_index_column);
 				alm_column_record.add(name_column);
 				robots.signal_robot_added.connect(sigc::mem_fun(this, &RobotsModel::alm_row_inserted));
 				robots.signal_robot_removed.connect(sigc::mem_fun(this, &RobotsModel::alm_row_deleted));
 				robots.signal_robot_replaced.connect(sigc::mem_fun(this, &RobotsModel::alm_row_changed));
 				robots.signal_sorted.connect(sigc::mem_fun(this, &RobotsModel::on_all_rows_changed));
-				robots.signal_colours_swapped.connect(sigc::mem_fun(this, &RobotsModel::on_all_rows_changed));
 			}
 
 			unsigned int alm_rows() const {
@@ -222,11 +204,10 @@ namespace {
 
 	class RobotsPage : public Gtk::VBox {
 		public:
-			RobotsPage(Config::RobotSet &robots) : robots(robots), model(RobotsModel::create(robots)), view(model), button_box(Gtk::BUTTONBOX_SPREAD), add_button(Gtk::Stock::ADD), edit_button(Gtk::Stock::EDIT), remove_button(Gtk::Stock::DELETE), sort_button("_Sort", true), swap_button("Swap _Colours", true) {
+			RobotsPage(Config::RobotSet &robots) : robots(robots), model(RobotsModel::create(robots)), view(model), button_box(Gtk::BUTTONBOX_SPREAD), add_button(Gtk::Stock::ADD), edit_button(Gtk::Stock::EDIT), remove_button(Gtk::Stock::DELETE), sort_button("_Sort", true) {
 				view.get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
 				view.get_selection()->signal_changed().connect(sigc::mem_fun(this, &RobotsPage::selection_changed));
 				view.append_column_numeric("Address", model->address_column, "%016llX");
-				view.append_column("Yellow?", model->yellow_column);
 				view.append_column("Pattern Index", model->pattern_index_column);
 				view.append_column("Name", model->name_column);
 				scroller.add(view);
@@ -239,12 +220,10 @@ namespace {
 				remove_button.signal_clicked().connect(sigc::mem_fun(this, &RobotsPage::remove));
 				remove_button.set_sensitive(false);
 				sort_button.signal_clicked().connect(sigc::mem_fun(this, &RobotsPage::sort));
-				swap_button.signal_clicked().connect(sigc::mem_fun(this, &RobotsPage::swap_colours));
 				button_box.pack_start(add_button);
 				button_box.pack_start(edit_button);
 				button_box.pack_start(remove_button);
 				button_box.pack_start(sort_button);
-				button_box.pack_start(swap_button);
 				pack_start(button_box, Gtk::PACK_SHRINK);
 			}
 
@@ -254,7 +233,7 @@ namespace {
 			Gtk::TreeView view;
 			Gtk::ScrolledWindow scroller;
 			Gtk::HButtonBox button_box;
-			Gtk::Button add_button, edit_button, remove_button, sort_button, swap_button;
+			Gtk::Button add_button, edit_button, remove_button, sort_button;
 
 			Gtk::Window &find_window() {
 				Gtk::Container *parent = get_parent();
@@ -274,7 +253,7 @@ namespace {
 			void add() {
 				BotInfoDialog dlg(find_window(), robots, 0);
 				if (dlg.run() == Gtk::RESPONSE_ACCEPT) {
-					robots.add(dlg.address(), dlg.yellow(), dlg.pattern_index(), dlg.name());
+					robots.add(dlg.address(), dlg.pattern_index(), dlg.name());
 				}
 			}
 
@@ -286,7 +265,7 @@ namespace {
 						const Config::RobotInfo &old = robots[path[0]];
 						BotInfoDialog dlg(find_window(), robots, &old);
 						if (dlg.run() == Gtk::RESPONSE_ACCEPT) {
-							robots.replace(old.address, dlg.address(), dlg.yellow(), dlg.pattern_index(), dlg.name());
+							robots.replace(old.address, dlg.address(), dlg.pattern_index(), dlg.name());
 						}
 					}
 				}
@@ -327,15 +306,6 @@ namespace {
 					} else if (by_name_button.get_active()) {
 						robots.sort_by_name();
 					}
-				}
-			}
-
-			void swap_colours() {
-				Gtk::MessageDialog dlg(find_window(), "Are you sure you wish to swap the lid colours of all robots?", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true);
-				dlg.set_title("Thunderbots Configuration");
-				int resp = dlg.run();
-				if (resp == Gtk::RESPONSE_YES) {
-					robots.swap_colours();
 				}
 			}
 	};

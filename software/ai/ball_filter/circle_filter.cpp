@@ -1,14 +1,13 @@
 #include "ai/ball_filter/ball_filter.h"
 #include "util/timestep.h"
-#include "ai/world/ball.h"
 #include "geom/angle.h"
-#include "ai/util.h"
 #include <cmath>
 #include <list>
 #include <utility>
 #include <vector>
 
-using namespace AI;
+using AI::BF::BallFilter;
+using namespace AI::BF::W;
 using namespace std;
 
 namespace {
@@ -42,26 +41,23 @@ namespace {
 				has_ball_timesteps = 0;
 			}
 
-                        Point filter(const vector<pair<double, Point> > &obs, FriendlyTeam &friendly, EnemyTeam &enemy) {
+                        Point filter(const vector<pair<double, Point> > &obs, World &world) {
+							FriendlyTeam &friendly = world.friendly_team();
+							EnemyTeam &enemy = world.enemy_team();
 				Point max_point;
 				double max_cert = -0.1;
 				Point has_ball_point;
 				double has_ball_cert = -0.1;
 			
 				for (unsigned int i = 0; i < friendly.size(); ++i) {
-					Player::Ptr player = friendly.get_player(i);
-					if (player->sense_ball()) {						
+					Player::Ptr player = friendly.get(i);
+					if (player->has_ball()) {						
 						has_ball_timesteps++;
 
 						Point orient(1,0);
 						has_ball_point = player->position() + (Ball::RADIUS + Robot::MAX_RADIUS) * orient.rotate(player->orientation());
 
-						if (player->sense_ball_time() < Util::HAS_BALL_TIME) {
-							continue;
-						}
-
-						//has_ball_cert = 1.0 - exp(-has_ball_timesteps / 5.0);
-						has_ball_cert = 1.0 - exp(-player->sense_ball_time() / 5.0);
+						has_ball_cert = 1.0;
 						break;
 					}
 				}				
@@ -83,9 +79,9 @@ namespace {
 						Robot::Ptr robot;
 
 						for (unsigned int i = 0; i < enemy.size(); ++i) {
-							robot = enemy.get_robot(i);
+							robot = enemy.get(i);
 
-							if (robot->pattern_index == robot_index) {
+							if (robot->pattern_index() == robot_index) {
 								max_point = robot->position() + (Ball::RADIUS + Robot::MAX_RADIUS) * orient.rotate(robot->orientation());
 								max_cert = DEFAULT_CERT;
 								break;
@@ -160,7 +156,7 @@ namespace {
 				use_closest = false;
 
 				for (unsigned int i = 0; i < friendly.size(); ++i) {
-					robot = friendly.get_player(i);
+					robot = friendly.get(i);
 
 					ball_ref = last_point - robot->position();
 					if (min_dist == -1 || ball_ref.len() < min_dist) {
@@ -170,13 +166,13 @@ namespace {
 
 				bool is_facing_ball;
 				for (unsigned int i = 0; i < enemy.size(); ++i) {
-					robot = enemy.get_robot(i);
+					robot = enemy.get(i);
 
 					ball_ref = last_point - robot->position();
 					is_facing_ball = angle_diff(ball_ref.orientation(), robot->orientation()) < (M_PI / 4.0);
 					if (is_facing_ball && (min_dist == -1 || ball_ref.len() < min_dist)) {
 						use_closest = true;
-						robot_index = robot->pattern_index;	
+						robot_index = robot->pattern_index();	
 						min_dist = ball_ref.len();			
 					}
 				}

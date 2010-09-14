@@ -1,7 +1,8 @@
 #include "ai/hl/strategy.h"
 
-using namespace AI;
-using namespace HL;
+using AI::HL::Strategy;
+using AI::HL::StrategyFactory;
+using namespace AI::HL::W;
 
 namespace {
 	/**
@@ -9,7 +10,7 @@ namespace {
 	 */
 	class StopStrategy : public Strategy {
 		public:
-			StrategyFactory &get_factory() const;
+			StrategyFactory &factory() const;
 			void stop();
 
 			/**
@@ -38,7 +39,7 @@ namespace {
 	/**
 	 * The global instance of StopStrategyFactory.
 	 */
-	StopStrategyFactory factory;
+	StopStrategyFactory factory_instance;
 
 	/**
 	 * The play types handled by this strategy.
@@ -47,8 +48,8 @@ namespace {
 		PlayType::STOP,
 	};
 
-	StrategyFactory &StopStrategy::get_factory() const {
-		return factory;
+	StrategyFactory &StopStrategy::factory() const {
+		return factory_instance;
 	}
 
 	void StopStrategy::stop() {
@@ -61,7 +62,7 @@ namespace {
 	}
 
 	StopStrategy::StopStrategy(World &world) : Strategy(world) {
-		world.signal_playtype_changed.connect(sigc::mem_fun(this, &StopStrategy::on_play_type_changed));
+		world.playtype().signal_changed().connect(sigc::mem_fun(this, &StopStrategy::on_play_type_changed));
 	}
 
 	StopStrategy::~StopStrategy() {

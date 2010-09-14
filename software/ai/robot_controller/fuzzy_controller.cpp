@@ -3,7 +3,11 @@
 #include "geom/angle.h"
 #include <cmath>
 
-using namespace AI::RobotController;
+using AI::RC::FuzzyController;
+using AI::RC::RobotController;
+using AI::RC::OldRobotController;
+using AI::RC::RobotControllerFactory;
+using namespace AI::RC::W;
 
 #warning this class needs Doxygen comments in its header
 
@@ -14,7 +18,7 @@ namespace {
 			FuzzyControllerFactory() : RobotControllerFactory("Fuzzy RC") {
 			}
 
-			RobotController::Ptr create_controller(AI::Player::Ptr player, bool, unsigned int) const {
+			RobotController::Ptr create_controller(Player::Ptr player) const {
 				RobotController::Ptr p(new FuzzyController (player));
 				return p;
 			}
@@ -37,14 +41,13 @@ const std::vector<double> FuzzyController::get_params_default() const {
 	return param_default;
 }
 
-FuzzyController::FuzzyController(Player::Ptr player) : param(5) {
-	robot = player;
+FuzzyController::FuzzyController(AI::RC::W::Player::Ptr player) : OldRobotController(player), param(5) {
 	param = param_default;
 }
 
 void FuzzyController::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
-	const Point &current_position = robot->position();
-	const double current_orientation = robot->orientation();
+	const Point &current_position = player->position();
+	const double current_orientation = player->orientation();
 	angular_velocity = param[4]*angle_mod(new_orientation - current_orientation);
 	
 	double distance_factor = (new_position - current_position).len() / param[1];
@@ -54,10 +57,10 @@ void FuzzyController::move(const Point &new_position, double new_orientation, Po
 	
 	if (linear_velocity.len()!=0) linear_velocity = linear_velocity / linear_velocity.len() * distance_factor * param[0];
 	
-	Point stopping_velocity = (-robot->est_velocity()).rotate(-current_orientation);
+	Point stopping_velocity = (-player->est_velocity()).rotate(-current_orientation);
 	if (stopping_velocity.len()!=0) stopping_velocity = stopping_velocity / stopping_velocity.len() * param[0];
 	
-	double velocity_factor = ((robot->est_velocity()).len() / param[0]) * param[2];
+	double velocity_factor = ((player->est_velocity()).len() / param[0]) * param[2];
 	if (velocity_factor > 1) velocity_factor = 1;
 	
 	distance_factor = (new_position - current_position).len() / param[3];

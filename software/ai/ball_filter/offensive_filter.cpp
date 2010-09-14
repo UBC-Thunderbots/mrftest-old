@@ -1,12 +1,12 @@
 #include "ai/ball_filter/ball_filter.h"
-#include "ai/world/team.h"
 #include "geom/point.h"
 #include "util/timestep.h"
 #include <memory>
 #include <utility>
 #include <vector>
 
-using namespace AI;
+using AI::BF::BallFilter;
+using namespace AI::BF::W;
 
 namespace {
 	class Circle {
@@ -36,7 +36,7 @@ namespace {
 				circles.push_back(Circle(Point(), DELETE_THRESHOLD));
 			}
 
-			Point filter(const std::vector<std::pair<double, Point> > &obs, FriendlyTeam &, EnemyTeam &) {
+			Point filter(const std::vector<std::pair<double, Point> > &obs, World &) {
 			
 	
 			  // Just use the maximum-confidence ball.

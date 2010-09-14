@@ -21,11 +21,6 @@ class SingleBotComboBoxModel : public Glib::Object, public AbstractListModel {
 		Gtk::TreeModelColumn<Glib::ustring> address_column;
 
 		/**
-		 * A column containing 'Y' if the robot is yellow, or 'B' if it is blue.
-		 */
-		Gtk::TreeModelColumn<Glib::ustring> yellow_column;
-
-		/**
 		 * A column containing the numerical index of the robot's lid pattern.
 		 */
 		Gtk::TreeModelColumn<unsigned int> pattern_index_column;

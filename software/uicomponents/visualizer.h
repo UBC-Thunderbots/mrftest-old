@@ -122,7 +122,7 @@ class Visualizable : public NonCopyable {
 		/**
 		 * A ball that can be drawn by the Visualizer.
 		 */
-		class Ball {
+		class Ball : public NonCopyable {
 			public:
 				/**
 				 * Returns the position of the ball.
@@ -142,8 +142,13 @@ class Visualizable : public NonCopyable {
 		/**
 		 * A Robot that can be drawn by the Visualizer.
 		 */
-		class Robot {
+		class Robot : public virtual ByRef {
 			public:
+				/**
+				 * A pointer to a Robot.
+				 */
+				typedef RefPtr<Robot> Ptr;
+
 				/**
 				 * Returns the position of the robot.
 				 *
@@ -227,7 +232,7 @@ class Visualizable : public NonCopyable {
 		 *
 		 * \return the Robot.
 		 */
-		virtual const Visualizable::Robot &operator[](unsigned int index) const = 0;
+		virtual Visualizable::Robot::Ptr operator[](unsigned int index) const = 0;
 };
 
 /**

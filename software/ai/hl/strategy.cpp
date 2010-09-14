@@ -1,7 +1,9 @@
 #include "ai/hl/strategy.h"
 #include <stdexcept>
 
-using namespace AI::HL;
+using AI::HL::Strategy;
+using AI::HL::StrategyFactory;
+using namespace AI::HL::W;
 
 void Strategy::halt() {
 }

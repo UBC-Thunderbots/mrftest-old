@@ -1,7 +1,7 @@
 #ifndef AI_HL_STRATEGY_H
 #define AI_HL_STRATEGY_H
 
-#include "ai/world/world.h"
+#include "ai/hl/world.h"
 #include "util/byref.h"
 #include "util/registerable.h"
 #include <cstddef>
@@ -41,7 +41,7 @@ namespace AI {
 				 *
 				 * \return a reference to the StrategyFactory instance.
 				 */
-				virtual StrategyFactory &get_factory() const = 0;
+				virtual StrategyFactory &factory() const = 0;
 
 				/**
 				 * Invoked once per time tick when the game is in PlayType::HALT.
@@ -154,7 +154,7 @@ namespace AI {
 				/**
 				 * The World in which the Strategy lives.
 				 */
-				World &world;
+				AI::HL::W::World &world;
 
 				/**
 				 * Constructs a new Strategy.
@@ -162,7 +162,7 @@ namespace AI {
 				 *
 				 * \param[in] world the World in which the Strategy lives.
 				 */
-				Strategy(World &world);
+				Strategy(AI::HL::W::World &world);
 
 				/**
 				 * Destroys a Strategy.
@@ -189,7 +189,7 @@ namespace AI {
 				/**
 				 * A pointer to the first play type in an array of play types the corresponding Strategy is willing to handle.
 				 */
-				const PlayType::PlayType * const handled_play_types;
+				const AI::HL::W::PlayType::PlayType * const handled_play_types;
 
 				/**
 				 * The number of elements in the \ref handled_play_types array.
@@ -203,7 +203,7 @@ namespace AI {
 				 *
 				 * \return the new Strategy.
 				 */
-				virtual Strategy::Ptr create_strategy(World &world) const = 0;
+				virtual Strategy::Ptr create_strategy(AI::HL::W::World &world) const = 0;
 
 			protected:
 				/**
@@ -217,7 +217,7 @@ namespace AI {
 				 *
 				 * \param[in] handled_play_types_size the number of elements in the \p handled_play_types array.
 				 */
-				StrategyFactory(const Glib::ustring &name, const PlayType::PlayType *handled_play_types, std::size_t handled_play_types_size);
+				StrategyFactory(const Glib::ustring &name, const AI::HL::W::PlayType::PlayType *handled_play_types, std::size_t handled_play_types_size);
 
 				/**
 				 * Destroys a StrategyFactory.

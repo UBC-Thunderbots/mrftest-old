@@ -1,7 +1,10 @@
 #include "ai/coach/coach.h"
 #include <cstdlib>
 
-using namespace AI;
+using AI::Coach::Coach;
+using AI::Coach::CoachFactory;
+using AI::HL::Strategy;
+using namespace AI::Coach::W;
 
 namespace {
 	/**
@@ -11,9 +14,9 @@ namespace {
 	 */
 	class RandomCoach : public Coach {
 		public:
-			CoachFactory &get_factory() const;
+			CoachFactory &factory() const;
 			void tick();
-			Gtk::Widget *get_ui_controls();
+			Gtk::Widget *ui_controls();
 			static Coach::Ptr create(World &world);
 
 		private:
@@ -34,30 +37,26 @@ namespace {
 	/**
 	 * The global instance of RandomCoachFactory.
 	 */
-	RandomCoachFactory factory;
+	RandomCoachFactory factory_instance;
 
-	CoachFactory &RandomCoach::get_factory() const {
-		return factory;
+	CoachFactory &RandomCoach::factory() const {
+		return factory_instance;
 	}
 
 	void RandomCoach::tick() {
 		// If there is no Strategy or if it has resigned, choose a new one.
-		if (!get_strategy().is() || get_strategy()->has_resigned()) {
-			const std::vector<HL::StrategyFactory *> &factories = Coach::get_strategies_by_play_type(world.playtype());
+		Strategy::Ptr strategy = world.strategy();
+		if (!strategy.is() || strategy->has_resigned()) {
+			const std::vector<AI::HL::StrategyFactory *> &factories = Coach::get_strategies_by_play_type(world.playtype());
 			if (factories.empty()) {
-				clear_strategy();
+				world.strategy(0);
 			} else {
-				set_strategy(factories[std::rand() % factories.size()]);
+				world.strategy(factories[std::rand() % factories.size()]);
 			}
-		}
-
-		// If there is a Strategy, run it.
-		if (get_strategy().is()) {
-			get_strategy()->tick();
 		}
 	}
 
-	Gtk::Widget *RandomCoach::get_ui_controls() {
+	Gtk::Widget *RandomCoach::ui_controls() {
 		return 0;
 	}
 

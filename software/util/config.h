@@ -28,11 +28,6 @@ class Config : public NonCopyable {
 			uint64_t address;
 
 			/**
-			 * \c true if the central dot on the robot's lid is yellow, or \c false if it is blue.
-			 */
-			bool yellow;
-
-			/**
 			 * The index of the robot's lid pattern in the SSL-Vision pattern file.
 			 */
 			unsigned int pattern_index;
@@ -52,13 +47,11 @@ class Config : public NonCopyable {
 			 *
 			 * \param[in] address the robot's XBee address.
 			 *
-			 * \param[in] yellow \c true if the central dot on the robot's lid is yellow, or \c false if it is blue.
-			 *
 			 * \param[in] pattern_index the index in the SSL-Vision pattern file of the robot's lid pattern.
 			 *
 			 * \param[in] name a human-readable name for the robot.
 			 */
-			RobotInfo(uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name) : address(address), yellow(yellow), pattern_index(pattern_index), name(name), friendly(true) {
+			RobotInfo(uint64_t address, unsigned int pattern_index, const Glib::ustring &name) : address(address), pattern_index(pattern_index), name(name), friendly(true) {
 			}
 		};
 
@@ -117,13 +110,11 @@ class Config : public NonCopyable {
 				/**
 				 * Checks whether or not there is a robot with a lid pattern.
 				 *
-				 * \param[in] yellow the team colour to look up.
-				 *
 				 * \param[in] pattern_index the pattern index to look up.
 				 *
 				 * \return \c true if a robot in the ocllection has the given colour and pattern index, or \c false if not.
 				 */
-				bool contains_pattern(bool yellow, unsigned int pattern_index) const;
+				bool contains_pattern(unsigned int pattern_index) const;
 
 				/**
 				 * Checks whether or not there is a robot with a name.
@@ -139,13 +130,11 @@ class Config : public NonCopyable {
 				 *
 				 * \param[in] address the robot's XBee address.
 				 *
-				 * \param[in] yellow \c true to make the central dot on the new robot's lid yellow, or \c false if not.
-				 *
 				 * \param[in] pattern_index the index of the robot's lid pattern.
 				 *
 				 * \param[in] name a human-readable name for the robot.
 				 */
-				void add(uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name);
+				void add(uint64_t address, unsigned int pattern_index, const Glib::ustring &name);
 
 				/**
 				 * Emitted when a robot is added.
@@ -173,13 +162,11 @@ class Config : public NonCopyable {
 				 *
 				 * \param[in] address the new XBee address to store.
 				 *
-				 * \param[in] yellow the new colour of the robot.
-				 *
 				 * \param[in] pattern_index the new lid pattern index.
 				 *
 				 * \param[in] name the new name.
 				 */
-				void replace(uint64_t old_address, uint64_t address, bool yellow, unsigned int pattern_index, const Glib::ustring &name);
+				void replace(uint64_t old_address, uint64_t address, unsigned int pattern_index, const Glib::ustring &name);
 
 				/**
 				 * Emitted when a robot is replaced.
@@ -206,16 +193,6 @@ class Config : public NonCopyable {
 				 * Emitted when the collection is sorted.
 				 */
 				mutable sigc::signal<void> signal_sorted;
-
-				/**
-				 * Inverts the colours of all robots in the collection.
-				 */
-				void swap_colours();
-
-				/**
-				 * Emitted when the colours of all robots are swapped.
-				 */
-				mutable sigc::signal<void> signal_colours_swapped;
 
 			private:
 				std::vector<RobotInfo> robots;

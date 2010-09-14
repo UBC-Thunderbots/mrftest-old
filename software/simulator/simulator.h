@@ -4,7 +4,6 @@
 #include "simulator/ball.h"
 #include "simulator/player.h"
 #include "simulator/robot.h"
-#include "simulator/visdata.h"
 #include "simulator/engines/engine.h"
 #include "util/clocksource.h"
 #include "util/config.h"
@@ -65,15 +64,6 @@ class Simulator : public BackEnd, public sigc::trackable {
 		 */
 		SimulatorRobot::Ptr find_by16(uint16_t addr) const;
 
-		/**
-		 * Returns the visualization data.
-		 *
-		 * \return the visualization data.
-		 */
-		const Visualizable &visualizer_data() const {
-			return visdata;
-		}
-
 	private:
 		const SimulatorEngine::Ptr engine;
 		std::unordered_map<uint64_t, SimulatorRobot::Ptr> robots_;
@@ -82,7 +72,6 @@ class Simulator : public BackEnd, public sigc::trackable {
 		uint16_t host_address16;
 		const FileDescriptor::Ptr sock;
 		uint32_t frame_counters[2];
-		SimulatorVisData visdata;
 
 		void send(const iovec *, std::size_t);
 		void packet_handler(const std::vector<uint8_t> &data);

@@ -19,11 +19,6 @@ class MainWindow : public Gtk::Window {
 
 	private:
 		Simulator &sim;
-		Gtk::ToggleButton vis_button;
-		Gtk::Window vis_window;
-		Visualizer vis;
-
-		void on_vis_button_toggled();
 };
 
 #endif

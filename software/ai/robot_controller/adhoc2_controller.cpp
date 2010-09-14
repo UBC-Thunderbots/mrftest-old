@@ -1,6 +1,5 @@
 #include "geom/point.h"
 #include "geom/angle.h"
-#include "ai/world/player.h"
 #include "ai/robot_controller/robot_controller.h"
 #include "ai/robot_controller/tunable_controller.h"
 #include "geom/point.h"
@@ -17,7 +16,10 @@
 #include <fstream>
 #include <cassert>
 
-using namespace AI::RobotController;
+using AI::RC::RobotController;
+using AI::RC::OldRobotController;
+using AI::RC::RobotControllerFactory;
+using namespace AI::RC::W;
 
 namespace {
 
@@ -35,14 +37,13 @@ namespace {
 	const double ADHOC_A_DIFF = 0.0;
 	const double ADHOC_YA_RATIO = 0.0; // 0 - 5 to face forwards
 
-	class AdHoc2Controller : public RobotController {
+	class AdHoc2Controller : public OldRobotController {
 		public:
 			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 			void clear();
 			RobotControllerFactory &get_factory() const;
-			AdHoc2Controller(AI::Player::Ptr plr);
+			AdHoc2Controller(Player::Ptr plr);
 		protected:
-			AI::Player::Ptr plr;
 			bool initialized;
 			// errors in x, y, d
 			Point prev_new_pos;
@@ -51,12 +52,12 @@ namespace {
 			double prev_angular_velocity;
 	};
 
-	AdHoc2Controller::AdHoc2Controller(AI::Player::Ptr plr) : plr(plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
+	AdHoc2Controller::AdHoc2Controller(Player::Ptr plr) : OldRobotController(plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
 	}
 
 	void AdHoc2Controller::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
-		const Point &current_position = plr->position();
-		const double current_orientation = plr->orientation();
+		const Point &current_position = player->position();
+		const double current_orientation = player->orientation();
 
 		// relative new direction and angle
 		double new_da = angle_mod(new_orientation - current_orientation);
@@ -73,10 +74,10 @@ namespace {
 		const double px = new_dir.x;
 		const double py = new_dir.y;
 		const double pa = new_da;
-		Point vel = (plr->est_velocity()).rotate(-current_orientation);
+		Point vel = (player->est_velocity()).rotate(-current_orientation);
 		double vx = -vel.x;
 		double vy = -vel.y;
-		double va = -plr->est_avelocity();
+		double va = -player->est_avelocity();
 
 		//const double cx = accum_pos.x;
 		//const double cy = accum_pos.y;
@@ -136,7 +137,7 @@ namespace {
 			AdHoc2ControllerFactory() : RobotControllerFactory("adhoc2") {
 			}
 
-			RobotController::Ptr create_controller(AI::Player::Ptr plr, bool, unsigned int) const {
+			RobotController::Ptr create_controller(Player::Ptr plr) const {
 				RobotController::Ptr p(new AdHoc2Controller(plr));
 				return p;
 			}

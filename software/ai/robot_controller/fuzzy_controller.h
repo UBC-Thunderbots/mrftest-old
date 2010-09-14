@@ -1,18 +1,17 @@
 #ifndef AI_ROBOT_CONTROLLER_FUZZY_CONTROLLER_H
 #define AI_ROBOT_CONTROLLER_FUZZY_CONTROLLER_H
 
-#include <map>
-#include <glibmm.h>
-#include "ai/world/player.h"
 #include "ai/robot_controller/robot_controller.h"
+#include "ai/robot_controller/tunable_controller.h"
 #include "geom/point.h"
 #include "util/byref.h"
 #include "util/noncopyable.h"
-#include "ai/robot_controller/tunable_controller.h"
+#include <glibmm.h>
+#include <map>
 
 namespace AI {
-	namespace RobotController {
-		class FuzzyController : public RobotController, public TunableController {
+	namespace RC {
+		class FuzzyController : public OldRobotController, public TunableController {
 			public:
 
 				void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
@@ -21,7 +20,7 @@ namespace AI {
 
 				RobotControllerFactory &get_factory() const;
 
-				FuzzyController(Player::Ptr player);
+				FuzzyController(AI::RC::W::Player::Ptr player);
 
 				void set_params(const std::vector<double>& params) {
 					this->param = params;
@@ -42,8 +41,6 @@ namespace AI {
 				}
 
 			protected:
-				Player::Ptr robot;
-
 				static const std::vector<double> param_min;
 				static const std::vector<double> param_max;
 				static const std::vector<double> param_default;

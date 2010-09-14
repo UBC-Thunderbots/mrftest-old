@@ -3,7 +3,6 @@
 
 #include "simulator/player.h"
 #include "simulator/engines/engine.h"
-#include "uicomponents/visualizer.h"
 #include "util/byref.h"
 #include "util/config.h"
 #include <cstdlib>
@@ -156,21 +155,22 @@ class SimulatorRobot : public ByRef {
 		}
 
 		/**
-		 * Returns the colour of the robot.
-		 *
-		 * \return \c true if the robot is yellow, or \c false if blue.
-		 */
-		bool yellow() {
-			return botinfo.yellow;
-		}
-
-		/**
 		 * Returns the pattern index of the robot.
 		 *
 		 * \return the pattern index.
 		 */
 		unsigned int pattern_index() {
 			return botinfo.pattern_index;
+		}
+
+		/**
+		 * Returns the colour of the robot.
+		 *
+		 * \return \c true if the robot is yellow, or \c false if not.
+		 */
+		bool yellow() {
+#warning TODO something sensible
+			return true;
 		}
 
 		Point position() const {

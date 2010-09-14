@@ -1,7 +1,9 @@
 #include "ai/robot_controller/tunable_controller.h"
 
-#include <set>
 #include <cassert>
+#include <set>
+
+using AI::RC::TunableController;
 
 namespace {
 	std::set<TunableController*> instances;

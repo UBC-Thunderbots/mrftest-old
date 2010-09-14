@@ -1,6 +1,7 @@
 #include "ai/ball_filter/ball_filter.h"
 
-using namespace AI;
+using AI::BF::BallFilter;
+using namespace AI::BF::W;
 
 namespace {
 	class WeightedAverageFilter : public BallFilter {
@@ -8,7 +9,7 @@ namespace {
 			WeightedAverageFilter() : BallFilter("Weighted Average Filter") {
 			}
 
-			Point filter(const std::vector<std::pair<double, Point> > &balls, FriendlyTeam &, EnemyTeam &) {
+			Point filter(const std::vector<std::pair<double, Point> > &balls, World &) {
 				if (balls.empty()) {
 					return Point();
 				} else {

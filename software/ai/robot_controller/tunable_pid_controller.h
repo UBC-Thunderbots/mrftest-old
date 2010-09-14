@@ -1,19 +1,17 @@
 #ifndef AI_ROBOT_CONTROLLER_PID_CONTROLLER_H
 #define AI_ROBOT_CONTROLLER_PID_CONTROLLER_H
 
-#include "ai/world/player.h"
 #include "ai/robot_controller/robot_controller.h"
 #include "ai/robot_controller/tunable_controller.h"
 #include "geom/point.h"
 #include "util/byref.h"
 #include "util/noncopyable.h"
-
-#include <vector>
 #include <glibmm.h>
+#include <vector>
 
 namespace AI {
-	namespace RobotController {
-		class TunablePIDController : public RobotController, public TunableController {
+	namespace RC {
+		class TunablePIDController : public OldRobotController, public TunableController {
 			public:
 
 				void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
@@ -22,7 +20,7 @@ namespace AI {
 
 				RobotControllerFactory &get_factory() const;
 
-				TunablePIDController(Player::Ptr plr);
+				TunablePIDController(AI::RC::W::Player::Ptr plr);
 
 				void set_params(const std::vector<double>& params) {
 					this->param = params;
@@ -45,9 +43,6 @@ namespace AI {
 				const std::vector<double> get_params_max() const {
 					return param_max;
 				}
-
-			private:
-				Player::Ptr plr;
 
 			protected:
 

@@ -1,7 +1,7 @@
 #ifndef AI_FLAGS_H
 #define AI_FLAGS_H
 
-#include "ai/world/playtype.h"
+#include "ai/common/playtype.h"
 
 namespace AI {
 	namespace Flags {
@@ -58,7 +58,7 @@ namespace AI {
 		 *
 		 * \return the appropriate flags.
 		 */
-		unsigned int calc_flags(PlayType::PlayType pt);
+		unsigned int calc_flags(AI::Common::PlayType::PlayType pt);
 	}
 }
 

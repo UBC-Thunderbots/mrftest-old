@@ -5,7 +5,8 @@
 #include <utility>
 #include <vector>
 
-using namespace AI;
+using AI::BF::BallFilter;
+using namespace AI::BF::W;
 using namespace std;
 
 namespace {
@@ -34,7 +35,7 @@ namespace {
 				circles.push_back(c);
 			}
 
-			Point filter(const vector<pair<double, Point> > &obs, FriendlyTeam &, EnemyTeam &) {
+			Point filter(const vector<pair<double, Point> > &obs, World &) {
 				Point max_point;
 				double max_cert = -0.1;
 

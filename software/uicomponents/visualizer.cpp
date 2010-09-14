@@ -88,27 +88,27 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 
 	// Draw the players including text.
 	for (unsigned int i = 0; i < data.size(); ++i) {
-		const Visualizable::Robot &bot(data[i]);
-		if (bot.visualizer_visible()) {
-			const Visualizable::RobotColour &clr(bot.visualizer_colour());
+		const Visualizable::Robot::Ptr &bot(data[i]);
+		if (bot->visualizer_visible()) {
+			const Visualizable::RobotColour &clr(bot->visualizer_colour());
 			ctx->set_source_rgb(clr.red, clr.green, clr.blue);
 			ctx->begin_new_path();
-			ctx->arc_negative(xtog(bot.position().x), ytog(bot.position().y), dtog(0.09), atog(bot.orientation() + M_PI_4), atog(bot.orientation() - M_PI_4));
+			ctx->arc_negative(xtog(bot->position().x), ytog(bot->position().y), dtog(0.09), atog(bot->orientation() + M_PI_4), atog(bot->orientation() - M_PI_4));
 			ctx->fill();
 
 			ctx->set_source_rgb(0.0, 0.0, 0.0);
-			const Glib::ustring &ustr(bot.visualizer_label());
+			const Glib::ustring &ustr(bot->visualizer_label());
 			const std::string &str(ustr);
 			Cairo::TextExtents extents;
 			ctx->get_text_extents(str, extents);
-			const double x = xtog(bot.position().x) - extents.x_bearing - extents.width / 2.0;
-			const double y = ytog(bot.position().y) - extents.y_bearing - extents.height / 2.0;
+			const double x = xtog(bot->position().x) - extents.x_bearing - extents.width / 2.0;
+			const double y = ytog(bot->position().y) - extents.y_bearing - extents.height / 2.0;
 			ctx->move_to(x, y);
 			ctx->show_text(str);
 
-			if (bot.has_destination()) {
-				const Point &pos(bot.position());
-				const Point &dest(bot.destination());
+			if (bot->has_destination()) {
+				const Point &pos(bot->position());
+				const Point &dest(bot->destination());
 				ctx->begin_new_path();
 				ctx->move_to(xtog(pos.x), ytog(pos.y));
 				ctx->line_to(xtog(dest.x), ytog(dest.y));

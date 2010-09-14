@@ -1,70 +1,56 @@
 #ifndef AI_AI_H
 #define AI_AI_H
 
+#include "ai/backend/backend.h"
 #include "ai/coach/coach.h"
-#include "ai/world/world.h"
-#include "robot_controller/robot_controller.h"
-#include "util/clocksource.h"
+#include "ai/navigator/navigator.h"
+#include "ai/robot_controller/robot_controller.h"
 #include "util/noncopyable.h"
+#include "util/property.h"
 
 namespace AI {
 	/**
 	 * A complete %AI.
 	 */
-	class AI : public NonCopyable {
+	class AIPackage : public NonCopyable {
 		public:
 			/**
-			 * The World in which the AI is running.
+			 * The Backend against which the AI is running.
 			 */
-			World &world;
+			AI::BE::Backend &backend;
 
 			/**
-			 * Constructs a new AI.
-			 *
-			 * \param[in] world the World to operate in.
-			 *
-			 * \param[in] clk the clock to run the AI from.
+			 * The Coach managing the AI.
 			 */
-			AI(World &world, ClockSource &clk);
+			Property<AI::Coach::Coach::Ptr> coach;
 
 			/**
-			 * Gets the Coach managing the AI.
-			 *
-			 * \return the Coach managing the AI.
+			 * The Navigator navigating the robots.
 			 */
-			Coach::Ptr get_coach() const;
+			Property<AI::Nav::Navigator::Ptr> navigator;
 
 			/**
-			 * Sets which Coach is managing the AI.
-			 *
-			 * \param[in] c the new Coach.
+			 * The RobotControllerFactory driving the robots.
 			 */
-			void set_coach(Coach::Ptr c);
+			Property<AI::RC::RobotControllerFactory *> robot_controller_factory;
 
 			/**
-			 * Gets the RobotControllerFactory driving the robots.
+			 * Constructs a new AIPackage.
 			 *
-			 * \return the RobotControllerFactory driving the robots.
+			 * \param[in] backend the Backend against which to run.
 			 */
-			RobotController::RobotControllerFactory *get_robot_controller_factory() const {
-				return rc_factory;
-			}
+			AIPackage(AI::BE::Backend &backend);
 
 			/**
-			 * Sets the RobotControllerFactory that creates \ref RobotController "RobotControllers" that drive the robots.
-			 *
-			 * \param[in] fact the new factory.
+			 * Destroys the AIPackage.
 			 */
-			void set_robot_controller_factory(RobotController::RobotControllerFactory *fact);
+			~AIPackage();
 
 		private:
-			ClockSource &clk;
-			Coach::Ptr coach;
-			RobotController::RobotControllerFactory *rc_factory;
-
 			void tick();
-			void player_added(unsigned int, Player::Ptr);
-			void player_removed(unsigned int, Player::Ptr);
+			void player_added(std::size_t idx);
+			void player_removed(std::size_t idx);
+			void robot_controller_factory_changed();
 	};
 }
 
