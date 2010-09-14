@@ -48,7 +48,7 @@ class ObjectStore : public NonCopyable {
 		/**
 		 * Fetches an object from the ObjectStore, creating it if it does not yet exist.
 		 *
-		 * \param[in] k the key identifying the specific client (generally <code>typeid(*this)</code> in the client).
+		 * \param[in] tid the key identifying the specific client (generally <code>typeid(*this)</code> in the client).
 		 *
 		 * \return the object associated with the client.
 		 */

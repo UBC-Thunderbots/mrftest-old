@@ -133,7 +133,7 @@ void Strategy::resign() {
 	has_resigned_ = true;
 }
 
-StrategyFactory::StrategyFactory(const Glib::ustring &name, const PlayType::PlayType *handled_play_types, std::size_t handled_play_types_size) : Registerable<StrategyFactory>(name), handled_play_types(handled_play_types), handled_play_types_size(handled_play_types_size) {
+StrategyFactory::StrategyFactory(const Glib::ustring &name, const AI::HL::W::PlayType::PlayType *handled_play_types, std::size_t handled_play_types_size) : Registerable<StrategyFactory>(name), handled_play_types(handled_play_types), handled_play_types_size(handled_play_types_size) {
 }
 
 StrategyFactory::~StrategyFactory() {

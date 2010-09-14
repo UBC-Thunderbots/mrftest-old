@@ -5,7 +5,7 @@ using AI::Coach::Coach;
 using AI::Coach::CoachFactory;
 using namespace AI::Coach::W;
 
-const std::vector<AI::HL::StrategyFactory *> &Coach::get_strategies_by_play_type(PlayType::PlayType pt) {
+const std::vector<AI::HL::StrategyFactory *> &Coach::get_strategies_by_play_type(AI::Coach::W::PlayType::PlayType pt) {
 	static bool initialized = false;
 	static std::vector<HL::StrategyFactory *> vectors[PlayType::COUNT];
 
