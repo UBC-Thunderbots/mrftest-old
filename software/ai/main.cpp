@@ -34,7 +34,7 @@ namespace {
 		backend.friendly_colour() = wbc.friendly_colour;
 
 		if (!wbc.ball_filter_name.empty()) {
-			typedef AI::BF::BallFilter::map_type Map;
+			typedef AI::BF::BallFilter::Map Map;
 			const Map &m = AI::BF::BallFilter::all();
 			const Map::const_iterator &i = m.find(wbc.ball_filter_name.collate_key());
 			if (i == m.end()) {
@@ -46,7 +46,7 @@ namespace {
 		AI::AIPackage ai(backend);
 
 		if (!wbc.coach_name.empty()) {
-			typedef AI::Coach::CoachFactory::map_type Map;
+			typedef AI::Coach::CoachFactory::Map Map;
 			const Map &m = AI::Coach::CoachFactory::all();
 			const Map::const_iterator &i = m.find(wbc.coach_name.collate_key());
 			if (i == m.end()) {
@@ -56,7 +56,7 @@ namespace {
 		}
 
 		if (!wbc.robot_controller_name.empty()) {
-			typedef AI::RC::RobotControllerFactory::map_type Map;
+			typedef AI::RC::RobotControllerFactory::Map Map;
 			const Map &m = AI::RC::RobotControllerFactory::all();
 			const Map::const_iterator &i = m.find(wbc.robot_controller_name.collate_key());
 			if (i == m.end()) {
@@ -104,7 +104,7 @@ namespace {
 		Gtk::Dialog dlg("Thunderbots AI", true);
 		dlg.get_vbox()->pack_start(*Gtk::manage(new Gtk::Label("Select a backend:")), Gtk::PACK_SHRINK);
 		Gtk::ComboBoxText combo;
-		typedef AI::BE::BackendFactory::map_type Map;
+		typedef AI::BE::BackendFactory::Map Map;
 		const Map &m = AI::BE::BackendFactory::all();
 		for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 			combo.append_text(i->second->name);
@@ -197,7 +197,7 @@ namespace {
 		if (list) {
 			{
 				std::cerr << "The following backends are available:\n";
-				typedef AI::BE::BackendFactory::map_type Map;
+				typedef AI::BE::BackendFactory::Map Map;
 				const Map &m = AI::BE::BackendFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 					std::cerr << i->second->name << '\n';
@@ -206,7 +206,7 @@ namespace {
 			}
 			{
 				std::cerr << "The following coaches are available:\n";
-				typedef AI::Coach::CoachFactory::map_type Map;
+				typedef AI::Coach::CoachFactory::Map Map;
 				const Map &m = AI::Coach::CoachFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 					std::cerr << i->second->name << '\n';
@@ -215,7 +215,7 @@ namespace {
 			}
 			{
 				std::cerr << "The following robot controllers are available:\n";
-				typedef AI::RC::RobotControllerFactory::map_type Map;
+				typedef AI::RC::RobotControllerFactory::Map Map;
 				const Map &m = AI::RC::RobotControllerFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 					std::cerr << i->second->name << '\n';
@@ -224,7 +224,7 @@ namespace {
 			}
 			{
 				std::cerr << "The following ball filters are available:\n";
-				typedef AI::BF::BallFilter::map_type Map;
+				typedef AI::BF::BallFilter::Map Map;
 				const Map &m = AI::BF::BallFilter::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 					std::cerr << i->second->name << '\n';
@@ -253,7 +253,7 @@ namespace {
 				return 0;
 			}
 		}
-		typedef AI::BE::BackendFactory::map_type Map;
+		typedef AI::BE::BackendFactory::Map Map;
 		const Map &bem = AI::BE::BackendFactory::all();
 		const Map::const_iterator &be = bem.find(backend_name.collate_key());
 		if (be == bem.end()) {

@@ -13,7 +13,9 @@ const std::vector<AI::HL::StrategyFactory *> &Coach::get_strategies_by_play_type
 	assert(pt < PlayType::COUNT);
 
 	if (!initialized) {
-		for (HL::StrategyFactory::map_type::const_iterator i = HL::StrategyFactory::all().begin(), iend = HL::StrategyFactory::all().end(); i != iend; ++i) {
+		typedef HL::StrategyFactory::Map Map;
+		const Map &m = HL::StrategyFactory::all();
+		for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 			HL::StrategyFactory *factory = i->second;
 			for (std::size_t j = 0; j < factory->handled_play_types_size; ++j) {
 				assert(factory->handled_play_types[j] >= 0);

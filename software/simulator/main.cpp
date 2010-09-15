@@ -12,14 +12,14 @@ namespace {
 	const Glib::ustring DEFAULT_ENGINE("Open Dynamics Engine Simulator");
 
 	SimulatorEngine::Ptr create_engine(const Glib::ustring &name) {
-		const SimulatorEngineFactory::map_type &m = SimulatorEngineFactory::all();
+		const SimulatorEngineFactory::Map &m = SimulatorEngineFactory::all();
 		if (name.size()) {
-			SimulatorEngineFactory::map_type::const_iterator i = m.find(name.collate_key());
+			SimulatorEngineFactory::Map::const_iterator i = m.find(name.collate_key());
 			if (i != m.end()) {
 				return i->second->create_engine();
 			} else {
 				std::cerr << "There is no engine named '" << name << "'. The available engines are:\n";
-				for (SimulatorEngineFactory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
+				for (SimulatorEngineFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 					std::cerr << i->second->name << '\n';
 				}
 				return SimulatorEngine::Ptr();
@@ -28,7 +28,7 @@ namespace {
 			Gtk::Dialog dlg("Thunderbots Simulator", true);
 			dlg.get_vbox()->pack_start(*Gtk::manage(new Gtk::Label("Select an engine:")), Gtk::PACK_SHRINK);
 			Gtk::ComboBoxText combo;
-			for (SimulatorEngineFactory::map_type::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
+			for (SimulatorEngineFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 				combo.append_text(i->second->name);
 			}
 			combo.set_active_text(DEFAULT_ENGINE);

@@ -18,14 +18,14 @@ class Registerable : public NonCopyable {
 		/**
 		 * The type of a map from collation key of object name to object.
 		 */
-		typedef std::map<std::string, T *> map_type;
+		typedef std::map<std::string, T *> Map;
 
 		/**
 		 * Gets a map of all currently-registered objects, keyed by their names' collation keys.
 		 *
 		 * \return the map of registered objects of this type.
 		 */
-		static const map_type &all() {
+		static const Map &all() {
 			typedef typename std::vector<Registerable<T> *>::const_iterator iter_type;
 			for (iter_type i = precache().begin(), iend = precache().end(); i != iend; ++i) {
 				T *obj = dynamic_cast<T *>(*i);
@@ -66,8 +66,8 @@ class Registerable : public NonCopyable {
 			return v;
 		}
 
-		static map_type &objects() {
-			static map_type m;
+		static Map &objects() {
+			static Map m;
 			return m;
 		}
 };

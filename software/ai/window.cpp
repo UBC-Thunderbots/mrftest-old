@@ -104,7 +104,7 @@ namespace {
 		public:
 			BallFilterControls(AI::AIPackage &ai) : Gtk::Frame("Ball Filter"), ai(ai) {
 				ball_filter_chooser.append_text("<Select Ball Filter>");
-				typedef AI::BF::BallFilter::map_type Map;
+				typedef AI::BF::BallFilter::Map Map;
 				const Map &m = AI::BF::BallFilter::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 					ball_filter_chooser.append_text(i->second->name);
@@ -121,7 +121,7 @@ namespace {
 
 			void on_ball_filter_chooser_changed() {
 				const Glib::ustring &selected = ball_filter_chooser.get_active_text();
-				typedef AI::BF::BallFilter::map_type Map;
+				typedef AI::BF::BallFilter::Map Map;
 				const Map &m = AI::BF::BallFilter::all();
 				const Map::const_iterator &i = m.find(selected.collate_key());
 				if (i != m.end()) {
@@ -148,7 +148,7 @@ namespace {
 
 				table->attach(*Gtk::manage(new Gtk::Label("Coach:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				coach_chooser.append_text("<Choose Coach>");
-				typedef AI::Coach::CoachFactory::map_type Map;
+				typedef AI::Coach::CoachFactory::Map Map;
 				const Map &m = AI::Coach::CoachFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 					coach_chooser.append_text(i->second->name);
@@ -172,7 +172,7 @@ namespace {
 
 			void on_coach_chooser_changed() {
 				const Glib::ustring &selected = coach_chooser.get_active_text();
-				typedef AI::Coach::CoachFactory::map_type Map;
+				typedef AI::Coach::CoachFactory::Map Map;
 				const Map &m = AI::Coach::CoachFactory::all();
 				const Map::const_iterator &i = m.find(selected.collate_key());
 				if (i != m.end()) {
@@ -208,7 +208,7 @@ namespace {
 
 				table->attach(*Gtk::manage(new Gtk::Label("Navigator:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				navigator_chooser.append_text("<Choose Navigator>");
-				typedef AI::Nav::NavigatorFactory::map_type Map;
+				typedef AI::Nav::NavigatorFactory::Map Map;
 				const Map &m = AI::Nav::NavigatorFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 					navigator_chooser.append_text(i->second->name);
@@ -225,7 +225,7 @@ namespace {
 
 			void on_navigator_chooser_changed() {
 				const Glib::ustring &selected = navigator_chooser.get_active_text();
-				typedef AI::Nav::NavigatorFactory::map_type Map;
+				typedef AI::Nav::NavigatorFactory::Map Map;
 				const Map &m = AI::Nav::NavigatorFactory::all();
 				const Map::const_iterator &i = m.find(selected.collate_key());
 				if (i != m.end()) {
@@ -252,7 +252,7 @@ namespace {
 
 				table->attach(*Gtk::manage(new Gtk::Label("Robot Controller:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				rc_chooser.append_text("<Choose Robot Controller>");
-				typedef AI::RC::RobotControllerFactory::map_type Map;
+				typedef AI::RC::RobotControllerFactory::Map Map;
 				const Map &m = AI::RC::RobotControllerFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 					rc_chooser.append_text(i->second->name);
@@ -269,7 +269,7 @@ namespace {
 
 			void on_rc_chooser_changed() {
 				const Glib::ustring &selected = rc_chooser.get_active_text();
-				typedef AI::RC::RobotControllerFactory::map_type Map;
+				typedef AI::RC::RobotControllerFactory::Map Map;
 				const Map &m = AI::RC::RobotControllerFactory::all();
 				const Map::const_iterator &i = m.find(selected.collate_key());
 				if (i != m.end()) {
