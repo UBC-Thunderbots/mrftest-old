@@ -18,7 +18,7 @@ class ScopedPtr : public NonCopyable {
 		/**
 		 * Constructs a new ScopedPtr pointing to an object.
 		 *
-		 * \param o the new object to point to.
+		 * \param[in] o the new object to point to.
 		 */
 		ScopedPtr(T *o) : obj(o) {
 		}
@@ -33,7 +33,7 @@ class ScopedPtr : public NonCopyable {
 		/**
 		 * Resets the ScopedPtr to point at another object.
 		 *
-		 * \param o the new object to point to.
+		 * \param[in] o the new object to point to.
 		 */
 		void reset(T *o) {
 			delete obj;

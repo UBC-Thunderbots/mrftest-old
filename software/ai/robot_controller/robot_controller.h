@@ -52,7 +52,7 @@ namespace AI {
 				/**
 				 * Constructs a new RobotController.
 				 *
-				 * \param player the player to control.
+				 * \param[in] player the player to control.
 				 */
 				RobotController(AI::RC::W::Player::Ptr player);
 
@@ -98,7 +98,7 @@ namespace AI {
 				/**
 				 * Constructs a new OldRobotController2.
 				 *
-				 * \param player the player to control.
+				 * \param[in] player the player to control.
 				 */
 				OldRobotController2(AI::RC::W::Player::Ptr player);
 
@@ -138,7 +138,7 @@ namespace AI {
 				/**
 				 * Constructs a new OldRobotController.
 				 *
-				 * \param player the player to control.
+				 * \param[in] player the player to control.
 				 */
 				OldRobotController(AI::RC::W::Player::Ptr player);
 

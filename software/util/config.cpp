@@ -25,9 +25,9 @@ namespace {
 			/**
 			 * Executes the functor.
 			 *
-			 * @param bot the RobotInfo to examine.
+			 * \param[in] bot the RobotInfo to examine.
 			 *
-			 * @return the address of the robot.
+			 * \return the address of the robot.
 			 */
 			uint64_t operator()(const Config::RobotInfo &bot) const {
 				return bot.address;
@@ -42,11 +42,11 @@ namespace {
 			/**
 			 * Executes the functor.
 			 *
-			 * @param x the first RobotInfo to examine.
+			 * \param[in] x the first RobotInfo to examine.
 			 *
-			 * @param y the second RobotInfo to examine.
+			 * \param[in] y the second RobotInfo to examine.
 			 *
-			 * @return \c true if \p x has an address less than that of \c y, or \c false if not.
+			 * \return \c true if \p x has an address less than that of \c y, or \c false if not.
 			 */
 			bool operator()(const Config::RobotInfo &x, const Config::RobotInfo &y) {
 				return x.address < y.address;
@@ -61,11 +61,11 @@ namespace {
 			/**
 			 * Executes the functor.
 			 *
-			 * @param x the first RobotInfo to examine.
+			 * \param[in] x the first RobotInfo to examine.
 			 *
-			 * @param y the second RobotInfo to examine.
+			 * \param[in] y the second RobotInfo to examine.
 			 *
-			 * @return \c true if \p x comes before \p y when ordered by lid patterns, or \c false if not.
+			 * \return \c true if \p x comes before \p y when ordered by lid patterns, or \c false if not.
 			 */
 			bool operator()(const Config::RobotInfo &x, const Config::RobotInfo &y) {
 				return x.pattern_index < y.pattern_index;
@@ -80,11 +80,11 @@ namespace {
 			/**
 			 * Executes the functor.
 			 *
-			 * @param x the first RobotInfo to examine.
+			 * \param[in] x the first RobotInfo to examine.
 			 *
-			 * @param y the second RobotInfo to examine.
+			 * \param[in] y the second RobotInfo to examine.
 			 *
-			 * @return \c true if the name of \p x comes lexicographically before the name of \c y, or \c false if not.
+			 * \return \c true if the name of \p x comes lexicographically before the name of \c y, or \c false if not.
 			 */
 			bool operator()(const Config::RobotInfo &x, const Config::RobotInfo &y) {
 				return x.name < y.name;
@@ -92,7 +92,7 @@ namespace {
 	};
 
 	/**
-	 * @return the directory in which the running executable is stored.
+	 * \return the directory in which the running executable is stored.
 	 */
 	std::string get_bin_directory() {
 		std::vector<char> buffer(64);
@@ -112,7 +112,7 @@ namespace {
 	}
 
 	/**
-	 * @return the filename of the config file.
+	 * \return the filename of the config file.
 	 */
 	std::string get_filename() {
 		return get_bin_directory() + "/../config.xml";
@@ -121,11 +121,11 @@ namespace {
 	/**
 	 * Finds the only child element of a parent with a given name.
 	 *
-	 * @param parent the parent element to search.
+	 * \param[in] parent the parent element to search.
 	 *
-	 * @param name the name of the child to look for.
+	 * \param[in] name the name of the child to look for.
 	 *
-	 * @return the child element, or null if no (or more than one) child had the requested name.
+	 * \return the child element, or null if no (or more than one) child had the requested name.
 	 */
 	xmlpp::Element *find_child_element(const xmlpp::Element *parent, const Glib::ustring &name) {
 		const xmlpp::Node::NodeList &children = parent->get_children(name);

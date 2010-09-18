@@ -262,7 +262,7 @@ bool PlayerODE::robot_contains_shape_ground(dGeomID geom){
 
 /*
 computes the forces for the differential equation and adds them to the robot body
-\param timestep the time between calculations
+\param[in] timestep the time between calculations
 */
 void PlayerODE::pre_tic(double ){
 

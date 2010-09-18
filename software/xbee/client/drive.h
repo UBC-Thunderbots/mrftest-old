@@ -81,7 +81,7 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		/**
 		 * Checks whether a drive motor is faulted.
 		 *
-		 * \param motor the index of the motor to query, from 0 to 3.
+		 * \param[in] motor the index of the motor to query, from 0 to 3.
 		 *
 		 * \return \c true if the requested motor experienced a fault recently, or \c false if not.
 		 */

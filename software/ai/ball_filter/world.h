@@ -49,7 +49,7 @@ namespace AI {
 					/**
 					 * Returns a player from the team.
 					 *
-					 * \param i the index of the player.
+					 * \param[in] i the index of the player.
 					 *
 					 * \return the player.
 					 */
@@ -61,7 +61,7 @@ namespace AI {
 					/**
 					 * Returns a player from the team.
 					 *
-					 * \param i the index of the player.
+					 * \param[in] i the index of the player.
 					 *
 					 * \return the player.
 					 */
@@ -76,7 +76,7 @@ namespace AI {
 					/**
 					 * Returns a robot from the team.
 					 *
-					 * \param i the index of the robot.
+					 * \param[in] i the index of the robot.
 					 *
 					 * \return the robot.
 					 */
@@ -88,7 +88,7 @@ namespace AI {
 					/**
 					 * Returns a robot from the team.
 					 *
-					 * \param i the index of the robot.
+					 * \param[in] i the index of the robot.
 					 *
 					 * \return the robot.
 					 */

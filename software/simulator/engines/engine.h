@@ -46,7 +46,7 @@ class SimulatorEngine : public ByRef {
 		/**
 		 * Removes from the simulation an existing SimulatorPlayer.
 		 *
-		 * \param [in] player the SimulatorPlayer to remove.
+		 * \param[in] player the SimulatorPlayer to remove.
 		 */
 		virtual void remove_player(SimulatorPlayer::Ptr player) = 0;
 

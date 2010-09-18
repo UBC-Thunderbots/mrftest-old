@@ -48,9 +48,9 @@ namespace {
 	/**
 	 * Compares a pair of timespecs.
 	 *
-	 * \param ts1 the first timespec.
+	 * \param[in] ts1 the first timespec.
 	 *
-	 * \param ts2 the second timespec.
+	 * \param[in] ts2 the second timespec.
 	 *
 	 * \return a positive value if \p ts1 > \p ts2, a negative value if \p ts1 < \p ts2, or zero if \p ts1 = \p ts2.
 	 */

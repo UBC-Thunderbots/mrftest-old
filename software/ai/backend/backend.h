@@ -310,7 +310,7 @@ namespace AI {
 				/**
 				 * Sets the current strategy from a factory.
 				 *
-				 * \param s the new StrategyFactory to use.
+				 * \param[in] s the new StrategyFactory to use.
 				 */
 				void strategy(AI::HL::StrategyFactory *s);
 
