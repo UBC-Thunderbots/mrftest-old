@@ -7,10 +7,8 @@ SDCCFLAGS := --std-sdcc99 -mpic16 -p18f4550 --fommit-frame-pointer
 $(HEX) : $(OBJS)
 	sdcc $(SDCCFLAGS) -o $@ $(OBJS)
 
-%.o : %.c
+%.o : %.c *.h
 	sdcc $(SDCCFLAGS) -c -o $@ $<
-
-%.o : *.h
 
 .PHONY: clean
 clean :
