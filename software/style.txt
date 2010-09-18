@@ -195,3 +195,56 @@ Line Width
 For regular source code, no maximum line width is mandated. Hard line breaks within statements shall not be used; instead, the line shall be as wide as necessary to accomodate the statement. If the line looks too large, it should probably be broken into multiple statements.
 
 For comments (including Doxygen comments), each sentence should start on a new line (in Doxygen comments, paragraphs are set apart by two line breaks). A single sentence should generally occupy a single line, unless it becomes very large (e.g. larger than around 150 columns), in which case it should be wrapped at the most natural breaking point (e.g. after a semicolon or a comma or before or after a parenthetical).
+
+
+
+Headers
+-------
+
+Header files need guards to prevent their contents from being included more
+than once in a way that would cause compile errors. The traditional way to do
+this is to put "include guards" around the contents of every header file. In
+our project, an include guard's name should be the full path of the header
+file, with forward slashes replaced by underscores and fully capitalized. For
+example, a header file called "ai/robot_controller/robot_controller.h" would
+look like this:
+
+#ifndef AI_ROBOT_CONTROLLER_ROBOT_CONTROLLER_H
+#define AI_ROBOT_CONTROLLER_ROBOT_CONTROLLER_H
+
+// Contents here
+
+#endif
+
+When a file includes headers, the order of #include statements should obey the
+following rules, from most to least important:
+
+(1) If this is a .cpp file that includes its own corresponding .h file, that
+#include should be first (rationale: this ensures that the .h file itself
+#includes everything it depends upon).
+
+(2) All #includes of project header files (which use quotes, as in #include
+"ai/robot_controller/robot_controller.h") should come before all #includes of
+system header files (which use angle brackets, as in #include <glibmm.h>).
+
+(3) All files should be named as though by an alphabetical preorder tree
+traversal: files in a parent directory should come before files in
+subdirectories, files in the same directory should be alphabetically ordered,
+and subdirectories below a parent directory should be alphabetically ordered.
+
+Furthermore, all #includes of project header files should use full paths
+relative to the software directory, not relative to the #including file.
+
+As an example, the following sequence of #includes is correct for the file
+"ai/robot_controller/robot_controller.cpp", with comments explaining:
+
+#include "ai/robot_controller/robot_controller.h" // rule 1
+#include "ai/flags.h" // parent before children
+#include "ai/util.h" // alphabetical within a directory
+#include "ai/robot_controller/util.h" // child after parents
+#include "ai/robot_controller/world.h" // alphabetical within a directory
+#include <algorithm> // system headers after project headers
+#include <cassert> // alphabetical within a directory
+#include <glibmm.h> // alphabetical within a directory
+#include <vector> // alphabetical within a directory
+#include <sigc++/sigc++.h> // child after parents
