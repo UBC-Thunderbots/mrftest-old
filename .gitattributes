@@ -225,6 +225,8 @@ software/util/mutex.h -text
 software/util/noncopyable.h -text
 software/util/objectstore.cpp -text
 software/util/objectstore.h -text
+software/util/predictor.cpp -text
+software/util/predictor.h -text
 software/util/property.h -text
 software/util/registerable.h -text
 software/util/rle.cpp -text
