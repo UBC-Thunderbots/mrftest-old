@@ -43,63 +43,20 @@ namespace AI {
 				 */
 				typedef RefPtr<Robot> Ptr;
 
-				/**
-				 * Returns an object store for the robot.
-				 * AI entities can use this object store to hold opaque data on a per-robot basis,
-				 * without worrying about keeping parallel data structures up-to-date and dealing with team changes.
-				 *
-				 * \return an object store.
-				 */
-				ObjectStore &object_store() {
-					return object_store_;
-				}
-
-			protected:
-				/**
-				 * Constructs a new Robot.
-				 */
-				Robot();
-
-				/**
-				 * Destroys the Robot.
-				 */
-				~Robot();
-
-			private:
-				ObjectStore object_store_;
+				ObjectStore &object_store() = 0;
 		};
 
 		/**
 		 * A player, as exposed by the backend.
 		 */
-		class Player : public AI::BF::W::Player, public AI::HL::W::Player, public AI::Nav::W::Player, public AI::RC::W::Player, public Robot {
+		class Player : public AI::BF::W::Player, public AI::HL::W::Player, public AI::Nav::W::Player, public AI::RC::W::Player {
 			public:
 				/**
 				 * A pointer to a Player.
 				 */
 				typedef RefPtr<Player> Ptr;
 
-				/**
-				 * Returns an object store for the robot.
-				 * AI entities can use this object store to hold opaque data on a per-robot basis,
-				 * without worrying about keeping parallel data structures up-to-date and dealing with team changes.
-				 *
-				 * \return an object store.
-				 */
-				ObjectStore &object_store() {
-					return Robot::object_store();
-				}
-
-			protected:
-				/**
-				 * Constructs a new Player.
-				 */
-				Player();
-
-				/**
-				 * Destroys the Player.
-				 */
-				~Player();
+				ObjectStore &object_store() = 0;
 		};
 
 		/**
@@ -357,7 +314,7 @@ namespace AI {
 				 */
 				virtual void create_backend(const Config &conf, sigc::slot<void, Backend &> cb) const = 0;
 
-			private:
+			protected:
 				/**
 				 * Constructs a new BackendFactory.
 				 *
