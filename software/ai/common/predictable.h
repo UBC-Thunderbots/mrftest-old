@@ -2,6 +2,7 @@
 #define AI_COMMON_PREDICTABLE_H
 
 #include "geom/point.h"
+#include "util/time.h"
 
 namespace AI {
 	/**
@@ -10,32 +11,58 @@ namespace AI {
 	class Predictable {
 		public:
 			/**
-			 * Gets the predicted current position.
+			 * Gets the predicted position of the object.
+			 *
+			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
 			 *
 			 * \return the predicted position.
 			 */
-			virtual Point position() const __attribute__((warn_unused_result)) = 0;
+			virtual Point position(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 
 			/**
-			 * Gets a predicted future position.
+			 * Gets the predicted position of the object.
 			 *
-			 * \return the predicted position \p delta_time in the future.
+			 * \param[in] ts the time at which to predict the position.
+			 *
+			 * \return the position.
 			 */
-			virtual Point future_position(double delta_time) const __attribute__((warn_unused_result)) = 0;
+			virtual Point position(const timespec &ts) const __attribute__((warn_unused_result)) = 0;
 
 			/**
-			 * Gets the predicted current velocity.
+			 * Gets the predicted velocity of the object.
 			 *
-			 * \return the predicted linear velocity in metres per second.
+			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
+			 *
+			 * \return the predicted velocity.
 			 */
-			virtual Point est_velocity() const __attribute__((warn_unused_result)) = 0;
+			virtual Point velocity(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 
 			/**
-			 * Gets the predicted linear acceleration.
+			 * Gets the predicted velocity of the object.
 			 *
-			 * \return the predicted linear acceleration in metres per second squared.
+			 * \param[in] ts the time at which to predict the velocity.
+			 *
+			 * \return the velocity.
 			 */
-			virtual Point est_acceleration() const __attribute__((warn_unused_result)) = 0;
+			virtual Point velocity(const timespec &ts) const __attribute__((warn_unused_result)) = 0;
+
+			/**
+			 * Gets the predicted acceleration of the object.
+			 *
+			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
+			 *
+			 * \return the predicted acceleration.
+			 */
+			virtual Point acceleration(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
+
+			/**
+			 * Gets the predicted acceleration of the object.
+			 *
+			 * \param[in] ts the time at which to predict the acceleration.
+			 *
+			 * \return the acceleration.
+			 */
+			virtual Point acceleration(const timespec &ts) const __attribute__((warn_unused_result)) = 0;
 	};
 
 	/**
@@ -44,32 +71,58 @@ namespace AI {
 	class OrientationPredictable : public Predictable {
 		public:
 			/**
-			 * Gets the predicted current orientation.
+			 * Gets the predicted orientation of the object.
+			 *
+			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
 			 *
 			 * \return the predicted orientation.
 			 */
-			virtual double orientation() const __attribute__((warn_unused_result)) = 0;
+			virtual double orientation(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 
 			/**
-			 * Gets a predicted future orientation.
+			 * Gets the predicted orientation of the object.
 			 *
-			 * \return the predicted orientation \p delta_time in the future.
+			 * \param[in] ts the time at which to predict the orientation.
+			 *
+			 * \return the orientation.
 			 */
-			virtual double future_orientation(double delta_time) const __attribute__((warn_unused_result)) = 0;
+			virtual double orientation(const timespec &ts) const __attribute__((warn_unused_result)) = 0;
 
 			/**
-			 * Gets the predicted current angular velocity.
+			 * Gets the predicted angular velocity of the object.
 			 *
-			 * \return the predicted angular velocity in radians per second.
+			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
+			 *
+			 * \return the predicted angular velocity.
 			 */
-			virtual double est_avelocity() const __attribute__((warn_unused_result)) = 0;
+			virtual double avelocity(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 
 			/**
-			 * Gets the predicted angular acceleration.
+			 * Gets the predicted angular velocity of the object.
 			 *
-			 * \return the predicted angular acceleration in radians per second squared.
+			 * \param[in] ts the time at which to predict the angular velocity.
+			 *
+			 * \return the angular velocity.
 			 */
-			virtual double est_aacceleration() const __attribute__((warn_unused_result)) = 0;
+			virtual double avelocity(const timespec &ts) const __attribute__((warn_unused_result)) = 0;
+
+			/**
+			 * Gets the predicted angular acceleration of the object.
+			 *
+			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
+			 *
+			 * \return the predicted angular acceleration.
+			 */
+			virtual double aacceleration(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
+
+			/**
+			 * Gets the predicted angular acceleration of the object.
+			 *
+			 * \param[in] ts the time at which to predict the angular acceleration.
+			 *
+			 * \return the angular acceleration.
+			 */
+			virtual double aacceleration(const timespec &ts) const __attribute__((warn_unused_result)) = 0;
 	};
 }
 

@@ -53,6 +53,20 @@ namespace AI {
 					 * \param[in] flags the flags governing the movement.
 					 */
 					virtual void move(Point dest, double ori, unsigned int flags) = 0;
+
+					/**
+					 * Causes the player to kick the ball.
+					 *
+					 * \param[in] power the power of the kick, from 0 to 1.
+					 */
+					virtual void kick(double power) = 0;
+
+					/**
+					 * Causes the player to chip the ball.
+					 *
+					 * \param[in] power the power of the chip, from 0 to 1.
+					 */
+					virtual void chip(double power) = 0;
 			};
 
 			/**

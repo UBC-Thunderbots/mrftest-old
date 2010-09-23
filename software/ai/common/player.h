@@ -24,13 +24,6 @@ namespace AI {
 				 * \return the number of milliseconds until the chicker is ready to use.
 				 */
 				virtual unsigned int chicker_ready_time() const = 0;
-
-				/**
-				 * Gets the current speed the dribbler is spinning.
-				 *
-				 * \return the dribbler speed, in RPM.
-				 */
-				virtual unsigned int dribbler_speed() const = 0;
 		};
 	}
 }

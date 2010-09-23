@@ -197,10 +197,10 @@ void TunablePIDController::move(const Point &new_position, double new_orientatio
 	const double px = error_pos[0].x;
 	const double py = error_pos[0].y;
 	const double pa = error_ori[0];
-	Point vel = (player->est_velocity()).rotate(-current_orientation);
+	Point vel = (player->velocity()).rotate(-current_orientation);
 	double vx = -vel.x;
 	double vy = -vel.y;
-	double va = -player->est_avelocity();
+	double va = -player->avelocity();
 
 	const double cx = accum_pos.x;
 	const double cy = accum_pos.y;

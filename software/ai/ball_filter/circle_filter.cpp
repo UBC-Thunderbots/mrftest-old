@@ -81,7 +81,7 @@ namespace {
 						for (unsigned int i = 0; i < enemy.size(); ++i) {
 							robot = enemy.get(i);
 
-							if (robot->pattern_index() == robot_index) {
+							if (robot->pattern() == robot_index) {
 								max_point = robot->position() + (Ball::RADIUS + Robot::MAX_RADIUS) * orient.rotate(robot->orientation());
 								max_cert = DEFAULT_CERT;
 								break;
@@ -172,7 +172,7 @@ namespace {
 					is_facing_ball = angle_diff(ball_ref.orientation(), robot->orientation()) < (M_PI / 4.0);
 					if (is_facing_ball && (min_dist == -1 || ball_ref.len() < min_dist)) {
 						use_closest = true;
-						robot_index = robot->pattern_index();	
+						robot_index = robot->pattern();	
 						min_dist = ball_ref.len();			
 					}
 				}

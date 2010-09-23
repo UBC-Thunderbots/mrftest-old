@@ -22,7 +22,7 @@ namespace AI {
 				 *
 				 * \return the index of the robot's lid pattern.
 				 */
-				virtual unsigned int pattern_index() const = 0;
+				virtual unsigned int pattern() const = 0;
 
 				/**
 				 * Returns an object store for the robot.

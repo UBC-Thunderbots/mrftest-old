@@ -74,10 +74,10 @@ namespace {
 		const double px = new_dir.x;
 		const double py = new_dir.y;
 		const double pa = new_da;
-		Point vel = (player->est_velocity()).rotate(-current_orientation);
+		Point vel = (player->velocity()).rotate(-current_orientation);
 		double vx = -vel.x;
 		double vy = -vel.y;
-		double va = -player->est_avelocity();
+		double va = -player->avelocity();
 
 		//const double cx = accum_pos.x;
 		//const double cy = accum_pos.y;

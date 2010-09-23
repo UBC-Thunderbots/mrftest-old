@@ -57,10 +57,10 @@ void FuzzyController::move(const Point &new_position, double new_orientation, Po
 	
 	if (linear_velocity.len()!=0) linear_velocity = linear_velocity / linear_velocity.len() * distance_factor * param[0];
 	
-	Point stopping_velocity = (-player->est_velocity()).rotate(-current_orientation);
+	Point stopping_velocity = (-player->velocity()).rotate(-current_orientation);
 	if (stopping_velocity.len()!=0) stopping_velocity = stopping_velocity / stopping_velocity.len() * param[0];
 	
-	double velocity_factor = ((player->est_velocity()).len() / param[0]) * param[2];
+	double velocity_factor = ((player->velocity()).len() / param[0]) * param[2];
 	if (velocity_factor > 1) velocity_factor = 1;
 	
 	distance_factor = (new_position - current_position).len() / param[3];
