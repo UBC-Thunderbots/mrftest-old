@@ -12,16 +12,6 @@ class ClockSource {
 		 * Fired on each clock tick.
 		 */
 		sigc::signal<void> signal_tick;
-
-		/**
-		 * Starts the clock.
-		 */
-		virtual void start() = 0;
-
-		/**
-		 * Stops the clock.
-		 */
-		virtual void stop() = 0;
 };
 
 #endif

@@ -72,7 +72,6 @@ namespace {
 			Simulator sim(conf, engine, clk);
 			XBeeDaemon d(sim);
 			MainWindow win(sim);
-			clk.start();
 			Gtk::Main::run(win);
 		}
 		return 0;
