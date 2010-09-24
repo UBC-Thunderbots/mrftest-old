@@ -44,6 +44,7 @@ namespace AI {
 				typedef RefPtr<Robot> Ptr;
 
 				ObjectStore &object_store() = 0;
+				unsigned int pattern() const = 0;
 		};
 
 		/**
@@ -57,6 +58,7 @@ namespace AI {
 				typedef RefPtr<Player> Ptr;
 
 				ObjectStore &object_store() = 0;
+				unsigned int pattern() const = 0;
 		};
 
 		/**
@@ -105,6 +107,14 @@ namespace AI {
 				AI::BF::W::Player::Ptr get_ball_filter_player(std::size_t i) {
 					return get(i);
 				}
+
+				AI::HL::W::Player::Ptr get_hl_player(std::size_t i) {
+					return get(i);
+				}
+
+				AI::Nav::W::Player::Ptr get_navigator_player(std::size_t i) {
+					return get(i);
+				}
 		};
 
 		/**
@@ -151,6 +161,14 @@ namespace AI {
 				mutable sigc::signal<void, std::size_t> signal_robot_removed_;
 
 				AI::BF::W::Robot::Ptr get_ball_filter_robot(std::size_t i) {
+					return get(i);
+				}
+
+				AI::HL::W::Robot::Ptr get_hl_robot(std::size_t i) {
+					return get(i);
+				}
+
+				AI::Nav::W::Robot::Ptr get_navigator_robot(std::size_t i) {
 					return get(i);
 				}
 		};
