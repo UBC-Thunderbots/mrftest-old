@@ -8,15 +8,15 @@ PROJECTS := ai config fw rxdata simulator test xbeeconfig xbeed xbeerconfig
 # Directories will be searched for source files recursively.
 #
 SOURCES_ai := ai geom leastsquares proto uicomponents util xbee/client xbee/shared
-SOURCES_config := config uicomponents util xbee/client
-SOURCES_fw := fw uicomponents util xbee/client xbee/shared
-SOURCES_rxdata := rxdata.cpp uicomponents util xbee/client xbee/shared
+SOURCES_config := config geom leastsquares uicomponents util xbee/client
+SOURCES_fw := fw geom leastsquares uicomponents util xbee/client xbee/shared
+SOURCES_rxdata := geom leastsquares rxdata.cpp uicomponents util xbee/client xbee/shared
 SOURCES_simulator := geom leastsquares proto simulator uicomponents util xbee/client xbee/daemon/frontend xbee/shared
 SOURCES_steptest := geom leastsquares util xbee steptest.cpp
-SOURCES_test := geom test uicomponents util xbee/client xbee/shared
-SOURCES_xbeeconfig := uicomponents util xbeeconfig.cpp xbee/client
-SOURCES_xbeed := uicomponents util xbee/client xbee/daemon xbee/shared
-SOURCES_xbeerconfig := uicomponents util xbeerconfig.cpp xbee/client xbee/shared
+SOURCES_test := geom leastsquares test uicomponents util xbee/client xbee/shared
+SOURCES_xbeeconfig := geom leastsquares uicomponents util xbeeconfig.cpp xbee/client
+SOURCES_xbeed := geom leastsquares uicomponents util xbee/client xbee/daemon xbee/shared
+SOURCES_xbeerconfig := geom leastsquares uicomponents util xbeerconfig.cpp xbee/client xbee/shared
 
 #
 # Here, write the linker flags to be used for each project.
