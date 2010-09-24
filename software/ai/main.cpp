@@ -72,32 +72,6 @@ namespace {
 		}
 
 		Gtk::Main::run(win);
-#if 0
-		XBeeLowLevel modem;
-
-		std::vector<XBeeDriveBot::Ptr> xbee_bots;
-		for (unsigned int i = 0; i < conf.robots().size(); ++i) {
-			if (conf.robots()[i].friendly) {
-				xbee_bots.push_back(XBeeDriveBot::create(conf.robots()[i].name, conf.robots()[i].address, modem));
-			} else {
-				xbee_bots.push_back(XBeeDriveBot::Ptr());
-			}
-		}
-
-		AI::World world(conf, xbee_bots);
-		if (refbox_yellow) {
-			world.flip_refbox_colour();
-		}
-
-		TimerFDClockSource clk(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND);
-
-		AI::AI ai(world, clk);
-
-
-		clk.start();
-		return 0;
-	}
-#endif
 	}
 
 	Glib::ustring choose_backend() {
