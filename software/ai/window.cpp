@@ -163,6 +163,8 @@ namespace {
 				table->attach(strategy_entry, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				ai.backend.strategy().signal_changed().connect(sigc::mem_fun(this, &CoachControls::on_strategy_changed));
 				on_strategy_changed();
+
+				add(*table);
 			}
 
 		private:
@@ -217,6 +219,8 @@ namespace {
 				navigator_chooser.signal_changed().connect(sigc::mem_fun(this, &NavigatorControls::on_navigator_chooser_changed));
 				ai.navigator.signal_changed().connect(sigc::mem_fun(this, &NavigatorControls::on_navigator_changed));
 				on_navigator_changed();
+
+				add(*table);
 			}
 
 		private:
@@ -261,6 +265,8 @@ namespace {
 				rc_chooser.signal_changed().connect(sigc::mem_fun(this, &RobotControllerControls::on_rc_chooser_changed));
 				ai.robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &RobotControllerControls::on_rc_changed));
 				on_rc_changed();
+
+				add(*table);
 			}
 
 		private:
