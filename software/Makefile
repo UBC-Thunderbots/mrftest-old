@@ -179,20 +179,20 @@ clean : cleanbin cleandoc cleanobj cleanpb cleantags
 
 .PHONY : cleanbin
 cleanbin :
-	$(RM) -r bin
+	$(RM) -rf bin
 
 .PHONY : cleandoc
 cleandoc :
-	$(RM) -r html
+	$(RM) -rf html
 
 .PHONY : cleanobj
 cleanobj :
-	$(RM) -r obj
+	$(RM) -rf obj
 
 .PHONY : cleanpb
 cleanpb :
-	$(RM) $(PROTOBUF_CCS) $(PROTOBUF_HS)
+	$(RM) -f $(PROTOBUF_CCS) $(PROTOBUF_HS)
 
 .PHONY : cleantags
 cleantags :
-	$(RM) tags
+	$(RM) -f tags
