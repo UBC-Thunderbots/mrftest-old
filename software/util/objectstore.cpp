@@ -22,3 +22,7 @@ ObjectStore::Element::Ptr &ObjectStore::operator[](const std::type_info &tid) {
 	return data[&tid];
 }
 
+void ObjectStore::clear() {
+	data.clear();
+}
+

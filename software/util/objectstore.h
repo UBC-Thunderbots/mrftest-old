@@ -54,6 +54,11 @@ class ObjectStore : public NonCopyable {
 		 */
 		Element::Ptr &operator[](const std::type_info &tid);
 
+		/**
+		 * Removes all elements from the ObjectStore.
+		 */
+		void clear();
+
 	private:
 		std::map<const std::type_info *, Element::Ptr, bool (*)(const std::type_info *, const std::type_info *)> data;
 };
