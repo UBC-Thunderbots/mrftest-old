@@ -309,6 +309,15 @@ namespace AI {
 				 */
 				~Backend();
 
+				/**
+				 * Allows setting the current play type.
+				 *
+				 * \return the current play type.
+				 */
+				Property<AI::Common::PlayType::PlayType> &playtype_rw() {
+					return playtype_;
+				}
+
 			private:
 				Property<FieldEnd> defending_end_;
 				Property<Colour> friendly_colour_;
