@@ -74,6 +74,8 @@ software/ai/flags.h -text
 software/ai/hl/stop_strategy.cpp -text
 software/ai/hl/strategy.cpp -text
 software/ai/hl/strategy.h -text
+software/ai/hl/util.cpp -text
+software/ai/hl/util.h -text
 software/ai/hl/world.cpp -text
 software/ai/hl/world.h -text
 software/ai/main.cpp -text
