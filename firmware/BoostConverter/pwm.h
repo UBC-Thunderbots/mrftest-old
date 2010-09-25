@@ -1,5 +1,5 @@
 /* PWM generator header file */
-/* Generates PWM with a constant on time. On Time calculated from theoretical values */
+/* Generates PWM with a constant on time for CCP1. On Time calculated from theoretical values */
 /* Off time varies to match duty cycle input */
 
 #ifndef PWM_H
@@ -11,7 +11,7 @@
 #define F_OSC 				48000000 //oscillator frequency
 
 #define LSBS 				0x03
-#define CCP2CON_LSBS 			0xCF
+#define CCP1CON_LSBS 			0xCF
 
 #define MIN_PWM 0.0515625
 #define MAX_PWM_THRESHOLD 0.91
@@ -25,21 +25,23 @@ char PRESCALER4_FLAG = 2;
 
 /*PWM initialization Function*/
 void InitPWM() {
-	CCP2CONbits.CCP2M0 = 0;//
-	CCP2CONbits.CCP2M1 = 0;// 
-	CCP2CONbits.CCP2M2 = 1;//
-	CCP2CONbits.CCP2M3 = 1;//Configuring CCP for PWM
-	T2CONbits.T2CKPS1 = 1;//16Prescaler
+	CCP1CONbits.CCP1M0 = 0;//
+	CCP1CONbits.CCP1M1 = 0;// 
+	CCP1CONbits.CCP1M2 = 1;//
+	CCP1CONbits.CCP1M3 = 1;//Configuring CCP for PWM
+	CCP1CONbits.P1M1 = 0;//
+	CCP1CONbits.P1M0 = 0;//
 
-	TRISCbits.TRISC1 = 0; // setting RC1 pin for CCP2 output
+	T2CONbits.T2CKPS1 = 1;//16Prescaler
+	TRISCbits.TRISC2 = 0; // setting RC2 pin for CCP1 output
 	T2CONbits.TMR2ON = 1; // Timer 2 enabled
-	LATC = 0x00;// setting as output
+	//LATC = 0x00;// setting as output
 }
 
 /*Duty cycle control with on time at 17.6E-6s*/
 void DCCtrl(float dutyCycle) {
 	
-	if( dutyCycle > MIN_PWM && dutyCycle < MAX_PWM_THRESHOLD ) {
+	if( dutyCycle > MIN_PWM && dutyCycle <= MAX_PWM_THRESHOLD ) {
 		unsigned char decPeriod;
 		unsigned int decDCTime;
 		unsigned char temp;
@@ -50,14 +52,14 @@ void DCCtrl(float dutyCycle) {
 				decDCTime = ON_TIME*F_OSC;
 				temp = decDCTime & LSBS;
 				temp <<= 4;
-				CCP2CON = (CCP2CON & CCP2CON_LSBS) | temp;
+				CCP1CON = (CCP1CON & CCP1CON_LSBS) | temp;
 				decDCTime >>= 2;
 				decDCTime = decDCTime & 0XFF;
-				CCPR2L = decDCTime;
+				CCPR1L = decDCTime;
 				PRESCALER16_FLAG = 0;
 				PRESCALER4_FLAG = 0;
 			}
-			decPeriod = ((ON_TIME*F_OSC)/(dutyCycle*4.0)) - 1; // PR2 in decimal form
+			decPeriod = ((ON_TIME*F_OSC)/(dutyCycle*4.0)) - 1; // PR2 in decimal form (controls period)
 			PR2 = decPeriod;
 
 		} else if( dutyCycle > .20625 ) {
@@ -67,13 +69,13 @@ void DCCtrl(float dutyCycle) {
 				decDCTime = ON_TIME*F_OSC/PRESCALER4;
 				temp = decDCTime & LSBS;
 				temp <<= 4;
-				CCP2CON = (CCP2CON & CCP2CON_LSBS) | temp;
+				CCP1CON = (CCP1CON & CCP1CON_LSBS) | temp;
 				decDCTime >>= 2;
 				decDCTime = decDCTime & 0XFF;
-				CCPR2L = decDCTime;
+				CCPR1L = decDCTime;
 				PRESCALER4_FLAG = 1;
 			}
-			decPeriod = ((ON_TIME*F_OSC)/(PRESCALER4*dutyCycle*4.0)) - 1; // PR2 in decimal form
+			decPeriod = ((ON_TIME*F_OSC)/(PRESCALER4*dutyCycle*4.0)) - 1; // PR2 in decimal form (controls period)
 			PR2 = decPeriod;
 			
 
@@ -83,19 +85,31 @@ void DCCtrl(float dutyCycle) {
 				decDCTime = ON_TIME*F_OSC/PRESCALER16;
 				temp = decDCTime & LSBS;
 				temp <<= 4;
-				CCP2CON = (CCP2CON & CCP2CON_LSBS) | temp;
+				CCP1CON = (CCP1CON & CCP1CON_LSBS) | temp;
 				decDCTime >>= 2;
 				decDCTime = decDCTime & 0XFF;
-				CCPR2L = decDCTime;
+				CCPR1L = decDCTime;
 				PRESCALER16_FLAG = 1;
 			}
-			decPeriod = ((ON_TIME*F_OSC)/(PRESCALER16*dutyCycle*4.0)) - 1; // PR2 in decimal form
+			decPeriod = ((ON_TIME*F_OSC)/(PRESCALER16*dutyCycle*4.0)) - 1; // PR2 in decimal form (controls period)
 			PR2 = decPeriod;
 
 		}
 
 	} else {
-		CCPR2L = 0x00;//0 pwm
+		
+	if( PRESCALER16_FLAG != 0 || PRESCALER4_FLAG != 0 ) { // Prescaler Setting to 1
+				T2CONbits.T2CKPS1 = 0;
+				T2CONbits.T2CKPS0 = 0;
+				CCP1CONbits.DC1B0 = 0;
+				CCP1CONbits.DC1B1 = 0;
+				CCPR1L = 0x00;
+				PRESCALER16_FLAG = 0;
+				PRESCALER4_FLAG = 0;
+			}
+			PR2 = 0xFF;
+
+		
 	}
 
 }
