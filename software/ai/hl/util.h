@@ -3,10 +3,9 @@
 
 #include "ai/hl/world.h"
 #include "uicomponents/param.h"
-
 #include <vector>
 
-/**
+/*
  * Contains a bunch of useful utility functions.
  * In general, functions that go here are those that
  * - can be used accross different roles/strategies/tactic.
@@ -15,23 +14,45 @@
 namespace AI {
 	namespace HL {
 		namespace Util {
-
 			/**
 			 * A comparator that sorts by a particular distance.
 			 * To be used together with std::sort.
-			 * E.g.
+			 * An object <var>x</var> is said to precede another object <var>y</var> is <var>x</var> is closer than <var>y</var> to the reference point.
+			 *
+			 * Example:
+			 * <code>
 			 * std::vector<AI::HL::W::Robot::Ptr> enemies = ai_util::get_robots(enemy);
-			 * std::sort(enemies.begin(), enemies.end(), ai_util::cmp_dist<AI::HL::W::Robot::Ptr>(goal));
+			 * std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<AI::HL::W::Robot::Ptr>(goal));
+			 * </code>
+			 *
+			 * \tparam T the type of object to sort (must have a function called \c position).
 			 */
-			template<typename T> class CmpDist {
+			template<typename T>
+			class CmpDist {
 				public:
-					CmpDist(const Point& dest) : dest(dest) {
+					/**
+					 * Constructs a new CmpDist.
+					 *
+					 * \param[in] dest the target point the distance to which to sort by.
+					 */
+					CmpDist(const Point &dest) : dest(dest) {
 					}
-					bool operator()(T x, T y) const {
+
+					/**
+					 * Compares two objects.
+					 *
+					 * \param[in] x the first object to compare.
+					 *
+					 * \param[in] y the second object to compare.
+					 *
+					 * \return \c true if \p x precedes \p y, or \c false if not.
+					 */
+					bool operator()(const T &x, const T &y) const {
 						return (x->position() - dest).lensq() < (y->position() - dest).lensq();
 					}
+
 				private:
-					const Point& dest;
+					const Point &dest;
 			};
 
 			extern DoubleParam PLAYTYPE_WAIT_TIME;
@@ -41,9 +62,7 @@ namespace AI {
 			extern DoubleParam DRIBBLE_TIMEOUT;
 
 			/**
-			 * If the robot orientation is within this angle,
-			 * then it can shoot accurately.
-			 * TODO: base this on distance.
+			 * If the robot orientation is within this angle, then it can shoot accurately.
 			 */
 			extern DoubleParam ORI_CLOSE;
 
@@ -88,76 +107,79 @@ namespace AI {
 
 			/**
 			 * Checks if the path from begin to end is blocked by some obstacles.
-			 * \param obstacles a vector of obstacles that blocks the path.
-			 * \param thresh the amount of allowance for the path.
-			 * For passing, use robot::MAX_RADIUS + ball::RADIUS + SHOOT_ALLOWANCE.
-			 * For moving, use robot::MAX_RADIUS * 2 + MOVE_ALLOWANCE.
-			 * \return True if the path is not blocked.
+			 *
+			 * \param[in] obstacles a vector of obstacles that blocks the path.
+			 *
+			 * \param[in] thresh the amount of allowance for the path
+			 * (for passing, use <code>Robot::MAX_RADIUS + Ball::RADIUS + SHOOT_ALLOWANCE</code>; for moving, use <code>Robot::MAX_RADIUS * 2 + MOVE_ALLOWANCE</code).
+			 *
+			 * \return \c true if the path is not blocked, or \c false if it is blocked.
 			 */
-			bool path_check(const Point& begin, const Point& end, const std::vector<Point>& obstacles, const double thresh);
+			bool path_check(const Point &begin, const Point &end, const std::vector<Point> &obstacles, double thresh);
 
 			/**
 			 * Checks if the path from begin to end is blocked by some robots.
-			 * \param robots a vector of robots/players that blocks the path.
-			 * \param thresh the amount of allowance for the path.
-			 * For passing, use robot::MAX_RADIUS + ball::RADIUS + SHOOT_ALLOWANCE.
-			 * For moving, use robot::MAX_RADIUS * 2 + MOVE_ALLOWANCE.
-			 * \return True if the path is not blocked.
-			 * TODO: add more features to this function
+			 *
+			 * \param[in] robots a vector of robots/players that blocks the path.
+			 *
+			 * \param[in] thresh the amount of allowance for the path
+			 * (for passing, use <code>Robot::MAX_RADIUS + Ball::RADIUS + SHOOT_ALLOWANCE</code>; for moving, use <code>Robot::MAX_RADIUS * 2 + MOVE_ALLOWANCE</code).
+			 *
+			 * \return \c true if the path is not blocked, or \c false if it is.
 			 */
-			bool path_check(const Point& begin, const Point& end, const std::vector<AI::HL::W::Robot::Ptr>& robots, const double thresh);
+			bool path_check(const Point &begin, const Point &end, const std::vector<AI::HL::W::Robot::Ptr> &robots, double thresh);
 
 			/**
 			 * Checks if the passee can get the ball now.
-			 * Returns false if some robots is blocking line of sight of ball from passee
-			 * Returns false if passee is not facing the ball.
-			 * Returns false if some condition is invalid.
-			 * TODO: maybe the source to a point instead of defaulting to ball.
+			 *
+			 * \return \c false if some robots is blocking line of sight of ball from \p passee, if \p passee is not facing the ball, or if some condition is invalid;
+			 * or \c true if \p passee can receive the ball.
 			 */
-			bool can_receive(AI::HL::W::World& world, const AI::HL::W::Player::Ptr passee);
+			bool can_receive(AI::HL::W::World& world, AI::HL::W::Player::Ptr passee);
 
 			/**
-			 * Finds the length of the largest continuous interval (angle-wise)
-			 * of the enemy goal that can be seen from a point.
+			 * Finds the length of the largest continuous interval (angle-wise) of the enemy goal that can be seen from a point.
 			 * Having a vector of points enables one to add imaginary threats.
-			 * Returns the point as well as the score.
-			 * score is 0 if the point is invalid.
 			 * This version accepts vector of obstacles, so that you can add imaginary robots.
+			 *
 			 * \param[in] f field is needed to calculate length etc
+			 *
 			 * \param[in] radius the radius of the robot, you can decrease the radius to make it easier to shoot.
+			 *
+			 * \return the point and the score, where the score will be 0 if the point is invalid.
 			 */
-			std::pair<Point, double> calc_best_shot(const AI::HL::W::Field& f, const std::vector<Point>& obstacles, const Point& p, const double radius = AI::HL::W::Robot::MAX_RADIUS);
+			std::pair<Point, double> calc_best_shot(const AI::HL::W::Field &f, const std::vector<Point> &obstacles, const Point &p, double radius = AI::HL::W::Robot::MAX_RADIUS);
 
 			/**
-			 * Finds the length of the largest continuous interval (angle-wise)
-			 * of the enemy goal that can be seen from a point.
+			 * Finds the length of the largest continuous interval (angle-wise) of the enemy goal that can be seen from a point.
 			 * Having a vector of points enables one to add imaginary threats.
-			 * Returns the point as well as the score.
-			 * score is 0 if the point is invalid.
+			 *
+			 * \return the point as and the score, where the  score will be 0 if the point is invalid.
 			 */
-			std::pair<Point, double> calc_best_shot(AI::HL::W::World &world, const AI::HL::W::Player::Ptr p);
+			std::pair<Point, double> calc_best_shot(AI::HL::W::World &world, AI::HL::W::Player::Ptr p);
 
 			/**
 			 * Checks if the robot is in a position close enough to the ball to start
 			 * So close that no other robot can be in the way of this ball.
 			 */
-			bool ball_close(AI::HL::W::World &world, const AI::HL::W::Robot::Ptr robot);
+			bool ball_close(AI::HL::W::World &world, AI::HL::W::Robot::Ptr robot);
 
 			/**
 			 * Checks if a FRIENDLY PLAYER posses the ball.
 			 */
-			bool posses_ball(AI::HL::W::World& world, const AI::HL::W::Player::Ptr player);
+			bool posses_ball(AI::HL::W::World& world, AI::HL::W::Player::Ptr player);
 
 			/**
 			 * Checks if an ENEMY ROBOT posses the ball.
 			 */
-			bool posses_ball(AI::HL::W::World& world, const AI::HL::W::Robot::Ptr robot);
+			bool posses_ball(AI::HL::W::World& world, AI::HL::W::Robot::Ptr robot);
 
 			/**
 			 * Finds the player having the ball.
-			 * Returns NULL, if no such player exist.
+			 * 
+			 * \return the player, or a null pointer if no friendly player has the ball.
 			 */
-			AI::HL::W::Player::Ptr calc_baller(AI::HL::W::World &world, const std::vector<AI::HL::W::Player::Ptr>& players);
+			AI::HL::W::Player::Ptr calc_baller(AI::HL::W::World &world, const std::vector<AI::HL::W::Player::Ptr> &players);
 		}
 	}
 }

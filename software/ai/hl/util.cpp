@@ -35,6 +35,7 @@ DoubleParam AI::HL::Util::PLAYTYPE_WAIT_TIME("play: time we can get ready (sec)"
 
 DoubleParam AI::HL::Util::CHASE_BALL_DIST("chase: How close before chasing", Ball::RADIUS * 2, 0.0, Ball::RADIUS * 4);
 
+#warning TODO: base this on distance.
 DoubleParam AI::HL::Util::ORI_CLOSE("kick: general accuracy (rads)", 5.0 * M_PI / 180.0, 0, M_PI / 2);
 
 const double AI::HL::Util::POS_CLOSE = AI::HL::W::Robot::MAX_RADIUS / 4.0;
@@ -65,6 +66,7 @@ bool AI::HL::Util::path_check(const Point& begin, const Point& end, const std::v
 	return true;
 }
 
+#warning TODO: add more features to this function
 bool AI::HL::Util::path_check(const Point& begin, const Point& end, const std::vector<Robot::Ptr>& robots, const double thresh) {
 	const Point direction = (end - begin).norm();
 	const double dist = (end - begin).len();
@@ -79,6 +81,7 @@ bool AI::HL::Util::path_check(const Point& begin, const Point& end, const std::v
 	return true;
 }
 
+#warning TODO: maybe the source to a point instead of defaulting to ball.
 bool AI::HL::Util::can_receive(World& world, const Player::Ptr passee) {
 	const Ball& ball = world.ball();
 	if ((ball.position() - passee->position()).lensq() < POS_CLOSE) {
