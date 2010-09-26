@@ -4,10 +4,10 @@ using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
 using namespace AI::Nav::W;
 
-Navigator::Navigator(World &w) : world(w){
+Navigator::Navigator(World &world) : world(world) {
 }
 
-Navigator::~Navigator(){
+Navigator::~Navigator() {
 }
 
 NavigatorFactory::NavigatorFactory(const Glib::ustring &name) : Registerable<NavigatorFactory>(name) {
