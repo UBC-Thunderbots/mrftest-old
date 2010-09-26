@@ -18,5 +18,6 @@ void Field::update(const SSL_GeometryFieldSize &packet) {
 	centre_circle_radius_ = packet.center_circle_radius() / 1000.0;
 	defense_area_radius_ = packet.defense_radius() / 1000.0;
 	defense_area_stretch_ = packet.defense_stretch() / 1000.0;
+	signal_changed.emit();
 }
 

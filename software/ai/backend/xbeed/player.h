@@ -43,13 +43,17 @@ namespace AI {
 					 */
 					void tick(bool scram);
 
-					Point position(double delta = 0.0) const {return Robot::position(delta);}
+					Visualizable::RobotColour visualizer_colour() const;
+					Glib::ustring visualizer_label() const;
+					Point position() const {return Robot::position();}
+					Point position(double delta) const {return Robot::position(delta);}
 					Point position(const timespec &ts) const {return Robot::position(ts);}
 					Point velocity(double delta = 0.0) const {return Robot::velocity(delta);}
 					Point velocity(const timespec &ts) const {return Robot::velocity(ts);}
 					Point acceleration(double delta = 0.0) const {return Robot::acceleration(delta);}
 					Point acceleration(const timespec &ts) const {return Robot::acceleration(ts);}
-					double orientation(double delta = 0.0) const {return Robot::orientation(delta);}
+					double orientation() const {return Robot::orientation();}
+					double orientation(double delta) const {return Robot::orientation(delta);}
 					double orientation(const timespec &ts) const {return Robot::orientation(ts);}
 					double avelocity(double delta = 0.0) const {return Robot::avelocity(delta);}
 					double avelocity(const timespec &ts) const {return Robot::avelocity(ts);}

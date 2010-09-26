@@ -299,6 +299,11 @@ namespace {
 Window::Window(AIPackage &ai) {
 	set_title("AI");
 
+	Gtk::HPaned *hpaned = Gtk::manage(new Gtk::HPaned);
+
+	Gtk::Frame *frame = Gtk::manage(new Gtk::Frame);
+	frame->set_shadow_type(Gtk::SHADOW_IN);
+
 	Gtk::Notebook *notebook = Gtk::manage(new Gtk::Notebook);
 
 	Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox);
@@ -313,7 +318,17 @@ Window::Window(AIPackage &ai) {
 
 	notebook->append_page(*Gtk::manage(new ParamPanel), "Params");
 
-	add(*notebook);
+	frame->add(*notebook);
+
+	hpaned->pack1(*frame, Gtk::FILL);
+
+	frame = Gtk::manage(new Gtk::Frame);
+	frame->set_shadow_type(Gtk::SHADOW_IN);
+	frame->add(*Gtk::manage(new Visualizer(ai.backend)));
+
+	hpaned->pack2(*frame, Gtk::EXPAND | Gtk::FILL);
+
+	add(*hpaned);
 
 	show_all();
 }

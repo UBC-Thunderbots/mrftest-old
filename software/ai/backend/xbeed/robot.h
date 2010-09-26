@@ -4,6 +4,7 @@
 #include "ai/backend/backend.h"
 #include "geom/point.h"
 #include "proto/messages_robocup_ssl_detection.pb.h"
+#include "uicomponents/visualizer.h"
 #include "util/predictor.h"
 #include <cstdlib>
 #include <sigc++/sigc++.h>
@@ -60,13 +61,17 @@ namespace AI {
 					 */
 					void lock_time(const timespec &now);
 
-					Point position(double delta = 0.0) const;
+					Visualizable::RobotColour visualizer_colour() const;
+					Glib::ustring visualizer_label() const;
+					Point position() const {return position(0.0);}
+					Point position(double delta) const;
 					Point position(const timespec &ts) const;
 					Point velocity(double delta = 0.0) const;
 					Point velocity(const timespec &ts) const;
 					Point acceleration(double delta = 0.0) const;
 					Point acceleration(const timespec &ts) const;
-					double orientation(double delta = 0.0) const;
+					double orientation() const {return orientation(0.0);}
+					double orientation(double delta) const;
 					double orientation(const timespec &ts) const;
 					double avelocity(double delta = 0.0) const;
 					double avelocity(const timespec &ts) const;

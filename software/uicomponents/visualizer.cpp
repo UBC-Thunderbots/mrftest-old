@@ -1,14 +1,14 @@
 #include "uicomponents/visualizer.h"
 #include <cmath>
 
-Visualizer::Visualizer(const Visualizable &data) : data(data) {
+Visualizer::Visualizer(Visualizable::World &data) : data(data) {
 	set_size_request(600, 600);
 	add_events(Gdk::POINTER_MOTION_MASK);
 	add_events(Gdk::BUTTON_PRESS_MASK);
 	add_events(Gdk::BUTTON_RELEASE_MASK);
 	add_events(Gdk::ENTER_NOTIFY_MASK);
 	add_events(Gdk::LEAVE_NOTIFY_MASK);
-	update_connection = data.signal_visdata_changed.connect(sigc::mem_fun(this, &Visualizer::update));
+	update_connection = data.signal_tick().connect(sigc::mem_fun(this, &Visualizer::update));
 	update_connection.block();
 	data.field().signal_changed.connect(sigc::mem_fun(this, &Visualizer::compute_scales));
 }
@@ -21,7 +21,6 @@ void Visualizer::on_show() {
 void Visualizer::on_hide() {
 	Gtk::DrawingArea::on_hide();
 	update_connection.block();
-	overlay_.clear();
 	signal_overlay_changed.emit();
 }
 
@@ -87,34 +86,23 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 	ctx->stroke();
 
 	// Draw the players including text.
-	for (unsigned int i = 0; i < data.size(); ++i) {
-		const Visualizable::Robot::Ptr &bot(data[i]);
-		if (bot->visualizer_visible()) {
-			const Visualizable::RobotColour &clr(bot->visualizer_colour());
-			ctx->set_source_rgb(clr.red, clr.green, clr.blue);
-			ctx->begin_new_path();
-			ctx->arc_negative(xtog(bot->position().x), ytog(bot->position().y), dtog(0.09), atog(bot->orientation() + M_PI_4), atog(bot->orientation() - M_PI_4));
-			ctx->fill();
+	for (unsigned int i = 0; i < data.visualizable_num_robots(); ++i) {
+		Visualizable::Robot::Ptr bot = data.visualizable_robot(i);
+		const Visualizable::RobotColour &clr(bot->visualizer_colour());
+		ctx->set_source_rgb(clr.red, clr.green, clr.blue);
+		ctx->begin_new_path();
+		ctx->arc_negative(xtog(bot->position().x), ytog(bot->position().y), dtog(0.09), atog(bot->orientation() + M_PI_4), atog(bot->orientation() - M_PI_4));
+		ctx->fill();
 
-			ctx->set_source_rgb(0.0, 0.0, 0.0);
-			const Glib::ustring &ustr(bot->visualizer_label());
-			const std::string &str(ustr);
-			Cairo::TextExtents extents;
-			ctx->get_text_extents(str, extents);
-			const double x = xtog(bot->position().x) - extents.x_bearing - extents.width / 2.0;
-			const double y = ytog(bot->position().y) - extents.y_bearing - extents.height / 2.0;
-			ctx->move_to(x, y);
-			ctx->show_text(str);
-
-			if (bot->has_destination()) {
-				const Point &pos(bot->position());
-				const Point &dest(bot->destination());
-				ctx->begin_new_path();
-				ctx->move_to(xtog(pos.x), ytog(pos.y));
-				ctx->line_to(xtog(dest.x), ytog(dest.y));
-				ctx->stroke();
-			}
-		}
+		ctx->set_source_rgb(0.0, 0.0, 0.0);
+		const Glib::ustring &ustr(bot->visualizer_label());
+		const std::string &str(ustr);
+		Cairo::TextExtents extents;
+		ctx->get_text_extents(str, extents);
+		const double x = xtog(bot->position().x) - extents.x_bearing - extents.width / 2.0;
+		const double y = ytog(bot->position().y) - extents.y_bearing - extents.height / 2.0;
+		ctx->move_to(x, y);
+		ctx->show_text(str);
 	}
 
 	// Draw the ball.
@@ -131,12 +119,6 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 	}
 	ctx->stroke();
 
-	// Draw the overlay.
-	if (overlay_) {
-		ctx->set_source(overlay_, 0.0, 0.0);
-		ctx->paint();
-	}
-
 	// Done.
 	return true;
 }
@@ -148,20 +130,8 @@ void Visualizer::update() {
 	}
 }
 
-Cairo::RefPtr<Cairo::Context> Visualizer::overlay() const {
-	if (overlay_) {
-		const Cairo::RefPtr<Cairo::Context> ctx(Cairo::Context::create(overlay_));
-		ctx->translate(xtranslate, ytranslate);
-		ctx->scale(scale, scale);
-		return ctx;
-	} else {
-		return Cairo::RefPtr<Cairo::Context>();
-	}
-}
-
 void Visualizer::on_size_allocate(Gtk::Allocation &alloc) {
 	Gtk::DrawingArea::on_size_allocate(alloc);
-	overlay_ = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32, alloc.get_width(), alloc.get_height());
 	compute_scales();
 }
 

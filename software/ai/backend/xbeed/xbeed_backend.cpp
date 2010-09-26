@@ -147,11 +147,11 @@ namespace {
 			~XBeeDBackend() {
 			}
 
-			Field &field() {
+			const Field &field() const {
 				return field_;
 			}
 
-			Ball &ball() {
+			const Ball &ball() const {
 				return ball_;
 			}
 
@@ -161,6 +161,18 @@ namespace {
 
 			EnemyTeam &enemy_team() {
 				return enemy;
+			}
+
+			std::size_t visualizable_num_robots() const {
+				return friendly.size() + enemy.size();
+			}
+
+			Visualizable::Robot::Ptr visualizable_robot(std::size_t i) {
+				if (i < friendly.size()) {
+					return friendly.get(i);
+				} else {
+					return  enemy.get(i - friendly.size());
+				}
 			}
 
 		private:

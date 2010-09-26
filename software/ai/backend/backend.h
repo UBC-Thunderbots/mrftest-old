@@ -6,6 +6,7 @@
 #include "ai/hl/world.h"
 #include "ai/navigator/world.h"
 #include "ai/robot_controller/world.h"
+#include "uicomponents/visualizer.h"
 #include "util/config.h"
 #include "util/noncopyable.h"
 #include "util/property.h"
@@ -17,7 +18,7 @@ namespace AI {
 		/**
 		 * The field, as exposed by the backend.
 		 */
-		class Field : public AI::BF::W::Field, public AI::HL::W::Field, public AI::Nav::W::Field {
+		class Field : public AI::BF::W::Field, public AI::HL::W::Field, public AI::Nav::W::Field, public Visualizable::Field {
 			public:
 				/**
 				 * Checks if the field data is valid yet.
@@ -30,13 +31,13 @@ namespace AI {
 		/**
 		 * The ball, as exposed by the backend.
 		 */
-		class Ball : public AI::BF::W::Ball, public AI::HL::W::Ball, public AI::Nav::W::Ball {
+		class Ball : public AI::BF::W::Ball, public AI::HL::W::Ball, public AI::Nav::W::Ball, public Visualizable::Ball {
 		};
 
 		/**
 		 * A robot, as exposed by the backend.
 		 */
-		class Robot : public AI::BF::W::Robot, public AI::HL::W::Robot, public AI::Nav::W::Robot {
+		class Robot : public AI::BF::W::Robot, public AI::HL::W::Robot, public AI::Nav::W::Robot, public Visualizable::Robot {
 			public:
 				/**
 				 * A pointer to a Robot.
@@ -50,7 +51,7 @@ namespace AI {
 		/**
 		 * A player, as exposed by the backend.
 		 */
-		class Player : public AI::BF::W::Player, public AI::HL::W::Player, public AI::Nav::W::Player, public AI::RC::W::Player {
+		class Player : public AI::BF::W::Player, public AI::HL::W::Player, public AI::Nav::W::Player, public AI::RC::W::Player, public Visualizable::Robot {
 			public:
 				/**
 				 * A pointer to a Player.
@@ -177,7 +178,7 @@ namespace AI {
 		 * A provider that can expose the contents of the world to the AI.
 		 * A backend must get the state of the world, expose it to the AI, accept commands from the AI, and deliver those commands into the world.
 		 */
-		class Backend : public AI::BF::W::World, public AI::Coach::W::World, public AI::HL::W::World, public AI::Nav::W::World, public NonCopyable {
+		class Backend : public AI::BF::W::World, public AI::Coach::W::World, public AI::HL::W::World, public AI::Nav::W::World, public Visualizable::World, public NonCopyable {
 			public:
 				/**
 				 * A pointer to a Backend.
@@ -205,14 +206,14 @@ namespace AI {
 				 *
 				 * \return the field.
 				 */
-				virtual Field &field() = 0;
+				virtual const Field &field() const = 0;
 
 				/**
 				 * Returns the ball.
 				 *
 				 * \return the ball.
 				 */
-				virtual Ball &ball() = 0;
+				virtual const Ball &ball() const = 0;
 
 				/**
 				 * Returns the friendly team.

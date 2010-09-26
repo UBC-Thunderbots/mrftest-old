@@ -105,14 +105,14 @@ namespace AI {
 					 *
 					 * \return the field.
 					 */
-					virtual Field &field() = 0;
+					virtual const Field &field() const = 0;
 
 					/**
 					 * Returns the ball.
 					 *
 					 * \return the ball.
 					 */
-					virtual Ball &ball() = 0;
+					virtual const Ball &ball() const = 0;
 
 					/**
 					 * Returns the friendly team.

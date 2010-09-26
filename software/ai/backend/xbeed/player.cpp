@@ -262,6 +262,14 @@ void Player::tick(bool scram) {
 	last_dribble_position = position();
 }
 
+Visualizable::RobotColour Player::visualizer_colour() const {
+	return Visualizable::RobotColour(0, 1, 0);
+}
+
+Glib::ustring Player::visualizer_label() const {
+	return Glib::ustring::format(pattern());
+}
+
 void Player::on_feedback() {
 	theory_dribble_rpm =  static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED);
 	const unsigned int threshold_speed = static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED * DRIBBLER_HAS_BALL_LOAD_FACTOR);
