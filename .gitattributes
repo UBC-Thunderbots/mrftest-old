@@ -71,6 +71,8 @@ software/ai/common/team.h -text
 software/ai/common/world.h -text
 software/ai/flags.cpp -text
 software/ai/flags.h -text
+software/ai/hl/penalty_friendly_strategy.h -text
+software/ai/hl/penalty_strategy.cpp -text
 software/ai/hl/stop_strategy.cpp -text
 software/ai/hl/strategy.cpp -text
 software/ai/hl/strategy.h -text
