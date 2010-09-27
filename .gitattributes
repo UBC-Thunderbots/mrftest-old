@@ -41,8 +41,6 @@ software/ai/backend/xbeed/refbox.cpp -text
 software/ai/backend/xbeed/refbox.h -text
 software/ai/backend/xbeed/robot.cpp -text
 software/ai/backend/xbeed/robot.h -text
-software/ai/backend/xbeed/world.cpp -text
-software/ai/backend/xbeed/world.h -text
 software/ai/backend/xbeed/xbeed_backend.cpp -text
 software/ai/ball_filter/ball_filter.h -text
 software/ai/ball_filter/byrons_filter.cpp -text
