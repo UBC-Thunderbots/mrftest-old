@@ -72,9 +72,9 @@ namespace {
 			}
 
 		private:
-			static const double RADIUS = 10.0 / TIMESTEPS_PER_SECOND;
-			static const double DECAY_RATE = 0.2063; // half-life = 3 frames
-			static const double DELETE_THRESHOLD = 0.02; // stores < 50 circles
+			static const double RADIUS;
+			static const double DECAY_RATE; // half-life = 3 frames
+			static const double DELETE_THRESHOLD; // stores < 50 circles
 			std::list<Circle> circles;
 			Point last_point;
 
@@ -89,6 +89,10 @@ namespace {
 				}
 			}
 	};
+
+	const double ChrisFilter::RADIUS = 10.0 / TIMESTEPS_PER_SECOND;
+	const double ChrisFilter::DECAY_RATE = 0.2063; // half-life = 3 frames
+	const double ChrisFilter::DELETE_THRESHOLD = 0.02; // stores < 50 circles
 
 	ChrisFilter instance;
 }

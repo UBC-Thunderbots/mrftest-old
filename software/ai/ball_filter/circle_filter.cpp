@@ -21,10 +21,10 @@ namespace {
 
 	class CircleFilter : public BallFilter {
 		private:
-			static const double RADIUS = 10.0/TIMESTEPS_PER_SECOND;
-			static const double DECAY_RATE = 0.2063; // half-life = 3 frames
-			static const double DEFAULT_CERT = 0.04; // one half-life to delete
-			static const double DELETE_THRESHOLD = 0.02; // stores < 50 circles
+			static const double RADIUS;
+			static const double DECAY_RATE; // half-life = 3 frames
+			static const double DEFAULT_CERT; // one half-life to delete
+			static const double DELETE_THRESHOLD; // stores < 50 circles
 			std::list<Circle> circles;
 			Point last_point;
 			bool use_closest;
@@ -181,6 +181,11 @@ namespace {
 				return max_point_it->center;
 			}
 	};
+
+	const double CircleFilter::RADIUS = 10.0/TIMESTEPS_PER_SECOND;
+	const double CircleFilter::DECAY_RATE = 0.2063; // half-life = 3 frames
+	const double CircleFilter::DEFAULT_CERT = 0.04; // one half-life to delete
+	const double CircleFilter::DELETE_THRESHOLD = 0.02; // stores < 50 circles
 
 	CircleFilter instance;
 }

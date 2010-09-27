@@ -1,8 +1,7 @@
-#ifndef AI_HL_PENALTY_H
-#define AI_HL_PENALTY_H
+#ifndef AI_HL_PENALTY_FRIENDLY_H
+#define AI_HL_PENALTY_FRIENDLY_H
 
 #include "ai/hl/strategy.h"
-
 #include <vector>
 
 namespace AI {
@@ -28,12 +27,12 @@ namespace AI {
 				/**
 		 		 * The distance between the penalty mark and the mid point of the two goal posts as described in the rules.
 		 		 */
-				const static double PENALTY_MARK_LENGTH = 0.45;
+				const static double PENALTY_MARK_LENGTH;
 
 				/**
 		 		 * The distance between the baseline and the line behind which other robots may stand.
 				 */
-				const static double RESTRICTED_ZONE_LENGTH = 0.85;
+				const static double RESTRICTED_ZONE_LENGTH;
 
 				/**
 				 * Maximum number of robots that can be assigned to this role.

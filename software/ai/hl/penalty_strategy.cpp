@@ -1,4 +1,4 @@
-#include "ai/hl/penalty_friendly_strategy.h"
+#include "ai/hl/penalty_friendly.h"
 #include "ai/hl/strategy.h"
 #include "ai/hl/util.h"
 

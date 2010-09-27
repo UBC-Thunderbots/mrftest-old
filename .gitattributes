@@ -69,7 +69,8 @@ software/ai/common/team.h -text
 software/ai/common/world.h -text
 software/ai/flags.cpp -text
 software/ai/flags.h -text
-software/ai/hl/penalty_friendly_strategy.h -text
+software/ai/hl/penalty_friendly.cpp -text
+software/ai/hl/penalty_friendly.h -text
 software/ai/hl/penalty_strategy.cpp -text
 software/ai/hl/stop_strategy.cpp -text
 software/ai/hl/strategy.cpp -text
@@ -164,6 +165,7 @@ software/simulator/engines/ODE_simulator/playerODE.cpp -text
 software/simulator/engines/ODE_simulator/playerODE.h -text
 software/simulator/engines/ODE_simulator/player_shapes.h -text
 software/simulator/engines/engine.h -text
+software/simulator/field.cpp -text
 software/simulator/field.h -text
 software/simulator/main.cpp -text
 software/simulator/main_window.cpp -text
