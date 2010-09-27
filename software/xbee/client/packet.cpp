@@ -33,8 +33,7 @@ void Transmit16Packet::transmit(FileDescriptor::Ptr sock, uint8_t frame) const {
 	}
 }
 
-template<std::size_t value_size>
-void ATPacket<value_size>::transmit(FileDescriptor::Ptr sock, uint8_t frame) const {
+template<std::size_t value_size> void ATPacket<value_size>::transmit(FileDescriptor::Ptr sock, uint8_t frame) const {
 	XBeePacketTypes::AT_REQUEST<value_size> packet;
 	packet.apiid = XBeePacketTypes::AT_REQUEST_APIID;
 	packet.frame = frame;
@@ -51,8 +50,7 @@ template class ATPacket<0>;
 template class ATPacket<1>;
 template class ATPacket<2>;
 
-template<std::size_t value_size>
-void RemoteATPacket<value_size>::transmit(FileDescriptor::Ptr sock, uint8_t frame) const {
+template<std::size_t value_size> void RemoteATPacket<value_size>::transmit(FileDescriptor::Ptr sock, uint8_t frame) const {
 	XBeePacketTypes::REMOTE_AT_REQUEST<value_size> packet;
 	packet.apiid = XBeePacketTypes::REMOTE_AT_REQUEST_APIID;
 	packet.frame = frame;

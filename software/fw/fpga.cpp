@@ -18,8 +18,7 @@ namespace {
 	const uint8_t COMMAND_FPGA_CRC_CHUNK = 0x3;
 	const uint8_t COMMAND_FPGA_ERASE_SECTOR = 0x4;
 
-	template<typename T>
-	T divup(T num, T den) {
+	template<typename T> T divup(T num, T den) {
 		return (num + den - 1) / den;
 	}
 

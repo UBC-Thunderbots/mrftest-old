@@ -9,8 +9,7 @@
  *
  * \tparam T the type of object to which the pointer points.
  */
-template<typename T>
-class RefPtr {
+template<typename T> class RefPtr {
 	public:
 		/**
 		 * Performs a \c static_cast on a RefPtr.
@@ -21,8 +20,7 @@ class RefPtr {
 		 *
 		 * \return a RefPtr pointing to the result of performing a \c static_cast<T> on <code>pu</code>'s underlying pointer.
 		 */
-		template<typename U>
-		static RefPtr<T> cast_static(const RefPtr<U> &pu) {
+		template<typename U> static RefPtr<T> cast_static(const RefPtr<U> &pu) {
 			T *pt = static_cast<T *>(pu.operator->());
 			if (pt) {
 				pt->reference();
@@ -39,8 +37,7 @@ class RefPtr {
 		 *
 		 * \return a RefPtr pointing to the result of performing a \c dynamic_cast<T> on <code>pu</code>'s underlying pointer.
 		 */
-		template<typename U>
-		static RefPtr<T> cast_dynamic(const RefPtr<U> &pu) {
+		template<typename U> static RefPtr<T> cast_dynamic(const RefPtr<U> &pu) {
 			T *pt = dynamic_cast<T *>(pu.operator->());
 			if (pt) {
 				pt->reference();
@@ -82,8 +79,7 @@ class RefPtr {
 		 *
 		 * \param[in] copyref the derived RefPtr to convert.
 		 */
-		template<typename U>
-		RefPtr(const RefPtr<U> &copyref) : obj(copyref.operator->()) {
+		template<typename U> RefPtr(const RefPtr<U> &copyref) : obj(copyref.operator->()) {
 			if (obj) {
 				obj->reference();
 			}
@@ -198,8 +194,7 @@ namespace std {
 	 *
 	 * \param[in] y the second RefPtr to swap.
 	 */
-	template<typename T>
-	void swap(RefPtr<T> &x, RefPtr<T> &y) {
+	template<typename T> void swap(RefPtr<T> &x, RefPtr<T> &y) {
 		x.swap(y);
 	}
 }
@@ -257,8 +252,7 @@ class ByRef : public NonCopyable {
 			}
 		}
 
-		template<typename T>
-		friend class RefPtr;
+		template<typename T> friend class RefPtr;
 };
 
 #endif

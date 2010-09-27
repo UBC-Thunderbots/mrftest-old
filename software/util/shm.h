@@ -97,8 +97,7 @@ class RawShmBlock : public NonCopyable {
  *
  * \tparam T the type of object held in the block.
  */
-template<typename T>
-class ShmBlock : public NonCopyable {
+template<typename T> class ShmBlock : public NonCopyable {
 	public:
 		/**
 		 * Creates a new shared memory block in a new file.

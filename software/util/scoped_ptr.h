@@ -6,8 +6,7 @@
 /**
  * A smart pointer that can never be copied, but can be repointed to a new target.
  */
-template<typename T>
-class ScopedPtr : public NonCopyable {
+template<typename T> class ScopedPtr : public NonCopyable {
 	public:
 		/**
 		 * Constructs a new ScopedPtr with no object.

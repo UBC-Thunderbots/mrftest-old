@@ -41,8 +41,7 @@ namespace {
 	 *
 	 * \tparam T the type of robot on this team, either Player or Robot.
 	 */
-	template<typename T>
-	class GenericTeam {
+	template<typename T> class GenericTeam {
 		public:
 			GenericTeam(XBeeDBackend &backend);
 			~GenericTeam();
@@ -59,12 +58,10 @@ namespace {
 			virtual sigc::signal<void, std::size_t> &signal_robot_removed() const = 0;
 	};
 
-	template<typename T>
-	GenericTeam<T>::GenericTeam(XBeeDBackend &backend) : backend(backend) {
+	template<typename T> GenericTeam<T>::GenericTeam(XBeeDBackend &backend) : backend(backend) {
 	}
 
-	template<typename T>
-	GenericTeam<T>::~GenericTeam() {
+	template<typename T> GenericTeam<T>::~GenericTeam() {
 	}
 
 	/**
@@ -438,8 +435,7 @@ namespace {
 			}
 	};
 
-	template<typename T>
-	void GenericTeam<T>::update(const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *packets[2], const timespec &ts) {
+	template<typename T> void GenericTeam<T>::update(const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *packets[2], const timespec &ts) {
 		// Update existing robots.
 		std::vector<bool> used_data[2];
 		for (unsigned int i = 0; i < 2; ++i) {
@@ -502,8 +498,7 @@ namespace {
 		}
 	}
 
-	template<typename T>
-	void GenericTeam<T>::lock_time(const timespec &now) {
+	template<typename T> void GenericTeam<T>::lock_time(const timespec &now) {
 		for (typename std::vector<typename T::Ptr>::const_iterator i = members.begin(), iend = members.end(); i != iend; ++i) {
 			(*i)->lock_time(now);
 		}

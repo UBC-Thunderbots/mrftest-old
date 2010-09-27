@@ -16,8 +16,7 @@ namespace {
 	const uint8_t COMMAND_PIC_WRITE_DATA = 0x6;
 	const uint8_t COMMAND_PIC_ENABLE_UPGRADE = 0x7;
 
-	template<typename T>
-	T divup(T num, T den) {
+	template<typename T> T divup(T num, T den) {
 		return (num + den - 1) / den;
 	}
 

@@ -12,8 +12,7 @@
  *
  * \tparam T the type that is actually registerable (that is, the type of the subclass of this class).
  */
-template<typename T>
-class Registerable : public NonCopyable {
+template<typename T> class Registerable : public NonCopyable {
 	public:
 		/**
 		 * The type of a map from collation key of object name to object.

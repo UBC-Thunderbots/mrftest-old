@@ -27,8 +27,7 @@ namespace AI {
 			 *
 			 * \tparam T the type of object to sort (must have a function called \c position).
 			 */
-			template<typename T>
-			class CmpDist {
+			template<typename T> class CmpDist {
 				public:
 					/**
 					 * Constructs a new CmpDist.

@@ -14,8 +14,7 @@ namespace XBeePacketTypes {
 	const unsigned int FACTORY_PANID = 0x3332;
 	const unsigned int THUNDERBOTS_PANID = 0x496C;
 
-	template<std::size_t T_value_length>
-	struct __attribute__((packed)) AT_REQUEST {
+	template<std::size_t T_value_length> struct __attribute__((packed)) AT_REQUEST {
 		uint8_t apiid;
 		uint8_t frame;
 		uint8_t command[2];
@@ -37,8 +36,7 @@ namespace XBeePacketTypes {
 	const uint8_t AT_RESPONSE_STATUS_INVALID_COMMAND = 2;
 	const uint8_t AT_RESPONSE_STATUS_INVALID_PARAMETER = 3;
 
-	template<std::size_t value_size>
-	struct __attribute__((packed)) REMOTE_AT_REQUEST {
+	template<std::size_t value_size> struct __attribute__((packed)) REMOTE_AT_REQUEST {
 		uint8_t apiid;
 		uint8_t frame;
 		uint8_t address64[8];

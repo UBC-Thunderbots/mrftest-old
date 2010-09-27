@@ -51,8 +51,7 @@ namespace {
 		}
 	}
 
-	template<std::size_t length>
-	unsigned int do_local_at_command(const Glib::RefPtr<Glib::MainLoop> loop, XBeeLowLevel &modem, const Glib::ustring &message, const char *command, unsigned int param) {
+	template<std::size_t length> unsigned int do_local_at_command(const Glib::RefPtr<Glib::MainLoop> loop, XBeeLowLevel &modem, const Glib::ustring &message, const char *command, unsigned int param) {
 		std::cout << message << "... " << std::flush;
 		uint8_t parambytes[length];
 		build_param(param, parambytes, length);
@@ -87,8 +86,7 @@ namespace {
 		}
 	}
 
-	template<std::size_t length>
-	unsigned int do_remote_at_command(const Glib::RefPtr<Glib::MainLoop> loop, uint64_t bot, XBeeLowLevel &modem, const Glib::ustring &message, const char *command, unsigned int param, bool apply, bool permit_no_response = false) {
+	template<std::size_t length> unsigned int do_remote_at_command(const Glib::RefPtr<Glib::MainLoop> loop, uint64_t bot, XBeeLowLevel &modem, const Glib::ustring &message, const char *command, unsigned int param, bool apply, bool permit_no_response = false) {
 		std::cout << message << "... " << std::flush;
 		uint8_t parambytes[length];
 		build_param(param, parambytes, length);

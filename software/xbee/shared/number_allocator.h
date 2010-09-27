@@ -9,8 +9,7 @@
 /**
  * An object that manages allocating index numbers.
  */
-template<typename T>
-class NumberAllocator : public NonCopyable, public sigc::trackable {
+template<typename T> class NumberAllocator : public NonCopyable, public sigc::trackable {
 	public:
 		/**
 		 * Constructs a new allocator.

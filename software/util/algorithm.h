@@ -21,8 +21,7 @@ namespace {
 	 *
 	 * \return \c true if \p elem exists in the range [\p begin, \p end), or \c false if not.
 	 */
-	template<typename Titer, typename Telem>
-	bool exists(Titer begin, Titer end, const Telem &elem) {
+	template<typename Titer, typename Telem> bool exists(Titer begin, Titer end, const Telem &elem) {
 		return std::find(begin, end, elem) != end;
 	}
 
@@ -42,8 +41,7 @@ namespace {
 	 * \return \c true if there exists an element \c e in the range [\p begin,
 	 * \p end) such that \c pred(e) returns \c true, or \c false if not.
 	 */
-	template<typename Titer, typename Tpred>
-	bool exists_if(Titer begin, Titer end, Tpred pred) {
+	template<typename Titer, typename Tpred> bool exists_if(Titer begin, Titer end, Tpred pred) {
 		return std::find_if(begin, end, pred) != end;
 	}
 
@@ -60,8 +58,7 @@ namespace {
 	 *
 	 * \return the nearest value to \p value that lies in the range [\p lower, \p upper].
 	 */
-	template<typename T>
-	T clamp(const T &value, const T &lower, const T &upper) {
+	template<typename T> T clamp(const T &value, const T &lower, const T &upper) {
 		return std::min(std::max(value, lower), upper);
 	}
 
@@ -72,8 +69,7 @@ namespace {
 	 *
 	 * \tparam Comp the type of the comparator between lookup table elements (defaults to \c std::less<T>).
 	 */
-	template<typename T, typename Comp = std::less<T> >
-	class IndexComparator {
+	template<typename T, typename Comp = std::less<T> > class IndexComparator {
 		public:
 			/**
 			 * Constructs a new IndexComparator.

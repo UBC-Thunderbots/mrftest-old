@@ -11,8 +11,7 @@ namespace Util {
 	 *
 	 * \tparam T the type of object stored in the TrackableVector.
 	 */
-	template<typename T>
-	class TrackableVector : public NonCopyable {
+	template<typename T> class TrackableVector : public NonCopyable {
 		public:
 			/**
 			 * The type of object stored in the TrackableVector.

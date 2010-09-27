@@ -103,8 +103,7 @@ class Transmit16Packet : public XBeePacket {
  *
  * \tparam value_size the length, in bytes, of the parameter value being sent.
  */
-template<std::size_t value_size>
-class ATPacket : public XBeePacket {
+template<std::size_t value_size> class ATPacket : public XBeePacket {
 	public:
 		/**
 		 * A pointer to an ATPacket.
@@ -140,8 +139,7 @@ class ATPacket : public XBeePacket {
  *
  * \tparam value_size the length, in bytes, of the parameter value being sent.
  */
-template<std::size_t value_size>
-class RemoteATPacket : public XBeePacket {
+template<std::size_t value_size> class RemoteATPacket : public XBeePacket {
 	public:
 		/**
 		 * A pointer to a RemoteATPacket.
