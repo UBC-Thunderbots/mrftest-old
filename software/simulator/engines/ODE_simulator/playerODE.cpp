@@ -19,43 +19,67 @@ namespace {
 		return fabs(t[8] -1) <  0.1;
 	}
 	
-	/// Conversion Factor from the value used in radio packets (1/4 degree) per 5 ms to motor voltage
+	/**
+	 * Conversion Factor from the value used in radio packets (1/4 degree) per 5 ms to motor voltage
+	 */
 	const double PACKET_TO_VOLTAGE = 0.022281639;
 	
 	
-	/// Maximum voltage available to the robot.
+	/**
+	 * Maximum voltage available to the robot.
+	 */
 	const double VOLTAGE_LIMIT = 15.0;
 	
 	
-	/// Resistance of the stator
+	/**
+	 * Resistance of the stator
+	 */
 	const double MOTOR_RESISTANCE = 1.2; //ohms
 	
-	/// Constant relating motor current to motor torque
+	/**
+	 * Constant relating motor current to motor torque
+	 */
 	const double CURRENT_TO_TORQUE = 0.0255; //Nm / amp
 	
-	/// Gearing ration of the drive train (speed reduction, torque increase)
+	/**
+	 * Gearing ration of the drive train (speed reduction, torque increase)
+	 */
 	const double GEAR_RATIO = 3.5;
 	
-	/// Radius of the wheel for torque to force calculations
+	/**
+	 * Radius of the wheel for torque to force calculations
+	 */
 	const double WHEEL_RADIUS = 0.0254;
 
-	/// physical radius of the robot in meters
+	/**
+	 * physical radius of the robot in meters
+	 */
 	const double ROBOT_RADIUS = 0.09;
 	
-	/// Physical mass of the robot in kg (measured)
+	/**
+	 * Physical mass of the robot in kg (measured)
+	 */
 	const double ROBOT_MASS = 2.552;
 	
-	/// Physical height of the robot in m
+	/**
+	 * Physical height of the robot in m
+	 */
 	const double ROBOT_HEIGHT = 0.15;
 	
-	/// Physical width of the flattened face of the robot
+	/**
+	 * Physical width of the flattened face of the robot
+	 */
 	const double FRONT_FACE_WIDTH = 0.16;
 	
-	/// Number of sides used to generate the triangle mesh geometry
+	/**
+	 * Number of sides used to generate the triangle mesh geometry
+	 */
 	const unsigned int NUM_SIDES = 20;
 	
 	
-	/// Angles in radians that the wheels are located off the forward direction
+	/**
+	 * Angles in radians that the wheels are located off the forward direction
+	 */
 	const double ANGLES[4] = {0.959931, 2.35619, 3.9269908, 5.32325}; 
 	
 	int click =0;
@@ -535,7 +559,9 @@ void PlayerODE::received(const XBeePacketTypes::RUN_DATA &packet) {
 		}
 	}
 
-	/// The dribbler code will probably be re-written so this will do for now.
+	/**
+	 * The dribbler code will probably be re-written so this will do for now.
+	 */
 	dribble(packet.dribbler_speed);
 	
 

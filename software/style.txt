@@ -162,6 +162,8 @@ All public and protected types, functions, variables, and constants shall be doc
  * \return the fooed Bazquux.
  */
 
+The single-line Doxygen comment style introduced by /// shall not be used.
+
 It is recommended that the following style be used for a single-line comment within code:
 
 // This is a comment about the following line.
