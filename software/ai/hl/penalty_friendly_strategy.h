@@ -40,11 +40,10 @@ namespace AI {
 				 */
 				const static unsigned int NUMBER_OF_READY_POSITIONS = 4;
 
-			        /**
+				/**
 				 * The positions that the robots should move to for this role.
 				 */
-				Point ready_positions [NUMBER_OF_READY_POSITIONS];
-					
+				Point ready_positions[NUMBER_OF_READY_POSITIONS];
 		};
 	}
 }
