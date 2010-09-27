@@ -1,10 +1,15 @@
 #include "util/dprint.h"
 #include <ctime>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <string>
 #include <unistd.h>
 #include <sys/types.h>
+
+Glib::ustring tohex(uintmax_t value, unsigned int width) {
+	return Glib::ustring::format(std::hex, std::setw(width), std::setfill(L'0'), std::uppercase, value);
+}
 
 void log_impl(const char *file, unsigned int line, const Glib::ustring &msg, unsigned int level) {
 	std::time_t stamp;

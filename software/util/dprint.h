@@ -1,17 +1,21 @@
 #ifndef UTIL_DPRINT_H
 #define UTIL_DPRINT_H
 
-#include <iomanip>
 #include <stdint.h>
 #include <glibmm.h>
 
-void log_impl(const char *file, unsigned int line, const Glib::ustring &msg, unsigned int level);
+/**
+ * Converts an unsigned integer of any type to a hexadecimal string.
+ *
+ * \param[in] value the value to convert.
+ *
+ * \param[in] width the width, in characters, of the output to produce.
+ *
+ * \return the hex string.
+ */
+Glib::ustring tohex(uintmax_t value, unsigned int width);
 
-namespace {
-	Glib::ustring tohex(uintmax_t value, unsigned int width) {
-		return Glib::ustring::format(std::hex, std::setw(width), std::setfill(L'0'), std::uppercase, value);
-	}
-}
+void log_impl(const char *file, unsigned int line, const Glib::ustring &msg, unsigned int level);
 
 #define LOG_LEVEL_DEBUG 0
 #define LOG_LEVEL_INFO 1
