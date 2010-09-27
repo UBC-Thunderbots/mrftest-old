@@ -15,3 +15,4 @@ NavigatorFactory::NavigatorFactory(const Glib::ustring &name) : Registerable<Nav
 
 NavigatorFactory::~NavigatorFactory() {
 }
+
