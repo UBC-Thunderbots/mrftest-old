@@ -280,7 +280,7 @@ void Config::channel(unsigned int chan) {
 }
 
 const Config::RobotInfo &Config::RobotSet::find(uint64_t address) const {
-	for (typeof(robots.begin()) i(robots.begin()), iend(robots.end()); i != iend; ++i) {
+	for (std::vector<RobotInfo>::const_iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
 		if (i->address == address) {
 			return *i;
 		}
@@ -289,7 +289,7 @@ const Config::RobotInfo &Config::RobotSet::find(uint64_t address) const {
 }
 
 const Config::RobotInfo &Config::RobotSet::find(const Glib::ustring &name) const {
-	for (typeof(robots.begin()) i(robots.begin()), iend(robots.end()); i != iend; ++i) {
+	for (std::vector<RobotInfo>::const_iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
 		if (i->name == name) {
 			return *i;
 		}
@@ -298,7 +298,7 @@ const Config::RobotInfo &Config::RobotSet::find(const Glib::ustring &name) const
 }
 
 bool Config::RobotSet::contains_address(uint64_t address) const {
-	for (typeof(robots.begin()) i = robots.begin(), iend = robots.end(); i != iend; ++i) {
+	for (std::vector<RobotInfo>::const_iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
 		if (i->address == address) {
 			return true;
 		}
@@ -307,7 +307,7 @@ bool Config::RobotSet::contains_address(uint64_t address) const {
 }
 
 bool Config::RobotSet::contains_pattern(unsigned int pattern_index) const {
-	for (typeof(robots.begin()) i = robots.begin(), iend = robots.end(); i != iend; ++i) {
+	for (std::vector<RobotInfo>::const_iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
 		if (i->pattern_index == pattern_index) {
 			return true;
 		}
@@ -316,7 +316,7 @@ bool Config::RobotSet::contains_pattern(unsigned int pattern_index) const {
 }
 
 bool Config::RobotSet::contains_name(const Glib::ustring &name) const {
-	for (typeof(robots.begin()) i = robots.begin(), iend = robots.end(); i != iend; ++i) {
+	for (std::vector<RobotInfo>::const_iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
 		if (i->name == name) {
 			return true;
 		}

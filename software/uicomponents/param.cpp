@@ -21,7 +21,7 @@ void Param::initialized(Config *c) {
 	assert(!conf);
 	conf = c;
 	std::sort(instances.begin(), instances.end(), &order_params_by_name);
-	for (typeof(instances.begin()) i = instances.begin(); i != instances.end(); ++i) {
+	for (std::vector<Param *>::const_iterator i = instances.begin(); i != instances.end(); ++i) {
 		(*i)->load();
 	}
 }
@@ -31,7 +31,7 @@ Param::Param(const Glib::ustring &name) : name(name) {
 }
 
 Param::~Param() {
-	for (typeof(instances.begin()) i = instances.begin(); i != instances.end(); ) {
+	for (std::vector<Param *>::iterator i = instances.begin(); i != instances.end(); ) {
 		if (*i == this) {
 			i = instances.erase(i);
 		} else {
@@ -66,7 +66,7 @@ void BoolParam::revert() {
 }
 
 void BoolParam::load() {
-	typeof(conf->bool_params.begin()) iter = conf->bool_params.find(name);
+	std::map<Glib::ustring, bool>::const_iterator iter = conf->bool_params.find(name);
 	if (iter != conf->bool_params.end()) {
 		value_ = iter->second;
 	}
@@ -112,7 +112,7 @@ void IntParam::revert() {
 }
 
 void IntParam::load() {
-	typeof(conf->int_params.begin()) iter = conf->int_params.find(name);
+	std::map<Glib::ustring, int>::const_iterator iter = conf->int_params.find(name);
 	if (iter != conf->int_params.end()) {
 		value_ = clamp(iter->second, min_, max_);
 	}
@@ -166,7 +166,7 @@ void DoubleParam::revert() {
 }
 
 void DoubleParam::load() {
-	typeof(conf->double_params.begin()) iter = conf->double_params.find(name);
+	std::map<Glib::ustring, double>::const_iterator iter = conf->double_params.find(name);
 	if (iter != conf->double_params.end()) {
 		value_ = clamp(iter->second, min_, max_);
 	}
@@ -186,7 +186,7 @@ ParamPanel::ParamPanel() {
 	if (!instances.empty()) {
 		Gtk::Table *param_table = Gtk::manage(new Gtk::Table(instances.size(), 2));
 		unsigned int y = 0;
-		for (typeof(instances.begin()) i = instances.begin(); i != instances.end(); ++i) {
+		for (std::vector<Param *>::const_iterator i = instances.begin(); i != instances.end(); ++i) {
 			Param *par = *i;
 			param_table->attach(par->widget(), 0, 1, y, y + 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 			param_table->attach(*Gtk::manage(new Gtk::Label(par->name, Gtk::ALIGN_LEFT)), 1, 2, y, y + 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -214,26 +214,26 @@ ParamPanel::ParamPanel() {
 }
 
 void ParamPanel::on_apply_clicked() {
-	for (typeof(instances.begin()) i = instances.begin(); i != instances.end(); ++i) {
+	for (std::vector<Param *>::const_iterator i = instances.begin(); i != instances.end(); ++i) {
 		(*i)->apply();
 	}
 }
 
 void ParamPanel::on_save_clicked() {
-	for (typeof(instances.begin()) i = instances.begin(); i != instances.end(); ++i) {
+	for (std::vector<Param *>::const_iterator i = instances.begin(); i != instances.end(); ++i) {
 		(*i)->apply();
 	}
 	conf->save();
 }
 
 void ParamPanel::on_revert_clicked() {
-	for (typeof(instances.begin()) i = instances.begin(); i != instances.end(); ++i) {
+	for (std::vector<Param *>::const_iterator i = instances.begin(); i != instances.end(); ++i) {
 		(*i)->revert();
 	}
 }
 
 void ParamPanel::on_defaults_clicked() {
-	for (typeof(instances.begin()) i = instances.begin(); i != instances.end(); ++i) {
+	for (std::vector<Param *>::const_iterator i = instances.begin(); i != instances.end(); ++i) {
 		(*i)->set_default();
 	}
 }

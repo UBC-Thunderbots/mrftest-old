@@ -274,7 +274,7 @@ namespace {
 			void remove() {
 				const Gtk::TreeSelection::ListHandle_Path &sel = view.get_selection()->get_selected_rows();
 				std::vector<uint64_t> addresses;
-				for (typeof(sel.begin()) i = sel.begin(), iend = sel.end(); i != iend; ++i) {
+				for (Gtk::TreeSelection::ListHandle_Path::const_iterator i = sel.begin(), iend = sel.end(); i != iend; ++i) {
 					const Gtk::TreePath &path = *i;
 					if (path.size() == 1) {
 						addresses.push_back(robots[path[0]].address);
