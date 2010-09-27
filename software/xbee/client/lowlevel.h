@@ -8,8 +8,8 @@
 #include "xbee/shared/number_allocator.h"
 #include "xbee/shared/packettypes.h"
 #include <cstddef>
-#include <stdint.h>
 #include <glibmm.h>
+#include <stdint.h>
 
 /**
  * Allows access to the XBee radio modem, via the arbiter daemon.

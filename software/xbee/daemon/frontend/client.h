@@ -5,12 +5,12 @@
 #include "util/noncopyable.h"
 #include "xbee/daemon/frontend/request.h"
 #include "xbee/shared/packettypes.h"
-#include <vector>
-#include <unordered_map>
-#include <unordered_set>
 #include <cstddef>
 #include <glibmm.h>
 #include <stdint.h>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 class XBeeDaemon;
 

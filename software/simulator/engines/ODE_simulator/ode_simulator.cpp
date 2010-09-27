@@ -1,9 +1,9 @@
+#include "geom/angle.h"
 #include "simulator/field.h"
 #include "simulator/engines/engine.h"
-#include "ballODE.h"
-#include "playerODE.h"
+#include "simulator/engines/ODE_simulator/ballODE.h"
+#include "simulator/engines/ODE_simulator/playerODE.h"
 #include "util/timestep.h"
-#include "geom/angle.h"
 #include <iostream>
 
 #define MU 0.02		// the global mu to use

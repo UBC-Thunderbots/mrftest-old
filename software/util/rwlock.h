@@ -2,10 +2,10 @@
 #define UTIL_RWLOCK_H
 
 #include "util/noncopyable.h"
-#include <iostream>
-#include <stdexcept>
 #include <cstdlib>
+#include <iostream>
 #include <pthread.h>
+#include <stdexcept>
 
 /**
  * An acquisition of a read-write lock.

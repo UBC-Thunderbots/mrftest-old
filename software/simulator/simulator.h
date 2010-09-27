@@ -12,9 +12,9 @@
 #include "xbee/daemon/frontend/backend.h"
 #include <cstddef>
 #include <queue>
-#include <vector>
-#include <unordered_map>
 #include <stdint.h>
+#include <unordered_map>
+#include <vector>
 
 /**
  * This is the actual core of the simulator.

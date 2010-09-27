@@ -3,13 +3,13 @@
 
 #include "util/fd.h"
 #include "util/shm.h"
-#include "xbee/daemon/frontend/robot_state.h"
-#include "xbee/daemon/frontend/scheduler.h"
 #include "xbee/shared/number_allocator.h"
 #include "xbee/shared/packettypes.h"
+#include "xbee/daemon/frontend/robot_state.h"
+#include "xbee/daemon/frontend/scheduler.h"
+#include <glibmm.h>
 #include <unordered_map>
 #include <vector>
-#include <glibmm.h>
 
 class BackEnd;
 

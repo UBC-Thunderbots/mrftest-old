@@ -1,19 +1,14 @@
-#include "geom/point.h"
-#include "geom/angle.h"
 #include "ai/robot_controller/robot_controller.h"
 #include "ai/robot_controller/tunable_controller.h"
+#include "geom/angle.h"
 #include "geom/point.h"
+#include "uicomponents/param.h"
 #include "util/byref.h"
 #include "util/noncopyable.h"
-
-#include "uicomponents/param.h"
-
-#include <vector>
-#include <glibmm.h>
-#include <cmath>
-#include <iostream>
-#include <fstream>
 #include <cassert>
+#include <cmath>
+#include <glibmm.h>
+#include <vector>
 
 using AI::RC::RobotController;
 using AI::RC::OldRobotController;

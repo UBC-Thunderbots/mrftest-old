@@ -2,8 +2,8 @@
 #define UTIL_TIME_H
 
 #include <ctime>
-#include <sigc++/sigc++.h>
 #include <stdexcept>
+#include <sigc++/sigc++.h>
 
 namespace {
 	/**

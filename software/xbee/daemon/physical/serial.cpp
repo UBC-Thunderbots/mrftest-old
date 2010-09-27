@@ -1,14 +1,14 @@
 #include "xbee/daemon/physical/serial.h"
+#include <fcntl.h>
 #include <stdexcept>
 #include <string>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/ioctl.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <termios.h>
+#include <unistd.h>
 #include <asm/ioctls.h>
 #include <linux/serial.h>
+#include <sys/ioctl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 namespace {
 	bool is_serinfo_ok(const serial_struct &serinfo) {

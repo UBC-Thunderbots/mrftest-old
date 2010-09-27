@@ -1,5 +1,5 @@
-#include "util/exception.h"
 #include "util/mutex.h"
+#include "util/exception.h"
 
 MutexScopedAcquire::MutexScopedAcquire(pthread_mutex_t *mtx) : mutex(mtx) {
 	int rc = pthread_mutex_lock(mtx);

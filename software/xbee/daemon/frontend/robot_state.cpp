@@ -1,10 +1,10 @@
+#include "xbee/daemon/frontend/robot_state.h"
 #include "util/dprint.h"
 #include "util/rwlock.h"
 #include "util/xbee.h"
+#include "xbee/shared/packettypes.h"
 #include "xbee/daemon/frontend/daemon.h"
 #include "xbee/daemon/frontend/resource_allocation_failed.h"
-#include "xbee/daemon/frontend/robot_state.h"
-#include "xbee/shared/packettypes.h"
 #include <cassert>
 #include <cstdlib>
 

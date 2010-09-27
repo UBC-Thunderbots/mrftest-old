@@ -1,3 +1,6 @@
+#ifndef SIMULATOR_ENGINES_ODE_SIMULATOR_PLAYERODE_H
+#define SIMULATOR_ENGINES_ODE_SIMULATOR_PLAYERODE_H
+
 #include "simulator/player.h"
 #include "xbee/shared/packettypes.h"
 #include <ode/ode.h>
@@ -182,5 +185,5 @@ public:
 		 	dTriMeshDataID create_robot_geom();
 };
 
-
+#endif
 

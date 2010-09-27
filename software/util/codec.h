@@ -1,9 +1,9 @@
 #ifndef UTIL_CODEC_H
 #define UTIL_CODEC_H
 
-#include <vector>
 #include <cstddef>
 #include <stdint.h>
+#include <vector>
 
 namespace {
 	/**

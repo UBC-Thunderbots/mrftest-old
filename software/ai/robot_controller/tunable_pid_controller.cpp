@@ -1,10 +1,7 @@
 #include "ai/robot_controller/tunable_pid_controller.h"
-#include "geom/point.h"
 #include "geom/angle.h"
-
+#include "geom/point.h"
 #include <cmath>
-#include <iostream>
-#include <fstream>
 
 using AI::RC::TunablePIDController;
 using AI::RC::RobotController;

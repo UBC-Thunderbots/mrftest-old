@@ -2,8 +2,8 @@
 #define UTIL_RLE_H
 
 #include <cstddef>
-#include <vector>
 #include <stdint.h>
+#include <vector>
 
 /**
  * Run-length-encodes a block of binary data. The expected usage model is:

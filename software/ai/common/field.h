@@ -1,7 +1,7 @@
 #ifndef AI_COMMON_FIELD_H
 #define AI_COMMON_FIELD_H
 
-#include"geom/point.h"
+#include "geom/point.h"
 #include <utility>
 
 namespace AI {

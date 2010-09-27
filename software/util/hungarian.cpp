@@ -1,7 +1,7 @@
 #include "util/hungarian.h"
 #include <algorithm>
-#include <limits>
 #include <cmath>
+#include <limits>
 
 namespace {
 	const double EPS = 1e-9;

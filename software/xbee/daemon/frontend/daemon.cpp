@@ -1,13 +1,13 @@
+#include "xbee/daemon/frontend/daemon.h"
 #include "util/fd.h"
 #include "util/sockaddrs.h"
 #include "xbee/daemon/frontend/already_running.h"
 #include "xbee/daemon/frontend/client.h"
-#include "xbee/daemon/frontend/daemon.h"
 #include "xbee/shared/packettypes.h"
 #include <algorithm>
-#include <stdexcept>
 #include <cerrno>
 #include <fcntl.h>
+#include <stdexcept>
 #include <unistd.h>
 #include <sys/file.h>
 #include <sys/socket.h>

@@ -1,7 +1,7 @@
 #include "xbee/daemon/physical/byteproto.h"
 #include <algorithm>
-#include <vector>
 #include <cassert>
+#include <vector>
 
 XBeeByteStream::XBeeByteStream() : received_escape(false) {
 	port.signal_received().connect(sigc::mem_fun(this, &XBeeByteStream::bytes_received));

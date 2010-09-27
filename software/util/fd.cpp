@@ -1,13 +1,13 @@
-#include "util/exception.h"
 #include "util/fd.h"
+#include "util/exception.h"
 #include <cstdlib>
 #include <fcntl.h>
 #include <glibmm.h>
 #include <string>
 #include <unistd.h>
 #include <vector>
-#include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 
 FileDescriptor::Ptr FileDescriptor::create_from_fd(int fd) {
 	const Ptr p(new FileDescriptor(fd));

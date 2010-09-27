@@ -1,8 +1,7 @@
 #include "geom/util.h"
 #include "geom/angle.h"
-
-#include <cassert>
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 
 namespace {

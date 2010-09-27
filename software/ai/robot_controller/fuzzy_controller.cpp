@@ -1,6 +1,6 @@
 #include "ai/robot_controller/fuzzy_controller.h"
-#include "geom/point.h"
 #include "geom/angle.h"
+#include "geom/point.h"
 #include <cmath>
 
 using AI::RC::FuzzyController;

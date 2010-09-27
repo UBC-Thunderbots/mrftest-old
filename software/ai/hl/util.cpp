@@ -1,8 +1,7 @@
 #include "ai/hl/util.h"
-#include "util/algorithm.h"
 #include "geom/angle.h"
 #include "geom/util.h"
-
+#include "util/algorithm.h"
 #include <cmath>
 #include <iostream>
 

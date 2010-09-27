@@ -2,11 +2,11 @@
 #include "xbee/daemon/frontend/daemon.h"
 #include "xbee/daemon/physical/packetproto.h"
 #include <exception>
+#include <fcntl.h>
+#include <glibmm.h>
 #include <iostream>
 #include <locale>
 #include <stdexcept>
-#include <glibmm.h>
-#include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>

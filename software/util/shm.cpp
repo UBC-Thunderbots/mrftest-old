@@ -1,8 +1,8 @@
-#include "util/misc.h"
 #include "util/shm.h"
+#include "util/misc.h"
 #include "util/umask.h"
-#include <stdexcept>
 #include <cstdlib>
+#include <stdexcept>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <sys/stat.h>

@@ -1,8 +1,8 @@
 #include "xbee/daemon/physical/packetproto.h"
 #include <algorithm>
+#include <cassert>
 #include <iterator>
 #include <vector>
-#include <cassert>
 
 XBeePacketStream::XBeePacketStream() : sop_seen(false) {
 	bstream.signal_sop_received().connect(sigc::mem_fun(this, &XBeePacketStream::on_sop));

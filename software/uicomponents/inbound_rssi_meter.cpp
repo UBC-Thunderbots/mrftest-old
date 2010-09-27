@@ -1,5 +1,4 @@
 #include "uicomponents/inbound_rssi_meter.h"
-
 #include <iomanip>
 
 InboundRSSIMeter::InboundRSSIMeter() : last_rssi(-1) {

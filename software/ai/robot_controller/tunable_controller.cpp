@@ -1,5 +1,4 @@
 #include "ai/robot_controller/tunable_controller.h"
-
 #include <cassert>
 #include <set>
 

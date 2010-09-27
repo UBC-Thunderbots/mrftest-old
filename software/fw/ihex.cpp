@@ -1,11 +1,11 @@
 #include "fw/ihex.h"
-#include <fstream>
-#include <stdexcept>
-#include <string>
 #include <algorithm>
-#include <functional>
 #include <cctype>
+#include <fstream>
+#include <functional>
+#include <stdexcept>
 #include <stdint.h>
+#include <string>
 
 
 

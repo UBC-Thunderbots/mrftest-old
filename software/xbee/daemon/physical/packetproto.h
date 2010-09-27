@@ -3,8 +3,8 @@
 
 #include "xbee/daemon/frontend/backend.h"
 #include "xbee/daemon/physical/byteproto.h"
-#include <vector>
 #include <cstddef>
+#include <vector>
 
 /**
  * Allows sending and receiving packets to the XBee.

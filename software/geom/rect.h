@@ -1,4 +1,7 @@
-#include "./geom/point.h"
+#ifndef GEOM_RECT_H
+#define GEOM_RECT_H
+
+#include "geom/point.h"
 
 /**
  * A rectangle.
@@ -92,4 +95,6 @@ class Rect {
 		Point min_corner;
 		Point diag;
 };
+
+#endif
 

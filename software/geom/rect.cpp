@@ -1,4 +1,4 @@
-#include "./geom/rect.h"
+#include "geom/rect.h"
 #include <algorithm>
 #include <cmath>
 

@@ -4,8 +4,8 @@
 #include "uicomponents/annunciator.h"
 #include "util/clocksource.h"
 #include "util/fd.h"
-#include <stdint.h>
 #include <glibmm.h>
+#include <stdint.h>
 
 /**
  * A clock source implemented using the Linux timerfd mechanism.

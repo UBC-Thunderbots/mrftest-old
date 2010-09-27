@@ -1,13 +1,11 @@
 #ifndef UTIL_CONFIG_H
 #define UTIL_CONFIG_H
 
+#include "util/noncopyable.h"
 #include <glibmm.h>
-#include <istream>
 #include <map>
-#include <ostream>
 #include <stdint.h>
 #include <vector>
-#include "util/noncopyable.h"
 
 namespace xmlpp {
 	class Element;

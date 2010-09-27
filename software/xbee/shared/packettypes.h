@@ -3,8 +3,8 @@
 
 #include <cstddef>
 #include <ctime>
-#include <stdint.h>
 #include <pthread.h>
+#include <stdint.h>
 
 #warning these are unportable, should prefer proper encoding/decoding functions/classes
 namespace XBeePacketTypes {

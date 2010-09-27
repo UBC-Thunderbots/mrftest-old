@@ -1,5 +1,5 @@
-#include "util/algorithm.h"
 #include "util/config.h"
+#include "util/algorithm.h"
 #include <algorithm>
 #include <cassert>
 #include <fstream>

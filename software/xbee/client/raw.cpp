@@ -1,6 +1,6 @@
+#include "xbee/client/raw.h"
 #include "xbee/client/lowlevel.h"
 #include "xbee/client/packet.h"
-#include "xbee/client/raw.h"
 #include <cassert>
 #include <cstdlib>
 

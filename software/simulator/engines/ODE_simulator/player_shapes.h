@@ -1,7 +1,7 @@
-#include <ode/ode.h>
-#include <vector>
 #include "geom/point.h"
 #include <cmath>
+#include <vector>
+#include <ode/ode.h>
 
 #warning this file needs Doxygen comments
 

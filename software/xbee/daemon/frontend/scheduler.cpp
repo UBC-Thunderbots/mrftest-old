@@ -1,14 +1,14 @@
+#include "xbee/daemon/frontend/scheduler.h"
 #include "util/algorithm.h"
 #include "util/rwlock.h"
 #include "util/time.h"
 #include "xbee/daemon/frontend/backend.h"
 #include "xbee/daemon/frontend/daemon.h"
-#include "xbee/daemon/frontend/scheduler.h"
 #include "xbee/shared/packettypes.h"
 #include <algorithm>
-#include <functional>
 #include <cassert>
 #include <ctime>
+#include <functional>
 
 namespace {
 	/**

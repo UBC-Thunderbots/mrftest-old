@@ -3,9 +3,9 @@
 
 #include "util/byref.h"
 #include <cassert>
-#include <vector>
 #include <glibmm.h>
 #include <stdint.h>
+#include <vector>
 
 /**
  * A packet to be sent to the XBee which may or may not provoke a response and which,

@@ -4,10 +4,10 @@
 #include "util/noncopyable.h"
 #include "xbee/daemon/frontend/request.h"
 #include <ctime>
-#include <queue>
-#include <vector>
 #include <glibmm.h>
+#include <queue>
 #include <stdint.h>
+#include <vector>
 
 class XBeeDaemon;
 

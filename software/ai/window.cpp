@@ -4,8 +4,6 @@
 #include "uicomponents/param.h"
 #include "util/algorithm.h"
 #include <cassert>
-#include <cstdlib>
-#include <iomanip>
 
 using AI::Window;
 

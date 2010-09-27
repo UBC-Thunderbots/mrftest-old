@@ -1,20 +1,20 @@
 #include "util/config.h"
 #include "util/time.h"
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
+#include <fcntl.h>
+#include <glibmm.h>
 #include <iomanip>
 #include <iostream>
 #include <locale>
 #include <sstream>
-#include <cstdio>
-#include <cstdlib>
-#include <glibmm.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/ioctl.h>
-#include <linux/serial.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <termios.h>
-#include <time.h>
+#include <unistd.h>
+#include <linux/serial.h>
+#include <sys/ioctl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 namespace {
 	const struct BAUD_INFO {

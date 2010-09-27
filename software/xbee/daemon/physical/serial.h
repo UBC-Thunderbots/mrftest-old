@@ -5,7 +5,6 @@
 #include "util/noncopyable.h"
 #include <cstddef>
 #include <glibmm.h>
-#include <cstddef>
 #include <stdint.h>
 #include <sigc++/sigc++.h>
 #include <sys/uio.h>

@@ -1,5 +1,5 @@
-#include "uicomponents/abstract_list_model.h"
 #include "uicomponents/annunciator.h"
+#include "uicomponents/abstract_list_model.h"
 #include "util/dprint.h"
 #include "util/misc.h"
 #include "util/noncopyable.h"

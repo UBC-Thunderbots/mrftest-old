@@ -1,8 +1,8 @@
 #ifndef FW_IHEX_H
 #define FW_IHEX_H
 
-#include <vector>
 #include <glibmm.h>
+#include <vector>
 
 /**
  * An Intel HEX file. A HEX file can contain memory for many different addresses with many different layouts.

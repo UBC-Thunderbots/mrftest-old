@@ -2,10 +2,10 @@
 #define UTIL_REGISTERABLE_H
 
 #include "util/noncopyable.h"
+#include <glibmm.h>
 #include <map>
 #include <stdexcept>
 #include <vector>
-#include <glibmm.h>
 
 /**
  * A generic, templatized class to handle interfaces that should have registerable implementations.

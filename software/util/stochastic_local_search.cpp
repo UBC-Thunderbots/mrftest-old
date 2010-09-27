@@ -1,9 +1,9 @@
 #include "util/stochastic_local_search.h"
-#include <limits>
+#include <cmath>
 #include <cstdlib>
 #include <ctime>
-#include <cmath>
-#include <iostream>
+#include <limits>
+
 using namespace std;
 
 #warning the header file util/stochastic_local_search.h needs Doxygen comments on its functions.

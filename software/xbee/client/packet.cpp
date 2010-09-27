@@ -1,5 +1,5 @@
-#include "util/xbee.h"
 #include "xbee/client/packet.h"
+#include "util/xbee.h"
 #include "xbee/shared/packettypes.h"
 #include <stdexcept>
 #include <sys/socket.h>

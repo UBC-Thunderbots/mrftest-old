@@ -1,8 +1,8 @@
+#include "test/window.h"
 #include "test/controlled_permotor_drive.h"
 #include "test/direct_drive.h"
 #include "test/feedback.h"
 #include "test/matrix_drive.h"
-#include "test/window.h"
 #include <algorithm>
 #include <cassert>
 #include <functional>

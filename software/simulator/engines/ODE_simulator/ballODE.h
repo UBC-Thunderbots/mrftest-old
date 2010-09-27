@@ -1,3 +1,6 @@
+#ifndef SIMULATOR_ENGINES_ODE_SIMULATOR_BALLODE_H
+#define SIMULATOR_ENGINES_ODE_SIMULATOR_BALLODE_H
+
 #include "simulator/ball.h"
 #include <ode/ode.h>
 
@@ -43,4 +46,5 @@ class BallODE : public SimulatorBall {
 
 };
 
+#endif
 

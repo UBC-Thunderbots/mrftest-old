@@ -1,9 +1,9 @@
 #ifndef UTIL_HUNGARIAN_H
 #define UTIL_HUNGARIAN_H
 
-#include <vector>
 #include <cassert>
 #include <cstddef>
+#include <vector>
 
 /**
  * Uses the Hungarian algorithm to perform a maximum-weight bipartite matching.

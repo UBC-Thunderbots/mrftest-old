@@ -1,6 +1,6 @@
+#include "xbee/client/drive.h"
 #include "util/rwlock.h"
 #include "util/time.h"
-#include "xbee/client/drive.h"
 #include "xbee/client/lowlevel.h"
 #include "xbee/client/packet.h"
 #include <cassert>

@@ -2,7 +2,6 @@
 #define GEOM_ANGLE_H
 
 #include "geom/point.h"
-
 #include <cmath>
 
 /**

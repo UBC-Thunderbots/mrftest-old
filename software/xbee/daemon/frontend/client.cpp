@@ -1,19 +1,19 @@
+#include "xbee/daemon/frontend/client.h"
 #include "util/misc.h"
 #include "xbee/daemon/frontend/backend.h"
-#include "xbee/daemon/frontend/client.h"
 #include "xbee/daemon/frontend/daemon.h"
 #include "xbee/daemon/frontend/resource_allocation_failed.h"
 #include "xbee/shared/packettypes.h"
 #include <algorithm>
-#include <functional>
-#include <ext/functional>
-#include <glibmm.h>
 #include <cerrno>
 #include <cstddef>
 #include <cstring>
+#include <functional>
+#include <glibmm.h>
 #include <stdint.h>
-#include <sys/types.h>
+#include <ext/functional>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <sys/un.h>
 
 namespace {

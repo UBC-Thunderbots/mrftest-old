@@ -1,6 +1,6 @@
 #include "ai/ball_filter/ball_filter.h"
-#include "util/timestep.h"
 #include "geom/angle.h"
+#include "util/timestep.h"
 #include <cmath>
 #include <list>
 #include <utility>

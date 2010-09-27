@@ -1,5 +1,5 @@
-#include "util/crc16.h"
 #include "util/rle.h"
+#include "util/crc16.h"
 #include <algorithm>
 #include <cassert>
 #include <utility>

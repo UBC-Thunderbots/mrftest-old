@@ -2,11 +2,11 @@
 #define XBEE_DAEMON_FRONTEND_BACKEND_H
 
 #include "util/noncopyable.h"
+#include <cstddef>
+#include <stdint.h>
 #include <vector>
 #include <sigc++/sigc++.h>
 #include <sys/uio.h>
-#include <cstddef>
-#include <stdint.h>
 
 /**
  * A particular back-end that wishes to handle all packets transmitted and produce received packets must subclass this class.
