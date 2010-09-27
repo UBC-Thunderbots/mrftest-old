@@ -7,7 +7,6 @@
 
 using AI::BF::BallFilter;
 using namespace AI::BF::W;
-using namespace std;
 
 namespace {
 	struct Circle {
@@ -24,7 +23,7 @@ namespace {
 			static const double RADIUS = 10.0/TIMESTEPS_PER_SECOND;
 			static const double DECAY_RATE = 0.2063; // half-life = 3 frames
 			static const double DELETE_THRESHOLD = 0.02; // stores < 50 circles
-			list<Circle> circles;
+			std::list<Circle> circles;
 			Point last_point;
 
 		public:
@@ -35,12 +34,12 @@ namespace {
 				circles.push_back(c);
 			}
 
-			Point filter(const vector<pair<double, Point> > &obs, World &) {
+			Point filter(const std::vector<std::pair<double, Point> > &obs, World &) {
 				Point max_point;
 				double max_cert = -0.1;
 
 				if (obs.empty()) {
-					for (list<Circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
+					for (std::list<Circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
 						it->certainty = (1.0 - DECAY_RATE)*it->certainty;
 					}
 				}
@@ -52,8 +51,8 @@ namespace {
 						}
 					}
 
-					vector<Circle> containing;
-					for (list<Circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
+					std::vector<Circle> containing;
+					for (std::list<Circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
 						if ((max_point - it->center).len() < RADIUS) {
 							containing.push_back(*it);
 							it->center = max_point;
@@ -71,10 +70,10 @@ namespace {
 					}
 					else {
 						double anti_cert = 1.0;
-						for (vector<Circle>::iterator it = containing.begin(); it != containing.end(); ++it) {
+						for (std::vector<Circle>::iterator it = containing.begin(); it != containing.end(); ++it) {
 							anti_cert *= 1.0 - (*it).certainty;
 							if (it != containing.begin()) {
-								list<Circle>::iterator shit, next_shit = circles.begin();
+								std::list<Circle>::iterator shit, next_shit = circles.begin();
 								while (next_shit != circles.end()) {
 									shit = next_shit;
 									++next_shit;
@@ -88,15 +87,15 @@ namespace {
 						containing[0].certainty = 1.0 - anti_cert;
 					}
 
-					for (list<Circle>::iterator it = circles.begin(); it != circles.end(); ) {
+					for (std::list<Circle>::iterator it = circles.begin(); it != circles.end(); ) {
 						if (it->certainty < DELETE_THRESHOLD) it = circles.erase(it);
 						else ++it;
 					}
 				}
 
 				max_cert = 0.0;
-				list<Circle>::iterator max_point_it = circles.begin();
-				for (list<Circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
+				std::list<Circle>::iterator max_point_it = circles.begin();
+				for (std::list<Circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
 					if (max_cert < it->certainty) {
 						max_cert = it->certainty;
 						max_point_it = it;

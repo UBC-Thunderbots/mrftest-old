@@ -8,7 +8,6 @@
 
 using AI::BF::BallFilter;
 using namespace AI::BF::W;
-using namespace std;
 
 namespace {
 	struct Circle {
@@ -26,7 +25,7 @@ namespace {
 			static const double DECAY_RATE = 0.2063; // half-life = 3 frames
 			static const double DEFAULT_CERT = 0.04; // one half-life to delete
 			static const double DELETE_THRESHOLD = 0.02; // stores < 50 circles
-			list<Circle> circles;
+			std::list<Circle> circles;
 			Point last_point;
 			bool use_closest;
 			unsigned int robot_index;
@@ -41,7 +40,7 @@ namespace {
 				has_ball_timesteps = 0;
 			}
 
-                        Point filter(const vector<pair<double, Point> > &obs, World &world) {
+                        Point filter(const std::vector<std::pair<double, Point> > &obs, World &world) {
 							FriendlyTeam &friendly = world.friendly_team();
 							EnemyTeam &enemy = world.enemy_team();
 				Point max_point;
@@ -68,7 +67,7 @@ namespace {
 
 				// There's nothing we can do to add a new obs, so just decay
 				if (obs.empty() && !use_closest && has_ball_cert <= 0) {
-					for (list<Circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
+					for (std::list<Circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
 						it->certainty = (1.0 - DECAY_RATE)*it->certainty;
 					}
 				}
@@ -101,8 +100,8 @@ namespace {
 						max_cert = has_ball_cert;
 					}
 
-					vector<Circle> containing;
-					for (list<Circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
+					std::vector<Circle> containing;
+					for (std::list<Circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
 						if ((max_point - it->center).len() < RADIUS) {
 							containing.push_back(*it);
 							it->center = max_point;
@@ -120,10 +119,10 @@ namespace {
 					}
 					else {
 						double anti_cert = 1.0;
-						for (vector<Circle>::iterator it = containing.begin(); it != containing.end(); ++it) {
+						for (std::vector<Circle>::iterator it = containing.begin(); it != containing.end(); ++it) {
 							anti_cert *= 1.0 - (*it).certainty;
 							if (it != containing.begin()) {
-								for (list<Circle>::iterator shit = circles.begin(); shit != circles.end(); ++shit) {
+								for (std::list<Circle>::iterator shit = circles.begin(); shit != circles.end(); ++shit) {
 									if( (*shit) == (*it) )
 										circles.erase(shit);
 								}	
@@ -134,15 +133,15 @@ namespace {
 						containing[0].certainty = 1.0 - anti_cert;
 					}
 
-					for (list<Circle>::iterator it = circles.begin(); it != circles.end(); ) {
+					for (std::list<Circle>::iterator it = circles.begin(); it != circles.end(); ) {
 						if (it->certainty < DELETE_THRESHOLD) it = circles.erase(it);
 						else ++it;
 					}
 				}
 
 				max_cert = 0.0;
-				list<Circle>::iterator max_point_it = circles.begin();
-				for (list<Circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
+				std::list<Circle>::iterator max_point_it = circles.begin();
+				for (std::list<Circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
 					if (max_cert < it->certainty) {
 						max_cert = it->certainty;
 						max_point_it = it;
