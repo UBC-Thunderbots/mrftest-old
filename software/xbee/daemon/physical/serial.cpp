@@ -50,23 +50,27 @@ SerialPort::SerialPort() : port(FileDescriptor::create_open("/dev/xbee", O_RDWR 
 void SerialPort::configure_port() {
 	// Try to configure the custom divisor to give 250,000 baud.
 	serial_struct cur_serinfo, new_serinfo;
-	if (ioctl(port->fd(), TIOCGSERIAL, &cur_serinfo) < 0)
+	if (ioctl(port->fd(), TIOCGSERIAL, &cur_serinfo) < 0) {
 		throw std::runtime_error("Cannot get serial port configuration!");
+	}
 	new_serinfo = cur_serinfo;
 	new_serinfo.flags &= ~ASYNC_SPD_MASK;
 	new_serinfo.flags |= ASYNC_SPD_CUST;
 	new_serinfo.custom_divisor = new_serinfo.baud_base / 250000;
 	while (!is_serinfo_ok(cur_serinfo)) {
-		if (ioctl(port->fd(), TIOCSSERIAL, &new_serinfo) < 0)
+		if (ioctl(port->fd(), TIOCSSERIAL, &new_serinfo) < 0) {
 			throw std::runtime_error("Cannot set serial port configuration!");
-		if (ioctl(port->fd(), TIOCGSERIAL, &cur_serinfo) < 0)
+		}
+		if (ioctl(port->fd(), TIOCGSERIAL, &cur_serinfo) < 0) {
 			throw std::runtime_error("Cannot get serial port configuration!");
+		}
 	}
 
 	// Try to configure the regular terminal to 38,400 baud (which means to use the custom divisor).
 	termios cur_tios, new_tios;
-	if (tcgetattr(port->fd(), &cur_tios) < 0)
+	if (tcgetattr(port->fd(), &cur_tios) < 0) {
 		throw std::runtime_error("Cannot get serial port configuration!");
+	}
 	new_tios = cur_tios;
 	cfmakeraw(&new_tios);
 	cfsetispeed(&new_tios, B38400);
@@ -80,10 +84,12 @@ void SerialPort::configure_port() {
 	new_tios.c_cc[VMIN] = 0;
 	new_tios.c_cc[VTIME] = 0;
 	while (!is_tios_ok(cur_tios)) {
-		if (tcsetattr(port->fd(), TCSAFLUSH, &new_tios) < 0)
+		if (tcsetattr(port->fd(), TCSAFLUSH, &new_tios) < 0) {
 			throw std::runtime_error("Cannot set serial port configuration!");
-		if (tcgetattr(port->fd(), &cur_tios) < 0)
+		}
+		if (tcgetattr(port->fd(), &cur_tios) < 0) {
 			throw std::runtime_error("Cannot get serial port configuration!");
+		}
 	}
 
 	// Register for readability notifications.
@@ -115,8 +121,9 @@ void SerialPort::send(iovec *iov, std::size_t iovcnt) {
 bool SerialPort::on_readable(Glib::IOCondition) {
 	uint8_t buffer[256];
 	ssize_t ret = read(port->fd(), buffer, sizeof(buffer));
-	if (ret < 0)
+	if (ret < 0) {
 		throw std::runtime_error("Cannot read from serial port!");
+	}
 
 	sig_received.emit(buffer, ret);
 

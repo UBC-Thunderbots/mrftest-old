@@ -17,7 +17,6 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
-
 	BoolParam ADHOC_SLOW_ANGULAR("AdHoc2: Slow if translating", true);
 	BoolParam ADHOC_FLIP_SLOWDOWN("AdHoc2: flip trans/ang slowdown", false);
 	DoubleParam ADHOC_SLOWDOWN("AdHoc2: slowdown (CARE)", 1.5, 0.1, 8.0);
@@ -38,6 +37,7 @@ namespace {
 			void clear();
 			RobotControllerFactory &get_factory() const;
 			AdHoc2Controller(Player::Ptr plr);
+
 		protected:
 			bool initialized;
 			// errors in x, y, d
@@ -58,7 +58,9 @@ namespace {
 		double new_da = angle_mod(new_orientation - current_orientation);
 		const Point &new_dir = (new_position - current_position).rotate(-current_orientation);
 
-		if (new_da > M_PI) new_da -= 2 * M_PI;
+		if (new_da > M_PI) {
+			new_da -= 2 * M_PI;
+		}
 
 		if (!initialized) {
 			initialized = true;
@@ -74,8 +76,8 @@ namespace {
 		double vy = -vel.y;
 		double va = -player->avelocity();
 
-		//const double cx = accum_pos.x;
-		//const double cy = accum_pos.y;
+		// const double cx = accum_pos.x;
+		// const double cy = accum_pos.y;
 
 		// check if command has changed
 		if (prev_new_pos.x != new_position.x || prev_new_pos.y != new_position.y || prev_new_ori != new_orientation) {
@@ -143,6 +145,5 @@ namespace {
 	RobotControllerFactory &AdHoc2Controller::get_factory() const {
 		return factory;
 	}
-
 }
 

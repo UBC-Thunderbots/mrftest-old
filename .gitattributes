@@ -216,6 +216,7 @@ software/uicomponents/success_meter.cpp -text
 software/uicomponents/success_meter.h -text
 software/uicomponents/visualizer.cpp -text
 software/uicomponents/visualizer.h -text
+software/uncrustify.cfg -text
 software/util/algorithm.h -text
 software/util/byref.h -text
 software/util/clocksource.h -text

@@ -30,48 +30,59 @@ void Hungarian::execute() {
 	std::fill(mx.begin(), mx.end(), std::numeric_limits<unsigned int>::max());
 	std::fill(my.begin(), my.end(), std::numeric_limits<unsigned int>::max());
 
-	for (unsigned int i = 0; i < N; i++)
-		for (unsigned int j = 0; j < N; j++)
+	for (unsigned int i = 0; i < N; i++) {
+		for (unsigned int j = 0; j < N; j++) {
 			ly[j] = std::max(ly[j], weights[i][j]);
+		}
+	}
 
 	for (unsigned int szm = 0; szm < N; ++szm) {
 		unsigned int u = 0;
-		while (u < N && mx[u] != std::numeric_limits<unsigned int>::max())
+		while (u < N && mx[u] != std::numeric_limits<unsigned int>::max()) {
 			u++;
+		}
 		std::fill(S, S + N, false);
 		S[u] = true;
 		std::fill(py, py + N, std::numeric_limits<unsigned int>::max());
-		for (unsigned int y = 0; y < N; y++)
+		for (unsigned int y = 0; y < N; y++) {
 			sy[y] = ly[y] + lx[u] - weights[u][y];
-		for (;;) {
+		}
+		for (;; ) {
 			unsigned int y = 0;
-			while (y < N && !(equal(sy[y], 0.0) && py[y] == std::numeric_limits<unsigned int>::max()))
+			while (y < N && !(equal(sy[y], 0.0) && py[y] == std::numeric_limits<unsigned int>::max())) {
 				y++;
+			}
 			if (y == N) {
 				double a = 1.0 / 0.0;
-				for (unsigned int i = 0; i < N; i++)
-					if (py[i] == std::numeric_limits<unsigned int>::max())
+				for (unsigned int i = 0; i < N; i++) {
+					if (py[i] == std::numeric_limits<unsigned int>::max()) {
 						a = std::min(a, sy[i]);
+					}
+				}
 				for (unsigned int v = 0; v < N; v++) {
-					if (S[v])
+					if (S[v]) {
 						lx[v] -= a;
-					if (py[v] != std::numeric_limits<unsigned int>::max())
+					}
+					if (py[v] != std::numeric_limits<unsigned int>::max()) {
 						ly[v] += a;
-					else
+					} else {
 						sy[v] -= a;
+					}
 				}
 			} else {
-				for (unsigned int x = 0; x < N; x++)
+				for (unsigned int x = 0; x < N; x++) {
 					if (S[x] && equal(lx[x] + ly[y], weights[x][y])) {
 						py[y] = x;
 						break;
 					}
+				}
 				if (my[y] != std::numeric_limits<unsigned int>::max()) {
 					S[my[y]] = true;
-					for (unsigned int z = 0; z < N; z++)
+					for (unsigned int z = 0; z < N; z++) {
 						sy[z] = std::min(sy[z], lx[my[y]] + ly[z] - weights[my[y]][z]);
+					}
 				} else {
-					while(y<N) {
+					while (y < N) {
 						unsigned int p, ny;
 						p = py[y];
 						ny = mx[p];

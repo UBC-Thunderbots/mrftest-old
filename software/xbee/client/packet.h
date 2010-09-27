@@ -87,7 +87,7 @@ class Transmit16Packet : public XBeePacket {
 			return p;
 		}
 
-		void transmit(FileDescriptor::Ptr , uint8_t) const;
+		void transmit(FileDescriptor::Ptr, uint8_t) const;
 
 	private:
 		uint16_t dest;
@@ -164,7 +164,7 @@ class RemoteATPacket : public XBeePacket {
 			return p;
 		}
 
-		void transmit(FileDescriptor::Ptr , uint8_t) const;
+		void transmit(FileDescriptor::Ptr, uint8_t) const;
 
 	private:
 		uint64_t dest;
@@ -200,7 +200,7 @@ class MetaClaimPacket : public XBeePacket {
 			return p;
 		}
 
-		void transmit(FileDescriptor::Ptr , uint8_t) const;
+		void transmit(FileDescriptor::Ptr, uint8_t) const;
 
 	private:
 		uint64_t address;
@@ -230,7 +230,7 @@ class MetaReleasePacket : public XBeePacket {
 			return p;
 		}
 
-		void transmit(FileDescriptor::Ptr , uint8_t) const;
+		void transmit(FileDescriptor::Ptr, uint8_t) const;
 
 	private:
 		uint64_t address;

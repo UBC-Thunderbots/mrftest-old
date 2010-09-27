@@ -6,7 +6,7 @@
 
 #warning the header file util/stochastic_local_search.h needs Doxygen comments on its functions.
 
-StochasticLocalSearch::StochasticLocalSearch(const std::vector<double>& start, const std::vector<double>& min, const std::vector<double>& max) {
+StochasticLocalSearch::StochasticLocalSearch(const std::vector<double> &start, const std::vector<double> &min, const std::vector<double> &max) {
 	srand48(time(NULL));
 	srand(time(NULL));
 	bestCost = std::numeric_limits<double>::max();
@@ -40,20 +40,22 @@ void StochasticLocalSearch::revert() {
 void StochasticLocalSearch::hill_climb() {
 	param_cur = param_best;
 	int tries = 100;
-	while(tries > 0) {
+	while (tries > 0) {
 		--tries;
 		int index = rand() % param_cur.size();
-		if (param_min[index] == param_max[index]) continue;
-		param_cur[index] = drand48()*(param_max[index]-param_min[index]) + param_min[index];
+		if (param_min[index] == param_max[index]) {
+			continue;
+		}
+		param_cur[index] = drand48() * (param_max[index] - param_min[index]) + param_min[index];
 		break;
 	}
 }
 
 /*
-void StochasticLocalSearch::random_restart() {
-	int index = rand()%param_cur.size();
-	param_cur[index] = drand48()*(param_max[index]-param_min[index]) + param_min[index];
-	for (uint i = 0; i < param_min.size(); i++) param_cur[i] = drand48()*(param_max[i]-param_min[i]) + param_min[i];
-}
-*/
+   void StochasticLocalSearch::random_restart() {
+    int index = rand()%param_cur.size();
+    param_cur[index] = drand48()*(param_max[index]-param_min[index]) + param_min[index];
+    for (uint i = 0; i < param_min.size(); i++) param_cur[i] = drand48()*(param_max[i]-param_min[i]) + param_min[i];
+   }
+ */
 

@@ -41,7 +41,7 @@ namespace AI {
 				 * \param[out] wheel_speeds the wheel speeds,
 				 * in quarters of a degree of motor shaft rotation per five milliseconds.
 				 */
-				static void convert_to_wheels(const Point &vel, double avel, int (&wheel_speeds)[4]);
+				static void convert_to_wheels(const Point &vel, double avel, int(&wheel_speeds)[4]);
 
 			protected:
 				/**
@@ -81,7 +81,7 @@ namespace AI {
 				 * \param[out] wheel_speeds the speeds of the four wheels to send to the robot,
 				 * in quarters of a degree of motor shaft rotation per five milliseconds.
 				 */
-				virtual void move(const Point &new_position, double new_orientation, int (&wheel_speeds)[4]) = 0;
+				virtual void move(const Point &new_position, double new_orientation, int(&wheel_speeds)[4]) = 0;
 
 				/**
 				 * Tells the controller to clear its internal state because the robot under control is scrammed.
@@ -148,12 +148,12 @@ namespace AI {
 				~OldRobotController();
 
 			private:
-				void move(const Point &new_position, double new_orientation, int (&wheel_speeds)[4]);
+				void move(const Point &new_position, double new_orientation, int(&wheel_speeds)[4]);
 		};
 
 		/**
 		 * A factory to construct \ref RobotController "RobotControllers".
-		 */ 
+		 */
 		class RobotControllerFactory : public Registerable<RobotControllerFactory> {
 			public:
 				/**

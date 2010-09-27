@@ -23,7 +23,7 @@ class SimulatorField {
 
 		/**
 		 * The width of the field, including the boundary and referee area.
-		 */ 
+		 */
 		static const double total_width;
 
 		/**

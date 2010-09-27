@@ -32,7 +32,7 @@ void XBeeRawBot::on_receive16(uint16_t rx_address, uint8_t rssi, const void *dat
 void XBeeRawBot::on_meta(const void *buffer, std::size_t length) {
 	if (length >= sizeof(XBeePacketTypes::META_HDR)) {
 		uint8_t metatype = static_cast<const XBeePacketTypes::META_HDR *>(buffer)->metatype;
-		
+
 		if (metatype == XBeePacketTypes::CLAIM_FAILED_LOCKED_METATYPE) {
 			const XBeePacketTypes::META_CLAIM_FAILED &packet = *static_cast<const XBeePacketTypes::META_CLAIM_FAILED *>(buffer);
 			if (length == sizeof(packet)) {

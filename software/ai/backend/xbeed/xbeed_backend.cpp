@@ -76,9 +76,9 @@ namespace {
 			~XBeeDFriendlyTeam();
 			unsigned int score() const;
 			std::size_t size() const;
-			Player::Ptr get(std::size_t i) {return members[i];}
+			Player::Ptr get(std::size_t i) { return members[i]; }
 			AI::BE::XBeeD::Player::Ptr create_member(unsigned int pattern);
-			AI::BE::XBeeD::Player::Ptr get_xbeed_player(std::size_t i) {return members[i];}
+			AI::BE::XBeeD::Player::Ptr get_xbeed_player(std::size_t i) { return members[i]; }
 
 		private:
 			XBeeLowLevel modem;
@@ -97,7 +97,7 @@ namespace {
 			~XBeeDEnemyTeam();
 			unsigned int score() const;
 			std::size_t size() const;
-			Robot::Ptr get(std::size_t i) {return members[i];}
+			Robot::Ptr get(std::size_t i) { return members[i]; }
 			AI::BE::XBeeD::Robot::Ptr create_member(unsigned int pattern);
 
 		private:
@@ -171,7 +171,7 @@ namespace {
 				if (i < friendly.size()) {
 					return friendly.get(i);
 				} else {
-					return  enemy.get(i - friendly.size());
+					return enemy.get(i - friendly.size());
 				}
 			}
 
@@ -267,8 +267,8 @@ namespace {
 					}
 
 					// Update the robots.
-					const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *yellow_packets[2] = {&detections[0].robots_yellow(), &detections[1].robots_yellow()};
-					const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *blue_packets[2] = {&detections[0].robots_blue(), &detections[1].robots_blue()};
+					const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *yellow_packets[2] = { &detections[0].robots_yellow(), &detections[1].robots_yellow() };
+					const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *blue_packets[2] = { &detections[0].robots_blue(), &detections[1].robots_blue() };
 					if (friendly_colour() == YELLOW) {
 						friendly.update(yellow_packets, now);
 						enemy.update(blue_packets, now);

@@ -492,7 +492,7 @@ void XBeeClient::on_robot_feedback(uint64_t address) {
 
 void XBeeClient::do_release(uint64_t address) {
 	daemon.robots[address]->release();
-	std::unordered_map<uint64_t, sigc::connection> *maps[4] = {&pending_raw_claims, &alive_connections, &dead_connections, &feedback_connections};
+	std::unordered_map<uint64_t, sigc::connection> *maps[4] = { &pending_raw_claims, &alive_connections, &dead_connections, &feedback_connections };
 	for (unsigned int i = 0; i < sizeof(maps) / sizeof(*maps); ++i) {
 		std::unordered_map<uint64_t, sigc::connection>::iterator j = maps[i]->find(address);
 		if (j != maps[i]->end()) {

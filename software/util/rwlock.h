@@ -19,7 +19,7 @@ class RWLockScopedAcquire : public NonCopyable {
 		 *
 		 * \param[in] acquire_fn the lock acquisition function, one of \c pthread_rwlock_rdlock or \c pthread_rwlock_wrlock.
 		 */
-		RWLockScopedAcquire(pthread_rwlock_t *lock, int (*acquire_fn)(pthread_rwlock_t *)) : lock(lock) {
+		RWLockScopedAcquire(pthread_rwlock_t *lock, int(*acquire_fn)(pthread_rwlock_t *)) : lock(lock) {
 			if (acquire_fn(lock) != 0) {
 				throw std::runtime_error("Cannot acquire rwlock!");
 			}
@@ -36,7 +36,7 @@ class RWLockScopedAcquire : public NonCopyable {
 		}
 
 	private:
-		pthread_rwlock_t * const lock;
+		pthread_rwlock_t *const lock;
 };
 
 #endif

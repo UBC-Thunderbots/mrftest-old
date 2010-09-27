@@ -123,7 +123,7 @@ class ShmBlock : public NonCopyable {
 			return static_cast<T *>(raw.get());
 		}
 
-		/** 
+		/**
 		 * Gets a pointer to the object stored in the shared memory block.
 		 *
 		 * \return a pointer to the underlying object.
@@ -141,7 +141,7 @@ class ShmBlock : public NonCopyable {
 			return static_cast<T *>(raw.get());
 		}
 
-		/** 
+		/**
 		 * Gets a pointer to the object stored in the shared memory block.
 		 *
 		 * \return a pointer to the underlying object.

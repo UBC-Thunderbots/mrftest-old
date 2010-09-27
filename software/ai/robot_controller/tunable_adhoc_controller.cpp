@@ -17,17 +17,18 @@ using AI::RC::TunableController;
 using namespace AI::RC::W;
 
 namespace {
-
-	//BoolParam PID_SLOW_ANGULAR("PID: Slow if translating", false);
-	//BoolParam PID_FLIP_SLOWDOWN("PID: flip trans/ang slowdown", false);
+	// BoolParam PID_SLOW_ANGULAR("PID: Slow if translating", false);
+	// BoolParam PID_FLIP_SLOWDOWN("PID: flip trans/ang slowdown", false);
 
 	const double SLOWDOWN = 2.0;
 	const double DAMP = 0.5;
 
-	const std::string PARAM_NAMES[] = {"Proportional", "Differential", "Y/X Ratio", "Maximum Speed", "Maximum Acceleration", "Proportional Angle", "Differential Angle", "Maximum Angular Speed", "Y/Angle speed ratio compensate"};
+	const std::string PARAM_NAMES[] = { "Proportional", "Differential", "Y/X Ratio", "Maximum Speed", "Maximum Acceleration", "Proportional Angle", "Differential Angle", "Maximum Angular Speed", "Y/Angle speed ratio compensate" };
 
 	// enumerate the parameters
-	enum { PARAM_PROP = 0, PARAM_DIFF, PARAM_XY_RATIO, PARAM_MAX_VEL, PARAM_MAX_ACC, PARAM_A_PROP, PARAM_A_DIFF, PARAM_A_THRESH, PARAM_YA_RATIO };
+	enum {
+		PARAM_PROP = 0, PARAM_DIFF, PARAM_XY_RATIO, PARAM_MAX_VEL, PARAM_MAX_ACC, PARAM_A_PROP, PARAM_A_DIFF, PARAM_A_THRESH, PARAM_YA_RATIO
+	};
 
 	const double DEF_PROP = 8.0; // 8 - 10
 	const double DEF_DIFF = 0.0;
@@ -53,7 +54,7 @@ namespace {
 			void clear();
 			RobotControllerFactory &get_factory() const;
 			TunableAdHocController(Player::Ptr plr);
-			void set_params(const std::vector<double>& params) {
+			void set_params(const std::vector<double> &params) {
 				this->param = params;
 			}
 			const std::vector<std::string> get_params_name() const;
@@ -63,6 +64,7 @@ namespace {
 			const std::vector<double> get_params_default() const {
 				return param_default;
 			}
+
 		protected:
 			bool initialized;
 			std::vector<double> param;
@@ -91,7 +93,9 @@ namespace {
 		double new_da = angle_mod(new_orientation - current_orientation);
 		const Point &new_dir = (new_position - current_position).rotate(-current_orientation);
 
-		if (new_da > M_PI) new_da -= 2 * M_PI;
+		if (new_da > M_PI) {
+			new_da -= 2 * M_PI;
+		}
 
 		if (!initialized) {
 			initialized = true;
@@ -106,24 +110,24 @@ namespace {
 
 		// update the previous
 		/*
-		for (int t = 9; t > 0; --t) {
-			error_pos[t] = error_pos[t - 1];
-			error_ori[t] = error_ori[t - 1];
-		}
-		error_pos[0] = new_dir;
-		error_ori[0] = new_da;
-		*/
+		   for (int t = 9; t > 0; --t) {
+		    error_pos[t] = error_pos[t - 1];
+		    error_ori[t] = error_ori[t - 1];
+		   }
+		   error_pos[0] = new_dir;
+		   error_ori[0] = new_da;
+		 */
 
 		/*
-		Point accum_pos(0, 0);
-		double accum_ori(0);
-		for (int t = 9; t >= 0; --t) {
-			accum_pos *= DAMP;
-			accum_ori *= DAMP;
-			accum_pos += error_pos[t];
-			accum_ori += error_ori[t];
-		}
-		*/
+		   Point accum_pos(0, 0);
+		   double accum_ori(0);
+		   for (int t = 9; t >= 0; --t) {
+		    accum_pos *= DAMP;
+		    accum_ori *= DAMP;
+		    accum_pos += error_pos[t];
+		    accum_ori += error_ori[t];
+		   }
+		 */
 
 		const double px = new_dir.x;
 		const double py = new_dir.y;
@@ -133,8 +137,8 @@ namespace {
 		double vy = -vel.y;
 		double va = -player->avelocity();
 
-		//const double cx = accum_pos.x;
-		//const double cy = accum_pos.y;
+		// const double cx = accum_pos.x;
+		// const double cy = accum_pos.y;
 
 		// check if command has changed
 		if (prev_new_pos.x != new_position.x || prev_new_pos.y != new_position.y || prev_new_ori != new_orientation) {
@@ -168,18 +172,18 @@ namespace {
 
 		// threshold even more
 		/*
-		if (PID_SLOW_ANGULAR) {
-			if (PID_FLIP_SLOWDOWN) {
-				double slowdown = (SLOWDOWN * param[PARAM_A_THRESH] - std::fabs(angular_velocity)) / (SLOWDOWN * param[PARAM_A_THRESH]);
-				assert(std::fabs(slowdown) < 1.1);
-				linear_velocity *= slowdown;
-			} else {
-				double slowdown = (SLOWDOWN * param[PARAM_MAX_VEL] - linear_velocity.len()) / (SLOWDOWN * param[PARAM_MAX_VEL]);
-				assert(std::fabs(slowdown) < 1.1);
-				angular_velocity *= slowdown;
-			}
-		}
-		*/
+		   if (PID_SLOW_ANGULAR) {
+		    if (PID_FLIP_SLOWDOWN) {
+		        double slowdown = (SLOWDOWN * param[PARAM_A_THRESH] - std::fabs(angular_velocity)) / (SLOWDOWN * param[PARAM_A_THRESH]);
+		        assert(std::fabs(slowdown) < 1.1);
+		        linear_velocity *= slowdown;
+		    } else {
+		        double slowdown = (SLOWDOWN * param[PARAM_MAX_VEL] - linear_velocity.len()) / (SLOWDOWN * param[PARAM_MAX_VEL]);
+		        assert(std::fabs(slowdown) < 1.1);
+		        angular_velocity *= slowdown;
+		    }
+		   }
+		 */
 
 		/*
 		   if (player->has_ball()) {
@@ -212,6 +216,5 @@ namespace {
 	RobotControllerFactory &TunableAdHocController::get_factory() const {
 		return factory;
 	}
-
 }
 

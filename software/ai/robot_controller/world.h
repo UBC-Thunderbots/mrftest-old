@@ -37,7 +37,7 @@ namespace AI {
 					 * in order front-left, back-left, back-right, front-right,
 					 * in units of quarters of a degree of motor shaft rotation per five milliseconds.
 					 */
-					virtual void drive(const int (&w)[4]) = 0;
+					virtual void drive(const int(&w)[4]) = 0;
 			};
 		}
 	}

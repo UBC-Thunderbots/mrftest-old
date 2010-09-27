@@ -64,7 +64,7 @@ std::size_t RLECompressor::next(void *buffer, std::size_t length) {
 	// Push through the runs.
 	std::size_t encoded = 0;
 	unsigned char *bufptr = static_cast<unsigned char *>(buffer);
-	for (;;) {
+	for (;; ) {
 		// Try to encode the current run into the buffer.
 		encoded += runs[cur_run].encode(bufptr + encoded, length - encoded);
 

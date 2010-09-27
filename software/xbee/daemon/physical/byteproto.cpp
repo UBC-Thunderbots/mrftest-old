@@ -17,12 +17,12 @@ void XBeeByteStream::send_sop() {
 
 void XBeeByteStream::send(const iovec *iov, std::size_t iovlen) {
 	static const uint8_t ESCAPE_STRINGS[4][2] = {
-		{0x7D, 0x7E ^ 0x20},
-		{0x7D, 0x7D ^ 0x20},
-		{0x7D, 0x11 ^ 0x20},
-		{0x7D, 0x13 ^ 0x20}
+		{ 0x7D, 0x7E ^ 0x20 },
+		{ 0x7D, 0x7D ^ 0x20 },
+		{ 0x7D, 0x11 ^ 0x20 },
+		{ 0x7D, 0x13 ^ 0x20 }
 	};
-	static const uint8_t SPECIAL_CHARS[4] = {0x7E, 0x7D, 0x11, 0x13};
+	static const uint8_t SPECIAL_CHARS[4] = { 0x7E, 0x7D, 0x11, 0x13 };
 	std::vector<iovec> newiov;
 
 	while (iovlen) {
@@ -63,7 +63,7 @@ void XBeeByteStream::send(const iovec *iov, std::size_t iovlen) {
 }
 
 void XBeeByteStream::bytes_received(const void *data, std::size_t len) {
-	static const uint8_t SPECIAL[2] = {0x7E, 0x7D};
+	static const uint8_t SPECIAL[2] = { 0x7E, 0x7D };
 	const uint8_t *dptr = static_cast<const uint8_t *>(data);
 
 	while (len) {

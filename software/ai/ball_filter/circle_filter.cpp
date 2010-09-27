@@ -40,26 +40,26 @@ namespace {
 				has_ball_timesteps = 0;
 			}
 
-                        Point filter(const std::vector<std::pair<double, Point> > &obs, World &world) {
-							FriendlyTeam &friendly = world.friendly_team();
-							EnemyTeam &enemy = world.enemy_team();
+			Point filter(const std::vector<std::pair<double, Point> > &obs, World &world) {
+				FriendlyTeam &friendly = world.friendly_team();
+				EnemyTeam &enemy = world.enemy_team();
 				Point max_point;
 				double max_cert = -0.1;
 				Point has_ball_point;
 				double has_ball_cert = -0.1;
-			
+
 				for (unsigned int i = 0; i < friendly.size(); ++i) {
 					Player::Ptr player = friendly.get(i);
-					if (player->has_ball()) {						
+					if (player->has_ball()) {
 						has_ball_timesteps++;
 
-						Point orient(1,0);
+						Point orient(1, 0);
 						has_ball_point = player->position() + (Ball::RADIUS + Robot::MAX_RADIUS) * orient.rotate(player->orientation());
 
 						has_ball_cert = 1.0;
 						break;
 					}
-				}				
+				}
 
 				if (has_ball_cert <= 0) {
 					has_ball_timesteps = 0;
@@ -68,13 +68,12 @@ namespace {
 				// There's nothing we can do to add a new obs, so just decay
 				if (obs.empty() && !use_closest && has_ball_cert <= 0) {
 					for (std::list<Circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
-						it->certainty = (1.0 - DECAY_RATE)*it->certainty;
+						it->certainty = (1.0 - DECAY_RATE) * it->certainty;
 					}
-				}
-				else {
+				} else {
 					// We don't have obs, but the ball was really close to an enemy robot before, so pretend the robot has the ball
 					if (obs.empty() && use_closest) {
-						Point orient(1,0);
+						Point orient(1, 0);
 						Robot::Ptr robot;
 
 						for (unsigned int i = 0; i < enemy.size(); ++i) {
@@ -105,28 +104,27 @@ namespace {
 						if ((max_point - it->center).len() < RADIUS) {
 							containing.push_back(*it);
 							it->center = max_point;
-						}
-						else { it->certainty = (1.0 - DECAY_RATE)*it->certainty; }
+						} else { it->certainty = (1.0 - DECAY_RATE) * it->certainty; }
 					}
 
 					if (containing.empty()) {
-						if (max_cert < 0)
-						      max_point = last_point;
+						if (max_cert < 0) {
+							max_point = last_point;
+						}
 						Circle c;
 						c.center = max_point;
 						c.certainty = DEFAULT_CERT;
 						circles.push_back(c);
-					}
-					else {
+					} else {
 						double anti_cert = 1.0;
 						for (std::vector<Circle>::iterator it = containing.begin(); it != containing.end(); ++it) {
 							anti_cert *= 1.0 - (*it).certainty;
 							if (it != containing.begin()) {
 								for (std::list<Circle>::iterator shit = circles.begin(); shit != circles.end(); ++shit) {
-									if( (*shit) == (*it) )
+									if ((*shit) == (*it)) {
 										circles.erase(shit);
-								}	
-
+									}
+								}
 							}
 						}
 						anti_cert *= 1.0 - DECAY_RATE;
@@ -134,8 +132,11 @@ namespace {
 					}
 
 					for (std::list<Circle>::iterator it = circles.begin(); it != circles.end(); ) {
-						if (it->certainty < DELETE_THRESHOLD) it = circles.erase(it);
-						else ++it;
+						if (it->certainty < DELETE_THRESHOLD) {
+							it = circles.erase(it);
+						} else {
+							++it;
+						}
 					}
 				}
 
@@ -148,7 +149,7 @@ namespace {
 					}
 				}
 				last_point = max_point_it->center;
-				
+
 				Robot::Ptr robot;
 				double min_dist = -1;
 				Point ball_ref;
@@ -171,18 +172,18 @@ namespace {
 					is_facing_ball = angle_diff(ball_ref.orientation(), robot->orientation()) < (M_PI / 4.0);
 					if (is_facing_ball && (min_dist == -1 || ball_ref.len() < min_dist)) {
 						use_closest = true;
-						robot_index = robot->pattern();	
-						min_dist = ball_ref.len();			
+						robot_index = robot->pattern();
+						min_dist = ball_ref.len();
 					}
 				}
 
 				use_closest = use_closest && min_dist != -1 && min_dist < Robot::MAX_RADIUS + 1.1 * Ball::RADIUS; // .1 for allowance
-				
+
 				return max_point_it->center;
 			}
 	};
 
-	const double CircleFilter::RADIUS = 10.0/TIMESTEPS_PER_SECOND;
+	const double CircleFilter::RADIUS = 10.0 / TIMESTEPS_PER_SECOND;
 	const double CircleFilter::DECAY_RATE = 0.2063; // half-life = 3 frames
 	const double CircleFilter::DEFAULT_CERT = 0.04; // one half-life to delete
 	const double CircleFilter::DELETE_THRESHOLD = 0.02; // stores < 50 circles

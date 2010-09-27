@@ -13,7 +13,6 @@ namespace AI {
 	namespace RC {
 		class FuzzyController : public OldRobotController, public TunableController {
 			public:
-
 				void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 
 				void clear();
@@ -22,7 +21,7 @@ namespace AI {
 
 				FuzzyController(AI::RC::W::Player::Ptr player);
 
-				void set_params(const std::vector<double>& params) {
+				void set_params(const std::vector<double> &params) {
 					this->param = params;
 				}
 

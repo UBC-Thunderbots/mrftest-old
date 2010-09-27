@@ -20,21 +20,27 @@ namespace {
 		const FileDescriptor::Ptr sock(FileDescriptor::create_socket(PF_UNIX, SOCK_SEQPACKET, 0));
 		SockAddrs sa;
 		sa.un.sun_family = AF_UNIX;
-		if (socket_path.size() > sizeof(sa.un.sun_path)) throw std::runtime_error("Path too long!");
+		if (socket_path.size() > sizeof(sa.un.sun_path)) {
+			throw std::runtime_error("Path too long!");
+		}
 		std::copy(socket_path.begin(), socket_path.end(), &sa.un.sun_path[0]);
 		std::fill(&sa.un.sun_path[socket_path.size()], &sa.un.sun_path[sizeof(sa.un.sun_path) / sizeof(*sa.un.sun_path)], '\0');
 		if (connect(sock->fd(), &sa.sa, sizeof(sa.un)) < 0) {
-			if (errno == ECONNREFUSED) return FileDescriptor::Ptr();
+			if (errno == ECONNREFUSED) {
+				return FileDescriptor::Ptr();
+			}
 			throw std::runtime_error("Cannot connect to arbiter daemon!");
 		}
 
 		// Read the signature string from the daemon.
 		// If this fails, we may have hit the race condition when the daemon is dying.
 		char buffer[4];
-		if (recv(sock->fd(), buffer, sizeof(buffer), 0) != sizeof(buffer))
+		if (recv(sock->fd(), buffer, sizeof(buffer), 0) != sizeof(buffer)) {
 			return FileDescriptor::Ptr();
-		if (buffer[0] != 'X' || buffer[1] != 'B' || buffer[2] != 'E' || buffer[3] != 'E')
+		}
+		if (buffer[0] != 'X' || buffer[1] != 'B' || buffer[2] != 'E' || buffer[3] != 'E') {
 			return FileDescriptor::Ptr();
+		}
 
 		// Return the socket.
 		return sock;
@@ -72,7 +78,7 @@ namespace {
 
 	FileDescriptor::Ptr connect_to_daemon() {
 		// Loop forever, until something works.
-		for (;;) {
+		for (;; ) {
 			// Try connecting to an already-running daemon.
 			const FileDescriptor::Ptr sock(connect_to_existing_daemon());
 			if (sock.is()) {
@@ -124,7 +130,7 @@ bool XBeeLowLevel::claim_universe() {
 		throw std::runtime_error("Cannot send packet to XBee arbiter!");
 	}
 
-	for (;;) {
+	for (;; ) {
 		unsigned char buffer[65536];
 		ssize_t ret = recv(sock->fd(), buffer, sizeof(buffer), 0);
 		if (ret < 0) {

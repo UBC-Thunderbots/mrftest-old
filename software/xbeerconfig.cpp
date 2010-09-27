@@ -17,11 +17,11 @@ namespace {
 			}
 
 			~ResponseHolder() {
-				delete [] static_cast<char *>(response);
+				delete[] static_cast<char *>(response);
 			}
 
 			void handle_response(const void *resp, std::size_t len) {
-				delete [] static_cast<char *>(response);
+				delete[] static_cast<char *>(response);
 				length = len;
 				response = new char[length];
 				std::memcpy(response, resp, length);
@@ -40,7 +40,7 @@ namespace {
 			NoResponseError() {
 			}
 
-			const char *what() const throw() {
+			const char *what() const throw () {
 				return "Peer did not respond to remote AT command.";
 			}
 	};

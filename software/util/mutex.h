@@ -22,7 +22,7 @@ class MutexScopedAcquire : public NonCopyable {
 		~MutexScopedAcquire();
 
 	private:
-		pthread_mutex_t * const mutex;
+		pthread_mutex_t *const mutex;
 };
 
 #endif

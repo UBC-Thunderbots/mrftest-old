@@ -257,7 +257,8 @@ class ByRef : public NonCopyable {
 			}
 		}
 
-		template<typename T> friend class RefPtr;
+		template<typename T>
+		friend class RefPtr;
 };
 
 #endif

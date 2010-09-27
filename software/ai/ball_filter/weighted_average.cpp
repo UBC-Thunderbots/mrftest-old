@@ -22,7 +22,6 @@ namespace {
 					return p / total_confidence;
 				}
 			}
-
 	} instance;
 }
 

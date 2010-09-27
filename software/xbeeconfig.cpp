@@ -21,14 +21,14 @@ namespace {
 		unsigned int display;
 		speed_t tc;
 	} BAUDS[] = {
-		{9600, B9600},
-		{250000, B38400},
-		{115200, B115200},
-		{57600, B57600},
-		{1200, B1200},
-		{2400, B2400},
-		{19200, B19200},
-		{38400, B38400},
+		{ 9600, B9600 },
+		{ 250000, B38400 },
+		{ 115200, B115200 },
+		{ 57600, B57600 },
+		{ 1200, B1200 },
+		{ 2400, B2400 },
+		{ 19200, B19200 },
+		{ 38400, B38400 },
 	};
 
 	void usage(const char *app) {
@@ -60,15 +60,19 @@ namespace {
 
 		bool seen_O = false;
 		bool seen_K = false;
-		for (;;) {
+		for (;; ) {
 			char ch;
 			int rc;
 
 			timespec_now(cur_time);
-			if (cur_time.tv_sec > end_time.tv_sec || (cur_time.tv_sec == end_time.tv_sec && cur_time.tv_nsec > end_time.tv_nsec)) return false;
+			if (cur_time.tv_sec > end_time.tv_sec || (cur_time.tv_sec == end_time.tv_sec && cur_time.tv_nsec > end_time.tv_nsec)) {
+				return false;
+			}
 			rc = read(fd, &ch, 1);
-			if (rc < 0) {std::perror("read"); std::exit(1);}
-			else if (rc == 1) {
+			if (rc < 0) {
+				std::perror("read");
+				std::exit(1);
+			} else if (rc == 1) {
 				if (seen_O && seen_K && ch == '\r') {
 					return true;
 				} else if (seen_O && ch == 'K') {
@@ -91,17 +95,24 @@ namespace {
 		end_time.tv_sec++;
 
 		std::string line;
-		for (;;) {
+		for (;; ) {
 			char ch;
 			int rc;
 
 			timespec_now(cur_time);
-			if (cur_time.tv_sec > end_time.tv_sec || (cur_time.tv_sec == end_time.tv_sec && cur_time.tv_nsec > end_time.tv_nsec)) return "";
+			if (cur_time.tv_sec > end_time.tv_sec || (cur_time.tv_sec == end_time.tv_sec && cur_time.tv_nsec > end_time.tv_nsec)) {
+				return "";
+			}
 			rc = read(fd, &ch, 1);
-			if (rc < 0) {std::perror("read"); std::exit(1);}
-			else if (rc == 1) {
-				if (ch == '\r') return line;
-				else line += ch;
+			if (rc < 0) {
+				std::perror("read");
+				std::exit(1);
+			} else if (rc == 1) {
+				if (ch == '\r') {
+					return line;
+				} else {
+					line += ch;
+				}
 			}
 		}
 	}
@@ -127,7 +138,10 @@ int main(int argc, char **argv) {
 	}
 
 	int fd = open(path, O_RDWR);
-	if (fd < 0) {std::perror("open"); return 1;}
+	if (fd < 0) {
+		std::perror("open");
+		return 1;
+	}
 
 	std::cout << "Getting old extended serial parameters... " << std::flush;
 	serial_struct old_serinfo;
@@ -155,7 +169,10 @@ start_work:
 			}
 
 			termios tios;
-			if (tcgetattr(fd, &tios) < 0) {std::perror("tcgetattr"); return 1;}
+			if (tcgetattr(fd, &tios) < 0) {
+				std::perror("tcgetattr");
+				return 1;
+			}
 			cfmakeraw(&tios);
 			tios.c_cflag &= ~CRTSCTS;
 			tios.c_cflag |= CSTOPB;
@@ -163,7 +180,10 @@ start_work:
 			tios.c_cc[VTIME] = 5;
 			cfsetispeed(&tios, BAUDS[baudidx].tc);
 			cfsetospeed(&tios, BAUDS[baudidx].tc);
-			if (tcsetattr(fd, TCSAFLUSH, &tios) < 0) {std::perror("tcsetattr"); break;}
+			if (tcsetattr(fd, TCSAFLUSH, &tios) < 0) {
+				std::perror("tcsetattr");
+				break;
+			}
 
 			timespec ts;
 			ts.tv_sec = 1;
@@ -176,8 +196,9 @@ start_work:
 			ts.tv_nsec = 850000000;
 			nanosleep(&ts, 0);
 
-			if (read_messy_ok(fd))
+			if (read_messy_ok(fd)) {
 				goto connected;
+			}
 			std::cout << "FAIL\n";
 		}
 	}
@@ -200,8 +221,9 @@ connected:
 	iss_version.setf(std::ios_base::hex, std::ios_base::basefield);
 	unsigned int version;
 	iss_version >> version;
-	if (version < 0x10E6)
+	if (version < 0x10E6) {
 		std::cout << "WARNING --- WARNING --- WARNING\nFirmware version is less than 10E6. Consider upgrading!\nWARNING --- WARNING --- WARNING\n";
+	}
 
 	std::cout << "Loading factory default settings... " << std::flush;
 	send_string(fd, "ATRE\r");

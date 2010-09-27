@@ -250,3 +250,12 @@ As an example, the following sequence of #includes is correct for the file
 #include <glibmm.h> // alphabetical within a directory
 #include <vector> // alphabetical within a directory
 #include <sigc++/sigc++.h> // child after parents
+
+
+
+Automatic Formatting
+====================
+
+Some of the rules described in this style guide (though not all of them) can be applied to source code automatically. To assist with this, the file "uncrustify.cfg" is available, which is a configuration file for the "uncrustify" source-code-formatting tool. Once the tool is installed, run "make uncrustify" to automatically invoke the tool against all files in the repository (other than those in proto/ (which are auto-generated) and leastsquares/ and util/matrix.h (which are external)).
+
+The current release version of uncrustify as of this writing, 0.56, contains a few bugs. One such bug is fixed by GIT commit 9a25a81a035dd7c1fe3d25213be14b482d48465d, which adds a previously-missing newline between the access level specification at the very start of a class body and a constructor (or possibly other function) immediately following it. The other is believed not to be fixed as of this writing, and deals with spaces around ampersands in reference-type parameters to function declarations in class bodies. Therefore, please be careful to run "svn stat" and "svn diff" before committing the output of a "make uncrustify", to ensure that such rules have not been rebroken by the tool.

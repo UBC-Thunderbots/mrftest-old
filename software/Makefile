@@ -155,7 +155,9 @@ ifneq ($(MAKECMDGOALS),cleanpb)
 ifneq ($(MAKECMDGOALS),cleantags)
 ifneq ($(MAKECMDGOALS),tags)
 ifneq ($(MAKECMDGOALS),doc)
+ifneq ($(MAKECMDGOALS),uncrustify)
 include $(ALL_D_FILES)
+endif
 endif
 endif
 endif
@@ -170,6 +172,13 @@ endif
 #
 .PHONY : dep
 dep : $(ALL_D_FILES)
+
+#
+# Rule to clean and format source with uncrustify.
+#
+.PHONY : uncrustify
+uncrustify :
+	find . \( -name .svn -prune \) -o \( -path ./leastsquares -prune \) -o \( -path ./proto -prune \) -o \( -path ./util/matrix.h -prune \) -o \( \( -name '*.cpp' -o -name '*.h' \) -exec uncrustify -c uncrustify.cfg --no-backup \{\} \+ \)
 
 #
 # Rules to clean.

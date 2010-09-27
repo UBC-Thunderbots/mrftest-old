@@ -23,11 +23,11 @@ namespace {
 		return (num + den - 1) / den;
 	}
 
-	void get_page_data(const IntelHex &data, unsigned int page, unsigned char (&buffer)[FPGAUpload::PAGE_BYTES]) {
+	void get_page_data(const IntelHex &data, unsigned int page, unsigned char(&buffer)[FPGAUpload::PAGE_BYTES]) {
 		std::fill(buffer, buffer + FPGAUpload::PAGE_BYTES, 0xFF);
 		unsigned int byte = page * FPGAUpload::PAGE_BYTES;
 		if (byte < data.data()[0].size()) {
-			std::copy(&data.data()[0][byte], &data.data()[0][std::min<std::size_t>(byte + FPGAUpload::PAGE_BYTES, data.data()[0].size())], buffer);
+			std::copy(&data.data()[0][byte], &data.data()[0][std::min < std::size_t > (byte + FPGAUpload::PAGE_BYTES, data.data()[0].size())], buffer);
 		}
 	}
 }
@@ -65,7 +65,7 @@ void FPGAUpload::ident_received(const void *response) {
 }
 
 void FPGAUpload::do_work() {
-	for (;;) {
+	for (;; ) {
 		if (chunks_crcd == divup<std::size_t>(data.data()[0].size(), CHUNK_PAGES * PAGE_BYTES)) {
 			// We have CRCd as many chunks as are in the HEX file. We're done.
 			status = "Exiting Bootloader";

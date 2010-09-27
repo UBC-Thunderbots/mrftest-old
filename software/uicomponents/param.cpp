@@ -11,7 +11,7 @@ namespace {
 	std::vector<Param *> instances;
 	Config *conf = 0;
 
-	bool order_params_by_name(const Param * const p1, const Param * const p2) {
+	bool order_params_by_name(const Param *const p1, const Param *const p2) {
 		return p1->name.casefold() < p2->name.casefold();
 	}
 }

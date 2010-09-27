@@ -16,7 +16,7 @@ namespace {
 TimerFDClockSource::TimerFDClockSource(uint64_t interval) : tfd(create_timerfd(CLOCK_MONOTONIC)), nanoseconds(interval), overflow_message("Timer overflow!") {
 	tfd->set_blocking(false);
 	itimerspec tspec;
-	tspec.it_interval.tv_sec  = nanoseconds / UINT64_C(1000000000);
+	tspec.it_interval.tv_sec = nanoseconds / UINT64_C(1000000000);
 	tspec.it_interval.tv_nsec = nanoseconds % UINT64_C(1000000000);
 	tspec.it_value.tv_sec = 1;
 	tspec.it_value.tv_nsec = 0;

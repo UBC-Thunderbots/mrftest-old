@@ -5,7 +5,7 @@ namespace PlayType = AI::Common::PlayType;
 unsigned int AI::Flags::calc_flags(PlayType::PlayType pt) {
 	// All robots want to avoid the defence area (except for the goalie)
 	unsigned int flags = AVOID_FRIENDLY_DEFENSE;
-	switch(pt) {
+	switch (pt) {
 		case PlayType::STOP:
 		case PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY:
 		case PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY:

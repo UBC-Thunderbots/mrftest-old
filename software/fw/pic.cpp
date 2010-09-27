@@ -21,11 +21,11 @@ namespace {
 		return (num + den - 1) / den;
 	}
 
-	void get_page_data(const IntelHex &data, unsigned int page, unsigned char (&buffer)[PICUpload::PAGE_BYTES]) {
+	void get_page_data(const IntelHex &data, unsigned int page, unsigned char(&buffer)[PICUpload::PAGE_BYTES]) {
 		std::fill(buffer, buffer + PICUpload::PAGE_BYTES, 0xFF);
 		unsigned int byte = page * PICUpload::PAGE_BYTES;
 		if (byte < data.data()[0].size()) {
-			std::copy(&data.data()[0][byte], &data.data()[0][std::min<std::size_t>(byte + PICUpload::PAGE_BYTES, data.data()[0].size())], buffer);
+			std::copy(&data.data()[0][byte], &data.data()[0][std::min < std::size_t > (byte + PICUpload::PAGE_BYTES, data.data()[0].size())], buffer);
 		}
 	}
 

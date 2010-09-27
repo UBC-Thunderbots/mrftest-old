@@ -45,32 +45,32 @@ namespace AI {
 
 					Visualizable::RobotColour visualizer_colour() const;
 					Glib::ustring visualizer_label() const;
-					Point position() const {return Robot::position();}
-					Point position(double delta) const {return Robot::position(delta);}
-					Point position(const timespec &ts) const {return Robot::position(ts);}
-					Point velocity(double delta = 0.0) const {return Robot::velocity(delta);}
-					Point velocity(const timespec &ts) const {return Robot::velocity(ts);}
-					Point acceleration(double delta = 0.0) const {return Robot::acceleration(delta);}
-					Point acceleration(const timespec &ts) const {return Robot::acceleration(ts);}
-					double orientation() const {return Robot::orientation();}
-					double orientation(double delta) const {return Robot::orientation(delta);}
-					double orientation(const timespec &ts) const {return Robot::orientation(ts);}
-					double avelocity(double delta = 0.0) const {return Robot::avelocity(delta);}
-					double avelocity(const timespec &ts) const {return Robot::avelocity(ts);}
-					double aacceleration(double delta = 0.0) const {return Robot::aacceleration(delta);}
-					double aacceleration(const timespec &ts) const {return Robot::aacceleration(ts);}
-					unsigned int pattern() const {return Robot::pattern();}
-					ObjectStore &object_store() {return Robot::object_store();}
-					bool has_ball() const {return sense_ball();}
+					Point position() const { return Robot::position(); }
+					Point position(double delta) const { return Robot::position(delta); }
+					Point position(const timespec &ts) const { return Robot::position(ts); }
+					Point velocity(double delta = 0.0) const { return Robot::velocity(delta); }
+					Point velocity(const timespec &ts) const { return Robot::velocity(ts); }
+					Point acceleration(double delta = 0.0) const { return Robot::acceleration(delta); }
+					Point acceleration(const timespec &ts) const { return Robot::acceleration(ts); }
+					double orientation() const { return Robot::orientation(); }
+					double orientation(double delta) const { return Robot::orientation(delta); }
+					double orientation(const timespec &ts) const { return Robot::orientation(ts); }
+					double avelocity(double delta = 0.0) const { return Robot::avelocity(delta); }
+					double avelocity(const timespec &ts) const { return Robot::avelocity(ts); }
+					double aacceleration(double delta = 0.0) const { return Robot::aacceleration(delta); }
+					double aacceleration(const timespec &ts) const { return Robot::aacceleration(ts); }
+					unsigned int pattern() const { return Robot::pattern(); }
+					ObjectStore &object_store() { return Robot::object_store(); }
+					bool has_ball() const { return sense_ball(); }
 					unsigned int chicker_ready_time() const;
 					void move(Point dest, double ori, unsigned int flags);
 					void kick(double power);
 					void chip(double power);
 					const std::pair<Point, double> &destination() const;
-					unsigned int flags() const {return flags_;}
-					void path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) {path_ = p;}
-					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const {return path_;}
-					void drive(const int (&w)[4]);
+					unsigned int flags() const { return flags_; }
+					void path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) { path_ = p; }
+					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const { return path_; }
+					void drive(const int(&w)[4]);
 
 
 

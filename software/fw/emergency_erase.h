@@ -25,7 +25,7 @@ class EmergencyErase : public WatchableOperation, public sigc::trackable {
 	private:
 		const XBeeRawBot::Ptr bot;
 		sigc::connection complete_connection;
-		
+
 		void report_error(const Glib::ustring &error);
 		void on_complete(const void *, std::size_t);
 };

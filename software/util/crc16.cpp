@@ -15,8 +15,9 @@ namespace {
 uint16_t CRC16::calculate(const void *buf, std::size_t len) {
 	const uint8_t *buffer = static_cast<const uint8_t *>(buf);
 	uint16_t crc = 0xFFFF;
-	while (len--)
+	while (len--) {
 		crc = crc16_byte(crc, *buffer++);
+	}
 	return crc;
 }
 

@@ -20,7 +20,7 @@ Predictor::Predictor(bool angle) : angle(angle), initialized(false), lock_delta(
 	dhistory.setlength(NUM_OLD_POSITIONS);
 	weights.setlength(NUM_OLD_POSITIONS);
 	fmatrix.setlength(NUM_OLD_POSITIONS, MAX_DEGREE + 1);
-	for (int i = 0; i < NUM_OLD_POSITIONS; i++){
+	for (int i = 0; i < NUM_OLD_POSITIONS; i++) {
 		vhistory(i) = 0.0;
 		dhistory(i) = 1.0 / TIMESTEPS_PER_SECOND;
 	}
@@ -117,14 +117,16 @@ void Predictor::update() {
 	// Build the matrices.
 	double dd = 0; // dd is always nonpositive
 	for (int i = 0; i < NUM_OLD_POSITIONS; i++) {
-		if (i)
+		if (i) {
 			dd -= dhistory(i - 1);
+		}
 		// Weights are 1 / (number of AI time steps from the present + 1).
 		// Data further in the past will affect our predictions less.
 		weights(i) = 1.0 / (1 - dd * TIMESTEPS_PER_SECOND);
 		fmatrix(i, 0) = 1;
-		for (unsigned int j = 1; j < MAX_DEGREE + 1; j++)
+		for (unsigned int j = 1; j < MAX_DEGREE + 1; j++) {
 			fmatrix(i, j) = fmatrix(i, j - 1) * dd;
+		}
 	}
 
 	// If this is an angle predictor and the values are getting too big, reduce them to prevent floating point precision loss.

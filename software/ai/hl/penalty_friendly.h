@@ -12,25 +12,25 @@ namespace AI {
 		class PenaltyFriendly {
 			public:
 				/**
-		 		 * A pointer to a penalty_friendly role.
+				 * A pointer to a penalty_friendly role.
 				 */
 				typedef RefPtr<PenaltyFriendly> ptr;
 
 				/**
-			 	 * Constructs a new penalty_friendly role.
-			 	 */
+				 * Constructs a new penalty_friendly role.
+				 */
 				PenaltyFriendly(AI::HL::W::World &world);
 
 			protected:
 				AI::HL::W::World &world;
 
 				/**
-		 		 * The distance between the penalty mark and the mid point of the two goal posts as described in the rules.
-		 		 */
+				 * The distance between the penalty mark and the mid point of the two goal posts as described in the rules.
+				 */
 				const static double PENALTY_MARK_LENGTH;
 
 				/**
-		 		 * The distance between the baseline and the line behind which other robots may stand.
+				 * The distance between the baseline and the line behind which other robots may stand.
 				 */
 				const static double RESTRICTED_ZONE_LENGTH;
 

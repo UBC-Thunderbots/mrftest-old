@@ -189,7 +189,7 @@ namespace AI {
 				/**
 				 * A pointer to the first play type in an array of play types the corresponding Strategy is willing to handle.
 				 */
-				const AI::HL::W::PlayType::PlayType * const handled_play_types;
+				const AI::HL::W::PlayType::PlayType *const handled_play_types;
 
 				/**
 				 * The number of elements in the \ref handled_play_types array.

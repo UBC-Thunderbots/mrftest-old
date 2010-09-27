@@ -5,11 +5,13 @@
 using AI::RC::TunableController;
 
 namespace {
-	std::set<TunableController*> instances;
+	std::set<TunableController *> instances;
 }
 
-TunableController* TunableController::get_instance() {
-	if (instances.empty()) return NULL;
+TunableController *TunableController::get_instance() {
+	if (instances.empty()) {
+		return NULL;
+	}
 	return *instances.begin();
 }
 

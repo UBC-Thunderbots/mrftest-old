@@ -13,7 +13,6 @@ namespace AI {
 	namespace RC {
 		class TunablePIDController : public OldRobotController, public TunableController {
 			public:
-
 				void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 
 				void clear();
@@ -22,7 +21,7 @@ namespace AI {
 
 				TunablePIDController(AI::RC::W::Player::Ptr plr);
 
-				void set_params(const std::vector<double>& params) {
+				void set_params(const std::vector<double> &params) {
 					this->param = params;
 				}
 
@@ -45,7 +44,6 @@ namespace AI {
 				}
 
 			protected:
-
 				static const std::vector<double> param_min;
 				static const std::vector<double> param_max;
 				static const std::vector<double> param_default;

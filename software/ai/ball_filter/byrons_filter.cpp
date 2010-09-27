@@ -40,10 +40,9 @@ namespace {
 
 				if (obs.empty()) {
 					for (std::list<Circle>::iterator it = circles.begin(); it != circles.end(); ++it) {
-						it->certainty = (1.0 - DECAY_RATE)*it->certainty;
+						it->certainty = (1.0 - DECAY_RATE) * it->certainty;
 					}
-				}
-				else {
+				} else {
 					for (unsigned int i = 0; i < obs.size(); i++) {
 						if (max_cert < obs[i].first) {
 							max_point = obs[i].second;
@@ -56,19 +55,20 @@ namespace {
 						if ((max_point - it->center).len() < RADIUS) {
 							containing.push_back(*it);
 							it->center = max_point;
+						} else {
+							it->certainty = (1.0 - DECAY_RATE) * it->certainty;
 						}
-						else { it->certainty = (1.0 - DECAY_RATE)*it->certainty; }
 					}
 
 					if (containing.empty()) {
-						if (max_cert < 0)
+						if (max_cert < 0) {
 							max_point = last_point;
+						}
 						Circle c;
 						c.center = max_point;
 						c.certainty = DECAY_RATE;
 						circles.push_back(c);
-					}
-					else {
+					} else {
 						double anti_cert = 1.0;
 						for (std::vector<Circle>::iterator it = containing.begin(); it != containing.end(); ++it) {
 							anti_cert *= 1.0 - (*it).certainty;
@@ -88,8 +88,11 @@ namespace {
 					}
 
 					for (std::list<Circle>::iterator it = circles.begin(); it != circles.end(); ) {
-						if (it->certainty < DELETE_THRESHOLD) it = circles.erase(it);
-						else ++it;
+						if (it->certainty < DELETE_THRESHOLD) {
+							it = circles.erase(it);
+						} else {
+							++it;
+						}
 					}
 				}
 
@@ -106,7 +109,7 @@ namespace {
 			}
 	};
 
-	const double ByronsFilter::RADIUS = 10.0/TIMESTEPS_PER_SECOND;
+	const double ByronsFilter::RADIUS = 10.0 / TIMESTEPS_PER_SECOND;
 	const double ByronsFilter::DECAY_RATE = 0.2063; // half-life = 3 frames
 	const double ByronsFilter::DELETE_THRESHOLD = 0.02; // stores < 50 circles
 

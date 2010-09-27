@@ -29,7 +29,7 @@ namespace AI {
 				 *
 				 * \param[in] params the new parameter values.
 				 */
-				virtual void set_params(const std::vector<double>& params) = 0;
+				virtual void set_params(const std::vector<double> &params) = 0;
 
 				/**
 				 * Gets the array of parameters.
@@ -64,8 +64,9 @@ namespace AI {
 				 */
 				virtual const std::vector<double> get_params_min() const {
 					std::vector<double> ret = get_params();
-					for (size_t i = 0; i < ret.size(); ++i)
+					for (size_t i = 0; i < ret.size(); ++i) {
 						ret[i] *= 0.7;
+					}
 					return ret;
 				}
 
@@ -77,8 +78,9 @@ namespace AI {
 				 */
 				virtual const std::vector<double> get_params_max() const {
 					std::vector<double> ret = get_params();
-					for (size_t i = 0; i < ret.size(); ++i)
+					for (size_t i = 0; i < ret.size(); ++i) {
 						ret[i] *= 1.3;
+					}
 					return ret;
 				}
 
@@ -87,7 +89,7 @@ namespace AI {
 				 *
 				 * \return the current TunableController, or a null pointer if none exists.
 				 */
-				static TunableController* get_instance();
+				static TunableController *get_instance();
 		};
 	}
 }

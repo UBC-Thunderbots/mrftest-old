@@ -92,7 +92,7 @@ class Point {
 		 * Takes the dot product of two vectors.
 		 *
 		 * \param[in] other the Point to dot against.
-		 * 
+		 *
 		 * \return the dot product of the points.
 		 */
 		double dot(const Point &other) const __attribute__((warn_unused_result)) {

@@ -22,7 +22,7 @@
  *
  * \return the order of the matching, such that element <var>i</var> of input \p v1 is matched with element \c order[<var>i</var>] of \p v2.
  */
-std::vector<size_t> dist_matching(const std::vector<Point>& v1, const std::vector<Point>& v2);
+std::vector<size_t> dist_matching(const std::vector<Point> &v1, const std::vector<Point> &v2);
 
 /**
  * Checks if 3 points are collinear.
@@ -35,7 +35,7 @@ std::vector<size_t> dist_matching(const std::vector<Point>& v1, const std::vecto
  *
  * \returns true if any two points are within EPS distance to each other.
  */
-bool collinear(const Point& a, const Point& b, const Point& c);
+bool collinear(const Point &a, const Point &b, const Point &c);
 
 /**
  * Performs an angle sweep.
@@ -63,7 +63,7 @@ bool collinear(const Point& a, const Point& b, const Point& c);
  * \return the best direction to shoot and the size of the angle centred around that direction that is completely free of obstacles,
  * or <code>(<var>p</var>, 0)</code> for some unspecified <var>p</var> if there is no free path.
  */
-std::pair<Point, double> angle_sweep_circles(const Point& src, const Point& p1, const Point& p2, const std::vector<Point>& obstacles, const double& radius);
+std::pair<Point, double> angle_sweep_circles(const Point &src, const Point &p1, const Point &p2, const std::vector<Point> &obstacles, const double &radius);
 
 /**
  * Checks whether a line segment intersects a rectangle.
@@ -101,7 +101,7 @@ bool point_in_rectangle(Point pointA, Point recA[4]);
  *
  * \return the points of intersection.
  */
-std::vector<Point> lineseg_circle_intersect(Point centre, double radius, Point segA, Point segB); 
+std::vector<Point> lineseg_circle_intersect(Point centre, double radius, Point segA, Point segB);
 
 /**
  * Finds the points of intersection between a circle and a line.
@@ -117,7 +117,7 @@ std::vector<Point> lineseg_circle_intersect(Point centre, double radius, Point s
  *
  * \return the points of intersection.
  */
-std::vector<Point> line_circle_intersect(Point centre, double radius, Point segA, Point segB); 
+std::vector<Point> line_circle_intersect(Point centre, double radius, Point segA, Point segB);
 
 /**
  * Clips a point to a rectangle boundary.
@@ -130,7 +130,7 @@ std::vector<Point> line_circle_intersect(Point centre, double radius, Point segA
  *
  * \return the closest point to \p p that lies within the rectangle.
  */
-Point clip_point(const Point& p, const Point& bound1, const Point& bound2);
+Point clip_point(const Point &p, const Point &bound1, const Point &bound2);
 
 /**
  * Computes the intersection of two lines.
@@ -189,7 +189,7 @@ bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Po
  *
  * \return the reflected ray.
  */
-Point reflect(const Point& v, const Point& n);
+Point reflect(const Point &v, const Point &n);
 
 /**
  * Reflects a point across a line.
@@ -202,7 +202,7 @@ Point reflect(const Point& v, const Point& n);
  *
  * \return the reflection of \p p across the line.
  */
-Point reflect(const Point& a, const Point& b, const Point& p);
+Point reflect(const Point &a, const Point &b, const Point &p);
 
 /**
  * Given a cone shooting from the origin, determines the furthest location from the origin, at which to place a circle to block the cone.
@@ -219,7 +219,7 @@ Point reflect(const Point& a, const Point& b, const Point& p);
  *
  * \return the blocking position.
  */
-Point calc_block_cone(const Point &a, const Point &b, const double& radius);
+Point calc_block_cone(const Point &a, const Point &b, const double &radius);
 
 /**
  * Given a cone shooting from a point P, determines the furthest location from P, at which to place a circle to block the cone.
@@ -238,7 +238,7 @@ Point calc_block_cone(const Point &a, const Point &b, const double& radius);
  *
  * \return the blocking position.
  */
-Point calc_block_cone(const Point &a, const Point &b, const Point& p, const double& radius);
+Point calc_block_cone(const Point &a, const Point &b, const Point &p, const double &radius);
 
 /**
  * Used for defender_blocks_goal
@@ -249,7 +249,7 @@ Point calc_block_cone(const Point &a, const Point &b, const Point& p, const doub
  * I.e. if p is return value,
  * then points to the other side of line p-c is not covered by goalie.
  */
-Point calc_block_other_ray(const Point& a, const Point& c, const Point& g);
+Point calc_block_other_ray(const Point &a, const Point &c, const Point &g);
 
 // ported code
 // a = goal post position
@@ -257,7 +257,7 @@ Point calc_block_other_ray(const Point& a, const Point& c, const Point& g);
 // c = ball position
 // g = goalie position
 // checks if goalie blocks goal post
-bool goalie_block_goal_post(const Point& a, const Point& b, const Point& c, const Point& g);
+bool goalie_block_goal_post(const Point &a, const Point &b, const Point &c, const Point &g);
 
 /**
  * Calculates a defender position to block the ball.
@@ -273,7 +273,7 @@ bool goalie_block_goal_post(const Point& a, const Point& b, const Point& c, cons
  *
  * \param[in] g goalie position
  */
-Point calc_block_cone_defender(const Point& a, const Point& b, const Point& c, const Point& g, const double& r);
+Point calc_block_cone_defender(const Point &a, const Point &b, const Point &c, const Point &g, const double &r);
 
 #endif
 

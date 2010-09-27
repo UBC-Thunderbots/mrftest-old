@@ -135,7 +135,7 @@ namespace AI {
 			 * \return \c false if some robots is blocking line of sight of ball from \p passee, if \p passee is not facing the ball, or if some condition is invalid;
 			 * or \c true if \p passee can receive the ball.
 			 */
-			bool can_receive(AI::HL::W::World& world, AI::HL::W::Player::Ptr passee);
+			bool can_receive(AI::HL::W::World &world, AI::HL::W::Player::Ptr passee);
 
 			/**
 			 * Finds the length of the largest continuous interval (angle-wise) of the enemy goal that can be seen from a point.
@@ -167,16 +167,16 @@ namespace AI {
 			/**
 			 * Checks if a FRIENDLY PLAYER posses the ball.
 			 */
-			bool posses_ball(AI::HL::W::World& world, AI::HL::W::Player::Ptr player);
+			bool posses_ball(AI::HL::W::World &world, AI::HL::W::Player::Ptr player);
 
 			/**
 			 * Checks if an ENEMY ROBOT posses the ball.
 			 */
-			bool posses_ball(AI::HL::W::World& world, AI::HL::W::Robot::Ptr robot);
+			bool posses_ball(AI::HL::W::World &world, AI::HL::W::Robot::Ptr robot);
 
 			/**
 			 * Finds the player having the ball.
-			 * 
+			 *
 			 * \return the player, or a null pointer if no friendly player has the ball.
 			 */
 			AI::HL::W::Player::Ptr calc_baller(AI::HL::W::World &world, const std::vector<AI::HL::W::Player::Ptr> &players);

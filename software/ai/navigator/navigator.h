@@ -64,7 +64,7 @@ namespace AI {
 				 */
 				~Navigator();
 		};
-		
+
 		/**
 		 * A NavigatorFactory is used to construct a particular type of Navigator.
 		 * The factory permits the UI to discover all the available types of Navigator.

@@ -29,83 +29,83 @@
  * </ol>
  */
 class Hungarian {
-public:
-	/**
-	 * Constructs a new Hungarian.
-	 *
-	 * \param[in] size the number of elements in the left and right sets.
-	 */
-	Hungarian(std::size_t size);
+	public:
+		/**
+		 * Constructs a new Hungarian.
+		 *
+		 * \param[in] size the number of elements in the left and right sets.
+		 */
+		Hungarian(std::size_t size);
 
-	/**
-	 * Returns the dimension of the Hungarian matrix.
-	 */
-	std::size_t size() const {
-		return weights.size();
-	}
+		/**
+		 * Returns the dimension of the Hungarian matrix.
+		 */
+		std::size_t size() const {
+			return weights.size();
+		}
 
-	/**
-	 * Gets or sets a pairwise weight.
-	 *
-	 * \param[in] x the index of a node in the <var>X</var> set.
-	 *
-	 * \param[in] y the index of a node in the <var>Y</var> set.
-	 *
-	 * \return the weight associated with matching these nodes.
-	 */
-	double &weight(std::size_t x, std::size_t y) {
-		assert(x < weights.size());
-		assert(y < weights.size());
-		return weights[x][y];
-	}
+		/**
+		 * Gets or sets a pairwise weight.
+		 *
+		 * \param[in] x the index of a node in the <var>X</var> set.
+		 *
+		 * \param[in] y the index of a node in the <var>Y</var> set.
+		 *
+		 * \return the weight associated with matching these nodes.
+		 */
+		double &weight(std::size_t x, std::size_t y) {
+			assert(x < weights.size());
+			assert(y < weights.size());
+			return weights[x][y];
+		}
 
-	/**
-	 * Gets a pairwise weight.
-	 *
-	 * \param[in] x the index of a node in the <var>X</var> set.
-	 *
-	 * \param[in] y the index of a node in the <var>Y</var> set.
-	 *
-	 * \return the weight associated with matching these nodes.
-	 */
-	const double &weight(std::size_t x, std::size_t y) const {
-		assert(x < weights.size());
-		assert(y < weights.size());
-		return weights[x][y];
-	}
+		/**
+		 * Gets a pairwise weight.
+		 *
+		 * \param[in] x the index of a node in the <var>X</var> set.
+		 *
+		 * \param[in] y the index of a node in the <var>Y</var> set.
+		 *
+		 * \return the weight associated with matching these nodes.
+		 */
+		const double &weight(std::size_t x, std::size_t y) const {
+			assert(x < weights.size());
+			assert(y < weights.size());
+			return weights[x][y];
+		}
 
-	/**
-	 * Runs the algorithm.
-	 */
-	void execute();
+		/**
+		 * Runs the algorithm.
+		 */
+		void execute();
 
-	/**
-	 * Looks up an element of the matching.
-	 *
-	 * \param[in] x the index of a node in the <var>X</var> set.
-	 *
-	 * \return the index of the node in the <var>Y</var> set that is matched with node \p x.
-	 */
-	std::size_t matchX(std::size_t x) const {
-		assert(x < mx.size());
-		return mx[x];
-	}
+		/**
+		 * Looks up an element of the matching.
+		 *
+		 * \param[in] x the index of a node in the <var>X</var> set.
+		 *
+		 * \return the index of the node in the <var>Y</var> set that is matched with node \p x.
+		 */
+		std::size_t matchX(std::size_t x) const {
+			assert(x < mx.size());
+			return mx[x];
+		}
 
-	/**
-	 * Looks up an element of the matching.
-	 *
-	 * \param[in] y the index of a node in the <var>Y</var> set.
-	 *
-	 * \return the index of the node in the <var>X</var> set that is matched with node \p y.
-	 */
-	std::size_t matchY(std::size_t y) const {
-		assert(y < my.size());
-		return my[y];
-	}
+		/**
+		 * Looks up an element of the matching.
+		 *
+		 * \param[in] y the index of a node in the <var>Y</var> set.
+		 *
+		 * \return the index of the node in the <var>X</var> set that is matched with node \p y.
+		 */
+		std::size_t matchY(std::size_t y) const {
+			assert(y < my.size());
+			return my[y];
+		}
 
-private:
-	std::vector<std::vector<double> > weights;
-	std::vector<std::size_t> mx, my;
+	private:
+		std::vector<std::vector<double> > weights;
+		std::vector<std::size_t> mx, my;
 };
 
 #endif

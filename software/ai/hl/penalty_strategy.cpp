@@ -17,8 +17,8 @@ namespace {
 			StrategyFactory &factory() const;
 
 			/**
-	 		 * A function to do the assignment of player ("roles").
-	 		 */ 
+			 * A function to do the assignment of player ("roles").
+			 */
 			void penalty();
 
 			/**
@@ -32,7 +32,6 @@ namespace {
 			PenaltyStrategy(World &world);
 			~PenaltyStrategy();
 			void on_play_type_changed();
-			
 	};
 
 	/**
@@ -54,15 +53,13 @@ namespace {
 	 * The play types handled by this strategy.
 	 */
 	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
-
 		PlayType::PREPARE_PENALTY_FRIENDLY,
 
 		PlayType::EXECUTE_PENALTY_FRIENDLY,
-			
+
 		PlayType::PREPARE_PENALTY_ENEMY,
 
 		PlayType::EXECUTE_PENALTY_ENEMY
-
 	};
 
 	StrategyFactory &PenaltyStrategy::factory() const {
@@ -71,25 +68,27 @@ namespace {
 
 	void PenaltyStrategy::penalty() {
 #warning TODO something sensible
-		
-		switch(world.playtype()){
+
+		switch (world.playtype()) {
 			case PlayType::PREPARE_PENALTY_FRIENDLY:
-				
+
 				break;
+
 			case PlayType::EXECUTE_PENALTY_FRIENDLY:
 
-				break;	
+				break;
+
 			case PlayType::PREPARE_PENALTY_ENEMY:
 
 				break;
+
 			case PlayType::EXECUTE_PENALTY_ENEMY:
-				
+
 				break;
+
 			default:
 				break;
 		}
-
-
 	}
 
 	Strategy::Ptr PenaltyStrategy::create(World &world) {
@@ -105,9 +104,9 @@ namespace {
 	}
 
 	void PenaltyStrategy::on_play_type_changed() {
-		for (size_t i = 0 ; i < sizeof(HANDLED_PLAY_TYPES) / sizeof(*HANDLED_PLAY_TYPES) ; ++i){
+		for (size_t i = 0; i < sizeof(HANDLED_PLAY_TYPES) / sizeof(*HANDLED_PLAY_TYPES); ++i) {
 			if (world.playtype() == HANDLED_PLAY_TYPES[i]) {
-				return; 
+				return;
 			}
 		}
 		resign();

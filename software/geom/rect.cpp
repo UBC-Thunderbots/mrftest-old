@@ -3,10 +3,10 @@
 #include <cmath>
 
 
-Rect::Rect(const Point &point1, const Point &point2):min_corner(std::min(point1.x, point2.x),std::min(point1.y, point2.y)),diag(fabs((point1 - point2).x), fabs((point1 - point2).y)) {
+Rect::Rect(const Point &point1, const Point &point2) : min_corner(std::min(point1.x, point2.x), std::min(point1.y, point2.y)), diag(fabs((point1 - point2).x), fabs((point1 - point2).y)) {
 }
 
-Rect::Rect(const Point &sw_corner, double width, double height): min_corner(sw_corner),diag(width,height) {
+Rect::Rect(const Point &sw_corner, double width, double height) : min_corner(sw_corner), diag(width, height) {
 }
 
 
@@ -19,11 +19,11 @@ double Rect::height() const {
 }
 
 double Rect::area() const {
-	return diag.x*diag.y;
+	return diag.x * diag.y;
 }
 
 Point Rect::centre() const {
-	return min_corner + diag/2;
+	return min_corner + diag / 2;
 }
 
 Point Rect::ne_corner() const {
@@ -31,7 +31,7 @@ Point Rect::ne_corner() const {
 }
 
 Point Rect::nw_corner() const {
-	return min_corner + Point(0,diag.y);
+	return min_corner + Point(0, diag.y);
 }
 
 Point Rect::sw_corner() const {
@@ -39,7 +39,7 @@ Point Rect::sw_corner() const {
 }
 
 Point Rect::se_corner() const {
-	return min_corner + Point(diag.x,0);
+	return min_corner + Point(diag.x, 0);
 }
 
 void Rect::translate(const Point &offset) {

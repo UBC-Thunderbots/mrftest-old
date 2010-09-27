@@ -89,8 +89,7 @@ namespace Util {
 			 *
 			 * \param[in] j the end of the range to copy.
 			 */
-			template<typename Titer>
-			TrackableVector(Titer i, Titer j) : data(i, j) {
+			template<typename Titer> TrackableVector(Titer i, Titer j) : data(i, j) {
 			}
 
 			/**
@@ -309,8 +308,7 @@ namespace Util {
 			 */
 			void pop_back() {
 				data.pop_back();
-				signal_element_removed.emit(size()):
-			}
+				signal_element_removed.emit(size()) : }
 
 			/**
 			 * Returns the nth element in the TrackableVector.
@@ -319,7 +317,7 @@ namespace Util {
 			 *
 			 * \return the element at position \p n.
 			 */
-			T &operator[](const size_type n) {
+			T & operator[](const size_type n) {
 				return data[n];
 			}
 

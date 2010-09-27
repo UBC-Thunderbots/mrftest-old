@@ -19,7 +19,7 @@ namespace {
 
 	DoubleParam DRIBBLER_HAS_BALL_LOAD_FACTOR("Has Ball Load Factor", 0.8, 0.1, 3.0);
 
-	//const double HAS_BALL_TIME = 2.0 / 15.0;
+	// const double HAS_BALL_TIME = 2.0 / 15.0;
 	const int HAS_BALL_TIME = 2;
 
 	unsigned int kicker_power_to_pulse_width(double power) {
@@ -34,14 +34,14 @@ namespace {
 		return clamp(static_cast<unsigned int>(MAX_PULSE_WIDTH * power), 0U, MAX_PULSE_WIDTH);
 	}
 
-	//determines how much dribbling to do based off the inputs to the 4 motors
-	int calc_dribble(const int (&wheel_speeds)[4], int new_dribble_power) {
+	// determines how much dribbling to do based off the inputs to the 4 motors
+	int calc_dribble(const int(&wheel_speeds)[4], int new_dribble_power) {
 		// Angles in radians that the wheels are located off the forward direction
-		static const double ANGLES[4] = {0.959931, 2.35619, 3.9269908, 5.32325}; 
+		static const double ANGLES[4] = { 0.959931, 2.35619, 3.9269908, 5.32325 };
 		static const double BACKWARDS_SCALING_FACTOR = 4.0;
-		//if we are moving with this little force forwards exempt the reduction of dribble speed
+		// if we are moving with this little force forwards exempt the reduction of dribble speed
 		static const double FORWARD_EXEMPTION_AMOUNT = 7.0;
-		//we are expecting to idle the motor so just set the dribble motor to a low set-point
+		// we are expecting to idle the motor so just set the dribble motor to a low set-point
 		static const int CONTINUOUS_IDLE_AMOUNT = 130;
 		int theta;
 		Point x_y;
@@ -92,7 +92,7 @@ const std::pair<Point, double> &Player::destination() const {
 }
 
 void Player::dribble(double speed) {
-  new_dribble_power = clamp(static_cast<int>(speed * 1023.0 + copysign(0.5, speed)), -1023, 1023);
+	new_dribble_power = clamp(static_cast<int>(speed * 1023.0 + copysign(0.5, speed)), -1023, 1023);
 }
 
 unsigned int Player::chicker_ready_time() const {
@@ -199,7 +199,7 @@ Player::Player(AI::BE::Backend &backend, const Glib::ustring &name, unsigned int
 	chicker_last_fire_time.tv_nsec = 0;
 }
 
-void Player::drive(const int (&w)[4]) {
+void Player::drive(const int(&w)[4]) {
 	for (unsigned int i = 0; i < 4; ++i) {
 		wheel_speeds[i] = w[i];
 	}
@@ -271,7 +271,7 @@ Glib::ustring Player::visualizer_label() const {
 }
 
 void Player::on_feedback() {
-	theory_dribble_rpm =  static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED);
+	theory_dribble_rpm = static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED);
 	const unsigned int threshold_speed = static_cast<unsigned int>(std::abs(old_dribble_power) / 1023.0 * MAX_DRIBBLER_SPEED * DRIBBLER_HAS_BALL_LOAD_FACTOR);
 	bool new_sense_ball = (bot->dribbler_speed() > 0) && (theory_dribble_rpm > 0) && (bot->dribbler_speed() < threshold_speed);
 	if (new_sense_ball) {

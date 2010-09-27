@@ -49,24 +49,24 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 	// Draw the outline of the referee area.
 	ctx->set_source_rgb(0.0, 0.0, 0.0);
 	ctx->move_to(xtog(-data.field().total_length() / 2.0), ytog(-data.field().total_width() / 2.0));
-	ctx->line_to(xtog( data.field().total_length() / 2.0), ytog(-data.field().total_width() / 2.0));
-	ctx->line_to(xtog( data.field().total_length() / 2.0), ytog( data.field().total_width() / 2.0));
-	ctx->line_to(xtog(-data.field().total_length() / 2.0), ytog( data.field().total_width() / 2.0));
+	ctx->line_to(xtog(data.field().total_length() / 2.0), ytog(-data.field().total_width() / 2.0));
+	ctx->line_to(xtog(data.field().total_length() / 2.0), ytog(data.field().total_width() / 2.0));
+	ctx->line_to(xtog(-data.field().total_length() / 2.0), ytog(data.field().total_width() / 2.0));
 	ctx->line_to(xtog(-data.field().total_length() / 2.0), ytog(-data.field().total_width() / 2.0));
 	ctx->stroke();
 
 	// Draw the rectangular outline.
 	ctx->set_source_rgb(1.0, 1.0, 1.0);
 	ctx->move_to(xtog(-data.field().length() / 2.0), ytog(-data.field().width() / 2.0));
-	ctx->line_to(xtog( data.field().length() / 2.0), ytog(-data.field().width() / 2.0));
-	ctx->line_to(xtog( data.field().length() / 2.0), ytog( data.field().width() / 2.0));
-	ctx->line_to(xtog(-data.field().length() / 2.0), ytog( data.field().width() / 2.0));
+	ctx->line_to(xtog(data.field().length() / 2.0), ytog(-data.field().width() / 2.0));
+	ctx->line_to(xtog(data.field().length() / 2.0), ytog(data.field().width() / 2.0));
+	ctx->line_to(xtog(-data.field().length() / 2.0), ytog(data.field().width() / 2.0));
 	ctx->line_to(xtog(-data.field().length() / 2.0), ytog(-data.field().width() / 2.0));
 	ctx->stroke();
 
 	// Draw the centre line.
 	ctx->move_to(xtog(0.0), ytog(-data.field().width() / 2.0));
-	ctx->line_to(xtog(0.0), ytog( data.field().width() / 2.0));
+	ctx->line_to(xtog(0.0), ytog(data.field().width() / 2.0));
 	ctx->stroke();
 
 	// Draw the centre circle.
@@ -74,15 +74,15 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 	ctx->stroke();
 
 	// Draw the west defense area.
-	ctx->arc(xtog(-data.field().length() / 2.0), ytog( data.field().defense_area_stretch() / 2.0), dtog(data.field().defense_area_radius()), 3 * M_PI_2, 2 * M_PI);
-	ctx->line_to(xtog(-data.field().length() / 2.0 + data.field().defense_area_radius()), ytog( data.field().defense_area_stretch() / 2.0));
+	ctx->arc(xtog(-data.field().length() / 2.0), ytog(data.field().defense_area_stretch() / 2.0), dtog(data.field().defense_area_radius()), 3 * M_PI_2, 2 * M_PI);
+	ctx->line_to(xtog(-data.field().length() / 2.0 + data.field().defense_area_radius()), ytog(data.field().defense_area_stretch() / 2.0));
 	ctx->arc(xtog(-data.field().length() / 2.0), ytog(-data.field().defense_area_stretch() / 2.0), dtog(data.field().defense_area_radius()), 0, M_PI_2);
 	ctx->stroke();
 
 	// Draw the east defense area.
-	ctx->arc_negative(xtog( data.field().length() / 2.0), ytog( data.field().defense_area_stretch() / 2.0), dtog(data.field().defense_area_radius()), 3 * M_PI_2, M_PI);
-	ctx->line_to(xtog( data.field().length() / 2.0 - data.field().defense_area_radius()), ytog(-data.field().defense_area_stretch() / 2.0));
-	ctx->arc_negative(xtog( data.field().length() / 2.0), ytog(-data.field().defense_area_stretch() / 2.0), dtog(data.field().defense_area_radius()), M_PI, M_PI_2);
+	ctx->arc_negative(xtog(data.field().length() / 2.0), ytog(data.field().defense_area_stretch() / 2.0), dtog(data.field().defense_area_radius()), 3 * M_PI_2, M_PI);
+	ctx->line_to(xtog(data.field().length() / 2.0 - data.field().defense_area_radius()), ytog(-data.field().defense_area_stretch() / 2.0));
+	ctx->arc_negative(xtog(data.field().length() / 2.0), ytog(-data.field().defense_area_stretch() / 2.0), dtog(data.field().defense_area_radius()), M_PI, M_PI_2);
 	ctx->stroke();
 
 	// Draw the players including text.

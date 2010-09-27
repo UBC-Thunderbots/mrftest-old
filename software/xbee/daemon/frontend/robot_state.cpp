@@ -713,7 +713,7 @@ void XBeeRobot::SettingRDOState::queue_request() {
 void XBeeRobot::SettingRDOState::request_done(const void *, std::size_t) {
 	// We actually don't do anything here except just retransmit the packet.
 	// We keep flooding until we exit this state,
-	// which is caused by either receiving feedback or timing out on feedback, 
+	// which is caused by either receiving feedback or timing out on feedback,
 	// and has nothing to do with the RDO setting packet being delivered or not.
 	queue_request();
 }

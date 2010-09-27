@@ -295,7 +295,7 @@ namespace XBeePacketTypes {
 	};
 	const uint8_t FEEDBACK_METATYPE = 0x05;
 
-	// 
+	//
 	// A META_RELEASE packet is sent from a client to the arbiter and indicates that the client no longer has any interest in a robot.
 	//
 	// If the robot was in drive mode, the arbiter will begin trying to deassign resources assigned to the robot

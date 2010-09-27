@@ -27,10 +27,10 @@ TesterControlMatrixDrive::TesterControlMatrixDrive(XBeeDriveBot::Ptr bot) : Gtk:
 
 void TesterControlMatrixDrive::on_change() {
 	static const double matrix[4][3] = {
-		{-42.5995, 27.6645, 4.3175},
-		{-35.9169, -35.9169, 4.3175},
-		{35.9169, -35.9169, 4.3175},
-		{42.5995, 27.6645, 4.3175}
+		{ -42.5995, 27.6645, 4.3175 },
+		{ -35.9169, -35.9169, 4.3175 },
+		{ 35.9169, -35.9169, 4.3175 },
+		{ 42.5995, 27.6645, 4.3175 }
 	};
 	if (robot.is()) {
 		double input[3] = {
@@ -38,10 +38,12 @@ void TesterControlMatrixDrive::on_change() {
 			drive2_scale.get_value(),
 			drive3_scale.get_value()
 		};
-		double output[4] = {0, 0, 0, 0};
-		for (unsigned int row = 0; row < 4; ++row)
-			for (unsigned int col = 0; col < 3; ++col)
+		double output[4] = { 0, 0, 0, 0 };
+		for (unsigned int row = 0; row < 4; ++row) {
+			for (unsigned int col = 0; col < 3; ++col) {
 				output[row] += matrix[row][col] * input[col];
+			}
+		}
 		int m1 = static_cast<int>(output[0]);
 		int m2 = static_cast<int>(output[1]);
 		int m3 = static_cast<int>(output[2]);

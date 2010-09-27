@@ -37,23 +37,21 @@ namespace {
 			}
 
 			Point filter(const std::vector<std::pair<double, Point> > &obs, World &) {
-			
-	
-			  // Just use the maximum-confidence ball.
-			  //				const std::vector<std::pair<double, Point> >::const_iterator &best_obs(std::max_element(obs.begin(), obs.end()));
+				// Just use the maximum-confidence ball.
+				// const std::vector<std::pair<double, Point> >::const_iterator &best_obs(std::max_element(obs.begin(), obs.end()));
 
-				//this code is for the purose of only looking at balls in the offense area
-			  int best_pos = obs.size();
+				// this code is for the purose of only looking at balls in the offense area
+				int best_pos = obs.size();
 				double confidence = 0.0;
 
-				for(unsigned int i =0; i<obs.size(); i++){
-				 if(obs[i].second.x<0.0){
-				   if(confidence < obs[i].first){
-				     best_pos = i;
-				   }
-				  }
-				 }
-				const std::vector<std::pair<double, Point> >::const_iterator &best_obs(obs.begin()+best_pos);
+				for (unsigned int i = 0; i < obs.size(); i++) {
+					if (obs[i].second.x < 0.0) {
+						if (confidence < obs[i].first) {
+							best_pos = i;
+						}
+					}
+				}
+				const std::vector<std::pair<double, Point> >::const_iterator &best_obs(obs.begin() + best_pos);
 
 				if (best_obs != obs.end()) {
 					// All the circles that contain the ball should be combined into one single circle.

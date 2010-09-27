@@ -16,7 +16,7 @@ class Rect {
 		 * \param[in] point2 the corner diagonally-opposite to \p point1.
 		 */
 		Rect(const Point &point1, const Point &point2);
-	
+
 		/**
 		 * Creates a new Rect from a corner and a size.
 		 *
@@ -34,28 +34,28 @@ class Rect {
 		 * \return the width of the rectangle.
 		 */
 		double width() const;
-		
+
 		/**
 		 * Returns the height of the rectangle.
 		 *
 		 * \return the height of the rectangle.
 		 */
 		double height() const;
-	
+
 		/**
 		 * Returns the area of the rectangle.
 		 *
 		 * \return the area of the rectangle.
 		 */
 		double area() const;
-		
+
 		/**
 		 * Returns the centre of the rectangle.
 		 *
 		 * \return the centre of the rectangle.
 		 */
 		Point centre() const;
-		
+
 		/**
 		 * Returns the north-east corner of the rectangle.
 		 *
@@ -82,15 +82,15 @@ class Rect {
 		 *
 		 * \return the south-east corner of the rectangle.
 		 */
-		Point se_corner() const;		
+		Point se_corner() const;
 
 		/**
 		 * Translates the rectangle.
 		 *
 		 * \param[in] offset the distance to move the rectangle.
 		 */
-		void translate(const Point &offset);		
-		
+		void translate(const Point &offset);
+
 	private:
 		Point min_corner;
 		Point diag;

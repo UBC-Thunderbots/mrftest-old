@@ -13,7 +13,6 @@ using namespace AI::RC::W;
 #warning this class needs Doxygen comments in its header
 
 namespace {
-
 	// std::ofstream dout("pid.csv");
 	// int dnt = 1;
 
@@ -125,7 +124,6 @@ namespace {
 	};
 
 	const int P = sizeof(arr_max) / sizeof(arr_max[0]);
-
 }
 
 const std::vector<double> TunablePIDController::param_min(arr_min, arr_min + P);
@@ -161,7 +159,9 @@ void TunablePIDController::move(const Point &new_position, double new_orientatio
 	double new_da = angle_mod(new_orientation - current_orientation);
 	const Point &new_dir = (new_position - current_position).rotate(-current_orientation);
 
-	if (new_da > M_PI) new_da -= 2 * M_PI;
+	if (new_da > M_PI) {
+		new_da -= 2 * M_PI;
+	}
 
 	if (!initialized) {
 		initialized = true;
@@ -203,12 +203,12 @@ void TunablePIDController::move(const Point &new_position, double new_orientatio
 	const double cy = accum_pos.y;
 	// const double ca = accum_ori;
 
-	//double ovx = error_pos[0].x - error_pos[1].x;
-	//double ovy = error_pos[0].y - error_pos[1].y;
-	//double ova = error_ori[0] - error_ori[1];
-	//dout << ovx << " " << vx << " " << ovy << " " << vy << " " << ova << " " << va << std::endl;
-	//dout << dnt << " " << va << std::endl;
-	//dnt++;
+	// double ovx = error_pos[0].x - error_pos[1].x;
+	// double ovy = error_pos[0].y - error_pos[1].y;
+	// double ova = error_ori[0] - error_ori[1];
+	// dout << ovx << " " << vx << " " << ovy << " " << vy << " " << ova << " " << va << std::endl;
+	// dout << dnt << " " << va << std::endl;
+	// dnt++;
 
 	// check if command has changed
 	if (prev_new_pos.x != new_position.x || prev_new_pos.y != new_position.y || prev_new_ori != new_orientation) {

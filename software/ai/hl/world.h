@@ -15,7 +15,7 @@ namespace AI {
 			 */
 			class Field : public AI::Common::Field {
 			};
-			
+
 			/**
 			 * The ball, as seen by a Strategy.
 			 */
