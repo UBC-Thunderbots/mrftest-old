@@ -86,7 +86,7 @@ void Simulator::packet_handler(const std::vector<uint8_t> &data) {
 			host_address16 = (req.value[0] << 8) | req.value[1];
 			resp.status = XBeePacketTypes::AT_RESPONSE_STATUS_OK;
 		} else {
-			LOG_WARN(Glib::ustring::format("Received unsupported local AT command \"%1\".", Glib::ustring(reinterpret_cast<const char *>(req.command), 2)));
+			LOG_WARN(Glib::ustring::compose("Received unsupported local AT command \"%1\".", Glib::ustring(reinterpret_cast<const char *>(req.command), 2)));
 			resp.status = XBeePacketTypes::AT_RESPONSE_STATUS_INVALID_COMMAND;
 		}
 

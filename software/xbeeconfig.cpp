@@ -1,4 +1,5 @@
 #include "util/config.h"
+#include "util/dprint.h"
 #include "util/time.h"
 #include <cstdio>
 #include <cstdlib>
@@ -270,9 +271,9 @@ connected:
 		goto start_work;
 	}
 
-	std::cout << "Setting radio channel to " << Glib::ustring::format(std::hex, std::setw(2), std::setfill(L'0'), std::uppercase, conf.channel()) << "... " << std::flush;
+	std::cout << "Setting radio channel to " << tohex(conf.channel(), 2) << "... " << std::flush;
 	{
-		send_string(fd, Glib::ustring::compose("ATCH%1\r", Glib::ustring::format(std::hex, std::uppercase, conf.channel())));
+		send_string(fd, Glib::ustring::compose("ATCH%1\r", tohex(conf.channel(), 1)));
 	}
 	if (read_clean_ok(fd)) {
 		std::cout << "OK\n";

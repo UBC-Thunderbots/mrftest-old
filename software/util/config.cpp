@@ -1,5 +1,6 @@
 #include "util/config.h"
 #include "util/algorithm.h"
+#include "util/dprint.h"
 #include <algorithm>
 #include <cassert>
 #include <fstream>
@@ -244,7 +245,7 @@ void Config::save() const {
 	}
 
 	xmlpp::Element *radio = root->add_child("radio");
-	radio->set_attribute("channel", Glib::ustring::format(std::hex, channel_));
+	radio->set_attribute("channel", tohex(channel_, 2));
 	root->add_child_text("\n");
 
 	xmlpp::Element *params = root->add_child("params");
@@ -260,13 +261,20 @@ void Config::save() const {
 	for (std::map<Glib::ustring, int>::const_iterator i = int_params.begin(), iend = int_params.end(); i != iend; ++i) {
 		xmlpp::Element *int_param = params->add_child("int-param");
 		int_param->set_attribute("name", i->first);
-		int_param->add_child_text(Glib::ustring::format(i->second));
+		std::wostringstream oss;
+		oss.imbue(std::locale("C"));
+		oss << i->second;
+		int_param->add_child_text(Glib::ustring::format(oss.str()));
 		params->add_child_text("\n");
 	}
 	for (std::map<Glib::ustring, double>::const_iterator i = double_params.begin(), iend = double_params.end(); i != iend; ++i) {
 		xmlpp::Element *double_param = params->add_child("double-param");
 		double_param->set_attribute("name", i->first);
-		double_param->add_child_text(Glib::ustring::format(std::setprecision(9), i->second));
+		std::wostringstream oss;
+		oss.precision(9);
+		oss.imbue(std::locale("C"));
+		oss << i->second;
+		double_param->add_child_text(Glib::ustring::format(oss.str()));
 		params->add_child_text("\n");
 	}
 	root->add_child_text("\n");
@@ -398,8 +406,11 @@ void Config::RobotSet::save(xmlpp::Element *players) const {
 	players->add_child_text("\n");
 	for (std::vector<RobotInfo>::const_iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
 		xmlpp::Element *player = players->add_child("player");
-		player->set_attribute("address", Glib::ustring::format(std::hex, std::setw(16), std::setfill(L'0'), i->address));
-		player->set_attribute("pattern", Glib::ustring::format(i->pattern_index));
+		player->set_attribute("address", tohex(i->address, 16));
+		std::wostringstream oss;
+		oss.imbue(std::locale("C"));
+		oss << i->pattern_index;
+		player->set_attribute("pattern", Glib::ustring::format(oss.str()));
 		player->set_attribute("name", i->name);
 		players->add_child_text("\n");
 	}

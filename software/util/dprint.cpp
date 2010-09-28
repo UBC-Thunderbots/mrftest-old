@@ -1,14 +1,20 @@
 #include "util/dprint.h"
 #include <ctime>
 #include <fstream>
-#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <unistd.h>
 #include <sys/types.h>
 
 Glib::ustring tohex(uintmax_t value, unsigned int width) {
-	return Glib::ustring::format(std::hex, std::setw(width), std::setfill(L'0'), std::uppercase, value);
+	std::wostringstream oss;
+	oss.imbue(std::locale("C"));
+	oss.flags(std::ios::uppercase | std::ios::hex | std::ios::right);
+	oss.width(width);
+	oss.fill(L'0');
+	oss << value;
+	return Glib::ustring::format(oss.str());
 }
 
 void log_impl(const char *file, unsigned int line, const Glib::ustring &msg, unsigned int level) {

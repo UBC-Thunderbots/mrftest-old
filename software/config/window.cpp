@@ -1,6 +1,7 @@
 #include "config/window.h"
 #include "uicomponents/abstract_list_model.h"
 #include "util/algorithm.h"
+#include "util/dprint.h"
 #include <algorithm>
 #include <cassert>
 #include <cctype>
@@ -46,7 +47,7 @@ namespace {
 				update_enable();
 
 				if (old) {
-					address_entry.set_text(Glib::ustring::format(std::hex, std::setw(16), std::setfill(L'0'), old->address));
+					address_entry.set_text(tohex(old->address, 16));
 					pattern_index_spin.set_value(old->pattern_index);
 					name_entry.set_text(old->name);
 				}
@@ -377,7 +378,7 @@ namespace {
 
 			void cell_data_func(const Gtk::TreeModel::const_iterator &iter) {
 				unsigned int chan = model->channel_for_iter(iter);
-				renderer.property_text() = Glib::ustring::format(std::hex, std::uppercase, std::setw(2), std::setfill(L'0'), chan);
+				renderer.property_text() = tohex(chan, 2);
 			}
 	};
 }
