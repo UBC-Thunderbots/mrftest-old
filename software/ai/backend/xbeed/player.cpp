@@ -67,7 +67,7 @@ namespace {
 #warning why the hell is this number so small?
 const unsigned int Player::CHICKER_FOREVER = 1000;
 
-void Player::move(Point dest, double target_ori, unsigned int flags) {
+void Player::move(Point dest, double target_ori, unsigned int flags, AI::Flags::MOVE_TYPE type, AI::Flags::MOVE_PRIO prio) {
 	if (std::isnan(dest.x) || std::isnan(dest.y)) {
 		destination_.first = position();
 		LOG_WARN("NaN destination passed to player::move");
@@ -83,6 +83,8 @@ void Player::move(Point dest, double target_ori, unsigned int flags) {
 	}
 
 	flags_ = flags;
+	move_type_ = type;
+	move_prio_ = prio;
 
 	moved = true;
 }

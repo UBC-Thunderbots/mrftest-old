@@ -21,7 +21,7 @@ void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const bool force) 
 #warning incomplete, waiting for move API
 		// chase ball
 		// TODO: set the flag
-		player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), 0);
+		player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 	}
 }
 

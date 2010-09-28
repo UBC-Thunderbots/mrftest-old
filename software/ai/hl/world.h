@@ -1,6 +1,7 @@
 #ifndef AI_HL_WORLD_H
 #define AI_HL_WORLD_H
 
+#include "ai/flags.h"
 #include "ai/common/world.h"
 #include "util/property.h"
 #include <sigc++/sigc++.h>
@@ -51,8 +52,12 @@ namespace AI {
 					 * \param[in] ori the target orientation to assume.
 					 *
 					 * \param[in] flags the flags governing the movement.
+					 *
+					 * \param[in] type the type of movement to perform.
+					 *
+					 * \param[in] prio the priority of the movement.
 					 */
-					virtual void move(Point dest, double ori, unsigned int flags) = 0;
+					virtual void move(Point dest, double ori, unsigned int flags, AI::Flags::MOVE_TYPE type, AI::Flags::MOVE_PRIO prio) = 0;
 
 					/**
 					 * Causes the player to kick the ball.
