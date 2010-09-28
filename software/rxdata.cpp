@@ -166,7 +166,7 @@ namespace {
 		robot_entry.set_short_name('r');
 		robot_entry.set_description("Indicates the name of the robot whose data should be received");
 		robot_entry.set_arg_description("ROBOT");
-		Glib::ustring robot;
+		int robot = -1;
 		option_group.add_entry(robot_entry, robot);
 
 		Glib::OptionEntry file_entry;
@@ -179,7 +179,7 @@ namespace {
 
 		option_context.set_main_group(option_group);
 
-		if (!option_context.parse(argc, argv) || robot.empty() || argc != 1) {
+		if (!option_context.parse(argc, argv) || robot < 0 || argc != 1) {
 			std::cerr << option_context.get_help();
 			return 1;
 		}
@@ -191,7 +191,7 @@ namespace {
 
 		Glib::RefPtr<Glib::MainLoop> loop(Glib::MainLoop::create());
 		const Config conf;
-		if (!conf.robots().contains_name(robot)) {
+		if (!conf.robots().contains_pattern(robot)) {
 			std::cerr << "No such robot!\n";
 			return 1;
 		}

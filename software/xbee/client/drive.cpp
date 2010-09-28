@@ -21,7 +21,7 @@ namespace {
 	}
 }
 
-XBeeDriveBot::XBeeDriveBot(const Glib::ustring &name, uint64_t address, XBeeLowLevel &ll) : address(address), ll(ll), alive_(false), shm_frame(0), low_battery_message(Glib::ustring::compose("%1 low battery", name)), lt3751_fault_message(Glib::ustring::compose("%1 LT3751 fault", name)), chicker_low_fault_message(Glib::ustring::compose("%1 chicker LOW fault", name)), chicker_high_fault_message(Glib::ustring::compose("%1 chicker HIGH fault", name)), chicker_charge_timeout_message(Glib::ustring::compose("%1 chicker charge timeout", name)) {
+XBeeDriveBot::XBeeDriveBot(unsigned int pattern, uint64_t address, XBeeLowLevel &ll) : address(address), ll(ll), alive_(false), shm_frame(0), low_battery_message(Glib::ustring::compose("Bot %1 low battery", pattern)), lt3751_fault_message(Glib::ustring::compose("Bot %1 LT3751 fault", pattern)), chicker_low_fault_message(Glib::ustring::compose("Bot %1 chicker LOW fault", pattern)), chicker_high_fault_message(Glib::ustring::compose("Bot %1 chicker HIGH fault", pattern)), chicker_charge_timeout_message(Glib::ustring::compose("Bot %1 chicker charge timeout", pattern)) {
 	timespec now;
 	timespec_now(now);
 	feedback_timestamp_ = now;
@@ -45,8 +45,8 @@ XBeeDriveBot::~XBeeDriveBot() {
 	ll.send(MetaReleasePacket::create(address));
 }
 
-XBeeDriveBot::Ptr XBeeDriveBot::create(const Glib::ustring &name, uint64_t address, XBeeLowLevel &ll) {
-	Ptr p(new XBeeDriveBot(name, address, ll));
+XBeeDriveBot::Ptr XBeeDriveBot::create(unsigned int pattern, uint64_t address, XBeeLowLevel &ll) {
+	Ptr p(new XBeeDriveBot(pattern, address, ll));
 	return p;
 }
 

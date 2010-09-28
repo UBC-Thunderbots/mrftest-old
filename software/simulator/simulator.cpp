@@ -267,7 +267,7 @@ void Simulator::tick() {
 					elem = det->add_robots_blue();
 				}
 				elem->set_confidence(1.0);
-				elem->set_robot_id(info.pattern_index);
+				elem->set_robot_id(info.pattern);
 				const Point &pos(plr->position());
 				elem->set_x(pos.x * 1000);
 				elem->set_y(pos.y * 1000);

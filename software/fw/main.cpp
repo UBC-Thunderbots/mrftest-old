@@ -48,8 +48,8 @@ namespace {
 		robot_entry.set_long_name("robot");
 		robot_entry.set_short_name('r');
 		robot_entry.set_description("Selects which robot should be upgraded.");
-		robot_entry.set_arg_description("ROBOT");
-		Glib::ustring robot;
+		robot_entry.set_arg_description("PATTERN-INDEX");
+		int robot = -1;
 		option_group.add_entry(robot_entry, robot);
 
 		Glib::OptionEntry filename_entry;
@@ -94,7 +94,7 @@ namespace {
 		}
 		XBeeLowLevel modem;
 		if (fpga || pic || emergency_erase) {
-			if (!conf.robots().contains_name(robot)) {
+			if (!conf.robots().contains_pattern(robot)) {
 				std::cout << "There is no robot named '" << robot << "'.\n";
 				return 1;
 			}

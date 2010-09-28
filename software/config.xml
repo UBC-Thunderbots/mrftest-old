@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <thunderbots>
 <players>
-<player address="0013A200403C2DE8" pattern="0" name="bot0"/>
-<player address="0013A2004053A1DA" pattern="1" name="bot1"/>
-<player address="0013A20040091538" pattern="2" name="bot2"/>
-<player address="0013A200405300FF" pattern="3" name="bot3"/>
-<player address="0013A200403C2DEC" pattern="4" name="bot4"/>
-<player address="0013A200403C2DDA" pattern="5" name="bot5"/>
-<player address="0013A200405300FD" pattern="6" name="bot6"/>
+<player address="0013A200403C2DE8" pattern="0"/>
+<player address="0013A2004053A1DA" pattern="1"/>
+<player address="0013A20040091538" pattern="2"/>
+<player address="0013A200405300FF" pattern="3"/>
+<player address="0013A200403C2DEC" pattern="4"/>
+<player address="0013A200403C2DDA" pattern="5"/>
+<player address="0013A200405300FD" pattern="6"/>
 </players>
 <radio channel="0E"/>
 <params>

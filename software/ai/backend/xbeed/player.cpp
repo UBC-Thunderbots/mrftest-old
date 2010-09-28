@@ -113,7 +113,7 @@ unsigned int Player::chicker_ready_time() const {
 }
 
 void Player::kick(double power) {
-	std::cout << name << " kick(" << power << ")\n";
+	std::cout << pattern() << " kick(" << power << ")\n";
 	if (bot->alive()) {
 		if (!chicker_ready_time()) {
 			unsigned int width = kicker_power_to_pulse_width(power);
@@ -128,7 +128,7 @@ void Player::kick(double power) {
 }
 
 void Player::chip(double power) {
-	std::cout << name << " chip(" << power << ")\n";
+	std::cout << pattern() << " chip(" << power << ")\n";
 	if (bot->alive()) {
 		if (!chicker_ready_time()) {
 			unsigned int width = chipper_power_to_pulse_width(power);
@@ -184,12 +184,12 @@ bool Player::dribbler_safe() const {
 	return milliseconds > DRIBBLE_RECOVER_TIME;
 }
 
-Player::Ptr Player::create(AI::BE::Backend &backend, const Glib::ustring &name, unsigned int pattern, XBeeDriveBot::Ptr bot) {
-	Ptr p(new Player(backend, name, pattern, bot));
+Player::Ptr Player::create(AI::BE::Backend &backend, unsigned int pattern, XBeeDriveBot::Ptr bot) {
+	Ptr p(new Player(backend, pattern, bot));
 	return p;
 }
 
-Player::Player(AI::BE::Backend &backend, const Glib::ustring &name, unsigned int pattern, XBeeDriveBot::Ptr bot) : AI::BE::XBeeD::Robot(backend, pattern), name(name), bot(bot), destination_(Point(), 0.0), moved(false), controlled(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(0), theory_dribble_rpm(0), dribble_distance_(0.0), not_moved_message(Glib::ustring::compose("%1 not moved", name)), chick_when_not_ready_message(Glib::ustring::compose("%1 chick when not ready", name)) {
+Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeDriveBot::Ptr bot) : AI::BE::XBeeD::Robot(backend, pattern), bot(bot), destination_(Point(), 0.0), moved(false), controlled(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(0), theory_dribble_rpm(0), dribble_distance_(0.0), not_moved_message(Glib::ustring::compose("Bot %1 not moved", pattern)), chick_when_not_ready_message(Glib::ustring::compose("Bot %1 chick when not ready", pattern)) {
 	bot->signal_feedback.connect(sigc::mem_fun(this, &Player::on_feedback));
 	timespec now;
 	timespec_now(now);

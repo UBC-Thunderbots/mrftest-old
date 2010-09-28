@@ -26,11 +26,6 @@ class SingleBotComboBoxModel : public Glib::Object, public AbstractListModel {
 		Gtk::TreeModelColumn<unsigned int> pattern_index_column;
 
 		/**
-		 * A column containing the robot's name.
-		 */
-		Gtk::TreeModelColumn<Glib::ustring> name_column;
-
-		/**
 		 * Constructs a new SingleRobotComboBoxModel.
 		 *
 		 * \param[in] robots the robots to display.
@@ -65,9 +60,9 @@ class SingleBotComboBox : public Gtk::ComboBox {
 		 *
 		 * \param[in] robots the robots to display in the box.
 		 *
-		 * \param[in] robot the name of the robot to select initially.
+		 * \param[in] robot the pattern index of the robot to select initially.
 		 */
-		SingleBotComboBox(const Config::RobotSet &robots, const Glib::ustring &robot);
+		SingleBotComboBox(const Config::RobotSet &robots, unsigned int robot);
 
 		/**
 		 * Returns the address of the currently-selected robot.

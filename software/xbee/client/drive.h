@@ -59,7 +59,7 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		/**
 		 * Creates a new XBeeDriveBot and begins attempting to claim the bot.
 		 *
-		 * \param[in] name the name of the robot.
+		 * \param[in] pattern the pattern index of the robot.
 		 *
 		 * \param[in] address the 64-bit address of the robot.
 		 *
@@ -67,7 +67,7 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		 *
 		 * \return the new robot connection.
 		 */
-		static Ptr create(const Glib::ustring &name, uint64_t address, XBeeLowLevel &ll);
+		static Ptr create(unsigned int pattern, uint64_t address, XBeeLowLevel &ll);
 
 		/**
 		 * Returns whether or not the robot is communicating.
@@ -279,7 +279,7 @@ class XBeeDriveBot : public ByRef, public sigc::trackable {
 		timespec low_battery_start_time, lt3751_fault_start_time;
 		Annunciator::Message low_battery_message, lt3751_fault_message, chicker_low_fault_message, chicker_high_fault_message, chicker_charge_timeout_message;
 
-		XBeeDriveBot(const Glib::ustring &name, uint64_t address, XBeeLowLevel &ll);
+		XBeeDriveBot(unsigned int pattern, uint64_t address, XBeeLowLevel &ll);
 		~XBeeDriveBot();
 		void on_meta(const void *, std::size_t);
 		void clear_chick();

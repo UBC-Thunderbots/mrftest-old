@@ -146,7 +146,6 @@ namespace {
 			RobotsControls(Simulator &sim) : sim(sim), robots_list_model(SingleBotComboBoxModel::create(sim.conf.robots())), robots_list(robots_list_model), controls(sim) {
 				robots_list.append_column("Address", robots_list_model->address_column);
 				robots_list.append_column("Pattern", robots_list_model->pattern_index_column);
-				robots_list.append_column("Name", robots_list_model->name_column);
 				robots_list.get_selection()->set_mode(Gtk::SELECTION_SINGLE);
 				robots_list.get_selection()->signal_changed().connect(sigc::mem_fun(this, &RobotsControls::on_list_selection_changed));
 				Gtk::ScrolledWindow *scroller = Gtk::manage(new Gtk::ScrolledWindow);

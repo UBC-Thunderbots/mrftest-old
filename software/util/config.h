@@ -28,23 +28,16 @@ class Config : public NonCopyable {
 			/**
 			 * The index of the robot's lid pattern in the SSL-Vision pattern file.
 			 */
-			unsigned int pattern_index;
-
-			/**
-			 * A human-readable name for the robot.
-			 */
-			Glib::ustring name;
+			unsigned int pattern;
 
 			/**
 			 * Constructs a new RobotInfo.
 			 *
 			 * \param[in] address the robot's XBee address.
 			 *
-			 * \param[in] pattern_index the index in the SSL-Vision pattern file of the robot's lid pattern.
-			 *
-			 * \param[in] name a human-readable name for the robot.
+			 * \param[in] pattern the index in the SSL-Vision pattern file of the robot's lid pattern.
 			 */
-			RobotInfo(uint64_t address, unsigned int pattern_index, const Glib::ustring &name) : address(address), pattern_index(pattern_index), name(name) {
+			RobotInfo(uint64_t address, unsigned int pattern) : address(address), pattern(pattern) {
 			}
 		};
 
@@ -83,15 +76,6 @@ class Config : public NonCopyable {
 				const RobotInfo &find(uint64_t address) const;
 
 				/**
-				 * Finds a robot by name.
-				 *
-				 * \param[in] name the name of the robot.
-				 *
-				 * \return the robot's information structure.
-				 */
-				const RobotInfo &find(const Glib::ustring &name) const;
-
-				/**
 				 * Checks whether or not there is a robot with a 64-bit address.
 				 *
 				 * \param[in] address the address to check.
@@ -103,31 +87,20 @@ class Config : public NonCopyable {
 				/**
 				 * Checks whether or not there is a robot with a lid pattern.
 				 *
-				 * \param[in] pattern_index the pattern index to look up.
+				 * \param[in] pattern the pattern index to look up.
 				 *
 				 * \return \c true if a robot in the ocllection has the given colour and pattern index, or \c false if not.
 				 */
-				bool contains_pattern(unsigned int pattern_index) const;
-
-				/**
-				 * Checks whether or not there is a robot with a name.
-				 *
-				 * \param[in] name the name to look for.
-				 *
-				 * \return \c true if \p name is already used by a robot in this collection, or \c false if not.
-				 */
-				bool contains_name(const Glib::ustring &name) const;
+				bool contains_pattern(unsigned int pattern) const;
 
 				/**
 				 * Adds a new robot.
 				 *
 				 * \param[in] address the robot's XBee address.
 				 *
-				 * \param[in] pattern_index the index of the robot's lid pattern.
-				 *
-				 * \param[in] name a human-readable name for the robot.
+				 * \param[in] pattern the index of the robot's lid pattern.
 				 */
-				void add(uint64_t address, unsigned int pattern_index, const Glib::ustring &name);
+				void add(uint64_t address, unsigned int pattern);
 
 				/**
 				 * Emitted when a robot is added.
@@ -155,11 +128,9 @@ class Config : public NonCopyable {
 				 *
 				 * \param[in] address the new XBee address to store.
 				 *
-				 * \param[in] pattern_index the new lid pattern index.
-				 *
-				 * \param[in] name the new name.
+				 * \param[in] pattern the new lid pattern index.
 				 */
-				void replace(uint64_t old_address, uint64_t address, unsigned int pattern_index, const Glib::ustring &name);
+				void replace(uint64_t old_address, uint64_t address, unsigned int pattern);
 
 				/**
 				 * Emitted when a robot is replaced.
@@ -176,11 +147,6 @@ class Config : public NonCopyable {
 				 * Sorts the robots in the collection by their lid pattern.
 				 */
 				void sort_by_lid();
-
-				/**
-				 * Sorts the robots in the collection by their name.
-				 */
-				void sort_by_name();
 
 				/**
 				 * Emitted when the collection is sorted.

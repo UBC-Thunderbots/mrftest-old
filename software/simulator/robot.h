@@ -159,8 +159,8 @@ class SimulatorRobot : public ByRef {
 		 *
 		 * \return the pattern index.
 		 */
-		unsigned int pattern_index() {
-			return botinfo.pattern_index;
+		unsigned int pattern() {
+			return botinfo.pattern;
 		}
 
 		/**

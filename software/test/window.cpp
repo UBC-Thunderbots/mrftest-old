@@ -78,7 +78,7 @@ void TesterWindow::on_claim_toggled() {
 
 	if (claim_bot_button.get_active()) {
 		const Config::RobotInfo &info(conf.robots().find(bot_chooser.address()));
-		bot = XBeeDriveBot::create(info.name, info.address, modem);
+		bot = XBeeDriveBot::create(info.pattern, info.address, modem);
 		bot->signal_alive.connect(sigc::mem_fun(this, &TesterWindow::on_bot_alive));
 		bot->signal_claim_failed_locked.connect(sigc::mem_fun(this, &TesterWindow::on_bot_claim_failed_locked));
 		bot->signal_claim_failed_resource.connect(sigc::mem_fun(this, &TesterWindow::on_bot_claim_failed_resource));

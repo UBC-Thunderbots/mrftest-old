@@ -26,15 +26,13 @@ namespace AI {
 					 *
 					 * \param[in] backend the backend the player is part of.
 					 *
-					 * \param[in] name the robot's name.
-					 *
 					 * \param[in] pattern the index of the vision pattern associated with the player.
 					 *
 					 * \param[in] bot the XBee robot being driven.
 					 *
 					 * \return the new Player.
 					 */
-					static Ptr create(AI::BE::Backend &backend, const Glib::ustring &name, unsigned int pattern, XBeeDriveBot::Ptr bot);
+					static Ptr create(AI::BE::Backend &backend, unsigned int pattern, XBeeDriveBot::Ptr bot);
 
 					/**
 					 * Drives one tick of time through the RobotController and to the XBee.
@@ -147,11 +145,6 @@ namespace AI {
 					bool dribbler_safe() const;
 
 					/**
-					 * The robot's name.
-					 */
-					const Glib::ustring name;
-
-					/**
 					 * The value returned by chicker_ready_time() const if the chicker is probably never going to be ready.
 					 */
 					static const unsigned int CHICKER_FOREVER;
@@ -184,7 +177,7 @@ namespace AI {
 					 *
 					 * \param[in] bot the XBee robot being driven.
 					 */
-					Player(AI::BE::Backend &backend, const Glib::ustring &name, unsigned int pattern, XBeeDriveBot::Ptr bot);
+					Player(AI::BE::Backend &backend, unsigned int pattern, XBeeDriveBot::Ptr bot);
 
 					/**
 					 * Process that makes sure that the dribble motor is not stalled for too long.

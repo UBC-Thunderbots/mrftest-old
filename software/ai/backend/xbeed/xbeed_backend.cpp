@@ -507,7 +507,7 @@ namespace {
 	XBeeDFriendlyTeam::XBeeDFriendlyTeam(XBeeDBackend &backend) : GenericTeam<AI::BE::XBeeD::Player>(backend) {
 		for (unsigned int i = 0; i < backend.conf.robots().size(); ++i) {
 			const Config::RobotInfo &info = backend.conf.robots()[i];
-			xbee_bots.push_back(XBeeDriveBot::create(info.name, info.address, modem));
+			xbee_bots.push_back(XBeeDriveBot::create(info.pattern, info.address, modem));
 		}
 	}
 
@@ -525,8 +525,8 @@ namespace {
 	AI::BE::XBeeD::Player::Ptr XBeeDFriendlyTeam::create_member(unsigned int pattern) {
 		for (unsigned int i = 0; i < backend.conf.robots().size(); ++i) {
 			const Config::RobotInfo &info = backend.conf.robots()[i];
-			if (info.pattern_index == pattern) {
-				return AI::BE::XBeeD::Player::create(backend, info.name, pattern, xbee_bots[i]);
+			if (info.pattern == pattern) {
+				return AI::BE::XBeeD::Player::create(backend, pattern, xbee_bots[i]);
 			}
 		}
 		return AI::BE::XBeeD::Player::Ptr();

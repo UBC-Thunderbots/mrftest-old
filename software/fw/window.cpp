@@ -41,7 +41,7 @@ namespace {
 	};
 }
 
-FirmwareWindow::FirmwareWindow(XBeeLowLevel &modem, const Config &conf, const Glib::ustring &robot, const std::string &filename) : modem(modem), bot_frame("Bot"), bot_controls(conf.robots(), robot), file_frame("Firmware File"), file_fpga_button(file_target_group, "FPGA"), file_pic_button(file_target_group, "PIC"), start_upload_button(Gtk::Stock::EXECUTE), emergency_erase_button("Emergency Erase") {
+FirmwareWindow::FirmwareWindow(XBeeLowLevel &modem, const Config &conf, int robot, const std::string &filename) : modem(modem), bot_frame("Bot"), bot_controls(conf.robots(), robot), file_frame("Firmware File"), file_fpga_button(file_target_group, "FPGA"), file_pic_button(file_target_group, "PIC"), start_upload_button(Gtk::Stock::EXECUTE), emergency_erase_button("Emergency Erase") {
 	set_title("Firmware Uploader");
 
 	bot_frame.add(bot_controls);

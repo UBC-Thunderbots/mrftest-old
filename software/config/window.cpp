@@ -13,7 +13,7 @@
 namespace {
 	class BotInfoDialog : public Gtk::Dialog {
 		public:
-			BotInfoDialog(Gtk::Window &parent, const Config::RobotSet &robots, const Config::RobotInfo *old) : Gtk::Dialog("Add Bot", parent, true), robots(robots), old(old), table(3, 2, false), yellow_button(colour_group, "Yellow"), blue_button(colour_group, "Blue") {
+			BotInfoDialog(Gtk::Window &parent, const Config::RobotSet &robots, const Config::RobotInfo *old) : Gtk::Dialog("Add Bot", parent, true), robots(robots), old(old), table(2, 2, false), yellow_button(colour_group, "Yellow"), blue_button(colour_group, "Blue") {
 				unsigned int y = 0;
 
 				address_entry.set_text("0000000000000000");
@@ -24,17 +24,12 @@ namespace {
 				address_entry.signal_changed().connect(sigc::mem_fun(this, &BotInfoDialog::update_enable));
 				add_row(address_entry, "XBee Address:", y);
 
-				pattern_index_spin.get_adjustment()->configure(0.0, 0.0, 127.0, 1.0, 10.0, 0.0);
-				pattern_index_spin.set_digits(0);
-				pattern_index_spin.set_activates_default();
-				pattern_index_spin.set_tooltip_text("The offset into SSL-Vision's pattern image file of this robot's pattern. Also, the ID number of the robot as it appears in SSL-Vision's graphical client program.");
-				pattern_index_spin.signal_value_changed().connect(sigc::mem_fun(this, &BotInfoDialog::update_enable));
-				add_row(pattern_index_spin, "Lid Pattern Index:", y);
-
-				name_entry.set_activates_default();
-				name_entry.set_tooltip_text("A human-readable name for the robot. Does not affect the system.");
-				name_entry.signal_changed().connect(sigc::mem_fun(this, &BotInfoDialog::update_enable));
-				add_row(name_entry, "Name:", y);
+				pattern_spin.get_adjustment()->configure(0.0, 0.0, 127.0, 1.0, 10.0, 0.0);
+				pattern_spin.set_digits(0);
+				pattern_spin.set_activates_default();
+				pattern_spin.set_tooltip_text("The offset into SSL-Vision's pattern image file of this robot's pattern. Also, the ID number of the robot as it appears in SSL-Vision's graphical client program.");
+				pattern_spin.signal_value_changed().connect(sigc::mem_fun(this, &BotInfoDialog::update_enable));
+				add_row(pattern_spin, "Lid Pattern Index:", y);
 
 				get_vbox()->pack_start(table, Gtk::PACK_EXPAND_WIDGET);
 
@@ -48,8 +43,7 @@ namespace {
 
 				if (old) {
 					address_entry.set_text(tohex(old->address, 16));
-					pattern_index_spin.set_value(old->pattern_index);
-					name_entry.set_text(old->name);
+					pattern_spin.set_value(old->pattern);
 				}
 
 				show_all();
@@ -67,12 +61,8 @@ namespace {
 				return yellow_button.get_active();
 			}
 
-			unsigned int pattern_index() const {
-				return pattern_index_spin.get_value_as_int();
-			}
-
-			Glib::ustring name() const {
-				return name_entry.get_text();
+			unsigned int pattern() const {
+				return pattern_spin.get_value_as_int();
 			}
 
 		private:
@@ -84,8 +74,7 @@ namespace {
 			Gtk::HBox colour_hbox;
 			Gtk::RadioButton::Group colour_group;
 			Gtk::RadioButton yellow_button, blue_button;
-			Gtk::SpinButton pattern_index_spin;
-			Gtk::Entry name_entry;
+			Gtk::SpinButton pattern_spin;
 			Gtk::Label error_label;
 
 			void add_row(Gtk::Widget &widget, const Glib::ustring &label, unsigned int &y) {
@@ -122,19 +111,9 @@ namespace {
 					error_label.set_markup("<i>The XBee address is already in use</i>");
 					return;
 				}
-				if ((!old || pattern_index() != old->pattern_index) && robots.contains_pattern(pattern_index())) {
+				if ((!old || pattern() != old->pattern) && robots.contains_pattern(pattern())) {
 					set_response_sensitive(Gtk::RESPONSE_ACCEPT, false);
 					error_label.set_markup("<i>The lid pattern is already in use</i>");
-					return;
-				}
-				if (name().empty()) {
-					set_response_sensitive(Gtk::RESPONSE_ACCEPT, false);
-					error_label.set_markup("<i>A name must be provided</i>");
-					return;
-				}
-				if ((!old || name() != old->name) && robots.contains_name(name())) {
-					set_response_sensitive(Gtk::RESPONSE_ACCEPT, false);
-					error_label.set_markup("<i>The name is already in use</i>");
 					return;
 				}
 				set_response_sensitive(Gtk::RESPONSE_ACCEPT, true);
@@ -145,8 +124,7 @@ namespace {
 	class RobotsModel : public Glib::Object, public AbstractListModel {
 		public:
 			Gtk::TreeModelColumn<uint64_t> address_column;
-			Gtk::TreeModelColumn<unsigned int> pattern_index_column;
-			Gtk::TreeModelColumn<Glib::ustring> name_column;
+			Gtk::TreeModelColumn<unsigned int> pattern_column;
 
 			static Glib::RefPtr<RobotsModel> create(const Config::RobotSet &robots) {
 				Glib::RefPtr<RobotsModel> p(new RobotsModel(robots));
@@ -164,17 +142,11 @@ namespace {
 					v.set(robots[row].address);
 					value.init(address_column.type());
 					value = v;
-				} else if (col == static_cast<unsigned int>(pattern_index_column.index())) {
+				} else if (col == static_cast<unsigned int>(pattern_column.index())) {
 					Glib::Value<unsigned int> v;
-					v.init(pattern_index_column.type());
-					v.set(robots[row].pattern_index);
-					value.init(pattern_index_column.type());
-					value = v;
-				} else if (col == static_cast<unsigned int>(name_column.index())) {
-					Glib::Value<Glib::ustring> v;
-					v.init(name_column.type());
-					v.set(robots[row].name);
-					value.init(name_column.type());
+					v.init(pattern_column.type());
+					v.set(robots[row].pattern);
+					value.init(pattern_column.type());
 					value = v;
 				}
 			}
@@ -184,8 +156,7 @@ namespace {
 
 			RobotsModel(const Config::RobotSet &robots) : Glib::ObjectBase(typeid(RobotsModel)), Glib::Object(), AbstractListModel(), robots(robots), size_(0) {
 				alm_column_record.add(address_column);
-				alm_column_record.add(pattern_index_column);
-				alm_column_record.add(name_column);
+				alm_column_record.add(pattern_column);
 				robots.signal_robot_added.connect(sigc::mem_fun(this, &RobotsModel::alm_row_inserted));
 				robots.signal_robot_removed.connect(sigc::mem_fun(this, &RobotsModel::alm_row_deleted));
 				robots.signal_robot_replaced.connect(sigc::mem_fun(this, &RobotsModel::alm_row_changed));
@@ -209,8 +180,7 @@ namespace {
 				view.get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
 				view.get_selection()->signal_changed().connect(sigc::mem_fun(this, &RobotsPage::selection_changed));
 				view.append_column_numeric("Address", model->address_column, "%016llX");
-				view.append_column("Pattern Index", model->pattern_index_column);
-				view.append_column("Name", model->name_column);
+				view.append_column("Pattern Index", model->pattern_column);
 				scroller.add(view);
 				scroller.set_shadow_type(Gtk::SHADOW_IN);
 				pack_start(scroller, Gtk::PACK_EXPAND_WIDGET);
@@ -254,7 +224,7 @@ namespace {
 			void add() {
 				BotInfoDialog dlg(find_window(), robots, 0);
 				if (dlg.run() == Gtk::RESPONSE_ACCEPT) {
-					robots.add(dlg.address(), dlg.pattern_index(), dlg.name());
+					robots.add(dlg.address(), dlg.pattern());
 				}
 			}
 
@@ -266,7 +236,7 @@ namespace {
 						const Config::RobotInfo &old = robots[path[0]];
 						BotInfoDialog dlg(find_window(), robots, &old);
 						if (dlg.run() == Gtk::RESPONSE_ACCEPT) {
-							robots.replace(old.address, dlg.address(), dlg.pattern_index(), dlg.name());
+							robots.replace(old.address, dlg.address(), dlg.pattern());
 						}
 					}
 				}
@@ -292,8 +262,6 @@ namespace {
 				dlg.get_vbox()->pack_start(by_address_button, Gtk::PACK_SHRINK);
 				Gtk::RadioButton by_lid_button(grp, "Sort by _Lid Pattern", true);
 				dlg.get_vbox()->pack_start(by_lid_button, Gtk::PACK_SHRINK);
-				Gtk::RadioButton by_name_button(grp, "Sort by _Name", true);
-				dlg.get_vbox()->pack_start(by_name_button, Gtk::PACK_SHRINK);
 				dlg.add_button(Gtk::Stock::OK, Gtk::RESPONSE_ACCEPT);
 				dlg.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
 				dlg.set_default_response(Gtk::RESPONSE_ACCEPT);
@@ -304,8 +272,6 @@ namespace {
 						robots.sort_by_address();
 					} else if (by_lid_button.get_active()) {
 						robots.sort_by_lid();
-					} else if (by_name_button.get_active()) {
-						robots.sort_by_name();
 					}
 				}
 			}
