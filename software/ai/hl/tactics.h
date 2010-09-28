@@ -34,6 +34,21 @@ namespace AI {
 			 * even if the goal is completely blocked.
 			 */
 			void shoot(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, Point target);
+
+			/**
+			 * I can't think of a good name for this function.
+			 *
+			 * Anyways, tries to move the ball as far away from friendly goal.
+			 * If ball is not in possesion, chase after the ball.
+			 * Otherwise, shoot the ball in the furthest possible direction.
+			 * Useful for defenders.
+			 *
+			 * \param[in] avoid_friendly_defense disallows the player
+			 * to enter friendly defense area.
+			 * If you use this function, it looks like an emergency
+			 * so most likely you want the defender to do this.
+			 */
+			void repel(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const bool avoid_friendly_defense = false);
 		}
 	}
 }

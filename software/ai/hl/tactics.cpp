@@ -15,8 +15,7 @@ void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const bool force) 
 			if (force) {
 			}
 		} else {
-			// aim towards the target
-			// shoot if within some threshold
+			// call the other shoot function with the specified target
 		}
 	} else {
 #warning incomplete, waiting for move API
