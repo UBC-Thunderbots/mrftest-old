@@ -12,7 +12,6 @@
 namespace AI {
 	namespace HL {
 		namespace Tactics {
-
 			/**
 			 * If the player posses the ball,
 			 * aims at an open angle at the enemy goal,
@@ -23,7 +22,7 @@ namespace AI {
 			 * \param[in] force forces the player to shoot,
 			 * even if the goal is completely blocked.
 			 */
-			void shoot(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, const bool force = false);
+			void shoot(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const bool force = false);
 
 			/**
 			 * If the player posses the ball,
@@ -34,8 +33,7 @@ namespace AI {
 			 * \param[in] force forces the player to shoot,
 			 * even if the goal is completely blocked.
 			 */
-			void shoot(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, Point target);
-
+			void shoot(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, Point target);
 		}
 	}
 }

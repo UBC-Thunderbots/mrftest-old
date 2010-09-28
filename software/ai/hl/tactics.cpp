@@ -7,7 +7,7 @@ namespace {
 	DoubleParam shoot_accuracy("Shooting Accuracy (degrees)", 5.0, 0.1, 10.0);
 }
 
-void AI::HL::Tactics::shoot(World& world, Player::Ptr player, const bool force) {
+void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const bool force) {
 	if (player->has_ball()) {
 		std::pair<Point, double> target = AI::HL::Util::calc_best_shot(world, player);
 #warning incomplete, waiting for move API
