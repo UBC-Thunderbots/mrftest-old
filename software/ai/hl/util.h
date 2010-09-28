@@ -54,16 +54,23 @@ namespace AI {
 					const Point &dest;
 			};
 
-			extern DoubleParam PLAYTYPE_WAIT_TIME;
-
-			extern DoubleParam CHASE_BALL_DIST;
-
-			extern DoubleParam DRIBBLE_TIMEOUT;
+			/**
+			 * General shooting accuracy in degrees.
+			 */
+			extern DoubleParam shoot_accuracy;
 
 			/**
-			 * If the robot orientation is within this angle, then it can shoot accurately.
+			 * Time the team can get ready for special plays.
+			 * If the team spend too much time preparing for a freekick etc,
+			 * the refree will force start.
+			 * Reduce this number to prevent such occurence.
 			 */
-			extern DoubleParam ORI_CLOSE;
+			extern DoubleParam get_ready_time;
+
+			/**
+			 * If dribble for more than this time, shoot already.
+			 */
+			extern DoubleParam dribble_timeout;
 
 			/**
 			 * Somewhat close.

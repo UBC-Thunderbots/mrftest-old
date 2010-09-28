@@ -5,36 +5,19 @@
 #include <cmath>
 #include <iostream>
 
-using AI::HL::W::World;
-using AI::HL::W::Player;
-using AI::HL::W::Robot;
-using AI::HL::W::Ball;
-using AI::HL::W::Field;
-using AI::HL::W::EnemyTeam;
-using AI::HL::W::FriendlyTeam;
+using namespace AI::HL::W;
 
 namespace {
-#warning Magic constant
-	const double SHOOT_ALLOWANCE = Ball::RADIUS;
-
-	const double EPS = 1e-9;
-
-	BoolParam HAS_BALL_USE_VISION("has_ball: use vision", false);
-	BoolParam POSSES_BALL_IS_HAS_BALL("posses_ball: is has ball", false);
-	IntParam HAS_BALL_TIME("has_ball: # of sense ball for to be true", 2, 1, 10);
-	DoubleParam BALL_CLOSE_FACTOR("ball_close Distance Factor", 1.1, 1.0, 1.5);
-	DoubleParam BALL_FRONT_ANGLE("has_ball_vision: angle (degrees)", 20.0, 0.0, 60.0);
-	DoubleParam BALL_FRONT_FACTOR("has_ball_vision: dist factor", 0.9, 0.1, 2.0);
+	BoolParam posses_ball_is_has_ball("posses ball is has ball", false);
+	DoubleParam ball_close_factor("distance for ball possesion (x ball radius)", 1.2, 1.0, 2.0);
 }
 
-DoubleParam AI::HL::Util::DRIBBLE_TIMEOUT("if dribble > this time, force shoot (sec)", 2.0, 0.0, 20.0);
+#warning hardware depending parameters should move somewhere else
+DoubleParam AI::HL::Util::shoot_accuracy("Shooting Accuracy General (degrees)", 5.0, 0.1, 10.0);
 
-DoubleParam AI::HL::Util::PLAYTYPE_WAIT_TIME("play: time we can get ready (sec)", 3.0, -1e99, 10.0);
+DoubleParam AI::HL::Util::dribble_timeout("if dribble > this time, force shoot (sec)", 2.0, 0.0, 20.0);
 
-DoubleParam AI::HL::Util::CHASE_BALL_DIST("chase: How close before chasing", Ball::RADIUS * 2, 0.0, Ball::RADIUS * 4);
-
-#warning TODO: base this on distance.
-DoubleParam AI::HL::Util::ORI_CLOSE("kick: general accuracy (rads)", 5.0 * M_PI / 180.0, 0, M_PI / 2);
+DoubleParam AI::HL::Util::get_ready_time("time we can prepare during special plays (sec)", 3.0, -1e99, 10.0);
 
 const double AI::HL::Util::POS_CLOSE = AI::HL::W::Robot::MAX_RADIUS / 4.0;
 
@@ -109,7 +92,7 @@ bool AI::HL::Util::can_receive(World &world, const Player::Ptr passee) {
 		if (proj <= 0) {
 			continue;
 		}
-		if (proj < distance && perp < SHOOT_ALLOWANCE + Robot::MAX_RADIUS + Ball::RADIUS) {
+		if (proj < distance && perp < shoot_accuracy + Robot::MAX_RADIUS + Ball::RADIUS) {
 			return false;
 		}
 	}
@@ -125,7 +108,7 @@ bool AI::HL::Util::can_receive(World &world, const Player::Ptr passee) {
 		if (proj <= 0) {
 			continue;
 		}
-		if (proj < distance && perp < SHOOT_ALLOWANCE + Robot::MAX_RADIUS + Ball::RADIUS) {
+		if (proj < distance && perp < shoot_accuracy + Robot::MAX_RADIUS + Ball::RADIUS) {
 			return false;
 		}
 	}
@@ -157,14 +140,14 @@ std::pair<Point, double> AI::HL::Util::calc_best_shot(World &world, const Player
 
 bool AI::HL::Util::ball_close(World &world, const Robot::Ptr robot) {
 	const Point dist = world.ball().position() - robot->position();
-	return dist.len() < (Robot::MAX_RADIUS + Ball::RADIUS) * BALL_CLOSE_FACTOR;
+	return dist.len() < (Robot::MAX_RADIUS + Ball::RADIUS) * ball_close_factor;
 }
 
 bool AI::HL::Util::posses_ball(World &world, const Player::Ptr player) {
 	if (player->has_ball()) {
 		return true;
 	}
-	if (POSSES_BALL_IS_HAS_BALL) {
+	if (posses_ball_is_has_ball) {
 		return false;
 	}
 	return ball_close(world, player);
