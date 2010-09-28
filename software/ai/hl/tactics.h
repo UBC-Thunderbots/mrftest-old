@@ -12,6 +12,12 @@
 namespace AI {
 	namespace HL {
 		namespace Tactics {
+
+			/**
+			 * Chases after the ball as fast as possible.
+			 */
+			void chase(AI::HL::W::World& world, AI::HL::W::Player::Ptr player);
+
 			/**
 			 * If the player posses the ball,
 			 * aims at an open angle at the enemy goal,
@@ -33,7 +39,7 @@ namespace AI {
 			 * \param[in] force forces the player to shoot,
 			 * even if the goal is completely blocked.
 			 */
-			void shoot(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, Point target);
+			void shoot(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const Point target);
 
 			/**
 			 * I can't think of a good name for this function.
