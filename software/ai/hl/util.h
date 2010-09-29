@@ -5,15 +5,17 @@
 #include "uicomponents/param.h"
 #include <vector>
 
-/*
- * Contains a bunch of useful utility functions.
- * In general, functions that go here are those that
- * - can be used accross different roles/strategies/tactic.
- * - will unify definition (such as ball possesion).
- */
 namespace AI {
 	namespace HL {
+
+		/**
+		 * Contains a bunch of useful utility functions.
+		 * In general, functions that go here are those that
+		 * - can be used accross different roles/strategies/tactic.
+		 * - will unify definition (such as ball possesion).
+		 */
 		namespace Util {
+
 			/**
 			 * A comparator that sorts by a particular distance.
 			 * To be used together with std::sort.
@@ -150,19 +152,25 @@ namespace AI {
 			 *
 			 * \param[in] f field is needed to calculate length etc
 			 *
-			 * \param[in] radius the radius of the robot, you can decrease the radius to make it easier to shoot.
+			 * \param[in] radius the multiplier to the radius of the robot,
+			 * you can decrease the radius to make it easier to shoot.
 			 *
-			 * \return the point and the score, where the score will be 0 if the point is invalid.
+			 * \return the point and the score (angle),
+			 * where the score will be 0 if the point is invalid.
 			 */
-			std::pair<Point, double> calc_best_shot(const AI::HL::W::Field &f, const std::vector<Point> &obstacles, const Point &p, double radius = AI::HL::W::Robot::MAX_RADIUS);
+			std::pair<Point, double> calc_best_shot(const AI::HL::W::Field &f, const std::vector<Point> &obstacles, const Point &p, double radius = 1.0);
 
 			/**
 			 * Finds the length of the largest continuous interval (angle-wise) of the enemy goal that can be seen from a point.
-			 * Having a vector of points enables one to add imaginary threats.
+			 * To add imaginary threats, please use the other version.
 			 *
-			 * \return the point as and the score, where the  score will be 0 if the point is invalid.
+			 * \param[in] radius the multiplier to the radius of the robot,
+			 * you can decrease the radius to make it easier to shoot.
+			 *
+			 * \return the point as and the score (angle),
+			 * where the score will be 0 if the point is invalid,
 			 */
-			std::pair<Point, double> calc_best_shot(AI::HL::W::World &world, AI::HL::W::Player::Ptr p);
+			std::pair<Point, double> calc_best_shot(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, double radius = 1.0);
 
 			/**
 			 * Checks if the robot is in a position close enough to the ball to start

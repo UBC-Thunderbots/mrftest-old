@@ -9,7 +9,7 @@ using namespace AI::HL::W;
 
 namespace {
 	BoolParam posses_ball_is_has_ball("posses ball is has ball", false);
-	DoubleParam ball_close_factor("distance for ball possesion (x ball radius)", 1.2, 1.0, 2.0);
+	DoubleParam ball_close_factor("distance for ball possesion (x ball radius)", 2.0, 1.0, 3.0);
 }
 
 #warning hardware depending parameters should move somewhere else
@@ -118,10 +118,10 @@ bool AI::HL::Util::can_receive(World &world, const Player::Ptr passee) {
 std::pair<Point, double> AI::HL::Util::calc_best_shot(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius) {
 	const Point p1 = Point(f.length() / 2.0, -f.goal_width() / 2.0);
 	const Point p2 = Point(f.length() / 2.0, f.goal_width() / 2.0);
-	return angle_sweep_circles(p, p1, p2, obstacles, radius);
+	return angle_sweep_circles(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
 }
 
-std::pair<Point, double> AI::HL::Util::calc_best_shot(World &world, const Player::Ptr p) {
+std::pair<Point, double> AI::HL::Util::calc_best_shot(World &world, const Player::Ptr player, const double radius) {
 	std::vector<Point> obstacles;
 	EnemyTeam &enemy = world.enemy_team();
 	for (size_t i = 0; i < enemy.size(); ++i) {
@@ -130,17 +130,17 @@ std::pair<Point, double> AI::HL::Util::calc_best_shot(World &world, const Player
 	FriendlyTeam &friendly = world.friendly_team();
 	for (size_t i = 0; i < friendly.size(); ++i) {
 		const Player::Ptr fpl = friendly.get(i);
-		if (fpl == p) {
+		if (fpl == player) {
 			continue;
 		}
 		obstacles.push_back(fpl->position());
 	}
-	return calc_best_shot(world.field(), obstacles, p->position(), Robot::MAX_RADIUS);
+	return calc_best_shot(world.field(), obstacles, player->position(), radius);
 }
 
 bool AI::HL::Util::ball_close(World &world, const Robot::Ptr robot) {
 	const Point dist = world.ball().position() - robot->position();
-	return dist.len() < (Robot::MAX_RADIUS + Ball::RADIUS) * ball_close_factor;
+	return dist.len() < (Robot::MAX_RADIUS + Ball::RADIUS * ball_close_factor);
 }
 
 bool AI::HL::Util::posses_ball(World &world, const Player::Ptr player) {

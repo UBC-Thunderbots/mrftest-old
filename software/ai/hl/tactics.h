@@ -3,14 +3,20 @@
 
 #include "ai/hl/world.h"
 
-/**
- * Tactics are helper methods/classes which allow strategies
- * to compose commonly used complex movement.
- *
- * It also serves to unify definition.
- */
 namespace AI {
 	namespace HL {
+
+		/**
+		 * Tactics are helper methods/classes which allow strategies
+		 * to compose commonly used complex movement.
+		 *
+		 * It also serves to unify definition.
+		 *
+		 * Hint:
+		 * - It is much easier to change the implementation of a tactic here,
+		 * instead of changing every usage of the player movement.
+		 *
+		 */
 		namespace Tactics {
 
 			/**
@@ -36,8 +42,7 @@ namespace AI {
 			 *
 			 * If the player does not have the ball, chases after it.
 			 *
-			 * \param[in] force forces the player to shoot,
-			 * even if the goal is completely blocked.
+			 * \param[in] target the location to shoot the ball to.
 			 */
 			void shoot(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const Point target);
 
@@ -52,7 +57,7 @@ namespace AI {
 			 * \param[in] avoid_friendly_defense disallows the player
 			 * to enter friendly defense area.
 			 * If you use this function, it looks like an emergency
-			 * so most likely you want the defender to do this.
+			 * so most likely you want to allow defenders anyways.
 			 */
 			void repel(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const bool avoid_friendly_defense = false);
 		}
