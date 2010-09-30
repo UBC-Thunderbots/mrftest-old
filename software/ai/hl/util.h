@@ -114,6 +114,12 @@ namespace AI {
 			extern const double HAS_BALL_TIME;
 
 			/**
+			 * Checks if a point lies inside the friendly defense area.
+			 * Useful for defenders.
+			 */
+			bool point_in_friendly_defense(AI::HL::W::World& world, const Point p);
+
+			/**
 			 * Checks if the path from begin to end is blocked by some obstacles.
 			 *
 			 * \param[in] obstacles a vector of obstacles that blocks the path.
@@ -194,6 +200,16 @@ namespace AI {
 			 * \return the player, or a null pointer if no friendly player has the ball.
 			 */
 			AI::HL::W::Player::Ptr calc_baller(AI::HL::W::World &world, const std::vector<AI::HL::W::Player::Ptr> &players);
+
+			/**
+			 * Converts a friendly team into a vector of players.
+			 */
+			std::vector<AI::HL::W::Player::Ptr> get_players(AI::HL::W::FriendlyTeam& friendly);
+
+			/**
+			 * Converts an enemy team into a vector of robots.
+			 */
+			std::vector<AI::HL::W::Robot::Ptr> get_robots(AI::HL::W::EnemyTeam& enemy);
 		}
 	}
 }

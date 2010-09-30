@@ -33,10 +33,26 @@ const double AI::HL::Util::HAS_BALL_ALLOWANCE = 3.0;
 
 const double AI::HL::Util::HAS_BALL_TIME = 2.0 / 15.0;
 
+// TODO: use field instead of world
+bool AI::HL::Util::point_in_friendly_defense(World& world, const Point p) {
+	const double defense_stretch = world.field().defense_area_stretch();
+	const double defense_radius = world.field().defense_area_radius();
+	const double field_length = world.field().length();
+	const Point pole1 = Point(-field_length, defense_stretch/2 + defense_radius);
+	const Point pole2 = Point(-field_length, -defense_stretch/2 - defense_radius);
+	double dist1 = (p-pole1).len();
+	double dist2 = (p-pole2).len();
+	if (p.x > -field_length/2 && p.x < -field_length/2 + defense_radius && p.y > -defense_stretch/2 && p.y < defense_stretch/2)
+		return true;
+	if (dist1 < defense_radius || dist2 < defense_radius)
+		return true;
+	return false;
+}
+
 bool AI::HL::Util::path_check(const Point &begin, const Point &end, const std::vector<Point> &obstacles, const double thresh) {
 	const Point direction = (end - begin).norm();
 	const double dist = (end - begin).len();
-	for (size_t i = 0; i < obstacles.size(); ++i) {
+	for (std::size_t i = 0; i < obstacles.size(); ++i) {
 		const Point ray = obstacles[i] - begin;
 		const double proj = ray.dot(direction);
 		const double perp = fabs(ray.cross(direction));
@@ -54,7 +70,7 @@ bool AI::HL::Util::path_check(const Point &begin, const Point &end, const std::v
 bool AI::HL::Util::path_check(const Point &begin, const Point &end, const std::vector<Robot::Ptr> &robots, const double thresh) {
 	const Point direction = (end - begin).norm();
 	const double dist = (end - begin).len();
-	for (size_t i = 0; i < robots.size(); ++i) {
+	for (std::size_t i = 0; i < robots.size(); ++i) {
 		const Point ray = robots[i]->position() - begin;
 		const double proj = ray.dot(direction);
 		const double perp = fabs(ray.cross(direction));
@@ -84,7 +100,7 @@ bool AI::HL::Util::can_receive(World &world, const Player::Ptr passee) {
 	const Point direction = ray.norm();
 	const double distance = (ball.position() - passee->position()).len();
 	EnemyTeam &enemy = world.enemy_team();
-	for (size_t i = 0; i < enemy.size(); ++i) {
+	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		const Robot::Ptr rob = enemy.get(i);
 		const Point rp = rob->position() - passee->position();
 		const double proj = rp.dot(direction);
@@ -97,7 +113,7 @@ bool AI::HL::Util::can_receive(World &world, const Player::Ptr passee) {
 		}
 	}
 	FriendlyTeam &friendly = world.friendly_team();
-	for (size_t i = 0; i < friendly.size(); ++i) {
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		const Player::Ptr plr = friendly.get(i);
 		if (posses_ball(world, plr) || plr == passee) {
 			continue;
@@ -124,11 +140,11 @@ std::pair<Point, double> AI::HL::Util::calc_best_shot(const Field &f, const std:
 std::pair<Point, double> AI::HL::Util::calc_best_shot(World &world, const Player::Ptr player, const double radius) {
 	std::vector<Point> obstacles;
 	EnemyTeam &enemy = world.enemy_team();
-	for (size_t i = 0; i < enemy.size(); ++i) {
+	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		obstacles.push_back(enemy.get(i)->position());
 	}
 	FriendlyTeam &friendly = world.friendly_team();
-	for (size_t i = 0; i < friendly.size(); ++i) {
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		const Player::Ptr fpl = friendly.get(i);
 		if (fpl == player) {
 			continue;
@@ -158,11 +174,27 @@ bool AI::HL::Util::posses_ball(World &world, const Robot::Ptr robot) {
 }
 
 Player::Ptr AI::HL::Util::calc_baller(World &world, const std::vector<Player::Ptr> &players) {
-	for (size_t i = 0; i < players.size(); ++i) {
+	for (std::size_t i = 0; i < players.size(); ++i) {
 		if (posses_ball(world, players[i])) {
 			return players[i];
 		}
 	}
 	return Player::Ptr();
+}
+
+std::vector<Player::Ptr> AI::HL::Util::get_players(FriendlyTeam& friendly) {
+	std::vector<Player::Ptr> players;
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		players.push_back(friendly.get(i));
+	}
+	return players;
+}
+
+std::vector<Robot::Ptr> AI::HL::Util::get_robots(EnemyTeam& enemy) {
+	std::vector<Robot::Ptr> robots;
+	for (std::size_t i = 0; i < enemy.size(); ++i) {
+		robots.push_back(enemy.get(i));
+	}
+	return robots;
 }
 
