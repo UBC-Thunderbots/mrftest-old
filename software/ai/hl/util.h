@@ -7,7 +7,6 @@
 
 namespace AI {
 	namespace HL {
-
 		/**
 		 * Contains a bunch of useful utility functions.
 		 * In general, functions that go here are those that
@@ -15,7 +14,6 @@ namespace AI {
 		 * - will unify definition (such as ball possesion).
 		 */
 		namespace Util {
-
 			/**
 			 * A comparator that sorts by a particular distance.
 			 * To be used together with std::sort.
@@ -117,7 +115,7 @@ namespace AI {
 			 * Checks if a point lies inside the friendly defense area.
 			 * Useful for defenders.
 			 */
-			bool point_in_friendly_defense(AI::HL::W::World& world, const Point p);
+			bool point_in_friendly_defense(AI::HL::W::World &world, const Point p);
 
 			/**
 			 * Checks if the path from begin to end is blocked by some obstacles.
@@ -204,12 +202,12 @@ namespace AI {
 			/**
 			 * Converts a friendly team into a vector of players.
 			 */
-			std::vector<AI::HL::W::Player::Ptr> get_players(AI::HL::W::FriendlyTeam& friendly);
+			std::vector<AI::HL::W::Player::Ptr> get_players(AI::HL::W::FriendlyTeam &friendly);
 
 			/**
 			 * Converts an enemy team into a vector of robots.
 			 */
-			std::vector<AI::HL::W::Robot::Ptr> get_robots(AI::HL::W::EnemyTeam& enemy);
+			std::vector<AI::HL::W::Robot::Ptr> get_robots(AI::HL::W::EnemyTeam &enemy);
 		}
 	}
 }

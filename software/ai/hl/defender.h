@@ -6,7 +6,6 @@
 
 namespace AI {
 	namespace HL {
-
 		/**
 		 * Combined goalie and defender
 		 *
@@ -15,7 +14,7 @@ namespace AI {
 		 */
 		class Defender {
 			public:
-				Defender(W::World& w);
+				Defender(W::World &w);
 
 				/**
 				 * Resets all the players.
@@ -45,7 +44,6 @@ namespace AI {
 				}
 
 			protected:
-
 				/**
 				 * Calculate points which should be used to defend
 				 * from enemy robots.
@@ -71,9 +69,7 @@ namespace AI {
 				// true if one of the players should chase after the ball.
 				bool chase;
 		};
-
 	}
-
 }
 
 #endif

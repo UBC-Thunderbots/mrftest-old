@@ -8,7 +8,6 @@ using AI::HL::BasicStrategy;
 using namespace AI::HL::W;
 
 namespace {
-
 	/**
 	 * A factory for constructing \ref BasicStrategy "BasicStrategies".
 	 */
@@ -40,7 +39,6 @@ namespace {
 	Strategy::Ptr BasicStrategyFactory::create_strategy(World &world) const {
 		return BasicStrategy::create(world);
 	}
-
 }
 
 StrategyFactory &BasicStrategy::factory() const {

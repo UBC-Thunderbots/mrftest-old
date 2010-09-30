@@ -5,7 +5,6 @@
 
 namespace AI {
 	namespace HL {
-
 		/**
 		 * Tactics are helper methods/classes which allow strategies
 		 * to compose commonly used complex movement.
@@ -18,11 +17,10 @@ namespace AI {
 		 *
 		 */
 		namespace Tactics {
-
 			/**
 			 * Chases after the ball as fast as possible.
 			 */
-			void chase(AI::HL::W::World& world, AI::HL::W::Player::Ptr player);
+			void chase(AI::HL::W::World &world, AI::HL::W::Player::Ptr player);
 
 			/**
 			 * If the player posses the ball,

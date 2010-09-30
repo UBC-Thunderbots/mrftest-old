@@ -6,7 +6,6 @@
 
 namespace AI {
 	namespace HL {
-
 		/**
 		 * A full implementation of a strategy that handles normal play.
 		 */
@@ -27,7 +26,6 @@ namespace AI {
 
 				Defender defender;
 		};
-
 	}
 }
 

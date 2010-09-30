@@ -13,13 +13,12 @@ using AI::HL::Defender;
 using namespace AI::HL::W;
 
 namespace {
-
 	DoubleParam max_goalie_dist("max goalie dist from goal (robot radius)", 2.0, 0.0, 10.0);
 
 	DoubleParam robot_shrink("shrink robot radius", 0.9, 0.1, 2.0);
 }
 
-Defender::Defender(World& w) : world(w), chase(false) {
+Defender::Defender(World &w) : world(w), chase(false) {
 }
 
 void Defender::set_players(std::vector<Player::Ptr> p, Player::Ptr g) {
@@ -29,7 +28,7 @@ void Defender::set_players(std::vector<Player::Ptr> p, Player::Ptr g) {
 }
 
 std::pair<Point, std::vector<Point> > Defender::calc_block_positions() const {
-	const Field& f = world.field();
+	const Field &f = world.field();
 
 	std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
 
@@ -44,8 +43,8 @@ std::pair<Point, std::vector<Point> > Defender::calc_block_positions() const {
 	// the opposite side is goal_opp
 	// a defender will guard goal_opp
 	const Point ball_pos = world.ball().position();
-	const Point goal_side = goalie_top ? Point(-f.length()/2, f.goal_width()/2) : Point(-f.length()/2, -f.goal_width()/2);
-	const Point goal_opp = goalie_top ? Point(-f.length()/2, -f.goal_width()/2) : Point(-f.length()/2, f.goal_width()/2);
+	const Point goal_side = goalie_top ? Point(-f.length() / 2, f.goal_width() / 2) : Point(-f.length() / 2, -f.goal_width() / 2);
+	const Point goal_opp = goalie_top ? Point(-f.length() / 2, -f.goal_width() / 2) : Point(-f.length() / 2, f.goal_width() / 2);
 
 	// now calculate where you want the goalie to be
 	Point goalie_pos;
@@ -57,20 +56,23 @@ std::pair<Point, std::vector<Point> > Defender::calc_block_positions() const {
 		const Point ball2side = goal_side - ball_pos;
 		const Point touch_vec = -ball2side.norm(); // side to ball
 		const double touch_dist = std::min(-ball2side.x / 2, max_goalie_dist * Robot::MAX_RADIUS);
-		const Point perp = (goalie_top) ? touch_vec.rotate(-M_PI/2) : touch_vec.rotate(M_PI/2); 
+		const Point perp = (goalie_top) ? touch_vec.rotate(-M_PI / 2) : touch_vec.rotate(M_PI / 2);
 		goalie_pos = goal_side + touch_vec * touch_dist + perp * radius;
 
 		// prevent the goalie from entering the goal area
-		goalie_pos.x = std::max(goalie_pos.x, - f.length() / 2 + radius);
+		goalie_pos.x = std::max(goalie_pos.x, -f.length() / 2 + radius);
 	}
 
 	// first defender will block the remaining cone from the ball
 	{
 		Point D1 = calc_block_cone_defender(goal_side, goal_opp, ball_pos, goalie_pos, radius);
 		bool blowup = false;
-		if (D1.x < Robot::MAX_RADIUS - f.length() / 2 + f.defense_area_stretch())
+		if (D1.x < Robot::MAX_RADIUS - f.length() / 2 + f.defense_area_stretch()) {
 			blowup = true;
-		if (std::fabs(D1.y) > f.width() / 4) blowup = true;
+		}
+		if (std::fabs(D1.y) > f.width() / 4) {
+			blowup = true;
+		}
 		if (blowup) {
 			D1 = (f.friendly_goal() + ball_pos) / 2;
 		}
@@ -83,9 +85,12 @@ std::pair<Point, std::vector<Point> > Defender::calc_block_positions() const {
 		if (!AI::HL::Util::ball_close(world, enemies[i])) {
 			bool blowup = false;
 			Point D = calc_block_cone(goal_side, goal_opp, enemies[i]->position(), radius);
-			if (D.x < Robot::MAX_RADIUS - f.length() / 2 + f.defense_area_stretch())
+			if (D.x < Robot::MAX_RADIUS - f.length() / 2 + f.defense_area_stretch()) {
 				blowup = true;
-			if (std::fabs(D.y) > f.width() / 4) blowup = true;
+			}
+			if (std::fabs(D.y) > f.width() / 4) {
+				blowup = true;
+			}
 			if (blowup) {
 				D = (f.friendly_goal() + enemies[i]->position()) / 2;
 			}
@@ -100,7 +105,6 @@ std::pair<Point, std::vector<Point> > Defender::calc_block_positions() const {
 }
 
 void Defender::tick() {
-
 	if (players.size() == 0) {
 		LOG_WARN("no robots");
 		return;
@@ -112,10 +116,12 @@ void Defender::tick() {
 	const Point ball_pos = world.ball().position();
 
 	std::pair<Point, std::vector<Point> > positions = calc_block_positions();
-	std::vector<Point>& waypoints = positions.second;
+	std::vector<Point> &waypoints = positions.second;
 
 	// just ignore unnecessary waypoints for now
-	while (waypoints.size() > players.size()) waypoints.pop_back();
+	while (waypoints.size() > players.size()) {
+		waypoints.pop_back();
+	}
 
 	// do matching for distances
 	std::vector<Point> locations;
@@ -159,7 +165,7 @@ void Defender::tick() {
 			// tactic->set_position(players[i]->position());
 			// assign(players[i], tactic);
 			continue;
-		} 
+		}
 
 		if (chaser == players[i]) {
 			AI::HL::Tactics::shoot(world, players[i]);

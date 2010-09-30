@@ -6,7 +6,7 @@ using namespace AI::HL::W;
 
 #warning not sure what to do with the play flags
 
-void AI::HL::Tactics::chase(World& world, Player::Ptr player) {
+void AI::HL::Tactics::chase(World &world, Player::Ptr player) {
 	player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
 }
 
