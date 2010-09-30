@@ -1,15 +1,15 @@
-#include "ai/hl/defensive2.h"
-#include "util/algorithm.h"
-#include "geom/util.h"
-#include "util/dprint.h"
+#include "ai/hl/defender.h"
 #include "ai/hl/util.h"
 #include "ai/hl/tactics.h"
+#include "geom/util.h"
+#include "util/algorithm.h"
+#include "util/dprint.h"
 
 #include "uicomponents/param.h"
 
 #include <iostream>
 
-using AI::HL::Defensive2;
+using AI::HL::Defender;
 using namespace AI::HL::W;
 
 namespace {
@@ -19,16 +19,16 @@ namespace {
 	DoubleParam robot_shrink("shrink robot radius", 0.9, 0.1, 2.0);
 }
 
-Defensive2::Defensive2(World& w) : world(w), chase(false) {
+Defender::Defender(World& w) : world(w), chase(false) {
 }
 
-void Defensive2::set_players(std::vector<Player::Ptr> p, Player::Ptr g) {
+void Defender::set_players(std::vector<Player::Ptr> p, Player::Ptr g) {
 #warning how do I check if non-null?
 	players = p;
 	goalie = g;
 }
 
-std::pair<Point, std::vector<Point> > Defensive2::calc_block_positions() const {
+std::pair<Point, std::vector<Point> > Defender::calc_block_positions() const {
 	const Field& f = world.field();
 
 	std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
@@ -99,7 +99,7 @@ std::pair<Point, std::vector<Point> > Defensive2::calc_block_positions() const {
 	return std::make_pair(goalie_pos, waypoints);
 }
 
-void Defensive2::tick() {
+void Defender::tick() {
 
 	if (players.size() == 0) {
 		LOG_WARN("no robots");

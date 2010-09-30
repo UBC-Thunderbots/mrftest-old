@@ -1,5 +1,5 @@
-#ifndef AI_ROLE_DEFENSIVE2_H
-#define AI_ROLE_DEFENSIVE2_H
+#ifndef AI_HL_ROLE_DEFENDER_H
+#define AI_HL_ROLE_DEFENDER_H
 
 #include "ai/hl/world.h"
 #include <vector>
@@ -13,9 +13,9 @@ namespace AI {
 		 * Will not chase the ball, unless set_chase is set to true.
 		 * Unless the ball is already in the defence area.
 		 */
-		class Defensive2 {
+		class Defender {
 			public:
-				Defensive2(W::World& w);
+				Defender(W::World& w);
 
 				/**
 				 * Resets all the players.
