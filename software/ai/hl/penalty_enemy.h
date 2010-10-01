@@ -19,14 +19,15 @@ namespace AI {
 
 				/**
 				 * Constructs a new penalty_enemy role.
+				 *
+				 * \param[in] w the world.
 				 */
 				PenaltyEnemy(W::World &w);
 
 				/**
-				* Runs the AI for one time tick.
-				*/
+				 * Runs the AI for one time tick.
+				 */
 				void tick();
-
 
 			protected:
 				W::World &world;

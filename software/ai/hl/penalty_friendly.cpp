@@ -18,14 +18,9 @@ PenaltyFriendly::PenaltyFriendly(World &w) : world(w) {
 	// Let two robots be on the offensive, in case there is a rebound
 	ready_positions[2] = Point(0.5 * f.length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, -5 * Robot::MAX_RADIUS);
 	ready_positions[3] = Point(0.5 * f.length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, 5 * Robot::MAX_RADIUS);
-
 }
 
 
-void PenaltyFriendly::tick(){
-
-	
-
-
+void PenaltyFriendly::tick() {
 }
 

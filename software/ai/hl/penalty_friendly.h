@@ -19,9 +19,11 @@ namespace AI {
 
 				/**
 				 * Constructs a new penalty_friendly role.
+				 *
+				 * \param[in] w the world.
 				 */
 				PenaltyFriendly(W::World &w);
-				
+
 				/**
 				 * This function can only be called ONCE per tick.
 				 */
@@ -49,8 +51,6 @@ namespace AI {
 				 * The positions that the robots should move to for this role.
 				 */
 				Point ready_positions[NUMBER_OF_READY_POSITIONS];
-
-				
 		};
 	}
 }

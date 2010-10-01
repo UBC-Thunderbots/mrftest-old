@@ -70,7 +70,7 @@ namespace {
 
 	void PenaltyStrategy::penalty() {
 #warning TODO something sensible
-		//std::vector<W::Player::Ptr> players;
+		// std::vector<W::Player::Ptr> players;
 		switch (world.playtype()) {
 			case PlayType::PREPARE_PENALTY_FRIENDLY:
 
