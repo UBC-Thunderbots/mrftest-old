@@ -2,6 +2,8 @@
 #include "ai/hl/strategy.h"
 #include "ai/hl/util.h"
 
+#include <vector>
+
 using AI::HL::Strategy;
 using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
@@ -68,7 +70,7 @@ namespace {
 
 	void PenaltyStrategy::penalty() {
 #warning TODO something sensible
-
+		//std::vector<W::Player::Ptr> players;
 		switch (world.playtype()) {
 			case PlayType::PREPARE_PENALTY_FRIENDLY:
 

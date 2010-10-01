@@ -1,6 +1,7 @@
 #ifndef AI_HL_PENALTY_FRIENDLY_H
 #define AI_HL_PENALTY_FRIENDLY_H
 
+#include "ai/hl/world.h"
 #include "ai/hl/strategy.h"
 #include <vector>
 
@@ -19,10 +20,15 @@ namespace AI {
 				/**
 				 * Constructs a new penalty_friendly role.
 				 */
-				PenaltyFriendly(AI::HL::W::World &world);
+				PenaltyFriendly(W::World &w);
+				
+				/**
+				 * This function can only be called ONCE per tick.
+				 */
+				void tick();
 
 			protected:
-				AI::HL::W::World &world;
+				W::World &world;
 
 				/**
 				 * The distance between the penalty mark and the mid point of the two goal posts as described in the rules.
@@ -43,6 +49,8 @@ namespace AI {
 				 * The positions that the robots should move to for this role.
 				 */
 				Point ready_positions[NUMBER_OF_READY_POSITIONS];
+
+				
 		};
 	}
 }
