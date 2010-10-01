@@ -3,6 +3,7 @@
 
 #include "ai/hl/strategy.h"
 #include "ai/hl/defender.h"
+#include "ai/hl/offender.h"
 
 namespace AI {
 	namespace HL {
@@ -25,6 +26,7 @@ namespace AI {
 				void on_play_type_changed();
 
 				Defender defender;
+				Offender offender;
 		};
 	}
 }

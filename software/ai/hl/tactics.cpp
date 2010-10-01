@@ -4,15 +4,13 @@
 
 using namespace AI::HL::W;
 
-#warning not sure what to do with the play flags
-
-void AI::HL::Tactics::chase(World &world, Player::Ptr player) {
-	player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
+void AI::HL::Tactics::chase(World &world, Player::Ptr player, const unsigned int flags) {
+	player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
 }
 
-void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const bool force) {
+void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int flags, const bool force) {
 	if (!player->has_ball()) {
-		chase(world, player);
+		chase(world, player, flags);
 		return;
 	}
 
@@ -21,19 +19,19 @@ void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const bool force) 
 		if (force) {
 			// TODO: perhaps do a reduced radius calculation
 			target.first = world.field().enemy_goal();
-			AI::HL::Tactics::shoot(world, player, target.first);
+			shoot(world, player, flags, target.first);
 		} else { // just aim at the enemy goal
-			player->move(player->position(), (world.field().enemy_goal() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
+			player->move(player->position(), (world.field().enemy_goal() - player->position()).orientation(), flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
 		}
 	} else {
 		// call the other shoot function with the specified target
-		AI::HL::Tactics::shoot(world, player, target.first);
+		AI::HL::Tactics::shoot(world, player, flags, target.first);
 	}
 }
 
-void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const Point target) {
+void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int flags, const Point target) {
 	if (!player->has_ball()) {
-		chase(world, player);
+		chase(world, player, flags);
 		return;
 	}
 
@@ -41,7 +39,7 @@ void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const Point target
 	const double ori_diff = fabs(player->orientation() - ori_target);
 
 	if (ori_diff > AI::HL::Util::shoot_accuracy * M_PI / 180.0) { // aim
-		player->move(player->position(), ori_target, AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
+		player->move(player->position(), ori_target, flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
 		return;
 	}
 

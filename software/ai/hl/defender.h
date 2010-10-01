@@ -8,6 +8,7 @@ namespace AI {
 	namespace HL {
 		/**
 		 * Combined goalie and defender
+		 * For this class to function, needs at least one goalie and one defender.
 		 *
 		 * Will not chase the ball, unless set_chase is set to true.
 		 * Unless the ball is already in the defence area.

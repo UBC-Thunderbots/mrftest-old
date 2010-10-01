@@ -22,7 +22,12 @@ Defender::Defender(World &w) : world(w), chase(false) {
 }
 
 void Defender::set_players(std::vector<Player::Ptr> p, Player::Ptr g) {
-#warning how do I check if non-null?
+	if (!g.is()) {
+		LOG_ERROR("no goalie");
+	}
+	if (p.size() == 0) {
+		LOG_ERROR("no defender to accompany goalie");
+	}
 	players = p;
 	goalie = g;
 }
@@ -110,6 +115,11 @@ void Defender::tick() {
 		return;
 	}
 
+	if (!goalie.is()) {
+		LOG_ERROR("no goalie");
+		return;
+	}
+
 	// Sort by distance to ball. DO NOT SORT IT AGAIN!!
 	std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 
@@ -132,7 +142,8 @@ void Defender::tick() {
 
 	// figure out who should chase the ball
 	Player::Ptr chaser;
-	if (AI::HL::Util::point_in_friendly_defense(world, ball_pos)) { // emergency, chase the ball
+	if (AI::HL::Util::point_in_friendly_defense(world, ball_pos)) {
+		// emergency, chase the ball
 		chaser = goalie;
 	} else if (chase) {
 		chaser = goalie;
@@ -157,27 +168,29 @@ void Defender::tick() {
 	unsigned int goalie_flags = defender_flags & ~AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE;
 
 	// all defenders
-	std::size_t w = 0; // so we can skip robots as needed
-	for (std::size_t i = 0; i < players.size(); ++i) {
-		if (w >= waypoints.size()) {
-			// LOG_WARN(Glib::ustring::compose("%1 nothing to do", players[i]->name));
-			// move::ptr tactic(new move(players[i], the_world));
-			// tactic->set_position(players[i]->position());
-			// assign(players[i], tactic);
-			continue;
-		}
+	{
+		std::size_t w = 0; // so we can skip robots as needed
+		for (std::size_t i = 0; i < players.size(); ++i) {
+			if (w >= waypoints.size()) {
+				// LOG_WARN(Glib::ustring::compose("%1 nothing to do", players[i]->name));
+				// move::ptr tactic(new move(players[i], the_world));
+				// tactic->set_position(players[i]->position());
+				// assign(players[i], tactic);
+				continue;
+			}
 
-		if (chaser == players[i]) {
-			AI::HL::Tactics::shoot(world, players[i]);
-		} else {
-			players[i]->move(waypoints[order[w]], (world.ball().position() - players[i]->position()).orientation(), defender_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+			if (chaser == players[i]) {
+				AI::HL::Tactics::shoot(world, players[i], defender_flags);
+			} else {
+				players[i]->move(waypoints[order[w]], (world.ball().position() - players[i]->position()).orientation(), defender_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+			}
+			++w;
 		}
-		++w;
 	}
 
 	// goalie
 	if (chaser == goalie) {
-		AI::HL::Tactics::chase(world, goalie);
+		AI::HL::Tactics::chase(world, goalie, goalie_flags);
 	} else {
 		goalie->move(positions.first, (world.ball().position() - goalie->position()).orientation(), goalie_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 	}

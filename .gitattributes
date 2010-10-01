@@ -73,6 +73,8 @@ software/ai/hl/basic_strategy.cpp -text
 software/ai/hl/basic_strategy.h -text
 software/ai/hl/defender.cpp -text
 software/ai/hl/defender.h -text
+software/ai/hl/offender.cpp -text
+software/ai/hl/offender.h -text
 software/ai/hl/penalty_enemy.cpp -text
 software/ai/hl/penalty_enemy.h -text
 software/ai/hl/penalty_friendly.cpp -text

@@ -20,7 +20,7 @@ namespace AI {
 			/**
 			 * Chases after the ball as fast as possible.
 			 */
-			void chase(AI::HL::W::World &world, AI::HL::W::Player::Ptr player);
+			void chase(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags);
 
 			/**
 			 * If the player posses the ball,
@@ -32,7 +32,7 @@ namespace AI {
 			 * \param[in] force forces the player to shoot,
 			 * even if the goal is completely blocked.
 			 */
-			void shoot(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const bool force = false);
+			void shoot(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags, const bool force = false);
 
 			/**
 			 * If the player posses the ball,
@@ -42,7 +42,7 @@ namespace AI {
 			 *
 			 * \param[in] target the location to shoot the ball to.
 			 */
-			void shoot(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const Point target);
+			void shoot(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags, const Point target);
 
 			/**
 			 * I can't think of a good name for this function.
@@ -52,12 +52,10 @@ namespace AI {
 			 * Otherwise, shoot the ball in the furthest possible direction.
 			 * Useful for defenders.
 			 *
-			 * \param[in] avoid_friendly_defense disallows the player
-			 * to enter friendly defense area.
-			 * If you use this function, it looks like an emergency
-			 * so most likely you want to allow defenders anyways.
+			 * \param[in] flags movement flags for the robot
+			 * most likely you want to disable avoid_friendly_defense.
 			 */
-			void repel(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const bool avoid_friendly_defense = false);
+			void repel(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags);
 		}
 	}
 }
