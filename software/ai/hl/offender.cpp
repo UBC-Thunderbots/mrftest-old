@@ -25,8 +25,7 @@ AI::HL::Offender::Offender(World &w) : world(w), chase(true) {
 	grid.resize(grid_x_size, std::vector<bool>(grid_y_size));
 }
 
-double AI::HL::Offender::scoring_function(const std::vector<Point>& enemy_pos, const Point& pos, const std::vector<Point>& dont_block) const {
-
+double AI::HL::Offender::scoring_function(const std::vector<Point> &enemy_pos, const Point &pos, const std::vector<Point> &dont_block) const {
 	// can't be too close to enemy
 	for (std::size_t i = 0; i < enemy_pos.size(); ++i) {
 		if ((enemy_pos[i] - pos).len() < NEAR) {
@@ -83,21 +82,23 @@ double AI::HL::Offender::scoring_function(const std::vector<Point>& enemy_pos, c
 	return score;
 }
 
-bool AI::HL::Offender::calc_position_best(const std::vector<Point>& enemy_pos, const std::vector<Point>& dont_block, Point& best_pos) {
+bool AI::HL::Offender::calc_position_best(const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos) {
 	// divide up into grids
 	const double x1 = -world.field().length() / 2;
 	const double x2 = world.field().length() / 2;
 	const double y1 = -world.field().width() / 2;
 	const double y2 = world.field().width() / 2;
 
-	const double dx = (x2 - x1) / (grid_x_size+1);
-	const double dy = (y2 - y1) / (grid_y_size+1);
+	const double dx = (x2 - x1) / (grid_x_size + 1);
+	const double dy = (y2 - y1) / (grid_y_size + 1);
 	double best_score = -1e50;
 
 	best_pos = Point(0, 0);
 	for (int i = 0; i < grid_x_size; ++i) {
 		for (int j = 0; j < grid_y_size; ++j) {
-			if (!grid[i][j]) continue;
+			if (!grid[i][j]) {
+				continue;
+			}
 			const double x = x1 + dx * (i + 1);
 			const double y = y1 + dy * (j + 1);
 			const Point pos = Point(x, y);
@@ -121,11 +122,11 @@ bool AI::HL::Offender::calc_position_best(const std::vector<Point>& enemy_pos, c
 			}
 		}
 	}
-	return (best_score > -1e40);
+	return best_score > -1e40;
 }
 
 std::vector<Point> AI::HL::Offender::calc_positions(const unsigned int n) {
-	EnemyTeam& enemy = world.enemy_team();
+	EnemyTeam &enemy = world.enemy_team();
 	std::vector<Point> enemy_pos;
 	for (size_t i = 0; i < enemy.size(); ++i) {
 		enemy_pos.push_back(enemy.get(i)->position());
@@ -143,7 +144,9 @@ std::vector<Point> AI::HL::Offender::calc_positions(const unsigned int n) {
 	std::vector<Point> positions;
 	for (size_t i = 0; i < n; ++i) {
 		Point best;
-		if (!calc_position_best(enemy_pos, dont_block, best)) break;
+		if (!calc_position_best(enemy_pos, dont_block, best)) {
+			break;
+		}
 		positions.push_back(best);
 		dont_block.push_back(best);
 	}
@@ -151,7 +154,9 @@ std::vector<Point> AI::HL::Offender::calc_positions(const unsigned int n) {
 }
 
 void AI::HL::Offender::tick() {
-	if (players.size() == 0) return;
+	if (players.size() == 0) {
+		return;
+	}
 
 	// Sort by distance to ball. DO NOT SORT AGAIN!!
 	std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
@@ -173,7 +178,9 @@ void AI::HL::Offender::tick() {
 	std::vector<Player::Ptr> supporters;
 	std::vector<Point> locations;
 	for (std::size_t i = 0; i < players.size(); ++i) {
-		if (players[i] == chaser) continue;
+		if (players[i] == chaser) {
+			continue;
+		}
 		supporters.push_back(players[i]);
 		locations.push_back(players[i]->position());
 	}
@@ -203,6 +210,5 @@ void AI::HL::Offender::tick() {
 		// TODO: do something more sensible
 		AI::HL::Tactics::shoot(world, chaser, flags);
 	}
-
 }
 

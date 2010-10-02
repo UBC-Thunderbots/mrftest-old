@@ -66,13 +66,16 @@ void BasicStrategy::play() {
 	switch (players.size()) {
 		case 5:
 			defenders.push_back(players[4]);
+
 		case 4:
 			offenders.push_back(players[3]);
+
 		case 3:
 			defenders.push_back(players[2]);
+
 		case 2:
 			offenders.push_back(players[1]);
-		break;
+			break;
 	}
 
 	// see who has the closest ball
