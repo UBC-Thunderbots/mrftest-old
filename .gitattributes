@@ -94,6 +94,7 @@ software/ai/navigator/navigator.cpp -text
 software/ai/navigator/navigator.h -text
 software/ai/navigator/world.h -text
 software/ai/robot_controller/adhoc2_controller.cpp -text
+software/ai/robot_controller/fuzzy2_controller.cpp -text
 software/ai/robot_controller/fuzzy_controller.cpp -text
 software/ai/robot_controller/fuzzy_controller.h -text
 software/ai/robot_controller/robot_controller.cpp -text
