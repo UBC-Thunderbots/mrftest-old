@@ -2,6 +2,7 @@
 #define AI_NAVIGATOR_WORLD_H
 
 #include "ai/common/world.h"
+#include "ai/flags.h"
 #include "util/byref.h"
 #include <utility>
 #include <vector>
@@ -55,6 +56,20 @@ namespace AI {
 					 * \return the flags.
 					 */
 					virtual unsigned int flags() const = 0;
+
+					/**
+					 * Returns the movement type requested by the Strategy.
+					 *
+					 * \return the type.
+					 */
+					virtual AI::Flags::MOVE_TYPE type() const = 0;
+
+					/**
+					 * Returns the movement priority requested by the Strategy.
+					 *
+					 * \return the priority.
+					 */
+					virtual AI::Flags::MOVE_PRIO prio() const = 0;
 
 					/**
 					 * Sets the path this player should follow.
