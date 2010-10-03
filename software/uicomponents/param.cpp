@@ -40,8 +40,7 @@ Param::~Param() {
 	}
 }
 
-BoolParam::BoolParam(const Glib::ustring &name, bool def) : Param(name), default_(def) {
-	value_ = def;
+BoolParam::BoolParam(const Glib::ustring &name, bool def) : Param(name), value_(def), default_(def) {
 }
 
 Gtk::Widget &BoolParam::widget() {
@@ -82,11 +81,10 @@ void BoolParam::set_default() {
 	}
 }
 
-IntParam::IntParam(const Glib::ustring &name, int def, int min, int max) : Param(name), min_(min), max_(max), default_(def) {
+IntParam::IntParam(const Glib::ustring &name, int def, int min, int max) : Param(name), value_(def), min_(min), max_(max), default_(def) {
 	if (!(min <= def && def <= max)) {
 		throw std::runtime_error("Parameter default value out of valid range.");
 	}
-	value_ = def;
 }
 
 Gtk::Widget &IntParam::widget() {
@@ -128,11 +126,10 @@ void IntParam::set_default() {
 	}
 }
 
-DoubleParam::DoubleParam(const Glib::ustring &name, double def, double min, double max) : Param(name), min_(min), max_(max), default_(def) {
+DoubleParam::DoubleParam(const Glib::ustring &name, double def, double min, double max) : Param(name), value_(def), min_(min), max_(max), default_(def) {
 	if (!(min <= def && def <= max)) {
 		throw std::runtime_error("Parameter default value out of valid range.");
 	}
-	value_ = def;
 }
 
 Gtk::Widget &DoubleParam::widget() {

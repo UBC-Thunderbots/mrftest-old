@@ -2,6 +2,7 @@
 #define UICOMPONENTS_PARAM_H
 
 #include "util/noncopyable.h"
+#include "util/property.h"
 #include "util/scoped_ptr.h"
 #include <gtkmm.h>
 #include <vector>
@@ -84,6 +85,15 @@ class BoolParam : public Param {
 		BoolParam(const Glib::ustring &name, bool def);
 
 		/**
+		 * Returns the property implementing the parameter.
+		 *
+		 * \return the property implementing the parameter.
+		 */
+		const Property<bool> &prop() const {
+			return value_;
+		}
+
+		/**
 		 * Returns the value of the parameter.
 		 *
 		 * \return the value of the parameter.
@@ -94,7 +104,7 @@ class BoolParam : public Param {
 
 	private:
 		ScopedPtr<Gtk::CheckButton> widget_;
-		bool value_;
+		Property<bool> value_;
 		const bool default_;
 
 		Gtk::Widget &widget();
@@ -124,6 +134,15 @@ class IntParam : public Param {
 		IntParam(const Glib::ustring &name, int def, int min, int max);
 
 		/**
+		 * Returns the property implementing the parameter.
+		 *
+		 * \return the property implementing the parameter.
+		 */
+		const Property<int> &prop() const {
+			return value_;
+		}
+
+		/**
 		 * Returns the value of the parameter.
 		 *
 		 * \return the value of the parameter.
@@ -134,7 +153,7 @@ class IntParam : public Param {
 
 	private:
 		ScopedPtr<Gtk::HScale> widget_;
-		int value_;
+		Property<int> value_;
 		const int min_;
 		const int max_;
 		const int default_;
@@ -166,6 +185,15 @@ class DoubleParam : public Param {
 		DoubleParam(const Glib::ustring &name, double def, double min, double max);
 
 		/**
+		 * Returns the property implementing the parameter.
+		 *
+		 * \return the property implementing the parameter.
+		 */
+		const Property<double> &prop() const {
+			return value_;
+		}
+
+		/**
 		 * Returns the value of the parameter.
 		 *
 		 * \return the value of the parameter.
@@ -176,7 +204,7 @@ class DoubleParam : public Param {
 
 	private:
 		ScopedPtr<Gtk::Entry> widget_;
-		double value_;
+		Property<double> value_;
 		const double min_;
 		const double max_;
 		const double default_;
