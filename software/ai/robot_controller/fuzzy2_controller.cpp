@@ -22,21 +22,20 @@ namespace {
 				const double arr_max[P] = { 6.0, 2.0, 2.0, 6.0, 6.0 };
 				const double arr_def[P] = { 6.0, .855, .385, 6.0, 6.0 };
 
-				const std::vector<double> param_min (arr_min, arr_min + P);
-				const std::vector<double> param_max (arr_max, arr_max + P);
-				const std::vector<double> param_default (arr_def, arr_def + P);
-				
-				std::vector<double> param (P);
+				const std::vector<double> param_min(arr_min, arr_min + P);
+				const std::vector<double> param_max(arr_max, arr_max + P);
+				const std::vector<double> param_default(arr_def, arr_def + P);
+
+				std::vector<double> param(P);
 				param = param_default;
 			}
-			
+
 			void tick() {
-			
 				// TODO (byron): Read the requested path from the Player using W::Player::path
-				
-				Point new_position (0,0);
+
+				Point new_position(0, 0);
 				double new_orientation = 0;
-			
+
 				const Point &current_position = player->position();
 				const double current_orientation = player->orientation();
 				double angular_velocity = param[4] * angle_mod(new_orientation - current_orientation);
@@ -68,14 +67,14 @@ namespace {
 				}
 
 				linear_velocity = distance_factor * linear_velocity + (1 - distance_factor) * (velocity_factor * stopping_velocity + (1 - velocity_factor) * linear_velocity);
-				
+
 				int wheel_speeds[4] = { 0, 0, 0, 0 };
-				
+
 				convert_to_wheels(linear_velocity, angular_velocity, wheel_speeds);
-				
+
 				// TODO (byron): order new wheel speeds using W::Player::drive
 			}
-			
+
 			void set_params(const std::vector<double> &params) {
 				this->param = params;
 			}
@@ -114,3 +113,4 @@ namespace {
 			}
 	};
 }
+
