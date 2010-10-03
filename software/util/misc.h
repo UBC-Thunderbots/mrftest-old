@@ -66,5 +66,18 @@ bool wifexited(int status);
  */
 int wexitstatus(int status);
 
+/**
+ * Executes the XSI version of the \c strerror_r function.
+ *
+ * \param[in] err the error code to translate.
+ *
+ * \param[in] buf the buffer in which to store the message.
+ *
+ * \param[in] buflen the length of the buffer.
+ *
+ * \return 0 on success, or -1 on failure.
+ */
+int xsi_strerror_r(int err, char *buf, size_t buflen);
+
 #endif
 

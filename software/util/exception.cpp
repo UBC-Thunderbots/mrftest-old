@@ -1,11 +1,14 @@
 #include "util/exception.h"
-#include <cstring>
+#include "util/misc.h"
+#include <string.h>
 #include <vector>
 
 namespace {
 	std::string get_error_string(const std::string &call, int err) {
 		std::vector<char> buffer(32);
-		while (strerror_r(err, &buffer[0], buffer.size()) < 0) {
+		while (xsi_strerror_r(err, &buffer[0], buffer.size()) < 0) {
+			int foo = errno;
+			errno = foo;
 			if (errno == ERANGE) {
 				buffer.resize(buffer.size() * 2);
 			} else {
