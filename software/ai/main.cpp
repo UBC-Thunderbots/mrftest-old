@@ -219,6 +219,9 @@ namespace {
 		// Initialize the parameters from the configuration file.
 		Param::initialized(&conf);
 
+		// Enable the use of the siren for annunciator messages.
+		Annunciator::activate_siren();
+
 		// Create the backend.
 		WithBackendClosure wbc(coach_name, robot_controller_name, ball_filter_name, minimize, east ? AI::BE::Backend::EAST : AI::BE::Backend::WEST, blue ? AI::BE::Backend::BLUE : AI::BE::Backend::YELLOW);
 		if (!backend_name.size()) {

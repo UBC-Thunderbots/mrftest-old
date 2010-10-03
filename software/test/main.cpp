@@ -1,4 +1,5 @@
 #include "test/window.h"
+#include "util/annunciator.h"
 #include "util/config.h"
 #include "xbee/client/lowlevel.h"
 #include <gtkmm.h>
@@ -21,6 +22,7 @@ namespace {
 			md.run();
 			return 0;
 		}
+		Annunciator::activate_siren();
 		XBeeLowLevel modem;
 		TesterWindow win(modem, conf);
 		Gtk::Main::run(win);

@@ -1,7 +1,7 @@
 #ifndef UTIL_CLOCKSOURCE_TIMERFD_H
 #define UTIL_CLOCKSOURCE_TIMERFD_H
 
-#include "uicomponents/annunciator.h"
+#include "util/annunciator.h"
 #include "util/clocksource.h"
 #include "util/fd.h"
 #include <glibmm.h>

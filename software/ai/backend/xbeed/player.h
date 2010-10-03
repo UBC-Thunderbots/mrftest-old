@@ -2,7 +2,7 @@
 #define AI_BACKEND_XBEED_PLAYER_H
 
 #include "ai/backend/xbeed/robot.h"
-#include "uicomponents/annunciator.h"
+#include "util/annunciator.h"
 #include "xbee/client/drive.h"
 #include <ctime>
 #include <utility>

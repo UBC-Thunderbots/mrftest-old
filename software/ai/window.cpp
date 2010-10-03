@@ -310,7 +310,7 @@ Window::Window(AIPackage &ai) {
 	vbox->pack_start(*Gtk::manage(new CoachControls(ai)), Gtk::PACK_EXPAND_WIDGET);
 	vbox->pack_start(*Gtk::manage(new NavigatorControls(ai)), Gtk::PACK_EXPAND_WIDGET);
 	vbox->pack_start(*Gtk::manage(new RobotControllerControls(ai)), Gtk::PACK_EXPAND_WIDGET);
-	vbox->pack_start(*Gtk::manage(new Annunciator), Gtk::PACK_EXPAND_WIDGET);
+	vbox->pack_start(*Gtk::manage(new GUIAnnunciator), Gtk::PACK_EXPAND_WIDGET);
 
 	notebook->append_page(*vbox, "Main");
 

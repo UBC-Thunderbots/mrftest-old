@@ -57,7 +57,7 @@ class TesterWindow : public Gtk::Window {
 		Gtk::ToggleButton chicker_autokick;
 		Gtk::ToggleButton chicker_autochip;
 		Light chicker_ready_light, lt3751_fault_light, chicker_low_fault_light, chicker_high_fault_light;
-		Annunciator ann;
+		GUIAnnunciator ann;
 
 		int key_snoop(Widget *, GdkEventKey *event);
 		void on_claim_toggled();

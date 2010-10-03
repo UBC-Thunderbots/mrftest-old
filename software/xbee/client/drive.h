@@ -1,7 +1,7 @@
 #ifndef XBEE_CLIENT_DRIVE_H
 #define XBEE_CLIENT_DRIVE_H
 
-#include "uicomponents/annunciator.h"
+#include "util/annunciator.h"
 #include "util/byref.h"
 #include "util/time.h"
 #include "xbee/client/packet.h"

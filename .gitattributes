@@ -229,6 +229,8 @@ software/uicomponents/visualizer.cpp -text
 software/uicomponents/visualizer.h -text
 software/uncrustify.cfg -text
 software/util/algorithm.h -text
+software/util/annunciator.cpp -text
+software/util/annunciator.h -text
 software/util/byref.h -text
 software/util/clocksource.h -text
 software/util/clocksource_timerfd.cpp -text
