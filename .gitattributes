@@ -69,8 +69,7 @@ software/ai/common/team.h -text
 software/ai/common/world.h -text
 software/ai/flags.cpp -text
 software/ai/flags.h -text
-software/ai/hl/basic_strategy.cpp -text
-software/ai/hl/basic_strategy.h -text
+software/ai/hl/basic_play_strategy.cpp -text
 software/ai/hl/defender.cpp -text
 software/ai/hl/defender.h -text
 software/ai/hl/offender.cpp -text
