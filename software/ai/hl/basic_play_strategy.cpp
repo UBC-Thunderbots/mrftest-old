@@ -2,6 +2,7 @@
 #include "ai/hl/defender.h"
 #include "ai/hl/offender.h"
 #include "ai/hl/util.h"
+#include "util/dprint.h"
 
 using AI::HL::Defender;
 using AI::HL::Offender;
@@ -28,9 +29,18 @@ namespace {
 			BasicPlayStrategy(AI::HL::W::World &world);
 			~BasicPlayStrategy();
 			void on_play_type_changed();
+			void on_player_added(std::size_t);
+			void on_player_removed(std::size_t);
+			
+			/**
+			 * Recalculates and redo all assignments.
+			 */
+			void run_assignment();
 
 			Defender defender;
 			Offender offender;
+
+			bool initialized;
 	};
 
 	/**
@@ -79,27 +89,81 @@ namespace {
 			return;
 		}
 
+		if (!initialized) {
+			run_assignment();
+			initialized = true;
+		}
+
+		offender.tick();
+		defender.tick();
+	}
+
+	BasicPlayStrategy::BasicPlayStrategy(World &world) : Strategy(world), defender(world), offender(world), initialized(false) {
+		world.playtype().signal_changed().connect(sigc::mem_fun(this, &BasicPlayStrategy::on_play_type_changed));
+		world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &BasicPlayStrategy::on_player_added));
+		world.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &BasicPlayStrategy::on_player_removed));
+	}
+
+	BasicPlayStrategy::~BasicPlayStrategy() {
+	}
+
+	void BasicPlayStrategy::on_play_type_changed() {
+		if (world.playtype() != PlayType::PLAY) {
+			resign();
+		}
+	}
+
+	void BasicPlayStrategy::on_player_added(std::size_t) {
+		run_assignment();
+	}
+
+	void BasicPlayStrategy::on_player_removed(std::size_t) {
+		run_assignment();
+	}
+
+	void BasicPlayStrategy::run_assignment() {
+		LOG_INFO("player reassignment");
+
+		if (world.friendly_team().size() == 0) {
+			return;
+		}
+
 		// it is easier to change players every tick?
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 
+		// sort players by distance to own goal
+		std::sort(players.begin() + 1, players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.field().friendly_goal()));
+
 		// defenders
 		Player::Ptr goalie = players[0];
-		std::vector<Player::Ptr> defenders;
-		std::vector<Player::Ptr> offenders;
+
+		std::size_t ndefenders = 1; // includes goalie
+		//int noffenders = 0;
 
 		switch (players.size()) {
 			case 5:
-				defenders.push_back(players[4]);
+				++ndefenders;
 
 			case 4:
-				offenders.push_back(players[3]);
+				//++noffenders;
 
 			case 3:
-				defenders.push_back(players[2]);
+				++ndefenders;
 
 			case 2:
-				offenders.push_back(players[1]);
+				//++noffenders;
 				break;
+		}
+
+		std::vector<Player::Ptr> defenders; // excludes goalie
+		std::vector<Player::Ptr> offenders;
+		// start from 1, to exclude goalie
+		for (std::size_t i = 1; i < players.size(); ++i) {
+			if (i < ndefenders) {
+				defenders.push_back(players[i]);
+			} else {
+				offenders.push_back(players[i]);
+			}
 		}
 
 		// see who has the closest ball
@@ -116,28 +180,11 @@ namespace {
 			}
 		}
 
-		if (offenders.size() > 0) {
-			offender.set_players(offenders);
-			offender.set_chase(offender_chase);
-			offender.tick();
-		}
+		offender.set_players(offenders);
+		offender.set_chase(offender_chase);
 
 		defender.set_players(defenders, goalie);
 		defender.set_chase(!offender_chase);
-		defender.tick();
-	}
-
-	BasicPlayStrategy::BasicPlayStrategy(World &world) : Strategy(world), defender(world), offender(world) {
-		world.playtype().signal_changed().connect(sigc::mem_fun(this, &BasicPlayStrategy::on_play_type_changed));
-	}
-
-	BasicPlayStrategy::~BasicPlayStrategy() {
-	}
-
-	void BasicPlayStrategy::on_play_type_changed() {
-		if (world.playtype() != PlayType::PLAY) {
-			resign();
-		}
 	}
 
 }
