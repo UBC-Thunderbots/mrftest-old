@@ -314,7 +314,7 @@ bool Simulator::tick_geometry() {
 	fld->set_penalty_line_from_spot_dist(400);
 	for (unsigned int i = 0; i < 2; ++i) {
 		SSL_GeometryCameraCalibration *calib(geom->add_calib());
-		calib->set_camera_id(0);
+		calib->set_camera_id(i);
 		calib->set_focal_length(500.0);
 		calib->set_principal_point_x(390.0);
 		calib->set_principal_point_y(290.0);
