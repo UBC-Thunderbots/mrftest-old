@@ -133,7 +133,7 @@ namespace {
 		// First phase, search for the modem on all channels and both PAN IDs.
 		static const unsigned int PANIDS[] = { XBeePacketTypes::THUNDERBOTS_PANID, XBeePacketTypes::FACTORY_PANID };
 		bool found = false;
-		for (unsigned int i = 0; i < sizeof(PANIDS) / sizeof(*PANIDS) && !found; ++i) {
+		for (unsigned int i = 0; i < G_N_ELEMENTS(PANIDS) && !found; ++i) {
 			do_local_at_command<2>(loop, modem, Glib::ustring::compose("Switching local modem to PAN ID %1", tohex(PANIDS[i], 4)), "ID", PANIDS[i]);
 			for (unsigned int j = XBeePacketTypes::MIN_CHANNEL; j <= XBeePacketTypes::MAX_CHANNEL && !found; ++j) {
 				do_local_at_command<1>(loop, modem, Glib::ustring::compose("Switching local modem to channel %1", tohex(j, 2)), "CH", j);

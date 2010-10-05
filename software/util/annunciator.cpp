@@ -90,7 +90,7 @@ sigc::signal<void, std::size_t> Annunciator::signal_message_hidden;
 namespace {
 	bool can_siren() {
 		static const std::string cmdline_raw[] = { "beep", "-f", "1", "-l", "10" };
-		static const std::vector<std::string> cmdline(&cmdline_raw[0], &cmdline_raw[sizeof(cmdline_raw) / sizeof(*cmdline_raw)]);
+		static const std::vector<std::string> cmdline(&cmdline_raw[0], &cmdline_raw[G_N_ELEMENTS(cmdline_raw)]);
 		try {
 			int exit_status;
 			Glib::spawn_sync("", cmdline, Glib::SPAWN_SEARCH_PATH, sigc::slot<void>(), 0, 0, &exit_status);

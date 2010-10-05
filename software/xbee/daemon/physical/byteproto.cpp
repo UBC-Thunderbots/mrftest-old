@@ -27,7 +27,7 @@ void XBeeByteStream::send(const iovec *iov, std::size_t iovlen) {
 
 	while (iovlen) {
 		const uint8_t *dptr = static_cast<const uint8_t *>(iov->iov_base);
-		std::size_t index = std::find_first_of(dptr, dptr + iov->iov_len, SPECIAL_CHARS, SPECIAL_CHARS + sizeof(SPECIAL_CHARS) / sizeof(*SPECIAL_CHARS)) - dptr;
+		std::size_t index = std::find_first_of(dptr, dptr + iov->iov_len, SPECIAL_CHARS, SPECIAL_CHARS + G_N_ELEMENTS(SPECIAL_CHARS)) - dptr;
 		if (index == iov->iov_len) {
 			newiov.push_back(*iov);
 			++iov;
@@ -36,8 +36,8 @@ void XBeeByteStream::send(const iovec *iov, std::size_t iovlen) {
 			std::size_t len = iov->iov_len;
 			do {
 				if (index == 0) {
-					std::size_t which = std::find(SPECIAL_CHARS, SPECIAL_CHARS + sizeof(SPECIAL_CHARS) / sizeof(*SPECIAL_CHARS), *dptr) - SPECIAL_CHARS;
-					assert(which < sizeof(SPECIAL_CHARS) / sizeof(*SPECIAL_CHARS));
+					std::size_t which = std::find(SPECIAL_CHARS, SPECIAL_CHARS + G_N_ELEMENTS(SPECIAL_CHARS), *dptr) - SPECIAL_CHARS;
+					assert(which < G_N_ELEMENTS(SPECIAL_CHARS));
 					iovec v;
 					v.iov_base = const_cast<uint8_t *>(ESCAPE_STRINGS[which]);
 					v.iov_len = 2;
@@ -52,7 +52,7 @@ void XBeeByteStream::send(const iovec *iov, std::size_t iovlen) {
 					dptr += index;
 					len -= index;
 				}
-				index = std::find_first_of(dptr, dptr + len, SPECIAL_CHARS, SPECIAL_CHARS + sizeof(SPECIAL_CHARS) / sizeof(*SPECIAL_CHARS)) - dptr;
+				index = std::find_first_of(dptr, dptr + len, SPECIAL_CHARS, SPECIAL_CHARS + G_N_ELEMENTS(SPECIAL_CHARS)) - dptr;
 			} while (len);
 			++iov;
 			--iovlen;
@@ -67,7 +67,7 @@ void XBeeByteStream::bytes_received(const void *data, std::size_t len) {
 	const uint8_t *dptr = static_cast<const uint8_t *>(data);
 
 	while (len) {
-		std::size_t index = std::find_first_of(dptr, dptr + len, SPECIAL, SPECIAL + sizeof(SPECIAL) / sizeof(*SPECIAL)) - dptr;
+		std::size_t index = std::find_first_of(dptr, dptr + len, SPECIAL, SPECIAL + G_N_ELEMENTS(SPECIAL)) - dptr;
 		if (received_escape) {
 			uint8_t ch = *dptr ^ 0x20;
 			sig_bytes_received.emit(&ch, 1);

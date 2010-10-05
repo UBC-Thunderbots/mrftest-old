@@ -154,7 +154,7 @@ int main(int argc, char **argv) {
 	}
 
 start_work:
-	for (unsigned int baudidx = 0; baudidx < sizeof(BAUDS) / sizeof(*BAUDS); baudidx++) {
+	for (unsigned int baudidx = 0; baudidx < G_N_ELEMENTS(BAUDS); baudidx++) {
 		for (unsigned int retries = 0; retries < 3; retries++) {
 			std::cout << "Entering command mode at " << BAUDS[baudidx].display << " baud... " << std::flush;
 

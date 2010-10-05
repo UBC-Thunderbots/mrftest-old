@@ -65,7 +65,7 @@ namespace {
 		PlayType::PLAY,
 	};
 
-	BasicPlayStrategyFactory::BasicPlayStrategyFactory() : StrategyFactory("BasicPlay", HANDLED_PLAY_TYPES, sizeof(HANDLED_PLAY_TYPES) / sizeof(*HANDLED_PLAY_TYPES)) {
+	BasicPlayStrategyFactory::BasicPlayStrategyFactory() : StrategyFactory("BasicPlay", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) {
 	}
 
 	BasicPlayStrategyFactory::~BasicPlayStrategyFactory() {

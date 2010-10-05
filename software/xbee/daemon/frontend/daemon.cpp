@@ -51,7 +51,7 @@ namespace {
 			throw std::runtime_error("Path too long!");
 		}
 		std::copy(socket_path.begin(), socket_path.end(), &sa.un.sun_path[0]);
-		std::fill(&sa.un.sun_path[socket_path.size()], &sa.un.sun_path[sizeof(sa.un.sun_path) / sizeof(*sa.un.sun_path)], '\0');
+		std::fill(&sa.un.sun_path[socket_path.size()], &sa.un.sun_path[G_N_ELEMENTS(sa.un.sun_path)], '\0');
 		if (bind(listen_sock->fd(), &sa.sa, sizeof(sa.un)) < 0) {
 			throw std::runtime_error("Cannot bind UNIX-domain socket!");
 		}
