@@ -144,7 +144,7 @@ namespace {
 			bool okay = false;
 			Point p;
 			do {
-				double angle = delta_angle * (w / 2); // integer division
+				double angle = delta_angle * (w / 2) * ((w % 2) ? 1 : -1);
 				p = ball_pos + shoot.rotate(angle);
 				okay = valid(p);
 			} while(!okay);
