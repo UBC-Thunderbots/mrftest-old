@@ -13,6 +13,8 @@ const double PenaltyEnemy::PENALTY_MARK_LENGTH = 0.45;
 
 const double PenaltyEnemy::RESTRICTED_ZONE_LENGTH = 0.85;
 
+const unsigned int PenaltyEnemy::NUMBER_OF_READY_POSITIONS;
+
 /*The constructor*/
 PenaltyEnemy::PenaltyEnemy(World &w) : world(w) {
 	const Field &f = (world.field());

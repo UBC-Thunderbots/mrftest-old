@@ -321,6 +321,10 @@ namespace {
 			}
 	};
 
+	const unsigned int ChannelsModel::MIN_CHANNEL;
+
+	const unsigned int ChannelsModel::MAX_CHANNEL;
+
 	class RadioPage : public Gtk::Table {
 		public:
 			RadioPage(Config &conf) : Gtk::Table(1, 2), conf(conf), model(new ChannelsModel), view(model) {

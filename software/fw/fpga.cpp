@@ -31,6 +31,12 @@ namespace {
 	}
 }
 
+const unsigned int FPGAUpload::PAGE_BYTES;
+
+const unsigned int FPGAUpload::CHUNK_PAGES;
+
+const unsigned int FPGAUpload::SECTOR_CHUNKS;
+
 FPGAUpload::FPGAUpload(XBeeRawBot::Ptr bot, const IntelHex &data) : bot(bot), data(data), proto(bot), sectors_erased(0), pages_written(0), chunks_crcd(0) {
 	status = "Idle";
 	proto.signal_error.connect(signal_error.make_slot());

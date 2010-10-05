@@ -48,6 +48,8 @@ namespace {
 	};
 }
 
+const unsigned int PICUpload::PAGE_BYTES;
+
 PICUpload::PICUpload(XBeeRawBot::Ptr bot, const IntelHex &data) : bot(bot), data(data), proto(bot), pages_written(0) {
 	status = "Idle";
 	proto.signal_error.connect(signal_error.make_slot());
