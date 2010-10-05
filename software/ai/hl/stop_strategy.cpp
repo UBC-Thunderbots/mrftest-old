@@ -76,11 +76,11 @@ namespace {
 
 	bool StopStrategy::valid(Point p) const {
 		// cannot be too far away in x
-		if (fabs(p.x) > world.field().length() / 2) {
+		if (std::fabs(p.x) > world.field().length() / 2) {
 			return false;
 		}
 		// cannot be too far away in y
-		if (fabs(p.y) > world.field().width() / 2) {
+		if (std::fabs(p.y) > world.field().width() / 2) {
 			return false;
 		}
 
