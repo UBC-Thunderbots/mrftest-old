@@ -31,7 +31,7 @@ namespace {
 			void on_play_type_changed();
 			void on_player_added(std::size_t);
 			void on_player_removed(std::size_t);
-			
+
 			/**
 			 * Recalculates and redo all assignments.
 			 */
@@ -186,6 +186,5 @@ namespace {
 		defender.set_players(defenders, goalie);
 		defender.set_chase(!offender_chase);
 	}
-
 }
 

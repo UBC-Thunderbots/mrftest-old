@@ -10,7 +10,6 @@ using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
 
 namespace {
-
 #warning find better home for this variable
 
 	// the closest distance players allowed to the ball
@@ -77,24 +76,33 @@ namespace {
 
 	bool StopStrategy::valid(Point p) const {
 		// cannot be too far away in x
-		if (fabs(p.x) > world.field().length() / 2) return false;
+		if (fabs(p.x) > world.field().length() / 2) {
+			return false;
+		}
 		// cannot be too far away in y
-		if (fabs(p.y) > world.field().width() / 2) return false;
+		if (fabs(p.y) > world.field().width() / 2) {
+			return false;
+		}
 
-		if (AI::HL::Util::point_in_friendly_defense(world, p)) return false;
+		if (AI::HL::Util::point_in_friendly_defense(world, p)) {
+			return false;
+		}
 
 		// TODO: check if point in enemy defense
 
 		// cannot be too close to ball
-		if ((world.ball().position() - p).len() < AVOIDANCE_MIN) return false;
+		if ((world.ball().position() - p).len() < AVOIDANCE_MIN) {
+			return false;
+		}
 
 		return true;
 	}
 
 	void StopStrategy::stop() {
-
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
-		if (players.size() == 0) return;
+		if (players.size() == 0) {
+			return;
+		}
 
 		// draw a circle of radius 50cm from the ball
 		Point ball_pos = world.ball().position();
@@ -107,7 +115,6 @@ namespace {
 			// then shoot the ray from the enemy goal
 
 			start = Point(ball_pos.x + AVOIDANCE_DIST, ball_pos.y);
-
 		} else {
 			// otherwise
 			// draw a ray from the center of friendly goal to the ball,
@@ -147,7 +154,7 @@ namespace {
 				double angle = delta_angle * (w / 2) * ((w % 2) ? 1 : -1);
 				p = ball_pos + shoot.rotate(angle);
 				okay = valid(p);
-			} while(!okay);
+			} while (!okay);
 			players[i]->move(p, (world.ball().position() - players[i]->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
 		}
 
