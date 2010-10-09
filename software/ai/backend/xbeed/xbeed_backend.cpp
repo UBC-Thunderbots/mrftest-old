@@ -148,6 +148,8 @@ namespace {
 			~XBeeDBackend() {
 			}
 
+			BackendFactory &factory() const;
+
 			const Field &field() const {
 				return field_;
 			}
@@ -580,5 +582,9 @@ namespace {
 	};
 
 	XBeeDBackendFactory factory_instance;
+
+	BackendFactory &XBeeDBackend::factory() const {
+		return factory_instance;
+	}
 }
 

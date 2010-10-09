@@ -2091,6 +2091,18 @@ namespace {
 	const SequencePacketParser packet_ai_tick_parser(Log::T_AI_TICK, "End of Tick", packet_ai_tick_elements, G_N_ELEMENTS(packet_ai_tick_elements));
 
 	/**
+	 * The sequence of elements in a Log::T_BACKEND.
+	 */
+	const SequencePacketParser::Element packet_backend_elements[] = {
+		{ length: 0, name: "Name", compute_flags: &packet_generic_utf8_compute_flags, build_tree: &packet_generic_utf8_build_tree },
+	};
+
+	/**
+	 * A parser for a Log::T_BACKEND.
+	 */
+	const SequencePacketParser packet_backend_parser(Log::T_BACKEND, "Backend", packet_backend_elements, G_N_ELEMENTS(packet_backend_elements));
+
+	/**
 	 * The set of all packet parsers.
 	 */
 	const PacketParser *const packet_parsers[] = {
@@ -2115,6 +2127,7 @@ namespace {
 		&packet_enemy_robot_parser,
 		&packet_ball_parser,
 		&packet_ai_tick_parser,
+		&packet_backend_parser,
 	};
 
 	class PacketInfo {

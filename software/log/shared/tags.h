@@ -225,6 +225,14 @@ namespace Log {
 		 * \li 4 bytes big endian integer count of nanoseconds since the second
 		 */
 		T_AI_TICK,
+
+		/**
+		 * Tags the name of the backend in use.
+		 *
+		 * Payload:
+		 * \li n bytes string name of backend.
+		 */
+		T_BACKEND,
 	};
 
 	/**

@@ -119,6 +119,9 @@ void ai_logger_signal_handler_thunk(int sig) {
 AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), ended(false), sigstack_registration(sigstack, sizeof(sigstack)), SIGHUP_registration(SIGHUP, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGINT_registration(SIGINT, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGQUIT_registration(SIGQUIT, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGILL_registration(SIGILL, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGTRAP_registration(SIGTRAP, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGABRT_registration(SIGABRT, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGBUS_registration(SIGBUS, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGFPE_registration(SIGFPE, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGSEGV_registration(SIGSEGV, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGPIPE_registration(SIGPIPE, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGTERM_registration(SIGTERM, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGSTKFLT_registration(SIGSTKFLT, &ai_logger_signal_handler_thunk, SA_RESETHAND) {
 	write_packet(fd, Log::T_START, 0, 0);
 
+	const std::string &backend_name = ai.backend.factory().name;
+	write_packet(fd, Log::T_BACKEND, backend_name.data(), backend_name.size());
+
 	signal_message_logged.connect(sigc::mem_fun(this, &AI::Logger::on_message_logged));
 
 	Annunciator::signal_message_activated.connect(sigc::mem_fun(this, &AI::Logger::on_annunciator_message_activated));

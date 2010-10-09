@@ -202,6 +202,8 @@ namespace AI {
 				}
 		};
 
+		class BackendFactory;
+
 		/**
 		 * A provider that can expose the contents of the world to the AI.
 		 * A backend must get the state of the world, expose it to the AI, accept commands from the AI, and deliver those commands into the world.
@@ -228,6 +230,13 @@ namespace AI {
 					YELLOW,
 					BLUE,
 				};
+
+				/**
+				 * Returns the factory that created this Backend.
+				 *
+				 * \return the factory.
+				 */
+				virtual BackendFactory &factory() const = 0;
 
 				/**
 				 * Returns the field.
