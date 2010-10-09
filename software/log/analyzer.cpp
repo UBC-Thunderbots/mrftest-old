@@ -1229,6 +1229,7 @@ namespace {
 		{ AI::Flags::MOVE_DRIBBLE, "Dribble" },
 		{ AI::Flags::MOVE_CATCH, "Catch ball" },
 		{ AI::Flags::MOVE_RAM_BALL, "Ram ball" },
+		{ AI::Flags::MOVE_HALT, "Halt" },
 	};
 
 	/**

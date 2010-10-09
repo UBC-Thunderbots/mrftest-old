@@ -85,6 +85,11 @@ namespace AI {
 			 * Move to the target location and orientation at the same time the ball will get there, but don't worry about stopping at the target after.
 			 */
 			MOVE_RAM_BALL,
+
+			/**
+			 * Stop moving (not intended for use by high-levels, only for things like emergency stop).
+			 */
+			MOVE_HALT,
 		};
 
 		/**
