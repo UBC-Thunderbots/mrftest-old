@@ -31,10 +31,11 @@ namespace {
 			}
 
 			void tick() {
-				// TODO (byron): Read the requested path from the Player using W::Player::path
-
-				Point new_position(0, 0);
-				double new_orientation = 0;
+				const std::vector<std::pair<std::pair<Point, double>, timespec> > &path = player->path();
+				if (path.empty()) return;
+				
+				Point new_position = path[0].first.first;
+				double new_orientation = path[0].first.second;
 
 				const Point &current_position = player->position();
 				const double current_orientation = player->orientation();
@@ -72,7 +73,7 @@ namespace {
 
 				convert_to_wheels(linear_velocity, angular_velocity, wheel_speeds);
 
-				// TODO (byron): order new wheel speeds using W::Player::drive
+				player->drive(wheel_speeds);
 			}
 
 			void set_params(const std::vector<double> &params) {
