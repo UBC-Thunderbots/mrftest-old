@@ -50,3 +50,8 @@ void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int
 	}
 }
 
+void AI::HL::Tactics::free_move(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const Point p) {
+	// no flags
+	player->move(p, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+}
+

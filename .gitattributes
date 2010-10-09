@@ -75,6 +75,7 @@ software/ai/flags.h -text
 software/ai/hl/basic_play_strategy.cpp -text
 software/ai/hl/defender.cpp -text
 software/ai/hl/defender.h -text
+software/ai/hl/kickoff_enemy_strategy.cpp -text
 software/ai/hl/offender.cpp -text
 software/ai/hl/offender.h -text
 software/ai/hl/penalty_enemy.cpp -text

@@ -137,7 +137,7 @@ namespace {
 		// int offenders = static_cast<int>(players.size()) - 1 - defenders;
 
 		// calculate angle between robots
-		const double delta_angle = AVOIDANCE_ANGLE + separation_angle;
+		const double delta_angle = AVOIDANCE_ANGLE + separation_angle * M_PI / 180.0;
 
 		const Point shoot = (start - ball_pos);
 
@@ -162,9 +162,8 @@ namespace {
 			players[1]->move(defender_pos, (world.ball().position() - players[1]->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
 		}
 
-#warning incomplete
-		// goalie always touching the goal line,
-		// and at a point closest to the ball.
+		// TODO: looks fine but should check again
+		// maybe: goalie always touching the goal line, and at a point closest to the ball.
 		unsigned int goalie_flags = 0;
 		Point goalie_pos = world.field().friendly_goal();
 		players[0]->move(goalie_pos, (world.ball().position() - players[0]->position()).orientation(), goalie_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);

@@ -17,6 +17,7 @@ namespace AI {
 		 *
 		 */
 		namespace Tactics {
+
 			/**
 			 * Chases after the ball as fast as possible.
 			 */
@@ -56,6 +57,13 @@ namespace AI {
 			 * most likely you want to disable avoid_friendly_defense.
 			 */
 			void repel(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags);
+
+			/**
+			 * Convenient function.
+			 * Move the players when NOT in any ACTIVE play.
+			 * For example, during stop, preparing for kickoff, preparing for free kick.
+			 */
+			void free_move(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const Point p);
 		}
 		/**
 		 *
