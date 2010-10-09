@@ -27,7 +27,6 @@ namespace {
 	class KickoffEnemyStrategy : public Strategy {
 		public:
 			StrategyFactory &factory() const;
-			void stop();
 
 			/**
 			 * Creates a new KickoffEnemyStrategy.
@@ -39,7 +38,16 @@ namespace {
 		private:
 			KickoffEnemyStrategy(World &world);
 			~KickoffEnemyStrategy();
+
 			void on_play_type_changed();
+
+			//void prepare_kickoff_friendly();
+			//void execute_kickoff_friendly();
+
+			void prepare_kickoff_enemy();
+			void execute_kickoff_enemy();
+
+			void prepare();
 
 			AI::HL::Defender defender;
 	};
@@ -71,7 +79,23 @@ namespace {
 		return factory_instance;
 	}
 
-	void KickoffEnemyStrategy::stop() {
+	//void KickoffEnemyStrategy::prepare_kickoff_friendly() {
+		//prepare();
+	//}
+
+	//void KickoffEnemyStrategy::execute_kickoff_friendly() {
+		// TODO
+	//}
+
+	void KickoffEnemyStrategy::prepare_kickoff_enemy() {
+		prepare();
+	}
+
+	void KickoffEnemyStrategy::execute_kickoff_enemy() {
+		prepare();
+	}
+
+	void KickoffEnemyStrategy::prepare() {
 		if (world.friendly_team().size() == 0) {
 			return;
 		}
