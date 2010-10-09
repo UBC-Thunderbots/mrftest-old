@@ -1,4 +1,5 @@
 #include "ai/hl/penalty_friendly.h"
+#include "ai/hl/penalty_enemy.h"
 #include "ai/hl/strategy.h"
 #include "ai/hl/util.h"
 
@@ -9,6 +10,7 @@ using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
 
 using AI::HL::PenaltyFriendly;
+using AI::HL::PenaltyEnemy;
 
 namespace {
 	/**
@@ -34,6 +36,9 @@ namespace {
 			PenaltyStrategy(World &world);
 			~PenaltyStrategy();
 			void on_play_type_changed();
+
+			//PenaltyFriendly pFriendly;
+			//PenaltyEnemy    pEnemy;
 	};
 
 	/**
@@ -69,8 +74,12 @@ namespace {
 	}
 
 	void PenaltyStrategy::penalty() {
-#warning TODO something sensible
-		// std::vector<W::Player::Ptr> players;
+#warning under construction
+		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
+		if (players.size() == 0) {
+			return;
+		}
+
 		switch (world.playtype()) {
 			case PlayType::PREPARE_PENALTY_FRIENDLY:
 

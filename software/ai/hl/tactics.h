@@ -57,6 +57,46 @@ namespace AI {
 			 */
 			void repel(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags);
 		}
+		/**
+		 *
+		 * Helper Class to let a player (normally the goalie) to patrol between two points on the field	
+		 *
+		 * Still Under Construction	
+		 */
+		class Patrol{
+			public:
+				typedef RefPtr<Patrol> ptr;
+	
+				Patrol(W::Player::Ptr player, W::World &w);
+
+				/**
+				 *
+				 * Patrol between two points on the field
+				 *
+				 * \param[in] flags movement flags for the robot
+				 * most likely you want to disable avoid_friendly_defense.
+				 */
+				Patrol(W::Player::Ptr player, W::World &w, const unsigned int& flags, const Point& t1, const Point& t2);
+
+				/**
+				 * Set the two target points for the patrol.
+				 */
+				void set_targets(const Point& t1, const Point& t2) {
+					target1 = t1;
+					target2 = t2;
+					target_initialized = true;
+				}
+
+
+				void tick();	
+		
+			protected:		
+
+				Point target1, target2;
+				bool target_initialized;
+
+				
+		};
 	}
 }
 

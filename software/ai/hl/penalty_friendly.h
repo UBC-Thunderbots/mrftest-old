@@ -32,6 +32,8 @@ namespace AI {
 			protected:
 				W::World &world;
 
+				std::vector<W::Player::Ptr> players;
+
 				/**
 				 * The distance between the penalty mark and the mid point of the two goal posts as described in the rules.
 				 */

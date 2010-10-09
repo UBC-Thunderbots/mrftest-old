@@ -32,6 +32,8 @@ namespace AI {
 			protected:
 				W::World &world;
 
+				std::vector<W::Player::Ptr> players;
+
 				/**
 				 * The distance between the penalty mark and the mid point of the two goal posts as described in the rules.
 				 */
@@ -51,6 +53,30 @@ namespace AI {
 				 * The positions that the robots should move to for this role.
 				 */
 				Point ready_positions[NUMBER_OF_READY_POSITIONS];
+		};
+		class PenaltyGoalie{
+			public:
+				/**
+				 * A pointer to a penalty_goalie role.
+				 */
+				typedef RefPtr<PenaltyGoalie> ptr;
+
+				/**
+				 * Constructs a new penalty_goalie role.
+				 *
+				 * \param[in] w the world.
+				 */
+				PenaltyGoalie(W::World &w);
+
+				/**
+				 * Runs the AI for one time tick.
+				 */
+				void tick();
+			protected:
+				W::World &world;
+
+				std::vector<W::Player::Ptr> players;				
+		
 		};
 	}
 }

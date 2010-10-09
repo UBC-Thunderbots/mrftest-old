@@ -1,10 +1,16 @@
 #include "ai/hl/penalty_enemy.h"
 #include "ai/hl/strategy.h"
-//#include "ai/tactic/move.h"
-//#include "ai/tactic/patrol.h"
-#include <iostream>
+
+#include "ai/hl/util.h"
+#include "ai/hl/tactics.h"
+#include "geom/util.h"
+#include "util/algorithm.h"
+#include "util/dprint.h"
+
+#include "uicomponents/param.h"
 
 using AI::HL::PenaltyEnemy;
+using AI::HL::PenaltyGoalie;
 using namespace AI::HL::W;
 
 
@@ -28,14 +34,49 @@ PenaltyEnemy::PenaltyEnemy(World &w) : world(w) {
 
 
 void PenaltyEnemy::tick() {
-/*
-	unsigned int flags = ai_flags::calc_flags(the_world->playtype());
-	for (unsigned int i = 0; i < the_robots.size(); ++i) {
-		move tactic(the_robots[i], the_world);
-		tactic.set_position(standing_positions[i]);
-		tactic.set_flags(flags);
-		tactic.tick();
-*/
+	
+	if (players.size() == 0) {
+		LOG_WARN("no robots");
+		return;
+	}
+	
+	//unsigned int flags = AI::Flags::calc_flags(world.playtype());
+
+	if (world.playtype() == PlayType::PREPARE_PENALTY_ENEMY) {
+		for (size_t i = 0; i < players.size(); ++i) {
+			// move the robots to position
+			players[i]->move(ready_positions[i], (ready_positions[i] - players[i]->position()).orientation(), AI::Flags::FLAG_PENALTY_KICK_ENEMY, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+
+		}
+	} else if (world.playtype() == PlayType::EXECUTE_PENALTY_ENEMY) {	
+		for (size_t i = 0; i < players.size(); ++i) {
+			players[i]->move(ready_positions[i], (ready_positions[i] - players[i]->position()).orientation(), AI::Flags::FLAG_PENALTY_KICK_ENEMY, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+		}
+	} else {
+		LOG_WARN("penalty_enemy: unhandled playtype");
+		return;
+	}
 }
+
+PenaltyGoalie::PenaltyGoalie(World &w) : world(w)  {
+}
+
+void PenaltyGoalie::tick() {
+	// under construction
+	if (players.size() != 1) {
+		LOG_WARN("penalty_enemy: we only want 1 goalie!");
+	}
+
+	if (players.size() == 0) return;
+
+	const Field &f = (world.field());
+	const Point starting_position(-0.5 * f.length(), - 0.5 * Robot::MAX_RADIUS);
+	const Point ending_position(-0.5 * f.length(), 0.5 * Robot::MAX_RADIUS);
+
+	//players[0]->patrol(the_robots[0], the_world, flags, starting_position, ending_position);
+
+}
+
+
 
 
