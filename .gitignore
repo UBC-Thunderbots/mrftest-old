@@ -1,4 +1,8 @@
 /*-cache.lib
+firmware/BoostConverter/*.asm
+firmware/BoostConverter/*.cod
+firmware/BoostConverter/*.hex
+firmware/BoostConverter/*.lst
 firmware/HWRunSwitch/hwrunswitch.elf
 firmware/HWRunSwitch/hwrunswitch.hex
 firmware/mainboard-copro/*.cod
