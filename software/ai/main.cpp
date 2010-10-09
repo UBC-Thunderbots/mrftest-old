@@ -1,4 +1,5 @@
 #include "ai/ai.h"
+#include "ai/logger.h"
 #include "ai/window.h"
 #include "ai/backend/backend.h"
 #include "uicomponents/abstract_list_model.h"
@@ -65,13 +66,25 @@ namespace {
 			ai.robot_controller_factory = i->second;
 		}
 
-		AI::Window win(ai);
+		AI::Logger logger(ai);
+		try {
+			AI::Window win(ai);
 
-		if (wbc.minimize) {
-			win.iconify();
+			if (wbc.minimize) {
+				win.iconify();
+			}
+
+			Gtk::Main::run(win);
+		} catch (const Glib::Exception &exp) {
+			logger.end_with_exception(exp.what());
+			throw;
+		} catch (const std::exception &exp) {
+			logger.end_with_exception(exp.what());
+			throw;
+		} catch (...) {
+			logger.end_with_exception("Unknown exception");
+			throw;
 		}
-
-		Gtk::Main::run(win);
 	}
 
 	Glib::ustring choose_backend() {

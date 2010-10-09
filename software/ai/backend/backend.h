@@ -6,6 +6,7 @@
 #include "ai/hl/world.h"
 #include "ai/navigator/world.h"
 #include "ai/robot_controller/world.h"
+#include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "uicomponents/visualizer.h"
 #include "util/config.h"
 #include "util/noncopyable.h"
@@ -32,6 +33,10 @@ namespace AI {
 		 * The ball, as exposed by the backend.
 		 */
 		class Ball : public AI::BF::W::Ball, public AI::HL::W::Ball, public AI::Nav::W::Ball, public Visualizable::Ball {
+			public:
+				Point position(double delta) const = 0;
+				Point velocity(double delta) const = 0;
+				Point acceleration(double delta) const = 0;
 		};
 
 		/**
@@ -46,6 +51,12 @@ namespace AI {
 
 				ObjectStore &object_store() = 0;
 				unsigned int pattern() const = 0;
+				Point position(double delta) const = 0;
+				double orientation(double delta) const = 0;
+				Point velocity(double delta) const = 0;
+				double avelocity(double delta) const = 0;
+				Point acceleration(double delta) const = 0;
+				double aacceleration(double delta) const = 0;
 		};
 
 		/**
@@ -58,8 +69,21 @@ namespace AI {
 				 */
 				typedef RefPtr<Player> Ptr;
 
+				/**
+				 * Returns the speeds of the four wheels as requested by the RobotController.
+				 *
+				 * \return the wheel speeds.
+				 */
+				virtual const int(&wheel_speeds() const)[4] = 0;
+
 				ObjectStore &object_store() = 0;
 				unsigned int pattern() const = 0;
+				Point position(double delta) const = 0;
+				double orientation(double delta) const = 0;
+				Point velocity(double delta) const = 0;
+				double avelocity(double delta) const = 0;
+				Point acceleration(double delta) const = 0;
+				double aacceleration(double delta) const = 0;
 		};
 
 		/**
@@ -100,6 +124,8 @@ namespace AI {
 				sigc::signal<void, std::size_t> &signal_robot_removed() const {
 					return signal_robot_removed_;
 				}
+
+				unsigned int score() const = 0;
 
 			private:
 				mutable sigc::signal<void, std::size_t> signal_robot_added_;
@@ -156,6 +182,8 @@ namespace AI {
 				sigc::signal<void, std::size_t> &signal_robot_removed() const {
 					return signal_robot_removed_;
 				}
+
+				unsigned int score() const = 0;
 
 			private:
 				mutable sigc::signal<void, std::size_t> signal_robot_added_;
@@ -299,6 +327,42 @@ namespace AI {
 					return signal_tick_;
 				}
 
+				/**
+				 * Returns a signal that fires at the very end of the AI's work each tick.
+				 *
+				 * \return the post-tick signal.
+				 */
+				sigc::signal<void> &signal_post_tick() const {
+					return signal_post_tick_;
+				}
+
+				/**
+				 * Returns a signal that fires when an SSL-Vision packet is received.
+				 *
+				 * \return the vision signal.
+				 */
+				sigc::signal<void, const void *, std::size_t> &signal_vision() const {
+					return signal_vision_;
+				}
+
+				/**
+				 * Returns a signal that fires when a referee box packet is received.
+				 *
+				 * \return the referee box signal.
+				 */
+				sigc::signal<void, const void *, std::size_t> &signal_refbox() const {
+					return signal_refbox_;
+				}
+
+				/**
+				 * Returns a signal that fires when the friendly or enemy team's score changes.
+				 *
+				 * \return the change signal.
+				 */
+				sigc::signal<void> &signal_score_changed() const {
+					return signal_score_changed_;
+				}
+
 			protected:
 				/**
 				 * Constructs a new Backend.
@@ -326,6 +390,10 @@ namespace AI {
 				Property<AI::BF::BallFilter *> ball_filter_;
 				Property<AI::HL::Strategy::Ptr> strategy_;
 				mutable sigc::signal<void> signal_tick_;
+				mutable sigc::signal<void> signal_post_tick_;
+				mutable sigc::signal<void, const void *, std::size_t> signal_vision_;
+				mutable sigc::signal<void, const void *, std::size_t> signal_refbox_;
+				mutable sigc::signal<void> signal_score_changed_;
 		};
 
 		/**

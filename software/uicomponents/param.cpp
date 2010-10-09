@@ -26,6 +26,10 @@ void Param::initialized(Config *c) {
 	}
 }
 
+const std::vector<Param *> &Param::all() {
+	return instances;
+}
+
 Param::Param(const Glib::ustring &name) : name(name) {
 	instances.push_back(this);
 }

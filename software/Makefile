@@ -1,15 +1,16 @@
 #
 # Here, write a list of all the executable binaries the Makefile might generate.
 #
-PROJECTS := ai config fw rxdata simulator test xbeeconfig xbeed xbeerconfig
+PROJECTS := ai config fw log rxdata simulator test xbeeconfig xbeed xbeerconfig
 
 #
 # Here, write a list of the source files and directories for each executable.
 # Directories will be searched for source files recursively.
 #
-SOURCES_ai := ai geom leastsquares proto uicomponents util xbee/client xbee/shared
+SOURCES_ai := ai geom leastsquares log/shared proto uicomponents util xbee/client xbee/shared
 SOURCES_config := config geom leastsquares uicomponents util xbee/client
 SOURCES_fw := fw geom leastsquares uicomponents util xbee/client xbee/shared
+SOURCES_log := ai/common leastsquares log geom proto uicomponents util xbee/client
 SOURCES_rxdata := geom leastsquares rxdata.cpp uicomponents util xbee/client xbee/shared
 SOURCES_simulator := geom leastsquares proto simulator uicomponents util xbee/client xbee/daemon/frontend xbee/shared
 SOURCES_steptest := geom leastsquares util xbee steptest.cpp
@@ -25,6 +26,7 @@ LDFLAGS_common := -Wl,--as-needed -Wl,-O1 $(shell pkg-config --libs glibmm-2.4 g
 LDFLAGS_ai := $(LDFLAGS_common)
 LDFLAGS_config := $(LDFLAGS_common)
 LDFLAGS_fw := $(LDFLAGS_common)
+LDFLAGS_log := $(LDFLAGS_common)
 LDFLAGS_rxdata := $(LDFLAGS_common)
 LDFLAGS_simulator := $(LDFLAGS_common)
 LDFLAGS_steptest := $(LDFLAGS_common)

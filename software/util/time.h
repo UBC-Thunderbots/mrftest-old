@@ -10,9 +10,11 @@ namespace {
 	 * Gets the current time into a timespec.
 	 *
 	 * \param[out] result the location at which to store the current time.
+	 *
+	 * \param[in] clk which clock to query.
 	 */
-	void timespec_now(timespec *result) {
-		if (clock_gettime(CLOCK_MONOTONIC, result) < 0) {
+	void timespec_now(timespec *result, clockid_t clk = CLOCK_MONOTONIC) {
+		if (clock_gettime(clk, result) < 0) {
 			throw std::runtime_error("Cannot get monotonic time.");
 		}
 	}
@@ -21,9 +23,11 @@ namespace {
 	 * Gets the current time into a timespec.
 	 *
 	 * \param[out] result the location at which to store the current time.
+	 *
+	 * \param[in] clk which clock to query.
 	 */
-	void timespec_now(timespec &result) {
-		timespec_now(&result);
+	void timespec_now(timespec &result, clockid_t clk = CLOCK_MONOTONIC) {
+		timespec_now(&result, clk);
 	}
 
 	/**
@@ -91,6 +95,26 @@ namespace {
 	 */
 	double timespec_to_double(const timespec &ts) {
 		return ts.tv_sec + ts.tv_nsec / 1000000000.0;
+	}
+
+	/**
+	 * Converts a double-precision count of seconds to a timespec.
+	 *
+	 * \param[in] seconds the second count to convert.
+	 *
+	 * \return the timespec.
+	 */
+	timespec double_to_timespec(double seconds) {
+		timespec ts;
+		ts.tv_sec = static_cast<time_t>(seconds);
+		ts.tv_nsec = static_cast<long>((seconds - ts.tv_sec) * 1000000000.0);
+		if (ts.tv_nsec < 0L) {
+			ts.tv_nsec = 0L;
+		}
+		if (ts.tv_nsec >= 1000000000L) {
+			ts.tv_nsec = 999999999L;
+		}
+		return ts;
 	}
 
 	/**

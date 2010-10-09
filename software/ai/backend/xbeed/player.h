@@ -71,6 +71,9 @@ namespace AI {
 					void path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) { path_ = p; }
 					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const { return path_; }
 					void drive(const int(&w)[4]);
+					const int(&wheel_speeds() const)[4] {
+						return wheel_speeds_;
+					}
 
 
 
@@ -164,7 +167,7 @@ namespace AI {
 					double dribble_distance_;
 					Point last_dribble_position;
 					Annunciator::Message not_moved_message, chick_when_not_ready_message;
-					int wheel_speeds[4];
+					int wheel_speeds_[4];
 					unsigned int flags_;
 					AI::Flags::MOVE_TYPE move_type_;
 					AI::Flags::MOVE_PRIO move_prio_;

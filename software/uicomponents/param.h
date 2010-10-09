@@ -22,6 +22,13 @@ class Param : public NonCopyable {
 		static void initialized(Config *conf);
 
 		/**
+		 * Returns all the registered Param objects.
+		 *
+		 * \return the parameters.
+		 */
+		static const std::vector<Param *> &all();
+
+		/**
 		 * The name of the parameter.
 		 */
 		const Glib::ustring name;

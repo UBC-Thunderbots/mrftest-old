@@ -51,15 +51,16 @@ RefBox::~RefBox() {
 }
 
 bool RefBox::on_readable(Glib::IOCondition) {
-	unsigned char packet[6];
+	unsigned char packet[65536];
 	ssize_t len = recv(fd->fd(), &packet, sizeof(packet), 0);
 	if (len < 0) {
 		int err = errno;
 		LOG_WARN(Glib::ustring::compose("Cannot receive from refbox socket: %1.", std::strerror(err)));
 		return true;
 	}
-	if (len != static_cast<ssize_t>(sizeof(packet))) {
-		LOG_WARN(Glib::ustring::compose("Refbox packet was %1 bytes, expected %2.", len, sizeof(packet)));
+	signal_packet.emit(packet, len);
+	if (len != 6) {
+		LOG_WARN(Glib::ustring::compose("Refbox packet was %1 bytes, expected 6.", len));
 		return true;
 	}
 

@@ -203,7 +203,7 @@ Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeDriveBot::Ptr
 
 void Player::drive(const int(&w)[4]) {
 	for (unsigned int i = 0; i < 4; ++i) {
-		wheel_speeds[i] = w[i];
+		wheel_speeds_[i] = w[i];
 	}
 	controlled = true;
 }
@@ -223,10 +223,10 @@ void Player::tick(bool scram) {
 
 	// Drivetrain and chicker control path.
 	if (moved && controlled) {
-		bot->drive_controlled(wheel_speeds[0], wheel_speeds[1], wheel_speeds[2], wheel_speeds[3]);
+		bot->drive_controlled(wheel_speeds_[0], wheel_speeds_[1], wheel_speeds_[2], wheel_speeds_[3]);
 		bot->enable_chicker(true);
 		if (sense_ball_ >= HAS_BALL_TIME) {
-			new_dribble_power = calc_dribble(wheel_speeds, new_dribble_power);
+			new_dribble_power = calc_dribble(wheel_speeds_, new_dribble_power);
 		}
 	} else {
 		if (bot->alive()) {

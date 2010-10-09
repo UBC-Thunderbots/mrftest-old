@@ -138,6 +138,10 @@ namespace {
 				}
 				Glib::signal_io().connect(sigc::mem_fun(this, &XBeeDBackend::on_vision_readable), vision_socket->fd(), Glib::IO_IN);
 
+				refbox.signal_packet.connect(signal_refbox().make_slot());
+				refbox.goals_yellow.signal_changed().connect(signal_score_changed().make_slot());
+				refbox.goals_blue.signal_changed().connect(signal_score_changed().make_slot());
+
 				timespec_now(playtype_time);
 			}
 
@@ -184,6 +188,11 @@ namespace {
 			SSL_DetectionFrame detections[2];
 
 			void tick() {
+				// If the field geometry is not yet valid, do nothing.
+				if (!field_.valid()) {
+					return;
+				}
+
 				// Do pre-AI stuff (locking predictors).
 				timespec now;
 				timespec_now(now);
@@ -198,6 +207,9 @@ namespace {
 				for (unsigned int i = 0; i < friendly.size(); ++i) {
 					friendly.get_xbeed_player(i)->tick(playtype() == AI::Common::PlayType::HALT);
 				}
+
+				// Notify anyone interested in the finish of a tick.
+				signal_post_tick().emit();
 			}
 
 			bool on_vision_readable(Glib::IOCondition) {
@@ -210,6 +222,9 @@ namespace {
 					}
 					return true;
 				}
+
+				// Pass it to any attached listeners.
+				signal_vision().emit(buffer, len);
 
 				// Decode it.
 				SSL_WrapperPacket packet;

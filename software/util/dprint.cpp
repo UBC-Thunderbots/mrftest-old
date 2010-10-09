@@ -7,6 +7,16 @@
 #include <unistd.h>
 #include <sys/types.h>
 
+Glib::ustring todec(uintmax_t value, unsigned int width) {
+	std::wostringstream oss;
+	oss.imbue(std::locale("C"));
+	oss.flags(std::ios::uppercase | std::ios::dec | std::ios::right);
+	oss.width(width);
+	oss.fill(L'0');
+	oss << value;
+	return Glib::ustring::format(oss.str());
+}
+
 Glib::ustring tohex(uintmax_t value, unsigned int width) {
 	std::wostringstream oss;
 	oss.imbue(std::locale("C"));
@@ -17,6 +27,8 @@ Glib::ustring tohex(uintmax_t value, unsigned int width) {
 	return Glib::ustring::format(oss.str());
 }
 
+sigc::signal<void, unsigned int, const Glib::ustring &> signal_message_logged;
+
 void log_impl(const char *file, unsigned int line, const Glib::ustring &msg, unsigned int level) {
 	std::time_t stamp;
 	std::time(&stamp);
@@ -24,10 +36,6 @@ void log_impl(const char *file, unsigned int line, const Glib::ustring &msg, uns
 	std::strftime(buffer, sizeof(buffer), "%F %T", std::localtime(&stamp));
 	const char *level_name;
 	switch (level) {
-		case LOG_LEVEL_DEBUG:
-			level_name = "DEBUG";
-			break;
-
 		case LOG_LEVEL_INFO:
 			level_name = "INFO";
 			break;
@@ -41,11 +49,13 @@ void log_impl(const char *file, unsigned int line, const Glib::ustring &msg, uns
 			break;
 
 		default:
-			level_name = "UNKNOWN LEVEL";
+			level_name = 0;
 			break;
 	}
-	if (level >= LOG_LEVEL_INFO) {
-		std::cout << level_name << " [" << buffer << "] [" << file << ':' << line << "] " << msg << '\n';
+	const Glib::ustring &composed = Glib::ustring::compose("[%1] [%2:%3] %4", buffer, file, line, msg);
+	if (level_name) {
+		std::cout << level_name << ' ' << composed << '\n';
 	}
+	signal_message_logged.emit(level, composed);
 }
 

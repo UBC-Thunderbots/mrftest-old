@@ -5,6 +5,17 @@
 #include <stdint.h>
 
 /**
+ * Converts an unsigned integer of any type to a fixed-width decimal string.
+ *
+ * \param[in] value the value to convert.
+ *
+ * \param[in] width the width, in characters, of the output to produce.
+ *
+ * \return the decimal string.
+ */
+Glib::ustring todec(uintmax_t value, unsigned int width);
+
+/**
  * Converts an unsigned integer of any type to a hexadecimal string.
  *
  * \param[in] value the value to convert.
@@ -14,6 +25,11 @@
  * \return the hex string.
  */
 Glib::ustring tohex(uintmax_t value, unsigned int width);
+
+/**
+ * A signal emitted every time a message is logged.
+ */
+extern sigc::signal<void, unsigned int, const Glib::ustring &> signal_message_logged;
 
 void log_impl(const char *file, unsigned int line, const Glib::ustring &msg, unsigned int level);
 

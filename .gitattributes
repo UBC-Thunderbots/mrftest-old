@@ -88,6 +88,8 @@ software/ai/hl/util.cpp -text
 software/ai/hl/util.h -text
 software/ai/hl/world.cpp -text
 software/ai/hl/world.h -text
+software/ai/logger.cpp -text
+software/ai/logger.h -text
 software/ai/main.cpp -text
 software/ai/navigator/navigator.cpp -text
 software/ai/navigator/navigator.h -text
@@ -163,6 +165,12 @@ software/leastsquares/spline3.cpp -text
 software/leastsquares/spline3.h -text
 software/leastsquares/svd.cpp -text
 software/leastsquares/svd.h -text
+software/log/analyzer.cpp -text
+software/log/analyzer.h -text
+software/log/launcher.cpp -text
+software/log/launcher.h -text
+software/log/main.cpp -text
+software/log/shared/tags.h -text
 software/proto/messages_robocup_ssl_detection.proto -text
 software/proto/messages_robocup_ssl_geometry.proto -text
 software/proto/messages_robocup_ssl_wrapper.proto -text
@@ -247,6 +255,8 @@ software/util/fd.cpp -text
 software/util/fd.h -text
 software/util/hungarian.cpp -text
 software/util/hungarian.h -text
+software/util/mapped_file.cpp -text
+software/util/mapped_file.h -text
 software/util/matrix.h -text
 software/util/misc.cpp -text
 software/util/misc.h -text
@@ -265,6 +275,8 @@ software/util/rwlock.h -text
 software/util/scoped_ptr.h -text
 software/util/shm.cpp -text
 software/util/shm.h -text
+software/util/signal.cpp -text
+software/util/signal.h -text
 software/util/sockaddrs.cpp -text
 software/util/sockaddrs.h -text
 software/util/stochastic_local_search.cpp -text

@@ -30,6 +30,11 @@ namespace AI {
 					Property<unsigned int> goals_yellow;
 
 					/**
+					 * Fired on receipt of a packet.
+					 */
+					mutable sigc::signal<void, const void *, std::size_t> signal_packet;
+
+					/**
 					 * Constructs a new RefBox.
 					 */
 					RefBox();

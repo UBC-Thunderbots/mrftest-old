@@ -33,11 +33,6 @@ AIPackage::~AIPackage() {
 }
 
 void AIPackage::tick() {
-	// If the field geometry is not yet valid, do nothing.
-	if (!backend.field().valid()) {
-		return;
-	}
-
 	// If we have a Coach installed, tick it.
 	AI::Coach::Coach::Ptr c = coach;
 	if (c.is()) {
