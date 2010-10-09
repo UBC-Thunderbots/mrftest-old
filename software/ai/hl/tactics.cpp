@@ -50,8 +50,24 @@ void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int
 	}
 }
 
-void AI::HL::Tactics::free_move(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const Point p) {
+void AI::HL::Tactics::free_move(World &world, Player::Ptr player, const Point p) {
 	// no flags
 	player->move(p, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+}
+
+AI::HL::Tactics::Patrol::Patrol(World &w, Player::Ptr p, const Point& t1, const Point& t2, const unsigned int f) : world(w), player(p), target1(t1), target2(t2), flags(f) {
+}
+
+void AI::HL::Tactics::Patrol::tick() {
+	if ((player->position() - target1).len() < AI::HL::Util::POS_CLOSE) {
+		goto_target1 = false;
+	} else if ((player->position() - target2).len() < AI::HL::Util::POS_CLOSE) {
+		goto_target1 = true;
+	}
+	if (goto_target1) {
+		player->move(target1, (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+	} else {
+		player->move(target2, (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+	}
 }
 

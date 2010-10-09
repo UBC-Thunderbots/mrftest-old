@@ -64,47 +64,43 @@ namespace AI {
 			 * For example, during stop, preparing for kickoff, preparing for free kick.
 			 */
 			void free_move(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const Point p);
+
+			/**
+			 * Helper Class to let a player (normally the goalie) to patrol between two points on the field	
+			 */
+			class Patrol {
+				public:
+					typedef RefPtr<Patrol> Ptr;
+
+					Patrol(W::Player::Ptr player, W::World &w);
+
+					/**
+					 * Patrol between two points on the field
+					 *
+					 * \param[in] f movement flags for the robot
+					 * most likely you want to disable avoid_friendly_defense.
+					 */
+					Patrol(AI::HL::W::World &w, AI::HL::W::Player::Ptr p, const Point& t1, const Point& t2, const unsigned int f);
+
+					/**
+					 * Set the two target points for the patrol.
+					 */
+					void set_targets(const Point& t1, const Point& t2) {
+						target1 = t1;
+						target2 = t2;
+					}
+
+					void tick();
+
+				protected:		
+					AI::HL::W::World& world;
+					AI::HL::W::Player::Ptr player;
+					Point target1, target2;
+					const unsigned int flags;
+					bool goto_target1;
+			};
+
 		}
-		/**
-		 *
-		 * Helper Class to let a player (normally the goalie) to patrol between two points on the field	
-		 *
-		 * Still Under Construction	
-		 */
-		class Patrol{
-			public:
-				typedef RefPtr<Patrol> ptr;
-	
-				Patrol(W::Player::Ptr player, W::World &w);
-
-				/**
-				 *
-				 * Patrol between two points on the field
-				 *
-				 * \param[in] flags movement flags for the robot
-				 * most likely you want to disable avoid_friendly_defense.
-				 */
-				Patrol(W::Player::Ptr player, W::World &w, const unsigned int& flags, const Point& t1, const Point& t2);
-
-				/**
-				 * Set the two target points for the patrol.
-				 */
-				void set_targets(const Point& t1, const Point& t2) {
-					target1 = t1;
-					target2 = t2;
-					target_initialized = true;
-				}
-
-
-				void tick();	
-		
-			protected:		
-
-				Point target1, target2;
-				bool target_initialized;
-
-				
-		};
 	}
 }
 
