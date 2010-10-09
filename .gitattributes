@@ -5,6 +5,8 @@ firmware/BoostConverter/pwm.h -text
 firmware/BoostConverter/test.c -text
 firmware/HWRunSwitch/Makefile -text
 firmware/HWRunSwitch/hwrunswitch.c -text
+firmware/MotorController/Makefile -text
+firmware/MotorController/test.c -text
 firmware/mainboard-copro/18f4550.lkr -text
 firmware/mainboard-copro/Makefile -text
 firmware/mainboard-copro/adc.asm -text
