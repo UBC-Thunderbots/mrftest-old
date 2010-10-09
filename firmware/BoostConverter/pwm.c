@@ -43,7 +43,7 @@ void DCCtrl(float dutyCycle) {
 		unsigned char decPeriod;
 		unsigned int decDCTime;
 		unsigned char temp;
-		if( dutyCycle > 0.825 ) {
+		if( dutyCycle > 0.825 ) {// To maximize resolution, duty cycles above 0.825 should have prescaler set up to 1
 			if( PRESCALER16_FLAG != 0 || PRESCALER4_FLAG != 0 ) { // Prescaler Setting to 1
 				T2CONbits.T2CKPS1 = 0;
 				T2CONbits.T2CKPS0 = 0;				
@@ -60,7 +60,7 @@ void DCCtrl(float dutyCycle) {
 			decPeriod = ((ON_TIME*F_OSC)/(dutyCycle*4.0)) - 1; // PR2 in decimal form (controls period)
 			PR2 = decPeriod;
 
-		} else if( dutyCycle > .20625 ) {
+		} else if( dutyCycle > .20625 ) {// To maximize resolution, duty cycles above 0.20625 and below 0.825 should have prescaler set up to 4
 			if( PRESCALER4_FLAG != 1 ) { // Prescaler Setting to 4
 				T2CONbits.T2CKPS1 = 0;
 				T2CONbits.T2CKPS0 = 1;				
@@ -72,6 +72,7 @@ void DCCtrl(float dutyCycle) {
 				decDCTime = decDCTime & 0XFF;
 				CCPR1L = decDCTime;
 				PRESCALER4_FLAG = 1;
+				PRESCALER16_FLAG = 0;
 			}
 			decPeriod = ((ON_TIME*F_OSC)/(PRESCALER4*dutyCycle*4.0)) - 1; // PR2 in decimal form (controls period)
 			PR2 = decPeriod;
@@ -88,6 +89,7 @@ void DCCtrl(float dutyCycle) {
 				decDCTime = decDCTime & 0XFF;
 				CCPR1L = decDCTime;
 				PRESCALER16_FLAG = 1;
+				PRESCALER4_FLAG = 0;
 			}
 			decPeriod = ((ON_TIME*F_OSC)/(PRESCALER16*dutyCycle*4.0)) - 1; // PR2 in decimal form (controls period)
 			PR2 = decPeriod;
@@ -95,15 +97,15 @@ void DCCtrl(float dutyCycle) {
 		}
 
 	} else {		
-		if( PRESCALER16_FLAG != 0 || PRESCALER4_FLAG != 0 ) { // Prescaler Setting to 1
+		if( PRESCALER16_FLAG != 2 || PRESCALER4_FLAG != 2 ) { // Prescaler Setting to 1
 			T2CONbits.T2CKPS1 = 0;
 			T2CONbits.T2CKPS0 = 0;
 			CCP1CONbits.DC1B0 = 0;
 			CCP1CONbits.DC1B1 = 0;
-			PRESCALER16_FLAG = 0;
-			PRESCALER4_FLAG = 0;
+			PRESCALER16_FLAG = 2;
+			PRESCALER4_FLAG = 2;
 		}
-		CCPR1L = 0x00;// Dutycycle set to zero
+		CCPR1L = 0x00;// Dutycycle set to zero if duty cycle is beyond allowable range
 	}
 
 }
