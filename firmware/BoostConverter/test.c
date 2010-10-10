@@ -1,32 +1,36 @@
 #include <pic18f4550.h>
 #include "pwm.h"
 
-#define VREF 5.0
+#define V_DIODE 0.7
+#define V_SOURCE 15.0
+#define V_REF 5.0
+#define V_SET_POINT 240.0
 #define EIGHT_BIT 256.0
 #define ADC_RATIO 100.0
 #define TEN_BIT 1023.0
-
-/* Use ADC input to control duty cycle of PWM */
-/* Implementation INCOMPLETE */
+#define SAFETY_FACTOR 1.1
+/* Boost Converter Control Algorithm implemented */
+/* UNTESTED and UNTUNED (Kp) */
 
 void main(void) {
 
 	/* Standard C, declare all variables at the start of the function!*/
 
-	unsigned char binADCVal;
-	float decADCVal;
-	float dutyCycle;
+	
 	unsigned char adresH;
 	unsigned char adresL;
+	float dutyCycle1;//Soft Start Duty Cycle
+	float dutyCycle2;//Proportional Control Duty Cycle
+	float dutyCycle;//Implemented Duty Cycle
+	float Kp = 0.1;//Proportional Constant	*******************************UNTUNED********************************
 	float fMsb  = EIGHT_BIT;
 	float Vout;
-	
-
+	float Vcap;	
 	/* PIN Setup */
 
 	ADCON1 = 0x0F;//Setting all pins as digital
 	INTCON2bits.RBPU = 0; // Internal pullups for port B enabled
-	TRISBbits.TRISB0 = 1;//RB1 set to input
+	TRISBbits.TRISB0 = 1;//RB0 set to input
 	TRISDbits.TRISD4 = 0;//Red LED
 	TRISDbits.TRISD5 = 0;//Green LED 
 	TRISDbits.TRISD6 = 0;//Green LED
@@ -60,25 +64,49 @@ void main(void) {
 
 	for(;;) {
 
+		if( PORTBbits.RB0 == 1 ) {
+			// Reading Voltage
+			ADCON0bits.GO = 1;
+			while( ADCON0bits.GO == 1 ){}
+			adresH = ADRESH;
+			adresL = ADRESL;
+
+			// Producing capacitor voltage
+			Vcap = (adresH*fMsb + adresL)*V_REF/TEN_BIT*ADC_RATIO;
+
+			if( Vcap >= 240 ) {
+				DCCtrl(0.0);
+			}
+			Vout = Vcap + V_DIODE;
+
+			dutyCycle1 = 1-(V_SOURCE/Vout);// Soft start control
+			dutyCycle2 = Kp*(V_SET_POINT-Vout);// Proportional Control
+
+			dutyCycle = (dutyCycle1 < dutyCycle2) ? dutyCycle1 : dutyCycle2;// Choosing smaller of two duty cycle values
+			if(dutyCycle < 0.06) {
+				dutyCycle = 0.06*SAFETY_FACTOR;
+			}
+			DCCtrl(dutyCycle/SAFETY_FACTOR);
+		} else {
+			DCCtrl(0);
+		}
+		/*		
+		// Reading Voltage
 		ADCON0bits.GO = 1;
 		while( ADCON0bits.GO == 1 ){}
 		adresH = ADRESH;
 		adresL = ADRESL;
-		Vout = (adresH*fMsb + adresL)*VREF/TEN_BIT;
-		
-		
-		/*Code for 10 bit adc resolution, note a type change to binADCVal is required*/
-
-/*		decADCVal = VREF*(binADCVal/EIGHT_BIT);*/
-		
-		dutyCycle = Vout/VREF;
+		// Producing reference voltage
+		Vcap = (adresH*fMsb + adresL)*V_REF/TEN_BIT;
+		dutyCycle = Vcap/VREF;
 		DCCtrl(dutyCycle);
+		
 
-		if( Vout > 2.5 )
+		if( Vout > 2.5 ){
 			LATDbits.LATD5 = 0;
-		else
+		} else {
 			LATDbits.LATD5 = 1;
-
+		}*/
 
 		/*if( PORTBbits.RB0 == 0 ) { // RA0 input is ground
 			DCCtrl(0.5);
