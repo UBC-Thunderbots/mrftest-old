@@ -6,6 +6,7 @@ using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
 
 void Strategy::halt() {
+	resign();
 }
 
 void Strategy::stop() {
@@ -13,42 +14,55 @@ void Strategy::stop() {
 }
 
 void Strategy::play() {
+	resign();
 }
 
 void Strategy::prepare_kickoff_friendly() {
+	resign();
 }
 
 void Strategy::execute_kickoff_friendly() {
+	resign();
 }
 
 void Strategy::prepare_kickoff_enemy() {
+	resign();
 }
 
 void Strategy::execute_kickoff_enemy() {
+	resign();
 }
 
 void Strategy::prepare_penalty_friendly() {
+	resign();
 }
 
 void Strategy::execute_penalty_friendly() {
+	resign();
 }
 
 void Strategy::prepare_penalty_enemy() {
+	resign();
 }
 
 void Strategy::execute_penalty_enemy() {
+	resign();
 }
 
 void Strategy::execute_direct_free_kick_friendly() {
+	resign();
 }
 
 void Strategy::execute_indirect_free_kick_friendly() {
+	resign();
 }
 
 void Strategy::execute_direct_free_kick_enemy() {
+	resign();
 }
 
 void Strategy::execute_indirect_free_kick_enemy() {
+	resign();
 }
 
 bool Strategy::has_resigned() const {
