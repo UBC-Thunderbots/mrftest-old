@@ -52,8 +52,7 @@ namespace AI {
 			 * Otherwise, shoot the ball in the furthest possible direction.
 			 * Useful for defenders.
 			 *
-			 * \param[in] flags movement flags for the robot
-			 * most likely you want to disable avoid_friendly_defense.
+			 * \param[in] flags movement flags for the robot (most likely you want to disable AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE).
 			 */
 			void repel(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags);
 
@@ -76,8 +75,7 @@ namespace AI {
 					/**
 					 * Patrol between two points on the field
 					 *
-					 * \param[in] f movement flags for the robot
-					 * most likely you want to disable avoid_friendly_defense.
+					 * \param[in] f movement flags for the robot (most likely you want to disable AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE).
 					 */
 					Patrol(AI::HL::W::World &w, AI::HL::W::Player::Ptr p, const Point &t1, const Point &t2, const unsigned int f);
 

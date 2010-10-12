@@ -123,7 +123,7 @@ namespace AI {
 			 * \param[in] obstacles a vector of obstacles that blocks the path.
 			 *
 			 * \param[in] thresh the amount of allowance for the path
-			 * (for passing, use <code>Robot::MAX_RADIUS + Ball::RADIUS + SHOOT_ALLOWANCE</code>; for moving, use <code>Robot::MAX_RADIUS * 2 + MOVE_ALLOWANCE</code).
+			 * (for passing, use <code>Robot::MAX_RADIUS + Ball::RADIUS + SHOOT_ALLOWANCE</code>; for moving, use <code>Robot::MAX_RADIUS * 2 + MOVE_ALLOWANCE</code>).
 			 *
 			 * \return \c true if the path is not blocked, or \c false if it is blocked.
 			 */
@@ -135,7 +135,7 @@ namespace AI {
 			 * \param[in] robots a vector of robots/players that blocks the path.
 			 *
 			 * \param[in] thresh the amount of allowance for the path
-			 * (for passing, use <code>Robot::MAX_RADIUS + Ball::RADIUS + SHOOT_ALLOWANCE</code>; for moving, use <code>Robot::MAX_RADIUS * 2 + MOVE_ALLOWANCE</code).
+			 * (for passing, use <code>Robot::MAX_RADIUS + Ball::RADIUS + SHOOT_ALLOWANCE</code>; for moving, use <code>Robot::MAX_RADIUS * 2 + MOVE_ALLOWANCE</code>).
 			 *
 			 * \return \c true if the path is not blocked, or \c false if it is.
 			 */

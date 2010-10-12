@@ -43,7 +43,7 @@ namespace AI {
 				/**
 				 * Allows a player to chase the ball.
 				 *
-				 * \param[in] \c true to chase the ball, or \c false to not.
+				 * \param[in] b \c true to chase the ball, or \c false to not.
 				 */
 				void set_chase(const bool b) {
 					chase = b;
