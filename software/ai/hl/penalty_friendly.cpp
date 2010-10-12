@@ -1,12 +1,10 @@
 #include "ai/hl/penalty_friendly.h"
-
-#include "ai/hl/util.h"
 #include "ai/hl/tactics.h"
+#include "ai/hl/util.h"
 #include "geom/util.h"
+#include "uicomponents/param.h"
 #include "util/algorithm.h"
 #include "util/dprint.h"
-
-#include "uicomponents/param.h"
 
 using AI::HL::PenaltyFriendly;
 using namespace AI::HL::W;
@@ -32,7 +30,6 @@ PenaltyFriendly::PenaltyFriendly(World &w) : world(w) {
 
 
 void PenaltyFriendly::tick() {
-
 	if (players.size() == 0) {
 		LOG_WARN("no robots");
 		return;
@@ -41,14 +38,12 @@ void PenaltyFriendly::tick() {
 		for (size_t i = 0; i < players.size(); ++i) {
 			// move the robots to position
 			players[i]->move(ready_positions[i], (ready_positions[i] - players[i]->position()).orientation(), AI::Flags::FLAG_PENALTY_KICK_FRIENDLY, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
-
 		}
 	} else if (world.playtype() == PlayType::EXECUTE_PENALTY_FRIENDLY) {
-
 		// make shooter shoot
 		const Player::Ptr shooter = players[0];
 		AI::HL::Tactics::shoot(world, shooter, AI::Flags::FLAG_CLIP_PLAY_AREA);
-	
+
 		for (size_t i = 1; i < players.size(); ++i) {
 			players[i]->move(ready_positions[i], (ready_positions[i] - players[i]->position()).orientation(), AI::Flags::FLAG_PENALTY_KICK_FRIENDLY, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
 		}
@@ -56,7 +51,5 @@ void PenaltyFriendly::tick() {
 		LOG_WARN("penalty_friendly: unhandled playtype");
 		return;
 	}
-
-
 }
 

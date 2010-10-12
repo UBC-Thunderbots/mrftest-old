@@ -32,8 +32,10 @@ namespace {
 
 			void tick() {
 				const std::vector<std::pair<std::pair<Point, double>, timespec> > &path = player->path();
-				if (path.empty()) return;
-				
+				if (path.empty()) {
+					return;
+				}
+
 				Point new_position = path[0].first.first;
 				double new_orientation = path[0].first.second;
 

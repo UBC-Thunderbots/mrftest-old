@@ -17,7 +17,6 @@ namespace AI {
 		 *
 		 */
 		namespace Tactics {
-
 			/**
 			 * Chases after the ball as fast as possible.
 			 */
@@ -66,7 +65,7 @@ namespace AI {
 			void free_move(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const Point p);
 
 			/**
-			 * Helper Class to let a player (normally the goalie) to patrol between two points on the field	
+			 * Helper Class to let a player (normally the goalie) to patrol between two points on the field
 			 */
 			class Patrol {
 				public:
@@ -80,26 +79,25 @@ namespace AI {
 					 * \param[in] f movement flags for the robot
 					 * most likely you want to disable avoid_friendly_defense.
 					 */
-					Patrol(AI::HL::W::World &w, AI::HL::W::Player::Ptr p, const Point& t1, const Point& t2, const unsigned int f);
+					Patrol(AI::HL::W::World &w, AI::HL::W::Player::Ptr p, const Point &t1, const Point &t2, const unsigned int f);
 
 					/**
 					 * Set the two target points for the patrol.
 					 */
-					void set_targets(const Point& t1, const Point& t2) {
+					void set_targets(const Point &t1, const Point &t2) {
 						target1 = t1;
 						target2 = t2;
 					}
 
 					void tick();
 
-				protected:		
-					AI::HL::W::World& world;
+				protected:
+					AI::HL::W::World &world;
 					AI::HL::W::Player::Ptr player;
 					Point target1, target2;
 					const unsigned int flags;
 					bool goto_target1;
 			};
-
 		}
 	}
 }

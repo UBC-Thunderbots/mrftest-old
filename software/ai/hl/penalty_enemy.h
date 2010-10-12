@@ -54,7 +54,7 @@ namespace AI {
 				 */
 				Point ready_positions[NUMBER_OF_READY_POSITIONS];
 		};
-		class PenaltyGoalie{
+		class PenaltyGoalie {
 			public:
 				/**
 				 * A pointer to a penalty_goalie role.
@@ -72,11 +72,11 @@ namespace AI {
 				 * Runs the AI for one time tick.
 				 */
 				void tick();
+
 			protected:
 				W::World &world;
 
-				std::vector<W::Player::Ptr> players;				
-		
+				std::vector<W::Player::Ptr> players;
 		};
 	}
 }

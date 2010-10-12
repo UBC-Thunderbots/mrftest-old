@@ -1,10 +1,9 @@
-#include "ai/hl/strategy.h"
-#include "ai/hl/defender.h"
-#include "ai/hl/util.h"
-#include "ai/hl/tactics.h"
 #include "ai/flags.h"
+#include "ai/hl/defender.h"
+#include "ai/hl/strategy.h"
+#include "ai/hl/tactics.h"
+#include "ai/hl/util.h"
 #include "uicomponents/param.h"
-
 #include <vector>
 
 using AI::HL::Strategy;
@@ -12,7 +11,6 @@ using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
 
 namespace {
-
 	// the distance we want the players to the ball
 	const double AVOIDANCE_DIST = 0.050 + Robot::MAX_RADIUS + 0.005;
 
@@ -154,11 +152,14 @@ namespace {
 		switch (offenders.size()) {
 			case 3:
 				AI::HL::Tactics::free_move(world, offenders[2], p3);
+
 			case 2:
 				AI::HL::Tactics::free_move(world, offenders[1], p2);
+
 			case 1:
 				AI::HL::Tactics::free_move(world, offenders[0], p1);
 				break;
+
 			default:
 				// that's too bad
 				break;

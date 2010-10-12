@@ -1,13 +1,11 @@
 #include "ai/hl/penalty_enemy.h"
 #include "ai/hl/strategy.h"
-
-#include "ai/hl/util.h"
 #include "ai/hl/tactics.h"
+#include "ai/hl/util.h"
 #include "geom/util.h"
+#include "uicomponents/param.h"
 #include "util/algorithm.h"
 #include "util/dprint.h"
-
-#include "uicomponents/param.h"
 
 using AI::HL::PenaltyEnemy;
 using AI::HL::PenaltyGoalie;
@@ -34,21 +32,19 @@ PenaltyEnemy::PenaltyEnemy(World &w) : world(w) {
 
 
 void PenaltyEnemy::tick() {
-	
 	if (players.size() == 0) {
 		LOG_WARN("no robots");
 		return;
 	}
-	
+
 	//unsigned int flags = AI::Flags::calc_flags(world.playtype());
 
 	if (world.playtype() == PlayType::PREPARE_PENALTY_ENEMY) {
 		for (size_t i = 0; i < players.size(); ++i) {
 			// move the robots to position
 			players[i]->move(ready_positions[i], (ready_positions[i] - players[i]->position()).orientation(), AI::Flags::FLAG_PENALTY_KICK_ENEMY, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
-
 		}
-	} else if (world.playtype() == PlayType::EXECUTE_PENALTY_ENEMY) {	
+	} else if (world.playtype() == PlayType::EXECUTE_PENALTY_ENEMY) {
 		for (size_t i = 0; i < players.size(); ++i) {
 			players[i]->move(ready_positions[i], (ready_positions[i] - players[i]->position()).orientation(), AI::Flags::FLAG_PENALTY_KICK_ENEMY, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
 		}
@@ -58,7 +54,7 @@ void PenaltyEnemy::tick() {
 	}
 }
 
-PenaltyGoalie::PenaltyGoalie(World &w) : world(w)  {
+PenaltyGoalie::PenaltyGoalie(World &w) : world(w) {
 }
 
 void PenaltyGoalie::tick() {
@@ -67,16 +63,14 @@ void PenaltyGoalie::tick() {
 		LOG_WARN("penalty_enemy: we only want 1 goalie!");
 	}
 
-	if (players.size() == 0) return;
+	if (players.size() == 0) {
+		return;
+	}
 
 	const Field &f = (world.field());
-	const Point starting_position(-0.5 * f.length(), - 0.5 * Robot::MAX_RADIUS);
+	const Point starting_position(-0.5 * f.length(), -0.5 * Robot::MAX_RADIUS);
 	const Point ending_position(-0.5 * f.length(), 0.5 * Robot::MAX_RADIUS);
 
 	//players[0]->patrol(the_robots[0], the_world, flags, starting_position, ending_position);
-
 }
-
-
-
 

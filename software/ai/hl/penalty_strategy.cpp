@@ -1,8 +1,7 @@
-#include "ai/hl/penalty_friendly.h"
 #include "ai/hl/penalty_enemy.h"
+#include "ai/hl/penalty_friendly.h"
 #include "ai/hl/strategy.h"
 #include "ai/hl/util.h"
-
 #include <vector>
 
 using AI::HL::Strategy;
@@ -75,7 +74,7 @@ namespace {
 
 	void PenaltyStrategy::penalty() {
 #warning under construction
-		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
+		const std::vector<Player::Ptr> &players = AI::HL::Util::get_players(world.friendly_team());
 		if (players.size() == 0) {
 			return;
 		}

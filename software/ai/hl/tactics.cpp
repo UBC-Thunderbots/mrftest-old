@@ -55,7 +55,7 @@ void AI::HL::Tactics::free_move(World &world, Player::Ptr player, const Point p)
 	player->move(p, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
 }
 
-AI::HL::Tactics::Patrol::Patrol(World &w, Player::Ptr p, const Point& t1, const Point& t2, const unsigned int f) : world(w), player(p), target1(t1), target2(t2), flags(f) {
+AI::HL::Tactics::Patrol::Patrol(World &w, Player::Ptr p, const Point &t1, const Point &t2, const unsigned int f) : world(w), player(p), target1(t1), target2(t2), flags(f) {
 }
 
 void AI::HL::Tactics::Patrol::tick() {
