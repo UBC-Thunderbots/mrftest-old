@@ -15,13 +15,19 @@ MappedFile::MappedFile(const std::string &filename) {
 		throw SystemError("fstat", errno);
 	}
 	size_ = st.st_size;
-	data_ = mmap(0, size_, PROT_READ, MAP_SHARED | MAP_FILE, fd->fd(), 0);
-	if (data_ == get_map_failed()) {
-		throw SystemError("mmap", errno);
+	if (size_) {
+		data_ = mmap(0, size_, PROT_READ, MAP_SHARED | MAP_FILE, fd->fd(), 0);
+		if (data_ == get_map_failed()) {
+			throw SystemError("mmap", errno);
+		}
+	} else {
+		data_ = 0;
 	}
 }
 
 MappedFile::~MappedFile() {
-	munmap(data_, size_);
+	if (data_) {
+		munmap(data_, size_);
+	}
 }
 
