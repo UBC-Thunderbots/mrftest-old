@@ -47,6 +47,7 @@ namespace AI {
 				 * Invoked once per time tick when the game is in PlayType::HALT.
 				 * Subclasses may override this function to provide their own logic.
 				 * Most subclasses will have no reason to override this function.
+				 * The default implementation causes the strategy to resign control.
 				 */
 				virtual void halt();
 
@@ -54,86 +55,98 @@ namespace AI {
 				 * Invoked once per time tick when the game is in PlayType::STOP.
 				 * Subclasses may override this function to provide their own logic.
 				 * Most subclasses should not override this function.
-				 * The default implementation causes the strategy to resign control,
-				 * which is appropriate for a stoppage in play as it allows the Coach to choose a new Strategy when a special play is issued.
+				 * The default implementation causes the strategy to resign control.
 				 */
 				virtual void stop();
 
 				/**
 				 * Invoked once per time tick when the game is in PlayType::PLAY.
 				 * Subclasses may override this function to provide their own logic.
+				 * The default implementation causes the strategy to resign control.
 				 */
 				virtual void play();
 
 				/**
 				 * Invoked once per time tick when the game is in PlayType::PREPARE_KICKOFF_FRIENDLY.
 				 * Subclasses may override this function to provide their own logic.
+				 * The default implementation causes the strategy to resign control.
 				 */
 				virtual void prepare_kickoff_friendly();
 
 				/**
 				 * Invoked once per time tick when the game is in PlayType::EXECUTE_KICKOFF_FRIENDLY.
 				 * Subclasses may override this function to provide their own logic.
+				 * The default implementation causes the strategy to resign control.
 				 */
 				virtual void execute_kickoff_friendly();
 
 				/**
 				 * Invoked once per time tick when the game is in PlayType::PREPARE_KICKOFF_ENEMY.
 				 * Subclasses may override this function to provide their own logic.
+				 * The default implementation causes the strategy to resign control.
 				 */
 				virtual void prepare_kickoff_enemy();
 
 				/**
 				 * Invoked once per time tick when the game is in PlayType::EXECUTE_KICKOFF_ENEMY.
 				 * Subclasses may override this function to provide their own logic.
+				 * The default implementation causes the strategy to resign control.
 				 */
 				virtual void execute_kickoff_enemy();
 
 				/**
 				 * Invoked once per time tick when the game is in PlayType::PREPARE_PENALTY_FRIENDLY.
 				 * Subclasses may override this function to provide their own logic.
+				 * The default implementation causes the strategy to resign control.
 				 */
 				virtual void prepare_penalty_friendly();
 
 				/**
 				 * Invoked once per time tick when the game is in PlayType::EXECUTE_PENALTY_FRIENDLY.
 				 * Subclasses may override this function to provide their own logic.
+				 * The default implementation causes the strategy to resign control.
 				 */
 				virtual void execute_penalty_friendly();
 
 				/**
 				 * Invoked once per time tick when the game is in PlayType::PREPARE_PENALTY_ENEMY.
 				 * Subclasses may override this function to provide their own logic.
+				 * The default implementation causes the strategy to resign control.
 				 */
 				virtual void prepare_penalty_enemy();
 
 				/**
 				 * Invoked once per time tick when the game is in PlayType::EXECUTE_PENALTY_ENEMY.
 				 * Subclasses may override this function to provide their own logic.
+				 * The default implementation causes the strategy to resign control.
 				 */
 				virtual void execute_penalty_enemy();
 
 				/**
 				 * Invoked once per time tick when the game is in PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY.
 				 * Subclasses may override this function to provide their own logic.
+				 * The default implementation causes the strategy to resign control.
 				 */
 				virtual void execute_direct_free_kick_friendly();
 
 				/**
 				 * Invoked once per time tick when the game is in PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY.
 				 * Subclasses may override this function to provide their own logic.
+				 * The default implementation causes the strategy to resign control.
 				 */
 				virtual void execute_indirect_free_kick_friendly();
 
 				/**
 				 * Invoked once per time tick when the game is in PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY.
 				 * Subclasses may override this function to provide their own logic.
+				 * The default implementation causes the strategy to resign control.
 				 */
 				virtual void execute_direct_free_kick_enemy();
 
 				/**
 				 * Invoked once per time tick when the game is in PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY.
 				 * Subclasses may override this function to provide their own logic.
+				 * The default implementation causes the strategy to resign control.
 				 */
 				virtual void execute_indirect_free_kick_enemy();
 
