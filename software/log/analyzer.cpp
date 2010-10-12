@@ -811,7 +811,7 @@ namespace {
 	}
 
 	/**
-	 * Computes flags for a timespec.
+	 * Computes flags for a realtime timespec.
 	 *
 	 * \param[in] data this element's part of the packet payload.
 	 *
@@ -822,7 +822,7 @@ namespace {
 	 *
 	 * \return the packet flags.
 	 */
-	unsigned int packet_generic_timespec_compute_flags(const uint8_t *data, std::size_t length, std::size_t declared_length) {
+	unsigned int packet_generic_timespec_rt_compute_flags(const uint8_t *data, std::size_t length, std::size_t declared_length) {
 		unsigned int flags = 0;
 
 		if (declared_length < 12) {
@@ -842,7 +842,7 @@ namespace {
 	}
 
 	/**
-	 * Parses a timespec and produces a human-readable tree of its contents.
+	 * Parses a realtime timespec and produces a human-readable tree of its contents.
 	 *
 	 * \param[in] columns the column record containing the columns of the store.
 	 *
@@ -855,7 +855,7 @@ namespace {
 	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
 	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
 	 */
-	void packet_generic_timespec_build_tree(Glib::RefPtr<Gtk::TreeStore>, const PacketDecodedTreeColumns &columns, const Gtk::TreeRow &root, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+	void packet_generic_timespec_rt_build_tree(Glib::RefPtr<Gtk::TreeStore>, const PacketDecodedTreeColumns &columns, const Gtk::TreeRow &root, const uint8_t *data, std::size_t length, std::size_t declared_length) {
 		if (declared_length < 12) {
 			root[columns.value] = "<OMITTED>";
 		} else {
@@ -866,6 +866,65 @@ namespace {
 				ts.tv_sec = static_cast<std::time_t>(seconds);
 				ts.tv_nsec = static_cast<long>(nanos);
 				root[columns.value] = timespec_to_time_string(ts);
+			} else {
+				root[columns.value] = "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
+	 * Computes flags for a monotonic timespec.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 *
+	 * \return the packet flags.
+	 */
+	unsigned int packet_generic_timespec_monotonic_compute_flags(const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		unsigned int flags = 0;
+
+		if (declared_length < 12) {
+			flags |= PF_SHORT;
+		} else if (declared_length > 12) {
+			flags |= PF_LONG;
+		}
+
+		if (length >= 12) {
+			uint32_t nanos = decode_u32(&data[8]);
+			if (nanos > UINT32_C(999999999)) {
+				flags |= PF_BAD_TIMESPEC;
+			}
+		}
+
+		return flags;
+	}
+
+	/**
+	 * Parses a monotonic timespec and produces a human-readable tree of its contents.
+	 *
+	 * \param[in] columns the column record containing the columns of the store.
+	 *
+	 * \param[in] root the tree row under which to build the element's row.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_generic_timespec_monotonic_build_tree(Glib::RefPtr<Gtk::TreeStore>, const PacketDecodedTreeColumns &columns, const Gtk::TreeRow &root, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 12) {
+			root[columns.value] = "<OMITTED>";
+		} else {
+			if (length >= 12) {
+				uint64_t seconds = decode_u64(&data[0]);
+				uint32_t nanos = decode_u32(&data[8]);
+				root[columns.value] = Glib::ustring::compose("%1.%2 (monotonic)", seconds, todec(nanos, 9));
 			} else {
 				root[columns.value] = "<PACKET TRUNCATED>";
 			}
@@ -2033,7 +2092,7 @@ namespace {
 		{ length: 4, name: "Target X position", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
 		{ length: 4, name: "Target Y position", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
 		{ length: 4, name: "Target orientation", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 12, name: "Deadline", compute_flags: &packet_generic_timespec_compute_flags, build_tree: &packet_generic_timespec_build_tree },
+		{ length: 12, name: "Deadline", compute_flags: &packet_generic_timespec_monotonic_compute_flags, build_tree: &packet_generic_timespec_monotonic_build_tree },
 	};
 
 	/**
@@ -2083,7 +2142,8 @@ namespace {
 	 * The sequence of elements in a Log::T_AI_TICK.
 	 */
 	const SequencePacketParser::Element packet_ai_tick_elements[] = {
-		{ length: 12, name: "Time", compute_flags: &packet_generic_timespec_compute_flags, build_tree: &packet_generic_timespec_build_tree },
+		{ length: 12, name: "Time", compute_flags: &packet_generic_timespec_rt_compute_flags, build_tree: &packet_generic_timespec_rt_build_tree },
+		{ length: 12, name: "Time", compute_flags: &packet_generic_timespec_monotonic_compute_flags, build_tree: &packet_generic_timespec_monotonic_build_tree },
 	};
 
 	/**

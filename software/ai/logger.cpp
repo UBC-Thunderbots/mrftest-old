@@ -372,8 +372,6 @@ void AI::Logger::on_score_changed() {
 }
 
 void AI::Logger::on_tick() {
-	timespec now;
-	timespec_now(now, CLOCK_REALTIME);
 	for (std::size_t i = 0; i < ai.backend.friendly_team().size(); ++i) {
 		AI::BE::Player::Ptr p = ai.backend.friendly_team().get(i);
 		{
@@ -440,9 +438,14 @@ void AI::Logger::on_tick() {
 		write_packet(fd, Log::T_BALL, payload, sizeof(payload));
 	}
 	{
-		uint8_t payload[12];
+		uint8_t payload[24];
+		timespec now;
+		timespec_now(now, CLOCK_REALTIME);
 		encode_u64(&payload[0], now.tv_sec);
 		encode_u32(&payload[8], now.tv_nsec);
+		timespec_now(now);
+		encode_u64(&payload[12], now.tv_sec);
+		encode_u32(&payload[20], now.tv_nsec);
 		write_packet(fd, Log::T_AI_TICK, payload, sizeof(payload));
 	}
 }

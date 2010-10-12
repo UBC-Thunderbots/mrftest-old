@@ -221,8 +221,10 @@ namespace Log {
 		 * Tags the end of an AI time tick.
 		 *
 		 * Payload:
-		 * \li 8 bytes big endian integer count of seconds since the epoch
-		 * \li 4 bytes big endian integer count of nanoseconds since the second
+		 * \li 8 bytes big endian integer count of seconds since the UNIX epoch
+		 * \li 4 bytes big endian integer count of nanoseconds since the UNIX second
+		 * \li 8 bytes big endian integer count of seconds since the monotonic epoch
+		 * \li 4 bytes big endian integer count of nanoseconds since the monotonic second
 		 */
 		T_AI_TICK,
 
