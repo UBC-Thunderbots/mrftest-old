@@ -29,7 +29,10 @@ namespace {
 			void prepare_kickoff_enemy();
 			void execute_kickoff_enemy();
 
-			
+			/**
+			 * Simply resigns.
+			 */
+			void play();			
 
 			/**
 			 * Creates a new PenaltyStrategy.
@@ -94,8 +97,12 @@ namespace {
 		prepare();
 	}
 
+	void PenaltyStrategy::play(){
+		resign();
+	}
+
 	void PenaltyStrategy::prepare() {
-#warning under construction
+
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 		if (players.size() == 0) {
 			return;
