@@ -25,6 +25,16 @@ namespace AI {
 				PenaltyEnemy(W::World &w);
 
 				/**
+				 * Sets all the players
+				 *
+				 * \param[in] p players.
+				 *
+				 * \param[in] g goalie, must always exist.
+				 */
+				void set_players(std::vector<W::Player::Ptr> p, W::Player::Ptr g);
+
+
+				/**
 				 * Runs the AI for one time tick.
 				 */
 				void tick();
@@ -33,6 +43,8 @@ namespace AI {
 				W::World &world;
 
 				std::vector<W::Player::Ptr> players;
+
+				W::Player::Ptr goalie;
 
 				/**
 				 * The distance between the penalty mark and the mid point of the two goal posts as described in the rules.
@@ -54,30 +66,7 @@ namespace AI {
 				 */
 				Point ready_positions[NUMBER_OF_READY_POSITIONS];
 		};
-		class PenaltyGoalie {
-			public:
-				/**
-				 * A pointer to a penalty_goalie role.
-				 */
-				typedef RefPtr<PenaltyGoalie> ptr;
-
-				/**
-				 * Constructs a new penalty_goalie role.
-				 *
-				 * \param[in] w the world.
-				 */
-				PenaltyGoalie(W::World &w);
-
-				/**
-				 * Runs the AI for one time tick.
-				 */
-				void tick();
-
-			protected:
-				W::World &world;
-
-				std::vector<W::Player::Ptr> players;
-		};
+		
 	}
 }
 

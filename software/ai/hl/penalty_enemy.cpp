@@ -8,10 +8,8 @@
 #include "util/dprint.h"
 
 using AI::HL::PenaltyEnemy;
-using AI::HL::PenaltyGoalie;
 using namespace AI::HL::W;
-
-
+using namespace AI::HL::Tactics;
 
 const double PenaltyEnemy::PENALTY_MARK_LENGTH = 0.45;
 
@@ -30,14 +28,26 @@ PenaltyEnemy::PenaltyEnemy(World &w) : world(w) {
 	ready_positions[3] = Point(-0.5 * f.length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, -5 * Robot::MAX_RADIUS);
 }
 
+void PenaltyEnemy::set_players(std::vector<Player::Ptr> p, Player::Ptr g) {
+	if (!g.is()) {
+		LOG_ERROR("no goalie");
+	}
+	if (p.size() == 0) {
+		LOG_ERROR("no players to accompany goalie");
+	}
+	players = p;
+	goalie = g;
+}
 
 void PenaltyEnemy::tick() {
 	if (players.size() == 0) {
 		LOG_WARN("no robots");
 		return;
 	}
-
-	//unsigned int flags = AI::Flags::calc_flags(world.playtype());
+	if (!goalie.is()) {
+		LOG_ERROR("no goalie");
+		return;
+	}
 
 	if (world.playtype() == PlayType::PREPARE_PENALTY_ENEMY) {
 		for (size_t i = 0; i < players.size(); ++i) {
@@ -52,25 +62,12 @@ void PenaltyEnemy::tick() {
 		LOG_WARN("penalty_enemy: unhandled playtype");
 		return;
 	}
-}
-
-PenaltyGoalie::PenaltyGoalie(World &w) : world(w) {
-}
-
-void PenaltyGoalie::tick() {
-	// under construction
-	if (players.size() != 1) {
-		LOG_WARN("penalty_enemy: we only want 1 goalie!");
-	}
-
-	if (players.size() == 0) {
-		return;
-	}
 
 	const Field &f = (world.field());
 	const Point starting_position(-0.5 * f.length(), -0.5 * Robot::MAX_RADIUS);
 	const Point ending_position(-0.5 * f.length(), 0.5 * Robot::MAX_RADIUS);
 
-	//players[0]->patrol(the_robots[0], the_world, flags, starting_position, ending_position);
+	Patrol(world, goalie, starting_position, ending_position, AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE);
+
 }
 

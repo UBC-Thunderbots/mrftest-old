@@ -25,6 +25,16 @@ namespace AI {
 				PenaltyFriendly(W::World &w);
 
 				/**
+				 * Sets all the players
+				 *
+				 * \param[in] p players.
+				 *
+				 */
+				void set_players(const std::vector<W::Player::Ptr> &p) {
+					players = p;
+				}
+
+				/**
 				 * This function can only be called ONCE per tick.
 				 */
 				void tick();

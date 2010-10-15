@@ -36,8 +36,8 @@ namespace {
 			~PenaltyStrategy();
 			void on_play_type_changed();
 
-			//PenaltyFriendly pFriendly;
-			//PenaltyEnemy    pEnemy;
+			//AI::HL::PenaltyFriendly pFriendly;
+			//AI::HL::PenaltyEnemy    pEnemy;
 	};
 
 	/**
