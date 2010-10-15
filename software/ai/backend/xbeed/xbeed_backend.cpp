@@ -178,6 +178,10 @@ namespace {
 				}
 			}
 
+			timespec monotonic_time() const {
+				return now;
+			}
+
 		private:
 			TimerFDClockSource clock;
 			AI::BE::XBeeD::Field field_;
@@ -188,6 +192,7 @@ namespace {
 			timespec playtype_time;
 			Point playtype_arm_ball_position;
 			SSL_DetectionFrame detections[2];
+			timespec now;
 
 			void tick() {
 				// If the field geometry is not yet valid, do nothing.
@@ -196,7 +201,6 @@ namespace {
 				}
 
 				// Do pre-AI stuff (locking predictors).
-				timespec now;
 				timespec_now(now);
 				ball_.lock_time(now);
 				friendly.lock_time(now);

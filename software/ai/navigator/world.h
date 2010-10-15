@@ -76,7 +76,7 @@ namespace AI {
 					 *
 					 * \param[in] p the path, in the form of a set of
 					 * ((<var>position</var>, <var>orientation</var>), <var>deadline</var>) pairs,
-					 * where <var>deadline</var> is the timestamp at which the robot should arrive.
+					 * where <var>deadline</var> is the timestamp, in monotonic time, at which the robot should arrive.
 					 */
 					virtual void path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) = 0;
 			};
@@ -167,6 +167,17 @@ namespace AI {
 					 * \return the enemy team.
 					 */
 					virtual EnemyTeam &enemy_team() = 0;
+
+					/**
+					 * Returns the current monotonic time.
+					 * Monotonic time is a way of representing "game time", which always moves forward.
+					 * Monotonic time is consistent within the game world, and may or may not be linked to real time.
+					 * A navigator should \em always use this function to retrieve monotonic time, not one of the functions in util/time.h!
+					 * The AI will not generally have any use for real time.
+					 *
+					 * \return the current monotonic time.
+					 */
+					virtual timespec monotonic_time() const = 0;
 			};
 		}
 	}

@@ -443,7 +443,7 @@ void AI::Logger::on_tick() {
 		timespec_now(now, CLOCK_REALTIME);
 		encode_u64(&payload[0], now.tv_sec);
 		encode_u32(&payload[8], now.tv_nsec);
-		timespec_now(now);
+		now = ai.backend.monotonic_time();
 		encode_u64(&payload[12], now.tv_sec);
 		encode_u32(&payload[20], now.tv_nsec);
 		write_packet(fd, Log::T_AI_TICK, payload, sizeof(payload));

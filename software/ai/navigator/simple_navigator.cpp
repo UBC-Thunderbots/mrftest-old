@@ -62,7 +62,6 @@ namespace {
 
 		Player::Ptr player;
 		std::vector<std::pair<std::pair<Point, double>, timespec> > path;
-		timespec ts;
 
 		Point currentPosition, destinationPosition;
 		double currentOrientation, destinationOrientation;
@@ -74,8 +73,7 @@ namespace {
 			destinationPosition = player->destination().first;
 			destinationOrientation = player->destination().second;
 
-			timespec_now(ts);
-			path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), ts));
+			path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
 			player->path(path);
 		}
 	}
