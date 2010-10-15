@@ -2,7 +2,7 @@
 #define AI_HL_PENALTY_ENEMY_H
 
 #include "ai/hl/world.h"
-#include "ai/hl/strategy.h"
+
 #include <vector>
 
 namespace AI {

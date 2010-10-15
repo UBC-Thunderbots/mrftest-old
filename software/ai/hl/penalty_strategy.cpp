@@ -2,6 +2,7 @@
 #include "ai/hl/penalty_friendly.h"
 #include "ai/hl/strategy.h"
 #include "ai/hl/util.h"
+#include "util/dprint.h"
 #include <vector>
 
 using AI::HL::Strategy;
@@ -36,8 +37,9 @@ namespace {
 			~PenaltyStrategy();
 			void on_play_type_changed();
 
-			//AI::HL::PenaltyFriendly pFriendly;
-			//AI::HL::PenaltyEnemy    pEnemy;
+			PenaltyFriendly pFriendly;
+			PenaltyEnemy    pEnemy;
+
 	};
 
 	/**
@@ -74,29 +76,25 @@ namespace {
 
 	void PenaltyStrategy::penalty() {
 #warning under construction
-		const std::vector<Player::Ptr> &players = AI::HL::Util::get_players(world.friendly_team());
+		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 		if (players.size() == 0) {
 			return;
 		}
-
+		// run assignment and tick
 		switch (world.playtype()) {
 			case PlayType::PREPARE_PENALTY_FRIENDLY:
-
-				break;
-
 			case PlayType::EXECUTE_PENALTY_FRIENDLY:
-
+				players.pop_back();
+				pFriendly.set_players(players);
+				pFriendly.tick();
 				break;
 
 			case PlayType::PREPARE_PENALTY_ENEMY:
-
-				break;
-
 			case PlayType::EXECUTE_PENALTY_ENEMY:
-
-				break;
-
-			default:
+				Player::Ptr goalie = players[4];
+				players.pop_back();
+				pEnemy.set_players(players, goalie);
+				pEnemy.tick();
 				break;
 		}
 	}
@@ -106,7 +104,7 @@ namespace {
 		return p;
 	}
 
-	PenaltyStrategy::PenaltyStrategy(World &world) : Strategy(world) {
+	PenaltyStrategy::PenaltyStrategy(World &world) : Strategy(world), pFriendly(world), pEnemy(world) {
 		world.playtype().signal_changed().connect(sigc::mem_fun(this, &PenaltyStrategy::on_play_type_changed));
 	}
 
