@@ -2,7 +2,6 @@
 #define AI_HL_PENALTY_ENEMY_H
 
 #include "ai/hl/world.h"
-
 #include <vector>
 
 namespace AI {
@@ -66,7 +65,6 @@ namespace AI {
 				 */
 				Point ready_positions[NUMBER_OF_READY_POSITIONS];
 		};
-		
 	}
 }
 

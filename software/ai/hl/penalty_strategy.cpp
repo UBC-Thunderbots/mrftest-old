@@ -38,8 +38,7 @@ namespace {
 			void on_play_type_changed();
 
 			PenaltyFriendly pFriendly;
-			PenaltyEnemy    pEnemy;
-
+			PenaltyEnemy pEnemy;
 	};
 
 	/**
@@ -62,12 +61,9 @@ namespace {
 	 */
 	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
 		PlayType::PREPARE_PENALTY_FRIENDLY,
-
 		PlayType::EXECUTE_PENALTY_FRIENDLY,
-
 		PlayType::PREPARE_PENALTY_ENEMY,
-
-		PlayType::EXECUTE_PENALTY_ENEMY
+		PlayType::EXECUTE_PENALTY_ENEMY,
 	};
 
 	StrategyFactory &PenaltyStrategy::factory() const {
