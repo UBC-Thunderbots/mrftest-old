@@ -21,9 +21,15 @@ namespace {
 			StrategyFactory &factory() const;
 
 			/**
-			 * A function to do the assignment of player ("roles").
+			 * What this strategy is created for.
 			 */
-			void penalty();
+			void prepare_kickoff_friendly();
+			void execute_kickoff_friendly();
+
+			void prepare_kickoff_enemy();
+			void execute_kickoff_enemy();
+
+			
 
 			/**
 			 * Creates a new PenaltyStrategy.
@@ -36,6 +42,8 @@ namespace {
 			PenaltyStrategy(World &world);
 			~PenaltyStrategy();
 			void on_play_type_changed();
+
+			void prepare();
 
 			PenaltyFriendly pFriendly;
 			PenaltyEnemy pEnemy;
@@ -69,29 +77,41 @@ namespace {
 	StrategyFactory &PenaltyStrategy::factory() const {
 		return factory_instance;
 	}
+	
+	void PenaltyStrategy::prepare_kickoff_friendly(){
+		prepare();
+	}
 
-	void PenaltyStrategy::penalty() {
+	void PenaltyStrategy::execute_kickoff_friendly(){
+		prepare();
+	}
+
+	void PenaltyStrategy::prepare_kickoff_enemy(){
+		prepare();
+	}
+
+	void PenaltyStrategy::execute_kickoff_enemy(){
+		prepare();
+	}
+
+	void PenaltyStrategy::prepare() {
 #warning under construction
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 		if (players.size() == 0) {
 			return;
 		}
 		// run assignment and tick
-		switch (world.playtype()) {
-			case PlayType::PREPARE_PENALTY_FRIENDLY:
-			case PlayType::EXECUTE_PENALTY_FRIENDLY:
+		if (world.playtype() == PlayType::PREPARE_PENALTY_FRIENDLY || world.playtype() == PlayType::EXECUTE_PENALTY_FRIENDLY) {
 				players.pop_back();
 				pFriendly.set_players(players);
 				pFriendly.tick();
-				break;
-
-			case PlayType::PREPARE_PENALTY_ENEMY:
-			case PlayType::EXECUTE_PENALTY_ENEMY:
+		} else if (world.playtype() == PlayType::PREPARE_PENALTY_ENEMY || world.playtype() == PlayType::EXECUTE_PENALTY_ENEMY){
 				Player::Ptr goalie = players[4];
 				players.pop_back();
 				pEnemy.set_players(players, goalie);
 				pEnemy.tick();
-				break;
+		} else {
+			LOG_ERROR("penalty_enemy: unhandled playtype");
 		}
 	}
 
