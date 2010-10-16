@@ -27,12 +27,7 @@ namespace {
 			void execute_kickoff_friendly();
 
 			void prepare_kickoff_enemy();
-			void execute_kickoff_enemy();
-
-			/**
-			 * Simply resigns.
-			 */
-			void play();			
+			void execute_kickoff_enemy();	
 
 			/**
 			 * Creates a new PenaltyStrategy.
@@ -44,7 +39,7 @@ namespace {
 		private:
 			PenaltyStrategy(World &world);
 			~PenaltyStrategy();
-			void on_play_type_changed();
+			//void on_play_type_changed();
 
 			void prepare();
 
@@ -97,10 +92,6 @@ namespace {
 		prepare();
 	}
 
-	void PenaltyStrategy::play(){
-		resign();
-	}
-
 	void PenaltyStrategy::prepare() {
 
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
@@ -128,12 +119,11 @@ namespace {
 	}
 
 	PenaltyStrategy::PenaltyStrategy(World &world) : Strategy(world), pFriendly(world), pEnemy(world) {
-		world.playtype().signal_changed().connect(sigc::mem_fun(this, &PenaltyStrategy::on_play_type_changed));
 	}
 
 	PenaltyStrategy::~PenaltyStrategy() {
 	}
-
+	/* 
 	void PenaltyStrategy::on_play_type_changed() {
 		for (size_t i = 0; i < G_N_ELEMENTS(HANDLED_PLAY_TYPES); ++i) {
 			if (world.playtype() == HANDLED_PLAY_TYPES[i]) {
@@ -142,7 +132,7 @@ namespace {
 		}
 		resign();
 	}
-
+	*/
 	PenaltyStrategyFactory::PenaltyStrategyFactory() : StrategyFactory("Penalty", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) {
 	}
 
