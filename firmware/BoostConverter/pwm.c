@@ -12,7 +12,7 @@
 #define CCP1CON_LSBS 			0xCF
 
 #define MIN_PWM 0.0515625
-#define MAX_PWM_THRESHOLD 0.91
+#define MAX_PWM_THRESHOLD 0.92
 
 #define PRESCALER4 			4
 #define PRESCALER16 			16

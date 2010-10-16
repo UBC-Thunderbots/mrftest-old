@@ -4,13 +4,13 @@
 #define V_DIODE 0.7
 #define V_SOURCE 15.0
 #define V_REF 5.0
-#define V_SET_POINT 240.0
+#define V_SET_POINT 235.0
 #define EIGHT_BIT 256.0
 #define ADC_RATIO 100.0
 #define TEN_BIT 1023.0
 #define SAFETY_FACTOR 1.1
 /* Boost Converter Control Algorithm implemented */
-/* UNTESTED and UNTUNED (Kp) */
+/* UNTESTED (Kp) */
 
 void main(void) {
 
@@ -22,10 +22,11 @@ void main(void) {
 	float dutyCycle1;//Soft Start Duty Cycle
 	float dutyCycle2;//Proportional Control Duty Cycle
 	float dutyCycle;//Implemented Duty Cycle
-	float Kp = 0.1;//Proportional Constant	*******************************UNTUNED********************************
+	float Kp = 0.025;//Proportional Constant	**Calculated to switch over from soft start control at 200V, given V_SOURCE and V_SET _POINT**
 	float fMsb  = EIGHT_BIT;
 	float Vout;
 	float Vcap;	
+	float Vtest;
 	/* PIN Setup */
 
 	ADCON1 = 0x0F;//Setting all pins as digital
@@ -63,32 +64,36 @@ void main(void) {
 	/* Main Loop */
 
 	for(;;) {
+		
+		// Reading Voltage
+		ADCON0bits.GO = 1;
+		while( ADCON0bits.GO == 1 ){}
+		adresH = ADRESH;
+		adresL = ADRESL;
 
-		if( PORTBbits.RB0 == 1 ) {
-			// Reading Voltage
-			ADCON0bits.GO = 1;
-			while( ADCON0bits.GO == 1 ){}
-			adresH = ADRESH;
-			adresL = ADRESL;
+		// Producing capacitor voltage
+		Vtest = (adresH*fMsb + adresL)*V_REF/TEN_BIT;
+		Vcap = Vtest*ADC_RATIO;
 
-			// Producing capacitor voltage
-			Vcap = (adresH*fMsb + adresL)*V_REF/TEN_BIT*ADC_RATIO;
-
-			if( Vcap >= 240 ) {
-				DCCtrl(0.0);
-			}
+		if( Vcap > 250 ) {// debugging check to make sure ADC is working
+			LATDbits.LATD5 = 0;
+		} else {
+			LATDbits.LATD5 = 1;
+		}
+		if( PORTBbits.RB0 == 0 && Vcap < 250 ) {//
+			
 			Vout = Vcap + V_DIODE;
 
 			dutyCycle1 = 1-(V_SOURCE/Vout);// Soft start control
 			dutyCycle2 = Kp*(V_SET_POINT-Vout);// Proportional Control
 
-			dutyCycle = (dutyCycle1 < dutyCycle2) ? dutyCycle1 : dutyCycle2;// Choosing smaller of two duty cycle values
+			dutyCycle = (dutyCycle1 <= dutyCycle2) ? dutyCycle1 : dutyCycle2;// Choosing smaller of two duty cycle values
 			if(dutyCycle < 0.06) {
 				dutyCycle = 0.06*SAFETY_FACTOR;
 			}
 			DCCtrl(dutyCycle/SAFETY_FACTOR);
 		} else {
-			DCCtrl(0);
+			DCCtrl(0.0);
 		}
 		/*		
 		// Reading Voltage
