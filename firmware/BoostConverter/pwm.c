@@ -5,7 +5,7 @@
 #include "pwm.h"
 #include <pic18f4550.h>
 
-#define ON_TIME 			0.0000176 //On time is 17.6e-6
+#define ON_TIME 			0.0000036 //On time is 17.6e-6 **TEMPORARILY MADE 0.000003666s 
 #define F_OSC 				48000000 //oscillator frequency
 
 #define LSBS 				0x03

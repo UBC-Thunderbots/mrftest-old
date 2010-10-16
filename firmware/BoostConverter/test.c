@@ -76,12 +76,12 @@ void main(void) {
 		Vcap = Vtest*ADC_RATIO;
 
 		if( Vcap > 250 ) {// debugging check to make sure ADC is working
-			LATDbits.LATD5 = 0;
+			LATDbits.LATD4 = 1;
 		} else {
-			LATDbits.LATD5 = 1;
+			LATDbits.LATD4 = 0;
 		}
-		if( PORTBbits.RB0 == 0 && Vcap < 250 ) {//
-			
+		if( PORTBbits.RB0 == 0 && Vcap < 240 ) {// if button is pushed or if set point is beyond 240V, turn controller to zero
+			LATDbits.LATD5 = 1;
 			Vout = Vcap + V_DIODE;
 
 			dutyCycle1 = 1-(V_SOURCE/Vout);// Soft start control
@@ -93,6 +93,7 @@ void main(void) {
 			}
 			DCCtrl(dutyCycle/SAFETY_FACTOR);
 		} else {
+			LATDbits.LATD5 = 0;
 			DCCtrl(0.0);
 		}
 		/*		
