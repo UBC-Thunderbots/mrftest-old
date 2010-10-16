@@ -139,8 +139,8 @@ namespace {
 				do_local_at_command<1>(loop, modem, Glib::ustring::compose("Switching local modem to channel %1", tohex(j, 2)), "CH", j);
 				try {
 					unsigned int version = do_remote_at_command<0>(loop, bot, modem, "Getting remote firmware version", "VR", 0, true);
-					if (version < 0x10E6) {
-						std::cout << "WARNING --- WARNING --- WARNING\nFirmware version is less than 10E6. Consider upgrading!\nWARNING --- WARNING --- WARNING\n";
+					if (version < 0x10E8) {
+						std::cout << "WARNING --- WARNING --- WARNING\nFirmware version is less than 10E8. Consider upgrading!\nWARNING --- WARNING --- WARNING\n";
 					}
 					found = true;
 				} catch (const NoResponseError &) {
