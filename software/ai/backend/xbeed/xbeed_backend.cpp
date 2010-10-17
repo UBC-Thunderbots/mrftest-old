@@ -113,6 +113,7 @@ namespace {
 			XBeeDBackend(const Config &conf) : Backend(), conf(conf), clock(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND), ball_(*this), friendly(*this), enemy(*this), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
 				refbox.command.signal_changed().connect(sigc::mem_fun(this, &XBeeDBackend::update_playtype));
 				friendly_colour().signal_changed().connect(sigc::mem_fun(this, &XBeeDBackend::update_playtype));
+				playtype_override().signal_changed().connect(sigc::mem_fun(this, &XBeeDBackend::update_playtype));
 
 				clock.signal_tick.connect(sigc::mem_fun(this, &XBeeDBackend::tick));
 
