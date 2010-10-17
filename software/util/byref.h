@@ -22,10 +22,8 @@ template<typename T> class RefPtr {
 		 */
 		template<typename U> static RefPtr<T> cast_static(const RefPtr<U> &pu) {
 			T *pt = static_cast<T *>(pu.operator->());
-			if (pt) {
-				pt->reference();
-			}
-			return RefPtr<T>(pt);
+			RefPtr<T> p(pt);
+			return p;
 		}
 
 		/**
@@ -39,10 +37,8 @@ template<typename T> class RefPtr {
 		 */
 		template<typename U> static RefPtr<T> cast_dynamic(const RefPtr<U> &pu) {
 			T *pt = dynamic_cast<T *>(pu.operator->());
-			if (pt) {
-				pt->reference();
-			}
-			return RefPtr<T>(pt);
+			RefPtr<T> p(pt);
+			return p;
 		}
 
 		/**
@@ -53,12 +49,12 @@ template<typename T> class RefPtr {
 
 		/**
 		 * Constructs a new RefPtr by taking ownership of an object.
-		 * The object's reference count is not incremented;
-		 * it is assumed that the object has been freshly constructed and has a single reference that will be inherited by the new RefPtr.
+		 * The object's reference count is incremented.
 		 *
 		 * \param[in] p a pointer to the object to take ownership of, or a null pointer to create a null RefPtr.
 		 */
 		explicit RefPtr(T *p) : obj(p) {
+			p->reference();
 		}
 
 		/**
@@ -117,14 +113,13 @@ template<typename T> class RefPtr {
 
 		/**
 		 * Takes ownership of a new object.
-		 * The object's reference count is not incremented;
-		 * it is assumed that the object has been freshly constructed and has a single reference that will be inherited by this RefPtr.
+		 * The object's reference count is incremented.
 		 *
 		 * \param[in] p a pointer to the object to take ownership of, or a null pointer to turn this RefPtr into a null RefPtr.
 		 */
 		void reset(T *p) {
-			reset();
-			obj = p;
+			RefPtr<T> temp(p);
+			swap(temp);
 		}
 
 		/**
@@ -217,15 +212,17 @@ class ByRef : public NonCopyable {
 	protected:
 		/**
 		 * Constructs a new ByRef.
-		 * The object is assumed to have one reference.
+		 * The object is assumed to have zero references,
+		 * but is not deleted until its reference count becomes nonzero and then becomes zero again.
 		 */
-		ByRef() : refs_(1) {
+		ByRef() : refs_(0) {
 		}
 
 		/**
 		 * Destroys a ByRef.
 		 * This is here even though it doesn't do anything because it forces destructors all the way down the inheritance hierarchy to be virtual,
-		 * which ensures that when a reference-counted object loses its last pointer, the <code>delete this</code> invokes the correct destructor.
+		 * which ensures that when a reference-counted object loses its last pointer,
+		 * the <code>delete this</code> in unreference() invokes the correct destructor.
 		 */
 		virtual ~ByRef() {
 		}
