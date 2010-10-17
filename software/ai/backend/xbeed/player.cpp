@@ -191,14 +191,17 @@ Player::Ptr Player::create(AI::BE::Backend &backend, unsigned int pattern, XBeeD
 	return p;
 }
 
-Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeDriveBot::Ptr bot) : AI::BE::XBeeD::Robot(backend, pattern), bot(bot), destination_(Point(), 0.0), moved(false), controlled(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(0), theory_dribble_rpm(0), dribble_distance_(0.0), not_moved_message(Glib::ustring::compose("Bot %1 not moved", pattern)), chick_when_not_ready_message(Glib::ustring::compose("Bot %1 chick when not ready", pattern)) {
+Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeDriveBot::Ptr bot) : AI::BE::XBeeD::Robot(backend, pattern), bot(bot), destination_(Point(), 0.0), moved(false), controlled(false), new_dribble_power(0), old_dribble_power(0), sense_ball_(0), dribble_stall(false), theory_dribble_rpm(0), dribble_distance_(0.0), not_moved_message(Glib::ustring::compose("Bot %1 not moved", pattern)), chick_when_not_ready_message(Glib::ustring::compose("Bot %1 chick when not ready", pattern)), flags_(0), move_type_(AI::Flags::MOVE_NORMAL), move_prio_(AI::Flags::PRIO_LOW) {
 	bot->signal_feedback.connect(sigc::mem_fun(this, &Player::on_feedback));
 	timespec now;
 	timespec_now(now);
-	sense_ball_end = now;
 	sense_ball_start = now;
+	sense_ball_end = now;
+	stall_start = now;
+	recover_time_start = now;
 	chicker_last_fire_time.tv_sec = 0;
 	chicker_last_fire_time.tv_nsec = 0;
+	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
 }
 
 void Player::drive(const int(&w)[4]) {
