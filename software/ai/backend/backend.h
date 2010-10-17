@@ -211,11 +211,6 @@ namespace AI {
 		class Backend : public AI::BF::W::World, public AI::Coach::W::World, public AI::HL::W::World, public AI::Nav::W::World, public Visualizable::World, public NonCopyable {
 			public:
 				/**
-				 * A pointer to a Backend.
-				 */
-				typedef RefPtr<Backend> Ptr;
-
-				/**
 				 * The possible values indicating which end of the field the team is defending.
 				 */
 				enum FieldEnd {
