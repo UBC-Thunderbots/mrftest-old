@@ -30,7 +30,7 @@ namespace {
 			~BasicPlayStrategy();
 			void on_play_type_changed();
 			void on_player_added(std::size_t);
-			void on_player_removed(std::size_t);
+			void on_player_removing(std::size_t);
 
 			/**
 			 * Recalculates and redo all assignments.
@@ -101,7 +101,7 @@ namespace {
 	BasicPlayStrategy::BasicPlayStrategy(World &world) : Strategy(world), defender(world), offender(world), initialized(false) {
 		world.playtype().signal_changed().connect(sigc::mem_fun(this, &BasicPlayStrategy::on_play_type_changed));
 		world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &BasicPlayStrategy::on_player_added));
-		world.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &BasicPlayStrategy::on_player_removed));
+		world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &BasicPlayStrategy::on_player_removing));
 	}
 
 	BasicPlayStrategy::~BasicPlayStrategy() {
@@ -117,7 +117,7 @@ namespace {
 		run_assignment();
 	}
 
-	void BasicPlayStrategy::on_player_removed(std::size_t) {
+	void BasicPlayStrategy::on_player_removing(std::size_t) {
 		run_assignment();
 	}
 

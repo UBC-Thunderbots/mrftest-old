@@ -55,7 +55,7 @@ namespace {
 
 			virtual typename T::Ptr create_member(unsigned int pattern) = 0;
 			virtual sigc::signal<void, std::size_t> &signal_robot_added() const = 0;
-			virtual sigc::signal<void, std::size_t> &signal_robot_removed() const = 0;
+			virtual sigc::signal<void, std::size_t> &signal_robot_removing() const = 0;
 	};
 
 	template<typename T> GenericTeam<T>::GenericTeam(XBeeDBackend &backend) : backend(backend) {
@@ -82,7 +82,7 @@ namespace {
 			std::vector<XBeeDriveBot::Ptr> xbee_bots;
 
 			sigc::signal<void, std::size_t> &signal_robot_added() const { return FriendlyTeam::signal_robot_added(); }
-			sigc::signal<void, std::size_t> &signal_robot_removed() const { return FriendlyTeam::signal_robot_removed(); }
+			sigc::signal<void, std::size_t> &signal_robot_removing() const { return FriendlyTeam::signal_robot_removing(); }
 	};
 
 	/**
@@ -99,7 +99,7 @@ namespace {
 
 		private:
 			sigc::signal<void, std::size_t> &signal_robot_added() const { return EnemyTeam::signal_robot_added(); }
-			sigc::signal<void, std::size_t> &signal_robot_removed() const { return EnemyTeam::signal_robot_removed(); }
+			sigc::signal<void, std::size_t> &signal_robot_removing() const { return EnemyTeam::signal_robot_removing(); }
 	};
 
 	/**
@@ -493,8 +493,8 @@ namespace {
 			if (bot->vision_failures >= MAX_VISION_FAILURES) {
 				bot->object_store().clear();
 				bot.reset();
+				signal_robot_removing().emit(i);
 				members.erase(members.begin() + i);
-				signal_robot_removed().emit(i);
 				--i;
 			}
 		}

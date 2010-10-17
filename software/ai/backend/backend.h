@@ -117,19 +117,19 @@ namespace AI {
 				}
 
 				/**
-				 * Returns the signal that is fired when a robot is removed from the team.
+				 * Returns the signal that is fired when a robot is about to be removed from the team.
 				 *
-				 * \return the signal that is fired when a robot is removed from the team.
+				 * \return the signal that is fired when a robot is about to be removed from the team.
 				 */
-				sigc::signal<void, std::size_t> &signal_robot_removed() const {
-					return signal_robot_removed_;
+				sigc::signal<void, std::size_t> &signal_robot_removing() const {
+					return signal_robot_removing_;
 				}
 
 				unsigned int score() const = 0;
 
 			private:
 				mutable sigc::signal<void, std::size_t> signal_robot_added_;
-				mutable sigc::signal<void, std::size_t> signal_robot_removed_;
+				mutable sigc::signal<void, std::size_t> signal_robot_removing_;
 
 				AI::BF::W::Player::Ptr get_ball_filter_player(std::size_t i) {
 					return get(i);
@@ -175,19 +175,19 @@ namespace AI {
 				}
 
 				/**
-				 * Returns the signal that is fired when a robot is removed from the team.
+				 * Returns the signal that is fired when a robot is about to be removed from the team.
 				 *
-				 * \return the signal that is fired when a robot is removed from the team.
+				 * \return the signal that is fired when a robot is about to be removed from the team.
 				 */
-				sigc::signal<void, std::size_t> &signal_robot_removed() const {
-					return signal_robot_removed_;
+				sigc::signal<void, std::size_t> &signal_robot_removing() const {
+					return signal_robot_removing_;
 				}
 
 				unsigned int score() const = 0;
 
 			private:
 				mutable sigc::signal<void, std::size_t> signal_robot_added_;
-				mutable sigc::signal<void, std::size_t> signal_robot_removed_;
+				mutable sigc::signal<void, std::size_t> signal_robot_removing_;
 
 				AI::BF::W::Robot::Ptr get_ball_filter_robot(std::size_t i) {
 					return get(i);
