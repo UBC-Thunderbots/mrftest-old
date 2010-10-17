@@ -16,8 +16,6 @@ class PlayerODE : public SimulatorPlayer {
 		double y_len;
 		double momentInertia;
 
-
-
 		typedef RefPtr<PlayerODE> Ptr;
 
 	private:
@@ -62,12 +60,6 @@ class PlayerODE : public SimulatorPlayer {
 		 */
 		bool posSet;
 
-		/**
-		 * Some vectors for keeping track of the robot.
-		 */
-		Point target_velocity, unrotated_target_velocity;
-
-
 		bool player_has_ball;
 
 		bool chip_set, kick_set;
@@ -82,8 +74,7 @@ class PlayerODE : public SimulatorPlayer {
 
 
 		double updates_per_tick;
-		double jerkLimit;
-		double fcex, fcey, torquez;
+
 		dVector3 *Vertices;
 		unsigned int *Triangles;
 		Point *wheel_position;
@@ -177,8 +168,6 @@ class PlayerODE : public SimulatorPlayer {
 		void avelocity(double avel);
 
 		void received(const XBeePacketTypes::RUN_DATA &);
-
-		void createJointBetweenB1B2();
 
 		dTriMeshDataID create_robot_geom();
 };
