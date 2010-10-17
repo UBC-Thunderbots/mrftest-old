@@ -54,7 +54,9 @@ template<typename T> class RefPtr {
 		 * \param[in] p a pointer to the object to take ownership of, or a null pointer to create a null RefPtr.
 		 */
 		explicit RefPtr(T *p) : obj(p) {
-			p->reference();
+			if (obj) {
+				obj->reference();
+			}
 		}
 
 		/**
