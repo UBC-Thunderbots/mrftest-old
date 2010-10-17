@@ -19,7 +19,7 @@ namespace {
 	const double GRAVITY = -9.81;
 
 
-	const unsigned int UPDATES_PER_TICK = 500;
+	const unsigned int UPDATES_PER_TICK = 20;
 
 	//
 	//
@@ -69,7 +69,7 @@ namespace {
 
 
 				double wall_height = 20.5; // 1/2 meter
-				double wall_thickness = 0.0127; //
+				double wall_thickness = 0.1127; //
 
 				// build a wall around the playing field
 				wall[0] = dCreateBox(space, SimulatorField::total_length + 2 * wall_thickness, wall_thickness, wall_height);
@@ -348,13 +348,6 @@ namespace {
 				int i = 0;
 				dBodyID b1 = dGeomGetBody(o1);
 				dBodyID b2 = dGeomGetBody(o2);
-
-				PlayerODE::Ptr robot1 = get_player_from_shape(o1);
-				PlayerODE::Ptr robot2 = get_player_from_shape(o2);
-
-				if (robot1.is() || robot2.is()) {
-					return;
-				}
 
 				dContact contact[3];      // up to 3 contacts per box
 				if (int numc = dCollide(o1, o2, 3, &contact[0].geom, sizeof(dContact))) {

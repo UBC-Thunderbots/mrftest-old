@@ -296,36 +296,41 @@ void PlayerODE::pre_tic(double) {
 	if (!posSet) {
 		// get the current bots velocity
 		const dReal *cur_vel = dBodyGetLinearVel(body);
-
-		// grab current vel and rotate to bot relative
-		const Point the_velocity = Point(cur_vel[0], cur_vel[1]).rotate(-orientation());
-
+		// grab current vel
+		const Point the_velocity = Point(cur_vel[0], cur_vel[1]);
 		// get the angular velocity
 		const dReal *avels = dBodyGetAngularVel(body);
+		Point want_vel;
+		double want_ang;
 
-		// convert the velocities to packet data type for comparison to stored values
-		motor_current[0] = -42.5995 * the_velocity.x + 27.6645 * the_velocity.y + 4.3175 * avels[2];
-		motor_current[1] = -35.9169 * the_velocity.x + - 35.9169 * the_velocity.y + 4.3175 * avels[2];
-		motor_current[2] = 35.9169 * the_velocity.x + - 35.9169 * the_velocity.y + 4.3175 * avels[2];
-		motor_current[3] = 42.5995 * the_velocity.x + 27.6645 * the_velocity.y + 4.3175 * avels[2];
+		//This is the pseudo-inverse of the matrix used to go from wanted velocities to motor set points
+		want_vel.x= -0.0068604 * motor_desired[0] + -0.0057842*motor_desired[1] + 0.0057842*motor_desired[2]+ 0.0068604 * motor_desired[3];
+		want_vel.y = 0.0078639*motor_desired[0] + -0.0078639*motor_desired[1] +  -0.0078639*motor_desired[2] +   0.0078639*motor_desired[3];
+		want_ang = 0.0654194*(motor_desired[0] + motor_desired[1] + motor_desired[2] + motor_desired[3]);
 
+		if(want_vel.len() > 5.0){
+			want_vel= (5.0)*want_vel/want_vel.len();
+		}
+		if(want_ang>5.0){
+			want_ang = (5.0);
+		}
+		if(want_ang<-5.0){
+			want_ang = (-5.0);
+		}
+
+		//change robot relative velocity to absolute
+		want_vel= want_vel.rotate(orientation());
+		Point fce = (want_vel-the_velocity)/5.0*10.0*mass.mass;
+		double torque = (want_ang-((double)avels[2]))/5.0*12.0*momentInertia;	
+	
 		dBodyEnable(body);
 		dBodySetDynamic(body);
-		// dBodySetDamping (body, 0.006, 0.006);
-		if (!isTipped(body)) {
-			for (int index = 0; index < 4; index++) {
-				// motor desired in this context should be coming from the firmware interpreter
-				double voltage = (motor_desired[index] - motor_current[index]) * PACKET_TO_VOLTAGE;
-				voltage = std::max(-15.0, voltage);
-				voltage = std::min(15.0, voltage);
 
-				wheel_torque = voltage / MOTOR_RESISTANCE * CURRENT_TO_TORQUE * GEAR_RATIO;
-				wheel_torque -= 0.006 * motor_current[index];
-				force = force_direction[index] * wheel_torque / WHEEL_RADIUS; // scale by wheel radius
-
-				// Adds the force at the wheel positions, at mid-point of the robot(not realistic but should prevent tipping that we can't detect)
-				dBodyAddRelForceAtRelPos(body, force.x, force.y, ROBOT_HEIGHT / 2, wheel_position[index].x, wheel_position[index].y, ROBOT_HEIGHT / 2);
-			}
+		if (isTipped(body)){
+			std::cout<<"tipped "<<std::endl;
+		}else{
+			dBodyAddTorque (body, 0.0, 0.0, 2*torque);
+			dBodyAddForce (body, fce.x, fce.y, 0.0);
 		}
 
 		if (chip_set) {
@@ -562,6 +567,7 @@ void PlayerODE::received(const XBeePacketTypes::RUN_DATA &packet) {
 
 
 	// limit max motor "voltage" to VOLTAGE_LIMIT by scaling the largest component to VOLTAGE_LIMIT if greater but preserve its orientation
+	
 	for (uint8_t index = 0; index < 4; index++) {
 		if (fabs(motor_desired[index]) > VOLTAGE_LIMIT / PACKET_TO_VOLTAGE) {
 			for (int8_t index2 = 0; index2 < 4; index2++) {
@@ -569,5 +575,6 @@ void PlayerODE::received(const XBeePacketTypes::RUN_DATA &packet) {
 			}
 		}
 	}
+
 }
 
