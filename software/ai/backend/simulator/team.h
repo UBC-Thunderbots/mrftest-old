@@ -116,7 +116,7 @@ namespace AI {
 					 *
 					 * \param[in] ts the timestamp at which the ball was in this position.
 					 */
-					void pre_tick(const ::Simulator::Proto::S2APlayerInfo (&state)[::Simulator::Proto::MAX_PLAYERS_PER_TEAM], unsigned int score, const timespec &ts) {
+					void pre_tick(const ::Simulator::Proto::S2APlayerInfo(&state)[::Simulator::Proto::MAX_PLAYERS_PER_TEAM], unsigned int score, const timespec &ts) {
 						// Record new score.
 						score_prop = score;
 
@@ -166,7 +166,7 @@ namespace AI {
 					 *
 					 * \param[out] orders the packet to populate.
 					 */
-					void encode_orders(::Simulator::Proto::A2SPlayerInfo (&orders)[::Simulator::Proto::MAX_PLAYERS_PER_TEAM]) {
+					void encode_orders(::Simulator::Proto::A2SPlayerInfo(&orders)[::Simulator::Proto::MAX_PLAYERS_PER_TEAM]) {
 						for (std::size_t i = 0; i < G_N_ELEMENTS(orders); ++i) {
 							if (i < size()) {
 								get_impl(i)->encode_orders(orders[i]);
@@ -218,7 +218,7 @@ namespace AI {
 					 *
 					 * \param[in] ts the timestamp at which the ball was in this position.
 					 */
-					void pre_tick(const ::Simulator::Proto::S2ARobotInfo (&state)[::Simulator::Proto::MAX_PLAYERS_PER_TEAM], unsigned int score, const timespec &ts) {
+					void pre_tick(const ::Simulator::Proto::S2ARobotInfo(&state)[::Simulator::Proto::MAX_PLAYERS_PER_TEAM], unsigned int score, const timespec &ts) {
 						// Record new score.
 						score_prop = score;
 

@@ -93,8 +93,8 @@ namespace AI {
 					AI::Flags::MOVE_PRIO prio() const { return move_prio_; }
 					void path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) { path_ = p; }
 					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const { return path_; }
-					void drive(const int (&w)[4]) { std::copy(&w[0], &w[4], &wheel_speeds_[0]); }
-					const int (&wheel_speeds() const)[4] { return wheel_speeds_; }
+					void drive(const int(&w)[4]) { std::copy(&w[0], &w[4], &wheel_speeds_[0]); }
+					const int(&wheel_speeds() const)[4] { return wheel_speeds_; }
 
 				protected:
 					/**

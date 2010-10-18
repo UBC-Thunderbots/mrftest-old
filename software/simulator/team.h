@@ -100,7 +100,7 @@ namespace Simulator {
 			/**
 			 * The other team on the field.
 			 */
-			const Team * const other;
+			const Team *const other;
 
 			/**
 			 * Whether field coordinates and play types are inverted when reported to this team's AI processes.

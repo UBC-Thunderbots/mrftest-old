@@ -213,6 +213,5 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet) {
 
 	std::cout << "AI sent bad packet type\n";
 	close_connection();
-	return;
 }
 

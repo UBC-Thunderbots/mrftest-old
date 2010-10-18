@@ -27,7 +27,7 @@ namespace {
 			void execute_kickoff_friendly();
 
 			void prepare_kickoff_enemy();
-			void execute_kickoff_enemy();	
+			void execute_kickoff_enemy();
 
 			/**
 			 * Creates a new PenaltyStrategy.
@@ -75,39 +75,38 @@ namespace {
 	StrategyFactory &PenaltyStrategy::factory() const {
 		return factory_instance;
 	}
-	
-	void PenaltyStrategy::prepare_kickoff_friendly(){
+
+	void PenaltyStrategy::prepare_kickoff_friendly() {
 		prepare();
 	}
 
-	void PenaltyStrategy::execute_kickoff_friendly(){
+	void PenaltyStrategy::execute_kickoff_friendly() {
 		prepare();
 	}
 
-	void PenaltyStrategy::prepare_kickoff_enemy(){
+	void PenaltyStrategy::prepare_kickoff_enemy() {
 		prepare();
 	}
 
-	void PenaltyStrategy::execute_kickoff_enemy(){
+	void PenaltyStrategy::execute_kickoff_enemy() {
 		prepare();
 	}
 
 	void PenaltyStrategy::prepare() {
-
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 		if (players.size() == 0) {
 			return;
 		}
 		// run assignment and tick
 		if (world.playtype() == PlayType::PREPARE_PENALTY_FRIENDLY || world.playtype() == PlayType::EXECUTE_PENALTY_FRIENDLY) {
-				players.pop_back();
-				pFriendly.set_players(players);
-				pFriendly.tick();
-		} else if (world.playtype() == PlayType::PREPARE_PENALTY_ENEMY || world.playtype() == PlayType::EXECUTE_PENALTY_ENEMY){
-				Player::Ptr goalie = players[4];
-				players.pop_back();
-				pEnemy.set_players(players, goalie);
-				pEnemy.tick();
+			players.pop_back();
+			pFriendly.set_players(players);
+			pFriendly.tick();
+		} else if (world.playtype() == PlayType::PREPARE_PENALTY_ENEMY || world.playtype() == PlayType::EXECUTE_PENALTY_ENEMY) {
+			Player::Ptr goalie = players[4];
+			players.pop_back();
+			pEnemy.set_players(players, goalie);
+			pEnemy.tick();
 		} else {
 			LOG_ERROR("penalty_enemy: unhandled playtype");
 		}
@@ -123,7 +122,7 @@ namespace {
 
 	PenaltyStrategy::~PenaltyStrategy() {
 	}
-	
+
 	PenaltyStrategyFactory::PenaltyStrategyFactory() : StrategyFactory("Penalty", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) {
 	}
 

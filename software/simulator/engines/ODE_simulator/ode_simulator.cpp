@@ -185,8 +185,8 @@ namespace {
 					handleBallCollisionWithGround(o1, o2);
 				} else if (get_player_from_shape(o1) != emptyPlayer || get_player_from_shape(o2) != emptyPlayer) {
 					// make sure that the capped cylinders do not collide with the ground
-     
-					if ( dGeomGetClass(o1)!=dCCylinderClass &&  dGeomGetClass(o2)!=dCCylinderClass  ) {
+
+					if (dGeomGetClass(o1) != dCCylinderClass && dGeomGetClass(o2) != dCCylinderClass) {
 						dBodyID b1 = dGeomGetBody(o1);
 						dBodyID b2 = dGeomGetBody(o2);
 
@@ -204,7 +204,7 @@ namespace {
 							}
 						}
 					}
-				} 
+				}
 			}
 
 

@@ -182,8 +182,7 @@ namespace {
 	}
 
 	void KickoffEnemyStrategy::on_play_type_changed() {
-		if (world.playtype() != PlayType::PREPARE_KICKOFF_ENEMY
-				|| world.playtype() != PlayType::EXECUTE_KICKOFF_ENEMY) {
+		if (world.playtype() != PlayType::PREPARE_KICKOFF_ENEMY || world.playtype() != PlayType::EXECUTE_KICKOFF_ENEMY) {
 			resign();
 		}
 	}

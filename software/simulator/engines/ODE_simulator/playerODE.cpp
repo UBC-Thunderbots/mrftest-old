@@ -308,34 +308,34 @@ void PlayerODE::pre_tic(double) {
 		Point want_vel;
 		double want_ang;
 
-		//This is the pseudo-inverse of the matrix used to go from wanted velocities to motor set points
-		want_vel.x= -0.0068604 * orders.wheel_speeds[0] + -0.0057842*orders.wheel_speeds[1] + 0.0057842*orders.wheel_speeds[2]+ 0.0068604 * orders.wheel_speeds[3];
-		want_vel.y = 0.0078639*orders.wheel_speeds[0] + -0.0078639*orders.wheel_speeds[1] +  -0.0078639*orders.wheel_speeds[2] +   0.0078639*orders.wheel_speeds[3];
-		want_ang = 0.0654194*(orders.wheel_speeds[0] + orders.wheel_speeds[1] + orders.wheel_speeds[2] + orders.wheel_speeds[3]);
+		// This is the pseudo-inverse of the matrix used to go from wanted velocities to motor set points
+		want_vel.x = -0.0068604 * orders.wheel_speeds[0] + - 0.0057842 * orders.wheel_speeds[1] + 0.0057842 * orders.wheel_speeds[2] + 0.0068604 * orders.wheel_speeds[3];
+		want_vel.y = 0.0078639 * orders.wheel_speeds[0] + - 0.0078639 * orders.wheel_speeds[1] +  - 0.0078639 * orders.wheel_speeds[2] + 0.0078639 * orders.wheel_speeds[3];
+		want_ang = 0.0654194 * (orders.wheel_speeds[0] + orders.wheel_speeds[1] + orders.wheel_speeds[2] + orders.wheel_speeds[3]);
 
-		if(want_vel.len() > 5.0){
-			want_vel= (5.0)*want_vel/want_vel.len();
+		if (want_vel.len() > 5.0) {
+			want_vel = 5.0 * want_vel / want_vel.len();
 		}
-		if(want_ang>5.0){
-			want_ang = (5.0);
+		if (want_ang > 5.0) {
+			want_ang = 5.0;
 		}
-		if(want_ang<-5.0){
-			want_ang = (-5.0);
+		if (want_ang < -5.0) {
+			want_ang = -5.0;
 		}
 
-		//change robot relative velocity to absolute
-		want_vel= want_vel.rotate(orientation());
-		Point fce = (want_vel-the_velocity)/5.0*10.0*mass.mass;
-		double torque = (want_ang-((double)avels[2]))/5.0*12.0*momentInertia;	
-	
+		// change robot relative velocity to absolute
+		want_vel = want_vel.rotate(orientation());
+		Point fce = (want_vel - the_velocity) / 5.0 * 10.0 * mass.mass;
+		double torque = (want_ang - ((double)avels[2])) / 5.0 * 12.0 * momentInertia;
+
 		dBodyEnable(body);
 		dBodySetDynamic(body);
 
-		if (isTipped(body)){
-			std::cout<<"tipped "<<std::endl;
-		}else{
-			dBodyAddTorque (body, 0.0, 0.0, 2*torque);
-			dBodyAddForce (body, fce.x, fce.y, 0.0);
+		if (isTipped(body)) {
+			std::cout << "tipped " << std::endl;
+		} else {
+			dBodyAddTorque(body, 0.0, 0.0, 2 * torque);
+			dBodyAddForce(body, fce.x, fce.y, 0.0);
 		}
 
 		if (has_chip_set() && has_ball()) {

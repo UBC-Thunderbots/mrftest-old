@@ -433,7 +433,7 @@ namespace {
 				Simulator::Proto::A2SPacket packet;
 				std::memset(&packet, 0, sizeof(packet));
 				packet.type = Simulator::Proto::A2S_PACKET_ADD_PLAYER;
-				for (packet.pattern = 0; pattern_exists(packet.pattern); ++packet.pattern);
+				for (packet.pattern = 0; pattern_exists(packet.pattern); ++packet.pattern) {}
 				send_packet(packet);
 				controls.players_add.set_sensitive(false);
 				controls.players_remove.set_sensitive(false);
@@ -447,7 +447,7 @@ namespace {
 				Simulator::Proto::A2SPacket packet;
 				std::memset(&packet, 0, sizeof(packet));
 				packet.type = Simulator::Proto::A2S_PACKET_REMOVE_PLAYER;
-				for (packet.pattern = 0; !pattern_exists(packet.pattern); ++packet.pattern);
+				for (packet.pattern = 0; !pattern_exists(packet.pattern); ++packet.pattern) {}
 				send_packet(packet);
 				controls.players_add.set_sensitive(false);
 				controls.players_remove.set_sensitive(false);
