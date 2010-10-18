@@ -276,11 +276,6 @@ bool PlayerODE::robot_contains_shape(dGeomID geom) {
 	return b == body;
 }
 
-bool PlayerODE::robot_contains_shape_ground(dGeomID geom) {
-	dBodyID b = dGeomGetBody(geom);
-	return (b == body) && (geom != robotGeomTopCyl);
-}
-
 /*
    computes the forces for the differential equation and adds them to the robot body
    \param[in] timestep the time between calculations

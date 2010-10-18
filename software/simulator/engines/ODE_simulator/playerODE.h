@@ -91,19 +91,7 @@ class PlayerODE : public SimulatorPlayer {
 
 		unsigned int dribbler_speed() const;
 
-
 		bool robot_contains_shape(dGeomID geom);
-		bool robot_contains_shape_ground(dGeomID geom);
-
-	protected:
-		/**
-		 * Controls the robot's movement.
-		 *
-		 * \param[in] vel desired robot velocity for control.
-		 *
-		 * \param[in] avel desired robot angular velocity.
-		 */
-		void move_impl(const Point &vel, double avel);
 
 	public:
 		bool hasContactPenetration(dVector3 pos);

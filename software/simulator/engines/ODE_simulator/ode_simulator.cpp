@@ -161,17 +161,6 @@ namespace {
 				return emptyPlayer;
 			}
 
-
-			PlayerODE::Ptr get_player_from_shape_ground(dGeomID shape) {
-				for (unsigned int i = 0; i < the_players.size(); i++) {
-					if (the_players[i]->robot_contains_shape_ground(shape)) {
-						return the_players[i];
-					}
-				}
-				return emptyPlayer;
-			}
-
-
 			void remove_player(SimulatorPlayer::Ptr p) {
 				for (unsigned int i = 0; i < the_players.size(); i++) {
 					if (SimulatorPlayer::Ptr::cast_static(the_players[i]) == p) {
@@ -196,7 +185,8 @@ namespace {
 					handleBallCollisionWithGround(o1, o2);
 				} else if (get_player_from_shape(o1) != emptyPlayer || get_player_from_shape(o2) != emptyPlayer) {
 					// make sure that the capped cylinders do not collide with the ground
-					if (get_player_from_shape_ground(o1) != emptyPlayer || get_player_from_shape_ground(o2) != emptyPlayer) {
+     
+					if ( dGeomGetClass(o1)!=dCCylinderClass &&  dGeomGetClass(o2)!=dCCylinderClass  ) {
 						dBodyID b1 = dGeomGetBody(o1);
 						dBodyID b2 = dGeomGetBody(o2);
 
@@ -214,24 +204,7 @@ namespace {
 							}
 						}
 					}
-				} else {
-					dBodyID b1 = dGeomGetBody(o1);
-					dBodyID b2 = dGeomGetBody(o2);
-
-					dContact contact[3];      // up to 3 contacts per box
-					if (int numc = dCollide(o1, o2, 3, &contact[0].geom, sizeof(dContact))) {
-						for (i = 0; i < numc; i++) {
-							contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;
-							contact[i].surface.mu = 0.0;
-							contact[i].surface.soft_cfm = CFM;
-							contact[i].surface.soft_erp = ERP;
-							contact[i].surface.bounce = 0.8;
-							contact[i].surface.bounce_vel = 0.0;
-							dJointID c = dJointCreateContact(eworld, contactgroup, contact + i);
-							dJointAttach(c, b1, b2);
-						}
-					}
-				}
+				} 
 			}
 
 
@@ -370,19 +343,9 @@ namespace {
 			void handleRobotRobotCollision(dGeomID o1, dGeomID o2) {
 				int i = 0;
 
-				// const dReal* pos1 = dGeomGetPosition (o1);
-				// const dReal* pos2 = dGeomGetPosition (o2);
-				// Point p1 = Point(pos1[0],pos1[1]);
-				// Point p2 = Point(pos2[0],pos2[1]);
-				// Point dis = p1-p2;
-
 				PlayerODE::Ptr robot1 = get_player_from_shape(o1);
 				PlayerODE::Ptr robot2 = get_player_from_shape(o2);
 
-				// if (dis.len>0.02) we assume that are components from same robot
-				// as such we will ignore it
-				// this is a pretty bad hack and needs to be changed to check whether the geoms come
-				// from the same robot
 				const int num_contact = 4;
 
 				if (robot1 != robot2) {
