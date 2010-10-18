@@ -1,85 +1,80 @@
 #ifndef SIM_SIMULATOR_H
 #define SIM_SIMULATOR_H
 
-#include "simulator/ball.h"
 #include "simulator/player.h"
-#include "simulator/robot.h"
+#include "simulator/team.h"
 #include "simulator/engines/engine.h"
-#include "util/clocksource.h"
-#include "util/config.h"
 #include "util/fd.h"
 #include "util/noncopyable.h"
-#include "xbee/daemon/frontend/backend.h"
+#include "util/time.h"
 #include <cstddef>
-#include <queue>
-#include <stdint.h>
-#include <unordered_map>
 #include <vector>
 
-/**
- * This is the actual core of the simulator.
- */
-class Simulator : public BackEnd, public sigc::trackable {
-	public:
-		/**
-		 * The configuration file driving this simulator.
-		 */
-		const Config &conf;
+namespace Simulator {
+	/**
+	 * This is the actual core of the simulator.
+	 */
+	class Simulator : public NonCopyable {
+		public:
+			/**
+			 * Constructs a new Simulator using the robots found in a configuration file.
+			 *
+			 * \param[in] engine the engine to drive the simulator with.
+			 */
+			Simulator(SimulatorEngine::Ptr engine);
 
-		/**
-		 * Constructs a new Simulator using the robots found in a configuration file.
-		 *
-		 * \param[in] conf the configuration data to initialize the simulator with.
-		 *
-		 * \param[in] engine the engine to drive the simulator with.
-		 *
-		 * \param[in] clk the clock source to drive the simulator with.
-		 */
-		Simulator(const Config &conf, SimulatorEngine::Ptr engine, ClockSource &clk);
+			/**
+			 * Returns the speed mode of the simulator.
+			 *
+			 * \return \c true if the simulator is running in fast mode, or \c false if it is running in normal-speed mode.
+			 */
+			bool is_fast() const;
 
-		/**
-		 * Returns all the robots recognized by this simulator.
-		 *
-		 * \return all the robots recognized by this simulator, keyed by XBee address.
-		 */
-		const std::unordered_map<uint64_t, SimulatorRobot::Ptr> &robots() const {
-			return robots_;
-		}
+			/**
+			 * Sets the speed mode of the simulator.
+			 *
+			 * \param[in] fast \c true to run in fast mode, or \c false to run in normal-speed mode.
+			 */
+			void set_speed_mode(bool fast);
 
-		/**
-		 * Returns the ball.
-		 *
-		 * \return the ball.
-		 */
-		SimulatorBall::Ptr ball() const {
-			return engine->get_ball();
-		}
+			/**
+			 * Returns the current play type.
+			 *
+			 * \return the current play type.
+			 */
+			AI::Common::PlayType::PlayType play_type() const;
 
-		/**
-		 * Searches for a robot by its 16-bit address.
-		 *
-		 * \param[in] addr the address to search for.
-		 *
-		 * \return the robot matching the address, or a null pointer if no robot has the address.
-		 */
-		SimulatorRobot::Ptr find_by16(uint16_t addr) const;
+			/**
+			 * Sets the play type.
+			 *
+			 * \param[in] pt the play type to select.
+			 */
+			void set_play_type(AI::Common::PlayType::PlayType pt);
 
-	private:
-		const SimulatorEngine::Ptr engine;
-		std::unordered_map<uint64_t, SimulatorRobot::Ptr> robots_;
-		std::queue<std::vector<uint8_t> > responses;
-		sigc::connection response_push_connection;
-		uint16_t host_address16;
-		const FileDescriptor::Ptr sock;
-		uint32_t frame_counters[2];
+			/**
+			 * Stores the current state of the ball into a state block.
+			 *
+			 * \param[out] state the state block to fill.
+			 *
+			 * \param[in] invert \c true to invert the coordinates, or \c false to use non-inverted coordinates.
+			 */
+			void encode_ball_state(Proto::S2ABallInfo &state, bool invert);
 
-		void send(const iovec *, std::size_t);
-		void packet_handler(const std::vector<uint8_t> &data);
-		void queue_response(const void *, std::size_t);
-		bool push_response();
-		void tick();
-		bool tick_geometry();
-};
+		private:
+			const SimulatorEngine::Ptr engine;
+			FileDescriptor::Ptr listen_socket;
+			Team team1, team2, *teams[2];
+			timespec next_tick_game_monotonic_time, next_tick_phys_monotonic_time, last_fps_report_time;
+			bool fast, tick_scheduled;
+			AI::Common::PlayType::PlayType playtype;
+			unsigned int frame_count;
+
+			bool on_ai_connecting(Glib::IOCondition);
+			bool on_pending_ai_readable(Glib::IOCondition, FileDescriptor::Ptr fd);
+			void check_tick();
+			void tick();
+	};
+}
 
 #endif
 

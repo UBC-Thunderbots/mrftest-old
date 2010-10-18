@@ -72,14 +72,14 @@ namespace {
 				double wall_thickness = 0.1127; //
 
 				// build a wall around the playing field
-				wall[0] = dCreateBox(space, SimulatorField::total_length + 2 * wall_thickness, wall_thickness, wall_height);
-				wall[1] = dCreateBox(space, SimulatorField::total_length + 2 * wall_thickness, wall_thickness, wall_height);
-				wall[2] = dCreateBox(space, wall_thickness, SimulatorField::total_width - 2 * wall_thickness, wall_height);
-				wall[3] = dCreateBox(space, wall_thickness, SimulatorField::total_width - 2 * wall_thickness, wall_height);
-				dGeomSetPosition(wall[0], 0, (SimulatorField::total_width / 2 + wall_thickness / 2), (wall_height / 2));
-				dGeomSetPosition(wall[1], 0, -(SimulatorField::total_width / 2 + wall_thickness / 2), (wall_height / 2));
-				dGeomSetPosition(wall[2], (SimulatorField::total_length / 2 + wall_thickness / 2), 0, (wall_height / 2));
-				dGeomSetPosition(wall[3], -(SimulatorField::total_length / 2 + wall_thickness / 2), 0, (wall_height / 2));
+				wall[0] = dCreateBox(space, SimulatorField::TOTAL_LENGTH + 2 * wall_thickness, wall_thickness, wall_height);
+				wall[1] = dCreateBox(space, SimulatorField::TOTAL_LENGTH + 2 * wall_thickness, wall_thickness, wall_height);
+				wall[2] = dCreateBox(space, wall_thickness, SimulatorField::TOTAL_WIDTH - 2 * wall_thickness, wall_height);
+				wall[3] = dCreateBox(space, wall_thickness, SimulatorField::TOTAL_WIDTH - 2 * wall_thickness, wall_height);
+				dGeomSetPosition(wall[0], 0, (SimulatorField::TOTAL_WIDTH / 2 + wall_thickness / 2), (wall_height / 2));
+				dGeomSetPosition(wall[1], 0, -(SimulatorField::TOTAL_WIDTH / 2 + wall_thickness / 2), (wall_height / 2));
+				dGeomSetPosition(wall[2], (SimulatorField::TOTAL_LENGTH / 2 + wall_thickness / 2), 0, (wall_height / 2));
+				dGeomSetPosition(wall[3], -(SimulatorField::TOTAL_LENGTH / 2 + wall_thickness / 2), 0, (wall_height / 2));
 				// set possible penetration for collisions
 
 				dWorldSetContactSurfaceLayer(eworld, 0.1);

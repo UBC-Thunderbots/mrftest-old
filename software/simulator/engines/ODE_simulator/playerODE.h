@@ -2,7 +2,6 @@
 #define SIMULATOR_ENGINES_ODE_SIMULATOR_PLAYERODE_H
 
 #include "simulator/player.h"
-#include "xbee/shared/packettypes.h"
 #include <ode/ode.h>
 
 
@@ -62,10 +61,6 @@ class PlayerODE : public SimulatorPlayer {
 
 		bool player_has_ball;
 
-		bool chip_set, kick_set;
-
-		double chip_strength, kick_strength;
-
 		/**
 		 * I don't know why we keep track of the ball ID, oh right the retarded
 		 * hasball routine Number 1.
@@ -79,21 +74,6 @@ class PlayerODE : public SimulatorPlayer {
 		unsigned int *Triangles;
 		Point *wheel_position;
 		Point *force_direction;
-
-		/**
-		 * Target wheel velocities in quarter of a degree per 5 milliseconds.
-		 */
-		double motor_desired[4];
-
-		/**
-		 * Should the robot run in direct drive mode?
-		 */
-		bool direct_drive;
-
-		/**
-		 * Should the robot run in controlled drive mode?
-		 */
-		bool controlled_drive;
 
 	public:
 		PlayerODE(dWorldID dworld, dSpaceID dspace, dGeomID ballGeom, double ups_per_tick);
@@ -137,22 +117,16 @@ class PlayerODE : public SimulatorPlayer {
 
 		void pre_tic(double TimeStep);
 
-		void dribble(double speed);
-
-		void kick(double strength);
-
 		bool has_kick_set() {
-			return kick_set;
+			return orders.kick;
 		}
 
 	private:
 		bool execute_kick();
 
 	public:
-		void chip(double strength);
-
 		bool has_chip_set() {
-			return chip_set;
+			return orders.chip;
 		}
 
 	private:
@@ -166,8 +140,6 @@ class PlayerODE : public SimulatorPlayer {
 		void orientation(double orient);
 
 		void avelocity(double avel);
-
-		void received(const XBeePacketTypes::RUN_DATA &);
 
 		dTriMeshDataID create_robot_geom();
 };

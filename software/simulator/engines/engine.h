@@ -29,7 +29,6 @@ class SimulatorEngine : public ByRef {
 
 		/**
 		 * Retrieves the engine's specific SimulatorBall object.
-		 * A given engine must always return the same SimulatorBall object!
 		 *
 		 * \return the SimulatorBall object.
 		 */
@@ -49,13 +48,6 @@ class SimulatorEngine : public ByRef {
 		 * \param[in] player the SimulatorPlayer to remove.
 		 */
 		virtual void remove_player(SimulatorPlayer::Ptr player) = 0;
-
-		/**
-		 * Retrieves the engine-specific UI controls that will be placed in the simulator window when this engine is activated.
-		 *
-		 * \return the UI controls to display, or null to not display controls.
-		 */
-		virtual Gtk::Widget *get_ui_controls() = 0;
 
 		/**
 		 * Retrieves the factory object that created the engine.

@@ -34,6 +34,12 @@ software/ai/ai.cpp -text
 software/ai/ai.h -text
 software/ai/backend/backend.cpp -text
 software/ai/backend/backend.h -text
+software/ai/backend/simulator/backend.cpp -text
+software/ai/backend/simulator/ball.h -text
+software/ai/backend/simulator/field.h -text
+software/ai/backend/simulator/player.h -text
+software/ai/backend/simulator/robot.h -text
+software/ai/backend/simulator/team.h -text
 software/ai/backend/xbeed/ball.cpp -text
 software/ai/backend/xbeed/ball.h -text
 software/ai/backend/xbeed/field.cpp -text
@@ -181,6 +187,8 @@ software/proto/messages_robocup_ssl_geometry.proto -text
 software/proto/messages_robocup_ssl_wrapper.proto -text
 software/rxdata.cpp -text
 software/simulator/ball.h -text
+software/simulator/connection.cpp -text
+software/simulator/connection.h -text
 software/simulator/engines/ODE_simulator/ballODE.cpp -text
 software/simulator/engines/ODE_simulator/ballODE.h -text
 software/simulator/engines/ODE_simulator/ode_simulator.cpp -text
@@ -191,13 +199,12 @@ software/simulator/engines/engine.h -text
 software/simulator/field.cpp -text
 software/simulator/field.h -text
 software/simulator/main.cpp -text
-software/simulator/main_window.cpp -text
-software/simulator/main_window.h -text
 software/simulator/player.h -text
-software/simulator/robot.cpp -text
-software/simulator/robot.h -text
 software/simulator/simulator.cpp -text
 software/simulator/simulator.h -text
+software/simulator/sockproto/proto.h -text
+software/simulator/team.cpp -text
+software/simulator/team.h -text
 software/style.txt -text
 software/test/controlled_permotor_drive.h -text
 software/test/direct_drive.h -text
@@ -244,6 +251,8 @@ software/util/algorithm.h -text
 software/util/annunciator.cpp -text
 software/util/annunciator.h -text
 software/util/byref.h -text
+software/util/chdir.cpp -text
+software/util/chdir.h -text
 software/util/clocksource.h -text
 software/util/clocksource_timerfd.cpp -text
 software/util/clocksource_timerfd.h -text

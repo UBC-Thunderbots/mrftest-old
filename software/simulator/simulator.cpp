@@ -1,346 +1,297 @@
 #include "simulator/simulator.h"
-#include "proto/messages_robocup_ssl_detection.pb.h"
-#include "proto/messages_robocup_ssl_geometry.pb.h"
-#include "proto/messages_robocup_ssl_wrapper.pb.h"
-#include "simulator/field.h"
-#include "util/dprint.h"
+#include "simulator/sockproto/proto.h"
+#include "util/chdir.h"
+#include "util/exception.h"
+#include "util/misc.h"
 #include "util/sockaddrs.h"
-#include "util/xbee.h"
-#include "xbee/shared/packettypes.h"
-#include <algorithm>
-#include <cassert>
+#include "util/timestep.h"
+#include <cerrno>
 #include <cstring>
 #include <iostream>
-#include <stdexcept>
-#include <netinet/in.h>
+#include <limits>
+#include <string>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/un.h>
 
 namespace {
-	const uint16_t ADC_MAX = 1023;
-	const double VCC = 3.3;
-	const double DIVIDER_UPPER = 2200.0;
-	const double DIVIDER_LOWER = 470.0;
+	FileDescriptor::Ptr create_listen_socket() {
+		// Change to the cache directory where we will create the socket.
+		const std::string &cache_dir = Glib::get_user_cache_dir();
+		ScopedCHDir dir_changer(cache_dir.c_str());
 
-	/**
-	 * The number of milliseconds between receiving packet and sending its response.
-	 */
-	const unsigned int DELAY = 10;
-}
-
-Simulator::Simulator(const Config &conf, SimulatorEngine::Ptr engine, ClockSource &clk) : conf(conf), engine(engine), host_address16(0xFFFF), sock(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
-	frame_counters[0] = frame_counters[1] = 0;
-	int one = 1;
-	if (setsockopt(sock->fd(), SOL_SOCKET, SO_BROADCAST, &one, sizeof(one)) < 0) {
-		throw std::runtime_error("Cannot enable broadcast on SSL-Vision socket.");
-	}
-	const Config::RobotSet &infos(conf.robots());
-	for (unsigned int i = 0; i < infos.size(); ++i) {
-		robots_[infos[i].address] = SimulatorRobot::create(infos[i], engine);
-	}
-	clk.signal_tick.connect(sigc::mem_fun(this, &Simulator::tick));
-	Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &Simulator::tick_geometry), 1);
-}
-
-SimulatorRobot::Ptr Simulator::find_by16(uint16_t addr) const {
-	for (std::unordered_map<uint64_t, SimulatorRobot::Ptr>::const_iterator i = robots_.begin(), iend = robots_.end(); i != iend; ++i) {
-		if (i->second->address16() == addr) {
-			return i->second;
+		// Remove any existing socket.
+		if (unlink(SIMULATOR_SOCKET_FILENAME) < 0 && errno != ENOENT) {
+			throw SystemError("unlink(" SIMULATOR_SOCKET_FILENAME ")", errno);
 		}
+
+		// Create a new socket.
+		FileDescriptor::Ptr sock = FileDescriptor::create_socket(AF_UNIX, SOCK_SEQPACKET, 0);
+		sock->set_blocking(false);
+
+		// Bind the new socket to the appropriate filename.
+		SockAddrs sa;
+		sa.un.sun_family = AF_UNIX;
+		std::strcpy(sa.un.sun_path, SIMULATOR_SOCKET_FILENAME);
+		if (bind(sock->fd(), &sa.sa, sizeof(sa.un)) < 0) {
+			throw SystemError("bind(" SIMULATOR_SOCKET_FILENAME ")", errno);
+		}
+
+		// Listen for incoming connections.
+		if (listen(sock->fd(), 8) < 0) {
+			throw SystemError("listen", errno);
+		}
+		return sock;
 	}
-	return SimulatorRobot::Ptr();
 }
 
-void Simulator::send(const iovec *iov, std::size_t iovlen) {
-	// Coalesce buffers.
-	std::size_t total_length = 0;
-	for (unsigned int i = 0; i < iovlen; ++i) {
-		total_length += iov[i].iov_len;
-	}
-	std::vector<uint8_t> data(total_length);
-	total_length = 0;
-	for (unsigned int i = 0; i < iovlen; ++i) {
-		const uint8_t *src(static_cast<const uint8_t *>(iov[i].iov_base));
-		std::copy(src, src + iov[i].iov_len, data.begin() + total_length);
-		total_length += iov[i].iov_len;
-	}
-
-	// If we were to handle the packet immediately, then
-	// (1) it would be unrealistic because a real radio doesn't do that, and
-	// (2) it would peg the CPU at 100% because the arbiter would spew remote ATMY packets and the simulator would hurl back NO_ACK responses at full speed.
-	// So instead, just delay a few milliseconds before actually doing anything with the packet.
-	Glib::signal_timeout().connect_once(sigc::bind(sigc::mem_fun(this, &Simulator::packet_handler), data), 10);
+Simulator::Simulator::Simulator(SimulatorEngine::Ptr engine) : engine(engine), listen_socket(create_listen_socket()), team1(engine, *this, &team2, false), team2(engine, *this, &team1, true), fast(false), tick_scheduled(false), playtype(AI::Common::PlayType::HALT), frame_count(0) {
+	next_tick_game_monotonic_time.tv_sec = 0;
+	next_tick_game_monotonic_time.tv_nsec = 0;
+	next_tick_phys_monotonic_time.tv_sec = 0;
+	next_tick_phys_monotonic_time.tv_nsec = 0;
+	last_fps_report_time.tv_sec = 0;
+	last_fps_report_time.tv_nsec = 0;
+	teams[0] = &team1;
+	teams[1] = &team2;
+	team1.signal_ready().connect(sigc::mem_fun(this, &Simulator::Simulator::check_tick));
+	team2.signal_ready().connect(sigc::mem_fun(this, &Simulator::Simulator::check_tick));
+	Glib::signal_io().connect(sigc::mem_fun(this, &Simulator::Simulator::on_ai_connecting), listen_socket->fd(), Glib::IO_IN);
+	std::cout << "Simulator up and running\n";
 }
 
-void Simulator::packet_handler(const std::vector<uint8_t> &data) {
-	// Dispatch packet based on API ID.
-	if (data[0] == XBeePacketTypes::AT_REQUEST_APIID) {
-		const XBeePacketTypes::AT_REQUEST<2> &req = *reinterpret_cast<const XBeePacketTypes::AT_REQUEST<2> *>(&data[0]);
+bool Simulator::Simulator::is_fast() const {
+	return fast;
+}
 
-		XBeePacketTypes::AT_RESPONSE resp;
-		resp.apiid = XBeePacketTypes::AT_RESPONSE_APIID;
-		resp.frame = req.frame;
-		std::copy(&req.command[0], &req.command[2], &resp.command[0]);
+void Simulator::Simulator::set_speed_mode(bool f) {
+	if (fast != f) {
+		fast = f;
+		team1.send_speed_mode();
+		team2.send_speed_mode();
+	}
+}
 
-		if (data.size() == sizeof(req) && req.command[0] == 'M' && req.command[1] == 'Y') {
-			host_address16 = (req.value[0] << 8) | req.value[1];
-			resp.status = XBeePacketTypes::AT_RESPONSE_STATUS_OK;
+AI::Common::PlayType::PlayType Simulator::Simulator::play_type() const {
+	return playtype;
+}
+
+void Simulator::Simulator::set_play_type(AI::Common::PlayType::PlayType pt) {
+	if (pt != playtype) {
+		playtype = pt;
+		team1.send_play_type();
+		team2.send_play_type();
+	}
+}
+
+void Simulator::Simulator::encode_ball_state(Proto::S2ABallInfo &state, bool invert) {
+	Point pos = engine->get_ball()->position();
+	state.x = pos.x * (invert ? -1.0 : 1.0);
+	state.y = pos.y * (invert ? -1.0 : 1.0);
+}
+
+bool Simulator::Simulator::on_ai_connecting(Glib::IOCondition) {
+	// Accept an incoming connection.
+	int raw_fd = accept(listen_socket->fd(), 0, 0);
+	if (raw_fd < 0) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK) {
+			return true;
 		} else {
-			LOG_WARN(Glib::ustring::compose("Received unsupported local AT command \"%1\".", Glib::ustring(reinterpret_cast<const char *>(req.command), 2)));
-			resp.status = XBeePacketTypes::AT_RESPONSE_STATUS_INVALID_COMMAND;
+			throw SystemError("accept", errno);
 		}
+	}
+	FileDescriptor::Ptr sock = FileDescriptor::create_from_fd(raw_fd);
+	raw_fd = -1;
 
-		if (req.frame) {
-			queue_response(&resp, sizeof(resp));
-		}
-	} else if (data[0] == XBeePacketTypes::REMOTE_AT_REQUEST_APIID) {
-		const XBeePacketTypes::REMOTE_AT_REQUEST<0> &req = *reinterpret_cast<const XBeePacketTypes::REMOTE_AT_REQUEST<0> *>(&data[0]);
+	// Allow credentials to be received over this socket.
+	const int yes = 1;
+	if (setsockopt(sock->fd(), SOL_SOCKET, SO_PASSCRED, &yes, sizeof(yes)) < 0) {
+		throw SystemError("setsockopt", errno);
+	}
 
-		XBeePacketTypes::REMOTE_AT_RESPONSE resp;
-		resp.apiid = XBeePacketTypes::REMOTE_AT_RESPONSE_APIID;
-		resp.frame = req.frame;
-		std::copy(&req.address64[0], &req.address64[8], &resp.address64[0]);
-		std::copy(&req.address16[0], &req.address16[2], &resp.address16[0]);
-		std::copy(&req.command[0], &req.command[2], &resp.command[0]);
+	// Make the socket blocking (individual operations can then be made non-blocking with MSG_DONTWAIT).
+	try {
+		sock->set_blocking(true);
+	} catch (const SystemError &exp) {
+		std::cout << "Error on pending socket: " << exp.what() << '\n';
+		return true;
+	}
 
-		if (req.address16[0] == 0xFF && req.address16[1] == 0xFE) {
-			uint64_t recipient = XBeeUtil::address_from_bytes(req.address64);
-			std::unordered_map<uint64_t, SimulatorRobot::Ptr>::const_iterator i = robots_.find(recipient);
-			if (i != robots_.end() && i->second->powered()) {
-				if (data.size() == sizeof(req) + 2 && req.command[0] == 'M' && req.command[1] == 'Y') {
-					uint16_t value = (req.value[0] << 8) | req.value[1];
-					if (value) {
-						i->second->address16(value);
-						resp.status = XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_OK;
-					} else {
-						LOG_WARN("Please don't set a robot's 16-bit address to zero.");
-						resp.status = XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_PARAMETER;
-					}
-				} else if (data.size() == sizeof(req) + 1 && req.command[0] == 'D' && req.command[1] == '0') {
-					if (req.value[0] == 4) {
-						i->second->bootloading(false);
-						resp.status = XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_OK;
-					} else if (req.value[0] == 5) {
-						i->second->bootloading(true);
-						resp.status = XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_OK;
-					} else {
-						LOG_WARN("Please don't set the bootload line to something other than high or low.");
-						resp.status = XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_PARAMETER;
-					}
-				} else {
-					LOG_WARN(Glib::ustring::compose("Received unsupported remote AT command \"%1\".", Glib::ustring(reinterpret_cast<const char *>(req.command), 2)));
-					resp.status = XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_INVALID_COMMAND;
-				}
-			} else {
-				resp.status = XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_NO_RESPONSE;
-			}
+	// Signal the first packet to be handled by on_pending_ai_readable.
+	Glib::signal_io().connect(sigc::bind(sigc::mem_fun(this, &Simulator::Simulator::on_pending_ai_readable), sock), sock->fd(), Glib::IO_IN);
+
+	// Continue accepting incoming connections.
+	return true;
+}
+
+bool Simulator::Simulator::on_pending_ai_readable(Glib::IOCondition, FileDescriptor::Ptr sock) {
+	// Receive the magic message from the AI, with attached credentials.
+	char databuf[std::strlen(SIMULATOR_SOCKET_MAGIC1)], cmsgbuf[cmsg_space(sizeof(ucred))];
+	iovec iov = { iov_base: databuf, iov_len: sizeof(databuf), };
+	msghdr mh = { msg_name: 0, msg_namelen: 0, msg_iov: &iov, msg_iovlen: 1, msg_control: cmsgbuf, msg_controllen: sizeof(cmsgbuf), msg_flags: 0, };
+	ssize_t bytes_read = recvmsg(sock->fd(), &mh, MSG_DONTWAIT);
+	if (bytes_read < 0) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK) {
+			return true;
 		} else {
-			LOG_WARN("Please don't use 16-bit addresses to target remote AT commands.");
-			resp.status = XBeePacketTypes::REMOTE_AT_RESPONSE_STATUS_ERROR;
-		}
-
-		if (req.frame) {
-			queue_response(&resp, sizeof(resp));
-		}
-	} else if (data[0] == XBeePacketTypes::TRANSMIT16_APIID) {
-		const struct __attribute__((packed)) TX16 {
-			XBeePacketTypes::TRANSMIT16_HDR hdr;
-			uint8_t data[];
-		} &req = *reinterpret_cast<const TX16 *>(&data[0]);
-
-		XBeePacketTypes::TRANSMIT_STATUS resp;
-		resp.apiid = XBeePacketTypes::TRANSMIT_STATUS_APIID;
-		resp.frame = req.hdr.frame;
-
-		uint16_t recipient = (req.hdr.address[0] << 8) | req.hdr.address[1];
-		if (data.size() == sizeof(req) + 1 && recipient != 0xFFFF) {
-			SimulatorRobot::Ptr bot(find_by16(recipient));
-			if (bot.is()) {
-				bot->run_data_offset(req.data[0]);
-				resp.status = XBeePacketTypes::TRANSMIT_STATUS_SUCCESS;
-			} else {
-				if (req.hdr.options & XBeePacketTypes::TRANSMIT_OPTION_DISABLE_ACK) {
-					resp.status = XBeePacketTypes::TRANSMIT_STATUS_SUCCESS;
-				} else {
-					resp.status = XBeePacketTypes::TRANSMIT_STATUS_NO_ACK;
-				}
+			try {
+				throw SystemError("recvmsg", errno);
+			} catch (const SystemError &exp) {
+				std::cout << "Error on pending socket: " << exp.what() << '\n';
 			}
-		} else if (recipient == 0xFFFF) {
-			for (std::unordered_map<uint64_t, SimulatorRobot::Ptr>::const_iterator i(robots_.begin()), iend(robots_.end()); i != iend; ++i) {
-				SimulatorRobot::Ptr bot(i->second);
-				if (bot->powered() && bot->address16() != 0xFFFF && sizeof(req.hdr) + bot->run_data_offset() + sizeof(XBeePacketTypes::RUN_DATA) <= data.size()) {
-					const XBeePacketTypes::RUN_DATA &rundata = *reinterpret_cast<const XBeePacketTypes::RUN_DATA *>(&req.data[bot->run_data_offset()]);
-					if (rundata.flags & XBeePacketTypes::RUN_FLAG_RUNNING) {
-						SimulatorPlayer::Ptr plr(bot->get_player());
-						if (plr.is()) {
-							plr->received(rundata);
-						}
-						if (rundata.flags & XBeePacketTypes::RUN_FLAG_FEEDBACK) {
-							struct __attribute__((packed)) FEEDBACK {
-								XBeePacketTypes::RECEIVE16_HDR hdr;
-								XBeePacketTypes::FEEDBACK_DATA data;
-							} fb;
-							fb.hdr.apiid = XBeePacketTypes::RECEIVE16_APIID;
-							fb.hdr.address[0] = bot->address16() >> 8;
-							fb.hdr.address[1] = bot->address16() & 0xFF;
-#warning implement inbound RSSI support
-							fb.hdr.rssi = 40;
-							fb.hdr.options = 0;
-#warning implement chicker support
-							fb.data.flags = XBeePacketTypes::FEEDBACK_FLAG_RUNNING;
-#warning implement outbound RSSI support
-							fb.data.outbound_rssi = 40;
-							fb.data.dribbler_speed = plr.is() ? plr->dribbler_speed() : 0;
-							fb.data.battery_level = std::min(ADC_MAX, static_cast<uint16_t>(bot->battery() / (DIVIDER_LOWER + DIVIDER_UPPER) * DIVIDER_LOWER / VCC * ADC_MAX));
-#warning implement fault support
-							fb.data.faults = 0;
-							queue_response(&fb, sizeof(fb));
-						}
-					}
-				}
-			}
-			if (req.hdr.options & XBeePacketTypes::TRANSMIT_OPTION_DISABLE_ACK) {
-				resp.status = XBeePacketTypes::TRANSMIT_STATUS_SUCCESS;
-			} else {
-				resp.status = XBeePacketTypes::TRANSMIT_STATUS_NO_ACK;
-			}
+			return false;
 		}
+	}
+	if (!bytes_read) {
+		return false;
+	}
+	if (bytes_read != std::strlen(SIMULATOR_SOCKET_MAGIC1) || (mh.msg_flags & MSG_TRUNC) || std::memcmp(databuf, SIMULATOR_SOCKET_MAGIC1, std::strlen(SIMULATOR_SOCKET_MAGIC1)) != 0) {
+		std::cout << "Signature error on pending socket; are you running the same version of the simulator and the AI?\n";
+		return false;
+	}
+	cmsghdr *ch = cmsg_firsthdr(&mh);
+	if (!ch || ch->cmsg_level != SOL_SOCKET || ch->cmsg_type != SCM_CREDENTIALS) {
+		std::cout << "Error on pending socket: No credentials transmitted\n";
+		return false;
+	}
+	ucred creds;
+	std::memcpy(&creds, cmsg_data(ch), sizeof(creds));
+	if (creds.uid != getuid()) {
+		std::cout << "Error on pending socket: User ID of AI process does not match user ID of simulator\n";
+		return false;
+	}
 
-		if (req.hdr.frame) {
-			queue_response(&resp, sizeof(resp));
+	// Find a free team slot to put the AI into.
+	Team *team = 0;
+	for (std::size_t i = 0; i < G_N_ELEMENTS(teams) && !team; ++i) {
+		if (!teams[i]->has_connection()) {
+			team = teams[i];
 		}
+	}
+	if (!team) {
+		std::cout << "No space for new AI\n";
+		return false;
+	}
+
+	// Send back the response magic packet with our own credentials attached.
+	iov.iov_base = const_cast<char *>(SIMULATOR_SOCKET_MAGIC2);
+	iov.iov_len = std::strlen(SIMULATOR_SOCKET_MAGIC2);
+	mh.msg_iov = &iov;
+	mh.msg_iovlen = 1;
+	mh.msg_control = cmsgbuf;
+	mh.msg_controllen = sizeof(cmsgbuf);
+	ch = cmsg_firsthdr(&mh);
+	ch->cmsg_level = SOL_SOCKET;
+	ch->cmsg_type = SCM_CREDENTIALS;
+	ch->cmsg_len = cmsg_len(sizeof(ucred));
+	creds.pid = getpid();
+	creds.uid = getuid();
+	creds.gid = getgid();
+	std::memcpy(cmsg_data(ch), &creds, sizeof(creds));
+	mh.msg_flags = 0;
+	if (sendmsg(sock->fd(), &mh, MSG_EOR | MSG_NOSIGNAL) < 0) {
+		try {
+			throw SystemError("sendmsg", errno);
+		} catch (const SystemError &exp) {
+			std::cout << "Error on AI socket: " << exp.what() << '\n';
+		}
+		return false;
+	}
+
+	// Get the socket ready to receive regular AI data.
+	team->add_connection(Connection::create(sock));
+
+	// Print a message.
+	std::cout << "AI connected\n";
+
+	// Further packets should not come here; they will go to on_ai_readable instead.
+	return false;
+}
+
+void Simulator::Simulator::check_tick() {
+	// If some team isn't ready yet, we can't tick.
+	if (!(team1.ready() && team2.ready())) {
+		return;
+	}
+
+	// If a tick has already been scheduled, don't schedule another one.
+	if (tick_scheduled) {
+		return;
+	}
+
+	if (fast) {
+		// In fast mode, we tick immediately.
+		tick();
 	} else {
-		LOG_WARN(Glib::ustring::compose("Received unsupported XBee packet of type 0x%1.", tohex(data[0], 2)));
+		// In normal-speed mode, we first determine whether we've passed the deadline.
+		timespec now;
+		timespec_now(now);
+		if (timespec_cmp(now, next_tick_phys_monotonic_time) >= 0) {
+			// It's time to tick.
+			tick();
+		} else {
+			// Wait a bit before ticking.
+			timespec diff;
+			timespec_sub(next_tick_phys_monotonic_time, now, diff);
+			Glib::signal_timeout().connect_once(sigc::mem_fun(this, &Simulator::Simulator::tick), timespec_to_millis(diff));
+			tick_scheduled = true;
+		}
 	}
 }
 
-void Simulator::queue_response(const void *buffer, std::size_t size) {
-	const uint8_t *p(static_cast<const uint8_t *>(buffer));
-	responses.push(std::vector<uint8_t>(p, p + size));
-	if (!response_push_connection.connected()) {
-		response_push_connection = Glib::signal_timeout().connect(sigc::mem_fun(this, &Simulator::push_response), DELAY);
-	}
-}
+void Simulator::Simulator::tick() {
+	// Mark that no tick is scheduled.
+	tick_scheduled = false;
 
-bool Simulator::push_response() {
-	if (!responses.empty()) {
-		signal_received.emit(responses.front());
-		responses.pop();
+	// If nobody is connected, do nothing.
+	bool any_connected = false;
+	for (std::size_t i = 0; i < G_N_ELEMENTS(teams) && !any_connected; ++i) {
+		if (teams[i]->has_connection()) {
+			any_connected = true;
+		}
 	}
-	return !responses.empty();
-}
+	if (!any_connected) {
+		return;
+	}
 
-void Simulator::tick() {
+	// Tick the engine.
 	engine->tick();
 
-	// Assume that each camera can see 10% of the other camera's area of the field.
-	static const double LIMIT_MAG = SimulatorField::length / 2 * 0.1;
-	static const double LIMIT_SIGNS[2] = { -1.0, +1.0 };
+	// Update clients with the new world state.
+	team1.send_tick(next_tick_game_monotonic_time);
+	team2.send_tick(next_tick_game_monotonic_time);
 
-	for (unsigned int i = 0; i < 2; ++i) {
-		SSL_WrapperPacket packet;
-		SSL_DetectionFrame *det(packet.mutable_detection());
-		det->set_frame_number(frame_counters[i]++);
-#warning add times
-		det->set_t_capture(0.0);
-		det->set_t_sent(0.0);
-		det->set_camera_id(i);
-		SSL_DetectionBall *ball(det->add_balls());
-		ball->set_confidence(1.0);
-#warning add ball area
-		const Point &ball_pos(engine->get_ball()->position());
-		ball->set_x(ball_pos.x * 1000);
-		ball->set_y(ball_pos.y * 1000);
-#warning add pixel locations
-		ball->set_pixel_x(0.0);
-		ball->set_pixel_y(0.0);
+	// Update the game monotonic time by exactly the size of a timestep.
+	const timespec step = { tv_sec: 1 / TIMESTEPS_PER_SECOND, tv_nsec: 1000000000L / TIMESTEPS_PER_SECOND - 1 / TIMESTEPS_PER_SECOND * 1000000000L, };
+	timespec_add(next_tick_game_monotonic_time, step, next_tick_game_monotonic_time);
 
-		for (std::unordered_map<uint64_t, SimulatorRobot::Ptr>::const_iterator j(robots_.begin()), jend(robots_.end()); j != jend; ++j) {
-			SimulatorRobot::Ptr bot(j->second);
-			SimulatorPlayer::Ptr plr(bot->get_player());
-			if (plr.is() && plr->position().x * LIMIT_SIGNS[i] > -LIMIT_MAG) {
-				SSL_DetectionRobot *elem;
-				const Config::RobotInfo &info(conf.robots().find(j->first));
-				if (bot->yellow()) {
-					elem = det->add_robots_yellow();
-				} else {
-					elem = det->add_robots_blue();
-				}
-				elem->set_confidence(1.0);
-				elem->set_robot_id(info.pattern);
-				const Point &pos(plr->position());
-				elem->set_x(pos.x * 1000);
-				elem->set_y(pos.y * 1000);
-				elem->set_orientation(plr->orientation());
-#warning add pixel locations
-				elem->set_pixel_x(0.0);
-				elem->set_pixel_y(0.0);
-#warning add height
-			}
-		}
-
-		uint8_t buffer[packet.ByteSize()];
-		packet.SerializeToArray(buffer, sizeof(buffer));
-
-		SockAddrs sa;
-		sa.in.sin_family = AF_INET;
-		sa.in.sin_addr.s_addr = inet_addr("127.255.255.255");
-		sa.in.sin_port = htons(10002);
-		std::memset(sa.in.sin_zero, 0, sizeof(sa.in.sin_zero));
-
-		if (sendto(sock->fd(), buffer, sizeof(buffer), MSG_NOSIGNAL, &sa.sa, sizeof(sa.in)) != static_cast<ssize_t>(sizeof(buffer))) {
-			LOG_WARN("Error sending vision-type UDP packet.");
-		}
+	// Update the physical monotonic tick deadline to be as close as possible to one timestep forward from the previous tick.
+	// However, clamp it to lie between the curren time and one timestep in the future.
+	// The min-clamp prevents overloads from accumulating tick backlogs.
+	// The max-clamp prevents fast-mode from pushing the deadline way into the future.
+	timespec now;
+	timespec_now(now);
+	timespec_add(next_tick_phys_monotonic_time, step, next_tick_phys_monotonic_time);
+	if (timespec_cmp(next_tick_phys_monotonic_time, now) < 0) {
+		next_tick_phys_monotonic_time = now;
 	}
-}
-
-bool Simulator::tick_geometry() {
-	SSL_WrapperPacket packet;
-	SSL_GeometryData *geom(packet.mutable_geometry());
-	SSL_GeometryFieldSize *fld(geom->mutable_field());
-	fld->set_line_width(10);
-	fld->set_field_length(SimulatorField::length * 1000);
-	fld->set_field_width(SimulatorField::width * 1000);
-	fld->set_boundary_width(250);
-	fld->set_referee_width((SimulatorField::total_length - SimulatorField::length) / 2 * 1000 - 250);
-	fld->set_goal_width(SimulatorField::goal_width * 1000);
-	fld->set_goal_depth(450);
-	fld->set_goal_wall_width(10);
-	fld->set_center_circle_radius(SimulatorField::centre_circle_radius * 1000);
-	fld->set_defense_radius(SimulatorField::defense_area_radius * 1000);
-	fld->set_defense_stretch(SimulatorField::defense_area_stretch * 1000);
-	fld->set_free_kick_from_defense_dist(200);
-	fld->set_penalty_spot_from_field_line_dist(450);
-	fld->set_penalty_line_from_spot_dist(400);
-	for (unsigned int i = 0; i < 2; ++i) {
-		SSL_GeometryCameraCalibration *calib(geom->add_calib());
-		calib->set_camera_id(i);
-		calib->set_focal_length(500.0);
-		calib->set_principal_point_x(390.0);
-		calib->set_principal_point_y(290.0);
-		calib->set_distortion(0.0);
-		calib->set_q0(0.7);
-		calib->set_q1(-0.7);
-		calib->set_q2(0.0);
-		calib->set_q3(0.0);
-		calib->set_tx(0.0);
-		calib->set_ty(1250.0);
-		calib->set_tz(3500.0);
+	timespec now_plus_step;
+	timespec_add(now, step, now_plus_step);
+	if (timespec_cmp(next_tick_phys_monotonic_time, now_plus_step) > 0) {
+		next_tick_phys_monotonic_time = now_plus_step;
 	}
 
-	uint8_t buffer[packet.ByteSize()];
-	packet.SerializeToArray(buffer, sizeof(buffer));
-
-	SockAddrs sa;
-	sa.in.sin_family = AF_INET;
-	sa.in.sin_addr.s_addr = inet_addr("127.255.255.255");
-	sa.in.sin_port = htons(10002);
-	std::memset(sa.in.sin_zero, 0, sizeof(sa.in.sin_zero));
-
-	if (sendto(sock->fd(), buffer, sizeof(buffer), MSG_NOSIGNAL, &sa.sa, sizeof(sa.in)) != static_cast<ssize_t>(sizeof(buffer))) {
-		LOG_WARN("Error sending vision-type UDP packet.");
+	// Display status line if half a second has passed since last report.
+	++frame_count;
+	timespec diff;
+	timespec_sub(now, last_fps_report_time, diff);
+	if (timespec_to_millis(diff) >= 500) {
+		unsigned fps = (frame_count * 1000 + 500) / timespec_to_millis(diff);
+		frame_count = 0;
+		last_fps_report_time = now;
+		std::cout << '[' << (team1.has_connection() ? '+' : ' ') << (team2.has_connection() ? '+' : ' ') << "] " << fps << "fps   \r";
+		std::cout.flush();
 	}
-
-	return true;
 }
 

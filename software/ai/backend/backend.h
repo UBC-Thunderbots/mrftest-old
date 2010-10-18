@@ -14,6 +14,10 @@
 #include "util/registerable.h"
 #include <sigc++/sigc++.h>
 
+namespace Gtk {
+	class Widget;
+}
+
 namespace AI {
 	namespace BE {
 		/**
@@ -260,6 +264,27 @@ namespace AI {
 				 * \return the enemy team.
 				 */
 				virtual EnemyTeam &enemy_team() = 0;
+
+				/**
+				 * Returns the number of table rows the backend's UI controls will consume.
+				 *
+				 * \return the number of rows.
+				 */
+				virtual unsigned int ui_controls_table_rows() const = 0;
+
+				/**
+				 * Attaches the backend's UI controls to a table.
+				 *
+				 * \param[in] t the table to attach to,
+				 * which will have three columns,
+				 * column zero being for labels,
+				 * column one being for large controls,
+				 * column two being for small controls,
+				 * and columns two and three together being used for rows with only one control.
+				 *
+				 * \param[in] row the number of the first row the backend should start using.
+				 */
+				virtual void ui_controls_attach(Gtk::Table &t, unsigned int row) = 0;
 
 				/**
 				 * Returns or allows setting the end of the field the friendly team is defending.

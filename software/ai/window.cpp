@@ -11,7 +11,7 @@ namespace {
 	class BasicControls : public Gtk::Frame {
 		public:
 			BasicControls(AI::AIPackage &ai) : Gtk::Frame("Basics"), ai(ai) {
-				Gtk::Table *table = Gtk::manage(new Gtk::Table(4, 3));
+				Gtk::Table *table = Gtk::manage(new Gtk::Table(4 + ai.backend.ui_controls_table_rows(), 3));
 
 				table->attach(*Gtk::manage(new Gtk::Label("Play type override:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				playtype_override_chooser.append_text("<None>");
@@ -46,6 +46,8 @@ namespace {
 				flip_friendly_colour_button->signal_clicked().connect(sigc::mem_fun(this, &BasicControls::on_flip_friendly_colour_clicked));
 				ai.backend.friendly_colour().signal_changed().connect(sigc::mem_fun(this, &BasicControls::on_friendly_colour_changed));
 				on_friendly_colour_changed();
+
+				ai.backend.ui_controls_attach(*table, 4);
 
 				add(*table);
 			}

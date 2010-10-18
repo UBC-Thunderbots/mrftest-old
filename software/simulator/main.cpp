@@ -1,10 +1,8 @@
-#include "simulator/main_window.h"
 #include "simulator/simulator.h"
 #include "util/clocksource_timerfd.h"
 #include "util/timestep.h"
-#include "xbee/daemon/frontend/daemon.h"
 #include <exception>
-#include <gtkmm.h>
+#include <glibmm.h>
 #include <iostream>
 #include <locale>
 
@@ -13,35 +11,15 @@ namespace {
 
 	SimulatorEngine::Ptr create_engine(const Glib::ustring &name) {
 		const SimulatorEngineFactory::Map &m = SimulatorEngineFactory::all();
-		if (name.size()) {
-			SimulatorEngineFactory::Map::const_iterator i = m.find(name.collate_key());
-			if (i != m.end()) {
-				return i->second->create_engine();
-			} else {
-				std::cerr << "There is no engine named '" << name << "'. The available engines are:\n";
-				for (SimulatorEngineFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-					std::cerr << i->second->name << '\n';
-				}
-				return SimulatorEngine::Ptr();
-			}
+		SimulatorEngineFactory::Map::const_iterator i = m.find(name.collate_key());
+		if (i != m.end()) {
+			return i->second->create_engine();
 		} else {
-			Gtk::Dialog dlg("Thunderbots Simulator", true);
-			dlg.get_vbox()->pack_start(*Gtk::manage(new Gtk::Label("Select an engine:")), Gtk::PACK_SHRINK);
-			Gtk::ComboBoxText combo;
+			std::cerr << "There is no engine named '" << name << "'. The available engines are:\n";
 			for (SimulatorEngineFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-				combo.append_text(i->second->name);
+				std::cerr << i->second->name << '\n';
 			}
-			combo.set_active_text(DEFAULT_ENGINE);
-			dlg.get_vbox()->pack_start(combo, Gtk::PACK_SHRINK);
-			dlg.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
-			dlg.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
-			dlg.set_default_response(Gtk::RESPONSE_OK);
-			dlg.show_all();
-			const int resp = dlg.run();
-			if (resp != Gtk::RESPONSE_OK) {
-				return SimulatorEngine::Ptr();
-			}
-			return create_engine(combo.get_active_text());
+			return SimulatorEngine::Ptr();
 		}
 	}
 
@@ -54,25 +32,26 @@ namespace {
 		Glib::OptionEntry engine_name_entry;
 		engine_name_entry.set_long_name("engine");
 		engine_name_entry.set_short_name('e');
-		engine_name_entry.set_description("Preselects an engine rather than querying for one at startup");
+		engine_name_entry.set_description("Chooses which engine to use rather than the default (if no valid engine provided, displays a list)");
 		engine_name_entry.set_arg_description("ENGINE");
-		Glib::ustring engine_name;
+		Glib::ustring engine_name = DEFAULT_ENGINE;
 		option_group.add_entry(engine_name_entry, engine_name);
 		option_context.set_main_group(option_group);
 
-		Gtk::Main app(argc, argv, option_context);
-		if (argc != 1) {
-			std::cout << option_context.get_help();
+		if (!option_context.parse(argc, argv)) {
 			return 1;
 		}
-		Config conf;
+		if (argc != 1) {
+			std::cerr << option_context.get_help();
+			return 1;
+		}
+
+		Glib::RefPtr<Glib::MainLoop> main_loop = Glib::MainLoop::create();
+
 		SimulatorEngine::Ptr engine(create_engine(engine_name));
 		if (engine.is()) {
-			TimerFDClockSource clk((UINT64_C(1000000000) + TIMESTEPS_PER_SECOND / 2) / TIMESTEPS_PER_SECOND);
-			Simulator sim(conf, engine, clk);
-			XBeeDaemon d(sim);
-			MainWindow win(sim);
-			Gtk::Main::run(win);
+			Simulator::Simulator sim(engine);
+			main_loop->run();
 		}
 		return 0;
 	}

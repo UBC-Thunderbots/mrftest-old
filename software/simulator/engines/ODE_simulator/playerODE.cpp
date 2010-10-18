@@ -87,7 +87,11 @@ namespace {
 /*
     Constructor method for the robot model contained in the simulator
  */
-PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : chip_set(false), kick_set(false), Vertices(0), Triangles(0) {
+PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : Vertices(0), Triangles(0) {
+	orders.kick = false;
+	orders.chip = false;
+	std::fill(&orders.wheel_speeds[0], &orders.wheel_speeds[4], 0);
+
 	updates_per_tick = ups_per_tick;
 	double dribble_radius = 0.005; // half a cm
 	ballGeom = ballGeomi;
@@ -282,6 +286,16 @@ bool PlayerODE::robot_contains_shape_ground(dGeomID geom) {
    \param[in] timestep the time between calculations
  */
 void PlayerODE::pre_tic(double) {
+	// limit max motor "voltage" to VOLTAGE_LIMIT by scaling the largest component to VOLTAGE_LIMIT if greater but preserve its orientation
+	for (uint8_t index = 0; index < 4; index++) {
+		if (fabs(orders.wheel_speeds[index]) > VOLTAGE_LIMIT / PACKET_TO_VOLTAGE) {
+			for (int8_t index2 = 0; index2 < 4; index2++) {
+#warning IF INDEX < 3 THEN WHEN INDEX2 > INDEX THE SCALE FACTOR HAS BEEN DESTROYED
+				orders.wheel_speeds[index2] = orders.wheel_speeds[index2] / orders.wheel_speeds[index] * VOLTAGE_LIMIT / PACKET_TO_VOLTAGE;
+			}
+		}
+	}
+
 	click++;
 
 	// Current Motor Speed
@@ -300,9 +314,9 @@ void PlayerODE::pre_tic(double) {
 		double want_ang;
 
 		//This is the pseudo-inverse of the matrix used to go from wanted velocities to motor set points
-		want_vel.x= -0.0068604 * motor_desired[0] + -0.0057842*motor_desired[1] + 0.0057842*motor_desired[2]+ 0.0068604 * motor_desired[3];
-		want_vel.y = 0.0078639*motor_desired[0] + -0.0078639*motor_desired[1] +  -0.0078639*motor_desired[2] +   0.0078639*motor_desired[3];
-		want_ang = 0.0654194*(motor_desired[0] + motor_desired[1] + motor_desired[2] + motor_desired[3]);
+		want_vel.x= -0.0068604 * orders.wheel_speeds[0] + -0.0057842*orders.wheel_speeds[1] + 0.0057842*orders.wheel_speeds[2]+ 0.0068604 * orders.wheel_speeds[3];
+		want_vel.y = 0.0078639*orders.wheel_speeds[0] + -0.0078639*orders.wheel_speeds[1] +  -0.0078639*orders.wheel_speeds[2] +   0.0078639*orders.wheel_speeds[3];
+		want_ang = 0.0654194*(orders.wheel_speeds[0] + orders.wheel_speeds[1] + orders.wheel_speeds[2] + orders.wheel_speeds[3]);
 
 		if(want_vel.len() > 5.0){
 			want_vel= (5.0)*want_vel/want_vel.len();
@@ -329,13 +343,13 @@ void PlayerODE::pre_tic(double) {
 			dBodyAddForce (body, fce.x, fce.y, 0.0);
 		}
 
-		if (chip_set) {
+		if (has_chip_set() && has_ball()) {
 			if (execute_chip()) {
-				chip_set = false;
+				orders.chip = false;
 			}
-		} else if (kick_set) {
+		} else if (has_kick_set() && has_ball()) {
 			if (execute_kick()) {
-				kick_set = false;
+				orders.kick = false;
 			}
 		}
 	}
@@ -343,18 +357,8 @@ void PlayerODE::pre_tic(double) {
 	posSet = false;
 }
 
-void PlayerODE::dribble(double speed) {
-}
-
-void PlayerODE::kick(double strength) {
-	if (has_ball()) {
-		kick_strength = strength;
-		kick_set = true;
-	}
-}
-
 bool PlayerODE::execute_kick() {
-	double strength = kick_strength;
+	double strength = orders.chick_power;
 	double maximum_impulse = 1.0;
 	Point direction(1.0, 0.0);
 	direction = direction.rotate(orientation());
@@ -370,15 +374,8 @@ bool PlayerODE::execute_kick() {
 	return has_ball();
 }
 
-void PlayerODE::chip(double strength) {
-	if (has_ball()) {
-		chip_strength = strength;
-		chip_set = true;
-	}
-}
-
 bool PlayerODE::execute_chip() {
-	double strength = chip_strength;
+	double strength = orders.chick_power;
 	double maximum_impulse = 1.0;
 
 	Point direction(1.0 / sqrt(2.0), 0.0);
@@ -521,56 +518,5 @@ dTriMeshDataID PlayerODE::create_robot_geom() {
 	dGeomTriMeshDataBuildSimple(triMesh, Vertices[0], NumVertices, Triangles, NumTriangles);
 
 	return triMesh;
-}
-
-void PlayerODE::received(const XBeePacketTypes::RUN_DATA &packet) {
-	assert(packet.flags & XBeePacketTypes::RUN_FLAG_RUNNING);
-
-	// These two aren't used for now because we don't have a firmware simulator
-	direct_drive = packet.flags & XBeePacketTypes::RUN_FLAG_DIRECT_DRIVE;
-	controlled_drive = packet.flags & XBeePacketTypes::RUN_FLAG_CONTROLLED_DRIVE;
-
-
-
-	// These settings are being passed directly for now,
-	// we should probably put code in to handle the fact that packets can arrive whenever and that we could get more than one kick packet
-	if (packet.flags & XBeePacketTypes::RUN_FLAG_CHICKER_ENABLED) {
-		if (packet.flags & XBeePacketTypes::RUN_FLAG_CHIP) {
-			chip(packet.chick_power);
-		} else {
-			kick(packet.chick_power);
-		}
-	}
-
-	/**
-	 * The dribbler code will probably be re-written so this will do for now.
-	 */
-	dribble(packet.dribbler_speed);
-
-
-	// make sure the vehicle is not scrammed
-	if (direct_drive | controlled_drive) {
-		// These are used directly in the simulator code, needs to intercepted by a firmware intepreter to simulate controller
-		motor_desired[0] = packet.drive1_speed;
-		motor_desired[1] = packet.drive2_speed;
-		motor_desired[2] = packet.drive3_speed;
-		motor_desired[3] = packet.drive4_speed;
-	} else {
-		for (uint8_t i = 0; i < 4; i++) {
-			motor_desired[i] = 0;
-		}
-	}
-
-
-	// limit max motor "voltage" to VOLTAGE_LIMIT by scaling the largest component to VOLTAGE_LIMIT if greater but preserve its orientation
-	
-	for (uint8_t index = 0; index < 4; index++) {
-		if (fabs(motor_desired[index]) > VOLTAGE_LIMIT / PACKET_TO_VOLTAGE) {
-			for (int8_t index2 = 0; index2 < 4; index2++) {
-				motor_desired[index2] = motor_desired[index2] / motor_desired[index] * VOLTAGE_LIMIT / PACKET_TO_VOLTAGE;
-			}
-		}
-	}
-
 }
 

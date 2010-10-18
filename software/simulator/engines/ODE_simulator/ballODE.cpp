@@ -130,9 +130,9 @@ bool BallODE::in_goal() {
 	const dReal *t = dBodyGetPosition(body);
 	p.x = t[0];
 	p.y = t[1];
-	double len = SimulatorField::length;
+	double len = SimulatorField::LENGTH;
 	if (p.x > len / 2 || p.x < -len / 2) {
-		double width = SimulatorField::goal_width;
+		double width = SimulatorField::GOAL_WIDTH;
 
 		if (p.y < width / 2 && p.y > (-width / 2)) {
 			// double height = t[2];

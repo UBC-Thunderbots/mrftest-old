@@ -2,9 +2,8 @@
 #define SIM_PLAYER_H
 
 #include "geom/point.h"
+#include "simulator/sockproto/proto.h"
 #include "util/byref.h"
-#include "xbee/shared/packettypes.h"
-#include <glibmm.h>
 
 /**
  * A player, as seen by a simulation engine.
@@ -18,7 +17,13 @@ class SimulatorPlayer : public ByRef {
 		typedef RefPtr<SimulatorPlayer> Ptr;
 
 		/**
-		 * Retrns the player's position.
+		 * The most recent set of orders issued by the AI to the player.
+		 * The engine should examine these orders when running a time tick.
+		 */
+		Simulator::Proto::A2SPlayerInfo orders;
+
+		/**
+		 * Returns the player's position.
 		 *
 		 * \return the position of the player, in metres from field centre.
 		 */
@@ -39,13 +44,6 @@ class SimulatorPlayer : public ByRef {
 		virtual double orientation() const = 0;
 
 		/**
-		 * Returns the dribbler's speed.
-		 *
-		 * \return the speed of the dribbler roller, in revolutions per ten milliseconds.
-		 */
-		virtual unsigned int dribbler_speed() const = 0;
-
-		/**
 		 * Reorients the player.
 		 *
 		 * \param[in] ori the new orientation, in radians from field east.
@@ -53,25 +51,11 @@ class SimulatorPlayer : public ByRef {
 		virtual void orientation(double ori) = 0;
 
 		/**
-		 * Sets the velocity of the player.
+		 * Checks whether the player has the ball.
 		 *
-		 * \param[in] vel the new velocity, in metres per second field-relative.
+		 * \return \c true if the player has the ball, or \c false if not.
 		 */
-		virtual void velocity(const Point &vel) = 0;
-
-		/**
-		 * Sets the angular velocity of the player.
-		 *
-		 * \param[in] avel the new angular velocity, in radians per second.
-		 */
-		virtual void avelocity(double avel) = 0;
-
-		/**
-		 * Handles a "radio" packet received from the AI.
-		 *
-		 * \param[in] packet the packet.
-		 */
-		virtual void received(const XBeePacketTypes::RUN_DATA &packet) = 0;
+		virtual bool has_ball() const = 0;
 };
 
 #endif

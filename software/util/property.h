@@ -48,6 +48,19 @@ template<typename T> class Property : public NonCopyable {
 		}
 
 		/**
+		 * Assigns a new value to the Property.
+		 *
+		 * \param[in] val the new value to assign.
+		 */
+		Property &operator=(const Property<T> &val) {
+			if (value != val.value) {
+				value = val.value;
+				signal_changed().emit();
+			}
+			return *this;
+		}
+
+		/**
 		 * Returns the value of the Property.
 		 *
 		 * \return the value.

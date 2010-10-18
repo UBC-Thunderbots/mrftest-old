@@ -167,6 +167,13 @@ namespace {
 				return enemy;
 			}
 
+			unsigned int ui_controls_table_rows() const {
+				return 0;
+			}
+
+			void ui_controls_attach(Gtk::Table &, unsigned int) {
+			}
+
 			std::size_t visualizable_num_robots() const {
 				return friendly.size() + enemy.size();
 			}
