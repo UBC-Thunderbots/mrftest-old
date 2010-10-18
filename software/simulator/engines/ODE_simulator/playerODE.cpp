@@ -326,7 +326,7 @@ void PlayerODE::pre_tic(double) {
 		// change robot relative velocity to absolute
 		want_vel = want_vel.rotate(orientation());
 		Point fce = (want_vel - the_velocity) / 5.0 * 10.0 * mass.mass;
-		double torque = (want_ang - ((double)avels[2])) / 5.0 * 12.0 * momentInertia;
+		double torque = (want_ang - avels[2]) / 5.0 * 12.0 * momentInertia;
 
 		dBodyEnable(body);
 		dBodySetDynamic(body);
