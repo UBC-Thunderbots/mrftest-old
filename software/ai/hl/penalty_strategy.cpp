@@ -123,16 +123,7 @@ namespace {
 
 	PenaltyStrategy::~PenaltyStrategy() {
 	}
-	/* 
-	void PenaltyStrategy::on_play_type_changed() {
-		for (size_t i = 0; i < G_N_ELEMENTS(HANDLED_PLAY_TYPES); ++i) {
-			if (world.playtype() == HANDLED_PLAY_TYPES[i]) {
-				return;
-			}
-		}
-		resign();
-	}
-	*/
+	
 	PenaltyStrategyFactory::PenaltyStrategyFactory() : StrategyFactory("Penalty", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) {
 	}
 
