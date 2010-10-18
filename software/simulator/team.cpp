@@ -5,7 +5,7 @@
 #include <iostream>
 #include <limits>
 
-Simulator::Team::Team(SimulatorEngine::Ptr engine, Simulator &sim, const Team *other, bool invert) : engine(engine), sim(sim), other(other), invert(invert), ready_(true) {
+Simulator::Team::Team(Simulator &sim, const Team *other, bool invert) : sim(sim), other(other), invert(invert), ready_(true) {
 }
 
 Simulator::Team::~Team() {
@@ -36,6 +36,7 @@ sigc::signal<void> &Simulator::Team::signal_ready() const {
 }
 
 void Simulator::Team::send_tick(const timespec &ts) {
+	// Actually remove any robots we were asked to remove in the past time period.
 	for (std::size_t i = 0; i < to_remove.size(); ++i) {
 		bool found = false;
 		for (std::size_t j = 0; j < players.size() && !found; ++j) {
@@ -52,6 +53,7 @@ void Simulator::Team::send_tick(const timespec &ts) {
 	}
 	to_remove.clear();
 
+	// Actually add any robots we were asked to add in the past time period.
 	for (std::size_t i = 0; i < to_add.size(); ++i) {
 		for (std::size_t j = 0; j < players.size(); ++j) {
 			if (to_add[i] == players[j].pattern) {
@@ -60,12 +62,13 @@ void Simulator::Team::send_tick(const timespec &ts) {
 				return;
 			}
 		}
-		PlayerInfo pi = { player: engine->add_player(), pattern: to_add[i], };
+		PlayerInfo pi = { player: sim.engine->add_player(), pattern: to_add[i], };
 		players.push_back(pi);
 	}
 	to_add.clear();
 
 	if (connection.is()) {
+		// Send the state of the world over the socket.
 		Proto::S2APacket packet;
 		std::memset(&packet, 0, sizeof(packet));
 		packet.type = Proto::S2A_PACKET_TICK;
@@ -95,8 +98,9 @@ void Simulator::Team::send_tick(const timespec &ts) {
 #warning implement scores
 		packet.world_state.friendly_score = 0;
 		packet.world_state.enemy_score = 0;
-		
 		connection->send(packet);
+
+		// Having sent the tick packet, we are no longer ready and must wait for an A2S_PACKET_PLAYERS.
 		ready_ = false;
 	}
 }
@@ -122,9 +126,14 @@ void Simulator::Team::send_play_type() {
 }
 
 void Simulator::Team::close_connection() {
+	// Drop the socket.
 	connection.reset();
+
+	// If no AI is connected, we should not prevent the other team from making forward progress with simulation.
 	ready_ = true;
 	Glib::signal_idle().connect_once(signal_ready().make_slot());
+
+	// Stop all our robots from kicking, chipping, or moving.
 	for (std::size_t i = 0; i < players.size(); ++i) {
 		players[i].player->orders.kick = false;
 		players[i].player->orders.chip = false;
@@ -136,11 +145,14 @@ void Simulator::Team::close_connection() {
 void Simulator::Team::on_packet(const Proto::A2SPacket &packet) {
 	switch (packet.type) {
 		case Proto::A2S_PACKET_PLAYERS:
+			// This should only be received if we're waiting for it after an S2A_PACKET_TICK.
 			if (ready_) {
 				std::cout << "AI out of phase, sent orders twice\n";
 				close_connection();
 				return;
 			}
+
+			// Stash the robots' orders into their Player objects for the engine to examine.
 			for (std::size_t i = 0; i < G_N_ELEMENTS(packet.players); ++i) {
 				if (packet.players[i].pattern != std::numeric_limits<unsigned int>::max()) {
 					bool found = false;
@@ -157,6 +169,8 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet) {
 					}
 				}
 			}
+
+			// Mark this team as ready for another tick.
 			ready_ = true;
 			signal_ready().emit();
 			return;

@@ -9,7 +9,7 @@
 /**
  * The back-end behind an ODE SimulatorPlayer object.
  */
-class PlayerODE : public SimulatorPlayer {
+class PlayerODE : public Simulator::Player {
 	public:
 		double x_len;
 		double y_len;

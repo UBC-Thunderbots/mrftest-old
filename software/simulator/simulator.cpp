@@ -16,6 +16,11 @@
 #include <sys/un.h>
 
 namespace {
+	/**
+	 * Creates the socket that listens for incoming connections from AI clients.
+	 *
+	 * \return the listening socket.
+	 */
 	FileDescriptor::Ptr create_listen_socket() {
 		// Change to the cache directory where we will create the socket.
 		const std::string &cache_dir = Glib::get_user_cache_dir();
@@ -46,15 +51,13 @@ namespace {
 	}
 }
 
-Simulator::Simulator::Simulator(SimulatorEngine::Ptr engine) : engine(engine), listen_socket(create_listen_socket()), team1(engine, *this, &team2, false), team2(engine, *this, &team1, true), fast(false), tick_scheduled(false), playtype(AI::Common::PlayType::HALT), frame_count(0) {
+Simulator::Simulator::Simulator(SimulatorEngine::Ptr engine) : engine(engine), listen_socket(create_listen_socket()), team1(*this, &team2, false), team2(*this, &team1, true), fast(false), tick_scheduled(false), playtype(AI::Common::PlayType::HALT), frame_count(0) {
 	next_tick_game_monotonic_time.tv_sec = 0;
 	next_tick_game_monotonic_time.tv_nsec = 0;
 	next_tick_phys_monotonic_time.tv_sec = 0;
 	next_tick_phys_monotonic_time.tv_nsec = 0;
 	last_fps_report_time.tv_sec = 0;
 	last_fps_report_time.tv_nsec = 0;
-	teams[0] = &team1;
-	teams[1] = &team2;
 	team1.signal_ready().connect(sigc::mem_fun(this, &Simulator::Simulator::check_tick));
 	team2.signal_ready().connect(sigc::mem_fun(this, &Simulator::Simulator::check_tick));
 	Glib::signal_io().connect(sigc::mem_fun(this, &Simulator::Simulator::on_ai_connecting), listen_socket->fd(), Glib::IO_IN);
@@ -163,13 +166,12 @@ bool Simulator::Simulator::on_pending_ai_readable(Glib::IOCondition, FileDescrip
 	}
 
 	// Find a free team slot to put the AI into.
-	Team *team = 0;
-	for (std::size_t i = 0; i < G_N_ELEMENTS(teams) && !team; ++i) {
-		if (!teams[i]->has_connection()) {
-			team = teams[i];
-		}
-	}
-	if (!team) {
+	Team *team;
+	if (!team1.has_connection()) {
+		team = &team1;
+	} else if (!team2.has_connection()) {
+		team = &team2;
+	} else {
 		std::cout << "No space for new AI\n";
 		return false;
 	}
@@ -245,13 +247,7 @@ void Simulator::Simulator::tick() {
 	tick_scheduled = false;
 
 	// If nobody is connected, do nothing.
-	bool any_connected = false;
-	for (std::size_t i = 0; i < G_N_ELEMENTS(teams) && !any_connected; ++i) {
-		if (teams[i]->has_connection()) {
-			any_connected = true;
-		}
-	}
-	if (!any_connected) {
+	if (!team1.has_connection() && !team2.has_connection()) {
 		return;
 	}
 

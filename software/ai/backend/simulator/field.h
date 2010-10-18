@@ -6,6 +6,9 @@
 namespace AI {
 	namespace BE {
 		namespace Simulator {
+			/**
+			 * The field geometry used by the simulator.
+			 */
 			class Field : public AI::BE::Field {
 				public:
 					/**

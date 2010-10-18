@@ -32,7 +32,7 @@ class SimulatorEngine : public ByRef {
 		 *
 		 * \return the SimulatorBall object.
 		 */
-		virtual SimulatorBall::Ptr get_ball() = 0;
+		virtual Simulator::Ball::Ptr get_ball() = 0;
 
 		/**
 		 * Creates a new SimulatorPlayer.
@@ -40,14 +40,14 @@ class SimulatorEngine : public ByRef {
 		 *
 		 * \return the new SimulatorPlayer object.
 		 */
-		virtual SimulatorPlayer::Ptr add_player() = 0;
+		virtual Simulator::Player::Ptr add_player() = 0;
 
 		/**
 		 * Removes from the simulation an existing SimulatorPlayer.
 		 *
 		 * \param[in] player the SimulatorPlayer to remove.
 		 */
-		virtual void remove_player(SimulatorPlayer::Ptr player) = 0;
+		virtual void remove_player(Simulator::Player::Ptr player) = 0;
 
 		/**
 		 * Retrieves the factory object that created the engine.

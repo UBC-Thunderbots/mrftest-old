@@ -18,15 +18,13 @@ namespace Simulator {
 			/**
 			 * Constructs a new Team.
 			 *
-			 * \param[in] engine the simulator engine.
-			 *
 			 * \param[in] sim the main simulator.
 			 *
 			 * \param[in] other the other team in the simulator.
 			 *
 			 * \param[in] invert \c true to invert field coordinates and play types for this team, or \c false to not invert.
 			 */
-			Team(SimulatorEngine::Ptr engine, Simulator &sim, const Team *other, bool invert);
+			Team(Simulator &sim, const Team *other, bool invert);
 
 			/**
 			 * Destroys a Team.
@@ -79,22 +77,76 @@ namespace Simulator {
 			void send_play_type();
 
 		private:
+			/**
+			 * The information about a player as stored in a team.
+			 */
 			struct PlayerInfo {
-				SimulatorPlayer::Ptr player;
+				/**
+				 * The player object provided by the engine.
+				 */
+				Player::Ptr player;
+
+				/**
+				 * The player's lid pattern, used to identify it over the socket.
+				 */
 				unsigned int pattern;
 			};
 
-			const SimulatorEngine::Ptr engine;
+			/**
+			 * The simulator to which this team belongs.
+			 */
 			Simulator &sim;
+
+			/**
+			 * The other team on the field.
+			 */
 			const Team * const other;
+
+			/**
+			 * Whether field coordinates and play types are inverted when reported to this team's AI processes.
+			 */
 			const bool invert;
+
+			/**
+			 * The signal emitted when this team becomes ready to run a tick.
+			 */
 			mutable sigc::signal<void> signal_ready_;
+
+			/**
+			 * The socket connection to this team's AI.
+			 */
 			Connection::Ptr connection;
+
+			/**
+			 * The players who belong to this team.
+			 */
 			std::vector<PlayerInfo> players;
-			std::vector<unsigned int> to_add, to_remove;
+
+			/**
+			 * The lid patterns of robots who will be added to this team at the next tick.
+			 */
+			std::vector<unsigned int> to_add;
+
+			/**
+			 * The lid patterns of robots who will be removed from this team at the next tick.
+			 */
+			std::vector<unsigned int> to_remove;
+
+			/**
+			 * Whether this team is ready for a simulation tick to run.
+			 */
 			bool ready_;
 
+			/**
+			 * Closes the connection to this team's AI process and halts the team's robots.
+			 */
 			void close_connection();
+
+			/**
+			 * Invoked when this team's AI process sends a packet over the socket.
+			 *
+			 * \param[in] packet the packet.
+			 */
 			void on_packet(const Proto::A2SPacket &packet);
 	};
 }

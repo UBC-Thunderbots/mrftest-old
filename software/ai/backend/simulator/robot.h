@@ -9,6 +9,9 @@
 namespace AI {
 	namespace BE {
 		namespace Simulator {
+			/**
+			 * A robot that exists within the simulator, which may be friendly or enemy.
+			 */
 			class Robot : public AI::BE::Robot, public sigc::trackable {
 				public:
 					/**
@@ -79,8 +82,29 @@ namespace AI {
 					}
 
 				private:
-					unsigned int pattern_;
-					Predictor xpred, ypred, tpred;
+					/**
+					 * The lid pattern.
+					 */
+					const unsigned int pattern_;
+
+					/**
+					 * A predictor that provides the X coordinate of predictable quantities.
+					 */
+					Predictor xpred;
+
+					/**
+					 * A predictor that provides the Y coordinate of predictable quantities.
+					 */
+					Predictor ypred;
+
+					/**
+					 * A predictor that provides predictable quantities around orientation.
+					 */
+					Predictor tpred;
+
+					/**
+					 * The object store that holds private data for the rest of the stack that is specific to this robot.
+					 */
 					ObjectStore object_store_;
 			};
 		}

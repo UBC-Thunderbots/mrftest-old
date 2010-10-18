@@ -49,7 +49,7 @@ namespace {
 		cmsg_firsthdr(&mh)->cmsg_level = SOL_SOCKET;
 		cmsg_firsthdr(&mh)->cmsg_type = SCM_CREDENTIALS;
 		std::memcpy(cmsg_data(cmsg_firsthdr(&mh)), &creds, sizeof(creds));
-		if (sendmsg(sock->fd(), &mh, MSG_EOR | MSG_NOSIGNAL) < 0) {
+		if (sendmsg(sock->fd(), &mh, MSG_NOSIGNAL) < 0) {
 			throw SystemError("sendmsg", errno);
 		}
 
@@ -88,18 +88,70 @@ namespace {
 		return sock;
 	}
 
+	/**
+	 * Packages up the GUI controls that are embedded into the window when the simulator backend is used.
+	 */
 	class UIControls {
 		public:
+			/**
+			 * A label for playtype_combo.
+			 */
 			Gtk::Label playtype_label;
-			Gtk::ComboBoxText playtype_combo;
-			Gtk::Label speed_label;
-			Gtk::HBox speed_hbox;
-			Gtk::RadioButtonGroup speed_group;
-			Gtk::RadioButton speed_normal, speed_fast;
-			Gtk::Label players_label;
-			Gtk::HButtonBox players_hbox;
-			Gtk::Button players_add, players_remove;
 
+			/**
+			 * A combo box for picking the master play type plumbed to both teams.
+			 */
+			Gtk::ComboBoxText playtype_combo;
+
+			/**
+			 * A label for speed_hbox.
+			 */
+			Gtk::Label speed_label;
+
+			/**
+			 * A box to contain speed_normal and speed_fast.
+			 */
+			Gtk::HBox speed_hbox;
+
+			/**
+			 * A radio group to contain speed_normal and speed_fast.
+			 */
+			Gtk::RadioButtonGroup speed_group;
+
+			/**
+			 * A radio button to set the simulator to run at normal speed.
+			 */
+			Gtk::RadioButton speed_normal;
+
+			/**
+			 * A radio button to set the simulator to run in fast mode.
+			 */
+			Gtk::RadioButton speed_fast;
+
+			/**
+			 * A label for players_hbox.
+			 */
+			Gtk::Label players_label;
+
+			/**
+			 * A box to contain players_add and players_remove.
+			 */
+			Gtk::HButtonBox players_hbox;
+
+			/**
+			 * A button to add a new player.
+			 */
+			Gtk::Button players_add;
+
+			/**
+			 * A button to remove a player.
+			 */
+			Gtk::Button players_remove;
+
+			/**
+			 * Constructs a new UIControls.
+			 * The controls are not added to a window yet.
+			 */
 			UIControls() : playtype_label("Play type (sim):"), speed_label("Speed:"), speed_normal(speed_group, "Normal"), speed_fast(speed_group, "Fast"), players_label("Players:"), players_hbox(Gtk::BUTTONBOX_SPREAD), players_add("+"), players_remove("−") {
 				for (unsigned int pt = 0; pt < AI::Common::PlayType::COUNT; ++pt) {
 					playtype_combo.append_text(AI::Common::PlayType::DESCRIPTIONS_GENERIC[pt]);
@@ -118,13 +170,28 @@ namespace {
 				players_hbox.pack_start(players_remove);
 			}
 
+			/**
+			 * Destroys a UIControls.
+			 */
 			~UIControls() {
 			}
 
+			/**
+			 * Returns the number of rows of controls.
+			 *
+			 * \return the row count.
+			 */
 			unsigned int rows() const {
 				return 3;
 			}
 
+			/**
+			 * Attaches the controls into a table.
+			 *
+			 * \param[in] t the table into which to place the controls.
+			 *
+			 * \param[in] row the Y coordinate at which the top edge of the first row of components should be placed in the table.
+			 */
 			void attach(Gtk::Table &t, unsigned int row) {
 				t.attach(playtype_label, 0, 1, row, row + 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				t.attach(playtype_combo, 1, 3, row, row + 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -135,8 +202,14 @@ namespace {
 			}
 	};
 
+	/**
+	 * A backend that talks to the simulator process over a UNIX-domain socket.
+	 */
 	class SimulatorBackend : public AI::BE::Backend {
 		public:
+			/**
+			 * Constructs a new SimulatorBackend and connects to the running simulator.
+			 */
 			SimulatorBackend() : sock(connect_to_simulator()), simulator_playtype(AI::Common::PlayType::HALT) {
 				monotonic_time_.tv_sec = 0;
 				monotonic_time_.tv_nsec = 0;
@@ -151,6 +224,9 @@ namespace {
 				playtype_override().signal_changed().connect(sigc::mem_fun(this, &SimulatorBackend::update_playtype));
 			}
 
+			/**
+			 * Destroys a SimulatorBackend.
+			 */
 			~SimulatorBackend() {
 			}
 
@@ -179,30 +255,66 @@ namespace {
 			}
 
 		private:
+			/**
+			 * The UNIX-domain socket connected to the server.
+			 */
 			FileDescriptor::Ptr sock;
+
+			/**
+			 * The field geometry.
+			 */
 			AI::BE::Simulator::Field field_;
+
+			/**
+			 * The ball.
+			 */
 			AI::BE::Simulator::Ball ball_;
+
+			/**
+			 * The friendly team.
+			 */
 			AI::BE::Simulator::FriendlyTeam friendly_;
+
+			/**
+			 * The enemy team.
+			 */
 			AI::BE::Simulator::EnemyTeam enemy_;
+
+			/**
+			 * The timestamp in game monotonic time of the most recent AI tick.
+			 */
 			timespec monotonic_time_;
+
+			/**
+			 * The current master play type.
+			 */
 			AI::Common::PlayType::PlayType simulator_playtype;
+
+			/**
+			 * The UI controls.
+			 */
 			UIControls controls;
 
+			/**
+			 * Invoked when a packet is ready to receive from the simulator over the socket.
+			 *
+			 * \return \c true, to continue accepting more packets.
+			 */
 			bool on_packet(Glib::IOCondition) {
 				// Receive a packet.
 				Simulator::Proto::S2APacket packet;
 				iovec iov = { iov_base: &packet, iov_len: sizeof(packet), };
 				msghdr mh = { msg_name: 0, msg_namelen: 0, msg_iov: &iov, msg_iovlen: 1, msg_control: 0, msg_controllen: 0, msg_flags: 0 };
-				ssize_t rc;
-				if ((rc = recvmsg(sock->fd(), &mh, MSG_DONTWAIT)) <= 0) {
-					if (rc < 0) {
-						if (errno == EAGAIN || errno == EWOULDBLOCK) {
-							return true;
-						}
-						throw SystemError("recvmsg", errno);
-					} else {
-						throw std::runtime_error("Simulator unexpectedly closed socket");
+				ssize_t rc = recvmsg(sock->fd(), &mh, MSG_DONTWAIT);
+				if (rc < 0) {
+					if (errno == EAGAIN || errno == EWOULDBLOCK) {
+						return true;
 					}
+					throw SystemError("recvmsg", errno);
+				} else if (rc == 0) {
+					throw std::runtime_error("Simulator unexpectedly closed socket");
+				} else if (rc != sizeof(packet) || (mh.msg_flags & MSG_TRUNC)) {
+					throw std::runtime_error("Simulator sent bad packet");
 				}
 
 				// Decide what to do based on the type code.
@@ -231,20 +343,28 @@ namespace {
 						return true;
 
 					case Simulator::Proto::S2A_PACKET_SPEED_MODE:
+						// Update the UI controls.
 						if (packet.fast) {
 							controls.speed_fast.set_active();
 						} else {
 							controls.speed_normal.set_active();
 						}
+
+						// Make both radio buttons sensitive.
 						controls.speed_fast.set_sensitive();
 						controls.speed_normal.set_sensitive();
 						return true;
 
 					case Simulator::Proto::S2A_PACKET_PLAY_TYPE:
 						if (packet.playtype < AI::Common::PlayType::COUNT) {
+							// Record the master play type.
 							simulator_playtype = packet.playtype;
+
+							// Update and make sensitive the master play type combo box.
 							controls.playtype_combo.set_active_text(AI::Common::PlayType::DESCRIPTIONS_GENERIC[simulator_playtype]);
 							controls.playtype_combo.set_sensitive();
+
+							// Update the current play type, which is a function of the master and override types.
 							update_playtype();
 							return true;
 						} else {
@@ -255,6 +375,9 @@ namespace {
 				throw std::runtime_error("Simulator sent bad packet type");
 			}
 
+			/**
+			 * Sends a set of robot orders to the simulator.
+			 */
 			void send_orders() {
 				Simulator::Proto::A2SPacket packet;
 				std::memset(&packet, 0, sizeof(packet));
@@ -263,6 +386,9 @@ namespace {
 				send_packet(packet);
 			}
 
+			/**
+			 * Examines the current master play type and play type override and calculates the effective play type.
+			 */
 			void update_playtype() {
 				if (playtype_override() != AI::Common::PlayType::COUNT) {
 					playtype_rw() = playtype_override();
@@ -271,6 +397,10 @@ namespace {
 				}
 			}
 
+			/**
+			 * Invoked when the user selects a new value in the master play type combobox.
+			 * Sends the new selected play type to the simulator.
+			 */
 			void on_sim_playtype_changed() {
 				Simulator::Proto::A2SPacket packet;
 				std::memset(&packet, 0, sizeof(packet));
@@ -284,6 +414,10 @@ namespace {
 				send_packet(packet);
 			}
 
+			/**
+			 * Invoked when the user selects a new speed mode radio button.
+			 * Sends the new selected speed mode to the simulator.
+			 */
 			void on_speed_toggled() {
 				Simulator::Proto::A2SPacket packet;
 				std::memset(&packet, 0, sizeof(packet));
@@ -291,6 +425,10 @@ namespace {
 				send_packet(packet);
 			}
 
+			/**
+			 * Invoked when the user clicks the add player button.
+			 * Sends the request to the simulator and prevents further team edits until the next tick.
+			 */
 			void on_players_add_clicked() {
 				Simulator::Proto::A2SPacket packet;
 				std::memset(&packet, 0, sizeof(packet));
@@ -301,6 +439,10 @@ namespace {
 				controls.players_remove.set_sensitive(false);
 			}
 
+			/**
+			 * Invoked when the user clicks the remove player button.
+			 * Sends the request to the simulator and prevents further team edits until the next tick.
+			 */
 			void on_players_remove_clicked() {
 				Simulator::Proto::A2SPacket packet;
 				std::memset(&packet, 0, sizeof(packet));
@@ -311,31 +453,48 @@ namespace {
 				controls.players_remove.set_sensitive(false);
 			}
 
+			/**
+			 * Checks whether a particular lid pattern exists in the friendly team.
+			 *
+			 * \param[in] pattern the pattern to look for.
+			 *
+			 * \return \c true if \p pattern exists, or \c false if not.
+			 */
 			bool pattern_exists(unsigned int pattern) {
-				return find_pattern(pattern) != std::numeric_limits<std::size_t>::max();
-			}
-
-			std::size_t find_pattern(unsigned int pattern) {
 				for (std::size_t i = 0; i < friendly_.size(); ++i) {
 					if (friendly_.get(i)->pattern() == pattern) {
-						return i;
+						return true;
 					}
 				}
-				return std::numeric_limits<std::size_t>::max();
+				return false;
 			}
 
+			/**
+			 * Sends a packet to the simulator.
+			 *
+			 * \param[in] packet the packet to send.
+			 */
 			void send_packet(const Simulator::Proto::A2SPacket &packet) {
-				if (send(sock->fd(), &packet, sizeof(packet), MSG_EOR | MSG_NOSIGNAL) < 0) {
-					throw SystemError("sendmsg", errno);
+				if (send(sock->fd(), &packet, sizeof(packet), MSG_NOSIGNAL) < 0) {
+					throw SystemError("send", errno);
 				}
 			}
 	};
 
+	/**
+	 * A factory for creating \ref SimulatorBackend "SimulatorBackends".
+	 */
 	class SimulatorBackendFactory : public AI::BE::BackendFactory {
 		public:
+			/**
+			 * Constructs a new SimulatorBackendFactory.
+			 */
 			SimulatorBackendFactory() : AI::BE::BackendFactory("Simulator") {
 			}
 
+			/**
+			 * Destroys a SimulatorBackendFactory.
+			 */
 			~SimulatorBackendFactory() {
 			}
 
@@ -345,6 +504,9 @@ namespace {
 			}
 	};
 
+	/**
+	 * The global instance of SimulatorBackendFactory.
+	 */
 	SimulatorBackendFactory factory_instance;
 
 	AI::BE::BackendFactory &SimulatorBackend::factory() const {

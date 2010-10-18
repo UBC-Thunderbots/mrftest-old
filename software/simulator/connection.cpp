@@ -19,15 +19,13 @@ sigc::signal<void, const Simulator::Proto::A2SPacket &> &Simulator::Connection::
 }
 
 void Simulator::Connection::send(const Proto::S2APacket &packet) {
-	iovec iov = { iov_base: const_cast<Proto::S2APacket *>(&packet), iov_len: sizeof(packet), };
-	msghdr mh = { msg_name: 0, msg_namelen: 0, msg_iov: &iov, msg_iovlen: 1, msg_control: 0, msg_controllen: 0, msg_flags: 0, };
-	if (sendmsg(sock->fd(), &mh, MSG_EOR | MSG_NOSIGNAL) < 0) {
+	if (::send(sock->fd(), &packet, sizeof(packet), MSG_NOSIGNAL) < 0) {
 		try {
-			throw SystemError("sendmsg", errno);
+			throw SystemError("send", errno);
 		} catch (const SystemError &exp) {
 			std::cout << exp.what() << '\n';
 		}
-		close_connection();
+		signal_closed().emit();
 	}
 }
 
@@ -52,16 +50,16 @@ bool Simulator::Connection::on_readable(Glib::IOCondition) {
 			} catch (const SystemError &exp) {
 				std::cout << exp.what() << '\n';
 			}
-			close_connection();
+			signal_closed().emit();
 			return false;
 		}
 	} else if (!rc) {
 		std::cout << "Connection closed.\n";
-		close_connection();
+		signal_closed().emit();
 		return false;
 	} else if (rc != sizeof(packet) || (mh.msg_flags & MSG_TRUNC)) {
 		std::cout << "AI sent bad packet.\n";
-		close_connection();
+		signal_closed().emit();
 		return false;
 	} else {
 		// Might drop the last reference inside a signal_packet() handler; keep the object alive until we return.
@@ -69,9 +67,5 @@ bool Simulator::Connection::on_readable(Glib::IOCondition) {
 		signal_packet().emit(packet);
 		return true;
 	}
-}
-
-void Simulator::Connection::close_connection() {
-	signal_closed().emit();
 }
 

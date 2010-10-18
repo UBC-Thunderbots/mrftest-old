@@ -8,6 +8,9 @@
 namespace AI {
 	namespace BE {
 		namespace Simulator {
+			/**
+			 * A ball whose position is provided by a simulator.
+			 */
 			class Ball : public AI::BE::Ball {
 				public:
 					/**
@@ -46,7 +49,15 @@ namespace AI {
 					Point acceleration(const timespec &ts) const { return Point(xpred.value(ts, 2), ypred.value(ts, 2)); }
 
 				private:
-					Predictor xpred, ypred;
+					/**
+					 * A predictor that provides the X coordinate of predictable quantities.
+					 */
+					Predictor xpred;
+
+					/**
+					 * A predictor that provides the Y coordinate of predictable quantities.
+					 */
+					Predictor ypred;
 			};
 		}
 	}

@@ -10,6 +10,9 @@
 namespace AI {
 	namespace BE {
 		namespace Simulator {
+			/**
+			 * A friendly robot that exists in a simulator.
+			 */
 			class Player : public AI::BE::Simulator::Robot, public AI::BE::Player {
 				public:
 					/**
@@ -39,6 +42,7 @@ namespace AI {
 					void pre_tick(const ::Simulator::Proto::S2APlayerInfo &state, const timespec &ts) {
 						AI::BE::Simulator::Robot::pre_tick(state.robot_info, ts);
 						has_ball_ = state.has_ball;
+						kick_ = chip_ = false;
 					}
 
 					/**
@@ -109,15 +113,55 @@ namespace AI {
 					}
 
 				private:
+					/**
+					 * Whether or not this player is holding the ball on its dribbler.
+					 */
 					bool has_ball_;
+
+					/**
+					 * The target position and orientation most recently selected by the high-level AI.
+					 */
 					std::pair<Point, double> destination_;
+
+					/**
+					 * The movement flags most recently specified by the high-level AI.
+					 */
 					unsigned int flags_;
+
+					/**
+					 * The movement type most recently specified by the high-level AI.
+					 */
 					AI::Flags::MOVE_TYPE move_type_;
+
+					/**
+					 * The movement priority most recently specified by the high-level AI.
+					 */
 					AI::Flags::MOVE_PRIO move_prio_;
+
+					/**
+					 * The path of positions, orientations, and deadline timestamps most recently specified by the navigator.
+					 */
 					std::vector<std::pair<std::pair<Point, double>, timespec> > path_;
+
+					/**
+					 * Whether the AI elected to kick in the current time tick.
+					 */
 					bool kick_;
+
+					/**
+					 * Whether the AI elected to chip in the current time tick.
+					 */
 					bool chip_;
+
+					/**
+					 * The power level for the kick or chip, if one of the flags is set.
+					 */
 					double chick_power_;
+
+					/**
+					 * The rotational speeds requested for the wheels by the robot controller,
+					 * in quarters of a degree of motor shaft rotation per five milliseconds.
+					 */
 					int wheel_speeds_[4];
 			};
 		}

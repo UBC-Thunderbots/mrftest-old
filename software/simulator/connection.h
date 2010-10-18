@@ -48,14 +48,42 @@ namespace Simulator {
 			void send(const Proto::S2APacket &packet);
 
 		private:
+			/**
+			 * The socket connected to the AI process.
+			 */
 			const FileDescriptor::Ptr sock;
+
+			/**
+			 * The signal emitted when the AI process closes its end of the socket.
+			 */
 			mutable sigc::signal<void> signal_closed_;
+
+			/**
+			 * The signal emitted when the AI process sends a packet to the simulator.
+			 */
 			mutable sigc::signal<void, const Proto::A2SPacket &> signal_packet_;
 
+			/**
+			 * Constructs a new Connection.
+			 *
+			 * \param[in] sock the socket connected to the AI, which should have already been authenticated.
+			 *
+			 * \return the Connection.
+			 */
 			Connection(FileDescriptor::Ptr sock);
+
+			/**
+			 * Destroys a Connection.
+			 * The underlying socket will be closed.
+			 */
 			~Connection();
+
+			/**
+			 * Invoked when the socket has data waiting.
+			 *
+			 * \return \c true to keep reading more data.
+			 */
 			bool on_readable(Glib::IOCondition);
-			void close_connection();
 	};
 }
 

@@ -12,8 +12,12 @@
 namespace AI {
 	namespace BE {
 		namespace Simulator {
-			template<typename T>
-			class GenericTeam : public NonCopyable {
+			/**
+			 * A general simulator-based team, whether friendly or enemy.
+			 *
+			 * \tparam T the type of pointer to robot held in this team.
+			 */
+			template<typename T> class GenericTeam : public NonCopyable {
 				public:
 					/**
 					 * The property holding the team's score.
@@ -57,6 +61,9 @@ namespace AI {
 					T get(std::size_t i) { return members[i]; }
 
 				private:
+					/**
+					 * The members of the team.
+					 */
 					std::vector<T> members;
 
 					/**
@@ -74,6 +81,9 @@ namespace AI {
 					virtual void emit_robot_removing(std::size_t i) const = 0;
 			};
 
+			/**
+			 * The team containing \ref Player "Players" that the AI can control.
+			 */
 			class FriendlyTeam : public AI::BE::FriendlyTeam, public GenericTeam<Player::Ptr> {
 				public:
 					/**
@@ -151,6 +161,11 @@ namespace AI {
 						}
 					}
 
+					/**
+					 * Stores the orders computed by the AI into a packet to send to the simulator.
+					 *
+					 * \param[out] orders the packet to populate.
+					 */
 					void encode_orders(::Simulator::Proto::A2SPlayerInfo (&orders)[::Simulator::Proto::MAX_PLAYERS_PER_TEAM]) {
 						for (std::size_t i = 0; i < G_N_ELEMENTS(orders); ++i) {
 							if (i < size()) {
@@ -168,6 +183,9 @@ namespace AI {
 					void emit_robot_removing(std::size_t i) const { signal_robot_removing().emit(i); }
 			};
 
+			/**
+			 * The team containing \ref Robot "Robots" that are controlled by another AI.
+			 */
 			class EnemyTeam : public AI::BE::EnemyTeam, public GenericTeam<Robot::Ptr> {
 				public:
 					/**

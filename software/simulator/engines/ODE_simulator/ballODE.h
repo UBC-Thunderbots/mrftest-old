@@ -7,7 +7,7 @@
 /**
  * The back-end behind an ODE SimulatorBall object.
  */
-class BallODE : public SimulatorBall {
+class BallODE : public Simulator::Ball {
 	public:
 		typedef RefPtr<BallODE> Ptr;
 		dWorldID world;

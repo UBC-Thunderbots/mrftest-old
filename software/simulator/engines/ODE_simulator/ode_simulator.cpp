@@ -72,14 +72,14 @@ namespace {
 				double wall_thickness = 0.1127; //
 
 				// build a wall around the playing field
-				wall[0] = dCreateBox(space, SimulatorField::TOTAL_LENGTH + 2 * wall_thickness, wall_thickness, wall_height);
-				wall[1] = dCreateBox(space, SimulatorField::TOTAL_LENGTH + 2 * wall_thickness, wall_thickness, wall_height);
-				wall[2] = dCreateBox(space, wall_thickness, SimulatorField::TOTAL_WIDTH - 2 * wall_thickness, wall_height);
-				wall[3] = dCreateBox(space, wall_thickness, SimulatorField::TOTAL_WIDTH - 2 * wall_thickness, wall_height);
-				dGeomSetPosition(wall[0], 0, (SimulatorField::TOTAL_WIDTH / 2 + wall_thickness / 2), (wall_height / 2));
-				dGeomSetPosition(wall[1], 0, -(SimulatorField::TOTAL_WIDTH / 2 + wall_thickness / 2), (wall_height / 2));
-				dGeomSetPosition(wall[2], (SimulatorField::TOTAL_LENGTH / 2 + wall_thickness / 2), 0, (wall_height / 2));
-				dGeomSetPosition(wall[3], -(SimulatorField::TOTAL_LENGTH / 2 + wall_thickness / 2), 0, (wall_height / 2));
+				wall[0] = dCreateBox(space, Simulator::Field::TOTAL_LENGTH + 2 * wall_thickness, wall_thickness, wall_height);
+				wall[1] = dCreateBox(space, Simulator::Field::TOTAL_LENGTH + 2 * wall_thickness, wall_thickness, wall_height);
+				wall[2] = dCreateBox(space, wall_thickness, Simulator::Field::TOTAL_WIDTH - 2 * wall_thickness, wall_height);
+				wall[3] = dCreateBox(space, wall_thickness, Simulator::Field::TOTAL_WIDTH - 2 * wall_thickness, wall_height);
+				dGeomSetPosition(wall[0], 0, (Simulator::Field::TOTAL_WIDTH / 2 + wall_thickness / 2), (wall_height / 2));
+				dGeomSetPosition(wall[1], 0, -(Simulator::Field::TOTAL_WIDTH / 2 + wall_thickness / 2), (wall_height / 2));
+				dGeomSetPosition(wall[2], (Simulator::Field::TOTAL_LENGTH / 2 + wall_thickness / 2), 0, (wall_height / 2));
+				dGeomSetPosition(wall[3], -(Simulator::Field::TOTAL_LENGTH / 2 + wall_thickness / 2), 0, (wall_height / 2));
 				// set possible penetration for collisions
 
 				dWorldSetContactSurfaceLayer(eworld, 0.1);
@@ -123,11 +123,11 @@ namespace {
 			void setWorld(dWorldID world) {
 				eworld = world;
 			}
-			SimulatorBall::Ptr get_ball() {
+			Simulator::Ball::Ptr get_ball() {
 				return the_ball;
 			}
 
-			SimulatorPlayer::Ptr add_player() {
+			Simulator::Player::Ptr add_player() {
 				PlayerODE::Ptr p(new PlayerODE(eworld, space, the_ball->ballGeom, static_cast<double>(UPDATES_PER_TICK)));
 				Point cur = p->position();
 
@@ -161,9 +161,9 @@ namespace {
 				return emptyPlayer;
 			}
 
-			void remove_player(SimulatorPlayer::Ptr p) {
+			void remove_player(Simulator::Player::Ptr p) {
 				for (unsigned int i = 0; i < the_players.size(); i++) {
-					if (SimulatorPlayer::Ptr::cast_static(the_players[i]) == p) {
+					if (Simulator::Player::Ptr::cast_static(the_players[i]) == p) {
 						the_players.erase(the_players.begin() + i);
 						return;
 					}

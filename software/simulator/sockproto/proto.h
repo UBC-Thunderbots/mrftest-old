@@ -64,31 +64,40 @@ namespace Simulator {
 		enum A2SPacketType {
 			/**
 			 * Carries orders issued by the AI to the players.
+			 * There must be a one-to-one correspondence between packets of this type and packets of type S2A_PACKET_TICK.
+			 * The AI must always wait until it receivse an S2A_PACKET_TICK, then reply with exactly one A2S_PACKET_PLAYERS.
 			 */
 			A2S_PACKET_PLAYERS,
 
 			/**
 			 * Requests that the simulator create and place a new player for the team.
+			 * The pattern must not already exist on the team.
+			 * Packets of this type and A2S_PACKET_REMOVE_PLAYER should be limited to one per S2A_PACKET_TICK.
 			 */
 			A2S_PACKET_ADD_PLAYER,
 
 			/**
 			 * Requests that the simulator remove a player from the team.
+			 * The pattern must exist on the team.
+			 * Packets of this type and A2S_PACKET_ADD_PLAYER should be limited to one per S2A_PACKET_TICK.
 			 */
 			A2S_PACKET_REMOVE_PLAYER,
 
 			/**
 			 * Requests that the simulator switch to fast mode.
+			 * This may be sent at any time.
 			 */
 			A2S_PACKET_FAST,
 
 			/**
 			 * Requests that the simulator switch to normal-speed mode.
+			 * This may be sent at any time.
 			 */
 			A2S_PACKET_NORMAL_SPEED,
 
 			/**
 			 * Requests that the simulator change play types.
+			 * This may be sent at any time.
 			 */
 			A2S_PACKET_PLAY_TYPE,
 		};
