@@ -1,9 +1,30 @@
 #ifndef UTIL_CODEC_H
 #define UTIL_CODEC_H
 
+#include <cmath>
 #include <cstddef>
 #include <stdint.h>
 #include <vector>
+
+namespace Codec {
+	/**
+	 * Encodes a floating-point number is IEEE754 double-precision format.
+	 *
+	 * \param[in] x the value to encode.
+	 *
+	 * \return the encoded form.
+	 */
+	uint64_t double_to_u64(double x);
+
+	/**
+	 * Decodes a floating-point number from IEEE754 double-precision format.
+	 *
+	 * \param[in] x the value to decode.
+	 *
+	 * \return the floating-point number.
+	 */
+	double u64_to_double(uint64_t x);
+}
 
 namespace {
 	/**
@@ -54,6 +75,18 @@ namespace {
 	}
 
 	/**
+	 * Encodes a floating-point number to a byte array.
+	 * The floating-point number will consume 8 bytes of storage.
+	 *
+	 * \param[in,out] b the buffer into which to encode.
+	 *
+	 * \param[in] x the floating-point number to encode.
+	 */
+	void encode_double(uint8_t *b, double x) {
+		encode_u64(b, Codec::double_to_u64(x));
+	}
+
+	/**
 	 * Appends an 8-bit integer to a \c vector.
 	 *
 	 * \param[in,out] v the \c vector to append to.
@@ -98,6 +131,18 @@ namespace {
 	void encode_u64(std::vector<uint8_t> &v, uint64_t x) {
 		encode_u32(v, x >> 32);
 		encode_u32(v, x);
+	}
+
+	/**
+	 * Appends a floating-point number to a \c vector.
+	 * The floating-point number will consume 8 bytes of storage.
+	 *
+	 * \param[in,out] v the \c vector to append to.
+	 *
+	 * \param[in] x the floating-point number to encode.
+	 */
+	void encode_double(std::vector<uint8_t> &v, double x) {
+		encode_u64(v, Codec::double_to_u64(x));
 	}
 
 	/**
@@ -148,6 +193,18 @@ namespace {
 		uint64_t high = decode_u32(buffer);
 		uint64_t low = decode_u32(buffer + 4);
 		return (high << 32) | low;
+	}
+
+	/**
+	 * Extracts a floating-point number from a data buffer.
+	 * The floating-point number must be 8 bytes wide.
+	 *
+	 * \param[in] buffer the data to extract from.
+	 *
+	 * \return the floating-point number.
+	 */
+	double decode_double(const uint8_t *buffer) {
+		return Codec::u64_to_double(decode_u64(buffer));
 	}
 
 	/**
@@ -209,6 +266,20 @@ namespace {
 	}
 
 	/**
+	 * Extracts a floating-point number from a data buffer.
+	 * The floating-point number must be 8 bytes wide.
+	 *
+	 * \param[in] buffer the data to extract from.
+	 *
+	 * \param[in,out] i an index into the buffer at which to extract, which will be incremented by the number of bytes consumed.
+	 *
+	 * \return the floating-point number.
+	 */
+	double decode_double(const uint8_t *buffer, std::size_t &i) {
+		return Codec::u64_to_double(decode_u64(buffer, i));
+	}
+
+	/**
 	 * Extracts an 8-bit integer from a data buffer.
 	 *
 	 * \param[in] buffer the data to extract from.
@@ -258,6 +329,20 @@ namespace {
 	 */
 	uint64_t decode_u64(const std::vector<uint8_t> &buffer, std::size_t &i) {
 		return decode_u64(&buffer[0], i);
+	}
+
+	/**
+	 * Extracts a floating-point number from a data buffer.
+	 * The floating-point number must be 8 bytes wide.
+	 *
+	 * \param[in] buffer the data to extract from.
+	 *
+	 * \param[in,out] i an index into the buffer at which to extract, which will be incremented by the number of bytes consumed.
+	 *
+	 * \return the floating-point number.
+	 */
+	double decode_double(const std::vector<uint8_t> &buffer, std::size_t &i) {
+		return Codec::u64_to_double(decode_u64(buffer, i));
 	}
 }
 

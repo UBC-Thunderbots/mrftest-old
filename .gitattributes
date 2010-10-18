@@ -256,6 +256,7 @@ software/util/chdir.h -text
 software/util/clocksource.h -text
 software/util/clocksource_timerfd.cpp -text
 software/util/clocksource_timerfd.h -text
+software/util/codec.cpp -text
 software/util/codec.h -text
 software/util/config.cpp -text
 software/util/config.h -text
