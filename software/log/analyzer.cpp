@@ -103,62 +103,62 @@ namespace {
 		/**
 		 * The packet has an unknown tag (it may have been written by a newer version).
 		 */
-		PF_UNKNOWN_TAG = 0x0001,
+		PF_UNKNOWN_TAG = 0x1,
 
 		/**
 		 * The packet is shorter than expected (it may have been written by an older version).
 		 */
-		PF_SHORT = 0x0002,
+		PF_SHORT = 0x2,
 
 		/**
 		 * The packet is longer than expected (it may have been written by a newer version).
 		 */
-		PF_LONG = 0x0004,
+		PF_LONG = 0x4,
 
 		/**
 		 * The packet extends beyond the end of the file.
 		 */
-		PF_TRUNCATED = 0x0008,
+		PF_TRUNCATED = 0x8,
 
 		/**
 		 * The packet has a bad CRC16.
 		 */
-		PF_BAD_CRC = 0x0010,
+		PF_BAD_CRC = 0x10,
 
 		/**
 		 * The packet contains a UTF-8 string which is encoded illegally.
 		 */
-		PF_BAD_UTF8 = 0x0020,
+		PF_BAD_UTF8 = 0x20,
 
 		/**
 		 * The packet contains a log message but the log level is unknown (it may have been written by a newer version).
 		 */
-		PF_UNKNOWN_LOG_LEVEL = 0x0040,
+		PF_UNKNOWN_LOG_LEVEL = 0x40,
 
 		/**
 		 * The packet contains a double but the value is not a legal encoding of a floating-point number.
 		 */
-		PF_BAD_DOUBLE = 0x0080,
+		PF_BAD_DOUBLE = 0x80,
 
 		/**
 		 * The packet contains a raw network packet but the packet data does not comply with the expected protocol.
 		 */
-		PF_BAD_NETWORK_PACKET = 0x0100,
+		PF_BAD_NETWORK_PACKET = 0x100,
 
 		/**
 		 * The packet contains a play type but the play type is illegal.
 		 */
-		PF_BAD_PLAYTYPE = 0x0200,
+		PF_BAD_PLAYTYPE = 0x200,
 
 		/**
 		 * The packet contains a robot movement flag set but one of the flags is unknown (it may have been written by a newer version).
 		 */
-		PF_UNKNOWN_MOVE_FLAG = 0x0400,
+		PF_UNKNOWN_MOVE_FLAG = 0x400,
 
 		/**
 		 * The packet contains a robot movement type but the type is unknown (it may have been written by a newer version).
 		 */
-		PF_UNKNOWN_MOVE_TYPE = 0x0800,
+		PF_UNKNOWN_MOVE_TYPE = 0x800,
 
 		/**
 		 * The packet contains a robot movement priority but the priority is unknown (it may have been written by a newer version).
@@ -179,6 +179,11 @@ namespace {
 		 * The packet contains a timespec whose nanoseconds field is greater than or equal to one second.
 		 */
 		PF_BAD_TIMESPEC = 0x8000,
+
+		/**
+		 * The packet uses the old ASCII encoding of floating-point values.
+		 */
+		PF_OLD_DOUBLE = 0x10000,
 	};
 
 	/**
@@ -257,7 +262,7 @@ namespace {
 	 *
 	 * \return \c true if the string matches all the rules for an ASCII-encoded floating point number, or \c false if not.
 	 */
-	bool check_double(const void *data, std::size_t length) {
+	bool check_old_double(const void *data, std::size_t length) {
 		const char *p = static_cast<const char *>(data);
 		bool seen_sign = false;
 		bool seen_ones = false;
@@ -758,8 +763,8 @@ namespace {
 	 *
 	 * \return the packet flags.
 	 */
-	unsigned int packet_generic_double_compute_flags(const uint8_t *data, std::size_t length, std::size_t declared_length) {
-		unsigned int flags = 0;
+	unsigned int packet_generic_old_double_compute_flags(const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		unsigned int flags = PF_OLD_DOUBLE;
 
 		if (declared_length < 20) {
 			flags |= PF_SHORT | PF_UNKNOWN_LOG_LEVEL;
@@ -768,7 +773,7 @@ namespace {
 		}
 
 		if (length >= 20) {
-			if (!check_double(data, length)) {
+			if (!check_old_double(data, length)) {
 				flags |= PF_BAD_DOUBLE;
 			}
 		}
@@ -790,12 +795,12 @@ namespace {
 	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
 	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
 	 */
-	void packet_generic_double_build_tree(Glib::RefPtr<Gtk::TreeStore>, const PacketDecodedTreeColumns &columns, const Gtk::TreeRow &root, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+	void packet_generic_old_double_build_tree(Glib::RefPtr<Gtk::TreeStore>, const PacketDecodedTreeColumns &columns, const Gtk::TreeRow &root, const uint8_t *data, std::size_t length, std::size_t declared_length) {
 		if (declared_length < 20) {
 			root[columns.value] = "<OMITTED>";
 		} else {
 			if (length >= 20) {
-				if (check_double(data, 20)) {
+				if (check_old_double(data, 20)) {
 					std::istringstream iss(std::string(reinterpret_cast<const char *>(data), 20));
 					iss.imbue(std::locale("C"));
 					double value;
@@ -804,6 +809,56 @@ namespace {
 				} else {
 					root[columns.value] = "<INVALID FLOATING POINT ENCODING>";
 				}
+			} else {
+				root[columns.value] = "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
+	 * Computes flags for an IEEE754 double-precision-encoded floating point number.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 *
+	 * \return the packet flags.
+	 */
+	unsigned int packet_generic_double_compute_flags(const uint8_t *, std::size_t, std::size_t declared_length) {
+		unsigned int flags = 0;
+
+		if (declared_length < 8) {
+			flags |= PF_SHORT;
+		} else if (declared_length > 8) {
+			flags |= PF_LONG;
+		}
+
+		return flags;
+	}
+
+	/**
+	 * Parses an IEEE754 double-precision-encoded floating point number and produces a human-readable tree of its contents.
+	 *
+	 * \param[in] columns the column record containing the columns of the store.
+	 *
+	 * \param[in] root the tree row under which to build the element's row.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_generic_double_build_tree(Glib::RefPtr<Gtk::TreeStore>, const PacketDecodedTreeColumns &columns, const Gtk::TreeRow &root, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 8) {
+			root[columns.value] = "<OMITTED>";
+		} else {
+			if (length >= 8) {
+				root[columns.value] = Glib::ustring::format(decode_double(data));
 			} else {
 				root[columns.value] = "<PACKET TRUNCATED>";
 			}
@@ -1949,17 +2004,17 @@ namespace {
 	const SequencePacketParser packet_int_param_parser(Log::T_INT_PARAM, "Parameter Changed", packet_int_param_elements, G_N_ELEMENTS(packet_int_param_elements));
 
 	/**
-	 * The sequence of elements in a Log::T_DOUBLE_PARAM.
+	 * The sequence of elements in a Log::T_DOUBLE_PARAM_OLD.
 	 */
-	const SequencePacketParser::Element packet_double_param_elements[] = {
-		{ length: 20, name: "Value", compute_flags: &packet_generic_double_compute_flags, build_tree: &packet_generic_double_build_tree },
+	const SequencePacketParser::Element packet_double_param_old_elements[] = {
+		{ length: 20, name: "Value", compute_flags: &packet_generic_old_double_compute_flags, build_tree: &packet_generic_old_double_build_tree },
 		{ length: 0, name: "Parameter", compute_flags: &packet_generic_utf8_compute_flags, build_tree: &packet_generic_utf8_build_tree },
 	};
 
 	/**
-	 * A parser for a Log::T_DOUBLE_PARAM.
+	 * A parser for a Log::T_DOUBLE_PARAM_OLD.
 	 */
-	const SequencePacketParser packet_double_param_parser(Log::T_DOUBLE_PARAM, "Parameter Changed", packet_double_param_elements, G_N_ELEMENTS(packet_double_param_elements));
+	const SequencePacketParser packet_double_param_old_parser(Log::T_DOUBLE_PARAM_OLD, "Parameter Changed", packet_double_param_old_elements, G_N_ELEMENTS(packet_double_param_old_elements));
 
 	/**
 	 * A parser for a Log::T_VISION.
@@ -2164,6 +2219,19 @@ namespace {
 	const SequencePacketParser packet_backend_parser(Log::T_BACKEND, "Backend", packet_backend_elements, G_N_ELEMENTS(packet_backend_elements));
 
 	/**
+	 * The sequence of elements in a Log::T_DOUBLE_PARAM.
+	 */
+	const SequencePacketParser::Element packet_double_param_elements[] = {
+		{ length: 8, name: "Value", compute_flags: &packet_generic_double_compute_flags, build_tree: &packet_generic_double_build_tree },
+		{ length: 0, name: "Parameter", compute_flags: &packet_generic_utf8_compute_flags, build_tree: &packet_generic_utf8_build_tree },
+	};
+
+	/**
+	 * A parser for a Log::T_DOUBLE_PARAM.
+	 */
+	const SequencePacketParser packet_double_param_parser(Log::T_DOUBLE_PARAM, "Parameter Changed", packet_double_param_elements, G_N_ELEMENTS(packet_double_param_elements));
+
+	/**
 	 * The set of all packet parsers.
 	 */
 	const PacketParser *const packet_parsers[] = {
@@ -2173,7 +2241,7 @@ namespace {
 		&packet_annunciator_parser,
 		&packet_bool_param_parser,
 		&packet_int_param_parser,
-		&packet_double_param_parser,
+		&packet_double_param_old_parser,
 		&packet_vision_parser,
 		&packet_refbox_parser,
 		&packet_field_parser,
@@ -2189,6 +2257,7 @@ namespace {
 		&packet_ball_parser,
 		&packet_ai_tick_parser,
 		&packet_backend_parser,
+		&packet_double_param_parser,
 	};
 
 	class PacketInfo {
@@ -2322,6 +2391,9 @@ namespace {
 					}
 					if (flags & PF_UNKNOWN_END_REASON) {
 						columns.append_kv(store, notes_row, "Termination reason unknown");
+					}
+					if (flags & PF_OLD_DOUBLE) {
+						columns.append_kv(store, notes_row, "Old floating-point encoding");
 					}
 				}
 

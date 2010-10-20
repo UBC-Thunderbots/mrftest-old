@@ -278,19 +278,14 @@ void AI::Logger::on_int_param_changed(IntParam *p) {
 }
 
 void AI::Logger::on_double_param_changed(DoubleParam *p) {
-	std::ostringstream oss;
-	oss.imbue(std::locale("C"));
-	oss.flags(std::ios::showpoint | std::ios::showpos | std::ios::dec | std::ios::scientific | std::ios::right);
-	oss.precision(10);
-	oss.width(20);
-	oss << static_cast<double>(*p);
-	const std::string &value = oss.str();
+	uint8_t value[8];
+	encode_double(value, *p);
 
 	const std::string &utf8name = p->name;
 
 	iovec iov[2];
-	iov[0].iov_base = const_cast<char *>(value.data());
-	iov[0].iov_len = value.size();
+	iov[0].iov_base = &value;
+	iov[0].iov_len = sizeof(value);
 	iov[1].iov_base = const_cast<char *>(utf8name.data());
 	iov[1].iov_len = utf8name.size();
 

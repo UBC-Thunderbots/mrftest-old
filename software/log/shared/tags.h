@@ -59,13 +59,13 @@ namespace Log {
 		T_INT_PARAM,
 
 		/**
-		 * Tags a double parameter value.
+		 * Tags a double parameter value (deprecated).
 		 *
 		 * As payload:
 		 * \li 20 bytes string new value of parameter, encoded in ASCII, right-justified, padded with spaces
 		 * \li n bytes string parameter name
 		 */
-		T_DOUBLE_PARAM,
+		T_DOUBLE_PARAM_OLD,
 
 		/**
 		 * Tags reception of an SSL-Vision packet.
@@ -235,6 +235,15 @@ namespace Log {
 		 * \li n bytes string name of backend.
 		 */
 		T_BACKEND,
+
+		/**
+		 * Tags a double parameter value.
+		 *
+		 * As payload:
+		 * \li 8 bytes IEEE754 double-precision-encoded new value of parameter
+		 * \li n bytes string parameter name
+		 */
+		T_DOUBLE_PARAM,
 	};
 
 	/**
