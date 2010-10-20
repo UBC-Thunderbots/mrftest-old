@@ -422,7 +422,7 @@ namespace {
 		unsigned int flags = 0;
 
 		if (declared_length < 1) {
-			flags |= PF_SHORT | PF_UNKNOWN_LOG_LEVEL;
+			flags |= PF_SHORT;
 		} else if (declared_length > 1) {
 			flags |= PF_LONG;
 		}
@@ -767,7 +767,7 @@ namespace {
 		unsigned int flags = PF_OLD_DOUBLE;
 
 		if (declared_length < 20) {
-			flags |= PF_SHORT | PF_UNKNOWN_LOG_LEVEL;
+			flags |= PF_SHORT;
 		} else if (declared_length > 20) {
 			flags |= PF_LONG;
 		}
