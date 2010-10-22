@@ -37,10 +37,13 @@ namespace {
 			 */
 			void run_assignment();
 
+			void calc_chaser();
+
 			Defender defender;
 			Offender offender;
 
-			bool initialized;
+			std::vector<Player::Ptr> defenders; // excludes goalie
+			std::vector<Player::Ptr> offenders;
 	};
 
 	/**
@@ -89,19 +92,16 @@ namespace {
 			return;
 		}
 
-		if (!initialized) {
-			run_assignment();
-			initialized = true;
-		}
-
+		calc_chaser();
 		offender.tick();
 		defender.tick();
 	}
 
-	BasicPlayStrategy::BasicPlayStrategy(World &world) : Strategy(world), defender(world), offender(world), initialized(false) {
+	BasicPlayStrategy::BasicPlayStrategy(World &world) : Strategy(world), defender(world), offender(world) {
 		world.playtype().signal_changed().connect(sigc::mem_fun(this, &BasicPlayStrategy::on_play_type_changed));
 		world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &BasicPlayStrategy::on_player_added));
 		world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &BasicPlayStrategy::on_player_removing));
+		run_assignment();
 	}
 
 	BasicPlayStrategy::~BasicPlayStrategy() {
@@ -155,8 +155,10 @@ namespace {
 				break;
 		}
 
-		std::vector<Player::Ptr> defenders; // excludes goalie
-		std::vector<Player::Ptr> offenders;
+		// clear up
+		defenders.clear();
+		offenders.clear();
+
 		// start from 1, to exclude goalie
 		for (std::size_t i = 1; i < players.size(); ++i) {
 			if (i < ndefenders) {
@@ -166,6 +168,11 @@ namespace {
 			}
 		}
 
+		offender.set_players(offenders);
+		defender.set_players(defenders, goalie);
+	}
+
+	void BasicPlayStrategy::calc_chaser() {
 		// see who has the closest ball
 		bool offender_chase = true;
 		double best_dist = 1e99;
@@ -180,10 +187,7 @@ namespace {
 			}
 		}
 
-		offender.set_players(offenders);
 		offender.set_chase(offender_chase);
-
-		defender.set_players(defenders, goalie);
 		defender.set_chase(!offender_chase);
 	}
 }
