@@ -41,6 +41,18 @@ void AIPackage::tick() {
 		AI::HL::Strategy::Ptr strategy = backend.strategy();
 		if (strategy.is()) {
 			strategy->tick();
+			// A strategy ought not to resign during a playtype it declares itself as handling.
+			if (strategy->has_resigned()) {
+				bool found = false;
+				for (std::size_t i = 0; i < strategy->factory().handled_play_types_size && !found; ++i) {
+					if (strategy->factory().handled_play_types[i] == backend.playtype()) {
+						found = true;
+					}
+				}
+				if (found) {
+					LOG_ERROR(Glib::ustring::compose("Strategy %1 resigned during a play type it claims to be launchable from!", strategy->factory().name));
+				}
+			}
 			// If the strategy resigned, try to find another one and tick it instead.
 			if (strategy->has_resigned()) {
 				c->tick();
