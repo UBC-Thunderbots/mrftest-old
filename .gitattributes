@@ -52,13 +52,7 @@ software/ai/backend/xbeed/robot.cpp -text
 software/ai/backend/xbeed/robot.h -text
 software/ai/backend/xbeed/xbeed_backend.cpp -text
 software/ai/ball_filter/ball_filter.h -text
-software/ai/ball_filter/byrons_filter.cpp -text
 software/ai/ball_filter/chris_filter.cpp -text
-software/ai/ball_filter/circle_filter.cpp -text
-software/ai/ball_filter/defensive_filter.cpp -text
-software/ai/ball_filter/max_confidence_filter.cpp -text
-software/ai/ball_filter/offensive_filter.cpp -text
-software/ai/ball_filter/weighted_average.cpp -text
 software/ai/ball_filter/world.h -text
 software/ai/coach/coach.cpp -text
 software/ai/coach/coach.h -text
