@@ -46,7 +46,7 @@ namespace AI {
 				virtual CoachFactory &factory() const = 0;
 
 				/**
-				 * Invoked once per time tick.
+				 * Invoked once or twice per time tick (the latter if a strategy resigns and a new one must be chosen).
 				 * Subclasses must override this function to provide their own logic.
 				 *
 				 * An override of this function should:

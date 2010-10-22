@@ -41,6 +41,14 @@ void AIPackage::tick() {
 		AI::HL::Strategy::Ptr strategy = backend.strategy();
 		if (strategy.is()) {
 			strategy->tick();
+			// If the strategy resigned, try to find another one and tick it instead.
+			if (strategy->has_resigned()) {
+				c->tick();
+				strategy = backend.strategy();
+				if (strategy.is()) {
+					strategy->tick();
+				}
+			}
 			// If we have a Navigator installed, tick it.
 			AI::Nav::Navigator::Ptr nav = navigator;
 			if (nav.is()) {
