@@ -32,9 +32,11 @@ void DirectFreeKickFriendly::tick() {
 		}
 	}
 
+	// should do some positioning of players?
+
 	std::pair<Point, double> bestshot = AI::HL::Util::calc_best_shot(world, kicker);
 
-	AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
+	AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, bestshot.first);
 }
 
 IndirectFreeKickFriendly::IndirectFreeKickFriendly(World &w) : world(w) {
@@ -57,7 +59,7 @@ void IndirectFreeKickFriendly::tick() {
 		}
 	}
 
-	// find someone to pass to
+	// should do some positioning of players?
 
 	LOG_INFO("forced kicking");
 	AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);

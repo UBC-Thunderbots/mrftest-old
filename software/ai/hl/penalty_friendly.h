@@ -12,10 +12,6 @@ namespace AI {
 		 */
 		class PenaltyFriendly {
 			public:
-				/**
-				 * A pointer to a penalty_friendly role.
-				 */
-				typedef RefPtr<PenaltyFriendly> ptr;
 
 				/**
 				 * Constructs a new penalty_friendly role.

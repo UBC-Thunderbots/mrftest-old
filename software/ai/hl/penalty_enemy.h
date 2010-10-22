@@ -11,10 +11,6 @@ namespace AI {
 		 */
 		class PenaltyEnemy {
 			public:
-				/**
-				 * A pointer to a penalty_enemy role.
-				 */
-				typedef RefPtr<PenaltyEnemy> ptr;
 
 				/**
 				 * Constructs a new penalty_enemy role.
