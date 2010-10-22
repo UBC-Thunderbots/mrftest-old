@@ -182,7 +182,7 @@ namespace {
 				int g2 = (o2 == the_ball->ballGeom);
 				int i = 0;
 				if ((g1 ^ g2)) {
-				  	handleBallCollisionWithGround(o1, o2);
+					handleBallCollisionWithGround(o1, o2);
 				} else if (get_player_from_shape(o1) != emptyPlayer || get_player_from_shape(o2) != emptyPlayer) {
 					// make sure that the capped cylinders do not collide with the ground
 

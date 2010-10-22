@@ -14,7 +14,6 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
-
 	const int P = 5;
 
 	const double arr_min[P] = { 3.0, 0.0, 0.0, 3.0, 3.0 };

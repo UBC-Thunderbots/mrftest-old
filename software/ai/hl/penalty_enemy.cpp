@@ -40,28 +40,28 @@ void PenaltyEnemy::set_players(std::vector<Player::Ptr> p, Player::Ptr g) {
 }
 
 void PenaltyEnemy::tick() {
-      	if (players.size() == 0) { 
-		LOG_WARN("no robots"); 
-	 	return; 
-	} 
-	if (!goalie.is()) { 
-		LOG_ERROR("no goalie"); 
-		return; 
-	} 
-	 	 
-	if (world.playtype() == PlayType::PREPARE_PENALTY_ENEMY) { 
-		for (size_t i = 0; i < players.size(); ++i) { 
-			// move the robots to position 
-			players[i]->move(ready_positions[i], (ready_positions[i] - players[i]->position()).orientation(), AI::Flags::FLAG_PENALTY_KICK_ENEMY, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH); 
-		} 
-	} else if (world.playtype() == PlayType::EXECUTE_PENALTY_ENEMY) { 
-		for (size_t i = 0; i < players.size(); ++i) { 
-			players[i]->move(ready_positions[i], (ready_positions[i] - players[i]->position()).orientation(), AI::Flags::FLAG_PENALTY_KICK_ENEMY, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH); 
-		 } 
-	} else { 
-		LOG_WARN("penalty_enemy: unhandled playtype"); 
-	 	return; 
-	} 
+	if (players.size() == 0) {
+		LOG_WARN("no robots");
+		return;
+	}
+	if (!goalie.is()) {
+		LOG_ERROR("no goalie");
+		return;
+	}
+
+	if (world.playtype() == PlayType::PREPARE_PENALTY_ENEMY) {
+		for (size_t i = 0; i < players.size(); ++i) {
+			// move the robots to position
+			players[i]->move(ready_positions[i], (ready_positions[i] - players[i]->position()).orientation(), AI::Flags::FLAG_PENALTY_KICK_ENEMY, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+		}
+	} else if (world.playtype() == PlayType::EXECUTE_PENALTY_ENEMY) {
+		for (size_t i = 0; i < players.size(); ++i) {
+			players[i]->move(ready_positions[i], (ready_positions[i] - players[i]->position()).orientation(), AI::Flags::FLAG_PENALTY_KICK_ENEMY, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+		}
+	} else {
+		LOG_WARN("penalty_enemy: unhandled playtype");
+		return;
+	}
 
 	const Field &f = (world.field());
 	const Point starting_position(-0.5 * f.length(), -0.5 * Robot::MAX_RADIUS);

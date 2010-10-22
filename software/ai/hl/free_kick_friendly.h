@@ -41,11 +41,10 @@ namespace AI {
 				W::World &world;
 
 				W::Player::Ptr kicker;
-			
 		};
 
 		class IndirectFreeKickFriendly {
-						public:
+			public:
 				/**
 				 * A pointer to a free_kick_friendly role.
 				 */
@@ -76,9 +75,9 @@ namespace AI {
 				W::World &world;
 
 				W::Player::Ptr kicker;
-			
 		};
 	}
 }
 
 #endif
+

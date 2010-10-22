@@ -18,6 +18,7 @@ class PlayerODE : public Simulator::Player {
 
 		typedef RefPtr<PlayerODE> Ptr;
 		//Player_geom::Ptr p_geom;
+
 	private:
 		/**
 		 * The rectangular geometry for the front collision.

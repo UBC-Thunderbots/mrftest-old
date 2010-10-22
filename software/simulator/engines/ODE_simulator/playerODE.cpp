@@ -287,16 +287,16 @@ bool PlayerODE::robot_contains_shape(dGeomID geom) {
 void PlayerODE::pre_tic(double) {
 	// limit max motor "voltage" to VOLTAGE_LIMIT by scaling the largest component to VOLTAGE_LIMIT if greater but preserve its orientation
 
-	double max_speed =0.0;
+	double max_speed = 0.0;
 	for (uint8_t index = 0; index < 4; index++) {
 		if (fabs(orders.wheel_speeds[index]) > max_speed) {
-		  max_speed = fabs(orders.wheel_speeds[index]);
+			max_speed = fabs(orders.wheel_speeds[index]);
 		}
 	}
-	if(max_speed >  VOLTAGE_LIMIT / PACKET_TO_VOLTAGE) {
-			for (int8_t index = 0; index < 4; index++) {
-			  orders.wheel_speeds[index] *= VOLTAGE_LIMIT / (PACKET_TO_VOLTAGE*max_speed);
-			}
+	if (max_speed > VOLTAGE_LIMIT / PACKET_TO_VOLTAGE) {
+		for (int8_t index = 0; index < 4; index++) {
+			orders.wheel_speeds[index] *= VOLTAGE_LIMIT / (PACKET_TO_VOLTAGE * max_speed);
+		}
 	}
 
 	click++;
