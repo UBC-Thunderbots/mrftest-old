@@ -76,7 +76,8 @@ namespace AI {
 					 *
 					 * \param[in] p the path, in the form of a set of
 					 * ((<var>position</var>, <var>orientation</var>), <var>deadline</var>) pairs,
-					 * where <var>deadline</var> is the timestamp, in monotonic time, at which the robot should arrive.
+					 * where <var>deadline</var> is the timestamp, in monotonic time, at which the robot should arrive;
+					 * an empty path causes the robot to halt.
 					 */
 					virtual void path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) = 0;
 			};

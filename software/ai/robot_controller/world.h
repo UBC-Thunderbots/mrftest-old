@@ -26,7 +26,8 @@ namespace AI {
 					 *
 					 * \return the path, in the form of a set of
 					 * ((<var>position</var>, <var>orientation</var>), <var>deadline</var>) pairs,
-					 * where <var>deadline</var> is the timestamp at which the robot should arrive.
+					 * where <var>deadline</var> is the timestamp at which the robot should arrive;
+					 * the path is empty if the robot is halted.
 					 */
 					virtual const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const = 0;
 
