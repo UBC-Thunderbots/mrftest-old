@@ -120,7 +120,7 @@ namespace {
 		//500 mm from the ball
 
 		} else if (world.playtype() == PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY || world.playtype() == PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY){
-                	int preferred_offender_number = std::max(1, static_cast<int>(world.friendly_team().size()) - 3);
+                	std::size_t preferred_offender_number = std::max(1, static_cast<int>(world.friendly_team().size()) - 3);
 
 				//decrease the number of offenders by 1, if there are no offenders, set it to one
 			        preferred_offender_number--;
@@ -128,7 +128,19 @@ namespace {
 			            preferred_offender_number = 1;
 
 			        // preferred_defender_number includes goalie
-			        int preferred_defender_number = world.friendly_team().size() - preferred_offender_number;
+			        std::size_t preferred_defender_number = world.friendly_team().size() - preferred_offender_number;
+
+				std::vector<Player::Ptr> defenders; // excludes goalie
+				std::vector<Player::Ptr> offenders;
+				// start from 1, to exclude goalie
+				for (std::size_t i = 1; i < players.size(); ++i) {
+					if (i < preferred_defender_number) {
+						defenders.push_back(players[i]);
+					} else {
+						offenders.push_back(players[i]);
+					}
+				}
+
 
 				Player::Ptr goalie = players[4];
 				players.pop_back();
