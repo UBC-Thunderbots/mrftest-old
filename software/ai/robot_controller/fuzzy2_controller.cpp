@@ -14,20 +14,20 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
+
+	const int P = 5;
+
+	const double arr_min[P] = { 3.0, 0.0, 0.0, 3.0, 3.0 };
+	const double arr_max[P] = { 6.0, 2.0, 2.0, 6.0, 6.0 };
+	const double arr_def[P] = { 6.0, .855, .385, 6.0, 6.0 };
+
+	const std::vector<double> param_min(arr_min, arr_min + P);
+	const std::vector<double> param_max(arr_max, arr_max + P);
+	const std::vector<double> param_default(arr_def, arr_def + P);
+
 	class Fuzzy2Controller : public RobotController, public TunableController {
 		public:
-			Fuzzy2Controller(Player::Ptr player) : RobotController(player) {
-				const int P = 5;
-				const double arr_min[P] = { 3.0, 0.0, 0.0, 3.0, 3.0 };
-				const double arr_max[P] = { 6.0, 2.0, 2.0, 6.0, 6.0 };
-				const double arr_def[P] = { 6.0, .855, .385, 6.0, 6.0 };
-
-				const std::vector<double> param_min(arr_min, arr_min + P);
-				const std::vector<double> param_max(arr_max, arr_max + P);
-				const std::vector<double> param_default(arr_def, arr_def + P);
-
-				std::vector<double> param(P);
-				param = param_default;
+			Fuzzy2Controller(Player::Ptr player) : RobotController(player), param(param_default) {
 			}
 
 			void tick() {
@@ -99,9 +99,6 @@ namespace {
 			}
 
 		protected:
-			static const std::vector<double> param_min;
-			static const std::vector<double> param_max;
-			static const std::vector<double> param_default;
 			std::vector<double> param;
 	};
 
@@ -115,5 +112,7 @@ namespace {
 				return p;
 			}
 	};
+
+	Fuzzy2ControllerFactory factory;
 }
 
