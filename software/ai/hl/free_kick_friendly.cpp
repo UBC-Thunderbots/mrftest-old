@@ -21,7 +21,7 @@ void DirectFreeKickFriendly::tick() {
 	std::vector<Player::Ptr> friendly = AI::HL::Util::get_players(world.friendly_team());
 
 	if (!kicker.is()) {
-		LOG_ERROR("no goalie");
+		LOG_ERROR("no kicker");
 		return;
 	}
 
@@ -48,7 +48,7 @@ void IndirectFreeKickFriendly::tick() {
 	std::vector<Player::Ptr> friendly = AI::HL::Util::get_players(world.friendly_team());
 
 	if (!kicker.is()) {
-		LOG_ERROR("no goalie");
+		LOG_ERROR("no kicker");
 		return;
 	}
 

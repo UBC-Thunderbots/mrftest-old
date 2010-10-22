@@ -11,7 +11,6 @@ namespace AI {
 		 */
 		class DirectFreeKickFriendly {
 			public:
-
 				/**
 				 * Constructs a new free_kick_friendly role.
 				 *
@@ -41,11 +40,6 @@ namespace AI {
 
 		class IndirectFreeKickFriendly {
 			public:
-				/**
-				 * A pointer to a free_kick_friendly role.
-				 */
-				typedef RefPtr<IndirectFreeKickFriendly> ptr;
-
 				/**
 				 * Constructs a new free_kick_friendly role.
 				 *
