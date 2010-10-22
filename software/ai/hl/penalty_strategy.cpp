@@ -23,11 +23,11 @@ namespace {
 			/**
 			 * What this strategy is created for.
 			 */
-			void prepare_kickoff_friendly();
-			void execute_kickoff_friendly();
+			void prepare_penalty_friendly();
+			void execute_penalty_friendly();
 
-			void prepare_kickoff_enemy();
-			void execute_kickoff_enemy();
+			void prepare_penalty_enemy();
+			void execute_penalty_enemy();
 
 			/**
 			 * Creates a new PenaltyStrategy.
@@ -39,7 +39,6 @@ namespace {
 		private:
 			PenaltyStrategy(World &world);
 			~PenaltyStrategy();
-			//void on_play_type_changed();
 
 			void prepare();
 
@@ -76,19 +75,19 @@ namespace {
 		return factory_instance;
 	}
 
-	void PenaltyStrategy::prepare_kickoff_friendly() {
+	void PenaltyStrategy::prepare_penalty_friendly() {
 		prepare();
 	}
 
-	void PenaltyStrategy::execute_kickoff_friendly() {
+	void PenaltyStrategy::execute_penalty_friendly() {
 		prepare();
 	}
 
-	void PenaltyStrategy::prepare_kickoff_enemy() {
+	void PenaltyStrategy::prepare_penalty_enemy() {
 		prepare();
 	}
 
-	void PenaltyStrategy::execute_kickoff_enemy() {
+	void PenaltyStrategy::execute_penalty_enemy() {
 		prepare();
 	}
 
@@ -102,11 +101,13 @@ namespace {
 			players.pop_back();
 			pFriendly.set_players(players);
 			pFriendly.tick();
+
 		} else if (world.playtype() == PlayType::PREPARE_PENALTY_ENEMY || world.playtype() == PlayType::EXECUTE_PENALTY_ENEMY) {
 			Player::Ptr goalie = players[4];
 			players.pop_back();
 			pEnemy.set_players(players, goalie);
 			pEnemy.tick();
+
 		} else {
 			LOG_ERROR("penalty_enemy: unhandled playtype");
 		}
