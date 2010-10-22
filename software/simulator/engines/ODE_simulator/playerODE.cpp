@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+//#include "compo_player_geom.h"
 
 #warning this class needs Doxygen comments in its header file
 
@@ -114,7 +115,7 @@ PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double
 	// robotGeomTop = dCreateTriMesh(0,create_robot_geom(),NULL,NULL,NULL);
 	robotGeomTop = dCreateBox(0, x_len, y_len, ROBOT_HEIGHT);
 	dMassSetCylinderTotal(&mass, ROBOT_MASS, 3, ROBOT_RADIUS, ROBOT_HEIGHT);
-	dBodySetMass(body, &mass);
+
 	dGeomSetBody(robotGeomTop, body);
 
 // ROBOT_RADIUS
@@ -130,11 +131,6 @@ PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double
 	dribbleArmL = dCreateBox(0, dribble_radius * 2.5, arm_width, arm_height);
 	dribbleArmR = dCreateBox(0, dribble_radius * 2.5, arm_width, arm_height);
 
-
-
-	momentInertia = ROBOT_RADIUS * ROBOT_RADIUS * mass.mass / 2;
-	// dGeomSetBody (robotGeom,body);
-
 	double arm_h_offset = ballradius - 0.051;
 
 	dGeomSetBody(dribbleArmL, body);
@@ -147,6 +143,14 @@ PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double
 	dSpaceAdd(dspace, robotGeomTopCyl);
 	dSpaceAdd(dspace, dribbleArmL);
 	dSpaceAdd(dspace, dribbleArmR);
+
+
+
+	dBodySetMass(body, &mass);
+	momentInertia = ROBOT_RADIUS * ROBOT_RADIUS * mass.mass / 2;
+	// dGeomSetBody (robotGeom,body);
+
+
 
 
 	wheel_position = new Point[4];
@@ -282,13 +286,17 @@ bool PlayerODE::robot_contains_shape(dGeomID geom) {
  */
 void PlayerODE::pre_tic(double) {
 	// limit max motor "voltage" to VOLTAGE_LIMIT by scaling the largest component to VOLTAGE_LIMIT if greater but preserve its orientation
+
+	double max_speed =0.0;
 	for (uint8_t index = 0; index < 4; index++) {
-		if (fabs(orders.wheel_speeds[index]) > VOLTAGE_LIMIT / PACKET_TO_VOLTAGE) {
-			for (int8_t index2 = 0; index2 < 4; index2++) {
-#warning IF INDEX < 3 THEN WHEN INDEX2 > INDEX THE SCALE FACTOR HAS BEEN DESTROYED
-				orders.wheel_speeds[index2] = orders.wheel_speeds[index2] / orders.wheel_speeds[index] * VOLTAGE_LIMIT / PACKET_TO_VOLTAGE;
-			}
+		if (fabs(orders.wheel_speeds[index]) > max_speed) {
+		  max_speed = fabs(orders.wheel_speeds[index]);
 		}
+	}
+	if(max_speed >  VOLTAGE_LIMIT / PACKET_TO_VOLTAGE) {
+			for (int8_t index = 0; index < 4; index++) {
+			  orders.wheel_speeds[index] *= VOLTAGE_LIMIT / (PACKET_TO_VOLTAGE*max_speed);
+			}
 	}
 
 	click++;

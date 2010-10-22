@@ -2,6 +2,7 @@
 #define SIMULATOR_ENGINES_ODE_SIMULATOR_PLAYERODE_H
 
 #include "simulator/player.h"
+//#include "player_geom.h"
 #include <ode/ode.h>
 
 
@@ -16,7 +17,7 @@ class PlayerODE : public Simulator::Player {
 		double momentInertia;
 
 		typedef RefPtr<PlayerODE> Ptr;
-
+		//Player_geom::Ptr p_geom;
 	private:
 		/**
 		 * The rectangular geometry for the front collision.
