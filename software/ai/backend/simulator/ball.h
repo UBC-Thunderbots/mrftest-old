@@ -8,22 +8,24 @@
 namespace AI {
 	namespace BE {
 		namespace Simulator {
+			class Backend;
+
 			/**
 			 * A ball whose position is provided by a simulator.
 			 */
-			class Ball : public AI::BE::Ball {
+			class Ball : public AI::BE::Ball, public sigc::trackable {
 				public:
 					/**
 					 * Constructs a new Ball.
+					 *
+					 * \param[in] be the backend containing the ball.
 					 */
-					Ball() : xpred(false), ypred(false) {
-					}
+					Ball(Backend &be);
 
 					/**
 					 * Destroys a Ball.
 					 */
-					~Ball() {
-					}
+					~Ball();
 
 					/**
 					 * Pushes a new position datum into the ball and locks the predictors.
@@ -32,23 +34,55 @@ namespace AI {
 					 *
 					 * \param[in] ts the timestamp at which the ball was in this position.
 					 */
-					void pre_tick(const ::Simulator::Proto::S2ABallInfo &state, const timespec &ts) {
-						xpred.add_datum(state.x, ts);
-						xpred.lock_time(ts);
-						ypred.add_datum(state.y, ts);
-						ypred.lock_time(ts);
-					}
+					void pre_tick(const ::Simulator::Proto::S2ABallInfo &state, const timespec &ts);
 
-					Point position() const { return Point(xpred.value(), ypred.value()); }
-					Point position(double delta) const { return Point(xpred.value(delta), ypred.value(delta)); }
-					Point position(const timespec &ts) const { return Point(xpred.value(ts), ypred.value(ts)); }
-					Point velocity() const { return Point(xpred.value(0.0, 1), ypred.value(0.0, 1)); }
-					Point velocity(double delta) const { return Point(xpred.value(delta, 1), ypred.value(delta, 1)); }
-					Point velocity(const timespec &ts) const { return Point(xpred.value(ts, 1), ypred.value(ts, 1)); }
-					Point acceleration(double delta) const { return Point(xpred.value(delta, 2), ypred.value(delta, 2)); }
-					Point acceleration(const timespec &ts) const { return Point(xpred.value(ts, 2), ypred.value(ts, 2)); }
+					/**
+					 * Indicates that the mouse was pressed over the visualizer.
+					 *
+					 * \param[in] p the point, in world coordinates, over which the mouse was pressed.
+					 *
+					 * \param[in] btn the number of the button that was pressed.
+					 */
+					void mouse_pressed(Point p, unsigned int btn);
+
+					/**
+					 * Indicates that the mouse was released over the visualizer.
+					 *
+					 * \param[in] p the point, in world coordinates, over which the mouse was released.
+					 *
+					 * \param[in] btn the number of the button that was released.
+					 */
+					void mouse_released(Point p, unsigned int btn);
+
+					/**
+					 * Indicates that the mouse exited the area of the visualizer.
+					 */
+					void mouse_exited();
+
+					/**
+					 * Indicates that the mouse was moved over the visualizer.
+					 *
+					 * \param[in] p the new position of the mouse pointer, in world coordinates.
+					 */
+					void mouse_moved(Point p);
+
+					Point position() const;
+					Point position(double delta) const;
+					Point position(const timespec &ts) const;
+					Point velocity() const;
+					Point velocity(double delta) const;
+					Point velocity(const timespec &ts) const;
+					Point acceleration(double delta) const;
+					Point acceleration(const timespec &ts) const;
+					bool highlight() const;
+					Visualizable::Colour highlight_colour() const;
 
 				private:
+					/**
+					 * The backend.
+					 */
+					Backend &be;
+
 					/**
 					 * A predictor that provides the X coordinate of predictable quantities.
 					 */
@@ -58,6 +92,16 @@ namespace AI {
 					 * A predictor that provides the Y coordinate of predictable quantities.
 					 */
 					Predictor ypred;
+
+					/**
+					 * The connections for mouse activity signals.
+					 */
+					sigc::connection mouse_connections[3];
+
+					/**
+					 * Disconnects all mouse activity signals except press.
+					 */
+					void disconnect_mouse();
 			};
 		}
 	}

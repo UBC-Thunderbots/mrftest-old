@@ -267,8 +267,8 @@ void Player::tick(bool scram) {
 	last_dribble_position = position();
 }
 
-Visualizable::RobotColour Player::visualizer_colour() const {
-	return Visualizable::RobotColour(0, 1, 0);
+Visualizable::Colour Player::visualizer_colour() const {
+	return Visualizable::Colour(0.0, 1.0, 0.0);
 }
 
 Glib::ustring Player::visualizer_label() const {

@@ -9,7 +9,7 @@ namespace Visualizable {
 	/**
 	 * An encoding of the colour of a robot.
 	 */
-	class RobotColour {
+	class Colour {
 		public:
 			/**
 			 * The red component, from 0 to 1.
@@ -27,7 +27,7 @@ namespace Visualizable {
 			double blue;
 
 			/**
-			 * Constructs a new RobotColour.
+			 * Constructs a new Colour.
 			 *
 			 * \param[in] red the red component, from 0 to 1.
 			 *
@@ -35,7 +35,7 @@ namespace Visualizable {
 			 *
 			 * \param[in] blue the blue component, from 0 to 1.
 			 */
-			RobotColour(double red, double green, double blue) : red(red), green(green), blue(blue) {
+			Colour(double red, double green, double blue) : red(red), green(green), blue(blue) {
 			}
 	};
 
@@ -132,6 +132,20 @@ namespace Visualizable {
 			 * \return the velocity of the ball.
 			 */
 			virtual Point velocity() const = 0;
+
+			/**
+			 * Returns whether or not the ball should be highlighted.
+			 *
+			 * \return \c true if the ball should be highlighted, or \c false if not.
+			 */
+			virtual bool highlight() const = 0;
+
+			/**
+			 * Returns the colour of the highlight.
+			 *
+			 * \return the colour of the highlight.
+			 */
+			virtual Colour highlight_colour() const = 0;
 	};
 
 	/**
@@ -163,7 +177,7 @@ namespace Visualizable {
 			 *
 			 * \return the colour of the Robot.
 			 */
-			virtual Visualizable::RobotColour visualizer_colour() const = 0;
+			virtual Colour visualizer_colour() const = 0;
 
 			/**
 			 * Returns the text to display over the robot.
@@ -171,6 +185,20 @@ namespace Visualizable {
 			 * \return the text to display over the Robot.
 			 */
 			virtual Glib::ustring visualizer_label() const = 0;
+
+			/**
+			 * Returns whether or not the robot should be highlighted.
+			 *
+			 * \return \c true if the robot should be highlighted, or \c false if not.
+			 */
+			virtual bool highlight() const = 0;
+
+			/**
+			 * Returns the colour of the highlight.
+			 *
+			 * \return the colour of the highlight.
+			 */
+			virtual Colour highlight_colour() const = 0;
 	};
 
 	/**
@@ -214,6 +242,36 @@ namespace Visualizable {
 			 * \return the tick signal.
 			 */
 			virtual sigc::signal<void> &signal_tick() const = 0;
+
+			/**
+			 * Indicates that the mouse was pressed over the visualizer.
+			 *
+			 * \param[in] p the point, in world coordinates, over which the mouse was pressed.
+			 *
+			 * \param[in] btn the number of the button that was pressed.
+			 */
+			virtual void mouse_pressed(Point p, unsigned int btn) = 0;
+
+			/**
+			 * Indicates that the mouse was released over the visualizer.
+			 *
+			 * \param[in] p the point, in world coordinates, over which the mouse was released.
+			 *
+			 * \param[in] btn the number of the button that was released.
+			 */
+			virtual void mouse_released(Point p, unsigned int btn) = 0;
+
+			/**
+			 * Indicates that the mouse exited the area of the visualizer.
+			 */
+			virtual void mouse_exited() = 0;
+
+			/**
+			 * Indicates that the mouse was moved over the visualizer.
+			 *
+			 * \param[in] p the new position of the mouse pointer, in world coordinates.
+			 */
+			virtual void mouse_moved(Point p) = 0;
 	};
 }
 
@@ -234,11 +292,6 @@ class Visualizer : public Gtk::DrawingArea {
 		 */
 		void update();
 
-		/**
-		 * Fired every time the overlay surface changes.
-		 */
-		mutable sigc::signal<void> signal_overlay_changed;
-
 	private:
 		Visualizable::World &data;
 		double scale;
@@ -249,6 +302,10 @@ class Visualizer : public Gtk::DrawingArea {
 		void on_hide();
 		void on_size_allocate(Gtk::Allocation &);
 		bool on_expose_event(GdkEventExpose *);
+		bool on_button_press_event(GdkEventButton *evt);
+		bool on_button_release_event(GdkEventButton *evt);
+		bool on_motion_notify_event(GdkEventMotion *evt);
+		bool on_leave_notify_event(GdkEventCrossing *evt);
 
 		void compute_scales();
 		double xtog(double x) __attribute__((warn_unused_result)) { return x * scale + xtranslate; }

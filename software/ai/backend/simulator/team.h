@@ -12,6 +12,8 @@
 namespace AI {
 	namespace BE {
 		namespace Simulator {
+			class Backend;
+
 			/**
 			 * A general simulator-based team, whether friendly or enemy.
 			 *
@@ -88,8 +90,10 @@ namespace AI {
 				public:
 					/**
 					 * Constructs a new FriendlyTeam.
+					 *
+					 * \param[in] be the backend under which the team lives.
 					 */
-					FriendlyTeam() {
+					FriendlyTeam(Backend &be) : be(be) {
 					}
 
 					/**
@@ -143,7 +147,7 @@ namespace AI {
 									}
 								}
 								if (!found) {
-									add(AI::BE::Simulator::Player::create(state[i].robot_info.pattern));
+									add(AI::BE::Simulator::Player::create(be, state[i].robot_info.pattern));
 								}
 							}
 						}
@@ -181,6 +185,12 @@ namespace AI {
 					AI::BE::Player::Ptr get(std::size_t i) { return get_impl(i); }
 					void emit_robot_added(std::size_t i) const { signal_robot_added().emit(i); }
 					void emit_robot_removing(std::size_t i) const { signal_robot_removing().emit(i); }
+
+				private:
+					/**
+					 * The backend under which the team lives.
+					 */
+					Backend &be;
 			};
 
 			/**

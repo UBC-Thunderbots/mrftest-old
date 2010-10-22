@@ -59,6 +59,26 @@ namespace Simulator {
 		};
 
 		/**
+		 * Information about how to drag an object.
+		 */
+		struct A2SDragInfo {
+			/**
+			 * The pattern of the robot to drag, in the A2S_PACKET_DRAG_PLAYER case.
+			 */
+			unsigned int pattern;
+
+			/**
+			 * The X position to drag to.
+			 */
+			double x;
+
+			/**
+			 * The Y position to drag to.
+			 */
+			double y;
+		};
+
+		/**
 		 * The possible packet types that can be sent from the AI to the simulator.
 		 */
 		enum A2SPacketType {
@@ -100,6 +120,18 @@ namespace Simulator {
 			 * This may be sent at any time.
 			 */
 			A2S_PACKET_PLAY_TYPE,
+
+			/**
+			 * Requests that the simulator drag the ball to a new position.
+			 * This may be sent at any time.
+			 */
+			A2S_PACKET_DRAG_BALL,
+
+			/**
+			 * Requests that the simulator drag a friendly player to a new position.
+			 * This may be sent at any time.
+			 */
+			A2S_PACKET_DRAG_PLAYER,
 		};
 
 		/**
@@ -127,6 +159,11 @@ namespace Simulator {
 				 * The play type, in the case of A2S_PACKET_PLAY_TYPE.
 				 */
 				AI::Common::PlayType::PlayType playtype;
+
+				/**
+				 * Information about dragging an object, in the case of A2S_PACKET_DRAG_BALL or A2S_PACKET_DRAG_PLAYER.
+				 */
+				A2SDragInfo drag;
 			};
 		};
 

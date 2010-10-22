@@ -209,6 +209,31 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet) {
 				close_connection();
 			}
 			return;
+
+		case Proto::A2S_PACKET_DRAG_BALL:
+		{
+			Point p(packet.drag.x, packet.drag.y);
+			sim.engine->get_ball()->position(invert ? -p : p);
+		}
+			return;
+
+		case Proto::A2S_PACKET_DRAG_PLAYER:
+		{
+			bool found = false;
+			for (std::size_t i = 0; i < players.size(); ++i) {
+				if (players[i].pattern == packet.drag.pattern) {
+					Point p(packet.drag.x, packet.drag.y);
+					players[i].player->position(invert ? -p : p);
+					found = true;
+				}
+			}
+			if (!found) {
+				std::cout << "AI dragged nonexistent robot pattern " << packet.drag.pattern << '\n';
+				close_connection();
+				return;
+			}
+		}
+			return;
 	}
 
 	std::cout << "AI sent bad packet type\n";

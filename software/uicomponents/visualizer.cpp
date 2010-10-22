@@ -21,7 +21,6 @@ void Visualizer::on_show() {
 void Visualizer::on_hide() {
 	Gtk::DrawingArea::on_hide();
 	update_connection.block();
-	signal_overlay_changed.emit();
 }
 
 bool Visualizer::on_expose_event(GdkEventExpose *evt) {
@@ -88,7 +87,7 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 	// Draw the players including text.
 	for (unsigned int i = 0; i < data.visualizable_num_robots(); ++i) {
 		Visualizable::Robot::Ptr bot = data.visualizable_robot(i);
-		const Visualizable::RobotColour &clr(bot->visualizer_colour());
+		const Visualizable::Colour &clr = bot->visualizer_colour();
 		ctx->set_source_rgb(clr.red, clr.green, clr.blue);
 		ctx->begin_new_path();
 		ctx->arc_negative(xtog(bot->position().x), ytog(bot->position().y), dtog(0.09), atog(bot->orientation() + M_PI_4), atog(bot->orientation() - M_PI_4));
@@ -103,6 +102,14 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 		const double y = ytog(bot->position().y) - extents.y_bearing - extents.height / 2.0;
 		ctx->move_to(x, y);
 		ctx->show_text(str);
+
+		if (bot->highlight()) {
+			const Visualizable::Colour &hlclr = bot->highlight_colour();
+			ctx->set_source_rgb(hlclr.red, hlclr.green, hlclr.blue);
+			ctx->begin_new_path();
+			ctx->arc_negative(xtog(bot->position().x), ytog(bot->position().y), dtog(0.09), atog(bot->orientation() + M_PI_4), atog(bot->orientation() - M_PI_4));
+			ctx->stroke();
+		}
 	}
 
 	// Draw the ball.
@@ -118,6 +125,13 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 		ctx->line_to(xtog(tgt.x), ytog(tgt.y));
 	}
 	ctx->stroke();
+	if (ball.highlight()) {
+		const Visualizable::Colour &clr = ball.highlight_colour();
+		ctx->set_source_rgb(clr.red, clr.green, clr.blue);
+		ctx->begin_new_path();
+		ctx->arc(xtog(ball.position().x), ytog(ball.position().y), dtog(0.03), 0.0, 2.0 * M_PI);
+		ctx->stroke();
+	}
 
 	// Done.
 	return true;
@@ -135,6 +149,26 @@ void Visualizer::on_size_allocate(Gtk::Allocation &alloc) {
 	compute_scales();
 }
 
+bool Visualizer::on_button_press_event(GdkEventButton *evt) {
+	data.mouse_pressed(Point(xtow(evt->x), ytow(evt->y)), evt->button);
+	return true;
+}
+
+bool Visualizer::on_button_release_event(GdkEventButton *evt) {
+	data.mouse_released(Point(xtow(evt->x), ytow(evt->y)), evt->button);
+	return true;
+}
+
+bool Visualizer::on_motion_notify_event(GdkEventMotion *evt) {
+	data.mouse_moved(Point(xtow(evt->x), ytow(evt->y)));
+	return true;
+}
+
+bool Visualizer::on_leave_notify_event(GdkEventCrossing *) {
+	data.mouse_exited();
+	return true;
+}
+
 void Visualizer::compute_scales() {
 	if (data.field().valid()) {
 		int width = get_width();
@@ -144,7 +178,6 @@ void Visualizer::compute_scales() {
 		scale = std::max(std::min(xscale, yscale), 1e-9);
 		xtranslate = width / 2.0;
 		ytranslate = height / 2.0;
-		signal_overlay_changed.emit();
 	}
 }
 

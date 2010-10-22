@@ -2,9 +2,9 @@
 #define AI_BACKEND_SIMULATOR_ROBOT_H
 
 #include "ai/backend/backend.h"
+#include "simulator/sockproto/proto.h"
 #include "util/byref.h"
 #include "util/predictor.h"
-#include <sigc++/sigc++.h>
 
 namespace AI {
 	namespace BE {
@@ -12,7 +12,7 @@ namespace AI {
 			/**
 			 * A robot that exists within the simulator, which may be friendly or enemy.
 			 */
-			class Robot : public AI::BE::Robot, public sigc::trackable {
+			class Robot : public AI::BE::Robot {
 				public:
 					/**
 					 * A pointer to a Robot.
@@ -63,8 +63,10 @@ namespace AI {
 					Point acceleration(const timespec &ts) const { return Point(xpred.value(ts, 2), ypred.value(ts, 2)); }
 					double aacceleration(double delta) const { return tpred.value(delta, 2); }
 					double aacceleration(const timespec &ts) const { return tpred.value(ts, 2); }
-					Visualizable::RobotColour visualizer_colour() const { return Visualizable::RobotColour(1.0, 0.0, 0.0); }
+					Visualizable::Colour visualizer_colour() const { return Visualizable::Colour(1.0, 0.0, 0.0); }
 					Glib::ustring visualizer_label() const { return Glib::ustring::format(pattern_); }
+					bool highlight() const { return false; }
+					Visualizable::Colour highlight_colour() const { return Visualizable::Colour(0.0, 0.0, 0.0); }
 
 				protected:
 					/**

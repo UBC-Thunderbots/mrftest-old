@@ -35,8 +35,11 @@ software/ai/ai.h -text
 software/ai/backend/backend.cpp -text
 software/ai/backend/backend.h -text
 software/ai/backend/simulator/backend.cpp -text
+software/ai/backend/simulator/backend.h -text
+software/ai/backend/simulator/ball.cpp -text
 software/ai/backend/simulator/ball.h -text
 software/ai/backend/simulator/field.h -text
+software/ai/backend/simulator/player.cpp -text
 software/ai/backend/simulator/player.h -text
 software/ai/backend/simulator/robot.h -text
 software/ai/backend/simulator/team.h -text

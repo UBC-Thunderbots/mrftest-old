@@ -44,6 +44,14 @@ Point Ball::acceleration(const timespec &ts) const {
 	return Point(xpred.value(ts, 2), ypred.value(ts, 2));
 }
 
+bool Ball::highlight() const {
+	return false;
+}
+
+Visualizable::Colour Ball::highlight_colour() const {
+	return Visualizable::Colour(0.0, 0.0, 0.0);
+}
+
 void Ball::on_defending_end_changed() {
 	xpred.clear();
 	ypred.clear();

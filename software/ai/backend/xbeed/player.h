@@ -41,8 +41,10 @@ namespace AI {
 					 */
 					void tick(bool scram);
 
-					Visualizable::RobotColour visualizer_colour() const;
+					Visualizable::Colour visualizer_colour() const;
 					Glib::ustring visualizer_label() const;
+					bool highlight() const { return Robot::highlight(); }
+					Visualizable::Colour highlight_colour() const { return Robot::highlight_colour(); }
 					Point position() const { return Robot::position(); }
 					Point position(double delta) const { return Robot::position(delta); }
 					Point position(const timespec &ts) const { return Robot::position(ts); }

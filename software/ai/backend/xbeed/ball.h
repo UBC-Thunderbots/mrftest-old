@@ -53,6 +53,8 @@ namespace AI {
 					Point velocity(const timespec &ts) const;
 					Point acceleration(double delta = 0.0) const;
 					Point acceleration(const timespec &ts) const;
+					bool highlight() const;
+					Visualizable::Colour highlight_colour() const;
 
 				private:
 					AI::BE::Backend &backend;

@@ -61,8 +61,10 @@ namespace AI {
 					 */
 					void lock_time(const timespec &now);
 
-					Visualizable::RobotColour visualizer_colour() const;
+					Visualizable::Colour visualizer_colour() const;
 					Glib::ustring visualizer_label() const;
+					bool highlight() const;
+					Visualizable::Colour highlight_colour() const;
 					Point position() const { return position(0.0); }
 					Point position(double delta) const;
 					Point position(const timespec &ts) const;

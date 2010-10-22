@@ -186,6 +186,18 @@ namespace {
 				}
 			}
 
+			void mouse_pressed(Point, unsigned int) {
+			}
+
+			void mouse_released(Point, unsigned int) {
+			}
+
+			void mouse_exited() {
+			}
+
+			void mouse_moved(Point) {
+			}
+
 			timespec monotonic_time() const {
 				return now;
 			}

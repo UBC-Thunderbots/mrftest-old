@@ -28,12 +28,20 @@ void Robot::lock_time(const timespec &now) {
 	tpred.lock_time(now);
 }
 
-Visualizable::RobotColour Robot::visualizer_colour() const {
-	return Visualizable::RobotColour(1, 0, 0);
+Visualizable::Colour Robot::visualizer_colour() const {
+	return Visualizable::Colour(1.0, 0.0, 0.0);
 }
 
 Glib::ustring Robot::visualizer_label() const {
 	return Glib::ustring::format(pattern());
+}
+
+bool Robot::highlight() const {
+	return false;
+}
+
+Visualizable::Colour Robot::highlight_colour() const {
+	return Visualizable::Colour(0.0, 0.0, 0.0);
 }
 
 Point Robot::position(double delta) const {
