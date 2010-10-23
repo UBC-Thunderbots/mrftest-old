@@ -15,7 +15,7 @@ namespace {
 	const double GOAL_PROB = 0.7;
 	//number of iterations to go through for each robot until we give up and
 	//just return the best partial path we've found
-	const int ITERATION_LIMIT = 500;
+	const int ITERATION_LIMIT = 2500;
 
 	class RRTNavigator : public Navigator {
 		public:
@@ -67,12 +67,12 @@ namespace {
 			pathPoints = RRTPlan(player, player->position(), player->destination().first);
 
 			double destOrientation = player->destination().second;
-			for(std::size_t i = 0; i < pathPoints.size(); ++i) {
+			for(std::size_t j = 0; j < pathPoints.size(); ++j) {
 				//the last point will just use whatever the last orientation was
-				if(i + 1 != pathPoints.size())
-					destOrientation = (pathPoints[i + 1] - pathPoints[i]).orientation();
+				if(j + 1 != pathPoints.size())
+					destOrientation = (pathPoints[j + 1] - pathPoints[j]).orientation();
 
-				path.push_back(std::make_pair(std::make_pair(pathPoints[i], destOrientation), timing));
+				path.push_back(std::make_pair(std::make_pair(pathPoints[j], destOrientation), timing));
 			}
 
 			//just use the current player position as the destination if we are within the
@@ -98,7 +98,9 @@ namespace {
 
 	//generate a random point from the field
 	Point RRTNavigator::RandomPoint() {
-		return Point(rand() % static_cast<int>(world.field().width()), rand() % static_cast<int>(world.field().length()));
+		int randomX = (rand() % static_cast<int>(world.field().width() * 2)) - world.field().width();
+		int randomY = (rand() % static_cast<int>(world.field().length() * 2)) - world.field().length();
+		return Point(randomX, randomY);
 	}
 
 	//choose a target to extend toward, the goal with GOAL_PROB or a random point
