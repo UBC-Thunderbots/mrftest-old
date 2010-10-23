@@ -12,7 +12,6 @@ namespace AI {
 		 */
 		class PenaltyFriendly {
 			public:
-
 				/**
 				 * Constructs a new penalty_friendly role.
 				 *

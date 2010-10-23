@@ -11,7 +11,6 @@ namespace AI {
 		 */
 		class PenaltyEnemy {
 			public:
-
 				/**
 				 * Constructs a new penalty_enemy role.
 				 *
