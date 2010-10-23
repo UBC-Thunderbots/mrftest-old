@@ -4,6 +4,10 @@ firmware/BoostConverter/*.hex
 firmware/BoostConverter/*.lst
 firmware/HWRunSwitch/hwrunswitch.elf
 firmware/HWRunSwitch/hwrunswitch.hex
+firmware/flybackconverter/*.asm
+firmware/flybackconverter/*.cod
+firmware/flybackconverter/*.hex
+firmware/flybackconverter/*.lst
 firmware/mainboard-copro/*.cod
 firmware/mainboard-copro/*.cof
 firmware/mainboard-copro/*.d
