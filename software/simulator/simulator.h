@@ -118,6 +118,11 @@ namespace Simulator {
 			unsigned int frame_count;
 
 			/**
+			 * The current position in the spinner character array.
+			 */
+			unsigned int spinner_index;
+
+			/**
 			 * Invoked when an inbound connection is waiting at the listening socket.
 			 *
 			 * \return \c true to continue accepting connections.

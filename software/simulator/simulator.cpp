@@ -51,7 +51,7 @@ namespace {
 	}
 }
 
-Simulator::Simulator::Simulator(SimulatorEngine::Ptr engine) : engine(engine), listen_socket(create_listen_socket()), team1(*this, &team2, false), team2(*this, &team1, true), fast(false), tick_scheduled(false), playtype(AI::Common::PlayType::HALT), frame_count(0) {
+Simulator::Simulator::Simulator(SimulatorEngine::Ptr engine) : engine(engine), listen_socket(create_listen_socket()), team1(*this, &team2, false), team2(*this, &team1, true), fast(false), tick_scheduled(false), playtype(AI::Common::PlayType::HALT), frame_count(0), spinner_index(0) {
 	next_tick_game_monotonic_time.tv_sec = 0;
 	next_tick_game_monotonic_time.tv_nsec = 0;
 	next_tick_phys_monotonic_time.tv_sec = 0;
@@ -283,11 +283,15 @@ void Simulator::Simulator::tick() {
 	timespec diff;
 	timespec_sub(now, last_fps_report_time, diff);
 	if (timespec_to_millis(diff) >= 500) {
+		static const char SPINNER_CHARACTERS[] = "-\\|/";
 		unsigned fps = (frame_count * 1000 + 500) / timespec_to_millis(diff);
 		frame_count = 0;
 		last_fps_report_time = now;
-		std::cout << '[' << (team1.has_connection() ? '+' : ' ') << (team2.has_connection() ? '+' : ' ') << "] " << fps << "fps   \r";
+		std::cout << SPINNER_CHARACTERS[spinner_index++] << " [" << (team1.has_connection() ? '+' : ' ') << (team2.has_connection() ? '+' : ' ') << "] " << fps << "fps   \r";
 		std::cout.flush();
+		if (!SPINNER_CHARACTERS[spinner_index]) {
+			spinner_index = 0;
+		}
 	}
 }
 
