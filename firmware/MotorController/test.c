@@ -96,7 +96,12 @@ void main(void)
 		else
 		{
 			LATD = drive_table_forward[hall_state];
-		}		
+		}
+		
+		if (TMR0L == 0)
+		{
+			duty_cycle = read_adc();
+		}
 	}
 }
 
