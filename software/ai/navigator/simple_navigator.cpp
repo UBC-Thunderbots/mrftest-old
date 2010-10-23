@@ -67,6 +67,7 @@ namespace {
 		double currentOrientation, destinationOrientation;
 
 		for (unsigned int i = 0; i < fteam.size(); i++) {
+			path.clear();
 			player = fteam.get(i);
 			currentPosition = player->position();
 			currentOrientation = player->orientation();

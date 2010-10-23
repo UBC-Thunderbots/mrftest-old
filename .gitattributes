@@ -106,9 +106,11 @@ software/ai/hl/world.h -text
 software/ai/logger.cpp -text
 software/ai/logger.h -text
 software/ai/main.cpp -text
+software/ai/navigator/RRTnavigator.cpp -text
 software/ai/navigator/navigator.cpp -text
 software/ai/navigator/navigator.h -text
 software/ai/navigator/simple_navigator.cpp -text
+software/ai/navigator/tree.hh -text
 software/ai/navigator/world.h -text
 software/ai/robot_controller/adhoc2_controller.cpp -text
 software/ai/robot_controller/fuzzy2_controller.cpp -text
