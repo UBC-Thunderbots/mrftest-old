@@ -1,4 +1,4 @@
-HEX := test.hex
+HEX := boostconverter.hex
 PROC := PIC18F4550
 CS := $(wildcard *.c)
 OBJS := $(CS:.c=.o)

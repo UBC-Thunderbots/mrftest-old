@@ -1,9 +1,9 @@
 * text=auto !eol
 firmware/BoostConverter/Makefile -text
+firmware/BoostConverter/boostconverter.c -text
 firmware/BoostConverter/config.c -text
 firmware/BoostConverter/pwm.c -text
 firmware/BoostConverter/pwm.h -text
-firmware/BoostConverter/test.c -text
 firmware/HWRunSwitch/Makefile -text
 firmware/HWRunSwitch/hwrunswitch.c -text
 firmware/MotorController/Makefile -text
