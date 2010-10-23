@@ -41,7 +41,9 @@ void Simulator::Team::send_tick(const timespec &ts) {
 		bool found = false;
 		for (std::size_t j = 0; j < players.size() && !found; ++j) {
 			if (to_remove[i] == players[j].pattern) {
+				Player::Ptr plr = players[j].player;
 				players.erase(players.begin() + j);
+				sim.engine->remove_player(plr);
 				found = true;
 			}
 		}
