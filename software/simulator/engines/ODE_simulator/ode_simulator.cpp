@@ -74,8 +74,8 @@ namespace {
 				// build a wall around the playing field
 				wall[0] = dCreateBox(space, Simulator::Field::TOTAL_LENGTH + 2 * wall_thickness, wall_thickness, wall_height);
 				wall[1] = dCreateBox(space, Simulator::Field::TOTAL_LENGTH + 2 * wall_thickness, wall_thickness, wall_height);
-				wall[2] = dCreateBox(space, wall_thickness, Simulator::Field::TOTAL_WIDTH - 2 * wall_thickness, wall_height);
-				wall[3] = dCreateBox(space, wall_thickness, Simulator::Field::TOTAL_WIDTH - 2 * wall_thickness, wall_height);
+				wall[2] = dCreateBox(space, wall_thickness, Simulator::Field::TOTAL_WIDTH, wall_height);
+				wall[3] = dCreateBox(space, wall_thickness, Simulator::Field::TOTAL_WIDTH, wall_height);
 				dGeomSetPosition(wall[0], 0, (Simulator::Field::TOTAL_WIDTH / 2 + wall_thickness / 2), (wall_height / 2));
 				dGeomSetPosition(wall[1], 0, -(Simulator::Field::TOTAL_WIDTH / 2 + wall_thickness / 2), (wall_height / 2));
 				dGeomSetPosition(wall[2], (Simulator::Field::TOTAL_LENGTH / 2 + wall_thickness / 2), 0, (wall_height / 2));
