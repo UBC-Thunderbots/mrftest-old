@@ -12,7 +12,7 @@ class Compo_player_geom : public Player_geom {
 		~Compo_player_geom();
 		void handle_collision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup);
 		void reset_frame();
-		bool has_ball();
+		bool has_ball() const;
 	private:
 		
 		bool robot_contains_shape(dGeomID geom);
@@ -42,6 +42,11 @@ class Compo_player_geom : public Player_geom {
 		 * This is not used.
 		 */
 		dGeomID dribbleArmR;
+		
+		/**
+		 * Used to determine whether the player has ball
+		 */
+		bool has_ball_now;
 
 
 };

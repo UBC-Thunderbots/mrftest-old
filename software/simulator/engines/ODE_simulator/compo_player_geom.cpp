@@ -197,10 +197,7 @@ void Compo_player_geom::handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointG
 	if (int numc = dCollide(o1, o2, 3, &contact[0].geom, sizeof(dContact))) {
 		for (i = 0; i < numc; i++) {
 		  bool robotCollided = hasContactPenetration(contact[i].geom.pos, robotGeom);
-			bool has_ball = hasContactWithFace(contact[i].geom.pos, robotGeom);
-			if (has_ball) {
-			  //set has ball to true
-			}
+			 has_ball_now = has_ball_now || hasContactWithFace(contact[i].geom.pos, robotGeom);
 			if (robotCollided ) {
 				contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;
 				contact[i].surface.mu = 0.1; 
@@ -293,12 +290,11 @@ void Compo_player_geom::handleWallCollision(dGeomID o1, dGeomID o2, dJointGroupI
 			}
 
 void Compo_player_geom::reset_frame(){
-
+  has_ball_now=false;
 }
 
-bool Compo_player_geom::has_ball(){
-
-  return false;
+bool Compo_player_geom::has_ball() const{
+  return has_ball_now;
 }
 
 

@@ -206,6 +206,8 @@ software/simulator/engines/ODE_simulator/playerODE.cpp -text
 software/simulator/engines/ODE_simulator/playerODE.h -text
 software/simulator/engines/ODE_simulator/player_geom.h -text
 software/simulator/engines/ODE_simulator/player_shapes.h -text
+software/simulator/engines/ODE_simulator/trimesh_player_geom.cpp -text
+software/simulator/engines/ODE_simulator/trimesh_player_geom.h -text
 software/simulator/engines/engine.h -text
 software/simulator/field.cpp -text
 software/simulator/field.h -text

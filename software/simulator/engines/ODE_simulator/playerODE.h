@@ -49,12 +49,8 @@ class PlayerODE : public Simulator::Player {
 		 * hasball routine Number 1.
 		 */
 		dGeomID ballGeom;
-
-
 		double updates_per_tick;
 
-		dVector3 *Vertices;
-		unsigned int *Triangles;
 		Point *wheel_position;
 		Point *force_direction;
 
@@ -77,12 +73,6 @@ class PlayerODE : public Simulator::Player {
 		bool robot_contains_shape(dGeomID geom);
 
 	public:
-		/**
-		 * Called when we find a robot-ball collision.
-		 * May do some additional testing beyond this to make sure "has ball".
-		 */
-		void set_has_ball();
-
 		void pre_tic(double TimeStep);
 
 		bool has_kick_set() {
@@ -108,8 +98,6 @@ class PlayerODE : public Simulator::Player {
 		void orientation(double orient);
 
 		void avelocity(double avel);
-
-		dTriMeshDataID create_robot_geom();
 };
 
 #endif

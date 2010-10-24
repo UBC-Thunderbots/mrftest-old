@@ -19,7 +19,7 @@ public:
 	virtual void handle_collision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup)=0;
 	virtual void reset_frame(){
 	}
-	virtual bool has_ball()=0;
+	virtual bool has_ball() const =0;
 	/**
 	 * The ID for the robot's body in the simulator.
 	 */

@@ -71,11 +71,6 @@ namespace {
 	 */
 	const double FRONT_FACE_WIDTH = 0.16;
 
-	/**
-	 * Number of sides used to generate the triangle mesh geometry
-	 */
-	const unsigned int NUM_SIDES = 20;
-
 
 	/**
 	 * Angles in radians that the wheels are located off the forward direction
@@ -88,7 +83,7 @@ namespace {
 /*
     Constructor method for the robot model contained in the simulator
  */
-PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : Vertices(0), Triangles(0), p_geom(eworld, dspace) {
+PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : p_geom(eworld, dspace) {
 	orders.kick = false;
 	orders.chip = false;
 	std::fill(&orders.wheel_speeds[0], &orders.wheel_speeds[4], 0);
@@ -112,16 +107,7 @@ PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double
 	}
 }
 
-
-
 PlayerODE::~PlayerODE() {
-	if (Vertices != NULL) {
-		delete[] Vertices;
-	}
-	if (Triangles != NULL) {
-		delete[] Triangles;
-	}
-
 	if (wheel_position != NULL) {
 		delete[] wheel_position;
 	}
@@ -130,13 +116,6 @@ PlayerODE::~PlayerODE() {
 		delete[] force_direction;
 	}
 }
-/*
-   this should only be called from Simulator during collision detection
- */
-void PlayerODE::set_has_ball() {
-// std::cout<<"set has ball"<<std::endl;
-	player_has_ball = true;
-}
 
 // Accessor method to get the robots position
 Point PlayerODE::position() const {
@@ -144,27 +123,22 @@ Point PlayerODE::position() const {
 	return Point(t[0], t[1]);
 }
 
-
 // Accessor method to get the robots orientation
 double PlayerODE::orientation() const {
 	return orientationFromMatrix(dBodyGetRotation(body));
 }
 
-
 /*
    Returns whether or not a given robot has the ball.
    Has ball is determined from the collision detection from the previous timestep
  */
-bool PlayerODE::has_ball() const {
-  return false;
-  //	return player_has_ball;
+bool PlayerODE::has_ball() const{
+  return p_geom.has_ball();
 }
-
 
 unsigned int PlayerODE::dribbler_speed() const {
 	return has_ball() ? 30 : 50;
 }
-
 
 // Accessor to get the height of the middle of the robot (should be ROBOT_HEIGHT/2)
 double PlayerODE::get_height() const {
@@ -254,7 +228,7 @@ void PlayerODE::pre_tic(double) {
 			}
 		}
 	}
-	player_has_ball = false;
+	p_geom.reset_frame();
 	posSet = false;
 }
 
@@ -314,110 +288,3 @@ void PlayerODE::orientation(double orient) {
 void PlayerODE::avelocity(double avel) {
 	dBodySetAngularVel(body, 0.0, 0.0, avel);
 }
-
-dTriMeshDataID PlayerODE::create_robot_geom() {
-	// Compute angle for front face (Cosine Law)
-	double WideAngle = acos((FRONT_FACE_WIDTH * FRONT_FACE_WIDTH - 2 * ROBOT_RADIUS * ROBOT_RADIUS) / (-2 * ROBOT_RADIUS * ROBOT_RADIUS));
-
-	// Compute remainder of angles
-	double NarrowAngleSize = (2 * M_PI - WideAngle) / NUM_SIDES;
-
-	// calculate the number of faces and vertices
-	unsigned int NumVertices = (NUM_SIDES + 2) * 2;
-	unsigned int NumTriangles = 4 * (NUM_SIDES + 1);
-
-	double Angles[NUM_SIDES + 1];
-
-	Vertices = new dVector3[NumVertices];
-
-	// dVector3 Vertices[NumVertices];
-
-	Triangles = new unsigned int[3 * NumTriangles];
-	// unsigned int Triangles[3*NumTriangles];
-
-	// Compute the angles
-	Angles[0] = WideAngle / 2;
-	for (unsigned int i = 0; i < NUM_SIDES; i++) {
-		Angles[i + 1] = Angles[i] + NarrowAngleSize;
-	}
-
-
-
-	Vertices[0][0] = 0;
-	Vertices[0][1] = 0;
-	Vertices[0][2] = ROBOT_HEIGHT / 2;
-
-
-	Vertices[NUM_SIDES + 2][0] = 0;
-	Vertices[NUM_SIDES + 2][1] = 0;
-	Vertices[NUM_SIDES + 2][2] = -ROBOT_HEIGHT / 2;
-
-	for (unsigned int i = 0; i <= NUM_SIDES; i++) {
-		Vertices[i + 1][0] = cos(Angles[i]) * ROBOT_RADIUS;
-		Vertices[i + 1][1] = sin(Angles[i]) * ROBOT_RADIUS;
-		Vertices[i + 1][2] = ROBOT_HEIGHT / 2;
-
-		Vertices[i + 1 + NUM_SIDES + 2][0] = cos(Angles[i]) * ROBOT_RADIUS;
-		Vertices[i + 1 + NUM_SIDES + 2][1] = sin(Angles[i]) * ROBOT_RADIUS;
-		Vertices[i + 1 + NUM_SIDES + 2][2] = -ROBOT_HEIGHT / 2;
-	}
-
-
-
-
-	// Top Side
-	unsigned int offset = 0;
-	for (unsigned int i = 0; i < NUM_SIDES; i++) {
-		Triangles[3 * (i + offset) + 0] = 0;
-		Triangles[3 * (i + offset) + 1] = i + 1;
-		Triangles[3 * (i + offset) + 2] = i + 2;
-	}
-
-	Triangles[3 * (NUM_SIDES + offset) + 0] = 0;
-	Triangles[3 * (NUM_SIDES + offset) + 1] = NUM_SIDES + 1;
-	Triangles[3 * (NUM_SIDES + offset) + 2] = 1;
-
-
-	// Sides
-	offset = offset + NUM_SIDES + 1;
-	for (unsigned int i = 0; i < NUM_SIDES; i++) {
-		Triangles[3 * (offset + i) + 0] = i + 1;
-		Triangles[3 * (offset + i) + 1] = NUM_SIDES + 3 + i;
-		Triangles[3 * (offset + i) + 2] = NUM_SIDES + 4 + i;
-	}
-
-	Triangles[3 * (offset + NUM_SIDES) + 0] = NUM_SIDES + 1;
-	Triangles[3 * (offset + NUM_SIDES) + 1] = 2 * NUM_SIDES + 3;
-	Triangles[3 * (offset + NUM_SIDES) + 2] = NUM_SIDES + 3;
-
-
-	offset = offset + NUM_SIDES + 1;
-	for (unsigned int i = 0; i < NUM_SIDES; i++) {
-		Triangles[3 * (offset + i) + 0] = i + 1;
-		Triangles[3 * (offset + i) + 1] = NUM_SIDES + 4 + i;
-		Triangles[3 * (offset + i) + 2] = i + 2;
-	}
-	Triangles[3 * (offset + NUM_SIDES) + 0] = NUM_SIDES + 1;
-	Triangles[3 * (offset + NUM_SIDES) + 1] = NUM_SIDES + 3;
-	Triangles[3 * (offset + NUM_SIDES) + 2] = 1;
-
-
-	// Bottom Side
-	offset = offset + (NUM_SIDES + 1);
-	for (unsigned int i = 0; i < NUM_SIDES; i++) {
-		Triangles[3 * (offset + i) + 0] = NUM_SIDES + 2;
-		Triangles[3 * (offset + i) + 1] = NUM_SIDES + 4 + i;
-		Triangles[3 * (offset + i) + 2] = NUM_SIDES + 3 + i;
-	}
-
-	Triangles[3 * (NUM_SIDES + offset) + 0] = NUM_SIDES + 2;
-	Triangles[3 * (NUM_SIDES + offset) + 1] = NUM_SIDES + 3;
-	Triangles[3 * (NUM_SIDES + offset) + 2] = 2 * NUM_SIDES + 3;
-
-	dTriMeshDataID triMesh;
-	triMesh = dGeomTriMeshDataCreate();
-	dGeomTriMeshDataBuildSimple(triMesh, Vertices[0], NumVertices, Triangles, NumTriangles);
-
-	return triMesh;
-}
-
