@@ -4,13 +4,13 @@
 #define V_DIODE 0.7
 #define V_SOURCE 15.0
 #define V_REF 5.0
-#define V_SET_POINT 235.0
+#define V_SET_POINT 240.0
 #define EIGHT_BIT 256.0
 #define ADC_RATIO 100.0
 #define TEN_BIT 1023.0
 #define SAFETY_FACTOR 1.1
 /* Boost Converter Control Algorithm implemented */
-/* UNTESTED (Kp) */
+/* Kp at 200V */
 
 void main(void) {
 
@@ -22,7 +22,7 @@ void main(void) {
 	float dutyCycle1;//Soft Start Duty Cycle
 	float dutyCycle2;//Proportional Control Duty Cycle
 	float dutyCycle;//Implemented Duty Cycle
-	float Kp = 0.025;//Proportional Constant	**Calculated to switch over from soft start control at 200V, given V_SOURCE and V_SET _POINT**
+	float Kp = 0.046;//Proportional Constant	**Calculated to switch over from soft start control at 220V, given V_SOURCE and V_SET _POINT**
 	float fMsb  = EIGHT_BIT;
 	float Vout;
 	float Vcap;	
@@ -80,7 +80,7 @@ void main(void) {
 		} else {
 			LATDbits.LATD4 = 0;
 		}
-		if( PORTBbits.RB0 == 0 && Vcap < 240 ) {// if button is pushed or if set point is beyond 240V, turn controller to zero
+		if( PORTBbits.RB0 == 0 && Vcap < 235 ) {// if button is pushed or if set point is beyond 240V, turn controller to zero
 			LATDbits.LATD5 = 1;
 			Vout = Vcap + V_DIODE;
 
