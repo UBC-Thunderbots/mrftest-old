@@ -132,8 +132,8 @@ double PlayerODE::orientation() const {
    Returns whether or not a given robot has the ball.
    Has ball is determined from the collision detection from the previous timestep
  */
-bool PlayerODE::has_ball() const{
-  return p_geom.has_ball();
+bool PlayerODE::has_ball() const {
+	return p_geom.has_ball();
 }
 
 unsigned int PlayerODE::dribbler_speed() const {
@@ -288,3 +288,4 @@ void PlayerODE::orientation(double orient) {
 void PlayerODE::avelocity(double avel) {
 	dBodySetAngularVel(body, 0.0, 0.0, avel);
 }
+

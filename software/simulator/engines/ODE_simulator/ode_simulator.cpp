@@ -223,8 +223,8 @@ namespace {
 				PlayerODE::Ptr robot2 = get_player_from_shape(o2);
 
 				if ((robot1 != emptyPlayer || robot2 != emptyPlayer)) {
-				  std::cout<<"  hello world!!!  "<<std::endl;
-				  //	handleRobotBallCollision(o1, o2);
+					std::cout << "  hello world!!!  " << std::endl;
+					// handleRobotBallCollision(o1, o2);
 				} else {
 					if (unsigned int numc = dCollide(o1, o2, num_contact, &contact[0].geom, sizeof(dContact))) {
 						for (i = 0; i < numc; i++) {
@@ -280,14 +280,14 @@ namespace {
 				PlayerODE::Ptr robot1 = get_player_from_shape(o1);
 				PlayerODE::Ptr robot2 = get_player_from_shape(o2);
 
-				if(robot1 != emptyPlayer){
-				  robot1->p_geom.handle_collision(o1,o2,contactgroup);
-				}else if(robot2 != emptyPlayer){
-				  robot2->p_geom.handle_collision(o1,o2,contactgroup);
+				if (robot1 != emptyPlayer) {
+					robot1->p_geom.handle_collision(o1, o2, contactgroup);
+				} else if (robot2 != emptyPlayer) {
+					robot2->p_geom.handle_collision(o1, o2, contactgroup);
 				}
 
-				if(robot1!=emptyPlayer || robot2!=emptyPlayer){
-				  return;
+				if (robot1 != emptyPlayer || robot2 != emptyPlayer) {
+					return;
 				}
 
 				if (groundCollision) {
@@ -307,7 +307,7 @@ namespace {
 						// do nothing
 					} else if (wall1 || wall2) {
 						handleWallCollision(o1, o2);
-					} 
+					}
 				}
 			}
 

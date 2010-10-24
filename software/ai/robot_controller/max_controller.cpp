@@ -17,7 +17,6 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
-
 	class MaxController : public OldRobotController {
 		public:
 			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
@@ -33,7 +32,9 @@ namespace {
 		const double current_orientation = player->orientation();
 		angular_velocity = angle_mod(new_orientation - current_orientation);
 		linear_velocity = (new_position - player->position()).rotate(-current_orientation);
-		if (linear_velocity.len()!=0) linear_velocity = linear_velocity / linear_velocity.len() * 9001; // It's over NINE THOUSAAAAAND!!!
+		if (linear_velocity.len() != 0) {
+			linear_velocity = linear_velocity / linear_velocity.len() * 9001; // It's over NINE THOUSAAAAAND!!!
+		}
 	}
 
 	void MaxController::clear() {

@@ -7,22 +7,21 @@
 
 class Compo_player_geom : public Player_geom {
 	public:
-		
 		Compo_player_geom(dWorldID eworld, dSpaceID dspace);
 		~Compo_player_geom();
 		void handle_collision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup);
 		void reset_frame();
 		bool has_ball() const;
+
 	private:
-		
 		bool robot_contains_shape(dGeomID geom);
 		void handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup);
 		void handleCollisionWithGround(dGeomID o1, dGeomID o2, dJointGroupID contactgroup);
-		
+
 		void handleRobotRobotCollision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup);
 		void handleWallCollision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup);
-		//bool hasContactPenetration(dVector3 pos, dGeomID geom);
-		
+		// bool hasContactPenetration(dVector3 pos, dGeomID geom);
+
 		/**
 		 * The rectangular geometry for the front collision.
 		 */
@@ -42,14 +41,13 @@ class Compo_player_geom : public Player_geom {
 		 * This is not used.
 		 */
 		dGeomID dribbleArmR;
-		
+
 		/**
 		 * Used to determine whether the player has ball
 		 */
 		bool has_ball_now;
-
-
 };
 
 
 #endif
+

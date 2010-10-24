@@ -10,16 +10,17 @@ namespace {
 //
 //
 //
-const double CFM = 1E-5;
+	const double CFM = 1E-5;
 
 //
 //
 //
-const double ERP = 1.0;	/**
+	const double ERP = 1.0;
+
+	/**
 	 * Number of sides used to generate the triangle mesh geometry
 	 */
 	const unsigned int NUM_SIDES = 20;
-
 
 	/**
 	 * Radius of the wheel for torque to force calculations
@@ -46,25 +47,22 @@ const double ERP = 1.0;	/**
 	 */
 	const double FRONT_FACE_WIDTH = 0.16;
 
-
 	/**
 	 * Angles in radians that the wheels are located off the forward direction
 	 */
 	const double ANGLES[4] = { 0.959931, 2.35619, 3.9269908, 5.32325 };
-
-
 }
 
-Trimesh_player_geom::Trimesh_player_geom(dWorldID eworld, dSpaceID dspace) : Player_geom(eworld, dspace), Triangles(0){
+Trimesh_player_geom::Trimesh_player_geom(dWorldID eworld, dSpaceID dspace) : Player_geom(eworld, dspace), Triangles(0) {
 }
 
-Trimesh_player_geom::~Trimesh_player_geom(){
-  	if (Vertices != NULL) {
-  		delete[] Vertices;
-  	}
-  	if (Triangles != NULL) {
-  		delete[] Triangles;
-  	}
+Trimesh_player_geom::~Trimesh_player_geom() {
+	if (Vertices != NULL) {
+		delete[] Vertices;
+	}
+	if (Triangles != NULL) {
+		delete[] Triangles;
+	}
 }
 
 bool Trimesh_player_geom::robot_contains_shape(dGeomID geom) {
@@ -74,56 +72,55 @@ bool Trimesh_player_geom::robot_contains_shape(dGeomID geom) {
 
 
 bool Trimesh_player_geom::hasContactWithFace(dVector3 pos, dGeomID geom) {
-double	y_len = 0.1;
-double	x_len = sqrt((2 * ROBOT_RADIUS) * (2 * ROBOT_RADIUS) - (y_len) * (y_len));
- const dReal *p = dBodyGetPosition(dGeomGetBody(geom));
+	double y_len = 0.1;
+	double x_len = sqrt((2 * ROBOT_RADIUS) * (2 * ROBOT_RADIUS) - (y_len) * (y_len));
+	const dReal *p = dBodyGetPosition(dGeomGetBody(geom));
 	Point ball_loc(pos[0], pos[1]);
 	Point play_loc(p[0], p[1]);
 	Point play_ball_diff = ball_loc - play_loc;
 	play_ball_diff = play_ball_diff.rotate(-orientationFromMatrix(dBodyGetRotation(dGeomGetBody(geom))));
 	bool face = play_ball_diff.x >= x_len / 2 && (play_ball_diff.y * x_len) < (play_ball_diff.x * y_len);
-	
+
 	return face;
 }
 
-void Trimesh_player_geom::handle_collision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup){
-bool ball_collision=false;
-double frict = 0.0;
-  if( dGeomGetBody(o1) ==  dGeomGetBody(o2) ){
-    return;
-  }
-  dGeomID robotGeom = o1;
-  if(robot_contains_shape(o1)){
-    robotGeom = o2;
-  }
-  if(dGeomGetBody(o1)==0 || dGeomGetBody(o2)==0){
-    if(dGeomGetClass(o1)==dPlaneClass || dGeomGetClass(o2) == dPlaneClass){
-      frict = 0.0;
-    }else{
-      frict = 0.2;
-    }
-  }else if(dGeomGetClass(o1)==dSphereClass || dGeomGetClass(o2) == dSphereClass){
-  	ball_collision = true;
-  	frict = 0.2;
-  }else{
-    frict = 0.2;
-  } 
-  
+void Trimesh_player_geom::handle_collision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup) {
+	bool ball_collision = false;
+	double frict = 0.0;
+	if (dGeomGetBody(o1) == dGeomGetBody(o2)) {
+		return;
+	}
+	dGeomID robotGeom = o1;
+	if (robot_contains_shape(o1)) {
+		robotGeom = o2;
+	}
+	if (dGeomGetBody(o1) == 0 || dGeomGetBody(o2) == 0) {
+		if (dGeomGetClass(o1) == dPlaneClass || dGeomGetClass(o2) == dPlaneClass) {
+			frict = 0.0;
+		} else {
+			frict = 0.2;
+		}
+	} else if (dGeomGetClass(o1) == dSphereClass || dGeomGetClass(o2) == dSphereClass) {
+		ball_collision = true;
+		frict = 0.2;
+	} else {
+		frict = 0.2;
+	}
+
 	dContact contact[3];      // up to 3 contacts per box
 	if (int numc = dCollide(o1, o2, 3, &contact[0].geom, sizeof(dContact))) {
 		for (int i = 0; i < numc; i++) {
-			if(ball_collision){
+			if (ball_collision) {
 				has_ball_now = has_ball_now || hasContactWithFace(contact[i].geom.pos, robotGeom);
 			}
 			contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;
-			contact[i].surface.mu = frict; 
+			contact[i].surface.mu = frict;
 			contact[i].surface.soft_cfm = CFM;
 			contact[i].surface.soft_erp = ERP;
 			contact[i].surface.bounce = 0.2;
 			contact[i].surface.bounce_vel = 0.0;
 			dJointID c = dJointCreateContact(world, contactgroup, contact + i);
 			dJointAttach(c, dGeomGetBody(o1), dGeomGetBody(o2));
-			
 		}
 	}
 }
@@ -131,15 +128,15 @@ double frict = 0.0;
 
 
 
-void Trimesh_player_geom::reset_frame(){
-  has_ball_now=false;
+void Trimesh_player_geom::reset_frame() {
+	has_ball_now = false;
 }
 
-bool Trimesh_player_geom::has_ball() const{
-  return has_ball_now;
+bool Trimesh_player_geom::has_ball() const {
+	return has_ball_now;
 }
 
-dTriMeshDataID Trimesh_player_geom::create_robot_geom(){
+dTriMeshDataID Trimesh_player_geom::create_robot_geom() {
 	// Compute angle for front face (Cosine Law)
 	double WideAngle = acos((FRONT_FACE_WIDTH * FRONT_FACE_WIDTH - 2 * ROBOT_RADIUS * ROBOT_RADIUS) / (-2 * ROBOT_RADIUS * ROBOT_RADIUS));
 

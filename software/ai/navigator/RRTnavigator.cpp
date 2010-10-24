@@ -11,10 +11,10 @@ namespace {
 	const double MAX_SPEED = 2.0;
 	const double THRESHOLD = 0.15;
 	const double STEP_DISTANCE = 0.3;
-	//probability that we will take a step towards the goal
+	// probability that we will take a step towards the goal
 	const double GOAL_PROB = 0.7;
-	//number of iterations to go through for each robot until we give up and
-	//just return the best partial path we've found
+	// number of iterations to go through for each robot until we give up and
+	// just return the best partial path we've found
 	const int ITERATION_LIMIT = 2500;
 
 	class RRTNavigator : public Navigator {
@@ -55,7 +55,7 @@ namespace {
 		std::vector<std::pair<std::pair<Point, double>, timespec> > path;
 		std::deque<Point> pathPoints;
 
-		for(std::size_t i = 0; i < world.friendly_team().size(); ++i) {
+		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 			path.clear();
 			Player::Ptr player = world.friendly_team().get(i);
 			timespec_now(timing);
@@ -67,18 +67,20 @@ namespace {
 			pathPoints = RRTPlan(player, player->position(), player->destination().first);
 
 			double destOrientation = player->destination().second;
-			for(std::size_t j = 0; j < pathPoints.size(); ++j) {
-				//the last point will just use whatever the last orientation was
-				if(j + 1 != pathPoints.size())
+			for (std::size_t j = 0; j < pathPoints.size(); ++j) {
+				// the last point will just use whatever the last orientation was
+				if (j + 1 != pathPoints.size()) {
 					destOrientation = (pathPoints[j + 1] - pathPoints[j]).orientation();
+				}
 
 				path.push_back(std::make_pair(std::make_pair(pathPoints[j], destOrientation), timing));
 			}
 
-			//just use the current player position as the destination if we are within the
-			//threshold already
-			if(pathPoints.size() == 0)
+			// just use the current player position as the destination if we are within the
+			// threshold already
+			if (pathPoints.size() == 0) {
 				path.push_back(std::make_pair(std::make_pair(player->position(), 0), timing));
+			}
 
 			player->path(path);
 		}
@@ -96,31 +98,32 @@ namespace {
 		return toCheck.x == EmptyState().x && toCheck.y && EmptyState().y;
 	}
 
-	//generate a random point from the field
+	// generate a random point from the field
 	Point RRTNavigator::RandomPoint() {
 		int randomX = (rand() % static_cast<int>(world.field().width() * 2)) - world.field().width();
 		int randomY = (rand() % static_cast<int>(world.field().length() * 2)) - world.field().length();
 		return Point(randomX, randomY);
 	}
 
-	//choose a target to extend toward, the goal with GOAL_PROB or a random point
+	// choose a target to extend toward, the goal with GOAL_PROB or a random point
 	Point RRTNavigator::ChooseTarget(Point goal) {
 		double p = rand() / double(RAND_MAX);
 
-		if(p > 0 && p < GOAL_PROB)
+		if (p > 0 && p < GOAL_PROB) {
 			return goal;
-		else
+		} else {
 			return RandomPoint();
+		}
 	}
 
-	//finds the point in the tree that is nearest to the target point
+	// finds the point in the tree that is nearest to the target point
 	tree<Point>::iterator RRTNavigator::Nearest(tree<Point> *rrtTree, Point target) {
 		tree<Point>::iterator it = rrtTree->begin();
 		tree<Point>::iterator end = rrtTree->end();
 
 		tree<Point>::pre_order_iterator nearest = it;
-		while(it != end) {
-			if(Distance(*it, target) < Distance(*nearest, target)) {
+		while (it != end) {
+			if (Distance(*it, target) < Distance(*nearest, target)) {
 				nearest = it;
 			}
 			++it;
@@ -129,11 +132,11 @@ namespace {
 		return nearest;
 	}
 
-	//extend by STEP_DISTANCE towards the target from the start
+	// extend by STEP_DISTANCE towards the target from the start
 	Point RRTNavigator::Extend(Player::Ptr player, Point start, Point target) {
 		Point extendPoint = start + ((target - start).norm() * STEP_DISTANCE);
-		//check if the point is invalid (collision, out of bounds, etc...)
-		//if it does then return EmptyState()
+		// check if the point is invalid (collision, out of bounds, etc...)
+		// if it does then return EmptyState()
 
 		return extendPoint;
 	}
@@ -148,34 +151,35 @@ namespace {
 		lastAdded = rrtTree.begin();
 
 		int iterationCounter = 0;
-		while(Distance(nearest, goal) > THRESHOLD && iterationCounter < ITERATION_LIMIT) {
+		while (Distance(nearest, goal) > THRESHOLD && iterationCounter < ITERATION_LIMIT) {
 			target = ChooseTarget(goal);
 			nearestNode = Nearest(&rrtTree, target);
 			nearest = *nearestNode;
 			extended = Extend(player, nearest, target);
 
-			if(!IsEmptyState(extended)) {
+			if (!IsEmptyState(extended)) {
 				lastAdded = rrtTree.append_child(nearestNode, extended);
 			}
 
 			iterationCounter++;
 		}
 
-		if(iterationCounter == ITERATION_LIMIT)
+		if (iterationCounter == ITERATION_LIMIT) {
 			std::cout << "Reached limit, path not found" << std::endl;
+		}
 
-		//calculations complete, trace backwards to get the points in the path
+		// calculations complete, trace backwards to get the points in the path
 		tree<Point>::iterator itPath = lastAdded;
 
-		//stores the final path of points
+		// stores the final path of points
 		std::deque<Point> pathPoints;
 		pathPoints.push_front(*lastAdded);
 
-		while(lastAdded != rrtTree.begin()) {
+		while (lastAdded != rrtTree.begin()) {
 			lastAdded = rrtTree.parent(lastAdded);
 			pathPoints.push_front(*lastAdded);
 		}
-		//remove the front of the list, this is the starting point
+		// remove the front of the list, this is the starting point
 		pathPoints.pop_front();
 		return pathPoints;
 	}
@@ -201,3 +205,4 @@ namespace {
 		return RRTNavigator::create(world);
 	}
 }
+
