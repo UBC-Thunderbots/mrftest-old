@@ -5,7 +5,7 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
-//#include "compo_player_geom.h"
+#include "compo_player_geom.h"
 
 #warning this class needs Doxygen comments in its header file
 
@@ -88,7 +88,7 @@ namespace {
 /*
     Constructor method for the robot model contained in the simulator
  */
-PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : Vertices(0), Triangles(0) {
+PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : Vertices(0), Triangles(0), p_geom(eworld, dspace) {
 	orders.kick = false;
 	orders.chip = false;
 	std::fill(&orders.wheel_speeds[0], &orders.wheel_speeds[4], 0);
@@ -97,61 +97,11 @@ PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double
 	double dribble_radius = 0.005; // half a cm
 	ballGeom = ballGeomi;
 	double ballradius = dGeomSphereGetRadius(ballGeom);
-
 	world = eworld;
-	body = dBodyCreate(world);
-	double x_pos = 0.0;
-	double y_pos = 0.0;
-
-
-	x_len = 0.18;
-	y_len = 0.18;
-
-
-	y_len = 0.1;
-	x_len = sqrt((2 * ROBOT_RADIUS) * (2 * ROBOT_RADIUS) - (y_len) * (y_len));
-
-	// dBodySetPosition(body, x_pos, y_pos, 0.0006);
-	// robotGeomTop = dCreateTriMesh(0,create_robot_geom(),NULL,NULL,NULL);
-	robotGeomTop = dCreateBox(0, x_len, y_len, ROBOT_HEIGHT);
+	body = p_geom.body;
 	dMassSetCylinderTotal(&mass, ROBOT_MASS, 3, ROBOT_RADIUS, ROBOT_HEIGHT);
-
-	dGeomSetBody(robotGeomTop, body);
-
-// ROBOT_RADIUS
-// comment
-	robotGeomTopCyl = dCreateCapsule(0, ROBOT_RADIUS, ROBOT_HEIGHT);
-	dGeomSetBody(robotGeomTopCyl, body);
-	dBodySetPosition(body, x_pos, y_pos, ROBOT_HEIGHT / 2 + 0.001);
-	// dGeomID robotGeom = dCreateBox (0,x_len,y_len,0.001);//10cm
-
-	double arm_width = 0.001;
-	double arm_height = 0.01;
-
-	dribbleArmL = dCreateBox(0, dribble_radius * 2.5, arm_width, arm_height);
-	dribbleArmR = dCreateBox(0, dribble_radius * 2.5, arm_width, arm_height);
-
-	double arm_h_offset = ballradius - 0.051;
-
-	dGeomSetBody(dribbleArmL, body);
-	dGeomSetBody(dribbleArmR, body);
-
-	dGeomSetOffsetPosition(dribbleArmL, x_len / 2, y_len / 2 + arm_width / 2, arm_h_offset);
-	dGeomSetOffsetPosition(dribbleArmR, -x_len / 2, -y_len / 2 - arm_width / 2, arm_h_offset);
-
-	dSpaceAdd(dspace, robotGeomTop);
-	dSpaceAdd(dspace, robotGeomTopCyl);
-	dSpaceAdd(dspace, dribbleArmL);
-	dSpaceAdd(dspace, dribbleArmR);
-
-
-
 	dBodySetMass(body, &mass);
 	momentInertia = ROBOT_RADIUS * ROBOT_RADIUS * mass.mass / 2;
-	// dGeomSetBody (robotGeom,body);
-
-
-
 
 	wheel_position = new Point[4];
 	force_direction = new Point[4];
@@ -165,14 +115,6 @@ PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double
 
 
 PlayerODE::~PlayerODE() {
-	// dJointGroupDestroy (contactgroup);
-	dGeomDestroy(robotGeomTop);
-	dGeomDestroy(robotGeomTopCyl);
-	dGeomDestroy(dribbleArmL);
-	dGeomDestroy(dribbleArmR);
-	dBodyDestroy(body);
-
-
 	if (Vertices != NULL) {
 		delete[] Vertices;
 	}
@@ -187,8 +129,6 @@ PlayerODE::~PlayerODE() {
 	if (force_direction != NULL) {
 		delete[] force_direction;
 	}
-
-	// dBodyDestroy (body2);
 }
 /*
    this should only be called from Simulator during collision detection
@@ -197,49 +137,6 @@ void PlayerODE::set_has_ball() {
 // std::cout<<"set has ball"<<std::endl;
 	player_has_ball = true;
 }
-
-/*
-   used to decide whether to add a contact joint for a robot collision
- */
-bool PlayerODE::hasContactPenetration(dVector3 pos) {
-	if (dGeomBoxPointDepth(robotGeomTop, pos[0], pos[1], pos[2]) < 0) {
-		return true;
-	}
-
-
-	const dReal *p = dBodyGetPosition(body);
-
-	Point ball_loc(pos[0], pos[1]);
-	Point play_loc(p[0], p[1]);
-	Point play_ball_diff = ball_loc - play_loc;
-	play_ball_diff = play_ball_diff.rotate(-orientation());
-
-	bool face = play_ball_diff.x >= x_len / 2 && (play_ball_diff.y * x_len) <= (play_ball_diff.x * y_len);
-
-	if (!face && pos[2] > 0 && pos[2] < ROBOT_HEIGHT) {
-		return dGeomCapsulePointDepth(robotGeomTopCyl, pos[0], pos[1], pos[2]) < 0;
-	}
-
-	return false;
-}
-
-/*
-   sees whether the contact joint penetrates the face of the robot
- */
-bool PlayerODE::hasContactWithFace(dVector3 pos) {
-	const dReal *p = dBodyGetPosition(body);
-	Point ball_loc(pos[0], pos[1]);
-	Point play_loc(p[0], p[1]);
-	Point play_ball_diff = ball_loc - play_loc;
-	play_ball_diff = play_ball_diff.rotate(-orientation());
-	bool face = play_ball_diff.x >= x_len / 2 && (play_ball_diff.y * x_len) < (play_ball_diff.x * y_len);
-
-	if (dGeomBoxPointDepth(robotGeomTop, pos[0], pos[1], pos[2]) < 0) {
-		return face;
-	}
-	return false;
-}
-
 
 // Accessor method to get the robots position
 Point PlayerODE::position() const {
@@ -259,7 +156,8 @@ double PlayerODE::orientation() const {
    Has ball is determined from the collision detection from the previous timestep
  */
 bool PlayerODE::has_ball() const {
-	return player_has_ball;
+  return false;
+  //	return player_has_ball;
 }
 
 

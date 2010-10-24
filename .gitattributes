@@ -199,9 +199,12 @@ software/simulator/connection.cpp -text
 software/simulator/connection.h -text
 software/simulator/engines/ODE_simulator/ballODE.cpp -text
 software/simulator/engines/ODE_simulator/ballODE.h -text
+software/simulator/engines/ODE_simulator/compo_player_geom.cpp -text
+software/simulator/engines/ODE_simulator/compo_player_geom.h -text
 software/simulator/engines/ODE_simulator/ode_simulator.cpp -text
 software/simulator/engines/ODE_simulator/playerODE.cpp -text
 software/simulator/engines/ODE_simulator/playerODE.h -text
+software/simulator/engines/ODE_simulator/player_geom.h -text
 software/simulator/engines/ODE_simulator/player_shapes.h -text
 software/simulator/engines/engine.h -text
 software/simulator/field.cpp -text

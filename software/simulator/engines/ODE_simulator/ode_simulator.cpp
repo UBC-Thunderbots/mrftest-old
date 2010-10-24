@@ -177,40 +177,6 @@ namespace {
 			//
 			// if a shape interescts with the ground set the contact parameters
 			//
-			void handleCollisionWithGround(dGeomID o1, dGeomID o2) {
-				int g1 = (o1 == the_ball->ballGeom);
-				int g2 = (o2 == the_ball->ballGeom);
-				int i = 0;
-				if ((g1 ^ g2)) {
-					handleBallCollisionWithGround(o1, o2);
-				} else if (get_player_from_shape(o1) != emptyPlayer || get_player_from_shape(o2) != emptyPlayer) {
-					// make sure that the capped cylinders do not collide with the ground
-
-					if (dGeomGetClass(o1) != dCCylinderClass && dGeomGetClass(o2) != dCCylinderClass) {
-						dBodyID b1 = dGeomGetBody(o1);
-						dBodyID b2 = dGeomGetBody(o2);
-
-						dContact contact[3];      // up to 3 contacts per box
-						if (int numc = dCollide(o1, o2, 3, &contact[0].geom, sizeof(dContact))) {
-							for (i = 0; i < numc; i++) {
-								contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;
-								contact[i].surface.mu = 0.0;
-								contact[i].surface.soft_cfm = CFM;
-								contact[i].surface.soft_erp = ERP;
-								contact[i].surface.bounce = 0.8;
-								contact[i].surface.bounce_vel = 0.0;
-								dJointID c = dJointCreateContact(eworld, contactgroup, contact + i);
-								dJointAttach(c, b1, b2);
-							}
-						}
-					}
-				}
-			}
-
-
-			//
-			// if a shape interescts with the ground set the contact parameters
-			//
 			void handleBallCollisionWithGround(dGeomID o1, dGeomID o2) {
 				double frict = MU * 6;
 				int i = 0;
@@ -223,12 +189,6 @@ namespace {
 				}
 
 				bool hasBall = robot != emptyPlayer;
-
-
-
-				// std::cout<<"ball frict dir "<< (angleVel[0]) <<" "<< (angleVel[1]) <<" "<< (angleVel[2]) <<std::endl;
-
-				// if ((g1 ^ g2)){
 
 				dBodyID b1 = dGeomGetBody(o1);
 				dBodyID b2 = dGeomGetBody(o2);
@@ -246,7 +206,6 @@ namespace {
 						dJointAttach(c, b1, b2);
 					}
 				}
-				// }
 			}
 
 			//
@@ -264,7 +223,8 @@ namespace {
 				PlayerODE::Ptr robot2 = get_player_from_shape(o2);
 
 				if ((robot1 != emptyPlayer || robot2 != emptyPlayer)) {
-					handleRobotBallCollision(o1, o2);
+				  std::cout<<"  hello world!!!  "<<std::endl;
+				  //	handleRobotBallCollision(o1, o2);
 				} else {
 					if (unsigned int numc = dCollide(o1, o2, num_contact, &contact[0].geom, sizeof(dContact))) {
 						for (i = 0; i < numc; i++) {
@@ -273,38 +233,6 @@ namespace {
 							contact[i].surface.soft_cfm = CFM;
 							contact[i].surface.soft_erp = ERP;
 							contact[i].surface.bounce = 0.3;
-							contact[i].surface.bounce_vel = 0.0;
-							dJointID c = dJointCreateContact(eworld, contactgroup, contact + i);
-							dJointAttach(c, b1, b2);
-						}
-					}
-				}
-			}
-
-			//
-			//
-			//
-			void handleRobotBallCollision(dGeomID o1, dGeomID o2) {
-				int i = 0;
-				dBodyID b1 = dGeomGetBody(o1);
-				dBodyID b2 = dGeomGetBody(o2);
-				dContact contact[3];      // up to 3 contacts per box
-
-				PlayerODE::Ptr robot = get_player_from_shape(o1);
-				if (robot == emptyPlayer) {
-					robot = get_player_from_shape(o2);
-				}
-				if (int numc = dCollide(o1, o2, 3, &contact[0].geom, sizeof(dContact))) {
-					for (i = 0; i < numc; i++) {
-						bool robotCollided = robot->hasContactPenetration(contact[i].geom.pos);
-						bool has_ball = robot->hasContactWithFace(contact[i].geom.pos);
-						if (has_ball) { robot->set_has_ball(); }
-						if (robotCollided && !robot->has_chip_set() && !robot->has_kick_set()) {
-							contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;
-							contact[i].surface.mu = MU; // 0.1*MU;
-							contact[i].surface.soft_cfm = CFM;
-							contact[i].surface.soft_erp = ERP;
-							contact[i].surface.bounce = 0.2;
 							contact[i].surface.bounce_vel = 0.0;
 							dJointID c = dJointCreateContact(eworld, contactgroup, contact + i);
 							dJointAttach(c, b1, b2);
@@ -338,40 +266,6 @@ namespace {
 			}
 
 			//
-			// if ground or ball or wall isn't invloved, we assume a robot robot collision
-			//
-			void handleRobotRobotCollision(dGeomID o1, dGeomID o2) {
-				int i = 0;
-
-				PlayerODE::Ptr robot1 = get_player_from_shape(o1);
-				PlayerODE::Ptr robot2 = get_player_from_shape(o2);
-
-				const int num_contact = 4;
-
-				if (robot1 != robot2) {
-					dBodyID b1 = dGeomGetBody(o1);
-					dBodyID b2 = dGeomGetBody(o2);
-					dContact contact[num_contact];        // up to 3 contacts per box
-					if (int numc = dCollide(o1, o2, num_contact, &contact[0].geom, sizeof(dContact))) {
-						for (i = 0; i < numc; i++) {
-							bool robotCollided = robot1->hasContactPenetration(contact[i].geom.pos) &&
-							                     robot2->hasContactPenetration(contact[i].geom.pos);
-							if (robotCollided) {
-								contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;
-								contact[i].surface.mu = MU;
-								contact[i].surface.soft_cfm = CFM;
-								contact[i].surface.soft_erp = ERP;
-								contact[i].surface.bounce = 1.0;
-								contact[i].surface.bounce_vel = 0.0;
-								dJointID c = dJointCreateContact(eworld, contactgroup, contact + i);
-								dJointAttach(c, b1, b2);
-							}
-						}
-					}
-				}
-			}
-
-			//
 			// This gets called every time we have two shpaes in the World that intersect
 			// for every pair of intersecting shapes we need to decide what to do with them
 			//
@@ -382,8 +276,22 @@ namespace {
 				int g2 = (o2 == ground);
 				groundCollision = (g1 ^ g2);
 				notGroundCollision = !groundCollision;
+
+				PlayerODE::Ptr robot1 = get_player_from_shape(o1);
+				PlayerODE::Ptr robot2 = get_player_from_shape(o2);
+
+				if(robot1 != emptyPlayer){
+				  robot1->p_geom.handle_collision(o1,o2,contactgroup);
+				}else if(robot2 != emptyPlayer){
+				  robot2->p_geom.handle_collision(o1,o2,contactgroup);
+				}
+
+				if(robot1!=emptyPlayer || robot2!=emptyPlayer){
+				  return;
+				}
+
 				if (groundCollision) {
-					handleCollisionWithGround(o1, o2);
+					handleBallCollisionWithGround(o1, o2);
 				} else if (notGroundCollision) {
 					int ballCollision;
 					g1 = (o1 == the_ball->ballGeom);
@@ -398,11 +306,8 @@ namespace {
 					} else if (wall1 && wall2) {
 						// do nothing
 					} else if (wall1 || wall2) {
-						// std::cout<<"wall"<<std::endl;
 						handleWallCollision(o1, o2);
-					} else {
-						handleRobotRobotCollision(o1, o2);
-					}
+					} 
 				}
 			}
 

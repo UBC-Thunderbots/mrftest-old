@@ -3,6 +3,7 @@
 
 #include "simulator/player.h"
 //#include "player_geom.h"
+#include "compo_player_geom.h"
 #include <ode/ode.h>
 
 
@@ -17,29 +18,9 @@ class PlayerODE : public Simulator::Player {
 		double momentInertia;
 
 		typedef RefPtr<PlayerODE> Ptr;
-		//Player_geom::Ptr p_geom;
+		Compo_player_geom p_geom;
 
 	private:
-		/**
-		 * The rectangular geometry for the front collision.
-		 */
-		dGeomID robotGeomTop;
-
-		/**
-		 * The Cylindrical geometry for most collisions.
-		 */
-		dGeomID robotGeomTopCyl;
-
-		/**
-		 * This is not used.
-		 */
-		dGeomID dribbleArmL;
-
-		/**
-		 * This is not used.
-		 */
-		dGeomID dribbleArmR;
-
 		/**
 		 * We need to interact with the simulator world so store its ID here.
 		 */
@@ -96,9 +77,6 @@ class PlayerODE : public Simulator::Player {
 		bool robot_contains_shape(dGeomID geom);
 
 	public:
-		bool hasContactPenetration(dVector3 pos);
-
-		bool hasContactWithFace(dVector3 pos);
 		/**
 		 * Called when we find a robot-ball collision.
 		 * May do some additional testing beyond this to make sure "has ball".
