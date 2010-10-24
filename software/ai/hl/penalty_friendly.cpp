@@ -15,6 +15,7 @@ const double PenaltyFriendly::RESTRICTED_ZONE_LENGTH = 0.85;
 
 const unsigned int PenaltyFriendly::NUMBER_OF_READY_POSITIONS;
 
+/*The constructor*/
 PenaltyFriendly::PenaltyFriendly(World &w) : world(w) {
 	const Field &f = world.field();
 

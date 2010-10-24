@@ -91,23 +91,29 @@ namespace {
 		prepare();
 	}
 
+	/**
+	 * Common function to handle all the play types for this strategy
+	 */
 	void PenaltyStrategy::prepare() {
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 		if (players.size() == 0) {
 			return;
 		}
-		// run assignment and tick
+
+		// run assignments and tick
 		if (world.playtype() == PlayType::PREPARE_PENALTY_FRIENDLY || world.playtype() == PlayType::EXECUTE_PENALTY_FRIENDLY) {
 			players.pop_back();
 			pFriendly.set_players(players);
 			pFriendly.tick();
+
 		} else if (world.playtype() == PlayType::PREPARE_PENALTY_ENEMY || world.playtype() == PlayType::EXECUTE_PENALTY_ENEMY) {
-			Player::Ptr goalie = players[4];
+			Player::Ptr goalie = players[players.size()-1];
 			players.pop_back();
 			pEnemy.set_players(players, goalie);
 			pEnemy.tick();
+
 		} else {
-			LOG_ERROR("penalty_enemy: unhandled playtype");
+			LOG_ERROR("penalty_strategy: unhandled playtype");
 		}
 	}
 
