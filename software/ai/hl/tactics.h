@@ -63,6 +63,12 @@ namespace AI {
 			 */
 			void free_move(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const Point p);
 
+
+			/**
+			 * A single goalie and NO ONE ELSE defending the field.
+			 */
+			void lone_goalie(AI::HL::W::World &world, AI::HL::W::Player::Ptr player);
+
 			/**
 			 * Helper Class to let a player (normally the goalie) to patrol between two points on the field
 			 */

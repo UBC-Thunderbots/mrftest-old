@@ -111,7 +111,10 @@ std::pair<Point, std::vector<Point> > Defender::calc_block_positions() const {
 
 void Defender::tick() {
 	if (players.size() == 0) {
-		LOG_WARN("no robots");
+		if (goalie.is()) {
+			AI::HL::Tactics::lone_goalie(world, goalie);
+		}
+		//LOG_WARN("no robots");
 		return;
 	}
 
