@@ -60,6 +60,9 @@ Trimesh_player_geom::~Trimesh_player_geom() {
 	if (Vertices != NULL) {
 		delete[] Vertices;
 	}
+	if (Verts != NULL) {
+		delete[] Verts;
+	}
 	if (Triangles != NULL) {
 		delete[] Triangles;
 	}
@@ -150,7 +153,7 @@ dTriMeshDataID Trimesh_player_geom::create_robot_geom() {
 	double Angles[NUM_SIDES + 1];
 
 	Vertices = new dVector3[NumVertices];
-
+	Verts = new double[4*NumVertices];
 	// dVector3 Vertices[NumVertices];
 
 	Triangles = new unsigned int[3 * NumTriangles];
@@ -235,9 +238,28 @@ dTriMeshDataID Trimesh_player_geom::create_robot_geom() {
 	Triangles[3 * (NUM_SIDES + offset) + 1] = NUM_SIDES + 3;
 	Triangles[3 * (NUM_SIDES + offset) + 2] = 2 * NUM_SIDES + 3;
 
+	for(int i=0; i< NumVertices; i++){
+	  for(int j=0; j<4; j++){
+	    Verts[4*i + j]= Vertices[i][j];
+	  }
+	}
+
 	dTriMeshDataID triMesh;
 	triMesh = dGeomTriMeshDataCreate();
-	dGeomTriMeshDataBuildSimple(triMesh, Vertices[0], NumVertices, Triangles, NumTriangles);
+	/*
+	  Online manuel says:
+	  void dGeomTriMeshDataBuildSimple (dTriMeshDataID g,
+                                  const dVector3*Vertices, int VertexCount,
+                                  const int* Indices, int IndexCount);
+
+	  however, online forums indicate that the second parameter is actually a (*dReal)
+
+	  see: 
+
+	  http://www.gamedev.net/community/forums/topic.asp?topic_id=319297
+
+	 */
+	dGeomTriMeshDataBuildSimple(triMesh, Verts, NumVertices, Triangles, NumTriangles);
 
 	return triMesh;
 }
