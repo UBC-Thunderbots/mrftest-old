@@ -128,6 +128,13 @@ void Defender::tick() {
 
 	const Point ball_pos = world.ball().position();
 
+	// choose whether to defend top or bottom
+	if (ball_pos.y > Robot::MAX_RADIUS * 2) {
+		goalie_top = true;
+	} else if (ball_pos.y < -Robot::MAX_RADIUS * 2) {
+		goalie_top = false;
+	}
+
 	std::pair<Point, std::vector<Point> > positions = calc_block_positions();
 	std::vector<Point> &waypoints = positions.second;
 

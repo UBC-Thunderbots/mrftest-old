@@ -4,6 +4,8 @@
 #include "ai/hl/util.h"
 #include "util/dprint.h"
 
+#include <glibmm.h>
+
 using AI::HL::Defender;
 using AI::HL::Offender;
 using AI::HL::Strategy;
@@ -122,9 +124,8 @@ namespace {
 	}
 
 	void BasicPlayStrategy::run_assignment() {
-		LOG_INFO("player reassignment");
-
 		if (world.friendly_team().size() == 0) {
+			LOG_WARN("no players");
 			return;
 		}
 
@@ -132,7 +133,9 @@ namespace {
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 
 		// sort players by distance to own goal
-		std::sort(players.begin() + 1, players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.field().friendly_goal()));
+		if (players.size() > 1) {
+			std::sort(players.begin() + 1, players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.field().friendly_goal()));
+		}
 
 		// defenders
 		Player::Ptr goalie = players[0];
@@ -167,6 +170,8 @@ namespace {
 				offenders.push_back(players[i]);
 			}
 		}
+
+		LOG_INFO(Glib::ustring::compose("player reassignment %1 defenders, %2 offenders", ndefenders, offenders.size()));
 
 		offender.set_players(offenders);
 		defender.set_players(defenders, goalie);
