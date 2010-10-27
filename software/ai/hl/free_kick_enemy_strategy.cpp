@@ -101,12 +101,14 @@ namespace {
 			return;
 		}
 
-		defender.tick();  // might want to do something with flags in order to "ram" enemy
+		defender.tick();  
+		defender.set_chase(true); // defenders should chase away the ball
 		offender.tick();
+		offender.set_chase(false);
 		
 		if (world.playtype() == PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY || world.playtype() == PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) {
 			// TODO: something sensible
-
+			
 		} else {
 			LOG_ERROR("freeKickEnemy: unhandled playtype");
 		}

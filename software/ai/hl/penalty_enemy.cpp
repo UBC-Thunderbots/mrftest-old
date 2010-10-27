@@ -67,6 +67,6 @@ void PenaltyEnemy::tick() {
 	const Point starting_position(-0.5 * f.length(), -0.5 * Robot::MAX_RADIUS);
 	const Point ending_position(-0.5 * f.length(), 0.5 * Robot::MAX_RADIUS);
 
-	Patrol(world, goalie, starting_position, ending_position, AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE);
+	Patrol(world, goalie, starting_position, ending_position, AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE).tick();
 }
 
