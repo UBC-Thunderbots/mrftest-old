@@ -217,6 +217,7 @@ namespace AI {
 			 * \param[in] players a list of players
 			 *
 			 * \param[in out] waypoints a list of points in which to assign the players.
+			 * This list will be reordered.
 			 */
 			void waypoints_matching(const std::vector<AI::HL::W::Player::Ptr>& players, std::vector<Point>& waypoints);
 		}
