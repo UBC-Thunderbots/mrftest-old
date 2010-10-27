@@ -208,6 +208,11 @@ namespace AI {
 			 * Converts an enemy team into a vector of robots.
 			 */
 			std::vector<AI::HL::W::Robot::Ptr> get_robots(AI::HL::W::EnemyTeam &enemy);
+
+			/**
+			 * Reorders a vector of waypoints to match a vector of players.
+			 */
+			void waypoints_matching(const std::vector<AI::HL::W::Player::Ptr>& players, std::vector<Point>& waypoints);
 		}
 	}
 }

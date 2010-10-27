@@ -13,7 +13,7 @@ using AI::HL::Defender;
 using namespace AI::HL::W;
 
 namespace {
-	DoubleParam max_goalie_dist("max goalie dist from goal (robot radius)", 2.0, 0.0, 10.0);
+	DoubleParam max_goalie_dist("max goalie dist from goal (robot radius)", 3.0, 0.0, 10.0);
 
 	DoubleParam robot_shrink("shrink robot radius", 0.9, 0.1, 2.0);
 }
@@ -21,13 +21,16 @@ namespace {
 Defender::Defender(World &w) : world(w), chase(false) {
 }
 
-void Defender::set_players(std::vector<Player::Ptr> p, Player::Ptr g) {
+void Defender::set_players(const std::vector<Player::Ptr>& p, Player::Ptr g) {
 	if (!g.is()) {
-		LOG_ERROR("no goalie");
+		//LOG_ERROR("no goalie");
+		if (p.size() > 0) {
+			LOG_ERROR("cannot have defenders w/o goalie");
+		}
 	}
-	if (p.size() == 0) {
-		LOG_ERROR("no defender to accompany goalie");
-	}
+	//if (p.size() == 0) {
+		//LOG_ERROR("no defender to accompany goalie");
+	//}
 	players = p;
 	goalie = g;
 }

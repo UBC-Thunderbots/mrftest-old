@@ -12,12 +12,12 @@ using namespace AI::HL::W;
 
 namespace {
 	// the distance we want the players to the ball
-	const double AVOIDANCE_DIST = 0.050 + Robot::MAX_RADIUS + 0.005;
+	const double AVOIDANCE_DIST = 0.50 + Robot::MAX_RADIUS + 0.005;
 
 	// in ball avoidance, angle between center of 2 robots, as seen from the ball
 	const double AVOIDANCE_ANGLE = 2.0 * asin(Robot::MAX_RADIUS / AVOIDANCE_DIST);
 
-	DoubleParam separation_angle("angle to separate players (degrees)", 5, 0, 20);
+	DoubleParam separation_angle("kickoff: angle to separate players (degrees)", 40, 0, 80);
 
 	/**
 	 * Manages the robots during a stoppage in place (that is, when the game is in PlayType::STOP).
@@ -145,28 +145,28 @@ namespace {
 		// a ray that shoots from the center to friendly goal.
 		const Point shoot = Point(-1, 0) * AVOIDANCE_DIST;
 
-		const Point p1 = shoot;
-		const Point p2 = shoot.rotate(delta_angle);
-		const Point p3 = shoot.rotate(-delta_angle);
+		// do matching
+		std::vector<Point> positions;
 
 		switch (offenders.size()) {
 			case 3:
-				AI::HL::Tactics::free_move(world, offenders[2], p3);
-
+				positions.push_back(shoot);
 			case 2:
-				AI::HL::Tactics::free_move(world, offenders[1], p2);
-
+				positions.push_back(shoot.rotate(delta_angle));
 			case 1:
-				AI::HL::Tactics::free_move(world, offenders[0], p1);
-				break;
-
+				positions.push_back(shoot.rotate(-delta_angle));
 			default:
-				// that's too bad
 				break;
+		}
+
+		AI::HL::Util::waypoints_matching(offenders, positions);
+		for (std::size_t i = 0; i < offenders.size(); ++i) {
+			AI::HL::Tactics::free_move(world, offenders[i], positions[i]);
 		}
 
 		// run defender
 		defender.set_players(defenders, goalie);
+		defender.tick();
 	}
 
 	Strategy::Ptr KickoffEnemyStrategy::create(World &world) {

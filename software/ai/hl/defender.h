@@ -26,7 +26,7 @@ namespace AI {
 				 *
 				 * \param[in] g goalie, must always exist.
 				 */
-				void set_players(std::vector<W::Player::Ptr> p, W::Player::Ptr g);
+				void set_players(const std::vector<W::Player::Ptr>& p, W::Player::Ptr g);
 
 				/**
 				 * Finds a player that you can extract and make use.
