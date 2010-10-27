@@ -106,8 +106,8 @@ namespace {
 			pFriendly.set_players(players);
 			pFriendly.tick();
 		} else if (world.playtype() == PlayType::PREPARE_PENALTY_ENEMY || world.playtype() == PlayType::EXECUTE_PENALTY_ENEMY) {
-			Player::Ptr goalie = players[players.size() - 1];
-			players.pop_back();
+			Player::Ptr goalie = players[0];
+			players.erase(players.begin());
 			pEnemy.set_players(players, goalie);
 			pEnemy.tick();
 		} else {

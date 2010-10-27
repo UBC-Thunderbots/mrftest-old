@@ -13,34 +13,25 @@ using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
 
 namespace {
-	// the distance we want the players to the ball
-	const double AVOIDANCE_DIST = 0.050 + Robot::MAX_RADIUS + 0.005;
-
-	// in ball avoidance, angle between center of 2 robots, as seen from the ball
-	const double AVOIDANCE_ANGLE = 2.0 * asin(Robot::MAX_RADIUS / AVOIDANCE_DIST);
-
-	DoubleParam separation_angle("angle to separate players (degrees)", 5, 0, 20);
-
+	
 	/**
 	 * Manages the robots during a stoppage in place (that is, when the game is in PlayType::STOP).
 	 */
-	class FreeKickStrategy : public Strategy {
+	class FreeKickEnemyStrategy : public Strategy {
 		public:
 			StrategyFactory &factory() const;
 
 			/**
-			 * Creates a new FreeKickStrategy.
+			 * Creates a new FreeKickEnemyStrategy.
 			 *
 			 * \param[in] world the World in which to operate.
 			 */
 			static Strategy::Ptr create(World &world);
 
 		private:
-			FreeKickStrategy(World &world);
-			~FreeKickStrategy();
+			FreeKickEnemyStrategy(World &world);
+			~FreeKickEnemyStrategy();
 
-			void execute_indirect_free_kick_friendly();
-			void execute_direct_free_kick_friendly();
 			void execute_indirect_free_kick_enemy();
 			void execute_direct_free_kick_enemy();
 
@@ -48,59 +39,51 @@ namespace {
 
 			AI::HL::Defender defender;
 			AI::HL::Offender offender;
+
 	};
 
 	/**
-	 * A factory for constructing \ref FreeKickStrategy "StopStrategies".
+	 * A factory for constructing \ref FreeKickEnemyStrategy "FreeKickEnemyStrategies".
 	 */
-	class FreeKickStrategyFactory : public StrategyFactory {
+	class FreeKickEnemyStrategyFactory : public StrategyFactory {
 		public:
-			FreeKickStrategyFactory();
-			~FreeKickStrategyFactory();
+			FreeKickEnemyStrategyFactory();
+			~FreeKickEnemyStrategyFactory();
 			Strategy::Ptr create_strategy(World &world) const;
 	};
 
 	/**
-	 * The global instance of FreeKickStrategyFactory.
+	 * The global instance of FreeKickEnemyStrategyFactory.
 	 */
-	FreeKickStrategyFactory factory_instance;
+	FreeKickEnemyStrategyFactory factory_instance;
 
 	/**
 	 * The play types handled by this strategy.
 	 */
 	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
-		PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY,
-		PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY,
 		PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY,
 		PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY,
 	};
 
-	StrategyFactory &FreeKickStrategy::factory() const {
+	StrategyFactory &FreeKickEnemyStrategy::factory() const {
 		return factory_instance;
 	}
 
-	void FreeKickStrategy::execute_direct_free_kick_friendly() {
+	void FreeKickEnemyStrategy::execute_direct_free_kick_enemy() {
 		prepare();
 	}
 
 
 // a goal may not be scored directly from the kick
-	void FreeKickStrategy::execute_indirect_free_kick_friendly() {
-		prepare();
-	}
-
-	void FreeKickStrategy::execute_direct_free_kick_enemy() {
+	void FreeKickEnemyStrategy::execute_indirect_free_kick_enemy() {
 		prepare();
 	}
 
 
-// a goal may not be scored directly from the kick
-	void FreeKickStrategy::execute_indirect_free_kick_enemy() {
-		prepare();
-	}
+	void FreeKickEnemyStrategy::prepare() {
 
+		// should have one kicker and the rest as defenders or offenders for friendly freekick
 
-	void FreeKickStrategy::prepare() {
 		if (world.friendly_team().size() == 0) {
 			return;
 		}
@@ -109,10 +92,15 @@ namespace {
 		if (players.size() == 0) {
 			return;
 		}
+
 		// run assignment and tick
 		if (world.playtype() == PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) {
+
+			
+
+
 		} else if (world.playtype() == PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY) {
-			Player::Ptr goalie = players[4];
+			Player::Ptr kicker = players[players.size()-1];
 			players.pop_back();
 
 			// 500 mm from the ball
@@ -139,32 +127,29 @@ namespace {
 				}
 			}
 
-
-			Player::Ptr goalie = players[4];
-			players.pop_back();
 		} else {
 			LOG_ERROR("freeKick: unhandled playtype");
 		}
 	}
 
-	Strategy::Ptr FreeKickStrategy::create(World &world) {
-		const Strategy::Ptr p(new FreeKickStrategy(world));
+	Strategy::Ptr FreeKickEnemyStrategy::create(World &world) {
+		const Strategy::Ptr p(new FreeKickEnemyStrategy(world));
 		return p;
 	}
 
-	FreeKickStrategy::FreeKickStrategy(World &world) : Strategy(world), defender(world), offender(world) {}
+	FreeKickEnemyStrategy::FreeKickEnemyStrategy(World &world) : Strategy(world), defender(world), offender(world) {}
 
-	FreeKickStrategy::~FreeKickStrategy() {
+	FreeKickEnemyStrategy::~FreeKickEnemyStrategy() {
 	}
 
-	FreeKickStrategyFactory::FreeKickStrategyFactory() : StrategyFactory("FreeKick", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) {
+	FreeKickEnemyStrategyFactory::FreeKickEnemyStrategyFactory() : StrategyFactory("FreeKickEnemy", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) {
 	}
 
-	FreeKickStrategyFactory::~FreeKickStrategyFactory() {
+	FreeKickEnemyStrategyFactory::~FreeKickEnemyStrategyFactory() {
 	}
 
-	Strategy::Ptr FreeKickStrategyFactory::create_strategy(World &world) const {
-		return FreeKickStrategy::create(world);
+	Strategy::Ptr FreeKickEnemyStrategyFactory::create_strategy(World &world) const {
+		return FreeKickEnemyStrategy::create(world);
 	}
 }
 
