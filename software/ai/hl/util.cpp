@@ -200,7 +200,7 @@ std::vector<Robot::Ptr> AI::HL::Util::get_robots(EnemyTeam &enemy) {
 	return robots;
 }
 
-void AI::HL::Util::waypoints_matching(const std::vector<Player::Ptr>& players, std::vector<Point>& waypoints) {
+void AI::HL::Util::waypoints_matching(const std::vector<Player::Ptr> &players, std::vector<Point> &waypoints) {
 	// TODO: make more efficient
 	std::vector<Point> locations;
 	for (std::size_t i = 0; i < players.size(); ++i) {

@@ -1,23 +1,16 @@
+#include "convex_player_geom.h"
+#include "geom/angle.h"
 #include "geom/point.h"
 #include <cmath>
 #include <vector>
-#include "convex_player_geom.h"
-#include "geom/angle.h"
-#include <cmath>
-
 
 namespace {
 	double orientationFromMatrix(const dReal *t) {
-		return atan2(-t[1], t[0]);
+		return std::atan2(-t[1], t[0]);
 	}
-//
-//
-//
+
 	const double CFM = 1E-5;
 
-//
-//
-//
 	const double ERP = 1.0;
 
 	/**
@@ -66,13 +59,13 @@ namespace {
 	const unsigned int POINT_COUNT = 30;
 
 	std::vector<Point> get_chopped_circle(double radius, double face_width) {
-		double face_depth = sqrt(radius * radius - (face_width / 2.0) * (face_width / 2.0));
+		double face_depth = std::sqrt(radius * radius - (face_width / 2.0) * (face_width / 2.0));
 		std::vector<Point> ans;
 
 		Point first(face_depth, face_width / 2.0);
 		Point last(face_depth, -face_width / 2.0);
 
-		double angle_face = acos(first.cross(last) / (radius * radius));
+		double angle_face = std::acos(first.cross(last) / (radius * radius));
 		double angle_step = (2 * M_PI - angle_face) / (CHOPPED_CIRCLE_APPROX - 1);
 
 		for (unsigned int i = 0; i < CHOPPED_CIRCLE_APPROX; i++) {
@@ -154,12 +147,10 @@ namespace {
 	}
 }
 
-
 Convex_player_geom::Convex_player_geom(dWorldID eworld, dSpaceID dspace) : Player_geom(eworld, dspace) {
 }
 
 Convex_player_geom::~Convex_player_geom() {
-
 }
 
 bool Convex_player_geom::robot_contains_shape(dGeomID geom) {
@@ -167,10 +158,9 @@ bool Convex_player_geom::robot_contains_shape(dGeomID geom) {
 	return b == body;
 }
 
-
 bool Convex_player_geom::hasContactWithFace(dVector3 pos, dGeomID geom) {
 	double y_len = 0.1;
-	double x_len = sqrt((2 * ROBOT_RADIUS) * (2 * ROBOT_RADIUS) - (y_len) * (y_len));
+	double x_len = std::sqrt((2 * ROBOT_RADIUS) * (2 * ROBOT_RADIUS) - (y_len) * (y_len));
 	const dReal *p = dBodyGetPosition(dGeomGetBody(geom));
 	Point ball_loc(pos[0], pos[1]);
 	Point play_loc(p[0], p[1]);
@@ -222,9 +212,6 @@ void Convex_player_geom::handle_collision(dGeomID o1, dGeomID o2, dJointGroupID 
 	}
 }
 
-
-
-
 void Convex_player_geom::reset_frame() {
 	has_ball_now = false;
 }
@@ -234,8 +221,6 @@ bool Convex_player_geom::has_ball() const {
 }
 
 dGeomID Convex_player_geom::create_robot_geom() {
-
-return get_player_geom(space, ROBOT_HEIGHT, ROBOT_RADIUS, FRONT_FACE_WIDTH);
-
+	return get_player_geom(space, ROBOT_HEIGHT, ROBOT_RADIUS, FRONT_FACE_WIDTH);
 }
 

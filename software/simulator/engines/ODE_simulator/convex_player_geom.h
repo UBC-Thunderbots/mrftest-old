@@ -1,8 +1,7 @@
 #ifndef SIMULATOR_ENGINES_ODE_SIMULATOR_Convex_PLAYER_GEOM_H
 #define SIMULATOR_ENGINES_ODE_SIMULATOR_Convex_PLAYER_GEOM_H
 
-
-#include "player_geom.h"
+#include "simulator/engines/ODE_simulator/player_geom.h"
 #include <ode/ode.h>
 
 class Convex_player_geom : public Player_geom {
@@ -29,9 +28,7 @@ class Convex_player_geom : public Player_geom {
 		 * Used to determine whether the player has ball
 		 */
 		bool has_ball_now;
-
 };
-
 
 #endif
 

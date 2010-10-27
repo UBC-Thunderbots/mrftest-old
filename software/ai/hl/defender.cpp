@@ -21,7 +21,7 @@ namespace {
 Defender::Defender(World &w) : world(w), chase(false) {
 }
 
-void Defender::set_players(const std::vector<Player::Ptr>& p, Player::Ptr g) {
+void Defender::set_players(const std::vector<Player::Ptr> &p, Player::Ptr g) {
 	if (!g.is()) {
 		//LOG_ERROR("no goalie");
 		if (p.size() > 0) {

@@ -214,12 +214,11 @@ namespace AI {
 			 * This is done by computing a minimum-total-distance bipartite matching between the sets of points.
 			 * This function should work even if the number of players and waypoints do not match.
 			 *
-			 * \param[in] players a list of players
+			 * \param[in] players a list of players.
 			 *
-			 * \param[in out] waypoints a list of points in which to assign the players.
-			 * This list will be reordered.
+			 * \param[in, out] waypoints a list of points in which to assign the players, which will be reordered.
 			 */
-			void waypoints_matching(const std::vector<AI::HL::W::Player::Ptr>& players, std::vector<Point>& waypoints);
+			void waypoints_matching(const std::vector<AI::HL::W::Player::Ptr> &players, std::vector<Point> &waypoints);
 		}
 	}
 }

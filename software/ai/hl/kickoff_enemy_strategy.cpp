@@ -151,10 +151,13 @@ namespace {
 		switch (offenders.size()) {
 			case 3:
 				positions.push_back(shoot);
+
 			case 2:
 				positions.push_back(shoot.rotate(delta_angle));
+
 			case 1:
 				positions.push_back(shoot.rotate(-delta_angle));
+
 			default:
 				break;
 		}

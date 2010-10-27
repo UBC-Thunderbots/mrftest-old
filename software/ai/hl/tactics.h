@@ -63,7 +63,6 @@ namespace AI {
 			 */
 			void free_move(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const Point p);
 
-
 			/**
 			 * A single goalie and NO ONE ELSE defending the field.
 			 */
