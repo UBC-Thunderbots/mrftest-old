@@ -210,7 +210,13 @@ namespace AI {
 			std::vector<AI::HL::W::Robot::Ptr> get_robots(AI::HL::W::EnemyTeam &enemy);
 
 			/**
-			 * Reorders a vector of waypoints to match a vector of players.
+			 * Finds the best assignment of players to points.
+			 * This is done by computing a minimum-total-distance bipartite matching between the sets of points.
+			 * This function should work even if the number of players and waypoints do not match.
+			 *
+			 * \param[in] players a list of players
+			 *
+			 * \param[in out] waypoints a list of points in which to assign the players.
 			 */
 			void waypoints_matching(const std::vector<AI::HL::W::Player::Ptr>& players, std::vector<Point>& waypoints);
 		}
