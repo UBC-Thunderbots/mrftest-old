@@ -85,6 +85,7 @@ software/ai/hl/defender.cpp -text
 software/ai/hl/defender.h -text
 software/ai/hl/free_kick_friendly.cpp -text
 software/ai/hl/free_kick_friendly.h -text
+software/ai/hl/free_kick_friendly_strategy.cpp -text
 software/ai/hl/free_kick_strategy.cpp -text
 software/ai/hl/kickoff_enemy_strategy.cpp -text
 software/ai/hl/offender.cpp -text
