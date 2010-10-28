@@ -185,7 +185,7 @@ namespace {
 			best_dist = std::min(best_dist, (offenders[i]->position() - world.ball().position()).len());
 		}
 		for (std::size_t i = 0; i < defenders.size(); ++i) {
-			double dist = (offenders[i]->position() - world.ball().position()).len();
+			double dist = (defenders[i]->position() - world.ball().position()).len();
 			if (dist < best_dist) {
 				offender_chase = false;
 				break;

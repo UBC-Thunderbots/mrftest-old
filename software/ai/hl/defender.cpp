@@ -89,7 +89,7 @@ std::pair<Point, std::vector<Point> > Defender::calc_block_positions() const {
 
 	// next two defenders block nearest enemy sights to goal if needed
 	// enemies with ball possession are ignored (they should be handled above)
-	for (size_t i = 0; i < enemies.size() && waypoints.size() < 3; ++i) {
+	for (size_t i = 0; i < enemies.size() && waypoints.size() < players.size(); ++i) {
 		if (!AI::HL::Util::ball_close(world, enemies[i])) {
 			bool blowup = false;
 			Point D = calc_block_cone(goal_side, goal_opp, enemies[i]->position(), radius);
@@ -106,8 +106,10 @@ std::pair<Point, std::vector<Point> > Defender::calc_block_positions() const {
 		}
 	}
 
-	// 4th defender go chase?
-	waypoints.push_back(world.ball().position());
+	// there are too few enemies, this is strange
+	while (waypoints.size() < players.size()) {
+		waypoints.push_back((f.friendly_goal() + ball_pos) / 2);
+	}
 
 	return std::make_pair(goalie_pos, waypoints);
 }
