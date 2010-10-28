@@ -30,7 +30,6 @@ namespace {
 		private:
 			BasicPlayStrategy(AI::HL::W::World &world);
 			~BasicPlayStrategy();
-			void on_play_type_changed();
 			void on_player_added(std::size_t);
 			void on_player_removing(std::size_t);
 
@@ -100,19 +99,12 @@ namespace {
 	}
 
 	BasicPlayStrategy::BasicPlayStrategy(World &world) : Strategy(world), defender(world), offender(world) {
-		world.playtype().signal_changed().connect(sigc::mem_fun(this, &BasicPlayStrategy::on_play_type_changed));
 		world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &BasicPlayStrategy::on_player_added));
 		world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &BasicPlayStrategy::on_player_removing));
 		run_assignment();
 	}
 
 	BasicPlayStrategy::~BasicPlayStrategy() {
-	}
-
-	void BasicPlayStrategy::on_play_type_changed() {
-		if (world.playtype() != PlayType::PLAY) {
-			resign();
-		}
 	}
 
 	void BasicPlayStrategy::on_player_added(std::size_t) {

@@ -44,7 +44,6 @@ namespace {
 		private:
 			StopStrategy(World &world);
 			~StopStrategy();
-			void on_play_type_changed();
 			bool valid(Point p) const;
 	};
 
@@ -186,16 +185,9 @@ namespace {
 	}
 
 	StopStrategy::StopStrategy(World &world) : Strategy(world) {
-		world.playtype().signal_changed().connect(sigc::mem_fun(this, &StopStrategy::on_play_type_changed));
 	}
 
 	StopStrategy::~StopStrategy() {
-	}
-
-	void StopStrategy::on_play_type_changed() {
-		if (world.playtype() != PlayType::STOP) {
-			resign();
-		}
 	}
 
 	StopStrategyFactory::StopStrategyFactory() : StrategyFactory("Stop", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) {

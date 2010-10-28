@@ -37,8 +37,6 @@ namespace {
 			KickoffEnemyStrategy(World &world);
 			~KickoffEnemyStrategy();
 
-			void on_play_type_changed();
-
 			//void prepare_kickoff_friendly();
 			//void execute_kickoff_friendly();
 
@@ -178,16 +176,9 @@ namespace {
 	}
 
 	KickoffEnemyStrategy::KickoffEnemyStrategy(World &world) : Strategy(world), defender(world) {
-		world.playtype().signal_changed().connect(sigc::mem_fun(this, &KickoffEnemyStrategy::on_play_type_changed));
 	}
 
 	KickoffEnemyStrategy::~KickoffEnemyStrategy() {
-	}
-
-	void KickoffEnemyStrategy::on_play_type_changed() {
-		if (world.playtype() != PlayType::PREPARE_KICKOFF_ENEMY || world.playtype() != PlayType::EXECUTE_KICKOFF_ENEMY) {
-			resign();
-		}
 	}
 
 	KickoffEnemyStrategyFactory::KickoffEnemyStrategyFactory() : StrategyFactory("Kickoff Enemy", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) {
