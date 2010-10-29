@@ -106,6 +106,7 @@ software/ai/logger.cpp -text
 software/ai/logger.h -text
 software/ai/main.cpp -text
 software/ai/navigator/RRTnavigator.cpp -text
+software/ai/navigator/bnavigator.cpp -text
 software/ai/navigator/navigator.cpp -text
 software/ai/navigator/navigator.h -text
 software/ai/navigator/simple_navigator.cpp -text
