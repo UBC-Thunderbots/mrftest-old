@@ -96,19 +96,22 @@ namespace {
 
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 
-		/// No... can't assign player[4] to be goalie
 		defender.tick();
 		defender.set_chase(false);
 		offender.tick();
 		offender.set_chase(false);
 
-		// run assignment and tick
 		if (world.playtype() == PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY || world.playtype() == PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY) {
 
 			if (kicker.is()) {
 				AI::HL::Tactics::chase(world, kicker, 0);
 			}
+			// TODO something more sensible
+			Point bestshot = AI::HL::Util::calc_best_shot(world, kicker).first;
+			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, bestshot);
 
+		} else {
+			LOG_ERROR("freeKickFriendly: unhandled playtype");
 		}
 	}
 

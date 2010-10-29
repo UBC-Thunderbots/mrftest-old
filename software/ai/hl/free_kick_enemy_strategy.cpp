@@ -100,13 +100,12 @@ namespace {
 		if (players.size() == 0) {
 			return;
 		}
-
-		defender.tick();  
-		offender.tick();
 		
 		if (world.playtype() == PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY || world.playtype() == PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) {
-			// TODO: something sensible
 			
+			defender.tick();  
+			offender.tick();		
+	
 		} else {
 			LOG_ERROR("freeKickEnemy: unhandled playtype");
 		}

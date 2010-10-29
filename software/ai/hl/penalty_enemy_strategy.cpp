@@ -116,7 +116,7 @@ namespace {
 
 		} else if (world.playtype() == PlayType::EXECUTE_PENALTY_ENEMY) {
 
-			// let goalie patrol
+			// let goalie patrol the goal
 			Patrol(world, players[0], starting_position, ending_position, AI::Flags::calc_flags(world.playtype())).tick();
 			
 		} else {
