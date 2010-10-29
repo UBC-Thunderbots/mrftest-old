@@ -88,11 +88,8 @@ software/ai/hl/free_kick_friendly_strategy.cpp -text
 software/ai/hl/kickoff_enemy_strategy.cpp -text
 software/ai/hl/offender.cpp -text
 software/ai/hl/offender.h -text
-software/ai/hl/penalty_enemy.cpp -text
-software/ai/hl/penalty_enemy.h -text
-software/ai/hl/penalty_friendly.cpp -text
-software/ai/hl/penalty_friendly.h -text
-software/ai/hl/penalty_strategy.cpp -text
+software/ai/hl/penalty_enemy_strategy.cpp -text
+software/ai/hl/penalty_friendly_strategy.cpp -text
 software/ai/hl/stop_strategy.cpp -text
 software/ai/hl/strategy.cpp -text
 software/ai/hl/strategy.h -text
