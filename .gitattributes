@@ -102,12 +102,11 @@ software/ai/hl/world.h -text
 software/ai/logger.cpp -text
 software/ai/logger.h -text
 software/ai/main.cpp -text
-software/ai/navigator/RRTnavigator.cpp -text
 software/ai/navigator/bnavigator.cpp -text
 software/ai/navigator/navigator.cpp -text
 software/ai/navigator/navigator.h -text
+software/ai/navigator/rrt_navigator.cpp -text
 software/ai/navigator/simple_navigator.cpp -text
-software/ai/navigator/tree.hh -text
 software/ai/navigator/world.h -text
 software/ai/robot_controller/adhoc2_controller.cpp -text
 software/ai/robot_controller/fuzzy2_controller.cpp -text
@@ -310,6 +309,7 @@ software/util/stochastic_local_search.h -text
 software/util/time.h -text
 software/util/timestep.h -text
 software/util/trackable_vector.h -text
+software/util/tree.h -text
 software/util/umask.cpp -text
 software/util/umask.h -text
 software/util/xbee.cpp -text

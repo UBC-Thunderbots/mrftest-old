@@ -21,8 +21,8 @@
 */
 
 
-#ifndef tree_hh_
-#define tree_hh_
+#ifndef tree_h_
+#define tree_h_
 
 #include <cassert>
 #include <memory>

@@ -1,6 +1,6 @@
 #include "ai/navigator/navigator.h"
-#include "tree.hh"
-#include <iostream>
+#include "util/dprint.h"
+#include "util/tree.h"
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
@@ -17,15 +17,15 @@ namespace {
 	// just return the best partial path we've found
 	const int ITERATION_LIMIT = 2500;
 
-	class RRTNavigator : public Navigator {
+	class rrt_navigator : public Navigator {
 		public:
 			NavigatorFactory &factory() const;
 			void tick();
 			static Navigator::Ptr create(World &world);
 
 		private:
-			RRTNavigator(World &world);
-			~RRTNavigator();
+			rrt_navigator(World &world);
+			~rrt_navigator();
 
 			double Distance(Point nearest, Point goal);
 			Point RandomPoint();
@@ -37,20 +37,20 @@ namespace {
 			std::deque<Point> RRTPlan(Player::Ptr player, Point initial, Point goal);
 	};
 
-	class RRTNavigatorFactory : public NavigatorFactory {
+	class rrt_navigatorFactory : public NavigatorFactory {
 		public:
-			RRTNavigatorFactory();
-			~RRTNavigatorFactory();
+			rrt_navigatorFactory();
+			~rrt_navigatorFactory();
 			Navigator::Ptr create_navigator(World &world) const;
 	};
 
-	RRTNavigatorFactory factory_instance;
+	rrt_navigatorFactory factory_instance;
 
-	NavigatorFactory &RRTNavigator::factory() const {
+	NavigatorFactory &rrt_navigator::factory() const {
 		return factory_instance;
 	}
 
-	void RRTNavigator::tick() {
+	void rrt_navigator::tick() {
 		struct timespec timing;
 		std::vector<std::pair<std::pair<Point, double>, timespec> > path;
 		std::deque<Point> pathPoints;
@@ -86,27 +86,27 @@ namespace {
 		}
 	}
 
-	double RRTNavigator::Distance(Point nearest, Point goal) {
+	double rrt_navigator::Distance(Point nearest, Point goal) {
 		return (goal - nearest).len();
 	}
 
-	Point RRTNavigator::EmptyState() {
+	Point rrt_navigator::EmptyState() {
 		return Point(-10000, -10000);
 	}
 
-	bool RRTNavigator::IsEmptyState(Point toCheck) {
+	bool rrt_navigator::IsEmptyState(Point toCheck) {
 		return toCheck.x == EmptyState().x && toCheck.y && EmptyState().y;
 	}
 
 	// generate a random point from the field
-	Point RRTNavigator::RandomPoint() {
+	Point rrt_navigator::RandomPoint() {
 		int randomX = (rand() % static_cast<int>(world.field().width() * 2)) - world.field().width();
 		int randomY = (rand() % static_cast<int>(world.field().length() * 2)) - world.field().length();
 		return Point(randomX, randomY);
 	}
 
 	// choose a target to extend toward, the goal with GOAL_PROB or a random point
-	Point RRTNavigator::ChooseTarget(Point goal) {
+	Point rrt_navigator::ChooseTarget(Point goal) {
 		double p = rand() / double(RAND_MAX);
 
 		if (p > 0 && p < GOAL_PROB) {
@@ -117,7 +117,7 @@ namespace {
 	}
 
 	// finds the point in the tree that is nearest to the target point
-	tree<Point>::iterator RRTNavigator::Nearest(tree<Point> *rrtTree, Point target) {
+	tree<Point>::iterator rrt_navigator::Nearest(tree<Point> *rrtTree, Point target) {
 		tree<Point>::iterator it = rrtTree->begin();
 		tree<Point>::iterator end = rrtTree->end();
 
@@ -133,15 +133,15 @@ namespace {
 	}
 
 	// extend by STEP_DISTANCE towards the target from the start
-	Point RRTNavigator::Extend(Player::Ptr player, Point start, Point target) {
+	Point rrt_navigator::Extend(Player::Ptr player, Point start, Point target) {
 		Point extendPoint = start + ((target - start).norm() * STEP_DISTANCE);
 		// check if the point is invalid (collision, out of bounds, etc...)
-		// if it does then return EmptyState()
+		// if it is then return EmptyState()
 
 		return extendPoint;
 	}
 
-	std::deque<Point> RRTNavigator::RRTPlan(Player::Ptr player, Point initial, Point goal) {
+	std::deque<Point> rrt_navigator::RRTPlan(Player::Ptr player, Point initial, Point goal) {
 		Point nearest, extended, target;
 		tree<Point>::iterator nearestNode, lastAdded;
 		tree<Point> rrtTree;
@@ -165,7 +165,7 @@ namespace {
 		}
 
 		if (iterationCounter == ITERATION_LIMIT) {
-			std::cout << "Reached limit, path not found" << std::endl;
+			LOG_WARN("Reached limit, path not found");
 		}
 
 		// calculations complete, trace backwards to get the points in the path
@@ -184,25 +184,25 @@ namespace {
 		return pathPoints;
 	}
 
-	Navigator::Ptr RRTNavigator::create(World &world) {
-		const Navigator::Ptr p(new RRTNavigator(world));
+	Navigator::Ptr rrt_navigator::create(World &world) {
+		const Navigator::Ptr p(new rrt_navigator(world));
 		return p;
 	}
 
-	RRTNavigator::RRTNavigator(World &world) : Navigator(world) {
+	rrt_navigator::rrt_navigator(World &world) : Navigator(world) {
 	}
 
-	RRTNavigator::~RRTNavigator() {
+	rrt_navigator::~rrt_navigator() {
 	}
 
-	RRTNavigatorFactory::RRTNavigatorFactory() : NavigatorFactory("RRT Navigator") {
+	rrt_navigatorFactory::rrt_navigatorFactory() : NavigatorFactory("RRT Navigator") {
 	}
 
-	RRTNavigatorFactory::~RRTNavigatorFactory() {
+	rrt_navigatorFactory::~rrt_navigatorFactory() {
 	}
 
-	Navigator::Ptr RRTNavigatorFactory::create_navigator(World &world) const {
-		return RRTNavigator::create(world);
+	Navigator::Ptr rrt_navigatorFactory::create_navigator(World &world) const {
+		return rrt_navigator::create(world);
 	}
 }
 
