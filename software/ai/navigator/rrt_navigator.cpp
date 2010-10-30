@@ -144,8 +144,9 @@ namespace {
 		// if it is then return EmptyState()
 
 		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-			if(PointWithinThreshold(extendPoint, world.friendly_team().get(i)->position(), 0.2))
+			if (PointWithinThreshold(extendPoint, world.friendly_team().get(i)->position(), 0.2)) {
 				return EmptyState();
+			}
 		}
 
 		return extendPoint;
