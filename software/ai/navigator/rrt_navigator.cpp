@@ -27,6 +27,7 @@ namespace {
 			rrt_navigator(World &world);
 			~rrt_navigator();
 
+			bool PointWithinThreshold(Point testPoint, Point otherPoint, float threshold);
 			double Distance(Point nearest, Point goal);
 			Point RandomPoint();
 			Point ChooseTarget(Point goal);
@@ -100,8 +101,8 @@ namespace {
 
 	// generate a random point from the field
 	Point rrt_navigator::RandomPoint() {
-		int randomX = (rand() % static_cast<int>(world.field().width() * 2)) - world.field().width();
-		int randomY = (rand() % static_cast<int>(world.field().length() * 2)) - world.field().length();
+		int randomX = (rand() % static_cast<int>(world.field().width())) - (world.field().width() / 2);
+		int randomY = (rand() % static_cast<int>(world.field().length())) - (world.field().length() / 2);
 		return Point(randomX, randomY);
 	}
 
@@ -132,11 +133,20 @@ namespace {
 		return nearest;
 	}
 
+	bool rrt_navigator::PointWithinThreshold(Point testPoint, Point otherPoint, float threshold) {
+		return fabs(testPoint.x - otherPoint.x) <= threshold && fabs(testPoint.y - otherPoint.y) <= threshold;
+	}
+
 	// extend by STEP_DISTANCE towards the target from the start
 	Point rrt_navigator::Extend(Player::Ptr player, Point start, Point target) {
 		Point extendPoint = start + ((target - start).norm() * STEP_DISTANCE);
 		// check if the point is invalid (collision, out of bounds, etc...)
 		// if it is then return EmptyState()
+
+		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
+			if(PointWithinThreshold(extendPoint, world.friendly_team().get(i)->position(), 0.2))
+				return EmptyState();
+		}
 
 		return extendPoint;
 	}

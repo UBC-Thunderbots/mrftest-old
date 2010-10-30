@@ -259,7 +259,7 @@ dTriMeshDataID Trimesh_player_geom::create_robot_geom() {
 	  http://www.gamedev.net/community/forums/topic.asp?topic_id=319297
 
 	 */
-	dGeomTriMeshDataBuildSimple(triMesh, Verts, NumVertices, Triangles, NumTriangles);
+	dGeomTriMeshDataBuildSimple(triMesh, reinterpret_cast<dReal*>(Verts), NumVertices, Triangles, NumTriangles);
 
 	return triMesh;
 }
