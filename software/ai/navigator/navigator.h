@@ -63,6 +63,11 @@ namespace AI {
 				 * Destroys a navigator.
 				 */
 				~Navigator();
+
+				/**
+				 * Tells whether the straight line bath between start & end are ok for the player
+				 */
+				bool path_clear(AI::Nav::W::Player::Ptr player, Point start, Point end);
 		};
 
 		/**

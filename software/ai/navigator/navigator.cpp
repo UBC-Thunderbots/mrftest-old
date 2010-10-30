@@ -16,3 +16,6 @@ NavigatorFactory::NavigatorFactory(const Glib::ustring &name) : Registerable<Nav
 NavigatorFactory::~NavigatorFactory() {
 }
 
+bool Navigator::path_clear(Player::Ptr player, Point start, Point end){
+  return true;
+}
