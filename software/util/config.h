@@ -76,6 +76,15 @@ class Config : public NonCopyable {
 				const RobotInfo &find(uint64_t address) const;
 
 				/**
+				 * Finds a robot by pattern index.
+				 *
+				 * \param[in] pattern the pattern to look up.
+				 *
+				 * \return the robot's information structure.
+				 */
+				const RobotInfo &find(unsigned int pattern) const;
+
+				/**
 				 * Checks whether or not there is a robot with a 64-bit address.
 				 *
 				 * \param[in] address the address to check.

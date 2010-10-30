@@ -98,7 +98,7 @@ namespace {
 				std::cout << "There is no robot named '" << robot << "'.\n";
 				return 1;
 			}
-			const Config::RobotInfo &botinfo(conf.robots().find(robot));
+			const Config::RobotInfo &botinfo(conf.robots().find(static_cast<unsigned int>(robot)));
 			const XBeeRawBot::Ptr bot(XBeeRawBot::create(botinfo.address, modem));
 			Claim cl(bot);
 			if (fpga) {

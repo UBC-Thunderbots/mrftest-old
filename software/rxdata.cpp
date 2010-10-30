@@ -195,7 +195,7 @@ namespace {
 			std::cerr << "No such robot!\n";
 			return 1;
 		}
-		const Config::RobotInfo &botinfo(conf.robots().find(robot));
+		const Config::RobotInfo &botinfo(conf.robots().find(static_cast<unsigned int>(robot)));
 		XBeeLowLevel modem;
 
 		const XBeeRawBot::Ptr bot(XBeeRawBot::create(botinfo.address, modem));

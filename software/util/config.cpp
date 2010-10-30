@@ -277,6 +277,15 @@ const Config::RobotInfo &Config::RobotSet::find(uint64_t address) const {
 	throw std::runtime_error("Cannot find robot by address!");
 }
 
+const Config::RobotInfo &Config::RobotSet::find(unsigned int pattern) const {
+	for (std::vector<RobotInfo>::const_iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
+		if (i->pattern == pattern) {
+			return *i;
+		}
+	}
+	throw std::runtime_error("Cannot find robot by pattern!");
+}
+
 bool Config::RobotSet::contains_address(uint64_t address) const {
 	for (std::vector<RobotInfo>::const_iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
 		if (i->address == address) {
