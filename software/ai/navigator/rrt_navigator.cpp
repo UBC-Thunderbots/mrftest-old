@@ -134,7 +134,7 @@ namespace {
 	}
 
 	bool rrt_navigator::PointWithinThreshold(Point testPoint, Point otherPoint, float threshold) {
-		return fabs(testPoint.x - otherPoint.x) <= threshold && fabs(testPoint.y - otherPoint.y) <= threshold;
+		return std::fabs(testPoint.x - otherPoint.x) <= threshold && std::fabs(testPoint.y - otherPoint.y) <= threshold;
 	}
 
 	// extend by STEP_DISTANCE towards the target from the start
