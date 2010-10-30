@@ -13,7 +13,6 @@ using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
 
 namespace {
-	
 	/**
 	 * Manages the robots during direct and indirect free kicks.
 	 */
@@ -47,7 +46,6 @@ namespace {
 
 			AI::HL::Defender defender;
 			AI::HL::Offender offender;
-
 	};
 
 	/**
@@ -87,11 +85,10 @@ namespace {
 
 	/**
 	 * Ticks the strategy
-         *
+	 *
 	 * Don't need to assign a kicker as in friendly. It is also "ok" for players to ram the enemy as long as they block the ball.
 	 */
 	void FreeKickEnemyStrategy::prepare() {
-
 		if (world.friendly_team().size() == 0) {
 			return;
 		}
@@ -100,12 +97,10 @@ namespace {
 		if (players.size() == 0) {
 			return;
 		}
-		
+
 		if (world.playtype() == PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY || world.playtype() == PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) {
-			
-			defender.tick();  
-			offender.tick();		
-	
+			defender.tick();
+			offender.tick();
 		} else {
 			LOG_ERROR("freeKickEnemy: unhandled playtype");
 		}
@@ -134,6 +129,7 @@ namespace {
 			case 5:
 			case 4:
 				++ndefenders;
+
 			case 3:
 			case 2:
 				break;

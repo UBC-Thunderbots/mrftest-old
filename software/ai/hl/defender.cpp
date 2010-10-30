@@ -23,14 +23,14 @@ Defender::Defender(World &w) : world(w), chase(false) {
 
 void Defender::set_players(const std::vector<Player::Ptr> &p, Player::Ptr g) {
 	if (!g.is()) {
-		//LOG_ERROR("no goalie");
+		// LOG_ERROR("no goalie");
 		if (p.size() > 0) {
 			LOG_ERROR("cannot have defenders w/o goalie");
 		}
 	}
-	//if (p.size() == 0) {
-		//LOG_ERROR("no defender to accompany goalie");
-	//}
+	// if (p.size() == 0) {
+	// LOG_ERROR("no defender to accompany goalie");
+	// }
 	players = p;
 	goalie = g;
 }
@@ -119,7 +119,7 @@ void Defender::tick() {
 		if (goalie.is()) {
 			AI::HL::Tactics::lone_goalie(world, goalie);
 		}
-		//LOG_WARN("no robots");
+		// LOG_WARN("no robots");
 		return;
 	}
 

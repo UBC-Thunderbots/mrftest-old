@@ -13,7 +13,6 @@ using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
 
 namespace {
-	
 	/**
 	 * Manages the robots during direct and indirect free kicks.
 	 */
@@ -86,7 +85,6 @@ namespace {
 	 * Ticks the strategy
 	 */
 	void PenaltyFriendlyStrategy::prepare() {
-		
 		const Field &f = world.field();
 
 		// Let the first robot to be always the shooter
@@ -110,22 +108,18 @@ namespace {
 		}
 
 		if (world.playtype() == PlayType::PREPARE_PENALTY_FRIENDLY) {
-
 			for (size_t i = 1; i < players.size(); ++i) {
 				// move the robots to position
-				players[i]->move(ready_positions[i-1], (ready_positions[i-1] - players[i]->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+				players[i]->move(ready_positions[i - 1], (ready_positions[i - 1] - players[i]->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
 			}
-
 		} else if (world.playtype() == PlayType::EXECUTE_PENALTY_FRIENDLY) {
 			// let the shooter shoot
 			const Player::Ptr shooter = players[1];
 			AI::HL::Tactics::shoot(world, shooter, AI::Flags::FLAG_CLIP_PLAY_AREA);
-			
 		} else {
 			LOG_WARN("penalty_friendly: unhandled playtype");
 			return;
 		}
-		
 	}
 
 	Strategy::Ptr PenaltyFriendlyStrategy::create(World &world) {

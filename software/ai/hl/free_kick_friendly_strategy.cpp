@@ -13,7 +13,6 @@ using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
 
 namespace {
-
 	/**
 	 * Free kick friendly.
 	 */
@@ -102,14 +101,12 @@ namespace {
 		offender.set_chase(false);
 
 		if (world.playtype() == PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY || world.playtype() == PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY) {
-
 			if (kicker.is()) {
 				AI::HL::Tactics::chase(world, kicker, 0);
 			}
 			// TODO something more sensible
 			Point bestshot = AI::HL::Util::calc_best_shot(world, kicker).first;
 			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, bestshot);
-
 		} else {
 			LOG_ERROR("freeKickFriendly: unhandled playtype");
 		}
@@ -138,6 +135,7 @@ namespace {
 			case 5:
 			case 4:
 				++ndefenders;
+
 			case 3:
 			case 2:
 				break;

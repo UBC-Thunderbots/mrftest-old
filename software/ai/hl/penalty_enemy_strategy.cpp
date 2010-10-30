@@ -14,7 +14,6 @@ using namespace AI::HL::W;
 using namespace AI::HL::Tactics;
 
 namespace {
-	
 	/**
 	 * Manages the robots during direct and indirect free kicks.
 	 */
@@ -87,7 +86,6 @@ namespace {
 	 * Ticks the strategy
 	 */
 	void PenaltyEnemyStrategy::prepare() {
-		
 		const Field &f = (world.field());
 		const Point starting_position(-0.5 * f.length(), -0.5 * Robot::MAX_RADIUS);
 		const Point ending_position(-0.5 * f.length(), 0.5 * Robot::MAX_RADIUS);
@@ -108,22 +106,17 @@ namespace {
 		}
 
 		if (world.playtype() == PlayType::PREPARE_PENALTY_ENEMY) {
-
 			for (size_t i = 1; i < players.size(); ++i) {
 				// move the robots to position
-				players[i]->move(ready_positions[i-1], (ready_positions[i-1] - players[i]->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+				players[i]->move(ready_positions[i - 1], (ready_positions[i - 1] - players[i]->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
 			}
-
 		} else if (world.playtype() == PlayType::EXECUTE_PENALTY_ENEMY) {
-
 			// let goalie patrol the goal
 			Patrol(world, players[0], starting_position, ending_position, AI::Flags::calc_flags(world.playtype())).tick();
-			
 		} else {
 			LOG_WARN("penalty_enemy: unhandled playtype");
 			return;
 		}
-		
 	}
 
 	Strategy::Ptr PenaltyEnemyStrategy::create(World &world) {
