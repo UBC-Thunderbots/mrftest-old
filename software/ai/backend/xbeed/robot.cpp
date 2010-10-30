@@ -16,7 +16,7 @@ void Robot::update(const SSL_DetectionRobot &packet, const timespec &ts) {
 		bool neg = backend.defending_end() == AI::BE::Backend::EAST;
 		xpred.add_datum(neg ? -packet.x() / 1000.0 : packet.x() / 1000.0, ts);
 		ypred.add_datum(neg ? -packet.y() / 1000.0 : packet.y() / 1000.0, ts);
-		tpred.add_datum(angle_mod(packet.orientation() + neg ? M_PI : 0.0), ts);
+		tpred.add_datum(angle_mod(packet.orientation() + (neg ? M_PI : 0.0)), ts);
 	} else {
 		LOG_WARN("Vision packet has robot with no orientation.");
 	}
