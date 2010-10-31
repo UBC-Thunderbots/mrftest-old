@@ -19,8 +19,8 @@ class Player_geom : public NonCopyable {
 		virtual void reset_frame() {
 		}
 		virtual bool has_ball() const = 0;
-		
-		virtual bool has_geom(dGeomID geom){
+
+		virtual bool has_geom(dGeomID geom) {
 			return body == dGeomGetBody(geom);
 		}
 		/**

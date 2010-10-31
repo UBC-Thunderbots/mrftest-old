@@ -42,18 +42,18 @@ namespace {
 	 * Physical width of the flattened face of the robot
 	 */
 	const double FRONT_FACE_WIDTH = 0.16;
-	
+
 #warning verify the actual dribbler radius
 	/**
 	 * Radius of the dribbler
 	 */
 	const double DRIBBLER_RADIUS = 0.02;
-	
+
 #warning verify height of the actual dribbler
 	/**
 	 * Radius of the dribbler
 	 */
-	const double DRIBBLER_HEIGHT = 2*0.0215 - 0.02;
+	const double DRIBBLER_HEIGHT = 2 * 0.0215 - 0.02;
 }
 
 Compo_player_geom::Compo_player_geom(dWorldID eworld, dSpaceID dspace) : Player_geom(eworld, dspace) {
@@ -86,19 +86,21 @@ Compo_player_geom::Compo_player_geom(dWorldID eworld, dSpaceID dspace) : Player_
 	dGeomSetBody(robotGeomTopCyl, body);
 	dBodySetPosition(body, x_pos, y_pos, ROBOT_HEIGHT / 2 + 0.001);
 
-	//double dribble_len =  dribble_radius * 2.5;
+	// double dribble_len =  dribble_radius * 2.5;
 
-	//we need to rotate the
+	// we need to rotate the
 	// dribbler bar -90 degrees about the x-axis
-	const dMatrix3 rotat = {1,0,0,0,
-	                        0,0,1,1,
-			        0,1,0,0};
+	const dMatrix3 rotat = {
+		1, 0, 0, 0,
+		0, 0, 1, 1,
+		0, 1, 0, 0
+	};
 
 
 
 	dribbler = dBodyCreate(world);
-	dribblerBar = dCreateCapsule(0,DRIBBLER_RADIUS ,y_len );
-	dMass  mass;
+	dribblerBar = dCreateCapsule(0, DRIBBLER_RADIUS, y_len);
+	dMass mass;
 	dMassSetCylinderTotal(&mass, 0.02, 3, DRIBBLER_RADIUS, y_len);
 	dBodySetMass(dribbler, &mass);
 
@@ -107,25 +109,25 @@ Compo_player_geom::Compo_player_geom(dWorldID eworld, dSpaceID dspace) : Player_
 	dSpaceAdd(dspace, robotGeomTopCyl);
 	dSpaceAdd(dspace, dribblerBar);
 
-	
+
 	dGeomSetBody(dribblerBar, dribbler);
-	dGeomSetRotation (dribblerBar, rotat);
+	dGeomSetRotation(dribblerBar, rotat);
 
-	jGroup = dJointGroupCreate (0);
-	dBodySetPosition (dribbler, x_pos + x_len/2 + DRIBBLER_RADIUS, y_pos, DRIBBLER_HEIGHT);
-	hinge = dJointCreateHinge2 (world, jGroup);
-	dJointAttach (hinge, body, dribbler);
-	dJointSetHinge2Anchor(hinge, x_len / 2 + DRIBBLER_RADIUS , 0.0, DRIBBLER_HEIGHT); 
+	jGroup = dJointGroupCreate(0);
+	dBodySetPosition(dribbler, x_pos + x_len / 2 + DRIBBLER_RADIUS, y_pos, DRIBBLER_HEIGHT);
+	hinge = dJointCreateHinge2(world, jGroup);
+	dJointAttach(hinge, body, dribbler);
+	dJointSetHinge2Anchor(hinge, x_len / 2 + DRIBBLER_RADIUS, 0.0, DRIBBLER_HEIGHT);
 
-	dJointSetHinge2Param (hinge,dParamHiStop , 0.0);	
-	dJointSetHinge2Param (hinge,dParamLoStop , 0.0);
+	dJointSetHinge2Param(hinge, dParamHiStop, 0.0);
+	dJointSetHinge2Param(hinge, dParamLoStop, 0.0);
 }
 
 Compo_player_geom::~Compo_player_geom() {
 	dGeomDestroy(robotGeomTop);
 	dGeomDestroy(robotGeomTopCyl);
 	dGeomDestroy(dribblerBar);
-	dJointGroupDestroy (jGroup);
+	dJointGroupDestroy(jGroup);
 	dBodyDestroy(dribbler);
 }
 
@@ -220,9 +222,9 @@ void Compo_player_geom::handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointG
 
 	if (int numc = dCollide(o1, o2, 3, &contact[0].geom, sizeof(dContact))) {
 		for (i = 0; i < numc; i++) {
-			bool robotCollided = hasContactPenetration(contact[i].geom.pos, robotGeom) || dribbler == dGeomGetBody(o1) ||  dribbler == dGeomGetBody(o2);
-			//has_ball_now = has_ball_now || hasContactWithFace(contact[i].geom.pos, robotGeom);
-			has_ball_now = has_ball_now || dribbler == dGeomGetBody(o1) ||  dribbler == dGeomGetBody(o2);
+			bool robotCollided = hasContactPenetration(contact[i].geom.pos, robotGeom) || dribbler == dGeomGetBody(o1) || dribbler == dGeomGetBody(o2);
+			// has_ball_now = has_ball_now || hasContactWithFace(contact[i].geom.pos, robotGeom);
+			has_ball_now = has_ball_now || dribbler == dGeomGetBody(o1) || dribbler == dGeomGetBody(o2);
 			if (robotCollided) {
 				contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;
 				contact[i].surface.mu = 0.1;

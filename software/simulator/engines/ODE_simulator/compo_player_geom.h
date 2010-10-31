@@ -13,6 +13,7 @@ class Compo_player_geom : public Player_geom {
 		void reset_frame();
 		bool has_ball() const;
 		bool has_geom(dGeomID geom);
+
 	private:
 		void handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup);
 		void handleCollisionWithGround(dGeomID o1, dGeomID o2, dJointGroupID contactgroup);
@@ -42,7 +43,7 @@ class Compo_player_geom : public Player_geom {
 		dGeomID dribbleArmR;
 
 		dGeomID dribblerBar;
-		
+
 		dBodyID dribbler;
 		dJointGroupID jGroup;
 		dJointID hinge;

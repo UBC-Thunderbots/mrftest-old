@@ -8,24 +8,20 @@
 #include "ai/navigator/world.h"
 
 namespace AI {
-	namespace Nav {	
-		namespace Util{
-		
-		/**
-		*
-		*/
-		bool valid_dst(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
-		
-		/**
-		*
-		*/ 
-		bool valid_path(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
-		
-		
-		
+	namespace Nav {
+		namespace Util {
+			/**
+			 *
+			 */
+			bool valid_dst(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+
+			/**
+			 *
+			 */
+			bool valid_path(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
 		}
-		
 	}
 }
 
 #endif
+
