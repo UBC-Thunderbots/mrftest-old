@@ -223,7 +223,6 @@ void Compo_player_geom::handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointG
 			bool robotCollided = hasContactPenetration(contact[i].geom.pos, robotGeom) || dribbler == dGeomGetBody(o1) ||  dribbler == dGeomGetBody(o2);
 			//has_ball_now = has_ball_now || hasContactWithFace(contact[i].geom.pos, robotGeom);
 			has_ball_now = has_ball_now || dribbler == dGeomGetBody(o1) ||  dribbler == dGeomGetBody(o2);
-			if(has_ball_now)std::cout<<"has ball"<<std::endl;
 			if (robotCollided) {
 				contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;
 				contact[i].surface.mu = 0.1;
