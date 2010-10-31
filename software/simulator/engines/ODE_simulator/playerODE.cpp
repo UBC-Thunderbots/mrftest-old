@@ -148,8 +148,7 @@ double PlayerODE::get_height() const {
 
 
 bool PlayerODE::robot_contains_shape(dGeomID geom) {
-	dBodyID b = dGeomGetBody(geom);
-	return b == body;
+	return p_geom.has_geom(geom);
 }
 
 /*

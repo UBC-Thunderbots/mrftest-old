@@ -12,9 +12,8 @@ class Compo_player_geom : public Player_geom {
 		void handle_collision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup);
 		void reset_frame();
 		bool has_ball() const;
-
+		bool has_geom(dGeomID geom);
 	private:
-		bool robot_contains_shape(dGeomID geom);
 		void handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup);
 		void handleCollisionWithGround(dGeomID o1, dGeomID o2, dJointGroupID contactgroup);
 
@@ -41,6 +40,12 @@ class Compo_player_geom : public Player_geom {
 		 * This is not used.
 		 */
 		dGeomID dribbleArmR;
+
+		dGeomID dribblerBar;
+		
+		dBodyID dribbler;
+		dJointGroupID jGroup;
+		dJointID hinge;
 
 		/**
 		 * Used to determine whether the player has ball
