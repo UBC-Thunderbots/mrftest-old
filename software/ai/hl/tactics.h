@@ -79,10 +79,24 @@ namespace AI {
 
 					/**
 					 * Patrol between two points on the field
+					 */
+					Patrol(AI::HL::W::World &w);
+
+					/**
+					 * Sets the player who do the patrol.
+					 */
+					void set_player(const AI::HL::W::Player::Ptr p) {
+						player = p;
+					}
+
+					/**
+					 * Set the flags for the player.
 					 *
 					 * \param[in] f movement flags for the robot (most likely you want to disable AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE).
 					 */
-					Patrol(AI::HL::W::World &w, AI::HL::W::Player::Ptr p, const Point &t1, const Point &t2, const unsigned int f);
+					void set_flags(const unsigned int f) {
+						flags = f;
+					}
 
 					/**
 					 * Set the two target points for the patrol.
@@ -98,7 +112,7 @@ namespace AI {
 					AI::HL::W::World &world;
 					AI::HL::W::Player::Ptr player;
 					Point target1, target2;
-					const unsigned int flags;
+					unsigned int flags;
 					bool goto_target1;
 			};
 		}

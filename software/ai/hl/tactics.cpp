@@ -2,6 +2,7 @@
 #include "ai/hl/tactics.h"
 #include "ai/hl/util.h"
 #include "uicomponents/param.h"
+#include "util/dprint.h"
 
 using namespace AI::HL::W;
 
@@ -43,8 +44,10 @@ void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int
 	const double ori_target = (target - player->position()).orientation();
 	const double ori_diff = fabs(player->orientation() - ori_target);
 
+	// aim
+	player->move(player->position(), ori_target, flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
+
 	if (ori_diff > AI::HL::Util::shoot_accuracy * M_PI / 180.0) { // aim
-		player->move(player->position(), ori_target, flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
 		return;
 	}
 
@@ -60,9 +63,6 @@ void AI::HL::Tactics::free_move(World &world, Player::Ptr player, const Point p)
 	player->move(p, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
 }
 
-AI::HL::Tactics::Patrol::Patrol(World &w, Player::Ptr p, const Point &t1, const Point &t2, const unsigned int f) : world(w), player(p), target1(t1), target2(t2), flags(f) {
-}
-
 void AI::HL::Tactics::lone_goalie(AI::HL::W::World &world, AI::HL::W::Player::Ptr player) {
 	const Point default_pos = Point(-0.45 * world.field().length(), 0);
 	const Point centre_of_goal = world.field().friendly_goal();
@@ -72,7 +72,16 @@ void AI::HL::Tactics::lone_goalie(AI::HL::W::World &world, AI::HL::W::Player::Pt
 	player->move(target, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 }
 
+AI::HL::Tactics::Patrol::Patrol(World &w) : world(w), flags(0) {
+	target1 = w.field().friendly_goal();
+	target2 = w.field().friendly_goal();
+}
+
 void AI::HL::Tactics::Patrol::tick() {
+	if (!player.is()) {
+		LOG_WARN("No players");
+		return;
+	}
 	if ((player->position() - target1).len() < AI::HL::Util::POS_CLOSE) {
 		goto_target1 = false;
 	} else if ((player->position() - target2).len() < AI::HL::Util::POS_CLOSE) {

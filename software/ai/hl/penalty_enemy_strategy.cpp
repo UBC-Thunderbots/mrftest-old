@@ -15,6 +15,8 @@ using namespace AI::HL::Tactics;
 
 namespace {
 
+	const double PENALTY_MARK_LENGTH = 0.45;
+	const double RESTRICTED_ZONE_LENGTH = 0.85;
 	
 	/**
 	 * Manages the robots during direct and indirect free kicks.
@@ -40,18 +42,11 @@ namespace {
 			void prepare_penalty_enemy();
 			void execute_penalty_enemy();
 
-			void prepare();
+			void run();
 
-			const static double PENALTY_MARK_LENGTH;
-			const static double RESTRICTED_ZONE_LENGTH;
-			const static unsigned int NUMBER_OF_READY_POSITIONS = 4;
-
-			Point ready_positions[NUMBER_OF_READY_POSITIONS];
+			Point waypoints[5];
+			Patrol patrol;
 	};
-
-	const double PenaltyEnemyStrategy::PENALTY_MARK_LENGTH = 0.45;
-	const double PenaltyEnemyStrategy::RESTRICTED_ZONE_LENGTH = 0.85;
-
 
 	/**
 	 * A factory for constructing \ref PenaltyEnemyStrategy "PenaltyEnemyStrategies".
@@ -81,48 +76,45 @@ namespace {
 	}
 
 	void PenaltyEnemyStrategy::prepare_penalty_enemy() {
-		prepare();
+		run();
 	}
 
 	void PenaltyEnemyStrategy::execute_penalty_enemy() {
-		prepare();
+		run();
 	}
 
 	/**
 	 * Ticks the strategy
 	 */
-	void PenaltyEnemyStrategy::prepare() {
-		const Field &f = (world.field());
-		const Point starting_position(-0.5 * f.length(), -0.5 * Robot::MAX_RADIUS);
-		const Point ending_position(-0.5 * f.length(), 0.5 * Robot::MAX_RADIUS);
-
-		ready_positions[0] = Point(-0.5 * f.length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 5 * Robot::MAX_RADIUS);
-		ready_positions[1] = Point(-0.5 * f.length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 2 * Robot::MAX_RADIUS);
-		ready_positions[2] = Point(-0.5 * f.length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, -2 * Robot::MAX_RADIUS);
-		ready_positions[3] = Point(-0.5 * f.length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, -5 * Robot::MAX_RADIUS);
+	void PenaltyEnemyStrategy::run() {
 
 		if (world.friendly_team().size() == 0) {
 			return;
 		}
 
+		const Field &f = (world.field());
+
+		waypoints[0] = f.friendly_goal();
+		waypoints[1] = Point(-0.5 * f.length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 5 * Robot::MAX_RADIUS);
+		waypoints[2] = Point(-0.5 * f.length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 2 * Robot::MAX_RADIUS);
+		waypoints[3] = Point(-0.5 * f.length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, -2 * Robot::MAX_RADIUS);
+		waypoints[4] = Point(-0.5 * f.length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, -5 * Robot::MAX_RADIUS);
+
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
-		if (players.size() == 0) {
-			LOG_WARN("no robots");
-			return;
+
+		for (size_t i = 1; i < players.size(); ++i) {
+			// move the robots to position
+			players[i]->move(waypoints[i], (world.ball().position() - players[i]->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
 		}
 
-		if (world.playtype() == PlayType::PREPARE_PENALTY_ENEMY) {
-			for (size_t i = 1; i < players.size(); ++i) {
-				// move the robots to position
-				players[i]->move(ready_positions[i - 1], (ready_positions[i - 1] - players[i]->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
-			}
-		} else if (world.playtype() == PlayType::EXECUTE_PENALTY_ENEMY) {
-			// let goalie patrol the goal
-			Patrol(world, players[0], starting_position, ending_position, AI::Flags::calc_flags(world.playtype())).tick();
-		} else {
-			LOG_WARN("penalty_enemy: unhandled playtype");
-			return;
-		}
+		// let goalie patrol the goal
+		const Point starting_position(-0.5 * f.length(), -0.8 * Robot::MAX_RADIUS);
+		const Point ending_position(-0.5 * f.length(), 0.8 * Robot::MAX_RADIUS);
+
+		patrol.set_player(players[0]);
+		patrol.set_flags(0);
+		patrol.set_targets(starting_position, ending_position);
+		patrol.tick();
 	}
 
 	Strategy::Ptr PenaltyEnemyStrategy::create(World &world) {
@@ -130,7 +122,7 @@ namespace {
 		return p;
 	}
 
-	PenaltyEnemyStrategy::PenaltyEnemyStrategy(World &world) : Strategy(world) {
+	PenaltyEnemyStrategy::PenaltyEnemyStrategy(World &world) : Strategy(world), patrol(world) {
 	}
 
 	PenaltyEnemyStrategy::~PenaltyEnemyStrategy() {
