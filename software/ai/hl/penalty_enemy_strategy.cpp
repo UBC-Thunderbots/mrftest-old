@@ -14,6 +14,8 @@ using namespace AI::HL::W;
 using namespace AI::HL::Tactics;
 
 namespace {
+
+	
 	/**
 	 * Manages the robots during direct and indirect free kicks.
 	 */
@@ -40,12 +42,16 @@ namespace {
 
 			void prepare();
 
-			const static double PENALTY_MARK_LENGTH = 0.45;
-			const static double RESTRICTED_ZONE_LENGTH = 0.85;
+			const static double PENALTY_MARK_LENGTH;
+			const static double RESTRICTED_ZONE_LENGTH;
 			const static unsigned int NUMBER_OF_READY_POSITIONS = 4;
 
 			Point ready_positions[NUMBER_OF_READY_POSITIONS];
 	};
+
+	const double PenaltyEnemyStrategy::PENALTY_MARK_LENGTH = 0.45;
+	const double PenaltyEnemyStrategy::RESTRICTED_ZONE_LENGTH = 0.85;
+
 
 	/**
 	 * A factory for constructing \ref PenaltyEnemyStrategy "PenaltyEnemyStrategies".
