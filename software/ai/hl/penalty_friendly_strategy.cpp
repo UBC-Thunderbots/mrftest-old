@@ -12,10 +12,9 @@ using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
 
 namespace {
-
 	const double PENALTY_MARK_LENGTH = 0.45;
 	const double RESTRICTED_ZONE_LENGTH = 0.85;
-	
+
 	/**
 	 * Manages the robots during direct and indirect free kicks.
 	 */

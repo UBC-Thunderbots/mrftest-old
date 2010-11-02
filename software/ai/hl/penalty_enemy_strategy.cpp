@@ -14,10 +14,9 @@ using namespace AI::HL::W;
 using namespace AI::HL::Tactics;
 
 namespace {
-
 	const double PENALTY_MARK_LENGTH = 0.45;
 	const double RESTRICTED_ZONE_LENGTH = 0.85;
-	
+
 	/**
 	 * Manages the robots during direct and indirect free kicks.
 	 */
@@ -86,7 +85,6 @@ namespace {
 	 * Ticks the strategy
 	 */
 	void PenaltyEnemyStrategy::execute() {
-
 		if (world.friendly_team().size() == 0) {
 			return;
 		}

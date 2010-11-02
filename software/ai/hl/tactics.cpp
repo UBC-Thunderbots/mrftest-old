@@ -72,7 +72,7 @@ void AI::HL::Tactics::repel(World &world, Player::Ptr player, const unsigned int
 		obstacles.push_back(enemy.get(i)->position());
 	}
 
-	const AI::HL::W::Field& f = world.field();
+	const AI::HL::W::Field &f = world.field();
 
 	// vertical line at the enemy goal area
 	// basically u want the ball to be somewhere there
