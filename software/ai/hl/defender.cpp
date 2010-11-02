@@ -195,7 +195,7 @@ void Defender::tick() {
 			}
 
 			if (chaser == players[i]) {
-				AI::HL::Tactics::shoot(world, players[i], defender_flags);
+				AI::HL::Tactics::repel(world, players[i], defender_flags);
 			} else {
 				players[i]->move(waypoints[order[w]], (world.ball().position() - players[i]->position()).orientation(), defender_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 			}
@@ -205,7 +205,7 @@ void Defender::tick() {
 
 	// goalie
 	if (chaser == goalie) {
-		AI::HL::Tactics::chase(world, goalie, goalie_flags);
+		AI::HL::Tactics::repel(world, goalie, goalie_flags);
 	} else {
 		goalie->move(positions.first, (world.ball().position() - goalie->position()).orientation(), goalie_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 	}

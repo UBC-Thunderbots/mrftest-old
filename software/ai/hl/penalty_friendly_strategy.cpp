@@ -1,6 +1,5 @@
 #include "ai/flags.h"
 #include "ai/hl/defender.h"
-#include "ai/hl/offender.h"
 #include "ai/hl/strategy.h"
 #include "ai/hl/tactics.h"
 #include "ai/hl/util.h"
@@ -14,6 +13,8 @@ using namespace AI::HL::W;
 
 namespace {
 
+	const double PENALTY_MARK_LENGTH = 0.45;
+	const double RESTRICTED_ZONE_LENGTH = 0.85;
 	
 	/**
 	 * Manages the robots during direct and indirect free kicks.
@@ -32,6 +33,8 @@ namespace {
 		private:
 			PenaltyFriendlyStrategy(World &world);
 			~PenaltyFriendlyStrategy();
+			void on_player_added(std::size_t);
+			void on_player_removing(std::size_t);
 
 			/**
 			 * What this strategy is created for.
@@ -41,15 +44,15 @@ namespace {
 
 			void prepare();
 
-			const static double PENALTY_MARK_LENGTH;
-			const static double RESTRICTED_ZONE_LENGTH;
-			const static unsigned int NUMBER_OF_READY_POSITIONS = 4;
+			void run_assignment();
 
-			Point ready_positions[NUMBER_OF_READY_POSITIONS];
+			// the players invovled
+			std::vector<Player::Ptr> defenders;
+			std::vector<Player::Ptr> offenders;
+			Player::Ptr kicker;
+
+			AI::HL::Defender defender;
 	};
-
-	const double PenaltyFriendlyStrategy::PENALTY_MARK_LENGTH = 0.45;
-	const double PenaltyFriendlyStrategy::RESTRICTED_ZONE_LENGTH = 0.85;
 
 	/**
 	 * A factory for constructing \ref PenaltyFriendlyStrategy "PenaltyFriendlyStrategies".
@@ -79,60 +82,114 @@ namespace {
 	}
 
 	void PenaltyFriendlyStrategy::prepare_penalty_friendly() {
-		prepare();
-	}
-
-	void PenaltyFriendlyStrategy::execute_penalty_friendly() {
-		prepare();
-	}
-
-	/**
-	 * Ticks the strategy
-	 */
-	void PenaltyFriendlyStrategy::prepare() {
-		const Field &f = world.field();
-
-		// Let the first robot to be always the shooter
-		ready_positions[0] = Point(0.5 * f.length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0);
-
-		//ready_positions[1] = Point(0, 0);
-		ready_positions[1] = Point(0.5 * f.length() - PENALTY_MARK_LENGTH - 5 * Robot::MAX_RADIUS, 0);
-
-		// Let two robots be on the offensive, in case there is a rebound
-		ready_positions[2] = Point(0.5 * f.length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, -5 * Robot::MAX_RADIUS);
-		ready_positions[3] = Point(0.5 * f.length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, 5 * Robot::MAX_RADIUS);
-
 		if (world.friendly_team().size() == 0) {
 			return;
 		}
 
-		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
-		if (players.size() == 0) {
-			LOG_WARN("no robots");
+		prepare();
+
+		const Point shoot_position = Point(0.5 * world.field().length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0);
+
+		AI::HL::Tactics::free_move(world, kicker, shoot_position);
+	}
+
+	void PenaltyFriendlyStrategy::execute_penalty_friendly() {
+		if (world.friendly_team().size() == 0) {
 			return;
 		}
 
-		if (world.playtype() == PlayType::PREPARE_PENALTY_FRIENDLY) {
-			for (size_t i = 1; i < players.size(); ++i) {
-				// move the robots to position
-				players[i]->move(ready_positions[i - 1], (ready_positions[i - 1] - players[i]->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
-			}
-		} else if (world.playtype() == PlayType::EXECUTE_PENALTY_FRIENDLY) {
-			// let the shooter shoot
-			const Player::Ptr shooter = players[1];
-			AI::HL::Tactics::shoot(world, shooter, AI::Flags::FLAG_CLIP_PLAY_AREA);
-		} else {
-			LOG_WARN("penalty_friendly: unhandled playtype");
+		prepare();
+
+		AI::HL::Tactics::shoot(world, kicker, 0);
+	}
+
+	void PenaltyFriendlyStrategy::prepare() {
+		const Field &f = world.field();
+
+		Point waypoints[5];
+
+		waypoints[0] = Point(0.5 * f.length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, -5 * Robot::MAX_RADIUS);
+		waypoints[1] = Point(0.5 * f.length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, 5 * Robot::MAX_RADIUS);
+		waypoints[2] = Point(0.5 * f.length() - RESTRICTED_ZONE_LENGTH - 5 * Robot::MAX_RADIUS, 0);
+
+		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
+
+		for (size_t i = 0; i < offenders.size(); ++i) {
+			// move the robots to position
+			offenders[i]->move(waypoints[i], (world.ball().position() - players[i]->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+		}
+
+		defender.set_chase(false);
+		defender.tick();
+	}
+
+	void PenaltyFriendlyStrategy::run_assignment() {
+		if (world.friendly_team().size() == 0) {
 			return;
 		}
+
+		// it is easier to change players every tick?
+		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
+
+		// sort players by distance to own goal
+		if (players.size() > 1) {
+			std::sort(players.begin() + 1, players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.field().friendly_goal()));
+		}
+
+		// defenders
+		Player::Ptr goalie = players[0];
+
+		std::size_t ndefenders = 1; // includes goalie
+
+		switch (players.size()) {
+			case 5:
+			case 4:
+				++ndefenders;
+
+			case 3:
+			case 2:
+				break;
+		}
+
+		// clear up
+		defenders.clear();
+		offenders.clear();
+		kicker.reset();
+
+		// start from 1, to exclude goalie
+		for (std::size_t i = 1; i < players.size(); ++i) {
+			if (i < ndefenders) {
+				defenders.push_back(players[i]);
+			} else if (!kicker.is()) {
+				kicker = players[i];
+			} else {
+				offenders.push_back(players[i]);
+			}
+		}
+
+		LOG_INFO(Glib::ustring::compose("player reassignment %1 defenders, %2 offenders", ndefenders, offenders.size()));
+
+		defender.set_players(defenders, goalie);
 	}
+
 
 	Strategy::Ptr PenaltyFriendlyStrategy::create(World &world) {
 		const Strategy::Ptr p(new PenaltyFriendlyStrategy(world));
 		return p;
 	}
 
-	PenaltyFriendlyStrategy::PenaltyFriendlyStrategy(World &world) : Strategy(world) {
+	PenaltyFriendlyStrategy::PenaltyFriendlyStrategy(World &world) : Strategy(world), defender(world) {
+		world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &PenaltyFriendlyStrategy::on_player_added));
+		world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &PenaltyFriendlyStrategy::on_player_removing));
+		run_assignment();
+	}
+
+	void PenaltyFriendlyStrategy::on_player_added(std::size_t) {
+		run_assignment();
+	}
+
+	void PenaltyFriendlyStrategy::on_player_removing(std::size_t) {
+		run_assignment();
 	}
 
 	PenaltyFriendlyStrategy::~PenaltyFriendlyStrategy() {

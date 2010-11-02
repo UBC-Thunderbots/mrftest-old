@@ -42,9 +42,8 @@ namespace {
 			void prepare_penalty_enemy();
 			void execute_penalty_enemy();
 
-			void run();
+			void execute();
 
-			Point waypoints[5];
 			Patrol patrol;
 	};
 
@@ -76,23 +75,25 @@ namespace {
 	}
 
 	void PenaltyEnemyStrategy::prepare_penalty_enemy() {
-		run();
+		execute();
 	}
 
 	void PenaltyEnemyStrategy::execute_penalty_enemy() {
-		run();
+		execute();
 	}
 
 	/**
 	 * Ticks the strategy
 	 */
-	void PenaltyEnemyStrategy::run() {
+	void PenaltyEnemyStrategy::execute() {
 
 		if (world.friendly_team().size() == 0) {
 			return;
 		}
 
 		const Field &f = (world.field());
+
+		Point waypoints[5];
 
 		waypoints[0] = f.friendly_goal();
 		waypoints[1] = Point(-0.5 * f.length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 5 * Robot::MAX_RADIUS);

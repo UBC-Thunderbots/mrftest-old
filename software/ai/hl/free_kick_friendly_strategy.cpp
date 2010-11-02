@@ -36,7 +36,7 @@ namespace {
 			void execute_indirect_free_kick_friendly();
 			void execute_direct_free_kick_friendly();
 
-			void prepare();
+			void execute();
 
 			/**
 			 * Dynamic assignment every tick can be bad if players keep changing the roles.
@@ -80,36 +80,28 @@ namespace {
 	}
 
 	void FreeKickFriendlyStrategy::execute_direct_free_kick_friendly() {
-		prepare();
+		execute();
 	}
 
 	// a goal may not be scored directly from the kick
 	void FreeKickFriendlyStrategy::execute_indirect_free_kick_friendly() {
-		prepare();
+		execute();
 	}
 
-	void FreeKickFriendlyStrategy::prepare() {
+	void FreeKickFriendlyStrategy::execute() {
 		if (world.friendly_team().size() == 0) {
 			return;
 		}
 
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 
-		defender.tick();
 		defender.set_chase(false);
-		offender.tick();
+		defender.tick();
 		offender.set_chase(false);
+		offender.tick();
 
-		if (world.playtype() == PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY || world.playtype() == PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY) {
-			if (kicker.is()) {
-				AI::HL::Tactics::chase(world, kicker, 0);
-			}
-			// TODO something more sensible
-			Point bestshot = AI::HL::Util::calc_best_shot(world, kicker).first;
-			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, bestshot);
-		} else {
-			LOG_ERROR("freeKickFriendly: unhandled playtype");
-		}
+		// TODO something more sensible
+		AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
 	}
 
 	void FreeKickFriendlyStrategy::run_assignment() {

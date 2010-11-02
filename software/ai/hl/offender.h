@@ -7,9 +7,15 @@
 namespace AI {
 	namespace HL {
 		/**
-		 * Gets the players to go to their offensive positions.
-		 * Tries to receive the ball if defender or goalie has it.
-		 * If in possesion of ball, tries to find best positions to shoot and score.
+		 * Finds weak positions on the enemy goal area
+		 * and computes positions on the field so that players can shoot the enemy goal.
+		 *
+		 * In other words, finds location whereby if u pass the ball to these players,
+		 * they can shoot to the enemy goal easily.
+		 *
+		 * Hence this role is useful in finding opportunities to get goals.
+		 *
+		 * By default, attempts to chase after the ball.
 		 */
 		class Offender {
 			public:

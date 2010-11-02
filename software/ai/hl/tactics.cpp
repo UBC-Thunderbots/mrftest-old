@@ -1,6 +1,7 @@
 #include "ai/flags.h"
 #include "ai/hl/tactics.h"
 #include "ai/hl/util.h"
+#include "geom/util.h"
 #include "uicomponents/param.h"
 #include "util/dprint.h"
 
@@ -56,6 +57,30 @@ void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int
 #warning max power kick for now
 		player->kick(1.0);
 	}
+}
+
+void AI::HL::Tactics::repel(World &world, Player::Ptr player, const unsigned int flags) {
+	if (!player->has_ball()) {
+		chase(world, player, flags);
+		return;
+	}
+
+	// all enemies are obstacles
+	std::vector<Point> obstacles;
+	EnemyTeam &enemy = world.enemy_team();
+	for (std::size_t i = 0; i < enemy.size(); ++i) {
+		obstacles.push_back(enemy.get(i)->position());
+	}
+
+	const AI::HL::W::Field& f = world.field();
+
+	// vertical line at the enemy goal area
+	// basically u want the ball to be somewhere there
+	const Point p1 = Point(f.length() / 2.0, -f.width() / 2.0);
+	const Point p2 = Point(f.length() / 2.0, f.width() / 2.0);
+	std::pair<Point, double> target = angle_sweep_circles(player->position(), p1, p2, obstacles, Robot::MAX_RADIUS);
+
+	AI::HL::Tactics::shoot(world, player, flags, target.first);
 }
 
 void AI::HL::Tactics::free_move(World &world, Player::Ptr player, const Point p) {
