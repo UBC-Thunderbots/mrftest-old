@@ -30,7 +30,6 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 	get_window()->get_size(width, height);
 
 	Cairo::RefPtr<Cairo::Context> ctx = get_window()->create_cairo_context();
-	ctx->set_font_size(dtog(0.09));
 
 	// Fill the background with field-green.
 	ctx->set_source_rgb(0.0, 0.33, 0.0);
@@ -45,44 +44,52 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 		return true;
 	}
 
+	// Establish the proper transformation from world coordinates to graphical coordinates.
+	ctx->translate(xtranslate, ytranslate);
+	ctx->scale(scale, -scale);
+	ctx->set_line_width(0.01);
+
 	// Draw the outline of the referee area.
 	ctx->set_source_rgb(0.0, 0.0, 0.0);
-	ctx->move_to(xtog(-data.field().total_length() / 2.0), ytog(-data.field().total_width() / 2.0));
-	ctx->line_to(xtog(data.field().total_length() / 2.0), ytog(-data.field().total_width() / 2.0));
-	ctx->line_to(xtog(data.field().total_length() / 2.0), ytog(data.field().total_width() / 2.0));
-	ctx->line_to(xtog(-data.field().total_length() / 2.0), ytog(data.field().total_width() / 2.0));
-	ctx->line_to(xtog(-data.field().total_length() / 2.0), ytog(-data.field().total_width() / 2.0));
+	ctx->move_to(-data.field().total_length() / 2.0, -data.field().total_width() / 2.0);
+	ctx->line_to(data.field().total_length() / 2.0, -data.field().total_width() / 2.0);
+	ctx->line_to(data.field().total_length() / 2.0, data.field().total_width() / 2.0);
+	ctx->line_to(-data.field().total_length() / 2.0, data.field().total_width() / 2.0);
+	ctx->line_to(-data.field().total_length() / 2.0, -data.field().total_width() / 2.0);
 	ctx->stroke();
 
 	// Draw the rectangular outline.
 	ctx->set_source_rgb(1.0, 1.0, 1.0);
-	ctx->move_to(xtog(-data.field().length() / 2.0), ytog(-data.field().width() / 2.0));
-	ctx->line_to(xtog(data.field().length() / 2.0), ytog(-data.field().width() / 2.0));
-	ctx->line_to(xtog(data.field().length() / 2.0), ytog(data.field().width() / 2.0));
-	ctx->line_to(xtog(-data.field().length() / 2.0), ytog(data.field().width() / 2.0));
-	ctx->line_to(xtog(-data.field().length() / 2.0), ytog(-data.field().width() / 2.0));
+	ctx->move_to(-data.field().length() / 2.0, -data.field().width() / 2.0);
+	ctx->line_to(data.field().length() / 2.0, -data.field().width() / 2.0);
+	ctx->line_to(data.field().length() / 2.0, data.field().width() / 2.0);
+	ctx->line_to(-data.field().length() / 2.0, data.field().width() / 2.0);
+	ctx->line_to(-data.field().length() / 2.0, -data.field().width() / 2.0);
 	ctx->stroke();
 
 	// Draw the centre line.
-	ctx->move_to(xtog(0.0), ytog(-data.field().width() / 2.0));
-	ctx->line_to(xtog(0.0), ytog(data.field().width() / 2.0));
+	ctx->move_to(0.0, -data.field().width() / 2.0);
+	ctx->line_to(0.0, data.field().width() / 2.0);
 	ctx->stroke();
 
 	// Draw the centre circle.
-	ctx->arc(xtog(0.0), ytog(0.0), dtog(data.field().centre_circle_radius()), 0.0, 2 * M_PI);
+	ctx->arc(0.0, 0.0, data.field().centre_circle_radius(), 0.0, 2 * M_PI);
 	ctx->stroke();
 
 	// Draw the west defense area.
-	ctx->arc(xtog(-data.field().length() / 2.0), ytog(data.field().defense_area_stretch() / 2.0), dtog(data.field().defense_area_radius()), 3 * M_PI_2, 2 * M_PI);
-	ctx->line_to(xtog(-data.field().length() / 2.0 + data.field().defense_area_radius()), ytog(data.field().defense_area_stretch() / 2.0));
-	ctx->arc(xtog(-data.field().length() / 2.0), ytog(-data.field().defense_area_stretch() / 2.0), dtog(data.field().defense_area_radius()), 0, M_PI_2);
+	ctx->arc(-data.field().length() / 2.0, -data.field().defense_area_stretch() / 2.0, data.field().defense_area_radius(), -M_PI_2, 0);
+	ctx->line_to(-data.field().length() / 2.0 + data.field().defense_area_radius(), data.field().defense_area_stretch() / 2.0);
+	ctx->arc(-data.field().length() / 2.0, data.field().defense_area_stretch() / 2.0, data.field().defense_area_radius(), 0, M_PI_2);
 	ctx->stroke();
 
 	// Draw the east defense area.
-	ctx->arc_negative(xtog(data.field().length() / 2.0), ytog(data.field().defense_area_stretch() / 2.0), dtog(data.field().defense_area_radius()), 3 * M_PI_2, M_PI);
-	ctx->line_to(xtog(data.field().length() / 2.0 - data.field().defense_area_radius()), ytog(-data.field().defense_area_stretch() / 2.0));
-	ctx->arc_negative(xtog(data.field().length() / 2.0), ytog(-data.field().defense_area_stretch() / 2.0), dtog(data.field().defense_area_radius()), M_PI, M_PI_2);
+	ctx->arc(data.field().length() / 2.0, data.field().defense_area_stretch() / 2.0, data.field().defense_area_radius(), M_PI_2, M_PI);
+	ctx->line_to(data.field().length() / 2.0 - data.field().defense_area_radius(), -data.field().defense_area_stretch() / 2.0);
+	ctx->arc(data.field().length() / 2.0, -data.field().defense_area_stretch() / 2.0, data.field().defense_area_radius(), M_PI, 3 * M_PI_2);
 	ctx->stroke();
+
+	// Set font size for displaying robot pattern indices.
+	ctx->set_font_size(0.09);
 
 	// Draw the players including text.
 	for (unsigned int i = 0; i < data.visualizable_num_robots(); ++i) {
@@ -90,7 +97,7 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 		const Visualizable::Colour &clr = bot->visualizer_colour();
 		ctx->set_source_rgb(clr.red, clr.green, clr.blue);
 		ctx->begin_new_path();
-		ctx->arc_negative(xtog(bot->position().x), ytog(bot->position().y), dtog(0.09), atog(bot->orientation() + M_PI_4), atog(bot->orientation() - M_PI_4));
+		ctx->arc(bot->position().x, bot->position().y, 0.09, bot->orientation() + M_PI_4, bot->orientation() - M_PI_4);
 		ctx->fill();
 
 		ctx->set_source_rgb(0.0, 0.0, 0.0);
@@ -98,8 +105,8 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 		const std::string &str(ustr);
 		Cairo::TextExtents extents;
 		ctx->get_text_extents(str, extents);
-		const double x = xtog(bot->position().x) - extents.x_bearing - extents.width / 2.0;
-		const double y = ytog(bot->position().y) - extents.y_bearing - extents.height / 2.0;
+		const double x = bot->position().x - extents.x_bearing - extents.width / 2.0;
+		const double y = bot->position().y - extents.y_bearing - extents.height / 2.0;
 		ctx->move_to(x, y);
 		ctx->show_text(str);
 
@@ -107,7 +114,7 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 			const Visualizable::Colour &hlclr = bot->highlight_colour();
 			ctx->set_source_rgb(hlclr.red, hlclr.green, hlclr.blue);
 			ctx->begin_new_path();
-			ctx->arc_negative(xtog(bot->position().x), ytog(bot->position().y), dtog(0.09), atog(bot->orientation() + M_PI_4), atog(bot->orientation() - M_PI_4));
+			ctx->arc(bot->position().x, bot->position().y, 0.09, bot->orientation() + M_PI_4, bot->orientation() - M_PI_4);
 			ctx->stroke();
 		}
 	}
@@ -116,20 +123,20 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 	const Visualizable::Ball &ball(data.ball());
 	ctx->set_source_rgb(1.0, 0.5, 0.0);
 	ctx->begin_new_path();
-	ctx->arc(xtog(ball.position().x), ytog(ball.position().y), dtog(0.03), 0.0, 2.0 * M_PI);
+	ctx->arc(ball.position().x, ball.position().y, 0.03, 0, 2 * M_PI);
 	ctx->fill();
 	ctx->begin_new_path();
-	ctx->move_to(xtog(ball.position().x), ytog(ball.position().y));
+	ctx->move_to(ball.position().x, ball.position().y);
 	{
 		const Point &tgt(ball.position() + ball.velocity());
-		ctx->line_to(xtog(tgt.x), ytog(tgt.y));
+		ctx->line_to(tgt.x, tgt.y);
 	}
 	ctx->stroke();
 	if (ball.highlight()) {
 		const Visualizable::Colour &clr = ball.highlight_colour();
 		ctx->set_source_rgb(clr.red, clr.green, clr.blue);
 		ctx->begin_new_path();
-		ctx->arc(xtog(ball.position().x), ytog(ball.position().y), dtog(0.03), 0.0, 2.0 * M_PI);
+		ctx->arc(ball.position().x, ball.position().y, 0.03, 0, 2 * M_PI);
 		ctx->stroke();
 	}
 

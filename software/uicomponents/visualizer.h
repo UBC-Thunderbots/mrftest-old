@@ -308,10 +308,6 @@ class Visualizer : public Gtk::DrawingArea {
 		bool on_leave_notify_event(GdkEventCrossing *evt);
 
 		void compute_scales();
-		double xtog(double x) __attribute__((warn_unused_result)) { return x * scale + xtranslate; }
-		double ytog(double y) __attribute__((warn_unused_result)) { return -y * scale + ytranslate; }
-		double atog(double r) __attribute__((warn_unused_result)) { return -r; }
-		double dtog(double d) __attribute__((warn_unused_result)) { return d * scale; }
 		double xtow(double x) __attribute__((warn_unused_result)) { return (x - xtranslate) / scale; }
 		double ytow(double y) __attribute__((warn_unused_result)) { return -(y - ytranslate) / scale; }
 		double atow(double r) __attribute__((warn_unused_result)) { return -r; }
