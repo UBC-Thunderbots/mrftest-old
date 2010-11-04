@@ -107,9 +107,12 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 
 			ctx->set_source_rgb(0.0, 0.0, 0.0);
 			const double x = bot->destination().first.x - extents.x_bearing - extents.width / 2.0;
-			const double y = bot->destination().first.y - extents.y_bearing - extents.height / 2.0;
+			const double y = bot->destination().first.y + extents.y_bearing + extents.height / 2.0;
 			ctx->move_to(x, y);
+			ctx->save();
+			ctx->scale(1, -1);
 			ctx->show_text(str);
+			ctx->restore();
 		}
 
 		ctx->set_source_rgb(clr.red, clr.green, clr.blue);
@@ -119,9 +122,12 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 
 		ctx->set_source_rgb(0.0, 0.0, 0.0);
 		const double x = bot->position().x - extents.x_bearing - extents.width / 2.0;
-		const double y = bot->position().y - extents.y_bearing - extents.height / 2.0;
+		const double y = bot->position().y + extents.y_bearing + extents.height / 2.0;
 		ctx->move_to(x, y);
+		ctx->save();
+		ctx->scale(1, -1);
 		ctx->show_text(str);
+		ctx->restore();
 
 		if (bot->highlight()) {
 			const Visualizable::Colour &hlclr = bot->highlight_colour();
