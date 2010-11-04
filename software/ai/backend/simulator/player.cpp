@@ -156,6 +156,10 @@ void AI::BE::Simulator::Player::chip(double power) {
 	chick_power_ = power;
 }
 
+bool AI::BE::Simulator::Player::has_destination() const {
+	return true;
+}
+
 const std::pair<Point, double> &AI::BE::Simulator::Player::destination() const {
 	return destination_;
 }

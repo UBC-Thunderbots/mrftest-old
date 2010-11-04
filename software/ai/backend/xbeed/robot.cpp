@@ -3,6 +3,7 @@
 #include "util/dprint.h"
 #include <algorithm>
 #include <cmath>
+#include <stdexcept>
 
 using namespace AI::BE::XBeeD;
 
@@ -98,6 +99,14 @@ unsigned int Robot::pattern() const {
 
 ObjectStore &Robot::object_store() {
 	return object_store_;
+}
+
+bool Robot::has_destination() const {
+	return false;
+}
+
+const std::pair<Point, double> &Robot::destination() const {
+	throw std::logic_error("This robot has no destination");
 }
 
 Robot::Robot(AI::BE::Backend &backend, unsigned int pattern) : seen_this_frame(false), vision_failures(0), backend(backend), pattern_(pattern), xpred(false), ypred(false), tpred(true) {

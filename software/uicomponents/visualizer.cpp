@@ -91,20 +91,33 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 	// Set font size for displaying robot pattern indices.
 	ctx->set_font_size(0.09);
 
-	// Draw the players including text.
+	// Draw the players including text, and their destinations.
 	for (unsigned int i = 0; i < data.visualizable_num_robots(); ++i) {
 		Visualizable::Robot::Ptr bot = data.visualizable_robot(i);
 		const Visualizable::Colour &clr = bot->visualizer_colour();
+		const std::string &str = bot->visualizer_label();
+		Cairo::TextExtents extents;
+		ctx->get_text_extents(str, extents);
+
+		if (bot->has_destination()) {
+			ctx->set_source_rgb(clr.red, clr.green, clr.blue);
+			ctx->begin_new_path();
+			ctx->arc(bot->destination().first.x, bot->destination().first.y, 0.09, bot->destination().second + M_PI_4, bot->destination().second - M_PI_4);
+			ctx->stroke();
+
+			ctx->set_source_rgb(0.0, 0.0, 0.0);
+			const double x = bot->destination().first.x - extents.x_bearing - extents.width / 2.0;
+			const double y = bot->destination().first.y - extents.y_bearing - extents.height / 2.0;
+			ctx->move_to(x, y);
+			ctx->show_text(str);
+		}
+
 		ctx->set_source_rgb(clr.red, clr.green, clr.blue);
 		ctx->begin_new_path();
 		ctx->arc(bot->position().x, bot->position().y, 0.09, bot->orientation() + M_PI_4, bot->orientation() - M_PI_4);
 		ctx->fill();
 
 		ctx->set_source_rgb(0.0, 0.0, 0.0);
-		const Glib::ustring &ustr(bot->visualizer_label());
-		const std::string &str(ustr);
-		Cairo::TextExtents extents;
-		ctx->get_text_extents(str, extents);
 		const double x = bot->position().x - extents.x_bearing - extents.width / 2.0;
 		const double y = bot->position().y - extents.y_bearing - extents.height / 2.0;
 		ctx->move_to(x, y);

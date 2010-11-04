@@ -88,6 +88,7 @@ namespace AI {
 				double avelocity(double delta) const = 0;
 				Point acceleration(double delta) const = 0;
 				double aacceleration(double delta) const = 0;
+				const std::pair<Point, double> &destination() const = 0;
 		};
 
 		/**

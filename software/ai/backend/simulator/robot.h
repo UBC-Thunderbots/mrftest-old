@@ -5,6 +5,7 @@
 #include "simulator/sockproto/proto.h"
 #include "util/byref.h"
 #include "util/predictor.h"
+#include <stdexcept>
 
 namespace AI {
 	namespace BE {
@@ -67,6 +68,8 @@ namespace AI {
 					Glib::ustring visualizer_label() const { return Glib::ustring::format(pattern_); }
 					bool highlight() const { return false; }
 					Visualizable::Colour highlight_colour() const { return Visualizable::Colour(0.0, 0.0, 0.0); }
+					bool has_destination() const { return false; }
+					const std::pair<Point, double> &destination() const { throw std::logic_error("This robot has no destination"); }
 
 				protected:
 					/**

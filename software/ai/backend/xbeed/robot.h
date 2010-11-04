@@ -81,6 +81,8 @@ namespace AI {
 					double aacceleration(const timespec &ts) const;
 					unsigned int pattern() const;
 					ObjectStore &object_store();
+					bool has_destination() const;
+					const std::pair<Point, double> &destination() const;
 
 				protected:
 					AI::BE::Backend &backend;

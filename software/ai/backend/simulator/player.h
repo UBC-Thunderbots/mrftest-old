@@ -102,6 +102,7 @@ namespace AI {
 					void move(Point dest, double ori, unsigned int flags, AI::Flags::MOVE_TYPE type, AI::Flags::MOVE_PRIO prio);
 					void kick(double power);
 					void chip(double power);
+					bool has_destination() const;
 					const std::pair<Point, double> &destination() const;
 					unsigned int flags() const;
 					AI::Flags::MOVE_TYPE type() const;
