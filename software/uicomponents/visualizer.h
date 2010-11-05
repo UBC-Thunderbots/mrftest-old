@@ -213,6 +213,20 @@ namespace Visualizable {
 			 * \return the destination position and orientation.
 			 */
 			virtual const std::pair<Point, double> &destination() const = 0;
+
+			/**
+			 * Returns whether or not the robot has a path.
+			 *
+			 * \return \c true if the robot has a path, or \c false if not.
+			 */
+			virtual bool has_path() const = 0;
+
+			/**
+			 * Returns the robot's path.
+			 *
+			 * \return the path the robot should follow.
+			 */
+			virtual const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const = 0;
 	};
 
 	/**

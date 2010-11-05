@@ -72,6 +72,7 @@ namespace AI {
 					AI::Flags::MOVE_TYPE type() const { return move_type_; }
 					AI::Flags::MOVE_PRIO prio() const { return move_prio_; }
 					void path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) { path_ = p; }
+					bool has_path() const { return true; }
 					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const { return path_; }
 					void drive(const int(&w)[4]);
 					const int(&wheel_speeds() const)[4] {

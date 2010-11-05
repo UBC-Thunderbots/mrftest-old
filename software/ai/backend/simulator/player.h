@@ -107,6 +107,7 @@ namespace AI {
 					unsigned int flags() const;
 					AI::Flags::MOVE_TYPE type() const;
 					AI::Flags::MOVE_PRIO prio() const;
+					bool has_path() const;
 					void path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p);
 					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const;
 					void drive(const int(&w)[4]);

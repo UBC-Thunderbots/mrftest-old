@@ -180,6 +180,10 @@ void AI::BE::Simulator::Player::path(const std::vector<std::pair<std::pair<Point
 	path_ = p;
 }
 
+bool AI::BE::Simulator::Player::has_path() const {
+	return true;
+}
+
 const std::vector<std::pair<std::pair<Point, double>, timespec> > &AI::BE::Simulator::Player::path() const {
 	return path_;
 }

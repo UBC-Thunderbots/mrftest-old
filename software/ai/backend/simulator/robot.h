@@ -70,6 +70,8 @@ namespace AI {
 					Visualizable::Colour highlight_colour() const { return Visualizable::Colour(0.0, 0.0, 0.0); }
 					bool has_destination() const { return false; }
 					const std::pair<Point, double> &destination() const { throw std::logic_error("This robot has no destination"); }
+					bool has_path() const { return false; }
+					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const { throw std::logic_error("This robot has no path"); }
 
 				protected:
 					/**

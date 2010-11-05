@@ -109,6 +109,14 @@ const std::pair<Point, double> &Robot::destination() const {
 	throw std::logic_error("This robot has no destination");
 }
 
+bool Robot::has_path() const {
+	return false;
+}
+
+const std::vector<std::pair<std::pair<Point, double>, timespec> > &Robot::path() const {
+	throw std::logic_error("This robot has no path");
+}
+
 Robot::Robot(AI::BE::Backend &backend, unsigned int pattern) : seen_this_frame(false), vision_failures(0), backend(backend), pattern_(pattern), xpred(false), ypred(false), tpred(true) {
 	backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &Robot::on_defending_end_changed));
 }
