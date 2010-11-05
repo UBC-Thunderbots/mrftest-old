@@ -73,20 +73,11 @@ Compo_player_geom::Compo_player_geom(dWorldID eworld, dSpaceID dspace) : Player_
 	y_len = 0.1;
 	x_len = sqrt((2 * ROBOT_RADIUS) * (2 * ROBOT_RADIUS) - (y_len) * (y_len));
 
-	// dBodySetPosition(body, x_pos, y_pos, 0.0006);
-	// robotGeomTop = dCreateTriMesh(0,create_robot_geom(),NULL,NULL,NULL);
 	robotGeomTop = dCreateBox(0, x_len, y_len, ROBOT_HEIGHT);
-
-
 	dGeomSetBody(robotGeomTop, body);
-
-// ROBOT_RADIUS
-// comment
 	robotGeomTopCyl = dCreateCapsule(0, ROBOT_RADIUS, ROBOT_HEIGHT);
 	dGeomSetBody(robotGeomTopCyl, body);
 	dBodySetPosition(body, x_pos, y_pos, ROBOT_HEIGHT / 2 + 0.001);
-
-	// double dribble_len =  dribble_radius * 2.5;
 
 	// we need to rotate the
 	// dribbler bar -90 degrees about the x-axis
@@ -96,28 +87,24 @@ Compo_player_geom::Compo_player_geom(dWorldID eworld, dSpaceID dspace) : Player_
 		0, 1, 0, 0
 	};
 
-
-
 	dribbler = dBodyCreate(world);
 	dribblerBar = dCreateCapsule(0, DRIBBLER_RADIUS, y_len);
 	dMass mass;
 	dMassSetCylinderTotal(&mass, 0.02, 3, DRIBBLER_RADIUS, y_len);
 	dBodySetMass(dribbler, &mass);
 
-
 	dSpaceAdd(dspace, robotGeomTop);
 	dSpaceAdd(dspace, robotGeomTopCyl);
 	dSpaceAdd(dspace, dribblerBar);
-
 
 	dGeomSetBody(dribblerBar, dribbler);
 	dGeomSetRotation(dribblerBar, rotat);
 
 	jGroup = dJointGroupCreate(0);
-	dBodySetPosition(dribbler, x_pos + x_len / 2 + DRIBBLER_RADIUS, y_pos, DRIBBLER_HEIGHT);
+	dBodySetPosition(dribbler, x_pos + x_len / 2, y_pos, DRIBBLER_HEIGHT);
 	hinge = dJointCreateHinge2(world, jGroup);
 	dJointAttach(hinge, body, dribbler);
-	dJointSetHinge2Anchor(hinge, x_len / 2 + DRIBBLER_RADIUS, 0.0, DRIBBLER_HEIGHT);
+	dJointSetHinge2Anchor(hinge, x_len / 2, 0.0, DRIBBLER_HEIGHT);
 
 	dJointSetHinge2Param(hinge, dParamHiStop, 0.0);
 	dJointSetHinge2Param(hinge, dParamLoStop, 0.0);
@@ -164,8 +151,6 @@ bool hasContactPenetration(dVector3 pos, dGeomID geom) {
 	if (dGeomGetClass(geom) == dBoxClass && dGeomBoxPointDepth(geom, pos[0], pos[1], pos[2]) < 0) {
 		return true;
 	}
-
-
 
 	double y_len = 0.1;
 	double x_len = sqrt((2 * ROBOT_RADIUS) * (2 * ROBOT_RADIUS) - (y_len) * (y_len));
@@ -215,17 +200,31 @@ void Compo_player_geom::handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointG
 	dBodyID b1 = dGeomGetBody(o1);
 	dBodyID b2 = dGeomGetBody(o2);
 	dContact contact[3];      // up to 3 contacts per box
+	dGeomID ballGeom = o2;
 	dGeomID robotGeom = o1;
 	if (dGeomGetClass(o1) == dSphereClass) {
 		robotGeom = o2;
+		ballGeom = o1;
 	}
 
 	if (int numc = dCollide(o1, o2, 3, &contact[0].geom, sizeof(dContact))) {
 		for (i = 0; i < numc; i++) {
-			bool robotCollided = hasContactPenetration(contact[i].geom.pos, robotGeom) || dribbler == dGeomGetBody(o1) || dribbler == dGeomGetBody(o2);
-			// has_ball_now = has_ball_now || hasContactWithFace(contact[i].geom.pos, robotGeom);
-			has_ball_now = has_ball_now || dribbler == dGeomGetBody(o1) || dribbler == dGeomGetBody(o2);
-			if (robotCollided) {
+			bool robotDribbler =  dribbler == dGeomGetBody(o1) ||  dribbler == dGeomGetBody(o2);
+			bool robotCollided =dBodyGetPosition(dGeomGetBody(ballGeom))[2]>DRIBBLER_HEIGHT &&  hasContactPenetration(contact[i].geom.pos, robotGeom);
+			robotCollided = robotCollided || !hasContactWithFace(contact[i].geom.pos, robotGeom);
+			has_ball_now = has_ball_now || robotDribbler;
+			//different parameters are needed
+			//for the dribbler
+			if (robotDribbler) {
+				contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;
+				contact[i].surface.mu = 0.1;
+				contact[i].surface.soft_cfm = CFM;
+				contact[i].surface.soft_erp = ERP;
+				contact[i].surface.bounce = 0.2;
+				contact[i].surface.bounce_vel = 0.0;
+				dJointID c = dJointCreateContact(world, contactgroup, contact + i);
+				dJointAttach(c, b1, b2);
+			}else if (robotCollided) {
 				contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;
 				contact[i].surface.mu = 0.1;
 				contact[i].surface.soft_cfm = CFM;
@@ -239,7 +238,7 @@ void Compo_player_geom::handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointG
 	}
 }
 
-//
+// dribbler == dGeomGetBody(o1) ||  dribbler == dGeomGetBody(o2)
 // if a shape interescts with the ground set the contact parameters
 //
 void Compo_player_geom::handleCollisionWithGround(dGeomID o1, dGeomID o2, dJointGroupID contactgroup) {
