@@ -209,12 +209,12 @@ void Compo_player_geom::handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointG
 
 	if (int numc = dCollide(o1, o2, 3, &contact[0].geom, sizeof(dContact))) {
 		for (i = 0; i < numc; i++) {
-			bool robotDribbler =  dribbler == dGeomGetBody(o1) ||  dribbler == dGeomGetBody(o2);
-			bool robotCollided =dBodyGetPosition(dGeomGetBody(ballGeom))[2]>DRIBBLER_HEIGHT &&  hasContactPenetration(contact[i].geom.pos, robotGeom);
+			bool robotDribbler = dribbler == dGeomGetBody(o1) || dribbler == dGeomGetBody(o2);
+			bool robotCollided = dBodyGetPosition(dGeomGetBody(ballGeom))[2] > DRIBBLER_HEIGHT && hasContactPenetration(contact[i].geom.pos, robotGeom);
 			robotCollided = robotCollided || !hasContactWithFace(contact[i].geom.pos, robotGeom);
 			has_ball_now = has_ball_now || robotDribbler;
-			//different parameters are needed
-			//for the dribbler
+			// different parameters are needed
+			// for the dribbler
 			if (robotDribbler) {
 				contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;
 				contact[i].surface.mu = 0.1;
@@ -224,7 +224,7 @@ void Compo_player_geom::handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointG
 				contact[i].surface.bounce_vel = 0.0;
 				dJointID c = dJointCreateContact(world, contactgroup, contact + i);
 				dJointAttach(c, b1, b2);
-			}else if (robotCollided) {
+			} else if (robotCollided) {
 				contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;
 				contact[i].surface.mu = 0.1;
 				contact[i].surface.soft_cfm = CFM;

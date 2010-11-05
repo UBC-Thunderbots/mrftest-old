@@ -142,8 +142,9 @@ namespace {
 		// check if the point is invalid (collision, out of bounds, etc...)
 		// if it is then return EmptyState()
 
-		if (!valid_path(start, extendPoint, world, player))
+		if (!valid_path(start, extendPoint, world, player)) {
 			return EmptyState();
+		}
 
 		return extendPoint;
 	}
@@ -172,7 +173,7 @@ namespace {
 		}
 
 		if (iterationCounter == ITERATION_LIMIT) {
-			//LOG_WARN("Reached limit, path not found");
+			// LOG_WARN("Reached limit, path not found");
 		}
 
 		// calculations complete, trace backwards to get the points in the path
