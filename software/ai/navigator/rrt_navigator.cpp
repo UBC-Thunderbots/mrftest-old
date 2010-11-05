@@ -1,10 +1,12 @@
 #include "ai/navigator/navigator.h"
+#include "ai/navigator/util.h"
 #include "util/dprint.h"
 #include "util/tree.h"
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
 using namespace AI::Nav::W;
+using namespace AI::Nav::Util;
 using namespace AI::Flags;
 
 namespace {
@@ -15,7 +17,7 @@ namespace {
 	const double GOAL_PROB = 0.7;
 	// number of iterations to go through for each robot until we give up and
 	// just return the best partial path we've found
-	const int ITERATION_LIMIT = 2500;
+	const int ITERATION_LIMIT = 2000;
 
 	class rrt_navigator : public Navigator {
 		public:
@@ -80,7 +82,7 @@ namespace {
 			// just use the current player position as the destination if we are within the
 			// threshold already
 			if (pathPoints.size() == 0) {
-				path.push_back(std::make_pair(std::make_pair(player->position(), 0), timing));
+				path.push_back(std::make_pair(std::make_pair(player->position(), destOrientation), timing));
 			}
 
 			player->path(path);
@@ -101,8 +103,9 @@ namespace {
 
 	// generate a random point from the field
 	Point rrt_navigator::RandomPoint() {
-		int randomX = (rand() % static_cast<int>(world.field().width())) - (world.field().width() / 2);
-		int randomY = (rand() % static_cast<int>(world.field().length())) - (world.field().length() / 2);
+		double randomX = ((rand() % static_cast<int>(world.field().length() * 100)) - (world.field().length() * 50)) / 100;
+		double randomY = ((rand() % static_cast<int>(world.field().width() * 100)) - (world.field().width() * 50)) / 100;
+
 		return Point(randomX, randomY);
 	}
 
@@ -133,21 +136,14 @@ namespace {
 		return nearest;
 	}
 
-	bool rrt_navigator::PointWithinThreshold(Point testPoint, Point otherPoint, float threshold) {
-		return std::fabs(testPoint.x - otherPoint.x) <= threshold && std::fabs(testPoint.y - otherPoint.y) <= threshold;
-	}
-
 	// extend by STEP_DISTANCE towards the target from the start
 	Point rrt_navigator::Extend(Player::Ptr player, Point start, Point target) {
 		Point extendPoint = start + ((target - start).norm() * STEP_DISTANCE);
 		// check if the point is invalid (collision, out of bounds, etc...)
 		// if it is then return EmptyState()
 
-		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-			if (PointWithinThreshold(extendPoint, world.friendly_team().get(i)->position(), 0.2)) {
-				return EmptyState();
-			}
-		}
+		if (!valid_path(start, extendPoint, world, player))
+			return EmptyState();
 
 		return extendPoint;
 	}
@@ -176,7 +172,7 @@ namespace {
 		}
 
 		if (iterationCounter == ITERATION_LIMIT) {
-			LOG_WARN("Reached limit, path not found");
+			//LOG_WARN("Reached limit, path not found");
 		}
 
 		// calculations complete, trace backwards to get the points in the path
