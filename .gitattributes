@@ -109,6 +109,7 @@ software/ai/navigator/rrt_navigator.cpp -text
 software/ai/navigator/simple_navigator.cpp -text
 software/ai/navigator/util.cpp -text
 software/ai/navigator/util.h -text
+software/ai/navigator/world.cpp -text
 software/ai/navigator/world.h -text
 software/ai/robot_controller/adhoc2_controller.cpp -text
 software/ai/robot_controller/fuzzy2_controller.cpp -text

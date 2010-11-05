@@ -44,6 +44,26 @@ namespace AI {
 					typedef RefPtr<Player> Ptr;
 
 					/**
+					 * The maximum linear velocity of the robot, in metres per second.
+					 */
+					static const double MAX_LINEAR_VELOCITY;
+
+					/**
+					 * The maximum linear acceleration of the robot, in metres per second squared.
+					 */
+					static const double MAX_LINEAR_ACCELERATION;
+
+					/**
+					 * The maximum angular velocity of the robot, in radians per second.
+					 */
+					static const double MAX_ANGULAR_VELOCITY;
+
+					/**
+					 * The maximum angular acceleration of the robot, in radians per second squared.
+					 */
+					static const double MAX_ANGULAR_ACCELERATION;
+
+					/**
 					 * Returns the destination position and orientation requested by the Strategy.
 					 *
 					 * \return the destination position and orientation.
