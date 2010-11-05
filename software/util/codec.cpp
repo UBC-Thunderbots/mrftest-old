@@ -60,10 +60,10 @@ uint64_t Codec::double_to_u64(double x) {
 		x -= 1.0;
 
 		// Encode the significand by multiplying the input by 2^52 and converting the result to an integer.
-		uint64_t significand = (x * (UINT64_C(1) << 52)) + 0.5;
+		uint64_t significand = static_cast<uint64_t>((x * (UINT64_C(1) << 52)) + 0.5);
 
 		// Bias the exponent.
-		exponent += 1023;
+		exponent = static_cast<int16_t>(exponent + 1023);
 
 		// Encode the number.
 		return pack_ses(sign, exponent, significand);
@@ -95,7 +95,7 @@ double Codec::u64_to_double(uint64_t x) {
 		}
 	} else {
 		// Unbias the exponent.
-		exponent -= 1023;
+		exponent = static_cast<int16_t>(exponent - 1023);
 
 		// Shift the significand down into the fraction part and re-add the implicit leading 1 bit.
 		double value = 1.0 + static_cast<double>(significand) / (UINT64_C(1) << 52);

@@ -33,11 +33,11 @@ namespace {
 			~MessagesALM() {
 			}
 
-			unsigned int alm_rows() const {
+			std::size_t alm_rows() const {
 				return Annunciator::visible().size();
 			}
 
-			void alm_get_value(unsigned int row, unsigned int col, Glib::ValueBase &value) const {
+			void alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const {
 				if (col == static_cast<unsigned int>(age_column.index())) {
 					Glib::Value<unsigned int> v;
 					v.init(age_column.type());
@@ -61,7 +61,7 @@ namespace {
 				}
 			}
 
-			void alm_set_value(unsigned int, unsigned int, const Glib::ValueBase &) {
+			void alm_set_value(std::size_t, unsigned int, const Glib::ValueBase &) {
 			}
 
 			void on_message_activated() {

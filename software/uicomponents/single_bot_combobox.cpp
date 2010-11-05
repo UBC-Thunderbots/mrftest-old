@@ -14,11 +14,11 @@ SingleBotComboBoxModel::SingleBotComboBoxModel(const Config::RobotSet &robots) :
 	robots.signal_robot_removed.connect(sigc::mem_fun(this, &SingleBotComboBoxModel::on_robot_removed));
 }
 
-unsigned int SingleBotComboBoxModel::alm_rows() const {
+std::size_t SingleBotComboBoxModel::alm_rows() const {
 	return robots.size();
 }
 
-void SingleBotComboBoxModel::alm_get_value(unsigned int row, unsigned int col, Glib::ValueBase &value) const {
+void SingleBotComboBoxModel::alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const {
 	if (col == static_cast<unsigned int>(address_column.index())) {
 		Glib::Value<Glib::ustring> v;
 		v.init(address_column.type());
@@ -34,14 +34,14 @@ void SingleBotComboBoxModel::alm_get_value(unsigned int row, unsigned int col, G
 	}
 }
 
-void SingleBotComboBoxModel::alm_set_value(unsigned int, unsigned int, const Glib::ValueBase &) {
+void SingleBotComboBoxModel::alm_set_value(std::size_t, unsigned int, const Glib::ValueBase &) {
 }
 
-void SingleBotComboBoxModel::on_robot_added(unsigned int index) {
+void SingleBotComboBoxModel::on_robot_added(std::size_t index) {
 	alm_row_inserted(index);
 }
 
-void SingleBotComboBoxModel::on_robot_removed(unsigned int index) {
+void SingleBotComboBoxModel::on_robot_removed(std::size_t index) {
 	alm_row_deleted(index);
 }
 

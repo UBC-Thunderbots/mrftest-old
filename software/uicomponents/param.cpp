@@ -185,7 +185,7 @@ void DoubleParam::set_default() {
 
 ParamPanel::ParamPanel() {
 	if (!instances.empty()) {
-		Gtk::Table *param_table = Gtk::manage(new Gtk::Table(instances.size(), 2));
+		Gtk::Table *param_table = Gtk::manage(new Gtk::Table(static_cast<unsigned int>(instances.size()), 2));
 		unsigned int y = 0;
 		for (std::vector<Param *>::const_iterator i = instances.begin(); i != instances.end(); ++i) {
 			Param *par = *i;

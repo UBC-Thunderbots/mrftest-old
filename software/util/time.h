@@ -94,7 +94,7 @@ namespace {
 	 * \return the number of seconds represented by \p ts.
 	 */
 	double timespec_to_double(const timespec &ts) {
-		return ts.tv_sec + ts.tv_nsec / 1000000000.0;
+		return static_cast<double>(ts.tv_sec) + static_cast<double>(ts.tv_nsec) / 1000000000.0;
 	}
 
 	/**
@@ -107,7 +107,7 @@ namespace {
 	timespec double_to_timespec(double seconds) {
 		timespec ts;
 		ts.tv_sec = static_cast<time_t>(seconds);
-		ts.tv_nsec = static_cast<long>((seconds - ts.tv_sec) * 1000000000.0);
+		ts.tv_nsec = static_cast<long>((seconds - static_cast<double>(ts.tv_sec)) * 1000000000.0);
 		if (ts.tv_nsec < 0L) {
 			ts.tv_nsec = 0L;
 		}
@@ -125,7 +125,7 @@ namespace {
 	 * \return the number of milliseconds represented by \p ts.
 	 */
 	unsigned int timespec_to_millis(const timespec &ts) {
-		return ts.tv_sec * 1000U + ts.tv_nsec / 1000000U;
+		return static_cast<unsigned int>(ts.tv_sec * 1000U + ts.tv_nsec / 1000000U);
 	}
 }
 

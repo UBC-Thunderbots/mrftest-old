@@ -6,6 +6,7 @@
 #include "ai/backend/xbeed/robot.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "util/clocksource_timerfd.h"
+#include "util/codec.h"
 #include "util/dprint.h"
 #include "util/sockaddrs.h"
 #include "util/timestep.h"
@@ -125,7 +126,7 @@ namespace {
 				SockAddrs sa;
 				sa.in.sin_family = AF_INET;
 				sa.in.sin_addr.s_addr = get_inaddr_any();
-				sa.in.sin_port = htons(10002);
+				encode_u16(&sa.in.sin_port, 10002);
 				std::memset(sa.in.sin_zero, 0, sizeof(sa.in.sin_zero));
 				if (bind(vision_socket->fd(), &sa.sa, sizeof(sa.in)) < 0) {
 					throw std::runtime_error("Cannot bind to port 10002 for vision data.");
@@ -254,7 +255,7 @@ namespace {
 
 				// Decode it.
 				SSL_WrapperPacket packet;
-				if (!packet.ParseFromArray(buffer, len)) {
+				if (!packet.ParseFromArray(buffer, static_cast<int>(len))) {
 					LOG_WARN("Received malformed SSL-Vision packet.");
 					return true;
 				}

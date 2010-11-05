@@ -1,6 +1,7 @@
 #include "util/config.h"
 #include "util/dprint.h"
 #include "util/time.h"
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
@@ -36,10 +37,10 @@ namespace {
 		std::cerr << "Usage:\n\n" << app << " [port]\n\n";
 	}
 
-	void send_fully(int fd, const void *data, int length) {
+	void send_fully(int fd, const void *data, std::size_t length) {
 		const char *ptr = static_cast<const char *>(data);
 		while (length) {
-			int rc = write(fd, ptr, length);
+			ssize_t rc = write(fd, ptr, length);
 			if (rc > 0) {
 				ptr += rc;
 				length -= rc;
@@ -63,7 +64,7 @@ namespace {
 		bool seen_K = false;
 		for (;; ) {
 			char ch;
-			int rc;
+			ssize_t rc;
 
 			timespec_now(cur_time);
 			if (cur_time.tv_sec > end_time.tv_sec || (cur_time.tv_sec == end_time.tv_sec && cur_time.tv_nsec > end_time.tv_nsec)) {
@@ -98,7 +99,7 @@ namespace {
 		std::string line;
 		for (;; ) {
 			char ch;
-			int rc;
+			ssize_t rc;
 
 			timespec_now(cur_time);
 			if (cur_time.tv_sec > end_time.tv_sec || (cur_time.tv_sec == end_time.tv_sec && cur_time.tv_nsec > end_time.tv_nsec)) {

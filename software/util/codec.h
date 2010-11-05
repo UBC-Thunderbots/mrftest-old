@@ -34,8 +34,8 @@ namespace {
 	 *
 	 * \param[in] x the integer to encode.
 	 */
-	void encode_u8(uint8_t *b, uint8_t x) {
-		b[0] = x;
+	void encode_u8(void *b, uint8_t x) {
+		static_cast<uint8_t *>(b)[0] = x;
 	}
 
 	/**
@@ -45,9 +45,9 @@ namespace {
 	 *
 	 * \param[in] x the integer to encode.
 	 */
-	void encode_u16(uint8_t *b, uint16_t x) {
-		encode_u8(b, x >> 8);
-		encode_u8(b + 1, x);
+	void encode_u16(void *b, uint16_t x) {
+		encode_u8(b, static_cast<uint8_t>(x >> 8));
+		encode_u8(static_cast<uint8_t *>(b) + 1, static_cast<uint8_t>(x));
 	}
 
 	/**
@@ -57,9 +57,9 @@ namespace {
 	 *
 	 * \param[in] x the integer to encode.
 	 */
-	void encode_u32(uint8_t *b, uint32_t x) {
-		encode_u16(b, x >> 16);
-		encode_u16(b + 2, x);
+	void encode_u32(void *b, uint32_t x) {
+		encode_u16(b, static_cast<uint16_t>(x >> 16));
+		encode_u16(static_cast<uint8_t *>(b) + 2, static_cast<uint16_t>(x));
 	}
 
 	/**
@@ -69,9 +69,9 @@ namespace {
 	 *
 	 * \param[in] x the integer to encode.
 	 */
-	void encode_u64(uint8_t *b, uint64_t x) {
-		encode_u32(b, x >> 32);
-		encode_u32(b + 4, x);
+	void encode_u64(void *b, uint64_t x) {
+		encode_u32(b, static_cast<uint32_t>(x >> 32));
+		encode_u32(static_cast<uint8_t *>(b) + 4, static_cast<uint32_t>(x));
 	}
 
 	/**
@@ -82,7 +82,7 @@ namespace {
 	 *
 	 * \param[in] x the floating-point number to encode.
 	 */
-	void encode_double(uint8_t *b, double x) {
+	void encode_double(void *b, double x) {
 		encode_u64(b, Codec::double_to_u64(x));
 	}
 
@@ -105,8 +105,8 @@ namespace {
 	 * \param[in] x the integer to append.
 	 */
 	void encode_u16(std::vector<uint8_t> &v, uint16_t x) {
-		encode_u8(v, x >> 8);
-		encode_u8(v, x);
+		encode_u8(v, static_cast<uint8_t>(x >> 8));
+		encode_u8(v, static_cast<uint8_t>(x));
 	}
 
 	/**
@@ -117,8 +117,8 @@ namespace {
 	 * \param[in] x the integer to append.
 	 */
 	void encode_u32(std::vector<uint8_t> &v, uint32_t x) {
-		encode_u16(v, x >> 16);
-		encode_u16(v, x);
+		encode_u16(v, static_cast<uint16_t>(x >> 16));
+		encode_u16(v, static_cast<uint16_t>(x));
 	}
 
 	/**
@@ -129,8 +129,8 @@ namespace {
 	 * \param[in] x the integer to append.
 	 */
 	void encode_u64(std::vector<uint8_t> &v, uint64_t x) {
-		encode_u32(v, x >> 32);
-		encode_u32(v, x);
+		encode_u32(v, static_cast<uint32_t>(x >> 32));
+		encode_u32(v, static_cast<uint32_t>(x));
 	}
 
 	/**
@@ -166,7 +166,7 @@ namespace {
 	uint16_t decode_u16(const uint8_t *buffer) {
 		uint16_t high = decode_u8(buffer);
 		uint16_t low = decode_u8(buffer + 1);
-		return (high << 8) | low;
+		return static_cast<uint16_t>(high << 8) | low;
 	}
 
 	/**
@@ -232,7 +232,7 @@ namespace {
 	uint16_t decode_u16(const uint8_t *buffer, std::size_t &i) {
 		uint16_t high = decode_u8(buffer, i);
 		uint16_t low = decode_u8(buffer, i);
-		return (high << 8) | low;
+		return static_cast<uint16_t>(high << 8) | low;
 	}
 
 	/**

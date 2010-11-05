@@ -36,11 +36,11 @@ class SingleBotComboBoxModel : public Glib::Object, public AbstractListModel {
 		const Config::RobotSet &robots;
 
 		SingleBotComboBoxModel(const Config::RobotSet &robots);
-		unsigned int alm_rows() const;
-		void alm_get_value(unsigned int row, unsigned int col, Glib::ValueBase &value) const;
-		void alm_set_value(unsigned int, unsigned int, const Glib::ValueBase &);
-		void on_robot_added(unsigned int);
-		void on_robot_removed(unsigned int);
+		std::size_t alm_rows() const;
+		void alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const;
+		void alm_set_value(std::size_t, unsigned int, const Glib::ValueBase &);
+		void on_robot_added(std::size_t);
+		void on_robot_removed(std::size_t);
 };
 
 /**

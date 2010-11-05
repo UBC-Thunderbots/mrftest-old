@@ -2,33 +2,43 @@
 #include <cassert>
 #include <stdint.h>
 
+namespace {
+	void *to_ptr(std::size_t sz) {
+		return reinterpret_cast<void *>(static_cast<uintptr_t>(sz));
+	}
+
+	std::size_t of_ptr(void *p) {
+		return static_cast<std::size_t>(reinterpret_cast<uintptr_t>(p));
+	}
+}
+
 AbstractListModel::AbstractListModel() : stamp(1) {
 }
 
 AbstractListModel::~AbstractListModel() {
 }
 
-void AbstractListModel::alm_row_changed(unsigned int index) {
+void AbstractListModel::alm_row_changed(std::size_t index) {
 	Gtk::TreePath path;
-	path.push_back(index);
+	path.push_back(static_cast<unsigned int>(index));
 	iterator iter;
 	iter.set_stamp(stamp);
-	iter.gobj()->user_data = reinterpret_cast<void *>(index);
+	iter.gobj()->user_data = to_ptr(index);
 	row_changed(path, iter);
 }
 
-void AbstractListModel::alm_row_inserted(unsigned int index) {
+void AbstractListModel::alm_row_inserted(std::size_t index) {
 	Gtk::TreePath path;
-	path.push_back(index);
+	path.push_back(static_cast<unsigned int>(index));
 	iterator iter;
 	iter.set_stamp(stamp);
-	iter.gobj()->user_data = reinterpret_cast<void *>(index);
+	iter.gobj()->user_data = to_ptr(index);
 	row_inserted(path, iter);
 }
 
-void AbstractListModel::alm_row_deleted(unsigned int index) {
+void AbstractListModel::alm_row_deleted(std::size_t index) {
 	Gtk::TreePath path;
-	path.push_back(index);
+	path.push_back(static_cast<unsigned int>(index));
 	row_deleted(path);
 }
 
@@ -47,7 +57,7 @@ GType AbstractListModel::get_column_type_vfunc(int col) const {
 
 bool AbstractListModel::iter_next_vfunc(const iterator &iter, iterator &next) const {
 	assert(iter_is_valid(iter));
-	unsigned int nextindex = static_cast<unsigned int>(reinterpret_cast<uintptr_t>(iter.gobj()->user_data)) + 1U;
+	std::size_t nextindex = of_ptr(iter.gobj()->user_data) + 1;
 	if (nextindex < alm_rows()) {
 		make_iter_valid(next, nextindex);
 		return true;
@@ -107,17 +117,18 @@ int AbstractListModel::iter_n_root_children_vfunc() const {
 Gtk::TreeModel::Path AbstractListModel::get_path_vfunc(const iterator &iter) const {
 	assert(iter_is_valid(iter));
 	Path p;
-	p.push_back(static_cast<unsigned int>(reinterpret_cast<uintptr_t>(iter.gobj()->user_data)));
+	std::size_t index = of_ptr(iter.gobj()->user_data);
+	p.push_back(static_cast<unsigned int>(index));
 	return p;
 }
 
 bool AbstractListModel::iter_is_valid(const iterator &iter) const {
-	return iter.get_stamp() == stamp && static_cast<unsigned int>(reinterpret_cast<uintptr_t>(iter.gobj()->user_data)) < alm_rows();
+	return iter.get_stamp() == stamp && of_ptr(iter.gobj()->user_data) < alm_rows();
 }
 
-void AbstractListModel::make_iter_valid(iterator &iter, unsigned int index) const {
+void AbstractListModel::make_iter_valid(iterator &iter, std::size_t index) const {
 	iter.set_stamp(stamp);
-	iter.gobj()->user_data = reinterpret_cast<void *>(index);
+	iter.gobj()->user_data = to_ptr(index);
 }
 
 void AbstractListModel::make_iter_invalid(iterator &iter) {
@@ -128,14 +139,14 @@ void AbstractListModel::make_iter_invalid(iterator &iter) {
 void AbstractListModel::get_value_vfunc(const iterator &iter, int col, Glib::ValueBase &value) const {
 	assert(iter_is_valid(iter));
 	assert(is_valid_column(col));
-	unsigned long int index = static_cast<unsigned int>(reinterpret_cast<uintptr_t>(iter.gobj()->user_data));
+	std::size_t index = of_ptr(iter.gobj()->user_data);
 	alm_get_value(index, col, value);
 }
 
 void AbstractListModel::set_value_impl(const iterator &iter, int col, const Glib::ValueBase &value) {
 	assert(iter_is_valid(iter));
 	assert(is_valid_column(col));
-	unsigned long int index = static_cast<unsigned int>(reinterpret_cast<uintptr_t>(iter.gobj()->user_data));
+	std::size_t index = of_ptr(iter.gobj()->user_data);
 	alm_set_value(index, col, value);
 }
 

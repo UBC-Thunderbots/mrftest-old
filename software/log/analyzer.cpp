@@ -1844,7 +1844,7 @@ namespace {
 
 	unsigned int SSLVisionPacketParser::compute_flags(const uint8_t *data, std::size_t length, std::size_t) const {
 		SSL_WrapperPacket pkt;
-		if (pkt.ParseFromArray(data, length)) {
+		if (pkt.ParseFromArray(data, static_cast<int>(length))) {
 			return 0;
 		} else {
 			return PF_BAD_NETWORK_PACKET;
@@ -1856,7 +1856,7 @@ namespace {
 		Gtk::TreeRow decode_row = columns.append_kv(store, root, "Wrapper", "<PACKET TRUNCATED>");
 		if (length == declared_length) {
 			SSL_WrapperPacket wrapper;
-			if (wrapper.ParseFromArray(data, length)) {
+			if (wrapper.ParseFromArray(data, static_cast<int>(length))) {
 				decode_row[columns.value] = "OK";
 				if (wrapper.has_detection()) {
 					const SSL_DetectionFrame &det = wrapper.detection();
@@ -2285,7 +2285,7 @@ namespace {
 					} else {
 						flags |= PF_TRUNCATED;
 						if (remaining >= 3 + 2) {
-							real_payload_length = remaining - 3 - 2;
+							real_payload_length = static_cast<uint16_t>(remaining - 3 - 2);
 						} else {
 							real_payload_length = 0;
 						}
@@ -2461,11 +2461,11 @@ namespace {
 			~PacketsALM() {
 			}
 
-			unsigned int alm_rows() const {
+			std::size_t alm_rows() const {
 				return packets.size();
 			}
 
-			void alm_get_value(unsigned int row, unsigned int col, Glib::ValueBase &value) const {
+			void alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const {
 				if (col == static_cast<unsigned int>(error_column.index())) {
 					Glib::Value<bool> v;
 					v.init(error_column.type());
@@ -2487,7 +2487,7 @@ namespace {
 				}
 			}
 
-			void alm_set_value(unsigned int, unsigned int, const Glib::ValueBase &) {
+			void alm_set_value(std::size_t, unsigned int, const Glib::ValueBase &) {
 			}
 
 			friend class Glib::RefPtr<PacketsALM>;

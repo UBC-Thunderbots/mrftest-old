@@ -113,7 +113,7 @@ namespace {
 		std::locale::global(std::locale(""));
 
 		// Seed the PRNG.
-		std::srand(std::time(0));
+		std::srand(static_cast<unsigned int>(std::time(0)));
 
 		// Parse the command-line arguments.
 		Glib::OptionContext option_context;

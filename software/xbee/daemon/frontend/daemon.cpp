@@ -1,3 +1,6 @@
+// Disable -Wconversion for this file (this file has a lot of such warnings, but it's deprecated and is going away soon).
+#pragma GCC diagnostic ignored "-Wconversion"
+
 #include "xbee/daemon/frontend/daemon.h"
 #include "util/fd.h"
 #include "util/sockaddrs.h"

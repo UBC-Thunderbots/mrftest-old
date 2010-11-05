@@ -1,4 +1,5 @@
 #include "util/rle.h"
+#include "util/codec.h"
 #include "util/crc16.h"
 #include <algorithm>
 #include <cassert>
@@ -96,7 +97,7 @@ bool RLECompressor::RLERun::done() const {
 }
 
 std::size_t RLECompressor::RLERun::encode(void *buffer, std::size_t buflen) {
-	unsigned char *bufptr = static_cast<unsigned char *>(buffer);
+	uint8_t *bufptr = static_cast<uint8_t *>(buffer);
 	assert(!done());
 
 	if (is_repeat) {
@@ -105,7 +106,7 @@ std::size_t RLECompressor::RLERun::encode(void *buffer, std::size_t buflen) {
 		std::size_t generated = 0;
 		while (buflen >= 2 && length > 0) {
 			// We can only encode up to 127 occurrences in one output chunk.
-			unsigned char s = std::min<std::size_t>(127U, length);
+			uint8_t s = static_cast<uint8_t>(std::min<std::size_t>(127U, length));
 			*bufptr++ = s | 0x80;
 			*bufptr++ = *data;
 			buflen -= 2;
@@ -120,7 +121,7 @@ std::size_t RLECompressor::RLERun::encode(void *buffer, std::size_t buflen) {
 		while (buflen >= 2 && length > 0) {
 			// We can only encode up to 127 bytes in one output chunk.
 			// We are also not allowed to overflow the output buffer.
-			unsigned char s = std::min<std::size_t>(127U, std::min<std::size_t>(buflen - 1, length));
+			uint8_t s = static_cast<uint8_t>(std::min<std::size_t>(127U, std::min<std::size_t>(buflen - 1, length)));
 			*bufptr++ = s;
 			--buflen;
 			++generated;
@@ -137,8 +138,7 @@ std::size_t RLECompressor::RLERun::encode(void *buffer, std::size_t buflen) {
 		// Writing the marker requires 3 bytes of buffer space (one for the code and two for the CRC).
 		if (buflen >= 3) {
 			bufptr[0] = 0;
-			bufptr[1] = crc / 256;
-			bufptr[2] = crc % 256;
+			encode_u16(&bufptr[1], crc);
 			length = 0;
 			return 3;
 		} else {

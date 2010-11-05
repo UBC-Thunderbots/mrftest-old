@@ -2,6 +2,7 @@
 #define UTIL_CONFIG_H
 
 #include "util/noncopyable.h"
+#include <cstddef>
 #include <glibmm.h>
 #include <map>
 #include <stdint.h>
@@ -51,7 +52,7 @@ class Config : public NonCopyable {
 				 *
 				 * \return the number of robots in the list.
 				 */
-				unsigned int size() const {
+				std::size_t size() const {
 					return robots.size();
 				}
 
@@ -62,7 +63,7 @@ class Config : public NonCopyable {
 				 *
 				 * \return the robot at that position.
 				 */
-				const RobotInfo &operator[](unsigned int index) const {
+				const RobotInfo &operator[](std::size_t index) const {
 					return robots[index];
 				}
 
@@ -115,7 +116,7 @@ class Config : public NonCopyable {
 				 * Emitted when a robot is added.
 				 * Parameter is the index of the robot.
 				 */
-				mutable sigc::signal<void, unsigned int> signal_robot_added;
+				mutable sigc::signal<void, std::size_t> signal_robot_added;
 
 				/**
 				 * Deletes a robot.
@@ -128,7 +129,7 @@ class Config : public NonCopyable {
 				 * Emitted when a robot is deleted.
 				 * Parameter is the index of the robot.
 				 */
-				mutable sigc::signal<void, unsigned int> signal_robot_removed;
+				mutable sigc::signal<void, std::size_t> signal_robot_removed;
 
 				/**
 				 * Replaces an existing robot with new data.
@@ -145,7 +146,7 @@ class Config : public NonCopyable {
 				 * Emitted when a robot is replaced.
 				 * Parameter is the index of the robot.
 				 */
-				mutable sigc::signal<void, unsigned int> signal_robot_replaced;
+				mutable sigc::signal<void, std::size_t> signal_robot_replaced;
 
 				/**
 				 * Sorts the robots in the collection by their 64-bit address.

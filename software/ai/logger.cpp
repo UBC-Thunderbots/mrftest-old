@@ -84,13 +84,11 @@ namespace {
 		iov[payload_count + 1].iov_base = footer;
 		iov[payload_count + 1].iov_len = sizeof(footer);
 
-		ssize_t rc;
-		if ((rc = writev(fd->fd(), iov, sizeof(iov) / sizeof(*iov))) != static_cast<ssize_t>(sizeof(header) + payload_size + sizeof(footer))) {
-			if (rc < 0) {
-				throw SystemError("writev", errno);
-			} else {
-				throw SystemError("writev", EIO);
-			}
+		ssize_t rc = writev(fd->fd(), iov, static_cast<int>(G_N_ELEMENTS(iov)));
+		if (rc < 0) {
+			throw SystemError("writev", errno);
+		} else if (rc != static_cast<ssize_t>(sizeof(header) + payload_size + sizeof(footer))) {
+			throw SystemError("writev", EIO);
 		}
 	}
 
@@ -209,7 +207,7 @@ void AI::Logger::signal_handler(int sig) {
 }
 
 void AI::Logger::on_message_logged(unsigned int level, const Glib::ustring &msg) {
-	uint8_t level8 = level;
+	uint8_t level8 = static_cast<uint8_t>(level);
 
 	const std::string &utf8msg = msg;
 
@@ -361,8 +359,8 @@ void AI::Logger::on_playtype_changed() {
 
 void AI::Logger::on_score_changed() {
 	uint8_t buffer[2];
-	buffer[0] = ai.backend.friendly_team().score();
-	buffer[1] = ai.backend.enemy_team().score();
+	buffer[0] = static_cast<uint8_t>(ai.backend.friendly_team().score());
+	buffer[1] = static_cast<uint8_t>(ai.backend.enemy_team().score());
 	write_packet(fd, Log::T_SCORES, buffer, sizeof(buffer));
 }
 
@@ -371,7 +369,7 @@ void AI::Logger::on_tick() {
 		AI::BE::Player::Ptr p = ai.backend.friendly_team().get(i);
 		{
 			uint8_t payload[67];
-			encode_u8(&payload[0], p->pattern());
+			encode_u8(&payload[0], static_cast<uint8_t>(p->pattern()));
 			encode_u32(&payload[1], encode_micros(p->position(0.0).x));
 			encode_u32(&payload[5], encode_micros(p->position(0.0).y));
 			encode_u32(&payload[9], encode_micros(p->orientation(0.0)));
@@ -397,19 +395,19 @@ void AI::Logger::on_tick() {
 		const std::vector<std::pair<std::pair<Point, double>, timespec> > &path = AI::RC::W::Player::Ptr::cast_static(p)->path();
 		for (std::vector<std::pair<std::pair<Point, double>, timespec> >::const_iterator i = path.begin(), iend = path.end(); i != iend; ++i) {
 			uint8_t payload[25];
-			encode_u8(&payload[0], p->pattern());
+			encode_u8(&payload[0], static_cast<uint8_t>(p->pattern()));
 			encode_u32(&payload[1], encode_micros(i->first.first.x));
 			encode_u32(&payload[5], encode_micros(i->first.first.y));
 			encode_u32(&payload[9], encode_micros(i->first.second));
 			encode_u64(&payload[13], i->second.tv_sec);
-			encode_u32(&payload[21], i->second.tv_nsec);
+			encode_u32(&payload[21], static_cast<uint32_t>(i->second.tv_nsec));
 			write_packet(fd, Log::T_PATH_ELEMENT, payload, sizeof(payload));
 		}
 	}
 	for (std::size_t i = 0; i < ai.backend.enemy_team().size(); ++i) {
 		AI::BE::Robot::Ptr p = ai.backend.enemy_team().get(i);
 		uint8_t payload[37];
-		encode_u8(&payload[0], p->pattern());
+		encode_u8(&payload[0], static_cast<uint8_t>(p->pattern()));
 		encode_u32(&payload[1], encode_micros(p->position(0.0).x));
 		encode_u32(&payload[5], encode_micros(p->position(0.0).y));
 		encode_u32(&payload[9], encode_micros(p->orientation(0.0)));
@@ -437,10 +435,10 @@ void AI::Logger::on_tick() {
 		timespec now;
 		timespec_now(now, CLOCK_REALTIME);
 		encode_u64(&payload[0], now.tv_sec);
-		encode_u32(&payload[8], now.tv_nsec);
+		encode_u32(&payload[8], static_cast<uint32_t>(now.tv_nsec));
 		now = ai.backend.monotonic_time();
 		encode_u64(&payload[12], now.tv_sec);
-		encode_u32(&payload[20], now.tv_nsec);
+		encode_u32(&payload[20], static_cast<uint32_t>(now.tv_nsec));
 		write_packet(fd, Log::T_AI_TICK, payload, sizeof(payload));
 	}
 }

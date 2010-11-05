@@ -307,7 +307,7 @@ bool Config::RobotSet::contains_pattern(unsigned int pattern) const {
 void Config::RobotSet::add(uint64_t address, unsigned int pattern) {
 	assert(!contains_address(address));
 	assert(!contains_pattern(pattern));
-	unsigned int index = robots.size();
+	std::size_t index = robots.size();
 	robots.push_back(RobotInfo(address, pattern));
 	signal_robot_added.emit(index);
 }
@@ -315,7 +315,7 @@ void Config::RobotSet::add(uint64_t address, unsigned int pattern) {
 void Config::RobotSet::remove(uint64_t address) {
 	std::vector<RobotInfo>::iterator i = std::find_if(robots.begin(), robots.end(), __gnu_cxx::compose1(std::bind1st(std::equal_to<uint64_t>(), address), RobotAddress()));
 	if (i != robots.end()) {
-		unsigned int index = i - robots.begin();
+		std::size_t index = i - robots.begin();
 		robots.erase(i);
 		signal_robot_removed.emit(index);
 	}

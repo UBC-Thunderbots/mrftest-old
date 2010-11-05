@@ -2,12 +2,12 @@
 
 namespace {
 	uint16_t crc16_byte(uint16_t crc, uint8_t data) {
-		data ^= crc;
-		data ^= data << 4;
-		crc >>= 8;
-		crc |= data << 8;
-		crc ^= data << 3;
-		crc ^= data >> 4;
+		data ^= static_cast<uint8_t>(crc);
+		data ^= static_cast<uint8_t>(data << 4);
+		crc = static_cast<uint16_t>(crc >> 8);
+		crc |= static_cast<uint16_t>(data << 8);
+		crc ^= static_cast<uint16_t>(data << 3);
+		crc ^= static_cast<uint16_t>(data >> 4);
 		return crc;
 	}
 }

@@ -23,28 +23,28 @@ namespace {
 		}
 	}
 
-	unsigned char decode_hex_nybble(char ch) {
+	uint8_t decode_hex_nybble(char ch) {
 		if (ch >= '0' && ch <= '9') {
-			return ch - '0';
+			return static_cast<uint8_t>(ch - '0');
 		} else if (ch >= 'A' && ch <= 'F') {
-			return ch - 'A' + 0xA;
+			return static_cast<uint8_t>(ch - 'A' + 0xA);
 		} else if (ch >= 'a' && ch <= 'f') {
-			return ch - 'a' + 0xA;
+			return static_cast<uint8_t>(ch - 'a' + 0xA);
 		} else {
 			throw std::runtime_error("Malformed hex file!");
 		}
 	}
 
-	void decode_line_data(std::vector<unsigned char> &out, const std::string &in) {
-		for (unsigned int i = 0; i < in.size(); i += 2) {
-			out.push_back(decode_hex_nybble(in[i]) * 16 + decode_hex_nybble(in[i + 1]));
+	void decode_line_data(std::vector<uint8_t> &out, const std::string &in) {
+		for (std::size_t i = 0; i < in.size(); i += 2) {
+			out.push_back(static_cast<uint8_t>(decode_hex_nybble(in[i]) * 16 + decode_hex_nybble(in[i + 1])));
 		}
 	}
 
-	void check_checksum(const std::vector<unsigned char> &data) {
-		unsigned char checksum = 0;
-		for (std::vector<unsigned char>::const_iterator i = data.begin(), iend = data.end(); i != iend; ++i) {
-			checksum += *i;
+	void check_checksum(const std::vector<uint8_t> &data) {
+		uint8_t checksum = 0;
+		for (std::vector<uint8_t>::const_iterator i = data.begin(), iend = data.end(); i != iend; ++i) {
+			checksum = static_cast<uint8_t>(checksum + *i);
 		}
 		if (checksum != 0) {
 			throw std::runtime_error("Malformed hex file!");
@@ -62,7 +62,7 @@ void IntelHex::add_section(unsigned int start, unsigned int length) {
 
 void IntelHex::load(const Glib::ustring &filename) {
 	// Allocate space to hold the new data.
-	std::vector<std::vector<unsigned char> > new_data(sections.size());
+	std::vector<std::vector<uint8_t> > new_data(sections.size());
 
 	// Open the file.
 	std::ifstream ifs(Glib::filename_from_utf8(filename).c_str());
@@ -103,7 +103,7 @@ void IntelHex::load(const Glib::ustring &filename) {
 		}
 
 		// Decode the line into bytes.
-		std::vector<unsigned char> line_data;
+		std::vector<uint8_t> line_data;
 		decode_line_data(line_data, line);
 
 		// Check size.
@@ -118,21 +118,21 @@ void IntelHex::load(const Glib::ustring &filename) {
 		check_checksum(line_data);
 
 		// Handle the record.
-		unsigned char data_length = line_data[0];
+		uint8_t data_length = line_data[0];
 		unsigned int record_address = line_data[1] * 256 + line_data[2];
-		unsigned char record_type = line_data[3];
-		const unsigned char *record_data = &line_data[4];
+		uint8_t record_type = line_data[3];
+		const uint8_t *record_data = &line_data[4];
 		if (record_type == 0x00) {
 			// Data record.
 			unsigned int real_address = address_base + record_address;
-			for (unsigned int i = 0; i < data_length; ++i) {
+			for (uint8_t i = 0; i < data_length; ++i) {
 				unsigned int byte_address = real_address + i;
 				bool found = false;
-				for (unsigned int j = 0; j < sections.size(); ++j) {
+				for (std::size_t j = 0; j < sections.size(); ++j) {
 					const Section &sec = sections[j];
 					if (sec.start() <= byte_address && byte_address < sec.start() + sec.length()) {
 						found = true;
-						std::vector<unsigned char> &d = new_data[j];
+						std::vector<uint8_t> &d = new_data[j];
 						unsigned int offset = byte_address - sec.start();
 						while (d.size() <= offset) {
 							d.push_back(0xFF);

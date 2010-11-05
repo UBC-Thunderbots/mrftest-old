@@ -189,7 +189,7 @@ void TesterWindow::drive_mode_changed() {
 
 void TesterWindow::on_dribble_change() {
 	if (bot.is()) {
-		bot->dribble(dribble_scale.get_value());
+		bot->dribble(static_cast<int>(dribble_scale.get_value()));
 	}
 }
 

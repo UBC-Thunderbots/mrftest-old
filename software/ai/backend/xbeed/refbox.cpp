@@ -1,4 +1,5 @@
 #include "ai/backend/xbeed/refbox.h"
+#include "util/codec.h"
 #include "util/dprint.h"
 #include "util/sockaddrs.h"
 #include <cerrno>
@@ -25,7 +26,7 @@ namespace {
 		SockAddrs sa;
 		sa.in.sin_family = AF_INET;
 		sa.in.sin_addr.s_addr = get_inaddr_any();
-		sa.in.sin_port = htons(10001);
+		encode_u16(&sa.in.sin_port, 10001);
 		std::memset(sa.in.sin_zero, 0, sizeof(sa.in.sin_zero));
 		if (bind(fd->fd(), &sa.sa, sizeof(sa.in)) < 0) {
 			throw std::runtime_error("Cannot bind to port 10001 for refbox data.");

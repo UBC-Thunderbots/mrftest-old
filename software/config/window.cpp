@@ -133,9 +133,8 @@ namespace {
 
 		private:
 			const Config::RobotSet &robots;
-			unsigned int size_;
 
-			void alm_get_value(unsigned int row, unsigned int col, Glib::ValueBase &value) const {
+			void alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const {
 				if (col == static_cast<unsigned int>(address_column.index())) {
 					Glib::Value<uint64_t> v;
 					v.init(address_column.type());
@@ -151,10 +150,10 @@ namespace {
 				}
 			}
 
-			void alm_set_value(unsigned int, unsigned int, const Glib::ValueBase &) {
+			void alm_set_value(std::size_t, unsigned int, const Glib::ValueBase &) {
 			}
 
-			RobotsModel(const Config::RobotSet &robots) : Glib::ObjectBase(typeid(RobotsModel)), Glib::Object(), AbstractListModel(), robots(robots), size_(0) {
+			RobotsModel(const Config::RobotSet &robots) : Glib::ObjectBase(typeid(RobotsModel)), Glib::Object(), AbstractListModel(), robots(robots) {
 				alm_column_record.add(address_column);
 				alm_column_record.add(pattern_column);
 				robots.signal_robot_added.connect(sigc::mem_fun(this, &RobotsModel::alm_row_inserted));
@@ -163,12 +162,12 @@ namespace {
 				robots.signal_sorted.connect(sigc::mem_fun(this, &RobotsModel::on_all_rows_changed));
 			}
 
-			unsigned int alm_rows() const {
+			std::size_t alm_rows() const {
 				return robots.size();
 			}
 
 			void on_all_rows_changed() {
-				for (unsigned int i = 0; i < robots.size(); ++i) {
+				for (std::size_t i = 0; i < robots.size(); ++i) {
 					alm_row_changed(i);
 				}
 			}
@@ -301,15 +300,15 @@ namespace {
 			static const unsigned int MIN_CHANNEL = 0x0B;
 			static const unsigned int MAX_CHANNEL = 0x1A;
 
-			unsigned int alm_rows() const {
+			std::size_t alm_rows() const {
 				return MAX_CHANNEL - MIN_CHANNEL + 1;
 			}
 
-			void alm_get_value(unsigned int row, unsigned int col, Glib::ValueBase &value) const {
+			void alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const {
 				if (col == static_cast<unsigned int>(channel_column.index())) {
 					Glib::Value<unsigned int> v;
 					v.init(channel_column.type());
-					v.set(row + MIN_CHANNEL);
+					v.set(static_cast<unsigned int>(row + MIN_CHANNEL));
 					value.init(channel_column.type());
 					value = v;
 				} else {
@@ -317,7 +316,7 @@ namespace {
 				}
 			}
 
-			void alm_set_value(unsigned int, unsigned int, const Glib::ValueBase &) {
+			void alm_set_value(std::size_t, unsigned int, const Glib::ValueBase &) {
 			}
 	};
 

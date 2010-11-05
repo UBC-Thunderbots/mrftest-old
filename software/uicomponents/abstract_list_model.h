@@ -1,6 +1,7 @@
 #ifndef UICOMPONENTS_ABSTRACT_LIST_MODEL_H
 #define UICOMPONENTS_ABSTRACT_LIST_MODEL_H
 
+#include <cstddef>
 #include <gtkmm.h>
 
 /**
@@ -39,7 +40,7 @@ class AbstractListModel : public Gtk::TreeModel {
 		 *
 		 * \return the number of rows in the data model.
 		 */
-		virtual unsigned int alm_rows() const = 0;
+		virtual std::size_t alm_rows() const = 0;
 
 		/**
 		 * Gets the value at a position in the model.
@@ -51,7 +52,7 @@ class AbstractListModel : public Gtk::TreeModel {
 		 *
 		 * \param[out] value the location where the value from the data model should be stored.
 		 */
-		virtual void alm_get_value(unsigned int row, unsigned int col, Glib::ValueBase &value) const = 0;
+		virtual void alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const = 0;
 
 		/**
 		 * Sets the value at a position in the model.
@@ -64,7 +65,7 @@ class AbstractListModel : public Gtk::TreeModel {
 		 *
 		 * \param[in] value the value to store.
 		 */
-		virtual void alm_set_value(unsigned int row, unsigned int col, const Glib::ValueBase &value) = 0;
+		virtual void alm_set_value(std::size_t row, unsigned int col, const Glib::ValueBase &value) = 0;
 
 		/**
 		 * Notifies listeners that a row has been modified.
@@ -72,7 +73,7 @@ class AbstractListModel : public Gtk::TreeModel {
 		 *
 		 * \param[in] index the row number that was modified.
 		 */
-		void alm_row_changed(unsigned int index);
+		void alm_row_changed(std::size_t index);
 
 		/**
 		 * Notifies listeners that a new row has been added.
@@ -80,7 +81,7 @@ class AbstractListModel : public Gtk::TreeModel {
 		 *
 		 * \param[in] index the row number that was added.
 		 */
-		void alm_row_inserted(unsigned int index);
+		void alm_row_inserted(std::size_t index);
 
 		/**
 		 * Notifies listeners that a row has been deleted.
@@ -88,7 +89,7 @@ class AbstractListModel : public Gtk::TreeModel {
 		 *
 		 * \param[in] index the row number the row had before it was deleted.
 		 */
-		void alm_row_deleted(unsigned int index);
+		void alm_row_deleted(std::size_t index);
 
 		/**
 		 * A column record for storing the columns of the model.
@@ -116,7 +117,7 @@ class AbstractListModel : public Gtk::TreeModel {
 		void get_value_vfunc(const iterator &, int, Glib::ValueBase &) const;
 		void set_value_impl(const iterator &, int, const Glib::ValueBase &);
 
-		void make_iter_valid(iterator &, unsigned int) const;
+		void make_iter_valid(iterator &, std::size_t) const;
 		static void make_iter_invalid(iterator &);
 		bool is_valid_column(int col) const;
 };
