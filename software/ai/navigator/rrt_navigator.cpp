@@ -103,8 +103,8 @@ namespace {
 
 	// generate a random point from the field
 	Point rrt_navigator::RandomPoint() {
-		double randomX = ((rand() % static_cast<int>(world.field().length() * 100)) - (world.field().length() * 50)) / 100;
-		double randomY = ((rand() % static_cast<int>(world.field().width() * 100)) - (world.field().width() * 50)) / 100;
+		double randomX = ((std::rand() % static_cast<int>(world.field().length() * 100)) - (world.field().length() * 50)) / 100;
+		double randomY = ((std::rand() % static_cast<int>(world.field().width() * 100)) - (world.field().width() * 50)) / 100;
 
 		return Point(randomX, randomY);
 	}
