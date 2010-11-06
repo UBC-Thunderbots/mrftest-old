@@ -1,7 +1,7 @@
 #include "ai/navigator/navigator.h"
 #include "ai/navigator/util.h"
 #include "util/dprint.h"
-#include <glibmm/nodetree.h>
+#include <glibmm.h>
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
@@ -33,7 +33,7 @@ namespace {
 			double Distance(Point nearest, Point goal);
 			Point RandomPoint();
 			Point ChooseTarget(Point goal);
-			NodeTree<Point>* Nearest(NodeTree<Point> *tree, Point target);
+			NodeTree<Point> *Nearest(NodeTree<Point> *tree, Point target);
 			Point EmptyState();
 			Point Extend(Player::Ptr player, Point start, Point target);
 			bool IsEmptyState(Point toCheck);
@@ -121,11 +121,11 @@ namespace {
 	}
 
 	// finds the point in the tree that is nearest to the target point
-	NodeTree<Point>* rrt_navigator::Nearest(NodeTree<Point> *rrtTree, Point target) {
+	NodeTree<Point> *rrt_navigator::Nearest(NodeTree<Point> *rrtTree, Point target) {
 		NodeTree<Point> *nearest = rrtTree;
 		NodeTree<Point> *currNode;
 
-		std::vector<NodeTree<Point>*> nodeQueue;
+		std::vector<NodeTree<Point> *> nodeQueue;
 		nodeQueue.push_back(rrtTree);
 
 		// iterator through all the nodes in the tree, finding which is closest to the target
@@ -133,11 +133,11 @@ namespace {
 			currNode = nodeQueue.back();
 			nodeQueue.pop_back();
 
-			if(Distance(currNode->data(), target) < Distance(nearest->data(), target)) {
+			if (Distance(currNode->data(), target) < Distance(nearest->data(), target)) {
 				nearest = currNode;
 			}
 
-			for(unsigned int i = 0; i < currNode->child_count(); ++i) {
+			for (unsigned int i = 0; i < currNode->child_count(); ++i) {
 				nodeQueue.push_back(currNode->nth_child(i));
 			}
 		}

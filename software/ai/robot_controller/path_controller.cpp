@@ -35,10 +35,10 @@ namespace {
 					return;
 				}
 
-				Point new_position = path[path.size()-1].first.first;
-				double new_orientation = path[path.size()-1].first.second;
-				
-				for (int i = path.size()-1; i >= 0; i--) {
+				Point new_position = path[path.size() - 1].first.first;
+				double new_orientation = path[path.size() - 1].first.second;
+
+				for (int i = path.size() - 1; i >= 0; i--) {
 					if ((path[0].first.first - player->position()).len() > 0.5) {
 						new_position = path[i].first.first;
 						new_orientation = path[i].first.second;

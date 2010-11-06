@@ -72,11 +72,11 @@ namespace {
 			currentPosition = player->position();
 			currentOrientation = player->orientation();
 			Point diff = (world.ball().position() - currentPosition);
-			destinationPosition = world.ball().position() - 0.3*(diff / diff.len());
+			destinationPosition = world.ball().position() - 0.3 * (diff / diff.len());
 			destinationOrientation = (world.ball().position() - currentPosition).orientation();
 
 			path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
-			path.push_back(std::make_pair(std::make_pair(destinationPosition+world.ball().velocity(), destinationOrientation), world.monotonic_time()));
+			path.push_back(std::make_pair(std::make_pair(destinationPosition + world.ball().velocity(), destinationOrientation), world.monotonic_time()));
 			player->path(path);
 		}
 	}
