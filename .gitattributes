@@ -9,10 +9,8 @@ firmware/HWRunSwitch/hwrunswitch.c -text
 firmware/MotorController/Makefile -text
 firmware/MotorController/test.c -text
 firmware/flybackconverter/Makefile -text
-firmware/flybackconverter/config.c -text
-firmware/flybackconverter/pwm.c -text
-firmware/flybackconverter/pwm.h -text
-firmware/flybackconverter/test.c -text
+firmware/flybackconverter/config.h -text
+firmware/flybackconverter/main.c -text
 firmware/mainboard-copro/18f4550.lkr -text
 firmware/mainboard-copro/Makefile -text
 firmware/mainboard-copro/adc.asm -text
