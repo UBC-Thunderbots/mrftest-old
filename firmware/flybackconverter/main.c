@@ -8,6 +8,127 @@
 #define VOLTAGE_MAX 100.0
 #define DIODE_VOLTAGE 0.7
 
+static void pulse_train(unsigned int off_time_instrs) {
+	static unsigned int jump_offset;
+	static unsigned char jump_offset_high, jump_offset_low;
+	static unsigned char loop_counter;
+
+	/* Clamp argument to legal range. */
+	if (off_time_instrs > 2000) {
+		off_time_instrs = 2000;
+	}
+	if (off_time_instrs < 6) {
+		off_time_instrs = 6;
+	}
+
+	/* We have an overhead of five instructions in the loop header; subtract them from the requested instruction count. */
+	off_time_instrs -= 6;
+
+	/* Smaller off times need to jump further into the sled to execute fewer instructions, so negate. */
+	jump_offset = 2000 - off_time_instrs;
+
+	/* Each instruction takes 2 cycles (it's a branch), but it also takes 2 bytes. Make sure the offset is even. */
+	jump_offset &= 0xFFFE;
+
+	/* Extract high and low parts. */
+	jump_offset_high = off_time_instrs >> 8;
+	jump_offset_low = off_time_instrs & 0xFF;
+
+	/* We will generate 100 pulses (need an offset of 1 due to loop structure). */
+	loop_counter = 101;
+
+	/* Do the magic. */
+	_asm
+		; Preparation, load the jump target into PCLATU:PCLATH:WREG.
+		; Add on the address of the label as we go.
+		clrf _PCLATU
+
+		banksel _pulse_train_jump_offset_high_1_1
+		movf _pulse_train_jump_offset_high_1_1, W
+		movwf _PCLATH
+
+		banksel _pulse_train_jump_offset_low_1_1
+		movf _pulse_train_jump_offset_low_1_1, W
+		addlw LOW(pulse_train_off_time_sled)
+		movwf _pulse_train_jump_offset_low_1_1
+
+		movlw HIGH(pulse_train_off_time_sled)
+		addwfc _PCLATH, F
+
+		movf _pulse_train_jump_offset_low_1_1, W
+
+		; We need BSR to point at the loop counter.
+		banksel _pulse_train_loop_counter_1_1
+
+pulse_train_enter_loop:
+		; Turn off the output.
+		bcf _LATC, 2
+
+		; Check if it is time to exit the loop.
+		dcfsnz _pulse_train_loop_counter_1_1, F
+		goto pulse_train_done
+
+		; Jump into the sled.
+		movwf _PCL
+
+		; The sled itself is a thousand BRA $+2 instructions. Each takes 2 instruction cycles and 2 bytes.
+		; Because the preprocessor does not emit newlines, we must make each of these a separate assembly block.
+		; Thus we drop back into plain C mode.
+pulse_train_off_time_sled:
+	_endasm;
+#define SLED1 _asm bra $+2 _endasm;
+#define SLED10 \
+	SLED1 \
+	SLED1 \
+	SLED1 \
+	SLED1 \
+	SLED1 \
+	SLED1 \
+	SLED1 \
+	SLED1 \
+	SLED1 \
+	SLED1
+#define SLED100 \
+	SLED10 \
+	SLED10 \
+	SLED10 \
+	SLED10 \
+	SLED10 \
+	SLED10 \
+	SLED10 \
+	SLED10 \
+	SLED10 \
+	SLED10
+
+	SLED100
+	SLED100
+	SLED100
+	SLED100
+	SLED100
+	SLED100
+	SLED100
+	SLED100
+	SLED100
+	SLED100
+
+	_asm
+		; Turn on the output.
+		bsf _LATC, 2
+
+		; The on time is 10 instruction cycles. Each BRA takes 2 instruction cycles.
+		; The earlier BRA instructions jump to the instruction immediately following.
+		; The last intruction (GOTO) jumps back to the top of the loop, and also takes 2 cycles.
+		; That last instruction is included in the cycle count.
+		bra $+2
+		bra $+2
+		bra $+2
+		bra $+2
+		goto pulse_train_enter_loop
+
+pulse_train_done:
+	_endasm;
+}
+
 void main(void) {
 
 	/* Standard C, declare all variables at the start of the function!*/
@@ -66,7 +187,7 @@ void main(void) {
 				//turn on charging light
 				LATBbits.LATB2 = 1;
 
-				for(i = 0; i< 10 i++) {
+				for(i = 0; i< 10; i++) {
 					// mosfet on
 					LATCbits.LATC2 = 1;
 					_asm
