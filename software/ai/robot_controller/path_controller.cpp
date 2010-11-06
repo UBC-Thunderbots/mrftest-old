@@ -24,9 +24,9 @@ namespace {
 	const std::vector<double> param_max(arr_max, arr_max + P);
 	const std::vector<double> param_default(arr_def, arr_def + P);
 
-	class Fuzzy2Controller : public RobotController, public TunableController {
+	class PathController : public RobotController, public TunableController {
 		public:
-			Fuzzy2Controller(Player::Ptr player) : RobotController(player), param(param_default) {
+			PathController(Player::Ptr player) : RobotController(player), param(param_default) {
 			}
 
 			void tick() {
@@ -108,17 +108,17 @@ namespace {
 			std::vector<double> param;
 	};
 
-	class Fuzzy2ControllerFactory : public RobotControllerFactory {
+	class PathControllerFactory : public RobotControllerFactory {
 		public:
-			Fuzzy2ControllerFactory() : RobotControllerFactory("Path Follower") {
+			PathControllerFactory() : RobotControllerFactory("Path Follower") {
 			}
 
 			RobotController::Ptr create_controller(Player::Ptr player) const {
-				RobotController::Ptr p(new Fuzzy2Controller(player));
+				RobotController::Ptr p(new PathController(player));
 				return p;
 			}
 	};
 
-	Fuzzy2ControllerFactory factory;
+	PathControllerFactory factory;
 }
 
