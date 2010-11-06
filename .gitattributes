@@ -311,7 +311,6 @@ software/util/stochastic_local_search.h -text
 software/util/time.h -text
 software/util/timestep.h -text
 software/util/trackable_vector.h -text
-software/util/tree.h -text
 software/util/umask.cpp -text
 software/util/umask.h -text
 software/util/xbee.cpp -text

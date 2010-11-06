@@ -1,13 +1,14 @@
 #include "ai/navigator/navigator.h"
 #include "ai/navigator/util.h"
 #include "util/dprint.h"
-#include "util/tree.h"
+#include <glibmm/nodetree.h>
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
 using namespace AI::Nav::W;
 using namespace AI::Nav::Util;
 using namespace AI::Flags;
+using namespace Glib;
 
 namespace {
 	const double MAX_SPEED = 2.0;
@@ -29,11 +30,10 @@ namespace {
 			rrt_navigator(World &world);
 			~rrt_navigator();
 
-			bool PointWithinThreshold(Point testPoint, Point otherPoint, float threshold);
 			double Distance(Point nearest, Point goal);
 			Point RandomPoint();
 			Point ChooseTarget(Point goal);
-			tree<Point>::iterator Nearest(tree<Point> *tree, Point target);
+			NodeTree<Point>* Nearest(NodeTree<Point> *tree, Point target);
 			Point EmptyState();
 			Point Extend(Player::Ptr player, Point start, Point target);
 			bool IsEmptyState(Point toCheck);
@@ -121,16 +121,25 @@ namespace {
 	}
 
 	// finds the point in the tree that is nearest to the target point
-	tree<Point>::iterator rrt_navigator::Nearest(tree<Point> *rrtTree, Point target) {
-		tree<Point>::iterator it = rrtTree->begin();
-		tree<Point>::iterator end = rrtTree->end();
+	NodeTree<Point>* rrt_navigator::Nearest(NodeTree<Point> *rrtTree, Point target) {
+		NodeTree<Point> *nearest = rrtTree;
+		NodeTree<Point> *currNode;
 
-		tree<Point>::pre_order_iterator nearest = it;
-		while (it != end) {
-			if (Distance(*it, target) < Distance(*nearest, target)) {
-				nearest = it;
+		std::vector<NodeTree<Point>*> nodeQueue;
+		nodeQueue.push_back(rrtTree);
+
+		// iterator through all the nodes in the tree, finding which is closest to the target
+		while (nodeQueue.size() > 0) {
+			currNode = nodeQueue.back();
+			nodeQueue.pop_back();
+
+			if(Distance(currNode->data(), target) < Distance(nearest->data(), target)) {
+				nearest = currNode;
 			}
-			++it;
+
+			for(unsigned int i = 0; i < currNode->child_count(); ++i) {
+				nodeQueue.push_back(currNode->nth_child(i));
+			}
 		}
 
 		return nearest;
@@ -151,22 +160,23 @@ namespace {
 
 	std::deque<Point> rrt_navigator::RRTPlan(Player::Ptr player, Point initial, Point goal) {
 		Point nearest, extended, target;
-		tree<Point>::iterator nearestNode, lastAdded;
-		tree<Point> rrtTree;
+
+		NodeTree<Point> *nearestNode;
+		NodeTree<Point> *lastAdded;
+		NodeTree<Point> rrtTree(initial);
 
 		nearest = initial;
-		rrtTree.set_head(initial);
-		lastAdded = rrtTree.begin();
+		lastAdded = &rrtTree;
 
 		int iterationCounter = 0;
 		while (Distance(nearest, goal) > THRESHOLD && iterationCounter < ITERATION_LIMIT) {
 			target = ChooseTarget(goal);
 			nearestNode = Nearest(&rrtTree, target);
-			nearest = *nearestNode;
+			nearest = nearestNode->data();
 			extended = Extend(player, nearest, target);
 
 			if (!IsEmptyState(extended)) {
-				lastAdded = rrtTree.append_child(nearestNode, extended);
+				lastAdded = nearestNode->append_data(extended);
 			}
 
 			iterationCounter++;
@@ -176,17 +186,18 @@ namespace {
 			// LOG_WARN("Reached limit, path not found");
 		}
 
-		// calculations complete, trace backwards to get the points in the path
-		tree<Point>::iterator itPath = lastAdded;
-
 		// stores the final path of points
 		std::deque<Point> pathPoints;
-		pathPoints.push_front(*lastAdded);
+		pathPoints.push_front(lastAdded->data());
 
-		while (lastAdded != rrtTree.begin()) {
-			lastAdded = rrtTree.parent(lastAdded);
-			pathPoints.push_front(*lastAdded);
+		// calculations complete, trace backwards to get the points in the path
+		const NodeTree<Point> *iterator = lastAdded;
+
+		while (iterator != &rrtTree) {
+			iterator = iterator->parent();
+			pathPoints.push_front(iterator->data());
 		}
+
 		// remove the front of the list, this is the starting point
 		pathPoints.pop_front();
 		return pathPoints;
