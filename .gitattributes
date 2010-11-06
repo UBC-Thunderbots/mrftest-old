@@ -114,6 +114,7 @@ software/ai/robot_controller/fuzzy2_controller.cpp -text
 software/ai/robot_controller/fuzzy_controller.cpp -text
 software/ai/robot_controller/fuzzy_controller.h -text
 software/ai/robot_controller/max_controller.cpp -text
+software/ai/robot_controller/path_controller.cpp -text
 software/ai/robot_controller/robot_controller.cpp -text
 software/ai/robot_controller/robot_controller.h -text
 software/ai/robot_controller/tunable_adhoc_controller.cpp -text
