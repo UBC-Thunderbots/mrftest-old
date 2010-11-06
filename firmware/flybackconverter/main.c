@@ -1,10 +1,12 @@
 #include <pic18f4550.h>
 #include "config.h"
 
-#define Imax 10.0
-#define Tstep 83.3e-9
-#define L 2.2e-6
-#define Vin 14.4
+#define I_MAX 10.0
+#define T_STEP 83.3e-9
+#define INDUCTANCE 2.2e-6
+#define VIN 14.4
+#define VOLTAGE_MAX 100.0
+#define DIODE_VOLTAGE 0.7
 
 void main(void) {
 
@@ -42,21 +44,30 @@ void main(void) {
 	
 	TRISCbits.TRISC2 = 0;	
 	
-	/* PWM Setup */
+	//I spin right round baby
 	for(;;) {
 		
-		// Reading Voltage
+		// Reading Voltage for great justice
 		ADCON0bits.GO = 1;
 		while( ADCON0bits.GO == 1 ){}
 		reading = ADRESH;
 		reading = (reading<<8) + ADRESL;
 		voltage = reading * 5.0 / 1023.0 * ( 220.0 + 2.2) / 2.2;
-		
-		if(voltage < 100){
+	
+		// if not charged
+		if(voltage < VOLTAGE_MAX){
+
+			//charge done light off
 			LATBbits.LATB3 = 0;
+
+			//if charge button placed
 			if(!PORTBbits.RB0) {
+				
+				//turn on charging light
 				LATBbits.LATB2 = 1;
+
 				for(i = 0; i< 10 i++) {
+					// mosfet on
 					LATCbits.LATC2 = 1;
 					_asm
 						nop;
@@ -71,14 +82,18 @@ void main(void) {
 						nop;
 					_endasm;
 					LATCbits.LATC2 = 0;
-					offtime = Vin * 10 / (voltage + 0.7) * 11;\
+					
+					//this off time calc should move and doesn't do anything now
+					offtime = VIN * 10 / (voltage + DIODE_VOLTAGE) * 11;
 
-					//embedded assembly for off time.
+					//embedded assembly for off time should go here
 				}
 			}	else {
+				//if charge button not pressed leave charge light off
 				LATBbits.LATB2 = 0;
 			}
 		} else {
+			// if over voltage threshold turn done light on
 			LATBbits.LATB3 = 1;
 		}
 	}
