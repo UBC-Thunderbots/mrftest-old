@@ -54,17 +54,20 @@ namespace {
 	}
 
 	void rrt_navigator::tick() {
-		struct timespec timing;
+		struct timespec currentTime;
 		std::vector<std::pair<std::pair<Point, double>, timespec> > path;
 		std::deque<Point> pathPoints;
 
 		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 			path.clear();
 			Player::Ptr player = world.friendly_team().get(i);
-			timespec_now(timing);
+			timespec_now(currentTime);
 
 			const double dist = (player->position() - player->destination().first).len();
-			timing.tv_sec += dist / MAX_SPEED;
+			struct timespec timeToAdd = double_to_timespec(dist / MAX_SPEED);
+			struct timespec finalTime;
+
+			timespec_add(currentTime, timeToAdd, finalTime);
 
 			pathPoints.clear();
 			pathPoints = RRTPlan(player, player->position(), player->destination().first);
@@ -76,13 +79,13 @@ namespace {
 					destOrientation = (pathPoints[j + 1] - pathPoints[j]).orientation();
 				}
 
-				path.push_back(std::make_pair(std::make_pair(pathPoints[j], destOrientation), timing));
+				path.push_back(std::make_pair(std::make_pair(pathPoints[j], destOrientation), finalTime));
 			}
 
 			// just use the current player position as the destination if we are within the
 			// threshold already
 			if (pathPoints.size() == 0) {
-				path.push_back(std::make_pair(std::make_pair(player->position(), destOrientation), timing));
+				path.push_back(std::make_pair(std::make_pair(player->position(), destOrientation), finalTime));
 			}
 
 			player->path(path);
@@ -128,7 +131,7 @@ namespace {
 		std::vector<NodeTree<Point> *> nodeQueue;
 		nodeQueue.push_back(rrtTree);
 
-		// iterator through all the nodes in the tree, finding which is closest to the target
+		// iterate through all the nodes in the tree, finding which is closest to the target
 		while (nodeQueue.size() > 0) {
 			currNode = nodeQueue.back();
 			nodeQueue.pop_back();
