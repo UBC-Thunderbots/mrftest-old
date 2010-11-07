@@ -22,23 +22,23 @@ namespace {
 	/**
 	 * Manages the robots during a stoppage in place (that is, when the game is in PlayType::STOP).
 	 */
-	class KickoffEnemyStrategy : public Strategy {
+	class KickoffFriendlyStrategy : public Strategy {
 		public:
 			StrategyFactory &factory() const;
 
 			/**
-			 * Creates a new KickoffEnemyStrategy.
+			 * Creates a new KickoffFriendlyStrategy.
 			 *
 			 * \param[in] world the World in which to operate.
 			 */
 			static Strategy::Ptr create(World &world);
 
 		private:
-			KickoffEnemyStrategy(World &world);
-			~KickoffEnemyStrategy();
+			KickoffFriendlyStrategy(World &world);
+			~KickoffFriendlyStrategy();
 
-			void prepare_kickoff_enemy();
-			void execute_kickoff_enemy();
+			void prepare_kickoff_friendly();
+			void execute_kickoff_friendly();
 
 			void prepare();
 
@@ -46,41 +46,41 @@ namespace {
 	};
 
 	/**
-	 * A factory for constructing \ref KickoffEnemyStrategy "KickoffEnemyStrategies".
+	 * A factory for constructing \ref KickoffFriendlyStrategy "KickoffFriendlyStrategies".
 	 */
-	class KickoffEnemyStrategyFactory : public StrategyFactory {
+	class KickoffFriendlyStrategyFactory : public StrategyFactory {
 		public:
-			KickoffEnemyStrategyFactory();
-			~KickoffEnemyStrategyFactory();
+			KickoffFriendlyStrategyFactory();
+			~KickoffFriendlyStrategyFactory();
 			Strategy::Ptr create_strategy(World &world) const;
 	};
 
 	/**
-	 * The global instance of KickoffEnemyStrategyFactory.
+	 * The global instance of KickoffFriendlyStrategyFactory.
 	 */
-	KickoffEnemyStrategyFactory factory_instance;
+	KickoffFriendlyStrategyFactory factory_instance;
 
 	/**
 	 * The play types handled by this strategy.
 	 */
 	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
-		PlayType::PREPARE_KICKOFF_ENEMY,
-		PlayType::EXECUTE_KICKOFF_ENEMY,
+		PlayType::PREPARE_KICKOFF_FRIENDLY,
+		PlayType::EXECUTE_KICKOFF_FRIENDLY,
 	};
 
-	StrategyFactory &KickoffEnemyStrategy::factory() const {
+	StrategyFactory &KickoffFriendlyStrategy::factory() const {
 		return factory_instance;
 	}
 
-	void KickoffEnemyStrategy::prepare_kickoff_enemy() {
+	void KickoffFriendlyStrategy::prepare_kickoff_friendly() {
 		prepare();
 	}
 
-	void KickoffEnemyStrategy::execute_kickoff_enemy() {
+	void KickoffFriendlyStrategy::execute_kickoff_friendly() {
 		prepare();
 	}
 
-	void KickoffEnemyStrategy::prepare() {
+	void KickoffFriendlyStrategy::prepare() {
 		if (world.friendly_team().size() == 0) {
 			return;
 		}
@@ -159,25 +159,25 @@ namespace {
 		defender.tick();
 	}
 
-	Strategy::Ptr KickoffEnemyStrategy::create(World &world) {
-		const Strategy::Ptr p(new KickoffEnemyStrategy(world));
+	Strategy::Ptr KickoffFriendlyStrategy::create(World &world) {
+		const Strategy::Ptr p(new KickoffFriendlyStrategy(world));
 		return p;
 	}
 
-	KickoffEnemyStrategy::KickoffEnemyStrategy(World &world) : Strategy(world), defender(world) {
+	KickoffFriendlyStrategy::KickoffFriendlyStrategy(World &world) : Strategy(world), defender(world) {
 	}
 
-	KickoffEnemyStrategy::~KickoffEnemyStrategy() {
+	KickoffFriendlyStrategy::~KickoffFriendlyStrategy() {
 	}
 
-	KickoffEnemyStrategyFactory::KickoffEnemyStrategyFactory() : StrategyFactory("Kickoff Enemy", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) {
+	KickoffFriendlyStrategyFactory::KickoffFriendlyStrategyFactory() : StrategyFactory("Kickoff Friendly", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) {
 	}
 
-	KickoffEnemyStrategyFactory::~KickoffEnemyStrategyFactory() {
+	KickoffFriendlyStrategyFactory::~KickoffFriendlyStrategyFactory() {
 	}
 
-	Strategy::Ptr KickoffEnemyStrategyFactory::create_strategy(World &world) const {
-		return KickoffEnemyStrategy::create(world);
+	Strategy::Ptr KickoffFriendlyStrategyFactory::create_strategy(World &world) const {
+		return KickoffFriendlyStrategy::create(world);
 	}
 }
 
