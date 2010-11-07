@@ -15,7 +15,7 @@ namespace {
 	const double AVOIDANCE_DIST = 0.50 + Robot::MAX_RADIUS + 0.005;
 
 	// in ball avoidance, angle between center of 2 robots, as seen from the ball
-	const double AVOIDANCE_ANGLE = 2.0 * asin(Robot::MAX_RADIUS / AVOIDANCE_DIST);
+	const double AVOIDANCE_ANGLE = 2.0 * std::asin(Robot::MAX_RADIUS / AVOIDANCE_DIST);
 
 	DoubleParam separation_angle("kickoff: angle to separate players (degrees)", 40, 0, 80);
 
