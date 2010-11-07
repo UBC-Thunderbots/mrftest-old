@@ -38,6 +38,13 @@ namespace AI {
 				 * \return the signal that is fired when a robot is about to be removed from the team.
 				 */
 				virtual sigc::signal<void, std::size_t> &signal_robot_removing() const = 0;
+
+				/**
+				 * Returns the signal that is fired when a robot has been removed from the team.
+				 *
+				 * \return the signal that is fired when a robot has been removed from the team.
+				 */
+				virtual sigc::signal<void> &signal_robot_removed() const = 0;
 		};
 	}
 }

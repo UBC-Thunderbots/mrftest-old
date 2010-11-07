@@ -56,6 +56,7 @@ namespace AI {
 					void remove(std::size_t i) {
 						emit_robot_removing(i);
 						members.erase(members.begin() + i);
+						emit_robot_removed();
 					}
 
 					unsigned int score() const { return score_prop; }
@@ -81,6 +82,11 @@ namespace AI {
 					 * \param[in] i the index of the about-to-be-deleted robot.
 					 */
 					virtual void emit_robot_removing(std::size_t i) const = 0;
+
+					/**
+					 * Emits the robot removed signal.
+					 */
+					virtual void emit_robot_removed() const = 0;
 			};
 
 			/**
@@ -185,6 +191,7 @@ namespace AI {
 					AI::BE::Player::Ptr get(std::size_t i) { return get_impl(i); }
 					void emit_robot_added(std::size_t i) const { signal_robot_added().emit(i); }
 					void emit_robot_removing(std::size_t i) const { signal_robot_removing().emit(i); }
+					void emit_robot_removed() const { signal_robot_removed().emit(); }
 
 				private:
 					/**
@@ -278,6 +285,7 @@ namespace AI {
 					AI::BE::Robot::Ptr get(std::size_t i) { return get_impl(i); }
 					void emit_robot_added(std::size_t i) const { signal_robot_added().emit(i); }
 					void emit_robot_removing(std::size_t i) const { signal_robot_removing().emit(i); }
+					void emit_robot_removed() const { signal_robot_removed().emit(); }
 			};
 		}
 	}
