@@ -187,6 +187,10 @@ namespace {
 
 		if (iterationCounter == ITERATION_LIMIT) {
 			// LOG_WARN("Reached limit, path not found");
+
+			// set the last added as the node closest to the goal if we reach the iteration limit
+			// because the last added could be anything and we use it for tracing back the path
+			lastAdded = Nearest(&rrtTree, goal);
 		}
 
 		// stores the final path of points
