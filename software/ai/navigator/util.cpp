@@ -46,7 +46,7 @@ bool AI::Nav::Util::check_dest_valid(Point dest,World &world, Player::Ptr player
 	}
 	// check for STAY_OWN_HALF
 	if ((flags & FLAG_STAY_OWN_HALF) == FLAG_STAY_OWN_HALF) {
-		if (dest.y > 0) return false;
+		if (dest.x > 0) return false;
 	}
 	/* field information for AVOID_*_DEFENSE_AREA checks
 	 * defined by defense_area_radius distance from two goal posts
