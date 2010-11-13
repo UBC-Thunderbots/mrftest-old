@@ -54,6 +54,10 @@ namespace {
 	 * Radius of the dribbler
 	 */
 	const double DRIBBLER_HEIGHT = 2 * 0.0215 - 0.02;
+
+const double MAX_VOLTAGE = 12.0;
+
+const double RPM_PER_VOLT = 2900;
 }
 
 Compo_player_geom::Compo_player_geom(dWorldID eworld, dSpaceID dspace) : Player_geom(eworld, dspace) {
@@ -292,7 +296,14 @@ void Compo_player_geom::handleRobotRobotCollision(dGeomID o1, dGeomID o2, dJoint
 	}
 }
 
-//
+void Compo_player_geom::dribble(double set_point){
+  //  double voltage = set_point * MAX_VOLTAGE;
+  //  double rpm = RPM_PER_VOLT * voltage;
+  //  double rads_per_sec = (2*3.14/60)*rpm;
+  //  dJointSetAMotorParam (hinge, dParamVel, rads_per_sec);
+}
+
+
 // if a shape interescts with the wall set the contact parameters
 //
 void Compo_player_geom::handleWallCollision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup) {
@@ -305,7 +316,7 @@ void Compo_player_geom::handleWallCollision(dGeomID o1, dGeomID o2, dJointGroupI
 		for (i = 0; i < numc; i++) {
 			contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce | dContactApprox1;
 			contact[i].surface.mu = 2.0;
-			contact[i].surface.soft_cfm = CFM;
+		contact[i].surface.soft_cfm = CFM;
 			contact[i].surface.soft_erp = ERP;
 			contact[i].surface.bounce = 1.0;
 			contact[i].surface.bounce_vel = 0.0;

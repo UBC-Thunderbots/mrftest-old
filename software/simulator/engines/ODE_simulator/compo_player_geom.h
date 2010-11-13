@@ -21,7 +21,7 @@ class Compo_player_geom : public Player_geom {
 		void handleRobotRobotCollision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup);
 		void handleWallCollision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup);
 		// bool hasContactPenetration(dVector3 pos, dGeomID geom);
-
+		void dribble(double set_point);
 		/**
 		 * The rectangular geometry for the front collision.
 		 */

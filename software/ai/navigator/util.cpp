@@ -1,4 +1,5 @@
 #include "ai/navigator/util.h"
+#include "ai/flags.h"
 #include <vector>
 
 using namespace AI::Flags;
@@ -9,6 +10,11 @@ bool AI::Nav::Util::valid_dst(Point dst, AI::Nav::W::World &world, AI::Nav::W::P
 }
 
 bool AI::Nav::Util::valid_path(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+
+	if(!valid_dst(cur, world, player)){
+		return valid_dst(dst, world, player);
+	}
+	
 	unsigned int flags = player->flags();
 	double player_rad = player->MAX_RADIUS;
 
@@ -28,7 +34,31 @@ bool AI::Nav::Util::valid_path(Point cur, Point dst, AI::Nav::W::World &world, A
 			return false;
 		}
 	}
+	
+	if(AI::Flags::FLAG_CLIP_PLAY_AREA & flags){
 
+	}
+	if(AI::Flags::FLAG_AVOID_BALL_STOP & flags){
+
+	}
+	if(AI::Flags::FLAG_AVOID_BALL_TINY & flags){
+
+	}
+	if(AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE & flags){
+
+	}
+	if(AI::Flags::FLAG_AVOID_ENEMY_DEFENSE & flags){
+
+	}
+	if(AI::Flags::FLAG_STAY_OWN_HALF & flags){
+
+	}
+	if(AI::Flags::FLAG_PENALTY_KICK_FRIENDLY & flags){
+
+	}
+	if(AI::Flags::FLAG_PENALTY_KICK_ENEMY & flags){
+
+	}
 	return true;
 }
 
