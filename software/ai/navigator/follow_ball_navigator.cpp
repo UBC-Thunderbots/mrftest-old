@@ -8,8 +8,8 @@ using namespace AI::Nav::W;
 
 namespace {
 	/**
-	 * Simple Navigator
-	 * The main functions that are required to be able to implement a navigator.
+	 * Follow Ball Navigator
+	 * Used for testing robot controllers to match the ball's velocity.
 	 */
 	class FollowBallNavigator : public Navigator {
 		public:
@@ -46,7 +46,7 @@ namespace {
 	FollowBallNavigator::~FollowBallNavigator() {
 	}
 
-	FollowBallNavigatorFactory::FollowBallNavigatorFactory() : NavigatorFactory("TEST: Follow Ball Navigator") {
+	FollowBallNavigatorFactory::FollowBallNavigatorFactory() : NavigatorFactory("TEST: Follow Ball") {
 	}
 
 	FollowBallNavigatorFactory::~FollowBallNavigatorFactory() {
