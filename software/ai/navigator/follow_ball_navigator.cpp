@@ -46,7 +46,7 @@ namespace {
 	FollowBallNavigator::~FollowBallNavigator() {
 	}
 
-	FollowBallNavigatorFactory::FollowBallNavigatorFactory() : NavigatorFactory("Follow Ball Navigator") {
+	FollowBallNavigatorFactory::FollowBallNavigatorFactory() : NavigatorFactory("TEST: Follow Ball Navigator") {
 	}
 
 	FollowBallNavigatorFactory::~FollowBallNavigatorFactory() {
