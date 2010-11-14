@@ -17,7 +17,7 @@ namespace {
 	const int P = 5;
 
 	const double arr_min[P] = { 3.0, 0.0, 0.0, 3.0, 3.0 };
-	const double arr_max[P] = { 6.0, 2.0, 2.0, 6.0, 6.0 };
+	const double arr_max[P] = { 10.0, 2.0, 2.0, 10.0, 10.0 };
 	const double arr_def[P] = { 6.0, .855, .385, 6.0, 6.0 };
 
 	const std::vector<double> param_min(arr_min, arr_min + P);

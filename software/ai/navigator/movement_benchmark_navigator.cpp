@@ -1,10 +1,13 @@
 #include "ai/hl/util.h"
 #include "ai/navigator/navigator.h"
 #include "util/time.h"
+#include "ai/robot_controller/tunable_controller.h"
+#include "util/stochastic_local_search.h"
 #include <iostream>
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
+using AI::RC::TunableController;
 using namespace AI::Nav::W;
 
 namespace {
@@ -20,6 +23,7 @@ namespace {
 
 		private:
 			MovementBenchmarkNavigator(World &world);
+			StochasticLocalSearch* sls;
 			~MovementBenchmarkNavigator();
 	};
 
@@ -42,6 +46,8 @@ namespace {
 	}
 
 	MovementBenchmarkNavigator::MovementBenchmarkNavigator(World &world) : Navigator(world) {
+		TunableController *tc = TunableController::get_instance();
+		sls = new StochasticLocalSearch(tc->get_params_default(), tc->get_params_min(), tc->get_params_max());
 	}
 
 	MovementBenchmarkNavigator::~MovementBenchmarkNavigator() {
@@ -60,6 +66,9 @@ namespace {
 	const double PI = M_PI;
 	int taskIndex = 0;
 	int numTasks = 10;
+	int time = 0;
+	int limit = 1000;
+	int best = limit;
 	
 	const std::pair<Point, double> tasks[] =
 	{
@@ -77,27 +86,53 @@ namespace {
 
 
 	void MovementBenchmarkNavigator::tick() {
-		const Field &field = world.field();
 		FriendlyTeam &fteam = world.friendly_team();
+
+		TunableController *tc = TunableController::get_instance();
 		
 		if (fteam.size() != 1) {
 			std::cerr << "error: must have only 1 robot in the team!" << std::endl;
 			return;
 		}
+		
+		time++;
 
 		Player::Ptr player;
 		std::vector<std::pair<std::pair<Point, double>, timespec> > path;
 
-		Point currentPosition, destinationPosition;
-		double currentOrientation, destinationOrientation;
-
 		path.clear();
 		player = fteam.get(0);
-		currentPosition = player->position();
-		currentOrientation = player->orientation();
+		Point currentPosition = player->position();
 		if ((currentPosition-tasks[taskIndex].first).len() < 0.2 && player->velocity().len() < 0.05) {
 			taskIndex++;
-			if (taskIndex == numTasks) taskIndex = 0;
+			if (taskIndex == 1) {
+				time = 0;
+			}
+		}
+		
+		if (taskIndex == numTasks || time >= best) {
+			taskIndex = 0;
+			std::cout << "Parameters: ";
+			std::vector<double> params = tc->get_params();
+			for (uint i = 0; i < params.size(); i++) {
+				std::cout << params[i] << " ";
+			}
+			std::cout << "Time steps taken: " << time;
+			if (time < best) {
+				best = time;
+				sls->set_cost(time);
+			} else {
+				sls->set_cost(limit);
+			}
+			sls->hill_climb();
+			std::cout << " Best parameters: ";
+			params = sls->get_best_params();
+			for (uint i = 0; i < params.size(); i++) {
+				std::cout << params[i] << " ";
+			}
+			std::cout << std::endl;
+			tc->set_params(sls->get_params());
+			time = 0;
 		}
 
 		path.push_back(std::make_pair(std::make_pair(tasks[taskIndex].first, tasks[taskIndex].second), world.monotonic_time()));
