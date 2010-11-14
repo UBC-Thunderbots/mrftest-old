@@ -9,6 +9,11 @@ namespace {
 
 	// used for lensq only
 	const double EPS2 = EPS * EPS;
+
+	// ported code
+	inline int sign(const double n) {
+		return n > EPS ? 1 : (n < -EPS ? -1 : 0);
+	}
 }
 
 std::vector<size_t> dist_matching(const std::vector<Point> &v1, const std::vector<Point> &v2) {
@@ -153,6 +158,55 @@ std::vector<Point> line_circle_intersect(Point centre, double radius, Point segA
 	return ans;
 }
 
+std::vector<Point> line_rect_intersect(Rect r, Point segA, Point segB){
+	std::vector<Point> ans;
+	for(int i=0; i<4; i++){
+		int j = i+1;
+		Point a = r[i];
+		Point b = r[j];
+		if(seg_crosses_seg(a,b,segA,segB) && unique_line_intersect(a,b,segA,segB)){
+			ans.push_back(line_intersect(a,b,segA,segB));
+		}
+	}
+	return ans;
+}
+
+
+double lineseg_point_dist(Point centre, Point segA, Point segB){
+
+	// if one of the end-points is extremely close to the centre point
+	// then return 0.0
+	if((segB - centre).lensq() < EPS || (segA - centre).lensq() < EPS){
+		return 0.0;
+	}
+
+	// take care of 0 length segments
+	if ((segB - segA).lensq() < EPS) {
+		return std::min((centre-segB).len(), (centre-segA).len());
+	}
+
+	//find point C
+	// which is the projection onto the line
+	double lenseg = (segB - segA).dot(centre - segA) / (segB - segA).len();
+	Point C = segA + lenseg * (segB - segA).norm();
+
+	//check if C is in the line seg range
+	double AC = (segA - C).lensq();
+	double BC = (segB - C).lensq();
+	double AB = (segA - segB).lensq();
+	bool in_range = AC <= AB && BC <= AB;
+
+	//if so return C
+	if(in_range){
+		if((centre - C).lensq() < EPS){
+			return 0.0;
+		}
+		return (centre - C).len();
+	}
+	//otherwise return distance to closest end of line-seg
+	return std::min((centre-segB).len(), (centre-segA).len());
+}
+
 std::vector<Point> lineseg_circle_intersect(Point centre, double radius, Point segA, Point segB) {
 	std::vector<Point> ans;
 	std::vector<Point> poss = line_circle_intersect(centre, radius, segA, segB);
@@ -167,21 +221,27 @@ std::vector<Point> lineseg_circle_intersect(Point centre, double radius, Point s
 	return ans;
 }
 
+bool unique_line_intersect(const Point &a, const Point &b, const Point &c, const Point &d) {
+	return(sign((d - c).cross(b - a)) != 0);
+}
+
 // ported code
 Point line_intersect(const Point &a, const Point &b, const Point &c, const Point &d) {
-	assert((d - c).cross(b - a) != 0);
+	assert(sign((d - c).cross(b - a)) != 0);
 	return a + (a - c).cross(d - c) / (d - c).cross(b - a) * (b - a);
 }
 
 // ported code
 double line_point_dist(const Point &p, const Point &a, const Point &b) {
+	if((b-a).lensq()<EPS){
+		if((b-p).lensq()<EPS || (b-p).lensq()<EPS ){
+			return 0.0;
+		}
+		return std::min((b-p).len(), (a-p).len());
+	}
 	return (p - a).cross(b - a) / (b - a).len();
 }
 
-// ported code
-inline int sign(const double n) {
-	return n > EPS ? 1 : (n < -EPS ? -1 : 0);
-}
 
 // ported code
 #warning this code looks broken (or so geom/util.h used to claim)

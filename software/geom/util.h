@@ -2,6 +2,7 @@
 #define GEOM_UTIL_H
 
 #include "geom/point.h"
+#include "rect.h"
 #include <vector>
 
 /*
@@ -88,20 +89,18 @@ bool line_seg_intersect_rectangle(Point seg[2], Point recA[4]);
 bool point_in_rectangle(Point pointA, Point recA[4]);
 
 /**
- * Finds the points of intersection between a circle and a line segment.
- * There may be zero, one, or two such points.
+ * Finds the distance between and a line segment and a point.
  *
- * \param[in] centre the centre of the circle.
+ * \param[in] centre the point
  *
- * \param[in] radius the radius of the circle.
  *
  * \param[in] segA one end of the line segment.
  *
  * \param[in] segB the other end of the line segment.
  *
- * \return the points of intersection.
+ * \return the distance between line seg and point.
  */
-std::vector<Point> lineseg_circle_intersect(Point centre, double radius, Point segA, Point segB);
+double lineseg_point_dist(Point centre, Point segA, Point segB);
 
 /**
  * Finds the points of intersection between a circle and a line.
@@ -120,6 +119,37 @@ std::vector<Point> lineseg_circle_intersect(Point centre, double radius, Point s
 std::vector<Point> line_circle_intersect(Point centre, double radius, Point segA, Point segB);
 
 /**
+ * Finds the points of intersection between a circle and a line.
+ * There may be zero, one, or two such points.
+ *
+ * \param[in] centre the centre of the circle.
+ *
+ * \param[in] radius the radius of the circle.
+ *
+ * \param[in] segA one point on the line.
+ *
+ * \param[in] segB another point on the line.
+ *
+ * \return the points of intersection.
+ */
+std::vector<Point> line_circle_intersect(Point centre, double radius, Point segA, Point segB);
+
+/**
+ * Finds the points of intersection between a circle and a line.
+ * There may be zero, one, or two such points.
+ *
+ * \param[in] r the rectangle.
+ *
+ * \param[in] segA one point on the line.
+ *
+ * \param[in] segB another point on the line.
+ *
+ * \return the points of intersection.
+ */
+std::vector<Point> line_rect_intersect(Rect r, Point segA, Point segB);
+
+
+/**
  * Clips a point to a rectangle boundary.
  *
  * \param[in] p the point to clip.
@@ -131,6 +161,21 @@ std::vector<Point> line_circle_intersect(Point centre, double radius, Point segA
  * \return the closest point to \p p that lies within the rectangle.
  */
 Point clip_point(const Point &p, const Point &bound1, const Point &bound2);
+
+/**
+ * Computes whether there is a unique intersection of two lines.
+ *
+ * \param[in] a a point on the first line.
+ *
+ * \param[in] b another point on the first line.
+ *
+ * \param[in] c a point on the second line.
+ *
+ * \param[in] d another point on the second line.
+ *
+ * \return whether there is one and only one answer
+ */
+bool unique_line_intersect(const Point &a, const Point &b, const Point &c, const Point &d);
 
 /**
  * Computes the intersection of two lines.
@@ -177,6 +222,7 @@ double line_point_dist(const Point &p, const Point &a, const Point &b);
  * \return \c true if the segments intersect, or \c false if not.
  */
 bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Point &b2);
+
 
 /**
  * Reflects a ray incident on origin given the normal of the reflecting plane.

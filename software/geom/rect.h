@@ -85,6 +85,15 @@ class Rect {
 		Point se_corner() const;
 
 		/**
+		 * Returns 0-sw 1-nw 2-ne 3-se corner for pos%4
+		 *
+		 * \param[in] pos of corner wanted
+		 *
+		 * \return Point corresponding to position
+		 */
+		Point operator [](unsigned int pos);
+
+		/**
 		 * Translates the rectangle.
 		 *
 		 * \param[in] offset the distance to move the rectangle.

@@ -42,6 +42,16 @@ Point Rect::se_corner() const {
 	return min_corner + Point(diag.x, 0);
 }
 
+Point Rect::operator [](unsigned int pos){
+	unsigned int temp = pos %4;
+	switch(temp){
+	case 1: return nw_corner();
+	case 2: return ne_corner();
+	case 3: return se_corner();
+	}
+	return sw_corner();
+}
+
 void Rect::translate(const Point &offset) {
 	min_corner += offset;
 }

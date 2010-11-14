@@ -43,17 +43,15 @@ namespace {
 	 */
 	const double FRONT_FACE_WIDTH = 0.16;
 
-#warning verify the actual dribbler radius
 	/**
 	 * Radius of the dribbler
 	 */
-	const double DRIBBLER_RADIUS = 0.02;
+	const double DRIBBLER_RADIUS = 0.01468;
 
-#warning verify height of the actual dribbler
 	/**
 	 * Radius of the dribbler
 	 */
-	const double DRIBBLER_HEIGHT = 2 * 0.0215 - 0.02;
+	const double DRIBBLER_HEIGHT = 0.03783;
 
 const double MAX_VOLTAGE = 12.0;
 
