@@ -37,7 +37,7 @@ __code const usb_device_descriptor_t DEVICE_DESCRIPTOR = {
 	/* .device_version = */ 0x0100,
 	/* .manufacturer_index = */ 1,
 	/* .product_index = */ 2,
-	/* .serial_index = */ 3,
+	/* .serial_index = */ 0,
 	/* .num_configurations = */ 1,
 };
 
@@ -99,22 +99,17 @@ static __code const uint16_t STRING_ENUS_PRODUCT[] = {
 	'T', 'h', 'u', 'n', 'd', 'e', 'r', 'b', 'o', 't', 's', ' ', 'X', 'B', 'e', 'e', ' ', 'D', 'o', 'n', 'g', 'l', 'e', 0
 };
 
-static __code const uint16_t STRING_ENUS_SERIAL[] = {
-	'0', '0', '0', '0', '0', '0', '0', '1', 0
-};
-
 static __code const usb_string_table_t STRING_TABLE_ENUS = {
 	0x0409, /* English (United States) */
 	{
 		STRING_ENUS_MANUFACTURER,
 		STRING_ENUS_PRODUCT,
-		STRING_ENUS_SERIAL,
 	},
 };
 
 __code const usb_string_metatable_t STRING_METATABLE = {
 	1, /* # of tables */
-	3, /* # of strings in each table */
+	2, /* # of strings in each table */
 	{ &STRING_TABLE_ENUS, },
 };
 
