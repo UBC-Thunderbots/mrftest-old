@@ -1,0 +1,60 @@
+#
+# Each line of this file (except those starting with #) defines a single pin
+# on the microcontroller.
+#
+# First token is the application name of the pin.
+# Second token is the physical location of the pin (e.g. "RA0").
+# Third token is the type of pin.
+#
+# Legal types are:
+#  in   - pin should be configured as an input at startup
+#  out0 - pin should be configured as an output low at startup
+#  out1 - pin should be configured as an output high at startup
+#  vgnd - pin should be configured as a virtual ground (name/polarity are ignored)
+#  vvdd - pin should be configured as a virtual VDD (name/polarity are ignored)
+#
+
+XBEE1_RTS     RE1 out1 # Request to send to XBee #1
+XBEE1_CTS     RE0 in   # Clear to send from XBee #1
+XBEE1_SLEEP   RG0 out1 # Pin-controlled sleep to XBee #1
+XBEE1_TX      RG1 out1 # Transmit data to XBee #1
+XBEE1_RX      RG2 in   # Receive data from XBee #1
+
+XBEE2_RTS     RB4 out1 # Request to send to XBee #2
+XBEE2_CTS     RB5 in   # Clear to send from XBee #2
+XBEE2_SLEEP   RC0 out1 # Pin-controlled sleep to XBee #2
+XBEE2_TX      RC6 out1 # Transmit data to XBee #2
+XBEE2_RX      RC7 in   # Receive data from XBee #2
+
+USB_DP        RF4 in   # USB D+
+USB_DM        RF3 in   # USB D-
+
+ESTOP_IN      RA0 in   # Emergency stop
+ESTOP_OUT0    RB1 out0 # Negative power supply to emergency stop
+ESTOP_OUT1    RB0 out1 # Positive power supply to emergency stop
+
+LED1          RC1 out0 # Green LED
+LED2          RC2 out0 # Red LED #1
+LED3          RB3 out0 # Red LED #2
+
+OSC1          RA7 in   # Oscillator pin 1
+OSC2          RA6 in   # Oscillator pin 2
+
+RA1           RA1 vgnd # Unused
+RA2           RA2 vgnd # Unused
+RA3           RA3 vgnd # Unused
+RA4           RA4 vgnd # Unused
+RB2           RB2 vgnd # Unused
+RB6           RB6 vgnd # Unused
+RB7           RB7 vgnd # Unused
+RC3           RC3 vgnd # Unused
+RC4           RC4 vgnd # Unused
+RC5           RC5 vgnd # Unused
+RF2           RF2 vgnd # Unused
+RF5           RF5 vgnd # Unused
+RF6           RF6 vgnd # Unused
+RF7           RF7 vgnd # Unused
+RG3           RG3 vgnd # Unused
+
+RA5           RA5 vvdd # Virtual VDD
+RG4           RG4 vgnd # Virtual ground
