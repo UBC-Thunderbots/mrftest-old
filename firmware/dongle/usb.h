@@ -276,8 +276,6 @@ extern uint8_t usb_ep0_data_length;
 enum {
 	BDSTAT_UOWN = 0x80,
 	BDSTAT_DTS = 0x40,
-	BDSTAT_KEN = 0x20,
-	BDSTAT_INCDIS = 0x10,
 	BDSTAT_DTSEN = 0x08,
 	BDSTAT_BSTALL = 0x04,
 	BDSTAT_BC9 = 0x02,
@@ -292,8 +290,7 @@ typedef struct {
 	unsigned BC9 : 1;
 	unsigned BSTALL : 1;
 	unsigned DTSEN : 1;
-	unsigned INCDIS : 1;
-	unsigned KEN : 1;
+	unsigned : 2;
 	unsigned DTS : 1;
 	unsigned UOWN : 1;
 } usb_bdstat_cpu_bits_t;
