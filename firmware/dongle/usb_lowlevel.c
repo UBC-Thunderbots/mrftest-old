@@ -2,7 +2,6 @@
 #include "usb_internal.h"
 #include <pic18fregs.h>
 #include <stdint.h>
-#include <stdio.h>
 
 /**
  * \file
