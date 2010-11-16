@@ -52,9 +52,6 @@ void usb_lowlevel_init(void) {
 
 	UEIE = 0;
 
-	while (UIR) {
-		UIR = 0;
-	}
 	UIE = 0;
 #if USB_CONFIG_SOF_CALLBACK
 	UIEbits.SOFIE = 1;
@@ -67,6 +64,10 @@ void usb_lowlevel_init(void) {
 	UCONbits.USBEN = 1;
 
 	while (UCONbits.SE0);
+
+	while (UIR) {
+		UIR = 0;
+	}
 
 	PIR2bits.USBIF = 0;
 	IPR2bits.USBIP = USB_CONFIG_INTERRUPTS_HIGH_PRIORITY;
