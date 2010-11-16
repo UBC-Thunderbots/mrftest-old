@@ -103,9 +103,10 @@ namespace{
 		double violate = 0.0;
 		const Field &f = world.field();
 		double defense_dist = f.defense_area_radius() + player->MAX_RADIUS + DEFENSE_AREA_BUFFER;
+
 		Point zero(0,0);
 		Rect r(zero, defense_dist, f.defense_area_stretch());
-		Point trans_defense_area(-(f.length()/2) - r.width(), -r.height()/2); 
+		Point trans_defense_area(-(f.length()/2 - r.width()), -r.height()/2); 
 		r.translate(trans_defense_area);
 
 		Point defense_point1(-f.length()/2, -f.defense_area_stretch()/2);
@@ -116,6 +117,28 @@ namespace{
 		for(  std::vector<Point>::iterator it= p.begin(); it!=p.end(); it++){
 			double x = it->x + f.length()/2;
 			violate = std::max(violate, defense_dist - x);
+		}
+		return violate;
+	}
+
+	double get_offense_area_violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+
+		double violate = 0.0;
+		const Field &f = world.field();
+		double defense_dist = f.defense_area_radius() + player->MAX_RADIUS + DEFENSE_AREA_BUFFER;
+		Point zero(0,0);
+		Rect r(zero, defense_dist, f.defense_area_stretch());
+		Point trans_defense_area(f.length()/2, -r.height()/2); 
+		r.translate(trans_defense_area);
+
+		Point defense_point1(f.length()/2, -f.defense_area_stretch()/2);
+		Point defense_point2(f.length()/2, f.defense_area_stretch()/2);
+		double dist = std::min(lineseg_point_dist(defense_point1, cur, dst), lineseg_point_dist(defense_point1, cur, dst));
+		violate = std::max(violate, defense_dist - dist);
+		std::vector<Point> p = line_rect_intersect(r, cur, dst);
+		for(  std::vector<Point>::iterator it= p.begin(); it!=p.end(); it++){
+			double x = it->x - f.length()/2;
+			violate = std::max(violate, defense_dist + x);
 		}
 		return violate;
 	}
@@ -134,10 +157,27 @@ namespace{
 		violation v;   
 		v.friendly = get_friendly_violation(cur, dst, world, player);
 		v.enemy = get_enemy_violation(cur, dst, world, player);
+		unsigned int flags = player->flags();
+		if(flags & FLAG_CLIP_PLAY_AREA){
+
+		}
+		if(flags & FLAG_AVOID_BALL_STOP){
+			v.ball_stop = get_ball_stop_violation(cur, dst, world, player);
+		}
+		if(flags & FLAG_AVOID_BALL_TINY){
+			v.ball_tiny = get_ball_tiny_violation(cur, dst, world, player);
+		}
+		if(flags & FLAG_AVOID_FRIENDLY_DEFENSE){
+			v.friendly_defense = get_defense_area_violation(cur, dst, world, player);
+		}
+		if(flags & FLAG_AVOID_ENEMY_DEFENSE){
+			v.friendly_defense = get_offense_area_violation(cur, dst, world, player);
+		}
 		return v;
 	}
 
 };
+
 
 bool AI::Nav::Util::valid_dst(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 	return get_violation_amount(dst, dst, world, player).violation_free();
