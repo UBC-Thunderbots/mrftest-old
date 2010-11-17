@@ -2,7 +2,7 @@
 #define GEOM_UTIL_H
 
 #include "geom/point.h"
-#include "rect.h"
+#include "geom/rect.h"
 #include <vector>
 
 /*
@@ -91,8 +91,7 @@ bool point_in_rectangle(Point pointA, Point recA[4]);
 /**
  * Finds the distance between and a line segment and a point.
  *
- * \param[in] centre the point
- *
+ * \param[in] centre the point.
  *
  * \param[in] segA one end of the line segment.
  *
@@ -222,7 +221,6 @@ double line_point_dist(const Point &p, const Point &a, const Point &b);
  * \return \c true if the segments intersect, or \c false if not.
  */
 bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Point &b2);
-
 
 /**
  * Reflects a ray incident on origin given the normal of the reflecting plane.

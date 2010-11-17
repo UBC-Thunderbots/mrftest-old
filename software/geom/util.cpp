@@ -158,53 +158,52 @@ std::vector<Point> line_circle_intersect(Point centre, double radius, Point segA
 	return ans;
 }
 
-std::vector<Point> line_rect_intersect(Rect r, Point segA, Point segB){
+std::vector<Point> line_rect_intersect(Rect r, Point segA, Point segB) {
 	std::vector<Point> ans;
-	for(int i=0; i<4; i++){
-		int j = i+1;
+	for (int i = 0; i < 4; i++) {
+		int j = i + 1;
 		Point a = r[i];
 		Point b = r[j];
-		if(seg_crosses_seg(a,b,segA,segB) && unique_line_intersect(a,b,segA,segB)){
-			ans.push_back(line_intersect(a,b,segA,segB));
+		if (seg_crosses_seg(a, b, segA, segB) && unique_line_intersect(a, b, segA, segB)) {
+			ans.push_back(line_intersect(a, b, segA, segB));
 		}
 	}
 	return ans;
 }
 
 
-double lineseg_point_dist(Point centre, Point segA, Point segB){
-
+double lineseg_point_dist(Point centre, Point segA, Point segB) {
 	// if one of the end-points is extremely close to the centre point
 	// then return 0.0
-	if((segB - centre).lensq() < EPS || (segA - centre).lensq() < EPS){
+	if ((segB - centre).lensq() < EPS || (segA - centre).lensq() < EPS) {
 		return 0.0;
 	}
 
 	// take care of 0 length segments
 	if ((segB - segA).lensq() < EPS) {
-		return std::min((centre-segB).len(), (centre-segA).len());
+		return std::min((centre - segB).len(), (centre - segA).len());
 	}
 
-	//find point C
+	// find point C
 	// which is the projection onto the line
 	double lenseg = (segB - segA).dot(centre - segA) / (segB - segA).len();
 	Point C = segA + lenseg * (segB - segA).norm();
 
-	//check if C is in the line seg range
+	// check if C is in the line seg range
 	double AC = (segA - C).lensq();
 	double BC = (segB - C).lensq();
 	double AB = (segA - segB).lensq();
 	bool in_range = AC <= AB && BC <= AB;
 
-	//if so return C
-	if(in_range){
-		if((centre - C).lensq() < EPS){
+	// if so return C
+	if (in_range) {
+		if ((centre - C).lensq() < EPS) {
 			return 0.0;
 		}
 		return (centre - C).len();
 	}
-	//otherwise return distance to closest end of line-seg
-	return std::min((centre-segB).len(), (centre-segA).len());
+	// otherwise return distance to closest end of line-seg
+	return std::min((centre - segB).len(), (centre - segA).len());
 }
 
 std::vector<Point> lineseg_circle_intersect(Point centre, double radius, Point segA, Point segB) {
@@ -222,7 +221,7 @@ std::vector<Point> lineseg_circle_intersect(Point centre, double radius, Point s
 }
 
 bool unique_line_intersect(const Point &a, const Point &b, const Point &c, const Point &d) {
-	return(sign((d - c).cross(b - a)) != 0);
+	return sign((d - c).cross(b - a)) != 0;
 }
 
 // ported code
@@ -233,11 +232,11 @@ Point line_intersect(const Point &a, const Point &b, const Point &c, const Point
 
 // ported code
 double line_point_dist(const Point &p, const Point &a, const Point &b) {
-	if((b-a).lensq()<EPS){
-		if((b-p).lensq()<EPS || (b-p).lensq()<EPS ){
+	if ((b - a).lensq() < EPS) {
+		if ((b - p).lensq() < EPS || (b - p).lensq() < EPS) {
 			return 0.0;
 		}
-		return std::min((b-p).len(), (a-p).len());
+		return std::min((b - p).len(), (a - p).len());
 	}
 	return (p - a).cross(b - a) / (b - a).len();
 }

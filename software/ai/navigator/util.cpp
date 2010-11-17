@@ -1,33 +1,33 @@
 #include "ai/navigator/util.h"
 #include "ai/flags.h"
-#include <vector>
 #include <algorithm>
+#include <vector>
 
 using namespace AI::Flags;
 using namespace AI::Nav::W;
-namespace{
 
+namespace {
 	const double EPS = 1e-9;
-	//zero lets them brush
-	//positive enforces amount meters away
-	//negative lets them bump
+	// zero lets them brush
+	// positive enforces amount meters away
+	// negative lets them bump
 	const double ENEMY_BUFFER = 0.0;
 
-	//zero lets them brush
-	//positive enforces amount meters away
-	//negative lets them bump
+	// zero lets them brush
+	// positive enforces amount meters away
+	// negative lets them bump
 	const double FRIENDLY_BUFFER = 0.0;
 
-	//This buffer is in addition to the robot radius
+	// This buffer is in addition to the robot radius
 	const double BALL_STOP_BUFFER = 0.5;
 
-	//This buffer is in addition to the robot radius
+	// This buffer is in addition to the robot radius
 	const double BALL_TINY_BUFFER = 0.05;
 
-	//This buffer is in addition to the robot radius
+	// This buffer is in addition to the robot radius
 	const double DEFENSE_AREA_BUFFER = 0.0;
 
-	struct violation{
+	struct violation {
 		double enemy;
 		double friendly;
 		double play_area;
@@ -39,145 +39,141 @@ namespace{
 		double penalty_kick_friendly;
 		double penalty_kick_enemy;
 
-		bool no_more_violating_than(violation b){
-			return enemy < b.enemy + EPS &&  friendly < b.friendly + EPS && 
-			play_area < b.play_area + EPS &&  ball_stop < b.ball_stop + EPS && 
-			ball_tiny < b.ball_tiny + EPS &&  friendly_defense < b.friendly_defense + EPS && 
-			enemy_defense < b.enemy_defense + EPS &&  own_half < b.own_half + EPS && 
-			penalty_kick_enemy < b.penalty_kick_enemy + EPS &&  penalty_kick_friendly < b.penalty_kick_friendly + EPS;
+		bool no_more_violating_than(violation b) {
+			return enemy < b.enemy + EPS && friendly < b.friendly + EPS &&
+			       play_area < b.play_area + EPS && ball_stop < b.ball_stop + EPS &&
+			       ball_tiny < b.ball_tiny + EPS && friendly_defense < b.friendly_defense + EPS &&
+			       enemy_defense < b.enemy_defense + EPS && own_half < b.own_half + EPS &&
+			       penalty_kick_enemy < b.penalty_kick_enemy + EPS && penalty_kick_friendly < b.penalty_kick_friendly + EPS;
 		}
 
-		bool violation_free(){
-			return enemy < EPS &&  friendly < EPS && 
-			play_area < EPS &&  ball_stop < EPS && 
-			ball_tiny < EPS &&  friendly_defense < EPS && 
-			enemy_defense < EPS &&  own_half < EPS && 
-			penalty_kick_enemy < EPS &&  penalty_kick_friendly < EPS;
+		bool violation_free() {
+			return enemy < EPS && friendly < EPS &&
+			       play_area < EPS && ball_stop < EPS &&
+			       ball_tiny < EPS && friendly_defense < EPS &&
+			       enemy_defense < EPS && own_half < EPS &&
+			       penalty_kick_enemy < EPS && penalty_kick_friendly < EPS;
 		}
-
 	};
 
-	//should be still work when cur == dst
-	double get_enemy_violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+	// should be still work when cur == dst
+	double get_enemy_violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 		double player_rad = player->MAX_RADIUS;
 		double violate = 0.0;
 		// avoid enemy robots
 		for (unsigned int i = 0; i < world.enemy_team().size(); i++) {
 			AI::Nav::W::Robot::Ptr rob = world.enemy_team().get(i);
 			double enemy_rad = rob->MAX_RADIUS;
-			double circle_radius =  player_rad + enemy_rad + ENEMY_BUFFER;
+			double circle_radius = player_rad + enemy_rad + ENEMY_BUFFER;
 			double dist = lineseg_point_dist(rob->position(), cur, dst);
 			violate = std::max(violate, circle_radius - dist);
 		}
 		return violate;
 	}
 
-	//should be still work when cur == dst
-	double get_friendly_violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+	// should be still work when cur == dst
+	double get_friendly_violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 		double player_rad = player->MAX_RADIUS;
 		double violate = 0.0;
 		// avoid enemy robots
 		for (unsigned int i = 0; i < world.friendly_team().size(); i++) {
 			AI::Nav::W::Player::Ptr rob = world.friendly_team().get(i);
-			if(rob==player)continue;
+			if (rob == player) {
+				continue;
+			}
 			double friendly_rad = rob->MAX_RADIUS;
-			double circle_radius =  player_rad + friendly_rad + FRIENDLY_BUFFER;
+			double circle_radius = player_rad + friendly_rad + FRIENDLY_BUFFER;
 			double dist = lineseg_point_dist(rob->position(), cur, dst);
 			violate = std::max(violate, circle_radius - dist);
 		}
 		return violate;
 	}
 
-	double get_ball_stop_violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+	double get_ball_stop_violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 		double player_rad = player->MAX_RADIUS;
 		double violate = 0.0;
 		const Ball &ball = world.ball();
-		double circle_radius =  Ball::RADIUS + player_rad + BALL_STOP_BUFFER;
+		double circle_radius = Ball::RADIUS + player_rad + BALL_STOP_BUFFER;
 		double dist = lineseg_point_dist(ball.position(), cur, dst);
 		violate = std::max(violate, circle_radius - dist);
 		return violate;
 	}
 
-	double get_defense_area_violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
-
+	double get_defense_area_violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 		double violate = 0.0;
 		const Field &f = world.field();
 		double defense_dist = f.defense_area_radius() + player->MAX_RADIUS + DEFENSE_AREA_BUFFER;
 
-		Point zero(0,0);
+		Point zero;
 		Rect r(zero, defense_dist, f.defense_area_stretch());
-		Point trans_defense_area(-(f.length()/2 - r.width()), -r.height()/2); 
+		Point trans_defense_area(-(f.length() / 2 - r.width()), -r.height() / 2);
 		r.translate(trans_defense_area);
 
-		Point defense_point1(-f.length()/2, -f.defense_area_stretch()/2);
-		Point defense_point2(-f.length()/2, f.defense_area_stretch()/2);
+		Point defense_point1(-f.length() / 2, -f.defense_area_stretch() / 2);
+		Point defense_point2(-f.length() / 2, f.defense_area_stretch() / 2);
 		double dist = std::min(lineseg_point_dist(defense_point1, cur, dst), lineseg_point_dist(defense_point1, cur, dst));
 		violate = std::max(violate, defense_dist - dist);
 		std::vector<Point> p = line_rect_intersect(r, cur, dst);
-		for(  std::vector<Point>::iterator it= p.begin(); it!=p.end(); it++){
-			double x = it->x + f.length()/2;
+		for (std::vector<Point>::const_iterator it = p.begin(); it != p.end(); it++) {
+			double x = it->x + f.length() / 2;
 			violate = std::max(violate, defense_dist - x);
 		}
 		return violate;
 	}
 
-	double get_offense_area_violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
-
+	double get_offense_area_violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 		double violate = 0.0;
 		const Field &f = world.field();
 		double defense_dist = f.defense_area_radius() + player->MAX_RADIUS + DEFENSE_AREA_BUFFER;
-		Point zero(0,0);
+		Point zero;
 		Rect r(zero, defense_dist, f.defense_area_stretch());
-		Point trans_defense_area(f.length()/2, -r.height()/2); 
+		Point trans_defense_area(f.length() / 2, -r.height() / 2);
 		r.translate(trans_defense_area);
 
-		Point defense_point1(f.length()/2, -f.defense_area_stretch()/2);
-		Point defense_point2(f.length()/2, f.defense_area_stretch()/2);
+		Point defense_point1(f.length() / 2, -f.defense_area_stretch() / 2);
+		Point defense_point2(f.length() / 2, f.defense_area_stretch() / 2);
 		double dist = std::min(lineseg_point_dist(defense_point1, cur, dst), lineseg_point_dist(defense_point1, cur, dst));
 		violate = std::max(violate, defense_dist - dist);
 		std::vector<Point> p = line_rect_intersect(r, cur, dst);
-		for(  std::vector<Point>::iterator it= p.begin(); it!=p.end(); it++){
-			double x = it->x - f.length()/2;
+		for (std::vector<Point>::const_iterator it = p.begin(); it != p.end(); it++) {
+			double x = it->x - f.length() / 2;
 			violate = std::max(violate, defense_dist + x);
 		}
 		return violate;
 	}
 
-	double get_ball_tiny_violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+	double get_ball_tiny_violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 		double player_rad = player->MAX_RADIUS;
 		double violate = 0.0;
 		const Ball &ball = world.ball();
-		double circle_radius =  Ball::RADIUS + player_rad + BALL_TINY_BUFFER;
+		double circle_radius = Ball::RADIUS + player_rad + BALL_TINY_BUFFER;
 		double dist = lineseg_point_dist(ball.position(), cur, dst);
 		violate = std::max(violate, circle_radius - dist);
 		return violate;
 	}
- 
-	violation get_violation_amount(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
-		violation v;   
+
+	violation get_violation_amount(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+		violation v;
 		v.friendly = get_friendly_violation(cur, dst, world, player);
 		v.enemy = get_enemy_violation(cur, dst, world, player);
 		unsigned int flags = player->flags();
-		if(flags & FLAG_CLIP_PLAY_AREA){
-
+		if (flags & FLAG_CLIP_PLAY_AREA) {
 		}
-		if(flags & FLAG_AVOID_BALL_STOP){
+		if (flags & FLAG_AVOID_BALL_STOP) {
 			v.ball_stop = get_ball_stop_violation(cur, dst, world, player);
 		}
-		if(flags & FLAG_AVOID_BALL_TINY){
+		if (flags & FLAG_AVOID_BALL_TINY) {
 			v.ball_tiny = get_ball_tiny_violation(cur, dst, world, player);
 		}
-		if(flags & FLAG_AVOID_FRIENDLY_DEFENSE){
+		if (flags & FLAG_AVOID_FRIENDLY_DEFENSE) {
 			v.friendly_defense = get_defense_area_violation(cur, dst, world, player);
 		}
-		if(flags & FLAG_AVOID_ENEMY_DEFENSE){
+		if (flags & FLAG_AVOID_ENEMY_DEFENSE) {
 			v.friendly_defense = get_offense_area_violation(cur, dst, world, player);
 		}
 		return v;
 	}
-
 };
-
 
 bool AI::Nav::Util::valid_dst(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 	return get_violation_amount(dst, dst, world, player).violation_free();
@@ -186,7 +182,7 @@ bool AI::Nav::Util::valid_dst(Point dst, AI::Nav::W::World &world, AI::Nav::W::P
 bool AI::Nav::Util::valid_path(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 	violation a = get_violation_amount(cur, cur, world, player);
 	violation b = get_violation_amount(cur, dst, world, player);
-	return b.no_more_violating_than(a); 
+	return b.no_more_violating_than(a);
 }
 
 bool AI::Nav::Util::check_dest_valid(Point dest, World &world, Player::Ptr player) {

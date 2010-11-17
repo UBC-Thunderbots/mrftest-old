@@ -23,7 +23,7 @@ namespace {
 
 		private:
 			MovementBenchmarkNavigator(World &world);
-			StochasticLocalSearch* sls;
+			StochasticLocalSearch *sls;
 			~MovementBenchmarkNavigator();
 	};
 
@@ -62,25 +62,24 @@ namespace {
 	Navigator::Ptr MovementBenchmarkNavigatorFactory::create_navigator(World &world) const {
 		return MovementBenchmarkNavigator::create(world);
 	}
-	
+
 	const double PI = M_PI;
 	int taskIndex = 0;
 	int numTasks = 10;
 	int time = 0;
 	int limit = 1000;
 	int best = limit;
-	
-	const std::pair<Point, double> tasks[] =
-	{
+
+	const std::pair<Point, double> tasks[] = {
 		std::make_pair(Point(1.2, 0), 0),
 		std::make_pair(Point(0.5, 0), PI),
 		std::make_pair(Point(2.5, 0), 0),
 		std::make_pair(Point(0.5, 1.2), PI),
 		std::make_pair(Point(1, -0.6), 0),
-		std::make_pair(Point(2, 0.6), PI/2),
-		std::make_pair(Point(1, -0.6), -PI/2),
+		std::make_pair(Point(2, 0.6), PI / 2),
+		std::make_pair(Point(1, -0.6), -PI / 2),
 		std::make_pair(Point(0.5, 0), 0),
-		std::make_pair(Point(2.5, 0.6), -PI/2),
+		std::make_pair(Point(2.5, 0.6), -PI / 2),
 		std::make_pair(Point(1.2, 0), 0)
 	};
 
@@ -89,12 +88,12 @@ namespace {
 		FriendlyTeam &fteam = world.friendly_team();
 
 		TunableController *tc = TunableController::get_instance();
-		
+
 		if (fteam.size() != 1) {
 			std::cerr << "error: must have only 1 robot in the team!" << std::endl;
 			return;
 		}
-		
+
 		time++;
 
 		Player::Ptr player;
@@ -103,13 +102,13 @@ namespace {
 		path.clear();
 		player = fteam.get(0);
 		Point currentPosition = player->position();
-		if ((currentPosition-tasks[taskIndex].first).len() < 0.2 && player->velocity().len() < 0.05) {
+		if ((currentPosition - tasks[taskIndex].first).len() < 0.2 && player->velocity().len() < 0.05) {
 			taskIndex++;
 			if (taskIndex == 1) {
 				time = 0;
 			}
 		}
-		
+
 		if (taskIndex == numTasks || time >= best) {
 			taskIndex = 0;
 			std::cout << "Parameters: ";
