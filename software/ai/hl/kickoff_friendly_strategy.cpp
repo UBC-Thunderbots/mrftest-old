@@ -109,7 +109,7 @@ namespace {
 
 		AI::HL::Tactics::shoot(world, kicker, 0);
 	}
-	
+
 	void KickoffFriendlyStrategy::prepare() {
 		if (world.friendly_team().size() == 0) {
 			return;
@@ -128,7 +128,6 @@ namespace {
 		std::vector<Point> positions;
 
 		switch (offenders.size()) {
-
 			case 2:
 				positions.push_back(shoot.rotate(delta_angle));
 
