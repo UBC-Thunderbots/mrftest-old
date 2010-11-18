@@ -21,6 +21,16 @@ namespace AI {
 			bool valid_path(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
 
 			/**
+			 * returns a list of legal destinations that are on the boundries of obstacles such as the ball
+			 * or enemy robots. These set of points may be valuable as a search space for a navigator
+			 *
+			 * \param[in] world the world for field information
+			 *
+			 * \param[in] player the player thats being checked
+			 */
+			std::vector<Point> get_obstacle_boundries(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+
+			/**
 			 * Checks to see if the point is valid.
 			 * This includes flag checks and checks to see if the dest is on another robot.
 			 *

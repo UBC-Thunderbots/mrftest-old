@@ -206,6 +206,13 @@ double lineseg_point_dist(Point centre, Point segA, Point segB) {
 	return std::min((centre - segB).len(), (centre - segA).len());
 }
 
+double seg_seg_distance(const Point &a, const Point &b, const Point &c, const Point &d){
+	if(seg_crosses_seg(a,b,c,d)){
+		return 0.0;
+	}
+	return std::min(std::min(lineseg_point_dist(a,c,d),lineseg_point_dist(b,c,d)), std::min(	lineseg_point_dist(c,a,b), 	lineseg_point_dist(d,a,b)));
+}
+
 std::vector<Point> lineseg_circle_intersect(Point centre, double radius, Point segA, Point segB) {
 	std::vector<Point> ans;
 	std::vector<Point> poss = line_circle_intersect(centre, radius, segA, segB);

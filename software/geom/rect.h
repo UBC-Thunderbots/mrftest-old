@@ -100,6 +100,35 @@ class Rect {
 		 */
 		void translate(const Point &offset);
 
+		/**
+		 * Checks whether a point is within the boundries of the rectangle
+		 *
+		 * \param[in] Point to test
+		 *
+		 * \return bool whether the point is inside the boundry of the rectangle
+		 */
+		bool point_inside(Point p);
+
+		/**
+		 * Tries to move all of the edges of the rectangle outwards/inwards towards the centre by "amount"
+		 * while keeping the location of the centre of the rectangle the same the rectangle 
+		 * will not shrink to something smaller than a point
+		 *
+		 * \param[in] the amount to shrink the recatngle by on all sides (positive or negative numbers ok)
+		 *
+		 * \return bool whether it was possible to expand/shrink the rectangle by amount requested
+		 */
+		bool expand(double amount);
+
+		/**
+		 * Gives the distance between a point and the nearest point on the rectangle boundry
+		 *
+		 * \param[in] Point to test
+		 *
+		 * \return double
+		 */
+		double dist_to_boundary(Point p);
+
 	private:
 		Point min_corner;
 		Point diag;

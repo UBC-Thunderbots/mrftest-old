@@ -207,6 +207,8 @@ Point line_intersect(const Point &a, const Point &b, const Point &c, const Point
  */
 double line_point_dist(const Point &p, const Point &a, const Point &b);
 
+double seg_seg_distance(const Point &a, const Point &b, const Point &c, const Point &d);
+
 /**
  * Checks whether two line segments intersect.
  *
