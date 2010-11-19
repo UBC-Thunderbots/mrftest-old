@@ -127,7 +127,7 @@ Point clip_point(const Point &p, const Point &bound1, const Point &bound2) {
 	return ret;
 }
 
-std::vector<Point> line_circle_intersect(Point centre, double radius, Point segA, Point segB) {
+std::vector<Point> line_circle_intersect(const Point &centre, double radius, const Point &segA, const Point &segB) {
 	std::vector<Point> ans;
 
 	// take care of 0 length segments too much error here
@@ -158,7 +158,7 @@ std::vector<Point> line_circle_intersect(Point centre, double radius, Point segA
 	return ans;
 }
 
-std::vector<Point> line_rect_intersect(Rect r, Point segA, Point segB) {
+std::vector<Point> line_rect_intersect(Rect &r, const Point &segA, const Point &segB) {
 	std::vector<Point> ans;
 	for (int i = 0; i < 4; i++) {
 		int j = i + 1;
@@ -172,15 +172,15 @@ std::vector<Point> line_rect_intersect(Rect r, Point segA, Point segB) {
 }
 
 
-double lineseg_point_dist(Point centre, Point segA, Point segB) {
+double lineseg_point_dist(const Point &centre, const Point &segA, const Point &segB) {
 	// if one of the end-points is extremely close to the centre point
 	// then return 0.0
-	if ((segB - centre).lensq() < EPS || (segA - centre).lensq() < EPS) {
+	if ((segB - centre).lensq() < EPS2 || (segA - centre).lensq() < EPS2) {
 		return 0.0;
 	}
 
 	// take care of 0 length segments
-	if ((segB - segA).lensq() < EPS) {
+	if ((segB - segA).lensq() < EPS2) {
 		return std::min((centre - segB).len(), (centre - segA).len());
 	}
 
@@ -197,7 +197,7 @@ double lineseg_point_dist(Point centre, Point segA, Point segB) {
 
 	// if so return C
 	if (in_range) {
-		if ((centre - C).lensq() < EPS) {
+		if ((centre - C).lensq() < EPS2) {
 			return 0.0;
 		}
 		return (centre - C).len();
@@ -213,7 +213,7 @@ double seg_seg_distance(const Point &a, const Point &b, const Point &c, const Po
 	return std::min(std::min(lineseg_point_dist(a, c, d), lineseg_point_dist(b, c, d)), std::min(lineseg_point_dist(c, a, b), lineseg_point_dist(d, a, b)));
 }
 
-std::vector<Point> lineseg_circle_intersect(Point centre, double radius, Point segA, Point segB) {
+std::vector<Point> lineseg_circle_intersect(const Point &centre, double radius, const Point &segA, const Point &segB) {
 	std::vector<Point> ans;
 	std::vector<Point> poss = line_circle_intersect(centre, radius, segA, segB);
 
@@ -252,6 +252,16 @@ double line_point_dist(const Point &p, const Point &a, const Point &b) {
 // ported code
 #warning this code looks broken (or so geom/util.h used to claim)
 bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Point &b2) {
+
+	// handle case where the lines are co-linear
+	if (sign((a1 - a2).cross(b1 - b2)) == 0) {
+		// find distance of two endpoints on segments furthest away from each other
+		double mx_len = std::max(std::max((b1-a2).len(), (b2-a2).len()), std::max((b1-a1).len(), (b1-a2).len()));
+		// if the segments cross then this distance should be less than
+		// the sum of the distances of the line segments
+		return mx_len < (a1-a2).len() + (b1-b2).len() + EPS;
+	}
+
 	return sign((a2 - a1).cross(b1 - a1))
 	       * sign((a2 - a1).cross(b2 - a1)) <= 0 &&
 	       sign((b2 - b1).cross(a1 - b1))
@@ -270,7 +280,7 @@ bool line_seg_intersect_rectangle(Point seg[2], Point recA[4]) {
 }
 
 #warning use pass-by-reference
-bool point_in_rectangle(Point pointA, Point recA[4]) {
+bool point_in_rectangle(const Point &pointA, Point recA[4]) {
 	bool x_ok = pointA.x >= std::min(std::min(recA[0].x, recA[1].x), std::min(recA[2].x, recA[3].x));
 	x_ok = x_ok && pointA.x <= std::max(std::max(recA[0].x, recA[1].x), std::max(recA[2].x, recA[3].x));
 	bool y_ok = pointA.y >= std::min(std::min(recA[0].y, recA[1].y), std::min(recA[2].y, recA[3].y));

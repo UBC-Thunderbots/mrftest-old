@@ -86,7 +86,7 @@ bool line_seg_intersect_rectangle(Point seg[2], Point recA[4]);
  *
  * \return \c true if \p pointA lies inside the rectangle, or \c false if it lies outside.
  */
-bool point_in_rectangle(Point pointA, Point recA[4]);
+bool point_in_rectangle(const Point &pointA, Point recA[4]);
 
 /**
  * Finds the distance between and a line segment and a point.
@@ -99,7 +99,7 @@ bool point_in_rectangle(Point pointA, Point recA[4]);
  *
  * \return the distance between line seg and point.
  */
-double lineseg_point_dist(Point centre, Point segA, Point segB);
+double lineseg_point_dist(const Point &centre, const Point &segA, const Point &segB);
 
 /**
  * Finds the points of intersection between a circle and a line.
@@ -115,7 +115,7 @@ double lineseg_point_dist(Point centre, Point segA, Point segB);
  *
  * \return the points of intersection.
  */
-std::vector<Point> line_circle_intersect(Point centre, double radius, Point segA, Point segB);
+std::vector<Point> line_circle_intersect(const Point &centre, double radius, const Point &segA, const Point &segB);
 
 /**
  * Finds the points of intersection between a circle and a line.
@@ -131,7 +131,7 @@ std::vector<Point> line_circle_intersect(Point centre, double radius, Point segA
  *
  * \return the points of intersection.
  */
-std::vector<Point> line_circle_intersect(Point centre, double radius, Point segA, Point segB);
+std::vector<Point> line_circle_intersect(const Point &centre, double radius, const Point &segA, const Point &segB);
 
 /**
  * Finds the points of intersection between a circle and a line.
@@ -145,7 +145,7 @@ std::vector<Point> line_circle_intersect(Point centre, double radius, Point segA
  *
  * \return the points of intersection.
  */
-std::vector<Point> line_rect_intersect(Rect r, Point segA, Point segB);
+std::vector<Point> line_rect_intersect(Rect &r, const Point &segA, const Point &segB);
 
 
 /**
