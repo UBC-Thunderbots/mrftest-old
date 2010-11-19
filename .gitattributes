@@ -119,9 +119,9 @@ software/ai/logger.h -text
 software/ai/main.cpp -text
 software/ai/navigator/bnavigator.cpp -text
 software/ai/navigator/follow_ball_navigator.cpp -text
-software/ai/navigator/movement_benchmark_navigator.cpp -text
 software/ai/navigator/navigator.cpp -text
 software/ai/navigator/navigator.h -text
+software/ai/navigator/parameter_tuning_navigator.cpp -text
 software/ai/navigator/rrt_navigator.cpp -text
 software/ai/navigator/simple_navigator.cpp -text
 software/ai/navigator/util.cpp -text

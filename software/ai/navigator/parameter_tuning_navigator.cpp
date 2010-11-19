@@ -12,55 +12,55 @@ using namespace AI::Nav::W;
 
 namespace {
 	/**
-	 * Movement Benchmark
-	 * Used for tuning robot controller.
+	 * Parameter Tuning
+	 * Used for tuning robot controllers.
 	 */
-	class MovementBenchmarkNavigator : public Navigator {
+	class ParameterTuningNavigator : public Navigator {
 		public:
 			NavigatorFactory &factory() const;
 			static Navigator::Ptr create(World &world);
 			void tick();
 
 		private:
-			MovementBenchmarkNavigator(World &world);
+			ParameterTuningNavigator(World &world);
 			StochasticLocalSearch *sls;
-			~MovementBenchmarkNavigator();
+			~ParameterTuningNavigator();
 	};
 
-	class MovementBenchmarkNavigatorFactory : public NavigatorFactory {
+	class ParameterTuningNavigatorFactory : public NavigatorFactory {
 		public:
 			Navigator::Ptr create_navigator(World &world) const;
-			MovementBenchmarkNavigatorFactory();
-			~MovementBenchmarkNavigatorFactory();
+			ParameterTuningNavigatorFactory();
+			~ParameterTuningNavigatorFactory();
 	};
 
-	MovementBenchmarkNavigatorFactory simple_nav_factory;
+	ParameterTuningNavigatorFactory simple_nav_factory;
 
-	NavigatorFactory &MovementBenchmarkNavigator::factory() const {
+	NavigatorFactory &ParameterTuningNavigator::factory() const {
 		return simple_nav_factory;
 	}
 
-	Navigator::Ptr MovementBenchmarkNavigator::create(World &world) {
-		const Navigator::Ptr p(new MovementBenchmarkNavigator(world));
+	Navigator::Ptr ParameterTuningNavigator::create(World &world) {
+		const Navigator::Ptr p(new ParameterTuningNavigator(world));
 		return p;
 	}
 
-	MovementBenchmarkNavigator::MovementBenchmarkNavigator(World &world) : Navigator(world) {
+	ParameterTuningNavigator::ParameterTuningNavigator(World &world) : Navigator(world) {
 		TunableController *tc = TunableController::get_instance();
 		sls = new StochasticLocalSearch(tc->get_params_default(), tc->get_params_min(), tc->get_params_max());
 	}
 
-	MovementBenchmarkNavigator::~MovementBenchmarkNavigator() {
+	ParameterTuningNavigator::~ParameterTuningNavigator() {
 	}
 
-	MovementBenchmarkNavigatorFactory::MovementBenchmarkNavigatorFactory() : NavigatorFactory("TEST: Movement Benchmark") {
+	ParameterTuningNavigatorFactory::ParameterTuningNavigatorFactory() : NavigatorFactory("TEST: Parameter Tuning") {
 	}
 
-	MovementBenchmarkNavigatorFactory::~MovementBenchmarkNavigatorFactory() {
+	ParameterTuningNavigatorFactory::~ParameterTuningNavigatorFactory() {
 	}
 
-	Navigator::Ptr MovementBenchmarkNavigatorFactory::create_navigator(World &world) const {
-		return MovementBenchmarkNavigator::create(world);
+	Navigator::Ptr ParameterTuningNavigatorFactory::create_navigator(World &world) const {
+		return ParameterTuningNavigator::create(world);
 	}
 
 	const double PI = M_PI;
@@ -84,7 +84,7 @@ namespace {
 	};
 
 
-	void MovementBenchmarkNavigator::tick() {
+	void ParameterTuningNavigator::tick() {
 		FriendlyTeam &fteam = world.friendly_team();
 
 		TunableController *tc = TunableController::get_instance();
