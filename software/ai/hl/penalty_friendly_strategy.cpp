@@ -33,7 +33,7 @@ namespace {
 			PenaltyFriendlyStrategy(World &world);
 			~PenaltyFriendlyStrategy();
 			void on_player_added(std::size_t);
-			void on_player_removing(std::size_t);
+			void on_player_removed();
 
 			/**
 			 * What this strategy is created for.
@@ -89,7 +89,7 @@ namespace {
 
 		const Point shoot_position = Point(0.5 * world.field().length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0);
 
-		AI::HL::Tactics::free_move(world, kicker, shoot_position);
+		if (kicker.is()) AI::HL::Tactics::free_move(world, kicker, shoot_position);
 	}
 
 	void PenaltyFriendlyStrategy::execute_penalty_friendly() {
@@ -99,7 +99,7 @@ namespace {
 
 		prepare();
 
-		AI::HL::Tactics::shoot(world, kicker, 0);
+		if (kicker.is()) AI::HL::Tactics::shoot(world, kicker, 0);
 	}
 
 	void PenaltyFriendlyStrategy::prepare() {
@@ -179,7 +179,7 @@ namespace {
 
 	PenaltyFriendlyStrategy::PenaltyFriendlyStrategy(World &world) : Strategy(world), defender(world) {
 		world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &PenaltyFriendlyStrategy::on_player_added));
-		world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &PenaltyFriendlyStrategy::on_player_removing));
+		world.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &PenaltyFriendlyStrategy::on_player_removed));
 		run_assignment();
 	}
 
@@ -187,7 +187,7 @@ namespace {
 		run_assignment();
 	}
 
-	void PenaltyFriendlyStrategy::on_player_removing(std::size_t) {
+	void PenaltyFriendlyStrategy::on_player_removed() {
 		run_assignment();
 	}
 

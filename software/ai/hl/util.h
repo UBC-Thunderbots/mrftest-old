@@ -219,6 +219,15 @@ namespace AI {
 			 * \param[in, out] waypoints a list of points in which to assign the players, which will be reordered.
 			 */
 			void waypoints_matching(const std::vector<AI::HL::W::Player::Ptr> &players, std::vector<Point> &waypoints);
+
+			/**
+			 * Finds the best assignment of friendly players to pass to.
+			 *
+			 * \param[in] players a list of players.
+			 *
+			 * \param[in, out] waypoints a list of points in which to assign the players, which will be reordered.
+			 */
+			int choose_best_pass(AI::HL::W::World &world, const std::vector<AI::HL::W::Player::Ptr>& friends);
 		}
 	}
 }

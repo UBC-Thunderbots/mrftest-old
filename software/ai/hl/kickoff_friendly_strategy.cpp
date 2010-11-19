@@ -14,7 +14,7 @@ using namespace AI::HL::W;
 
 namespace {
 	// the distance we want the players to the ball
-	const double AVOIDANCE_DIST = 0.50 + Robot::MAX_RADIUS + 0.005;
+	const double AVOIDANCE_DIST = Ball::RADIUS + Robot::MAX_RADIUS + 0.005;
 
 	// in ball avoidance, angle between center of 2 robots, as seen from the ball
 	const double AVOIDANCE_ANGLE = 2.0 * std::asin(Robot::MAX_RADIUS / AVOIDANCE_DIST);
@@ -40,12 +40,13 @@ namespace {
 			~KickoffFriendlyStrategy();
 
 			void on_player_added(std::size_t);
-			void on_player_removing(std::size_t);
+			void on_player_removed();
 
 			void prepare_kickoff_friendly();
 			void execute_kickoff_friendly();
-
+			
 			void prepare();
+			void execute();
 
 			/**
 			 * Dynamic assignment every tick can be bad if players keep changing the roles.
@@ -93,11 +94,7 @@ namespace {
 			return;
 		}
 
-		prepare();
-
-		const Point shoot_position = Point(-Robot::MAX_RADIUS, 0);
-
-		AI::HL::Tactics::free_move(world, kicker, shoot_position);
+		prepare();		
 	}
 
 	void KickoffFriendlyStrategy::execute_kickoff_friendly() {
@@ -105,9 +102,9 @@ namespace {
 			return;
 		}
 
-		prepare();
+		//prepare();
 
-		AI::HL::Tactics::shoot(world, kicker, 0);
+		execute();
 	}
 
 	void KickoffFriendlyStrategy::prepare() {
@@ -118,9 +115,6 @@ namespace {
 		// draw a circle of radius 50cm from the ball
 		Point ball_pos = world.ball().position();
 
-		// calculate angle between robots
-		const double delta_angle = AVOIDANCE_ANGLE + separation_angle * M_PI / 180.0;
-
 		// a ray that shoots from the center to friendly goal.
 		const Point shoot = Point(-1, 0) * AVOIDANCE_DIST;
 
@@ -129,10 +123,10 @@ namespace {
 
 		switch (offenders.size()) {
 			case 2:
-				positions.push_back(shoot.rotate(delta_angle));
+				positions.push_back(Point(-AVOIDANCE_DIST, 5 * Robot::MAX_RADIUS));
 
 			case 1:
-				positions.push_back(shoot.rotate(-delta_angle));
+				positions.push_back(Point(-AVOIDANCE_DIST, -5 * Robot::MAX_RADIUS));
 
 			default:
 				break;
@@ -146,13 +140,18 @@ namespace {
 
 		defender.set_chase(false);
 		defender.tick();
-		offender.set_chase(false);
-		offender.tick();
 
-		// TODO something more sensible
-		AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
+		if (kicker.is()) AI::HL::Tactics::free_move(world, kicker, shoot);
+		
 	}
 
+	void KickoffFriendlyStrategy::execute(){
+		int best = AI::HL::Util::choose_best_pass(world, offenders);
+		
+		if (kicker.is()) AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_AVOID_BALL_TINY, offenders[best]->position());
+		offender.set_players(offenders);
+		offender.tick();
+	}
 
 	void KickoffFriendlyStrategy::run_assignment() {
 		if (world.friendly_team().size() == 0) {
@@ -202,7 +201,6 @@ namespace {
 		LOG_INFO(Glib::ustring::compose("player reassignment %1 defenders, %2 offenders", ndefenders, offenders.size()));
 
 		defender.set_players(defenders, goalie);
-		offender.set_players(offenders);
 	}
 
 	Strategy::Ptr KickoffFriendlyStrategy::create(World &world) {
@@ -212,7 +210,7 @@ namespace {
 
 	KickoffFriendlyStrategy::KickoffFriendlyStrategy(World &world) : Strategy(world), defender(world), offender(world) {
 		world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &KickoffFriendlyStrategy::on_player_added));
-		world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &KickoffFriendlyStrategy::on_player_removing));
+		world.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &KickoffFriendlyStrategy::on_player_removed));
 		run_assignment();
 	}
 
@@ -220,7 +218,7 @@ namespace {
 		run_assignment();
 	}
 
-	void KickoffFriendlyStrategy::on_player_removing(std::size_t) {
+	void KickoffFriendlyStrategy::on_player_removed() {
 		run_assignment();
 	}
 

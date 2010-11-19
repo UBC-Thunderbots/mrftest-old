@@ -213,3 +213,21 @@ void AI::HL::Util::waypoints_matching(const std::vector<Player::Ptr> &players, s
 	}
 }
 
+int AI::HL::Util::choose_best_pass(World &world, const std::vector<Player::Ptr>& friends) {
+	double bestangle = 0;
+	double bestdist = 1e99;
+	int bestidx = -1;
+	for (size_t i = 0; i < friends.size(); ++i) {
+		// see if this player is on line of sight
+		if (!AI::HL::Util::can_receive(world, friends[i])) continue;
+		// choose the most favourable distance
+		const double dist = (friends[i]->position() - world.ball().position()).len();
+		const double angle = AI::HL::Util::calc_best_shot(world, friends[i]).second;
+		if (bestidx == -1 || angle > bestangle || (angle == bestangle && dist < bestdist)) {
+			bestangle = angle;
+			bestdist = dist;
+			bestidx = i;
+		}
+	}
+	return bestidx;
+}

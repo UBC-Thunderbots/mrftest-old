@@ -31,7 +31,7 @@ namespace {
 			FreeKickFriendlyStrategy(World &world);
 			~FreeKickFriendlyStrategy();
 			void on_player_added(std::size_t);
-			void on_player_removing(std::size_t);
+			void on_player_removed();
 
 			void execute_indirect_free_kick_friendly();
 			void execute_direct_free_kick_friendly();
@@ -101,7 +101,7 @@ namespace {
 		offender.tick();
 
 		// TODO something more sensible
-		AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
+		if (kicker.is()) AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
 	}
 
 	void FreeKickFriendlyStrategy::run_assignment() {
@@ -162,7 +162,7 @@ namespace {
 
 	FreeKickFriendlyStrategy::FreeKickFriendlyStrategy(World &world) : Strategy(world), defender(world), offender(world) {
 		world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &FreeKickFriendlyStrategy::on_player_added));
-		world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &FreeKickFriendlyStrategy::on_player_removing));
+		world.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &FreeKickFriendlyStrategy::on_player_removed));
 		run_assignment();
 	}
 
@@ -170,7 +170,7 @@ namespace {
 		run_assignment();
 	}
 
-	void FreeKickFriendlyStrategy::on_player_removing(std::size_t) {
+	void FreeKickFriendlyStrategy::on_player_removed() {
 		run_assignment();
 	}
 

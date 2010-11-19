@@ -31,7 +31,7 @@ namespace {
 			FreeKickEnemyStrategy(World &world);
 			~FreeKickEnemyStrategy();
 			void on_player_added(std::size_t);
-			void on_player_removing(std::size_t);
+			void on_player_removed();
 
 			void execute_indirect_free_kick_enemy();
 			void execute_direct_free_kick_enemy();
@@ -161,7 +161,7 @@ namespace {
 
 	FreeKickEnemyStrategy::FreeKickEnemyStrategy(World &world) : Strategy(world), defender(world), offender(world) {
 		world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &FreeKickEnemyStrategy::on_player_added));
-		world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &FreeKickEnemyStrategy::on_player_removing));
+		world.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &FreeKickEnemyStrategy::on_player_removed));
 		run_assignment();
 	}
 
@@ -169,7 +169,7 @@ namespace {
 		run_assignment();
 	}
 
-	void FreeKickEnemyStrategy::on_player_removing(std::size_t) {
+	void FreeKickEnemyStrategy::on_player_removed() {
 		run_assignment();
 	}
 
