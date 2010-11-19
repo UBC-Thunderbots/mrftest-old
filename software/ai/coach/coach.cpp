@@ -35,6 +35,10 @@ Coach::Coach(World &world) : world(world) {
 Coach::~Coach() {
 }
 
+Gtk::Widget *Coach::ui_controls() {
+	return 0;
+}
+
 CoachFactory::CoachFactory(const Glib::ustring &name) : Registerable<CoachFactory>(name) {
 }
 

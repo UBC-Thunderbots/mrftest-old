@@ -26,6 +26,15 @@ template<typename T> class Property : public NonCopyable {
 		}
 
 		/**
+		 * Returns the signal fired when the value of the Property is about to change.
+		 *
+		 * \return the signal.
+		 */
+		sigc::signal<void> &signal_changing() const {
+			return signal_changing_;
+		}
+
+		/**
 		 * Returns the signal fired when the value of the Property changes.
 		 *
 		 * \return the signal.
@@ -41,6 +50,7 @@ template<typename T> class Property : public NonCopyable {
 		 */
 		Property &operator=(const T &val) {
 			if (value != val) {
+				signal_changing().emit();
 				value = val;
 				signal_changed().emit();
 			}
@@ -54,6 +64,7 @@ template<typename T> class Property : public NonCopyable {
 		 */
 		Property &operator=(const Property<T> &val) {
 			if (value != val.value) {
+				signal_changing().emit();
 				value = val.value;
 				signal_changed().emit();
 			}
@@ -80,6 +91,7 @@ template<typename T> class Property : public NonCopyable {
 
 	private:
 		T value;
+		mutable sigc::signal<void> signal_changing_;
 		mutable sigc::signal<void> signal_changed_;
 };
 

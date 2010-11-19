@@ -4,6 +4,10 @@ using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
 using namespace AI::Nav::W;
 
+Gtk::Widget *Navigator::ui_controls() {
+	return 0;
+}
+
 Navigator::Navigator(World &world) : world(world) {
 }
 

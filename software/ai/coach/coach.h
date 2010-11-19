@@ -64,9 +64,12 @@ namespace AI {
 				/**
 				 * Returns the GTK widget for this Coach, which will be integrated into the AI's user interface.
 				 *
-				 * \return a GUI widget containing the controls for this Coach, or a null pointer if no GUI widgets are needed for this Coach.
+				 * \return a GUI widget containing the controls for this Coach,
+				 * or a null pointer if no GUI widgets are needed for this Coach.
+				 *
+				 * \note The default implementation returns a null pointer.
 				 */
-				virtual Gtk::Widget *ui_controls() = 0;
+				virtual Gtk::Widget *ui_controls();
 
 			protected:
 				/**

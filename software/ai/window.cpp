@@ -143,34 +143,36 @@ namespace {
 
 	class CoachControls : public Gtk::Frame {
 		public:
-			CoachControls(AI::AIPackage &ai) : Gtk::Frame("Coach"), ai(ai) {
-				Gtk::Table *table = Gtk::manage(new Gtk::Table(2, 2));
-
-				table->attach(*Gtk::manage(new Gtk::Label("Coach:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+			CoachControls(AI::AIPackage &ai) : Gtk::Frame("Coach"), ai(ai), table(3, 2), custom_controls(0) {
+				table.attach(*Gtk::manage(new Gtk::Label("Coach:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				coach_chooser.append_text("<Choose Coach>");
 				typedef AI::Coach::CoachFactory::Map Map;
 				const Map &m = AI::Coach::CoachFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 					coach_chooser.append_text(i->second->name);
 				}
-				table->attach(coach_chooser, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				table.attach(coach_chooser, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				coach_chooser.signal_changed().connect(sigc::mem_fun(this, &CoachControls::on_coach_chooser_changed));
+				ai.coach.signal_changing().connect(sigc::mem_fun(this, &CoachControls::on_coach_changing));
 				ai.coach.signal_changed().connect(sigc::mem_fun(this, &CoachControls::on_coach_changed));
-				on_coach_changed();
 
-				table->attach(*Gtk::manage(new Gtk::Label("Strategy:")), 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				table.attach(*Gtk::manage(new Gtk::Label("Strategy:")), 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				strategy_entry.set_editable(false);
-				table->attach(strategy_entry, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				table.attach(strategy_entry, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				ai.backend.strategy().signal_changed().connect(sigc::mem_fun(this, &CoachControls::on_strategy_changed));
-				on_strategy_changed();
 
-				add(*table);
+				add(table);
+
+				on_coach_changed();
+				on_strategy_changed();
 			}
 
 		private:
 			AI::AIPackage &ai;
+			Gtk::Table table;
 			Gtk::ComboBoxText coach_chooser;
 			Gtk::Entry strategy_entry;
+			Gtk::Widget *custom_controls;
 
 			void on_coach_chooser_changed() {
 				const Glib::ustring &selected = coach_chooser.get_active_text();
@@ -184,12 +186,24 @@ namespace {
 				}
 			}
 
+			void on_coach_changing() {
+				if (custom_controls) {
+					table.remove(*custom_controls);
+					custom_controls = 0;
+				}
+			}
+
 			void on_coach_changed() {
 				AI::Coach::Coach::Ptr coach = ai.coach;
 				if (coach.is()) {
 					coach_chooser.set_active_text(coach->factory().name);
 				} else {
 					coach_chooser.set_active_text("<Choose Coach>");
+				}
+				custom_controls = coach.is() ? coach->ui_controls() : 0;
+				if (custom_controls) {
+					table.attach(*custom_controls, 0, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+					custom_controls->show_all();
 				}
 			}
 
@@ -205,27 +219,30 @@ namespace {
 
 	class NavigatorControls : public Gtk::Frame {
 		public:
-			NavigatorControls(AI::AIPackage &ai) : Gtk::Frame("Navigator"), ai(ai) {
-				Gtk::Table *table = Gtk::manage(new Gtk::Table(2, 2));
-
-				table->attach(*Gtk::manage(new Gtk::Label("Navigator:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+			NavigatorControls(AI::AIPackage &ai) : Gtk::Frame("Navigator"), ai(ai), table(3, 2), custom_controls(0) {
+				table.attach(*Gtk::manage(new Gtk::Label("Navigator:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				navigator_chooser.append_text("<Choose Navigator>");
 				typedef AI::Nav::NavigatorFactory::Map Map;
 				const Map &m = AI::Nav::NavigatorFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 					navigator_chooser.append_text(i->second->name);
 				}
-				table->attach(navigator_chooser, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+
+				table.attach(navigator_chooser, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				navigator_chooser.signal_changed().connect(sigc::mem_fun(this, &NavigatorControls::on_navigator_chooser_changed));
+				ai.navigator.signal_changing().connect(sigc::mem_fun(this, &NavigatorControls::on_navigator_changing));
 				ai.navigator.signal_changed().connect(sigc::mem_fun(this, &NavigatorControls::on_navigator_changed));
+
 				on_navigator_changed();
 
-				add(*table);
+				add(table);
 			}
 
 		private:
 			AI::AIPackage &ai;
+			Gtk::Table table;
 			Gtk::ComboBoxText navigator_chooser;
+			Gtk::Widget *custom_controls;
 
 			void on_navigator_chooser_changed() {
 				const Glib::ustring &selected = navigator_chooser.get_active_text();
@@ -239,6 +256,13 @@ namespace {
 				}
 			}
 
+			void on_navigator_changing() {
+				if (custom_controls) {
+					table.remove(*custom_controls);
+					custom_controls = 0;
+				}
+			}
+
 			void on_navigator_changed() {
 				AI::Nav::Navigator::Ptr navigator = ai.navigator;
 				if (navigator.is()) {
@@ -246,32 +270,39 @@ namespace {
 				} else {
 					navigator_chooser.set_active_text("<Choose Navigator>");
 				}
+				custom_controls = navigator.is() ? navigator->ui_controls() : 0;
+				if (custom_controls) {
+					table.attach(*custom_controls, 0, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+					custom_controls->show_all();
+				}
 			}
 	};
 
 	class RobotControllerControls : public Gtk::Frame {
 		public:
-			RobotControllerControls(AI::AIPackage &ai) : Gtk::Frame("Robot Controller"), ai(ai) {
-				Gtk::Table *table = Gtk::manage(new Gtk::Table(2, 2));
-
-				table->attach(*Gtk::manage(new Gtk::Label("Robot Controller:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+			RobotControllerControls(AI::AIPackage &ai) : Gtk::Frame("Robot Controller"), ai(ai), table(3, 2), custom_controls(0) {
+				table.attach(*Gtk::manage(new Gtk::Label("Robot Controller:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				rc_chooser.append_text("<Choose Robot Controller>");
 				typedef AI::RC::RobotControllerFactory::Map Map;
 				const Map &m = AI::RC::RobotControllerFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 					rc_chooser.append_text(i->second->name);
 				}
-				table->attach(rc_chooser, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				table.attach(rc_chooser, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				rc_chooser.signal_changed().connect(sigc::mem_fun(this, &RobotControllerControls::on_rc_chooser_changed));
+				ai.robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &RobotControllerControls::on_rc_changing));
 				ai.robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &RobotControllerControls::on_rc_changed));
+
 				on_rc_changed();
 
-				add(*table);
+				add(table);
 			}
 
 		private:
 			AI::AIPackage &ai;
+			Gtk::Table table;
 			Gtk::ComboBoxText rc_chooser;
+			Gtk::Widget *custom_controls;
 
 			void on_rc_chooser_changed() {
 				const Glib::ustring &selected = rc_chooser.get_active_text();
@@ -285,12 +316,24 @@ namespace {
 				}
 			}
 
+			void on_rc_changing() {
+				if (custom_controls) {
+					table.remove(*custom_controls);
+					custom_controls = 0;
+				}
+			}
+
 			void on_rc_changed() {
 				AI::RC::RobotControllerFactory *rcf = ai.robot_controller_factory;
 				if (rcf) {
 					rc_chooser.set_active_text(rcf->name);
 				} else {
 					rc_chooser.set_active_text("<Choose Robot Controller>");
+				}
+				custom_controls = rcf ? rcf->ui_controls() : 0;
+				if (custom_controls) {
+					table.attach(*custom_controls, 0, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+					custom_controls->show_all();
 				}
 			}
 	};

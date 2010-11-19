@@ -9,6 +9,10 @@
 #include <map>
 #include <utility>
 
+namespace Gtk {
+	class Widget;
+}
+
 namespace AI {
 	namespace Nav {
 		class NavigatorFactory;
@@ -45,6 +49,16 @@ namespace AI {
 				 * then orders paths to be followed with W::Player::path.
 				 */
 				virtual void tick() = 0;
+
+				/**
+				 * Returns the GTK widget for this Navigator, which will be integrated into the AI's user interface.
+				 *
+				 * \return a GUI widget containing the controls for this Navigator,
+				 * or a null pointer if no GUI widgets are needed for this Navigator.
+				 *
+				 * \note The default implementation returns a null pointer.
+				 */
+				virtual Gtk::Widget *ui_controls();
 
 			protected:
 				/**

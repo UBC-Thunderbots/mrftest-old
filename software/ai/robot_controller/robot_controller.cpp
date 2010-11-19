@@ -61,3 +61,7 @@ OldRobotController::OldRobotController(AI::RC::W::Player::Ptr player) : OldRobot
 OldRobotController::~OldRobotController() {
 }
 
+Gtk::Widget *RobotControllerFactory::ui_controls() {
+	return 0;
+}
+

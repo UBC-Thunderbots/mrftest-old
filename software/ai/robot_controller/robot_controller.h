@@ -6,6 +6,10 @@
 #include "util/byref.h"
 #include "util/registerable.h"
 
+namespace Gtk {
+	class Widget;
+}
+
 namespace AI {
 	class Player;
 
@@ -164,6 +168,16 @@ namespace AI {
 				 * \return the new controller.
 				 */
 				virtual RobotController::Ptr create_controller(AI::RC::W::Player::Ptr plr) const = 0;
+
+				/**
+				 * Returns the GTK widget for this RobotControllerFactory, which will be integrated into the AI's user interface.
+				 *
+				 * \return a GUI widget containing the controls for this RobotControllerFactory,
+				 * or a null pointer if no GUI widgets are needed for this RobotControllerFactory.
+				 *
+				 * \note The default implementation returns a null pointer.
+				 */
+				virtual Gtk::Widget *ui_controls();
 
 			protected:
 				/**
