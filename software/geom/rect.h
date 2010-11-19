@@ -111,7 +111,7 @@ class Rect {
 
 		/**
 		 * Tries to move all of the edges of the rectangle outwards/inwards towards the centre by "amount"
-		 * while keeping the location of the centre of the rectangle the same the rectangle 
+		 * while keeping the location of the centre of the rectangle the same the rectangle
 		 * will not shrink to something smaller than a point
 		 *
 		 * \param[in] the amount to shrink the recatngle by on all sides (positive or negative numbers ok)

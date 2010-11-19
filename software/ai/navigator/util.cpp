@@ -1,7 +1,7 @@
 #include "ai/navigator/util.h"
 #include "ai/flags.h"
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 #include <vector>
 
 using namespace AI::Flags;
@@ -10,7 +10,7 @@ using namespace AI::Nav::W;
 namespace {
 	const double EPS = 1e-9;
 
-	//small value to ensure non-equivilance with floating point math
+	// small value to ensure non-equivilance with floating point math
 	// but too small to make a difference in the actual game
 	const double SMALL_BUFFER = 0.0001;
 
@@ -33,39 +33,40 @@ namespace {
 	// This buffer is in addition to the robot radius
 	const double DEFENSE_AREA_BUFFER = 0.0;
 
-	//this is by how much we should stay away from the playing boundry
+	// this is by how much we should stay away from the playing boundry
 	const double PLAY_AREA_BUFFER = 0.0;
 
-	//this structure determines how far away to stay from a prohibited point or line-segment
-	struct distance_keepout{
-		static double play_area(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+	// this structure determines how far away to stay from a prohibited point or line-segment
+	struct distance_keepout {
+		static double play_area(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 			return (player->MAX_RADIUS) + PLAY_AREA_BUFFER;
 		}
-		static double enemy(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
-			if(world.enemy_team().size()<=0){
+		static double enemy(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+			if (world.enemy_team().size() <= 0) {
 				return 0.0;
 			}
 			return player->MAX_RADIUS + world.enemy_team().get(0)->MAX_RADIUS + ENEMY_BUFFER;
 		}
-		static double friendly(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
-			return 2.0*(player->MAX_RADIUS) + FRIENDLY_BUFFER;
+		static double friendly(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+			return 2.0 * (player->MAX_RADIUS) + FRIENDLY_BUFFER;
 		}
-		static double ball_stop(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+		static double ball_stop(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 			return Ball::RADIUS + player->MAX_RADIUS + BALL_STOP_BUFFER;
 		}
-		static double ball_tiny(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+		static double ball_tiny(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 			return Ball::RADIUS + player->MAX_RADIUS + BALL_TINY_BUFFER;
 		}
-		static double friendly_defense(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+		static double friendly_defense(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 			return world.field().defense_area_radius() + player->MAX_RADIUS + DEFENSE_AREA_BUFFER;
 		}
-		static double enemy_defense(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+		static double enemy_defense(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 			return world.field().defense_area_radius() + player->MAX_RADIUS + DEFENSE_AREA_BUFFER;
 		}
 #warning implement these methods below
-		//		static double own_half(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
-		//		static double penalty_kick_friendly(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
-		//		static double penalty_kick_enemy(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+
+		// static double own_half(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+		// static double penalty_kick_friendly(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+		// static double penalty_kick_enemy(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
 	};
 
 	inline double get_enemy_tresspass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
@@ -80,16 +81,16 @@ namespace {
 		return violate;
 	}
 
-	inline double get_play_area_boundary_tresspass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+	inline double get_play_area_boundary_tresspass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 		const Field &f = world.field();
-		Point sw_corner(f.length()/2, f.width()/2);
+		Point sw_corner(f.length() / 2, f.width() / 2);
 		Rect bounds(sw_corner, f.length(), f.width());
 		bounds.expand(-distance_keepout::play_area(world, player));
 		double violation = 0.0;
-		if(!bounds.point_inside(cur)){
+		if (!bounds.point_inside(cur)) {
 			violation = std::max(violation, bounds.dist_to_boundary(cur));
 		}
-		if(!bounds.point_inside(dst)){
+		if (!bounds.point_inside(dst)) {
 			violation = std::max(violation, bounds.dist_to_boundary(dst));
 		}
 		return violation;
@@ -115,7 +116,7 @@ namespace {
 	inline double get_ball_stop_tresspass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 		double violate = 0.0;
 		const Ball &ball = world.ball();
-		double circle_radius = distance_keepout::ball_stop(world,player);
+		double circle_radius = distance_keepout::ball_stop(world, player);
 		double dist = lineseg_point_dist(ball.position(), cur, dst);
 		violate = std::max(violate, circle_radius - dist);
 		return violate;
@@ -147,7 +148,7 @@ namespace {
 	struct violation {
 		double enemy, friendly, play_area, ball_stop, ball_tiny, friendly_defense, enemy_defense, own_half, penalty_kick_friendly, penalty_kick_enemy;
 
-		void set_violation_amount(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+		void set_violation_amount(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 			friendly = get_friendly_tresspass(cur, dst, world, player);
 			enemy = get_enemy_tresspass(cur, dst, world, player);
 			unsigned int flags = player->flags();
@@ -168,15 +169,15 @@ namespace {
 			}
 		}
 
-		violation(): enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0){
-		}		
-
-		violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player): enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0){		
-			set_violation_amount(cur,dst,world,player);
+		violation() : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0) {
 		}
 
-		static violation get_violation_amount(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
-			violation v(cur,dst,world,player);
+		violation(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) : enemy(0.0), friendly(0.0), play_area(0.0), ball_stop(0.0), ball_tiny(0.0), friendly_defense(0.0), enemy_defense(0.0), own_half(0.0), penalty_kick_friendly(0.0), penalty_kick_enemy(0.0) {
+			set_violation_amount(cur, dst, world, player);
+		}
+
+		static violation get_violation_amount(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+			violation v(cur, dst, world, player);
 			return v;
 		}
 
@@ -206,70 +207,70 @@ bool AI::Nav::Util::valid_path(Point cur, Point dst, AI::Nav::W::World &world, A
 	return violation::get_violation_amount(cur, dst, world, player).no_more_violating_than(violation::get_violation_amount(cur, cur, world, player));
 }
 
-std::vector<Point> AI::Nav::Util::get_obstacle_boundries(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
-	//this number must be >=3
-	const int POINTS_PER_OBSTACLE=6;
-	double rotate_amount = 2*M_PI/static_cast<double>(POINTS_PER_OBSTACLE);
+std::vector<Point> AI::Nav::Util::get_obstacle_boundries(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+	// this number must be >=3
+	const int POINTS_PER_OBSTACLE = 6;
+	double rotate_amount = 2 * M_PI / static_cast<double>(POINTS_PER_OBSTACLE);
 	std::vector<Point> ans;
 	unsigned int flags = player->flags();
 
-	if(flags & FLAG_AVOID_BALL_STOP){
+	if (flags & FLAG_AVOID_BALL_STOP) {
 		double circle_radius = distance_keepout::ball_stop(world, player);
-		//we want a regular polygon where the largest inscribed circle
-		//has the keepout distance as it's radius
-		//circle radius then becomes the radius of the smallest circle that will contain the polygon
-		//plus a small buffer
-		circle_radius = circle_radius/cos(rotate_amount/2) + SMALL_BUFFER;
+		// we want a regular polygon where the largest inscribed circle
+		// has the keepout distance as it's radius
+		// circle radius then becomes the radius of the smallest circle that will contain the polygon
+		// plus a small buffer
+		circle_radius = circle_radius / std::cos(rotate_amount / 2) + SMALL_BUFFER;
 		Point ball_position = world.ball().position();
 		Point bound(circle_radius, 0.0);
-		for(int i=0; i<POINTS_PER_OBSTACLE; i++){
-			Point temp= ball_position + bound;
-			if(valid_dst(temp, world, player)){
+		for (int i = 0; i < POINTS_PER_OBSTACLE; i++) {
+			Point temp = ball_position + bound;
+			if (valid_dst(temp, world, player)) {
 				ans.push_back(temp);
 			}
-			bound= bound.rotate(rotate_amount);
-		}	
+			bound = bound.rotate(rotate_amount);
+		}
 	}
-	if(flags & FLAG_AVOID_BALL_TINY && !(flags & FLAG_AVOID_BALL_STOP)){
+	if ((flags & FLAG_AVOID_BALL_TINY) && !(flags & FLAG_AVOID_BALL_STOP)) {
 		double circle_radius = distance_keepout::ball_tiny(world, player);
-		circle_radius = circle_radius/cos(rotate_amount/2) + SMALL_BUFFER;
+		circle_radius = circle_radius / std::cos(rotate_amount / 2) + SMALL_BUFFER;
 		Point ball_position = world.ball().position();
 		Point bound(circle_radius, 0.0);
-		for(int i=0; i<POINTS_PER_OBSTACLE; i++){
-			Point temp= ball_position + bound;
-			if(valid_dst(temp, world, player)){
+		for (int i = 0; i < POINTS_PER_OBSTACLE; i++) {
+			Point temp = ball_position + bound;
+			if (valid_dst(temp, world, player)) {
 				ans.push_back(temp);
 			}
-			bound= bound.rotate(rotate_amount);
-		}	
+			bound = bound.rotate(rotate_amount);
+		}
 	}
 	double circle_radius = distance_keepout::friendly(world, player);
-	circle_radius = circle_radius/cos(rotate_amount/2) + SMALL_BUFFER;
+	circle_radius = circle_radius / std::cos(rotate_amount / 2) + SMALL_BUFFER;
 	for (unsigned int i = 0; i < world.friendly_team().size(); i++) {
 		AI::Nav::W::Player::Ptr rob = world.friendly_team().get(i);
 		if (rob == player) {
 			continue;
 		}
 		Point bound(circle_radius, 0.0);
-		for(int i=0; i<POINTS_PER_OBSTACLE; i++){
-			Point temp= rob->position() + bound;
-			if(valid_dst(temp, world, player)){
+		for (int i = 0; i < POINTS_PER_OBSTACLE; i++) {
+			Point temp = rob->position() + bound;
+			if (valid_dst(temp, world, player)) {
 				ans.push_back(temp);
 			}
-			bound= bound.rotate(rotate_amount);
+			bound = bound.rotate(rotate_amount);
 		}
 	}
 	circle_radius = distance_keepout::enemy(world, player);
-	circle_radius = circle_radius/cos(rotate_amount/2) + SMALL_BUFFER;
+	circle_radius = circle_radius / std::cos(rotate_amount / 2) + SMALL_BUFFER;
 	for (unsigned int i = 0; i < world.enemy_team().size(); i++) {
 		AI::Nav::W::Robot::Ptr rob = world.enemy_team().get(i);
 		Point bound(circle_radius, 0.0);
-		for(int i=0; i<POINTS_PER_OBSTACLE; i++){
-			Point temp= rob->position() + bound;
-			if(valid_dst(temp, world, player)){
+		for (int i = 0; i < POINTS_PER_OBSTACLE; i++) {
+			Point temp = rob->position() + bound;
+			if (valid_dst(temp, world, player)) {
 				ans.push_back(temp);
 			}
-			bound= bound.rotate(rotate_amount);
+			bound = bound.rotate(rotate_amount);
 		}
 	}
 	return ans;
