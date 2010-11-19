@@ -7,7 +7,7 @@
 
 namespace {
 	const int MAX_DEGREE = 3;
-	const int NUM_OLD_POSITIONS = 140;
+	const int NUM_OLD_POSITIONS = 30;
 }
 
 Predictor::Predictor(bool angle) : angle(angle), initialized(false), lock_delta(0.0) {
