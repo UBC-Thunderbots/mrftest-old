@@ -140,10 +140,10 @@ void main(void) {
 /* PIN Setup */
 
 	INTCON2bits.RBPU = 0; // Internal pullups for port B enabled
-	TRISBbits.TRISB0 = 1;
-	TRISBbits.TRISB1 = 1;//RB0 set to input
-	TRISBbits.TRISB2 = 0;//RB0 set to input
-	TRISBbits.TRISB3 = 0;//RB0 set to input
+	TRISBbits.TRISB0 = 1;//RB0 set to input
+	TRISBbits.TRISB1 = 1;//RB1 set to input
+	TRISBbits.TRISB2 = 0;//RB2 set to output
+	TRISBbits.TRISB3 = 0;//RB3 set to output
 	LATB = 0x00;
 
 	/* ADC Setup */
@@ -181,7 +181,7 @@ void main(void) {
 			//charge done light off
 			LATBbits.LATB3 = 0;
 
-			//if charge button placed
+			//if charge button pressed
 			if(!PORTBbits.RB0) {
 				
 				//turn on charging light
