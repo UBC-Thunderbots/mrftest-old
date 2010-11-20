@@ -20,10 +20,12 @@ DEF_INTHIGH(high_handler)
 	DEF_HANDLER2(SIG_USB, SIG_USBIE, usb_handler)
 END_DEF
 
-static uint8_t ep1_in_buffer[1];
-static uint8_t ep1_idle_rate;
-static uint16_t ep1_last_tx_frame, button_change_frame;
-static BOOL ep1_halted;
+static uint8_t intf0_buffer;
+static uint8_t intf0_idle_rate;
+static uint16_t intf0_last_tx_frame;
+static BOOL intf0_halted;
+
+static uint16_t button_change_frame;
 
 static __code const void *find_interface_hid_class_descriptor(uint8_t interface) {
 	__code const uint8_t *ptr = CONFIGURATION_DESCRIPTOR_TAIL;
@@ -50,7 +52,7 @@ static BOOL custom_setup_handler(void) {
 				if (usb_ep0_setup_buffer.request == USB_SETUP_PACKET_STDREQ_GET_DESCRIPTOR) {
 					switch (usb_ep0_setup_buffer.value >> 8) {
 						case 0x21: /* Class descriptor */
-							if (usb_ep0_setup_buffer.index < 7) {
+							if (usb_ep0_setup_buffer.index < 1) {
 								usb_ep0_data[0].ptr = find_interface_hid_class_descriptor(usb_ep0_setup_buffer.index);
 								usb_ep0_data[0].length = *((const uint8_t *) usb_ep0_data[0].ptr);
 								usb_ep0_data_length = 1;
@@ -79,8 +81,8 @@ static BOOL custom_setup_handler(void) {
 						if (usb_ep0_setup_buffer.value >> 8 == 1) {
 							switch (usb_ep0_setup_buffer.index) {
 								case 0:
-									usb_ep0_data[0].ptr = ep1_in_buffer;
-									usb_ep0_data[0].length = sizeof(ep1_in_buffer);
+									usb_ep0_data[0].ptr = &intf0_buffer;
+									usb_ep0_data[0].length = 1;
 									usb_ep0_data_length = 1;
 									return true;
 							}
@@ -90,7 +92,7 @@ static BOOL custom_setup_handler(void) {
 					case 0x02: /* GET_IDLE */
 						switch (usb_ep0_setup_buffer.index) {
 							case 0:
-								usb_ep0_data[0].ptr = &ep1_idle_rate;
+								usb_ep0_data[0].ptr = &intf0_idle_rate;
 								usb_ep0_data[0].length = 1;
 								usb_ep0_data_length = 1;
 								return true;
@@ -100,7 +102,7 @@ static BOOL custom_setup_handler(void) {
 					case 0x0A: /* SET_IDLE */
 						switch (usb_ep0_setup_buffer.index) {
 							case 0:
-								ep1_idle_rate = usb_ep0_setup_buffer.value >> 8;
+								intf0_idle_rate = usb_ep0_setup_buffer.value >> 8;
 								return true;
 						}
 						break;
@@ -112,39 +114,30 @@ static BOOL custom_setup_handler(void) {
 }
 
 static void on_sof(void) {
-	uint16_t ui;
 	uint16_t now = (UFRMH << 8) | UFRML;
-	BOOL should_send = false;
+	BOOL changed = false;
+
 	if (((now - button_change_frame) & 0x7FF) >= 500) {
 		button_change_frame = now;
-		ep1_in_buffer[0] ^= 1;
-		should_send = true;
+		intf0_buffer ^= 1;
+		changed = true;
 	}
-#warning get HID idle going again
-#if 0
-	if (ep1_idle_rate != 0) {
-		if (((now - ep1_last_tx_frame) & 0x7FF) / 4 >= ep1_idle_rate) {
-			should_send = true;
-		}
-	}
-	should_send = true;
-	if (should_send && !ep1_halted) {
+
+	if (changed || (intf0_idle_rate != 0 && ((now - intf0_last_tx_frame) & 0x7FF) / 4 >= intf0_idle_rate)) {
+		intf0_last_tx_frame = now;
 		usb_bdpairs[1].in.BDSTATbits.cpu.UOWN = 1;
-		ep1_last_tx_frame = now;
 	}
-#endif
-	usb_bdpairs[1].in.BDSTATbits.cpu.UOWN = 1;
 }
 
 static void on_in1(void) {
 	if (usb_bdpairs[1].in.BDSTATbits.cpu.UOWN) {
 		return;
 	}
-	if (ep1_halted) {
+	if (intf0_halted) {
 		return;
 	}
-	usb_bdpairs[1].in.BDCNT = sizeof(ep1_in_buffer);
-	usb_bdpairs[1].in.BDADR = ep1_in_buffer;
+	usb_bdpairs[1].in.BDCNT = 1;
+	usb_bdpairs[1].in.BDADR = &intf0_buffer;
 	if (usb_bdpairs[1].in.BDSTATbits.sie.OLDDTS) {
 		usb_bdpairs[1].in.BDSTAT = BDSTAT_DTSEN;
 	} else {
@@ -153,20 +146,21 @@ static void on_in1(void) {
 }
 
 static void on_enter_config1(void) {
-	button_change_frame = (UFRMH << 8) | UFRML;
-	ep1_in_buffer[0] = 0;
-	ep1_idle_rate = 0;
-	ep1_last_tx_frame = button_change_frame;
-	ep1_halted = false;
+	uint16_t now = (UFRMH << 8) | UFRML;
+	intf0_buffer = 0;
+	intf0_idle_rate = 0;
+	intf0_last_tx_frame = 0;
+	intf0_halted = 0;
 	usb_ep_callbacks[1].in = &on_in1;
-	usb_bdpairs[1].in.BDCNT = sizeof(ep1_in_buffer);
-	usb_bdpairs[1].in.BDADR = ep1_in_buffer;
+	usb_bdpairs[1].in.BDCNT = 1;
+	usb_bdpairs[1].in.BDADR = &intf0_buffer;
 	usb_bdpairs[1].in.BDSTAT = BDSTAT_UOWN | BDSTAT_DTSEN;
+	button_change_frame = now;
+	usb_sof_callback = &on_sof;
 	UEP1 = 0;
 	UEP1bits.EPHSHK = 1;
 	UEP1bits.EPINEN = 1;
 	UEP1bits.EPCONDIS = 1;
-	usb_sof_callback = &on_sof;
 	LAT_LED1 = 1;
 }
 
@@ -181,7 +175,7 @@ static void on_exit_config1(void) {
 static void on_endpoint_halt_config1(uint8_t ep) {
 	switch (ep) {
 		case 0x81:
-			ep1_halted = true;
+			intf0_halted = true;
 			usb_bdpairs[1].in.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
 			break;
 	}
@@ -190,7 +184,7 @@ static void on_endpoint_halt_config1(uint8_t ep) {
 static void on_endpoint_reinit_config1(uint8_t ep) {
 	switch (ep) {
 		case 0x81:
-			ep1_halted = false;
+			intf0_halted = false;
 			usb_bdpairs[1].in.BDSTAT = BDSTAT_UOWN | BDSTAT_DTSEN;
 			break;
 	}
@@ -222,10 +216,12 @@ void main(void) {
 	/* Configure I/O pins. */
 	PINS_INITIALIZE();
 
-	/* Wait for the clock to start. */
+	/* Wait for the crystal oscillator to start. */
 	while (!OSCCONbits.OSTS);
+
+	/* Enable the PLL and wait for it to lock. This may take up to 2ms. */
 	OSCTUNEbits.PLLEN = 1;
-	delay1mtcy(12);
+	delay1ktcy(2);
 
 	/* Configure interrupt handling. */
 	RCONbits.IPEN = 1;
@@ -236,16 +232,22 @@ void main(void) {
 	usb_init(&devinfo);
 
 	for (;;) {
-#warning something broken
-#if 0
 		if (usb_is_idle) {
 			INTCONbits.GIEH = 0;
 			if (usb_is_idle) {
+				/* Disable the PLL. */
+				OSCTUNEbits.PLLEN = 0;
+				/* Go to sleep. */
 				Sleep();
+				/* Wait for the crystal oscillator to start back up. */
+				while (!OSCCONbits.OSTS);
+				/* Enable the PLL and wait for it to lock. This may take up to 2ms. */
+				OSCTUNEbits.PLLEN = 1;
+				delay1ktcy(2);
+				
 			}
 			INTCONbits.GIEH = 1;
 		}
-#endif
 	}
 }
 
