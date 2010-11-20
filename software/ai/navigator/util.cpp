@@ -68,6 +68,7 @@ namespace {
 		static double own_half(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 			return player->MAX_RADIUS + OWN_HALF_BUFFER;
 		}
+
 		// static double penalty_kick_friendly(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
 		// static double penalty_kick_enemy(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
 	};
@@ -135,14 +136,14 @@ namespace {
 
 	inline double get_own_half_tresspass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 		const Field &f = world.field();
-		Point p(0.0, -f.total_width()/2);
-		Rect bounds(p, f.total_length()/2, f.total_width());
+		Point p(0.0, -f.total_width() / 2);
+		Rect bounds(p, f.total_length() / 2, f.total_width());
 		bounds.expand(-distance_keepout::own_half(world, player));
 		double violation = 0.0;
-		if(!bounds.point_inside(cur)){
+		if (!bounds.point_inside(cur)) {
 			violation = std::max(violation, bounds.dist_to_boundary(cur));
 		}
-		if(!bounds.point_inside(dst)){
+		if (!bounds.point_inside(dst)) {
 			violation = std::max(violation, bounds.dist_to_boundary(dst));
 		}
 		return violation;
@@ -184,7 +185,7 @@ namespace {
 			if (flags & FLAG_AVOID_ENEMY_DEFENSE) {
 				friendly_defense = get_offense_area_tresspass(cur, dst, world, player);
 			}
-			if(flags & FLAG_STAY_OWN_HALF) {
+			if (flags & FLAG_STAY_OWN_HALF) {
 				own_half = get_own_half_tresspass(cur, dst, world, player);
 			}
 		}

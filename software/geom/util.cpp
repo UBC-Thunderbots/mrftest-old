@@ -252,14 +252,13 @@ double line_point_dist(const Point &p, const Point &a, const Point &b) {
 // ported code
 #warning this code looks broken (or so geom/util.h used to claim)
 bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Point &b2) {
-
 	// handle case where the lines are co-linear
 	if (sign((a1 - a2).cross(b1 - b2)) == 0) {
 		// find distance of two endpoints on segments furthest away from each other
-		double mx_len = std::max(std::max((b1-a2).len(), (b2-a2).len()), std::max((b1-a1).len(), (b1-a2).len()));
+		double mx_len = std::max(std::max((b1 - a2).len(), (b2 - a2).len()), std::max((b1 - a1).len(), (b1 - a2).len()));
 		// if the segments cross then this distance should be less than
 		// the sum of the distances of the line segments
-		return mx_len < (a1-a2).len() + (b1-b2).len() + EPS;
+		return mx_len < (a1 - a2).len() + (b1 - b2).len() + EPS;
 	}
 
 	return sign((a2 - a1).cross(b1 - a1))
