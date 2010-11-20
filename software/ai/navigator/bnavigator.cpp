@@ -1,11 +1,10 @@
 #include "ai/navigator/navigator.h"
 #include "ai/navigator/util.h"
+#include "geom/util.h"
 #include "util/dprint.h"
 #include "util/time.h"
-#include <algorithm>
-#include <cmath>
 #include <glibmm.h>
-#include <iostream>
+#include <vector>
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
@@ -14,71 +13,62 @@ using namespace AI::Nav::Util;
 using namespace AI::Flags;
 
 namespace {
-	const double MAX_SPEED = 2.0;
-	const double SLOW_DIST = 0.75;
-
 	class BNavigator : public Navigator {
 		public:
 			NavigatorFactory &factory() const;
 			static Navigator::Ptr create(World &world);
 			void tick();
 
-			Point calcArrival(Point x, Point y);
-			Point correct_for_flags(Point x, const Field &field, unsigned int flags);
+			Point correct_regional_flags(Point dest, World &world, Player::Ptr player);
+			bool check_mobile_violation(Point p, World &world, Player::Ptr player);
+			bool check_regional_violation(Point p, World &world, Player::Ptr player);
 
-			bool check_dest_valid1(Point dest, World &world, Player::Ptr player);
+			Point getVector(Point start, Point goal, Player::Ptr player);
 
 		private:
 			BNavigator(World &world);
 			~BNavigator();
 	};
-
 	class BNavigatorFactory : public NavigatorFactory {
 		public:
 			Navigator::Ptr create_navigator(World &world) const;
 			BNavigatorFactory();
 			~BNavigatorFactory();
 	};
-
 	BNavigatorFactory simple_nav_factory;
-
 	NavigatorFactory &BNavigator::factory() const {
 		return simple_nav_factory;
 	}
-
 	Navigator::Ptr BNavigator::create(World &world) {
 		const Navigator::Ptr p(new BNavigator(world));
 		return p;
 	}
-
-	BNavigator::BNavigator(World &world) : Navigator(world) {
-	}
-
-	BNavigator::~BNavigator() {
-	}
-
-	BNavigatorFactory::BNavigatorFactory() : NavigatorFactory("BNavigator") {
-	}
-
-	BNavigatorFactory::~BNavigatorFactory() {
-	}
-
+	BNavigator::BNavigator(World &world) : Navigator(world) {}
+	BNavigator::~BNavigator() {}
+	BNavigatorFactory::BNavigatorFactory() : NavigatorFactory("BNavigator") {}
+	BNavigatorFactory::~BNavigatorFactory() {}
 	Navigator::Ptr BNavigatorFactory::create_navigator(World &world) const {
 		return BNavigator::create(world);
 	}
-
+	Point BNavigator::getVector(Point start, Point goal, Player::Ptr player) {
+		return start+(goal-start).norm()*player->MAX_RADIUS;
+	}
+	
 	void BNavigator::tick() {
 		const Field &field = world.field();
 		const Ball &ball = world.ball();
 		FriendlyTeam &fteam = world.friendly_team();
 		Player::Ptr player;
 		std::vector<std::pair<std::pair<Point, double>, timespec>> path;
+		std::vector<Point> rpath;
 		Point currp, destp, nextp;
 		double curro, desto, nexto;
-		timespec ts;
 		unsigned int flags;
+		std::vector<Point> boundaries, valid_boundaries;
 
 		for (unsigned int i = 0; i < fteam.size(); i++) {
+			path.clear();
+			rpath.clear();
 			player = fteam.get(i);
 			currp = player->position();
 			destp = player->destination().first;
@@ -86,216 +76,214 @@ namespace {
 			desto = player->destination().second;
 			flags = player->flags();
 
-			nextp = calcArrival(currp, destp);
-
-			nextp = correct_for_flags(nextp, field, flags);
-			nexto = (nextp - currp).orientation();
-
-			if ((destp - nextp).len() > (destp - currp).len()) {
-				nextp = destp;
-				nexto = desto;
+			nextp = getVector(currp, destp, player);
+			nextp = correct_regional_flags(nextp, world, player);
+			
+			boundaries = get_obstacle_boundries(world, player);
+			
+			for(unsigned int i=0;i<boundaries.size();i++) {
+				if( !check_regional_violation(boundaries[i], world, player) ) {
+					valid_boundaries.push_back(boundaries[i]);
+				}
 			}
 
-			ts = world.monotonic_time();
-			// ts.tv_sec += (nextp - currp).len() / player->avelocity();
-			path.push_back(std::make_pair(std::make_pair(nextp, nexto), ts));
+			for(int i=0; i<25; i++) {
+				nextp = getVector(currp, destp, player);
+				nextp = correct_regional_flags(nextp, world, player);
+				if( check_mobile_violation(nextp, world, player) ) {	
+					Point closest(1e99,1e99);
+					//closest = valid_boundaries[0];
+					for(unsigned int i=1;i<valid_boundaries.size();i++) {
+						if( (valid_boundaries[i]-nextp).len() < (closest-nextp).len()  ) {
+							closest = valid_boundaries[i];
+							valid_boundaries.erase(valid_boundaries.begin()+i);
+						}
+					}
+					nextp = closest;
+				}
+				nexto = (currp-nextp).orientation();
+				path.push_back(std::make_pair(std::make_pair(nextp, nexto), world.monotonic_time()));
+				rpath.push_back(nextp);
+				currp = nextp;
+			}
 			player->path(path);
-			path.clear();
-			if (check_dest_valid(ball.position(), world, player)) {
-				LOG_WARN("TRUE");
-			} else {
-				LOG_WARN("FALSE");
-			}
 		}
 	}
 
-	Point BNavigator::calcArrival(Point x, Point y) {
-		Point offset = y - x;
-		double distance = offset.len();
-		double ramped_speed = MAX_SPEED * (distance / SLOW_DIST);
-		double clipped_speed = std::min(ramped_speed, MAX_SPEED);
-		Point desired = (clipped_speed / distance) * offset;
-		// return desired;
-		return x + (y - x).norm() * (0.25);
-	}
-
-
-	bool BNavigator::check_dest_valid1(Point dest, World &world, Player::Ptr player) {
-		double AVOID_TINY_CONSTANT = 0.15; // constant for AVOID_BALL_TINY
-		double AVOID_PENALTY_CONSTANT = 0.40; // constant for AVOID_PENALTY_*
+	bool BNavigator::check_regional_violation(Point p, World &world, Player::Ptr player) {
+		const double ROBOT_MARGIN = 0.0;
 		const Field &field = world.field();
 		double length, width;
 		length = field.length();
 		width = field.width();
 		unsigned int flags = player->flags();
-		// check for CLIP_PLAY_AREA simple rectangular bounds
-		if ((flags & FLAG_CLIP_PLAY_AREA) == FLAG_CLIP_PLAY_AREA) {
-			if (dest.x < -length / 2
-			    || dest.x > length / 2
-			    || dest.y < -width / 2
-			    || dest.y > width / 2) {
-				return false;
+		if (flags & FLAG_CLIP_PLAY_AREA) {
+			double C_PLAY_AREA = player->MAX_RADIUS + ROBOT_MARGIN;
+			Point play_sw(-length/2, -width/2);
+			Rect play_area(play_sw, length, width);
+			play_area.expand(-C_PLAY_AREA);
+			if( !play_area.point_inside(p) ) {
+				return true;
 			}
 		}
-		// check for STAY_OWN_HALF
-		if ((flags & FLAG_STAY_OWN_HALF) == FLAG_STAY_OWN_HALF) {
-			if (dest.y > 0) {
-				return false;
-			}
+		if (flags & FLAG_STAY_OWN_HALF) {
+			double C_OWN_HALF = player->MAX_RADIUS + ROBOT_MARGIN;
+			if (p.x > 0-C_OWN_HALF) return true;
 		}
-		/* field information for AVOID_*_DEFENSE_AREA checks
-		 * defined by defense_area_radius distance from two goal posts
-		 * and rectangular stretch directly in front of goal
-		 */
-		Point f_post1, f_post2, e_post1, e_post2;
 		double defense_area_stretch, defense_area_radius;
 		defense_area_stretch = field.defense_area_stretch();
 		defense_area_radius = field.defense_area_radius();
-		f_post1 = Point(-length / 2, defense_area_stretch / 2);
-		f_post2 = Point(-length / 2, -defense_area_stretch / 2);
-		// friendly case
-		if ((flags & FLAG_AVOID_FRIENDLY_DEFENSE) == FLAG_AVOID_FRIENDLY_DEFENSE) {
-			if (dest.x < -(length / 2) + defense_area_radius
-			    && dest.x > -length / 2
-			    && dest.y < defense_area_stretch / 2
-			    && dest.y > -defense_area_stretch / 2) {
-				return false;
-			} else if ((dest - f_post1).len() < defense_area_radius
-			           || (dest - f_post2).len() < defense_area_radius) {
-				return false;
+		if (flags & FLAG_AVOID_FRIENDLY_DEFENSE) {
+			double C_FRIENDLY_DEFENSE = defense_area_radius + player->MAX_RADIUS + ROBOT_MARGIN;
+			Point top_sw(-length/2,defense_area_stretch/2);
+			Point mid_sw(-length/2,-defense_area_stretch/2);
+			Point btm_sw(-length/2,-((defense_area_stretch/2)+defense_area_radius));
+			Rect top(top_sw, C_FRIENDLY_DEFENSE, C_FRIENDLY_DEFENSE);
+			Rect mid(mid_sw, C_FRIENDLY_DEFENSE, defense_area_stretch);
+			Rect btm(btm_sw, C_FRIENDLY_DEFENSE, C_FRIENDLY_DEFENSE);
+			if( top.point_inside(p) && (p-top_sw).len() < C_FRIENDLY_DEFENSE ) {
+					return true;
+			} else if( mid.point_inside(p) ) {
+					return true;
+			} else if( btm.point_inside(p) && (p-mid_sw).len() < C_FRIENDLY_DEFENSE) {
+					return true;
 			}
 		}
-		// enemy goal posts
-		e_post1 = Point(length / 2, defense_area_stretch / 2);
-		e_post2 = Point(length / 2, -defense_area_stretch / 2);
-		// enemy case
-		if ((flags & FLAG_AVOID_ENEMY_DEFENSE) == FLAG_AVOID_ENEMY_DEFENSE) {
-			if (dest.x > length / 2 - defense_area_radius - 0.20
-			    && dest.x < length / 2
-			    && dest.y < defense_area_stretch / 2
-			    && dest.y > -defense_area_stretch / 2) {
-				return false;
-			} else if ((dest - e_post1).len() < defense_area_radius + 0.20 // 20cm from defense line
-			           || (dest - e_post2).len() < defense_area_radius + 0.20) {
-				return false;
+		if (flags & FLAG_AVOID_ENEMY_DEFENSE) {
+			double C_ENEMY_DEFENSE = defense_area_radius + player->MAX_RADIUS + 0.20 + ROBOT_MARGIN;
+			Point top_sw((length/2)-C_ENEMY_DEFENSE,defense_area_stretch/2);
+			Point mid_sw((length/2)-C_ENEMY_DEFENSE,-defense_area_stretch/2);
+			Point btm_sw((length/2)-C_ENEMY_DEFENSE,-(defense_area_stretch/2)-C_ENEMY_DEFENSE);
+			Rect top(top_sw, C_ENEMY_DEFENSE, C_ENEMY_DEFENSE);
+			Rect mid(mid_sw, C_ENEMY_DEFENSE, defense_area_stretch);
+			Rect btm(btm_sw, C_ENEMY_DEFENSE, C_ENEMY_DEFENSE);
+			if( top.point_inside(p) && (p-top.se_corner()).len() < C_ENEMY_DEFENSE) {
+					return true;
+			} else if( mid.point_inside(p) ) {
+					return true;
+			} else if( btm.point_inside(p) && (p-mid.se_corner()).len() < C_ENEMY_DEFENSE ) {
+					return true;
 			}
 		}
-		// ball checks (lol)
-		const Ball &ball = world.ball();
-		// AVOID_BALL_STOP
-		if ((flags & FLAG_AVOID_BALL_STOP) == FLAG_AVOID_BALL_STOP) {
-			if ((dest - ball.position()).len() < 0.5) {
-				return false; // avoid ball by 50cm
+		if (flags & FLAG_PENALTY_KICK_FRIENDLY) {
+			double C_PENALTY_KICK = player->MAX_RADIUS + 0.40 + ROBOT_MARGIN;
+			Point f_penalty_mark((-length / 2) + defense_area_stretch, 0);
+			if( (p-f_penalty_mark).len() < C_PENALTY_KICK ) {
+				return true;
 			}
 		}
-		// AVOID_BALL_TINY
-		if ((flags & FLAG_AVOID_BALL_TINY) == FLAG_AVOID_BALL_TINY) {
-			if ((dest - ball.position()).len() < AVOID_TINY_CONSTANT) {
-				return false; // avoid ball by this constant?
+		if (flags & FLAG_PENALTY_KICK_ENEMY) {
+			double C_PENALTY_KICK = player->MAX_RADIUS + 0.40 + ROBOT_MARGIN;
+			Point e_penalty_mark((length/2)-defense_area_stretch,0);
+			if( (p-e_penalty_mark).len() < C_PENALTY_KICK ) {
+				return true;
 			}
 		}
-		/* PENALTY_KICK_* checks
-		 * penalty marks are defined 450mm & equidistant from both goal posts,
-		 * i assume that defense_area_stretch is a close enough approximation
-		 */
-		Point f_penalty_mark, e_penalty_mark;
-		f_penalty_mark = Point((-length / 2) + defense_area_stretch, 0);
-		e_penalty_mark = Point((length / 2) - defense_area_stretch, 0);
-		if ((flags & FLAG_PENALTY_KICK_FRIENDLY) == FLAG_PENALTY_KICK_FRIENDLY) {
-			if ((dest - f_penalty_mark).len() < AVOID_PENALTY_CONSTANT) {
-				return false;
-			}
-		}
-		if ((flags & FLAG_PENALTY_KICK_ENEMY) == FLAG_PENALTY_KICK_ENEMY) {
-			if ((dest - e_penalty_mark).len() < AVOID_PENALTY_CONSTANT) {
-				return false;
-			}
-		}
-		/* check if dest is on another robot
-		 * 2*robot radius (maybe we need some sort of margin?) from center to center
-		 */
-		FriendlyTeam &f_team = world.friendly_team();
-		EnemyTeam &e_team = world.enemy_team();
-		Player::Ptr f_player;
-		Robot::Ptr e_player;
-		// friendly case
-		for (unsigned int i = 0; i < f_team.size(); i++) {
-			f_player = f_team.get(i);
-			if ((dest - f_player->position()).len() < 2 * f_player->MAX_RADIUS) {
-				return false;
-			}
-		}
-		// enemy case
-		for (unsigned int i = 0; i < e_team.size(); i++) {
-			e_player = e_team.get(i);
-			if ((dest - e_player->position()).len() < 2 * e_player->MAX_RADIUS) {
-				return false;
-			}
-		}
-
-		return true;
+		return false;
 	}
 
-	Point BNavigator::correct_for_flags(Point next, const Field &field, unsigned int flags) {
-		if ((flags & FLAG_CLIP_PLAY_AREA) == FLAG_CLIP_PLAY_AREA) {
-			if (next.x > field.length() / 2) {
-				next.x = field.length() / 2;
-			}
-			if (next.x < -field.length() / 2) {
-				next.x = -field.length() / 2;
-			}
-			if (next.y > field.width() / 2) {
-				next.y = field.width() / 2;
-			}
-			if (next.y < -field.width() / 2) {
-				next.y = -field.width() / 2;
+	bool BNavigator::check_mobile_violation(Point p, World &world, Player::Ptr player) {
+		const Ball &ball = world.ball();
+		unsigned int flags = player->flags();
+		if (flags & FLAG_AVOID_BALL_STOP) {
+			double C_BALL_STOP = player->MAX_RADIUS + 0.50;
+			if( (ball.position()-p).len() < C_BALL_STOP ) {
+					return true;
 			}
 		}
-
-		if ((flags & FLAG_STAY_OWN_HALF) == FLAG_STAY_OWN_HALF) {
-			if (next.y > 0) {
-				next.y = 0;
+		if( flags & FLAG_AVOID_BALL_TINY ) {
+			double C_BALL_TINY = 0.15;
+			if( (ball.position()-p).len() < C_BALL_TINY ) {
+					return true;
 			}
 		}
-
-		if ((flags & FLAG_AVOID_FRIENDLY_DEFENSE) == FLAG_AVOID_FRIENDLY_DEFENSE) {
-			Point post1, post2;
-			post1 = Point(-(field.length() / 2), field.defense_area_stretch() / 2);
-			post2 = Point(-(field.length() / 2), -(field.defense_area_stretch() / 2));
-
-			if (next.x < -(field.length() / 2) + field.defense_area_radius()
-			    && next.x > -(field.length() / 2)
-			    && next.y < (field.defense_area_stretch() / 2)
-			    && next.y > -(field.defense_area_stretch() / 2)) {
-				next.x = -(field.length() / 2) + field.defense_area_radius();
-			} else if ((next - post1).len() < field.defense_area_radius() || (next - post2).len() < field.defense_area_radius()) {
-				if ((next - post1).len() < (next - post2).len()) {
-					next = post1 + field.defense_area_radius() * (next - post1).norm();
-				} else {
-					next = post2 + field.defense_area_radius() * (next - post2).norm();
+		Player::Ptr friendly;
+		Robot::Ptr enemy;
+		for(unsigned int i=0; i<world.friendly_team().size(); i++) {
+				friendly = world.friendly_team().get(i);
+				if( player != friendly && (p-friendly->position()).len() < player->MAX_RADIUS*2 ) {
+					return true;
 				}
-			}
 		}
-
-		if ((flags & FLAG_AVOID_ENEMY_DEFENSE) == FLAG_AVOID_ENEMY_DEFENSE) {
-			Point post1, post2;
-			post1 = Point(field.length() / 2, field.defense_area_stretch() / 2);
-			post2 = Point(field.length() / 2, -(field.defense_area_stretch() / 2));
-
-			if (next.x > field.length() / 2 - field.defense_area_radius()
-			    && next.x < field.length() / 2
-			    && next.y < (field.defense_area_stretch() / 2)
-			    && next.y > -(field.defense_area_stretch() / 2)) {
-				next.x = field.length() / 2 - field.defense_area_radius() - 0.2;
-			} else if ((next - post1).len() < field.defense_area_radius() || (next - post2).len() < field.defense_area_radius()) {
-				if ((next - post1).len() < (next - post2).len()) {
-					next = post1 + (0.2 + field.defense_area_radius()) * (next - post1).norm();
-				} else {
-					next = post2 + (0.2 + field.defense_area_radius()) * (next - post2).norm();
+		for(unsigned int i=0;i<world.enemy_team().size();i++) {
+				enemy = world.enemy_team().get(i);
+				if( (p-enemy->position()).len() < player->MAX_RADIUS*2 ) {
+						return true;
 				}
+		}
+		return false;
+	}
+
+	Point BNavigator::correct_regional_flags(Point dest, World &world, Player::Ptr player) {
+		const double ROBOT_MARGIN = 0.0;
+		const Field &field = world.field();
+		double length, width;
+		length = field.length();
+		width = field.width();
+		Point corrected = dest;
+		unsigned int flags = player->flags();
+		if (flags & FLAG_CLIP_PLAY_AREA) {
+			double C_PLAY_AREA = player->MAX_RADIUS + ROBOT_MARGIN;
+			Point play_sw(-length/2, -width/2);
+			Rect play_area(play_sw, length, width);
+			play_area.expand(-C_PLAY_AREA);
+			if( !play_area.point_inside(dest) ) {
+				corrected = clip_point(dest, play_area.nw_corner(), play_area.se_corner());
 			}
 		}
-		return next;
+		if (flags & FLAG_STAY_OWN_HALF) {
+			double C_OWN_HALF = player->MAX_RADIUS + ROBOT_MARGIN;
+			if (dest.x > 0-C_OWN_HALF) corrected.x = 0;
+		}
+		double defense_area_stretch, defense_area_radius;
+		defense_area_stretch = field.defense_area_stretch();
+		defense_area_radius = field.defense_area_radius();
+		if (flags & FLAG_AVOID_FRIENDLY_DEFENSE) {
+			double C_FRIENDLY_DEFENSE = defense_area_radius + player->MAX_RADIUS + ROBOT_MARGIN;
+			Point top_sw(-length/2,defense_area_stretch/2);
+			Point mid_sw(-length/2,-defense_area_stretch/2);
+			Point btm_sw(-length/2,-((defense_area_stretch/2)+defense_area_radius));
+			Rect top(top_sw, C_FRIENDLY_DEFENSE, C_FRIENDLY_DEFENSE);
+			Rect mid(mid_sw, C_FRIENDLY_DEFENSE, defense_area_stretch);
+			Rect btm(btm_sw, C_FRIENDLY_DEFENSE, C_FRIENDLY_DEFENSE);
+			if( top.point_inside(dest) && (dest-top_sw).len() < C_FRIENDLY_DEFENSE ) {
+					corrected = top_sw + (dest-top_sw).norm()*(C_FRIENDLY_DEFENSE);
+			} else if( mid.point_inside(dest) ) {
+					corrected.x = -(length/2)+C_FRIENDLY_DEFENSE;
+			} else if( btm.point_inside(dest) && (dest-mid_sw).len() < C_FRIENDLY_DEFENSE) {
+					corrected = mid_sw + (dest-mid_sw).norm()*(C_FRIENDLY_DEFENSE);
+			}
+		}
+		if (flags & FLAG_AVOID_ENEMY_DEFENSE) {
+			double C_ENEMY_DEFENSE = defense_area_radius + player->MAX_RADIUS + 0.20 + ROBOT_MARGIN;
+			Point top_sw((length/2)-C_ENEMY_DEFENSE,defense_area_stretch/2);
+			Point mid_sw((length/2)-C_ENEMY_DEFENSE,-defense_area_stretch/2);
+			Point btm_sw((length/2)-C_ENEMY_DEFENSE,-(defense_area_stretch/2)-C_ENEMY_DEFENSE);
+			Rect top(top_sw, C_ENEMY_DEFENSE, C_ENEMY_DEFENSE);
+			Rect mid(mid_sw, C_ENEMY_DEFENSE, defense_area_stretch);
+			Rect btm(btm_sw, C_ENEMY_DEFENSE, C_ENEMY_DEFENSE);
+			if( top.point_inside(dest) && (dest-top.se_corner()).len() < C_ENEMY_DEFENSE) {
+					corrected = top.se_corner() - (top.se_corner()-dest).norm()*(C_ENEMY_DEFENSE);
+			} else if( mid.point_inside(dest) ) {
+					corrected.x = (length/2)-C_ENEMY_DEFENSE;
+			} else if( btm.point_inside(dest) && (dest-mid.se_corner()).len() < C_ENEMY_DEFENSE ) {
+					corrected = mid.se_corner() - (mid.se_corner()-dest).norm()*(C_ENEMY_DEFENSE);
+			}
+		}
+		if (flags & FLAG_PENALTY_KICK_FRIENDLY) {
+			double C_PENALTY_KICK = player->MAX_RADIUS + 0.40 + ROBOT_MARGIN;
+			Point f_penalty_mark((-length / 2) + defense_area_stretch, 0);
+			if( (dest-f_penalty_mark).len() < C_PENALTY_KICK ) {
+				corrected = f_penalty_mark + (dest-f_penalty_mark).norm()*C_PENALTY_KICK;
+			}
+		}
+		if (flags & FLAG_PENALTY_KICK_ENEMY) {
+			double C_PENALTY_KICK = player->MAX_RADIUS + 0.40 + ROBOT_MARGIN;
+			Point e_penalty_mark((length/2)-defense_area_stretch,0);
+			if( (dest-e_penalty_mark).len() < C_PENALTY_KICK ) {
+				corrected = e_penalty_mark - (e_penalty_mark-dest).norm()*C_PENALTY_KICK;
+			}
+		}
+		return corrected;
 	}
 }
-
