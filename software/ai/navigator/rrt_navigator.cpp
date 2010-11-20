@@ -1,6 +1,7 @@
 #include "ai/navigator/navigator.h"
 #include "ai/navigator/util.h"
 #include "util/dprint.h"
+#include "util/objectstore.h"
 #include <glibmm.h>
 
 using AI::Nav::Navigator;
@@ -15,10 +16,20 @@ namespace {
 	const double THRESHOLD = 0.15;
 	const double STEP_DISTANCE = 0.3;
 	// probability that we will take a step towards the goal
-	const double GOAL_PROB = 0.7;
+	const double GOAL_PROB = 0.1;
+	const double WAYPOINT_PROB = 0.6;
+	const double RAND_PROB = 1.0 - GOAL_PROB - WAYPOINT_PROB;
 	// number of iterations to go through for each robot until we give up and
 	// just return the best partial path we've found
-	const int ITERATION_LIMIT = 2000;
+	const int ITERATION_LIMIT = 500;
+	const int NUM_WAYPOINTS = 50;
+
+	class Waypoints : public ObjectStore::Element {
+		public:
+			typedef ::RefPtr<Waypoints> Ptr;
+
+			Point points[NUM_WAYPOINTS];
+	};
 
 	class rrt_navigator : public Navigator {
 		public:
@@ -29,6 +40,8 @@ namespace {
 		private:
 			rrt_navigator(World &world);
 			~rrt_navigator();
+
+			Waypoints::Ptr currPlayerWaypoints;
 
 			double Distance(Point nearest, Point goal);
 			Point RandomPoint();
@@ -68,6 +81,14 @@ namespace {
 			struct timespec finalTime;
 
 			timespec_add(currentTime, timeToAdd, finalTime);
+
+			// create new waypoints for the player if they have not been created yet
+			if (!player->object_store()[typeid(*this)].is()) {
+				Waypoints::Ptr newWaypoints(new Waypoints);
+				player->object_store()[typeid(*this)] = newWaypoints;
+			}
+
+			currPlayerWaypoints = Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)]);
 
 			pathPoints.clear();
 			pathPoints = RRTPlan(player, player->position(), player->destination().first);
@@ -114,12 +135,15 @@ namespace {
 
 	// choose a target to extend toward, the goal with GOAL_PROB or a random point
 	Point rrt_navigator::ChooseTarget(Point goal) {
-		double p = rand() / double(RAND_MAX);
+		double p = std::rand() / double(RAND_MAX);
+		int i = static_cast<int>(std::rand() % NUM_WAYPOINTS);
 
-		if (p > 0 && p < GOAL_PROB) {
-			return goal;
-		} else {
+		if (p > 0 && p <= WAYPOINT_PROB) {
+			return currPlayerWaypoints->points[i];
+		} else if (p > WAYPOINT_PROB && p < (WAYPOINT_PROB + RAND_PROB)) {
 			return RandomPoint();
+		} else {
+			return goal;
 		}
 	}
 
@@ -168,11 +192,12 @@ namespace {
 		NodeTree<Point> *lastAdded;
 		NodeTree<Point> rrtTree(initial);
 
-		nearest = initial;
 		lastAdded = &rrtTree;
 
 		int iterationCounter = 0;
-		while (Distance(nearest, goal) > THRESHOLD && iterationCounter < ITERATION_LIMIT) {
+
+		//should loop until distance between lastAdded and goal is less than threshold
+		while (Distance(lastAdded->data(), goal) > THRESHOLD && iterationCounter < ITERATION_LIMIT) {
 			target = ChooseTarget(goal);
 			nearestNode = Nearest(&rrtTree, target);
 			nearest = nearestNode->data();
@@ -185,7 +210,9 @@ namespace {
 			iterationCounter++;
 		}
 
-		if (iterationCounter == ITERATION_LIMIT) {
+		bool foundPath = (iterationCounter != ITERATION_LIMIT);
+
+		if (!foundPath) {
 			// LOG_WARN("Reached limit, path not found");
 
 			// set the last added as the node closest to the goal if we reach the iteration limit
@@ -193,16 +220,22 @@ namespace {
 			lastAdded = Nearest(&rrtTree, goal);
 		}
 
+		// the final closest point to the goal is where we will trace backwards from
+		const NodeTree<Point> *iterator = lastAdded;
+
 		// stores the final path of points
 		std::deque<Point> pathPoints;
 		pathPoints.push_front(lastAdded->data());
 
-		// calculations complete, trace backwards to get the points in the path
-		const NodeTree<Point> *iterator = lastAdded;
-
 		while (iterator != &rrtTree) {
 			iterator = iterator->parent();
 			pathPoints.push_front(iterator->data());
+
+			// if we found a plan then add the path's points to the waypoint cache
+			// with random replacement
+			if(foundPath) {
+				currPlayerWaypoints->points[std::rand() % NUM_WAYPOINTS] = iterator->data();
+			}
 		}
 
 		// remove the front of the list, this is the starting point
