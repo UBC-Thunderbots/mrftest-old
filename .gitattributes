@@ -79,6 +79,7 @@ software/ai/ball_filter/world.h -text
 software/ai/coach/coach.cpp -text
 software/ai/coach/coach.h -text
 software/ai/coach/random.cpp -text
+software/ai/coach/single.cpp -text
 software/ai/coach/world.h -text
 software/ai/common/ball.cpp -text
 software/ai/common/ball.h -text
