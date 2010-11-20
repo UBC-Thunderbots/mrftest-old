@@ -1,7 +1,9 @@
 #include "util/dprint.h"
 #include <ctime>
+#include <cwchar>
 #include <fstream>
 #include <iostream>
+#include <locale>
 #include <sstream>
 #include <string>
 #include <unistd.h>
@@ -32,8 +34,9 @@ sigc::signal<void, unsigned int, const Glib::ustring &> signal_message_logged;
 void log_impl(const char *file, unsigned int line, const Glib::ustring &msg, unsigned int level) {
 	std::time_t stamp;
 	std::time(&stamp);
-	char buffer[64];
-	std::strftime(buffer, sizeof(buffer), "%F %T", std::localtime(&stamp));
+	std::wostringstream timestring;
+	static const wchar_t TIME_PATTERN[] = L"%F %T";
+	std::use_facet<std::time_put<wchar_t> >(std::locale()).put(timestring, timestring, L' ', std::localtime(&stamp), TIME_PATTERN, TIME_PATTERN + std::wcslen(TIME_PATTERN));
 	const char *level_name;
 	switch (level) {
 		case LOG_LEVEL_INFO:
@@ -52,7 +55,7 @@ void log_impl(const char *file, unsigned int line, const Glib::ustring &msg, uns
 			level_name = 0;
 			break;
 	}
-	const Glib::ustring &composed = Glib::ustring::compose("[%1] [%2:%3] %4", buffer, file, line, msg);
+	const Glib::ustring &composed = Glib::ustring::compose("[%1] [%2:%3] %4", timestring.str(), file, line, msg);
 	if (level_name) {
 		std::cout << level_name << ' ' << composed << '\n';
 	}

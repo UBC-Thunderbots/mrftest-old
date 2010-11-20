@@ -11,7 +11,9 @@
 #include "util/exception.h"
 #include "util/time.h"
 #include <cstring>
+#include <cwchar>
 #include <iomanip>
+#include <locale>
 #include <sstream>
 #include <string>
 
@@ -201,19 +203,18 @@ namespace {
 	 * \return the string representation of the time.
 	 */
 	Glib::ustring timespec_to_time_string_part(const timespec &ts, bool local) {
-		char timebuf[64], tzbuf[64];
+		static const wchar_t TIME_PATTERN[] = L"%Y-%m-%d %H:%M:%S";
+		static const wchar_t TZ_PATTERN[] = L"%Z";
+		std::wostringstream timebuf, tzbuf;
 		struct tm tm;
 
 		if (!(local ? localtime_r : gmtime_r)(&ts.tv_sec, &tm)) {
 			throw SystemError(local ? "localtime_r" : "gmtime_r", errno);
 		}
-		if (!strftime(timebuf, sizeof(timebuf), "%Y-%m-%d %H:%M:%S", &tm)) {
-			throw SystemError("strftime", errno);
-		}
-		if (!strftime(tzbuf, sizeof(tzbuf), "%Z", &tm)) {
-			throw SystemError("strftime", errno);
-		}
-		return Glib::ustring::compose("%1.%2 %3", timebuf, todec(ts.tv_nsec, 9), tzbuf);
+		
+		std::use_facet<std::time_put<wchar_t> >(std::locale()).put(timebuf, timebuf, L' ', &tm, TIME_PATTERN, TIME_PATTERN + std::wcslen(TIME_PATTERN));
+		std::use_facet<std::time_put<wchar_t> >(std::locale()).put(tzbuf, tzbuf, L' ', &tm, TZ_PATTERN, TZ_PATTERN + std::wcslen(TZ_PATTERN));
+		return Glib::ustring::compose("%1.%2 %3", timebuf.str(), todec(ts.tv_nsec, 9), tzbuf.str());
 	}
 
 	/**

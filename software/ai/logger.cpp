@@ -37,11 +37,10 @@ namespace {
 		if (!localtime_r(&tim, &tm)) {
 			throw SystemError("localtime_r", errno);
 		}
-		char buffer[64];
-		if (!strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &tm)) {
-			throw SystemError("strftime", errno);
-		}
-		const std::string &filename = Glib::build_filename(logs_dir, buffer);
+		std::ostringstream buffer;
+		static const char PATTERN[] = "%Y-%m-%d %H:%M:%S";
+		std::use_facet<std::time_put<char> >(std::locale()).put(buffer, buffer, L' ', &tm, PATTERN, PATTERN + std::strlen(PATTERN));
+		const std::string &filename = Glib::build_filename(logs_dir, buffer.str());
 		return FileDescriptor::create_open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	}
 
