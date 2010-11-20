@@ -102,6 +102,7 @@ software/ai/hl/free_kick_enemy_strategy.cpp -text
 software/ai/hl/free_kick_friendly_strategy.cpp -text
 software/ai/hl/kickoff_enemy_strategy.cpp -text
 software/ai/hl/kickoff_friendly_strategy.cpp -text
+software/ai/hl/movement_benchmark.cpp -text
 software/ai/hl/offender.cpp -text
 software/ai/hl/offender.h -text
 software/ai/hl/penalty_enemy_strategy.cpp -text
