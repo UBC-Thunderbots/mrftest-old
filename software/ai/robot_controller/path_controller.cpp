@@ -15,6 +15,9 @@ using namespace AI::RC::W;
 
 namespace {
 	const int P = 5;
+	// a lower value means higher accuracy, higher is less accurate but faster
+	// valid values are 0 to infinity
+	const double ACCURACY_TRADEOFF = 0.5;
 
 	const double arr_min[P] = { 3.0, 0.0, 0.0, 3.0, 3.0 };
 	const double arr_max[P] = { 6.0, 2.0, 2.0, 6.0, 6.0 };
@@ -44,7 +47,7 @@ namespace {
 				double new_orientation = path[path.size() - 1].first.second;
 
 				for (int i = path.size() - 1; i >= 0; i--) {
-					if ((path[0].first.first - player->position()).len() > 0.5) {
+					if ((path[0].first.first - player->position()).len() > ACCURACY_TRADEOFF) {
 						new_position = path[i].first.first;
 						new_orientation = path[i].first.second;
 					}
