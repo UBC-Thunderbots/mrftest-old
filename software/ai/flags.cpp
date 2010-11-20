@@ -30,6 +30,7 @@ unsigned int AI::Flags::calc_flags(PlayType::PlayType pt) {
 		case PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY:
 			flags |= FLAG_AVOID_BALL_STOP;
 			flags |= FLAG_AVOID_ENEMY_DEFENSE;
+			flags |= FLAG_FRIENDLY_KICK;
 			return flags;
 
 		case PlayType::PREPARE_PENALTY_FRIENDLY:

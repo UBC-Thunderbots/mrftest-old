@@ -49,6 +49,20 @@ namespace AI {
 			 * Stay more than 40cm outside the penalty mark line as required for non-goalies in penalty kick rules.
 			 */
 			FLAG_PENALTY_KICK_ENEMY = 0x0080,
+
+			/**
+			 * When we are kicking, need to stay 20 cm away from enemy defense area
+			 *
+			 * Rules:
+			 * "If, at the time the ball enters play, 
+			 * a member of the kicker's team occupies the area closer than
+			 * 200 mm to the opponent's defense area
+			 * an indirect free kick is awarded to the opposing team, 
+			 * the kick to be taken from the location of
+			 *	the ball when the infringement occurred"
+			 *
+			 */
+			FLAG_FRIENDLY_KICK = 0x0100,
 		};
 
 		/**
