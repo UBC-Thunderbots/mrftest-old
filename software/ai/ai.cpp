@@ -67,6 +67,8 @@ void AIPackage::tick() {
 				nav->tick();
 			}
 		}
+	} else {
+		backend.strategy() = AI::HL::Strategy::Ptr();
 	}
 
 	// Tick all the RobotControllers.
