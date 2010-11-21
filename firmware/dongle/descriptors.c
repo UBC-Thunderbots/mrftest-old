@@ -8,8 +8,8 @@
  */
 
 __code const uint8_t ESTOP_REPORT_DESCRIPTOR[27] = {
-	0x05, 0x01,       /* USAGE_PAGE(Generic Desktop) */
-	0x09, 0x04,       /* USAGE(Joystick) */
+	0x05, 0xFF,       /* USAGE_PAGE(Vendor-defined 0xFF) */
+	0x09, 0x00,       /* USAGE(Vendor usage 0) */
 	0xA1, 0x01,       /* COLLECTION(Application) */
 	0x15, 0x00,       /*   LOGICAL_MINIMUM(0) */
 	0x25, 0x01,       /*   LOGICAL_MAXIMUM(1) */
