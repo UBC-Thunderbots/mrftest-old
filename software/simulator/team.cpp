@@ -112,7 +112,7 @@ void Simulator::Team::send_speed_mode() {
 		Proto::S2APacket packet;
 		std::memset(&packet, 0, sizeof(packet));
 		packet.type = Proto::S2A_PACKET_SPEED_MODE;
-		packet.fast = sim.is_fast();
+		packet.speed_mode = sim.speed_mode();
 		connection->send(packet);
 	}
 }
@@ -195,12 +195,8 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet) {
 			to_remove.push_back(packet.pattern);
 			return;
 
-		case Proto::A2S_PACKET_FAST:
-			sim.set_speed_mode(true);
-			return;
-
-		case Proto::A2S_PACKET_NORMAL_SPEED:
-			sim.set_speed_mode(false);
+		case Proto::A2S_PACKET_SET_SPEED:
+			sim.speed_mode(packet.speed_mode);
 			return;
 
 		case Proto::A2S_PACKET_PLAY_TYPE:

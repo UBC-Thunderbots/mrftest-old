@@ -79,6 +79,26 @@ namespace Simulator {
 		};
 
 		/**
+		 * The possible speed modes.
+		 */
+		enum SpeedMode {
+			/**
+			 * The simulator is running at real-time speed.
+			 */
+			SPEED_MODE_NORMAL,
+
+			/**
+			 * The simulator is running as quickly as possible.
+			 */
+			SPEED_MODE_FAST,
+
+			/**
+			 * The simulator is running more slowly than real time.
+			 */
+			SPEED_MODE_SLOW,
+		};
+
+		/**
 		 * The possible packet types that can be sent from the AI to the simulator.
 		 */
 		enum A2SPacketType {
@@ -104,16 +124,10 @@ namespace Simulator {
 			A2S_PACKET_REMOVE_PLAYER,
 
 			/**
-			 * Requests that the simulator switch to fast mode.
+			 * Requests that the simulator switch to a new speed mode.
 			 * This may be sent at any time.
 			 */
-			A2S_PACKET_FAST,
-
-			/**
-			 * Requests that the simulator switch to normal-speed mode.
-			 * This may be sent at any time.
-			 */
-			A2S_PACKET_NORMAL_SPEED,
+			A2S_PACKET_SET_SPEED,
 
 			/**
 			 * Requests that the simulator change play types.
@@ -154,6 +168,11 @@ namespace Simulator {
 				 * in the case of A2S_PACKET_ADD_PLAYER or A2S_PACKET_REMOVE_PLAYER.
 				 */
 				unsigned int pattern;
+
+				/**
+				 * The speed mode, in the case of A2S_PACKET_SPEED_MDOE.
+				 */
+				SpeedMode speed_mode;
 
 				/**
 				 * The play type, in the case of A2S_PACKET_PLAY_TYPE.
@@ -233,7 +252,7 @@ namespace Simulator {
 			S2A_PACKET_TICK,
 
 			/**
-			 * Indicates whether the simulator is running fast or at normal speed.
+			 * Indicates which speed mode is currently active.
 			 * This packet is sent when the client connects and whenever the speed mode changes.
 			 */
 			S2A_PACKET_SPEED_MODE,
@@ -291,9 +310,9 @@ namespace Simulator {
 				} world_state;
 
 				/**
-				 * Whether the simulator is running in fast mode or normal-speed mode, in the case of S2A_PACKET_SPEED_MODE.
+				 * The current speed mode, in the case of S2A_PACKET_SPEED_MODE.
 				 */
-				bool fast;
+				SpeedMode speed_mode;
 
 				/**
 				 * The current play type, in the case of S2A_PACKET_PLAY_TYPE.

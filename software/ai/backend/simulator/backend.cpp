@@ -1,6 +1,6 @@
 #include "ai/backend/simulator/backend.h"
 
-AI::BE::Simulator::UIControls::UIControls() : playtype_label("Play type (sim):"), speed_label("Speed:"), speed_normal(speed_group, "Normal"), speed_fast(speed_group, "Fast"), players_label("Players:"), players_hbox(Gtk::BUTTONBOX_SPREAD), players_add("+"), players_remove("−") {
+AI::BE::Simulator::UIControls::UIControls() : playtype_label("Play type (sim):"), speed_label("Speed:"), speed_normal(speed_group, "Normal"), speed_fast(speed_group, "Fast"), speed_slow(speed_group, "Slow"), players_label("Players:"), players_hbox(Gtk::BUTTONBOX_SPREAD), players_add("+"), players_remove("−") {
 	for (unsigned int pt = 0; pt < AI::Common::PlayType::COUNT; ++pt) {
 		playtype_combo.append_text(AI::Common::PlayType::DESCRIPTIONS_GENERIC[pt]);
 	}
@@ -9,8 +9,10 @@ AI::BE::Simulator::UIControls::UIControls() : playtype_label("Play type (sim):")
 
 	speed_normal.set_sensitive(false);
 	speed_fast.set_sensitive(false);
+	speed_slow.set_sensitive(false);
 	speed_hbox.pack_start(speed_normal, Gtk::PACK_EXPAND_WIDGET);
 	speed_hbox.pack_start(speed_fast, Gtk::PACK_EXPAND_WIDGET);
+	speed_hbox.pack_start(speed_slow, Gtk::PACK_EXPAND_WIDGET);
 
 	players_add.set_sensitive(false);
 	players_remove.set_sensitive(false);
@@ -108,6 +110,7 @@ AI::BE::Simulator::Backend::Backend() : sock(connect_to_simulator()), ball_(*thi
 	controls.playtype_combo.signal_changed().connect(sigc::mem_fun(this, &Backend::on_sim_playtype_changed));
 	controls.speed_normal.signal_toggled().connect(sigc::mem_fun(this, &Backend::on_speed_toggled));
 	controls.speed_fast.signal_toggled().connect(sigc::mem_fun(this, &Backend::on_speed_toggled));
+	controls.speed_slow.signal_toggled().connect(sigc::mem_fun(this, &Backend::on_speed_toggled));
 	controls.players_add.signal_clicked().connect(sigc::mem_fun(this, &Backend::on_players_add_clicked));
 	controls.players_remove.signal_clicked().connect(sigc::mem_fun(this, &Backend::on_players_remove_clicked));
 	Glib::signal_io().connect(sigc::mem_fun(this, &Backend::on_packet), sock->fd(), Glib::IO_IN);
@@ -225,15 +228,24 @@ bool AI::BE::Simulator::Backend::on_packet(Glib::IOCondition) {
 
 		case ::Simulator::Proto::S2A_PACKET_SPEED_MODE:
 			// Update the UI controls.
-			if (packet.fast) {
-				controls.speed_fast.set_active();
-			} else {
-				controls.speed_normal.set_active();
+			switch (packet.speed_mode) {
+				case ::Simulator::Proto::SPEED_MODE_NORMAL:
+					controls.speed_normal.set_active();
+					break;
+
+				case ::Simulator::Proto::SPEED_MODE_FAST:
+					controls.speed_fast.set_active();
+					break;
+
+				case ::Simulator::Proto::SPEED_MODE_SLOW:
+					controls.speed_slow.set_active();
+					break;
 			}
 
 			// Make both radio buttons sensitive.
-			controls.speed_fast.set_sensitive();
 			controls.speed_normal.set_sensitive();
+			controls.speed_fast.set_sensitive();
+			controls.speed_slow.set_sensitive();
 			return true;
 
 		case ::Simulator::Proto::S2A_PACKET_PLAY_TYPE:
@@ -288,7 +300,14 @@ void AI::BE::Simulator::Backend::on_sim_playtype_changed() {
 void AI::BE::Simulator::Backend::on_speed_toggled() {
 	::Simulator::Proto::A2SPacket packet;
 	std::memset(&packet, 0, sizeof(packet));
-	packet.type = controls.speed_fast.get_active() ? ::Simulator::Proto::A2S_PACKET_FAST : ::Simulator::Proto::A2S_PACKET_NORMAL_SPEED;
+	packet.type = ::Simulator::Proto::A2S_PACKET_SET_SPEED;
+	if (controls.speed_fast.get_active()) {
+		packet.speed_mode = ::Simulator::Proto::SPEED_MODE_FAST;
+	} else if (controls.speed_slow.get_active()) {
+		packet.speed_mode = ::Simulator::Proto::SPEED_MODE_SLOW;
+	} else {
+		packet.speed_mode = ::Simulator::Proto::SPEED_MODE_NORMAL;
+	}
 	send_packet(packet);
 }
 

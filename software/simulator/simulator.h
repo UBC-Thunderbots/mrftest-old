@@ -32,16 +32,16 @@ namespace Simulator {
 			/**
 			 * Returns the speed mode of the simulator.
 			 *
-			 * \return \c true if the simulator is running in fast mode, or \c false if it is running in normal-speed mode.
+			 * \return the current speed mode.
 			 */
-			bool is_fast() const;
+			::Simulator::Proto::SpeedMode speed_mode() const;
 
 			/**
 			 * Sets the speed mode of the simulator.
 			 *
-			 * \param[in] fast \c true to run in fast mode, or \c false to run in normal-speed mode.
+			 * \param[in] mode the speed mode to run in.
 			 */
-			void set_speed_mode(bool fast);
+			void speed_mode(::Simulator::Proto::SpeedMode mode);
 
 			/**
 			 * Returns the current play type.
@@ -98,9 +98,9 @@ namespace Simulator {
 			timespec last_fps_report_time;
 
 			/**
-			 * Whether the AI is running in fast mode or normal-speed mode.
+			 * The simulator's current speed mode.
 			 */
-			bool fast;
+			::Simulator::Proto::SpeedMode speed_mode_;
 
 			/**
 			 * Whether a call to tick() has been scheduled on a timer but not yet executed.

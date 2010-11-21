@@ -66,6 +66,11 @@ namespace AI {
 					Gtk::RadioButton speed_fast;
 
 					/**
+					 * A radio button to set the simulator to run in slow mode.
+					 */
+					Gtk::RadioButton speed_slow;
+
+					/**
 					 * A label for players_hbox.
 					 */
 					Gtk::Label players_label;
