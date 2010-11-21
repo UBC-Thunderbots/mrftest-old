@@ -14,6 +14,15 @@ namespace {
 	inline int sign(const double n) {
 		return n > EPS ? 1 : (n < -EPS ? -1 : 0);
 	}
+
+	inline bool perpendicular(double angle){
+		double a = angle_mod(angle);
+		if(a<0){
+			a=-a;
+		}
+		return a >= M_PI/2 - 4*EPS && a<= M_PI/2 + 4*EPS;
+	}
+
 }
 
 std::vector<size_t> dist_matching(const std::vector<Point> &v1, const std::vector<Point> &v2) {
@@ -98,6 +107,64 @@ std::pair<Point, double> angle_sweep_circles(const Point &src, const Point &p1, 
 		}
 	}
 	return std::make_pair(bestshot, best);
+}
+
+std::vector<Point> seg_buffer_boundries(const Point &a, const Point &b, double buffer, int num_points) {
+	if((a-b).lensq() <EPS){
+		return circle_boundries(a, buffer, num_points);
+	}
+	std::vector<Point> ans;
+	double line_seg = (a-b).len();
+	double semi_circle = M_PI*buffer;
+	double total_dist = 2*line_seg + 2*semi_circle;
+	double step_len = total_dist/num_points;
+	Point cur = b;
+	Point seg_direction = (a-b).norm();
+	Point direction = ((a-b)).rotate(M_PI/2);
+	double angle_add =0.0;
+
+	for(int i=0; i<num_points; i++){
+		double angle = (a-b).dot(direction);
+		double cur_seg = step_len;
+		if(perpendicular(angle)){
+			Point want = cur + cur_seg*seg_direction;
+			double overshoot = lineseg_point_dist(want, a, b);
+ 			cur_seg = (overshoot);
+			cur =  cur + (want.len()-overshoot)*seg_direction;
+		}
+		double add = 0.0;
+		if(angle_add < M_PI){
+ 			add = std::min(cur_seg/buffer, M_PI - angle_add);
+			if(cur_seg/buffer + angle_add >= M_PI){
+				seg_direction = -seg_direction;
+				angle_add+=EPS;//to make sure that we won't hit parent if statement again
+			}
+		}else{
+		  add = std::min(cur_seg/buffer, 2*M_PI - angle_add);
+			if(cur_seg/buffer + angle_add >=2*M_PI){
+				seg_direction = -seg_direction;
+			}
+		}
+		angle_add+=add;
+		direction.rotate(add);	
+		double dist = add*buffer;
+		cur_seg = std::max(0.0, cur_seg-dist);
+		cur = cur - cur_seg*seg_direction;
+		ans.push_back(cur + buffer*direction);
+	}
+	return ans;
+}
+
+std::vector<Point> circle_boundries(const Point &centre, double radius, int num_points) {
+	double rotate_amount = 2*M_PI/num_points;
+	std::vector<Point> ans;
+	Point bound(radius, 0.0);
+	for (int i = 0; i < num_points; i++) {
+		Point temp = centre + bound;
+		ans.push_back(temp);
+		bound = bound.rotate(rotate_amount);
+	}
+	return ans;
 }
 
 bool collinear(const Point &a, const Point &b, const Point &c) {
