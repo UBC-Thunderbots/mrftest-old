@@ -102,7 +102,7 @@ namespace {
 			return;
 		}
 
-		//prepare();
+		prepare();
 
 		execute();
 	}
