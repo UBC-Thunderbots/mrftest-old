@@ -86,8 +86,6 @@ namespace {
 		}
 
 		prepare();
-
-		
 	}
 
 	void PenaltyFriendlyStrategy::execute_penalty_friendly() {
@@ -99,7 +97,9 @@ namespace {
 
 		const Point shoot_position = Point(0.5 * world.field().length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0);
 
-		if (kicker.is()) AI::HL::Tactics::free_move(world, kicker, shoot_position);
+		if (kicker.is()) {
+			AI::HL::Tactics::free_move(world, kicker, shoot_position);
+		}
 	}
 
 	void PenaltyFriendlyStrategy::prepare() {

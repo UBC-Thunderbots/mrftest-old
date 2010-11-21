@@ -54,10 +54,10 @@ namespace AI {
 			 * When we are kicking, need to stay 20 cm away from enemy defense area
 			 *
 			 * Rules:
-			 * "If, at the time the ball enters play, 
+			 * "If, at the time the ball enters play,
 			 * a member of the kicker's team occupies the area closer than
 			 * 200 mm to the opponent's defense area
-			 * an indirect free kick is awarded to the opposing team, 
+			 * an indirect free kick is awarded to the opposing team,
 			 * the kick to be taken from the location of
 			 *	the ball when the infringement occurred"
 			 *

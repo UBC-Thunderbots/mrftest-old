@@ -79,7 +79,7 @@ namespace {
 			nextp = getVector(currp, destp, player);
 			nextp = correct_regional_flags(nextp, world, player);
 
-			boundaries = get_obstacle_boundries(world, player);
+			boundaries = get_obstacle_boundaries(world, player);
 
 			for (unsigned int i = 0; i < boundaries.size(); i++) {
 				if (!check_regional_violation(boundaries[i], world, player)) {

@@ -44,7 +44,7 @@ namespace {
 
 			void prepare_kickoff_friendly();
 			void execute_kickoff_friendly();
-			
+
 			void prepare();
 			void execute();
 
@@ -94,7 +94,7 @@ namespace {
 			return;
 		}
 
-		prepare();		
+		prepare();
 	}
 
 	void KickoffFriendlyStrategy::execute_kickoff_friendly() {
@@ -141,14 +141,17 @@ namespace {
 		defender.set_chase(false);
 		defender.tick();
 
-		if (kicker.is()) AI::HL::Tactics::free_move(world, kicker, shoot);
-		
+		if (kicker.is()) {
+			AI::HL::Tactics::free_move(world, kicker, shoot);
+		}
 	}
 
-	void KickoffFriendlyStrategy::execute(){
+	void KickoffFriendlyStrategy::execute() {
 		int best = AI::HL::Util::choose_best_pass(world, offenders);
-		
-		if (kicker.is()) AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_AVOID_BALL_TINY, offenders[best]->position());
+
+		if (kicker.is()) {
+			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_AVOID_BALL_TINY, offenders[best]->position());
+		}
 		offender.set_players(offenders);
 		offender.tick();
 	}

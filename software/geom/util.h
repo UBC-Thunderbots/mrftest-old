@@ -91,12 +91,12 @@ bool point_in_rectangle(const Point &pointA, Point recA[4]);
  * returns a list of points that lie exactle "buffer" distance awaw from the line seg
  *
  */
-std::vector<Point> seg_buffer_boundries(const Point &a, const Point &b, double buffer, int num_points);
+std::vector<Point> seg_buffer_boundaries(const Point &a, const Point &b, double buffer, int num_points);
 
 /**
  * returns a list of points that lie on the border of the circle
  */
-std::vector<Point> circle_boundries(const Point &centre, double radius, int num_points);
+std::vector<Point> circle_boundaries(const Point &centre, double radius, int num_points);
 
 /**
  * Finds the distance between and a line segment and a point.

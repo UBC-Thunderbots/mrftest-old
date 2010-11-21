@@ -135,8 +135,8 @@ namespace {
 
 	// choose a target to extend toward, the goal with GOAL_PROB or a random point
 	Point rrt_navigator::ChooseTarget(Point goal) {
-		double p = std::rand() / double(RAND_MAX);
-		int i = static_cast<int>(std::rand() % NUM_WAYPOINTS);
+		double p = std::rand() / static_cast<double>(RAND_MAX);
+		int i = std::rand() % NUM_WAYPOINTS;
 
 		if (p > 0 && p <= WAYPOINT_PROB) {
 			return currPlayerWaypoints->points[i];
@@ -196,7 +196,7 @@ namespace {
 
 		int iterationCounter = 0;
 
-		//should loop until distance between lastAdded and goal is less than threshold
+		// should loop until distance between lastAdded and goal is less than threshold
 		while (Distance(lastAdded->data(), goal) > THRESHOLD && iterationCounter < ITERATION_LIMIT) {
 			target = ChooseTarget(goal);
 			nearestNode = Nearest(&rrtTree, target);
@@ -233,7 +233,7 @@ namespace {
 
 			// if we found a plan then add the path's points to the waypoint cache
 			// with random replacement
-			if(foundPath) {
+			if (foundPath) {
 				currPlayerWaypoints->points[std::rand() % NUM_WAYPOINTS] = iterator->data();
 			}
 		}
