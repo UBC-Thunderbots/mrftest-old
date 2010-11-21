@@ -13,7 +13,7 @@ namespace {
 #warning find better home for this variable
 
 	// the closest distance players allowed to the ball
-	const double AVOIDANCE_MIN = 0.50 + Robot::MAX_RADIUS;
+	const double AVOIDANCE_MIN = 0.50 + Robot::MAX_RADIUS + Ball::RADIUS;
 
 	// make the players slightly further away from the ball
 	const double AVOIDANCE_MARGIN = 0.005;
