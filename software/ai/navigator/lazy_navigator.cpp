@@ -1,9 +1,11 @@
 #include "ai/hl/util.h"
 #include "ai/navigator/navigator.h"
+#include "ai/navigator/util.h"
 #include "util/time.h"
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
+using namespace AI::Nav::Util;
 using namespace AI::Nav::W;
 
 namespace {
@@ -73,9 +75,14 @@ namespace {
 			currentOrientation = player->orientation();
 			destinationPosition = player->destination().first;
 			destinationOrientation = player->destination().second;
-
-			path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
-			player->path(path);
+			
+			if (!valid_path(currentPosition, destinationPosition, world, player)) {
+				path.push_back(std::make_pair(std::make_pair(Point(0,0), 0), world.monotonic_time()));
+				player->path(path);
+			} else {
+				path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
+				player->path(path);
+			}
 		}
 	}
 }
