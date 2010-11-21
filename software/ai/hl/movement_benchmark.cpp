@@ -198,7 +198,7 @@ namespace {
 
 	MovementBenchmarkStrategy::MovementBenchmarkStrategy(World &world) : Strategy(world), tasks(default_tasks, default_tasks + default_tasks_n), done(0), prev_pos(0.0, 0.0), prev_ori(0.0) {
 		time_steps = 0;
-		done = tasks.size();
+		// done = tasks.size();
 	}
 
 	MovementBenchmarkStrategy::~MovementBenchmarkStrategy() {
