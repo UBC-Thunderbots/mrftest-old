@@ -119,12 +119,14 @@ software/ai/hl/world.h -text
 software/ai/logger.cpp -text
 software/ai/logger.h -text
 software/ai/main.cpp -text
+software/ai/navigator/astar_navigator.cpp -text
 software/ai/navigator/bnavigator.cpp -text
 software/ai/navigator/follow_ball_navigator.cpp -text
 software/ai/navigator/lazy_navigator.cpp -text
 software/ai/navigator/navigator.cpp -text
 software/ai/navigator/navigator.h -text
 software/ai/navigator/parameter_tuning_navigator.cpp -text
+software/ai/navigator/reactive.cpp -text
 software/ai/navigator/rrt_navigator.cpp -text
 software/ai/navigator/simple_navigator.cpp -text
 software/ai/navigator/util.cpp -text

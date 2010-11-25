@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <vector>
-
+#include <iostream>
 using namespace AI::Flags;
 using namespace AI::Nav::W;
 
@@ -288,8 +288,9 @@ namespace {
 		double TS = 2 * num_points * dist * std::tan(M_PI / num_points);
 		double TS2 = TS + 2 * (segA - segB).len();
 		int n_tot = num_points * static_cast<int>(std::ceil(TS2 / TS));
-		std::vector<Point> temp = seg_buffer_boundaries(segA, segB, radius, n_tot);
-		for (std::vector<Point>::const_iterator it = temp.begin(); it != temp.end(); it++) {
+		std::vector<Point> temp =  seg_buffer_boundaries(segA, segB, radius, n_tot);
+
+		for (std::vector<Point>::const_iterator it =  temp.begin(); it != temp.end(); it++) {
 			if (AI::Nav::Util::valid_dst(*it, world, player)) {
 				ans.push_back(*it);
 			}
@@ -319,13 +320,13 @@ std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World &wor
 	if (flags & FLAG_AVOID_FRIENDLY_DEFENSE) {
 		Point defense_point1(-f.length() / 2, -f.defense_area_stretch() / 2);
 		Point defense_point2(-f.length() / 2, f.defense_area_stretch() / 2);
-		process_obstacle(ans, world, player, defense_point1, defense_point2, distance_keepout::ball_stop(player), POINTS_PER_OBSTACLE);
+		process_obstacle(ans, world, player, defense_point1, defense_point2, distance_keepout::friendly_defense(world, player), POINTS_PER_OBSTACLE);
 	}
 
 	if (flags & FLAG_AVOID_ENEMY_DEFENSE) {
 		Point defense_point1(f.length() / 2, -f.defense_area_stretch() / 2);
 		Point defense_point2(f.length() / 2, f.defense_area_stretch() / 2);
-		process_obstacle(ans, world, player, defense_point1, defense_point2, distance_keepout::ball_stop(player), POINTS_PER_OBSTACLE);
+		process_obstacle(ans, world, player, defense_point1, defense_point2, distance_keepout::enemy_defense(world, player), POINTS_PER_OBSTACLE);
 	}
 
 	if ((flags & FLAG_AVOID_BALL_TINY) && !(flags & FLAG_AVOID_BALL_STOP)) {
