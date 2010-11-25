@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <vector>
-#include <iostream>
+
 using namespace AI::Flags;
 using namespace AI::Nav::W;
 
@@ -285,12 +285,12 @@ namespace {
 		// circle radius then becomes the radius of the smallest circle that will contain the polygon
 		// plus a small buffer
 		double radius = dist / std::cos(M_PI / static_cast<double>(num_points)) + SMALL_BUFFER;
-		double TS = 2 * num_points * dist * std::tan(M_PI / num_points);
+		double TS = 2 *num_points * dist * std::tan(M_PI / num_points);
 		double TS2 = TS + 2 * (segA - segB).len();
 		int n_tot = num_points * static_cast<int>(std::ceil(TS2 / TS));
-		std::vector<Point> temp =  seg_buffer_boundaries(segA, segB, radius, n_tot);
+		std::vector<Point> temp = seg_buffer_boundaries(segA, segB, radius, n_tot);
 
-		for (std::vector<Point>::const_iterator it =  temp.begin(); it != temp.end(); it++) {
+		for (std::vector<Point>::const_iterator it = temp.begin(); it != temp.end(); it++) {
 			if (AI::Nav::Util::valid_dst(*it, world, player)) {
 				ans.push_back(*it);
 			}

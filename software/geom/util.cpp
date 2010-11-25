@@ -112,7 +112,7 @@ std::vector<Point> seg_buffer_boundaries(const Point &a, const Point &b, double 
 	double total_travelled = 0.0;
 	double step_len = total_dist / num_points;
 	Point add1(0.0, 0.0);
-	Point add2 = buffer*((a - b)).rotate(M_PI / 2).norm();
+	Point add2 = buffer * ((a - b)).rotate(M_PI / 2).norm();
 	Point seg_direction = (b - a).norm();
 	bool swapped = false;
 
