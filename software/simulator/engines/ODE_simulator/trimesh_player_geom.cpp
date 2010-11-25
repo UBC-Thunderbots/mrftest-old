@@ -57,15 +57,9 @@ Trimesh_player_geom::Trimesh_player_geom(dWorldID eworld, dSpaceID dspace) : Pla
 }
 
 Trimesh_player_geom::~Trimesh_player_geom() {
-	if (Vertices != NULL) {
-		delete[] Vertices;
-	}
-	if (Verts != NULL) {
-		delete[] Verts;
-	}
-	if (Triangles != NULL) {
-		delete[] Triangles;
-	}
+	delete[] Vertices;
+	delete[] Verts;
+	delete[] Triangles;
 }
 
 bool Trimesh_player_geom::robot_contains_shape(dGeomID geom) {

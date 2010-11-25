@@ -26,7 +26,7 @@ namespace {
 			double g;
 			bool closed;
 
-			PathPoint() : closed(false), g(INF), parent(NULL) {
+			PathPoint() : closed(false), g(INF), parent() {
 				xy.x = xy.y = 0.0;
 			}
 

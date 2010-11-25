@@ -108,13 +108,8 @@ PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double
 }
 
 PlayerODE::~PlayerODE() {
-	if (wheel_position != NULL) {
-		delete[] wheel_position;
-	}
-
-	if (force_direction != NULL) {
-		delete[] force_direction;
-	}
+	delete[] wheel_position;
+	delete[] force_direction;
 }
 
 // Accessor method to get the robots position

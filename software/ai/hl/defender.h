@@ -31,7 +31,7 @@ namespace AI {
 				/**
 				 * Finds a player that you can extract and make use.
 				 *
-				 * \return the player, or NULL if there is no player you can remove.
+				 * \return the player, or null if there is no player you can remove.
 				 */
 				W::Player::Ptr remove_player();
 
