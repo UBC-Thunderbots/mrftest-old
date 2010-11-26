@@ -49,6 +49,12 @@ namespace AI {
 					chase = b;
 				}
 
+				/**
+				 * Recommended maximum distance from the goal place,
+				 * for goalie to repel the ball.
+				 */
+				static const double get_goalie_chase_thresh();
+
 			protected:
 				/**
 				 * Calculate points which should be used to defend from enemy robots.

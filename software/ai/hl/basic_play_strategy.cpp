@@ -40,6 +40,7 @@ namespace {
 
 			void calc_chaser();
 
+			Player::Ptr goalie;
 			Defender defender;
 			Offender offender;
 
@@ -69,7 +70,7 @@ namespace {
 		PlayType::PLAY,
 	};
 
-	BasicPlayStrategyFactory::BasicPlayStrategyFactory() : StrategyFactory("BasicPlay", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) {
+	BasicPlayStrategyFactory::BasicPlayStrategyFactory() : StrategyFactory("Basic Play", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) {
 	}
 
 	BasicPlayStrategyFactory::~BasicPlayStrategyFactory() {
@@ -116,6 +117,12 @@ namespace {
 	}
 
 	void BasicPlayStrategy::run_assignment() {
+
+		// clear up
+		goalie.reset();
+		defenders.clear();
+		offenders.clear();
+
 		if (world.friendly_team().size() == 0) {
 			LOG_WARN("no players");
 			return;
@@ -130,7 +137,7 @@ namespace {
 		}
 
 		// defenders
-		Player::Ptr goalie = players[0];
+		goalie = players[0];
 
 		std::size_t ndefenders = 1; // includes goalie
 		// int noffenders = 0;
@@ -149,10 +156,6 @@ namespace {
 				// ++noffenders;
 				break;
 		}
-
-		// clear up
-		defenders.clear();
-		offenders.clear();
 
 		// start from 1, to exclude goalie
 		for (std::size_t i = 1; i < players.size(); ++i) {
@@ -181,6 +184,13 @@ namespace {
 			if (dist < best_dist) {
 				offender_chase = false;
 				break;
+			}
+		}
+		// goalie special
+		{
+			double dist = (goalie->position() - world.ball().position()).len();
+			if (dist < best_dist) {
+				offender_chase = false;
 			}
 		}
 

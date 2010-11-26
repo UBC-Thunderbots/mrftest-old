@@ -65,14 +65,22 @@ void AI::HL::Tactics::repel(World &world, Player::Ptr player, const unsigned int
 		return;
 	}
 
-	// all enemies are obstacles
-	std::vector<Point> obstacles;
-	EnemyTeam &enemy = world.enemy_team();
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		obstacles.push_back(enemy.get(i)->position());
+	// just shoot as long as it's not in backwards direction
+	if (player->orientation() < M_PI/2 && player->orientation() > -M_PI/2) {
+		if (player->chicker_ready_time() == 0) {
+			player->kick(1.0);
+		}
 	}
 
-	const AI::HL::W::Field &f = world.field();
+	// all enemies are obstacles
+	/*
+	   std::vector<Point> obstacles;
+	   EnemyTeam &enemy = world.enemy_team();
+	   for (std::size_t i = 0; i < enemy.size(); ++i) {
+	   obstacles.push_back(enemy.get(i)->position());
+	   }
+
+	   const AI::HL::W::Field &f = world.field();
 
 	// vertical line at the enemy goal area
 	// basically u want the ball to be somewhere there
@@ -81,6 +89,7 @@ void AI::HL::Tactics::repel(World &world, Player::Ptr player, const unsigned int
 	std::pair<Point, double> target = angle_sweep_circles(player->position(), p1, p2, obstacles, Robot::MAX_RADIUS);
 
 	AI::HL::Tactics::shoot(world, player, flags, target.first);
+	 */
 }
 
 void AI::HL::Tactics::free_move(World &world, Player::Ptr player, const Point p) {
