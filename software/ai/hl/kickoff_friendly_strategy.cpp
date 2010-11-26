@@ -151,7 +151,7 @@ namespace {
 		if (kicker.is()) {
 			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[best]->position());
 		}
-		
+
 		offender.tick();
 	}
 

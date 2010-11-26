@@ -78,19 +78,19 @@ namespace {
 
 			if (!valid_path(currentPosition, destinationPosition, world, player)) {
 				// Do binary search:
-				Point vector = destinationPosition-currentPosition;
+				Point vector = destinationPosition - currentPosition;
 				double min = 0;
 				double max = 1;
-				while (max-min > 0.01) {
-					double mid = (min+max)/2.0;
+				while (max - min > 0.01) {
+					double mid = (min + max) / 2.0;
 					if (valid_path(currentPosition, currentPosition + (mid * vector), world, player)) {
 						min = mid;
 					} else {
 						max = mid;
 					}
 				}
-				double mid = (min+max)/2.0;
-				
+				double mid = (min + max) / 2.0;
+
 				path.push_back(std::make_pair(std::make_pair(currentPosition + (mid * vector), destinationOrientation), world.monotonic_time()));
 				player->path(path);
 			} else {
