@@ -9,7 +9,7 @@ using namespace AI::Nav::Util;
 using namespace AI::Nav::W;
 
 namespace {
-	const double STEP_DISTANCE = 0.3;
+	const double STEP_DISTANCE = 0.9;
 
 	const double ROTATE_STEP = M_PI / 32.0;
 
@@ -55,7 +55,7 @@ namespace {
 	ReactiveNavigator::~ReactiveNavigator() {
 	}
 
-	ReactiveNavigatorFactory::ReactiveNavigatorFactory() : NavigatorFactory("Reacitve Navigator") {
+	ReactiveNavigatorFactory::ReactiveNavigatorFactory() : NavigatorFactory("Reactive Navigator") {
 	}
 
 	ReactiveNavigatorFactory::~ReactiveNavigatorFactory() {
@@ -87,7 +87,7 @@ namespace {
 				Point vec = (destinationPosition - currentPosition);
 				Point add(0, 0);
 				if (vec.lensq() > 0.01) {
-					vec = 0.3 * vec.norm();
+					vec = STEP_DISTANCE * vec.norm();
 					double rotate = ROTATE_STEP;
 					for (int i = 0; (i * rotate) < M_PI / 2; i++) {
 						Point left = vec.rotate(i * rotate);
