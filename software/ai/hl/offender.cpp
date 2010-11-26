@@ -221,13 +221,9 @@ void AI::HL::Offender::tick() {
 		dist = (chaser->position() - enemies[i]->position()).len();
 		if (dist <= threshold_dist) cnt++;
 	}
-	for (std::size_t i = 0; i < supporters.size(); ++i){
-		if (AI::HL::Util::can_receive(world, supporters[i])) {
-			passee = supporters[i];
-			break;
-		}
-	}
-
+	
+	pass = (cnt >= 2) && AI::HL::Util::choose_best_pass(world, supporters) >= 0;
+	
 	*/
 	if (AI::HL::Util::choose_best_pass(world, supporters) >= 0)
 		Player::Ptr passee = supporters[AI::HL::Util::choose_best_pass(world, supporters)];
