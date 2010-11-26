@@ -17,7 +17,7 @@ Backend::Backend() : defending_end_(WEST), friendly_colour_(YELLOW), playtype_(A
 Backend::~Backend() {
 }
 
-BackendFactory::BackendFactory(const Glib::ustring &name) : Registerable<BackendFactory>(name) {
+BackendFactory::BackendFactory(const char *name) : Registerable<BackendFactory>(name) {
 }
 
 BackendFactory::~BackendFactory() {

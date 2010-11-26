@@ -466,7 +466,7 @@ namespace AI {
 				 *
 				 * \param[in] name a human-readable name for this Backend.
 				 */
-				BackendFactory(const Glib::ustring &name);
+				BackendFactory(const char *name);
 
 				/**
 				 * Destroys a BackendFactory.

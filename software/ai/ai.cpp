@@ -50,7 +50,7 @@ void AIPackage::tick() {
 					}
 				}
 				if (found) {
-					LOG_ERROR(Glib::ustring::compose("Strategy %1 resigned during a play type it claims to be launchable from!", strategy->factory().name));
+					LOG_ERROR(Glib::ustring::compose("Strategy %1 resigned during a play type it claims to be launchable from!", strategy->factory().name()));
 				}
 			}
 			// If the strategy resigned, try to find another one and tick it instead.
@@ -104,7 +104,7 @@ void AIPackage::player_removing(std::size_t idx) {
 }
 
 void AIPackage::robot_controller_factory_changed() {
-	LOG_DEBUG(Glib::ustring::compose("Changing robot controller to %1.", robot_controller_factory ? robot_controller_factory->name : "<None>"));
+	LOG_DEBUG(Glib::ustring::compose("Changing robot controller to %1.", robot_controller_factory ? robot_controller_factory->name() : "<None>"));
 	for (unsigned int i = 0; i < backend.friendly_team().size(); ++i) {
 		AI::BE::Player::Ptr plr = backend.friendly_team().get(i);
 		PrivateState::Ptr state = PrivateState::Ptr::cast_dynamic(plr->object_store()[typeid(*this)]);

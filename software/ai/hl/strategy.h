@@ -230,7 +230,7 @@ namespace AI {
 				 *
 				 * \param[in] handled_play_types_size the number of elements in the \p handled_play_types array.
 				 */
-				StrategyFactory(const Glib::ustring &name, const AI::HL::W::PlayType::PlayType *handled_play_types, std::size_t handled_play_types_size);
+				StrategyFactory(const char *name, const AI::HL::W::PlayType::PlayType *handled_play_types, std::size_t handled_play_types_size);
 
 				/**
 				 * Destroys a StrategyFactory.

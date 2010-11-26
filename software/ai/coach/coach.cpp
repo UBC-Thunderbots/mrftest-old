@@ -39,7 +39,7 @@ Gtk::Widget *Coach::ui_controls() {
 	return 0;
 }
 
-CoachFactory::CoachFactory(const Glib::ustring &name) : Registerable<CoachFactory>(name) {
+CoachFactory::CoachFactory(const char *name) : Registerable<CoachFactory>(name) {
 }
 
 CoachFactory::~CoachFactory() {

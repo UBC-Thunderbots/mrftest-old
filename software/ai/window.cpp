@@ -107,7 +107,7 @@ namespace {
 				typedef AI::BF::BallFilter::Map Map;
 				const Map &m = AI::BF::BallFilter::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-					ball_filter_chooser.append_text(i->second->name);
+					ball_filter_chooser.append_text(i->second->name());
 				}
 				add(ball_filter_chooser);
 				ball_filter_chooser.signal_changed().connect(sigc::mem_fun(this, &BallFilterControls::on_ball_filter_chooser_changed));
@@ -134,7 +134,7 @@ namespace {
 			void on_ball_filter_changed() {
 				AI::BF::BallFilter *ball_filter = ai.backend.ball_filter();
 				if (ball_filter) {
-					ball_filter_chooser.set_active_text(ball_filter->name);
+					ball_filter_chooser.set_active_text(ball_filter->name());
 				} else {
 					ball_filter_chooser.set_active_text("<Select Ball Filter>");
 				}
@@ -149,7 +149,7 @@ namespace {
 				typedef AI::Coach::CoachFactory::Map Map;
 				const Map &m = AI::Coach::CoachFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-					coach_chooser.append_text(i->second->name);
+					coach_chooser.append_text(i->second->name());
 				}
 				table.attach(coach_chooser, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				coach_chooser.signal_changed().connect(sigc::mem_fun(this, &CoachControls::on_coach_chooser_changed));
@@ -196,7 +196,7 @@ namespace {
 			void on_coach_changed() {
 				AI::Coach::Coach::Ptr coach = ai.coach;
 				if (coach.is()) {
-					coach_chooser.set_active_text(coach->factory().name);
+					coach_chooser.set_active_text(coach->factory().name());
 				} else {
 					coach_chooser.set_active_text("<Choose Coach>");
 				}
@@ -210,7 +210,7 @@ namespace {
 			void on_strategy_changed() {
 				AI::HL::Strategy::Ptr strategy = ai.backend.strategy();
 				if (strategy.is()) {
-					strategy_entry.set_text(strategy->factory().name);
+					strategy_entry.set_text(strategy->factory().name());
 				} else {
 					strategy_entry.set_text("<None>");
 				}
@@ -225,7 +225,7 @@ namespace {
 				typedef AI::Nav::NavigatorFactory::Map Map;
 				const Map &m = AI::Nav::NavigatorFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-					navigator_chooser.append_text(i->second->name);
+					navigator_chooser.append_text(i->second->name());
 				}
 
 				table.attach(navigator_chooser, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -266,7 +266,7 @@ namespace {
 			void on_navigator_changed() {
 				AI::Nav::Navigator::Ptr navigator = ai.navigator;
 				if (navigator.is()) {
-					navigator_chooser.set_active_text(navigator->factory().name);
+					navigator_chooser.set_active_text(navigator->factory().name());
 				} else {
 					navigator_chooser.set_active_text("<Choose Navigator>");
 				}
@@ -286,7 +286,7 @@ namespace {
 				typedef AI::RC::RobotControllerFactory::Map Map;
 				const Map &m = AI::RC::RobotControllerFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-					rc_chooser.append_text(i->second->name);
+					rc_chooser.append_text(i->second->name());
 				}
 				table.attach(rc_chooser, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				rc_chooser.signal_changed().connect(sigc::mem_fun(this, &RobotControllerControls::on_rc_chooser_changed));
@@ -326,7 +326,7 @@ namespace {
 			void on_rc_changed() {
 				AI::RC::RobotControllerFactory *rcf = ai.robot_controller_factory;
 				if (rcf) {
-					rc_chooser.set_active_text(rcf->name);
+					rc_chooser.set_active_text(rcf->name());
 				} else {
 					rc_chooser.set_active_text("<Choose Robot Controller>");
 				}

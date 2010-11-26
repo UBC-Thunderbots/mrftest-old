@@ -187,7 +187,7 @@ namespace AI {
 				 *
 				 * \param[in] name a human-readable name for the factory.
 				 */
-				RobotControllerFactory(const Glib::ustring &name) : Registerable<RobotControllerFactory>(name) {
+				RobotControllerFactory(const char *name) : Registerable<RobotControllerFactory>(name) {
 				}
 		};
 	}

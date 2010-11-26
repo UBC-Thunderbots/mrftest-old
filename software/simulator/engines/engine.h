@@ -78,7 +78,7 @@ class SimulatorEngineFactory : public Registerable<SimulatorEngineFactory> {
 		 *
 		 * \param[in] name a short string naming the factory.
 		 */
-		SimulatorEngineFactory(const Glib::ustring &name) : Registerable<SimulatorEngineFactory>(name) {
+		SimulatorEngineFactory(const char *name) : Registerable<SimulatorEngineFactory>(name) {
 		}
 };
 

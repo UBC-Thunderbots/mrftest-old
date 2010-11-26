@@ -39,7 +39,7 @@ namespace {
 		selector.append_text("<Select Strategy>");
 		selector.set_active_text("<Select Strategy>");
 		for (AI::HL::StrategyFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-			selector.append_text(i->second->name);
+			selector.append_text(i->second->name());
 		}
 		selector.signal_changed().connect(sigc::mem_fun(this, &SingleStrategyCoach::on_selector_changed));
 	}

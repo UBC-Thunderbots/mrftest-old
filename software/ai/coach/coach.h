@@ -120,7 +120,7 @@ namespace AI {
 				 *
 				 * \param[in] name a human-readable name for this Coach.
 				 */
-				CoachFactory(const Glib::ustring &name);
+				CoachFactory(const char *name);
 
 				/**
 				 * Destroys a CoachFactory.

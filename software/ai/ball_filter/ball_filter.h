@@ -31,7 +31,7 @@ namespace AI {
 				 *
 				 * \param[in] name the name of the filter.
 				 */
-				BallFilter(const Glib::ustring &name) : Registerable<BallFilter>(name) {
+				BallFilter(const char *name) : Registerable<BallFilter>(name) {
 				}
 		};
 	}

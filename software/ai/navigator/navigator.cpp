@@ -14,7 +14,7 @@ Navigator::Navigator(World &world) : world(world) {
 Navigator::~Navigator() {
 }
 
-NavigatorFactory::NavigatorFactory(const Glib::ustring &name) : Registerable<NavigatorFactory>(name) {
+NavigatorFactory::NavigatorFactory(const char *name) : Registerable<NavigatorFactory>(name) {
 }
 
 NavigatorFactory::~NavigatorFactory() {

@@ -116,7 +116,7 @@ void ai_logger_signal_handler_thunk(int sig) {
 AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), ended(false), sigstack_registration(sigstack, sizeof(sigstack)), SIGHUP_registration(SIGHUP, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGINT_registration(SIGINT, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGQUIT_registration(SIGQUIT, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGILL_registration(SIGILL, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGTRAP_registration(SIGTRAP, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGABRT_registration(SIGABRT, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGBUS_registration(SIGBUS, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGFPE_registration(SIGFPE, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGSEGV_registration(SIGSEGV, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGPIPE_registration(SIGPIPE, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGTERM_registration(SIGTERM, &ai_logger_signal_handler_thunk, SA_RESETHAND), SIGSTKFLT_registration(SIGSTKFLT, &ai_logger_signal_handler_thunk, SA_RESETHAND) {
 	write_packet(fd, Log::T_START, 0, 0);
 
-	const std::string &backend_name = ai.backend.factory().name;
+	const std::string &backend_name = ai.backend.factory().name();
 	write_packet(fd, Log::T_BACKEND, backend_name.data(), backend_name.size());
 
 	signal_message_logged.connect(sigc::mem_fun(this, &AI::Logger::on_message_logged));
@@ -314,7 +314,7 @@ void AI::Logger::on_field_changed() {
 void AI::Logger::on_ball_filter_changed() {
 	AI::BF::BallFilter *ball_filter = ai.backend.ball_filter();
 	if (ball_filter) {
-		const std::string &utf8name = ball_filter->name;
+		const std::string &utf8name = ball_filter->name();
 		write_packet(fd, Log::T_BALL_FILTER, utf8name.data(), utf8name.size());
 	} else {
 		write_packet(fd, Log::T_BALL_FILTER, 0, 0);
@@ -324,7 +324,7 @@ void AI::Logger::on_ball_filter_changed() {
 void AI::Logger::on_coach_changed() {
 	AI::Coach::Coach::Ptr coach = ai.coach;
 	if (coach.is()) {
-		const std::string &utf8name = coach->factory().name;
+		const std::string &utf8name = coach->factory().name();
 		write_packet(fd, Log::T_COACH, utf8name.data(), utf8name.size());
 	} else {
 		write_packet(fd, Log::T_COACH, 0, 0);
@@ -334,7 +334,7 @@ void AI::Logger::on_coach_changed() {
 void AI::Logger::on_strategy_changed() {
 	AI::HL::Strategy::Ptr strategy = ai.backend.strategy();
 	if (strategy.is()) {
-		const std::string &utf8name = strategy->factory().name;
+		const std::string &utf8name = strategy->factory().name();
 		write_packet(fd, Log::T_STRATEGY, utf8name.data(), utf8name.size());
 	} else {
 		write_packet(fd, Log::T_STRATEGY, 0, 0);
@@ -343,7 +343,7 @@ void AI::Logger::on_strategy_changed() {
 
 void AI::Logger::on_robot_controller_factory_changed() {
 	if (ai.robot_controller_factory) {
-		const std::string &utf8name = ai.robot_controller_factory->name;
+		const std::string &utf8name = ai.robot_controller_factory->name();
 		write_packet(fd, Log::T_ROBOT_CONTROLLER, utf8name.data(), utf8name.size());
 	} else {
 		write_packet(fd, Log::T_ROBOT_CONTROLLER, 0, 0);

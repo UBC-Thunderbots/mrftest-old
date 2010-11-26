@@ -101,7 +101,7 @@ namespace AI {
 				 *
 				 * \param[in] name a human-readable name for this Navigator.
 				 */
-				NavigatorFactory(const Glib::ustring &name);
+				NavigatorFactory(const char *name);
 
 				/**
 				 * Destroys a NavigatorFactory.

@@ -94,7 +94,7 @@ namespace {
 		typedef AI::BE::BackendFactory::Map Map;
 		const Map &m = AI::BE::BackendFactory::all();
 		for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-			combo.append_text(i->second->name);
+			combo.append_text(i->second->name());
 		}
 		dlg.get_vbox()->pack_start(combo, Gtk::PACK_SHRINK);
 		dlg.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
@@ -188,7 +188,7 @@ namespace {
 				typedef AI::BE::BackendFactory::Map Map;
 				const Map &m = AI::BE::BackendFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-					std::cerr << i->second->name << '\n';
+					std::cerr << i->second->name() << '\n';
 				}
 				std::cerr << '\n';
 			}
@@ -197,7 +197,7 @@ namespace {
 				typedef AI::Coach::CoachFactory::Map Map;
 				const Map &m = AI::Coach::CoachFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-					std::cerr << i->second->name << '\n';
+					std::cerr << i->second->name() << '\n';
 				}
 				std::cerr << '\n';
 			}
@@ -206,7 +206,7 @@ namespace {
 				typedef AI::RC::RobotControllerFactory::Map Map;
 				const Map &m = AI::RC::RobotControllerFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-					std::cerr << i->second->name << '\n';
+					std::cerr << i->second->name() << '\n';
 				}
 				std::cerr << '\n';
 			}
@@ -215,7 +215,7 @@ namespace {
 				typedef AI::BF::BallFilter::Map Map;
 				const Map &m = AI::BF::BallFilter::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-					std::cerr << i->second->name << '\n';
+					std::cerr << i->second->name() << '\n';
 				}
 				std::cerr << '\n';
 			}

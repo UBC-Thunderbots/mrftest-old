@@ -5,7 +5,6 @@
 #include <glibmm.h>
 #include <map>
 #include <stdexcept>
-#include <vector>
 
 /**
  * A generic, templatized class to handle interfaces that should have registerable implementations.
@@ -25,23 +24,26 @@ template<typename T> class Registerable : public NonCopyable {
 		 * \return the map of registered objects of this type.
 		 */
 		static const Map &all() {
-			typedef typename std::vector<Registerable<T> *>::const_iterator iter_type;
-			for (iter_type i = precache().begin(), iend = precache().end(); i != iend; ++i) {
-				T *obj = dynamic_cast<T *>(*i);
-				const std::string &key = obj->name.collate_key();
+			while (precache()) {
+				T *obj = dynamic_cast<T *>(precache());
+				precache() = obj->precache_next;
+				obj->precache_next = 0;
+				obj->name_ = Glib::locale_to_utf8(obj->name_raw);
+				const std::string &key = obj->name().collate_key();
 				if (objects().count(key)) {
-					throw std::runtime_error("Duplicate name: " + obj->name);
+					throw std::runtime_error("Duplicate name: " + obj->name());
 				}
 				objects()[key] = obj;
 			}
-			precache().clear();
 			return objects();
 		}
 
 		/**
 		 * The name of this object.
 		 */
-		const Glib::ustring name;
+		const Glib::ustring &name() const {
+			return name_;
+		}
 
 	protected:
 		/**
@@ -49,8 +51,9 @@ template<typename T> class Registerable : public NonCopyable {
 		 *
 		 * \param[in] name the name of the new object.
 		 */
-		Registerable(const Glib::ustring &name) : name(name) {
-			precache().push_back(this);
+		Registerable(const char *name) : name_raw(name) {
+			precache_next = precache();
+			precache() = this;
 		}
 
 		/**
@@ -60,9 +63,13 @@ template<typename T> class Registerable : public NonCopyable {
 		}
 
 	private:
-		static std::vector<Registerable<T> *> &precache() {
-			static std::vector<Registerable<T> *> v;
-			return v;
+		const char * const name_raw;
+		Glib::ustring name_;
+		Registerable<T> *precache_next;
+
+		static Registerable<T> *&precache() {
+			static Registerable<T> *first;
+			return first;
 		}
 
 		static Map &objects() {
