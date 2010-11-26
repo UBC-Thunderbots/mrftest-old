@@ -77,7 +77,21 @@ namespace {
 			destinationOrientation = player->destination().second;
 
 			if (!valid_path(currentPosition, destinationPosition, world, player)) {
-				path.push_back(std::make_pair(std::make_pair(Point(0, 0), 0), world.monotonic_time()));
+				// Do binary search:
+				Point vector = destinationPosition-currentPosition;
+				double min = 0;
+				double max = 1;
+				while (max-min > 0.01) {
+					double mid = (min+max)/2.0;
+					if (valid_path(currentPosition, currentPosition + (mid * vector), world, player)) {
+						min = mid;
+					} else {
+						max = mid;
+					}
+				}
+				double mid = (min+max)/2.0;
+				
+				path.push_back(std::make_pair(std::make_pair(currentPosition + (mid * vector), destinationOrientation), world.monotonic_time()));
 				player->path(path);
 			} else {
 				path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
