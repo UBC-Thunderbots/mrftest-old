@@ -42,6 +42,7 @@ namespace {
 			void execute_penalty_friendly();
 
 			void prepare();
+			void execute();
 
 			void run_assignment();
 
@@ -94,12 +95,8 @@ namespace {
 		}
 
 		prepare();
-
-		const Point shoot_position = Point(0.5 * world.field().length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0);
-
-		if (kicker.is()) {
-			AI::HL::Tactics::free_move(world, kicker, shoot_position);
-		}
+		execute();
+		
 	}
 
 	void PenaltyFriendlyStrategy::prepare() {
@@ -117,10 +114,23 @@ namespace {
 			// move the robots to position
 			offenders[i]->move(waypoints[i], (world.ball().position() - players[i]->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
 		}
+		
+		const Point shoot_position = Point(0.5 * world.field().length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0);
 
+		if (kicker.is()) {
+			AI::HL::Tactics::free_move(world, kicker, shoot_position);
+		}
 		defender.set_chase(false);
 		defender.tick();
 	}
+	void PenaltyFriendlyStrategy::execute() {
+
+		if (kicker.is()) {
+			 AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
+		}
+		
+	}
+
 
 	void PenaltyFriendlyStrategy::run_assignment() {
 		if (world.friendly_team().size() == 0) {

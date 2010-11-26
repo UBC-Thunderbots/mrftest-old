@@ -137,7 +137,6 @@ namespace {
 			AI::HL::Tactics::free_move(world, offenders[i], positions[i]);
 		}
 
-
 		defender.set_chase(false);
 		defender.tick();
 
@@ -150,9 +149,9 @@ namespace {
 		int best = AI::HL::Util::choose_best_pass(world, offenders);
 
 		if (kicker.is()) {
-			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_AVOID_BALL_TINY, offenders[best]->position());
+			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[best]->position());
 		}
-		offender.set_players(offenders);
+		
 		offender.tick();
 	}
 
@@ -204,6 +203,7 @@ namespace {
 		LOG_INFO(Glib::ustring::compose("player reassignment %1 defenders, %2 offenders", ndefenders, offenders.size()));
 
 		defender.set_players(defenders, goalie);
+		offender.set_players(offenders);
 	}
 
 	Strategy::Ptr KickoffFriendlyStrategy::create(World &world) {
