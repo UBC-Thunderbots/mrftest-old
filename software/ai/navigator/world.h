@@ -71,6 +71,13 @@ namespace AI {
 					virtual const std::pair<Point, double> &destination() const = 0;
 
 					/**
+					 * Returns the target velocity requested by the Strategy.
+					 *
+					 * \return the target velocity.
+					 */
+					virtual Point target_velocity() const = 0;
+
+					/**
 					 * Returns the movement flags requested by the Strategy.
 					 *
 					 * \return the flags.

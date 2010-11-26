@@ -88,14 +88,14 @@ namespace AI {
 				double aacceleration(double delta) const = 0;
 				unsigned int pattern() const = 0;
 				ObjectStore &object_store() = 0;
-				void move(Point dest, double ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
+				void move(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
 				void kick(double power);
 				void chip(double power);
 				const std::pair<Point, double> &destination() const = 0;
 				void path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p);
 
 			protected:
-				virtual void move_impl(Point dest, double ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) = 0;
+				virtual void move_impl(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) = 0;
 				virtual void kick_impl(double power) = 0;
 				virtual void chip_impl(double power) = 0;
 				virtual void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) = 0;

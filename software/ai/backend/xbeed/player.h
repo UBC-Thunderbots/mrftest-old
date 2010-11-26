@@ -63,11 +63,12 @@ namespace AI {
 					ObjectStore &object_store() { return Robot::object_store(); }
 					bool has_ball() const { return sense_ball(); }
 					unsigned int chicker_ready_time() const;
-					void move_impl(Point dest, double ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
+					void move_impl(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
 					void kick_impl(double power);
 					void chip_impl(double power);
 					bool has_destination() const { return true; }
 					const std::pair<Point, double> &destination() const;
+					Point target_velocity() const;
 					unsigned int flags() const { return flags_; }
 					AI::Flags::MoveType type() const { return move_type_; }
 					AI::Flags::MovePrio prio() const { return move_prio_; }
@@ -161,6 +162,7 @@ namespace AI {
 				private:
 					XBeeDriveBot::Ptr bot;
 					std::pair<Point, double> destination_;
+					Point target_velocity_;
 					bool moved, controlled;
 					int new_dribble_power;
 					int old_dribble_power;

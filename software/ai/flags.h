@@ -92,16 +92,19 @@ namespace AI {
 
 			/**
 			 * Move to intercept the ball as soon as possible, ignoring target location but intercepting with the requested orientation.
+			 * Ignores the target velocity.
 			 */
 			MOVE_CATCH,
 
 			/**
 			 * Move to the target location and orientation at the same time the ball will get there, but don't worry about stopping at the target after.
+			 * Ignores the target velocity.
 			 */
 			MOVE_RAM_BALL,
 
 			/**
 			 * Stop moving (not intended for use by high-levels, only for things like emergency stop).
+			 * Ignores the target velocity.
 			 */
 			MOVE_HALT,
 		};

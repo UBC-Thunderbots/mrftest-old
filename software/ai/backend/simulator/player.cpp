@@ -139,9 +139,10 @@ unsigned int AI::BE::Simulator::Player::chicker_ready_time() const {
 	return 0;
 }
 
-void AI::BE::Simulator::Player::move_impl(Point dest, double ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
+void AI::BE::Simulator::Player::move_impl(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
 	destination_.first = dest;
 	destination_.second = ori;
+	target_velocity_ = vel;
 	flags_ = flags;
 	move_type_ = type;
 	move_prio_ = prio;
@@ -162,6 +163,10 @@ bool AI::BE::Simulator::Player::has_destination() const {
 
 const std::pair<Point, double> &AI::BE::Simulator::Player::destination() const {
 	return destination_;
+}
+
+Point AI::BE::Simulator::Player::target_velocity() const {
+	return target_velocity_;
 }
 
 unsigned int AI::BE::Simulator::Player::flags() const {

@@ -67,9 +67,10 @@ namespace {
 #warning why the hell is this number so small?
 const unsigned int Player::CHICKER_FOREVER = 1000;
 
-void Player::move_impl(Point dest, double target_ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
+void Player::move_impl(Point dest, double target_ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
 	destination_.first = dest;
 	destination_.second = target_ori;
+	target_velocity_ = Point();
 	flags_ = flags;
 	move_type_ = type;
 	move_prio_ = prio;
@@ -79,6 +80,10 @@ void Player::move_impl(Point dest, double target_ori, unsigned int flags, AI::Fl
 
 const std::pair<Point, double> &Player::destination() const {
 	return destination_;
+}
+
+Point Player::target_velocity() const {
+	return target_velocity_;
 }
 
 void Player::dribble(double speed) {

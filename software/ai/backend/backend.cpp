@@ -6,7 +6,7 @@
 using AI::BE::Backend;
 using AI::BE::BackendFactory;
 
-void AI::BE::Player::move(Point dest, double ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
+void AI::BE::Player::move(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
 	if (!std::isfinite(dest.x) || !std::isfinite(dest.y)) {
 		LOG_WARN("NaN or ±inf destination in Player::move");
 		dest = position(0);
@@ -15,7 +15,11 @@ void AI::BE::Player::move(Point dest, double ori, unsigned int flags, AI::Flags:
 		LOG_WARN("NaN or ±inf orientation in Player::move");
 		ori = orientation(0);
 	}
-	move_impl(dest, ori, flags, type, prio);
+	if (!std::isfinite(vel.x) || !std::isfinite(vel.y)) {
+		LOG_WARN("NaN or ±inf velocity in Player::move");
+		vel.x = vel.y = 0;
+	}
+	move_impl(dest, ori, vel, flags, type, prio);
 }
 
 void AI::BE::Player::kick(double power) {

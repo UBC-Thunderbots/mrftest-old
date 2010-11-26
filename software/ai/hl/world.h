@@ -57,7 +57,24 @@ namespace AI {
 					 *
 					 * \param[in] prio the priority of the movement.
 					 */
-					virtual void move(Point dest, double ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) = 0;
+					void move(Point dest, double ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
+
+					/**
+					 * Sets the current destination and movement type for this player.
+					 *
+					 * \param[in] dest the destination position to move to.
+					 *
+					 * \param[in] ori the target orientation to assume.
+					 *
+					 * \param[in] vel the velocity the robot should be moving when it arrives at the target point.
+					 *
+					 * \param[in] flags the flags governing the movement.
+					 *
+					 * \param[in] type the type of movement to perform.
+					 *
+					 * \param[in] prio the priority of the movement.
+					 */
+					virtual void move(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) = 0;
 
 					/**
 					 * Causes the player to kick the ball.

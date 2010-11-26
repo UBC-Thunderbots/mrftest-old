@@ -99,11 +99,12 @@ namespace AI {
 					ObjectStore &object_store();
 					bool has_ball() const;
 					unsigned int chicker_ready_time() const;
-					void move_impl(Point dest, double ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
+					void move_impl(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
 					void kick_impl(double power);
 					void chip_impl(double power);
 					bool has_destination() const;
 					const std::pair<Point, double> &destination() const;
+					Point target_velocity() const;
 					unsigned int flags() const;
 					AI::Flags::MoveType type() const;
 					AI::Flags::MovePrio prio() const;
@@ -143,6 +144,11 @@ namespace AI {
 					 * The target position and orientation most recently selected by the high-level AI.
 					 */
 					std::pair<Point, double> destination_;
+
+					/**
+					 * The target velocity most recently selected by the high-level AI.
+					 */
+					Point target_velocity_;
 
 					/**
 					 * The movement flags most recently specified by the high-level AI.
