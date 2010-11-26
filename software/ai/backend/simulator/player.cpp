@@ -139,19 +139,19 @@ unsigned int AI::BE::Simulator::Player::chicker_ready_time() const {
 	return 0;
 }
 
-void AI::BE::Simulator::Player::move(Point dest, double ori, unsigned int flags, AI::Flags::MOVE_TYPE type, AI::Flags::MOVE_PRIO prio) {
+void AI::BE::Simulator::Player::move_impl(Point dest, double ori, unsigned int flags, AI::Flags::MOVE_TYPE type, AI::Flags::MOVE_PRIO prio) {
 	destination_.first = dest;
 	destination_.second = ori;
 	flags_ = flags;
 	move_type_ = type;
 	move_prio_ = prio;
 }
-void AI::BE::Simulator::Player::kick(double power) {
+void AI::BE::Simulator::Player::kick_impl(double power) {
 	kick_ = true;
 	chick_power_ = power;
 }
 
-void AI::BE::Simulator::Player::chip(double power) {
+void AI::BE::Simulator::Player::chip_impl(double power) {
 	chip_ = true;
 	chick_power_ = power;
 }
@@ -176,7 +176,7 @@ AI::Flags::MOVE_PRIO AI::BE::Simulator::Player::prio() const {
 	return move_prio_;
 }
 
-void AI::BE::Simulator::Player::path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) {
+void AI::BE::Simulator::Player::path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) {
 	path_ = p;
 }
 

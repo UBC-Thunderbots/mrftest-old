@@ -67,21 +67,9 @@ namespace {
 #warning why the hell is this number so small?
 const unsigned int Player::CHICKER_FOREVER = 1000;
 
-void Player::move(Point dest, double target_ori, unsigned int flags, AI::Flags::MOVE_TYPE type, AI::Flags::MOVE_PRIO prio) {
-	if (std::isnan(dest.x) || std::isnan(dest.y)) {
-		destination_.first = position();
-		LOG_WARN("NaN destination passed to player::move");
-	} else {
-		destination_.first = dest;
-	}
-
-	if (std::isnan(target_ori)) {
-		destination_.second = orientation();
-		LOG_WARN("NaN orientation passed to player::move");
-	} else {
-		destination_.second = target_ori;
-	}
-
+void Player::move_impl(Point dest, double target_ori, unsigned int flags, AI::Flags::MOVE_TYPE type, AI::Flags::MOVE_PRIO prio) {
+	destination_.first = dest;
+	destination_.second = target_ori;
 	flags_ = flags;
 	move_type_ = type;
 	move_prio_ = prio;
@@ -114,7 +102,7 @@ unsigned int Player::chicker_ready_time() const {
 	}
 }
 
-void Player::kick(double power) {
+void Player::kick_impl(double power) {
 	std::cout << pattern() << " kick(" << power << ")\n";
 	if (bot->alive()) {
 		if (!chicker_ready_time()) {
@@ -129,7 +117,7 @@ void Player::kick(double power) {
 	}
 }
 
-void Player::chip(double power) {
+void Player::chip_impl(double power) {
 	std::cout << pattern() << " chip(" << power << ")\n";
 	if (bot->alive()) {
 		if (!chicker_ready_time()) {
