@@ -99,14 +99,14 @@ namespace AI {
 					ObjectStore &object_store();
 					bool has_ball() const;
 					unsigned int chicker_ready_time() const;
-					void move_impl(Point dest, double ori, unsigned int flags, AI::Flags::MOVE_TYPE type, AI::Flags::MOVE_PRIO prio);
+					void move_impl(Point dest, double ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
 					void kick_impl(double power);
 					void chip_impl(double power);
 					bool has_destination() const;
 					const std::pair<Point, double> &destination() const;
 					unsigned int flags() const;
-					AI::Flags::MOVE_TYPE type() const;
-					AI::Flags::MOVE_PRIO prio() const;
+					AI::Flags::MoveType type() const;
+					AI::Flags::MovePrio prio() const;
 					void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p);
 					bool has_path() const;
 					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const;
@@ -152,12 +152,12 @@ namespace AI {
 					/**
 					 * The movement type most recently specified by the high-level AI.
 					 */
-					AI::Flags::MOVE_TYPE move_type_;
+					AI::Flags::MoveType move_type_;
 
 					/**
 					 * The movement priority most recently specified by the high-level AI.
 					 */
-					AI::Flags::MOVE_PRIO move_prio_;
+					AI::Flags::MovePrio move_prio_;
 
 					/**
 					 * The path of positions, orientations, and deadline timestamps most recently specified by the navigator.

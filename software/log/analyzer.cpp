@@ -1337,7 +1337,7 @@ namespace {
 	 * A mapping from movement type to descriptive text.
 	 */
 	const struct {
-		AI::Flags::MOVE_TYPE type;
+		AI::Flags::MoveType type;
 		const char *description;
 	} MOVE_TYPE_MAPPING[] = {
 		{ AI::Flags::MOVE_NORMAL, "Normal" },
@@ -1421,7 +1421,7 @@ namespace {
 	 * A mapping from movement priority to descriptive text.
 	 */
 	const struct {
-		AI::Flags::MOVE_PRIO prio;
+		AI::Flags::MovePrio prio;
 		const char *description;
 	} MOVE_PRIO_MAPPING[] = {
 		{ AI::Flags::PRIO_HIGH, "High" },

@@ -57,7 +57,7 @@ namespace AI {
 					 *
 					 * \param[in] prio the priority of the movement.
 					 */
-					virtual void move(Point dest, double ori, unsigned int flags, AI::Flags::MOVE_TYPE type, AI::Flags::MOVE_PRIO prio) = 0;
+					virtual void move(Point dest, double ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) = 0;
 
 					/**
 					 * Causes the player to kick the ball.

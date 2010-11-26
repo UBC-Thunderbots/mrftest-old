@@ -63,14 +63,14 @@ namespace AI {
 					ObjectStore &object_store() { return Robot::object_store(); }
 					bool has_ball() const { return sense_ball(); }
 					unsigned int chicker_ready_time() const;
-					void move_impl(Point dest, double ori, unsigned int flags, AI::Flags::MOVE_TYPE type, AI::Flags::MOVE_PRIO prio);
+					void move_impl(Point dest, double ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
 					void kick_impl(double power);
 					void chip_impl(double power);
 					bool has_destination() const { return true; }
 					const std::pair<Point, double> &destination() const;
 					unsigned int flags() const { return flags_; }
-					AI::Flags::MOVE_TYPE type() const { return move_type_; }
-					AI::Flags::MOVE_PRIO prio() const { return move_prio_; }
+					AI::Flags::MoveType type() const { return move_type_; }
+					AI::Flags::MovePrio prio() const { return move_prio_; }
 					void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) { path_ = p; }
 					bool has_path() const { return true; }
 					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const { return path_; }
@@ -173,8 +173,8 @@ namespace AI {
 					Annunciator::Message not_moved_message, chick_when_not_ready_message;
 					int wheel_speeds_[4];
 					unsigned int flags_;
-					AI::Flags::MOVE_TYPE move_type_;
-					AI::Flags::MOVE_PRIO move_prio_;
+					AI::Flags::MoveType move_type_;
+					AI::Flags::MovePrio move_prio_;
 					std::vector<std::pair<std::pair<Point, double>, timespec> > path_;
 
 					/**

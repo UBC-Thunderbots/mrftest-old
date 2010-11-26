@@ -79,7 +79,7 @@ namespace AI {
 		/**
 		 * Movement types indicating styles of movement for robots to take.
 		 */
-		enum MOVE_TYPE {
+		enum MoveType {
 			/**
 			 * Move to the target location and orientation as quickly as possible.
 			 */
@@ -109,7 +109,7 @@ namespace AI {
 		/**
 		 * Movement priorities indicating which robots should give way so other robots can drive in a straight line.
 		 */
-		enum MOVE_PRIO {
+		enum MovePrio {
 			/**
 			 * An important movement which should not be diverted, such as handling the ball.
 			 */

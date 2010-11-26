@@ -67,7 +67,7 @@ namespace {
 #warning why the hell is this number so small?
 const unsigned int Player::CHICKER_FOREVER = 1000;
 
-void Player::move_impl(Point dest, double target_ori, unsigned int flags, AI::Flags::MOVE_TYPE type, AI::Flags::MOVE_PRIO prio) {
+void Player::move_impl(Point dest, double target_ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
 	destination_.first = dest;
 	destination_.second = target_ori;
 	flags_ = flags;

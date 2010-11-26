@@ -82,14 +82,14 @@ namespace AI {
 					 *
 					 * \return the type.
 					 */
-					virtual AI::Flags::MOVE_TYPE type() const = 0;
+					virtual AI::Flags::MoveType type() const = 0;
 
 					/**
 					 * Returns the movement priority requested by the Strategy.
 					 *
 					 * \return the priority.
 					 */
-					virtual AI::Flags::MOVE_PRIO prio() const = 0;
+					virtual AI::Flags::MovePrio prio() const = 0;
 
 					/**
 					 * Sets the path this player should follow.

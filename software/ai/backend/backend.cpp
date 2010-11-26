@@ -6,7 +6,7 @@
 using AI::BE::Backend;
 using AI::BE::BackendFactory;
 
-void AI::BE::Player::move(Point dest, double ori, unsigned int flags, AI::Flags::MOVE_TYPE type, AI::Flags::MOVE_PRIO prio) {
+void AI::BE::Player::move(Point dest, double ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
 	if (!std::isfinite(dest.x) || !std::isfinite(dest.y)) {
 		LOG_WARN("NaN or ±inf destination in Player::move");
 		dest = position(0);

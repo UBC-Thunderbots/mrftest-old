@@ -139,7 +139,7 @@ unsigned int AI::BE::Simulator::Player::chicker_ready_time() const {
 	return 0;
 }
 
-void AI::BE::Simulator::Player::move_impl(Point dest, double ori, unsigned int flags, AI::Flags::MOVE_TYPE type, AI::Flags::MOVE_PRIO prio) {
+void AI::BE::Simulator::Player::move_impl(Point dest, double ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
 	destination_.first = dest;
 	destination_.second = ori;
 	flags_ = flags;
@@ -168,11 +168,11 @@ unsigned int AI::BE::Simulator::Player::flags() const {
 	return flags_;
 }
 
-AI::Flags::MOVE_TYPE AI::BE::Simulator::Player::type() const {
+AI::Flags::MoveType AI::BE::Simulator::Player::type() const {
 	return move_type_;
 }
 
-AI::Flags::MOVE_PRIO AI::BE::Simulator::Player::prio() const {
+AI::Flags::MovePrio AI::BE::Simulator::Player::prio() const {
 	return move_prio_;
 }
 
