@@ -170,7 +170,7 @@ namespace {
 	KickoffEnemyStrategy::~KickoffEnemyStrategy() {
 	}
 
-	KickoffEnemyStrategyFactory::KickoffEnemyStrategyFactory() : StrategyFactory("Kickoff Enemy", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) {
+	KickoffEnemyStrategyFactory::KickoffEnemyStrategyFactory() : StrategyFactory("Kickoff Enemy", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) 		{
 	}
 
 	KickoffEnemyStrategyFactory::~KickoffEnemyStrategyFactory() {

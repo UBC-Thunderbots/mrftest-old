@@ -22,7 +22,7 @@ namespace {
 	DoubleParam goalie_chase_thresh("max distance from goal for goalie to chase ball (field width)", 0.25, 0.0, 0.5);
 }
 
-double const Defender::get_goalie_chase_thresh() {
+double Defender::get_goalie_chase_thresh() {
 	return goalie_chase_thresh;
 }
 

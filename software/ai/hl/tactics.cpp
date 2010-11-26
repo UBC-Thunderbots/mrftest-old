@@ -106,6 +106,13 @@ void AI::HL::Tactics::lone_goalie(AI::HL::W::World &world, AI::HL::W::Player::Pt
 	player->move(target, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 }
 
+void AI::HL::Tactics::pass(World &world, Player::Ptr passer, Player::Ptr passee, const unsigned int flags) {
+	
+	if (!passer->has_ball() || !AI::HL::Util::can_receive(world, passee)) return;
+	
+	AI::HL::Tactics::shoot(world, passer, flags, passee->position());
+}
+
 AI::HL::Tactics::Patrol::Patrol(World &w) : world(w), flags(0) {
 	target1 = w.field().friendly_goal();
 	target2 = w.field().friendly_goal();
@@ -127,4 +134,7 @@ void AI::HL::Tactics::Patrol::tick() {
 		player->move(target2, (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 	}
 }
+
+
+
 

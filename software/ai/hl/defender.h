@@ -53,7 +53,7 @@ namespace AI {
 				 * Recommended maximum distance from the goal place,
 				 * for goalie to repel the ball.
 				 */
-				static const double get_goalie_chase_thresh();
+				static double get_goalie_chase_thresh();
 
 			protected:
 				/**

@@ -69,6 +69,12 @@ namespace AI {
 			void lone_goalie(AI::HL::W::World &world, AI::HL::W::Player::Ptr player);
 
 			/**
+			 * Passer shoots ball to passee.
+			 * Checks if passer has ball and passee can receive ball.
+			 */
+			void pass(AI::HL::W::World &world, AI::HL::W::Player::Ptr passer, AI::HL::W::Player::Ptr passee, const unsigned int flags);
+
+			/**
 			 * Helper Class to let a player (normally the goalie) to patrol between two points on the field
 			 */
 			class Patrol {
