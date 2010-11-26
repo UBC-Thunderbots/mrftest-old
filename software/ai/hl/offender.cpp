@@ -225,8 +225,9 @@ void AI::HL::Offender::tick() {
 	pass = (cnt >= 2) && AI::HL::Util::choose_best_pass(world, supporters) >= 0;
 	
 	*/
+	Player::Ptr passee;
 	if (AI::HL::Util::choose_best_pass(world, supporters) >= 0)
-		Player::Ptr passee = supporters[AI::HL::Util::choose_best_pass(world, supporters)];
+		passee = supporters[AI::HL::Util::choose_best_pass(world, supporters)];
 		 	
 
 	if (chaser.is()) {
