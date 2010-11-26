@@ -153,7 +153,6 @@ namespace {
 		}
 
 		offender.tick();
-		
 	}
 
 	void KickoffFriendlyStrategy::run_assignment() {

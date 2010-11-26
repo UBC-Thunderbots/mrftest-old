@@ -95,20 +95,20 @@ namespace {
 		Player::Ptr goalie = players[0];
 
 		std::size_t ndefenders = 1; // includes goalie
-		//int noffenders = 0;
+		// int noffenders = 0;
 
 		switch (players.size()) {
 			case 5:
-				//++ndefenders;
+			// ++ndefenders;
 
 			case 4:
-				//++noffenders;
+			// ++noffenders;
 
 			case 3:
 				++ndefenders;
 
 			case 2:
-				//++noffenders;
+				// ++noffenders;
 				break;
 		}
 
@@ -170,7 +170,7 @@ namespace {
 	KickoffEnemyStrategy::~KickoffEnemyStrategy() {
 	}
 
-	KickoffEnemyStrategyFactory::KickoffEnemyStrategyFactory() : StrategyFactory("Kickoff Enemy", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) 		{
+	KickoffEnemyStrategyFactory::KickoffEnemyStrategyFactory() : StrategyFactory("Kickoff Enemy", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) {
 	}
 
 	KickoffEnemyStrategyFactory::~KickoffEnemyStrategyFactory() {
