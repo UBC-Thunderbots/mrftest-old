@@ -13,7 +13,6 @@ using AI::HL::Defender;
 using namespace AI::HL::W;
 
 namespace {
-
 	DoubleParam lone_goalie_dist("Lone goalie distance to goal post (m)", 0.20, 0.05, 1.0);
 
 	DoubleParam max_goalie_dist("max goalie dist from goal (robot radius)", 3.0, 0.0, 10.0);
@@ -21,7 +20,6 @@ namespace {
 	DoubleParam robot_shrink("shrink robot radius", 0.9, 0.1, 2.0);
 
 	DoubleParam goalie_chase_thresh("max distance from goal for goalie to chase ball (field width)", 0.25, 0.0, 0.5);
-
 }
 
 double const Defender::get_goalie_chase_thresh() {
@@ -54,7 +52,7 @@ std::pair<Point, std::vector<Point> > Defender::calc_block_positions() const {
 		Point target = world.ball().position() - centre_of_goal;
 		target = target * (lone_goalie_dist / target.len());
 		target += centre_of_goal;
-		//player->move(target, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+		// player->move(target, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 		return std::make_pair(target, std::vector<Point>());
 	}
 
@@ -135,12 +133,12 @@ std::pair<Point, std::vector<Point> > Defender::calc_block_positions() const {
 }
 
 void Defender::tick() {
-	//if (players.size() == 0) {
-		//if (goalie.is()) {
-			//AI::HL::Tactics::lone_goalie(world, goalie);
-		//}
-		// LOG_WARN("no robots");
-	//}
+	// if (players.size() == 0) {
+	// if (goalie.is()) {
+	// AI::HL::Tactics::lone_goalie(world, goalie);
+	// }
+	// LOG_WARN("no robots");
+	// }
 
 	if (!goalie.is()) {
 		LOG_ERROR("no goalie");
@@ -180,17 +178,16 @@ void Defender::tick() {
 		// emergency, chase the ball
 		chaser = goalie;
 	} else if (chase) {
-
 		double best_dist = 1e99;
 
 		// goalie should chase the ball
 		// if and only if the ball is some near distance from the goal area
 		/*
-		if (players.size() == 0 || (world.ball().position() - world.field().friendly_goal()).len() < world.field().length() * goalie_chase_thresh) {
-			chaser = goalie;
-			best_dist = (goalie->position() - world.ball().position()).len();
-		}
-		*/
+		   if (players.size() == 0 || (world.ball().position() - world.field().friendly_goal()).len() < world.field().length() * goalie_chase_thresh) {
+		    chaser = goalie;
+		    best_dist = (goalie->position() - world.ball().position()).len();
+		   }
+		 */
 
 		for (std::size_t i = 0; i < players.size(); ++i) {
 			double dist = (players[i]->position() - world.ball().position()).len();

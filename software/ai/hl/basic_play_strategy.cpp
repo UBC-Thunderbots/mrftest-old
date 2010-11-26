@@ -117,7 +117,6 @@ namespace {
 	}
 
 	void BasicPlayStrategy::run_assignment() {
-
 		// clear up
 		goalie.reset();
 		defenders.clear();

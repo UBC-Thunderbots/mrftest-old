@@ -66,7 +66,7 @@ void AI::HL::Tactics::repel(World &world, Player::Ptr player, const unsigned int
 	}
 
 	// just shoot as long as it's not in backwards direction
-	if (player->orientation() < M_PI/2 && player->orientation() > -M_PI/2) {
+	if (player->orientation() < M_PI / 2 && player->orientation() > -M_PI / 2) {
 		if (player->chicker_ready_time() == 0) {
 			player->kick(1.0);
 		}
@@ -82,13 +82,13 @@ void AI::HL::Tactics::repel(World &world, Player::Ptr player, const unsigned int
 
 	   const AI::HL::W::Field &f = world.field();
 
-	// vertical line at the enemy goal area
-	// basically u want the ball to be somewhere there
-	const Point p1 = Point(f.length() / 2.0, -f.width() / 2.0);
-	const Point p2 = Point(f.length() / 2.0, f.width() / 2.0);
-	std::pair<Point, double> target = angle_sweep_circles(player->position(), p1, p2, obstacles, Robot::MAX_RADIUS);
+	   // vertical line at the enemy goal area
+	   // basically u want the ball to be somewhere there
+	   const Point p1 = Point(f.length() / 2.0, -f.width() / 2.0);
+	   const Point p2 = Point(f.length() / 2.0, f.width() / 2.0);
+	   std::pair<Point, double> target = angle_sweep_circles(player->position(), p1, p2, obstacles, Robot::MAX_RADIUS);
 
-	AI::HL::Tactics::shoot(world, player, flags, target.first);
+	   AI::HL::Tactics::shoot(world, player, flags, target.first);
 	 */
 }
 
