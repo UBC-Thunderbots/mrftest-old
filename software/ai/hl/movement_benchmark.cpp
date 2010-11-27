@@ -11,7 +11,7 @@ using AI::HL::Strategy;
 using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
 
-#define TUNE_HALF
+#define TUNE_FULL
 
 namespace {
 	const double pos_dis_threshold = 0.2;
@@ -145,8 +145,8 @@ namespace {
 
 	void MovementBenchmarkStrategy::play() {
 		FriendlyTeam &friendly = world.friendly_team();
-		if (friendly.size() != 1) {
-			// std::cerr << "error: must have only 1 robot in the team!" << std::endl;
+		if (friendly.size() == 0) {
+			// std::cerr << "error: must have at least 1 robot in the team!" << std::endl;
 			return;
 		}
 		if (done >= tasks.size()) {
@@ -186,6 +186,13 @@ namespace {
 		prev_ori = runner->orientation();
 		prev_pos = runner->position();
 		runner->move(tasks[done].first, tasks[done].second, 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+		
+		if (friendly.size() > 1) {
+			friendly.get(1)->move(Point(0.5,0), 0, 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+		}
+		if (friendly.size() > 2) {
+			friendly.get(2)->move(Point(-0.5,0), 0, 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+		}
 	}
 
 	Strategy::Ptr MovementBenchmarkStrategy::create(World &world) {
