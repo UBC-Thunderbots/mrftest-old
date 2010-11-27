@@ -13,11 +13,11 @@ using namespace Glib;
 
 namespace {
 	const double MAX_SPEED = 2.0;
-	const double THRESHOLD = 0.15;
-	const double STEP_DISTANCE = 0.3;
+	const double THRESHOLD = 0.08;
+	const double STEP_DISTANCE = 0.1;
 	// probability that we will take a step towards the goal
-	const double GOAL_PROB = 0.1;
-	const double WAYPOINT_PROB = 0.6;
+	const double GOAL_PROB = 0.3;
+	const double WAYPOINT_PROB = 0.4;
 	const double RAND_PROB = 1.0 - GOAL_PROB - WAYPOINT_PROB;
 	// number of iterations to go through for each robot until we give up and
 	// just return the best partial path we've found
@@ -50,7 +50,7 @@ namespace {
 			Point EmptyState();
 			Point Extend(Player::Ptr player, Point start, Point target);
 			bool IsEmptyState(Point toCheck);
-			std::deque<Point> RRTPlan(Player::Ptr player, Point initial, Point goal);
+			std::vector<Point> RRTPlan(Player::Ptr player, Point initial, Point goal);
 	};
 
 	class rrt_navigatorFactory : public NavigatorFactory {
@@ -69,7 +69,7 @@ namespace {
 	void rrt_navigator::tick() {
 		struct timespec currentTime;
 		std::vector<std::pair<std::pair<Point, double>, timespec> > path;
-		std::deque<Point> pathPoints;
+		std::vector<Point> pathPoints;
 
 		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 			path.clear();
@@ -133,7 +133,7 @@ namespace {
 		return Point(randomX, randomY);
 	}
 
-	// choose a target to extend toward, the goal with GOAL_PROB or a random point
+	// choose a target to extend toward, the goal, a waypoint or a random point
 	Point rrt_navigator::ChooseTarget(Point goal) {
 		double p = std::rand() / static_cast<double>(RAND_MAX);
 		int i = std::rand() % NUM_WAYPOINTS;
@@ -185,7 +185,7 @@ namespace {
 		return extendPoint;
 	}
 
-	std::deque<Point> rrt_navigator::RRTPlan(Player::Ptr player, Point initial, Point goal) {
+	std::vector<Point> rrt_navigator::RRTPlan(Player::Ptr player, Point initial, Point goal) {
 		Point nearest, extended, target;
 
 		NodeTree<Point> *nearestNode;
@@ -240,7 +240,21 @@ namespace {
 
 		// remove the front of the list, this is the starting point
 		pathPoints.pop_front();
-		return pathPoints;
+
+		// path post processing, try to go in a straight line until we hit an obstacle
+		std::size_t subPathIndex = 0;
+		std::vector<Point> finalPoints;
+
+		for (std::size_t i = 0; i < pathPoints.size(); ++i) {
+			if (!valid_path(pathPoints[subPathIndex], pathPoints[i], world, player)) {
+				subPathIndex = i - 1;
+				finalPoints.push_back(pathPoints[i - 1]);
+			} else if (i == pathPoints.size() - 1) {
+				finalPoints.push_back(pathPoints[i]);
+			}
+		}
+
+		return finalPoints;
 	}
 
 	Navigator::Ptr rrt_navigator::create(World &world) {
