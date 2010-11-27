@@ -107,7 +107,21 @@ void AI::HL::Tactics::lone_goalie(AI::HL::W::World &world, AI::HL::W::Player::Pt
 }
 
 void AI::HL::Tactics::pass(World &world, Player::Ptr passer, Player::Ptr passee, const unsigned int flags) {
-	if (!passer->has_ball() || !AI::HL::Util::can_receive(world, passee)) {
+	if (!passee.is()) {
+		LOG_ERROR("There is no passee");
+		return;
+	}
+
+	// this has to be done first
+	if (!passer->has_ball()) {
+		chase(world, passer, flags);
+		return;
+	}
+
+	// TODO: if the target is blocked, aim towards the target
+	if (!AI::HL::Util::can_receive(world, passee)) {
+		const double ori_target = (passee->position() - passer->position()).orientation();
+		passer->move(passer->position(), ori_target, flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
 		return;
 	}
 
