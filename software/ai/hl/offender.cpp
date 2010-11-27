@@ -214,7 +214,7 @@ void AI::HL::Offender::tick() {
 	/*
 	std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
 
-	double threshold_dist = 2.5 * Robot::MAX_RADIUS, dist; // adjust
+	double threshold_dist = 5 * Robot::MAX_RADIUS; // adjust
 	int cnt = 0;
 	bool pass = false;
 	for (std::size_t i = 0; i < enemies.size() ; ++i) {

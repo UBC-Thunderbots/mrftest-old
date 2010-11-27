@@ -90,7 +90,7 @@ bool AI::HL::Util::path_check(const Point &begin, const Point &end, const std::v
 bool AI::HL::Util::can_receive(World &world, const Player::Ptr passee) {
 	const Ball &ball = world.ball();
 	if ((ball.position() - passee->position()).lensq() < POS_CLOSE) {
-		std::cerr << "can_pass: passe too close to ball" << std::endl;
+		std::cerr << "can_pass: passee too close to ball" << std::endl;
 		return true;
 	}
 	// if the passee is not facing the ball, forget it

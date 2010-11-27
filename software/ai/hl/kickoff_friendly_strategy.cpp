@@ -6,7 +6,10 @@
 #include "ai/hl/util.h"
 #include "uicomponents/param.h"
 #include "util/dprint.h"
+
 #include <vector>
+#include <algorithm>
+#include <iostream>
 
 using AI::HL::Strategy;
 using AI::HL::StrategyFactory;
@@ -18,6 +21,9 @@ namespace {
 
 	// in ball avoidance, angle between center of 2 robots, as seen from the ball
 	const double AVOIDANCE_ANGLE = 2.0 * std::asin(Robot::MAX_RADIUS / AVOIDANCE_DIST);
+
+	// distance for the offenders to be positioned away from the kicker
+	const double SEPERATION_DIST = 10 * Robot::MAX_RADIUS;
 
 	DoubleParam separation_angle("kickoff: angle to separate players (degrees)", 40, 0, 80);
 
@@ -123,10 +129,10 @@ namespace {
 
 		switch (offenders.size()) {
 			case 2:
-				positions.push_back(Point(-AVOIDANCE_DIST, 5 * Robot::MAX_RADIUS));
+				positions.push_back(Point(-AVOIDANCE_DIST, SEPERATION_DIST));
 
 			case 1:
-				positions.push_back(Point(-AVOIDANCE_DIST, -5 * Robot::MAX_RADIUS));
+				positions.push_back(Point(-AVOIDANCE_DIST, -SEPERATION_DIST));
 
 			default:
 				break;
@@ -146,14 +152,87 @@ namespace {
 	}
 
 	void KickoffFriendlyStrategy::execute() {
-		int best = AI::HL::Util::choose_best_pass(world, offenders);
 
-		if (kicker.is() && best >= 0) {
-			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[best]->position());
-		} else if (kicker.is()) {
+		// TODO Find a side of the field to attack
+		// choose_best_pass doesn't seem to be able to find one offender to pass to with the current positioning !!
+		// best = -1 causes seg fault
+		//int best = AI::HL::Util::choose_best_pass(world, offenders);
+		
+		// check how the enemy robots are positioned
+		// look for some part of the enemy's field that seems vulnerable to attack 
+		// divide the enemy field into three parts: top, center, and bottom (may try dividing to 2~4 parts??)
+		// if the enemy's field seems equally defended, randomly attack a part
+
+		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+		std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().enemy_goal()));
+		// check for which part is more vulnerable, break ties by seeing which part is not defended in depth
+		std::vector<Robot::Ptr> parts[3];
+
+		// top = 0, center = 1, bottom = 2
+		for (std::size_t i = 1; i < enemies.size(); ++i) {
+			Robot::Ptr enemy = enemies[i];
+			// ignore enemy goalie or not?
+			// how do I get the enemy goalie ?!
+			//if (world.enemy_team())
+
+			if (enemies[i]->position().y <= world.field().width() / 2 && enemies[i]->position().y >= world.field().width() / 6)
+				parts[0].push_back(enemy);
+			else if (enemies[i]->position().y <= world.field().width() / 6 && enemies[i]->position().y >= -world.field().width() / 6)
+				parts[1].push_back(enemy);
+			else
+				parts[2].push_back(enemy);
+		}		
+
+		int partidx = -1;
+		if (parts[0].size() > parts[1].size() && parts[0].size() > parts[2].size())
+			partidx = 0; 
+		else if (parts[1].size() > parts[0].size() && parts[1].size() > parts[2].size()) 
+			partidx = 1; 
+		else if (parts[2].size() > parts[0].size() && parts[2].size() > parts[1].size()) 		
+			partidx = 2; 
+
+		// check in depth by seeing which side has more robots behind their first robot closest to the center of the field
+		std::size_t depth[3];
+		if (partidx == -1) {
+			for (std::size_t i = 0 ; i < 3 ; ++i){
+				depth[i] = 0;
+				double closest = 0;
+				for (std::size_t j = 0; i < parts[i].size(); ++j) {
+					Robot::Ptr r = parts[i][j];
+					closest = std::min(closest, r->position().x);				
+				}
+				for (std::size_t j = 0; i < parts[i].size(); ++j) {
+					Robot::Ptr r = parts[i][j];
+					if (r->position().x > closest) depth[i]++;				
+				} 
+			}
+			if (depth[0] > depth[1] && depth[0] > depth[1])
+				partidx = 0;
+			else if (depth[0] > depth[1] && depth[0] > depth[1])
+				partidx = 1;
+			else if (depth[0] > depth[1] && depth[0] > depth[1])		
+				partidx = 2;			
+
+		}
+		
+		// randomly picking a side to shoot to using std::rand() 
+		if (partidx == -1) partidx = std::rand() % 3;
+
+		// default is for kicker to just shoot forward
+		if (kicker.is() && partidx >= 0) {
+			
+			if (partidx == 0 && offenders[0].is())
+				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[0]->position());
+			else if (partidx == 2 && offenders[1].is())
+				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[1]->position());
+			else 
+				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
+
+		} 
+		else if (kicker.is()){			
 			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
 		}
-
+		
 		offender.tick();
 	}
 
