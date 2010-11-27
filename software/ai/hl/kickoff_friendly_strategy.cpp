@@ -148,8 +148,10 @@ namespace {
 	void KickoffFriendlyStrategy::execute() {
 		int best = AI::HL::Util::choose_best_pass(world, offenders);
 
-		if (kicker.is()) {
+		if (kicker.is() && best >= 0) {
 			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[best]->position());
+		} else if (kicker.is()){
+			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
 		}
 
 		offender.tick();

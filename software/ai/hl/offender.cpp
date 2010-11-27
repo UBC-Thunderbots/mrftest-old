@@ -212,19 +212,19 @@ void AI::HL::Offender::tick() {
 	// if # of enemy robots within a certain distance is > 2 then you better try to pass before you get cornered
 	// but if your supporters can't receive you better just shoot.
 	/*
-	   std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+	std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
 
-	   //double threshold_dist = 2.5 * Robot::MAX_RADIUS, dist; // adjust
-	   int cnt = 0;
-	   bool pass = false;
-	   for (std::size_t i = 0; i < enemies.size() ; ++i) {
-	    dist = (chaser->position() - enemies[i]->position()).len();
-	    if (dist <= threshold_dist) cnt++;
-	   }
+	double threshold_dist = 2.5 * Robot::MAX_RADIUS, dist; // adjust
+	int cnt = 0;
+	bool pass = false;
+	for (std::size_t i = 0; i < enemies.size() ; ++i) {
+		dist = (chaser->position() - enemies[i]->position()).len();
+	    	if (dist <= threshold_dist) cnt++;
+	}
 
-	   pass = (cnt >= 2) && AI::HL::Util::choose_best_pass(world, supporters) >= 0;
+	pass = (cnt >= 2) && AI::HL::Util::choose_best_pass(world, supporters) >= 0;
 
-	 */
+	*/
 	Player::Ptr passee;
 	if (AI::HL::Util::choose_best_pass(world, supporters) >= 0) {
 		passee = supporters[AI::HL::Util::choose_best_pass(world, supporters)];
