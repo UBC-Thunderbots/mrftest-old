@@ -230,9 +230,12 @@ void AI::HL::Offender::tick() {
 		passee = supporters[AI::HL::Util::choose_best_pass(world, supporters)];
 	}
 
+	
 	if (chaser.is()) {
 		// TODO: do something more sensible
-		if (passee.is()) {
+		if (AI::HL::Util::calc_best_shot(world, chaser, Robot::MAX_RADIUS).second <= 10){
+			AI::HL::Tactics::shoot(world, chaser, flags);
+		} else if (passee.is()) {
 			AI::HL::Tactics::pass(world, chaser, passee, flags);
 		} else {
 			AI::HL::Tactics::shoot(world, chaser, flags);
