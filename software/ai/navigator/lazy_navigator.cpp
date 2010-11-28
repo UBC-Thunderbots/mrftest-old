@@ -9,7 +9,7 @@ using namespace AI::Nav::Util;
 using namespace AI::Nav::W;
 
 namespace {
-	const double STEP_DISTANCE = 0.9;
+	const double STEP_DISTANCE = 1.0;
 
 	const double ROTATE_STEP = M_PI / 32.0;
 
@@ -63,7 +63,6 @@ namespace {
 	}
 
 	void LazyNavigator::tick() {
-		const Field &field = world.field();
 		FriendlyTeam &fteam = world.friendly_team();
 
 		Player::Ptr player;
@@ -98,9 +97,30 @@ namespace {
 							break;
 						}
 					}
+					if (add.x == vec.x && add.y == vec.y) {
+						// Do binary search to find the closest intersection point.
+						Point vector = destinationPosition-currentPosition;
+                        double min = 0;
+                        double max = 1;
+                        while (max-min > 0.01) {
+							double mid = (min+max)/2.0;
+							if (valid_path(currentPosition, currentPosition + (mid * vector), world, player)) {
+								min = mid;
+							} else {
+								max = mid;
+							}
+                        }
+                        double mid = (min+max)/2.0;
+                        path.push_back(std::make_pair(std::make_pair(currentPosition + (mid * vector), destinationOrientation), world.monotonic_time()));
+                        player->path(path);
+					} else {
+						path.push_back(std::make_pair(std::make_pair(currentPosition+add, destinationOrientation), world.monotonic_time()));
+						player->path(path);
+					}
+				} else {
+					path.push_back(std::make_pair(std::make_pair(currentPosition, destinationOrientation), world.monotonic_time()));
+					player->path(path);
 				}
-				path.push_back(std::make_pair(std::make_pair(currentPosition + add, destinationOrientation), world.monotonic_time()));
-				player->path(path);
 			} else {
 				path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
 				player->path(path);
