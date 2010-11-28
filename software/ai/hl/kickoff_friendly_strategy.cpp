@@ -196,12 +196,10 @@ namespace {
 		std::vector<Robot::Ptr> parts[3];
 
 		// top = 0, center = 1, bottom = 2
+		// ignore enemy goalie or not?
 		for (std::size_t i = 1; i < enemies.size(); ++i) {
 			Robot::Ptr enemy = enemies[i];
-			// ignore enemy goalie or not?
-			// how do I get the enemy goalie ?!
-			//if (world.enemy_team())
-
+			
 			if (enemies[i]->position().y <= world.field().width() / 2 && enemies[i]->position().y >= world.field().width() / 6)
 				parts[0].push_back(enemy);
 			else if (enemies[i]->position().y <= world.field().width() / 6 && enemies[i]->position().y >= -world.field().width() / 6)
@@ -248,9 +246,9 @@ namespace {
 		// default is for kicker to just shoot forward
 		if (kicker.is() && partidx >= 0) {
 
-			if (partidx == 0 && offenders[0].is())
+			if (partidx == 0 && offenders.size() == 1)
 				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[0]->position());
-			else if (partidx == 2 && offenders[1].is())
+			else if (partidx == 2 && offenders.size() == 2)
 				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[1]->position());
 			else 
 				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
