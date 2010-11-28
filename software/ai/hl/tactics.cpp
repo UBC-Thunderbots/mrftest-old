@@ -68,8 +68,9 @@ void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int
 }
 
 void AI::HL::Tactics::repel(World &world, Player::Ptr player, const unsigned int flags) {
+	// set to RAM_BALL instead of using chase
 	if (!player->has_ball()) {
-		chase(world, player, flags);
+		player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_RAM_BALL, AI::Flags::PRIO_HIGH);
 		return;
 	}
 

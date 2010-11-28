@@ -75,7 +75,6 @@ namespace {
 			Player::Ptr kicker;
 
 			AI::HL::Defender defender;
-			AI::HL::Offender offender;
 	};
 
 	/**
@@ -258,7 +257,6 @@ namespace {
 			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
 		}
 
-		offender.tick();
 	}
 
 	void KickoffFriendlyStrategy::run_assignment() {
@@ -311,7 +309,6 @@ namespace {
 		LOG_INFO(Glib::ustring::compose("player reassignment %1 defenders, %2 offenders", ndefenders, offenders.size()));
 
 		defender.set_players(defenders, goalie);
-		offender.set_players(offenders);
 	}
 
 	Strategy::Ptr KickoffFriendlyStrategy::create(World &world) {
@@ -319,7 +316,7 @@ namespace {
 		return p;
 	}
 
-	KickoffFriendlyStrategy::KickoffFriendlyStrategy(World &world) : Strategy(world), defender(world), offender(world) {
+	KickoffFriendlyStrategy::KickoffFriendlyStrategy(World &world) : Strategy(world), defender(world) {
 		world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &KickoffFriendlyStrategy::on_player_added));
 		world.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &KickoffFriendlyStrategy::on_player_removed));
 		run_assignment();

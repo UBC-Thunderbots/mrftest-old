@@ -93,6 +93,8 @@ namespace {
 		if (world.friendly_team().size() == 0) {
 			return;
 		}
+		
+		//TODO set passee for defender
 
 		calc_chaser();
 		offender.tick();
