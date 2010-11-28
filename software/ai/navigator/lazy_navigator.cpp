@@ -9,9 +9,10 @@ using namespace AI::Nav::Util;
 using namespace AI::Nav::W;
 
 namespace {
-	const double STEP_DISTANCE = 1.0;
-	const double ROTATE_STEP = M_PI / 32.0;
-	const double OVERSHOOT_FACTOR = 2;
+	const double STEP_DISTANCE = 1.0; // Affects obstacle avoidance speed.
+	const double CHECK_DISTANCE = 1.0; // Affects obstacle avoidance region.
+	const double ROTATE_STEP = M_PI / 32.0; // Affects obstacle avoidance accuracy.
+	const double OVERSHOOT_FACTOR = 4.0; // Affects obstacle avoidance overshoot angle.
 
 	/**
 	 * Lazy Navigator
@@ -83,21 +84,21 @@ namespace {
 				Point vec = (destinationPosition - currentPosition);
 				Point add(0, 0);
 				if (vec.lensq() > 0.01) {
-					vec = STEP_DISTANCE * vec.norm();
+					vec = CHECK_DISTANCE * vec.norm();
 					double rotate = ROTATE_STEP;
 					for (int i = 0; (i * rotate) < M_PI / 2; i++) {
 						Point left = vec.rotate(i * rotate);
 						Point right = vec.rotate(-i * rotate);
 						if (valid_path(currentPosition, currentPosition + right, world, player)) {
 							if (i==0) break;
-							Point right = vec.rotate(-i * rotate - OVERSHOOT_FACTOR * rotate);
-							add = right;
+							vec = STEP_DISTANCE * vec.norm();
+							add = vec.rotate(-i * rotate - OVERSHOOT_FACTOR * rotate);
 							break;
 						}
 						if (valid_path(currentPosition, currentPosition + left, world, player)) {
 							if (i==0) break;
-							Point left = vec.rotate(i * rotate + OVERSHOOT_FACTOR * rotate);
-							add = left;
+							vec = STEP_DISTANCE * vec.norm();
+							add = vec.rotate(i * rotate + OVERSHOOT_FACTOR * rotate);
 							break;
 						}
 					}
