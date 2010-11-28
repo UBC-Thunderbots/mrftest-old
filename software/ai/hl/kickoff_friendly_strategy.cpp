@@ -28,11 +28,11 @@ namespace {
 	DoubleParam separation_angle("kickoff: angle to separate players (degrees)", 40, 0, 80);
 
 	// hard coded positions for the kicker, and 2 offenders
-	Point kicker_position = Point(-0.5, 0);
+	Point kicker_position = Point(-0.5 - Ball::RADIUS - Robot::MAX_RADIUS, 0);
 	Point ready_positions[2] = {Point(-AVOIDANCE_DIST, -SEPERATION_DIST), Point(-AVOIDANCE_DIST, SEPERATION_DIST)};
 
 	/**
-	 * Manages the robots during a stoppage in place (that is, when the game is in PlayType::STOP).
+	 * Manages the robots during a kickoff.
 	 */
 	class KickoffFriendlyStrategy : public Strategy {
 		public:
