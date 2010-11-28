@@ -13,6 +13,13 @@ Visualizer::Visualizer(Visualizable::World &data) : data(data) {
 	data.field().signal_changed.connect(sigc::mem_fun(this, &Visualizer::compute_scales));
 }
 
+void Visualizer::update() {
+	const Glib::RefPtr<Gdk::Window> win(get_window());
+	if (win) {
+		win->invalidate(false);
+	}
+}
+
 void Visualizer::on_show() {
 	Gtk::DrawingArea::on_show();
 	update_connection.unblock();
@@ -21,6 +28,11 @@ void Visualizer::on_show() {
 void Visualizer::on_hide() {
 	Gtk::DrawingArea::on_hide();
 	update_connection.block();
+}
+
+void Visualizer::on_size_allocate(Gtk::Allocation &alloc) {
+	Gtk::DrawingArea::on_size_allocate(alloc);
+	compute_scales();
 }
 
 bool Visualizer::on_expose_event(GdkEventExpose *evt) {
@@ -178,18 +190,6 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 
 	// Done.
 	return true;
-}
-
-void Visualizer::update() {
-	const Glib::RefPtr<Gdk::Window> win(get_window());
-	if (win) {
-		win->invalidate(false);
-	}
-}
-
-void Visualizer::on_size_allocate(Gtk::Allocation &alloc) {
-	Gtk::DrawingArea::on_size_allocate(alloc);
-	compute_scales();
 }
 
 bool Visualizer::on_button_press_event(GdkEventButton *evt) {
