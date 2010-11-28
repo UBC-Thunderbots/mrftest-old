@@ -38,7 +38,7 @@ LDFLAGS_xbeerconfig := $(LDFLAGS_common)
 #
 # Here, write the compiler flags to be used.
 #
-override CXXFLAGS := -std=gnu++0x -Wall -Wextra -Wold-style-cast -Wconversion -O2 -fomit-frame-pointer -g -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -pthread $(shell pkg-config --cflags glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf libxml++-2.6 | sed 's/-I/-isystem /g') $(CXXFLAGS) -I.
+override CXXFLAGS := -std=gnu++0x -Wall -Wextra -Wold-style-cast -Wconversion -Wundef -O2 -fomit-frame-pointer -g -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -pthread $(shell pkg-config --cflags glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf libxml++-2.6 | sed 's/-I/-isystem /g') $(CXXFLAGS) -I.
 
 #
 # DO NOT MODIFY STUFF BELOW HERE WITHOUT A GOOD REASON.
