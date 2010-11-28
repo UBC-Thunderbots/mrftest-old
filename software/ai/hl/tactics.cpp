@@ -16,12 +16,18 @@ void AI::HL::Tactics::chase(World &world, Player::Ptr player, const unsigned int
 }
 
 void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int flags, const bool force) {
+
+	std::pair<Point, double> target = AI::HL::Util::calc_best_shot(world, player);
+
 	if (!player->has_ball()) {
-		chase(world, player, flags);
+		if (target.second == 0) {
+			chase(world, player, flags);
+		} else {
+			player->move(world.ball().position(), (world.field().enemy_goal() - player->position()).orientation(), flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
+		}
 		return;
 	}
 
-	std::pair<Point, double> target = AI::HL::Util::calc_best_shot(world, player);
 	if (target.second == 0) { // blocked
 		if (force) {
 			// TODO: perhaps do a reduced radius calculation
@@ -37,12 +43,14 @@ void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int
 }
 
 void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int flags, const Point target) {
+	const double ori_target = (target - player->position()).orientation();
+
 	if (!player->has_ball()) {
-		chase(world, player, flags);
+		//	chase(world, player, flags);
+		player->move(world.ball().position(), ori_target, flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
 		return;
 	}
 
-	const double ori_target = (target - player->position()).orientation();
 	const double ori_diff = fabs(player->orientation() - ori_target);
 
 	// aim
