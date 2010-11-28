@@ -27,6 +27,10 @@ namespace {
 
 	DoubleParam separation_angle("kickoff: angle to separate players (degrees)", 40, 0, 80);
 
+	// hard coded positions for the kicker, and 2 offenders
+	Point kicker_position = Point(-0.5, 0);
+	Point ready_positions[2] = {Point(-AVOIDANCE_DIST, -SEPERATION_DIST), Point(-AVOIDANCE_DIST, SEPERATION_DIST)};
+
 	/**
 	 * Manages the robots during a stoppage in place (that is, when the game is in PlayType::STOP).
 	 */
@@ -51,13 +55,19 @@ namespace {
 			void prepare_kickoff_friendly();
 			void execute_kickoff_friendly();
 
+			/**
+			 * Prepares the players into ready positions.
+			 */
 			void prepare();
+
 			void execute();
 
 			/**
 			 * Dynamic assignment every tick can be bad if players keep changing the roles.
 			 */
 			void run_assignment();
+
+			bool prepared;
 
 			// the players invovled
 			std::vector<Player::Ptr> defenders;
@@ -100,7 +110,12 @@ namespace {
 			return;
 		}
 
-		prepare();
+		if (!prepared) {
+			prepare();
+		}
+
+		defender.set_chase(false);
+		defender.tick();
 	}
 
 	void KickoffFriendlyStrategy::execute_kickoff_friendly() {
@@ -108,9 +123,14 @@ namespace {
 			return;
 		}
 
-		prepare();
+		if (!prepared) {
+			prepare();
+		} else {
+			execute();
+		}
 
-		execute();
+		defender.set_chase(false);
+		defender.tick();
 	}
 
 	void KickoffFriendlyStrategy::prepare() {
@@ -118,37 +138,44 @@ namespace {
 			return;
 		}
 
+		if (!kicker.is()) {
+			LOG_ERROR("can't have no kicker");
+			return;
+		}
+
+		if (prepared) {
+			return;
+		}
+
 		// draw a circle of radius 50cm from the ball
 		Point ball_pos = world.ball().position();
 
 		// a ray that shoots from the center to friendly goal.
-		const Point shoot = Point(-1, 0) * AVOIDANCE_DIST;
-
-		// do matching
-		std::vector<Point> positions;
-
-		switch (offenders.size()) {
-			case 2:
-				positions.push_back(Point(-AVOIDANCE_DIST, SEPERATION_DIST));
-
-			case 1:
-				positions.push_back(Point(-AVOIDANCE_DIST, -SEPERATION_DIST));
-
-			default:
-				break;
-		}
+		std::vector<Point> positions = std::vector<Point>(ready_positions, ready_positions + 2);
 
 		AI::HL::Util::waypoints_matching(offenders, positions);
+
 		for (std::size_t i = 0; i < offenders.size(); ++i) {
 			AI::HL::Tactics::free_move(world, offenders[i], positions[i]);
 		}
 
-		defender.set_chase(false);
-		defender.tick();
-
 		if (kicker.is()) {
-			AI::HL::Tactics::free_move(world, kicker, shoot);
+			AI::HL::Tactics::free_move(world, kicker, kicker_position);
 		}
+
+		// check if done with prepartion
+		prepared = true;
+
+		if ((kicker->position() - kicker_position).len() > AI::HL::Util::POS_CLOSE) {
+			prepared = false;
+		}
+
+		for (std::size_t i = 0; i < offenders.size(); ++i) {
+			if ((offenders[i]->position() - positions[i]).len() > AI::HL::Util::POS_CLOSE) {
+				prepared = false;
+			}
+		}
+
 	}
 
 	void KickoffFriendlyStrategy::execute() {
@@ -157,7 +184,7 @@ namespace {
 		// choose_best_pass doesn't seem to be able to find one offender to pass to with the current positioning !!
 		// best = -1 causes seg fault
 		//int best = AI::HL::Util::choose_best_pass(world, offenders);
-		
+
 		// check how the enemy robots are positioned
 		// look for some part of the enemy's field that seems vulnerable to attack 
 		// divide the enemy field into three parts: top, center, and bottom (may try dividing to 2~4 parts??)
@@ -214,13 +241,13 @@ namespace {
 				partidx = 2;			
 
 		}
-		
+
 		// randomly picking a side to shoot to using std::rand() 
 		if (partidx == -1) partidx = std::rand() % 3;
 
 		// default is for kicker to just shoot forward
 		if (kicker.is() && partidx >= 0) {
-			
+
 			if (partidx == 0 && offenders[0].is())
 				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[0]->position());
 			else if (partidx == 2 && offenders[1].is())
@@ -232,11 +259,13 @@ namespace {
 		else if (kicker.is()){			
 			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
 		}
-		
+
 		offender.tick();
 	}
 
 	void KickoffFriendlyStrategy::run_assignment() {
+		prepared = false;
+
 		if (world.friendly_team().size() == 0) {
 			LOG_WARN("no players");
 			return;

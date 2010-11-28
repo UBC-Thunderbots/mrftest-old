@@ -12,7 +12,7 @@ using namespace AI::HL::W;
 
 namespace {
 	// the distance we want the players to the ball
-	const double AVOIDANCE_DIST = 0.50 + Robot::MAX_RADIUS + 0.005;
+	const double AVOIDANCE_DIST = 0.50 + Ball::RADIUS + Robot::MAX_RADIUS + 0.005;
 
 	// in ball avoidance, angle between center of 2 robots, as seen from the ball
 	const double AVOIDANCE_ANGLE = 2.0 * asin(Robot::MAX_RADIUS / AVOIDANCE_DIST);
