@@ -20,6 +20,10 @@ void Visualizer::update() {
 	}
 }
 
+sigc::signal<void, Point> &Visualizer::signal_mouse_moved() const {
+	return signal_mouse_moved_;
+}
+
 void Visualizer::on_show() {
 	Gtk::DrawingArea::on_show();
 	update_connection.unblock();
@@ -203,7 +207,9 @@ bool Visualizer::on_button_release_event(GdkEventButton *evt) {
 }
 
 bool Visualizer::on_motion_notify_event(GdkEventMotion *evt) {
-	data.mouse_moved(Point(xtow(evt->x), ytow(evt->y)));
+	Point p(xtow(evt->x), ytow(evt->y));
+	data.mouse_moved(p);
+	signal_mouse_moved().emit(p);
 	return true;
 }
 

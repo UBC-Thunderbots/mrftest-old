@@ -337,10 +337,28 @@ namespace {
 				}
 			}
 	};
+
+	class VisualizerCoordinatesBar : public Gtk::Statusbar {
+		public:
+			VisualizerCoordinatesBar(Visualizer &vis) {
+				vis.signal_mouse_moved().connect(sigc::mem_fun(this, &VisualizerCoordinatesBar::on_move));
+			}
+
+			~VisualizerCoordinatesBar() {
+			}
+
+		private:
+			void on_move(Point p) {
+				pop();
+				push(Glib::ustring::compose("(%1, %2)", p.x, p.y));
+			}
+	};
 }
 
 Window::Window(AIPackage &ai) {
 	set_title("AI");
+
+	Gtk::VBox *outer_vbox = Gtk::manage(new Gtk::VBox);
 
 	Gtk::HPaned *hpaned = Gtk::manage(new Gtk::HPaned);
 
@@ -367,11 +385,16 @@ Window::Window(AIPackage &ai) {
 
 	frame = Gtk::manage(new Gtk::Frame);
 	frame->set_shadow_type(Gtk::SHADOW_IN);
-	frame->add(*Gtk::manage(new Visualizer(ai.backend)));
+	Visualizer *visualizer = Gtk::manage(new Visualizer(ai.backend));
+	frame->add(*visualizer);
 
 	hpaned->pack2(*frame, Gtk::EXPAND | Gtk::FILL);
 
-	add(*hpaned);
+	outer_vbox->pack_start(*hpaned, Gtk::PACK_EXPAND_WIDGET);
+
+	outer_vbox->pack_start(*Gtk::manage(new VisualizerCoordinatesBar(*visualizer)), Gtk::PACK_SHRINK);
+
+	add(*outer_vbox);
 
 	show_all();
 }

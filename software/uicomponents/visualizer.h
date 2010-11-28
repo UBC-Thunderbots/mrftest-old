@@ -320,11 +320,19 @@ class Visualizer : public Gtk::DrawingArea {
 		 */
 		void update();
 
+		/**
+		 * Returns the signal fired when the mouse is moved over the visualizer.
+		 *
+		 * \return the mouse motion signal.
+		 */
+		sigc::signal<void, Point> &signal_mouse_moved() const;
+
 	private:
 		Visualizable::World &data;
 		double scale;
 		double xtranslate, ytranslate;
 		sigc::connection update_connection;
+		mutable sigc::signal<void, Point> signal_mouse_moved_;
 
 		void on_show();
 		void on_hide();
