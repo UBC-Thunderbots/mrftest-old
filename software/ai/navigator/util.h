@@ -10,15 +10,37 @@
 namespace AI {
 	namespace Nav {
 		namespace Util {
+
 			/**
-			 *
+			 * returns true if the destination is valid
 			 */
 			bool valid_dst(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
 
 			/**
-			 *
+			 * Returns true if the straight line path between cur & dst has a maximum level of rules violation
+			 * exactly equal to the violation level of cur
 			 */
 			bool valid_path(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+
+			/**
+			 * Returns true if the straight line path between cur & dst has a maximum level of rules violation
+			 * exactly equal to the violation level of cur. This method allows for extra rules to be imposed via the "extra_flags"
+			 * parameter
+			 */
+			bool valid_path(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, unsigned int extra_flags);
+
+			/**
+			 * returns a list of legal points circling the destination. These set of points may be valuable as a search space for a navigator
+			 * it is not garuenteed that the returned vector is non-empty
+			 *
+			 * \param[in] dst the target destination
+			 *
+			 * \param[in] world the world for field information
+			 *
+			 * \param[in] player the player thats being checked
+			 */
+			std::vector<Point> get_destination_alternatives(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+
 
 			/**
 			 * returns a list of legal destinations that are on the boundaries of obstacles such as the ball
@@ -29,6 +51,16 @@ namespace AI {
 			 * \param[in] player the player thats being checked
 			 */
 			std::vector<Point> get_obstacle_boundaries(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+
+			/**
+			 * returns a list of legal destinations that are on the boundaries of obstacles such as the ball
+			 * or enemy robots. These set of points may be valuable as a search space for a navigator
+			 *
+			 * \param[in] world the world for field information
+			 *
+			 * \param[in] player the player thats being checked
+			 */
+			std::vector<Point> get_obstacle_boundaries(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, unsigned int added_flags);
 
 			/**
 			 * Checks to see if the point is valid.
