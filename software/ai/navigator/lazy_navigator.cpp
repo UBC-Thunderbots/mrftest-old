@@ -10,8 +10,8 @@ using namespace AI::Nav::W;
 
 namespace {
 	const double STEP_DISTANCE = 1.0;
-
 	const double ROTATE_STEP = M_PI / 32.0;
+	const double OVERSHOOT_FACTOR = 2;
 
 	/**
 	 * Lazy Navigator
@@ -89,15 +89,19 @@ namespace {
 						Point left = vec.rotate(i * rotate);
 						Point right = vec.rotate(-i * rotate);
 						if (valid_path(currentPosition, currentPosition + right, world, player)) {
+							if (i==0) break;
+							Point right = vec.rotate(-i * rotate - OVERSHOOT_FACTOR * rotate);
 							add = right;
 							break;
 						}
 						if (valid_path(currentPosition, currentPosition + left, world, player)) {
+							if (i==0) break;
+							Point left = vec.rotate(i * rotate + OVERSHOOT_FACTOR * rotate);
 							add = left;
 							break;
 						}
 					}
-					if (add.x == vec.x && add.y == vec.y) {
+					if (add.x == 0 && add.y == 0) {
 						// Do binary search to find the closest intersection point.
 						Point vector = destinationPosition-currentPosition;
                         double min = 0;
