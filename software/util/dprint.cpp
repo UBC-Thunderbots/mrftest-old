@@ -31,7 +31,7 @@ Glib::ustring tohex(uintmax_t value, unsigned int width) {
 
 sigc::signal<void, unsigned int, const Glib::ustring &> signal_message_logged;
 
-void log_impl(const char *file, unsigned int line, const Glib::ustring &msg, unsigned int level) {
+void log_impl(const char *file, unsigned int line, const char *function, const Glib::ustring &msg, unsigned int level) {
 	std::time_t stamp;
 	std::time(&stamp);
 	std::wostringstream timestring;
@@ -55,7 +55,7 @@ void log_impl(const char *file, unsigned int line, const Glib::ustring &msg, uns
 			level_name = 0;
 			break;
 	}
-	const Glib::ustring &composed = Glib::ustring::compose("[%1] [%2:%3] %4", timestring.str(), file, line, msg);
+	const Glib::ustring &composed = Glib::ustring::compose("[%1] [%2:%3] [%4] %5", timestring.str(), file, line, function, msg);
 	if (level_name) {
 		std::cout << level_name << ' ' << composed << '\n';
 	}
