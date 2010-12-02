@@ -109,7 +109,11 @@ namespace {
 		Point start;
 
 		Point goal_pos = world.field().friendly_goal();
-		if ((goal_pos - ball_pos).len() < AVOIDANCE_DIST) {
+
+		int n_defenders = 0;
+		Point defender_pos;
+
+		if (AI::HL::Util::point_in_friendly_defense(world.field(), ball_pos)) {
 			// if the goal is inside the circle,
 			// then shoot the ray from the enemy goal
 
@@ -121,20 +125,18 @@ namespace {
 
 			Point ray = (goal_pos - ball_pos).norm();
 			start = ball_pos + ray * AVOIDANCE_DIST;
-		}
 
-		// check if we want a defender
-		int defenders = 0;
-		Point defender_pos;
-		if (players.size() > 2) {
-			defender_pos = (ball_pos + goal_pos) * 0.5;
-			if (valid(defender_pos)) {
-				defenders = 1;
+			// we may even want a defender
+			if (players.size() > 2) {
+				defender_pos = (ball_pos + goal_pos) * 0.5;
+				//if (valid(defender_pos)) {
+				n_defenders = 1;
+				//}
 			}
 		}
 
 		std::vector<Player::Ptr> offenders;
-		for (std::size_t i = 1 + defenders; i < players.size(); ++i) {
+		for (std::size_t i = 1 + n_defenders; i < players.size(); ++i) {
 			offenders.push_back(players[i]);
 		}
 
@@ -145,7 +147,8 @@ namespace {
 
 		// create intervals from the start point
 		// place players with the interval points
-		unsigned int flags = AI::Flags::FLAG_AVOID_BALL_STOP;
+		unsigned int flags = AI::Flags::FLAG_AVOID_BALL_STOP | AI::Flags::calc_flags(world.playtype());
+
 		// the parity determines left or right
 		// we only want one of angle = 0, so start at w = 1
 		std::vector<Point> positions;
@@ -168,7 +171,7 @@ namespace {
 		}
 
 		// player 1 is defender
-		if (defenders) {
+		if (n_defenders) {
 			players[1]->move(defender_pos, (world.ball().position() - players[1]->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
 		}
 
