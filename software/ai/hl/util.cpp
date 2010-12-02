@@ -33,11 +33,10 @@ const double AI::HL::Util::HAS_BALL_ALLOWANCE = 3.0;
 
 const double AI::HL::Util::HAS_BALL_TIME = 2.0 / 15.0;
 
-// TODO: use field instead of world
-bool AI::HL::Util::point_in_friendly_defense(World &world, const Point p) {
-	const double defense_stretch = world.field().defense_area_stretch();
-	const double defense_radius = world.field().defense_area_radius();
-	const Point friendly_goal = world.field().friendly_goal();
+bool AI::HL::Util::point_in_friendly_defense(const Field &field, const Point p) {
+	const double defense_stretch = field.defense_area_stretch();
+	const double defense_radius = field.defense_area_radius();
+	const Point friendly_goal = field.friendly_goal();
 	const Point pole1 = Point(friendly_goal.x, defense_stretch / 2);
 	const Point pole2 = Point(friendly_goal.x, -defense_stretch / 2);
 	double dist1 = (p - pole1).len();

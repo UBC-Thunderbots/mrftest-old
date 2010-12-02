@@ -115,7 +115,7 @@ namespace AI {
 			 * Checks if a point lies inside the friendly defense area.
 			 * Useful for defenders.
 			 */
-			bool point_in_friendly_defense(AI::HL::W::World &world, const Point p);
+			bool point_in_friendly_defense(const AI::HL::W::Field &field, const Point p);
 
 			/**
 			 * Checks if the path from begin to end is blocked by some obstacles.

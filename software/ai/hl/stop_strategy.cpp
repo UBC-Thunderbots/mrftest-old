@@ -83,7 +83,7 @@ namespace {
 			return false;
 		}
 
-		if (AI::HL::Util::point_in_friendly_defense(world, p)) {
+		if (AI::HL::Util::point_in_friendly_defense(world.field(), p)) {
 			return false;
 		}
 

@@ -174,7 +174,7 @@ void Defender::tick() {
 
 	// figure out who should chase the ball
 	Player::Ptr chaser;
-	if (AI::HL::Util::point_in_friendly_defense(world, ball_pos)) {
+	if (AI::HL::Util::point_in_friendly_defense(world.field(), ball_pos)) {
 		// emergency, chase the ball
 		chaser = goalie;
 	} else if (chase) {

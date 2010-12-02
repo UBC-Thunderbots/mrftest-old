@@ -189,7 +189,7 @@ namespace {
 		}
 		// goalie special
 		{
-			if (AI::HL::Util::point_in_friendly_defense(world, world.ball().position())) {
+			if (AI::HL::Util::point_in_friendly_defense(world.field(), world.ball().position())) {
 				offender_chase = false;
 			}
 			// double dist = (goalie->position() - world.ball().position()).len();
