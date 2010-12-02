@@ -31,7 +31,7 @@ namespace {
 			BasicPlayStrategy(AI::HL::W::World &world);
 			~BasicPlayStrategy();
 			void on_player_added(std::size_t);
-			void on_player_removing(std::size_t);
+			void on_player_removed();
 
 			/**
 			 * Recalculates and redo all assignments.
@@ -103,7 +103,7 @@ namespace {
 
 	BasicPlayStrategy::BasicPlayStrategy(World &world) : Strategy(world), defender(world), offender(world) {
 		world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &BasicPlayStrategy::on_player_added));
-		world.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &BasicPlayStrategy::on_player_removing));
+		world.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &BasicPlayStrategy::on_player_removed));
 		run_assignment();
 	}
 
@@ -114,7 +114,7 @@ namespace {
 		run_assignment();
 	}
 
-	void BasicPlayStrategy::on_player_removing(std::size_t) {
+	void BasicPlayStrategy::on_player_removed() {
 		run_assignment();
 	}
 
