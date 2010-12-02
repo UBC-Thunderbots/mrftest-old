@@ -1,14 +1,13 @@
+#include "ai/hl/util.h"
 #include "ai/navigator/navigator.h"
 #include "ai/navigator/util.h"
-#include <vector>
-#include "ai/hl/util.h"
+#include "geom/angle.h"
+#include "util/byref.h"
 #include "util/time.h"
+#include <glibmm.h>
 #include <set>
 #include <utility>
-#include "util/byref.h"
-#include <glibmm.h>
-#include <iostream>
-#include "geom/angle.h"
+#include <vector>
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
@@ -19,15 +18,15 @@ using namespace Glib;
 namespace {
 	const double INF = 10e9;
 
-	// the degrees where we consider the angle to 
-	// be virtually the same 
+	// the degrees where we consider the angle to
+	// be virtually the same
 	const double ANGLE_TOL = 4.0;
 
 	class PathPoint : public ByRef {
 		public:
 			typedef ::RefPtr<PathPoint> Ptr;
 			Point xy;
-			//			double orientation;
+			// double orientation;
 			PathPoint::Ptr parent;
 			double g;
 			bool closed;
@@ -128,7 +127,7 @@ namespace {
 
 		std::vector<Player::Ptr> players;
 
-		for (unsigned int i = 0; i < fteam.size(); i++){
+		for (unsigned int i = 0; i < fteam.size(); i++) {
 			players.push_back(fteam.get(i));
 		}
 		std::sort(players.begin(), players.end(), cmp_p);
@@ -143,7 +142,7 @@ namespace {
 			start = player_start;
 			end = player_end;
 
-			if(player->type() == AI::Flags::MOVE_CATCH){
+			if (player->type() == AI::Flags::MOVE_CATCH) {
 				added_flags = AI::Flags::FLAG_AVOID_BALL_TINY;
 				double target_minus = player->MAX_RADIUS + Ball::RADIUS + 0.07;
 				Point p(target_minus, 0);
@@ -159,22 +158,22 @@ namespace {
 			start->g = 0.0;
 
 			if (valid_path(player->position(), end->xy, world, player, added_flags)) {
-				if (player->type() == AI::Flags::MOVE_CATCH ) {
+				if (player->type() == AI::Flags::MOVE_CATCH) {
 					Point diff = world.ball().position() - player->position();
 					diff = diff.rotate(-player->orientation());
-					double ang = std::max(radians2degrees(diff.orientation()) , radians2degrees(angle_diff(player->orientation(), player->destination().second)));
+					double ang = std::max(radians2degrees(diff.orientation()), radians2degrees(angle_diff(player->orientation(), player->destination().second)));
 					if (ang < 0) {
 						ang = -ang;
 					}
 					if (ang < ANGLE_TOL) {
-						path.push_back(std::make_pair( std::make_pair(world.ball().position(), player->destination().second) , world.monotonic_time()));
+						path.push_back(std::make_pair(std::make_pair(world.ball().position(), player->destination().second), world.monotonic_time()));
 						player->path(path);
 						continue;
 					}
 				}
 
 				path.push_back(std::make_pair(std::make_pair(end->xy, player->destination().second), world.monotonic_time()));
-				for(std::vector<PathPoint::Ptr>::iterator it = add_on.begin(); it != add_on.end(); it++){
+				for (std::vector<PathPoint::Ptr>::iterator it = add_on.begin(); it != add_on.end(); it++) {
 					path.push_back(std::make_pair(std::make_pair((*it)->xy, player->destination().second), world.monotonic_time()));
 				}
 
@@ -185,7 +184,7 @@ namespace {
 			search_space.clear();
 			open_set.clear();
 			std::vector<Point> p = get_obstacle_boundaries(world, player, added_flags);
-			std::vector<Point> end_near	=	get_destination_alternatives(end->xy, world, player);
+			std::vector<Point> end_near = get_destination_alternatives(end->xy, world, player);
 			for (std::vector<Point>::iterator it = end_near.begin(); it != end_near.end(); it++) {
 				p.push_back(*it);
 			}
@@ -204,13 +203,13 @@ namespace {
 				if (cur == end) {
 					std::vector<PathPoint::Ptr> p = cur->getParents();
 					for (std::vector<PathPoint::Ptr>::iterator it = p.begin(); it != p.end(); it++) {
-						if(*it != start){
+						if (*it != start) {
 							path.push_back(std::make_pair(std::make_pair((*it)->xy, player->destination().second), world.monotonic_time()));
 						}
 					}
 					path.push_back(std::make_pair(std::make_pair(cur->xy, player->destination().second), world.monotonic_time()));
 
-					for(std::vector<PathPoint::Ptr>::iterator it = add_on.begin(); it != add_on.end(); it++){
+					for (std::vector<PathPoint::Ptr>::iterator it = add_on.begin(); it != add_on.end(); it++) {
 						path.push_back(std::make_pair(std::make_pair((*it)->xy, player->destination().second), world.monotonic_time()));
 					}
 
@@ -239,7 +238,7 @@ namespace {
 						continue;
 					}
 					for (std::vector<PathPoint::Ptr>::const_iterator it = p.begin(); it != p.end(); it++) {
-						if(*it != start){
+						if (*it != start) {
 							path.push_back(std::make_pair(std::make_pair((*it)->xy, player->destination().second), world.monotonic_time()));
 						}
 					}
@@ -254,7 +253,6 @@ namespace {
 				player->path(path);
 			}
 		}
-
 	}
 }
 

@@ -10,7 +10,6 @@
 namespace AI {
 	namespace Nav {
 		namespace Util {
-
 			/**
 			 * returns true if the destination is valid
 			 */

@@ -93,8 +93,8 @@ namespace {
 		if (world.friendly_team().size() == 0) {
 			return;
 		}
-		
-		//TODO set passee for defender
+
+		// TODO set passee for defender
 
 		calc_chaser();
 		offender.tick();
@@ -192,10 +192,10 @@ namespace {
 			if (AI::HL::Util::point_in_friendly_defense(world, world.ball().position())) {
 				offender_chase = false;
 			}
-			//double dist = (goalie->position() - world.ball().position()).len();
-			//if (dist < best_dist) {
-				//offender_chase = false;
-			//}
+			// double dist = (goalie->position() - world.ball().position()).len();
+			// if (dist < best_dist) {
+			// offender_chase = false;
+			// }
 		}
 
 		offender.set_chase(offender_chase);

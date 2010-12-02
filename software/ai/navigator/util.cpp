@@ -154,7 +154,7 @@ namespace {
 
 	inline double get_own_half_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 		const Field &f = world.field();
-		Point p(-f.total_length()/2, -f.total_width() / 2);
+		Point p(-f.total_length() / 2, -f.total_width() / 2);
 		Rect bounds(p, f.total_length() / 2, f.total_width());
 		bounds.expand(-distance_keepout::own_half(player));
 		double violation = 0.0;
@@ -293,7 +293,7 @@ namespace {
 		// circle radius then becomes the radius of the smallest circle that will contain the polygon
 		// plus a small buffer
 		double radius = dist / std::cos(M_PI / static_cast<double>(num_points)) + SMALL_BUFFER;
-		double TS = 2 *num_points * dist * std::tan(M_PI / num_points);
+		double TS = 2 * num_points * dist * std::tan(M_PI / num_points);
 		double TS2 = TS + 2 * (segA - segB).len();
 		int n_tot = num_points * static_cast<int>(std::ceil(TS2 / TS));
 		std::vector<Point> temp = seg_buffer_boundaries(segA, segB, radius, n_tot);
@@ -313,9 +313,9 @@ std::vector<Point> AI::Nav::Util::get_destination_alternatives(Point dst, AI::Na
 	const Field &f = world.field();
 
 	if (flags & FLAG_AVOID_BALL_STOP) {
-		process_obstacle(ans, world, player, dst, dst, distance_keepout::friendly(player), 3*POINTS_PER_OBSTACLE);
+		process_obstacle(ans, world, player, dst, dst, distance_keepout::friendly(player), 3 * POINTS_PER_OBSTACLE);
 	}
-	
+
 	return ans;
 }
 
@@ -344,13 +344,13 @@ std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World &wor
 	const Field &f = world.field();
 
 	if (flags & FLAG_AVOID_BALL_STOP) {
-		process_obstacle(ans, world, player, world.ball().position(), world.ball().position(), distance_keepout::ball_stop(player), 3*POINTS_PER_OBSTACLE);
+		process_obstacle(ans, world, player, world.ball().position(), world.ball().position(), distance_keepout::ball_stop(player), 3 * POINTS_PER_OBSTACLE);
 	}
 
 	if (flags & FLAG_STAY_OWN_HALF) {
 		Point half_point1(0.0, -f.width() / 2);
 		Point half_point2(0.0, f.width() / 2);
-		process_obstacle(ans, world, player, half_point1, half_point2, distance_keepout::own_half(player), 7*POINTS_PER_OBSTACLE);
+		process_obstacle(ans, world, player, half_point1, half_point2, distance_keepout::own_half(player), 7 * POINTS_PER_OBSTACLE);
 	}
 
 	if (flags & FLAG_AVOID_FRIENDLY_DEFENSE) {
@@ -374,7 +374,7 @@ std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World &wor
 		if (rob == player) {
 			// points around self may help with trying to escape when stuck
 			// that is why there are double the number of points here
-			process_obstacle(ans, world, player, rob->position(), rob->position(), distance_keepout::friendly(player), 2*POINTS_PER_OBSTACLE);
+			process_obstacle(ans, world, player, rob->position(), rob->position(), distance_keepout::friendly(player), 2 * POINTS_PER_OBSTACLE);
 			continue;
 		}
 		process_obstacle(ans, world, player, rob->position(), rob->position(), distance_keepout::friendly(player), POINTS_PER_OBSTACLE);
@@ -387,8 +387,6 @@ std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World &wor
 
 	return ans;
 }
-
-
 
 #warning overlap method should choose whichever is written better
 bool AI::Nav::Util::check_dest_valid(Point dest, World &world, Player::Ptr player) {

@@ -55,10 +55,10 @@ namespace AI {
 				 *
 				 * \param[in] p a player to pass to
 				 */
-				void set_passee(W::Player::Ptr p){
+				void set_passee(W::Player::Ptr p) {
 					passee = p;
-				}			
-				
+				}
+
 				/**
 				 * Recommended maximum distance from the goal place,
 				 * for goalie to repel the ball.

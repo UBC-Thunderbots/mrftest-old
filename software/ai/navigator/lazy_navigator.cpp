@@ -81,7 +81,7 @@ namespace {
 			destinationOrientation = player->destination().second;
 
 			if (!valid_path(currentPosition, destinationPosition, world, player)) {
-				Point vec = (destinationPosition - currentPosition);
+				Point vec = destinationPosition - currentPosition;
 				Point add(0, 0);
 				if (vec.lensq() > 0.01) {
 					vec = CHECK_DISTANCE * vec.norm();
@@ -90,13 +90,17 @@ namespace {
 						Point left = vec.rotate(i * rotate);
 						Point right = vec.rotate(-i * rotate);
 						if (valid_path(currentPosition, currentPosition + right, world, player)) {
-							if (i==0) break;
+							if (i == 0) {
+								break;
+							}
 							vec = STEP_DISTANCE * vec.norm();
 							add = vec.rotate(-i * rotate - OVERSHOOT_FACTOR * rotate);
 							break;
 						}
 						if (valid_path(currentPosition, currentPosition + left, world, player)) {
-							if (i==0) break;
+							if (i == 0) {
+								break;
+							}
 							vec = STEP_DISTANCE * vec.norm();
 							add = vec.rotate(i * rotate + OVERSHOOT_FACTOR * rotate);
 							break;
@@ -104,22 +108,22 @@ namespace {
 					}
 					if (add.x == 0 && add.y == 0) {
 						// Do binary search to find the closest intersection point.
-						Point vector = destinationPosition-currentPosition;
-                        double min = 0;
-                        double max = 1;
-                        while (max-min > 0.01) {
-							double mid = (min+max)/2.0;
+						Point vector = destinationPosition - currentPosition;
+						double min = 0;
+						double max = 1;
+						while (max - min > 0.01) {
+							double mid = (min + max) / 2.0;
 							if (valid_path(currentPosition, currentPosition + (mid * vector), world, player)) {
 								min = mid;
 							} else {
 								max = mid;
 							}
-                        }
-                        double mid = (min+max)/2.0;
-                        path.push_back(std::make_pair(std::make_pair(currentPosition + (mid * vector), destinationOrientation), world.monotonic_time()));
-                        player->path(path);
+						}
+						double mid = (min + max) / 2.0;
+						path.push_back(std::make_pair(std::make_pair(currentPosition + (mid * vector), destinationOrientation), world.monotonic_time()));
+						player->path(path);
 					} else {
-						path.push_back(std::make_pair(std::make_pair(currentPosition+add, destinationOrientation), world.monotonic_time()));
+						path.push_back(std::make_pair(std::make_pair(currentPosition + add, destinationOrientation), world.monotonic_time()));
 						player->path(path);
 					}
 				} else {

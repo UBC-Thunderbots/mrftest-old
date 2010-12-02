@@ -186,12 +186,12 @@ namespace {
 		prev_ori = runner->orientation();
 		prev_pos = runner->position();
 		runner->move(tasks[done].first, tasks[done].second, 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
-		
+
 		if (friendly.size() > 1) {
-			friendly.get(1)->move(Point(0.5,0), 0, 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+			friendly.get(1)->move(Point(0.5, 0), 0, 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
 		}
 		if (friendly.size() > 2) {
-			friendly.get(2)->move(Point(-0.5,0), 0, 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+			friendly.get(2)->move(Point(-0.5, 0), 0, 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
 		}
 	}
 

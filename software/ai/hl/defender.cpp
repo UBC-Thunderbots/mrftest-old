@@ -221,8 +221,11 @@ void Defender::tick() {
 			}
 
 			if (chaser == players[i]) {
-				if (passee.is()) AI::HL::Tactics::pass(world, chaser, passee, defender_flags);
-				else AI::HL::Tactics::repel(world, players[i], defender_flags);
+				if (passee.is()) {
+					AI::HL::Tactics::pass(world, chaser, passee, defender_flags);
+				} else {
+					AI::HL::Tactics::repel(world, players[i], defender_flags);
+				}
 			} else {
 				players[i]->move(waypoints[order[w]], (world.ball().position() - players[i]->position()).orientation(), defender_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 			}
