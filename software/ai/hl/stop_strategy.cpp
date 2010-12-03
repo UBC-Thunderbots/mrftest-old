@@ -39,7 +39,7 @@ namespace {
 		private:
 			StopStrategy(World &world);
 			~StopStrategy();
-			//bool valid(Point p) const;
+			// bool valid(Point p) const;
 	};
 
 	/**
@@ -69,30 +69,30 @@ namespace {
 	}
 
 	/*
-	bool StopStrategy::valid(Point p) const {
-		// cannot be too far away in x
-		if (std::fabs(p.x) > world.field().length() / 2) {
-			return false;
-		}
-		// cannot be too far away in y
-		if (std::fabs(p.y) > world.field().width() / 2) {
-			return false;
-		}
+	   bool StopStrategy::valid(Point p) const {
+	    // cannot be too far away in x
+	    if (std::fabs(p.x) > world.field().length() / 2) {
+	        return false;
+	    }
+	    // cannot be too far away in y
+	    if (std::fabs(p.y) > world.field().width() / 2) {
+	        return false;
+	    }
 
-		if (AI::HL::Util::point_in_friendly_defense(world.field(), p)) {
-			return false;
-		}
+	    if (AI::HL::Util::point_in_friendly_defense(world.field(), p)) {
+	        return false;
+	    }
 
-		// TODO: check if point in enemy defense
+	    // TODO: check if point in enemy defense
 
-		// cannot be too close to ball
-		if ((world.ball().position() - p).len() < AVOIDANCE_MIN) {
-			return false;
-		}
+	    // cannot be too close to ball
+	    if ((world.ball().position() - p).len() < AVOIDANCE_MIN) {
+	        return false;
+	    }
 
-		return true;
-	}
-	*/
+	    return true;
+	   }
+	 */
 
 	void StopStrategy::stop() {
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
@@ -126,9 +126,9 @@ namespace {
 			// we may even want a defender
 			if (players.size() > 2) {
 				defender_pos = (ball_pos + goal_pos) * 0.5;
-				//if (valid(defender_pos)) {
+				// if (valid(defender_pos)) {
 				n_defenders = 1;
-				//}
+				// }
 			}
 		}
 
@@ -151,14 +151,14 @@ namespace {
 		std::vector<Point> positions;
 		int w = 1;
 		for (std::size_t i = 0; i < offenders.size(); ++i) {
-			//bool okay = false;
-			//Point p;
-			//do {
+			// bool okay = false;
+			// Point p;
+			// do {
 			double angle = delta_angle * (w / 2) * ((w % 2) ? 1 : -1);
 			Point p = ball_pos + shoot.rotate(angle);
 			++w;
-			//okay = valid(p);
-			//} while (!okay);
+			// okay = valid(p);
+			// } while (!okay);
 			positions.push_back(p);
 		}
 

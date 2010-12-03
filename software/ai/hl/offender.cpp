@@ -214,7 +214,7 @@ void AI::HL::Offender::tick() {
 
 	// Idea for checking whether to pass or not:
 	// - check for enemy robots in a certain threshold distance,
-	//    if # of enemy robots within a certain distance is > 2 then you better try to pass before you get cornered
+	// if # of enemy robots within a certain distance is > 2 then you better try to pass before you get cornered
 	// - but if your supporters can't receive you better just shoot.
 
 	/*
@@ -253,10 +253,8 @@ void AI::HL::Offender::tick() {
 
 	// if can shoot to enemy goal, do so
 	if (AI::HL::Util::calc_best_shot(world, chaser, Robot::MAX_RADIUS).second > AI::HL::Util::shoot_accuracy) {
-
 		AI::HL::Tactics::shoot(world, chaser, flags);
 		return;
-
 	}
 
 	// if you can pass to someone, do so

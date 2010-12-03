@@ -4,7 +4,6 @@
 #include "util/objectstore.h"
 #include "util/timestep.h"
 #include <glibmm.h>
-#include <iostream>
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
@@ -16,8 +15,8 @@ using namespace Glib;
 namespace {
 	const double MAX_SPEED = 2.0;
 	const double THRESHOLD = 0.15;
-//	const double STEP_DISTANCE = 0.3;
-	const double TIMESTEP = 2.0;//1.0 / static_cast<double>(TIMESTEPS_PER_SECOND);
+// const double STEP_DISTANCE = 0.3;
+	const double TIMESTEP = 2.0; // 1.0 / static_cast<double>(TIMESTEPS_PER_SECOND);
 	const double VALID_REGION = 0.3 * (9 / 8) * TIMESTEP * TIMESTEP;
 	// probability that we will take a step towards the goal
 	const double GOAL_PROB = 0.1;
@@ -121,7 +120,7 @@ namespace {
 
 	double rrtphysics_navigator::Distance(NodeTree<Point> *nearest, Point goal) {
 		Point prev;
-		if(nearest->parent() == NULL) {
+		if (nearest->parent() == NULL) {
 			double x = nearest->data().x + (currPlayerVelocity.x * TIMESTEP);
 			double y = nearest->data().y + (currPlayerVelocity.y * TIMESTEP);
 			prev = Point(x, y);
@@ -204,8 +203,8 @@ namespace {
 			double yCenter = start.y + (player->velocity().y * TIMESTEP);
 			center = Point(xCenter, yCenter);
 		} else {
-			xExtend = start.x + (normalizedDir.x * TIMESTEP * (start - prev).x);//player->velocity().x);
-			yExtend = start.y + (normalizedDir.y * TIMESTEP * (start - prev).y);//player->velocity().y);
+			xExtend = start.x + (normalizedDir.x * TIMESTEP * (start - prev).x); // player->velocity().x);
+			yExtend = start.y + (normalizedDir.y * TIMESTEP * (start - prev).y); // player->velocity().y);
 
 			center = (2 * start) - prev;
 		}
@@ -236,16 +235,17 @@ namespace {
 
 		int iterationCounter = 0;
 
-		//should loop until distance between lastAdded and goal is less than threshold
+		// should loop until distance between lastAdded and goal is less than threshold
 		while (Distance(lastAdded, goal) > THRESHOLD && iterationCounter < ITERATION_LIMIT) {
 			target = ChooseTarget(goal);
 			nearestNode = Nearest(&rrtTree, target);
 			nearest = nearestNode->data();
 
-			if (nearestNode->parent() == NULL)
+			if (nearestNode->parent() == NULL) {
 				previous = EmptyState();
-			else
+			} else {
 				previous = nearestNode->parent()->data();
+			}
 
 			extended = Extend(player, previous, nearest, target);
 
@@ -279,7 +279,7 @@ namespace {
 
 			// if we found a plan then add the path's points to the waypoint cache
 			// with random replacement
-			if(foundPath) {
+			if (foundPath) {
 				currPlayerWaypoints->points[std::rand() % NUM_WAYPOINTS] = iterator->data();
 			}
 		}

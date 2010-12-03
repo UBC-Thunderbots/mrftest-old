@@ -1,9 +1,8 @@
-#include "ai/hl/strategy.h"
 #include "ai/hl/defender.h"
 #include "ai/hl/offender.h"
+#include "ai/hl/strategy.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
-
 #include <glibmm.h>
 
 using AI::HL::Defender;
@@ -109,7 +108,6 @@ namespace {
 	}
 
 	void FranticPlayStrategy::run_assignment() {
-
 		if (world.friendly_team().size() == 0) {
 			LOG_WARN("no players");
 			return;
@@ -120,8 +118,6 @@ namespace {
 
 		LOG_INFO(Glib::ustring::compose("defenders are for sissies: %2 offenders", players.size()));
 		offender.set_players(players);
-
 	}
-
 }
 

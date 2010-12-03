@@ -228,7 +228,7 @@ namespace AI {
 			 *
 			 * \param[in] friends the list of players to pass to.
 			 */
-			AI::HL::W::Player::Ptr choose_best_pass(AI::HL::W::World &world, const std::vector<AI::HL::W::Player::Ptr>& friends);
+			AI::HL::W::Player::Ptr choose_best_pass(AI::HL::W::World &world, const std::vector<AI::HL::W::Player::Ptr> &friends);
 
 			/**
 			 * TODO
@@ -243,9 +243,10 @@ namespace AI {
 			 * \param[in] passee the player to pass to.
 			 *
 			 */
-			double calc_pass_score(const AI::HL::W::World& world, const AI::HL::W::Player::Ptr passee);
+			double calc_pass_score(const AI::HL::W::World &world, const AI::HL::W::Player::Ptr passee);
 		}
 	}
 }
 
 #endif
+

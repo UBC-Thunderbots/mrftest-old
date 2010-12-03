@@ -10,10 +10,8 @@ using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
 
 namespace {
-
-
 	/**
-	 * Manages the robots for testing purposes 
+	 * Manages the robots for testing purposes
 	 */
 	class TestStrategy : public Strategy {
 		public:

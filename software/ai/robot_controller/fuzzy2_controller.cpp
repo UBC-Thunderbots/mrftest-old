@@ -3,11 +3,11 @@
 #include "geom/angle.h"
 #include "geom/point.h"
 #include "util/byref.h"
+#include "util/dprint.h"
 #include "util/noncopyable.h"
 #include <cmath>
 #include <glibmm.h>
 #include <map>
-#include <iostream>
 
 using AI::RC::RobotController;
 using AI::RC::TunableController;
@@ -20,13 +20,13 @@ namespace {
 	const double arr_min[P] = { 3.0, 0.0, 0.0, 3.0, 3.0 };
 	const double arr_max[P] = { 10.0, 2.0, 2.0, 10.0, 10.0 };
 	/*
-	// robot parameters
-	const double arr_def[P] = { 6.0, .855, .385, 6.0, 6.0 };
-	*/
+	   // robot parameters
+	   const double arr_def[P] = { 6.0, .855, .385, 6.0, 6.0 };
+	 */
 	// simulator parameters
 	const double arr_def[P] = { 8.71043, 1.95671, 1.08009, 4.59125, 9.40896 };
-	
-	
+
+
 	const std::vector<double> param_min(arr_min, arr_min + P);
 	const std::vector<double> param_max(arr_max, arr_max + P);
 	const std::vector<double> param_default(arr_def, arr_def + P);
@@ -78,19 +78,19 @@ namespace {
 				linear_velocity = distance_factor * linear_velocity + (1 - distance_factor) * (velocity_factor * stopping_velocity + (1 - velocity_factor) * linear_velocity);
 
 				int wheel_speeds[4] = { 0, 0, 0, 0 };
-				
+
 				/*
-				struct timespec currentTime, finalTime;
-				timespec_now(currentTime);
-				timespec_sub(path[0].second, currentTime, finalTime);
-				
-				double desired_velocity = (path[0].first.first - player->position()).len() / finalTime.tv_sec;
-				if (linear_velocity.len() > desired_velocity) {
-					std::cout << "time " << finalTime.tv_sec << std::endl;
-					std::cout << "error " << linear_velocity.len() << " " << desired_velocity << std::endl;
-					linear_velocity = desired_velocity * (linear_velocity/linear_velocity.len());
-				}
-				*/
+				   struct timespec currentTime, finalTime;
+				   timespec_now(currentTime);
+				   timespec_sub(path[0].second, currentTime, finalTime);
+
+				   double desired_velocity = (path[0].first.first - player->position()).len() / finalTime.tv_sec;
+				   if (linear_velocity.len() > desired_velocity) {
+				    LOG_INFO(Glib::ustring::compose("time %1", finalTime.tv_sec));
+				    LOG_INFO(Glib::ustring::compose("error %1 %2", linear_velocity.len(), desired_velocity));
+				    linear_velocity = desired_velocity * (linear_velocity/linear_velocity.len());
+				   }
+				 */
 
 				convert_to_wheels(linear_velocity, angular_velocity, wheel_speeds);
 
