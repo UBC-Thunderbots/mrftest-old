@@ -15,7 +15,8 @@ using namespace AI::HL::W;
 namespace {
 	const double PENALTY_MARK_LENGTH = 0.45;
 	const double RESTRICTED_ZONE_LENGTH = 0.85;
-
+	
+	
 	/**
 	 * Manages the robots during direct and indirect free kicks.
 	 */
@@ -128,11 +129,13 @@ namespace {
 
 			// instead of shooting straight at the goal, should try picking a random flank (left or right) and shoot
 			// AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
+			
+			Point goal_posts[2] = { Point(world.field().length()/2, world.field().goal_width()/2), 
+					Point(world.field().length()/2, world.field().goal_width()/2) };
 
-			int flank = std::rand() % 2;
-			double d = world.field().goal_width()/2;
-			if (flank) AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, Point(world.field().length()/2,d));
-			else AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, Point(world.field().length()/2,-d));
+			int flank = std::rand()%2;
+			if (flank) AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, goal_posts[0]);
+			else AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, goal_posts[0]);
 			
 		}
 	}

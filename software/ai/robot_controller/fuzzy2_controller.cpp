@@ -7,6 +7,7 @@
 #include <cmath>
 #include <glibmm.h>
 #include <map>
+#include <iostream>
 
 using AI::RC::RobotController;
 using AI::RC::TunableController;
@@ -77,6 +78,19 @@ namespace {
 				linear_velocity = distance_factor * linear_velocity + (1 - distance_factor) * (velocity_factor * stopping_velocity + (1 - velocity_factor) * linear_velocity);
 
 				int wheel_speeds[4] = { 0, 0, 0, 0 };
+				
+				/*
+				struct timespec currentTime, finalTime;
+				timespec_now(currentTime);
+				timespec_sub(path[0].second, currentTime, finalTime);
+				
+				double desired_velocity = (path[0].first.first - player->position()).len() / finalTime.tv_sec;
+				if (linear_velocity.len() > desired_velocity) {
+					std::cout << "time " << finalTime.tv_sec << std::endl;
+					std::cout << "error " << linear_velocity.len() << " " << desired_velocity << std::endl;
+					linear_velocity = desired_velocity * (linear_velocity/linear_velocity.len());
+				}
+				*/
 
 				convert_to_wheels(linear_velocity, angular_velocity, wheel_speeds);
 
