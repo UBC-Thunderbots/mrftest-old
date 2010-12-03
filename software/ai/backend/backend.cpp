@@ -8,27 +8,39 @@ using AI::BE::BackendFactory;
 
 void AI::BE::Player::move(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
 	if (!std::isfinite(dest.x) || !std::isfinite(dest.y)) {
-		LOG_WARN("NaN or ±inf destination in Player::move");
+		LOG_ERROR("NaN or ±inf destination");
 		dest = position(0);
 	}
 	if (!std::isfinite(ori)) {
-		LOG_WARN("NaN or ±inf orientation in Player::move");
+		LOG_ERROR("NaN or ±inf orientation");
 		ori = orientation(0);
 	}
 	if (!std::isfinite(vel.x) || !std::isfinite(vel.y)) {
-		LOG_WARN("NaN or ±inf velocity in Player::move");
+		LOG_ERROR("NaN or ±inf velocity");
 		vel.x = vel.y = 0;
+	}
+	if (flags & ~AI::Flags::FLAGS_VALID) {
+		LOG_ERROR("Invalid flag(s) 0x%08X", flags & ~AI::Flags::FLAGS_VALID);
+		flags &= AI::Flags::FLAGS_VALID;
+	}
+	if (type >= AI::Flags::MOVE_COUNT) {
+		LOG_ERROR("Invalid move type %d", type);
+		type = AI::Flags::MOVE_NORMAL;
+	}
+	if (prio >= AI::Flags::PRIO_COUNT) {
+		LOG_ERROR("Invalid move priority %d", prio);
+		prio = AI::Flags::PRIO_LOW;
 	}
 	move_impl(dest, ori, vel, flags, type, prio);
 }
 
 void AI::BE::Player::kick(double power) {
 	if (!std::isfinite(power)) {
-		LOG_WARN("NaN or ±inf power in Player::kick");
+		LOG_ERROR("NaN or ±inf power");
 		return;
 	}
 	if (power < 0 || power > 1) {
-		LOG_WARN("Out-of-range power in Player::kick");
+		LOG_ERROR("Out-of-range power");
 		power = clamp(power, 0.0, 1.0);
 	}
 	kick_impl(power);
@@ -36,11 +48,11 @@ void AI::BE::Player::kick(double power) {
 
 void AI::BE::Player::chip(double power) {
 	if (!std::isfinite(power)) {
-		LOG_WARN("NaN or ±inf power in Player::chip");
+		LOG_ERROR("NaN or ±inf power");
 		return;
 	}
 	if (power < 0 || power > 1) {
-		LOG_WARN("Out-of-range power in Player::chip");
+		LOG_ERROR("Out-of-range power");
 		power = clamp(power, 0.0, 1.0);
 	}
 	chip_impl(power);
@@ -49,11 +61,11 @@ void AI::BE::Player::chip(double power) {
 void AI::BE::Player::path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) {
 	for (std::vector<std::pair<std::pair<Point, double>, timespec> >::const_iterator i = p.begin(), iend = p.end(); i != iend; ++i) {
 		if (!std::isfinite(i->first.first.x) || !std::isfinite(i->first.first.y)) {
-			LOG_WARN("NaN or ±inf position in path element in Player::path");
+			LOG_ERROR("NaN or ±inf position in path element");
 			return;
 		}
 		if (!std::isfinite(i->first.second)) {
-			LOG_WARN("NaN or ±inf orientation in path element in Player::path");
+			LOG_ERROR("NaN or ±inf orientation in path element");
 			return;
 		}
 	}

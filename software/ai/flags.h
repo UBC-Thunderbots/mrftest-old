@@ -66,6 +66,11 @@ namespace AI {
 		};
 
 		/**
+		 * The union of all existent flags.
+		 */
+		extern const unsigned int FLAGS_VALID;
+
+		/**
 		 * Returns the correct flags for a common player,
 		 * i.e. a player that is \em not a goalie or the taker of a free kick, kickoff, or penalty kick.
 		 * The caller should modify the returned value for the goalie or kicker.
@@ -107,6 +112,12 @@ namespace AI {
 			 * Ignores the target velocity.
 			 */
 			MOVE_HALT,
+
+			/**
+			 * The number of legal movement types.
+			 * Not itself an actual movement type.
+			 */
+			MOVE_COUNT
 		};
 
 		/**
@@ -127,6 +138,12 @@ namespace AI {
 			 * An unimportant movement, such as moving to the other side of the field for a long-term strategic purpose.
 			 */
 			PRIO_LOW,
+
+			/**
+			 * The number of legal priorities.
+			 * Not itself an actual priority.
+			 */
+			PRIO_COUNT
 		};
 	}
 }
