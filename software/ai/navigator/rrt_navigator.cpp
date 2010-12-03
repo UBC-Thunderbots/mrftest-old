@@ -16,8 +16,8 @@ namespace {
 	const double THRESHOLD = 0.08;
 	const double STEP_DISTANCE = 0.1;
 	// probability that we will take a step towards the goal
-	const double GOAL_PROB = 0.3;
-	const double WAYPOINT_PROB = 0.4;
+	const double GOAL_PROB = 0.2;
+	const double WAYPOINT_PROB = 0.5;
 	const double RAND_PROB = 1.0 - GOAL_PROB - WAYPOINT_PROB;
 	// number of iterations to go through for each robot until we give up and
 	// just return the best partial path we've found
@@ -31,26 +31,26 @@ namespace {
 			Point points[NUM_WAYPOINTS];
 	};
 
-	class rrt_navigator : public Navigator {
+	class RRTNavigator : public Navigator {
 		public:
 			NavigatorFactory &factory() const;
 			void tick();
 			static Navigator::Ptr create(World &world);
 
 		private:
-			rrt_navigator(World &world);
-			~rrt_navigator();
+			RRTNavigator(World &world);
+			~RRTNavigator();
 
 			Waypoints::Ptr currPlayerWaypoints;
 
-			double Distance(Point nearest, Point goal);
-			Point RandomPoint();
-			Point ChooseTarget(Point goal);
-			NodeTree<Point> *Nearest(NodeTree<Point> *tree, Point target);
-			Point EmptyState();
-			Point Extend(Player::Ptr player, Point start, Point target);
-			bool IsEmptyState(Point toCheck);
-			std::vector<Point> RRTPlan(Player::Ptr player, Point initial, Point goal);
+			double distance(Point nearest, Point goal);
+			Point random_point();
+			Point choose_target(Point goal);
+			NodeTree<Point> *nearest(NodeTree<Point> *tree, Point target);
+			Point empty_state();
+			Point extend(Player::Ptr player, Point start, Point target);
+			bool is_empty_state(Point toCheck);
+			std::vector<Point> rrt_plan(Player::Ptr player, Point initial, Point goal);
 	};
 
 	class rrt_navigatorFactory : public NavigatorFactory {
@@ -62,11 +62,11 @@ namespace {
 
 	rrt_navigatorFactory factory_instance;
 
-	NavigatorFactory &rrt_navigator::factory() const {
+	NavigatorFactory &RRTNavigator::factory() const {
 		return factory_instance;
 	}
 
-	void rrt_navigator::tick() {
+	void RRTNavigator::tick() {
 		struct timespec currentTime;
 		std::vector<std::pair<std::pair<Point, double>, timespec> > path;
 		std::vector<Point> pathPoints;
@@ -91,7 +91,7 @@ namespace {
 			currPlayerWaypoints = Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)]);
 
 			pathPoints.clear();
-			pathPoints = RRTPlan(player, player->position(), player->destination().first);
+			pathPoints = rrt_plan(player, player->position(), player->destination().first);
 
 			double destOrientation = player->destination().second;
 			for (std::size_t j = 0; j < pathPoints.size(); ++j) {
@@ -113,20 +113,20 @@ namespace {
 		}
 	}
 
-	double rrt_navigator::Distance(Point nearest, Point goal) {
+	double RRTNavigator::distance(Point nearest, Point goal) {
 		return (goal - nearest).len();
 	}
 
-	Point rrt_navigator::EmptyState() {
+	Point RRTNavigator::empty_state() {
 		return Point(-10000, -10000);
 	}
 
-	bool rrt_navigator::IsEmptyState(Point toCheck) {
-		return toCheck.x == EmptyState().x && toCheck.y && EmptyState().y;
+	bool RRTNavigator::is_empty_state(Point toCheck) {
+		return toCheck.x == empty_state().x && toCheck.y && empty_state().y;
 	}
 
 	// generate a random point from the field
-	Point rrt_navigator::RandomPoint() {
+	Point RRTNavigator::random_point() {
 		double randomX = ((std::rand() % static_cast<int>(world.field().length() * 100)) - (world.field().length() * 50)) / 100;
 		double randomY = ((std::rand() % static_cast<int>(world.field().width() * 100)) - (world.field().width() * 50)) / 100;
 
@@ -134,21 +134,21 @@ namespace {
 	}
 
 	// choose a target to extend toward, the goal, a waypoint or a random point
-	Point rrt_navigator::ChooseTarget(Point goal) {
+	Point RRTNavigator::choose_target(Point goal) {
 		double p = std::rand() / static_cast<double>(RAND_MAX);
 		int i = std::rand() % NUM_WAYPOINTS;
 
 		if (p > 0 && p <= WAYPOINT_PROB) {
 			return currPlayerWaypoints->points[i];
 		} else if (p > WAYPOINT_PROB && p < (WAYPOINT_PROB + RAND_PROB)) {
-			return RandomPoint();
+			return random_point();
 		} else {
 			return goal;
 		}
 	}
 
 	// finds the point in the tree that is nearest to the target point
-	NodeTree<Point> *rrt_navigator::Nearest(NodeTree<Point> *rrtTree, Point target) {
+	NodeTree<Point> *RRTNavigator::nearest(NodeTree<Point> *rrtTree, Point target) {
 		NodeTree<Point> *nearest = rrtTree;
 		NodeTree<Point> *currNode;
 
@@ -160,7 +160,7 @@ namespace {
 			currNode = nodeQueue.back();
 			nodeQueue.pop_back();
 
-			if (Distance(currNode->data(), target) < Distance(nearest->data(), target)) {
+			if (distance(currNode->data(), target) < distance(nearest->data(), target)) {
 				nearest = currNode;
 			}
 
@@ -173,20 +173,20 @@ namespace {
 	}
 
 	// extend by STEP_DISTANCE towards the target from the start
-	Point rrt_navigator::Extend(Player::Ptr player, Point start, Point target) {
+	Point RRTNavigator::extend(Player::Ptr player, Point start, Point target) {
 		Point extendPoint = start + ((target - start).norm() * STEP_DISTANCE);
 		// check if the point is invalid (collision, out of bounds, etc...)
 		// if it is then return EmptyState()
 
 		if (!valid_path(start, extendPoint, world, player)) {
-			return EmptyState();
+			return empty_state();
 		}
 
 		return extendPoint;
 	}
 
-	std::vector<Point> rrt_navigator::RRTPlan(Player::Ptr player, Point initial, Point goal) {
-		Point nearest, extended, target;
+	std::vector<Point> RRTNavigator::rrt_plan(Player::Ptr player, Point initial, Point goal) {
+		Point nearestPoint, extended, target;
 
 		NodeTree<Point> *nearestNode;
 		NodeTree<Point> *lastAdded;
@@ -197,13 +197,13 @@ namespace {
 		int iterationCounter = 0;
 
 		// should loop until distance between lastAdded and goal is less than threshold
-		while (Distance(lastAdded->data(), goal) > THRESHOLD && iterationCounter < ITERATION_LIMIT) {
-			target = ChooseTarget(goal);
-			nearestNode = Nearest(&rrtTree, target);
-			nearest = nearestNode->data();
-			extended = Extend(player, nearest, target);
+		while (distance(lastAdded->data(), goal) > THRESHOLD && iterationCounter < ITERATION_LIMIT) {
+			target = choose_target(goal);
+			nearestNode = nearest(&rrtTree, target);
+			nearestPoint = nearestNode->data();
+			extended = extend(player, nearestPoint, target);
 
-			if (!IsEmptyState(extended)) {
+			if (!is_empty_state(extended)) {
 				lastAdded = nearestNode->append_data(extended);
 			}
 
@@ -217,7 +217,7 @@ namespace {
 
 			// set the last added as the node closest to the goal if we reach the iteration limit
 			// because the last added could be anything and we use it for tracing back the path
-			lastAdded = Nearest(&rrtTree, goal);
+			lastAdded = nearest(&rrtTree, goal);
 		}
 
 		// the final closest point to the goal is where we will trace backwards from
@@ -257,15 +257,15 @@ namespace {
 		return finalPoints;
 	}
 
-	Navigator::Ptr rrt_navigator::create(World &world) {
-		const Navigator::Ptr p(new rrt_navigator(world));
+	Navigator::Ptr RRTNavigator::create(World &world) {
+		const Navigator::Ptr p(new RRTNavigator(world));
 		return p;
 	}
 
-	rrt_navigator::rrt_navigator(World &world) : Navigator(world) {
+	RRTNavigator::RRTNavigator(World &world) : Navigator(world) {
 	}
 
-	rrt_navigator::~rrt_navigator() {
+	RRTNavigator::~RRTNavigator() {
 	}
 
 	rrt_navigatorFactory::rrt_navigatorFactory() : NavigatorFactory("RRT Navigator") {
@@ -275,7 +275,7 @@ namespace {
 	}
 
 	Navigator::Ptr rrt_navigatorFactory::create_navigator(World &world) const {
-		return rrt_navigator::create(world);
+		return RRTNavigator::create(world);
 	}
 }
 
