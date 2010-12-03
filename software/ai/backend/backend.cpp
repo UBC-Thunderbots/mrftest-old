@@ -20,15 +20,15 @@ void AI::BE::Player::move(Point dest, double ori, Point vel, unsigned int flags,
 		vel.x = vel.y = 0;
 	}
 	if (flags & ~AI::Flags::FLAGS_VALID) {
-		LOG_ERROR("Invalid flag(s) 0x%08X", flags & ~AI::Flags::FLAGS_VALID);
+		LOG_ERROR(Glib::ustring::compose("Invalid flag(s) 0x%08X", flags & ~AI::Flags::FLAGS_VALID));
 		flags &= AI::Flags::FLAGS_VALID;
 	}
 	if (type >= AI::Flags::MOVE_COUNT) {
-		LOG_ERROR("Invalid move type %d", type);
+		LOG_ERROR(Glib::ustring::compose("Invalid move type %d", type));
 		type = AI::Flags::MOVE_NORMAL;
 	}
 	if (prio >= AI::Flags::PRIO_COUNT) {
-		LOG_ERROR("Invalid move priority %d", prio);
+		LOG_ERROR(Glib::ustring::compose("Invalid move priority %d", prio));
 		prio = AI::Flags::PRIO_LOW;
 	}
 	move_impl(dest, ori, vel, flags, type, prio);
