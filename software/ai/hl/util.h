@@ -221,16 +221,31 @@ namespace AI {
 			void waypoints_matching(const std::vector<AI::HL::W::Player::Ptr> &players, std::vector<Point> &waypoints);
 
 			/**
-			 * Finds the best assignment of friendly players to pass to.
+			 * Finds the best player to pass to.
+			 * This player must:
+			 * - see a significant portion of the enemy goal
+			 * - able to receive the ball
 			 *
-			 * \param[in] players a list of players.
-			 *
-			 * \param[in, out] waypoints a list of points in which to assign the players, which will be reordered.
+			 * \param[in] friends the list of players to pass to.
 			 */
-			int choose_best_pass(AI::HL::W::World &world, const std::vector<AI::HL::W::Player::Ptr>& friends);
+			AI::HL::W::Player::Ptr choose_best_pass(AI::HL::W::World &world, const std::vector<AI::HL::W::Player::Ptr>& friends);
+
+			/**
+			 * TODO
+			 * Computes a scoring function on how good it is to pass the ball to a particular player.
+			 * This is based on combination of:
+			 * - angle that the ball can see the player
+			 * - amount of blockage enemy has to the ball.
+			 *
+			 * This score assumes the ball travels at infinite velocity,
+			 * but the players have known accuracy.
+			 *
+			 * \param[in] passee the player to pass to.
+			 *
+			 */
+			double calc_pass_score(const AI::HL::W::World& world, const AI::HL::W::Player::Ptr passee);
 		}
 	}
 }
 
 #endif
-

@@ -12,14 +12,9 @@ using namespace AI::HL::W;
 namespace {
 #warning find better home for this variable
 
-	// the closest distance players allowed to the ball
-	const double AVOIDANCE_MIN = 0.50 + Robot::MAX_RADIUS + Ball::RADIUS;
-
-	// make the players slightly further away from the ball
-	const double AVOIDANCE_MARGIN = 0.005;
-
-	// the distance we want the players to the ball
-	const double AVOIDANCE_DIST = AVOIDANCE_MIN + AVOIDANCE_MARGIN;
+	// The closest distance players allowed to the ball
+	// DO NOT make this EXACT, instead, add a little tolerance!
+	const double AVOIDANCE_DIST = 0.50 + Robot::MAX_RADIUS + Ball::RADIUS + 0.005;
 
 	// in ball avoidance, angle between center of 2 robots, as seen from the ball
 	const double AVOIDANCE_ANGLE = 2.0 * asin(Robot::MAX_RADIUS / AVOIDANCE_DIST);
@@ -44,7 +39,7 @@ namespace {
 		private:
 			StopStrategy(World &world);
 			~StopStrategy();
-			bool valid(Point p) const;
+			//bool valid(Point p) const;
 	};
 
 	/**
@@ -73,6 +68,7 @@ namespace {
 		return factory_instance;
 	}
 
+	/*
 	bool StopStrategy::valid(Point p) const {
 		// cannot be too far away in x
 		if (std::fabs(p.x) > world.field().length() / 2) {
@@ -96,6 +92,7 @@ namespace {
 
 		return true;
 	}
+	*/
 
 	void StopStrategy::stop() {
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());

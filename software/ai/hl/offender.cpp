@@ -165,6 +165,7 @@ void AI::HL::Offender::tick() {
 	if (chase) {
 		// one player to chase the ball.
 		chaser = players[0];
+
 		// TODO: print out name?
 	} else {
 		for (std::size_t i = 0; i < players.size(); ++i) {
@@ -205,12 +206,17 @@ void AI::HL::Offender::tick() {
 		}
 	}
 
+	if (!chaser.is()) {
+		return;
+	}
+
 	// TODO: player with the ball to pass or to shoot
 
 	// Idea for checking whether to pass or not:
-	// check for enemy robots in a certain threshold distance,
-	// if # of enemy robots within a certain distance is > 2 then you better try to pass before you get cornered
-	// but if your supporters can't receive you better just shoot.
+	// - check for enemy robots in a certain threshold distance,
+	//    if # of enemy robots within a certain distance is > 2 then you better try to pass before you get cornered
+	// - but if your supporters can't receive you better just shoot.
+
 	/*
 	   std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
 
@@ -218,28 +224,50 @@ void AI::HL::Offender::tick() {
 	   int cnt = 0;
 	   bool pass = false;
 	   for (std::size_t i = 0; i < enemies.size() ; ++i) {
-	    dist = (chaser->position() - enemies[i]->position()).len();
-	        if (dist <= threshold_dist) cnt++;
+	   dist = (chaser->position() - enemies[i]->position()).len();
+	   if (dist <= threshold_dist) cnt++;
 	   }
 
 	   pass = (cnt >= 2) && AI::HL::Util::choose_best_pass(world, supporters) >= 0;
 
 	 */
-	Player::Ptr passee;
-	if (AI::HL::Util::choose_best_pass(world, supporters) >= 0) {
-		passee = supporters[AI::HL::Util::choose_best_pass(world, supporters)];
-	}
 
 
-	if (chaser.is()) {
-		// TODO: do something more sensible
-		if (AI::HL::Util::calc_best_shot(world, chaser, Robot::MAX_RADIUS).second <= 10) {
-			AI::HL::Tactics::shoot(world, chaser, flags);
-		} else if (passee.is()) {
-			AI::HL::Tactics::pass(world, chaser, passee, flags);
-		} else {
-			AI::HL::Tactics::shoot(world, chaser, flags);
-		}
+	/*
+	   double passee_score = 0;
+
+	   vector<double> supporter_scores(supporters.size());
+	   for (std::size_t i = 0; i < supporters.size(); ++i) {
+	   supporter_score[i] = AI::HL::Util::calc_best_shot(world, supporter[i]).second;
+	   if (supporter_score[i] > passee_score) {
+	   passee = supporter[i];
+	   passee_score = supporter_score[i];
+	   }
+	   }
+	 */
+
+	if (!chaser->has_ball()) {
+		AI::HL::Tactics::shoot(world, chaser, flags);
+		return;
 	}
+
+	// if can shoot to enemy goal, do so
+	if (AI::HL::Util::calc_best_shot(world, chaser, Robot::MAX_RADIUS).second > AI::HL::Util::shoot_accuracy) {
+
+		AI::HL::Tactics::shoot(world, chaser, flags);
+		return;
+
+	}
+
+	// if you can pass to someone, do so
+	Player::Ptr passee = AI::HL::Util::choose_best_pass(world, supporters);
+	if (passee.is()) {
+		AI::HL::Tactics::pass(world, chaser, passee, flags);
+		return;
+	}
+
+	// just walk towards the enemy goal
+	// TODO: stop moving too far
+	AI::HL::Tactics::shoot(world, chaser, flags);
 }
 
