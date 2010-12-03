@@ -79,6 +79,11 @@ namespace {
 			currentOrientation = player->orientation();
 			destinationPosition = player->destination().first;
 			destinationOrientation = player->destination().second;
+			
+			
+			if((player->flags() == AI::Flags::MOVE_CATCH)) {
+				destinationPosition = world.ball().position();
+			}
 
 			if (!valid_path(currentPosition, destinationPosition, world, player)) {
 				Point vec = destinationPosition - currentPosition;

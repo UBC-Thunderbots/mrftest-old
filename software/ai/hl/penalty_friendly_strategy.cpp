@@ -5,6 +5,7 @@
 #include "ai/hl/util.h"
 #include "uicomponents/param.h"
 #include "util/dprint.h"
+#include <algorithm>
 #include <vector>
 
 using AI::HL::Strategy;
@@ -124,7 +125,15 @@ namespace {
 	}
 	void PenaltyFriendlyStrategy::execute() {
 		if (kicker.is()) {
-			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
+
+			// instead of shooting straight at the goal, should try picking a random flank (left or right) and shoot
+			// AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
+
+			int flank = std::rand() % 2;
+			double d = world.field().goal_width()/2;
+			if (flank) AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, Point(world.field().length()/2,d));
+			else AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, Point(world.field().length()/2,-d));
+			
 		}
 	}
 
