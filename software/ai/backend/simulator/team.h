@@ -54,6 +54,7 @@ namespace AI {
 					 * \param[in] i the index of the robot to remove.
 					 */
 					void remove(std::size_t i) {
+						members[i]->object_store().clear();
 						emit_robot_removing(i);
 						members.erase(members.begin() + i);
 						emit_robot_removed();

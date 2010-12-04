@@ -49,7 +49,6 @@ namespace AI {
 		private:
 			void tick();
 			void player_added(std::size_t idx);
-			void player_removing(std::size_t idx);
 			void robot_controller_factory_changed();
 	};
 }

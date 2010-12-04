@@ -25,7 +25,6 @@ namespace {
 AIPackage::AIPackage(Backend &backend) : backend(backend), coach(AI::Coach::Coach::Ptr(0)), navigator(AI::Nav::Navigator::Ptr(0)), robot_controller_factory(0) {
 	backend.signal_tick().connect(sigc::mem_fun(this, &AIPackage::tick));
 	backend.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &AIPackage::player_added));
-	backend.friendly_team().signal_robot_removing().connect(sigc::mem_fun(this, &AIPackage::player_removing));
 	robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &AIPackage::robot_controller_factory_changed));
 }
 
@@ -89,18 +88,6 @@ void AIPackage::player_added(std::size_t idx) {
 		state->robot_controller = robot_controller_factory->create_controller(plr);
 	}
 	plr->object_store()[typeid(*this)] = state;
-}
-
-void AIPackage::player_removing(std::size_t idx) {
-	// Even though normally an ObjectStore clears its contents automatically when destroyed,
-	// here, we need to clear our state block explicitly,
-	// because otherwise there would be a circular reference from Player to PrivateState to RobotController to Player.
-	AI::BE::Player::Ptr plr = backend.friendly_team().get(idx);
-	PrivateState::Ptr state = PrivateState::Ptr::cast_dynamic(plr->object_store()[typeid(*this)]);
-	plr->object_store()[typeid(*this)].reset();
-	if (state->robot_controller.is() && state->robot_controller->refs() != 1) {
-		LOG_WARN("Leak detected of robot_controller.");
-	}
 }
 
 void AIPackage::robot_controller_factory_changed() {
