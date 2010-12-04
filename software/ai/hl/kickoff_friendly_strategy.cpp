@@ -181,7 +181,6 @@ namespace {
 
 	void KickoffFriendlyStrategy::execute() {
 		
-		
 		// default is for kicker to just shoot forward
 		if (kicker.is() && pidx >= 0) {
 			if (pidx == 0 && offenders.size() == 1) {
@@ -329,7 +328,7 @@ namespace {
 		world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &KickoffFriendlyStrategy::on_player_added));
 		world.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &KickoffFriendlyStrategy::on_player_removed));
 		run_assignment();
-		pidx = std::rand() % 3;
+		pidx = cal_partidx();
 	}
 
 	void KickoffFriendlyStrategy::on_player_added(std::size_t) {
