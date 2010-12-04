@@ -10,6 +10,8 @@ using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
 
 namespace {
+
+	BoolParam STAY_OWN_HALF("Test strategy stay own half", true);
 	/**
 	 * Manages the robots for testing purposes
 	 */
@@ -61,12 +63,20 @@ namespace {
 
 	void TestStrategy::play() {
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
+		unsigned int flags = 0;
+		
+		if (STAY_OWN_HALF) {
+			flags |= AI::Flags::FLAG_STAY_OWN_HALF;
+		}
+
 		if (players.size() == 0) {
 			return;
 		}
+
 		for (std::vector<Player::Ptr>::iterator it = players.begin(); it != players.end(); it++) {
-			(*it)->move(world.ball().position(), (*it)->orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+			(*it)->move(world.ball().position(), (*it)->orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 		}
+
 	}
 
 	Strategy::Ptr TestStrategy::create(World &world) {
