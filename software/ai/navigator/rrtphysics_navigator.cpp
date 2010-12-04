@@ -14,9 +14,9 @@ using namespace Glib;
 
 namespace {
 	const double MAX_SPEED = 2.0;
-	const double THRESHOLD = 0.15;
+	const double THRESHOLD = 0.07;
 // const double STEP_DISTANCE = 0.3;
-	const double TIMESTEP = 2.0; // 1.0 / static_cast<double>(TIMESTEPS_PER_SECOND);
+	const double TIMESTEP = 1.0 / static_cast<double>(TIMESTEPS_PER_SECOND);
 	const double VALID_REGION = 0.3 * (9 / 8) * TIMESTEP * TIMESTEP;
 	// probability that we will take a step towards the goal
 	const double GOAL_PROB = 0.1;
@@ -52,7 +52,7 @@ namespace {
 			Point ChooseTarget(Point goal);
 			NodeTree<Point> *Nearest(NodeTree<Point> *tree, Point target);
 			Point EmptyState();
-			Point Extend(Player::Ptr player, Point prev, Point start, Point target);
+			Point Extend(Player::Ptr player, Point projected, Point start, Point target);
 			bool IsEmptyState(Point toCheck);
 			std::deque<Point> RRTPlan(Player::Ptr player, Point initial, Point goal);
 	};
@@ -119,16 +119,12 @@ namespace {
 	}
 
 	double rrtphysics_navigator::Distance(NodeTree<Point> *nearest, Point goal) {
-		Point prev;
+		Point projected;
 		if (nearest->parent() == NULL) {
-			double x = nearest->data().x + (currPlayerVelocity.x * TIMESTEP);
-			double y = nearest->data().y + (currPlayerVelocity.y * TIMESTEP);
-			prev = Point(x, y);
+			projected = nearest->data() + (currPlayerVelocity * TIMESTEP);
 		} else {
-			prev = nearest->parent()->data();
+			projected = 2 * nearest->data() - nearest->parent()->data();
 		}
-
-		Point projected = (2 * nearest->data()) - prev;
 
 		return (goal - projected).len();
 	}
@@ -189,31 +185,23 @@ namespace {
 	}
 
 	// extend by STEP_DISTANCE towards the target from the start
-	Point rrtphysics_navigator::Extend(Player::Ptr player, Point prev, Point start, Point target) {
-		Point normalizedDir = (target - start).norm();
-		double xExtend, yExtend;
-		Point center;
+	Point rrtphysics_navigator::Extend(Player::Ptr player, Point projected,Point start, Point target) {
+		Point residual = (target - projected);
+		Point normalizedDir = residual.norm();
+		Point extendPoint;
 
-		// first point
-		if (IsEmptyState(prev)) {
-			xExtend = start.x + (normalizedDir.x * TIMESTEP * player->velocity().x);
-			yExtend = start.y + (normalizedDir.y * TIMESTEP * player->velocity().y);
-
-			double xCenter = start.x + (player->velocity().x * TIMESTEP);
-			double yCenter = start.y + (player->velocity().y * TIMESTEP);
-			center = Point(xCenter, yCenter);
-		} else {
-			xExtend = start.x + (normalizedDir.x * TIMESTEP * (start - prev).x); // player->velocity().x);
-			yExtend = start.y + (normalizedDir.y * TIMESTEP * (start - prev).y); // player->velocity().y);
-
-			center = (2 * start) - prev;
+		double maximumVel = sqrt(2 * Player::MAX_LINEAR_ACCELERATION * residual.len());
+		if (maximumVel > Player::MAX_LINEAR_VELOCITY) {
+			maximumVel = Player::MAX_LINEAR_VELOCITY;
 		}
 
-		Point extendPoint(xExtend, yExtend);
+		extendPoint = normalizedDir * Player::MAX_LINEAR_ACCELERATION * TIMESTEP * TIMESTEP + projected;
+		
+		if ((extendPoint - start).len() > maximumVel * TIMESTEP) {
+			extendPoint = (extendPoint - start).norm() * maximumVel * TIMESTEP + start;
+		} 
 
-		if ((extendPoint - center).lensq() > (VALID_REGION * VALID_REGION)) {
-			return EmptyState();
-		}
+
 
 		// check if the point is invalid (collision, out of bounds, etc...)
 		// if it is then return EmptyState()
@@ -225,7 +213,7 @@ namespace {
 	}
 
 	std::deque<Point> rrtphysics_navigator::RRTPlan(Player::Ptr player, Point initial, Point goal) {
-		Point nearest, extended, target, previous;
+		Point nearest, extended, target, projected;
 
 		NodeTree<Point> *nearestNode;
 		NodeTree<Point> *lastAdded;
@@ -236,27 +224,30 @@ namespace {
 		int iterationCounter = 0;
 
 		// should loop until distance between lastAdded and goal is less than threshold
-		while (Distance(lastAdded, goal) > THRESHOLD && iterationCounter < ITERATION_LIMIT) {
+		while ( (lastAdded->data() - goal).len() > THRESHOLD && iterationCounter < ITERATION_LIMIT) {
 			target = ChooseTarget(goal);
 			nearestNode = Nearest(&rrtTree, target);
 			nearest = nearestNode->data();
 
 			if (nearestNode->parent() == NULL) {
-				previous = EmptyState();
+				projected = nearestNode->data() + player->velocity() * TIMESTEP;
 			} else {
-				previous = nearestNode->parent()->data();
+				projected = 2 * nearestNode->data() - nearestNode->parent()->data();
 			}
 
-			extended = Extend(player, previous, nearest, target);
+			extended = Extend(player, projected, nearest, target);
 
-			if (!IsEmptyState(extended)) {
+			if (IsEmptyState(extended)) {
+				if (nearestNode->parent() == NULL)
+					break;
+			} else {		
 				lastAdded = nearestNode->append_data(extended);
-			}
+			}		
 
 			iterationCounter++;
 		}
 
-		bool foundPath = (iterationCounter != ITERATION_LIMIT);
+		bool foundPath = Distance(lastAdded, goal) < THRESHOLD;
 
 		if (!foundPath) {
 			// LOG_WARN("Reached limit, path not found");
