@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <vector>
 
+#include <iostream>
+
 using AI::HL::Strategy;
 using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
@@ -64,6 +66,7 @@ namespace {
 			 * Dynamic assignment every tick can be bad if players keep changing the roles.
 			 */
 			void run_assignment();
+			int cal_partidx();
 
 			bool prepared;
 
@@ -73,6 +76,8 @@ namespace {
 			Player::Ptr kicker;
 
 			AI::HL::Defender defender;
+			
+			int pidx;
 	};
 
 	/**
@@ -175,6 +180,75 @@ namespace {
 	}
 
 	void KickoffFriendlyStrategy::execute() {
+		
+		
+		// default is for kicker to just shoot forward
+		if (kicker.is() && pidx >= 0) {
+			if (pidx == 0 && offenders.size() == 1) {
+				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[0]->position());
+			} else if (pidx == 2 && offenders.size() == 2) {
+				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[1]->position());
+			} else {
+				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
+			}
+		} else if (kicker.is()) {
+			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
+		}
+	}
+
+	void KickoffFriendlyStrategy::run_assignment() {
+		prepared = false;
+
+		if (world.friendly_team().size() == 0) {
+			LOG_WARN("no players");
+			return;
+		}
+
+		// it is easier to change players every tick?
+		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
+
+		// sort players by distance to own goal
+		if (players.size() > 1) {
+			std::sort(players.begin() + 1, players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.field().friendly_goal()));
+		}
+
+		// defenders
+		Player::Ptr goalie = players[0];
+
+		std::size_t ndefenders = 1; // includes goalie
+
+		switch (players.size()) {
+			case 5:
+			case 4:
+				++ndefenders;
+
+			case 3:
+			case 2:
+				break;
+		}
+
+		// clear up
+		defenders.clear();
+		offenders.clear();
+		kicker.reset();
+
+		// start from 1, to exclude goalie
+		for (std::size_t i = 1; i < players.size(); ++i) {
+			if (i < ndefenders) {
+				defenders.push_back(players[i]);
+			} else if (!kicker.is()) {
+				kicker = players[i];
+			} else {
+				offenders.push_back(players[i]);
+			}
+		}
+
+		LOG_INFO(Glib::ustring::compose("player reassignment %1 defenders, %2 offenders", ndefenders, offenders.size()));
+
+		defender.set_players(defenders, goalie);
+	}
+	
+	int KickoffFriendlyStrategy::cal_partidx(){
 		// TODO Find a side of the field to attack
 		// choose_best_pass doesn't seem to be able to find one offender to pass to with the current positioning !!
 		// best = -1 causes seg fault
@@ -243,71 +317,7 @@ namespace {
 		if (partidx == -1) {
 			partidx = std::rand() % 3;
 		}
-
-		// default is for kicker to just shoot forward
-		if (kicker.is() && partidx >= 0) {
-			if (partidx == 0 && offenders.size() == 1) {
-				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[0]->position());
-			} else if (partidx == 2 && offenders.size() == 2) {
-				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[1]->position());
-			} else {
-				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
-			}
-		} else if (kicker.is()) {
-			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
-		}
-	}
-
-	void KickoffFriendlyStrategy::run_assignment() {
-		prepared = false;
-
-		if (world.friendly_team().size() == 0) {
-			LOG_WARN("no players");
-			return;
-		}
-
-		// it is easier to change players every tick?
-		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
-
-		// sort players by distance to own goal
-		if (players.size() > 1) {
-			std::sort(players.begin() + 1, players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.field().friendly_goal()));
-		}
-
-		// defenders
-		Player::Ptr goalie = players[0];
-
-		std::size_t ndefenders = 1; // includes goalie
-
-		switch (players.size()) {
-			case 5:
-			case 4:
-				++ndefenders;
-
-			case 3:
-			case 2:
-				break;
-		}
-
-		// clear up
-		defenders.clear();
-		offenders.clear();
-		kicker.reset();
-
-		// start from 1, to exclude goalie
-		for (std::size_t i = 1; i < players.size(); ++i) {
-			if (i < ndefenders) {
-				defenders.push_back(players[i]);
-			} else if (!kicker.is()) {
-				kicker = players[i];
-			} else {
-				offenders.push_back(players[i]);
-			}
-		}
-
-		LOG_INFO(Glib::ustring::compose("player reassignment %1 defenders, %2 offenders", ndefenders, offenders.size()));
-
-		defender.set_players(defenders, goalie);
+		return partidx;
 	}
 
 	Strategy::Ptr KickoffFriendlyStrategy::create(World &world) {
@@ -319,6 +329,7 @@ namespace {
 		world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &KickoffFriendlyStrategy::on_player_added));
 		world.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &KickoffFriendlyStrategy::on_player_removed));
 		run_assignment();
+		pidx = std::rand() % 3;
 	}
 
 	void KickoffFriendlyStrategy::on_player_added(std::size_t) {
