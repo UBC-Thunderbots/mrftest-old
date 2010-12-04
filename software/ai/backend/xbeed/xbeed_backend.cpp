@@ -46,6 +46,7 @@ namespace {
 		public:
 			GenericTeam(XBeeDBackend &backend);
 			~GenericTeam();
+			void clear();
 			void update(const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *packets[2], const timespec &ts);
 			void lock_time(const timespec &now);
 			virtual std::size_t size() const = 0;
@@ -116,7 +117,7 @@ namespace {
 
 			XBeeDBackend(const Config &conf) : Backend(), conf(conf), clock(UINT64_C(1000000000) / TIMESTEPS_PER_SECOND), ball_(*this), friendly(*this), enemy(*this), vision_socket(FileDescriptor::create_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) {
 				refbox.command.signal_changed().connect(sigc::mem_fun(this, &XBeeDBackend::update_playtype));
-				friendly_colour().signal_changed().connect(sigc::mem_fun(this, &XBeeDBackend::update_playtype));
+				friendly_colour().signal_changed().connect(sigc::mem_fun(this, &XBeeDBackend::on_friendly_colour_changed));
 				playtype_override().signal_changed().connect(sigc::mem_fun(this, &XBeeDBackend::update_playtype));
 
 				clock.signal_tick.connect(sigc::mem_fun(this, &XBeeDBackend::tick));
@@ -341,6 +342,12 @@ namespace {
 				}
 			}
 
+			void on_friendly_colour_changed() {
+				update_playtype();
+				friendly.clear();
+				enemy.clear();
+			}
+
 			AI::Common::PlayType::PlayType compute_playtype(AI::Common::PlayType::PlayType old_pt) {
 				if (playtype_override() != AI::Common::PlayType::COUNT) {
 					return playtype_override();
@@ -479,6 +486,17 @@ namespace {
 				}
 			}
 	};
+
+	template<typename T> void GenericTeam<T>::clear() {
+		while (size()) {
+			typename T::Ptr bot = members[0];
+			bot->object_store().clear();
+			bot.reset();
+			signal_robot_removing().emit(0);
+			members.erase(members.begin());
+			signal_robot_removed().emit();
+		}
+	}
 
 	template<typename T> void GenericTeam<T>::update(const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *packets[2], const timespec &ts) {
 		// Update existing robots.
