@@ -52,15 +52,12 @@ namespace {
 	 * The play types handled by this strategy.
 	 */
 	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
-		PlayType::PLAY,
+		//PlayType::PLAY,
 	};
 
 	StrategyFactory &TestStrategy::factory() const {
 		return factory_instance;
 	}
-
-
-
 
 	void TestStrategy::play() {
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
