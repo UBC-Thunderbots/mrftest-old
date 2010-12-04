@@ -205,6 +205,9 @@ void Player::drive(const int(&w)[4]) {
 }
 
 void Player::tick(bool scram) {
+	// For testing purposes, just run the dribbler all the time.
+	dribble(0.25);
+
 	// This message may have been set earlier, but need not be set any more.
 	chick_when_not_ready_message.activate(false);
 
