@@ -17,12 +17,12 @@ namespace {
 	// zero lets them brush
 	// positive enforces amount meters away
 	// negative lets them bump
-	const double ENEMY_BUFFER = 0.0;
+	const double ENEMY_BUFFER = 0.1;
 
 	// zero lets them brush
 	// positive enforces amount meters away
 	// negative lets them bump
-	const double FRIENDLY_BUFFER = 0.0;
+	const double FRIENDLY_BUFFER = 0.1;
 
 	// This buffer is in addition to the robot radius
 	const double BALL_STOP_BUFFER = 0.5;
