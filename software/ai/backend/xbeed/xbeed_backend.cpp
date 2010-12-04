@@ -490,9 +490,9 @@ namespace {
 	template<typename T> void GenericTeam<T>::clear() {
 		while (size()) {
 			typename T::Ptr bot = members[0];
+			signal_robot_removing().emit(0);
 			bot->object_store().clear();
 			bot.reset();
-			signal_robot_removing().emit(0);
 			members.erase(members.begin());
 			signal_robot_removed().emit();
 		}
@@ -532,9 +532,9 @@ namespace {
 			}
 			bot->seen_this_frame = false;
 			if (bot->vision_failures >= MAX_VISION_FAILURES) {
+				signal_robot_removing().emit(i);
 				bot->object_store().clear();
 				bot.reset();
-				signal_robot_removing().emit(i);
 				members.erase(members.begin() + i);
 				signal_robot_removed().emit();
 				--i;
