@@ -49,21 +49,20 @@ namespace AI {
 					chase = b;
 				}
 
-
 				/**
 				 * set a passee for the defender to pass to
 				 *
 				 * \param[in] p a player to pass to
 				 */
-				void set_passee(W::Player::Ptr p) {
-					passee = p;
-				}
+				//void set_passee(W::Player::Ptr p) {
+					//passee = p;
+				//}
 
 				/**
 				 * Recommended maximum distance from the goal place,
 				 * for goalie to repel the ball.
 				 */
-				static double get_goalie_chase_thresh();
+				// static double get_goalie_chase_thresh();
 
 			protected:
 				/**
@@ -82,7 +81,7 @@ namespace AI {
 				std::vector<W::Player::Ptr> players;
 
 				W::Player::Ptr goalie;
-				W::Player::Ptr passee;
+				//W::Player::Ptr passee;
 				// true if the goalie is currently defending the top
 				bool goalie_top;
 

@@ -17,14 +17,14 @@ namespace {
 
 	DoubleParam max_goalie_dist("max goalie dist from goal (robot radius)", 3.0, 0.0, 10.0);
 
-	DoubleParam robot_shrink("shrink robot radius", 0.9, 0.1, 2.0);
+	DoubleParam robot_shrink("shrink robot radius", 1.1, 0.1, 2.0);
 
-	DoubleParam goalie_chase_thresh("max distance from goal for goalie to chase ball (field width)", 0.25, 0.0, 0.5);
+	//DoubleParam goalie_chase_thresh("max distance from goal for goalie to chase ball (field width)", 0.25, 0.0, 0.5);
 }
 
-double Defender::get_goalie_chase_thresh() {
-	return goalie_chase_thresh;
-}
+//double Defender::get_goalie_chase_thresh() {
+	//return goalie_chase_thresh;
+//}
 
 Defender::Defender(World &w) : world(w), chase(false) {
 }
@@ -172,6 +172,15 @@ void Defender::tick() {
 	}
 	std::vector<std::size_t> order = dist_matching(locations, waypoints);
 
+	// other players not part of this role.
+	std::vector<Player::Ptr> supporters;
+	FriendlyTeam& friendly = world.friendly_team();
+	for (std::size_t i = 1; i < friendly.size(); ++i) {
+		if (!exists(players.begin(), players.end(), friendly.get(i))) {
+			supporters.push_back(friendly.get(i));
+		}
+	}
+
 	// figure out who should chase the ball
 	Player::Ptr chaser;
 	if (AI::HL::Util::point_in_friendly_defense(world.field(), ball_pos)) {
@@ -184,8 +193,8 @@ void Defender::tick() {
 		// if and only if the ball is some near distance from the goal area
 		/*
 		   if (players.size() == 0 || (world.ball().position() - world.field().friendly_goal()).len() < world.field().length() * goalie_chase_thresh) {
-		    chaser = goalie;
-		    best_dist = (goalie->position() - world.ball().position()).len();
+		   chaser = goalie;
+		   best_dist = (goalie->position() - world.ball().position()).len();
 		   }
 		 */
 
@@ -221,12 +230,24 @@ void Defender::tick() {
 			}
 
 			if (chaser == players[i]) {
+
+				/*
+				   if (passee.is()) {
+				   AI::HL::Tactics::pass(world, chaser, passee, defender_flags);
+				   } else {
+				   AI::HL::Tactics::repel(world, players[i], defender_flags);
+				   }
+				 */
+
+				Player::Ptr passee = AI::HL::Util::choose_best_pass(world, supporters);
 				if (passee.is()) {
-					AI::HL::Tactics::pass(world, chaser, passee, defender_flags);
+					AI::HL::Tactics::pass(world, players[i], passee, defender_flags);
 				} else {
 					AI::HL::Tactics::repel(world, players[i], defender_flags);
 				}
+
 			} else {
+				// move to defense position
 				players[i]->move(waypoints[order[w]], (world.ball().position() - players[i]->position()).orientation(), defender_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 			}
 			++w;

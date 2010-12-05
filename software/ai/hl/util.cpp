@@ -191,6 +191,16 @@ std::vector<Player::Ptr> AI::HL::Util::get_players(FriendlyTeam &friendly) {
 	return players;
 }
 
+std::vector<Player::Ptr> AI::HL::Util::get_players_exclude(FriendlyTeam &friendly, std::vector<Player::Ptr>& others) {
+	std::vector<Player::Ptr> players;
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		if (!exists(others.begin(), others.end(), friendly.get(i))) {
+			players.push_back(friendly.get(i));
+		}
+	}
+	return players;
+}
+
 std::vector<Robot::Ptr> AI::HL::Util::get_robots(EnemyTeam &enemy) {
 	std::vector<Robot::Ptr> robots;
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
