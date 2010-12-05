@@ -137,7 +137,7 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 		}
 
 		if (bot->has_path()) {
-			ctx->set_source_rgb(clr.red, clr.green, clr.blue);
+			ctx->set_source_rgb(1.0, 0.0, 1.0);
 			ctx->begin_new_path();
 			ctx->move_to(bot->position().x, bot->position().y);
 			const std::vector<std::pair<std::pair<Point, double>, timespec> > &path = bot->path();
