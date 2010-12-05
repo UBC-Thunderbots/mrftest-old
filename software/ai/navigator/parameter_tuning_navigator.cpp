@@ -102,7 +102,7 @@ namespace {
 		path.clear();
 		player = fteam.get(0);
 		Point currentPosition = player->position();
-		if ((currentPosition - tasks[taskIndex].first).len() < 0.2 && player->velocity().len() < 0.05) {
+		if ((currentPosition - tasks[taskIndex].first).len() < 0.1 && player->velocity().len() < 0.05) {
 			taskIndex++;
 			if (taskIndex == 1) {
 				time = 0;

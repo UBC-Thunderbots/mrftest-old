@@ -20,7 +20,7 @@ namespace {
 
 	// the degrees where we consider the angle to
 	// be virtually the same
-	const double ANGLE_TOL = 4.0;
+	const double ANGLE_TOL = 7.0;
 
 	class PathPoint : public ByRef {
 		public:
