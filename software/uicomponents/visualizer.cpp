@@ -115,6 +115,11 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 		Cairo::TextExtents extents;
 		ctx->get_text_extents(str, extents);
 
+		ctx->set_source_rgb(clr.red, clr.green, clr.blue);
+		ctx->begin_new_path();
+		ctx->arc(bot->position().x, bot->position().y, 0.09, bot->orientation() + M_PI_4, bot->orientation() - M_PI_4);
+		ctx->fill();
+
 		if (bot->has_destination()) {
 			ctx->set_source_rgb(clr.red, clr.green, clr.blue);
 			ctx->begin_new_path();
@@ -147,11 +152,6 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 				ctx->fill();
 			}
 		}
-
-		ctx->set_source_rgb(clr.red, clr.green, clr.blue);
-		ctx->begin_new_path();
-		ctx->arc(bot->position().x, bot->position().y, 0.09, bot->orientation() + M_PI_4, bot->orientation() - M_PI_4);
-		ctx->fill();
 
 		ctx->set_source_rgb(0.0, 0.0, 0.0);
 		const double x = bot->position().x - extents.x_bearing - extents.width / 2.0;
