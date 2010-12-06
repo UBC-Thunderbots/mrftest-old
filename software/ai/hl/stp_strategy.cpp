@@ -16,6 +16,9 @@ using AI::HL::STP::Tactic;
 
 namespace {
 
+	// The maximum amount of time a play can be running.
+	const double PLAY_TIMEOUT = 30.0;
+
 	/**
 	 * STP based strategy.
 	 * Please refer to the paper by CMU on
@@ -100,9 +103,7 @@ namespace {
 			if (managers[i]->score(world) > 0) {
 				current_play_manager = managers[i];
 				current_play = current_play_manager->create_play(world);
-
-				LOG_INFO(current_play->name());
-
+				LOG_INFO(managers[i]->name());
 				break;
 			}
 		}

@@ -42,18 +42,13 @@ namespace AI {
 					 */
 					bool has_resigned() const;
 
-					/**
-					 * Returns the name of this play.
-					 */
-					const std::string& name() const;
-
 				protected:
 					/**
 					 * The World in which the Play lives.
 					 */
 					AI::HL::W::World& world;
 
-					Play(AI::HL::W::World& world, const char* name);
+					Play(AI::HL::W::World& world);
 
 					~Play();
 
@@ -63,7 +58,6 @@ namespace AI {
 					void resign();
 
 				private:
-					const std::string name_;
 					bool has_resigned_;
 			};
 

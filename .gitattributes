@@ -110,8 +110,13 @@ software/ai/hl/penalty_enemy_strategy.cpp -text
 software/ai/hl/penalty_friendly_strategy.cpp -text
 software/ai/hl/stop_strategy.cpp -text
 software/ai/hl/stp/play/grab_ball.cpp -text
+software/ai/hl/stp/play/just_shoot.cpp -text
 software/ai/hl/stp/play/play.cpp -text
 software/ai/hl/stp/play/play.h -text
+software/ai/hl/stp/tactic/basic.cpp -text
+software/ai/hl/stp/tactic/basic.h -text
+software/ai/hl/stp/tactic/pass.h -text
+software/ai/hl/stp/tactic/patrol.h -text
 software/ai/hl/stp/tactic/tactic.cpp -text
 software/ai/hl/stp/tactic/tactic.h -text
 software/ai/hl/stp_strategy.cpp -text

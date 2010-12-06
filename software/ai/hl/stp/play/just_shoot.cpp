@@ -17,41 +17,43 @@ namespace {
 	 * Objective:
 	 * - grab the ball
 	 */
-	class GrabBallPlay : public Play {
+	class JustShootPlay : public Play {
 		public:
-			GrabBallPlay(AI::HL::W::World &world);
-			~GrabBallPlay();
+			JustShootPlay(AI::HL::W::World &world);
+			~JustShootPlay();
 		private:
 			std::vector<Tactic::Ptr> tick();
 			double change_probability() const;
 	};
 
-	GrabBallPlay::GrabBallPlay(World &world) : Play(world) {
+	JustShootPlay::JustShootPlay(World &world) : Play(world) {
 	}
 
-	GrabBallPlay::~GrabBallPlay() {
+	JustShootPlay::~JustShootPlay() {
 	}
 
-	double GrabBallPlay::change_probability() const {
+	double JustShootPlay::change_probability() const {
 		return 1.0;
 	}
 
-	std::vector<Tactic::Ptr> GrabBallPlay::tick() {
+	std::vector<Tactic::Ptr> JustShootPlay::tick() {
 		std::vector<Tactic::Ptr> tactics(5);
+
+		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 
 		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
 		std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().friendly_goal()));
 
 		// GOALIE
-		if (world.friendly_team().size() == 1) {
-			tactics[0] = chase(world);
+		if (players.size() > 0 && players[0]->has_ball()) {
+			tactics[0] = repel(world);
 		} else {
 			tactics[0] = defend_goal(world);
 		}
 
 		// ROLE 1
-		// chase the ball!
-		tactics[1] = chase(world);
+		// shoot the ball!
+		tactics[1] = shoot(world);
 
 		// ROLE 2
 		// block nearest enemy
@@ -83,12 +85,12 @@ namespace {
 	///////////////////////////////////////////////////////////////////////////
 	// housekeeping code
 
-	class GrabBallPlayManager : public PlayManager {
+	class JustShootPlayManager : public PlayManager {
 		public:
-			GrabBallPlayManager() : PlayManager("Grab Ball") {
+			JustShootPlayManager() : PlayManager("Just Shoot") {
 			}
 			Play::Ptr create_play(World &world) const {
-				const Play::Ptr p(new GrabBallPlay(world));
+				const Play::Ptr p(new JustShootPlay(world));
 				return p;
 			}
 			double score(World& world) const;
@@ -96,13 +98,13 @@ namespace {
 
 	///////////////////////////////////////////////////////////////////////////
 
-	double GrabBallPlayManager::score(World& world) const {
+	double JustShootPlayManager::score(World& world) const {
 		// check if we do not have ball
 		FriendlyTeam& friendly = world.friendly_team();
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
-			if (friendly.get(i)->has_ball()) return 0;
+			if (friendly.get(i)->has_ball()) return 1;
 		}
-		return 1;
+		return 0;
 	}
 
 }
