@@ -93,12 +93,12 @@ namespace {
 				const Play::Ptr p(new JustShootPlay(world));
 				return p;
 			}
-			double score(World& world) const;
+			double score(World& world, bool) const;
 	} factory_instance;
 
 	///////////////////////////////////////////////////////////////////////////
 
-	double JustShootPlayManager::score(World& world) const {
+	double JustShootPlayManager::score(World& world, bool) const {
 		// check if we do not have ball
 		FriendlyTeam& friendly = world.friendly_team();
 		for (std::size_t i = 0; i < friendly.size(); ++i) {

@@ -72,9 +72,11 @@ namespace AI {
 					 *
 					 * \param[in] world the World in which the new Strategy should live.
 					 *
+					 * \param[in] running true if the previous play is the same play as what this manager handles.
+					 *
 					 * \return between 1 and 0. 0 if you do not want to be selected.
 					 */
-					virtual double score(AI::HL::W::World& world) const = 0;
+					virtual double score(AI::HL::W::World& world, bool running) const = 0;
 
 					/**
 					 * Constructs a new instance of the Play corresponding to this PlayManager.

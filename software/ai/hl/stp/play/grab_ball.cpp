@@ -91,12 +91,12 @@ namespace {
 				const Play::Ptr p(new GrabBallPlay(world));
 				return p;
 			}
-			double score(World& world) const;
+			double score(World& world, bool) const;
 	} factory_instance;
 
 	///////////////////////////////////////////////////////////////////////////
 
-	double GrabBallPlayManager::score(World& world) const {
+	double GrabBallPlayManager::score(World& world, bool) const {
 		// check if we do not have ball
 		FriendlyTeam& friendly = world.friendly_team();
 		for (std::size_t i = 0; i < friendly.size(); ++i) {

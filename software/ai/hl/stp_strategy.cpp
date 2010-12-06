@@ -100,7 +100,7 @@ namespace {
 
 		std::random_shuffle(managers.begin(), managers.end());
 		for (std::size_t i = 0; i < managers.size(); ++i) {
-			if (managers[i]->score(world) > 0) {
+			if (managers[i]->score(world, false) > 0) {
 				current_play_manager = managers[i];
 				current_play = current_play_manager->create_play(world);
 				LOG_INFO(managers[i]->name());
@@ -112,7 +112,7 @@ namespace {
 	void STPStrategy::play() {
 
 		// check if current is valid
-		if (current_play_manager == NULL || current_play_manager->score(world) == 0) {
+		if (current_play_manager == NULL || current_play_manager->score(world, true) == 0) {
 			reset();
 		}
 
