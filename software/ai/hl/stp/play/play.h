@@ -2,7 +2,7 @@
 #define AI_HL_STP_PLAY_H
 
 #include "ai/hl/world.h"
-#include "ai/hl/stp/tactic.h"
+#include "ai/hl/stp/tactic/tactic.h"
 
 #include "util/byref.h"
 #include "util/registerable.h"
@@ -42,13 +42,18 @@ namespace AI {
 					 */
 					bool has_resigned() const;
 
+					/**
+					 * Returns the name of this play.
+					 */
+					const std::string& name() const;
+
 				protected:
 					/**
 					 * The World in which the Play lives.
 					 */
 					AI::HL::W::World& world;
 
-					Play(AI::HL::W::World& world);
+					Play(AI::HL::W::World& world, const char* name);
 
 					~Play();
 
@@ -58,10 +63,11 @@ namespace AI {
 					void resign();
 
 				private:
+					const std::string name_;
 					bool has_resigned_;
 			};
 
-			class PlayManager : public Registerable<PlayManager> {
+			class PlayManager : public ByRef, public Registerable<PlayManager> {
 				public:
 					typedef RefPtr<PlayManager> Ptr;
 
@@ -94,6 +100,8 @@ namespace AI {
 					 * \param[in] name a human-readable name for this Strategy.
 					 */
 					PlayManager(const char* name);
+
+					~PlayManager();
 			};
 
 		}

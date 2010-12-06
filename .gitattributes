@@ -109,11 +109,12 @@ software/ai/hl/offender.h -text
 software/ai/hl/penalty_enemy_strategy.cpp -text
 software/ai/hl/penalty_friendly_strategy.cpp -text
 software/ai/hl/stop_strategy.cpp -text
-software/ai/hl/stp/grab_ball.cpp -text
-software/ai/hl/stp/play.cpp -text
-software/ai/hl/stp/play.h -text
-software/ai/hl/stp/tactic.cpp -text
-software/ai/hl/stp/tactic.h -text
+software/ai/hl/stp/play/grab_ball.cpp -text
+software/ai/hl/stp/play/play.cpp -text
+software/ai/hl/stp/play/play.h -text
+software/ai/hl/stp/tactic/tactic.cpp -text
+software/ai/hl/stp/tactic/tactic.h -text
+software/ai/hl/stp_strategy.cpp -text
 software/ai/hl/strategy.cpp -text
 software/ai/hl/strategy.h -text
 software/ai/hl/tactics.cpp -text

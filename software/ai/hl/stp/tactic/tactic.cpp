@@ -1,4 +1,4 @@
-#include "ai/hl/stp/tactic.h"
+#include "ai/hl/stp/tactic/tactic.h"
 
 #include "ai/hl/tactics.h"
 
@@ -128,6 +128,8 @@ namespace {
 			}
 			void tick(Player::Ptr player) {
 				// nothing lol
+				Point dest = Point(0, world.field().width() / 2);
+				player->move(dest, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
 			}
 	};
 }

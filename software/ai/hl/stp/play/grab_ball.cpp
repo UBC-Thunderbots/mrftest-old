@@ -1,5 +1,4 @@
-#include "ai/hl/stp/play.h"
-#include "ai/hl/stp/tactic.h"
+#include "ai/hl/stp/play/play.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
 
@@ -26,7 +25,7 @@ namespace {
 			double change_probability() const;
 	};
 
-	GrabBallPlay::GrabBallPlay(World &world) : Play(world) {
+	GrabBallPlay::GrabBallPlay(World &world) : Play(world, "Grab Ball") {
 	}
 
 	GrabBallPlay::~GrabBallPlay() {
