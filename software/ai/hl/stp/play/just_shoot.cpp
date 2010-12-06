@@ -12,10 +12,10 @@ namespace {
 
 	/**
 	 * Condition:
-	 * - ball not under any possesion
+	 * - ball under team possesion
 	 *
 	 * Objective:
-	 * - grab the ball
+	 * - shoot the ball to enemy goal
 	 */
 	class JustShootPlay : public Play {
 		public:
