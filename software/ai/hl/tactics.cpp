@@ -114,6 +114,11 @@ void AI::HL::Tactics::lone_goalie(AI::HL::W::World &world, AI::HL::W::Player::Pt
 	player->move(target, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 }
 
+void AI::HL::Tactics::block(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags, AI::HL::W::Robot::Ptr robot) {
+#warning can be better
+	player->move(robot->position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+}
+
 void AI::HL::Tactics::pass(World &world, Player::Ptr passer, Player::Ptr passee, const unsigned int flags) {
 	if (!passee.is()) {
 		LOG_ERROR("There is no passee");

@@ -69,6 +69,11 @@ namespace AI {
 			void lone_goalie(AI::HL::W::World &world, AI::HL::W::Player::Ptr player);
 
 			/**
+			 * Blocks against a single enemy from shooting.
+			 */
+			void block(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags, AI::HL::W::Robot::Ptr robot);
+
+			/**
 			 * Passer shoots ball to passee.
 			 * Checks if passer has ball and passee can receive ball.
 			 */
