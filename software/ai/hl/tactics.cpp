@@ -8,7 +8,7 @@
 using namespace AI::HL::W;
 
 namespace {
-	DoubleParam lone_goalie_dist("Lone goalie distance to goal post (m)", 0.05, 0.05, 1.0);
+	DoubleParam lone_goalie_dist("Lone goalie distance to goal post (m)", 0.30, 0.05, 1.0);
 }
 
 void AI::HL::Tactics::chase(World &world, Player::Ptr player, const unsigned int flags) {
@@ -106,6 +106,13 @@ void AI::HL::Tactics::free_move(World &world, Player::Ptr player, const Point p)
 }
 
 void AI::HL::Tactics::lone_goalie(AI::HL::W::World &world, AI::HL::W::Player::Ptr player) {
+
+	// if ball is inside the defense area, must repel!
+	if (AI::HL::Util::point_in_friendly_defense(world.field(), world.ball().position())) {
+		repel(world, player, 0);
+		return;
+	}
+
 	const Point default_pos = Point(-0.45 * world.field().length(), 0);
 	const Point centre_of_goal = world.field().friendly_goal();
 	Point target = world.ball().position() - centre_of_goal;

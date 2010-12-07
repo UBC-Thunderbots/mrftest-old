@@ -102,7 +102,7 @@ namespace {
 		// check if we do not have ball
 		FriendlyTeam& friendly = world.friendly_team();
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
-			if (friendly.get(i)->has_ball()) return 1;
+			if (friendly.get(i)->has_ball()) return 0.5;
 		}
 		return 0;
 	}

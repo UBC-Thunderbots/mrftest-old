@@ -68,13 +68,16 @@ namespace AI {
 					/**
 					 * A scoring function to indicate how much it wants to be selected.
 					 * This function is ALWAYS checked before running the current play.
-					 * If this function goes to 0, the play will be aborted.
 					 *
 					 * \param[in] world the World in which the new Strategy should live.
 					 *
 					 * \param[in] running true if the previous play is the same play as what this manager handles.
 					 *
-					 * \return between 1 and 0. 0 if you do not want to be selected.
+					 * \return probability that this function is chosen.
+					 * Must return between 0 and 1.
+					 * 0 means do not select this at all.
+					 * 1 guarantees this function is chosen.
+					 *
 					 */
 					virtual double score(AI::HL::W::World& world, bool running) const = 0;
 

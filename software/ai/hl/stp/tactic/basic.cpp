@@ -147,7 +147,8 @@ namespace {
 			void tick(Player::Ptr player) {
 				// TODO: flags
 				// player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
-				AI::HL::Tactics::chase(world, player, 0);
+				// AI::HL::Tactics::chase(world, player, 0);
+				player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
 			}
 	};
 }

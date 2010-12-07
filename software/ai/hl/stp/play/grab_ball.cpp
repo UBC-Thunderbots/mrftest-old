@@ -102,7 +102,7 @@ namespace {
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
 			if (friendly.get(i)->has_ball()) return 0;
 		}
-		return 1;
+		return 0.5;
 	}
 
 }
