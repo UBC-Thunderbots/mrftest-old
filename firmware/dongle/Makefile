@@ -1,5 +1,5 @@
 SOURCES := $(filter-out pingen.c,$(wildcard *.c))
-PROJ := sj2usb-main
+PROJ := dongle
 SDCC_FLAGS := --std-sdcc99 -mpic16 -p18f65j50 --fomit-frame-pointer --obanksel=1 --optimize-cmp --optimize-df --use-non-free
 PK2CMD_FLAGS := -I -J -E -M -PPIC18F65J50 -W
 LKR := 18f65j50.lkr
