@@ -1,5 +1,6 @@
 #include "ai/hl/stp/tactic/basic.h"
 
+#include "ai/hl/util.h"
 #include "ai/hl/tactics.h"
 
 using namespace AI::HL::STP;
@@ -15,11 +16,15 @@ namespace {
 		private:
 			const Point dest;
 
+			bool done() const {
+				return (player->position() - dest).len() < AI::HL::Util::POS_CLOSE;
+			}
+
 			double score(Player::Ptr player) const {
 				return 1.0 / (1.0 + (player->position() - dest).len());
 			}
 
-			void tick(Player::Ptr player) {
+			void execute() {
 				// TODO: flags
 				player->move(dest, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 			}
@@ -46,8 +51,7 @@ namespace {
 				return 0;
 			}
 
-			void tick(Player::Ptr player) {
-				// TODO: flags
+			void execute() {
 				AI::HL::Tactics::lone_goalie(world, player);
 			}
 	};
@@ -66,12 +70,16 @@ namespace {
 			Repel(World& world) : Tactic(world) {
 			}
 		private:
+			bool done() const {
+				// will never be done... unless ball is outside the field
+				return false;
+			}
+
 			double score(Player::Ptr player) const {
 				return 1.0 / (1.0 + (player->position() - world.ball().position()).len());
 			}
 
-			void tick(Player::Ptr player) {
-				// TODO: flags
+			void execute() {
 				AI::HL::Tactics::repel(world, player, 0);
 			}
 	};
@@ -96,7 +104,7 @@ namespace {
 				return 1.0 / (1.0 + (player->position() - robot->position()).len());
 			}
 
-			void tick(Player::Ptr player) {
+			void execute() {
 				// TODO: flags
 				player->move(robot->position(), (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 			}
@@ -116,11 +124,16 @@ namespace {
 			Shoot(World& world) : Tactic(world) {
 			}
 		private:
+			bool done() const {
+#warning find a way to check that the ball has left off in the right direction
+				return true;
+			}
+
 			double score(Player::Ptr player) const {
 				return 1.0 / (1.0 + (player->position() - world.ball().position()).len());
 			}
 
-			void tick(Player::Ptr player) {
+			void execute() {
 				// TODO: flags
 				AI::HL::Tactics::shoot(world, player, 0);
 			}
@@ -140,11 +153,24 @@ namespace {
 			Chase(World& world) : Tactic(world) {
 			}
 		private:
+			bool done_;
+
+			bool done() const {
+				return done_;
+			}
+
+			void player_changed() {
+				done_ = (player->has_ball());
+			}
+
 			double score(Player::Ptr player) const {
 				return 1.0 / (1.0 + (player->position() - world.ball().position()).len());
 			}
 
-			void tick(Player::Ptr player) {
+			void execute() {
+				if (player->has_ball()) {
+					done_ = true;
+				}
 				// TODO: flags
 				// player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
 				// AI::HL::Tactics::chase(world, player, 0);
@@ -169,7 +195,7 @@ namespace {
 			double score(Player::Ptr) const {
 				return 1;
 			}
-			void tick(Player::Ptr player) {
+			void execute() {
 				// nothing lol
 				Point dest = Point(0, world.field().width() / 2);
 				player->move(dest, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);

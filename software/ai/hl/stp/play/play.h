@@ -23,11 +23,11 @@ namespace AI {
 					/**
 					 * Computes the roles.
 					 *
-					 * \return a vector of tactics that needs to be done.
-					 * The first element is the goalie.
-					 * Subsequent elements are listed in order of importance.
+					 * \param [out] tactics a vector of tactics.
+					 *
+					 * \param [out] active the active tactic.
 					 */
-					virtual std::vector<Tactic::Ptr> tick() = 0;
+					virtual void execute(std::vector<Tactic::Ptr>& tactics, Tactic::Ptr& active) = 0;
 
 					/**
 					 * Indicates how likely tactics assignments are changed.

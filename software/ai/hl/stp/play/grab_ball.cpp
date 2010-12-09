@@ -22,7 +22,7 @@ namespace {
 			GrabBallPlay(AI::HL::W::World &world);
 			~GrabBallPlay();
 		private:
-			std::vector<Tactic::Ptr> tick();
+			void execute(std::vector<Tactic::Ptr>& tactics, Tactic::Ptr& active);
 			double change_probability() const;
 	};
 
@@ -36,8 +36,8 @@ namespace {
 		return 1.0;
 	}
 
-	std::vector<Tactic::Ptr> GrabBallPlay::tick() {
-		std::vector<Tactic::Ptr> tactics(5);
+	void GrabBallPlay::execute(std::vector<Tactic::Ptr>& tactics, Tactic::Ptr& active) {
+		tactics.resize(5);
 
 		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
 		std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().friendly_goal()));
@@ -45,6 +45,7 @@ namespace {
 		// GOALIE
 		if (world.friendly_team().size() == 1) {
 			tactics[0] = chase(world);
+			active = tactics[0];
 		} else {
 			tactics[0] = defend_goal(world);
 		}
@@ -52,6 +53,9 @@ namespace {
 		// ROLE 1
 		// chase the ball!
 		tactics[1] = chase(world);
+		if (world.friendly_team().size() > 1) {
+			active = tactics[1];
+		}
 
 		// ROLE 2
 		// block nearest enemy
@@ -76,8 +80,6 @@ namespace {
 		} else {
 			tactics[4] = idle(world);
 		}
-
-		return tactics;
 	}
 
 	///////////////////////////////////////////////////////////////////////////

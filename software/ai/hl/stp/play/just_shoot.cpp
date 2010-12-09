@@ -22,7 +22,7 @@ namespace {
 			JustShootPlay(AI::HL::W::World &world);
 			~JustShootPlay();
 		private:
-			std::vector<Tactic::Ptr> tick();
+			void execute(std::vector<Tactic::Ptr>& tactics, Tactic::Ptr& active);
 			double change_probability() const;
 	};
 
@@ -36,24 +36,24 @@ namespace {
 		return 1.0;
 	}
 
-	std::vector<Tactic::Ptr> JustShootPlay::tick() {
-		std::vector<Tactic::Ptr> tactics(5);
+	void JustShootPlay::execute(std::vector<Tactic::Ptr>& tactics, Tactic::Ptr& active) {
+		tactics.resize(5);
 
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 
 		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
 		std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().friendly_goal()));
 
-		// GOALIE
+		// GOALIE & ROLE 1
 		if (players.size() > 0 && players[0]->has_ball()) {
 			tactics[0] = repel(world);
+			active = tactics[0];
+			tactics[1] = idle(world);
 		} else {
 			tactics[0] = defend_goal(world);
+			tactics[1] = shoot(world);
+			active = tactics[1];
 		}
-
-		// ROLE 1
-		// shoot the ball!
-		tactics[1] = shoot(world);
 
 		// ROLE 2
 		// block nearest enemy
@@ -78,8 +78,6 @@ namespace {
 		} else {
 			tactics[4] = idle(world);
 		}
-
-		return tactics;
 	}
 
 	///////////////////////////////////////////////////////////////////////////

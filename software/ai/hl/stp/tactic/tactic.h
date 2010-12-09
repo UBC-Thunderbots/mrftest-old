@@ -5,24 +5,43 @@
 #include "util/byref.h"
 #include "util/registerable.h"
 
+#include <ctime>
+
 namespace AI {
 	namespace HL {
 		namespace STP {
 
 			/**
 			 * A tactic is a layer in the STP paradigm.
-			 *
-			 * A stateless tactic is always preferred for simplicity.
-			 * However, tactic can be stateful.
-			 * In such a case, a play will have to store the tactic.
 			 */
 			class Tactic : public ByRef {
 				public:
 					typedef RefPtr<Tactic> Ptr;
 
-					Tactic(AI::HL::W::World& world);
+					/**
+					 * Constructor for tactic.
+					 *
+					 * \param [in] timeout the maximum time this tactic will execute.
+					 */
+					Tactic(AI::HL::W::World& world, double timeout = 5.0);
 
 					~Tactic();
+
+					/**
+					 * Indicates if this tactic is done with its task.
+					 * An inactive tactic will always be done.
+					 */
+					virtual bool done() const;
+
+					/**
+					 * Checks if the tactic took more time than it is supposed to.
+					 */
+					bool timed_out() const;
+
+					/**
+					 * Changes the player associated with this tactic.
+					 */
+					void set_player(AI::HL::W::Player::Ptr p);
 
 					/**
 					 * Scoring function
@@ -35,10 +54,23 @@ namespace AI {
 					/**
 					 * Drive some actual players.
 					 */
-					virtual void tick(AI::HL::W::Player::Ptr player) = 0;
+					virtual void execute() = 0;
 
 				protected:
 					AI::HL::W::World& world;
+					AI::HL::W::Player::Ptr player;
+
+				private:
+					std::time_t start_time;
+					const double timeout;
+
+					/**
+					 * Called when the player associated with this tactic is changed.
+					 *
+					 * Since this function is always called,
+					 * it is a good place to put intialization code.
+					 */
+					virtual void player_changed();
 			};
 
 		}

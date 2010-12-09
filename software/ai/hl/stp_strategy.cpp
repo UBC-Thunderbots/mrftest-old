@@ -30,13 +30,26 @@ namespace {
 
 			void play();
 
-			void reset();
+			void calc_play();
+			void calc_tactics();
+			void execute_tactics();
 
 			static Strategy::Ptr create(AI::HL::W::World &world);
 
 		private:
+
+			/**
+			 * Status of this strategy
+			 * 0 = calc play
+			 * 1 = calc tactics
+			 * 2 = execute tactics
+			 */
+			int state;
+
 			Play::Ptr current_play;
 			PlayManager* current_play_manager;
+			std::vector<Tactic::Ptr> current_tactics;
+			Tactic::Ptr current_active_tactic;
 
 			STPStrategy(AI::HL::W::World &world);
 			~STPStrategy();
@@ -83,7 +96,7 @@ namespace {
 		return p;
 	}
 
-	void STPStrategy::reset() {
+	void STPStrategy::calc_play() {
 		static bool initialized = false;
 		static std::vector<PlayManager*> managers;
 
@@ -95,9 +108,9 @@ namespace {
 			initialized = true;
 		}
 
-		current_play_manager = NULL;
-		current_play.reset();
+		state = 0;
 
+		// find a valid state
 		std::random_shuffle(managers.begin(), managers.end());
 		for (std::size_t i = 0; i < managers.size(); ++i) {
 			if (managers[i]->score(world, false) > 0) {
@@ -107,52 +120,60 @@ namespace {
 				break;
 			}
 		}
-	}
 
-	void STPStrategy::play() {
-
-		// check if current is valid
-		if (current_play_manager == NULL || current_play_manager->score(world, true) == 0) {
-			reset();
-		}
-
+		// ensure we have a play manager
 		if (current_play_manager == NULL) {
-			LOG_WARN("did not find suitable play");
 			return;
 		}
 
+		state = 1;
+	}
+
+	void STPStrategy::calc_tactics() {
+
+		state = 0;
+
 		// get the tactics
-		std::vector<Tactic::Ptr> tactics = current_play->tick();
+		current_tactics.clear();
+		current_active_tactic.reset();
+		current_play->execute(current_tactics, current_active_tactic);
 
 		// make sure we have 5 tactics
-		if (tactics.size() != 5) {
+		if (current_tactics.size() != 5) {
 			LOG_ERROR("Play did not return 5 tactics!");
-			current_play.reset();
-			current_play_manager = NULL;
+			return;
+		}
+
+		// make sure we have a valid active tactic
+		if (!current_active_tactic.is()) {
+			LOG_ERROR("Play did not return 5 tactics!");
 			return;
 		}
 
 		// make sure all tactics are assigned
-		for (std::size_t i = 0; i < tactics.size(); ++i) {
-			if (!tactics[i].is()) {
+		for (std::size_t i = 0; i < current_tactics.size(); ++i) {
+			if (!current_tactics[i].is()) {
 				LOG_ERROR("Play did not assign all 5 tactics!");
-				current_play.reset();
-				current_play_manager = NULL;
 				return;
 			}
 		}
 
+		state = 2;
+	}
+
+	void STPStrategy::execute_tactics() {
+
 		// do matching
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 		std::vector<bool> players_used(players.size(), false);
-		std::vector<Player::Ptr> assignment(tactics.size());
-		for (std::size_t i = 0; i < tactics.size(); ++i) {
+		std::vector<Player::Ptr> assignment(current_tactics.size());
+		for (std::size_t i = 0; i < current_tactics.size(); ++i) {
 			double best_score = 0;
 			std::size_t best_j = 0;
 			Player::Ptr best;
 			for (std::size_t j = 0; j < players.size(); ++j) {
 				if (players_used[j]) continue;
-				double score = tactics[i]->score(players[j]);
+				double score = current_tactics[i]->score(players[j]);
 				if (!best.is() || score > best_score) {
 					best = players[j];
 					best_j = j;
@@ -165,21 +186,66 @@ namespace {
 			}
 		}
 
-		// now run the tactics
-		for (std::size_t i = 0; i < tactics.size(); ++i) {
+		bool active_assigned = false;
+
+		// now run the current_tactics
+		for (std::size_t i = 0; i < current_tactics.size(); ++i) {
 			if (!assignment[i].is()) continue;
-			tactics[i]->tick(assignment[i]);
+			current_tactics[i]->set_player(assignment[i]);
+			current_tactics[i]->execute();
+			if (current_tactics[i] == current_active_tactic) {
+				active_assigned = true;
+			}
+		}
+
+		if (active_assigned == false) {
+			state = 0;
+		}
+
+		// check if task is done
+		if (current_active_tactic->done()) {
+			LOG_INFO("tactic done");
+			state = 1;
 		}
 
 		// check if it wants to terminate
 		if (current_play->has_resigned()) {
-			// do something
-			current_play.reset();
-			current_play_manager = NULL;
+			LOG_INFO("play resigned");
+			state = 0;
 		}
+
+	}
+
+	void STPStrategy::play() {
+
+		// check if current play wants to continue
+		if (state != 0 && current_play_manager->score(world, true) == 0) {
+			state = 0;
+		}
+
+		// check if current is valid
+		if (state == 0) {
+			calc_play();
+			if (state == 0) {
+				LOG_WARN("calc play failed");
+				return;
+			}
+		}
+
+		// check if current is valid
+		if (state == 1) {
+			calc_tactics();
+			if (state == 0) {
+				LOG_WARN("calc tactics failed");
+				return;
+			}
+		}
+
+		execute_tactics();
 	}
 
 	STPStrategy::STPStrategy(World &world) : Strategy(world), current_play_manager(NULL) {
+		state = 0;
 	}
 
 	STPStrategy::~STPStrategy() {
