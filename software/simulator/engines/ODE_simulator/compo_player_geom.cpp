@@ -60,20 +60,13 @@ namespace {
 
 Compo_player_geom::Compo_player_geom(dWorldID eworld, dSpaceID dspace) : Player_geom(eworld, dspace) {
 	double dribble_radius = 0.005; // half a cm
-	// ballGeom = ballGeomi;
 	double ballradius = 0.042672 / 2;
-
 
 	double x_pos = 0.0;
 	double y_pos = 0.0;
 
-
-	double x_len = 0.18;
-	double y_len = 0.18;
-
-
-	y_len = 0.1;
-	x_len = sqrt((2 * ROBOT_RADIUS) * (2 * ROBOT_RADIUS) - (y_len) * (y_len));
+	double y_len = 0.1;
+	double x_len = sqrt((2 * ROBOT_RADIUS) * (2 * ROBOT_RADIUS) - (y_len) * (y_len));
 
 	robotGeomTop = dCreateBox(0, x_len, y_len, ROBOT_HEIGHT);
 	dGeomSetBody(robotGeomTop, body);
@@ -89,27 +82,13 @@ Compo_player_geom::Compo_player_geom(dWorldID eworld, dSpaceID dspace) : Player_
 		0, 1, 0, 0
 	};
 
-	dribbler = dBodyCreate(world);
 	dribblerBar = dCreateCapsule(0, DRIBBLER_RADIUS, y_len);
 	dMass mass;
 	dMassSetCylinderTotal(&mass, 0.02, 3, DRIBBLER_RADIUS, y_len);
-	dBodySetMass(dribbler, &mass);
-
 	dSpaceAdd(dspace, robotGeomTop);
 	dSpaceAdd(dspace, robotGeomTopCyl);
 	dSpaceAdd(dspace, dribblerBar);
-
-	dGeomSetBody(dribblerBar, dribbler);
 	dGeomSetRotation(dribblerBar, rotat);
-
-	jGroup = dJointGroupCreate(0);
-	dBodySetPosition(dribbler, x_pos + x_len / 2, y_pos, DRIBBLER_HEIGHT);
-	hinge = dJointCreateHinge2(world, jGroup);
-	dJointAttach(hinge, body, dribbler);
-	dJointSetHinge2Anchor(hinge, x_len / 2, 0.0, DRIBBLER_HEIGHT);
-
-	dJointSetHinge2Param(hinge, dParamHiStop, 0.0);
-	dJointSetHinge2Param(hinge, dParamLoStop, 0.0);
 }
 
 Compo_player_geom::~Compo_player_geom() {
@@ -117,12 +96,11 @@ Compo_player_geom::~Compo_player_geom() {
 	dGeomDestroy(robotGeomTopCyl);
 	dGeomDestroy(dribblerBar);
 	dJointGroupDestroy(jGroup);
-	dBodyDestroy(dribbler);
 }
 
 bool Compo_player_geom::has_geom(dGeomID geom) {
 	dBodyID b = dGeomGetBody(geom);
-	return b == body || b == dribbler;
+	return b == body;
 }
 
 
@@ -211,7 +189,7 @@ void Compo_player_geom::handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointG
 
 	if (int numc = dCollide(o1, o2, 3, &contact[0].geom, sizeof(dContact))) {
 		for (i = 0; i < numc; i++) {
-			bool robotDribbler = dribbler == dGeomGetBody(o1) || dribbler == dGeomGetBody(o2);
+			bool robotDribbler = dribblerBar == o1 || dribblerBar == o2;
 			bool robotCollided = dBodyGetPosition(dGeomGetBody(ballGeom))[2] > DRIBBLER_HEIGHT && hasContactPenetration(contact[i].geom.pos, robotGeom);
 			robotCollided = robotCollided || !hasContactWithFace(contact[i].geom.pos, robotGeom);
 			has_ball_now = has_ball_now || robotDribbler;
