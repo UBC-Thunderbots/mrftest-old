@@ -7,6 +7,24 @@ namespace {
 	double orientationFromMatrix(const dReal *t) {
 		return atan2(-t[1], t[0]);
 	}
+
+	//	const dReal* rotation_matrix
+
+	// dMatrix3
+
+	//	dVector3
+	void rotate_vec(dVector3 &vec, const dReal * r){
+		dVector3 ans;
+		ans[0] = r[0] * vec[0] + r[1] * vec[1] + r[2] * vec[2];
+		ans[1] = r[4] * vec[0] + r[5] * vec[1] + r[6] * vec[2];
+		ans[2] = r[8] * vec[0] + r[8] * vec[1] + r[10] * vec[2];
+		
+		vec[0] = ans[0];
+		ans[1] = ans[1];
+		ans[2] = ans[2];
+	} 
+
+
 //
 //
 //
@@ -61,10 +79,8 @@ namespace {
 Compo_player_geom::Compo_player_geom(dWorldID eworld, dSpaceID dspace) : Player_geom(eworld, dspace) {
 	double dribble_radius = 0.005; // half a cm
 	double ballradius = 0.042672 / 2;
-
 	double x_pos = 0.0;
 	double y_pos = 0.0;
-
 	double y_len = 0.1;
 	double x_len = sqrt((2 * ROBOT_RADIUS) * (2 * ROBOT_RADIUS) - (y_len) * (y_len));
 
@@ -83,8 +99,9 @@ Compo_player_geom::Compo_player_geom(dWorldID eworld, dSpaceID dspace) : Player_
 	};
 
 	dribblerBar = dCreateCapsule(0, DRIBBLER_RADIUS, y_len);
-	dMass mass;
-	dMassSetCylinderTotal(&mass, 0.02, 3, DRIBBLER_RADIUS, y_len);
+	//dMass mass;
+	//dMassSetCylinderTotal(&mass, 0.02, 3, DRIBBLER_RADIUS, y_len);
+
 	dSpaceAdd(dspace, robotGeomTop);
 	dSpaceAdd(dspace, robotGeomTopCyl);
 	dSpaceAdd(dspace, dribblerBar);
@@ -95,7 +112,6 @@ Compo_player_geom::~Compo_player_geom() {
 	dGeomDestroy(robotGeomTop);
 	dGeomDestroy(robotGeomTopCyl);
 	dGeomDestroy(dribblerBar);
-	dJointGroupDestroy(jGroup);
 }
 
 bool Compo_player_geom::has_geom(dGeomID geom) {
@@ -196,11 +212,27 @@ void Compo_player_geom::handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointG
 			// different parameters are needed
 			// for the dribbler
 			if (robotDribbler) {
-				contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce;
-				contact[i].surface.mu = 0.1;
+				
+				// direction of vec is along
+				// axis of the dribbler bar
+				dVector3 vec = {0.0, 1.0, 0.0, 0.0};
+				rotate_vec(vec, dBodyGetRotation (body));
+
+				// set the first friction direction
+				// to be along the direction of 
+				// the axis of the dribbler bar
+				contact[i].fdir1[0] = vec[0];
+				contact[i].fdir1[1] = vec[1];
+				contact[i].fdir1[2] = vec[2];
+
+				contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce | dContactMu2 | dContactFDir1;
+				
+				contact[i].surface.mu = 1.0; // represents friction of rubber dribbler
+				contact[i].surface.mu2 = 0.01; // the amount the the dribbler freely sipns is represented by " friction " amount
+
 				contact[i].surface.soft_cfm = CFM;
 				contact[i].surface.soft_erp = ERP;
-				contact[i].surface.bounce = 0.2;
+				contact[i].surface.bounce = 0.05; // the amount of bounce between dribbler and ball
 				contact[i].surface.bounce_vel = 0.0;
 				dJointID c = dJointCreateContact(world, contactgroup, contact + i);
 				dJointAttach(c, b1, b2);
@@ -277,6 +309,9 @@ void Compo_player_geom::dribble(double set_point) {
 	// double rpm = RPM_PER_VOLT * voltage;
 	// double rads_per_sec = (2*3.14/60)*rpm;
 	// dJointSetAMotorParam (hinge, dParamVel, rads_per_sec);
+
+
+
 }
 
 

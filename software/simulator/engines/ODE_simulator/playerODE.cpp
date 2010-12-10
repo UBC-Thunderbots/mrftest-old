@@ -19,6 +19,17 @@ namespace {
 		return fabs(t[8] - 1) < 0.1;
 	}
 
+	void rotate_vec(dVector3 &vec, const dReal * r){
+		dVector3 ans;
+		ans[0] = r[0] * vec[0] + r[1] * vec[1] + r[2] * vec[2];
+		ans[1] = r[4] * vec[0] + r[5] * vec[1] + r[6] * vec[2];
+		ans[2] = r[8] * vec[0] + r[8] * vec[1] + r[10] * vec[2];
+		
+		vec[0] = ans[0];
+		ans[1] = ans[1];
+		ans[2] = ans[2];
+	} 
+
 	/**
 	 * Conversion Factor from the value used in radio packets (1/4 degree) per 5 ms to motor voltage
 	 */
@@ -94,7 +105,9 @@ PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double
 	double ballradius = dGeomSphereGetRadius(ballGeom);
 	world = eworld;
 	body = p_geom.body;
-	dMassSetCylinderTotal(&mass, ROBOT_MASS, 3, ROBOT_RADIUS, ROBOT_HEIGHT);
+	// to account for a lower centre of mass make the cylinder much lower
+	// when calculating the mass object
+	dMassSetCylinderTotal(&mass, ROBOT_MASS, 3, ROBOT_RADIUS, ROBOT_RADIUS);
 	dBodySetMass(body, &mass);
 	momentInertia = ROBOT_RADIUS * ROBOT_RADIUS * mass.mass / 2;
 
@@ -172,7 +185,20 @@ void PlayerODE::pre_tic(double) {
 	double wheel_torque;
 	Point force;
 
-	if (!posSet) {
+		if (isTipped(body)) {
+			// if the robot is tipped then put it upright
+			std::cout << "tipped " << std::endl;
+			const dReal * rot = dBodyGetRotation(body);
+			dVector3 vec = {1, 1, 0};
+			rotate_vec(vec, rot);
+			double angle = atan2(vec[0], vec[1]);
+			double c = cos(angle);
+			double s = sin(angle);
+			dMatrix3 rota = { c, -s, 0.0, 0.0, s, c, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0};
+			dBodySetRotation (body, rota);
+		}
+
+	if (!posSet && !isTipped(body)) {
 		// get the current bots velocity
 		const dReal *cur_vel = dBodyGetLinearVel(body);
 		// grab current vel
@@ -205,12 +231,8 @@ void PlayerODE::pre_tic(double) {
 		dBodyEnable(body);
 		dBodySetDynamic(body);
 
-		if (isTipped(body)) {
-			std::cout << "tipped " << std::endl;
-		} else {
-			dBodyAddTorque(body, 0.0, 0.0, 2 * torque);
-			dBodyAddForce(body, fce.x, fce.y, 0.0);
-		}
+		dBodyAddTorque(body, 0.0, 0.0, 2 * torque);
+		dBodyAddForce(body, fce.x, fce.y, 0.0);
 
 		if (has_chip_set() && has_ball()) {
 			if (execute_chip()) {
