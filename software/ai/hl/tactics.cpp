@@ -106,7 +106,6 @@ void AI::HL::Tactics::free_move(World &world, Player::Ptr player, const Point p)
 }
 
 void AI::HL::Tactics::lone_goalie(AI::HL::W::World &world, AI::HL::W::Player::Ptr player) {
-
 	// if ball is inside the defense area, must repel!
 	if (AI::HL::Util::point_in_friendly_defense(world.field(), world.ball().position())) {
 		repel(world, player, 0);

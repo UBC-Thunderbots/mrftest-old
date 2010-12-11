@@ -10,7 +10,6 @@ using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
 
 namespace {
-
 	BoolParam STAY_OWN_HALF("Test strategy stay own half", true);
 	BoolParam CATCH_BALL("Test strategy catch ball", true);
 	/**
@@ -52,7 +51,7 @@ namespace {
 	 * The play types handled by this strategy.
 	 */
 	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
-		//PlayType::PLAY,
+		// PlayType::PLAY,
 	};
 
 	StrategyFactory &TestStrategy::factory() const {
@@ -62,7 +61,7 @@ namespace {
 	void TestStrategy::play() {
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 		unsigned int flags = 0;
-		
+
 		if (STAY_OWN_HALF) {
 			flags |= AI::Flags::FLAG_STAY_OWN_HALF;
 		}
@@ -77,9 +76,7 @@ namespace {
 			} else {
 				(*it)->move(world.ball().position(), (*it)->orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 			}
-
 		}
-
 	}
 
 	Strategy::Ptr TestStrategy::create(World &world) {

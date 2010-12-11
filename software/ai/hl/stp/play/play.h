@@ -12,7 +12,6 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
-
 			/**
 			 * A play is a level in the STP paradigm.
 			 */
@@ -27,7 +26,7 @@ namespace AI {
 					 *
 					 * \param [out] active the active tactic.
 					 */
-					virtual void execute(std::vector<Tactic::Ptr>& tactics, Tactic::Ptr& active) = 0;
+					virtual void execute(std::vector<Tactic::Ptr> &tactics, Tactic::Ptr &active) = 0;
 
 					/**
 					 * Indicates how likely tactics assignments are changed.
@@ -46,9 +45,9 @@ namespace AI {
 					/**
 					 * The World in which the Play lives.
 					 */
-					AI::HL::W::World& world;
+					AI::HL::W::World &world;
 
-					Play(AI::HL::W::World& world);
+					Play(AI::HL::W::World &world);
 
 					~Play();
 
@@ -79,7 +78,7 @@ namespace AI {
 					 * 1 guarantees this function is chosen.
 					 *
 					 */
-					virtual double score(AI::HL::W::World& world, bool running) const = 0;
+					virtual double score(AI::HL::W::World &world, bool running) const = 0;
 
 					/**
 					 * Constructs a new instance of the Play corresponding to this PlayManager.
@@ -88,21 +87,19 @@ namespace AI {
 					 *
 					 * \return the new Play.
 					 */
-					virtual Play::Ptr create_play(AI::HL::W::World& world) const = 0;
+					virtual Play::Ptr create_play(AI::HL::W::World &world) const = 0;
 
 				protected:
-
 					/**
 					 * Constructs a new PlayManager.
 					 * Subclasses should call this constructor from their own constructors.
 					 *
 					 * \param[in] name a human-readable name for this Strategy.
 					 */
-					PlayManager(const char* name);
+					PlayManager(const char *name);
 
 					~PlayManager();
 			};
-
 		}
 	}
 }

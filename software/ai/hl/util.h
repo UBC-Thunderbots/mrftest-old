@@ -207,7 +207,7 @@ namespace AI {
 			/**
 			 * Converts a friendly team into a vector of players.
 			 */
-			std::vector<AI::HL::W::Player::Ptr> get_players_exclude(AI::HL::W::FriendlyTeam &friendly, std::vector<AI::HL::W::Player::Ptr>& others);
+			std::vector<AI::HL::W::Player::Ptr> get_players_exclude(AI::HL::W::FriendlyTeam &friendly, std::vector<AI::HL::W::Player::Ptr> &others);
 
 			/**
 			 * Converts an enemy team into a vector of robots.

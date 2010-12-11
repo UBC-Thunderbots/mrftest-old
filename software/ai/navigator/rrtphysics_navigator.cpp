@@ -185,7 +185,7 @@ namespace {
 	}
 
 	// extend by STEP_DISTANCE towards the target from the start
-	Point rrtphysics_navigator::Extend(Player::Ptr player, Point projected,Point start, Point target) {
+	Point rrtphysics_navigator::Extend(Player::Ptr player, Point projected, Point start, Point target) {
 		Point residual = (target - projected);
 		Point normalizedDir = residual.norm();
 		Point extendPoint;
@@ -196,10 +196,10 @@ namespace {
 		}
 
 		extendPoint = normalizedDir * Player::MAX_LINEAR_ACCELERATION * TIMESTEP * TIMESTEP + projected;
-		
+
 		if ((extendPoint - start).len() > maximumVel * TIMESTEP) {
 			extendPoint = (extendPoint - start).norm() * maximumVel * TIMESTEP + start;
-		} 
+		}
 
 
 
@@ -224,7 +224,7 @@ namespace {
 		int iterationCounter = 0;
 
 		// should loop until distance between lastAdded and goal is less than threshold
-		while ( (lastAdded->data() - goal).len() > THRESHOLD && iterationCounter < ITERATION_LIMIT) {
+		while ((lastAdded->data() - goal).len() > THRESHOLD && iterationCounter < ITERATION_LIMIT) {
 			target = ChooseTarget(goal);
 			nearestNode = Nearest(&rrtTree, target);
 			nearest = nearestNode->data();
@@ -238,11 +238,12 @@ namespace {
 			extended = Extend(player, projected, nearest, target);
 
 			if (IsEmptyState(extended)) {
-				if (nearestNode->parent() == NULL)
+				if (nearestNode->parent() == NULL) {
 					break;
-			} else {		
+				}
+			} else {
 				lastAdded = nearestNode->append_data(extended);
-			}		
+			}
 
 			iterationCounter++;
 		}

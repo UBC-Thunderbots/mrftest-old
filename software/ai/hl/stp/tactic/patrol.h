@@ -4,7 +4,6 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
-
 			/**
 			 * Used for going back and forth between 2 destinations.
 			 * A play must store this tactic in order to use this correctly.
@@ -13,7 +12,7 @@ namespace AI {
 				public:
 					typedef RefPtr<Patrol> Ptr;
 
-					Patrol(AI::HL::W::World& world);
+					Patrol(AI::HL::W::World &world);
 
 					void set_waypoints(Point w1, Point w2);
 
@@ -24,7 +23,6 @@ namespace AI {
 				protected:
 					Point p1, p2;
 			};
-
 		}
 	}
 }

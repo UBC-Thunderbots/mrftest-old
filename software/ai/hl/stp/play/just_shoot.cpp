@@ -9,7 +9,6 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-
 	/**
 	 * Condition:
 	 * - ball under team possesion
@@ -21,8 +20,9 @@ namespace {
 		public:
 			JustShootPlay(AI::HL::W::World &world);
 			~JustShootPlay();
+
 		private:
-			void execute(std::vector<Tactic::Ptr>& tactics, Tactic::Ptr& active);
+			void execute(std::vector<Tactic::Ptr> &tactics, Tactic::Ptr &active);
 			double change_probability() const;
 	};
 
@@ -36,7 +36,7 @@ namespace {
 		return 1.0;
 	}
 
-	void JustShootPlay::execute(std::vector<Tactic::Ptr>& tactics, Tactic::Ptr& active) {
+	void JustShootPlay::execute(std::vector<Tactic::Ptr> &tactics, Tactic::Ptr &active) {
 		tactics.resize(5);
 
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
@@ -80,7 +80,7 @@ namespace {
 		}
 	}
 
-	///////////////////////////////////////////////////////////////////////////
+	// /////////////////////////////////////////////////////////////////////////
 	// housekeeping code
 
 	class JustShootPlayManager : public PlayManager {
@@ -91,19 +91,20 @@ namespace {
 				const Play::Ptr p(new JustShootPlay(world));
 				return p;
 			}
-			double score(World& world, bool) const;
+			double score(World &world, bool) const;
 	} factory_instance;
 
-	///////////////////////////////////////////////////////////////////////////
+	// /////////////////////////////////////////////////////////////////////////
 
-	double JustShootPlayManager::score(World& world, bool) const {
+	double JustShootPlayManager::score(World &world, bool) const {
 		// check if we do not have ball
-		FriendlyTeam& friendly = world.friendly_team();
+		FriendlyTeam &friendly = world.friendly_team();
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
-			if (friendly.get(i)->has_ball()) return 0.5;
+			if (friendly.get(i)->has_ball()) {
+				return 0.5;
+			}
 		}
 		return 0;
 	}
-
 }
 

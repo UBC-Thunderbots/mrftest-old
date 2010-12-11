@@ -76,7 +76,7 @@ namespace {
 			Player::Ptr kicker;
 
 			AI::HL::Defender defender;
-			
+
 			int pidx;
 	};
 
@@ -180,7 +180,6 @@ namespace {
 	}
 
 	void KickoffFriendlyStrategy::execute() {
-		
 		// default is for kicker to just shoot forward
 		if (kicker.is() && pidx >= 0) {
 			if (pidx == 0 && offenders.size() == 1) {
@@ -246,8 +245,8 @@ namespace {
 
 		defender.set_players(defenders, goalie);
 	}
-	
-	int KickoffFriendlyStrategy::cal_partidx(){
+
+	int KickoffFriendlyStrategy::cal_partidx() {
 		// TODO Find a side of the field to attack
 		// choose_best_pass doesn't seem to be able to find one offender to pass to with the current positioning !!
 		// best = -1 causes seg fault

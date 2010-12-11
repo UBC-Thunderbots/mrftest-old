@@ -10,7 +10,6 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
-
 			/**
 			 * A tactic is a layer in the STP paradigm.
 			 */
@@ -23,7 +22,7 @@ namespace AI {
 					 *
 					 * \param [in] timeout the maximum time this tactic will execute.
 					 */
-					Tactic(AI::HL::W::World& world, double timeout = 5.0);
+					Tactic(AI::HL::W::World &world, double timeout = 5.0);
 
 					~Tactic();
 
@@ -57,7 +56,7 @@ namespace AI {
 					virtual void execute() = 0;
 
 				protected:
-					AI::HL::W::World& world;
+					AI::HL::W::World &world;
 					AI::HL::W::Player::Ptr player;
 
 				private:
@@ -72,7 +71,6 @@ namespace AI {
 					 */
 					virtual void player_changed();
 			};
-
 		}
 	}
 }

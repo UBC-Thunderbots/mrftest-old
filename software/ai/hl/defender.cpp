@@ -19,12 +19,12 @@ namespace {
 
 	DoubleParam robot_shrink("shrink robot radius", 1.1, 0.1, 2.0);
 
-	//DoubleParam goalie_chase_thresh("max distance from goal for goalie to chase ball (field width)", 0.25, 0.0, 0.5);
+	// DoubleParam goalie_chase_thresh("max distance from goal for goalie to chase ball (field width)", 0.25, 0.0, 0.5);
 }
 
-//double Defender::get_goalie_chase_thresh() {
-	//return goalie_chase_thresh;
-//}
+// double Defender::get_goalie_chase_thresh() {
+// return goalie_chase_thresh;
+// }
 
 Defender::Defender(World &w) : world(w), chase(false) {
 }
@@ -174,7 +174,7 @@ void Defender::tick() {
 
 	// other players not part of this role.
 	std::vector<Player::Ptr> supporters;
-	FriendlyTeam& friendly = world.friendly_team();
+	FriendlyTeam &friendly = world.friendly_team();
 	for (std::size_t i = 1; i < friendly.size(); ++i) {
 		if (!exists(players.begin(), players.end(), friendly.get(i))) {
 			supporters.push_back(friendly.get(i));
@@ -230,7 +230,6 @@ void Defender::tick() {
 			}
 
 			if (chaser == players[i]) {
-
 				/*
 				   if (passee.is()) {
 				   AI::HL::Tactics::pass(world, chaser, passee, defender_flags);
@@ -245,7 +244,6 @@ void Defender::tick() {
 				} else {
 					AI::HL::Tactics::repel(world, players[i], defender_flags);
 				}
-
 			} else {
 				// move to defense position
 				players[i]->move(waypoints[order[w]], (world.ball().position() - players[i]->position()).orientation(), defender_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);

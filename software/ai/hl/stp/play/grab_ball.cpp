@@ -9,7 +9,6 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-
 	/**
 	 * Condition:
 	 * - ball not under any possesion
@@ -21,8 +20,9 @@ namespace {
 		public:
 			GrabBallPlay(AI::HL::W::World &world);
 			~GrabBallPlay();
+
 		private:
-			void execute(std::vector<Tactic::Ptr>& tactics, Tactic::Ptr& active);
+			void execute(std::vector<Tactic::Ptr> &tactics, Tactic::Ptr &active);
 			double change_probability() const;
 	};
 
@@ -36,7 +36,7 @@ namespace {
 		return 1.0;
 	}
 
-	void GrabBallPlay::execute(std::vector<Tactic::Ptr>& tactics, Tactic::Ptr& active) {
+	void GrabBallPlay::execute(std::vector<Tactic::Ptr> &tactics, Tactic::Ptr &active) {
 		tactics.resize(5);
 
 		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
@@ -82,7 +82,7 @@ namespace {
 		}
 	}
 
-	///////////////////////////////////////////////////////////////////////////
+	// /////////////////////////////////////////////////////////////////////////
 	// housekeeping code
 
 	class GrabBallPlayManager : public PlayManager {
@@ -93,19 +93,20 @@ namespace {
 				const Play::Ptr p(new GrabBallPlay(world));
 				return p;
 			}
-			double score(World& world, bool) const;
+			double score(World &world, bool) const;
 	} factory_instance;
 
-	///////////////////////////////////////////////////////////////////////////
+	// /////////////////////////////////////////////////////////////////////////
 
-	double GrabBallPlayManager::score(World& world, bool) const {
+	double GrabBallPlayManager::score(World &world, bool) const {
 		// check if we do not have ball
-		FriendlyTeam& friendly = world.friendly_team();
+		FriendlyTeam &friendly = world.friendly_team();
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
-			if (friendly.get(i)->has_ball()) return 0;
+			if (friendly.get(i)->has_ball()) {
+				return 0;
+			}
 		}
 		return 0.5;
 	}
-
 }
 

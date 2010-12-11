@@ -8,21 +8,21 @@ namespace {
 		return atan2(-t[1], t[0]);
 	}
 
-	//	const dReal* rotation_matrix
+	// const dReal* rotation_matrix
 
 	// dMatrix3
 
-	//	dVector3
-	void rotate_vec(dVector3 &vec, const dReal * r){
+	// dVector3
+	void rotate_vec(dVector3 &vec, const dReal *r) {
 		dVector3 ans;
 		ans[0] = r[0] * vec[0] + r[1] * vec[1] + r[2] * vec[2];
 		ans[1] = r[4] * vec[0] + r[5] * vec[1] + r[6] * vec[2];
 		ans[2] = r[8] * vec[0] + r[8] * vec[1] + r[10] * vec[2];
-		
+
 		vec[0] = ans[0];
 		ans[1] = ans[1];
 		ans[2] = ans[2];
-	} 
+	}
 
 
 //
@@ -99,8 +99,8 @@ Compo_player_geom::Compo_player_geom(dWorldID eworld, dSpaceID dspace) : Player_
 	};
 
 	dribblerBar = dCreateCapsule(0, DRIBBLER_RADIUS, y_len);
-	//dMass mass;
-	//dMassSetCylinderTotal(&mass, 0.02, 3, DRIBBLER_RADIUS, y_len);
+	// dMass mass;
+	// dMassSetCylinderTotal(&mass, 0.02, 3, DRIBBLER_RADIUS, y_len);
 
 	dSpaceAdd(dspace, robotGeomTop);
 	dSpaceAdd(dspace, robotGeomTopCyl);
@@ -212,21 +212,20 @@ void Compo_player_geom::handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointG
 			// different parameters are needed
 			// for the dribbler
 			if (robotDribbler) {
-				
 				// direction of vec is along
 				// axis of the dribbler bar
-				dVector3 vec = {0.0, 1.0, 0.0, 0.0};
-				rotate_vec(vec, dBodyGetRotation (body));
+				dVector3 vec = { 0.0, 1.0, 0.0, 0.0 };
+				rotate_vec(vec, dBodyGetRotation(body));
 
 				// set the first friction direction
-				// to be along the direction of 
+				// to be along the direction of
 				// the axis of the dribbler bar
 				contact[i].fdir1[0] = vec[0];
 				contact[i].fdir1[1] = vec[1];
 				contact[i].fdir1[2] = vec[2];
 
 				contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce | dContactMu2 | dContactFDir1;
-				
+
 				contact[i].surface.mu = 1.0; // represents friction of rubber dribbler
 				contact[i].surface.mu2 = 0.01; // the amount the the dribbler freely sipns is represented by " friction " amount
 
@@ -309,9 +308,6 @@ void Compo_player_geom::dribble(double set_point) {
 	// double rpm = RPM_PER_VOLT * voltage;
 	// double rads_per_sec = (2*3.14/60)*rpm;
 	// dJointSetAMotorParam (hinge, dParamVel, rads_per_sec);
-
-
-
 }
 
 

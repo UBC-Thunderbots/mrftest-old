@@ -44,7 +44,7 @@ class Compo_player_geom : public Player_geom {
 
 		dGeomID dribblerBar;
 
-		//		dBodyID dribbler;
+		// dBodyID dribbler;
 		dJointGroupID jGroup;
 		dJointID hinge;
 

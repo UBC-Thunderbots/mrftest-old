@@ -15,7 +15,6 @@ using AI::HL::STP::PlayManager;
 using AI::HL::STP::Tactic;
 
 namespace {
-
 	// The maximum amount of time a play can be running.
 	const double PLAY_TIMEOUT = 30.0;
 
@@ -37,7 +36,6 @@ namespace {
 			static Strategy::Ptr create(AI::HL::W::World &world);
 
 		private:
-
 			/**
 			 * Status of this strategy
 			 * 0 = calc play
@@ -47,7 +45,7 @@ namespace {
 			int state;
 
 			Play::Ptr current_play;
-			PlayManager* current_play_manager;
+			PlayManager *current_play_manager;
 			std::vector<Tactic::Ptr> current_tactics;
 			Tactic::Ptr current_active_tactic;
 
@@ -98,7 +96,7 @@ namespace {
 
 	void STPStrategy::calc_play() {
 		static bool initialized = false;
-		static std::vector<PlayManager*> managers;
+		static std::vector<PlayManager *> managers;
 
 		if (!initialized) {
 			const PlayManager::Map &m = PlayManager::all();
@@ -130,7 +128,6 @@ namespace {
 	}
 
 	void STPStrategy::calc_tactics() {
-
 		state = 0;
 
 		// get the tactics
@@ -162,7 +159,6 @@ namespace {
 	}
 
 	void STPStrategy::execute_tactics() {
-
 		// do matching
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 		std::vector<bool> players_used(players.size(), false);
@@ -172,7 +168,9 @@ namespace {
 			std::size_t best_j = 0;
 			Player::Ptr best;
 			for (std::size_t j = 0; j < players.size(); ++j) {
-				if (players_used[j]) continue;
+				if (players_used[j]) {
+					continue;
+				}
 				double score = current_tactics[i]->score(players[j]);
 				if (!best.is() || score > best_score) {
 					best = players[j];
@@ -190,7 +188,9 @@ namespace {
 
 		// now run the current_tactics
 		for (std::size_t i = 0; i < current_tactics.size(); ++i) {
-			if (!assignment[i].is()) continue;
+			if (!assignment[i].is()) {
+				continue;
+			}
 			current_tactics[i]->set_player(assignment[i]);
 			current_tactics[i]->execute();
 			if (current_tactics[i] == current_active_tactic) {
@@ -213,11 +213,9 @@ namespace {
 			LOG_INFO("play resigned");
 			state = 0;
 		}
-
 	}
 
 	void STPStrategy::play() {
-
 		// check if current play wants to continue
 		if (state != 0 && current_play_manager->score(world, true) == 0) {
 			state = 0;
@@ -250,6 +248,5 @@ namespace {
 
 	STPStrategy::~STPStrategy() {
 	}
-
 }
 

@@ -19,16 +19,16 @@ namespace {
 		return fabs(t[8] - 1) < 0.1;
 	}
 
-	void rotate_vec(dVector3 &vec, const dReal * r){
+	void rotate_vec(dVector3 &vec, const dReal *r) {
 		dVector3 ans;
 		ans[0] = r[0] * vec[0] + r[1] * vec[1] + r[2] * vec[2];
 		ans[1] = r[4] * vec[0] + r[5] * vec[1] + r[6] * vec[2];
 		ans[2] = r[8] * vec[0] + r[8] * vec[1] + r[10] * vec[2];
-		
+
 		vec[0] = ans[0];
 		ans[1] = ans[1];
 		ans[2] = ans[2];
-	} 
+	}
 
 	/**
 	 * Conversion Factor from the value used in radio packets (1/4 degree) per 5 ms to motor voltage
@@ -185,18 +185,18 @@ void PlayerODE::pre_tic(double) {
 	double wheel_torque;
 	Point force;
 
-		if (isTipped(body)) {
-			// if the robot is tipped then put it upright
-			std::cout << "tipped " << std::endl;
-			const dReal * rot = dBodyGetRotation(body);
-			dVector3 vec = {1, 1, 0};
-			rotate_vec(vec, rot);
-			double angle = atan2(vec[0], vec[1]);
-			double c = cos(angle);
-			double s = sin(angle);
-			dMatrix3 rota = { c, -s, 0.0, 0.0, s, c, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0};
-			dBodySetRotation (body, rota);
-		}
+	if (isTipped(body)) {
+		// if the robot is tipped then put it upright
+		std::cout << "tipped " << std::endl;
+		const dReal *rot = dBodyGetRotation(body);
+		dVector3 vec = { 1, 1, 0 };
+		rotate_vec(vec, rot);
+		double angle = atan2(vec[0], vec[1]);
+		double c = cos(angle);
+		double s = sin(angle);
+		dMatrix3 rota = { c, -s, 0.0, 0.0, s, c, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 };
+		dBodySetRotation(body, rota);
+	}
 
 	if (!posSet && !isTipped(body)) {
 		// get the current bots velocity

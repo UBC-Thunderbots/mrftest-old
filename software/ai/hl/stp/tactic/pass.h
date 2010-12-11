@@ -4,7 +4,6 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
-
 			/**
 			 * Passing requires some a passer and passee.
 			 * To use this correctly, create a reference pointer to this instance.
@@ -13,7 +12,7 @@ namespace AI {
 				public:
 					typedef RefPtr<Pass> Ptr;
 
-					Pass(AI::HL::W::World& world);
+					Pass(AI::HL::W::World &world);
 
 					/**
 					 * Returns a tactic instance for passer.
@@ -26,13 +25,11 @@ namespace AI {
 					Tactic::Ptr passee();
 
 				protected:
-
 					/**
 					 * The actual work is done in this function.
 					 */
 					void tick();
 			};
-
 		}
 	}
 }

@@ -3,7 +3,7 @@
 using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
-Tactic::Tactic(World& world, double timeout) : world(world), timeout(timeout) {
+Tactic::Tactic(World &world, double timeout) : world(world), timeout(timeout) {
 	std::time(&start_time);
 }
 

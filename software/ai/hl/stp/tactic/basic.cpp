@@ -11,8 +11,9 @@ using namespace AI::HL::W;
 namespace {
 	class Move : public Tactic {
 		public:
-			Move(World& world, const Point dest) : Tactic(world), dest(dest) {
+			Move(World &world, const Point dest) : Tactic(world), dest(dest) {
 			}
+
 		private:
 			const Point dest;
 
@@ -31,7 +32,7 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::move(World& world, const Point dest) {
+Tactic::Ptr AI::HL::STP::move(World &world, const Point dest) {
 	const Tactic::Ptr p(new Move(world, dest));
 	return p;
 }
@@ -41,8 +42,9 @@ Tactic::Ptr AI::HL::STP::move(World& world, const Point dest) {
 namespace {
 	class DefendGoal : public Tactic {
 		public:
-			DefendGoal(World& world) : Tactic(world) {
+			DefendGoal(World &world) : Tactic(world) {
 			}
+
 		private:
 			double score(Player::Ptr player) const {
 				if (world.friendly_team().get(0) == player) {
@@ -57,7 +59,7 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::defend_goal(World& world) {
+Tactic::Ptr AI::HL::STP::defend_goal(World &world) {
 	const Tactic::Ptr p(new DefendGoal(world));
 	return p;
 }
@@ -67,8 +69,9 @@ Tactic::Ptr AI::HL::STP::defend_goal(World& world) {
 namespace {
 	class Repel : public Tactic {
 		public:
-			Repel(World& world) : Tactic(world) {
+			Repel(World &world) : Tactic(world) {
 			}
+
 		private:
 			bool done() const {
 				// will never be done... unless ball is outside the field
@@ -85,7 +88,7 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::repel(World& world) {
+Tactic::Ptr AI::HL::STP::repel(World &world) {
 	const Tactic::Ptr p(new Repel(world));
 	return p;
 }
@@ -95,8 +98,9 @@ Tactic::Ptr AI::HL::STP::repel(World& world) {
 namespace {
 	class Block : public Tactic {
 		public:
-			Block(World& world, Robot::Ptr robot) : Tactic(world), robot(robot) {
+			Block(World &world, Robot::Ptr robot) : Tactic(world), robot(robot) {
 			}
+
 		private:
 			Robot::Ptr robot;
 
@@ -111,7 +115,7 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::block(World& world, Robot::Ptr robot) {
+Tactic::Ptr AI::HL::STP::block(World &world, Robot::Ptr robot) {
 	const Tactic::Ptr p(new Block(world, robot));
 	return p;
 }
@@ -121,8 +125,9 @@ Tactic::Ptr AI::HL::STP::block(World& world, Robot::Ptr robot) {
 namespace {
 	class Shoot : public Tactic {
 		public:
-			Shoot(World& world) : Tactic(world) {
+			Shoot(World &world) : Tactic(world) {
 			}
+
 		private:
 			bool done() const {
 #warning find a way to check that the ball has left off in the right direction
@@ -140,7 +145,7 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::shoot(World& world) {
+Tactic::Ptr AI::HL::STP::shoot(World &world) {
 	const Tactic::Ptr p(new Shoot(world));
 	return p;
 }
@@ -150,8 +155,9 @@ Tactic::Ptr AI::HL::STP::shoot(World& world) {
 namespace {
 	class Chase : public Tactic {
 		public:
-			Chase(World& world) : Tactic(world) {
+			Chase(World &world) : Tactic(world) {
 			}
+
 		private:
 			bool done_;
 
@@ -179,7 +185,7 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::chase(World& world) {
+Tactic::Ptr AI::HL::STP::chase(World &world) {
 	const Tactic::Ptr p(new Chase(world));
 	return p;
 }
@@ -189,8 +195,9 @@ Tactic::Ptr AI::HL::STP::chase(World& world) {
 namespace {
 	class Idle : public Tactic {
 		public:
-			Idle(World& world) : Tactic(world) {
+			Idle(World &world) : Tactic(world) {
 			}
+
 		private:
 			double score(Player::Ptr) const {
 				return 1;
@@ -203,7 +210,7 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::idle(World& world) {
+Tactic::Ptr AI::HL::STP::idle(World &world) {
 	const Tactic::Ptr p(new Idle(world));
 	return p;
 }
