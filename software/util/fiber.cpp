@@ -75,7 +75,7 @@ namespace {
 	class FiberCancelledException : public std::runtime_error {
 		public:
 			FiberCancelledException();
-			~FiberCancelledException() throw();
+			~FiberCancelledException() throw ();
 	};
 
 	/**
@@ -98,7 +98,7 @@ void fiber_trampoline(int key) {
 FiberCancelledException::FiberCancelledException() : std::runtime_error("Fiber cancelled") {
 }
 
-FiberCancelledException::~FiberCancelledException() throw() {
+FiberCancelledException::~FiberCancelledException() throw () {
 }
 
 Fiber::Fiber(FiberGroup &group) : key(Canonicalizer::key()), group(group), state_(STATE_SUSPENDED), stack(1024 * 1024) {
