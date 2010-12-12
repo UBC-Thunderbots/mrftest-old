@@ -319,6 +319,8 @@ software/util/exception.cpp -text
 software/util/exception.h -text
 software/util/fd.cpp -text
 software/util/fd.h -text
+software/util/fiber.cpp -text
+software/util/fiber.h -text
 software/util/hungarian.cpp -text
 software/util/hungarian.h -text
 software/util/mapped_file.cpp -text
