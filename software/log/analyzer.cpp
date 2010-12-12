@@ -1776,7 +1776,7 @@ namespace {
 		} else {
 			if (length >= 8) {
 				uint64_t mask = decode_u64(data);
-				stream << "0x%1" << tohex(mask, 0);
+				stream << "0x" << tohex(mask, 0);
 			} else {
 				stream << "<PACKET TRUNCATED>";
 			}
