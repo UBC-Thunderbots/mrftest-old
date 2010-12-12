@@ -21,17 +21,20 @@ class LogAnalyzer : public Gtk::Window {
 		class Impl;
 
 		ScopedPtr<Impl> impl;
+		Gtk::VBox vbox;
 		Gtk::HPaned hpaned;
 		Gtk::VPaned vpaned;
 		bool panes_fixed;
 		Gtk::TreeView packets_list_view;
 		Gtk::TextView packet_raw_entry;
 		Gtk::TreeView packet_decoded_tree;
+		Gtk::Button to_tsv_button;
 
 		~LogAnalyzer();
 		bool on_delete_event(GdkEventAny *);
 		void on_size_allocate(Gtk::Allocation &alloc);
 		void on_packets_list_view_selection_changed();
+		void on_to_tsv_clicked();
 };
 
 #endif

@@ -12,6 +12,7 @@
 #include "util/time.h"
 #include <cstring>
 #include <cwchar>
+#include <fstream>
 #include <iomanip>
 #include <locale>
 #include <sstream>
@@ -412,6 +413,31 @@ namespace {
 	}
 
 	/**
+	 * Parses a trailing UTF-8 string and writes a TSV column containing the string.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_generic_utf8_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		std::string utf8(reinterpret_cast<const char *>(data), length);
+		Glib::ustring ustr(utf8);
+		if (ustr.validate()) {
+			stream << ustr;
+			if (length < declared_length) {
+				stream << " <PACKET TRUNCATED>";
+			}
+		} else {
+			stream << "<ILLEGAL UTF-8>";
+		}
+	}
+
+	/**
 	 * Computes flags for a one-byte boolean.
 	 *
 	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
@@ -454,6 +480,31 @@ namespace {
 				root[columns.value] = value ? "True" : "False";
 			} else {
 				root[columns.value] = "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
+	 * Parses a one-byte boolean and produces a TSV column of its value.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_generic_boolean_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 1) {
+			stream << "<OMITTED>";
+		} else {
+			if (length >= 1) {
+				uint8_t value = decode_u8(&data[0]);
+				stream << (value ? '1' : '0');
+			} else {
+				stream << "<PACKET TRUNCATED>";
 			}
 		}
 	}
@@ -506,6 +557,31 @@ namespace {
 	}
 
 	/**
+	 * Parses an unsigned 8-bit integer and produces a TSV column of its value.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_generic_uint8_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 1) {
+			stream << "<OMITTED>";
+		} else {
+			if (length >= 1) {
+				uint8_t value = decode_u8(data);
+				stream << static_cast<unsigned int>(value);
+			} else {
+				stream << "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
 	 * Computes flags for an unsigned 16-bit integer.
 	 *
 	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
@@ -548,6 +624,31 @@ namespace {
 				root[columns.value] = Glib::ustring::format(value);
 			} else {
 				root[columns.value] = "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
+	 * Parses an unsigned 16-bit integer and produces a TSV column of its value.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_generic_uint16_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 2) {
+			stream << "<OMITTED>";
+		} else {
+			if (length >= 2) {
+				uint16_t value = decode_u16(data);
+				stream << value;
+			} else {
+				stream << "<PACKET TRUNCATED>";
 			}
 		}
 	}
@@ -600,6 +701,31 @@ namespace {
 	}
 
 	/**
+	 * Parses a signed 16-bit integer and produces a TSV column of its value.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_generic_int16_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 2) {
+			stream << "<OMITTED>";
+		} else {
+			if (length >= 2) {
+				int16_t value = decode_u16(data);
+				stream << value;
+			} else {
+				stream << "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
 	 * Computes flags for a signed 64-bit integer.
 	 *
 	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
@@ -642,6 +768,31 @@ namespace {
 				root[columns.value] = Glib::ustring::format(value);
 			} else {
 				root[columns.value] = "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
+	 * Parses a signed 64-bit integer and produces a TSV column of its value.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_generic_int64_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 8) {
+			stream << "<OMITTED>";
+		} else {
+			if (length >= 8) {
+				int64_t value = decode_u64(data);
+				stream << value;
+			} else {
+				stream << "<PACKET TRUNCATED>";
 			}
 		}
 	}
@@ -705,6 +856,35 @@ namespace {
 	}
 
 	/**
+	 * Parses an unsigned 8-bit integer representing a robot pattern and produces a TSV column of its value.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_generic_pattern_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 1) {
+			stream << "<OMITTED>";
+		} else {
+			if (length >= 1) {
+				uint8_t pattern = decode_u8(data);
+				if (pattern < 16) {
+					stream << static_cast<unsigned int>(pattern);
+				} else {
+					stream << "<INVALID PATTERN NUMBER " << static_cast<unsigned int>(pattern) << '>';
+				}
+			} else {
+				stream << "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
 	 * Computes flags for a signed 32-bit integer representing a fixed-point number in millionths.
 	 *
 	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
@@ -748,6 +928,32 @@ namespace {
 				root[columns.value] = Glib::ustring::format(value);
 			} else {
 				root[columns.value] = "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
+	 * Parses a signed 32-bit integer representing a fixed-point number in millionths and produces a TSV column of its value.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_generic_int32u_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 4) {
+			stream << "<OMITTED>";
+		} else {
+			if (length >= 4) {
+				int32_t raw_value = decode_u32(data);
+				double value = raw_value / 1000000.0;
+				stream << value;
+			} else {
+				stream << "<PACKET TRUNCATED>";
 			}
 		}
 	}
@@ -817,6 +1023,38 @@ namespace {
 	}
 
 	/**
+	 * Parses an ASCII-encoded floating point number and produces a TSV column of its value.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_generic_old_double_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 20) {
+			stream << "<OMITTED>";
+		} else {
+			if (length >= 20) {
+				if (check_old_double(data, 20)) {
+					std::istringstream iss(std::string(reinterpret_cast<const char *>(data), 20));
+					iss.imbue(std::locale("C"));
+					double value;
+					iss >> value;
+					stream << value;
+				} else {
+					stream << "<INVALID FLOATING POINT ENCODING>";
+				}
+			} else {
+				stream << "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
 	 * Computes flags for an IEEE754 double-precision-encoded floating point number.
 	 *
 	 * \param[in] data this element's part of the packet payload.
@@ -862,6 +1100,30 @@ namespace {
 				root[columns.value] = Glib::ustring::format(decode_double(data));
 			} else {
 				root[columns.value] = "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
+	 * Parses an IEEE754 double-precision-encoded floating point number and produces a TSV column of its value.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_generic_double_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 8) {
+			stream << "<OMITTED>";
+		} else {
+			if (length >= 8) {
+				stream << decode_double(data);
+			} else {
+				stream << "<PACKET TRUNCATED>";
 			}
 		}
 	}
@@ -929,6 +1191,35 @@ namespace {
 	}
 
 	/**
+	 * Parses a realtime timespec and produces a TSV column of its value.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_generic_timespec_rt_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 12) {
+			stream << "<OMITTED>";
+		} else {
+			if (length >= 12) {
+				uint64_t seconds = decode_u64(&data[0]);
+				uint32_t nanos = decode_u32(&data[8]);
+				timespec ts;
+				ts.tv_sec = static_cast<std::time_t>(seconds);
+				ts.tv_nsec = static_cast<long>(nanos);
+				stream << timespec_to_time_string(ts);
+			} else {
+				stream << "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
 	 * Computes flags for a monotonic timespec.
 	 *
 	 * \param[in] data this element's part of the packet payload.
@@ -983,6 +1274,32 @@ namespace {
 				root[columns.value] = Glib::ustring::compose("%1.%2 (monotonic)", seconds, todec(nanos, 9));
 			} else {
 				root[columns.value] = "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
+	 * Parses a monotonic timespec and produces a TSV column of its value.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_generic_timespec_monotonic_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 12) {
+			stream << "<OMITTED>";
+		} else {
+			if (length >= 12) {
+				uint64_t seconds = decode_u64(&data[0]);
+				uint32_t nanos = decode_u32(&data[8]);
+				stream << seconds << '.' << todec(nanos, 9) << " (monotonic)";
+			} else {
+				stream << "<PACKET TRUNCATED>";
 			}
 		}
 	}
@@ -1069,6 +1386,51 @@ namespace {
 				}
 			} else {
 				root[columns.value] = "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
+	 * Parses a debug log message log level and produces a TSV column of its value.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_debug_log_level_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 1) {
+			stream << "<OMITTED>";
+		} else {
+			if (length >= 1) {
+				uint8_t level = decode_u8(data);
+				switch (level) {
+					case LOG_LEVEL_DEBUG:
+						stream << "Debug";
+						break;
+
+					case LOG_LEVEL_INFO:
+						stream << "Informational";
+						break;
+
+					case LOG_LEVEL_WARN:
+						stream << "Warning";
+						break;
+
+					case LOG_LEVEL_ERROR:
+						stream << "Error";
+						break;
+
+					default:
+						stream << "<UNKNOWN LEVEL>";
+						break;
+				}
+			} else {
+				stream << "<PACKET TRUNCATED>";
 			}
 		}
 	}
@@ -1183,6 +1545,40 @@ namespace {
 	}
 
 	/**
+	 * Parses a referee box command character and produces a TSV column of its value.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_refbox_command_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 1) {
+			stream << "<OMITTED>";
+		} else {
+			if (length >= 1) {
+				char code = decode_u8(data);
+				bool found = false;
+				for (std::size_t i = 0; i < G_N_ELEMENTS(REFBOX_MAPPING); ++i) {
+					if (REFBOX_MAPPING[i].command == code) {
+						stream << REFBOX_MAPPING[i].description;
+						found = true;
+					}
+				}
+				if (!found) {
+					stream << "<UNKNOWN CODE 0x" << tohex(code, 2) << '>';
+				}
+			} else {
+				stream << "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
 	 * Computes flags for a play type code.
 	 *
 	 * \param[in] data this element's part of the packet payload.
@@ -1240,6 +1636,35 @@ namespace {
 				}
 			} else {
 				root[columns.value] = "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
+	 * Parses a play type code and produces a TSV column of its value.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_playtype_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 1) {
+			stream << "<OMITTED>";
+		} else {
+			if (length >= 1) {
+				uint8_t code = decode_u8(data);
+				if (code < AI::Common::PlayType::COUNT) {
+					stream << AI::Common::PlayType::DESCRIPTIONS_GENERIC[code];
+				} else {
+					stream << "<UNKNOWN CODE 0x" << tohex(code, 2) << '>';
+				}
+			} else {
+				stream << "<PACKET TRUNCATED>";
 			}
 		}
 	}
@@ -1334,6 +1759,31 @@ namespace {
 	}
 
 	/**
+	 * Parses a movement flag mask and produces a TSV column of its value.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_friendly_robot_move_flags_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 8) {
+			stream << "<OMITTED>";
+		} else {
+			if (length >= 8) {
+				uint64_t mask = decode_u64(data);
+				stream << "0x%1" << tohex(mask, 0);
+			} else {
+				stream << "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
 	 * A mapping from movement type to descriptive text.
 	 */
 	const struct {
@@ -1413,6 +1863,40 @@ namespace {
 				}
 			} else {
 				root[columns.value] = "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
+	 * Parses a movement type and produces a TSV column of its value.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_friendly_robot_move_type_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 1) {
+			stream << "<OMITTED>";
+		} else {
+			if (length >= 1) {
+				uint8_t type = decode_u8(data);
+				bool found = false;
+				for (std::size_t i = 0; i < G_N_ELEMENTS(MOVE_TYPE_MAPPING); ++i) {
+					if (type == MOVE_TYPE_MAPPING[i].type) {
+						found = true;
+						stream << MOVE_TYPE_MAPPING[i].description;
+					}
+				}
+				if (!found) {
+					stream << "<UNKNOWN TYPE 0x" << tohex(type, 2) << '>';
+				}
+			} else {
+				stream << "<PACKET TRUNCATED>";
 			}
 		}
 	}
@@ -1500,6 +1984,40 @@ namespace {
 	}
 
 	/**
+	 * Parses a movement priority and produces a TSV column of its value.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_friendly_robot_move_prio_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 1) {
+			stream << "<OMITTED>";
+		} else {
+			if (length >= 1) {
+				uint8_t prio = decode_u8(data);
+				bool found = false;
+				for (std::size_t i = 0; i < G_N_ELEMENTS(MOVE_PRIO_MAPPING); ++i) {
+					if (prio == MOVE_PRIO_MAPPING[i].prio) {
+						found = true;
+						stream << MOVE_PRIO_MAPPING[i].description;
+					}
+				}
+				if (!found) {
+					stream << "<UNKNOWN PRIORITY 0x" << tohex(prio, 2) << '>';
+				}
+			} else {
+				stream << "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
 	 * An abstract packet parser.
 	 */
 	class PacketParser : public NonCopyable {
@@ -1559,6 +2077,20 @@ namespace {
 			 * (which will be greater than \p length if the packet is truncated).
 			 */
 			virtual void build_tree(Glib::RefPtr<Gtk::TreeStore> store, const PacketDecodedTreeColumns &columns, const Gtk::TreeRow &root, const uint8_t *data, std::size_t length, std::size_t declared_length) const = 0;
+
+			/**
+			 * Writes a packet to a text stream as tab-separated values.
+			 *
+			 * \param[in] stream the stream to write to.
+			 *
+			 * \param[in] data the payload of the packet.
+			 *
+			 * \param[in] length the length of the packet.
+			 *
+			 * \param[in] declared_length the length of the payload as declared in the header
+			 * (which will be greater than \p length if the packet is truncated).
+			 */
+			virtual void write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) const = 0;
 	};
 
 	PacketParser::PacketParser(Log::Tag tag, const Glib::ustring &name) : tag(tag), name(name) {
@@ -1574,18 +2106,13 @@ namespace {
 	class SequencePacketParser : public PacketParser {
 		public:
 			/**
-			 * An element of the sequence.
+			 * A type of sequence element.
 			 */
-			struct Element {
+			struct ElementType {
 				/**
 				 * The length of the element, in bytes, or zero if this element consumes any amount of data from the end of the packet.
 				 */
 				const std::size_t length;
-
-				/**
-				 * A text string naming the element.
-				 */
-				const Glib::ustring name;
 
 				/**
 				 * A function that computes the packet flags contributed by the element.
@@ -1618,6 +2145,34 @@ namespace {
 				 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
 				 */
 				void(*const build_tree) (Glib::RefPtr<Gtk::TreeStore>, const PacketDecodedTreeColumns &, const Gtk::TreeRow &, const uint8_t *, std::size_t, std::size_t);
+
+				/**
+				 * A function that produces a TSV column from an element.
+				 *
+				 * \param[in] stream the stream to write to.
+				 *
+				 * \param[in] data the element's part of the packet payload.
+				 *
+				 * \param[in] length the length of the payload data.
+				 *
+				 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+				 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+				 */
+				void(*const write_to_tsv) (std::ostream &, const uint8_t *, std::size_t, std::size_t);
+			};
+			/**
+			 * An element of the sequence.
+			 */
+			struct Element {
+				/**
+				 * A text string naming the element.
+				 */
+				const Glib::ustring name;
+
+				/**
+				 * The type of the element.
+				 */
+				const ElementType *type;
 			};
 
 			/**
@@ -1651,6 +2206,8 @@ namespace {
 			unsigned int compute_flags(const uint8_t *data, std::size_t length, std::size_t declared_length) const;
 
 			void build_tree(Glib::RefPtr<Gtk::TreeStore> store, const PacketDecodedTreeColumns &columns, const Gtk::TreeRow &root, const uint8_t *data, std::size_t length, std::size_t declared_length) const;
+
+			void write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) const;
 	};
 
 	SequencePacketParser::SequencePacketParser(Log::Tag tag, const Glib::ustring &name, const Element *elements, std::size_t num_elements) : PacketParser(tag, name), elements(elements), num_elements(num_elements) {
@@ -1664,14 +2221,14 @@ namespace {
 
 		for (std::size_t i = 0; i < num_elements; ++i) {
 			std::size_t element_length, element_declared_length;
-			if (elements[i].length > 0) {
-				element_length = std::min(length, elements[i].length);
-				element_declared_length = std::min(declared_length, elements[i].length);
+			if (elements[i].type->length > 0) {
+				element_length = std::min(length, elements[i].type->length);
+				element_declared_length = std::min(declared_length, elements[i].type->length);
 			} else {
 				element_length = length;
 				element_declared_length = declared_length;
 			}
-			flags |= elements[i].compute_flags(data, element_length, element_declared_length);
+			flags |= elements[i].type->compute_flags(data, element_length, element_declared_length);
 			length -= element_length;
 			declared_length -= element_declared_length;
 			if (length) {
@@ -1693,15 +2250,15 @@ namespace {
 
 		for (std::size_t i = 0; i < num_elements; ++i) {
 			std::size_t element_length, element_declared_length;
-			if (elements[i].length > 0) {
-				element_length = std::min(length, elements[i].length);
-				element_declared_length = std::min(declared_length, elements[i].length);
+			if (elements[i].type->length > 0) {
+				element_length = std::min(length, elements[i].type->length);
+				element_declared_length = std::min(declared_length, elements[i].type->length);
 			} else {
 				element_length = length;
 				element_declared_length = declared_length;
 			}
 			Gtk::TreeRow row = columns.append_kv(store, root, elements[i].name);
-			elements[i].build_tree(store, columns, row, data, element_length, element_declared_length);
+			elements[i].type->build_tree(store, columns, row, data, element_length, element_declared_length);
 			length -= element_length;
 			declared_length -= element_declared_length;
 			if (length) {
@@ -1710,6 +2267,30 @@ namespace {
 				data = 0;
 			}
 		}
+	}
+
+	void SequencePacketParser::write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) const {
+		stream << name;
+		for (std::size_t i = 0; i < num_elements; ++i) {
+			stream << '\t';
+			std::size_t element_length, element_declared_length;
+			if (elements[i].type->length > 0) {
+				element_length = std::min(length, elements[i].type->length);
+				element_declared_length = std::min(declared_length, elements[i].type->length);
+			} else {
+				element_length = length;
+				element_declared_length = declared_length;
+			}
+			elements[i].type->write_to_tsv(stream, data, element_length, element_declared_length);
+			length -= element_length;
+			declared_length -= element_declared_length;
+			if (length) {
+				data += element_length;
+			} else {
+				data = 0;
+			}
+		}
+		stream << '\n';
 	}
 
 	/**
@@ -1730,6 +2311,8 @@ namespace {
 			unsigned int compute_flags(const uint8_t *data, std::size_t length, std::size_t declared_length) const;
 
 			void build_tree(Glib::RefPtr<Gtk::TreeStore> store, const PacketDecodedTreeColumns &columns, const Gtk::TreeRow &root, const uint8_t *data, std::size_t length, std::size_t declared_length) const;
+
+			void write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) const;
 	};
 
 	EndOfLogPacketParser::EndOfLogPacketParser() : PacketParser(Log::T_END, "End of Log") {
@@ -1817,6 +2400,47 @@ namespace {
 		}
 	}
 
+	void EndOfLogPacketParser::write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) const {
+		stream << name << '\t';
+
+		if (declared_length < 1) {
+			stream << "<OMITTED>\n";
+		} else if (length >= 1) {
+			uint8_t reason = decode_u8(&data[0]);
+			switch (reason) {
+				case Log::ER_NORMAL:
+					stream << "Normal termination\n";
+					break;
+
+				case Log::ER_SIGNAL:
+				{
+					stream << "Fatal signal\t";
+					if (declared_length < 2) {
+						stream << "<OMITTED>\n";
+					} else if (length < 2) {
+						stream << "<PACKET TRUNCATED>\n";
+					} else {
+						int sig = decode_u8(&data[1]);
+						stream << sig << '\t' << strsignal(sig) << '\n';
+					}
+					break;
+				}
+
+				case Log::ER_EXCEPTION:
+				{
+					stream << "Uncaught exception\t";
+					packet_generic_utf8_write_to_tsv(stream, &data[1], length - 1, declared_length - 1);
+					stream << '\n';
+					break;
+				}
+
+				default:
+					stream << "<UNKNOWN REASON 0x" << tohex(reason, 2) << ">\n";
+					break;
+			}
+		}
+	}
+
 	/**
 	 * A packet parser for the SSL-Vision packet.
 	 */
@@ -1835,6 +2459,8 @@ namespace {
 			unsigned int compute_flags(const uint8_t *data, std::size_t length, std::size_t declared_length) const;
 
 			void build_tree(Glib::RefPtr<Gtk::TreeStore> store, const PacketDecodedTreeColumns &columns, const Gtk::TreeRow &root, const uint8_t *data, std::size_t length, std::size_t declared_length) const;
+
+			void write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) const;
 	};
 
 	SSLVisionPacketParser::SSLVisionPacketParser() : PacketParser(Log::T_VISION, "SSL-Vision Packet") {
@@ -1936,6 +2562,122 @@ namespace {
 		}
 	}
 
+	void SSLVisionPacketParser::write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) const {
+		if (length == declared_length) {
+			SSL_WrapperPacket wrapper;
+			if (wrapper.ParseFromArray(data, static_cast<int>(length))) {
+				if (wrapper.has_detection()) {
+					const SSL_DetectionFrame &det = wrapper.detection();
+					stream << "SSL-Vision Detection";
+					stream << '\t' << det.frame_number();
+					stream << '\t' << double_to_time_string(det.t_capture());
+					stream << '\t' << double_to_time_string(det.t_sent());
+					stream << '\t' << det.camera_id();
+					stream << '\n';
+					for (int i = 0; i < det.balls_size(); ++i) {
+						const SSL_DetectionBall &ball = det.balls(i);
+						stream << "SSL-Vision Ball";
+						stream << '\t' << i;
+						stream << '\t' << ball.confidence();
+						stream << '\t' << (ball.has_area() ? Glib::ustring::format(ball.area()) : "<OMITTED>");
+						stream << '\t' << Glib::ustring::compose("(%1, %2)", ball.x(), ball.y());
+						stream << '\t' << (ball.has_z() ? Glib::ustring::format(ball.z()) : "<OMITTED>");
+						stream << '\t' << Glib::ustring::compose("(%1, %2)", ball.pixel_x(), ball.pixel_y());
+						stream << '\n';
+					}
+					static const char team_colours[2] = { 'Y', 'B' };
+					static const SSL_DetectionRobot &(SSL_DetectionFrame::*const team_members[2])(int) const = { &SSL_DetectionFrame::robots_yellow, &SSL_DetectionFrame::robots_blue };
+					static int(SSL_DetectionFrame::*const team_sizes[2]) () const = { &SSL_DetectionFrame::robots_yellow_size, &SSL_DetectionFrame::robots_blue_size };
+					for (unsigned int i = 0; i < 2; ++i) {
+						for (int j = 0; j < (det.*team_sizes[i])(); ++j) {
+							const SSL_DetectionRobot &bot = (det.*team_members[i])(j);
+							stream << "SSL-Vision Robot";
+							stream << '\t' << team_colours[i];
+							stream << '\t' << j;
+							stream << '\t' << bot.confidence();
+							stream << '\t' << (bot.has_robot_id() ? Glib::ustring::format(bot.robot_id()) : "<OMITTED>");
+							stream << '\t' << Glib::ustring::compose("(%1, %2)", bot.x(), bot.y());
+							stream << '\t' << (bot.has_orientation() ? Glib::ustring::format(bot.orientation()) : "<OMITTED>");
+							stream << '\t' << Glib::ustring::compose("(%1, %2)", bot.pixel_x(), bot.pixel_y());
+							stream << '\t' << (bot.has_height() ? Glib::ustring::format(bot.height()) : "<OMITTED>");
+							stream << '\n';
+						}
+					}
+				}
+				if (wrapper.has_geometry()) {
+					const SSL_GeometryData &geom = wrapper.geometry();
+					stream << "SSL-Vision Field";
+					const SSL_GeometryFieldSize &field = geom.field();
+					stream << '\t' << field.line_width();
+					stream << '\t' << field.field_length();
+					stream << '\t' << field.field_width();
+					stream << '\t' << field.boundary_width();
+					stream << '\t' << field.referee_width();
+					stream << '\t' << field.goal_width();
+					stream << '\t' << field.goal_depth();
+					stream << '\t' << field.goal_wall_width();
+					stream << '\t' << field.center_circle_radius();
+					stream << '\t' << field.defense_radius();
+					stream << '\t' << field.defense_stretch();
+					stream << '\t' << field.free_kick_from_defense_dist();
+					stream << '\t' << field.penalty_spot_from_field_line_dist();
+					stream << '\t' << field.penalty_line_from_spot_dist();
+					stream << '\n';
+					for (int i = 0; i < geom.calib_size(); ++i) {
+						const SSL_GeometryCameraCalibration &calib = geom.calib(i);
+						stream << "SSL-Vision Camera\t" << calib.camera_id();
+						stream << '\t' << calib.focal_length();
+						stream << '\t' << calib.principal_point_x();
+						stream << '\t' << calib.principal_point_y();
+						stream << '\t' << calib.distortion();
+						stream << '\t' << calib.q0();
+						stream << '\t' << calib.q1();
+						stream << '\t' << calib.q2();
+						stream << '\t' << calib.q3();
+						stream << '\t' << calib.tx();
+						stream << '\t' << calib.ty();
+						stream << '\t' << calib.tz();
+						stream << '\t' << (calib.has_derived_camera_world_tx() ? Glib::ustring::format(calib.derived_camera_world_tx()) : "<OMITTED>");
+						stream << '\t' << (calib.has_derived_camera_world_ty() ? Glib::ustring::format(calib.derived_camera_world_ty()) : "<OMITTED>");
+						stream << '\t' << (calib.has_derived_camera_world_tz() ? Glib::ustring::format(calib.derived_camera_world_tz()) : "<OMITTED>");
+						stream << '\n';
+					}
+				}
+			} else {
+				stream << "SSL-Vision\t<PARSE FAILED>\n";
+			}
+		}
+	}
+
+#define DEFINE_ELTYPE(type, len) \
+	const SequencePacketParser::ElementType type = { \
+		length: len, \
+		compute_flags: type ## _compute_flags, \
+		build_tree: type ## _build_tree, \
+		write_to_tsv: type ## _write_to_tsv, \
+	}
+
+DEFINE_ELTYPE(packet_generic_boolean, 1);
+DEFINE_ELTYPE(packet_generic_uint8, 1);
+DEFINE_ELTYPE(packet_generic_uint16, 2);
+DEFINE_ELTYPE(packet_generic_int16, 2);
+DEFINE_ELTYPE(packet_generic_int32u, 4);
+DEFINE_ELTYPE(packet_generic_int64, 8);
+DEFINE_ELTYPE(packet_generic_double, 8);
+DEFINE_ELTYPE(packet_generic_old_double, 20);
+DEFINE_ELTYPE(packet_generic_pattern, 1);
+DEFINE_ELTYPE(packet_generic_utf8, 0);
+DEFINE_ELTYPE(packet_generic_timespec_monotonic, 12);
+DEFINE_ELTYPE(packet_generic_timespec_rt, 12);
+DEFINE_ELTYPE(packet_debug_log_level, 1);
+DEFINE_ELTYPE(packet_refbox_command, 1);
+DEFINE_ELTYPE(packet_playtype, 1);
+DEFINE_ELTYPE(packet_friendly_robot_move_flags, 8);
+DEFINE_ELTYPE(packet_friendly_robot_move_type, 1);
+DEFINE_ELTYPE(packet_friendly_robot_move_prio, 1);
+
+#undef DEFINE_ELTYPE
+
 	/**
 	 * The sequence of elements in a Log::T_START.
 	 */
@@ -1956,8 +2698,8 @@ namespace {
 	 * The sequence of elements in a Log::T_DEBUG.
 	 */
 	const SequencePacketParser::Element packet_debug_elements[] = {
-		{ length: 1, name: "Log level", compute_flags: &packet_debug_log_level_compute_flags, build_tree: &packet_debug_log_level_build_tree, },
-		{ length: 0, name: "Message", compute_flags: &packet_generic_utf8_compute_flags, build_tree: &packet_generic_utf8_build_tree },
+		{ "Log level", &packet_debug_log_level },
+		{ "Message", &packet_generic_utf8 },
 	};
 
 	/**
@@ -1969,8 +2711,8 @@ namespace {
 	 * The sequence of elements in a Log::T_ANNUNCIATOR.
 	 */
 	const SequencePacketParser::Element packet_annunciator_elements[] = {
-		{ length: 1, name: "Activate", compute_flags: &packet_generic_boolean_compute_flags, build_tree: &packet_generic_boolean_build_tree },
-		{ length: 0, name: "Message", compute_flags: &packet_generic_utf8_compute_flags, build_tree: &packet_generic_utf8_build_tree },
+		{ "Activate", &packet_generic_boolean },
+		{ "Message", &packet_generic_utf8 },
 	};
 
 	/**
@@ -1982,8 +2724,8 @@ namespace {
 	 * The sequence of elements in a Log::T_BOOL_PARAM.
 	 */
 	const SequencePacketParser::Element packet_bool_param_elements[] = {
-		{ length: 1, name: "Value", compute_flags: &packet_generic_boolean_compute_flags, build_tree: &packet_generic_boolean_build_tree },
-		{ length: 0, name: "Parameter", compute_flags: &packet_generic_utf8_compute_flags, build_tree: &packet_generic_utf8_build_tree },
+		{ "Value", &packet_generic_boolean },
+		{ "Parameter", &packet_generic_utf8 },
 	};
 
 	/**
@@ -1995,8 +2737,8 @@ namespace {
 	 * The sequence of elements in a Log::T_INT_PARAM.
 	 */
 	const SequencePacketParser::Element packet_int_param_elements[] = {
-		{ length: 8, name: "Value", compute_flags: &packet_generic_int64_compute_flags, build_tree: &packet_generic_int64_build_tree },
-		{ length: 0, name: "Parameter", compute_flags: &packet_generic_utf8_compute_flags, build_tree: &packet_generic_utf8_build_tree },
+		{ "Value", &packet_generic_int64 },
+		{ "Parameter", &packet_generic_utf8 },
 	};
 
 	/**
@@ -2008,8 +2750,8 @@ namespace {
 	 * The sequence of elements in a Log::T_DOUBLE_PARAM_OLD.
 	 */
 	const SequencePacketParser::Element packet_double_param_old_elements[] = {
-		{ length: 20, name: "Value", compute_flags: &packet_generic_old_double_compute_flags, build_tree: &packet_generic_old_double_build_tree },
-		{ length: 0, name: "Parameter", compute_flags: &packet_generic_utf8_compute_flags, build_tree: &packet_generic_utf8_build_tree },
+		{ "Value", &packet_generic_old_double },
+		{ "Parameter", &packet_generic_utf8 },
 	};
 
 	/**
@@ -2026,11 +2768,11 @@ namespace {
 	 * The sequence of elements in a Log::T_REFBOX.
 	 */
 	const SequencePacketParser::Element packet_refbox_elements[] = {
-		{ length: 1, name: "Command", compute_flags: &packet_refbox_command_compute_flags, build_tree: &packet_refbox_command_build_tree },
-		{ length: 1, name: "Counter", compute_flags: &packet_generic_uint8_compute_flags, build_tree: &packet_generic_uint8_build_tree },
-		{ length: 1, name: "Goals Blue", compute_flags: &packet_generic_uint8_compute_flags, build_tree: &packet_generic_uint8_build_tree },
-		{ length: 1, name: "Goals Yellow", compute_flags: &packet_generic_uint8_compute_flags, build_tree: &packet_generic_uint8_build_tree },
-		{ length: 2, name: "Time Remaining", compute_flags: &packet_generic_uint16_compute_flags, build_tree: &packet_generic_uint16_build_tree },
+		{ "Command", &packet_refbox_command },
+		{ "Counter", &packet_generic_uint8 },
+		{ "Goals Blue", &packet_generic_uint8 },
+		{ "Goals Yellow", &packet_generic_uint8 },
+		{ "Time Remaining", &packet_generic_uint16 },
 	};
 
 	/**
@@ -2042,14 +2784,14 @@ namespace {
 	 * The sequence of elements in a Log::T_FIELD.
 	 */
 	const SequencePacketParser::Element packet_field_elements[] = {
-		{ length: 4, name: "Length", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Total length", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Width", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Total width", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Goal width", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Centre circle radius", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Defense arc radius", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Defense area stretch", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
+		{ "Length", &packet_generic_int32u },
+		{ "Total length", &packet_generic_int32u },
+		{ "Width", &packet_generic_int32u },
+		{ "Total width", &packet_generic_int32u },
+		{ "Goal width", &packet_generic_int32u },
+		{ "Centre circle radius", &packet_generic_int32u },
+		{ "Defense arc radius", &packet_generic_int32u },
+		{ "Defense area stretch", &packet_generic_int32u },
 	};
 
 	/**
@@ -2061,7 +2803,7 @@ namespace {
 	 * The sequence of elements in a Log::T_BALL_FILTER, Log::T_COACH, Log::T_STRATEGY, or Log::T_ROBOT_CONTROLLER.
 	 */
 	const SequencePacketParser::Element packet_bfcsrc_elements[] = {
-		{ length: 0, name: "Name", compute_flags: &packet_generic_utf8_compute_flags, build_tree: &packet_generic_utf8_build_tree },
+		{ "Name", &packet_generic_utf8 },
 	};
 
 	/**
@@ -2088,7 +2830,7 @@ namespace {
 	 * The sequence of elements in a Log::T_PLAYTYPE.
 	 */
 	const SequencePacketParser::Element packet_playtype_elements[] = {
-		{ length: 1, name: "Play type", compute_flags: &packet_playtype_compute_flags, build_tree: &packet_playtype_build_tree },
+		{ "Play type", &packet_playtype },
 	};
 
 	/**
@@ -2100,8 +2842,8 @@ namespace {
 	 * The sequence of elements in a Log::T_SCORES.
 	 */
 	const SequencePacketParser::Element packet_scores_elements[] = {
-		{ length: 1, name: "Friendly score", compute_flags: &packet_generic_uint8_compute_flags, build_tree: &packet_generic_uint8_build_tree },
-		{ length: 1, name: "Enemy score", compute_flags: &packet_generic_uint8_compute_flags, build_tree: &packet_generic_uint8_build_tree },
+		{ "Friendly score", &packet_generic_uint8 },
+		{ "Enemy score", &packet_generic_uint8 },
 	};
 
 	/**
@@ -2113,26 +2855,26 @@ namespace {
 	 * The sequence of elements in a Log::T_FRIENDLY_ROBOT.
 	 */
 	const SequencePacketParser::Element packet_friendly_robot_elements[] = {
-		{ length: 1, name: "Pattern", compute_flags: &packet_generic_pattern_compute_flags, build_tree: &packet_generic_pattern_build_tree },
-		{ length: 4, name: "X position", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Y position", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Orientation", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "X velocity", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Y velocity", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Angular velocity", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "X acceleration", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Y acceleration", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Angular acceleration", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Target X position", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Target Y position", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Target orientation", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 8, name: "Movement flags", compute_flags: &packet_friendly_robot_move_flags_compute_flags, build_tree: &packet_friendly_robot_move_flags_build_tree },
-		{ length: 1, name: "Movement type", compute_flags: &packet_friendly_robot_move_type_compute_flags, build_tree: &packet_friendly_robot_move_type_build_tree },
-		{ length: 1, name: "Movement priority", compute_flags: &packet_friendly_robot_move_prio_compute_flags, build_tree: &packet_friendly_robot_move_prio_build_tree },
-		{ length: 2, name: "Wheel 1 speed", compute_flags: &packet_generic_int16_compute_flags, build_tree: &packet_generic_int16_build_tree },
-		{ length: 2, name: "Wheel 2 speed", compute_flags: &packet_generic_int16_compute_flags, build_tree: &packet_generic_int16_build_tree },
-		{ length: 2, name: "Wheel 3 speed", compute_flags: &packet_generic_int16_compute_flags, build_tree: &packet_generic_int16_build_tree },
-		{ length: 2, name: "Wheel 4 speed", compute_flags: &packet_generic_int16_compute_flags, build_tree: &packet_generic_int16_build_tree },
+		{ "Pattern", &packet_generic_pattern },
+		{ "X position", &packet_generic_int32u },
+		{ "Y position", &packet_generic_int32u },
+		{ "Orientation", &packet_generic_int32u },
+		{ "X velocity", &packet_generic_int32u },
+		{ "Y velocity", &packet_generic_int32u },
+		{ "Angular velocity", &packet_generic_int32u },
+		{ "X acceleration", &packet_generic_int32u },
+		{ "Y acceleration", &packet_generic_int32u },
+		{ "Angular acceleration", &packet_generic_int32u },
+		{ "Target X position", &packet_generic_int32u },
+		{ "Target Y position", &packet_generic_int32u },
+		{ "Target orientation", &packet_generic_int32u },
+		{ "Movement flags", &packet_friendly_robot_move_flags },
+		{ "Movement type", &packet_friendly_robot_move_type },
+		{ "Movement priority", &packet_friendly_robot_move_prio },
+		{ "Wheel 1 speed", &packet_generic_int16 },
+		{ "Wheel 2 speed", &packet_generic_int16 },
+		{ "Wheel 3 speed", &packet_generic_int16 },
+		{ "Wheel 4 speed", &packet_generic_int16 },
 	};
 
 	/**
@@ -2144,11 +2886,11 @@ namespace {
 	 * The sequence of elements in a Log::T_PATH_ELEMENT.
 	 */
 	const SequencePacketParser::Element packet_path_element_elements[] = {
-		{ length: 1, name: "Pattern", compute_flags: &packet_generic_pattern_compute_flags, build_tree: &packet_generic_pattern_build_tree },
-		{ length: 4, name: "Target X position", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Target Y position", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Target orientation", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 12, name: "Deadline", compute_flags: &packet_generic_timespec_monotonic_compute_flags, build_tree: &packet_generic_timespec_monotonic_build_tree },
+		{ "Pattern", &packet_generic_pattern },
+		{ "Target X position", &packet_generic_int32u },
+		{ "Target Y position", &packet_generic_int32u },
+		{ "Target orientation", &packet_generic_int32u },
+		{ "Deadline", &packet_generic_timespec_monotonic },
 	};
 
 	/**
@@ -2160,16 +2902,16 @@ namespace {
 	 * The sequence of elements in a Log::T_ENEMY_ROBOT.
 	 */
 	const SequencePacketParser::Element packet_enemy_robot_elements[] = {
-		{ length: 1, name: "Pattern", compute_flags: &packet_generic_pattern_compute_flags, build_tree: &packet_generic_pattern_build_tree },
-		{ length: 4, name: "X position", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Y position", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Orientation", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "X velocity", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Y velocity", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Angular velocity", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "X acceleration", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Y acceleration", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Angular acceleration", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
+		{ "Pattern", &packet_generic_pattern },
+		{ "X position", &packet_generic_int32u },
+		{ "Y position", &packet_generic_int32u },
+		{ "Orientation", &packet_generic_int32u },
+		{ "X velocity", &packet_generic_int32u },
+		{ "Y velocity", &packet_generic_int32u },
+		{ "Angular velocity", &packet_generic_int32u },
+		{ "X acceleration", &packet_generic_int32u },
+		{ "Y acceleration", &packet_generic_int32u },
+		{ "Angular acceleration", &packet_generic_int32u },
 	};
 
 	/**
@@ -2181,12 +2923,12 @@ namespace {
 	 * The sequence of elements in a Log::T_BALL.
 	 */
 	const SequencePacketParser::Element packet_ball_elements[] = {
-		{ length: 4, name: "X position", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Y position", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "X velocity", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Y velocity", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "X acceleration", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
-		{ length: 4, name: "Y acceleration", compute_flags: &packet_generic_int32u_compute_flags, build_tree: &packet_generic_int32u_build_tree },
+		{ "X position", &packet_generic_int32u },
+		{ "Y position", &packet_generic_int32u },
+		{ "X velocity", &packet_generic_int32u },
+		{ "Y velocity", &packet_generic_int32u },
+		{ "X acceleration", &packet_generic_int32u },
+		{ "Y acceleration", &packet_generic_int32u },
 	};
 
 	/**
@@ -2198,8 +2940,8 @@ namespace {
 	 * The sequence of elements in a Log::T_AI_TICK.
 	 */
 	const SequencePacketParser::Element packet_ai_tick_elements[] = {
-		{ length: 12, name: "Time", compute_flags: &packet_generic_timespec_rt_compute_flags, build_tree: &packet_generic_timespec_rt_build_tree },
-		{ length: 12, name: "Time", compute_flags: &packet_generic_timespec_monotonic_compute_flags, build_tree: &packet_generic_timespec_monotonic_build_tree },
+		{ "Time", &packet_generic_timespec_rt },
+		{ "Time", &packet_generic_timespec_monotonic },
 	};
 
 	/**
@@ -2211,7 +2953,7 @@ namespace {
 	 * The sequence of elements in a Log::T_BACKEND.
 	 */
 	const SequencePacketParser::Element packet_backend_elements[] = {
-		{ length: 0, name: "Name", compute_flags: &packet_generic_utf8_compute_flags, build_tree: &packet_generic_utf8_build_tree },
+		{ "Name", &packet_generic_utf8 },
 	};
 
 	/**
@@ -2223,8 +2965,8 @@ namespace {
 	 * The sequence of elements in a Log::T_DOUBLE_PARAM.
 	 */
 	const SequencePacketParser::Element packet_double_param_elements[] = {
-		{ length: 8, name: "Value", compute_flags: &packet_generic_double_compute_flags, build_tree: &packet_generic_double_build_tree },
-		{ length: 0, name: "Parameter", compute_flags: &packet_generic_utf8_compute_flags, build_tree: &packet_generic_utf8_build_tree },
+		{ "Value", &packet_generic_double },
+		{ "Parameter", &packet_generic_utf8 },
 	};
 
 	/**
@@ -2436,6 +3178,28 @@ namespace {
 				}
 				return store;
 			}
+
+			void write_to_tsv(std::ostream &stream) const {
+				uint8_t tag = decode_u8(&data[0]);
+
+				if (length >= 3) {
+					const uint8_t *payload = &data[3];
+
+					std::size_t payload_declared_length = decode_u16(&data[1]);
+
+					std::size_t payload_length = payload_declared_length;
+					if (3 + payload_length > length) {
+						payload_length = length - 3;
+					}
+
+					for (std::size_t i = 0; i < G_N_ELEMENTS(packet_parsers); ++i) {
+						const PacketParser *parser = packet_parsers[i];
+						if (parser->tag == tag) {
+							parser->write_to_tsv(stream, payload, payload_length, payload_declared_length);
+						}
+					}
+				}
+			}
 	};
 
 	class PacketsALM : public Glib::Object, public AbstractListModel {
@@ -2518,7 +3282,7 @@ class LogAnalyzer::Impl : public NonCopyable {
 		}
 };
 
-LogAnalyzer::LogAnalyzer(Gtk::Window &parent, const std::string &filename) : impl(new Impl(filename)), panes_fixed(false), packets_list_view(impl->alm) {
+LogAnalyzer::LogAnalyzer(Gtk::Window &parent, const std::string &filename) : impl(new Impl(filename)), panes_fixed(false), packets_list_view(impl->alm), to_tsv_button("To TSV") {
 	set_title(Glib::ustring::compose("Thunderbots Log Tools - Analyzer - %1", Glib::filename_to_utf8(filename)));
 	set_transient_for(parent);
 	set_modal(false);
@@ -2559,7 +3323,12 @@ LogAnalyzer::LogAnalyzer(Gtk::Window &parent, const std::string &filename) : imp
 	frame->add(vpaned);
 	hpaned.pack2(*frame, Gtk::EXPAND | Gtk::SHRINK | Gtk::FILL);
 
-	add(hpaned);
+	to_tsv_button.signal_clicked().connect(sigc::mem_fun(this, &LogAnalyzer::on_to_tsv_clicked));
+
+	vbox.pack_start(hpaned, Gtk::PACK_EXPAND_WIDGET);
+	vbox.pack_start(to_tsv_button, Gtk::PACK_SHRINK);
+
+	add(vbox);
 
 	show_all();
 }
@@ -2589,6 +3358,28 @@ void LogAnalyzer::on_packets_list_view_selection_changed() {
 	} else {
 		packet_raw_entry.get_buffer()->erase(packet_raw_entry.get_buffer()->begin(), packet_raw_entry.get_buffer()->end());
 		packet_decoded_tree.set_model(Glib::RefPtr<Gtk::TreeModel>());
+	}
+}
+
+void LogAnalyzer::on_to_tsv_clicked() {
+	Gtk::FileChooserDialog fc(*this, "Save to TSV", Gtk::FILE_CHOOSER_ACTION_SAVE);
+	fc.set_local_only();
+	fc.set_select_multiple(false);
+	fc.set_do_overwrite_confirmation();
+	Gtk::FileFilter ff;
+	ff.set_name("TSV Files");
+	ff.add_pattern("*.tsv");
+	fc.add_filter(ff);
+	fc.add_button(Gtk::Stock::SAVE, Gtk::RESPONSE_OK);
+	fc.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+	if (fc.run() == Gtk::RESPONSE_OK) {
+		const std::string &filename = fc.get_filename();
+		std::ofstream ofs;
+		ofs.exceptions(std::ios::eofbit | std::ios::failbit | std::ios::badbit);
+		ofs.open(filename.c_str(), std::ios::out | std::ios::trunc);
+		for (std::vector<PacketInfo>::const_iterator i = impl->packets.begin(), iend = impl->packets.end(); i != iend; ++i) {
+			i->write_to_tsv(ofs);
+		}
 	}
 }
 
