@@ -1,7 +1,7 @@
 #ifndef FIBER_H
 #define FIBER_H
 
-#include "util/noncopyable.h"
+#include "util/byref.h"
 #include <ucontext.h>
 #include <vector>
 
@@ -21,8 +21,13 @@ extern "C" {
  * A typical application will subclass this class for each distinct execution pattern (i.e. each distinct implementation of run()),
  * construct instances of those subclasses against a FiberGroup, and then use the group to run the fibers.
  */
-class Fiber : public NonCopyable {
+class Fiber : public ByRef {
 	public:
+		/**
+		 * A pointer to a fiber.
+		 */
+		typedef RefPtr<Fiber> Ptr;
+
 		/**
 		 * The states a fiber can be in.
 		 */
@@ -49,6 +54,16 @@ class Fiber : public NonCopyable {
 		};
 
 		/**
+		 * Returns the fiber's current state.
+		 *
+		 * \return the fiber's current state.
+		 */
+		State state() const {
+			return state_;
+		}
+
+	protected:
+		/**
 		 * Constructs a new fiber.
 		 *
 		 * \param[in] group the group to make the fiber a member of.
@@ -62,16 +77,6 @@ class Fiber : public NonCopyable {
 		 */
 		virtual ~Fiber();
 
-		/**
-		 * Returns the fiber's current state.
-		 *
-		 * \return the fiber's current state.
-		 */
-		State state() const {
-			return state_;
-		}
-
-	protected:
 		/**
 		 * Executes the fiber's code.
 		 * The application overrides this method to provide the implementation of the fiber.
