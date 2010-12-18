@@ -302,6 +302,8 @@ software/util/algorithm.h -text
 software/util/annunciator.cpp -text
 software/util/annunciator.h -text
 software/util/byref.h -text
+software/util/cacheable.cpp -text
+software/util/cacheable.h -text
 software/util/chdir.cpp -text
 software/util/chdir.h -text
 software/util/clocksource.h -text

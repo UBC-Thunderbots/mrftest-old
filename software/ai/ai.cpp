@@ -1,4 +1,5 @@
 #include "ai/ai.h"
+#include "util/cacheable.h"
 #include "util/dprint.h"
 #include "util/objectstore.h"
 
@@ -32,6 +33,9 @@ AIPackage::~AIPackage() {
 }
 
 void AIPackage::tick() {
+	// Clear all cached data.
+	CacheableBase::flush_all();
+
 	// If we have a Coach installed, tick it.
 	AI::Coach::Coach::Ptr c = coach;
 	if (c.is()) {
