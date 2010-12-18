@@ -29,9 +29,15 @@ namespace {
 
 			void play();
 
+			void on_player_added(std::size_t);
+			void on_player_removed();
+
+			void reset();
+
 			void calc_play();
 			void calc_tactics();
 			void execute_tactics();
+			void role_assignment();
 
 			static Strategy::Ptr create(AI::HL::W::World &world);
 
@@ -44,16 +50,21 @@ namespace {
 			 */
 			int state;
 
-			Play::Ptr current_play;
-			PlayManager *current_play_manager;
+			Play::Ptr curr_play;
+			PlayManager *curr_play_manager;
 
 			// roles
-			int current_role_step;
-			std::vector<Tactic::Ptr> current_goalie_role;
-			std::vector<Tactic::Ptr> current_role1;
-			std::vector<Tactic::Ptr> current_role2;
-			std::vector<Tactic::Ptr> current_role3;
-			std::vector<Tactic::Ptr> current_role4;
+			int curr_role_step;
+
+			// the first role is for goalie
+			std::vector<Tactic::Ptr> curr_roles[5];
+
+			// active tactics
+			Tactic::Ptr curr_active;
+			Tactic::Ptr curr_tactics[5];
+
+			// current player assignment
+			Player::Ptr curr_assignment[5];
 
 			STPStrategy(AI::HL::W::World &world);
 			~STPStrategy();
@@ -100,6 +111,9 @@ namespace {
 		return p;
 	}
 
+	void STPStrategy::reset() {
+	}
+
 	void STPStrategy::calc_play() {
 		static bool initialized = false;
 		static std::vector<PlayManager *> managers;
@@ -118,15 +132,15 @@ namespace {
 		std::random_shuffle(managers.begin(), managers.end());
 		for (std::size_t i = 0; i < managers.size(); ++i) {
 			if (managers[i]->applicable(world)) {
-				current_play_manager = managers[i];
-				current_play = current_play_manager->create_play(world);
+				curr_play_manager = managers[i];
+				curr_play = curr_play_manager->create_play(world);
 				LOG_INFO(managers[i]->name());
 				break;
 			}
 		}
 
 		// ensure we have a play manager
-		if (current_play_manager == NULL) {
+		if (curr_play_manager == NULL) {
 			return;
 		}
 
@@ -136,30 +150,62 @@ namespace {
 	void STPStrategy::calc_tactics() {
 		state = 0;
 
-		current_role_step = 0;
-		current_goalie_role.clear();
-		current_role1.clear();
-		current_role2.clear();
-		current_role3.clear();
-		current_role4.clear();
+		curr_role_step = 0;
+		for (std::size_t i = 0; i < 5; ++i) {
+			curr_roles[i].clear();
+		}
 
-		current_play->assign(current_goalie_role, current_role1, current_role2, current_role3, current_role4);
+		curr_play->assign(curr_roles[0], curr_roles[1], curr_roles[2], curr_roles[3], curr_roles[4]);
 
 		state = 2;
 	}
 
-	void STPStrategy::execute_tactics() {
-		// check if current roles are done
+	void STPStrategy::role_assignment() {
 
-		return;
-
-		/*
-		// do matching
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
-		std::vector<bool> players_used(players.size(), false);
-		std::vector<Player::Ptr> assignment(current_tactics.size());
 
-		for (std::size_t i = 0; i < current_tactics.size(); ++i) {
+		int& r = curr_role_step;
+
+		curr_active.reset();
+		for (std::size_t i = 0; i < 5; ++i) {
+			curr_tactics[i].reset();
+		}
+
+		for (std::size_t i = 0; i < 5; ++i) {
+
+			if (curr_roles[i].size() <= r) break;
+
+			curr_tactics[i] = curr_roles[i][r];
+
+			if (curr_roles[i][r]->active()) {
+				if (curr_active.is()) {
+					LOG_ERROR("Multiple active tactics");
+					state = 0;
+					return;
+				}
+				curr_active = curr_roles[i][r];
+			}
+		}
+
+		if (!curr_active.is()) {
+			state = 0;
+			return;
+		}
+
+		// do matching
+		bool players_used[5];
+
+		std::fill(players_used, players_used + 5, false);
+		for (std::size_t i = 0; i < 5; ++i) {
+			curr_assignment[i].reset();
+		}
+
+		for (std::size_t i = 0; i < 5; ++i) {
+
+			if (!curr_tactics[i].is()) {
+				break;
+			}
+
 			double best_score = 0;
 			std::size_t best_j = 0;
 			Player::Ptr best;
@@ -167,7 +213,7 @@ namespace {
 				if (players_used[j]) {
 					continue;
 				}
-				double score = current_tactics[i]->score(players[j]);
+				double score = curr_tactics[i]->score(players[j]);
 				if (!best.is() || score > best_score) {
 					best = players[j];
 					best_j = j;
@@ -176,49 +222,61 @@ namespace {
 			}
 			if (best.is()) {
 				players_used[best_j] = true;
-				assignment[i] = best;
+				curr_assignment[i] = best;
 			}
 		}
 
 		bool active_assigned = false;
-
-		// now run the current_tactics
-		for (std::size_t i = 0; i < current_tactics.size(); ++i) {
-			if (!assignment[i].is()) {
+		for (std::size_t i = 0; i < 5; ++i) {
+			if (!curr_assignment[i].is()) {
 				continue;
 			}
-			current_tactics[i]->set_player(assignment[i]);
-			current_tactics[i]->execute();
-			if (current_tactics[i] == current_active_tactic) {
+			curr_tactics[i]->set_player(curr_assignment[i]);
+			if (curr_tactics[i]->active()) {
 				active_assigned = true;
 			}
 		}
 
-		if (active_assigned == false) {
+		if (!active_assigned) {
 			state = 0;
+			return;
+		}
+	}
+
+	void STPStrategy::execute_tactics() {
+
+		int& r = curr_role_step;
+		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
+
+		while (true) {
+			role_assignment();
+
+			if (state == 0) {
+				return;
+			}
+
+			if (curr_active->done()) {
+				++r;
+				continue;
+			}
 		}
 
-		// check if task is done
-		if (current_active_tactic->done()) {
-			LOG_INFO("tactic done");
-			state = 1;
+		// execute!
+		for (std::size_t i = 0; i < 5; ++i) {
+			if (!curr_assignment[i].is()) {
+				continue;
+			}
+			curr_tactics[i]->execute();
 		}
-
-		// check if it wants to terminate
-		if (current_play->has_resigned()) {
-			LOG_INFO("play resigned");
-			state = 0;
-		}
-		*/
 	}
 
 	void STPStrategy::play() {
-		// check if current play wants to continue
-		if (state != 0 && !current_play->done()) {
+		// check if curr play wants to continue
+		if (state != 0 && !curr_play->done()) {
 			state = 0;
 		}
 
-		// check if current is valid
+		// check if curr is valid
 		if (state == 0) {
 			calc_play();
 			if (state == 0) {
@@ -227,7 +285,7 @@ namespace {
 			}
 		}
 
-		// check if current is valid
+		// check if curr is valid
 		if (state == 1) {
 			calc_tactics();
 			if (state == 0) {
@@ -239,7 +297,17 @@ namespace {
 		execute_tactics();
 	}
 
-	STPStrategy::STPStrategy(World &world) : Strategy(world), current_play_manager(NULL) {
+	void STPStrategy::on_player_added(std::size_t) {
+		state = 0;
+	}
+
+	void STPStrategy::on_player_removed() {
+		state = 0;
+	}
+
+	STPStrategy::STPStrategy(World &world) : Strategy(world), curr_play_manager(NULL) {
+		world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &STPStrategy::on_player_added));
+		world.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &STPStrategy::on_player_removed));
 		state = 0;
 	}
 
