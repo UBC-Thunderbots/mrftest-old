@@ -1,5 +1,5 @@
-#ifndef AI_HL_STP_PLAY_H
-#define AI_HL_STP_PLAY_H
+#ifndef AI_HL_STP_PLAY_PLAY_H
+#define AI_HL_STP_PLAY_PLAY_H
 
 #include "ai/hl/world.h"
 #include "ai/hl/stp/tactic/tactic.h"
@@ -12,94 +12,118 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
-			/**
-			 * A play is a level in the STP paradigm.
-			 */
-			class Play : public ByRef, public sigc::trackable {
-				public:
-					typedef RefPtr<Play> Ptr;
+			namespace Play {
 
-					/**
-					 * Computes the roles.
-					 *
-					 * \param [out] tactics a vector of tactics.
-					 *
-					 * \param [out] active the active tactic.
-					 */
-					virtual void execute(std::vector<Tactic::Ptr> &tactics, Tactic::Ptr &active) = 0;
+				/**
+				 * A play is a level in the STP paradigm.
+				 */
+				class Play : public ByRef, public sigc::trackable {
+					public:
+						typedef RefPtr<Play> Ptr;
 
-					/**
-					 * Indicates how likely tactics assignments are changed.
-					 *
-					 * \return the probability that role assignment is changed.
-					 * 0 to indicate no change.
-					 */
-					virtual double change_probability() const = 0;
+						/**
+						 * assign the roles.
+						 */
+						virtual void assign(std::vector<AI::HL::STP::Tactic::Tactic::Ptr>& goalie_role, std::vector<AI::HL::STP::Tactic::Tactic::Ptr>& role1, std::vector<AI::HL::STP::Tactic::Tactic::Ptr>& role2, std::vector<AI::HL::STP::Tactic::Tactic::Ptr>& role3, std::vector<AI::HL::STP::Tactic::Tactic::Ptr>& role4) = 0;
 
-					/**
-					 * Check if the play has resigned.
-					 */
-					bool has_resigned() const;
+						/**
+						 * Checks if the condition for the play is no longer valid.
+						 */
+						virtual bool done() = 0;
 
-				protected:
-					/**
-					 * The World in which the Play lives.
-					 */
-					AI::HL::W::World &world;
+						/**
+						 * Indicates how likely tactics assignments are changed.
+						 *
+						 * \return the probability that role change is allowed.
+						 */
+						double change_probability() const;
 
-					Play(AI::HL::W::World &world);
+						/**
+						 * Time that this play is allowed to run.
+						 */
+						double timeout() const;
 
-					~Play();
+						/**
+						 * Check if the play has aborted.
+						 */
+						bool aborted() const;
 
-					/**
-					 * A subclass can invoke this function if it determines that it no longer wishes to control the team.
-					 */
-					void resign();
+						/**
+						 * Calculates how much time has elapsed.
+						 */
+						double elapsed_time() const;
 
-				private:
-					bool has_resigned_;
-			};
+					protected:
+						/**
+						 * The World in which the Play lives.
+						 */
+						AI::HL::W::World &world;
 
-			class PlayManager : public ByRef, public Registerable<PlayManager> {
-				public:
-					typedef RefPtr<PlayManager> Ptr;
+						Play(AI::HL::W::World &world);
 
-					/**
-					 * A scoring function to indicate how much it wants to be selected.
-					 * This function is ALWAYS checked before running the current play.
-					 *
-					 * \param[in] world the World in which the new Strategy should live.
-					 *
-					 * \param[in] running true if the previous play is the same play as what this manager handles.
-					 *
-					 * \return probability that this function is chosen.
-					 * Must return between 0 and 1.
-					 * 0 means do not select this at all.
-					 * 1 guarantees this function is chosen.
-					 *
-					 */
-					virtual double score(AI::HL::W::World &world, bool running) const = 0;
+						/**
+						 * Destructor
+						 */
+						virtual ~Play();
 
-					/**
-					 * Constructs a new instance of the Play corresponding to this PlayManager.
-					 *
-					 * \param[in] world the World in which the new Play should live.
-					 *
-					 * \return the new Play.
-					 */
-					virtual Play::Ptr create_play(AI::HL::W::World &world) const = 0;
+						/**
+						 * A subclass can invoke this function to abort.
+						 */
+						void abort();
 
-				protected:
-					/**
-					 * Constructs a new PlayManager.
-					 * Subclasses should call this constructor from their own constructors.
-					 *
-					 * \param[in] name a human-readable name for this Strategy.
-					 */
-					PlayManager(const char *name);
+						/**
+						 * A subclass can call this to change the timeout.
+						 */
+						void set_timeout(const double t);
 
-					~PlayManager();
-			};
+						/**
+						 * A subclass can call this to change the frequency of player assignments.
+						 */
+						void set_change_probability(const double p);
+
+					private:
+						bool aborted_;
+						double timeout_;
+						double change_probability_;
+						std::time_t start_time;
+				};
+
+				/**
+				 * A PlayManager is used to manage a particular play.
+				 * It has two objectives:
+				 * - check the initial condition
+				 * - factory to create an instance of play
+				 */
+				class PlayManager : public ByRef, public Registerable<PlayManager> {
+					public:
+						typedef RefPtr<PlayManager> Ptr;
+
+						/**
+						 * Check if this play should be selected.
+						 */
+						virtual bool applicable(AI::HL::W::World &world) const = 0;
+
+						/**
+						 * Constructs a new instance of the Play corresponding to this PlayManager.
+						 *
+						 * \param[in] world the World in which the new Play should live.
+						 *
+						 * \return the new Play.
+						 */
+						virtual Play::Ptr create_play(AI::HL::W::World &world) const = 0;
+
+					protected:
+						/**
+						 * Constructs a new PlayManager.
+						 * Subclasses should call this constructor from their own constructors.
+						 *
+						 * \param[in] name a human-readable name for this Strategy.
+						 */
+						PlayManager(const char *name);
+
+						~PlayManager();
+				};
+			}
 		}
 	}
 }

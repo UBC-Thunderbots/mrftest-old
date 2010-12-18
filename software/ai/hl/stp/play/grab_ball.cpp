@@ -5,13 +5,16 @@
 
 #include <glibmm.h>
 
-using namespace AI::HL::STP;
+using namespace AI::HL::STP::Play;
+using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
 namespace {
+
 	/**
 	 * Condition:
 	 * - ball not under any possesion
+	 * - at least 2 players
 	 *
 	 * Objective:
 	 * - grab the ball
@@ -20,70 +23,10 @@ namespace {
 		public:
 			GrabBallPlay(AI::HL::W::World &world);
 			~GrabBallPlay();
-
 		private:
-			void execute(std::vector<Tactic::Ptr> &tactics, Tactic::Ptr &active);
-			double change_probability() const;
+			bool done();
+			void assign(std::vector<Tactic::Ptr>& goalie_role, std::vector<Tactic::Ptr>& role1, std::vector<Tactic::Ptr>& role2, std::vector<Tactic::Ptr>& role3, std::vector<Tactic::Ptr>& role4);
 	};
-
-	GrabBallPlay::GrabBallPlay(World &world) : Play(world) {
-	}
-
-	GrabBallPlay::~GrabBallPlay() {
-	}
-
-	double GrabBallPlay::change_probability() const {
-		return 1.0;
-	}
-
-	void GrabBallPlay::execute(std::vector<Tactic::Ptr> &tactics, Tactic::Ptr &active) {
-		tactics.resize(5);
-
-		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
-		std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().friendly_goal()));
-
-		// GOALIE
-		if (world.friendly_team().size() == 1) {
-			tactics[0] = chase(world);
-			active = tactics[0];
-		} else {
-			tactics[0] = defend_goal(world);
-		}
-
-		// ROLE 1
-		// chase the ball!
-		tactics[1] = chase(world);
-		if (world.friendly_team().size() > 1) {
-			active = tactics[1];
-		}
-
-		// ROLE 2
-		// block nearest enemy
-		if (enemies.size() > 0) {
-			tactics[2] = block(world, enemies[0]);
-		} else {
-			tactics[2] = idle(world);
-		}
-
-		// ROLE 3
-		// block 2nd nearest enemy
-		if (enemies.size() > 1) {
-			tactics[3] = block(world, enemies[1]);
-		} else {
-			tactics[3] = idle(world);
-		}
-
-		// ROLE 4
-		// block 3rd nearest enemy
-		if (enemies.size() > 2) {
-			tactics[4] = block(world, enemies[2]);
-		} else {
-			tactics[4] = idle(world);
-		}
-	}
-
-	// /////////////////////////////////////////////////////////////////////////
-	// housekeeping code
 
 	class GrabBallPlayManager : public PlayManager {
 		public:
@@ -93,20 +36,68 @@ namespace {
 				const Play::Ptr p(new GrabBallPlay(world));
 				return p;
 			}
-			double score(World &world, bool) const;
+			bool applicable(World &world) const;
 	} factory_instance;
 
-	// /////////////////////////////////////////////////////////////////////////
-
-	double GrabBallPlayManager::score(World &world, bool) const {
+	bool GrabBallPlayManager::applicable(World &world) const {
 		// check if we do not have ball
 		FriendlyTeam &friendly = world.friendly_team();
+		if (friendly.size() < 2) return false;
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
 			if (friendly.get(i)->has_ball()) {
-				return 0;
+				return false;
 			}
 		}
-		return 0.5;
+		return true;
 	}
+
+	GrabBallPlay::GrabBallPlay(World &world) : Play(world) {
+	}
+
+	GrabBallPlay::~GrabBallPlay() {
+	}
+
+	bool GrabBallPlay::done() {
+		return factory_instance.applicable(world);
+	}
+
+	void GrabBallPlay::assign(std::vector<Tactic::Ptr>& goalie_role, std::vector<Tactic::Ptr>& role1, std::vector<Tactic::Ptr>& role2, std::vector<Tactic::Ptr>& role3, std::vector<Tactic::Ptr>& role4) {
+
+		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+		std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().friendly_goal()));
+
+		// GOALIE
+		// defend the goal
+		goalie_role.push_back(defend_goal(world));
+
+		// ROLE 1
+		// chase the ball!
+		role1.push_back(chase(world));
+
+		// ROLE 2
+		// block nearest enemy
+		if (enemies.size() > 0) {
+			role2.push_back(block(world, enemies[0]));
+		} else {
+			role2.push_back(idle(world));
+		}
+
+		// ROLE 3
+		// block 2nd nearest enemy
+		if (enemies.size() > 1) {
+			role3.push_back(block(world, enemies[1]));
+		} else {
+			role3.push_back(idle(world));
+		}
+
+		// ROLE 4
+		// block 3rd nearest enemy
+		if (enemies.size() > 2) {
+			role4.push_back(block(world, enemies[2]));
+		} else {
+			role4.push_back(idle(world));
+		}
+	}
+
 }
 

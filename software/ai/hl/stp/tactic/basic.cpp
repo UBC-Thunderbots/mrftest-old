@@ -3,7 +3,7 @@
 #include "ai/hl/util.h"
 #include "ai/hl/tactics.h"
 
-using namespace AI::HL::STP;
+using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
 // move
@@ -32,7 +32,7 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::move(World &world, const Point dest) {
+Tactic::Ptr AI::HL::STP::Tactic::move(World &world, const Point dest) {
 	const Tactic::Ptr p(new Move(world, dest));
 	return p;
 }
@@ -59,7 +59,7 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::defend_goal(World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::defend_goal(World &world) {
 	const Tactic::Ptr p(new DefendGoal(world));
 	return p;
 }
@@ -88,7 +88,7 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::repel(World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::repel(World &world) {
 	const Tactic::Ptr p(new Repel(world));
 	return p;
 }
@@ -115,7 +115,7 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::block(World &world, Robot::Ptr robot) {
+Tactic::Ptr AI::HL::STP::Tactic::block(World &world, Robot::Ptr robot) {
 	const Tactic::Ptr p(new Block(world, robot));
 	return p;
 }
@@ -145,7 +145,7 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::shoot(World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::shoot(World &world) {
 	const Tactic::Ptr p(new Shoot(world));
 	return p;
 }
@@ -185,7 +185,7 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::chase(World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::chase(World &world) {
 	const Tactic::Ptr p(new Chase(world));
 	return p;
 }
@@ -210,7 +210,7 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::idle(World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::idle(World &world) {
 	const Tactic::Ptr p(new Idle(world));
 	return p;
 }

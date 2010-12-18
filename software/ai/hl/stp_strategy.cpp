@@ -10,9 +10,9 @@ using AI::HL::Strategy;
 using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
 
-using AI::HL::STP::Play;
-using AI::HL::STP::PlayManager;
-using AI::HL::STP::Tactic;
+using AI::HL::STP::Play::Play;
+using AI::HL::STP::Play::PlayManager;
+using AI::HL::STP::Tactic::Tactic;
 
 namespace {
 	// The maximum amount of time a play can be running.
@@ -46,8 +46,14 @@ namespace {
 
 			Play::Ptr current_play;
 			PlayManager *current_play_manager;
-			std::vector<Tactic::Ptr> current_tactics;
-			Tactic::Ptr current_active_tactic;
+
+			// roles
+			int current_role_step;
+			std::vector<Tactic::Ptr> current_goalie_role;
+			std::vector<Tactic::Ptr> current_role1;
+			std::vector<Tactic::Ptr> current_role2;
+			std::vector<Tactic::Ptr> current_role3;
+			std::vector<Tactic::Ptr> current_role4;
 
 			STPStrategy(AI::HL::W::World &world);
 			~STPStrategy();
@@ -111,7 +117,7 @@ namespace {
 		// find a valid state
 		std::random_shuffle(managers.begin(), managers.end());
 		for (std::size_t i = 0; i < managers.size(); ++i) {
-			if (managers[i]->score(world, false) > 0) {
+			if (managers[i]->applicable(world)) {
 				current_play_manager = managers[i];
 				current_play = current_play_manager->create_play(world);
 				LOG_INFO(managers[i]->name());
@@ -130,39 +136,29 @@ namespace {
 	void STPStrategy::calc_tactics() {
 		state = 0;
 
-		// get the tactics
-		current_tactics.clear();
-		current_active_tactic.reset();
-		current_play->execute(current_tactics, current_active_tactic);
+		current_role_step = 0;
+		current_goalie_role.clear();
+		current_role1.clear();
+		current_role2.clear();
+		current_role3.clear();
+		current_role4.clear();
 
-		// make sure we have 5 tactics
-		if (current_tactics.size() != 5) {
-			LOG_ERROR("Play did not return 5 tactics!");
-			return;
-		}
-
-		// make sure we have a valid active tactic
-		if (!current_active_tactic.is()) {
-			LOG_ERROR("Play did not return 5 tactics!");
-			return;
-		}
-
-		// make sure all tactics are assigned
-		for (std::size_t i = 0; i < current_tactics.size(); ++i) {
-			if (!current_tactics[i].is()) {
-				LOG_ERROR("Play did not assign all 5 tactics!");
-				return;
-			}
-		}
+		current_play->assign(current_goalie_role, current_role1, current_role2, current_role3, current_role4);
 
 		state = 2;
 	}
 
 	void STPStrategy::execute_tactics() {
+		// check if current roles are done
+
+		return;
+
+		/*
 		// do matching
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 		std::vector<bool> players_used(players.size(), false);
 		std::vector<Player::Ptr> assignment(current_tactics.size());
+
 		for (std::size_t i = 0; i < current_tactics.size(); ++i) {
 			double best_score = 0;
 			std::size_t best_j = 0;
@@ -213,11 +209,12 @@ namespace {
 			LOG_INFO("play resigned");
 			state = 0;
 		}
+		*/
 	}
 
 	void STPStrategy::play() {
 		// check if current play wants to continue
-		if (state != 0 && current_play_manager->score(world, true) == 0) {
+		if (state != 0 && !current_play->done()) {
 			state = 0;
 		}
 
