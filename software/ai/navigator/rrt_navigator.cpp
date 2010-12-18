@@ -100,11 +100,11 @@ namespace {
 				diff = diff.rotate(-player->orientation());
 				double ang = radians2degrees(diff.orientation());
 
-				if(ang < 0) {
+				if (ang < 0) {
 					ang = -ang;
 				}
 
-				if(ang < ANGLE_DIFF) {
+				if (ang < ANGLE_DIFF) {
 					dest = world.ball().position();
 				} else {
 					// go to a point behind the ball if the robot isn't in the correct place to catch it
