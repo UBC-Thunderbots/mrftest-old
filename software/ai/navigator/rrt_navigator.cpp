@@ -1,5 +1,6 @@
 #include "ai/navigator/navigator.h"
 #include "ai/navigator/util.h"
+#include "geom/angle.h"
 #include "util/dprint.h"
 #include "util/objectstore.h"
 #include <glibmm.h>
@@ -19,6 +20,7 @@ namespace {
 	const double GOAL_PROB = 0.2;
 	const double WAYPOINT_PROB = 0.5;
 	const double RAND_PROB = 1.0 - GOAL_PROB - WAYPOINT_PROB;
+	const double ANGLE_DIFF = 4.0;
 	// number of iterations to go through for each robot until we give up and
 	// just return the best partial path we've found
 	const int ITERATION_LIMIT = 500;
@@ -42,6 +44,7 @@ namespace {
 			~RRTNavigator();
 
 			Waypoints::Ptr currPlayerWaypoints;
+			unsigned int added_flags;
 
 			double distance(Point nearest, Point goal);
 			Point random_point();
@@ -90,8 +93,34 @@ namespace {
 
 			currPlayerWaypoints = Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)]);
 
+			added_flags = 0;
+			Point dest;
+			if (player->type() == MOVE_CATCH) {
+				Point diff = world.ball().position() - player->position();
+				diff = diff.rotate(-player->orientation());
+				double ang = radians2degrees(diff.orientation());
+
+				if(ang < 0) {
+					ang = -ang;
+				}
+
+				if(ang < ANGLE_DIFF) {
+					dest = world.ball().position();
+				} else {
+					// go to a point behind the ball if the robot isn't in the correct place to catch it
+
+					Point pBehindBall(player->MAX_RADIUS + Ball::RADIUS + 0.07 , 0);
+					pBehindBall = pBehindBall.rotate(player->destination().second);
+					pBehindBall = Point(world.ball().position() - pBehindBall);
+					dest = pBehindBall;
+					added_flags = FLAG_AVOID_BALL_TINY;
+				}
+			} else {
+				dest = player->destination().first;
+			}
+
 			pathPoints.clear();
-			pathPoints = rrt_plan(player, player->position(), player->destination().first);
+			pathPoints = rrt_plan(player, player->position(), dest);
 
 			double destOrientation = player->destination().second;
 			for (std::size_t j = 0; j < pathPoints.size(); ++j) {
@@ -175,10 +204,10 @@ namespace {
 	// extend by STEP_DISTANCE towards the target from the start
 	Point RRTNavigator::extend(Player::Ptr player, Point start, Point target) {
 		Point extendPoint = start + ((target - start).norm() * STEP_DISTANCE);
+
 		// check if the point is invalid (collision, out of bounds, etc...)
 		// if it is then return EmptyState()
-
-		if (!valid_path(start, extendPoint, world, player)) {
+		if (!valid_path(start, extendPoint, world, player, added_flags)) {
 			return empty_state();
 		}
 
@@ -246,12 +275,17 @@ namespace {
 		std::vector<Point> finalPoints;
 
 		for (std::size_t i = 0; i < pathPoints.size(); ++i) {
-			if (!valid_path(pathPoints[subPathIndex], pathPoints[i], world, player)) {
+			if (!valid_path(pathPoints[subPathIndex], pathPoints[i], world, player, added_flags)) {
 				subPathIndex = i - 1;
 				finalPoints.push_back(pathPoints[i - 1]);
 			} else if (i == pathPoints.size() - 1) {
 				finalPoints.push_back(pathPoints[i]);
 			}
+		}
+
+		// if we are trying to catch the ball then add the ball location as the last point
+		if (player->type() == MOVE_CATCH && added_flags == FLAG_AVOID_BALL_TINY) {
+			finalPoints.push_back(world.ball().position());
 		}
 
 		return finalPoints;
