@@ -109,6 +109,8 @@ software/ai/hl/offender.h -text
 software/ai/hl/penalty_enemy_strategy.cpp -text
 software/ai/hl/penalty_friendly_strategy.cpp -text
 software/ai/hl/stop_strategy.cpp -text
+software/ai/hl/stp/module/shoot.cpp -text
+software/ai/hl/stp/module/shoot.h -text
 software/ai/hl/stp/play/grab_ball.cpp -text
 software/ai/hl/stp/play/just_shoot.cpp -text
 software/ai/hl/stp/play/play.cpp -text
