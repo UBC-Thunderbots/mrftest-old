@@ -2,7 +2,86 @@
 #define UTIL_BYREF_H
 
 #include "util/noncopyable.h"
+#include <functional>
 #include <utility>
+
+template<typename T> class RefPtr;
+
+/* Provide some standard functions for RefPtrs. */
+namespace std {
+	/**
+	 * Provides a total ordering of reference counting pointers so they can be stored in STL ordered containers.
+	 *
+	 * \tparam T the type of object pointed to.
+	 */
+	template<typename T> class less<RefPtr<T> > {
+		public:
+			/**
+			 * Compares two pointers.
+			 *
+			 * \param[in] x the first pointer.
+			 *
+			 * \param[in] y the second pointer.
+			 *
+			 * \return \c true if \p x should precede \p y in an ordered container, or \c false if not.
+			 */
+			bool operator()(const RefPtr<T> &x, const RefPtr<T> &y) const {
+				return cmp(x.obj, y.obj);
+			}
+
+		private:
+			const std::less<T *> cmp;
+	};
+
+	/**
+	 * Swaps the contents of two reference counting pointers.
+	 *
+	 * Note that this is subtly illegal.
+	 * It is legal to introduce template specializations of members of std, but not function overloads.
+	 * Unfortunately, it is not possible to define a partial specialization of a function template (only a full specialization or an overload).
+	 * Therefore, std::swap() below is actually an overload, since a full template specialization could not work on RefPtr<T> for all T.
+	 * People seem to do this, see <https://groups.google.com/group/comp.lang.c++.moderated/browse_thread/thread/b396fedad7dcdc81>.
+	 *
+	 * \tparam T the type of object pointed to.
+	 *
+	 * \param[in] x the first pointer to swap.
+	 *
+	 * \param[in] y the second pointer to swap.
+	 */
+	template<typename T> void swap(RefPtr<T> &x, RefPtr<T> &y) {
+		x.swap(y);
+	}
+}
+
+/**
+ * Compares two reference counting pointers for equality.
+ *
+ * \tparam T the type of object pointed to.
+ *
+ * \param[in] x the first pointer to compare.
+ *
+ * \param[in] y the second pointer to compare.
+ *
+ * \return \c true if \p x and \p y point at the same object, or \c false if they point at different objects.
+ */
+template<typename T> bool operator==(const RefPtr<T> &x, const RefPtr<T> &y) {
+	return x.obj == y.obj;
+}
+
+/**
+ * Compares two reference counting pointers for inequality.
+ *
+ * \tparam T the type of object pointed to.
+ *
+ * \param[in] x the first pointer to compare.
+ *
+ * \param[in] y the second pointer to compare.
+ *
+ * \return \c true if \p x and \p y point at different objects, or \c false if they point at the same object.
+ */
+template<typename T> bool operator!=(const RefPtr<T> &x, const RefPtr<T> &y) {
+	return x.obj != y.obj;
+}
 
 /**
  * A pointer that performs reference counting on its referent.
@@ -134,30 +213,6 @@ template<typename T> class RefPtr {
 		}
 
 		/**
-		 * Compares two RefPtrs.
-		 * Two RefPtrs are considered equal if they point at the same object or if they are both null.
-		 *
-		 * \param[in] other the RefPtr to compare to.
-		 *
-		 * \return \c true if \c this and \p other are equal, or \c false if not.
-		 */
-		bool operator==(const RefPtr<T> &other) const {
-			return obj == other.obj;
-		}
-
-		/**
-		 * Compares two RefPtrs.
-		 * Two RefPtrs are considered equal if they point at the same object or if they are both null.
-		 *
-		 * \param[in] other the RefPtr to compare to.
-		 *
-		 * \return \c true if \c this and \p other are unequal, or \c false if not.
-		 */
-		bool operator!=(const RefPtr<T> &other) const {
-			return obj != other.obj;
-		}
-
-		/**
 		 * Checks whether this RefPtr is null or not.
 		 *
 		 * \return \c true if this RefPtr points to an object, or \c false if it is null.
@@ -177,24 +232,11 @@ template<typename T> class RefPtr {
 
 	private:
 		T *obj;
-};
 
-namespace std {
-	/**
-	 * Swaps two \ref RefPtr "RefPtrs".
-	 * Note that this is an override introduced into the \c std namespace and not a template specialization and is therefore technically illegal;
-	 * that said, there exists no way to specialize \c std::swap on a template type, so this is the best solution.
-	 *
-	 * \tparam T the type to which the \ref RefPtr "RefPtrs" point.
-	 *
-	 * \param[in] x the first RefPtr to swap.
-	 *
-	 * \param[in] y the second RefPtr to swap.
-	 */
-	template<typename T> void swap(RefPtr<T> &x, RefPtr<T> &y) {
-		x.swap(y);
-	}
-}
+		friend class std::less<RefPtr<T> >;
+		friend bool operator==<>(const RefPtr<T> &, const RefPtr<T> &);
+		friend bool operator!=<>(const RefPtr<T> &, const RefPtr<T> &);
+};
 
 /**
  * An object that should be passed around by means of a RefPtr<> rather than by copying.
