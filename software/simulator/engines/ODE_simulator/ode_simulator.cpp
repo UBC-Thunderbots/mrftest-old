@@ -11,12 +11,12 @@ namespace {
 	//
 	// The limit of floating-point precision.
 	//
-	const dReal EPS = 1.0e-9;
+	const dReal EPS = static_cast<dReal>(1.0e-9);
 
 	//
 	// The force of gravity N/kg
 	//
-	const dReal GRAVITY = -9.81;
+	const dReal GRAVITY = static_cast<dReal>(-9.81);
 
 
 	const unsigned int UPDATES_PER_TICK = 20;
@@ -24,12 +24,12 @@ namespace {
 	//
 	//
 	//
-	const dReal CFM = 1E-5;
+	const dReal CFM = static_cast<dReal>(1E-5);
 
 	//
 	//
 	//
-	const dReal ERP = 1.0;
+	const dReal ERP = static_cast<dReal>(1.0);
 
 
 	//
@@ -59,7 +59,7 @@ namespace {
 
 			SimEngine() {
 				dInitODE();
-				timeStep = 1.0 / (static_cast<dReal>(TIMESTEPS_PER_SECOND) * static_cast<dReal>(UPDATES_PER_TICK));
+				timeStep =static_cast<dReal>( 1.0 / (static_cast<dReal>(TIMESTEPS_PER_SECOND) * static_cast<dReal>(UPDATES_PER_TICK)));
 				eworld = dWorldCreate();
 				dWorldSetGravity(eworld, 0, 0.0, GRAVITY);
 				space = dSimpleSpaceCreate(0);
@@ -68,8 +68,8 @@ namespace {
 
 
 
-				dReal wall_height = 20.5; // 1/2 meter
-				dReal wall_thickness = 0.1127; //
+				dReal wall_height = static_cast<dReal>(20.5); // 1/2 meter
+				dReal wall_thickness = static_cast<dReal>(0.1127); //
 
 				// build a wall around the playing field
 				wall[0] = dCreateBox(space, Simulator::Field::TOTAL_LENGTH + 2 * wall_thickness, wall_thickness, wall_height);

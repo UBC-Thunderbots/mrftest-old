@@ -130,8 +130,8 @@ Point PlayerODE::position() const {
 }
 
 // Accessor method to get the robots orientation
-dReal PlayerODE::orientation() const {
-	return orientationFromMatrix(dBodyGetRotation(body));
+double PlayerODE::orientation() const {
+	return static_cast<double>(orientationFromMatrix(dBodyGetRotation(body)));
 }
 
 void PlayerODE::dribble(dReal set_point){

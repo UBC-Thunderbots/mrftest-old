@@ -64,7 +64,7 @@ class PlayerODE : public Simulator::Player {
 
 		Point position() const;
 
-		dReal orientation() const;
+		double orientation() const;
 
 		bool has_ball() const;
 
