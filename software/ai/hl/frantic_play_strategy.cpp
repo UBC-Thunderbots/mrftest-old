@@ -116,7 +116,7 @@ namespace {
 		// it is easier to change players every tick?
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 
-		LOG_INFO(Glib::ustring::compose("defenders are for sissies: %2 offenders", players.size()));
+		LOG_INFO(Glib::ustring::compose("defenders are for sissies: %1 offenders", players.size()));
 		offender.set_players(players);
 	}
 }
