@@ -97,9 +97,9 @@ class PlayerODE : public Simulator::Player {
 
 		void velocity(const Point &vel);
 
-		void orientation(dReal orient);
+		void orientation(double orient);
 
-		void avelocity(dReal avel);
+		void avelocity(double avel);
 };
 
 #endif

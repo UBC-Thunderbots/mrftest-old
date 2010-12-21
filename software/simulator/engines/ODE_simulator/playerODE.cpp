@@ -322,14 +322,14 @@ void PlayerODE::velocity(const Point &vel) {
 	dBodySetLinearVel(body, vel.x, vel.y, 0.0);
 }
 
-void PlayerODE::orientation(dReal orient) {
+void PlayerODE::orientation(double orient) {
 	posSet = true;
 	dMatrix3 RotationMatrix;
-	dRFromAxisAndAngle(RotationMatrix, 0.0, 0.0, 1.0, orient);
+	dRFromAxisAndAngle(RotationMatrix, 0.0, 0.0, 1.0, static_cast<dReal>(orient));
 	dBodySetRotation(body, RotationMatrix);
 }
 
-void PlayerODE::avelocity(dReal avel) {
-	dBodySetAngularVel(body, 0.0, 0.0, avel);
+void PlayerODE::avelocity(double avel) {
+	dBodySetAngularVel(body, 0.0, 0.0, static_cast<dReal>(avel));
 }
 
