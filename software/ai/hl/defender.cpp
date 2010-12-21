@@ -1,13 +1,10 @@
 #include "ai/hl/defender.h"
-#include "ai/hl/util.h"
 #include "ai/hl/tactics.h"
+#include "ai/hl/util.h"
 #include "geom/util.h"
+#include "uicomponents/param.h"
 #include "util/algorithm.h"
 #include "util/dprint.h"
-
-#include "uicomponents/param.h"
-
-#include <iostream>
 
 using AI::HL::Defender;
 using namespace AI::HL::W;

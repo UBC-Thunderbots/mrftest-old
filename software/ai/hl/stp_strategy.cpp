@@ -3,7 +3,6 @@
 #include "ai/hl/stp/play/play.h"
 #include "ai/hl/stp/tactic/tactic.h"
 #include "util/dprint.h"
-
 #include <glibmm.h>
 
 using AI::HL::Strategy;

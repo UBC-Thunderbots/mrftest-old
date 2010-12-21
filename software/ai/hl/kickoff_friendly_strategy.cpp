@@ -9,8 +9,6 @@
 #include <algorithm>
 #include <vector>
 
-#include <iostream>
-
 using AI::HL::Strategy;
 using AI::HL::StrategyFactory;
 using namespace AI::HL::W;

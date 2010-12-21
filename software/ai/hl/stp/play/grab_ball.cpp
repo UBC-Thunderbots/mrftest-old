@@ -2,7 +2,6 @@
 #include "ai/hl/stp/tactic/basic.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
-
 #include <glibmm.h>
 
 using namespace AI::HL::STP::Play;

@@ -1,9 +1,8 @@
-#include "ai/hl/strategy.h"
 #include "ai/hl/defender.h"
 #include "ai/hl/offender.h"
+#include "ai/hl/strategy.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
-
 #include <glibmm.h>
 
 using AI::HL::Defender;

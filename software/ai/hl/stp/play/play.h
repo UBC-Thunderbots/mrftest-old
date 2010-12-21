@@ -3,17 +3,15 @@
 
 #include "ai/hl/world.h"
 #include "ai/hl/stp/tactic/tactic.h"
-
 #include "util/byref.h"
 #include "util/registerable.h"
-#include <cstddef>
+#include <ctime>
 #include <sigc++/sigc++.h>
 
 namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Play {
-
 				/**
 				 * A play is a level in the STP paradigm.
 				 */

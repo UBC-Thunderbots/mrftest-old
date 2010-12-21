@@ -1,7 +1,6 @@
 #include "ai/hl/stp/tactic/basic.h"
-
-#include "ai/hl/util.h"
 #include "ai/hl/tactics.h"
+#include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;

@@ -4,7 +4,6 @@
 #include "ai/hl/world.h"
 #include "util/byref.h"
 #include "util/registerable.h"
-
 #include <ctime>
 
 namespace AI {
