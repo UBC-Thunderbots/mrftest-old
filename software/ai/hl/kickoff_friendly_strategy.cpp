@@ -125,9 +125,9 @@ namespace {
 
 		if (!prepared) {
 			prepare();
-		} else {
-			execute();
-		}
+		} 
+		execute();
+		
 
 		defender.set_chase(false);
 		defender.tick();
