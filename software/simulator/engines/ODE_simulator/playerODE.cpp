@@ -156,8 +156,8 @@ void PlayerODE::dribble(dReal set_point){
 
 	dReal act_speed = x+y+z;
 
-	act_speed = std::min( speed, act_speed);
-	act_speed = std::max( 0.0, act_speed);
+	act_speed = std::min( speed, static_cast<dReal>(act_speed));
+	act_speed = std::max( static_cast<dReal>(0.0), static_cast<dReal>(act_speed));
 
 	dReal torque = ((speed-act_speed)/speed)*mx_torque;
 	dBodyAddTorque(dGeomGetBody(ballGeom), torque*vec[0], torque*vec[1], torque*vec[2]);
