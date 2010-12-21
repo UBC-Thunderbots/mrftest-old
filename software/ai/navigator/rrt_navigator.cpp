@@ -44,7 +44,7 @@ namespace {
 			~RRTNavigator();
 
 			Waypoints::Ptr currPlayerWaypoints;
-			unsigned int added_flags;
+			unsigned int addedFlags;
 
 			double distance(Point nearest, Point goal);
 			Point random_point();
@@ -70,20 +70,13 @@ namespace {
 	}
 
 	void RRTNavigator::tick() {
-		struct timespec currentTime;
+		struct timespec workingTime;
 		std::vector<std::pair<std::pair<Point, double>, timespec> > path;
 		std::vector<Point> pathPoints;
 
 		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 			path.clear();
 			Player::Ptr player = world.friendly_team().get(i);
-			timespec_now(currentTime);
-
-			const double dist = (player->position() - player->destination().first).len();
-			struct timespec timeToAdd = double_to_timespec(dist / MAX_SPEED);
-			struct timespec finalTime;
-
-			timespec_add(currentTime, timeToAdd, finalTime);
 
 			// create new waypoints for the player if they have not been created yet
 			if (!player->object_store()[typeid(*this)].is()) {
@@ -93,7 +86,7 @@ namespace {
 
 			currPlayerWaypoints = Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)]);
 
-			added_flags = 0;
+			addedFlags = 0;
 			Point dest;
 			if (player->type() == MOVE_CATCH) {
 				Point diff = world.ball().position() - player->position();
@@ -108,19 +101,23 @@ namespace {
 					dest = world.ball().position();
 				} else {
 					// go to a point behind the ball if the robot isn't in the correct place to catch it
-
 					Point pBehindBall(player->MAX_RADIUS + Ball::RADIUS + 0.07, 0);
 					pBehindBall = pBehindBall.rotate(player->destination().second);
 					pBehindBall = Point(world.ball().position() - pBehindBall);
 					dest = pBehindBall;
-					added_flags = FLAG_AVOID_BALL_TINY;
+					addedFlags = FLAG_AVOID_BALL_TINY;
 				}
 			} else {
 				dest = player->destination().first;
 			}
 
+			// calculate a path
 			pathPoints.clear();
 			pathPoints = rrt_plan(player, player->position(), dest);
+
+			double dist = 0.0;
+			struct timespec timeToAdd;
+			timespec_now(workingTime);
 
 			double destOrientation = player->destination().second;
 			for (std::size_t j = 0; j < pathPoints.size(); ++j) {
@@ -129,13 +126,23 @@ namespace {
 					destOrientation = (pathPoints[j + 1] - pathPoints[j]).orientation();
 				}
 
-				path.push_back(std::make_pair(std::make_pair(pathPoints[j], destOrientation), finalTime));
+				// get distance between last two points
+				if (j == 0) {
+					dist = (player->position() - pathPoints[0]).len();
+				} else {
+					dist = (pathPoints[j] - pathPoints[j - 1]).len();
+				}
+
+				timeToAdd = double_to_timespec(dist / MAX_SPEED);
+				timespec_add(workingTime, timeToAdd, workingTime);
+
+				path.push_back(std::make_pair(std::make_pair(pathPoints[j], destOrientation), workingTime));
 			}
 
 			// just use the current player position as the destination if we are within the
 			// threshold already
 			if (pathPoints.size() == 0) {
-				path.push_back(std::make_pair(std::make_pair(player->position(), destOrientation), finalTime));
+				path.push_back(std::make_pair(std::make_pair(player->position(), destOrientation), workingTime));
 			}
 
 			player->path(path);
@@ -207,7 +214,7 @@ namespace {
 
 		// check if the point is invalid (collision, out of bounds, etc...)
 		// if it is then return EmptyState()
-		if (!valid_path(start, extendPoint, world, player, added_flags)) {
+		if (!valid_path(start, extendPoint, world, player, addedFlags)) {
 			return empty_state();
 		}
 
@@ -275,7 +282,7 @@ namespace {
 		std::vector<Point> finalPoints;
 
 		for (std::size_t i = 0; i < pathPoints.size(); ++i) {
-			if (!valid_path(pathPoints[subPathIndex], pathPoints[i], world, player, added_flags)) {
+			if (!valid_path(pathPoints[subPathIndex], pathPoints[i], world, player, addedFlags)) {
 				subPathIndex = i - 1;
 				finalPoints.push_back(pathPoints[i - 1]);
 			} else if (i == pathPoints.size() - 1) {
@@ -284,7 +291,7 @@ namespace {
 		}
 
 		// if we are trying to catch the ball then add the ball location as the last point
-		if (player->type() == MOVE_CATCH && added_flags == FLAG_AVOID_BALL_TINY) {
+		if (player->type() == MOVE_CATCH && addedFlags == FLAG_AVOID_BALL_TINY) {
 			finalPoints.push_back(world.ball().position());
 		}
 
