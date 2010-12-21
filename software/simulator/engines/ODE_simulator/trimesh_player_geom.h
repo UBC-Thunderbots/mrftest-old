@@ -1,7 +1,6 @@
 #ifndef SIMULATOR_ENGINES_ODE_SIMULATOR_TRIMESH_PLAYER_GEOM_H
 #define SIMULATOR_ENGINES_ODE_SIMULATOR_TRIMESH_PLAYER_GEOM_H
 
-
 #include "player_geom.h"
 #include <ode/ode.h>
 
@@ -31,7 +30,7 @@ class Trimesh_player_geom : public Player_geom {
 		bool has_ball_now;
 
 		dVector3 *Vertices;
-		double * Verts;
+		double *Verts;
 		unsigned int *Triangles;
 };
 

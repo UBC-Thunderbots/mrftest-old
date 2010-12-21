@@ -212,7 +212,7 @@ namespace {
 		if (!(local ? localtime_r : gmtime_r)(&ts.tv_sec, &tm)) {
 			throw SystemError(local ? "localtime_r" : "gmtime_r", errno);
 		}
-		
+
 		std::use_facet<std::time_put<wchar_t> >(std::locale()).put(timebuf, timebuf, L' ', &tm, TIME_PATTERN, TIME_PATTERN + std::wcslen(TIME_PATTERN));
 		std::use_facet<std::time_put<wchar_t> >(std::locale()).put(tzbuf, tzbuf, L' ', &tm, TZ_PATTERN, TZ_PATTERN + std::wcslen(TZ_PATTERN));
 		return Glib::ustring::compose("%1.%2 %3", timebuf.str(), todec(ts.tv_nsec, 9), tzbuf.str());
@@ -2657,24 +2657,24 @@ namespace {
 		write_to_tsv: type ## _write_to_tsv, \
 	}
 
-DEFINE_ELTYPE(packet_generic_boolean, 1);
-DEFINE_ELTYPE(packet_generic_uint8, 1);
-DEFINE_ELTYPE(packet_generic_uint16, 2);
-DEFINE_ELTYPE(packet_generic_int16, 2);
-DEFINE_ELTYPE(packet_generic_int32u, 4);
-DEFINE_ELTYPE(packet_generic_int64, 8);
-DEFINE_ELTYPE(packet_generic_double, 8);
-DEFINE_ELTYPE(packet_generic_old_double, 20);
-DEFINE_ELTYPE(packet_generic_pattern, 1);
-DEFINE_ELTYPE(packet_generic_utf8, 0);
-DEFINE_ELTYPE(packet_generic_timespec_monotonic, 12);
-DEFINE_ELTYPE(packet_generic_timespec_rt, 12);
-DEFINE_ELTYPE(packet_debug_log_level, 1);
-DEFINE_ELTYPE(packet_refbox_command, 1);
-DEFINE_ELTYPE(packet_playtype, 1);
-DEFINE_ELTYPE(packet_friendly_robot_move_flags, 8);
-DEFINE_ELTYPE(packet_friendly_robot_move_type, 1);
-DEFINE_ELTYPE(packet_friendly_robot_move_prio, 1);
+	DEFINE_ELTYPE(packet_generic_boolean, 1);
+	DEFINE_ELTYPE(packet_generic_uint8, 1);
+	DEFINE_ELTYPE(packet_generic_uint16, 2);
+	DEFINE_ELTYPE(packet_generic_int16, 2);
+	DEFINE_ELTYPE(packet_generic_int32u, 4);
+	DEFINE_ELTYPE(packet_generic_int64, 8);
+	DEFINE_ELTYPE(packet_generic_double, 8);
+	DEFINE_ELTYPE(packet_generic_old_double, 20);
+	DEFINE_ELTYPE(packet_generic_pattern, 1);
+	DEFINE_ELTYPE(packet_generic_utf8, 0);
+	DEFINE_ELTYPE(packet_generic_timespec_monotonic, 12);
+	DEFINE_ELTYPE(packet_generic_timespec_rt, 12);
+	DEFINE_ELTYPE(packet_debug_log_level, 1);
+	DEFINE_ELTYPE(packet_refbox_command, 1);
+	DEFINE_ELTYPE(packet_playtype, 1);
+	DEFINE_ELTYPE(packet_friendly_robot_move_flags, 8);
+	DEFINE_ELTYPE(packet_friendly_robot_move_type, 1);
+	DEFINE_ELTYPE(packet_friendly_robot_move_prio, 1);
 
 #undef DEFINE_ELTYPE
 

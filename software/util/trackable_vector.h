@@ -316,7 +316,7 @@ namespace Util {
 			 *
 			 * \return the element at position \p n.
 			 */
-			T & operator[](const size_type n) {
+			T &operator[](const size_type n) {
 				return data[n];
 			}
 

@@ -109,7 +109,7 @@ namespace {
 				} else {
 					// go to a point behind the ball if the robot isn't in the correct place to catch it
 
-					Point pBehindBall(player->MAX_RADIUS + Ball::RADIUS + 0.07 , 0);
+					Point pBehindBall(player->MAX_RADIUS + Ball::RADIUS + 0.07, 0);
 					pBehindBall = pBehindBall.rotate(player->destination().second);
 					pBehindBall = Point(world.ball().position() - pBehindBall);
 					dest = pBehindBall;

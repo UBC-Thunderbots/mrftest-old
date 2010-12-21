@@ -9,7 +9,6 @@ using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
 namespace {
-
 	/**
 	 * Condition:
 	 * - ball under team possesion
@@ -21,9 +20,10 @@ namespace {
 		public:
 			JustShootPlay(AI::HL::W::World &world);
 			~JustShootPlay();
+
 		private:
 			bool done();
-			void assign(std::vector<Tactic::Ptr>& goalie_role, std::vector<Tactic::Ptr>& role1, std::vector<Tactic::Ptr>& role2, std::vector<Tactic::Ptr>& role3, std::vector<Tactic::Ptr>& role4);
+			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> &role1, std::vector<Tactic::Ptr> &role2, std::vector<Tactic::Ptr> &role3, std::vector<Tactic::Ptr> &role4);
 	};
 
 	class JustShootPlayManager : public PlayManager {
@@ -40,7 +40,9 @@ namespace {
 	bool JustShootPlayManager::applicable(World &world) const {
 		// check if we do not have ball
 		FriendlyTeam &friendly = world.friendly_team();
-		if (friendly.size() < 2) return false;
+		if (friendly.size() < 2) {
+			return false;
+		}
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
 			if (friendly.get(i)->has_ball()) {
 				return true;
@@ -59,8 +61,7 @@ namespace {
 		return factory_instance.applicable(world);
 	}
 
-	void JustShootPlay::assign(std::vector<Tactic::Ptr>& goalie_role, std::vector<Tactic::Ptr>& role1, std::vector<Tactic::Ptr>& role2, std::vector<Tactic::Ptr>& role3, std::vector<Tactic::Ptr>& role4) {
-
+	void JustShootPlay::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> &role1, std::vector<Tactic::Ptr> &role2, std::vector<Tactic::Ptr> &role3, std::vector<Tactic::Ptr> &role4) {
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 
 		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
@@ -107,7 +108,7 @@ namespace {
 			role4.push_back(block(world, enemies[2]));
 		} else {
 			role4.push_back(idle(world));
-		}	
+		}
 	}
 }
 

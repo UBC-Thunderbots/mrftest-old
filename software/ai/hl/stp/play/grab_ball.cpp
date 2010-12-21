@@ -9,7 +9,6 @@ using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
 namespace {
-
 	/**
 	 * Condition:
 	 * - ball not under any possesion
@@ -22,9 +21,10 @@ namespace {
 		public:
 			GrabBallPlay(AI::HL::W::World &world);
 			~GrabBallPlay();
+
 		private:
 			bool done();
-			void assign(std::vector<Tactic::Ptr>& goalie_role, std::vector<Tactic::Ptr>& role1, std::vector<Tactic::Ptr>& role2, std::vector<Tactic::Ptr>& role3, std::vector<Tactic::Ptr>& role4);
+			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> &role1, std::vector<Tactic::Ptr> &role2, std::vector<Tactic::Ptr> &role3, std::vector<Tactic::Ptr> &role4);
 	};
 
 	class GrabBallPlayManager : public PlayManager {
@@ -41,7 +41,9 @@ namespace {
 	bool GrabBallPlayManager::applicable(World &world) const {
 		// check if we do not have ball
 		FriendlyTeam &friendly = world.friendly_team();
-		if (friendly.size() < 2) return false;
+		if (friendly.size() < 2) {
+			return false;
+		}
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
 			if (friendly.get(i)->has_ball()) {
 				return false;
@@ -60,8 +62,7 @@ namespace {
 		return factory_instance.applicable(world);
 	}
 
-	void GrabBallPlay::assign(std::vector<Tactic::Ptr>& goalie_role, std::vector<Tactic::Ptr>& role1, std::vector<Tactic::Ptr>& role2, std::vector<Tactic::Ptr>& role3, std::vector<Tactic::Ptr>& role4) {
-
+	void GrabBallPlay::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> &role1, std::vector<Tactic::Ptr> &role2, std::vector<Tactic::Ptr> &role3, std::vector<Tactic::Ptr> &role4) {
 		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
 		std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().friendly_goal()));
 
@@ -97,6 +98,5 @@ namespace {
 			role4.push_back(idle(world));
 		}
 	}
-
 }
 

@@ -20,19 +20,15 @@ class CacheableBase : public NonCopyable {
 		virtual void flush() = 0;
 };
 
-template<typename... T>
-class CacheableKeyArgs {
+template<typename ... T> class CacheableKeyArgs {
 };
 
-template<typename... T>
-class CacheableNonKeyArgs {
+template<typename ... T> class CacheableNonKeyArgs {
 };
 
-template<std::size_t DROP_FIRST, typename... Args>
-class CacheableTupleBuilder;
+template<std::size_t DROP_FIRST, typename ... Args> class CacheableTupleBuilder;
 
-template<>
-class CacheableTupleBuilder<0> {
+template<> class CacheableTupleBuilder<0> {
 	public:
 		typedef std::tuple<> Tuple;
 
@@ -41,37 +37,33 @@ class CacheableTupleBuilder<0> {
 		}
 };
 
-template<typename Head, typename... Tail>
-class CacheableTupleBuilder<0, Head, Tail...> {
+template<typename Head, typename ... Tail> class CacheableTupleBuilder<0, Head, Tail ...> {
 	public:
-		typedef std::tuple<Head, Tail...> Tuple;
+		typedef std::tuple<Head, Tail ...> Tuple;
 
-		static Tuple build_tuple(const Head &head, const Tail &... tail) {
-			return Tuple(head, tail...);
+		static Tuple build_tuple(const Head &head, const Tail & ... tail) {
+			return Tuple(head, tail ...);
 		}
 };
 
-template<std::size_t DROP_FIRST, typename Head, typename... Tail>
-class CacheableTupleBuilder<DROP_FIRST, Head, Tail...> {
+template<std::size_t DROP_FIRST, typename Head, typename ... Tail> class CacheableTupleBuilder<DROP_FIRST, Head, Tail ...> {
 	public:
-		typedef typename CacheableTupleBuilder<DROP_FIRST - 1, Tail...>::Tuple Tuple;
+		typedef typename CacheableTupleBuilder<DROP_FIRST - 1, Tail ...>::Tuple Tuple;
 
-		static Tuple build_tuple(const Head &, const Tail &... tail) {
-			return CacheableTupleBuilder<DROP_FIRST - 1, Tail...>::build_tuple(tail...);
+		static Tuple build_tuple(const Head &, const Tail & ... tail) {
+			return CacheableTupleBuilder<DROP_FIRST - 1, Tail ...>::build_tuple(tail ...);
 		}
 };
 
-template<typename R, typename NK, typename K, typename... Args>
-class CacheableImpl;
+template<typename R, typename NK, typename K, typename ... Args> class CacheableImpl;
 
-template<typename R, typename... NK, typename... K, typename... Args>
-class CacheableImpl<R, CacheableNonKeyArgs<NK...>, CacheableKeyArgs<K...>, Args...> {
+template<typename R, typename ... NK, typename ... K, typename ... Args> class CacheableImpl<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...>, Args ...> {
 	public:
-		const R &operator()(const Args &... args) const {
-			const Tuple &cache_key = CacheableTupleBuilder<sizeof...(NK), Args...>::build_tuple(args...);
+		const R &operator()(const Args & ... args) const {
+			const Tuple &cache_key = CacheableTupleBuilder<sizeof ... (NK), Args ...>::build_tuple(args ...);
 			typename Map::iterator iter = cache.find(cache_key);
 			if (iter == cache.end()) {
-				iter = cache.insert(cache.begin(), typename Map::value_type(cache_key, compute(args...)));
+				iter = cache.insert(cache.begin(), typename Map::value_type(cache_key, compute(args ...)));
 			}
 			return iter->second;
 		}
@@ -81,16 +73,15 @@ class CacheableImpl<R, CacheableNonKeyArgs<NK...>, CacheableKeyArgs<K...>, Args.
 		}
 
 	protected:
-		virtual R compute(Args... args) const = 0;
+		virtual R compute(Args ... args) const = 0;
 
 	private:
-		typedef std::tuple<K...> Tuple;
+		typedef std::tuple<K ...> Tuple;
 		typedef std::map<Tuple, R> Map;
 		mutable Map cache;
 };
 
-template<typename R, typename NK, typename K>
-class Cacheable;
+template<typename R, typename NK, typename K> class Cacheable;
 
 /**
  * A "function" whose value can be cached and not recomputed during a tick.
@@ -141,11 +132,10 @@ class Cacheable;
  *
  * \tparam K the key parameters to the function.
  */
-template<typename R, typename... NK, typename... K>
-class Cacheable<R, CacheableNonKeyArgs<NK...>, CacheableKeyArgs<K...> > : public CacheableImpl<R, CacheableNonKeyArgs<NK...>, CacheableKeyArgs<K...>, NK..., K...>, public CacheableBase {
+template<typename R, typename ... NK, typename ... K> class Cacheable<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...> > : public CacheableImpl<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...>, NK ..., K ...>, public CacheableBase {
 	public:
 		void flush() {
-			CacheableImpl<R, CacheableNonKeyArgs<NK...>, CacheableKeyArgs<K...>, NK..., K...>::flush();
+			CacheableImpl<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...>, NK ..., K ...>::flush();
 		}
 };
 

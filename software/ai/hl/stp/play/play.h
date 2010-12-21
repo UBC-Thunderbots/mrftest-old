@@ -22,7 +22,7 @@ namespace AI {
 						/**
 						 * assign the roles.
 						 */
-						virtual void assign(std::vector<AI::HL::STP::Tactic::Tactic::Ptr>& goalie_role, std::vector<AI::HL::STP::Tactic::Tactic::Ptr>& role1, std::vector<AI::HL::STP::Tactic::Tactic::Ptr>& role2, std::vector<AI::HL::STP::Tactic::Tactic::Ptr>& role3, std::vector<AI::HL::STP::Tactic::Tactic::Ptr>& role4) = 0;
+						virtual void assign(std::vector<AI::HL::STP::Tactic::Tactic::Ptr> &goalie_role, std::vector<AI::HL::STP::Tactic::Tactic::Ptr> &role1, std::vector<AI::HL::STP::Tactic::Tactic::Ptr> &role2, std::vector<AI::HL::STP::Tactic::Tactic::Ptr> &role3, std::vector<AI::HL::STP::Tactic::Tactic::Ptr> &role4) = 0;
 
 						/**
 						 * Checks if the condition for the play is no longer valid.

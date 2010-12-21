@@ -209,8 +209,8 @@ void PlayerODE::pre_tic(double) {
 		double want_ang;
 
 		// This is the pseudo-inverse of the matrix used to go from wanted velocities to motor set points
-		want_vel.x = -0.0068604 * orders.wheel_speeds[0] + - 0.0057842 * orders.wheel_speeds[1] + 0.0057842 * orders.wheel_speeds[2] + 0.0068604 * orders.wheel_speeds[3];
-		want_vel.y = 0.0078639 * orders.wheel_speeds[0] + - 0.0078639 * orders.wheel_speeds[1] +  - 0.0078639 * orders.wheel_speeds[2] + 0.0078639 * orders.wheel_speeds[3];
+		want_vel.x = -0.0068604 * orders.wheel_speeds[0] + -0.0057842 * orders.wheel_speeds[1] + 0.0057842 * orders.wheel_speeds[2] + 0.0068604 * orders.wheel_speeds[3];
+		want_vel.y = 0.0078639 * orders.wheel_speeds[0] + -0.0078639 * orders.wheel_speeds[1] +  -0.0078639 * orders.wheel_speeds[2] + 0.0078639 * orders.wheel_speeds[3];
 		want_ang = 0.0654194 * (orders.wheel_speeds[0] + orders.wheel_speeds[1] + orders.wheel_speeds[2] + orders.wheel_speeds[3]);
 
 		if (want_vel.len() > 5.0) {

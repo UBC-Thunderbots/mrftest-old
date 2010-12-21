@@ -101,7 +101,9 @@ namespace {
 		offender.tick();
 
 		// TODO something more sensible
-		if (kicker.is()) AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
+		if (kicker.is()) {
+			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
+		}
 	}
 
 	void FreeKickFriendlyStrategy::run_assignment() {

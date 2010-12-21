@@ -59,7 +59,7 @@ namespace {
 		const Ball &ball = world.ball();
 		FriendlyTeam &fteam = world.friendly_team();
 		Player::Ptr player;
-		std::vector<std::pair<std::pair<Point, double>, timespec>> path;
+		std::vector<std::pair<std::pair<Point, double>, timespec> > path;
 		std::vector<Point> rpath;
 		Point currp, destp, nextp;
 		double curro, desto, nexto;

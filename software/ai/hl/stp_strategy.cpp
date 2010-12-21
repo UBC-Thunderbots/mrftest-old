@@ -160,10 +160,9 @@ namespace {
 	}
 
 	void STPStrategy::role_assignment() {
-
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 
-		int& r = curr_role_step;
+		int &r = curr_role_step;
 
 		curr_active.reset();
 		for (std::size_t i = 0; i < 5; ++i) {
@@ -171,8 +170,9 @@ namespace {
 		}
 
 		for (std::size_t i = 0; i < 5; ++i) {
-
-			if (curr_roles[i].size() <= r) break;
+			if (curr_roles[i].size() <= r) {
+				break;
+			}
 
 			curr_tactics[i] = curr_roles[i][r];
 
@@ -200,7 +200,6 @@ namespace {
 		}
 
 		for (std::size_t i = 0; i < 5; ++i) {
-
 			if (!curr_tactics[i].is()) {
 				break;
 			}
@@ -243,8 +242,7 @@ namespace {
 	}
 
 	void STPStrategy::execute_tactics() {
-
-		int& r = curr_role_step;
+		int &r = curr_role_step;
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 
 		while (true) {
