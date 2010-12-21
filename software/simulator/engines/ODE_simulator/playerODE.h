@@ -90,6 +90,8 @@ class PlayerODE : public Simulator::Player {
 	private:
 		bool execute_chip();
 
+		void dribble(double set_point);
+
 	public:
 		void position(const Point &pos);
 

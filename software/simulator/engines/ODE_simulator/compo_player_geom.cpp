@@ -8,12 +8,7 @@ namespace {
 		return atan2(-t[1], t[0]);
 	}
 
-	// const dReal* rotation_matrix
-
-	// dMatrix3
-
-	// dVector3
-	void rotate_vec(dVector3 &vec, const dReal *r) {
+	void rotate_vec(dVector3 &vec, const dReal * r){
 		dVector3 ans;
 		ans[0] = r[0] * vec[0] + r[1] * vec[1] + r[2] * vec[2];
 		ans[1] = r[4] * vec[0] + r[5] * vec[1] + r[6] * vec[2];
@@ -33,7 +28,7 @@ namespace {
 //
 //
 //
-	const double ERP = 1.0;
+	const double ERP = 0.9;
 
 
 	/**
@@ -88,24 +83,27 @@ Compo_player_geom::Compo_player_geom(dWorldID eworld, dSpaceID dspace) : Player_
 	dGeomSetBody(robotGeomTop, body);
 	robotGeomTopCyl = dCreateCapsule(0, ROBOT_RADIUS, ROBOT_HEIGHT);
 	dGeomSetBody(robotGeomTopCyl, body);
-	dBodySetPosition(body, x_pos, y_pos, ROBOT_HEIGHT / 2 + 0.001);
 
+	dribblerBar = dCreateCapsule(0, DRIBBLER_RADIUS, y_len);
+	//dMass mass;
+	//dMassSetCylinderTotal(&mass, 0.02, 3, DRIBBLER_RADIUS, y_len);
+	//dGeomSetPosition (dribblerBar, x_len, 0.0, DRIBBLER_HEIGHT);
 	// we need to rotate the
 	// dribbler bar -90 degrees about the x-axis
 	const dMatrix3 rotat = {
 		1, 0, 0, 0,
 		0, 0, 1, 1,
 		0, 1, 0, 0
-	};
-
-	dribblerBar = dCreateCapsule(0, DRIBBLER_RADIUS, y_len);
-	// dMass mass;
-	// dMassSetCylinderTotal(&mass, 0.02, 3, DRIBBLER_RADIUS, y_len);
+	};	
+	dGeomSetRotation(dribblerBar, rotat);
+	dGeomSetBody(dribblerBar, body);
+	dGeomSetOffsetPosition (dribblerBar, x_len/2.0 + 0.01, 0.0,DRIBBLER_HEIGHT - ROBOT_HEIGHT/2.0 );
+	dBodySetPosition(body, x_pos, y_pos, ROBOT_HEIGHT / 2 + 0.001);
 
 	dSpaceAdd(dspace, robotGeomTop);
 	dSpaceAdd(dspace, robotGeomTopCyl);
 	dSpaceAdd(dspace, dribblerBar);
-	dGeomSetRotation(dribblerBar, rotat);
+
 }
 
 Compo_player_geom::~Compo_player_geom() {
@@ -203,15 +201,18 @@ void Compo_player_geom::handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointG
 		ballGeom = o1;
 	}
 
+	// std::cout<<dGeomGetPosition (dribblerBar)[2]<<' ' <<dGeomGetPosition (ballGeom)[2]<<std::endl;
+
 	if (int numc = dCollide(o1, o2, 3, &contact[0].geom, sizeof(dContact))) {
 		for (i = 0; i < numc; i++) {
 			bool robotDribbler = dribblerBar == o1 || dribblerBar == o2;
 			bool robotCollided = dBodyGetPosition(dGeomGetBody(ballGeom))[2] > DRIBBLER_HEIGHT && hasContactPenetration(contact[i].geom.pos, robotGeom);
-			robotCollided = robotCollided || !hasContactWithFace(contact[i].geom.pos, robotGeom);
+			bool face_contact = hasContactWithFace(contact[i].geom.pos, robotGeom);
+			robotCollided = robotCollided || !face_contact;
 			has_ball_now = has_ball_now || robotDribbler;
 			// different parameters are needed
 			// for the dribbler
-			if (robotDribbler) {
+			if (robotDribbler) {				
 				// direction of vec is along
 				// axis of the dribbler bar
 				dVector3 vec = { 0.0, 1.0, 0.0, 0.0 };
@@ -226,12 +227,12 @@ void Compo_player_geom::handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointG
 
 				contact[i].surface.mode = dContactSoftCFM | dContactSoftERP | dContactBounce | dContactMu2 | dContactFDir1;
 
-				contact[i].surface.mu = 1.0; // represents friction of rubber dribbler
-				contact[i].surface.mu2 = 0.01; // the amount the the dribbler freely sipns is represented by " friction " amount
+				contact[i].surface.mu = 0.01; // represents friction of rubber dribbler
+				contact[i].surface.mu2 = 0.001; // the amount the the dribbler freely sipns is represented by " friction " amount
 
 				contact[i].surface.soft_cfm = CFM;
-				contact[i].surface.soft_erp = ERP;
-				contact[i].surface.bounce = 0.05; // the amount of bounce between dribbler and ball
+				contact[i].surface.soft_erp = 0.2;
+				contact[i].surface.bounce = 2.0; // the amount of bounce between dribbler and ball
 				contact[i].surface.bounce_vel = 0.0;
 				dJointID c = dJointCreateContact(world, contactgroup, contact + i);
 				dJointAttach(c, b1, b2);
@@ -263,7 +264,7 @@ void Compo_player_geom::handleCollisionWithGround(dGeomID o1, dGeomID o2, dJoint
 				contact[i].surface.mu = 0.0;
 				contact[i].surface.soft_cfm = CFM;
 				contact[i].surface.soft_erp = ERP;
-				contact[i].surface.bounce = 0.8;
+				contact[i].surface.bounce = 0.0;
 				contact[i].surface.bounce_vel = 0.0;
 				dJointID c = dJointCreateContact(world, contactgroup, contact + i);
 				dJointAttach(c, b1, b2);
@@ -308,6 +309,13 @@ void Compo_player_geom::dribble(double set_point) {
 	// double rpm = RPM_PER_VOLT * voltage;
 	// double rads_per_sec = (2*3.14/60)*rpm;
 	// dJointSetAMotorParam (hinge, dParamVel, rads_per_sec);
+
+	// let's just say that we spin the ball at 100 rpm
+	// dBodyGetRotation(dGeomGetBody(geom));
+	dVector3 vec = {0.0, 1.0, 0.0};
+	rotate_vec(vec, dBodyGetRotation(body));
+
+	//	dBodyAddTorque(, 0.0, 0.0, 2 * torque);
 }
 
 

@@ -178,7 +178,7 @@ namespace {
 			// if a shape interescts with the ground set the contact parameters
 			//
 			void handleBallCollisionWithGround(dGeomID o1, dGeomID o2) {
-				double frict = MU * 6;
+				double frict = MU * 12;
 				int i = 0;
 				PlayerODE::Ptr robot = emptyPlayer;
 
@@ -200,7 +200,8 @@ namespace {
 						contact[i].surface.mu = frict;
 						contact[i].surface.soft_cfm = 0.0;
 						contact[i].surface.soft_erp = 1.0;
-						contact[i].surface.bounce = 1.0;
+						// estimate restitution at 0.7
+						contact[i].surface.bounce = 0.7;
 						contact[i].surface.bounce_vel = 0.0;
 						dJointID c = dJointCreateContact(eworld, contactgroup, contact + i);
 						dJointAttach(c, b1, b2);

@@ -136,6 +136,41 @@ double PlayerODE::orientation() const {
 	return orientationFromMatrix(dBodyGetRotation(body));
 }
 
+void PlayerODE::dribble(double set_point){
+	dVector3 vec = {0.0, -1.0, 0.0};
+	rotate_vec(vec, dBodyGetRotation(body));
+	// dGeomGetBody(ballGeom)
+	// 3.30 mNm/A
+	// starting amps = 9.47
+	// 31.251
+	// say we want ball to spin at 200 rmp
+	// 0.1047 convert rpm to rad/sec
+	
+	double mx_torque = 0.001 * 31.251;
+
+	// speed of spinning ball
+	double rpm = 100;
+	double speed = rpm * 0.1047;
+
+	double x = dBodyGetAngularVel (dGeomGetBody(ballGeom))[0] * vec[0];
+	double y = dBodyGetAngularVel (dGeomGetBody(ballGeom))[1] * vec[1];
+	double z = dBodyGetAngularVel (dGeomGetBody(ballGeom))[2] * vec[2];
+
+	double act_speed = x+y+z;
+	//	if( act_speed > 0){
+		act_speed = std::min( speed, act_speed);
+act_speed = std::max( 0.0, act_speed);
+		//	}
+	//double avel = 
+	double torque = ((speed-act_speed)/speed)*mx_torque;
+
+	//	std::cout<<torque<<std::endl;
+
+	// double torque_mag = 0.0;
+	dBodyAddTorque(dGeomGetBody(ballGeom), torque*vec[0], torque*vec[1], torque*vec[2]);
+	//	std::cout<< torque*vec[0]<<' '<< torque*vec[1]<<' '<< torque*vec[2]<<std::endl;
+}
+
 /*
    Returns whether or not a given robot has the ball.
    Has ball is determined from the collision detection from the previous timestep
@@ -233,6 +268,10 @@ void PlayerODE::pre_tic(double) {
 
 		dBodyAddTorque(body, 0.0, 0.0, 2 * torque);
 		dBodyAddForce(body, fce.x, fce.y, 0.0);
+
+		if(has_ball()){
+			dribble(0.1);
+		}
 
 		if (has_chip_set() && has_ball()) {
 			if (execute_chip()) {
