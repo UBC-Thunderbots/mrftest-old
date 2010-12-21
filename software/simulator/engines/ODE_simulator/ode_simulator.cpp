@@ -11,12 +11,12 @@ namespace {
 	//
 	// The limit of floating-point precision.
 	//
-	const double EPS = 1.0e-9;
+	const dReal EPS = 1.0e-9;
 
 	//
 	// The force of gravity N/kg
 	//
-	const double GRAVITY = -9.81;
+	const dReal GRAVITY = -9.81;
 
 
 	const unsigned int UPDATES_PER_TICK = 20;
@@ -24,12 +24,12 @@ namespace {
 	//
 	//
 	//
-	const double CFM = 1E-5;
+	const dReal CFM = 1E-5;
 
 	//
 	//
 	//
-	const double ERP = 1.0;
+	const dReal ERP = 1.0;
 
 
 	//
@@ -42,7 +42,7 @@ namespace {
 			PlayerODE::Ptr emptyPlayer;
 
 		public:
-			double timeStep;
+			dReal timeStep;
 			dWorldID eworld;
 			dSpaceID space;
 			dGeomID ground;
@@ -59,7 +59,7 @@ namespace {
 
 			SimEngine() {
 				dInitODE();
-				timeStep = 1.0 / (static_cast<double>(TIMESTEPS_PER_SECOND) * static_cast<double>(UPDATES_PER_TICK));
+				timeStep = 1.0 / (static_cast<dReal>(TIMESTEPS_PER_SECOND) * static_cast<dReal>(UPDATES_PER_TICK));
 				eworld = dWorldCreate();
 				dWorldSetGravity(eworld, 0, 0.0, GRAVITY);
 				space = dSimpleSpaceCreate(0);
@@ -68,8 +68,8 @@ namespace {
 
 
 
-				double wall_height = 20.5; // 1/2 meter
-				double wall_thickness = 0.1127; //
+				dReal wall_height = 20.5; // 1/2 meter
+				dReal wall_thickness = 0.1127; //
 
 				// build a wall around the playing field
 				wall[0] = dCreateBox(space, Simulator::Field::TOTAL_LENGTH + 2 * wall_thickness, wall_thickness, wall_height);
@@ -128,7 +128,7 @@ namespace {
 			}
 
 			Simulator::Player::Ptr add_player() {
-				PlayerODE::Ptr p(new PlayerODE(eworld, space, the_ball->ballGeom, static_cast<double>(UPDATES_PER_TICK)));
+				PlayerODE::Ptr p(new PlayerODE(eworld, space, the_ball->ballGeom, static_cast<dReal>(UPDATES_PER_TICK)));
 				Point cur = p->position();
 
 				Point balpos = the_ball->position();
@@ -178,7 +178,7 @@ namespace {
 			// if a shape interescts with the ground set the contact parameters
 			//
 			void handleBallCollisionWithGround(dGeomID o1, dGeomID o2) {
-				double frict = MU * 12;
+				dReal frict = MU * 12;
 				int i = 0;
 				PlayerODE::Ptr robot = emptyPlayer;
 

@@ -49,22 +49,22 @@ class PlayerODE : public Simulator::Player {
 		 * hasball routine Number 1.
 		 */
 		dGeomID ballGeom;
-		double updates_per_tick;
+		dReal updates_per_tick;
 
 		Point *wheel_position;
 		Point *force_direction;
 
 	public:
-		PlayerODE(dWorldID dworld, dSpaceID dspace, dGeomID ballGeom, double ups_per_tick);
+		PlayerODE(dWorldID dworld, dSpaceID dspace, dGeomID ballGeom, dReal ups_per_tick);
 		~PlayerODE();
 
-		double get_height() const;
+		dReal get_height() const;
 
 		void update();
 
 		Point position() const;
 
-		double orientation() const;
+		dReal orientation() const;
 
 		bool has_ball() const;
 
@@ -73,7 +73,7 @@ class PlayerODE : public Simulator::Player {
 		bool robot_contains_shape(dGeomID geom);
 
 	public:
-		void pre_tic(double TimeStep);
+		void pre_tic(dReal TimeStep);
 
 		bool has_kick_set() {
 			return orders.kick;
@@ -90,16 +90,16 @@ class PlayerODE : public Simulator::Player {
 	private:
 		bool execute_chip();
 
-		void dribble(double set_point);
+		void dribble(dReal set_point);
 
 	public:
 		void position(const Point &pos);
 
 		void velocity(const Point &vel);
 
-		void orientation(double orient);
+		void orientation(dReal orient);
 
-		void avelocity(double avel);
+		void avelocity(dReal avel);
 };
 
 #endif

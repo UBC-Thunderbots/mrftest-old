@@ -10,7 +10,7 @@
 #warning this class needs Doxygen comments in its header file
 
 namespace {
-	double orientationFromMatrix(const dReal *t) {
+	dReal orientationFromMatrix(const dReal *t) {
 		return atan2(-t[1], t[0]);
 	}
 
@@ -33,60 +33,60 @@ namespace {
 	/**
 	 * Conversion Factor from the value used in radio packets (1/4 degree) per 5 ms to motor voltage
 	 */
-	const double PACKET_TO_VOLTAGE = 0.022281639;
+	const dReal PACKET_TO_VOLTAGE = 0.022281639;
 
 
 	/**
 	 * Maximum voltage available to the robot.
 	 */
-	const double VOLTAGE_LIMIT = 15.0;
+	const dReal VOLTAGE_LIMIT = 15.0;
 
 
 	/**
 	 * Resistance of the stator
 	 */
-	const double MOTOR_RESISTANCE = 1.2; // ohms
+	const dReal MOTOR_RESISTANCE = 1.2; // ohms
 
 	/**
 	 * Constant relating motor current to motor torque
 	 */
-	const double CURRENT_TO_TORQUE = 0.0255; // Nm / amp
+	const dReal CURRENT_TO_TORQUE = 0.0255; // Nm / amp
 
 	/**
 	 * Gearing ration of the drive train (speed reduction, torque increase)
 	 */
-	const double GEAR_RATIO = 3.5;
+	const dReal GEAR_RATIO = 3.5;
 
 	/**
 	 * Radius of the wheel for torque to force calculations
 	 */
-	const double WHEEL_RADIUS = 0.0254;
+	const dReal WHEEL_RADIUS = 0.0254;
 
 	/**
 	 * physical radius of the robot in meters
 	 */
-	const double ROBOT_RADIUS = 0.09;
+	const dReal ROBOT_RADIUS = 0.09;
 
 	/**
 	 * Physical mass of the robot in kg (measured)
 	 */
-	const double ROBOT_MASS = 2.552;
+	const dReal ROBOT_MASS = 2.552;
 
 	/**
 	 * Physical height of the robot in m
 	 */
-	const double ROBOT_HEIGHT = 0.15;
+	const dReal ROBOT_HEIGHT = 0.15;
 
 	/**
 	 * Physical width of the flattened face of the robot
 	 */
-	const double FRONT_FACE_WIDTH = 0.16;
+	const dReal FRONT_FACE_WIDTH = 0.16;
 
 
 	/**
 	 * Angles in radians that the wheels are located off the forward direction
 	 */
-	const double ANGLES[4] = { 0.959931, 2.35619, 3.9269908, 5.32325 };
+	const dReal ANGLES[4] = { 0.959931, 2.35619, 3.9269908, 5.32325 };
 
 	int click = 0;
 }
@@ -94,15 +94,13 @@ namespace {
 /*
     Constructor method for the robot model contained in the simulator
  */
-PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, double ups_per_tick) : p_geom(eworld, dspace) {
+PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, dReal ups_per_tick) : p_geom(eworld, dspace) {
 	orders.kick = false;
 	orders.chip = false;
 	std::fill(&orders.wheel_speeds[0], &orders.wheel_speeds[4], 0);
 
 	updates_per_tick = ups_per_tick;
-	double dribble_radius = 0.005; // half a cm
 	ballGeom = ballGeomi;
-	double ballradius = dGeomSphereGetRadius(ballGeom);
 	world = eworld;
 	body = p_geom.body;
 	// to account for a lower centre of mass make the cylinder much lower
@@ -132,11 +130,11 @@ Point PlayerODE::position() const {
 }
 
 // Accessor method to get the robots orientation
-double PlayerODE::orientation() const {
+dReal PlayerODE::orientation() const {
 	return orientationFromMatrix(dBodyGetRotation(body));
 }
 
-void PlayerODE::dribble(double set_point){
+void PlayerODE::dribble(dReal set_point){
 	dVector3 vec = {0.0, -1.0, 0.0};
 	rotate_vec(vec, dBodyGetRotation(body));
 	// dGeomGetBody(ballGeom)
@@ -146,29 +144,23 @@ void PlayerODE::dribble(double set_point){
 	// say we want ball to spin at 200 rmp
 	// 0.1047 convert rpm to rad/sec
 	
-	double mx_torque = 0.001 * 31.251;
+	dReal mx_torque = 0.001 * 31.251;
 
 	// speed of spinning ball
-	double rpm = 100;
-	double speed = rpm * 0.1047;
+	dReal rpm = 100;
+	dReal speed = rpm * 0.1047;
 
-	double x = dBodyGetAngularVel (dGeomGetBody(ballGeom))[0] * vec[0];
-	double y = dBodyGetAngularVel (dGeomGetBody(ballGeom))[1] * vec[1];
-	double z = dBodyGetAngularVel (dGeomGetBody(ballGeom))[2] * vec[2];
+	dReal x = dBodyGetAngularVel (dGeomGetBody(ballGeom))[0] * vec[0];
+	dReal y = dBodyGetAngularVel (dGeomGetBody(ballGeom))[1] * vec[1];
+	dReal z = dBodyGetAngularVel (dGeomGetBody(ballGeom))[2] * vec[2];
 
-	double act_speed = x+y+z;
-	//	if( act_speed > 0){
-		act_speed = std::min( speed, act_speed);
-act_speed = std::max( 0.0, act_speed);
-		//	}
-	//double avel = 
-	double torque = ((speed-act_speed)/speed)*mx_torque;
+	dReal act_speed = x+y+z;
 
-	//	std::cout<<torque<<std::endl;
+	act_speed = std::min( speed, act_speed);
+	act_speed = std::max( 0.0, act_speed);
 
-	// double torque_mag = 0.0;
+	dReal torque = ((speed-act_speed)/speed)*mx_torque;
 	dBodyAddTorque(dGeomGetBody(ballGeom), torque*vec[0], torque*vec[1], torque*vec[2]);
-	//	std::cout<< torque*vec[0]<<' '<< torque*vec[1]<<' '<< torque*vec[2]<<std::endl;
 }
 
 /*
@@ -184,7 +176,7 @@ unsigned int PlayerODE::dribbler_speed() const {
 }
 
 // Accessor to get the height of the middle of the robot (should be ROBOT_HEIGHT/2)
-double PlayerODE::get_height() const {
+dReal PlayerODE::get_height() const {
 	const dReal *t = dBodyGetPosition(body);
 	return t[2];
 }
@@ -198,10 +190,10 @@ bool PlayerODE::robot_contains_shape(dGeomID geom) {
    computes the forces for the differential equation and adds them to the robot body
    \param[in] timestep the time between calculations
  */
-void PlayerODE::pre_tic(double) {
+void PlayerODE::pre_tic(dReal) {
 	// limit max motor "voltage" to VOLTAGE_LIMIT by scaling the largest component to VOLTAGE_LIMIT if greater but preserve its orientation
 
-	double max_speed = 0.0;
+	dReal max_speed = 0.0;
 	for (uint8_t index = 0; index < 4; index++) {
 		if (fabs(orders.wheel_speeds[index]) > max_speed) {
 			max_speed = fabs(orders.wheel_speeds[index]);
@@ -209,15 +201,12 @@ void PlayerODE::pre_tic(double) {
 	}
 	if (max_speed > VOLTAGE_LIMIT / PACKET_TO_VOLTAGE) {
 		for (int8_t index = 0; index < 4; index++) {
-			orders.wheel_speeds[index] *= VOLTAGE_LIMIT / (PACKET_TO_VOLTAGE * max_speed);
+			orders.wheel_speeds[index] *= static_cast<int>( VOLTAGE_LIMIT / (PACKET_TO_VOLTAGE * max_speed));
 		}
 	}
 
 	click++;
 
-	// Current Motor Speed
-	double motor_current[4];
-	double wheel_torque;
 	Point force;
 
 	if (isTipped(body)) {
@@ -226,9 +215,9 @@ void PlayerODE::pre_tic(double) {
 		const dReal *rot = dBodyGetRotation(body);
 		dVector3 vec = { 1, 1, 0 };
 		rotate_vec(vec, rot);
-		double angle = atan2(vec[0], vec[1]);
-		double c = cos(angle);
-		double s = sin(angle);
+		dReal angle = static_cast<dReal>(atan2(vec[0], vec[1]));
+		dReal c = static_cast<dReal>(cos(angle));
+		dReal s = static_cast<dReal>(sin(angle));
 		dMatrix3 rota = { c, -s, 0.0, 0.0, s, c, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 };
 		dBodySetRotation(body, rota);
 	}
@@ -241,7 +230,7 @@ void PlayerODE::pre_tic(double) {
 		// get the angular velocity
 		const dReal *avels = dBodyGetAngularVel(body);
 		Point want_vel;
-		double want_ang;
+		dReal want_ang;
 
 		// This is the pseudo-inverse of the matrix used to go from wanted velocities to motor set points
 		want_vel.x = -0.0068604 * orders.wheel_speeds[0] + -0.0057842 * orders.wheel_speeds[1] + 0.0057842 * orders.wheel_speeds[2] + 0.0068604 * orders.wheel_speeds[3];
@@ -261,7 +250,7 @@ void PlayerODE::pre_tic(double) {
 		// change robot relative velocity to absolute
 		want_vel = want_vel.rotate(orientation());
 		Point fce = (want_vel - the_velocity) / 5.0 * 10.0 * mass.mass;
-		double torque = (want_ang - avels[2]) / 5.0 * 12.0 * momentInertia;
+		dReal torque = (want_ang - avels[2]) / 5.0 * 12.0 * momentInertia;
 
 		dBodyEnable(body);
 		dBodySetDynamic(body);
@@ -288,16 +277,16 @@ void PlayerODE::pre_tic(double) {
 }
 
 bool PlayerODE::execute_kick() {
-	double strength = orders.chick_power;
-	double maximum_impulse = 1.0;
+	dReal strength = orders.chick_power;
+	dReal maximum_impulse = 1.0;
 	Point direction(1.0, 0.0);
 	direction = direction.rotate(orientation());
 	Point impulse = strength * maximum_impulse * direction;
-	double zimpulse = strength * maximum_impulse / sqrt(2.0);
+	dReal zimpulse = strength * maximum_impulse / sqrt(2.0);
 
 	if (has_ball()) {
 		dVector3 force;
-		dWorldImpulseToForce(world, 1.0 / (static_cast<double>(TIMESTEPS_PER_SECOND) * updates_per_tick),
+		dWorldImpulseToForce(world, 1.0 / (static_cast<dReal>(TIMESTEPS_PER_SECOND) * updates_per_tick),
 		                     impulse.x, impulse.y, zimpulse, force);
 		dBodyAddForce(dGeomGetBody(ballGeom), force[0], force[1], force[2]);
 	}
@@ -305,18 +294,18 @@ bool PlayerODE::execute_kick() {
 }
 
 bool PlayerODE::execute_chip() {
-	double strength = orders.chick_power;
-	double maximum_impulse = 1.0;
+	dReal strength = orders.chick_power;
+	dReal maximum_impulse = 1.0;
 
 	Point direction(1.0 / sqrt(2.0), 0.0);
 	direction = direction.rotate(orientation());
 	Point impulse = strength * maximum_impulse * direction;
-	double zimpulse = strength * maximum_impulse / sqrt(2.0);
+	dReal zimpulse = strength * maximum_impulse / sqrt(2.0);
 
 	if (has_ball()) {
 		dVector3 force;
 
-		dWorldImpulseToForce(world, 1.0 / (static_cast<double>(TIMESTEPS_PER_SECOND) * updates_per_tick),
+		dWorldImpulseToForce(world, 1.0 / (static_cast<dReal>(TIMESTEPS_PER_SECOND) * updates_per_tick),
 		                     impulse.x, impulse.y, zimpulse, force);
 		dBodyAddForce(dGeomGetBody(ballGeom), force[0], force[1], force[2]);
 	}
@@ -333,14 +322,14 @@ void PlayerODE::velocity(const Point &vel) {
 	dBodySetLinearVel(body, vel.x, vel.y, 0.0);
 }
 
-void PlayerODE::orientation(double orient) {
+void PlayerODE::orientation(dReal orient) {
 	posSet = true;
 	dMatrix3 RotationMatrix;
 	dRFromAxisAndAngle(RotationMatrix, 0.0, 0.0, 1.0, orient);
 	dBodySetRotation(body, RotationMatrix);
 }
 
-void PlayerODE::avelocity(double avel) {
+void PlayerODE::avelocity(dReal avel) {
 	dBodySetAngularVel(body, 0.0, 0.0, avel);
 }
 
