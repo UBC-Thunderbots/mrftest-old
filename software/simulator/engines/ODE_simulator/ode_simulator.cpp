@@ -313,7 +313,7 @@ namespace {
 			}
 
 			static void nearCallbackThunk(void *data, dGeomID o1, dGeomID o2) {
-				SimEngine *engine = reinterpret_cast<SimEngine *>(data);
+				SimEngine *engine = static_cast<SimEngine *>(data);
 				engine->nearCallback(o1, o2);
 			}
 
