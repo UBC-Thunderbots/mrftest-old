@@ -19,21 +19,21 @@
  */
 
 
-BallODE::BallODE(dWorldID dworld, dSpaceID dspace, double radius, double mass) : the_position(0.0, 0.0), the_velocity(0.0, 0.0) {
+BallODE::BallODE(dWorldID dworld, dSpaceID dspace, dReal radius, dReal mass) : the_position(0.0, 0.0), the_velocity(0.0, 0.0) {
 	world = dworld;
 
 
 	body = dBodyCreate(world);
 	ballGeom = dCreateSphere(dspace, radius); // golf ball radius 4.2672cm
 	dGeomSetBody(ballGeom, body);
-	dBodySetPosition(body, 0.0, 0.0, radius + 0.001);
+	dBodySetPosition(body, 0.0, 0.0, radius + static_cast<dReal>(0.001));
 
 
 	dMassSetSphereTotal(&m, mass, radius);
 	dBodySetMass(body, &m);
 
 	// dSpaceAdd (dspace, ballGeom);
-	dBodySetLinearDamping(body, 0.001);
+	dBodySetLinearDamping(body, static_cast<dReal>(0.001));
 
 	// dBodySetMaxAngularSpeed (body, 5.0);
 }
@@ -117,11 +117,11 @@ Point BallODE::acceleration() const {
 void BallODE::position(const Point &pos) {
 	const dReal *t = dBodyGetPosition(body);
 
-	dBodySetPosition(body, pos.x, pos.y, t[2]);
+	dBodySetPosition(body, static_cast<dReal>(pos.x), static_cast<dReal>(pos.y), t[2]);
 }
 
 void BallODE::velocity(const Point &vel) {
-	dBodySetLinearVel(body, vel.x, vel.y, 0.0);
+	dBodySetLinearVel(body, static_cast<dReal>(vel.x), static_cast<dReal>(vel.y), 0.0);
 	dBodySetAngularVel(body, 0.0, 0.0, 0.0);
 }
 

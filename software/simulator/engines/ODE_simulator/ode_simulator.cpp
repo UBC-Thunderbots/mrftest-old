@@ -6,8 +6,9 @@
 #include "util/timestep.h"
 #include <iostream>
 
-#define MU 0.02     // the global mu to use
 namespace {
+	const dReal MU = static_cast<dReal>(0.02);     // the global mu to use
+
 	//
 	// The limit of floating-point precision.
 	//
@@ -24,12 +25,12 @@ namespace {
 	//
 	//
 	//
-	const dReal CFM = static_cast<dReal>(1E-5);
+	const dReal CFM = static_cast<dReal>(1.0e-5);
 
 	//
 	//
 	//
-	const dReal ERP = static_cast<dReal>(1.0);
+	const dReal ERP = 1.0;
 
 
 	//
@@ -59,7 +60,7 @@ namespace {
 
 			SimEngine() {
 				dInitODE();
-				timeStep = static_cast<dReal>(1.0 / (static_cast<dReal>(TIMESTEPS_PER_SECOND) * static_cast<dReal>(UPDATES_PER_TICK)));
+				timeStep = static_cast<dReal>(1.0 / (TIMESTEPS_PER_SECOND * UPDATES_PER_TICK));
 				eworld = dWorldCreate();
 				dWorldSetGravity(eworld, 0, 0.0, GRAVITY);
 				space = dSimpleSpaceCreate(0);
@@ -72,17 +73,17 @@ namespace {
 				dReal wall_thickness = static_cast<dReal>(0.1127); //
 
 				// build a wall around the playing field
-				wall[0] = dCreateBox(space, Simulator::Field::TOTAL_LENGTH + 2 * wall_thickness, wall_thickness, wall_height);
-				wall[1] = dCreateBox(space, Simulator::Field::TOTAL_LENGTH + 2 * wall_thickness, wall_thickness, wall_height);
-				wall[2] = dCreateBox(space, wall_thickness, Simulator::Field::TOTAL_WIDTH, wall_height);
-				wall[3] = dCreateBox(space, wall_thickness, Simulator::Field::TOTAL_WIDTH, wall_height);
-				dGeomSetPosition(wall[0], 0, (Simulator::Field::TOTAL_WIDTH / 2 + wall_thickness / 2), (wall_height / 2));
-				dGeomSetPosition(wall[1], 0, -(Simulator::Field::TOTAL_WIDTH / 2 + wall_thickness / 2), (wall_height / 2));
-				dGeomSetPosition(wall[2], (Simulator::Field::TOTAL_LENGTH / 2 + wall_thickness / 2), 0, (wall_height / 2));
-				dGeomSetPosition(wall[3], -(Simulator::Field::TOTAL_LENGTH / 2 + wall_thickness / 2), 0, (wall_height / 2));
+				wall[0] = dCreateBox(space, static_cast<dReal>(Simulator::Field::TOTAL_LENGTH) + 2 * wall_thickness, wall_thickness, wall_height);
+				wall[1] = dCreateBox(space, static_cast<dReal>(Simulator::Field::TOTAL_LENGTH) + 2 * wall_thickness, wall_thickness, wall_height);
+				wall[2] = dCreateBox(space, wall_thickness, static_cast<dReal>(Simulator::Field::TOTAL_WIDTH), wall_height);
+				wall[3] = dCreateBox(space, wall_thickness, static_cast<dReal>(Simulator::Field::TOTAL_WIDTH), wall_height);
+				dGeomSetPosition(wall[0], 0, (static_cast<dReal>(Simulator::Field::TOTAL_WIDTH) / 2 + wall_thickness / 2), (wall_height / 2));
+				dGeomSetPosition(wall[1], 0, -(static_cast<dReal>(Simulator::Field::TOTAL_WIDTH) / 2 + wall_thickness / 2), (wall_height / 2));
+				dGeomSetPosition(wall[2], (static_cast<dReal>(Simulator::Field::TOTAL_LENGTH) / 2 + wall_thickness / 2), 0, (wall_height / 2));
+				dGeomSetPosition(wall[3], -(static_cast<dReal>(Simulator::Field::TOTAL_LENGTH) / 2 + wall_thickness / 2), 0, (wall_height / 2));
 				// set possible penetration for collisions
 
-				dWorldSetContactSurfaceLayer(eworld, 0.1);
+				dWorldSetContactSurfaceLayer(eworld, static_cast<dReal>(0.1));
 				contactgroup = dJointGroupCreate(0);
 
 				BallODE::Ptr b(new BallODE(eworld, space));
@@ -128,7 +129,7 @@ namespace {
 			}
 
 			Simulator::Player::Ptr add_player() {
-				PlayerODE::Ptr p(new PlayerODE(eworld, space, the_ball->ballGeom, static_cast<dReal>(UPDATES_PER_TICK)));
+				PlayerODE::Ptr p(new PlayerODE(eworld, space, the_ball->ballGeom, UPDATES_PER_TICK));
 				Point cur = p->position();
 
 				Point balpos = the_ball->position();
@@ -201,7 +202,7 @@ namespace {
 						contact[i].surface.soft_cfm = 0.0;
 						contact[i].surface.soft_erp = 1.0;
 						// estimate restitution at 0.7
-						contact[i].surface.bounce = 0.7;
+						contact[i].surface.bounce = static_cast<dReal>(0.7);
 						contact[i].surface.bounce_vel = 0.0;
 						dJointID c = dJointCreateContact(eworld, contactgroup, contact + i);
 						dJointAttach(c, b1, b2);
@@ -233,7 +234,7 @@ namespace {
 							contact[i].surface.mu = MU;
 							contact[i].surface.soft_cfm = CFM;
 							contact[i].surface.soft_erp = ERP;
-							contact[i].surface.bounce = 0.3;
+							contact[i].surface.bounce = static_cast<dReal>(0.3);
 							contact[i].surface.bounce_vel = 0.0;
 							dJointID c = dJointCreateContact(eworld, contactgroup, contact + i);
 							dJointAttach(c, b1, b2);
