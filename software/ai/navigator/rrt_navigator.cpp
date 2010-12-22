@@ -117,7 +117,7 @@ namespace {
 
 			double dist = 0.0;
 			struct timespec timeToAdd;
-			timespec_now(workingTime);
+			workingTime = world.monotonic_time();
 
 			double destOrientation = player->destination().second;
 			for (std::size_t j = 0; j < pathPoints.size(); ++j) {
