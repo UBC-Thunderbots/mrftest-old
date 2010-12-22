@@ -1,22 +1,22 @@
 #include "simulator/engines/ODE_simulator/playerODE.h"
 #include "geom/angle.h"
+#include "simulator/engines/ODE_simulator/compo_player_geom.h"
 #include "util/timestep.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <iostream>
-#include "compo_player_geom.h"
 
 #warning this class needs Doxygen comments in its header file
 
 namespace {
 	dReal orientationFromMatrix(const dReal *t) {
-		return atan2(-t[1], t[0]);
+		return std::atan2(-t[1], t[0]);
 	}
 
 	bool isTipped(const dBodyID body) {
 		const dReal *t = dBodyGetRotation(body);
-		return fabs(t[8] - 1) < 0.1;
+		return std::fabs(t[8] - 1) < 0.1;
 	}
 
 	void rotate_vec(dVector3 &vec, const dReal *r) {
@@ -134,8 +134,8 @@ double PlayerODE::orientation() const {
 	return static_cast<double>(orientationFromMatrix(dBodyGetRotation(body)));
 }
 
-void PlayerODE::dribble(dReal set_point){
-	dVector3 vec = {0.0, -1.0, 0.0};
+void PlayerODE::dribble(dReal set_point) {
+	dVector3 vec = { 0.0, -1.0, 0.0 };
 	rotate_vec(vec, dBodyGetRotation(body));
 	// dGeomGetBody(ballGeom)
 	// 3.30 mNm/A
@@ -143,24 +143,24 @@ void PlayerODE::dribble(dReal set_point){
 	// 31.251
 	// say we want ball to spin at 200 rmp
 	// 0.1047 convert rpm to rad/sec
-	
+
 	dReal mx_torque = 0.001 * 31.251;
 
 	// speed of spinning ball
 	dReal rpm = 100;
 	dReal speed = rpm * 0.1047;
 
-	dReal x = dBodyGetAngularVel (dGeomGetBody(ballGeom))[0] * vec[0];
-	dReal y = dBodyGetAngularVel (dGeomGetBody(ballGeom))[1] * vec[1];
-	dReal z = dBodyGetAngularVel (dGeomGetBody(ballGeom))[2] * vec[2];
+	dReal x = dBodyGetAngularVel(dGeomGetBody(ballGeom))[0] * vec[0];
+	dReal y = dBodyGetAngularVel(dGeomGetBody(ballGeom))[1] * vec[1];
+	dReal z = dBodyGetAngularVel(dGeomGetBody(ballGeom))[2] * vec[2];
 
-	dReal act_speed = x+y+z;
+	dReal act_speed = x + y + z;
 
-	act_speed = std::min( speed, static_cast<dReal>(act_speed));
-	act_speed = std::max( static_cast<dReal>(0.0), static_cast<dReal>(act_speed));
+	act_speed = std::min(speed, static_cast<dReal>(act_speed));
+	act_speed = std::max(static_cast<dReal>(0.0), static_cast<dReal>(act_speed));
 
-	dReal torque = ((speed-act_speed)/speed)*mx_torque;
-	dBodyAddTorque(dGeomGetBody(ballGeom), torque*vec[0], torque*vec[1], torque*vec[2]);
+	dReal torque = ((speed - act_speed) / speed) * mx_torque;
+	dBodyAddTorque(dGeomGetBody(ballGeom), torque * vec[0], torque * vec[1], torque * vec[2]);
 }
 
 /*
@@ -194,14 +194,14 @@ void PlayerODE::pre_tic(dReal) {
 	// limit max motor "voltage" to VOLTAGE_LIMIT by scaling the largest component to VOLTAGE_LIMIT if greater but preserve its orientation
 
 	dReal max_speed = 0.0;
-	for (uint8_t index = 0; index < 4; index++) {
+	for (std::size_t index = 0; index < 4; index++) {
 		if (fabs(orders.wheel_speeds[index]) > max_speed) {
 			max_speed = fabs(orders.wheel_speeds[index]);
 		}
 	}
 	if (max_speed > VOLTAGE_LIMIT / PACKET_TO_VOLTAGE) {
-		for (int8_t index = 0; index < 4; index++) {
-			orders.wheel_speeds[index] *= static_cast<int>( VOLTAGE_LIMIT / (PACKET_TO_VOLTAGE * max_speed));
+		for (std::size_t index = 0; index < 4; index++) {
+			orders.wheel_speeds[index] *= static_cast<int>(VOLTAGE_LIMIT / (PACKET_TO_VOLTAGE * max_speed));
 		}
 	}
 
@@ -215,9 +215,9 @@ void PlayerODE::pre_tic(dReal) {
 		const dReal *rot = dBodyGetRotation(body);
 		dVector3 vec = { 1, 1, 0 };
 		rotate_vec(vec, rot);
-		dReal angle = static_cast<dReal>(atan2(vec[0], vec[1]));
-		dReal c = static_cast<dReal>(cos(angle));
-		dReal s = static_cast<dReal>(sin(angle));
+		dReal angle = static_cast<dReal>(std::atan2(vec[0], vec[1]));
+		dReal c = static_cast<dReal>(std::cos(angle));
+		dReal s = static_cast<dReal>(std::sin(angle));
 		dMatrix3 rota = { c, -s, 0.0, 0.0, s, c, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 };
 		dBodySetRotation(body, rota);
 	}
@@ -258,7 +258,7 @@ void PlayerODE::pre_tic(dReal) {
 		dBodyAddTorque(body, 0.0, 0.0, 2 * torque);
 		dBodyAddForce(body, fce.x, fce.y, 0.0);
 
-		if(has_ball()){
+		if (has_ball()) {
 			dribble(0.1);
 		}
 

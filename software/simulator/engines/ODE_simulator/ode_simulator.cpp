@@ -59,7 +59,7 @@ namespace {
 
 			SimEngine() {
 				dInitODE();
-				timeStep =static_cast<dReal>( 1.0 / (static_cast<dReal>(TIMESTEPS_PER_SECOND) * static_cast<dReal>(UPDATES_PER_TICK)));
+				timeStep = static_cast<dReal>(1.0 / (static_cast<dReal>(TIMESTEPS_PER_SECOND) * static_cast<dReal>(UPDATES_PER_TICK)));
 				eworld = dWorldCreate();
 				dWorldSetGravity(eworld, 0, 0.0, GRAVITY);
 				space = dSimpleSpaceCreate(0);

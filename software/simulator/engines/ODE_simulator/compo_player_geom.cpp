@@ -8,7 +8,7 @@ namespace {
 		return atan2(-t[1], t[0]);
 	}
 
-	void rotate_vec(dVector3 &vec, const dReal * r){
+	void rotate_vec(dVector3 &vec, const dReal *r) {
 		dVector3 ans;
 		ans[0] = r[0] * vec[0] + r[1] * vec[1] + r[2] * vec[2];
 		ans[1] = r[4] * vec[0] + r[5] * vec[1] + r[6] * vec[2];
@@ -23,7 +23,7 @@ namespace {
 //
 //
 //
-	const double CFM = 1E-5;
+	const double CFM = 1e-5;
 
 //
 //
@@ -85,25 +85,24 @@ Compo_player_geom::Compo_player_geom(dWorldID eworld, dSpaceID dspace) : Player_
 	dGeomSetBody(robotGeomTopCyl, body);
 
 	dribblerBar = dCreateCapsule(0, DRIBBLER_RADIUS, y_len);
-	//dMass mass;
-	//dMassSetCylinderTotal(&mass, 0.02, 3, DRIBBLER_RADIUS, y_len);
-	//dGeomSetPosition (dribblerBar, x_len, 0.0, DRIBBLER_HEIGHT);
+	// dMass mass;
+	// dMassSetCylinderTotal(&mass, 0.02, 3, DRIBBLER_RADIUS, y_len);
+	// dGeomSetPosition (dribblerBar, x_len, 0.0, DRIBBLER_HEIGHT);
 	// we need to rotate the
 	// dribbler bar -90 degrees about the x-axis
 	const dMatrix3 rotat = {
 		1, 0, 0, 0,
 		0, 0, 1, 1,
 		0, 1, 0, 0
-	};	
+	};
 	dGeomSetRotation(dribblerBar, rotat);
 	dGeomSetBody(dribblerBar, body);
-	dGeomSetOffsetPosition (dribblerBar, x_len/2.0 + 0.01, 0.0,DRIBBLER_HEIGHT - ROBOT_HEIGHT/2.0 );
+	dGeomSetOffsetPosition(dribblerBar, x_len / 2.0 + 0.01, 0.0, DRIBBLER_HEIGHT - ROBOT_HEIGHT / 2.0);
 	dBodySetPosition(body, x_pos, y_pos, ROBOT_HEIGHT / 2 + 0.001);
 
 	dSpaceAdd(dspace, robotGeomTop);
 	dSpaceAdd(dspace, robotGeomTopCyl);
 	dSpaceAdd(dspace, dribblerBar);
-
 }
 
 Compo_player_geom::~Compo_player_geom() {
@@ -212,7 +211,7 @@ void Compo_player_geom::handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointG
 			has_ball_now = has_ball_now || robotDribbler;
 			// different parameters are needed
 			// for the dribbler
-			if (robotDribbler) {				
+			if (robotDribbler) {
 				// direction of vec is along
 				// axis of the dribbler bar
 				dVector3 vec = { 0.0, 1.0, 0.0, 0.0 };
@@ -312,10 +311,10 @@ void Compo_player_geom::dribble(double set_point) {
 
 	// let's just say that we spin the ball at 100 rpm
 	// dBodyGetRotation(dGeomGetBody(geom));
-	dVector3 vec = {0.0, 1.0, 0.0};
+	dVector3 vec = { 0.0, 1.0, 0.0 };
 	rotate_vec(vec, dBodyGetRotation(body));
 
-	//	dBodyAddTorque(, 0.0, 0.0, 2 * torque);
+	// dBodyAddTorque(, 0.0, 0.0, 2 * torque);
 }
 
 
