@@ -36,7 +36,7 @@ static uint8_t scratch_buffer[8];
 /**
  * \brief The index of the current configuration in the device info table configuration array.
  */
-static uint8_t current_configuration;
+volatile uint8_t usb_current_configuration;
 
 /**
  * \brief Loads some data and prepares the in buffer for transmission to the host.
@@ -195,11 +195,11 @@ static void on_setup(void) {
 						break;
 
 					case USB_SETUP_PACKET_STDREQ_GET_CONFIGURATION:
-						if (current_configuration == 0xFF) {
+						if (usb_current_configuration == 0xFF) {
 							scratch_buffer[0] = 0;
 							usb_ep0_data[0].ptr = scratch_buffer;
 						} else {
-							usb_ep0_data[0].ptr = &usb_devinfo->configurations[current_configuration]->configuration_descriptor->id;
+							usb_ep0_data[0].ptr = &usb_devinfo->configurations[usb_current_configuration]->configuration_descriptor->id;
 						}
 						usb_ep0_data[0].length = 1;
 						usb_ep0_data_length = 1;
@@ -216,13 +216,13 @@ static void on_setup(void) {
 							}
 							if (i != usb_devinfo->device_descriptor->num_configurations) {
 								void (*fptr)(void);
-								if (current_configuration != 0xFF) {
-									fptr = usb_devinfo->configurations[current_configuration]->on_exit;
+								if (usb_current_configuration != 0xFF) {
+									fptr = usb_devinfo->configurations[usb_current_configuration]->on_exit;
 									if (fptr) {
 										fptr();
 									}
 								}
-								current_configuration = i;
+								usb_current_configuration = i;
 								fptr = usb_devinfo->configurations[i]->on_enter;
 								if (fptr) {
 									fptr();
@@ -230,13 +230,13 @@ static void on_setup(void) {
 								ok = true;
 							}
 						} else {
-							if (current_configuration != 0xFF) {
-								void (*fptr)(void) = usb_devinfo->configurations[current_configuration]->on_exit;
+							if (usb_current_configuration != 0xFF) {
+								void (*fptr)(void) = usb_devinfo->configurations[usb_current_configuration]->on_exit;
 								if (fptr) {
 									fptr();
 								}
 							}
-							current_configuration = 0xFF;
+							usb_current_configuration = 0xFF;
 						}
 						usb_halted_in_endpoints = 0;
 						usb_halted_out_endpoints = 0;
@@ -248,7 +248,7 @@ static void on_setup(void) {
 			case USB_SETUP_PACKET_RECIPIENT_INTERFACE:
 				/* Addressed to an interface. */
 				/* Check if the interface exists. */
-				if (current_configuration != 0xFF && usb_ep0_setup_buffer.index < usb_devinfo->configurations[current_configuration]->num_interfaces) {
+				if (usb_current_configuration != 0xFF && usb_ep0_setup_buffer.index < usb_devinfo->configurations[usb_current_configuration]->num_interfaces) {
 					switch (usb_ep0_setup_buffer.request) {
 						case USB_SETUP_PACKET_STDREQ_GET_INTERFACE:
 							scratch_buffer[0] = 0;
@@ -277,11 +277,11 @@ static void on_setup(void) {
 					BOOL is_in = !!(usb_ep0_setup_buffer.index & 0x80);
 					uint8_t ep = usb_ep0_setup_buffer.index & 0x7F;
 					uint16_t mask;
-					if (current_configuration != 0xFF) {
+					if (usb_current_configuration != 0xFF) {
 						if (is_in) {
-							mask = usb_devinfo->configurations[current_configuration]->valid_in_endpoints;
+							mask = usb_devinfo->configurations[usb_current_configuration]->valid_in_endpoints;
 						} else {
-							mask = usb_devinfo->configurations[current_configuration]->valid_out_endpoints;
+							mask = usb_devinfo->configurations[usb_current_configuration]->valid_out_endpoints;
 						}
 					} else {
 						mask = 0;
@@ -292,15 +292,16 @@ static void on_setup(void) {
 							case USB_SETUP_PACKET_STDREQ_CLEAR_FEATURE:
 								switch (usb_ep0_setup_buffer.value) {
 									case USB_SETUP_PACKET_STDFEAT_ENDPOINT_HALT:
-										if (ep != 0) {
+										if (!ep) {
+											ok = true;
+										} else if (usb_devinfo->configurations[usb_current_configuration]->on_endpoint_unhalt(usb_ep0_setup_buffer.index)) {
 											if (is_in) {
 												usb_halted_in_endpoints &= ~(((uint16_t) 1) << ep);
 											} else {
 												usb_halted_out_endpoints &= ~(((uint16_t) 1) << ep);
 											}
-											usb_devinfo->configurations[current_configuration]->on_endpoint_reinit(usb_ep0_setup_buffer.index);
+											ok = true;
 										}
-										ok = true;
 										break;
 								}
 								break;
@@ -323,7 +324,7 @@ static void on_setup(void) {
 										if (ep != 0) {
 											uint16_t halt_mask = is_in ? usb_halted_in_endpoints : usb_halted_out_endpoints;
 											if (!(halt_mask & (((uint16_t) 1) << ep))) {
-												usb_devinfo->configurations[current_configuration]->on_endpoint_halt(usb_ep0_setup_buffer.index);
+												usb_devinfo->configurations[usb_current_configuration]->on_endpoint_halt(usb_ep0_setup_buffer.index);
 												halt_mask |= ((uint16_t) 1) << ep;
 											}
 											if (is_in) {
@@ -451,7 +452,7 @@ void usb_ep0_init(void) {
 	/* Clear local state. */
 	usb_ep0_data_length = 0;
 	usb_ep0_next_iovec = 0;
-	current_configuration = 0xFF;
+	usb_current_configuration = 0xFF;
 
 	/* Disarm the in buffer. */
 	usb_bdpairs[0].in.BDSTAT = 0;

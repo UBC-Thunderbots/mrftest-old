@@ -7,6 +7,7 @@
  * \brief The USB subsystem.
  */
 
+#include "signal.h"
 #include "usb_config.h"
 #include "usb_spec.h"
 #include <stdbool.h>
@@ -58,14 +59,17 @@ typedef struct {
 	void (*on_endpoint_halt)(uint8_t ep);
 
 	/**
-	 * \brief Invoked when an endpoint must reset itself.
+	 * \brief Invoked when an endpoint's halt feature is being cleared.
 	 *
 	 * The specific reset behaviour called for is to reset the data toggle flag, as per a ClearFeature(ENDPOINT_HALT).
 	 * This is not invoked when entering or exiting the configuration.
 	 *
 	 * \param[in] ep the endpoint index as defined in the USB specification, with the direction in bit 7.
+	 *
+	 * \return \c true if the request was successful and the halt feature should be cleared,
+	 * or \c false if the functional error still exists and so the feature should not be cleared.
 	 */
-	void (*on_endpoint_reinit)(uint8_t ep);
+	BOOL (*on_endpoint_unhalt)(uint8_t ep);
 } usb_confinfo_t;
 
 #if USB_CONFIG_STRING_DESCRIPTORS
@@ -169,9 +173,10 @@ void usb_deinit(void);
 /**
  * \brief Handles activity in the USB subsystem.
  *
- * This function must be invoked either on a regular basis from a main loop or else whenever a USB interrupt occurs.
+ * This function is suitable for use as an interrupt handler,
+ * but can also be called from a main loop.
  */
-void usb_process(void);
+SIGHANDLER(usb_process);
 
 /**
  * \brief Indicates whether the host has ordered the function to suspend.
@@ -186,6 +191,17 @@ void usb_process(void);
  * Interrupts can then be re-enabled to take the interrupt, and this variable retested.
  */
 extern volatile BOOL usb_is_idle;
+
+/**
+ * \brief The index of the current configuration in the device info table configuration array,
+ * or \c 0xFF if the device is unconfigured.
+ *
+ * The application must not modify this value.
+ * It is modified by the USB subsystem as a result of control transfers from the host.
+ *
+ * This will generally not be equal to the configuration ID declared in a descriptor.
+ */
+extern volatile uint8_t usb_current_configuration;
 
 /**
  * \brief A bitmask indicating which IN endpoints are halted.

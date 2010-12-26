@@ -14,24 +14,24 @@
 #  vvdd - pin should be configured as a virtual VDD (name/polarity are ignored)
 #
 
-XBEE1_RTS     RE1 out1 # Request to send to XBee #1
-XBEE1_CTS     RE0 in   # Clear to send from XBee #1
-XBEE1_SLEEP   RG0 out1 # Pin-controlled sleep to XBee #1
-XBEE1_TX      RG1 out1 # Transmit data to XBee #1
-XBEE1_RX      RG2 in   # Receive data from XBee #1
+XBEE0_RTS     RE1 out1 # Request to send to XBee #0
+XBEE0_CTS     RE0 in   # Clear to send from XBee #0
+XBEE0_SLEEP   RG0 out1 # Pin-controlled sleep to XBee #0
+XBEE0_TX      RG1 out1 # Transmit data to XBee #0
+XBEE0_RX      RG2 in   # Receive data from XBee #0
 
-XBEE2_RTS     RB4 out1 # Request to send to XBee #2
-XBEE2_CTS     RB5 in   # Clear to send from XBee #2
-XBEE2_SLEEP   RC0 out1 # Pin-controlled sleep to XBee #2
-XBEE2_TX      RC6 out1 # Transmit data to XBee #2
-XBEE2_RX      RC7 in   # Receive data from XBee #2
+XBEE1_RTS     RB4 out1 # Request to send to XBee #1
+XBEE1_CTS     RB5 in   # Clear to send from XBee #1
+XBEE1_SLEEP   RC0 out1 # Pin-controlled sleep to XBee #1
+XBEE1_TX      RC6 out1 # Transmit data to XBee #1
+XBEE1_RX      RC7 in   # Receive data from XBee #1
 
 USB_DP        RF4 in   # USB D+
 USB_DM        RF3 in   # USB D-
 
 ESTOP_IN      RA0 in   # Emergency stop
-ESTOP_OUT0    RB1 out0 # Negative power supply to emergency stop
-ESTOP_OUT1    RB0 out1 # Positive power supply to emergency stop
+ESTOP_OUT0    RB1 vgnd # Negative power supply to emergency stop
+ESTOP_OUT1    RB0 out0 # Positive power supply to emergency stop
 
 LED1          RC1 out0 # Green LED
 LED2          RC2 out0 # Red LED #1

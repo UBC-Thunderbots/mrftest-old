@@ -90,7 +90,7 @@ void usb_lowlevel_deinit(void) {
 	}
 }
 
-void usb_process(void) {
+SIGHANDLER(usb_process) {
 	if (usb_is_idle) {
 		if (UIRbits.ACTVIF) {
 			UCONbits.SUSPND = 0;

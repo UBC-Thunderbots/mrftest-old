@@ -25,12 +25,12 @@
 /**
  * \brief Set to 1 to set USB interrupts as high priority, or 0 to set them as low priority.
  */
-#define USB_CONFIG_INTERRUPTS_HIGH_PRIORITY 1
+#define USB_CONFIG_INTERRUPTS_HIGH_PRIORITY 0
 
 /**
  * \brief Set to The largest endpoint index (from 0 to 15) used by the device.
  */
-#define USB_CONFIG_MAX_ENDPOINT 1
+#define USB_CONFIG_MAX_ENDPOINT 5
 
 /**
  * \brief The number of scatter-gather descriptors to allocate for endpoint zero transfers.
@@ -45,7 +45,7 @@
 /**
  * \brief Set to 1 if a start-of-frame callback is needed, or 0 if not.
  */
-#define USB_CONFIG_SOF_CALLBACK 1
+#define USB_CONFIG_SOF_CALLBACK 0
 
 /**
  * \brief Set to 1 if string descriptors are used, or 0 if not.

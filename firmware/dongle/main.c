@@ -1,9 +1,18 @@
+#include "buffers.h"
 #include "descriptors.h"
+#include "dongle_status.h"
+#include "estop.h"
+#include "local_error_queue.h"
 #include "pins.h"
+#include "serial.h"
 #include "signal.h"
 #include "usb.h"
+#include "xbee_rxpacket.h"
+#include "xbee_txpacket.h"
 #include <delay.h>
 #include <pic18fregs.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 
 /**
@@ -12,193 +21,160 @@
  * \brief Contains the application entry point.
  */
 
-SIGHANDLER(usb_handler) {
-	usb_process();
-}
+/**
+ * \brief The control transfer requests.
+ */
+typedef enum {
+	TBOTS_CONTROL_REQUEST_GET_XBEE_FW_VERSION = 0x00,
+	TBOTS_CONTROL_REQUEST_GET_STATUS_BLOCK = 0x01,
+	TBOTS_CONTROL_REQUEST_HALT_ALL = 0x02,
+	TBOTS_CONTROL_REQUEST_ENABLE_RADIOS = 0x03,
+} tbots_control_request_t;
+
+/**
+ * \brief Whether the USB layer has entered the main configuration and the main loop should start configuring XBees and processing packets.
+ */
+static volatile BOOL should_start_up = false;
+
+/**
+ * \brief Whether the USB layer has exited the main configuration and the main loop should stop processing packets and shut down the XBees.
+ */
+static volatile BOOL should_shut_down = false;
+
+/**
+ * \brief The firmware versions of the XBees.
+ */
+static uint16_t xbee_versions[2];
 
 DEF_INTHIGH(high_handler)
-	DEF_HANDLER2(SIG_USB, SIG_USBIE, usb_handler)
+	__asm extern _xbee_rxpacket_rc1if __endasm;
+	__asm extern _xbee_rxpacket_rc2if __endasm;
+	DEF_HANDLER2(SIG_RC1, SIG_RC1IE, xbee_rxpacket_rc1if)
+	DEF_HANDLER2(SIG_RC2, SIG_RC2IE, xbee_rxpacket_rc2if)
 END_DEF
 
-static uint8_t intf0_buffer;
-static uint8_t intf0_idle_rate;
-static uint16_t intf0_last_tx_frame;
-static BOOL intf0_halted;
-
-static uint16_t button_change_frame;
-
-static __code const void *find_interface_hid_class_descriptor(uint8_t interface) {
-	__code const uint8_t *ptr = CONFIGURATION_DESCRIPTOR_TAIL;
-	uint8_t current_interface = 0xFF;
-
-	while (current_interface != interface) {
-		if (ptr[1] == USB_DESCRIPTOR_INTERFACE) {
-			++current_interface;
-		}
-		ptr += ptr[0];
-	}
-
-	while (ptr[1] != 0x21) {
-		ptr += ptr[0];
-	}
-
-	return ptr;
-}
+DEF_INTLOW(low_handler)
+	__asm extern _usb_process __endasm;
+	__asm extern _estop_adif __endasm;
+	__asm extern _xbee_txpacket_tx1if __endasm;
+	__asm extern _xbee_txpacket_tx2if __endasm;
+	__asm extern _xbee_txpacket_ccp1if __endasm;
+	DEF_HANDLER2(SIG_USB, SIG_USBIE, usb_process)
+	DEF_HANDLER2(SIG_AD, SIG_ADIE, estop_adif)
+	DEF_HANDLER2(SIG_TX1, SIG_TX1IE, xbee_txpacket_tx1if)
+	DEF_HANDLER2(SIG_TX2, SIG_TX2IE, xbee_txpacket_tx2if)
+	DEF_HANDLER2(SIG_CCP1, SIG_CCP1IE, xbee_txpacket_ccp1if)
+END_DEF
 
 static BOOL custom_setup_handler(void) {
-	switch (usb_ep0_setup_buffer.request_type.bits.type) {
-		case USB_SETUP_PACKET_REQUEST_STANDARD:
-			if (usb_ep0_setup_buffer.request_type.bits.recipient == USB_SETUP_PACKET_RECIPIENT_INTERFACE) {
-				if (usb_ep0_setup_buffer.request == USB_SETUP_PACKET_STDREQ_GET_DESCRIPTOR) {
-					switch (usb_ep0_setup_buffer.value >> 8) {
-						case 0x21: /* Class descriptor */
-							if (usb_ep0_setup_buffer.index < 1) {
-								usb_ep0_data[0].ptr = find_interface_hid_class_descriptor(usb_ep0_setup_buffer.index);
-								usb_ep0_data[0].length = *((const uint8_t *) usb_ep0_data[0].ptr);
-								usb_ep0_data_length = 1;
-								return true;
-							}
-							break;
+	static union {
+		dongle_status_t ep0_dongle_status_buffer;
+	} buffer;
 
-						case 0x22: /* Report descriptor */
-							switch ((uint8_t) usb_ep0_setup_buffer.index) {
-								case 0:
-									usb_ep0_data[0].ptr = ESTOP_REPORT_DESCRIPTOR;
-									usb_ep0_data[0].length = sizeof(ESTOP_REPORT_DESCRIPTOR);
-									usb_ep0_data_length = 1;
-									return true;
-							}
-							break;
-					}
-				}
+	if (usb_ep0_setup_buffer.request_type.bits.type == USB_SETUP_PACKET_REQUEST_VENDOR) {
+		if (usb_ep0_setup_buffer.request_type.bits.recipient == USB_SETUP_PACKET_RECIPIENT_DEVICE) {
+			switch (usb_ep0_setup_buffer.request) {
+				case TBOTS_CONTROL_REQUEST_GET_XBEE_FW_VERSION:
+				case TBOTS_CONTROL_REQUEST_HALT_ALL:
+				case TBOTS_CONTROL_REQUEST_ENABLE_RADIOS:
+#warning TODO implement these (remember to deal with XBees-not-initialized situation)
+					return false;
+
+				case TBOTS_CONTROL_REQUEST_GET_STATUS_BLOCK:
+					memcpyram2ram(&buffer.ep0_dongle_status_buffer, &dongle_status, sizeof(buffer.ep0_dongle_status_buffer));
+					usb_ep0_data[0].ptr = &buffer.ep0_dongle_status_buffer;
+					usb_ep0_data[0].length = sizeof(buffer.ep0_dongle_status_buffer);
+					usb_ep0_data_length = 1;
+					return true;
 			}
-			break;
-
-		case USB_SETUP_PACKET_REQUEST_CLASS:
-			if (usb_ep0_setup_buffer.request_type.bits.recipient == USB_SETUP_PACKET_RECIPIENT_INTERFACE) {
-				switch (usb_ep0_setup_buffer.request) {
-					case 0x01: /* GET_REPORT */
-						if (usb_ep0_setup_buffer.value >> 8 == 1) {
-							switch (usb_ep0_setup_buffer.index) {
-								case 0:
-									usb_ep0_data[0].ptr = &intf0_buffer;
-									usb_ep0_data[0].length = 1;
-									usb_ep0_data_length = 1;
-									return true;
-							}
-						}
-						break;
-
-					case 0x02: /* GET_IDLE */
-						switch (usb_ep0_setup_buffer.index) {
-							case 0:
-								usb_ep0_data[0].ptr = &intf0_idle_rate;
-								usb_ep0_data[0].length = 1;
-								usb_ep0_data_length = 1;
-								return true;
-						}
-						break;
-
-					case 0x0A: /* SET_IDLE */
-						switch (usb_ep0_setup_buffer.index) {
-							case 0:
-								intf0_idle_rate = usb_ep0_setup_buffer.value >> 8;
-								return true;
-						}
-						break;
-				}
-			}
-			break;
+		}
 	}
 	return false;
 }
 
-static void on_sof(void) {
-	uint16_t now = (UFRMH << 8) | UFRML;
-	BOOL changed = false;
-
-	if (((now - button_change_frame) & 0x7FF) >= 500) {
-		button_change_frame = now;
-		intf0_buffer ^= 1;
-		changed = true;
-	}
-
-	if (changed || (intf0_idle_rate != 0 && ((now - intf0_last_tx_frame) & 0x7FF) / 4 >= intf0_idle_rate)) {
-		intf0_last_tx_frame = now;
-		usb_bdpairs[1].in.BDSTATbits.cpu.UOWN = 1;
-	}
+static void on_in3(void) {
 }
 
-static void on_in1(void) {
-	if (usb_bdpairs[1].in.BDSTATbits.cpu.UOWN) {
-		return;
-	}
-	if (intf0_halted) {
-		return;
-	}
-	usb_bdpairs[1].in.BDCNT = 1;
-	usb_bdpairs[1].in.BDADR = &intf0_buffer;
-	if (usb_bdpairs[1].in.BDSTATbits.sie.OLDDTS) {
-		usb_bdpairs[1].in.BDSTAT = BDSTAT_DTSEN;
-	} else {
-		usb_bdpairs[1].in.BDSTAT = BDSTAT_DTS | BDSTAT_DTSEN;
-	}
+static void on_out4(void) {
+}
+
+static void on_in4(void) {
+}
+
+static void on_out5(void) {
+}
+
+static void on_in5(void) {
 }
 
 static void on_enter_config1(void) {
-	uint16_t now = (UFRMH << 8) | UFRML;
-	intf0_buffer = 0;
-	intf0_idle_rate = 0;
-	intf0_last_tx_frame = 0;
-	intf0_halted = 0;
-	usb_ep_callbacks[1].in = &on_in1;
-	usb_bdpairs[1].in.BDCNT = 1;
-	usb_bdpairs[1].in.BDADR = &intf0_buffer;
-	usb_bdpairs[1].in.BDSTAT = BDSTAT_UOWN | BDSTAT_DTSEN;
-	button_change_frame = now;
-	usb_sof_callback = &on_sof;
-	UEP1 = 0;
-	UEP1bits.EPHSHK = 1;
-	UEP1bits.EPINEN = 1;
-	UEP1bits.EPCONDIS = 1;
-	LAT_LED1 = 1;
+	dongle_status_start();
+	local_error_queue_init();
+	usb_ep_callbacks[3].in = &on_in3;
+	usb_ep_callbacks[4].out = &on_out4;
+	usb_ep_callbacks[4].in = &on_in4;
+	usb_ep_callbacks[5].out = &on_out5;
+	usb_ep_callbacks[5].in = &on_in5;
+	should_start_up = true;
 }
 
 static void on_exit_config1(void) {
-	LAT_LED1 = 0;
-	usb_sof_callback = 0;
-	UEP1 = 0;
-	usb_bdpairs[1].in.BDSTAT = 0;
-	usb_ep_callbacks[1].in = 0;
+	local_error_queue_deinit();
+	dongle_status_stop();
+	should_start_up = false;
+	should_shut_down = true;
 }
 
 static void on_endpoint_halt_config1(uint8_t ep) {
 	switch (ep) {
 		case 0x81:
-			intf0_halted = true;
-			usb_bdpairs[1].in.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
+			dongle_status_halt();
+			break;
+
+		case 0x82:
+			local_error_queue_halt();
+			break;
+
+		case 0x83:
+		case 0x84:
+		case 0x85:
+		case 0x04:
+		case 0x05:
+#warning implement
 			break;
 	}
 }
 
-static void on_endpoint_reinit_config1(uint8_t ep) {
+static BOOL on_endpoint_unhalt_config1(uint8_t ep) {
 	switch (ep) {
 		case 0x81:
-			intf0_halted = false;
-			usb_bdpairs[1].in.BDSTAT = BDSTAT_UOWN | BDSTAT_DTSEN;
-			break;
+			dongle_status_unhalt();
+			return true;
+
+		case 0x82:
+			local_error_queue_unhalt();
+			return true;
+
+		case 0x83:
+		case 0x84:
+		case 0x85:
+		case 0x04:
+		case 0x05:
+#warning implement
+			return true;
 	}
+	return false;
 }
 
 __code static const usb_confinfo_t config1 = {
 	&CONFIGURATION_DESCRIPTOR,
-	1,
-	0x0002,
-	0x0000,
+	2,
+	0b0000000000111110,
+	0b0000000000110000,
 	&on_enter_config1,
 	&on_exit_config1,
 	&on_endpoint_halt_config1,
-	&on_endpoint_reinit_config1,
+	&on_endpoint_unhalt_config1,
 };
 
 __code static const usb_devinfo_t devinfo = {
@@ -210,11 +186,334 @@ __code static const usb_devinfo_t devinfo = {
 };
 
 /**
+ * \brief Checks if the USB subsystem has become idle and, if so, put the dongle to sleep until the USB host comes back.
+ */
+static void check_idle(void) {
+	uint8_t saved_stuff;
+
+	/* Double-checked locking paradigm:
+	 * There might be a race where we were idle but become active right after the check.
+	 * The interrupt would be taken and clear usb_is_idle, but we'd put the MCU to sleep because we were already in the if.
+	 * This would be bad, because we'd put the MCU to sleep while the SIE was not suspended!
+	 * Instead, if we think we're idle, disable interrupts and check again.
+	 * Only if that second check also passes do we actually go to sleep.
+	 * Note that we never re-enable GIEH during the body of the if.
+	 * Therefore, bus activity will cause ACVTIF to become set but no interrupt will be taken immediately.
+	 * The SLEEP instruction does not go to sleep if any interrupt is pending, or wakes up if any interrupt becomes pending.
+	 * That is the "atomic" instruction in this system: it guarantees to sleep only if, and as long as, no interrupt is pending.
+	 * Once ACTVIF is pending, we wake up, bring up the hardware, and re-enable GIEH.
+	 * Only then is the interrupt taken. */
+	if (usb_is_idle) {
+		INTCONbits.GIEH = 0;
+		if (usb_is_idle) {
+			/* Flush and suspend communication. */
+			xbee_txpacket_suspend();
+			xbee_rxpacket_suspend();
+
+			/* Save the states of and turn off all LEDs and the XBees. */
+			saved_stuff = 0;
+			if (LAT_LED1) {
+				saved_stuff |= 1;
+			}
+			if (LAT_LED2) {
+				saved_stuff |= 2;
+			}
+			if (LAT_LED3) {
+				saved_stuff |= 4;
+			}
+			if (!LAT_XBEE0_SLEEP) {
+				saved_stuff |= 8;
+			}
+			if (!LAT_XBEE1_SLEEP) {
+				saved_stuff |= 16;
+			}
+			LAT_LED1 = 0;
+			LAT_LED2 = 0;
+			LAT_LED3 = 0;
+			LAT_XBEE0_SLEEP = 1;
+			LAT_XBEE1_SLEEP = 1;
+
+			/* Disable the PLL. */
+			OSCTUNEbits.PLLEN = 0;
+
+			/* Go to sleep. */
+			Sleep();
+
+			/* Wait for the crystal oscillator to start back up. */
+			while (!OSCCONbits.OSTS);
+
+			/* Enable the PLL and wait for it to lock. This may take up to 2ms. */
+			OSCTUNEbits.PLLEN = 1;
+			delay1ktcy(2);
+
+			/* Turn back on all the hardware we turned off.
+			 * As described above, this will not race with things like SET_CONFIGURATION callbacks.
+			 * Reason: WE HAVE NOT YET TAKEN THE INTERRUPT THAT WOKE US UP.
+			 * The entire body of this if block is a critical section! */
+			if (saved_stuff & 1) {
+				LAT_LED1 = 1;
+			}
+			if (saved_stuff & 2) {
+				LAT_LED2 = 1;
+			}
+			if (saved_stuff & 4) {
+				LAT_LED3 = 1;
+			}
+			if (saved_stuff & 8) {
+				LAT_XBEE0_SLEEP = 0;
+			}
+			if (saved_stuff & 16) {
+				LAT_XBEE1_SLEEP = 0;
+			}
+
+			/* Restart communication. */
+			xbee_txpacket_resume();
+			xbee_rxpacket_resume();
+		}
+		INTCONbits.GIEH = 1;
+	}
+}
+
+/**
+ * \brief Checks for low-level XBee errors and, if any are present, prepares to report them to the host.
+ */
+static void check_xbee_errors(void) {
+	uint8_t mask, i;
+
+	for (i = 0; i != 2; ++i) {
+		mask = xbee_rxpacket_errors(i);
+		if (mask & (1 << XBEE_RXPACKET_ERROR_FERR)) {
+			local_error_queue_add(1 + i);
+		}
+		if (mask & (1 << XBEE_RXPACKET_ERROR_OERR_HW)) {
+			local_error_queue_add(3 + i);
+		}
+		if (mask & (1 << XBEE_RXPACKET_ERROR_OERR_SW)) {
+			local_error_queue_add(5 + i);
+		}
+		if (mask & (1 << XBEE_RXPACKET_ERROR_CHECKSUM_ERROR)) {
+			local_error_queue_add(7 + i);
+		}
+		if (mask & (1 << XBEE_RXPACKET_ERROR_LENGTH_MSB_NONZERO)) {
+			local_error_queue_add(9 + i);
+		}
+		if (mask & (1 << XBEE_RXPACKET_ERROR_LENGTH_LSB_ILLEGAL)) {
+			local_error_queue_add(11 + i);
+		}
+	}
+}
+
+/**
+ * \brief Constructs an AT Command packet and sends it to an XBee.
+ *
+ * \param[in] xbee the index of the XBee to send the command to.
+ *
+ * \param[in] frame the frame number to use.
+ *
+ * \param[in] command the AT command to send.
+ *
+ * \param[in] value the value to set the parameter to.
+ *
+ * \param[in] val_length the number of bytes to use to represent \p value.
+ */
+static void at_send(uint8_t xbee, uint8_t frame, __code const char *command, uint16_t value, uint8_t val_length) {
+	uint8_t payload[6];
+	xbee_txpacket_iovec_t txiov;
+	xbee_txpacket_t txpkt;
+
+	txiov.ptr = payload;
+	payload[0] = 0x08;
+	payload[1] = frame;
+	payload[2] = command[0];
+	payload[3] = command[1];
+	if (val_length == 0) {
+		txiov.len = 4;
+	} else if (val_length == 1) {
+		payload[4] = value;
+		txiov.len = 5;
+	} else if (val_length == 2) {
+		payload[4] = value >> 8;
+		payload[5] = value & 0xFF;
+		txiov.len = 6;
+	}
+
+	txpkt.num_iovs = 1;
+	txpkt.iovs = &txiov;
+
+	xbee_txpacket_queue(&txpkt, xbee);
+
+	while (xbee_txpacket_dequeue() != &txpkt) {
+		check_idle();
+		if (should_shut_down) {
+			return;
+		}
+	}
+}
+
+/**
+ * \brief Issues an AT command to an XBee to get or set a parameter.
+ *
+ * \param[in] xbee the index of the XBee to send the command to.
+ *
+ * \param[in] frame the frame number to use.
+ *
+ * \param[in] command the AT command to send.
+ *
+ * \param[in] value the value to set the parameter to.
+ *
+ * \param[in] val_length the number of bytes to use to represent \p value.
+ *
+ * \param[out] resp the location to store the returned value in.
+ *
+ * \param[in] resp_length the size of response to expect.
+ *
+ * \return \c true on success, or \c false on failure.
+ */
+static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, uint16_t value, uint8_t val_length, __data void *resp, uint8_t resp_length) {
+	uint8_t retries, start_time;
+	__data xbee_rxpacket_t *rxpkt;
+	BOOL success;
+
+	for (retries = 0; retries != 6 && !should_shut_down; ++retries) {
+		/* Send the command. */
+		at_send(xbee, frame, command, value, val_length);
+
+		/* Wait for a response for up to half a second. */
+		start_time = UFRMH;
+		while (((UFRMH - start_time) & 7) < 2 && !should_shut_down) {
+			if ((rxpkt = xbee_rxpacket_dequeue())) {
+				/* See which XBee this packet came from. */
+				if (rxpkt->xbee == xbee) {
+					/* We received a packet. See what it is. */
+					if (rxpkt->len == 5 + resp_length && rxpkt->ptr[0] == 0x88 && rxpkt->ptr[1] == frame) {
+						/* It's an AT command response whose frame ID matches ours. */
+						success = false;
+						if (rxpkt->ptr[2] != command[0] || rxpkt->ptr[3] != command[1]) {
+							/* The command is wrong. */
+							local_error_queue_add(13 + xbee); /* XBee {0,1} AT command failure, response contains incorrect command */
+						} else if (rxpkt->ptr[4] != 0) {
+							/* The response is a failure. */
+							switch (rxpkt->ptr[4]) {
+								case 2:
+									local_error_queue_add(17 + xbee); /* XBee {0,1} AT command failure, invalid command */
+									break;
+
+								case 3:
+									local_error_queue_add(19 + xbee); /* XBee {0,1} AT command failure, invalid parameter */
+									break;
+
+								default:
+									local_error_queue_add(15 + xbee); /* XBee {0,1} AT command failure, unknown reason */
+									break;
+							}
+						} else {
+							/* The command succeeded. */
+							success = true;
+							memcpyram2ram(rxpkt->ptr + 5, resp, resp_length);
+						}
+						xbee_rxpacket_queue(rxpkt);
+						return success;
+					} else {
+						/* It's not a response to our request. Keep waiting. */
+						xbee_rxpacket_queue(rxpkt);
+					}
+				} else {
+					/* This packet came from the wrong XBee. Ignore it. */
+					xbee_rxpacket_queue(rxpkt);
+				}
+			}
+			check_xbee_errors();
+			check_idle();
+		}
+	}
+
+	/* Out of retries. Give up. */
+	local_error_queue_add(21 + xbee); /* XBee {0,1} timeout waiting for local modem response */
+	return false;
+}
+
+/**
+ * \brief Configures an XBee.
+ *
+ * \param[in] xbee the index of the XBee to configure.
+ *
+ * \return \c true on success, or \c false on failure.
+ */
+static BOOL configure_xbee(uint8_t xbee) {
+	BOOL success = false;
+	uint8_t buffer[2];
+
+	/* Mark status. */
+	if (xbee == 0) {
+		dongle_status.xbees |= 0x10;
+	} else {
+		dongle_status.xbees |= 0x20;
+	}
+	dongle_status_dirty();
+
+	/* Reset the modem. */
+	if (!at_command(xbee, 0x81, "FR", 0, 0, 0, 0)) {
+		local_error_queue_add(23 + xbee);
+		goto out;
+	}
+
+	/* Enable RTS flow control on pin DIO6. */
+	if (!at_command(xbee, 0x82, "D6", 1, 1, 0, 0)) {
+		local_error_queue_add(25 + xbee);
+		goto out;
+	}
+
+	/* Retrieve the firmware version. */
+	if (!at_command(xbee, 0x83, "VR", 0, 0, buffer, 2)) {
+		local_error_queue_add(27 + xbee);
+		goto out;
+	}
+	xbee_versions[xbee] = (buffer[0] << 8) | buffer[1];
+
+	/* Set up the PAN ID. */
+	if (!at_command(xbee, 0x84, "ID", 0x496C + xbee, 2, 0, 0)) {
+		local_error_queue_add(29 + xbee);
+		goto out;
+	}
+
+	success = true;
+
+out:
+	/* Mark final status. */
+	dongle_status.xbees &= ~0x30;
+	if (xbee == 0) {
+		if (success) {
+			dongle_status.xbees |= 0x01;
+		} else {
+			dongle_status.xbees |= 0x04;
+		}
+	} else {
+		if (success) {
+			dongle_status.xbees |= 0x02;
+		} else {
+			dongle_status.xbees |= 0x08;
+		}
+	}
+	dongle_status_dirty();
+	return success;
+}
+
+/**
  * \brief The application entry point.
  */
 void main(void) {
+	uint8_t i;
+
 	/* Configure I/O pins. */
 	PINS_INITIALIZE();
+	WDTCONbits.ADSHR = 1;
+	ANCON0 = 0x01;
+	ANCON1 = 0x00;
+	WDTCONbits.ADSHR = 0;
+
+	/* We want to attach timer 1 to ECCP 1 and timer 3 to ECCP2 so we can have separate periods. */
+	T3CONbits.T3CCP2 = 0;
+	T3CONbits.T3CCP1 = 1;
 
 	/* Wait for the crystal oscillator to start. */
 	while (!OSCCONbits.OSTS);
@@ -231,23 +530,72 @@ void main(void) {
 	/* Initialize USB. */
 	usb_init(&devinfo);
 
+	/* The rest of the function is a giant state loop.
+	 * We transition through a state machine linearly as follows:
+	 * 1. Waiting for the host to perform USB configuration.
+	 * 2. Waiting for the XBees to be configured and ready to use.
+	 *    2a. Stopping configuration and notifying the host of an unrecoverable error.
+	 * 3. Performing main communication. */
 	for (;;) {
-		if (usb_is_idle) {
-			INTCONbits.GIEH = 0;
-			if (usb_is_idle) {
-				/* Disable the PLL. */
-				OSCTUNEbits.PLLEN = 0;
-				/* Go to sleep. */
-				Sleep();
-				/* Wait for the crystal oscillator to start back up. */
-				while (!OSCCONbits.OSTS);
-				/* Enable the PLL and wait for it to lock. This may take up to 2ms. */
-				OSCTUNEbits.PLLEN = 1;
-				delay1ktcy(2);
-				
-			}
-			INTCONbits.GIEH = 1;
+		/* We're waiting for the host to perform USB configuration. */
+		do {
+			should_shut_down = false;
+			check_idle();
+		} while (!should_start_up);
+
+		/* Bring up the hardware. */
+		estop_init();
+		serial_init();
+		xbee_txpacket_init();
+		xbee_rxpacket_init();
+		LAT_XBEE0_SLEEP = 0;
+		LAT_XBEE1_SLEEP = 0;
+		LAT_LED1 = 1;
+
+		/* Give the receive buffers to the XBees. */
+		for (i = 0; i < NUM_XBEE_BUFFERS; ++i) {
+			xbee_packets[i].ptr = xbee_buffers[i];
+			xbee_rxpacket_queue(&xbee_packets[i]);
 		}
+
+		/* Configure the XBees. */
+		if (!configure_xbee(0) || !configure_xbee(1)) {
+			/* Configuration failed.
+			 * Put the XBees back to sleep. */
+			LAT_XBEE0_SLEEP = 1;
+			LAT_XBEE1_SLEEP = 1;
+			/* Represent this by turning the green LED off and the red LED for the failed XBee on. */
+			LAT_LED1 = 0;
+			if (dongle_status.xbees & 0x04) {
+				LAT_LED2 = 1;
+			}
+			if (dongle_status.xbees & 0x08) {
+				LAT_LED3 = 1;
+			}
+			/* Stay here until the host signals us to shut down. */
+			while (!should_shut_down) {
+				check_idle();
+			}
+		} else {
+			/* Configuration succeeded. */
+#warning test code
+			while (!should_shut_down) {
+				check_idle();
+			}
+		}
+
+		/* Bring down the hardware. */
+		dongle_status.xbees = 0;
+		dongle_status.robots = 0;
+		LAT_XBEE0_SLEEP = 0;
+		LAT_XBEE1_SLEEP = 0;
+		xbee_rxpacket_deinit();
+		xbee_txpacket_deinit();
+		serial_deinit();
+		estop_deinit();
+		LAT_LED1 = 0;
+		LAT_LED2 = 0;
+		LAT_LED3 = 0;
 	}
 }
 
