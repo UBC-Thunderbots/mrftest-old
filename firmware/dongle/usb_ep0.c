@@ -375,8 +375,6 @@ static void on_setup(void) {
 			/* The out buffer needs to run the status stage as well as accept possible SETUP transactions. */
 			/* The status stage is a zero-length OUT DATA1. */
 			/* In case of SETUP, we need to accept up to eight bytes. */
-			/* The BDCNT and BDADR are already set for us. */
-			/* Just tweak BDSTAT to accept OUT rather than stalling anything but SETUP. */
 			usb_bdpairs[0].out.BDCNT = 8;
 			usb_bdpairs[0].out.BDADR = usb_ep0_out_buffer;
 			usb_bdpairs[0].out.BDSTAT = BDSTAT_UOWN | BDSTAT_DTS | BDSTAT_DTSEN;
@@ -387,16 +385,14 @@ static void on_setup(void) {
 		}
 	}
 
-	/* If the request is not acceptable, just wait for the next one. */
+	/* If the request is not acceptable, stall everything and wait for the next SETUP transaction. */
 	if (!ok) {
 		usb_bdpairs[0].out.BDCNT = 8;
 		usb_bdpairs[0].out.BDADR = usb_ep0_out_buffer;
 		usb_bdpairs[0].out.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
-		if (usb_ep0_setup_buffer.request_type.bits.direction) {
-			usb_bdpairs[0].in.BDCNT = 0;
-			usb_bdpairs[0].in.BDADR = usb_ep0_in_buffer;
-			usb_bdpairs[0].in.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
-		}
+		usb_bdpairs[0].in.BDCNT = 0;
+		usb_bdpairs[0].in.BDADR = usb_ep0_in_buffer;
+		usb_bdpairs[0].in.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
 	}
 }
 
@@ -414,11 +410,11 @@ static void on_out(void) {
 		usb_bdpairs[0].out.BDADR = usb_ep0_out_buffer;
 		usb_bdpairs[0].out.BDSTAT = BDSTAT_UOWN | BDSTAT_DTSEN;
 	} else {
+		/* This case shouldn't happen: we don't implement host-to-device (out) data stages and the no-data case has an IN DATA1, not an OUT DATA1. */
 		usb_bdpairs[0].out.BDCNT = 8;
 		usb_bdpairs[0].out.BDADR = usb_ep0_out_buffer;
 		usb_bdpairs[0].out.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
 	}
-	/* The case of a host-to-device (out) data stage is not implemented. */
 }
 
 /**
