@@ -29,6 +29,56 @@ typedef enum {
 } estop_state_t;
 
 /**
+ * \brief The possible states the XBees can be in.
+ */
+typedef enum {
+	/**
+	 * \brief Stage 1 initialization has not yet started.
+	 */
+	XBEES_STATE_PREINIT,
+
+	/**
+	 * \brief XBee 0 is in stage 1 initialization.
+	 */
+	XBEES_STATE_INIT1_0,
+
+	/**
+	 * \brief XBee 1 is in stage 1 initialization.
+	 */
+	XBEES_STATE_INIT1_1,
+
+	/**
+	 * \brief The XBees have completed stage 1 initialization and are awaiting channel assignments.
+	 */
+	XBEES_STATE_INIT1_DONE,
+
+	/**
+	 * \brief XBee 0 is in stage 2 initialization.
+	 */
+	XBEES_STATE_INIT2_0,
+
+	/**
+	 * \brief XBee 1 is in stage 2 initialization.
+	 */
+	XBEES_STATE_INIT2_1,
+
+	/**
+	 * \brief The XBees have completed all initialization and are communicating normally.
+	 */
+	XBEES_STATE_RUNNING,
+
+	/**
+	 * \brief XBee 0 failed.
+	 */
+	XBEES_STATE_FAIL_0,
+
+	/**
+	 * \brief XBee 1 failed.
+	 */
+	XBEES_STATE_FAIL_1,
+} xbees_state_t;
+
+/**
  * \brief The layout of a dongle status packet.
  */
 typedef struct {
@@ -38,13 +88,9 @@ typedef struct {
 	estop_state_t estop;
 
 	/**
-	 * \brief The bit mask of XBee statuses.
-	 *
-	 * Bits 0 and 1 indicate if the corresponding XBee is ready to use.
-	 * Bits 2 and 3 indicate if the corresponding XBee has failed.
-	 * Bits 4 and 5 indicate if the corresponding XBee is currently being initialized.
+	 * \brief The states of the XBees.
 	 */
-	uint8_t xbees;
+	xbees_state_t xbees;
 
 	/**
 	 * \brief The mask of robot responsiveness.

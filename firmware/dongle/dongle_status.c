@@ -22,7 +22,7 @@
 
 volatile dongle_status_t dongle_status = {
 	ESTOP_STATE_UNINITIALIZED,
-	0,
+	XBEES_STATE_PREINIT,
 	0,
 };
 
