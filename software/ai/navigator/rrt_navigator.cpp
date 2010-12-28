@@ -13,7 +13,6 @@ using namespace AI::Flags;
 using namespace Glib;
 
 namespace {
-	const double MAX_SPEED = 2.0;
 	const double THRESHOLD = 0.08;
 	const double STEP_DISTANCE = 0.1;
 	// probability that we will take a step towards the goal
@@ -133,7 +132,13 @@ namespace {
 					dist = (pathPoints[j] - pathPoints[j - 1]).len();
 				}
 
-				timeToAdd = double_to_timespec(dist / MAX_SPEED);
+				// dribble at a different speed
+				if (player->type() == MOVE_DRIBBLE) {
+					timeToAdd = double_to_timespec(dist / player->MAX_LINEAR_VELOCITY * 0.5);
+				} else {
+					timeToAdd = double_to_timespec(dist / player->MAX_LINEAR_VELOCITY);
+				}
+
 				timespec_add(workingTime, timeToAdd, workingTime);
 
 				path.push_back(std::make_pair(std::make_pair(pathPoints[j], destOrientation), workingTime));
