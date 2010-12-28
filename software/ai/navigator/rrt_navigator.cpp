@@ -56,14 +56,14 @@ namespace {
 			std::vector<Point> rrt_plan(Player::Ptr player, Point initial, Point goal);
 	};
 
-	class rrt_navigatorFactory : public NavigatorFactory {
+	class RRTNavigatorFactory : public NavigatorFactory {
 		public:
-			rrt_navigatorFactory();
-			~rrt_navigatorFactory();
+			RRTNavigatorFactory();
+			~RRTNavigatorFactory();
 			Navigator::Ptr create_navigator(World &world) const;
 	};
 
-	rrt_navigatorFactory factory_instance;
+	RRTNavigatorFactory factory_instance;
 
 	NavigatorFactory &RRTNavigator::factory() const {
 		return factory_instance;
@@ -309,13 +309,13 @@ namespace {
 	RRTNavigator::~RRTNavigator() {
 	}
 
-	rrt_navigatorFactory::rrt_navigatorFactory() : NavigatorFactory("RRT Navigator") {
+	RRTNavigatorFactory::RRTNavigatorFactory() : NavigatorFactory("RRT Navigator") {
 	}
 
-	rrt_navigatorFactory::~rrt_navigatorFactory() {
+	RRTNavigatorFactory::~RRTNavigatorFactory() {
 	}
 
-	Navigator::Ptr rrt_navigatorFactory::create_navigator(World &world) const {
+	Navigator::Ptr RRTNavigatorFactory::create_navigator(World &world) const {
 		return RRTNavigator::create(world);
 	}
 }
