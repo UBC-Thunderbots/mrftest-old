@@ -34,43 +34,43 @@ namespace {
 			Point points[NUM_WAYPOINTS];
 	};
 
-	class rrtphysics_navigator : public Navigator {
+	class RRTPhysicsNavigator : public Navigator {
 		public:
 			NavigatorFactory &factory() const;
 			void tick();
 			static Navigator::Ptr create(World &world);
 
 		private:
-			rrtphysics_navigator(World &world);
-			~rrtphysics_navigator();
+			RRTPhysicsNavigator(World &world);
+			~RRTPhysicsNavigator();
 
 			Waypoints::Ptr currPlayerWaypoints;
 			Point currPlayerVelocity;
 
-			double Distance(NodeTree<Point> *nearest, Point goal);
-			Point RandomPoint();
-			Point ChooseTarget(Point goal);
-			NodeTree<Point> *Nearest(NodeTree<Point> *tree, Point target);
-			Point EmptyState();
-			Point Extend(Player::Ptr player, Point projected, Point start, Point target);
-			bool IsEmptyState(Point toCheck);
-			std::deque<Point> RRTPlan(Player::Ptr player, Point initial, Point goal);
+			double distance(NodeTree<Point> *nearest, Point goal);
+			Point random_point();
+			Point choose_target(Point goal);
+			NodeTree<Point> *nearest(NodeTree<Point> *tree, Point target);
+			Point empty_state();
+			Point extend(Player::Ptr player, Point projected, Point start, Point target);
+			bool is_empty_state(Point toCheck);
+			std::deque<Point> rrt_plan(Player::Ptr player, Point initial, Point goal);
 	};
 
-	class rrtphysics_navigatorFactory : public NavigatorFactory {
+	class RRTPhysicsNavigatorFactory : public NavigatorFactory {
 		public:
-			rrtphysics_navigatorFactory();
-			~rrtphysics_navigatorFactory();
+			RRTPhysicsNavigatorFactory();
+			~RRTPhysicsNavigatorFactory();
 			Navigator::Ptr create_navigator(World &world) const;
 	};
 
-	rrtphysics_navigatorFactory factory_instance;
+	RRTPhysicsNavigatorFactory factory_instance;
 
-	NavigatorFactory &rrtphysics_navigator::factory() const {
+	NavigatorFactory &RRTPhysicsNavigator::factory() const {
 		return factory_instance;
 	}
 
-	void rrtphysics_navigator::tick() {
+	void RRTPhysicsNavigator::tick() {
 		struct timespec currentTime;
 		std::vector<std::pair<std::pair<Point, double>, timespec> > path;
 		std::deque<Point> pathPoints;
@@ -96,7 +96,7 @@ namespace {
 			currPlayerVelocity = player->velocity();
 
 			pathPoints.clear();
-			pathPoints = RRTPlan(player, player->position(), player->destination().first);
+			pathPoints = rrt_plan(player, player->position(), player->destination().first);
 
 			double destOrientation = player->destination().second;
 			for (std::size_t j = 0; j < pathPoints.size(); ++j) {
@@ -118,7 +118,7 @@ namespace {
 		}
 	}
 
-	double rrtphysics_navigator::Distance(NodeTree<Point> *nearest, Point goal) {
+	double RRTPhysicsNavigator::distance(NodeTree<Point> *nearest, Point goal) {
 		Point projected;
 		if (nearest->parent() == NULL) {
 			projected = nearest->data() + (currPlayerVelocity * TIMESTEP);
@@ -129,16 +129,16 @@ namespace {
 		return (goal - projected).len();
 	}
 
-	Point rrtphysics_navigator::EmptyState() {
+	Point RRTPhysicsNavigator::empty_state() {
 		return Point(-10000, -10000);
 	}
 
-	bool rrtphysics_navigator::IsEmptyState(Point toCheck) {
-		return toCheck.x == EmptyState().x && toCheck.y && EmptyState().y;
+	bool RRTPhysicsNavigator::is_empty_state(Point toCheck) {
+		return toCheck.x == empty_state().x && toCheck.y && empty_state().y;
 	}
 
 	// generate a random point from the field
-	Point rrtphysics_navigator::RandomPoint() {
+	Point RRTPhysicsNavigator::random_point() {
 		double randomX = ((std::rand() % static_cast<int>(world.field().length() * 100)) - (world.field().length() * 50)) / 100;
 		double randomY = ((std::rand() % static_cast<int>(world.field().width() * 100)) - (world.field().width() * 50)) / 100;
 
@@ -146,21 +146,21 @@ namespace {
 	}
 
 	// choose a target to extend toward, the goal, a waypoint or a random point
-	Point rrtphysics_navigator::ChooseTarget(Point goal) {
+	Point RRTPhysicsNavigator::choose_target(Point goal) {
 		double p = std::rand() / double(RAND_MAX);
 		int i = static_cast<int>(std::rand() % NUM_WAYPOINTS);
 
 		if (p > 0 && p <= WAYPOINT_PROB) {
 			return currPlayerWaypoints->points[i];
 		} else if (p > WAYPOINT_PROB && p < (WAYPOINT_PROB + RAND_PROB)) {
-			return RandomPoint();
+			return random_point();
 		} else {
 			return goal;
 		}
 	}
 
 	// finds the point in the tree that is nearest to the target point
-	NodeTree<Point> *rrtphysics_navigator::Nearest(NodeTree<Point> *rrtTree, Point target) {
+	NodeTree<Point> *RRTPhysicsNavigator::nearest(NodeTree<Point> *rrtTree, Point target) {
 		NodeTree<Point> *nearest = rrtTree;
 		NodeTree<Point> *currNode;
 
@@ -172,7 +172,7 @@ namespace {
 			currNode = nodeQueue.back();
 			nodeQueue.pop_back();
 
-			if (Distance(currNode, target) < Distance(nearest, target)) {
+			if (distance(currNode, target) < distance(nearest, target)) {
 				nearest = currNode;
 			}
 
@@ -185,7 +185,7 @@ namespace {
 	}
 
 	// extend by STEP_DISTANCE towards the target from the start
-	Point rrtphysics_navigator::Extend(Player::Ptr player, Point projected, Point start, Point target) {
+	Point RRTPhysicsNavigator::extend(Player::Ptr player, Point projected, Point start, Point target) {
 		Point residual = (target - projected);
 		Point normalizedDir = residual.norm();
 		Point extendPoint;
@@ -206,14 +206,14 @@ namespace {
 		// check if the point is invalid (collision, out of bounds, etc...)
 		// if it is then return EmptyState()
 		if (!valid_path(start, extendPoint, world, player)) {
-			return EmptyState();
+			return empty_state();
 		}
 
 		return extendPoint;
 	}
 
-	std::deque<Point> rrtphysics_navigator::RRTPlan(Player::Ptr player, Point initial, Point goal) {
-		Point nearest, extended, target, projected;
+	std::deque<Point> RRTPhysicsNavigator::rrt_plan(Player::Ptr player, Point initial, Point goal) {
+		Point nearestPoint, extended, target, projected;
 
 		NodeTree<Point> *nearestNode;
 		NodeTree<Point> *lastAdded;
@@ -225,9 +225,9 @@ namespace {
 
 		// should loop until distance between lastAdded and goal is less than threshold
 		while ((lastAdded->data() - goal).len() > THRESHOLD && iterationCounter < ITERATION_LIMIT) {
-			target = ChooseTarget(goal);
-			nearestNode = Nearest(&rrtTree, target);
-			nearest = nearestNode->data();
+			target = choose_target(goal);
+			nearestNode = nearest(&rrtTree, target);
+			nearestPoint = nearestNode->data();
 
 			if (nearestNode->parent() == NULL) {
 				projected = nearestNode->data() + player->velocity() * TIMESTEP;
@@ -235,9 +235,9 @@ namespace {
 				projected = 2 * nearestNode->data() - nearestNode->parent()->data();
 			}
 
-			extended = Extend(player, projected, nearest, target);
+			extended = extend(player, projected, nearestPoint, target);
 
-			if (IsEmptyState(extended)) {
+			if (is_empty_state(extended)) {
 				if (nearestNode->parent() == NULL) {
 					break;
 				}
@@ -248,14 +248,14 @@ namespace {
 			iterationCounter++;
 		}
 
-		bool foundPath = Distance(lastAdded, goal) < THRESHOLD;
+		bool foundPath = distance(lastAdded, goal) < THRESHOLD;
 
 		if (!foundPath) {
 			// LOG_WARN("Reached limit, path not found");
 
 			// set the last added as the node closest to the goal if we reach the iteration limit
 			// because the last added could be anything and we use it for tracing back the path
-			lastAdded = Nearest(&rrtTree, goal);
+			lastAdded = nearest(&rrtTree, goal);
 		}
 
 		// the final closest point to the goal is where we will trace backwards from
@@ -281,25 +281,25 @@ namespace {
 		return pathPoints;
 	}
 
-	Navigator::Ptr rrtphysics_navigator::create(World &world) {
-		const Navigator::Ptr p(new rrtphysics_navigator(world));
+	Navigator::Ptr RRTPhysicsNavigator::create(World &world) {
+		const Navigator::Ptr p(new RRTPhysicsNavigator(world));
 		return p;
 	}
 
-	rrtphysics_navigator::rrtphysics_navigator(World &world) : Navigator(world) {
+	RRTPhysicsNavigator::RRTPhysicsNavigator(World &world) : Navigator(world) {
 	}
 
-	rrtphysics_navigator::~rrtphysics_navigator() {
+	RRTPhysicsNavigator::~RRTPhysicsNavigator() {
 	}
 
-	rrtphysics_navigatorFactory::rrtphysics_navigatorFactory() : NavigatorFactory("RRT Physics Navigator") {
+	RRTPhysicsNavigatorFactory::RRTPhysicsNavigatorFactory() : NavigatorFactory("RRT Physics Navigator") {
 	}
 
-	rrtphysics_navigatorFactory::~rrtphysics_navigatorFactory() {
+	RRTPhysicsNavigatorFactory::~RRTPhysicsNavigatorFactory() {
 	}
 
-	Navigator::Ptr rrtphysics_navigatorFactory::create_navigator(World &world) const {
-		return rrtphysics_navigator::create(world);
+	Navigator::Ptr RRTPhysicsNavigatorFactory::create_navigator(World &world) const {
+		return RRTPhysicsNavigator::create(world);
 	}
 }
 
