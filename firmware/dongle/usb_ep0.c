@@ -28,15 +28,12 @@ static uint8_t usb_ep0_next_iovec;
 
 uint16_t usb_halted_in_endpoints, usb_halted_out_endpoints;
 
-/**
- * \brief A small buffer for stashing miscellaneous bits and pieces of data to return to the hsot.
- */
-static uint8_t scratch_buffer[8];
+volatile uint8_t usb_current_configuration;
 
 /**
- * \brief The index of the current configuration in the device info table configuration array.
+ * \brief A small buffer for stashing miscellaneous bits and pieces of data to return to the host.
  */
-volatile uint8_t usb_current_configuration;
+static uint8_t scratch_buffer[8];
 
 /**
  * \brief Loads some data and prepares the in buffer for transmission to the host.
