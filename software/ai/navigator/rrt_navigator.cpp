@@ -13,6 +13,8 @@ using namespace AI::Flags;
 using namespace Glib;
 
 namespace {
+	// fraction of the maximum speed that the robot will try to dribble at
+	const double DRIBBLE_SPEED = 0.5;
 	const double THRESHOLD = 0.08;
 	const double STEP_DISTANCE = 0.1;
 	// probability that we will take a step towards the goal
@@ -134,7 +136,7 @@ namespace {
 
 				// dribble at a different speed
 				if (player->type() == MOVE_DRIBBLE) {
-					timeToAdd = double_to_timespec(dist / player->MAX_LINEAR_VELOCITY * 0.5);
+					timeToAdd = double_to_timespec(dist / player->MAX_LINEAR_VELOCITY * DRIBBLE_SPEED);
 				} else {
 					timeToAdd = double_to_timespec(dist / player->MAX_LINEAR_VELOCITY);
 				}
