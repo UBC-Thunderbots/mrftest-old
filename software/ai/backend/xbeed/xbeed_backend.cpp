@@ -328,13 +328,18 @@ namespace {
 			}
 
 			void update_playtype() {
+				AI::Common::PlayType::PlayType new_pt;
 				AI::Common::PlayType::PlayType old_pt = playtype();
-				if (friendly_colour() == YELLOW) {
-					old_pt = AI::Common::PlayType::INVERT[old_pt];
-				}
-				AI::Common::PlayType::PlayType new_pt = compute_playtype(old_pt);
-				if (friendly_colour() == YELLOW) {
-					new_pt = AI::Common::PlayType::INVERT[new_pt];
+				if (playtype_override() != AI::Common::PlayType::COUNT) {
+					new_pt = playtype_override();
+				} else {
+					if (friendly_colour() == YELLOW) {
+						old_pt = AI::Common::PlayType::INVERT[old_pt];
+					}
+					new_pt = compute_playtype(old_pt);
+					if (friendly_colour() == YELLOW) {
+						new_pt = AI::Common::PlayType::INVERT[new_pt];
+					}
 				}
 				if (new_pt != playtype()) {
 					playtype_rw() = new_pt;
@@ -349,10 +354,6 @@ namespace {
 			}
 
 			AI::Common::PlayType::PlayType compute_playtype(AI::Common::PlayType::PlayType old_pt) {
-				if (playtype_override() != AI::Common::PlayType::COUNT) {
-					return playtype_override();
-				}
-
 				switch (refbox.command) {
 					case 'H': // HALT
 					case 'h': // HALF TIME
