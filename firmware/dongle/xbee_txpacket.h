@@ -28,6 +28,9 @@ typedef struct {
  * \brief A complete packet to transmit.
  */
 typedef struct xbee_txpacket {
+	/* TODO: This is a workaround for SDCC bug #3147475. */
+	uint8_t dummy;
+
 	/**
 	 * \brief The number of iovecs in the iovs array.
 	 */

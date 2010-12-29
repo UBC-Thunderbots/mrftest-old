@@ -1,6 +1,8 @@
 #include "critsec.h"
 #include "pins.h"
+#include "queue.h"
 #include "signal.h"
+#include "stack.h"
 #include "xbee_txpacket.h"
 #include <pic18fregs.h>
 #include <stdbool.h>
@@ -35,25 +37,24 @@ typedef enum {
 	TXSTATE_CHECKSUM,
 } txstate_t;
 
+QUEUE_DEFINE_TYPE(xbee_txpacket_t);
+
+STACK_DEFINE_TYPE(xbee_txpacket_t);
+
 /**
  * \brief The states of the two transmitters.
  */
 static txstate_t states[2];
 
 /**
- * \brief The first packet in the linked list of packets to send to each XBee.
+ * \brief The packets waiting to be sent to each XBee.
  */
-__data static xbee_txpacket_t *queue_head[2];
+static QUEUE_TYPE(xbee_txpacket_t) ready_queue[2];
 
 /**
- * \brief The last packet in the linked list of packets to send to each XBee.
+ * \brief The packets that have been sent.
  */
-__data static xbee_txpacket_t *queue_tail[2];
-
-/**
- * \brief The first packet in the linked list of packets that have finished being sent.
- */
-__data static xbee_txpacket_t *done_head;
+static STACK_TYPE(xbee_txpacket_t) done_stack;
 
 /**
  * \brief The total lengths of the current packets.
@@ -76,7 +77,7 @@ static BOOL inited = false;
  * \param[in] xbee the index of the queue to examine.
  */
 static void update_current_packet_length(uint8_t xbee) {
-	__data xbee_txpacket_t *packet = queue_head[xbee];
+	__data xbee_txpacket_t *packet = QUEUE_FRONT(ready_queue[xbee]);
 	uint8_t num_iovs;
 	__data xbee_txpacket_iovec_t *iovs;
 	uint8_t answer = 0;
@@ -88,27 +89,6 @@ static void update_current_packet_length(uint8_t xbee) {
 		}
 	}
 	packet_lengths[xbee] = answer;
-}
-
-/**
- * \brief Moves a packet from the head of a transmit queue to the done queue.
- *
- * \param[in] xbee the index of the queue to pop.
- */
-static void send_to_done_queue(uint8_t xbee) {
-	/* Grab the packet. */
-	__data xbee_txpacket_t *packet = queue_head[xbee];
-
-	/* Remove it from the transmit queue. */
-	if (packet->next) {
-		queue_head[xbee] = packet->next;
-	} else {
-		queue_head[xbee] = queue_tail[xbee] = 0;
-	}
-
-	/* Add it to the done queue. */
-	packet->next = done_head;
-	done_head = packet;
 }
 
 void xbee_txpacket_init(void) {
@@ -141,7 +121,9 @@ void xbee_txpacket_init(void) {
 		IPR3bits.TX2IP = 0;
 
 		/* Initialize packet queues. */
-		queue_head[0] = queue_head[1] = queue_tail[0] = queue_tail[1] = done_head = 0;
+		QUEUE_INIT(ready_queue[0]);
+		QUEUE_INIT(ready_queue[1]);
+		STACK_INIT(done_stack);
 
 		/* Initialize transmitter states. */
 		states[0] = states[1] = TXSTATE_SOP;
@@ -185,19 +167,16 @@ void xbee_txpacket_resume(void) {
 }
 
 void xbee_txpacket_queue(__data xbee_txpacket_t *packet, uint8_t xbee) {
+	BOOL was_empty;
 	CRITSEC_DECLARE(cs);
 
 	CRITSEC_ENTER(cs);
 
 	if (inited) {
 		/* Add the packet to the end of the appropriate queue. */
-		if (queue_tail[xbee]) {
-			queue_tail[xbee]->next = packet;
-			/* There was already a packet in the queue for this XBee.
-			 * No need to enable transmit interrupts here.
-			 * Either they're already enabled, or we're in CTS holdoff and shouldn't enable them anyway. */
-		} else {
-			queue_head[xbee] = packet;
+		was_empty = !QUEUE_FRONT(ready_queue[xbee]);
+		QUEUE_PUSH(ready_queue[xbee], packet);
+		if (was_empty) {
 			/* Enable transmit interrupts for the relevant USART. */
 			if (xbee == 0) {
 				PIE3bits.TX2IE = 1;
@@ -205,8 +184,6 @@ void xbee_txpacket_queue(__data xbee_txpacket_t *packet, uint8_t xbee) {
 				PIE1bits.TX1IE = 1;
 			}
 		}
-		queue_tail[xbee] = packet;
-		packet->next = 0;
 	}
 
 	CRITSEC_LEAVE(cs);
@@ -220,10 +197,8 @@ __data xbee_txpacket_t *xbee_txpacket_dequeue(void) {
 
 	if (inited) {
 		/* Remove head of queue, if any. */
-		ret = done_head;
-		if (done_head) {
-			done_head = done_head->next;
-		}
+		ret = STACK_TOP(done_stack);
+		STACK_POP(done_stack);
 	} else {
 		ret = 0;
 	}
@@ -238,13 +213,17 @@ __data xbee_txpacket_t *xbee_txpacket_dequeue(void) {
 #define IMPLEMENT_TXIF(usartidx, xbeeidx, piridx) \
 SIGHANDLER(xbee_txpacket_tx ## usartidx ## if) { \
 	__data xbee_txpacket_iovec_t *iov; \
+	__data xbee_txpacket_t *packet; \
 \
 	/* If the shift register is empty, we may be able to send two bytes at once. \
 	 * Also, we may not actually send a byte if we shift a lot of state around. \
 	 * Thus, loop as long as we are able to transmit. */ \
 	while (PIR ## piridx ## bits.TX ## usartidx ## IF) { \
+		/* Grab the first packet on the queue. */ \
+		packet = QUEUE_FRONT(ready_queue[xbeeidx]); \
+\
 		/* If no packets are queued, disable interrupts and return. */ \
-		if (!queue_head[xbeeidx]) { \
+		if (!packet) { \
 			PIE ## piridx ## bits.TX ## usartidx ## IE = 0; \
 			return; \
 		} \
@@ -284,15 +263,15 @@ SIGHANDLER(xbee_txpacket_tx ## usartidx ## if) { \
 				break; \
 \
 			case TXSTATE_DATA: \
-				if (!queue_head[xbeeidx]->num_iovs) { \
+				if (!packet->num_iovs) { \
 					/* There are no iovecs left. Time to send the checksum. */ \
 					states[xbeeidx] = TXSTATE_CHECKSUM; \
 				} else { \
-					iov = queue_head[xbeeidx]->iovs; \
+					iov = packet->iovs; \
 					if (!iov->len) { \
 						/* There are no bytes left in the current iovec. Go to the next one. */ \
-						queue_head[xbeeidx]->iovs++; \
-						queue_head[xbeeidx]->num_iovs--; \
+						packet->iovs++; \
+						packet->num_iovs--; \
 					} else { \
 						/* We can send the next byte. */ \
 						TXREG ## usartidx = iov->ptr[0]; \
@@ -307,7 +286,8 @@ SIGHANDLER(xbee_txpacket_tx ## usartidx ## if) { \
 				/* Send the checksum. */ \
 				TXREG ## usartidx = checksums[xbeeidx]; \
 				/* The packet is now finished. Send it to the done queue. */ \
-				send_to_done_queue(xbeeidx); \
+				QUEUE_POP(ready_queue[xbeeidx]); \
+				STACK_PUSH(done_stack, packet); \
 				/* Next order of business will be to send the next packet's SOP. */ \
 				states[xbeeidx] = TXSTATE_SOP; \
 				break; \
@@ -332,10 +312,10 @@ IMPLEMENT_TXIF(2, 0, 3)
  */
 SIGHANDLER(xbee_txpacket_ccp1if) {
 	/* Note: CTS lines are active-low. */
-	if (!PORT_XBEE0_CTS && queue_head[0]) {
+	if (!PORT_XBEE0_CTS && QUEUE_FRONT(ready_queue[0])) {
 		PIE3bits.TX2IE = 1;
 	}
-	if (!PORT_XBEE1_CTS && queue_head[1]) {
+	if (!PORT_XBEE1_CTS && QUEUE_FRONT(ready_queue[1])) {
 		PIE1bits.TX1IE = 1;
 	}
 	if (!PORT_XBEE0_CTS && !PORT_XBEE1_CTS) {

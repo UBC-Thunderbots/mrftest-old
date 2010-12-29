@@ -29,9 +29,11 @@ firmware/dongle/local_error_queue.h -text
 firmware/dongle/main.c -text
 firmware/dongle/pingen.c -text
 firmware/dongle/pins.txt -text
+firmware/dongle/queue.h -text
 firmware/dongle/serial.c -text
 firmware/dongle/serial.h -text
 firmware/dongle/signal.h -text
+firmware/dongle/stack.h -text
 firmware/dongle/usb.c -text
 firmware/dongle/usb.h -text
 firmware/dongle/usb_config.h -text

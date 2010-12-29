@@ -1,7 +1,9 @@
 #include "xbee_rxpacket.h"
 #include "critsec.h"
 #include "pins.h"
+#include "queue.h"
 #include "signal.h"
+#include "stack.h"
 #include <pic18fregs.h>
 #include <stdbool.h>
 
@@ -78,45 +80,29 @@ typedef struct {
 	uint8_t errors;
 } rxstate_t;
 
+QUEUE_DEFINE_TYPE(xbee_rxpacket_t);
+
+STACK_DEFINE_TYPE(xbee_rxpacket_t);
+
 /**
  * \brief The receive state blocks for the two XBees.
  */
 static rxstate_t rxstates[2];
 
 /**
- * \brief The first of a linked list of packets that have been queued for receiving but not yet allocated for use by an XBee.
+ * \brief The empty packet buffers that have been provided to the subsystem but not yet received into.
  */
-static __data xbee_rxpacket_t *pending_head;
+static STACK_TYPE(xbee_rxpacket_t) pending_stack;
 
 /**
- * \brief The oldest packet (and the head of the list) that is ready for the application to retrieve and process.
+ * \brief The full buffers that are waiting to be given to the application.
  */
-static __data xbee_rxpacket_t *done_head;
-
-/**
- * \brief The newest packet that is ready for the application to retrieve and process.
- */
-static __data xbee_rxpacket_t *done_tail;
+static QUEUE_TYPE(xbee_rxpacket_t) done_queue;
 
 /**
  * \brief Whether or not the subsystem is initialized.
  */
 static BOOL inited = false;
-
-/**
- * \brief Adds a packet to the done queue so it can be retrieved by the application.
- *
- * \param[in] packet the packet to enqueue.
- */
-static void push_done(__data xbee_rxpacket_t *packet) {
-	packet->next = 0;
-	if (done_tail) {
-		done_tail->next = packet;
-	} else {
-		done_head = packet;
-	}
-	done_tail = packet;
-}
 
 void xbee_rxpacket_init(void) {
 	if (!inited) {
@@ -137,7 +123,8 @@ void xbee_rxpacket_init(void) {
 		rxstates[0].errors = 0;
 
 		/* Initialize packet queues. */
-		pending_head = done_head = done_tail = 0;
+		STACK_INIT(pending_stack);
+		QUEUE_INIT(done_queue);
 
 		/* Remember that the module is initialized. */
 		inited = true;
@@ -197,7 +184,7 @@ void xbee_rxpacket_suspend(void) {
 void xbee_rxpacket_resume(void) {
 	if (inited) {
 		/* Assert RTS only if we actually have a packet buffer available. */
-		if (pending_head) {
+		if (STACK_TOP(pending_stack)) {
 			LAT_XBEE0_RTS = 0;
 			LAT_XBEE1_RTS = 0;
 		}
@@ -223,8 +210,7 @@ void xbee_rxpacket_queue(__data xbee_rxpacket_t *packet) {
 		} else {
 			/* Neither XBee is in the middle of receiving right now.
 			 * Put the buffer in the queue and let either XBee use it. */
-			packet->next = pending_head;
-			pending_head = packet;
+			STACK_PUSH(pending_stack, packet);
 			LAT_XBEE0_RTS = 0;
 			LAT_XBEE1_RTS = 0;
 		}
@@ -234,24 +220,16 @@ void xbee_rxpacket_queue(__data xbee_rxpacket_t *packet) {
 }
 
 __data xbee_rxpacket_t *xbee_rxpacket_dequeue(void) {
-	__data xbee_rxpacket_t *result;
+	__data xbee_rxpacket_t *result = 0;
 	CRITSEC_DECLARE(cs);
 
-	if (done_head) {
+	if (QUEUE_FRONT(done_queue)) {
 		CRITSEC_ENTER(cs);
-		if (inited && done_head) {
-			result = done_head;
-			done_head = done_head->next;
-			if (!done_head) {
-				done_tail = 0;
-			}
-			result->next = 0;
-		} else {
-			result = 0;
+		if (inited) {
+			result = QUEUE_FRONT(done_queue);
+			QUEUE_POP(done_queue);
 		}
 		CRITSEC_LEAVE(cs);
-	} else {
-		result = 0;
 	}
 
 	return result;
@@ -310,11 +288,11 @@ SIGHANDLER(xbee_rxpacket_rc ## usartidx ## if) { \
 				rxstates[xbeeidx].state = STATE_EXPECT_LENGTH_MSB; \
 				if (rxstates[xbeeidx].packet) { \
 					/* Packet buffer already allocated to this XBee. Just use it. */ \
-				} else if (pending_head) { \
+				} else if (STACK_TOP(pending_stack)) { \
 					/* Packet buffer available; allocate it. */ \
-					rxstates[xbeeidx].packet = pending_head; \
+					rxstates[xbeeidx].packet = STACK_TOP(pending_stack); \
 					rxstates[xbeeidx].packet->xbee = xbeeidx; \
-					pending_head = pending_head->next; \
+					STACK_POP(pending_stack); \
 				} else { \
 					/* No packet buffers available. Make the XBee hold off. */ \
 					LAT_XBEE ## xbeeidx ## _RTS = 1; \
@@ -375,7 +353,7 @@ SIGHANDLER(xbee_rxpacket_rc ## usartidx ## if) { \
 			if (rxstates[xbeeidx].checksum == 0xFF) { \
 				/* The checksum is correct.
 				 * Queue the packet for the application. */ \
-				push_done(rxstates[xbeeidx].packet); \
+				QUEUE_PUSH(done_queue, rxstates[xbeeidx].packet); \
 				rxstates[xbeeidx].packet = 0; \
 			} else { \
 				/* The checksum is incorrect.
