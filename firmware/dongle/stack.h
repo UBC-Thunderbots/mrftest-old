@@ -21,7 +21,7 @@
  *
  * \param[in] etype the element type to hold.
  */
-#define STACK_DEFINE_TYPE(etype) typedef struct { __data etype *head; } STACK_TYPE(etype)
+#define STACK_DEFINE_TYPE(etype) typedef struct { __data etype *stack_head; } STACK_TYPE(etype)
 
 /**
  * \brief An initializer for an empty stack.
@@ -33,7 +33,7 @@
  *
  * \param[in] q the stack to initialize.
  */
-#define STACK_INIT(q) do { (q).head = 0; } while (0)
+#define STACK_INIT(q) do { (q).stack_head = 0; } while (0)
 
 /**
  * \brief Pushes an element on a stack.
@@ -42,7 +42,7 @@
  *
  * \param[in] elt the element to push.
  */
-#define STACK_PUSH(q, elt) do { (elt)->next = (q).head; (q).head = (elt); } while (0)
+#define STACK_PUSH(q, elt) do { (elt)->next = (q).stack_head; (q).stack_head = (elt); } while (0)
 
 /**
  * \brief Returns the next element in a stack.
@@ -51,14 +51,14 @@
  *
  * \return the next element, or null if the \p q is empty.
  */
-#define STACK_TOP(q) ((q).head)
+#define STACK_TOP(q) ((q).stack_head)
 
 /**
  * \brief Removes the first element from a stack.
  *
  * \param[in] q the stack to pop.
  */
-#define STACK_POP(q) do { if ((q).head) { (q).head = (q).head->next; } } while (0)
+#define STACK_POP(q) do { if ((q).stack_head) { (q).stack_head = (q).stack_head->next; } } while (0)
 
 #endif
 
