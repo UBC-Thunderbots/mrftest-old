@@ -71,7 +71,7 @@ namespace {
 	}
 
 	void RRTNavigator::tick() {
-		struct timespec workingTime;
+		timespec workingTime;
 		std::vector<std::pair<std::pair<Point, double>, timespec> > path;
 		std::vector<Point> pathPoints;
 
@@ -117,7 +117,7 @@ namespace {
 			pathPoints = rrt_plan(player, player->position(), dest);
 
 			double dist = 0.0;
-			struct timespec timeToAdd;
+			timespec timeToAdd;
 			workingTime = world.monotonic_time();
 
 			double destOrientation = player->destination().second;
