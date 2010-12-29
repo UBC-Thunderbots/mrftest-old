@@ -473,7 +473,9 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
 	}
 
 	/* Out of retries. Give up. */
-	local_error_queue_add(21 + xbee); /* XBee {0,1} timeout waiting for local modem response */
+	if (!should_shut_down) {
+		local_error_queue_add(21 + xbee); /* XBee {0,1} timeout waiting for local modem response */
+	}
 	return false;
 }
 
@@ -487,6 +489,7 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
 static BOOL configure_xbee_stage1(uint8_t xbee) {
 	BOOL success = false;
 	uint8_t buffer[2];
+	uint8_t err;
 
 	/* Mark status. */
 	dongle_status.xbees = XBEES_STATE_INIT1_0 + xbee;
@@ -494,20 +497,20 @@ static BOOL configure_xbee_stage1(uint8_t xbee) {
 
 	/* Reset the modem. */
 	if (!at_command(xbee, 0x81, "FR", 0, 0, 0, 0)) {
-		local_error_queue_add(23 + xbee);
+		err = 23 + xbee;
 		goto out;
 	}
 
 	/* Enable RTS flow control on pin DIO6. */
 	buffer[0] = 1;
 	if (!at_command(xbee, 0x82, "D6", buffer, 1, 0, 0)) {
-		local_error_queue_add(25 + xbee);
+		err = 25 + xbee;
 		goto out;
 	}
 
 	/* Retrieve the firmware version. */
 	if (!at_command(xbee, 0x83, "VR", 0, 0, buffer, 2)) {
-		local_error_queue_add(27 + xbee);
+		err = 27 + xbee;
 		goto out;
 	}
 	xbee_versions[xbee] = (buffer[0] << 8) | buffer[1];
@@ -516,13 +519,13 @@ static BOOL configure_xbee_stage1(uint8_t xbee) {
 	buffer[0] = 0x49;
 	buffer[1] = 0x6C + xbee;
 	if (!at_command(xbee, 0x84, "ID", buffer, 2, 0, 0)) {
-		local_error_queue_add(29 + xbee);
+		err = 29 + xbee;
 		goto out;
 	}
 
 	/* Set up the text node ID. */
 	if (!at_command(xbee, 0x85, "NI", (xbee == 0) ? "TBOTS00" : "TBOTS01", 7, 0, 0)) {
-		local_error_queue_add(31 + xbee);
+		err = 31 + xbee;
 		goto out;
 	}
 
@@ -530,14 +533,17 @@ static BOOL configure_xbee_stage1(uint8_t xbee) {
 
 out:
 	/* Mark final status. */
-	if (success) {
-		if (xbee == 1) {
-			dongle_status.xbees = XBEES_STATE_INIT1_DONE;
+	if (!should_shut_down) {
+		if (success) {
+			if (xbee == 1) {
+				dongle_status.xbees = XBEES_STATE_INIT1_DONE;
+			}
+		} else {
+			local_error_queue_add(err);
+			dongle_status.xbees = XBEES_STATE_FAIL_0 + xbee;
 		}
-	} else {
-		dongle_status.xbees = XBEES_STATE_FAIL_0 + xbee;
+		dongle_status_dirty();
 	}
-	dongle_status_dirty();
 	return success;
 }
 
@@ -551,6 +557,7 @@ out:
 static BOOL configure_xbee_stage2(uint8_t xbee) {
 	BOOL success = false;
 	uint8_t buffer[2];
+	uint8_t err;
 
 	/* Mark status. */
 	dongle_status.xbees = XBEES_STATE_INIT2_0 + xbee;
@@ -558,7 +565,7 @@ static BOOL configure_xbee_stage2(uint8_t xbee) {
 
 	/* Set the radio channel. */
 	if (!at_command(xbee, 0x90, "CH", &requested_channels[xbee], 1, 0, 0)) {
-		local_error_queue_add(33 + xbee);
+		err = 33 + xbee;
 		goto out;
 	}
 
@@ -566,7 +573,7 @@ static BOOL configure_xbee_stage2(uint8_t xbee) {
 	buffer[0] = 0x7B;
 	buffer[1] = (xbee == 0) ? 0x20 : 0x30;
 	if (!at_command(xbee, 0x91, "MY", buffer, 2, 0, 0)) {
-		local_error_queue_add(35 + xbee);
+		err = 35 + xbee;
 		goto out;
 	}
 
@@ -574,14 +581,17 @@ static BOOL configure_xbee_stage2(uint8_t xbee) {
 
 out:
 	/* Mark final status. */
-	if (success) {
-		if (xbee == 1) {
-			dongle_status.xbees = XBEES_STATE_RUNNING;
+	if (!should_shut_down) {
+		if (success) {
+			if (xbee == 1) {
+				dongle_status.xbees = XBEES_STATE_RUNNING;
+			}
+		} else {
+			local_error_queue_add(err);
+			dongle_status.xbees = XBEES_STATE_FAIL_0 + xbee;
 		}
-	} else {
-		dongle_status.xbees = XBEES_STATE_FAIL_0 + xbee;
+		dongle_status_dirty();
 	}
-	dongle_status_dirty();
 	return success;
 }
 
