@@ -487,9 +487,8 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
  * \return \c true on success, or \c false on failure.
  */
 static BOOL configure_xbee_stage1(uint8_t xbee) {
-	BOOL success = false;
 	uint8_t buffer[2];
-	uint8_t err;
+	uint8_t err = 0;
 
 	/* Mark status. */
 	dongle_status.xbees = XBEES_STATE_INIT1_0 + xbee;
@@ -529,12 +528,10 @@ static BOOL configure_xbee_stage1(uint8_t xbee) {
 		goto out;
 	}
 
-	success = true;
-
 out:
 	/* Mark final status. */
 	if (!should_shut_down) {
-		if (success) {
+		if (!err) {
 			if (xbee == 1) {
 				dongle_status.xbees = XBEES_STATE_INIT1_DONE;
 			}
@@ -544,7 +541,7 @@ out:
 		}
 		dongle_status_dirty();
 	}
-	return success;
+	return !err;
 }
 
 /**
@@ -555,9 +552,8 @@ out:
  * \return \c true on success, or \c false on failure.
  */
 static BOOL configure_xbee_stage2(uint8_t xbee) {
-	BOOL success = false;
 	uint8_t buffer[2];
-	uint8_t err;
+	uint8_t err = 0;
 
 	/* Mark status. */
 	dongle_status.xbees = XBEES_STATE_INIT2_0 + xbee;
@@ -577,12 +573,10 @@ static BOOL configure_xbee_stage2(uint8_t xbee) {
 		goto out;
 	}
 
-	success = true;
-
 out:
 	/* Mark final status. */
 	if (!should_shut_down) {
-		if (success) {
+		if (!err) {
 			if (xbee == 1) {
 				dongle_status.xbees = XBEES_STATE_RUNNING;
 			}
@@ -592,7 +586,7 @@ out:
 		}
 		dongle_status_dirty();
 	}
-	return success;
+	return !err;
 }
 
 /**
