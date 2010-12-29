@@ -11,11 +11,6 @@
 #define DONGLE_STATUS_ENDPOINT 1
 
 /**
- * \brief The UEP register for the dongle status block's endpoint.
- */
-#define DONGLE_STATUS_UEP UEP1
-
-/**
  * \brief The bits structure of the UEP register for the dongle status block's endpoint.
  */
 #define DONGLE_STATUS_UEP_BITS UEP1bits
@@ -65,16 +60,14 @@ static void check_send(void) {
 void dongle_status_start(void) {
 	usb_ep_callbacks[DONGLE_STATUS_ENDPOINT].in = &check_send;
 	usb_bdpairs[DONGLE_STATUS_ENDPOINT].in.BDSTAT = BDSTAT_DTS;
-	DONGLE_STATUS_UEP = 0;
 	DONGLE_STATUS_UEP_BITS.EPHSHK = 1;
 	DONGLE_STATUS_UEP_BITS.EPINEN = 1;
-	DONGLE_STATUS_UEP_BITS.EPCONDIS = 1;
 	reporting = true;
 }
 
 void dongle_status_stop(void) {
 	reporting = false;
-	DONGLE_STATUS_UEP = 0;
+	DONGLE_STATUS_UEP_BITS.EPINEN = 0;
 	usb_bdpairs[DONGLE_STATUS_ENDPOINT].in.BDSTAT = 0;
 	usb_ep_callbacks[DONGLE_STATUS_ENDPOINT].in = 0;
 }

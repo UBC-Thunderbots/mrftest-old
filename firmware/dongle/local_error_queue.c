@@ -9,11 +9,6 @@
 #define LOCAL_ERROR_QUEUE_ENDPOINT 2
 
 /**
- * \brief The UEP register for the local error queue's endpoint.
- */
-#define LOCAL_ERROR_QUEUE_UEP UEP2
-
-/**
  * \brief The bits structure of the UEP register for the local error queue's endpoint.
  */
 #define LOCAL_ERROR_QUEUE_UEP_BITS UEP2bits
@@ -83,16 +78,14 @@ void local_error_queue_init(void) {
 	read_ptr = write_ptr = 0;
 	usb_ep_callbacks[LOCAL_ERROR_QUEUE_ENDPOINT].in = &on_in;
 	usb_bdpairs[LOCAL_ERROR_QUEUE_ENDPOINT].in.BDSTAT = BDSTAT_DTS;
-	LOCAL_ERROR_QUEUE_UEP = 0;
 	LOCAL_ERROR_QUEUE_UEP_BITS.EPHSHK = 1;
 	LOCAL_ERROR_QUEUE_UEP_BITS.EPINEN = 1;
-	LOCAL_ERROR_QUEUE_UEP_BITS.EPCONDIS = 1;
 	inited = true;
 }
 
 void local_error_queue_deinit(void) {
 	inited = false;
-	LOCAL_ERROR_QUEUE_UEP = 0;
+	LOCAL_ERROR_QUEUE_UEP_BITS.EPINEN = 0;
 	usb_bdpairs[LOCAL_ERROR_QUEUE_ENDPOINT].in.BDSTAT = 0;
 	usb_ep_callbacks[LOCAL_ERROR_QUEUE_ENDPOINT].in = 0;
 }

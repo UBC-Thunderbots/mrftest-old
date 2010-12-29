@@ -456,9 +456,9 @@ void usb_ep0_init(void) {
 	usb_bdpairs[0].out.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
 
 	/* Configure the endpoint register. */
-	UEP0 = 0;
 	UEP0bits.EPHSHK = 1;
 	UEP0bits.EPOUTEN = 1;
 	UEP0bits.EPINEN = 1;
+	UEP0bits.EPCONDIS = 0;
 }
 

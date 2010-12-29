@@ -33,22 +33,23 @@ void usb_lowlevel_init(void) {
 	UCFGbits.PPB0 = 0;
 	UCFGbits.PPB1 = 0;
 
-	UEP0 = 0;
-	UEP1 = 0;
-	UEP2 = 0;
-	UEP3 = 0;
-	UEP4 = 0;
-	UEP5 = 0;
-	UEP6 = 0;
-	UEP7 = 0;
-	UEP8 = 0;
-	UEP9 = 0;
-	UEP10 = 0;
-	UEP11 = 0;
-	UEP12 = 0;
-	UEP13 = 0;
-	UEP14 = 0;
-	UEP15 = 0;
+	/* Set EPCONDIS, clear other bits. */
+	UEP0 = 0x08;
+	UEP1 = 0x08;
+	UEP2 = 0x08;
+	UEP3 = 0x08;
+	UEP4 = 0x08;
+	UEP5 = 0x08;
+	UEP6 = 0x08;
+	UEP7 = 0x08;
+	UEP8 = 0x08;
+	UEP9 = 0x08;
+	UEP10 = 0x08;
+	UEP11 = 0x08;
+	UEP12 = 0x08;
+	UEP13 = 0x08;
+	UEP14 = 0x08;
+	UEP15 = 0x08;
 
 	UEIE = 0;
 
