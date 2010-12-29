@@ -1,5 +1,6 @@
 #include "activity_leds.h"
 #include "buffers.h"
+#include "debug.h"
 #include "descriptors.h"
 #include "dongle_proto_out.h"
 #include "dongle_status.h"
@@ -95,10 +96,36 @@ END_DEF
 static BOOL custom_setup_handler(void) {
 	static union {
 		dongle_status_t ep0_dongle_status_buffer;
+		uint8_t debug_interface_alt_setting;
 	} buffer;
 	uint8_t i;
 
-	if (usb_ep0_setup_buffer.request_type.bits.type == USB_SETUP_PACKET_REQUEST_VENDOR) {
+	if (usb_ep0_setup_buffer.request_type.bits.type == USB_SETUP_PACKET_REQUEST_STANDARD) {
+		if (usb_ep0_setup_buffer.request_type.bits.recipient == USB_SETUP_PACKET_RECIPIENT_INTERFACE) {
+			if (usb_ep0_setup_buffer.index == 2) {
+				switch (usb_ep0_setup_buffer.request) {
+					case USB_SETUP_PACKET_STDREQ_GET_INTERFACE:
+						buffer.debug_interface_alt_setting = debug_enabled ? 1 : 0;
+						usb_ep0_data[0].ptr = &buffer.debug_interface_alt_setting;
+						usb_ep0_data[0].length = sizeof(buffer.debug_interface_alt_setting);
+						usb_ep0_data_length = 1;
+						return true;
+
+					case USB_SETUP_PACKET_STDREQ_SET_INTERFACE:
+						if (usb_ep0_setup_buffer.value == 0) {
+							debug_disable();
+							return true;
+						} else if (usb_ep0_setup_buffer.value == 1) {
+							debug_enable();
+							DPRINTF("Debug output enabled\n");
+							return true;
+						} else {
+							return false;
+						}
+				}
+			}
+		}
+	} else if (usb_ep0_setup_buffer.request_type.bits.type == USB_SETUP_PACKET_REQUEST_VENDOR) {
 		if (usb_ep0_setup_buffer.request_type.bits.recipient == USB_SETUP_PACKET_RECIPIENT_DEVICE) {
 			switch (usb_ep0_setup_buffer.request) {
 				case TBOTS_CONTROL_REQUEST_GET_XBEE_FW_VERSION:
@@ -162,6 +189,7 @@ static void on_enter_config1(void) {
 }
 
 static void on_exit_config1(void) {
+	debug_disable();
 	dongle_proto_out_deinit();
 	local_error_queue_deinit();
 	dongle_status_stop();
@@ -190,6 +218,10 @@ static void on_endpoint_halt_config1(uint8_t ep) {
 		case 0x85:
 #warning implement
 			break;
+
+		case 0x86:
+			debug_halt();
+			break;
 	}
 }
 
@@ -213,6 +245,14 @@ static BOOL on_endpoint_unhalt_config1(uint8_t ep) {
 		case 0x85:
 #warning implement
 			return true;
+
+		case 0x86:
+			if (debug_enabled) {
+				debug_unhalt();
+				return true;
+			} else {
+				return false;
+			}
 	}
 	return false;
 }
@@ -220,7 +260,7 @@ static BOOL on_endpoint_unhalt_config1(uint8_t ep) {
 __code static const usb_confinfo_t config1 = {
 	&CONFIGURATION_DESCRIPTOR,
 	2,
-	0b0000000000111110,
+	0b0000000001111110,
 	0b0000000000110000,
 	&on_enter_config1,
 	&on_exit_config1,
@@ -419,6 +459,8 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
 	__data xbee_rxpacket_t *rxpkt;
 	BOOL success;
 
+	DPRINTF("Issuing AT command %s to modem %u\n", command, (unsigned int) xbee);
+
 	for (retries = 0; retries != 6 && !should_shut_down; ++retries) {
 		/* Send the command. */
 		at_send(xbee, frame, command, value, val_length);
@@ -601,6 +643,9 @@ void main(void) {
 	ANCON0 = 0x01;
 	ANCON1 = 0x00;
 	WDTCONbits.ADSHR = 0;
+
+	/* Initialize the debug output subsystem. */
+	debug_init();
 
 	/* We want to attach timer 1 to ECCP 1 and timer 3 to ECCP2 so we can have separate periods. */
 	T3CONbits.T3CCP2 = 0;

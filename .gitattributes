@@ -16,6 +16,8 @@ firmware/dongle/buffers.c -text
 firmware/dongle/buffers.h -text
 firmware/dongle/config.c -text
 firmware/dongle/critsec.h -text
+firmware/dongle/debug.c -text
+firmware/dongle/debug.h -text
 firmware/dongle/descriptors.c -text
 firmware/dongle/descriptors.h -text
 firmware/dongle/dongle_proto_out.c -text
