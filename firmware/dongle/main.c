@@ -1,5 +1,7 @@
+#include "activity_leds.h"
 #include "buffers.h"
 #include "descriptors.h"
+#include "dongle_proto_out.h"
 #include "dongle_status.h"
 #include "estop.h"
 #include "local_error_queue.h"
@@ -51,6 +53,21 @@ static volatile uint8_t requested_channels[2] = { 0, 0 };
  */
 static uint16_t xbee_versions[2];
 
+/**
+ * \brief The most recent state blocks sent to the drive pipe.
+ */
+static uint8_t drive_states[15][9];
+
+/**
+ * \brief Packet structures suitable for XBee packet reception.
+ */
+static __data xbee_rxpacket_t xbee_packets[NUM_XBEE_BUFFERS];
+
+/**
+ * \brief Blocks of memory in which inbound USB transfers are assembled.
+ */
+static __data uint8_t dongle_proto_in_buffers[2][64];
+
 DEF_INTHIGH(high_handler)
 	__asm extern _xbee_rxpacket_rc1if __endasm;
 	__asm extern _xbee_rxpacket_rc2if __endasm;
@@ -64,11 +81,13 @@ DEF_INTLOW(low_handler)
 	__asm extern _xbee_txpacket_tx1if __endasm;
 	__asm extern _xbee_txpacket_tx2if __endasm;
 	__asm extern _xbee_txpacket_ccp1if __endasm;
+	__asm extern _activity_leds_tmr0if __endasm;
 	DEF_HANDLER2(SIG_USB, SIG_USBIE, usb_process)
 	DEF_HANDLER2(SIG_AD, SIG_ADIE, estop_adif)
 	DEF_HANDLER2(SIG_TX1, SIG_TX1IE, xbee_txpacket_tx1if)
 	DEF_HANDLER2(SIG_TX2, SIG_TX2IE, xbee_txpacket_tx2if)
 	DEF_HANDLER2(SIG_CCP1, SIG_CCP1IE, xbee_txpacket_ccp1if)
+	DEF_HANDLER(SIG_TMR0, activity_leds_tmr0if)
 END_DEF
 
 #define IS_VALID_CHANNEL(ch) ((ch) >= 0x08 && (ch) <= 0x1A)
@@ -77,6 +96,7 @@ static BOOL custom_setup_handler(void) {
 	static union {
 		dongle_status_t ep0_dongle_status_buffer;
 	} buffer;
+	uint8_t i;
 
 	if (usb_ep0_setup_buffer.request_type.bits.type == USB_SETUP_PACKET_REQUEST_VENDOR) {
 		if (usb_ep0_setup_buffer.request_type.bits.recipient == USB_SETUP_PACKET_RECIPIENT_DEVICE) {
@@ -99,8 +119,10 @@ static BOOL custom_setup_handler(void) {
 					return true;
 
 				case TBOTS_CONTROL_REQUEST_HALT_ALL:
-#warning TODO implement these (remember to deal with XBees-not-initialized situation)
-					return false;
+					for (i = 0; i < 15; ++i) {
+						drive_states[i][0] = 0;
+					}
+					return true;
 
 				case TBOTS_CONTROL_REQUEST_ENABLE_RADIOS:
 					if (dongle_status.xbees == XBEES_STATE_INIT1_DONE && !requested_channels[0]) {
@@ -123,13 +145,7 @@ static BOOL custom_setup_handler(void) {
 static void on_in3(void) {
 }
 
-static void on_out4(void) {
-}
-
 static void on_in4(void) {
-}
-
-static void on_out5(void) {
 }
 
 static void on_in5(void) {
@@ -138,15 +154,15 @@ static void on_in5(void) {
 static void on_enter_config1(void) {
 	dongle_status_start();
 	local_error_queue_init();
+	dongle_proto_out_init();
 	usb_ep_callbacks[3].in = &on_in3;
-	usb_ep_callbacks[4].out = &on_out4;
 	usb_ep_callbacks[4].in = &on_in4;
-	usb_ep_callbacks[5].out = &on_out5;
 	usb_ep_callbacks[5].in = &on_in5;
 	should_start_up = true;
 }
 
 static void on_exit_config1(void) {
+	dongle_proto_out_deinit();
 	local_error_queue_deinit();
 	dongle_status_stop();
 	should_start_up = false;
@@ -156,6 +172,11 @@ static void on_exit_config1(void) {
 
 static void on_endpoint_halt_config1(uint8_t ep) {
 	switch (ep) {
+		case 0x04:
+		case 0x05:
+			dongle_proto_out_halt(ep);
+			break;
+
 		case 0x81:
 			dongle_status_halt();
 			break;
@@ -167,8 +188,6 @@ static void on_endpoint_halt_config1(uint8_t ep) {
 		case 0x83:
 		case 0x84:
 		case 0x85:
-		case 0x04:
-		case 0x05:
 #warning implement
 			break;
 	}
@@ -176,6 +195,11 @@ static void on_endpoint_halt_config1(uint8_t ep) {
 
 static BOOL on_endpoint_unhalt_config1(uint8_t ep) {
 	switch (ep) {
+		case 0x04:
+		case 0x05:
+			dongle_proto_out_unhalt(ep);
+			return true;
+
 		case 0x81:
 			dongle_status_unhalt();
 			return true;
@@ -187,8 +211,6 @@ static BOOL on_endpoint_unhalt_config1(uint8_t ep) {
 		case 0x83:
 		case 0x84:
 		case 0x85:
-		case 0x04:
-		case 0x05:
 #warning implement
 			return true;
 	}
@@ -666,10 +688,11 @@ void main(void) {
 					}
 				} else {
 #warning test code
-					LAT_LED3 = 1;
+					activity_leds_init();
 					while (!should_shut_down) {
 						check_idle();
 					}
+					activity_leds_deinit();
 				}
 			}
 		}

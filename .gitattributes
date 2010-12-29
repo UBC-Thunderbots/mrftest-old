@@ -10,12 +10,16 @@ firmware/MotorController/Makefile -text
 firmware/MotorController/test.c -text
 firmware/dongle/18f65j50.lkr -text
 firmware/dongle/Makefile -text
+firmware/dongle/activity_leds.c -text
+firmware/dongle/activity_leds.h -text
 firmware/dongle/buffers.c -text
 firmware/dongle/buffers.h -text
 firmware/dongle/config.c -text
 firmware/dongle/critsec.h -text
 firmware/dongle/descriptors.c -text
 firmware/dongle/descriptors.h -text
+firmware/dongle/dongle_proto_out.c -text
+firmware/dongle/dongle_proto_out.h -text
 firmware/dongle/dongle_status.c -text
 firmware/dongle/dongle_status.h -text
 firmware/dongle/estop.c -text

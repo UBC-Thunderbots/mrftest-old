@@ -7,8 +7,6 @@
  * \brief Defines blocks of memory to be used as buffers for receiving data.
  */
 
-#include "xbee_rxpacket.h"
-
 #define NUM_XBEE_BUFFERS 6
 
 /**
@@ -16,10 +14,12 @@
  */
 extern __data void * __code const xbee_buffers[NUM_XBEE_BUFFERS];
 
+#define NUM_DONGLE_PROTO_OUT_BUFFERS 6
+
 /**
- * \brief Packet structures suitable for XBee packet reception.
+ * \brief Pointers to all the buffers suitable for USB transaction reception.
  */
-extern __data xbee_rxpacket_t xbee_packets[NUM_XBEE_BUFFERS];
+extern __data void * __code const dongle_proto_out_buffers[NUM_DONGLE_PROTO_OUT_BUFFERS];
 
 #endif
 
