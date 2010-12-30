@@ -61,7 +61,7 @@ __data static rxbuf_info_t rxbuf_infos[NUM_DONGLE_PROTO_OUT_BUFFERS];
 /**
  * \brief The free USB receive buffer metadata structures.
  */
-static STACK_TYPE(rxbuf_info_t) free_rxbuf_infos;
+static STACK_TYPE(rxbuf_info_t) free_rxbuf_infos[2];
 
 /**
  * \brief The USB receive buffer metadata structures corresponding to the packets currently granted to the SIE.
@@ -92,8 +92,8 @@ static void check_sie(void) {
 			if (usb_halted_out_endpoints & (1 << INTERRUPT_ENDPOINT)) {
 				usb_bdpairs[INTERRUPT_ENDPOINT].out.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
 			} else {
-				if ((rxbuf = STACK_TOP(free_rxbuf_infos))) {
-					STACK_POP(free_rxbuf_infos);
+				if ((rxbuf = STACK_TOP(free_rxbuf_infos[0]))) {
+					STACK_POP(free_rxbuf_infos[0]);
 					packet = rxbuf - rxbuf_infos;
 					usb_bdpairs[INTERRUPT_ENDPOINT].out.BDADR = dongle_proto_out_buffers[packet];
 					usb_bdpairs[INTERRUPT_ENDPOINT].out.BDCNT = 64;
@@ -110,8 +110,8 @@ static void check_sie(void) {
 			if (usb_halted_out_endpoints & (1 << BULK_ENDPOINT)) {
 				usb_bdpairs[BULK_ENDPOINT].out.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
 			} else {
-				if ((rxbuf = STACK_TOP(free_rxbuf_infos))) {
-					STACK_POP(free_rxbuf_infos);
+				if ((rxbuf = STACK_TOP(free_rxbuf_infos[1]))) {
+					STACK_POP(free_rxbuf_infos[1]);
 					packet = rxbuf - rxbuf_infos;
 					usb_bdpairs[BULK_ENDPOINT].out.BDADR = dongle_proto_out_buffers[packet];
 					usb_bdpairs[BULK_ENDPOINT].out.BDCNT = 64;
@@ -163,7 +163,7 @@ static void on_out_interrupt(void) {
 			dongle_proto_out_halt(INTERRUPT_ENDPOINT);
 		}
 	} else {
-		STACK_PUSH(free_rxbuf_infos, rxbuf);
+		STACK_PUSH(free_rxbuf_infos[0], rxbuf);
 		check_sie();
 	}
 }
@@ -179,7 +179,7 @@ static void on_out_bulk(void) {
 			dongle_proto_out_halt(BULK_ENDPOINT);
 		}
 	} else {
-		STACK_PUSH(free_rxbuf_infos, rxbuf);
+		STACK_PUSH(free_rxbuf_infos[1], rxbuf);
 		check_sie();
 	}
 }
@@ -189,10 +189,15 @@ void dongle_proto_out_init(void) {
 
 	if (!inited) {
 		/* Fill in the metadata structures and put them into linked lists. */
-		STACK_INIT(free_rxbuf_infos);
-		for (i = 0; i != NUM_DONGLE_PROTO_OUT_BUFFERS; ++i) {
+		STACK_INIT(free_rxbuf_infos[0]);
+		STACK_INIT(free_rxbuf_infos[1]);
+		for (i = 0; i != NUM_DONGLE_PROTO_OUT_INTERRUPT_BUFFERS; ++i) {
 			rxbuf_infos[i].refs = 0;
-			STACK_PUSH(free_rxbuf_infos, &rxbuf_infos[i]);
+			STACK_PUSH(free_rxbuf_infos[0], &rxbuf_infos[i]);
+		}
+		for (i = NUM_DONGLE_PROTO_OUT_INTERRUPT_BUFFERS; i != NUM_DONGLE_PROTO_OUT_BUFFERS; ++i) {
+			rxbuf_infos[i].refs = 0;
+			STACK_PUSH(free_rxbuf_infos[1], &rxbuf_infos[i]);
 		}
 		rxbuf_infos_sie[0] = rxbuf_infos_sie[1] = 0;
 		STACK_INIT(free_micropackets);
@@ -231,7 +236,7 @@ void dongle_proto_out_deinit(void) {
 void dongle_proto_out_halt(uint8_t ep) {
 	usb_bdpairs[ep].out.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
 	if (rxbuf_infos_sie[ep - INTERRUPT_ENDPOINT]) {
-		STACK_PUSH(free_rxbuf_infos, rxbuf_infos_sie[ep - INTERRUPT_ENDPOINT]);
+		STACK_PUSH(free_rxbuf_infos[ep - INTERRUPT_ENDPOINT], rxbuf_infos_sie[ep - INTERRUPT_ENDPOINT]);
 		rxbuf_infos_sie[ep - INTERRUPT_ENDPOINT] = 0;
 	}
 }
@@ -265,7 +270,11 @@ void dongle_proto_out_free(__data dongle_proto_out_micropacket_t *micropacket) {
 	CRITSEC_ENTER(cs);
 
 	if (!--rxbuf_infos[micropacket->packet].refs) {
-		STACK_PUSH(free_rxbuf_infos, &rxbuf_infos[micropacket->packet]);
+		if (micropacket->packet < NUM_DONGLE_PROTO_OUT_INTERRUPT_BUFFERS) {
+			STACK_PUSH(free_rxbuf_infos[0], &rxbuf_infos[micropacket->packet]);
+		} else {
+			STACK_PUSH(free_rxbuf_infos[1], &rxbuf_infos[micropacket->packet]);
+		}
 		check_sie();
 	}
 
