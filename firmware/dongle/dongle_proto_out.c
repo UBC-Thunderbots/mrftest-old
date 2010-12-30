@@ -8,6 +8,26 @@
 #include <stdbool.h>
 
 /**
+ * \brief The endpoint number on which interrupt and state transfer messages arrive.
+ */
+#define INTERRUPT_ENDPOINT 4
+
+/**
+ * \brief The bits structure of the UEP register for the interrupt and state transfer endpoint.
+ */
+#define INTERRUPT_UEP_BITS UEP4bits
+
+/**
+ * \brief The endpoint number on which bulk messages arrive.
+ */
+#define BULK_ENDPOINT 5
+
+/**
+ * \brief The bits structure of the UEP register for the bulk endpoint.
+ */
+#define BULK_UEP_BITS UEP5bits
+
+/**
  * \brief Metadata about a USB receive buffer.
  */
 typedef struct rxbuf_info {
@@ -68,37 +88,37 @@ static void check_sie(void) {
 	uint8_t packet;
 
 	if (inited) {
-		if (!usb_bdpairs[4].out.BDSTATbits.sie.UOWN) {
-			if (usb_halted_out_endpoints & (1 << 4)) {
-				usb_bdpairs[4].out.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
+		if (!usb_bdpairs[INTERRUPT_ENDPOINT].out.BDSTATbits.sie.UOWN) {
+			if (usb_halted_out_endpoints & (1 << INTERRUPT_ENDPOINT)) {
+				usb_bdpairs[INTERRUPT_ENDPOINT].out.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
 			} else {
 				if ((rxbuf = STACK_TOP(free_rxbuf_infos))) {
 					STACK_POP(free_rxbuf_infos);
 					packet = rxbuf - rxbuf_infos;
-					usb_bdpairs[4].out.BDADR = dongle_proto_out_buffers[packet];
-					usb_bdpairs[4].out.BDCNT = 64;
-					if (usb_bdpairs[4].out.BDSTATbits.sie.OLDDTS) {
-						usb_bdpairs[4].out.BDSTAT = BDSTAT_UOWN | BDSTAT_DTSEN;
+					usb_bdpairs[INTERRUPT_ENDPOINT].out.BDADR = dongle_proto_out_buffers[packet];
+					usb_bdpairs[INTERRUPT_ENDPOINT].out.BDCNT = 64;
+					if (usb_bdpairs[INTERRUPT_ENDPOINT].out.BDSTATbits.sie.OLDDTS) {
+						usb_bdpairs[INTERRUPT_ENDPOINT].out.BDSTAT = BDSTAT_UOWN | BDSTAT_DTSEN;
 					} else {
-						usb_bdpairs[4].out.BDSTAT = BDSTAT_UOWN | BDSTAT_DTS | BDSTAT_DTSEN;
+						usb_bdpairs[INTERRUPT_ENDPOINT].out.BDSTAT = BDSTAT_UOWN | BDSTAT_DTS | BDSTAT_DTSEN;
 					}
 					rxbuf_infos_sie[0] = rxbuf;
 				}
 			}
 		}
-		if (!usb_bdpairs[5].out.BDSTATbits.sie.UOWN) {
-			if (usb_halted_out_endpoints & (1 << 5)) {
-				usb_bdpairs[5].out.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
+		if (!usb_bdpairs[BULK_ENDPOINT].out.BDSTATbits.sie.UOWN) {
+			if (usb_halted_out_endpoints & (1 << BULK_ENDPOINT)) {
+				usb_bdpairs[BULK_ENDPOINT].out.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
 			} else {
 				if ((rxbuf = STACK_TOP(free_rxbuf_infos))) {
 					STACK_POP(free_rxbuf_infos);
 					packet = rxbuf - rxbuf_infos;
-					usb_bdpairs[5].out.BDADR = dongle_proto_out_buffers[packet];
-					usb_bdpairs[5].out.BDCNT = 64;
-					if (usb_bdpairs[5].out.BDSTATbits.sie.OLDDTS) {
-						usb_bdpairs[5].out.BDSTAT = BDSTAT_UOWN | BDSTAT_DTSEN;
+					usb_bdpairs[BULK_ENDPOINT].out.BDADR = dongle_proto_out_buffers[packet];
+					usb_bdpairs[BULK_ENDPOINT].out.BDCNT = 64;
+					if (usb_bdpairs[BULK_ENDPOINT].out.BDSTATbits.sie.OLDDTS) {
+						usb_bdpairs[BULK_ENDPOINT].out.BDSTAT = BDSTAT_UOWN | BDSTAT_DTSEN;
 					} else {
-						usb_bdpairs[5].out.BDSTAT = BDSTAT_UOWN | BDSTAT_DTS | BDSTAT_DTSEN;
+						usb_bdpairs[BULK_ENDPOINT].out.BDSTAT = BDSTAT_UOWN | BDSTAT_DTS | BDSTAT_DTSEN;
 					}
 					rxbuf_infos_sie[1] = rxbuf;
 				}
@@ -132,15 +152,15 @@ static BOOL parse_micropackets(__data rxbuf_info_t *rxbuf_info, uint8_t len) {
 	return true;
 }
 
-static void on_out4(void) {
+static void on_out_interrupt(void) {
 	__data rxbuf_info_t *rxbuf = rxbuf_infos_sie[0];
 	rxbuf_infos_sie[0] = 0;
-	if (usb_bdpairs[4].out.BDCNT) {
-		if (parse_micropackets(rxbuf, usb_bdpairs[4].out.BDCNT)) {
+	if (usb_bdpairs[INTERRUPT_ENDPOINT].out.BDCNT) {
+		if (parse_micropackets(rxbuf, usb_bdpairs[INTERRUPT_ENDPOINT].out.BDCNT)) {
 			check_sie();
 		} else {
-			usb_halted_out_endpoints |= 1 << 4;
-			dongle_proto_out_halt(4);
+			usb_halted_out_endpoints |= 1 << INTERRUPT_ENDPOINT;
+			dongle_proto_out_halt(INTERRUPT_ENDPOINT);
 		}
 	} else {
 		STACK_PUSH(free_rxbuf_infos, rxbuf);
@@ -148,15 +168,15 @@ static void on_out4(void) {
 	}
 }
 
-static void on_out5(void) {
+static void on_out_bulk(void) {
 	__data rxbuf_info_t *rxbuf = rxbuf_infos_sie[1];
 	rxbuf_infos_sie[1] = 0;
-	if (usb_bdpairs[5].out.BDCNT) {
-		if (parse_micropackets(rxbuf, usb_bdpairs[5].out.BDCNT)) {
+	if (usb_bdpairs[BULK_ENDPOINT].out.BDCNT) {
+		if (parse_micropackets(rxbuf, usb_bdpairs[BULK_ENDPOINT].out.BDCNT)) {
 			check_sie();
 		} else {
-			usb_halted_out_endpoints |= 1 << 5;
-			dongle_proto_out_halt(5);
+			usb_halted_out_endpoints |= 1 << BULK_ENDPOINT;
+			dongle_proto_out_halt(BULK_ENDPOINT);
 		}
 	} else {
 		STACK_PUSH(free_rxbuf_infos, rxbuf);
@@ -182,14 +202,14 @@ void dongle_proto_out_init(void) {
 		QUEUE_INIT(pending_micropackets);
 
 		/* Set up the USB stuff. */
-		usb_ep_callbacks[4].out = &on_out4;
-		usb_ep_callbacks[5].out = &on_out5;
-		usb_bdpairs[4].out.BDSTAT = BDSTAT_DTS;
-		usb_bdpairs[5].out.BDSTAT = BDSTAT_DTS;
-		UEP4bits.EPHSHK = 1;
-		UEP4bits.EPOUTEN = 1;
-		UEP5bits.EPHSHK = 1;
-		UEP5bits.EPOUTEN = 1;
+		usb_ep_callbacks[INTERRUPT_ENDPOINT].out = &on_out_interrupt;
+		usb_ep_callbacks[BULK_ENDPOINT].out = &on_out_bulk;
+		usb_bdpairs[INTERRUPT_ENDPOINT].out.BDSTAT = BDSTAT_DTS;
+		usb_bdpairs[BULK_ENDPOINT].out.BDSTAT = BDSTAT_DTS;
+		INTERRUPT_UEP_BITS.EPHSHK = 1;
+		INTERRUPT_UEP_BITS.EPOUTEN = 1;
+		BULK_UEP_BITS.EPHSHK = 1;
+		BULK_UEP_BITS.EPOUTEN = 1;
 
 		/* Record state. */
 		inited = true;
@@ -201,18 +221,18 @@ void dongle_proto_out_init(void) {
 
 void dongle_proto_out_deinit(void) {
 	if (inited) {
-		UEP4bits.EPOUTEN = 0;
-		UEP5bits.EPOUTEN = 0;
-		usb_bdpairs[4].out.BDSTAT = 0;
-		usb_bdpairs[5].out.BDSTAT = 0;
+		INTERRUPT_UEP_BITS.EPOUTEN = 0;
+		BULK_UEP_BITS.EPOUTEN = 0;
+		usb_bdpairs[INTERRUPT_ENDPOINT].out.BDSTAT = 0;
+		usb_bdpairs[BULK_ENDPOINT].out.BDSTAT = 0;
 	}
 }
 
 void dongle_proto_out_halt(uint8_t ep) {
 	usb_bdpairs[ep].out.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
-	if (rxbuf_infos_sie[ep - 4]) {
-		STACK_PUSH(free_rxbuf_infos, rxbuf_infos_sie[ep - 4]);
-		rxbuf_infos_sie[ep - 4] = 0;
+	if (rxbuf_infos_sie[ep - INTERRUPT_ENDPOINT]) {
+		STACK_PUSH(free_rxbuf_infos, rxbuf_infos_sie[ep - INTERRUPT_ENDPOINT]);
+		rxbuf_infos_sie[ep - INTERRUPT_ENDPOINT] = 0;
 	}
 }
 
