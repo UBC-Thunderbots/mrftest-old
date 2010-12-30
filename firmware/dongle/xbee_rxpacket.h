@@ -101,18 +101,18 @@ void xbee_rxpacket_suspend(void);
 void xbee_rxpacket_resume(void);
 
 /**
- * \brief Queues a packet buffer to fill.
- *
- * \param[out] packet the packet buffer to fill.
- */
-void xbee_rxpacket_queue(__data xbee_rxpacket_t *packet);
-
-/**
  * \brief Retrieves a received packet.
  *
  * \return the next received packet, or null if no packets are available.
  */
-__data xbee_rxpacket_t *xbee_rxpacket_dequeue(void);
+__data xbee_rxpacket_t *xbee_rxpacket_get(void);
+
+/**
+ * \brief Returns a received packet buffer for reuse.
+ *
+ * \param[out] packet the packet buffer to free.
+ */
+void xbee_rxpacket_free(__data xbee_rxpacket_t *packet);
 
 /**
  * \brief Atomically retrieves and clears the error mask for an XBee.

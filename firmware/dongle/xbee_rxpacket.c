@@ -1,4 +1,5 @@
 #include "xbee_rxpacket.h"
+#include "buffers.h"
 #include "critsec.h"
 #include "pins.h"
 #include "queue.h"
@@ -100,11 +101,18 @@ static STACK_TYPE(xbee_rxpacket_t) pending_stack;
 static QUEUE_TYPE(xbee_rxpacket_t) done_queue;
 
 /**
+ * \brief Packet structures suitable for XBee packet reception.
+ */
+static __data xbee_rxpacket_t xbee_packets[NUM_XBEE_BUFFERS];
+
+/**
  * \brief Whether or not the subsystem is initialized.
  */
 static BOOL inited = false;
 
 void xbee_rxpacket_init(void) {
+	uint8_t i;
+
 	if (!inited) {
 		/* Enable the receivers. */
 		RCSTA1bits.CREN = 1;
@@ -125,6 +133,10 @@ void xbee_rxpacket_init(void) {
 		/* Initialize packet queues. */
 		STACK_INIT(pending_stack);
 		QUEUE_INIT(done_queue);
+		for (i = 0; i < NUM_XBEE_BUFFERS; ++i) {
+			xbee_packets[i].ptr = xbee_buffers[i];
+			STACK_PUSH(pending_stack, &xbee_packets[i]);
+		}
 
 		/* Remember that the module is initialized. */
 		inited = true;
@@ -191,7 +203,23 @@ void xbee_rxpacket_resume(void) {
 	}
 }
 
-void xbee_rxpacket_queue(__data xbee_rxpacket_t *packet) {
+__data xbee_rxpacket_t *xbee_rxpacket_get(void) {
+	__data xbee_rxpacket_t *result = 0;
+	CRITSEC_DECLARE(cs);
+
+	if (QUEUE_FRONT(done_queue)) {
+		CRITSEC_ENTER(cs);
+		if (inited) {
+			result = QUEUE_FRONT(done_queue);
+			QUEUE_POP(done_queue);
+		}
+		CRITSEC_LEAVE(cs);
+	}
+
+	return result;
+}
+
+void xbee_rxpacket_free(__data xbee_rxpacket_t *packet) {
 	CRITSEC_DECLARE(cs);
 
 	CRITSEC_ENTER(cs);
@@ -217,22 +245,6 @@ void xbee_rxpacket_queue(__data xbee_rxpacket_t *packet) {
 	}
 
 	CRITSEC_LEAVE(cs);
-}
-
-__data xbee_rxpacket_t *xbee_rxpacket_dequeue(void) {
-	__data xbee_rxpacket_t *result = 0;
-	CRITSEC_DECLARE(cs);
-
-	if (QUEUE_FRONT(done_queue)) {
-		CRITSEC_ENTER(cs);
-		if (inited) {
-			result = QUEUE_FRONT(done_queue);
-			QUEUE_POP(done_queue);
-		}
-		CRITSEC_LEAVE(cs);
-	}
-
-	return result;
 }
 
 uint8_t xbee_rxpacket_errors(uint8_t xbee) {

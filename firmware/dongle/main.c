@@ -60,11 +60,6 @@ static uint16_t xbee_versions[2];
 static uint8_t drive_states[15][9];
 
 /**
- * \brief Packet structures suitable for XBee packet reception.
- */
-static __data xbee_rxpacket_t xbee_packets[NUM_XBEE_BUFFERS];
-
-/**
  * \brief Blocks of memory in which inbound USB transfers are assembled.
  */
 static __data uint8_t dongle_proto_in_buffers[2][64];
@@ -468,7 +463,7 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
 		/* Wait for a response for up to half a second. */
 		start_time = UFRMH;
 		while (((UFRMH - start_time) & 7) < 2 && !should_shut_down) {
-			if ((rxpkt = xbee_rxpacket_dequeue())) {
+			if ((rxpkt = xbee_rxpacket_get())) {
 				/* See which XBee this packet came from. */
 				if (rxpkt->xbee == xbee) {
 					/* We received a packet. See what it is. */
@@ -498,15 +493,15 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
 							success = true;
 							memcpyram2ram(resp, rxpkt->ptr + 5, resp_length);
 						}
-						xbee_rxpacket_queue(rxpkt);
+						xbee_rxpacket_free(rxpkt);
 						return success;
 					} else {
 						/* It's not a response to our request. Keep waiting. */
-						xbee_rxpacket_queue(rxpkt);
+						xbee_rxpacket_free(rxpkt);
 					}
 				} else {
 					/* This packet came from the wrong XBee. Ignore it. */
-					xbee_rxpacket_queue(rxpkt);
+					xbee_rxpacket_free(rxpkt);
 				}
 			}
 			check_xbee_errors();
@@ -635,8 +630,6 @@ out:
  * \brief The application entry point.
  */
 void main(void) {
-	uint8_t i;
-
 	/* Configure I/O pins. */
 	PINS_INITIALIZE();
 	WDTCONbits.ADSHR = 1;
@@ -687,12 +680,6 @@ void main(void) {
 		LAT_XBEE0_SLEEP = 0;
 		LAT_XBEE1_SLEEP = 0;
 		LAT_LED1 = 1;
-
-		/* Give the receive buffers to the XBees. */
-		for (i = 0; i < NUM_XBEE_BUFFERS; ++i) {
-			xbee_packets[i].ptr = xbee_buffers[i];
-			xbee_rxpacket_queue(&xbee_packets[i]);
-		}
 
 		/* Stage-1 configure the XBees. */
 		if (!configure_xbee_stage1(0) || !configure_xbee_stage1(1)) {
