@@ -34,7 +34,7 @@ __code const uint8_t CONFIGURATION_DESCRIPTOR_TAIL[] = {
 	/* bInterfaceClass */ 0xFF,
 	/* bInterfaceSubclass */ 0,
 	/* bInterfaceProtocol */ 0,
-	/* iInterface */ 0,
+	/* iInterface */ 3,
 
 		/* Endpoint Descriptor */
 		/* bLength */ sizeof(usb_endpoint_descriptor_t),
@@ -69,7 +69,7 @@ __code const uint8_t CONFIGURATION_DESCRIPTOR_TAIL[] = {
 	/* bInterfaceClass */ 0xFF,
 	/* bInterfaceSubclass */ 0,
 	/* bInterfaceProtocol */ 0,
-	/* iInterface */ 0,
+	/* iInterface */ 4,
 
 		/* Endpoint Descriptor */
 		/* bLength */ sizeof(usb_endpoint_descriptor_t),
@@ -112,7 +112,7 @@ __code const uint8_t CONFIGURATION_DESCRIPTOR_TAIL[] = {
 	/* bInterfaceClass */ 0xFF,
 	/* bInterfaceSubclass */ 0,
 	/* bInterfaceProtocol */ 0,
-	/* iInterface */ 0,
+	/* iInterface */ 5,
 	
 	/* Interface Descriptor */
 	/* bLength */ sizeof(usb_interface_descriptor_t),
@@ -162,17 +162,32 @@ static __code const uint16_t STRING_ENUS_PRODUCT[] = {
 	'T', 'h', 'u', 'n', 'd', 'e', 'r', 'b', 'o', 't', 's', ' ', 'X', 'B', 'e', 'e', ' ', 'D', 'o', 'n', 'g', 'l', 'e', 0
 };
 
+static __code const uint16_t STRING_ENUS_INTERFACE0[] = {
+	'L', 'o', 'c', 'a', 'l', ' ', 'D', 'a', 't', 'a', 0
+};
+
+static __code const uint16_t STRING_ENUS_INTERFACE1[] = {
+	'M', 'a', 'i', 'n', ' ', 'T', 'r', 'a', 'n', 's', 'p', 'o', 'r', 't', 0
+};
+
+static __code const uint16_t STRING_ENUS_INTERFACE2[] = {
+	'D', 'e', 'b', 'u', 'g', 0
+};
+
 static __code const usb_string_table_t STRING_TABLE_ENUS = {
 	0x1009, /* English (Canadian) */
 	{
 		STRING_ENUS_MANUFACTURER,
 		STRING_ENUS_PRODUCT,
+		STRING_ENUS_INTERFACE0,
+		STRING_ENUS_INTERFACE1,
+		STRING_ENUS_INTERFACE2,
 	},
 };
 
 __code const usb_string_metatable_t STRING_METATABLE = {
 	1, /* # of tables */
-	2, /* # of strings in each table */
+	5, /* # of strings in each table */
 	{ &STRING_TABLE_ENUS, },
 };
 
