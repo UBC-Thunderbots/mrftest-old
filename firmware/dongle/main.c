@@ -551,14 +551,6 @@ static BOOL configure_xbee_stage1(uint8_t xbee) {
 	}
 	xbee_versions[xbee] = (buffer[0] << 8) | buffer[1];
 
-	/* Set up the PAN ID. */
-	buffer[0] = 0x49;
-	buffer[1] = 0x6C + xbee;
-	if (!at_command(xbee, 0x84, "ID", buffer, 2, 0, 0)) {
-		err = 29 + xbee;
-		goto out;
-	}
-
 	/* Set up the text node ID. */
 	if (!at_command(xbee, 0x85, "NI", (xbee == 0) ? "TBOTS00" : "TBOTS01", 7, 0, 0)) {
 		err = 31 + xbee;
@@ -599,6 +591,14 @@ static BOOL configure_xbee_stage2(uint8_t xbee) {
 	/* Set the radio channel. */
 	if (!at_command(xbee, 0x90, "CH", &requested_channels[xbee], 1, 0, 0)) {
 		err = 33 + xbee;
+		goto out;
+	}
+
+	/* Set up the PAN ID. */
+	buffer[0] = 0x49;
+	buffer[1] = 0x6C + xbee;
+	if (!at_command(xbee, 0x84, "ID", buffer, 2, 0, 0)) {
+		err = 29 + xbee;
 		goto out;
 	}
 
