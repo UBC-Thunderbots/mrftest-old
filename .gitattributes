@@ -9,6 +9,7 @@ firmware/HWRunSwitch/hwrunswitch.c -text
 firmware/MotorController/Makefile -text
 firmware/MotorController/test.c -text
 firmware/dongle/18f65j50.lkr -text
+firmware/dongle/Doxyfile -text
 firmware/dongle/Makefile -text
 firmware/dongle/activity_leds.c -text
 firmware/dongle/activity_leds.h -text
