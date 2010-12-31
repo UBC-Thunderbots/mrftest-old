@@ -21,7 +21,7 @@ static uint8_t buffer[64];
 static void on_out(void) {
 	uint8_t recipient;
 	__data const uint8_t *ptr = buffer;
-	uint8_t left = usb_bdpairs[EP_STATE_TRANSPORT].out.BDCNT;
+	uint8_t left = USB_BD_OUT_RECEIVED(EP_STATE_TRANSPORT);
 
 	/* Decode the packet. */
 	while (left) {
@@ -59,8 +59,7 @@ static void on_out(void) {
 	}
 
 	/* Receive the next packet. */
-	usb_bdpairs[EP_STATE_TRANSPORT].out.BDCNT = sizeof(buffer);
-	usb_bdpairs[EP_STATE_TRANSPORT].out.BDSTAT = ((usb_bdpairs[EP_STATE_TRANSPORT].out.BDSTAT & BDSTAT_DTS) ^ BDSTAT_DTS) | BDSTAT_UOWN;
+	USB_BD_OUT_SUBMIT(EP_STATE_TRANSPORT, buffer, sizeof(buffer));
 }
 
 void state_transport_out_init(void) {
@@ -69,9 +68,7 @@ void state_transport_out_init(void) {
 		 * The endpoint is halted until the radio channels are set. */
 		usb_halted_out_endpoints |= 1 << EP_STATE_TRANSPORT;
 		usb_ep_callbacks[EP_STATE_TRANSPORT].out = &on_out;
-		usb_bdpairs[EP_STATE_TRANSPORT].out.BDADR = buffer;
-		usb_bdpairs[EP_STATE_TRANSPORT].out.BDCNT = sizeof(buffer);
-		usb_bdpairs[EP_STATE_TRANSPORT].out.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
+		USB_BD_OUT_INIT(EP_STATE_TRANSPORT);
 		UEPBITS(EP_STATE_TRANSPORT).EPHSHK = 1;
 		UEPBITS(EP_STATE_TRANSPORT).EPOUTEN = 1;
 
@@ -83,16 +80,15 @@ void state_transport_out_init(void) {
 void state_transport_out_deinit(void) {
 	if (inited) {
 		UEPBITS(EP_STATE_TRANSPORT).EPOUTEN = 0;
-		usb_bdpairs[EP_STATE_TRANSPORT].out.BDSTAT = 0;
 	}
 }
 
 void state_transport_out_halt(void) {
-	usb_bdpairs[EP_STATE_TRANSPORT].out.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
+	USB_BD_OUT_STALL(EP_STATE_TRANSPORT);
 }
 
 void state_transport_out_unhalt(void) {
-	usb_bdpairs[EP_STATE_TRANSPORT].out.BDCNT = sizeof(buffer);
-	usb_bdpairs[EP_STATE_TRANSPORT].out.BDSTAT = BDSTAT_UOWN | BDSTAT_DTSEN;
+	USB_BD_OUT_UNSTALL(EP_STATE_TRANSPORT);
+	USB_BD_OUT_SUBMIT(EP_STATE_TRANSPORT, buffer, sizeof(buffer));
 }
 

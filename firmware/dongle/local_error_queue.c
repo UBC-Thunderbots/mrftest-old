@@ -30,24 +30,17 @@ static volatile BOOL inited = false;
 static void check_send(void) {
 	/* Only queue a USB packet if the subsystem is enabled. */
 	if (inited) {
-		/* The BD needs to be owned by the CPU. */
-		if (!usb_bdpairs[EP_LOCAL_ERROR_QUEUE].in.BDSTATbits.cpu.UOWN) {
-			if (usb_halted_in_endpoints & (1 << EP_LOCAL_ERROR_QUEUE)) {
-				/* The endpoint was halted by the host. */
-				usb_bdpairs[EP_LOCAL_ERROR_QUEUE].in.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
-			} else if (read_ptr != write_ptr) {
+		/* See if there's a free BD to report on. */
+		if (USB_BD_IN_HAS_FREE(EP_LOCAL_ERROR_QUEUE)) {
+			if (read_ptr != write_ptr) {
 				/* Some errors are in the queue. Queue for transmission. */
+				uint8_t length;
 				if (read_ptr < write_ptr) {
-					usb_bdpairs[EP_LOCAL_ERROR_QUEUE].in.BDCNT = write_ptr - read_ptr;
+					length = write_ptr - read_ptr;
 				} else {
-					usb_bdpairs[EP_LOCAL_ERROR_QUEUE].in.BDCNT = sizeof(queue) - read_ptr;
+					length = sizeof(queue) - read_ptr;
 				}
-				usb_bdpairs[EP_LOCAL_ERROR_QUEUE].in.BDADR = queue + read_ptr;
-				if (usb_bdpairs[EP_LOCAL_ERROR_QUEUE].in.BDSTATbits.sie.OLDDTS) {
-					usb_bdpairs[EP_LOCAL_ERROR_QUEUE].in.BDSTAT = BDSTAT_UOWN | BDSTAT_DTSEN;
-				} else {
-					usb_bdpairs[EP_LOCAL_ERROR_QUEUE].in.BDSTAT = BDSTAT_UOWN | BDSTAT_DTS | BDSTAT_DTSEN;
-				}
+				USB_BD_IN_SUBMIT(EP_LOCAL_ERROR_QUEUE, queue + read_ptr, length);
 			}
 		}
 	}
@@ -62,8 +55,7 @@ static void on_in(void) {
 	CRITSEC_ENTER(cs);
 
 	/* Advance the buffer pointer by the number of bytes transmitted. */
-	read_ptr = (read_ptr + usb_bdpairs[EP_LOCAL_ERROR_QUEUE].in.BDCNT) & (sizeof(queue) - 1);
-	usb_bdpairs[EP_LOCAL_ERROR_QUEUE].in.BDCNT = 0;
+	read_ptr = (read_ptr + USB_BD_IN_SENT(EP_LOCAL_ERROR_QUEUE)) & (sizeof(queue) - 1);
 
 	/* See if we have more to send. */
 	check_send();
@@ -74,7 +66,7 @@ static void on_in(void) {
 void local_error_queue_init(void) {
 	read_ptr = write_ptr = 0;
 	usb_ep_callbacks[EP_LOCAL_ERROR_QUEUE].in = &on_in;
-	usb_bdpairs[EP_LOCAL_ERROR_QUEUE].in.BDSTAT = BDSTAT_DTS;
+	USB_BD_IN_INIT(EP_LOCAL_ERROR_QUEUE);
 	UEPBITS(EP_LOCAL_ERROR_QUEUE).EPHSHK = 1;
 	UEPBITS(EP_LOCAL_ERROR_QUEUE).EPINEN = 1;
 	inited = true;
@@ -83,17 +75,15 @@ void local_error_queue_init(void) {
 void local_error_queue_deinit(void) {
 	inited = false;
 	UEPBITS(EP_LOCAL_ERROR_QUEUE).EPINEN = 0;
-	usb_bdpairs[EP_LOCAL_ERROR_QUEUE].in.BDSTAT = 0;
 	usb_ep_callbacks[EP_LOCAL_ERROR_QUEUE].in = 0;
 }
 
 void local_error_queue_halt(void) {
-	usb_bdpairs[EP_LOCAL_ERROR_QUEUE].in.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
-	usb_bdpairs[EP_LOCAL_ERROR_QUEUE].in.BDCNT = 0;
+	USB_BD_IN_STALL(EP_LOCAL_ERROR_QUEUE);
 }
 
 void local_error_queue_unhalt(void) {
-	usb_bdpairs[EP_LOCAL_ERROR_QUEUE].in.BDSTAT = BDSTAT_DTS;
+	USB_BD_IN_UNSTALL(EP_LOCAL_ERROR_QUEUE);
 	check_send();
 }
 

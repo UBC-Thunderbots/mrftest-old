@@ -28,21 +28,12 @@ static BOOL reporting = false;
 static void check_send(void) {
 	/* Only queue a USB packet if reporting is enabled. */
 	if (reporting) {
-		/* The BD needs to be owned by the CPU. */
-		if (!usb_bdpairs[EP_DONGLE_STATUS].in.BDSTATbits.cpu.UOWN) {
-			if (usb_halted_in_endpoints & (1 << EP_DONGLE_STATUS)) {
-				/* The endpoint was halted by the host. */
-				usb_bdpairs[EP_DONGLE_STATUS].in.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
-			} else if (memcmp(&back_buffer, &dongle_status, sizeof(back_buffer)) != 0) {
+		/* See if there's a free BD to report on. */
+		if (USB_BD_IN_HAS_FREE(EP_DONGLE_STATUS)) {
+			if (memcmp(&back_buffer, &dongle_status, sizeof(back_buffer)) != 0) {
 				/* Some status indicator actually changed. Queue for transmission. */
 				memcpy(&back_buffer, &dongle_status, sizeof(back_buffer));
-				usb_bdpairs[EP_DONGLE_STATUS].in.BDADR = &back_buffer;
-				usb_bdpairs[EP_DONGLE_STATUS].in.BDCNT = sizeof(back_buffer);
-				if (usb_bdpairs[EP_DONGLE_STATUS].in.BDSTATbits.sie.OLDDTS) {
-					usb_bdpairs[EP_DONGLE_STATUS].in.BDSTAT = BDSTAT_UOWN | BDSTAT_DTSEN;
-				} else {
-					usb_bdpairs[EP_DONGLE_STATUS].in.BDSTAT = BDSTAT_UOWN | BDSTAT_DTS | BDSTAT_DTSEN;
-				}
+				USB_BD_IN_SUBMIT(EP_DONGLE_STATUS, &back_buffer, sizeof(back_buffer));
 			}
 		}
 	}
@@ -50,7 +41,7 @@ static void check_send(void) {
 
 void dongle_status_start(void) {
 	usb_ep_callbacks[EP_DONGLE_STATUS].in = &check_send;
-	usb_bdpairs[EP_DONGLE_STATUS].in.BDSTAT = BDSTAT_DTS;
+	USB_BD_IN_INIT(EP_DONGLE_STATUS);
 	UEPBITS(EP_DONGLE_STATUS).EPHSHK = 1;
 	UEPBITS(EP_DONGLE_STATUS).EPINEN = 1;
 	reporting = true;
@@ -59,16 +50,15 @@ void dongle_status_start(void) {
 void dongle_status_stop(void) {
 	reporting = false;
 	UEPBITS(EP_DONGLE_STATUS).EPINEN = 0;
-	usb_bdpairs[EP_DONGLE_STATUS].in.BDSTAT = 0;
 	usb_ep_callbacks[EP_DONGLE_STATUS].in = 0;
 }
 
 void dongle_status_halt(void) {
-	usb_bdpairs[EP_DONGLE_STATUS].in.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
+	USB_BD_IN_STALL(EP_DONGLE_STATUS);
 }
 
 void dongle_status_unhalt(void) {
-	usb_bdpairs[EP_DONGLE_STATUS].in.BDSTAT = BDSTAT_DTS;
+	USB_BD_IN_UNSTALL(EP_DONGLE_STATUS);
 	check_send();
 }
 

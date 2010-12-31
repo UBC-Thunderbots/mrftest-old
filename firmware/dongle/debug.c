@@ -10,9 +10,9 @@
 static char buffer[64];
 
 /**
- * \brief Whether or not the buffer is currently given to the SIE.
+ * \brief The number of bytes written into the buffer so far.
  */
-static BOOL buffer_owned_by_sie;
+static uint8_t length;
 
 volatile BOOL debug_enabled = false;
 
@@ -21,10 +21,7 @@ static void on_in(void) {
 
 void debug_init(void) {
 	debug_enabled = false;
-	buffer_owned_by_sie = false;
 	stdout = STREAM_USER;
-	usb_bdpairs[EP_DEBUG].in.BDCNT = 0;
-	usb_bdpairs[EP_DEBUG].in.BDADR = buffer;
 	/* Enable timer 2 with a period of 1/12000000 × 256 × 16 × 4 =~ 1.37ms
 	 *        /-------- Ignored
 	 *         ////---- Postscale 1:16
@@ -35,9 +32,8 @@ void debug_init(void) {
 }
 
 void debug_enable(void) {
-	buffer_owned_by_sie = false;
-	usb_bdpairs[EP_DEBUG].in.BDSTAT = 0;
-	usb_bdpairs[EP_DEBUG].in.BDCNT = 0;
+	length = 0;
+	USB_BD_IN_INIT(EP_DEBUG);
 	usb_ep_callbacks[EP_DEBUG].in = &on_in;
 	UEPBITS(EP_DEBUG).EPHSHK = 1;
 	UEPBITS(EP_DEBUG).EPINEN = 1;
@@ -46,16 +42,16 @@ void debug_enable(void) {
 
 void debug_disable(void) {
 	debug_enabled = false;
-	buffer_owned_by_sie = false;
 	UEPBITS(EP_DEBUG).EPINEN = 0;
 }
 
 void debug_halt(void) {
-	usb_bdpairs[EP_DEBUG].in.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL;
+	USB_BD_IN_STALL(EP_DEBUG);
 }
 
 void debug_unhalt(void) {
-	usb_bdpairs[EP_DEBUG].in.BDSTAT = 0;
+	USB_BD_IN_UNSTALL(EP_DEBUG);
+	length = 0;
 }
 
 PUTCHAR(ch) {
@@ -74,7 +70,7 @@ PUTCHAR(ch) {
 		TMR2 = 0;
 		PIR1bits.TMR2IF = 0;
 		T2CONbits.TMR2ON = 1;
-		while (usb_bdpairs[EP_DEBUG].in.BDSTATbits.sie.UOWN) {
+		while (!USB_BD_IN_HAS_FREE(EP_DEBUG)) {
 			if (PIR1bits.TMR1IF || UCONbits.PKTDIS) {
 				CRITSEC_LEAVE(cs);
 				T2CONbits.TMR2ON = 0;
@@ -83,30 +79,19 @@ PUTCHAR(ch) {
 		}
 		T2CONbits.TMR2ON = 0;
 
-		/* If the buffer was previously owned by the SIE, reset the byte count and update the data toggle. */
-		if (buffer_owned_by_sie) {
-			buffer_owned_by_sie = false;
-			usb_bdpairs[EP_DEBUG].in.BDCNT = 0;
-			usb_bdpairs[EP_DEBUG].in.BDSTAT ^= BDSTAT_DTS;
-		}
-
 		if (ch == '\n') {
+			/* A newline marks end of message. Transmit whatever is in the buffer immediately, even if it's zero bytes. */
 			send = true;
 		} else {
-			buffer[usb_bdpairs[EP_DEBUG].in.BDCNT] = ch;
-			if (++usb_bdpairs[EP_DEBUG].in.BDCNT == 64) {
+			buffer[length] = ch;
+			if (++length == 64) {
 				send = true;
 			}
 		}
 
 		if (send) {
-			/* A newline marks end of message. Transmit whatever is in the buffer immediately, even if it's zero bytes. */
-			if (usb_bdpairs[EP_DEBUG].in.BDSTATbits.sie.OLDDTS) {
-				usb_bdpairs[EP_DEBUG].in.BDSTAT = BDSTAT_UOWN | BDSTAT_DTS | BDSTAT_DTSEN;
-			} else {
-				usb_bdpairs[EP_DEBUG].in.BDSTAT = BDSTAT_UOWN | BDSTAT_DTSEN;
-			}
-			buffer_owned_by_sie = true;
+			USB_BD_IN_SUBMIT(EP_DEBUG, buffer, length);
+			length = 0;
 		}
 	}
 
