@@ -127,6 +127,8 @@ static BOOL custom_setup_handler(void) {
 						} else {
 							requested_channels[0] = requested_channels[1] = 0;
 						}
+					} else if (requested_channels[0] == (usb_ep0_setup_buffer.value & 0xFF) && requested_channels[1] == (usb_ep0_setup_buffer.value >> 8)) {
+						return true;
 					}
 					return false;
 
@@ -506,7 +508,9 @@ void main(void) {
 					/* Show activity. */
 					activity_leds_init();
 #warning implement
-					while (!should_shut_down);
+					while (!should_shut_down) {
+						check_idle();
+					}
 					activity_leds_deinit();
 				}
 			}
