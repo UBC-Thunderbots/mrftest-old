@@ -93,6 +93,8 @@ void usb_lowlevel_deinit(void) {
 }
 
 SIGHANDLER(usb_process) {
+	void (*fptr)(void);
+
 	if (usb_is_idle) {
 		if (UIRbits.ACTVIF) {
 			UCONbits.SUSPND = 0;
@@ -131,13 +133,12 @@ SIGHANDLER(usb_process) {
 			while (UIRbits.TRNIF) {
 				uint8_t ep = (USTATbits.ENDP3 << 3) | (USTATbits.ENDP2 << 2) | (USTATbits.ENDP1 << 1) | USTATbits.ENDP0;
 				if (USTATbits.DIR) {
-					if (usb_ep_callbacks[ep].in) {
-						usb_ep_callbacks[ep].in();
-					}
+					fptr = usb_ep_callbacks[ep].in;
 				} else {
-					if (usb_ep_callbacks[ep].out) {
-						usb_ep_callbacks[ep].out();
-					}
+					fptr = usb_ep_callbacks[ep].out;
+				}
+				if (fptr) {
+					fptr();
 				}
 				UIRbits.TRNIF = 0;
 				Nop();
