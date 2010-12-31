@@ -46,10 +46,7 @@ static void check_send(void) {
 	}
 }
 
-/**
- * \brief Handles completed transactions.
- */
-static void on_in(void) {
+static void on_transaction(void) {
 	CRITSEC_DECLARE(cs);
 
 	CRITSEC_ENTER(cs);
@@ -63,9 +60,21 @@ static void on_in(void) {
 	CRITSEC_LEAVE(cs);
 }
 
+static void on_commanded_stall(void) {
+	USB_BD_IN_COMMANDED_STALL(EP_LOCAL_ERROR_QUEUE);
+}
+
+static BOOL on_clear_halt(void) {
+	USB_BD_IN_UNSTALL(EP_LOCAL_ERROR_QUEUE);
+	check_send();
+	return true;
+}
+
 void local_error_queue_init(void) {
 	read_ptr = write_ptr = 0;
-	usb_ep_callbacks[EP_LOCAL_ERROR_QUEUE].in = &on_in;
+	usb_ep_callbacks[EP_LOCAL_ERROR_QUEUE].in.transaction = &on_transaction;
+	usb_ep_callbacks[EP_LOCAL_ERROR_QUEUE].in.commanded_stall = &on_commanded_stall;
+	usb_ep_callbacks[EP_LOCAL_ERROR_QUEUE].in.clear_halt = &on_clear_halt;
 	USB_BD_IN_INIT(EP_LOCAL_ERROR_QUEUE);
 	UEPBITS(EP_LOCAL_ERROR_QUEUE).EPHSHK = 1;
 	UEPBITS(EP_LOCAL_ERROR_QUEUE).EPINEN = 1;
@@ -75,16 +84,6 @@ void local_error_queue_init(void) {
 void local_error_queue_deinit(void) {
 	inited = false;
 	UEPBITS(EP_LOCAL_ERROR_QUEUE).EPINEN = 0;
-	usb_ep_callbacks[EP_LOCAL_ERROR_QUEUE].in = 0;
-}
-
-void local_error_queue_halt(void) {
-	USB_BD_IN_STALL(EP_LOCAL_ERROR_QUEUE);
-}
-
-void local_error_queue_unhalt(void) {
-	USB_BD_IN_UNSTALL(EP_LOCAL_ERROR_QUEUE);
-	check_send();
 }
 
 void local_error_queue_add(uint8_t error) {

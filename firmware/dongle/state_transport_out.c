@@ -18,7 +18,7 @@ static BOOL inited = false;
  */
 static uint8_t buffer[64];
 
-static void on_out(void) {
+static void on_transaction(void) {
 	uint8_t recipient;
 	__data const uint8_t *ptr = buffer;
 	uint8_t left = USB_BD_OUT_RECEIVED(EP_STATE_TRANSPORT);
@@ -62,12 +62,24 @@ static void on_out(void) {
 	USB_BD_OUT_SUBMIT(EP_STATE_TRANSPORT, buffer, sizeof(buffer));
 }
 
+static void on_commanded_stall(void) {
+	USB_BD_OUT_COMMANDED_STALL(EP_STATE_TRANSPORT);
+}
+
+static BOOL on_clear_halt(void) {
+	USB_BD_OUT_UNSTALL(EP_STATE_TRANSPORT);
+	USB_BD_OUT_SUBMIT(EP_STATE_TRANSPORT, buffer, sizeof(buffer));
+	return true;
+}
+
 void state_transport_out_init(void) {
 	if (!inited) {
 		/* Set up USB.
 		 * The endpoint is halted until the radio channels are set. */
 		usb_halted_out_endpoints |= 1 << EP_STATE_TRANSPORT;
-		usb_ep_callbacks[EP_STATE_TRANSPORT].out = &on_out;
+		usb_ep_callbacks[EP_STATE_TRANSPORT].out.transaction = &on_transaction;
+		usb_ep_callbacks[EP_STATE_TRANSPORT].out.commanded_stall = &on_commanded_stall;
+		usb_ep_callbacks[EP_STATE_TRANSPORT].out.clear_halt = &on_clear_halt;
 		USB_BD_OUT_INIT(EP_STATE_TRANSPORT);
 		UEPBITS(EP_STATE_TRANSPORT).EPHSHK = 1;
 		UEPBITS(EP_STATE_TRANSPORT).EPOUTEN = 1;
@@ -81,14 +93,5 @@ void state_transport_out_deinit(void) {
 	if (inited) {
 		UEPBITS(EP_STATE_TRANSPORT).EPOUTEN = 0;
 	}
-}
-
-void state_transport_out_halt(void) {
-	USB_BD_OUT_STALL(EP_STATE_TRANSPORT);
-}
-
-void state_transport_out_unhalt(void) {
-	USB_BD_OUT_UNSTALL(EP_STATE_TRANSPORT);
-	USB_BD_OUT_SUBMIT(EP_STATE_TRANSPORT, buffer, sizeof(buffer));
 }
 

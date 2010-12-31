@@ -84,6 +84,8 @@ extern __data volatile usb_bdpair_t __at(0x400) usb_bdpairs[USB_CONFIG_MAX_ENDPO
 /**
  * \brief Initializes an inbound endpoint's buffer descriptor(s) and makes it (them) ready for use.
  *
+ * This macro should be invoked before setting the \c EPINEN bit of the relevant \c UEP.
+ *
  * \param[in] ep the endpoint number.
  */
 #define USB_BD_IN_INIT(ep) do { usb_bdpairs[(ep)].in.BDSTAT = BDSTAT_DTS; } while (0)
@@ -119,21 +121,38 @@ extern __data volatile usb_bdpair_t __at(0x400) usb_bdpairs[USB_CONFIG_MAX_ENDPO
 } while (0)
 
 /**
- * \brief Stalls an inbound endpoint.
+ * \brief Sets a commanded stall on an inbound endpoint.
+ *
+ * \pre This macro may only be invoked in the endpoint's commanded halt callback.
  *
  * \param[in] ep the endpoint number.
  */
-#define USB_BD_IN_STALL(ep) do { usb_bdpairs[(ep)].in.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL; } while (0)
+#define USB_BD_IN_COMMANDED_STALL(ep) do { usb_bdpairs[(ep)].in.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL; } while (0)
+
+/**
+ * \brief Sets a non-commanded functional stall on an inbound endpoint.
+ *
+ * \pre USB_BD_IN_HAS_FREE(ep)
+ *
+ * \param[in] ep the endpoint number.
+ */
+#define USB_BD_IN_FUNCTIONAL_STALL(ep) do { usb_bdpairs[(ep)].in.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL; } while (0)
 
 /**
  * \brief Unstalls an inbound endpoint.
+ *
+ * After clearing the stall condition, the endpoint is ready to accept submissions.
+ *
+ * \pre This macro may only be invoked in the endpoint's unhalt callback.
  *
  * \param[in] ep the endpoint number.
  */
 #define USB_BD_IN_UNSTALL(ep) do { usb_bdpairs[(ep)].in.BDSTAT = BDSTAT_DTS; } while (0)
 
 /**
- * \brief In a transaction callback, returns the number of bytes just sent on an inbound endpoint.
+ * \brief Returns the number of bytes just sent on an inbound endpoint.
+ *
+ * \pre This macro may only be invoked in a transaction callback.
  *
  * \param[in] ep the endpoint number.
  *
@@ -183,14 +202,29 @@ extern __data volatile usb_bdpair_t __at(0x400) usb_bdpairs[USB_CONFIG_MAX_ENDPO
 } while (0)
 
 /**
- * \brief Stalls an outbound endpoint.
+ * \brief Sets a commanded stall on an outbound endpoint.
+ *
+ * \pre This macro may only be invoked in the endpoint's commanded halt callback.
  *
  * \param[in] ep the endpoint number.
  */
-#define USB_BD_OUT_STALL(ep) do { usb_bdpairs[(ep)].out.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL; } while (0)
+#define USB_BD_OUT_COMMANDED_STALL(ep) do { usb_bdpairs[(ep)].out.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL; } while (0)
+
+/**
+ * \brief Sets a non-commanded functional stall on an outbound endpoint.
+ *
+ * \pre USB_BD_IN_HAS_FREE(ep)
+ *
+ * \param[in] ep the endpoint number.
+ */
+#define USB_BD_OUT_FUNCTIONAL_STALL(ep) do { usb_bdpairs[(ep)].out.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL; } while (0)
 
 /**
  * \brief Unstalls an outbound endpoint.
+ *
+ * After clearing the stall condition, the endpoint is ready to accept submissions.
+ *
+ * \pre This macro may only be invoked in the endpoint's unhalt callback.
  *
  * \param[in] ep the endpoint number.
  */

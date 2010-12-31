@@ -153,99 +153,6 @@ static void on_exit_config1(void) {
 	requested_channels[0] = requested_channels[1] = 0;
 }
 
-static void on_endpoint_halt_config1(uint8_t ep) {
-	switch (ep) {
-		case EP_STATE_TRANSPORT:
-			state_transport_out_halt();
-			break;
-
-		case EP_INTERRUPT:
-#warning implement
-			break;
-
-		case EP_BULK:
-#warning implement
-			break;
-
-		case 0x80 | EP_DONGLE_STATUS:
-			dongle_status_halt();
-			break;
-
-		case 0x80 | EP_LOCAL_ERROR_QUEUE:
-			local_error_queue_halt();
-			break;
-
-		case 0x80 | EP_STATISTICS:
-#warning implement
-			break;
-
-		case 0x80 | EP_STATE_TRANSPORT:
-#warning implement
-			break;
-
-		case 0x80 | EP_INTERRUPT:
-#warning implement
-			break;
-
-		case 0x80 | EP_BULK:
-#warning implement
-			break;
-
-		case 0x80 | EP_DEBUG:
-			debug_halt();
-			break;
-	}
-}
-
-static BOOL on_endpoint_unhalt_config1(uint8_t ep) {
-	switch (ep) {
-		case EP_STATE_TRANSPORT:
-			state_transport_out_unhalt();
-			return true;
-
-		case EP_INTERRUPT:
-#warning implement
-			return false;
-
-		case EP_BULK:
-#warning implement
-			return false;
-
-		case 0x80 | EP_DONGLE_STATUS:
-			dongle_status_unhalt();
-			return true;
-
-		case 0x80 | EP_LOCAL_ERROR_QUEUE:
-			local_error_queue_unhalt();
-			return true;
-
-		case 0x80 | EP_STATISTICS:
-#warning implement
-			return false;
-
-		case 0x80 | EP_STATE_TRANSPORT:
-#warning implement
-			return false;
-
-		case 0x80 | EP_INTERRUPT:
-#warning implement
-			return false;
-
-		case 0x80 | EP_BULK:
-#warning implement
-			return false;
-
-		case 0x80 | EP_DEBUG:
-			if (debug_enabled) {
-				debug_unhalt();
-				return true;
-			} else {
-				return false;
-			}
-	}
-	return false;
-}
-
 __code static const usb_confinfo_t config1 = {
 	&CONFIGURATION_DESCRIPTOR,
 	2,
@@ -253,8 +160,6 @@ __code static const usb_confinfo_t config1 = {
 	(1 << EP_STATE_TRANSPORT) | (1 << EP_INTERRUPT) | (1 << EP_BULK),
 	&on_enter_config1,
 	&on_exit_config1,
-	&on_endpoint_halt_config1,
-	&on_endpoint_unhalt_config1,
 };
 
 __code static const usb_devinfo_t devinfo = {

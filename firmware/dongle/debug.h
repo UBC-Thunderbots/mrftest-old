@@ -31,16 +31,6 @@ void debug_enable(void);
 void debug_disable(void);
 
 /**
- * \brief Halts the debug output endpoint.
- */
-void debug_halt(void);
-
-/**
- * \brief Unhalts the debug output endpoint.
- */
-void debug_unhalt(void);
-
-/**
  * \brief Prints a debugging message.
  */
 #define DPRINTF(...) do { if (debug_enabled) { printf(__VA_ARGS__); } } while (0)

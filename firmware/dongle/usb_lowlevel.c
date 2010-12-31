@@ -10,7 +10,7 @@
  * \brief Implements the low-level packet handling for the USB subsystem.
  */
 
-usb_ep_callbacks_t usb_ep_callbacks[USB_CONFIG_MAX_ENDPOINT + 1];
+usb_epn_callbacks_t usb_ep_callbacks[USB_CONFIG_MAX_ENDPOINT + 1];
 
 #if USB_CONFIG_SOF_CALLBACK
 void (*usb_sof_callback)(void);
@@ -93,8 +93,6 @@ void usb_lowlevel_deinit(void) {
 }
 
 SIGHANDLER(usb_process) {
-	void (*fptr)(void);
-
 	if (usb_is_idle) {
 		if (UIRbits.ACTVIF) {
 			UCONbits.SUSPND = 0;
@@ -133,12 +131,9 @@ SIGHANDLER(usb_process) {
 			while (UIRbits.TRNIF) {
 				uint8_t ep = (USTATbits.ENDP3 << 3) | (USTATbits.ENDP2 << 2) | (USTATbits.ENDP1 << 1) | USTATbits.ENDP0;
 				if (USTATbits.DIR) {
-					fptr = usb_ep_callbacks[ep].in;
+					usb_ep_callbacks[ep].in.transaction();
 				} else {
-					fptr = usb_ep_callbacks[ep].out;
-				}
-				if (fptr) {
-					fptr();
+					usb_ep_callbacks[ep].out.transaction();
 				}
 				UIRbits.TRNIF = 0;
 				Nop();

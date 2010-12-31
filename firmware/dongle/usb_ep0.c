@@ -273,31 +273,35 @@ static void on_setup(void) {
 					/* Check if the endpoint exists. */
 					BOOL is_in = !!(usb_ep0_setup_buffer.index & 0x80);
 					uint8_t ep = usb_ep0_setup_buffer.index & 0x7F;
-					uint16_t mask;
+					uint16_t ep_mask = ((uint16_t) 1) << ep;
+					uint16_t valid_mask;
 					if (usb_current_configuration != 0xFF) {
 						if (is_in) {
-							mask = usb_devinfo->configurations[usb_current_configuration]->valid_in_endpoints;
+							valid_mask = usb_devinfo->configurations[usb_current_configuration]->valid_in_endpoints;
 						} else {
-							mask = usb_devinfo->configurations[usb_current_configuration]->valid_out_endpoints;
+							valid_mask = usb_devinfo->configurations[usb_current_configuration]->valid_out_endpoints;
 						}
 					} else {
-						mask = 0;
+						valid_mask = 0;
 					}
-					mask |= 1;
-					if (mask & (((uint16_t) 1) << ep)) {
+					valid_mask |= 1;
+					if (valid_mask & ep_mask) {
 						switch (usb_ep0_setup_buffer.request) {
 							case USB_SETUP_PACKET_STDREQ_CLEAR_FEATURE:
 								switch (usb_ep0_setup_buffer.value) {
 									case USB_SETUP_PACKET_STDFEAT_ENDPOINT_HALT:
 										if (!ep) {
 											ok = true;
-										} else if (usb_devinfo->configurations[usb_current_configuration]->on_endpoint_unhalt(usb_ep0_setup_buffer.index)) {
-											if (is_in) {
-												usb_halted_in_endpoints &= ~(((uint16_t) 1) << ep);
-											} else {
-												usb_halted_out_endpoints &= ~(((uint16_t) 1) << ep);
+										} else if (is_in) {
+											if (usb_ep_callbacks[ep].in.clear_halt()) {
+												usb_halted_in_endpoints &= ~ep_mask;
+												ok = true;
 											}
-											ok = true;
+										} else {
+											if (usb_ep_callbacks[ep].out.clear_halt()) {
+												usb_halted_out_endpoints &= ~ep_mask;
+												ok = true;
+											}
 										}
 										break;
 								}
@@ -305,9 +309,17 @@ static void on_setup(void) {
 
 							case USB_SETUP_PACKET_STDREQ_GET_STATUS:
 								{
-									uint16_t halt_mask = is_in ? usb_halted_in_endpoints : usb_halted_out_endpoints;
-									scratch_buffer[0] = (halt_mask >> ep) & 0x01;
+									scratch_buffer[0] = 0;
 									scratch_buffer[1] = 0;
+									if (is_in) {
+										if (usb_halted_in_endpoints & ep_mask) {
+											scratch_buffer[0] = 0x01;
+										}
+									} else {
+										if (usb_halted_out_endpoints & ep_mask) {
+											scratch_buffer[0] = 0x01;
+										}
+									}
 									usb_ep0_data[0].ptr = scratch_buffer;
 									usb_ep0_data[0].length = 2;
 									usb_ep0_data_length = 1;
@@ -318,16 +330,17 @@ static void on_setup(void) {
 							case USB_SETUP_PACKET_STDREQ_SET_FEATURE:
 								switch (usb_ep0_setup_buffer.value) {
 									case USB_SETUP_PACKET_STDFEAT_ENDPOINT_HALT:
-										if (ep != 0) {
-											uint16_t halt_mask = is_in ? usb_halted_in_endpoints : usb_halted_out_endpoints;
-											if (!(halt_mask & (((uint16_t) 1) << ep))) {
-												usb_devinfo->configurations[usb_current_configuration]->on_endpoint_halt(usb_ep0_setup_buffer.index);
-												halt_mask |= ((uint16_t) 1) << ep;
-											}
+										if (ep) {
 											if (is_in) {
-												usb_halted_in_endpoints = halt_mask;
+												if (!(usb_halted_in_endpoints & ep_mask)) {
+													usb_halted_in_endpoints |= ep_mask;
+													usb_ep_callbacks[ep].in.commanded_stall();
+												}
 											} else {
-												usb_halted_out_endpoints = halt_mask;
+												if (!(usb_halted_out_endpoints & ep_mask)) {
+													usb_halted_out_endpoints |= ep_mask;
+													usb_ep_callbacks[ep].out.commanded_stall();
+												}
 											}
 											ok = true;
 										}
@@ -439,8 +452,8 @@ static void on_in(void) {
 
 void usb_ep0_init(void) {
 	/* Register endpoint callbacks. */
-	usb_ep_callbacks[0].out = &on_out;
-	usb_ep_callbacks[0].in = &on_in;
+	usb_ep_callbacks[0].out.transaction = &on_out;
+	usb_ep_callbacks[0].in.transaction = &on_in;
 
 	/* Clear local state. */
 	usb_ep0_data_length = 0;

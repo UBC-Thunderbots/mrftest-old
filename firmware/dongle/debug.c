@@ -16,7 +16,23 @@ static uint8_t length;
 
 volatile BOOL debug_enabled = false;
 
-static void on_in(void) {
+static void on_transaction(void) {
+}
+
+static void on_commanded_stall(void) {
+	if (debug_enabled) {
+		USB_BD_IN_COMMANDED_STALL(EP_DEBUG);
+	}
+}
+
+static BOOL on_clear_halt(void) {
+	if (debug_enabled) {
+		USB_BD_IN_UNSTALL(EP_DEBUG);
+		length = 0;
+		return true;
+	} else {
+		return false;
+	}
 }
 
 void debug_init(void) {
@@ -34,7 +50,9 @@ void debug_init(void) {
 void debug_enable(void) {
 	length = 0;
 	USB_BD_IN_INIT(EP_DEBUG);
-	usb_ep_callbacks[EP_DEBUG].in = &on_in;
+	usb_ep_callbacks[EP_DEBUG].in.transaction = &on_transaction;
+	usb_ep_callbacks[EP_DEBUG].in.commanded_stall = &on_commanded_stall;
+	usb_ep_callbacks[EP_DEBUG].in.clear_halt = &on_clear_halt;
 	UEPBITS(EP_DEBUG).EPHSHK = 1;
 	UEPBITS(EP_DEBUG).EPINEN = 1;
 	debug_enabled = true;
@@ -43,15 +61,6 @@ void debug_enable(void) {
 void debug_disable(void) {
 	debug_enabled = false;
 	UEPBITS(EP_DEBUG).EPINEN = 0;
-}
-
-void debug_halt(void) {
-	USB_BD_IN_STALL(EP_DEBUG);
-}
-
-void debug_unhalt(void) {
-	USB_BD_IN_UNSTALL(EP_DEBUG);
-	length = 0;
 }
 
 PUTCHAR(ch) {

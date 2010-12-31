@@ -29,15 +29,5 @@ void state_transport_out_init(void);
  */
 void state_transport_out_deinit(void);
 
-/**
- * \brief Halts the endpoint.
- */
-void state_transport_out_halt(void);
-
-/**
- * \brief Unhalts the endpoint.
- */
-void state_transport_out_unhalt(void);
-
 #endif
 

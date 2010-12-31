@@ -48,29 +48,6 @@ typedef struct {
 	 * \brief Invoked when the host deactivates the configuration.
 	 */
 	void (*on_exit)(void);
-
-	/**
-	 * \brief Invoked when an endpoint must halt.
-	 *
-	 * This is invoked when the host orders an endpoint to halt with SetFeature(ENDPOINT_HALT).
-	 * It is not invoked if the application halts the endpoint due to a functional error.
-	 *
-	 * \param[in] ep the endpoint index as defined in the USB specification, with the direction in bit 7.
-	 */
-	void (*on_endpoint_halt)(uint8_t ep);
-
-	/**
-	 * \brief Invoked when an endpoint's halt feature is being cleared.
-	 *
-	 * The specific reset behaviour called for is to reset the data toggle flag, as per a ClearFeature(ENDPOINT_HALT).
-	 * This is not invoked when entering or exiting the configuration.
-	 *
-	 * \param[in] ep the endpoint index as defined in the USB specification, with the direction in bit 7.
-	 *
-	 * \return \c true if the request was successful and the halt feature should be cleared,
-	 * or \c false if the functional error still exists and so the feature should not be cleared.
-	 */
-	BOOL (*on_endpoint_unhalt)(uint8_t ep);
 } usb_confinfo_t;
 
 #if USB_CONFIG_STRING_DESCRIPTORS
@@ -221,24 +198,46 @@ extern uint16_t usb_halted_in_endpoints;
 extern uint16_t usb_halted_out_endpoints;
 
 /**
+ * \brief The type of callbacks to handle activity on a single endpoint in a single direction.
+ */
+typedef struct {
+	/**
+	 * \brief Invoked when a transaction completes on the endpoint.
+	 */
+	void (*transaction)(void);
+
+	/**
+	 * \brief Invoked when a control transfer orders a commanded functional stall on the endpoint.
+	 */
+	void (*commanded_stall)(void);
+
+	/**
+	 * \brief Invoked when a control transfer orders the endpoint to clear its halt status.
+	 *
+	 * \return \c true if the halt feature was successfully cleared, or \c false if a functional error condition still exists.
+	 */
+	BOOL (*clear_halt)(void);
+} usb_ep_callbacks_t;
+
+/**
  * \brief The type of callbacks to handle activity on a single endpoint number.
  */
 typedef struct {
 	/**
-	 * \brief Invoked when a SETUP or OUT transaction arrives at the OUT endpoint.
+	 * \brief The callbacks for the outbound endpoint of this number.
 	 */
-	void (*out)(void);
+	usb_ep_callbacks_t out;
 
 	/**
-	 * \brief Invoked when an IN transaction completes on the IN endpoint.
+	 * \brief The callbacks for the inbound endpoint of this number.
 	 */
-	void (*in)(void);
-} usb_ep_callbacks_t;
+	usb_ep_callbacks_t in;
+} usb_epn_callbacks_t;
 
 /**
  * \brief The callbacks to handle activity on a single endpoint number.
  */
-extern usb_ep_callbacks_t usb_ep_callbacks[USB_CONFIG_MAX_ENDPOINT + 1];
+extern usb_epn_callbacks_t usb_ep_callbacks[USB_CONFIG_MAX_ENDPOINT + 1];
 
 #if USB_CONFIG_SOF_CALLBACK
 /**

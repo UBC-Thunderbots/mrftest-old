@@ -20,16 +20,6 @@ void local_error_queue_init(void);
 void local_error_queue_deinit(void);
 
 /**
- * \brief Halts the local error queue endpoint.
- */
-void local_error_queue_halt(void);
-
-/**
- * \brief Unhalts the local error queue endpoint.
- */
-void local_error_queue_unhalt(void);
-
-/**
  * \brief Adds an error to the local error queue.
  *
  * \param[in] error the error to add.

@@ -114,16 +114,6 @@ void dongle_status_start(void);
 void dongle_status_stop(void);
 
 /**
- * \brief Halts the dongle status endpoint.
- */
-void dongle_status_halt(void);
-
-/**
- * \brief Unhalts the dongle status endpoint.
- */
-void dongle_status_unhalt(void);
-
-/**
  * \brief This function must be called after the application writes to dongle_status.
  */
 void dongle_status_dirty(void);
