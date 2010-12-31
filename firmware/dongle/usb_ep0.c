@@ -212,26 +212,16 @@ static void on_setup(void) {
 								}
 							}
 							if (i != usb_devinfo->device_descriptor->num_configurations) {
-								void (*fptr)(void);
 								if (usb_current_configuration != 0xFF) {
-									fptr = usb_devinfo->configurations[usb_current_configuration]->on_exit;
-									if (fptr) {
-										fptr();
-									}
+									usb_devinfo->configurations[usb_current_configuration]->on_exit();
 								}
 								usb_current_configuration = i;
-								fptr = usb_devinfo->configurations[i]->on_enter;
-								if (fptr) {
-									fptr();
-								}
+								usb_devinfo->configurations[i]->on_enter();
 								ok = true;
 							}
 						} else {
 							if (usb_current_configuration != 0xFF) {
-								void (*fptr)(void) = usb_devinfo->configurations[usb_current_configuration]->on_exit;
-								if (fptr) {
-									fptr();
-								}
+								usb_devinfo->configurations[usb_current_configuration]->on_exit();
 							}
 							usb_current_configuration = 0xFF;
 						}
