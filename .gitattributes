@@ -41,6 +41,7 @@ firmware/dongle/state_transport_out.c -text
 firmware/dongle/state_transport_out.h -text
 firmware/dongle/usb.c -text
 firmware/dongle/usb.h -text
+firmware/dongle/usb_bd.h -text
 firmware/dongle/usb_config.h -text
 firmware/dongle/usb_ep0.c -text
 firmware/dongle/usb_internal.h -text
