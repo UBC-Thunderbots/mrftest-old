@@ -508,8 +508,8 @@ void main(void) {
 	/* Configure I/O pins. */
 	PINS_INITIALIZE();
 	WDTCONbits.ADSHR = 1;
-	ANCON0 = 0x01;
-	ANCON1 = 0x00;
+	ANCON0 = 0xFE;
+	ANCON1 = 0xFF;
 	WDTCONbits.ADSHR = 0;
 
 	/* Initialize the debug output subsystem. */
