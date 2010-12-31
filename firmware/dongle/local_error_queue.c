@@ -28,20 +28,17 @@ static volatile BOOL inited = false;
  * \brief Checks if there is data to send and if the SIE is ready to accept new data.
  */
 static void check_send(void) {
-	/* Only queue a USB packet if the subsystem is enabled. */
-	if (inited) {
-		/* See if there's a free BD to report on. */
-		if (USB_BD_IN_HAS_FREE(EP_LOCAL_ERROR_QUEUE)) {
-			if (read_ptr != write_ptr) {
-				/* Some errors are in the queue. Queue for transmission. */
-				uint8_t length;
-				if (read_ptr < write_ptr) {
-					length = write_ptr - read_ptr;
-				} else {
-					length = sizeof(queue) - read_ptr;
-				}
-				USB_BD_IN_SUBMIT(EP_LOCAL_ERROR_QUEUE, queue + read_ptr, length);
+	/* See if there's a free BD to report on. */
+	if (USB_BD_IN_HAS_FREE(EP_LOCAL_ERROR_QUEUE)) {
+		if (read_ptr != write_ptr) {
+			/* Some errors are in the queue. Queue for transmission. */
+			uint8_t length;
+			if (read_ptr < write_ptr) {
+				length = write_ptr - read_ptr;
+			} else {
+				length = sizeof(queue) - read_ptr;
 			}
+			USB_BD_IN_SUBMIT(EP_LOCAL_ERROR_QUEUE, queue + read_ptr, length);
 		}
 	}
 }
@@ -92,16 +89,18 @@ void local_error_queue_add(uint8_t error) {
 
 	CRITSEC_ENTER(cs);
 
-	free_space = (read_ptr - write_ptr - 1) & (sizeof(queue) - 1);
-	if (free_space) {
-		if (free_space == 1) {
-			/* This is the last slot in the error queue.
-			 * Change the error we're about to encode to "Local error queue overflow". */
-			error = 0;
+	if (inited) {
+		free_space = (read_ptr - write_ptr - 1) & (sizeof(queue) - 1);
+		if (free_space) {
+			if (free_space == 1) {
+				/* This is the last slot in the error queue.
+				 * Change the error we're about to encode to "Local error queue overflow". */
+				error = 0;
+			}
+			queue[write_ptr] = error;
+			write_ptr = (write_ptr + 1) & (sizeof(queue) - 1);
+			check_send();
 		}
-		queue[write_ptr] = error;
-		write_ptr = (write_ptr + 1) & (sizeof(queue) - 1);
-		check_send();
 	}
 
 	CRITSEC_LEAVE(cs);

@@ -15,7 +15,7 @@ volatile dongle_status_t dongle_status = {
 /**
  * \brief The status block queued for sending over USB.
  */
-static volatile dongle_status_t back_buffer;
+static dongle_status_t back_buffer;
 
 /**
  * \brief Whether or not status reporting is running.
@@ -26,15 +26,12 @@ static BOOL reporting = false;
  * \brief Checks if there is data to send and if the SIE is ready to accept new data.
  */
 static void check_send(void) {
-	/* Only queue a USB packet if reporting is enabled. */
-	if (reporting) {
-		/* See if there's a free BD to report on. */
-		if (USB_BD_IN_HAS_FREE(EP_DONGLE_STATUS)) {
-			if (memcmp(&back_buffer, &dongle_status, sizeof(back_buffer)) != 0) {
-				/* Some status indicator actually changed. Queue for transmission. */
-				memcpy(&back_buffer, &dongle_status, sizeof(back_buffer));
-				USB_BD_IN_SUBMIT(EP_DONGLE_STATUS, &back_buffer, sizeof(back_buffer));
-			}
+	/* See if there's a free BD to report on. */
+	if (USB_BD_IN_HAS_FREE(EP_DONGLE_STATUS)) {
+		if (memcmp(&back_buffer, &dongle_status, sizeof(back_buffer)) != 0) {
+			/* Some status indicator actually changed. Queue for transmission. */
+			memcpy(&back_buffer, &dongle_status, sizeof(back_buffer));
+			USB_BD_IN_SUBMIT(EP_DONGLE_STATUS, &back_buffer, sizeof(back_buffer));
 		}
 	}
 }
@@ -67,7 +64,9 @@ void dongle_status_stop(void) {
 void dongle_status_dirty(void) {
 	CRITSEC_DECLARE(cs);
 	CRITSEC_ENTER(cs);
-	check_send();
+	if (reporting) {
+		check_send();
+	}
 	CRITSEC_LEAVE(cs);
 }
 
