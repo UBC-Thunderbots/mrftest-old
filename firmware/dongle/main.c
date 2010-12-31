@@ -2,13 +2,15 @@
 #include "buffers.h"
 #include "debug.h"
 #include "descriptors.h"
-#include "dongle_proto_out.h"
 #include "dongle_status.h"
+#include "endpoints.h"
 #include "estop.h"
+#include "global.h"
 #include "local_error_queue.h"
 #include "pins.h"
 #include "serial.h"
 #include "signal.h"
+#include "state_transport_out.h"
 #include "usb.h"
 #include "xbee_rxpacket.h"
 #include "xbee_txpacket.h"
@@ -33,36 +35,6 @@ typedef enum {
 	TBOTS_CONTROL_REQUEST_HALT_ALL = 0x02,
 	TBOTS_CONTROL_REQUEST_ENABLE_RADIOS = 0x03,
 } tbots_control_request_t;
-
-/**
- * \brief Whether the USB layer has entered the main configuration and the main loop should start configuring XBees and processing packets.
- */
-static volatile BOOL should_start_up = false;
-
-/**
- * \brief Whether the USB layer has exited the main configuration and the main loop should stop processing packets and shut down the XBees.
- */
-static volatile BOOL should_shut_down = false;
-
-/**
- * \brief The channels the host asked the XBees to be configured on.
- */
-static volatile uint8_t requested_channels[2] = { 0, 0 };
-
-/**
- * \brief The firmware versions of the XBees.
- */
-static uint16_t xbee_versions[2];
-
-/**
- * \brief The most recent state blocks sent to the drive pipe.
- */
-static uint8_t drive_states[15][9];
-
-/**
- * \brief Blocks of memory in which inbound USB transfers are assembled.
- */
-static __data uint8_t dongle_proto_in_buffers[2][64];
 
 DEF_INTHIGH(high_handler)
 	__asm extern _xbee_rxpacket_rc1if __endasm;
@@ -142,7 +114,7 @@ static BOOL custom_setup_handler(void) {
 
 				case TBOTS_CONTROL_REQUEST_HALT_ALL:
 					for (i = 0; i < 15; ++i) {
-						drive_states[i][0] = 0;
+						state_transport_out_drive[i][0] = 0;
 					}
 					return true;
 
@@ -164,28 +136,16 @@ static BOOL custom_setup_handler(void) {
 	return false;
 }
 
-static void on_in3(void) {
-}
-
-static void on_in4(void) {
-}
-
-static void on_in5(void) {
-}
-
 static void on_enter_config1(void) {
 	dongle_status_start();
 	local_error_queue_init();
-	dongle_proto_out_init();
-	usb_ep_callbacks[3].in = &on_in3;
-	usb_ep_callbacks[4].in = &on_in4;
-	usb_ep_callbacks[5].in = &on_in5;
+	state_transport_out_init();
 	should_start_up = true;
 }
 
 static void on_exit_config1(void) {
 	debug_disable();
-	dongle_proto_out_deinit();
+	state_transport_out_deinit();
 	local_error_queue_deinit();
 	dongle_status_stop();
 	should_start_up = false;
@@ -195,26 +155,43 @@ static void on_exit_config1(void) {
 
 static void on_endpoint_halt_config1(uint8_t ep) {
 	switch (ep) {
-		case 0x04:
-		case 0x05:
-			dongle_proto_out_halt(ep);
+		case EP_STATE_TRANSPORT:
+			state_transport_out_halt();
 			break;
 
-		case 0x81:
-			dongle_status_halt();
-			break;
-
-		case 0x82:
-			local_error_queue_halt();
-			break;
-
-		case 0x83:
-		case 0x84:
-		case 0x85:
+		case EP_INTERRUPT:
 #warning implement
 			break;
 
-		case 0x86:
+		case EP_BULK:
+#warning implement
+			break;
+
+		case 0x80 | EP_DONGLE_STATUS:
+			dongle_status_halt();
+			break;
+
+		case 0x80 | EP_LOCAL_ERROR_QUEUE:
+			local_error_queue_halt();
+			break;
+
+		case 0x80 | EP_STATISTICS:
+#warning implement
+			break;
+
+		case 0x80 | EP_STATE_TRANSPORT:
+#warning implement
+			break;
+
+		case 0x80 | EP_INTERRUPT:
+#warning implement
+			break;
+
+		case 0x80 | EP_BULK:
+#warning implement
+			break;
+
+		case 0x80 | EP_DEBUG:
 			debug_halt();
 			break;
 	}
@@ -222,26 +199,43 @@ static void on_endpoint_halt_config1(uint8_t ep) {
 
 static BOOL on_endpoint_unhalt_config1(uint8_t ep) {
 	switch (ep) {
-		case 0x04:
-		case 0x05:
-			dongle_proto_out_unhalt(ep);
+		case EP_STATE_TRANSPORT:
+			state_transport_out_unhalt();
 			return true;
 
-		case 0x81:
+		case EP_INTERRUPT:
+#warning implement
+			return false;
+
+		case EP_BULK:
+#warning implement
+			return false;
+
+		case 0x80 | EP_DONGLE_STATUS:
 			dongle_status_unhalt();
 			return true;
 
-		case 0x82:
+		case 0x80 | EP_LOCAL_ERROR_QUEUE:
 			local_error_queue_unhalt();
 			return true;
 
-		case 0x83:
-		case 0x84:
-		case 0x85:
+		case 0x80 | EP_STATISTICS:
 #warning implement
-			return true;
+			return false;
 
-		case 0x86:
+		case 0x80 | EP_STATE_TRANSPORT:
+#warning implement
+			return false;
+
+		case 0x80 | EP_INTERRUPT:
+#warning implement
+			return false;
+
+		case 0x80 | EP_BULK:
+#warning implement
+			return false;
+
+		case 0x80 | EP_DEBUG:
 			if (debug_enabled) {
 				debug_unhalt();
 				return true;
@@ -255,8 +249,8 @@ static BOOL on_endpoint_unhalt_config1(uint8_t ep) {
 __code static const usb_confinfo_t config1 = {
 	&CONFIGURATION_DESCRIPTOR,
 	2,
-	0b0000000001111110,
-	0b0000000000110000,
+	(1 << EP_DONGLE_STATUS) | (1 << EP_LOCAL_ERROR_QUEUE) | (1 << EP_STATISTICS) | (1 << EP_STATE_TRANSPORT) | (1 << EP_INTERRUPT) | (1 << EP_BULK) | (1 << EP_DEBUG),
+	(1 << EP_STATE_TRANSPORT) | (1 << EP_INTERRUPT) | (1 << EP_BULK),
 	&on_enter_config1,
 	&on_exit_config1,
 	&on_endpoint_halt_config1,
@@ -272,124 +266,6 @@ __code static const usb_devinfo_t devinfo = {
 };
 
 /**
- * \brief Checks if the USB subsystem has become idle and, if so, put the dongle to sleep until the USB host comes back.
- */
-static void check_idle(void) {
-	uint8_t saved_stuff;
-
-	/* Double-checked locking paradigm:
-	 * There might be a race where we were idle but become active right after the check.
-	 * The interrupt would be taken and clear usb_is_idle, but we'd put the MCU to sleep because we were already in the if.
-	 * This would be bad, because we'd put the MCU to sleep while the SIE was not suspended!
-	 * Instead, if we think we're idle, disable interrupts and check again.
-	 * Only if that second check also passes do we actually go to sleep.
-	 * Note that we never re-enable GIEH during the body of the if.
-	 * Therefore, bus activity will cause ACVTIF to become set but no interrupt will be taken immediately.
-	 * The SLEEP instruction does not go to sleep if any interrupt is pending, or wakes up if any interrupt becomes pending.
-	 * That is the "atomic" instruction in this system: it guarantees to sleep only if, and as long as, no interrupt is pending.
-	 * Once ACTVIF is pending, we wake up, bring up the hardware, and re-enable GIEH.
-	 * Only then is the interrupt taken. */
-	if (usb_is_idle) {
-		INTCONbits.GIEH = 0;
-		if (usb_is_idle) {
-			/* Flush and suspend communication. */
-			xbee_txpacket_suspend();
-			xbee_rxpacket_suspend();
-
-			/* Save the states of and turn off all LEDs and the XBees. */
-			saved_stuff = 0;
-			if (LAT_LED1) {
-				saved_stuff |= 1;
-			}
-			if (LAT_LED2) {
-				saved_stuff |= 2;
-			}
-			if (LAT_LED3) {
-				saved_stuff |= 4;
-			}
-			if (!LAT_XBEE0_SLEEP) {
-				saved_stuff |= 8;
-			}
-			if (!LAT_XBEE1_SLEEP) {
-				saved_stuff |= 16;
-			}
-			LAT_LED1 = 0;
-			LAT_LED2 = 0;
-			LAT_LED3 = 0;
-			LAT_XBEE0_SLEEP = 1;
-			LAT_XBEE1_SLEEP = 1;
-
-			/* Disable the PLL. */
-			OSCTUNEbits.PLLEN = 0;
-
-			/* Go to sleep. */
-			Sleep();
-
-			/* Wait for the crystal oscillator to start back up. */
-			while (!OSCCONbits.OSTS);
-
-			/* Enable the PLL and wait for it to lock. This may take up to 2ms. */
-			OSCTUNEbits.PLLEN = 1;
-			delay1ktcy(2);
-
-			/* Turn back on all the hardware we turned off.
-			 * As described above, this will not race with things like SET_CONFIGURATION callbacks.
-			 * Reason: WE HAVE NOT YET TAKEN THE INTERRUPT THAT WOKE US UP.
-			 * The entire body of this if block is a critical section! */
-			if (saved_stuff & 1) {
-				LAT_LED1 = 1;
-			}
-			if (saved_stuff & 2) {
-				LAT_LED2 = 1;
-			}
-			if (saved_stuff & 4) {
-				LAT_LED3 = 1;
-			}
-			if (saved_stuff & 8) {
-				LAT_XBEE0_SLEEP = 0;
-			}
-			if (saved_stuff & 16) {
-				LAT_XBEE1_SLEEP = 0;
-			}
-
-			/* Restart communication. */
-			xbee_txpacket_resume();
-			xbee_rxpacket_resume();
-		}
-		INTCONbits.GIEH = 1;
-	}
-}
-
-/**
- * \brief Checks for low-level XBee errors and, if any are present, prepares to report them to the host.
- */
-static void check_xbee_errors(void) {
-	uint8_t mask, i;
-
-	for (i = 0; i != 2; ++i) {
-		mask = xbee_rxpacket_errors(i);
-		if (mask & (1 << XBEE_RXPACKET_ERROR_FERR)) {
-			local_error_queue_add(1 + i);
-		}
-		if (mask & (1 << XBEE_RXPACKET_ERROR_OERR_HW)) {
-			local_error_queue_add(3 + i);
-		}
-		if (mask & (1 << XBEE_RXPACKET_ERROR_OERR_SW)) {
-			local_error_queue_add(5 + i);
-		}
-		if (mask & (1 << XBEE_RXPACKET_ERROR_CHECKSUM_ERROR)) {
-			local_error_queue_add(7 + i);
-		}
-		if (mask & (1 << XBEE_RXPACKET_ERROR_LENGTH_MSB_NONZERO)) {
-			local_error_queue_add(9 + i);
-		}
-		if (mask & (1 << XBEE_RXPACKET_ERROR_LENGTH_LSB_ILLEGAL)) {
-			local_error_queue_add(11 + i);
-		}
-	}
-}
-
-/**
  * \brief Constructs an AT Command packet and sends it to an XBee.
  *
  * \param[in] xbee the index of the XBee to send the command to.
@@ -402,7 +278,7 @@ static void check_xbee_errors(void) {
  *
  * \param[in] val_length the number of bytes to use to represent \p value.
  */
-static void at_send(uint8_t xbee, uint8_t frame, __code const char *command, const void *value, uint8_t val_length) {
+static void at_send(uint8_t xbee, uint8_t frame, __code const char *command, __data const void *value, uint8_t val_length) {
 	uint8_t header[4];
 	xbee_txpacket_iovec_t txiovs[2];
 	xbee_txpacket_t txpkt;
@@ -470,7 +346,7 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
 					if (rxpkt->len == 5 + resp_length && rxpkt->ptr[0] == 0x88 && rxpkt->ptr[1] == frame) {
 						/* It's an AT command response whose frame ID matches ours. */
 						success = false;
-						if (rxpkt->ptr[2] != command[0] || rxpkt->ptr[3] != command[1]) {
+						if ((char) rxpkt->ptr[2] != command[0] || (char) rxpkt->ptr[3] != command[1]) {
 							/* The command is wrong. */
 							local_error_queue_add(13 + xbee); /* XBee {0,1} AT command failure, response contains incorrect command */
 						} else if (rxpkt->ptr[4] != 0) {
@@ -504,7 +380,6 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
 					xbee_rxpacket_free(rxpkt);
 				}
 			}
-			check_xbee_errors();
 			check_idle();
 		}
 	}
@@ -723,11 +598,10 @@ void main(void) {
 						check_idle();
 					}
 				} else {
-#warning test code
+					/* Show activity. */
 					activity_leds_init();
-					while (!should_shut_down) {
-						check_idle();
-					}
+#warning implement
+					while (!should_shut_down);
 					activity_leds_deinit();
 				}
 			}

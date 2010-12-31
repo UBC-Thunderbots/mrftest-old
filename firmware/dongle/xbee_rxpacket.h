@@ -114,16 +114,5 @@ __data xbee_rxpacket_t *xbee_rxpacket_get(void);
  */
 void xbee_rxpacket_free(__data xbee_rxpacket_t *packet);
 
-/**
- * \brief Atomically retrieves and clears the error mask for an XBee.
- *
- * The error mask it a bit mask whose bits correspond to values in the xbee_rxpacket_error_t enumeration.
- *
- * \param[in] xbee the XBee to examine.
- *
- * \return the XBee's error mask.
- */
-uint8_t xbee_rxpacket_errors(uint8_t xbee);
-
 #endif
 

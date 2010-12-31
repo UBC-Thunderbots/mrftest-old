@@ -12,15 +12,3 @@ __data void * __code const xbee_buffers[6] = {
 	xbee_buffer6,
 };
 
-static __data uint8_t dongle_proto_out_buffer1[64], dongle_proto_out_buffer2[64], dongle_proto_out_buffer3[64];
-static __data uint8_t dongle_proto_out_buffer4[64], dongle_proto_out_buffer5[64], dongle_proto_out_buffer6[64];
-
-__data void * __code const dongle_proto_out_buffers[6] = {
-	dongle_proto_out_buffer1,
-	dongle_proto_out_buffer2,
-	dongle_proto_out_buffer3,
-	dongle_proto_out_buffer4,
-	dongle_proto_out_buffer5,
-	dongle_proto_out_buffer6,
-};
-

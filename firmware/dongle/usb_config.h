@@ -30,7 +30,7 @@
 /**
  * \brief Set to The largest endpoint index (from 0 to 15) used by the device.
  */
-#define USB_CONFIG_MAX_ENDPOINT 6
+#define USB_CONFIG_MAX_ENDPOINT 7
 
 /**
  * \brief The number of scatter-gather descriptors to allocate for endpoint zero transfers.

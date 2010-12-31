@@ -1,6 +1,7 @@
 #include "xbee_rxpacket.h"
 #include "buffers.h"
 #include "critsec.h"
+#include "local_error_queue.h"
 #include "pins.h"
 #include "queue.h"
 #include "signal.h"
@@ -74,11 +75,6 @@ typedef struct {
 	 * \brief The accumulated checksum.
 	 */
 	uint8_t checksum;
-
-	/**
-	 * \brief The errors accumulated on this XBee.
-	 */
-	uint8_t errors;
 } rxstate_t;
 
 QUEUE_DEFINE_TYPE(xbee_rxpacket_t);
@@ -125,10 +121,8 @@ void xbee_rxpacket_init(void) {
 		/* Initialize receiver states. */
 		rxstates[0].packet = 0;
 		rxstates[0].state = STATE_EXPECT_SOP;
-		rxstates[0].errors = 0;
 		rxstates[1].packet = 0;
 		rxstates[1].state = STATE_EXPECT_SOP;
-		rxstates[0].errors = 0;
 
 		/* Initialize packet queues. */
 		STACK_INIT(pending_stack);
@@ -247,26 +241,6 @@ void xbee_rxpacket_free(__data xbee_rxpacket_t *packet) {
 	CRITSEC_LEAVE(cs);
 }
 
-uint8_t xbee_rxpacket_errors(uint8_t xbee) {
-	uint8_t result;
-	CRITSEC_DECLARE(cs);
-
-	if (rxstates[xbee].errors) {
-		CRITSEC_ENTER(cs);
-		if (inited) {
-			result = rxstates[xbee].errors;
-			rxstates[xbee].errors = 0;
-		} else {
-			result = 0;
-		}
-		CRITSEC_LEAVE(cs);
-	} else {
-		result = 0;
-	}
-
-	return result;
-}
-
 #define IMPLEMENT_RCIF(usartidx, xbeeidx, piridx) \
 SIGHANDLER(xbee_rxpacket_rc ## usartidx ## if) { \
 	uint8_t ch; \
@@ -277,7 +251,7 @@ SIGHANDLER(xbee_rxpacket_rc ## usartidx ## if) { \
 		RCSTA ## usartidx ## bits.CREN = 0; \
 		RCSTA ## usartidx ## bits.CREN = 1; \
 		/* Record the error. */ \
-		rxstates[xbeeidx].errors |= 1 << XBEE_RXPACKET_ERROR_OERR_HW; \
+		local_error_queue_add(3 + xbeeidx); \
 		/* There's no way to retrieve the lost bytes, so the only thing to do is throw away this packet. */ \
 		rxstates[xbeeidx].state = STATE_EXPECT_SOP; \
 		return; \
@@ -287,7 +261,7 @@ SIGHANDLER(xbee_rxpacket_rc ## usartidx ## if) { \
 	if (RCSTA ## usartidx ## bits.FERR) { \
 		/* Framing error is cleared by receiving a legitimate byte afterwards, which we do below. */ \
 		/* Record the error. */ \
-		rxstates[xbeeidx].errors |= 1 << XBEE_RXPACKET_ERROR_FERR; \
+		local_error_queue_add(1 + xbeeidx); \
 		/* There's no way to retrieve the lost byte, so the only thing to do is throw away this packet. */ \
 		rxstates[xbeeidx].state = STATE_EXPECT_SOP; \
 	} \
@@ -318,7 +292,7 @@ SIGHANDLER(xbee_rxpacket_rc ## usartidx ## if) { \
 				rxstates[xbeeidx].state = STATE_EXPECT_LENGTH_LSB; \
 			} else { \
 				/* Record the error. */ \
-				rxstates[xbeeidx].errors |= 1 << XBEE_RXPACKET_ERROR_LENGTH_MSB_NONZERO; \
+				local_error_queue_add(9 + xbeeidx); \
 				/* There's no way to know how long the packet should be, so just go back to looking for SOP. */ \
 				rxstates[xbeeidx].state = STATE_EXPECT_SOP; \
 			} \
@@ -328,14 +302,14 @@ SIGHANDLER(xbee_rxpacket_rc ## usartidx ## if) { \
 			if (ch < 1 || ch > 111) { \
 				/* Packets can't be of lengths outside this range.
 				 * Report the error. */ \
-				rxstates[xbeeidx].errors |= 1 << XBEE_RXPACKET_ERROR_LENGTH_LSB_ILLEGAL; \
+				local_error_queue_add(11 + xbeeidx); \
 				/* There's no way to know how long the packet should be, so just go back to looking for SOP. */ \
 				rxstates[xbeeidx].state = STATE_EXPECT_SOP; \
 			} else if (!rxstates[xbeeidx].packet) { \
 				/* There's no packet buffer available.
 				 * The XBee must be ignoring RTS holdoff.
 				 * Report the error. */ \
-				rxstates[xbeeidx].errors |= 1 << XBEE_RXPACKET_ERROR_OERR_SW; \
+				local_error_queue_add(5 + xbeeidx); \
 				/* We can at least ignore the right number of bytes to avoid desynchronization. */ \
 				rxstates[xbeeidx].length = ch; \
 				rxstates[xbeeidx].state = STATE_IGNORING_BYTES; \
@@ -370,7 +344,7 @@ SIGHANDLER(xbee_rxpacket_rc ## usartidx ## if) { \
 			} else { \
 				/* The checksum is incorrect.
 				 * Record the error. */ \
-				rxstates[xbeeidx].errors |= XBEE_RXPACKET_ERROR_CHECKSUM_ERROR; \
+				local_error_queue_add(7 + xbeeidx); \
 			} \
 			/* The packet is over, so look for a SOP. */ \
 			rxstates[xbeeidx].state = STATE_EXPECT_SOP; \

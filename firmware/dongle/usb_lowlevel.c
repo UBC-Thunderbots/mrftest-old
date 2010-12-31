@@ -2,6 +2,7 @@
 #include "usb_internal.h"
 #include <pic18fregs.h>
 #include <stdint.h>
+#include <string.h>
 
 /**
  * \file
@@ -113,6 +114,7 @@ SIGHANDLER(usb_process) {
 			while (UIRbits.TRNIF) {
 				UIRbits.TRNIF = 0;
 			}
+			memset(usb_ep_callbacks, 0, sizeof(usb_ep_callbacks));
 			usb_ep0_init();
 			UIEbits.TRNIE = 1;
 			UIEbits.STALLIE = 0;
@@ -129,9 +131,13 @@ SIGHANDLER(usb_process) {
 			while (UIRbits.TRNIF) {
 				uint8_t ep = (USTATbits.ENDP3 << 3) | (USTATbits.ENDP2 << 2) | (USTATbits.ENDP1 << 1) | USTATbits.ENDP0;
 				if (USTATbits.DIR) {
-					usb_ep_callbacks[ep].in();
+					if (usb_ep_callbacks[ep].in) {
+						usb_ep_callbacks[ep].in();
+					}
 				} else {
-					usb_ep_callbacks[ep].out();
+					if (usb_ep_callbacks[ep].out) {
+						usb_ep_callbacks[ep].out();
+					}
 				}
 				UIRbits.TRNIF = 0;
 				Nop();

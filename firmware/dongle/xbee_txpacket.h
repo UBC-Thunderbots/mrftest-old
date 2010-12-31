@@ -21,7 +21,7 @@ typedef struct {
 	/**
 	 * \brief The data to send.
 	 */
-	const uint8_t *ptr;
+	__data const uint8_t *ptr;
 } xbee_txpacket_iovec_t;
 
 /**
