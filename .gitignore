@@ -2,6 +2,10 @@ firmware/BoostConverter/*.asm
 firmware/BoostConverter/*.cod
 firmware/BoostConverter/*.hex
 firmware/BoostConverter/*.lst
+firmware/ChickerTest/*.asm
+firmware/ChickerTest/*.cod
+firmware/ChickerTest/*.hex
+firmware/ChickerTest/*.lst
 firmware/HWRunSwitch/hwrunswitch.elf
 firmware/HWRunSwitch/hwrunswitch.hex
 firmware/dongle/*.asm

@@ -4,6 +4,11 @@ firmware/BoostConverter/boostconverter.c -text
 firmware/BoostConverter/config.c -text
 firmware/BoostConverter/pwm.c -text
 firmware/BoostConverter/pwm.h -text
+firmware/ChickerTest/Makefile -text
+firmware/ChickerTest/chickertest.c -text
+firmware/ChickerTest/config.c -text
+firmware/ChickerTest/pwm.c -text
+firmware/ChickerTest/pwm.h -text
 firmware/HWRunSwitch/Makefile -text
 firmware/HWRunSwitch/hwrunswitch.c -text
 firmware/MotorController/Makefile -text
