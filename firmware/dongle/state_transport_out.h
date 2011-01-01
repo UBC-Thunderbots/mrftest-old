@@ -1,5 +1,5 @@
-#ifndef DONGLE_PROTO_OUT_H
-#define DONGLE_PROTO_OUT_H
+#ifndef STATE_TRANSPORT_OUT_H
+#define STATE_TRANSPORT_OUT_H
 
 /**
  * \file
