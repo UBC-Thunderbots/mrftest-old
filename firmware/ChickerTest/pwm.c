@@ -31,9 +31,18 @@ void InitPWM() {
 	CCP1CONbits.P1M1 = 0;//
 	CCP1CONbits.P1M0 = 0;//
 
+	CCPR1L = 0; // Start with a zero duty cycle.
+
 	T2CONbits.T2CKPS1 = 1;//16Prescaler
-	TRISCbits.TRISC2 = 0; // setting RC2 pin for CCP1 output
 	T2CONbits.TMR2ON = 1; // Timer 2 enabled
+
+	// Wait for 2 timer cycles to allow the ECCP to lock in properly before enabling the output pin.
+	while (!PIR1bits.TMR2IF);
+	PIR1bits.TMR2IF = 0;
+	while (!PIR1bits.TMR2IF);
+	PIR1bits.TMR2IF = 0;
+
+	TRISCbits.TRISC2 = 0; // setting RC2 pin for CCP1 output
 	//LATC = 0x00;// setting as output
 }
 
