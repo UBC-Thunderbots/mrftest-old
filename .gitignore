@@ -8,6 +8,10 @@ firmware/ChickerTest/*.hex
 firmware/ChickerTest/*.lst
 firmware/HWRunSwitch/hwrunswitch.elf
 firmware/HWRunSwitch/hwrunswitch.hex
+firmware/SuperSimpleBoostConverter/*.asm
+firmware/SuperSimpleBoostConverter/*.cod
+firmware/SuperSimpleBoostConverter/*.hex
+firmware/SuperSimpleBoostConverter/*.lst
 firmware/dongle/*.asm
 firmware/dongle/*.cod
 firmware/dongle/*.cof

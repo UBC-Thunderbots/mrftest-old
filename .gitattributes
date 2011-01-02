@@ -11,6 +11,11 @@ firmware/HWRunSwitch/Makefile -text
 firmware/HWRunSwitch/hwrunswitch.c -text
 firmware/MotorController/Makefile -text
 firmware/MotorController/test.c -text
+firmware/SuperSimpleBoostConverter/Makefile -text
+firmware/SuperSimpleBoostConverter/boostconverter.c -text
+firmware/SuperSimpleBoostConverter/boostconverter.h -text
+firmware/SuperSimpleBoostConverter/config.c -text
+firmware/SuperSimpleBoostConverter/config.h -text
 firmware/dongle/18f65j50.lkr -text
 firmware/dongle/Doxyfile -text
 firmware/dongle/Makefile -text
