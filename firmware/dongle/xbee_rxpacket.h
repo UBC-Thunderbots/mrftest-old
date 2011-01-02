@@ -10,46 +10,6 @@
 #include <stdint.h>
 
 /**
- * \brief The possible errors that can occur while receiving data from XBees.
- */
-typedef enum {
-	/**
-	 * \brief A byte framing error (bad stop bit) occurred.
-	 */
-	XBEE_RXPACKET_ERROR_FERR,
-
-	/**
-	 * \brief A hardware overrun error occurred.
-	 *
-	 * A hardware overrun error occurs when bytes arrive at the serial port faster than the interrupt service routine can remove them.
-	 */
-	XBEE_RXPACKET_ERROR_OERR_HW,
-
-	/**
-	 * \brief A software overrun error occurred.
-	 *
-	 * A software overrun error occurs when the XBee refuses to stop sending despite an RTS holdoff,
-	 * and the interrupt service routine has no packet buffers available to hold the incoming packet.
-	 */
-	XBEE_RXPACKET_ERROR_OERR_SW,
-
-	/**
-	 * \brief A packet was received, but the checksum failed.
-	 */
-	XBEE_RXPACKET_ERROR_CHECKSUM_ERROR,
-
-	/**
-	 * \brief A packet header was received with a nonzero value for the MSB of packet length.
-	 */
-	XBEE_RXPACKET_ERROR_LENGTH_MSB_NONZERO,
-
-	/**
-	 * \brief A packet header was received with an illegal value for the LSB of packet length.
-	 */
-	XBEE_RXPACKET_ERROR_LENGTH_LSB_ILLEGAL,
-} xbee_rxpacket_error_t;
-
-/**
  * \brief A block of memory into which a packet can be received.
  */
 typedef struct xbee_rxpacket {
