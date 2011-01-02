@@ -12,6 +12,7 @@ using namespace AI::HL::W;
 namespace {
 	BoolParam STAY_OWN_HALF("Test strategy stay own half", true);
 	BoolParam CATCH_BALL("Test strategy catch ball", true);
+	BoolParam RAM_BALL("Test strategy Ram ball", true);
 	/**
 	 * Manages the robots for testing purposes
 	 */
@@ -73,6 +74,10 @@ namespace {
 		for (std::vector<Player::Ptr>::iterator it = players.begin(); it != players.end(); it++) {
 			if (CATCH_BALL) {
 				(*it)->move(world.ball().position(), (*it)->orientation(), flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_MEDIUM);
+			}	else if (RAM_BALL) {
+				Point enemy(world.field().length()/2.0, 0.0);
+				//move towards enemy net
+				(*it)->move(enemy, enemy.orientation(), flags, AI::Flags::MOVE_RAM_BALL, AI::Flags::PRIO_MEDIUM);
 			} else {
 				(*it)->move(world.ball().position(), (*it)->orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 			}

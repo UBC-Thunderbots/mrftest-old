@@ -6,10 +6,25 @@
 #include "geom/point.h"
 #include "geom/util.h"
 #include <vector>
+#include <utility>
+
+//#include "ai/flags.h"
+//#include <algorithm>
+//#include <cmath>
+#include "util/time.h"
 
 namespace AI {
 	namespace Nav {
 		namespace Util {
+
+			/**
+			 * Finds where to go and when to get there in order to intercept the moving ball along the route to dst
+			 */
+			std::pair<Point, timespec> get_ramball_location(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+
+			//			bool has_ramball_location(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+
+
 			/**
 			 * returns true if the destination is valid
 			 */
@@ -61,19 +76,6 @@ namespace AI {
 			 */
 			std::vector<Point> get_obstacle_boundaries(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, unsigned int added_flags);
 
-			/**
-			 * Checks to see if the point is valid.
-			 * This includes flag checks and checks to see if the dest is on another robot.
-			 *
-			 * \param[in] dest the point we want to check
-			 *
-			 * \param[in] world the world for field information
-			 *
-			 * \param[in] player the player thats being checked
-			 *
-			 * \return \c true if destination is valid and \c false if not.
-			 */
-			bool check_dest_valid(Point dest, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
 		}
 	}
 }

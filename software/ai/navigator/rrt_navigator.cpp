@@ -78,6 +78,17 @@ namespace {
 		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 			path.clear();
 			Player::Ptr player = world.friendly_team().get(i);
+			
+			// temp hack move ram ball does not try to avoid obstacles
+			if (player->type() == MOVE_RAM_BALL) {
+				std::pair<Point, timespec> temp;
+				Point p =  player->destination().first;
+				temp = get_ramball_location( p, world, player);
+ 				get_ramball_location( player->destination().first, world, player);
+				path.push_back(std::make_pair(std::make_pair(temp.first, player->destination().second), temp.second));
+				player->path(path);
+				continue;
+			}
 
 			// create new waypoints for the player if they have not been created yet
 			if (!player->object_store()[typeid(*this)].is()) {
