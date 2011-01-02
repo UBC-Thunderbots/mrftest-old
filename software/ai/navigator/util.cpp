@@ -405,19 +405,21 @@ std::pair<Point, timespec> AI::Nav::Util::get_ramball_location(Point dst, AI::Na
 		if(lineseg_point_dist(world.ball().position(), player->position(), dst) < RAM_BALL_ALLOWANCE){	
 			return std::make_pair(world.ball().position(),  world.monotonic_time());
 		}
-		return std::make_pair(dst,  world.monotonic_time());
 	}
 
 	if(unique_line_intersect(player->position(), dst, world.ball().position(), world.ball().position() + ball_dir)){
-
 		Point location = line_intersect(player->position(), dst, world.ball().position(), world.ball().position() + ball_dir);
 		timespec intersect = world.monotonic_time();
 		timespec_add(intersect, double_to_timespec((location -  world.ball().position()).len()/world.ball().velocity().len()), intersect);
 		
-		return std::make_pair(location, intersect);
+		Point vec1 = location - player->position();
+		Point vec2 = dst - player->position();
 
+		if(vec1.dot(vec2) > 0){
+			return std::make_pair(location, intersect);
+		}
 	}
 
-	//if everything fails then just go to destination
-		return std::make_pair(dst,  world.monotonic_time());
+	//if everything fails then just stay put
+		return std::make_pair(player->position(),  world.monotonic_time());
 }
