@@ -1,6 +1,6 @@
 #include <pic18f4550.h>
 
-#include <delay.h>
+#include <pic16/delay.h>
 
 #define V_DIODE 0.7
 #define V_SOURCE 15.0
@@ -72,7 +72,7 @@ void main(void) {
 		
 		if (charging)
 		{
-			if (Vcap < V_CAP_HIGH_THRES && Vcap > V_CAP_LOW_SAFETY_THRES && PORTDbits.PD2 == 0)
+			if (Vcap < V_CAP_HIGH_THRES && Vcap > V_CAP_LOW_SAFETY_THRES && PORTDbits.RD2 == 0)
 			{
 				// keep charging
 				LATCbits.LATC2 = 0;
@@ -87,7 +87,7 @@ void main(void) {
 		}
 		else
 		{
-			if (PORTDbits.PD2 == 0 && Vcap < V_CAP_LOW_THRES)
+			if (PORTDbits.RD2 == 0 && Vcap < V_CAP_LOW_THRES)
 			{
 				charging = 1;
 			}

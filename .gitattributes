@@ -13,6 +13,7 @@ firmware/HWRunSwitch/Makefile -text
 firmware/HWRunSwitch/hwrunswitch.c -text
 firmware/MotorController/Makefile -text
 firmware/MotorController/test.c -text
+firmware/SuperSimpleBoostConverter/18f4550.lkr -text
 firmware/SuperSimpleBoostConverter/Makefile -text
 firmware/SuperSimpleBoostConverter/boostconverter.c -text
 firmware/SuperSimpleBoostConverter/boostconverter.h -text
