@@ -1,13 +1,16 @@
 #include "activity_leds.h"
 #include "buffers.h"
+#include "bulk_out.h"
 #include "debug.h"
 #include "descriptors.h"
 #include "dongle_status.h"
 #include "endpoints.h"
 #include "estop.h"
 #include "global.h"
+#include "interrupt_out.h"
 #include "local_error_queue.h"
 #include "pins.h"
+#include "run.h"
 #include "serial.h"
 #include "signal.h"
 #include "state_transport_out.h"
@@ -84,7 +87,6 @@ static BOOL custom_setup_handler(void) {
 							return true;
 						} else if (usb_ep0_setup_buffer.value == 1) {
 							debug_enable();
-							DPRINTF("Debug output enabled\n");
 							return true;
 						} else {
 							return false;
@@ -142,11 +144,15 @@ static void on_enter_config1(void) {
 	dongle_status_start();
 	local_error_queue_init();
 	state_transport_out_init();
+	interrupt_out_init();
+	bulk_out_init();
 	should_start_up = true;
 }
 
 static void on_exit_config1(void) {
 	debug_disable();
+	bulk_out_deinit();
+	interrupt_out_deinit();
 	state_transport_out_deinit();
 	local_error_queue_deinit();
 	dongle_status_stop();
@@ -237,7 +243,7 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
 	__data xbee_rxpacket_t *rxpkt;
 	BOOL success;
 
-	DPRINTF("Issuing AT command %s to modem %u\n", command, (unsigned int) xbee);
+	DPRINTF("AT%s to XBee %hu\n", command, xbee);
 
 	for (retries = 0; retries != 6 && !should_shut_down; ++retries) {
 		/* Send the command. */
@@ -422,6 +428,9 @@ void main(void) {
 	/* Initialize the debug output subsystem. */
 	debug_init();
 
+	/* Disable timer 0 until needed. */
+	T0CONbits.TMR0ON = 0;
+
 	/* We want to attach timer 1 to ECCP 1 and timer 3 to ECCP2 so we can have separate periods. */
 	T3CONbits.T3CCP2 = 0;
 	T3CONbits.T3CCP1 = 1;
@@ -507,10 +516,7 @@ void main(void) {
 				} else {
 					/* Show activity. */
 					activity_leds_init();
-#warning implement
-					while (!should_shut_down) {
-						check_idle();
-					}
+					run();
 					activity_leds_deinit();
 				}
 			}

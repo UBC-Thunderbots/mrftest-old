@@ -1,6 +1,8 @@
 #ifndef CRITSEC_H
 #define CRITSEC_H
 
+#include <pic18fregs.h>
+
 /**
  * \brief Defines a variable to represent a critical section.
  *

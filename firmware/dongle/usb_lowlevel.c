@@ -25,6 +25,7 @@ static uint8_t idle_saved_uie;
 
 void usb_lowlevel_init(void) {
 	PIE2bits.USBIE = 0;
+	UCON = 0;
 
 	UCFGbits.UTEYE = 0;
 	UCFGbits.UOEMON = 0;
@@ -62,34 +63,34 @@ void usb_lowlevel_init(void) {
 	UIEbits.ACTVIE = 1;
 	UIEbits.URSTIE = 1;
 
-	UCON = 0;
 	UCONbits.USBEN = 1;
 
 	while (UCONbits.SE0);
 
 	while (UIR) {
 		UIR = 0;
+		Nop();
+		Nop();
+		Nop();
+		Nop();
+		Nop();
+		Nop();
 	}
-
-	PIR2bits.USBIF = 0;
-	IPR2bits.USBIP = USB_CONFIG_INTERRUPTS_HIGH_PRIORITY;
-	PIE2bits.USBIE = 1;
 
 #if USB_CONFIG_SOF_CALLBACK
 	usb_sof_callback = 0;
 #endif
 
 	usb_is_idle = false;
+
+	PIR2bits.USBIF = 0;
+	IPR2bits.USBIP = USB_CONFIG_INTERRUPTS_HIGH_PRIORITY;
+	PIE2bits.USBIE = 1;
 }
 
 void usb_lowlevel_deinit(void) {
 	PIE2bits.USBIE = 0;
 	UCONbits.USBEN = 0;
-	PIR2bits.USBIF = 0;
-	UEIR = 0;
-	while (UIR) {
-		UIR = 0;
-	}
 }
 
 SIGHANDLER(usb_process) {
@@ -113,11 +114,16 @@ SIGHANDLER(usb_process) {
 		} else if (UIRbits.URSTIF) {
 			while (UIRbits.TRNIF) {
 				UIRbits.TRNIF = 0;
+				Nop();
+				Nop();
+				Nop();
+				Nop();
+				Nop();
+				Nop();
 			}
 			memset(usb_ep_callbacks, 0, sizeof(usb_ep_callbacks));
 			usb_ep0_init();
 			UIEbits.TRNIE = 1;
-			UIEbits.STALLIE = 0;
 			UCONbits.PKTDIS = 0;
 			UIRbits.URSTIF = 0;
 #if USB_CONFIG_SOF_CALLBACK

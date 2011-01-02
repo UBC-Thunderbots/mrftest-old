@@ -1,4 +1,5 @@
 #include "xbee_rxpacket.h"
+#include "activity_leds.h"
 #include "buffers.h"
 #include "critsec.h"
 #include "local_error_queue.h"
@@ -190,8 +191,10 @@ void xbee_rxpacket_suspend(void) {
 void xbee_rxpacket_resume(void) {
 	if (inited) {
 		/* Assert RTS only if we actually have a packet buffer available. */
-		if (STACK_TOP(pending_stack)) {
+		if (STACK_TOP(pending_stack) || rxstates[0].packet) {
 			LAT_XBEE0_RTS = 0;
+		}
+		if (STACK_TOP(pending_stack) || rxstates[1].packet) {
 			LAT_XBEE1_RTS = 0;
 		}
 	}
@@ -201,14 +204,12 @@ __data xbee_rxpacket_t *xbee_rxpacket_get(void) {
 	__data xbee_rxpacket_t *result = 0;
 	CRITSEC_DECLARE(cs);
 
-	if (QUEUE_FRONT(done_queue)) {
-		CRITSEC_ENTER(cs);
-		if (inited) {
-			result = QUEUE_FRONT(done_queue);
-			QUEUE_POP(done_queue);
-		}
-		CRITSEC_LEAVE(cs);
+	CRITSEC_ENTER(cs);
+	if (inited) {
+		result = QUEUE_FRONT(done_queue);
+		QUEUE_POP(done_queue);
 	}
+	CRITSEC_LEAVE(cs);
 
 	return result;
 }
@@ -341,6 +342,8 @@ SIGHANDLER(xbee_rxpacket_rc ## usartidx ## if) { \
 				 * Queue the packet for the application. */ \
 				QUEUE_PUSH(done_queue, rxstates[xbeeidx].packet); \
 				rxstates[xbeeidx].packet = 0; \
+				/* Show some activity. */ \
+				activity_leds_mark(xbeeidx); \
 			} else { \
 				/* The checksum is incorrect.
 				 * Record the error. */ \

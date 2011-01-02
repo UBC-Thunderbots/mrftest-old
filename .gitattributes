@@ -26,6 +26,8 @@ firmware/dongle/activity_leds.c -text
 firmware/dongle/activity_leds.h -text
 firmware/dongle/buffers.c -text
 firmware/dongle/buffers.h -text
+firmware/dongle/bulk_out.c -text
+firmware/dongle/bulk_out.h -text
 firmware/dongle/config.c -text
 firmware/dongle/critsec.h -text
 firmware/dongle/debug.c -text
@@ -39,12 +41,18 @@ firmware/dongle/estop.c -text
 firmware/dongle/estop.h -text
 firmware/dongle/global.c -text
 firmware/dongle/global.h -text
+firmware/dongle/interrupt_out.c -text
+firmware/dongle/interrupt_out.h -text
 firmware/dongle/local_error_queue.c -text
 firmware/dongle/local_error_queue.h -text
 firmware/dongle/main.c -text
 firmware/dongle/pingen.c -text
 firmware/dongle/pins.txt -text
+firmware/dongle/pipes.c -text
+firmware/dongle/pipes.h -text
 firmware/dongle/queue.h -text
+firmware/dongle/run.c -text
+firmware/dongle/run.h -text
 firmware/dongle/serial.c -text
 firmware/dongle/serial.h -text
 firmware/dongle/signal.h -text

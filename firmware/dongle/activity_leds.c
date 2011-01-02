@@ -12,11 +12,11 @@ void activity_leds_init(void) {
 	/* Configure timer 0 to run at a period of 65536 × 8 / 12000000 =~ 44ms.
 	 *
 	 *        /-------- Timer on
-	 *         /------- 16-bit
-	 *          /------ Internal instruction clock
-	 *           /----- Ignored
-	 *            /---- Prescaler assigned
-	 *             ///- Prescale 1:8 */
+	 *        |/------- 16-bit
+	 *        ||/------ Internal instruction clock
+	 *        |||/----- Ignored
+	 *        ||||/---- Prescaler assigned
+	 *        |||||///- Prescale 1:8 */
 	T0CON = 0b10000010;
 
 	/* Enable interrupts and make them low priority. */

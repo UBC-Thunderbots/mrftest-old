@@ -31,6 +31,11 @@ static uint8_t tail_ptr;
  */
 static char bounce_buffer[64];
 
+/**
+ * \brief Whether or not a debug interface overflow error has been recently reported.
+ */
+static volatile BOOL overflow_reported;
+
 volatile BOOL debug_enabled = false;
 
 /**
@@ -105,6 +110,9 @@ static void on_transaction(void) {
 		++tail_ptr;
 	}
 
+	/* Clear the overflow report flag; this rate-limits the error to one per debug interface transaction. */
+	overflow_reported = false;
+
 	/* See if we should send another transaction. */
 	check_send();
 }
@@ -138,6 +146,7 @@ void debug_enable(void) {
 	usb_ep_callbacks[EP_DEBUG].in.clear_halt = &on_clear_halt;
 	UEPBITS(EP_DEBUG).EPHSHK = 1;
 	UEPBITS(EP_DEBUG).EPINEN = 1;
+	overflow_reported = false;
 	debug_enabled = true;
 }
 
@@ -162,7 +171,10 @@ PUTCHAR(ch) {
 		} else {
 			/* There is no space in the circular buffer.
 			 * Report the error. */
-			local_error_queue_add(39);
+			if (!overflow_reported) {
+				local_error_queue_add(39);
+				overflow_reported = true;
+			}
 		}
 	}
 

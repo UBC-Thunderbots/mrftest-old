@@ -25,6 +25,11 @@ static volatile uint8_t write_ptr;
 static volatile BOOL inited = false;
 
 /**
+ * \brief Whether or not a transaction is currently running.
+ */
+static volatile BOOL transaction_running;
+
+/**
  * \brief Checks if there is data to send and if the SIE is ready to accept new data.
  */
 static void check_send(void) {
@@ -39,30 +44,30 @@ static void check_send(void) {
 				length = sizeof(queue) - read_ptr;
 			}
 			USB_BD_IN_SUBMIT(EP_LOCAL_ERROR_QUEUE, queue + read_ptr, length);
+			transaction_running = true;
 		}
 	}
 }
 
 static void on_transaction(void) {
-	CRITSEC_DECLARE(cs);
-
-	CRITSEC_ENTER(cs);
-
 	/* Advance the buffer pointer by the number of bytes transmitted. */
 	read_ptr = (read_ptr + USB_BD_IN_SENT(EP_LOCAL_ERROR_QUEUE)) & (sizeof(queue) - 1);
 
+	/* The transaction has finished. */
+	transaction_running = false;
+
 	/* See if we have more to send. */
 	check_send();
-
-	CRITSEC_LEAVE(cs);
 }
 
 static void on_commanded_stall(void) {
 	USB_BD_IN_COMMANDED_STALL(EP_LOCAL_ERROR_QUEUE);
+	transaction_running = true;
 }
 
 static BOOL on_clear_halt(void) {
 	USB_BD_IN_UNSTALL(EP_LOCAL_ERROR_QUEUE);
+	transaction_running = false;
 	check_send();
 	return true;
 }
@@ -75,6 +80,7 @@ void local_error_queue_init(void) {
 	USB_BD_IN_INIT(EP_LOCAL_ERROR_QUEUE);
 	UEPBITS(EP_LOCAL_ERROR_QUEUE).EPHSHK = 1;
 	UEPBITS(EP_LOCAL_ERROR_QUEUE).EPINEN = 1;
+	transaction_running = false;
 	inited = true;
 }
 
@@ -99,7 +105,13 @@ void local_error_queue_add(uint8_t error) {
 			}
 			queue[write_ptr] = error;
 			write_ptr = (write_ptr + 1) & (sizeof(queue) - 1);
-			check_send();
+			/* It could be that a transaction was previously submitted and completed, but the transaction callback has not finished yet.
+			 * In this case, the BD will be indistinguishable from a ready-to-use BD, but the read pointer will not have been updated.
+			 * This could result in retransmission of already-reported errors.
+			 * To avoid this problem, only kick off a new transmission if it was previously idle. */
+			if (!transaction_running) {
+				check_send();
+			}
 		}
 	}
 

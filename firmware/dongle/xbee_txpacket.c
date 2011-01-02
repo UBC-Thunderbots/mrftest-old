@@ -1,4 +1,5 @@
 #include "critsec.h"
+#include "activity_leds.h"
 #include "pins.h"
 #include "queue.h"
 #include "signal.h"
@@ -214,6 +215,7 @@ __data xbee_txpacket_t *xbee_txpacket_dequeue(void) {
 SIGHANDLER(xbee_txpacket_tx ## usartidx ## if) { \
 	__data xbee_txpacket_iovec_t *iov; \
 	__data xbee_txpacket_t *packet; \
+	__data const uint8_t *ptr; \
 \
 	/* If the shift register is empty, we may be able to send two bytes at once. \
 	 * Also, we may not actually send a byte if we shift a lot of state around. \
@@ -274,9 +276,10 @@ SIGHANDLER(xbee_txpacket_tx ## usartidx ## if) { \
 						packet->num_iovs--; \
 					} else { \
 						/* We can send the next byte. */ \
-						TXREG ## usartidx = iov->ptr[0]; \
-						checksums[xbeeidx] -= iov->ptr[0]; \
-						iov->ptr++; \
+						ptr = iov->ptr; \
+						TXREG ## usartidx = ptr[0]; \
+						checksums[xbeeidx] -= ptr[0]; \
+						iov->ptr = ptr + 1; \
 						iov->len--; \
 					} \
 				} \
@@ -290,6 +293,8 @@ SIGHANDLER(xbee_txpacket_tx ## usartidx ## if) { \
 				STACK_PUSH(done_stack, packet); \
 				/* Next order of business will be to send the next packet's SOP. */ \
 				states[xbeeidx] = TXSTATE_SOP; \
+				/* Show some activity. */ \
+				activity_leds_mark(xbeeidx); \
 				break; \
 		} \
 \

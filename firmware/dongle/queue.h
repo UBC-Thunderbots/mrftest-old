@@ -60,5 +60,14 @@
  */
 #define QUEUE_POP(q) do { if ((q).queue_head) { (q).queue_head = (q).queue_head->next; } } while (0)
 
+/**
+ * \brief Puts an element back on the front of a queue.
+ *
+ * \param[in] q the queue to unpop.
+ *
+ * \param[in] elt the element to put back.
+ */
+#define QUEUE_UNPOP(q, elt) do { (elt)->next = (q).queue_head; if (!(q).queue_head) { (q).queue_tail = (elt); } (q).queue_head = (elt); } while (0)
+
 #endif
 

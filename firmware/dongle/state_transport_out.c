@@ -2,6 +2,7 @@
 #include "dongle_status.h"
 #include "endpoints.h"
 #include "local_error_queue.h"
+#include "pipes.h"
 #include "usb.h"
 #include <pic18fregs.h>
 #include <stdbool.h>
@@ -23,7 +24,7 @@ static void on_transaction(void) {
 	while (left) {
 		if (ptr[0] <= left) {
 			switch (ptr[1] & 0x0F) {
-				case 0:
+				case PIPE_DRIVE:
 					/* Drive pipe. */
 					if (ptr[0] == STATE_TRANSPORT_OUT_DRIVE_SIZE + 2) {
 						recipient = ptr[1] >> 4;
