@@ -43,15 +43,17 @@ SIGHANDLER(activity_leds_tmr0if) {
 	if (flags & 0x4) {
 		LAT_LED2 = 1;
 		LAT_LED3 = 1;
-		flags = 0;
+		flags &= ~0x4;
 	} else {
 		if (flags & 0x1) {
 			LAT_LED2 = 0;
+			flags &= ~0x1;
 		}
 		if (flags & 0x2) {
 			LAT_LED3 = 0;
+			flags &= ~0x2;
 		}
-		flags = 0x4;
+		flags |= 0x4;
 	}
 	INTCONbits.TMR0IF = 0;
 }
