@@ -42,7 +42,7 @@ __code const uint8_t CONFIGURATION_DESCRIPTOR_TAIL[] = {
 		/* bEndpointAddress */ 0x81,
 		/* bmAttributes */ 0x03,
 		/* wMaxPacketSize */ 4, 0,
-		/* bInterval */ 10,
+		/* bInterval */ 25,
 
 		/* Endpoint Descriptor */
 		/* bLength */ sizeof(usb_endpoint_descriptor_t),
@@ -50,7 +50,7 @@ __code const uint8_t CONFIGURATION_DESCRIPTOR_TAIL[] = {
 		/* bEndpointAddress */ 0x82,
 		/* bmAttributes */ 0x03,
 		/* wMaxPacketSize */ 64, 0,
-		/* bInterval */ 10,
+		/* bInterval */ 25,
 
 		/* Endpoint Descriptor */
 		/* bLength */ sizeof(usb_endpoint_descriptor_t),
@@ -58,7 +58,7 @@ __code const uint8_t CONFIGURATION_DESCRIPTOR_TAIL[] = {
 		/* bEndpointAddress */ 0x83,
 		/* bmAttributes */ 0x02,
 		/* wMaxPacketSize */ 8, 0,
-		/* bInterval */ 10,
+		/* bInterval */ 100,
 	
 	/* Interface Descriptor */
 	/* bLength */ sizeof(usb_interface_descriptor_t),
