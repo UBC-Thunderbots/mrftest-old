@@ -522,8 +522,7 @@ void run(void) {
 				if (discovery_sent) {
 					++num_packets;
 				}
-#warning timeout to deal with serial corruption
-				while (num_packets) {
+				while (num_packets && ((((UFRMH << 8) | UFRML) - now) & 0x3FF) < 1000) {
 					if (pkt = xbee_rxpacket_get()) {
 						//DPRINTF("RX packet: XBee %hu, length %hu, API ID %hx\n", pkt->xbee, pkt->len, pkt->ptr[0]);
 						if (pkt->xbee == 0) {
@@ -582,6 +581,9 @@ void run(void) {
 						}
 						xbee_rxpacket_free(pkt);
 					}
+				}
+				if (num_packets) {
+					local_error_queue_add(21);
 				}
 			}
 
