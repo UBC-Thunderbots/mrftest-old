@@ -1,5 +1,4 @@
 #include "activity_leds.h"
-#include "buffers.h"
 #include "bulk_out.h"
 #include "debug.h"
 #include "descriptors.h"
@@ -13,6 +12,7 @@
 #include "run.h"
 #include "serial.h"
 #include "signal.h"
+#include "state_transport_in.h"
 #include "state_transport_out.h"
 #include "usb.h"
 #include "xbee_rxpacket.h"
@@ -144,6 +144,7 @@ static void on_enter_config1(void) {
 	dongle_status_start();
 	local_error_queue_init();
 	state_transport_out_init();
+	state_transport_in_init();
 	interrupt_out_init();
 	bulk_out_init();
 	should_start_up = true;
@@ -153,6 +154,7 @@ static void on_exit_config1(void) {
 	debug_disable();
 	bulk_out_deinit();
 	interrupt_out_deinit();
+	state_transport_in_deinit();
 	state_transport_out_deinit();
 	local_error_queue_deinit();
 	dongle_status_stop();
@@ -469,6 +471,10 @@ void main(void) {
 		LAT_XBEE0_SLEEP = 0;
 		LAT_XBEE1_SLEEP = 0;
 		LAT_LED1 = 1;
+
+		/* Clear states to safe values. */
+		memset(state_transport_out_drive, 0, sizeof(state_transport_out_drive));
+		memset(state_transport_in_feedback, 0, sizeof(state_transport_in_feedback));
 
 		/* Stage-1 configure the XBees. */
 		if (!configure_xbee_stage1(0) || !configure_xbee_stage1(1)) {

@@ -55,6 +55,8 @@ firmware/dongle/serial.c -text
 firmware/dongle/serial.h -text
 firmware/dongle/signal.h -text
 firmware/dongle/stack.h -text
+firmware/dongle/state_transport_in.c -text
+firmware/dongle/state_transport_in.h -text
 firmware/dongle/state_transport_out.c -text
 firmware/dongle/state_transport_out.h -text
 firmware/dongle/usb.c -text

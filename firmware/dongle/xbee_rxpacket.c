@@ -107,8 +107,6 @@ static __data xbee_rxpacket_t xbee_buffer1, xbee_buffer2, xbee_buffer3, xbee_buf
 static BOOL inited = false;
 
 void xbee_rxpacket_init(void) {
-	uint8_t i;
-
 	if (!inited) {
 		/* Enable the receivers. */
 		RCSTA1bits.CREN = 1;

@@ -8,6 +8,7 @@
 #include "local_error_queue.h"
 #include "pipes.h"
 #include "queue.h"
+#include "state_transport_in.h"
 #include "state_transport_out.h"
 #include "xbee_rxpacket.h"
 #include "xbee_txpacket.h"
@@ -554,8 +555,34 @@ void run(void) {
 						} else {
 							/* This packet arrived on XBee 1.
 							 * It should be a receive data packet. */
-							if (pkt->ptr[0] == XBEE_API_ID_RX16) {
-								DPRINTF("RX16: from %hx%hx\n", pkt->ptr[1], pkt->ptr[2]);
+							if (pkt->ptr[0] == XBEE_API_ID_RX16 && pkt->ptr[1] == 0x7B && (pkt->ptr[2] & 0xF0) == 0x30 && pkt->ptr[2] != 0x30) {
+								uint8_t robot = pkt->ptr[2] & 0x0F;
+								__data const uint8_t *ptr = pkt->ptr + 5;
+								uint8_t len = pkt->len - 5;
+								while (len) {
+									if (ptr[0] > len || (ptr[1] & 0xF0) != 0) {
+										/* Micropacket overflows packet. */
+										local_error_queue_add(55 + robot - 1);
+										break;
+									} else {
+										switch (ptr[1] & 0x0F) {
+											case PIPE_FEEDBACK:
+												if (len == STATE_TRANSPORT_IN_FEEDBACK_SIZE + 2) {
+													memcpyram2ram(state_transport_in_feedback[robot - 1], ptr + 2, STATE_TRANSPORT_IN_FEEDBACK_SIZE);
+													state_transport_in_feedback_dirty(robot);
+												} else {
+													local_error_queue_add(55 + robot - 1);
+												}
+												break;
+
+											default:
+												local_error_queue_add(55 + robot - 1);
+												break;
+										}
+										len -= *ptr;
+										ptr += *ptr;
+									}
+								}
 							}
 						}
 						xbee_rxpacket_free(pkt);
