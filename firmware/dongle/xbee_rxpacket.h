@@ -26,9 +26,9 @@ typedef struct xbee_rxpacket {
 	uint8_t len;
 
 	/**
-	 * \brief The buffer, which must be at least 111 bytes long.
+	 * \brief The buffer.
 	 */
-	__data uint8_t *ptr;
+	uint8_t ptr[111];
 
 	/**
 	 * \brief The next packet in a linked list (for internal use only).

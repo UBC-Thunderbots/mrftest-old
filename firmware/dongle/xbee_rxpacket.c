@@ -1,6 +1,5 @@
 #include "xbee_rxpacket.h"
 #include "activity_leds.h"
-#include "buffers.h"
 #include "critsec.h"
 #include "local_error_queue.h"
 #include "pins.h"
@@ -98,9 +97,9 @@ static STACK_TYPE(xbee_rxpacket_t) pending_stack;
 static QUEUE_TYPE(xbee_rxpacket_t) done_queue;
 
 /**
- * \brief Packet structures suitable for XBee packet reception.
+ * \brief The buffers.
  */
-static __data xbee_rxpacket_t xbee_packets[NUM_XBEE_BUFFERS];
+static __data xbee_rxpacket_t xbee_buffer1, xbee_buffer2, xbee_buffer3, xbee_buffer4, xbee_buffer5, xbee_buffer6;
 
 /**
  * \brief Whether or not the subsystem is initialized.
@@ -128,10 +127,12 @@ void xbee_rxpacket_init(void) {
 		/* Initialize packet queues. */
 		STACK_INIT(pending_stack);
 		QUEUE_INIT(done_queue);
-		for (i = 0; i < NUM_XBEE_BUFFERS; ++i) {
-			xbee_packets[i].ptr = xbee_buffers[i];
-			STACK_PUSH(pending_stack, &xbee_packets[i]);
-		}
+		STACK_PUSH(pending_stack, &xbee_buffer1);
+		STACK_PUSH(pending_stack, &xbee_buffer2);
+		STACK_PUSH(pending_stack, &xbee_buffer3);
+		STACK_PUSH(pending_stack, &xbee_buffer4);
+		STACK_PUSH(pending_stack, &xbee_buffer5);
+		STACK_PUSH(pending_stack, &xbee_buffer6);
 
 		/* Remember that the module is initialized. */
 		inited = true;

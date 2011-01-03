@@ -24,8 +24,6 @@ firmware/dongle/Doxyfile -text
 firmware/dongle/Makefile -text
 firmware/dongle/activity_leds.c -text
 firmware/dongle/activity_leds.h -text
-firmware/dongle/buffers.c -text
-firmware/dongle/buffers.h -text
 firmware/dongle/bulk_out.c -text
 firmware/dongle/bulk_out.h -text
 firmware/dongle/config.c -text
