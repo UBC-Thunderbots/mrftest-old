@@ -29,6 +29,11 @@ static __data interrupt_out_packet_t *sie_packet;
  */
 static QUEUE_TYPE(interrupt_out_packet_t) ready_packets;
 
+/**
+ * \brief Whether or not a transaction is currently running.
+ */
+static volatile BOOL transaction_running;
+
 static void submit_sie_packet(void) {
 	/* If there are no free BDs, do nothing. */
 	if (!USB_BD_OUT_HAS_FREE(EP_INTERRUPT)) {
@@ -44,11 +49,15 @@ static void submit_sie_packet(void) {
 	/* Submit a packet if we have one. */
 	if (sie_packet) {
 		USB_BD_OUT_SUBMIT(EP_INTERRUPT, sie_packet->buffer, sizeof(sie_packet->buffer));
+		transaction_running = true;
 	}
 }
 
 static void on_transaction(void) {
 	uint8_t robot, pipe;
+
+	/* Remember that no transaction is running right now. */
+	transaction_running = false;
 
 	if (USB_BD_OUT_RECEIVED(EP_INTERRUPT)) {
 		/* Extract the header. */
@@ -80,12 +89,14 @@ static void on_transaction(void) {
 
 static void on_commanded_stall(void) {
 	USB_BD_OUT_COMMANDED_STALL(EP_INTERRUPT);
+	transaction_running = true;
 }
 
 static BOOL on_clear_halt(void) {
 	/* Halt status can only be cleared once XBee stage 2 configuration completes. */
 	if (dongle_status.xbees == XBEES_STATE_RUNNING) {
 		USB_BD_OUT_UNSTALL(EP_INTERRUPT);
+		transaction_running = false;
 		submit_sie_packet();
 		return true;
 	} else {
@@ -111,6 +122,7 @@ void interrupt_out_init(void) {
 	usb_ep_callbacks[EP_INTERRUPT].out.clear_halt = &on_clear_halt;
 	USB_BD_OUT_INIT(EP_INTERRUPT);
 	USB_BD_OUT_FUNCTIONAL_STALL(EP_INTERRUPT);
+	transaction_running = true;
 	UEPBITS(EP_INTERRUPT).EPHSHK = 1;
 	UEPBITS(EP_INTERRUPT).EPOUTEN = 1;
 }
@@ -143,6 +155,9 @@ void interrupt_out_free(__data interrupt_out_packet_t *pkt) {
 
 	CRITSEC_ENTER(cs);
 	STACK_PUSH(free_packets, pkt);
+	if (!transaction_running) {
+		submit_sie_packet();
+	}
 	CRITSEC_LEAVE(cs);
 }
 
