@@ -243,8 +243,6 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
 	__data xbee_rxpacket_t *rxpkt;
 	BOOL success;
 
-	DPRINTF("AT%s to XBee %hu\n", command, xbee);
-
 	for (retries = 0; retries != 6 && !should_shut_down; ++retries) {
 		/* Send the command. */
 		at_send(xbee, frame, command, value, val_length);

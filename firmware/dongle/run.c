@@ -150,7 +150,6 @@ void run(void) {
 
 	while (!should_shut_down) {
 		/* Initialize per-cycle state. */
-		//DPRINTF("Cycle\n");
 		num_drive_sent = 0;
 		num_interrupt_out_sent = 0;
 		num_bulk_out_sent = 0;
@@ -173,11 +172,9 @@ void run(void) {
 		/* Send state transport micropackets. */
 		if (dongle_status.robots) {
 			/* Assemble the packets. */
-			//DPRINTF("Drive:");
 			CRITSEC_ENTER(cs);
 			for (i = 1, j = 0, mask = 1 << 1; i != 16; ++i, mask <<= 1) {
 				if (dongle_status.robots & mask) {
-					//DPRINTF(" (%hu -> %hu)", i, j);
 					drive_micropackets[j].pipe_robot.pipe = PIPE_DRIVE;
 					drive_micropackets[j].pipe_robot.robot = i;
 					memcpyram2ram(drive_micropackets[j].payload, state_transport_out_drive[i - 1], STATE_TRANSPORT_OUT_DRIVE_SIZE);
@@ -185,7 +182,6 @@ void run(void) {
 				}
 			}
 			CRITSEC_LEAVE(cs);
-			//DPRINTF("\n");
 
 			/* Submit the packets to the XBee layer. */
 			if (j != 0) {
@@ -286,7 +282,6 @@ void run(void) {
 			interrupt_out_packets[num_interrupt_out_sent].num_iovs = 2;
 			interrupt_out_packets[num_interrupt_out_sent].iovs = interrupt_out_iovecs[num_interrupt_out_sent];
 			xbee_txpacket_queue(&interrupt_out_packets[num_interrupt_out_sent], 0);
-			//DPRINTF("Int: robot %hu, frame %hu, size %hu\n", robot, interrupt_out_headers[num_interrupt_out_sent].xbee_header.frame_id, sizeof(interrupt_header_t) + interrupt_out_packet->length - 1);
 			++num_interrupt_out_sent;
 		}
 
@@ -326,14 +321,11 @@ void run(void) {
 						bulk_out_headers[num_bulk_out_sent].pipe = pipe;
 						bulk_out_headers[num_bulk_out_sent].sequence_flags.sequence = pipe_info[robot - 1][pipe].sequence++;
 						xbee_txpacket_queue(&bulk_out_packets[num_bulk_out_sent], 0);
-						//DPRINTF("Bulk send: robot %hu, frame %hu, size %hu\n", robot, bulk_out_headers[num_bulk_out_sent].xbee_header.frame_id, sizeof(bulk_header_t) + bytes_in_current_micropacket);
 						++num_bulk_out_sent;
 					}
 					/* We're done here. */
 					break;
 				}
-
-				//DPRINTF("Bulk USB: size %hu, cookie %hu\n", bulk_out_packet->length, bulk_out_packet->cookie);
 
 				if (!bulk_out_current_recipient) {
 					/* This is the first USB packet in the message. */
@@ -347,7 +339,6 @@ void run(void) {
 					bulk_out_current_recipient = bulk_out_packet->buffer[0];
 					robot = bulk_out_current_recipient >> 4;
 					pipe = bulk_out_current_recipient & 0x0F;
-					//DPRINTF("SOM: robot %hu, pipe %hu\n", robot, pipe);
 					if (!robot || !((1 << pipe) & pipe_out_mask & pipe_bulk_mask)) {
 						/* The host sent a bulk message to an invalid robot or pipe.
 						 * Queue an error and ignore the rest of the message. */
@@ -375,7 +366,6 @@ void run(void) {
 				if (byte_count > bulk_out_packet->length - bulk_out_packet->cookie - is_first) {
 					byte_count = bulk_out_packet->length - bulk_out_packet->cookie - is_first;
 				}
-				//DPRINTF("Q1: has %hu, add %hu\n", sizeof(bulk_header_t) - sizeof(xbee_tx16_header_t) + bytes_in_current_micropacket, byte_count);
 				bulk_out_iovecs[num_bulk_out_sent][bulk_out_packets[num_bulk_out_sent].num_iovs].len = byte_count;
 				bulk_out_iovecs[num_bulk_out_sent][bulk_out_packets[num_bulk_out_sent].num_iovs].ptr = bulk_out_packet->buffer + bulk_out_packet->cookie + is_first;
 				++bulk_out_packets[num_bulk_out_sent].num_iovs;
@@ -385,7 +375,6 @@ void run(void) {
 					/* This USB packet is short and therefore indicates the end of the bulk message.
 					 * Also, the USB packet was able to fit entirely in the current micropacket.
 					 * Therefore, this micropacket is the end of the message. */
-					//DPRINTF("EOM@1\n");
 					bulk_out_headers[num_bulk_out_sent].sequence_flags.last_micropacket = 1;
 					/* Send the packet. */
 					bulk_out_micropacket_lengths[num_bulk_out_sent] = bytes_in_current_micropacket;
@@ -399,7 +388,6 @@ void run(void) {
 					bulk_out_headers[num_bulk_out_sent].pipe = pipe;
 					bulk_out_headers[num_bulk_out_sent].sequence_flags.sequence = pipe_info[robot - 1][pipe].sequence++;
 					xbee_txpacket_queue(&bulk_out_packets[num_bulk_out_sent], 0);
-					//DPRINTF("Bulk send: robot %hu, frame %hu, size %hu\n", robot, bulk_out_headers[num_bulk_out_sent].xbee_header.frame_id, sizeof(bulk_header_t) + bytes_in_current_micropacket);
 					++num_bulk_out_sent;
 					/* We're done here. */
 					break;
@@ -407,7 +395,6 @@ void run(void) {
 
 				if (bytes_in_current_micropacket == 100 - (sizeof(bulk_header_t) - sizeof(xbee_tx16_header_t))) {
 					/* This XBee packet is full. Send it. */
-					//DPRINTF("XBee full\n");
 					bulk_out_micropacket_lengths[num_bulk_out_sent] = bytes_in_current_micropacket;
 					robot = bulk_out_current_recipient >> 4;
 					pipe = bulk_out_current_recipient & 0x0F;
@@ -419,7 +406,6 @@ void run(void) {
 					bulk_out_headers[num_bulk_out_sent].pipe = pipe;
 					bulk_out_headers[num_bulk_out_sent].sequence_flags.sequence = pipe_info[robot - 1][pipe].sequence++;
 					xbee_txpacket_queue(&bulk_out_packets[num_bulk_out_sent], 0);
-					//DPRINTF("Bulk send: robot %hu, frame %hu, size %hu\n", robot, bulk_out_headers[num_bulk_out_sent].xbee_header.frame_id, sizeof(bulk_header_t) + bytes_in_current_micropacket);
 					++num_bulk_out_sent;
 					bytes_in_current_micropacket = 0;
 					if (num_bulk_out_sent + num_interrupt_out_sent == 3) {
@@ -435,14 +421,12 @@ void run(void) {
 					 * Put the data in there. */
 					bulk_out_iovecs[num_bulk_out_sent][1].len = bulk_out_packet->length - (bulk_out_packet->cookie + is_first + byte_count);
 					bulk_out_iovecs[num_bulk_out_sent][1].ptr = bulk_out_packet->buffer + bulk_out_packet->cookie + is_first + byte_count;
-					//DPRINTF("Q2: init with %hu\n", bulk_out_iovecs[num_bulk_out_sent][1].len);
 					++bulk_out_packets[num_bulk_out_sent].num_iovs;
 					bytes_in_current_micropacket += bulk_out_iovecs[num_bulk_out_sent][1].len;
 
 					if (bulk_out_packet->length != sizeof(bulk_out_packet->buffer)) {
 						/* This USB packet is short and therefore indicates the end of the bulk message.
 						 * Therefore, this micropacket is the end of the message. */
-						//DPRINTF("EOM@2\n");
 						bulk_out_headers[num_bulk_out_sent].sequence_flags.last_micropacket = 1;
 						/* Send the packet. */
 						bulk_out_micropacket_lengths[num_bulk_out_sent] = bytes_in_current_micropacket;
@@ -456,7 +440,6 @@ void run(void) {
 						bulk_out_headers[num_bulk_out_sent].pipe = pipe;
 						bulk_out_headers[num_bulk_out_sent].sequence_flags.sequence = pipe_info[robot - 1][pipe].sequence++;
 						xbee_txpacket_queue(&bulk_out_packets[num_bulk_out_sent], 0);
-						//DPRINTF("Bulk send: robot %hu, frame %hu, size %hu\n", robot, bulk_out_headers[num_bulk_out_sent].xbee_header.frame_id, sizeof(bulk_header_t) + bytes_in_current_micropacket);
 						++num_bulk_out_sent;
 						/* We're done here. */
 						break;
@@ -480,7 +463,6 @@ void run(void) {
 			if (!++next_frame) {
 				next_frame = 1;
 			}
-			//DPRINTF("Discovery: robot %hu, frame %hu, packet %x\n", discovery_robot, discovery_header.xbee_header.frame_id, (unsigned int) &discovery_packet);
 			discovery_header.xbee_header.address_low = 0x20 | discovery_robot;
 			discovery_iovec.len = sizeof(discovery_header) + 1;
 			discovery_iovec.ptr = &discovery_header;
@@ -524,13 +506,10 @@ void run(void) {
 				}
 				while (num_packets && ((((UFRMH << 8) | UFRML) - now) & 0x3FF) < 1000) {
 					if (pkt = xbee_rxpacket_get()) {
-						//DPRINTF("RX packet: XBee %hu, length %hu, API ID %hx\n", pkt->xbee, pkt->len, pkt->ptr[0]);
 						if (pkt->xbee == 0) {
 							/* This packet arrived on XBee 0.
 							 * It should be a transmit status packet. */
 							if (pkt->ptr[0] == XBEE_API_ID_TX_STATUS) {
-								//DPRINTF("TX status: frame %hu, status %hu\n", pkt->ptr[1], pkt->ptr[2]);
-
 								/* Figure out what's going on based on the frame ID. */
 								for (i = 0; i != num_interrupt_out_sent; ++i) {
 									if (pkt->ptr[1] == interrupt_out_headers[i].xbee_header.frame_id) {
@@ -576,7 +555,7 @@ void run(void) {
 							/* This packet arrived on XBee 1.
 							 * It should be a receive data packet. */
 							if (pkt->ptr[0] == XBEE_API_ID_RX16) {
-								//DPRINTF("RX16: from %hx%hx\n", pkt->ptr[1], pkt->ptr[2]);
+								DPRINTF("RX16: from %hx%hx\n", pkt->ptr[1], pkt->ptr[2]);
 							}
 						}
 						xbee_rxpacket_free(pkt);
@@ -602,7 +581,6 @@ void run(void) {
 						}
 						if (bulk_out_headers[i].sequence_flags.last_micropacket) {
 							/* This is the last packet in the message, so clear the current recipient. */
-							//DPRINTF("X@%hu\n", i);
 							bulk_out_current_recipient = 0;
 						}
 						j = 0;
@@ -638,7 +616,6 @@ void run(void) {
 						/* The first micropacket of the message failed.
 						 * Therefore, the USB packet containing the header has not really had the header consumed.
 						 * Signal this appropriately. */
-						//DPRINTF("Y\n");
 						bulk_out_current_recipient = 0;
 					}
 				}
