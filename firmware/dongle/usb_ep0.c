@@ -28,7 +28,7 @@ static uint8_t usb_ep0_next_iovec;
 
 uint16_t usb_halted_in_endpoints, usb_halted_out_endpoints;
 
-volatile uint8_t usb_current_configuration;
+volatile uint8_t usb_current_configuration = 0xFF;
 
 /**
  * \brief A small buffer for stashing miscellaneous bits and pieces of data to return to the host.
@@ -441,6 +441,12 @@ static void on_in(void) {
 }
 
 void usb_ep0_init(void) {
+	/* If we were already in a configuration, exit it. */
+	if (usb_current_configuration != 0xFF) {
+		usb_devinfo->configurations[usb_current_configuration]->on_exit();
+		usb_current_configuration = 0xFF;
+	}
+
 	/* Register endpoint callbacks. */
 	usb_ep_callbacks[0].out.transaction = &on_out;
 	usb_ep_callbacks[0].in.transaction = &on_in;
@@ -448,7 +454,6 @@ void usb_ep0_init(void) {
 	/* Clear local state. */
 	usb_ep0_data_length = 0;
 	usb_ep0_next_iovec = 0;
-	usb_current_configuration = 0xFF;
 
 	/* Disarm the in buffer. */
 	usb_bdpairs[0].in.BDSTAT = 0;
