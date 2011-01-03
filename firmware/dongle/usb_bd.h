@@ -55,7 +55,7 @@ typedef union {
 } usb_bdstat_bits_t;
 
 /**
- * \brief A buffer descriptor.
+ * \brief An outbound buffer descriptor.
  */
 typedef struct {
 	union {
@@ -64,14 +64,26 @@ typedef struct {
 	};
 	uint8_t BDCNT;
 	__data void *BDADR;
-} usb_bd_t;
+} usb_out_bd_t;
+
+/**
+ * \brief An inbound buffer descriptor.
+ */
+typedef struct {
+	union {
+		usb_bdstat_bits_t BDSTATbits;
+		uint8_t BDSTAT;
+	};
+	uint8_t BDCNT;
+	__data const void *BDADR;
+} usb_in_bd_t;
 
 /**
  * \brief A pair of buffer descriptors corresponding to an endpoint number.
  */
 typedef struct {
-	usb_bd_t out;
-	usb_bd_t in;
+	usb_out_bd_t out;
+	usb_in_bd_t in;
 } usb_bdpair_t;
 
 /**
@@ -111,8 +123,8 @@ extern __data volatile usb_bdpair_t __at(0x400) usb_bdpairs[USB_CONFIG_MAX_ENDPO
  * \param[in] len the number of bytes to send.
  */
 #define USB_BD_IN_SUBMIT(ep, buf, len) do { \
-	usb_bdpairs[(ep)].in.BDADR = buf; \
-	usb_bdpairs[(ep)].in.BDCNT = len; \
+	usb_bdpairs[(ep)].in.BDADR = (buf); \
+	usb_bdpairs[(ep)].in.BDCNT = (len); \
 	if (usb_bdpairs[(ep)].in.BDSTATbits.sie.OLDDTS) { \
 		usb_bdpairs[(ep)].in.BDSTAT = BDSTAT_UOWN | BDSTAT_DTSEN; \
 	} else { \
@@ -192,8 +204,8 @@ extern __data volatile usb_bdpair_t __at(0x400) usb_bdpairs[USB_CONFIG_MAX_ENDPO
  * \param[in] len the length of the buffer.
  */
 #define USB_BD_OUT_SUBMIT(ep, buf, len) do { \
-	usb_bdpairs[(ep)].out.BDADR = buf; \
-	usb_bdpairs[(ep)].out.BDCNT = len; \
+	usb_bdpairs[(ep)].out.BDADR = (buf); \
+	usb_bdpairs[(ep)].out.BDCNT = (len); \
 	if (usb_bdpairs[(ep)].out.BDSTATbits.sie.OLDDTS) { \
 		usb_bdpairs[(ep)].out.BDSTAT = BDSTAT_UOWN | BDSTAT_DTSEN; \
 	} else { \

@@ -33,7 +33,7 @@ void debug_disable(void);
 /**
  * \brief Prints a debugging message.
  */
-#define DPRINTF(...) do { if (debug_enabled) { printf(__VA_ARGS__); } } while (0)
+#define DPRINTF(...) do { if (debug_enabled) { printf_tiny(__VA_ARGS__); } } while (0)
 
 #endif
 

@@ -6,6 +6,7 @@
 #include "endpoints.h"
 #include "estop.h"
 #include "global.h"
+#include "interrupt_in.h"
 #include "interrupt_out.h"
 #include "local_error_queue.h"
 #include "pins.h"
@@ -146,6 +147,7 @@ static void on_enter_config1(void) {
 	state_transport_out_init();
 	state_transport_in_init();
 	interrupt_out_init();
+	interrupt_in_init();
 	bulk_out_init();
 	should_start_up = true;
 }
@@ -153,6 +155,7 @@ static void on_enter_config1(void) {
 static void on_exit_config1(void) {
 	debug_disable();
 	bulk_out_deinit();
+	interrupt_in_deinit();
 	interrupt_out_deinit();
 	state_transport_in_deinit();
 	state_transport_out_deinit();

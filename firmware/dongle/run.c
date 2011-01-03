@@ -4,6 +4,7 @@
 #include "debug.h"
 #include "dongle_status.h"
 #include "global.h"
+#include "interrupt_in.h"
 #include "interrupt_out.h"
 #include "local_error_queue.h"
 #include "pipes.h"
@@ -557,7 +558,7 @@ void run(void) {
 							 * It should be a receive data packet. */
 							if (pkt->ptr[0] == XBEE_API_ID_RX16 && pkt->ptr[1] == 0x7B && (pkt->ptr[2] & 0xF0) == 0x30 && pkt->ptr[2] != 0x30) {
 								uint8_t robot = pkt->ptr[2] & 0x0F;
-								__data const uint8_t *ptr = pkt->ptr + 5;
+								__data uint8_t *ptr = pkt->ptr + 5;
 								uint8_t len = pkt->len - 5;
 								while (len) {
 									if (ptr[0] > len || (ptr[1] & 0xF0) != 0) {
@@ -565,19 +566,26 @@ void run(void) {
 										local_error_queue_add(55 + robot - 1);
 										break;
 									} else {
-										switch (ptr[1] & 0x0F) {
-											case PIPE_FEEDBACK:
-												if (len == STATE_TRANSPORT_IN_FEEDBACK_SIZE + 2) {
-													memcpyram2ram(state_transport_in_feedback[robot - 1], ptr + 2, STATE_TRANSPORT_IN_FEEDBACK_SIZE);
-													state_transport_in_feedback_dirty(robot);
-												} else {
-													local_error_queue_add(55 + robot - 1);
-												}
-												break;
-
-											default:
+										uint8_t pipe = ptr[1] & 0x0F;
+										if (pipe == PIPE_FEEDBACK) {
+											if (len == STATE_TRANSPORT_IN_FEEDBACK_SIZE + 2) {
+												memcpyram2ram(state_transport_in_feedback[robot - 1], ptr + 2, STATE_TRANSPORT_IN_FEEDBACK_SIZE);
+												state_transport_in_feedback_dirty(robot);
+											} else {
 												local_error_queue_add(55 + robot - 1);
-												break;
+											}
+										} else if ((1 << pipe) & pipe_in_mask & pipe_interrupt_mask) {
+											if (len >= 3) {
+												if (ptr[2] != pipe_info[robot][pipe].sequence) {
+													pipe_info[robot][pipe].sequence = ptr[2];
+													ptr[2] = (robot << 4) | pipe;
+													interrupt_in_send(ptr + 2, ptr[0] - 2);
+												}
+											} else {
+												local_error_queue_add(55 + robot - 1);
+											}
+										} else {
+											local_error_queue_add(55 + robot - 1);
 										}
 										len -= *ptr;
 										ptr += *ptr;

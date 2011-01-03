@@ -39,6 +39,8 @@ firmware/dongle/estop.c -text
 firmware/dongle/estop.h -text
 firmware/dongle/global.c -text
 firmware/dongle/global.h -text
+firmware/dongle/interrupt_in.c -text
+firmware/dongle/interrupt_in.h -text
 firmware/dongle/interrupt_out.c -text
 firmware/dongle/interrupt_out.h -text
 firmware/dongle/local_error_queue.c -text
