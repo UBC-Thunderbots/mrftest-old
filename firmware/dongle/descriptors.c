@@ -92,7 +92,7 @@ __code const uint8_t CONFIGURATION_DESCRIPTOR_TAIL[] = {
 		/* bDescriptorType */ USB_DESCRIPTOR_ENDPOINT,
 		/* bEndpointAddress */ 0x05,
 		/* bmAttributes */ 0x03,
-		/* wMaxPacketSize */ 64, 0,
+		/* wMaxPacketSize */ 16, 0,
 		/* bInterval */ 1,
 
 		/* Endpoint Descriptor */
