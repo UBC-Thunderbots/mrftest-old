@@ -316,14 +316,22 @@ IMPLEMENT_TXIF(2, 0, 3)
  * If both CTS lines are asserted, the CCP is disabled.
  */
 SIGHANDLER(xbee_txpacket_ccp1if) {
+	uint8_t cts_shadow = 0;
+
 	/* Note: CTS lines are active-low. */
-	if (!PORT_XBEE0_CTS && QUEUE_FRONT(ready_queue[0])) {
+	if (!PORT_XBEE0_CTS) {
+		cts_shadow |= 1;
+	}
+	if (!PORT_XBEE1_CTS) {
+		cts_shadow |= 2;
+	}
+	if ((cts_shadow & 1) && QUEUE_FRONT(ready_queue[0])) {
 		PIE3bits.TX2IE = 1;
 	}
-	if (!PORT_XBEE1_CTS && QUEUE_FRONT(ready_queue[1])) {
+	if ((cts_shadow & 2) && QUEUE_FRONT(ready_queue[1])) {
 		PIE1bits.TX1IE = 1;
 	}
-	if (!PORT_XBEE0_CTS && !PORT_XBEE1_CTS) {
+	if (cts_shadow == 3) {
 		PIE1bits.CCP1IE = 0;
 	}
 	PIR1bits.CCP1IF = 0;
