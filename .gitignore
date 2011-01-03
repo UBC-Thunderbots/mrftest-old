@@ -23,8 +23,6 @@ firmware/dongle/html
 firmware/dongle/pingen
 firmware/dongle/pins.h
 firmware/dongle/pins.inc
-firmware/dongle/regsize.c
-firmware/dongle/sdccmkregsize
 firmware/flybackconverter/*.asm
 firmware/flybackconverter/*.cod
 firmware/flybackconverter/*.hex
