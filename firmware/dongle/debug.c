@@ -36,6 +36,11 @@ static char bounce_buffer[64];
  */
 static volatile BOOL overflow_reported;
 
+/**
+ * \brief Whether or not a transaction is currently in progress.
+ */
+static volatile BOOL transaction_running;
+
 volatile BOOL debug_enabled = false;
 
 /**
@@ -53,6 +58,9 @@ static void queue_block(uint8_t length) {
 		/* The block does not cross the wraparound point. Use the buffer directly. */
 		USB_BD_IN_SUBMIT(EP_DEBUG, buffer + send_ptr, length);
 	}
+
+	/* Remember that a transaction is running. */
+	transaction_running = true;
 
 	/* Update the pointer. */
 	send_ptr += length;
@@ -113,6 +121,9 @@ static void on_transaction(void) {
 	/* Clear the overflow report flag; this rate-limits the error to one per debug interface transaction. */
 	overflow_reported = false;
 
+	/* Clear the transaction run flag. */
+	transaction_running = false;
+
 	/* See if we should send another transaction. */
 	check_send();
 }
@@ -120,6 +131,7 @@ static void on_transaction(void) {
 static void on_commanded_stall(void) {
 	if (debug_enabled) {
 		USB_BD_IN_COMMANDED_STALL(EP_DEBUG);
+		transaction_running = true;
 	}
 }
 
@@ -127,6 +139,7 @@ static BOOL on_clear_halt(void) {
 	if (debug_enabled) {
 		USB_BD_IN_UNSTALL(EP_DEBUG);
 		write_ptr = send_ptr = tail_ptr = 0;
+		transaction_running = false;
 		return true;
 	} else {
 		return false;
@@ -147,6 +160,7 @@ void debug_enable(void) {
 	UEPBITS(EP_DEBUG).EPHSHK = 1;
 	UEPBITS(EP_DEBUG).EPINEN = 1;
 	overflow_reported = false;
+	transaction_running = false;
 	debug_enabled = true;
 }
 
@@ -167,7 +181,9 @@ PUTCHAR(ch) {
 			++write_ptr;
 
 			/* Check if it's time to start a transaction. */
-			check_send();
+			if (!transaction_running) {
+				check_send();
+			}
 		} else {
 			/* There is no space in the circular buffer.
 			 * Report the error. */
