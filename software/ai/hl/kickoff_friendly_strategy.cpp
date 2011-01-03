@@ -23,6 +23,9 @@ namespace {
 	// distance for the offenders to be positioned away from the kicker
 	const double SEPERATION_DIST = 10 * Robot::MAX_RADIUS;
 
+	// power to kick the ball with on the kickoff
+	const double KICKOFF_POWER = 0.5;
+
 	DoubleParam separation_angle("kickoff: angle to separate players (degrees)", 40, 0, 80);
 
 	// hard coded positions for the kicker, and 2 offenders
@@ -181,9 +184,11 @@ namespace {
 		// default is for kicker to just shoot forward
 		if (kicker.is() && pidx >= 0) {
 			if (pidx == 0 && offenders.size() == 1) {
-				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[0]->position());
+				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[0]->position(), KICKOFF_POWER);
 			} else if (pidx == 2 && offenders.size() == 2) {
-				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[1]->position());
+				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[1]->position(), KICKOFF_POWER);
+			} else if (offenders.size() > 0) {
+				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[0]->position(), KICKOFF_POWER);
 			} else {
 				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
 			}

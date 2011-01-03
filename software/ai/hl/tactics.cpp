@@ -41,7 +41,7 @@ void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int
 	}
 }
 
-void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int flags, const Point target) {
+void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int flags, const Point target, const double kick_power) {
 	const double ori_target = (target - player->position()).orientation();
 
 	if (!player->has_ball()) {
@@ -61,8 +61,7 @@ void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int
 
 	// shoot!
 	if (player->chicker_ready_time() == 0) {
-#warning max power kick for now
-		player->kick(1.0);
+		player->kick(kick_power);
 	}
 }
 

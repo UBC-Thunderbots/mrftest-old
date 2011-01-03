@@ -42,7 +42,7 @@ namespace AI {
 			 *
 			 * \param[in] target the location to shoot the ball to.
 			 */
-			void shoot(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags, const Point target);
+			void shoot(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags, const Point target, const double kick_power = 1.0);
 
 			/**
 			 * I can't think of a good name for this function.
