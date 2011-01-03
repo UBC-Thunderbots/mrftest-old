@@ -324,7 +324,7 @@ SIGHANDLER(xbee_rxpacket_rc ## usartidx ## if) { \
 \
 		case STATE_EXPECT_DATA: \
 			/* Accumulate the byte into the packet buffer. */ \
-			rxstates[xbeeidx].packet->ptr[rxstates[xbeeidx].bytes_received++] = ch; \
+			rxstates[xbeeidx].packet->buf[rxstates[xbeeidx].bytes_received++] = ch; \
 			/* Update the checksum. */ \
 			rxstates[xbeeidx].checksum += ch; \
 			if (rxstates[xbeeidx].bytes_received == rxstates[xbeeidx].length) { \

@@ -259,15 +259,15 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
 				/* See which XBee this packet came from. */
 				if (rxpkt->xbee == xbee) {
 					/* We received a packet. See what it is. */
-					if (rxpkt->len == 5 + resp_length && rxpkt->ptr[0] == 0x88 && rxpkt->ptr[1] == frame) {
+					if (rxpkt->len == 5 + resp_length && rxpkt->buf[0] == 0x88 && rxpkt->buf[1] == frame) {
 						/* It's an AT command response whose frame ID matches ours. */
 						success = false;
-						if ((char) rxpkt->ptr[2] != command[0] || (char) rxpkt->ptr[3] != command[1]) {
+						if ((char) rxpkt->buf[2] != command[0] || (char) rxpkt->buf[3] != command[1]) {
 							/* The command is wrong. */
 							local_error_queue_add(13 + xbee); /* XBee {0,1} AT command failure, response contains incorrect command */
-						} else if (rxpkt->ptr[4] != 0) {
+						} else if (rxpkt->buf[4] != 0) {
 							/* The response is a failure. */
-							switch (rxpkt->ptr[4]) {
+							switch (rxpkt->buf[4]) {
 								case 2:
 									local_error_queue_add(17 + xbee); /* XBee {0,1} AT command failure, invalid command */
 									break;
@@ -283,7 +283,7 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
 						} else {
 							/* The command succeeded. */
 							success = true;
-							memcpyram2ram(resp, rxpkt->ptr + 5, resp_length);
+							memcpyram2ram(resp, rxpkt->buf + 5, resp_length);
 						}
 						xbee_rxpacket_free(rxpkt);
 						return success;

@@ -511,11 +511,11 @@ void run(void) {
 						if (pkt->xbee == 0) {
 							/* This packet arrived on XBee 0.
 							 * It should be a transmit status packet. */
-							if (pkt->ptr[0] == XBEE_API_ID_TX_STATUS) {
+							if (pkt->buf[0] == XBEE_API_ID_TX_STATUS) {
 								/* Figure out what's going on based on the frame ID. */
 								for (i = 0; i != num_interrupt_out_sent; ++i) {
-									if (pkt->ptr[1] == interrupt_out_headers[i].xbee_header.frame_id) {
-										if (pkt->ptr[2] == 0) {
+									if (pkt->buf[1] == interrupt_out_headers[i].xbee_header.frame_id) {
+										if (pkt->buf[2] == 0) {
 											/* Transmission successful.
 											 * Free the USB packet. */
 											interrupt_out_free(interrupt_out_sent[i]);
@@ -532,8 +532,8 @@ void run(void) {
 									}
 								}
 								for (i = 0; i != num_bulk_out_sent; ++i) {
-									if (pkt->ptr[1] == bulk_out_headers[i].xbee_header.frame_id) {
-										if (pkt->ptr[2] == 0) {
+									if (pkt->buf[1] == bulk_out_headers[i].xbee_header.frame_id) {
+										if (pkt->buf[2] == 0) {
 											/* Transmission successful.
 											 * Mark it in the mask. */
 											bulk_out_success_mask |= 1 << i;
@@ -542,8 +542,8 @@ void run(void) {
 									}
 								}
 								if (discovery_sent) {
-									if (pkt->ptr[1] == discovery_header.xbee_header.frame_id) {
-										if (pkt->ptr[2] == 0) {
+									if (pkt->buf[1] == discovery_header.xbee_header.frame_id) {
+										if (pkt->buf[2] == 0) {
 											/* Transmission successful.
 											 * This robot is now alive. */
 											dongle_status.robots |= ((uint16_t) 1) << discovery_robot;
@@ -556,9 +556,9 @@ void run(void) {
 						} else {
 							/* This packet arrived on XBee 1.
 							 * It should be a receive data packet. */
-							if (pkt->ptr[0] == XBEE_API_ID_RX16 && pkt->ptr[1] == 0x7B && (pkt->ptr[2] & 0xF0) == 0x30 && pkt->ptr[2] != 0x30) {
-								uint8_t robot = pkt->ptr[2] & 0x0F;
-								__data uint8_t *ptr = pkt->ptr + 5;
+							if (pkt->buf[0] == XBEE_API_ID_RX16 && pkt->buf[1] == 0x7B && (pkt->buf[2] & 0xF0) == 0x30 && pkt->buf[2] != 0x30) {
+								uint8_t robot = pkt->buf[2] & 0x0F;
+								__data uint8_t *ptr = pkt->buf + 5;
 								uint8_t len = pkt->len - 5;
 								while (len) {
 									if (ptr[0] > len || (ptr[1] & 0xF0) != 0) {

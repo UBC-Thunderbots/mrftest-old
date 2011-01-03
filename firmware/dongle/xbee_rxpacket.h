@@ -28,7 +28,7 @@ typedef struct xbee_rxpacket {
 	/**
 	 * \brief The buffer.
 	 */
-	uint8_t ptr[111];
+	uint8_t buf[111];
 
 	/**
 	 * \brief The next packet in a linked list (for internal use only).
