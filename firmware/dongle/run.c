@@ -1,7 +1,6 @@
 #include "run.h"
 #include "bulk_out.h"
 #include "critsec.h"
-#include "debug.h"
 #include "dongle_status.h"
 #include "global.h"
 #include "interrupt_in.h"
@@ -17,7 +16,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#define POLL_TIMEOUT 20
+#define POLL_TIMEOUT 25
 
 #define XBEE_API_ID_TX16 0x01
 #define XBEE_API_ID_RX16 0x81
@@ -560,6 +559,10 @@ void run(void) {
 								uint8_t robot = pkt->buf[2] & 0x0F;
 								__data uint8_t *ptr = pkt->buf + 5;
 								uint8_t len = pkt->len - 5;
+								uint16_t diff = (now - last_poll_time) & 0x3FF;
+								if (robot == pollee) {
+									in_pending = false;
+								}
 								while (len) {
 									if (ptr[0] > len || (ptr[1] & 0xF0) != 0) {
 										/* Micropacket overflows packet. */
