@@ -27,6 +27,17 @@ firmware/flybackconverter/*.asm
 firmware/flybackconverter/*.cod
 firmware/flybackconverter/*.hex
 firmware/flybackconverter/*.lst
+firmware/main/*.asm
+firmware/main/*.cod
+firmware/main/*.cof
+firmware/main/*.err
+firmware/main/*.hex
+firmware/main/*.lst
+firmware/main/*.map
+firmware/main/html
+firmware/main/pingen
+firmware/main/pins.h
+firmware/main/pins.inc
 firmware/mainboard-copro/*.cod
 firmware/mainboard-copro/*.cof
 firmware/mainboard-copro/*.d
