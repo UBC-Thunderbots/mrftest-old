@@ -1,0 +1,78 @@
+#
+# Each line of this file (except those starting with #) defines a single pin
+# on the microcontroller.
+#
+# First token is the application name of the pin.
+# Second token is the physical location of the pin (e.g. "RA0").
+# Third token is the type of pin.
+#
+# Legal types are:
+#  in   - pin should be configured as an input at startup
+#  out0 - pin should be configured as an output low at startup
+#  out1 - pin should be configured as an output high at startup
+#  vgnd - pin should be configured as a virtual ground (name/polarity are ignored)
+#  vvdd - pin should be configured as a virtual VDD (name/polarity are ignored)
+#
+
+XBEE0_RTS     RE5 out1 # Request to send to XBee #0
+XBEE0_CTS     RE4 in   # Clear to send from XBee #0
+XBEE0_SLEEP   RE6 out1 # Pin-controlled sleep to XBee #0
+XBEE0_RESET   RE7 out0 # Reset to XBee #0
+XBEE0_TX      RG1 out1 # Transmit data to XBee #0
+XBEE0_RX      RG2 in   # Receive data from XBee #0
+
+XBEE1_RTS     RG4 out1 # Request to send to XBee #1
+XBEE1_CTS     RA4 in   # Clear to send from XBee #1
+XBEE1_SLEEP   RF2 out1 # Pin-controlled sleep to XBee #1
+XBEE1_RESET   RA5 out0 # Reset to XBee #1
+XBEE1_TX      RC6 out1 # Transmit data to XBee #1
+XBEE1_RX      RC7 in   # Receive data from XBee #1
+
+PARBUS_WR     RE1 out0 # Write strobe on parallel bus
+PARBUS_RD     RE0 out0 # Read strobe on parallel bus
+PARBUS_D0     RD0 out0 # Data 0 on parallel bus
+PARBUS_D1     RD1 out0 # Data 1 on parallel bus
+PARBUS_D2     RD2 out0 # Data 2 on parallel bus
+PARBUS_D3     RD3 out0 # Data 3 on parallel bus
+PARBUS_D4     RD4 out0 # Data 4 on parallel bus
+PARBUS_D5     RD5 out0 # Data 5 on parallel bus
+PARBUS_D6     RD6 out0 # Data 6 on parallel bus
+PARBUS_D7     RD7 out0 # Data 7 on parallel bus
+
+DCM_LOCKED    RF6 in   # Digital clock manager locked from FPGA
+DCM_RESET     RF5 out1 # Digital clock manager reset to FPGA
+
+FPGA_PROG_B   RE2 out0 # Configuration start to FPGA
+FPGA_INIT_B   RC0 in   # Configuration stage and post-configuration CRC check status from FPGA
+FPGA_DONE     RC1 in   # Configuration done from FPGA
+FPGA_RESET    RB5 out1 # Reset to FPGA
+
+FLASH_CS      RC2 out1 # Chip select to Flash
+FLASH_CLK     RC3 out0 # SPI clock to Flash
+FLASH_MISO    RC4 in   # SPI MISO from Flash
+FLASH_MOSI    RC5 out0 # SPI MOSI to Flash
+
+USB_VBUS      RF7 in   # USB VBus attach sense
+USB_DP        RF4 in   # USB D+
+USB_DM        RF3 in   # USB D-
+
+DRIB_MISC     RA3 in   # Dribbler miscellaneous analogue input
+DRIB_BEAM_IN  RA2 in   # Dribbler beam sensor analogue input
+DRIB_BEAM_OUT RB0 out0 # Dribbler beam laser drive output
+DRIB_THERM    RA1 in   # Dribbler thermistor analogue input
+
+BATT_LEVEL    RA0 in   # Battery voltage analogue input
+
+LED1          RB4 out0 # Green LED
+LED2          RB1 out0 # Red LED
+LED3          RB2 out0 # Red LED
+LED4          RB3 out0 # Green LED
+
+OSC1          RA7 in   # Oscillator pin 1
+CLKO          RA6 in   # Oscillator output (unused)
+
+RB6           RB6 vgnd # Unused
+RB7           RB7 vgnd # Unused
+RE3           RE3 vgnd # Unused
+RG0           RG0 vgnd # Unused
+RG3           RG3 vgnd # Unused

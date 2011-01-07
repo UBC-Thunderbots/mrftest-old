@@ -19,6 +19,17 @@ firmware/SuperSimpleBoostConverter/boostconverter.c -text
 firmware/SuperSimpleBoostConverter/boostconverter.h -text
 firmware/SuperSimpleBoostConverter/config.c -text
 firmware/SuperSimpleBoostConverter/config.h -text
+firmware/bootstrap/18f65j50.lkr -text
+firmware/bootstrap/Makefile -text
+firmware/bootstrap/config.c -text
+firmware/bootstrap/leds.c -text
+firmware/bootstrap/leds.h -text
+firmware/bootstrap/main.c -text
+firmware/bootstrap/params.h -text
+firmware/bootstrap/pingen.c -text
+firmware/bootstrap/pins.txt -text
+firmware/bootstrap/spi.c -text
+firmware/bootstrap/spi.h -text
 firmware/dongle/18f65j50.lkr -text
 firmware/dongle/Doxyfile -text
 firmware/dongle/Makefile -text
