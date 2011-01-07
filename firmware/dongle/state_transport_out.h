@@ -7,7 +7,7 @@
  * \brief Implements the dongle protocol (USB) side of outbound state transport packet reception.
  */
 
-#include "../shared/drive.h"
+#include "drive.h"
 #include <stdint.h>
 
 /**

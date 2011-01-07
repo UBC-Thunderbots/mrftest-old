@@ -1,5 +1,5 @@
-#ifndef XBEE_RXPACKET_H
-#define XBEE_RXPACKET_H
+#ifndef SHARED_XBEE_RXPACKET_H
+#define SHARED_XBEE_RXPACKET_H
 
 /**
  * \file

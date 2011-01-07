@@ -7,6 +7,7 @@
  * \brief Provides the layout of the feedback state block.
  */
 
+#include "faults.h"
 #include <stdint.h>
 
 /**
@@ -52,6 +53,11 @@ typedef struct {
 	 * \brief The raw ADC reading of the capacitor voltage monitor.
 	 */
 	uint16_t capacitor_voltage_raw;
+
+	/**
+	 * \brief The bitmask of latched faults.
+	 */
+	uint8_t faults[(FAULT_ROBOT_COUNT + 7) / 8];
 } feedback_block_t;
 
 #endif

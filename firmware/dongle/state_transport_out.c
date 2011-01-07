@@ -1,7 +1,7 @@
 #include "state_transport_out.h"
 #include "dongle_status.h"
 #include "endpoints.h"
-#include "local_error_queue.h"
+#include "error_reporting.h"
 #include "pipes.h"
 #include "usb.h"
 #include <pic18fregs.h>
@@ -38,19 +38,19 @@ static void on_transaction(void) {
 							}
 						}
 					} else {
-						local_error_queue_add(37);
+						error_reporting_add(FAULT_OUT_MICROPACKET_BAD_LENGTH);
 					}
 					break;
 
 				default:
 					/* No such pipe. */
-					local_error_queue_add(38);
+					error_reporting_add(FAULT_OUT_MICROPACKET_NOPIPE);
 					break;
 			}
 			left -= ptr[0];
 			ptr += ptr[0];
 		} else {
-			local_error_queue_add(37);
+			error_reporting_add(FAULT_OUT_MICROPACKET_OVERFLOW);
 			break;
 		}
 	}

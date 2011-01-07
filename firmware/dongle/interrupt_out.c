@@ -2,7 +2,7 @@
 #include "critsec.h"
 #include "dongle_status.h"
 #include "endpoints.h"
-#include "local_error_queue.h"
+#include "error_reporting.h"
 #include "pipes.h"
 #include "stack.h"
 #include "usb.h"
@@ -66,11 +66,11 @@ static void on_transaction(void) {
 		if (!robot) {
 			/* Robot index zero is invalid.
 			 * Report an error and leave the packet in sie_packet to resubmit. */
-			local_error_queue_add(38);
+			error_reporting_add(FAULT_OUT_MICROPACKET_NOPIPE);
 		} else if (pipe > PIPE_MAX || !((1 << pipe) & pipe_out_mask & pipe_interrupt_mask)) {
 			/* Pipe is not an outbound interrupt pipe.
 			 * Report an error and leave the packet in sie_packet to resubmit. */
-			local_error_queue_add(38);
+			error_reporting_add(FAULT_OUT_MICROPACKET_NOPIPE);
 		} else {
 			/* Send the current packet to the ready queue. */
 			sie_packet->cookie = 0xFF;

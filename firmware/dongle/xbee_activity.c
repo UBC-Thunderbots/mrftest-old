@@ -1,4 +1,4 @@
-#include "activity_leds.h"
+#include "xbee_activity.h"
 #include "pins.h"
 #include "signal.h"
 #include <pic18fregs.h>
@@ -8,7 +8,7 @@
  */
 static volatile uint8_t flags = 0;
 
-void activity_leds_init(void) {
+void xbee_activity_init(void) {
 	/* Configure timer 0 to run at a period of 65536 × 8 / 12000000 =~ 44ms.
 	 *
 	 *        /-------- Timer on
@@ -24,13 +24,13 @@ void activity_leds_init(void) {
 	INTCONbits.TMR0IE = 1;
 }
 
-void activity_leds_deinit(void) {
+void xbee_activity_deinit(void) {
 	/* Turn off the timer and interrupts. */
 	T0CONbits.TMR0ON = 0;
 	INTCONbits.TMR0IE = 0;
 }
 
-void activity_leds_mark(uint8_t xbee) {
+void xbee_activity_mark(uint8_t xbee) {
 	/* Record activity on the given XBee. */
 	if (xbee == 0) {
 		flags |= 0x1;
@@ -39,7 +39,7 @@ void activity_leds_mark(uint8_t xbee) {
 	}
 }
 
-SIGHANDLER(activity_leds_tmr0if) {
+SIGHANDLER(xbee_activity_tmr0if) {
 	if (flags & 0x4) {
 		LAT_LED2 = 1;
 		LAT_LED3 = 1;

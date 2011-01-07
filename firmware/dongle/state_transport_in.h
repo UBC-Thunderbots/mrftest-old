@@ -7,7 +7,7 @@
  * \brief Implements the dongle protocol (USB) side of inbound state transport packet reception.
  */
 
-#include "../shared/feedback.h"
+#include "feedback.h"
 #include <stdint.h>
 
 /**

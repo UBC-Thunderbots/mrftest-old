@@ -2,7 +2,6 @@
 #include "critsec.h"
 #include "dongle_status.h"
 #include "endpoints.h"
-#include "local_error_queue.h"
 #include "stack.h"
 #include "usb.h"
 #include <pic18fregs.h>

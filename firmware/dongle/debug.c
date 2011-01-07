@@ -1,7 +1,7 @@
 #include "debug.h"
 #include "critsec.h"
 #include "endpoints.h"
-#include "local_error_queue.h"
+#include "error_reporting.h"
 #include "usb.h"
 #include <pic18fregs.h>
 #include <string.h>
@@ -188,7 +188,7 @@ PUTCHAR(ch) {
 			/* There is no space in the circular buffer.
 			 * Report the error. */
 			if (!overflow_reported) {
-				local_error_queue_add(39);
+				error_reporting_add(FAULT_DEBUG_OVERFLOW);
 				overflow_reported = true;
 			}
 		}

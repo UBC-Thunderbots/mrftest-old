@@ -8,7 +8,7 @@ $(PROJ).hex : $(SOURCES:.c=.o) $(LKR)
 	echo "  LD $@"
 	sdcc $(SDCC_FLAGS) -Wl,-m -Wl,-s -Wl,$(LKR) -o $@ $(filter-out $(LKR),$+) libc18f.lib
 
-%.o : %.c pins.h $(wildcard *.h)
+%.o : %.c pins.h $(wildcard *.h ../shared/*.h)
 	echo "  CC $@"
 	sdcc $(SDCC_FLAGS) -c $<
 

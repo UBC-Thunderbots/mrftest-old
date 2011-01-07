@@ -1,14 +1,13 @@
-#include "activity_leds.h"
 #include "bulk_out.h"
 #include "debug.h"
 #include "descriptors.h"
 #include "dongle_status.h"
 #include "endpoints.h"
+#include "error_reporting.h"
 #include "estop.h"
 #include "global.h"
 #include "interrupt_in.h"
 #include "interrupt_out.h"
-#include "local_error_queue.h"
 #include "pins.h"
 #include "run.h"
 #include "serial.h"
@@ -16,6 +15,7 @@
 #include "state_transport_in.h"
 #include "state_transport_out.h"
 #include "usb.h"
+#include "xbee_activity.h"
 #include "xbee_rxpacket.h"
 #include "xbee_txpacket.h"
 #include <delay.h>
@@ -53,13 +53,13 @@ DEF_INTLOW(low_handler)
 	__asm extern _xbee_txpacket_tx1if __endasm;
 	__asm extern _xbee_txpacket_tx2if __endasm;
 	__asm extern _xbee_txpacket_ccp1if __endasm;
-	__asm extern _activity_leds_tmr0if __endasm;
+	__asm extern _xbee_activity_tmr0if __endasm;
 	DEF_HANDLER2(SIG_USB, SIG_USBIE, usb_process)
 	DEF_HANDLER2(SIG_AD, SIG_ADIE, estop_adif)
 	DEF_HANDLER2(SIG_TX1, SIG_TX1IE, xbee_txpacket_tx1if)
 	DEF_HANDLER2(SIG_TX2, SIG_TX2IE, xbee_txpacket_tx2if)
 	DEF_HANDLER2(SIG_CCP1, SIG_CCP1IE, xbee_txpacket_ccp1if)
-	DEF_HANDLER(SIG_TMR0, activity_leds_tmr0if)
+	DEF_HANDLER(SIG_TMR0, xbee_activity_tmr0if)
 END_DEF
 
 #define IS_VALID_CHANNEL(ch) ((ch) >= 0x08 && (ch) <= 0x1A)
@@ -143,7 +143,7 @@ static BOOL custom_setup_handler(void) {
 
 static void on_enter_config1(void) {
 	dongle_status_start();
-	local_error_queue_init();
+	error_reporting_init();
 	state_transport_out_init();
 	state_transport_in_init();
 	interrupt_out_init();
@@ -159,7 +159,7 @@ static void on_exit_config1(void) {
 	interrupt_out_deinit();
 	state_transport_in_deinit();
 	state_transport_out_deinit();
-	local_error_queue_deinit();
+	error_reporting_deinit();
 	dongle_status_stop();
 	should_start_up = false;
 	should_shut_down = true;
@@ -264,20 +264,20 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
 						success = false;
 						if ((char) rxpkt->buf[2] != command[0] || (char) rxpkt->buf[3] != command[1]) {
 							/* The command is wrong. */
-							local_error_queue_add(13 + xbee); /* XBee {0,1} AT command failure, response contains incorrect command */
+							error_reporting_add(FAULT_XBEE0_AT_RESPONSE_WRONG_COMMAND + xbee);
 						} else if (rxpkt->buf[4] != 0) {
 							/* The response is a failure. */
 							switch (rxpkt->buf[4]) {
 								case 2:
-									local_error_queue_add(17 + xbee); /* XBee {0,1} AT command failure, invalid command */
+									error_reporting_add(FAULT_XBEE0_AT_RESPONSE_FAILED_INVALID_COMMAND + xbee);
 									break;
 
 								case 3:
-									local_error_queue_add(19 + xbee); /* XBee {0,1} AT command failure, invalid parameter */
+									error_reporting_add(FAULT_XBEE0_AT_RESPONSE_FAILED_INVALID_PARAMETER + xbee);
 									break;
 
 								default:
-									local_error_queue_add(15 + xbee); /* XBee {0,1} AT command failure, unknown reason */
+									error_reporting_add(FAULT_XBEE0_AT_RESPONSE_FAILED_UNKNOWN_REASON + xbee);
 									break;
 							}
 						} else {
@@ -302,7 +302,7 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
 
 	/* Out of retries. Give up. */
 	if (!should_shut_down) {
-		local_error_queue_add(21 + xbee); /* XBee {0,1} timeout waiting for local modem response */
+		error_reporting_add(FAULT_XBEE0_TIMEOUT + xbee); /* XBee {0,1} timeout waiting for local modem response */
 	}
 	return false;
 }
@@ -324,27 +324,27 @@ static BOOL configure_xbee_stage1(uint8_t xbee) {
 
 	/* Reset the modem. */
 	if (!at_command(xbee, 0x81, "FR", 0, 0, 0, 0)) {
-		err = 23 + xbee;
+		err = FAULT_XBEE0_RESET_FAILED + xbee;
 		goto out;
 	}
 
 	/* Enable RTS flow control on pin DIO6. */
 	buffer[0] = 1;
 	if (!at_command(xbee, 0x82, "D6", buffer, 1, 0, 0)) {
-		err = 25 + xbee;
+		err = FAULT_XBEE0_ENABLE_RTS_FAILED + xbee;
 		goto out;
 	}
 
 	/* Retrieve the firmware version. */
 	if (!at_command(xbee, 0x83, "VR", 0, 0, buffer, 2)) {
-		err = 27 + xbee;
+		err = FAULT_XBEE0_GET_FW_VERSION_FAILED + xbee;
 		goto out;
 	}
 	xbee_versions[xbee] = (buffer[0] << 8) | buffer[1];
 
 	/* Set up the text node ID. */
 	if (!at_command(xbee, 0x85, "NI", (xbee == 0) ? "TBOTS00" : "TBOTS01", 7, 0, 0)) {
-		err = 31 + xbee;
+		err = FAULT_XBEE0_SET_NODE_ID_FAILED + xbee;
 		goto out;
 	}
 
@@ -356,7 +356,7 @@ out:
 				dongle_status.xbees = XBEES_STATE_INIT1_DONE;
 			}
 		} else {
-			local_error_queue_add(err);
+			error_reporting_add(err);
 			dongle_status.xbees = XBEES_STATE_FAIL_0 + xbee;
 		}
 		dongle_status_dirty();
@@ -381,7 +381,7 @@ static BOOL configure_xbee_stage2(uint8_t xbee) {
 
 	/* Set the radio channel. */
 	if (!at_command(xbee, 0x90, "CH", &requested_channels[xbee], 1, 0, 0)) {
-		err = 33 + xbee;
+		err = FAULT_XBEE0_SET_CHANNEL_FAILED + xbee;
 		goto out;
 	}
 
@@ -389,7 +389,7 @@ static BOOL configure_xbee_stage2(uint8_t xbee) {
 	buffer[0] = 0x49;
 	buffer[1] = 0x6C + xbee;
 	if (!at_command(xbee, 0x84, "ID", buffer, 2, 0, 0)) {
-		err = 29 + xbee;
+		err = FAULT_XBEE0_SET_PAN_ID_FAILED + xbee;
 		goto out;
 	}
 
@@ -397,7 +397,7 @@ static BOOL configure_xbee_stage2(uint8_t xbee) {
 	buffer[0] = 0x7B;
 	buffer[1] = (xbee == 0) ? 0x20 : 0x30;
 	if (!at_command(xbee, 0x91, "MY", buffer, 2, 0, 0)) {
-		err = 35 + xbee;
+		err = FAULT_XBEE0_SET_ADDRESS_FAILED + xbee;
 		goto out;
 	}
 
@@ -409,7 +409,7 @@ out:
 				dongle_status.xbees = XBEES_STATE_RUNNING;
 			}
 		} else {
-			local_error_queue_add(err);
+			error_reporting_add(err);
 			dongle_status.xbees = XBEES_STATE_FAIL_0 + xbee;
 		}
 		dongle_status_dirty();
@@ -522,9 +522,9 @@ void main(void) {
 					}
 				} else {
 					/* Show activity. */
-					activity_leds_init();
+					xbee_activity_init();
 					run();
-					activity_leds_deinit();
+					xbee_activity_deinit();
 				}
 			}
 		}

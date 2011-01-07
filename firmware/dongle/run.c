@@ -1,11 +1,12 @@
 #include "run.h"
 #include "bulk_out.h"
 #include "critsec.h"
+#include "debug.h"
 #include "dongle_status.h"
+#include "error_reporting.h"
 #include "global.h"
 #include "interrupt_in.h"
 #include "interrupt_out.h"
-#include "local_error_queue.h"
 #include "pipes.h"
 #include "queue.h"
 #include "state_transport_in.h"
@@ -134,20 +135,6 @@ void run(void) {
 	discovery_header.xbee_header.options = 0;
 	discovery_header.flag = 0xFF;
 	memset(comm_failures, 0, sizeof(comm_failures));
-	{
-		uint8_t i, j;
-		for (i = 0; i != 15; ++i) {
-			for (j = 0; j != PIPE_MAX + 1; ++j) {
-				if (pipe_out_mask & (1 << j)) {
-					pipe_info[i][j].used = 0;
-					pipe_info[i][j].sequence = 0;
-				} else {
-					pipe_info[i][j].used = 0;
-					pipe_info[i][j].sequence = 63;
-				}
-			}
-		}
-	}
 
 	while (!should_shut_down) {
 		/* Initialize per-cycle state. */
@@ -172,6 +159,7 @@ void run(void) {
 
 		/* Send state transport micropackets. */
 		if (dongle_status.robots) {
+			uint8_t i, j;
 			/* Assemble the packets. */
 			CRITSEC_ENTER(cs);
 			for (i = 1, j = 0, mask = 1 << 1; i != 16; ++i, mask <<= 1) {
@@ -254,7 +242,7 @@ void run(void) {
 			if (!(dongle_status.robots & (((uint16_t) 1) << robot))) {
 				/* This robot is offline.
 				 * Report an error and drop the packet. */
-				local_error_queue_add(40 + robot - 1);
+				error_reporting_add(FAULT_SEND_FAILED_ROBOT1 + robot - 1);
 				interrupt_out_free(interrupt_out_packet);
 				continue;
 			}
@@ -343,7 +331,7 @@ void run(void) {
 					if (!robot || !((1 << pipe) & pipe_out_mask & pipe_bulk_mask)) {
 						/* The host sent a bulk message to an invalid robot or pipe.
 						 * Queue an error and ignore the rest of the message. */
-						local_error_queue_add(38);
+						error_reporting_add(FAULT_OUT_MICROPACKET_NOPIPE);
 						bulk_out_current_recipient = 0;
 						if (bulk_out_packet->length == sizeof(bulk_out_packet->buffer)) {
 							bulk_skip_message = true;
@@ -465,7 +453,7 @@ void run(void) {
 				next_frame = 1;
 			}
 			discovery_header.xbee_header.address_low = 0x20 | discovery_robot;
-			discovery_iovec.len = sizeof(discovery_header) + 1;
+			discovery_iovec.len = sizeof(discovery_header);
 			discovery_iovec.ptr = &discovery_header;
 			discovery_packet.num_iovs = 1;
 			discovery_packet.iovs = &discovery_iovec;
@@ -547,6 +535,19 @@ void run(void) {
 											 * This robot is now alive. */
 											dongle_status.robots |= ((uint16_t) 1) << discovery_robot;
 											dongle_status_dirty();
+											/* Clear sequence numbers. */
+											{
+												uint8_t i;
+												for (i = 0; i != PIPE_MAX + 1; ++i) {
+													if (pipe_out_mask & (1 << i)) {
+														pipe_info[discovery_robot - 1][i].used = 0;
+														pipe_info[discovery_robot - 1][i].sequence = 0;
+													} else {
+														pipe_info[discovery_robot - 1][i].used = 0;
+														pipe_info[discovery_robot - 1][i].sequence = 63;
+													}
+												}
+											}
 										}
 										--num_packets;
 									}
@@ -564,31 +565,39 @@ void run(void) {
 									in_pending = false;
 								}
 								while (len) {
-									if (ptr[0] > len || (ptr[1] & 0xF0) != 0) {
+									if (ptr[0] < 2) {
+										/* Micropacket too short to hold its own header. */
+										error_reporting_add(FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT1 + robot - 1);
+										break;
+									} else if (ptr[0] > len) {
 										/* Micropacket overflows packet. */
-										local_error_queue_add(55 + robot - 1);
+										error_reporting_add(FAULT_IN_MICROPACKET_OVERFLOW_ROBOT1 + robot - 1);
+										break;
+									} else if ((ptr[1] & 0xF0) != 0) {
+										/* Micropacket directed to someone other than this dongle. */
+										error_reporting_add(FAULT_IN_MICROPACKET_NOPIPE_ROBOT1 + robot - 1);
 										break;
 									} else {
 										uint8_t pipe = ptr[1] & 0x0F;
 										if (pipe == PIPE_FEEDBACK) {
-											if (len == sizeof(feedback_block_t) + 2) {
+											if (ptr[0] == sizeof(feedback_block_t) + 2) {
 												memcpyram2ram(state_transport_in_feedback[robot - 1], ptr + 2, sizeof(feedback_block_t));
 												state_transport_in_feedback_dirty(robot);
 											} else {
-												local_error_queue_add(55 + robot - 1);
+												error_reporting_add(FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT1 + robot - 1);
 											}
 										} else if ((1 << pipe) & pipe_in_mask & pipe_interrupt_mask) {
 											if (len >= 3) {
-												if (ptr[2] != pipe_info[robot][pipe].sequence) {
-													pipe_info[robot][pipe].sequence = ptr[2];
+												if (ptr[2] != pipe_info[robot - 1][pipe].sequence) {
+													pipe_info[robot - 1][pipe].sequence = ptr[2];
 													ptr[2] = (robot << 4) | pipe;
 													interrupt_in_send(ptr + 2, ptr[0] - 2);
 												}
 											} else {
-												local_error_queue_add(55 + robot - 1);
+												error_reporting_add(FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT1 + robot - 1);
 											}
 										} else {
-											local_error_queue_add(55 + robot - 1);
+											error_reporting_add(FAULT_IN_MICROPACKET_NOPIPE_ROBOT1 + robot - 1);
 										}
 										len -= *ptr;
 										ptr += *ptr;
@@ -600,7 +609,7 @@ void run(void) {
 					}
 				}
 				if (num_packets) {
-					local_error_queue_add(21);
+					error_reporting_add(FAULT_XBEE0_TIMEOUT);
 				}
 			}
 
@@ -645,7 +654,7 @@ void run(void) {
 					uint8_t i;
 
 					/* Some bulk packets were unsuccessful. */
-					for (i = 0; !(bulk_out_success_mask & (1 << i)); ++i);
+					for (i = 0; bulk_out_success_mask & (1 << i); ++i);
 
 					/* Adjust the sequence number counter so we will reuse the sequence number for this packet. */
 					pipe_info[(bulk_out_current_recipient >> 4) - 1][bulk_out_current_recipient & 0x0F].sequence = bulk_out_headers[i].sequence_flags.sequence;

@@ -1,4 +1,4 @@
-#include "local_error_queue.h"
+#include "error_reporting.h"
 #include "critsec.h"
 #include "endpoints.h"
 #include "usb.h"
@@ -72,7 +72,7 @@ static BOOL on_clear_halt(void) {
 	return true;
 }
 
-void local_error_queue_init(void) {
+void error_reporting_init(void) {
 	read_ptr = write_ptr = 0;
 	usb_ep_callbacks[EP_LOCAL_ERROR_QUEUE].in.transaction = &on_transaction;
 	usb_ep_callbacks[EP_LOCAL_ERROR_QUEUE].in.commanded_stall = &on_commanded_stall;
@@ -84,12 +84,12 @@ void local_error_queue_init(void) {
 	inited = true;
 }
 
-void local_error_queue_deinit(void) {
+void error_reporting_deinit(void) {
 	inited = false;
 	UEPBITS(EP_LOCAL_ERROR_QUEUE).EPINEN = 0;
 }
 
-void local_error_queue_add(uint8_t error) {
+void error_reporting_add(uint8_t error) {
 	uint8_t free_space;
 	CRITSEC_DECLARE(cs);
 

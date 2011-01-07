@@ -1,3 +1,6 @@
+#include "error_reporting.h"
+#include "drive.h"
+#include "feedback.h"
 #include "leds.h"
 #include "params.h"
 #include "pins.h"
@@ -137,24 +140,20 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
 						success = false;
 						if ((char) rxpkt->buf[2] != command[0] || (char) rxpkt->buf[3] != command[1]) {
 							/* The command is wrong. */
-#warning implement error reporting
-							//local_error_queue_add(13 + xbee); /* XBee {0,1} AT command failure, response contains incorrect command */
+							error_reporting_add(FAULT_XBEE0_AT_RESPONSE_WRONG_COMMAND + xbee);
 						} else if (rxpkt->buf[4] != 0) {
 							/* The response is a failure. */
 							switch (rxpkt->buf[4]) {
 								case 2:
-#warning implement error reporting
-									//local_error_queue_add(17 + xbee); /* XBee {0,1} AT command failure, invalid command */
+									error_reporting_add(FAULT_XBEE0_AT_RESPONSE_FAILED_INVALID_COMMAND + xbee);
 									break;
 
 								case 3:
-#warning implement error reporting
-									//local_error_queue_add(19 + xbee); /* XBee {0,1} AT command failure, invalid parameter */
+									error_reporting_add(FAULT_XBEE0_AT_RESPONSE_FAILED_INVALID_PARAMETER + xbee);
 									break;
 
 								default:
-#warning implement error reporting
-									//local_error_queue_add(15 + xbee); /* XBee {0,1} AT command failure, unknown reason */
+									error_reporting_add(FAULT_XBEE0_AT_RESPONSE_FAILED_UNKNOWN_REASON + xbee);
 									break;
 							}
 						} else {
@@ -177,8 +176,7 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
 	}
 
 	/* Out of retries. Give up. */
-#warning implement error reporting
-	//local_error_queue_add(21 + xbee); /* XBee {0,1} timeout waiting for local modem response */
+	error_reporting_add(FAULT_XBEE0_TIMEOUT + xbee);
 	return false;
 }
 
@@ -196,30 +194,31 @@ static BOOL configure_xbee_stage1(uint8_t xbee) {
 	/* Enable RTS flow control on pin DIO6. */
 	buffer[0] = 1;
 	if (!at_command(xbee, 0x82, "D6", buffer, 1, 0, 0)) {
-		err = 25 + xbee;
+		err = FAULT_XBEE0_ENABLE_RTS_FAILED + xbee;
 		goto out;
 	}
 
 	/* Retrieve the firmware version. */
 	if (!at_command(xbee, 0x83, "VR", 0, 0, buffer, 2)) {
-		err = 27 + xbee;
+		err = FAULT_XBEE0_GET_FW_VERSION_FAILED + xbee;
 		goto out;
 	}
 	xbee_versions[xbee] = (buffer[0] << 8) | buffer[1];
 
 	/* Set up the text node ID. */
 	if (!at_command(xbee, 0x85, "NI", (xbee == 0) ? "TBOTS30" : "TBOTS31", 7, 0, 0)) {
-		err = 31 + xbee;
+		err = FAULT_XBEE0_SET_NODE_ID_FAILED + xbee;
 		goto out;
 	}
 
 out:
 	/* Mark final status. */
-//	if (!err) {
-//	} else {
-#warning implement error reporting
-//	}
-	return !err;
+	if (err) {
+		error_reporting_add(err);
+		return false;
+	} else {
+		return true;
+	}
 }
 
 /**
@@ -234,9 +233,8 @@ static BOOL configure_xbee_stage2(uint8_t xbee) {
 	uint8_t err = 0;
 
 	/* Set the radio channel. */
-	buffer[0] = 0x0E + xbee;
-	if (!at_command(xbee, 0x90, "CH", buffer, 1, 0, 0)) {
-		err = 33 + xbee;
+	if (!at_command(xbee, 0x90, "CH", &params.xbee_channels[xbee], 1, 0, 0)) {
+		err = FAULT_XBEE0_SET_CHANNEL_FAILED + xbee;
 		goto out;
 	}
 
@@ -244,25 +242,26 @@ static BOOL configure_xbee_stage2(uint8_t xbee) {
 	buffer[0] = 0x49;
 	buffer[1] = 0x6C + xbee;
 	if (!at_command(xbee, 0x84, "ID", buffer, 2, 0, 0)) {
-		err = 29 + xbee;
+		err = FAULT_XBEE0_SET_PAN_ID_FAILED + xbee;
 		goto out;
 	}
 
 	/* Set the 16-bit address. */
 	buffer[0] = 0x7B;
-	buffer[1] = (xbee == 0) ? 0x23 : 0x33;
+	buffer[1] = (xbee == 0 ? 0x20 : 0x30) | params.robot_number;
 	if (!at_command(xbee, 0x91, "MY", buffer, 2, 0, 0)) {
-		err = 35 + xbee;
+		err = FAULT_XBEE0_SET_ADDRESS_FAILED + xbee;
 		goto out;
 	}
 
 out:
 	/* Mark final status. */
-//	if (!err) {
-//	} else {
-#warning implement error reporting
-//	}
-	return !err;
+	if (err) {
+		error_reporting_add(err);
+		return false;
+	} else {
+		return true;
+	}
 }
 
 void main(void) {
@@ -291,6 +290,13 @@ void main(void) {
 	RCONbits.IPEN = 1;
 	INTCONbits.GIEH = 1;
 	INTCONbits.GIEL = 1;
+
+	/* Clear the feedback block. */
+	memset(&feedback_block, 0, sizeof(feedback_block));
+	feedback_block.flags.valid = 1;
+
+	/* Clear the drive block. */
+	memset(&drive_block, 0, sizeof(drive_block));
 
 	/* Configure timer 0 to a period of 1 / 12000000 × 65536 × 256 =~ 1.4s to be used as a serial line timeout for XBees.
 	 *        /-------- Timer on
