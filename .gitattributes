@@ -28,8 +28,6 @@ firmware/bootstrap/leds.c -text
 firmware/bootstrap/leds.h -text
 firmware/bootstrap/main.c -text
 firmware/bootstrap/params.h -text
-firmware/bootstrap/pingen.c -text
-firmware/bootstrap/pins.txt -text
 firmware/bootstrap/spi.c -text
 firmware/bootstrap/spi.h -text
 firmware/dongle/18f65j50.lkr -text
@@ -59,7 +57,6 @@ firmware/dongle/interrupt_out.h -text
 firmware/dongle/local_error_queue.c -text
 firmware/dongle/local_error_queue.h -text
 firmware/dongle/main.c -text
-firmware/dongle/pingen.c -text
 firmware/dongle/pins.txt -text
 firmware/dongle/pipes.c -text
 firmware/dongle/pipes.h -text
@@ -104,7 +101,6 @@ firmware/main/leds.h -text
 firmware/main/main.c -text
 firmware/main/params.c -text
 firmware/main/params.h -text
-firmware/main/pingen.c -text
 firmware/main/pins.txt -text
 firmware/main/pipes.c -text
 firmware/main/pipes.h -text
@@ -122,6 +118,8 @@ firmware/main/xbee_rxpacket.h -text
 firmware/main/xbee_txpacket.c -text
 firmware/main/xbee_txpacket.h -text
 firmware/messages.txt -text
+firmware/pingen/Makefile -text
+firmware/pingen/pingen.c -text
 firmware/shared/drive.h -text
 firmware/shared/feedback.h -text
 software/Doxyfile -text

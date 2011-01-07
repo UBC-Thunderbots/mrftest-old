@@ -20,7 +20,6 @@ firmware/bootstrap/*.hex
 firmware/bootstrap/*.lst
 firmware/bootstrap/*.map
 firmware/bootstrap/html
-firmware/bootstrap/pingen
 firmware/bootstrap/pins.h
 firmware/bootstrap/pins.inc
 firmware/dongle/*.asm
@@ -31,7 +30,6 @@ firmware/dongle/*.hex
 firmware/dongle/*.lst
 firmware/dongle/*.map
 firmware/dongle/html
-firmware/dongle/pingen
 firmware/dongle/pins.h
 firmware/dongle/pins.inc
 firmware/flybackconverter/*.asm
@@ -46,9 +44,9 @@ firmware/main/*.hex
 firmware/main/*.lst
 firmware/main/*.map
 firmware/main/html
-firmware/main/pingen
 firmware/main/pins.h
 firmware/main/pins.inc
+firmware/pingen/pingen
 software/.cproject
 software/.project
 software/bin

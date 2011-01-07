@@ -1,4 +1,4 @@
-SOURCES := $(filter-out pingen.c,$(wildcard *.c))
+SOURCES := $(wildcard *.c)
 PROJ := bootstrap
 SDCC_FLAGS := --std-sdcc99 -mpic16 -p18f65j50 --fomit-frame-pointer --obanksel=1 --optimize-cmp --optimize-df --use-non-free
 PK2CMD_FLAGS := -I -J -E -M -PPIC18F65J50 -W
@@ -12,13 +12,12 @@ $(PROJ).hex : $(SOURCES:.c=.o) $(LKR)
 	echo "  CC $@"
 	sdcc $(SDCC_FLAGS) -c $<
 
-pins.h pins.inc : pins.txt pingen
+pins.h pins.inc : ../main/pins.txt ../pingen/pingen
 	echo "  PINGEN $@"
-	./pingen
+	../pingen/pingen ../main/pins.txt
 
-pingen : pingen.c
-	echo "  HOSTCC $@"
-	$(CC) -Wall -Wextra -ansi -pedantic -o$@ $+
+../pingen/pingen : $(wildcard ../pingen/*.[ch])
+	make -C ../pingen
 
 .PHONY : clean
 clean :

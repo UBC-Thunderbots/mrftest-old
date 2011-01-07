@@ -75,7 +75,7 @@ static int extract_type(const char *typename, enum pin_type *type) {
 	else return 0;
 }
 
-int main(void) {
+int main(int argc, char **argv) {
 	FILE *f;
 	unsigned int line_num = 0;
 	char line[4096];
@@ -85,8 +85,14 @@ int main(void) {
 	enum pin_type type;
 	struct port_info ports[7];
 
+	/* Check arguments. */
+	if (argc != 2) {
+		fprintf(stderr, "Usage:\n%s pindb\n", argv[0]);
+		return 1;
+	}
+
 	/* Open input file. */
-	if (!(f = fopen("pins.txt", "r"))) {
+	if (!(f = fopen(argv[1], "r"))) {
 		perror("fopen");
 		return 1;
 	}
