@@ -1,3 +1,4 @@
+#include "crc.h"
 #include "leds.h"
 #include "params.h"
 #include "pins.h"
@@ -21,6 +22,7 @@ __code static const params_t PARAMS = {
 void main(void) {
 	__code const uint8_t *ptr = (__code const uint8_t *) &PARAMS;
 	uint8_t len = sizeof(PARAMS);
+	uint16_t crc = CRC16_EMPTY;
 
 	/* Configure I/O pins. */
 	PINS_INITIALIZE();
@@ -42,6 +44,9 @@ void main(void) {
 	/* Enable the PLL and wait for it to lock. This may take up to 2ms. */
 	OSCTUNEbits.PLLEN = 1;
 	delay1ktcy(2);
+
+	/* Enable the SPI transceiver. */
+	spi_init();
 
 	/* Read and check the JEDEC ID. */
 	leds_show_number(1);
@@ -72,6 +77,11 @@ void main(void) {
 	while (spi_receive() & 0x01);
 	LAT_FLASH_CS = 1;
 
+	/* Write-enable the flash. */
+	LAT_FLASH_CS = 0;
+	spi_send(0x06);
+	LAT_FLASH_CS = 1;
+
 	/* Write the data. */
 	leds_show_number(3);
 	LAT_FLASH_CS = 0;
@@ -80,8 +90,11 @@ void main(void) {
 	spi_send(PARAMS_BLOCK_FLASH_ADDRESS >> 8);
 	spi_send(PARAMS_BLOCK_FLASH_ADDRESS);
 	while (len--) {
+		crc = crc_update(crc, *ptr);
 		spi_send(*ptr++);
 	}
+	spi_send(crc);
+	spi_send(crc >> 8);
 	LAT_FLASH_CS = 1;
 
 	/* Wait until the program is finished. */
