@@ -1,5 +1,5 @@
-#ifndef PIPES_H
-#define PIPES_H
+#ifndef SHARED_PIPES_H
+#define SHARED_PIPES_H
 
 #include <stdint.h>
 
