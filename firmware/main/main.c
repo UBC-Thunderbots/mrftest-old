@@ -4,6 +4,7 @@
 #include "run.h"
 #include "serial.h"
 #include "signal.h"
+#include "spi.h"
 #include "xbee_rxpacket.h"
 #include "xbee_txpacket.h"
 #include <delay.h>
@@ -299,6 +300,9 @@ void main(void) {
 	 *        ||||/---- Prescaler active
 	 *        |||||///- 1:256 prescale */
 	T0CON = 0b10000111;
+
+	/* Configure the SPI transceiver. */
+	spi_init();
 
 	/* Load the operational parameters block. */
 	leds_show_number(1);
