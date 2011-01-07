@@ -14,6 +14,8 @@ using namespace AI::HL::W;
 namespace {
 	/**
 	 * A full implementation of a strategy that handles normal play.
+	 * This is basically the same as basic play but can act frantically
+	 * ie. it evaluates the game base on the scoring of the two teams and balance between offenders and defenders accordingly.
 	 */
 	class FranticPlayStrategy : public Strategy {
 		public:
@@ -36,8 +38,14 @@ namespace {
 			 * Recalculates and redo all assignments.
 			 */
 			void run_assignment();
-
+			void calc_chaser();
+			
+			Player::Ptr goalie;
 			Offender offender;
+			Defender defender;
+			
+			std::vector<Player::Ptr> offenders;
+			std::vector<Player::Ptr> defenders; // normally this should be empty
 	};
 
 	/**
@@ -59,7 +67,7 @@ namespace {
 	 * The play types handled by this strategy.
 	 */
 	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
-		// PlayType::PLAY,
+		PlayType::PLAY,
 	};
 
 	FranticPlayStrategyFactory::FranticPlayStrategyFactory() : StrategyFactory("Frantic Play", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) {
@@ -88,9 +96,12 @@ namespace {
 
 		offender.set_chase(true);
 		offender.tick();
+		if (world.friendly_team().score() + world.enemy_team().score() < 6){
+			defender.tick();
+		} 
 	}
 
-	FranticPlayStrategy::FranticPlayStrategy(World &world) : Strategy(world), offender(world) {
+	FranticPlayStrategy::FranticPlayStrategy(World &world) : Strategy(world), offender(world), defender(world) {
 		world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &FranticPlayStrategy::on_player_added));
 		world.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &FranticPlayStrategy::on_player_removed));
 		run_assignment();
@@ -108,6 +119,12 @@ namespace {
 	}
 
 	void FranticPlayStrategy::run_assignment() {
+	
+		// clear up
+		goalie.reset();
+		defenders.clear();
+		offenders.clear();
+		
 		if (world.friendly_team().size() == 0) {
 			LOG_WARN("no players");
 			return;
@@ -116,8 +133,76 @@ namespace {
 		// it is easier to change players every tick?
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 
-		LOG_INFO(Glib::ustring::compose("defenders are for sissies: %1 offenders", players.size()));
-		offender.set_players(players);
+		// if score for both teams are low (so team should be not too frantic yet)
+		// should probably have one goalie and the rest offenders
+		// NOTE: code for restricting goalie to have accompanying defenders are only commented out for now
+		
+		if (world.friendly_team().score() + world.enemy_team().score() < 4){
+		
+			std::size_t ndefenders = 1; // includes goalie
+			switch (players.size()) {
+				case 5:
+					++ndefenders;
+				case 4:
+				case 3:
+					++ndefenders;
+				case 2:
+					break;
+			}
+
+			// start from 1, to exclude goalie
+			for (std::size_t i = 1; i < players.size(); ++i) {
+				if (i < ndefenders) {
+					defenders.push_back(players[i]);
+				} else {
+					offenders.push_back(players[i]);
+				}
+			}
+			offender.set_players(offenders);
+			defender.set_players(defenders, goalie);
+			
+		} else if (world.friendly_team().score() + world.enemy_team().score() < 6){
+			goalie = players[0];
+			for (std::size_t i = 1; i < players.size(); ++i) {	
+				offenders.push_back(players[i]);
+			}
+			offender.set_players(offenders);
+			defender.set_players(defenders, goalie);
+		} else {	
+			for (std::size_t i = 0; i < players.size(); ++i) {	
+				offenders.push_back(players[i]);
+			}	
+			offender.set_players(offenders);		
+		}
+		LOG_INFO(Glib::ustring::compose("defenders are for sissies: %1 defenders, %2 offenders", defenders.size(), offenders.size()));
+	}
+	void FranticPlayStrategy::calc_chaser() {
+		// see who has the closest ball
+		bool offender_chase = true;
+		double best_dist = 1e99;
+		for (std::size_t i = 0; i < offenders.size(); ++i) {
+			best_dist = std::min(best_dist, (offenders[i]->position() - world.ball().position()).len());
+		}
+		for (std::size_t i = 0; i < defenders.size(); ++i) {
+			double dist = (defenders[i]->position() - world.ball().position()).len();
+			if (dist < best_dist) {
+				offender_chase = false;
+				break;
+			}
+		}
+		// goalie special
+		{
+			if (AI::HL::Util::point_in_friendly_defense(world.field(), world.ball().position())) {
+				offender_chase = false;
+			}
+			// double dist = (goalie->position() - world.ball().position()).len();
+			// if (dist < best_dist) {
+			// offender_chase = false;
+			// }
+		}
+
+		offender.set_chase(offender_chase);
+		defender.set_chase(!offender_chase);
 	}
 }
 
