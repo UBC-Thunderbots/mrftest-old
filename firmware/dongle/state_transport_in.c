@@ -11,9 +11,9 @@
 /**
  * \brief The number of feedback blocks to send in a single USB transaction.
  */
-#define BLOCKS_PER_TRANSACTION (64 / (STATE_TRANSPORT_IN_FEEDBACK_SIZE + 2))
+#define BLOCKS_PER_TRANSACTION (64 / (sizeof(feedback_block_t) + 2))
 
-__data uint8_t state_transport_in_feedback[15][STATE_TRANSPORT_IN_FEEDBACK_SIZE];
+__data uint8_t state_transport_in_feedback[15][sizeof(feedback_block_t)];
 
 /**
  * \brief A buffer into which packets are assembled for transmission.
@@ -28,7 +28,7 @@ static uint16_t dirty_mask;
 /**
  * \brief Back buffers containing old copies of the feedback blocks for comparison.
  */
-static uint8_t back_buffers[15][STATE_TRANSPORT_IN_FEEDBACK_SIZE];
+static uint8_t back_buffers[15][sizeof(feedback_block_t)];
 
 /**
  * \brief Whether or not there is a transaction currently running.
@@ -50,10 +50,10 @@ static void check_send(void) {
 
 	while (dirty_mask && blocks_used != BLOCKS_PER_TRANSACTION) {
 		if (dirty_mask & (1 << next_robot)) {
-			*write_ptr++ = STATE_TRANSPORT_IN_FEEDBACK_SIZE + 2;
+			*write_ptr++ = sizeof(feedback_block_t) + 2;
 			*write_ptr++ = (next_robot << 4) | PIPE_FEEDBACK;
-			memcpyram2ram(write_ptr, back_buffers[next_robot - 1], STATE_TRANSPORT_IN_FEEDBACK_SIZE);
-			write_ptr += STATE_TRANSPORT_IN_FEEDBACK_SIZE;
+			memcpyram2ram(write_ptr, back_buffers[next_robot - 1], sizeof(feedback_block_t));
+			write_ptr += sizeof(feedback_block_t);
 			++blocks_used;
 			dirty_mask &= ~(1 << next_robot);
 		}
@@ -65,7 +65,7 @@ static void check_send(void) {
 	}
 
 	if (blocks_used) {
-		USB_BD_IN_SUBMIT(EP_STATE_TRANSPORT, buffer, blocks_used * (STATE_TRANSPORT_IN_FEEDBACK_SIZE + 2));
+		USB_BD_IN_SUBMIT(EP_STATE_TRANSPORT, buffer, blocks_used * (sizeof(feedback_block_t) + 2));
 		transaction_running = true;
 	}
 }

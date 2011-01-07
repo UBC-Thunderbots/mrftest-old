@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-__data uint8_t state_transport_out_drive[15][STATE_TRANSPORT_OUT_DRIVE_SIZE];
+__data uint8_t state_transport_out_drive[15][sizeof(drive_block_t)];
 
 /**
  * \brief A buffer into which packets are received.
@@ -26,15 +26,15 @@ static void on_transaction(void) {
 			switch (ptr[1] & 0x0F) {
 				case PIPE_DRIVE:
 					/* Drive pipe. */
-					if (ptr[0] == STATE_TRANSPORT_OUT_DRIVE_SIZE + 2) {
+					if (ptr[0] == sizeof(drive_block_t) + 2) {
 						recipient = ptr[1] >> 4;
 						if (recipient) {
 							/* Directed. */
-							memcpyram2ram(state_transport_out_drive[recipient - 1], ptr + 2, STATE_TRANSPORT_OUT_DRIVE_SIZE);
+							memcpyram2ram(state_transport_out_drive[recipient - 1], ptr + 2, sizeof(drive_block_t));
 						} else {
 							/* Broadcast. */
 							for (recipient = 0; recipient != 15; ++recipient) {
-								memcpyram2ram(state_transport_out_drive[recipient], ptr + 2, STATE_TRANSPORT_OUT_DRIVE_SIZE);
+								memcpyram2ram(state_transport_out_drive[recipient], ptr + 2, sizeof(drive_block_t));
 							}
 						}
 					} else {

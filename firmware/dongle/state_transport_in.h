@@ -7,17 +7,13 @@
  * \brief Implements the dongle protocol (USB) side of inbound state transport packet reception.
  */
 
+#include "../shared/feedback.h"
 #include <stdint.h>
-
-/**
- * \brief The length, in bytes, of a state block on the feedback pipe.
- */
-#define STATE_TRANSPORT_IN_FEEDBACK_SIZE 5
 
 /**
  * \brief The current feedback pipe state blocks for the robots.
  */
-__data extern uint8_t state_transport_in_feedback[15][STATE_TRANSPORT_IN_FEEDBACK_SIZE];
+__data extern uint8_t state_transport_in_feedback[15][sizeof(feedback_block_t)];
 
 /**
  * \brief Initializes the subsystem.

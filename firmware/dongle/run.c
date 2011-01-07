@@ -46,7 +46,7 @@ typedef struct {
 typedef struct {
 	uint8_t micropacket_length;
 	drive_micropacket_pipe_robot_t pipe_robot;
-	uint8_t payload[STATE_TRANSPORT_OUT_DRIVE_SIZE];
+	uint8_t payload[sizeof(drive_block_t)];
 } drive_micropacket_t;
 
 typedef struct {
@@ -178,7 +178,7 @@ void run(void) {
 				if (dongle_status.robots & mask) {
 					drive_micropackets[j].pipe_robot.pipe = PIPE_DRIVE;
 					drive_micropackets[j].pipe_robot.robot = i;
-					memcpyram2ram(drive_micropackets[j].payload, state_transport_out_drive[i - 1], STATE_TRANSPORT_OUT_DRIVE_SIZE);
+					memcpyram2ram(drive_micropackets[j].payload, state_transport_out_drive[i - 1], sizeof(drive_block_t));
 					++j;
 				}
 			}
@@ -211,7 +211,7 @@ void run(void) {
 				} else {
 					drive_iovecs[0][1].ptr = &ZERO;
 				}
-				drive_iovecs[0][2].len = i * (STATE_TRANSPORT_OUT_DRIVE_SIZE + 2);
+				drive_iovecs[0][2].len = i * (sizeof(drive_block_t) + 2);
 				drive_iovecs[0][2].ptr = drive_micropackets;
 				drive_packets[0].num_iovs = 3;
 				drive_packets[0].iovs = drive_iovecs[0];
@@ -223,7 +223,7 @@ void run(void) {
 					drive_iovecs[1][0].ptr = &DRIVE_XBEE_HEADER;
 					drive_iovecs[1][1].len = 1;
 					drive_iovecs[1][1].ptr = &ZERO;
-					drive_iovecs[1][2].len = i * (STATE_TRANSPORT_OUT_DRIVE_SIZE + 2);
+					drive_iovecs[1][2].len = i * (sizeof(drive_block_t) + 2);
 					drive_iovecs[1][2].ptr = drive_micropackets + 8;
 					drive_packets[1].num_iovs = 3;
 					drive_packets[1].iovs = drive_iovecs[1];
@@ -571,8 +571,8 @@ void run(void) {
 									} else {
 										uint8_t pipe = ptr[1] & 0x0F;
 										if (pipe == PIPE_FEEDBACK) {
-											if (len == STATE_TRANSPORT_IN_FEEDBACK_SIZE + 2) {
-												memcpyram2ram(state_transport_in_feedback[robot - 1], ptr + 2, STATE_TRANSPORT_IN_FEEDBACK_SIZE);
+											if (len == sizeof(feedback_block_t) + 2) {
+												memcpyram2ram(state_transport_in_feedback[robot - 1], ptr + 2, sizeof(feedback_block_t));
 												state_transport_in_feedback_dirty(robot);
 											} else {
 												local_error_queue_add(55 + robot - 1);

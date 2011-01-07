@@ -120,6 +120,8 @@ firmware/main/xbee_rxpacket.h -text
 firmware/main/xbee_txpacket.c -text
 firmware/main/xbee_txpacket.h -text
 firmware/messages.txt -text
+firmware/shared/drive.h -text
+firmware/shared/feedback.h -text
 software/Doxyfile -text
 software/Makefile -text
 software/ai/ai.cpp -text
