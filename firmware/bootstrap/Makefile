@@ -1,6 +1,6 @@
 SOURCES := $(wildcard *.c)
 PROJ := bootstrap
-SDCC_FLAGS := --std-sdcc99 -mpic16 -p18f65j50 --fomit-frame-pointer --obanksel=1 --optimize-cmp --optimize-df --use-non-free
+SDCC_FLAGS := --std-sdcc99 -mpic16 -p18f65j50 --fomit-frame-pointer --obanksel=1 --optimize-cmp --optimize-df --use-non-free -I../shared
 PK2CMD_FLAGS := -I -J -E -M -PPIC18F65J50 -W
 LKR := 18f65j50.lkr
 
@@ -31,9 +31,5 @@ burn : $(PROJ).hex
 .PHONY : doc
 doc :
 	doxygen
-
-.PHONY : uart
-uart :
-	pk2uart -b38462
 
 .SILENT :

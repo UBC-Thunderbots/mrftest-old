@@ -28,6 +28,7 @@ firmware/bootstrap/leds.c -text
 firmware/bootstrap/leds.h -text
 firmware/bootstrap/main.c -text
 firmware/bootstrap/params.h -text
+firmware/bootstrap/pipes.c -text
 firmware/bootstrap/spi.c -text
 firmware/bootstrap/spi.h -text
 firmware/dongle/18f65j50.lkr -text
@@ -59,7 +60,6 @@ firmware/dongle/local_error_queue.h -text
 firmware/dongle/main.c -text
 firmware/dongle/pins.txt -text
 firmware/dongle/pipes.c -text
-firmware/dongle/pipes.h -text
 firmware/dongle/queue.h -text
 firmware/dongle/run.c -text
 firmware/dongle/run.h -text
@@ -103,7 +103,6 @@ firmware/main/params.c -text
 firmware/main/params.h -text
 firmware/main/pins.txt -text
 firmware/main/pipes.c -text
-firmware/main/pipes.h -text
 firmware/main/queue.h -text
 firmware/main/run.c -text
 firmware/main/run.h -text
@@ -122,6 +121,9 @@ firmware/pingen/Makefile -text
 firmware/pingen/pingen.c -text
 firmware/shared/drive.h -text
 firmware/shared/feedback.h -text
+firmware/shared/pipes.c -text
+firmware/shared/pipes.h -text
+firmware/shared/serial.c -text
 software/Doxyfile -text
 software/Makefile -text
 software/ai/ai.cpp -text
