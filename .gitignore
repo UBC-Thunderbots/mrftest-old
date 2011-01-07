@@ -38,15 +38,6 @@ firmware/main/html
 firmware/main/pingen
 firmware/main/pins.h
 firmware/main/pins.inc
-firmware/mainboard-copro/*.cod
-firmware/mainboard-copro/*.cof
-firmware/mainboard-copro/*.d
-firmware/mainboard-copro/*.err
-firmware/mainboard-copro/*.hex
-firmware/mainboard-copro/*.lst
-firmware/mainboard-copro/*.map
-firmware/mainboard-copro/pingen
-firmware/mainboard-copro/pins.inc
 software/.cproject
 software/.project
 software/bin
