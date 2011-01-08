@@ -94,7 +94,8 @@ namespace {
 			return;
 		}
 		if (offenders.size() > 0) offender.tick();
-		if (defenders.size() > 0) defender.tick();
+		// there might be no defenders but exists one goalie
+		if (defenders.size() > 0 || goalie.is()) defender.tick();
 	}
 
 	FranticPlayStrategy::FranticPlayStrategy(World &world) : Strategy(world), offender(world), defender(world) {
@@ -129,16 +130,17 @@ namespace {
 		// it is easier to change players every tick?
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
-		goalie = players[0];
+		
 
-		// if score for both teams are low (so team should be not too frantic or crazy yet)
+		// check the sum of the score of both teams (so you are losing big or unlikely winning big)
+		// if sum of the score of both teams are low (so team should be not too frantic or crazy yet)
 		// should probably have one goalie and the rest offenders
 		// NOTE: code for restricting goalie to have accompanying defenders are only commented out for now
 		
 		// However, if enemy robots are all "clustered" in your side of the field
 		// ie. the enemy are launching a major offensive, 
 		// you should probably behave frantically by having all defenders and no offenders
-		// check this by checking the # of enemy robots (3~4?) on your side of the field
+		// check this by checking the # of enemy robots (3+?) on your side of the field
 		
 		int enemy_cnt = 0;
 		for (std::size_t i = 0; i < enemies.size(); ++i) {	
@@ -147,13 +149,15 @@ namespace {
 		
 		if (enemy_cnt < 4){
 			// all out defensive
+			goalie = players[0];
 			for (std::size_t i = 1; i < players.size(); ++i) {	
 				defenders.push_back(players[i]);
 			}
 			defender.set_players(defenders, goalie);		
 		
 		} else if (world.friendly_team().score() + world.enemy_team().score() < 5){
-		
+			// standard play of 2 def, 2 off, 1 goalie
+			goalie = players[0];
 			std::size_t ndefenders = 1; // includes goalie
 			switch (players.size()) {
 				case 5:
@@ -177,13 +181,15 @@ namespace {
 			defender.set_players(defenders, goalie);
 			
 		} else if (world.friendly_team().score() + world.enemy_team().score() < 8){
-			// all out offensive
+			// 1 goalie, 4 off			 
+			goalie = players[0];
 			for (std::size_t i = 1; i < players.size(); ++i) {	
 				offenders.push_back(players[i]);
 			}
 			offender.set_players(offenders);
 			defender.set_players(defenders, goalie);
 		} else {	
+			// all out offensive
 			for (std::size_t i = 0; i < players.size(); ++i) {	
 				offenders.push_back(players[i]);
 			}	
