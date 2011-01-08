@@ -7,19 +7,16 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Skill {
-
 				/**
 				 * An implementation of the drive to goal skill in the STP paper.
 				 */
-				 /*
 				class DriveToGoal : public Skill {
 					public:
-						DriveToGoal(AI::HL::W::World& w, AI::HL::W::Player::Ptr p);
+						static DriveToGoal* instance();
 
-						void run();
+					private:
+						Skill* execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const;
 				};
-				*/
-
 			}
 		}
 	}

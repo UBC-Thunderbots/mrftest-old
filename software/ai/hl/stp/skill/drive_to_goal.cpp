@@ -1,13 +1,12 @@
 #include "ai/hl/stp/skill/drive_to_goal.h"
+#include "ai/hl/stp/ssm/move_ball.h"
 
-using namespace AI::HL::STP::Skill;
 using namespace AI::HL::W;
+using namespace AI::HL::STP::Skill;
+using AI::HL::STP::Skill::Skill;
 
-/*
-DriveToGoal::DriveToGoal(AI::HL::W::World& w, AI::HL::W::Player::Ptr p) : Skill(w, p) {
-}
-
-void DriveToGoal::run() {
+Skill* DriveToGoal::execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const {
+	// TODO
 	// if has_ball
 	//   if can_shoot
 	//   transition to kick
@@ -17,5 +16,4 @@ void DriveToGoal::run() {
 	// move towards enemy goal
 	// repeat
 }
-*/
 

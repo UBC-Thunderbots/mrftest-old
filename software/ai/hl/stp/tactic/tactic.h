@@ -3,6 +3,7 @@
 
 #include "ai/hl/world.h"
 #include "ai/hl/stp/skill/skill.h"
+#include "ai/hl/stp/ssm/ssm.h"
 #include "util/byref.h"
 #include "util/registerable.h"
 
@@ -81,7 +82,7 @@ namespace AI {
 						/**
 						 * Sets the SSM associated with this tactic.
 						 */
-						void set_ssm(AI::HL::STP::Skill::SkillStateMachine* s);
+						void set_ssm(AI::HL::STP::SSM::SkillStateMachine* s);
 
 					private:
 						bool active_;
@@ -89,7 +90,7 @@ namespace AI {
 						/**
 						 * The ssm associated.
 						 */
-						AI::HL::STP::Skill::SkillStateMachine* ssm;
+						AI::HL::STP::SSM::SkillStateMachine* ssm;
 
 						/**
 						 * The current skill.

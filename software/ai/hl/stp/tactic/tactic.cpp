@@ -36,10 +36,10 @@ void Tactic::tick() {
 	}
 
 	// execute the skill
-	skill = skill->execute(world, player, param);
+	skill = skill->execute(world, player, ssm, param);
 }
 
-void Tactic::set_ssm(AI::HL::STP::Skill::SkillStateMachine* s) {
+void Tactic::set_ssm(AI::HL::STP::SSM::SkillStateMachine* s) {
 	if (s == ssm) return;
 	ssm = s;
 	skill = NULL;

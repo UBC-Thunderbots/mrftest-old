@@ -3,7 +3,15 @@
 
 #include "ai/hl/world.h"
 
-#include <ctime>
+namespace AI {
+	namespace HL {
+		namespace STP {
+			namespace SSM {
+				class SkillStateMachine;
+			}
+		}
+	}
+}
 
 namespace AI {
 	namespace HL {
@@ -28,20 +36,7 @@ namespace AI {
 						 *
 						 * \return the skill it should transition to.
 						 */
-						virtual Skill* execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, Param& param) const = 0;
-				};
-
-				/**
-				 * SSM in the Skill layer.
-				 * SSM is a singleton, and does not contain any player or world info.
-				 * Its purpose is just to set up the first state.
-				 */
-				class SkillStateMachine {
-					public:
-						/**
-						 * Obtains the first skill.
-						 */
-						virtual Skill* initial() const = 0;
+						virtual Skill* execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const = 0;
 				};
 			}
 		}
