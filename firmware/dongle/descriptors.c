@@ -121,7 +121,7 @@ __code const uint8_t CONFIGURATION_DESCRIPTOR_TAIL[] = {
 	/* bInterfaceSubclass */ 0,
 	/* bInterfaceProtocol */ 0,
 	/* iInterface */ 5,
-	
+
 	/* Interface Descriptor */
 	/* bLength */ sizeof(usb_interface_descriptor_t),
 	/* bDescriptorType */ USB_DESCRIPTOR_INTERFACE,
