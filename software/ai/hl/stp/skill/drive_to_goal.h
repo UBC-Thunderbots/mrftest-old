@@ -14,8 +14,7 @@ namespace AI {
 					public:
 						const static DriveToGoal* instance();
 
-					private:
-						const Skill* execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const;
+						const Skill* execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, const AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const;
 				};
 			}
 		}

@@ -65,11 +65,6 @@ namespace AI {
 						 */
 						virtual void tick();
 
-						/**
-						 * Drive some actual players.
-						 */
-						virtual void execute() = 0;
-
 					protected:
 						AI::HL::W::World &world;
 						AI::HL::W::Player::Ptr player;
@@ -83,6 +78,11 @@ namespace AI {
 						 * Sets the SSM associated with this tactic.
 						 */
 						void set_ssm(const AI::HL::STP::SSM::SkillStateMachine* s);
+
+						/**
+						 * A subclass must override this function.
+						 */
+						virtual void execute() = 0;
 
 					private:
 						bool active_;

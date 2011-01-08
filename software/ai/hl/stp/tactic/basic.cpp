@@ -119,36 +119,6 @@ Tactic::Ptr AI::HL::STP::Tactic::block(World &world, Robot::Ptr robot) {
 	return p;
 }
 
-// shoot
-
-namespace {
-	class Shoot : public Tactic {
-		public:
-			Shoot(World &world) : Tactic(world) {
-			}
-
-		private:
-			bool done() const {
-#warning find a way to check that the ball has left off in the right direction
-				return true;
-			}
-
-			double score(Player::Ptr player) const {
-				return 1.0 / (1.0 + (player->position() - world.ball().position()).len());
-			}
-
-			void execute() {
-				// TODO: flags
-				AI::HL::Tactics::shoot(world, player, 0);
-			}
-	};
-}
-
-Tactic::Ptr AI::HL::STP::Tactic::shoot(World &world) {
-	const Tactic::Ptr p(new Shoot(world));
-	return p;
-}
-
 // chase
 
 namespace {

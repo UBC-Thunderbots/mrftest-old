@@ -22,7 +22,11 @@ namespace AI {
 				 * Parameters that will be shared across skills go here.
 				 */
 				struct Param {
+					Param();
 					bool can_kick;
+					unsigned int move_flags;
+					unsigned int move_type;
+					unsigned int move_priority;
 				};
 
 				/**
@@ -33,6 +37,8 @@ namespace AI {
 					public:
 						/**
 						 * Executes the skill for this particular player.
+						 *
+						 * Note that one can make use of tail recursion to execute and return a different skill.
 						 *
 						 * \return the skill it should transition to.
 						 */

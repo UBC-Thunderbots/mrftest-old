@@ -9,6 +9,8 @@ namespace AI {
 			namespace SSM {
 				/**
 				 * Move the ball.
+				 * Basically position the ball for a good position,
+				 * and shoot the enemy goal if we can.
 				 */
 				class MoveBall : public SkillStateMachine {
 					public:
