@@ -18,6 +18,7 @@
 #include <string.h>
 
 #define POLL_TIMEOUT 25
+#define COMM_FAILURE_LIMIT 10
 
 #define XBEE_API_ID_TX16 0x01
 #define XBEE_API_ID_RX16 0x81
@@ -157,6 +158,20 @@ void run(void) {
 
 
 
+		/* Check for a timeout on a prior poll. */
+		if (in_pending && ((now - last_poll_time) & 0x3FF) > POLL_TIMEOUT) {
+			if (dongle_status.robots & (1 << pollee)) {
+				if (++comm_failures[pollee - 1] == COMM_FAILURE_LIMIT) {
+					comm_failures[pollee - 1] = 0;
+					dongle_status.robots &= ~(1 << pollee);
+					dongle_status_dirty();
+				}
+			}
+			in_pending = false;
+		}
+
+
+
 		/* Send state transport micropackets. */
 		if (dongle_status.robots) {
 			uint8_t i, j;
@@ -181,11 +196,8 @@ void run(void) {
 				drive_iovecs[0][0].len = sizeof(DRIVE_XBEE_HEADER);
 				drive_iovecs[0][0].ptr = &DRIVE_XBEE_HEADER;
 				drive_iovecs[0][1].len = 1;
-				/* Determine if we should poll a robot.
-				 * We poll a robot if:
-				 * (1) There is no previous inbound packet outstanding, OR
-				 * (2) The timeout for the previous inbound packet expired. */
-				if (!in_pending || ((now - last_poll_time) & 0x3FF) > POLL_TIMEOUT) {
+				/* Determine if we should poll a robot. */
+				if (!in_pending) {
 					do {
 						if (pollee == 15) {
 							pollee = 1;
@@ -510,7 +522,14 @@ void run(void) {
 										} else {
 											/* Transmission failed.
 											 * Count the failure. */
-											++comm_failures[bulk_out_headers[i].xbee_header.address_low & 0x0F];
+											uint8_t robot = interrupt_out_headers[i].xbee_header.address_low & 0x0F;
+											if (dongle_status.robots & (1 << robot)) {
+												if (++comm_failures[robot - 1] == COMM_FAILURE_LIMIT) {
+													comm_failures[robot - 1] = 0;
+													dongle_status.robots &= ~(1 << robot);
+													dongle_status_dirty();
+												}
+											}
 											/* Requeue the USB packet. */
 											interrupt_out_unget(interrupt_out_sent[i]);
 											interrupt_out_sent[i] = 0;
@@ -524,6 +543,17 @@ void run(void) {
 											/* Transmission successful.
 											 * Mark it in the mask. */
 											bulk_out_success_mask |= 1 << i;
+										} else {
+											/* Transmission failed.
+											 * Count the failure. */
+											uint8_t robot = bulk_out_headers[i].xbee_header.address_low & 0x0F;
+											if (dongle_status.robots & (1 << robot)) {
+												if (++comm_failures[robot - 1] == COMM_FAILURE_LIMIT) {
+													comm_failures[robot - 1] = 0;
+													dongle_status.robots &= ~(1 << robot);
+													dongle_status_dirty();
+												}
+											}
 										}
 										--num_packets;
 									}
