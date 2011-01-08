@@ -144,10 +144,11 @@ namespace {
 		
 		int enemy_cnt = 0;
 		for (std::size_t i = 0; i < enemies.size(); ++i) {	
+			// simply check the enemies' positions
 			if (enemies[i]->position().x < 0) enemy_cnt++;	
 		}
 		
-		if (enemy_cnt < 4){
+		if (enemy_cnt > 2){
 			// all out defensive
 			goalie = players[0];
 			for (std::size_t i = 1; i < players.size(); ++i) {	
