@@ -182,6 +182,9 @@ void run(void) {
 					drive_micropackets[j].pipe_robot.pipe = PIPE_DRIVE;
 					drive_micropackets[j].pipe_robot.robot = i;
 					memcpyram2ram(&drive_micropackets[j].payload, &state_transport_out_drive[i - 1], sizeof(drive_block_t));
+					if (dongle_status.estop != ESTOP_STATE_RUN) {
+						drive_micropackets[j].payload.flags.enable_robot = 0;
+					}
 					++j;
 				}
 			}
