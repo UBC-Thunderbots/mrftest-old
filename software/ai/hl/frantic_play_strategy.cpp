@@ -132,12 +132,31 @@ namespace {
 
 		// it is easier to change players every tick?
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
+		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+		goalie = players[0];
 
-		// if score for both teams are low (so team should be not too frantic yet)
+		// if score for both teams are low (so team should be not too frantic or crazy yet)
 		// should probably have one goalie and the rest offenders
 		// NOTE: code for restricting goalie to have accompanying defenders are only commented out for now
 		
-		if (world.friendly_team().score() + world.enemy_team().score() < 4){
+		// However, if enemy robots are all "clustered" in your side of the field
+		// ie. the enemy are launching a major offensive, 
+		// you should probably behave frantically by having all defenders and no offenders
+		// check this by checking the # of enemy robots (3~4?) on your side of the field
+		
+		int enemy_cnt = 0;
+		for (std::size_t i = 0; i < enemies.size(); ++i) {	
+			if (enemies[i]->position().x < 0) enemy_cnt++;	
+		}
+		
+		if (enemy_cnt < 4){
+			// all out defensive
+			for (std::size_t i = 1; i < players.size(); ++i) {	
+				defenders.push_back(players[i]);
+			}
+			defender.set_players(defenders, goalie);		
+		
+		} else if (world.friendly_team().score() + world.enemy_team().score() < 5){
 		
 			std::size_t ndefenders = 1; // includes goalie
 			switch (players.size()) {
@@ -161,8 +180,8 @@ namespace {
 			offender.set_players(offenders);
 			defender.set_players(defenders, goalie);
 			
-		} else if (world.friendly_team().score() + world.enemy_team().score() < 6){
-			goalie = players[0];
+		} else if (world.friendly_team().score() + world.enemy_team().score() < 8){
+			// all out offensive
 			for (std::size_t i = 1; i < players.size(); ++i) {	
 				offenders.push_back(players[i]);
 			}
@@ -174,8 +193,10 @@ namespace {
 			}	
 			offender.set_players(offenders);		
 		}
+		
 		LOG_INFO(Glib::ustring::compose("defenders are for sissies: %1 defenders, %2 offenders", defenders.size(), offenders.size()));
 	}
+	
 	void FranticPlayStrategy::calc_chaser() {
 		// see who has the closest ball
 		bool offender_chase = true;
