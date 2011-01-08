@@ -1,5 +1,5 @@
-#ifndef CRC_H
-#define CRC_H
+#ifndef SHARED_CRC_H
+#define SHARED_CRC_H
 
 /**
  * \file

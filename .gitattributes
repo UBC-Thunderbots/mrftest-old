@@ -23,7 +23,6 @@ firmware/bootstrap/18f65j50.lkr -text
 firmware/bootstrap/Makefile -text
 firmware/bootstrap/config.c -text
 firmware/bootstrap/crc.c -text
-firmware/bootstrap/crc.h -text
 firmware/bootstrap/leds.c -text
 firmware/bootstrap/leds.h -text
 firmware/bootstrap/main.c -text
@@ -86,7 +85,6 @@ firmware/main/18f65j50.lkr -text
 firmware/main/Makefile -text
 firmware/main/config.c -text
 firmware/main/crc.c -text
-firmware/main/crc.h -text
 firmware/main/critsec.h -text
 firmware/main/drive.c -text
 firmware/main/drive.h -text
@@ -115,6 +113,8 @@ firmware/main/xbee_txpacket.c -text
 firmware/messages.txt -text
 firmware/pingen/Makefile -text
 firmware/pingen/pingen.c -text
+firmware/shared/crc.c -text
+firmware/shared/crc.h -text
 firmware/shared/drive.h -text
 firmware/shared/error_reporting.h -text
 firmware/shared/faults.h -text
