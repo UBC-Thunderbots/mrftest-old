@@ -35,9 +35,8 @@
  */
 typedef enum {
 	TBOTS_CONTROL_REQUEST_GET_XBEE_FW_VERSION = 0x00,
-	TBOTS_CONTROL_REQUEST_GET_STATUS_BLOCK = 0x01,
-	TBOTS_CONTROL_REQUEST_HALT_ALL = 0x02,
-	TBOTS_CONTROL_REQUEST_ENABLE_RADIOS = 0x03,
+	TBOTS_CONTROL_REQUEST_GET_XBEE_CHANNELS = 0x01,
+	TBOTS_CONTROL_REQUEST_ENABLE_RADIOS = 0x02,
 } tbots_control_request_t;
 
 DEF_INTHIGH(high_handler)
@@ -66,10 +65,8 @@ END_DEF
 
 static BOOL custom_setup_handler(void) {
 	static union {
-		dongle_status_t ep0_dongle_status_buffer;
 		uint8_t debug_interface_alt_setting;
 	} buffer;
-	uint8_t i;
 
 	if (usb_ep0_setup_buffer.request_type.bits.type == USB_SETUP_PACKET_REQUEST_STANDARD) {
 		if (usb_ep0_setup_buffer.request_type.bits.recipient == USB_SETUP_PACKET_RECIPIENT_INTERFACE) {
@@ -108,17 +105,10 @@ static BOOL custom_setup_handler(void) {
 						return false;
 					}
 
-				case TBOTS_CONTROL_REQUEST_GET_STATUS_BLOCK:
-					memcpyram2ram(&buffer.ep0_dongle_status_buffer, &dongle_status, sizeof(buffer.ep0_dongle_status_buffer));
-					usb_ep0_data[0].ptr = &buffer.ep0_dongle_status_buffer;
-					usb_ep0_data[0].length = sizeof(buffer.ep0_dongle_status_buffer);
+				case TBOTS_CONTROL_REQUEST_GET_XBEE_CHANNELS:
+					usb_ep0_data[0].ptr = requested_channels;
+					usb_ep0_data[0].length = sizeof(requested_channels);
 					usb_ep0_data_length = 1;
-					return true;
-
-				case TBOTS_CONTROL_REQUEST_HALT_ALL:
-					for (i = 0; i < 15; ++i) {
-						state_transport_out_drive[i][0] = 0;
-					}
 					return true;
 
 				case TBOTS_CONTROL_REQUEST_ENABLE_RADIOS:
