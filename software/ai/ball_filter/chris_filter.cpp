@@ -46,7 +46,7 @@ namespace {
 					// If no circles contain the ball, we will instead create a new circle containing the ball with a default level of certainty.
 
 					// Compute the new certainty and delete the existing circles.
-					double recip_certainty = 1.0;
+					double recip_certainty = 1.0 - DECAY_RATE;
 					for (std::list<Circle>::iterator i = circles.begin(); i != circles.end(); ) {
 						if ((best_obs->second - i->centre).len() < RADIUS) {
 							recip_certainty *= 1.0 - i->certainty;
@@ -60,7 +60,7 @@ namespace {
 					decay(true);
 
 					// Create the new circle.
-					circles.push_back(Circle(best_obs->second, 1.0 - recip_certainty * (1.0 - DECAY_RATE)));
+					circles.push_back(Circle(best_obs->second, 1.0 - recip_certainty));
 				} else {
 					// Decay the circles, but keep them around even if below the threshold so we don't end up with no circles at all.
 					// They'll all be deleted next time we get a detection.
