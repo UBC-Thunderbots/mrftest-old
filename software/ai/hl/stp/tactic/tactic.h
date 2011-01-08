@@ -53,6 +53,11 @@ namespace AI {
 						void set_player(AI::HL::W::Player::Ptr p);
 
 						/**
+						 * Sets the movement flag associated.
+						 */
+						void set_move_flags(unsigned int f);
+
+						/**
 						 * Scoring function to indicate how preferable this particular player is.
 						 * There is constraint on the range of return values.
 						 * The highest scoring player is simply chosen for the task.
@@ -68,6 +73,11 @@ namespace AI {
 					protected:
 						AI::HL::W::World &world;
 						AI::HL::W::Player::Ptr player;
+
+						/**
+						 * Movement flags associated.
+						 */
+						unsigned int move_flags;
 
 						/**
 						 * The set of parameters associated with this tactic.

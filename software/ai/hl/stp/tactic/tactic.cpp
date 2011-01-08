@@ -3,7 +3,7 @@
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
-Tactic::Tactic(World &world, bool active) : world(world), active_(active), ssm(NULL) {
+Tactic::Tactic(World &world, bool active) : world(world), move_flags(0), active_(active), ssm(NULL) {
 }
 
 Tactic::~Tactic() {
@@ -22,6 +22,10 @@ void Tactic::set_player(Player::Ptr p) {
 		player = p;
 		player_changed();
 	}
+}
+
+void Tactic::set_move_flags(unsigned int f) {
+	move_flags = f;
 }
 
 void Tactic::tick() {

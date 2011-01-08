@@ -1,96 +1,7 @@
 #include "ai/hl/stp/tactic/basic.h"
-#include "ai/hl/tactics.h"
-#include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
-
-// move
-
-namespace {
-	class Move : public Tactic {
-		public:
-			Move(World &world, const Point dest) : Tactic(world), dest(dest) {
-			}
-
-		private:
-			const Point dest;
-
-			bool done() const {
-				return (player->position() - dest).len() < AI::HL::Util::POS_CLOSE;
-			}
-
-			double score(Player::Ptr player) const {
-				return 1.0 / (1.0 + (player->position() - dest).len());
-			}
-
-			void execute() {
-				// TODO: flags
-				player->move(dest, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
-			}
-	};
-}
-
-Tactic::Ptr AI::HL::STP::Tactic::move(World &world, const Point dest) {
-	const Tactic::Ptr p(new Move(world, dest));
-	return p;
-}
-
-// defend goal
-
-namespace {
-	class DefendGoal : public Tactic {
-		public:
-			DefendGoal(World &world) : Tactic(world) {
-			}
-
-		private:
-			double score(Player::Ptr player) const {
-				if (world.friendly_team().get(0) == player) {
-					return 1;
-				}
-				return 0;
-			}
-
-			void execute() {
-				AI::HL::Tactics::lone_goalie(world, player);
-			}
-	};
-}
-
-Tactic::Ptr AI::HL::STP::Tactic::defend_goal(World &world) {
-	const Tactic::Ptr p(new DefendGoal(world));
-	return p;
-}
-
-// repel
-
-namespace {
-	class Repel : public Tactic {
-		public:
-			Repel(World &world) : Tactic(world) {
-			}
-
-		private:
-			bool done() const {
-				// will never be done... unless ball is outside the field
-				return false;
-			}
-
-			double score(Player::Ptr player) const {
-				return 1.0 / (1.0 + (player->position() - world.ball().position()).len());
-			}
-
-			void execute() {
-				AI::HL::Tactics::repel(world, player, 0);
-			}
-	};
-}
-
-Tactic::Ptr AI::HL::STP::Tactic::repel(World &world) {
-	const Tactic::Ptr p(new Repel(world));
-	return p;
-}
 
 // block
 
@@ -108,54 +19,13 @@ namespace {
 			}
 
 			void execute() {
-				// TODO: flags
-				player->move(robot->position(), (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+				player->move(robot->position(), (world.ball().position() - player->position()).orientation(), move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 			}
 	};
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::block(World &world, Robot::Ptr robot) {
 	const Tactic::Ptr p(new Block(world, robot));
-	return p;
-}
-
-// chase
-
-namespace {
-	class Chase : public Tactic {
-		public:
-			Chase(World &world) : Tactic(world) {
-			}
-
-		private:
-			bool done_;
-
-			bool done() const {
-				return done_;
-			}
-
-			void player_changed() {
-				done_ = (player->has_ball());
-			}
-
-			double score(Player::Ptr player) const {
-				return 1.0 / (1.0 + (player->position() - world.ball().position()).len());
-			}
-
-			void execute() {
-				if (player->has_ball()) {
-					done_ = true;
-				}
-				// TODO: flags
-				// player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
-				// AI::HL::Tactics::chase(world, player, 0);
-				player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
-			}
-	};
-}
-
-Tactic::Ptr AI::HL::STP::Tactic::chase(World &world) {
-	const Tactic::Ptr p(new Chase(world));
 	return p;
 }
 
@@ -174,7 +44,7 @@ namespace {
 			void execute() {
 				// nothing lol
 				Point dest = Point(0, world.field().width() / 2);
-				player->move(dest, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+				player->move(dest, (world.ball().position() - player->position()).orientation(), move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
 			}
 	};
 }

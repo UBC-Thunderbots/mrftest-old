@@ -19,6 +19,7 @@ namespace {
 			}
 
 			double score(Player::Ptr player) const {
+				if (player->has_ball()) return 1e99;
 				return -(player->position() - world.ball().position()).lensq();
 			}
 

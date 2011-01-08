@@ -212,6 +212,12 @@ software/ai/hl/stp/ssm/move_ball.h -text
 software/ai/hl/stp/ssm/ssm.h -text
 software/ai/hl/stp/tactic/basic.cpp -text
 software/ai/hl/stp/tactic/basic.h -text
+software/ai/hl/stp/tactic/chase.cpp -text
+software/ai/hl/stp/tactic/chase.h -text
+software/ai/hl/stp/tactic/defend.cpp -text
+software/ai/hl/stp/tactic/defend.h -text
+software/ai/hl/stp/tactic/move.cpp -text
+software/ai/hl/stp/tactic/move.h -text
 software/ai/hl/stp/tactic/pass.h -text
 software/ai/hl/stp/tactic/patrol.h -text
 software/ai/hl/stp/tactic/shoot.cpp -text
