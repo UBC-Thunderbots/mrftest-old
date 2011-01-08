@@ -48,7 +48,7 @@ typedef struct {
 typedef struct {
 	uint8_t micropacket_length;
 	drive_micropacket_pipe_robot_t pipe_robot;
-	uint8_t payload[sizeof(drive_block_t)];
+	drive_block_t payload;
 } drive_micropacket_t;
 
 typedef struct {
@@ -181,7 +181,7 @@ void run(void) {
 				if (dongle_status.robots & mask) {
 					drive_micropackets[j].pipe_robot.pipe = PIPE_DRIVE;
 					drive_micropackets[j].pipe_robot.robot = i;
-					memcpyram2ram(drive_micropackets[j].payload, state_transport_out_drive[i - 1], sizeof(drive_block_t));
+					memcpyram2ram(&drive_micropackets[j].payload, &state_transport_out_drive[i - 1], sizeof(drive_block_t));
 					++j;
 				}
 			}
