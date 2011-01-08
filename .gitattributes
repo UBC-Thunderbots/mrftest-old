@@ -220,6 +220,8 @@ software/ai/hl/stp/tactic/move.cpp -text
 software/ai/hl/stp/tactic/move.h -text
 software/ai/hl/stp/tactic/pass.h -text
 software/ai/hl/stp/tactic/patrol.h -text
+software/ai/hl/stp/tactic/ram.cpp -text
+software/ai/hl/stp/tactic/ram.h -text
 software/ai/hl/stp/tactic/shoot.cpp -text
 software/ai/hl/stp/tactic/shoot.h -text
 software/ai/hl/stp/tactic/tactic.cpp -text
