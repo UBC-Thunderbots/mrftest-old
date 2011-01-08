@@ -93,12 +93,8 @@ namespace {
 		if (world.friendly_team().size() == 0) {
 			return;
 		}
-
-		offender.set_chase(true);
-		offender.tick();
-		if (world.friendly_team().score() + world.enemy_team().score() < 6){
-			defender.tick();
-		} 
+		if (offenders.size() > 0) offender.tick();
+		if (defenders.size() > 0) defender.tick();
 	}
 
 	FranticPlayStrategy::FranticPlayStrategy(World &world) : Strategy(world), offender(world), defender(world) {
