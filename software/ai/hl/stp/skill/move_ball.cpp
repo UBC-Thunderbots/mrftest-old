@@ -12,7 +12,7 @@ const MoveBall* MoveBall::instance() {
 	return &moveball;
 }
 
-Skill* MoveBall::initial() const {
+const Skill* MoveBall::initial() const {
 	// TODO
 	return NULL;
 }

@@ -17,9 +17,8 @@ namespace AI {
 						/**
 						 * Obtains the first skill.
 						 */
-						virtual AI::HL::STP::Skill::Skill* initial() const = 0;
+						virtual const AI::HL::STP::Skill::Skill* initial() const = 0;
 				};
-
 			}
 		}
 	}

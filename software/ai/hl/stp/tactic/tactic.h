@@ -82,7 +82,7 @@ namespace AI {
 						/**
 						 * Sets the SSM associated with this tactic.
 						 */
-						void set_ssm(AI::HL::STP::SSM::SkillStateMachine* s);
+						void set_ssm(const AI::HL::STP::SSM::SkillStateMachine* s);
 
 					private:
 						bool active_;
@@ -90,12 +90,12 @@ namespace AI {
 						/**
 						 * The ssm associated.
 						 */
-						AI::HL::STP::SSM::SkillStateMachine* ssm;
+						const AI::HL::STP::SSM::SkillStateMachine* ssm;
 
 						/**
 						 * The current skill.
 						 */
-						AI::HL::STP::Skill::Skill* skill;
+						const AI::HL::STP::Skill::Skill* skill;
 
 						/**
 						 * Called when the player associated with this tactic is changed.

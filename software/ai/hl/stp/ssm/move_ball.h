@@ -15,7 +15,7 @@ namespace AI {
 						static const MoveBall* instance();
 
 					private:
-						AI::HL::STP::Skill::Skill* initial() const;
+						const AI::HL::STP::Skill::Skill* initial() const;
 				};
 			}
 		}

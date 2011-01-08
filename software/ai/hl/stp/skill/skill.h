@@ -36,7 +36,7 @@ namespace AI {
 						 *
 						 * \return the skill it should transition to.
 						 */
-						virtual Skill* execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const = 0;
+						virtual const Skill* execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, const AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const = 0;
 				};
 			}
 		}

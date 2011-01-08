@@ -5,7 +5,7 @@ using namespace AI::HL::W;
 using namespace AI::HL::STP::Skill;
 using AI::HL::STP::Skill::Skill;
 
-Skill* DriveToGoal::execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const {
+const Skill* DriveToGoal::execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const {
 	// TODO
 	// if has_ball
 	//   if can_shoot
@@ -15,5 +15,6 @@ Skill* DriveToGoal::execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr play
 	//
 	// move towards enemy goal
 	// repeat
+	return this;
 }
 
