@@ -205,6 +205,8 @@ software/ai/hl/stp/skill/kick.cpp -text
 software/ai/hl/stp/skill/kick.h -text
 software/ai/hl/stp/skill/skill.cpp -text
 software/ai/hl/stp/skill/skill.h -text
+software/ai/hl/stp/skill/spin_at_ball.cpp -text
+software/ai/hl/stp/skill/spin_at_ball.h -text
 software/ai/hl/stp/ssm/move_ball.cpp -text
 software/ai/hl/stp/ssm/move_ball.h -text
 software/ai/hl/stp/ssm/ssm.h -text

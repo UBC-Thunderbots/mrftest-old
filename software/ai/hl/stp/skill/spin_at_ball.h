@@ -1,5 +1,5 @@
-#ifndef AI_HL_STP_SKILL_DRIVE_TO_GOAL_H
-#define AI_HL_STP_SKILL_DRIVE_TO_GOAL_H
+#ifndef AI_HL_STP_SKILL_SPIN_AT_BALL_H
+#define AI_HL_STP_SKILL_SPIN_AT_BALL_H
 
 #include "ai/hl/stp/skill/skill.h"
 
@@ -8,12 +8,11 @@ namespace AI {
 		namespace STP {
 			namespace Skill {
 				/**
-				 * An implementation of the drive to goal skill in the STP paper.
-				 * Attempts to push the ball towards the desired direction to kick.
+				 * Spin at the ball.
 				 */
-				class DriveToGoal : public Skill {
+				class SpinAtBall : public Skill {
 					public:
-						const static DriveToGoal* instance();
+						const static SpinAtBall* instance();
 
 						const Skill* execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, const AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const;
 				};

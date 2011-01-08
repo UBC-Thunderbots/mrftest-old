@@ -20,6 +20,9 @@ const Skill* Kick::execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr playe
 		return GoToBall::instance()->execute(world, player, ssm, param);
 	}
 
+	// stay at the same place
+	player->move(player->position(), player->orientation(), 0, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
+
 	// TODO: check if can shoot
 	if (player->chicker_ready_time() == 0) {
 		player->kick(1.0);

@@ -23,10 +23,26 @@ namespace AI {
 				 */
 				struct Param {
 					Param();
+
 					bool can_kick;
+
+					/**
+					 * Move flags
+					 */
 					unsigned int move_flags;
-					unsigned int move_type;
+
+					/**
+					 * Move priority.
+					 * Not always used.
+					 * Active tactics ALWAYS have HIGH priority.
+					 */
 					unsigned int move_priority;
+
+					/**
+					 * A desired orientation.
+					 * Used in SpinAtBall.
+					 */
+					double orientation;
 				};
 
 				/**
@@ -43,6 +59,25 @@ namespace AI {
 						 * \return the skill it should transition to.
 						 */
 						virtual const Skill* execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, const AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const = 0;
+				};
+
+				/**
+				 * A Terminal state always transition to itself.
+				 */
+				class Terminal : public Skill {
+					public:
+
+						/**
+						 * Indicates that the SSM finished without error.
+						 */
+						static const Terminal* finish();
+
+						/**
+						 * Indicates that the SSM finished with problems.
+						 */
+						static const Terminal* fail();
+
+						const Skill* execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, const AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const;
 				};
 			}
 		}
