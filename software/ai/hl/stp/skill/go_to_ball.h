@@ -11,12 +11,14 @@ namespace AI {
 				/**
 				 * An implementation of the go to ball skill in the STP paper.
 				 */
+				 /*
 				class GoToBall : public Skill {
 					public:
 						GoToBall(AI::HL::W::World& w, AI::HL::W::Player::Ptr p);
 
 						void run();
 				};
+				*/
 
 			}
 		}

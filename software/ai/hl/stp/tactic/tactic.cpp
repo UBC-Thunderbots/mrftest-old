@@ -3,17 +3,10 @@
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
-Tactic::Tactic(World &world, bool active, double timeout) : world(world), active_(active), timeout_(timeout) {
-	std::time(&start_time);
+Tactic::Tactic(World &world, bool active) : world(world), active_(active), ssm(NULL) {
 }
 
 Tactic::~Tactic() {
-}
-
-double Tactic::elapsed_time() const {
-	std::time_t curr_time;
-	std::time(&curr_time);
-	return difftime(curr_time, start_time);
 }
 
 bool Tactic::done() const {
@@ -29,6 +22,27 @@ void Tactic::set_player(Player::Ptr p) {
 		player = p;
 		player_changed();
 	}
+}
+
+void Tactic::tick() {
+	execute();
+
+	// if no SSM, nothing to do
+	if (ssm == NULL) return;
+
+	// initialize skill if needed
+	if (!skill) {
+		skill = ssm->initial();
+	}
+
+	// execute the skill
+	skill = skill->execute(world, player, param);
+}
+
+void Tactic::set_ssm(AI::HL::STP::Skill::SkillStateMachine* s) {
+	if (s == ssm) return;
+	ssm = s;
+	skill = NULL;
 }
 
 void Tactic::player_changed() {

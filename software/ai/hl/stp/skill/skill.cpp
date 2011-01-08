@@ -3,6 +3,6 @@
 using namespace AI::HL::STP::Skill;
 using namespace AI::HL::W;
 
-Skill::Skill(AI::HL::W::World& w, AI::HL::W::Player::Ptr p) : world(w), player(p) {
-}
+//Skill::Skill(AI::HL::W::World& w, AI::HL::W::Player::Ptr p) : world(w), player(p) {
+//}
 

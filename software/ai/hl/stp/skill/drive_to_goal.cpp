@@ -3,6 +3,7 @@
 using namespace AI::HL::STP::Skill;
 using namespace AI::HL::W;
 
+/*
 DriveToGoal::DriveToGoal(AI::HL::W::World& w, AI::HL::W::Player::Ptr p) : Skill(w, p) {
 }
 
@@ -16,4 +17,5 @@ void DriveToGoal::run() {
 	// move towards enemy goal
 	// repeat
 }
+*/
 

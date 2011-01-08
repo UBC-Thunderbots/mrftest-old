@@ -2,9 +2,6 @@
 #define AI_HL_STP_SKILL_SKILL_H
 
 #include "ai/hl/world.h"
-#include "util/byref.h"
-#include "util/registerable.h"
-#include "util/fiber.h"
 
 #include <ctime>
 
@@ -14,26 +11,39 @@ namespace AI {
 			namespace Skill {
 
 				/**
-				 * A skill is the bottomost layer in the STP paradigm.
-				 * It contains the basic component of movement.
+				 * Parameters that will be shared across skills go here.
 				 */
-				class Skill : public ByRef {
+				struct Param {
+					bool can_kick;
+				};
+
+				/**
+				 * A skill is the bottom layer in the STP paradigm.
+				 * A skill is a stateless function object.
+				 */
+				class Skill {
 					public:
-						typedef RefPtr<Skill> Ptr;
-
 						/**
-						 * The content of the skill shall go here.
+						 * Executes the skill for this particular player.
+						 *
+						 * \return the skill it should transition to.
 						 */
-						virtual void run() = 0;
+						virtual Skill* execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, Param& param) const = 0;
+				};
 
-					protected:
-						Skill(AI::HL::W::World& w, AI::HL::W::Player::Ptr p);
-
-						AI::HL::W::World& world;
-						AI::HL::W::Player::Ptr player;
+				/**
+				 * SSM in the Skill layer.
+				 * SSM is a singleton, and does not contain any player or world info.
+				 * Its purpose is just to set up the first state.
+				 */
+				class SkillStateMachine {
+					public:
+						/**
+						 * Obtains the first skill.
+						 */
+						virtual Skill* initial() const = 0;
 				};
 			}
-
 		}
 	}
 }

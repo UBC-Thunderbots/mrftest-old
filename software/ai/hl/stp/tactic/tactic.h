@@ -2,16 +2,25 @@
 #define AI_HL_STP_TACTIC_TACTIC_H
 
 #include "ai/hl/world.h"
+#include "ai/hl/stp/skill/skill.h"
 #include "util/byref.h"
 #include "util/registerable.h"
-#include <ctime>
 
 namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Tactic {
+
 				/**
 				 * A tactic is a layer in the STP paradigm.
+				 * It runs every tick.
+				 *
+				 * It may choose to use the Skill layer.
+				 * If it does so, it has to set the appropriate skill state machine,
+				 * as well as all the parameters.
+				 *
+				 * To prevent rapid fluctuation of parameters,
+				 * a hysteresis is recommended.
 				 */
 				class Tactic : public ByRef {
 					public:
@@ -21,23 +30,16 @@ namespace AI {
 						 * Constructor for tactic.
 						 *
 						 * \param [in] active indicates if this is an active tactic.
-						 *
-						 * \param [in] timeout the maximum time this tactic will execute.
 						 */
-						Tactic(AI::HL::W::World &world, bool active = false, double timeout = 5.0);
+						Tactic(AI::HL::W::World &world, bool active = false);
 
-						~Tactic();
+						virtual ~Tactic();
 
 						/**
 						 * Indicates if this tactic is done with its task.
 						 * An inactive tactic will always be done.
 						 */
 						virtual bool done() const;
-
-						/**
-						 * Time since this tactic was created.
-						 */
-						double elapsed_time() const;
 
 						/**
 						 * Checks if the current tactic is an active tactic.
@@ -57,6 +59,12 @@ namespace AI {
 						virtual double score(AI::HL::W::Player::Ptr player) const = 0;
 
 						/**
+						 * This function is called every tick,
+						 * sets things up, and call execute().
+						 */
+						virtual void tick();
+
+						/**
 						 * Drive some actual players.
 						 */
 						virtual void execute() = 0;
@@ -65,10 +73,28 @@ namespace AI {
 						AI::HL::W::World &world;
 						AI::HL::W::Player::Ptr player;
 
+						/**
+						 * The set of parameters associated with this tactic.
+						 */
+						AI::HL::STP::Skill::Param param;
+
+						/**
+						 * Sets the SSM associated with this tactic.
+						 */
+						void set_ssm(AI::HL::STP::Skill::SkillStateMachine* s);
+
 					private:
 						bool active_;
-						const double timeout_;
-						std::time_t start_time;
+
+						/**
+						 * The ssm associated.
+						 */
+						AI::HL::STP::Skill::SkillStateMachine* ssm;
+
+						/**
+						 * The current skill.
+						 */
+						AI::HL::STP::Skill::Skill* skill;
 
 						/**
 						 * Called when the player associated with this tactic is changed.

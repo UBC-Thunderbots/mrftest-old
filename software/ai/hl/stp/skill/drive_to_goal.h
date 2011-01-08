@@ -11,12 +11,14 @@ namespace AI {
 				/**
 				 * An implementation of the drive to goal skill in the STP paper.
 				 */
+				 /*
 				class DriveToGoal : public Skill {
 					public:
 						DriveToGoal(AI::HL::W::World& w, AI::HL::W::Player::Ptr p);
 
 						void run();
 				};
+				*/
 
 			}
 		}
