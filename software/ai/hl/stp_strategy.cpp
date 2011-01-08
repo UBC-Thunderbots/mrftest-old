@@ -263,7 +263,7 @@ namespace {
 			if (!curr_assignment[i].is()) {
 				continue;
 			}
-			curr_tactics[i]->execute();
+			curr_tactics[i]->tick();
 		}
 	}
 
