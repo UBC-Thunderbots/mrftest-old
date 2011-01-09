@@ -19,7 +19,7 @@ namespace {
 			}
 
 			void execute() {
-				player->move(robot->position(), (world.ball().position() - player->position()).orientation(), move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+				player->move(robot->position(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 			}
 	};
 }
@@ -44,7 +44,7 @@ namespace {
 			void execute() {
 				// nothing lol
 				Point dest = Point(0, world.field().width() / 2);
-				player->move(dest, (world.ball().position() - player->position()).orientation(), move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+				player->move(dest, (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
 			}
 	};
 }

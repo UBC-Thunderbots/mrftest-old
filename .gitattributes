@@ -199,6 +199,8 @@ software/ai/hl/stp/play/grab_ball.cpp -text
 software/ai/hl/stp/play/just_shoot.cpp -text
 software/ai/hl/stp/play/play.cpp -text
 software/ai/hl/stp/play/play.h -text
+software/ai/hl/stp/skill/context.cpp -text
+software/ai/hl/stp/skill/context.h -text
 software/ai/hl/stp/skill/drive_to_goal.cpp -text
 software/ai/hl/stp/skill/drive_to_goal.h -text
 software/ai/hl/stp/skill/go_to_ball.cpp -text

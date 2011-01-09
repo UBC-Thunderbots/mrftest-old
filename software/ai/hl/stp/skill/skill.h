@@ -2,42 +2,27 @@
 #define AI_HL_STP_SKILL_SKILL_H
 
 #include "ai/hl/world.h"
-#include <set>
-
-namespace AI {
-	namespace HL {
-		namespace STP {
-			namespace SSM {
-				class SkillStateMachine;
-			}
-		}
-	}
-}
 
 namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Skill {
-
 				/**
 				 * Parameters that will be shared across skills go here.
 				 */
 				struct Param {
 					Param();
 
-					bool can_kick;
-
 					/**
-					 * Move flags
+					 * Move flags.
 					 */
 					unsigned int move_flags;
 
 					/**
-					 * Move priority.
-					 * Not always used.
-					 * Active tactics ALWAYS have HIGH priority.
+					 * The default move priority.
+					 * Note that ACTIVE tactics and certain skills ignore this and use HIGH priority.
 					 */
-					unsigned int move_priority;
+					AI::Flags::MovePrio move_priority;
 
 					/**
 					 * A desired distance for SpinAtBall.
@@ -50,69 +35,16 @@ namespace AI {
 					double pivot_orientation;
 				};
 
-				class Skill;
+				class Context;
 
 				/**
-				 * Allows all skill to have a single clean interface,
-				 * and gives more flexibility for skills.
-				 * Also, allows transitions to be stored.
+				 * Skill is the most bottom layer in the STP paradigm.
 				 *
-				 * TODO: find a clean way to use this.
-				 */
-				class Context {
-					public:
-						Context(AI::HL::W::World& w, AI::HL::W::Player::Ptr pl, Param& pr);
-
-						/**
-						 * The world associated.
-						 */
-						AI::HL::W::World& world();
-
-						/**
-						 * The player associated.
-						 */
-						AI::HL::W::Player::Ptr player();
-
-						/**
-						 * The skill state machine associated.
-						 */
-						const AI::HL::STP::SSM::SkillStateMachine* ssm() const;
-
-						/**
-						 * The parameters associated.
-						 * Skills may modify this.
-						 */
-						Param& param();
-
-						/**
-						 * Sets the skill to be used in the next tick.
-						 */
-						void transition(const Skill* skill);
-
-						/**
-						 * Executes a different skill.
-						 */
-						void execute(const Skill* skill);
-
-					protected:
-						AI::HL::W::World& world_;
-						AI::HL::W::Player::Ptr player_;
-						Param& param_;
-
-						const Skill* next_skill;
-
-						/**
-						 * We can check if skills ever loop to itself.
-						 */
-						std::set<const Skill*> history;
-				};
-
-				/**
-				 * A skill is the bottom layer in the STP paradigm.
-				 * A skill is a stateless immutable singleton.
-				 * Its purpose is similar to that of a function pointer.
+				 * Think of FUNCTION POINTERS.
+				 * Because a tactic "communicates" to a skill through parameters only,
+				 * skills are made "stateless" immutable singletons.
 				 *
-				 * Note that skills are not completely stateless,
+				 * Note that skills are not completely "stateless",
 				 * they are capable of writing stuff into the parameter class.
 				 */
 				class Skill {
@@ -120,11 +52,15 @@ namespace AI {
 						/**
 						 * Executes the skill for this particular player.
 						 *
-						 * Note that one can make use of tail recursion to execute and return a different skill.
+						 * \param[in] world the world associated.
 						 *
-						 * \return the skill it should transition to.
+						 * \param[in] player the active player.
+						 *
+						 * \param[in] param the skill parameters.
+						 *
+						 * \param[in,out] context allows additional functionality such as state transitions.
 						 */
-						virtual const Skill* execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, const AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const = 0;
+						virtual void execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, Param& param, Context& context) const = 0;
 				};
 
 				/**

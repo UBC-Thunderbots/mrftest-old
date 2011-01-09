@@ -18,12 +18,11 @@ namespace {
 			}
 
 			double score(Player::Ptr player) const {
-				return 1.0 / (1.0 + (player->position() - dest).len());
+				return -(player->position() - dest).lensq();
 			}
 
 			void execute() {
-				// TODO: flags
-				player->move(dest, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+				player->move(dest, (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, param.move_priority);
 			}
 	};
 }

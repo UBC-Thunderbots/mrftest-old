@@ -6,17 +6,17 @@ using namespace AI::HL::STP::Skill;
 using AI::HL::STP::Skill::Skill;
 
 namespace {
-	SpinAtBall spin_at_ball;
+	class SpinAtBall : public Skill {
+		private:
+			void execute(World& world, Player::Ptr player, Param& param, Context& context) const {
+				// TODO
+			}
+	};
+
+	SpinAtBall spin_at_ball_instance;
 }
 
-const SpinAtBall* SpinAtBall::instance() {
-	return &spin_at_ball;
-}
-
-const Skill* SpinAtBall::execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, const AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const {
-
-	// TODO
-	
-	return this;
+const Skill* spin_at_ball() {
+	return &spin_at_ball_instance;
 }
 

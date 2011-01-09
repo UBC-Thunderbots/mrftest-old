@@ -3,6 +3,7 @@
 
 #include "ai/hl/world.h"
 #include "ai/hl/stp/skill/skill.h"
+#include "ai/hl/stp/skill/context.h"
 #include "ai/hl/stp/ssm/ssm.h"
 #include "util/byref.h"
 #include "util/registerable.h"
@@ -15,10 +16,14 @@ namespace AI {
 				 * A tactic is a layer in the STP paradigm.
 				 * It runs every tick.
 				 *
+				 * A typical subclass shall derive execute(),
+				 * and optionally player_changed().
+				 *
 				 * It may choose to use the Skill layer.
-				 * If it does so, it has to set the appropriate skill state machine,
+				 * If it does so, it must set a suitable Skill State Machine (SSM) every tick,
 				 * as well as all the parameters.
-				 * Skill state machine must be set every tick.
+				 *
+				 * In other words, a tactic may only communicate with the skill layer through SSM and parameters.
 				 *
 				 * To prevent rapid fluctuation of parameters,
 				 * hysteresis is recommended.
@@ -34,6 +39,9 @@ namespace AI {
 						 */
 						Tactic(AI::HL::W::World &world, bool active = false);
 
+						/**
+						 * Destructor.
+						 */
 						virtual ~Tactic();
 
 						/**
@@ -49,11 +57,13 @@ namespace AI {
 
 						/**
 						 * Changes the player associated with this tactic.
+						 * A subclass should not call this.
 						 */
 						void set_player(AI::HL::W::Player::Ptr p);
 
 						/**
 						 * Sets the movement flag associated.
+						 * A subclass should not call this.
 						 */
 						void set_move_flags(unsigned int f);
 
@@ -68,19 +78,14 @@ namespace AI {
 						 * This function is called every tick,
 						 * sets things up, and call execute().
 						 */
-						virtual void tick();
+						void tick();
 
 					protected:
 						AI::HL::W::World &world;
 						AI::HL::W::Player::Ptr player;
 
 						/**
-						 * Movement flags associated.
-						 */
-						unsigned int move_flags;
-
-						/**
-						 * The set of parameters associated with this tactic.
+						 * The set of parameters for all skills with this tactic.
 						 */
 						AI::HL::STP::Skill::Param param;
 
@@ -98,14 +103,14 @@ namespace AI {
 						bool active_;
 
 						/**
-						 * The ssm associated.
+						 * Right now this is only used for a certain callback function.
 						 */
 						const AI::HL::STP::SSM::SkillStateMachine* ssm;
 
 						/**
-						 * The current skill.
+						 * Handles the skill state machine.
 						 */
-						const AI::HL::STP::Skill::Skill* skill;
+						AI::HL::STP::Skill::Context context;
 
 						/**
 						 * Called when the player associated with this tactic is changed.

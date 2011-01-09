@@ -9,13 +9,9 @@ namespace AI {
 			namespace Skill {
 				/**
 				 * Spin at the ball.
+				 * Like pivot.
 				 */
-				class SpinAtBall : public Skill {
-					public:
-						const static SpinAtBall* instance();
-
-						const Skill* execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, const AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const;
-				};
+				extern const Skill* spin_at_ball();
 			}
 		}
 	}
