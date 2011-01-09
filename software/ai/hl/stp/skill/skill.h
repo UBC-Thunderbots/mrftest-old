@@ -6,6 +6,16 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
+			namespace SSM {
+				class SkillStateMachine;
+			}
+		}
+	}
+}
+
+namespace AI {
+	namespace HL {
+		namespace STP {
 			namespace Skill {
 				/**
 				 * Parameters that will be shared across skills go here.
@@ -35,7 +45,42 @@ namespace AI {
 					double pivot_orientation;
 				};
 
-				class Context;
+				class Skill;
+
+				/**
+				 * "Hierarchical" State Machine.
+				 * Defines the interface that skills can use.
+				 */
+				class Context {
+					public:
+						/**
+						 * Sets the current skill to this,
+						 * and executes this skill right after the current one finishes.
+						 */
+						virtual void execute_after(const Skill* skill) = 0;
+
+						/**
+						 * Runs a different skill state machine,
+						 * and waits for its completion before going back to the current skill.
+						 */
+						virtual void push_ssm(const AI::HL::STP::SSM::SkillStateMachine* ssm) = 0;
+
+						/**
+						 * Indicates that this skill terminates successfully.
+						 */
+						virtual void finish() = 0;
+
+						/**
+						 * Something bad has happened.
+						 */
+						virtual void abort() = 0;
+
+						/**
+						 * Sets the current skill to this.
+						 * This skill will be executed next tick.
+						 */
+						virtual void transition(const Skill* skill) = 0;
+				};
 
 				/**
 				 * Skill is the most bottom layer in the STP paradigm.
@@ -46,34 +91,27 @@ namespace AI {
 				 *
 				 * Note that skills are not completely "stateless",
 				 * they are capable of writing stuff into the parameter class.
+				 *
+				 * Skills must NEVER call other skills directly,
+				 * they must use the context to execute after or transition.
 				 */
 				class Skill {
 					public:
 						/**
 						 * Executes the skill for this particular player.
 						 *
-						 * \param[in] world the world associated.
+						 * \param world the world associated.
 						 *
-						 * \param[in] player the active player.
+						 * \param player the active player.
 						 *
-						 * \param[in] param the skill parameters.
+						 * \param ssm the skill state machine associated.
 						 *
-						 * \param[in,out] context allows additional functionality such as state transitions.
+						 * \param param the skill parameters.
+						 *
+						 * \param context provides additional functionality.
 						 */
-						virtual void execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, Param& param, Context& context) const = 0;
+						virtual void execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, const AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param, Context& context) const = 0;
 				};
-
-				/**
-				 * A terminal state always transition to itself.
-				 * Denotes that the SSM completes succesfully.
-				 */
-				extern const Skill* finish();
-
-				/**
-				 * A terminal state always transition to itself.
-				 * Denotes that the SSM failed.
-				 */
-				extern const Skill* fail();
 			}
 		}
 	}

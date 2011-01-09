@@ -90,6 +90,11 @@ namespace AI {
 						AI::HL::STP::Skill::Param param;
 
 						/**
+						 * Handles the skill state machine.
+						 */
+						AI::HL::STP::Skill::ContextImpl context;
+
+						/**
 						 * Sets the SSM associated with this tactic.
 						 */
 						void set_ssm(const AI::HL::STP::SSM::SkillStateMachine* s);
@@ -106,11 +111,6 @@ namespace AI {
 						 * Right now this is only used for a certain callback function.
 						 */
 						const AI::HL::STP::SSM::SkillStateMachine* ssm;
-
-						/**
-						 * Handles the skill state machine.
-						 */
-						AI::HL::STP::Skill::Context context;
 
 						/**
 						 * Called when the player associated with this tactic is changed.

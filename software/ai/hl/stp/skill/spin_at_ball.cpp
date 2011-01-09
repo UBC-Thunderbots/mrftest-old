@@ -4,11 +4,12 @@
 using namespace AI::HL::W;
 using namespace AI::HL::STP::Skill;
 using AI::HL::STP::Skill::Skill;
+using AI::HL::STP::SSM::SkillStateMachine;
 
 namespace {
 	class SpinAtBall : public Skill {
 		private:
-			void execute(World& world, Player::Ptr player, Param& param, Context& context) const {
+			void execute(World& world, Player::Ptr player, const SkillStateMachine*, Param& param, Context& context) const {
 				// TODO
 			}
 	};

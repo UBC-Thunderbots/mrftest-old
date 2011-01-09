@@ -3,7 +3,7 @@
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
-Tactic::Tactic(World &world, bool active) : world(world), active_(active), ssm(NULL), context(world, param) {
+Tactic::Tactic(World &world, bool active) : world(world), context(world, param), active_(active), ssm(NULL) {
 }
 
 Tactic::~Tactic() {

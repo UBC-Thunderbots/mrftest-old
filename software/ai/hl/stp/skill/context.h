@@ -2,7 +2,6 @@
 #define AI_HL_STP_SKILL_CONTEXT_H
 
 #include "ai/hl/stp/skill/skill.h"
-#include "ai/hl/stp/ssm/ssm.h"
 #include <set>
 
 namespace AI {
@@ -17,17 +16,12 @@ namespace AI {
 				 * TODO:
 				 * A context should only tie to one particular player.
 				 */
-				class Context {
+				class ContextImpl : private Context {
 					public:
 						/**
 						 * The constructor.
 						 */
-						Context(AI::HL::W::World& w, Param& p);
-
-						/**
-						 * The skill state machine associated.
-						 */
-						const AI::HL::STP::SSM::SkillStateMachine* ssm() const;
+						ContextImpl(AI::HL::W::World& w, Param& p);
 
 						/**
 						 * TODO: fix this.
@@ -46,32 +40,57 @@ namespace AI {
 						void reset_ssm();
 
 						/**
+						 * Checks if the context has reached a terminal state.
+						 */
+						bool done() const;
+
+						/**
 						 * Runs the context.
 						 */
 						void run();
 
-						/**
-						 * Sets the skill to be used in the next tick.
-						 */
-						void transition(const Skill* skill);
-
-						/**
-						 * Executes immediately a different skill.
-						 */
-						void execute(const Skill* skill);
-
-					protected:
+					private:
 						AI::HL::W::World& world;
 						AI::HL::W::Player::Ptr player;
 						Param& param;
 
-						const AI::HL::STP::SSM::SkillStateMachine* ssm_;
+						const AI::HL::STP::SSM::SkillStateMachine* ssm;
+
 						const Skill* next_skill;
+						bool execute_next_skill;
 
 						/**
 						 * We can check if skills ever loop to itself.
 						 */
 						std::set<const Skill*> history;
+
+						/**
+						 * Transition to a different skill.
+						 * This skill is executed after the current skill finishes execute().
+						 */
+						void execute_after(const Skill* skill);
+
+						/**
+						 * Runs a different skill state machine,
+						 * and waits for its completion before going back to the current skill.
+						 */
+						void push_ssm(const AI::HL::STP::SSM::SkillStateMachine* ssm);
+
+						/**
+						 * Indicates that this skill terminates.
+						 */
+						void finish();
+
+						/**
+						 * Something bad has happened.
+						 */
+						void abort();
+
+						/**
+						 * Does not execute this skill immediately.
+						 * But sets it for next tick.
+						 */
+						void transition(const Skill* skill);
 				};
 			}
 		}

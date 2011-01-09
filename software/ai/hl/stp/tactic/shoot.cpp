@@ -4,8 +4,6 @@
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
-// shoot
-
 namespace {
 	class Shoot : public Tactic {
 		public:
@@ -14,8 +12,7 @@ namespace {
 
 		private:
 			bool done() const {
-#warning find a way to check that the ball has left off in the right direction
-				return true;
+				return context.done();
 			}
 
 			double score(Player::Ptr player) const {
@@ -24,7 +21,6 @@ namespace {
 			}
 
 			void execute() {
-				// TODO: flags
 				set_ssm(AI::HL::STP::SSM::move_ball());
 			}
 	};

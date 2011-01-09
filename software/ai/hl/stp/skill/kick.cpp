@@ -6,14 +6,15 @@
 using namespace AI::HL::W;
 using namespace AI::HL::STP::Skill;
 using AI::HL::STP::Skill::Skill;
+using AI::HL::STP::SSM::SkillStateMachine;
 
 namespace {
 	class Kick : public Skill {
 		private:
-			void execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, Param& param, Context& context) const {
+			void execute(World& world, Player::Ptr player, const SkillStateMachine*, Param& param, Context& context) const {
 				// no ball lol; how did we get to this state.
 				if (!player->has_ball()) {
-					context.execute(go_to_ball());
+					context.execute_after(go_to_ball());
 					return;
 				}
 
@@ -23,7 +24,7 @@ namespace {
 				// TODO: check if can shoot
 				if (player->chicker_ready_time() == 0) {
 					player->kick(1.0);
-					context.transition(finish());
+					context.finish();
 					return;
 				}
 			}

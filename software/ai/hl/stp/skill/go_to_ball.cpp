@@ -5,6 +5,7 @@
 using namespace AI::HL::W;
 using namespace AI::HL::STP::Skill;
 using AI::HL::STP::Skill::Skill;
+using AI::HL::STP::SSM::SkillStateMachine;
 
 namespace {
 	/**
@@ -12,9 +13,9 @@ namespace {
 	 */
 	class GoToBall : public Skill {
 		private:
-			void execute(World& world, Player::Ptr player, Param& param, Context& context) const {
+			void execute(World& world, Player::Ptr player, const SkillStateMachine* ssm, Param& param, Context& context) const {
 				if (player->has_ball()) {
-					const Skill* next = context.ssm()->initial();
+					const Skill* next = ssm->initial();
 
 					// Some SSMs start with GoToBall.
 					// Need to prevent such a loop from happening.
@@ -24,7 +25,7 @@ namespace {
 					}
 
 					// umm not sure what to do next
-					context.execute(next);
+					context.execute_after(next);
 					return;
 				}
 

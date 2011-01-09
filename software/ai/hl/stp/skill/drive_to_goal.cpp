@@ -2,21 +2,21 @@
 #include "ai/hl/stp/skill/go_to_ball.h"
 #include "ai/hl/stp/skill/kick.h"
 #include "ai/hl/stp/skill/context.h"
-#include "ai/hl/stp/ssm/move_ball.h"
 #include "ai/hl/stp/evaluate/shoot.h"
 #include "ai/flags.h"
 
 using namespace AI::HL::W;
 using namespace AI::HL::STP::Skill;
 using AI::HL::STP::Skill::Skill;
+using AI::HL::STP::SSM::SkillStateMachine;
 
 namespace {
 	class DriveToGoal : public Skill {
 		private:
-			void execute(World& world, Player::Ptr player, AI::HL::STP::Skill::Param& param, Context& context) const {
+			void execute(World& world, Player::Ptr player, const SkillStateMachine*, AI::HL::STP::Skill::Param& param, Context& context) const {
 				// must have a ball
 				if (!player->has_ball()) {
-					context.execute(go_to_ball());
+					context.execute_after(go_to_ball());
 					return;
 				}
 
@@ -24,7 +24,7 @@ namespace {
 
 				// TODO
 				if (shoot_stats.can_shoot && player->chicker_ready_time() == 0) {
-					context.execute(kick());
+					context.execute_after(kick());
 					return;
 				}
 

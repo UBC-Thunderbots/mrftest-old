@@ -6,21 +6,17 @@ using namespace AI::HL::STP::Skill;
 using AI::HL::STP::SSM::SkillStateMachine;
 using namespace AI::HL::W;
 
-Context::Context(World& w, Param& p) : world(w), param(p), ssm_(NULL), next_skill(NULL) {
+ContextImpl::ContextImpl(World& w, Param& p) : world(w), param(p), ssm(NULL), next_skill(NULL) {
 }
 
-const SkillStateMachine* Context::ssm() const {
-	return ssm_;
-}
-
-void Context::set_player(Player::Ptr p) {
+void ContextImpl::set_player(Player::Ptr p) {
 	player = p;
 }
 
-void Context::set_ssm(const AI::HL::STP::SSM::SkillStateMachine* ssm) {
-	if (ssm != ssm_ ){
-		ssm_ = ssm;
-		if (ssm_ == NULL) {
+void ContextImpl::set_ssm(const AI::HL::STP::SSM::SkillStateMachine* s) {
+	if (ssm != s ){
+		ssm = s;
+		if (ssm == NULL) {
 			next_skill = NULL;
 		} else {
 			next_skill = ssm->initial();
@@ -28,34 +24,54 @@ void Context::set_ssm(const AI::HL::STP::SSM::SkillStateMachine* ssm) {
 	}
 }
 
-void Context::reset_ssm() {
-	if (ssm_ != NULL) {
-		next_skill = ssm_->initial();
+void ContextImpl::reset_ssm() {
+	if (ssm != NULL) {
+		next_skill = ssm->initial();
 	}
 }
 
-void Context::run() {
+bool ContextImpl::done() const {
+	return ssm == NULL;
+}
+
+void ContextImpl::run() {
 	if (next_skill == NULL) {
 		// ???
 		return;
 	}
 
-	history.insert(next_skill);
-	next_skill->execute(world, player, param, *this);
+	do {
+		execute_next_skill = false;
+
+		if (history.find(next_skill) != history.end()) {
+			LOG_ERROR("Skill loop!");
+			break;
+		}
+
+		history.insert(next_skill);
+		next_skill->execute(world, player, ssm, param, *this);
+	} while (execute_next_skill);
 	history.clear();
 }
 
-void Context::transition(const Skill* skill) {
+void ContextImpl::execute_after(const Skill* skill) {
 	next_skill = skill;
+	execute_next_skill = true;
 }
 
-void Context::execute(const Skill* skill) {
-	if (history.find(skill) != history.end()) {
-		LOG_ERROR("skill loop!");
-		return;
-	}
+void ContextImpl::push_ssm(const AI::HL::STP::SSM::SkillStateMachine* s) {
+#warning implement
+}
 
-	history.insert(skill);
-	next_skill->execute(world, player, param, *this);
+void ContextImpl::finish() {
+	ssm = NULL;
+}
+
+void ContextImpl::abort() {
+#warning TODO
+}
+
+void ContextImpl::transition(const Skill* skill) {
+	next_skill = skill;
 }
 
