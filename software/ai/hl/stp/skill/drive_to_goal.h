@@ -10,13 +10,10 @@ namespace AI {
 				/**
 				 * An implementation of the drive to goal skill in the STP paper.
 				 * Attempts to push the ball towards the desired direction to kick.
+				 *
+				 * Terminates if the ball is kicked. 
 				 */
-				class DriveToGoal : public Skill {
-					public:
-						const static DriveToGoal* instance();
-
-						const Skill* execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, const AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const;
-				};
+				const Skill* drive_to_goal();
 			}
 		}
 	}

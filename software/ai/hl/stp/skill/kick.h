@@ -8,14 +8,13 @@ namespace AI {
 		namespace STP {
 			namespace Skill {
 				/**
-				 * An implementation of the drive to goal skill in the STP paper.
+				 * A skill that kicks the ball if possible.
+				 *
+				 * This skill is a TERMINATING.
+				 * Meaning that if the task is completed,
+				 * will return a terminal skill.
 				 */
-				class Kick : public Skill {
-					public:
-						const static Kick* instance();
-
-						const Skill* execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, const AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const;
-				};
+				extern const Skill* kick();
 			}
 		}
 	}

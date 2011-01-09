@@ -11,7 +11,6 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Tactic {
-
 				/**
 				 * A tactic is a layer in the STP paradigm.
 				 * It runs every tick.
@@ -19,9 +18,10 @@ namespace AI {
 				 * It may choose to use the Skill layer.
 				 * If it does so, it has to set the appropriate skill state machine,
 				 * as well as all the parameters.
+				 * Skill state machine must be set every tick.
 				 *
 				 * To prevent rapid fluctuation of parameters,
-				 * a hysteresis is recommended.
+				 * hysteresis is recommended.
 				 */
 				class Tactic : public ByRef {
 					public:

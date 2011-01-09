@@ -1,5 +1,5 @@
-#ifndef AI_HL_STP_MODULE_SHOOT_H
-#define AI_HL_STP_MODULE_SHOOT_H
+#ifndef AI_HL_STP_EVALUATE_SHOOT_H
+#define AI_HL_STP_EVALUATE_SHOOT_H
 
 #include "ai/hl/world.h"
 #include "util/cacheable.h"
@@ -7,7 +7,7 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
-			namespace Module {
+			namespace Evaluate {
 				struct ShootStats {
 					Point target;
 					double angle;
@@ -20,7 +20,7 @@ namespace AI {
 					//ShootStats compute(AI::HL::W::World &world, AI::HL::W::Player::Ptr player) const;
 				//};
 
-				const ShootStats evaluate_shoot(AI::HL::W::World &world, AI::HL::W::Player::Ptr player);
+				const ShootStats shoot_stats(AI::HL::W::World &world, AI::HL::W::Player::Ptr player);
 			}
 		}
 	}

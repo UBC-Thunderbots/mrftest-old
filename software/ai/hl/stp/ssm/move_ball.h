@@ -12,13 +12,7 @@ namespace AI {
 				 * Basically position the ball for a good position,
 				 * and shoot the enemy goal if we can.
 				 */
-				class MoveBall : public SkillStateMachine {
-					public:
-						static const MoveBall* instance();
-
-					private:
-						const AI::HL::STP::Skill::Skill* initial() const;
-				};
+				const SkillStateMachine* move_ball();
 			}
 		}
 	}

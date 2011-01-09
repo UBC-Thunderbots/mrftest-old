@@ -25,7 +25,7 @@ namespace {
 
 			void execute() {
 				// TODO: flags
-				set_ssm(AI::HL::STP::SSM::MoveBall::instance());
+				set_ssm(AI::HL::STP::SSM::move_ball());
 			}
 	};
 }

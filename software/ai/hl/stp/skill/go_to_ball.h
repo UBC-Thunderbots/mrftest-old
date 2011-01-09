@@ -8,14 +8,10 @@ namespace AI {
 		namespace STP {
 			namespace Skill {
 				/**
-				 * An implementation of the go to ball skill in the STP paper.
+				 * Grabs the ball.
+				 * This is NOT a terminal skill.
 				 */
-				class GoToBall : public Skill {
-					public:
-						const static GoToBall* instance();
-
-						const Skill* execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, const AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const;
-				};		
+				extern const Skill* go_to_ball();
 			}
 		}
 	}

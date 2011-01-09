@@ -5,6 +5,16 @@ using namespace AI::HL::STP::Skill;
 using namespace AI::HL::W;
 
 namespace {
+	/**
+	 * A Terminal state always transition to itself.
+	 */
+	class Terminal : public Skill {
+		private:
+			const Skill* execute(AI::HL::W::World&, AI::HL::W::Player::Ptr, const AI::HL::STP::SSM::SkillStateMachine*, Param&) const {
+				return this;
+			}
+	};
+
 	Terminal finish_instance;
 	Terminal fail_instance;
 }
@@ -12,15 +22,11 @@ namespace {
 Param::Param() : can_kick(true), move_flags(0), move_priority(AI::Flags::PRIO_MEDIUM) {
 }
 
-const Terminal* Terminal::finish() {
+const Skill* AI::HL::STP::Skill::finish() {
 	return &finish_instance;
 }
 
-const Terminal* Terminal::fail() {
+const Skill* AI::HL::STP::Skill::fail() {
 	return &fail_instance;
-}
-
-const Skill* Terminal::execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, const AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param) const {
-	return this;
 }
 

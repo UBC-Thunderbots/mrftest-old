@@ -29,10 +29,18 @@ void Tactic::set_move_flags(unsigned int f) {
 }
 
 void Tactic::tick() {
+	const AI::HL::STP::SSM::SkillStateMachine* prev_ssm = ssm;
+	ssm = NULL;
+
 	execute();
 
 	// if no SSM, nothing to do
 	if (ssm == NULL) return;
+
+	// reset skill if ssm is changed
+	if (ssm != prev_ssm) {
+		skill = NULL;
+	}
 
 	// initialize skill if needed
 	if (!skill) {
@@ -44,9 +52,7 @@ void Tactic::tick() {
 }
 
 void Tactic::set_ssm(const AI::HL::STP::SSM::SkillStateMachine* s) {
-	if (s == ssm) return;
 	ssm = s;
-	skill = NULL;
 }
 
 void Tactic::player_changed() {

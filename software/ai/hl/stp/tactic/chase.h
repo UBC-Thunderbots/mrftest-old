@@ -8,7 +8,8 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
-				 * Chase the ball.
+				 * Finds a way to get the ball,
+				 * either through chasing or stealing.
 				 */
 				Tactic::Ptr chase(AI::HL::W::World &world);
 			}

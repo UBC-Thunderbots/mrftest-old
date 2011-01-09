@@ -191,8 +191,10 @@ software/ai/hl/offender.h -text
 software/ai/hl/penalty_enemy_strategy.cpp -text
 software/ai/hl/penalty_friendly_strategy.cpp -text
 software/ai/hl/stop_strategy.cpp -text
-software/ai/hl/stp/module/shoot.cpp -text
-software/ai/hl/stp/module/shoot.h -text
+software/ai/hl/stp/evaluate/ball_threat.cpp -text
+software/ai/hl/stp/evaluate/ball_threat.h -text
+software/ai/hl/stp/evaluate/shoot.cpp -text
+software/ai/hl/stp/evaluate/shoot.h -text
 software/ai/hl/stp/play/grab_ball.cpp -text
 software/ai/hl/stp/play/just_shoot.cpp -text
 software/ai/hl/stp/play/play.cpp -text
@@ -207,6 +209,10 @@ software/ai/hl/stp/skill/skill.cpp -text
 software/ai/hl/stp/skill/skill.h -text
 software/ai/hl/stp/skill/spin_at_ball.cpp -text
 software/ai/hl/stp/skill/spin_at_ball.h -text
+software/ai/hl/stp/skill/steal_ball.cpp -text
+software/ai/hl/stp/skill/steal_ball.h -text
+software/ai/hl/stp/ssm/get_ball.cpp -text
+software/ai/hl/stp/ssm/get_ball.h -text
 software/ai/hl/stp/ssm/move_ball.cpp -text
 software/ai/hl/stp/ssm/move_ball.h -text
 software/ai/hl/stp/ssm/ssm.h -text

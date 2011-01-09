@@ -2,17 +2,21 @@
 #include "ai/hl/stp/skill/drive_to_goal.h"
 
 using namespace AI::HL::W;
-using AI::HL::STP::SSM::MoveBall;
+using AI::HL::STP::SSM::SkillStateMachine;
+using AI::HL::STP::Skill::Skill;
 
 namespace {
-	MoveBall move_ball;
+	class MoveBall : public SkillStateMachine {
+		private:
+			const Skill* initial() const {
+				return AI::HL::STP::Skill::drive_to_goal();
+			}
+	};
+
+	MoveBall move_ball_instance;
 }
 
-const MoveBall* MoveBall::instance() {
-	return &move_ball;
-}
-
-const AI::HL::STP::Skill::Skill* MoveBall::initial() const {
-	return AI::HL::STP::Skill::DriveToGoal::instance();
+const SkillStateMachine* AI::HL::STP::SSM::move_ball() {
+	return &move_ball_instance;
 }
 
