@@ -1,4 +1,5 @@
 #include "bulk_out.h"
+#include "critsec.h"
 #include "debug.h"
 #include "descriptors.h"
 #include "dongle_status.h"
@@ -133,6 +134,7 @@ static BOOL custom_setup_handler(void) {
 
 static void on_enter_config1(void) {
 	dongle_status_start();
+	estop_init();
 	error_reporting_init();
 	state_transport_out_init();
 	state_transport_in_init();
@@ -150,6 +152,7 @@ static void on_exit_config1(void) {
 	state_transport_in_deinit();
 	state_transport_out_deinit();
 	error_reporting_deinit();
+	estop_deinit();
 	dongle_status_stop();
 	should_start_up = false;
 	should_shut_down = true;
@@ -307,9 +310,16 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
 static BOOL configure_xbee_stage1(uint8_t xbee) {
 	uint8_t buffer[2];
 	uint8_t err = 0;
+	CRITSEC_DECLARE(cs);
 
 	/* Mark status. */
+	CRITSEC_ENTER(cs);
+	if (should_shut_down) {
+		CRITSEC_LEAVE(cs);
+		goto out;
+	}
 	dongle_status.xbees = XBEES_STATE_INIT1_0 + xbee;
+	CRITSEC_LEAVE(cs);
 	dongle_status_dirty();
 
 	/* Reset the modem. */
@@ -340,6 +350,7 @@ static BOOL configure_xbee_stage1(uint8_t xbee) {
 
 out:
 	/* Mark final status. */
+	CRITSEC_ENTER(cs);
 	if (!should_shut_down) {
 		if (!err) {
 			if (xbee == 1) {
@@ -349,8 +360,9 @@ out:
 			error_reporting_add(err);
 			dongle_status.xbees = XBEES_STATE_FAIL_0 + xbee;
 		}
-		dongle_status_dirty();
 	}
+	CRITSEC_LEAVE(cs);
+	dongle_status_dirty();
 	return !err;
 }
 
@@ -364,9 +376,16 @@ out:
 static BOOL configure_xbee_stage2(uint8_t xbee) {
 	uint8_t buffer[2];
 	uint8_t err = 0;
+	CRITSEC_DECLARE(cs);
 
 	/* Mark status. */
+	CRITSEC_ENTER(cs);
+	if (should_shut_down) {
+		CRITSEC_LEAVE(cs);
+		goto out;
+	}
 	dongle_status.xbees = XBEES_STATE_INIT2_0 + xbee;
+	CRITSEC_LEAVE(cs);
 	dongle_status_dirty();
 
 	/* Set the radio channel. */
@@ -393,6 +412,7 @@ static BOOL configure_xbee_stage2(uint8_t xbee) {
 
 out:
 	/* Mark final status. */
+	CRITSEC_ENTER(cs);
 	if (!should_shut_down) {
 		if (!err) {
 			if (xbee == 1) {
@@ -402,8 +422,9 @@ out:
 			error_reporting_add(err);
 			dongle_status.xbees = XBEES_STATE_FAIL_0 + xbee;
 		}
-		dongle_status_dirty();
 	}
+	CRITSEC_LEAVE(cs);
+	dongle_status_dirty();
 	return !err;
 }
 
@@ -457,7 +478,6 @@ void main(void) {
 		} while (!should_start_up);
 
 		/* Bring up the hardware. */
-		estop_init();
 		serial_init();
 		xbee_txpacket_init();
 		xbee_rxpacket_init();
@@ -527,7 +547,6 @@ void main(void) {
 		xbee_rxpacket_deinit();
 		xbee_txpacket_deinit();
 		serial_deinit();
-		estop_deinit();
 		LAT_LED1 = 0;
 		LAT_LED2 = 0;
 		LAT_LED3 = 0;

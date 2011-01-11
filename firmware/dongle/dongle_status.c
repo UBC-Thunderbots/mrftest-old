@@ -54,6 +54,9 @@ static BOOL on_clear_halt(void) {
 }
 
 void dongle_status_start(void) {
+	dongle_status.estop = ESTOP_STATE_UNINITIALIZED;
+	dongle_status.xbees = XBEES_STATE_PREINIT;
+	dongle_status.robots = 0;
 	usb_ep_callbacks[EP_DONGLE_STATUS].in.transaction = &check_send;
 	usb_ep_callbacks[EP_DONGLE_STATUS].in.commanded_stall = &on_commanded_stall;
 	usb_ep_callbacks[EP_DONGLE_STATUS].in.clear_halt = &on_clear_halt;
