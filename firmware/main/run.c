@@ -5,7 +5,9 @@
 #include "fw.h"
 #include "leds.h"
 #include "params.h"
+#include "pins.h"
 #include "pipes.h"
+#include "spi.h"
 #include "xbee_rxpacket.h"
 #include "xbee_txpacket.h"
 #include <pic18fregs.h>
@@ -233,7 +235,7 @@ void run(void) {
 												firmware_response.pipe = PIPE_FIRMWARE_IN;
 												firmware_response.sequence = sequence[PIPE_FIRMWARE_IN];
 												sequence[PIPE_FIRMWARE_IN] = (sequence[PIPE_FIRMWARE_IN] + 1) & 63;
-												firmware_respons.request = FIRMWARE_REQUEST_READ_PARAMS;
+												firmware_response.request = FIRMWARE_REQUEST_CHIP_ERASE;
 												firmware_response_pending = true;
 											}
 											break;
