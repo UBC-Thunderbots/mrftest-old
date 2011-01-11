@@ -21,5 +21,10 @@ extern params_t params;
  */
 BOOL params_load(void);
 
+/**
+ * \brief Saves the current in-memory parameters to flash.
+ */
+void params_commit(void);
+
 #endif
 

@@ -76,6 +76,10 @@ void run(void) {
 	static uint8_t sequence[PIPE_MAX + 1];
 	static firmware_response_t firmware_response;
 	BOOL firmware_response_pending = false, reboot_pending = false;
+	uint8_t flash_current_block = 0xFF, flash_current_page, flash_next_byte;
+	BOOL flash_page_program_active = false;
+	static uint8_t flash_page_bitmap[256 / 8];
+	static params_t flash_temp_params;
 
 	/* Clear state. */
 	memset(sequence, 0, sizeof(sequence));
@@ -199,44 +203,80 @@ void run(void) {
 #warning implement
 							} else if (rxpacket->buf[5] == PIPE_FIRMWARE_OUT) {
 								/* The packet contains a firmware request. */
-								switch (rxpacket->buf[7]) {
-									case FIRMWARE_REQUEST_CHIP_ERASE:
-#warning implement
-									case FIRMWARE_REQUEST_START_BLOCK:
-#warning implement
-									case FIRMWARE_REQUEST_PAGE_PROGRAM:
-#warning implement
-									case FIRMWARE_REQUEST_READ_PAGE_BITMAP:
-#warning implement
-									case FIRMWARE_REQUEST_CRC_BLOCK:
-#warning implement
-										break;
+								if (rxpacket->buf[6] & 0x80) {
+									switch (rxpacket->buf[7]) {
+										case FIRMWARE_REQUEST_CHIP_ERASE:
+											if (!params_load()) {
+												error_reporting_add(FAULT_FLASH_PARAMS_CORRUPT);
+											} else {
+												/* Set write enable latch. */
+												LAT_FLASH_CS = 0;
+												spi_send(0x06);
+												LAT_FLASH_CS = 1;
 
-									case FIRMWARE_REQUEST_READ_PARAMS:
-										if (!firmware_response_pending) {
-											firmware_response.micropacket_length = sizeof(firmware_response) - sizeof(firmware_response.params) + sizeof(firmware_response.params.operational_parameters);
-											firmware_response.pipe = PIPE_FIRMWARE_IN;
-											firmware_response.sequence = sequence[PIPE_FIRMWARE_IN];
-											sequence[PIPE_FIRMWARE_IN] = (sequence[PIPE_FIRMWARE_IN] + 1) & 63;
-											firmware_response.request = FIRMWARE_REQUEST_READ_PARAMS;
-											memcpyram2ram(&firmware_response.params.operational_parameters, &params, sizeof(params));
-											firmware_response_pending = true;
-										} else {
-											error_reporting_add(FAULT_IN_PACKET_OVERFLOW);
-										}
-										break;
+												/* Send the erase instruction. */
+												LAT_FLASH_CS = 0;
+												spi_send(0xC7);
+												LAT_FLASH_CS = 1;
 
-									case FIRMWARE_REQUEST_SET_PARAMS:
+												/* Wait until complete. */
+												LAT_FLASH_CS = 0;
+												spi_send(0x05);
+												while (spi_receive() & 0x01);
+												LAT_FLASH_CS = 1;
+
+												/* Reburn the parameters block. */
+												params_commit();
+
+												/* Send a success response. */
+												firmware_response.micropacket_length = sizeof(firmware_response) - sizeof(firmware_response.params);
+												firmware_response.pipe = PIPE_FIRMWARE_IN;
+												firmware_response.sequence = sequence[PIPE_FIRMWARE_IN];
+												sequence[PIPE_FIRMWARE_IN] = (sequence[PIPE_FIRMWARE_IN] + 1) & 63;
+												firmware_respons.request = FIRMWARE_REQUEST_READ_PARAMS;
+												firmware_response_pending = true;
+											}
+											break;
+
+										case FIRMWARE_REQUEST_START_BLOCK:
 #warning implement
-									case FIRMWARE_REQUEST_COMMIT_PARAMS:
+										case FIRMWARE_REQUEST_PAGE_PROGRAM:
 #warning implement
-									case FIRMWARE_REQUEST_REBOOT:
+										case FIRMWARE_REQUEST_READ_PAGE_BITMAP:
 #warning implement
-									default:
-										/* Unknown firmware request.
-										 * Send an error message. */
-										error_reporting_add(FAULT_FIRMWARE_BAD_REQUEST);
-										break;
+										case FIRMWARE_REQUEST_CRC_BLOCK:
+#warning implement
+											break;
+
+										case FIRMWARE_REQUEST_READ_PARAMS:
+											if (!firmware_response_pending) {
+												firmware_response.micropacket_length = sizeof(firmware_response) - sizeof(firmware_response.params) + sizeof(firmware_response.params.operational_parameters);
+												firmware_response.pipe = PIPE_FIRMWARE_IN;
+												firmware_response.sequence = sequence[PIPE_FIRMWARE_IN];
+												sequence[PIPE_FIRMWARE_IN] = (sequence[PIPE_FIRMWARE_IN] + 1) & 63;
+												firmware_response.request = FIRMWARE_REQUEST_READ_PARAMS;
+												memcpyram2ram(&firmware_response.params.operational_parameters, &params, sizeof(params));
+												firmware_response_pending = true;
+											} else {
+												error_reporting_add(FAULT_IN_PACKET_OVERFLOW);
+											}
+											break;
+
+										case FIRMWARE_REQUEST_SET_PARAMS:
+#warning implement
+										case FIRMWARE_REQUEST_ROLLBACK_PARAMS:
+#warning implement
+										case FIRMWARE_REQUEST_COMMIT_PARAMS:
+#warning implement
+										case FIRMWARE_REQUEST_REBOOT:
+#warning implement
+										default:
+											/* Unknown firmware request.
+											 * Send an error message. */
+											error_reporting_add(FAULT_FIRMWARE_BAD_REQUEST);
+											break;
+									}
+								} else {
 								}
 							}
 						}
