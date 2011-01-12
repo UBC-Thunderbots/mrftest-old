@@ -71,12 +71,6 @@ namespace AI {
 						void execute_after(const Skill* skill);
 
 						/**
-						 * Runs a different skill state machine,
-						 * and waits for its completion before going back to the current skill.
-						 */
-						void push_ssm(const AI::HL::STP::SSM::SkillStateMachine* ssm);
-
-						/**
 						 * Indicates that this skill terminates.
 						 */
 						void finish();

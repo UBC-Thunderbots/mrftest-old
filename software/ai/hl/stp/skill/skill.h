@@ -7,6 +7,7 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace SSM {
+				// TODO: make skill not dependent on ssm
 				class SkillStateMachine;
 			}
 		}
@@ -48,7 +49,6 @@ namespace AI {
 				class Skill;
 
 				/**
-				 * "Hierarchical" State Machine.
 				 * Defines the interface that skills can use.
 				 */
 				class Context {
@@ -58,12 +58,6 @@ namespace AI {
 						 * and executes this skill right after the current one finishes.
 						 */
 						virtual void execute_after(const Skill* skill) = 0;
-
-						/**
-						 * Runs a different skill state machine,
-						 * and waits for its completion before going back to the current skill.
-						 */
-						virtual void push_ssm(const AI::HL::STP::SSM::SkillStateMachine* ssm) = 0;
 
 						/**
 						 * Indicates that this skill terminates successfully.

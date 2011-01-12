@@ -59,10 +59,6 @@ void ContextImpl::execute_after(const Skill* skill) {
 	execute_next_skill = true;
 }
 
-void ContextImpl::push_ssm(const AI::HL::STP::SSM::SkillStateMachine* s) {
-#warning implement
-}
-
 void ContextImpl::finish() {
 	ssm = NULL;
 }
