@@ -1,4 +1,5 @@
 #include "run.h"
+#include "crc.h"
 #include "drive.h"
 #include "error_reporting.h"
 #include "feedback.h"
@@ -77,10 +78,13 @@ void run(void) {
 	static feedback_block_t txpkt_feedback_shadow;
 	static uint8_t sequence[PIPE_MAX + 1];
 	static firmware_response_t firmware_response;
-	BOOL firmware_response_pending = false, reboot_pending = false;
-	uint8_t flash_current_block = 0xFF, flash_current_page, flash_next_byte;
+	BOOL firmware_response_pending = false;
+	enum {
+		REBOOT_PENDING_NO,
+		REBOOT_PENDING_NEXT_PACKET,
+		REBOOT_PENDING_THIS_PACKET,
+	} reboot_pending = REBOOT_PENDING_NO;
 	BOOL flash_page_program_active = false;
-	static uint8_t flash_page_bitmap[256 / 8];
 	static params_t flash_temp_params;
 
 	/* Clear state. */
@@ -206,6 +210,24 @@ void run(void) {
 							} else if (rxpacket->buf[5] == PIPE_FIRMWARE_OUT) {
 								/* The packet contains a firmware request. */
 								if (rxpacket->buf[6] & 0x80) {
+									/* This is the start of a bulk message. */
+									if (flash_page_program_active) {
+										/* An earlier page program request was started but not finished.
+										 * Abort it by manually pushing out *FOUR* (NOT a multiple of eight!) bits and then deasserting chip select. */
+										SSP1CON1bits.SSPEN = 0;
+										LAT_FLASH_CLK = 1;
+										LAT_FLASH_CLK = 0;
+										LAT_FLASH_CLK = 1;
+										LAT_FLASH_CLK = 0;
+										LAT_FLASH_CLK = 1;
+										LAT_FLASH_CLK = 0;
+										LAT_FLASH_CLK = 1;
+										LAT_FLASH_CLK = 0;
+										LAT_FLASH_CS = 1;
+										SSP1CON1bits.SSPEN = 1;
+										flash_page_program_active = false;
+									}
+									firmware_response_pending = false;
 									switch (rxpacket->buf[7]) {
 										case FIRMWARE_REQUEST_CHIP_ERASE:
 											if (!params_load()) {
@@ -228,7 +250,8 @@ void run(void) {
 												LAT_FLASH_CS = 1;
 
 												/* Reburn the parameters block. */
-												params_commit();
+												params.flash_contents = FLASH_CONTENTS_NONE;
+												params_commit(false);
 
 												/* Send a success response. */
 												firmware_response.micropacket_length = sizeof(firmware_response) - sizeof(firmware_response.params);
@@ -240,38 +263,125 @@ void run(void) {
 											}
 											break;
 
-										case FIRMWARE_REQUEST_START_BLOCK:
-#warning implement
 										case FIRMWARE_REQUEST_PAGE_PROGRAM:
-#warning implement
-										case FIRMWARE_REQUEST_READ_PAGE_BITMAP:
-#warning implement
-										case FIRMWARE_REQUEST_CRC_BLOCK:
-#warning implement
-											break;
+											if (rxpacket->len >= 10) {
+												uint8_t i;
+												__data const uint8_t *p;
 
-										case FIRMWARE_REQUEST_READ_PARAMS:
-											if (!firmware_response_pending) {
-												firmware_response.micropacket_length = sizeof(firmware_response) - sizeof(firmware_response.params) + sizeof(firmware_response.params.operational_parameters);
-												firmware_response.pipe = PIPE_FIRMWARE_IN;
-												firmware_response.sequence = sequence[PIPE_FIRMWARE_IN];
-												sequence[PIPE_FIRMWARE_IN] = (sequence[PIPE_FIRMWARE_IN] + 1) & 63;
-												firmware_response.request = FIRMWARE_REQUEST_READ_PARAMS;
-												memcpyram2ram(&firmware_response.params.operational_parameters, &params, sizeof(params));
-												firmware_response_pending = true;
-											} else {
-												error_reporting_add(FAULT_IN_PACKET_OVERFLOW);
+												/* Set write enable latch. */
+												LAT_FLASH_CS = 0;
+												spi_send(0x06);
+												LAT_FLASH_CS = 1;
+
+												/* Send the page program instruction. */
+												LAT_FLASH_CS = 0;
+												spi_send(0x02);
+												spi_send(rxpacket->buf[9]);
+												spi_send(rxpacket->buf[8]);
+												spi_send(0);
+
+												/* Send the data. */
+												for (i = rxpacket->len - 10, p = rxpacket->buf + 10; i; --i, ++p) {
+													spi_send(*p);
+												}
+
+												if (rxpacket->buf[6] & 0x40) {
+													/* This packet is the end of the message.
+													 * Terminate the write. */
+													LAT_FLASH_CS = 1;
+
+													/* Wait until complete. */
+													LAT_FLASH_CS = 0;
+													spi_send(0x05);
+													while (spi_receive() & 0x01);
+													LAT_FLASH_CS = 1;
+												} else {
+													/* This packet is not the end of the message.
+													 * Leave chip select asserted.
+													 * Mark state so next time we'll resume writing more bytes. */
+													flash_page_program_active = true;
+												}
 											}
 											break;
 
+										case FIRMWARE_REQUEST_CRC_BLOCK:
+											if ((rxpacket->buf[6] & 0x40) && rxpacket->len == 13) {
+												uint16_t counter, crc = CRC16_EMPTY;
+
+												/* Send the Read Data instruction and the address. */
+												LAT_FLASH_CS = 0;
+												spi_send(0x03);
+												spi_send(rxpacket->buf[10]);
+												spi_send(rxpacket->buf[9]);
+												spi_send(rxpacket->buf[8]);
+
+												/* Iterate the bytes. */
+												counter = (rxpacket->buf[12] << 8) | rxpacket->buf[11];
+												do {
+													crc = crc_update(crc, spi_receive());
+												} while (--counter);
+												LAT_FLASH_CS = 1;
+
+												/* Reply with the CRC. */
+												firmware_response.micropacket_length = sizeof(firmware_response) - sizeof(firmware_response.params) + sizeof(firmware_response.params.compute_block_crc_params);
+												firmware_response.pipe = PIPE_FIRMWARE_IN;
+												firmware_response.sequence = sequence[PIPE_FIRMWARE_IN];
+												sequence[PIPE_FIRMWARE_IN] = (sequence[PIPE_FIRMWARE_IN] + 1) & 63;
+												firmware_response.request = FIRMWARE_REQUEST_CRC_BLOCK;
+												firmware_response.params.compute_block_crc_params.address[0] = rxpacket->buf[8];
+												firmware_response.params.compute_block_crc_params.address[1] = rxpacket->buf[9];
+												firmware_response.params.compute_block_crc_params.address[2] = rxpacket->buf[10];
+												firmware_response.params.compute_block_crc_params.length = (rxpacket->buf[12] << 8) | rxpacket->buf[11];
+												firmware_response.params.compute_block_crc_params.crc = crc;
+												firmware_response_pending = true;
+											}
+											break;
+
+										case FIRMWARE_REQUEST_READ_PARAMS:
+											firmware_response.micropacket_length = sizeof(firmware_response) - sizeof(firmware_response.params) + sizeof(firmware_response.params.operational_parameters);
+											firmware_response.pipe = PIPE_FIRMWARE_IN;
+											firmware_response.sequence = sequence[PIPE_FIRMWARE_IN];
+											sequence[PIPE_FIRMWARE_IN] = (sequence[PIPE_FIRMWARE_IN] + 1) & 63;
+											firmware_response.request = FIRMWARE_REQUEST_READ_PARAMS;
+											memcpyram2ram(&firmware_response.params.operational_parameters, &params, sizeof(params));
+											firmware_response_pending = true;
+											break;
+
 										case FIRMWARE_REQUEST_SET_PARAMS:
-#warning implement
+											if ((rxpacket->buf[6] & 0x40) && rxpacket->len == 12) {
+#warning sanity checking
+												memcpyram2ram(&params, rxpacket->buf + 8, sizeof(params));
+												firmware_response.micropacket_length = sizeof(firmware_response) - sizeof(firmware_response.params);
+												firmware_response.pipe = PIPE_FIRMWARE_IN;
+												firmware_response.sequence = sequence[PIPE_FIRMWARE_IN];
+												sequence[PIPE_FIRMWARE_IN] = (sequence[PIPE_FIRMWARE_IN] + 1) & 63;
+												firmware_response.request = FIRMWARE_REQUEST_SET_PARAMS;
+												firmware_response_pending = true;
+											}
+											break;
+
 										case FIRMWARE_REQUEST_ROLLBACK_PARAMS:
 #warning implement
 										case FIRMWARE_REQUEST_COMMIT_PARAMS:
-#warning implement
+											params_commit(true);
+											firmware_response.micropacket_length = sizeof(firmware_response) - sizeof(firmware_response.params);
+											firmware_response.pipe = PIPE_FIRMWARE_IN;
+											firmware_response.sequence = sequence[PIPE_FIRMWARE_IN];
+											sequence[PIPE_FIRMWARE_IN] = (sequence[PIPE_FIRMWARE_IN] + 1) & 63;
+											firmware_response.request = FIRMWARE_REQUEST_COMMIT_PARAMS;
+											firmware_response_pending = true;
+											break;
+
 										case FIRMWARE_REQUEST_REBOOT:
-#warning implement
+											reboot_pending = REBOOT_PENDING_NEXT_PACKET;
+											firmware_response.micropacket_length = sizeof(firmware_response) - sizeof(firmware_response.params);
+											firmware_response.pipe = PIPE_FIRMWARE_IN;
+											firmware_response.sequence = sequence[PIPE_FIRMWARE_IN];
+											sequence[PIPE_FIRMWARE_IN] = (sequence[PIPE_FIRMWARE_IN] + 1) & 63;
+											firmware_response.request = FIRMWARE_REQUEST_REBOOT;
+											firmware_response_pending = true;
+											break;
+
 										default:
 											/* Unknown firmware request.
 											 * Send an error message. */
@@ -279,6 +389,29 @@ void run(void) {
 											break;
 									}
 								} else {
+									/* This is a continuation of an earlier bulk message. */
+									if (flash_page_program_active) {
+										/* A page program is in progress.
+										 * Continue it with the data in this packet. */
+										uint8_t i;
+										__data const uint8_t *p;
+
+										for (i = rxpacket->len - 7, p = rxpacket->buf + 7; i; --i, ++p) {
+											spi_send(*p);
+										}
+
+										if (rxpacket->buf[6] & 0x40) {
+											/* This packet is the end of the message.
+											 * Terminate the write. */
+											LAT_FLASH_CS = 1;
+
+											/* Wait until complete. */
+											LAT_FLASH_CS = 0;
+											spi_send(0x05);
+											while (spi_receive() & 0x01);
+											LAT_FLASH_CS = 1;
+										}
+									}
 								}
 							}
 						}
@@ -293,6 +426,13 @@ void run(void) {
 					/* Transmission was successful.
 					 * Clean up the IOVs and mark state. */
 					inbound_state = INBOUND_STATE_IDLE;
+					if (reboot_pending == REBOOT_PENDING_NEXT_PACKET) {
+						/* If a reboot is scheduled for the next packet, advance the counter. */
+						reboot_pending = REBOOT_PENDING_THIS_PACKET;
+					} else if (reboot_pending == REBOOT_PENDING_THIS_PACKET) {
+						/* If we were supposed to reboot, do that now. */
+						Reset();
+					}
 				} else {
 					/* Tranmission failed.
 					 * Leave the packet in place and wait for the next polling time. */

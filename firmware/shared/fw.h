@@ -14,9 +14,7 @@
  */
 typedef enum {
 	FIRMWARE_REQUEST_CHIP_ERASE,
-	FIRMWARE_REQUEST_START_BLOCK,
 	FIRMWARE_REQUEST_PAGE_PROGRAM,
-	FIRMWARE_REQUEST_READ_PAGE_BITMAP,
 	FIRMWARE_REQUEST_CRC_BLOCK,
 	FIRMWARE_REQUEST_READ_PARAMS,
 	FIRMWARE_REQUEST_SET_PARAMS,
@@ -54,33 +52,18 @@ typedef struct {
 	 */
 	union {
 		/**
-		 * \brief Bits 16 through 23 of the address of the first byte in a block.
-		 */
-		uint8_t address_high;
-
-		/**
-		 * \brief The result of a Read Page Bitmap command.
-		 */
-		struct {
-			/**
-			 * \brief Bits 16 through 23 of the address of the first byte in the current block.
-			 */
-			uint8_t address_high;
-
-			/**
-			 * \brief The page bitmap.
-			 */
-			uint8_t bitmap[32];
-		} read_page_bitmap_params;
-
-		/**
 		 * \brief The result of a Compute Block CRC command.
 		 */
 		struct {
 			/**
-			 * \brief Bits 16 through 23 of the address of the first byte in the block.
+			 * \brief The address of the first byte in the block.
 			 */
-			uint8_t address_high;
+			uint8_t address[3];
+
+			/**
+			 * \brief The number of bytes in the block, or 0 to indicate 64kB.
+			 */
+			uint16_t length;
 
 			/**
 			 * \brief The CRC.

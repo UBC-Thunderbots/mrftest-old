@@ -357,9 +357,31 @@ void main(void) {
 			Sleep();
 		}
 	}
+	leds_show_number(4);
+
+	/* Configure the FPGA, if appropriate. */
+	if (params.flash_contents == FLASH_CONTENTS_FPGA) {
+		leds_show_number(5);
+		LAT_FPGA_PROG_B = 1;
+		while (!PORT_FPGA_INIT_B);
+		leds_show_number(6);
+		while (!PORT_FPGA_DONE && PORT_FPGA_INIT_B);
+		if (PORT_FPGA_DONE) {
+			leds_show_number(7);
+		} else {
+			leds_show_number(14);
+		}
+		delay1ktcy(1);
+		LAT_DCM_RESET = 0;
+		delay1ktcy(1);
+		while (!PORT_DCM_LOCKED);
+		delay1ktcy(1);
+		LAT_FPGA_RESET = 0;
+	} else {
+		leds_show_number(15);
+	}
 
 	/* Run the main loop. */
-	leds_show_number(4);
 	run();
 }
 

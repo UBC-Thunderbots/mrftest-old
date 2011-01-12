@@ -45,29 +45,31 @@ BOOL params_load(void) {
 	return true;
 }
 
-void params_commit(void) {
+void params_commit(BOOL erase) {
 	__data const uint8_t *ptr = (__data const uint8_t *) &params;
 	uint8_t len = sizeof(params);
 	uint16_t crc = CRC16_EMPTY;
 
-	/* Set write enable latch. */
-	LAT_FLASH_CS = 0;
-	spi_send(0x06);
-	LAT_FLASH_CS = 1;
+	if (erase) {
+		/* Set write enable latch. */
+		LAT_FLASH_CS = 0;
+		spi_send(0x06);
+		LAT_FLASH_CS = 1;
 
-	/* Send the sector erase instruction. */
-	LAT_FLASH_CS = 0;
-	spi_send(0x20);
-	spi_send(PARAMS_BLOCK_FLASH_ADDRESS >> 16);
-	spi_send(PARAMS_BLOCK_FLASH_ADDRESS >> 8);
-	spi_send(PARAMS_BLOCK_FLASH_ADDRESS);
-	LAT_FLASH_CS = 1;
+		/* Send the sector erase instruction. */
+		LAT_FLASH_CS = 0;
+		spi_send(0x20);
+		spi_send(PARAMS_BLOCK_FLASH_ADDRESS >> 16);
+		spi_send(PARAMS_BLOCK_FLASH_ADDRESS >> 8);
+		spi_send(PARAMS_BLOCK_FLASH_ADDRESS);
+		LAT_FLASH_CS = 1;
 
-	/* Wait until complete. */
-	LAT_FLASH_CS = 0;
-	spi_send(0x05);
-	while (spi_receive() & 0x01);
-	LAT_FLASH_CS = 1;
+		/* Wait until complete. */
+		LAT_FLASH_CS = 0;
+		spi_send(0x05);
+		while (spi_receive() & 0x01);
+		LAT_FLASH_CS = 1;
+	}
 
 	/* Set write enable latch. */
 	LAT_FLASH_CS = 0;
