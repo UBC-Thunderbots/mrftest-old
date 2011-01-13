@@ -142,9 +142,18 @@ extern __data volatile usb_bdpair_t __at(0x400) usb_bdpairs[USB_CONFIG_MAX_ENDPO
 #define USB_BD_IN_COMMANDED_STALL(ep) do { usb_bdpairs[(ep)].in.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL; } while (0)
 
 /**
+ * \brief Checks whether a non-commanded functional stall can be placed on an inbound endpoint.
+ *
+ * \param[in] ep the endpoint number.
+ *
+ * \return \c true if the endpoint can be stalled, or \c false if not (e.g. because other transactions are already queued).
+ */
+#define USB_BD_IN_CAN_FUNCTIONAL_STALL(ep) USB_BD_IN_HAS_FREE(ep)
+
+/**
  * \brief Sets a non-commanded functional stall on an inbound endpoint.
  *
- * \pre USB_BD_IN_HAS_FREE(ep)
+ * \pre USB_BD_IN_CAN_FUNCTIONAL_STALL(ep)
  *
  * \param[in] ep the endpoint number.
  */
@@ -223,9 +232,18 @@ extern __data volatile usb_bdpair_t __at(0x400) usb_bdpairs[USB_CONFIG_MAX_ENDPO
 #define USB_BD_OUT_COMMANDED_STALL(ep) do { usb_bdpairs[(ep)].out.BDSTAT = BDSTAT_UOWN | BDSTAT_BSTALL; } while (0)
 
 /**
+ * \brief Checks whether a non-commanded functional stall can be placed on an outbound endpoint.
+ *
+ * \param[in] ep the endpoint number.
+ *
+ * \return \c true if the endpoint can be stalled, or \c false if not (e.g. because other transactions are already queued).
+ */
+#define USB_BD_OUT_CAN_FUNCTIONAL_STALL(ep) USB_BD_OUT_HAS_FREE(ep)
+
+/**
  * \brief Sets a non-commanded functional stall on an outbound endpoint.
  *
- * \pre USB_BD_IN_HAS_FREE(ep)
+ * \pre USB_OUT_CAN_FUNCTIONAL_STALL(ep)
  *
  * \param[in] ep the endpoint number.
  */

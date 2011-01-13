@@ -55,12 +55,25 @@ static void on_transaction(void) {
 		}
 	}
 
-	/* Prepare to receive the next packet. */
-	USB_BD_OUT_SUBMIT(EP_STATE_TRANSPORT, buffer, sizeof(buffer));
+	if (dongle_status.xbees == XBEES_STATE_RUNNING) {
+		/* Prepare to receive the next packet. */
+		USB_BD_OUT_SUBMIT(EP_STATE_TRANSPORT, buffer, sizeof(buffer));
+	} else if (USB_BD_OUT_CAN_FUNCTIONAL_STALL(EP_STATE_TRANSPORT)) {
+		/* Emergency stop switch is not in RUN state.
+		 * Set the endpoint halt feature. */
+		usb_halted_out_endpoints |= 1 << EP_STATE_TRANSPORT;
+		USB_BD_OUT_FUNCTIONAL_STALL(EP_STATE_TRANSPORT);
+	}
 }
 
 static void on_commanded_stall(void) {
+	uint8_t i;
+
 	USB_BD_OUT_COMMANDED_STALL(EP_STATE_TRANSPORT);
+
+	for (i = 0; i != 15; ++i) {
+		state_transport_out_drive[i].flags.enable_robot = false;
+	}
 }
 
 static BOOL on_clear_halt(void) {
