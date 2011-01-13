@@ -84,7 +84,7 @@ void run(void) {
 		REBOOT_PENDING_NEXT_PACKET,
 		REBOOT_PENDING_THIS_PACKET,
 	} reboot_pending = REBOOT_PENDING_NO;
-	BOOL flash_page_program_active = false;
+	BOOL flash_page_program_active = false, flash_burn_active = false, flash_reburn_params = false;
 	static params_t flash_temp_params;
 
 	/* Clear state. */
@@ -243,23 +243,18 @@ void run(void) {
 												spi_send(0xC7);
 												LAT_FLASH_CS = 1;
 
-												/* Wait until complete. */
-												LAT_FLASH_CS = 0;
-												spi_send(0x05);
-												while (spi_receive() & 0x01);
-												LAT_FLASH_CS = 1;
-
-												/* Reburn the parameters block. */
-												params.flash_contents = FLASH_CONTENTS_NONE;
-												params_commit(false);
-
-												/* Send a success response. */
+												/* Prepare a response, but do not queue it yet (we will do that when the operation finishes). */
 												firmware_response.micropacket_length = sizeof(firmware_response) - sizeof(firmware_response.params);
 												firmware_response.pipe = PIPE_FIRMWARE_IN;
 												firmware_response.sequence = sequence[PIPE_FIRMWARE_IN];
 												sequence[PIPE_FIRMWARE_IN] = (sequence[PIPE_FIRMWARE_IN] + 1) & 63;
 												firmware_response.request = FIRMWARE_REQUEST_CHIP_ERASE;
-												firmware_response_pending = true;
+
+												/* Remember that the operation is ongoing. */
+												flash_burn_active = true;
+
+												/* Remember that we will need to reburn the parameters block after the chip erase finishes. */
+												flash_reburn_params = true;
 											}
 											break;
 
@@ -447,6 +442,33 @@ void run(void) {
 			/* Timeout waiting for transmit status, assume the serial line corrupted our data. */
 			error_reporting_add(FAULT_XBEE1_TIMEOUT);
 			inbound_state = INBOUND_STATE_AWAITING_POLL;
+		}
+
+		if (flash_burn_active) {
+			uint8_t status;
+
+			/* A flash burn operation (erase or program) was executing.
+			 * Check if it's finished yet. */
+			LAT_FLASH_CS = 0;
+			spi_send(0x05);
+			status = spi_receive();
+			LAT_FLASH_CS = 1;
+
+			if (!(status & 0x01)) {
+				/* The operation is finished. */
+				flash_burn_active = false;
+
+				if (flash_reburn_params) {
+					/* Reburn the parameters block. */
+					params.flash_contents = FLASH_CONTENTS_NONE;
+					params_commit(false);
+					flash_reburn_params = false;
+				}
+
+				/* The response message has already been assembled.
+				 * Queue it for transmission. */
+				firmware_response_pending = true;
+			}
 		}
 	}
 }
