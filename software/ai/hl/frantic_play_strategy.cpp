@@ -94,7 +94,7 @@ namespace {
 			return;
 		}
 		if (offenders.size() > 0) offender.tick();
-		// there might be no defenders but exists one goalie
+		// there might be no defenders but with one existing goalie
 		if (defenders.size() > 0 || goalie.is()) defender.tick();
 	}
 

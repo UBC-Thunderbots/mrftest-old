@@ -101,8 +101,18 @@ namespace {
 		offender.tick();
 
 		// TODO something more sensible
+		
+		// look for someone to pass to prioritizing offenders, if nobody is open then just shoot it into the open
 		if (kicker.is()) {
-			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
+			Player::Ptr off_passee = AI::HL::Util::choose_best_pass(world, offenders);
+			Player::Ptr def_passee = AI::HL::Util::choose_best_pass(world, defenders);
+			if (off_passee.is()) {
+				AI::HL::Tactics::pass(world, kicker, off_passee, AI::Flags::FLAG_CLIP_PLAY_AREA);
+			} else if (def_passee.is()) {
+				AI::HL::Tactics::pass(world, kicker, def_passee, AI::Flags::FLAG_CLIP_PLAY_AREA);
+			} else {
+				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
+			}
 		}
 	}
 

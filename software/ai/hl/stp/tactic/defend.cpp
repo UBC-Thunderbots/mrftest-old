@@ -63,3 +63,4 @@ Tactic::Ptr AI::HL::STP::Tactic::repel(World &world) {
 	return p;
 }
 
+
