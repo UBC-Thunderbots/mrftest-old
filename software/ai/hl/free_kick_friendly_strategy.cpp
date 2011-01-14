@@ -102,14 +102,11 @@ namespace {
 
 		// TODO something more sensible
 		
-		// look for someone to pass to prioritizing offenders, if nobody is open then just shoot it into the open
+		// look for someone to pass to (offenders only), if nobody is open then just shoot it into the open
 		if (kicker.is()) {
-			Player::Ptr off_passee = AI::HL::Util::choose_best_pass(world, offenders);
-			Player::Ptr def_passee = AI::HL::Util::choose_best_pass(world, defenders);
-			if (off_passee.is()) {
+			Player::Ptr passee = AI::HL::Util::choose_best_pass(world, offenders);
+			if (passee.is()) {
 				AI::HL::Tactics::pass(world, kicker, off_passee, AI::Flags::FLAG_CLIP_PLAY_AREA);
-			} else if (def_passee.is()) {
-				AI::HL::Tactics::pass(world, kicker, def_passee, AI::Flags::FLAG_CLIP_PLAY_AREA);
 			} else {
 				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
 			}
