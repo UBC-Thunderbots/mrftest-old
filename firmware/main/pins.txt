@@ -44,7 +44,7 @@ DCM_RESET     RF5 out1 # Digital clock manager reset to FPGA
 
 FPGA_PROG_B   RE2 out0 # Configuration start to FPGA
 FPGA_INIT_B   RC0 in   # Configuration stage and post-configuration CRC check status from FPGA
-FPGA_DONE     RC1 in   # Configuration done from FPGA
+FPGA_DONE     RE3 in   # Configuration done from FPGA
 FPGA_RESET    RB5 out1 # Reset to FPGA
 
 FLASH_CS      RC2 out1 # Chip select to Flash
@@ -61,6 +61,8 @@ DRIB_BEAM_IN  RA2 in   # Dribbler beam sensor analogue input
 DRIB_BEAM_OUT RB0 out0 # Dribbler beam laser drive output
 DRIB_THERM    RA1 in   # Dribbler thermistor analogue input
 
+MOTOR_ENABLE  RC1 out0 # Motor driver enable/inhibit output
+
 BATT_LEVEL    RA0 in   # Battery voltage analogue input
 
 LED1          RB4 out0 # Green LED
@@ -73,6 +75,5 @@ CLKO          RA6 in   # Oscillator output (unused)
 
 RB6           RB6 vgnd # Unused
 RB7           RB7 vgnd # Unused
-RE3           RE3 vgnd # Unused
 RG0           RG0 vgnd # Unused
 RG3           RG3 vgnd # Unused

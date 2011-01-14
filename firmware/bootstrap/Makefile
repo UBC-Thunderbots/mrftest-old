@@ -1,8 +1,8 @@
 SOURCES := $(wildcard *.c)
 PROJ := bootstrap
-SDCC_FLAGS := --std-sdcc99 -mpic16 -p18f65j50 --fomit-frame-pointer --obanksel=1 --optimize-cmp --optimize-df --use-non-free -I../shared
-PK2CMD_FLAGS := -I -J -E -M -PPIC18F65J50 -W
-LKR := 18f65j50.lkr
+SDCC_FLAGS := --std-sdcc99 -mpic16 -p18f67j50 --fomit-frame-pointer --obanksel=1 --optimize-cmp --optimize-df --use-non-free -I../shared
+PK2CMD_FLAGS := -I -J -E -M -PPIC18F67J50 -W
+LKR := 18f67j50.lkr
 
 $(PROJ).hex : $(SOURCES:.c=.o) $(LKR)
 	echo "  LD $@"
