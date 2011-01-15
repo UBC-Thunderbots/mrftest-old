@@ -381,6 +381,51 @@ void main(void) {
 		leds_show_number(15);
 	}
 
+	/* Configure the parallel master port.
+	 *         /-------- Module disabled
+	 *         |/------- Unimplemented
+	 *         ||/------ Continue operation in idle mode
+	 *         |||//---- Address and data on separate pins
+	 *         |||||/--- Byte enable pin disabled
+	 *         ||||||/-- Write strobe pin enabled
+	 *         |||||||/- Read strobe pin enabled */
+	PMCONH = 0b00000011;
+	/*         //------- No chip select pins
+	 *         ||////--- Ignored (polarity control for unused pins)
+	 *         ||||||/-- Write strobe active high
+	 *         |||||||/- Read strobe active high */
+	PMCONL = 0b00000011;
+	/*          /-------- Port not busy
+	 *          |//------ No interrupts used
+	 *          |||//---- No address increment
+	 *          |||||/--- 8-bit data width
+	 *          ||||||//- Master mode 2 (separate read and write strobes) */
+	PMMODEH = 0b00000010;
+	/*          //------- Ignored
+	 *          ||////--- No wait cycles, entire bus operation occurs in one cycle
+	 *          ||||||//- Ignored */
+	PMMODEL = 0b00000000;
+	/*       /-------- PMA15 disabled, functions as port I/O
+	 *       |/------- PMA14 disabled, functions as port I/O
+	 *       ||/------ PMA13 disabled, functions as port I/O
+	 *       |||/----- PMA12 disabled, functions as port I/O
+	 *       ||||/---- PMA11 disabled, functions as port I/O
+	 *       |||||/--- PMA10 disabled, functions as port I/O
+	 *       ||||||/-- PMA9 disabled, functions as port I/O
+	 *       |||||||/- PMA8 disabled, functions as port I/O */
+	PMEH = 0b00000000;
+	/*       /-------- PMA7 disabled, functions as port I/O
+	 *       |/------- PMA6 disabled, functions as port I/O
+	 *       ||/------ PMA5 disabled, functions as port I/O
+	 *       |||/----- PMA4 disabled, functions as port I/O
+	 *       ||||/---- PMA3 disabled, functions as port I/O
+	 *       |||||/--- PMA2 disabled, functions as port I/O
+	 *       ||||||/-- PMA1 disabled, functions as port I/O
+	 *       |||||||/- PMA0 disabled, functions as port I/O */
+	PMEL = 0b00000000;
+	/* Enable the module. */
+	PMCONHbits.PMPEN = 1;
+
 	/* Run the main loop. */
 	run();
 }
