@@ -13,9 +13,9 @@ using namespace AI::HL::W;
 
 namespace {
 
-	const unsigned int NORMAL_SCORE = 6; // if the score is below this level the players will play normally
+	const unsigned int NORMAL_SCORE = 6; // if the combined score is below this level the players will play normally
 	
-	const unsigned int FRANTIC_SCORE = 9; // if the score is below this level the players will play frantically
+	const unsigned int FRANTIC_SCORE = 9; // else if the combined score is below this level the players will play more frantically
 
 	/**
 	 * A full implementation of a strategy that handles normal play.

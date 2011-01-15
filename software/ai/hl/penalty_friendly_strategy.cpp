@@ -46,6 +46,8 @@ namespace {
 			void execute();
 
 			void run_assignment();
+			
+			bool prepared;
 
 			// the players invovled
 			std::vector<Player::Ptr> defenders;
@@ -88,15 +90,23 @@ namespace {
 		}
 
 		prepare();
+		
+		defender.set_chase(false);
+		defender.tick();
 	}
 
 	void PenaltyFriendlyStrategy::execute_penalty_friendly() {
 		if (world.friendly_team().size() == 0) {
 			return;
 		}
-
-		prepare();
+		
+		if (!prepared) {
+			prepare();
+		}
 		execute();
+
+		defender.set_chase(false);
+		defender.tick();
 	}
 
 	void PenaltyFriendlyStrategy::prepare() {
@@ -112,7 +122,7 @@ namespace {
 
 		for (size_t i = 0; i < offenders.size(); ++i) {
 			// move the robots to position
-			offenders[i]->move(waypoints[i], (world.ball().position() - players[i]->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+			offenders[i]->move(waypoints[i], (world.ball().position() - offenders[i]->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
 		}
 
 		const Point shoot_position = Point(0.5 * world.field().length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0);
@@ -120,9 +130,21 @@ namespace {
 		if (kicker.is()) {
 			AI::HL::Tactics::free_move(world, kicker, shoot_position);
 		}
-		defender.set_chase(false);
-		defender.tick();
+		
+		prepared = true;
+
+		if ((kicker->position() - shoot_position).len() > AI::HL::Util::POS_CLOSE) {
+			prepared = false;
+		}
+
+		for (std::size_t i = 0; i < offenders.size(); ++i) {
+			if ((offenders[i]->position() - waypoints[i]).len() > AI::HL::Util::POS_CLOSE) {
+				prepared = false;
+			}
+		}
+				
 	}
+	
 	void PenaltyFriendlyStrategy::execute() {
 		if (kicker.is()) {
 			// instead of shooting straight at the goal, should try picking a random flank (left or right) and shoot

@@ -260,7 +260,7 @@ void AI::HL::Offender::tick() {
 		return;
 	}
 
-	// just walk towards the enemy goal
+	// just walk towards the enemy goal 
 	// TODO: stop moving too far
 	AI::HL::Tactics::shoot(world, chaser, flags);
 }
