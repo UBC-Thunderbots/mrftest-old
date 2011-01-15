@@ -12,6 +12,11 @@ using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
 
 namespace {
+
+	const unsigned int NORMAL_SCORE = 6; // if the score is below this level the players will play normally
+	
+	const unsigned int FRANTIC_SCORE = 9; // if the score is below this level the players will play frantically
+
 	/**
 	 * A full implementation of a strategy that handles normal play.
 	 * This is basically the same as basic play but can act frantically
@@ -157,7 +162,7 @@ namespace {
 			}
 			defender.set_players(defenders, goalie);		
 		
-		} else if (world.friendly_team().score() + world.enemy_team().score() < 5){
+		} else if (world.friendly_team().score() + world.enemy_team().score() < NORMAL_SCORE){
 			// standard play of 2 def, 2 off, 1 goalie
 			goalie = players[0];
 			std::size_t ndefenders = 1; // includes goalie
@@ -182,7 +187,7 @@ namespace {
 			offender.set_players(offenders);
 			defender.set_players(defenders, goalie);
 			
-		} else if (world.friendly_team().score() + world.enemy_team().score() < 8){
+		} else if (world.friendly_team().score() + world.enemy_team().score() < FRANTIC_SCORE){
 			// 1 goalie, 4 off			 
 			goalie = players[0];
 			for (std::size_t i = 1; i < players.size(); ++i) {	

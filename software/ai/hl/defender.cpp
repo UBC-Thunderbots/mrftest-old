@@ -227,13 +227,6 @@ void Defender::tick() {
 			}
 
 			if (chaser == players[i]) {
-				/*
-				   if (passee.is()) {
-				   AI::HL::Tactics::pass(world, chaser, passee, defender_flags);
-				   } else {
-				   AI::HL::Tactics::repel(world, players[i], defender_flags);
-				   }
-				 */
 
 				Player::Ptr passee = AI::HL::Util::choose_best_pass(world, supporters);
 				if (passee.is()) {
