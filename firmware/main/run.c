@@ -426,6 +426,7 @@ void run(void) {
 						reboot_pending = REBOOT_PENDING_THIS_PACKET;
 					} else if (reboot_pending == REBOOT_PENDING_THIS_PACKET) {
 						/* If we were supposed to reboot, do that now. */
+						INTCON = 0;
 						Reset();
 					}
 				} else {

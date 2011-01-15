@@ -480,11 +480,11 @@ void main(void) {
 		} while (!should_start_up);
 
 		/* Bring up the hardware. */
+		LAT_XBEE0_SLEEP = 0;
+		LAT_XBEE1_SLEEP = 0;
 		serial_init();
 		xbee_txpacket_init();
 		xbee_rxpacket_init();
-		LAT_XBEE0_SLEEP = 0;
-		LAT_XBEE1_SLEEP = 0;
 		LAT_LED1 = 1;
 
 		/* Clear states to safe values. */

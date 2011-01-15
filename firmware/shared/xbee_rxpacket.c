@@ -6,6 +6,7 @@
 #include "signal.h"
 #include "stack.h"
 #include "xbee_activity.h"
+#include <delay.h>
 #include <pic18fregs.h>
 #include <stdbool.h>
 
@@ -107,6 +108,8 @@ static xbee_rxpacket_t xbee_packet1, xbee_packet2, xbee_packet3, xbee_packet4, x
 static BOOL inited = false;
 
 void xbee_rxpacket_init(void) {
+	__data xbee_rxpacket_t *pkt;
+
 	if (!inited) {
 		/* Enable the receivers. */
 		RCSTA1bits.CREN = 1;
@@ -144,6 +147,14 @@ void xbee_rxpacket_init(void) {
 		/* Deassert RTS to the XBees. */
 		LAT_XBEE0_RTS = 1;
 		LAT_XBEE1_RTS = 1;
+
+		/* Wait for ~10ms, enough time for any in-flight packet to finish. */
+		delay10ktcy(12);
+
+		/* Flush any received packets. */
+		while (pkt = xbee_rxpacket_get()) {
+			xbee_rxpacket_free(pkt);
+		}
 	}
 }
 
