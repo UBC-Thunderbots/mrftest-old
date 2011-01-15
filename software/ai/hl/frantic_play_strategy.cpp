@@ -142,6 +142,7 @@ namespace {
 		// you should probably behave frantically by having all defenders and no offenders
 		// check this by checking the # of enemy robots (3+?) on your side of the field
 		
+		
 		int enemy_cnt = 0;
 		for (std::size_t i = 0; i < enemies.size(); ++i) {	
 			// simply check the enemies' positions

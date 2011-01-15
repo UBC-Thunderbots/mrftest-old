@@ -106,7 +106,7 @@ namespace {
 		if (kicker.is()) {
 			Player::Ptr passee = AI::HL::Util::choose_best_pass(world, offenders);
 			if (passee.is()) {
-				AI::HL::Tactics::pass(world, kicker, off_passee, AI::Flags::FLAG_CLIP_PLAY_AREA);
+				AI::HL::Tactics::pass(world, kicker, passee, AI::Flags::FLAG_CLIP_PLAY_AREA);
 			} else {
 				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
 			}

@@ -41,7 +41,7 @@ double AI::HL::Offender::scoring_function(const std::vector<Point> &enemy_pos, c
 
 	// TODO: fix this
 	if (!AI::HL::Util::path_check(world.ball().position(), pos, enemy_pos, Robot::MAX_RADIUS + Ball::RADIUS * 3)) {
-		// return -1e99;
+		return -1e99;
 	}
 
 	for (size_t i = 0; i < dont_block.size(); ++i) {
@@ -67,8 +67,7 @@ double AI::HL::Offender::scoring_function(const std::vector<Point> &enemy_pos, c
 	// 10 degrees of shooting is 10 Points
 	score *= 10.0 / (10.0 * DEG_2_RAD);
 
-	// want to be as near to our own goal as possible
-	// score -= 1.0 * pos.x;
+	// want to be as near to enemy goal or ball as possible
 	const double balldist = (pos - world.ball().position()).len();
 	const double goal_dist = (pos - bestshot.first).len();
 
