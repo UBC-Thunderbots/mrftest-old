@@ -195,6 +195,11 @@ software/ai/hl/penalty_friendly_strategy.cpp -text
 software/ai/hl/stop_strategy.cpp -text
 software/ai/hl/stp/evaluate/ball_threat.cpp -text
 software/ai/hl/stp/evaluate/ball_threat.h -text
+software/ai/hl/stp/evaluate/coordinate.cpp -text
+software/ai/hl/stp/evaluate/coordinate.h -text
+software/ai/hl/stp/evaluate/enemy.cpp -text
+software/ai/hl/stp/evaluate/enemy.h -text
+software/ai/hl/stp/evaluate/region.h -text
 software/ai/hl/stp/evaluate/shoot.cpp -text
 software/ai/hl/stp/evaluate/shoot.h -text
 software/ai/hl/stp/play/grab_ball.cpp -text
