@@ -60,7 +60,7 @@ void estop_init(void) {
 
 	/* Configure ECCP2 to compare to 15000 (1/12000000 (clock period) * 8 (prescale) * 15000 = 10ms) and start an ADC conversion and reset the timer. */
 	/*          ////----- Unused in compare mode
-	 *              ////- Compare mode with special event trigger on match */
+	 *          ||||////- Compare mode with special event trigger on match */
 	CCP2CON = 0b00001011;
 	CCPR2H = 15000 >> 8;
 	CCPR2L = 15000 & 0xFF;

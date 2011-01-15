@@ -8,6 +8,13 @@
 #include <stdbool.h>
 #include <string.h>
 
+/**
+ * \brief The number of timer 1 rollovers (~44ms each) before an application crash is assumed and the robots are scrammed.
+ *
+ * Approximately 1 second.
+ */
+#define SCRAM_TIMEOUT_LIMIT 23
+
 __data drive_block_t state_transport_out_drive[15];
 
 /**
@@ -15,10 +22,18 @@ __data drive_block_t state_transport_out_drive[15];
  */
 static uint8_t buffer[64];
 
+/**
+ * \brief The number of timer 1 rollovers left before an application crash is assumed and the robots are scrammed.
+ */
+static volatile uint8_t scram_timeout = 0;
+
 static void on_transaction(void) {
 	uint8_t recipient;
 	__data const uint8_t *ptr = buffer;
 	uint8_t left = USB_BD_OUT_RECEIVED(EP_STATE_TRANSPORT);
+
+	/* Clear the timeout. */
+	scram_timeout = SCRAM_TIMEOUT_LIMIT;
 
 	/* Decode the packet. */
 	while (left) {
@@ -88,6 +103,18 @@ static BOOL on_clear_halt(void) {
 }
 
 void state_transport_out_init(void) {
+	/* Start up timer 1 to do the scram timeout.
+	 *        /-------- Read/write in two 8-bit operations
+	 *        |/------- Read-only
+	 *        ||//----- 1:8 prescale
+	 *        ||||/---- Oscillator block disabled
+	 *        |||||/--- Ignored
+	 *        ||||||/-- Internal clock source
+	 *        |||||||/- Timer enabled */
+	T1CON = 0b00110011;
+	IPR1bits.TMR1IP = 1;
+	PIE1bits.TMR1IE = 1;
+
 	/* The endpoint is halted until XBee stage 2 configuration completes. */
 	usb_halted_out_endpoints |= 1 << EP_STATE_TRANSPORT;
 	usb_ep_callbacks[EP_STATE_TRANSPORT].out.transaction = &on_transaction;
@@ -101,5 +128,17 @@ void state_transport_out_init(void) {
 
 void state_transport_out_deinit(void) {
 	UEPBITS(EP_STATE_TRANSPORT).EPOUTEN = 0;
+}
+
+void state_transport_out_tmr1if(void) {
+	if (scram_timeout) {
+		--scram_timeout;
+	} else {
+		uint8_t i;
+		for (i = 0; i != 15; ++i) {
+			state_transport_out_drive[i].flags.enable_robot = 0;
+		}
+	}
+	PIR1bits.TMR1IF = 0;
 }
 

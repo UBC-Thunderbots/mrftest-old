@@ -21,17 +21,17 @@ static uint16_t xbee_versions[2];
 DEF_INTHIGH(high_handler)
 	__asm extern _xbee_rxpacket_rc1if __endasm;
 	__asm extern _xbee_rxpacket_rc2if __endasm;
-	DEF_HANDLER2(SIG_RC1, SIG_RC1IE, xbee_rxpacket_rc1if)
-	DEF_HANDLER2(SIG_RC2, SIG_RC2IE, xbee_rxpacket_rc2if)
+	DEF_HANDLER(SIG_RC1, xbee_rxpacket_rc1if)
+	DEF_HANDLER(SIG_RC2, xbee_rxpacket_rc2if)
 END_DEF
 
 DEF_INTLOW(low_handler)
 	__asm extern _xbee_txpacket_tx1if __endasm;
 	__asm extern _xbee_txpacket_tx2if __endasm;
-	__asm extern _xbee_txpacket_ccp1if __endasm;
+	__asm extern _xbee_txpacket_tmr4if __endasm;
 	DEF_HANDLER2(SIG_TX1, SIG_TX1IE, xbee_txpacket_tx1if)
 	DEF_HANDLER2(SIG_TX2, SIG_TX2IE, xbee_txpacket_tx2if)
-	DEF_HANDLER2(SIG_CCP1, SIG_CCP1IE, xbee_txpacket_ccp1if)
+	DEF_HANDLER(SIG_TMR4, xbee_txpacket_tmr4if)
 END_DEF
 
 static void show_done(void) {

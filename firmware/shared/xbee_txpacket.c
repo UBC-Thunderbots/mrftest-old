@@ -94,20 +94,18 @@ static void update_current_packet_length(uint8_t xbee) {
 
 void xbee_txpacket_init(void) {
 	if (!inited) {
-		/* Turn on timer 1 with its (default) 1:1 prescaler on internal clock. */
-		TMR1H = 0;
-		TMR1L = 0;
-		T1CONbits.TMR1ON = 1;
+		/* Turn on timer 4 with a period of 256 × 16 × 4 / 12000000 =~ 1.4ms.
+		 *        /-------- Unimplemented
+		 *        |////---- 1:16 postscale
+		 *        |||||/--- Timer disabled (enabled only as needed)
+		 *        ||||||//- 1:4 prescale */
+		T4CON = 0b01111001;
+		PR4 = 0xFF;
 
-		/* Configure ECCP1 to compare to 12000 and generate a software interrupt and reset the timer every 1ms. */
-		/*          ////----- Unused in compare mode
-		 *              ////- Compare mode with special event trigger on match */
-		CCP1CON = 0b00001011;
-		CCPR1H = 12000 >> 8;
-		CCPR1L = 12000 & 0xFF;
-
-		/* Set CCP1 interrupts as low-priority, but do not enable them yet. */
-		IPR1bits.CCP1IP = 0;
+		/* Set timer 4 interrupts as low-priority, and enable them. */
+		IPR3bits.TMR4IP = 0;
+		PIR3bits.TMR4IF = 0;
+		PIE3bits.TMR4IE = 1;
 
 		/* Enable the transmitters. */
 		TXSTA1bits.TXEN = 1;
@@ -233,7 +231,7 @@ SIGHANDLER(xbee_txpacket_tx ## usartidx ## if) { \
 		/* If the XBee has deasserted CTS (active-low), stop transmitting and enable the polling timer. */ \
 		if (PORT_XBEE ## xbeeidx ## _CTS) { \
 			PIE ## piridx ## bits.TX ## usartidx ## IE = 0; \
-			PIE1bits.CCP1IE = 1; \
+			T4CONbits.TMR4ON = 1; \
 			return; \
 		} \
 \
@@ -308,14 +306,14 @@ IMPLEMENT_TXIF(1, 1, 1)
 IMPLEMENT_TXIF(2, 0, 3)
 
 /**
- * \brief Handles CCP1 interrupts, which occur every 1ms.
+ * \brief Handles TMR4 interrupts, which occur every 1ms.
  *
  * When a transmitter enters CTS holdoff, it will enable these interrupts.
  * At each interrupt, CTS is polled.
  * If CTS has been reasserted, the transmit interrupt is re-enabled.
- * If both CTS lines are asserted, the CCP is disabled.
+ * If both CTS lines are asserted, the interrupt is disabled.
  */
-SIGHANDLER(xbee_txpacket_ccp1if) {
+SIGHANDLER(xbee_txpacket_tmr4if) {
 	uint8_t cts_shadow = 0;
 
 	/* Note: CTS lines are active-low. */
@@ -332,8 +330,8 @@ SIGHANDLER(xbee_txpacket_ccp1if) {
 		PIE1bits.TX1IE = 1;
 	}
 	if (cts_shadow == 3) {
-		PIE1bits.CCP1IE = 0;
+		T4CONbits.TMR4ON = 0;
 	}
-	PIR1bits.CCP1IF = 0;
+	PIR3bits.TMR4IF = 0;
 }
 
