@@ -311,7 +311,6 @@ void main(void) {
 	spi_init();
 
 	/* Load the operational parameters block. */
-	leds_show_number(1);
 	if (!params_load()) {
 		/* Parameters corrupt or uninitialized.
 		 * We can't do anything useful because our only communication mechanism is XBee and we don't know what channel or ID number to take. */
@@ -335,7 +334,6 @@ void main(void) {
 	serial_init();
 	xbee_txpacket_init();
 	xbee_rxpacket_init();
-	leds_show_number(2);
 	if (!configure_xbee_stage1(0)) {
 		for (;;) {
 			Sleep();
@@ -346,7 +344,6 @@ void main(void) {
 			Sleep();
 		}
 	}
-	leds_show_number(3);
 	if (!configure_xbee_stage1(1)) {
 		for (;;) {
 			Sleep();
@@ -357,19 +354,14 @@ void main(void) {
 			Sleep();
 		}
 	}
-	leds_show_number(4);
 
 	/* Configure the FPGA, if appropriate. */
 	if (params.flash_contents == FLASH_CONTENTS_FPGA) {
-		leds_show_number(5);
 		LAT_FPGA_PROG_B = 1;
 		while (!PORT_FPGA_INIT_B);
-		leds_show_number(6);
 		while (!PORT_FPGA_DONE && PORT_FPGA_INIT_B);
-		if (PORT_FPGA_DONE) {
-			leds_show_number(7);
-		} else {
-			leds_show_number(14);
+		if (!PORT_FPGA_DONE) {
+			error_reporting_add(FAULT_FPGA_INVALID_BITSTREAM);
 		}
 		delay1ktcy(1);
 		LAT_DCM_RESET = 0;
@@ -377,8 +369,9 @@ void main(void) {
 		while (!PORT_DCM_LOCKED);
 		delay1ktcy(1);
 		LAT_FPGA_RESET = 0;
+		LAT_MOTOR_ENABLE = 1;
 	} else {
-		leds_show_number(15);
+		error_reporting_add(FAULT_FPGA_NO_BITSTREAM);
 	}
 
 	/* Configure the parallel master port.
