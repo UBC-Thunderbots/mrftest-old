@@ -3,6 +3,7 @@
 #include "endpoints.h"
 #include "error_reporting.h"
 #include "pipes.h"
+#include "signal.h"
 #include "usb.h"
 #include <pic18fregs.h>
 #include <stdbool.h>
@@ -111,7 +112,7 @@ void state_transport_out_init(void) {
 	 *        |||||/--- Ignored
 	 *        ||||||/-- Internal clock source
 	 *        |||||||/- Timer enabled */
-	T1CON = 0b00110011;
+	T1CON = 0b00110001;
 	IPR1bits.TMR1IP = 1;
 	PIE1bits.TMR1IE = 1;
 
@@ -130,7 +131,7 @@ void state_transport_out_deinit(void) {
 	UEPBITS(EP_STATE_TRANSPORT).EPOUTEN = 0;
 }
 
-void state_transport_out_tmr1if(void) {
+SIGHANDLER(state_transport_out_tmr1if) {
 	if (scram_timeout) {
 		--scram_timeout;
 	} else {
