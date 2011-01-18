@@ -125,6 +125,24 @@ void run(void) {
 	CCPR1H = 60000 / 256;
 	CCPR1L = 60000 % 256;
 
+	/* Perform a calibration ADC reading.
+	 *         |/------- Execute calibration on next acquisition
+	 *         ||///---- Set acquisition time 4TAD = 5⅓µs
+	 *         |||||///- Set conversion clock TAD = Fosc/64 = 1⅓µs */
+	ADCON1 = 0b11010110;
+	/*         /-------- Negative reference is AVSS
+	 *         |/------- Positive reference is AVDD
+	 *         ||////--- Channel 0
+	 *         ||||||/-- Do not start acquisition yet
+	 *         |||||||/- ADC on */
+	ADCON0 = 0b00000001;
+	ADCON0bits.GO = 1;
+	while (ADCON0bits.GO);
+	ADCON1bits.ADCAL = 0;
+
+	/* Start a conversion of the battery voltage. */
+	ADCON0bits.GO = 1;
+
 	/* Run forever handling events. */
 	for (;;) {
 		if (xbee_txpacket_dequeue() == &txpkt_shadow) {
@@ -505,6 +523,43 @@ void run(void) {
 			}
 		}
 
+		if (!ADCON0bits.GO) {
+			/* An analogue conversion has finished.
+			 * Figure out which channel it was on. */
+			if (!ADCON0bits.CHS1) {
+				if (!ADCON0bits.CHS0) {
+					/* Channel 0 -> battery voltage.
+					 * Record result. */
+					feedback_block.battery_voltage_raw = (ADRESH << 8) | ADRESL;
+					parbus_txpacket.battery_voltage = (ADRESH << 8) | ADRESL;
+					/* Start a conversion on channel 1. */
+					ADCON0bits.CHS0 = 1;
+					ADCON0bits.GO = 1;
+				} else {
+					/* Channel 1 -> thermistor.
+					 * Record result. */
+					feedback_block.dribbler_temperature_raw = (ADRESH << 8) | ADRESL;
+					/* Start a conversion on channel 2. */
+					ADCON0bits.CHS0 = 0;
+					ADCON0bits.CHS1 = 1;
+					ADCON0bits.GO = 1;
+				}
+			} else {
+				if (!ADCON0bits.CHS0) {
+					/* Channel 2 -> break beam.
+					 * Start a conversion on channel 3. */
+					ADCON0bits.CHS0 = 1;
+					ADCON0bits.GO = 1;
+				} else {
+					/* Channel 3 -> miscellaneous device connector.
+					 * Start a conversion on channel 0. */
+					ADCON0bits.CHS0 = 0;
+					ADCON0bits.CHS1 = 0;
+					ADCON0bits.GO = 1;
+				}
+			}
+		}
+
 		if (PIR1bits.CCP1IF) {
 			/* It's time to run a control loop iteration.
 			 * Begin by reading back feedback from the FPGA. */
@@ -515,6 +570,11 @@ void run(void) {
 				while (len--) {
 					*ptr++ = PMDIN1L;
 				}
+			}
+
+			/* Check out the results. */
+			if (!parbus_rxpacket.flags.chicker_present) {
+				error_reporting_add(FAULT_CHICKER_NOT_PRESENT);
 			}
 
 			if (drive_timeout && drive_block.flags.enable_robot) {
@@ -549,7 +609,6 @@ void run(void) {
 			} else {
 				parbus_txpacket.motors_power[4] = 0;
 			}
-			parbus_txpacket.battery_voltage = (uint16_t) (15.0 / 18.3 * 1023);
 			if (kick_power) {
 				parbus_txpacket.kick_power = kick_power;
 				parbus_txpacket.flags.kick_sequence = !parbus_txpacket.flags.kick_sequence;
@@ -557,12 +616,8 @@ void run(void) {
 			}
 
 			/* Fill the radio feedback block. */
-#warning finish this shit
 			feedback_block.flags.valid = parbus_rxpacket.flags.feedback_ok;
-			feedback_block.flags.ball_in_beam = 0;
-			feedback_block.flags.ball_on_dribbler = 0;
-			feedback_block.flags.capacitors_charged = 0;
-			feedback_block.battery_voltage_raw = 0;
+			feedback_block.flags.capacitor_charged = parbus_rxpacket.capacitor_voltage > ((uint16_t) (215.0 / (220000.0 + 2200.0) * 2200.0 / 3.3 * 4095.0)) && !kick_power;
 			feedback_block.capacitor_voltage_raw = parbus_rxpacket.capacitor_voltage;
 
 			/* Send orders to the FPGA. */

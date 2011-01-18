@@ -30,9 +30,9 @@ typedef struct {
 	unsigned ball_on_dribbler : 1;
 
 	/**
-	 * \brief Zero if the capacitors are not fully charged, or one if they are.
+	 * \brief Zero if the capacitor is not fully charged, or one if it is.
 	 */
-	unsigned capacitors_charged : 1;
+	unsigned capacitor_charged : 1;
 } feedback_flags_t;
 
 /**
@@ -53,6 +53,11 @@ typedef struct {
 	 * \brief The raw ADC reading of the capacitor voltage monitor.
 	 */
 	uint16_t capacitor_voltage_raw;
+
+	/**
+	 * \brief The raw ADC reading of the dribbler thermistor.
+	 */
+	uint16_t dribbler_temperature_raw;
 
 	/**
 	 * \brief The bitmask of latched faults.
