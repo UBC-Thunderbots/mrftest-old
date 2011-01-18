@@ -96,6 +96,7 @@ firmware/main/leds.h -text
 firmware/main/main.c -text
 firmware/main/params.c -text
 firmware/main/params.h -text
+firmware/main/parbus.h -text
 firmware/main/pins.txt -text
 firmware/main/pipes.c -text
 firmware/main/queue.h -text

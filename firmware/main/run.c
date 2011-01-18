@@ -6,11 +6,13 @@
 #include "fw.h"
 #include "leds.h"
 #include "params.h"
+#include "parbus.h"
 #include "pins.h"
 #include "pipes.h"
 #include "spi.h"
 #include "xbee_rxpacket.h"
 #include "xbee_txpacket.h"
+#include <delay.h>
 #include <pic18fregs.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -30,6 +32,11 @@
  * \brief The XBee API ID for a receive data packet.
  */
 #define XBEE_API_ID_RX_16 0x81
+
+/**
+ * \brief The number of control loop iterations before the drive pipe is considered to have timed out.
+ */
+#define DRIVE_TIMEOUT_LIMIT 200
 
 /**
  * \brief The type of an XBee transmit header.
@@ -86,6 +93,10 @@ void run(void) {
 	} reboot_pending = REBOOT_PENDING_NO;
 	BOOL flash_page_program_active = false, flash_burn_active = false, flash_reburn_params = false;
 	static params_t flash_temp_params;
+	static parbus_txpacket_t parbus_txpacket;
+	static parbus_rxpacket_t parbus_rxpacket;
+	uint8_t drive_timeout = 0;
+	uint16_t kick_power = 0;
 
 	/* Clear state. */
 	memset(sequence, 0, sizeof(sequence));
@@ -96,6 +107,23 @@ void run(void) {
 	txiovs[2].len = sizeof(txpkt_feedback_shadow);
 	txiovs[2].ptr = &txpkt_feedback_shadow;
 	txpkt.iovs = txiovs;
+	memset(&parbus_txpacket, 0, sizeof(parbus_txpacket));
+	memset(&parbus_rxpacket, 0, sizeof(parbus_rxpacket));
+
+	/* Start running a 200Hz control loop timer.
+	 *        /-------- 8-bit reads and writes
+	 *        |/------- Timer 1 is not driving system clock
+	 *        ||//----- 1:1 prescale
+	 *        ||||/---- Timer 1 oscillator disabled
+	 *        |||||/--- Ignored
+	 *        ||||||/-- Internal clock
+	 *        |||||||/- Timer enabled */
+	T1CON = 0b00000001;
+	/*          ////----- Ignored
+	 *          ||||////- Compare mode with special event trigger on match */
+	CCP1CON = 0b00001011;
+	CCPR1H = 60000 / 256;
+	CCPR1L = 60000 % 256;
 
 	/* Run forever handling events. */
 	for (;;) {
@@ -131,6 +159,7 @@ void run(void) {
 										if (rxptr[0] == 2 + sizeof(drive_block)) {
 											/* It's new drive data. */
 											memcpyram2ram(&drive_block, rxptr + 2, sizeof(drive_block));
+											drive_timeout = DRIVE_TIMEOUT_LIMIT;
 										} else {
 											/* It's the wrong length. */
 											error_reporting_add(FAULT_OUT_MICROPACKET_BAD_LENGTH);
@@ -206,7 +235,11 @@ void run(void) {
 #warning implement
 							} else if (rxpacket->buf[5] == PIPE_KICK) {
 								/* The packet contains a kick request. */
-#warning implement
+								if (rxpacket->len == 10) {
+									kick_power = rxpacket->buf[8] | (rxpacket->buf[9] << 8);
+								} else {
+									error_reporting_add(FAULT_OUT_MICROPACKET_BAD_LENGTH);
+								}
 							} else if (rxpacket->buf[5] == PIPE_FIRMWARE_OUT) {
 								/* The packet contains a firmware request. */
 								if (rxpacket->buf[6] & 0x80) {
@@ -470,6 +503,79 @@ void run(void) {
 				 * Queue it for transmission. */
 				firmware_response_pending = true;
 			}
+		}
+
+		if (PIR1bits.CCP1IF) {
+			/* It's time to run a control loop iteration.
+			 * Begin by reading back feedback from the FPGA. */
+			{
+				__data uint8_t *ptr = (__data uint8_t *) &parbus_rxpacket;
+				uint8_t len = sizeof(parbus_rxpacket);
+				(void) PMDIN1L;
+				while (len--) {
+					*ptr++ = PMDIN1L;
+				}
+			}
+
+			if (drive_timeout && drive_block.flags.enable_robot) {
+				uint8_t i;
+
+				/* Count this iteration against the timeout. */
+				--drive_timeout;
+
+				/* Run the control loops. */
+#warning this is not an actual control algorithm
+
+				/* Prepare new orders for the FPGA. */
+				parbus_txpacket.flags.enable_motors = 1;
+				for (i = 0; i != 4; ++i) {
+					if (drive_block.wheels[i] >= 0) {
+						parbus_txpacket.flags.motors_direction &= ~(1 << i);
+						parbus_txpacket.motors_power[i] = drive_block.wheels[i];
+					} else {
+						parbus_txpacket.flags.motors_direction |= 1 << i;
+						parbus_txpacket.motors_power[i] = -drive_block.wheels[i];
+					}
+				}
+			} else {
+				/* Prepare scramming orders for the FPGA. */
+				parbus_txpacket.flags.enable_motors = 0;
+			}
+
+			/* Prepare new orders. */
+			parbus_txpacket.flags.enable_charger = drive_block.flags.charge;
+			if (drive_block.flags.dribble) {
+				parbus_txpacket.motors_power[4] = 25;
+			} else {
+				parbus_txpacket.motors_power[4] = 0;
+			}
+			parbus_txpacket.battery_voltage = (uint16_t) (15.0 / 18.3 * 1023);
+			if (kick_power) {
+				parbus_txpacket.kick_power = kick_power;
+				parbus_txpacket.flags.kick_sequence = !parbus_txpacket.flags.kick_sequence;
+				kick_power = 0;
+			}
+
+			/* Fill the radio feedback block. */
+#warning finish this shit
+			feedback_block.flags.valid = parbus_rxpacket.flags.feedback_ok;
+			feedback_block.flags.ball_in_beam = 0;
+			feedback_block.flags.ball_on_dribbler = 0;
+			feedback_block.flags.capacitors_charged = 0;
+			feedback_block.battery_voltage_raw = 0;
+			feedback_block.capacitor_voltage_raw = parbus_rxpacket.capacitor_voltage;
+
+			/* Send orders to the FPGA. */
+			{
+				__data const uint8_t *ptr = (__data uint8_t *) &parbus_txpacket;
+				uint8_t len = sizeof(parbus_txpacket);
+				while (len--) {
+					PMDIN1L = *ptr++;
+				}
+			}
+
+			/* Clear interrupt flag. */
+			PIR1bits.CCP1IF = 0;
 		}
 	}
 }
