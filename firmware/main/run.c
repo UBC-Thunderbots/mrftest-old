@@ -97,6 +97,7 @@ void run(void) {
 	static parbus_rxpacket_t parbus_rxpacket;
 	uint8_t drive_timeout = 0;
 	uint16_t kick_power = 0;
+	const uint8_t robot_number = params.robot_number;
 
 	/* Clear state. */
 	memset(sequence, 0, sizeof(sequence));
@@ -171,7 +172,7 @@ void run(void) {
 								/* It's reasonably correctly structured. */
 								uint8_t robot = rxptr[1] >> 4;
 								uint8_t pipe = rxptr[1] & 0x0F;
-								if (robot && robot == params.robot_number) {
+								if (robot && robot == robot_number) {
 									/* It's addressed to us. */
 									if (pipe == PIPE_DRIVE) {
 										if (rxptr[0] == 2 + sizeof(drive_block)) {
@@ -198,7 +199,7 @@ void run(void) {
 						}
 					}
 
-					if (rxpacket->buf[5] && rxpacket->buf[5] == params.robot_number && (inbound_state == INBOUND_STATE_IDLE || inbound_state == INBOUND_STATE_AWAITING_POLL)) {
+					if (rxpacket->buf[5] && rxpacket->buf[5] == robot_number && (inbound_state == INBOUND_STATE_IDLE || inbound_state == INBOUND_STATE_AWAITING_POLL)) {
 						/* The poll code is asking us to send a packet. */
 						if (inbound_state == INBOUND_STATE_AWAITING_POLL) {
 							/* We should resend the last packet.
