@@ -7,7 +7,7 @@ PROJECTS := ai config fw log rxdata simulator test xbeeconfig xbeed xbeerconfig
 # Here, write a list of the source files and directories for each executable.
 # Directories will be searched for source files recursively.
 #
-SOURCES_ai := ai geom leastsquares log/shared proto uicomponents util xbee/client xbee/shared
+SOURCES_ai := ai geom leastsquares log/shared proto uicomponents util xbee/client xbee/shared 
 SOURCES_config := config geom leastsquares uicomponents util xbee/client
 SOURCES_fw := fw geom leastsquares uicomponents util xbee/client xbee/shared
 SOURCES_log := ai/common leastsquares log geom proto uicomponents util xbee/client
@@ -22,7 +22,7 @@ SOURCES_xbeerconfig := geom leastsquares uicomponents util xbeerconfig.cpp xbee/
 #
 # Here, write the linker flags to be used for each project.
 #
-LDFLAGS_common := -Wl,--as-needed -Wl,-O1 $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf libxml++-2.6) -lrt
+LDFLAGS_common := -Wl,--as-needed -Wl,-O1 $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf libxml++-2.6 gsl) -lrt
 LDFLAGS_ai := $(LDFLAGS_common)
 LDFLAGS_config := $(LDFLAGS_common)
 LDFLAGS_fw := $(LDFLAGS_common)
@@ -38,7 +38,7 @@ LDFLAGS_xbeerconfig := $(LDFLAGS_common)
 #
 # Here, write the compiler flags to be used.
 #
-override CXXFLAGS := -std=gnu++0x -Wall -Wextra -Wold-style-cast -Wconversion -Wundef -O2 -fomit-frame-pointer -g -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -pthread $(shell pkg-config --cflags glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf libxml++-2.6 | sed 's/-I/-isystem /g') $(CXXFLAGS) -I.
+override CXXFLAGS := -std=gnu++0x -Wall -Wextra -Wold-style-cast -Wconversion -Wundef -O2 -fomit-frame-pointer -g -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -pthread $(shell pkg-config --cflags glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf libxml++-2.6 gsl | sed 's/-I/-isystem /g') $(CXXFLAGS) -I.
 
 #
 # DO NOT MODIFY STUFF BELOW HERE WITHOUT A GOOD REASON.
