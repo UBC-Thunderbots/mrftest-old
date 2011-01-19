@@ -444,6 +444,10 @@ software/util/fiber.cpp -text
 software/util/fiber.h -text
 software/util/hungarian.cpp -text
 software/util/hungarian.h -text
+software/util/kalman/kalman.cpp -text
+software/util/kalman/kalman.h -text
+software/util/kalman/matrix.cpp -text
+software/util/kalman/matrix.h -text
 software/util/mapped_file.cpp -text
 software/util/mapped_file.h -text
 software/util/matrix.h -text
