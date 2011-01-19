@@ -4,6 +4,7 @@
 #include "geom/point.h"
 #include "leastsquares/ap.h"
 #include "util/time.h"
+#include "util/kalman/kalman.h"
 
 /**
  * Accumulates data points over time and predicts past, current, and future values and derivatives.
@@ -79,6 +80,7 @@ class Predictor {
 		ap::real_1d_array approxv;
 		timespec last_datum_timestamp, lock_timestamp;
 		double lock_delta;
+		kalman filter;
 
 		void update();
 };

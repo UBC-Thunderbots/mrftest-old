@@ -3,6 +3,7 @@
 #include "leastsquares/leastsquares.h"
 #include "util/time.h"
 #include "util/timestep.h"
+#include <iostream>
 #include <cmath>
 /*
 #include <queue>
@@ -54,6 +55,7 @@ void Prediction::Update(double observation, double frame_delay, double accelerat
 	covariance_estimate = (I - kalman_gain*observation_model)*covariance_estimate;
 }
 */
+
 namespace {
 	const int MAX_DEGREE = 3;
 	const int NUM_OLD_POSITIONS = 30;
@@ -67,7 +69,7 @@ Predictor::Predictor(bool angle) : angle(angle), initialized(false), lock_delta(
 	// Fill history data with zeroes.
 	vhistory.setlength(NUM_OLD_POSITIONS);
 	dhistory.setlength(NUM_OLD_POSITIONS);
-	weights.setlength(NUM_OLD_POSITIONS);
+	//weiguess(0,0);ghts.setlength(NUM_OLD_POSITIONS);
 	fmatrix.setlength(NUM_OLD_POSITIONS, MAX_DEGREE + 1);
 	for (int i = 0; i < NUM_OLD_POSITIONS; i++) {
 		vhistory(i) = 0.0;
@@ -84,12 +86,22 @@ Predictor::~Predictor() {
 double Predictor::value(double delta, unsigned int deriv) const {
 	delta += lock_delta;
 	double v = 0;
-	for (int i = MAX_DEGREE; i >= static_cast<int>(deriv); --i) {
+	//original
+	/*for (int i = MAX_DEGREE; i >= static_cast<int>(deriv); --i) { 
 		v = v * delta + approxv(i);
 	}
 	if (angle && !deriv) {
 		v = angle_mod(v);
 	}
+	return v;*/
+	matrix guess = filter.predict(delta);
+	if(deriv == 0){
+		v = guess(0,0);
+	} else if(deriv == 1) {
+		v = guess(1,0);
+		std::cout << "velocity is:" << v << std::endl ;
+	}else {} // TODO some time, deal with acceleration
+
 	return v;
 }
 
@@ -123,7 +135,9 @@ void Predictor::add_datum(double value, const timespec &ts) {
 		}
 
 		// Update the predictions.
-		update();
+		//update();
+		// or use kalman filter
+		filter.update(value, timespec_to_double(ts));
 
 		// Don't do any of the rest.
 		return;
@@ -155,7 +169,11 @@ void Predictor::add_datum(double value, const timespec &ts) {
 	dhistory(0) = delta_time;
 
 	// Update the predictions.
-	update();
+	//update();
+	// or use the kalman predictor
+	//filter.new_control(3,);
+	filter.update(value, timespec_to_double(ts));
+	//TODO deal with angle prediction
 }
 
 void Predictor::clear() {
