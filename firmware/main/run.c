@@ -10,6 +10,7 @@
 #include "pins.h"
 #include "pipes.h"
 #include "spi.h"
+#include "wheel_controller.h"
 #include "xbee_rxpacket.h"
 #include "xbee_txpacket.h"
 #include <delay.h>
@@ -457,6 +458,9 @@ void run(void) {
 											spi_send(0x05);
 											while (spi_receive() & 0x01);
 											LAT_FLASH_CS = 1;
+
+											/* The write is no longer active. */
+											flash_page_program_active = false;
 										}
 									}
 								}
@@ -585,19 +589,22 @@ void run(void) {
 				--drive_timeout;
 
 				/* Run the control loops. */
-#warning this is not an actual control algorithm
+				parbus_txpacket.flags.motors_direction = 0;
+				for (i = 0; i != 4; ++i) {
+					int16_t power = wheel_controller_iter(drive_block.wheels[i], parbus_rxpacket.encoders_diff[i]);
+					if (power < 0) {
+						parbus_txpacket.flags.motors_direction |= 1 << i;
+						power = -power;
+					}
+					if (power <= 255) {
+						parbus_txpacket.motors_power[i] = power;
+					} else {
+						parbus_txpacket.motors_power[i] = 255;
+					}
+				}
 
 				/* Prepare new orders for the FPGA. */
 				parbus_txpacket.flags.enable_motors = 1;
-				for (i = 0; i != 4; ++i) {
-					if (drive_block.wheels[i] >= 0) {
-						parbus_txpacket.flags.motors_direction &= ~(1 << i);
-						parbus_txpacket.motors_power[i] = drive_block.wheels[i];
-					} else {
-						parbus_txpacket.flags.motors_direction |= 1 << i;
-						parbus_txpacket.motors_power[i] = -drive_block.wheels[i];
-					}
-				}
 			} else {
 				/* Prepare scramming orders for the FPGA. */
 				parbus_txpacket.flags.enable_motors = 0;
@@ -615,6 +622,7 @@ void run(void) {
 				parbus_txpacket.flags.kick_sequence = !parbus_txpacket.flags.kick_sequence;
 				kick_power = 0;
 			}
+			parbus_txpacket.test = drive_block.test_mode;
 
 			/* Fill the radio feedback block. */
 			feedback_block.flags.valid = parbus_rxpacket.flags.feedback_ok;

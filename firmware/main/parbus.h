@@ -20,33 +20,13 @@ typedef struct {
 } parbus_txpacket_flags_t;
 
 /**
- * \brief The possible test modes to specify in an outbound parallel bus packet.
- */
-typedef enum {
-	PARBUS_TXPACKET_TEST_MODE_NONE,
-	PARBUS_TXPACKET_TEST_MODE_LAMPTEST,
-	PARBUS_TXPACKET_TEST_MODE_HALL,
-	PARBUS_TXPACKET_TEST_MODE_ENCODER_LINES,
-	PARBUS_TXPACKET_TEST_MODE_ENCODER_COUNT,
-	PARBUS_TXPACKET_TEST_MODE_BOOSTCONVERTER,
-} parbus_txpacket_test_mode_t;
-
-/**
- * \brief The test setup byte of an outbound parallel bus packet.
- */
-typedef struct {
-	unsigned index : 4;
-	parbus_txpacket_test_mode_t mode : 4;
-} parbus_txpacket_test_t;
-
-/**
  * \brief A packet sent over the parallel bus to the FPGA.
  */
 typedef struct {
 	parbus_txpacket_flags_t flags;
 	uint8_t motors_power[5];
 	uint16_t battery_voltage;
-	parbus_txpacket_test_t test;
+	uint8_t test;
 	uint16_t kick_power;
 } parbus_txpacket_t;
 

@@ -311,6 +311,7 @@ void main(void) {
 	spi_init();
 
 	/* Load the operational parameters block. */
+	leds_show_number(1);
 	if (!params_load()) {
 		/* Parameters corrupt or uninitialized.
 		 * We can't do anything useful because our only communication mechanism is XBee and we don't know what channel or ID number to take. */
@@ -334,21 +335,25 @@ void main(void) {
 	serial_init();
 	xbee_txpacket_init();
 	xbee_rxpacket_init();
+	leds_show_number(2);
 	if (!configure_xbee_stage1(0)) {
 		for (;;) {
 			Sleep();
 		}
 	}
+	leds_show_number(3);
 	if (!configure_xbee_stage2(0)) {
 		for (;;) {
 			Sleep();
 		}
 	}
+	leds_show_number(4);
 	if (!configure_xbee_stage1(1)) {
 		for (;;) {
 			Sleep();
 		}
 	}
+	leds_show_number(5);
 	if (!configure_xbee_stage2(1)) {
 		for (;;) {
 			Sleep();
@@ -356,6 +361,7 @@ void main(void) {
 	}
 
 	/* Configure the FPGA, if appropriate. */
+	leds_show_number(6);
 	if (params.flash_contents == FLASH_CONTENTS_FPGA) {
 		LAT_FPGA_PROG_B = 1;
 		while (!PORT_FPGA_INIT_B);
@@ -420,6 +426,7 @@ void main(void) {
 	PMCONHbits.PMPEN = 1;
 
 	/* Run the main loop. */
+	leds_show_number(7);
 	run();
 }
 

@@ -12,9 +12,9 @@ params_t params;
 
 BOOL params_load(void) {
 	uint8_t len = sizeof(params);
-	__data uint8_t *ptr = (uint8_t *) &params;
+	__data uint8_t *ptr = (__data uint8_t *) &params;
 	uint8_t ch;
-	uint16_t crc = CRC16_EMPTY;
+	uint16_t crc = CRC16_EMPTY, crc_actual;
 
 	/* Check the flash's JEDEC ID.
 	 * It should be 0xEF, 0x40, 0x15. */
@@ -37,12 +37,9 @@ BOOL params_load(void) {
 		crc = crc_update(crc, ch);
 		*ptr++ = ch;
 	}
-	if (spi_receive() != (crc & 0xFF) || spi_receive() != (crc >> 8)) {
-		LAT_FLASH_CS = 1;
-		return false;
-	}
+	crc_actual = spi_receive() | (spi_receive() << 8);
 	LAT_FLASH_CS = 1;
-	return true;
+	return crc == crc_actual;
 }
 
 void params_commit(BOOL erase) {
