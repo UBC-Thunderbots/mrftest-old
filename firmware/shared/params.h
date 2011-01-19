@@ -50,17 +50,5 @@ typedef struct {
 	uint8_t robot_number;
 } params_t;
 
-/**
- * \brief The RAM shadow of the operational parameters block.
- */
-extern params_t params;
-
-/**
- * \brief Loads the parameters from flash into RAM.
- *
- * \return \c true on success, or \c false on failure (e.g. if the parameters are corrupt).
- */
-BOOL params_load(void);
-
 #endif
 

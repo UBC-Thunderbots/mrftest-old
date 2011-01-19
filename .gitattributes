@@ -26,7 +26,6 @@ firmware/bootstrap/crc.c -text
 firmware/bootstrap/leds.c -text
 firmware/bootstrap/leds.h -text
 firmware/bootstrap/main.c -text
-firmware/bootstrap/params.h -text
 firmware/bootstrap/pipes.c -text
 firmware/bootstrap/spi.c -text
 firmware/bootstrap/spi.h -text
@@ -112,9 +111,7 @@ firmware/main/wheel_controller.c -text
 firmware/main/wheel_controller.h -text
 firmware/main/xbee_activity.c -text
 firmware/main/xbee_rxpacket.c -text
-firmware/main/xbee_rxpacket.h -text
 firmware/main/xbee_txpacket.c -text
-firmware/main/xbee_txpacket.h -text
 firmware/messages.txt -text
 firmware/pingen/Makefile -text
 firmware/pingen/pingen.c -text
