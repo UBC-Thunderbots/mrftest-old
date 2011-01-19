@@ -83,11 +83,9 @@ void kalman::update(double measurement, double time) {
 	
 	//%how much does the guess differ from the measurement
 	double residual = measurement - (H*state_priori)(0,0); // below is original code
-	//double residual = measurement - ((H*state_priori)(0,0)).get_d();
     
 	//%The kalman update calculations
 	matrix Kalman_gain = (P_priori*~H)/(((H*P_priori*~H)(0,0)) + sigma_m*sigma_m); //below is original code
-	//matrix Kalman_gain = (P_priori*~H)/(((H*P_priori*~H)(0,0)).get_d() + sigma_m*sigma_m);
 	matrix x2(state_priori + Kalman_gain*residual);
 	
 	state_estimate(0,0) = x2(0,0);
