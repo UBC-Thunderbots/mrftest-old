@@ -42,6 +42,11 @@ typedef struct {
 	 * \brief The requested wheel speeds, in quarters of a degree per five milliseconds.
 	 */
 	int16_t wheels[4];
+
+	/**
+	 * \brief The test mode code.
+	 */
+	uint8_t test_mode;
 } drive_block_t;
 
 #endif
