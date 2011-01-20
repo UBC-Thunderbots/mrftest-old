@@ -273,12 +273,13 @@ namespace {
 			void on_interrupt_message_received(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len) {
 				if (robot == this->robot && pipe == XBeeDongle::PIPE_FIRMWARE_IN) {
 					const uint8_t *pch = static_cast<const uint8_t *>(data);
-					if (len == 5 && pch[0] == FIRMWARE_REQUEST_READ_PARAMS) {
+					if (len == 7 && pch[0] == FIRMWARE_REQUEST_READ_PARAMS) {
 #warning sanity checks
 						params.flash_contents = static_cast<XBeeRobot::OperationalParameters::FlashContents>(pch[1]);
 						params.xbee_channels[0] = pch[2];
 						params.xbee_channels[1] = pch[3];
 						params.robot_number = pch[4];
+						params.dribble_power = pch[5];
 						send_connection.disconnect();
 						receive_connection.disconnect();
 						Ptr pthis(this);
@@ -313,7 +314,7 @@ namespace {
 			XBeeRobot::OperationalParameters params;
 
 			FirmwareSetOperationalParametersOperation(XBeeDongle &dongle, unsigned int robot, const XBeeRobot::OperationalParameters &params) : dongle(dongle), robot(robot), self_ref(this) {
-				uint8_t data[6];
+				uint8_t data[8];
 #warning sanity checks
 				data[0] = static_cast<uint8_t>((robot << 4) | XBeeDongle::PIPE_FIRMWARE_OUT);
 				data[1] = FIRMWARE_REQUEST_SET_PARAMS;
@@ -321,6 +322,8 @@ namespace {
 				data[3] = params.xbee_channels[0];
 				data[4] = params.xbee_channels[1];
 				data[5] = params.robot_number;
+				data[6] = params.dribble_power;
+				data[7] = 0;
 				send_connection = dongle.send_bulk(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareSetOperationalParametersOperation::on_send_bulk_done));
 				receive_connection = dongle.signal_interrupt_message_received.connect(sigc::mem_fun(this, &FirmwareSetOperationalParametersOperation::on_interrupt_message_received));
 			}

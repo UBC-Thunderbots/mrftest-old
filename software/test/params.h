@@ -15,6 +15,7 @@ class TesterParamsPanel : public Gtk::Table {
 		XBeeRobot::OperationalParameters::FlashContents flash_contents;
 		Gtk::ComboBoxText channels[2];
 		Gtk::ComboBoxText index;
+		Gtk::HScale dribble_power;
 		Gtk::Button commit, rollback, reboot;
 		sigc::connection alive_connection;
 		Gtk::Entry test_mode;

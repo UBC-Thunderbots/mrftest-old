@@ -26,6 +26,8 @@ class XBeeRobot : public ByRef {
 			uint8_t xbee_channels[2];
 
 			uint8_t robot_number;
+
+			uint8_t dribble_power;
 		};
 
 		Property<bool> alive;

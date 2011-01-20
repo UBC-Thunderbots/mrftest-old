@@ -414,7 +414,7 @@ void run(void) {
 										break;
 
 									case FIRMWARE_REQUEST_SET_PARAMS:
-										if (rxpacket->len == 12) {
+										if (rxpacket->len == 14) {
 #warning sanity checking
 											memcpyram2ram(&params, rxpacket->buf + 8, sizeof(params));
 											firmware_response.micropacket_length = sizeof(firmware_response) - sizeof(firmware_response.params);
@@ -599,7 +599,7 @@ void run(void) {
 			/* Prepare new orders. */
 			parbus_txpacket.flags.enable_charger = drive_block.flags.charge;
 			if (drive_block.flags.dribble && feedback_block.dribbler_temperature_raw >= 200 && feedback_block.dribbler_temperature_raw <= 499) {
-				parbus_txpacket.motors_power[4] = 25;
+				parbus_txpacket.motors_power[4] = params.dribble_power;
 			} else {
 				parbus_txpacket.motors_power[4] = 0;
 			}

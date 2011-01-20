@@ -48,6 +48,16 @@ typedef struct {
 	 * \brief The robot number.
 	 */
 	uint8_t robot_number;
+
+	/**
+	 * \brief The power level to send to the dribbler when it's active.
+	 */
+	uint8_t dribble_power;
+
+	/**
+	 * \brief A padding byte because parameters must be an even length.
+	 */
+	uint8_t reserved;
 } params_t;
 
 #endif

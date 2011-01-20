@@ -9,7 +9,7 @@ namespace {
 	}
 }
 
-TesterParamsPanel::TesterParamsPanel() : Gtk::Table(4, 2), commit("Commit"), rollback("Rollback"), reboot("Reboot"), set_test_mode("Set Test Mode"), freeze(false) {
+TesterParamsPanel::TesterParamsPanel() : Gtk::Table(5, 2), commit("Commit"), rollback("Rollback"), reboot("Reboot"), set_test_mode("Set Test Mode"), freeze(false) {
 	for (std::size_t i = 0; i < 2; ++i) {
 		for (unsigned int ch = 0x0B; ch <= 0x1A; ++ch) {
 			channels[i].append_text(format_channel(ch));
@@ -19,7 +19,10 @@ TesterParamsPanel::TesterParamsPanel() : Gtk::Table(4, 2), commit("Commit"), rol
 	for (unsigned int i = 1; i <= 15; ++i) {
 		index.append_text(Glib::ustring::format(i));
 	}
+	dribble_power.get_adjustment()->configure(0, 0, 255, 1, 10, 0);
+	dribble_power.set_digits(0);
 	index.signal_changed().connect(sigc::mem_fun(this, &TesterParamsPanel::on_change));
+	dribble_power.signal_value_changed().connect(sigc::mem_fun(this, &TesterParamsPanel::on_change));
 	commit.signal_clicked().connect(sigc::mem_fun(this, &TesterParamsPanel::on_commit));
 	rollback.signal_clicked().connect(sigc::mem_fun(this, &TesterParamsPanel::on_rollback));
 	reboot.signal_clicked().connect(sigc::mem_fun(this, &TesterParamsPanel::on_reboot));
@@ -31,6 +34,8 @@ TesterParamsPanel::TesterParamsPanel() : Gtk::Table(4, 2), commit("Commit"), rol
 	attach(channels[1], 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(*Gtk::manage(new Gtk::Label("Index:")), 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(index, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(*Gtk::manage(new Gtk::Label("Dribble Power:")), 0, 1, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(dribble_power, 1, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
 	Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox);
 	Gtk::HButtonBox *hbb = Gtk::manage(new Gtk::HButtonBox);
@@ -43,7 +48,7 @@ TesterParamsPanel::TesterParamsPanel() : Gtk::Table(4, 2), commit("Commit"), rol
 	hbox->pack_start(test_mode, Gtk::PACK_EXPAND_WIDGET);
 	hbox->pack_start(set_test_mode);
 	vbox->pack_start(*hbox, Gtk::PACK_SHRINK);
-	attach(*vbox, 0, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(*vbox, 0, 2, 5, 6, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
 	set_robot(XBeeRobot::Ptr());
 }
@@ -84,6 +89,7 @@ void TesterParamsPanel::on_read_done(AsyncOperation<XBeeRobot::OperationalParame
 		channels[i].set_active_text(format_channel(params.xbee_channels[i]));
 	}
 	index.set_active_text(Glib::ustring::format(static_cast<unsigned int>(params.robot_number)));
+	dribble_power.set_value(params.dribble_power);
 	activate_controls();
 	freeze = false;
 }
@@ -97,6 +103,7 @@ void TesterParamsPanel::on_change() {
 			params.xbee_channels[i] = static_cast<uint8_t>(0x0B + channels[i].get_active_row_number());
 		}
 		params.robot_number = static_cast<uint8_t>(1 + index.get_active_row_number());
+		params.dribble_power = static_cast<uint8_t>(dribble_power.get_value());
 		robot->firmware_set_operational_parameters(params)->signal_done.connect(sigc::mem_fun(this, &TesterParamsPanel::on_change_done));
 	}
 }

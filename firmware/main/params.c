@@ -12,8 +12,8 @@
 
 params_t params;
 
-__code static params_t __at(0x1F000) rom_params = { FLASH_CONTENTS_NONE, { 0x0E, 0x0F }, 15 };
-__code static uint16_t __at(0x1F000 + sizeof(rom_params)) rom_params_crc = 0x6805;
+__code static params_t __at(0x1F000) rom_params = { FLASH_CONTENTS_NONE, { 0x0E, 0x0F }, 15, 80, 0 };
+__code static uint16_t __at(0x1F000 + sizeof(rom_params)) rom_params_crc = 0x4201;
 
 BOOL params_load(void) {
 	memcpypgm2ram(&params, &rom_params, sizeof(params));
