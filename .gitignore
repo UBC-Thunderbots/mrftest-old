@@ -12,16 +12,6 @@ firmware/SuperSimpleBoostConverter/*.asm
 firmware/SuperSimpleBoostConverter/*.cod
 firmware/SuperSimpleBoostConverter/*.hex
 firmware/SuperSimpleBoostConverter/*.lst
-firmware/bootstrap/*.asm
-firmware/bootstrap/*.cod
-firmware/bootstrap/*.cof
-firmware/bootstrap/*.err
-firmware/bootstrap/*.hex
-firmware/bootstrap/*.lst
-firmware/bootstrap/*.map
-firmware/bootstrap/html
-firmware/bootstrap/pins.h
-firmware/bootstrap/pins.inc
 firmware/dongle/*.asm
 firmware/dongle/*.cod
 firmware/dongle/*.cof
