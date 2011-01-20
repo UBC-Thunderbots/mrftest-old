@@ -32,8 +32,6 @@ firmware/bootstrap/spi.h -text
 firmware/dongle/18f65j50.lkr -text
 firmware/dongle/Doxyfile -text
 firmware/dongle/Makefile -text
-firmware/dongle/bulk_out.c -text
-firmware/dongle/bulk_out.h -text
 firmware/dongle/config.c -text
 firmware/dongle/critsec.h -text
 firmware/dongle/debug.c -text

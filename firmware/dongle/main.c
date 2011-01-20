@@ -1,4 +1,3 @@
-#include "bulk_out.h"
 #include "critsec.h"
 #include "debug.h"
 #include "descriptors.h"
@@ -142,13 +141,11 @@ static void on_enter_config1(void) {
 	state_transport_in_init();
 	interrupt_out_init();
 	interrupt_in_init();
-	bulk_out_init();
 	should_start_up = true;
 }
 
 static void on_exit_config1(void) {
 	debug_disable();
-	bulk_out_deinit();
 	interrupt_in_deinit();
 	interrupt_out_deinit();
 	state_transport_in_deinit();
@@ -164,8 +161,8 @@ static void on_exit_config1(void) {
 __code static const usb_confinfo_t config1 = {
 	&CONFIGURATION_DESCRIPTOR,
 	2,
-	(1 << EP_DONGLE_STATUS) | (1 << EP_LOCAL_ERROR_QUEUE) | (1 << EP_STATISTICS) | (1 << EP_STATE_TRANSPORT) | (1 << EP_INTERRUPT) | (1 << EP_BULK) | (1 << EP_DEBUG),
-	(1 << EP_STATE_TRANSPORT) | (1 << EP_INTERRUPT) | (1 << EP_BULK),
+	(1 << EP_DONGLE_STATUS) | (1 << EP_LOCAL_ERROR_QUEUE) | (1 << EP_STATISTICS) | (1 << EP_STATE_TRANSPORT) | (1 << EP_INTERRUPT) | (1 << EP_DEBUG),
+	(1 << EP_STATE_TRANSPORT) | (1 << EP_INTERRUPT),
 	&on_enter_config1,
 	&on_exit_config1,
 };

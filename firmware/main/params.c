@@ -2,7 +2,9 @@
 #include "crc.h"
 #include "pins.h"
 #include "spi.h"
+#include "xbee_rxpacket.h"
 #include <pic18fregs.h>
+#include <string.h>
 
 #define FLASH_SIZE (2UL * 1024UL * 1024UL)
 #define SECTOR_SIZE 4096UL
@@ -10,87 +12,76 @@
 
 params_t params;
 
+__code static params_t __at(0x1F000) rom_params = { FLASH_CONTENTS_NONE, { 0x0E, 0x0F }, 15 };
+__code static uint16_t __at(0x1F000 + sizeof(rom_params)) rom_params_crc = 0x6805;
+
 BOOL params_load(void) {
-	uint8_t len = sizeof(params);
-	__data uint8_t *ptr = (__data uint8_t *) &params;
-	uint8_t ch;
-	uint16_t crc = CRC16_EMPTY, crc_actual;
-
-	/* Check the flash's JEDEC ID.
-	 * It should be 0xEF, 0x40, 0x15. */
-	LAT_FLASH_CS = 0;
-	spi_send(0x9F);
-	if (spi_receive() != 0xEF || spi_receive() != 0x40 || spi_receive() != 0x15) {
-		LAT_FLASH_CS = 1;
-		return false;
-	}
-	LAT_FLASH_CS = 1;
-
-	/* Read the data and verify the checksum. */
-	LAT_FLASH_CS = 0;
-	spi_send(0x03);
-	spi_send((PARAMS_BLOCK_FLASH_ADDRESS >> 16) & 0xFF);
-	spi_send((PARAMS_BLOCK_FLASH_ADDRESS >> 8) & 0xFF);
-	spi_send(PARAMS_BLOCK_FLASH_ADDRESS & 0xFF);
-	while (len--) {
-		ch = spi_receive();
-		crc = crc_update(crc, ch);
-		*ptr++ = ch;
-	}
-	crc_actual = spi_receive() | (spi_receive() << 8);
-	LAT_FLASH_CS = 1;
-	return crc == crc_actual;
+	memcpypgm2ram(&params, &rom_params, sizeof(params));
+	return crc_update_block(CRC16_EMPTY, &params, sizeof(params)) == rom_params_crc;
 }
 
-void params_commit(BOOL erase) {
-	__data const uint8_t *ptr = (__data const uint8_t *) &params;
-	uint8_t len = sizeof(params);
-	uint16_t crc = CRC16_EMPTY;
+void params_commit(void) {
+	static uint16_t crc;
+	static const uint8_t params_len = sizeof(params);
 
-	if (erase) {
-		/* Set write enable latch. */
-		LAT_FLASH_CS = 0;
-		spi_send(0x06);
-		LAT_FLASH_CS = 1;
+	/* Suspend inbound communication so data will not be lost. */
+	xbee_rxpacket_suspend();
 
-		/* Send the sector erase instruction. */
-		LAT_FLASH_CS = 0;
-		spi_send(0x20);
-		spi_send(PARAMS_BLOCK_FLASH_ADDRESS >> 16);
-		spi_send(PARAMS_BLOCK_FLASH_ADDRESS >> 8);
-		spi_send(PARAMS_BLOCK_FLASH_ADDRESS);
-		LAT_FLASH_CS = 1;
+	/* Do not take interrupts during this time. */
+	INTCONbits.GIEH = 0;
 
-		/* Wait until complete. */
-		LAT_FLASH_CS = 0;
-		spi_send(0x05);
-		while (spi_receive() & 0x01);
-		LAT_FLASH_CS = 1;
-	}
+	/* Compute a CRC of the current parameter block. */
+	crc = crc_update_block(CRC16_EMPTY, &params, sizeof(params));
 
-	/* Set write enable latch. */
-	LAT_FLASH_CS = 0;
-	spi_send(0x06);
-	LAT_FLASH_CS = 1;
+	__asm
+	; Erase the region.
+	movlw LOW(_rom_params)
+	movwf _TBLPTRL
+	movlw HIGH(_rom_params)
+	movwf _TBLPTRH
+	movlw UPPER(_rom_params)
+	movwf _TBLPTRU
+	movlw 0x14 ; FREE | WREN
+	movwf _EECON1
+	movlw 0x55
+	movwf _EECON2
+	movlw 0xAA
+	movwf _EECON2
+	bsf _EECON1, 1 ; WR
 
-	/* Send the page program instruction. */
-	LAT_FLASH_CS = 0;
-	spi_send(0x02);
-	spi_send(PARAMS_BLOCK_FLASH_ADDRESS >> 16);
-	spi_send(PARAMS_BLOCK_FLASH_ADDRESS >> 8);
-	spi_send(PARAMS_BLOCK_FLASH_ADDRESS);
-	while (len--) {
-		crc = crc_update(crc, *ptr);
-		spi_send(*ptr++);
-	}
-	spi_send(crc);
-	spi_send(crc >> 8);
-	LAT_FLASH_CS = 1;
+	; Copy the parameters into the holding registers.
+	lfsr 0, _params
+	banksel _params_commit_params_len_1_1
+	movf _params_commit_params_len_1_1, W
+params_commit_copy_to_holding_regs:
+	movff _POSTINC0, _TABLAT
+	tblwt *+
+	addlw -1
+	bnz params_commit_copy_to_holding_regs
 
-	/* Wait until complete. */
-	LAT_FLASH_CS = 0;
-	spi_send(0x05);
-	while (spi_receive() & 0x01);
-	LAT_FLASH_CS = 1;
+	; Copy the CRC into the holding registers.
+	movff _params_commit_crc_1_1, TABLAT
+	tblwt *+
+	movff _params_commit_crc_1_1 + 1, TABLAT
+	tblwt *
+
+	; Execute the write operation.
+	movlw 0x04 ; WREN
+	movwf _EECON1
+	movlw 0x55
+	movwf _EECON2
+	movlw 0xAA
+	movwf _EECON2
+	bsf _EECON1, 1 ; WR
+
+	; Lock out writes.
+	clrf _EECON1
+	__endasm;
+
+	/* Now accept interrupts. */
+	INTCONbits.GIEH = 1;
+
+	/* Resume inbound communication. */
+	xbee_rxpacket_resume();
 }
 

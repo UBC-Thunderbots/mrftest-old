@@ -6,7 +6,6 @@
 #define EP_STATISTICS 3
 #define EP_STATE_TRANSPORT 4
 #define EP_INTERRUPT 5
-#define EP_BULK 6
 #define EP_DEBUG 6
 
 #define UEPBITS_(n) UEP ## n ## bits

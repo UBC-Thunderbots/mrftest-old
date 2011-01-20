@@ -16,7 +16,6 @@ extern const uint8_t pipe_in_mask;
 
 extern const uint8_t pipe_state_transport_mask;
 extern const uint8_t pipe_interrupt_mask;
-extern const uint8_t pipe_bulk_mask;
 
 #endif
 

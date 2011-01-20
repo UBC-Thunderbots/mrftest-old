@@ -12,7 +12,7 @@
 
 STACK_DEFINE_TYPE(interrupt_out_packet_t);
 
-static interrupt_out_packet_t packets[6];
+static interrupt_out_packet_t packet1, packet2, packet3, packet4, packet5, packet6;
 
 /**
  * \brief The packet buffers that are free.
@@ -105,13 +105,14 @@ static BOOL on_clear_halt(void) {
 }
 
 void interrupt_out_init(void) {
-	uint8_t i;
-
 	/* Initialize queues. */
 	STACK_INIT(free_packets);
-	for (i = 0; i != sizeof(packets) / sizeof(*packets); ++i) {
-		STACK_PUSH(free_packets, &packets[i]);
-	}
+	STACK_PUSH(free_packets, &packet1);
+	STACK_PUSH(free_packets, &packet2);
+	STACK_PUSH(free_packets, &packet3);
+	STACK_PUSH(free_packets, &packet4);
+	STACK_PUSH(free_packets, &packet5);
+	STACK_PUSH(free_packets, &packet6);
 	sie_packet = 0;
 	QUEUE_INIT(ready_packets);
 

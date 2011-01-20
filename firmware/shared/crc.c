@@ -77,3 +77,13 @@ uint16_t crc_update(uint16_t crc, uint8_t ch) __naked {
 }
 #endif
 
+uint16_t crc_update_block(uint16_t crc, __data const void *pch, uint8_t len) {
+	__data const uint8_t *pb = pch;
+
+	while (len--) {
+		crc = crc_update(crc, *pb++);
+	}
+
+	return crc;
+}
+

@@ -38,7 +38,7 @@ typedef struct interrupt_out_packet {
 	/**
 	 * \brief The packet data.
 	 */
-	uint8_t buffer[16];
+	uint8_t buffer[64];
 } interrupt_out_packet_t;
 
 QUEUE_DEFINE_TYPE(interrupt_out_packet_t);
