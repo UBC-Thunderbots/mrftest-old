@@ -56,9 +56,14 @@ void Prediction::Update(double observation, double frame_delay, double accelerat
 }
 */
 
+//TODO 1. accompensate for delay in real mode, and not to in simulator mode
+// TODO 2. access to control noise: as if our robot command and relative robot positions
+// TODO 3. accompensate for glitches when "clipping" angles
+
 namespace {
 	const int MAX_DEGREE = 3;
 	const int NUM_OLD_POSITIONS = 30;
+	const double ANGLE_UPPER_BOUND = 1000*M_PI;
 }
 
 Predictor::Predictor(bool angle) : angle(angle), initialized(false), lock_delta(0.0) {
@@ -78,6 +83,9 @@ Predictor::Predictor(bool angle) : angle(angle), initialized(false), lock_delta(
 
 	// Allocate space for the approximants.
 	approxv.setlength(MAX_DEGREE + 1);
+	
+	filter.set_availability(true);
+
 }
 
 Predictor::~Predictor() {
@@ -99,8 +107,12 @@ double Predictor::value(double delta, unsigned int deriv) const {
 		v = guess(0,0);
 	} else if(deriv == 1) {
 		v = guess(1,0);
-		std::cout << "velocity is:" << v << std::endl ;
+		//std::cout << "velocity is:" << v << std::endl ;
 	}else {} // TODO some time, deal with acceleration
+
+	if (angle && !deriv) {
+		v = angle_mod(v);
+	}
 
 	return v;
 }
@@ -157,6 +169,10 @@ void Predictor::add_datum(double value, const timespec &ts) {
 			} else {
 				value += 2 * M_PI;
 			}
+		}
+		if(filter.is_available() && value > ANGLE_UPPER_BOUND){
+			value -= ANGLE_UPPER_BOUND;
+			filter.reset_angle(ANGLE_UPPER_BOUND);
 		}
 	}
 

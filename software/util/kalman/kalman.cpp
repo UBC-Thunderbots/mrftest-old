@@ -1,7 +1,7 @@
 #include "util/kalman/kalman.h"
 #include <time.h>
 
-kalman::kalman() : H(matrix(1,2)), P(matrix::identity(2)), state_estimate(matrix(2,1)) {
+kalman::kalman() : H(matrix(1,2)), P(matrix::identity(2)), state_estimate(matrix(2,1)){
 	state_estimate(0,0) = 0.0;
 	state_estimate(1,0) = 0.0;
 	sigma_m = 1.3e-3;
@@ -105,4 +105,9 @@ void kalman::update(double measurement, double time) {
 void kalman::new_control(double input, double time) {
 	// I'm assuming the control inputs are monotonic so don't screw with me
 	inputs.push_back(ControlInput(time, input));
+}
+
+void kalman::reset_angle(double bring_down){
+	state_estimate(0,0) -= bring_down;
+	return;
 }

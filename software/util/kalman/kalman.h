@@ -19,7 +19,9 @@ class kalman {
 		matrix predict(double delta_time) const; // predict based on previous state estimate, no update is done on the Predict matrix
 		void update(double measurement, double time);
 		void new_control(double input,double time);
-
+		inline void set_availability(bool bit){ available = bit; return; };
+		inline bool is_available(){ return available; };
+		void reset_angle(double bring_down);
 
 	private:
 		double last_measurement_time;
@@ -33,6 +35,9 @@ class kalman {
 		matrix H;
 		matrix P;
 		matrix state_estimate;
+		bool available;
+		double position_upper_bound;
+		double position_lower_bound;
 };
 
 #endif
