@@ -592,7 +592,7 @@ void run(void) {
 
 			/* Prepare new orders. */
 			parbus_txpacket.flags.enable_charger = drive_block.flags.charge;
-			if (drive_block.flags.dribble) {
+			if (drive_block.flags.dribble && feedback_block.dribbler_temperature_raw >= 200 && feedback_block.dribbler_temperature_raw <= 499) {
 				parbus_txpacket.motors_power[4] = 25;
 			} else {
 				parbus_txpacket.motors_power[4] = 0;
