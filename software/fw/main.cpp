@@ -1,132 +1,284 @@
-#include "fw/claim.h"
-#include "fw/emergency_erase.h"
-#include "fw/fpga.h"
 #include "fw/ihex.h"
-#include "fw/pic.h"
-#include "fw/watchable_pair.h"
-#include "fw/window.h"
+#include "util/annunciator.h"
 #include "util/config.h"
+#include "util/crc16.h"
+#include "util/dprint.h"
 #include "util/noncopyable.h"
-#include "xbee/client/lowlevel.h"
-#include "xbee/client/raw.h"
-#include <gtkmm.h>
+#include "xbee/dongle.h"
+#include <glibmm.h>
 #include <iostream>
 #include <locale>
+#include <string>
 
 namespace {
-	void on_error_cli(const Glib::ustring &message) {
-		std::cout << '\n' << message << '\n';
-		Gtk::Main::quit();
-	}
+	const std::size_t CRC_BLOCK_SIZE = 16384;
 
-	void on_feedback_cli(double fraction, const WatchableOperation &op) {
-		std::cout << '\r' << op.get_status() << ": " << static_cast<unsigned int>(fraction * 100.0) << "%             " << std::flush;
-	}
+	class FirmwareUploadOperation : public NonCopyable, public sigc::trackable {
+		public:
+			FirmwareUploadOperation(const Config &config, const IntelHex &hex, bool fpga, int robot, XBeeDongle &dongle, Glib::RefPtr<Glib::MainLoop> main_loop) : config(config), hex(hex), fpga(fpga), robot(robot), dongle(dongle), main_loop(main_loop) {
+				Glib::signal_idle().connect_once(sigc::mem_fun(this, &FirmwareUploadOperation::start_operation));
+			}
 
-	void on_finished_cli() {
-		std::cout << "\rDone                                                \n";
-		Gtk::Main::quit();
-	}
+			~FirmwareUploadOperation() {
+			}
 
-	void run_operation_cli(WatchableOperation &op) {
-		op.signal_error.connect(&on_error_cli);
-		op.signal_progress.connect(sigc::bind(&on_feedback_cli, sigc::ref(op)));
-		op.signal_finished.connect(&on_finished_cli);
-		Glib::signal_idle().connect_once(sigc::mem_fun(op, &WatchableOperation::start));
-		Gtk::Main::run();
-	}
+		private:
+			const Config &config;
+			const IntelHex &hex;
+			const bool fpga;
+			const int robot;
+			XBeeDongle &dongle;
+			const Glib::RefPtr<Glib::MainLoop> main_loop;
+			sigc::connection alive_changed_connection;
+			unsigned int byte, page, block;
+
+			void start_operation() {
+				std::cout << "Enabling radios... " << std::flush;
+				dongle.xbees_state.signal_changed().connect(sigc::mem_fun(this, &FirmwareUploadOperation::on_xbees_state_changed));
+				AsyncOperation<void>::Ptr op = dongle.enable();
+				op->signal_done.connect(sigc::mem_fun(this, &FirmwareUploadOperation::on_radios_enabled));
+			}
+
+			void on_xbees_state_changed() {
+				switch (dongle.xbees_state) {
+					case XBeeDongle::XBEES_STATE_PREINIT:
+					case XBeeDongle::XBEES_STATE_INIT1_0:
+					case XBeeDongle::XBEES_STATE_INIT1_1:
+					case XBeeDongle::XBEES_STATE_INIT1_DONE:
+					case XBeeDongle::XBEES_STATE_INIT2_0:
+					case XBeeDongle::XBEES_STATE_INIT2_1:
+					case XBeeDongle::XBEES_STATE_RUNNING:
+						return;
+
+					case XBeeDongle::XBEES_STATE_FAIL_0:
+						throw std::runtime_error("XBee 0 initialization failed");
+
+					case XBeeDongle::XBEES_STATE_FAIL_1:
+						throw std::runtime_error("XBee 1 initialization failed");
+				}
+
+				throw std::runtime_error("XBees in unknown state");
+			}
+
+			void on_radios_enabled(AsyncOperation<void>::Ptr op) {
+				op->result();
+				std::cout << "OK\n";
+				std::cout << "Waiting for robot to appear... " << std::flush;
+				alive_changed_connection = dongle.robot(robot)->alive.signal_changed().connect(sigc::mem_fun(this, &FirmwareUploadOperation::on_alive_changed));
+				on_alive_changed();
+			}
+
+			void on_alive_changed() {
+				if (dongle.robot(robot)->alive) {
+					alive_changed_connection.disconnect();
+					alive_changed_connection = dongle.robot(robot)->alive.signal_changed().connect(sigc::mem_fun(this, &FirmwareUploadOperation::on_alive_changed2));
+					std::cout << "OK\n";
+					std::cout << "Erasing flash... " << std::flush;
+					dongle.robot(robot)->firmware_spi_chip_erase()->signal_done.connect(sigc::mem_fun(this, &FirmwareUploadOperation::on_spi_chip_erase_done));
+				}
+			}
+
+			void on_alive_changed2() {
+				if (!dongle.robot(robot)->alive) {
+					std::cout << "Robot unexpectedly died\n";
+					main_loop->quit();
+				}
+			}
+
+			void on_spi_chip_erase_done(AsyncOperation<void>::Ptr op) {
+				op->result();
+				std::cout << "OK\n";
+				byte = 0;
+				page = 0;
+				start_fill_page_buffer();
+			}
+
+			void start_fill_page_buffer() {
+				if (!byte) {
+					std::cout << "\rWriting page " << (page + 1) << '/' << ((hex.data()[0].size() + 255) / 256) << "... " << std::flush;
+				}
+				uint8_t stage[61];
+				std::size_t to_fill = sizeof(stage);
+				if (byte + to_fill > 256) {
+					to_fill = 256 - byte;
+				}
+				for (std::size_t i = 0; i < to_fill; ++i) {
+					if (page * 256 + byte + i < hex.data()[0].size()) {
+						stage[i] = hex.data()[0][page * 256 + byte + i];
+					} else {
+						stage[i] = 0xFF;
+					}
+				}
+				dongle.robot(robot)->firmware_spi_fill_page_buffer(byte, stage, to_fill)->signal_done.connect(sigc::bind(sigc::mem_fun(this, &FirmwareUploadOperation::on_fill_page_buffer_done), to_fill));
+			}
+
+			void on_fill_page_buffer_done(AsyncOperation<void>::Ptr op, std::size_t to_fill) {
+				op->result();
+				byte = static_cast<unsigned int>(byte + to_fill);
+				if (byte < 256) {
+					start_fill_page_buffer();
+				} else {
+					start_page_program();
+				}
+			}
+
+			void start_page_program() {
+				uint8_t stage[256];
+				for (std::size_t i = 0; i < sizeof(stage); ++i) {
+					if (page * 256 + i < hex.data()[0].size()) {
+						stage[i] = hex.data()[0][page * 256 + i];
+					} else {
+						stage[i] = 0xFF;
+					}
+				}
+				uint16_t crc = CRC16::calculate(stage, sizeof(stage));
+				dongle.robot(robot)->firmware_spi_page_program(page, crc)->signal_done.connect(sigc::mem_fun(this, &FirmwareUploadOperation::on_page_program_done));
+			}
+
+			void on_page_program_done(AsyncOperation<void>::Ptr op) {
+				op->result();
+				++page;
+				if (page < (hex.data()[0].size() + 255) / 256) {
+					byte = 0;
+					start_fill_page_buffer();
+				} else {
+					std::cout << "OK\n";
+					block = 0;
+					start_block_crc();
+				}
+			}
+
+			void start_block_crc() {
+				std::cout << "CRC-checking block " << (block + 1) << '/' << ((hex.data()[0].size() + CRC_BLOCK_SIZE - 1) / CRC_BLOCK_SIZE) << "... " << std::flush;
+				dongle.robot(robot)->firmware_spi_block_crc(static_cast<unsigned int>(block * CRC_BLOCK_SIZE), std::min(CRC_BLOCK_SIZE, hex.data()[0].size() - block * CRC_BLOCK_SIZE))->signal_done.connect(sigc::mem_fun(this, &FirmwareUploadOperation::on_block_crc_done));
+			}
+
+			void on_block_crc_done(AsyncOperation<uint16_t>::Ptr op) {
+				uint16_t crc = op->result();
+				uint16_t calculated = CRC16::calculate(&hex.data()[0][block * CRC_BLOCK_SIZE], std::min(CRC_BLOCK_SIZE, hex.data()[0].size() - block * CRC_BLOCK_SIZE));
+				if (crc != calculated) {
+					std::cout << "Failed, expected " << calculated << ", got " << crc << '\n';
+					main_loop->quit();
+					return;
+				}
+				++block;
+				if (block < (hex.data()[0].size() + CRC_BLOCK_SIZE - 1) / CRC_BLOCK_SIZE) {
+					std::cout << '\r';
+					start_block_crc();
+				} else {
+					std::cout << "OK\n";
+					std::cout << "Reading operational parameters block... " << std::flush;
+					dongle.robot(robot)->firmware_read_operational_parameters()->signal_done.connect(sigc::mem_fun(this, &FirmwareUploadOperation::on_read_operational_parameters_done));
+				}
+			}
+
+			void on_read_operational_parameters_done(AsyncOperation<XBeeRobot::OperationalParameters>::Ptr op) {
+				XBeeRobot::OperationalParameters params = op->result();
+				std::cout << "OK\n";
+				params.flash_contents = fpga ? XBeeRobot::OperationalParameters::FlashContents::FLASH_CONTENTS_FPGA : XBeeRobot::OperationalParameters::FlashContents::FLASH_CONTENTS_PIC;
+				std::cout << "Setting operational parameters block... " << std::flush;
+				dongle.robot(robot)->firmware_set_operational_parameters(params)->signal_done.connect(sigc::mem_fun(this, &FirmwareUploadOperation::on_set_operational_parameters_done));
+			}
+
+			void on_set_operational_parameters_done(AsyncOperation<void>::Ptr op) {
+				op->result();
+				std::cout << "OK\n";
+				std::cout << "Committing operational parameters block... " << std::flush;
+				dongle.robot(robot)->firmware_commit_operational_parameters()->signal_done.connect(sigc::mem_fun(this, &FirmwareUploadOperation::on_commit_operational_parameters_done));
+			}
+
+			void on_commit_operational_parameters_done(AsyncOperation<void>::Ptr op) {
+				op->result();
+				std::cout << "OK\n";
+				std::cout << "Rebooting microcontroller... " << std::flush;
+				dongle.robot(robot)->firmware_reboot()->signal_done.connect(sigc::mem_fun(this, &FirmwareUploadOperation::on_reboot_done));
+			}
+
+			void on_reboot_done(AsyncOperation<void>::Ptr op) {
+				op->result();
+				std::cout << "OK\n";
+				main_loop->quit();
+			}
+	};
 
 	int main_impl(int argc, char **argv) {
+		// Set the current locale from environment variables.
 		std::locale::global(std::locale(""));
 
+		// Parse the command-line arguments.
 		Glib::OptionContext option_context;
-		option_context.set_summary("Runs the firmware uploader.");
+		option_context.set_summary("Updates the firmware on a robot.");
 
-		Glib::OptionGroup option_group("thunderbots", "Firmware Uploader Options", "Show Firmware Uploader Options");
+		Glib::OptionGroup option_group("thunderbots", "Firmware Updater Options", "Show Firmware Updater Options");
 
-		Glib::OptionEntry robot_entry;
-		robot_entry.set_long_name("robot");
-		robot_entry.set_short_name('r');
-		robot_entry.set_description("Selects which robot should be upgraded.");
-		robot_entry.set_arg_description("PATTERN-INDEX");
-		int robot = -1;
-		option_group.add_entry(robot_entry, robot);
-
-		Glib::OptionEntry filename_entry;
-		filename_entry.set_long_name("file");
-		filename_entry.set_short_name('f');
-		filename_entry.set_description("Selects which file should be uploaded.");
-		filename_entry.set_arg_description("FILE");
-		std::string filename;
-		option_group.add_entry_filename(filename_entry, filename);
-
-		Glib::OptionEntry fpga_entry;
-		fpga_entry.set_long_name("fpga");
-		fpga_entry.set_description("Uploads the file to the FPGA.");
+		Glib::OptionEntry fpga_option;
+		fpga_option.set_long_name("fpga");
+		fpga_option.set_short_name('f');
+		fpga_option.set_description("Updates the FPGA's bitstream");
 		bool fpga = false;
-		option_group.add_entry(fpga_entry, fpga);
+		option_group.add_entry(fpga_option, fpga);
 
-		Glib::OptionEntry pic_entry;
-		pic_entry.set_long_name("pic");
-		pic_entry.set_description("Uploads the file to the PIC.");
+		Glib::OptionEntry pic_option;
+		pic_option.set_long_name("pic");
+		pic_option.set_short_name('p');
+		pic_option.set_description("Updates the PIC's firmware");
 		bool pic = false;
-		option_group.add_entry(pic_entry, pic);
+		option_group.add_entry(pic_option, pic);
 
-		Glib::OptionEntry emergency_erase_entry;
-		emergency_erase_entry.set_long_name("emergency-erase");
-		emergency_erase_entry.set_description("Erases the FPGA's Flash storage.");
-		bool emergency_erase = false;
-		option_group.add_entry(emergency_erase_entry, emergency_erase);
+		Glib::OptionEntry robot_option;
+		robot_option.set_long_name("robot");
+		robot_option.set_short_name('r');
+		robot_option.set_description("Selects the robot to update");
+		robot_option.set_arg_description("ROBOT");
+		int robot = 0;
+		option_group.add_entry(robot_option, robot);
+
+		Glib::OptionEntry hex_option;
+		hex_option.set_long_name("hex");
+		hex_option.set_short_name('h');
+		hex_option.set_description("Selects the file to upload");
+		hex_option.set_arg_description("FILE");
+		std::string hex_filename;
+		option_group.add_entry_filename(hex_option, hex_filename);
 
 		option_context.set_main_group(option_group);
 
-		Gtk::Main m(argc, argv, option_context);
-		if (argc != 1 || ((fpga ? 1 : 0) + (pic ? 1 : 0) + (emergency_erase ? 1 : 0) > 1)) {
-			std::cout << option_context.get_help();
+		if (!option_context.parse(argc, argv)) {
+			std::cerr << option_context.get_help() << '\n';
 			return 1;
 		}
-		Config conf;
-		if (!conf.robots().size()) {
-			Gtk::MessageDialog md("There are no robots configured. Please run the configuration editor to add some.", false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
-			md.set_title("Thunderbots Firmware Uploader");
-			md.run();
-			return 0;
+
+		if ((!fpga && !pic) || (fpga && pic)) {
+			std::cerr << "Exactly one of --fpga and --pic must be specified.\n";
+			return 1;
 		}
-		XBeeLowLevel modem;
-		if (fpga || pic || emergency_erase) {
-			if (!conf.robots().contains_pattern(robot)) {
-				std::cout << "There is no robot named '" << robot << "'.\n";
-				return 1;
-			}
-			const Config::RobotInfo &botinfo(conf.robots().find(static_cast<unsigned int>(robot)));
-			const XBeeRawBot::Ptr bot(XBeeRawBot::create(botinfo.address, modem));
-			Claim cl(bot);
-			if (fpga) {
-				IntelHex ihex;
-				ihex.add_section(0, 16 * 1024 * 1024 / 8);
-				ihex.load(filename);
-				FPGAUpload up(bot, ihex);
-				WatchablePair p(cl, up, 0.01);
-				run_operation_cli(p);
-			} else if (pic) {
-				IntelHex ihex;
-				ihex.add_section(0x0, 0x800);
-				ihex.add_section(0x800, 0x3FFF - 0x800 + 1);
-				ihex.add_section(0x300000, 16);
-				ihex.load(filename);
-				PICUpload up(bot, ihex);
-				WatchablePair p(cl, up, 0.01);
-				run_operation_cli(p);
-			} else if (emergency_erase) {
-				EmergencyErase ee(bot);
-				WatchablePair p(cl, ee, 0.5);
-				run_operation_cli(p);
-			}
-			return 0;
-		} else {
-			FirmwareWindow win(modem, conf, robot, filename);
-			Gtk::Main::run(win);
+		if (!(1 <= robot && robot <= 15)) {
+			std::cerr << "--robot must be between 1 and 15.\n";
+			return 1;
 		}
+		if (!hex_filename.size()) {
+			std::cerr << "--hex must be specified.\n";
+			return 1;
+		}
+
+		IntelHex hex;
+		if (pic) {
+			hex.add_section(0, 0x8000);
+		} else if (fpga) {
+			hex.add_section(0, 2 * 1024 * 1024 - 4096);
+		}
+		hex.load(hex_filename);
+
+		Config config;
+
+		std::cout << "Finding dongle... " << std::flush;
+		XBeeDongle dongle(config.out_channel(), config.in_channel());
+		std::cout << "OK\n";
+
+		Glib::RefPtr<Glib::MainLoop> main_loop = Glib::MainLoop::create();
+		FirmwareUploadOperation op(config, hex, fpga, robot, dongle, main_loop);
+		main_loop->run();
+
 		return 0;
 	}
 }

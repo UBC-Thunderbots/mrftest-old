@@ -7,17 +7,22 @@ namespace {
 	const unsigned int MAX_AGE = 20;
 
 	unsigned int next_id = 0;
-	std::unordered_map<unsigned int, Annunciator::Message *> registered;
+
+	std::unordered_map<unsigned int, Annunciator::Message *> &registered() {
+		static std::unordered_map<unsigned int, Annunciator::Message *> r;
+		return r;
+	}
+
 	std::vector<Annunciator::Message *> displayed;
 }
 
 Annunciator::Message::Message(const Glib::ustring &text) : text(text), id(next_id++), active_(false), age_(0), displayed_(false) {
-	registered[id] = this;
+	registered()[id] = this;
 }
 
 Annunciator::Message::~Message() {
 	hide();
-	registered.erase(id);
+	registered().erase(id);
 }
 
 void Annunciator::Message::activate(bool actv) {

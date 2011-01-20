@@ -2,6 +2,7 @@
 #define FW_IHEX_H
 
 #include <glibmm.h>
+#include <string>
 #include <vector>
 
 /**
@@ -26,7 +27,7 @@ class IntelHex {
 		 *
 		 * \param[in] filename the file to load data from.
 		 */
-		void load(const Glib::ustring &filename);
+		void load(const std::string &filename);
 
 		/**
 		 * Returns the data, keyed by section.

@@ -18,161 +18,6 @@ namespace xmlpp {
 class Config : public NonCopyable {
 	public:
 		/**
-		 * The configuration of a single robot.
-		 */
-		struct RobotInfo {
-			/**
-			 * The robot's XBee address.
-			 */
-			uint64_t address;
-
-			/**
-			 * The index of the robot's lid pattern in the SSL-Vision pattern file.
-			 */
-			unsigned int pattern;
-
-			/**
-			 * Constructs a new RobotInfo.
-			 *
-			 * \param[in] address the robot's XBee address.
-			 *
-			 * \param[in] pattern the index in the SSL-Vision pattern file of the robot's lid pattern.
-			 */
-			RobotInfo(uint64_t address, unsigned int pattern) : address(address), pattern(pattern) {
-			}
-		};
-
-		/**
-		 * A collection of RobotInfo objects.
-		 */
-		class RobotSet : public NonCopyable {
-			public:
-				/**
-				 * Gets the size of the list.
-				 *
-				 * \return the number of robots in the list.
-				 */
-				std::size_t size() const {
-					return robots.size();
-				}
-
-				/**
-				 * Fetches a robot from the list.
-				 *
-				 * \param[in] index the position of the robot in the list.
-				 *
-				 * \return the robot at that position.
-				 */
-				const RobotInfo &operator[](std::size_t index) const {
-					return robots[index];
-				}
-
-				/**
-				 * Finds a robot by 64-bit address.
-				 *
-				 * \param[in] address the XBee address to look up.
-				 *
-				 * \return the robot's information structure.
-				 */
-				const RobotInfo &find(uint64_t address) const;
-
-				/**
-				 * Finds a robot by pattern index.
-				 *
-				 * \param[in] pattern the pattern to look up.
-				 *
-				 * \return the robot's information structure.
-				 */
-				const RobotInfo &find(unsigned int pattern) const;
-
-				/**
-				 * Checks whether or not there is a robot with a 64-bit address.
-				 *
-				 * \param[in] address the address to check.
-				 *
-				 * \return \c true if some robot in the collection has the address \p address, or \c false if not.
-				 */
-				bool contains_address(uint64_t address) const;
-
-				/**
-				 * Checks whether or not there is a robot with a lid pattern.
-				 *
-				 * \param[in] pattern the pattern index to look up.
-				 *
-				 * \return \c true if a robot in the ocllection has the given colour and pattern index, or \c false if not.
-				 */
-				bool contains_pattern(unsigned int pattern) const;
-
-				/**
-				 * Adds a new robot.
-				 *
-				 * \param[in] address the robot's XBee address.
-				 *
-				 * \param[in] pattern the index of the robot's lid pattern.
-				 */
-				void add(uint64_t address, unsigned int pattern);
-
-				/**
-				 * Emitted when a robot is added.
-				 * Parameter is the index of the robot.
-				 */
-				mutable sigc::signal<void, std::size_t> signal_robot_added;
-
-				/**
-				 * Deletes a robot.
-				 *
-				 * \param[in] address the XBee address of the robot to delete.
-				 */
-				void remove(uint64_t address);
-
-				/**
-				 * Emitted when a robot is deleted.
-				 * Parameter is the index of the robot.
-				 */
-				mutable sigc::signal<void, std::size_t> signal_robot_removed;
-
-				/**
-				 * Replaces an existing robot with new data.
-				 *
-				 * \param[in] old_address the XBee address of the robot to replace.
-				 *
-				 * \param[in] address the new XBee address to store.
-				 *
-				 * \param[in] pattern the new lid pattern index.
-				 */
-				void replace(uint64_t old_address, uint64_t address, unsigned int pattern);
-
-				/**
-				 * Emitted when a robot is replaced.
-				 * Parameter is the index of the robot.
-				 */
-				mutable sigc::signal<void, std::size_t> signal_robot_replaced;
-
-				/**
-				 * Sorts the robots in the collection by their 64-bit address.
-				 */
-				void sort_by_address();
-
-				/**
-				 * Sorts the robots in the collection by their lid pattern.
-				 */
-				void sort_by_lid();
-
-				/**
-				 * Emitted when the collection is sorted.
-				 */
-				mutable sigc::signal<void> signal_sorted;
-
-			private:
-				std::vector<RobotInfo> robots;
-
-				void load(const xmlpp::Element *players);
-				void save(xmlpp::Element *players) const;
-
-				friend class Config;
-		};
-
-		/**
 		 * Loads the configuration file.
 		 */
 		Config();
@@ -183,38 +28,31 @@ class Config : public NonCopyable {
 		void save() const;
 
 		/**
-		 * Gets the set of configured robots.
+		 * Gets the outbound radio channel.
 		 *
-		 * \return the set of configured robots.
+		 * \return the outbound radio channel.
 		 */
-		const RobotSet &robots() const {
-			return robots_;
+		unsigned int out_channel() const {
+			return out_channel_;
 		}
 
 		/**
-		 * Gets the set of configured robots.
+		 * Gets the inbound radio channel.
 		 *
-		 * \return the set of configured robots.
+		 * \return the inbound radio channel.
 		 */
-		RobotSet &robots() {
-			return robots_;
+		unsigned int in_channel() const {
+			return in_channel_;
 		}
 
 		/**
-		 * Gets the radio channel.
+		 * Sets the radio channels.
 		 *
-		 * \return the radio channel.
-		 */
-		unsigned int channel() const {
-			return channel_;
-		}
-
-		/**
-		 * Sets the radio channel.
+		 * \param[in] out the new outbound channel, which must be between \c 0x0B and \c 0x1A.
 		 *
-		 * \param[in] chan the new channel, which must be between \c 0x0B and \c 0x1A.
+		 * \param[in] in the new inbound channel, which must be between \c 0x0B and \c 0x1A.
 		 */
-		void channel(unsigned int chan);
+		void channels(unsigned int out, unsigned int in);
 
 		/**
 		 * The collection of tunable booleans, by name.
@@ -232,8 +70,7 @@ class Config : public NonCopyable {
 		std::map<Glib::ustring, double> double_params;
 
 	private:
-		RobotSet robots_;
-		unsigned int channel_;
+		unsigned int out_channel_, in_channel_;
 };
 
 #endif

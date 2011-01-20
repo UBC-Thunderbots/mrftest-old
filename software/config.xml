@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <thunderbots>
-<players>
-<player address="0013A200403C2DE8" pattern="0"/>
-<player address="0013A2004053A1DA" pattern="1"/>
-<player address="0013A20040091538" pattern="2"/>
-<player address="0013A200405300FF" pattern="3"/>
-<player address="0013A200403C2DEC" pattern="4"/>
-<player address="0013A200403C2DDA" pattern="5"/>
-<player address="0013A200405300FD" pattern="6"/>
-</players>
-<radio channel="0E"/>
+<radio out-channel="0E" in-channel="0F"/>
 <params>
 <bool-param name="AdHoc2: flip trans/ang slowdown">false</bool-param>
 <bool-param name="AdHoc2: Slow if translating">true</bool-param>

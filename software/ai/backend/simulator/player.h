@@ -101,7 +101,6 @@ namespace AI {
 					unsigned int chicker_ready_time() const;
 					void move_impl(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
 					void kick_impl(double power);
-					void chip_impl(double power);
 					bool has_destination() const;
 					const std::pair<Point, double> &destination() const;
 					Point target_velocity() const;
@@ -174,11 +173,6 @@ namespace AI {
 					 * Whether the AI elected to kick in the current time tick.
 					 */
 					bool kick_;
-
-					/**
-					 * Whether the AI elected to chip in the current time tick.
-					 */
-					bool chip_;
 
 					/**
 					 * The power level for the kick or chip, if one of the flags is set.

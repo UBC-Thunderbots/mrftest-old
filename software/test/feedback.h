@@ -1,63 +1,34 @@
-#ifndef TESTER_FEEDBACK_H
-#define TESTER_FEEDBACK_H
+#ifndef FEEDBACK_H
+#define FEEDBACK_H
 
-#include "uicomponents/battery_meter.h"
-#include "uicomponents/dribbler_meter.h"
-#include "uicomponents/feedback_interval_meter.h"
-#include "uicomponents/inbound_rssi_meter.h"
-#include "uicomponents/latency_meter.h"
-#include "uicomponents/light.h"
-#include "uicomponents/outbound_rssi_meter.h"
-#include "uicomponents/run_data_interval_meter.h"
-#include "uicomponents/success_meter.h"
-#include <cstddef>
+#include "xbee/dongle.h"
+#include "xbee/robot.h"
 #include <gtkmm.h>
 
-/**
- * Displays feedback from the robot.
- */
-class TesterFeedback : public Gtk::Table {
+class TesterFeedbackPanel : public Gtk::Table {
 	public:
-		/**
-		 * Creates a new TesterFeedback.
-		 */
-		TesterFeedback();
-
-		/**
-		 * Sets which bot this feedback object will monitor.
-		 *
-		 * \param[in] bot the robot to monitor.
-		 */
-		void set_bot(XBeeDriveBot::Ptr bot);
+		TesterFeedbackPanel(XBeeDongle &dongle);
+		~TesterFeedbackPanel();
+		void set_robot(XBeeRobot::Ptr bot);
 
 	private:
-		XBeeDriveBot::Ptr robot;
+		XBeeDongle &dongle;
+		XBeeRobot::Ptr robot;
+		sigc::connection alive_connection;
+		Gtk::ProgressBar battery_voltage, capacitor_voltage, dribbler_temperature, break_beam_reading;
+		sigc::connection battery_voltage_connection, capacitor_voltage_connection, dribbler_temperature_connection, break_beam_reading_connection;
+		Gtk::CheckButton estop, ball_in_beam, ball_on_dribbler, capacitor_charged;
+		sigc::connection ball_in_beam_connection, ball_on_dribbler_connection, capacitor_charged_connection;
 
-		Gtk::Label battery_label;
-		Gtk::Label dribbler_label;
-		Gtk::Label out_rssi_label;
-		Gtk::Label in_rssi_label;
-		Gtk::Label latency_label;
-		Gtk::Label feedback_interval_label;
-		Gtk::Label run_data_interval_label;
-		Gtk::Label success_label;
-
-		BatteryMeter battery_level;
-		DribblerMeter dribbler_level;
-		OutboundRSSIMeter out_rssi_level;
-		InboundRSSIMeter in_rssi_level;
-		LatencyMeter latency_level;
-		FeedbackIntervalMeter feedback_interval_level;
-		RunDataIntervalMeter run_data_interval_level;
-		SuccessMeter success_level;
-
-		Gtk::Frame fault_indicator_frame;
-		Gtk::HBox fault_indicator_box;
-		Light fault_indicators[5];
-
-		sigc::connection connection;
-
-		void update();
+		void on_estop_changed();
+		void on_alive_changed();
+		void on_battery_voltage_changed();
+		void on_capacitor_voltage_changed();
+		void on_dribbler_temperature_changed();
+		void on_break_beam_reading_changed();
+		void on_ball_in_beam_changed();
+		void on_ball_on_dribbler_changed();
+		void on_capacitor_charged_changed();
 };
 
 #endif

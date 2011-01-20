@@ -11,271 +11,6 @@
 #include <stdint.h>
 
 namespace {
-	class BotInfoDialog : public Gtk::Dialog {
-		public:
-			BotInfoDialog(Gtk::Window &parent, const Config::RobotSet &robots, const Config::RobotInfo *old) : Gtk::Dialog("Add Bot", parent, true), robots(robots), old(old), table(2, 2, false), yellow_button(colour_group, "Yellow"), blue_button(colour_group, "Blue") {
-				unsigned int y = 0;
-
-				address_entry.set_text("0000000000000000");
-				address_entry.set_width_chars(16);
-				address_entry.set_max_length(16);
-				address_entry.set_activates_default();
-				address_entry.set_tooltip_text("The 64-bit hexadecimal hardware address of the XBee radio module on this robot. For real robots, read the serial number from the XBee chip. For simulation, pick a random number (e.g. 1, 2, 3, 4, etc.).");
-				address_entry.signal_changed().connect(sigc::mem_fun(this, &BotInfoDialog::update_enable));
-				add_row(address_entry, "XBee Address:", y);
-
-				pattern_spin.get_adjustment()->configure(0.0, 0.0, 127.0, 1.0, 10.0, 0.0);
-				pattern_spin.set_digits(0);
-				pattern_spin.set_activates_default();
-				pattern_spin.set_tooltip_text("The offset into SSL-Vision's pattern image file of this robot's pattern. Also, the ID number of the robot as it appears in SSL-Vision's graphical client program.");
-				pattern_spin.signal_value_changed().connect(sigc::mem_fun(this, &BotInfoDialog::update_enable));
-				add_row(pattern_spin, "Lid Pattern Index:", y);
-
-				get_vbox()->pack_start(table, Gtk::PACK_EXPAND_WIDGET);
-
-				get_vbox()->pack_start(error_label, Gtk::PACK_SHRINK);
-
-				add_button(Gtk::Stock::OK, Gtk::RESPONSE_ACCEPT);
-				add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
-				set_default_response(Gtk::RESPONSE_ACCEPT);
-
-				update_enable();
-
-				if (old) {
-					address_entry.set_text(tohex(old->address, 16));
-					pattern_spin.set_value(old->pattern);
-				}
-
-				show_all();
-			}
-
-			uint64_t address() const {
-				std::istringstream iss(address_entry.get_text());
-				iss.setf(std::ios_base::hex, std::ios_base::basefield);
-				uint64_t addr;
-				iss >> addr;
-				return addr;
-			}
-
-			bool yellow() const {
-				return yellow_button.get_active();
-			}
-
-			unsigned int pattern() const {
-				return pattern_spin.get_value_as_int();
-			}
-
-		private:
-			const Config::RobotSet &robots;
-			const Config::RobotInfo *old;
-
-			Gtk::Table table;
-			Gtk::Entry address_entry;
-			Gtk::HBox colour_hbox;
-			Gtk::RadioButton::Group colour_group;
-			Gtk::RadioButton yellow_button, blue_button;
-			Gtk::SpinButton pattern_spin;
-			Gtk::Label error_label;
-
-			void add_row(Gtk::Widget &widget, const Glib::ustring &label, unsigned int &y) {
-				table.attach(*Gtk::manage(new Gtk::Label(label)), 0, 1, y, y + 1, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
-				table.attach(widget, 1, 2, y, y + 1, Gtk::EXPAND | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
-				++y;
-			}
-
-			void update_enable() {
-				const Glib::ustring &address_string(address_entry.get_text());
-				if (address_string.size() < 1 || address_string.size() > 16) {
-					set_response_sensitive(Gtk::RESPONSE_ACCEPT, false);
-					error_label.set_markup("<i>The XBee address is invalid</i>");
-					return;
-				}
-				if (exists_if(address_string.begin(), address_string.end(), std::not1(std::ptr_fun<int, int>(&std::isxdigit)))) {
-					set_response_sensitive(Gtk::RESPONSE_ACCEPT, false);
-					error_label.set_markup("<i>The XBee address is invalid</i>");
-					return;
-				}
-				if (address_string.size() != 16) {
-					set_response_sensitive(Gtk::RESPONSE_ACCEPT, false);
-					error_label.set_markup("<i>The XBee address is invalid</i>");
-					return;
-				}
-				uint64_t addr = address();
-				if (!addr) {
-					set_response_sensitive(Gtk::RESPONSE_ACCEPT, false);
-					error_label.set_markup("<i>The XBee address is invalid</i>");
-					return;
-				}
-				if ((!old || addr != old->address) && robots.contains_address(addr)) {
-					set_response_sensitive(Gtk::RESPONSE_ACCEPT, false);
-					error_label.set_markup("<i>The XBee address is already in use</i>");
-					return;
-				}
-				if ((!old || pattern() != old->pattern) && robots.contains_pattern(pattern())) {
-					set_response_sensitive(Gtk::RESPONSE_ACCEPT, false);
-					error_label.set_markup("<i>The lid pattern is already in use</i>");
-					return;
-				}
-				set_response_sensitive(Gtk::RESPONSE_ACCEPT, true);
-				error_label.set_text("");
-			}
-	};
-
-	class RobotsModel : public Glib::Object, public AbstractListModel {
-		public:
-			Gtk::TreeModelColumn<uint64_t> address_column;
-			Gtk::TreeModelColumn<unsigned int> pattern_column;
-
-			static Glib::RefPtr<RobotsModel> create(const Config::RobotSet &robots) {
-				Glib::RefPtr<RobotsModel> p(new RobotsModel(robots));
-				return p;
-			}
-
-		private:
-			const Config::RobotSet &robots;
-
-			void alm_get_value(std::size_t row, unsigned int col, Glib::ValueBase &value) const {
-				if (col == static_cast<unsigned int>(address_column.index())) {
-					Glib::Value<uint64_t> v;
-					v.init(address_column.type());
-					v.set(robots[row].address);
-					value.init(address_column.type());
-					value = v;
-				} else if (col == static_cast<unsigned int>(pattern_column.index())) {
-					Glib::Value<unsigned int> v;
-					v.init(pattern_column.type());
-					v.set(robots[row].pattern);
-					value.init(pattern_column.type());
-					value = v;
-				}
-			}
-
-			void alm_set_value(std::size_t, unsigned int, const Glib::ValueBase &) {
-			}
-
-			RobotsModel(const Config::RobotSet &robots) : Glib::ObjectBase(typeid(RobotsModel)), Glib::Object(), AbstractListModel(), robots(robots) {
-				alm_column_record.add(address_column);
-				alm_column_record.add(pattern_column);
-				robots.signal_robot_added.connect(sigc::mem_fun(this, &RobotsModel::alm_row_inserted));
-				robots.signal_robot_removed.connect(sigc::mem_fun(this, &RobotsModel::alm_row_deleted));
-				robots.signal_robot_replaced.connect(sigc::mem_fun(this, &RobotsModel::alm_row_changed));
-				robots.signal_sorted.connect(sigc::mem_fun(this, &RobotsModel::on_all_rows_changed));
-			}
-
-			std::size_t alm_rows() const {
-				return robots.size();
-			}
-
-			void on_all_rows_changed() {
-				for (std::size_t i = 0; i < robots.size(); ++i) {
-					alm_row_changed(i);
-				}
-			}
-	};
-
-	class RobotsPage : public Gtk::VBox {
-		public:
-			RobotsPage(Config::RobotSet &robots) : robots(robots), model(RobotsModel::create(robots)), view(model), button_box(Gtk::BUTTONBOX_SPREAD), add_button(Gtk::Stock::ADD), edit_button(Gtk::Stock::EDIT), remove_button(Gtk::Stock::DELETE), sort_button("_Sort", true) {
-				view.get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
-				view.get_selection()->signal_changed().connect(sigc::mem_fun(this, &RobotsPage::selection_changed));
-				view.append_column_numeric("Address", model->address_column, "%016llX");
-				view.append_column("Pattern Index", model->pattern_column);
-				scroller.add(view);
-				scroller.set_shadow_type(Gtk::SHADOW_IN);
-				pack_start(scroller, Gtk::PACK_EXPAND_WIDGET);
-
-				add_button.signal_clicked().connect(sigc::mem_fun(this, &RobotsPage::add));
-				edit_button.signal_clicked().connect(sigc::mem_fun(this, &RobotsPage::edit));
-				edit_button.set_sensitive(false);
-				remove_button.signal_clicked().connect(sigc::mem_fun(this, &RobotsPage::remove));
-				remove_button.set_sensitive(false);
-				sort_button.signal_clicked().connect(sigc::mem_fun(this, &RobotsPage::sort));
-				button_box.pack_start(add_button);
-				button_box.pack_start(edit_button);
-				button_box.pack_start(remove_button);
-				button_box.pack_start(sort_button);
-				pack_start(button_box, Gtk::PACK_SHRINK);
-			}
-
-		private:
-			Config::RobotSet &robots;
-			Glib::RefPtr<RobotsModel> model;
-			Gtk::TreeView view;
-			Gtk::ScrolledWindow scroller;
-			Gtk::HButtonBox button_box;
-			Gtk::Button add_button, edit_button, remove_button, sort_button;
-
-			Gtk::Window &find_window() {
-				Gtk::Container *parent = get_parent();
-				Gtk::Window *window = 0;
-				while (!(window = dynamic_cast<Gtk::Window *>(parent))) {
-					parent = parent->get_parent();
-				}
-				return *window;
-			}
-
-			void selection_changed() {
-				unsigned int nrows = view.get_selection()->count_selected_rows();
-				edit_button.set_sensitive(nrows == 1);
-				remove_button.set_sensitive(nrows > 0);
-			}
-
-			void add() {
-				BotInfoDialog dlg(find_window(), robots, 0);
-				if (dlg.run() == Gtk::RESPONSE_ACCEPT) {
-					robots.add(dlg.address(), dlg.pattern());
-				}
-			}
-
-			void edit() {
-				const Gtk::TreeSelection::ListHandle_Path &sel = view.get_selection()->get_selected_rows();
-				if (sel.size() == 1) {
-					const Gtk::TreePath &path = *sel.begin();
-					if (path.size() == 1) {
-						const Config::RobotInfo &old = robots[path[0]];
-						BotInfoDialog dlg(find_window(), robots, &old);
-						if (dlg.run() == Gtk::RESPONSE_ACCEPT) {
-							robots.replace(old.address, dlg.address(), dlg.pattern());
-						}
-					}
-				}
-			}
-
-			void remove() {
-				const Gtk::TreeSelection::ListHandle_Path &sel = view.get_selection()->get_selected_rows();
-				std::vector<uint64_t> addresses;
-				for (Gtk::TreeSelection::ListHandle_Path::const_iterator i = sel.begin(), iend = sel.end(); i != iend; ++i) {
-					const Gtk::TreePath &path = *i;
-					if (path.size() == 1) {
-						addresses.push_back(robots[path[0]].address);
-					}
-				}
-				std::for_each(addresses.begin(), addresses.end(), sigc::mem_fun(robots, &Config::RobotSet::remove));
-			}
-
-			void sort() {
-				Gtk::Dialog dlg("Sort Robots", find_window(), true);
-				Gtk::RadioButtonGroup grp;
-				Gtk::RadioButton by_address_button(grp, "Sort by _Address", true);
-				by_address_button.set_active(true);
-				dlg.get_vbox()->pack_start(by_address_button, Gtk::PACK_SHRINK);
-				Gtk::RadioButton by_lid_button(grp, "Sort by _Lid Pattern", true);
-				dlg.get_vbox()->pack_start(by_lid_button, Gtk::PACK_SHRINK);
-				dlg.add_button(Gtk::Stock::OK, Gtk::RESPONSE_ACCEPT);
-				dlg.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
-				dlg.set_default_response(Gtk::RESPONSE_ACCEPT);
-				dlg.show_all();
-				int resp = dlg.run();
-				if (resp == Gtk::RESPONSE_ACCEPT) {
-					if (by_address_button.get_active()) {
-						robots.sort_by_address();
-					} else if (by_lid_button.get_active()) {
-						robots.sort_by_lid();
-					}
-				}
-			}
-	};
-
 	class ChannelsModel : public Glib::Object, public AbstractListModel {
 		public:
 			Gtk::TreeModelColumn<unsigned int> channel_column;
@@ -326,26 +61,33 @@ namespace {
 
 	class RadioPage : public Gtk::Table {
 		public:
-			RadioPage(Config &conf) : Gtk::Table(1, 2), conf(conf), model(new ChannelsModel), view(model) {
-				view.pack_start(renderer);
-				view.set_cell_data_func(renderer, sigc::mem_fun(this, &RadioPage::cell_data_func));
-				view.set_active(model->iter_for_channel(conf.channel()));
-				view.signal_changed().connect(sigc::mem_fun(this, &RadioPage::on_changed));
-				attach(*Gtk::manage(new Gtk::Label("Channel:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				attach(view, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+			RadioPage(Config &conf) : Gtk::Table(2, 2), conf(conf), model(new ChannelsModel), out_view(model), in_view(model) {
+				out_view.pack_start(out_renderer);
+				out_view.set_cell_data_func(out_renderer, sigc::bind(sigc::mem_fun(this, &RadioPage::cell_data_func), sigc::ref(out_renderer)));
+				out_view.set_active(model->iter_for_channel(conf.out_channel()));
+				out_view.signal_changed().connect(sigc::mem_fun(this, &RadioPage::on_changed));
+				attach(*Gtk::manage(new Gtk::Label("Out Channel:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				attach(out_view, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+
+				in_view.pack_start(in_renderer);
+				in_view.set_cell_data_func(in_renderer, sigc::bind(sigc::mem_fun(this, &RadioPage::cell_data_func), sigc::ref(in_renderer)));
+				in_view.set_active(model->iter_for_channel(conf.in_channel()));
+				in_view.signal_changed().connect(sigc::mem_fun(this, &RadioPage::on_changed));
+				attach(*Gtk::manage(new Gtk::Label("In Channel:")), 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				attach(in_view, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 			}
 
 		private:
 			Config &conf;
 			Glib::RefPtr<ChannelsModel> model;
-			Gtk::ComboBox view;
-			Gtk::CellRendererText renderer;
+			Gtk::ComboBox out_view, in_view;
+			Gtk::CellRendererText out_renderer, in_renderer;
 
 			void on_changed() {
-				conf.channel(model->channel_for_iter(view.get_active()));
+				conf.channels(model->channel_for_iter(out_view.get_active()), model->channel_for_iter(in_view.get_active()));
 			}
 
-			void cell_data_func(const Gtk::TreeModel::const_iterator &iter) {
+			void cell_data_func(const Gtk::TreeModel::const_iterator &iter, Gtk::CellRendererText &renderer) {
 				unsigned int chan = model->channel_for_iter(iter);
 				renderer.property_text() = tohex(chan, 2);
 			}
@@ -357,7 +99,6 @@ Window::Window(Config &conf) : conf(conf) {
 	Gtk::Notebook *notebook = Gtk::manage(new Gtk::Notebook);
 	add(*notebook);
 
-	notebook->append_page(*Gtk::manage(new RobotsPage(conf.robots())), "Robots");
 	notebook->append_page(*Gtk::manage(new RadioPage(conf)), "Radio");
 
 	set_default_size(400, 400);

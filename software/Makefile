@@ -1,44 +1,34 @@
 #
 # Here, write a list of all the executable binaries the Makefile might generate.
 #
-PROJECTS := ai config fw log rxdata simulator test xbeeconfig xbeed xbeerconfig
+PROJECTS := ai config fw log simulator test
 
 #
 # Here, write a list of the source files and directories for each executable.
 # Directories will be searched for source files recursively.
 #
-SOURCES_ai := ai geom leastsquares log/shared proto uicomponents util xbee/client xbee/shared
-SOURCES_config := config geom leastsquares uicomponents util xbee/client
-SOURCES_fw := fw geom leastsquares uicomponents util xbee/client xbee/shared
-SOURCES_log := ai/common leastsquares log geom proto uicomponents util xbee/client
-SOURCES_rxdata := geom leastsquares rxdata.cpp uicomponents util xbee/client xbee/shared
+SOURCES_ai := ai geom leastsquares log/shared proto uicomponents util xbee
+SOURCES_config := config geom leastsquares uicomponents util
+SOURCES_fw := fw geom leastsquares util xbee
+SOURCES_log := ai/common leastsquares log geom proto uicomponents util
 SOURCES_simulator := ai/common/playtype.cpp geom leastsquares simulator util
-SOURCES_steptest := geom leastsquares util xbee steptest.cpp
-SOURCES_test := geom leastsquares test uicomponents util xbee/client xbee/shared
-SOURCES_xbeeconfig := geom leastsquares uicomponents util xbeeconfig.cpp xbee/client
-SOURCES_xbeed := geom leastsquares uicomponents util xbee/client xbee/daemon xbee/shared
-SOURCES_xbeerconfig := geom leastsquares uicomponents util xbeerconfig.cpp xbee/client xbee/shared
+SOURCES_test := geom leastsquares test uicomponents util xbee
 
 #
 # Here, write the linker flags to be used for each project.
 #
-LDFLAGS_common := -Wl,--as-needed -Wl,-O1 $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf libxml++-2.6 gsl) -lrt
+LDFLAGS_common := -Wl,--as-needed -Wl,-O1 $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf libxml++-2.6 gsl libusb-1.0) -lrt
 LDFLAGS_ai := $(LDFLAGS_common)
 LDFLAGS_config := $(LDFLAGS_common)
 LDFLAGS_fw := $(LDFLAGS_common)
 LDFLAGS_log := $(LDFLAGS_common)
-LDFLAGS_rxdata := $(LDFLAGS_common)
 LDFLAGS_simulator := $(LDFLAGS_common)
-LDFLAGS_steptest := $(LDFLAGS_common)
 LDFLAGS_test := $(LDFLAGS_common)
-LDFLAGS_xbeeconfig := $(LDFLAGS_common)
-LDFLAGS_xbeed := $(LDFLAGS_common)
-LDFLAGS_xbeerconfig := $(LDFLAGS_common)
 
 #
 # Here, write the compiler flags to be used.
 #
-override CXXFLAGS := -std=gnu++0x -Wall -Wextra -Wold-style-cast -Wconversion -Wundef -O2 -fomit-frame-pointer -g -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -pthread $(shell pkg-config --cflags glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf libxml++-2.6 gsl | sed 's/-I/-isystem /g') $(CXXFLAGS) -I.
+override CXXFLAGS := -std=gnu++0x -Wall -Wextra -Wold-style-cast -Wconversion -Wundef -O2 -fomit-frame-pointer -g -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -pthread $(shell pkg-config --cflags glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf libxml++-2.6 gsl libusb-1.0 | sed 's/-I/-isystem /g') $(CXXFLAGS) -I.
 
 #
 # DO NOT MODIFY STUFF BELOW HERE WITHOUT A GOOD REASON.

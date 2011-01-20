@@ -1,69 +1,126 @@
 #include "test/feedback.h"
-#include "util/xbee.h"
-#include "xbee/shared/packettypes.h"
+#include <iomanip>
 
-TesterFeedback::TesterFeedback() : Gtk::Table(8, 3, false), battery_label("Battery Voltage:"), dribbler_label("Dribbler Speed:"), out_rssi_label("Out RSSI:"), in_rssi_label("In RSSI:"), latency_label("Latency:"), feedback_interval_label("Feedback:"), run_data_interval_label("Run Data:"), success_label("Delivery Rate:"), fault_indicator_frame("Motor Faults"), fault_indicator_box(true) {
-	attach(battery_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
-	attach(dribbler_label, 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
-	attach(out_rssi_label, 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
-	attach(in_rssi_label, 0, 1, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
-	attach(latency_label, 0, 1, 4, 5, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
-	attach(feedback_interval_label, 0, 1, 5, 6, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
-	attach(run_data_interval_label, 0, 1, 6, 7, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
-	attach(success_label, 0, 1, 7, 8, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
+TesterFeedbackPanel::TesterFeedbackPanel(XBeeDongle &dongle) : Gtk::Table(5, 2), dongle(dongle), estop("EStop Run"), ball_in_beam("Ball in Beam"), ball_on_dribbler("Ball on Dribbler"), capacitor_charged("Capacitor Charged") {
+	attach(*Gtk::manage(new Gtk::Label("Battery:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(battery_voltage, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(*Gtk::manage(new Gtk::Label("Capacitor:")), 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(capacitor_voltage, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(*Gtk::manage(new Gtk::Label("Dribbler:")), 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(dribbler_temperature, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(*Gtk::manage(new Gtk::Label("Break Beam:")), 0, 1, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(break_beam_reading, 1, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
-	attach(battery_level, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
-	attach(dribbler_level, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
-	attach(out_rssi_level, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
-	attach(in_rssi_level, 1, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
-	attach(latency_level, 1, 2, 4, 5, Gtk::EXPAND | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
-	attach(feedback_interval_level, 1, 2, 5, 6, Gtk::EXPAND | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
-	attach(run_data_interval_level, 1, 2, 6, 7, Gtk::EXPAND | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
-	attach(success_level, 1, 2, 7, 8, Gtk::EXPAND | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
+	estop.set_sensitive(false);
+	ball_in_beam.set_sensitive(false);
+	ball_on_dribbler.set_sensitive(false);
+	capacitor_charged.set_sensitive(false);
+	Gtk::Table *subtable = Gtk::manage(new Gtk::Table(1, 4));
+	subtable->attach(estop, 0, 1, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	subtable->attach(ball_in_beam, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	subtable->attach(ball_on_dribbler, 2, 3, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	subtable->attach(capacitor_charged, 3, 4, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(*subtable, 0, 2, 4, 5, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
-	for (unsigned int i = 0; i < 5; ++i) {
-		if (i < 4) {
-			fault_indicators[i].set_label(Glib::ustring::format(i + 1));
-		} else {
-			fault_indicators[i].set_label("D");
-		}
-		fault_indicator_box.pack_start(fault_indicators[i]);
-	}
-	fault_indicator_frame.add(fault_indicator_box);
-	attach(fault_indicator_frame, 2, 3, 0, 8, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL, 3, 0);
+	dongle.estop_state.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_estop_changed));
+	on_estop_changed();
+
+	set_robot(XBeeRobot::Ptr());
 }
 
-void TesterFeedback::set_bot(XBeeDriveBot::Ptr bot) {
-	connection.disconnect();
-	battery_level.set_bot(bot);
-	dribbler_level.set_bot(bot);
-	out_rssi_level.set_bot(bot);
-	in_rssi_level.set_bot(bot);
-	latency_level.set_bot(bot);
-	feedback_interval_level.set_bot(bot);
-	run_data_interval_level.set_bot(bot);
-	success_level.set_bot(bot);
+TesterFeedbackPanel::~TesterFeedbackPanel() {
+}
+
+void TesterFeedbackPanel::set_robot(XBeeRobot::Ptr bot) {
+	alive_connection.disconnect();
 	robot = bot;
 	if (robot.is()) {
-		connection = robot->signal_feedback.connect(sigc::mem_fun(this, &TesterFeedback::update));
+		alive_connection = robot->alive.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_alive_changed));
 	}
-	for (unsigned int i = 0; i < 5; ++i) {
-		fault_indicators[i].set_colour(0, 0, 0);
+	on_alive_changed();
+}
+
+void TesterFeedbackPanel::on_estop_changed() {
+	estop.set_active(dongle.estop_state == XBeeDongle::ESTOP_STATE_RUN);
+}
+
+void TesterFeedbackPanel::on_alive_changed() {
+	battery_voltage_connection.disconnect();
+	capacitor_voltage_connection.disconnect();
+	dribbler_temperature_connection.disconnect();
+	break_beam_reading_connection.disconnect();
+	ball_in_beam_connection.disconnect();
+	ball_on_dribbler_connection.disconnect();
+	capacitor_charged_connection.disconnect();
+
+	if (robot.is() && robot->alive) {
+		battery_voltage_connection = robot->battery_voltage.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_battery_voltage_changed));
+		capacitor_voltage_connection = robot->capacitor_voltage.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_capacitor_voltage_changed));
+		dribbler_temperature_connection = robot->dribbler_temperature.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_dribbler_temperature_changed));
+		break_beam_reading_connection = robot->break_beam_reading.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_break_beam_reading_changed));
+		ball_in_beam_connection = robot->ball_in_beam.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_ball_in_beam_changed));
+		ball_on_dribbler_connection = robot->ball_on_dribbler.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_ball_on_dribbler_changed));
+		capacitor_charged_connection = robot->capacitor_charged.signal_changed().connect(sigc::mem_fun(this, &TesterFeedbackPanel::on_capacitor_charged_changed));
+	}
+
+	on_battery_voltage_changed();
+	on_capacitor_voltage_changed();
+	on_dribbler_temperature_changed();
+	on_break_beam_reading_changed();
+	on_ball_in_beam_changed();
+	on_ball_on_dribbler_changed();
+	on_capacitor_charged_changed();
+}
+
+void TesterFeedbackPanel::on_battery_voltage_changed() {
+	if (robot.is() && robot->alive && robot->has_feedback) {
+		battery_voltage.set_fraction(robot->battery_voltage / 18.0);
+		battery_voltage.set_text(Glib::ustring::compose("%1V", Glib::ustring::format(std::fixed, std::setprecision(2), robot->battery_voltage)));
+	} else {
+		battery_voltage.set_fraction(0);
+		battery_voltage.set_text("No Data");
 	}
 }
 
-void TesterFeedback::update() {
-	for (unsigned int i = 0; i < 4; ++i) {
-		if (robot->drive_faulted(i)) {
-			fault_indicators[i].set_colour(1, 0, 0);
-		} else {
-			fault_indicators[i].set_colour(0, 1, 0);
-		}
-	}
-	if (robot->dribbler_faulted()) {
-		fault_indicators[4].set_colour(1, 0, 0);
+void TesterFeedbackPanel::on_capacitor_voltage_changed() {
+	if (robot.is() && robot->alive && robot->has_feedback) {
+		capacitor_voltage.set_fraction(robot->capacitor_voltage / 250.0);
+		capacitor_voltage.set_text(Glib::ustring::compose("%1V", Glib::ustring::format(std::fixed, std::setprecision(0), robot->capacitor_voltage)));
 	} else {
-		fault_indicators[4].set_colour(0, 1, 0);
+		capacitor_voltage.set_fraction(0);
+		capacitor_voltage.set_text("No Data");
 	}
+}
+
+void TesterFeedbackPanel::on_dribbler_temperature_changed() {
+	if (robot.is() && robot->alive && robot->has_feedback) {
+		dribbler_temperature.set_fraction(robot->dribbler_temperature / 125.0);
+		dribbler_temperature.set_text(Glib::ustring::compose("%1°C", Glib::ustring::format(std::fixed, std::setprecision(1), robot->dribbler_temperature)));
+	} else {
+		dribbler_temperature.set_fraction(0);
+		dribbler_temperature.set_text("No Data");
+	}
+}
+
+void TesterFeedbackPanel::on_break_beam_reading_changed() {
+	if (robot.is() && robot->alive && robot->has_feedback) {
+		break_beam_reading.set_fraction(robot->break_beam_reading / 1023.0);
+		break_beam_reading.set_text(Glib::ustring::format(robot->break_beam_reading));
+	} else {
+		break_beam_reading.set_fraction(0);
+		break_beam_reading.set_text("No Data");
+	}
+}
+
+void TesterFeedbackPanel::on_ball_in_beam_changed() {
+	ball_in_beam.set_active(robot.is() && robot->alive && robot->has_feedback && robot->ball_in_beam);
+}
+
+void TesterFeedbackPanel::on_ball_on_dribbler_changed() {
+	ball_on_dribbler.set_active(robot.is() && robot->alive && robot->has_feedback && robot->ball_on_dribbler);
+}
+
+void TesterFeedbackPanel::on_capacitor_charged_changed() {
+	capacitor_charged.set_active(robot.is() && robot->alive && robot->has_feedback && robot->capacitor_charged);
 }
 

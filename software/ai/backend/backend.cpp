@@ -46,18 +46,6 @@ void AI::BE::Player::kick(double power) {
 	kick_impl(power);
 }
 
-void AI::BE::Player::chip(double power) {
-	if (!std::isfinite(power)) {
-		LOG_ERROR("NaN or ±inf power");
-		return;
-	}
-	if (power < 0 || power > 1) {
-		LOG_ERROR("Out-of-range power");
-		power = clamp(power, 0.0, 1.0);
-	}
-	chip_impl(power);
-}
-
 void AI::BE::Player::path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) {
 	for (std::vector<std::pair<std::pair<Point, double>, timespec> >::const_iterator i = p.begin(), iend = p.end(); i != iend; ++i) {
 		if (!std::isfinite(i->first.first.x) || !std::isfinite(i->first.first.y)) {

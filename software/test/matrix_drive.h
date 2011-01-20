@@ -2,7 +2,7 @@
 #define TESTER_MATRIX_DRIVE_H
 
 #include "test/zeroable.h"
-#include "xbee/client/drive.h"
+#include "xbee/robot.h"
 #include <gtkmm.h>
 
 /**
@@ -15,12 +15,12 @@ class TesterControlMatrixDrive : public Gtk::Table, public Zeroable {
 		 *
 		 * \param[in] bot the robot to control.
 		 */
-		TesterControlMatrixDrive(XBeeDriveBot::Ptr bot);
+		TesterControlMatrixDrive(XBeeRobot::Ptr bot);
 
 		void zero();
 
 	private:
-		XBeeDriveBot::Ptr robot;
+		XBeeRobot::Ptr robot;
 
 		Gtk::Label drive1_label;
 		Gtk::Label drive2_label;

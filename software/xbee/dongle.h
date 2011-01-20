@@ -1,0 +1,390 @@
+#ifndef XBEE_DONGLE_H
+#define XBEE_DONGLE_H
+
+/**
+ * \file
+ *
+ * \brief Provides access to an XBee dongle.
+ */
+
+#include "util/async_operation.h"
+#include "util/noncopyable.h"
+#include "util/property.h"
+#include "xbee/libusb.h"
+#include "xbee/robot.h"
+#include <cassert>
+#include <cstddef>
+
+/**
+ * \brief The dongle.
+ */
+class XBeeDongle : public NonCopyable {
+	public:
+		/**
+		 * \brief The possible states the emergency stop switch can be in.
+		 */
+		enum EStopState {
+			/**
+			 * \brief The switch has not been sampled yet.
+			 */
+			ESTOP_STATE_UNINITIALIZED,
+
+			/**
+			 * \brief The switch is not plugged in or is not working properly.
+			 */
+			ESTOP_STATE_DISCONNECTED,
+
+			/**
+			 * \brief The switch is in the stop position.
+			 */
+			ESTOP_STATE_STOP,
+
+			/**
+			 * \brief The switch is in the run position.
+			 */
+			ESTOP_STATE_RUN,
+		};
+
+		/**
+		 * \brief The possible states the XBees can be in.
+		 */
+		enum XBeesState {
+			/**
+			 * \brief Stage 1 initialization has not yet started.
+			 */
+			XBEES_STATE_PREINIT,
+
+			/**
+			 * \brief XBee 0 is in stage 1 initialization.
+			 */
+			XBEES_STATE_INIT1_0,
+
+			/**
+			 * \brief XBee 1 is in stage 1 initialization.
+			 */
+			XBEES_STATE_INIT1_1,
+
+			/**
+			 * \brief The XBees have completed stage 1 initialization and are awaiting channel assignments.
+			 */
+			XBEES_STATE_INIT1_DONE,
+
+			/**
+			 * \brief XBee 0 is in stage 2 initialization.
+			 */
+			XBEES_STATE_INIT2_0,
+
+			/**
+			 * \brief XBee 1 is in stage 2 initialization.
+			 */
+			XBEES_STATE_INIT2_1,
+
+			/**
+			 * \brief The XBees have completed all initialization and are communicating normally.
+			 */
+			XBEES_STATE_RUNNING,
+
+			/**
+			 * \brief XBee 0 has failed.
+			 */
+			XBEES_STATE_FAIL_0,
+
+			/**
+			 * \brief XBee 1 has failed.
+			 */
+			XBEES_STATE_FAIL_1,
+		};
+
+		/**
+		 * \brief The pipes between the host and a robot.
+		 */
+		enum Pipe {
+			/**
+			 * \brief A state transport pipe that carries drive information to the robot.
+			 */
+			PIPE_DRIVE,
+
+			/**
+			 * \brief A state transport pipe that carries feedback information from the robot.
+			 */
+			PIPE_FEEDBACK,
+
+			/**
+			 * \brief An interrupt pipe that allows faults to be cleared from the robot's fault latch.
+			 */
+			PIPE_FAULT_OUT,
+
+			/**
+			 * \brief An interrupt pipe that allows the robot to be ordered to kick or chip.
+			 */
+			PIPE_KICK,
+
+			/**
+			 * \brief A bulk pipe that allows firmware upgrades to be executed.
+			 */
+			PIPE_FIRMWARE_OUT,
+
+			/**
+			 * \brief An interrupt pipe that carries responses to firmware upgrade operation requests
+			 */
+			PIPE_FIRMWARE_IN,
+		};
+
+		/**
+		 * \brief The fault codes that can be reported by both a dongle and a robot.
+		 */
+		enum CommonFault {
+			FAULT_XBEE0_FERR,
+			FAULT_XBEE1_FERR,
+			FAULT_XBEE0_OERR_HW,
+			FAULT_XBEE1_OERR_HW,
+			FAULT_XBEE0_OERR_SW,
+			FAULT_XBEE1_OERR_SW,
+			FAULT_XBEE0_CHECKSUM_FAILED,
+			FAULT_XBEE1_CHECKSUM_FAILED,
+			FAULT_XBEE0_NONZERO_LENGTH_MSB,
+			FAULT_XBEE1_NONZERO_LENGTH_MSB,
+			FAULT_XBEE0_INVALID_LENGTH_LSB,
+			FAULT_XBEE1_INVALID_LENGTH_LSB,
+			FAULT_XBEE0_TIMEOUT,
+			FAULT_XBEE1_TIMEOUT,
+			FAULT_XBEE0_AT_RESPONSE_WRONG_COMMAND,
+			FAULT_XBEE1_AT_RESPONSE_WRONG_COMMAND,
+			FAULT_XBEE0_AT_RESPONSE_FAILED_UNKNOWN_REASON,
+			FAULT_XBEE1_AT_RESPONSE_FAILED_UNKNOWN_REASON,
+			FAULT_XBEE0_AT_RESPONSE_FAILED_INVALID_COMMAND,
+			FAULT_XBEE1_AT_RESPONSE_FAILED_INVALID_COMMAND,
+			FAULT_XBEE0_AT_RESPONSE_FAILED_INVALID_PARAMETER,
+			FAULT_XBEE1_AT_RESPONSE_FAILED_INVALID_PARAMETER,
+			FAULT_XBEE0_RESET_FAILED,
+			FAULT_XBEE1_RESET_FAILED,
+			FAULT_XBEE0_ENABLE_RTS_FAILED,
+			FAULT_XBEE1_ENABLE_RTS_FAILED,
+			FAULT_XBEE0_GET_FW_VERSION_FAILED,
+			FAULT_XBEE1_GET_FW_VERSION_FAILED,
+			FAULT_XBEE0_SET_NODE_ID_FAILED,
+			FAULT_XBEE1_SET_NODE_ID_FAILED,
+			FAULT_XBEE0_SET_CHANNEL_FAILED,
+			FAULT_XBEE1_SET_CHANNEL_FAILED,
+			FAULT_XBEE0_SET_PAN_ID_FAILED,
+			FAULT_XBEE1_SET_PAN_ID_FAILED,
+			FAULT_XBEE0_SET_ADDRESS_FAILED,
+			FAULT_XBEE1_SET_ADDRESS_FAILED,
+			FAULT_OUT_MICROPACKET_OVERFLOW,
+			FAULT_OUT_MICROPACKET_NOPIPE,
+			FAULT_OUT_MICROPACKET_BAD_LENGTH,
+			FAULT_DEBUG_OVERFLOW,
+			FAULT_COMMON_COUNT,
+		};
+
+		/**
+		 * \brief The fault codes that can be reported only by the dongle.
+		 */
+		enum DongleFault {
+			FAULT_ERROR_QUEUE_OVERFLOW = FAULT_COMMON_COUNT,
+			FAULT_SEND_FAILED_ROBOT1,
+			FAULT_SEND_FAILED_ROBOT2,
+			FAULT_SEND_FAILED_ROBOT3,
+			FAULT_SEND_FAILED_ROBOT4,
+			FAULT_SEND_FAILED_ROBOT5,
+			FAULT_SEND_FAILED_ROBOT6,
+			FAULT_SEND_FAILED_ROBOT7,
+			FAULT_SEND_FAILED_ROBOT8,
+			FAULT_SEND_FAILED_ROBOT9,
+			FAULT_SEND_FAILED_ROBOT10,
+			FAULT_SEND_FAILED_ROBOT11,
+			FAULT_SEND_FAILED_ROBOT12,
+			FAULT_SEND_FAILED_ROBOT13,
+			FAULT_SEND_FAILED_ROBOT14,
+			FAULT_SEND_FAILED_ROBOT15,
+			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT1,
+			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT2,
+			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT3,
+			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT4,
+			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT5,
+			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT6,
+			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT7,
+			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT8,
+			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT9,
+			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT10,
+			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT11,
+			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT12,
+			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT13,
+			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT14,
+			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT15,
+			FAULT_IN_MICROPACKET_NOPIPE_ROBOT1,
+			FAULT_IN_MICROPACKET_NOPIPE_ROBOT2,
+			FAULT_IN_MICROPACKET_NOPIPE_ROBOT3,
+			FAULT_IN_MICROPACKET_NOPIPE_ROBOT4,
+			FAULT_IN_MICROPACKET_NOPIPE_ROBOT5,
+			FAULT_IN_MICROPACKET_NOPIPE_ROBOT6,
+			FAULT_IN_MICROPACKET_NOPIPE_ROBOT7,
+			FAULT_IN_MICROPACKET_NOPIPE_ROBOT8,
+			FAULT_IN_MICROPACKET_NOPIPE_ROBOT9,
+			FAULT_IN_MICROPACKET_NOPIPE_ROBOT10,
+			FAULT_IN_MICROPACKET_NOPIPE_ROBOT11,
+			FAULT_IN_MICROPACKET_NOPIPE_ROBOT12,
+			FAULT_IN_MICROPACKET_NOPIPE_ROBOT13,
+			FAULT_IN_MICROPACKET_NOPIPE_ROBOT14,
+			FAULT_IN_MICROPACKET_NOPIPE_ROBOT15,
+			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT1,
+			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT2,
+			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT3,
+			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT4,
+			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT5,
+			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT6,
+			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT7,
+			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT8,
+			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT9,
+			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT10,
+			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT11,
+			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT12,
+			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT13,
+			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT14,
+			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT15,
+		};
+
+		/**
+		 * \brief The fault codes that can be reported only by a robot.
+		 */
+		enum RobotFault {
+			FAULT_CAPACITOR_CHARGE_TIMEOUT = FAULT_COMMON_COUNT,
+			FAULT_CHICKER_COMM_ERROR,
+			FAULT_CHICKER_NOT_PRESENT,
+			FAULT_FPGA_NO_BITSTREAM,
+			FAULT_FPGA_INVALID_BITSTREAM,
+			FAULT_FPGA_DCM_LOCK_FAILED,
+			FAULT_FPGA_ONLINE_CRC_FAILED,
+			FAULT_FPGA_COMM_ERROR,
+			FAULT_OSCILLATOR_FAILED,
+			FAULT_MOTOR1_HALL_000,
+			FAULT_MOTOR2_HALL_000,
+			FAULT_MOTOR3_HALL_000,
+			FAULT_MOTOR4_HALL_000,
+			FAULT_MOTORD_HALL_000,
+			FAULT_MOTOR1_HALL_111,
+			FAULT_MOTOR2_HALL_111,
+			FAULT_MOTOR3_HALL_111,
+			FAULT_MOTOR4_HALL_111,
+			FAULT_MOTORD_HALL_111,
+			FAULT_MOTOR1_HALL_STUCK,
+			FAULT_MOTOR2_HALL_STUCK,
+			FAULT_MOTOR3_HALL_STUCK,
+			FAULT_MOTOR4_HALL_STUCK,
+			FAULT_MOTOR1_ENCODER_STUCK,
+			FAULT_MOTOR2_ENCODER_STUCK,
+			FAULT_MOTOR3_ENCODER_STUCK,
+			FAULT_MOTOR4_ENCODER_STUCK,
+			FAULT_DRIBBLER_OVERHEAT,
+			FAULT_DRIBBLER_THERMISTOR_FAILED,
+			FAULT_FLASH_COMM_ERROR,
+			FAULT_FLASH_PARAMS_CORRUPT,
+			FAULT_NO_PARAMS,
+			FAULT_IN_PACKET_OVERFLOW,
+			FAULT_FIRMWARE_BAD_REQUEST,
+			FAULT_ROBOT_COUNT,
+		};
+
+		/**
+		 * \brief The USB endpoints.
+		 */
+		enum Endpoint {
+			EP_DONGLE_STATUS = 1,
+			EP_LOCAL_ERROR_QUEUE = 2,
+			EP_STATISTICS = 3,
+			EP_STATE_TRANSPORT = 4,
+			EP_INTERRUPT = 5,
+			EP_DEBUG = 6,
+		};
+
+		/**
+		 * \brief The current state of the emergency stop switch.
+		 */
+		Property<EStopState> estop_state;
+
+		/**
+		 * \brief The current state of the XBees.
+		 */
+		Property<XBeesState> xbees_state;
+
+		/**
+		 * \brief Emitted when a message is received on an interrupt pipe.
+		 *
+		 * \param[in] robot the robot number.
+		 *
+		 * \param[in] pipe the pipe on which the message was received.
+		 *
+		 * \param[in] data the message.
+		 *
+		 * \param[in] length the length of the message.
+		 */
+		sigc::signal<void, unsigned int, Pipe, const void *, std::size_t> signal_interrupt_message_received;
+
+		/**
+		 * \brief Constructs a new XBeeDongle.
+		 *
+		 * \param[in] out_channel the radio channel to use for sending messages to robots.
+		 *
+		 * \param[in] in_channel the radio channel to use for receiving messages from robots.
+		 */
+		XBeeDongle(unsigned int out_channel, unsigned int in_channel);
+
+		/**
+		 * \brief Destroys an XBeeDongle.
+		 */
+		~XBeeDongle();
+
+		/**
+		 * \brief Starts enabling the radios.
+		 *
+		 * \return an AsyncOperation that tracks the progress of enabling the radios.
+		 */
+		AsyncOperation<void>::Ptr enable();
+
+		/**
+		 * \brief Queues a bulk message for transmission.
+		 *
+		 * \param[in] data the data to send, which must include the header.
+		 *
+		 * \param[in] len the length of the data, including the header.
+		 */
+		AsyncOperation<void>::Ptr send_bulk(const void *data, std::size_t len);
+
+		/**
+		 * \brief Fetches an individual robot proxy.
+		 *
+		 * \param[in] i the robot number.
+		 *
+		 * \return the robot proxy object that allows communication with the robot.
+		 */
+		XBeeRobot::Ptr robot(unsigned int i) {
+			assert(1 <= i && i <= 15);
+			return robots[i - 1];
+		}
+
+	private:
+		friend class XBeeRobot;
+
+		const unsigned int out_channel;
+		const unsigned int in_channel;
+		LibUSBContext context;
+		LibUSBDeviceHandle device;
+		sigc::connection dongle_status_connection;
+		XBeeRobot::Ptr robots[15];
+		unsigned int dirty_drive_mask;
+		sigc::connection flush_drive_connection;
+		sigc::connection stamp_connection;
+
+		void on_enable_done(AsyncOperation<void>::Ptr op);
+		void on_dongle_status(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer);
+		void on_local_error_queue(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer);
+		void on_state_transport_in(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer);
+		void on_interrupt_in(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer);
+		void on_debug(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer);
+		void on_stamp();
+		void dirty_drive(unsigned int index);
+		void flush_drive();
+};
+
+#endif
+

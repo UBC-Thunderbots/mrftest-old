@@ -1,6 +1,6 @@
 #include "test/matrix_drive.h"
 
-TesterControlMatrixDrive::TesterControlMatrixDrive(XBeeDriveBot::Ptr bot) : Gtk::Table(3, 2), robot(bot), drive1_label("Vx:"), drive2_label("Vy:"), drive3_label("Vt:"), drive1_scale(-10, 10, .1), drive2_scale(-10, 10, .1), drive3_scale(-20, 20, .1) {
+TesterControlMatrixDrive::TesterControlMatrixDrive(XBeeRobot::Ptr bot) : Gtk::Table(3, 2), robot(bot), drive1_label("Vx:"), drive2_label("Vy:"), drive3_label("Vt:"), drive1_scale(-10, 10, .1), drive2_scale(-10, 10, .1), drive3_scale(-20, 20, .1) {
 	attach(drive1_label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
 	attach(drive2_label, 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
 	attach(drive3_label, 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::EXPAND | Gtk::FILL);
@@ -44,11 +44,11 @@ void TesterControlMatrixDrive::on_change() {
 				output[row] += matrix[row][col] * input[col];
 			}
 		}
-		int m1 = static_cast<int>(output[0]);
-		int m2 = static_cast<int>(output[1]);
-		int m3 = static_cast<int>(output[2]);
-		int m4 = static_cast<int>(output[3]);
-		robot->drive_controlled(m1, m2, m3, m4);
+		int w[4];
+		for (unsigned int i = 0; i < 4; ++i) {
+			w[i] = static_cast<int>(output[i]);
+		}
+		robot->drive(w);
 	}
 }
 

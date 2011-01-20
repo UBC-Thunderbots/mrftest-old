@@ -11,13 +11,13 @@ AI::BE::Simulator::Player::Ptr AI::BE::Simulator::Player::create(Backend &be, un
 void AI::BE::Simulator::Player::pre_tick(const ::Simulator::Proto::S2APlayerInfo &state, const timespec &ts) {
 	AI::BE::Simulator::Robot::pre_tick(state.robot_info, ts);
 	has_ball_ = state.has_ball;
-	kick_ = chip_ = false;
+	kick_ = false;
 }
 
 void AI::BE::Simulator::Player::encode_orders(::Simulator::Proto::A2SPlayerInfo &orders) {
 	orders.pattern = pattern();
 	orders.kick = kick_;
-	orders.chip = chip_;
+	orders.chip = false;
 	orders.chick_power = chick_power_;
 	std::copy(&wheel_speeds_[0], &wheel_speeds_[4], &orders.wheel_speeds[0]);
 }
@@ -152,11 +152,6 @@ void AI::BE::Simulator::Player::kick_impl(double power) {
 	chick_power_ = power;
 }
 
-void AI::BE::Simulator::Player::chip_impl(double power) {
-	chip_ = true;
-	chick_power_ = power;
-}
-
 bool AI::BE::Simulator::Player::has_destination() const {
 	return true;
 }
@@ -201,7 +196,7 @@ const int(&AI::BE::Simulator::Player::wheel_speeds() const)[4] {
 	return wheel_speeds_;
 }
 
-AI::BE::Simulator::Player::Player(Backend &be, unsigned int pattern) : AI::BE::Simulator::Robot(pattern), be(be), has_ball_(false), flags_(0), move_type_(AI::Flags::MOVE_NORMAL), move_prio_(AI::Flags::PRIO_LOW), kick_(false), chip_(false), chick_power_(0.0) {
+AI::BE::Simulator::Player::Player(Backend &be, unsigned int pattern) : AI::BE::Simulator::Robot(pattern), be(be), has_ball_(false), flags_(0), move_type_(AI::Flags::MOVE_NORMAL), move_prio_(AI::Flags::PRIO_LOW), kick_(false), chick_power_(0.0) {
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
 	be.signal_mouse_pressed.connect(sigc::mem_fun(this, &Player::mouse_pressed));
 }

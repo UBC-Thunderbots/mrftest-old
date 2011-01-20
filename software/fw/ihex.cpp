@@ -60,12 +60,12 @@ void IntelHex::add_section(unsigned int start, unsigned int length) {
 
 
 
-void IntelHex::load(const Glib::ustring &filename) {
+void IntelHex::load(const std::string &filename) {
 	// Allocate space to hold the new data.
 	std::vector<std::vector<uint8_t> > new_data(sections.size());
 
 	// Open the file.
-	std::ifstream ifs(Glib::filename_from_utf8(filename).c_str());
+	std::ifstream ifs(filename.c_str());
 	if (!ifs.good()) {
 		throw std::runtime_error("Cannot open hex file!");
 	}

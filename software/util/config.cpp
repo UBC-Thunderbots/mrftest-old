@@ -19,61 +19,6 @@
 
 namespace {
 	/**
-	 * A unary functor that accepts a RobotInfo and returns its address.
-	 */
-	class RobotAddress : public std::unary_function<const Config::RobotInfo &, uint64_t> {
-		public:
-			/**
-			 * Executes the functor.
-			 *
-			 * \param[in] bot the RobotInfo to examine.
-			 *
-			 * \return the address of the robot.
-			 */
-			uint64_t operator()(const Config::RobotInfo &bot) const {
-				return bot.address;
-			}
-	};
-
-	/**
-	 * A binary predicate that compares two robots by their 64-bit addresses.
-	 */
-	class CompareByAddress : public std::binary_function<const Config::RobotInfo &, const Config::RobotInfo &, bool> {
-		public:
-			/**
-			 * Executes the functor.
-			 *
-			 * \param[in] x the first RobotInfo to examine.
-			 *
-			 * \param[in] y the second RobotInfo to examine.
-			 *
-			 * \return \c true if \p x has an address less than that of \c y, or \c false if not.
-			 */
-			bool operator()(const Config::RobotInfo &x, const Config::RobotInfo &y) {
-				return x.address < y.address;
-			}
-	};
-
-	/**
-	 * A binary predicate that compares two robots by their lid patterns.
-	 */
-	class CompareByLid : public std::binary_function<const Config::RobotInfo &, const Config::RobotInfo &, bool> {
-		public:
-			/**
-			 * Executes the functor.
-			 *
-			 * \param[in] x the first RobotInfo to examine.
-			 *
-			 * \param[in] y the second RobotInfo to examine.
-			 *
-			 * \return \c true if \p x comes before \p y when ordered by lid patterns, or \c false if not.
-			 */
-			bool operator()(const Config::RobotInfo &x, const Config::RobotInfo &y) {
-				return x.pattern < y.pattern;
-			}
-	};
-
-	/**
 	 * \return the directory in which the running executable is stored.
 	 */
 	std::string get_bin_directory() {
@@ -125,7 +70,7 @@ namespace {
 	}
 }
 
-Config::Config() : channel_(0x0E) {
+Config::Config() : out_channel_(0x0E), in_channel_(0x0F) {
 	// Load file.
 	std::ifstream ifs;
 	try {
@@ -145,16 +90,15 @@ Config::Config() : channel_(0x0E) {
 		const xmlpp::Document *document = parser.get_document();
 		const xmlpp::Element *root = document->get_root_node();
 		if (root) {
-			const xmlpp::Element *players = find_child_element(root, "players");
-			if (players) {
-				robots_.load(players);
-			}
-
 			const xmlpp::Element *radio = find_child_element(root, "radio");
 			if (radio) {
-				const Glib::ustring &channel_string = radio->get_attribute_value("channel");
-				std::istringstream iss(channel_string);
-				iss >> std::hex >> channel_;
+				const Glib::ustring &out_channel_string = radio->get_attribute_value("out-channel");
+				std::istringstream out_iss(out_channel_string);
+				out_iss >> std::hex >> out_channel_;
+
+				const Glib::ustring &in_channel_string = radio->get_attribute_value("in-channel");
+				std::istringstream in_iss(in_channel_string);
+				in_iss >> std::hex >> in_channel_;
 			}
 
 			const xmlpp::Element *params = find_child_element(root, "params");
@@ -219,14 +163,9 @@ void Config::save() const {
 	xmlpp::Element *root = document.create_root_node("thunderbots");
 	root->add_child_text("\n");
 
-	if (robots_.size() > 0) {
-		xmlpp::Element *players = root->add_child("players");
-		robots_.save(players);
-		root->add_child_text("\n");
-	}
-
 	xmlpp::Element *radio = root->add_child("radio");
-	radio->set_attribute("channel", tohex(channel_, 2));
+	radio->set_attribute("out-channel", tohex(out_channel_, 2));
+	radio->set_attribute("in-channel", tohex(in_channel_, 2));
 	root->add_child_text("\n");
 
 	xmlpp::Element *params = root->add_child("params");
@@ -263,116 +202,10 @@ void Config::save() const {
 	document.write_to_stream(ofs, "UTF-8");
 }
 
-void Config::channel(unsigned int chan) {
-	assert(0x0B <= chan && chan <= 0x1A);
-	channel_ = chan;
-}
-
-const Config::RobotInfo &Config::RobotSet::find(uint64_t address) const {
-	for (std::vector<RobotInfo>::const_iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
-		if (i->address == address) {
-			return *i;
-		}
-	}
-	throw std::runtime_error("Cannot find robot by address!");
-}
-
-const Config::RobotInfo &Config::RobotSet::find(unsigned int pattern) const {
-	for (std::vector<RobotInfo>::const_iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
-		if (i->pattern == pattern) {
-			return *i;
-		}
-	}
-	throw std::runtime_error("Cannot find robot by pattern!");
-}
-
-bool Config::RobotSet::contains_address(uint64_t address) const {
-	for (std::vector<RobotInfo>::const_iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
-		if (i->address == address) {
-			return true;
-		}
-	}
-	return false;
-}
-
-bool Config::RobotSet::contains_pattern(unsigned int pattern) const {
-	for (std::vector<RobotInfo>::const_iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
-		if (i->pattern == pattern) {
-			return true;
-		}
-	}
-	return false;
-}
-
-void Config::RobotSet::add(uint64_t address, unsigned int pattern) {
-	assert(!contains_address(address));
-	assert(!contains_pattern(pattern));
-	std::size_t index = robots.size();
-	robots.push_back(RobotInfo(address, pattern));
-	signal_robot_added.emit(index);
-}
-
-void Config::RobotSet::remove(uint64_t address) {
-	std::vector<RobotInfo>::iterator i = std::find_if(robots.begin(), robots.end(), __gnu_cxx::compose1(std::bind1st(std::equal_to<uint64_t>(), address), RobotAddress()));
-	if (i != robots.end()) {
-		std::size_t index = i - robots.begin();
-		robots.erase(i);
-		signal_robot_removed.emit(index);
-	}
-}
-
-void Config::RobotSet::replace(uint64_t old_address, uint64_t address, unsigned int pattern) {
-	std::vector<RobotInfo>::iterator i = std::find_if(robots.begin(), robots.end(), __gnu_cxx::compose1(std::bind1st(std::equal_to<uint64_t>(), old_address), RobotAddress()));
-	assert(i != robots.end());
-	assert(address == i->address || !contains_address(address));
-	assert(pattern == i->pattern || !contains_pattern(pattern));
-	i->address = address;
-	i->pattern = pattern;
-	signal_robot_replaced.emit(i - robots.begin());
-}
-
-void Config::RobotSet::sort_by_address() {
-	std::sort(robots.begin(), robots.end(), CompareByAddress());
-	signal_sorted.emit();
-}
-
-void Config::RobotSet::sort_by_lid() {
-	std::sort(robots.begin(), robots.end(), CompareByLid());
-	signal_sorted.emit();
-}
-
-void Config::RobotSet::load(const xmlpp::Element *players) {
-	const xmlpp::Node::NodeList &player_list = players->get_children("player");
-	for (xmlpp::Node::NodeList::const_iterator i = player_list.begin(), iend = player_list.end(); i != iend; ++i) {
-		xmlpp::Element *player = dynamic_cast<xmlpp::Element *>(*i);
-		if (player) {
-			const Glib::ustring &address_string = player->get_attribute_value("address");
-			uint64_t address = 0;
-			{
-				std::istringstream iss(address_string);
-				iss >> std::hex >> address;
-			}
-			const Glib::ustring &pattern_string = player->get_attribute_value("pattern");
-			unsigned int pattern = 0;
-			{
-				std::istringstream iss(pattern_string);
-				iss >> pattern;
-			}
-			add(address, pattern);
-		}
-	}
-}
-
-void Config::RobotSet::save(xmlpp::Element *players) const {
-	players->add_child_text("\n");
-	for (std::vector<RobotInfo>::const_iterator i = robots.begin(), iend = robots.end(); i != iend; ++i) {
-		xmlpp::Element *player = players->add_child("player");
-		player->set_attribute("address", tohex(i->address, 16));
-		std::wostringstream oss;
-		oss.imbue(std::locale("C"));
-		oss << i->pattern;
-		player->set_attribute("pattern", Glib::ustring::format(oss.str()));
-		players->add_child_text("\n");
-	}
+void Config::channels(unsigned int out, unsigned int in) {
+	assert(0x0B <= out && out <= 0x1A);
+	assert(0x0B <= in && in <= 0x1A);
+	out_channel_ = out;
+	in_channel_ = in;
 }
 
