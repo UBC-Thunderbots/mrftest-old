@@ -130,6 +130,9 @@ void run(void) {
 	CCPR1H = 60000 / 256;
 	CCPR1L = 60000 % 256;
 
+	/* Turn on the laser. */
+	LAT_DRIB_BEAM_OUT = 1;
+
 	/* Perform a calibration ADC reading.
 	 *         |/------- Execute calibration on next acquisition
 	 *         ||///---- Set acquisition time 4TAD = 5⅓µs
@@ -532,7 +535,10 @@ void run(void) {
 			} else {
 				if (!ADCON0bits.CHS0) {
 					/* Channel 2 -> break beam.
-					 * Start a conversion on channel 3. */
+					 * Record result. */
+					feedback_block.break_beam_raw = (ADRESH << 8) | ADRESL;
+					feedback_block.flags.ball_in_beam = feedback_block.break_beam_raw >= 300;
+					/* Start a conversion on channel 3. */
 					ADCON0bits.CHS0 = 1;
 					ADCON0bits.GO = 1;
 				} else {

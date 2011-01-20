@@ -60,9 +60,9 @@ typedef struct {
 	uint16_t dribbler_temperature_raw;
 
 	/**
-	 * \brief The bitmask of latched faults.
+	 * \brief The raw ADC reading from the break beam.
 	 */
-	uint8_t faults[(FAULT_ROBOT_COUNT + 7) / 8];
+	uint16_t break_beam_raw;
 } feedback_block_t;
 
 #endif
