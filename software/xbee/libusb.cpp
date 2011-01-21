@@ -10,7 +10,7 @@
 #warning needs Doxygen
 
 namespace {
-	int check_fn(const char *call, int err) {
+	long check_fn(const char *call, long err) {
 		if (err >= 0) {
 			return err;
 		}
@@ -35,13 +35,6 @@ namespace {
 		std::ostringstream oss;
 		oss << call << ": " << msg;
 		throw LibUSBError(oss.str());
-	}
-
-	ssize_t check_fn(const char *call, ssize_t ssz) {
-		if (ssz < 0) {
-			check_fn(call, static_cast<int>(ssz));
-		}
-		return ssz;
 	}
 
 	std::string make_transfer_error_message(unsigned int endpoint, const std::string &msg) {
