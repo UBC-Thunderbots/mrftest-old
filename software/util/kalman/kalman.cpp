@@ -1,7 +1,7 @@
 #include "util/kalman/kalman.h"
 #include <time.h>
 
-kalman::kalman() : H(matrix(1,2)), P(matrix::identity(2)), state_estimate(matrix(2,1)){
+kalman::kalman() : H(matrix(1,2)), P(matrix::identity(2)), state_estimate(matrix(2,1)) {
 	state_estimate(0,0) = 0.0;
 	state_estimate(1,0) = 0.0;
 	sigma_m = 1.3e-3;
@@ -68,43 +68,49 @@ void kalman::predict(double prediction_time, matrix& state_predict, matrix& P_pr
 			inputs_itr != inputs.end() && (*inputs_itr).time < prediction_time; ++inputs_itr) {
 		predict_step((*inputs_itr).time - current_time, current_control, state_predict, P_predict);
 		current_time = (*inputs_itr).time;
-		current_control = (*inputs_itr).value; //below is the original line
-		//current_control = *(inputs_itr).value;
+		current_control = (*inputs_itr).value;
 	}
 	predict_step(prediction_time - current_time, current_control, state_predict, P_predict);
 }
 
 //this should generate an updated state, as well as clean up all the inputs since the last measurement
 //until this current one
-void kalman::update(double measurement, double time) {
+void kalman::update(double measurement, double measurement_time) {
 	matrix state_priori(state_estimate);
 	matrix P_priori(P);
-	predict(time, state_priori, P_priori);
+	predict(measurement_time, state_priori, P_priori);
 	
 	//%how much does the guess differ from the measurement
-	double residual = measurement - (H*state_priori)(0,0); // below is original code
+	double residual = measurement - (H*state_priori)(0,0);
     
 	//%The kalman update calculations
-	matrix Kalman_gain = (P_priori*~H)/(((H*P_priori*~H)(0,0)) + sigma_m*sigma_m); //below is original code
+	matrix Kalman_gain = (P_priori*~H)/(((H*P_priori*~H)(0,0)) + sigma_m*sigma_m);
 	matrix x2(state_priori + Kalman_gain*residual);
 	
 	state_estimate(0,0) = x2(0,0);
 	state_estimate(1,0) = x2(1,0);
 
 	P = (matrix::identity(2) - Kalman_gain*H)*P_priori;
-	last_measurement_time = time;
+	last_measurement_time = measurement_time;
 	
 	//we should clear the control inputs for times before last_measurement_time because they are unneeded
 	//and we don't want memory to explode
-	while (!inputs.empty() && inputs.front().time < last_measurement_time) {
+	while (!inputs.empty() && inputs.front().time <= last_measurement_time) {
 		last_control = inputs.front().value;
 		inputs.pop_front();
 	}
 }
 
-void kalman::new_control(double input, double time) {
-	// I'm assuming the control inputs are monotonic so don't screw with me
-	inputs.push_back(ControlInput(time, input));
+void kalman::new_control(double input, double input_time) {
+	// the new control input overwrites all actions that were scheduled for later times
+	// this allows us, for instance, to change our mind about future control sequences
+	while (!inputs.empty() && inputs.back().time >= input_time) {
+		inputs.pop_back(); 
+	}
+	if (input_time <= last_measurement_time)
+		last_control = input;
+	else
+		inputs.push_back(ControlInput(input_time, input));
 }
 
 void kalman::reset_angle(double bring_down){

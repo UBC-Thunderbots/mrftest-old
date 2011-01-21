@@ -5,56 +5,6 @@
 #include "util/timestep.h"
 #include <iostream>
 #include <cmath>
-/*
-#include <queue>
-#include <utility>
-#include "util/matrix.h"
-
-namespace
-{
-	const int CONSTANT = 0;
-	matrix state_estimate;
-	matrix covariance_estimate;
-	matrix state_model;
-	
-	matrix control_model;
-	matrix observation_model;
-	matrix process_covariance;
-	matrix observation_covariance;
-}
-
-Predictor::Prediction(bool angle) : angle(angle), initialized(false), lock_delta(0.0)
-{
-	
-}
-
-Predictor::~Predictor() {}
-
-pair<matrix, matrix> Prediction::Predict(double delta_time, double acceleration = 0.0)
-{
-	state_model(0, 0) = 1;
-	state_mode(0, 1) = delta_time;
-	state_model(1, 0) = 1;
-	state_model(1, 1) = 0;
-	control_vector(0, 0) = acceleration;
-	control_model(0, 0) = 0.5*delta_time*delta_time;
-	control_model(1, 0) = delta_time;
-	priori_estimate = state_model*state_estimate + control_model*control_vector;
-	priori_covariance = state_model*covariance_estimate*(~state_model) + process_covariance;
-	return make_pair(priori_estimate,priori_covariance);
-}
-
-void Prediction::Update(double observation, double frame_delay, double acceleration = 0.0)
-{
-	pair<matrix,matrix> pa = Predict(frame_delay, acceleration);
-	state_estimate = pa.first; covariance_estimate = pa.second;
-	innovation_residual = observation - observation_model*state_estimate;
-	innovation_covariance = observation_model*priori_covariance*(~observation_model) + observation_covariance;
-	kalman_gain = priori_covariance*(~observation_model)/innovation_covariance(0,0); // assuming innovation_covariance is a scalar
-	state_estimate = state_estimate + kalman_gain*innovation_residual;
-	covariance_estimate = (I - kalman_gain*observation_model)*covariance_estimate;
-}
-*/
 
 //TODO 1. accompensate for delay in real mode, and not to in simulator mode
 // TODO 2. access to control noise: as if our robot command and relative robot positions
