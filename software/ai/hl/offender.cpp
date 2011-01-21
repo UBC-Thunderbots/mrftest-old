@@ -243,13 +243,13 @@ void AI::HL::Offender::tick() {
 	 */
 
 	if (!chaser->has_ball()) {
-		AI::HL::Tactics::shoot(world, chaser, flags);
+		AI::HL::Tactics::shoot(world, chaser, flags, 10.0);
 		return;
 	}
 
 	// if can shoot to enemy goal, do so
 	if (AI::HL::Util::calc_best_shot(world, chaser, Robot::MAX_RADIUS).second > AI::HL::Util::shoot_accuracy) {
-		AI::HL::Tactics::shoot(world, chaser, flags);
+		AI::HL::Tactics::shoot(world, chaser, flags, 10.0);
 		return;
 	}
 
@@ -262,6 +262,6 @@ void AI::HL::Offender::tick() {
 
 	// just walk towards the enemy goal 
 	// TODO: stop moving too far
-	AI::HL::Tactics::shoot(world, chaser, flags);
+	AI::HL::Tactics::shoot(world, chaser, flags, 10.0);
 }
 

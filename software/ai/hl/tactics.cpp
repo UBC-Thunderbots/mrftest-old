@@ -143,7 +143,8 @@ void AI::HL::Tactics::pass(World &world, Player::Ptr passer, Player::Ptr passee,
 		return;
 	}
 
-	AI::HL::Tactics::shoot(world, passer, flags, passee->position());
+	// don't pass too fast, but also not too slow
+	AI::HL::Tactics::shoot(world, passer, flags, passee->position(), 5.0);
 }
 
 AI::HL::Tactics::Patrol::Patrol(World &w) : world(w), flags(0) {

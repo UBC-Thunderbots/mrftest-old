@@ -24,7 +24,7 @@ namespace {
 	const double SEPERATION_DIST = 10 * Robot::MAX_RADIUS;
 
 	// power to kick the ball with on the kickoff
-	const double KICKOFF_POWER = 0.5;
+	const double KICKOFF_POWER = 3.0;
 
 	DoubleParam separation_angle("kickoff: angle to separate players (degrees)", 40, 0, 80);
 
@@ -182,7 +182,7 @@ namespace {
 
 	void KickoffFriendlyStrategy::execute() {
 		
-		// default is for kicker to just shoot forward
+		// default is for kicker to just shoot forward, don't kick too far into the enemy field
 		if (kicker.is() && pidx >= 0) {
 			if (pidx == 0 && offenders.size() == 1) {
 				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[0]->position(), KICKOFF_POWER);

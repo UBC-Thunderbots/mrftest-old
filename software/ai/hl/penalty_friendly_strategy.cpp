@@ -157,9 +157,9 @@ namespace {
 
 			int flank = std::rand() % 2;
 			if (flank) {
-				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, goal_posts[0]);
+				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, goal_posts[0], 10.0);
 			} else {
-				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, goal_posts[1]);
+				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, goal_posts[1], 10.0);
 			}
 		}
 	}
