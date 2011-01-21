@@ -14,7 +14,7 @@ using namespace Glib;
 
 namespace {
 	// fraction of the maximum speed that the robot will try to dribble at
-	const double DRIBBLE_SPEED = 0.5;
+	const double DRIBBLE_SPEED = 1.0;
 	const double THRESHOLD = 0.08;
 	const double STEP_DISTANCE = 0.1;
 	// probability that we will take a step towards the goal
@@ -128,7 +128,6 @@ namespace {
 			pathPoints = rrt_plan(player, player->position(), dest);
 
 			double dist = 0.0;
-			timespec timeToAdd;
 			workingTime = world.monotonic_time();
 
 			double destOrientation = player->destination().second;
@@ -147,12 +146,9 @@ namespace {
 
 				// dribble at a different speed
 				if (player->type() == MOVE_DRIBBLE) {
-					timeToAdd = double_to_timespec(dist / player->MAX_LINEAR_VELOCITY * DRIBBLE_SPEED);
-				} else {
-					timeToAdd = double_to_timespec(dist / player->MAX_LINEAR_VELOCITY);
+					timespec timeToAdd = double_to_timespec(dist / player->MAX_LINEAR_VELOCITY / DRIBBLE_SPEED);
+					timespec_add(workingTime, timeToAdd, workingTime);
 				}
-
-				timespec_add(workingTime, timeToAdd, workingTime);
 
 				path.push_back(std::make_pair(std::make_pair(pathPoints[j], destOrientation), workingTime));
 			}
