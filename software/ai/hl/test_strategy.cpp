@@ -13,6 +13,7 @@ namespace {
 	BoolParam STAY_OWN_HALF("Test strategy stay own half", true);
 	BoolParam CATCH_BALL("Test strategy catch ball", true);
 	BoolParam RAM_BALL("Test strategy Ram ball", true);
+	BoolParam RECIEVE_BALL("Test strategy recieve ball", true);
 	/**
 	 * Manages the robots for testing purposes
 	 */
@@ -78,6 +79,15 @@ namespace {
 				Point enemy(world.field().length()/2.0, 0.0);
 				//move towards enemy net
 				(*it)->move(enemy, enemy.orientation(), flags, AI::Flags::MOVE_RAM_BALL, AI::Flags::PRIO_MEDIUM);
+			}else if (RECIEVE_BALL) {
+
+				//			Point dir1(world.field().length()/2.0, 0.0);
+				Point enemy(world.field().length()/2.0, 0.0);
+
+
+
+				//move towards enemy net
+				(*it)->move(enemy, enemy.orientation() + M_PI/2.0, flags, AI::Flags::MOVE_RAM_BALL, AI::Flags::PRIO_MEDIUM);
 			} else {
 				(*it)->move(world.ball().position(), (*it)->orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 			}
