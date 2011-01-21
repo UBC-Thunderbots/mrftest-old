@@ -19,7 +19,7 @@ namespace AI {
 
 				RobotControllerFactory &get_factory() const;
 
-				TunablePIDController(AI::RC::W::Player::Ptr plr);
+				TunablePIDController(AI::RC::W::World &world, AI::RC::W::Player::Ptr plr);
 
 				void set_params(const std::vector<double> &params) {
 					this->param = params;

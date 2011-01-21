@@ -33,7 +33,7 @@ namespace {
 
 	class Fuzzy2Controller : public RobotController, public TunableController {
 		public:
-			Fuzzy2Controller(Player::Ptr player) : RobotController(player), param(param_default) {
+			Fuzzy2Controller(World &world, Player::Ptr player) : RobotController(world, player), param(param_default) {
 			}
 
 			void tick() {
@@ -125,8 +125,8 @@ namespace {
 			Fuzzy2ControllerFactory() : RobotControllerFactory("Fuzzy Version 2") {
 			}
 
-			RobotController::Ptr create_controller(Player::Ptr player) const {
-				RobotController::Ptr p(new Fuzzy2Controller(player));
+			RobotController::Ptr create_controller(World &world, Player::Ptr player) const {
+				RobotController::Ptr p(new Fuzzy2Controller(world, player));
 				return p;
 			}
 	};

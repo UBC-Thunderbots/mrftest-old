@@ -49,6 +49,11 @@ namespace AI {
 
 			protected:
 				/**
+				 * The world in which the controller runs.
+				 */
+				AI::RC::W::World &world;
+
+				/**
 				 * The player to control.
 				 */
 				const AI::RC::W::Player::Ptr player;
@@ -56,9 +61,11 @@ namespace AI {
 				/**
 				 * Constructs a new RobotController.
 				 *
+				 * \param[in] world the world in which the controller will run.
+				 *
 				 * \param[in] player the player to control.
 				 */
-				RobotController(AI::RC::W::Player::Ptr player);
+				RobotController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player);
 
 				/**
 				 * Destroys a RobotController.
@@ -102,9 +109,11 @@ namespace AI {
 				/**
 				 * Constructs a new OldRobotController2.
 				 *
+				 * \param[in] world the world in which the controller will run.
+				 *
 				 * \param[in] player the player to control.
 				 */
-				OldRobotController2(AI::RC::W::Player::Ptr player);
+				OldRobotController2(AI::RC::W::World &world, AI::RC::W::Player::Ptr player);
 
 				/**
 				 * Destroys an OldRobotController2.
@@ -142,9 +151,11 @@ namespace AI {
 				/**
 				 * Constructs a new OldRobotController.
 				 *
+				 * \param[in] world the world in which the controller will run.
+				 *
 				 * \param[in] player the player to control.
 				 */
-				OldRobotController(AI::RC::W::Player::Ptr player);
+				OldRobotController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player);
 
 				/**
 				 * Destroys an OldRobotController.
@@ -163,11 +174,13 @@ namespace AI {
 				/**
 				 * Constructs a new RobotController.
 				 *
+				 * \param[in] world the world in which the controller will run.
+				 *
 				 * \param[in] plr the robot being controlled.
 				 *
 				 * \return the new controller.
 				 */
-				virtual RobotController::Ptr create_controller(AI::RC::W::Player::Ptr plr) const = 0;
+				virtual RobotController::Ptr create_controller(AI::RC::W::World &world, AI::RC::W::Player::Ptr plr) const = 0;
 
 				/**
 				 * Returns the GTK widget for this RobotControllerFactory, which will be integrated into the AI's user interface.

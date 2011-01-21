@@ -36,7 +36,7 @@ namespace {
 			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 			void clear();
 			RobotControllerFactory &get_factory() const;
-			AdHoc2Controller(Player::Ptr plr);
+			AdHoc2Controller(World &world, Player::Ptr plr);
 
 		protected:
 			bool initialized;
@@ -47,7 +47,7 @@ namespace {
 			double prev_angular_velocity;
 	};
 
-	AdHoc2Controller::AdHoc2Controller(Player::Ptr plr) : OldRobotController(plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
+	AdHoc2Controller::AdHoc2Controller(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
 	}
 
 	void AdHoc2Controller::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
@@ -134,8 +134,8 @@ namespace {
 			AdHoc2ControllerFactory() : RobotControllerFactory("adhoc2") {
 			}
 
-			RobotController::Ptr create_controller(Player::Ptr plr) const {
-				RobotController::Ptr p(new AdHoc2Controller(plr));
+			RobotController::Ptr create_controller(World &world, Player::Ptr plr) const {
+				RobotController::Ptr p(new AdHoc2Controller(world, plr));
 				return p;
 			}
 	};

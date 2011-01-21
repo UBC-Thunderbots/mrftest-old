@@ -22,10 +22,10 @@ namespace {
 			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 			void clear();
 			RobotControllerFactory &get_factory() const;
-			MaxController(Player::Ptr plr);
+			MaxController(World &world, Player::Ptr plr);
 	};
 
-	MaxController::MaxController(Player::Ptr plr) : OldRobotController(plr) {
+	MaxController::MaxController(World &world, Player::Ptr plr) : OldRobotController(world, plr) {
 	}
 
 	void MaxController::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
@@ -45,8 +45,8 @@ namespace {
 			MaxControllerFactory() : RobotControllerFactory("MAX") {
 			}
 
-			RobotController::Ptr create_controller(Player::Ptr plr) const {
-				RobotController::Ptr p(new MaxController(plr));
+			RobotController::Ptr create_controller(World &world, Player::Ptr plr) const {
+				RobotController::Ptr p(new MaxController(world, plr));
 				return p;
 			}
 	};

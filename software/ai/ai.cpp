@@ -89,7 +89,7 @@ void AIPackage::player_added(std::size_t idx) {
 	AI::BE::Player::Ptr plr = backend.friendly_team().get(idx);
 	PrivateState::Ptr state(new PrivateState);
 	if (robot_controller_factory) {
-		state->robot_controller = robot_controller_factory->create_controller(plr);
+		state->robot_controller = robot_controller_factory->create_controller(backend, plr);
 	}
 	plr->object_store()[typeid(*this)] = state;
 }
@@ -105,7 +105,7 @@ void AIPackage::robot_controller_factory_changed() {
 		state->robot_controller.reset();
 
 		if (robot_controller_factory) {
-			state->robot_controller = robot_controller_factory->create_controller(plr);
+			state->robot_controller = robot_controller_factory->create_controller(backend, plr);
 		}
 	}
 }

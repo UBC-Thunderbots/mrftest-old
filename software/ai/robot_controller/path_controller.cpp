@@ -34,7 +34,7 @@ namespace {
 
 	class PathController : public RobotController, public TunableController {
 		public:
-			PathController(Player::Ptr player) : RobotController(player), param(param_default) {
+			PathController(World &world, Player::Ptr player) : RobotController(world, player), param(param_default) {
 			}
 
 			void tick() {
@@ -121,8 +121,8 @@ namespace {
 			PathControllerFactory() : RobotControllerFactory("Path Follower") {
 			}
 
-			RobotController::Ptr create_controller(Player::Ptr player) const {
-				RobotController::Ptr p(new PathController(player));
+			RobotController::Ptr create_controller(World &world, Player::Ptr player) const {
+				RobotController::Ptr p(new PathController(world, player));
 				return p;
 			}
 	};

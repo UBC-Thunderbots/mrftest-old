@@ -25,13 +25,13 @@ void RobotController::convert_to_wheels(const Point &vel, double avel, int(&whee
 	}
 }
 
-RobotController::RobotController(AI::RC::W::Player::Ptr player) : player(player) {
+RobotController::RobotController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player) : world(world), player(player) {
 }
 
 RobotController::~RobotController() {
 }
 
-OldRobotController2::OldRobotController2(AI::RC::W::Player::Ptr player) : RobotController(player) {
+OldRobotController2::OldRobotController2(AI::RC::W::World &world, AI::RC::W::Player::Ptr player) : RobotController(world, player) {
 }
 
 OldRobotController2::~OldRobotController2() {
@@ -55,7 +55,7 @@ void OldRobotController::move(const Point &new_position, double new_orientation,
 	convert_to_wheels(vel, avel, wheel_speeds);
 }
 
-OldRobotController::OldRobotController(AI::RC::W::Player::Ptr player) : OldRobotController2(player) {
+OldRobotController::OldRobotController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player) : OldRobotController2(world, player) {
 }
 
 OldRobotController::~OldRobotController() {

@@ -241,7 +241,7 @@ namespace AI {
 		 * A provider that can expose the contents of the world to the AI.
 		 * A backend must get the state of the world, expose it to the AI, accept commands from the AI, and deliver those commands into the world.
 		 */
-		class Backend : public AI::BF::W::World, public AI::Coach::W::World, public AI::HL::W::World, public AI::Nav::W::World, public Visualizable::World, public NonCopyable {
+		class Backend : public AI::BF::W::World, public AI::Coach::W::World, public AI::HL::W::World, public AI::Nav::W::World, public AI::RC::W::World, public Visualizable::World, public NonCopyable {
 			public:
 				/**
 				 * The possible values indicating which end of the field the team is defending.
@@ -293,6 +293,17 @@ namespace AI {
 				 * \return the enemy team.
 				 */
 				virtual EnemyTeam &enemy_team() = 0;
+
+				/**
+				 * Returns the current monotonic time.
+				 * Monotonic time is a way of representing "game time", which always moves forward.
+				 * Monotonic time is consistent within the game world, and may or may not be linked to real time.
+				 * A navigator should \em always use this function to retrieve monotonic time, not one of the functions in util/time.h!
+				 * The AI will not generally have any use for real time.
+				 *
+				 * \return the current monotonic time.
+				 */
+				virtual timespec monotonic_time() const = 0;
 
 				/**
 				 * Returns the number of table rows the backend's UI controls will consume.

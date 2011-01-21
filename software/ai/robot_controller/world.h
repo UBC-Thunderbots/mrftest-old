@@ -40,6 +40,23 @@ namespace AI {
 					 */
 					virtual void drive(const int(&w)[4]) = 0;
 			};
+
+			/**
+			 * The world, as seen by a RobotController.
+			 */
+			class World {
+				public:
+					/**
+					 * Returns the current monotonic time.
+					 * Monotonic time is a way of representing "game time", which always moves forward.
+					 * Monotonic time is consistent within the game world, and may or may not be linked to real time.
+					 * A navigator should \em always use this function to retrieve monotonic time, not one of the functions in util/time.h!
+					 * The AI will not generally have any use for real time.
+					 *
+					 * \return the current monotonic time.
+					 */
+					virtual timespec monotonic_time() const = 0;
+			};
 		}
 	}
 }

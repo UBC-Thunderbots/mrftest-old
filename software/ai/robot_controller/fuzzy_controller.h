@@ -19,7 +19,7 @@ namespace AI {
 
 				RobotControllerFactory &get_factory() const;
 
-				FuzzyController(AI::RC::W::Player::Ptr player);
+				FuzzyController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player);
 
 				void set_params(const std::vector<double> &params) {
 					this->param = params;

@@ -53,7 +53,7 @@ namespace {
 			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 			void clear();
 			RobotControllerFactory &get_factory() const;
-			TunableAdHocController(Player::Ptr plr);
+			TunableAdHocController(World &world, Player::Ptr plr);
 			void set_params(const std::vector<double> &params) {
 				this->param = params;
 			}
@@ -77,7 +77,7 @@ namespace {
 			double prev_angular_velocity;
 	};
 
-	TunableAdHocController::TunableAdHocController(Player::Ptr plr) : OldRobotController(plr), initialized(false), error_pos(10.0), error_ori(10.0), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
+	TunableAdHocController::TunableAdHocController(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), error_pos(10.0), error_ori(10.0), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
 		param = param_default;
 	}
 
@@ -205,8 +205,8 @@ namespace {
 			TunableAdHocControllerFactory() : RobotControllerFactory("Ad Hoc =D") {
 			}
 
-			RobotController::Ptr create_controller(Player::Ptr plr) const {
-				RobotController::Ptr p(new TunableAdHocController(plr));
+			RobotController::Ptr create_controller(World &world, Player::Ptr plr) const {
+				RobotController::Ptr p(new TunableAdHocController(world, plr));
 				return p;
 			}
 	};

@@ -31,7 +31,7 @@ namespace {
 
 	class PointVelocityController : public RobotController, public TunableController {
 		public:
-			PointVelocityController(Player::Ptr player) : RobotController(player), param(param_default) {
+			PointVelocityController(World &world, Player::Ptr player) : RobotController(world, player), param(param_default) {
 			}
 
 			void tick() {
@@ -116,8 +116,8 @@ namespace {
 			PointVelocityControllerFactory() : RobotControllerFactory("Point+Velocity Controller") {
 			}
 
-			RobotController::Ptr create_controller(Player::Ptr player) const {
-				RobotController::Ptr p(new PointVelocityController(player));
+			RobotController::Ptr create_controller(World &world, Player::Ptr player) const {
+				RobotController::Ptr p(new PointVelocityController(world, player));
 				return p;
 			}
 	};
