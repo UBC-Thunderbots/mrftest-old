@@ -508,7 +508,7 @@ void XBeeDongle::dirty_drive(unsigned int index) {
 }
 
 void XBeeDongle::flush_drive() {
-	uint8_t buffer[64 / (9 + 2)][10 + 2];
+	uint8_t buffer[64 / (10 + 2)][10 + 2];
 	std::size_t wptr = 0;
 
 	for (unsigned int i = 1; i <= 15; ++i) {
