@@ -21,17 +21,15 @@ namespace {
 
 	BoolParam Goalie_dives("decides whether the goalie should dive for the ball ", true);
 
-	const double EPS = 1e-4;
+	DoubleParam negligible_velocity("decides at which speed goalie should ignore direction of ball ", 0.05, 1e-4, 1.0);
 
 std::pair<Point, bool> get_ramball_location(Point dst, AI::HL::W::World &world, AI::HL::W::Player::Ptr player){
 	Point ball_dir = world.ball().velocity();
 
-	if(ball_dir.lensq() < EPS){
-		if(lineseg_point_dist(world.ball().position(), player->position(), dst) < EPS){	
+	if(ball_dir.lensq() < negligible_velocity){
 			return std::make_pair(world.ball().position(),  false);
-		}
 	}
-	//	std::cout<< " examine "<<std::endl; 
+
 	if(unique_line_intersect(player->position(), dst, world.ball().position(), world.ball().position() + ball_dir)){
 
 		//	std::cout<<" has intersection "<<std::endl;
