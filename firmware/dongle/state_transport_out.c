@@ -113,7 +113,7 @@ void state_transport_out_init(void) {
 	 *        ||||||/-- Internal clock source
 	 *        |||||||/- Timer enabled */
 	T1CON = 0b00110001;
-	IPR1bits.TMR1IP = 1;
+	IPR1bits.TMR1IP = 0;
 	PIE1bits.TMR1IE = 1;
 
 	/* The endpoint is halted until XBee stage 2 configuration completes. */

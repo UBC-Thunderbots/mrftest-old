@@ -40,21 +40,21 @@ typedef enum {
 } tbots_control_request_t;
 
 DEF_INTHIGH(high_handler)
-	__asm extern _state_transport_out_tmr1if __endasm;
 	__asm extern _xbee_rxpacket_rc1if __endasm;
 	__asm extern _xbee_rxpacket_rc2if __endasm;
-	DEF_HANDLER(SIG_TMR1, state_transport_out_tmr1if)
 	DEF_HANDLER(SIG_RC1, xbee_rxpacket_rc1if)
 	DEF_HANDLER(SIG_RC2, xbee_rxpacket_rc2if)
 END_DEF
 
 DEF_INTLOW(low_handler)
+	__asm extern _state_transport_out_tmr1if __endasm;
 	__asm extern _usb_process __endasm;
 	__asm extern _estop_adif __endasm;
 	__asm extern _xbee_txpacket_tx1if __endasm;
 	__asm extern _xbee_txpacket_tx2if __endasm;
 	__asm extern _xbee_txpacket_tmr4if __endasm;
 	__asm extern _xbee_activity_tmr0if __endasm;
+	DEF_HANDLER(SIG_TMR1, state_transport_out_tmr1if)
 	DEF_HANDLER2(SIG_USB, SIG_USBIE, usb_process)
 	DEF_HANDLER(SIG_AD, estop_adif)
 	DEF_HANDLER2(SIG_TX1, SIG_TX1IE, xbee_txpacket_tx1if)
