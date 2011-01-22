@@ -21,19 +21,6 @@ Predictor::Predictor(bool angle) : angle(angle), initialized(false), lock_delta(
 	timespec_now(last_datum_timestamp);
 	lock_timestamp = last_datum_timestamp;
 
-	// Fill history data with zeroes.
-	vhistory.setlength(NUM_OLD_POSITIONS);
-	dhistory.setlength(NUM_OLD_POSITIONS);
-	//weiguess(0,0);ghts.setlength(NUM_OLD_POSITIONS);
-	fmatrix.setlength(NUM_OLD_POSITIONS, MAX_DEGREE + 1);
-	for (int i = 0; i < NUM_OLD_POSITIONS; i++) {
-		vhistory(i) = 0.0;
-		dhistory(i) = 1.0 / TIMESTEPS_PER_SECOND;
-	}
-
-	// Allocate space for the approximants.
-	approxv.setlength(MAX_DEGREE + 1);
-	
 	filter.set_availability(true);
 
 }
@@ -42,17 +29,16 @@ Predictor::~Predictor() {
 }
 
 double Predictor::value(double delta, unsigned int deriv) const {
-	delta += lock_delta;
+	timespec total;
+	timespec_add(double_to_timespec(delta), lock_timestamp, total);
+	return value(total, deriv);
+}
+
+double Predictor::value(const timespec &ts, unsigned int deriv) const {
 	double v = 0;
-	//original
-	/*for (int i = MAX_DEGREE; i >= static_cast<int>(deriv); --i) { 
-		v = v * delta + approxv(i);
-	}
-	if (angle && !deriv) {
-		v = angle_mod(v);
-	}
-	return v;*/
-	matrix guess = filter.predict(delta);
+	timespec diff;
+	timespec_sub(ts,last_datum_timestamp,diff);
+	matrix guess = filter.predict(timespec_to_double(diff));
 	if(deriv == 0){
 		v = guess(0,0);
 	} else if(deriv == 1) {
@@ -65,12 +51,6 @@ double Predictor::value(double delta, unsigned int deriv) const {
 	}
 
 	return v;
-}
-
-double Predictor::value(const timespec &ts, unsigned int deriv) const {
-	timespec delta;
-	timespec_sub(ts, lock_timestamp, delta);
-	return value(timespec_to_double(delta), deriv);
 }
 
 void Predictor::lock_time(const timespec &ts) {
@@ -89,13 +69,6 @@ void Predictor::add_datum(double value, const timespec &ts) {
 		// Mark the current time as the most recent datum stamp.
 		last_datum_timestamp = ts;
 
-		// Fill the current value into all history cells.
-		// This means that the object appears to be stationary.
-		for (int i = 0; i < NUM_OLD_POSITIONS; ++i) {
-			vhistory(i) = value;
-			dhistory(i) = 1.0 / TIMESTEPS_PER_SECOND;
-		}
-
 		// Update the predictions.
 		//update();
 		// or use kalman filter
@@ -105,16 +78,14 @@ void Predictor::add_datum(double value, const timespec &ts) {
 		return;
 	}
 
-	// Compute delta time and update stamp.
-	timespec diff;
-	timespec_sub(ts, last_datum_timestamp, diff);
-	last_datum_timestamp = ts;
-	double delta_time = timespec_to_double(diff);
 
 	// In the angle case, move the new value close to the previous value.
 	if (angle) {
-		while (std::fabs(value - vhistory(0)) > M_PI + 1e-9) {
-			if (value > vhistory(0)) {
+		timespec diff;
+		timespec_sub(ts,last_datum_timestamp,diff);
+		matrix guess = filter.predict(timespec_to_double(diff));
+		while (std::fabs(value - guess(0,0)) > M_PI + 1e-9) {
+			if (value > guess(0,0)) {
 				value -= 2 * M_PI;
 			} else {
 				value += 2 * M_PI;
@@ -124,22 +95,16 @@ void Predictor::add_datum(double value, const timespec &ts) {
 			value -= ANGLE_UPPER_BOUND;
 			filter.reset_angle(ANGLE_UPPER_BOUND);
 		}
+		if(filter.is_available() && value < -ANGLE_UPPER_BOUND) {
+			value += ANGLE_UPPER_BOUND;
+			filter.reset_angle(-ANGLE_UPPER_BOUND);
+		}
 	}
+	// Compute delta time and update stamp.
+	last_datum_timestamp = ts;
 
-	// Add new data to history list.
-	for (int i = NUM_OLD_POSITIONS - 1; i; i--) {
-		vhistory(i) = vhistory(i - 1);
-		dhistory(i) = dhistory(i - 1);
-	}
-	vhistory(0) = value;
-	dhistory(0) = delta_time;
 
-	// Update the predictions.
-	//update();
-	// or use the kalman predictor
-	//filter.new_control(3,);
 	filter.update(value, timespec_to_double(ts));
-	//TODO deal with angle prediction
 }
 
 void Predictor::clear() {
@@ -147,32 +112,5 @@ void Predictor::clear() {
 }
 
 void Predictor::update() {
-	// Build the matrices.
-	double dd = 0; // dd is always nonpositive
-	for (int i = 0; i < NUM_OLD_POSITIONS; i++) {
-		if (i) {
-			dd -= dhistory(i - 1);
-		}
-		// Weights are 1 / (number of AI time steps from the present + 1).
-		// Data further in the past will affect our predictions less.
-		weights(i) = 1.0 / (1 - dd * TIMESTEPS_PER_SECOND);
-		fmatrix(i, 0) = 1;
-		for (unsigned int j = 1; j < MAX_DEGREE + 1; j++) {
-			fmatrix(i, j) = fmatrix(i, j - 1) * dd;
-		}
-	}
-
-	// If this is an angle predictor and the values are getting too big, reduce them to prevent floating point precision loss.
-	if (angle) {
-		while (std::fabs(vhistory(0)) > 64 * M_PI) {
-			double shift = vhistory(0) > 0 ? -64 * M_PI : 64 * M_PI;
-			for (int i = 0; i < NUM_OLD_POSITIONS; i++) {
-				vhistory(i) += shift;
-			}
-		}
-	}
-
-	// Perform the regressions.
-	buildgeneralleastsquares(vhistory, weights, fmatrix, NUM_OLD_POSITIONS, MAX_DEGREE + 1, approxv);
 }
 
