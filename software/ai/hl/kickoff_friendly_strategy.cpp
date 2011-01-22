@@ -24,7 +24,7 @@ namespace {
 	const double SEPERATION_DIST = 10 * Robot::MAX_RADIUS;
 
 	// power to kick the ball with on the kickoff
-	const double KICKOFF_POWER = 3.0;
+	const double KICKOFF_POWER = 5.0;
 
 	DoubleParam separation_angle("kickoff: angle to separate players (degrees)", 40, 0, 80);
 
@@ -191,10 +191,10 @@ namespace {
 			} else if (offenders.size() > 0) {
 				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, offenders[0]->position(), KICKOFF_POWER);
 			} else {
-				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
+				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, KICKOFF_POWER);
 			}
 		} else if (kicker.is()) {
-			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA);
+			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, KICKOFF_POWER);
 		}
 		
 	}

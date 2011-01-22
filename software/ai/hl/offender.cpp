@@ -263,5 +263,14 @@ void AI::HL::Offender::tick() {
 	// just walk towards the enemy goal 
 	// TODO: stop moving too far
 	AI::HL::Tactics::shoot(world, chaser, flags, 10.0);
+	
+	// TODO: something more sensible
+	// If the ball is seen "inside" the chaser
+	// move towards ball and then try to shoot again
+	if ((chaser->position() - world.ball().position()).len() < AI::HL::W::Robot::MAX_RADIUS - AI::HL::Util::VEL_CLOSE) {
+		chaser->move(world.ball().position(), (world.ball().position() - chaser->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+		AI::HL::Tactics::shoot(world, chaser, flags, 10.0);
+	}
+		
 }
 

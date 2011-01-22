@@ -108,7 +108,7 @@ namespace {
 			if (passee.is()) {
 				AI::HL::Tactics::pass(world, kicker, passee, AI::Flags::FLAG_CLIP_PLAY_AREA);
 			} else {
-				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, 5.0);
+				AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, 6.0);
 			}
 		}
 	}
