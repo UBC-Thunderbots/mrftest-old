@@ -39,9 +39,9 @@ void AI::BE::Player::kick(double power) {
 		LOG_ERROR("NaN or ±inf power");
 		return;
 	}
-	if (power < 0 || power > 1) {
+	if (power < 0) {
 		LOG_ERROR("Out-of-range power");
-		power = clamp(power, 0.0, 1.0);
+		power = 0;
 	}
 	kick_impl(power);
 }

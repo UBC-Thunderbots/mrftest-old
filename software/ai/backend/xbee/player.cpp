@@ -118,7 +118,7 @@ void Player::kick_impl(double speed) {
 				power_below = POWERS[0];
 				power_above = POWERS[1];
 			} else {
-				for (std::size_t i = 0; i < G_N_ELEMENTS(SPEEDS) - 1 && SPEEDS[i + 1] < speed; ++i) {
+				for (std::size_t i = 0; i < G_N_ELEMENTS(SPEEDS) - 1 && SPEEDS[i] < speed; ++i) {
 					speed_below = SPEEDS[i];
 					speed_above = SPEEDS[i + 1];
 					power_below = POWERS[i];
