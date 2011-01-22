@@ -1,3 +1,6 @@
+/* Main Boost Converter file */
+/* By: Lok Tin Lam */
+
 #include <pic18f4550.h>
 #include "pwm.h"
 
@@ -35,6 +38,7 @@ void main(void) {
 	TRISDbits.TRISD4 = 0;//Red LED
 	TRISDbits.TRISD5 = 0;//Green LED 
 	TRISDbits.TRISD6 = 0;//Green LED
+	TRISAbits.TRISA1 = 1;//setting RA1 as input for external device control						
 	LATD = 0x00;
 
 
@@ -80,7 +84,7 @@ void main(void) {
 		} else {
 			LATDbits.LATD4 = 0;
 		}
-		if( PORTBbits.RB0 == 0 && Vcap < 235 ) {// if button is pushed or if set point is beyond 240V, turn controller to zero
+		if( ( PORTBbits.RB0 == 0 || PORTAbits.RA1 == 1 ) && Vcap < 235 ) {// if button is pushed or if set point is beyond 240V, turn controller to zero
 			LATDbits.LATD5 = 1;
 			Vout = Vcap + V_DIODE;
 
@@ -96,34 +100,6 @@ void main(void) {
 			LATDbits.LATD5 = 0;
 			DCCtrl(0.0);
 		}
-		/*		
-		// Reading Voltage
-		ADCON0bits.GO = 1;
-		while( ADCON0bits.GO == 1 ){}
-		adresH = ADRESH;
-		adresL = ADRESL;
-		// Producing reference voltage
-		Vcap = (adresH*fMsb + adresL)*V_REF/TEN_BIT;
-		dutyCycle = Vcap/VREF;
-		DCCtrl(dutyCycle);
-		
-
-		if( Vout > 2.5 ){
-			LATDbits.LATD5 = 0;
-		} else {
-			LATDbits.LATD5 = 1;
-		}*/
-
-		/*if( PORTBbits.RB0 == 0 ) { // RA0 input is ground
-			DCCtrl(0.5);
-			LATDbits.LATD4 = 0;//writes RA1 with 0
-			LATDbits.LATD5 = 1;//writes RA1 with 1
-		} else if( PORTBbits.RB0 == 1 ){ //RA0 input is high
-			
-			DCCtrl(0.0);
-			LATDbits.LATD4 = 1;//writes RA1 with 1
-			LATDbits.LATD5 = 0;//writes RA1 with 0
-		}*/
 	}
 }
 
