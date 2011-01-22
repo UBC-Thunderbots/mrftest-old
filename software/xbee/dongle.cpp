@@ -486,10 +486,14 @@ void XBeeDongle::on_interrupt_in(AsyncOperation<void>::Ptr, LibUSBInterruptInTra
 }
 
 void XBeeDongle::on_debug(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer) {
-	transfer->result();
-	if (transfer->size()) {
-		std::string str(reinterpret_cast<const char *>(transfer->data()), transfer->size());
-		LOG_INFO(Glib::locale_to_utf8(str));
+	try {
+		transfer->result();
+		if (transfer->size()) {
+			std::string str(reinterpret_cast<const char *>(transfer->data()), transfer->size());
+			LOG_INFO(Glib::locale_to_utf8(str));
+		}
+	} catch (const LibUSBTransferError &err) {
+		LOG_ERROR(Glib::ustring::compose("Ignoring %1", err.what()));
 	}
 }
 
