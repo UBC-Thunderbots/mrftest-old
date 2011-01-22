@@ -1,4 +1,5 @@
 #include "xbee/libusb.h"
+#include "util/dprint.h"
 #include "util/exception.h"
 #include <cassert>
 #include <cstdlib>
@@ -304,6 +305,7 @@ LibUSBTransfer::~LibUSBTransfer() {
 void LibUSBTransfer::callback() {
 	if (transfer->status == LIBUSB_TRANSFER_STALL && stall_count < stall_max) {
 		++stall_count;
+		LOG_ERROR(Glib::ustring::compose("Ignored stall %1 of %2 on %3 endpoint %4", stall_count, stall_max, (transfer->endpoint & 0x80) ? "IN" : "OUT", static_cast<unsigned int>(transfer->endpoint & 0x7F)));
 		check_fn("libusb_submit_transfer", libusb_submit_transfer(transfer));
 		return;
 	} else if (transfer->status != LIBUSB_TRANSFER_STALL) {
