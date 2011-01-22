@@ -72,7 +72,7 @@ namespace {
 	 * The play types handled by this strategy.
 	 */
 	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
-		PlayType::PLAY,
+		//PlayType::PLAY,
 	};
 
 	FranticPlayStrategyFactory::FranticPlayStrategyFactory() : StrategyFactory("Frantic Play", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) {

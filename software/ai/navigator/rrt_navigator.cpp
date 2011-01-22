@@ -26,7 +26,7 @@ namespace {
   DoubleParam ANGLE_DIFF("Pivot the amount of erronous angle acceptable for pivoting " , 4.0, 0.00, 10.0);
 	// number of iterations to go through for each robot until we give up and
 	// just return the best partial path we've found
-	const int ITERATION_LIMIT = 500;
+	const int ITERATION_LIMIT = 200;
 	const int NUM_WAYPOINTS = 50;
 
   DoubleParam pivot_point("Pivot how far behing the ball to go for a pivot", 0.08, 0.00, 1.00);
@@ -125,6 +125,12 @@ namespace {
 					dest = pBehindBall;
 					addedFlags = FLAG_AVOID_BALL_TINY;
 				}
+			} else if (valid_path(player->position(), player->destination().first, world, player)) {
+				// if we're not trying to catch the ball and there are no obstacles in our way then go
+				// to the exact location, skipping all of the tree creation
+				path.push_back(std::make_pair(player->destination(), world.monotonic_time()));
+				player->path(path);
+				continue;
 			} else {
 				dest = player->destination().first;
 			}
