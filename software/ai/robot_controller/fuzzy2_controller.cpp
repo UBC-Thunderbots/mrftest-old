@@ -21,7 +21,7 @@ namespace {
 	const double arr_max[P] = { 8.0, 2.0, 2.0, 8.0, 8.0 };
 
 	// robot parameters
-	const double arr_def[P] = { 4.72052, 0.855, 0.385, 5.79846, 3.33297 };
+	const double arr_def[P] = {7.72052, 0.261496, 0.385, 7.8411, 7.28714};
 
 	// simulator parameters
 	// const double arr_def[P] = { 8.71043, 1.95671, 1.08009, 4.59125, 9.40896 };
