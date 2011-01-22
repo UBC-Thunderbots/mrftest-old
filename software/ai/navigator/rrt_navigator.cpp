@@ -30,7 +30,7 @@ namespace {
 	const int NUM_WAYPOINTS = 50;
 
   DoubleParam pivot_point("Pivot how far behing the ball to go for a pivot", 0.08, 0.00, 1.00);
-  DoubleParam chase_overshoot("Pivot  how far behing the ball to go for a pivot", 0.08, -0.5, 0.5);
+  DoubleParam chase_overshoot("Pivot  amount of ball overshoot for a pivot", 0.08, -0.5, 0.5);
 
 	class Waypoints : public ObjectStore::Element {
 		public:
