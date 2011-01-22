@@ -10,6 +10,7 @@
 #include <map>
 #include <algorithm>
 #include <iostream>
+#include "uicomponents/param.h"
 
 using AI::RC::RobotController;
 using AI::RC::TunableController;
@@ -17,18 +18,21 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
-	const int P = 1;
+	const int P = 2;
 
 	// 0 max distance for linear control (outside of this range is just fast )
 	// 1 amount to scale linear speed factor by
 	// 2 amount to scale both factors by
 	const double ANGLE_TOL = 0.05;
 	const double DIST_TOL = 0.05;
-	const double arr_min[P] = { 3.0};
-	const double arr_max[P] = { 8.0};
+
+	DoubleParam proportion(" amount to scale controller velocities by ", 2.0, 0.1, 10.0);
+
+	const double arr_min[P] = { 3.0, 0.5};
+	const double arr_max[P] = { 8.0, 10.0};
 
 	// robot parameters
-	const double arr_def[P] = { 4.72052};
+	const double arr_def[P] = { 4.72052, 3.0};
 
 	// simulator parameters
 	// const double arr_def[P] = { 8.71043, 1.95671, 1.08009, 4.59125, 9.40896 };
@@ -86,7 +90,8 @@ namespace {
 					//				std::cout<<' '<<robot_vel<<' '<<robot_ang_vel<<std::endl;
 				}
 
-
+				robot_vel*=proportion;
+				robot_ang_vel*=proportion;
 
 				timespec cur_time = world.monotonic_time();
 
