@@ -67,8 +67,8 @@ namespace {
 	 * The play types handled by this strategy.
 	 */
 	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
-		PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY,
-		PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY,
+		//PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY,
+		//PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY,
 	};
 
 	StrategyFactory &FreeKickEnemyStrategy::factory() const {

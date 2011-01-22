@@ -37,6 +37,9 @@ namespace {
 			static Strategy::Ptr create(World &world);
 
 		private:
+			void execute_indirect_free_kick_enemy();
+			void execute_direct_free_kick_enemy();
+
 			StopStrategy(World &world);
 			~StopStrategy();
 			// bool valid(Point p) const;
@@ -62,6 +65,8 @@ namespace {
 	 */
 	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
 		PlayType::STOP,
+		PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY,
+		PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY,
 	};
 
 	StrategyFactory &StopStrategy::factory() const {
@@ -93,6 +98,14 @@ namespace {
 	    return true;
 	   }
 	 */
+
+	void StopStrategy::execute_direct_free_kick_enemy() {
+		stop();
+	}
+
+	void StopStrategy::execute_indirect_free_kick_enemy() {
+		stop();
+	}
 
 	void StopStrategy::stop() {
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
