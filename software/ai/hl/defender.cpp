@@ -82,16 +82,6 @@ void Defender::set_players(const std::vector<Player::Ptr> &p, Player::Ptr g) {
 std::pair<Point, std::vector<Point> > Defender::calc_block_positions() const {
 	const Field &f = world.field();
 
-	if (players.size() == 0) {
-		const Point default_pos = Point(-0.45 * world.field().length(), 0);
-		const Point centre_of_goal = world.field().friendly_goal();
-		Point target = world.ball().position() - centre_of_goal;
-		target = target * (lone_goalie_dist / target.len());
-		target += centre_of_goal;
-		// player->move(target, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
-		return std::make_pair(target, std::vector<Point>());
-	}
-
 	std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
 
 	// sort enemies by distance to own goal
