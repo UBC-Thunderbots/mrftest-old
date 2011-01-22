@@ -8,7 +8,14 @@
 <bool-param name="has_ball: use vision">false</bool-param>
 <bool-param name="navigator: avoid Enemy Near Ball">true</bool-param>
 <bool-param name="navigator: avoid Friendly Near Ball">true</bool-param>
+<bool-param name="posses ball is has ball">false</bool-param>
 <bool-param name="posses_ball: is has ball">false</bool-param>
+<bool-param name="Test strategy catch ball">true</bool-param>
+<bool-param name="Test strategy Ram ball">true</bool-param>
+<bool-param name="Test strategy recieve ball">true</bool-param>
+<bool-param name="Test strategy stay own half">true</bool-param>
+<int-param name="Grid X size">25</int-param>
+<int-param name="Grid Y size">25</int-param>
 <int-param name="has_ball: # of sense ball for to be true">2</int-param>
 <double-param name="AdHoc2: angle prop">12</double-param>
 <double-param name="AdHoc2: angle thresh">12</double-param>
@@ -24,6 +31,8 @@
 <double-param name="BOT4 dribble low">0.25</double-param>
 <double-param name="BOT5 dribble low">0.25</double-param>
 <double-param name="chase: How close before chasing">0.043</double-param>
+<double-param name="distance for ball possesion (x ball radius)">2</double-param>
+<double-param name="Distance of ball from enemy robot to activate steal mechanism (robot radius)">1.1</double-param>
 <double-param name="dribble: low speed">0.25</double-param>
 <double-param name="dribble: max speed">0.6</double-param>
 <double-param name="dribble: ramp speed">1</double-param>
@@ -32,10 +41,20 @@
 <double-param name="has_ball_vision: dist factor">0.9</double-param>
 <double-param name="if dribble &gt; this time, force shoot (sec)">2</double-param>
 <double-param name="kick: general accuracy (rads)">0.087266463</double-param>
+<double-param name="kickoff: angle to separate players (degrees)">40</double-param>
+<double-param name="Lone goalie distance to goal post (m)">0.2</double-param>
+<double-param name="max goalie dist from goal (robot radius)">3</double-param>
 <double-param name="navigator: avoid factor const">1.1</double-param>
 <double-param name="navigator: avoid factor mult">0.01</double-param>
 <double-param name="navigator: distance to be considered near ball">0.45</double-param>
 <double-param name="navigator: max distance to look ahead">0.45</double-param>
+<double-param name="Pivot  amount of ball overshoot for a pivot">0</double-param>
+<double-param name="Pivot how far behing the ball to go for a pivot">0.08</double-param>
+<double-param name="Pivot the amount of erronous angle acceptable for pivoting ">4</double-param>
 <double-param name="play: time we can get ready (sec)">3</double-param>
+<double-param name="Shooting Accuracy General (degrees)">5</double-param>
+<double-param name="shrink robot radius">1.1</double-param>
+<double-param name="stop: angle to separate players (degrees)">20</double-param>
+<double-param name="time we can prepare during special plays (sec)">3</double-param>
 </params>
 </thunderbots>
