@@ -4,6 +4,7 @@
 #include "util/dprint.h"
 #include "util/objectstore.h"
 #include <glibmm.h>
+#include <uicomponents/param.h>
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
@@ -21,11 +22,15 @@ namespace {
 	const double GOAL_PROB = 0.2;
 	const double WAYPOINT_PROB = 0.5;
 	const double RAND_PROB = 1.0 - GOAL_PROB - WAYPOINT_PROB;
-	const double ANGLE_DIFF = 4.0;
+  //	const double ANGLE_DIFF = 4.0;
+  DoubleParam ANGLE_DIFF("Pivot the amount of erronous angle acceptable for pivoting " , 4.0, 0.00, 10.0);
 	// number of iterations to go through for each robot until we give up and
 	// just return the best partial path we've found
 	const int ITERATION_LIMIT = 500;
 	const int NUM_WAYPOINTS = 50;
+
+  DoubleParam pivot_point("Pivot how far behing the ball to go for a pivot", 0.08, 0.00, 1.00);
+  DoubleParam chase_overshoot("Pivot  how far behing the ball to go for a pivot", 0.08, -0.5, 0.5);
 
 	class Waypoints : public ObjectStore::Element {
 		public:
@@ -110,10 +115,11 @@ namespace {
 				}
 
 				if (ang < ANGLE_DIFF) {
-					dest = world.ball().position();
+				  Point offset_dest = (world.ball().position()-player->position()).norm()*chase_overshoot;
+					dest = world.ball().position() + offset_dest;
 				} else {
 					// go to a point behind the ball if the robot isn't in the correct place to catch it
-					Point pBehindBall(player->MAX_RADIUS + Ball::RADIUS + 0.07, 0);
+					Point pBehindBall(player->MAX_RADIUS + Ball::RADIUS + pivot_point, 0);
 					pBehindBall = pBehindBall.rotate(player->destination().second);
 					pBehindBall = Point(world.ball().position() - pBehindBall);
 					dest = pBehindBall;
@@ -306,7 +312,9 @@ namespace {
 
 		// if we are trying to catch the ball then add the ball location as the last point
 		if (player->type() == MOVE_CATCH && addedFlags == FLAG_AVOID_BALL_TINY) {
-			finalPoints.push_back(world.ball().position());
+			Point p1 = world.ball().position() - player->position();
+			p1 =  (p1.len()) * p1.norm() + player->position();
+			finalPoints.push_back(p1);
 		}
 
 		return finalPoints;
