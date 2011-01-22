@@ -5,7 +5,8 @@
 #include "uicomponents/param.h"
 #include "util/algorithm.h"
 #include "util/dprint.h"
-
+#include <utility>
+#include <iostream>
 using AI::HL::Defender;
 using namespace AI::HL::W;
 
@@ -17,6 +18,44 @@ namespace {
 	DoubleParam robot_shrink("shrink robot radius", 1.1, 0.1, 2.0);
 
 	// DoubleParam goalie_chase_thresh("max distance from goal for goalie to chase ball (field width)", 0.25, 0.0, 0.5);
+
+	BoolParam Goalie_dives("decides whether the goalie should dive for the ball ", true);
+
+	const double EPS = 1e-4;
+
+std::pair<Point, bool> get_ramball_location(Point dst, AI::HL::W::World &world, AI::HL::W::Player::Ptr player){
+	Point ball_dir = world.ball().velocity();
+
+	if(ball_dir.lensq() < EPS){
+		if(lineseg_point_dist(world.ball().position(), player->position(), dst) < EPS){	
+			return std::make_pair(world.ball().position(),  false);
+		}
+	}
+	//	std::cout<< " examine "<<std::endl; 
+	if(unique_line_intersect(player->position(), dst, world.ball().position(), world.ball().position() + ball_dir)){
+
+		//	std::cout<<" has intersection "<<std::endl;
+
+		Point location = line_intersect(player->position(), dst, world.ball().position(), world.ball().position() + ball_dir);
+		//		timespec intersect = world.monotonic_time();
+		//		timespec_add(intersect, double_to_timespec((location -  world.ball().position()).len()/world.ball().velocity().len()), intersect);
+		
+		Point vec1 = location - player->position();
+		Point vec2 = dst - player->position();
+
+		Point ball_vec = location - world.ball().position();
+
+		if (vec1.dot(vec2) > 0 && ball_dir.dot(ball_vec)) {
+			return std::make_pair(location, true);
+		}
+	}
+
+	//if everything fails then just stay put
+		return std::make_pair(player->position(),  false);
+}
+
+
+
 }
 
 // double Defender::get_goalie_chase_thresh() {
@@ -84,7 +123,36 @@ std::pair<Point, std::vector<Point> > Defender::calc_block_positions() const {
 
 		// prevent the goalie from entering the goal area
 		goalie_pos.x = std::max(goalie_pos.x, -f.length() / 2 + radius);
+
+
+	// check if goalie needs to "dive to save ball
+	std::pair<Point, bool> temp = get_ramball_location(goal_side,world, goalie);
+
+	if(!temp.second){
+		temp = get_ramball_location(goal_opp,world, goalie);
 	}
+	bool goalie_dive = temp.second;
+	
+if(goalie_dive && Goalie_dives){
+	//	std::cout<<" goal dive "<<std::endl;
+
+	if(temp.first.y >=  -f.goal_width() &&  temp.first.y  <= f.goal_width()){
+
+	goalie_pos = temp.first;
+		// prevent the goalie from entering the goal area
+		goalie_pos.x = std::max(goalie_pos.x, -f.length() / 2 + radius);
+
+	}
+
+
+ }
+
+
+	}
+
+
+
+
 
 	// first defender will block the remaining cone from the ball
 	{
