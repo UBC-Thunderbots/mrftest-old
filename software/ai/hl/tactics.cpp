@@ -55,9 +55,10 @@ void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int
 	// aim
 	player->move(player->position(), ori_target, flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
 
-	if (ori_diff > AI::HL::Util::shoot_accuracy * M_PI / 180.0) { // aim
-		return;
-	}
+	// ignoring accuracy, comment this out for now so that we'll shoot more
+	// if (ori_diff > AI::HL::Util::shoot_accuracy * M_PI / 180.0) { // aim
+		// return;
+	// }
 
 	// shoot!
 	if (player->chicker_ready_time() == 0) {
@@ -78,6 +79,8 @@ void AI::HL::Tactics::repel(World &world, Player::Ptr player, const unsigned int
 			player->kick(1.0);
 		}
 	}
+
+	player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_RAM_BALL, AI::Flags::PRIO_HIGH);
 
 	// all enemies are obstacles
 	/*
