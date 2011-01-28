@@ -312,7 +312,7 @@ static BOOL configure_xbee_stage1(uint8_t xbee) {
 	CRITSEC_DECLARE(cs);
 
 	/* Mark status. */
-	CRITSEC_ENTER(cs);
+	CRITSEC_ENTER_LOW(cs);
 	if (should_shut_down) {
 		CRITSEC_LEAVE(cs);
 		goto out;
@@ -349,7 +349,7 @@ static BOOL configure_xbee_stage1(uint8_t xbee) {
 
 out:
 	/* Mark final status. */
-	CRITSEC_ENTER(cs);
+	CRITSEC_ENTER_LOW(cs);
 	if (!should_shut_down) {
 		if (!err) {
 			if (xbee == 1) {
@@ -378,7 +378,7 @@ static BOOL configure_xbee_stage2(uint8_t xbee) {
 	CRITSEC_DECLARE(cs);
 
 	/* Mark status. */
-	CRITSEC_ENTER(cs);
+	CRITSEC_ENTER_LOW(cs);
 	if (should_shut_down) {
 		CRITSEC_LEAVE(cs);
 		goto out;
@@ -411,7 +411,7 @@ static BOOL configure_xbee_stage2(uint8_t xbee) {
 
 out:
 	/* Mark final status. */
-	CRITSEC_ENTER(cs);
+	CRITSEC_ENTER_LOW(cs);
 	if (!should_shut_down) {
 		if (!err) {
 			if (xbee == 1) {

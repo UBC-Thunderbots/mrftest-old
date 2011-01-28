@@ -115,7 +115,7 @@ void state_transport_in_deinit(void) {
 void state_transport_in_feedback_dirty(uint8_t robot) {
 	CRITSEC_DECLARE(cs);
 
-	CRITSEC_ENTER(cs);
+	CRITSEC_ENTER_LOW(cs);
 
 	/* Check if there's a real difference. */
 	if (memcmp(back_buffers[robot - 1], state_transport_in_feedback[robot - 1], sizeof(back_buffers[robot - 1])) != 0) {

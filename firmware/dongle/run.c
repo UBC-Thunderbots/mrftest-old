@@ -135,7 +135,7 @@ void run(void) {
 		if (dongle_status.robots) {
 			uint8_t i, j;
 			/* Assemble the packets. */
-			CRITSEC_ENTER(cs);
+			CRITSEC_ENTER_LOW(cs);
 			for (i = 1, j = 0, mask = 1 << 1; i != 16; ++i, mask <<= 1) {
 				if (dongle_status.robots & mask) {
 					drive_micropackets[j].pipe_robot.pipe = PIPE_DRIVE;
@@ -396,7 +396,7 @@ void run(void) {
 												error_reporting_add(FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT1 + robot - 1);
 											}
 										} else if ((1 << pipe) & pipe_in_mask & pipe_interrupt_mask) {
-											if (len >= 3) {
+											if (ptr[0] >= 3) {
 												if (ptr[2] != pipe_info[robot - 1][pipe].sequence) {
 													pipe_info[robot - 1][pipe].sequence = ptr[2];
 													ptr[2] = (robot << 4) | pipe;

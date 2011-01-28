@@ -214,7 +214,7 @@ __data xbee_rxpacket_t *xbee_rxpacket_get(void) {
 	__data xbee_rxpacket_t *result = 0;
 	CRITSEC_DECLARE(cs);
 
-	CRITSEC_ENTER(cs);
+	CRITSEC_ENTER_HIGH(cs);
 	if (inited) {
 		result = QUEUE_FRONT(done_queue);
 		QUEUE_POP(done_queue);
@@ -227,7 +227,7 @@ __data xbee_rxpacket_t *xbee_rxpacket_get(void) {
 void xbee_rxpacket_free(__data xbee_rxpacket_t *packet) {
 	CRITSEC_DECLARE(cs);
 
-	CRITSEC_ENTER(cs);
+	CRITSEC_ENTER_HIGH(cs);
 
 	if (inited) {
 		if (rxstates[0].state != STATE_EXPECT_SOP && !rxstates[0].packet) {

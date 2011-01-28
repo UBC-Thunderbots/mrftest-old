@@ -136,7 +136,7 @@ __data interrupt_out_packet_t *interrupt_out_get(void) {
 	__data interrupt_out_packet_t *pkt;
 	CRITSEC_DECLARE(cs);
 
-	CRITSEC_ENTER(cs);
+	CRITSEC_ENTER_LOW(cs);
 	pkt = QUEUE_FRONT(ready_packets);
 	QUEUE_POP(ready_packets);
 	CRITSEC_LEAVE(cs);
@@ -146,7 +146,7 @@ __data interrupt_out_packet_t *interrupt_out_get(void) {
 void interrupt_out_unget(__data interrupt_out_packet_t *pkt) {
 	CRITSEC_DECLARE(cs);
 
-	CRITSEC_ENTER(cs);
+	CRITSEC_ENTER_LOW(cs);
 	QUEUE_UNPOP(ready_packets, pkt);
 	CRITSEC_LEAVE(cs);
 }
@@ -154,7 +154,7 @@ void interrupt_out_unget(__data interrupt_out_packet_t *pkt) {
 void interrupt_out_free(__data interrupt_out_packet_t *pkt) {
 	CRITSEC_DECLARE(cs);
 
-	CRITSEC_ENTER(cs);
+	CRITSEC_ENTER_LOW(cs);
 	STACK_PUSH(free_packets, pkt);
 	if (!transaction_running) {
 		submit_sie_packet();

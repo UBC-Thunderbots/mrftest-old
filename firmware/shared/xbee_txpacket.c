@@ -169,7 +169,7 @@ void xbee_txpacket_queue(__data xbee_txpacket_t *packet, uint8_t xbee) {
 	BOOL was_empty;
 	CRITSEC_DECLARE(cs);
 
-	CRITSEC_ENTER(cs);
+	CRITSEC_ENTER_LOW(cs);
 
 	if (inited) {
 		/* Add the packet to the end of the appropriate queue. */
@@ -192,7 +192,7 @@ __data xbee_txpacket_t *xbee_txpacket_dequeue(void) {
 	__data xbee_txpacket_t *ret;
 	CRITSEC_DECLARE(cs);
 
-	CRITSEC_ENTER(cs);
+	CRITSEC_ENTER_LOW(cs);
 
 	if (inited) {
 		/* Remove head of queue, if any. */

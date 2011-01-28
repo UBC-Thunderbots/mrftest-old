@@ -74,7 +74,7 @@ void dongle_status_stop(void) {
 
 void dongle_status_dirty(void) {
 	CRITSEC_DECLARE(cs);
-	CRITSEC_ENTER(cs);
+	CRITSEC_ENTER_LOW(cs);
 	if (reporting) {
 		check_send();
 	}

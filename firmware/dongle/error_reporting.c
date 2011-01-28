@@ -93,7 +93,7 @@ void error_reporting_add(uint8_t error) {
 	uint8_t free_space;
 	CRITSEC_DECLARE(cs);
 
-	CRITSEC_ENTER(cs);
+	CRITSEC_ENTER_LOW(cs);
 
 	if (inited) {
 		free_space = (read_ptr - write_ptr - 1) & (sizeof(queue) - 1);

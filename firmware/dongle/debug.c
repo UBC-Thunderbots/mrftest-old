@@ -172,7 +172,7 @@ void debug_disable(void) {
 PUTCHAR(ch) {
 	CRITSEC_DECLARE(cs);
 
-	CRITSEC_ENTER(cs);
+	CRITSEC_ENTER_LOW(cs);
 
 	if (debug_enabled && !(usb_halted_in_endpoints & (1 << EP_DEBUG))) {
 		if (((uint8_t) (write_ptr + 1)) != tail_ptr) {

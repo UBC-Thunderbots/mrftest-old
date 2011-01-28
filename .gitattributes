@@ -23,7 +23,6 @@ firmware/dongle/18f65j50.lkr -text
 firmware/dongle/Doxyfile -text
 firmware/dongle/Makefile -text
 firmware/dongle/config.c -text
-firmware/dongle/critsec.h -text
 firmware/dongle/debug.c -text
 firmware/dongle/debug.h -text
 firmware/dongle/descriptors.c -text
@@ -72,7 +71,6 @@ firmware/main/18f67j50.lkr -text
 firmware/main/Makefile -text
 firmware/main/config.c -text
 firmware/main/crc.c -text
-firmware/main/critsec.h -text
 firmware/main/drive.c -text
 firmware/main/drive.h -text
 firmware/main/error_reporting.c -text
@@ -105,6 +103,7 @@ firmware/pingen/Makefile -text
 firmware/pingen/pingen.c -text
 firmware/shared/crc.c -text
 firmware/shared/crc.h -text
+firmware/shared/critsec.h -text
 firmware/shared/drive.h -text
 firmware/shared/error_reporting.h -text
 firmware/shared/faults.h -text
