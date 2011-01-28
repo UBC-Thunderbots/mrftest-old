@@ -283,9 +283,12 @@ void Defender::tick() {
 			}
 
 			if (chaser == players[i]) {
-
 				Player::Ptr passee = AI::HL::Util::choose_best_pass(world, supporters);
-				if (passee.is()) {
+				
+				// if defender can shoot, go ahead, else try to pass or repel
+				if (AI::HL::Util::calc_best_shot(world, players[i], Robot::MAX_RADIUS).second > AI::HL::Util::shoot_accuracy){
+					AI::HL::Tactics::shoot(world, players[i], defender_flags, 10.0);				
+				} else if (passee.is()) {
 					AI::HL::Tactics::pass(world, players[i], passee, defender_flags);
 				} else {
 					AI::HL::Tactics::repel(world, players[i], defender_flags);
