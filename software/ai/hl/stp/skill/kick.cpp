@@ -17,7 +17,10 @@ namespace {
 					context.execute_after(go_to_ball());
 					return;
 				}
-
+				
+				// TODO: Might have to go after the ball regardless of has_ball check since camera may see ball inside player >< 
+				// player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
+								
 				// stay at the same place, be oriented towards the ball so you can shoot (duh)
 				player->move(player->position(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
 
