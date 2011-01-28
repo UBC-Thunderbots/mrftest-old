@@ -86,20 +86,18 @@ namespace {
 	/**
 	 * Ticks the strategy
 	 *
-	 * Don't need to assign a kicker as in friendly. It is also "ok" for players to ram the enemy as long as they block the ball.
+	 * Don't need to assign a kicker as in friendly. 
 	 */
 	void FreeKickEnemyStrategy::prepare() {
 		if (world.friendly_team().size() == 0) {
-			return;
-		}
-
-		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
-		if (players.size() == 0) {
+			LOG_WARN("no players");
 			return;
 		}
 
 		if (world.playtype() == PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY || world.playtype() == PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) {
+			defender.set_chase(false);
 			defender.tick();
+			offender.set_chase(false);
 			offender.tick();
 		} else {
 			LOG_ERROR("freeKickEnemy: unhandled playtype");
