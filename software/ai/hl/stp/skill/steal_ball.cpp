@@ -21,6 +21,8 @@ namespace {
 					return;
 				}
 #warning move to the front of the enemy robot to steal the ball
+				//simply try to chase after the ball, but have a new movement type MOVE_STEAL?
+				//player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
 			}
 	};
 
