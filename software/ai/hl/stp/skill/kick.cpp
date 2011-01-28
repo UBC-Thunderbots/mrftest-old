@@ -18,8 +18,8 @@ namespace {
 					return;
 				}
 
-				// stay at the same place
-				player->move(player->position(), player->orientation(), param.move_flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
+				// stay at the same place, be oriented towards the ball so you can shoot (duh)
+				player->move(player->position(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
 
 				// TODO: check if can shoot
 				if (player->chicker_ready_time() == 0) {
