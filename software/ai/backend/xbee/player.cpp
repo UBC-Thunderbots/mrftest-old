@@ -129,6 +129,7 @@ void Player::kick_impl(double speed) {
 			double diff_power = power_above - power_below;
 			double slope = diff_power / diff_speed;
 			double power = (speed - speed_below) * slope + power_below;
+			LOG_INFO(Glib::ustring::compose("kick_impl kicking %1 us", power));
 			bot->kick(static_cast<unsigned int>(clamp(power, 0.0, 65535.0)));
 			timespec_now(chicker_last_fire_time);
 		} else {
