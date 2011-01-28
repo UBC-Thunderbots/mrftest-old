@@ -81,7 +81,7 @@ namespace {
 				struct timespec currentTime, finalTime;
 				currentTime = world.monotonic_time();
 				timespec_sub(path[0].second, currentTime, finalTime);
-				double desired_velocity = (path[0].first.first - player->position()).len() / finalTime.tv_sec;
+				double desired_velocity = (path[0].first.first - player->position()).len() / (static_cast<double>(timespec_to_millis(finalTime)) / 1000);
 				if (linear_velocity.len() > desired_velocity && desired_velocity > 0) {
 					LOG_INFO("Warning: Fuzzy controller is being told to travel slow.");
 					linear_velocity = desired_velocity * (linear_velocity/linear_velocity.len());

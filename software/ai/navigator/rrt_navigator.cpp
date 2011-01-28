@@ -118,7 +118,11 @@ namespace {
 					// if we are facing in the correct direction go straight to the point
 					Point offset_dest = (world.ball().position() - player->position()).norm() * chase_overshoot;
 					dest = world.ball().position() + offset_dest;
-					path.push_back(std::make_pair(std::make_pair(dest, player->destination().second), world.monotonic_time()));
+
+					// move towards the ball slower so we don't hit it too far away
+					timespec timeToBall;
+					timespec_add(double_to_timespec(0.4), world.monotonic_time(), timeToBall);
+					path.push_back(std::make_pair(std::make_pair(dest, player->destination().second), timeToBall));
 					player->path(path);
 					continue;
 				} else {
