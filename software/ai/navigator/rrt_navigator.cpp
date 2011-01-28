@@ -115,8 +115,12 @@ namespace {
 				}
 
 				if (ang < ANGLE_DIFF) {
-				  Point offset_dest = (world.ball().position()-player->position()).norm()*chase_overshoot;
+					// if we are facing in the correct direction go straight to the point
+					Point offset_dest = (world.ball().position() - player->position()).norm() * chase_overshoot;
 					dest = world.ball().position() + offset_dest;
+					path.push_back(std::make_pair(std::make_pair(dest, player->destination().second), world.monotonic_time()));
+					player->path(path);
+					continue;
 				} else {
 					// go to a point behind the ball if the robot isn't in the correct place to catch it
 					Point pBehindBall(player->MAX_RADIUS + Ball::RADIUS + pivot_point, 0);
