@@ -14,14 +14,15 @@ namespace {
 	class BumpToGoal : public Skill {
 		private:
 			void execute(World& world, Player::Ptr player, const SkillStateMachine*, AI::HL::STP::Skill::Param& param, Context& context) const {
-				// must have a ball
+				// go after ball 
 				if (!player->has_ball()) {
 					context.execute_after(go_to_ball());
 					return;
 				}
 
-				// TODO
-				if ((player->position() - world.ball().position()).len() == 0 || player->chicker_ready_time() == 0) {
+				// terminates once you are at the ball or you're ready to kick
+				if ((player->position() - world.ball().position()).len() <= Robot::MAX_RADIUS
+					|| player->chicker_ready_time() == 0) {
 					return;
 				}
 
