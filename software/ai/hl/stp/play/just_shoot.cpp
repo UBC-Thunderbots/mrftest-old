@@ -32,15 +32,7 @@ namespace {
 			const PlayFactory& factory() const;
 	};
 
-	class JustShootFactory : public PlayFactory {
-		public:
-			JustShootFactory() : PlayFactory("Just Shoot") {
-			}
-			Play::Ptr create(World &world) const {
-				const Play::Ptr p(new JustShoot(world));
-				return p;
-			}
-	} factory_instance;
+	PlayFactoryImpl<JustShoot> factory_instance("Just Shoot");
 
 	const PlayFactory& JustShoot::factory() const {
 		return factory_instance;

@@ -98,6 +98,21 @@ namespace AI {
 						 */
 						PlayFactory(const char *name);
 				};
+
+				/**
+				 * An easy way to create a factory:
+				 * For example:
+				 * PlayFactoryImpl<GrabBall> factory_instance("Grab Ball");
+				 */
+				template<class P> class PlayFactoryImpl : public PlayFactory {
+					public:
+						PlayFactoryImpl(const char* name) : PlayFactory(name) {
+						}
+						Play::Ptr create(AI::HL::W::World &world) const {
+							const Play::Ptr p(new P(world));
+							return p;
+						}
+				};
 			}
 		}
 	}

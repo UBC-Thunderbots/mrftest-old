@@ -32,15 +32,7 @@ namespace {
 			const PlayFactory& factory() const;
 	};
 
-	class GrabBallFactory : public PlayFactory {
-		public:
-			GrabBallFactory() : PlayFactory("Grab Ball") {
-			}
-			Play::Ptr create(World &world) const {
-				const Play::Ptr p(new GrabBall(world));
-				return p;
-			}
-	} factory_instance;
+	PlayFactoryImpl<GrabBall> factory_instance("Grab Ball");
 
 	const PlayFactory& GrabBall::factory() const {
 		return factory_instance;
