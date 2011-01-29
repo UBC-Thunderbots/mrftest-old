@@ -1,5 +1,4 @@
 #include "util/predictor.h"
-#include "geom/angle.h"
 #include "leastsquares/leastsquares.h"
 #include "util/time.h"
 #include "util/timestep.h"
@@ -13,16 +12,13 @@
 namespace {
 	const int MAX_DEGREE = 3;
 	const int NUM_OLD_POSITIONS = 30;
-	const double ANGLE_UPPER_BOUND = 1000*M_PI;
 }
 
-Predictor::Predictor(bool angle) : angle(angle), initialized(false), lock_delta(0.0) {
+Predictor::Predictor(bool angle) : filter(kalman(angle)), initialized(false), lock_delta(0.0) {
 	// Record current time.
 	timespec_now(last_datum_timestamp);
 	lock_timestamp = last_datum_timestamp;
-
 	filter.set_availability(true);
-
 }
 
 Predictor::~Predictor() {
@@ -41,13 +37,10 @@ double Predictor::value(const timespec &ts, unsigned int deriv) const {
 		v = guess(0,0);
 	} else if(deriv == 1) {
 		v = guess(1,0);
-		//std::cout << "velocity is:" << v << std::endl ;
-	}else {} // TODO some time, deal with acceleration
-
-	if (angle && !deriv) {
-		v = angle_mod(v);
-	}
-
+	} else if (deriv == 2) {
+		v = filter.get_control(timespec_to_double(ts));
+	} else v = 0.0;
+	
 	return v;
 }
 
@@ -63,43 +56,22 @@ void Predictor::add_datum(double value, const timespec &ts) {
 	if (!initialized) {
 		// Remember that we're initialized.
 		initialized = true;
-
+		
 		// Mark the current time as the most recent datum stamp.
 		last_datum_timestamp = ts;
-
+		
 		// Update the predictions.
 		//update();
 		// or use kalman filter
 		filter.update(value, timespec_to_double(ts));
-
+		
 		// Don't do any of the rest.
 		return;
 	}
-
-
-	// In the angle case, move the new value close to the previous value.
-	if (angle) {
-		matrix guess = filter.predict(timespec_to_double(ts));
-		while (std::fabs(value - guess(0,0)) > M_PI + 1e-9) {
-			if (value > guess(0,0)) {
-				value -= 2 * M_PI;
-			} else {
-				value += 2 * M_PI;
-			}
-		}
-		if(filter.is_available() && value > ANGLE_UPPER_BOUND){
-			value -= ANGLE_UPPER_BOUND;
-			filter.reset_angle(ANGLE_UPPER_BOUND);
-		}
-		if(filter.is_available() && value < -ANGLE_UPPER_BOUND) {
-			value += ANGLE_UPPER_BOUND;
-			filter.reset_angle(-ANGLE_UPPER_BOUND);
-		}
-	}
+	
 	// Compute delta time and update stamp.
 	last_datum_timestamp = ts;
-
-
+	
 	filter.update(value, timespec_to_double(ts));
 }
 

@@ -1,11 +1,10 @@
 #include "util/kalman/kalman.h"
 #include <time.h>
-
-kalman::kalman() : H(matrix(1,2)), P(matrix::identity(2)), state_estimate(matrix(2,1)) {
+#include <cmath>
+#include <iostream>
+kalman::kalman(bool angle, double measure_std, double accel_std) : is_angle(angle), sigma_m(measure_std), sigma_a(accel_std), H(matrix(1,2)), P(matrix::identity(2)), state_estimate(matrix(2,1)) {
 	state_estimate(0,0) = 0.0;
 	state_estimate(1,0) = 0.0;
-	sigma_m = 1.3e-3;
-	sigma_a = 2.0;
 	//%the state measurement operator
 	//H=[1 0];(;
 	H(0,0) = 1.0;
@@ -64,6 +63,8 @@ void kalman::predict(double prediction_time, matrix& state_predict, matrix& P_pr
 		current_control = (*inputs_itr).value;
 	}
 	predict_step(prediction_time - current_time, current_control, state_predict, P_predict);
+	if (is_angle)
+		state_predict(0,0) -= 2*M_PI*std::round(state_predict(0,0)/2/M_PI);
 }
 
 //get an estimate of the state at prediction_time
@@ -83,15 +84,17 @@ void kalman::update(double measurement, double measurement_time) {
 	
 	//%how much does the guess differ from the measurement
 	double residual = measurement - (H*state_priori)(0,0);
+	if (is_angle)
+		residual -= 2*M_PI*std::round(residual/2/M_PI);
     
 	//%The kalman update calculations
 	matrix Kalman_gain = (P_priori*~H)/(((H*P_priori*~H)(0,0)) + sigma_m*sigma_m);
-	matrix x2(state_priori + Kalman_gain*residual);
+	state_estimate = state_priori + Kalman_gain*residual;
 	
-	state_estimate(0,0) = x2(0,0);
-	state_estimate(1,0) = x2(1,0);
-
+	if (is_angle)
+		state_estimate(0,0) -= 2*M_PI*std::round(state_estimate(0,0)/2/M_PI);
 	P = (matrix::identity(2) - Kalman_gain*H)*P_priori;
+	
 	last_measurement_time = measurement_time;
 	
 	//we should clear the control inputs for times before last_measurement_time because they are unneeded
@@ -102,7 +105,17 @@ void kalman::update(double measurement, double measurement_time) {
 	}
 }
 
-void kalman::new_control(double input, double input_time) {
+double kalman::get_control(double control_time) const {
+	double current_control = last_control;
+	
+	for (std::deque<ControlInput>::const_iterator inputs_itr = inputs.begin();
+			inputs_itr != inputs.end() && (*inputs_itr).time <= control_time; ++inputs_itr) {
+		current_control = (*inputs_itr).value;
+	}
+	return current_control;
+}
+
+void kalman::add_control(double input, double input_time) {
 	// the new control input overwrites all actions that were scheduled for later times
 	// this allows us, for instance, to change our mind about future control sequences
 	while (!inputs.empty() && inputs.back().time >= input_time) {
@@ -112,9 +125,4 @@ void kalman::new_control(double input, double input_time) {
 		last_control = input;
 	else
 		inputs.push_back(ControlInput(input_time, input));
-}
-
-void kalman::reset_angle(double bring_down){
-	state_estimate(0,0) -= bring_down;
-	return;
 }

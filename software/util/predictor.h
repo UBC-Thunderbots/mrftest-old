@@ -71,7 +71,6 @@ class Predictor {
 		void clear();
 
 	private:
-		const bool angle;
 		bool initialized;
 		ap::real_1d_array vhistory;
 		ap::real_1d_array dhistory; // history vector of time steps
