@@ -15,8 +15,8 @@ class kalman {
 	public:
 		kalman();
 		void predict_step(double timestep,double control, matrix& state_predict, matrix& P_predict) const;
-		void predict(double prediction_time, matrix& state_predict, matrix& P_predict);
-		matrix predict(double delta_time) const; // predict based on previous state estimate, no update is done on the Predict matrix
+		void predict(double prediction_time, matrix& state_predict, matrix& P_predict) const;
+		matrix predict(double prediction_time) const;
 		void update(double measurement, double time);
 		void new_control(double input,double time);
 		inline void set_availability(bool bit){ available = bit; return; };

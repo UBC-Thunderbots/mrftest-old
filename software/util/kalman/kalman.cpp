@@ -43,7 +43,7 @@ matrix kalman::gen_F_mat(double timestep) const {
 	return F;
 }
 
-//predict forward one step
+//predict forward one step with fixed control parameter
 void kalman::predict_step(double timestep, double control, matrix& state_predict, matrix& P_predict) const {
 	matrix F = gen_F_mat(timestep);
 	matrix G = gen_G_mat(timestep);
@@ -52,25 +52,26 @@ void kalman::predict_step(double timestep, double control, matrix& state_predict
 	P_predict = F*P_predict*~F + Q;
 }
 
-// get convient prediction without updating prediction matrix
-matrix kalman::predict(double delta_time) const {
-	matrix F = gen_F_mat(delta_time);
-	
-	return F*state_estimate;
-}
-
-//get an estimate of the state at prediction_time
-void kalman::predict(double prediction_time, matrix& state_predict, matrix& P_predict) {
+//get an estimate of the state and covariance at prediction_time, outputs passed by reference
+void kalman::predict(double prediction_time, matrix& state_predict, matrix& P_predict) const {
 	double current_time = last_measurement_time;
 	double current_control = last_control;
 	
-	for (std::deque<ControlInput>::iterator inputs_itr = inputs.begin();
+	for (std::deque<ControlInput>::const_iterator inputs_itr = inputs.begin();
 			inputs_itr != inputs.end() && (*inputs_itr).time < prediction_time; ++inputs_itr) {
 		predict_step((*inputs_itr).time - current_time, current_control, state_predict, P_predict);
 		current_time = (*inputs_itr).time;
 		current_control = (*inputs_itr).value;
 	}
 	predict_step(prediction_time - current_time, current_control, state_predict, P_predict);
+}
+
+//get an estimate of the state at prediction_time
+matrix kalman::predict(double prediction_time) const {
+	matrix state_predict(state_estimate);
+	matrix P_predict(P);
+	predict(prediction_time, state_predict, P_predict);
+	return state_predict;
 }
 
 //this should generate an updated state, as well as clean up all the inputs since the last measurement

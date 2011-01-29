@@ -36,9 +36,7 @@ double Predictor::value(double delta, unsigned int deriv) const {
 
 double Predictor::value(const timespec &ts, unsigned int deriv) const {
 	double v = 0;
-	timespec diff;
-	timespec_sub(ts,last_datum_timestamp,diff);
-	matrix guess = filter.predict(timespec_to_double(diff));
+	matrix guess = filter.predict(timespec_to_double(ts));
 	if(deriv == 0){
 		v = guess(0,0);
 	} else if(deriv == 1) {
@@ -81,9 +79,7 @@ void Predictor::add_datum(double value, const timespec &ts) {
 
 	// In the angle case, move the new value close to the previous value.
 	if (angle) {
-		timespec diff;
-		timespec_sub(ts,last_datum_timestamp,diff);
-		matrix guess = filter.predict(timespec_to_double(diff));
+		matrix guess = filter.predict(timespec_to_double(ts));
 		while (std::fabs(value - guess(0,0)) > M_PI + 1e-9) {
 			if (value > guess(0,0)) {
 				value -= 2 * M_PI;
