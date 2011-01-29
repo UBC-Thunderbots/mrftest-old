@@ -10,7 +10,7 @@ using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
 
 using AI::HL::STP::Play::Play;
-using AI::HL::STP::Play::PlayManager;
+using AI::HL::STP::Play::PlayFactory;
 using AI::HL::STP::Tactic::Tactic;
 
 namespace {
@@ -26,31 +26,42 @@ namespace {
 		public:
 			StrategyFactory &factory() const;
 
+			void initialize();
+
 			void play();
 
 			void on_player_added(std::size_t);
 			void on_player_removed();
 
+			/**
+			 * When something bad happens,
+			 * resets the current play.
+			 */
 			void reset();
 
+			/**
+			 * Calculates a NEW play to be used.
+			 */
 			void calc_play();
-			void calc_tactics();
+
+			/**
+			 * Condition: a play is in use.
+			 * Calculates and executes tactics.
+			 */
 			void execute_tactics();
+
+			/**
+			 * Condition: a valid list of tactics.
+			 * Dynamically run tactic to play assignment.
+			 */
 			void role_assignment();
 
 			static Strategy::Ptr create(AI::HL::W::World &world);
 
 		private:
-			/**
-			 * Status of this strategy
-			 * 0 = calc play
-			 * 1 = calc tactics
-			 * 2 = execute tactics
-			 */
-			int state;
+			bool initialized;
 
 			Play::Ptr curr_play;
-			PlayManager *curr_play_manager;
 
 			// roles
 			int curr_role_step;
@@ -64,6 +75,9 @@ namespace {
 
 			// current player assignment
 			Player::Ptr curr_assignment[5];
+
+			// all the available plays
+			std::vector<Play::Ptr> plays;
 
 			STPStrategy(AI::HL::W::World &world);
 			~STPStrategy();
@@ -111,52 +125,40 @@ namespace {
 	}
 
 	void STPStrategy::reset() {
+		curr_play.reset();
+	}
+
+	void STPStrategy::initialize() {
+		if (initialized) return;
+		const PlayFactory::Map &m = PlayFactory::all();
+		for (PlayFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
+			plays.push_back(i->second->create(world));
+		}
+		initialized = true;
 	}
 
 	void STPStrategy::calc_play() {
-		static bool initialized = false;
-		static std::vector<PlayManager *> managers;
 
 		if (!initialized) {
-			const PlayManager::Map &m = PlayManager::all();
-			for (PlayManager::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-				managers.push_back(i->second);
+			initialize();
+		}
+
+		// find a valid play
+		std::random_shuffle(plays.begin(), plays.end());
+		for (std::size_t i = 0; i < plays.size(); ++i) {
+			if (plays[i]->applicable()) {
+				// initialize this play and run it
+				curr_play = plays[i];
+				curr_play->initialize();
+				curr_role_step = 0;
+				for (std::size_t j = 0; j < 5; ++j) {
+					curr_roles[j].clear();
+				}
+				curr_play->assign(curr_roles[0], curr_roles + 1);
+				LOG_INFO(curr_play->factory().name());
+				return;
 			}
-			initialized = true;
 		}
-
-		state = 0;
-
-		// find a valid state
-		std::random_shuffle(managers.begin(), managers.end());
-		for (std::size_t i = 0; i < managers.size(); ++i) {
-			if (managers[i]->applicable(world)) {
-				curr_play_manager = managers[i];
-				curr_play = curr_play_manager->create_play(world);
-				LOG_INFO(managers[i]->name());
-				break;
-			}
-		}
-
-		// ensure we have a play manager
-		if (curr_play_manager == NULL) {
-			return;
-		}
-
-		state = 1;
-	}
-
-	void STPStrategy::calc_tactics() {
-		state = 0;
-
-		curr_role_step = 0;
-		for (std::size_t i = 0; i < 5; ++i) {
-			curr_roles[i].clear();
-		}
-
-		curr_play->assign(curr_roles[0], curr_roles[1], curr_roles[2], curr_roles[3], curr_roles[4]);
-
-		state = 2;
 	}
 
 	void STPStrategy::role_assignment() {
@@ -179,15 +181,17 @@ namespace {
 			if (curr_roles[i][r]->active()) {
 				if (curr_active.is()) {
 					LOG_ERROR("Multiple active tactics");
-					state = 0;
+					reset();
 					return;
 				}
 				curr_active = curr_roles[i][r];
 			}
 		}
 
+		// no more active tactics
 		if (!curr_active.is()) {
-			state = 0;
+			LOG_ERROR("No active tactics");
+			reset();
 			return;
 		}
 
@@ -235,8 +239,10 @@ namespace {
 			}
 		}
 
+		// can't assign active tactic to anyone
 		if (!active_assigned) {
-			state = 0;
+			LOG_ERROR("Active tactic not assigned");
+			reset();
 			return;
 		}
 	}
@@ -248,7 +254,7 @@ namespace {
 		while (true) {
 			role_assignment();
 
-			if (state == 0) {
+			if (!curr_play.is()) {
 				return;
 			}
 
@@ -268,25 +274,17 @@ namespace {
 	}
 
 	void STPStrategy::play() {
+
 		// check if curr play wants to continue
-		if (state != 0 && !curr_play->done()) {
-			state = 0;
+		if (curr_play.is() && curr_play->done()) {
+			curr_play.reset();
 		}
 
 		// check if curr is valid
-		if (state == 0) {
+		if (!curr_play.is()) {
 			calc_play();
-			if (state == 0) {
+			if (!curr_play.is()) {
 				LOG_WARN("calc play failed");
-				return;
-			}
-		}
-
-		// check if curr is valid
-		if (state == 1) {
-			calc_tactics();
-			if (state == 0) {
-				LOG_WARN("calc tactics failed");
 				return;
 			}
 		}
@@ -295,17 +293,16 @@ namespace {
 	}
 
 	void STPStrategy::on_player_added(std::size_t) {
-		state = 0;
+		reset();
 	}
 
 	void STPStrategy::on_player_removed() {
-		state = 0;
+		reset();
 	}
 
-	STPStrategy::STPStrategy(World &world) : Strategy(world), curr_play_manager(NULL) {
+	STPStrategy::STPStrategy(World &world) : Strategy(world), initialized(false) {
 		world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &STPStrategy::on_player_added));
 		world.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &STPStrategy::on_player_removed));
-		state = 0;
 	}
 
 	STPStrategy::~STPStrategy() {

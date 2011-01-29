@@ -11,6 +11,7 @@ using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
 namespace {
+
 	/**
 	 * Condition:
 	 * - ball under team possesion
@@ -18,28 +19,37 @@ namespace {
 	 * Objective:
 	 * - shoot the ball to enemy goal
 	 */
-	class JustShootPlay : public Play {
+	class JustShoot : public Play {
 		public:
-			JustShootPlay(AI::HL::W::World &world);
-			~JustShootPlay();
+			JustShoot(AI::HL::W::World &world);
+			~JustShoot();
 
 		private:
+			void initialize();
+			bool applicable() const;
 			bool done();
-			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> &role1, std::vector<Tactic::Ptr> &role2, std::vector<Tactic::Ptr> &role3, std::vector<Tactic::Ptr> &role4);
+			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>* roles);
+			const PlayFactory& factory() const;
 	};
 
-	class JustShootPlayManager : public PlayManager {
+	class JustShootFactory : public PlayFactory {
 		public:
-			JustShootPlayManager() : PlayManager("Just Shoot") {
+			JustShootFactory() : PlayFactory("Just Shoot") {
 			}
-			Play::Ptr create_play(World &world) const {
-				const Play::Ptr p(new JustShootPlay(world));
+			Play::Ptr create(World &world) const {
+				const Play::Ptr p(new JustShoot(world));
 				return p;
 			}
-			bool applicable(World &world) const;
 	} factory_instance;
 
-	bool JustShootPlayManager::applicable(World &world) const {
+	const PlayFactory& JustShoot::factory() const {
+		return factory_instance;
+	}
+
+	void JustShoot::initialize() {
+	}
+
+	bool JustShoot::applicable() const {
 		// check if we do not have ball
 		FriendlyTeam &friendly = world.friendly_team();
 		if (friendly.size() < 2) {
@@ -53,17 +63,17 @@ namespace {
 		return false;
 	}
 
-	JustShootPlay::JustShootPlay(World &world) : Play(world) {
+	JustShoot::JustShoot(World &world) : Play(world) {
 	}
 
-	JustShootPlay::~JustShootPlay() {
+	JustShoot::~JustShoot() {
 	}
 
-	bool JustShootPlay::done() {
-		return factory_instance.applicable(world);
+	bool JustShoot::done() {
+		return applicable();
 	}
 
-	void JustShootPlay::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> &role1, std::vector<Tactic::Ptr> &role2, std::vector<Tactic::Ptr> &role3, std::vector<Tactic::Ptr> &role4) {
+	void JustShoot::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>* roles) {
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 
 		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
@@ -80,36 +90,36 @@ namespace {
 		// shoot
 		if (players[0]->has_ball()) {
 			if (enemies.size() > 0) {
-				role1.push_back(block(world, enemies[0]));
+				roles[0].push_back(block(world, enemies[0]));
 			} else {
-				role1.push_back(idle(world));
+				roles[0].push_back(idle(world));
 			}
 		} else {
-			role1.push_back(shoot(world));
+			roles[0].push_back(shoot(world));
 		}
 
 		// ROLE 2
 		// block nearest enemy
 		if (enemies.size() > 0) {
-			role2.push_back(block(world, enemies[0]));
+			roles[1].push_back(block(world, enemies[0]));
 		} else {
-			role2.push_back(idle(world));
+			roles[1].push_back(idle(world));
 		}
 
 		// ROLE 3
 		// block 2nd nearest enemy
 		if (enemies.size() > 1) {
-			role3.push_back(block(world, enemies[1]));
+			roles[2].push_back(block(world, enemies[1]));
 		} else {
-			role3.push_back(idle(world));
+			roles[2].push_back(idle(world));
 		}
 
 		// ROLE 4
 		// block 3rd nearest enemy
 		if (enemies.size() > 2) {
-			role4.push_back(block(world, enemies[2]));
+			roles[3].push_back(block(world, enemies[2]));
 		} else {
-			role4.push_back(idle(world));
+			roles[3].push_back(idle(world));
 		}
 	}
 }

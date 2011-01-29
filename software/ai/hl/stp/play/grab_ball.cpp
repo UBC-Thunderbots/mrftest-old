@@ -19,28 +19,37 @@ namespace {
 	 * Objective:
 	 * - grab the ball
 	 */
-	class GrabBallPlay : public Play {
+	class GrabBall : public Play {
 		public:
-			GrabBallPlay(AI::HL::W::World &world);
-			~GrabBallPlay();
+			GrabBall(AI::HL::W::World &world);
+			~GrabBall();
 
 		private:
+			void initialize();
+			bool applicable() const;
 			bool done();
-			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> &role1, std::vector<Tactic::Ptr> &role2, std::vector<Tactic::Ptr> &role3, std::vector<Tactic::Ptr> &role4);
+			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>* roles);
+			const PlayFactory& factory() const;
 	};
 
-	class GrabBallPlayManager : public PlayManager {
+	class GrabBallFactory : public PlayFactory {
 		public:
-			GrabBallPlayManager() : PlayManager("Grab Ball") {
+			GrabBallFactory() : PlayFactory("Grab Ball") {
 			}
-			Play::Ptr create_play(World &world) const {
-				const Play::Ptr p(new GrabBallPlay(world));
+			Play::Ptr create(World &world) const {
+				const Play::Ptr p(new GrabBall(world));
 				return p;
 			}
-			bool applicable(World &world) const;
 	} factory_instance;
 
-	bool GrabBallPlayManager::applicable(World &world) const {
+	const PlayFactory& GrabBall::factory() const {
+		return factory_instance;
+	}
+
+	void GrabBall::initialize() {
+	}
+
+	bool GrabBall::applicable() const {
 		// check if we do not have ball
 		FriendlyTeam &friendly = world.friendly_team();
 		if (friendly.size() < 2) {
@@ -54,17 +63,17 @@ namespace {
 		return true;
 	}
 
-	GrabBallPlay::GrabBallPlay(World &world) : Play(world) {
+	GrabBall::GrabBall(World &world) : Play(world) {
 	}
 
-	GrabBallPlay::~GrabBallPlay() {
+	GrabBall::~GrabBall() {
 	}
 
-	bool GrabBallPlay::done() {
-		return factory_instance.applicable(world);
+	bool GrabBall::done() {
+		return applicable();
 	}
 
-	void GrabBallPlay::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> &role1, std::vector<Tactic::Ptr> &role2, std::vector<Tactic::Ptr> &role3, std::vector<Tactic::Ptr> &role4) {
+	void GrabBall::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>* roles) {
 		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
 		std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().friendly_goal()));
 
@@ -74,30 +83,30 @@ namespace {
 
 		// ROLE 1
 		// chase the ball!
-		role1.push_back(chase(world));
+		roles[0].push_back(chase(world));
 
 		// ROLE 2
 		// block nearest enemy
 		if (enemies.size() > 0) {
-			role2.push_back(block(world, enemies[0]));
+			roles[1].push_back(block(world, enemies[0]));
 		} else {
-			role2.push_back(idle(world));
+			roles[1].push_back(idle(world));
 		}
 
 		// ROLE 3
 		// block 2nd nearest enemy
 		if (enemies.size() > 1) {
-			role3.push_back(block(world, enemies[1]));
+			roles[2].push_back(block(world, enemies[1]));
 		} else {
-			role3.push_back(idle(world));
+			roles[2].push_back(idle(world));
 		}
 
 		// ROLE 4
 		// block 3rd nearest enemy
 		if (enemies.size() > 2) {
-			role4.push_back(block(world, enemies[2]));
+			roles[3].push_back(block(world, enemies[2]));
 		} else {
-			role4.push_back(idle(world));
+			roles[3].push_back(idle(world));
 		}
 	}
 }
