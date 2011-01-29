@@ -94,14 +94,12 @@ void run(void) {
 	} reboot_pending = REBOOT_PENDING_NO;
 	BOOL flash_erase_active = false;
 	static params_t flash_temp_params;
-	static parbus_txpacket_t parbus_txpacket;
-	static parbus_rxpacket_t parbus_rxpacket;
 	static uint8_t page_buffer[256];
 	uint8_t drive_timeout = 0;
-	uint16_t kick_power = 0;
 	const uint8_t robot_number = params.robot_number;
 	uint8_t status, i;
 	uint16_t crc;
+	BOOL fpga_ok;
 
 	/* Clear state. */
 	memset(sequence, 0, sizeof(sequence));
@@ -112,8 +110,16 @@ void run(void) {
 	txiovs[2].len = sizeof(txpkt_feedback_shadow);
 	txiovs[2].ptr = &txpkt_feedback_shadow;
 	txpkt.iovs = txiovs;
-	memset(&parbus_txpacket, 0, sizeof(parbus_txpacket));
-	memset(&parbus_rxpacket, 0, sizeof(parbus_rxpacket));
+
+	/* Read the magic signature from the FPGA over the parallel bus. */
+	if (parbus_read(0) == 0x468D) {
+		LAT_MOTOR_ENABLE = 1;
+		fpga_ok = true;
+	} else {
+		error_reporting_add(FAULT_FPGA_COMM_ERROR);
+		fpga_ok = false;
+		LAT_FPGA_PROG_B = 0;
+	}
 
 	/* Start running a 200Hz control loop timer.
 	 *        /-------- 8-bit reads and writes
@@ -262,7 +268,7 @@ void run(void) {
 							} else if (rxpacket->buf[5] == PIPE_KICK) {
 								/* The packet contains a kick request. */
 								if (rxpacket->len == 10) {
-									kick_power = rxpacket->buf[8] | (rxpacket->buf[9] << 8);
+									parbus_write(7, rxpacket->buf[8] | (rxpacket->buf[9] << 8));
 								} else {
 									error_reporting_add(FAULT_OUT_MICROPACKET_BAD_LENGTH);
 								}
@@ -519,7 +525,8 @@ void run(void) {
 					/* Channel 0 -> battery voltage.
 					 * Record result. */
 					feedback_block.battery_voltage_raw = (ADRESH << 8) | ADRESL;
-					parbus_txpacket.battery_voltage = (ADRESH << 8) | ADRESL;
+					/* Send data to FPGA so it can scale boost converter timings. */
+					parbus_write(8, feedback_block.battery_voltage_raw);
 					/* Start a conversion on channel 1. */
 					ADCON0bits.CHS0 = 1;
 					ADCON0bits.GO = 1;
@@ -551,20 +558,15 @@ void run(void) {
 			}
 		}
 
-		if (PIR1bits.CCP1IF) {
-			/* It's time to run a control loop iteration.
-			 * Begin by reading back feedback from the FPGA. */
-			{
-				__data uint8_t *ptr = (__data uint8_t *) &parbus_rxpacket;
-				uint8_t len = sizeof(parbus_rxpacket);
-				(void) PMDIN1L;
-				while (len--) {
-					*ptr++ = PMDIN1L;
-				}
-			}
+		if (PIR1bits.CCP1IF && fpga_ok) {
+			uint16_t flags_out = 0;
 
-			/* Check out the results. */
-			if (!parbus_rxpacket.flags.chicker_present) {
+			/* It's time to run a control loop iteration.
+			 * Latch the encoder counts. */
+			parbus_write(9, 0);
+
+			/* Check if there's a chicker present; if not, we should report an error. */
+			if (!(parbus_read(1) & 0x02)) {
 				error_reporting_add(FAULT_CHICKER_NOT_PRESENT);
 			}
 
@@ -575,54 +577,43 @@ void run(void) {
 				--drive_timeout;
 
 				/* Run the control loops. */
-				parbus_txpacket.flags.motors_direction = 0;
 				for (i = 0; i != 4; ++i) {
-					int16_t power = wheel_controller_iter(drive_block.wheels[i], parbus_rxpacket.encoders_diff[i]);
+					int16_t power = wheel_controller_iter(drive_block.wheels[i], parbus_read(2 + i));
+					uint16_t encoded = 0;
 					if (power < 0) {
-						parbus_txpacket.flags.motors_direction |= 1 << i;
 						power = -power;
+						encoded = 0x100;
 					}
-					if (power <= 255) {
-						parbus_txpacket.motors_power[i] = power;
-					} else {
-						parbus_txpacket.motors_power[i] = 255;
-					}
+					encoded |= power;
+					parbus_write(1 + i, encoded);
 				}
 
-				/* Prepare new orders for the FPGA. */
-				parbus_txpacket.flags.enable_motors = 1;
-			} else {
-				/* Prepare scramming orders for the FPGA. */
-				parbus_txpacket.flags.enable_motors = 0;
+				/* Order the motors enabled. */
+				flags_out |= 0x01;
 			}
 
-			/* Prepare new orders. */
-			parbus_txpacket.flags.enable_charger = drive_block.flags.charge;
+			/* Enable the charger if and only if so ordered. */
+			if (drive_timeout && drive_block.flags.charge) {
+				flags_out |= 0x02;
+			}
+
+			/* Enable the dribbler if and only if so ordered. */
 			if (drive_block.flags.dribble && feedback_block.dribbler_temperature_raw >= 200 && feedback_block.dribbler_temperature_raw <= 499) {
-				parbus_txpacket.motors_power[4] = params.dribble_power;
+				parbus_write(5, params.dribble_power);
 			} else {
-				parbus_txpacket.motors_power[4] = 0;
+				parbus_write(5, 0);
 			}
-			if (kick_power) {
-				parbus_txpacket.kick_power = kick_power;
-				parbus_txpacket.flags.kick_sequence = !parbus_txpacket.flags.kick_sequence;
-				kick_power = 0;
-			}
-			parbus_txpacket.test = drive_block.test_mode;
+
+			/* Enable whatever test mode was requested. */
+			parbus_write(6, drive_block.test_mode);
+
+			/* Send the general operational flags. */
+			parbus_write(0, flags_out);
 
 			/* Fill the radio feedback block. */
-			feedback_block.flags.valid = parbus_rxpacket.flags.feedback_ok;
-			feedback_block.flags.capacitor_charged = parbus_rxpacket.capacitor_voltage > ((uint16_t) (215.0 / (220000.0 + 2200.0) * 2200.0 / 3.3 * 4095.0)) && !kick_power;
-			feedback_block.capacitor_voltage_raw = parbus_rxpacket.capacitor_voltage;
-
-			/* Send orders to the FPGA. */
-			{
-				__data const uint8_t *ptr = (__data uint8_t *) &parbus_txpacket;
-				uint8_t len = sizeof(parbus_txpacket);
-				while (len--) {
-					PMDIN1L = *ptr++;
-				}
-			}
+			feedback_block.flags.valid = 1;
+			feedback_block.capacitor_voltage_raw = parbus_read(6);
+			feedback_block.flags.capacitor_charged = feedback_block.capacitor_voltage_raw > ((uint16_t) (215.0 / (220000.0 + 2200.0) * 2200.0 / 3.3 * 4095.0));
 
 			/* Clear interrupt flag. */
 			PIR1bits.CCP1IF = 0;

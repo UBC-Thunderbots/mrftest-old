@@ -362,22 +362,19 @@ void main(void) {
 
 	/* Configure the FPGA, if appropriate. */
 	leds_show_number(6);
-	if (params.flash_contents == FLASH_CONTENTS_FPGA) {
-		LAT_FPGA_PROG_B = 1;
-		while (!PORT_FPGA_INIT_B);
-		while (!PORT_FPGA_DONE && PORT_FPGA_INIT_B);
-		if (!PORT_FPGA_DONE) {
-			error_reporting_add(FAULT_FPGA_INVALID_BITSTREAM);
-		}
+	LAT_FPGA_PROG_B = 1;
+	while (!PORT_FPGA_INIT_B);
+	while (!PORT_FPGA_DONE && PORT_FPGA_INIT_B);
+	if (!PORT_FPGA_DONE) {
+		error_reporting_add(FAULT_FPGA_INVALID_BITSTREAM);
+		LAT_FPGA_PROG_B = 0;
+	} else {
 		delay1ktcy(1);
 		LAT_DCM_RESET = 0;
 		delay1ktcy(1);
 		while (!PORT_DCM_LOCKED);
 		delay1ktcy(1);
 		LAT_FPGA_RESET = 0;
-		LAT_MOTOR_ENABLE = 1;
-	} else {
-		error_reporting_add(FAULT_FPGA_NO_BITSTREAM);
 	}
 
 	/* Configure the parallel master port.
