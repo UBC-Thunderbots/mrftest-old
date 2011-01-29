@@ -1,0 +1,29 @@
+Useful Links:
+a) http://willkamp.blogspot.com/2009/04/compiling-physics-abstraction-layer-pal.html
+b) 
+c) 
+d) http://sourceforge.net/projects/pal/forums/forum/400130/topic/3679965
+e) http://www.youtube.com/watch?v=UeO4cQeLlNo
+
+Documentation of PAL implementation (since my original log evidently was deleted in my computer format):
+
+Do not use the Pre-make instructions on the PAL website as they look deprecated and they dont really 
+work/the steps are so spaced out they're hard to understand.  
+
+Download PAL using: svn co https://pal.svn.sourceforge.net/svnroot/pal pal
+
+Of course, make sure you have everything required to run the simulation mentioned in the Thunderbots SVN.
+
+I would suggest following Link a) in running PAL with a BULLET library demo.  This outlines the steps on 
+implementing PAL.  Note that the compiler fails to move btActionInterface.h when "make install" is run.
+
+Please note that when implementing PAL with cmake it may complain about Iirlicht files.  The Iirlicht 
+library is associated with the demos that PAL uses.  You can turn them off with commands mentioned in d).
+
+Also, I ran into errors when using the ccmake GUI.  For some reason my efforts to specify the folder 
+(../pal/pal) in the GUI gave an error.  However, using ccmake in the command line it worked.  
+(Gave the required options for PAL like PAL_BUILD_NEWTON, PAL_BUILD_HAVOK, PAL_BUILD_2DBOX, Etc.)
+
+Though I was able to get the BULLET demo running I continuously ran into numerous errors getting 
+PAL to run ODE with our files.  Some include, CMake binaries not showing up. 
+ Cmake options not showing up.  Unfixable compile errors.  

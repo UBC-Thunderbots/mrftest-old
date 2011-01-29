@@ -328,6 +328,7 @@ software/log/shared/tags.h -text
 software/proto/messages_robocup_ssl_detection.proto -text
 software/proto/messages_robocup_ssl_geometry.proto -text
 software/proto/messages_robocup_ssl_wrapper.proto -text
+software/simulator/Pal[!!-~]Report.txt.txt -text
 software/simulator/ball.h -text
 software/simulator/connection.cpp -text
 software/simulator/connection.h -text
