@@ -19,7 +19,7 @@ namespace {
 			}
 
 			void execute() {
-				player->move(robot->position(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+				player->move(robot->position(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
 			}
 	};
 }
