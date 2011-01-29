@@ -584,6 +584,9 @@ void run(void) {
 						power = -power;
 						encoded = 0x100;
 					}
+					if (power > 255) {
+						power = 255;
+					}
 					encoded |= power;
 					parbus_write(1 + i, encoded);
 				}
