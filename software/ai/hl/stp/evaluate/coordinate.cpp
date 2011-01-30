@@ -3,29 +3,31 @@
 using AI::HL::STP::Evaluate::Coordinate;
 using namespace AI::HL::W;
 
-Coordinate::Coordinate(const Point& off) : offset_(off) {
+Point Coordinate::CoordinateData::position() const {
+	return Point(0.0, 0.0);
 }
 
-namespace {
-	class Absolute : public Coordinate {
-		private:
-			const Point point;
-		public:
-			Absolute(Point p) : Coordinate(p) {
-			}
-		private:
-			Point evaluate() const {
-				return offset_;
-			}
-			Coordinate::Ptr offset(const Point& off) {
-				Coordinate::Ptr p(new Absolute(offset_ + off));
-				return p;
-			}
-	};
+double Coordinate::CoordinateData::orientation() const {
+	return 0;
 }
 
-Coordinate::Ptr Coordinate::absolute(const Point& point) {
-	Coordinate::Ptr p(new Absolute(point));
-	return p;
+Coordinate::Coordinate() : offset(0.0, 0.0) {
+}
+
+Coordinate::Coordinate(const Point& off) : offset(off) {
+}
+
+Coordinate::Coordinate(const Coordinate& coordinate) {
+	offset = coordinate.offset;
+	data = coordinate.data;
+}
+
+Point Coordinate::evaluate() const {
+	if (data.is()) {
+		// TODO
+		return data->position() + offset.rotate(data->orientation());
+	} else {
+		return offset;
+	}
 }
 

@@ -12,51 +12,79 @@ namespace AI {
 				 * See STP paper section 5.2.3 (b)
 				 * Describes dynamically changing coordinate system.
 				 * For example, a location relative to a moving object.
+				 *
+				 * This class emulates the behaviour of the Point class.
+				 * Not all operations of the Point are applicable.
 				 */
-				class Coordinate : public ByRef {
+				class Coordinate {
 					public:
-						typedef RefPtr<Coordinate> Ptr;
+						/**
+						 * Default constructor, gives the origin.
+						 */
+						Coordinate();
+
+						/**
+						 * Copy constructor.
+						 */
+						Coordinate(const Coordinate& coordinate);
+
+						/**
+						 * Assigns one coordiante to another.
+						 */
+						Coordinate &operator=(const Coordinate& coordinate);
+
+						/**
+						 * Converts a point to a coordinate.
+						 */
+						explicit Coordinate(const Point& off);
+
+						/**
+						 * Relative to a robot.
+						 */
+						explicit Coordinate(const AI::HL::W::Robot::Ptr robot, const Point& off);
 
 						/**
 						 * Evaluates and returns the required coordinate.
 						 */
-						virtual Point evaluate() const = 0;
+						Point evaluate() const;
 
 						/**
-						 * Offset of some relative coordinate.
+						 * Evaluates and returns the required coordinate.
 						 */
-						virtual Coordinate::Ptr offset(const Point& off) = 0;
+						operator Point() const {
+							return evaluate();
+						}
 
 						/**
-						 * Absolute game coordinate.
+						 * Returns an original coordinate without any offset.
 						 */
-						static Coordinate::Ptr absolute(const Point& point);
+						Coordinate origin() const;
 
 						/**
-						 * Relative to a particular player, even its orientation.
+						 * Adds an offset to this coordinate.
 						 */
-						static Coordinate::Ptr relative_player(const AI::HL::W::Player::Ptr player, const Point& p);
+						Coordinate &operator+=(const Point& p);
 
 						/**
-						 * Relative to a particular robot, even its orientation.
+						 * Removes an offset to this coordinate.
 						 */
-						static Coordinate::Ptr relative_robot(const AI::HL::W::Robot::Ptr robot, const Point& p);
-
-						/**
-						 * Relative to the ball.
-						 * There is no rotation.
-						 */
-						static Coordinate::Ptr relative_ball(const AI::HL::W::Ball& ball);
-
-						/**
-						 * A transformed coordinate.
-						 */
-						static Coordinate::Ptr transform(const Point& pos, const double ori);
+						Coordinate &operator-=(const Point& p);
 
 					protected:
-						Coordinate(const Point& off);
-						Point offset_;
-						// maybe we need rotation as well.
+						/**
+						 * Stores the actual data.
+						 * This data is IMMUTABLE.
+						 */
+						class CoordinateData : public ByRef {
+							public:
+								typedef RefPtr<CoordinateData> Ptr;
+								virtual Point position() const;
+								virtual double orientation() const;
+						};
+
+						CoordinateData::Ptr data;
+
+						Point offset;
 				};
 			}
 		}

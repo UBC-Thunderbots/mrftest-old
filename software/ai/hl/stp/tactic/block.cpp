@@ -15,6 +15,10 @@ namespace {
 				return -(player->position() - enemy->evaluate()->position()).lensq();
 			}
 			void execute() {
+				if (!enemy->exist()) {
+					// do nothing??
+					return;
+				}
 				player->move(enemy->evaluate()->position(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 			}
 	};
