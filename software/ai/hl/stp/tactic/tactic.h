@@ -15,15 +15,17 @@ namespace AI {
 				/**
 				 * A tactic is a layer in the STP paradigm.
 				 * It runs every tick.
+				 * A subclass shall derive score(), execute(),
+				 * optionally initialize() and done().
 				 *
-				 * A typical subclass shall derive execute(),
-				 * and optionally player_changed().
+				 * Important tactics that deal with the ball are called active tactics.
+				 * Other tactics must wait for active tactics to finish.
+				 * An active tactic must override done().
 				 *
-				 * It may choose to use the Skill layer.
-				 * If it does so, it must set a suitable Skill State Machine (SSM) every tick,
-				 * as well as all the parameters.
-				 *
-				 * In other words, a tactic may only communicate with the skill layer through SSM and parameters.
+				 * A tactic may choose to use the Skill layer.
+				 * To do so,
+				 * it must set a suitable Skill State Machine (SSM) every tick,
+				 * and its parameters.
 				 *
 				 * To prevent rapid fluctuation of parameters,
 				 * hysteresis is recommended.
@@ -45,8 +47,9 @@ namespace AI {
 						virtual ~Tactic();
 
 						/**
-						 * Indicates if this tactic is done with its task.
-						 * An inactive tactic will always be done.
+						 * Indicates if this tactic has finished its task.
+						 * Other tactics must wait for tactics that are not done.
+						 * Note that an inactive tactic shall always be done.
 						 */
 						virtual bool done() const;
 
@@ -71,6 +74,7 @@ namespace AI {
 						 * Scoring function to indicate how preferable this particular player is.
 						 * There is constraint on the range of return values.
 						 * The highest scoring player is simply chosen for the task.
+						 * A subclass must implement this function.
 						 */
 						virtual double score(AI::HL::W::Player::Ptr player) const = 0;
 
@@ -90,35 +94,40 @@ namespace AI {
 						AI::HL::STP::Skill::Param param;
 
 						/**
-						 * Handles the skill state machine.
-						 */
-						AI::HL::STP::Skill::ContextImpl context;
-
-						/**
 						 * Sets the SSM associated with this tactic.
 						 */
 						void set_ssm(const AI::HL::STP::SSM::SkillStateMachine* s);
 
 						/**
-						 * A subclass must override this function.
+						 * Called when the tactic is first used,
+						 * or when the player associated with this tactic is changed.
+						 */
+						virtual void initialize();
+
+						/**
+						 * The main execution of this tactic.
+						 * This function runs every tick.
+						 * A subclass must implement this function.
 						 */
 						virtual void execute() = 0;
+
+						/**
+						 * Indicates if the ssm associated with this tactic finished.
+						 */
+						bool ssm_done() const;
 
 					private:
 						bool active_;
 
 						/**
-						 * Right now this is only used for a certain callback function.
+						 * Handles the skill state machine.
 						 */
-						const AI::HL::STP::SSM::SkillStateMachine* ssm;
+						AI::HL::STP::Skill::ContextImpl context;
 
 						/**
-						 * Called when the player associated with this tactic is changed.
-						 *
-						 * Since this function is always called,
-						 * it is a good place to put intialization code.
+						 * The SSM associated.
 						 */
-						virtual void player_changed();
+						const AI::HL::STP::SSM::SkillStateMachine* ssm;
 				};
 			}
 		}

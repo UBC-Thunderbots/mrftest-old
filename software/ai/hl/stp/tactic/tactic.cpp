@@ -3,7 +3,7 @@
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
-Tactic::Tactic(World &world, bool active) : world(world), context(world, param), active_(active), ssm(NULL) {
+Tactic::Tactic(World &world, bool active) : world(world), active_(active), context(world, param), ssm(NULL) {
 }
 
 Tactic::~Tactic() {
@@ -22,7 +22,7 @@ void Tactic::set_player(Player::Ptr p) {
 		player = p;
 		context.set_player(player);
 		context.set_ssm(NULL);
-		player_changed();
+		initialize();
 	}
 }
 
@@ -48,10 +48,14 @@ void Tactic::tick() {
 	context.run();
 }
 
+void Tactic::initialize() {
+}
+
 void Tactic::set_ssm(const AI::HL::STP::SSM::SkillStateMachine* s) {
 	ssm = s;
 }
 
-void Tactic::player_changed() {
+bool Tactic::ssm_done() const {
+	return context.done();
 }
 

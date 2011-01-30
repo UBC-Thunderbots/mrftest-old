@@ -1,4 +1,4 @@
-#include "ai/hl/stp/tactic/basic.h"
+#include "ai/hl/stp/tactic/idle.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -14,7 +14,7 @@ namespace {
 				return 1;
 			}
 			void execute() {
-				// nothing lol
+				// move them to a particular place
 				Point dest = Point(0, world.field().width() / 2);
 				player->move(dest, (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
 			}

@@ -17,7 +17,7 @@ namespace {
 				return done_;
 			}
 
-			void player_changed() {
+			void initialize() {
 				done_ = (player->has_ball());
 			}
 

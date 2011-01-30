@@ -1,10 +1,9 @@
 #include "ai/hl/stp/evaluate/coordinate.h"
 
 using AI::HL::STP::Evaluate::Coordinate;
-using AI::HL::STP::Evaluate::CoordinateType;
 using namespace AI::HL::W;
 
-Coordinate::Coordinate(CoordinateType t, const Point& off) : type_(t), offset_(off) {
+Coordinate::Coordinate(const Point& off) : offset_(off) {
 }
 
 namespace {
@@ -12,7 +11,7 @@ namespace {
 		private:
 			const Point point;
 		public:
-			Absolute(Point p) : Coordinate(CoordinateType::COORDINATE_ABSOLUTE, p) {
+			Absolute(Point p) : Coordinate(p) {
 			}
 		private:
 			Point evaluate() const {

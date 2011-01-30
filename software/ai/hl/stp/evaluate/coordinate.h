@@ -9,47 +9,9 @@ namespace AI {
 		namespace STP {
 			namespace Evaluate {
 				/**
-				 * Describes the types of coordinate.
 				 * See STP paper section 5.2.3 (b)
-				 */
-				enum CoordinateType {
-					/**
-					 * Unmodified game coordinate.
-					 */
-					COORDINATE_ABSOLUTE,
-
-					/**
-					 * Relative to a particular player.
-					 * This coordinate is also rotated in the player's direction.
-					 */
-					COORDINATE_RELATIVE_PLAYER,
-
-					/**
-					 * Relative to a particular robot.
-					 * This coordinate is also rotated in the robots's direction.
-					 */
-					COORDINATE_RELATIVE_ROBOT,
-
-					/**
-					 * Ball relative position.
-					 */
-					COORDINATE_RELATIVE_BALL,
-
-					/**
-					 * Relative to a particular position.
-					 * May also be rotated.
-					 */
-					COORDINATE_RELATIVE_POSITION,
-
-					/**
-					 * Offset of some other coordinate.
-					 */
-					COORDINATE_OFFSET,
-				};
-
-				/**
 				 * Describes dynamically changing coordinate system.
-				 * This emulates STP paper section 5.2.3 (b)
+				 * For example, a location relative to a moving object.
 				 */
 				class Coordinate : public ByRef {
 					public:
@@ -65,35 +27,37 @@ namespace AI {
 						 */
 						virtual Coordinate::Ptr offset(const Point& off) = 0;
 
+						/**
+						 * Absolute game coordinate.
+						 */
 						static Coordinate::Ptr absolute(const Point& point);
 
+						/**
+						 * Relative to a particular player, even its orientation.
+						 */
 						static Coordinate::Ptr relative_player(const AI::HL::W::Player::Ptr player, const Point& p);
 
+						/**
+						 * Relative to a particular robot, even its orientation.
+						 */
 						static Coordinate::Ptr relative_robot(const AI::HL::W::Robot::Ptr robot, const Point& p);
 
+						/**
+						 * Relative to the ball.
+						 * There is no rotation.
+						 */
 						static Coordinate::Ptr relative_ball(const AI::HL::W::Ball& ball);
 
-						static Coordinate::Ptr relative(const Point& pos, const double ori);
+						/**
+						 * A transformed coordinate.
+						 */
+						static Coordinate::Ptr transform(const Point& pos, const double ori);
 
 					protected:
-						Coordinate(CoordinateType t, const Point& off);
-						CoordinateType type_;
+						Coordinate(const Point& off);
 						Point offset_;
+						// maybe we need rotation as well.
 				};
-
-				namespace {
-					/**
-					 * Adds an offset to a Coordinate.
-					 *
-					 * \param[in] coord the Coordinate.
-					 *
-					 * \param[in] p the point.
-					 */
-					Coordinate::Ptr operator+(const Coordinate::Ptr coord, const Point& p) __attribute__((warn_unused_result));
-					Coordinate::Ptr operator+(const Coordinate::Ptr coord, const Point& p) {
-						return coord->offset(p);
-					}
-				}
 			}
 		}
 	}

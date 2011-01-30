@@ -12,10 +12,10 @@ namespace {
 		private:
 			EnemyRole::Ptr enemy;
 			double score(Player::Ptr player) const {
-				return 1.0 / (1.0 + (player->position() - enemy->evaluate()->position()).len());
+				return -(player->position() - enemy->evaluate()->position()).lensq();
 			}
 			void execute() {
-				player->move(enemy->evaluate()->position(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+				player->move(enemy->evaluate()->position(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 			}
 	};
 }

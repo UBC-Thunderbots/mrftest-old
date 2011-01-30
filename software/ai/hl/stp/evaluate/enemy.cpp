@@ -7,9 +7,10 @@ using AI::HL::STP::Evaluate::EnemyRole;
 namespace {
 	class Fixed : public EnemyRole {
 		public:
-			Robot::Ptr robot;
 			Fixed(Robot::Ptr r) : robot(r) {
 			}
+		private:
+			Robot::Ptr robot;
 			Robot::Ptr evaluate() const {
 				return robot;
 			}
@@ -24,19 +25,21 @@ EnemyRole::Ptr AI::HL::STP::Evaluate::EnemyRole::fixed(Robot::Ptr robot) {
 namespace {
 	class ClosestFriendlyGoal : public EnemyRole {
 		public:
-			World& world;
-			unsigned int index;
 			ClosestFriendlyGoal(World& w, unsigned int i) : world(w), index(i) {
 			}
+		private:
+			World& world;
+			unsigned int index;
 			Robot::Ptr evaluate() const {
+				if (world.enemy_team().size() >= index) {
+					return Robot::Ptr();
+				}
+
 				std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
 
 				// sort enemies by distance to own goal
+				// TODO: cache this
 				std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().friendly_goal()));
-
-				if (enemies.size() >= index) {
-					return Robot::Ptr();
-				}
 
 				return enemies[index];
 			}
@@ -45,6 +48,35 @@ namespace {
 
 EnemyRole::Ptr AI::HL::STP::Evaluate::EnemyRole::closest_friendly_goal(World& world, unsigned int i) {
 	EnemyRole::Ptr p(new ClosestFriendlyGoal(world, i));
+	return p;
+}
+
+namespace {
+	class ClosestBall : public EnemyRole {
+		public:
+			ClosestBall(World& w, unsigned int i) : world(w), index(i) {
+			}
+		private:
+			World& world;
+			unsigned int index;
+			Robot::Ptr evaluate() const {
+				if (world.enemy_team().size() >= index) {
+					return Robot::Ptr();
+				}
+
+				std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+
+				// sort enemies by distance to own goal
+				// TODO: cache this
+				std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.ball().position()));
+
+				return enemies[index];
+			}
+	};
+};
+
+EnemyRole::Ptr AI::HL::STP::Evaluate::EnemyRole::closest_ball(World& world, unsigned int i) {
+	EnemyRole::Ptr p(new ClosestBall(world, i));
 	return p;
 }
 

@@ -8,29 +8,20 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Tactic {
-			/**
-			 * Used for going back and forth between 2 destinations.
-			 * A play must store this tactic in order to use this correctly.
-			 */
+				/**
+				 * Used for going back and forth between 2 destinations.
+				 * A play must store this tactic in order to use this correctly.
+				 */
 				class Patrol : public Tactic {
 					public:
-
-						Patrol(AI::HL::W::World &world);
-
-						void set_waypoints(Point w1, Point w2);
+						Patrol(AI::HL::W::World &world, Point w1, Point w2);
 
 						double score(AI::HL::W::Player::Ptr player) const;
-						
-						void set_flags(const unsigned int f) {
-							flags = f;
-						}
 
-						void tick(AI::HL::W::Player::Ptr player);
-
+						void execute();
 					protected:
 						Point p1, p2;
 						bool goto_target1;
-						unsigned int flags;
 				};
 			}
 		}

@@ -9,6 +9,7 @@
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
+using AI::HL::STP::Evaluate::EnemyRole;
 
 namespace {
 
@@ -66,37 +67,26 @@ namespace {
 	}
 
 	void JustShoot::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>* roles) {
-		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
-
-		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
-		std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().friendly_goal()));
+		// std::Player::Ptr goalie = world.friendly_team().get(0);
 
 		// GOALIE
-		if (players[0]->has_ball()) {
-			goalie_role.push_back(repel(world));
-		} else {
-			goalie_role.push_back(defend_goal(world));
-		}
+		goalie_role.push_back(defend_goal(world));
 
 		// ROLE 1
 		// shoot
-		if (players[0]->has_ball()) {
-			roles[0].push_back(block(world, AI::HL::STP::Evaluate::EnemyRole::closest_friendly_goal(world, 0)));
-		} else {
-			roles[0].push_back(shoot(world));
-		}
+		roles[0].push_back(shoot(world));
 
 		// ROLE 2
 		// block nearest enemy
-		roles[1].push_back(block(world, AI::HL::STP::Evaluate::EnemyRole::closest_friendly_goal(world, 0)));
+		roles[1].push_back(block(world, EnemyRole::closest_friendly_goal(world, 0)));
 
 		// ROLE 3
 		// block 2nd nearest enemy
-		roles[2].push_back(block(world, AI::HL::STP::Evaluate::EnemyRole::closest_friendly_goal(world, 1)));
+		roles[2].push_back(block(world, EnemyRole::closest_friendly_goal(world, 1)));
 
 		// ROLE 4
 		// block 3rd nearest enemy
-		roles[3].push_back(block(world, AI::HL::STP::Evaluate::EnemyRole::closest_friendly_goal(world, 2)));
+		roles[3].push_back(block(world, EnemyRole::closest_friendly_goal(world, 2)));
 	}
 }
 

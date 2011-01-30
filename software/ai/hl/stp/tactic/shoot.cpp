@@ -12,7 +12,7 @@ namespace {
 
 		private:
 			bool done() const {
-				return context.done();
+				return ssm_done();
 			}
 
 			double score(Player::Ptr player) const {
