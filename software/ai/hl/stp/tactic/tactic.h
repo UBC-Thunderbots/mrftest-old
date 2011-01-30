@@ -19,7 +19,8 @@ namespace AI {
 				 * optionally initialize() and done().
 				 *
 				 * Important tactics that deal with the ball are called active tactics.
-				 * Other tactics must wait for active tactics to finish.
+				 * Only one such tactic is active at any given time.
+				 * Other tactics must wait for the active tactic to finish.
 				 * An active tactic must override done().
 				 *
 				 * A tactic may choose to use the Skill layer.
@@ -47,9 +48,8 @@ namespace AI {
 						virtual ~Tactic();
 
 						/**
-						 * Indicates if this tactic has finished its task.
-						 * Other tactics must wait for tactics that are not done.
-						 * Note that an inactive tactic shall always be done.
+						 * An active tactic must override this,
+						 * and provide a condition when this tactic is completed.
 						 */
 						virtual bool done() const;
 
