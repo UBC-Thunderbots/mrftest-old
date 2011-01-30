@@ -1,5 +1,5 @@
 #include "ai/hl/stp/play/play.h"
-#include "ai/hl/stp/tactic/basic.h"
+#include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/util.h"
@@ -81,38 +81,22 @@ namespace {
 		// ROLE 1
 		// shoot
 		if (players[0]->has_ball()) {
-			if (enemies.size() > 0) {
-				roles[0].push_back(block(world, enemies[0]));
-			} else {
-				roles[0].push_back(idle(world));
-			}
+			roles[0].push_back(block(world, AI::HL::STP::Evaluate::EnemyRole::closest_friendly_goal(world, 0)));
 		} else {
 			roles[0].push_back(shoot(world));
 		}
 
 		// ROLE 2
 		// block nearest enemy
-		if (enemies.size() > 0) {
-			roles[1].push_back(block(world, enemies[0]));
-		} else {
-			roles[1].push_back(idle(world));
-		}
+		roles[1].push_back(block(world, AI::HL::STP::Evaluate::EnemyRole::closest_friendly_goal(world, 0)));
 
 		// ROLE 3
 		// block 2nd nearest enemy
-		if (enemies.size() > 1) {
-			roles[2].push_back(block(world, enemies[1]));
-		} else {
-			roles[2].push_back(idle(world));
-		}
+		roles[2].push_back(block(world, AI::HL::STP::Evaluate::EnemyRole::closest_friendly_goal(world, 1)));
 
 		// ROLE 4
 		// block 3rd nearest enemy
-		if (enemies.size() > 2) {
-			roles[3].push_back(block(world, enemies[2]));
-		} else {
-			roles[3].push_back(idle(world));
-		}
+		roles[3].push_back(block(world, AI::HL::STP::Evaluate::EnemyRole::closest_friendly_goal(world, 2)));
 	}
 }
 

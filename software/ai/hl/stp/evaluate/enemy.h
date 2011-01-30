@@ -9,46 +9,34 @@ namespace AI {
 		namespace STP {
 			namespace Evaluate {
 				/**
-				 * Describes a way to describe enemy role.
-				 * The STP paper calls it the criterion, see section 5.2.4.
-				 */
-				enum EnemyOrdering {
-					/**
-					 * Orders enemy by distance to own goal.
-					 */
-					ENEMY_ORDER_DIST_FRIENDLY_GOAL,
-
-					/**
-					 * Orders enemy by distance to enemy goal.
-					 */
-					ENEMY_ORDER_DIST_ENEMY_GOAL,
-
-					/**
-					 * Orders enemy by distance to the ball.
-					 */
-					ENEMY_ORDER_DIST_BALL,
-				};
-
-				/**
 				 * Describes an enemy role.
+				 * Allows tactics to dynamically target enemies.
 				 */
 				class EnemyRole : public ByRef {
 					public:
 						typedef RefPtr<EnemyRole> Ptr;
 
-						virtual AI::HL::W::Robot::Ptr evaluate(AI::HL::W::World& world) const = 0;
+						EnemyRole();
 
-						static EnemyRole::Ptr closest_friendly_goal(int i);
+						~EnemyRole();
 
-						static EnemyRole::Ptr closest_enemy_goal(int i);
+						/**
+						 * Returns the enemy robot associated with this role.
+						 * If the robot does not exist,
+						 * then a null pointer is returned.
+						 */
+						virtual AI::HL::W::Robot::Ptr evaluate() const = 0;
 
-						static EnemyRole::Ptr closest_ball(int i);
+						/**
+						 * Fixed role.
+						 * Be very sure if you ever want to use this.
+						 */
+						static EnemyRole::Ptr fixed(AI::HL::W::Robot::Ptr robot);
 
-					protected:
-						EnemyRole(EnemyOrdering o, int i);
-
-						EnemyOrdering ordering_;
-						int index_;
+						/**
+						 * Order by distance to friendly goal.
+						 */
+						static EnemyRole::Ptr closest_friendly_goal(AI::HL::W::World& world, unsigned int i);
 				};
 			}
 		}
