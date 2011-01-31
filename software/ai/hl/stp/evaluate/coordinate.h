@@ -21,12 +21,14 @@ namespace AI {
 						/**
 						 * Default constructor, gives the origin.
 						 */
-						Coordinate();
+						Coordinate() : offset(0.0, 0.0) {
+						}
 
 						/**
 						 * Copy constructor.
 						 */
-						Coordinate(const Coordinate& coordinate);
+						Coordinate(const Coordinate& coordinate) : data(coordinate.data), offset(coordinate.offset) {
+						}
 
 						/**
 						 * Assigns one coordiante to another.
@@ -36,10 +38,11 @@ namespace AI {
 						/**
 						 * Converts a point to a coordinate.
 						 */
-						explicit Coordinate(const Point& off);
+						explicit Coordinate(const Point& off) : offset(off) {
+						}
 
 						/**
-						 * Relative to a robot.
+						 * Robot coordinate, with offset.
 						 */
 						explicit Coordinate(const AI::HL::W::Robot::Ptr robot, const Point& off);
 

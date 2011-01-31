@@ -11,17 +11,6 @@ double Coordinate::CoordinateData::orientation() const {
 	return 0;
 }
 
-Coordinate::Coordinate() : offset(0.0, 0.0) {
-}
-
-Coordinate::Coordinate(const Point& off) : offset(off) {
-}
-
-Coordinate::Coordinate(const Coordinate& coordinate) {
-	offset = coordinate.offset;
-	data = coordinate.data;
-}
-
 Point Coordinate::evaluate() const {
 	if (data.is()) {
 		// TODO
