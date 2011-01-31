@@ -26,12 +26,59 @@ namespace {
 		public:
 			StrategyFactory &factory() const;
 
+			static Strategy::Ptr create(AI::HL::W::World &world);
+
+		protected:
+			/**
+			 * This class uses a 2-stage initialization,
+			 * to initialize all the available plays.
+			 */
+			bool initialized;
+
+			/**
+			 * The play in use currently.
+			 */
+			Play::Ptr curr_play;
+
+			/**
+			 * indicates which step in the role we are using.
+			 */
+			unsigned int curr_role_step;
+
+			/**
+			 * A role is a sequence of tactics.
+			 * The first role is for goalie.
+			 */
+			std::vector<Tactic::Ptr> curr_roles[5];
+
+			/**
+			 * The tactic in use
+			 */
+			Tactic::Ptr curr_tactic[5];
+
+			/**
+			 * Active tactic in use.
+			 */
+			Tactic::Ptr curr_active;
+
+			// current player assignment
+			Player::Ptr curr_assignment[5];
+
+			/**
+			 * List of all the available plays
+			 */
+			std::vector<Play::Ptr> plays;
+
+			STPStrategy(AI::HL::W::World &world);
+
+			~STPStrategy();
+
+			/**
+			 * Loads all the plays.
+			 */
 			void initialize();
 
 			void play();
-
-			void on_player_added(std::size_t);
-			void on_player_removed();
 
 			/**
 			 * When something bad happens,
@@ -56,31 +103,9 @@ namespace {
 			 */
 			void role_assignment();
 
-			static Strategy::Ptr create(AI::HL::W::World &world);
-
 		private:
-			bool initialized;
-
-			Play::Ptr curr_play;
-
-			// roles
-			int curr_role_step;
-
-			// the first role is for goalie
-			std::vector<Tactic::Ptr> curr_roles[5];
-
-			// active tactics
-			Tactic::Ptr curr_active;
-			Tactic::Ptr curr_tactics[5];
-
-			// current player assignment
-			Player::Ptr curr_assignment[5];
-
-			// all the available plays
-			std::vector<Play::Ptr> plays;
-
-			STPStrategy(AI::HL::W::World &world);
-			~STPStrategy();
+			void on_player_added(std::size_t);
+			void on_player_removed();
 	};
 
 	/**
@@ -153,6 +178,7 @@ namespace {
 				curr_role_step = 0;
 				for (std::size_t j = 0; j < 5; ++j) {
 					curr_roles[j].clear();
+					curr_tactic[j].reset();
 				}
 				curr_play->assign(curr_roles[0], curr_roles + 1);
 				LOG_INFO(curr_play->factory().name());
@@ -164,33 +190,37 @@ namespace {
 	void STPStrategy::role_assignment() {
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 
-		int &r = curr_role_step;
-
+		// this must be reset every tick
 		curr_active.reset();
-		for (std::size_t i = 0; i < 5; ++i) {
-			curr_tactics[i].reset();
-		}
 
 		for (std::size_t i = 0; i < 5; ++i) {
-			if (curr_roles[i].size() <= r) {
-				break;
+
+			if (curr_role_step < curr_roles[i].size()) {
+				curr_tactic[i] = curr_roles[i][curr_role_step];
+			} else {
+				// if there are no more tactics, use the previous one
+				// BUT active tactic cannot be reused!
+				if (curr_tactic[i]->active()) {
+					LOG_ERROR("Cannot re-use active tactic!");
+					reset();
+					return;
+				}
 			}
 
-			curr_tactics[i] = curr_roles[i][r];
-
-			if (curr_roles[i][r]->active()) {
+			if (curr_roles[i][curr_role_step]->active()) {
+				// we cannot have more than 1 active tactic.
 				if (curr_active.is()) {
 					LOG_ERROR("Multiple active tactics");
 					reset();
 					return;
 				}
-				curr_active = curr_roles[i][r];
+				curr_active = curr_roles[i][curr_role_step];
 			}
 		}
 
-		// no more active tactics
+		// we cannot have less than 1 active tactic.
 		if (!curr_active.is()) {
-			LOG_ERROR("No active tactics");
+			LOG_ERROR("No active tactic");
 			reset();
 			return;
 		}
@@ -204,7 +234,7 @@ namespace {
 		}
 
 		for (std::size_t i = 0; i < 5; ++i) {
-			if (!curr_tactics[i].is()) {
+			if (!curr_tactic[i].is()) {
 				break;
 			}
 
@@ -215,7 +245,7 @@ namespace {
 				if (players_used[j]) {
 					continue;
 				}
-				double score = curr_tactics[i]->score(players[j]);
+				double score = curr_tactic[i]->score(players[j]);
 				if (!best.is() || score > best_score) {
 					best = players[j];
 					best_j = j;
@@ -233,8 +263,8 @@ namespace {
 			if (!curr_assignment[i].is()) {
 				continue;
 			}
-			curr_tactics[i]->set_player(curr_assignment[i]);
-			if (curr_tactics[i]->active()) {
+			curr_tactic[i]->set_player(curr_assignment[i]);
+			if (curr_tactic[i]->active()) {
 				active_assigned = true;
 			}
 		}
@@ -248,18 +278,19 @@ namespace {
 	}
 
 	void STPStrategy::execute_tactics() {
-		int &r = curr_role_step;
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 
 		while (true) {
 			role_assignment();
 
+			// if role assignment failed
 			if (!curr_play.is()) {
 				return;
 			}
 
+			// it is possible to skip steps
 			if (curr_active->done()) {
-				++r;
+				++curr_role_step;
 				continue;
 			}
 		}
@@ -269,7 +300,7 @@ namespace {
 			if (!curr_assignment[i].is()) {
 				continue;
 			}
-			curr_tactics[i]->tick();
+			curr_tactic[i]->tick();
 		}
 	}
 

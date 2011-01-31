@@ -16,11 +16,14 @@ namespace AI {
 
 				/**
 				 * A play is a level in the STP paradigm.
-				 * The purpose of a play is to produce sequences of tactics.
+				 * The purpose of a play is to produce roles.
+				 * A role is a sequence of tactic.
 				 *
 				 * Note that there is only one instance per class.
 				 * Plays are reused, destroyed only when the AI ends.
 				 * Doing so will simplify coding.
+				 *
+				 * Please see the instructions in the assign() function.
 				 */
 				class Play : public ByRef, public sigc::trackable {
 					public:
@@ -43,11 +46,17 @@ namespace AI {
 						 * Provide sequences of tactics.
 						 * A subclass must implement this function.
 						 *
-						 * \param [in] goalie_role a sequence of tactics for the goalie
+						 * IMPORTANT Conditions
+						 * - The roles need not be the same length;
+						 *   if a role is shorter than the rest,
+						 *   the last tactic is repeated.
+						 * - There must be exactly ONE active tactic at any given time.
+						 * - An active tactic cannot be repeated.
 						 *
-						 * \param [in] an array of tactic sequences in order of priority.
-						 * The first entry is the most important.
-						 * Each entry is a sequence of tactics.
+						 * \param [in] goalie_role role for the goalie
+						 *
+						 * \param [in] an array of roles in order of priority,
+						 * the first entry is the most important etc.
 						 */
 						virtual void assign(std::vector<AI::HL::STP::Tactic::Tactic::Ptr> &goalie_role, std::vector<AI::HL::STP::Tactic::Tactic::Ptr>* roles) = 0;
 
