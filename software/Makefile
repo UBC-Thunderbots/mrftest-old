@@ -15,20 +15,20 @@ SOURCES_simulator := ai/common/playtype.cpp geom leastsquares simulator util
 SOURCES_test := geom leastsquares test uicomponents util xbee
 
 #
+# Here, write a list of all the pkg-config packages used.
+#
+PACKAGES := glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf libxml++-2.6 gsl libusb-1.0
+
+#
 # Here, write the linker flags to be used for each project.
 #
-LDFLAGS_common := -Wl,--as-needed -Wl,-O1 $(shell pkg-config --libs glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf libxml++-2.6 gsl libusb-1.0) -lrt
-LDFLAGS_ai := $(LDFLAGS_common)
-LDFLAGS_config := $(LDFLAGS_common)
-LDFLAGS_fw := $(LDFLAGS_common)
-LDFLAGS_log := $(LDFLAGS_common)
-LDFLAGS_simulator := $(LDFLAGS_common)
-LDFLAGS_test := $(LDFLAGS_common)
+override LDFLAGS := -Wl,--as-needed -Wl,-O1 -g -pthread $(LDFLAGS)
+override LIBS := $(shell pkg-config --libs $(PACKAGES)) -lrt $(LIBS)
 
 #
 # Here, write the compiler flags to be used.
 #
-override CXXFLAGS := -std=gnu++0x -Wall -Wextra -Wold-style-cast -Wconversion -Wundef -O2 -fomit-frame-pointer -g -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -pthread $(shell pkg-config --cflags glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf libxml++-2.6 gsl libusb-1.0 | sed 's/-I/-isystem /g') $(CXXFLAGS) -I.
+override CXXFLAGS := -std=gnu++0x -Wall -Wextra -Wold-style-cast -Wconversion -Wundef -O2 -fomit-frame-pointer -g -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -pthread $(shell pkg-config --cflags $(PACKAGES) | sed 's/-I/-isystem /g') $(CXXFLAGS) -I.
 
 #
 # DO NOT MODIFY STUFF BELOW HERE WITHOUT A GOOD REASON.
@@ -87,7 +87,7 @@ OBJS_$(1) := $$(addprefix obj/,$$(CPP_SOURCES_EXPANDED_$(1):.cpp=.o) $$(CC_SOURC
 bin/$(1) : $$(OBJS_$(1))
 	echo "  LD	$$@"
 	mkdir -p bin
-	$$(CXX) $$(CXXFLAGS) -o$$@ $$+ $$(LDFLAGS_$(1))
+	$$(CXX) $(LDFLAGS) -o$$@ $$+ $(LIBS)
 endef
 
 #
