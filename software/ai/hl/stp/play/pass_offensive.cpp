@@ -76,13 +76,16 @@ namespace {
 		// GOALIE
 		goalie_role.push_back(defend_goal(world));
 
+		// TODO: better passer and passee positioning and targeting
+		
 		// ROLE 1
-		// passer
+		// passer 
 		roles[0].push_back(passer_ready(world, friendly.get(1)->position(), friendly.get(2)->position()));
 
 		// ROLE 2
 		// passee
 		roles[1].push_back(passee_ready(world, world.ball().position()));
+		roles[1].push_back(shoot(world));
 
 		// ROLE 3
 		// block nearest enemy

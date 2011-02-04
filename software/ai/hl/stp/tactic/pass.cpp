@@ -76,6 +76,9 @@ namespace {
 			void execute() {
 				// TODO: fix this movement
 				player->move(pos, (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_MEDIUM);
+				// orient towards target
+				player->move(pos, (target - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_MEDIUM);
+				player->kick(7.5);
 			}
 	};
 
