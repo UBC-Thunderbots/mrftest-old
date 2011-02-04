@@ -12,6 +12,9 @@ namespace {
 		private:
 			EnemyRole::Ptr enemy;
 			double score(Player::Ptr player) const {
+				if (!enemy->exist()) {
+					return 0;
+				}
 				return -(player->position() - enemy->evaluate()->position()).lensq();
 			}
 			void execute() {
