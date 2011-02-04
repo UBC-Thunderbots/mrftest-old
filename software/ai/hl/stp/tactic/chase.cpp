@@ -7,7 +7,7 @@ using namespace AI::HL::W;
 namespace {
 	class Chase : public Tactic {
 		public:
-			Chase(World &world) : Tactic(world) {
+			Chase(World &world) : Tactic(world, true) {
 			}
 
 		private:

@@ -293,6 +293,8 @@ namespace {
 				++curr_role_step;
 				continue;
 			}
+
+			break;
 		}
 
 		// execute!
