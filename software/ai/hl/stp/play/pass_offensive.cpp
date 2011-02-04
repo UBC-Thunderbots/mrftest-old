@@ -35,7 +35,7 @@ namespace {
 			const PlayFactory& factory() const;
 	};
 
-	PlayFactoryImpl<PassOffensive> factory_instance("Just Shoot");
+	PlayFactoryImpl<PassOffensive> factory_instance("Pass Offensive");
 
 	const PlayFactory& PassOffensive::factory() const {
 		return factory_instance;
