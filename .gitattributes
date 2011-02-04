@@ -191,6 +191,7 @@ software/ai/hl/stp/evaluate/shoot.cpp -text
 software/ai/hl/stp/evaluate/shoot.h -text
 software/ai/hl/stp/play/grab_ball.cpp -text
 software/ai/hl/stp/play/just_shoot.cpp -text
+software/ai/hl/stp/play/pass_offensive.cpp -text
 software/ai/hl/stp/play/play.cpp -text
 software/ai/hl/stp/play/play.h -text
 software/ai/hl/stp/skill/bump_to_goal.cpp -text
@@ -226,6 +227,7 @@ software/ai/hl/stp/tactic/move.cpp -text
 software/ai/hl/stp/tactic/move.h -text
 software/ai/hl/stp/tactic/pass.cpp -text
 software/ai/hl/stp/tactic/pass.h -text
+software/ai/hl/stp/tactic/patrol.cpp -text
 software/ai/hl/stp/tactic/patrol.h -text
 software/ai/hl/stp/tactic/ram.cpp -text
 software/ai/hl/stp/tactic/ram.h -text
