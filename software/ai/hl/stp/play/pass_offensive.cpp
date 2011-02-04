@@ -47,7 +47,7 @@ namespace {
 	bool PassOffensive::applicable() const {
 		// check if we do not have ball
 		FriendlyTeam &friendly = world.friendly_team();
-		if (friendly.size() < 2) {
+		if (friendly.size() < 4) {
 			return false;
 		}
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
@@ -85,12 +85,12 @@ namespace {
 		roles[1].push_back(passee_ready(world, world.ball().position()));
 
 		// ROLE 3
-		// block 2nd nearest enemy
-		roles[2].push_back(block(world, EnemyRole::closest_friendly_goal(world, 1)));
+		// block nearest enemy
+		roles[2].push_back(block(world, EnemyRole::closest_friendly_goal(world, 0)));
 
 		// ROLE 4
-		// block 3rd nearest enemy
-		roles[3].push_back(block(world, EnemyRole::closest_friendly_goal(world, 2)));
+		// block 2nd nearest enemy
+		roles[3].push_back(block(world, EnemyRole::closest_friendly_goal(world, 1)));
 	}
 }
 
