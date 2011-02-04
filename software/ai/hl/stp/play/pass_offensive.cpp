@@ -78,11 +78,11 @@ namespace {
 
 		// ROLE 1
 		// passer
-		roles[0].push_back(passer_ready(world, friendly.get(1)->position(), world.ball().position()));
+		roles[0].push_back(passer_ready(world, friendly.get(1)->position(), friendly.get(2)->position()));
 
 		// ROLE 2
 		// passee
-		roles[1].push_back(passee_ready(world, friendly.get(2)->position()));
+		roles[1].push_back(passee_ready(world, world.ball().position()));
 
 		// ROLE 3
 		// block 2nd nearest enemy
