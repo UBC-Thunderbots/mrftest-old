@@ -31,7 +31,7 @@ namespace {
 			World& world;
 			unsigned int index;
 			Robot::Ptr evaluate() const {
-				if (world.enemy_team().size() >= index) {
+				if (world.enemy_team().size() <= index) {
 					return Robot::Ptr();
 				}
 
@@ -60,7 +60,7 @@ namespace {
 			World& world;
 			unsigned int index;
 			Robot::Ptr evaluate() const {
-				if (world.enemy_team().size() >= index) {
+				if (world.enemy_team().size() <= index) {
 					return Robot::Ptr();
 				}
 
