@@ -22,15 +22,14 @@ namespace {
 	const double GOAL_PROB = 0.2;
 	const double WAYPOINT_PROB = 0.5;
 	const double RAND_PROB = 1.0 - GOAL_PROB - WAYPOINT_PROB;
-  //	const double ANGLE_DIFF = 4.0;
-  DoubleParam ANGLE_DIFF("Pivot the amount of erronous angle acceptable for pivoting " , 4.0, 0.00, 10.0);
+	DoubleParam ANGLE_DIFF("Pivot the amount of erroneous angle acceptable for pivoting" , 4.0, 0.00, 10.0);
 	// number of iterations to go through for each robot until we give up and
 	// just return the best partial path we've found
 	const int ITERATION_LIMIT = 200;
 	const int NUM_WAYPOINTS = 50;
 
-  DoubleParam pivot_point("Pivot how far behing the ball to go for a pivot", 0.08, 0.00, 1.00);
-  DoubleParam chase_overshoot("Pivot  amount of ball overshoot for a pivot", 0.08, -0.5, 0.5);
+	DoubleParam pivot_point("Pivot how far behind the ball to go for a pivot", 0.08, 0.00, 1.00);
+	DoubleParam chase_overshoot("Pivot  amount of ball overshoot for a pivot", 0.08, -0.5, 0.5);
 
 	class Waypoints : public ObjectStore::Element {
 		public:
@@ -322,13 +321,6 @@ namespace {
 			} else if (i == pathPoints.size() - 1) {
 				finalPoints.push_back(pathPoints[i]);
 			}
-		}
-
-		// if we are trying to catch the ball then add the ball location as the last point
-		if (player->type() == MOVE_CATCH && addedFlags == FLAG_AVOID_BALL_TINY) {
-			Point p1 = world.ball().position() - player->position();
-			p1 =  (p1.len()) * p1.norm() + player->position();
-			finalPoints.push_back(p1);
 		}
 
 		return finalPoints;
