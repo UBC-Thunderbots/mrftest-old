@@ -23,7 +23,9 @@ namespace {
 					player->move(player->position(), player->orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, param.move_priority);
 					return;
 				}
-				player->move(enemy->evaluate()->position(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+
+				Point nearEnemy(enemy->evaluate()->position().x - Robot::MAX_RADIUS * 3, enemy->evaluate()->position().y);
+				player->move(nearEnemy, (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 			}
 	};
 }
