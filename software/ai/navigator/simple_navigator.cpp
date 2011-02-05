@@ -1,10 +1,10 @@
-#include "ai/hl/util.h"
 #include "ai/navigator/navigator.h"
-#include "util/time.h"
+#include "ai/navigator/util.h"
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
 using namespace AI::Nav::W;
+using namespace AI::Nav::Util;
 
 namespace {
 	/**
@@ -59,6 +59,7 @@ namespace {
 	void SimpleNavigator::tick() {
 		const Field &field = world.field();
 		FriendlyTeam &fteam = world.friendly_team();
+		timespec ts;
 
 		Player::Ptr player;
 		std::vector<std::pair<std::pair<Point, double>, timespec> > path;
@@ -74,7 +75,9 @@ namespace {
 			destinationPosition = player->destination().first;
 			destinationOrientation = player->destination().second;
 
-			path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
+			ts = get_next_ts(world.monotonic_time(),currentPosition,destinationPosition,player->target_velocity());
+
+			path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), ts));
 			player->path(path);
 		}
 	}

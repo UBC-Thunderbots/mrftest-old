@@ -425,3 +425,17 @@ std::pair<Point, timespec> AI::Nav::Util::get_ramball_location(Point dst, AI::Na
 	//if everything fails then just stay put
 		return std::make_pair(player->position(),  world.monotonic_time());
 }
+
+timespec AI::Nav::Util::get_next_ts(timespec ts_now, Point &p1, Point &p2, Point target_velocity) {
+		double now, velocity, distance, next;
+		timespec ts_next;
+		now = ts_now.tv_sec + ts_now.tv_nsec/1.0e9;
+		velocity = target_velocity.len();
+		distance = (p1-p2).len();
+		next = now + (velocity*distance);
+		// set sec part
+		ts_next.tv_sec = static_cast<int>(next);
+		// set nanosec part
+		ts_next.tv_nsec = static_cast<int>((next - ts_next.tv_sec)*1.0e9);
+		return ts_next;
+}

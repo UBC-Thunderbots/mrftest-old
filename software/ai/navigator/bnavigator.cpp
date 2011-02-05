@@ -1,16 +1,15 @@
 #include "ai/navigator/navigator.h"
-#include "ai/navigator/util.h"
-#include "geom/util.h"
-#include "util/dprint.h"
 #include "util/time.h"
-#include <glibmm.h>
-#include <vector>
+#include "geom/util.h"
+#include "ai/navigator/util.h"
+#include <iostream>
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
 using namespace AI::Nav::W;
-using namespace AI::Nav::Util;
 using namespace AI::Flags;
+using namespace AI::Nav::Util;
+using namespace std;
 
 namespace {
 	class BNavigator : public Navigator {
@@ -18,185 +17,132 @@ namespace {
 			NavigatorFactory &factory() const;
 			static Navigator::Ptr create(World &world);
 			void tick();
-
-			Point correct_regional_flags(Point dest, World &world, Player::Ptr player);
-			bool check_mobile_violation(Point p, World &world, Player::Ptr player);
-			bool check_regional_violation(Point p, World &world, Player::Ptr player);
-
-			Point getVector(Point start, Point goal, Player::Ptr player);
-
+			Point correct_regional_flags(Point dest, World &world, Player::Ptr player); 
+			pair<Point, int> check_mobile_violation(Point p, World &world, Player::Ptr player);
 		private:
 			BNavigator(World &world);
 			~BNavigator();
 	};
+
 	class BNavigatorFactory : public NavigatorFactory {
 		public:
 			Navigator::Ptr create_navigator(World &world) const;
 			BNavigatorFactory();
 			~BNavigatorFactory();
 	};
+
 	BNavigatorFactory simple_nav_factory;
+
 	NavigatorFactory &BNavigator::factory() const {
 		return simple_nav_factory;
 	}
+
 	Navigator::Ptr BNavigator::create(World &world) {
 		const Navigator::Ptr p(new BNavigator(world));
 		return p;
 	}
-	BNavigator::BNavigator(World &world) : Navigator(world) {}
-	BNavigator::~BNavigator() {}
-	BNavigatorFactory::BNavigatorFactory() : NavigatorFactory("BNavigator") {}
-	BNavigatorFactory::~BNavigatorFactory() {}
+
+	BNavigator::BNavigator(World &world) : Navigator(world) {
+	}
+
+	BNavigator::~BNavigator() {
+	}
+
+	BNavigatorFactory::BNavigatorFactory() : NavigatorFactory("BNavigator") {
+	}
+
+	BNavigatorFactory::~BNavigatorFactory() {
+	}
+
 	Navigator::Ptr BNavigatorFactory::create_navigator(World &world) const {
 		return BNavigator::create(world);
 	}
-	Point BNavigator::getVector(Point start, Point goal, Player::Ptr player) {
-		return start + (goal - start).norm() * player->MAX_RADIUS;
-	}
 
 	void BNavigator::tick() {
-		const Field &field = world.field();
-		const Ball &ball = world.ball();
+		// init world & field info
+		// unused for now, may come in handy
+		//const Field &field = world.field(); 
+		//const Ball &ball = world.ball();
 		FriendlyTeam &fteam = world.friendly_team();
+	
+		// player info
 		Player::Ptr player;
-		std::vector<std::pair<std::pair<Point, double>, timespec> > path;
-		std::vector<Point> rpath;
-		Point currp, destp, nextp;
-		double curro, desto, nexto;
-		unsigned int flags;
-		std::vector<Point> boundaries, valid_boundaries;
+		// unsigned int flags;
+		vector<pair<pair<Point, double>, timespec> > path;
+		Point currentPos, destinationPos, stepPos, closest;
+		double currentOri, destinationOri, stepOri;
+		timespec ts_next;
 
 		for (unsigned int i = 0; i < fteam.size(); i++) {
+			// clear prev path
 			path.clear();
-			rpath.clear();
 			player = fteam.get(i);
-			currp = player->position();
-			destp = player->destination().first;
-			curro = player->orientation();
-			desto = player->destination().second;
-			flags = player->flags();
-
-			nextp = getVector(currp, destp, player);
-			nextp = correct_regional_flags(nextp, world, player);
-
-			boundaries = get_obstacle_boundaries(world, player);
-
-			for (unsigned int i = 0; i < boundaries.size(); i++) {
-				if (!check_regional_violation(boundaries[i], world, player)) {
-					valid_boundaries.push_back(boundaries[i]);
-				}
-			}
-
-			for (int i = 0; i < 25; i++) {
-				nextp = getVector(currp, destp, player);
-				nextp = correct_regional_flags(nextp, world, player);
-				if (check_mobile_violation(nextp, world, player)) {
-					Point closest(1e99, 1e99);
-					// closest = valid_boundaries[0];
-					for (unsigned int i = 1; i < valid_boundaries.size(); i++) {
-						if ((valid_boundaries[i] - nextp).len() < (closest - nextp).len()) {
-							closest = valid_boundaries[i];
-							valid_boundaries.erase(valid_boundaries.begin() + i);
+			// init player data
+			currentPos = player->position();
+			currentOri = player->orientation();
+			destinationPos = player->destination().first;
+			destinationOri = player->destination().second;
+			stepPos = currentPos;
+			stepOri = currentOri;
+			pair<Point, int> collision;
+			vector<Point> collision_boundaries;
+			// main loop
+			int ebreak = 0;
+			while( (destinationPos-stepPos).len() > 0.25 ) {
+				// include emergency break just in case
+				if (ebreak > 100) break;
+				stepPos = stepPos + (destinationPos-stepPos).norm() * 0.25;
+				closest = currentPos;
+				if(!path.empty()) closest = path.back().first.first;
+				// correct for regional rules, apparently these arent that important so can be overriden
+				stepPos = correct_regional_flags(stepPos, world, player);
+				// check for 'mobile' rules (other robots) these are more important
+				collision = check_mobile_violation(stepPos, world, player);
+				if(collision.second != 0) {
+					// ball flag, navigate around ball
+					if(collision.second == 1) {
+						collision_boundaries = circle_boundaries(collision.first,0.5,16);
+					}
+					// player
+					else if(collision.second == 2) {
+						collision_boundaries = circle_boundaries(collision.first,0.25,16);
+					}
+					// find closest point
+					for(unsigned int j=0; j<collision_boundaries.size();j++) {
+						//cout << collision_boundaries[i] << endl;
+						if( (collision_boundaries[j]-closest).lensq() < (closest-stepPos).len()
+							&& (collision_boundaries[j]-closest).lensq() > 0.1 ) {
+							closest = collision_boundaries[j];
+							collision_boundaries.erase(collision_boundaries.begin()+j);
 						}
 					}
-					nextp = closest;
+					stepPos = closest;
 				}
-				nexto = (currp - nextp).orientation();
-				path.push_back(std::make_pair(std::make_pair(nextp, nexto), world.monotonic_time()));
-				rpath.push_back(nextp);
-				currp = nextp;
+				stepOri = (closest-stepPos).orientation();
+				ts_next = get_next_ts(world.monotonic_time(), closest, stepPos, Point(2,0));
+				path.push_back(make_pair(make_pair(stepPos, stepOri), ts_next));
+				ebreak++;
 			}
+			ts_next = get_next_ts(world.monotonic_time(), closest, stepPos, player->target_velocity());
+			path.push_back(make_pair(make_pair(destinationPos, destinationOri), ts_next));
 			player->path(path);
 		}
 	}
 
-	bool BNavigator::check_regional_violation(Point p, World &world, Player::Ptr player) {
-		const double ROBOT_MARGIN = 0.0;
-		const Field &field = world.field();
-		double length, width;
-		length = field.length();
-		width = field.width();
-		unsigned int flags = player->flags();
-		if (flags & FLAG_CLIP_PLAY_AREA) {
-			double C_PLAY_AREA = player->MAX_RADIUS + ROBOT_MARGIN;
-			Point play_sw(-length / 2, -width / 2);
-			Rect play_area(play_sw, length, width);
-			play_area.expand(-C_PLAY_AREA);
-			if (!play_area.point_inside(p)) {
-				return true;
-			}
-		}
-		if (flags & FLAG_STAY_OWN_HALF) {
-			double C_OWN_HALF = player->MAX_RADIUS + ROBOT_MARGIN;
-			if (p.x > 0 - C_OWN_HALF) {
-				return true;
-			}
-		}
-		double defense_area_stretch, defense_area_radius;
-		defense_area_stretch = field.defense_area_stretch();
-		defense_area_radius = field.defense_area_radius();
-		if (flags & FLAG_AVOID_FRIENDLY_DEFENSE) {
-			double C_FRIENDLY_DEFENSE = defense_area_radius + player->MAX_RADIUS + ROBOT_MARGIN;
-			Point top_sw(-length / 2, defense_area_stretch / 2);
-			Point mid_sw(-length / 2, -defense_area_stretch / 2);
-			Point btm_sw(-length / 2, -((defense_area_stretch / 2) + defense_area_radius));
-			Rect top(top_sw, C_FRIENDLY_DEFENSE, C_FRIENDLY_DEFENSE);
-			Rect mid(mid_sw, C_FRIENDLY_DEFENSE, defense_area_stretch);
-			Rect btm(btm_sw, C_FRIENDLY_DEFENSE, C_FRIENDLY_DEFENSE);
-			if (top.point_inside(p) && (p - top_sw).len() < C_FRIENDLY_DEFENSE) {
-				return true;
-			} else if (mid.point_inside(p)) {
-				return true;
-			} else if (btm.point_inside(p) && (p - mid_sw).len() < C_FRIENDLY_DEFENSE) {
-				return true;
-			}
-		}
-		if (flags & FLAG_AVOID_ENEMY_DEFENSE) {
-			double C_ENEMY_DEFENSE = defense_area_radius + player->MAX_RADIUS + 0.20 + ROBOT_MARGIN;
-			Point top_sw((length / 2) - C_ENEMY_DEFENSE, defense_area_stretch / 2);
-			Point mid_sw((length / 2) - C_ENEMY_DEFENSE, -defense_area_stretch / 2);
-			Point btm_sw((length / 2) - C_ENEMY_DEFENSE, -(defense_area_stretch / 2) - C_ENEMY_DEFENSE);
-			Rect top(top_sw, C_ENEMY_DEFENSE, C_ENEMY_DEFENSE);
-			Rect mid(mid_sw, C_ENEMY_DEFENSE, defense_area_stretch);
-			Rect btm(btm_sw, C_ENEMY_DEFENSE, C_ENEMY_DEFENSE);
-			if (top.point_inside(p) && (p - top.se_corner()).len() < C_ENEMY_DEFENSE) {
-				return true;
-			} else if (mid.point_inside(p)) {
-				return true;
-			} else if (btm.point_inside(p) && (p - mid.se_corner()).len() < C_ENEMY_DEFENSE) {
-				return true;
-			}
-		}
-		if (flags & FLAG_PENALTY_KICK_FRIENDLY) {
-			double C_PENALTY_KICK = player->MAX_RADIUS + 0.40 + ROBOT_MARGIN;
-			Point f_penalty_mark((-length / 2) + defense_area_stretch, 0);
-			if ((p - f_penalty_mark).len() < C_PENALTY_KICK) {
-				return true;
-			}
-		}
-		if (flags & FLAG_PENALTY_KICK_ENEMY) {
-			double C_PENALTY_KICK = player->MAX_RADIUS + 0.40 + ROBOT_MARGIN;
-			Point e_penalty_mark((length / 2) - defense_area_stretch, 0);
-			if ((p - e_penalty_mark).len() < C_PENALTY_KICK) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	bool BNavigator::check_mobile_violation(Point p, World &world, Player::Ptr player) {
+	// returns point and 0 if no violation, 1 if ball violation, or 2 if robot
+	pair<Point, int> BNavigator::check_mobile_violation(Point p, World &world, Player::Ptr player) {
 		const Ball &ball = world.ball();
 		unsigned int flags = player->flags();
 		if (flags & FLAG_AVOID_BALL_STOP) {
 			double C_BALL_STOP = player->MAX_RADIUS + 0.50;
 			if ((ball.position() - p).len() < C_BALL_STOP) {
-				return true;
+				return make_pair(ball.position(),1);
 			}
 		}
 		if (flags & FLAG_AVOID_BALL_TINY) {
 			double C_BALL_TINY = 0.15;
 			if ((ball.position() - p).len() < C_BALL_TINY) {
-				return true;
+				return make_pair(ball.position(),1);
 			}
 		}
 		Player::Ptr friendly;
@@ -204,18 +150,19 @@ namespace {
 		for (unsigned int i = 0; i < world.friendly_team().size(); i++) {
 			friendly = world.friendly_team().get(i);
 			if (player != friendly && (p - friendly->position()).len() < player->MAX_RADIUS * 2) {
-				return true;
+				return make_pair(friendly->position(),2);
 			}
 		}
 		for (unsigned int i = 0; i < world.enemy_team().size(); i++) {
 			enemy = world.enemy_team().get(i);
 			if ((p - enemy->position()).len() < player->MAX_RADIUS * 2) {
-				return true;
+				return make_pair(enemy->position(),2);
 			}
 		}
-		return false;
+		return make_pair(p,0);
 	}
 
+	// correct for regional flags given a point, world and flags
 	Point BNavigator::correct_regional_flags(Point dest, World &world, Player::Ptr player) {
 		const double ROBOT_MARGIN = 0.0;
 		const Field &field = world.field();
@@ -282,6 +229,7 @@ namespace {
 			}
 		}
 		if (flags & FLAG_PENALTY_KICK_ENEMY) {
+		// todo add check for goalie so it doesn't apply
 			double C_PENALTY_KICK = player->MAX_RADIUS + 0.40 + ROBOT_MARGIN;
 			Point e_penalty_mark((length / 2) - defense_area_stretch, 0);
 			if ((dest - e_penalty_mark).len() < C_PENALTY_KICK) {
@@ -291,4 +239,3 @@ namespace {
 		return corrected;
 	}
 }
-

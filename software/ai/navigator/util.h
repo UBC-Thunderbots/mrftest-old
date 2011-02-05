@@ -76,6 +76,19 @@ namespace AI {
 			 */
 			std::vector<Point> get_obstacle_boundaries(AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player, unsigned int added_flags);
 
+			/**
+			 * returns the next timespec
+			 *
+			 * \param[in] now the time now
+			 *
+			 * \param[in] p1 first point
+			 *
+			 * \param[in] p2 second point
+			 *
+			 * \param[in] target_velocity the desired velocity we want when we get there
+			 */
+			 timespec get_next_ts( timespec now, Point &p1, Point &p2, Point target_velocity );
+
 		}
 	}
 }
