@@ -133,7 +133,7 @@ void Player::kick_impl(double speed) {
 			bot->kick(static_cast<unsigned int>(clamp(power, 0.0, 65535.0)));
 			timespec_now(chicker_last_fire_time);
 		} else {
-			chick_when_not_ready_message.activate(true);
+			chick_when_not_ready_message.fire();
 		}
 	}
 }
@@ -143,7 +143,7 @@ Player::Ptr Player::create(AI::BE::Backend &backend, unsigned int pattern, XBeeR
 	return p;
 }
 
-Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), destination_(Point(), 0.0), moved(false), controlled(false), dribble_distance_(0.0), not_moved_message(Glib::ustring::compose("Bot %1 not moved", pattern)), chick_when_not_ready_message(Glib::ustring::compose("Bot %1 chick when not ready", pattern)), flags_(0), move_type_(AI::Flags::MOVE_NORMAL), move_prio_(AI::Flags::PRIO_LOW) {
+Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), destination_(Point(), 0.0), moved(false), controlled(false), dribble_distance_(0.0), not_moved_message(Glib::ustring::compose("Bot %1 not moved", pattern), Annunciator::Message::TRIGGER_EDGE), chick_when_not_ready_message(Glib::ustring::compose("Bot %1 chick when not ready", pattern), Annunciator::Message::TRIGGER_EDGE), flags_(0), move_type_(AI::Flags::MOVE_NORMAL), move_prio_(AI::Flags::PRIO_LOW) {
 	timespec now;
 	timespec_now(now);
 	chicker_last_fire_time.tv_sec = 0;
@@ -159,11 +159,10 @@ void Player::drive(const int(&w)[4]) {
 }
 
 void Player::tick(bool scram) {
-	// This message may have been set earlier, but need not be set any more.
-	chick_when_not_ready_message.activate(false);
-
 	// Annunciate that we weren't moved if we have a Strategy but it never set a destination.
-	not_moved_message.activate(bot->alive && !scram && !moved);
+	if (bot->alive && !scram && !moved) {
+		not_moved_message.fire();
+	}
 
 	// Emergency conditions that cause scram of all systems.
 	if (!bot->alive || scram || bot->battery_voltage < BATTERY_CRITICAL_THRESHOLD) {

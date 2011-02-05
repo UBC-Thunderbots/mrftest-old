@@ -15,11 +15,29 @@ namespace Annunciator {
 	class Message : public NonCopyable, public sigc::trackable {
 		public:
 			/**
+			 * The possible triggering modes for a message.
+			 */
+			enum TriggerMode {
+				/**
+				 * Indicates that the message is either asserted or deasserted at any given time,
+				 * and is put into those states by the caller.
+				 */
+				TRIGGER_LEVEL,
+
+				/**
+				 * Indicates that the message reflects an event which can occur at some instant in time.
+				 */
+				TRIGGER_EDGE,
+			};
+
+			/**
 			 * Registers a new message source with the annunciator system.
 			 *
 			 * \param[in] text the text of the message.
+			 *
+			 * \param[in] mode the trigger mode of the message.
 			 */
-			Message(const Glib::ustring &text);
+			Message(const Glib::ustring &text, TriggerMode mode);
 
 			/**
 			 * Unregisters the message source.
@@ -32,6 +50,11 @@ namespace Annunciator {
 			const Glib::ustring text;
 
 			/**
+			 * The trigger mode of the message.
+			 */
+			const TriggerMode mode;
+
+			/**
 			 * A globally-unique ID number that refers to this message.
 			 */
 			const unsigned int id;
@@ -39,18 +62,27 @@ namespace Annunciator {
 			/**
 			 * Checks whether the message is active.
 			 *
-			 * \return \c true if the message is active, or \c false if not.
+			 * \return \c true if the message is active, or \c false if not (always \c false if \c mode is TRIGGER_EDGE).
 			 */
 			bool active() const {
 				return active_;
 			}
 
 			/**
-			 * Sets whether the message is active or not.
+			 * Sets whether a level-triggered message is active or not.
+			 *
+			 * \pre \c mode must be TRIGGER_LEVEL.
 			 *
 			 * \param[in] actv \c true to activate the message, or \c false to deactivate it.
 			 */
-			void activate(bool actv);
+			void active(bool actv);
+
+			/**
+			 * Fires an edge-triggered message.
+			 *
+			 * \pre \c mode must be TRIGGER_EDGE.
+			 */
+			void fire();
 
 			/**
 			 * Returns the age of the message.

@@ -13,7 +13,7 @@ namespace {
 	}
 }
 
-TimerFDClockSource::TimerFDClockSource(uint64_t interval) : tfd(create_timerfd(CLOCK_MONOTONIC)), nanoseconds(interval), overflow_message("Timer overflow!") {
+TimerFDClockSource::TimerFDClockSource(uint64_t interval) : tfd(create_timerfd(CLOCK_MONOTONIC)), nanoseconds(interval), overflow_message("Timer overflow!", Annunciator::Message::TRIGGER_EDGE) {
 	tfd->set_blocking(false);
 	itimerspec tspec;
 	tspec.it_interval.tv_sec = nanoseconds / UINT64_C(1000000000);
@@ -34,7 +34,9 @@ bool TimerFDClockSource::on_readable(Glib::IOCondition) {
 		throw std::runtime_error("Cannot read timerfd!");
 	}
 
-	overflow_message.activate(ticks > 1);
+	if (ticks > 1) {
+		overflow_message.fire();
+	}
 
 	while (ticks--) {
 		signal_tick.emit();

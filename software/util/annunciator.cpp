@@ -1,6 +1,7 @@
 #include "util/annunciator.h"
 #include "util/dprint.h"
 #include "util/misc.h"
+#include <cassert>
 #include <unordered_map>
 
 namespace {
@@ -16,7 +17,8 @@ namespace {
 	std::vector<Annunciator::Message *> displayed;
 }
 
-Annunciator::Message::Message(const Glib::ustring &text) : text(text), id(next_id++), active_(false), age_(0), displayed_(false) {
+Annunciator::Message::Message(const Glib::ustring &text, TriggerMode mode) : text(text), mode(mode), id(next_id++), active_(false), age_(0), displayed_(false) {
+	assert(mode == TRIGGER_LEVEL || mode == TRIGGER_EDGE);
 	registered()[id] = this;
 }
 
@@ -25,7 +27,9 @@ Annunciator::Message::~Message() {
 	registered().erase(id);
 }
 
-void Annunciator::Message::activate(bool actv) {
+void Annunciator::Message::active(bool actv) {
+	assert(mode == TRIGGER_LEVEL);
+
 	if (actv != active_) {
 		active_ = actv;
 		for (std::size_t i = 0; i < displayed.size(); ++i) {
@@ -49,6 +53,32 @@ void Annunciator::Message::activate(bool actv) {
 		} else {
 			one_second_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &Annunciator::Message::on_one_second), 1);
 		}
+	}
+}
+
+void Annunciator::Message::fire() {
+	assert(mode == TRIGGER_EDGE);
+
+	age_ = 0;
+	if (!one_second_connection.connected()) {
+		one_second_connection = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &Annunciator::Message::on_one_second), 1);
+	}
+
+	LOG_ERROR(text);
+
+	for (std::size_t i = 0; i < displayed.size(); ++i) {
+		if (displayed[i] == this) {
+			signal_message_reactivated.emit(i);
+			signal_message_deactivated.emit(i);
+			return;
+		}
+	}
+
+	if (!displayed_) {
+		displayed.push_back(this);
+		signal_message_activated.emit();
+		signal_message_deactivated.emit(displayed.size() - 1);
+		displayed_ = true;
 	}
 }
 
@@ -146,9 +176,9 @@ namespace {
 		private:
 			Annunciator::Message msg;
 
-			SirenAvailabilityWarner() : msg("\"beep\" executable unavailable, no annunciator sirens") {
+			SirenAvailabilityWarner() : msg("\"beep\" executable unavailable, no annunciator sirens", Annunciator::Message::TRIGGER_LEVEL) {
 				if (!can_siren()) {
-					msg.activate(true);
+					msg.active(true);
 				}
 			}
 	};
