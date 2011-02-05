@@ -9,7 +9,7 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
-			namespace Evaluate {
+			namespace Evaluation {
 				struct BallThreat {
 					/**
 					 * Enemy robot closest to ball.

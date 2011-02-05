@@ -7,7 +7,7 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
-			namespace Evaluate {
+			namespace Evaluation {
 				struct ShootStats {
 					Point target;
 					double angle;

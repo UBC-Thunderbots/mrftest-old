@@ -1,6 +1,6 @@
 #include "ai/hl/stp/evaluate/coordinate.h"
 
-using AI::HL::STP::Evaluate::Coordinate;
+using AI::HL::STP::Evaluation::Coordinate;
 using namespace AI::HL::W;
 
 Point Coordinate::CoordinateData::position() const {
@@ -18,5 +18,9 @@ Point Coordinate::evaluate() const {
 	} else {
 		return offset;
 	}
+}
+
+Coordinate Coordinate::origin() const {
+	return Coordinate(data, Point());
 }
 

@@ -14,6 +14,8 @@ namespace AI {
 			namespace Tactic {
 				/**
 				 * A tactic is a layer in the STP paradigm.
+				 * See STP paper section 4.1.
+				 *
 				 * It runs every tick.
 				 * A subclass shall derive score(), execute(),
 				 * optionally initialize() and done().

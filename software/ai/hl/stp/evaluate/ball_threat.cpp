@@ -5,13 +5,13 @@
 
 using namespace AI::HL::W;
 using namespace AI::HL::STP;
-using AI::HL::STP::Evaluate::BallThreat;
+using AI::HL::STP::Evaluation::BallThreat;
 
 namespace {
 	DoubleParam steal_threshold("Distance of ball from enemy robot to activate steal mechanism (robot radius)", 1.1, 0.8, 5.0);
 }
 
-const BallThreat AI::HL::STP::Evaluate::evaluate_ball_threat(World &world) {
+const BallThreat AI::HL::STP::Evaluation::evaluate_ball_threat(World &world) {
 	BallThreat ball_threat;
 
 	ball_threat.enemies = AI::HL::Util::get_robots(world.enemy_team());

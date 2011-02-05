@@ -2,12 +2,12 @@
 #define AI_HL_STP_EVALUATE_COORDINATE_H
 
 #include "ai/hl/world.h"
-#include "util/cacheable.h"
+#include "ai/hl/stp/evaluate/enemy.h"
 
 namespace AI {
 	namespace HL {
 		namespace STP {
-			namespace Evaluate {
+			namespace Evaluation {
 				/**
 				 * See STP paper section 5.2.3 (b)
 				 * Describes dynamically changing coordinate system.
@@ -42,9 +42,14 @@ namespace AI {
 						}
 
 						/**
-						 * Robot coordinate, with offset.
+						 * An enemy role.
 						 */
-						explicit Coordinate(const AI::HL::W::Robot::Ptr robot, const Point& off);
+						explicit Coordinate(const EnemyRole::Ptr enemy, const Point& off);
+
+						/**
+						 * Player coordinate, with offset.
+						 */
+						explicit Coordinate(const AI::HL::W::Player::Ptr player, const Point& off);
 
 						/**
 						 * Evaluates and returns the required coordinate.
@@ -88,6 +93,9 @@ namespace AI {
 						CoordinateData::Ptr data;
 
 						Point offset;
+
+						explicit Coordinate(CoordinateData::Ptr d, const Point& off) : data(d), offset(off) {
+						}
 				};
 			}
 		}

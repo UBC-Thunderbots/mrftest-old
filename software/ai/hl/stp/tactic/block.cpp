@@ -2,7 +2,7 @@
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
-using AI::HL::STP::Evaluate::EnemyRole;
+using AI::HL::STP::Evaluation::EnemyRole;
 
 namespace {
 	class Block : public Tactic {

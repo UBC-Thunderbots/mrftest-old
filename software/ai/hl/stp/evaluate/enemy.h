@@ -7,7 +7,7 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
-			namespace Evaluate {
+			namespace Evaluation {
 				/**
 				 * Describes an enemy role.
 				 * Allows tactics to dynamically target enemies.

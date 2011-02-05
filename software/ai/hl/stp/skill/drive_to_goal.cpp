@@ -20,7 +20,7 @@ namespace {
 					return;
 				}
 
-				AI::HL::STP::Evaluate::ShootStats shoot_stats = AI::HL::STP::Evaluate::shoot_stats(world, player);
+				AI::HL::STP::Evaluation::ShootStats shoot_stats = AI::HL::STP::Evaluation::shoot_stats(world, player);
 
 				// TODO
 				if (shoot_stats.can_shoot && player->chicker_ready_time() == 0) {

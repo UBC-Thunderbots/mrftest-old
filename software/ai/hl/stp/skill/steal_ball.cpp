@@ -13,7 +13,7 @@ namespace {
 		private:
 			void execute(World& world, Player::Ptr player, const SkillStateMachine*, AI::HL::STP::Skill::Param& param, Context& context) const {
 
-				const AI::HL::STP::Evaluate::BallThreat ball_threat = AI::HL::STP::Evaluate::evaluate_ball_threat(world);
+				const AI::HL::STP::Evaluation::BallThreat ball_threat = AI::HL::STP::Evaluation::evaluate_ball_threat(world);
 
 				// can use normal grab ball mechanism
 				if (!ball_threat.activate_steal) {

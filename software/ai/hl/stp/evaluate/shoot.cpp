@@ -2,11 +2,11 @@
 #include "ai/hl/util.h"
 
 using namespace AI::HL::STP;
-using AI::HL::STP::Evaluate::ShootStats;
-// using AI::HL::STP::Evaluate::evaluate_shoot;
+using AI::HL::STP::Evaluation::ShootStats;
+// using AI::HL::STP::Evaluation::evaluate_shoot;
 
 //ShootStats EvaluateShoot::compute(AI::HL::W::World &world, AI::HL::W::Player::Ptr player) const {
-const ShootStats AI::HL::STP::Evaluate::shoot_stats(AI::HL::W::World &world, AI::HL::W::Player::Ptr player) {
+const ShootStats AI::HL::STP::Evaluation::shoot_stats(AI::HL::W::World &world, AI::HL::W::Player::Ptr player) {
 	ShootStats stats;
 
 	std::pair<Point, double> shot = AI::HL::Util::calc_best_shot(world, player);
