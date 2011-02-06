@@ -2,15 +2,15 @@
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
-using AI::HL::STP::Evaluation::EnemyRole;
+using AI::HL::STP::Evaluation::Enemy;
 
 namespace {
 	class Block : public Tactic {
 		public:
-			Block(World &world, EnemyRole::Ptr enemy) : Tactic(world), enemy(enemy) {
+			Block(World &world, Enemy::Ptr enemy) : Tactic(world), enemy(enemy) {
 			}
 		private:
-			EnemyRole::Ptr enemy;
+			Enemy::Ptr enemy;
 			double score(Player::Ptr player) const {
 				if (!enemy->evaluate().is()) {
 					return 0;
@@ -30,7 +30,7 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::block(World &world, EnemyRole::Ptr enemy) {
+Tactic::Ptr AI::HL::STP::Tactic::block(World &world, Enemy::Ptr enemy) {
 	const Tactic::Ptr p(new Block(world, enemy));
 	return p;
 }

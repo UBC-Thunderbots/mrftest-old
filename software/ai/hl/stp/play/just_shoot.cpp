@@ -9,7 +9,7 @@
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
-using AI::HL::STP::Evaluation::EnemyRole;
+using AI::HL::STP::Evaluation::Enemy;
 
 namespace {
 
@@ -78,15 +78,15 @@ namespace {
 
 		// ROLE 2
 		// block nearest enemy
-		roles[1].push_back(block(world, EnemyRole::closest_friendly_goal(world, 0)));
+		roles[1].push_back(block(world, Enemy::closest_friendly_goal(world, 0)));
 
 		// ROLE 3
 		// block 2nd nearest enemy
-		roles[2].push_back(block(world, EnemyRole::closest_friendly_goal(world, 1)));
+		roles[2].push_back(block(world, Enemy::closest_friendly_goal(world, 1)));
 
 		// ROLE 4
 		// block 3rd nearest enemy
-		roles[3].push_back(block(world, EnemyRole::closest_friendly_goal(world, 2)));
+		roles[3].push_back(block(world, Enemy::closest_friendly_goal(world, 2)));
 	}
 }
 

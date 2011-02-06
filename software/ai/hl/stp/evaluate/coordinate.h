@@ -44,7 +44,7 @@ namespace AI {
 						/**
 						 * An enemy role.
 						 */
-						explicit Coordinate(const EnemyRole::Ptr enemy, const Point& off);
+						explicit Coordinate(const Enemy::Ptr enemy, const Point& off);
 
 						/**
 						 * Player coordinate, with offset.

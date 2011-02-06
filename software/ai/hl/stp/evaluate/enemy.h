@@ -9,13 +9,13 @@ namespace AI {
 		namespace STP {
 			namespace Evaluation {
 				/**
-				 * Describes an enemy role.
+				 * Describes an enemy.
 				 * Allows tactics to dynamically target enemies.
 				 * E.g. you want to block the closest enemy.
 				 */
-				class EnemyRole : public ByRef {
+				class Enemy : public ByRef {
 					public:
-						typedef RefPtr<EnemyRole> Ptr;
+						typedef RefPtr<Enemy> Ptr;
 
 						/**
 						 * Returns the enemy robot associated with this role.
@@ -28,21 +28,21 @@ namespace AI {
 						 * Fixed role.
 						 * Be very sure if you ever want to use this.
 						 */
-						static EnemyRole::Ptr fixed(AI::HL::W::Robot::Ptr robot);
+						static Enemy::Ptr robot(AI::HL::W::Robot::Ptr robot);
 
 						/**
 						 * Order by distance to friendly goal.
 						 */
-						static EnemyRole::Ptr closest_friendly_goal(AI::HL::W::World& world, unsigned int i);
+						static Enemy::Ptr closest_friendly_goal(AI::HL::W::World& world, unsigned int i);
 
 						/**
 						 * Order by distance to ball.
 						 */
-						static EnemyRole::Ptr closest_ball(AI::HL::W::World& world, unsigned int i);
+						static Enemy::Ptr closest_ball(AI::HL::W::World& world, unsigned int i);
 					protected:
-						EnemyRole();
+						Enemy();
 
-						~EnemyRole();
+						~Enemy();
 				};
 			}
 		}

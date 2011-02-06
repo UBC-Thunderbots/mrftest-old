@@ -2,10 +2,10 @@
 #include "ai/hl/util.h"
 
 using namespace AI::HL::W;
-using AI::HL::STP::Evaluation::EnemyRole;
+using AI::HL::STP::Evaluation::Enemy;
 
 namespace {
-	class Fixed : public EnemyRole {
+	class Fixed : public Enemy {
 		public:
 			Fixed(Robot::Ptr r) : robot(r) {
 			}
@@ -16,7 +16,7 @@ namespace {
 			}
 	};
 
-	class ClosestFriendlyGoal : public EnemyRole {
+	class ClosestFriendlyGoal : public Enemy {
 		public:
 			ClosestFriendlyGoal(World& w, unsigned int i) : world(w), index(i) {
 			}
@@ -38,7 +38,7 @@ namespace {
 			}
 	};
 
-	class ClosestBall : public EnemyRole {
+	class ClosestBall : public Enemy {
 		public:
 			ClosestBall(World& w, unsigned int i) : world(w), index(i) {
 			}
@@ -61,24 +61,24 @@ namespace {
 	};
 };
 
-EnemyRole::Ptr AI::HL::STP::Evaluation::EnemyRole::closest_friendly_goal(World& world, unsigned int i) {
-	EnemyRole::Ptr p(new ClosestFriendlyGoal(world, i));
+Enemy::Ptr AI::HL::STP::Evaluation::Enemy::closest_friendly_goal(World& world, unsigned int i) {
+	Enemy::Ptr p(new ClosestFriendlyGoal(world, i));
 	return p;
 }
 
-EnemyRole::Ptr AI::HL::STP::Evaluation::EnemyRole::fixed(Robot::Ptr robot) {
-	EnemyRole::Ptr p(new Fixed(robot));
+Enemy::Ptr AI::HL::STP::Evaluation::Enemy::robot(Robot::Ptr r) {
+	Enemy::Ptr p(new Fixed(r));
 	return p;
 }
 
-EnemyRole::Ptr AI::HL::STP::Evaluation::EnemyRole::closest_ball(World& world, unsigned int i) {
-	EnemyRole::Ptr p(new ClosestBall(world, i));
+Enemy::Ptr AI::HL::STP::Evaluation::Enemy::closest_ball(World& world, unsigned int i) {
+	Enemy::Ptr p(new ClosestBall(world, i));
 	return p;
 }
 
-EnemyRole::EnemyRole() {
+Enemy::Enemy() {
 }
 
-EnemyRole::~EnemyRole() {
+Enemy::~Enemy() {
 }
 
