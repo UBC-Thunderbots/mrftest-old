@@ -25,13 +25,6 @@ namespace AI {
 						virtual AI::HL::W::Robot::Ptr evaluate() const = 0;
 
 						/**
-						 * Checks whether the enemy exist or not.
-						 */
-						bool exist() const {
-							return evaluate().is();
-						}
-
-						/**
 						 * Fixed role.
 						 * Be very sure if you ever want to use this.
 						 */

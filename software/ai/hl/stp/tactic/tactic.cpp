@@ -13,10 +13,6 @@ bool Tactic::done() const {
 	return true;
 }
 
-bool Tactic::active() const {
-	return active_;
-}
-
 void Tactic::set_player(Player::Ptr p) {
 	if (player != p) {
 		player = p;

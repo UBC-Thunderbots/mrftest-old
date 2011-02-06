@@ -11,14 +11,8 @@ namespace {
 			}
 
 		private:
-			bool done_;
-
 			bool done() const {
-				return done_;
-			}
-
-			void initialize() {
-				done_ = (player->has_ball());
+				return player->has_ball();
 			}
 
 			double score(Player::Ptr player) const {
@@ -29,13 +23,10 @@ namespace {
 			void execute() {
 				// if it has the ball, stay there
 				if (player->has_ball()) {
-					done_ = true;
 					set_ssm(NULL);
 					player->move(player->position(), player->orientation(), 0, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
 					return;
 				}
-
-				done_ = false;
 
 				// TODO: flags
 				set_ssm(AI::HL::STP::SSM::get_ball());

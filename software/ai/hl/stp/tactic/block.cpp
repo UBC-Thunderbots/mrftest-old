@@ -12,13 +12,13 @@ namespace {
 		private:
 			EnemyRole::Ptr enemy;
 			double score(Player::Ptr player) const {
-				if (!enemy->exist()) {
+				if (!enemy->evaluate().is()) {
 					return 0;
 				}
 				return -(player->position() - enemy->evaluate()->position()).lensq();
 			}
 			void execute() {
-				if (!enemy->exist()) {
+				if (!enemy->evaluate().is()) {
 					// do nothing??
 					player->move(player->position(), player->orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, param.move_priority);
 					return;

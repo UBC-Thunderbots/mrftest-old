@@ -181,6 +181,8 @@ software/ai/hl/stp/evaluate/coordinate.cpp -text
 software/ai/hl/stp/evaluate/coordinate.h -text
 software/ai/hl/stp/evaluate/enemy.cpp -text
 software/ai/hl/stp/evaluate/enemy.h -text
+software/ai/hl/stp/evaluate/offense.cpp -text
+software/ai/hl/stp/evaluate/offense.h -text
 software/ai/hl/stp/evaluate/region.h -text
 software/ai/hl/stp/evaluate/shoot.cpp -text
 software/ai/hl/stp/evaluate/shoot.h -text
@@ -191,6 +193,7 @@ software/ai/hl/stp/play/play.cpp -text
 software/ai/hl/stp/play/play.h -text
 software/ai/hl/stp/play_executor.cpp -text
 software/ai/hl/stp/play_executor.h -text
+software/ai/hl/stp/role.h -text
 software/ai/hl/stp/skill/bump_to_goal.cpp -text
 software/ai/hl/stp/skill/bump_to_goal.h -text
 software/ai/hl/stp/skill/context.cpp -text

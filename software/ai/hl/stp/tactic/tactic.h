@@ -47,7 +47,7 @@ namespace AI {
 						/**
 						 * Destructor.
 						 */
-						virtual ~Tactic();
+						~Tactic();
 
 						/**
 						 * An active tactic must override this,
@@ -58,7 +58,9 @@ namespace AI {
 						/**
 						 * Checks if the current tactic is an active tactic.
 						 */
-						bool active() const;
+						bool active() const {
+							return active_;
+						}
 
 						/**
 						 * Changes the player associated with this tactic.
@@ -119,7 +121,7 @@ namespace AI {
 						bool ssm_done() const;
 
 					private:
-						bool active_;
+						const bool active_;
 
 						/**
 						 * Handles the skill state machine.

@@ -1,16 +1,10 @@
 #include "ai/hl/strategy.h"
-#include "ai/hl/util.h"
 #include "ai/hl/stp/play_executor.h"
-#include "util/dprint.h"
 
 using AI::HL::Strategy;
 using AI::HL::StrategyFactory;
-using namespace AI::HL::W;
-
-using AI::HL::STP::Play::Play;
-using AI::HL::STP::Play::PlayFactory;
-using AI::HL::STP::Tactic::Tactic;
 using AI::HL::STP::PlayExecutor;
+using namespace AI::HL::W;
 
 namespace {
 	/**
@@ -21,12 +15,12 @@ namespace {
 		public:
 			StrategyFactory &factory() const;
 
-			static Strategy::Ptr create(AI::HL::W::World &world);
+			static Strategy::Ptr create(World &world);
 
 		protected:
 			PlayExecutor play_executor;
 
-			STPStrategy(AI::HL::W::World &world);
+			STPStrategy(World &world);
 
 			~STPStrategy();
 
