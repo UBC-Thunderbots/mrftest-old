@@ -44,6 +44,10 @@ static void check_send(void) {
 	uint8_t blocks_used = 0;
 	__data uint8_t *write_ptr = buffer;
 
+	if (transaction_running) {
+		return;
+	}
+
 	if (!USB_BD_IN_HAS_FREE(EP_STATE_TRANSPORT)) {
 		return;
 	}
@@ -81,28 +85,21 @@ static void on_commanded_stall(void) {
 }
 
 static BOOL on_clear_halt(void) {
-	/* Halt status can only be cleared once XBee stage 2 configuration completes. */
-	if (dongle_status.xbees == XBEES_STATE_RUNNING) {
-		USB_BD_IN_UNSTALL(EP_STATE_TRANSPORT);
-		transaction_running = false;
-		dirty_mask = 0xFFFE;
-		memcpyram2ram(back_buffers, state_transport_in_feedback, sizeof(back_buffers));
-		check_send();
-		return true;
-	} else {
-		return false;
-	}
+	USB_BD_IN_UNSTALL(EP_STATE_TRANSPORT);
+	transaction_running = false;
+	dirty_mask = 0xFFFE;
+	memcpyram2ram(back_buffers, state_transport_in_feedback, sizeof(back_buffers));
+	check_send();
+	return true;
 }
 
 void state_transport_in_init(void) {
-	/* The endpoint is halted until XBee stage 2 configuration completes. */
-	usb_halted_in_endpoints |= 1 << EP_STATE_TRANSPORT;
+	/* The endpoint is held off until XBee stage 2 configuration completes. */
 	usb_ep_callbacks[EP_STATE_TRANSPORT].in.transaction = &on_transaction;
 	usb_ep_callbacks[EP_STATE_TRANSPORT].in.commanded_stall = &on_commanded_stall;
 	usb_ep_callbacks[EP_STATE_TRANSPORT].in.clear_halt = &on_clear_halt;
 	USB_BD_IN_INIT(EP_STATE_TRANSPORT);
-	USB_BD_IN_FUNCTIONAL_STALL(EP_STATE_TRANSPORT);
-	transaction_running = true;
+	transaction_running = false;
 	UEPBITS(EP_STATE_TRANSPORT).EPHSHK = 1;
 	UEPBITS(EP_STATE_TRANSPORT).EPINEN = 1;
 	next_robot = 1;
@@ -121,9 +118,7 @@ void state_transport_in_feedback_dirty(uint8_t robot) {
 	if (memcmp(back_buffers[robot - 1], state_transport_in_feedback[robot - 1], sizeof(back_buffers[robot - 1])) != 0) {
 		memcpyram2ram(back_buffers[robot - 1], state_transport_in_feedback[robot - 1], sizeof(back_buffers[robot - 1]));
 		dirty_mask |= 1 << robot;
-		if (!transaction_running) {
-			check_send();
-		}
+		check_send();
 	}
 
 	CRITSEC_LEAVE(cs);

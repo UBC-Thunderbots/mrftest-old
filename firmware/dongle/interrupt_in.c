@@ -24,25 +24,17 @@ static void on_commanded_stall(void) {
 }
 
 static BOOL on_clear_halt(void) {
-	/* Halt status can only be cleared once XBee stage 2 configuration completes. */
-	if (dongle_status.xbees == XBEES_STATE_RUNNING) {
-		USB_BD_IN_UNSTALL(EP_INTERRUPT);
-		busy = false;
-		return true;
-	} else {
-		return false;
-	}
+	USB_BD_IN_UNSTALL(EP_INTERRUPT);
+	busy = false;
+	return true;
 }
 
 void interrupt_in_init(void) {
-	/* The endpoint is halted until XBee stage 2 configuration completes. */
-	usb_halted_in_endpoints |= 1 << EP_INTERRUPT;
 	usb_ep_callbacks[EP_INTERRUPT].in.transaction = &on_transaction;
 	usb_ep_callbacks[EP_INTERRUPT].in.commanded_stall = &on_commanded_stall;
 	usb_ep_callbacks[EP_INTERRUPT].in.clear_halt = &on_clear_halt;
 	USB_BD_IN_INIT(EP_INTERRUPT);
-	USB_BD_IN_FUNCTIONAL_STALL(EP_INTERRUPT);
-	busy = true;
+	busy = false;
 	UEPBITS(EP_INTERRUPT).EPHSHK = 1;
 	UEPBITS(EP_INTERRUPT).EPINEN = 1;
 }
@@ -52,7 +44,7 @@ void interrupt_in_deinit(void) {
 }
 
 void interrupt_in_send(__data const uint8_t *message, uint8_t len) {
-	/* Wait until the endpoint is not busy (if it was halted, we should wait here so data is not lost). */
+	/* Wait until the endpoint is not busy. */
 	while (busy) {
 		if (should_shut_down) {
 			return;
@@ -63,10 +55,5 @@ void interrupt_in_send(__data const uint8_t *message, uint8_t len) {
 	/* Begin the transaction. */
 	busy = true;
 	USB_BD_IN_SUBMIT(EP_INTERRUPT, message, len);
-
-	/* Wait for it to finish. */
-	while (busy && !should_shut_down) {
-		check_idle();
-	}
 }
 

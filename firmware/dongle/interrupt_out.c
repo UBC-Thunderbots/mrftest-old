@@ -67,7 +67,7 @@ static void on_transaction(void) {
 			/* Robot index zero is invalid.
 			 * Report an error and leave the packet in sie_packet to resubmit. */
 			error_reporting_add(FAULT_OUT_MICROPACKET_NOPIPE);
-		} else if (pipe > PIPE_MAX || !((1 << pipe) & pipe_out_mask & pipe_interrupt_mask)) {
+		} else if (pipe > PIPE_MAX || !((1 << pipe) & PIPE_OUT_MASK & PIPE_INTERRUPT_MASK)) {
 			/* Pipe is not an outbound interrupt pipe.
 			 * Report an error and leave the packet in sie_packet to resubmit. */
 			error_reporting_add(FAULT_OUT_MICROPACKET_NOPIPE);
@@ -93,15 +93,10 @@ static void on_commanded_stall(void) {
 }
 
 static BOOL on_clear_halt(void) {
-	/* Halt status can only be cleared once XBee stage 2 configuration completes. */
-	if (dongle_status.xbees == XBEES_STATE_RUNNING) {
-		USB_BD_OUT_UNSTALL(EP_INTERRUPT);
-		transaction_running = false;
-		submit_sie_packet();
-		return true;
-	} else {
-		return false;
-	}
+	USB_BD_OUT_UNSTALL(EP_INTERRUPT);
+	transaction_running = false;
+	submit_sie_packet();
+	return true;
 }
 
 void interrupt_out_init(void) {
@@ -116,16 +111,15 @@ void interrupt_out_init(void) {
 	sie_packet = 0;
 	QUEUE_INIT(ready_packets);
 
-	/* The endpoint is halted until XBee stage 2 configuration completes. */
-	usb_halted_out_endpoints |= 1 << EP_INTERRUPT;
+	/* Start the endpoint. */
 	usb_ep_callbacks[EP_INTERRUPT].out.transaction = &on_transaction;
 	usb_ep_callbacks[EP_INTERRUPT].out.commanded_stall = &on_commanded_stall;
 	usb_ep_callbacks[EP_INTERRUPT].out.clear_halt = &on_clear_halt;
 	USB_BD_OUT_INIT(EP_INTERRUPT);
-	USB_BD_OUT_FUNCTIONAL_STALL(EP_INTERRUPT);
-	transaction_running = true;
 	UEPBITS(EP_INTERRUPT).EPHSHK = 1;
 	UEPBITS(EP_INTERRUPT).EPOUTEN = 1;
+	transaction_running = false;
+	submit_sie_packet();
 }
 
 void interrupt_out_deinit(void) {

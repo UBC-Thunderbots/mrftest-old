@@ -64,7 +64,8 @@ void dongle_status_start(void) {
 	UEPBITS(EP_DONGLE_STATUS).EPHSHK = 1;
 	UEPBITS(EP_DONGLE_STATUS).EPINEN = 1;
 	reporting = true;
-	force = false;
+	force = true;
+	check_send();
 }
 
 void dongle_status_stop(void) {

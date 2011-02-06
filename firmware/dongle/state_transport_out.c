@@ -71,15 +71,8 @@ static void on_transaction(void) {
 		}
 	}
 
-	if (dongle_status.xbees == XBEES_STATE_RUNNING) {
-		/* Prepare to receive the next packet. */
-		USB_BD_OUT_SUBMIT(EP_STATE_TRANSPORT, buffer, sizeof(buffer));
-	} else if (USB_BD_OUT_CAN_FUNCTIONAL_STALL(EP_STATE_TRANSPORT)) {
-		/* Emergency stop switch is not in RUN state.
-		 * Set the endpoint halt feature. */
-		usb_halted_out_endpoints |= 1 << EP_STATE_TRANSPORT;
-		USB_BD_OUT_FUNCTIONAL_STALL(EP_STATE_TRANSPORT);
-	}
+	/* Prepare to receive the next packet. */
+	USB_BD_OUT_SUBMIT(EP_STATE_TRANSPORT, buffer, sizeof(buffer));
 }
 
 static void on_commanded_stall(void) {
@@ -93,14 +86,9 @@ static void on_commanded_stall(void) {
 }
 
 static BOOL on_clear_halt(void) {
-	/* Halt status can only be cleared once XBee stage 2 configuration completes. */
-	if (dongle_status.xbees == XBEES_STATE_RUNNING) {
-		USB_BD_OUT_UNSTALL(EP_STATE_TRANSPORT);
-		USB_BD_OUT_SUBMIT(EP_STATE_TRANSPORT, buffer, sizeof(buffer));
-		return true;
-	} else {
-		return false;
-	}
+	USB_BD_OUT_UNSTALL(EP_STATE_TRANSPORT);
+	USB_BD_OUT_SUBMIT(EP_STATE_TRANSPORT, buffer, sizeof(buffer));
+	return true;
 }
 
 void state_transport_out_init(void) {
@@ -116,13 +104,12 @@ void state_transport_out_init(void) {
 	IPR1bits.TMR1IP = 0;
 	PIE1bits.TMR1IE = 1;
 
-	/* The endpoint is halted until XBee stage 2 configuration completes. */
-	usb_halted_out_endpoints |= 1 << EP_STATE_TRANSPORT;
+	/* Start the endpoint. */
 	usb_ep_callbacks[EP_STATE_TRANSPORT].out.transaction = &on_transaction;
 	usb_ep_callbacks[EP_STATE_TRANSPORT].out.commanded_stall = &on_commanded_stall;
 	usb_ep_callbacks[EP_STATE_TRANSPORT].out.clear_halt = &on_clear_halt;
 	USB_BD_OUT_INIT(EP_STATE_TRANSPORT);
-	USB_BD_OUT_FUNCTIONAL_STALL(EP_STATE_TRANSPORT);
+	USB_BD_OUT_SUBMIT(EP_STATE_TRANSPORT, buffer, sizeof(buffer));
 	UEPBITS(EP_STATE_TRANSPORT).EPHSHK = 1;
 	UEPBITS(EP_STATE_TRANSPORT).EPOUTEN = 1;
 }

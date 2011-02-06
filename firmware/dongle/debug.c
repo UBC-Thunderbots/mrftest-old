@@ -34,12 +34,12 @@ static char bounce_buffer[64];
 /**
  * \brief Whether or not a debug interface overflow error has been recently reported.
  */
-static volatile BOOL overflow_reported;
+static BOOL overflow_reported;
 
 /**
  * \brief Whether or not a transaction is currently in progress.
  */
-static volatile BOOL transaction_running;
+static BOOL transaction_running;
 
 volatile BOOL debug_enabled = false;
 
@@ -68,6 +68,11 @@ static void queue_block(uint8_t length) {
 
 static void check_send(void) {
 	uint8_t pending, nl_offset;
+
+	/* If the subsystem is disabled, we have nothing to do. */
+	if (!debug_enabled) {
+		return;
+	}
 
 	/* If there's no free BD, we have nothing to do. */
 	if (!USB_BD_IN_HAS_FREE(EP_DEBUG)) {
@@ -174,23 +179,21 @@ PUTCHAR(ch) {
 
 	CRITSEC_ENTER_LOW(cs);
 
-	if (debug_enabled && !(usb_halted_in_endpoints & (1 << EP_DEBUG))) {
-		if (((uint8_t) (write_ptr + 1)) != tail_ptr) {
-			/* Add the byte to the circular buffer. */
-			buffer[write_ptr] = ch;
-			++write_ptr;
+	if (((uint8_t) (write_ptr + 1)) != tail_ptr) {
+		/* Add the byte to the circular buffer. */
+		buffer[write_ptr] = ch;
+		++write_ptr;
 
-			/* Check if it's time to start a transaction. */
-			if (!transaction_running) {
-				check_send();
-			}
-		} else {
-			/* There is no space in the circular buffer.
-			 * Report the error. */
-			if (!overflow_reported) {
-				error_reporting_add(FAULT_DEBUG_OVERFLOW);
-				overflow_reported = true;
-			}
+		/* Check if it's time to start a transaction. */
+		if (!transaction_running) {
+			check_send();
+		}
+	} else {
+		/* There is no space in the circular buffer.
+		 * Report the error. */
+		if (!overflow_reported) {
+			error_reporting_add(FAULT_DEBUG_OVERFLOW);
+			overflow_reported = true;
 		}
 	}
 

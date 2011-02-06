@@ -108,22 +108,11 @@ __code const uint8_t CONFIGURATION_DESCRIPTOR_TAIL[] = {
 	/* bDescriptorType */ USB_DESCRIPTOR_INTERFACE,
 	/* bInterfaceNumber */ 2,
 	/* bAlternateSetting */ 0,
-	/* bNumEndpoints */ 0,
-	/* bInterfaceClass */ 0xFF,
-	/* bInterfaceSubclass */ 0,
-	/* bInterfaceProtocol */ 0,
-	/* iInterface */ 5,
-
-	/* Interface Descriptor */
-	/* bLength */ sizeof(usb_interface_descriptor_t),
-	/* bDescriptorType */ USB_DESCRIPTOR_INTERFACE,
-	/* bInterfaceNumber */ 2,
-	/* bAlternateSetting */ 1,
 	/* bNumEndpoints */ 1,
 	/* bInterfaceClass */ 0xFF,
 	/* bInterfaceSubclass */ 0,
 	/* bInterfaceProtocol */ 0,
-	/* iInterface */ 6,
+	/* iInterface */ 5,
 
 		/* Endpoint Descriptor */
 		/* bLength */ sizeof(usb_endpoint_descriptor_t),
@@ -170,12 +159,8 @@ static __code const uint16_t STRING_ENUS_INTERFACE1[] = {
 	'M', 'a', 'i', 'n', ' ', 'T', 'r', 'a', 'n', 's', 'p', 'o', 'r', 't', 0
 };
 
-static __code const uint16_t STRING_ENUS_INTERFACE2_AS0[] = {
-	'D', 'e', 'b', 'u', 'g', ' ', '(', 'd', 'i', 's', 'a', 'b', 'l', 'e', 'd', ')', 0
-};
-
-static __code const uint16_t STRING_ENUS_INTERFACE2_AS1[] = {
-	'D', 'e', 'b', 'u', 'g', ' ', '(', 'e', 'n', 'a', 'b', 'l', 'e', 'd', ')', 0
+static __code const uint16_t STRING_ENUS_INTERFACE2[] = {
+	'D', 'e', 'b', 'u', 'g', 0
 };
 
 static __code const usb_string_table_t STRING_TABLE_ENUS = {
@@ -185,14 +170,13 @@ static __code const usb_string_table_t STRING_TABLE_ENUS = {
 		STRING_ENUS_PRODUCT,
 		STRING_ENUS_INTERFACE0,
 		STRING_ENUS_INTERFACE1,
-		STRING_ENUS_INTERFACE2_AS0,
-		STRING_ENUS_INTERFACE2_AS1,
+		STRING_ENUS_INTERFACE2,
 	},
 };
 
 __code const usb_string_metatable_t STRING_METATABLE = {
 	1, /* # of tables */
-	6, /* # of strings in each table */
+	5, /* # of strings in each table */
 	{ &STRING_TABLE_ENUS, },
 };
 

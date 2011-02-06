@@ -150,10 +150,6 @@ class LibUSBDeviceHandle : public NonCopyable {
 
 		AsyncOperation<void>::Ptr claim_interface(int interface);
 
-		AsyncOperation<void>::Ptr set_interface_alt_setting(int interface, int setting);
-
-		AsyncOperation<void>::Ptr clear_halt(unsigned char endpoint);
-
 	private:
 		friend class LibUSBTransfer;
 		friend class LibUSBControlNoDataTransfer;

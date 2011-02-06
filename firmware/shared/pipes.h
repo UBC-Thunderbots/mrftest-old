@@ -11,11 +11,11 @@
 #define PIPE_FIRMWARE_IN 5
 #define PIPE_MAX 5
 
-extern const uint8_t pipe_out_mask;
-extern const uint8_t pipe_in_mask;
+#define PIPE_OUT_MASK ((1 << PIPE_DRIVE) | (1 << PIPE_KICK) | (1 << PIPE_FAULT_OUT) | (1 << PIPE_FIRMWARE_OUT))
+#define PIPE_IN_MASK ((1 << PIPE_FEEDBACK) | (1 << PIPE_FIRMWARE_IN))
 
-extern const uint8_t pipe_state_transport_mask;
-extern const uint8_t pipe_interrupt_mask;
+#define PIPE_STATE_TRANSPORT_MASK ((1 << PIPE_DRIVE) | (1 << PIPE_FEEDBACK))
+#define PIPE_INTERRUPT_MASK ((1 << PIPE_KICK) | (1 << PIPE_FAULT_OUT) | (1 << PIPE_FIRMWARE_OUT) | (1 << PIPE_FIRMWARE_IN))
 
 #endif
 

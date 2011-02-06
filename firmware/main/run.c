@@ -257,7 +257,7 @@ void run(void) {
 					memset(sequence, 0, sizeof(sequence));
 				} else {
 					/* It's a packet containing a single interrupt message. */
-					if (rxpacket->buf[5] <= PIPE_MAX && ((1 << rxpacket->buf[5]) & pipe_out_mask & pipe_interrupt_mask)) {
+					if (rxpacket->buf[5] <= PIPE_MAX && ((1 << rxpacket->buf[5]) & PIPE_OUT_MASK & PIPE_INTERRUPT_MASK)) {
 						/* It's addressed to an existing interrupt pipe in the right direction. */
 						if ((rxpacket->buf[6] & 63) == sequence[rxpacket->buf[5]]) {
 							/* The sequence number is correct. */

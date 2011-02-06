@@ -15,7 +15,6 @@
 #include "state_transport_in.h"
 #include "state_transport_out.h"
 #include "usb.h"
-#include "xbee_activity.h"
 #include "xbee_rxpacket.h"
 #include "xbee_txpacket.h"
 #include <delay.h>
@@ -53,14 +52,12 @@ DEF_INTLOW(low_handler)
 	__asm extern _xbee_txpacket_tx1if __endasm;
 	__asm extern _xbee_txpacket_tx2if __endasm;
 	__asm extern _xbee_txpacket_tmr4if __endasm;
-	__asm extern _xbee_activity_tmr0if __endasm;
 	DEF_HANDLER(SIG_TMR1, state_transport_out_tmr1if)
 	DEF_HANDLER2(SIG_USB, SIG_USBIE, usb_process)
 	DEF_HANDLER(SIG_AD, estop_adif)
 	DEF_HANDLER2(SIG_TX1, SIG_TX1IE, xbee_txpacket_tx1if)
 	DEF_HANDLER2(SIG_TX2, SIG_TX2IE, xbee_txpacket_tx2if)
 	DEF_HANDLER(SIG_TMR4, xbee_txpacket_tmr4if)
-	DEF_HANDLER(SIG_TMR0, xbee_activity_tmr0if)
 END_DEF
 
 #define IS_VALID_CHANNEL(ch) ((ch) >= 0x08 && (ch) <= 0x1A)
@@ -70,31 +67,7 @@ static BOOL custom_setup_handler(void) {
 		uint8_t debug_interface_alt_setting;
 	} buffer;
 
-	if (usb_ep0_setup_buffer.request_type.bits.type == USB_SETUP_PACKET_REQUEST_STANDARD) {
-		if (usb_ep0_setup_buffer.request_type.bits.recipient == USB_SETUP_PACKET_RECIPIENT_INTERFACE) {
-			if (usb_ep0_setup_buffer.index == 2) {
-				switch (usb_ep0_setup_buffer.request) {
-					case USB_SETUP_PACKET_STDREQ_GET_INTERFACE:
-						buffer.debug_interface_alt_setting = debug_enabled ? 1 : 0;
-						usb_ep0_data[0].ptr = &buffer.debug_interface_alt_setting;
-						usb_ep0_data[0].length = sizeof(buffer.debug_interface_alt_setting);
-						usb_ep0_data_length = 1;
-						return true;
-
-					case USB_SETUP_PACKET_STDREQ_SET_INTERFACE:
-						if (usb_ep0_setup_buffer.value == 0) {
-							debug_disable();
-							return true;
-						} else if (usb_ep0_setup_buffer.value == 1) {
-							debug_enable();
-							return true;
-						} else {
-							return false;
-						}
-				}
-			}
-		}
-	} else if (usb_ep0_setup_buffer.request_type.bits.type == USB_SETUP_PACKET_REQUEST_VENDOR) {
+	if (usb_ep0_setup_buffer.request_type.bits.type == USB_SETUP_PACKET_REQUEST_VENDOR) {
 		if (usb_ep0_setup_buffer.request_type.bits.recipient == USB_SETUP_PACKET_RECIPIENT_DEVICE) {
 			switch (usb_ep0_setup_buffer.request) {
 				case TBOTS_CONTROL_REQUEST_GET_XBEE_FW_VERSION:
@@ -141,6 +114,7 @@ static void on_enter_config1(void) {
 	state_transport_in_init();
 	interrupt_out_init();
 	interrupt_in_init();
+	debug_enable();
 	should_start_up = true;
 }
 
@@ -530,10 +504,7 @@ void main(void) {
 						check_idle();
 					}
 				} else {
-					/* Show activity. */
-					xbee_activity_init();
 					run();
-					xbee_activity_deinit();
 				}
 			}
 		}

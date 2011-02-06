@@ -260,14 +260,6 @@ AsyncOperation<void>::Ptr LibUSBDeviceHandle::claim_interface(int interface) {
 	return SyncResultAsyncOperation::create("libusb_claim_interface", libusb_claim_interface(handle, interface));
 }
 
-AsyncOperation<void>::Ptr LibUSBDeviceHandle::set_interface_alt_setting(int interface, int setting) {
-	return SyncResultAsyncOperation::create("libusb_set_interface_alt_setting", libusb_set_interface_alt_setting(handle, interface, setting));
-}
-
-AsyncOperation<void>::Ptr LibUSBDeviceHandle::clear_halt(unsigned char endpoint) {
-	return SyncResultAsyncOperation::create("libusb_clear_halt", libusb_clear_halt(handle, endpoint));
-}
-
 void LibUSBTransfer::result() const {
 	assert(done_);
 	switch (transfer->status) {

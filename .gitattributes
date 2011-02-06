@@ -41,7 +41,6 @@ firmware/dongle/interrupt_out.c -text
 firmware/dongle/interrupt_out.h -text
 firmware/dongle/main.c -text
 firmware/dongle/pins.txt -text
-firmware/dongle/pipes.c -text
 firmware/dongle/queue.h -text
 firmware/dongle/run.c -text
 firmware/dongle/run.h -text
@@ -61,7 +60,6 @@ firmware/dongle/usb_ep0.c -text
 firmware/dongle/usb_internal.h -text
 firmware/dongle/usb_lowlevel.c -text
 firmware/dongle/usb_spec.h -text
-firmware/dongle/xbee_activity.c -text
 firmware/dongle/xbee_rxpacket.c -text
 firmware/dongle/xbee_txpacket.c -text
 firmware/flybackconverter/Makefile -text
@@ -83,7 +81,6 @@ firmware/main/params.c -text
 firmware/main/params.h -text
 firmware/main/parbus.h -text
 firmware/main/pins.txt -text
-firmware/main/pipes.c -text
 firmware/main/queue.h -text
 firmware/main/run.c -text
 firmware/main/run.h -text
@@ -110,10 +107,8 @@ firmware/shared/faults.h -text
 firmware/shared/feedback.h -text
 firmware/shared/fw.h -text
 firmware/shared/params.h -text
-firmware/shared/pipes.c -text
 firmware/shared/pipes.h -text
 firmware/shared/serial.c -text
-firmware/shared/xbee_activity.h -text
 firmware/shared/xbee_rxpacket.c -text
 firmware/shared/xbee_rxpacket.h -text
 firmware/shared/xbee_txpacket.c -text

@@ -347,7 +347,7 @@ void run(void) {
 											{
 												uint8_t i;
 												for (i = 0; i != PIPE_MAX + 1; ++i) {
-													if (pipe_out_mask & (1 << i)) {
+													if (PIPE_OUT_MASK & (1 << i)) {
 														pipe_info[discovery_robot - 1][i].used = 0;
 														pipe_info[discovery_robot - 1][i].sequence = 0;
 													} else {
@@ -395,7 +395,7 @@ void run(void) {
 											} else {
 												error_reporting_add(FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT1 + robot - 1);
 											}
-										} else if ((1 << pipe) & pipe_in_mask & pipe_interrupt_mask) {
+										} else if ((1 << pipe) & PIPE_IN_MASK & PIPE_INTERRUPT_MASK) {
 											if (ptr[0] >= 3) {
 												if (ptr[2] != pipe_info[robot - 1][pipe].sequence) {
 													pipe_info[robot - 1][pipe].sequence = ptr[2];

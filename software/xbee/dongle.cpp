@@ -336,18 +336,6 @@ namespace {
 						return;
 
 					case XBeeDongle::XBEES_STATE_RUNNING:
-						{
-							static const uint8_t ENDPOINTS_TO_UNHALT[] = { XBeeDongle::EP_STATE_TRANSPORT, XBeeDongle::EP_STATE_TRANSPORT | 0x80, XBeeDongle::EP_INTERRUPT, XBeeDongle::EP_INTERRUPT | 0x80 };
-							for (std::size_t i = 0; i < G_N_ELEMENTS(ENDPOINTS_TO_UNHALT); ++i) {
-								AsyncOperation<void>::Ptr op = device.clear_halt(ENDPOINTS_TO_UNHALT[i]);
-								if (!op->succeeded()) {
-									failed_op = op;
-									break;
-								}
-							}
-						}
-						// Fall through.
-
 					case XBeeDongle::XBEES_STATE_FAIL_0:
 					case XBeeDongle::XBEES_STATE_FAIL_1:
 						{
@@ -386,8 +374,6 @@ XBeeDongle::XBeeDongle(unsigned int out_channel, unsigned int in_channel) : esto
 	device.claim_interface(0)->result();
 	device.claim_interface(1)->result();
 	device.claim_interface(2)->result();
-	device.set_interface_alt_setting(2, 1)->result();
-	device.clear_halt(EP_DONGLE_STATUS | 0x80)->result();
 
 	LibUSBInterruptInTransfer::Ptr dongle_status_transfer = LibUSBInterruptInTransfer::create(device, EP_DONGLE_STATUS | 0x80, 4, true, 0, STALL_LIMIT);
 	dongle_status_transfer->signal_done.connect(sigc::bind(sigc::mem_fun(this, &XBeeDongle::on_dongle_status), dongle_status_transfer));

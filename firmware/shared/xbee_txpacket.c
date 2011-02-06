@@ -3,7 +3,6 @@
 #include "queue.h"
 #include "signal.h"
 #include "stack.h"
-#include "xbee_activity.h"
 #include "xbee_txpacket.h"
 #include <pic18fregs.h>
 #include <stdbool.h>
@@ -291,8 +290,6 @@ SIGHANDLER(xbee_txpacket_tx ## usartidx ## if) { \
 				STACK_PUSH(done_stack, packet); \
 				/* Next order of business will be to send the next packet's SOP. */ \
 				states[xbeeidx] = TXSTATE_SOP; \
-				/* Show some activity. */ \
-				xbee_activity_mark(xbeeidx); \
 				break; \
 		} \
 \

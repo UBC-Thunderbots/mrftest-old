@@ -5,7 +5,6 @@
 #include "queue.h"
 #include "signal.h"
 #include "stack.h"
-#include "xbee_activity.h"
 #include <delay.h>
 #include <pic18fregs.h>
 #include <stdbool.h>
@@ -352,8 +351,6 @@ SIGHANDLER(xbee_rxpacket_rc ## usartidx ## if) { \
 				 * Queue the packet for the application. */ \
 				QUEUE_PUSH(done_queue, rxstates[xbeeidx].packet); \
 				rxstates[xbeeidx].packet = 0; \
-				/* Show some activity. */ \
-				xbee_activity_mark(xbeeidx); \
 			} else { \
 				/* The checksum is incorrect.
 				 * Record the error. */ \
