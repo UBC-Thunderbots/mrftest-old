@@ -15,17 +15,17 @@ namespace AI {
 				class Region {
 					public:
 						/**
+						 * Creates a rectangle from the two,
+						 * possibly moving independently, regions.
+						 */
+						Region(Coordinate a, Coordinate b);
+
+						/**
 						 * Creates a rectangle starting from orig.
 						 * If the width or height is negative,
 						 * the rectangle is flipped accordingly.
 						 */
 						explicit Region(Coordinate orig, double w, double h);
-
-						/**
-						 * Creates a moving rectangle from the two specified regions.
-						 * The two coordinates need not be based on the same object.
-						 */
-						explicit Region(Coordinate a, Coordinate b);
 
 						/**
 						 * Creates a static rectangle from the two specified regions.
