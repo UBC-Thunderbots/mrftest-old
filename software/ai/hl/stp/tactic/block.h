@@ -2,7 +2,7 @@
 #define AI_HL_STP_TACTIC_BLOCK_H
 
 #include "ai/hl/stp/tactic/tactic.h"
-#include "ai/hl/stp/evaluate/enemy.h"
+#include "ai/hl/stp/enemy.h"
 
 namespace AI {
 	namespace HL {
@@ -11,7 +11,7 @@ namespace AI {
 				/**
 				 * Blocks against an enemy from view of our goal.
 				 */
-				Tactic::Ptr block(AI::HL::W::World &world, AI::HL::STP::Evaluation::Enemy::Ptr enemy);
+				Tactic::Ptr block(AI::HL::W::World &world, AI::HL::STP::Enemy::Ptr enemy);
 			}
 		}
 	}

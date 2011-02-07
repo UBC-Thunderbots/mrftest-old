@@ -1,8 +1,8 @@
-#include "ai/hl/stp/evaluate/enemy.h"
+#include "ai/hl/stp/enemy.h"
 #include "ai/hl/util.h"
 
 using namespace AI::HL::W;
-using AI::HL::STP::Evaluation::Enemy;
+using AI::HL::STP::Enemy;
 
 namespace {
 	class Fixed : public Enemy {
@@ -61,17 +61,17 @@ namespace {
 	};
 };
 
-Enemy::Ptr AI::HL::STP::Evaluation::Enemy::closest_friendly_goal(World& world, unsigned int i) {
+Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_goal(World& world, unsigned int i) {
 	Enemy::Ptr p(new ClosestFriendlyGoal(world, i));
 	return p;
 }
 
-Enemy::Ptr AI::HL::STP::Evaluation::Enemy::robot(Robot::Ptr r) {
+Enemy::Ptr AI::HL::STP::Enemy::robot(Robot::Ptr r) {
 	Enemy::Ptr p(new Fixed(r));
 	return p;
 }
 
-Enemy::Ptr AI::HL::STP::Evaluation::Enemy::closest_ball(World& world, unsigned int i) {
+Enemy::Ptr AI::HL::STP::Enemy::closest_ball(World& world, unsigned int i) {
 	Enemy::Ptr p(new ClosestBall(world, i));
 	return p;
 }

@@ -10,7 +10,7 @@
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
-using AI::HL::STP::Evaluation::Enemy;
+using AI::HL::STP::Enemy;
 
 namespace {
 

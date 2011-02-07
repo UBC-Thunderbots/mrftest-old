@@ -2,7 +2,7 @@
 #define AI_HL_STP_COORDINATE_H
 
 #include "ai/hl/world.h"
-#include "ai/hl/stp/evaluate/enemy.h"
+#include "ai/hl/stp/enemy.h"
 #include "ai/hl/stp/role.h"
 
 namespace AI {
@@ -40,7 +40,7 @@ namespace AI {
 					/**
 					 * Translate and rotate to enemy coordinate.
 					 */
-					static Coordinate relative(const AI::HL::STP::Evaluation::Enemy::Ptr enemy, const Point& off);
+					static Coordinate relative(const AI::HL::STP::Enemy::Ptr enemy, const Point& off);
 
 					/**
 					 * Translate and rotate to player coordinate.
@@ -51,7 +51,7 @@ namespace AI {
 					 * Just an offset to an object (Do not rotate coordinate).
 					 */
 					static Coordinate offset(const AI::HL::W::Ball& ball, const Point& off);
-					static Coordinate offset(const AI::HL::STP::Evaluation::Enemy::Ptr enemy, const Point& off);
+					static Coordinate offset(const AI::HL::STP::Enemy::Ptr enemy, const Point& off);
 					static Coordinate offset(const Role::Ptr role, const Point& off);
 
 					/**
