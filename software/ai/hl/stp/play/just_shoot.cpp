@@ -1,3 +1,4 @@
+#include "ai/hl/stp/evaluate/defense.h"
 #include "ai/hl/stp/play/play.h"
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/defend.h"
@@ -10,6 +11,7 @@ using namespace AI::HL::STP::Play;
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 using AI::HL::STP::Enemy;
+using AI::HL::STP::Evaluation::ConeDefense;
 
 namespace {
 
@@ -26,6 +28,8 @@ namespace {
 			~JustShoot();
 
 		private:
+			ConeDefense cone_defense;
+
 			void initialize();
 			bool applicable() const;
 			bool done();
@@ -56,7 +60,7 @@ namespace {
 		return false;
 	}
 
-	JustShoot::JustShoot(World &world) : Play(world) {
+	JustShoot::JustShoot(World &world) : Play(world), cone_defense(*this, world) {
 	}
 
 	JustShoot::~JustShoot() {

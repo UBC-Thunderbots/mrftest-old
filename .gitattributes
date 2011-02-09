@@ -181,7 +181,10 @@ software/ai/hl/stp/enemy.cpp -text
 software/ai/hl/stp/enemy.h -text
 software/ai/hl/stp/evaluate/ball_threat.cpp -text
 software/ai/hl/stp/evaluate/ball_threat.h -text
+software/ai/hl/stp/evaluate/defense.cpp -text
 software/ai/hl/stp/evaluate/defense.h -text
+software/ai/hl/stp/evaluate/evaluate.cpp -text
+software/ai/hl/stp/evaluate/evaluate.h -text
 software/ai/hl/stp/evaluate/offense.cpp -text
 software/ai/hl/stp/evaluate/offense.h -text
 software/ai/hl/stp/evaluate/region.h -text
