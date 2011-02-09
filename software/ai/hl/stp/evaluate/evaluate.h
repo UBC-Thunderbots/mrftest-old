@@ -13,7 +13,8 @@ namespace AI {
 				 *
 				 * IMPORTANT NOTE!
 				 * Plays always take ownership of evaluation modules.
-				 * Tactics can only have references to modules which are owned by plays.
+				 * Tactics or skills can only have references to modules,
+				 * which are owned by plays.
 				 */
 				class Module : public NonCopyable {
 					public:

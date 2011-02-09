@@ -1,20 +1,15 @@
 #ifndef AI_HL_STP_TACTIC_PASS_H
 #define AI_HL_STP_TACTIC_PASS_H
 
-#include "ai/hl/stp/tactic/tactic.h"
 #include "ai/hl/stp/coordinate.h"
+#include "ai/hl/stp/tactic/tactic.h"
+#include "ai/hl/stp/evaluate/pass.h"
 #include <algorithm>
 
 namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Tactic {
-				/**
-				 * This is an alternative to the STP method for passing.
-				 * Creates a pair of tactics for passer and passee respectively.
-				 */
-				std::pair<Tactic::Ptr, Tactic::Ptr> create_pass_pair(AI::HL::W::World& world, AI::HL::STP::Coordinate passer_pos, AI::HL::STP::Coordinate passee_pos);
-
 				/**
 				 * The STP suggested method for passing.
 				 *

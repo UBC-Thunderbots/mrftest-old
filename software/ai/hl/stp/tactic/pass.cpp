@@ -6,64 +6,7 @@ using namespace AI::HL::W;
 using AI::HL::STP::Coordinate;
 
 namespace {
-	/**
-	 * Handles both passer and passee class
-	 * TODO: finish this.
-	 */
-	class PassManager : public ByRef {
-		public:
-			typedef RefPtr<PassManager> Ptr;
-
-			PassManager(Coordinate s, Coordinate t) : passer_dest(s), passee_dest(t) {
-			}
-
-			~PassManager() {
-			}
-
-			class Passee : public Tactic {
-				public:
-					Passee(World &world, PassManager::Ptr m) : Tactic(world), manager(m) {
-					}
-					bool done() const {
-						return (player->position() - manager->passee_dest()).len() < AI::HL::Util::POS_CLOSE;
-					}
-				private:
-					PassManager::Ptr manager;
-					double score(Player::Ptr player) const {
-						return -(player->position() - manager->passee_dest()).lensq();
-					}
-					void execute() {
-						// TODO: fix this movement
-						player->move(manager->passee_dest(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_MEDIUM);
-					}
-			};
-
-			class Passer : public Tactic {
-				public:
-					Passer(World &world, PassManager::Ptr m) : Tactic(world, true), manager(m) {
-					}
-					bool done() const {
-						return manager->passee->done() && (player->position() - manager->passer_dest()).len() < AI::HL::Util::POS_CLOSE;
-					}
-				private:
-					PassManager::Ptr manager;
-					double score(Player::Ptr player) const {
-						if (player->has_ball()) return 1.0;
-						return 0;
-					}
-					void execute() {
-						// TODO: fix this movement
-						player->move(manager->passer_dest(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_MEDIUM);
-					}
-			};
-
-		protected:
-			Coordinate passer_dest;
-			Coordinate passee_dest;
-			RefPtr<Passer> passer;
-			RefPtr<Passee> passee;
-	};
-
+	
 	class PasserReady : public Tactic {
 		public:
 			PasserReady(World &world, Coordinate p, Coordinate t) : Tactic(world), pos(p), target(t) {

@@ -187,6 +187,7 @@ software/ai/hl/stp/evaluate/evaluate.cpp -text
 software/ai/hl/stp/evaluate/evaluate.h -text
 software/ai/hl/stp/evaluate/offense.cpp -text
 software/ai/hl/stp/evaluate/offense.h -text
+software/ai/hl/stp/evaluate/pass.h -text
 software/ai/hl/stp/evaluate/region.h -text
 software/ai/hl/stp/evaluate/shoot.cpp -text
 software/ai/hl/stp/evaluate/shoot.h -text
