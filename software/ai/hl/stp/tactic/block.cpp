@@ -11,23 +11,27 @@ namespace {
 			}
 		private:
 			Enemy::Ptr enemy;
-			double score(Player::Ptr player) const {
-				if (!enemy->evaluate().is()) {
-					return 0;
-				}
-				return -(player->position() - enemy->evaluate()->position()).lensq();
-			}
-			void execute() {
-				if (!enemy->evaluate().is()) {
-					// do nothing??
-					player->move(player->position(), player->orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, param.move_priority);
-					return;
-				}
-
-				Point nearEnemy(enemy->evaluate()->position().x - Robot::MAX_RADIUS * 3, enemy->evaluate()->position().y);
-				player->move(nearEnemy, (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
-			}
+			double score(Player::Ptr player) const;
+			void execute();
 	};
+
+	double Block::score(Player::Ptr player) const {
+		if (!enemy->evaluate().is()) {
+			return 0;
+		}
+		return -(player->position() - enemy->evaluate()->position()).lensq();
+	}
+
+	void Block::execute() {
+		if (!enemy->evaluate().is()) {
+			// do nothing??
+			player->move(player->position(), player->orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, param.move_priority);
+			return;
+		}
+
+		Point nearEnemy(enemy->evaluate()->position().x - Robot::MAX_RADIUS * 3, enemy->evaluate()->position().y);
+		player->move(nearEnemy, (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+	}
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::block(World &world, Enemy::Ptr enemy) {

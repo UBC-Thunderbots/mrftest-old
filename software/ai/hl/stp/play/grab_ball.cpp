@@ -1,7 +1,7 @@
 #include "ai/hl/stp/play/play.h"
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/chase.h"
-#include "ai/hl/stp/tactic/defend.h"
+#include "ai/hl/stp/tactic/lone_goalie.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
 #include <glibmm.h>
@@ -69,7 +69,7 @@ namespace {
 	void GrabBall::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>* roles) {
 		// GOALIE
 		// defend the goal
-		goalie_role.push_back(defend_goal(world));
+		goalie_role.push_back(lone_goalie(world));
 
 		// ROLE 1
 		// chase the ball!

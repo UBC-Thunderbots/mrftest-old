@@ -229,6 +229,8 @@ software/ai/hl/stp/tactic/defend.cpp -text
 software/ai/hl/stp/tactic/defend.h -text
 software/ai/hl/stp/tactic/idle.cpp -text
 software/ai/hl/stp/tactic/idle.h -text
+software/ai/hl/stp/tactic/lone_goalie.cpp -text
+software/ai/hl/stp/tactic/lone_goalie.h -text
 software/ai/hl/stp/tactic/move.cpp -text
 software/ai/hl/stp/tactic/move.h -text
 software/ai/hl/stp/tactic/pass.cpp -text
@@ -237,6 +239,8 @@ software/ai/hl/stp/tactic/patrol.cpp -text
 software/ai/hl/stp/tactic/patrol.h -text
 software/ai/hl/stp/tactic/ram.cpp -text
 software/ai/hl/stp/tactic/ram.h -text
+software/ai/hl/stp/tactic/repel.cpp -text
+software/ai/hl/stp/tactic/repel.h -text
 software/ai/hl/stp/tactic/shoot.cpp -text
 software/ai/hl/stp/tactic/shoot.h -text
 software/ai/hl/stp/tactic/tactic.cpp -text

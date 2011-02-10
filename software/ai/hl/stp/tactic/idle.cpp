@@ -10,15 +10,19 @@ namespace {
 			}
 
 		private:
-			double score(Player::Ptr) const {
-				return 1;
-			}
-			void execute() {
-				// move them to a particular place
-				Point dest = Point(0, world.field().width() / 2);
-				player->move(dest, (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
-			}
+			double score(Player::Ptr player) const;
+			void execute();
 	};
+
+	double Idle::score(Player::Ptr) const {
+		return 1;
+	}
+
+	void Idle::execute() {
+		// move them to a particular place
+		Point dest = Point(0, world.field().width() / 2);
+		player->move(dest, (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+	}
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::idle(World &world) {

@@ -4,64 +4,93 @@
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
-
-// defend goal
+using AI::HL::STP::Evaluation::Defense;
 
 namespace {
-	class DefendGoal : public Tactic {
+	/**
+	 * A generic defend tactic for all 3 types.
+	 */
+	class Defend : public Tactic {
 		public:
-			DefendGoal(World &world) : Tactic(world) {
+			Defend(World &world, const Defense& defense) : Tactic(world), defense(defense) {
 			}
+
+		protected:
+			const Defense& defense;
+			virtual Point dest() const = 0;
 
 		private:
-			double score(Player::Ptr player) const {
-				if (world.friendly_team().get(0) == player) {
-					return 1;
-				}
-				return 0;
-			}
-
-			void execute() {
-				// TODO: use proper skill
-				AI::HL::Tactics::lone_goalie(world, player);
-			}
+			double score(Player::Ptr player) const;
+			void execute();
 	};
+
+	double Defend::score(Player::Ptr player) const {
+		return -(player->position() - dest()).lensq();
+	}
+
+	void Defend::execute() {
+		// TODO: do more interesting stuff
+		player->move(dest(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, param.move_priority);
+	}
+
+	/**
+	 * Goalie.
+	 */
+	class Goalie : public Defend {
+		public:
+			Goalie(World &world, const Defense& defense) : Defend(world, defense) {
+			}
+		private:
+			Point dest() const;
+	};
+
+	Point Goalie::dest() const {
+		return defense.goalie_dest();
+	}
+
+	/**
+	 * Defender1.
+	 */
+	class Defender1 : public Defend {
+		public:
+			Defender1(World &world, const Defense& defense) : Defend(world, defense) {
+			}
+		private:
+			Point dest() const;
+	};
+
+	Point Defender1::dest() const {
+		return defense.defender1_dest();
+	}
+
+	/**
+	 * Defender2.
+	 */
+	class Defender2 : public Defend {
+		public:
+			Defender2(World &world, const Defense& defense) : Defend(world, defense) {
+			}
+		private:
+			Point dest() const;
+	};
+
+	Point Defender2::dest() const {
+		return defense.defender2_dest();
+	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::defend_goal(World &world) {
-	const Tactic::Ptr p(new DefendGoal(world));
+Tactic::Ptr AI::HL::STP::Tactic::goalie(World& world, const Defense& defense) {
+	const Tactic::Ptr p(new Goalie(world, defense));
 	return p;
 }
 
-// repel
-
-namespace {
-	class Repel : public Tactic {
-		public:
-			Repel(World &world) : Tactic(world) {
-			}
-
-		private:
-			bool done() const {
-				// will never be done... unless ball is outside the field
-				return false;
-			}
-
-			double score(Player::Ptr player) const {
-				return 1.0 / (1.0 + (player->position() - world.ball().position()).len());
-			}
-
-			void execute() {
-				// TODO: use proper skill
-				// use bump to goal or drive to goal with move type RAM_BALL?
-				AI::HL::Tactics::repel(world, player, 0);
-			}
-	};
-}
-
-Tactic::Ptr AI::HL::STP::Tactic::repel(World &world) {
-	const Tactic::Ptr p(new Repel(world));
+Tactic::Ptr AI::HL::STP::Tactic::defender1(World& world, const Defense& defense) {
+	const Tactic::Ptr p(new Defender1(world, defense));
 	return p;
 }
 
+Tactic::Ptr AI::HL::STP::Tactic::defender2(World& world, const Defense& defense) {
+	const Tactic::Ptr p(new Defender2(world, defense));
+	return p;
+}
 
