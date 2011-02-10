@@ -1,6 +1,6 @@
 #include "ai/hl/stp/skill/steal_ball.h"
 #include "ai/hl/stp/skill/go_to_ball.h"
-#include "ai/hl/stp/evaluate/ball_threat.h"
+#include "ai/hl/stp/evaluation/ball_threat.h"
 #include "ai/flags.h"
 
 using namespace AI::HL::W;

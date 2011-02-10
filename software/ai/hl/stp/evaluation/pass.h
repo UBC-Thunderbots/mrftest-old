@@ -1,9 +1,9 @@
-#ifndef AI_HL_STP_EVALUATE_PASS_H
-#define AI_HL_STP_EVALUATE_PASS_H
+#ifndef AI_HL_STP_EVALUATION_PASS_H
+#define AI_HL_STP_EVALUATION_PASS_H
 
 #include "ai/hl/world.h"
 #include "ai/hl/stp/coordinate.h"
-#include "ai/hl/stp/evaluate/evaluate.h"
+#include "ai/hl/stp/evaluation/evaluation.h"
 
 namespace AI {
 	namespace HL {

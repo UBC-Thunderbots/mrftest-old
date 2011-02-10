@@ -1,4 +1,4 @@
-#include "ai/hl/stp/evaluate/ball_threat.h"
+#include "ai/hl/stp/evaluation/ball_threat.h"
 #include "ai/hl/util.h"
 
 #include <algorithm>

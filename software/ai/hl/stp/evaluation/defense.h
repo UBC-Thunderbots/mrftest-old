@@ -1,9 +1,8 @@
-#ifndef AI_HL_STP_EVALUATE_DEFENSE_H
-#define AI_HL_STP_EVALUATE_DEFENSE_H
+#ifndef AI_HL_STP_EVALUATION_DEFENSE_H
+#define AI_HL_STP_EVALUATION_DEFENSE_H
 
 #include "ai/hl/world.h"
-#include "ai/hl/stp/evaluate/evaluate.h"
-#include <vector>
+#include "ai/hl/stp/evaluation/evaluation.h"
 
 namespace AI {
 	namespace HL {

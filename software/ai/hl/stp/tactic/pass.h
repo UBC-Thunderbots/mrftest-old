@@ -3,8 +3,7 @@
 
 #include "ai/hl/stp/coordinate.h"
 #include "ai/hl/stp/tactic/tactic.h"
-#include "ai/hl/stp/evaluate/pass.h"
-#include <algorithm>
+#include "ai/hl/stp/evaluation/pass.h"
 
 namespace AI {
 	namespace HL {

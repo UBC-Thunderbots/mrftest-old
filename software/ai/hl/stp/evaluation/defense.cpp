@@ -1,9 +1,11 @@
-#include "ai/hl/stp/evaluate/defense.h"
+#include "ai/hl/stp/evaluation/defense.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
 #include "uicomponents/param.h"
 #include "util/algorithm.h"
 #include "util/dprint.h"
+
+#include <vector>
 
 using namespace AI::HL::W;
 using namespace AI::HL::STP::Evaluation;

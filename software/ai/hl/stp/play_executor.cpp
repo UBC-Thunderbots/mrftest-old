@@ -155,6 +155,9 @@ void PlayExecutor::role_assignment() {
 void PlayExecutor::execute_tactics() {
 	std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 
+	// update the evaluation modules
+	curr_play->tick();
+
 	while (true) {
 		role_assignment();
 

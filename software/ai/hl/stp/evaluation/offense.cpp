@@ -1,4 +1,4 @@
-#include "ai/hl/stp/evaluate/offense.h"
+#include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/util.h"
 #include "geom/angle.h"
 #include "geom/util.h"

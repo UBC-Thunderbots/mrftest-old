@@ -1,4 +1,4 @@
-#include "ai/hl/stp/evaluate/shoot.h"
+#include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/util.h"
 
 using namespace AI::HL::STP;

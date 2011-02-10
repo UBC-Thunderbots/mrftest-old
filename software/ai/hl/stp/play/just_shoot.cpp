@@ -1,4 +1,4 @@
-#include "ai/hl/stp/evaluate/defense.h"
+#include "ai/hl/stp/evaluation/defense.h"
 #include "ai/hl/stp/play/play.h"
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/defend.h"

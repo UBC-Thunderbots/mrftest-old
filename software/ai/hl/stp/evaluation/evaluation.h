@@ -1,5 +1,5 @@
-#ifndef AI_HL_STP_EVALUATE_EVALUATE
-#define AI_HL_STP_EVALUATE_EVALUATE
+#ifndef AI_HL_STP_EVALUATION_EVALUATION
+#define AI_HL_STP_EVALUATION_EVALUATION
 
 #include "ai/hl/world.h"
 #include "ai/hl/stp/play/play.h"
@@ -24,12 +24,21 @@ namespace AI {
 						Module(AI::HL::STP::Play::Play& p);
 
 						/**
+						 * Destructor.
+						 */
+						~Module();
+
+					private:
+						AI::HL::STP::Play::Play& play;
+						sigc::connection connection;
+
+						/**
 						 * Runs the associated computation every tick.
+						 * Only a play can run this.
 						 */
 						virtual void evaluate() = 0;
 
-					protected:
-						AI::HL::STP::Play::Play& play;
+						friend class AI::HL::STP::Play::Play;
 				};
 			}
 		}

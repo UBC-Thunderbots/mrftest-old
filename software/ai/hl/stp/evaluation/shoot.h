@@ -1,5 +1,5 @@
-#ifndef AI_HL_STP_EVALUATE_SHOOT_H
-#define AI_HL_STP_EVALUATE_SHOOT_H
+#ifndef AI_HL_STP_EVALUATION_SHOOT_H
+#define AI_HL_STP_EVALUATION_SHOOT_H
 
 #include "ai/hl/world.h"
 #include "util/cacheable.h"

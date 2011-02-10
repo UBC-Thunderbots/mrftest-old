@@ -1,5 +1,5 @@
-#ifndef AI_HL_STP_EVALUATE_BALL_THREAT_H
-#define AI_HL_STP_EVALUATE_BALL_THREAT_H
+#ifndef AI_HL_STP_EVALUATION_BALL_THREAT_H
+#define AI_HL_STP_EVALUATION_BALL_THREAT_H
 
 #include "ai/hl/world.h"
 #include "util/cacheable.h"

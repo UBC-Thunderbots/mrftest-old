@@ -2,7 +2,7 @@
 #include "ai/hl/stp/skill/go_to_ball.h"
 #include "ai/hl/stp/skill/kick.h"
 #include "ai/hl/stp/skill/context.h"
-#include "ai/hl/stp/evaluate/shoot.h"
+#include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/flags.h"
 
 using namespace AI::HL::W;

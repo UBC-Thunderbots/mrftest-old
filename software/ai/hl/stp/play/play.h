@@ -10,6 +10,10 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
+			namespace Evaluation {
+				class Module;
+			}
+
 			namespace Play {
 
 				class PlayFactory;
@@ -70,6 +74,16 @@ namespace AI {
 						 */
 						virtual const PlayFactory& factory() const = 0;
 
+						/**
+						 * Registers an evaluation module into this play.
+						 */
+						void register_module(AI::HL::STP::Evaluation::Module& module);
+
+						/**
+						 * Used to update evaluation modules.
+						 */
+						void tick();
+
 					protected:
 						/**
 						 * The World in which the Play lives.
@@ -85,7 +99,13 @@ namespace AI {
 						/**
 						 * Destructor
 						 */
-						virtual ~Play();
+						~Play();
+
+					private:
+						/**
+						 * Callback used for evaluation modules.
+						 */
+						sigc::signal<void> signal_tick;
 				};
 
 				/**
