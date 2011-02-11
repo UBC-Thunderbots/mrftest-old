@@ -47,16 +47,17 @@ namespace {
 		// If there is no Strategy or if it has resigned, choose a new one.
 		Strategy::Ptr strategy = world.strategy();
 		if (!strategy.is() || strategy->has_resigned()) {
-			const std::vector<AI::HL::StrategyFactory *> &factories = Coach::get_strategies_by_play_type(world.playtype());
-			//const AI::HL::StrategyFactory::Map::const_iterator iter = AI::HL::StrategyFactory::all().find("STP");
-			//if (iter != AI::HL::StrategyFactory::all().end()) 
-			//	world.strategy(iter->second);
+			//const std::vector<AI::HL::StrategyFactory *> &factories = Coach::get_strategies_by_play_type(world.playtype());                                          
+			const AI::HL::StrategyFactory::Map::const_iterator iter = AI::HL::StrategyFactory::all().find("STP");
+			if (iter != AI::HL::StrategyFactory::all().end()) 
+				world.strategy(iter->second);
+			/*	
 			if (factories.empty()) {
 				world.strategy(0);
 			} else {
 				world.strategy(factories[0]);
 			}
-				
+			*/	
 			
 		}
 	}
