@@ -8,7 +8,7 @@ using namespace AI::Coach::W;
 
 namespace {
 	/**
-	 * A Coach that picks STPly from the available \ref Strategy "Strategies" for a given play type.
+	 * A Coach that only picks STP strategy.
 	 * This coach also never forcefully removes a Strategy from play.
 	 * It only acts when the current Strategy resigns.
 	 */
