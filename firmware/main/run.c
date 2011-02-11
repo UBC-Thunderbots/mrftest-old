@@ -79,8 +79,8 @@ void run(void) {
 	__data xbee_rxpacket_t *rxpacket;
 	__data const uint8_t *rxptr;
 	static xbee_tx16_header_t txheader = { XBEE_API_ID_TX_16, 0x00, 0x7B, 0x30, 0x00 };
-	static xbee_txpacket_iovec_t txiovs[4], txiovs_shadow[4];
-	static xbee_txpacket_t txpkt, txpkt_shadow;
+	static xbee_txpacket_iovec_t txiovs[4];
+	static xbee_txpacket_t txpkt;
 	inbound_state_t inbound_state = INBOUND_STATE_IDLE;
 	static const uint8_t FEEDBACK_MICROPACKET_HEADER[2] = { 2 + sizeof(feedback_block_t), PIPE_FEEDBACK };
 	static feedback_block_t txpkt_feedback_shadow;
@@ -159,7 +159,7 @@ void run(void) {
 
 	/* Run forever handling events. */
 	for (;;) {
-		if (xbee_txpacket_dequeue() == &txpkt_shadow) {
+		if (xbee_txpacket_dequeue() == &txpkt) {
 			/* An inbound finished being sent. */
 			if (inbound_state == INBOUND_STATE_SENDING) {
 				/* Update our current state. */
@@ -215,16 +215,12 @@ void run(void) {
 					if (rxpacket->buf[5] && rxpacket->buf[5] == robot_number && (inbound_state == INBOUND_STATE_IDLE || inbound_state == INBOUND_STATE_AWAITING_POLL)) {
 						/* The poll code is asking us to send a packet. */
 						if (inbound_state == INBOUND_STATE_AWAITING_POLL) {
-							/* We should resend the last packet.
-							 * The master copy should still be intact, so just shadow it and send it. */
-							memcpyram2ram(txiovs_shadow, txiovs, sizeof(txiovs_shadow));
-							txpkt_shadow.num_iovs = txpkt.num_iovs;
-							txpkt_shadow.iovs = txiovs_shadow;
+							/* We should resend the last packet. */
 							/* We do, however, want a new frame number. */
 							if (!++txheader.frame_id) {
 								txheader.frame_id = 1;
 							}
-							xbee_txpacket_queue(&txpkt_shadow, 1);
+							xbee_txpacket_queue(&txpkt, 1);
 						} else {
 							/* Shadow the feedback block to avoid byte tearing if it's updated shortly. */
 							memcpyram2ram(&txpkt_feedback_shadow, &feedback_block, sizeof(txpkt_feedback_shadow));
@@ -241,11 +237,8 @@ void run(void) {
 							if (!++txheader.frame_id) {
 								txheader.frame_id = 1;
 							}
-							/* The packet transmission layer will make a mess of our packet and IOVs, so shadow them. */
-							memcpyram2ram(txiovs_shadow, txiovs, sizeof(txiovs_shadow));
-							txpkt_shadow.num_iovs = txpkt.num_iovs;
-							txpkt_shadow.iovs = txiovs_shadow;
-							xbee_txpacket_queue(&txpkt_shadow, 1);
+							/* Send the packet. */
+							xbee_txpacket_queue(&txpkt, 1);
 						}
 
 						/* Mark state. */

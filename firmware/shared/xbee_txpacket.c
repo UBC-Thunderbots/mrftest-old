@@ -47,6 +47,16 @@ STACK_DEFINE_TYPE(xbee_txpacket_t);
 static txstate_t states[2];
 
 /**
+ * \brief The index of the current IOV in the current packet for each transmitter.
+ */
+static uint8_t iov_indices[2];
+
+/**
+ * \brief The index of the next byte to send in the current IOV in the current packet for each transmitter.
+ */
+static uint8_t byte_indices[2];
+
+/**
  * \brief The packets waiting to be sent to each XBee.
  */
 static QUEUE_TYPE(xbee_txpacket_t) ready_queue[2];
@@ -55,11 +65,6 @@ static QUEUE_TYPE(xbee_txpacket_t) ready_queue[2];
  * \brief The packets that have been sent.
  */
 static STACK_TYPE(xbee_txpacket_t) done_stack;
-
-/**
- * \brief The total lengths of the current packets.
- */
-static uint8_t packet_lengths[2];
 
 /**
  * \brief The accumulated checksums so far.
@@ -75,11 +80,13 @@ static BOOL inited = false;
  * \brief Iterates the iovecs in the current packet to update its length value.
  *
  * \param[in] xbee the index of the queue to examine.
+ *
+ * \return the length of the packet, in bytes.
  */
-static void update_current_packet_length(uint8_t xbee) {
-	__data xbee_txpacket_t *packet = QUEUE_FRONT(ready_queue[xbee]);
+static uint8_t compute_current_packet_length(uint8_t xbee) {
+	__data const xbee_txpacket_t *packet = QUEUE_FRONT(ready_queue[xbee]);
 	uint8_t num_iovs;
-	__data xbee_txpacket_iovec_t *iovs;
+	__data const xbee_txpacket_iovec_t *iovs;
 	uint8_t answer = 0;
 	if (packet) {
 		num_iovs = packet->num_iovs;
@@ -88,7 +95,7 @@ static void update_current_packet_length(uint8_t xbee) {
 			answer += (iovs++)->len;
 		}
 	}
-	packet_lengths[xbee] = answer;
+	return answer;
 }
 
 void xbee_txpacket_init(void) {
@@ -125,6 +132,7 @@ void xbee_txpacket_init(void) {
 
 		/* Initialize transmitter states. */
 		states[0] = states[1] = TXSTATE_SOP;
+		iov_indices[0] = iov_indices[1] = byte_indices[0] = byte_indices[1] = 0;
 
 		/* Remember that the module is initialized. */
 		inited = true;
@@ -208,99 +216,114 @@ __data xbee_txpacket_t *xbee_txpacket_dequeue(void) {
 /**
  * \brief A template for the code of a transmit interrupt handler.
  */
-#define IMPLEMENT_TXIF(usartidx, xbeeidx, piridx) \
-SIGHANDLER(xbee_txpacket_tx ## usartidx ## if) { \
-	__data xbee_txpacket_iovec_t *iov; \
-	__data xbee_txpacket_t *packet; \
-	__data const uint8_t *ptr; \
-\
-	/* If the shift register is empty, we may be able to send two bytes at once. \
-	 * Also, we may not actually send a byte if we shift a lot of state around. \
-	 * Thus, loop as long as we are able to transmit. */ \
-	while (PIR ## piridx ## bits.TX ## usartidx ## IF) { \
-		/* Grab the first packet on the queue. */ \
-		packet = QUEUE_FRONT(ready_queue[xbeeidx]); \
-\
-		/* If no packets are queued, disable interrupts and return. */ \
-		if (!packet) { \
-			PIE ## piridx ## bits.TX ## usartidx ## IE = 0; \
-			return; \
-		} \
-\
-		/* If the XBee has deasserted CTS (active-low), stop transmitting and enable the polling timer. */ \
-		if (PORT_XBEE ## xbeeidx ## _CTS) { \
-			PIE ## piridx ## bits.TX ## usartidx ## IE = 0; \
-			T4CONbits.TMR4ON = 1; \
-			return; \
-		} \
-\
-		/* Do something useful based on current state. */ \
-		switch (states[xbeeidx]) { \
-			case TXSTATE_SOP: \
-				/* Send a SOP. */ \
-				TXREG ## usartidx = 0x7E; \
-				/* Compute the length of the current packet. */ \
-				update_current_packet_length(xbeeidx); \
-				/* Initialize the checksum. */ \
-				checksums[xbeeidx] = 0xFF; \
-				/* Advance the state machine. */ \
-				states[xbeeidx] = TXSTATE_LENGTH_MSB; \
-				break; \
-\
-			case TXSTATE_LENGTH_MSB: \
-				/* MSB of length is always zero. */ \
-				TXREG ## usartidx = 0x00; \
-				/* Advance the state machine. */ \
-				states[xbeeidx] = TXSTATE_LENGTH_LSB; \
-				break; \
-\
-			case TXSTATE_LENGTH_LSB: \
-				/* Send byte. */ \
-				TXREG ## usartidx = packet_lengths[xbeeidx]; \
-				/* Advance the state machine. */ \
-				states[xbeeidx] = TXSTATE_DATA; \
-				break; \
-\
-			case TXSTATE_DATA: \
-				if (!packet->num_iovs) { \
-					/* There are no iovecs left. Time to send the checksum. */ \
-					states[xbeeidx] = TXSTATE_CHECKSUM; \
-				} else { \
-					iov = packet->iovs; \
-					if (!iov->len) { \
-						/* There are no bytes left in the current iovec. Go to the next one. */ \
-						packet->iovs++; \
-						packet->num_iovs--; \
-					} else { \
-						/* We can send the next byte. */ \
-						ptr = iov->ptr; \
-						TXREG ## usartidx = ptr[0]; \
-						checksums[xbeeidx] -= ptr[0]; \
-						iov->ptr = ptr + 1; \
-						iov->len--; \
-					} \
-				} \
-				break; \
-\
-			case TXSTATE_CHECKSUM: \
-				/* Send the checksum. */ \
-				TXREG ## usartidx = checksums[xbeeidx]; \
-				/* The packet is now finished. Send it to the done queue. */ \
-				QUEUE_POP(ready_queue[xbeeidx]); \
-				STACK_PUSH(done_stack, packet); \
-				/* Next order of business will be to send the next packet's SOP. */ \
-				states[xbeeidx] = TXSTATE_SOP; \
-				break; \
-		} \
-\
-		/* TXnIF is not valid in the first cycle after a load of TXREG. \
-		 * Add a NOP here so the loop condition is guaranteed to be correct. */ \
-		Nop(); \
-	} \
+static inline void implement_txif(uint8_t xbeeidx) {
+	__data const xbee_txpacket_iovec_t *iov;
+	__data xbee_txpacket_t *packet;
+	__data const uint8_t *ptr;
+#define RD_TXIF() ((xbeeidx == 0) ? PIR3bits.TX2IF : PIR1bits.TX1IF)
+#define CLR_TXIE() do { if (xbeeidx == 0) { PIE3bits.TX2IE = 0; } else { PIE1bits.TX1IE = 0; } } while (0)
+#define WR_TXREG(val) do { if (xbeeidx == 0) { TXREG2 = val; } else { TXREG1 = val; } } while (0)
+#define RD_CTS() ((xbeeidx == 0) ? PORT_XBEE0_CTS : PORT_XBEE1_CTS)
+
+	/* If the shift register is empty, we may be able to send two bytes at once.
+	 * Also, we may not actually send a byte if we shift a lot of state around.
+	 * Thus, loop as long as we are able to transmit. */
+	while (RD_TXIF()) {
+		/* Grab the first packet on the queue. */
+		packet = QUEUE_FRONT(ready_queue[xbeeidx]);
+
+		/* If no packets are queued, disable interrupts and return. */
+		if (!packet) {
+			CLR_TXIE();
+			return;
+		}
+
+		/* If the XBee has deasserted CTS (active-low), stop transmitting and enable the polling timer. */
+		if (RD_CTS()) {
+			CLR_TXIE();
+			T4CONbits.TMR4ON = 1;
+			return;
+		}
+
+		/* Do something useful based on current state. */
+		switch (states[xbeeidx]) {
+			case TXSTATE_SOP:
+				/* Send a SOP. */
+				WR_TXREG(0x7E);
+				/* Initialize the checksum. */
+				checksums[xbeeidx] = 0xFF;
+				/* Advance the state machine. */
+				states[xbeeidx] = TXSTATE_LENGTH_MSB;
+				break;
+
+			case TXSTATE_LENGTH_MSB:
+				/* MSB of length is always zero. */
+				WR_TXREG(0x00);
+				/* Advance the state machine. */
+				states[xbeeidx] = TXSTATE_LENGTH_LSB;
+				break;
+
+			case TXSTATE_LENGTH_LSB:
+				/* Send byte. */
+				WR_TXREG(compute_current_packet_length(xbeeidx));
+				/* Advance the state machine. */
+				states[xbeeidx] = TXSTATE_DATA;
+				break;
+
+			case TXSTATE_DATA:
+				if (iov_indices[xbeeidx] == packet->num_iovs) {
+					/* There are no iovecs left. Time to send the checksum. */
+					states[xbeeidx] = TXSTATE_CHECKSUM;
+					iov_indices[xbeeidx] = 0;
+				} else {
+					iov = packet->iovs + iov_indices[xbeeidx];
+					if (byte_indices[xbeeidx] == iov->len) {
+						/* There are no bytes left in the current iovec. Go to the next one. */
+						++iov_indices[xbeeidx];
+						byte_indices[xbeeidx] = 0;
+					} else {
+						/* We can send the next byte. */
+						ptr = iov->ptr;
+						ptr += byte_indices[xbeeidx];
+						WR_TXREG(ptr[0]);
+						checksums[xbeeidx] -= ptr[0];
+						++byte_indices[xbeeidx];
+					}
+				}
+				break;
+
+			case TXSTATE_CHECKSUM:
+				/* Send the checksum. */
+				WR_TXREG(checksums[xbeeidx]);
+				/* The packet is now finished. Send it to the done queue. */
+				QUEUE_POP(ready_queue[xbeeidx]);
+				STACK_PUSH(done_stack, packet);
+				/* Next order of business will be to send the next packet's SOP. */
+				states[xbeeidx] = TXSTATE_SOP;
+				break;
+		}
+
+		/* TXnIF is not valid in the first cycle after a load of TXREG.
+		 * Add a NOP here so the loop condition is guaranteed to be correct. */
+		Nop();
+	}
+#undef RD_TXIF
+#undef CLR_TXIE
+#undef WR_TXREG
+#undef RD_CTS
 }
 
+/*
 IMPLEMENT_TXIF(1, 1, 1)
 IMPLEMENT_TXIF(2, 0, 3)
+*/
+SIGHANDLER(xbee_txpacket_tx1if) {
+	implement_txif(1);
+}
+
+SIGHANDLER(xbee_txpacket_tx2if) {
+	implement_txif(0);
+}
 
 /**
  * \brief Handles TMR4 interrupts, which occur every 1ms.

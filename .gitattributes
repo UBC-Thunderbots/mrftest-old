@@ -92,7 +92,6 @@ firmware/main/spi.h -text
 firmware/main/stack.h -text
 firmware/main/wheel_controller.c -text
 firmware/main/wheel_controller.h -text
-firmware/main/xbee_activity.c -text
 firmware/main/xbee_rxpacket.c -text
 firmware/main/xbee_txpacket.c -text
 firmware/messages.txt -text

@@ -39,7 +39,7 @@ typedef struct xbee_txpacket {
 	/**
 	 * \brief The iovecs defining the data making up the packet.
 	 */
-	__data xbee_txpacket_iovec_t *iovs;
+	__data const xbee_txpacket_iovec_t *iovs;
 
 	/**
 	 * \brief The next packet in a linked list (for internal use only).
