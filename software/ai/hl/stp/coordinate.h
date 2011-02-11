@@ -16,31 +16,41 @@ namespace AI {
 			 * To evaluate the value of a coordinate, use the operator().
 			 * Coordinate A = Coordinate::relative(some_robot);
 			 * Point p = A(); // gives the point.
+			 *
+			 * Essentially this class is just a wrapper around a function object that returns a point.
 			 */
 			class Coordinate {
 				public:
 					/**
+					 * A function object returning a point.
+					 */
+					class CoordinateData : public ByRef {
+						public:
+							CoordinateData() {}
+							~CoordinateData() {}
+							virtual Point evaluate() const = 0;
+					};
+				
+					/**
 					 * Default constructor, gives the origin.
 					 */
-					Coordinate() : pos(0.0, 0.0) {
-					}
+					Coordinate();
 
 					/**
 					 * Copy constructor.
 					 */
-					Coordinate(const Coordinate& coordinate) : data(coordinate.data), pos(coordinate.pos) {
+					Coordinate(const Coordinate& coordinate) : data(coordinate.data) {
 					}
 
 					/**
 					 * Implicit convertion from a point to a coordinate.
 					 */
-					Coordinate(const Point& off) : pos(off) {
-					}
+					Coordinate(const Point& pos);
 
 					/**
 					 * Translate and rotate to enemy coordinate.
 					 */
-					static Coordinate relative(const AI::HL::STP::Enemy::Ptr enemy, const Point& off);
+					static Coordinate relative(const Enemy::Ptr enemy, const Point& off);
 
 					/**
 					 * Translate and rotate to player coordinate.
@@ -48,10 +58,18 @@ namespace AI {
 					static Coordinate relative(const Role::Ptr role, const Point& off);
 
 					/**
-					 * Just an offset to an object (Do not rotate coordinate).
+					 * Just an offset to a ball (Do not rotate coordinate).
 					 */
 					static Coordinate offset(const AI::HL::W::Ball& ball, const Point& off);
-					static Coordinate offset(const AI::HL::STP::Enemy::Ptr enemy, const Point& off);
+
+					/**
+					 * Just an offset to an enemy (Do not rotate coordinate).
+					 */
+					static Coordinate offset(const Enemy::Ptr enemy, const Point& off);
+
+					/**
+					 * Just an offset to a player (Do not rotate coordinate).
+					 */
 					static Coordinate offset(const Role::Ptr role, const Point& off);
 
 					/**
@@ -60,23 +78,9 @@ namespace AI {
 					Point operator()() const;
 
 				protected:
-					/**
-					 * Stores the actual data.
-					 * This data is IMMUTABLE.
-					 */
-					class CoordinateData : public ByRef {
-						public:
-							typedef RefPtr<CoordinateData> Ptr;
-							virtual Point position() const;
-							virtual double orientation() const;
-					};
+					RefPtr<CoordinateData> data;
 
-					CoordinateData::Ptr data;
-
-					Point pos;
-
-					explicit Coordinate(CoordinateData::Ptr d, const Point& off) : data(d), pos(off) {
-					}
+					Coordinate(const RefPtr<CoordinateData> data);
 			};
 		}
 	}
