@@ -60,7 +60,23 @@ namespace {
 	 * The play types handled by this strategy.
 	 */
 	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
-		//		PlayType::PLAY,
+		/*
+		PlayType::HALT,
+		PlayType::STOP,
+		PlayType::PLAY,
+		PlayType::PREPARE_KICKOFF_FRIENDLY,
+		PlayType::EXECUTE_KICKOFF_FRIENDLY,
+		PlayType::PREPARE_KICKOFF_ENEMY,
+		PlayType::EXECUTE_KICKOFF_ENEMY,
+		PlayType::PREPARE_PENALTY_FRIENDLY,
+		PlayType::EXECUTE_PENALTY_FRIENDLY,
+		PlayType::PREPARE_PENALTY_ENEMY,
+		PlayType::EXECUTE_PENALTY_ENEMY,
+		PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY,
+		PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY,
+		PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY,
+		PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY,
+		*/
 	};
 
 	STPStrategyFactory::STPStrategyFactory() : StrategyFactory("STP", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) {
