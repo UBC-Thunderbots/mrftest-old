@@ -198,6 +198,8 @@ software/ai/hl/stp/play/play.cpp -text
 software/ai/hl/stp/play/play.h -text
 software/ai/hl/stp/play_executor.cpp -text
 software/ai/hl/stp/play_executor.h -text
+software/ai/hl/stp/predicates.cpp -text
+software/ai/hl/stp/predicates.h -text
 software/ai/hl/stp/role.cpp -text
 software/ai/hl/stp/role.h -text
 software/ai/hl/stp/skill/bump_to_goal.cpp -text
