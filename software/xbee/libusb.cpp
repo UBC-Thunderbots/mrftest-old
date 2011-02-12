@@ -284,7 +284,7 @@ void LibUSBTransfer::submit() {
 
 void LibUSBTransfer::trampoline(libusb_transfer *transfer) {
 	LibUSBTransfer *ptr = static_cast<LibUSBTransfer *>(transfer->user_data);
-	ptr->callback();
+	Glib::signal_idle().connect_once(sigc::mem_fun(ptr, &LibUSBTransfer::callback));
 }
 
 LibUSBTransfer::LibUSBTransfer(unsigned int stall_max) : transfer(libusb_alloc_transfer(0)), submitted_(false), done_(false), repeats_(false), stall_count(0), stall_max(stall_max) {
