@@ -245,6 +245,8 @@ software/ai/hl/stp/tactic/repel.cpp -text
 software/ai/hl/stp/tactic/repel.h -text
 software/ai/hl/stp/tactic/shoot.cpp -text
 software/ai/hl/stp/tactic/shoot.h -text
+software/ai/hl/stp/tactic/steal.cpp -text
+software/ai/hl/stp/tactic/steal.h -text
 software/ai/hl/stp/tactic/tactic.cpp -text
 software/ai/hl/stp/tactic/tactic.h -text
 software/ai/hl/stp_strategy.cpp -text

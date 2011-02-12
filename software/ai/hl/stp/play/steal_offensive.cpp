@@ -2,6 +2,7 @@
 #include "ai/hl/stp/predicates.h"
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/lone_goalie.h"
+#include "ai/hl/stp/tactic/steal.h"
 #include "ai/hl/stp/tactic/chase.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
@@ -76,13 +77,13 @@ namespace {
 		
 		// ROLE 1
 		// Stealer 
+		roles[0].push_back(steal(world));
 		roles[0].push_back(chase(world));
-		//roles[0].push_back();
-
+		
 		// ROLE 2
 		// Stealer2
+		roles[1].push_back(steal(world));
 		roles[1].push_back(chase(world));
-		//roles[1].push_back();
 		
 		// ROLE 3
 		// block nearest enemy
