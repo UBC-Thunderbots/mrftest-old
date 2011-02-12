@@ -12,7 +12,7 @@ double Patrol::score(AI::HL::W::Player::Ptr player) const {
 	return -std::max((player->position() - p1()).len(), (player->position() - p2()).len());
 }
 
-void Patrol::execute(AI::HL::W::Player::Ptr player) {
+void Patrol::execute() {
 	if (!player.is()) {
 		return;
 	}
@@ -23,9 +23,9 @@ void Patrol::execute(AI::HL::W::Player::Ptr player) {
 		goto_target1 = true;
 	}
 	if (goto_target1) {
-		player->move(p1(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+		player->move(p1(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 	} else {
-		player->move(p2(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+		player->move(p2(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 	}
 }
 

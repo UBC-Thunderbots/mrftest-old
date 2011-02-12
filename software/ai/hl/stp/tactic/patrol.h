@@ -15,15 +15,10 @@ namespace AI {
 
 						double score(AI::HL::W::Player::Ptr player) const;
 
-						void execute(AI::HL::W::Player::Ptr player);
-						
-						void set_flags(const unsigned int f) {
-							flags = f;
-						}
+						void execute();
 					protected:
 						Coordinate p1, p2;
 						bool goto_target1;
-						unsigned int flags;
 				};
 			}
 		}
