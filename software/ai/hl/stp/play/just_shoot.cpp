@@ -1,4 +1,5 @@
 #include "ai/hl/stp/evaluation/defense.h"
+#include "ai/hl/stp/predicates.h"
 #include "ai/hl/stp/play/play.h"
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/defend.h"
@@ -10,6 +11,7 @@
 
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::STP::Tactic;
+using namespace AI::HL::STP::Predicates;
 using namespace AI::HL::W;
 using AI::HL::STP::Enemy;
 using AI::HL::STP::Evaluation::ConeDefense;
@@ -30,10 +32,9 @@ namespace {
 
 		private:
 			ConeDefense cone_defense;
-
-			void initialize();
 			bool applicable() const;
-			bool done();
+			bool done() const;
+			bool fail() const;
 			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>* roles);
 			const PlayFactory& factory() const;
 	};
@@ -44,31 +45,24 @@ namespace {
 		return factory_instance;
 	}
 
-	void JustShoot::initialize() {
-	}
-
-	bool JustShoot::applicable() const {
-		// check if we do not have ball
-		FriendlyTeam &friendly = world.friendly_team();
-		if (friendly.size() < 2) {
-			return false;
-		}
-		for (std::size_t i = 0; i < friendly.size(); ++i) {
-			if (friendly.get(i)->has_ball()) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	JustShoot::JustShoot(World &world) : Play(world), cone_defense(*this, world) {
 	}
 
 	JustShoot::~JustShoot() {
 	}
 
-	bool JustShoot::done() {
-		return applicable();
+	bool JustShoot::applicable() const {
+		return playtype(PlayType::PLAY)->evaluate(world)
+			&& our_team_size_at_least(3)->evaluate(world)
+			&& our_ball()->evaluate(world);
+	}
+
+	bool JustShoot::done() const {
+		return goal()->evaluate(world);
+	}
+
+	bool JustShoot::fail() const {
+		return none_ball()->evaluate(world);
 	}
 
 	void JustShoot::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>* roles) {

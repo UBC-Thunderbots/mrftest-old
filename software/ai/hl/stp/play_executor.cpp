@@ -42,14 +42,13 @@ void PlayExecutor::calc_play() {
 	std::random_shuffle(plays.begin(), plays.end());
 	for (std::size_t i = 0; i < plays.size(); ++i) {
 		if (plays[i]->applicable()) {
-			// initialize this play and run it
 			curr_play = plays[i];
-			curr_play->initialize();
 			curr_role_step = 0;
 			for (std::size_t j = 0; j < 5; ++j) {
 				curr_roles[j].clear();
 				curr_tactic[j].reset();
 			}
+			// initialize this play and run it
 			curr_play->assign(curr_roles[0], curr_roles + 1);
 			LOG_INFO(curr_play->factory().name());
 			return;
@@ -187,7 +186,7 @@ void PlayExecutor::execute_tactics() {
 void PlayExecutor::tick() {
 
 	// check if curr play wants to continue
-	if (curr_play.is() && curr_play->done()) {
+	if (curr_play.is() && (curr_play->done() || curr_play->fail())) {
 		curr_play.reset();
 	}
 

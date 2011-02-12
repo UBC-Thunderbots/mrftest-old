@@ -36,18 +36,26 @@ namespace AI {
 						/**
 						 * Checks if this play is applicable.
 						 * A subclass must implement this function.
+						 * Be reminded that you have to check the playtype.
 						 */
 						virtual bool applicable() const = 0;
 
 						/**
-						 * Called when this play is first used or reset.
-						 * Since a play is reusable,
-						 * this is the place to initialize variables.
+						 * Checks if this play has succeeded.
+						 * A subclass must implement this function.
 						 */
-						virtual void initialize() = 0;
+						virtual bool done() const = 0;
 
 						/**
-						 * Provide sequences of tactics.
+						 * Checks if this play has failed.
+						 * A subclass must implement this function.
+						 */
+						virtual bool fail() const = 0;
+
+						/**
+						 * Provide lists of tactics.
+						 * Called when this play is initially activated.
+						 *
 						 * A subclass must implement this function.
 						 *
 						 * IMPORTANT Conditions
@@ -59,15 +67,10 @@ namespace AI {
 						 *
 						 * \param [in] goalie_role role for the goalie
 						 *
-						 * \param [in] an array of roles in order of priority,
+						 * \param [in] roles an array of roles in order of priority,
 						 * the first entry is the most important etc.
 						 */
 						virtual void assign(std::vector<AI::HL::STP::Tactic::Tactic::Ptr> &goalie_role, std::vector<AI::HL::STP::Tactic::Tactic::Ptr>* roles) = 0;
-
-						/**
-						 * Checks if the condition for the play is no longer valid.
-						 */
-						virtual bool done() = 0;
 
 						/**
 						 * A reference to this play's factory.

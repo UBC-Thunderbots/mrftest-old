@@ -23,6 +23,8 @@ namespace AI {
 				public:
 					/**
 					 * A function object returning a point.
+					 *
+					 * TODO: use proper tools like tr1::function
 					 */
 					class CoordinateData : public ByRef {
 						public:
