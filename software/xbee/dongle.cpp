@@ -157,6 +157,13 @@ namespace {
 		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT13, "Inbound micropacket invalid length from robot 13", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT14, "Inbound micropacket invalid length from robot 14", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT15, "Inbound micropacket invalid length from robot 15", Annunciator::Message::TRIGGER_EDGE },
+		{ XBeeDongle::FAULT_BTSEF, "Bit stuff error", Annunciator::Message::TRIGGER_EDGE },
+		{ XBeeDongle::FAULT_BTOEF, "Bus turnaround timeout", Annunciator::Message::TRIGGER_EDGE },
+		{ XBeeDongle::FAULT_DFN8EF, "Non-integral data field byte count", Annunciator::Message::TRIGGER_EDGE },
+		{ XBeeDongle::FAULT_CRC16EF, "CRC16 error", Annunciator::Message::TRIGGER_EDGE },
+		{ XBeeDongle::FAULT_CRC5EF, "CRC5 error", Annunciator::Message::TRIGGER_EDGE },
+		{ XBeeDongle::FAULT_PIDEF, "PID check error", Annunciator::Message::TRIGGER_EDGE },
+		{ XBeeDongle::FAULT_STALL, "Stall handshake returned", Annunciator::Message::TRIGGER_EDGE },
 	};
 
 	const FaultMessageInfo<XBeeDongle::RobotFault> ROBOT_FAULT_MESSAGE_INFOS[] = {
