@@ -1,4 +1,5 @@
 #include "ai/hl/stp/skill/go_to_ball.h"
+#include "ai/hl/stp/evaluation/ball_threat.h"
 #include "ai/hl/stp/skill/context.h"
 #include "ai/hl/stp/ssm/ssm.h"
 
@@ -30,6 +31,15 @@ namespace {
 				}
 
 				// TODO: check if enemy threatens the ball
+				
+				const AI::HL::STP::Evaluation::BallThreat ball_threat = AI::HL::STP::Evaluation::evaluate_ball_threat(world);
+
+				// can use normal grab ball mechanism
+				if (ball_threat.activate_steal) {
+					#warning move to the front of the enemy robot to steal the ball
+					//simply try to chase after the ball, but have a new movement type MOVE_STEAL?
+					player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
+				}
 
 				player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
 			}
