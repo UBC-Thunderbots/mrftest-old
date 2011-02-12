@@ -2,7 +2,7 @@
 #include "ai/hl/stp/predicates.h"
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/lone_goalie.h"
-#include "ai/hl/stp/tactic/shoot.h"
+#include "ai/hl/stp/tactic/chase.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
 #include <glibmm.h>
@@ -21,7 +21,7 @@ namespace {
 	 * - have at least 2 players (one goalie, one stealer)
 	 *
 	 * Objective:
-	 * - steal the ball from the enemy
+	 * - steal the ball from the enemy or just grab it if it's under nobody's possesion
 	 */
 	class StealOffensive : public Play {
 		public:
@@ -51,7 +51,8 @@ namespace {
 	bool StealOffensive::applicable() const {
 		return playtype(PlayType::PLAY)->evaluate(world)
 			&& our_team_size_at_least(2)->evaluate(world)
-			&& their_ball()->evaluate(world);
+			&& (their_ball()->evaluate(world) 
+			|| none_ball()->evaluate(world));
 	}
 
 	bool StealOffensive::done() const {
@@ -75,12 +76,14 @@ namespace {
 		
 		// ROLE 1
 		// Stealer 
+		roles[0].push_back(chase(world));
 		//roles[0].push_back();
 
 		// ROLE 2
 		// Stealer2
+		roles[1].push_back(chase(world));
 		//roles[1].push_back();
-
+		
 		// ROLE 3
 		// block nearest enemy
 		roles[2].push_back(block(world, Enemy::closest_friendly_goal(world, 0)));
