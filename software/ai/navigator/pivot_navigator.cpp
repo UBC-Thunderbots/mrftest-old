@@ -1,6 +1,7 @@
 #include "ai/hl/util.h"
 #include "ai/navigator/navigator.h"
 #include "util/time.h"
+#include "geom/angle.h"
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
@@ -72,14 +73,24 @@ namespace {
 			currentOrientation = player->orientation();
 			
 			// tunable magic numbers BEWARE!!!
-			double offset_angle = 35.0;
-			double offset_distance = 1.0;
-			double orientation_offset = 40.0;
+			double offset_angle = 60.0;
+			double offset_distance = 0.5;
+			double orientation_offset = 100.0;
 			
-			destinationPosition = player->position() + Point(offset_distance*cos(player->orientation()-offset_angle*M_PI/180.0), offset_distance*sin(player->orientation()-offset_angle*M_PI/180.0));
-			destinationOrientation = player->orientation() + orientation_offset*M_PI/180.0;
+			Point diff = (world.ball().position() - currentPosition);
 			
-			path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
+			if (diff.len() < 1.0 && player->velocity().len() < 0.3 && angle_diff((world.ball().position() - currentPosition).orientation(), player->orientation()) < 0.2) {
+				destinationPosition = player->position() + Point(offset_distance*cos(player->orientation()-offset_angle*M_PI/180.0), offset_distance*sin(player->orientation()-offset_angle*M_PI/180.0)) + diff;
+				destinationOrientation = player->orientation() + orientation_offset*M_PI/180.0;
+				path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
+			} else {
+				destinationPosition = world.ball().position() - 0.3 * (diff / diff.len());
+				destinationOrientation = (world.ball().position() - currentPosition).orientation();
+
+				path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
+			}
+			
+			
 			player->path(path);
 		}
 	}
