@@ -48,6 +48,12 @@ namespace AI {
 					Coordinate(const Point& pos);
 
 					/**
+					 * If the y coordinate of the ball is less than 0,
+					 * flips the y coordinate.
+					 */
+					static Coordinate ball_up(const AI::HL::W::Ball& ball, const Point& pos);
+
+					/**
 					 * Translate and rotate to enemy coordinate.
 					 */
 					static Coordinate relative(const Enemy::Ptr enemy, const Point& off);
