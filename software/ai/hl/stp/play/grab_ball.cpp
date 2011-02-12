@@ -15,6 +15,22 @@ using AI::HL::STP::Enemy;
 
 namespace {
 
+	// these arrays will be used for something else in the future.
+
+	const std::vector<const Predicate*> APPLICABLE = {
+		playtype(PlayType::PLAY),
+		our_team_size_at_least(3),
+		none_ball(),
+	};
+
+	const std::vector<const Predicate*> SUCCESS = {
+		our_ball(),
+	};
+
+	const std::vector<const Predicate*> FAIL = {
+		their_ball(),
+	};
+
 	/**
 	 * Condition:
 	 * - ball not under any possesion
