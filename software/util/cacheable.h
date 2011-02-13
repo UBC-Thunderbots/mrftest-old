@@ -75,7 +75,7 @@ template<typename R, typename ... NK, typename ... Args> class CacheableImpl<R, 
 		virtual R compute(Args ... args) = 0;
 
 	private:
-		mutable ScopedPtr<R> cache;
+		ScopedPtr<R> cache;
 };
 
 template<typename R, typename ... NK, typename ... K, typename ... Args> class CacheableImpl<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...>, Args ...> {
@@ -99,7 +99,7 @@ template<typename R, typename ... NK, typename ... K, typename ... Args> class C
 	private:
 		typedef std::tuple<K ...> Tuple;
 		typedef std::map<Tuple, R> Map;
-		mutable Map cache;
+		Map cache;
 };
 
 template<typename R, typename NK, typename K> class Cacheable;
