@@ -1,6 +1,7 @@
 #include "ai/hl/stp/tactic/lone_goalie.h"
 #include "ai/hl/tactics.h"
 #include "ai/hl/util.h"
+#include <cassert>
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -16,8 +17,9 @@ namespace {
 	};
 
 	Player::Ptr LoneGoalie::select(const std::set<Player::Ptr>& players) const {
-		// by force...
-		return world.friendly_team().get(0);
+		Player::Ptr goalie = world.friendly_team().get(0);
+		assert(players.find(goalie) != players.end());
+		return goalie;
 	}
 
 	void LoneGoalie::execute() {

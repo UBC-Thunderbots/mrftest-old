@@ -2,6 +2,7 @@
 #include "ai/hl/stp/predicates.h"
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/chase.h"
+#include "ai/hl/stp/tactic/offense.h"
 #include "ai/hl/stp/tactic/lone_goalie.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
@@ -76,12 +77,12 @@ namespace {
 		roles[1].push_back(block(world, Enemy::closest_friendly_goal(world, 0)));
 
 		// ROLE 3
-		// block 2nd nearest enemy
-		roles[2].push_back(block(world, Enemy::closest_friendly_goal(world, 1)));
+		// offensive support
+		roles[2].push_back(offense(world));
 
 		// ROLE 4
-		// block 3rd nearest enemy
-		roles[3].push_back(block(world, Enemy::closest_friendly_goal(world, 2)));
+		// block 2nd nearest enemy
+		roles[3].push_back(block(world, Enemy::closest_friendly_goal(world, 1)));
 	}
 }
 

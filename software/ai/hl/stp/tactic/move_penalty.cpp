@@ -27,7 +27,7 @@ namespace {
 	}
 
 	void MovePenalty::execute() {
-		player->move(dest(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, param.move_priority);
+		player->move(dest(), (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
 	}
 }
 

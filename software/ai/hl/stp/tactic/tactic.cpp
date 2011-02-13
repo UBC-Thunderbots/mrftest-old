@@ -22,11 +22,6 @@ void Tactic::set_player(Player::Ptr p) {
 	}
 }
 
-void Tactic::set_move_flags(unsigned int f) {
-	// TODO: check if param is not NULL
-	param.move_flags = f;
-}
-
 void Tactic::tick() {
 	const AI::HL::STP::SSM::SkillStateMachine* prev_ssm = ssm;
 	ssm = NULL;

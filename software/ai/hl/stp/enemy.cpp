@@ -66,10 +66,12 @@ Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_goal(World& world, unsigned int 
 	return p;
 }
 
+/*
 Enemy::Ptr AI::HL::STP::Enemy::robot(Robot::Ptr r) {
 	Enemy::Ptr p(new Fixed(r));
 	return p;
 }
+*/
 
 Enemy::Ptr AI::HL::STP::Enemy::closest_ball(World& world, unsigned int i) {
 	Enemy::Ptr p(new ClosestBall(world, i));

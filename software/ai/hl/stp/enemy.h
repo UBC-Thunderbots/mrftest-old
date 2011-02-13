@@ -26,7 +26,7 @@ namespace AI {
 					 * Fixed role.
 					 * Be very sure if you ever want to use this.
 					 */
-					static Enemy::Ptr robot(AI::HL::W::Robot::Ptr robot);
+					// static Enemy::Ptr robot(AI::HL::W::Robot::Ptr robot);
 
 					/**
 					 * Order by distance to friendly goal.

@@ -71,12 +71,6 @@ namespace AI {
 						void set_player(AI::HL::W::Player::Ptr p);
 
 						/**
-						 * Sets the movement flag associated.
-						 * A subclass should not call this.
-						 */
-						void set_move_flags(unsigned int f);
-
-						/**
 						 * Selects a player from the set.
 						 * A subclass must implement this function.
 						 *

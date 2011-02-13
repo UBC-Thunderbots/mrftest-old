@@ -155,12 +155,12 @@ std::pair<Point, double> AI::HL::Util::calc_best_shot(World &world, const Player
 	return calc_best_shot(world.field(), obstacles, player->position(), radius);
 }
 
-bool AI::HL::Util::ball_close(World &world, const Robot::Ptr robot) {
+bool AI::HL::Util::ball_close(World &world, Robot::Ptr robot) {
 	const Point dist = world.ball().position() - robot->position();
 	return dist.len() < (Robot::MAX_RADIUS + Ball::RADIUS * ball_close_factor);
 }
 
-bool AI::HL::Util::posses_ball(World &world, const Player::Ptr player) {
+bool AI::HL::Util::posses_ball(World &world, Player::Ptr player) {
 	if (player->has_ball()) {
 		return true;
 	}
@@ -170,7 +170,7 @@ bool AI::HL::Util::posses_ball(World &world, const Player::Ptr player) {
 	return ball_close(world, player);
 }
 
-bool AI::HL::Util::posses_ball(World &world, const Robot::Ptr robot) {
+bool AI::HL::Util::posses_ball(World &world, Robot::Ptr robot) {
 	return ball_close(world, robot);
 }
 

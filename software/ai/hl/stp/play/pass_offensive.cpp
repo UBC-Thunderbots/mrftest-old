@@ -2,6 +2,7 @@
 #include "ai/hl/stp/predicates.h"
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/tactic/lone_goalie.h"
+#include "ai/hl/stp/tactic/offense.h"
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/tactic/pass.h"
 #include "ai/hl/util.h"
@@ -59,7 +60,7 @@ namespace {
 	}
 
 	bool PassOffensive::fail() const {
-		return !Predicates::our_ball(world);
+		return Predicates::their_ball(world);
 	}
 
 	void PassOffensive::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> (&roles)[4]) {
@@ -82,12 +83,12 @@ namespace {
 		roles[1].push_back(shoot(world));
 
 		// ROLE 3
-		// block nearest enemy
-		roles[2].push_back(block(world, Enemy::closest_friendly_goal(world, 0)));
+		// offensive support
+		roles[2].push_back(offense(world));
 
 		// ROLE 4
-		// block 2nd nearest enemy
-		roles[3].push_back(block(world, Enemy::closest_friendly_goal(world, 1)));
+		// block nearest enemy
+		roles[3].push_back(block(world, Enemy::closest_friendly_goal(world, 0)));
 	}
 }
 
