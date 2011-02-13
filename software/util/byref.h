@@ -275,19 +275,19 @@ class ByRef : public NonCopyable {
 		/**
 		 * The reference count of the object.
 		 */
-		unsigned int refs_;
+		mutable unsigned int refs_;
 
 		/**
 		 * Adds one to the object's reference count.
 		 */
-		void reference() {
+		void reference() const {
 			++refs_;
 		}
 
 		/**
 		 * Subtracts one from the object's reference count.
 		 */
-		void unreference() {
+		void unreference() const {
 			if (!--refs_) {
 				delete this;
 			}
