@@ -197,6 +197,7 @@ software/ai/hl/stp/play/pass_offensive.cpp -text
 software/ai/hl/stp/play/play.cpp -text
 software/ai/hl/stp/play/play.h -text
 software/ai/hl/stp/play/prep_friendly_kickoff.cpp -text
+software/ai/hl/stp/play/prep_penalty_friendly.cpp -text
 software/ai/hl/stp/play_executor.cpp -text
 software/ai/hl/stp/play_executor.h -text
 software/ai/hl/stp/predicates.cpp -text
