@@ -25,12 +25,6 @@ namespace AI {
 					AI::HL::W::World& world;
 
 					/**
-					 * This class uses a 2-stage initialization,
-					 * to initialize all the available plays.
-					 */
-					bool initialized;
-
-					/**
 					 * The play in use currently.
 					 */
 					Play::Play::Ptr curr_play;
@@ -63,11 +57,6 @@ namespace AI {
 					 * List of all the available plays
 					 */
 					std::vector<Play::Play::Ptr> plays;
-
-					/**
-					 * Loads all the plays.
-					 */
-					void initialize();
 
 					/**
 					 * When something bad happens,

@@ -15,29 +15,22 @@ namespace {
 	const double PLAY_TIMEOUT = 30.0;
 }
 
-PlayExecutor::PlayExecutor(AI::HL::W::World& w) : world(w), initialized(false) {
+PlayExecutor::PlayExecutor(AI::HL::W::World& w) : world(w) {
 	world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &PlayExecutor::on_player_added));
 	world.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &PlayExecutor::on_player_removed));
+
+	// initialize all plays
+	const PlayFactory::Map &m = PlayFactory::all();
+	for (PlayFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
+		plays.push_back(i->second->create(world));
+	}
 }
 
 void PlayExecutor::reset() {
 	curr_play.reset();
 }
 
-void PlayExecutor::initialize() {
-	if (initialized) return;
-	const PlayFactory::Map &m = PlayFactory::all();
-	for (PlayFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-		plays.push_back(i->second->create(world));
-	}
-	initialized = true;
-}
-
 void PlayExecutor::calc_play() {
-
-	if (!initialized) {
-		initialize();
-	}
 
 	// find a valid play
 	std::random_shuffle(plays.begin(), plays.end());
