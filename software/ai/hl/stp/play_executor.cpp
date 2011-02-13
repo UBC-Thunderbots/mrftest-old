@@ -1,6 +1,7 @@
 #include "ai/hl/stp/play_executor.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
+#include <cassert>
 
 using AI::HL::STP::PlayExecutor;
 using AI::HL::STP::Play::Play;
@@ -69,66 +70,48 @@ void PlayExecutor::role_assignment() {
 		} else {
 			// if there are no more tactics, use the previous one
 			// BUT active tactic cannot be reused!
-			if (curr_tactic[i]->active()) {
-				LOG_ERROR("Cannot re-use active tactic!");
-				reset();
-				return;
-			}
+			assert(!curr_tactic[i]->active());
 		}
 
 		if (curr_tactic[i]->active()) {
 			// we cannot have more than 1 active tactic.
-			if (curr_active.is()) {
-				LOG_ERROR("Multiple active tactics");
-				reset();
-				return;
-			}
+			assert(!curr_active.is());
 			curr_active = curr_tactic[i];
 		}
 	}
 
 	// we cannot have less than 1 active tactic.
-	if (!curr_active.is()) {
-		LOG_ERROR("No active tactic");
-		reset();
-		return;
-	}
+	assert(curr_active.is());
 
 	// do matching
 	bool players_used[5];
 
 	std::fill(players_used, players_used + 5, false);
-	for (std::size_t i = 0; i < 5; ++i) {
-		curr_assignment[i].reset();
-	}
+	std::fill(curr_assignment, curr_assignment + 5, AI::HL::W::Player::Ptr());
 
-	for (std::size_t i = 0; i < 5; ++i) {
-		if (!curr_tactic[i].is()) {
-			break;
+	assert(curr_tactic[0].is());
+	players_used[0] = true;
+	curr_assignment[0] = players[0];
+
+	for (std::size_t i = 1; i < 5; ++i) {
+		// others players
+		double best_score = 0;
+		std::size_t best_j = 0;
+		Player::Ptr best;
+		for (std::size_t j = 0; j < players.size(); ++j) {
+			if (players_used[j]) {
+				continue;
+			}
+			double score = curr_tactic[i]->score(players[j]);
+			if (!best.is() || score > best_score) {
+				best = players[j];
+				best_j = j;
+				best_score = score;
+			}
 		}
-
-		if (i == 0) { // only for goalie
-			players_used[0] = true;
-			curr_assignment[0] = players[0];
-		} else { // others players
-			double best_score = 0;
-			std::size_t best_j = 0;
-			Player::Ptr best;
-			for (std::size_t j = 0; j < players.size(); ++j) {
-				if (players_used[j]) {
-					continue;
-				}
-				double score = curr_tactic[i]->score(players[j]);
-				if (!best.is() || score > best_score) {
-					best = players[j];
-					best_j = j;
-					best_score = score;
-				}
-			}
-			if (best.is()) {
-				players_used[best_j] = true;
-				curr_assignment[i] = best;
-			}
+		if (best.is()) {
+			players_used[best_j] = true;
+			curr_assignment[i] = best;
 		}
 	}
 
