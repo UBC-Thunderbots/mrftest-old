@@ -1,4 +1,5 @@
 #include "ai/hl/stp/tactic/block.h"
+#include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -11,15 +12,15 @@ namespace {
 			}
 		private:
 			Enemy::Ptr enemy;
-			double score(Player::Ptr player) const;
+			Player::Ptr select(const std::set<Player::Ptr>& players) const;
 			void execute();
 	};
 
-	double Block::score(Player::Ptr player) const {
+	Player::Ptr Block::select(const std::set<Player::Ptr>& players) const {
 		if (!enemy->evaluate().is()) {
-			return 0;
+			return *(players.begin());
 		}
-		return -(player->position() - enemy->evaluate()->position()).lensq();
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(enemy->evaluate()->position()));
 	}
 
 	void Block::execute() {

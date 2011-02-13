@@ -1,5 +1,6 @@
 #include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/util.h"
+#include <algorithm>
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -10,20 +11,14 @@ namespace {
 		public:
 			Move(World &world, const Coordinate dest) : Tactic(world), dest(dest) {
 			}
-
 		private:
 			const Coordinate dest;
-			bool done() const;
-			double score(Player::Ptr player) const;
+			Player::Ptr select(const std::set<Player::Ptr>& players) const;
 			void execute();
 	};
 
-	bool Move::done() const {
-		return (player->position() - dest()).len() < AI::HL::Util::POS_CLOSE;
-	}
-
-	double Move::score(Player::Ptr player) const {
-		return -(player->position() - dest()).lensq();
+	Player::Ptr Move::select(const std::set<Player::Ptr>& players) const {
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest()));
 	}
 
 	void Move::execute() {

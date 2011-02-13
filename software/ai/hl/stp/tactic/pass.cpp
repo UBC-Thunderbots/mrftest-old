@@ -9,19 +9,21 @@ namespace {
 	
 	class PasserReady : public Tactic {
 		public:
-			PasserReady(World &world, Coordinate p, Coordinate t) : Tactic(world), pos(p), target(t) {
+			PasserReady(World &world, Coordinate p, Coordinate t) : Tactic(world), dest(p), target(t) {
 			}
 		private:
-			Coordinate pos, target;
-			double score(Player::Ptr player) const {
-				if (player->has_ball()) return 1.0;
-				return 0;
+			Coordinate dest, target;
+			Player::Ptr select(const std::set<Player::Ptr>& players) const {
+				for (auto it = players.begin(); it != players.end(); ++it) {
+					if ((*it)->has_ball()) return *it;
+				}
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 			}
 			void execute() {
 				// TODO: fix this movement
-				player->move(pos(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_MEDIUM);
+				player->move(dest(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_MEDIUM);
 				// orient towards target
-				player->move(pos(), (target() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_MEDIUM);
+				player->move(dest(), (target() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_MEDIUM);
 				player->kick(7.5);
 			}
 	};
@@ -29,18 +31,18 @@ namespace {
 	class PasseeReady : public Tactic {
 		public:
 			// ACTIVE tactic!
-			PasseeReady(World &world, Coordinate p) : Tactic(world, true), pos(p) {
+			PasseeReady(World &world, Coordinate p) : Tactic(world, true), dest(p) {
 			}
 		private:
-			Coordinate pos;
+			Coordinate dest;
 			bool done() const {
-				return (player->position() - pos()).len() < AI::HL::Util::POS_CLOSE;
+				return (player->position() - dest()).len() < AI::HL::Util::POS_CLOSE;
 			}
-			double score(Player::Ptr player) const {
-				return -(player->position() - pos()).lensq();
+			Player::Ptr select(const std::set<Player::Ptr>& players) const {
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest()));
 			}
 			void execute() {
-				player->move(pos(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+				player->move(dest(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
 			}
 	};
 }

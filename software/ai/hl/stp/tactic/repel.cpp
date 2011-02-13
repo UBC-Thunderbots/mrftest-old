@@ -11,12 +11,12 @@ namespace {
 			Repel(World &world) : Tactic(world) {
 			}
 		private:
-			double score(Player::Ptr player) const;
+			Player::Ptr select(const std::set<Player::Ptr>& players) const;
 			void execute();
 	};
 
-	double Repel::score(Player::Ptr player) const {
-		return -(player->position() - world.ball().position()).lensq();
+	Player::Ptr Repel::select(const std::set<Player::Ptr>& players) const {
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 	}
 
 	void Repel::execute() {

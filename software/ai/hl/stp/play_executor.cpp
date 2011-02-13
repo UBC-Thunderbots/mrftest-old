@@ -58,8 +58,6 @@ void PlayExecutor::calc_play() {
 }
 
 void PlayExecutor::role_assignment() {
-	std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
-
 	// this must be reset every tick
 	curr_active.reset();
 
@@ -83,47 +81,27 @@ void PlayExecutor::role_assignment() {
 	// we cannot have less than 1 active tactic.
 	assert(curr_active.is());
 
-	// do matching
-	bool players_used[5];
-
-	std::fill(players_used, players_used + 5, false);
 	std::fill(curr_assignment, curr_assignment + 5, AI::HL::W::Player::Ptr());
 
 	assert(curr_tactic[0].is());
-	players_used[0] = true;
-	curr_assignment[0] = players[0];
+	curr_tactic[0]->set_player(world.friendly_team().get(0));
+	curr_assignment[0] = world.friendly_team().get(0);
 
-	for (std::size_t i = 1; i < 5; ++i) {
-		// others players
-		double best_score = 0;
-		std::size_t best_j = 0;
-		Player::Ptr best;
-		for (std::size_t j = 0; j < players.size(); ++j) {
-			if (players_used[j]) {
-				continue;
-			}
-			double score = curr_tactic[i]->score(players[j]);
-			if (!best.is() || score > best_score) {
-				best = players[j];
-				best_j = j;
-				best_score = score;
-			}
-		}
-		if (best.is()) {
-			players_used[best_j] = true;
-			curr_assignment[i] = best;
-		}
+	// pool of available people
+	std::set<Player::Ptr> players;
+	for (std::size_t i = 1; i < world.friendly_team().size(); ++i) {
+		players.insert(world.friendly_team().get(i));
 	}
 
-	bool active_assigned = false;
-	for (std::size_t i = 0; i < 5; ++i) {
-		if (!curr_assignment[i].is()) {
-			continue;
-		}
+	bool active_assigned = (curr_tactic[0]->active());
+	for (std::size_t i = 1; i < 5 && players.size() > 0; ++i) {
+		curr_assignment[i] = curr_tactic[i]->select(players);
+		// assignment cannot be empty
+		assert(curr_assignment[i].is());
+		assert(players.find(curr_assignment[i]) != players.end());
+		players.erase(curr_assignment[i]);
 		curr_tactic[i]->set_player(curr_assignment[i]);
-		if (curr_tactic[i]->active()) {
-			active_assigned = true;
-		}
+		active_assigned = active_assigned || curr_tactic[i]->active();
 	}
 
 	// can't assign active tactic to anyone

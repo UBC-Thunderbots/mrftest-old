@@ -1,5 +1,6 @@
 #include "ai/hl/stp/tactic/chase.h"
 #include "ai/hl/stp/ssm/get_ball.h"
+#include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -12,7 +13,7 @@ namespace {
 
 		private:
 			bool done() const;
-			double score(Player::Ptr player) const;
+			Player::Ptr select(const std::set<Player::Ptr>& players) const;
 			void execute();
 	};
 
@@ -20,9 +21,11 @@ namespace {
 		return player->has_ball();
 	}
 
-	double Chase::score(Player::Ptr player) const {
-		if (player->has_ball()) return 1e99;
-		return -(player->position() - world.ball().position()).lensq();
+	Player::Ptr Chase::select(const std::set<Player::Ptr>& players) const {
+		for (auto it = players.begin(); it != players.end(); ++it) {
+			if ((*it)->has_ball()) return *it;
+		}
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 	}
 
 	void Chase::execute() {

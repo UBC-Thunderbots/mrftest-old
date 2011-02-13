@@ -20,12 +20,12 @@ namespace {
 			virtual Point dest() const = 0;
 
 		private:
-			double score(Player::Ptr player) const;
+			Player::Ptr select(const std::set<Player::Ptr>& players) const;
 			void execute();
 	};
 
-	double Defend::score(Player::Ptr player) const {
-		return -(player->position() - dest()).lensq();
+	Player::Ptr Defend::select(const std::set<Player::Ptr>& players) const {
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest()));
 	}
 
 	void Defend::execute() {

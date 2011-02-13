@@ -11,15 +11,13 @@ namespace {
 			LoneGoalie(World &world) : Tactic(world) {
 			}
 		private:
-			double score(Player::Ptr player) const;
+			Player::Ptr select(const std::set<Player::Ptr>& players) const;
 			void execute();
 	};
 
-	double LoneGoalie::score(Player::Ptr player) const {
-		if (world.friendly_team().get(0) == player) {
-			return 1;
-		}
-		return 0;
+	Player::Ptr LoneGoalie::select(const std::set<Player::Ptr>& players) const {
+		// by force...
+		return world.friendly_team().get(0);
 	}
 
 	void LoneGoalie::execute() {

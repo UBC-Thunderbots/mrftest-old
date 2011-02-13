@@ -10,12 +10,12 @@ namespace {
 			}
 
 		private:
-			double score(Player::Ptr player) const;
+			Player::Ptr select(const std::set<Player::Ptr>& players) const;
 			void execute();
 	};
 
-	double Idle::score(Player::Ptr) const {
-		return 1;
+	Player::Ptr Idle::select(const std::set<Player::Ptr>& players) const {
+		return *players.begin();
 	}
 
 	void Idle::execute() {

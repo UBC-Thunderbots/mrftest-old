@@ -18,6 +18,20 @@ using AI::HL::STP::Evaluation::ConeDefense;
 
 namespace {
 
+	const std::vector<const Predicate*> APPLICABLE = {
+		playtype(PlayType::PLAY),
+		our_team_size_at_least(3),
+		our_ball(),
+	};
+
+	const std::vector<const Predicate*> DONE = {
+		goal(),
+	};
+
+	const std::vector<const Predicate*> FAIL = {
+		their_ball(),
+	};
+
 	/**
 	 * Condition:
 	 * - ball under team possesion
@@ -52,17 +66,15 @@ namespace {
 	}
 
 	bool JustShoot::applicable() const {
-		return playtype(PlayType::PLAY)->evaluate(world)
-			&& our_team_size_at_least(3)->evaluate(world)
-			&& our_ball()->evaluate(world);
+		return evaluate(world, APPLICABLE);
 	}
 
 	bool JustShoot::done() const {
-		return goal()->evaluate(world);
+		return evaluate(world, DONE);
 	}
 
 	bool JustShoot::fail() const {
-		return none_ball()->evaluate(world);
+		return evaluate(world, FAIL);
 	}
 
 	void JustShoot::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>* roles) {

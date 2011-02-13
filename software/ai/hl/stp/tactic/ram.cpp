@@ -11,13 +11,13 @@ namespace {
 			}
 
 		private:
-			
+
 			bool done() const {
 				return (player->position() - world.ball().position()).len() < AI::HL::Util::POS_CLOSE;
 			}
 
-			double score(Player::Ptr player) const {
-				return 1.0 / (1.0 + (player->position() - world.ball().position()).len());
+			Player::Ptr select(const std::set<Player::Ptr>& players) const {
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 			}
 
 			void execute() {

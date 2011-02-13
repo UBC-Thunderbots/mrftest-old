@@ -8,6 +8,8 @@
 #include "util/byref.h"
 #include "util/registerable.h"
 
+#include <set>
+
 namespace AI {
 	namespace HL {
 		namespace STP {
@@ -75,12 +77,10 @@ namespace AI {
 						void set_move_flags(unsigned int f);
 
 						/**
-						 * Scoring function to indicate how preferable this particular player is.
-						 * There is constraint on the range of return values.
-						 * The highest scoring player is simply chosen for the task.
+						 * Selects a player from the set.
 						 * A subclass must implement this function.
 						 */
-						virtual double score(AI::HL::W::Player::Ptr player) const = 0;
+						virtual AI::HL::W::Player::Ptr select(const std::set<AI::HL::W::Player::Ptr>& players) const = 0;
 
 						/**
 						 * This function is called every tick,

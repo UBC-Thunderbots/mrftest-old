@@ -16,6 +16,20 @@ using AI::HL::STP::Enemy;
 
 namespace {
 
+	const std::vector<const Predicate*> APPLICABLE = {
+		playtype(PlayType::PLAY),
+		our_team_size_at_least(3),
+		our_ball(),
+	};
+
+	const std::vector<const Predicate*> DONE = {
+		goal(),
+	};
+
+	const std::vector<const Predicate*> FAIL = {
+		negate(our_ball()),
+	};
+
 	/**
 	 * Condition:
 	 * - ball under team possesion
@@ -50,17 +64,15 @@ namespace {
 	}
 
 	bool PassOffensive::applicable() const {
-		return playtype(PlayType::PLAY)->evaluate(world)
-			&& our_team_size_at_least(3)->evaluate(world)
-			&& our_ball()->evaluate(world);
+		return evaluate(world, APPLICABLE);
 	}
 
 	bool PassOffensive::done() const {
-		return goal()->evaluate(world);
+		return evaluate(world, DONE);
 	}
 
 	bool PassOffensive::fail() const {
-		return negate(our_ball())->evaluate(world);
+		return evaluate(world, FAIL);
 	}
 
 	void PassOffensive::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>* roles) {

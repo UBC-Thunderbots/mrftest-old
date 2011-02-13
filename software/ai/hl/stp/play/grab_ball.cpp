@@ -15,15 +15,13 @@ using AI::HL::STP::Enemy;
 
 namespace {
 
-	// these arrays will be used for something else in the future.
-
 	const std::vector<const Predicate*> APPLICABLE = {
 		playtype(PlayType::PLAY),
 		our_team_size_at_least(3),
 		none_ball(),
 	};
 
-	const std::vector<const Predicate*> SUCCESS = {
+	const std::vector<const Predicate*> DONE = {
 		our_ball(),
 	};
 
@@ -65,17 +63,15 @@ namespace {
 	}
 
 	bool GrabBall::applicable() const {
-		return playtype(PlayType::PLAY)->evaluate(world)
-			&& our_team_size_at_least(3)->evaluate(world)
-			&& none_ball()->evaluate(world);
+		return evaluate(world, APPLICABLE);
 	}
 
 	bool GrabBall::done() const {
-		return our_ball()->evaluate(world);
+		return evaluate(world, DONE);
 	}
 
 	bool GrabBall::fail() const {
-		return their_ball()->evaluate(world);
+		return evaluate(world, FAIL);
 	}
 
 	void GrabBall::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>* roles) {

@@ -17,15 +17,15 @@ namespace AI {
 				 * Having pointers to singletons allows natural comparison and equivalence operation.
 				 *
 				 * Because predicates are singletons,
-				 * they should not reference a world object.
+				 * they should NOT reference a WORLD object and are IMMUTABLE.
 				 *
 				 * Predicates are pointers so they can be stored in some container.
 				 * Perhaps in the future, we can generate a decision tree based on the predicates.
 				 *
 				 * TODO:
 				 * This is not the best implementation.
-				 * Someone should investigate tools like tr1::function.
-				 * For example,
+				 * Someone should investigate something cooler,
+				 * like tr1::function,
 				 * std::function<bool (AI::HL::W::World&)> Predicate;
 				 */
 				class Predicate {
@@ -58,6 +58,19 @@ namespace AI {
 				const Predicate* ball_on_our_side();
 
 				const Predicate* ball_on_their_side();
+
+				/**
+				 * Evaluates all predicates in this container.
+				 */
+				template<class Container> bool evaluate(AI::HL::W::World& world, const Container& predicates) {
+					for (typename Container::const_iterator it = predicates.begin(); it != predicates.end(); ++it) {
+						if (!(*it)->evaluate(world)) {
+							return false;
+						}
+					}
+					return true;
+				}
+
 			}
 		}
 	}

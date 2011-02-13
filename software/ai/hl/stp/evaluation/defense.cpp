@@ -15,7 +15,7 @@ namespace {
 
 	DoubleParam robot_shrink("(defense) shrink robot radius", 1.1, 0.1, 2.0);
 
-	const int MAX_DEFENDERS = 2;
+	const unsigned int MAX_DEFENDERS = 2;
 }
 
 AI::HL::STP::Evaluation::ConeDefense::ConeDefense(AI::HL::STP::Play::Play& play, World& world) : Defense(play), world(world) {
