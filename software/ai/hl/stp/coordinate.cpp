@@ -77,7 +77,7 @@ Point Coordinate::operator()() const {
 	return data->evaluate();
 }
 
-Coordinate::Coordinate() : data(new Fixed(Point(0.0, 0.0))) {
+Coordinate::Coordinate() : data(new Fixed(Point())) {
 }
 
 Coordinate::Coordinate(const Point& pos) : data(new Fixed(pos)) {
