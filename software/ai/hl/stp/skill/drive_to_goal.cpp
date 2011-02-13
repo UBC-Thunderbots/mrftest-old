@@ -20,10 +20,10 @@ namespace {
 					return;
 				}
 
-				AI::HL::STP::Evaluation::ShootStats shoot_stats = AI::HL::STP::Evaluation::shoot_stats(world, player);
+				AI::HL::STP::Evaluation::ShootData shoot_data = AI::HL::STP::Evaluation::evaluate_shoot(world, player);
 
 				// TODO
-				if (shoot_stats.can_shoot && player->chicker_ready_time() == 0) {
+				if (shoot_data.can_shoot && player->chicker_ready_time() == 0) {
 					context.execute_after(kick());
 					return;
 				}

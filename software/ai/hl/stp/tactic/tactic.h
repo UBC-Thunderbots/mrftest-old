@@ -19,7 +19,7 @@ namespace AI {
 				 * See STP paper section 4.1.
 				 *
 				 * It runs every tick.
-				 * A subclass shall derive score(), execute(),
+				 * A subclass shall derive select(), execute(),
 				 * optionally initialize() and done().
 				 *
 				 * Important tactics that deal with the ball are called active tactics.
@@ -79,6 +79,10 @@ namespace AI {
 						/**
 						 * Selects a player from the set.
 						 * A subclass must implement this function.
+						 *
+						 * \param[in] players a set of players to choose from
+						 *
+						 * \return a player to be used by this tactic
 						 */
 						virtual AI::HL::W::Player::Ptr select(const std::set<AI::HL::W::Player::Ptr>& players) const = 0;
 
