@@ -60,7 +60,7 @@ template<typename R, typename NK, typename K, typename ... Args> class Cacheable
 
 template<typename R, typename ... NK, typename ... Args> class CacheableImpl<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<>, Args ...> {
 	public:
-		const R &operator()(const Args & ... args) const {
+		const R &operator()(const Args & ... args) {
 			if (!cache.is()) {
 				cache.reset(new R(compute(args ...)));
 			}
@@ -72,7 +72,7 @@ template<typename R, typename ... NK, typename ... Args> class CacheableImpl<R, 
 		}
 
 	protected:
-		virtual R compute(Args ... args) const = 0;
+		virtual R compute(Args ... args) = 0;
 
 	private:
 		mutable ScopedPtr<R> cache;
@@ -80,7 +80,7 @@ template<typename R, typename ... NK, typename ... Args> class CacheableImpl<R, 
 
 template<typename R, typename ... NK, typename ... K, typename ... Args> class CacheableImpl<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...>, Args ...> {
 	public:
-		const R &operator()(const Args & ... args) const {
+		const R &operator()(const Args & ... args) {
 			const Tuple &cache_key = CacheableTupleBuilder<sizeof ... (NK), Args ...>::build_tuple(args ...);
 			typename Map::iterator iter = cache.find(cache_key);
 			if (iter == cache.end()) {
@@ -94,7 +94,7 @@ template<typename R, typename ... NK, typename ... K, typename ... Args> class C
 		}
 
 	protected:
-		virtual R compute(Args ... args) const = 0;
+		virtual R compute(Args ... args) = 0;
 
 	private:
 		typedef std::tuple<K ...> Tuple;
