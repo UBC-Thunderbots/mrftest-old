@@ -237,6 +237,8 @@ software/ai/hl/stp/tactic/lone_goalie.cpp -text
 software/ai/hl/stp/tactic/lone_goalie.h -text
 software/ai/hl/stp/tactic/move.cpp -text
 software/ai/hl/stp/tactic/move.h -text
+software/ai/hl/stp/tactic/move_penalty.cpp -text
+software/ai/hl/stp/tactic/move_penalty.h -text
 software/ai/hl/stp/tactic/pass.cpp -text
 software/ai/hl/stp/tactic/pass.h -text
 software/ai/hl/stp/tactic/patrol.cpp -text
