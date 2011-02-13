@@ -36,7 +36,7 @@ namespace {
 			bool applicable() const;
 			bool done() const;
 			bool fail() const;
-			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>* roles);
+			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> (&roles)[4]);
 			const PlayFactory& factory() const;
 	};
 
@@ -65,7 +65,7 @@ namespace {
 		return false;
 	}
 
-	void PrepPenaltyFriendly::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>* roles) {
+	void PrepPenaltyFriendly::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> (&roles)[4]) {
 		// std::Player::Ptr goalie = world.friendly_team().get(0);
 
 		// GOALIE

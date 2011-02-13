@@ -42,8 +42,16 @@ void PlayExecutor::calc_play() {
 				curr_roles[j].clear();
 				curr_tactic[j].reset();
 			}
-			// initialize this play and run it
-			curr_play->assign(curr_roles[0], curr_roles + 1);
+			// assign the players
+			{
+				std::vector<Tactic::Tactic::Ptr> goalie_role;
+				std::vector<Tactic::Tactic::Ptr> normal_roles[4];
+				curr_play->assign(goalie_role, normal_roles);
+				swap(goalie_role, curr_roles[0]);
+				for (std::size_t j = 1; j < 5; ++j) {
+					swap(normal_roles[j-1], curr_roles[j]);
+				}
+			}
 			LOG_INFO(curr_play->factory().name());
 			return;
 		}
