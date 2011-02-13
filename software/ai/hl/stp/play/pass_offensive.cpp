@@ -10,26 +10,11 @@
 
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::STP::Tactic;
-using namespace AI::HL::STP::Predicates;
 using namespace AI::HL::W;
 using AI::HL::STP::Enemy;
+namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
-
-	const std::vector<const Predicate*> APPLICABLE = {
-		playtype(PlayType::PLAY),
-		our_team_size_at_least(3),
-		our_ball(),
-	};
-
-	const std::vector<const Predicate*> DONE = {
-		goal(),
-	};
-
-	const std::vector<const Predicate*> FAIL = {
-		negate(our_ball()),
-	};
-
 	/**
 	 * Condition:
 	 * - ball under team possesion
@@ -64,15 +49,17 @@ namespace {
 	}
 
 	bool PassOffensive::applicable() const {
-		return evaluate(world, APPLICABLE);
+		return Predicates::playtype(world, PlayType::PLAY)
+			&& Predicates::our_team_size_at_least(world, 3)
+			&& Predicates::our_ball(world);
 	}
 
 	bool PassOffensive::done() const {
-		return evaluate(world, DONE);
+		return Predicates::goal(world);
 	}
 
 	bool PassOffensive::fail() const {
-		return evaluate(world, FAIL);
+		return !Predicates::our_ball(world);
 	}
 
 	void PassOffensive::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> (&roles)[4]) {
@@ -84,7 +71,7 @@ namespace {
 		goalie_role.push_back(lone_goalie(world));
 
 		// TODO: better passer and passee positioning and targeting
-		
+
 		// ROLE 1
 		// passer 
 		roles[0].push_back(passer_ready(world, friendly.get(1)->position(), friendly.get(2)->position()));

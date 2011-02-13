@@ -9,25 +9,11 @@
 
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::STP::Tactic;
-using namespace AI::HL::STP::Predicates;
 using namespace AI::HL::W;
 using AI::HL::STP::Enemy;
+namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
-
-	const std::vector<const Predicate*> APPLICABLE = {
-		playtype(PlayType::PLAY),
-		our_team_size_at_least(3),
-		none_ball(),
-	};
-
-	const std::vector<const Predicate*> DONE = {
-		our_ball(),
-	};
-
-	const std::vector<const Predicate*> FAIL = {
-		their_ball(),
-	};
 
 	/**
 	 * Condition:
@@ -63,15 +49,17 @@ namespace {
 	}
 
 	bool GrabBall::applicable() const {
-		return evaluate(world, APPLICABLE);
+		return Predicates::playtype(world, PlayType::PLAY)
+		&& Predicates::our_team_size_at_least(world, 3)
+		&& Predicates::none_ball(world);
 	}
 
 	bool GrabBall::done() const {
-		return evaluate(world, DONE);
+		return Predicates::our_ball(world);
 	}
 
 	bool GrabBall::fail() const {
-		return evaluate(world, FAIL);
+		return Predicates::their_ball(world);
 	}
 
 	void GrabBall::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> (&roles)[4]) {

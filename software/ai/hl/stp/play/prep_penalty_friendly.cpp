@@ -10,10 +10,10 @@
 
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::STP::Tactic;
-using namespace AI::HL::STP::Predicates;
 using namespace AI::HL::W;
 using AI::HL::STP::Enemy;
 using AI::HL::STP::Evaluation::ConeDefense;
+namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
 
@@ -53,12 +53,12 @@ namespace {
 	}
 
 	bool PrepPenaltyFriendly::applicable() const {
-		return playtype(PlayType::PREPARE_PENALTY_FRIENDLY)->evaluate(world)
-			&& our_team_size_at_least(1)->evaluate(world);
+		return Predicates::playtype(world, PlayType::PREPARE_PENALTY_FRIENDLY)
+			&& Predicates::our_team_size_at_least(world, 1);
 	}
 
 	bool PrepPenaltyFriendly::done() const {
-		return !playtype(PlayType::PREPARE_PENALTY_FRIENDLY)->evaluate(world);
+		return !Predicates::playtype(world, PlayType::PREPARE_PENALTY_FRIENDLY);
 	}
 
 	bool PrepPenaltyFriendly::fail() const {

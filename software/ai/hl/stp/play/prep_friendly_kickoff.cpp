@@ -4,8 +4,8 @@
 
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::STP::Tactic;
-using namespace AI::HL::STP::Predicates;
 using namespace AI::HL::W;
+namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
 
@@ -42,11 +42,11 @@ namespace {
 	}
 
 	bool PrepFriendlyKickoff::applicable() const {
-		return playtype(PlayType::PREPARE_KICKOFF_FRIENDLY)->evaluate(world);
+		return Predicates::playtype(world, PlayType::PREPARE_KICKOFF_FRIENDLY);
 	}
 
 	bool PrepFriendlyKickoff::done() const {
-		return !playtype(PlayType::PREPARE_KICKOFF_FRIENDLY)->evaluate(world);
+		return !Predicates::playtype(world, PlayType::PREPARE_KICKOFF_FRIENDLY);
 	}
 
 	bool PrepFriendlyKickoff::fail() const {
