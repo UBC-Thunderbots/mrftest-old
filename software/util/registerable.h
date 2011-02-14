@@ -63,11 +63,11 @@ template<typename T> class Registerable : public NonCopyable {
 		}
 
 	private:
-		const char * const name_raw;
+		const char *const name_raw;
 		Glib::ustring name_;
 		Registerable<T> *precache_next;
 
-		static Registerable<T> *&precache() {
+		static Registerable<T> * &precache() {
 			static Registerable<T> *first;
 			return first;
 		}

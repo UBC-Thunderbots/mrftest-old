@@ -501,7 +501,7 @@ AsyncOperation<void>::Ptr XBeeRobot::firmware_reboot() {
 	return FirmwareRebootOperation::create(dongle, index);
 }
 
-void XBeeRobot::drive(const int (&wheels)[4]) {
+void XBeeRobot::drive(const int(&wheels)[4]) {
 	uint8_t buffer[sizeof(drive_block)];
 	std::memcpy(buffer, drive_block, sizeof(buffer));
 	buffer[0] |= 0x01;

@@ -16,13 +16,12 @@
 namespace AI {
 	namespace Nav {
 		namespace Util {
-
 			/**
 			 * Finds where to go and when to get there in order to intercept the moving ball along the route to dst
 			 */
 			std::pair<Point, timespec> get_ramball_location(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
 
-			//			bool has_ramball_location(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
+			// bool has_ramball_location(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player);
 
 
 			/**
@@ -87,8 +86,7 @@ namespace AI {
 			 *
 			 * \param[in] target_velocity the desired velocity we want when we get there
 			 */
-			 timespec get_next_ts( timespec now, Point &p1, Point &p2, Point target_velocity );
-
+			timespec get_next_ts(timespec now, Point &p1, Point &p2, Point target_velocity);
 		}
 	}
 }

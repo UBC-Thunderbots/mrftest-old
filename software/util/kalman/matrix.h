@@ -5,13 +5,13 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-//const char DELIMITER = ';';
+// const char DELIMITER = ';';
 // i denot row and j denote column
 
 class matrix {
 	public:
-		matrix(); // this one initialize m to null. 
-		matrix(unsigned int size_i,unsigned int size_j=1, double* data=NULL); // if there is data, we will store it in an extra copy. 2) gsl initialize value to zero. 3) user is responsible for the correct size of the array
+		matrix(); // this one initialize m to null.
+		matrix(unsigned int size_i, unsigned int size_j = 1, double *data = 0); // if there is data, we will store it in an extra copy. 2) gsl initialize value to zero. 3) user is responsible for the correct size of the array
 		matrix(const matrix &B);
 		~matrix();
 		/*old modified*/ static matrix identity(unsigned int n);
@@ -21,52 +21,52 @@ class matrix {
 		unsigned int j();
 
 		matrix reset(); // reset and return itself
-		
-		
+
+
 		class row {
-			matrix& parent;
+			matrix &parent;
 			unsigned int i;
+
 			public:
-				row(matrix& p, unsigned int row_number): parent(p), i(row_number){};
-				double operator[](unsigned int j){return gsl_matrix_get(parent.m,i,j);};
+				row(matrix &p, unsigned int row_number) : parent(p), i(row_number) {}
+				double operator[](unsigned int j) { return gsl_matrix_get(parent.m, i, j); }
 		};
 
-		row operator[](unsigned int i){ return row(*this, i);}; //TODO more dimension checks
-		double& operator()(unsigned int, unsigned int);
+		row operator[](unsigned int i) { return row(*this, i); }  // TODO more dimension checks
+		double &operator()(unsigned int, unsigned int);
 		double operator()(unsigned int, unsigned int) const;
 
 		std::string toString();
-		
+
 		matrix operator+(const matrix &B) const;
 		matrix operator-(const matrix &B) const;
 
-		matrix operator*(const matrix &B) const;
-		matrix operator*(double) const;
+		matrix operator *(const matrix &B) const;
+		matrix operator *(double) const;
 		matrix operator/(double) const;
-		friend matrix operator*(double, const matrix&);
+		friend matrix operator *(double, const matrix &);
 
 		matrix operator=(const matrix &B);
 
-		matrix operator~(); //transpose
+		matrix operator~(); // transpose
 		matrix operator!();
 
-		//matrix merge(const matrix &,const matrix &,const matrix &,const matrix &) const;    
-		matrix sub(unsigned int begin_i,unsigned int end_i,unsigned int begin_j,unsigned int end_j) const;
-		//matrix sub(unsigned int begin_i,unsigned int begin_j,unsigned int size_i,unsigned int size_j) const;
-		//matrix sub(unsigned int size_i,unsigned int end_i,unsigned int size_j,unsigned int end_j) const;
-		 // TODO sub assign mutator
-		
-		
-		//friend std::ostream& operator<<(std::ostream& out,const matrix &A);
-		
+		// matrix merge(const matrix &,const matrix &,const matrix &,const matrix &) const;
+		matrix sub(unsigned int begin_i, unsigned int end_i, unsigned int begin_j, unsigned int end_j) const;
+		// matrix sub(unsigned int begin_i,unsigned int begin_j,unsigned int size_i,unsigned int size_j) const;
+		// matrix sub(unsigned int size_i,unsigned int end_i,unsigned int size_j,unsigned int end_j) const;
+		// TODO sub assign mutator
+
+
+		// friend std::ostream& operator<<(std::ostream& out,const matrix &A);
 
 	private:
 		friend class row;
 
-		matrix(gsl_matrix* mat); // internal use
+		matrix(gsl_matrix *mat); // internal use
 
-		gsl_matrix* m;
-		inline bool is_square(){ return (m!=NULL && m->size1==m->size2); };
+		gsl_matrix *m;
+		inline bool is_square() { return m && m->size1 == m->size2;  }
 };
 
 /*
@@ -79,7 +79,7 @@ class matrix {
 		static matrix identity(unsigned int n, unsigned int precision=default_precision);
 		mpf_class& operator()(unsigned int, unsigned int);
 		mpf_class operator()(unsigned int, unsigned int) const;
-		
+
 		matrix operator+(const matrix &B) const;
 		matrix operator-(const matrix &B) const;
 
@@ -96,13 +96,12 @@ class matrix {
 		matrix operator~();
 		matrix operator!();
 
-		matrix merge(const matrix &,const matrix &,const matrix &,const matrix &) const;    
+		matrix merge(const matrix &,const matrix &,const matrix &,const matrix &) const;
 		matrix sub(unsigned int,unsigned int,unsigned int,unsigned int) const;
-		
+
 		~matrix();
-		
+
 		friend std::ostream& operator<<(std::ostream& out,const matrix &A);
-		
 
 	private:
 		unsigned int n;
@@ -112,3 +111,4 @@ class matrix {
 };
 */
 #endif
+

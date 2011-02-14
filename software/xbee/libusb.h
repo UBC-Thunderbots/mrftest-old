@@ -21,7 +21,7 @@ class LibUSBError : public std::runtime_error {
 	public:
 		LibUSBError(const std::string &msg);
 
-		~LibUSBError() throw();
+		~LibUSBError() throw ();
 
 		int error_code() const;
 };
@@ -33,7 +33,7 @@ class LibUSBTransferError : public LibUSBError {
 	public:
 		LibUSBTransferError(unsigned int endpoint, const std::string &msg);
 
-		~LibUSBTransferError() throw();
+		~LibUSBTransferError() throw ();
 };
 
 /**
@@ -43,7 +43,7 @@ class LibUSBTransferTimeoutError : public LibUSBTransferError {
 	public:
 		LibUSBTransferTimeoutError(unsigned int endpoint);
 
-		~LibUSBTransferTimeoutError() throw();
+		~LibUSBTransferTimeoutError() throw ();
 };
 
 /**
@@ -53,7 +53,7 @@ class LibUSBTransferStallError : public LibUSBTransferError {
 	public:
 		LibUSBTransferStallError(unsigned int endpoint);
 
-		~LibUSBTransferStallError() throw();
+		~LibUSBTransferStallError() throw ();
 };
 
 /**
@@ -63,7 +63,7 @@ class LibUSBTransferCancelledError : public LibUSBTransferError {
 	public:
 		LibUSBTransferCancelledError(unsigned int endpoint);
 
-		~LibUSBTransferCancelledError() throw();
+		~LibUSBTransferCancelledError() throw ();
 };
 
 /**
@@ -179,7 +179,7 @@ class LibUSBTransfer : public AsyncOperation<void> {
 		void submit();
 
 	protected:
-		libusb_transfer * const transfer;
+		libusb_transfer *const transfer;
 		bool submitted_, done_, repeats_;
 		Ptr submitted_self_ref;
 		unsigned int stall_count, stall_max;

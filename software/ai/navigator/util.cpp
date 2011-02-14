@@ -392,26 +392,26 @@ std::vector<Point> AI::Nav::Util::get_obstacle_boundaries(AI::Nav::W::World &wor
 	return ans;
 }
 
-	//bool has_ramball_location(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
-	//	Point ball_dir = world.ball.velocity();
-	//	return unique_line_intersect(player->position(), dst, world.ball.position(), world.ball.position() + ball_dir);
-	//}
+// bool has_ramball_location(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+// Point ball_dir = world.ball.velocity();
+// return unique_line_intersect(player->position(), dst, world.ball.position(), world.ball.position() + ball_dir);
+// }
 
 
-std::pair<Point, timespec> AI::Nav::Util::get_ramball_location(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player){
+std::pair<Point, timespec> AI::Nav::Util::get_ramball_location(Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 	Point ball_dir = world.ball().velocity();
 
-	if(ball_dir.lensq() < EPS){
-		if(lineseg_point_dist(world.ball().position(), player->position(), dst) < RAM_BALL_ALLOWANCE){	
-			return std::make_pair(world.ball().position(),  world.monotonic_time());
+	if (ball_dir.lensq() < EPS) {
+		if (lineseg_point_dist(world.ball().position(), player->position(), dst) < RAM_BALL_ALLOWANCE) {
+			return std::make_pair(world.ball().position(), world.monotonic_time());
 		}
 	}
 
-	if(unique_line_intersect(player->position(), dst, world.ball().position(), world.ball().position() + ball_dir)){
+	if (unique_line_intersect(player->position(), dst, world.ball().position(), world.ball().position() + ball_dir)) {
 		Point location = line_intersect(player->position(), dst, world.ball().position(), world.ball().position() + ball_dir);
 		timespec intersect = world.monotonic_time();
-		timespec_add(intersect, double_to_timespec((location -  world.ball().position()).len()/world.ball().velocity().len()), intersect);
-		
+		timespec_add(intersect, double_to_timespec((location - world.ball().position()).len() / world.ball().velocity().len()), intersect);
+
 		Point vec1 = location - player->position();
 		Point vec2 = dst - player->position();
 
@@ -422,20 +422,21 @@ std::pair<Point, timespec> AI::Nav::Util::get_ramball_location(Point dst, AI::Na
 		}
 	}
 
-	//if everything fails then just stay put
-		return std::make_pair(player->position(),  world.monotonic_time());
+	// if everything fails then just stay put
+	return std::make_pair(player->position(), world.monotonic_time());
 }
 
 timespec AI::Nav::Util::get_next_ts(timespec ts_now, Point &p1, Point &p2, Point target_velocity) {
-		double now, velocity, distance, next;
-		timespec ts_next;
-		now = ts_now.tv_sec + ts_now.tv_nsec/1.0e9;
-		velocity = target_velocity.len();
-		distance = (p1-p2).len();
-		next = now + (velocity*distance);
-		// set sec part
-		ts_next.tv_sec = static_cast<int>(next);
-		// set nanosec part
-		ts_next.tv_nsec = static_cast<int>((next - ts_next.tv_sec)*1.0e9);
-		return ts_next;
+	double now, velocity, distance, next;
+	timespec ts_next;
+	now = ts_now.tv_sec + ts_now.tv_nsec / 1.0e9;
+	velocity = target_velocity.len();
+	distance = (p1 - p2).len();
+	next = now + (velocity * distance);
+	// set sec part
+	ts_next.tv_sec = static_cast<int>(next);
+	// set nanosec part
+	ts_next.tv_nsec = static_cast<int>((next - ts_next.tv_sec) * 1.0e9);
+	return ts_next;
 }
+

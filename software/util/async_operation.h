@@ -9,8 +9,7 @@
  *
  * \tparam T the return type of the operation.
  */
-template<typename T>
-class AsyncOperation : public ByRef {
+template<typename T> class AsyncOperation : public ByRef {
 	public:
 		/**
 		 * \brief A pointer to an AsyncOperation.

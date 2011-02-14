@@ -5,7 +5,7 @@
 #include <iostream>
 #include <cmath>
 
-//TODO 1. accompensate for delay in real mode, and not to in simulator mode
+// TODO 1. accompensate for delay in real mode, and not to in simulator mode
 // TODO 2. access to control noise: as if our robot command and relative robot positions
 // TODO 3. accompensate for glitches when "clipping" angles
 
@@ -33,14 +33,16 @@ double Predictor::value(double delta, unsigned int deriv) const {
 double Predictor::value(const timespec &ts, unsigned int deriv) const {
 	double v = 0;
 	matrix guess = filter.predict(timespec_to_double(ts));
-	if(deriv == 0){
-		v = guess(0,0);
-	} else if(deriv == 1) {
-		v = guess(1,0);
+	if (deriv == 0) {
+		v = guess(0, 0);
+	} else if (deriv == 1) {
+		v = guess(1, 0);
 	} else if (deriv == 2) {
 		v = filter.get_control(timespec_to_double(ts));
-	} else v = 0.0;
-	
+	} else {
+		v = 0.0;
+	}
+
 	return v;
 }
 
@@ -56,22 +58,22 @@ void Predictor::add_datum(double value, const timespec &ts) {
 	if (!initialized) {
 		// Remember that we're initialized.
 		initialized = true;
-		
+
 		// Mark the current time as the most recent datum stamp.
 		last_datum_timestamp = ts;
-		
+
 		// Update the predictions.
-		//update();
+		// update();
 		// or use kalman filter
 		filter.update(value, timespec_to_double(ts));
-		
+
 		// Don't do any of the rest.
 		return;
 	}
-	
+
 	// Compute delta time and update stamp.
 	last_datum_timestamp = ts;
-	
+
 	filter.update(value, timespec_to_double(ts));
 }
 

@@ -64,7 +64,7 @@ class XBeeRobot : public ByRef {
 
 		AsyncOperation<void>::Ptr firmware_reboot();
 
-		void drive(const int (&wheels)[4]);
+		void drive(const int(&wheels)[4]);
 
 		void drive(int w1, int w2, int w3, int w4);
 

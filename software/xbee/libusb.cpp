@@ -56,7 +56,7 @@ namespace {
 			}
 
 		private:
-			const char * const call;
+			const char *const call;
 			const int err;
 
 			SyncResultAsyncOperation(const char *call, int err) : call(call), err(err) {
@@ -71,31 +71,31 @@ namespace {
 LibUSBError::LibUSBError(const std::string &msg) : std::runtime_error(msg) {
 }
 
-LibUSBError::~LibUSBError() throw() {
+LibUSBError::~LibUSBError() throw () {
 }
 
 LibUSBTransferError::LibUSBTransferError(unsigned int endpoint, const std::string &msg) : LibUSBError(make_transfer_error_message(endpoint, msg)) {
 }
 
-LibUSBTransferError::~LibUSBTransferError() throw() {
+LibUSBTransferError::~LibUSBTransferError() throw () {
 }
 
 LibUSBTransferTimeoutError::LibUSBTransferTimeoutError(unsigned int endpoint) : LibUSBTransferError(endpoint, "Transfer timed out") {
 }
 
-LibUSBTransferTimeoutError::~LibUSBTransferTimeoutError() throw() {
+LibUSBTransferTimeoutError::~LibUSBTransferTimeoutError() throw () {
 }
 
 LibUSBTransferStallError::LibUSBTransferStallError(unsigned int endpoint) : LibUSBTransferError(endpoint, "Transfer stalled") {
 }
 
-LibUSBTransferStallError::~LibUSBTransferStallError() throw() {
+LibUSBTransferStallError::~LibUSBTransferStallError() throw () {
 }
 
 LibUSBTransferCancelledError::LibUSBTransferCancelledError(unsigned int endpoint) : LibUSBTransferError(endpoint, "Transfer cancelled") {
 }
 
-LibUSBTransferCancelledError::~LibUSBTransferCancelledError() throw() {
+LibUSBTransferCancelledError::~LibUSBTransferCancelledError() throw () {
 }
 
 LibUSBContext::LibUSBContext() : destroyed_flag(0) {
@@ -132,7 +132,8 @@ int LibUSBContext::poll_func(GPollFD *ufds, unsigned int nfds, int timeout) {
 			LibUSBContext *ctx = *i;
 			context_infos[wptr].context = ctx;
 			context_infos[wptr].fds = libusb_get_pollfds(ctx->context);
-			for (context_infos[wptr].nfds = 0; context_infos[wptr].fds[context_infos[wptr].nfds]; ++context_infos[wptr].nfds);
+			for (context_infos[wptr].nfds = 0; context_infos[wptr].fds[context_infos[wptr].nfds]; ++context_infos[wptr].nfds) {
+			}
 			context_infos[wptr].destroyed = false;
 			ctx->destroyed_flag = &context_infos[wptr].destroyed;
 			total_usb_fds += context_infos[wptr].nfds;
@@ -173,7 +174,9 @@ int LibUSBContext::poll_func(GPollFD *ufds, unsigned int nfds, int timeout) {
 
 	for (std::size_t i = 0; i < G_N_ELEMENTS(context_infos); ++i) {
 		if (!context_infos[i].destroyed) {
-			struct timeval zero = { 0, 0 };
+			struct timeval zero = {
+				0, 0
+			};
 			check_fn("libusb_handle_events_timeout", libusb_handle_events_timeout(context_infos[i].context->context, &zero));
 		}
 	}

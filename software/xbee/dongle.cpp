@@ -168,7 +168,7 @@ namespace {
 
 	const FaultMessageInfo<XBeeDongle::RobotFault> ROBOT_FAULT_MESSAGE_INFOS[] = {
 		{ XBeeDongle::FAULT_CAPACITOR_CHARGE_TIMEOUT, "Capacitor charge timeout", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_CHICKER_COMM_ERROR, "Chicker communication error" , Annunciator::Message::TRIGGER_LEVEL},
+		{ XBeeDongle::FAULT_CHICKER_COMM_ERROR, "Chicker communication error", Annunciator::Message::TRIGGER_LEVEL },
 		{ XBeeDongle::FAULT_CHICKER_NOT_PRESENT, "Chicker not present", Annunciator::Message::TRIGGER_LEVEL },
 		{ XBeeDongle::FAULT_FPGA_NO_BITSTREAM, "FPGA no bitstream", Annunciator::Message::TRIGGER_LEVEL },
 		{ XBeeDongle::FAULT_FPGA_INVALID_BITSTREAM, "FPGA invalid bitstream", Annunciator::Message::TRIGGER_LEVEL },
@@ -222,7 +222,7 @@ namespace {
 			}
 	};
 
-	class CommonFaultMessage: public FaultMessage<XBeeDongle::CommonFault> {
+	class CommonFaultMessage : public FaultMessage<XBeeDongle::CommonFault> {
 		public:
 			CommonFaultMessage() : FaultMessage<XBeeDongle::CommonFault>(COMMON_FAULT_MESSAGE_INFOS, static_cast<unsigned int>(this - INSTANCE_ARRAY)) {
 			}
@@ -233,7 +233,7 @@ namespace {
 
 	CommonFaultMessage CommonFaultMessage::INSTANCE_ARRAY[G_N_ELEMENTS(COMMON_FAULT_MESSAGE_INFOS)];
 
-	class DongleFaultMessage: public FaultMessage<XBeeDongle::DongleFault> {
+	class DongleFaultMessage : public FaultMessage<XBeeDongle::DongleFault> {
 		public:
 			DongleFaultMessage() : FaultMessage<XBeeDongle::DongleFault>(DONGLE_FAULT_MESSAGE_INFOS, static_cast<unsigned int>(this - INSTANCE_ARRAY)) {
 			}
@@ -244,7 +244,7 @@ namespace {
 
 	DongleFaultMessage DongleFaultMessage::INSTANCE_ARRAY[G_N_ELEMENTS(DONGLE_FAULT_MESSAGE_INFOS)];
 
-	class RobotFaultMessage: public FaultMessage<XBeeDongle::RobotFault> {
+	class RobotFaultMessage : public FaultMessage<XBeeDongle::RobotFault> {
 		public:
 			RobotFaultMessage() : FaultMessage<XBeeDongle::RobotFault>(ROBOT_FAULT_MESSAGE_INFOS, static_cast<unsigned int>(this - INSTANCE_ARRAY)) {
 			}
@@ -345,13 +345,13 @@ namespace {
 					case XBeeDongle::XBEES_STATE_RUNNING:
 					case XBeeDongle::XBEES_STATE_FAIL_0:
 					case XBeeDongle::XBEES_STATE_FAIL_1:
-						{
-							xbees_state_connection.disconnect();
-							Ptr pthis(this);
-							self_ref.reset();
-							signal_done.emit(pthis);
-							return;
-						}
+					{
+						xbees_state_connection.disconnect();
+						Ptr pthis(this);
+						self_ref.reset();
+						signal_done.emit(pthis);
+						return;
+					}
 				}
 			}
 

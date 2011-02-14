@@ -109,7 +109,7 @@ void Player::kick_impl(double speed) {
 	static const unsigned int POWERS[] = { 2016, 3024, 4032 };
 
 	if (bot->alive) {
-		if(bot->capacitor_charged) {
+		if (bot->capacitor_charged) {
 			double speed_below, speed_above;
 			unsigned int power_below, power_above;
 			if (speed <= SPEEDS[0] + 1e-9) {
