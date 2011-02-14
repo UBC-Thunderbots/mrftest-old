@@ -359,6 +359,8 @@ bool line_seg_intersect_rectangle(Point seg[2], Point recA[4]) {
 }
 
 #warning use pass-by-reference
+#warning you only need 2 points to define a rectangle, which can be in any orientation
+#warning if this is the computation for a non-axis aligned rectangle, then it is wrong
 bool point_in_rectangle(const Point &pointA, Point recA[4]) {
 	bool x_ok = pointA.x >= std::min(std::min(recA[0].x, recA[1].x), std::min(recA[2].x, recA[3].x));
 	x_ok = x_ok && pointA.x <= std::max(std::max(recA[0].x, recA[1].x), std::max(recA[2].x, recA[3].x));
@@ -419,7 +421,7 @@ Point calc_block_other_ray(const Point &a, const Point &c, const Point &g) {
 }
 
 // ported code
-#warning Doxygenize this in geom/util.h; also, the comments there are unclear (what does it actually do?)
+#warning TODO: figure out what this actually do and write better comments
 bool goalie_block_goal_post(const Point &a, const Point &b, const Point &c, const Point &g) {
 	Point R = reflect(a - c, g - c);
 	return R.cross(b - c) < -EPS;

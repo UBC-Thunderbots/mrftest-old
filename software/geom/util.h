@@ -307,12 +307,18 @@ Point calc_block_cone(const Point &a, const Point &b, const Point &p, const doub
  */
 Point calc_block_other_ray(const Point &a, const Point &c, const Point &g);
 
-// ported code
-// a = goal post position
-// b = other goal post position
-// c = ball position
-// g = goalie position
-// checks if goalie blocks goal post
+/**
+ * Ported code
+ * Checks if goalie blocks goal post.
+ *
+ * \param[in] a goal post position
+ *
+ * \param[in] b other goal post position
+ *
+ * \param[in] c ball position
+ *
+ * \param[in] g goalie position
+ */
 bool goalie_block_goal_post(const Point &a, const Point &b, const Point &c, const Point &g);
 
 /**
