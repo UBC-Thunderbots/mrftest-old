@@ -23,6 +23,11 @@ namespace AI {
 					typedef RefPtr<Robot> Ptr;
 
 					/**
+					 * A pointer to a const Robot.
+					 */
+					typedef RefPtr<const Robot> CPtr;
+
+					/**
 					 * Whether or not the robot was seen in one of the most recent camera frames.
 					 * Used internally in the backend.
 					 */
@@ -80,7 +85,7 @@ namespace AI {
 					double aacceleration(double delta = 0.0) const;
 					double aacceleration(const timespec &ts) const;
 					unsigned int pattern() const;
-					ObjectStore &object_store();
+					ObjectStore &object_store() const;
 					bool has_destination() const;
 					const std::pair<Point, double> &destination() const;
 					bool has_path() const;
@@ -95,7 +100,7 @@ namespace AI {
 				private:
 					const unsigned int pattern_;
 					Predictor xpred, ypred, tpred;
-					ObjectStore object_store_;
+					mutable ObjectStore object_store_;
 
 					void on_defending_end_changed();
 			};

@@ -26,13 +26,7 @@ namespace AI {
 			/**
 			 * A robot, as seen by a Strategy.
 			 */
-			class Robot : public AI::Common::Robot {
-				public:
-					/**
-					 * A pointer to a Robot.
-					 */
-					typedef RefPtr<Robot> Ptr;
-			};
+			typedef AI::Common::Robot Robot;
 
 			/**
 			 * A player, as seen by a Strategy.
@@ -43,6 +37,11 @@ namespace AI {
 					 * A pointer to a Player.
 					 */
 					typedef RefPtr<Player> Ptr;
+
+					/**
+					 * A pointer to a const Player.
+					 */
+					typedef RefPtr<const Player> CPtr;
 
 					/**
 					 * Sets the current destination and movement type for this player.
@@ -100,6 +99,17 @@ namespace AI {
 						return get_hl_player(i);
 					}
 
+					/**
+					 * Returns a player from the team.
+					 *
+					 * \param[in] i the index of the player.
+					 *
+					 * \return the player.
+					 */
+					Player::CPtr get(std::size_t i) const {
+						return get_hl_player(i);
+					}
+
 				protected:
 					/**
 					 * Returns a player from the team.
@@ -109,6 +119,15 @@ namespace AI {
 					 * \return the player.
 					 */
 					virtual Player::Ptr get_hl_player(std::size_t i) = 0;
+
+					/**
+					 * Returns a player from the team.
+					 *
+					 * \param[in] i the index of the player.
+					 *
+					 * \return the player.
+					 */
+					virtual Player::CPtr get_hl_player(std::size_t i) const = 0;
 			};
 
 			/**
@@ -123,7 +142,7 @@ namespace AI {
 					 *
 					 * \return the robot.
 					 */
-					Robot::Ptr get(std::size_t i) {
+					Robot::Ptr get(std::size_t i) const {
 						return get_hl_robot(i);
 					}
 
@@ -135,7 +154,7 @@ namespace AI {
 					 *
 					 * \return the robot.
 					 */
-					virtual Robot::Ptr get_hl_robot(std::size_t i) = 0;
+					virtual Robot::Ptr get_hl_robot(std::size_t i) const = 0;
 			};
 
 			/**
@@ -165,11 +184,18 @@ namespace AI {
 					virtual FriendlyTeam &friendly_team() = 0;
 
 					/**
+					 * Returns the friendly team.
+					 *
+					 * \return the friendly team.
+					 */
+					virtual const FriendlyTeam &friendly_team() const = 0;
+
+					/**
 					 * Returns the enemy team.
 					 *
 					 * \return the enemy team.
 					 */
-					virtual EnemyTeam &enemy_team() = 0;
+					virtual const EnemyTeam &enemy_team() const = 0;
 
 					/**
 					 * Returns the current play type.

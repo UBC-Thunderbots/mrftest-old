@@ -97,7 +97,7 @@ unsigned int Robot::pattern() const {
 	return pattern_;
 }
 
-ObjectStore &Robot::object_store() {
+ObjectStore &Robot::object_store() const {
 	return object_store_;
 }
 

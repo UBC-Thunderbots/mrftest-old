@@ -67,7 +67,7 @@ double Rect::dist_to_boundary(Point p) {
 	return dist;
 }
 
-Point Rect::operator[](unsigned int pos) {
+Point Rect::operator[](unsigned int pos) const {
 	unsigned int temp = pos % 4;
 	switch (temp) {
 		case 1:

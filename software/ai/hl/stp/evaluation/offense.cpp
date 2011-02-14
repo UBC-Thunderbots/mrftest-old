@@ -128,7 +128,7 @@ namespace {
 	Point calc_positions(World& world, const std::set<Player::Ptr>& players) {
 
 		// just for caching..
-		EnemyTeam &enemy = world.enemy_team();
+		const EnemyTeam &enemy = world.enemy_team();
 		std::vector<Point> enemy_pos;
 		for (size_t i = 0; i < enemy.size(); ++i) {
 			enemy_pos.push_back(enemy.get(i)->position());

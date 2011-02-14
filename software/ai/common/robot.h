@@ -13,6 +13,11 @@ namespace AI {
 		class Robot : public OrientationPredictable, public virtual ByRef {
 			public:
 				/**
+				 * A pointer to a Robot.
+				 */
+				typedef RefPtr<const Robot> Ptr;
+
+				/**
 				 * The largest possible radius of a robot, in metres.
 				 */
 				static const double MAX_RADIUS;
@@ -31,7 +36,7 @@ namespace AI {
 				 *
 				 * \return an object store.
 				 */
-				virtual ObjectStore &object_store() = 0;
+				virtual ObjectStore &object_store() const = 0;
 		};
 	}
 }

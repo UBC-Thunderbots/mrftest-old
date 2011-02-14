@@ -33,14 +33,14 @@ namespace AI {
 					 *
 					 * \return the friendly team.
 					 */
-					virtual FriendlyTeam &friendly_team() = 0;
+					virtual const FriendlyTeam &friendly_team() const = 0;
 
 					/**
 					 * Returns the enemy team.
 					 *
 					 * \return the enemy team.
 					 */
-					virtual EnemyTeam &enemy_team() = 0;
+					virtual const EnemyTeam &enemy_team() const = 0;
 
 					/**
 					 * Returns the current play type.
@@ -55,6 +55,13 @@ namespace AI {
 					 * \return the current strategy.
 					 */
 					virtual Property<AI::HL::Strategy::Ptr> &strategy() = 0;
+
+					/**
+					 * Returns the current strategy.
+					 *
+					 * \return the current strategy.
+					 */
+					virtual const Property<AI::HL::Strategy::Ptr> &strategy() const = 0;
 
 					/**
 					 * Sets the current strategy from a factory.

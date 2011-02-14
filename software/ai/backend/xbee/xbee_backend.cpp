@@ -77,6 +77,7 @@ namespace {
 			unsigned int score() const;
 			std::size_t size() const;
 			Player::Ptr get(std::size_t i) { return members[i]; }
+			Player::CPtr get(std::size_t i) const { return members[i]; }
 			AI::BE::XBee::Player::Ptr create_member(unsigned int pattern);
 			AI::BE::XBee::Player::Ptr get_xbee_player(std::size_t i) { return members[i]; }
 
@@ -97,7 +98,7 @@ namespace {
 			~XBeeEnemyTeam();
 			unsigned int score() const;
 			std::size_t size() const;
-			Robot::Ptr get(std::size_t i) { return members[i]; }
+			Robot::Ptr get(std::size_t i) const { return members[i]; }
 			AI::BE::XBee::Robot::Ptr create_member(unsigned int pattern);
 
 		private:
@@ -166,7 +167,11 @@ namespace {
 				return friendly;
 			}
 
-			EnemyTeam &enemy_team() {
+			const FriendlyTeam &friendly_team() const {
+				return friendly;
+			}
+
+			const EnemyTeam &enemy_team() const {
 				return enemy;
 			}
 
@@ -181,7 +186,7 @@ namespace {
 				return friendly.size() + enemy.size();
 			}
 
-			Visualizable::Robot::Ptr visualizable_robot(std::size_t i) {
+			Visualizable::Robot::Ptr visualizable_robot(std::size_t i) const {
 				if (i < friendly.size()) {
 					return friendly.get(i);
 				} else {

@@ -91,7 +91,7 @@ class Rect {
 		 *
 		 * \return Point corresponding to position
 		 */
-		Point operator[](unsigned int pos);
+		Point operator[](unsigned int pos) const;
 
 		/**
 		 * Translates the rectangle.

@@ -21,6 +21,11 @@ namespace AI {
 					typedef RefPtr<Robot> Ptr;
 
 					/**
+					 * A pointer to a const Robot.
+					 */
+					typedef RefPtr<const Robot> CPtr;
+
+					/**
 					 * Constructs a new Robot.
 					 *
 					 * \param[in] pattern the pattern index of the robot.
@@ -48,7 +53,7 @@ namespace AI {
 						tpred.lock_time(ts);
 					}
 
-					ObjectStore &object_store() { return object_store_; }
+					ObjectStore &object_store() const { return object_store_; }
 					unsigned int pattern() const { return pattern_; }
 					Point position() const { return Point(xpred.value(), ypred.value()); }
 					Point position(double delta) const { return Point(xpred.value(delta), ypred.value(delta)); }
@@ -112,7 +117,7 @@ namespace AI {
 					/**
 					 * The object store that holds private data for the rest of the stack that is specific to this robot.
 					 */
-					ObjectStore object_store_;
+					mutable ObjectStore object_store_;
 			};
 		}
 	}

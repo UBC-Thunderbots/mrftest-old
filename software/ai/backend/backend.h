@@ -46,14 +46,14 @@ namespace AI {
 		/**
 		 * A robot, as exposed by the backend.
 		 */
-		class Robot : public AI::BF::W::Robot, public AI::HL::W::Robot, public AI::Nav::W::Robot, public Visualizable::Robot {
+		class Robot : public AI::Common::Robot, public Visualizable::Robot {
 			public:
 				/**
 				 * A pointer to a Robot.
 				 */
-				typedef RefPtr<Robot> Ptr;
+				typedef RefPtr<const Robot> Ptr;
 
-				ObjectStore &object_store() = 0;
+				ObjectStore &object_store() const = 0;
 				unsigned int pattern() const = 0;
 				Point position(double delta) const = 0;
 				double orientation(double delta) const = 0;
@@ -74,6 +74,11 @@ namespace AI {
 				typedef RefPtr<Player> Ptr;
 
 				/**
+				 * A pointer to a const Player.
+				 */
+				typedef RefPtr<const Player> CPtr;
+
+				/**
 				 * Returns the speeds of the four wheels as requested by the RobotController.
 				 *
 				 * \return the wheel speeds.
@@ -87,7 +92,7 @@ namespace AI {
 				double avelocity(double delta) const = 0;
 				double aacceleration(double delta) const = 0;
 				unsigned int pattern() const = 0;
-				ObjectStore &object_store() = 0;
+				ObjectStore &object_store() const = 0;
 				void move(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
 				void kick(double power);
 				const std::pair<Point, double> &destination() const = 0;
@@ -121,6 +126,15 @@ namespace AI {
 				virtual Player::Ptr get(std::size_t i) = 0;
 
 				/**
+				 * Returns a player from the team.
+				 *
+				 * \param[in] i the index of the player.
+				 *
+				 * \return the player.
+				 */
+				virtual Player::CPtr get(std::size_t i) const = 0;
+
+				/**
 				 * Returns the signal that is fired when a robot is added to the team.
 				 *
 				 * \return the signal that is fired when a robot is added to the team.
@@ -154,7 +168,7 @@ namespace AI {
 				mutable sigc::signal<void, std::size_t> signal_robot_removing_;
 				mutable sigc::signal<void> signal_robot_removed_;
 
-				AI::BF::W::Player::Ptr get_ball_filter_player(std::size_t i) {
+				AI::BF::W::Player::Ptr get_ball_filter_player(std::size_t i) const {
 					return get(i);
 				}
 
@@ -162,7 +176,15 @@ namespace AI {
 					return get(i);
 				}
 
+				AI::HL::W::Player::CPtr get_hl_player(std::size_t i) const {
+					return get(i);
+				}
+
 				AI::Nav::W::Player::Ptr get_navigator_player(std::size_t i) {
+					return get(i);
+				}
+
+				AI::Nav::W::Player::CPtr get_navigator_player(std::size_t i) const {
 					return get(i);
 				}
 		};
@@ -186,7 +208,7 @@ namespace AI {
 				 *
 				 * \return the robot.
 				 */
-				virtual Robot::Ptr get(std::size_t i) = 0;
+				virtual Robot::Ptr get(std::size_t i) const = 0;
 
 				/**
 				 * Returns the signal that is fired when a robot is added to the team.
@@ -222,15 +244,15 @@ namespace AI {
 				mutable sigc::signal<void, std::size_t> signal_robot_removing_;
 				mutable sigc::signal<void> signal_robot_removed_;
 
-				AI::BF::W::Robot::Ptr get_ball_filter_robot(std::size_t i) {
+				AI::BF::W::Robot::Ptr get_ball_filter_robot(std::size_t i) const {
 					return get(i);
 				}
 
-				AI::HL::W::Robot::Ptr get_hl_robot(std::size_t i) {
+				AI::HL::W::Robot::Ptr get_hl_robot(std::size_t i) const {
 					return get(i);
 				}
 
-				AI::Nav::W::Robot::Ptr get_navigator_robot(std::size_t i) {
+				AI::Nav::W::Robot::Ptr get_navigator_robot(std::size_t i) const {
 					return get(i);
 				}
 		};
@@ -288,11 +310,18 @@ namespace AI {
 				virtual FriendlyTeam &friendly_team() = 0;
 
 				/**
+				 * Returns the friendly team.
+				 *
+				 * \return the friendly team.
+				 */
+				virtual const FriendlyTeam &friendly_team() const = 0;
+
+				/**
 				 * Returns the enemy team.
 				 *
 				 * \return the enemy team.
 				 */
-				virtual EnemyTeam &enemy_team() = 0;
+				virtual const EnemyTeam &enemy_team() const = 0;
 
 				/**
 				 * Returns the current monotonic time.
@@ -377,6 +406,15 @@ namespace AI {
 				 * \return the current strategy.
 				 */
 				Property<AI::HL::Strategy::Ptr> &strategy() {
+					return strategy_;
+				}
+
+				/**
+				 * Returns the current strategy.
+				 *
+				 * \return the current strategy.
+				 */
+				const Property<AI::HL::Strategy::Ptr> &strategy() const {
 					return strategy_;
 				}
 

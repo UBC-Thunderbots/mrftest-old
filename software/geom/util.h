@@ -75,7 +75,7 @@ std::pair<Point, double> angle_sweep_circles(const Point &src, const Point &p1, 
  *
  * \return \c true if any part of the segment lies inside the rectangle, or \c false if the entire segment lies outside the rectangle.
  */
-bool line_seg_intersect_rectangle(Point seg[2], Point recA[4]);
+bool line_seg_intersect_rectangle(const Point seg[2], const Point recA[4]);
 
 /**
  * Checks whether a point lies inside a rectangle.
@@ -86,7 +86,7 @@ bool line_seg_intersect_rectangle(Point seg[2], Point recA[4]);
  *
  * \return \c true if \p pointA lies inside the rectangle, or \c false if it lies outside.
  */
-bool point_in_rectangle(const Point &pointA, Point recA[4]);
+bool point_in_rectangle(const Point &pointA, const Point recA[4]);
 /**
  * returns a list of points that lie exactle "buffer" distance awaw from the line seg
  *
@@ -155,7 +155,7 @@ std::vector<Point> line_circle_intersect(const Point &centre, double radius, con
  *
  * \return the points of intersection.
  */
-std::vector<Point> line_rect_intersect(Rect &r, const Point &segA, const Point &segB);
+std::vector<Point> line_rect_intersect(const Rect &r, const Point &segA, const Point &segB);
 
 
 /**

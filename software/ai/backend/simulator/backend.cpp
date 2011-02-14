@@ -140,7 +140,11 @@ AI::BE::Simulator::FriendlyTeam &AI::BE::Simulator::Backend::friendly_team() {
 	return friendly_;
 }
 
-AI::BE::Simulator::EnemyTeam &AI::BE::Simulator::Backend::enemy_team() {
+const AI::BE::Simulator::FriendlyTeam &AI::BE::Simulator::Backend::friendly_team() const {
+	return friendly_;
+}
+
+const AI::BE::Simulator::EnemyTeam &AI::BE::Simulator::Backend::enemy_team() const {
 	return enemy_;
 }
 
@@ -152,7 +156,7 @@ std::size_t AI::BE::Simulator::Backend::visualizable_num_robots() const {
 	return friendly_.size() + enemy_.size();
 }
 
-Visualizable::Robot::Ptr AI::BE::Simulator::Backend::visualizable_robot(std::size_t i) {
+Visualizable::Robot::Ptr AI::BE::Simulator::Backend::visualizable_robot(std::size_t i) const {
 	if (i < friendly_.size()) {
 		return friendly_.get(i);
 	} else {

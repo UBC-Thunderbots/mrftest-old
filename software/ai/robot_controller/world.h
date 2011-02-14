@@ -22,6 +22,11 @@ namespace AI {
 					typedef RefPtr<Player> Ptr;
 
 					/**
+					 * A pointer to a const Player.
+					 */
+					typedef RefPtr<const Player> CPtr;
+
+					/**
 					 * Returns the path requested by the navigator.
 					 *
 					 * \return the path, in the form of a set of

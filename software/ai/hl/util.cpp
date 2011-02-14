@@ -100,7 +100,7 @@ bool AI::HL::Util::can_receive(World &world, const Player::Ptr passee) {
 
 	const Point direction = ray.norm();
 	const double distance = (ball.position() - passee->position()).len();
-	EnemyTeam &enemy = world.enemy_team();
+	const EnemyTeam &enemy = world.enemy_team();
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		const Robot::Ptr rob = enemy.get(i);
 		const Point rp = rob->position() - passee->position();
@@ -140,7 +140,7 @@ std::pair<Point, double> AI::HL::Util::calc_best_shot(const Field &f, const std:
 
 std::pair<Point, double> AI::HL::Util::calc_best_shot(World &world, const Player::Ptr player, const double radius) {
 	std::vector<Point> obstacles;
-	EnemyTeam &enemy = world.enemy_team();
+	const EnemyTeam &enemy = world.enemy_team();
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		obstacles.push_back(enemy.get(i)->position());
 	}
@@ -201,7 +201,7 @@ std::vector<Player::Ptr> AI::HL::Util::get_players_exclude(FriendlyTeam &friendl
 	return players;
 }
 
-std::vector<Robot::Ptr> AI::HL::Util::get_robots(EnemyTeam &enemy) {
+std::vector<Robot::Ptr> AI::HL::Util::get_robots(const EnemyTeam &enemy) {
 	std::vector<Robot::Ptr> robots;
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		robots.push_back(enemy.get(i));

@@ -127,7 +127,7 @@ unsigned int AI::BE::Simulator::Player::pattern() const {
 	return Robot::pattern();
 }
 
-ObjectStore &AI::BE::Simulator::Player::object_store() {
+ObjectStore &AI::BE::Simulator::Player::object_store() const {
 	return Robot::object_store();
 }
 

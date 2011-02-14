@@ -156,7 +156,7 @@ namespace Visualizable {
 			/**
 			 * A pointer to a Robot.
 			 */
-			typedef RefPtr<Robot> Ptr;
+			typedef RefPtr<const Robot> Ptr;
 
 			/**
 			 * Returns the position of the robot.
@@ -262,7 +262,7 @@ namespace Visualizable {
 			 *
 			 * \return the Robot.
 			 */
-			virtual Robot::Ptr visualizable_robot(std::size_t index) = 0;
+			virtual Robot::Ptr visualizable_robot(std::size_t index) const = 0;
 
 			/**
 			 * Returns the signal fired once every timer tick.

@@ -17,7 +17,7 @@ namespace AI {
 			/**
 			 * A general simulator-based team, whether friendly or enemy.
 			 *
-			 * \tparam T the type of pointer to robot held in this team.
+			 * \tparam T the type of robot held in this team.
 			 */
 			template<typename T> class GenericTeam : public NonCopyable {
 				public:
@@ -43,7 +43,7 @@ namespace AI {
 					 *
 					 * \param[in] bot the robot to add.
 					 */
-					void add(T bot) {
+					void add(typename T::Ptr bot) {
 						members.push_back(bot);
 						emit_robot_added(members.size() - 1);
 					}
@@ -62,13 +62,14 @@ namespace AI {
 
 					unsigned int score() const { return score_prop; }
 					std::size_t size() const { return members.size(); }
-					T get(std::size_t i) { return members[i]; }
+					typename T::Ptr get(std::size_t i) { return members[i]; }
+					typename T::CPtr get(std::size_t i) const { return members[i]; }
 
 				private:
 					/**
 					 * The members of the team.
 					 */
-					std::vector<T> members;
+					std::vector<typename T::Ptr> members;
 
 					/**
 					 * Emits the robot added signal.
@@ -93,7 +94,7 @@ namespace AI {
 			/**
 			 * The team containing \ref Player "Players" that the AI can control.
 			 */
-			class FriendlyTeam : public AI::BE::FriendlyTeam, public GenericTeam<Player::Ptr> {
+			class FriendlyTeam : public AI::BE::FriendlyTeam, public GenericTeam<Player> {
 				public:
 					/**
 					 * Constructs a new FriendlyTeam.
@@ -116,7 +117,16 @@ namespace AI {
 					 *
 					 * \return the Player.
 					 */
-					Player::Ptr get_impl(std::size_t i) { return GenericTeam<Player::Ptr>::get(i); }
+					Player::Ptr get_impl(std::size_t i) { return GenericTeam<Player>::get(i); }
+
+					/**
+					 * Retrieves a Player from the team.
+					 *
+					 * \param[in] i the index of the Player to retrieve.
+					 *
+					 * \return the Player.
+					 */
+					Player::CPtr get_impl(std::size_t i) const { return GenericTeam<Player>::get(i); }
 
 					/**
 					 * Loads new data into the robots and locks the predictors.
@@ -187,9 +197,10 @@ namespace AI {
 						}
 					}
 
-					unsigned int score() const { return GenericTeam<Player::Ptr>::score(); }
-					std::size_t size() const { return GenericTeam<Player::Ptr>::size(); }
+					unsigned int score() const { return GenericTeam<Player>::score(); }
+					std::size_t size() const { return GenericTeam<Player>::size(); }
 					AI::BE::Player::Ptr get(std::size_t i) { return get_impl(i); }
+					AI::BE::Player::CPtr get(std::size_t i) const { return get_impl(i); }
 					void emit_robot_added(std::size_t i) const { signal_robot_added().emit(i); }
 					void emit_robot_removing(std::size_t i) const { signal_robot_removing().emit(i); }
 					void emit_robot_removed() const { signal_robot_removed().emit(); }
@@ -204,7 +215,7 @@ namespace AI {
 			/**
 			 * The team containing \ref Robot "Robots" that are controlled by another AI.
 			 */
-			class EnemyTeam : public AI::BE::EnemyTeam, public GenericTeam<Robot::Ptr> {
+			class EnemyTeam : public AI::BE::EnemyTeam, public GenericTeam<Robot> {
 				public:
 					/**
 					 * Constructs a new EnemyTeam.
@@ -225,7 +236,16 @@ namespace AI {
 					 *
 					 * \return the Robot.
 					 */
-					Robot::Ptr get_impl(std::size_t i) { return GenericTeam<Robot::Ptr>::get(i); }
+					Robot::Ptr get_impl(std::size_t i) { return GenericTeam<Robot>::get(i); }
+
+					/**
+					 * Retrieves a Robot from the team.
+					 *
+					 * \param[in] i the index of the Robot to retrieve.
+					 *
+					 * \return the Robot.
+					 */
+					Robot::CPtr get_impl(std::size_t i) const { return GenericTeam<Robot>::get(i); }
 
 					/**
 					 * Loads new data into the robots and locks the predictors.
@@ -281,9 +301,9 @@ namespace AI {
 						}
 					}
 
-					unsigned int score() const { return GenericTeam<Robot::Ptr>::score(); }
-					std::size_t size() const { return GenericTeam<Robot::Ptr>::size(); }
-					AI::BE::Robot::Ptr get(std::size_t i) { return get_impl(i); }
+					unsigned int score() const { return GenericTeam<Robot>::score(); }
+					std::size_t size() const { return GenericTeam<Robot>::size(); }
+					AI::BE::Robot::Ptr get(std::size_t i) const { return get_impl(i); }
 					void emit_robot_added(std::size_t i) const { signal_robot_added().emit(i); }
 					void emit_robot_removing(std::size_t i) const { signal_robot_removing().emit(i); }
 					void emit_robot_removed() const { signal_robot_removed().emit(); }

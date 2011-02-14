@@ -23,7 +23,7 @@ bool AI::HL::STP::Predicates::our_ball(World& world) {
 }
 
 bool AI::HL::STP::Predicates::their_ball(World& world) {
-	EnemyTeam& enemy = world.enemy_team();
+	const EnemyTeam& enemy = world.enemy_team();
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		if (AI::HL::Util::posses_ball(world, enemy.get(i))) {
 			return true;

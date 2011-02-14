@@ -22,13 +22,7 @@ namespace AI {
 			/**
 			 * A robot, as seen by a ball filter.
 			 */
-			class Robot : public AI::Common::Robot {
-				public:
-					/**
-					 * A pointer to a Robot.
-					 */
-					typedef RefPtr<Robot> Ptr;
-			};
+			typedef AI::Common::Robot Robot;
 
 			/**
 			 * A player, as seen by a ball filter.
@@ -38,7 +32,7 @@ namespace AI {
 					/**
 					 * A pointer to a Player.
 					 */
-					typedef RefPtr<Player> Ptr;
+					typedef RefPtr<const Player> Ptr;
 			};
 
 			/**
@@ -53,7 +47,7 @@ namespace AI {
 					 *
 					 * \return the player.
 					 */
-					Player::Ptr get(std::size_t i) {
+					Player::Ptr get(std::size_t i) const {
 						return get_ball_filter_player(i);
 					}
 
@@ -65,7 +59,7 @@ namespace AI {
 					 *
 					 * \return the player.
 					 */
-					virtual Player::Ptr get_ball_filter_player(std::size_t i) = 0;
+					virtual Player::Ptr get_ball_filter_player(std::size_t i) const = 0;
 			};
 
 			/**
@@ -80,7 +74,7 @@ namespace AI {
 					 *
 					 * \return the robot.
 					 */
-					Robot::Ptr get(std::size_t i) {
+					Robot::Ptr get(std::size_t i) const {
 						return get_ball_filter_robot(i);
 					}
 
@@ -92,7 +86,7 @@ namespace AI {
 					 *
 					 * \return the robot.
 					 */
-					virtual Robot::Ptr get_ball_filter_robot(std::size_t i) = 0;
+					virtual Robot::Ptr get_ball_filter_robot(std::size_t i) const = 0;
 			};
 
 			/**
@@ -119,14 +113,14 @@ namespace AI {
 					 *
 					 * \return the friendly team.
 					 */
-					virtual FriendlyTeam &friendly_team() = 0;
+					virtual const FriendlyTeam &friendly_team() const = 0;
 
 					/**
 					 * Returns the enemy team.
 					 *
 					 * \return the enemy team.
 					 */
-					virtual EnemyTeam &enemy_team() = 0;
+					virtual const EnemyTeam &enemy_team() const = 0;
 			};
 		}
 	}

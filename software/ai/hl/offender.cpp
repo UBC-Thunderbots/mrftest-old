@@ -122,7 +122,7 @@ bool AI::HL::Offender::calc_position_best(const std::vector<Point> &enemy_pos, c
 }
 
 std::vector<Point> AI::HL::Offender::calc_positions(const unsigned int n) {
-	EnemyTeam &enemy = world.enemy_team();
+	const EnemyTeam &enemy = world.enemy_team();
 	std::vector<Point> enemy_pos;
 	for (size_t i = 0; i < enemy.size(); ++i) {
 		enemy_pos.push_back(enemy.get(i)->position());

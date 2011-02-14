@@ -212,7 +212,7 @@ namespace AI {
 			/**
 			 * Converts an enemy team into a vector of robots.
 			 */
-			std::vector<AI::HL::W::Robot::Ptr> get_robots(AI::HL::W::EnemyTeam &enemy);
+			std::vector<AI::HL::W::Robot::Ptr> get_robots(const AI::HL::W::EnemyTeam &enemy);
 
 			/**
 			 * Finds the best assignment of players to points.

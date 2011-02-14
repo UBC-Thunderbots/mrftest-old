@@ -238,12 +238,12 @@ std::vector<Point> line_circle_intersect(const Point &centre, double radius, con
 	return ans;
 }
 
-std::vector<Point> line_rect_intersect(Rect &r, const Point &segA, const Point &segB) {
+std::vector<Point> line_rect_intersect(const Rect &r, const Point &segA, const Point &segB) {
 	std::vector<Point> ans;
 	for (int i = 0; i < 4; i++) {
 		int j = i + 1;
-		Point a = r[i];
-		Point b = r[j];
+		const Point &a = r[i];
+		const Point &b = r[j];
 		if (seg_crosses_seg(a, b, segA, segB) && unique_line_intersect(a, b, segA, segB)) {
 			ans.push_back(line_intersect(a, b, segA, segB));
 		}
@@ -347,8 +347,7 @@ bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Po
 	       * sign((b2 - b1).cross(a2 - b1)) <= 0;
 }
 
-#warning use pass-by-reference
-bool line_seg_intersect_rectangle(Point seg[2], Point recA[4]) {
+bool line_seg_intersect_rectangle(const Point seg[2], const Point recA[4]) {
 	bool intersect = point_in_rectangle(seg[0], recA) || point_in_rectangle(seg[1], recA);
 	for (int i = 0; i < 4; i++) {
 		for (int j = i + 1; j < 4; j++) {
@@ -358,10 +357,9 @@ bool line_seg_intersect_rectangle(Point seg[2], Point recA[4]) {
 	return intersect;
 }
 
-#warning use pass-by-reference
 #warning you only need 2 points to define a rectangle, which can be in any orientation
 #warning if this is the computation for a non-axis aligned rectangle, then it is wrong
-bool point_in_rectangle(const Point &pointA, Point recA[4]) {
+bool point_in_rectangle(const Point &pointA, const Point recA[4]) {
 	bool x_ok = pointA.x >= std::min(std::min(recA[0].x, recA[1].x), std::min(recA[2].x, recA[3].x));
 	x_ok = x_ok && pointA.x <= std::max(std::max(recA[0].x, recA[1].x), std::max(recA[2].x, recA[3].x));
 	bool y_ok = pointA.y >= std::min(std::min(recA[0].y, recA[1].y), std::min(recA[2].y, recA[3].y));

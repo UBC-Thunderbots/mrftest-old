@@ -171,10 +171,11 @@ namespace AI {
 					const AI::BE::Simulator::Field &field() const;
 					const AI::BE::Simulator::Ball &ball() const;
 					AI::BE::Simulator::FriendlyTeam &friendly_team();
-					AI::BE::Simulator::EnemyTeam &enemy_team();
+					const AI::BE::Simulator::FriendlyTeam &friendly_team() const;
+					const AI::BE::Simulator::EnemyTeam &enemy_team() const;
 					timespec monotonic_time() const;
 					std::size_t visualizable_num_robots() const;
-					Visualizable::Robot::Ptr visualizable_robot(std::size_t i);
+					Visualizable::Robot::Ptr visualizable_robot(std::size_t i) const;
 					void mouse_pressed(Point p, unsigned int btn);
 					void mouse_released(Point p, unsigned int btn);
 					void mouse_exited();

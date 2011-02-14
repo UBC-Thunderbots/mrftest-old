@@ -60,7 +60,7 @@ namespace AI {
 					double aacceleration(double delta = 0.0) const { return Robot::aacceleration(delta); }
 					double aacceleration(const timespec &ts) const { return Robot::aacceleration(ts); }
 					unsigned int pattern() const { return Robot::pattern(); }
-					ObjectStore &object_store() { return Robot::object_store(); }
+					ObjectStore &object_store() const { return Robot::object_store(); }
 					bool has_ball() const;
 					unsigned int chicker_ready_time() const;
 					void move_impl(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);

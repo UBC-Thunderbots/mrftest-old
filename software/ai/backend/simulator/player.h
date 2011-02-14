@@ -21,6 +21,11 @@ namespace AI {
 					typedef RefPtr<Player> Ptr;
 
 					/**
+					 * A pointer to a const Player.
+					 */
+					typedef RefPtr<Player> CPtr;
+
+					/**
 					 * Constructs a new Player.
 					 *
 					 * \param[in] be the backend under which the player lives.
@@ -96,7 +101,7 @@ namespace AI {
 					double aacceleration(double delta = 0.0) const;
 					double aacceleration(const timespec &ts) const;
 					unsigned int pattern() const;
-					ObjectStore &object_store();
+					ObjectStore &object_store() const;
 					bool has_ball() const;
 					unsigned int chicker_ready_time() const;
 					void move_impl(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
