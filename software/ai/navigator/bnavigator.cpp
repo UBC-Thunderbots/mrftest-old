@@ -73,7 +73,7 @@ namespace {
 		double currentOri, destinationOri, stepOri;
 		timespec ts_next;
 
-		for (unsigned int i = 0; i < fteam.size(); i++) {
+		for (std::size_t i = 0; i < fteam.size(); i++) {
 			// clear prev path
 			path.clear();
 			player = fteam.get(i);
@@ -108,7 +108,7 @@ namespace {
 						collision_boundaries = circle_boundaries(collision.first,0.25,16);
 					}
 					// find closest point
-					for(unsigned int j=0; j<collision_boundaries.size();j++) {
+					for(std::size_t j=0; j<collision_boundaries.size();j++) {
 						//cout << collision_boundaries[i] << endl;
 						if( (collision_boundaries[j]-closest).lensq() < (closest-stepPos).len()
 							&& (collision_boundaries[j]-closest).lensq() > 0.1 ) {
@@ -147,13 +147,13 @@ namespace {
 		}
 		Player::Ptr friendly;
 		Robot::Ptr enemy;
-		for (unsigned int i = 0; i < world.friendly_team().size(); i++) {
+		for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
 			friendly = world.friendly_team().get(i);
 			if (player != friendly && (p - friendly->position()).len() < player->MAX_RADIUS * 2) {
 				return make_pair(friendly->position(),2);
 			}
 		}
-		for (unsigned int i = 0; i < world.enemy_team().size(); i++) {
+		for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
 			enemy = world.enemy_team().get(i);
 			if ((p - enemy->position()).len() < player->MAX_RADIUS * 2) {
 				return make_pair(enemy->position(),2);

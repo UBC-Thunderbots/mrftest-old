@@ -104,7 +104,7 @@ namespace {
 
 			void tick() {
 				for (unsigned int i = 0; i < UPDATES_PER_TICK; i++) {
-					for (unsigned int j = 0; j < the_players.size(); j++) {
+					for (std::size_t j = 0; j < the_players.size(); j++) {
 						the_players[j]->pre_tic(timeStep);
 					}
 
@@ -138,7 +138,7 @@ namespace {
 					cur.x += 0.1;
 				}
 
-				for (unsigned int i = 0; i < the_players.size(); i++) {
+				for (std::size_t i = 0; i < the_players.size(); i++) {
 					Point b = the_players[i]->position();
 					c = cur - b;
 					if (c.len() < 0.15) {
@@ -154,7 +154,7 @@ namespace {
 
 
 			PlayerODE::Ptr get_player_from_shape(dGeomID shape) {
-				for (unsigned int i = 0; i < the_players.size(); i++) {
+				for (std::size_t i = 0; i < the_players.size(); i++) {
 					if (the_players[i]->robot_contains_shape(shape)) {
 						return the_players[i];
 					}
@@ -163,7 +163,7 @@ namespace {
 			}
 
 			void remove_player(Simulator::Player::Ptr p) {
-				for (unsigned int i = 0; i < the_players.size(); i++) {
+				for (std::size_t i = 0; i < the_players.size(); i++) {
 					if (Simulator::Player::Ptr::cast_static(the_players[i]) == p) {
 						the_players.erase(the_players.begin() + i);
 						return;
@@ -183,7 +183,7 @@ namespace {
 				int i = 0;
 				PlayerODE::Ptr robot = emptyPlayer;
 
-				for (unsigned int i = 0; i < the_players.size(); i++) {
+				for (std::size_t i = 0; i < the_players.size(); i++) {
 					if (the_players[i]->has_ball()) {
 						robot = the_players[i];
 					}

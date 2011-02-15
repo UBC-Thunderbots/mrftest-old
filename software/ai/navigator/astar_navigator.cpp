@@ -127,12 +127,12 @@ namespace {
 
 		std::vector<Player::Ptr> players;
 
-		for (unsigned int i = 0; i < fteam.size(); i++) {
+		for (std::size_t i = 0; i < fteam.size(); i++) {
 			players.push_back(fteam.get(i));
 		}
 		std::sort(players.begin(), players.end(), cmp_p);
 
-		for (unsigned int i = 0; i < fteam.size(); i++) {
+		for (std::size_t i = 0; i < fteam.size(); i++) {
 			player = players[i];
 			PathPoint::Ptr player_start(new PathPoint(player->position()));
 			PathPoint::Ptr player_end(new PathPoint(player->destination().first));

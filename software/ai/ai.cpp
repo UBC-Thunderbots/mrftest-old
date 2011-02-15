@@ -70,7 +70,7 @@ void AIPackage::player_added(std::size_t idx) {
 
 void AIPackage::robot_controller_factory_changed() {
 	LOG_DEBUG(Glib::ustring::compose("Changing robot controller to %1.", robot_controller_factory ? robot_controller_factory->name() : "<None>"));
-	for (unsigned int i = 0; i < backend.friendly_team().size(); ++i) {
+	for (std::size_t i = 0; i < backend.friendly_team().size(); ++i) {
 		AI::BE::Player::Ptr plr = backend.friendly_team().get(i);
 		PrivateState::Ptr state = PrivateState::Ptr::cast_dynamic(plr->object_store()[typeid(*this)]);
 		if (state->robot_controller.is() && state->robot_controller->refs() != 1) {

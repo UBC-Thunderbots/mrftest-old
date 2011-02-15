@@ -1,8 +1,9 @@
 #include "geom/util.h"
 #include "geom/angle.h"
+#include "util/dprint.h"
 #include <algorithm>
 #include <cassert>
-#include <iostream>
+#include <cstddef>
 
 namespace {
 	const double EPS = 1e-9;
@@ -16,21 +17,21 @@ namespace {
 	}
 }
 
-std::vector<size_t> dist_matching(const std::vector<Point> &v1, const std::vector<Point> &v2) {
+std::vector<std::size_t> dist_matching(const std::vector<Point> &v1, const std::vector<Point> &v2) {
 	if (v1.size() > 5) {
 #warning TODO: use hungarian matching
-		std::cerr << "geom: WARNING, hungarian not used yet" << std::endl;
+		LOG_ERROR("hungarian not used yet");
 	}
-	std::vector<size_t> order(v2.size());
-	for (size_t i = 0; i < v2.size(); ++i) {
+	std::vector<std::size_t> order(v2.size());
+	for (std::size_t i = 0; i < v2.size(); ++i) {
 		order[i] = i;
 	}
-	std::vector<size_t> best = order;
+	std::vector<std::size_t> best = order;
 	double bestscore = 1e99;
-	const size_t N = std::min(v1.size(), v2.size());
+	const std::size_t N = std::min(v1.size(), v2.size());
 	do {
 		double score = 0;
-		for (size_t i = 0; i < N; ++i) {
+		for (std::size_t i = 0; i < N; ++i) {
 			score += (v1[i] - v2[order[i]]).len();
 		}
 		if (score < bestscore) {
@@ -54,7 +55,7 @@ std::pair<Point, double> angle_sweep_circles(const Point &src, const Point &p1, 
 	std::vector<std::pair<double, int> > events;
 	events.push_back(std::make_pair(0, 1)); // p1 becomes angle 0
 	events.push_back(std::make_pair(angle_mod((p2 - src).orientation() - offangle), -1));
-	for (size_t i = 0; i < obstacles.size(); ++i) {
+	for (std::size_t i = 0; i < obstacles.size(); ++i) {
 		Point diff = obstacles[i] - src;
 		// warning: temporarily reduced
 		if (diff.len() < radius) {
@@ -78,7 +79,7 @@ std::pair<Point, double> angle_sweep_circles(const Point &src, const Point &p1, 
 	double sum = 0;
 	double start = events[0].first;
 	int cnt = 0;
-	for (size_t i = 0; i + 1 < events.size(); ++i) {
+	for (std::size_t i = 0; i + 1 < events.size(); ++i) {
 		cnt += events[i].second;
 		assert(cnt <= 1);
 		if (cnt > 0) {
@@ -297,7 +298,7 @@ std::vector<Point> lineseg_circle_intersect(const Point &centre, double radius, 
 	std::vector<Point> ans;
 	std::vector<Point> poss = line_circle_intersect(centre, radius, segA, segB);
 
-	for (unsigned int i = 0; i < poss.size(); i++) {
+	for (std::size_t i = 0; i < poss.size(); i++) {
 		bool x_ok = poss[i].x <= std::max(segA.x, segB.x) + EPS && poss[i].x >= std::min(segA.x, segB.x) - EPS;
 		bool y_ok = poss[i].y <= std::max(segA.y, segB.y) + EPS && poss[i].y >= std::min(segA.y, segB.y) - EPS;
 		if (x_ok && y_ok) {
@@ -371,7 +372,7 @@ bool point_in_rectangle(const Point &pointA, const Point recA[4]) {
 
 Point reflect(const Point &v, const Point &n) {
 	if (n.len() < EPS) {
-		std::cerr << "geom: reflect: zero length" << std::endl;
+		LOG_ERROR("zero length");
 		return v;
 	}
 	Point normal = n.norm();
@@ -388,7 +389,7 @@ Point reflect(const Point &a, const Point &b, const Point &p) {
 // ported code
 Point calc_block_cone(const Point &a, const Point &b, const double &radius) {
 	if (a.len() < EPS || b.len() < EPS) {
-		std::cerr << "geom: block cone zero vectors" << std::endl;
+		LOG_ERROR("block cone zero vectors");
 	}
 	// unit vector and bisector
 	Point au = a / a.len();

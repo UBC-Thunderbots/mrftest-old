@@ -65,7 +65,7 @@ namespace {
 		Point currentPosition, destinationPosition;
 		double currentOrientation, destinationOrientation;
 
-		for (unsigned int i = 0; i < fteam.size(); i++) {
+		for (std::size_t i = 0; i < fteam.size(); i++) {
 			path.clear();
 			player = fteam.get(i);
 			currentPosition = player->position();

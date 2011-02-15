@@ -238,7 +238,7 @@ namespace {
 				signal_tick().emit();
 
 				// Do post-AI stuff (pushing data to the dæmon).
-				for (unsigned int i = 0; i < friendly.size(); ++i) {
+				for (std::size_t i = 0; i < friendly.size(); ++i) {
 					friendly.get_xbee_player(i)->tick(playtype() == AI::Common::PlayType::HALT);
 				}
 
@@ -512,7 +512,7 @@ namespace {
 				const SSL_DetectionRobot &detbot = rep.Get(j);
 				if (detbot.has_robot_id()) {
 					unsigned int pattern = detbot.robot_id();
-					for (unsigned int k = 0; k < size(); ++k) {
+					for (std::size_t k = 0; k < size(); ++k) {
 						typename T::Ptr bot = members[k];
 						if (bot->pattern() == pattern) {
 							if (!bot->seen_this_frame) {
