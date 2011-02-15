@@ -50,8 +50,12 @@ namespace AI {
 					Coordinate(const Point& pos);
 
 					/**
-					 * If the y coordinate of the ball is less than 0,
-					 * flips the y coordinate.
+					 * Fixed coordinate;
+					 */
+					static Coordinate fixed(const Point& pos);
+
+					/**
+					 * Flips the y coordinate so that the ball y-coordinate is positive.
 					 */
 					static Coordinate ball_up(const AI::HL::W::Ball& ball, const Point& pos);
 

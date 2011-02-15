@@ -14,6 +14,16 @@ namespace {
 			Point evaluate() const;
 	};
 
+	class BallUp : public Coordinate::CoordinateData {
+		public:
+			BallUp(const Ball& b, const Point& p) : ball(b), pos(p) {
+			}
+		private:
+			const Ball& ball;
+			Point pos;
+			Point evaluate() const;
+	};
+
 	template<typename Ptr> class RelativeRole : public Coordinate::CoordinateData {
 		public:
 			RelativeRole(const Ptr& p, const Point& off) : obj(p), offset(off) {
@@ -46,6 +56,14 @@ namespace {
 
 	Point Fixed::evaluate() const {
 		return pos;
+	}
+
+	Point BallUp::evaluate() const {
+		if (ball.position().y < 0) {
+			return Point(pos.x, -pos.y);
+		} else {
+			return pos;
+		}
 	}
 
 	template<typename Ptr> Point RelativeRole<Ptr>::evaluate() const {
@@ -81,6 +99,16 @@ Coordinate::Coordinate() : data(new Fixed(Point())) {
 }
 
 Coordinate::Coordinate(const Point& pos) : data(new Fixed(pos)) {
+}
+
+Coordinate Coordinate::fixed(const Point& pos) {
+	const RefPtr<CoordinateData> data(new Fixed(pos));
+	return Coordinate(data);
+}
+
+Coordinate Coordinate::ball_up(const AI::HL::W::Ball& ball, const Point& pos) {
+	const RefPtr<CoordinateData> data(new BallUp(ball, pos));
+	return Coordinate(data);
 }
 
 Coordinate Coordinate::relative(const Enemy::Ptr enemy, const Point& off) {
