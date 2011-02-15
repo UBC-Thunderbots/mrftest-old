@@ -44,7 +44,7 @@ namespace AI {
 						 *
 						 * \param [in] active indicates if this is an active tactic.
 						 */
-						Tactic(AI::HL::W::World &world, bool active = false);
+						Tactic(const AI::HL::W::World &world, bool active = false);
 
 						/**
 						 * Destructor.
@@ -87,7 +87,7 @@ namespace AI {
 						void tick();
 
 					protected:
-						AI::HL::W::World &world;
+						const AI::HL::W::World &world;
 						AI::HL::W::Player::Ptr player;
 
 						/**

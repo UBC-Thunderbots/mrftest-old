@@ -12,7 +12,7 @@ namespace {
 	 */
 	class Defend : public Tactic {
 		public:
-			Defend(World &world, const Defense& defense) : Tactic(world), defense(defense) {
+			Defend(const World &world, const Defense& defense) : Tactic(world), defense(defense) {
 			}
 
 		protected:
@@ -38,7 +38,7 @@ namespace {
 	 */
 	class Goalie : public Defend {
 		public:
-			Goalie(World &world, const Defense& defense) : Defend(world, defense) {
+			Goalie(const World &world, const Defense& defense) : Defend(world, defense) {
 			}
 		private:
 			Point dest() const;
@@ -53,7 +53,7 @@ namespace {
 	 */
 	class Defender1 : public Defend {
 		public:
-			Defender1(World &world, const Defense& defense) : Defend(world, defense) {
+			Defender1(const World &world, const Defense& defense) : Defend(world, defense) {
 			}
 		private:
 			Point dest() const;
@@ -68,7 +68,7 @@ namespace {
 	 */
 	class Defender2 : public Defend {
 		public:
-			Defender2(World &world, const Defense& defense) : Defend(world, defense) {
+			Defender2(const World &world, const Defense& defense) : Defend(world, defense) {
 			}
 		private:
 			Point dest() const;

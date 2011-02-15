@@ -8,7 +8,7 @@ using AI::HL::STP::Enemy;
 namespace {
 	class Block : public Tactic {
 		public:
-			Block(World &world, Enemy::Ptr enemy) : Tactic(world), enemy(enemy) {
+			Block(const World &world, Enemy::Ptr enemy) : Tactic(world), enemy(enemy) {
 			}
 		private:
 			Enemy::Ptr enemy;
@@ -35,7 +35,7 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::block(World &world, Enemy::Ptr enemy) {
+Tactic::Ptr AI::HL::STP::Tactic::block(const World &world, Enemy::Ptr enemy) {
 	const Tactic::Ptr p(new Block(world, enemy));
 	return p;
 }

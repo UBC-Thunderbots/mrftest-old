@@ -6,7 +6,7 @@ using namespace AI::HL::W;
 namespace {
 	class Idle : public Tactic {
 		public:
-			Idle(World &world) : Tactic(world) {
+			Idle(const World &world) : Tactic(world) {
 			}
 
 		private:

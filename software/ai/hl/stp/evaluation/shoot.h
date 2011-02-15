@@ -25,7 +25,7 @@ namespace AI {
 				extern EvaluateShoot evaluate_shoot;
 				*/
 
-				ShootData evaluate_shoot(AI::HL::W::World &world, AI::HL::W::Player::Ptr player);
+				ShootData evaluate_shoot(const AI::HL::W::World &world, AI::HL::W::Player::CPtr player);
 			}
 		}
 	}

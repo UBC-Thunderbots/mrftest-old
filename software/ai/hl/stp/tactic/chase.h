@@ -11,7 +11,7 @@ namespace AI {
 				 * Finds a way to get the ball,
 				 * either through chasing or stealing.
 				 */
-				Tactic::Ptr chase(AI::HL::W::World &world);
+				Tactic::Ptr chase(const AI::HL::W::World &world);
 			}
 		}
 	}

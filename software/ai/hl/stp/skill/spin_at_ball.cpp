@@ -9,7 +9,7 @@ using AI::HL::STP::SSM::SkillStateMachine;
 namespace {
 	class SpinAtBall : public Skill {
 		private:
-			void execute(World& world, Player::Ptr player, const SkillStateMachine*, Param& param, Context& context) const {
+			void execute(const World& world, Player::Ptr player, const SkillStateMachine*, Param& param, Context& context) const {
 				// TODO
 			}
 	};

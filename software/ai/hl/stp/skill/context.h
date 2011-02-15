@@ -21,7 +21,7 @@ namespace AI {
 						/**
 						 * The constructor.
 						 */
-						ContextImpl(AI::HL::W::World& w, Param& p);
+						ContextImpl(const AI::HL::W::World& w, Param& p);
 
 						/**
 						 * TODO: fix this.
@@ -50,7 +50,7 @@ namespace AI {
 						void run();
 
 					private:
-						AI::HL::W::World& world;
+						const AI::HL::W::World& world;
 						AI::HL::W::Player::Ptr player;
 						Param& param;
 

@@ -104,7 +104,7 @@ namespace AI {
 						 *
 						 * \param context provides additional functionality.
 						 */
-						virtual void execute(AI::HL::W::World& world, AI::HL::W::Player::Ptr player, const AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param, Context& context) const = 0;
+						virtual void execute(const AI::HL::W::World& world, AI::HL::W::Player::Ptr player, const AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param, Context& context) const = 0;
 				};
 			}
 		}

@@ -66,7 +66,7 @@ void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int
 	}
 }
 
-void AI::HL::Tactics::repel(World &world, Player::Ptr player, const unsigned int flags) {
+void AI::HL::Tactics::repel(const World &world, Player::Ptr player, const unsigned int flags) {
 	// set to RAM_BALL instead of using chase
 	if (!player->has_ball()) {
 		player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_RAM_BALL, AI::Flags::PRIO_HIGH);
@@ -107,7 +107,7 @@ void AI::HL::Tactics::free_move(World &world, Player::Ptr player, const Point p)
 	player->move(p, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
 }
 
-void AI::HL::Tactics::lone_goalie(AI::HL::W::World &world, AI::HL::W::Player::Ptr player) {
+void AI::HL::Tactics::lone_goalie(const AI::HL::W::World &world, AI::HL::W::Player::Ptr player) {
 	// if ball is inside the defense area, must repel!
 	if (AI::HL::Util::point_in_friendly_defense(world.field(), world.ball().position())) {
 		repel(world, player, 0);

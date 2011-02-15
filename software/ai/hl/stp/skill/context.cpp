@@ -6,7 +6,7 @@ using namespace AI::HL::STP::Skill;
 using AI::HL::STP::SSM::SkillStateMachine;
 using namespace AI::HL::W;
 
-ContextImpl::ContextImpl(World& w, Param& p) : world(w), param(p), ssm(NULL), next_skill(NULL) {
+ContextImpl::ContextImpl(const World& w, Param& p) : world(w), param(p), ssm(NULL), next_skill(NULL) {
 }
 
 void ContextImpl::set_player(Player::Ptr p) {

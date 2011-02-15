@@ -13,7 +13,7 @@ using AI::HL::STP::SSM::SkillStateMachine;
 namespace {
 	class DriveToGoal : public Skill {
 		private:
-			void execute(World& world, Player::Ptr player, const SkillStateMachine*, AI::HL::STP::Skill::Param& param, Context& context) const {
+			void execute(const World& world, Player::Ptr player, const SkillStateMachine*, AI::HL::STP::Skill::Param& param, Context& context) const {
 				// must have a ball
 				if (!player->has_ball()) {
 					context.execute_after(go_to_ball());

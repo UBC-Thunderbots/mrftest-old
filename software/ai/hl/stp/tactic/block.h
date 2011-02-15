@@ -11,7 +11,7 @@ namespace AI {
 				/**
 				 * Blocks against an enemy from view of our goal.
 				 */
-				Tactic::Ptr block(AI::HL::W::World &world, AI::HL::STP::Enemy::Ptr enemy);
+				Tactic::Ptr block(const AI::HL::W::World &world, AI::HL::STP::Enemy::Ptr enemy);
 			}
 		}
 	}

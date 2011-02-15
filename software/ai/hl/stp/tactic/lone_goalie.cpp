@@ -9,7 +9,7 @@ using namespace AI::HL::W;
 namespace {
 	class LoneGoalie : public Tactic {
 		public:
-			LoneGoalie(World &world) : Tactic(world) {
+			LoneGoalie(const World &world) : Tactic(world) {
 			}
 		private:
 			Player::Ptr select(const std::set<Player::Ptr>& players) const;
@@ -17,8 +17,15 @@ namespace {
 	};
 
 	Player::Ptr LoneGoalie::select(const std::set<Player::Ptr>& players) const {
-		Player::Ptr goalie = world.friendly_team().get(0);
-		assert(players.find(goalie) != players.end());
+		Player::CPtr cgoalie = world.friendly_team().get(0);
+		Player::Ptr goalie;
+		for (auto it = players.begin(); it != players.end(); ++it) {
+			Player::CPtr tmp = *it;
+			if (cgoalie == tmp) {
+				goalie = *it;
+			}
+		}
+		assert(goalie.is());
 		return goalie;
 	}
 
@@ -28,7 +35,7 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::lone_goalie(World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::lone_goalie(const World &world) {
 	const Tactic::Ptr p(new LoneGoalie(world));
 	return p;
 }

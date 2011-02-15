@@ -11,7 +11,7 @@ using AI::HL::STP::SSM::SkillStateMachine;
 namespace {
 	class Kick : public Skill {
 		private:
-			void execute(World& world, Player::Ptr player, const SkillStateMachine*, Param& param, Context& context) const {
+			void execute(const World& world, Player::Ptr player, const SkillStateMachine*, Param& param, Context& context) const {
 				// no ball lol; how did we get to this state.
 				if (!player->has_ball()) {
 					context.execute_after(go_to_ball());

@@ -8,7 +8,7 @@ using namespace AI::HL::W;
 namespace {
 	class Repel : public Tactic {
 		public:
-			Repel(World &world) : Tactic(world) {
+			Repel(const World &world) : Tactic(world) {
 			}
 		private:
 			Player::Ptr select(const std::set<Player::Ptr>& players) const;
@@ -26,7 +26,7 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::repel(World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::repel(const World &world) {
 	const Tactic::Ptr p(new Repel(world));
 	return p;
 }

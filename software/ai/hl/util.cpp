@@ -138,15 +138,15 @@ std::pair<Point, double> AI::HL::Util::calc_best_shot(const Field &f, const std:
 	return angle_sweep_circles(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
 }
 
-std::pair<Point, double> AI::HL::Util::calc_best_shot(World &world, const Player::Ptr player, const double radius) {
+std::pair<Point, double> AI::HL::Util::calc_best_shot(const World &world, const Player::CPtr player, const double radius) {
 	std::vector<Point> obstacles;
 	const EnemyTeam &enemy = world.enemy_team();
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		obstacles.push_back(enemy.get(i)->position());
 	}
-	FriendlyTeam &friendly = world.friendly_team();
+	const FriendlyTeam &friendly = world.friendly_team();
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		const Player::Ptr fpl = friendly.get(i);
+		const Player::CPtr fpl = friendly.get(i);
 		if (fpl == player) {
 			continue;
 		}
@@ -155,12 +155,12 @@ std::pair<Point, double> AI::HL::Util::calc_best_shot(World &world, const Player
 	return calc_best_shot(world.field(), obstacles, player->position(), radius);
 }
 
-bool AI::HL::Util::ball_close(World &world, Robot::Ptr robot) {
+bool AI::HL::Util::ball_close(const World &world, Robot::Ptr robot) {
 	const Point dist = world.ball().position() - robot->position();
 	return dist.len() < (Robot::MAX_RADIUS + Ball::RADIUS * ball_close_factor);
 }
 
-bool AI::HL::Util::posses_ball(World &world, Player::Ptr player) {
+bool AI::HL::Util::posses_ball(const World &world, Player::Ptr player) {
 	if (player->has_ball()) {
 		return true;
 	}
@@ -170,7 +170,7 @@ bool AI::HL::Util::posses_ball(World &world, Player::Ptr player) {
 	return ball_close(world, player);
 }
 
-bool AI::HL::Util::posses_ball(World &world, Robot::Ptr robot) {
+bool AI::HL::Util::posses_ball(const World &world, Robot::Ptr robot) {
 	return ball_close(world, robot);
 }
 
@@ -181,6 +181,14 @@ Player::Ptr AI::HL::Util::calc_baller(World &world, const std::vector<Player::Pt
 		}
 	}
 	return Player::Ptr();
+}
+
+std::vector<Player::CPtr> AI::HL::Util::get_players(const FriendlyTeam &friendly) {
+	std::vector<Player::CPtr> players;
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		players.push_back(friendly.get(i));
+	}
+	return players;
 }
 
 std::vector<Player::Ptr> AI::HL::Util::get_players(FriendlyTeam &friendly) {

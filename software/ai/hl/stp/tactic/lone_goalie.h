@@ -11,7 +11,7 @@ namespace AI {
 				/**
 				 * A standard lone goalie tactic.
 				 */
-				Tactic::Ptr lone_goalie(AI::HL::W::World& world);
+				Tactic::Ptr lone_goalie(const AI::HL::W::World& world);
 			}
 		}
 	}

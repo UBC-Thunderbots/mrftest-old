@@ -54,7 +54,7 @@ namespace AI {
 			 *
 			 * \param[in] flags movement flags for the robot (most likely you want to disable AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE).
 			 */
-			void repel(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags);
+			void repel(const AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags);
 
 			/**
 			 * Convenient function.
@@ -66,7 +66,7 @@ namespace AI {
 			/**
 			 * A single goalie and NO ONE ELSE defending the field.
 			 */
-			void lone_goalie(AI::HL::W::World &world, AI::HL::W::Player::Ptr player);
+			void lone_goalie(const AI::HL::W::World &world, AI::HL::W::Player::Ptr player);
 
 			/**
 			 * Blocks against a single enemy from shooting.

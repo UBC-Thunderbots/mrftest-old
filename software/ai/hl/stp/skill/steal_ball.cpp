@@ -11,7 +11,7 @@ using AI::HL::STP::SSM::SkillStateMachine;
 namespace {
 	class StealBall : public Skill {
 		private:
-			void execute(World& world, Player::Ptr player, const SkillStateMachine*, AI::HL::STP::Skill::Param& param, Context& context) const {
+			void execute(const World& world, Player::Ptr player, const SkillStateMachine*, AI::HL::STP::Skill::Param& param, Context& context) const {
 
 				const AI::HL::STP::Evaluation::BallThreat ball_threat = AI::HL::STP::Evaluation::evaluate_ball_threat(world);
 

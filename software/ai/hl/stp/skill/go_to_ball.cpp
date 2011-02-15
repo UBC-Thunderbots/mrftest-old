@@ -14,7 +14,7 @@ namespace {
 	 */
 	class GoToBall : public Skill {
 		private:
-			void execute(World& world, Player::Ptr player, const SkillStateMachine* ssm, Param& param, Context& context) const {
+			void execute(const World& world, Player::Ptr player, const SkillStateMachine* ssm, Param& param, Context& context) const {
 				if (player->has_ball()) {
 					const Skill* next = ssm->initial();
 

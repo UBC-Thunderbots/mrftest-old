@@ -7,7 +7,7 @@ using AI::HL::STP::Evaluation::evaluate_shoot;
 
 //ShootData EvaluateShoot::compute(AI::HL::W::World &world, AI::HL::W::Player::Ptr player) const {
 
-ShootData AI::HL::STP::Evaluation::evaluate_shoot(AI::HL::W::World &world, AI::HL::W::Player::Ptr player) {
+ShootData AI::HL::STP::Evaluation::evaluate_shoot(const AI::HL::W::World &world, AI::HL::W::Player::CPtr player) {
 	ShootData data;
 
 	std::pair<Point, double> shot = AI::HL::Util::calc_best_shot(world, player);
