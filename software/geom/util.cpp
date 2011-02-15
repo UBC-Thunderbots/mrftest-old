@@ -11,7 +11,7 @@ namespace {
 	const double EPS2 = EPS * EPS;
 
 	// ported code
-	inline int sign(const double n) {
+	int sign(double n) {
 		return n > EPS ? 1 : (n < -EPS ? -1 : 0);
 	}
 }
