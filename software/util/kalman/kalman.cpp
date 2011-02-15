@@ -1,101 +1,95 @@
 #include "util/kalman/kalman.h"
-#include <time.h>
 #include <cmath>
-#include <iostream>
-kalman::kalman(bool angle, double measure_std, double accel_std) : is_angle(angle), sigma_m(measure_std), sigma_a(accel_std), H(matrix(1, 2)), P(matrix::identity(2)), state_estimate(matrix(2, 1)) {
-	state_estimate(0, 0) = 0.0;
-	state_estimate(1, 0) = 0.0;
+
+Kalman::Kalman(bool angle, double measure_std, double accel_std) : last_measurement_time(0.0), last_control(0.0), sigma_m(measure_std), sigma_a(accel_std), h(1, 2), p(2, 2, Matrix::IDENTITY), state_estimate(2, 1, Matrix::ZEROES), is_angle(angle) {
 	// %the state measurement operator
 	// H=[1 0];(;
-	H(0, 0) = 1.0;
-	H(0, 1) = 0.0;
-	last_measurement_time = 0.0;
-	last_control = 0.0;
+	h(0, 0) = 1.0;
+	h(0, 1) = 0.0;
 }
 
-matrix kalman::gen_G_mat(double timestep) const {
+Matrix Kalman::gen_g_mat(double timestep) const {
 	// %the acceleration to state vector (given an acceleration, what is the state
 	// %update)
 	// G=[timestep.^2/2; timestep];
-	matrix G(2, 1);
+	Matrix G(2, 1);
 	G(0, 0) = timestep * timestep / 2;
 	G(1, 0) = timestep;
 	return G;
 }
 
-matrix kalman::gen_Q_mat(double timestep) const {
-	matrix G = gen_G_mat(timestep);
+Matrix Kalman::gen_q_mat(double timestep) const {
+	const Matrix &g = gen_g_mat(timestep);
 	// %The amount of uncertainty gained per step
-	matrix Q(G * ~G * sigma_a * sigma_a);
-	return Q;
+	const Matrix &q = g * ~g * sigma_a * sigma_a;
+	return q;
 }
 
-matrix kalman::gen_F_mat(double timestep) const {
+Matrix Kalman::gen_f_mat(double timestep) const {
 	// %the state update matrix (get next state given current one
 	// F=[1 timestep;0 1];
-	matrix F(2, 2);
-	F(0, 0) = 1.0;
-	F(0, 1) = timestep;
-	F(1, 0) = 0.0;
-	F(1, 1) = 1.0;
-	return F;
+	Matrix f(2, 2);
+	f(0, 0) = 1.0;
+	f(0, 1) = timestep;
+	f(1, 0) = 0.0;
+	f(1, 1) = 1.0;
+	return f;
 }
 
 // predict forward one step with fixed control parameter
-void kalman::predict_step(double timestep, double control, matrix &state_predict, matrix &P_predict) const {
-	matrix F = gen_F_mat(timestep);
-	matrix G = gen_G_mat(timestep);
-	matrix Q = gen_Q_mat(timestep);
-	state_predict = F * state_predict + G * control;
-	P_predict = F * P_predict * ~F + Q;
+void Kalman::predict_step(double timestep, double control, Matrix &state_predict, Matrix &p_predict) const {
+	const Matrix &f = gen_f_mat(timestep);
+	const Matrix &g = gen_g_mat(timestep);
+	const Matrix &q = gen_q_mat(timestep);
+	state_predict = f * state_predict + g * control;
+	p_predict = f * p_predict * ~f + q;
 }
 
 // get an estimate of the state and covariance at prediction_time, outputs passed by reference
-void kalman::predict(double prediction_time, matrix &state_predict, matrix &P_predict) const {
+void Kalman::predict(double prediction_time, Matrix &state_predict, Matrix &p_predict) const {
 	double current_time = last_measurement_time;
 	double current_control = last_control;
 
-	for (std::deque<ControlInput>::const_iterator inputs_itr = inputs.begin();
-	     inputs_itr != inputs.end() && inputs_itr->time < prediction_time; ++inputs_itr) {
-		predict_step(inputs_itr->time - current_time, current_control, state_predict, P_predict);
+	for (std::deque<ControlInput>::const_iterator inputs_itr = inputs.begin(); inputs_itr != inputs.end() && inputs_itr->time < prediction_time; ++inputs_itr) {
+		predict_step(inputs_itr->time - current_time, current_control, state_predict, p_predict);
 		current_time = inputs_itr->time;
 		current_control = inputs_itr->value;
 	}
-	predict_step(prediction_time - current_time, current_control, state_predict, P_predict);
+	predict_step(prediction_time - current_time, current_control, state_predict, p_predict);
 	if (is_angle) {
 		state_predict(0, 0) -= 2 * M_PI * std::round(state_predict(0, 0) / 2 / M_PI);
 	}
 }
 
 // get an estimate of the state at prediction_time
-matrix kalman::predict(double prediction_time) const {
-	matrix state_predict(state_estimate);
-	matrix P_predict(P);
-	predict(prediction_time, state_predict, P_predict);
+Matrix Kalman::predict(double prediction_time) const {
+	Matrix state_predict(state_estimate);
+	Matrix p_predict(p);
+	predict(prediction_time, state_predict, p_predict);
 	return state_predict;
 }
 
 // this should generate an updated state, as well as clean up all the inputs since the last measurement
 // until this current one
-void kalman::update(double measurement, double measurement_time) {
-	matrix state_priori(state_estimate);
-	matrix P_priori(P);
-	predict(measurement_time, state_priori, P_priori);
+void Kalman::update(double measurement, double measurement_time) {
+	Matrix state_priori(state_estimate);
+	Matrix p_priori(p);
+	predict(measurement_time, state_priori, p_priori);
 
 	// %how much does the guess differ from the measurement
-	double residual = measurement - (H * state_priori)(0, 0);
+	double residual = measurement - (h * state_priori)(0, 0);
 	if (is_angle) {
 		residual -= 2 * M_PI * std::round(residual / 2 / M_PI);
 	}
 
 	// %The kalman update calculations
-	matrix Kalman_gain = (P_priori * ~H) / (((H * P_priori * ~H)(0, 0)) + sigma_m * sigma_m);
-	state_estimate = state_priori + Kalman_gain * residual;
+	const Matrix &kalman_gain = (p_priori * ~h) / (((h * p_priori * ~h)(0, 0)) + sigma_m * sigma_m);
+	state_estimate = state_priori + kalman_gain * residual;
 
 	if (is_angle) {
 		state_estimate(0, 0) -= 2 * M_PI * std::round(state_estimate(0, 0) / 2 / M_PI);
 	}
-	P = (matrix::identity(2) - Kalman_gain * H) * P_priori;
+	p = (Matrix(2, 2, Matrix::IDENTITY) - kalman_gain * h) * p_priori;
 
 	last_measurement_time = measurement_time;
 
@@ -107,17 +101,16 @@ void kalman::update(double measurement, double measurement_time) {
 	}
 }
 
-double kalman::get_control(double control_time) const {
+double Kalman::get_control(double control_time) const {
 	double current_control = last_control;
 
-	for (std::deque<ControlInput>::const_iterator inputs_itr = inputs.begin();
-	     inputs_itr != inputs.end() && inputs_itr->time <= control_time; ++inputs_itr) {
+	for (std::deque<ControlInput>::const_iterator inputs_itr = inputs.begin(); inputs_itr != inputs.end() && inputs_itr->time <= control_time; ++inputs_itr) {
 		current_control = inputs_itr->value;
 	}
 	return current_control;
 }
 
-void kalman::add_control(double input, double input_time) {
+void Kalman::add_control(double input, double input_time) {
 	// the new control input overwrites all actions that were scheduled for later times
 	// this allows us, for instance, to change our mind about future control sequences
 	while (!inputs.empty() && inputs.back().time >= input_time) {

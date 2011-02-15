@@ -170,7 +170,7 @@ dep : $(ALL_D_FILES)
 #
 .PHONY : uncrustify
 uncrustify :
-	find . \( -name .svn -prune \) -o \( -path ./leastsquares -prune \) -o \( -path ./proto -prune \) -o \( -path ./util/matrix.h -prune \) -o \( \( -name '*.cpp' -o -name '*.h' \) -exec uncrustify -c uncrustify.cfg --no-backup \{\} \+ \)
+	find . \( -name .svn -prune \) -o \( -path ./leastsquares -prune \) -o \( -path ./proto -prune \) -o \( \( -name '*.cpp' -o -name '*.h' \) -exec uncrustify -c uncrustify.cfg --no-backup \{\} \+ \)
 
 #
 # Rules to clean.

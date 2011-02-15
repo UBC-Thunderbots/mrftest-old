@@ -1,23 +1,18 @@
 #include "util/predictor.h"
-#include "leastsquares/leastsquares.h"
 #include "util/time.h"
-#include "util/timestep.h"
-#include <iostream>
-#include <cmath>
 
-#warning TODO 1. accompensate for delay in real mode, and not to in simulator mode
+#warning TODO 1. compensate for delay in real mode, and not to in simulator mode
 #warning TODO 2. access to control noise: as if our robot command and relative robot positions
-#warning TODO 3. accompensate for glitches when "clipping" angles
+#warning TODO 3. compensate for glitches when "clipping" angles
 
 namespace {
 	const int MAX_DEGREE = 3;
 	const int NUM_OLD_POSITIONS = 30;
 }
 
-Predictor::Predictor(bool angle) : initialized(false), lock_delta(0.0), filter(angle) {
+Predictor::Predictor(bool angle) : initialized(false), filter(angle) {
 	// Record current time.
-	timespec_now(last_datum_timestamp);
-	lock_timestamp = last_datum_timestamp;
+	timespec_now(lock_timestamp);
 	filter.set_availability(true);
 }
 
@@ -32,7 +27,7 @@ double Predictor::value(double delta, unsigned int deriv) const {
 
 double Predictor::value(const timespec &ts, unsigned int deriv) const {
 	double v = 0;
-	matrix guess = filter.predict(timespec_to_double(ts));
+	const Matrix &guess = filter.predict(timespec_to_double(ts));
 	if (deriv == 0) {
 		v = guess(0, 0);
 	} else if (deriv == 1) {
@@ -48,9 +43,6 @@ double Predictor::value(const timespec &ts, unsigned int deriv) const {
 
 void Predictor::lock_time(const timespec &ts) {
 	lock_timestamp = ts;
-	timespec diff;
-	timespec_sub(ts, last_datum_timestamp, diff);
-	lock_delta = timespec_to_double(diff);
 }
 
 void Predictor::add_datum(double value, const timespec &ts) {
@@ -58,9 +50,6 @@ void Predictor::add_datum(double value, const timespec &ts) {
 	if (!initialized) {
 		// Remember that we're initialized.
 		initialized = true;
-
-		// Mark the current time as the most recent datum stamp.
-		last_datum_timestamp = ts;
 
 		// Update the predictions.
 		// update();
@@ -70,9 +59,6 @@ void Predictor::add_datum(double value, const timespec &ts) {
 		// Don't do any of the rest.
 		return;
 	}
-
-	// Compute delta time and update stamp.
-	last_datum_timestamp = ts;
 
 	filter.update(value, timespec_to_double(ts));
 }

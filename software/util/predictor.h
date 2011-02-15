@@ -1,8 +1,6 @@
-#ifndef AI_WORLD_PREDICTABLE_H
-#define AI_WORLD_PREDICTABLE_H
+#ifndef UTIL_PREDICTOR_H
+#define UTIL_PREDICTOR_H
 
-#include "geom/point.h"
-#include "leastsquares/ap.h"
 #include "util/time.h"
 #include "util/kalman/kalman.h"
 
@@ -72,14 +70,8 @@ class Predictor {
 
 	private:
 		bool initialized;
-		ap::real_1d_array vhistory;
-		ap::real_1d_array dhistory; // history vector of time steps
-		ap::real_1d_array weights;
-		ap::real_2d_array fmatrix;
-		ap::real_1d_array approxv;
-		timespec last_datum_timestamp, lock_timestamp;
-		double lock_delta;
-		kalman filter;
+		timespec lock_timestamp;
+		Kalman filter;
 
 		void update();
 };
