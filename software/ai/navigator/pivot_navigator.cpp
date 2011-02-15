@@ -1,4 +1,3 @@
-#include "ai/hl/util.h"
 #include "ai/navigator/navigator.h"
 #include "util/time.h"
 #include "geom/angle.h"
