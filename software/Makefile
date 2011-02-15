@@ -7,12 +7,12 @@ PROJECTS := ai config fw log simulator test
 # Here, write a list of the source files and directories for each executable.
 # Directories will be searched for source files recursively.
 #
-SOURCES_ai := ai geom leastsquares log/shared proto uicomponents util xbee
-SOURCES_config := config geom leastsquares uicomponents util
-SOURCES_fw := fw geom leastsquares util xbee
-SOURCES_log := ai/common leastsquares log geom proto uicomponents util
-SOURCES_simulator := ai/common/playtype.cpp geom leastsquares simulator util
-SOURCES_test := geom leastsquares test uicomponents util xbee
+SOURCES_ai := ai geom log/shared proto uicomponents util xbee
+SOURCES_config := config geom uicomponents util
+SOURCES_fw := fw geom util xbee
+SOURCES_log := ai/common log geom proto uicomponents util
+SOURCES_simulator := ai/common/playtype.cpp geom simulator util
+SOURCES_test := geom test uicomponents util xbee
 
 #
 # Here, write a list of all the pkg-config packages used.
@@ -116,7 +116,7 @@ obj/%.d : %.cpp $(PROTOBUF_HS)
 obj/%.o : %.cpp
 	echo "  CXX	$@"
 	mkdir -p $(dir $@)
-	$(CXX) $(if $(filter obj/leastsquares/%,$@),$(filter-out -Wconversion,$(CXXFLAGS)),$(CXXFLAGS)) -o$@ -c $<
+	$(CXX) $(CXXFLAGS) -o$@ -c $<
 
 #
 # Rule to make a .pb.cc and a .pb.h file from a .proto file.
@@ -170,7 +170,7 @@ dep : $(ALL_D_FILES)
 #
 .PHONY : uncrustify
 uncrustify :
-	find . \( -name .svn -prune \) -o \( -path ./leastsquares -prune \) -o \( -path ./proto -prune \) -o \( \( -name '*.cpp' -o -name '*.h' \) -exec uncrustify -c uncrustify.cfg --no-backup \{\} \+ \)
+	find . \( -name .svn -prune \) -o \( -path ./proto -prune \) -o \( \( -name '*.cpp' -o -name '*.h' \) -exec uncrustify -c uncrustify.cfg --no-backup \{\} \+ \)
 
 #
 # Rules to clean.
