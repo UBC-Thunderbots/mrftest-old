@@ -37,7 +37,7 @@ namespace {
 			}
 
 			void tick() {
-				const std::vector<std::pair<std::pair<Point, double>, timespec> > &path = player->path();
+				const Player::Path &path = player->path();
 				if (path.empty()) {
 					return;
 				}

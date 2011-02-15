@@ -68,7 +68,7 @@ namespace {
 		// player info
 		Player::Ptr player;
 		// unsigned int flags;
-		vector<pair<pair<Point, double>, timespec> > path;
+		Player::Path path;
 		Point currentPos, destinationPos, stepPos, closest;
 		double currentOri, destinationOri, stepOri;
 		timespec ts_next;

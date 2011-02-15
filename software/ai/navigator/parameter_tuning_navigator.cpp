@@ -97,7 +97,7 @@ namespace {
 		time++;
 
 		Player::Ptr player;
-		std::vector<std::pair<std::pair<Point, double>, timespec> > path;
+		Player::Path path;
 
 		path.clear();
 		player = fteam.get(0);

@@ -43,6 +43,16 @@ namespace AI {
 					typedef RefPtr<const Player> CPtr;
 
 					/**
+					 * The type of a single point in a path.
+					 */
+					typedef std::pair<std::pair<Point, double>, timespec> PathPoint;
+
+					/**
+					 * The type of a complete path.
+					 */
+					typedef std::vector<PathPoint> Path;
+
+					/**
 					 * The maximum linear velocity of the robot, in metres per second.
 					 */
 					static const double MAX_LINEAR_VELOCITY;
@@ -100,12 +110,9 @@ namespace AI {
 					/**
 					 * Sets the path this player should follow.
 					 *
-					 * \param[in] p the path, in the form of a set of
-					 * ((<var>position</var>, <var>orientation</var>), <var>deadline</var>) pairs,
-					 * where <var>deadline</var> is the timestamp, in monotonic time, at which the robot should arrive;
-					 * an empty path causes the robot to halt.
+					 * \param[in] p the path (an empty path causes the robot to halt).
 					 */
-					virtual void path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) = 0;
+					virtual void path(const Path &p) = 0;
 			};
 
 			/**

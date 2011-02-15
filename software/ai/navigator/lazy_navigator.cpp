@@ -67,7 +67,7 @@ namespace {
 		FriendlyTeam &fteam = world.friendly_team();
 
 		Player::Ptr player;
-		std::vector<std::pair<std::pair<Point, double>, timespec> > path;
+		Player::Path path;
 
 		Point currentPosition, destinationPosition;
 		double currentOrientation, destinationOrientation;

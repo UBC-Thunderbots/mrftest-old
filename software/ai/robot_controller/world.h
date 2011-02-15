@@ -27,6 +27,16 @@ namespace AI {
 					typedef RefPtr<const Player> CPtr;
 
 					/**
+					 * The type of a single point in a path.
+					 */
+					typedef std::pair<std::pair<Point, double>, timespec> PathPoint;
+
+					/**
+					 * The type of a complete path.
+					 */
+					typedef std::vector<PathPoint> Path;
+
+					/**
 					 * Returns the path requested by the navigator.
 					 *
 					 * \return the path, in the form of a set of
@@ -34,7 +44,7 @@ namespace AI {
 					 * where <var>deadline</var> is the timestamp at which the robot should arrive;
 					 * the path is empty if the robot is halted.
 					 */
-					virtual const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const = 0;
+					virtual const Path &path() const = 0;
 
 					/**
 					 * Orders the wheels to turn at specified speeds.

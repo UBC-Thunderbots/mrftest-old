@@ -38,7 +38,7 @@ OldRobotController2::~OldRobotController2() {
 }
 
 void OldRobotController2::tick() {
-	const std::vector<std::pair<std::pair<Point, double>, timespec> > &path = player->path();
+	const AI::RC::W::Player::Path &path = player->path();
 	if (path.empty()) {
 		clear();
 	} else {

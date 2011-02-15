@@ -72,7 +72,7 @@ namespace {
 
 	void RRTPhysicsNavigator::tick() {
 		struct timespec currentTime;
-		std::vector<std::pair<std::pair<Point, double>, timespec> > path;
+		Player::Path path;
 		std::deque<Point> pathPoints;
 
 		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {

@@ -76,7 +76,7 @@ namespace {
 
 	void RRTNavigator::tick() {
 		timespec workingTime;
-		std::vector<std::pair<std::pair<Point, double>, timespec> > path;
+		Player::Path path;
 		std::vector<Point> pathPoints;
 
 		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
@@ -85,7 +85,7 @@ namespace {
 			
 			// temp hack move ram ball does not try to avoid obstacles
 			// if (player->type() == MOVE_RAM_BALL) {
-				// std::pair<Point, timespec> temp;
+				// Player::PathPoint temp;
 				// Point p =  player->destination().first;
 				// temp = get_ramball_location( p, world, player);
  				// get_ramball_location( player->destination().first, world, player);
