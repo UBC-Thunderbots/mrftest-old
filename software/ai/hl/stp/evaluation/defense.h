@@ -14,7 +14,7 @@ namespace AI {
 				 */
 				class Defense : public Module {
 					public:
-						Defense(AI::HL::STP::Play::Play& play) : Module(play) {
+						Defense(AI::HL::STP::Play::Play &play) : Module(play) {
 						}
 
 						/**
@@ -39,7 +39,7 @@ namespace AI {
 				 */
 				class ConeDefense : public Defense {
 					public:
-						ConeDefense(AI::HL::STP::Play::Play& play, AI::HL::W::World& world);
+						ConeDefense(AI::HL::STP::Play::Play &play, AI::HL::W::World &world);
 
 						void evaluate();
 
@@ -56,7 +56,7 @@ namespace AI {
 						}
 
 					protected:
-						AI::HL::W::World& world;
+						AI::HL::W::World &world;
 
 						bool goalie_top;
 

@@ -12,15 +12,14 @@ namespace {
 			}
 
 		private:
-
 #warning mutable... maybe i should fix api
 			mutable Point dest;
 
-			Player::Ptr select(const std::set<Player::Ptr>& players) const;
+			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
 	};
 
-	Player::Ptr Offense::select(const std::set<Player::Ptr>& players) const {
+	Player::Ptr Offense::select(const std::set<Player::Ptr> &players) const {
 #warning a tactic can make decision based on available players
 		dest = AI::HL::STP::Evaluation::evaluate_offense(world, players);
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));

@@ -12,7 +12,7 @@ namespace AI {
 				 * Basically position the ball for a good position,
 				 * and shoot the enemy goal if we can.
 				 */
-				const SkillStateMachine* move_ball();
+				const SkillStateMachine *move_ball();
 			}
 		}
 	}

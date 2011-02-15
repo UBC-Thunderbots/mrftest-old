@@ -16,7 +16,6 @@ using AI::HL::STP::Evaluation::ConeDefense;
 namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
-
 	const double PENALTY_MARK_LENGTH = 0.45;
 	const double RESTRICTED_ZONE_LENGTH = 0.85;
 	/**
@@ -36,13 +35,13 @@ namespace {
 			bool applicable() const;
 			bool done() const;
 			bool fail() const;
-			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> (&roles)[4]);
-			const PlayFactory& factory() const;
+			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]);
+			const PlayFactory &factory() const;
 	};
 
 	PlayFactoryImpl<PrepPenaltyFriendly> factory_instance("Prepare Penalty Friendly");
 
-	const PlayFactory& PrepPenaltyFriendly::factory() const {
+	const PlayFactory &PrepPenaltyFriendly::factory() const {
 		return factory_instance;
 	}
 
@@ -53,8 +52,7 @@ namespace {
 	}
 
 	bool PrepPenaltyFriendly::applicable() const {
-		return Predicates::playtype(world, PlayType::PREPARE_PENALTY_FRIENDLY)
-			&& Predicates::our_team_size_at_least(world, 1);
+		return Predicates::playtype(world, PlayType::PREPARE_PENALTY_FRIENDLY) && Predicates::our_team_size_at_least(world, 1);
 	}
 
 	bool PrepPenaltyFriendly::done() const {
@@ -65,7 +63,7 @@ namespace {
 		return false;
 	}
 
-	void PrepPenaltyFriendly::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> (&roles)[4]) {
+	void PrepPenaltyFriendly::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
 		// std::Player::Ptr goalie = world.friendly_team().get(0);
 
 		// GOALIE

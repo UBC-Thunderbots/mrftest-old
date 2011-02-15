@@ -7,8 +7,9 @@ using namespace AI::HL::W;
 namespace {
 	class Fixed : public Coordinate::CoordinateData {
 		public:
-			Fixed(const Point& p) : pos(p) {
+			Fixed(const Point &p) : pos(p) {
 			}
+
 		private:
 			Point pos;
 			Point evaluate() const;
@@ -16,18 +17,20 @@ namespace {
 
 	class BallUp : public Coordinate::CoordinateData {
 		public:
-			BallUp(const Ball& b, const Point& p) : ball(b), pos(p) {
+			BallUp(const Ball &b, const Point &p) : ball(b), pos(p) {
 			}
+
 		private:
-			const Ball& ball;
+			const Ball &ball;
 			Point pos;
 			Point evaluate() const;
 	};
 
 	template<typename Ptr> class RelativeRole : public Coordinate::CoordinateData {
 		public:
-			RelativeRole(const Ptr& p, const Point& off) : obj(p), offset(off) {
+			RelativeRole(const Ptr &p, const Point &off) : obj(p), offset(off) {
 			}
+
 		private:
 			Ptr obj;
 			Point offset;
@@ -36,8 +39,9 @@ namespace {
 
 	template<typename Ptr> class OffsetRole : public Coordinate::CoordinateData {
 		public:
-			OffsetRole(const Ptr& p, const Point& off) : obj(p), offset(off) {
+			OffsetRole(const Ptr &p, const Point &off) : obj(p), offset(off) {
 			}
+
 		private:
 			Ptr obj;
 			Point offset;
@@ -46,10 +50,11 @@ namespace {
 
 	class OffsetBall : public Coordinate::CoordinateData {
 		public:
-			OffsetBall(const Ball& ball, const Point& p) : ball(ball), pos(p) {
+			OffsetBall(const Ball &ball, const Point &p) : ball(ball), pos(p) {
 			}
+
 		private:
-			const Ball& ball;
+			const Ball &ball;
 			Point pos;
 			Point evaluate() const;
 	};
@@ -98,40 +103,40 @@ Point Coordinate::operator()() const {
 Coordinate::Coordinate() : data(new Fixed(Point())) {
 }
 
-Coordinate::Coordinate(const Point& pos) : data(new Fixed(pos)) {
+Coordinate::Coordinate(const Point &pos) : data(new Fixed(pos)) {
 }
 
-Coordinate Coordinate::fixed(const Point& pos) {
+Coordinate Coordinate::fixed(const Point &pos) {
 	const RefPtr<CoordinateData> data(new Fixed(pos));
 	return Coordinate(data);
 }
 
-Coordinate Coordinate::ball_up(const AI::HL::W::Ball& ball, const Point& pos) {
+Coordinate Coordinate::ball_up(const AI::HL::W::Ball &ball, const Point &pos) {
 	const RefPtr<CoordinateData> data(new BallUp(ball, pos));
 	return Coordinate(data);
 }
 
-Coordinate Coordinate::relative(const Enemy::Ptr enemy, const Point& off) {
+Coordinate Coordinate::relative(const Enemy::Ptr enemy, const Point &off) {
 	const RefPtr<CoordinateData> data(new RelativeRole<Enemy::Ptr>(enemy, off));
 	return Coordinate(data);
 }
 
-Coordinate Coordinate::relative(const Role::Ptr player, const Point& off) {
+Coordinate Coordinate::relative(const Role::Ptr player, const Point &off) {
 	const RefPtr<CoordinateData> data(new RelativeRole<Role::Ptr>(player, off));
 	return Coordinate(data);
 }
 
-Coordinate Coordinate::offset(const Ball& ball, const Point& off) {
+Coordinate Coordinate::offset(const Ball &ball, const Point &off) {
 	const RefPtr<CoordinateData> data(new OffsetBall(ball, off));
 	return Coordinate(data);
 }
 
-Coordinate Coordinate::offset(const Enemy::Ptr enemy, const Point& off) {
+Coordinate Coordinate::offset(const Enemy::Ptr enemy, const Point &off) {
 	const RefPtr<CoordinateData> data(new OffsetRole<Enemy::Ptr>(enemy, off));
 	return Coordinate(data);
 }
 
-Coordinate Coordinate::offset(const Role::Ptr player, const Point& off) {
+Coordinate Coordinate::offset(const Role::Ptr player, const Point &off) {
 	const RefPtr<CoordinateData> data(new OffsetRole<Role::Ptr>(player, off));
 	return Coordinate(data);
 }

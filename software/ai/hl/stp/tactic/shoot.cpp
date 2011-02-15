@@ -13,7 +13,7 @@ namespace {
 
 		private:
 			bool done() const;
-			Player::Ptr select(const std::set<Player::Ptr>& players) const;
+			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
 	};
 
@@ -21,9 +21,11 @@ namespace {
 		return ssm_done();
 	}
 
-	Player::Ptr Shoot::select(const std::set<Player::Ptr>& players) const {
+	Player::Ptr Shoot::select(const std::set<Player::Ptr> &players) const {
 		for (auto it = players.begin(); it != players.end(); ++it) {
-			if ((*it)->has_ball()) return *it;
+			if ((*it)->has_ball()) {
+				return *it;
+			}
 		}
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 	}

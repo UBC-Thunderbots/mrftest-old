@@ -11,9 +11,9 @@ namespace AI {
 				 * An implementation of the drive to goal skill in the STP paper.
 				 * Attempts to push the ball towards the desired direction to kick.
 				 *
-				 * Terminates if the ball is kicked. 
+				 * Terminates if the ball is kicked.
 				 */
-				const Skill* drive_to_goal();
+				const Skill *drive_to_goal();
 			}
 		}
 	}

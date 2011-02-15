@@ -14,7 +14,7 @@ namespace AI {
 				 */
 				class Pass : public Module {
 					public:
-						Pass(AI::HL::STP::Play::Play& play) : Module(play) {
+						Pass(AI::HL::STP::Play::Play &play) : Module(play) {
 						}
 
 						/**
@@ -33,7 +33,7 @@ namespace AI {
 				 */
 				class SimplePass : public Pass {
 					public:
-						SimplePass(AI::HL::STP::Play::Play& play);
+						SimplePass(AI::HL::STP::Play::Play &play);
 
 						void set_passer_pos(Coordinate p);
 

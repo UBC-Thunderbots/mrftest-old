@@ -11,7 +11,7 @@ namespace AI {
 				 * Finds a way to get the ball,
 				 * either through chasing or stealing.
 				 */
-				const SkillStateMachine* get_ball();
+				const SkillStateMachine *get_ball();
 			}
 		}
 	}

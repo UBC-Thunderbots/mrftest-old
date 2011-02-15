@@ -5,13 +5,9 @@
 #include "ai/navigator/world.h"
 #include "geom/point.h"
 #include "geom/util.h"
-#include <vector>
-#include <utility>
-
-//#include "ai/flags.h"
-//#include <algorithm>
-//#include <cmath>
 #include "util/time.h"
+#include <utility>
+#include <vector>
 
 namespace AI {
 	namespace Nav {

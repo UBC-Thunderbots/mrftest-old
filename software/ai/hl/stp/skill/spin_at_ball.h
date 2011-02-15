@@ -11,7 +11,7 @@ namespace AI {
 				 * Spin at the ball.
 				 * Like pivot.
 				 */
-				extern const Skill* spin_at_ball();
+				extern const Skill *spin_at_ball();
 			}
 		}
 	}

@@ -57,7 +57,7 @@ namespace AI {
 						 * Sets the current skill to this,
 						 * and executes this skill right after the current one finishes.
 						 */
-						virtual void execute_after(const Skill* skill) = 0;
+						virtual void execute_after(const Skill *skill) = 0;
 
 						/**
 						 * Indicates that this skill terminates successfully.
@@ -73,7 +73,7 @@ namespace AI {
 						 * Sets the current skill to this.
 						 * This skill will be executed next tick.
 						 */
-						virtual void transition(const Skill* skill) = 0;
+						virtual void transition(const Skill *skill) = 0;
 				};
 
 				/**
@@ -104,7 +104,7 @@ namespace AI {
 						 *
 						 * \param context provides additional functionality.
 						 */
-						virtual void execute(const AI::HL::W::World& world, AI::HL::W::Player::Ptr player, const AI::HL::STP::SSM::SkillStateMachine* ssm, Param& param, Context& context) const = 0;
+						virtual void execute(const AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const AI::HL::STP::SSM::SkillStateMachine *ssm, Param &param, Context &context) const = 0;
 				};
 			}
 		}

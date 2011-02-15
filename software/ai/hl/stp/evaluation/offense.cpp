@@ -6,8 +6,8 @@
 #include "util/dprint.h"
 
 using namespace AI::HL::W;
-//using AI::HL::STP::Evaluation::OffenseData;
-//using AI::HL::STP::Evaluation::EvaluateOffense;
+// using AI::HL::STP::Evaluation::OffenseData;
+// using AI::HL::STP::Evaluation::EvaluateOffense;
 
 namespace {
 	const int GRID_X = 25;
@@ -18,7 +18,7 @@ namespace {
 	// avoid enemy robots by at least this distance
 	const double NEAR = Robot::MAX_RADIUS * 3;
 
-	double scoring_function(const World& world, const std::set<Player::CPtr>& players, const std::vector<Point>& enemy_pos, const Point& dest, const std::vector<Point>& dont_block) {
+	double scoring_function(const World &world, const std::set<Player::CPtr> &players, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
 		// can't be too close to enemy
 		for (std::size_t i = 0; i < enemy_pos.size(); ++i) {
 			if ((enemy_pos[i] - dest).len() < NEAR) {
@@ -85,7 +85,7 @@ namespace {
 		return score;
 	}
 
-	bool calc_position_best(const World& world, const std::set<Player::CPtr>& players, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos) {
+	bool calc_position_best(const World &world, const std::set<Player::CPtr> &players, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos) {
 		// divide up into grids
 		const double x1 = -world.field().length() / 2;
 		const double x2 = world.field().length() / 2;
@@ -125,8 +125,7 @@ namespace {
 		return best_score > -1e40;
 	}
 
-	Point calc_positions(const World& world, const std::set<Player::CPtr>& players) {
-
+	Point calc_positions(const World &world, const std::set<Player::CPtr> &players) {
 		// just for caching..
 		const EnemyTeam &enemy = world.enemy_team();
 		std::vector<Point> enemy_pos;
@@ -136,11 +135,11 @@ namespace {
 
 		// TODO: optimize using the matrix below
 		// std::vector<std::vector<bool> > grid(GRID_X, std::vector<bool>(GRID_Y, true));
-		
+
 		// don't block ball, and the others
 		std::vector<Point> dont_block;
 		dont_block.push_back(world.ball().position());
-		const FriendlyTeam& friendly = world.friendly_team();
+		const FriendlyTeam &friendly = world.friendly_team();
 		for (size_t i = 0; i < friendly.size(); ++i) {
 			if (players.find(friendly.get(i)) == players.end()) {
 				dont_block.push_back(friendly.get(i)->position());
@@ -156,7 +155,7 @@ namespace {
 	}
 }
 
-Point AI::HL::STP::Evaluation::evaluate_offense(const AI::HL::W::World& world, const std::set<Player::Ptr>& players) {
+Point AI::HL::STP::Evaluation::evaluate_offense(const AI::HL::W::World &world, const std::set<Player::Ptr> &players) {
 	std::set<Player::CPtr> cplayers(players.begin(), players.end());
 	return calc_positions(world, cplayers);
 }

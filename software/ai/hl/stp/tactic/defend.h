@@ -11,17 +11,17 @@ namespace AI {
 				/**
 				 * A tactic for goalie.
 				 */
-				Tactic::Ptr goalie(AI::HL::W::World& world, const AI::HL::STP::Evaluation::Defense& defense);
+				Tactic::Ptr goalie(AI::HL::W::World &world, const AI::HL::STP::Evaluation::Defense &defense);
 
 				/**
 				 * A tactic for first defender.
 				 */
-				Tactic::Ptr defender1(AI::HL::W::World& world, const AI::HL::STP::Evaluation::Defense& defense);
+				Tactic::Ptr defender1(AI::HL::W::World &world, const AI::HL::STP::Evaluation::Defense &defense);
 
 				/**
 				 * A tactic for second defender.
 				 */
-				Tactic::Ptr defender2(AI::HL::W::World& world, const AI::HL::STP::Evaluation::Defense& defense);
+				Tactic::Ptr defender2(AI::HL::W::World &world, const AI::HL::STP::Evaluation::Defense &defense);
 			}
 		}
 	}

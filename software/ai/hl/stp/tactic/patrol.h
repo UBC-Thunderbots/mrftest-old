@@ -16,6 +16,7 @@ namespace AI {
 						double score(AI::HL::W::Player::Ptr player) const;
 
 						void execute();
+
 					protected:
 						Coordinate p1, p2;
 						bool goto_target1;

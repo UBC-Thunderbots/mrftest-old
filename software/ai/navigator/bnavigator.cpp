@@ -17,8 +17,9 @@ namespace {
 			NavigatorFactory &factory() const;
 			static Navigator::Ptr create(World &world);
 			void tick();
-			Point correct_regional_flags(Point dest, World &world, Player::Ptr player); 
+			Point correct_regional_flags(Point dest, World &world, Player::Ptr player);
 			pair<Point, int> check_mobile_violation(Point p, World &world, Player::Ptr player);
+
 		private:
 			BNavigator(World &world);
 			~BNavigator();
@@ -61,10 +62,10 @@ namespace {
 	void BNavigator::tick() {
 		// init world & field info
 		// unused for now, may come in handy
-		//const Field &field = world.field(); 
-		//const Ball &ball = world.ball();
+		// const Field &field = world.field();
+		// const Ball &ball = world.ball();
 		FriendlyTeam &fteam = world.friendly_team();
-	
+
 		// player info
 		Player::Ptr player;
 		// unsigned int flags;
@@ -88,38 +89,41 @@ namespace {
 			vector<Point> collision_boundaries;
 			// main loop
 			int ebreak = 0;
-			while( (destinationPos-stepPos).len() > 0.25 ) {
+			while ((destinationPos - stepPos).len() > 0.25) {
 				// include emergency break just in case
-				if (ebreak > 100) break;
-				stepPos = stepPos + (destinationPos-stepPos).norm() * 0.25;
+				if (ebreak > 100) {
+					break;
+				}
+				stepPos = stepPos + (destinationPos - stepPos).norm() * 0.25;
 				closest = currentPos;
-				if(!path.empty()) closest = path.back().first.first;
+				if (!path.empty()) {
+					closest = path.back().first.first;
+				}
 				// correct for regional rules, apparently these arent that important so can be overriden
 				stepPos = correct_regional_flags(stepPos, world, player);
 				// check for 'mobile' rules (other robots) these are more important
 				collision = check_mobile_violation(stepPos, world, player);
-				if(collision.second != 0) {
+				if (collision.second != 0) {
 					// ball flag, navigate around ball
-					if(collision.second == 1) {
-						collision_boundaries = circle_boundaries(collision.first,0.5,16);
+					if (collision.second == 1) {
+						collision_boundaries = circle_boundaries(collision.first, 0.5, 16);
 					}
 					// player
-					else if(collision.second == 2) {
-						collision_boundaries = circle_boundaries(collision.first,0.25,16);
+					else if (collision.second == 2) {
+						collision_boundaries = circle_boundaries(collision.first, 0.25, 16);
 					}
 					// find closest point
-					for(std::size_t j=0; j<collision_boundaries.size();j++) {
-						//cout << collision_boundaries[i] << endl;
-						if( (collision_boundaries[j]-closest).lensq() < (closest-stepPos).len()
-							&& (collision_boundaries[j]-closest).lensq() > 0.1 ) {
+					for (std::size_t j = 0; j < collision_boundaries.size(); j++) {
+						// cout << collision_boundaries[i] << endl;
+						if ((collision_boundaries[j] - closest).lensq() < (closest - stepPos).len() && (collision_boundaries[j] - closest).lensq() > 0.1) {
 							closest = collision_boundaries[j];
-							collision_boundaries.erase(collision_boundaries.begin()+j);
+							collision_boundaries.erase(collision_boundaries.begin() + j);
 						}
 					}
 					stepPos = closest;
 				}
-				stepOri = (closest-stepPos).orientation();
-				ts_next = get_next_ts(world.monotonic_time(), closest, stepPos, Point(2,0));
+				stepOri = (closest - stepPos).orientation();
+				ts_next = get_next_ts(world.monotonic_time(), closest, stepPos, Point(2, 0));
 				path.push_back(make_pair(make_pair(stepPos, stepOri), ts_next));
 				ebreak++;
 			}
@@ -136,13 +140,13 @@ namespace {
 		if (flags & FLAG_AVOID_BALL_STOP) {
 			double C_BALL_STOP = player->MAX_RADIUS + 0.50;
 			if ((ball.position() - p).len() < C_BALL_STOP) {
-				return make_pair(ball.position(),1);
+				return make_pair(ball.position(), 1);
 			}
 		}
 		if (flags & FLAG_AVOID_BALL_TINY) {
 			double C_BALL_TINY = 0.15;
 			if ((ball.position() - p).len() < C_BALL_TINY) {
-				return make_pair(ball.position(),1);
+				return make_pair(ball.position(), 1);
 			}
 		}
 		Player::Ptr friendly;
@@ -150,16 +154,16 @@ namespace {
 		for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
 			friendly = world.friendly_team().get(i);
 			if (player != friendly && (p - friendly->position()).len() < player->MAX_RADIUS * 2) {
-				return make_pair(friendly->position(),2);
+				return make_pair(friendly->position(), 2);
 			}
 		}
 		for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
 			enemy = world.enemy_team().get(i);
 			if ((p - enemy->position()).len() < player->MAX_RADIUS * 2) {
-				return make_pair(enemy->position(),2);
+				return make_pair(enemy->position(), 2);
 			}
 		}
-		return make_pair(p,0);
+		return make_pair(p, 0);
 	}
 
 	// correct for regional flags given a point, world and flags
@@ -229,7 +233,7 @@ namespace {
 			}
 		}
 		if (flags & FLAG_PENALTY_KICK_ENEMY) {
-		// todo add check for goalie so it doesn't apply
+			// todo add check for goalie so it doesn't apply
 			double C_PENALTY_KICK = player->MAX_RADIUS + 0.40 + ROBOT_MARGIN;
 			Point e_penalty_mark((length / 2) - defense_area_stretch, 0);
 			if ((dest - e_penalty_mark).len() < C_PENALTY_KICK) {
@@ -239,3 +243,4 @@ namespace {
 		return corrected;
 	}
 }
+

@@ -38,7 +38,7 @@ namespace AI {
 					/**
 					 * The goalie.
 					 */
-					static Role::Ptr goalie(AI::HL::W::World& world);
+					static Role::Ptr goalie(AI::HL::W::World &world);
 
 				protected:
 					Role();

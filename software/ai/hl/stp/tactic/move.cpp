@@ -11,13 +11,14 @@ namespace {
 		public:
 			Move(World &world, const Coordinate dest) : Tactic(world), dest(dest) {
 			}
+
 		private:
 			const Coordinate dest;
-			Player::Ptr select(const std::set<Player::Ptr>& players) const;
+			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
 	};
 
-	Player::Ptr Move::select(const std::set<Player::Ptr>& players) const {
+	Player::Ptr Move::select(const std::set<Player::Ptr> &players) const {
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest()));
 	}
 

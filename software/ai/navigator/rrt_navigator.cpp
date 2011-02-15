@@ -22,7 +22,7 @@ namespace {
 	const double GOAL_PROB = 0.2;
 	const double WAYPOINT_PROB = 0.5;
 	const double RAND_PROB = 1.0 - GOAL_PROB - WAYPOINT_PROB;
-	DoubleParam ANGLE_DIFF("Pivot the amount of erroneous angle acceptable for pivoting" , 4.0, 0.00, 10.0);
+	DoubleParam ANGLE_DIFF("Pivot the amount of erroneous angle acceptable for pivoting", 4.0, 0.00, 10.0);
 	// number of iterations to go through for each robot until we give up and
 	// just return the best partial path we've found
 	const int ITERATION_LIMIT = 200;
@@ -82,13 +82,13 @@ namespace {
 		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 			path.clear();
 			Player::Ptr player = world.friendly_team().get(i);
-			
+
 			// temp hack move ram ball does not try to avoid obstacles
 			// if (player->type() == MOVE_RAM_BALL) {
 				// Player::PathPoint temp;
 				// Point p =  player->destination().first;
 				// temp = get_ramball_location( p, world, player);
- 				// get_ramball_location( player->destination().first, world, player);
+				// get_ramball_location( player->destination().first, world, player);
 				// path.push_back(std::make_pair(std::make_pair(temp.first, player->destination().second), temp.second));
 				// player->path(path);
 				// continue;

@@ -120,7 +120,7 @@ namespace {
 
 	double RRTPhysicsNavigator::distance(NodeTree<Point> *nearest, Point goal) {
 		Point projected;
-		if (nearest->parent() == NULL) {
+		if (!nearest->parent()) {
 			projected = nearest->data() + (currPlayerVelocity * TIMESTEP);
 		} else {
 			projected = 2 * nearest->data() - nearest->parent()->data();
@@ -229,7 +229,7 @@ namespace {
 			nearestNode = nearest(&rrtTree, target);
 			nearestPoint = nearestNode->data();
 
-			if (nearestNode->parent() == NULL) {
+			if (!nearestNode->parent()) {
 				projected = nearestNode->data() + player->velocity() * TIMESTEP;
 			} else {
 				projected = 2 * nearestNode->data() - nearestNode->parent()->data();
@@ -238,7 +238,7 @@ namespace {
 			extended = extend(player, projected, nearestPoint, target);
 
 			if (is_empty_state(extended)) {
-				if (nearestNode->parent() == NULL) {
+				if (!nearestNode->parent()) {
 					break;
 				}
 			} else {

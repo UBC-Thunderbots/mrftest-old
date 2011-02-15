@@ -23,37 +23,33 @@ namespace {
 
 	DoubleParam negligible_velocity("decides at which speed goalie should ignore direction of ball ", 0.05, 1e-4, 1.0);
 
-std::pair<Point, bool> get_ramball_location(Point dst, AI::HL::W::World &world, AI::HL::W::Player::Ptr player){
-	Point ball_dir = world.ball().velocity();
+	std::pair<Point, bool> get_ramball_location(Point dst, AI::HL::W::World &world, AI::HL::W::Player::Ptr player) {
+		Point ball_dir = world.ball().velocity();
 
-	if(ball_dir.lensq() < negligible_velocity){
-			return std::make_pair(world.ball().position(),  false);
-	}
-
-	if(unique_line_intersect(player->position(), dst, world.ball().position(), world.ball().position() + ball_dir)){
-
-		//	std::cout<<" has intersection "<<std::endl;
-
-		Point location = line_intersect(player->position(), dst, world.ball().position(), world.ball().position() + ball_dir);
-		//		timespec intersect = world.monotonic_time();
-		//		timespec_add(intersect, double_to_timespec((location -  world.ball().position()).len()/world.ball().velocity().len()), intersect);
-		
-		Point vec1 = location - player->position();
-		Point vec2 = dst - player->position();
-
-		Point ball_vec = location - world.ball().position();
-
-		if (vec1.dot(vec2) > 0 && ball_dir.dot(ball_vec)) {
-			return std::make_pair(location, true);
+		if (ball_dir.lensq() < negligible_velocity) {
+			return std::make_pair(world.ball().position(), false);
 		}
+
+		if (unique_line_intersect(player->position(), dst, world.ball().position(), world.ball().position() + ball_dir)) {
+			// std::cout<<" has intersection "<<std::endl;
+
+			Point location = line_intersect(player->position(), dst, world.ball().position(), world.ball().position() + ball_dir);
+			// timespec intersect = world.monotonic_time();
+			// timespec_add(intersect, double_to_timespec((location -  world.ball().position()).len()/world.ball().velocity().len()), intersect);
+
+			Point vec1 = location - player->position();
+			Point vec2 = dst - player->position();
+
+			Point ball_vec = location - world.ball().position();
+
+			if (vec1.dot(vec2) > 0 && ball_dir.dot(ball_vec)) {
+				return std::make_pair(location, true);
+			}
+		}
+
+		// if everything fails then just stay put
+		return std::make_pair(player->position(), false);
 	}
-
-	//if everything fails then just stay put
-		return std::make_pair(player->position(),  false);
-}
-
-
-
 }
 
 // double Defender::get_goalie_chase_thresh() {
@@ -113,34 +109,24 @@ std::pair<Point, std::vector<Point> > Defender::calc_block_positions() const {
 		goalie_pos.x = std::max(goalie_pos.x, -f.length() / 2 + radius);
 
 
-	// check if goalie needs to "dive to save ball
-	std::pair<Point, bool> temp = get_ramball_location(goal_side,world, goalie);
+		// check if goalie needs to "dive to save ball
+		std::pair<Point, bool> temp = get_ramball_location(goal_side, world, goalie);
 
-	if(!temp.second){
-		temp = get_ramball_location(goal_opp,world, goalie);
+		if (!temp.second) {
+			temp = get_ramball_location(goal_opp, world, goalie);
+		}
+		bool goalie_dive = temp.second;
+
+		if (goalie_dive && Goalie_dives) {
+			// std::cout<<" goal dive "<<std::endl;
+
+			if (temp.first.y >= -f.goal_width() && temp.first.y <= f.goal_width()) {
+				goalie_pos = temp.first;
+				// prevent the goalie from entering the goal area
+				goalie_pos.x = std::max(goalie_pos.x, -f.length() / 2 + radius);
+			}
+		}
 	}
-	bool goalie_dive = temp.second;
-	
-if(goalie_dive && Goalie_dives){
-	//	std::cout<<" goal dive "<<std::endl;
-
-	if(temp.first.y >=  -f.goal_width() &&  temp.first.y  <= f.goal_width()){
-
-	goalie_pos = temp.first;
-		// prevent the goalie from entering the goal area
-		goalie_pos.x = std::max(goalie_pos.x, -f.length() / 2 + radius);
-
-	}
-
-
- }
-
-
-	}
-
-
-
-
 
 	// first defender will block the remaining cone from the ball
 	{
@@ -284,10 +270,10 @@ void Defender::tick() {
 
 			if (chaser == players[i]) {
 				Player::Ptr passee = AI::HL::Util::choose_best_pass(world, supporters);
-				
+
 				// if defender can shoot, go ahead, else try to pass or repel
-				if (AI::HL::Util::calc_best_shot(world, players[i], Robot::MAX_RADIUS).second > AI::HL::Util::shoot_accuracy){
-					AI::HL::Tactics::shoot(world, players[i], defender_flags, 10.0);				
+				if (AI::HL::Util::calc_best_shot(world, players[i], Robot::MAX_RADIUS).second > AI::HL::Util::shoot_accuracy) {
+					AI::HL::Tactics::shoot(world, players[i], defender_flags, 10.0);
 				} else if (passee.is()) {
 					AI::HL::Tactics::pass(world, players[i], passee, defender_flags);
 				} else {

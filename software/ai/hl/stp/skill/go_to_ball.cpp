@@ -14,9 +14,9 @@ namespace {
 	 */
 	class GoToBall : public Skill {
 		private:
-			void execute(const World& world, Player::Ptr player, const SkillStateMachine* ssm, Param& param, Context& context) const {
+			void execute(const World &world, Player::Ptr player, const SkillStateMachine *ssm, Param &param, Context &context) const {
 				if (player->has_ball()) {
-					const Skill* next = ssm->initial();
+					const Skill *next = ssm->initial();
 
 					// Some SSMs start with GoToBall.
 					// Need to prevent such a loop from happening.
@@ -31,13 +31,13 @@ namespace {
 				}
 
 				// TODO: check if enemy threatens the ball
-				
+
 				const AI::HL::STP::Evaluation::BallThreat ball_threat = AI::HL::STP::Evaluation::evaluate_ball_threat(world);
 
 				// can use normal grab ball mechanism
 				if (ball_threat.activate_steal) {
-					#warning move to the front of the enemy robot to steal the ball
-					//simply try to chase after the ball, but have a new movement type MOVE_STEAL?
+#warning move to the front of the enemy robot to steal the ball
+					// simply try to chase after the ball, but have a new movement type MOVE_STEAL?
 					player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
 				}
 
@@ -48,7 +48,7 @@ namespace {
 	GoToBall go_to_ball_instance;
 }
 
-const Skill* AI::HL::STP::Skill::go_to_ball() {
+const Skill *AI::HL::STP::Skill::go_to_ball() {
 	return &go_to_ball_instance;
 }
 

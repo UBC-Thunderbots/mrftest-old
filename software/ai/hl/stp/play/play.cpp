@@ -13,7 +13,7 @@ Play::Play(World &world) : world(world) {
 Play::~Play() {
 }
 
-void Play::register_module(Module& module) {
+void Play::register_module(Module &module) {
 	if (&module.play != this) {
 		LOG_ERROR("Can't register a module not belonging to the right play");
 		return;

@@ -8,7 +8,6 @@ using namespace AI::HL::W;
 namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
-
 	/**
 	 * Condition:
 	 * - It is the prep friendly kickoff play
@@ -25,13 +24,13 @@ namespace {
 			bool applicable() const;
 			bool done() const;
 			bool fail() const;
-			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> (&roles)[4]);
-			const PlayFactory& factory() const;
+			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]);
+			const PlayFactory &factory() const;
 	};
 
 	PlayFactoryImpl<PrepFriendlyKickoff> factory_instance("Prep Friendly Kickoff");
 
-	const PlayFactory& PrepFriendlyKickoff::factory() const {
+	const PlayFactory &PrepFriendlyKickoff::factory() const {
 		return factory_instance;
 	}
 
@@ -53,18 +52,18 @@ namespace {
 		return false;
 	}
 
-	void PrepFriendlyKickoff::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> (&roles)[4]) {
+	void PrepFriendlyKickoff::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
 		goalie_role.push_back(lone_goalie(world));
 
 		/*
-		roles[0].push_back();
+		   roles[0].push_back();
 
-		roles[1].push_back();
+		   roles[1].push_back();
 
-		roles[2].push_back();
+		   roles[2].push_back();
 
-		roles[3].push_back();
-		*/
+		   roles[3].push_back();
+		 */
 	}
 }
 

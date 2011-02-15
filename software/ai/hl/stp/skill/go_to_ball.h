@@ -11,7 +11,7 @@ namespace AI {
 				 * Grabs the ball.
 				 * This is NOT a terminal skill.
 				 */
-				extern const Skill* go_to_ball();
+				extern const Skill *go_to_ball();
 			}
 		}
 	}

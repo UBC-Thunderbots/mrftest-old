@@ -77,14 +77,14 @@ namespace {
 
 				linear_velocity = distance_factor * linear_velocity + (1 - distance_factor) * (velocity_factor * stopping_velocity + (1 - velocity_factor) * linear_velocity);
 
-				
+
 				struct timespec currentTime, finalTime;
 				currentTime = world.monotonic_time();
 				timespec_sub(path[0].second, currentTime, finalTime);
 				double desired_velocity = (path[0].first.first - player->position()).len() / (static_cast<double>(timespec_to_millis(finalTime)) / 1000);
 				if (linear_velocity.len() > desired_velocity && desired_velocity > 0) {
 					LOG_INFO("Warning: Fuzzy controller is being told to travel slow.");
-					linear_velocity = desired_velocity * (linear_velocity/linear_velocity.len());
+					linear_velocity = desired_velocity * (linear_velocity / linear_velocity.len());
 				}
 
 				int wheel_speeds[4] = { 0, 0, 0, 0 };

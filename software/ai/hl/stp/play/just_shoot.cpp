@@ -18,7 +18,6 @@ using AI::HL::STP::Evaluation::ConeDefense;
 namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
-
 	/**
 	 * Condition:
 	 * - ball under team possesion
@@ -36,13 +35,13 @@ namespace {
 			bool applicable() const;
 			bool done() const;
 			bool fail() const;
-			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> (&roles)[4]);
-			const PlayFactory& factory() const;
+			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]);
+			const PlayFactory &factory() const;
 	};
 
 	PlayFactoryImpl<JustShoot> factory_instance("Just Shoot");
 
-	const PlayFactory& JustShoot::factory() const {
+	const PlayFactory &JustShoot::factory() const {
 		return factory_instance;
 	}
 
@@ -53,9 +52,7 @@ namespace {
 	}
 
 	bool JustShoot::applicable() const {
-		return Predicates::playtype(world, PlayType::PLAY)
-			&& Predicates::our_team_size_at_least(world, 3)
-			&& Predicates::our_ball(world);
+		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && Predicates::our_ball(world);
 	}
 
 	bool JustShoot::done() const {
@@ -66,7 +63,7 @@ namespace {
 		return Predicates::their_ball(world);
 	}
 
-	void JustShoot::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> (&roles)[4]) {
+	void JustShoot::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
 		// std::Player::Ptr goalie = world.friendly_team().get(0);
 
 		// GOALIE

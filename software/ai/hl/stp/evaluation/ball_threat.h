@@ -32,7 +32,7 @@ namespace AI {
 					std::vector<AI::HL::W::Robot::Ptr> enemies;
 				};
 
-				const BallThreat evaluate_ball_threat(const AI::HL::W::World& world);
+				BallThreat evaluate_ball_threat(const AI::HL::W::World &world);
 			}
 		}
 	}

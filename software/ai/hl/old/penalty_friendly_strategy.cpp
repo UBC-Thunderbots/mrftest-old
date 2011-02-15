@@ -46,7 +46,7 @@ namespace {
 			void execute();
 
 			void run_assignment();
-			
+
 			bool prepared;
 
 			// the players invovled
@@ -90,7 +90,7 @@ namespace {
 		}
 
 		prepare();
-		
+
 		defender.set_chase(false);
 		defender.tick();
 	}
@@ -99,7 +99,7 @@ namespace {
 		if (world.friendly_team().size() == 0) {
 			return;
 		}
-		
+
 		if (!prepared) {
 			prepare();
 		}
@@ -130,7 +130,7 @@ namespace {
 		if (kicker.is()) {
 			AI::HL::Tactics::free_move(world, kicker, shoot_position);
 		}
-		
+
 		prepared = true;
 
 		if ((kicker->position() - shoot_position).len() > AI::HL::Util::POS_CLOSE) {
@@ -142,9 +142,8 @@ namespace {
 				prepared = false;
 			}
 		}
-				
 	}
-	
+
 	void PenaltyFriendlyStrategy::execute() {
 		if (kicker.is()) {
 			// instead of shooting straight at the goal, should try picking a random flank (left or right) and shoot

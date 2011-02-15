@@ -12,9 +12,8 @@ using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
 
 namespace {
-
 	const unsigned int NORMAL_SCORE = 6; // if the combined score is below this level the players will play normally
-	
+
 	const unsigned int FRANTIC_SCORE = 9; // else if the combined score is below this level the players will play more frantically
 
 	/**
@@ -44,11 +43,11 @@ namespace {
 			 */
 			void run_assignment();
 			void calc_chaser();
-			
+
 			Player::Ptr goalie;
 			Offender offender;
 			Defender defender;
-			
+
 			std::vector<Player::Ptr> offenders;
 			std::vector<Player::Ptr> defenders; // normally this should be empty
 	};
@@ -72,7 +71,7 @@ namespace {
 	 * The play types handled by this strategy.
 	 */
 	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
-		//PlayType::PLAY,
+		// PlayType::PLAY,
 	};
 
 	FranticPlayStrategyFactory::FranticPlayStrategyFactory() : StrategyFactory("Frantic Play", HANDLED_PLAY_TYPES, G_N_ELEMENTS(HANDLED_PLAY_TYPES)) {
@@ -98,9 +97,13 @@ namespace {
 		if (world.friendly_team().size() == 0) {
 			return;
 		}
-		if (offenders.size() > 0) offender.tick();
+		if (offenders.size() > 0) {
+			offender.tick();
+		}
 		// there might be no defenders but with one existing goalie
-		if (defenders.size() > 0 || goalie.is()) defender.tick();
+		if (defenders.size() > 0 || goalie.is()) {
+			defender.tick();
+		}
 	}
 
 	FranticPlayStrategy::FranticPlayStrategy(World &world) : Strategy(world), offender(world), defender(world) {
@@ -121,12 +124,11 @@ namespace {
 	}
 
 	void FranticPlayStrategy::run_assignment() {
-	
 		// clear up
 		goalie.reset();
 		defenders.clear();
 		offenders.clear();
-		
+
 		if (world.friendly_team().size() == 0) {
 			LOG_WARN("no players");
 			return;
@@ -135,43 +137,44 @@ namespace {
 		// it is easier to change players every tick?
 		std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
-		
 
 		// check the sum of the score of both teams (so you are losing big or unlikely winning big)
 		// if sum of the score of both teams are low (so team should be not too frantic or crazy yet)
 		// should probably have one goalie and the rest offenders
 		// NOTE: code for restricting goalie to have accompanying defenders are only commented out for now
-		
+
 		// However, if enemy robots are all "clustered" in your side of the field
-		// ie. the enemy are launching a major offensive, 
+		// ie. the enemy are launching a major offensive,
 		// you should probably behave frantically by having all defenders and no offenders
 		// check this by checking the # of enemy robots (3+?) on your side of the field
-		
-		
+
 		int enemy_cnt = 0;
-		for (std::size_t i = 0; i < enemies.size(); ++i) {	
+		for (std::size_t i = 0; i < enemies.size(); ++i) {
 			// simply check the enemies' positions
-			if (enemies[i]->position().x < 0) enemy_cnt++;	
+			if (enemies[i]->position().x < 0) {
+				enemy_cnt++;
+			}
 		}
-		
-		if (enemy_cnt > 2){
+
+		if (enemy_cnt > 2) {
 			// all out defensive
 			goalie = players[0];
-			for (std::size_t i = 1; i < players.size(); ++i) {	
+			for (std::size_t i = 1; i < players.size(); ++i) {
 				defenders.push_back(players[i]);
 			}
-			defender.set_players(defenders, goalie);		
-		
-		} else if (world.friendly_team().score() + world.enemy_team().score() < NORMAL_SCORE){
+			defender.set_players(defenders, goalie);
+		} else if (world.friendly_team().score() + world.enemy_team().score() < NORMAL_SCORE) {
 			// standard play of 2 def, 2 off, 1 goalie
 			goalie = players[0];
 			std::size_t ndefenders = 1; // includes goalie
 			switch (players.size()) {
 				case 5:
 					++ndefenders;
+
 				case 4:
 				case 3:
 					++ndefenders;
+
 				case 2:
 					break;
 			}
@@ -186,26 +189,25 @@ namespace {
 			}
 			offender.set_players(offenders);
 			defender.set_players(defenders, goalie);
-			
-		} else if (world.friendly_team().score() + world.enemy_team().score() < FRANTIC_SCORE){
-			// 1 goalie, 4 off			 
+		} else if (world.friendly_team().score() + world.enemy_team().score() < FRANTIC_SCORE) {
+			// 1 goalie, 4 off
 			goalie = players[0];
-			for (std::size_t i = 1; i < players.size(); ++i) {	
+			for (std::size_t i = 1; i < players.size(); ++i) {
 				offenders.push_back(players[i]);
 			}
 			offender.set_players(offenders);
 			defender.set_players(defenders, goalie);
-		} else {	
+		} else {
 			// all out offensive
-			for (std::size_t i = 0; i < players.size(); ++i) {	
+			for (std::size_t i = 0; i < players.size(); ++i) {
 				offenders.push_back(players[i]);
-			}	
-			offender.set_players(offenders);		
+			}
+			offender.set_players(offenders);
 		}
-		
+
 		LOG_INFO(Glib::ustring::compose("defenders are for sissies: %1 defenders, %2 offenders", defenders.size(), offenders.size()));
 	}
-	
+
 	void FranticPlayStrategy::calc_chaser() {
 		// see who has the closest ball
 		bool offender_chase = true;

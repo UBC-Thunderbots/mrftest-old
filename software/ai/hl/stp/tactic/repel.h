@@ -10,7 +10,7 @@ namespace AI {
 				/**
 				 * Move the ball away from our own goal at all cost.
 				 */
-				Tactic::Ptr repel(const AI::HL::W::World& world);
+				Tactic::Ptr repel(const AI::HL::W::World &world);
 			}
 		}
 	}

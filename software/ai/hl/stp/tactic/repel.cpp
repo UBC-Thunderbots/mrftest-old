@@ -10,12 +10,13 @@ namespace {
 		public:
 			Repel(const World &world) : Tactic(world) {
 			}
+
 		private:
-			Player::Ptr select(const std::set<Player::Ptr>& players) const;
+			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
 	};
 
-	Player::Ptr Repel::select(const std::set<Player::Ptr>& players) const {
+	Player::Ptr Repel::select(const std::set<Player::Ptr> &players) const {
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 	}
 

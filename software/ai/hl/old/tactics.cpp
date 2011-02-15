@@ -57,7 +57,7 @@ void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int
 
 	// ignoring accuracy, comment this out for now so that we'll shoot more
 	// if (ori_diff > AI::HL::Util::shoot_accuracy * M_PI / 180.0) { // aim
-		// return;
+	// return;
 	// }
 
 	// shoot!

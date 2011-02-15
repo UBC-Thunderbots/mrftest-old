@@ -15,7 +15,6 @@ namespace AI {
 			}
 
 			namespace Play {
-
 				class PlayFactory;
 
 				/**
@@ -70,17 +69,17 @@ namespace AI {
 						 * \param [in] roles an array of roles in order of priority,
 						 * the first entry is the most important etc.
 						 */
-						virtual void assign(std::vector<AI::HL::STP::Tactic::Tactic::Ptr> &goalie_role, std::vector<AI::HL::STP::Tactic::Tactic::Ptr> (&roles)[4]) = 0;
+						virtual void assign(std::vector<AI::HL::STP::Tactic::Tactic::Ptr> &goalie_role, std::vector<AI::HL::STP::Tactic::Tactic::Ptr>(&roles)[4]) = 0;
 
 						/**
 						 * A reference to this play's factory.
 						 */
-						virtual const PlayFactory& factory() const = 0;
+						virtual const PlayFactory &factory() const = 0;
 
 						/**
 						 * Registers an evaluation module into this play.
 						 */
-						void register_module(AI::HL::STP::Evaluation::Module& module);
+						void register_module(AI::HL::STP::Evaluation::Module &module);
 
 						/**
 						 * Used to update evaluation modules.
@@ -138,7 +137,7 @@ namespace AI {
 				 */
 				template<class P> class PlayFactoryImpl : public PlayFactory {
 					public:
-						PlayFactoryImpl(const char* name) : PlayFactory(name) {
+						PlayFactoryImpl(const char *name) : PlayFactory(name) {
 						}
 						Play::Ptr create(AI::HL::W::World &world) const {
 							const Play::Ptr p(new P(world));

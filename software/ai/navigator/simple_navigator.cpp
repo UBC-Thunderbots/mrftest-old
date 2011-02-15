@@ -74,7 +74,7 @@ namespace {
 			destinationPosition = player->destination().first;
 			destinationOrientation = player->destination().second;
 
-			ts = get_next_ts(world.monotonic_time(),currentPosition,destinationPosition,player->target_velocity());
+			ts = get_next_ts(world.monotonic_time(), currentPosition, destinationPosition, player->target_velocity());
 
 			path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), ts));
 			player->path(path);

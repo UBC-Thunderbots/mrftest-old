@@ -18,11 +18,10 @@ namespace {
 	const unsigned int MAX_DEFENDERS = 2;
 }
 
-AI::HL::STP::Evaluation::ConeDefense::ConeDefense(AI::HL::STP::Play::Play& play, World& world) : Defense(play), world(world) {
+AI::HL::STP::Evaluation::ConeDefense::ConeDefense(AI::HL::STP::Play::Play &play, World &world) : Defense(play), world(world) {
 }
 
 void AI::HL::STP::Evaluation::ConeDefense::evaluate() {
-
 	const Field &field = world.field();
 
 	std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());

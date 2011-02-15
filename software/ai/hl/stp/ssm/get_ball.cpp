@@ -8,7 +8,7 @@ using AI::HL::STP::Skill::Skill;
 namespace {
 	class GetBall : public SkillStateMachine {
 		private:
-			const Skill* initial() const {
+			const Skill *initial() const {
 				return AI::HL::STP::Skill::go_to_ball();
 			}
 	};
@@ -16,7 +16,7 @@ namespace {
 	GetBall get_ball_instance;
 }
 
-const SkillStateMachine* AI::HL::STP::SSM::get_ball() {
+const SkillStateMachine *AI::HL::STP::SSM::get_ball() {
 	return &get_ball_instance;
 }
 

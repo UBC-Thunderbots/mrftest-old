@@ -12,19 +12,19 @@ namespace {
 	 */
 	class Defend : public Tactic {
 		public:
-			Defend(const World &world, const Defense& defense) : Tactic(world), defense(defense) {
+			Defend(const World &world, const Defense &defense) : Tactic(world), defense(defense) {
 			}
 
 		protected:
-			const Defense& defense;
+			const Defense &defense;
 			virtual Point dest() const = 0;
 
 		private:
-			Player::Ptr select(const std::set<Player::Ptr>& players) const;
+			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
 	};
 
-	Player::Ptr Defend::select(const std::set<Player::Ptr>& players) const {
+	Player::Ptr Defend::select(const std::set<Player::Ptr> &players) const {
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest()));
 	}
 
@@ -38,8 +38,9 @@ namespace {
 	 */
 	class Goalie : public Defend {
 		public:
-			Goalie(const World &world, const Defense& defense) : Defend(world, defense) {
+			Goalie(const World &world, const Defense &defense) : Defend(world, defense) {
 			}
+
 		private:
 			Point dest() const;
 	};
@@ -53,8 +54,9 @@ namespace {
 	 */
 	class Defender1 : public Defend {
 		public:
-			Defender1(const World &world, const Defense& defense) : Defend(world, defense) {
+			Defender1(const World &world, const Defense &defense) : Defend(world, defense) {
 			}
+
 		private:
 			Point dest() const;
 	};
@@ -68,8 +70,9 @@ namespace {
 	 */
 	class Defender2 : public Defend {
 		public:
-			Defender2(const World &world, const Defense& defense) : Defend(world, defense) {
+			Defender2(const World &world, const Defense &defense) : Defend(world, defense) {
 			}
+
 		private:
 			Point dest() const;
 	};
@@ -79,17 +82,17 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::goalie(World& world, const Defense& defense) {
+Tactic::Ptr AI::HL::STP::Tactic::goalie(World &world, const Defense &defense) {
 	const Tactic::Ptr p(new Goalie(world, defense));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::defender1(World& world, const Defense& defense) {
+Tactic::Ptr AI::HL::STP::Tactic::defender1(World &world, const Defense &defense) {
 	const Tactic::Ptr p(new Defender1(world, defense));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::defender2(World& world, const Defense& defense) {
+Tactic::Ptr AI::HL::STP::Tactic::defender2(World &world, const Defense &defense) {
 	const Tactic::Ptr p(new Defender2(world, defense));
 	return p;
 }

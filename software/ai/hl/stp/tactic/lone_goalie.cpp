@@ -11,12 +11,13 @@ namespace {
 		public:
 			LoneGoalie(const World &world) : Tactic(world) {
 			}
+
 		private:
-			Player::Ptr select(const std::set<Player::Ptr>& players) const;
+			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
 	};
 
-	Player::Ptr LoneGoalie::select(const std::set<Player::Ptr>& players) const {
+	Player::Ptr LoneGoalie::select(const std::set<Player::Ptr> &players) const {
 		Player::CPtr cgoalie = world.friendly_team().get(0);
 		Player::Ptr goalie;
 		for (auto it = players.begin(); it != players.end(); ++it) {

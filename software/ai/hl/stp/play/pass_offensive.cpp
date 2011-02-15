@@ -33,13 +33,13 @@ namespace {
 			bool applicable() const;
 			bool done() const;
 			bool fail() const;
-			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> (&roles)[4]);
-			const PlayFactory& factory() const;
+			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]);
+			const PlayFactory &factory() const;
 	};
 
 	PlayFactoryImpl<PassOffensive> factory_instance("Pass Offensive");
 
-	const PlayFactory& PassOffensive::factory() const {
+	const PlayFactory &PassOffensive::factory() const {
 		return factory_instance;
 	}
 
@@ -50,9 +50,7 @@ namespace {
 	}
 
 	bool PassOffensive::applicable() const {
-		return Predicates::playtype(world, PlayType::PLAY)
-			&& Predicates::our_team_size_at_least(world, 3)
-			&& Predicates::our_ball(world);
+		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && Predicates::our_ball(world);
 	}
 
 	bool PassOffensive::done() const {
@@ -63,7 +61,7 @@ namespace {
 		return Predicates::their_ball(world);
 	}
 
-	void PassOffensive::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> (&roles)[4]) {
+	void PassOffensive::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
 		// std::Player::Ptr goalie = world.friendly_team().get(0);
 
 		FriendlyTeam &friendly = world.friendly_team();
@@ -74,7 +72,7 @@ namespace {
 		// TODO: better passer and passee positioning and targeting
 
 		// ROLE 1
-		// passer 
+		// passer
 		roles[0].push_back(passer_ready(world, friendly.get(1)->position(), friendly.get(2)->position()));
 
 		// ROLE 2

@@ -8,6 +8,7 @@ namespace {
 		public:
 			Fixed(Player::Ptr p) : player(p) {
 			}
+
 		private:
 			Player::Ptr player;
 			Player::Ptr evaluate() const {

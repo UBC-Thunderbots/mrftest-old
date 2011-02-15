@@ -32,7 +32,7 @@ namespace AI {
 							~CoordinateData() {}
 							virtual Point evaluate() const = 0;
 					};
-				
+
 					/**
 					 * Default constructor, gives the origin.
 					 */
@@ -41,48 +41,48 @@ namespace AI {
 					/**
 					 * Copy constructor.
 					 */
-					Coordinate(const Coordinate& coordinate) : data(coordinate.data) {
+					Coordinate(const Coordinate &coordinate) : data(coordinate.data) {
 					}
 
 					/**
 					 * Implicit convertion from a point to a coordinate.
 					 */
-					Coordinate(const Point& pos);
+					Coordinate(const Point &pos);
 
 					/**
 					 * Fixed coordinate;
 					 */
-					static Coordinate fixed(const Point& pos);
+					static Coordinate fixed(const Point &pos);
 
 					/**
 					 * Flips the y coordinate so that the ball y-coordinate is positive.
 					 */
-					static Coordinate ball_up(const AI::HL::W::Ball& ball, const Point& pos);
+					static Coordinate ball_up(const AI::HL::W::Ball &ball, const Point &pos);
 
 					/**
 					 * Translate and rotate to enemy coordinate.
 					 */
-					static Coordinate relative(const Enemy::Ptr enemy, const Point& off);
+					static Coordinate relative(const Enemy::Ptr enemy, const Point &off);
 
 					/**
 					 * Translate and rotate to player coordinate.
 					 */
-					static Coordinate relative(const Role::Ptr role, const Point& off);
+					static Coordinate relative(const Role::Ptr role, const Point &off);
 
 					/**
 					 * Just an offset to a ball (Do not rotate coordinate).
 					 */
-					static Coordinate offset(const AI::HL::W::Ball& ball, const Point& off);
+					static Coordinate offset(const AI::HL::W::Ball &ball, const Point &off);
 
 					/**
 					 * Just an offset to an enemy (Do not rotate coordinate).
 					 */
-					static Coordinate offset(const Enemy::Ptr enemy, const Point& off);
+					static Coordinate offset(const Enemy::Ptr enemy, const Point &off);
 
 					/**
 					 * Just an offset to a player (Do not rotate coordinate).
 					 */
-					static Coordinate offset(const Role::Ptr role, const Point& off);
+					static Coordinate offset(const Role::Ptr role, const Point &off);
 
 					/**
 					 * Evaluates and returns the required coordinate.

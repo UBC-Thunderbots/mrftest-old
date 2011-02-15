@@ -28,11 +28,11 @@ namespace {
 
 	DoubleParam proportion(" amount to scale controller velocities by ", 2.0, 0.1, 10.0);
 
-	const double arr_min[P] = { 3.0, 0.5};
-	const double arr_max[P] = { 8.0, 10.0};
+	const double arr_min[P] = { 3.0, 0.5 };
+	const double arr_max[P] = { 8.0, 10.0 };
 
 	// robot parameters
-	const double arr_def[P] = { 4.72052, 3.0};
+	const double arr_def[P] = { 4.72052, 3.0 };
 
 	// simulator parameters
 	// const double arr_def[P] = { 8.71043, 1.95671, 1.08009, 4.59125, 9.40896 };
@@ -53,58 +53,58 @@ namespace {
 					return;
 				}
 
-				double orientation_diff = angle_mod(path[0].first.second -  player->orientation());
+				double orientation_diff = angle_mod(path[0].first.second - player->orientation());
 				Point location_diff = (path[0].first.first - player->position());
-				//				std::cout<<location_diff<<std::endl;
-				Point centre_of_line = (path[0].first.first + player->position())/2.0;
+				// std::cout<<location_diff<<std::endl;
+				Point centre_of_line = (path[0].first.first + player->position()) / 2.0;
 
 				Point robot_vel = location_diff;
 				double robot_ang_vel = orientation_diff;
 
 				bool angle_change = orientation_diff > ANGLE_TOL || orientation_diff < -ANGLE_TOL;
-				if(location_diff.len() > DIST_TOL && angle_change){
-					//			std::cout<<robot_vel<<' '<<robot_ang_vel;
+				if (location_diff.len() > DIST_TOL && angle_change) {
+					// std::cout<<robot_vel<<' '<<robot_ang_vel;
 					Point direction = location_diff.norm();
 					double distance_to_cover = location_diff.len();
 
 					double dir = 1.0;
-					if(orientation_diff <0){
+					if (orientation_diff < 0) {
 						dir = -1.0;
 					}
-					double distance_from_line = 0.5*location_diff.len()/tan(orientation_diff/2.0);
+					double distance_from_line = 0.5 * location_diff.len() / tan(orientation_diff / 2.0);
 
-					//			std::cout<<distance_from_line<< ' '<< location_diff<<' '<<orientation_diff<< std::endl;
+					// std::cout<<distance_from_line<< ' '<< location_diff<<' '<<orientation_diff<< std::endl;
 					// vector taking the centre of the line seg (dest - cur_location)
 					// to the centre of the pivot point
-					Point line_to_centre = dir*distance_from_line*((location_diff.norm()).rotate(M_PI/2.0));
-					Point pivot_centre = centre_of_line + line_to_centre;				
+					Point line_to_centre = dir * distance_from_line * ((location_diff.norm()).rotate(M_PI / 2.0));
+					Point pivot_centre = centre_of_line + line_to_centre;
 					double pivot_radius = (pivot_centre - player->position()).len();
-					
-					distance_to_cover = orientation_diff*pivot_radius;
 
-					//					std::cout<<distance_to_cover<<' ';
-					direction = ((player->position() - pivot_centre).rotate(dir*M_PI/2.0)).norm();
-					//					std::cout<<direction<<std::endl;
+					distance_to_cover = orientation_diff * pivot_radius;
 
-					robot_vel = distance_to_cover*direction; 
-					//				std::cout<<' '<<robot_vel<<' '<<robot_ang_vel<<std::endl;
+					// std::cout<<distance_to_cover<<' ';
+					direction = ((player->position() - pivot_centre).rotate(dir * M_PI / 2.0)).norm();
+					// std::cout<<direction<<std::endl;
+
+					robot_vel = distance_to_cover * direction;
+					// std::cout<<' '<<robot_vel<<' '<<robot_ang_vel<<std::endl;
 				}
 
-				robot_vel*=proportion;
-				robot_ang_vel*=proportion;
+				robot_vel *= proportion;
+				robot_ang_vel *= proportion;
 
 				timespec cur_time = world.monotonic_time();
 
-				//			if(robot_vel.len() > DIST_TOL){
-					//					double speed = std::min(5.0, robot_vel.len());
-					//					robot_vel = speed*(robot_vel.norm());
-				//				}
+				// if(robot_vel.len() > DIST_TOL){
+				// double speed = std::min(5.0, robot_vel.len());
+				// robot_vel = speed*(robot_vel.norm());
+				// }
 
-				//	if(path[0].second
+				// if(path[0].second
 
 				int wheel_speeds[4] = { 0, 0, 0, 0 };
-				//		convert_to_wheels(location_diff,0.0, wheel_speeds);
-					convert_to_wheels(robot_vel,robot_ang_vel, wheel_speeds);
+				// convert_to_wheels(location_diff,0.0, wheel_speeds);
+				convert_to_wheels(robot_vel, robot_ang_vel, wheel_speeds);
 
 				player->drive(wheel_speeds);
 			}

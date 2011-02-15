@@ -6,18 +6,18 @@ using namespace AI::HL::STP::Skill;
 using AI::HL::STP::SSM::SkillStateMachine;
 using namespace AI::HL::W;
 
-ContextImpl::ContextImpl(const World& w, Param& p) : world(w), param(p), ssm(NULL), next_skill(NULL) {
+ContextImpl::ContextImpl(const World &w, Param &p) : world(w), param(p), ssm(0), next_skill(0) {
 }
 
 void ContextImpl::set_player(Player::Ptr p) {
 	player = p;
 }
 
-void ContextImpl::set_ssm(const AI::HL::STP::SSM::SkillStateMachine* s) {
-	if (ssm != s ){
+void ContextImpl::set_ssm(const AI::HL::STP::SSM::SkillStateMachine *s) {
+	if (ssm != s) {
 		ssm = s;
-		if (ssm == NULL) {
-			next_skill = NULL;
+		if (!ssm) {
+			next_skill = 0;
 		} else {
 			next_skill = ssm->initial();
 		}
@@ -25,17 +25,17 @@ void ContextImpl::set_ssm(const AI::HL::STP::SSM::SkillStateMachine* s) {
 }
 
 void ContextImpl::reset_ssm() {
-	if (ssm != NULL) {
+	if (ssm) {
 		next_skill = ssm->initial();
 	}
 }
 
 bool ContextImpl::done() const {
-	return ssm == NULL;
+	return !ssm;
 }
 
 void ContextImpl::run() {
-	if (next_skill == NULL) {
+	if (!next_skill) {
 		// ???
 		return;
 	}
@@ -54,20 +54,20 @@ void ContextImpl::run() {
 	history.clear();
 }
 
-void ContextImpl::execute_after(const Skill* skill) {
+void ContextImpl::execute_after(const Skill *skill) {
 	next_skill = skill;
 	execute_next_skill = true;
 }
 
 void ContextImpl::finish() {
-	ssm = NULL;
+	ssm = 0;
 }
 
 void ContextImpl::abort() {
 #warning TODO
 }
 
-void ContextImpl::transition(const Skill* skill) {
+void ContextImpl::transition(const Skill *skill) {
 	next_skill = skill;
 }
 

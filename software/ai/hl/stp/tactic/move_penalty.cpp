@@ -14,7 +14,7 @@ namespace {
 		private:
 			const Coordinate dest;
 			bool done() const;
-			Player::Ptr select(const std::set<Player::Ptr>& players) const;
+			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
 	};
 
@@ -22,7 +22,7 @@ namespace {
 		return (player->position() - dest()).len() < AI::HL::Util::POS_CLOSE;
 	}
 
-	Player::Ptr MovePenalty::select(const std::set<Player::Ptr>& players) const {
+	Player::Ptr MovePenalty::select(const std::set<Player::Ptr> &players) const {
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest()));
 	}
 

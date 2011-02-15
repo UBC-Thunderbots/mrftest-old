@@ -13,7 +13,7 @@ namespace {
 
 		private:
 			bool done() const;
-			Player::Ptr select(const std::set<Player::Ptr>& players) const;
+			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
 	};
 
@@ -21,9 +21,11 @@ namespace {
 		return player->has_ball();
 	}
 
-	Player::Ptr Chase::select(const std::set<Player::Ptr>& players) const {
+	Player::Ptr Chase::select(const std::set<Player::Ptr> &players) const {
 		for (auto it = players.begin(); it != players.end(); ++it) {
-			if ((*it)->has_ball()) return *it;
+			if ((*it)->has_ball()) {
+				return *it;
+			}
 		}
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 	}
@@ -31,7 +33,7 @@ namespace {
 	void Chase::execute() {
 		// if it has the ball, stay there
 		if (player->has_ball()) {
-			set_ssm(NULL);
+			set_ssm(0);
 			player->move(player->position(), player->orientation(), 0, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
 			return;
 		}

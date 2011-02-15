@@ -6,16 +6,18 @@ using namespace AI::HL::W;
 using AI::HL::STP::Coordinate;
 
 namespace {
-	
 	class PasserReady : public Tactic {
 		public:
 			PasserReady(World &world, Coordinate p, Coordinate t) : Tactic(world), dest(p), target(t) {
 			}
+
 		private:
 			Coordinate dest, target;
-			Player::Ptr select(const std::set<Player::Ptr>& players) const {
+			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				for (auto it = players.begin(); it != players.end(); ++it) {
-					if ((*it)->has_ball()) return *it;
+					if ((*it)->has_ball()) {
+						return *it;
+					}
 				}
 				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 			}
@@ -33,12 +35,13 @@ namespace {
 			// ACTIVE tactic!
 			PasseeReady(World &world, Coordinate p) : Tactic(world, true), dest(p) {
 			}
+
 		private:
 			Coordinate dest;
 			bool done() const {
 				return (player->position() - dest()).len() < AI::HL::Util::POS_CLOSE;
 			}
-			Player::Ptr select(const std::set<Player::Ptr>& players) const {
+			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest()));
 			}
 			void execute() {

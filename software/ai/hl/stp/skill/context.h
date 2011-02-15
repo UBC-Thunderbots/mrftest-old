@@ -21,7 +21,7 @@ namespace AI {
 						/**
 						 * The constructor.
 						 */
-						ContextImpl(const AI::HL::W::World& w, Param& p);
+						ContextImpl(const AI::HL::W::World &w, Param &p);
 
 						/**
 						 * TODO: fix this.
@@ -32,7 +32,7 @@ namespace AI {
 						 * Changes the current ssm associated.
 						 * If the ssm stays the same, the skill will not be reset.
 						 */
-						void set_ssm(const AI::HL::STP::SSM::SkillStateMachine* ssm);
+						void set_ssm(const AI::HL::STP::SSM::SkillStateMachine *ssm);
 
 						/**
 						 * The skill changes to that to of the start of the ssm.
@@ -50,25 +50,25 @@ namespace AI {
 						void run();
 
 					private:
-						const AI::HL::W::World& world;
+						const AI::HL::W::World &world;
 						AI::HL::W::Player::Ptr player;
-						Param& param;
+						Param &param;
 
-						const AI::HL::STP::SSM::SkillStateMachine* ssm;
+						const AI::HL::STP::SSM::SkillStateMachine *ssm;
 
-						const Skill* next_skill;
+						const Skill *next_skill;
 						bool execute_next_skill;
 
 						/**
 						 * We can check if skills ever loop to itself.
 						 */
-						std::set<const Skill*> history;
+						std::set<const Skill *> history;
 
 						/**
 						 * Transition to a different skill.
 						 * This skill is executed after the current skill finishes execute().
 						 */
-						void execute_after(const Skill* skill);
+						void execute_after(const Skill *skill);
 
 						/**
 						 * Indicates that this skill terminates.
@@ -84,7 +84,7 @@ namespace AI {
 						 * Does not execute this skill immediately.
 						 * But sets it for next tick.
 						 */
-						void transition(const Skill* skill);
+						void transition(const Skill *skill);
 				};
 			}
 		}

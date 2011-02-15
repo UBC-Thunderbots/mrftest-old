@@ -21,7 +21,7 @@ namespace AI {
 						/**
 						 * Constructor, must always reference a play.
 						 */
-						Module(AI::HL::STP::Play::Play& p);
+						Module(AI::HL::STP::Play::Play &p);
 
 						/**
 						 * Destructor.
@@ -29,7 +29,7 @@ namespace AI {
 						~Module();
 
 					private:
-						AI::HL::STP::Play::Play& play;
+						AI::HL::STP::Play::Play &play;
 						sigc::connection connection;
 
 						/**

@@ -13,7 +13,7 @@ using AI::HL::STP::SSM::SkillStateMachine;
 namespace {
 	class DriveToGoal : public Skill {
 		private:
-			void execute(const World& world, Player::Ptr player, const SkillStateMachine*, AI::HL::STP::Skill::Param& param, Context& context) const {
+			void execute(const World &world, Player::Ptr player, const SkillStateMachine *, AI::HL::STP::Skill::Param &param, Context &context) const {
 				// must have a ball
 				if (!player->has_ball()) {
 					context.execute_after(go_to_ball());
@@ -30,15 +30,15 @@ namespace {
 
 				// TODO
 				// if can still dribble for some distance
-				//   find somewhere more sensible
-				//   e.g. move towards enemy goal
+				// find somewhere more sensible
+				// e.g. move towards enemy goal
 			}
 	};
 
 	DriveToGoal drive_to_goal_instance;
 }
 
-const Skill* AI::HL::STP::Skill::drive_to_goal() {
+const Skill *AI::HL::STP::Skill::drive_to_goal() {
 	return &drive_to_goal_instance;
 }
 

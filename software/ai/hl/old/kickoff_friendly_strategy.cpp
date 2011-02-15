@@ -181,7 +181,6 @@ namespace {
 	}
 
 	void KickoffFriendlyStrategy::execute() {
-		
 		// default is for kicker to just shoot forward, don't kick too far into the enemy field
 		if (kicker.is() && pidx >= 0) {
 			if (pidx == 0 && offenders.size() == 1) {
@@ -196,7 +195,6 @@ namespace {
 		} else if (kicker.is()) {
 			AI::HL::Tactics::shoot(world, kicker, AI::Flags::FLAG_CLIP_PLAY_AREA, KICKOFF_POWER);
 		}
-		
 	}
 
 	void KickoffFriendlyStrategy::run_assignment() {

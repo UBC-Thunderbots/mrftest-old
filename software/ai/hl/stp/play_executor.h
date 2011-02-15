@@ -14,15 +14,15 @@ namespace AI {
 			 */
 			class PlayExecutor {
 				public:
-					PlayExecutor(AI::HL::W::World& w);
-	
+					PlayExecutor(AI::HL::W::World &w);
+
 					/**
 					 * Runs every time step.
 					 */
 					void tick();
 
 				protected:
-					AI::HL::W::World& world;
+					AI::HL::W::World &world;
 
 					/**
 					 * The play in use currently.

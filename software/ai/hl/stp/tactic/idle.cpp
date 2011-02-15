@@ -10,11 +10,11 @@ namespace {
 			}
 
 		private:
-			Player::Ptr select(const std::set<Player::Ptr>& players) const;
+			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
 	};
 
-	Player::Ptr Idle::select(const std::set<Player::Ptr>& players) const {
+	Player::Ptr Idle::select(const std::set<Player::Ptr> &players) const {
 		return *players.begin();
 	}
 

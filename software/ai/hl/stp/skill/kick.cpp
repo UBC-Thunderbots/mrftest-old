@@ -11,16 +11,16 @@ using AI::HL::STP::SSM::SkillStateMachine;
 namespace {
 	class Kick : public Skill {
 		private:
-			void execute(const World& world, Player::Ptr player, const SkillStateMachine*, Param& param, Context& context) const {
+			void execute(const World &world, Player::Ptr player, const SkillStateMachine *, Param &param, Context &context) const {
 				// no ball lol; how did we get to this state.
 				if (!player->has_ball()) {
 					context.execute_after(go_to_ball());
 					return;
 				}
-				
-				// TODO: Might have to go after the ball regardless of has_ball check since camera may see ball inside player >< 
+
+				// TODO: Might have to go after the ball regardless of has_ball check since camera may see ball inside player ><
 				// player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
-								
+
 				// stay at the same place, be oriented towards the ball so you can shoot (duh)
 				player->move(player->position(), (world.ball().position() - player->position()).orientation(), param.move_flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
 
@@ -36,7 +36,7 @@ namespace {
 	Kick kick_instance;
 }
 
-const Skill* AI::HL::STP::Skill::kick() {
+const Skill *AI::HL::STP::Skill::kick() {
 	return &kick_instance;
 }
 

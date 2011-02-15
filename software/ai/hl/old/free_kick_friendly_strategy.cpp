@@ -101,7 +101,7 @@ namespace {
 		offender.tick();
 
 		// TODO something more sensible
-		
+
 		// look for someone to pass to (offenders only), if nobody is open then just shoot it into the open
 		if (kicker.is()) {
 			Player::Ptr passee = AI::HL::Util::choose_best_pass(world, offenders);

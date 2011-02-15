@@ -78,7 +78,7 @@ namespace AI {
 						 *
 						 * \return a player to be used by this tactic
 						 */
-						virtual AI::HL::W::Player::Ptr select(const std::set<AI::HL::W::Player::Ptr>& players) const = 0;
+						virtual AI::HL::W::Player::Ptr select(const std::set<AI::HL::W::Player::Ptr> &players) const = 0;
 
 						/**
 						 * This function is called every tick,
@@ -98,7 +98,7 @@ namespace AI {
 						/**
 						 * Sets the SSM associated with this tactic.
 						 */
-						void set_ssm(const AI::HL::STP::SSM::SkillStateMachine* s);
+						void set_ssm(const AI::HL::STP::SSM::SkillStateMachine *s);
 
 						/**
 						 * Called when the tactic is first used,
@@ -129,7 +129,7 @@ namespace AI {
 						/**
 						 * The SSM associated.
 						 */
-						const AI::HL::STP::SSM::SkillStateMachine* ssm;
+						const AI::HL::STP::SSM::SkillStateMachine *ssm;
 				};
 			}
 		}

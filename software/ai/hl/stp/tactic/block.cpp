@@ -10,13 +10,14 @@ namespace {
 		public:
 			Block(const World &world, Enemy::Ptr enemy) : Tactic(world), enemy(enemy) {
 			}
+
 		private:
 			Enemy::Ptr enemy;
-			Player::Ptr select(const std::set<Player::Ptr>& players) const;
+			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
 	};
 
-	Player::Ptr Block::select(const std::set<Player::Ptr>& players) const {
+	Player::Ptr Block::select(const std::set<Player::Ptr> &players) const {
 		if (!enemy->evaluate().is()) {
 			return *(players.begin());
 		}

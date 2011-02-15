@@ -15,7 +15,6 @@ using AI::HL::STP::Enemy;
 namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
-
 	/**
 	 * Condition:
 	 * - ball not under any possesion
@@ -33,13 +32,13 @@ namespace {
 			bool applicable() const;
 			bool done() const;
 			bool fail() const;
-			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> (&roles)[4]);
-			const PlayFactory& factory() const;
+			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]);
+			const PlayFactory &factory() const;
 	};
 
 	PlayFactoryImpl<GrabBall> factory_instance("Grab Ball");
 
-	const PlayFactory& GrabBall::factory() const {
+	const PlayFactory &GrabBall::factory() const {
 		return factory_instance;
 	}
 
@@ -50,9 +49,7 @@ namespace {
 	}
 
 	bool GrabBall::applicable() const {
-		return Predicates::playtype(world, PlayType::PLAY)
-		&& Predicates::our_team_size_at_least(world, 3)
-		&& Predicates::none_ball(world);
+		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && Predicates::none_ball(world);
 	}
 
 	bool GrabBall::done() const {
@@ -63,7 +60,7 @@ namespace {
 		return Predicates::their_ball(world);
 	}
 
-	void GrabBall::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr> (&roles)[4]) {
+	void GrabBall::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
 		// GOALIE
 		// defend the goal
 		goalie_role.push_back(lone_goalie(world));

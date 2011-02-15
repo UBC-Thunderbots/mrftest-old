@@ -14,7 +14,7 @@ namespace AI {
 				 *
 				 * If there is no enemy nearby, changes to go_to_ball.
 				 */
-				const Skill* steal_ball();
+				const Skill *steal_ball();
 			}
 		}
 	}

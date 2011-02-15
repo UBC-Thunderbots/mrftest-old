@@ -13,10 +13,11 @@ namespace AI {
 				 *
 				 * Terminates once it reaches the ball's position or if kicker is ready (3 sec)
 				 */
-				const Skill* bump_to_goal();
+				const Skill *bump_to_goal();
 			}
 		}
 	}
 }
 
 #endif
+

@@ -14,7 +14,7 @@ namespace AI {
 				 * Meaning that if the task is completed,
 				 * will return a terminal skill.
 				 */
-				extern const Skill* kick();
+				extern const Skill *kick();
 			}
 		}
 	}

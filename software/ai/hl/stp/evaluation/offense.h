@@ -30,7 +30,7 @@ namespace AI {
 				 *
 				 * \param[in] players the set of players that influence the output.
 				 */
-				Point evaluate_offense(const AI::HL::W::World& world, const std::set<AI::HL::W::Player::Ptr>& players);
+				Point evaluate_offense(const AI::HL::W::World &world, const std::set<AI::HL::W::Player::Ptr> &players);
 			}
 		}
 	}

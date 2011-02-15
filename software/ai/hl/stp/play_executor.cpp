@@ -15,7 +15,7 @@ namespace {
 	const double PLAY_TIMEOUT = 30.0;
 }
 
-PlayExecutor::PlayExecutor(AI::HL::W::World& w) : world(w) {
+PlayExecutor::PlayExecutor(AI::HL::W::World &w) : world(w) {
 	world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &PlayExecutor::on_player_added));
 	world.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &PlayExecutor::on_player_removed));
 
@@ -31,7 +31,6 @@ void PlayExecutor::reset() {
 }
 
 void PlayExecutor::calc_play() {
-
 	// find a valid play
 	std::random_shuffle(plays.begin(), plays.end());
 	for (std::size_t i = 0; i < plays.size(); ++i) {
@@ -49,7 +48,7 @@ void PlayExecutor::calc_play() {
 				curr_play->assign(goalie_role, normal_roles);
 				swap(goalie_role, curr_roles[0]);
 				for (std::size_t j = 1; j < 5; ++j) {
-					swap(normal_roles[j-1], curr_roles[j]);
+					swap(normal_roles[j - 1], curr_roles[j]);
 				}
 			}
 			LOG_INFO(curr_play->factory().name());
@@ -63,7 +62,6 @@ void PlayExecutor::role_assignment() {
 	curr_active.reset();
 
 	for (std::size_t i = 0; i < 5; ++i) {
-
 		if (curr_role_step < curr_roles[i].size()) {
 			curr_tactic[i] = curr_roles[i][curr_role_step];
 		} else {
@@ -146,7 +144,6 @@ void PlayExecutor::execute_tactics() {
 }
 
 void PlayExecutor::tick() {
-
 	// check if curr play wants to continue
 	if (curr_play.is() && (curr_play->done() || curr_play->fail())) {
 		curr_play.reset();

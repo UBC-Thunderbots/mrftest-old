@@ -71,7 +71,7 @@ namespace {
 					strat->tick();
 				}
 			}
-			
+
 			Gtk::Widget *ui_controls() {
 				return &box;
 			}

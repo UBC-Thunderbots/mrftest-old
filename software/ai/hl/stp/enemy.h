@@ -31,12 +31,13 @@ namespace AI {
 					/**
 					 * Order by distance to friendly goal.
 					 */
-					static Enemy::Ptr closest_friendly_goal(AI::HL::W::World& world, unsigned int i);
+					static Enemy::Ptr closest_friendly_goal(AI::HL::W::World &world, unsigned int i);
 
 					/**
 					 * Order by distance to ball.
 					 */
-					static Enemy::Ptr closest_ball(AI::HL::W::World& world, unsigned int i);
+					static Enemy::Ptr closest_ball(AI::HL::W::World &world, unsigned int i);
+
 				protected:
 					Enemy();
 
