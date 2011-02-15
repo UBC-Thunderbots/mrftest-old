@@ -67,7 +67,7 @@ namespace {
 void Player::move_impl(Point dest, double target_ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
 	destination_.first = dest;
 	destination_.second = target_ori;
-	target_velocity_ = Point();
+	target_velocity_ = vel;
 	flags_ = flags;
 	move_type_ = type;
 	move_prio_ = prio;
