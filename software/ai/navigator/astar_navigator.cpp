@@ -31,11 +31,11 @@ namespace {
 			double g;
 			bool closed;
 
-			PathPoint() : closed(false), g(INF), parent() {
+			PathPoint() : g(INF), closed(false) {
 				xy.x = xy.y = 0.0;
 			}
 
-			PathPoint(Point x_y) : xy(x_y), closed(false), g(INF), parent() {
+			PathPoint(Point x_y) : xy(x_y), g(INF), closed(false) {
 			}
 
 			~PathPoint() {

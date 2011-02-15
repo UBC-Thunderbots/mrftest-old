@@ -46,10 +46,10 @@ namespace {
 				Point new_position = path[path.size() - 1].first.first;
 				double new_orientation = path[path.size() - 1].first.second;
 
-				for (int i = path.size() - 1; i >= 0; i--) {
+				for (Player::Path::const_reverse_iterator i = path.rbegin(), iend = path.rend(); i != iend; ++i) {
 					if ((path[0].first.first - player->position()).len() > ACCURACY_TRADEOFF) {
-						new_position = path[i].first.first;
-						new_orientation = path[i].first.second;
+						new_position = i->first.first;
+						new_orientation = i->first.second;
 					}
 				}
 

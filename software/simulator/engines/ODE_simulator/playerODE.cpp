@@ -134,7 +134,7 @@ double PlayerODE::orientation() const {
 	return orientationFromMatrix(dBodyGetRotation(body));
 }
 
-void PlayerODE::dribble(dReal set_point) {
+void PlayerODE::dribble(dReal) {
 	dVector3 vec = { 0.0, -1.0, 0.0 };
 	rotate_vec(vec, dBodyGetRotation(body));
 	// dGeomGetBody(ballGeom)

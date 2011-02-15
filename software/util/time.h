@@ -49,6 +49,21 @@ namespace {
 	}
 
 	/**
+	 * Adds a pair of timespecs.
+	 *
+	 * \param[in] ts1 the first timespec.
+	 *
+	 * \param[in] ts2 the second timespec.
+	 *
+	 * \return \p ts1 + \p ts2.
+	 */
+	timespec timespec_add(const timespec &ts1, const timespec &ts2) {
+		timespec result;
+		timespec_add(ts1, ts2, result);
+		return result;
+	}
+
+	/**
 	 * Subtracts a pair of timespecs.
 	 *
 	 * \param[in] ts1 the first timespec.
@@ -65,6 +80,21 @@ namespace {
 			result.tv_sec = ts1.tv_sec - ts2.tv_sec - 1;
 			result.tv_nsec = ts1.tv_nsec + 1000000000L - ts2.tv_nsec;
 		}
+	}
+
+	/**
+	 * Subtracts a pair of timespecs.
+	 *
+	 * \param[in] ts1 the first timespec.
+	 *
+	 * \param[in] ts2 the second timespec.
+	 *
+	 * \return \p ts1 − \p ts2.
+	 */
+	timespec timespec_sub(const timespec &ts1, const timespec &ts2) {
+		timespec result;
+		timespec_sub(ts1, ts2, result);
+		return result;
 	}
 
 	/**

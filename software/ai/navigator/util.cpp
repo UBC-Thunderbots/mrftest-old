@@ -1,5 +1,6 @@
 #include "ai/navigator/util.h"
 #include "ai/flags.h"
+#include "util/time.h"
 #include <algorithm>
 #include <cmath>
 #include <vector>
@@ -156,7 +157,7 @@ namespace {
 		return std::max(0.0, defense_dist - seg_seg_distance(cur, dst, defense_point1, defense_point2));
 	}
 
-	inline double get_own_half_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
+	inline double get_own_half_trespass(Point, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
 		const Field &f = world.field();
 		Point p(-f.total_length() / 2, -f.total_width() / 2);
 		Rect bounds(p, f.total_length() / 2, f.total_width());
@@ -314,7 +315,6 @@ std::vector<Point> AI::Nav::Util::get_destination_alternatives(Point dst, AI::Na
 	const int POINTS_PER_OBSTACLE = 6;
 	std::vector<Point> ans;
 	unsigned int flags = player->flags();
-	const Field &f = world.field();
 
 	if (flags & FLAG_AVOID_BALL_STOP) {
 		process_obstacle(ans, world, player, dst, dst, distance_keepout::friendly(player), 3 * POINTS_PER_OBSTACLE);
@@ -426,17 +426,10 @@ std::pair<Point, timespec> AI::Nav::Util::get_ramball_location(Point dst, AI::Na
 	return std::make_pair(player->position(), world.monotonic_time());
 }
 
-timespec AI::Nav::Util::get_next_ts(timespec ts_now, Point &p1, Point &p2, Point target_velocity) {
-	double now, velocity, distance, next;
-	timespec ts_next;
-	now = ts_now.tv_sec + ts_now.tv_nsec / 1.0e9;
+timespec AI::Nav::Util::get_next_ts(timespec now, Point &p1, Point &p2, Point target_velocity) {
+	double velocity, distance;
 	velocity = target_velocity.len();
 	distance = (p1 - p2).len();
-	next = now + (velocity * distance);
-	// set sec part
-	ts_next.tv_sec = static_cast<int>(next);
-	// set nanosec part
-	ts_next.tv_nsec = static_cast<int>((next - ts_next.tv_sec) * 1.0e9);
-	return ts_next;
+	return timespec_add(now, double_to_timespec(velocity * distance));
 }
 

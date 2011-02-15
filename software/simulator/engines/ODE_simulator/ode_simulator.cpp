@@ -189,8 +189,6 @@ namespace {
 					}
 				}
 
-				bool hasBall = robot != emptyPlayer;
-
 				dBodyID b1 = dGeomGetBody(o1);
 				dBodyID b2 = dGeomGetBody(o2);
 

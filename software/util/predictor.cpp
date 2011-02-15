@@ -5,16 +5,16 @@
 #include <iostream>
 #include <cmath>
 
-// TODO 1. accompensate for delay in real mode, and not to in simulator mode
-// TODO 2. access to control noise: as if our robot command and relative robot positions
-// TODO 3. accompensate for glitches when "clipping" angles
+#warning TODO 1. accompensate for delay in real mode, and not to in simulator mode
+#warning TODO 2. access to control noise: as if our robot command and relative robot positions
+#warning TODO 3. accompensate for glitches when "clipping" angles
 
 namespace {
 	const int MAX_DEGREE = 3;
 	const int NUM_OLD_POSITIONS = 30;
 }
 
-Predictor::Predictor(bool angle) : filter(kalman(angle)), initialized(false), lock_delta(0.0) {
+Predictor::Predictor(bool angle) : initialized(false), lock_delta(0.0), filter(angle) {
 	// Record current time.
 	timespec_now(last_datum_timestamp);
 	lock_timestamp = last_datum_timestamp;

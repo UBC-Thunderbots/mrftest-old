@@ -110,8 +110,8 @@ void Player::kick_impl(double speed) {
 
 	if (bot->alive) {
 		if (bot->capacitor_charged) {
-			double speed_below, speed_above;
-			unsigned int power_below, power_above;
+			double speed_below = 0.0, speed_above = 0.0;
+			unsigned int power_below = 0.0, power_above = 0.0;
 			if (speed <= SPEEDS[0] + 1e-9) {
 				speed_below = SPEEDS[0];
 				speed_above = SPEEDS[1];

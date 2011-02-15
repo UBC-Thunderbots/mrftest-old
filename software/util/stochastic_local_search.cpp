@@ -1,7 +1,7 @@
 #include "util/stochastic_local_search.h"
 #include <cmath>
+#include <cstddef>
 #include <cstdlib>
-#include <ctime>
 #include <limits>
 
 #warning the header file util/stochastic_local_search.h needs Doxygen comments on its functions.
@@ -40,7 +40,7 @@ void StochasticLocalSearch::hill_climb() {
 	int tries = 100;
 	while (tries > 0) {
 		--tries;
-		int index = rand() % param_cur.size();
+		std::size_t index = rand() % param_cur.size();
 		if (param_min[index] == param_max[index]) {
 			continue;
 		}

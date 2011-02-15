@@ -57,7 +57,6 @@ namespace {
 	}
 
 	void FollowBallNavigator::tick() {
-		const Field &field = world.field();
 		FriendlyTeam &fteam = world.friendly_team();
 
 		Player::Ptr player;

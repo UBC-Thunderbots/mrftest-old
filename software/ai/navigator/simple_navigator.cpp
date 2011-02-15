@@ -57,7 +57,6 @@ namespace {
 	}
 
 	void SimpleNavigator::tick() {
-		const Field &field = world.field();
 		FriendlyTeam &fteam = world.friendly_team();
 		timespec ts;
 

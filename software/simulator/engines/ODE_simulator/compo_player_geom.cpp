@@ -72,8 +72,6 @@ namespace {
 }
 
 Compo_player_geom::Compo_player_geom(dWorldID eworld, dSpaceID dspace) : Player_geom(eworld, dspace) {
-	double dribble_radius = 0.005; // half a cm
-	double ballradius = 0.042672 / 2;
 	double x_pos = 0.0;
 	double y_pos = 0.0;
 	double y_len = 0.1;
@@ -303,7 +301,7 @@ void Compo_player_geom::handleRobotRobotCollision(dGeomID o1, dGeomID o2, dJoint
 	}
 }
 
-void Compo_player_geom::dribble(double set_point) {
+void Compo_player_geom::dribble(double) {
 	// double voltage = set_point * MAX_VOLTAGE;
 	// double rpm = RPM_PER_VOLT * voltage;
 	// double rads_per_sec = (2*3.14/60)*rpm;

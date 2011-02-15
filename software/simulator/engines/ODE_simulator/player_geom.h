@@ -20,7 +20,7 @@ class Player_geom : public NonCopyable {
 		}
 		virtual bool has_ball() const = 0;
 
-		virtual void dribble(double set_point) {
+		virtual void dribble(double) {
 		}
 
 		virtual bool has_geom(dGeomID geom) {

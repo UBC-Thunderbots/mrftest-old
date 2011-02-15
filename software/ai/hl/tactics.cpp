@@ -50,7 +50,7 @@ void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int
 		return;
 	}
 
-	const double ori_diff = fabs(player->orientation() - ori_target);
+	// const double ori_diff = std::fabs(player->orientation() - ori_target);
 
 	// aim
 	player->move(player->position(), ori_target, flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
