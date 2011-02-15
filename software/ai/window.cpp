@@ -141,78 +141,62 @@ namespace {
 			}
 	};
 
-	class CoachControls : public Gtk::Frame {
+	class HighLevelControls : public Gtk::Frame {
 		public:
-			CoachControls(AI::AIPackage &ai) : Gtk::Frame("Coach"), ai(ai), table(3, 2), custom_controls(0) {
-				table.attach(*Gtk::manage(new Gtk::Label("Coach:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				coach_chooser.append_text("<Choose Coach>");
-				typedef AI::Coach::CoachFactory::Map Map;
-				const Map &m = AI::Coach::CoachFactory::all();
+			HighLevelControls(AI::AIPackage &ai) : Gtk::Frame("High Level"), ai(ai), table(2, 2), custom_controls(0) {
+				table.attach(*Gtk::manage(new Gtk::Label("High Level:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				high_level_chooser.append_text("<Choose High Level>");
+				typedef AI::HL::HighLevelFactory::Map Map;
+				const Map &m = AI::HL::HighLevelFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
-					coach_chooser.append_text(i->second->name());
+					high_level_chooser.append_text(i->second->name());
 				}
-				table.attach(coach_chooser, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				coach_chooser.signal_changed().connect(sigc::mem_fun(this, &CoachControls::on_coach_chooser_changed));
-				ai.coach.signal_changing().connect(sigc::mem_fun(this, &CoachControls::on_coach_changing));
-				ai.coach.signal_changed().connect(sigc::mem_fun(this, &CoachControls::on_coach_changed));
-
-				table.attach(*Gtk::manage(new Gtk::Label("Strategy:")), 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				strategy_entry.set_editable(false);
-				table.attach(strategy_entry, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				ai.backend.strategy().signal_changed().connect(sigc::mem_fun(this, &CoachControls::on_strategy_changed));
+				table.attach(high_level_chooser, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				high_level_chooser.signal_changed().connect(sigc::mem_fun(this, &HighLevelControls::on_high_level_chooser_changed));
+				ai.high_level.signal_changing().connect(sigc::mem_fun(this, &HighLevelControls::on_high_level_changing));
+				ai.high_level.signal_changed().connect(sigc::mem_fun(this, &HighLevelControls::on_high_level_changed));
 
 				add(table);
 
-				on_coach_changed();
-				on_strategy_changed();
+				on_high_level_changed();
 			}
 
 		private:
 			AI::AIPackage &ai;
 			Gtk::Table table;
-			Gtk::ComboBoxText coach_chooser;
-			Gtk::Entry strategy_entry;
+			Gtk::ComboBoxText high_level_chooser;
 			Gtk::Widget *custom_controls;
 
-			void on_coach_chooser_changed() {
-				const Glib::ustring &selected = coach_chooser.get_active_text();
-				typedef AI::Coach::CoachFactory::Map Map;
-				const Map &m = AI::Coach::CoachFactory::all();
+			void on_high_level_chooser_changed() {
+				const Glib::ustring &selected = high_level_chooser.get_active_text();
+				typedef AI::HL::HighLevelFactory::Map Map;
+				const Map &m = AI::HL::HighLevelFactory::all();
 				const Map::const_iterator &i = m.find(selected.collate_key());
 				if (i != m.end()) {
-					ai.coach = i->second->create_coach(ai.backend);
+					ai.high_level = i->second->create_high_level(ai.backend);
 				} else {
-					ai.coach = AI::Coach::Coach::Ptr();
+					ai.high_level = AI::HL::HighLevel::Ptr();
 				}
 			}
 
-			void on_coach_changing() {
+			void on_high_level_changing() {
 				if (custom_controls) {
 					table.remove(*custom_controls);
 					custom_controls = 0;
 				}
 			}
 
-			void on_coach_changed() {
-				AI::Coach::Coach::Ptr coach = ai.coach;
-				if (coach.is()) {
-					coach_chooser.set_active_text(coach->factory().name());
+			void on_high_level_changed() {
+				AI::HL::HighLevel::Ptr high_level = ai.high_level;
+				if (high_level.is()) {
+					high_level_chooser.set_active_text(high_level->factory().name());
 				} else {
-					coach_chooser.set_active_text("<Choose Coach>");
+					high_level_chooser.set_active_text("<Choose High Level>");
 				}
-				custom_controls = coach.is() ? coach->ui_controls() : 0;
+				custom_controls = high_level.is() ? high_level->ui_controls() : 0;
 				if (custom_controls) {
-					table.attach(*custom_controls, 0, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+					table.attach(*custom_controls, 0, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 					custom_controls->show_all();
-				}
-			}
-
-			void on_strategy_changed() {
-				AI::HL::Strategy::Ptr strategy = ai.backend.strategy();
-				if (strategy.is()) {
-					strategy_entry.set_text(strategy->factory().name());
-				} else {
-					strategy_entry.set_text("<None>");
 				}
 			}
 	};
@@ -370,7 +354,7 @@ Window::Window(AIPackage &ai) {
 	Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox);
 	vbox->pack_start(*Gtk::manage(new BasicControls(ai)), Gtk::PACK_SHRINK);
 	vbox->pack_start(*Gtk::manage(new BallFilterControls(ai)), Gtk::PACK_SHRINK);
-	vbox->pack_start(*Gtk::manage(new CoachControls(ai)), Gtk::PACK_EXPAND_WIDGET);
+	vbox->pack_start(*Gtk::manage(new HighLevelControls(ai)), Gtk::PACK_EXPAND_WIDGET);
 	vbox->pack_start(*Gtk::manage(new NavigatorControls(ai)), Gtk::PACK_EXPAND_WIDGET);
 	vbox->pack_start(*Gtk::manage(new RobotControllerControls(ai)), Gtk::PACK_EXPAND_WIDGET);
 	vbox->pack_start(*Gtk::manage(new GUIAnnunciator), Gtk::PACK_EXPAND_WIDGET);

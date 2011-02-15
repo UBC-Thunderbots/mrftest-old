@@ -2975,6 +2975,11 @@ namespace {
 	const SequencePacketParser packet_double_param_parser(Log::T_DOUBLE_PARAM, "Parameter Changed", packet_double_param_elements, G_N_ELEMENTS(packet_double_param_elements));
 
 	/**
+	 * A parser for a Log::T_HIGH_LEVEL.
+	 */
+	const SequencePacketParser packet_high_level_parser(Log::T_HIGH_LEVEL, "High Level Changed", packet_bfcsrc_elements, G_N_ELEMENTS(packet_bfcsrc_elements));
+
+	/**
 	 * The set of all packet parsers.
 	 */
 	const PacketParser *const packet_parsers[] = {
@@ -3001,6 +3006,7 @@ namespace {
 		&packet_ai_tick_parser,
 		&packet_backend_parser,
 		&packet_double_param_parser,
+		&packet_high_level_parser,
 	};
 
 	class PacketInfo {

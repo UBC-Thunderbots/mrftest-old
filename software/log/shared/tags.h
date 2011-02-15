@@ -111,6 +111,8 @@ namespace Log {
 		 *
 		 * As payload:
 		 * \li n bytes string name of coach implementation
+		 *
+		 * Deprecated.
 		 */
 		T_COACH,
 
@@ -119,6 +121,8 @@ namespace Log {
 		 *
 		 * As payload:
 		 * \li n bytes string name of strategy implementation
+		 *
+		 * Deprecated.
 		 */
 		T_STRATEGY,
 
@@ -244,6 +248,14 @@ namespace Log {
 		 * \li n bytes string parameter name
 		 */
 		T_DOUBLE_PARAM,
+
+		/**
+		 * Tags a change of high level.
+		 *
+		 * Payload:
+		 * \li n bytes string name of high level implementation.
+		 */
+		T_HIGH_LEVEL,
 	};
 
 	/**

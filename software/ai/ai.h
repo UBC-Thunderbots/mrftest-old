@@ -2,7 +2,7 @@
 #define AI_AI_H
 
 #include "ai/backend/backend.h"
-#include "ai/coach/coach.h"
+#include "ai/hl/hl.h"
 #include "ai/navigator/navigator.h"
 #include "ai/robot_controller/robot_controller.h"
 #include "util/noncopyable.h"
@@ -20,9 +20,9 @@ namespace AI {
 			AI::BE::Backend &backend;
 
 			/**
-			 * The Coach managing the AI.
+			 * The HighLevel in use.
 			 */
-			Property<AI::Coach::Coach::Ptr> coach;
+			Property<AI::HL::HighLevel::Ptr> high_level;
 
 			/**
 			 * The Navigator navigating the robots.

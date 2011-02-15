@@ -148,10 +148,6 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), ended(f
 	ai.backend.field().signal_changed.connect(sigc::mem_fun(this, &AI::Logger::on_field_changed));
 	ai.backend.ball_filter().signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_ball_filter_changed));
 	on_ball_filter_changed();
-	ai.coach.signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_coach_changed));
-	on_coach_changed();
-	ai.backend.strategy().signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_strategy_changed));
-	on_strategy_changed();
 	ai.robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_robot_controller_factory_changed));
 	on_robot_controller_factory_changed();
 	ai.backend.playtype().signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_playtype_changed));
@@ -159,6 +155,8 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), ended(f
 	ai.backend.signal_score_changed().connect(sigc::mem_fun(this, &AI::Logger::on_score_changed));
 	on_score_changed();
 	ai.backend.signal_post_tick().connect(sigc::mem_fun(this, &AI::Logger::on_tick));
+	ai.high_level.signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_high_level_changed));
+	on_high_level_changed();
 
 	instance = this;
 }
@@ -321,26 +319,6 @@ void AI::Logger::on_ball_filter_changed() {
 	}
 }
 
-void AI::Logger::on_coach_changed() {
-	AI::Coach::Coach::Ptr coach = ai.coach;
-	if (coach.is()) {
-		const std::string &utf8name = coach->factory().name();
-		write_packet(fd, Log::T_COACH, utf8name.data(), utf8name.size());
-	} else {
-		write_packet(fd, Log::T_COACH, 0, 0);
-	}
-}
-
-void AI::Logger::on_strategy_changed() {
-	AI::HL::Strategy::Ptr strategy = ai.backend.strategy();
-	if (strategy.is()) {
-		const std::string &utf8name = strategy->factory().name();
-		write_packet(fd, Log::T_STRATEGY, utf8name.data(), utf8name.size());
-	} else {
-		write_packet(fd, Log::T_STRATEGY, 0, 0);
-	}
-}
-
 void AI::Logger::on_robot_controller_factory_changed() {
 	if (ai.robot_controller_factory) {
 		const std::string &utf8name = ai.robot_controller_factory->name();
@@ -439,6 +417,16 @@ void AI::Logger::on_tick() {
 		encode_u64(&payload[12], now.tv_sec);
 		encode_u32(&payload[20], static_cast<uint32_t>(now.tv_nsec));
 		write_packet(fd, Log::T_AI_TICK, payload, sizeof(payload));
+	}
+}
+
+void AI::Logger::on_high_level_changed() {
+	AI::HL::HighLevel::Ptr high_level = ai.high_level;
+	if (high_level.is()) {
+		const std::string &utf8name = high_level->factory().name();
+		write_packet(fd, Log::T_HIGH_LEVEL, utf8name.data(), utf8name.size());
+	} else {
+		write_packet(fd, Log::T_HIGH_LEVEL, 0, 0);
 	}
 }
 

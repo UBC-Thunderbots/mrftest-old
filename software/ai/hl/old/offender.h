@@ -1,5 +1,5 @@
-#ifndef AI_HL_ROLE_OFFENDER_H
-#define AI_HL_ROLE_OFFENDER_H
+#ifndef AI_HL_OLD_ROLE_OFFENDER_H
+#define AI_HL_OLD_ROLE_OFFENDER_H
 
 #include "ai/hl/world.h"
 #include <vector>

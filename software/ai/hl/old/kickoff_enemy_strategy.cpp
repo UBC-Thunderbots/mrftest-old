@@ -1,7 +1,7 @@
 #include "ai/flags.h"
-#include "ai/hl/defender.h"
-#include "ai/hl/strategy.h"
-#include "ai/hl/tactics.h"
+#include "ai/hl/old/defender.h"
+#include "ai/hl/old/strategy.h"
+#include "ai/hl/old/tactics.h"
 #include "ai/hl/util.h"
 #include "uicomponents/param.h"
 #include <vector>

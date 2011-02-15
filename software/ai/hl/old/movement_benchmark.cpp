@@ -1,4 +1,4 @@
-#include "ai/hl/strategy.h"
+#include "ai/hl/old/strategy.h"
 #include "geom/angle.h"
 #include "geom/util.h"
 #include "uicomponents/param.h"

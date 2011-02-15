@@ -1,5 +1,5 @@
-#ifndef AI_HL_TACTICS_H
-#define AI_HL_TACTICS_H
+#ifndef AI_HL_OLD_TACTICS_H
+#define AI_HL_OLD_TACTICS_H
 
 #include "ai/hl/world.h"
 

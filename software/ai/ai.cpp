@@ -23,7 +23,7 @@ namespace {
 	};
 }
 
-AIPackage::AIPackage(Backend &backend) : backend(backend), coach(AI::Coach::Coach::Ptr(0)), navigator(AI::Nav::Navigator::Ptr(0)), robot_controller_factory(0) {
+AIPackage::AIPackage(Backend &backend) : backend(backend), high_level(AI::HL::HighLevel::Ptr()), navigator(AI::Nav::Navigator::Ptr()), robot_controller_factory(0) {
 	backend.signal_tick().connect(sigc::mem_fun(this, &AIPackage::tick));
 	backend.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &AIPackage::player_added));
 	robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &AIPackage::robot_controller_factory_changed));
@@ -36,42 +36,16 @@ void AIPackage::tick() {
 	// Clear all cached data.
 	CacheableBase::flush_all();
 
-	// If we have a Coach installed, tick it.
-	AI::Coach::Coach::Ptr c = coach;
-	if (c.is()) {
-		c->tick();
-		// If we have a Strategy installed, tick it.
-		AI::HL::Strategy::Ptr strategy = backend.strategy();
-		if (strategy.is()) {
-			strategy->tick();
-			// A strategy ought not to resign during a playtype it declares itself as handling.
-			if (strategy->has_resigned()) {
-				bool found = false;
-				for (std::size_t i = 0; i < strategy->factory().handled_play_types_size && !found; ++i) {
-					if (strategy->factory().handled_play_types[i] == backend.playtype()) {
-						found = true;
-					}
-				}
-				if (found) {
-					LOG_ERROR(Glib::ustring::compose("Strategy %1 resigned during a play type it claims to be launchable from!", strategy->factory().name()));
-				}
-			}
-			// If the strategy resigned, try to find another one and tick it instead.
-			if (strategy->has_resigned()) {
-				c->tick();
-				strategy = backend.strategy();
-				if (strategy.is()) {
-					strategy->tick();
-				}
-			}
-			// If we have a Navigator installed, tick it.
-			AI::Nav::Navigator::Ptr nav = navigator;
-			if (nav.is()) {
-				nav->tick();
-			}
+	// If we have a HighLevel installed, tick it.
+	AI::HL::HighLevel::Ptr hl = high_level;
+	if (hl.is()) {
+		hl->tick();
+
+		// If we have a Navigator installed, tick it.
+		AI::Nav::Navigator::Ptr nav = navigator;
+		if (nav.is()) {
+			nav->tick();
 		}
-	} else {
-		backend.strategy() = AI::HL::Strategy::Ptr();
 	}
 
 	// Tick all the RobotControllers.

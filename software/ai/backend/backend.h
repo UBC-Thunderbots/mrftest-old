@@ -2,7 +2,7 @@
 #define AI_BACKEND_BACKEND_H
 
 #include "ai/ball_filter/ball_filter.h"
-#include "ai/coach/world.h"
+#include "ai/hl/hl.h"
 #include "ai/hl/world.h"
 #include "ai/navigator/world.h"
 #include "ai/robot_controller/world.h"
@@ -107,7 +107,7 @@ namespace AI {
 		/**
 		 * The friendly team.
 		 */
-		class FriendlyTeam : public AI::BF::W::FriendlyTeam, public AI::Coach::W::FriendlyTeam, public AI::HL::W::FriendlyTeam, public AI::Nav::W::FriendlyTeam {
+		class FriendlyTeam : public AI::BF::W::FriendlyTeam, public AI::HL::W::FriendlyTeam, public AI::Nav::W::FriendlyTeam {
 			public:
 				/**
 				 * Returns the size of the team.
@@ -192,7 +192,7 @@ namespace AI {
 		/**
 		 * The enemy team.
 		 */
-		class EnemyTeam : public AI::BF::W::EnemyTeam, public AI::Coach::W::EnemyTeam, public AI::HL::W::EnemyTeam, public AI::Nav::W::EnemyTeam {
+		class EnemyTeam : public AI::BF::W::EnemyTeam, public AI::HL::W::EnemyTeam, public AI::Nav::W::EnemyTeam {
 			public:
 				/**
 				 * Returns the size of the team.
@@ -263,7 +263,7 @@ namespace AI {
 		 * A provider that can expose the contents of the world to the AI.
 		 * A backend must get the state of the world, expose it to the AI, accept commands from the AI, and deliver those commands into the world.
 		 */
-		class Backend : public AI::BF::W::World, public AI::Coach::W::World, public AI::HL::W::World, public AI::Nav::W::World, public AI::RC::W::World, public Visualizable::World, public NonCopyable {
+		class Backend : public AI::BF::W::World, public AI::HL::W::World, public AI::Nav::W::World, public AI::RC::W::World, public Visualizable::World, public NonCopyable {
 			public:
 				/**
 				 * The possible values indicating which end of the field the team is defending.
@@ -401,31 +401,6 @@ namespace AI {
 				}
 
 				/**
-				 * Returns or allows setting the current strategy.
-				 *
-				 * \return the current strategy.
-				 */
-				Property<AI::HL::Strategy::Ptr> &strategy() {
-					return strategy_;
-				}
-
-				/**
-				 * Returns the current strategy.
-				 *
-				 * \return the current strategy.
-				 */
-				const Property<AI::HL::Strategy::Ptr> &strategy() const {
-					return strategy_;
-				}
-
-				/**
-				 * Sets the current strategy from a factory.
-				 *
-				 * \param[in] s the new StrategyFactory to use.
-				 */
-				void strategy(AI::HL::StrategyFactory *s);
-
-				/**
 				 * Returns a signal that fires once per AI tick.
 				 *
 				 * \return the timer signal.
@@ -495,7 +470,6 @@ namespace AI {
 				Property<Colour> friendly_colour_;
 				Property<AI::Common::PlayType::PlayType> playtype_, playtype_override_;
 				Property<AI::BF::BallFilter *> ball_filter_;
-				Property<AI::HL::Strategy::Ptr> strategy_;
 				mutable sigc::signal<void> signal_tick_;
 				mutable sigc::signal<void> signal_post_tick_;
 				mutable sigc::signal<void, const void *, std::size_t> signal_vision_;

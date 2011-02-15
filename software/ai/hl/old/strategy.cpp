@@ -1,4 +1,4 @@
-#include "ai/hl/strategy.h"
+#include "ai/hl/old/strategy.h"
 #include <stdexcept>
 
 using AI::HL::Strategy;

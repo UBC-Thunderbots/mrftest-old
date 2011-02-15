@@ -19,14 +19,14 @@
 
 namespace {
 	struct WithBackendClosure {
-		const Glib::ustring &coach_name;
+		const Glib::ustring &high_level_name;
 		const Glib::ustring &robot_controller_name;
 		const Glib::ustring &ball_filter_name;
 		bool minimize;
 		AI::BE::Backend::FieldEnd defending_end;
 		AI::BE::Backend::Colour friendly_colour;
 
-		WithBackendClosure(const Glib::ustring &coach_name, const Glib::ustring &robot_controller_name, const Glib::ustring &ball_filter_name, bool minimize, AI::BE::Backend::FieldEnd defending_end, AI::BE::Backend::Colour friendly_colour) : coach_name(coach_name), robot_controller_name(robot_controller_name), ball_filter_name(ball_filter_name), minimize(minimize), defending_end(defending_end), friendly_colour(friendly_colour) {
+		WithBackendClosure(const Glib::ustring &high_level_name, const Glib::ustring &robot_controller_name, const Glib::ustring &ball_filter_name, bool minimize, AI::BE::Backend::FieldEnd defending_end, AI::BE::Backend::Colour friendly_colour) : high_level_name(high_level_name), robot_controller_name(robot_controller_name), ball_filter_name(ball_filter_name), minimize(minimize), defending_end(defending_end), friendly_colour(friendly_colour) {
 		}
 	};
 
@@ -46,14 +46,14 @@ namespace {
 
 		AI::AIPackage ai(backend);
 
-		if (!wbc.coach_name.empty()) {
-			typedef AI::Coach::CoachFactory::Map Map;
-			const Map &m = AI::Coach::CoachFactory::all();
-			const Map::const_iterator &i = m.find(wbc.coach_name.collate_key());
+		if (!wbc.high_level_name.empty()) {
+			typedef AI::HL::HighLevelFactory::Map Map;
+			const Map &m = AI::HL::HighLevelFactory::all();
+			const Map::const_iterator &i = m.find(wbc.high_level_name.collate_key());
 			if (i == m.end()) {
-				throw std::runtime_error(Glib::ustring::compose("There is no coach '%1'.", wbc.coach_name));
+				throw std::runtime_error(Glib::ustring::compose("There is no high level '%1'.", wbc.high_level_name));
 			}
-			ai.coach = i->second->create_coach(backend);
+			ai.high_level = i->second->create_high_level(backend);
 		}
 
 		if (!wbc.robot_controller_name.empty()) {
@@ -150,12 +150,12 @@ namespace {
 		Glib::ustring backend_name;
 		option_group.add_entry(backend_entry, backend_name);
 
-		Glib::OptionEntry coach_entry;
-		coach_entry.set_long_name("coach");
-		coach_entry.set_description("Selects which coach should be selected at startup");
-		coach_entry.set_arg_description("COACH");
-		Glib::ustring coach_name;
-		option_group.add_entry(coach_entry, coach_name);
+		Glib::OptionEntry high_level_entry;
+		high_level_entry.set_long_name("hl");
+		high_level_entry.set_description("Selects which high level should be selected at startup");
+		high_level_entry.set_arg_description("HIGHLEVEL");
+		Glib::ustring high_level_name;
+		option_group.add_entry(high_level_entry, high_level_name);
 
 		Glib::OptionEntry robot_controller_entry;
 		robot_controller_entry.set_long_name("controller");
@@ -193,9 +193,9 @@ namespace {
 				std::cerr << '\n';
 			}
 			{
-				std::cerr << "The following coaches are available:\n";
-				typedef AI::Coach::CoachFactory::Map Map;
-				const Map &m = AI::Coach::CoachFactory::all();
+				std::cerr << "The following high levels are available:\n";
+				typedef AI::HL::HighLevelFactory::Map Map;
+				const Map &m = AI::HL::HighLevelFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 					std::cerr << i->second->name() << '\n';
 				}
@@ -237,7 +237,7 @@ namespace {
 		Annunciator::activate_siren();
 
 		// Create the backend.
-		WithBackendClosure wbc(coach_name, robot_controller_name, ball_filter_name, minimize, east ? AI::BE::Backend::EAST : AI::BE::Backend::WEST, blue ? AI::BE::Backend::BLUE : AI::BE::Backend::YELLOW);
+		WithBackendClosure wbc(high_level_name, robot_controller_name, ball_filter_name, minimize, east ? AI::BE::Backend::EAST : AI::BE::Backend::WEST, blue ? AI::BE::Backend::BLUE : AI::BE::Backend::YELLOW);
 		if (!backend_name.size()) {
 			backend_name = choose_backend();
 			if (!backend_name.size()) {

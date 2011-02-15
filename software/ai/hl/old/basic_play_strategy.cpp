@@ -1,6 +1,6 @@
-#include "ai/hl/defender.h"
-#include "ai/hl/offender.h"
-#include "ai/hl/strategy.h"
+#include "ai/hl/old/defender.h"
+#include "ai/hl/old/offender.h"
+#include "ai/hl/old/strategy.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
 #include <glibmm.h>

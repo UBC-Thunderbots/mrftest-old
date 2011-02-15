@@ -81,14 +81,13 @@ namespace AI {
 			void on_refbox_packet(const void *refbox_packet, std::size_t refbox_length);
 			void on_field_changed();
 			void on_ball_filter_changed();
-			void on_coach_changed();
-			void on_strategy_changed();
 			void on_robot_controller_factory_changed();
 			void on_playtype_changed();
 			void on_score_changed();
 			void on_tick();
+			void on_high_level_changed();
 
-			friend void::ai_logger_signal_handler_thunk(int sig);
+			friend void ::ai_logger_signal_handler_thunk(int sig);
 	};
 }
 
