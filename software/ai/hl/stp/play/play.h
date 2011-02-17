@@ -5,7 +5,6 @@
 #include "ai/hl/stp/tactic/tactic.h"
 #include "util/byref.h"
 #include "util/registerable.h"
-#include <sigc++/sigc++.h>
 
 namespace AI {
 	namespace HL {
@@ -24,7 +23,7 @@ namespace AI {
 				 *
 				 * Please see the instructions in the assign() function.
 				 */
-				class Play : public ByRef, public sigc::trackable {
+				class Play : public ByRef {
 					public:
 						typedef RefPtr<Play> Ptr;
 
@@ -80,7 +79,6 @@ namespace AI {
 
 						/**
 						 * The constructor.
-						 * You should initialize variables in the initialize() function.
 						 */
 						Play(const AI::HL::W::World &world);
 
