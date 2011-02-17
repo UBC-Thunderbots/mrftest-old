@@ -10,8 +10,8 @@ namespace AI {
 		namespace STP {
 			namespace Evaluation {
 				/**
-				 * Computes ideal locations to place a goalie + 1 defender
-				 * N is the team size.
+				 * Computes ideal locations to place goalie and defenders.
+				 * N is the number of goalie + defenders.
 				 */
 				template<int N> const std::array<Point, N> evaluate_defense(const AI::HL::W::World& world);
 			}
