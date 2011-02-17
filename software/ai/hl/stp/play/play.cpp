@@ -5,7 +5,7 @@ using AI::HL::STP::Play::Play;
 using AI::HL::STP::Play::PlayFactory;
 using namespace AI::HL::W;
 
-Play::Play(World &world) : world(world) {
+Play::Play(const World &world) : world(world) {
 }
 
 Play::~Play() {

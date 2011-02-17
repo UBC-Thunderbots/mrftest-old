@@ -23,7 +23,7 @@ namespace {
 	 */
 	class GrabBall : public Play {
 		public:
-			GrabBall(World &world);
+			GrabBall(const World &world);
 			~GrabBall();
 
 		private:
@@ -40,7 +40,7 @@ namespace {
 		return factory_instance;
 	}
 
-	GrabBall::GrabBall(World &world) : Play(world) {
+	GrabBall::GrabBall(const World &world) : Play(world) {
 	}
 
 	GrabBall::~GrabBall() {

@@ -76,13 +76,13 @@ namespace AI {
 						/**
 						 * The World in which the Play lives.
 						 */
-						AI::HL::W::World &world;
+						const AI::HL::W::World &world;
 
 						/**
 						 * The constructor.
 						 * You should initialize variables in the initialize() function.
 						 */
-						Play(AI::HL::W::World &world);
+						Play(const AI::HL::W::World &world);
 
 						/**
 						 * Destructor
@@ -99,7 +99,7 @@ namespace AI {
 						/**
 						 * Constructs a new instance of the Play corresponding to this PlayManager.
 						 */
-						virtual Play::Ptr create(AI::HL::W::World &world) const = 0;
+						virtual Play::Ptr create(const AI::HL::W::World &world) const = 0;
 
 						/**
 						 * Constructs a new PlayFactory.
@@ -119,7 +119,7 @@ namespace AI {
 					public:
 						PlayFactoryImpl(const char *name) : PlayFactory(name) {
 						}
-						Play::Ptr create(AI::HL::W::World &world) const {
+						Play::Ptr create(const AI::HL::W::World &world) const {
 							const Play::Ptr p(new P(world));
 							return p;
 						}

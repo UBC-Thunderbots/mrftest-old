@@ -25,7 +25,7 @@ namespace {
 	 */
 	class PassOffensive : public Play {
 		public:
-			PassOffensive(AI::HL::W::World &world);
+			PassOffensive(const AI::HL::W::World &world);
 			~PassOffensive();
 
 		private:
@@ -42,7 +42,7 @@ namespace {
 		return factory_instance;
 	}
 
-	PassOffensive::PassOffensive(World &world) : Play(world) {
+	PassOffensive::PassOffensive(const World &world) : Play(world) {
 	}
 
 	PassOffensive::~PassOffensive() {
@@ -63,7 +63,7 @@ namespace {
 	void PassOffensive::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
 		// std::Player::Ptr goalie = world.friendly_team().get(0);
 
-		FriendlyTeam &friendly = world.friendly_team();
+		const FriendlyTeam &friendly = world.friendly_team();
 
 		// GOALIE
 		goalie_role.push_back(defend_duo_goalie(world));

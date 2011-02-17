@@ -17,7 +17,7 @@ namespace {
 	 */
 	class FriendlyKickoff : public Play {
 		public:
-			FriendlyKickoff(World &world);
+			FriendlyKickoff(const World &world);
 			~FriendlyKickoff();
 
 		private:
@@ -34,7 +34,7 @@ namespace {
 		return factory_instance;
 	}
 
-	FriendlyKickoff::FriendlyKickoff(World &world) : Play(world) {
+	FriendlyKickoff::FriendlyKickoff(const World &world) : Play(world) {
 	}
 
 	FriendlyKickoff::~FriendlyKickoff() {

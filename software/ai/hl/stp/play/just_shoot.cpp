@@ -23,7 +23,7 @@ namespace {
 	 */
 	class JustShoot : public Play {
 		public:
-			JustShoot(AI::HL::W::World &world);
+			JustShoot(const AI::HL::W::World &world);
 			~JustShoot();
 
 		private:
@@ -40,7 +40,7 @@ namespace {
 		return factory_instance;
 	}
 
-	JustShoot::JustShoot(World &world) : Play(world) {
+	JustShoot::JustShoot(const World &world) : Play(world) {
 	}
 
 	JustShoot::~JustShoot() {

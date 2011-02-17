@@ -25,7 +25,7 @@ namespace {
 	 */
 	class PrepPenaltyFriendly : public Play {
 		public:
-			PrepPenaltyFriendly(AI::HL::W::World &world);
+			PrepPenaltyFriendly(const World &world);
 			~PrepPenaltyFriendly();
 
 		private:
@@ -42,7 +42,7 @@ namespace {
 		return factory_instance;
 	}
 
-	PrepPenaltyFriendly::PrepPenaltyFriendly(World &world) : Play(world) {
+	PrepPenaltyFriendly::PrepPenaltyFriendly(const World &world) : Play(world) {
 	}
 
 	PrepPenaltyFriendly::~PrepPenaltyFriendly() {

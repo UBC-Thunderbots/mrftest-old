@@ -11,7 +11,7 @@ namespace AI {
 				/**
 				 * Move to a dynamic location.
 				 */
-				Tactic::Ptr move(AI::HL::W::World &world, const Coordinate dest);
+				Tactic::Ptr move(const AI::HL::W::World &world, const Coordinate dest);
 			}
 		}
 	}

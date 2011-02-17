@@ -8,7 +8,7 @@ using AI::HL::STP::Coordinate;
 namespace {
 	class PasserReady : public Tactic {
 		public:
-			PasserReady(World &world, Coordinate p, Coordinate t) : Tactic(world), dest(p), target(t) {
+			PasserReady(const World &world, Coordinate p, Coordinate t) : Tactic(world), dest(p), target(t) {
 			}
 
 		private:
@@ -33,7 +33,7 @@ namespace {
 	class PasseeReady : public Tactic {
 		public:
 			// ACTIVE tactic!
-			PasseeReady(World &world, Coordinate p) : Tactic(world, true), dest(p) {
+			PasseeReady(const World &world, Coordinate p) : Tactic(world, true), dest(p) {
 			}
 
 		private:
@@ -50,12 +50,12 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::passer_ready(World &world, Coordinate pos, Coordinate target) {
+Tactic::Ptr AI::HL::STP::Tactic::passer_ready(const World &world, Coordinate pos, Coordinate target) {
 	const Tactic::Ptr p(new PasserReady(world, pos, target));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::passee_ready(World &world, Coordinate pos) {
+Tactic::Ptr AI::HL::STP::Tactic::passee_ready(const World &world, Coordinate pos) {
 	const Tactic::Ptr p(new PasseeReady(world, pos));
 	return p;
 }

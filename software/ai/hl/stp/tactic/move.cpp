@@ -9,7 +9,7 @@ using AI::HL::STP::Coordinate;
 namespace {
 	class Move : public Tactic {
 		public:
-			Move(World &world, const Coordinate dest) : Tactic(world), dest(dest) {
+			Move(const World &world, const Coordinate dest) : Tactic(world), dest(dest) {
 			}
 
 		private:
@@ -27,7 +27,7 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::move(World &world, const Coordinate dest) {
+Tactic::Ptr AI::HL::STP::Tactic::move(const World &world, const Coordinate dest) {
 	const Tactic::Ptr p(new Move(world, dest));
 	return p;
 }

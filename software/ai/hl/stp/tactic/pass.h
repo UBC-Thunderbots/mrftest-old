@@ -19,7 +19,7 @@ namespace AI {
 				 *
 				 * \param [in] target where the passee should be.
 				 */
-				Tactic::Ptr passer_ready(AI::HL::W::World &world, AI::HL::STP::Coordinate pos, AI::HL::STP::Coordinate target);
+				Tactic::Ptr passer_ready(const AI::HL::W::World &world, AI::HL::STP::Coordinate pos, AI::HL::STP::Coordinate target);
 
 				/**
 				 * The STP suggested method for passing.
@@ -27,7 +27,7 @@ namespace AI {
 				 *
 				 * \param [in] pos where the passee should be.
 				 */
-				Tactic::Ptr passee_ready(AI::HL::W::World &world, AI::HL::STP::Coordinate pos);
+				Tactic::Ptr passee_ready(const AI::HL::W::World &world, AI::HL::STP::Coordinate pos);
 
 				/**
 				 * The STP suggested method for passing.
@@ -37,7 +37,7 @@ namespace AI {
 				 *
 				 * \param [in] target where the passee should be.
 				 */
-				Tactic::Ptr passer_shoot(AI::HL::W::World &world, AI::HL::STP::Coordinate pos, AI::HL::STP::Coordinate target);
+				Tactic::Ptr passer_shoot(const AI::HL::W::World &world, AI::HL::STP::Coordinate pos, AI::HL::STP::Coordinate target);
 
 				/**
 				 * The STP suggested method for passing.
@@ -45,7 +45,7 @@ namespace AI {
 				 *
 				 * \param [in] pos where the passee should be.
 				 */
-				Tactic::Ptr passee_receive(AI::HL::W::World &world, AI::HL::STP::Coordinate pos);
+				Tactic::Ptr passee_receive(const AI::HL::W::World &world, AI::HL::STP::Coordinate pos);
 			}
 		}
 	}
