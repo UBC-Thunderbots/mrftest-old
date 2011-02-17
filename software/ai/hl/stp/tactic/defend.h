@@ -2,26 +2,33 @@
 #define AI_HL_STP_TACTIC_DEFEND_H
 
 #include "ai/hl/stp/tactic/tactic.h"
-#include "ai/hl/stp/evaluation/defense.h"
 
 namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Tactic {
 				/**
+				 * Used for single goalie with NO defenders.
+				 */
+				Tactic::Ptr defend_solo_goalie(AI::HL::W::World &world);
+
+				/**
+				 * Used for goalie + AT LEAST 1 defender.
 				 * A tactic for goalie.
 				 */
-				Tactic::Ptr goalie(AI::HL::W::World &world, const AI::HL::STP::Evaluation::Defense &defense);
+				Tactic::Ptr defend_duo_goalie(AI::HL::W::World &world);
 
 				/**
-				 * A tactic for first defender.
+				 * Used for goalie + AT LEAST 1 defender.
+				 * A tactic for defender (MUST EXIST).
 				 */
-				Tactic::Ptr defender1(AI::HL::W::World &world, const AI::HL::STP::Evaluation::Defense &defense);
+				Tactic::Ptr defend_duo_defender(AI::HL::W::World &world);
 
 				/**
-				 * A tactic for second defender.
+				 * Used for goalie + AT LEAST 1 defender.
+				 * A tactic for extra player.
 				 */
-				Tactic::Ptr defender2(AI::HL::W::World &world, const AI::HL::STP::Evaluation::Defense &defense);
+				Tactic::Ptr defend_duo_extra(AI::HL::W::World &world);
 			}
 		}
 	}

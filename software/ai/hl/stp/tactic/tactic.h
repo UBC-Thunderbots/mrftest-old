@@ -18,6 +18,9 @@ namespace AI {
 				 * A tactic is a layer in the STP paradigm.
 				 * See STP paper section 4.1.
 				 *
+				 * A tactic name should be in verb form,
+				 * because it involves some kind of action.
+				 *
 				 * It runs every tick.
 				 * A subclass shall derive select(), execute(),
 				 * optionally initialize() and done().
@@ -65,12 +68,6 @@ namespace AI {
 						}
 
 						/**
-						 * Changes the player associated with this tactic.
-						 * A subclass should not call this.
-						 */
-						void set_player(AI::HL::W::Player::Ptr p);
-
-						/**
 						 * Selects a player from the set.
 						 * A subclass must implement this function.
 						 *
@@ -79,6 +76,12 @@ namespace AI {
 						 * \return a player to be used by this tactic
 						 */
 						virtual AI::HL::W::Player::Ptr select(const std::set<AI::HL::W::Player::Ptr> &players) const = 0;
+
+						/**
+						 * Changes the player associated with this tactic.
+						 * A subclass should not call this.
+						 */
+						void set_player(AI::HL::W::Player::Ptr p);
 
 						/**
 						 * This function is called every tick,

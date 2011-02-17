@@ -18,6 +18,15 @@ namespace {
 	// avoid enemy robots by at least this distance
 	const double NEAR = Robot::MAX_RADIUS * 3;
 
+	/*
+	   class EvaluateOffense : public Cacheable<Point, CacheableNonKeyArgs<AI::HL::W::World &>, CacheableKeyArgs<const std::set<AI::HL::W::Player::Ptr> &> > {
+	   protected:
+	   Point compute(AI::HL::W::World &world, const std::set<AI::HL::W::Player::Ptr> & players);
+	   };
+
+	   extern EvaluateOffense evaluate_offense2;
+	 */
+
 	double scoring_function(const World &world, const std::set<Player::CPtr> &players, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
 		// can't be too close to enemy
 		for (std::size_t i = 0; i < enemy_pos.size(); ++i) {

@@ -1,8 +1,7 @@
 #include "ai/hl/stp/play/play.h"
 #include "ai/hl/stp/predicates.h"
-#include "ai/hl/stp/tactic/block.h"
-#include "ai/hl/stp/tactic/lone_goalie.h"
-#include "ai/hl/stp/tactic/offense.h"
+#include "ai/hl/stp/tactic/offend.h"
+#include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/tactic/pass.h"
 #include "ai/hl/util.h"
@@ -19,7 +18,7 @@ namespace {
 	/**
 	 * Condition:
 	 * - ball under team possesion
-	 * - have at least 3 players (one goalie, one passer, one passee)
+	 * - have at least 4 players (one goalie, one passer, one passee, one defender)
 	 *
 	 * Objective:
 	 * - shoot the ball to enemy goal while passing the ball between the passer and passee
@@ -50,7 +49,7 @@ namespace {
 	}
 
 	bool PassOffensive::applicable() const {
-		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && Predicates::our_ball(world);
+		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 4) && Predicates::our_ball(world);
 	}
 
 	bool PassOffensive::done() const {
@@ -67,7 +66,7 @@ namespace {
 		FriendlyTeam &friendly = world.friendly_team();
 
 		// GOALIE
-		goalie_role.push_back(lone_goalie(world));
+		goalie_role.push_back(defend_duo_goalie(world));
 
 		// TODO: better passer and passee positioning and targeting
 
@@ -81,12 +80,12 @@ namespace {
 		roles[1].push_back(shoot(world));
 
 		// ROLE 3
-		// offensive support
-		roles[2].push_back(offense(world));
+		// defend
+		roles[2].push_back(defend_duo_defender(world));
 
 		// ROLE 4
-		// block nearest enemy
-		roles[3].push_back(block(world, Enemy::closest_friendly_goal(world, 0)));
+		// offensive support
+		roles[3].push_back(offend(world));
 	}
 }
 

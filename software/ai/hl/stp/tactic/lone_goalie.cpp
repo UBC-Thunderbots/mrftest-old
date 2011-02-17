@@ -31,7 +31,7 @@ namespace {
 	}
 
 	void LoneGoalie::execute() {
-		// TODO: use proper skill
+#warning use goalie SSM
 		AI::HL::Tactics::lone_goalie(world, player);
 	}
 }

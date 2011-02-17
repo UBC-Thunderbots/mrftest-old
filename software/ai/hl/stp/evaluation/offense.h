@@ -11,15 +11,6 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
-				/*
-				   class EvaluateOffense : public Cacheable<Point, CacheableNonKeyArgs<AI::HL::W::World &>, CacheableKeyArgs<const std::set<AI::HL::W::Player::Ptr> &> > {
-				   protected:
-				   Point compute(AI::HL::W::World &world, const std::set<AI::HL::W::Player::Ptr> & players);
-				   };
-
-				   extern EvaluateOffense evaluate_offense2;
-				 */
-
 				/**
 				 * Calculates strategic positions to place offensive players.
 				 * - Finds weak points on the enemy goal area,
