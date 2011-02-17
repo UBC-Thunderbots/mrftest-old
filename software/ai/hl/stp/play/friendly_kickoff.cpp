@@ -1,6 +1,6 @@
 #include "ai/hl/stp/play/play.h"
 #include "ai/hl/stp/predicates.h"
-#include "ai/hl/stp/tactic/lone_goalie.h"
+#include "ai/hl/stp/tactic/defend.h"
 
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::STP::Tactic;
@@ -53,7 +53,7 @@ namespace {
 	}
 
 	void FriendlyKickoff::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
-		goalie_role.push_back(lone_goalie(world));
+		goalie_role.push_back(defend_solo_goalie(world));
 
 		/*
 		   roles[0].push_back();

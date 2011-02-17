@@ -231,10 +231,10 @@ software/ai/hl/stp/tactic/chase.cpp -text
 software/ai/hl/stp/tactic/chase.h -text
 software/ai/hl/stp/tactic/defend.cpp -text
 software/ai/hl/stp/tactic/defend.h -text
+software/ai/hl/stp/tactic/defend_solo.cpp -text
+software/ai/hl/stp/tactic/defend_solo.h -text
 software/ai/hl/stp/tactic/idle.cpp -text
 software/ai/hl/stp/tactic/idle.h -text
-software/ai/hl/stp/tactic/lone_goalie.cpp -text
-software/ai/hl/stp/tactic/lone_goalie.h -text
 software/ai/hl/stp/tactic/move.cpp -text
 software/ai/hl/stp/tactic/move.h -text
 software/ai/hl/stp/tactic/move_penalty.cpp -text

@@ -1,5 +1,4 @@
 #include "ai/hl/stp/tactic/defend.h"
-#include "ai/hl/stp/tactic/lone_goalie.h"
 #include "ai/hl/stp/evaluation/defense.h"
 #include "ai/hl/util.h"
 
@@ -16,7 +15,7 @@ namespace {
 	template<int N>
 		class Goalie : public Tactic {
 			public:
-				Goalie(World &world) : Tactic(world) {
+				Goalie(const World &world) : Tactic(world) {
 				}
 
 			private:
@@ -31,7 +30,7 @@ namespace {
 	template<int N, int D>
 		class Defender : public Tactic {
 			public:
-				Defender(World &world) : Tactic(world) {
+				Defender(const World &world) : Tactic(world) {
 				}
 			private:
 				Player::Ptr select(const std::set<Player::Ptr> &players) const;
@@ -75,21 +74,17 @@ namespace {
 		}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::defend_solo_goalie(AI::HL::W::World &world) {
-	return lone_goalie(world);
-}
-
-Tactic::Ptr AI::HL::STP::Tactic::defend_duo_goalie(AI::HL::W::World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::defend_duo_goalie(const AI::HL::W::World &world) {
 	const Tactic::Ptr p(new Goalie<2>(world));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::defend_duo_defender(AI::HL::W::World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::defend_duo_defender(const AI::HL::W::World &world) {
 	const Tactic::Ptr p(new Defender<2, 1>(world));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::defend_duo_extra(AI::HL::W::World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::defend_duo_extra(const AI::HL::W::World &world) {
 	// TODO: do something more useful...
 	const Tactic::Ptr p(new Defender<3, 2>(world));
 	return p;
