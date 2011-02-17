@@ -184,11 +184,8 @@ software/ai/hl/stp/evaluation/ball_threat.cpp -text
 software/ai/hl/stp/evaluation/ball_threat.h -text
 software/ai/hl/stp/evaluation/defense.cpp -text
 software/ai/hl/stp/evaluation/defense.h -text
-software/ai/hl/stp/evaluation/evaluation.cpp -text
-software/ai/hl/stp/evaluation/evaluation.h -text
 software/ai/hl/stp/evaluation/offense.cpp -text
 software/ai/hl/stp/evaluation/offense.h -text
-software/ai/hl/stp/evaluation/pass.h -text
 software/ai/hl/stp/evaluation/region.h -text
 software/ai/hl/stp/evaluation/shoot.cpp -text
 software/ai/hl/stp/evaluation/shoot.h -text
