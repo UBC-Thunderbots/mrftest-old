@@ -10,7 +10,6 @@
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
-using AI::HL::STP::Enemy;
 namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
@@ -21,7 +20,7 @@ namespace {
 	 * - Playtype Prepare Penalty Friendly
 	 *
 	 * Objective:
-	 * - shoot the ball to enemy goal
+	 * - Move to Penalty Friendly positions
 	 */
 	class PrepPenaltyFriendly : public Play {
 		public:

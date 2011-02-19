@@ -10,7 +10,7 @@ namespace AI {
 				/**
 				 * Do nothing.
 				 */
-				Tactic::Ptr idle(AI::HL::W::World &world);
+				Tactic::Ptr idle(const AI::HL::W::World &world);
 			}
 		}
 	}

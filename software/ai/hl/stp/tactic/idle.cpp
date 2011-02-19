@@ -25,7 +25,7 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::idle(World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::idle(const World &world) {
 	const Tactic::Ptr p(new Idle(world));
 	return p;
 }
