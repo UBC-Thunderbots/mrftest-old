@@ -23,10 +23,10 @@ namespace {
 	 * Objective:
 	 * - Handle Friendly Free Kick
 	 */
-	class PenaltyFriendly : public Play {
+	class FreeKickFriendly : public Play {
 		public:
-			PenaltyFriendly(const World &world);
-			~PenaltyFriendly();
+			FreeKickFriendly(const World &world);
+			~FreeKickFriendly();
 
 		private:
 			bool applicable() const;
@@ -36,31 +36,31 @@ namespace {
 			const PlayFactory &factory() const;
 	};
 
-	PlayFactoryImpl<PenaltyFriendly> factory_instance("Free Kick Friendly");
+	PlayFactoryImpl<FreeKickFriendly> factory_instance("Free Kick Friendly");
 
-	const PlayFactory &PenaltyFriendly::factory() const {
+	const PlayFactory &FreeKickFriendly::factory() const {
 		return factory_instance;
 	}
 
-	PenaltyFriendly::PenaltyFriendly(const World &world) : Play(world) {
+	FreeKickFriendly::FreeKickFriendly(const World &world) : Play(world) {
 	}
 
-	PenaltyFriendly::~PenaltyFriendly() {
+	FreeKickFriendly::~FreeKickFriendly() {
 	}
 
-	bool PenaltyFriendly::applicable() const {
+	bool FreeKickFriendly::applicable() const {
 		return (Predicates::playtype(world, PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 1);
 	}
 
-	bool PenaltyFriendly::done() const {
+	bool FreeKickFriendly::done() const {
 		return !(Predicates::playtype(world, PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) ;
 	}
 
-	bool PenaltyFriendly::fail() const {
+	bool FreeKickFriendly::fail() const {
 		return false;
 	}
 
-	void PenaltyFriendly::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
+	void FreeKickFriendly::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
 		// std::Player::Ptr goalie = world.Friendly_team().get(0);
 		// GOALIE
 		goalie_role.push_back(defend_duo_goalie(world));

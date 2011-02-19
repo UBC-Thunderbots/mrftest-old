@@ -23,10 +23,10 @@ namespace {
 	 * Objective:
 	 * - Handle Enemy Free Kick
 	 */
-	class PenaltyEnemy : public Play {
+	class FreeKickEnemy : public Play {
 		public:
-			PenaltyEnemy(const World &world);
-			~PenaltyEnemy();
+			FreeKickEnemy(const World &world);
+			~FreeKickEnemy();
 
 		private:
 			bool applicable() const;
@@ -36,31 +36,31 @@ namespace {
 			const PlayFactory &factory() const;
 	};
 
-	PlayFactoryImpl<PenaltyEnemy> factory_instance("Free Kick Enemy");
+	PlayFactoryImpl<FreeKickEnemy> factory_instance("Free Kick Enemy");
 
-	const PlayFactory &PenaltyEnemy::factory() const {
+	const PlayFactory &FreeKickEnemy::factory() const {
 		return factory_instance;
 	}
 
-	PenaltyEnemy::PenaltyEnemy(const World &world) : Play(world) {
+	FreeKickEnemy::FreeKickEnemy(const World &world) : Play(world) {
 	}
 
-	PenaltyEnemy::~PenaltyEnemy() {
+	FreeKickEnemy::~FreeKickEnemy() {
 	}
 
-	bool PenaltyEnemy::applicable() const {
+	bool FreeKickEnemy::applicable() const {
 		return (Predicates::playtype(world, PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) || Predicates::playtype(world, PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY)) && Predicates::our_team_size_at_least(world, 1);
 	}
 
-	bool PenaltyEnemy::done() const {
+	bool FreeKickEnemy::done() const {
 		return !(Predicates::playtype(world, PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) || Predicates::playtype(world, PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY)) ;
 	}
 
-	bool PenaltyEnemy::fail() const {
+	bool FreeKickEnemy::fail() const {
 		return false;
 	}
 
-	void PenaltyEnemy::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
+	void FreeKickEnemy::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
 		// std::Player::Ptr goalie = world.Enemy_team().get(0);
 		// GOALIE
 		goalie_role.push_back(defend_duo_goalie(world));
