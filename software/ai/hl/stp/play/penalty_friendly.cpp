@@ -3,7 +3,8 @@
 #include "ai/hl/stp/play/play.h"
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/tactic/defend.h"
-#include "ai/hl/stp/tactic/idle.h"
+#include "ai/hl/stp/tactic/move_wait_playtype.h"
+#include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
 #include <glibmm.h>
@@ -14,12 +15,14 @@ using namespace AI::HL::W;
 namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
+	const double PENALTY_MARK_LENGTH = 0.45;
+	const double RESTRICTED_ZONE_LENGTH = 0.85;
 	/**
 	 * Condition:
-	 * - Playtype Execute Penalty Friendly
+	 * - Playtype Prepare Penalty Friendly
 	 *
 	 * Objective:
-	 * - shoot the ball to enemy goal
+	 * - move to Penalty positions and shoot the ball to enemy goal
 	 */
 	class PenaltyFriendly : public Play {
 		public:
@@ -34,7 +37,7 @@ namespace {
 			const PlayFactory &factory() const;
 	};
 
-	PlayFactoryImpl<PenaltyFriendly> factory_instance("EXECUTE_PENALTY_FRIENDLY");
+	PlayFactoryImpl<PenaltyFriendly> factory_instance("Penalty Friendly");
 
 	const PlayFactory &PenaltyFriendly::factory() const {
 		return factory_instance;
@@ -47,11 +50,11 @@ namespace {
 	}
 
 	bool PenaltyFriendly::applicable() const {
-		return Predicates::playtype(world, PlayType::EXECUTE_PENALTY_FRIENDLY) && Predicates::our_team_size_at_least(world, 1);
+		return Predicates::playtype(world, PlayType::PREPARE_PENALTY_FRIENDLY) && Predicates::our_team_size_at_least(world, 1);
 	}
 
 	bool PenaltyFriendly::done() const {
-		return !Predicates::playtype(world, PlayType::EXECUTE_PENALTY_FRIENDLY);
+		return !(Predicates::playtype(world, PlayType::EXECUTE_PENALTY_FRIENDLY) || Predicates::playtype(world, PlayType::PREPARE_PENALTY_FRIENDLY)) ;
 	}
 
 	bool PenaltyFriendly::fail() const {
@@ -65,20 +68,21 @@ namespace {
 		goalie_role.push_back(defend_solo_goalie(world));
 
 		// ROLE 1
-		// shoot
-		roles[0].push_back(shoot(world));
-
+		// move to shooting position and shoot
+		roles[0].push_back(move_wait_playtype(world, Point(0.5 * world.field().length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0),PlayType::EXECUTE_PENALTY_FRIENDLY));
+		//roles[0].push_back(shoot(world));
+		
 		// ROLE 2
-		// idle
-		roles[1].push_back(idle(world));
+		// move to penalty position 1
+		roles[1].push_back(move(world, Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, -5 * Robot::MAX_RADIUS)));
 
 		// ROLE 3
-		// idle
-		roles[2].push_back(idle(world));
+		// move to penalty position 2
+		roles[2].push_back(move(world, Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, 5 * Robot::MAX_RADIUS)));
 
 		// ROLE 4
-		// idle
-		roles[3].push_back(idle(world));
+		// move to penalty position 3
+		roles[3].push_back(move(world, Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH - 5 * Robot::MAX_RADIUS, 0)));
 	}
 }
 
