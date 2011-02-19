@@ -64,6 +64,12 @@ void PlayExecutor::role_assignment() {
 #warning when the play runs out of active tactic, they are done!
 
 	for (std::size_t i = 0; i < 5; ++i) {
+
+#warning check for correctness
+		if (curr_roles[i].size() == 0) {
+			continue;
+		}
+
 		if (curr_role_step < curr_roles[i].size()) {
 			curr_tactic[i] = curr_roles[i][curr_role_step];
 		} else {
