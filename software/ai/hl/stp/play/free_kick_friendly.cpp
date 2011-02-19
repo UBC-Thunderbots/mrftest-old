@@ -18,15 +18,15 @@ namespace Predicates = AI::HL::STP::Predicates;
 namespace {
 	/**
 	 * Condition:
-	 * - Playtype Free Kick Enemy
+	 * - Playtype Free Kick Friendly
 	 *
 	 * Objective:
-	 * - Handle Enemy Free Kick
+	 * - Handle Friendly Free Kick
 	 */
-	class PenaltyEnemy : public Play {
+	class PenaltyFriendly : public Play {
 		public:
-			PenaltyEnemy(const World &world);
-			~PenaltyEnemy();
+			PenaltyFriendly(const World &world);
+			~PenaltyFriendly();
 
 		private:
 			bool applicable() const;
@@ -36,38 +36,38 @@ namespace {
 			const PlayFactory &factory() const;
 	};
 
-	PlayFactoryImpl<PenaltyEnemy> factory_instance("Free Kick Enemy");
+	PlayFactoryImpl<PenaltyFriendly> factory_instance("Free Kick Friendly");
 
-	const PlayFactory &PenaltyEnemy::factory() const {
+	const PlayFactory &PenaltyFriendly::factory() const {
 		return factory_instance;
 	}
 
-	PenaltyEnemy::PenaltyEnemy(const World &world) : Play(world) {
+	PenaltyFriendly::PenaltyFriendly(const World &world) : Play(world) {
 	}
 
-	PenaltyEnemy::~PenaltyEnemy() {
+	PenaltyFriendly::~PenaltyFriendly() {
 	}
 
-	bool PenaltyEnemy::applicable() const {
-		return (Predicates::playtype(world, PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) || Predicates::playtype(world, PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY)) && Predicates::our_team_size_at_least(world, 1);
+	bool PenaltyFriendly::applicable() const {
+		return (Predicates::playtype(world, PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 1);
 	}
 
-	bool PenaltyEnemy::done() const {
-		return !(Predicates::playtype(world, PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) || Predicates::playtype(world, PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY)) ;
+	bool PenaltyFriendly::done() const {
+		return !(Predicates::playtype(world, PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) ;
 	}
 
-	bool PenaltyEnemy::fail() const {
+	bool PenaltyFriendly::fail() const {
 		return false;
 	}
 
-	void PenaltyEnemy::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
-		// std::Player::Ptr goalie = world.Enemy_team().get(0);
+	void PenaltyFriendly::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
+		// std::Player::Ptr goalie = world.Friendly_team().get(0);
 		// GOALIE
 		goalie_role.push_back(defend_duo_goalie(world));
 
 		// ROLE 1
-		// defend
-		roles[0].push_back(defend_duo_defender(world));
+		// kicker
+		roles[0].push_back(shoot(world));
 		
 		// ROLE 2
 		// defend

@@ -190,6 +190,7 @@ software/ai/hl/stp/evaluation/region.h -text
 software/ai/hl/stp/evaluation/shoot.cpp -text
 software/ai/hl/stp/evaluation/shoot.h -text
 software/ai/hl/stp/play/free_kick_enemy.cpp -text
+software/ai/hl/stp/play/free_kick_friendly.cpp -text
 software/ai/hl/stp/play/friendly_kickoff.cpp -text
 software/ai/hl/stp/play/grab_ball.cpp -text
 software/ai/hl/stp/play/just_shoot.cpp -text
