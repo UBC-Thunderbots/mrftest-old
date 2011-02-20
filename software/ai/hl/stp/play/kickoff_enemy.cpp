@@ -45,7 +45,7 @@ namespace {
 			const PlayFactory &factory() const;
 	};
 
-	PlayFactoryImpl<FreeKickEnemy> factory_instance("Free Kick Enemy");
+	PlayFactoryImpl<FreeKickEnemy> factory_instance("Kickoff Enemy");
 
 	const PlayFactory &FreeKickEnemy::factory() const {
 		return factory_instance;
