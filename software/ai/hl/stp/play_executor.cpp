@@ -1,4 +1,5 @@
 #include "ai/hl/stp/play_executor.h"
+#include "ai/hl/stp/tactic/idle.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
 #include <cassert>
@@ -21,6 +22,7 @@ PlayExecutor::PlayExecutor(AI::HL::W::World &w) : world(w) {
 
 	// initialize all plays
 	const PlayFactory::Map &m = PlayFactory::all();
+	assert(m.size() != 0);
 	for (PlayFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 		plays.push_back(i->second->create(world));
 	}
@@ -39,7 +41,8 @@ void PlayExecutor::calc_play() {
 			curr_role_step = 0;
 			for (std::size_t j = 0; j < 5; ++j) {
 				curr_roles[j].clear();
-				curr_tactic[j].reset();
+				// default to idle tactic
+				curr_tactic[j] = Tactic::idle(world);
 			}
 			// assign the players
 			{
@@ -61,15 +64,7 @@ void PlayExecutor::role_assignment() {
 	// this must be reset every tick
 	curr_active.reset();
 
-#warning when the play runs out of active tactic, they are done!
-
 	for (std::size_t i = 0; i < 5; ++i) {
-
-#warning check for correctness
-		if (curr_roles[i].size() == 0) {
-			continue;
-		}
-
 		if (curr_role_step < curr_roles[i].size()) {
 			curr_tactic[i] = curr_roles[i][curr_role_step];
 		} else {
@@ -120,7 +115,10 @@ void PlayExecutor::role_assignment() {
 }
 
 void PlayExecutor::execute_tactics() {
-	std::vector<Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
+	std::size_t max_role_step = 0;
+	for (std::size_t i = 0; i < 5; ++i) {
+		max_role_step = std::max(max_role_step, curr_roles[i].size());
+	}
 
 	while (true) {
 		role_assignment();
@@ -133,6 +131,14 @@ void PlayExecutor::execute_tactics() {
 		// it is possible to skip steps
 		if (curr_active->done()) {
 			++curr_role_step;
+
+			// when the play runs out of tactics, they are done!
+			if (curr_role_step >= max_role_step) {
+				LOG_INFO("Play done");
+				reset();
+				return;
+			}
+
 			continue;
 		}
 
@@ -149,9 +155,14 @@ void PlayExecutor::execute_tactics() {
 }
 
 void PlayExecutor::tick() {
+	if (world.friendly_team().size() == 0) {
+		reset();
+		return;
+	}
+
 	// check if curr play wants to continue
 	if (curr_play.is() && (curr_play->done() || curr_play->fail())) {
-		curr_play.reset();
+		reset();
 	}
 
 	// check if curr is valid

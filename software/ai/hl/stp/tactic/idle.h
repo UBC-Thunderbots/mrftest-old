@@ -8,7 +8,7 @@ namespace AI {
 		namespace STP {
 			namespace Tactic {
 				/**
-				 * Do nothing.
+				 * Stay at the same position and do nothing.
 				 */
 				Tactic::Ptr idle(const AI::HL::W::World &world);
 			}
