@@ -155,7 +155,7 @@ void PlayExecutor::execute_tactics() {
 }
 
 void PlayExecutor::tick() {
-	if (world.friendly_team().size() == 0) {
+	if (world.friendly_team().size() == 0 || world.playtype() == PlayType::HALT) {
 		reset();
 		return;
 	}
