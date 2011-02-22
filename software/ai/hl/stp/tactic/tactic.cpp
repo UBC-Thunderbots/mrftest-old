@@ -41,6 +41,10 @@ void Tactic::tick() {
 	context.run();
 }
 
+std::string Tactic::description() const {
+	return "";
+}
+
 void Tactic::initialize() {
 }
 

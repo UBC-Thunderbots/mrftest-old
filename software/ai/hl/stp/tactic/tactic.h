@@ -43,18 +43,6 @@ namespace AI {
 						typedef RefPtr<Tactic> Ptr;
 
 						/**
-						 * Constructor for tactic.
-						 *
-						 * \param [in] active indicates if this is an active tactic.
-						 */
-						Tactic(const AI::HL::W::World &world, bool active = false);
-
-						/**
-						 * Destructor.
-						 */
-						~Tactic();
-
-						/**
 						 * An active tactic must override this,
 						 * and provide a condition when this tactic is completed.
 						 */
@@ -89,6 +77,14 @@ namespace AI {
 						 */
 						void tick();
 
+						/**
+						 * A description of this tactic, to be displayed in the UI.
+						 * For most tactics, this is just the name of the tactic.
+						 * However, some tactics may want to show more information,
+						 * such as state dependent data.
+						 */
+						virtual std::string description() const;
+
 					protected:
 						const AI::HL::W::World &world;
 						AI::HL::W::Player::Ptr player;
@@ -97,6 +93,18 @@ namespace AI {
 						 * The set of parameters for all skills with this tactic.
 						 */
 						AI::HL::STP::Skill::Param param;
+
+						/**
+						 * Constructor for tactic.
+						 *
+						 * \param [in] active indicates if this is an active tactic.
+						 */
+						Tactic(const AI::HL::W::World &world, bool active = false);
+
+						/**
+						 * Destructor.
+						 */
+						~Tactic();
 
 						/**
 						 * Sets the SSM associated with this tactic.
