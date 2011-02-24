@@ -17,14 +17,10 @@ namespace AI {
 				 *
 				 * A tactic is an action and has verb names.
 				 *
-				 * It runs every tick.
-				 * A subclass shall derive select(), execute(),
-				 * optionally player_changed().
-				 *
-				 * Important tactics that deal with the ball are called active tactics.
-				 * Only one such tactic is active at any given time.
-				 * Other tactics must wait for the active tactic to finish.
-				 * An active tactic must override done().
+				 * Every subclass must implement execute().
+				 * non-goalie tactics must implement select()
+				 * Active tactics must implement done().
+				 * Subclass may optionally implement player_changed().
 				 *
 				 * To prevent rapid fluctuation of parameters,
 				 * hysteresis (thresholding) is recommended.
@@ -48,7 +44,7 @@ namespace AI {
 
 						/**
 						 * Selects a player from the set.
-						 * A subclass must implement this function.
+						 * A non-goalie tactic must implement this function.
 						 *
 						 * \param[in] players a set of players to choose from
 						 *
@@ -58,7 +54,6 @@ namespace AI {
 
 						/**
 						 * Changes the player associated with this tactic.
-						 * A subclass should not call this.
 						 */
 						void set_player(Player::Ptr p);
 
