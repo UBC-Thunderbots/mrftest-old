@@ -15,7 +15,7 @@ bool Tactic::done() const {
 	assert(0);
 }
 
-Player::Ptr Tactic::select(const std::set<AI::HL::W::Player::Ptr> &players) {
+Player::Ptr Tactic::select(const std::set<Player::Ptr> &players) {
 	assert(0);
 }
 

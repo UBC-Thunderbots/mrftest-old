@@ -186,7 +186,6 @@ software/ai/hl/stp/evaluation/defense.cpp -text
 software/ai/hl/stp/evaluation/defense.h -text
 software/ai/hl/stp/evaluation/offense.cpp -text
 software/ai/hl/stp/evaluation/offense.h -text
-software/ai/hl/stp/evaluation/region.h -text
 software/ai/hl/stp/evaluation/shoot.cpp -text
 software/ai/hl/stp/evaluation/shoot.h -text
 software/ai/hl/stp/play/defensive_block.cpp -text
@@ -206,6 +205,7 @@ software/ai/hl/stp/play_executor.cpp -text
 software/ai/hl/stp/play_executor.h -text
 software/ai/hl/stp/predicates.cpp -text
 software/ai/hl/stp/predicates.h -text
+software/ai/hl/stp/region.h -text
 software/ai/hl/stp/role.cpp -text
 software/ai/hl/stp/role.h -text
 software/ai/hl/stp/stp.h -text
@@ -238,6 +238,9 @@ software/ai/hl/stp/tactic/shoot.cpp -text
 software/ai/hl/stp/tactic/shoot.h -text
 software/ai/hl/stp/tactic/tactic.cpp -text
 software/ai/hl/stp/tactic/tactic.h -text
+software/ai/hl/stp/tactic/util.cpp -text
+software/ai/hl/stp/tactic/util.h -text
+software/ai/hl/stp/world.h -text
 software/ai/hl/util.cpp -text
 software/ai/hl/util.h -text
 software/ai/hl/world.cpp -text

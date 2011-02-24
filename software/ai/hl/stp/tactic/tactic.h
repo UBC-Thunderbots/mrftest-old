@@ -1,7 +1,7 @@
 #ifndef AI_HL_STP_TACTIC_TACTIC_H
 #define AI_HL_STP_TACTIC_TACTIC_H
 
-#include "ai/hl/world.h"
+#include "ai/hl/stp/world.h"
 #include "util/byref.h"
 #include "util/registerable.h"
 
@@ -54,13 +54,13 @@ namespace AI {
 						 *
 						 * \return a player to be used by this tactic
 						 */
-						virtual AI::HL::W::Player::Ptr select(const std::set<AI::HL::W::Player::Ptr> &players);
+						virtual Player::Ptr select(const std::set<Player::Ptr> &players);
 
 						/**
 						 * Changes the player associated with this tactic.
 						 * A subclass should not call this.
 						 */
-						void set_player(AI::HL::W::Player::Ptr p);
+						void set_player(Player::Ptr p);
 
 						/**
 						 * The main execution of this tactic.
@@ -75,15 +75,15 @@ namespace AI {
 						virtual std::string description() const;
 
 					protected:
-						const AI::HL::W::World &world;
-						AI::HL::W::Player::Ptr player;
+						const World &world;
+						Player::Ptr player;
 
 						/**
 						 * Constructor for tactic.
 						 *
 						 * \param [in] active indicates if this is an active tactic.
 						 */
-						Tactic(const AI::HL::W::World &world, bool active = false);
+						Tactic(const World &world, bool active = false);
 
 						/**
 						 * Destructor.

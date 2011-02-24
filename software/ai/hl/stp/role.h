@@ -1,7 +1,7 @@
 #ifndef AI_HL_STP_ROLE_H
 #define AI_HL_STP_ROLE_H
 
-#include "ai/hl/world.h"
+#include "ai/hl/stp/world.h"
 #include "ai/hl/stp/tactic/tactic.h"
 
 namespace AI {
@@ -18,12 +18,12 @@ namespace AI {
 					/**
 					 * Gets the player associated with this role.
 					 */
-					virtual AI::HL::W::Player::Ptr evaluate() const = 0;
+					virtual Player::Ptr evaluate() const = 0;
 
 					/**
 					 * A specific player.
 					 */
-					static Role::Ptr player(AI::HL::W::Player::Ptr player);
+					static Role::Ptr player(Player::Ptr player);
 
 					/**
 					 * A specific tactic.
@@ -38,7 +38,7 @@ namespace AI {
 					/**
 					 * The goalie.
 					 */
-					static Role::Ptr goalie(AI::HL::W::World &world);
+					static Role::Ptr goalie(World &world);
 
 				protected:
 					Role();

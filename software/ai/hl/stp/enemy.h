@@ -1,7 +1,7 @@
 #ifndef AI_HL_STP_ENEMY_H
 #define AI_HL_STP_ENEMY_H
 
-#include "ai/hl/world.h"
+#include "ai/hl/stp/world.h"
 
 namespace AI {
 	namespace HL {
@@ -20,23 +20,17 @@ namespace AI {
 					 * If the robot does not exist,
 					 * then a null pointer is returned.
 					 */
-					virtual AI::HL::W::Robot::Ptr evaluate() const = 0;
-
-					/**
-					 * Fixed role.
-					 * Be very sure if you ever want to use this.
-					 */
-					// static Enemy::Ptr robot(AI::HL::W::Robot::Ptr robot);
+					virtual Robot::Ptr evaluate() const = 0;
 
 					/**
 					 * Order by distance to friendly goal.
 					 */
-					static Enemy::Ptr closest_friendly_goal(AI::HL::W::World &world, unsigned int i);
+					static Enemy::Ptr closest_friendly_goal(World &world, unsigned int i);
 
 					/**
 					 * Order by distance to ball.
 					 */
-					static Enemy::Ptr closest_ball(AI::HL::W::World &world, unsigned int i);
+					static Enemy::Ptr closest_ball(World &world, unsigned int i);
 
 				protected:
 					Enemy();

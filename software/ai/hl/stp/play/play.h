@@ -1,7 +1,7 @@
 #ifndef AI_HL_STP_PLAY_PLAY_H
 #define AI_HL_STP_PLAY_PLAY_H
 
-#include "ai/hl/world.h"
+#include "ai/hl/stp/world.h"
 #include "ai/hl/stp/tactic/tactic.h"
 #include "util/byref.h"
 #include "util/registerable.h"
@@ -64,7 +64,7 @@ namespace AI {
 						 * \param [in] roles an array of roles in order of priority,
 						 * the first entry is the most important etc.
 						 */
-						virtual void assign(std::vector<AI::HL::STP::Tactic::Tactic::Ptr> &goalie_role, std::vector<AI::HL::STP::Tactic::Tactic::Ptr>(&roles)[4]) = 0;
+						virtual void assign(std::vector<Tactic::Tactic::Ptr> &goalie_role, std::vector<Tactic::Tactic::Ptr>(&roles)[4]) = 0;
 
 						/**
 						 * A reference to this play's factory.
@@ -75,12 +75,12 @@ namespace AI {
 						/**
 						 * The World in which the Play lives.
 						 */
-						const AI::HL::W::World &world;
+						const World &world;
 
 						/**
 						 * The constructor.
 						 */
-						Play(const AI::HL::W::World &world);
+						Play(const World &world);
 
 						/**
 						 * Destructor
@@ -97,7 +97,7 @@ namespace AI {
 						/**
 						 * Constructs a new instance of the Play corresponding to this PlayManager.
 						 */
-						virtual Play::Ptr create(const AI::HL::W::World &world) const = 0;
+						virtual Play::Ptr create(const World &world) const = 0;
 
 						/**
 						 * Constructs a new PlayFactory.
@@ -117,7 +117,7 @@ namespace AI {
 					public:
 						PlayFactoryImpl(const char *name) : PlayFactory(name) {
 						}
-						Play::Ptr create(const AI::HL::W::World &world) const {
+						Play::Ptr create(const World &world) const {
 							const Play::Ptr p(new P(world));
 							return p;
 						}

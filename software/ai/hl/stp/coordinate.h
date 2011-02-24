@@ -1,7 +1,7 @@
 #ifndef AI_HL_STP_COORDINATE_H
 #define AI_HL_STP_COORDINATE_H
 
-#include "ai/hl/world.h"
+#include "ai/hl/stp/world.h"
 #include "ai/hl/stp/enemy.h"
 #include "ai/hl/stp/role.h"
 
@@ -57,7 +57,7 @@ namespace AI {
 					/**
 					 * Flips the y coordinate so that the ball y-coordinate is positive.
 					 */
-					static Coordinate ball_up(const AI::HL::W::Ball &ball, const Point &pos);
+					static Coordinate ball_up(const Ball &ball, const Point &pos);
 
 					/**
 					 * Translate and rotate to enemy coordinate.
@@ -72,7 +72,7 @@ namespace AI {
 					/**
 					 * Just an offset to a ball (Do not rotate coordinate).
 					 */
-					static Coordinate offset(const AI::HL::W::Ball &ball, const Point &off);
+					static Coordinate offset(const Ball &ball, const Point &off);
 
 					/**
 					 * Just an offset to an enemy (Do not rotate coordinate).
@@ -90,9 +90,9 @@ namespace AI {
 					Point operator()() const;
 
 				protected:
-					RefPtr<CoordinateData> data;
+					RefPtr<const CoordinateData> data;
 
-					Coordinate(const RefPtr<CoordinateData> data);
+					Coordinate(const RefPtr<const CoordinateData> data);
 			};
 		}
 	}

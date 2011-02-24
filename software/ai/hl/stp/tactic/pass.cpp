@@ -1,4 +1,5 @@
 #include "ai/hl/stp/tactic/pass.h"
+#include "ai/hl/stp/tactic/util.h"
 #include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
@@ -10,16 +11,10 @@ namespace {
 		public:
 			PasserReady(const World &world, Coordinate p, Coordinate t) : Tactic(world), dest(p), target(t) {
 			}
-
 		private:
 			Coordinate dest, target;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				for (auto it = players.begin(); it != players.end(); ++it) {
-					if ((*it)->has_ball()) {
-						return *it;
-					}
-				}
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+				return select_baller(world, players);
 			}
 			void execute() {
 #warning this is broken
@@ -49,6 +44,45 @@ namespace {
 				player->move(dest(), (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
 			}
 	};
+
+	class PasserShoot : public Tactic {
+		public:
+			PasserShoot(const World &world, Coordinate t) : Tactic(world), target(t), kicked(false) {
+			}
+
+		private:
+			Coordinate target;
+			bool kicked;
+			bool done() const {
+				return kicked;
+			}
+			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+				return select_baller(world, players);
+			}
+			void execute() {
+#warning broken
+				// orient towards target
+				player->move(target(), (target() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_MEDIUM);
+				player->kick(7.5);
+				kicked = true;
+			}
+	};
+
+	class PasseeReceive : public Tactic {
+		public:
+			// ACTIVE tactic!
+			PasseeReceive(const World &world, Coordinate p) : Tactic(world, true), dest(p) {
+			}
+
+		private:
+			Coordinate dest;
+			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest()));
+			}
+			void execute() {
+				player->move(dest(), (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+			}
+	};
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passer_ready(const World &world, Coordinate pos, Coordinate target) {
@@ -58,6 +92,16 @@ Tactic::Ptr AI::HL::STP::Tactic::passer_ready(const World &world, Coordinate pos
 
 Tactic::Ptr AI::HL::STP::Tactic::passee_ready(const World &world, Coordinate pos) {
 	const Tactic::Ptr p(new PasseeReady(world, pos));
+	return p;
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::passer_shoot(const World &world, Coordinate target) {
+	const Tactic::Ptr p(new PasserShoot(world, target));
+	return p;
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::passee_receive(const World &world, Coordinate pos) {
+	const Tactic::Ptr p(new PasseeReceive(world, pos));
 	return p;
 }
 

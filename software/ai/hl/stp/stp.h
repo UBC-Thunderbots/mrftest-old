@@ -1,5 +1,5 @@
-#ifndef AI_HL_STP_WORLD_H
-#define AI_HL_STP_WORLD_H
+#ifndef AI_HL_STP_STP_H
+#define AI_HL_STP_STP_H
 
 #include "ai/hl/world.h"
 #include "ai/hl/stp/play/play.h"
