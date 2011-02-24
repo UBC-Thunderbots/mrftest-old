@@ -4,8 +4,8 @@
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/offend.h"
-#include "ai/hl/stp/tactic/move_wait_playtype.h"
 #include "ai/hl/stp/tactic/move.h"
+#include "ai/hl/stp/tactic/wait_playtype.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
 #include <glibmm.h>
@@ -72,7 +72,7 @@ namespace {
 	void FreeKickEnemy::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
 		// std::Player::Ptr goalie = world.Enemy_team().get(0);
 		// GOALIE
-		goalie_role.push_back(defend_duo_goalie(world));
+		goalie_role.push_back(wait_playtype(world, defend_duo_goalie(world), PlayType::PLAY));
 
 		// ROLE 1
 		// defend

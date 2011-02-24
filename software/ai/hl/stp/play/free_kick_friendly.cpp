@@ -4,7 +4,7 @@
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/offend.h"
-#include "ai/hl/stp/tactic/move_wait_playtype.h"
+#include "ai/hl/stp/tactic/wait_playtype.h"
 #include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"

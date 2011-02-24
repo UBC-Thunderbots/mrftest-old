@@ -3,7 +3,7 @@
 #include "ai/hl/stp/play/play.h"
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/tactic/defend.h"
-#include "ai/hl/stp/tactic/move_wait_playtype.h"
+#include "ai/hl/stp/tactic/wait_playtype.h"
 #include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
@@ -69,7 +69,7 @@ namespace {
 
 		// ROLE 1
 		// move to shooting position and shoot
-		roles[0].push_back(move_wait_playtype(world, Point(0.5 * world.field().length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0),PlayType::EXECUTE_PENALTY_FRIENDLY));
+		roles[0].push_back(wait_playtype(world, move(world, Point(0.5 * world.field().length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0)), PlayType::EXECUTE_PENALTY_FRIENDLY));
 		//roles[0].push_back(shoot(world));
 		
 		// ROLE 2

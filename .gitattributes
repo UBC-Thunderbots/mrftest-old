@@ -221,8 +221,6 @@ software/ai/hl/stp/tactic/idle.cpp -text
 software/ai/hl/stp/tactic/idle.h -text
 software/ai/hl/stp/tactic/move.cpp -text
 software/ai/hl/stp/tactic/move.h -text
-software/ai/hl/stp/tactic/move_wait_playtype.cpp -text
-software/ai/hl/stp/tactic/move_wait_playtype.h -text
 software/ai/hl/stp/tactic/offend.cpp -text
 software/ai/hl/stp/tactic/offend.h -text
 software/ai/hl/stp/tactic/pass.cpp -text
@@ -239,6 +237,8 @@ software/ai/hl/stp/tactic/tactic.cpp -text
 software/ai/hl/stp/tactic/tactic.h -text
 software/ai/hl/stp/tactic/util.cpp -text
 software/ai/hl/stp/tactic/util.h -text
+software/ai/hl/stp/tactic/wait_playtype.cpp -text
+software/ai/hl/stp/tactic/wait_playtype.h -text
 software/ai/hl/stp/world.h -text
 software/ai/hl/util.cpp -text
 software/ai/hl/util.h -text
