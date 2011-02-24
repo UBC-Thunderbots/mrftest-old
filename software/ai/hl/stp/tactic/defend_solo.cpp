@@ -17,6 +17,9 @@ namespace {
 
 		private:
 			void execute();
+			Player::Ptr select(const std::set<Player::Ptr> &) const {
+				assert(0);
+			}
 	};
 
 	void SoloGoalie::execute() {

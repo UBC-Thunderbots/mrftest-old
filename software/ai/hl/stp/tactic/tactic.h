@@ -18,7 +18,7 @@ namespace AI {
 				 * A tactic is an action and has verb names.
 				 *
 				 * Every subclass must implement execute().
-				 * non-goalie tactics must implement select()
+				 * Non-goalie tactics must implement select().
 				 * Active tactics must implement done().
 				 * Subclass may optionally implement player_changed().
 				 *
@@ -50,7 +50,7 @@ namespace AI {
 						 *
 						 * \return a player to be used by this tactic
 						 */
-						virtual Player::Ptr select(const std::set<Player::Ptr> &players) const;
+						virtual Player::Ptr select(const std::set<Player::Ptr> &players) const = 0;
 
 						/**
 						 * Changes the player associated with this tactic.

@@ -20,6 +20,9 @@ namespace {
 
 			private:
 				void execute();
+				Player::Ptr select(const std::set<Player::Ptr> &) const {
+					assert(0);
+				}
 		};
 
 	/**
@@ -76,19 +79,19 @@ Tactic::Ptr AI::HL::STP::Tactic::defend_duo_extra(const AI::HL::W::World &world)
 }
 
 /*
-Tactic::Ptr AI::HL::STP::Tactic::defend_trio_goalie(AI::HL::W::World &world) {
-	const Tactic::Ptr p(new Goalie<3>(world));
-	return p;
-}
+   Tactic::Ptr AI::HL::STP::Tactic::defend_trio_goalie(AI::HL::W::World &world) {
+   const Tactic::Ptr p(new Goalie<3>(world));
+   return p;
+   }
 
-Tactic::Ptr AI::HL::STP::Tactic::defend_trio_defender_1(AI::HL::W::World &world) {
-	const Tactic::Ptr p(new Defender<3, 1>(world));
-	return p;
-}
+   Tactic::Ptr AI::HL::STP::Tactic::defend_trio_defender_1(AI::HL::W::World &world) {
+   const Tactic::Ptr p(new Defender<3, 1>(world));
+   return p;
+   }
 
-Tactic::Ptr AI::HL::STP::Tactic::defend_trio_defender_2(AI::HL::W::World &world) {
-	const Tactic::Ptr p(new Defender<3, 2>(world));
-	return p;
-}
-*/
+   Tactic::Ptr AI::HL::STP::Tactic::defend_trio_defender_2(AI::HL::W::World &world) {
+   const Tactic::Ptr p(new Defender<3, 2>(world));
+   return p;
+   }
+ */
 

@@ -17,12 +17,6 @@ bool Tactic::done() const {
 	assert(0);
 }
 
-Player::Ptr Tactic::select(const std::set<Player::Ptr> &players) const {
-	// if this fails, then you probably have an non-goalie tactic that you forgot to implement done()
-	// check to make sure that the signature of select() is correct, with the const at the back.
-	assert(0);
-}
-
 void Tactic::set_player(Player::Ptr p) {
 	if (player != p) {
 		player = p;

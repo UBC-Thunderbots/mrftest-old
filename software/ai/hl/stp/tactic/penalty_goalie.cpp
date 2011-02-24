@@ -1,6 +1,8 @@
 #include "ai/hl/stp/tactic/penalty_goalie.h"
 #include "ai/hl/util.h"
 
+#include <cassert>
+
 using namespace AI::HL::W;
 using namespace AI::HL::STP::Tactic;
 
@@ -12,6 +14,9 @@ namespace {
 			bool goto_target1;
 			bool done() const;
 			void execute();
+			Player::Ptr select(const std::set<Player::Ptr> &) const {
+				assert(0);
+			}
 	};
 
 	PenaltyGoalie::PenaltyGoalie(const World& world) : Tactic(world, true) {
