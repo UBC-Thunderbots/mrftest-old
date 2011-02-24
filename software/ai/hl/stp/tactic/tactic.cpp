@@ -12,10 +12,14 @@ Tactic::~Tactic() {
 }
 
 bool Tactic::done() const {
+	// if this fails, then you probably have an active tactic that you forgot to implement done()
+	// check to make sure that the signature of done() is correct, with the const at the back.
 	assert(0);
 }
 
 Player::Ptr Tactic::select(const std::set<Player::Ptr> &players) const {
+	// if this fails, then you probably have an non-goalie tactic that you forgot to implement done()
+	// check to make sure that the signature of select() is correct, with the const at the back.
 	assert(0);
 }
 
