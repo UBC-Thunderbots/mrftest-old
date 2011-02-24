@@ -54,7 +54,7 @@ namespace AI {
 						 *
 						 * \return a player to be used by this tactic
 						 */
-						virtual Player::Ptr select(const std::set<Player::Ptr> &players);
+						virtual Player::Ptr select(const std::set<Player::Ptr> &players) const;
 
 						/**
 						 * Changes the player associated with this tactic.
