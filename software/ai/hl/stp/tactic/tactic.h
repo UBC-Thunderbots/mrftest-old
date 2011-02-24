@@ -2,9 +2,6 @@
 #define AI_HL_STP_TACTIC_TACTIC_H
 
 #include "ai/hl/world.h"
-#include "ai/hl/stp/skill/skill.h"
-#include "ai/hl/stp/skill/context.h"
-#include "ai/hl/stp/ssm/ssm.h"
 #include "util/byref.h"
 #include "util/registerable.h"
 
@@ -16,27 +13,21 @@ namespace AI {
 			namespace Tactic {
 				/**
 				 * A tactic is a layer in the STP paradigm.
-				 * See STP paper section 4.1.
+				 * See STP paper section 4.1, and the wiki.
 				 *
-				 * A tactic name should be in verb form,
-				 * because it involves some kind of action.
+				 * A tactic is an action and has verb names.
 				 *
 				 * It runs every tick.
 				 * A subclass shall derive select(), execute(),
-				 * optionally initialize() and done().
+				 * optionally player_changed().
 				 *
 				 * Important tactics that deal with the ball are called active tactics.
 				 * Only one such tactic is active at any given time.
 				 * Other tactics must wait for the active tactic to finish.
 				 * An active tactic must override done().
 				 *
-				 * A tactic may choose to use the Skill layer.
-				 * To do so,
-				 * it must set a suitable Skill State Machine (SSM) every tick,
-				 * and its parameters.
-				 *
 				 * To prevent rapid fluctuation of parameters,
-				 * hysteresis is recommended.
+				 * hysteresis (thresholding) is recommended.
 				 */
 				class Tactic : public ByRef {
 					public:
@@ -63,7 +54,7 @@ namespace AI {
 						 *
 						 * \return a player to be used by this tactic
 						 */
-						virtual AI::HL::W::Player::Ptr select(const std::set<AI::HL::W::Player::Ptr> &players) const = 0;
+						virtual AI::HL::W::Player::Ptr select(const std::set<AI::HL::W::Player::Ptr> &players);
 
 						/**
 						 * Changes the player associated with this tactic.
@@ -72,27 +63,20 @@ namespace AI {
 						void set_player(AI::HL::W::Player::Ptr p);
 
 						/**
-						 * This function is called every tick,
-						 * sets things up, and call execute().
+						 * The main execution of this tactic.
+						 * This function runs every tick.
+						 * A subclass must implement this function.
 						 */
-						void tick();
+						virtual void execute() = 0;
 
 						/**
-						 * A description of this tactic, to be displayed in the UI.
-						 * For most tactics, this is just the name of the tactic.
-						 * However, some tactics may want to show more information,
-						 * such as state dependent data.
+						 * A string description of this tactic.
 						 */
 						virtual std::string description() const;
 
 					protected:
 						const AI::HL::W::World &world;
 						AI::HL::W::Player::Ptr player;
-
-						/**
-						 * The set of parameters for all skills with this tactic.
-						 */
-						AI::HL::STP::Skill::Param param;
 
 						/**
 						 * Constructor for tactic.
@@ -107,40 +91,12 @@ namespace AI {
 						~Tactic();
 
 						/**
-						 * Sets the SSM associated with this tactic.
+						 * Triggerred when the player associated changes.
 						 */
-						void set_ssm(const AI::HL::STP::SSM::SkillStateMachine *s);
-
-						/**
-						 * Called when the tactic is first used,
-						 * or when the player associated with this tactic is changed.
-						 */
-						virtual void initialize();
-
-						/**
-						 * The main execution of this tactic.
-						 * This function runs every tick.
-						 * A subclass must implement this function.
-						 */
-						virtual void execute() = 0;
-
-						/**
-						 * Indicates if the ssm associated with this tactic finished.
-						 */
-						bool ssm_done() const;
+						virtual void player_changed();
 
 					private:
 						const bool active_;
-
-						/**
-						 * Handles the skill state machine.
-						 */
-						AI::HL::STP::Skill::ContextImpl context;
-
-						/**
-						 * The SSM associated.
-						 */
-						const AI::HL::STP::SSM::SkillStateMachine *ssm;
 				};
 			}
 		}

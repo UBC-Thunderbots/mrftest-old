@@ -11,11 +11,11 @@ namespace {
 	DoubleParam lone_goalie_dist("Lone goalie distance to goal post (m)", 0.30, 0.05, 1.0);
 }
 
-void AI::HL::Tactics::chase(World &world, Player::Ptr player, const unsigned int flags) {
+void AI::HL::Tactics::chase(const World &world, Player::Ptr player, const unsigned int flags) {
 	player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
 }
 
-void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int flags, const bool force) {
+void AI::HL::Tactics::shoot(const World &world, Player::Ptr player, const unsigned int flags, const bool force) {
 	std::pair<Point, double> target = AI::HL::Util::calc_best_shot(world, player);
 
 	if (!player->has_ball()) {
@@ -41,7 +41,7 @@ void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int
 	}
 }
 
-void AI::HL::Tactics::shoot(World &world, Player::Ptr player, const unsigned int flags, const Point target, const double kick_power) {
+void AI::HL::Tactics::shoot(const World &world, Player::Ptr player, const unsigned int flags, const Point target, const double kick_power) {
 	const double ori_target = (target - player->position()).orientation();
 
 	if (!player->has_ball()) {

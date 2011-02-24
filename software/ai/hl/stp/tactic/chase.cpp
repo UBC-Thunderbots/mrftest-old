@@ -1,5 +1,5 @@
 #include "ai/hl/stp/tactic/chase.h"
-#include "ai/hl/stp/ssm/get_ball.h"
+#include "ai/hl/old/tactics.h"
 #include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
@@ -33,13 +33,13 @@ namespace {
 	void Chase::execute() {
 		// if it has the ball, stay there
 		if (player->has_ball()) {
-			set_ssm(0);
 			player->move(player->position(), player->orientation(), 0, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
 			return;
 		}
 
 		// TODO: flags
-		set_ssm(AI::HL::STP::SSM::get_ball());
+#warning use chase SSM
+		AI::HL::Tactics::chase(world, player, 0);
 	}
 }
 

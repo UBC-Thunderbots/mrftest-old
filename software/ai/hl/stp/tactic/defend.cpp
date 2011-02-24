@@ -70,7 +70,7 @@ namespace {
 			auto waypoints = evaluate_defense<N>(world);
 			Point dest = waypoints[D];
 			// TODO: medium priority for D = 1, low for D = 2
-			player->move(dest, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, param.move_priority);
+			player->move(dest, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 		}
 }
 

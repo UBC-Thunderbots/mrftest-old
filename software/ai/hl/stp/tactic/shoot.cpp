@@ -1,5 +1,5 @@
 #include "ai/hl/stp/tactic/shoot.h"
-#include "ai/hl/stp/ssm/move_ball.h"
+#include "ai/hl/old/tactics.h"
 #include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
@@ -18,7 +18,8 @@ namespace {
 	};
 
 	bool Shoot::done() const {
-		return ssm_done();
+#warning TODO
+		return !player->has_ball();
 	}
 
 	Player::Ptr Shoot::select(const std::set<Player::Ptr> &players) const {
@@ -31,7 +32,10 @@ namespace {
 	}
 
 	void Shoot::execute() {
-		set_ssm(AI::HL::STP::SSM::move_ball());
+#warning this tactic should decide when to shoot
+#warning use shoot SSM
+		//set_ssm(AI::HL::STP::SSM::move_ball());
+		AI::HL::Tactics::shoot(world, player, 0);
 	}
 }
 

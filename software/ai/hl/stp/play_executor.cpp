@@ -150,7 +150,7 @@ void PlayExecutor::execute_tactics() {
 		if (!curr_assignment[i].is()) {
 			continue;
 		}
-		curr_tactic[i]->tick();
+		curr_tactic[i]->execute();
 	}
 }
 

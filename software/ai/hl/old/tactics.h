@@ -20,7 +20,7 @@ namespace AI {
 			/**
 			 * Chases after the ball as fast as possible.
 			 */
-			void chase(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags);
+			void chase(const AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags);
 
 			/**
 			 * If the player posses the ball,
@@ -32,7 +32,7 @@ namespace AI {
 			 * \param[in] force forces the player to shoot,
 			 * even if the goal is completely blocked.
 			 */
-			void shoot(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags, const bool force = false);
+			void shoot(const AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags, const bool force = false);
 
 			/**
 			 * If the player posses the ball,
@@ -42,7 +42,7 @@ namespace AI {
 			 *
 			 * \param[in] target the location to shoot the ball to.
 			 */
-			void shoot(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags, const Point target, const double kick_power = 10.0);
+			void shoot(const AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags, const Point target, const double kick_power = 10.0);
 
 			/**
 			 * I can't think of a good name for this function.

@@ -9,18 +9,6 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Tactic {
-				class Patrol : public Tactic {
-					public:
-						Patrol(AI::HL::W::World &world, Coordinate w1, Coordinate w2);
-
-						double score(AI::HL::W::Player::Ptr player) const;
-
-						void execute();
-
-					protected:
-						Coordinate p1, p2;
-						bool goto_target1;
-				};
 			}
 		}
 	}
