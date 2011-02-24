@@ -68,7 +68,7 @@ namespace {
 		// GOALIE
 		goalie_role.push_back(defend_duo_goalie(world));
 
-		// TODO: better passer and passee positioning and targeting
+#warning BROKEN, need proper passer and passee positioning and targeting
 
 		// ROLE 1
 		// passer
