@@ -10,7 +10,7 @@ namespace AI {
 				/**
 				 * Used for single goalie with NO defenders.
 				 */
-				Tactic::Ptr defend_solo_goalie(const AI::HL::W::World &world);
+				Tactic::Ptr defend_solo_goalie(const World &world);
 			}
 		}
 	}

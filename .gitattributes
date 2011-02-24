@@ -227,8 +227,8 @@ software/ai/hl/stp/tactic/offend.cpp -text
 software/ai/hl/stp/tactic/offend.h -text
 software/ai/hl/stp/tactic/pass.cpp -text
 software/ai/hl/stp/tactic/pass.h -text
-software/ai/hl/stp/tactic/patrol.cpp -text
-software/ai/hl/stp/tactic/patrol.h -text
+software/ai/hl/stp/tactic/penalty_goalie.cpp -text
+software/ai/hl/stp/tactic/penalty_goalie.h -text
 software/ai/hl/stp/tactic/ram.cpp -text
 software/ai/hl/stp/tactic/ram.h -text
 software/ai/hl/stp/tactic/repel.cpp -text

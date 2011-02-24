@@ -10,7 +10,7 @@ namespace AI {
 				/**
 				 * Go to good offensive position to park robots.
 				 */
-				Tactic::Ptr offend(const AI::HL::W::World &world);
+				Tactic::Ptr offend(const World &world);
 			}
 		}
 	}
