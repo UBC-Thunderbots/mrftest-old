@@ -1,3 +1,4 @@
+#include "error_reporting.h"
 #include "usb.h"
 #include "usb_internal.h"
 #include <pic18fregs.h>
@@ -53,7 +54,8 @@ void usb_lowlevel_init(void) {
 	UEP14 = 0x08;
 	UEP15 = 0x08;
 
-	UEIE = 0;
+	UEIR = 0;
+	UEIE = 0b10011111;
 
 	UIE = 0;
 #if USB_CONFIG_SOF_CALLBACK
@@ -62,6 +64,8 @@ void usb_lowlevel_init(void) {
 	UIEbits.IDLEIE = 1;
 	UIEbits.ACTVIE = 1;
 	UIEbits.URSTIE = 1;
+	UIEbits.UERRIE = 1;
+	UIEbits.STALLIE = 1;
 
 	UCONbits.USBEN = 1;
 
@@ -150,6 +154,29 @@ SIGHANDLER(usb_process) {
 				Nop();
 				Nop();
 			}
+		} else if (UIRbits.UERRIF) {
+			if (UEIRbits.BTSEF) {
+				error_reporting_add(FAULT_BTSEF);
+			}
+			if (UEIRbits.BTOEF) {
+				error_reporting_add(FAULT_BTOEF);
+			}
+			if (UEIRbits.DFN8EF) {
+				error_reporting_add(FAULT_DFN8EF);
+			}
+			if (UEIRbits.CRC16EF) {
+				error_reporting_add(FAULT_CRC16EF);
+			}
+			if (UEIRbits.CRC5EF) {
+				error_reporting_add(FAULT_CRC5EF);
+			}
+			if (UEIRbits.PIDEF) {
+				error_reporting_add(FAULT_PIDEF);
+			}
+			UEIR = 0;
+		} else if (UIRbits.STALLIF) {
+			error_reporting_add(FAULT_STALL);
+			UIRbits.STALLIF = 0;
 		}
 	}
 
