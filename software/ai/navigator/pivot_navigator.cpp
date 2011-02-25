@@ -1,6 +1,7 @@
 #include "ai/navigator/navigator.h"
 #include "util/time.h"
 #include "geom/angle.h"
+#include "uicomponents/param.h"
 #include <cmath>
 
 using AI::Nav::Navigator;
@@ -56,6 +57,10 @@ namespace {
 	Navigator::Ptr PivotNavigatorFactory::create_navigator(World &world) const {
 		return PivotNavigator::create(world);
 	}
+	
+	DoubleParam offset_angle("Pivot Navigator: offset angle", 80.0, -1000.0, 1000.0);
+	DoubleParam offset_distance("Pivot Navigator: offset distance", 0.1, -1000.0, 10.0);
+	DoubleParam orientation_offset("Pivot Navigator: orientation offset", 30.0, -1000.0, 1000.0);
 
 	void PivotNavigator::tick() {
 		FriendlyTeam &fteam = world.friendly_team();
@@ -73,18 +78,18 @@ namespace {
 			currentOrientation = player->orientation();
 
 			// tunable magic numbers BEWARE!!!
-			double offset_angle = 60.0;
-			double offset_distance = 0.5;
-			double orientation_offset = 100.0;
+			//double offset_angle = 80.0;
+			//double offset_distance = 0.1;
+			//double orientation_offset = 30.0;
 
 			Point diff = (world.ball().position() - currentPosition);
 
-			if (diff.len() < 1.0 && player->velocity().len() < 0.3 && angle_diff((world.ball().position() - currentPosition).orientation(), player->orientation()) < 0.2) {
-				destinationPosition = player->position() + Point(offset_distance * std::cos(player->orientation() - offset_angle * M_PI / 180.0), offset_distance * std::sin(player->orientation() - offset_angle * M_PI / 180.0)) + diff;
+			if ((diff.len() < 0.3 && diff.len() > 0.1) && player->velocity().len() < 0.3 && angle_diff((world.ball().position() - currentPosition).orientation(), player->orientation()) < 1.2) {
+				destinationPosition = player->position() + Point(offset_distance * std::cos(player->orientation() - offset_angle * M_PI / 180.0), offset_distance * std::sin(player->orientation() - offset_angle * M_PI / 180.0));
 				destinationOrientation = player->orientation() + orientation_offset * M_PI / 180.0;
 				path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
 			} else {
-				destinationPosition = world.ball().position() - 0.3 * (diff / diff.len());
+				destinationPosition = world.ball().position() - 0.2 * (diff / diff.len());
 				destinationOrientation = (world.ball().position() - currentPosition).orientation();
 
 				path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
