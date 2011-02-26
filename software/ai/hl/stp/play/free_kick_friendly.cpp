@@ -29,6 +29,7 @@ namespace {
 			~FreeKickFriendly();
 
 		private:
+			bool invariant() const;
 			bool applicable() const;
 			bool done() const;
 			bool fail() const;
@@ -48,15 +49,21 @@ namespace {
 	FreeKickFriendly::~FreeKickFriendly() {
 	}
 
-	bool FreeKickFriendly::applicable() const {
+	bool FreeKickFriendly::invariant() const {
 		return (Predicates::playtype(world, PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 1);
 	}
 
+	bool FreeKickFriendly::applicable() const {
+		return true;
+	}
+
 	bool FreeKickFriendly::done() const {
-		return !(Predicates::playtype(world, PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) ;
+#warning TODO
+		return false;
 	}
 
 	bool FreeKickFriendly::fail() const {
+#warning TODO
 		return false;
 	}
 

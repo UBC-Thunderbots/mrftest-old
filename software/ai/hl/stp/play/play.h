@@ -28,6 +28,12 @@ namespace AI {
 						typedef RefPtr<Play> Ptr;
 
 						/**
+						 * A condition that must hold for this play to be used.
+						 * This is a convenience function to hold common predicates shared by applicable(), done() and fail().
+						 */
+						virtual bool invariant() const;
+
+						/**
 						 * Checks if this play is applicable.
 						 * A subclass must implement this function.
 						 * Be reminded that you have to check the playtype.

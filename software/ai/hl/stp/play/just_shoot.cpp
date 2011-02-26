@@ -27,6 +27,7 @@ namespace {
 			~JustShoot();
 
 		private:
+			bool invariant() const;
 			bool applicable() const;
 			bool done() const;
 			bool fail() const;
@@ -46,8 +47,12 @@ namespace {
 	JustShoot::~JustShoot() {
 	}
 
+	bool JustShoot::invariant() const {
+		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3);
+	}
+
 	bool JustShoot::applicable() const {
-		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && Predicates::our_ball(world);
+		return Predicates::our_ball(world);
 	}
 
 	bool JustShoot::done() const {

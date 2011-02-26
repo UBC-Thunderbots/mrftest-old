@@ -36,7 +36,7 @@ void PlayExecutor::calc_play() {
 	// find a valid play
 	std::random_shuffle(plays.begin(), plays.end());
 	for (std::size_t i = 0; i < plays.size(); ++i) {
-		if (plays[i]->applicable()) {
+		if (plays[i]->invariant() && plays[i]->applicable()) {
 			curr_play = plays[i];
 			curr_role_step = 0;
 			for (std::size_t j = 0; j < 5; ++j) {
@@ -161,7 +161,7 @@ void PlayExecutor::tick() {
 	}
 
 	// check if curr play wants to continue
-	if (curr_play.is() && (curr_play->done() || curr_play->fail())) {
+	if (curr_play.is() && (!curr_play->invariant() || curr_play->done() || curr_play->fail())) {
 		reset();
 	}
 

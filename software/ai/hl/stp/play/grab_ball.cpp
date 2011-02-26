@@ -27,6 +27,7 @@ namespace {
 			~GrabBall();
 
 		private:
+			bool invariant() const;
 			bool applicable() const;
 			bool done() const;
 			bool fail() const;
@@ -46,8 +47,12 @@ namespace {
 	GrabBall::~GrabBall() {
 	}
 
+	bool GrabBall::invariant() const {
+		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3);
+	}
+
 	bool GrabBall::applicable() const {
-		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && Predicates::none_ball(world);
+		return Predicates::none_ball(world);
 	}
 
 	bool GrabBall::done() const {

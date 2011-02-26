@@ -14,3 +14,7 @@ Play::~Play() {
 PlayFactory::PlayFactory(const char *name) : Registerable<PlayFactory>(name) {
 }
 
+bool Play::invariant() const {
+	return true;
+}
+
