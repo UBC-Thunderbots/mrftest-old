@@ -36,6 +36,10 @@ namespace AI {
 				bool ball_on_our_side(const AI::HL::W::World &world);
 
 				bool ball_on_their_side(const AI::HL::W::World &world);
+				
+				bool ball_in_our_corner(const AI::HL::W::World &world);
+				
+				bool ball_in_their_corner(const AI::HL::W::World &world);
 			}
 		}
 	}

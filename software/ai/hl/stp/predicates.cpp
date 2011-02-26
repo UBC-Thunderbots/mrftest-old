@@ -64,3 +64,11 @@ bool AI::HL::STP::Predicates::ball_on_their_side(const World &world) {
 	return world.ball().position().x > 0;
 }
 
+bool AI::HL::STP::Predicates::ball_in_our_corner(const World &world) {
+	return world.ball().position().x <= -world.field().length()/4 && std::abs(world.ball().position().y) > world.field().goal_width();
+}
+
+bool AI::HL::STP::Predicates::ball_in_their_corner(const World &world) {
+	return world.ball().position().x >= world.field().length()/4 && std::abs(world.ball().position().y) > world.field().goal_width();
+}
+
