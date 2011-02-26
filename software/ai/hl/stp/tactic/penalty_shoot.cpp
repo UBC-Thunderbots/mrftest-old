@@ -18,8 +18,7 @@ namespace {
 	};
 
 	bool PenaltyShoot::done() const {
-#warning TODO
-		return !player->has_ball();
+		return false;
 	}
 
 	Player::Ptr PenaltyShoot::select(const std::set<Player::Ptr> &players) const {
@@ -32,10 +31,35 @@ namespace {
 	}
 
 	void PenaltyShoot::execute() {
-#warning this tactic should decide when to shoot
-#warning use shoot SSM
-		//set_ssm(AI::HL::STP::SSM::move_ball());
-		AI::HL::STP::Actions::shoot(world, player, 0);
+		// Find the Enemy Goalie by dist to enemy goal
+		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+		if (enemies.size() > 1) {
+			std::sort(enemies.begin() + 1, enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().enemy_goal()));
+		}
+		Robot::Ptr enemy_goalie = enemies[0];
+		
+		Point goal_pos[2] = {
+			Point(world.field().length() / 2, world.field().goal_width() - AI::HL::Util::POS_CLOSE),
+			Point(world.field().length() / 2, -world.field().goal_width() - AI::HL::Util::POS_CLOSE)
+		};
+		
+		double thres_dist = 0.5*Robot::MAX_RADIUS;
+		
+		Point thres_pos[2] = {
+			Point(world.field().length() / 2, world.field().goal_width() / 3),
+			Point(world.field().length() / 2, -world.field().goal_width() / 3)
+		};
+
+		if ((enemy_goalie->position()-thres_pos[0]).len() > thres_dist || (enemy_goalie->position()-thres_pos[1]).len() > thres_dist) {		
+			if ((enemy_goalie->position()-goal_pos[0]).len() > (enemy_goalie->position()-goal_pos[1]).len()) {
+				AI::HL::STP::Actions::shoot(world, player, AI::Flags::FLAG_CLIP_PLAY_AREA, goal_pos[0], 10.0);
+			} else {
+				AI::HL::STP::Actions::shoot(world, player, AI::Flags::FLAG_CLIP_PLAY_AREA, goal_pos[1], 10.0);
+			}
+		} else {
+			AI::HL::STP::Actions::shoot(world, player, AI::Flags::FLAG_CLIP_PLAY_AREA, goal_pos[0], 10.0);
+		}
+				
 	}
 }
 
