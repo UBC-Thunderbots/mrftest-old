@@ -54,7 +54,7 @@ namespace {
 	}
 
 	bool PassOffensive::applicable() const {
-		return Predicates::our_ball(world);
+		return Predicates::our_ball(world) && Predicates::ball_midfield(world);
 	}
 
 	bool PassOffensive::done() const {

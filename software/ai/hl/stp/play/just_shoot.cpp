@@ -52,7 +52,7 @@ namespace {
 	}
 
 	bool JustShoot::applicable() const {
-		return Predicates::our_ball(world);
+		return Predicates::our_ball(world) && Predicates::ball_midfield(world);
 	}
 
 	bool JustShoot::done() const {
