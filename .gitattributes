@@ -176,6 +176,8 @@ software/ai/hl/old/strategy.h -text
 software/ai/hl/old/tactics.cpp -text
 software/ai/hl/old/tactics.h -text
 software/ai/hl/old/test_strategy.cpp -text
+software/ai/hl/stp/action/actions.cpp -text
+software/ai/hl/stp/action/actions.h -text
 software/ai/hl/stp/coordinate.cpp -text
 software/ai/hl/stp/coordinate.h -text
 software/ai/hl/stp/enemy.cpp -text
