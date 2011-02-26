@@ -74,7 +74,6 @@ namespace {
 		
 		// ROLE 1
 		// try to grab ball
-		roles[0].push_back(chase(world));
 		roles[0].push_back(repel(world));
 
 		// ROLE 2
