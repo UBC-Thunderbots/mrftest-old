@@ -36,7 +36,7 @@ namespace {
 			const PlayFactory &factory() const;
 	};
 
-	PlayFactoryImpl<DefensiveBlock> factory_instance("Simple Defend");
+	PlayFactoryImpl<DefensiveBlock> factory_instance("Defensive Block");
 
 	const PlayFactory &DefensiveBlock::factory() const {
 		return factory_instance;
@@ -75,16 +75,16 @@ namespace {
 		roles[0].push_back(defend_duo_defender(world));
 
 		// ROLE 2
-		// defend
-		roles[1].push_back(defend_duo_extra(world));
-
-		// ROLE 3
 		// chase the ball!
-		roles[2].push_back(chase(world));
+		roles[1].push_back(chase(world));
+
+		// ROLE 3 (optional)
+		// defend
+		roles[2].push_back(defend_duo_extra(world));
 
 		// ROLE 4 (optional)
-		// extra defense
-		roles[3].push_back(defend_duo_extra(world));
+		// offend
+		roles[3].push_back(offend(world));
 	}
 }
 

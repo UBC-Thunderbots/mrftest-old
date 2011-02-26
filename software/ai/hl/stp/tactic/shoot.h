@@ -2,6 +2,7 @@
 #define AI_HL_STP_TACTIC_SHOOT_H
 
 #include "ai/hl/stp/tactic/tactic.h"
+#include "ai/hl/stp/coordinate.h"
 
 namespace AI {
 	namespace HL {
@@ -10,12 +11,12 @@ namespace AI {
 				/**
 				 * Shoot for the enemy goal.
 				 */
-				Tactic::Ptr shoot(const AI::HL::W::World &world);
+				Tactic::Ptr shoot(const World &world);
 
 				/**
 				 * Shoot a specified target.
 				 */
-				Tactic::Ptr shoot(const AI::HL::W::World &world, const Point target);
+				Tactic::Ptr shoot(const World &world, const Coordinate target);
 			}
 		}
 	}
