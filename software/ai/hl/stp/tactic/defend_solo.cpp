@@ -1,5 +1,5 @@
 #include "ai/hl/stp/tactic/defend_solo.h"
-#include "ai/hl/old/tactics.h"
+#include "ai/hl/stp/action/actions.h"
 #include "ai/hl/util.h"
 #include <cassert>
 
@@ -24,7 +24,7 @@ namespace {
 
 	void SoloGoalie::execute() {
 #warning use goalie SSM
-		AI::HL::Tactics::lone_goalie(world, player);
+		AI::HL::STP::Actions::lone_goalie(world, player);
 	}
 }
 

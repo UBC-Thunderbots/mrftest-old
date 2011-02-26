@@ -1,5 +1,5 @@
 #include "ai/hl/stp/tactic/chase.h"
-#include "ai/hl/old/tactics.h"
+#include "ai/hl/stp/action/actions.h"
 #include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
@@ -39,7 +39,7 @@ namespace {
 
 		// TODO: flags
 #warning use chase SSM
-		AI::HL::Tactics::chase(world, player, 0);
+		AI::HL::STP::Actions::chase(world, player, 0);
 	}
 }
 

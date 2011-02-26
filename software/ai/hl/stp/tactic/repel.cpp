@@ -1,5 +1,5 @@
 #include "ai/hl/stp/tactic/repel.h"
-#include "ai/hl/old/tactics.h"
+#include "ai/hl/stp/action/actions.h"
 #include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
@@ -23,7 +23,7 @@ namespace {
 	void Repel::execute() {
 		// TODO: use proper skill
 		// use bump to goal or drive to goal with move type RAM_BALL?
-		AI::HL::Tactics::repel(world, player, 0);
+		AI::HL::STP::Actions::repel(world, player, 0);
 	}
 }
 
