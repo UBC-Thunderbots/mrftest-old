@@ -28,6 +28,7 @@ namespace {
 			~DefensiveBlock();
 
 		private:
+			bool invariant() const;
 			bool applicable() const;
 			bool done() const;
 			bool fail() const;
@@ -47,8 +48,12 @@ namespace {
 	DefensiveBlock::~DefensiveBlock() {
 	}
 
+	bool DefensiveBlock::invariant() const {
+		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3);
+	}
+
 	bool DefensiveBlock::applicable() const {
-		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && Predicates::their_ball(world);
+		return Predicates::their_ball(world);
 	}
 
 	bool DefensiveBlock::done() const {
@@ -56,7 +61,7 @@ namespace {
 	}
 
 	bool DefensiveBlock::fail() const {
-		return !Predicates::playtype(world, PlayType::PLAY);
+		return false;
 	}
 
 	void DefensiveBlock::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
