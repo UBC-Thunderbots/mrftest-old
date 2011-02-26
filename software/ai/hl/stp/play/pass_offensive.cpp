@@ -78,10 +78,12 @@ namespace {
 		// ROLE 1
 		// passer
 		roles[0].push_back(passer_ready(world, friendly.get(1)->position(), friendly.get(2)->position()));
+		roles[0].push_back(passer_shoot(world, friendly.get(1)->position(), friendly.get(2)->position()));
 
 		// ROLE 2
 		// passee
 		roles[1].push_back(passee_ready(world, world.ball().position()));
+		roles[1].push_back(passee_receive(world, world.ball().position()));
 		roles[1].push_back(shoot(world));
 
 		// ROLE 3
