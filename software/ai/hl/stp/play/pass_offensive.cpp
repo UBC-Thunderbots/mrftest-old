@@ -29,6 +29,7 @@ namespace {
 			~PassOffensive();
 
 		private:
+			bool invariant() const;
 			bool applicable() const;
 			bool done() const;
 			bool fail() const;
@@ -48,8 +49,12 @@ namespace {
 	PassOffensive::~PassOffensive() {
 	}
 
+	bool PassOffensive::invariant() const {
+		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 4);
+	}
+
 	bool PassOffensive::applicable() const {
-		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 4) && Predicates::our_ball(world);
+		return Predicates::our_ball(world);
 	}
 
 	bool PassOffensive::done() const {

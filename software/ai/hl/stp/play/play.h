@@ -28,15 +28,18 @@ namespace AI {
 						typedef RefPtr<Play> Ptr;
 
 						/**
-						 * A condition that must hold for this play to be used.
-						 * This is a convenience function to hold common predicates shared by applicable(), done() and fail().
+						 * A condition that must hold ALL THE TIME,
+						 * for this play to be considered and run.
+						 *
+						 * This is the ideal place to put conditions about playtype and team size.
 						 */
 						virtual bool invariant() const;
 
 						/**
-						 * Checks if this play is applicable.
-						 * A subclass must implement this function.
-						 * Be reminded that you have to check the playtype.
+						 * For a play to be considered applicable() and invariant() must be true.
+						 * This is only used once;
+						 * after a play runs,
+						 * applicable() is no longer called.
 						 */
 						virtual bool applicable() const = 0;
 
