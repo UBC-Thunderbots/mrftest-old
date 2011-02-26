@@ -19,11 +19,11 @@ namespace {
 
 	class ClosestFriendlyGoal : public Enemy {
 		public:
-			ClosestFriendlyGoal(World &w, unsigned int i) : world(w), index(i) {
+			ClosestFriendlyGoal(const World &w, unsigned int i) : world(w), index(i) {
 			}
 
 		private:
-			World &world;
+			const World &world;
 			unsigned int index;
 			Robot::Ptr evaluate() const {
 				if (world.enemy_team().size() <= index) {
@@ -42,11 +42,11 @@ namespace {
 
 	class ClosestBall : public Enemy {
 		public:
-			ClosestBall(World &w, unsigned int i) : world(w), index(i) {
+			ClosestBall(const World &w, unsigned int i) : world(w), index(i) {
 			}
 
 		private:
-			World &world;
+			const World &world;
 			unsigned int index;
 			Robot::Ptr evaluate() const {
 				if (world.enemy_team().size() <= index) {
@@ -64,7 +64,7 @@ namespace {
 	};
 };
 
-Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_goal(World &world, unsigned int i) {
+Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_goal(const World &world, unsigned int i) {
 	Enemy::Ptr p(new ClosestFriendlyGoal(world, i));
 	return p;
 }
@@ -76,7 +76,7 @@ Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_goal(World &world, unsigned int 
    }
  */
 
-Enemy::Ptr AI::HL::STP::Enemy::closest_ball(World &world, unsigned int i) {
+Enemy::Ptr AI::HL::STP::Enemy::closest_ball(const World &world, unsigned int i) {
 	Enemy::Ptr p(new ClosestBall(world, i));
 	return p;
 }
