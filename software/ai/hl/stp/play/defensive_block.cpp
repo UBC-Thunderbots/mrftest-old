@@ -71,7 +71,7 @@ namespace {
 
 		// ROLE 2
 		// defend
-		roles[1].push_back(defend_duo_defender(world));
+		roles[1].push_back(defend_duo_extra(world));
 
 		// ROLE 3
 		// chase the ball!

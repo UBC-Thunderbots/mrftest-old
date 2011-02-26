@@ -49,7 +49,7 @@ namespace {
 	}
 
 	bool FreeKickEnemy::applicable() const {
-		return (Predicates::playtype(world, PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) || Predicates::playtype(world, PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY)) && Predicates::our_team_size_at_least(world, 1);
+		return (Predicates::playtype(world, PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) || Predicates::playtype(world, PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY)) && Predicates::our_team_size_at_least(world, 2);
 	}
 
 	bool FreeKickEnemy::done() const {
@@ -71,7 +71,7 @@ namespace {
 		
 		// ROLE 2
 		// defend
-		roles[1].push_back(defend_duo_defender(world));
+		roles[1].push_back(defend_duo_extra(world));
 		
 		// ROLE 3
 		// offend
