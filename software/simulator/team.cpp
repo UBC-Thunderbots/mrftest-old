@@ -212,8 +212,8 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet) {
 		{
 			Point p(packet.drag.x, packet.drag.y);
 			sim.engine->get_ball()->position(invert ? -p : p);
-		}
 			return;
+		}
 
 		case Proto::A2S_PACKET_DRAG_PLAYER:
 		{
@@ -230,8 +230,8 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet) {
 				close_connection();
 				return;
 			}
-		}
 			return;
+		}
 	}
 
 	std::cout << "AI sent bad packet type\n";
