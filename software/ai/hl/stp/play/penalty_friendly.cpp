@@ -50,7 +50,7 @@ namespace {
 	}
 
 	bool PenaltyFriendly::applicable() const {
-		return Predicates::playtype(world, PlayType::PREPARE_PENALTY_FRIENDLY) && Predicates::our_team_size_at_least(world, 1);
+		return Predicates::playtype(world, PlayType::PREPARE_PENALTY_FRIENDLY) && Predicates::our_team_size_at_least(world, 2);
 	}
 
 	bool PenaltyFriendly::done() const {

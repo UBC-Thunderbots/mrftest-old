@@ -62,12 +62,6 @@ namespace AI {
 				 * Blocks against a single enemy from shooting.
 				 */
 				void block(World &world, Player::Ptr player, const unsigned int flags, Robot::Ptr robot);
-
-				/**
-				 * Passer shoots ball to passee.
-				 * Checks if passer has ball and passee can receive ball.
-				 */
-				void pass(World &world, Player::Ptr passer, Player::Ptr passee, const unsigned int flags);
 			}
 		}
 	}
