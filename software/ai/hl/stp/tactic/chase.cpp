@@ -1,6 +1,6 @@
 #include "ai/hl/stp/tactic/chase.h"
 #include "ai/hl/stp/action/actions.h"
-#include "ai/hl/util.h"
+#include "ai/hl/stp/tactic/util.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -22,12 +22,7 @@ namespace {
 	}
 
 	Player::Ptr Chase::select(const std::set<Player::Ptr> &players) const {
-		for (auto it = players.begin(); it != players.end(); ++it) {
-			if ((*it)->has_ball()) {
-				return *it;
-			}
-		}
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+		return select_baller(world, players);
 	}
 
 	void Chase::execute() {

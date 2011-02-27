@@ -10,6 +10,7 @@ namespace AI {
 				/**
 				 * Finds a way to get the ball,
 				 * either through chasing or stealing.
+				 * Active tactic.
 				 */
 				Tactic::Ptr chase(const World &world);
 			}

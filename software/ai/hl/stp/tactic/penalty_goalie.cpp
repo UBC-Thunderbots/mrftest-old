@@ -23,8 +23,8 @@ namespace {
 	}
 
 	bool PenaltyGoalie::done() const {
-		return world.playtype() != PlayType::PREPARE_PENALTY_ENEMY
-			&& world.playtype() != PlayType::EXECUTE_PENALTY_ENEMY;
+		// it's never done!
+		return false;
 	}
 
 	void PenaltyGoalie::execute() {
@@ -37,13 +37,15 @@ namespace {
 			goto_target1 = true;
 		}
 
-		// just orient towards the "front"
-
+		Point target;
 		if (goto_target1) {
-			player->move(p1, 0, 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+			target = p1;
 		} else {
-			player->move(p2, 0, 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+			target = p2;
 		}
+
+		// just orient towards the "front"
+		player->move(target, 0, 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
 	}
 }
 

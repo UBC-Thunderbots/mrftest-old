@@ -39,7 +39,7 @@ namespace {
 			// hence the enemy goalie is the robot closest to enemy goal post
 			std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
 
-			Robot::Ptr enemy_goalie = *std::min_element(enemies.begin() + 1, enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().enemy_goal()));
+			Robot::Ptr enemy_goalie = *std::min_element(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().enemy_goal()));
 
 			// a hysteresis
 			const double target_y = world.field().goal_width() * 3 / 4;
