@@ -59,12 +59,6 @@ namespace AI {
 					std::vector<Play::Play::Ptr> plays;
 
 					/**
-					 * When something bad happens,
-					 * resets the current play.
-					 */
-					void reset();
-
-					/**
 					 * Calculates a NEW play to be used.
 					 */
 					void calc_play();
@@ -80,10 +74,6 @@ namespace AI {
 					 * Dynamically run tactic to play assignment.
 					 */
 					void role_assignment();
-
-				private:
-					void on_player_added(std::size_t);
-					void on_player_removed();
 			};
 		};
 	}

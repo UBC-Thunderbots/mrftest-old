@@ -17,19 +17,12 @@ namespace {
 }
 
 PlayExecutor::PlayExecutor(AI::HL::W::World &w) : world(w) {
-	world.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &PlayExecutor::on_player_added));
-	world.friendly_team().signal_robot_removed().connect(sigc::mem_fun(this, &PlayExecutor::on_player_removed));
-
 	// initialize all plays
 	const PlayFactory::Map &m = PlayFactory::all();
 	assert(m.size() != 0);
 	for (PlayFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 		plays.push_back(i->second->create(world));
 	}
-}
-
-void PlayExecutor::reset() {
-	curr_play.reset();
 }
 
 void PlayExecutor::calc_play() {
@@ -109,7 +102,7 @@ void PlayExecutor::role_assignment() {
 	// can't assign active tactic to anyone
 	if (!active_assigned) {
 		LOG_ERROR("Active tactic not assigned");
-		reset();
+		curr_play.reset();
 		return;
 	}
 }
@@ -135,7 +128,7 @@ void PlayExecutor::execute_tactics() {
 			// when the play runs out of tactics, they are done!
 			if (curr_role_step >= max_role_step) {
 				LOG_INFO("Play done");
-				reset();
+				curr_play.reset();
 				return;
 			}
 
@@ -155,14 +148,15 @@ void PlayExecutor::execute_tactics() {
 }
 
 void PlayExecutor::tick() {
+	// override halt completely
 	if (world.friendly_team().size() == 0 || world.playtype() == PlayType::HALT) {
-		reset();
+		curr_play.reset();
 		return;
 	}
 
 	// check if curr play wants to continue
 	if (curr_play.is() && (!curr_play->invariant() || curr_play->done() || curr_play->fail())) {
-		reset();
+		curr_play.reset();
 	}
 
 	// check if curr is valid
@@ -175,13 +169,5 @@ void PlayExecutor::tick() {
 	}
 
 	execute_tactics();
-}
-
-void PlayExecutor::on_player_added(std::size_t) {
-	reset();
-}
-
-void PlayExecutor::on_player_removed() {
-	reset();
 }
 
