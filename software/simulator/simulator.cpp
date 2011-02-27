@@ -112,10 +112,14 @@ bool Simulator::Simulator::on_ai_connecting(Glib::IOCondition) {
 	FileDescriptor::Ptr sock = FileDescriptor::create_from_fd(raw_fd);
 	raw_fd = -1;
 
-	// Allow credentials to be received over this socket.
-	const int yes = 1;
-	if (setsockopt(sock->fd(), SOL_SOCKET, SO_PASSCRED, &yes, sizeof(yes)) < 0) {
-		throw SystemError("setsockopt", errno);
+	// Check the peer's credentials.
+	ucred creds;
+	socklen_t creds_len = sizeof(creds);
+	if (getsockopt(sock->fd(), SOL_SOCKET, SO_PEERCRED, &creds, &creds_len) < 0) {
+		throw SystemError("getsockopt", errno);
+	}
+	if (creds.uid != getuid() && creds.uid != 0) {
+		throw std::runtime_error("Error on simulator socket: User ID of simulator does not match user ID of AI process");
 	}
 
 	// Make the socket blocking (individual operations can then be made non-blocking with MSG_DONTWAIT).
@@ -126,8 +130,22 @@ bool Simulator::Simulator::on_ai_connecting(Glib::IOCondition) {
 		return true;
 	}
 
-	// Signal the first packet to be handled by on_pending_ai_readable.
-	Glib::signal_io().connect(sigc::bind(sigc::mem_fun(this, &Simulator::Simulator::on_pending_ai_readable), sock), sock->fd(), Glib::IO_IN);
+	// Find a free team slot to put the AI into.
+	Team *team = 0;
+	if (!team1.has_connection()) {
+		team = &team1;
+	} else if (!team2.has_connection()) {
+		team = &team2;
+	} else {
+		std::cout << "No space for new AI\n";
+	}
+	if (team) {
+		// Get the socket ready to receive regular AI data.
+		team->add_connection(Connection::create(sock));
+
+		// Print a message.
+		std::cout << "AI connected\n";
+	}
 
 	// Continue accepting incoming connections.
 	return true;
@@ -142,89 +160,6 @@ void Simulator::Simulator::save_state(FileDescriptor::Ptr fd) const {
 	team1.save_state(fd);
 	team2.save_state(fd);
 	engine->save_state(fd);
-}
-
-bool Simulator::Simulator::on_pending_ai_readable(Glib::IOCondition, FileDescriptor::Ptr sock) {
-	// Receive the magic message from the AI, with attached credentials.
-	char databuf[std::strlen(SIMULATOR_SOCKET_MAGIC1)], cmsgbuf[cmsg_space(sizeof(ucred))];
-	iovec iov = { iov_base: databuf, iov_len: sizeof(databuf), };
-	msghdr mh = { msg_name: 0, msg_namelen: 0, msg_iov: &iov, msg_iovlen: 1, msg_control: cmsgbuf, msg_controllen: sizeof(cmsgbuf), msg_flags: 0, };
-	ssize_t bytes_read = recvmsg(sock->fd(), &mh, MSG_DONTWAIT);
-	if (bytes_read < 0) {
-		if (errno == EAGAIN || errno == EWOULDBLOCK) {
-			return true;
-		} else {
-			try {
-				throw SystemError("recvmsg", errno);
-			} catch (const SystemError &exp) {
-				std::cout << "Error on pending socket: " << exp.what() << '\n';
-			}
-			return false;
-		}
-	}
-	if (!bytes_read) {
-		return false;
-	}
-	if (bytes_read != std::strlen(SIMULATOR_SOCKET_MAGIC1) || (mh.msg_flags & MSG_TRUNC) || std::memcmp(databuf, SIMULATOR_SOCKET_MAGIC1, std::strlen(SIMULATOR_SOCKET_MAGIC1)) != 0) {
-		std::cout << "Signature error on pending socket; are you running the same version of the simulator and the AI?\n";
-		return false;
-	}
-	cmsghdr *ch = cmsg_firsthdr(&mh);
-	if (!ch || ch->cmsg_level != SOL_SOCKET || ch->cmsg_type != SCM_CREDENTIALS) {
-		std::cout << "Error on pending socket: No credentials transmitted\n";
-		return false;
-	}
-	ucred creds;
-	std::memcpy(&creds, cmsg_data(ch), sizeof(creds));
-	if (creds.uid != getuid()) {
-		std::cout << "Error on pending socket: User ID of AI process does not match user ID of simulator\n";
-		return false;
-	}
-
-	// Find a free team slot to put the AI into.
-	Team *team;
-	if (!team1.has_connection()) {
-		team = &team1;
-	} else if (!team2.has_connection()) {
-		team = &team2;
-	} else {
-		std::cout << "No space for new AI\n";
-		return false;
-	}
-
-	// Send back the response magic packet with our own credentials attached.
-	iov.iov_base = const_cast<char *>(SIMULATOR_SOCKET_MAGIC2);
-	iov.iov_len = std::strlen(SIMULATOR_SOCKET_MAGIC2);
-	mh.msg_iov = &iov;
-	mh.msg_iovlen = 1;
-	mh.msg_control = cmsgbuf;
-	mh.msg_controllen = sizeof(cmsgbuf);
-	ch = cmsg_firsthdr(&mh);
-	ch->cmsg_level = SOL_SOCKET;
-	ch->cmsg_type = SCM_CREDENTIALS;
-	ch->cmsg_len = cmsg_len(sizeof(ucred));
-	creds.pid = getpid();
-	creds.uid = getuid();
-	creds.gid = getgid();
-	std::memcpy(cmsg_data(ch), &creds, sizeof(creds));
-	mh.msg_flags = 0;
-	if (sendmsg(sock->fd(), &mh, MSG_EOR | MSG_NOSIGNAL) < 0) {
-		try {
-			throw SystemError("sendmsg", errno);
-		} catch (const SystemError &exp) {
-			std::cout << "Error on AI socket: " << exp.what() << '\n';
-		}
-		return false;
-	}
-
-	// Get the socket ready to receive regular AI data.
-	team->add_connection(Connection::create(sock));
-
-	// Print a message.
-	std::cout << "AI connected\n";
-
-	// Further packets should not come here; they will go to on_ai_readable instead.
-	return false;
 }
 
 void Simulator::Simulator::check_tick() {

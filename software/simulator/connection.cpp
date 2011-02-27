@@ -42,7 +42,7 @@ Simulator::Connection::~Connection() {
 bool Simulator::Connection::on_readable(Glib::IOCondition) {
 	Proto::A2SPacket packet;
 	iovec iov = { iov_base: &packet, iov_len: sizeof(packet), };
-	char ancillary[cmsg_space(sizeof(int)) + cmsg_space(sizeof(struct ucred))];
+	char ancillary[cmsg_space(sizeof(int))];
 	msghdr mh = { msg_name: 0, msg_namelen: 0, msg_iov: &iov, msg_iovlen: 1, msg_control: ancillary, msg_controllen: sizeof(ancillary), msg_flags: 0, };
 	ssize_t rc = recvmsg(sock->fd(), &mh, MSG_DONTWAIT);
 	if (rc < 0) {

@@ -9,16 +9,6 @@
  */
 #define SIMULATOR_SOCKET_FILENAME "thunderbots-simulator-socket"
 
-/**
- * The magic signature string which the AI sends to the simulator as its first packet after connecting.
- */
-#define SIMULATOR_SOCKET_MAGIC1 "THUNDERBOTS_AI_TO_SIMULATOR_001"
-
-/**
- * The magic signature string which the simulator sends to the AI in response to SIMULATOR_SOCKET_MAGIC1.
- */
-#define SIMULATOR_SOCKET_MAGIC2 "THUNDERBOTS_SIMULATOR_TO_AI_001"
-
 namespace Simulator {
 	namespace Proto {
 		/**

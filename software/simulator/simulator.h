@@ -149,16 +149,6 @@ namespace Simulator {
 			bool on_ai_connecting(Glib::IOCondition);
 
 			/**
-			 * Invoked when a packet arrives on a socket that has been accepted but not yet authenticated.
-			 *
-			 * \param[in] fd the file descriptor of the pending socket.
-			 *
-			 * \return \c true if the socket still needs to wait for authentication data,
-			 * or \c false if it can close or has been attached to a team.
-			 */
-			bool on_pending_ai_readable(Glib::IOCondition, FileDescriptor::Ptr fd);
-
-			/**
 			 * Checks whether it's time to run another AI tick yet.
 			 * If a team is not yet ready, does nothing and waits for the team to be ready.
 			 * If all teams are ready but the simulator is in normal-speed mode and it's not time for another tick,

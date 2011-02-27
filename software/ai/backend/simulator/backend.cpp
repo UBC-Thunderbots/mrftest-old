@@ -88,50 +88,13 @@ FileDescriptor::Ptr AI::BE::Simulator::connect_to_simulator() {
 		throw SystemError("connect", errno);
 	}
 
-	// Send the magic packet with credentials attached.
-	iovec iov = { iov_base: const_cast<char *>(SIMULATOR_SOCKET_MAGIC1), iov_len: std::strlen(SIMULATOR_SOCKET_MAGIC1), };
+	// Check the peer's credentials.
 	ucred creds;
-	creds.pid = getpid();
-	creds.uid = getuid();
-	creds.gid = getgid();
-	char cmsgbuf[4096];
-	msghdr mh = { msg_name: 0, msg_namelen: 0, msg_iov: &iov, msg_iovlen: 1, msg_control: cmsgbuf, msg_controllen: cmsg_space(sizeof(creds)), msg_flags: 0, };
-	cmsg_firsthdr(&mh)->cmsg_len = cmsg_len(sizeof(creds));
-	cmsg_firsthdr(&mh)->cmsg_level = SOL_SOCKET;
-	cmsg_firsthdr(&mh)->cmsg_type = SCM_CREDENTIALS;
-	std::memcpy(cmsg_data(cmsg_firsthdr(&mh)), &creds, sizeof(creds));
-	if (sendmsg(sock->fd(), &mh, MSG_NOSIGNAL) < 0) {
-		throw SystemError("sendmsg", errno);
+	socklen_t creds_len = sizeof(creds);
+	if (getsockopt(sock->fd(), SOL_SOCKET, SO_PEERCRED, &creds, &creds_len) < 0) {
+		throw SystemError("getsockopt", errno);
 	}
-
-	// Allow credentials to be received over this socket.
-	const int yes = 1;
-	if (setsockopt(sock->fd(), SOL_SOCKET, SO_PASSCRED, &yes, sizeof(yes)) < 0) {
-		throw SystemError("setsockopt", errno);
-	}
-
-	// Receive the magic packet with the simulator's credentials attached.
-	char databuf[4096];
-	iov.iov_base = databuf;
-	iov.iov_len = sizeof(databuf);
-	mh.msg_controllen = sizeof(cmsgbuf);
-	ssize_t rc;
-	if ((rc = recvmsg(sock->fd(), &mh, 0)) <= 0) {
-		if (rc < 0) {
-			throw SystemError("recvmsg", errno);
-		} else {
-			throw std::runtime_error("Simulator unexpectedly closed socket");
-		}
-	}
-	if (std::memcmp(databuf, SIMULATOR_SOCKET_MAGIC2, std::strlen(SIMULATOR_SOCKET_MAGIC2)) != 0) {
-		throw std::runtime_error("Signature error on simulator socket; are you running the same version of the simulator and the AI?");
-	}
-	cmsghdr *ch = cmsg_firsthdr(&mh);
-	if (!ch || ch->cmsg_level != SOL_SOCKET || ch->cmsg_type != SCM_CREDENTIALS) {
-		throw std::runtime_error("Error on simulator socket: No credentials transmitted");
-	}
-	std::memcpy(&creds, cmsg_data(ch), sizeof(creds));
-	if (creds.uid != getuid()) {
+	if (creds.uid != getuid() && creds.uid != 0) {
 		throw std::runtime_error("Error on simulator socket: User ID of simulator does not match user ID of AI process");
 	}
 
