@@ -143,7 +143,7 @@ Player::Ptr Player::create(AI::BE::Backend &backend, unsigned int pattern, XBeeR
 	return p;
 }
 
-Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), destination_(Point(), 0.0), moved(false), controlled(false), dribble_distance_(0.0), not_moved_message(Glib::ustring::compose("Bot %1 not moved", pattern), Annunciator::Message::TRIGGER_EDGE), chick_when_not_ready_message(Glib::ustring::compose("Bot %1 chick when not ready", pattern), Annunciator::Message::TRIGGER_EDGE), flags_(0), move_type_(AI::Flags::MOVE_NORMAL), move_prio_(AI::Flags::PRIO_LOW) {
+Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), destination_(Point(), 0.0), moved(false), controlled(false), dribble_distance_(0.0), chick_when_not_ready_message(Glib::ustring::compose("Bot %1 chick when not ready", pattern), Annunciator::Message::TRIGGER_EDGE), flags_(0), move_type_(AI::Flags::MOVE_NORMAL), move_prio_(AI::Flags::PRIO_LOW) {
 	timespec now;
 	timespec_now(now);
 	chicker_last_fire_time.tv_sec = 0;
@@ -159,9 +159,9 @@ void Player::drive(const int(&w)[4]) {
 }
 
 void Player::tick(bool scram) {
-	// Annunciate that we weren't moved if we have a Strategy but it never set a destination.
+	// Note that we weren't moved if we have a Strategy but it never set a destination.
 	if (bot->alive && !scram && !moved) {
-		not_moved_message.fire();
+		LOG_DEBUG(Glib::ustring::compose("Bot %1 not moved", pattern()));
 	}
 
 	// Emergency conditions that cause scram of all systems.
