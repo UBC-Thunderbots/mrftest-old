@@ -1,5 +1,6 @@
 #include "ai/hl/stp/tactic/shoot.h"
-#include "ai/hl/stp/action/actions.h"
+#include "ai/hl/stp/action/shoot.h"
+#include "ai/hl/stp/tactic/util.h"
 #include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
@@ -31,41 +32,31 @@ namespace {
 	};
 
 	bool Shoot::done() const {
-#warning TODO
+#warning tactic should control shooting
 		return !player->has_ball();
 	}
 
 	Player::Ptr Shoot::select(const std::set<Player::Ptr> &players) const {
-		for (auto it = players.begin(); it != players.end(); ++it) {
-			if ((*it)->has_ball()) {
-				return *it;
-			}
-		}
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+		return select_baller(world, players);
 	}
 
 	void Shoot::execute() {
 		//set_ssm(AI::HL::STP::SSM::move_ball());
-		AI::HL::STP::Actions::shoot(world, player, 0);
+		AI::HL::STP::Action::shoot(world, player);
 	}
 
 	bool ShootTarget::done() const {
-#warning TODO
+#warning tactic should control shooting
 		return !player->has_ball();
 	}
 
 	Player::Ptr ShootTarget::select(const std::set<Player::Ptr> &players) const {
-		for (auto it = players.begin(); it != players.end(); ++it) {
-			if ((*it)->has_ball()) {
-				return *it;
-			}
-		}
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+		return select_baller(world, players);
 	}
 
 	void ShootTarget::execute() {
 		//set_ssm(AI::HL::STP::SSM::move_ball());
-		AI::HL::STP::Actions::shoot(world, player, 0, target());
+		AI::HL::STP::Action::shoot(world, player, target());
 	}
 
 }

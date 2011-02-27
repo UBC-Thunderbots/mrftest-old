@@ -38,8 +38,7 @@ namespace {
 		}
 
 		// TODO: flags
-#warning use chase SSM
-		AI::HL::STP::Actions::chase(world, player, 0);
+		AI::HL::STP::Action::chase(world, player, 0);
 	}
 }
 

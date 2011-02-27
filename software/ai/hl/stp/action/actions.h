@@ -6,33 +6,11 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
-			namespace Actions {
+			namespace Action {
 				/**
 				 * Chases after the ball as fast as possible.
 				 */
-				void chase(const World &world, Player::Ptr player, const unsigned int flags);
-
-				/**
-				 * If the player posses the ball,
-				 * aims at an open angle at the enemy goal,
-				 * and shoots the ball.
-				 *
-				 * If the player does not have the ball, chases after it.
-				 *
-				 * \param[in] force forces the player to shoot,
-				 * even if the goal is completely blocked.
-				 */
-				void shoot(const World &world, Player::Ptr player, const unsigned int flags, const bool force = false);
-
-				/**
-				 * If the player posses the ball,
-				 * aims at the target and shoots the ball.
-				 *
-				 * If the player does not have the ball, chases after it.
-				 *
-				 * \param[in] target the location to shoot the ball to.
-				 */
-				void shoot(const World &world, Player::Ptr player, const unsigned int flags, const Point target, const double kick_power = 10.0);
+				void chase(const World &world, Player::Ptr player, const unsigned int flags = 0);
 
 				/**
 				 * I can't think of a good name for this function.

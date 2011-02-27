@@ -17,17 +17,24 @@ namespace AI {
 					 * Creates a rectangle from the two,
 					 * possibly moving independently, regions.
 					 */
-					Region(Coordinate a, Coordinate b);
+					Region(Coordinate a, Coordinate b) : r1(a), r2(b) {
+					}
 
 					/**
 					 * Creates a rectangular region of zero width and height.
 					 */
-					Region(Coordinate a);
+					Region(Coordinate a) : r1(a), r2(a) {
+					}
+
+					~Region() {
+					}
 
 					/**
 					 * Computes and returns a rectangle.
 					 */
-					Rect operator()() const;
+					Rect operator()() const {
+						return Rect(r1(), r2());
+					}
 
 				protected:
 					/**

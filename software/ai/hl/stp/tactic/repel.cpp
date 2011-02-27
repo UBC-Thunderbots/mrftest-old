@@ -33,7 +33,7 @@ namespace {
 	void Repel::execute() {
 		// TODO: use proper skill
 		// use bump to goal or drive to goal with move type RAM_BALL?
-		AI::HL::STP::Actions::repel(world, player, 0);
+		AI::HL::STP::Action::repel(world, player, 0);
 	}
 }
 

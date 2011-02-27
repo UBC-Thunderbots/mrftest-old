@@ -1,5 +1,5 @@
 #include "ai/hl/stp/tactic/penalty_shoot.h"
-#include "ai/hl/stp/action/actions.h"
+#include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
@@ -57,7 +57,7 @@ namespace {
 
 		}
 
-		AI::HL::STP::Actions::shoot(world, player, 0, target, 10.0);
+		AI::HL::STP::Action::shoot(world, player, target);
 	}
 }
 

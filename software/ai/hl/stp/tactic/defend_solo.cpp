@@ -23,8 +23,7 @@ namespace {
 	};
 
 	void SoloGoalie::execute() {
-#warning use goalie SSM
-		AI::HL::STP::Actions::lone_goalie(world, player);
+		AI::HL::STP::Action::lone_goalie(world, player);
 	}
 }
 
