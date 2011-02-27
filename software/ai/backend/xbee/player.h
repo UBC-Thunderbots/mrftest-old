@@ -102,7 +102,7 @@ namespace AI {
 					timespec chicker_last_fire_time;
 					double dribble_distance_;
 					Point last_dribble_position;
-					Annunciator::Message not_moved_message, chick_when_not_ready_message;
+					Annunciator::Message chick_when_not_ready_message;
 					int wheel_speeds_[4];
 					unsigned int flags_;
 					AI::Flags::MoveType move_type_;
