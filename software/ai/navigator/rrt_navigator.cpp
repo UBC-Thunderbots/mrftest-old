@@ -28,8 +28,9 @@ namespace {
 	const int ITERATION_LIMIT = 200;
 	const int NUM_WAYPOINTS = 50;
 
-	DoubleParam pivot_point("Pivot how far behind the ball to go for a pivot", 0.08, 0.00, 1.00);
-	DoubleParam chase_overshoot("Pivot  amount of ball overshoot for a pivot", 0.08, -0.5, 0.5);
+	DoubleParam offset_angle("RRT Pivot: offset angle (degrees)", 30.0, -1000.0, 1000.0);
+	DoubleParam offset_distance("RRT Pivot: offset distance", 0.15, -10.0, 10.0);
+	DoubleParam orientation_offset("RRT Pivot: orientation offset (degrees)", 30.0, -1000.0, 1000.0);
 
 	class Waypoints : public ObjectStore::Element {
 		public:
@@ -105,33 +106,43 @@ namespace {
 			addedFlags = 0;
 			Point dest;
 			if (player->type() == MOVE_CATCH) {
-				Point diff = world.ball().position() - player->position();
-				diff = diff.rotate(-player->orientation());
-				double ang = radians2degrees(diff.orientation());
 
-				if (ang < 0) {
-					ang = -ang;
+				// try to pivot around the ball to catch it
+				Point currentPosition = player->position();
+				double toBallOrientation = (world.ball().position() - currentPosition).orientation();
+				double orientationTemp = degrees2radians(orientation_offset);
+
+				double angle = offset_angle;
+				if (angle_mod(toBallOrientation - player->destination().second) > 0) {
+					angle = -angle;
+					orientationTemp = -orientationTemp;
 				}
 
-				if (ang < ANGLE_DIFF) {
-					// if we are facing in the correct direction go straight to the point
-					Point offset_dest = (world.ball().position() - player->position()).norm() * chase_overshoot;
-					dest = world.ball().position() + offset_dest;
+				angle = degrees2radians(angle);
+				if (fabs(angle_diff(toBallOrientation, player->destination().second)) < fabs(angle)) {
+					orientationTemp = 0;
+					if (angle < 0) {
+						angle = -fabs(angle_diff(toBallOrientation, player->destination().second));
+					} else {
+						angle = fabs(angle_diff(toBallOrientation, player->destination().second));
+					}
 
-					// move towards the ball slower so we don't hit it too far away
-					timespec timeToBall;
-					timespec_add(double_to_timespec(0.4), world.monotonic_time(), timeToBall);
-					path.push_back(std::make_pair(std::make_pair(dest, player->destination().second), timeToBall));
-					player->path(path);
-					continue;
-				} else {
-					// go to a point behind the ball if the robot isn't in the correct place to catch it
-					Point pBehindBall(player->MAX_RADIUS + Ball::RADIUS + pivot_point, 0);
-					pBehindBall = pBehindBall.rotate(player->destination().second);
-					pBehindBall = Point(world.ball().position() - pBehindBall);
-					dest = pBehindBall;
-					addedFlags = FLAG_AVOID_BALL_TINY;
+					if (player->velocity().len() < 0.2) {
+						timespec timeToBall;
+						timespec_add(double_to_timespec(0.4), world.monotonic_time(), timeToBall);
+						path.push_back(std::make_pair(std::make_pair(world.ball().position(), player->destination().second), timeToBall));
+						player->path(path);
+						continue;
+					}
 				}
+				Point diff = (world.ball().position() - currentPosition).rotate(angle);
+
+				Point destinationPosition = world.ball().position() - offset_distance * (diff / diff.len());
+				double destinationOrientation = (world.ball().position() - currentPosition).orientation() + orientationTemp;
+
+				path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
+				player->path(path);
+				continue;
 			} else if (valid_path(player->position(), player->destination().first, world, player)) {
 				// if we're not trying to catch the ball and there are no obstacles in our way then go
 				// to the exact location, skipping all of the tree creation
