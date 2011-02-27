@@ -3,6 +3,7 @@
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/stp/tactic/wait_playtype.h"
+#include "ai/hl/stp/tactic/shoot.h"
 
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::STP::Tactic;
@@ -10,6 +11,20 @@ using namespace AI::HL::W;
 namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
+
+	// the distance we want the players to the ball
+	const double AVOIDANCE_DIST = Ball::RADIUS + Robot::MAX_RADIUS + 0.005;
+
+	// in ball avoidance, angle between center of 2 robots, as seen from the ball
+	const double AVOIDANCE_ANGLE = 2.0 * std::asin(Robot::MAX_RADIUS / AVOIDANCE_DIST);
+
+	// distance for the offenders to be positioned away from the kicker
+	const double SEPERATION_DIST = 10 * Robot::MAX_RADIUS;
+
+	// hard coded positions for the kicker, and 2 offenders
+	Point kicker_position = Point(-0.5 - Ball::RADIUS - Robot::MAX_RADIUS, 0);
+	Point ready_positions[2] = { Point(-AVOIDANCE_DIST, -SEPERATION_DIST), Point(-AVOIDANCE_DIST, SEPERATION_DIST) };
+
 	/**
 	 * Condition:
 	 * - It is the execute friendly kickoff play
@@ -58,19 +73,17 @@ namespace {
 	}
 
 	void KickoffFriendly::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
-		goalie_role.push_back(defend_solo_goalie(world));
+		goalie_role.push_back(defend_duo_goalie(world));
 
-		roles[0].push_back(wait_playtype(world, move(world, Point(-1.0, 0.0)), PlayType::EXECUTE_KICKOFF_FRIENDLY));
+		roles[0].push_back(wait_playtype(world, move(world, kicker_position), PlayType::EXECUTE_KICKOFF_FRIENDLY));
+		roles[0].push_back(shoot(world));
 
-		/*
-		   roles[0].push_back();
+		roles[1].push_back(move(world, ready_positions[0]));
 
-		   roles[1].push_back();
-
-		   roles[2].push_back();
-
-		   roles[3].push_back();
-		 */
+		roles[2].push_back(move(world, ready_positions[1]));
+	
+		roles[3].push_back(defend_duo_defender(world));
+		
 	}
 }
 
