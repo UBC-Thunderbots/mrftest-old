@@ -17,6 +17,7 @@
 #include <cstring>
 #include <gtkmm.h>
 #include <stdexcept>
+#include <string>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -91,10 +92,47 @@ namespace AI {
 					Gtk::Button players_remove;
 
 					/**
+					 * The current state file name.
+					 */
+					std::string state_file_name;
+
+					/**
+					 * A label for state_file_hbox.
+					 */
+					Gtk::Label state_file_label;
+
+					/**
+					 * A display to show the currently-selected state file name.
+					 */
+					Gtk::Entry state_file_entry;
+
+					/**
+					 * A button to choose a state file.
+					 */
+					Gtk::Button state_file_button;
+
+					/**
+					 * A box to contain state_file_load_button and state_file_save_button.
+					 */
+					Gtk::HButtonBox state_file_hbox;
+
+					/**
+					 * A button to load the state file.
+					 */
+					Gtk::Button state_file_load_button;
+
+					/**
+					 * A button to save the state file.
+					 */
+					Gtk::Button state_file_save_button;
+
+					/**
 					 * Constructs a new UIControls.
 					 * The controls are not added to a window yet.
+					 *
+					 * \param[in] load_filename the initial state file name.
 					 */
-					UIControls();
+					UIControls(const std::string &load_filename);
 
 					/**
 					 * Destroys a UIControls.
@@ -116,6 +154,12 @@ namespace AI {
 					 * \param[in] row the Y coordinate at which the top edge of the first row of components should be placed in the table.
 					 */
 					void attach(Gtk::Table &t, unsigned int row);
+
+				private:
+					/**
+					 * Pops up a file chooser for the user to choose a state file.
+					 */
+					void on_state_file_button_clicked();
 			};
 
 			/**
@@ -152,8 +196,10 @@ namespace AI {
 
 					/**
 					 * Constructs a new Backend and connects to the running simulator.
+					 *
+					 * \param[in] load_filename the name of a state file to load.
 					 */
-					Backend();
+					Backend(const std::string &load_filename);
 
 					/**
 					 * Destroys a Backend.
@@ -164,8 +210,10 @@ namespace AI {
 					 * Sends a packet to the simulator.
 					 *
 					 * \param[in] packet the packet to send.
+					 *
+					 * \param[in] ancillary_fd the ancillary file descriptor to send with the message.
 					 */
-					void send_packet(const ::Simulator::Proto::A2SPacket &packet);
+					void send_packet(const ::Simulator::Proto::A2SPacket &packet, FileDescriptor::Ptr ancillary_fd = FileDescriptor::Ptr());
 
 					AI::BE::BackendFactory &factory() const;
 					const AI::BE::Simulator::Field &field() const;
@@ -273,6 +321,16 @@ namespace AI {
 					 * \return \c true if \p pattern exists, or \c false if not.
 					 */
 					bool pattern_exists(unsigned int pattern);
+
+					/**
+					 * Handles a request to load the current state file.
+					 */
+					void on_state_file_load_clicked();
+
+					/**
+					 * Handles a request to save the current state file.
+					 */
+					void on_state_file_save_clicked();
 			};
 
 			/**
@@ -290,7 +348,7 @@ namespace AI {
 					 */
 					~BackendFactory();
 
-					void create_backend(const Config &, sigc::slot<void, AI::BE::Backend &> cb) const;
+					void create_backend(const Config &, const std::multimap<Glib::ustring, Glib::ustring> &params, sigc::slot<void, AI::BE::Backend &> cb) const;
 			};
 		}
 	}

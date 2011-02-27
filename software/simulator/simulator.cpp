@@ -133,6 +133,17 @@ bool Simulator::Simulator::on_ai_connecting(Glib::IOCondition) {
 	return true;
 }
 
+void Simulator::Simulator::queue_load_state(FileDescriptor::Ptr fd) {
+	load_state_pending_fd = fd;
+}
+
+void Simulator::Simulator::save_state(FileDescriptor::Ptr fd) const {
+	engine->get_ball()->save_state(fd);
+	team1.save_state(fd);
+	team2.save_state(fd);
+	engine->save_state(fd);
+}
+
 bool Simulator::Simulator::on_pending_ai_readable(Glib::IOCondition, FileDescriptor::Ptr sock) {
 	// Receive the magic message from the AI, with attached credentials.
 	char databuf[std::strlen(SIMULATOR_SOCKET_MAGIC1)], cmsgbuf[cmsg_space(sizeof(ucred))];
@@ -259,6 +270,15 @@ void Simulator::Simulator::tick() {
 	// If nobody is connected, do nothing.
 	if (!team1.has_connection() && !team2.has_connection()) {
 		return;
+	}
+
+	// If a state file has been queued for loading, load it now.
+	if (load_state_pending_fd.is()) {
+		engine->get_ball()->load_state(load_state_pending_fd);
+		team1.load_state(load_state_pending_fd);
+		team2.load_state(load_state_pending_fd);
+		engine->load_state(load_state_pending_fd);
+		load_state_pending_fd.reset();
 	}
 
 	// Tick the engine.

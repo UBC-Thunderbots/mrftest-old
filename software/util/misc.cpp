@@ -18,6 +18,10 @@ cmsghdr *cmsg_firsthdr(msghdr *msgh) {
 	return CMSG_FIRSTHDR(msgh);
 }
 
+cmsghdr *cmsg_nxthdr(msghdr *msgh, cmsghdr *cmsgh) {
+	return CMSG_NXTHDR(msgh, cmsgh);
+}
+
 size_t cmsg_space(size_t length) {
 	return CMSG_SPACE(length);
 }

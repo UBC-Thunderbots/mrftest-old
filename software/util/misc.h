@@ -20,6 +20,17 @@ void *get_map_failed();
 cmsghdr *cmsg_firsthdr(msghdr *msgh);
 
 /**
+ * Executes the system macro \c CMSG_NEXTHDR without provoking warnings about old C-style casts.
+ *
+ * \param[in] msgh the ancillary message buffer to search.
+ *
+ * \param[in] cmsgh the previous ancillary message header.
+ *
+ * \return the next ancillary message header in the buffer.
+ */
+cmsghdr *cmsg_nxthdr(msghdr *msgh, cmsghdr *cmsgh);
+
+/**
  * Executes the system macro \c CMSG_SPACE without provoking warnings about old C-style casts.
  *
  * \param[in] length the size of the payload of an ancillary message.

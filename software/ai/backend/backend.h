@@ -12,6 +12,8 @@
 #include "util/noncopyable.h"
 #include "util/property.h"
 #include "util/registerable.h"
+#include <glibmm.h>
+#include <map>
 #include <sigc++/sigc++.h>
 
 namespace Gtk {
@@ -487,9 +489,11 @@ namespace AI {
 				 *
 				 * \param[in] conf the configuration file to use to configure the backend.
 				 *
+				 * \param[in] params the command-line parameter values to initialize the backend with.
+				 *
 				 * \param[in] cb a function to invoke passing the constructed Backend.
 				 */
-				virtual void create_backend(const Config &conf, sigc::slot<void, Backend &> cb) const = 0;
+				virtual void create_backend(const Config &conf, const std::multimap<Glib::ustring, Glib::ustring> &params, sigc::slot<void, Backend &> cb) const = 0;
 
 			protected:
 				/**

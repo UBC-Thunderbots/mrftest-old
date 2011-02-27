@@ -617,7 +617,10 @@ namespace {
 			~XBeeBackendFactory() {
 			}
 
-			void create_backend(const Config &conf, sigc::slot<void, Backend &> cb) const {
+			void create_backend(const Config &conf, const std::multimap<Glib::ustring, Glib::ustring> &params, sigc::slot<void, Backend &> cb) const {
+				if (!params.empty()) {
+					throw std::runtime_error("The XBee backend does not accept any parameters.");
+				}
 				XBeeDongle dongle(conf.out_channel(), conf.in_channel());
 				Glib::RefPtr<Glib::MainLoop> main_loop = Glib::MainLoop::create();
 				dongle.enable()->signal_done.connect(sigc::bind(&XBeeBackendFactory::on_dongle_enabled, main_loop));

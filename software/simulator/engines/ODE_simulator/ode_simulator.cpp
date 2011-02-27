@@ -3,8 +3,12 @@
 #include "simulator/engines/engine.h"
 #include "simulator/engines/ODE_simulator/ballODE.h"
 #include "simulator/engines/ODE_simulator/playerODE.h"
+#include "util/exception.h"
+#include "util/fd.h"
 #include "util/timestep.h"
+#include <cerrno>
 #include <iostream>
+#include <unistd.h>
 
 namespace {
 	const dReal MU = static_cast<dReal>(0.02);     // the global mu to use
@@ -168,6 +172,26 @@ namespace {
 						the_players.erase(the_players.begin() + i);
 						return;
 					}
+				}
+			}
+
+#define SAVED_STATE_SIGNATURE "ODE Simulator"
+
+			void load_state(FileDescriptor::Ptr fd) {
+				char signature[sizeof(SAVED_STATE_SIGNATURE) - 1];
+				ssize_t rc = read(fd->fd(), signature, sizeof(signature));
+				if (rc < 0) {
+					throw SystemError("read", errno);
+				} else if (rc != sizeof(signature)) {
+					throw std::runtime_error("Premature EOF in state file");
+				} else if (!std::equal(signature, signature + sizeof(signature), SAVED_STATE_SIGNATURE)) {
+					throw std::runtime_error("Corrupt state file");
+				}
+			}
+
+			void save_state(FileDescriptor::Ptr fd) const {
+				if (write(fd->fd(), SAVED_STATE_SIGNATURE, sizeof(SAVED_STATE_SIGNATURE) - 1) != sizeof(SAVED_STATE_SIGNATURE) - 1) {
+					throw SystemError("write", errno);
 				}
 			}
 

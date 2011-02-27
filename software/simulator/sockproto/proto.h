@@ -112,14 +112,14 @@ namespace Simulator {
 			/**
 			 * Requests that the simulator create and place a new player for the team.
 			 * The pattern must not already exist on the team.
-			 * Packets of this type and A2S_PACKET_REMOVE_PLAYER should be limited to one per S2A_PACKET_TICK.
+			 * Packets of this type, A2S_PACKET_REMOVE_PLAYER, and A2S_SET_STATE should be limited to one per S2A_PACKET_TICK.
 			 */
 			A2S_PACKET_ADD_PLAYER,
 
 			/**
 			 * Requests that the simulator remove a player from the team.
 			 * The pattern must exist on the team.
-			 * Packets of this type and A2S_PACKET_ADD_PLAYER should be limited to one per S2A_PACKET_TICK.
+			 * Packets of this type, A2S_PACKET_ADD_PLAYER, and A2S_SET_STATE should be limited to one per S2A_PACKET_TICK.
 			 */
 			A2S_PACKET_REMOVE_PLAYER,
 
@@ -146,6 +146,21 @@ namespace Simulator {
 			 * This may be sent at any time.
 			 */
 			A2S_PACKET_DRAG_PLAYER,
+
+			/**
+			 * Requests that the simulator load the current state of the world from an opaque block of bytes in a file.
+			 * The state must have been saved by a simulator running the same engine.
+			 * Packets of this type, A2S_PACKET_ADD_PLAYER, and A2S_REMOVE_PLAYER should be limited to one per S2A_PACKET_TICK.
+			 * This packet must be associated with an ancillary file descriptor for the file.
+			 */
+			A2S_PACKET_LOAD_STATE,
+
+			/**
+			 * Requests that the simulator send the current state of the world as an opaque block of bytes in a file.
+			 * This may be sent at any time.
+			 * This packet must be associated with an ancillary file descriptor for the file.
+			 */
+			A2S_PACKET_SAVE_STATE,
 		};
 
 		/**

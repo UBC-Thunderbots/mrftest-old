@@ -1,6 +1,12 @@
 #include "ai/backend/simulator/backend.h"
+#include "util/fd.h"
+#include "util/misc.h"
+#include <cstring>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
-AI::BE::Simulator::UIControls::UIControls() : playtype_label("Play type (sim):"), speed_label("Speed:"), speed_normal(speed_group, "Normal"), speed_fast(speed_group, "Fast"), speed_slow(speed_group, "Slow"), players_label("Players:"), players_hbox(Gtk::BUTTONBOX_SPREAD), players_add("+"), players_remove("−") {
+AI::BE::Simulator::UIControls::UIControls(const std::string &load_filename) : playtype_label("Play type (sim):"), speed_label("Speed:"), speed_normal(speed_group, "Normal"), speed_fast(speed_group, "Fast"), speed_slow(speed_group, "Slow"), players_label("Players:"), players_hbox(Gtk::BUTTONBOX_SPREAD), players_add("+"), players_remove("−"), state_file_name(load_filename), state_file_label("State:"), state_file_button("…"), state_file_hbox(Gtk::BUTTONBOX_SPREAD), state_file_load_button("Load"), state_file_save_button("Save") {
 	for (unsigned int pt = 0; pt < AI::Common::PlayType::COUNT; ++pt) {
 		playtype_combo.append_text(AI::Common::PlayType::DESCRIPTIONS_GENERIC[pt]);
 	}
@@ -18,13 +24,38 @@ AI::BE::Simulator::UIControls::UIControls() : playtype_label("Play type (sim):")
 	players_remove.set_sensitive(false);
 	players_hbox.pack_start(players_add);
 	players_hbox.pack_start(players_remove);
+
+	state_file_entry.set_editable(false);
+	state_file_entry.set_text(Glib::filename_to_utf8(state_file_name));
+	state_file_button.signal_clicked().connect(sigc::mem_fun(this, &UIControls::on_state_file_button_clicked));
+
+	state_file_load_button.set_sensitive(false);
+	state_file_save_button.set_sensitive(!state_file_name.empty());
+	state_file_hbox.pack_start(state_file_load_button);
+	state_file_hbox.pack_start(state_file_save_button);
 }
 
 AI::BE::Simulator::UIControls::~UIControls() {
 }
 
+void AI::BE::Simulator::UIControls::on_state_file_button_clicked() {
+	Gtk::Window *win = dynamic_cast<Gtk::Window *>(state_file_button.get_toplevel());
+	Gtk::FileChooserDialog fc(*win, "Choose State File", Gtk::FILE_CHOOSER_ACTION_SAVE);
+	if (!state_file_name.empty()) {
+		fc.set_filename(state_file_name);
+	}
+	fc.add_button(Gtk::Stock::OK, Gtk::RESPONSE_OK);
+	fc.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+	fc.set_default_response(Gtk::RESPONSE_OK);
+	if (fc.run() == Gtk::RESPONSE_OK) {
+		state_file_name = fc.get_filename().raw();
+		state_file_entry.set_text(Glib::filename_to_utf8(state_file_name));
+		state_file_save_button.set_sensitive();
+	}
+}
+
 unsigned int AI::BE::Simulator::UIControls::rows() const {
-	return 3;
+	return 5;
 }
 
 void AI::BE::Simulator::UIControls::attach(Gtk::Table &t, unsigned int row) {
@@ -34,6 +65,10 @@ void AI::BE::Simulator::UIControls::attach(Gtk::Table &t, unsigned int row) {
 	t.attach(speed_hbox, 1, 3, row + 1, row + 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	t.attach(players_label, 0, 1, row + 2, row + 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	t.attach(players_hbox, 1, 3, row + 2, row + 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	t.attach(state_file_label, 0, 1, row + 3, row + 5, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	t.attach(state_file_entry, 1, 2, row + 3, row + 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	t.attach(state_file_button, 2, 3, row + 3, row + 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	t.attach(state_file_hbox, 1, 3, row + 4, row + 5, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 }
 
 FileDescriptor::Ptr AI::BE::Simulator::connect_to_simulator() {
@@ -104,7 +139,7 @@ FileDescriptor::Ptr AI::BE::Simulator::connect_to_simulator() {
 	return sock;
 }
 
-AI::BE::Simulator::Backend::Backend() : sock(connect_to_simulator()), ball_(*this), friendly_(*this), simulator_playtype(AI::Common::PlayType::HALT) {
+AI::BE::Simulator::Backend::Backend(const std::string &load_filename) : sock(connect_to_simulator()), ball_(*this), friendly_(*this), simulator_playtype(AI::Common::PlayType::HALT), controls(load_filename) {
 	monotonic_time_.tv_sec = 0;
 	monotonic_time_.tv_nsec = 0;
 	controls.playtype_combo.signal_changed().connect(sigc::mem_fun(this, &Backend::on_sim_playtype_changed));
@@ -113,18 +148,36 @@ AI::BE::Simulator::Backend::Backend() : sock(connect_to_simulator()), ball_(*thi
 	controls.speed_slow.signal_toggled().connect(sigc::mem_fun(this, &Backend::on_speed_toggled));
 	controls.players_add.signal_clicked().connect(sigc::mem_fun(this, &Backend::on_players_add_clicked));
 	controls.players_remove.signal_clicked().connect(sigc::mem_fun(this, &Backend::on_players_remove_clicked));
+	controls.state_file_load_button.signal_clicked().connect(sigc::mem_fun(this, &Backend::on_state_file_load_clicked));
+	controls.state_file_save_button.signal_clicked().connect(sigc::mem_fun(this, &Backend::on_state_file_save_clicked));
 	Glib::signal_io().connect(sigc::mem_fun(this, &Backend::on_packet), sock->fd(), Glib::IO_IN);
 	friendly_.score_prop.signal_changed().connect(signal_score_changed().make_slot());
 	enemy_.score_prop.signal_changed().connect(signal_score_changed().make_slot());
 	playtype_override().signal_changed().connect(sigc::mem_fun(this, &Backend::update_playtype));
+
+	if (!load_filename.empty()) {
+		on_state_file_load_clicked();
+	}
 }
 
 AI::BE::Simulator::Backend::~Backend() {
 }
 
-void AI::BE::Simulator::Backend::send_packet(const ::Simulator::Proto::A2SPacket &packet) {
-	if (send(sock->fd(), &packet, sizeof(packet), MSG_NOSIGNAL) < 0) {
-		throw SystemError("send", errno);
+void AI::BE::Simulator::Backend::send_packet(const ::Simulator::Proto::A2SPacket &packet, FileDescriptor::Ptr ancillary_fd) {
+	iovec iov = { iov_base: const_cast< ::Simulator::Proto::A2SPacket *>(&packet), iov_len: sizeof(packet), };
+	msghdr msgh = { msg_name: 0, msg_namelen: 0, msg_iov: &iov, msg_iovlen: 1, msg_control: 0, msg_controllen: 0, msg_flags: 0, };
+	char cmsgbuf[cmsg_space(sizeof(int))];
+	if (ancillary_fd.is()) {
+		msgh.msg_control = cmsgbuf;
+		msgh.msg_controllen = sizeof(cmsgbuf);
+		cmsg_firsthdr(&msgh)->cmsg_len = cmsg_len(sizeof(int));
+		cmsg_firsthdr(&msgh)->cmsg_level = SOL_SOCKET;
+		cmsg_firsthdr(&msgh)->cmsg_type = SCM_RIGHTS;
+		int fd = ancillary_fd->fd();
+		std::memcpy(cmsg_data(cmsg_firsthdr(&msgh)), &fd, sizeof(fd));
+	}
+	if (sendmsg(sock->fd(), &msgh, MSG_NOSIGNAL) < 0) {
+		throw SystemError("sendmsg", errno);
 	}
 }
 
@@ -228,6 +281,7 @@ bool AI::BE::Simulator::Backend::on_packet(Glib::IOCondition) {
 			// Update sensitivities of player add/remove buttons.
 			controls.players_add.set_sensitive(friendly_.size() < ::Simulator::Proto::MAX_PLAYERS_PER_TEAM);
 			controls.players_remove.set_sensitive(friendly_.size() > 0);
+			controls.state_file_load_button.set_sensitive(!controls.state_file_name.empty());
 			return true;
 
 		case ::Simulator::Proto::S2A_PACKET_SPEED_MODE:
@@ -324,6 +378,7 @@ void AI::BE::Simulator::Backend::on_players_add_clicked() {
 	send_packet(packet);
 	controls.players_add.set_sensitive(false);
 	controls.players_remove.set_sensitive(false);
+	controls.state_file_load_button.set_sensitive(false);
 }
 
 void AI::BE::Simulator::Backend::on_players_remove_clicked() {
@@ -335,6 +390,7 @@ void AI::BE::Simulator::Backend::on_players_remove_clicked() {
 	send_packet(packet);
 	controls.players_add.set_sensitive(false);
 	controls.players_remove.set_sensitive(false);
+	controls.state_file_load_button.set_sensitive(false);
 }
 
 bool AI::BE::Simulator::Backend::pattern_exists(unsigned int pattern) {
@@ -346,14 +402,38 @@ bool AI::BE::Simulator::Backend::pattern_exists(unsigned int pattern) {
 	return false;
 }
 
+void AI::BE::Simulator::Backend::on_state_file_load_clicked() {
+	FileDescriptor::Ptr fd = FileDescriptor::create_open(controls.state_file_name.c_str(), O_RDONLY, 0);
+	::Simulator::Proto::A2SPacket packet;
+	std::memset(&packet, 0, sizeof(packet));
+	packet.type = ::Simulator::Proto::A2S_PACKET_LOAD_STATE;
+	send_packet(packet, fd);
+}
+
+void AI::BE::Simulator::Backend::on_state_file_save_clicked() {
+	FileDescriptor::Ptr fd = FileDescriptor::create_open(controls.state_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	::Simulator::Proto::A2SPacket packet;
+	std::memset(&packet, 0, sizeof(packet));
+	packet.type = ::Simulator::Proto::A2S_PACKET_SAVE_STATE;
+	send_packet(packet, fd);
+}
+
 AI::BE::Simulator::BackendFactory::BackendFactory() : AI::BE::BackendFactory("Simulator") {
 }
 
 AI::BE::Simulator::BackendFactory::~BackendFactory() {
 }
 
-void AI::BE::Simulator::BackendFactory::create_backend(const Config &, sigc::slot<void, AI::BE::Backend &> cb) const {
-	Backend be;
+void AI::BE::Simulator::BackendFactory::create_backend(const Config &, const std::multimap<Glib::ustring, Glib::ustring> &params, sigc::slot<void, AI::BE::Backend &> cb) const {
+	std::string load_filename;
+	for (std::multimap<Glib::ustring, Glib::ustring>::const_iterator i = params.begin(), iend = params.end(); i != iend; ++i) {
+		if (i->first == "load") {
+			load_filename = Glib::filename_from_utf8(i->second);
+		} else {
+			throw std::runtime_error(Glib::ustring::compose("Unrecognized backend parameter %1 (recognized parameters are \"load\")", i->first));
+		}
+	}
+	Backend be(load_filename);
 	cb(be);
 }
 

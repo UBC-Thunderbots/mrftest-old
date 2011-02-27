@@ -38,7 +38,7 @@ namespace Simulator {
 			 *
 			 * \return the packet receive signal.
 			 */
-			sigc::signal<void, const Proto::A2SPacket &> &signal_packet() const;
+			sigc::signal<void, const Proto::A2SPacket &, FileDescriptor::Ptr> &signal_packet() const;
 
 			/**
 			 * Sends a packet to the AI.
@@ -61,7 +61,7 @@ namespace Simulator {
 			/**
 			 * The signal emitted when the AI process sends a packet to the simulator.
 			 */
-			mutable sigc::signal<void, const Proto::A2SPacket &> signal_packet_;
+			mutable sigc::signal<void, const Proto::A2SPacket &, FileDescriptor::Ptr> signal_packet_;
 
 			/**
 			 * Constructs a new Connection.

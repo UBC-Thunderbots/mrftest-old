@@ -146,9 +146,9 @@ namespace {
 		Glib::OptionEntry backend_entry;
 		backend_entry.set_long_name("backend");
 		backend_entry.set_description("Selects which backend should be used");
-		backend_entry.set_arg_description("BACKEND");
-		Glib::ustring backend_name;
-		option_group.add_entry(backend_entry, backend_name);
+		backend_entry.set_arg_description("BACKEND[/PARAM=VALUE[,...]]");
+		Glib::ustring backend_name_and_params;
+		option_group.add_entry(backend_entry, backend_name_and_params);
 
 		Glib::OptionEntry high_level_entry;
 		high_level_entry.set_long_name("hl");
@@ -238,10 +238,35 @@ namespace {
 
 		// Create the backend.
 		WithBackendClosure wbc(high_level_name, robot_controller_name, ball_filter_name, minimize, east ? AI::BE::Backend::EAST : AI::BE::Backend::WEST, blue ? AI::BE::Backend::BLUE : AI::BE::Backend::YELLOW);
-		if (!backend_name.size()) {
-			backend_name = choose_backend();
-			if (!backend_name.size()) {
+		if (!backend_name_and_params.size()) {
+			backend_name_and_params = choose_backend();
+			if (!backend_name_and_params.size()) {
 				return 0;
+			}
+		}
+		Glib::ustring backend_name;
+		std::multimap<Glib::ustring, Glib::ustring> backend_params;
+		{
+			Glib::ustring::size_type slash_index = backend_name_and_params.find('/');
+			if (slash_index == Glib::ustring::npos) {
+				backend_name = backend_name_and_params;
+			} else {
+				backend_name = backend_name_and_params.substr(0, slash_index);
+				Glib::ustring::size_type start_param_name = slash_index + 1;
+				while (start_param_name < backend_name_and_params.size()) {
+					Glib::ustring::size_type equals = backend_name_and_params.find('=', start_param_name);
+					if (equals == Glib::ustring::npos) {
+						throw std::runtime_error("Invalid parameter format, must be comma-separated sequence of KEY=VALUE");
+					}
+					const Glib::ustring &param_name = backend_name_and_params.substr(start_param_name, equals - start_param_name);
+					Glib::ustring::size_type comma = backend_name_and_params.find(',', equals);
+					if (comma == Glib::ustring::npos) {
+						comma = backend_name_and_params.size();
+					}
+					const Glib::ustring &param_value = backend_name_and_params.substr(equals + 1, comma - (equals + 1));
+					backend_params.insert(std::make_pair(param_name, param_value));
+					start_param_name = comma + 1;
+				}
 			}
 		}
 		typedef AI::BE::BackendFactory::Map Map;
@@ -250,7 +275,7 @@ namespace {
 		if (be == bem.end()) {
 			throw std::runtime_error(Glib::ustring::compose("There is no backend '%1'.", backend_name));
 		}
-		be->second->create_backend(conf, sigc::bind(sigc::ptr_fun(&main_impl_with_backend), wbc));
+		be->second->create_backend(conf, backend_params, sigc::bind(sigc::ptr_fun(&main_impl_with_backend), wbc));
 
 		return 0;
 	}

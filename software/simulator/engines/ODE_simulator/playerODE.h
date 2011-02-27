@@ -4,6 +4,7 @@
 #include "simulator/player.h"
 // #include "player_geom.h"
 #include "compo_player_geom.h"
+#include "util/fd.h"
 #include <ode/ode.h>
 
 
@@ -100,6 +101,10 @@ class PlayerODE : public Simulator::Player {
 		void orientation(double orient);
 
 		void avelocity(double avel);
+
+		void load_state(FileDescriptor::Ptr fd);
+
+		void save_state(FileDescriptor::Ptr fd) const;
 };
 
 #endif

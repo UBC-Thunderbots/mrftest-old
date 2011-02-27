@@ -4,6 +4,7 @@
 #include "geom/point.h"
 #include "uicomponents/visualizer.h"
 #include "util/byref.h"
+#include "util/fd.h"
 #include <glibmm.h>
 
 namespace Simulator {
@@ -45,6 +46,20 @@ namespace Simulator {
 			 * \param[in] vel the new velocity, in metres per second field-relative.
 			 */
 			virtual void velocity(const Point &vel) = 0;
+
+			/**
+			 * Loads the ball's state from a file.
+			 *
+			 * \param[in] fd the file to load from.
+			 */
+			virtual void load_state(FileDescriptor::Ptr fd) = 0;
+
+			/**
+			 * Saves the ball's state to a file.
+			 *
+			 * \param[in] fd the file to save to.
+			 */
+			virtual void save_state(FileDescriptor::Ptr fd) const = 0;
 
 		protected:
 			/**

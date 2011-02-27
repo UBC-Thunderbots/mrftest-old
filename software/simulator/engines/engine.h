@@ -3,6 +3,7 @@
 
 #include "simulator/ball.h"
 #include "simulator/player.h"
+#include "util/fd.h"
 #include "util/registerable.h"
 
 namespace Gtk {
@@ -48,6 +49,20 @@ class SimulatorEngine : public ByRef {
 		 * \param[in] player the SimulatorPlayer to remove.
 		 */
 		virtual void remove_player(Simulator::Player::Ptr player) = 0;
+
+		/**
+		 * Loads a simulation engine state from a file.
+		 *
+		 * \param[in] fd the file to load from.
+		 */
+		virtual void load_state(FileDescriptor::Ptr fd) = 0;
+
+		/**
+		 * Saves the current state of the simulation engine into a file.
+		 *
+		 * \param[in] fd the file to store into.
+		 */
+		virtual void save_state(FileDescriptor::Ptr fd) const = 0;
 
 		/**
 		 * Retrieves the factory object that created the engine.

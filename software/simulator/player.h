@@ -4,6 +4,7 @@
 #include "geom/point.h"
 #include "simulator/sockproto/proto.h"
 #include "util/byref.h"
+#include "util/fd.h"
 
 namespace Simulator {
 	/**
@@ -57,6 +58,20 @@ namespace Simulator {
 			 * \return \c true if the player has the ball, or \c false if not.
 			 */
 			virtual bool has_ball() const = 0;
+
+			/**
+			 * Loads the player's state from a file.
+			 *
+			 * \param[in] fd the file to load from.
+			 */
+			virtual void load_state(FileDescriptor::Ptr fd) = 0;
+
+			/**
+			 * Saves the player's state to a file.
+			 *
+			 * \param[in] fd the file to save to.
+			 */
+			virtual void save_state(FileDescriptor::Ptr fd) const = 0;
 	};
 }
 

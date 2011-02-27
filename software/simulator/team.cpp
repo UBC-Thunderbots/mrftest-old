@@ -1,9 +1,13 @@
 #include "simulator/team.h"
 #include "simulator/simulator.h"
+#include "util/codec.h"
+#include "util/exception.h"
 #include <cassert>
+#include <cerrno>
 #include <cstring>
 #include <iostream>
 #include <limits>
+#include <unistd.h>
 
 Simulator::Team::Team(Simulator &sim, const Team *other, bool invert) : sim(sim), other(other), invert(invert), ready_(true) {
 }
@@ -127,6 +131,77 @@ void Simulator::Team::send_play_type() {
 	}
 }
 
+void Simulator::Team::load_state(FileDescriptor::Ptr fd) {
+	// Any prior requests to add or remove players are no longer relevant.
+	to_add.clear();
+	to_remove.clear();
+
+	// Remove all robots from the team.
+	for (std::vector<PlayerInfo>::const_iterator i = players.begin(), iend = players.end(); i != iend; ++i) {
+		sim.engine->remove_player(i->player);
+	}
+	players.clear();
+
+	// Read the size of the team.
+	uint8_t size;
+	{
+		ssize_t rc = read(fd->fd(), &size, sizeof(size));
+		if (rc < 0) {
+			throw SystemError("read", errno);
+		} else if (!rc) {
+			throw std::runtime_error("Premature EOF in state file");
+		} else if (size > Proto::MAX_PLAYERS_PER_TEAM) {
+			throw std::runtime_error("Corrupt state file");
+		}
+	}
+
+	// Create the robots.
+	while (size--) {
+		// Read lid pattern.
+		uint32_t pattern;
+		{
+			uint8_t buffer[sizeof(pattern)];
+			ssize_t rc = read(fd->fd(), buffer, sizeof(buffer));
+			if (rc < 0) {
+				throw SystemError("read", errno);
+			} else if (rc != sizeof(buffer)) {
+				throw std::runtime_error("Premature EOF in state file");
+			}
+			pattern = decode_u32(buffer);
+		}
+
+		// Create information structure.
+		PlayerInfo pi = { player: sim.engine->add_player(), pattern: static_cast<unsigned int>(pattern), };
+
+		// Reload player state for engine.
+		pi.player->load_state(fd);
+
+		// Done!
+		players.push_back(pi);
+	}
+}
+
+void Simulator::Team::save_state(FileDescriptor::Ptr fd) const {
+	// Write the size of the team.
+	uint8_t size = static_cast<uint8_t>(players.size());
+	if (write(fd->fd(), &size, sizeof(size)) != sizeof(size)) {
+		throw SystemError("write", errno);
+	}
+
+	// Write the robots.
+	for (std::vector<PlayerInfo>::const_iterator i = players.begin(), iend = players.end(); i != iend; ++i) {
+		// Write the lid pattern.
+		uint8_t buffer[sizeof(uint32_t)];
+		encode_u32(buffer, static_cast<uint32_t>(i->pattern));
+		if (write(fd->fd(), buffer, sizeof(buffer)) != sizeof(buffer)) {
+			throw SystemError("write", errno);
+		}
+
+		// Save engine data.
+		i->player->save_state(fd);
+	}
+}
+
 void Simulator::Team::close_connection() {
 	// Drop the socket.
 	connection.reset();
@@ -144,7 +219,7 @@ void Simulator::Team::close_connection() {
 	}
 }
 
-void Simulator::Team::on_packet(const Proto::A2SPacket &packet) {
+void Simulator::Team::on_packet(const Proto::A2SPacket &packet, FileDescriptor::Ptr ancillary_fd) {
 	switch (packet.type) {
 		case Proto::A2S_PACKET_PLAYERS:
 			// This should only be received if we're waiting for it after an S2A_PACKET_TICK.
@@ -212,8 +287,8 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet) {
 		{
 			Point p(packet.drag.x, packet.drag.y);
 			sim.engine->get_ball()->position(invert ? -p : p);
-			return;
 		}
+			return;
 
 		case Proto::A2S_PACKET_DRAG_PLAYER:
 		{
@@ -230,6 +305,28 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet) {
 				close_connection();
 				return;
 			}
+			return;
+		}
+
+		case Proto::A2S_PACKET_LOAD_STATE:
+		{
+			if (!ancillary_fd.is()) {
+				std::cout << "AI sent A2S_PACKET_LOAD_STATE without ancillary file descriptor.\n";
+				close_connection();
+				return;
+			}
+			sim.queue_load_state(ancillary_fd);
+			return;
+		}
+
+		case Proto::A2S_PACKET_SAVE_STATE:
+		{
+			if (!ancillary_fd.is()) {
+				std::cout << "AI sent A2S_PACKET_SAVE_STATE without ancillary file descriptor.\n";
+				close_connection();
+				return;
+			}
+			sim.save_state(ancillary_fd);
 			return;
 		}
 	}

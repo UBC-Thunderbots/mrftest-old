@@ -76,6 +76,20 @@ namespace Simulator {
 			 */
 			void send_play_type();
 
+			/**
+			 * Loads a team state from a file.
+			 *
+			 * \param[in] fd the file to load from.
+			 */
+			void load_state(FileDescriptor::Ptr fd);
+
+			/**
+			 * Saves the current state of the team into a file.
+			 *
+			 * \param[in] fd the file to store into.
+			 */
+			void save_state(FileDescriptor::Ptr fd) const;
+
 		private:
 			/**
 			 * The information about a player as stored in a team.
@@ -146,8 +160,10 @@ namespace Simulator {
 			 * Invoked when this team's AI process sends a packet over the socket.
 			 *
 			 * \param[in] packet the packet.
+			 *
+			 * \param[in] ancillary_fd a file descriptor which may have been sent with the packet.
 			 */
-			void on_packet(const Proto::A2SPacket &packet);
+			void on_packet(const Proto::A2SPacket &packet, FileDescriptor::Ptr ancillary_fd);
 	};
 }
 

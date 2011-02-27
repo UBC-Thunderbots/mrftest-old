@@ -66,6 +66,20 @@ namespace Simulator {
 			 */
 			void encode_ball_state(Proto::S2ABallInfo &state, bool invert);
 
+			/**
+			 * Prepares to load a simulation state from a file at the next tick.
+			 *
+			 * \param[in] fd the file to load from.
+			 */
+			void queue_load_state(FileDescriptor::Ptr fd);
+
+			/**
+			 * Saves the current state of the complete simulation into a file.
+			 *
+			 * \param[in] fd the file to store into.
+			 */
+			void save_state(FileDescriptor::Ptr fd) const;
+
 		private:
 			/**
 			 * The listening socket that accepts connections from AI processes.
@@ -121,6 +135,11 @@ namespace Simulator {
 			 * The current position in the spinner character array.
 			 */
 			unsigned int spinner_index;
+
+			/**
+			 * A file descriptor of a file containing state data that should be loaded at the next tick.
+			 */
+			FileDescriptor::Ptr load_state_pending_fd;
 
 			/**
 			 * Invoked when an inbound connection is waiting at the listening socket.
