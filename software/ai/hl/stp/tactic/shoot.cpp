@@ -10,10 +10,11 @@ using AI::HL::STP::Coordinate;
 namespace {
 	class Shoot : public Tactic {
 		public:
-			Shoot(const World &world) : Tactic(world, true) {
+			Shoot(const World &world) : Tactic(world, true), has_shot(false) {
 			}
 
 		private:
+			bool has_shot;
 			bool done() const;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
@@ -21,11 +22,12 @@ namespace {
 
 	class ShootTarget : public Tactic {
 		public:
-			ShootTarget(const World &world, const Coordinate target) : Tactic(world, true), target(target) {
+			ShootTarget(const World &world, const Coordinate target) : Tactic(world, true), target(target), has_shot(false) {
 			}
 
 		private:
 			Coordinate target;
+			bool has_shot;
 			bool done() const;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
@@ -33,7 +35,7 @@ namespace {
 
 	bool Shoot::done() const {
 #warning tactic should control shooting
-		return !player->has_ball();
+		return has_shot;
 	}
 
 	Player::Ptr Shoot::select(const std::set<Player::Ptr> &players) const {
@@ -42,12 +44,14 @@ namespace {
 
 	void Shoot::execute() {
 		//set_ssm(AI::HL::STP::SSM::move_ball());
-		AI::HL::STP::Action::shoot(world, player);
+		if (AI::HL::STP::Action::shoot(world, player)) {
+			has_shot = true;
+		}
 	}
 
 	bool ShootTarget::done() const {
 #warning tactic should control shooting
-		return !player->has_ball();
+		return has_shot;
 	}
 
 	Player::Ptr ShootTarget::select(const std::set<Player::Ptr> &players) const {
@@ -56,7 +60,9 @@ namespace {
 
 	void ShootTarget::execute() {
 		//set_ssm(AI::HL::STP::SSM::move_ball());
-		AI::HL::STP::Action::shoot(world, player, target());
+		if (AI::HL::STP::Action::shoot(world, player, target())) {
+			has_shot = true;
+		}
 	}
 
 }

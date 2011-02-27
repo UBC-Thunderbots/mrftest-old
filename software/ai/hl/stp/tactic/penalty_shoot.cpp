@@ -9,18 +9,19 @@ namespace {
 
 	class PenaltyShoot : public Tactic {
 		public:
-			PenaltyShoot(const World &world) : Tactic(world, true), shoot_up(true) {
+			PenaltyShoot(const World &world) : Tactic(world, true), shoot_up(true), has_shot(false) {
 			}
 
 		private:
 			bool shoot_up;
+			bool has_shot;
 			bool done() const;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
 	};
 
 	bool PenaltyShoot::done() const {
-		return false;
+		return has_shot;
 	}
 
 	Player::Ptr PenaltyShoot::select(const std::set<Player::Ptr> &players) const {
@@ -57,7 +58,9 @@ namespace {
 
 		}
 
-		AI::HL::STP::Action::shoot(world, player, target);
+		if (AI::HL::STP::Action::shoot(world, player, target)) {
+			has_shot = true;
+		}
 	}
 }
 

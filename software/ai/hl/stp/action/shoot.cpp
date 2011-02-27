@@ -6,7 +6,7 @@
 #include "uicomponents/param.h"
 #include "util/dprint.h"
 
-void AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const unsigned int flags, const bool force) {
+bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const unsigned int flags, const bool force) {
 	std::pair<Point, double> target = AI::HL::Util::calc_best_shot(world, player);
 
 	if (!player->has_ball()) {
@@ -17,31 +17,31 @@ void AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const un
 			// orient towards the enemy goal area
 			player->move(world.ball().position(), (world.field().enemy_goal() - player->position()).orientation(), flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
 		}
-		return;
+		return false;
 	}
 
 	if (target.second == 0) { // bad news, we are blocked
 		if (force) {
 			// TODO: perhaps do a reduced radius calculation
 			target.first = world.field().enemy_goal();
-			shoot(world, player, target.first, flags);
+			return shoot(world, player, target.first, flags);
 		} else { // just aim at the enemy goal
 			player->move(player->position(), (world.field().enemy_goal() - player->position()).orientation(), flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
 		}
-		return;
+		return false;
 	}
 
 	// call the other shoot function with the specified target
-	AI::HL::STP::Action::shoot(world, player, target.first, flags);
+	return AI::HL::STP::Action::shoot(world, player, target.first, flags);
 }
 
-void AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Point target, const unsigned int flags, const bool force) {
+bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Point target, const unsigned int flags, const bool force) {
 	const double ori_target = (target - player->position()).orientation();
 
 	if (!player->has_ball()) {
 		// chase(world, player, flags);
 		player->move(world.ball().position(), ori_target, flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
-		return;
+		return false;
 	}
 
 	// const double ori_diff = std::fabs(player->orientation() - ori_target);
@@ -58,6 +58,9 @@ void AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Po
 	double kick_power = 10.0;
 	if (player->chicker_ready_time() == 0) {
 		player->kick(kick_power);
+		return true;
 	}
+
+	return false;
 }
 

@@ -17,8 +17,10 @@ namespace AI {
 				 *
 				 * \param[in] force forces the player to shoot,
 				 * even if the goal is completely blocked.
+				 *
+				 * \return true if the robot shoots.
 				 */
-				void shoot(const World &world, Player::Ptr player, const unsigned int flags = 0, const bool force = false);
+				bool shoot(const World &world, Player::Ptr player, const unsigned int flags = 0, const bool force = false);
 
 				/**
 				 * If the player posses the ball,
@@ -27,8 +29,10 @@ namespace AI {
 				 * If the player does not have the ball, chases after it.
 				 *
 				 * \param[in] target the location to shoot the ball to.
+				 *
+				 * \return true if the robot shoots.
 				 */
-				void shoot(const World &world, Player::Ptr player, const Point target, const unsigned int flags = 0, const bool force = false);
+				bool shoot(const World &world, Player::Ptr player, const Point target, const unsigned int flags = 0, const bool force = false);
 
 				/**
 				 * If the player posses the ball,
@@ -37,8 +41,10 @@ namespace AI {
 				 * If the player does not have the ball, chases after it.
 				 *
 				 * \param[in] region the location to shoot the ball to.
+				 *
+				 * \return true if the robot shoots.
 				 */
-				void shoot(const World &world, Player::Ptr player, const Rect region, const unsigned int flags = 0, const bool force = false);
+				bool shoot(const World &world, Player::Ptr player, const Rect region, const unsigned int flags = 0, const bool force = false);
 			}
 		}
 	}
