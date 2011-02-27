@@ -16,6 +16,21 @@ namespace Simulator {
 	class Team : public NonCopyable {
 		public:
 			/**
+			 * The information about a player as stored in a team.
+			 */
+			struct PlayerInfo {
+				/**
+				 * The player object provided by the engine.
+				 */
+				Player::Ptr player;
+
+				/**
+				 * The player's lid pattern, used to identify it over the socket.
+				 */
+				unsigned int pattern;
+			};
+
+			/**
 			 * Constructs a new Team.
 			 *
 			 * \param[in] sim the main simulator.
@@ -91,21 +106,6 @@ namespace Simulator {
 			void save_state(FileDescriptor::Ptr fd) const;
 
 		private:
-			/**
-			 * The information about a player as stored in a team.
-			 */
-			struct PlayerInfo {
-				/**
-				 * The player object provided by the engine.
-				 */
-				Player::Ptr player;
-
-				/**
-				 * The player's lid pattern, used to identify it over the socket.
-				 */
-				unsigned int pattern;
-			};
-
 			/**
 			 * The simulator to which this team belongs.
 			 */
