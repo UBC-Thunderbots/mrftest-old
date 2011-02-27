@@ -51,7 +51,7 @@ namespace AI {
 				 * Move the players when NOT in any ACTIVE play.
 				 * For example, during stop, preparing for kickoff, preparing for free kick.
 				 */
-				void free_move(World &world, Player::Ptr player, const Point p);
+				void free_move(const World &world, Player::Ptr player, const Point p);
 
 				/**
 				 * A single goalie and NO ONE ELSE defending the field.

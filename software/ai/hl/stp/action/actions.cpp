@@ -102,9 +102,8 @@ void AI::HL::STP::Actions::repel(const World &world, Player::Ptr player, const u
 	 */
 }
 
-void AI::HL::STP::Actions::free_move(World &world, Player::Ptr player, const Point p) {
-	// no flags
-	player->move(p, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+void AI::HL::STP::Actions::free_move(const World &world, Player::Ptr player, const Point p) {
+	player->move(p, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
 }
 
 void AI::HL::STP::Actions::lone_goalie(const World &world, Player::Ptr player) {

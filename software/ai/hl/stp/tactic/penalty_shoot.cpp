@@ -6,12 +6,14 @@ using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
 namespace {
+
 	class PenaltyShoot : public Tactic {
 		public:
 			PenaltyShoot(const World &world) : Tactic(world, true) {
 			}
 
 		private:
+			bool shoot_up;
 			bool done() const;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
@@ -22,44 +24,40 @@ namespace {
 	}
 
 	Player::Ptr PenaltyShoot::select(const std::set<Player::Ptr> &players) const {
-		for (auto it = players.begin(); it != players.end(); ++it) {
-			if ((*it)->has_ball()) {
-				return *it;
-			}
-		}
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.field().enemy_goal()));
 	}
 
 	void PenaltyShoot::execute() {
-		// Find the Enemy Goalie by dist to enemy goal
-		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
-		if (enemies.size() > 1) {
-			std::sort(enemies.begin() + 1, enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().enemy_goal()));
-		}
-		Robot::Ptr enemy_goalie = enemies[0];
-		
-		Point goal_pos[2] = {
-			Point(world.field().length() / 2, world.field().goal_width() - AI::HL::Util::POS_CLOSE),
-			Point(world.field().length() / 2, -world.field().goal_width() - AI::HL::Util::POS_CLOSE)
-		};
-		
-		double thres_dist = 0.5*Robot::MAX_RADIUS;
-		
-		Point thres_pos[2] = {
-			Point(world.field().length() / 2, world.field().goal_width() / 3),
-			Point(world.field().length() / 2, -world.field().goal_width() / 3)
-		};
+		// shoot center of goal if there is no enemy
+		Point target = world.field().enemy_goal();
 
-		if ((enemy_goalie->position()-thres_pos[0]).len() > thres_dist || (enemy_goalie->position()-thres_pos[1]).len() > thres_dist) {		
-			if ((enemy_goalie->position()-goal_pos[0]).len() > (enemy_goalie->position()-goal_pos[1]).len()) {
-				AI::HL::STP::Actions::shoot(world, player, AI::Flags::FLAG_CLIP_PLAY_AREA, goal_pos[0], 10.0);
-			} else {
-				AI::HL::STP::Actions::shoot(world, player, AI::Flags::FLAG_CLIP_PLAY_AREA, goal_pos[1], 10.0);
+		// otherwise, find a side to shoot
+		if (world.enemy_team().size() > 0) {
+
+			// since all other robots not participating in penalty shoot must be far away from the goal post
+			// hence the enemy goalie is the robot closest to enemy goal post
+			std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+
+			Robot::Ptr enemy_goalie = *std::min_element(enemies.begin() + 1, enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.field().enemy_goal()));
+
+			// a hysteresis
+			const double target_y = world.field().goal_width() * 3 / 4;
+
+			if (shoot_up && enemy_goalie->position().y + Robot::MAX_RADIUS > target_y) {
+				shoot_up = false;
+			} else if (!shoot_up && enemy_goalie->position().y - Robot::MAX_RADIUS < -target_y) {
+				shoot_up = true;
 			}
-		} else {
-			AI::HL::STP::Actions::shoot(world, player, AI::Flags::FLAG_CLIP_PLAY_AREA, goal_pos[0], 10.0);
+
+			if (shoot_up) {
+				target = Point(world.field().length() / 2, target_y);
+			} else {
+				target = Point(world.field().length() / 2, -target_y);
+			}
+
 		}
-				
+
+		AI::HL::STP::Actions::shoot(world, player, AI::Flags::FLAG_CLIP_PLAY_AREA, target, 10.0);
 	}
 }
 
