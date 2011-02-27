@@ -89,7 +89,7 @@ namespace {
 				destinationOrientation = player->orientation() + orientation_offset * M_PI / 180.0;
 				path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
 			} else {
-				destinationPosition = world.ball().position() - 0.2 * (diff / diff.len());
+				destinationPosition = world.ball().position() - 0.2 * diff.norm();
 				destinationOrientation = (world.ball().position() - currentPosition).orientation();
 
 				path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));

@@ -48,7 +48,7 @@ namespace {
 	PivotNavigator2::~PivotNavigator2() {
 	}
 
-	PivotNavigator2Factory::PivotNavigator2Factory() : NavigatorFactory("TEST: Pivot Navigator 2") {
+	PivotNavigator2Factory::PivotNavigator2Factory() : NavigatorFactory("TEST: Pivot Navigator Aram") {
 	}
 
 	PivotNavigator2Factory::~PivotNavigator2Factory() {
@@ -58,9 +58,8 @@ namespace {
 		return PivotNavigator2::create(world);
 	}
 	
-	DoubleParam offset_angle("Pivot Navigator 2: offset angle (degrees)", 30.0, -1000.0, 1000.0);
-	DoubleParam offset_distance("Pivot Navigator 2: offset distance", 0.15, -10.0, 10.0);
-	DoubleParam orientation_offset("Pivot Navigator 2: orientation offset (degrees)", 30.0, -1000.0, 1000.0);
+	DoubleParam pivot_radius("Pivot Navigator A: pivot radius", 1.0, 0.0, 10.0);
+	DoubleParam acceleration("Pivot Navigator A: max acceleration", 10.0, 0.0, 1000.0);
 
 	void PivotNavigator2::tick() {
 		FriendlyTeam &fteam = world.friendly_team();
@@ -68,19 +67,40 @@ namespace {
 		Player::Ptr player;
 		Player::Path path;
 
-		Point currentPosition, destinationPosition;
-		double currentOrientation, destinationOrientation;
+		Point currentPosition, currentVelocity, destinationPosition, targetPosition, turnCentre, diff;
+		double currentOrientation, destinationOrientation, turnRadius;
 
 		for (std::size_t i = 0; i < fteam.size(); i++) {
 			path.clear();
 			player = fteam.get(i);
 			currentPosition = player->position();
+			currentVelocity = player->velocity();
 			currentOrientation = player->orientation();
-
-			Point diff = (world.ball().position() - currentPosition).rotate(offset_angle * M_PI / 180.0);
-
-			destinationPosition = world.ball().position() - offset_distance * diff.norm();
-			destinationOrientation = (world.ball().position() - currentPosition).orientation() + orientation_offset * M_PI / 180.0;
+			
+			if (currentVelocity.lensq() < 0.0001)
+				currentVelocity = Point(0.0, 0.01).rotate(currentOrientation);
+			
+			diff = world.ball().position() - currentPosition;
+			turnRadius = currentVelocity.lensq()/acceleration;
+			
+			targetPosition = world.ball().position() + diff; // try to reach opposite side of ball
+			//targetPosition = Point(0, 0); // try to reach centre of field
+			
+			if (diff.cross(currentVelocity) > 0)
+				turnCentre = currentPosition + turnRadius*currentVelocity.rotate(M_PI/2.0);
+			else
+				turnCentre = currentPosition + turnRadius*currentVelocity.rotate(-M_PI/2.0);
+			
+			if ((world.ball().position() - turnCentre).len() > turnRadius + pivot_radius)
+				destinationPosition = targetPosition;
+			else if (diff.len() > pivot_radius)
+				destinationPosition = turnCentre + turnRadius*currentVelocity.norm();
+			else
+				destinationPosition = 2*turnCentre - currentPosition;
+			//if ((world.ball().position() - destinationPosition).len() < pivot_radius)
+				//destinationPosition = world.ball().position() + pivot_radius*(destinationPosition - world.ball().position()).norm();
+			
+			destinationOrientation = (world.ball().position() - destinationPosition).orientation();
 
 			path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
 
