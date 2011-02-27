@@ -38,6 +38,7 @@ namespace {
 			~FreeKickEnemy();
 
 		private:
+			bool invariant() const;
 			bool applicable() const;
 			bool done() const;
 			bool fail() const;
@@ -57,12 +58,16 @@ namespace {
 	FreeKickEnemy::~FreeKickEnemy() {
 	}
 
-	bool FreeKickEnemy::applicable() const {
+	bool FreeKickEnemy::invariant() const {
 		return (Predicates::playtype(world, PlayType::PREPARE_KICKOFF_ENEMY) || Predicates::playtype(world, PlayType::EXECUTE_KICKOFF_ENEMY)) && Predicates::our_team_size_at_least(world, 1);
 	}
 
+	bool FreeKickEnemy::applicable() const {
+		return true;
+	}
+
 	bool FreeKickEnemy::done() const {
-		return !(Predicates::playtype(world, PlayType::PREPARE_KICKOFF_ENEMY) || Predicates::playtype(world, PlayType::EXECUTE_KICKOFF_ENEMY));
+		return false;
 	}
 
 	bool FreeKickEnemy::fail() const {
@@ -77,7 +82,7 @@ namespace {
 		// ROLE 1
 		// defend
 		roles[0].push_back(defend_duo_defender(world));
-		
+
 		// draw a circle of radius 50cm from the ball
 		Point ball_pos = world.ball().position();
 
@@ -103,15 +108,15 @@ namespace {
 			default:
 				break;
 		}
-				
+
 		// ROLE 2
 		// move to offender position 1
 		roles[1].push_back(move(world, positions[0]));
-		
+
 		// ROLE 3
 		// move to offender position 2
 		roles[2].push_back(move(world, positions[1]));
-		
+
 		// ROLE 4
 		// move to offender position 3
 		roles[3].push_back(move(world, positions[2]));

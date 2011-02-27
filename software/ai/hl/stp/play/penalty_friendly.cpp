@@ -30,6 +30,7 @@ namespace {
 			~PenaltyFriendly();
 
 		private:
+			bool invariant() const;
 			bool applicable() const;
 			bool done() const;
 			bool fail() const;
@@ -49,12 +50,16 @@ namespace {
 	PenaltyFriendly::~PenaltyFriendly() {
 	}
 
+	bool PenaltyFriendly::invariant() const {
+		return (Predicates::playtype(world, PlayType::PREPARE_PENALTY_FRIENDLY) || Predicates::playtype(world, PlayType::EXECUTE_PENALTY_FRIENDLY)) && Predicates::our_team_size_at_least(world, 2);
+	}
+
 	bool PenaltyFriendly::applicable() const {
-		return Predicates::playtype(world, PlayType::PREPARE_PENALTY_FRIENDLY) && Predicates::our_team_size_at_least(world, 2);
+		return true;
 	}
 
 	bool PenaltyFriendly::done() const {
-		return !(Predicates::playtype(world, PlayType::EXECUTE_PENALTY_FRIENDLY) || Predicates::playtype(world, PlayType::PREPARE_PENALTY_FRIENDLY)) ;
+		return Predicates::goal(world);
 	}
 
 	bool PenaltyFriendly::fail() const {

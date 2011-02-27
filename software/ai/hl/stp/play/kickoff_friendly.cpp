@@ -38,6 +38,7 @@ namespace {
 			~KickoffFriendly();
 
 		private:
+			bool invariant() const;
 			bool applicable() const;
 			bool done() const;
 			bool fail() const;
@@ -57,15 +58,16 @@ namespace {
 	KickoffFriendly::~KickoffFriendly() {
 	}
 
+	bool KickoffFriendly::invariant() const {
+		return Predicates::our_team_size_at_least(world, 2) && (Predicates::playtype(world, PlayType::PREPARE_KICKOFF_FRIENDLY) || Predicates::playtype(world, PlayType::EXECUTE_KICKOFF_FRIENDLY));
+	}
+
 	bool KickoffFriendly::applicable() const {
-		return Predicates::our_team_size_at_least(world, 2)
-			&& (Predicates::playtype(world, PlayType::PREPARE_KICKOFF_FRIENDLY)
-					|| Predicates::playtype(world, PlayType::EXECUTE_KICKOFF_FRIENDLY));
+		return true;
 	}
 
 	bool KickoffFriendly::done() const {
-		return !Predicates::playtype(world, PlayType::EXECUTE_KICKOFF_FRIENDLY)
-			&& !Predicates::playtype(world, PlayType::EXECUTE_KICKOFF_FRIENDLY);
+		return false;
 	}
 
 	bool KickoffFriendly::fail() const {
@@ -81,9 +83,8 @@ namespace {
 		roles[1].push_back(move(world, ready_positions[0]));
 
 		roles[2].push_back(move(world, ready_positions[1]));
-	
+
 		roles[3].push_back(defend_duo_defender(world));
-		
 	}
 }
 

@@ -127,26 +127,3 @@ void AI::HL::STP::Actions::block(World &world, Player::Ptr player, const unsigne
 	player->move(robot->position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 }
 
-void AI::HL::STP::Actions::pass(World &world, Player::Ptr passer, Player::Ptr passee, const unsigned int flags) {
-	if (!passee.is()) {
-		LOG_ERROR("There is no passee");
-		return;
-	}
-
-	// this has to be done first
-	if (!passer->has_ball()) {
-		chase(world, passer, flags);
-		return;
-	}
-
-	// TODO: if the target is blocked, aim towards the target
-	if (!AI::HL::Util::can_receive(world, passee)) {
-		const double ori_target = (passee->position() - passer->position()).orientation();
-		passer->move(passer->position(), ori_target, flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
-		return;
-	}
-
-	// don't pass too fast, but also not too slow
-	AI::HL::STP::Actions::shoot(world, passer, flags, passee->position(), 6.0);
-}
-

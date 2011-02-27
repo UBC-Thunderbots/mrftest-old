@@ -31,9 +31,9 @@ namespace AI {
 						 * A condition that must hold ALL THE TIME,
 						 * for this play to be considered and run.
 						 *
-						 * This is the ideal place to put conditions about playtype and team size.
+						 * This is the ideal place to put conditions about playtype and minimum jteam size.
 						 */
-						virtual bool invariant() const;
+						virtual bool invariant() const = 0;
 
 						/**
 						 * For a play to be considered applicable() and invariant() must be true.
