@@ -9,7 +9,7 @@ namespace {
 
 	class PenaltyShoot : public Tactic {
 		public:
-			PenaltyShoot(const World &world) : Tactic(world, true) {
+			PenaltyShoot(const World &world) : Tactic(world, true), shoot_up(true) {
 			}
 
 		private:
@@ -57,7 +57,7 @@ namespace {
 
 		}
 
-		AI::HL::STP::Actions::shoot(world, player, AI::Flags::FLAG_CLIP_PLAY_AREA, target, 10.0);
+		AI::HL::STP::Actions::shoot(world, player, 0, target, 10.0);
 	}
 }
 
