@@ -141,6 +141,7 @@ obj/proto/%.pb.o : proto/%.pb.cc $(PROTOBUF_HS)
 ALL_D_FILES=$(addprefix obj/,$(ALL_CPP_FILES:.cpp=.d))
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),cleanbin)
+ifneq ($(MAKECMDGOALS),cleandep)
 ifneq ($(MAKECMDGOALS),cleandoc)
 ifneq ($(MAKECMDGOALS),cleanobj)
 ifneq ($(MAKECMDGOALS),cleanpb)
@@ -149,6 +150,7 @@ ifneq ($(MAKECMDGOALS),tags)
 ifneq ($(MAKECMDGOALS),doc)
 ifneq ($(MAKECMDGOALS),uncrustify)
 include $(ALL_D_FILES)
+endif
 endif
 endif
 endif
@@ -181,6 +183,10 @@ clean : cleanbin cleandoc cleanobj cleanpb cleantags
 .PHONY : cleanbin
 cleanbin :
 	$(RM) -rf bin
+
+.PHONY : cleandep
+cleandep :
+	find obj -name '*.d' -delete
 
 .PHONY : cleandoc
 cleandoc :
