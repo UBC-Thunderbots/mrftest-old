@@ -2,6 +2,7 @@
 #include "critsec.h"
 #include "endpoints.h"
 #include "error_reporting.h"
+#include "stackcheck.h"
 #include "usb.h"
 #include <pic18fregs.h>
 #include <string.h>
@@ -176,6 +177,8 @@ void debug_disable(void) {
 
 PUTCHAR(ch) {
 	CRITSEC_DECLARE(cs);
+
+	stackcheck();
 
 	CRITSEC_ENTER_LOW(cs);
 

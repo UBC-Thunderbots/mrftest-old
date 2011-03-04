@@ -48,6 +48,7 @@ firmware/dongle/serial.c -text
 firmware/dongle/serial.h -text
 firmware/dongle/signal.h -text
 firmware/dongle/stack.h -text
+firmware/dongle/stackcheck.c -text
 firmware/dongle/state_transport_in.c -text
 firmware/dongle/state_transport_in.h -text
 firmware/dongle/state_transport_out.c -text
@@ -90,6 +91,7 @@ firmware/main/signal.h -text
 firmware/main/spi.c -text
 firmware/main/spi.h -text
 firmware/main/stack.h -text
+firmware/main/stackcheck.c -text
 firmware/main/wheel_controller.c -text
 firmware/main/wheel_controller.h -text
 firmware/main/xbee_rxpacket.c -text
@@ -108,6 +110,8 @@ firmware/shared/fw.h -text
 firmware/shared/params.h -text
 firmware/shared/pipes.h -text
 firmware/shared/serial.c -text
+firmware/shared/stackcheck.c -text
+firmware/shared/stackcheck.h -text
 firmware/shared/xbee_rxpacket.c -text
 firmware/shared/xbee_rxpacket.h -text
 firmware/shared/xbee_txpacket.c -text

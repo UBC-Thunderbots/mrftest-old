@@ -5,6 +5,7 @@
 #include "queue.h"
 #include "signal.h"
 #include "stack.h"
+#include "stackcheck.h"
 #include <delay.h>
 #include <pic18fregs.h>
 #include <stdbool.h>
@@ -276,6 +277,7 @@ SIGHANDLER(xbee_rxpacket_rc ## usartidx ## if) { \
 		rxstates[xbeeidx].state = STATE_EXPECT_SOP; \
 	} \
 \
+	stackcheck(); \
 	/* Handle the received byte. */ \
 	ch = RCREG ## usartidx; \
 	switch (rxstates[xbeeidx].state) { \

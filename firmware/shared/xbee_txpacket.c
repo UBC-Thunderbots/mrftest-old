@@ -3,6 +3,7 @@
 #include "queue.h"
 #include "signal.h"
 #include "stack.h"
+#include "stackcheck.h"
 #include "xbee_txpacket.h"
 #include <pic18fregs.h>
 #include <stdbool.h>
@@ -224,6 +225,8 @@ static inline void implement_txif(uint8_t xbeeidx) {
 #define CLR_TXIE() do { if (xbeeidx == 0) { PIE3bits.TX2IE = 0; } else { PIE1bits.TX1IE = 0; } } while (0)
 #define WR_TXREG(val) do { if (xbeeidx == 0) { TXREG2 = val; } else { TXREG1 = val; } } while (0)
 #define RD_CTS() ((xbeeidx == 0) ? PORT_XBEE0_CTS : PORT_XBEE1_CTS)
+
+	stackcheck();
 
 	/* If the shift register is empty, we may be able to send two bytes at once.
 	 * Also, we may not actually send a byte if we shift a lot of state around.

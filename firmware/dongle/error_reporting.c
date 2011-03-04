@@ -1,6 +1,7 @@
 #include "error_reporting.h"
 #include "critsec.h"
 #include "endpoints.h"
+#include "stackcheck.h"
 #include "usb.h"
 #include <pic18fregs.h>
 
@@ -33,11 +34,14 @@ static volatile BOOL transaction_running;
  * \brief Checks if there is data to send and if the SIE is ready to accept new data.
  */
 static void check_send(void) {
+	uint8_t length;
+
+	stackcheck();
+
 	/* See if there's a free BD to report on. */
 	if (USB_BD_IN_HAS_FREE(EP_LOCAL_ERROR_QUEUE)) {
 		if (read_ptr != write_ptr) {
 			/* Some errors are in the queue. Queue for transmission. */
-			uint8_t length;
 			if (read_ptr < write_ptr) {
 				length = write_ptr - read_ptr;
 			} else {
@@ -92,6 +96,8 @@ void error_reporting_deinit(void) {
 void error_reporting_add(uint8_t error) {
 	uint8_t free_space;
 	CRITSEC_DECLARE(cs);
+
+	stackcheck();
 
 	CRITSEC_ENTER_LOW(cs);
 

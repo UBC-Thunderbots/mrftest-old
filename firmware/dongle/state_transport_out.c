@@ -4,6 +4,7 @@
 #include "error_reporting.h"
 #include "pipes.h"
 #include "signal.h"
+#include "stackcheck.h"
 #include "usb.h"
 #include <pic18fregs.h>
 #include <stdbool.h>
@@ -35,6 +36,8 @@ static void on_transaction(void) {
 
 	/* Clear the timeout. */
 	scram_timeout = SCRAM_TIMEOUT_LIMIT;
+
+	stackcheck();
 
 	/* Decode the packet. */
 	while (left) {
