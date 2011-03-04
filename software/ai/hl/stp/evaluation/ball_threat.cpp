@@ -42,6 +42,16 @@ bool ball_on_net(const AI::HL::W::World &world) {
 	if (world.ball().velocity().lensq() < negligible_velocity || world.ball().velocity().x > 0 ) {
 		return false;
 	}
-	return unique_line_intersect( world.field().friendly_goal_boundary().first ,world.field().friendly_goal_boundary().second , world.ball().position(), world.ball().position() +  world.ball().velocity() );
+
+	Point a =  world.field().friendly_goal_boundary().first;
+	Point b = world.field().friendly_goal_boundary().second;
+	Point c = world.ball().position();
+	Point d =  world.ball().position() +  world.ball().velocity();
+
+	if( unique_line_intersect( a, b, c, d ) ){
+		Point inter = line_intersect(a, b, c, d);
+		return inter.y <= std::max(a.y, b.y) && inter.y >= std::min(a.y, b.y);
+	}
+	return false;
 }
 
