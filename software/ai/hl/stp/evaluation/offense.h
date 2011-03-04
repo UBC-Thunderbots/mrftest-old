@@ -11,6 +11,9 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
+			
+				Point calc_positions(const World &world, const std::set<Player::CPtr> &players);
+			
 				/**
 				 * Calculates strategic positions to place offensive players.
 				 * - Finds weak points on the enemy goal area,

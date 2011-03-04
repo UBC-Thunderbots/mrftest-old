@@ -134,7 +134,10 @@ namespace {
 		return best_score > -1e40;
 	}
 
-	Point calc_positions(const World &world, const std::set<Player::CPtr> &players) {
+	
+}
+
+Point AI::HL::STP::Evaluation::calc_positions(const World &world, const std::set<Player::CPtr> &players) {
 		// just for caching..
 		const EnemyTeam &enemy = world.enemy_team();
 		std::vector<Point> enemy_pos;
@@ -162,7 +165,6 @@ namespace {
 		}
 		return best;
 	}
-}
 
 Point AI::HL::STP::Evaluation::evaluate_offense(const AI::HL::W::World &world, const std::set<Player::Ptr> &players) {
 	std::set<Player::CPtr> cplayers(players.begin(), players.end());

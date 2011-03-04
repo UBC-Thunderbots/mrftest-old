@@ -8,11 +8,15 @@
 #include "util/dprint.h"
 #include <glibmm.h>
 
+#include "ai/hl/stp/evaluation/offense.h"
+
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 using AI::HL::STP::Enemy;
 namespace Predicates = AI::HL::STP::Predicates;
+
+using namespace AI::HL::STP::Evaluation;
 
 namespace {
 	/**
@@ -50,7 +54,7 @@ namespace {
 	}
 
 	bool PassOffensive::invariant() const {
-		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 4);
+		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3);
 	}
 
 	bool PassOffensive::applicable() const {
@@ -69,21 +73,31 @@ namespace {
 		// std::Player::Ptr goalie = world.friendly_team().get(0);
 
 		const FriendlyTeam &friendly = world.friendly_team();
-
+		
+		std::set<Player::CPtr> players;
+		for (std::size_t i = 0; i < friendly.size(); ++i) {
+			players.insert(friendly.get(i));
+		}
+		
 		// GOALIE
 		goalie_role.push_back(defend_duo_goalie(world));
 
 #warning BROKEN, need proper passer and passee positioning and targeting
-
+		// Temporary hack, should use proper pass evaluation
+		Point A, B;		
+		A = calc_positions(world, players);
+		B = calc_positions(world, players);
+		
 		// ROLE 1
 		// passer
-		roles[0].push_back(passer_ready(world, friendly.get(1)->position(), friendly.get(2)->position()));
-		roles[0].push_back(passer_shoot(world, friendly.get(2)->position()));
+		roles[0].push_back(passer_ready(world, A, B));
+		roles[0].push_back(passer_shoot(world, B));
+		roles[0].push_back(offend(world));
 
 		// ROLE 2
 		// passee
-		roles[1].push_back(passee_ready(world, world.ball().position()));
-		roles[1].push_back(passee_receive(world, world.ball().position()));
+		roles[1].push_back(passee_ready(world, B));
+		roles[1].push_back(passee_receive(world, B));
 		roles[1].push_back(shoot(world));
 
 		// ROLE 3
