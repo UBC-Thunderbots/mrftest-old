@@ -8,6 +8,7 @@
 #include <cmath>
 #include <glibmm.h>
 #include <map>
+#include "uicomponents/param.h"
 
 using AI::RC::RobotController;
 using AI::RC::TunableController;
@@ -16,6 +17,8 @@ using namespace AI::RC::W;
 
 namespace {
 	const int P = 5;
+	
+	DoubleParam FUZZY2_MAX_ACC("Fuzzy2: max acc", 30, 0.0, 20.0);
 
 	const double arr_min[P] = { 3.0, 0.0, 0.0, 3.0, 3.0 };
 	const double arr_max[P] = { 8.0, 2.0, 2.0, 8.0, 8.0 };
@@ -87,11 +90,21 @@ namespace {
 					linear_velocity = desired_velocity * (linear_velocity / linear_velocity.len());
 				}
 
+
+				// threshold the linear acceleration
+				Point accel = linear_velocity - prev_linear_velocity;
+				if (accel.len() > FUZZY2_MAX_ACC) {
+					accel *= FUZZY2_MAX_ACC / accel.len();
+					linear_velocity = prev_linear_velocity + accel;
+				}
+		
 				int wheel_speeds[4] = { 0, 0, 0, 0 };
 
 				convert_to_wheels(linear_velocity, angular_velocity, wheel_speeds);
 
 				player->drive(wheel_speeds);
+
+				prev_linear_velocity = linear_velocity;
 			}
 
 			void set_params(const std::vector<double> &params) {
@@ -116,6 +129,7 @@ namespace {
 
 		protected:
 			std::vector<double> param;
+			Point prev_linear_velocity;
 	};
 
 	class Fuzzy2ControllerFactory : public RobotControllerFactory {

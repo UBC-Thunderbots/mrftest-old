@@ -8,7 +8,7 @@
 using namespace AI::HL::W;
 
 namespace {
-	BoolParam posses_ball_is_has_ball("posses ball is has ball", false);
+	BoolParam posses_ball_is_has_ball("posses ball is has ball", true);
 	DoubleParam ball_close_factor("distance for ball possesion (x ball radius)", 2.0, 1.0, 3.0);
 }
 

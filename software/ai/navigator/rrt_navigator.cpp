@@ -127,9 +127,9 @@ namespace {
 						angle = fabs(angle_diff(toBallOrientation, player->destination().second));
 					}
 
-					if (player->velocity().len() < 0.2) {
+					if (player->velocity().len() < 1.2) {
 						timespec timeToBall;
-						timespec_add(double_to_timespec(0.4), world.monotonic_time(), timeToBall);
+						timespec_add(double_to_timespec(0.0), world.monotonic_time(), timeToBall);
 						path.push_back(std::make_pair(std::make_pair(world.ball().position(), player->destination().second), timeToBall));
 						player->path(path);
 						continue;
