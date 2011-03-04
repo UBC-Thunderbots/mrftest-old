@@ -33,6 +33,9 @@ namespace AI {
 				};
 
 				BallThreat evaluate_ball_threat(const AI::HL::W::World &world);
+
+				bool ball_on_net(const AI::HL::W::World &world);
+
 			}
 		}
 	}
