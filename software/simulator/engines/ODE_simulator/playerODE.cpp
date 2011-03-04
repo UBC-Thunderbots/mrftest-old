@@ -336,7 +336,7 @@ void PlayerODE::avelocity(double avel) {
 }
 
 void PlayerODE::load_state(FileDescriptor::Ptr fd) {
-	double values[3 + 3 + 3 + 12];
+	dReal values[3 + 3 + 3 + 12];
 	uint8_t buffer[sizeof(values) / sizeof(*values) * 8];
 	ssize_t rc = read(fd->fd(), buffer, sizeof(buffer));
 	if (rc < 0) {
@@ -346,12 +346,12 @@ void PlayerODE::load_state(FileDescriptor::Ptr fd) {
 	}
 
 	for (std::size_t i = 0; i < sizeof(values) / sizeof(*values); ++i) {
-		values[i] = decode_double(&buffer[i * 8]);
+		values[i] = static_cast<dReal>(decode_double(&buffer[i * 8]));
 	}
 
-	dBodySetPosition(body, static_cast<dReal>(values[0]), static_cast<dReal>(values[1]), static_cast<dReal>(values[2]));
-	dBodySetLinearVel(body, static_cast<dReal>(values[3]), static_cast<dReal>(values[4]), static_cast<dReal>(values[5]));
-	dBodySetAngularVel(body, static_cast<dReal>(values[6]), static_cast<dReal>(values[7]), static_cast<dReal>(values[8]));
+	dBodySetPosition(body, values[0], values[1], values[2]);
+	dBodySetLinearVel(body, values[3], values[4], values[5]);
+	dBodySetAngularVel(body, values[6], values[7], values[8]);
 	dBodySetRotation(body, &values[9]);
 }
 
