@@ -40,6 +40,21 @@
 #define DRIVE_TIMEOUT_LIMIT 200
 
 /**
+ * \brief The minimum voltage the battery can reach before the system locks out.
+ */
+#define BATTERY_VOLTAGE_MIN 13.0
+
+/**
+ * \brief The resistor on the top half of the divider for measuring battery voltage.
+ */
+#define BATTERY_VOLTAGE_R_TOP 1500.0
+
+/**
+ * \brief The resistor on the bottom half of the divider for measuring battery voltage.
+ */
+#define BATTERY_VOLTAGE_R_BOTTOM 330.0
+
+/**
  * \brief The type of an XBee transmit header.
  */
 typedef struct {
@@ -518,6 +533,28 @@ void run(void) {
 					/* Channel 0 -> battery voltage.
 					 * Record result. */
 					feedback_block.battery_voltage_raw = (ADRESH << 8) | ADRESL;
+					/* Check for cutoff level. */
+					if (feedback_block.battery_voltage_raw < (uint16_t) (BATTERY_VOLTAGE_MIN / (BATTERY_VOLTAGE_R_TOP + BATTERY_VOLTAGE_R_BOTTOM) * BATTERY_VOLTAGE_R_BOTTOM / 3.3 * 1023.0)) {
+						parbus_write(0, 0);
+						parbus_write(1, 0);
+						parbus_write(2, 0);
+						parbus_write(3, 0);
+						parbus_write(4, 0);
+						parbus_write(5, 0);
+						parbus_write(6, 0);
+						delay1mtcy(1);
+						LAT_MOTOR_ENABLE = 0;
+						LAT_XBEE0_SLEEP = 1;
+						LAT_XBEE1_SLEEP = 1;
+						LAT_LED1 = 0;
+						LAT_LED2 = 0;
+						LAT_LED3 = 0;
+						LAT_LED4 = 0;
+						INTCONbits.GIEH = 0;
+						for (;;) {
+							Sleep();
+						}
+					}
 					/* Send data to FPGA so it can scale boost converter timings. */
 					parbus_write(8, feedback_block.battery_voltage_raw);
 					/* Start a conversion on channel 1. */
