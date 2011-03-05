@@ -5,7 +5,7 @@
 #include <cassert>
 #include <functional>
 
-TesterWindow::TesterWindow(XBeeDongle &dongle) : dongle(dongle), bot_frame("Bot"), control_bot_button("Control"), feedback_frame("Feedback"), feedback_panel(dongle), drive_frame("Drive"), drive_widget(0), drive_zeroable(0), dribble_frame("Dribbler"), dribble_button("Run"), chicker_frame("Chicker"), chicker_enabled("Enable"), chicker_kick("Kick"), params_frame("Parameters") {
+TesterWindow::TesterWindow(XBeeDongle &dongle) : dongle(dongle), bot_frame("Bot"), control_bot_button("Control"), feedback_frame("Feedback"), feedback_panel(dongle), drive_frame("Drive"), drive_widget(0), drive_zeroable(0), dribble_frame("Dribbler"), dribble_button("Run"), chicker_frame("Chicker"), chicker_table(5, 2), chicker_enabled("Enable"), chicker_pulse_width1_label("Pulse width 1:"), chicker_pulse_width2_label("Pulse width 2:"), chicker_pulse_offset_label("Offset:"), chicker_kick("Kick"), params_frame("Parameters") {
 	set_title("Robot Tester");
 
 	for (unsigned int i = 1; i <= 15; ++i) {
@@ -38,14 +38,26 @@ TesterWindow::TesterWindow(XBeeDongle &dongle) : dongle(dongle), bot_frame("Bot"
 
 	chicker_enabled.signal_toggled().connect(sigc::mem_fun(this, &TesterWindow::on_chicker_enable_change));
 	chicker_enabled.set_sensitive(false);
-	chicker_box.pack_start(chicker_enabled, Gtk::PACK_SHRINK);
-	chicker_power.get_adjustment()->configure(1, 1, 65535, 1, 32, 0);
-	chicker_power.set_digits(0);
-	chicker_box.pack_start(chicker_power, Gtk::PACK_EXPAND_WIDGET);
+	chicker_table.attach(chicker_enabled, 0, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	chicker_pulse_width1.get_adjustment()->configure(0, 0, 16383, 1, 32, 0);
+	chicker_pulse_width1.get_adjustment()->signal_value_changed().connect(sigc::mem_fun(this, &TesterWindow::on_chicker_pulse_width_changed));
+	chicker_pulse_width1.set_digits(0);
+	chicker_table.attach(chicker_pulse_width1_label, 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	chicker_table.attach(chicker_pulse_width1, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	chicker_pulse_width2.get_adjustment()->configure(0, 0, 16383, 1, 32, 0);
+	chicker_pulse_width2.get_adjustment()->signal_value_changed().connect(sigc::mem_fun(this, &TesterWindow::on_chicker_pulse_width_changed));
+	chicker_pulse_width2.set_digits(0);
+	chicker_table.attach(chicker_pulse_width2_label, 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	chicker_table.attach(chicker_pulse_width2, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	chicker_pulse_offset.get_adjustment()->configure(0, -16383, 16383, 1, 32, 0);
+	chicker_pulse_offset.get_adjustment()->signal_value_changed().connect(sigc::mem_fun(this, &TesterWindow::on_chicker_pulse_offset_changed));
+	chicker_pulse_offset.set_digits(0);
+	chicker_table.attach(chicker_pulse_offset_label, 0, 1, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	chicker_table.attach(chicker_pulse_offset, 1, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	chicker_kick.signal_clicked().connect(sigc::mem_fun(this, &TesterWindow::on_chicker_kick));
 	chicker_kick.set_sensitive(false);
-	chicker_box.pack_start(chicker_kick, Gtk::PACK_SHRINK);
-	chicker_frame.add(chicker_box);
+	chicker_table.attach(chicker_kick, 0, 2, 4, 5, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	chicker_frame.add(chicker_table);
 	vbox.pack_start(chicker_frame, Gtk::PACK_SHRINK);
 
 	params_frame.add(params_panel);
@@ -182,9 +194,28 @@ void TesterWindow::on_chicker_enable_change() {
 	}
 }
 
+void TesterWindow::on_chicker_pulse_width_changed() {
+	if (chicker_pulse_offset.get_value() + chicker_pulse_width1.get_value() > 16383) {
+		chicker_pulse_offset.set_value(16383 - chicker_pulse_width1.get_value());
+	} else if (-chicker_pulse_offset.get_value() + chicker_pulse_width2.get_value() > 16383) {
+		chicker_pulse_offset.set_value(-(16383 - chicker_pulse_width2.get_value()));
+	}
+}
+
+void TesterWindow::on_chicker_pulse_offset_changed() {
+	if (chicker_pulse_offset.get_value() + chicker_pulse_width1.get_value() > 16383) {
+		chicker_pulse_width1.set_value(16383 - chicker_pulse_offset.get_value());
+	} else if (-chicker_pulse_offset.get_value() + chicker_pulse_width2.get_value() > 16383) {
+		chicker_pulse_width2.set_value(16383 - -chicker_pulse_offset.get_value());
+	}
+}
+
 void TesterWindow::on_chicker_kick() {
 	if (bot.is()) {
-		bot->kick(static_cast<unsigned int>(chicker_power.get_value() + 0.1));
+		unsigned int pulse_width1 = static_cast<unsigned int>(chicker_pulse_width1.get_value());
+		unsigned int pulse_width2 = static_cast<unsigned int>(chicker_pulse_width2.get_value());
+		int offset = static_cast<int>(chicker_pulse_offset.get_value());
+		bot->kick(pulse_width1, pulse_width2, offset);
 	}
 }
 

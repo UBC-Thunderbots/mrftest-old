@@ -275,8 +275,10 @@ void run(void) {
 #warning implement
 							} else if (rxpacket->buf[5] == PIPE_KICK) {
 								/* The packet contains a kick request. */
-								if (rxpacket->len == 10) {
-									parbus_write(7, rxpacket->buf[8] | (rxpacket->buf[9] << 8));
+								if (rxpacket->len == 14) {
+									parbus_write(10, rxpacket->buf[8] | (rxpacket->buf[9] << 8));
+									parbus_write(11, rxpacket->buf[10] | (rxpacket->buf[11] << 8));
+									parbus_write(12, rxpacket->buf[12] | (rxpacket->buf[13] << 8));
 								} else {
 									error_reporting_add(FAULT_OUT_MICROPACKET_BAD_LENGTH);
 								}

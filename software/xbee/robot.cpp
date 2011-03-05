@@ -555,14 +555,42 @@ void XBeeRobot::enable_chicker(bool active) {
 	}
 }
 
-void XBeeRobot::kick(unsigned int microseconds) {
-	assert(microseconds < 65536);
+void XBeeRobot::kick(unsigned int pulse_width1, unsigned int pulse_width2, int offset) {
+	assert(pulse_width1 < 16384);
+	assert(pulse_width2 < 16384);
+	assert(-16384 < offset && offset < 16384);
 
-	uint8_t buffer[4];
+	/* Translate from actual widths and offset to "total-widths" and "slice width" as used by firmware/VHDL. */
+	unsigned int slice_width;
+	bool ignore_slice1, ignore_slice2;
+#warning comment is shit at explaining what actually happens here
+	if (offset < 0) {
+		slice_width = -offset;
+		pulse_width2 += slice_width;
+		assert(pulse_width2 < 16384);
+		ignore_slice1 = true;
+		ignore_slice2 = false;
+	} else if (offset > 0) {
+		slice_width = offset;
+		pulse_width1 += slice_width;
+		assert(pulse_width1 < 16384);
+		ignore_slice1 = false;
+		ignore_slice2 = true;
+	} else {
+		slice_width = 0;
+		ignore_slice1 = true;
+		ignore_slice2 = true;
+	}
+
+	uint8_t buffer[8];
 	buffer[0] = static_cast<uint8_t>(index << 4) | XBeeDongle::PIPE_KICK;
 	buffer[1] = 0x00;
-	buffer[2] = static_cast<uint8_t>(microseconds);
-	buffer[3] = static_cast<uint8_t>(microseconds >> 8);
+	buffer[2] = static_cast<uint8_t>(pulse_width1);
+	buffer[3] = static_cast<uint8_t>(pulse_width1 >> 8);
+	buffer[4] = static_cast<uint8_t>(pulse_width2);
+	buffer[5] = static_cast<uint8_t>(pulse_width2 >> 8);
+	buffer[6] = static_cast<uint8_t>(slice_width);
+	buffer[7] = static_cast<uint8_t>((ignore_slice1 ? 0x80 : 0x00) | (ignore_slice2 ? 0x40 : 0x00) | (slice_width >> 8));
 
 	LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(dongle.device, XBeeDongle::EP_INTERRUPT, buffer, sizeof(buffer), 0, 5);
 	transfer->signal_done.connect(&discard_result);

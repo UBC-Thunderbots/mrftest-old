@@ -46,9 +46,14 @@ class TesterWindow : public Gtk::Window {
 		Gtk::ToggleButton dribble_button;
 
 		Gtk::Frame chicker_frame;
-		Gtk::HBox chicker_box;
+		Gtk::Table chicker_table;
 		Gtk::CheckButton chicker_enabled;
-		Gtk::HScale chicker_power;
+		Gtk::Label chicker_pulse_width1_label;
+		Gtk::HScale chicker_pulse_width1;
+		Gtk::Label chicker_pulse_width2_label;
+		Gtk::HScale chicker_pulse_width2;
+		Gtk::Label chicker_pulse_offset_label;
+		Gtk::HScale chicker_pulse_offset;
 		Gtk::Button chicker_kick;
 
 		Gtk::Frame params_frame;
@@ -67,6 +72,8 @@ class TesterWindow : public Gtk::Window {
 		void drive_mode_changed();
 		void on_dribble_toggled();
 		void on_chicker_enable_change();
+		void on_chicker_pulse_width_changed();
+		void on_chicker_pulse_offset_changed();
 		void on_chicker_kick();
 };
 

@@ -74,7 +74,7 @@ class XBeeRobot : public ByRef {
 
 		void enable_chicker(bool active = true);
 
-		void kick(unsigned int microseconds);
+		void kick(unsigned int pulse_width1, unsigned int pulse_width2, int offset);
 
 		void test_mode(unsigned int mode);
 
