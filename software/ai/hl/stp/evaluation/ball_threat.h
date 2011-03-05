@@ -39,6 +39,11 @@ namespace AI {
 				 */
 				bool ball_on_net(const AI::HL::W::World &world);
 
+				/**
+				 * Get where the goalie should go to block the shot
+				 */
+				Point goalie_shot_block(const AI::HL::W::World &world);
+
 			}
 		}
 	}

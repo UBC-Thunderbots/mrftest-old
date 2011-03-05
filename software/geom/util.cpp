@@ -254,6 +254,7 @@ std::vector<Point> line_rect_intersect(const Rect &r, const Point &segA, const P
 
 
 double lineseg_point_dist(const Point &centre, const Point &segA, const Point &segB) {
+
 	// if one of the end-points is extremely close to the centre point
 	// then return 0.0
 	if ((segB - centre).lensq() < EPS2 || (segA - centre).lensq() < EPS2) {
@@ -285,6 +286,47 @@ double lineseg_point_dist(const Point &centre, const Point &segA, const Point &s
 	}
 	// otherwise return distance to closest end of line-seg
 	return std::min((centre - segB).len(), (centre - segA).len());
+}
+
+Point closest_lineseg_point(const Point &centre, const Point &segA, const Point &segB) {
+	// if one of the end-points is extremely close to the centre point
+	// then return 0.0
+	if ((segB - centre).lensq() < EPS2 ) {
+		return segB;
+	}
+
+	if ((segA - centre).lensq() < EPS2) {
+		return segA;
+	}
+
+	// take care of 0 length segments
+	if ((segB - segA).lensq() < EPS2) {
+		return segA;
+	}
+
+	// find point C
+	// which is the projection onto the line
+	double lenseg = (segB - segA).dot(centre - segA) / (segB - segA).len();
+	Point C = segA + lenseg * (segB - segA).norm();
+
+	// check if C is in the line seg range
+	double AC = (segA - C).lensq();
+	double BC = (segB - C).lensq();
+	double AB = (segA - segB).lensq();
+	bool in_range = AC <= AB && BC <= AB;
+
+	// if so return C
+	if (in_range) {
+		return C;
+	}
+	double lenA = (centre - segA).len();
+	double lenB = (centre - segB).len();
+
+	// otherwise return closest end of line-seg
+	if(lenA < lenB){
+	return segA;
+ 	}
+	return segB;
 }
 
 double seg_seg_distance(const Point &a, const Point &b, const Point &c, const Point &d) {

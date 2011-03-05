@@ -112,6 +112,19 @@ std::vector<Point> circle_boundaries(const Point &centre, double radius, int num
 double lineseg_point_dist(const Point &centre, const Point &segA, const Point &segB);
 
 /**
+ * Finds the Point on line segment closets to point.
+ *
+ * \param[in] centre the point.
+ *
+ * \param[in] segA one end of the line segment.
+ *
+ * \param[in] segB the other end of the line segment.
+ *
+ * \return the distance between line seg and point.
+ */
+Point closest_lineseg_point(const Point &p, const Point &segA, const Point &segB); 
+
+/**
  * Finds the points of intersection between a circle and a line.
  * There may be zero, one, or two such points.
  *

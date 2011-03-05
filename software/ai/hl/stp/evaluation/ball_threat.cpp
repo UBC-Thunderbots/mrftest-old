@@ -55,3 +55,21 @@ bool ball_on_net(const AI::HL::W::World &world) {
 	return false;
 }
 
+
+Point goalie_shot_block(const AI::HL::W::World &world) {
+	if(world.friendly_team().size()<=0 || ! ball_on_net(world)) {
+		return Point(0,0);
+	}
+
+	Point goalie_pos = world.friendly_team().get(0)->position();
+
+	Point a =  world.field().friendly_goal_boundary().first;
+	Point b = world.field().friendly_goal_boundary().second;
+
+	Point c = world.ball().position();
+	Point d =  world.ball().position() +  world.ball().velocity();
+	Point inter = line_intersect(a, b, c, d);
+
+	return closest_lineseg_point( goalie_pos, c, inter) ;
+}
+
