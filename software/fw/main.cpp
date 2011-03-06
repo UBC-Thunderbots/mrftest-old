@@ -233,6 +233,13 @@ namespace {
 		int robot = 0;
 		option_group.add_entry(robot_option, robot);
 
+		Glib::OptionEntry signature_option;
+		signature_option.set_long_name("signature");
+		signature_option.set_short_name('s');
+		signature_option.set_description("Displays the build signature of the hex file");
+		bool signature = false;
+		option_group.add_entry(signature_option, signature);
+
 		Glib::OptionEntry hex_option;
 		hex_option.set_long_name("hex");
 		hex_option.set_short_name('h');
@@ -252,8 +259,8 @@ namespace {
 			std::cerr << "Exactly one of --fpga and --pic must be specified.\n";
 			return 1;
 		}
-		if (!(1 <= robot && robot <= 15)) {
-			std::cerr << "--robot must be between 1 and 15.\n";
+		if (!(1 <= robot && robot <= 15) && !signature) {
+			std::cerr << "--robot must be between 1 and 15 or --signature must be specified.\n";
 			return 1;
 		}
 		if (!hex_filename.size()) {
@@ -263,21 +270,42 @@ namespace {
 
 		IntelHex hex;
 		if (pic) {
-			hex.add_section(0, 0x8000);
+			hex.add_section(0, 128 * 1024);
 		} else if (fpga) {
-			hex.add_section(0, 2 * 1024 * 1024 - 4096);
+			hex.add_section(0, 2 * 1024 * 1024);
 		}
 		hex.load(hex_filename);
 
-		Config config;
+		if (signature) {
+			const std::vector<unsigned char> &v = hex.data()[0];
+			uint16_t crc;
+			if (pic) {
+				crc = CRC16::calculate(&v[0], std::min(v.size(), static_cast<std::size_t>(0x1F000)));
+				for (std::size_t i = v.size(); i < 0x1F000; ++i) {
+					const uint8_t byte = 0xFF;
+					crc = CRC16::calculate(&byte, 1, crc);
+				}
+			} else {
+				crc = CRC16::calculate(&v[0], v.size());
+				for (std::size_t i = v.size(); i < 2 * 1024 * 1024; ++i) {
+					const uint8_t byte = 0xFF;
+					crc = CRC16::calculate(&byte, 1, crc);
+				}
+			}
+			std::cout << "Build signature is 0x" << tohex(crc, 4) << '\n';
+		}
 
-		std::cout << "Finding dongle... " << std::flush;
-		XBeeDongle dongle(config.out_channel(), config.in_channel());
-		std::cout << "OK\n";
+		if (1 <= robot && robot <= 15) {
+			Config config;
 
-		Glib::RefPtr<Glib::MainLoop> main_loop = Glib::MainLoop::create();
-		FirmwareUploadOperation op(config, hex, fpga, robot, dongle, main_loop);
-		main_loop->run();
+			std::cout << "Finding dongle... " << std::flush;
+			XBeeDongle dongle(config.out_channel(), config.in_channel());
+			std::cout << "OK\n";
+
+			Glib::RefPtr<Glib::MainLoop> main_loop = Glib::MainLoop::create();
+			FirmwareUploadOperation op(config, hex, fpga, robot, dongle, main_loop);
+			main_loop->run();
+		}
 
 		return 0;
 	}

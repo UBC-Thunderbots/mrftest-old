@@ -16,6 +16,7 @@ namespace {
 		FIRMWARE_REQUEST_ROLLBACK_PARAMS,
 		FIRMWARE_REQUEST_COMMIT_PARAMS,
 		FIRMWARE_REQUEST_REBOOT,
+		FIRMWARE_REQUEST_READ_BUILD_SIGNATURES,
 	};
 
 	class FirmwareSPIChipEraseOperation : public AsyncOperation<void>, public sigc::trackable {
@@ -464,6 +465,65 @@ namespace {
 			}
 	};
 
+	class FirmwareReadBuildSignaturesOperation : public AsyncOperation<XBeeRobot::BuildSignatures>, public sigc::trackable {
+		public:
+			static Ptr create(XBeeDongle &dongle, unsigned int robot) {
+				Ptr p(new FirmwareReadBuildSignaturesOperation(dongle, robot));
+				return p;
+			}
+
+			XBeeRobot::BuildSignatures result() const {
+				if (failed_operation.is()) {
+					failed_operation->result();
+				}
+				return sigs;
+			}
+
+		private:
+			XBeeDongle &dongle;
+			const unsigned int robot;
+			AsyncOperation<void>::Ptr failed_operation;
+			sigc::connection send_connection, receive_connection;
+			Ptr self_ref;
+			XBeeRobot::BuildSignatures sigs;
+
+			FirmwareReadBuildSignaturesOperation(XBeeDongle &dongle, unsigned int robot) : dongle(dongle), robot(robot), self_ref(this) {
+				uint8_t data[2];
+				data[0] = static_cast<uint8_t>((robot << 4) | XBeeDongle::PIPE_FIRMWARE_OUT);
+				data[1] = FIRMWARE_REQUEST_READ_BUILD_SIGNATURES;
+				send_connection = dongle.send_bulk(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareReadBuildSignaturesOperation::on_send_bulk_done));
+				receive_connection = dongle.signal_interrupt_message_received.connect(sigc::mem_fun(this, &FirmwareReadBuildSignaturesOperation::on_interrupt_message_received));
+			}
+
+			void on_send_bulk_done(AsyncOperation<void>::Ptr op) {
+				if (!op->succeeded()) {
+					receive_connection.disconnect();
+					failed_operation = op;
+					Ptr pthis(this);
+					self_ref.reset();
+					signal_done.emit(pthis);
+				}
+			}
+
+			void on_interrupt_message_received(unsigned int robot, XBeeDongle::Pipe pipe, const void *data, std::size_t len) {
+				if (robot == this->robot && pipe == XBeeDongle::PIPE_FIRMWARE_IN) {
+					const uint8_t *pch = static_cast<const uint8_t *>(data);
+					if (len == 5 && pch[0] == FIRMWARE_REQUEST_READ_BUILD_SIGNATURES) {
+#warning sanity checks
+						sigs.firmware_signature = static_cast<uint16_t>(pch[1] | (pch[2] << 8));
+						sigs.flash_signature = static_cast<uint16_t>(pch[3] | (pch[4] << 8));
+						send_connection.disconnect();
+						receive_connection.disconnect();
+						Ptr pthis(this);
+						self_ref.reset();
+						signal_done.emit(pthis);
+					} else {
+#warning TODO something sensible
+					}
+				}
+			}
+	};
+
 	void discard_result(AsyncOperation<void>::Ptr op) {
 		op->result();
 	}
@@ -499,6 +559,10 @@ AsyncOperation<void>::Ptr XBeeRobot::firmware_commit_operational_parameters() {
 
 AsyncOperation<void>::Ptr XBeeRobot::firmware_reboot() {
 	return FirmwareRebootOperation::create(dongle, index);
+}
+
+AsyncOperation<XBeeRobot::BuildSignatures>::Ptr XBeeRobot::firmware_read_build_signatures() {
+	return FirmwareReadBuildSignaturesOperation::create(dongle, index);
 }
 
 void XBeeRobot::drive(const int(&wheels)[4]) {

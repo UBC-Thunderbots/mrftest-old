@@ -30,6 +30,11 @@ class XBeeRobot : public ByRef {
 			uint8_t dribble_power;
 		};
 
+		struct BuildSignatures {
+			uint16_t firmware_signature;
+			uint16_t flash_signature;
+		};
+
 		Property<bool> alive;
 
 		Property<bool> has_feedback;
@@ -63,6 +68,8 @@ class XBeeRobot : public ByRef {
 		AsyncOperation<void>::Ptr firmware_commit_operational_parameters();
 
 		AsyncOperation<void>::Ptr firmware_reboot();
+
+		AsyncOperation<BuildSignatures>::Ptr firmware_read_build_signatures();
 
 		void drive(const int(&wheels)[4]);
 

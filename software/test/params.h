@@ -20,10 +20,12 @@ class TesterParamsPanel : public Gtk::Table {
 		sigc::connection alive_connection;
 		Gtk::Entry test_mode;
 		Gtk::Button set_test_mode;
+		Gtk::Label firmware_signature_label, flash_signature_label;
 		bool freeze;
 
 		void activate_controls(bool act = true);
 		void on_alive_changed();
+		void on_read_build_signatures_done(AsyncOperation<XBeeRobot::BuildSignatures>::Ptr op);
 		void on_read_done(AsyncOperation<XBeeRobot::OperationalParameters>::Ptr op);
 		void on_change();
 		void on_change_done(AsyncOperation<void>::Ptr op);

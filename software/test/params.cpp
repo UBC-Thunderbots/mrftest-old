@@ -1,4 +1,5 @@
 #include "test/params.h"
+#include "util/dprint.h"
 #include <cstddef>
 #include <iomanip>
 #include <sstream>
@@ -9,7 +10,7 @@ namespace {
 	}
 }
 
-TesterParamsPanel::TesterParamsPanel() : Gtk::Table(5, 2), commit("Commit"), rollback("Rollback"), reboot("Reboot"), set_test_mode("Set Test Mode"), freeze(false) {
+TesterParamsPanel::TesterParamsPanel() : Gtk::Table(6, 2), commit("Commit"), rollback("Rollback"), reboot("Reboot"), set_test_mode("Set Test Mode"), freeze(false) {
 	for (std::size_t i = 0; i < 2; ++i) {
 		for (unsigned int ch = 0x0B; ch <= 0x1A; ++ch) {
 			channels[i].append_text(format_channel(ch));
@@ -48,7 +49,13 @@ TesterParamsPanel::TesterParamsPanel() : Gtk::Table(5, 2), commit("Commit"), rol
 	hbox->pack_start(test_mode, Gtk::PACK_EXPAND_WIDGET);
 	hbox->pack_start(set_test_mode);
 	vbox->pack_start(*hbox, Gtk::PACK_SHRINK);
-	attach(*vbox, 0, 2, 5, 6, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(*vbox, 0, 2, 4, 5, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+
+	hbox = Gtk::manage(new Gtk::HBox);
+	hbox->pack_start(firmware_signature_label, Gtk::PACK_EXPAND_WIDGET);
+	hbox->pack_start(flash_signature_label, Gtk::PACK_EXPAND_WIDGET);
+	attach(*Gtk::manage(new Gtk::Label("Build Sigs:")), 0, 1, 5, 6, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(*hbox, 1, 2, 5, 6, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
 	set_robot(XBeeRobot::Ptr());
 }
@@ -76,6 +83,15 @@ void TesterParamsPanel::activate_controls(bool act) {
 
 void TesterParamsPanel::on_alive_changed() {
 	activate_controls(false);
+	if (robot.is() && robot->alive) {
+		robot->firmware_read_build_signatures()->signal_done.connect(sigc::mem_fun(this, &TesterParamsPanel::on_read_build_signatures_done));
+	}
+}
+
+void TesterParamsPanel::on_read_build_signatures_done(AsyncOperation<XBeeRobot::BuildSignatures>::Ptr op) {
+	const XBeeRobot::BuildSignatures &sigs = op->result();
+	firmware_signature_label.set_text(Glib::ustring::compose("PIC Firmware: 0x%1", tohex(sigs.firmware_signature, 4)));
+	flash_signature_label.set_text(Glib::ustring::compose("SPI Flash: 0x%1", tohex(sigs.flash_signature, 4)));
 	if (robot.is() && robot->alive) {
 		robot->firmware_read_operational_parameters()->signal_done.connect(sigc::mem_fun(this, &TesterParamsPanel::on_read_done));
 	}
