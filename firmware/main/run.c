@@ -466,6 +466,17 @@ void run(void) {
 										firmware_response_pending = true;
 										break;
 
+									case FIRMWARE_REQUEST_READ_BUILD_SIGNATURES:
+										firmware_response.micropacket_length = sizeof(firmware_response) - sizeof(firmware_response.params) + sizeof(firmware_response.params.build_signatures);
+										firmware_response.pipe = PIPE_FIRMWARE_IN;
+										firmware_response.sequence = sequence[PIPE_FIRMWARE_IN];
+										sequence[PIPE_FIRMWARE_IN] = (sequence[PIPE_FIRMWARE_IN] + 1) & 63;
+										firmware_response.request = FIRMWARE_REQUEST_READ_BUILD_SIGNATURES;
+										firmware_response.params.build_signatures.firmware_crc = firmware_crc;
+										firmware_response.params.build_signatures.flash_crc = flash_crc;
+										firmware_response_pending = true;
+										break;
+
 									default:
 										/* Unknown firmware request.
 										 * Send an error message. */

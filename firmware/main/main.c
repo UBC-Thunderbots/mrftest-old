@@ -1,4 +1,5 @@
 #include "error_reporting.h"
+#include "crc.h"
 #include "drive.h"
 #include "feedback.h"
 #include "leds.h"
@@ -33,6 +34,17 @@ DEF_INTLOW(low_handler)
 	DEF_HANDLER2(SIG_TX2, SIG_TX2IE, xbee_txpacket_tx2if)
 	DEF_HANDLER(SIG_TMR4, xbee_txpacket_tmr4if)
 END_DEF
+
+static void checksum_pic_rom(void) {
+	__code const uint8_t *ptr = 0;
+	uint16_t crc = CRC16_EMPTY;
+
+	while (ptr != (__code const uint8_t *) 0x1F000) {
+		crc = crc_update(crc, *ptr++);
+	}
+
+	firmware_crc = crc;
+}
 
 static void show_done(void) {
 	for (;;) {
@@ -326,6 +338,9 @@ void main(void) {
 			Sleep();
 		}
 	}
+
+	/* Checksum the PIC's on-board ROM. */
+	checksum_pic_rom();
 
 	/* Configure the XBees. */
 	LAT_XBEE0_RESET = 1;
