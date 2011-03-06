@@ -22,6 +22,7 @@ typedef enum {
 	FIRMWARE_REQUEST_ROLLBACK_PARAMS,
 	FIRMWARE_REQUEST_COMMIT_PARAMS,
 	FIRMWARE_REQUEST_REBOOT,
+	FIRMWARE_REQUEST_READ_BUILD_SIGNATURES,
 } firmware_request_code_t;
 
 /**
@@ -76,6 +77,21 @@ typedef struct {
 		 * \brief The result of a Read Operational Parameters Block command.
 		 */
 		params_t operational_parameters;
+
+		/**
+		 * \brief The build signatures.
+		 */
+		struct {
+			/**
+			 * \brief The CRC of the PIC firmware.
+			 */
+			uint16_t firmware_crc;
+
+			/**
+			 * \brief The CRC of the SPI flash.
+			 */
+			uint16_t flash_crc;
+		} build_signatures;
 	} params;
 } firmware_response_t;
 
