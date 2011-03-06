@@ -377,6 +377,7 @@ void main(void) {
 
 	/* Configure the FPGA, if appropriate. */
 	leds_show_number(6);
+	spi_tristate();
 	LAT_FPGA_PROG_B = 1;
 	while (!PORT_FPGA_INIT_B);
 	while (!PORT_FPGA_DONE && PORT_FPGA_INIT_B);
@@ -391,6 +392,7 @@ void main(void) {
 		delay1ktcy(1);
 		LAT_FPGA_RESET = 0;
 	}
+	spi_drive();
 
 	/* Configure the parallel master port.
 	 *         /-------- Module disabled
