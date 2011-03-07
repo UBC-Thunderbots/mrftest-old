@@ -282,14 +282,12 @@ namespace {
 			if (pic) {
 				crc = CRC16::calculate(&v[0], std::min(v.size(), static_cast<std::size_t>(0x1F000)));
 				for (std::size_t i = v.size(); i < 0x1F000; ++i) {
-					const uint8_t byte = 0xFF;
-					crc = CRC16::calculate(&byte, 1, crc);
+					crc = CRC16::calculate(0xFF, crc);
 				}
 			} else {
 				crc = CRC16::calculate(&v[0], v.size());
 				for (std::size_t i = v.size(); i < 2 * 1024 * 1024; ++i) {
-					const uint8_t byte = 0xFF;
-					crc = CRC16::calculate(&byte, 1, crc);
+					crc = CRC16::calculate(0xFF, crc);
 				}
 			}
 			std::cout << "Build signature is 0x" << tohex(crc, 4) << '\n';
