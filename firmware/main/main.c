@@ -2,7 +2,6 @@
 #include "crc.h"
 #include "drive.h"
 #include "feedback.h"
-#include "leds.h"
 #include "params.h"
 #include "pins.h"
 #include "run.h"
@@ -44,34 +43,6 @@ static void checksum_pic_rom(void) {
 	}
 
 	firmware_crc = crc;
-}
-
-static void show_done(void) {
-	for (;;) {
-		LAT_LED1 = 1;
-		delay100ktcy(8);
-		LAT_LED1 = 0;
-
-		LAT_LED2 = 1;
-		delay100ktcy(8);
-		LAT_LED2 = 0;
-
-		LAT_LED3 = 1;
-		delay100ktcy(8);
-		LAT_LED3 = 0;
-
-		LAT_LED4 = 1;
-		delay100ktcy(8);
-		LAT_LED4 = 0;
-
-		LAT_LED3 = 1;
-		delay100ktcy(8);
-		LAT_LED3 = 0;
-
-		LAT_LED2 = 1;
-		delay100ktcy(8);
-		LAT_LED2 = 0;
-	}
 }
 
 /**
@@ -305,7 +276,6 @@ void main(void) {
 
 	/* Clear the feedback block. */
 	memset(&feedback_block, 0, sizeof(feedback_block));
-	feedback_block.flags.valid = 1;
 
 	/* Clear the drive block. */
 	memset(&drive_block, 0, sizeof(drive_block));
@@ -323,21 +293,17 @@ void main(void) {
 	spi_init();
 
 	/* Load the operational parameters block. */
-	leds_show_number(1);
-	if (!params_load()) {
+	if (!params_load() || !params.xbee_channels[0] || !params.xbee_channels[1] || !params.robot_number) {
 		/* Parameters corrupt or uninitialized.
 		 * We can't do anything useful because our only communication mechanism is XBee and we don't know what channel or ID number to take. */
 		for (;;) {
 			Sleep();
 		}
 	}
-	if (!params.xbee_channels[0] || !params.xbee_channels[1] || !params.robot_number) {
-		/* We are missing XBee channels or robot number.
-		 * We can't do anything useful because our only communication mechanism is XBee and we don't know what channel or ID number to take. */
-		for (;;) {
-			Sleep();
-		}
-	}
+
+	/* Start configuring the FPGA. */
+	spi_tristate();
+	LAT_FPGA_PROG_B = 1;
 
 	/* Checksum the PIC's on-board ROM. */
 	checksum_pic_rom();
@@ -350,35 +316,37 @@ void main(void) {
 	serial_init();
 	xbee_txpacket_init();
 	xbee_rxpacket_init();
-	leds_show_number(2);
+	LAT_LED2 = 1;
 	if (!configure_xbee_stage1(0)) {
+		LAT_FPGA_PROG_B = 0;
 		for (;;) {
 			Sleep();
 		}
 	}
-	leds_show_number(3);
 	if (!configure_xbee_stage2(0)) {
+		LAT_FPGA_PROG_B = 0;
 		for (;;) {
 			Sleep();
 		}
 	}
-	leds_show_number(4);
+	LAT_LED2 = 0;
+	LAT_LED3 = 1;
 	if (!configure_xbee_stage1(1)) {
+		LAT_FPGA_PROG_B = 0;
 		for (;;) {
 			Sleep();
 		}
 	}
-	leds_show_number(5);
 	if (!configure_xbee_stage2(1)) {
+		LAT_FPGA_PROG_B = 0;
 		for (;;) {
 			Sleep();
 		}
 	}
+	LAT_LED1 = 1;
+	LAT_LED3 = 0;
 
-	/* Configure the FPGA, if appropriate. */
-	leds_show_number(6);
-	spi_tristate();
-	LAT_FPGA_PROG_B = 1;
+	/* Wait for FPGA configuration to finish. */
 	while (!PORT_FPGA_INIT_B);
 	while (!PORT_FPGA_DONE && PORT_FPGA_INIT_B);
 	if (!PORT_FPGA_DONE) {
@@ -454,7 +422,6 @@ void main(void) {
 	PMCONHbits.PMPEN = 1;
 
 	/* Run the main loop. */
-	leds_show_number(7);
 	run();
 }
 

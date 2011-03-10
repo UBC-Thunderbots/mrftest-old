@@ -75,8 +75,6 @@ firmware/main/drive.h -text
 firmware/main/error_reporting.c -text
 firmware/main/feedback.c -text
 firmware/main/feedback.h -text
-firmware/main/leds.c -text
-firmware/main/leds.h -text
 firmware/main/main.c -text
 firmware/main/params.c -text
 firmware/main/params.h -text

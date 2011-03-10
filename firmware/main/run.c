@@ -4,7 +4,6 @@
 #include "error_reporting.h"
 #include "feedback.h"
 #include "fw.h"
-#include "leds.h"
 #include "params.h"
 #include "parbus.h"
 #include "pins.h"
@@ -129,6 +128,7 @@ void run(void) {
 	/* Read the magic signature from the FPGA over the parallel bus. */
 	if (parbus_read(0) == 0x468D) {
 		LAT_MOTOR_ENABLE = 1;
+		LAT_LED4 = 1;
 		fpga_ok = true;
 	} else {
 		error_reporting_add(FAULT_FPGA_COMM_ERROR);
@@ -384,12 +384,10 @@ void run(void) {
 										break;
 
 									case FIRMWARE_REQUEST_CRC_BLOCK:
-										leds_show_number(8);
 										if (rxpacket->len == 13) {
 											uint16_t counter, crc = CRC16_EMPTY;
 
 											/* Send the Read Data instruction and the address. */
-											leds_show_number(9);
 											LAT_FLASH_CS = 0;
 											spi_send(0x03);
 											spi_send(rxpacket->buf[10]);
@@ -404,7 +402,6 @@ void run(void) {
 											LAT_FLASH_CS = 1;
 
 											/* Reply with the CRC. */
-											leds_show_number(10);
 											firmware_response.micropacket_length = sizeof(firmware_response) - sizeof(firmware_response.params) + sizeof(firmware_response.params.compute_block_crc_params);
 											firmware_response.pipe = PIPE_FIRMWARE_IN;
 											firmware_response.sequence = sequence[PIPE_FIRMWARE_IN];
@@ -597,6 +594,9 @@ void run(void) {
 					ADCON0bits.CHS0 = 0;
 					ADCON0bits.CHS1 = 0;
 					ADCON0bits.GO = 1;
+
+					/* Now that all ADC channels have finished converting at least once, mark the feedback packet valid. */
+					feedback_block.flags.valid = 1;
 				}
 			}
 		}
@@ -657,7 +657,6 @@ void run(void) {
 			parbus_write(0, flags_out);
 
 			/* Fill the radio feedback block. */
-			feedback_block.flags.valid = 1;
 			feedback_block.capacitor_voltage_raw = parbus_read(6);
 			feedback_block.flags.capacitor_charged = feedback_block.capacitor_voltage_raw > ((uint16_t) (215.0 / (220000.0 + 2200.0) * 2200.0 / 3.3 * 4095.0));
 
