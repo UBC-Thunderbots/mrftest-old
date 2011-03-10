@@ -21,11 +21,6 @@ extern params_t params;
 extern uint16_t firmware_crc;
 
 /**
- * \brief The CRC16 of the SPI flash.
- */
-extern uint16_t flash_crc;
-
-/**
  * \brief Loads the parameters from flash into RAM.
  *
  * \return \c true on success, or \c false on failure (e.g. if the parameters are corrupt).

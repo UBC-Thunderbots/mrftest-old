@@ -473,7 +473,7 @@ void run(void) {
 										sequence[PIPE_FIRMWARE_IN] = (sequence[PIPE_FIRMWARE_IN] + 1) & 63;
 										firmware_response.request = FIRMWARE_REQUEST_READ_BUILD_SIGNATURES;
 										firmware_response.params.build_signatures.firmware_crc = firmware_crc;
-										firmware_response.params.build_signatures.flash_crc = flash_crc;
+										firmware_response.params.build_signatures.flash_crc = parbus_read(7);
 										firmware_response_pending = true;
 										break;
 
