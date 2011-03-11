@@ -192,6 +192,8 @@ software/ai/hl/stp/evaluation/defense.cpp -text
 software/ai/hl/stp/evaluation/defense.h -text
 software/ai/hl/stp/evaluation/offense.cpp -text
 software/ai/hl/stp/evaluation/offense.h -text
+software/ai/hl/stp/evaluation/pass.cpp -text
+software/ai/hl/stp/evaluation/pass.h -text
 software/ai/hl/stp/evaluation/shoot.cpp -text
 software/ai/hl/stp/evaluation/shoot.h -text
 software/ai/hl/stp/play/defensive_block.cpp -text

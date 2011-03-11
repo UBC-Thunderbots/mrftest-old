@@ -177,6 +177,34 @@ namespace AI {
 			std::pair<Point, double> calc_best_shot(const AI::HL::W::World &world, AI::HL::W::Player::CPtr player, double radius = 1.0);
 
 			/**
+			 * Finds the length of the largest continuous interval (angle-wise) of a target player (passee) that can be seen from a point.
+			 * Having a vector of points enables one to add imaginary threats.
+			 * This version accepts vector of obstacles, so that you can add imaginary robots.
+			 *
+			 * \param[in] f field is needed to calculate length etc
+			 *
+			 * \param[in] radius the multiplier to the radius of the robot,
+			 * you can decrease the radius to make it easier to shoot.
+			 *
+			 * \return the point and the score (angle),
+			 * where the score will be 0 if the point is invalid.
+			 */
+			std::pair<Point, double> calc_best_shot_target(const Point &target_pos, const std::vector<Point> &obstacles, const Point &p, double radius = 1.0);
+
+			/**
+			 * Finds the length of the largest continuous interval (angle-wise) of a target player (passee) that can be seen from a point.
+			 * To add imaginary threats, please use the other version.
+			 *
+			 * \param[in] radius the multiplier to the radius of the robot,
+			 * you can decrease the radius to make it easier to shoot.
+			 *
+			 * \return the point as and the score (angle),
+			 * where the score will be 0 if the point is invalid,
+			 */
+			std::pair<Point, double> calc_best_shot_target(const AI::HL::W::World &world, const Point &target_pos, AI::HL::W::Player::CPtr player, double radius = 1.0);
+
+
+			/**
 			 * Checks if the robot is in a position close enough to the ball to start
 			 * So close that no other robot can be in the way of this ball.
 			 */

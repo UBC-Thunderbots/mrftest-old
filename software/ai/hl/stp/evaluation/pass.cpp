@@ -1,4 +1,4 @@
-#include "ai/hl/stp/evaluation/offense.h"
+#include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/util.h"
 #include "geom/angle.h"
 #include "geom/util.h"
@@ -26,8 +26,107 @@ namespace {
 
 	   extern EvaluateOffense evaluate_offense2;
 	 */
+	 
+	double passer_scoring_function(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
+		// can't be too close to enemy
+		for (std::size_t i = 0; i < enemy_pos.size(); ++i) {
+			if ((enemy_pos[i] - dest).len() < NEAR) {
+				return -1e99;
+			}
+		}
 
-	double scoring_function(const World &world, const std::set<Player::CPtr> &players, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
+		// Hmm.. not sure if having negative number is a good idea.
+		std::pair<Point, double> bestshot = AI::HL::Util::calc_best_shot_target(passee_pos, enemy_pos, dest);
+		double score = bestshot.second;
+
+		// TODO: check the line below here
+		// scoring factors:
+		// density of enemy, passing distance, distance to the goal, angle of shooting, angle of receiving
+		// distance toward the closest enemy, travel distance, behind of in front of the enemy
+
+		// TODO: fix this
+		if (!AI::HL::Util::path_check(world.ball().position(), dest, enemy_pos, Robot::MAX_RADIUS + Ball::RADIUS * 3)) {
+			return -1e99;
+		}
+
+		for (size_t i = 0; i < dont_block.size(); ++i) {
+			const Point diff2 = (dest - dont_block[i]);
+			if (diff2.len() < NEAR) {
+				return -1e99;
+			}
+		}
+
+		// super expensive calculation
+		// basically, ensures that this position does not block the list of positions
+		// inside dont_block from view of goal.
+		for (size_t i = 0; i < dont_block.size(); ++i) {
+			std::pair<Point, double> shootershot = AI::HL::Util::calc_best_shot_target(passee_pos, enemy_pos, dont_block[i]);
+			const Point diff1 = (shootershot.first - dont_block[i]);
+			const Point diff2 = (dest - dont_block[i]);
+			const double anglediff = angle_diff(diff1.orientation(), diff2.orientation());
+			if (anglediff * 2 < shootershot.second) {
+				return -1e99;
+			}
+		}
+
+		// 10 degrees of shooting is 10 Points
+		score *= 10.0 / (10.0 * DEG_2_RAD);
+
+		// want to be as near to passee or ball as possible
+		const double ball_dist = (dest - world.ball().position()).len();
+		const double passee_dist = (passee_pos - dest).len();
+		
+		// divide by largest distance?
+		const double bigdist = std::max(ball_dist, passee_dist);
+		score /= bigdist;
+
+		return score;
+		
+	}
+	
+	bool calc_passer_position_best(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos) {
+		// divide up into grids
+		const double x1 = -world.field().length() / 2;
+		const double x2 = world.field().length() / 2;
+		const double y1 = -world.field().width() / 2;
+		const double y2 = world.field().width() / 2;
+
+		const double dx = (x2 - x1) / (GRID_X + 1);
+		const double dy = (y2 - y1) / (GRID_Y + 1);
+		double best_score = -1e50;
+
+		best_pos = Point();
+
+		for (int i = 0; i < GRID_X; ++i) {
+			for (int j = 0; j < GRID_Y; ++j) {
+				const double x = x1 + dx * (i + 1);
+				const double y = y1 + dy * (j + 1);
+				const Point pos = Point(x, y);
+
+				// TEMPORARY HACK!!
+				// ensures that we do not get too close to the enemy defense area.
+				const double goal_dist = (pos - world.field().enemy_goal()).len();
+				if (goal_dist < world.field().goal_width()) {
+					continue;
+				}
+
+				const double score = passer_scoring_function(world, passee_pos, enemy_pos, pos, dont_block);
+				if (score < -1e50) {
+					continue;
+				}
+				if (score > best_score) {
+					best_score = score;
+					best_pos = pos;
+				}
+			}
+		}
+		return best_score > -1e40;
+	}
+
+
+	
+	
+	double passee_scoring_function(const World &world, const std::set<Player::CPtr> &players, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
 		// can't be too close to enemy
 		for (std::size_t i = 0; i < enemy_pos.size(); ++i) {
 			if ((enemy_pos[i] - dest).len() < NEAR) {
@@ -72,12 +171,12 @@ namespace {
 		// 10 degrees of shooting is 10 Points
 		score *= 10.0 / (10.0 * DEG_2_RAD);
 
-		// want to be as near to enemy goal or ball as possible
+		// want to be as near to enemy goal as possible, can be close to ball too but that should be left for the passer in most cases
 		const double balldist = (dest - world.ball().position()).len();
 		const double goal_dist = (dest - bestshot.first).len();
 
-		// divide by largest distance?
-		const double bigdist = std::max(balldist, goal_dist);
+		// weighted
+		const double bigdist = balldist * 0.25 + goal_dist * 0.75;
 		score /= bigdist;
 
 		// divide by distance to nearest player
@@ -94,7 +193,7 @@ namespace {
 		return score;
 	}
 
-	bool calc_position_best(const World &world, const std::set<Player::CPtr> &players, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos) {
+	bool calc_passee_position_best(const World &world, const std::set<Player::CPtr> &players, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos) {
 		// divide up into grids
 		const double x1 = -world.field().length() / 2;
 		const double x2 = world.field().length() / 2;
@@ -120,7 +219,7 @@ namespace {
 					continue;
 				}
 
-				const double score = scoring_function(world, players, enemy_pos, pos, dont_block);
+				const double score = passee_scoring_function(world, players, enemy_pos, pos, dont_block);
 				if (score < -1e50) {
 					continue;
 				}
@@ -137,7 +236,12 @@ namespace {
 	
 }
 
-Point AI::HL::STP::Evaluation::calc_positions(const World &world, const std::set<Player::CPtr> &players) {
+std::pair <Point,Point> AI::HL::STP::Evaluation::calc_pass_positions(const World &world, const std::set<Player::CPtr> &players) {
+
+	std::pair <Point,Point> pp;
+	pp.first = Point();
+	pp.second = Point();
+
 	// just for caching..
 	const EnemyTeam &enemy = world.enemy_team();
 	std::vector<Point> enemy_pos;
@@ -158,16 +262,23 @@ Point AI::HL::STP::Evaluation::calc_positions(const World &world, const std::set
 		}
 	}
 
-	Point best;
-	if (!calc_position_best(world, players, enemy_pos, dont_block, best)) {
-		LOG_WARN("could not find a good plac3");
-		return Point();
+	Point passee_best;
+	if (!calc_passee_position_best(world, players, enemy_pos, dont_block, passee_best)) {
+		LOG_WARN("could not find a good passee pos");
+		return pp;
+	} 
+	pp.second = passee_best;
+	Point passer_best;
+	if (!calc_passer_position_best(world, passee_best, enemy_pos, dont_block, passer_best)){
+		LOG_WARN("could not find a good passer pos");
+		return pp;
 	}
-	return best;
+	pp.first = passer_best;
+	return pp;
 }
-
+/*
 Point AI::HL::STP::Evaluation::evaluate_offense(const AI::HL::W::World &world, const std::set<Player::Ptr> &players) {
 	std::set<Player::CPtr> cplayers(players.begin(), players.end());
 	return calc_positions(world, cplayers);
 }
-
+*/

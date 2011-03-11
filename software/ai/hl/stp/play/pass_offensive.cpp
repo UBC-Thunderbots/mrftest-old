@@ -9,6 +9,7 @@
 #include <glibmm.h>
 
 #include "ai/hl/stp/evaluation/offense.h"
+#include "ai/hl/stp/evaluation/pass.h"
 
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::STP::Tactic;
@@ -84,20 +85,18 @@ namespace {
 
 #warning BROKEN, need proper passer and passee positioning and targeting
 		// Temporary hack, should use proper pass evaluation
-		Point A, B;		
-		A = calc_positions(world, players);
-		B = calc_positions(world, players);
+		std::pair <Point, Point> pp = calc_pass_positions(world, players);		
 		
 		// ROLE 1
 		// passer
-		roles[0].push_back(passer_ready(world, A, B));
-		roles[0].push_back(passer_shoot(world, B));
+		roles[0].push_back(passer_ready(world, pp.first, pp.second));
+		roles[0].push_back(passer_shoot(world, pp.second));
 		roles[0].push_back(offend(world));
 
 		// ROLE 2
 		// passee
-		roles[1].push_back(passee_ready(world, B));
-		roles[1].push_back(passee_receive(world, B));
+		roles[1].push_back(passee_ready(world, pp.second));
+		roles[1].push_back(passee_receive(world, pp.second));
 		roles[1].push_back(shoot(world));
 
 		// ROLE 3
