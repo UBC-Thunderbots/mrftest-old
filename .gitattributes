@@ -208,6 +208,7 @@ software/ai/hl/stp/play/penalty_enemy.cpp -text
 software/ai/hl/stp/play/penalty_friendly.cpp -text
 software/ai/hl/stp/play/play.cpp -text
 software/ai/hl/stp/play/play.h -text
+software/ai/hl/stp/play/stop.cpp -text
 software/ai/hl/stp/play/their_corner_play.cpp -text
 software/ai/hl/stp/play_executor.cpp -text
 software/ai/hl/stp/play_executor.h -text
@@ -230,6 +231,8 @@ software/ai/hl/stp/tactic/idle.cpp -text
 software/ai/hl/stp/tactic/idle.h -text
 software/ai/hl/stp/tactic/move.cpp -text
 software/ai/hl/stp/tactic/move.h -text
+software/ai/hl/stp/tactic/move_stop.cpp -text
+software/ai/hl/stp/tactic/move_stop.h -text
 software/ai/hl/stp/tactic/offend.cpp -text
 software/ai/hl/stp/tactic/offend.h -text
 software/ai/hl/stp/tactic/pass.cpp -text
