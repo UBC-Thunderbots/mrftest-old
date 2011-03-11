@@ -138,6 +138,7 @@ namespace {
 				Point diff = (world.ball().position() - currentPosition).rotate(angle);
 
 				Point destinationPosition = world.ball().position() - offset_distance * (diff / diff.len());
+				if (destinationPosition.len() > 0.5) orientationTemp = 0;
 				double destinationOrientation = (world.ball().position() - currentPosition).orientation() + orientationTemp;
 
 				path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
