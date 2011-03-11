@@ -83,8 +83,7 @@ namespace {
 		// GOALIE
 		goalie_role.push_back(defend_duo_goalie(world));
 
-#warning BROKEN, need proper passer and passee positioning and targeting
-		// Temporary hack, should use proper pass evaluation
+		// need to test pass evaluation
 		std::pair <Point, Point> pp = calc_pass_positions(world, players);		
 		
 		// ROLE 1

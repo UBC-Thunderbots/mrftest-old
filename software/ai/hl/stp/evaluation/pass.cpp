@@ -276,9 +276,3 @@ std::pair <Point,Point> AI::HL::STP::Evaluation::calc_pass_positions(const World
 	pp.first = passer_best;
 	return pp;
 }
-/*
-Point AI::HL::STP::Evaluation::evaluate_offense(const AI::HL::W::World &world, const std::set<Player::Ptr> &players) {
-	std::set<Player::CPtr> cplayers(players.begin(), players.end());
-	return calc_positions(world, cplayers);
-}
-*/

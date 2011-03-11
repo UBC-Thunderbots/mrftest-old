@@ -12,11 +12,9 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
-			
-				std::pair <Point, Point> calc_pass_positions(const World &world, const std::set<Player::CPtr> &players);
 				
 				/**
-				 * Calculates strategic positions to place offensive players.
+				 * Calculates passing positions for a pair of passer and passee.
 				 * - Finds weak points on the enemy goal area,
 				 *   where the enemy net is open and the ball is visible.
 				 * - Places that are near players are preferred.
@@ -24,8 +22,12 @@ namespace AI {
 				 *   will avoid blocking view of it.
 				 *
 				 * \param[in] players the set of players that influence the output.
+				 * 
+				 * \return a pair of passer_pos (first) and passee_pos (second)
 				 */
-				//Point evaluate_offense(const AI::HL::W::World &world, const std::set<AI::HL::W::Player::Ptr> &players);
+				
+				std::pair <Point, Point> calc_pass_positions(const World &world, const std::set<Player::CPtr> &players);
+				
 			}
 		}
 	}
