@@ -17,12 +17,8 @@ namespace {
 				return select_baller(world, players);
 			}
 			void execute() {
-#warning this is broken
-				// TODO: fix this movement
-				player->move(dest(), (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_MEDIUM);
 				// orient towards target
-				player->move(dest(), (target() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_MEDIUM);
-				player->kick(7.5);
+				player->move(dest(), (target() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);				
 			}
 	};
 
@@ -60,9 +56,8 @@ namespace {
 				return select_baller(world, players);
 			}
 			void execute() {
-#warning broken
 				// orient towards target
-				player->move(target(), (target() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_MEDIUM);
+				player->move(target(), (target() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
 				player->kick(7.5);
 				kicked = true;
 			}
@@ -76,6 +71,9 @@ namespace {
 
 		private:
 			Coordinate dest;
+			bool done() const {
+				return player->has_ball();
+			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest()));
 			}
