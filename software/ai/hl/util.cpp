@@ -50,6 +50,12 @@ bool AI::HL::Util::point_in_friendly_defense(const Field &field, const Point p) 
 	return false;
 }
 
+bool AI::HL::Util::point_in_field_boundary(const Field &field, const Point p) {
+	double shifted_x = p.x + (field.length() / 2);
+	double shifted_y = p.y + (field.width() / 2);
+	return shifted_x <= field.length() && shifted_x >= 0 && shifted_y <= field.width() && shifted_y >= 0;
+}
+
 bool AI::HL::Util::path_check(const Point &begin, const Point &end, const std::vector<Point> &obstacles, const double thresh) {
 	const Point direction = (end - begin).norm();
 	const double dist = (end - begin).len();

@@ -118,6 +118,11 @@ namespace AI {
 			bool point_in_friendly_defense(const AI::HL::W::Field &field, const Point p);
 
 			/**
+			 * Checks if a point lies inside the field boundary.
+			 */
+			bool point_in_field_boundary(const AI::HL::W::Field &field, const Point p);
+
+			/**
 			 * Checks if the path from begin to end is blocked by some obstacles.
 			 *
 			 * \param[in] obstacles a vector of obstacles that blocks the path.
