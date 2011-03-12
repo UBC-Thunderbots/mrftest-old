@@ -18,10 +18,10 @@
 <int-param name="Grid X size">25</int-param>
 <int-param name="Grid Y size">25</int-param>
 <int-param name="has_ball: # of sense ball for to be true">2</int-param>
-<double-param name="AdHoc2: angle prop">20</double-param>
-<double-param name="AdHoc2: angle thresh">12</double-param>
-<double-param name="AdHoc2: max acc">1</double-param>
-<double-param name="AdHoc2: max vel">6</double-param>
+<double-param name="AdHoc2: angle prop">12</double-param>
+<double-param name="AdHoc2: angle thresh">10</double-param>
+<double-param name="AdHoc2: max acc">3</double-param>
+<double-param name="AdHoc2: max vel">10</double-param>
 <double-param name="AdHoc2: prop">20</double-param>
 <double-param name="AdHoc2: slowdown (CARE)">1.5</double-param>
 <double-param name=" amount to scale controller velocities by ">2</double-param>

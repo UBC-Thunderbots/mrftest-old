@@ -120,19 +120,18 @@ namespace {
 
 				angle = degrees2radians(angle);
 				if (fabs(angle_diff(toBallOrientation, player->destination().second)) < fabs(angle)) {
-					orientationTemp = 0;
-					if (angle < 0) {
-						angle = -fabs(angle_diff(toBallOrientation, player->destination().second));
-					} else {
-						angle = fabs(angle_diff(toBallOrientation, player->destination().second));
-					}
-
-					if (player->velocity().len() < 1.2) {
+					if (fabs(angle_diff(toBallOrientation, player->destination().second)) < fabs(angle)/4) {
 						timespec timeToBall;
 						timespec_add(double_to_timespec(0.0), world.monotonic_time(), timeToBall);
 						path.push_back(std::make_pair(std::make_pair(world.ball().position(), player->destination().second), timeToBall));
 						player->path(path);
 						continue;
+					}
+					orientationTemp = 0;
+					if (angle < 0) {
+						angle = -fabs(angle_diff(toBallOrientation, player->destination().second));
+					} else {
+						angle = fabs(angle_diff(toBallOrientation, player->destination().second));
 					}
 				}
 				Point diff = (world.ball().position() - currentPosition).rotate(angle);
