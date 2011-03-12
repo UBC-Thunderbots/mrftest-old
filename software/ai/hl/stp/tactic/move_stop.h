@@ -14,9 +14,9 @@ namespace AI {
 				 */
 				Tactic::Ptr move_stop(const World &world, int playerIndex);
 
-				class StopLocations : public Cacheable<std::vector<Point>, CacheableNonKeyArgs<const AI::HL::W::World &>, CacheableKeyArgs<int> > {
+				class StopLocations : public Cacheable<std::vector<Point>, CacheableNonKeyArgs<const AI::HL::W::World &>, CacheableKeyArgs<> > {
 					protected:
-						std::vector<Point> compute(const World &w, int dummy);
+						std::vector<Point> compute(const World &w);
 				};
 
 				extern StopLocations stop_locations;

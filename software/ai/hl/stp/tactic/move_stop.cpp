@@ -19,8 +19,6 @@ namespace {
 	DoubleParam separation_angle("stop: angle to separate players (degrees)", 20, 0, 90);
 
 	const unsigned int NUM_PLAYERS = 4;
-	// to be cacheable it seems to require a parameter, so we use this dummy parameter
-	const int DUMMY_PARAM = 1;
 
 	class MoveStop : public Tactic {
 		public:
@@ -35,13 +33,13 @@ namespace {
 	};
 
 	Player::Ptr MoveStop::select(const std::set<Player::Ptr> &players) const {
-		std::vector<Point> positions = stop_locations(world, DUMMY_PARAM);
+		std::vector<Point> positions = stop_locations(world);
 
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(positions[player_index]));
 	}
 
 	void MoveStop::execute() {
-		std::vector<Point> positions = stop_locations(world, DUMMY_PARAM);
+		std::vector<Point> positions = stop_locations(world);
 
 		unsigned int flags = AI::Flags::FLAG_AVOID_BALL_STOP | AI::Flags::calc_flags(world.playtype());
 		player->move(positions[player_index], (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
@@ -53,7 +51,7 @@ Tactic::Ptr AI::HL::STP::Tactic::move_stop(const World &world, int player_index)
 	return p;
 }
 
-std::vector<Point> StopLocations::compute(const World &world, int dummy) {
+std::vector<Point> StopLocations::compute(const World &world) {
 	// draw a circle of radius 50cm from the ball
 	Point ball_pos = world.ball().position();
 	Point goal_pos = world.field().friendly_goal();
