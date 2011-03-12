@@ -24,10 +24,10 @@ namespace {
 	const double arr_max[P] = { 8.0, 2.0, 2.0, 8.0, 8.0 };
 
 	// robot parameters
-	const double arr_def[P] = {7.72052, 0.261496, 0.385, 7.8411, 7.28714};
+	//const double arr_def[P] = {7.72052, 0.261496, 0.385, 7.8411, 7.28714};
 
 	// simulator parameters
-	//const double arr_def[P] = { 8.71043, 1.95671, 1.08009, 4.59125, 9.40896 };
+	const double arr_def[P] = {7.72052, 0.825997, 1.96849, 3.13055, 6.36714};
 
 
 	const std::vector<double> param_min(arr_min, arr_min + P);

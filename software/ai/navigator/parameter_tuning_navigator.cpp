@@ -1,5 +1,6 @@
 #include "ai/navigator/navigator.h"
 #include "util/time.h"
+#include "geom/angle.h"
 #include "ai/robot_controller/tunable_controller.h"
 #include "util/stochastic_local_search.h"
 #include <iostream>
@@ -101,7 +102,9 @@ namespace {
 		path.clear();
 		player = fteam.get(0);
 		Point currentPosition = player->position();
-		if ((currentPosition - tasks[taskIndex].first).len() < 0.1 && player->velocity().len() < 0.05) {
+		if ((currentPosition - tasks[taskIndex].first).len() < 0.1
+				&& player->velocity().len() < 0.05
+				&& angle_diff(tasks[taskIndex].second, player->orientation()) < 0.175) {
 			taskIndex++;
 			if (taskIndex == 1) {
 				time = 0;
