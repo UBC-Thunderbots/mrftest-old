@@ -65,12 +65,18 @@ namespace {
 
 	const double PI = M_PI;
 	int taskIndex = 0;
-	int numTasks = 10;
+	int numTasks = 15;
 	int time = 0;
 	int limit = 1000;
 	int best = limit;
 
 	const std::pair<Point, double> tasks[] = {
+		std::make_pair(Point(1.2, 0), 0),
+		std::make_pair(Point(1.5, 0), -PI / 2),
+		std::make_pair(Point(1.2, 0.3), 0),
+		std::make_pair(Point(1.2, -0.3), PI),
+		std::make_pair(Point(1.2, 0), 0),
+		std::make_pair(Point(1.2, -0.3), PI),
 		std::make_pair(Point(1.2, 0), 0),
 		std::make_pair(Point(0.5, 0), PI),
 		std::make_pair(Point(2.5, 0), 0),
@@ -79,8 +85,7 @@ namespace {
 		std::make_pair(Point(2, 0.6), PI / 2),
 		std::make_pair(Point(1, -0.6), -PI / 2),
 		std::make_pair(Point(0.5, 0), 0),
-		std::make_pair(Point(2.5, 0.6), -PI / 2),
-		std::make_pair(Point(1.2, 0), 0)
+		std::make_pair(Point(2.5, 0.6), -PI / 2)
 	};
 
 
