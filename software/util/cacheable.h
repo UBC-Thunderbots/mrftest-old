@@ -64,7 +64,7 @@ template<typename R, typename ... NK, typename ... Args> class CacheableImpl<R, 
 			if (!cache.is()) {
 				cache.reset(new R(compute(args ...)));
 			}
-			return *cache.ref();
+			return cache.ref();
 		}
 
 		void flush() {
