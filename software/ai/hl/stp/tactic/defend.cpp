@@ -42,7 +42,6 @@ namespace {
 	template<int N>
 		void Goalie<N>::execute() {
 			auto waypoints = evaluate_defense<N>(world);
-#warning use goalie SSM
 			player->move(waypoints[0], (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
 		}
 
