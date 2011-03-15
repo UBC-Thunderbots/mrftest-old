@@ -113,18 +113,10 @@ PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, dReal 
 	dBodySetMass(body, &mass);
 	momentInertia = ROBOT_RADIUS * ROBOT_RADIUS * mass.mass / 2;
 
-	wheel_position = new Point[4];
-	force_direction = new Point[4];
-
 	for (int index = 0; index < 4; index++) {
 		wheel_position[index] = Point(1, 0).rotate(ANGLES[index]) * ROBOT_RADIUS;
 		force_direction[index] = Point(wheel_position[index].rotate(M_PI / 2).norm());
 	}
-}
-
-PlayerODE::~PlayerODE() {
-	delete[] wheel_position;
-	delete[] force_direction;
 }
 
 // Accessor method to get the robots position

@@ -52,12 +52,11 @@ class PlayerODE : public Simulator::Player {
 		dGeomID ballGeom;
 		dReal updates_per_tick;
 
-		Point *wheel_position;
-		Point *force_direction;
+		Point wheel_position[4];
+		Point force_direction[4];
 
 	public:
 		PlayerODE(dWorldID dworld, dSpaceID dspace, dGeomID ballGeom, dReal ups_per_tick);
-		~PlayerODE();
 
 		dReal get_height() const;
 
