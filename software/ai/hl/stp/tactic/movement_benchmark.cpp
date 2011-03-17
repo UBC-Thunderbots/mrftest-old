@@ -14,6 +14,8 @@ using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 using AI::HL::STP::Coordinate;
 
+#define TUNE_FULL
+
 namespace {
 	
 	const double pos_dis_threshold = 0.2;
@@ -23,6 +25,22 @@ namespace {
 
 	const double PI = M_PI;
 	
+#ifdef TUNE_HALF
+	const std::vector< std::pair<Point, double> > tasks = {
+		std::make_pair(Point(1.2, 0), 0),
+		std::make_pair(Point(0.5, 0), PI),
+		std::make_pair(Point(2.5, 0), 0),
+		std::make_pair(Point(0.5, 1.2), PI),
+		std::make_pair(Point(1, -0.6), 0),
+		/*std::make_pair(Point(2, 0.6), PI/2),
+		   std::make_pair(Point(1, -0.6), -PI/2),
+		   std::make_pair(Point(0.5, 0), 0),
+		   std::make_pair(Point(2.5, 0.6), -PI/2),
+		   std::make_pair(Point(1.2, 0), 0),*/
+	};
+#endif
+	
+#ifdef TUNE_FULL
 	const std::vector< std::pair<Point, double> > tasks = {
 		std::make_pair(Point(0, 0), 0),
 		std::make_pair(Point(1, 0), PI),
@@ -44,10 +62,34 @@ namespace {
 		std::make_pair(Point(-0.1, 0), 0),
 		std::make_pair(Point(0, 0), 0),
 	};
+#endif
+	
+#ifdef NO_TUNE_ROTATION
+	const std::vector< std::pair<Point, double> > tasks = {
+		std::make_pair(Point(0, 0), 0),
+		std::make_pair(Point(1, 0), 0),
+		std::make_pair(Point(0, 0), 0),
+		std::make_pair(Point(-1, 0), 0),
+		std::make_pair(Point(0, 1), 0),
+		std::make_pair(Point(0, -1), 0),
+		std::make_pair(Point(2.5, 0), 0),
+		std::make_pair(Point(-2.5, 0), 0),
+		std::make_pair(Point(0, 0), 0),
+		std::make_pair(Point(0.25, 0), 0),
+		std::make_pair(Point(0.1, 0.1), 0),
+		std::make_pair(Point(-0.1, 0), 0),
+		std::make_pair(Point(0, 0), 0),
+		std::make_pair(Point(-0.25, -0.1), 0),
+		std::make_pair(Point(0.25, 0.1), 0),
+		std::make_pair(Point(-0.1, 0), 0),
+		std::make_pair(Point(0, 0), 0),
+	};
+#endif
 	
 	class MovementBenchmark : public Tactic {
 		public:
 			MovementBenchmark(const World &world) : Tactic(world,true) {
+				finished = 0;
 			}
 
 		private:
@@ -102,7 +144,7 @@ namespace {
 
 			return;
 		}
-
+		
 		prev_ori = player->orientation();
 		prev_pos = player->position();
 		player->move(tasks[finished].first, tasks[finished].second, 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);

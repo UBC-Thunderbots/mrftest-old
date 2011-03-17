@@ -1,5 +1,6 @@
 #include "ai/hl/stp/play/play.h"
 #include "ai/hl/stp/predicates.h"
+#include "ai/hl/stp/tactic/move.h"
 #include "ai/hl/stp/tactic/movement_benchmark.h"
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/idle.h"
@@ -16,10 +17,10 @@ namespace {
 	/**
 	 * Condition:
 	 * - ball not under any possesion
-	 * - at least 2 players
+	 * - at least 1 players
 	 *
 	 * Objective:
-	 * - grab the ball
+	 * - movement benchmark
 	 */
 	class MovementBenchmark : public Play {
 		public:
@@ -66,24 +67,24 @@ namespace {
 
 	void MovementBenchmark::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
 		// GOALIE
-		// defend the goal
-		goalie_role.push_back(defend_duo_goalie(world));
+		// movement benchmark
+		goalie_role.push_back(movement_benchmark(world));
 
 		// ROLE 1
-		// chase the ball!
-		roles[0].push_back(movement_benchmark(world));
+		// obstacle
+		roles[0].push_back(move(world,Point(0.5, 0)));
 		
 		// ROLE 2
-		// idle
-		roles[1].push_back(idle(world));
+		// obstacle
+		roles[1].push_back(move(world,Point(-0.5, 0)));
 
 		// ROLE 3 (optional)
-		// idle
-		roles[2].push_back(idle(world));
+		// obstacle
+		roles[2].push_back(move(world,Point(0, 0.6)));
 
 		// ROLE 4 (optional)
-		// idle
-		roles[3].push_back(idle(world));
+		// obstacle
+		roles[3].push_back(move(world,Point(0, -0.6)));
 	}
 }
 
