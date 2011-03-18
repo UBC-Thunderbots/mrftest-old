@@ -55,5 +55,13 @@ void interrupt_in_send(__data const uint8_t *message, uint8_t len) {
 	/* Begin the transaction. */
 	busy = true;
 	USB_BD_IN_SUBMIT(EP_INTERRUPT, message, len);
+
+	/* Wait until transmission is complete. */
+	while (busy) {
+		if (should_shut_down) {
+			return;
+		}
+		check_idle();
+	}
 }
 
