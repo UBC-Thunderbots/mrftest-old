@@ -301,9 +301,11 @@ void main(void) {
 		}
 	}
 
-	/* Start configuring the FPGA. */
-	spi_tristate();
-	LAT_FPGA_PROG_B = 1;
+	if (params.flash_contents == FLASH_CONTENTS_FPGA) {
+		/* Start configuring the FPGA. */
+		spi_tristate();
+		LAT_FPGA_PROG_B = 1;
+	}
 
 	/* Checksum the PIC's on-board ROM. */
 	checksum_pic_rom();
@@ -346,35 +348,37 @@ void main(void) {
 	LAT_LED1 = 1;
 	LAT_LED3 = 0;
 
-	/* Wait for FPGA configuration to finish. */
-	while (!PORT_FPGA_INIT_B);
-	while (!PORT_FPGA_DONE && PORT_FPGA_INIT_B);
-	if (!PORT_FPGA_DONE) {
-		error_reporting_add(FAULT_FPGA_INVALID_BITSTREAM);
-		LAT_FPGA_PROG_B = 0;
-	} else {
-		delay1ktcy(1);
-		LAT_DCM_RESET = 0;
-		delay1ktcy(1);
-		while (!PORT_DCM_LOCKED);
-		delay1ktcy(1);
-		LAT_FPGA_RESET = 0;
+	if (params.flash_contents == FLASH_CONTENTS_FPGA) {
+		/* Wait for FPGA configuration to finish. */
+		while (!PORT_FPGA_INIT_B);
+		while (!PORT_FPGA_DONE && PORT_FPGA_INIT_B);
+		if (!PORT_FPGA_DONE) {
+			error_reporting_add(FAULT_FPGA_INVALID_BITSTREAM);
+			LAT_FPGA_PROG_B = 0;
+		} else {
+			delay1ktcy(1);
+			LAT_DCM_RESET = 0;
+			delay1ktcy(1);
+			while (!PORT_DCM_LOCKED);
+			delay1ktcy(1);
+			LAT_FPGA_RESET = 0;
 
-		/* At startup the following sequence of events will occur:
-		 * 1. A 16-bit shift register containing all ones will begin shifting out the Reset signal on the 1MHz clock.
-		 *    The shift register will hence release the internal GSR net after 16 / 1e6 = 16µs.
-		 * 2. The FlashChecksummer will count off a total of three SPI clock ticks at 32Mhz, for a total of 3 / 32e6 = 93.75ns.
-		 * 3. The FlashChecksummer will assert /CS and start checksumming the Flash, which will take around half a second.
-		 *
-		 * The total time before /CS is asserted is 16µs + 93.75ns = 16.09375µs.
-		 * We need to wait until the checksumming operation is finished before reasserting control of the SPI bus.
-		 * We can detect the beginning of the checksumming operation by waiting for (with a generous margin) 64µs × 12MIPS = 768 instruction cycles. */
-		delay100tcy(8);
+			/* At startup the following sequence of events will occur:
+			 * 1. A 16-bit shift register containing all ones will begin shifting out the Reset signal on the 1MHz clock.
+			 *    The shift register will hence release the internal GSR net after 16 / 1e6 = 16µs.
+			 * 2. The FlashChecksummer will count off a total of three SPI clock ticks at 32Mhz, for a total of 3 / 32e6 = 93.75ns.
+			 * 3. The FlashChecksummer will assert /CS and start checksumming the Flash, which will take around half a second.
+			 *
+			 * The total time before /CS is asserted is 16µs + 93.75ns = 16.09375µs.
+			 * We need to wait until the checksumming operation is finished before reasserting control of the SPI bus.
+			 * We can detect the beginning of the checksumming operation by waiting for (with a generous margin) 64µs × 12MIPS = 768 instruction cycles. */
+			delay100tcy(8);
 
-		/* We can then detect the end of the checksumming operation by waiting for /CS to be deasserted. */
-		while (!PORT_FLASH_CS);
+			/* We can then detect the end of the checksumming operation by waiting for /CS to be deasserted. */
+			while (!PORT_FLASH_CS);
+		}
+		spi_drive();
 	}
-	spi_drive();
 
 	/* Configure the parallel master port.
 	 *         /-------- Module disabled

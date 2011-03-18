@@ -125,15 +125,20 @@ void run(void) {
 	txiovs[2].ptr = &txpkt_feedback_shadow;
 	txpkt.iovs = txiovs;
 
-	/* Read the magic signature from the FPGA over the parallel bus. */
-	if (parbus_read(0) == 0x468D) {
-		LAT_MOTOR_ENABLE = 1;
-		LAT_LED4 = 1;
-		fpga_ok = true;
+	if (params.flash_contents == FLASH_CONTENTS_FPGA) {
+		/* Read the magic signature from the FPGA over the parallel bus. */
+		if (parbus_read(0) == 0x468D) {
+			LAT_MOTOR_ENABLE = 1;
+			LAT_LED4 = 1;
+			fpga_ok = true;
+		} else {
+			error_reporting_add(FAULT_FPGA_COMM_ERROR);
+			fpga_ok = false;
+			LAT_FPGA_PROG_B = 0;
+		}
 	} else {
-		error_reporting_add(FAULT_FPGA_COMM_ERROR);
 		fpga_ok = false;
-		LAT_FPGA_PROG_B = 0;
+		error_reporting_add(FAULT_FPGA_NO_BITSTREAM);
 	}
 
 	/* Start running a 200Hz control loop timer.
@@ -529,6 +534,11 @@ void run(void) {
 				/* The response message has already been assembled.
 				 * Queue it for transmission. */
 				firmware_response_pending = true;
+
+				/* Change the parameters block to reflect no data. */
+				params_load();
+				params.flash_contents = FLASH_CONTENTS_NONE;
+				params_commit();
 			}
 		}
 

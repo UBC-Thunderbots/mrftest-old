@@ -18,9 +18,9 @@ class XBeeRobot : public ByRef {
 
 		struct OperationalParameters {
 			enum FlashContents {
-				FLASH_CONTENTS_NONE,
 				FLASH_CONTENTS_FPGA,
 				FLASH_CONTENTS_PIC,
+				FLASH_CONTENTS_NONE,
 			} flash_contents;
 
 			uint8_t xbee_channels[2];

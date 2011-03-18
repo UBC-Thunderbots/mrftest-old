@@ -15,11 +15,6 @@
  */
 typedef enum {
 	/**
-	 * \brief The flash contains no useful data.
-	 */
-	FLASH_CONTENTS_NONE,
-
-	/**
 	 * \brief The flash contains an FPGA bitstream.
 	 */
 	FLASH_CONTENTS_FPGA,
@@ -28,6 +23,11 @@ typedef enum {
 	 * \brief The flash contains a PIC firmware upgrade.
 	 */
 	FLASH_CONTENTS_PIC,
+
+	/**
+	 * \brief The flash contains no useful data.
+	 */
+	FLASH_CONTENTS_NONE,
 } flash_contents_t;
 
 /**
