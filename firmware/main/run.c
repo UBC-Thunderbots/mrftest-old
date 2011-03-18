@@ -270,10 +270,7 @@ void run(void) {
 						if ((rxpacket->buf[6] & 63) == sequence[rxpacket->buf[5]]) {
 							/* The sequence number is correct. */
 							sequence[rxpacket->buf[5]] = (sequence[rxpacket->buf[5]] + 1) & 63;
-							if (rxpacket->buf[5] == PIPE_FAULT_OUT) {
-								/* The packet contains a fault clearing request. */
-#warning implement
-							} else if (rxpacket->buf[5] == PIPE_KICK) {
+							if (rxpacket->buf[5] == PIPE_KICK) {
 								/* The packet contains a kick request. */
 								if (rxpacket->len == 14) {
 									parbus_write(10, rxpacket->buf[8] | (rxpacket->buf[9] << 8));

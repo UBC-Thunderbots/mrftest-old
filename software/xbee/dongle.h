@@ -110,11 +110,6 @@ class XBeeDongle : public NonCopyable {
 			PIPE_FEEDBACK,
 
 			/**
-			 * \brief An interrupt pipe that allows faults to be cleared from the robot's fault latch.
-			 */
-			PIPE_FAULT_OUT,
-
-			/**
 			 * \brief An interrupt pipe that allows the robot to be ordered to kick or chip.
 			 */
 			PIPE_KICK,
