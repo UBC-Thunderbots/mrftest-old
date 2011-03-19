@@ -59,7 +59,7 @@ namespace {
 	}
 
 	bool FranticDefense::done() const {
-		return Predicates::ball_in_our_corner(world) || Predicates::ball_in_their_corner(world) || Predicates::ball_midfield(world);
+		return Predicates::our_ball(world) || Predicates::ball_in_our_corner(world) || Predicates::ball_in_their_corner(world) || Predicates::ball_midfield(world);
 	}
 
 	bool FranticDefense::fail() const {

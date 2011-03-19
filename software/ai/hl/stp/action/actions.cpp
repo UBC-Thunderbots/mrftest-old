@@ -9,6 +9,8 @@ using namespace AI::HL::STP;
 
 namespace {
 	DoubleParam lone_goalie_dist("Lone goalie distance to goal post (m)", 0.30, 0.05, 1.0);
+	DoubleParam ball_dangerous_speed("defensive2: threatening ball speed", 0.1, 0.1, 10.0); 
+
 }
 
 void AI::HL::STP::Action::chase(const World &world, Player::Ptr player, const unsigned int flags) {
@@ -62,16 +64,42 @@ void AI::HL::STP::Action::lone_goalie(const World &world, Player::Ptr player) {
 		return;
 	}
 
-	const Point default_pos = Point(-0.45 * world.field().length(), 0);
-	const Point centre_of_goal = world.field().friendly_goal();
-	Point target = world.ball().position() - centre_of_goal;
-	target = target * (lone_goalie_dist / target.len());
-	target += centre_of_goal;
-	player->move(target, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+	// Check if ball is threatening to our goal
+	Point ballvel = world.ball().velocity();
+	Point ballpos = world.ball().position();
+	Point rushpos, goalpos;
+	if (ballvel.len() > ball_dangerous_speed && ballvel.x < -1e-6){
+		rushpos = line_intersect(ballpos, ballpos + ballvel, 
+					Point(-world.field().length()/2.0 + 1.5*Robot::MAX_RADIUS, 1.0),
+					Point(-world.field().length()/2.0 + 1.5*Robot::MAX_RADIUS, -1.0));
+
+		goalpos = line_intersect(ballpos, ballpos + ballvel, 
+					Point(world.field().length()/2.0, 1.0),
+					Point(world.field().length()/2.0, -1.0));
+		LOG_INFO(Glib::ustring::compose("ball heading towards our side of the field: rushpos.y = %1, goalpos.y = %2", rushpos.y, goalpos.y));
+		
+	} 
+	
+	// if ball is coming in at dangerous velocity, must rush!
+	if (ballvel.len() > ball_dangerous_speed && ballvel.x < -1e-6 && (std::min(std::fabs(goalpos.y),std::fabs(rushpos.y)) < world.field().goal_width()/2.0)){
+	
+		rushpos.y = std::min(rushpos.y, world.field().goal_width()/2.0);
+		rushpos.y = std::max(rushpos.y, world.field().goal_width()/2.0);
+		player->move(rushpos, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_RAM_BALL, AI::Flags::PRIO_HIGH);
+		
+	} else {
+		// Patrol
+		const Point default_pos = Point(-0.45 * world.field().length(), 0);
+		const Point centre_of_goal = world.field().friendly_goal();
+		Point target = world.ball().position() - centre_of_goal;
+		target = target * (lone_goalie_dist / target.len());
+		target += centre_of_goal;
+		player->move(target, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+	}
 }
 
 void AI::HL::STP::Action::block(World &world, Player::Ptr player, const unsigned int flags, Robot::Ptr robot) {
-#warning can be better
+#warning can be better	
 	player->move(robot->position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 }
 
