@@ -57,5 +57,10 @@
  */
 #define USB_CONFIG_IDLE 0
 
+/**
+ * \brief Set to 1 if endpoint halt is implemented, or 0 if not.
+ */
+#define USB_CONFIG_HALT 0
+
 #endif
 

@@ -134,24 +134,6 @@ static void on_transaction(void) {
 	check_send();
 }
 
-static void on_commanded_stall(void) {
-	if (debug_enabled) {
-		USB_BD_IN_COMMANDED_STALL(EP_DEBUG);
-		transaction_running = true;
-	}
-}
-
-static BOOL on_clear_halt(void) {
-	if (debug_enabled) {
-		USB_BD_IN_UNSTALL(EP_DEBUG);
-		write_ptr = send_ptr = tail_ptr = 0;
-		transaction_running = false;
-		return true;
-	} else {
-		return false;
-	}
-}
-
 void debug_init(void) {
 	debug_enabled = false;
 	stdout = STREAM_USER;
@@ -161,8 +143,6 @@ void debug_enable(void) {
 	write_ptr = send_ptr = tail_ptr = 0;
 	USB_BD_IN_INIT(EP_DEBUG);
 	usb_ep_callbacks[EP_DEBUG].in.transaction = &on_transaction;
-	usb_ep_callbacks[EP_DEBUG].in.commanded_stall = &on_commanded_stall;
-	usb_ep_callbacks[EP_DEBUG].in.clear_halt = &on_clear_halt;
 	UEPBITS(EP_DEBUG).EPHSHK = 1;
 	UEPBITS(EP_DEBUG).EPINEN = 1;
 	overflow_reported = false;

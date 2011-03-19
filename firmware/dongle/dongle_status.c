@@ -42,24 +42,11 @@ static void check_send(void) {
 	}
 }
 
-static void on_commanded_stall(void) {
-	USB_BD_IN_COMMANDED_STALL(EP_DONGLE_STATUS);
-}
-
-static BOOL on_clear_halt(void) {
-	USB_BD_IN_UNSTALL(EP_DONGLE_STATUS);
-	force = true;
-	check_send();
-	return true;
-}
-
 void dongle_status_start(void) {
 	dongle_status.estop = ESTOP_STATE_UNINITIALIZED;
 	dongle_status.xbees = XBEES_STATE_PREINIT;
 	dongle_status.robots = 0;
 	usb_ep_callbacks[EP_DONGLE_STATUS].in.transaction = &check_send;
-	usb_ep_callbacks[EP_DONGLE_STATUS].in.commanded_stall = &on_commanded_stall;
-	usb_ep_callbacks[EP_DONGLE_STATUS].in.clear_halt = &on_clear_halt;
 	USB_BD_IN_INIT(EP_DONGLE_STATUS);
 	UEPBITS(EP_DONGLE_STATUS).EPHSHK = 1;
 	UEPBITS(EP_DONGLE_STATUS).EPINEN = 1;

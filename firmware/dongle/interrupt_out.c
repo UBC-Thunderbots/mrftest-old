@@ -83,18 +83,6 @@ static void on_transaction(void) {
 	submit_sie_packet();
 }
 
-static void on_commanded_stall(void) {
-	USB_BD_OUT_COMMANDED_STALL(EP_INTERRUPT);
-	transaction_running = true;
-}
-
-static BOOL on_clear_halt(void) {
-	USB_BD_OUT_UNSTALL(EP_INTERRUPT);
-	transaction_running = false;
-	submit_sie_packet();
-	return true;
-}
-
 void interrupt_out_init(void) {
 	/* Initialize queues. */
 	STACK_INIT(free_packets);
@@ -109,8 +97,6 @@ void interrupt_out_init(void) {
 
 	/* Start the endpoint. */
 	usb_ep_callbacks[EP_INTERRUPT].out.transaction = &on_transaction;
-	usb_ep_callbacks[EP_INTERRUPT].out.commanded_stall = &on_commanded_stall;
-	usb_ep_callbacks[EP_INTERRUPT].out.clear_halt = &on_clear_halt;
 	USB_BD_OUT_INIT(EP_INTERRUPT);
 	UEPBITS(EP_INTERRUPT).EPHSHK = 1;
 	UEPBITS(EP_INTERRUPT).EPOUTEN = 1;

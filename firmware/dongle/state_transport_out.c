@@ -70,22 +70,6 @@ static void on_transaction(void) {
 	USB_BD_OUT_SUBMIT(EP_STATE_TRANSPORT, buffer, sizeof(buffer));
 }
 
-static void on_commanded_stall(void) {
-	uint8_t i;
-
-	USB_BD_OUT_COMMANDED_STALL(EP_STATE_TRANSPORT);
-
-	for (i = 0; i != 16; ++i) {
-		state_transport_out_drive[i].flags.enable_robot = false;
-	}
-}
-
-static BOOL on_clear_halt(void) {
-	USB_BD_OUT_UNSTALL(EP_STATE_TRANSPORT);
-	USB_BD_OUT_SUBMIT(EP_STATE_TRANSPORT, buffer, sizeof(buffer));
-	return true;
-}
-
 void state_transport_out_init(void) {
 	/* Start up timer 1 to do the scram timeout.
 	 *        /-------- Read/write in two 8-bit operations
@@ -101,8 +85,6 @@ void state_transport_out_init(void) {
 
 	/* Start the endpoint. */
 	usb_ep_callbacks[EP_STATE_TRANSPORT].out.transaction = &on_transaction;
-	usb_ep_callbacks[EP_STATE_TRANSPORT].out.commanded_stall = &on_commanded_stall;
-	usb_ep_callbacks[EP_STATE_TRANSPORT].out.clear_halt = &on_clear_halt;
 	USB_BD_OUT_INIT(EP_STATE_TRANSPORT);
 	USB_BD_OUT_SUBMIT(EP_STATE_TRANSPORT, buffer, sizeof(buffer));
 	UEPBITS(EP_STATE_TRANSPORT).EPHSHK = 1;

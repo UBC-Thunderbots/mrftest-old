@@ -183,6 +183,7 @@ extern volatile BOOL usb_is_idle;
  */
 extern volatile uint8_t usb_current_configuration;
 
+#if USB_CONFIG_HALT
 /**
  * \brief A bitmask indicating which IN endpoints are halted.
  *
@@ -198,6 +199,7 @@ extern uint16_t usb_halted_in_endpoints;
  * The application may set bits in this variable in response to functional errors.
  */
 extern uint16_t usb_halted_out_endpoints;
+#endif
 
 /**
  * \brief The type of callbacks to handle activity on a single endpoint in a single direction.
@@ -208,6 +210,7 @@ typedef struct {
 	 */
 	void (*transaction)(void);
 
+#if USB_CONFIG_HALT
 	/**
 	 * \brief Invoked when a control transfer orders a commanded functional stall on the endpoint.
 	 */
@@ -219,6 +222,7 @@ typedef struct {
 	 * \return \c true if the halt feature was successfully cleared, or \c false if a functional error condition still exists.
 	 */
 	BOOL (*clear_halt)(void);
+#endif
 } usb_ep_callbacks_t;
 
 /**

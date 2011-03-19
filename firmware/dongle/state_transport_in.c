@@ -75,25 +75,9 @@ static void on_transaction(void) {
 	check_send();
 }
 
-static void on_commanded_stall(void) {
-	USB_BD_IN_COMMANDED_STALL(EP_STATE_TRANSPORT);
-	transaction_running = true;
-}
-
-static BOOL on_clear_halt(void) {
-	USB_BD_IN_UNSTALL(EP_STATE_TRANSPORT);
-	transaction_running = false;
-	dirty_mask = 0xFFFF;
-	memcpyram2ram(back_buffers, state_transport_in_feedback, sizeof(back_buffers));
-	check_send();
-	return true;
-}
-
 void state_transport_in_init(void) {
 	/* The endpoint is held off until XBee stage 2 configuration completes. */
 	usb_ep_callbacks[EP_STATE_TRANSPORT].in.transaction = &on_transaction;
-	usb_ep_callbacks[EP_STATE_TRANSPORT].in.commanded_stall = &on_commanded_stall;
-	usb_ep_callbacks[EP_STATE_TRANSPORT].in.clear_halt = &on_clear_halt;
 	USB_BD_IN_INIT(EP_STATE_TRANSPORT);
 	transaction_running = false;
 	UEPBITS(EP_STATE_TRANSPORT).EPHSHK = 1;

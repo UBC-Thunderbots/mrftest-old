@@ -18,21 +18,8 @@ static void on_transaction(void) {
 	busy = false;
 }
 
-static void on_commanded_stall(void) {
-	USB_BD_IN_COMMANDED_STALL(EP_INTERRUPT);
-	busy = true;
-}
-
-static BOOL on_clear_halt(void) {
-	USB_BD_IN_UNSTALL(EP_INTERRUPT);
-	busy = false;
-	return true;
-}
-
 void interrupt_in_init(void) {
 	usb_ep_callbacks[EP_INTERRUPT].in.transaction = &on_transaction;
-	usb_ep_callbacks[EP_INTERRUPT].in.commanded_stall = &on_commanded_stall;
-	usb_ep_callbacks[EP_INTERRUPT].in.clear_halt = &on_clear_halt;
 	USB_BD_IN_INIT(EP_INTERRUPT);
 	busy = false;
 	UEPBITS(EP_INTERRUPT).EPHSHK = 1;

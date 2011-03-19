@@ -64,23 +64,9 @@ static void on_transaction(void) {
 	check_send();
 }
 
-static void on_commanded_stall(void) {
-	USB_BD_IN_COMMANDED_STALL(EP_LOCAL_ERROR_QUEUE);
-	transaction_running = true;
-}
-
-static BOOL on_clear_halt(void) {
-	USB_BD_IN_UNSTALL(EP_LOCAL_ERROR_QUEUE);
-	transaction_running = false;
-	check_send();
-	return true;
-}
-
 void error_reporting_init(void) {
 	read_ptr = write_ptr = 0;
 	usb_ep_callbacks[EP_LOCAL_ERROR_QUEUE].in.transaction = &on_transaction;
-	usb_ep_callbacks[EP_LOCAL_ERROR_QUEUE].in.commanded_stall = &on_commanded_stall;
-	usb_ep_callbacks[EP_LOCAL_ERROR_QUEUE].in.clear_halt = &on_clear_halt;
 	USB_BD_IN_INIT(EP_LOCAL_ERROR_QUEUE);
 	UEPBITS(EP_LOCAL_ERROR_QUEUE).EPHSHK = 1;
 	UEPBITS(EP_LOCAL_ERROR_QUEUE).EPINEN = 1;

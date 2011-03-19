@@ -277,6 +277,7 @@ static void on_setup(void) {
 					valid_mask |= 1;
 					if (valid_mask & ep_mask) {
 						switch (usb_ep0_setup_buffer.request) {
+#if USB_CONFIG_HALT
 							case USB_SETUP_PACKET_STDREQ_CLEAR_FEATURE:
 								switch (usb_ep0_setup_buffer.value) {
 									case USB_SETUP_PACKET_STDFEAT_ENDPOINT_HALT:
@@ -296,11 +297,13 @@ static void on_setup(void) {
 										break;
 								}
 								break;
+#endif
 
 							case USB_SETUP_PACKET_STDREQ_GET_STATUS:
 								{
 									scratch_buffer[0] = 0;
 									scratch_buffer[1] = 0;
+#if USB_CONFIG_HALT
 									if (is_in) {
 										if (usb_halted_in_endpoints & ep_mask) {
 											scratch_buffer[0] = 0x01;
@@ -310,6 +313,7 @@ static void on_setup(void) {
 											scratch_buffer[0] = 0x01;
 										}
 									}
+#endif
 									usb_ep0_data[0].ptr = scratch_buffer;
 									usb_ep0_data[0].length = 2;
 									usb_ep0_data_length = 1;
@@ -317,6 +321,7 @@ static void on_setup(void) {
 								}
 								break;
 
+#if USB_CONFIG_HALT
 							case USB_SETUP_PACKET_STDREQ_SET_FEATURE:
 								switch (usb_ep0_setup_buffer.value) {
 									case USB_SETUP_PACKET_STDFEAT_ENDPOINT_HALT:
@@ -336,6 +341,7 @@ static void on_setup(void) {
 										}
 										break;
 								}
+#endif
 						}
 					}
 				}
