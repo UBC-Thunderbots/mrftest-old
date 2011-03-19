@@ -17,6 +17,9 @@ usb_epn_callbacks_t usb_ep_callbacks[USB_CONFIG_MAX_ENDPOINT + 1];
 void (*usb_sof_callback)(void);
 #endif
 
+#if !USB_CONFIG_IDLE
+static
+#endif
 volatile BOOL usb_is_idle;
 
 /**
@@ -61,7 +64,7 @@ void usb_lowlevel_init(void) {
 #if USB_CONFIG_SOF_CALLBACK
 	UIEbits.SOFIE = 1;
 #endif
-	UIEbits.IDLEIE = 1;
+	UIEbits.IDLEIE = USB_CONFIG_IDLE;
 	UIEbits.ACTVIE = 1;
 	UIEbits.URSTIE = 1;
 	UIEbits.UERRIE = 1;
@@ -115,7 +118,8 @@ SIGHANDLER(usb_process) {
 			UIE = 0;
 			UIEbits.ACTVIE = 1;
 			UIRbits.IDLEIF = 0;
-		} else if (UIRbits.URSTIF) {
+		} else
+		if (UIRbits.URSTIF) {
 			while (UIRbits.TRNIF) {
 				UIRbits.TRNIF = 0;
 				Nop();

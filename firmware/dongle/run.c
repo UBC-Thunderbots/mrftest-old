@@ -280,7 +280,6 @@ void run(void) {
 				if (xbee_txpacket_dequeue()) {
 					--num_packets;
 				}
-				check_idle();
 			}
 		}
 

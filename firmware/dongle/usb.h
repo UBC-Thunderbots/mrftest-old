@@ -156,6 +156,7 @@ void usb_deinit(void);
  */
 SIGHANDLER(usb_process);
 
+#if USB_CONFIG_IDLE
 /**
  * \brief Indicates whether the host has ordered the function to suspend.
  *
@@ -169,6 +170,7 @@ SIGHANDLER(usb_process);
  * Interrupts can then be re-enabled to take the interrupt, and this variable retested.
  */
 extern volatile BOOL usb_is_idle;
+#endif
 
 /**
  * \brief The index of the current configuration in the device info table configuration array,

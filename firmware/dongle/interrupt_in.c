@@ -49,7 +49,6 @@ void interrupt_in_send(__data const uint8_t *message, uint8_t len) {
 		if (should_shut_down) {
 			return;
 		}
-		check_idle();
 	}
 
 	/* Begin the transaction. */
@@ -61,7 +60,6 @@ void interrupt_in_send(__data const uint8_t *message, uint8_t len) {
 		if (should_shut_down) {
 			return;
 		}
-		check_idle();
 	}
 }
 

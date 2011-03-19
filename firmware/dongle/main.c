@@ -183,7 +183,6 @@ static void at_send(uint8_t xbee, uint8_t frame, __code const char *command, __d
 	xbee_txpacket_queue(&txpkt, xbee);
 
 	while (xbee_txpacket_dequeue() != &txpkt) {
-		check_idle();
 		if (should_shut_down) {
 			return;
 		}
@@ -262,7 +261,6 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
 					xbee_rxpacket_free(rxpkt);
 				}
 			}
-			check_idle();
 		}
 	}
 
@@ -447,7 +445,6 @@ void main(void) {
 		/* We're waiting for the host to perform USB configuration. */
 		do {
 			should_shut_down = false;
-			check_idle();
 		} while (!should_start_up);
 
 		/* Bring up the hardware. */
@@ -476,15 +473,11 @@ void main(void) {
 				LAT_LED3 = 1;
 			}
 			/* Stay here until the host signals us to shut down. */
-			while (!should_shut_down) {
-				check_idle();
-			}
+			while (!should_shut_down);
 		} else {
 			/* Configuration succeeded.
 			 * Wait for the host to give us radio channels. */
-			while (!requested_channels[0] && !should_shut_down) {
-				check_idle();
-			}
+			while (!requested_channels[0] && !should_shut_down);
 			if (requested_channels[0]) {
 				/* Stage-2 configure the XBees. */
 				if (!configure_xbee_stage2(0) || !configure_xbee_stage2(1)) {
@@ -500,9 +493,7 @@ void main(void) {
 						LAT_LED3 = 1;
 					}
 					/* Stay here until the host signals us to shut down. */
-					while (!should_shut_down) {
-						check_idle();
-					}
+					while (!should_shut_down);
 				} else {
 					run();
 				}

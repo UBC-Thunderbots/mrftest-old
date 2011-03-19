@@ -30,10 +30,5 @@ extern volatile uint8_t requested_channels[2];
  */
 extern uint16_t xbee_versions[2];
 
-/**
- * \brief Checks if the USB subsystem has become idle and, if so, puts the dongle to sleep until the USB host comes back.
- */
-void check_idle(void);
-
 #endif
 

@@ -52,5 +52,10 @@
  */
 #define USB_CONFIG_STRING_DESCRIPTORS 1
 
+/**
+ * \brief Set to 1 if idle mode is implemented, or 0 if not.
+ */
+#define USB_CONFIG_IDLE 0
+
 #endif
 
