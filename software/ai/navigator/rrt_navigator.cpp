@@ -105,6 +105,7 @@ namespace {
 
 			addedFlags = 0;
 			Point dest;
+			double destOrientation;
 			if (player->type() == MOVE_CATCH) {
 
 				// try to pivot around the ball to catch it
@@ -136,13 +137,10 @@ namespace {
 				}
 				Point diff = (world.ball().position() - currentPosition).rotate(angle);
 
-				Point destinationPosition = world.ball().position() - offset_distance * (diff / diff.len());
-				if (destinationPosition.len() > 0.5) orientationTemp = 0;
-				double destinationOrientation = (world.ball().position() - currentPosition).orientation() + orientationTemp;
+				dest = world.ball().position() - offset_distance * (diff / diff.len());
+				if (dest.len() > 0.5) orientationTemp = 0;
+				destOrientation = (world.ball().position() - currentPosition).orientation() + orientationTemp;
 
-				path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
-				player->path(path);
-				continue;
 			} else if (valid_path(player->position(), player->destination().first, world, player)) {
 				// if we're not trying to catch the ball and there are no obstacles in our way then go
 				// to the exact location, skipping all of the tree creation
@@ -160,7 +158,7 @@ namespace {
 			double dist = 0.0;
 			workingTime = world.monotonic_time();
 
-			double destOrientation = player->destination().second;
+			destOrientation = player->destination().second;
 			for (std::size_t j = 0; j < pathPoints.size(); ++j) {
 				// the last point will just use whatever the last orientation was
 				if (j + 1 != pathPoints.size()) {
