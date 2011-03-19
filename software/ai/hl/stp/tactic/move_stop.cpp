@@ -72,7 +72,7 @@ std::vector<Point> StopLocations::compute(const World &world) {
 		Point ray = (goal_pos - ball_pos).norm();
 		start = ball_pos + ray * AVOIDANCE_DIST;
 
-		positions.push_back((ball_pos + goal_pos) * 0.5);
+		positions.push_back(AI::HL::Util::crop_point_to_field(world.field(), (ball_pos + goal_pos) * 0.5));
 	}
 
 	// calculate angle between robots
@@ -87,7 +87,8 @@ std::vector<Point> StopLocations::compute(const World &world) {
 		double angle = delta_angle * (w / 2) * ((w % 2) ? 1 : -1);
 		Point p = ball_pos + shoot.rotate(angle);
 		++w;
-		positions.push_back(p);
+
+		positions.push_back(AI::HL::Util::crop_point_to_field(world.field(), p));
 	}
 
 	return positions;

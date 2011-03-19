@@ -118,9 +118,9 @@ namespace AI {
 			bool point_in_friendly_defense(const AI::HL::W::Field &field, const Point p);
 
 			/**
-			 * Checks if a point lies inside the field boundary.
+			 * If the point is outside the field boundary it is cropped to within the field boundaries.
 			 */
-			bool point_in_field_boundary(const AI::HL::W::Field &field, const Point p);
+			Point crop_point_to_field(const AI::HL::W::Field &field, const Point p);
 
 			/**
 			 * Checks if the path from begin to end is blocked by some obstacles.
