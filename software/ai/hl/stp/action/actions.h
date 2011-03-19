@@ -37,9 +37,14 @@ namespace AI {
 				void lone_goalie(const World &world, Player::Ptr player);
 
 				/**
-				 * Blocks against a single enemy from shooting.
+				 * Blocks against a single enemy from shooting to our goal.
 				 */
-				void block(World &world, Player::Ptr player, const unsigned int flags, Robot::Ptr robot);
+				void block(const World &world, Player::Ptr player, const unsigned int flags, Robot::Ptr robot);
+				
+				/**
+				 * Blocks against a single enemy from passing.
+				 */
+				void block_pass(const World &world, Player::Ptr player, const unsigned int flags, Robot::Ptr robot);
 			}
 		}
 	}

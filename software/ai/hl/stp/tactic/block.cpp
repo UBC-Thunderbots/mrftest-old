@@ -1,4 +1,5 @@
 #include "ai/hl/stp/tactic/block.h"
+#include "ai/hl/stp/action/actions.h"
 #include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
@@ -30,9 +31,10 @@ namespace {
 			player->move(player->position(), player->orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 			return;
 		}
-
-		Point near_enemy(enemy->evaluate()->position().x - Robot::MAX_RADIUS * 3, enemy->evaluate()->position().y);
-		player->move(near_enemy, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+		
+		AI::HL::STP::Action::block(world, player, AI::Flags::calc_flags(world.playtype()), enemy->evaluate());
+		
+		// TODO: think of when and how player should block enemy robot from passing
 	}
 }
 

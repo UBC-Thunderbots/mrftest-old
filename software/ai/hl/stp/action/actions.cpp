@@ -98,8 +98,22 @@ void AI::HL::STP::Action::lone_goalie(const World &world, Player::Ptr player) {
 	}
 }
 
-void AI::HL::STP::Action::block(World &world, Player::Ptr player, const unsigned int flags, Robot::Ptr robot) {
-#warning can be better	
-	player->move(robot->position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+void AI::HL::STP::Action::block(const World &world, Player::Ptr player, const unsigned int flags, Robot::Ptr robot) {
+	
+	// should have threshold distance, half a robot radius?
+	
+	//Point near_enemy(enemy->evaluate()->position().x - Robot::MAX_RADIUS * 3, enemy->evaluate()->position().y);
+	//player->move(near_enemy, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+
+	Point dirToGoal = (world.field().friendly_goal() - robot->position()).norm();
+	player->move(robot->position() + (0.5*Robot::MAX_RADIUS*dirToGoal), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+}
+
+void AI::HL::STP::Action::block_pass(const World &world, Player::Ptr player, const unsigned int flags, Robot::Ptr robot) {
+
+	// should have threshold distance, half a robot radius?
+	// TODO: Use this somehow
+	Point dirToBall = (world.ball().position() - robot->position()).norm();
+	player->move(robot->position() + (0.5*Robot::MAX_RADIUS*dirToBall), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
 }
 
