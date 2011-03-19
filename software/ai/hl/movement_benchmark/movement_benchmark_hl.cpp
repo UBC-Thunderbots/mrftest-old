@@ -6,19 +6,29 @@ using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	const double pos_dis_threshold = 0.2;
-	const double pos_vel_threshold = 0.2;
-	const double ori_dis_threshold = 0.2;
-	const double ori_vel_threshold = 0.2;
+	const double pos_dis_threshold = 0.1;
+	const double pos_vel_threshold = 0.05;
+	const double ori_dis_threshold = 0.175;
+	const double ori_vel_threshold = 0.05;
 
 	const double PI = M_PI;
 	
 	const std::pair<Point, double> default_tasks[] = {
 		std::make_pair(Point(1.2, 0), 0),
+		std::make_pair(Point(1.5, 0), -PI / 2),
+		std::make_pair(Point(1.2, 0.3), 0),
+		std::make_pair(Point(1.2, -0.3), PI),
+		std::make_pair(Point(1.2, 0), 0),
+		std::make_pair(Point(1.2, -0.3), PI),
+		std::make_pair(Point(1.2, 0), 0),
 		std::make_pair(Point(0.5, 0), PI),
 		std::make_pair(Point(2.5, 0), 0),
 		std::make_pair(Point(0.5, 1.2), PI),
-		std::make_pair(Point(1, -0.6), 0)
+		std::make_pair(Point(1, -0.6), 0),
+		std::make_pair(Point(2, 0.6), PI / 2),
+		std::make_pair(Point(1, -0.6), -PI / 2),
+		std::make_pair(Point(0.5, 0), 0),
+		std::make_pair(Point(2.5, 0.6), -PI / 2)
 	};
 	
 	const int default_tasks_n = G_N_ELEMENTS(default_tasks);
@@ -44,7 +54,7 @@ namespace {
 
 			void tick() {
 				FriendlyTeam &friendly = world.friendly_team();
-				if (friendly.size() != 0) {
+				if (friendly.size() != 1) {
 					LOG_INFO("error: must have at exactly one robot on the field!");
 					return;
 				}
@@ -53,9 +63,9 @@ namespace {
 				Player::Ptr runner = friendly.get(0);
 
 				const Point diff_pos = runner->position() - tasks[done].first;
-				const double diff_ori = angle_mod(runner->orientation() - tasks[done].second);
+				const double diff_ori = angle_diff(runner->orientation(), tasks[done].second);
 
-				if (diff_pos.len() < pos_dis_threshold && runner->velocity().len() < pos_vel_threshold && fabs(diff_ori) < ori_dis_threshold && runner->avelocity() < ori_vel_threshold) {
+				if (diff_pos.len() < pos_dis_threshold && runner->velocity().len() < pos_vel_threshold && diff_ori < ori_dis_threshold && runner->avelocity() < ori_vel_threshold) {
 					if (done == 0) {
 						time_steps = 0;
 					}
