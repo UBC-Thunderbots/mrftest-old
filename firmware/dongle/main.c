@@ -453,7 +453,6 @@ void main(void) {
 		serial_init();
 		xbee_txpacket_init();
 		xbee_rxpacket_init();
-		LAT_LED1 = 1;
 
 		/* Clear states to safe values. */
 		memset(state_transport_out_drive, 0, sizeof(state_transport_out_drive));
@@ -495,6 +494,7 @@ void main(void) {
 					/* Stay here until the host signals us to shut down. */
 					while (!should_shut_down);
 				} else {
+					LAT_LED1 = 1;
 					run();
 				}
 			}
