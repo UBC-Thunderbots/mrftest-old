@@ -1,12 +1,14 @@
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/evaluation/defense.h"
+#include "ai/hl/stp/action/goalie.h"
 #include "ai/hl/util.h"
 
 #include <cassert>
 
 using namespace AI::HL::STP::Tactic;
-using namespace AI::HL::STP::Evaluation;
 using namespace AI::HL::W;
+namespace Evaluation = AI::HL::STP::Evaluation;
+namespace Action = AI::HL::STP::Action;
 
 namespace {
 	/**
@@ -41,20 +43,21 @@ namespace {
 
 	template<int N>
 		void Goalie<N>::execute() {
-			auto waypoints = evaluate_defense<N>(world);
-			player->move(waypoints[0], (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+			auto waypoints = Evaluation::evaluate_defense<N>(world);
+			//player->move(waypoints[0], (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+			Action::goalie_move(world, player,  waypoints[0]);
 		}
 
 	template<int N, int D>
 		Player::Ptr Defender<N, D>::select(const std::set<Player::Ptr> &players) const {
-			auto waypoints = evaluate_defense<N>(world);
+			auto waypoints = Evaluation::evaluate_defense<N>(world);
 			Point dest = waypoints[D];
 			return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
 		}
 
 	template<int N, int D>
 		void Defender<N, D>::execute() {
-			auto waypoints = evaluate_defense<N>(world);
+			auto waypoints = Evaluation::evaluate_defense<N>(world);
 			Point dest = waypoints[D];
 			// TODO: medium priority for D = 1, low for D = 2
 			player->move(dest, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);

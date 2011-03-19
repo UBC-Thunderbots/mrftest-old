@@ -7,6 +7,9 @@
 #include "util/dprint.h"
 
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const unsigned int flags, const bool force) {
+
+	// TODO:
+	// take into account that the optimal solution may not always be the largest opening
 	std::pair<Point, double> target = AI::HL::Util::calc_best_shot(world, player);
 
 	if (!player->has_ball()) {
@@ -15,18 +18,18 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const un
 			chase(world, player, flags);
 		} else {
 			// orient towards the enemy goal area
-			player->move(world.ball().position(), (world.field().enemy_goal() - player->position()).orientation(), flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
+			player->move(target.first, (world.field().enemy_goal() - player->position()).orientation(), flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
 		}
 		return false;
 	}
 
 	if (target.second == 0) { // bad news, we are blocked
+		Point new_target = world.field().enemy_goal();
 		if (force) {
 			// TODO: perhaps do a reduced radius calculation
-			target.first = world.field().enemy_goal();
-			return shoot(world, player, target.first, flags);
+			return shoot(world, player, new_target, flags);
 		} else { // just aim at the enemy goal
-			player->move(player->position(), (world.field().enemy_goal() - player->position()).orientation(), flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
+			player->move(new_target, (world.field().enemy_goal() - player->position()).orientation(), flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
 		}
 		return false;
 	}
@@ -40,7 +43,7 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Po
 
 	if (!player->has_ball()) {
 		// chase(world, player, flags);
-		player->move(world.ball().position(), ori_target, flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
+		player->move(target, ori_target, flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
 		return false;
 	}
 

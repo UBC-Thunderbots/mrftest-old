@@ -9,17 +9,14 @@ namespace AI {
 		namespace STP {
 			namespace Action {
 				/**
-				 * Check whether or not the goalie should rush or not.
-				 */
-				bool goalie_rush(const World &world, Player::Ptr player, Point & rushpos);
-				
-				/**
 				 * A single goalie and NO ONE ELSE defending the field.
 				 */
 				void lone_goalie(const World &world, Player::Ptr player);
 				
 				/**
-				 * A goalie and NO ONE ELSE defending the field.
+				 * Move the goalie to this location.
+				 * If the ball is dangerously moving towards the net,
+				 * then rush to defend it.
 				 */
 				void goalie_move(const World &world, Player::Ptr player, Point dest);
 			}
