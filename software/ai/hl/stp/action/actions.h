@@ -32,11 +32,6 @@ namespace AI {
 				void free_move(const World &world, Player::Ptr player, const Point p);
 
 				/**
-				 * A single goalie and NO ONE ELSE defending the field.
-				 */
-				void lone_goalie(const World &world, Player::Ptr player);
-
-				/**
 				 * Blocks against a single enemy from shooting to our goal.
 				 */
 				void block(const World &world, Player::Ptr player, const unsigned int flags, Robot::Ptr robot);

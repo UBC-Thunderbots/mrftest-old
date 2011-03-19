@@ -1,5 +1,5 @@
 #include "ai/hl/stp/tactic/defend_solo.h"
-#include "ai/hl/stp/action/actions.h"
+#include "ai/hl/stp/action/goalie.h"
 #include "ai/hl/util.h"
 #include <cassert>
 

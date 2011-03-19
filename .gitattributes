@@ -180,6 +180,8 @@ software/ai/hl/old/tactics.h -text
 software/ai/hl/old/test_strategy.cpp -text
 software/ai/hl/stp/action/actions.cpp -text
 software/ai/hl/stp/action/actions.h -text
+software/ai/hl/stp/action/goalie.cpp -text
+software/ai/hl/stp/action/goalie.h -text
 software/ai/hl/stp/action/shoot.cpp -text
 software/ai/hl/stp/action/shoot.h -text
 software/ai/hl/stp/coordinate.cpp -text
