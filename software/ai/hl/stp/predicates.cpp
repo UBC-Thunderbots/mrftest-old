@@ -73,6 +73,6 @@ bool AI::HL::STP::Predicates::ball_in_their_corner(const World &world) {
 }
 
 bool AI::HL::STP::Predicates::ball_midfield(const World &world){
-	return std::fabs(world.ball().position().x) > world.field().length()/4;
+	return std::fabs(world.ball().position().x) < world.field().length()/4;
 }
 
