@@ -13,7 +13,7 @@
 /**
  * \brief The current drive pipe state blocks for the robots.
  */
-__data extern drive_block_t state_transport_out_drive[15];
+__data extern drive_block_t state_transport_out_drive[16];
 
 /**
  * \brief Initializes the subsystem.

@@ -17,7 +17,7 @@
  */
 #define SCRAM_TIMEOUT_LIMIT 23
 
-__data drive_block_t state_transport_out_drive[15];
+__data drive_block_t state_transport_out_drive[16];
 
 /**
  * \brief A buffer into which packets are received.
@@ -47,15 +47,7 @@ static void on_transaction(void) {
 					/* Drive pipe. */
 					if (ptr[0] == sizeof(drive_block_t) + 2) {
 						recipient = ptr[1] >> 4;
-						if (recipient) {
-							/* Directed. */
-							memcpyram2ram(&state_transport_out_drive[recipient - 1], ptr + 2, sizeof(drive_block_t));
-						} else {
-							/* Broadcast. */
-							for (recipient = 0; recipient != 15; ++recipient) {
-								memcpyram2ram(&state_transport_out_drive[recipient], ptr + 2, sizeof(drive_block_t));
-							}
-						}
+						memcpyram2ram(&state_transport_out_drive[recipient], ptr + 2, sizeof(drive_block_t));
 					} else {
 						error_reporting_add(FAULT_OUT_MICROPACKET_BAD_LENGTH);
 					}
@@ -83,7 +75,7 @@ static void on_commanded_stall(void) {
 
 	USB_BD_OUT_COMMANDED_STALL(EP_STATE_TRANSPORT);
 
-	for (i = 0; i != 15; ++i) {
+	for (i = 0; i != 16; ++i) {
 		state_transport_out_drive[i].flags.enable_robot = false;
 	}
 }
@@ -126,7 +118,7 @@ SIGHANDLER(state_transport_out_tmr1if) {
 		--scram_timeout;
 	} else {
 		uint8_t i;
-		for (i = 0; i != 15; ++i) {
+		for (i = 0; i != 16; ++i) {
 			state_transport_out_drive[i].flags.enable_robot = 0;
 		}
 	}

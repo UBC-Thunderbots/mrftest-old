@@ -177,6 +177,7 @@ class XBeeDongle : public NonCopyable {
 		 */
 		enum DongleFault {
 			FAULT_ERROR_QUEUE_OVERFLOW = FAULT_COMMON_COUNT,
+			FAULT_SEND_FAILED_ROBOT0,
 			FAULT_SEND_FAILED_ROBOT1,
 			FAULT_SEND_FAILED_ROBOT2,
 			FAULT_SEND_FAILED_ROBOT3,
@@ -192,6 +193,7 @@ class XBeeDongle : public NonCopyable {
 			FAULT_SEND_FAILED_ROBOT13,
 			FAULT_SEND_FAILED_ROBOT14,
 			FAULT_SEND_FAILED_ROBOT15,
+			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT0,
 			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT1,
 			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT2,
 			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT3,
@@ -207,6 +209,7 @@ class XBeeDongle : public NonCopyable {
 			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT13,
 			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT14,
 			FAULT_IN_MICROPACKET_OVERFLOW_ROBOT15,
+			FAULT_IN_MICROPACKET_NOPIPE_ROBOT0,
 			FAULT_IN_MICROPACKET_NOPIPE_ROBOT1,
 			FAULT_IN_MICROPACKET_NOPIPE_ROBOT2,
 			FAULT_IN_MICROPACKET_NOPIPE_ROBOT3,
@@ -222,6 +225,7 @@ class XBeeDongle : public NonCopyable {
 			FAULT_IN_MICROPACKET_NOPIPE_ROBOT13,
 			FAULT_IN_MICROPACKET_NOPIPE_ROBOT14,
 			FAULT_IN_MICROPACKET_NOPIPE_ROBOT15,
+			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT0,
 			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT1,
 			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT2,
 			FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT3,
@@ -360,8 +364,8 @@ class XBeeDongle : public NonCopyable {
 		 * \return the robot proxy object that allows communication with the robot.
 		 */
 		XBeeRobot::Ptr robot(unsigned int i) {
-			assert(1 <= i && i <= 15);
-			return robots[i - 1];
+			assert(i <= 15);
+			return robots[i];
 		}
 
 	private:
@@ -372,7 +376,7 @@ class XBeeDongle : public NonCopyable {
 		LibUSBContext context;
 		LibUSBDeviceHandle device;
 		sigc::connection dongle_status_connection;
-		XBeeRobot::Ptr robots[15];
+		XBeeRobot::Ptr robots[16];
 		unsigned int dirty_drive_mask;
 		sigc::connection flush_drive_connection;
 		sigc::connection stamp_connection;

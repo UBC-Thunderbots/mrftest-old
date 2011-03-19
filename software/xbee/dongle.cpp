@@ -97,6 +97,7 @@ namespace {
 
 	const FaultMessageInfo<XBeeDongle::DongleFault> DONGLE_FAULT_MESSAGE_INFOS[] = {
 		{ XBeeDongle::FAULT_ERROR_QUEUE_OVERFLOW, "Local error queue overflow", Annunciator::Message::TRIGGER_EDGE },
+		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT0, "Failed to send to robot 0", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT1, "Failed to send to robot 1", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT2, "Failed to send to robot 2", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT3, "Failed to send to robot 3", Annunciator::Message::TRIGGER_EDGE },
@@ -112,6 +113,7 @@ namespace {
 		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT13, "Failed to send to robot 13", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT14, "Failed to send to robot 14", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT15, "Failed to send to robot 15", Annunciator::Message::TRIGGER_EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT0, "Inbound micropacket overflow from robot 0", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT1, "Inbound micropacket overflow from robot 1", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT2, "Inbound micropacket overflow from robot 2", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT3, "Inbound micropacket overflow from robot 3", Annunciator::Message::TRIGGER_EDGE },
@@ -127,6 +129,7 @@ namespace {
 		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT13, "Inbound micropacket overflow from robot 13", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT14, "Inbound micropacket overflow from robot 14", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT15, "Inbound micropacket overflow from robot 15", Annunciator::Message::TRIGGER_EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT0, "Inbound micropacket to invalid pipe from robot 0", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT1, "Inbound micropacket to invalid pipe from robot 1", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT2, "Inbound micropacket to invalid pipe from robot 2", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT3, "Inbound micropacket to invalid pipe from robot 3", Annunciator::Message::TRIGGER_EDGE },
@@ -142,6 +145,7 @@ namespace {
 		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT13, "Inbound micropacket to invalid pipe from robot 13", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT14, "Inbound micropacket to invalid pipe from robot 14", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT15, "Inbound micropacket to invalid pipe from robot 15", Annunciator::Message::TRIGGER_EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT0, "Inbound micropacket invalid length from robot 0", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT1, "Inbound micropacket invalid length from robot 1", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT2, "Inbound micropacket invalid length from robot 2", Annunciator::Message::TRIGGER_EDGE },
 		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT3, "Inbound micropacket invalid length from robot 3", Annunciator::Message::TRIGGER_EDGE },
@@ -375,7 +379,7 @@ namespace {
 
 XBeeDongle::XBeeDongle(unsigned int out_channel, unsigned int in_channel) : estop_state(ESTOP_STATE_UNINITIALIZED), xbees_state(XBEES_STATE_PREINIT), out_channel(out_channel), in_channel(in_channel), context(), device(context, 0x04D8, 0x7839), dirty_drive_mask(0) {
 	for (unsigned int i = 0; i < G_N_ELEMENTS(robots); ++i) {
-		robots[i] = XBeeRobot::create(*this, i + 1);
+		robots[i] = XBeeRobot::create(*this, i);
 	}
 	device.set_configuration(1)->result();
 	device.claim_interface(0)->result();
@@ -435,7 +439,7 @@ void XBeeDongle::on_dongle_status(AsyncOperation<void>::Ptr, LibUSBInterruptInTr
 	estop_state = decode_estop_state(transfer->data()[0]);
 	xbees_state = decode_xbees_state(transfer->data()[1]);
 	uint16_t mask = static_cast<uint16_t>(transfer->data()[2] | (transfer->data()[3] << 8));
-	for (unsigned int i = 1; i <= 15; ++i) {
+	for (unsigned int i = 0; i <= 15; ++i) {
 		XBeeRobot::Ptr bot = robot(i);
 		bot->alive = !!(mask & (1 << i));
 	}
@@ -462,7 +466,7 @@ void XBeeDongle::on_state_transport_in(AsyncOperation<void>::Ptr, LibUSBInterrup
 	for (std::size_t i = 0; i < transfer->size(); i += transfer->data()[i]) {
 		assert(i + transfer->data()[i] <= transfer->size());
 		unsigned int index = transfer->data()[i + 1] >> 4;
-		assert(1 <= index && index <= 15);
+		assert(index <= 15);
 		unsigned int pipe = transfer->data()[i + 1] & 0x0F;
 		assert(pipe == PIPE_FEEDBACK);
 		robot(index)->on_feedback(transfer->data() + i + 2, transfer->data()[i] - 2);
@@ -497,7 +501,7 @@ void XBeeDongle::on_stamp() {
 }
 
 void XBeeDongle::dirty_drive(unsigned int index) {
-	assert(1 <= index && index <= 15);
+	assert(index <= 15);
 	dirty_drive_mask |= 1 << index;
 	if (!flush_drive_connection) {
 		flush_drive_connection = Glib::signal_idle().connect(sigc::bind_return(sigc::mem_fun(this, &XBeeDongle::flush_drive), false));
@@ -508,7 +512,7 @@ void XBeeDongle::flush_drive() {
 	uint8_t buffer[64 / (10 + 2)][10 + 2];
 	std::size_t wptr = 0;
 
-	for (unsigned int i = 1; i <= 15; ++i) {
+	for (unsigned int i = 0; i <= 15; ++i) {
 		if (dirty_drive_mask & (1 << i)) {
 			dirty_drive_mask &= ~(1 << i);
 			buffer[wptr][0] = sizeof(buffer[0]);

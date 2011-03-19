@@ -62,10 +62,10 @@ typedef struct {
 } discovery_header_t;
 
 void run(void) {
-	static const uint8_t ZERO = 0;
+	static const uint8_t FE = 0xFE;	
 	static const xbee_tx16_header_t DRIVE_XBEE_HEADER = { XBEE_API_ID_TX16, 0x00, 0xFF, 0xFF, XBEE_TX16_OPTION_DISABLE_ACK };
 	uint8_t num_drive_sent;
-	static drive_micropacket_t drive_micropackets[15];
+	static drive_micropacket_t drive_micropackets[16];
 	static xbee_txpacket_iovec_t drive_iovecs[2][3];
 	static xbee_txpacket_t drive_packets[2];
 	uint8_t pollee = 0;
@@ -87,14 +87,14 @@ void run(void) {
 
 	uint16_t now, mask;
 	uint8_t next_frame = 1;
-	static uint8_t comm_failures[15];
-	static pipe_info_t pipe_info[15][PIPE_MAX + 1];
+	static uint8_t comm_failures[16];
+	static pipe_info_t pipe_info[16][PIPE_MAX + 1];
 	CRITSEC_DECLARE(cs);
 
 	/* Clear state. */
 	{
 		uint8_t i;
-		for (i = 0; i != 15; ++i) {
+		for (i = 0; i != 16; ++i) {
 			drive_micropackets[i].micropacket_length = sizeof(*drive_micropackets);
 		}
 		for (i = 0; i != 3; ++i) {
@@ -120,8 +120,8 @@ void run(void) {
 		/* Check for a timeout on a prior poll. */
 		if (in_pending && ((now - last_poll_time) & 0x3FF) > POLL_TIMEOUT) {
 			if (dongle_status.robots & (1 << pollee)) {
-				if (++comm_failures[pollee - 1] == COMM_FAILURE_LIMIT) {
-					comm_failures[pollee - 1] = 0;
+				if (++comm_failures[pollee] == COMM_FAILURE_LIMIT) {
+					comm_failures[pollee] = 0;
 					dongle_status.robots &= ~(1 << pollee);
 					dongle_status_dirty();
 				}
@@ -136,11 +136,11 @@ void run(void) {
 			uint8_t i, j;
 			/* Assemble the packets. */
 			CRITSEC_ENTER_LOW(cs);
-			for (i = 1, j = 0, mask = 1 << 1; i != 16; ++i, mask <<= 1) {
+			for (i = 0, j = 0, mask = 1 << 0; i != 16; ++i, mask <<= 1) {
 				if (dongle_status.robots & mask) {
 					drive_micropackets[j].pipe_robot.pipe = PIPE_DRIVE;
 					drive_micropackets[j].pipe_robot.robot = i;
-					memcpyram2ram(&drive_micropackets[j].payload, &state_transport_out_drive[i - 1], sizeof(drive_block_t));
+					memcpyram2ram(&drive_micropackets[j].payload, &state_transport_out_drive[i], sizeof(drive_block_t));
 					if (dongle_status.estop != ESTOP_STATE_RUN) {
 						drive_micropackets[j].payload.flags.enable_robot = 0;
 					}
@@ -161,17 +161,13 @@ void run(void) {
 				/* Determine if we should poll a robot. */
 				if (!in_pending) {
 					do {
-						if (pollee == 15) {
-							pollee = 1;
-						} else {
-							++pollee;
-						}
+						pollee = (pollee + 1) & 15;
 					} while (!(dongle_status.robots & (((uint16_t) 1) << pollee)));
 					drive_iovecs[0][1].ptr = &pollee;
 					in_pending = true;
 					last_poll_time = now;
 				} else {
-					drive_iovecs[0][1].ptr = &ZERO;
+					drive_iovecs[0][1].ptr = &FE;
 				}
 				drive_iovecs[0][2].len = i * (sizeof(drive_block_t) + 2);
 				drive_iovecs[0][2].ptr = drive_micropackets;
@@ -184,7 +180,7 @@ void run(void) {
 					drive_iovecs[1][0].len = sizeof(DRIVE_XBEE_HEADER);
 					drive_iovecs[1][0].ptr = &DRIVE_XBEE_HEADER;
 					drive_iovecs[1][1].len = 1;
-					drive_iovecs[1][1].ptr = &ZERO;
+					drive_iovecs[1][1].ptr = &FE;
 					drive_iovecs[1][2].len = i * (sizeof(drive_block_t) + 2);
 					drive_iovecs[1][2].ptr = drive_micropackets + 8;
 					drive_packets[1].num_iovs = 3;
@@ -206,7 +202,7 @@ void run(void) {
 			}
 			robot = interrupt_out_packet->buffer[0] >> 4;
 			pipe = interrupt_out_packet->buffer[0] & 0x0F;
-			if (pipe_info[robot - 1][pipe].used) {
+			if (pipe_info[robot][pipe].used) {
 				/* A message has already been sent to this pipe on this robot.
 				 * To avoid sequence number problems, do not send a second message in the same cycle.
 				 * Just stop here. */
@@ -216,13 +212,13 @@ void run(void) {
 			if (!(dongle_status.robots & (((uint16_t) 1) << robot))) {
 				/* This robot is offline.
 				 * Report an error and drop the packet. */
-				error_reporting_add(FAULT_SEND_FAILED_ROBOT1 + robot - 1);
+				error_reporting_add(FAULT_SEND_FAILED_ROBOT0 + robot);
 				interrupt_out_free(interrupt_out_packet);
 				continue;
 			}
 			if (interrupt_out_packet->cookie == 0xFF) {
 				/* The message has no sequence number. Assign one. */
-				interrupt_out_packet->cookie = pipe_info[robot - 1][pipe].sequence++;
+				interrupt_out_packet->cookie = pipe_info[robot][pipe].sequence++;
 			}
 
 			/* Keep a record of the packet. */
@@ -250,14 +246,10 @@ void run(void) {
 
 
 
-		if (dongle_status.robots != 0xFFFE && !--discovery_counter) {
+		if (dongle_status.robots != 0xFFFF && !--discovery_counter) {
 			/* Send a discovery packet. */
 			do {
-				if (discovery_robot == 15) {
-					discovery_robot = 1;
-				} else {
-					++discovery_robot;
-				}
+				discovery_robot = (discovery_robot + 1) & 15;
 			} while (dongle_status.robots & (((uint16_t) 1) << discovery_robot));
 			discovery_header.xbee_header.frame_id = next_frame;
 			if (!++next_frame) {
@@ -323,8 +315,8 @@ void run(void) {
 											 * Count the failure. */
 											uint8_t robot = interrupt_out_headers[i].xbee_header.address_low & 0x0F;
 											if (dongle_status.robots & (1 << robot)) {
-												if (++comm_failures[robot - 1] == COMM_FAILURE_LIMIT) {
-													comm_failures[robot - 1] = 0;
+												if (++comm_failures[robot] == COMM_FAILURE_LIMIT) {
+													comm_failures[robot] = 0;
 													dongle_status.robots &= ~(1 << robot);
 													dongle_status_dirty();
 												}
@@ -348,11 +340,11 @@ void run(void) {
 												uint8_t i;
 												for (i = 0; i != PIPE_MAX + 1; ++i) {
 													if (PIPE_OUT_MASK & (1 << i)) {
-														pipe_info[discovery_robot - 1][i].used = 0;
-														pipe_info[discovery_robot - 1][i].sequence = 0;
+														pipe_info[discovery_robot][i].used = 0;
+														pipe_info[discovery_robot][i].sequence = 0;
 													} else {
-														pipe_info[discovery_robot - 1][i].used = 0;
-														pipe_info[discovery_robot - 1][i].sequence = 63;
+														pipe_info[discovery_robot][i].used = 0;
+														pipe_info[discovery_robot][i].sequence = 63;
 													}
 												}
 											}
@@ -364,49 +356,49 @@ void run(void) {
 						} else {
 							/* This packet arrived on XBee 1.
 							 * It should be a receive data packet. */
-							if (pkt->buf[0] == XBEE_API_ID_RX16 && pkt->buf[1] == 0x7B && (pkt->buf[2] & 0xF0) == 0x30 && pkt->buf[2] != 0x30) {
+							if (pkt->buf[0] == XBEE_API_ID_RX16 && pkt->buf[1] == 0x7B && (pkt->buf[2] & 0xF0) == 0x30) {
 								uint8_t robot = pkt->buf[2] & 0x0F;
 								__data uint8_t *ptr = pkt->buf + 5;
 								uint8_t len = pkt->len - 5;
 								uint16_t diff = (now - last_poll_time) & 0x3FF;
 								if (robot == pollee) {
 									in_pending = false;
-									comm_failures[robot - 1] = 0;
+									comm_failures[robot] = 0;
 								}
 								while (len) {
 									if (ptr[0] < 2) {
 										/* Micropacket too short to hold its own header. */
-										error_reporting_add(FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT1 + robot - 1);
+										error_reporting_add(FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT0 + robot);
 										break;
 									} else if (ptr[0] > len) {
 										/* Micropacket overflows packet. */
-										error_reporting_add(FAULT_IN_MICROPACKET_OVERFLOW_ROBOT1 + robot - 1);
+										error_reporting_add(FAULT_IN_MICROPACKET_OVERFLOW_ROBOT0 + robot);
 										break;
 									} else if ((ptr[1] & 0xF0) != 0) {
 										/* Micropacket directed to someone other than this dongle. */
-										error_reporting_add(FAULT_IN_MICROPACKET_NOPIPE_ROBOT1 + robot - 1);
+										error_reporting_add(FAULT_IN_MICROPACKET_NOPIPE_ROBOT0 + robot);
 										break;
 									} else {
 										uint8_t pipe = ptr[1] & 0x0F;
 										if (pipe == PIPE_FEEDBACK) {
 											if (ptr[0] == sizeof(feedback_block_t) + 2) {
-												memcpyram2ram(state_transport_in_feedback[robot - 1], ptr + 2, sizeof(feedback_block_t));
+												memcpyram2ram(state_transport_in_feedback[robot], ptr + 2, sizeof(feedback_block_t));
 												state_transport_in_feedback_dirty(robot);
 											} else {
-												error_reporting_add(FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT1 + robot - 1);
+												error_reporting_add(FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT0 + robot);
 											}
 										} else if ((1 << pipe) & PIPE_IN_MASK & PIPE_INTERRUPT_MASK) {
 											if (ptr[0] >= 3) {
-												if (ptr[2] != pipe_info[robot - 1][pipe].sequence) {
-													pipe_info[robot - 1][pipe].sequence = ptr[2];
+												if (ptr[2] != pipe_info[robot][pipe].sequence) {
+													pipe_info[robot][pipe].sequence = ptr[2];
 													ptr[2] = (robot << 4) | pipe;
 													interrupt_in_send(ptr + 2, ptr[0] - 2);
 												}
 											} else {
-												error_reporting_add(FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT1 + robot - 1);
+												error_reporting_add(FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT0 + robot);
 											}
 										} else {
-											error_reporting_add(FAULT_IN_MICROPACKET_NOPIPE_ROBOT1 + robot - 1);
+											error_reporting_add(FAULT_IN_MICROPACKET_NOPIPE_ROBOT0 + robot);
 										}
 										len -= *ptr;
 										ptr += *ptr;

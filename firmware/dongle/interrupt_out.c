@@ -63,11 +63,7 @@ static void on_transaction(void) {
 		/* Extract the header. */
 		robot = sie_packet->buffer[0] >> 4;
 		pipe = sie_packet->buffer[0] & 0x0F;
-		if (!robot) {
-			/* Robot index zero is invalid.
-			 * Report an error and leave the packet in sie_packet to resubmit. */
-			error_reporting_add(FAULT_OUT_MICROPACKET_NOPIPE);
-		} else if (pipe > PIPE_MAX || !((1 << pipe) & PIPE_OUT_MASK & PIPE_INTERRUPT_MASK)) {
+		if (pipe > PIPE_MAX || !((1 << pipe) & PIPE_OUT_MASK & PIPE_INTERRUPT_MASK)) {
 			/* Pipe is not an outbound interrupt pipe.
 			 * Report an error and leave the packet in sie_packet to resubmit. */
 			error_reporting_add(FAULT_OUT_MICROPACKET_NOPIPE);

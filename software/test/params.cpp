@@ -17,7 +17,7 @@ TesterParamsPanel::TesterParamsPanel() : Gtk::Table(6, 2), commit("Commit"), rol
 		}
 		channels[i].signal_changed().connect(sigc::mem_fun(this, &TesterParamsPanel::on_change));
 	}
-	for (unsigned int i = 1; i <= 15; ++i) {
+	for (unsigned int i = 0; i <= 15; ++i) {
 		index.append_text(Glib::ustring::format(i));
 	}
 	dribble_power.get_adjustment()->configure(0, 0, 255, 1, 10, 0);
@@ -118,7 +118,7 @@ void TesterParamsPanel::on_change() {
 		for (std::size_t i = 0; i < 2; ++i) {
 			params.xbee_channels[i] = static_cast<uint8_t>(0x0B + channels[i].get_active_row_number());
 		}
-		params.robot_number = static_cast<uint8_t>(1 + index.get_active_row_number());
+		params.robot_number = static_cast<uint8_t>(index.get_active_row_number());
 		params.dribble_power = static_cast<uint8_t>(dribble_power.get_value());
 		robot->firmware_set_operational_parameters(params)->signal_done.connect(sigc::mem_fun(this, &TesterParamsPanel::on_change_done));
 	}

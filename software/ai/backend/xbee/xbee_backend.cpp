@@ -587,8 +587,7 @@ namespace {
 	}
 
 	AI::BE::XBee::Player::Ptr XBeeFriendlyTeam::create_member(unsigned int pattern) {
-#warning THIS SHIT IS WEIRD AND FUCKED UP
-		return AI::BE::XBee::Player::create(backend, pattern, dongle.robot(pattern == 0 ? 7 : pattern));
+		return AI::BE::XBee::Player::create(backend, pattern, dongle.robot(pattern));
 	}
 
 	XBeeEnemyTeam::XBeeEnemyTeam(XBeeBackend &backend) : GenericTeam<AI::BE::XBee::Robot>(backend) {

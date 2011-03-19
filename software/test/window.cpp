@@ -8,10 +8,10 @@
 TesterWindow::TesterWindow(XBeeDongle &dongle) : dongle(dongle), bot_frame("Bot"), control_bot_button("Control"), feedback_frame("Feedback"), feedback_panel(dongle), drive_frame("Drive"), drive_widget(0), drive_zeroable(0), dribble_frame("Dribbler"), dribble_button("Run"), chicker_frame("Chicker"), chicker_table(5, 2), chicker_enabled("Enable"), chicker_pulse_width1_label("Pulse width 1:"), chicker_pulse_width2_label("Pulse width 2:"), chicker_pulse_offset_label("Offset:"), chicker_kick("Kick"), params_frame("Parameters") {
 	set_title("Robot Tester");
 
-	for (unsigned int i = 1; i <= 15; ++i) {
+	for (unsigned int i = 0; i <= 15; ++i) {
 		bot_chooser.append_text(Glib::ustring::format(i));
 	}
-	bot_chooser.set_active_text(Glib::ustring::format(1));
+	bot_chooser.set_active_text(Glib::ustring::format(0));
 	bot_hbox.pack_start(bot_chooser, Gtk::PACK_EXPAND_WIDGET);
 	control_bot_button.signal_toggled().connect(sigc::mem_fun(this, &TesterWindow::on_control_toggled));
 	bot_hbox.pack_start(control_bot_button, Gtk::PACK_SHRINK);
@@ -78,7 +78,7 @@ void TesterWindow::on_control_toggled() {
 	chicker_enabled.set_active(false);
 
 	if (control_bot_button.get_active()) {
-		unsigned int index = bot_chooser.get_active_row_number() + 1;
+		unsigned int index = bot_chooser.get_active_row_number();
 		bot = dongle.robot(index);
 		bot_alive_changed_signal = bot->alive.signal_changed().connect(sigc::mem_fun(this, &TesterWindow::on_bot_alive_changed));
 		bot_chooser.set_sensitive(false);

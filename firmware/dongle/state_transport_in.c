@@ -13,7 +13,7 @@
  */
 #define BLOCKS_PER_TRANSACTION (64 / (sizeof(feedback_block_t) + 2))
 
-__data uint8_t state_transport_in_feedback[15][sizeof(feedback_block_t)];
+__data uint8_t state_transport_in_feedback[16][sizeof(feedback_block_t)];
 
 /**
  * \brief A buffer into which packets are assembled for transmission.
@@ -28,7 +28,7 @@ static uint16_t dirty_mask;
 /**
  * \brief Back buffers containing old copies of the feedback blocks for comparison.
  */
-static uint8_t back_buffers[15][sizeof(feedback_block_t)];
+static uint8_t back_buffers[16][sizeof(feedback_block_t)];
 
 /**
  * \brief Whether or not there is a transaction currently running.
@@ -56,16 +56,12 @@ static void check_send(void) {
 		if (dirty_mask & (1 << next_robot)) {
 			*write_ptr++ = sizeof(feedback_block_t) + 2;
 			*write_ptr++ = (next_robot << 4) | PIPE_FEEDBACK;
-			memcpyram2ram(write_ptr, back_buffers[next_robot - 1], sizeof(feedback_block_t));
+			memcpyram2ram(write_ptr, back_buffers[next_robot], sizeof(feedback_block_t));
 			write_ptr += sizeof(feedback_block_t);
 			++blocks_used;
 			dirty_mask &= ~(1 << next_robot);
 		}
-		if (next_robot == 15) {
-			next_robot = 1;
-		} else {
-			++next_robot;
-		}
+		next_robot = (next_robot + 1) & 15;
 	}
 
 	if (blocks_used) {
@@ -87,7 +83,7 @@ static void on_commanded_stall(void) {
 static BOOL on_clear_halt(void) {
 	USB_BD_IN_UNSTALL(EP_STATE_TRANSPORT);
 	transaction_running = false;
-	dirty_mask = 0xFFFE;
+	dirty_mask = 0xFFFF;
 	memcpyram2ram(back_buffers, state_transport_in_feedback, sizeof(back_buffers));
 	check_send();
 	return true;
@@ -102,7 +98,8 @@ void state_transport_in_init(void) {
 	transaction_running = false;
 	UEPBITS(EP_STATE_TRANSPORT).EPHSHK = 1;
 	UEPBITS(EP_STATE_TRANSPORT).EPINEN = 1;
-	next_robot = 1;
+	dirty_mask = 0;
+	next_robot = 0;
 }
 
 void state_transport_in_deinit(void) {
@@ -115,8 +112,8 @@ void state_transport_in_feedback_dirty(uint8_t robot) {
 	CRITSEC_ENTER_LOW(cs);
 
 	/* Check if there's a real difference. */
-	if (memcmp(back_buffers[robot - 1], state_transport_in_feedback[robot - 1], sizeof(back_buffers[robot - 1])) != 0) {
-		memcpyram2ram(back_buffers[robot - 1], state_transport_in_feedback[robot - 1], sizeof(back_buffers[robot - 1]));
+	if (memcmp(back_buffers[robot], state_transport_in_feedback[robot], sizeof(back_buffers[robot])) != 0) {
+		memcpyram2ram(back_buffers[robot], state_transport_in_feedback[robot], sizeof(back_buffers[robot]));
 		dirty_mask |= 1 << robot;
 		check_send();
 	}

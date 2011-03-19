@@ -92,7 +92,7 @@ typedef enum {
 void run(void) {
 	__data xbee_rxpacket_t *rxpacket;
 	__data const uint8_t *rxptr;
-	static xbee_tx16_header_t txheader = { XBEE_API_ID_TX_16, 0x00, 0x7B, 0x30, 0x00 };
+	static xbee_tx16_header_t txheader = { XBEE_API_ID_TX_16, 0x00, 0x7B, 0x41, 0x00 };
 	static xbee_txpacket_iovec_t txiovs[4];
 	static xbee_txpacket_t txpkt;
 	inbound_state_t inbound_state = INBOUND_STATE_IDLE;
@@ -194,7 +194,7 @@ void run(void) {
 
 		if (rxpacket = xbee_rxpacket_get()) {
 			/* There's an XBee packet to deal with. */
-			if (rxpacket->xbee == 0 && rxpacket->len > 5 && rxpacket->buf[0] == XBEE_API_ID_RX_16 && rxpacket->buf[1] == 0x7B && rxpacket->buf[2] == 0x20) {
+			if (rxpacket->xbee == 0 && rxpacket->len > 5 && rxpacket->buf[0] == XBEE_API_ID_RX_16 && rxpacket->buf[1] == 0x7B && rxpacket->buf[2] == 0x40) {
 				/* It's a receive data packet from XBee #0 with data from the dongle. */
 				if (rxpacket->buf[4] & 0x02) {
 					/* It's a broadcast packet and therefore contains a poll code and a list of state transport micropackets for multiple robots. */
@@ -205,7 +205,7 @@ void run(void) {
 								/* It's reasonably correctly structured. */
 								uint8_t robot = rxptr[1] >> 4;
 								uint8_t pipe = rxptr[1] & 0x0F;
-								if (robot && robot == robot_number) {
+								if (robot == robot_number) {
 									/* It's addressed to us. */
 									if (pipe == PIPE_DRIVE) {
 										if (rxptr[0] == 2 + sizeof(drive_block)) {
@@ -232,7 +232,7 @@ void run(void) {
 						}
 					}
 
-					if (rxpacket->buf[5] && rxpacket->buf[5] == robot_number && (inbound_state == INBOUND_STATE_IDLE || inbound_state == INBOUND_STATE_AWAITING_POLL)) {
+					if (rxpacket->buf[5] == robot_number && (inbound_state == INBOUND_STATE_IDLE || inbound_state == INBOUND_STATE_AWAITING_POLL)) {
 						/* The poll code is asking us to send a packet. */
 						if (inbound_state == INBOUND_STATE_AWAITING_POLL) {
 							/* We should resend the last packet. */

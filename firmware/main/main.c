@@ -171,7 +171,7 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
  * \return \c true on success, or \c false on failure.
  */
 static BOOL configure_xbee_stage1(uint8_t xbee) {
-	uint8_t buffer[2];
+	uint8_t buffer[7];
 	uint8_t err = 0;
 
 	/* Enable RTS flow control on pin DIO6. */
@@ -189,7 +189,18 @@ static BOOL configure_xbee_stage1(uint8_t xbee) {
 	xbee_versions[xbee] = (buffer[0] << 8) | buffer[1];
 
 	/* Set up the text node ID. */
-	if (!at_command(xbee, 0x85, "NI", (xbee == 0) ? "TBOTS30" : "TBOTS31", 7, 0, 0)) {
+	buffer[0] = 'T';
+	buffer[1] = 'B';
+	buffer[2] = 'O';
+	buffer[3] = 'T';
+	buffer[4] = 'S';
+	if (params.robot_number < 10) {
+		buffer[5] = '0' + params.robot_number;
+	} else {
+		buffer[5] = 'A' + params.robot_number - 0xA;
+	}
+	buffer[6] = '0' + xbee;
+	if (!at_command(xbee, 0x85, "NI", buffer, 7, 0, 0)) {
 		err = FAULT_XBEE0_SET_NODE_ID_FAILED + xbee;
 		goto out;
 	}
@@ -293,7 +304,7 @@ void main(void) {
 	spi_init();
 
 	/* Load the operational parameters block. */
-	if (!params_load() || !params.xbee_channels[0] || !params.xbee_channels[1] || !params.robot_number) {
+	if (!params_load() || !params.xbee_channels[0] || !params.xbee_channels[1]) {
 		/* Parameters corrupt or uninitialized.
 		 * We can't do anything useful because our only communication mechanism is XBee and we don't know what channel or ID number to take. */
 		for (;;) {

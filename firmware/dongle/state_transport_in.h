@@ -13,7 +13,7 @@
 /**
  * \brief The current feedback pipe state blocks for the robots.
  */
-__data extern uint8_t state_transport_in_feedback[15][sizeof(feedback_block_t)];
+__data extern uint8_t state_transport_in_feedback[16][sizeof(feedback_block_t)];
 
 /**
  * \brief Initializes the subsystem.

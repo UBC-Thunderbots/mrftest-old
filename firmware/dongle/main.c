@@ -316,7 +316,7 @@ static BOOL configure_xbee_stage1(uint8_t xbee) {
 	xbee_versions[xbee] = (buffer[0] << 8) | buffer[1];
 
 	/* Set up the text node ID. */
-	if (!at_command(xbee, 0x85, "NI", (xbee == 0) ? "TBOTS00" : "TBOTS01", 7, 0, 0)) {
+	if (!at_command(xbee, 0x85, "NI", (xbee == 0) ? "TBOTSD0" : "TBOTSD1", 7, 0, 0)) {
 		err = FAULT_XBEE0_SET_NODE_ID_FAILED + xbee;
 		goto out;
 	}
@@ -377,7 +377,7 @@ static BOOL configure_xbee_stage2(uint8_t xbee) {
 
 	/* Set the 16-bit address. */
 	buffer[0] = 0x7B;
-	buffer[1] = (xbee == 0) ? 0x20 : 0x30;
+	buffer[1] = 0x40 + xbee;
 	if (!at_command(xbee, 0x91, "MY", buffer, 2, 0, 0)) {
 		err = FAULT_XBEE0_SET_ADDRESS_FAILED + xbee;
 		goto out;
