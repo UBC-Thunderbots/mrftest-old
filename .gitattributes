@@ -229,6 +229,7 @@ software/ai/hl/stp/role.cpp -text
 software/ai/hl/stp/role.h -text
 software/ai/hl/stp/stp.h -text
 software/ai/hl/stp/stp_hl.cpp -text
+software/ai/hl/stp/stp_hl_choosable.cpp -text
 software/ai/hl/stp/tactic/block.cpp -text
 software/ai/hl/stp/tactic/block.h -text
 software/ai/hl/stp/tactic/chase.cpp -text
