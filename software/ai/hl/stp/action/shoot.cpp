@@ -59,11 +59,14 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Po
 
 	// shoot!
 	double kick_power = 10.0;
+	#warning autokick needs to be called at every tick
+	player->autokick(kick_power);
+	/*
 	if (player->chicker_ready()) {
 		player->kick(kick_power);
 		return true;
 	}
-
+	*/
 	return false;
 }
 
