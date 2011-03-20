@@ -93,7 +93,7 @@ namespace {
 
 EnemyThreat eval_enemy(const World &world, Robot::Ptr robot) {
 
-	// TODO: Check for errors
+	// TODO: Check for Errors
 	EnemyThreat enemy_threat;
 
 	enemy_threat.threat_dist = std::min((robot->position() - world.ball().position()).len() , (robot->position() - world.field().friendly_goal()).len());
@@ -110,7 +110,26 @@ EnemyThreat eval_enemy(const World &world, Robot::Ptr robot) {
 			enemy_threat.pass_enemies.push_back(enemies[i]);
 		} 
 	}	
-	
+
+	enemy_threat.passes = 5;
+	if (enemy_threat.blocked || enemy_threat.pass_enemies.size() == 0) {
+		enemy_threat.passes = 5;
+	} else if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), robot, Robot::MAX_RADIUS).second > shoot_accuracy){
+		enemy_threat.passes = 0;
+	}
+	for (std::size_t i = 0; i < enemy_threat.pass_enemies.size(); ++i) {
+		if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), enemy_threat.pass_enemies[i], Robot::MAX_RADIUS).second > shoot_accuracy) {
+			enemy_threat.passes = 1;
+		}
+		else {
+			EnemyThreat next = eval_enemy(world, enemy_threat.pass_enemies[i]);
+			for (std::size_t j = 0; j < next.pass_enemies.size(); ++j){
+				if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), next.pass_enemies[j], Robot::MAX_RADIUS).second > shoot_accuracy) {
+				enemy_threat.passes = 2;
+				}
+			}	
+		}
+	}
 
 	return enemy_threat;
 }
