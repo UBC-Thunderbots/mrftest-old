@@ -1,4 +1,4 @@
-#include "interrupt_in.h"
+#include "message_in.h"
 #include "critsec.h"
 #include "dongle_status.h"
 #include "endpoints.h"
@@ -18,7 +18,7 @@ static void on_transaction(void) {
 	busy = false;
 }
 
-void interrupt_in_init(void) {
+void message_in_init(void) {
 	usb_ep_callbacks[EP_INTERRUPT].in.transaction = &on_transaction;
 	USB_BD_IN_INIT(EP_INTERRUPT);
 	busy = false;
@@ -26,11 +26,11 @@ void interrupt_in_init(void) {
 	UEPBITS(EP_INTERRUPT).EPINEN = 1;
 }
 
-void interrupt_in_deinit(void) {
+void message_in_deinit(void) {
 	UEPBITS(EP_INTERRUPT).EPINEN = 0;
 }
 
-void interrupt_in_send(__data const uint8_t *message, uint8_t len) {
+void message_in_send(__data const uint8_t *message, uint8_t len) {
 	/* Wait until the endpoint is not busy. */
 	while (busy) {
 		if (should_shut_down) {

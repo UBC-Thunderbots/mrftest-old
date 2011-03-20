@@ -6,8 +6,8 @@
 #include "error_reporting.h"
 #include "estop.h"
 #include "global.h"
-#include "interrupt_in.h"
-#include "interrupt_out.h"
+#include "message_in.h"
+#include "message_out.h"
 #include "pins.h"
 #include "run.h"
 #include "serial.h"
@@ -112,16 +112,16 @@ static void on_enter_config1(void) {
 	error_reporting_init();
 	state_transport_out_init();
 	state_transport_in_init();
-	interrupt_out_init();
-	interrupt_in_init();
+	message_out_init();
+	message_in_init();
 	debug_enable();
 	should_start_up = true;
 }
 
 static void on_exit_config1(void) {
 	debug_disable();
-	interrupt_in_deinit();
-	interrupt_out_deinit();
+	message_in_deinit();
+	message_out_deinit();
 	state_transport_in_deinit();
 	state_transport_out_deinit();
 	error_reporting_deinit();

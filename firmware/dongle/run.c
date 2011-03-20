@@ -4,8 +4,8 @@
 #include "dongle_status.h"
 #include "error_reporting.h"
 #include "global.h"
-#include "interrupt_in.h"
-#include "interrupt_out.h"
+#include "message_in.h"
+#include "message_out.h"
 #include "pipes.h"
 #include "queue.h"
 #include "state_transport_in.h"
@@ -47,14 +47,14 @@ typedef struct {
 typedef struct {
 	uint8_t micropacket_length;
 	drive_micropacket_pipe_robot_t pipe_robot;
-	drive_block_t payload;
+	uint8_t payload[DRIVE_SIZE];
 } drive_micropacket_t;
 
 typedef struct {
 	xbee_tx16_header_t xbee_header;
 	uint8_t pipe;
 	uint8_t sequence;
-} interrupt_header_t;
+} message_header_t;
 
 typedef struct {
 	xbee_tx16_header_t xbee_header;
@@ -72,12 +72,12 @@ void run(void) {
 	uint16_t last_poll_time = (UFRMH << 8) | UFRML;
 	BOOL in_pending = false;
 
-	uint8_t num_interrupt_out_sent;
-	__data interrupt_out_packet_t *interrupt_out_packet;
-	static __data interrupt_out_packet_t *interrupt_out_sent[3];
-	static interrupt_header_t interrupt_out_headers[3];
-	static xbee_txpacket_iovec_t interrupt_out_iovecs[3][2];
-	static xbee_txpacket_t interrupt_out_packets[3];
+	uint8_t num_message_out_sent;
+	__data message_out_packet_t *message_out_packet;
+	static __data message_out_packet_t *message_out_sent[3];
+	static message_header_t message_out_headers[3];
+	static xbee_txpacket_iovec_t message_out_iovecs[3][2];
+	static xbee_txpacket_t message_out_packets[3];
 
 	uint8_t discovery_counter = 5, discovery_robot = 0;
 	static discovery_header_t discovery_header;
@@ -98,9 +98,9 @@ void run(void) {
 			drive_micropackets[i].micropacket_length = sizeof(*drive_micropackets);
 		}
 		for (i = 0; i != 3; ++i) {
-			interrupt_out_headers[i].xbee_header.api_id = XBEE_API_ID_TX16;
-			interrupt_out_headers[i].xbee_header.address_high = 0x7B;
-			interrupt_out_headers[i].xbee_header.options = 0;
+			message_out_headers[i].xbee_header.api_id = XBEE_API_ID_TX16;
+			message_out_headers[i].xbee_header.address_high = 0x7B;
+			message_out_headers[i].xbee_header.options = 0;
 		}
 	}
 	discovery_header.xbee_header.api_id = XBEE_API_ID_TX16;
@@ -112,7 +112,7 @@ void run(void) {
 	while (!should_shut_down) {
 		/* Initialize per-cycle state. */
 		num_drive_sent = 0;
-		num_interrupt_out_sent = 0;
+		num_message_out_sent = 0;
 		now = (UFRMH << 8) | UFRML;
 
 
@@ -140,9 +140,9 @@ void run(void) {
 				if (dongle_status.robots & mask) {
 					drive_micropackets[j].pipe_robot.pipe = PIPE_DRIVE;
 					drive_micropackets[j].pipe_robot.robot = i;
-					memcpyram2ram(&drive_micropackets[j].payload, &state_transport_out_drive[i], sizeof(drive_block_t));
+					memcpyram2ram(drive_micropackets[j].payload, &state_transport_out_drive[i], DRIVE_SIZE);
 					if (dongle_status.estop != ESTOP_STATE_RUN) {
-						drive_micropackets[j].payload.flags.enable_robot = 0;
+						drive_micropackets[j].payload[0] = 0;
 					}
 					++j;
 				}
@@ -169,7 +169,7 @@ void run(void) {
 				} else {
 					drive_iovecs[0][1].ptr = &FE;
 				}
-				drive_iovecs[0][2].len = i * (sizeof(drive_block_t) + 2);
+				drive_iovecs[0][2].len = i * (DRIVE_SIZE + 2);
 				drive_iovecs[0][2].ptr = drive_micropackets;
 				drive_packets[0].num_iovs = 3;
 				drive_packets[0].iovs = drive_iovecs[0];
@@ -181,7 +181,7 @@ void run(void) {
 					drive_iovecs[1][0].ptr = &DRIVE_XBEE_HEADER;
 					drive_iovecs[1][1].len = 1;
 					drive_iovecs[1][1].ptr = &FE;
-					drive_iovecs[1][2].len = i * (sizeof(drive_block_t) + 2);
+					drive_iovecs[1][2].len = i * (DRIVE_SIZE + 2);
 					drive_iovecs[1][2].ptr = drive_micropackets + 8;
 					drive_packets[1].num_iovs = 3;
 					drive_packets[1].iovs = drive_iovecs[1];
@@ -193,55 +193,55 @@ void run(void) {
 
 
 
-		/* Send up to three interrupt packets. */
-		while (num_interrupt_out_sent != 3) {
+		/* Send up to three message packets. */
+		while (num_message_out_sent != 3) {
 			uint8_t robot, pipe;
-			if (!(interrupt_out_packet = interrupt_out_get())) {
-				/* No more interrupt packets to send. */
+			if (!(message_out_packet = message_out_get())) {
+				/* No more message packets to send. */
 				break;
 			}
-			robot = interrupt_out_packet->buffer[0] >> 4;
-			pipe = interrupt_out_packet->buffer[0] & 0x0F;
+			robot = message_out_packet->buffer[0] >> 4;
+			pipe = message_out_packet->buffer[0] & 0x0F;
 			if (pipe_info[robot][pipe].used) {
 				/* A message has already been sent to this pipe on this robot.
 				 * To avoid sequence number problems, do not send a second message in the same cycle.
 				 * Just stop here. */
-				interrupt_out_unget(interrupt_out_packet);
+				message_out_unget(message_out_packet);
 				break;
 			}
 			if (!(dongle_status.robots & (((uint16_t) 1) << robot))) {
 				/* This robot is offline.
 				 * Report an error and drop the packet. */
 				error_reporting_add(FAULT_SEND_FAILED_ROBOT0 + robot);
-				interrupt_out_free(interrupt_out_packet);
+				message_out_free(message_out_packet);
 				continue;
 			}
-			if (interrupt_out_packet->cookie == 0xFF) {
+			if (message_out_packet->cookie == 0xFF) {
 				/* The message has no sequence number. Assign one. */
-				interrupt_out_packet->cookie = pipe_info[robot][pipe].sequence++;
+				message_out_packet->cookie = pipe_info[robot][pipe].sequence++;
 			}
 
 			/* Keep a record of the packet. */
-			interrupt_out_sent[num_interrupt_out_sent] = interrupt_out_packet;
+			message_out_sent[num_message_out_sent] = message_out_packet;
 
 			/* Construct a header. */
-			interrupt_out_headers[num_interrupt_out_sent].xbee_header.frame_id = next_frame;
+			message_out_headers[num_message_out_sent].xbee_header.frame_id = next_frame;
 			if (!++next_frame) {
 				next_frame = 1;
 			}
-			interrupt_out_headers[num_interrupt_out_sent].xbee_header.address_low = 0x20 | robot;
-			interrupt_out_headers[num_interrupt_out_sent].pipe = pipe;
-			interrupt_out_headers[num_interrupt_out_sent].sequence = interrupt_out_packet->cookie;
+			message_out_headers[num_message_out_sent].xbee_header.address_low = 0x20 | robot;
+			message_out_headers[num_message_out_sent].pipe = pipe;
+			message_out_headers[num_message_out_sent].sequence = message_out_packet->cookie;
 
 			/* Assemble and queue the packet. */
-			interrupt_out_iovecs[num_interrupt_out_sent][0].len = sizeof(interrupt_header_t);
-			interrupt_out_iovecs[num_interrupt_out_sent][0].ptr = &interrupt_out_headers[num_interrupt_out_sent];
-			interrupt_out_iovecs[num_interrupt_out_sent][1].len = interrupt_out_packet->length - 1;
-			interrupt_out_iovecs[num_interrupt_out_sent][1].ptr = interrupt_out_packet->buffer + 1;
-			interrupt_out_packets[num_interrupt_out_sent].num_iovs = 2;
-			interrupt_out_packets[num_interrupt_out_sent].iovs = interrupt_out_iovecs[num_interrupt_out_sent];
-			xbee_txpacket_queue(&interrupt_out_packets[num_interrupt_out_sent], 0);
-			++num_interrupt_out_sent;
+			message_out_iovecs[num_message_out_sent][0].len = sizeof(message_header_t);
+			message_out_iovecs[num_message_out_sent][0].ptr = &message_out_headers[num_message_out_sent];
+			message_out_iovecs[num_message_out_sent][1].len = message_out_packet->length - 1;
+			message_out_iovecs[num_message_out_sent][1].ptr = message_out_packet->buffer + 1;
+			message_out_packets[num_message_out_sent].num_iovs = 2;
+			message_out_packets[num_message_out_sent].iovs = message_out_iovecs[num_message_out_sent];
+			xbee_txpacket_queue(&message_out_packets[num_message_out_sent], 0);
+			++num_message_out_sent;
 		}
 
 
@@ -272,7 +272,7 @@ void run(void) {
 
 		/* Wait for all the XBee packets to finish being pushed over the serial port. */
 		{
-			uint8_t num_packets = num_drive_sent + num_interrupt_out_sent;
+			uint8_t num_packets = num_drive_sent + num_message_out_sent;
 			if (discovery_sent) {
 				++num_packets;
 			}
@@ -289,7 +289,7 @@ void run(void) {
 		{
 			uint8_t bulk_out_success_mask = 0;
 			{
-				uint8_t num_packets = num_interrupt_out_sent;
+				uint8_t num_packets = num_message_out_sent;
 				__data xbee_rxpacket_t *pkt;
 				uint8_t i;
 				if (discovery_sent) {
@@ -302,17 +302,17 @@ void run(void) {
 							 * It should be a transmit status packet. */
 							if (pkt->buf[0] == XBEE_API_ID_TX_STATUS) {
 								/* Figure out what's going on based on the frame ID. */
-								for (i = 0; i != num_interrupt_out_sent; ++i) {
-									if (pkt->buf[1] == interrupt_out_headers[i].xbee_header.frame_id) {
+								for (i = 0; i != num_message_out_sent; ++i) {
+									if (pkt->buf[1] == message_out_headers[i].xbee_header.frame_id) {
 										if (pkt->buf[2] == 0) {
 											/* Transmission successful.
 											 * Free the USB packet. */
-											interrupt_out_free(interrupt_out_sent[i]);
-											interrupt_out_sent[i] = 0;
+											message_out_free(message_out_sent[i]);
+											message_out_sent[i] = 0;
 										} else {
 											/* Transmission failed.
 											 * Count the failure. */
-											uint8_t robot = interrupt_out_headers[i].xbee_header.address_low & 0x0F;
+											uint8_t robot = message_out_headers[i].xbee_header.address_low & 0x0F;
 											if (dongle_status.robots & (1 << robot)) {
 												if (++comm_failures[robot] == COMM_FAILURE_LIMIT) {
 													comm_failures[robot] = 0;
@@ -321,8 +321,8 @@ void run(void) {
 												}
 											}
 											/* Requeue the USB packet. */
-											interrupt_out_unget(interrupt_out_sent[i]);
-											interrupt_out_sent[i] = 0;
+											message_out_unget(message_out_sent[i]);
+											message_out_sent[i] = 0;
 										}
 										--num_packets;
 									}
@@ -386,12 +386,12 @@ void run(void) {
 											} else {
 												error_reporting_add(FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT0 + robot);
 											}
-										} else if ((1 << pipe) & PIPE_IN_MASK & PIPE_INTERRUPT_MASK) {
+										} else if ((1 << pipe) & PIPE_IN_MASK & PIPE_MESSAGE_MASK) {
 											if (ptr[0] >= 3) {
 												if (ptr[2] != pipe_info[robot][pipe].sequence) {
 													pipe_info[robot][pipe].sequence = ptr[2];
 													ptr[2] = (robot << 4) | pipe;
-													interrupt_in_send(ptr + 2, ptr[0] - 2);
+													message_in_send(ptr + 2, ptr[0] - 2);
 												}
 											} else {
 												error_reporting_add(FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT0 + robot);

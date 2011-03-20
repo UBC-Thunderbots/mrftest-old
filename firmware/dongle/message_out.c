@@ -1,4 +1,4 @@
-#include "interrupt_out.h"
+#include "message_out.h"
 #include "critsec.h"
 #include "dongle_status.h"
 #include "endpoints.h"
@@ -10,24 +10,24 @@
 #include <stdbool.h>
 #include <string.h>
 
-STACK_DEFINE_TYPE(interrupt_out_packet_t);
+STACK_DEFINE_TYPE(message_out_packet_t);
 
-static interrupt_out_packet_t packet1, packet2, packet3, packet4, packet5, packet6;
+static message_out_packet_t packet1, packet2, packet3, packet4, packet5, packet6;
 
 /**
  * \brief The packet buffers that are free.
  */
-static STACK_TYPE(interrupt_out_packet_t) free_packets;
+static STACK_TYPE(message_out_packet_t) free_packets;
 
 /**
  * \brief The packet buffer currently submitted to the SIE.
  */
-static __data interrupt_out_packet_t *sie_packet;
+static __data message_out_packet_t *sie_packet;
 
 /**
  * \brief The packets currently awaiting processing by the application.
  */
-static QUEUE_TYPE(interrupt_out_packet_t) ready_packets;
+static QUEUE_TYPE(message_out_packet_t) ready_packets;
 
 /**
  * \brief Whether or not a transaction is currently running.
@@ -63,8 +63,8 @@ static void on_transaction(void) {
 		/* Extract the header. */
 		robot = sie_packet->buffer[0] >> 4;
 		pipe = sie_packet->buffer[0] & 0x0F;
-		if (pipe > PIPE_MAX || !((1 << pipe) & PIPE_OUT_MASK & PIPE_INTERRUPT_MASK)) {
-			/* Pipe is not an outbound interrupt pipe.
+		if (pipe > PIPE_MAX || !((1 << pipe) & PIPE_OUT_MASK & PIPE_MESSAGE_MASK)) {
+			/* Pipe is not an outbound message pipe.
 			 * Report an error and leave the packet in sie_packet to resubmit. */
 			error_reporting_add(FAULT_OUT_MICROPACKET_NOPIPE);
 		} else {
@@ -83,7 +83,7 @@ static void on_transaction(void) {
 	submit_sie_packet();
 }
 
-void interrupt_out_init(void) {
+void message_out_init(void) {
 	/* Initialize queues. */
 	STACK_INIT(free_packets);
 	STACK_PUSH(free_packets, &packet1);
@@ -104,12 +104,12 @@ void interrupt_out_init(void) {
 	submit_sie_packet();
 }
 
-void interrupt_out_deinit(void) {
+void message_out_deinit(void) {
 	UEPBITS(EP_INTERRUPT).EPOUTEN = 0;
 }
 
-__data interrupt_out_packet_t *interrupt_out_get(void) {
-	__data interrupt_out_packet_t *pkt;
+__data message_out_packet_t *message_out_get(void) {
+	__data message_out_packet_t *pkt;
 	CRITSEC_DECLARE(cs);
 
 	CRITSEC_ENTER_LOW(cs);
@@ -119,7 +119,7 @@ __data interrupt_out_packet_t *interrupt_out_get(void) {
 	return pkt;
 }
 
-void interrupt_out_unget(__data interrupt_out_packet_t *pkt) {
+void message_out_unget(__data message_out_packet_t *pkt) {
 	CRITSEC_DECLARE(cs);
 
 	CRITSEC_ENTER_LOW(cs);
@@ -127,7 +127,7 @@ void interrupt_out_unget(__data interrupt_out_packet_t *pkt) {
 	CRITSEC_LEAVE(cs);
 }
 
-void interrupt_out_free(__data interrupt_out_packet_t *pkt) {
+void message_out_free(__data message_out_packet_t *pkt) {
 	CRITSEC_DECLARE(cs);
 
 	CRITSEC_ENTER_LOW(cs);

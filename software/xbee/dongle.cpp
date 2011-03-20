@@ -509,19 +509,20 @@ void XBeeDongle::dirty_drive(unsigned int index) {
 }
 
 void XBeeDongle::flush_drive() {
-	uint8_t buffer[64 / (10 + 2)][10 + 2];
+	static const std::size_t packet_size = robot(0)->drive_block.byte_count + 2;
+	uint8_t buffer[64 / packet_size][packet_size];
 	std::size_t wptr = 0;
 
 	for (unsigned int i = 0; i <= 15; ++i) {
 		if (dirty_drive_mask & (1 << i)) {
 			dirty_drive_mask &= ~(1 << i);
-			buffer[wptr][0] = sizeof(buffer[0]);
+			buffer[wptr][0] = static_cast<uint8_t>(sizeof(buffer[0]));
 			buffer[wptr][1] = static_cast<uint8_t>(i << 4) | PIPE_DRIVE;
-			std::memcpy(&buffer[wptr][2], robot(i)->drive_block, sizeof(buffer[0]) - 2);
+			std::memcpy(&buffer[wptr][2], robot(i)->drive_block.bytes, packet_size - 2);
 			++wptr;
 
 			if (wptr == sizeof(buffer) / sizeof(*buffer)) {
-				LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_STATE_TRANSPORT, buffer, wptr * sizeof(buffer[0]), 0, STALL_LIMIT);
+				LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_STATE_TRANSPORT, buffer, wptr * packet_size, 0, STALL_LIMIT);
 				transfer->signal_done.connect(&discard_result);
 				transfer->submit();
 				wptr = 0;
@@ -530,7 +531,7 @@ void XBeeDongle::flush_drive() {
 	}
 
 	if (wptr) {
-		LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_STATE_TRANSPORT, buffer, wptr * sizeof(buffer[0]), 0, STALL_LIMIT);
+		LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_STATE_TRANSPORT, buffer, wptr * packet_size, 0, STALL_LIMIT);
 		transfer->signal_done.connect(&discard_result);
 		transfer->submit();
 	}

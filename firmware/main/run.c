@@ -54,6 +54,11 @@
 #define BATTERY_VOLTAGE_R_BOTTOM 330.0
 
 /**
+ * \brief The number of 5ms ticks to make up the autokick timeout.
+ */
+#define AUTOKICK_LOCKOUT_TIME 50
+
+/**
  * \brief The type of an XBee transmit header.
  */
 typedef struct {
@@ -114,6 +119,7 @@ void run(void) {
 	uint8_t status, i;
 	uint16_t crc;
 	BOOL fpga_ok;
+	uint8_t autokick_lockout_time = 0;
 
 	/* Clear state. */
 	memset(sequence, 0, sizeof(sequence));
@@ -208,9 +214,20 @@ void run(void) {
 								if (robot == robot_number) {
 									/* It's addressed to us. */
 									if (pipe == PIPE_DRIVE) {
-										if (rxptr[0] == 2 + sizeof(drive_block)) {
+										if (rxptr[0] == 2 + DRIVE_SIZE) {
 											/* It's new drive data. */
-											memcpyram2ram(&drive_block, rxptr + 2, sizeof(drive_block));
+#if DRIVE_SIZE != 10
+#error DRIVE_SIZE does not match value for which packet decoder was built (update packet decoder).
+#endif
+											memcpyram2ram(&drive_block.flags, rxptr + 2, 1);
+											drive_block.wheels[0] = ((rxptr[3] | (rxptr[4] << 8)) & 0x7FF) | ((rxptr[4] & 0x04) ? 0xF800 : 0);
+											drive_block.wheels[1] = (((rxptr[4] >> 3) | (rxptr[5] << 5)) & 0x7FF) | ((rxptr[5] & 0x20) ? 0xF800 : 0);
+											drive_block.wheels[2] = (((rxptr[5] >> 6) | (rxptr[6] << 2) | (rxptr[7] << 10)) & 0x7FF) | ((rxptr[7] & 0x01) ? 0xF800 : 0);
+											drive_block.wheels[3] = (((rxptr[7] >> 1) | (rxptr[8] << 7)) & 0x7FF) | ((rxptr[8] & 0x08) ? 0xF800 : 0);
+											drive_block.test_mode = (rxptr[8] & 0x70) | (rxptr[8] >> 7) | ((rxptr[9] & 0x03) << 1);
+											drive_block.autokick_pulse1 = (rxptr[9] >> 2) | ((rxptr[10] & 0x01) << 6);
+											drive_block.autokick_pulse2 = rxptr[10] >> 1;
+											drive_block.autokick_offset = rxptr[11] & 0x7F;
 											drive_timeout = DRIVE_TIMEOUT_LIMIT;
 										} else {
 											/* It's the wrong length. */
@@ -269,18 +286,19 @@ void run(void) {
 					 * Clear our sequence numbers. */
 					memset(sequence, 0, sizeof(sequence));
 				} else {
-					/* It's a packet containing a single interrupt message. */
-					if (rxpacket->buf[5] <= PIPE_MAX && ((1 << rxpacket->buf[5]) & PIPE_OUT_MASK & PIPE_INTERRUPT_MASK)) {
-						/* It's addressed to an existing interrupt pipe in the right direction. */
+					/* It's a packet containing a single message message. */
+					if (rxpacket->buf[5] <= PIPE_MAX && ((1 << rxpacket->buf[5]) & PIPE_OUT_MASK & PIPE_MESSAGE_MASK)) {
+						/* It's addressed to an existing message pipe in the right direction. */
 						if ((rxpacket->buf[6] & 63) == sequence[rxpacket->buf[5]]) {
 							/* The sequence number is correct. */
 							sequence[rxpacket->buf[5]] = (sequence[rxpacket->buf[5]] + 1) & 63;
 							if (rxpacket->buf[5] == PIPE_KICK) {
 								/* The packet contains a kick request. */
-								if (rxpacket->len == 14) {
-									parbus_write(10, rxpacket->buf[8] | (rxpacket->buf[9] << 8));
-									parbus_write(11, rxpacket->buf[10] | (rxpacket->buf[11] << 8));
-									parbus_write(12, rxpacket->buf[12] | (rxpacket->buf[13] << 8));
+								if (rxpacket->len == 11) {
+									parbus_write(10, (rxpacket->buf[8] & 0x7F) * 32);
+									parbus_write(11, (rxpacket->buf[9] & 0x7F) * 32);
+									parbus_write(12, ((rxpacket->buf[8] & 0x80) << 8) | ((rxpacket->buf[9] & 0x80) << 7) | (rxpacket->buf[10] * 32));
+									autokick_lockout_time = AUTOKICK_LOCKOUT_TIME;
 								} else {
 									error_reporting_add(FAULT_OUT_MICROPACKET_BAD_LENGTH);
 								}
@@ -595,6 +613,13 @@ void run(void) {
 					/* Start a conversion on channel 3. */
 					ADCON0bits.CHS0 = 1;
 					ADCON0bits.GO = 1;
+					/* Fire autokick if ready. */
+					if (drive_timeout && drive_block.flags.autokick_armed && feedback_block.flags.ball_in_beam && !autokick_lockout_time && (drive_block.autokick_pulse1 || drive_block.autokick_pulse2)) {
+						parbus_write(10, drive_block.autokick_pulse1 * 32);
+						parbus_write(11, drive_block.autokick_pulse2 * 32);
+						parbus_write(12, (drive_block.autokick_offset * 32) | (drive_block.flags.autokick_mask1 ? 0x8000 : 0x0000) | (drive_block.flags.autokick_mask2 ? 0x4000 : 0x0000));
+						autokick_lockout_time = AUTOKICK_LOCKOUT_TIME;
+					}
 				} else {
 					/* Channel 3 -> miscellaneous device connector.
 					 * Start a conversion on channel 0. */
@@ -610,6 +635,11 @@ void run(void) {
 
 		if (PIR1bits.CCP1IF && fpga_ok) {
 			uint16_t flags_out = 0;
+
+			/* Auto-kick timeout should expire eventually. */
+			if (autokick_lockout_time && !feedback_block.flags.ball_in_beam) {
+				--autokick_lockout_time;
+			}
 
 			/* It's time to run a control loop iteration.
 			 * Latch the encoder counts. */

@@ -97,12 +97,14 @@ namespace AI {
 				ObjectStore &object_store() const = 0;
 				void move(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
 				void kick(double power);
+				void autokick(double power);
 				const std::pair<Point, double> &destination() const = 0;
 				void path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p);
 
 			protected:
 				virtual void move_impl(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) = 0;
 				virtual void kick_impl(double power) = 0;
+				virtual void autokick_impl(double power) = 0;
 				virtual void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) = 0;
 		};
 

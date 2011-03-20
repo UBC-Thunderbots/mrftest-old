@@ -59,7 +59,7 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Po
 
 	// shoot!
 	double kick_power = 10.0;
-	if (player->chicker_ready_time() == 0) {
+	if (player->chicker_ready()) {
 		player->kick(kick_power);
 		return true;
 	}

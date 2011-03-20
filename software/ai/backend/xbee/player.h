@@ -37,9 +37,9 @@ namespace AI {
 					/**
 					 * Drives one tick of time through the RobotController and to the XBee.
 					 *
-					 * \param[in] scram whether or not to scram the robot.
+					 * \param[in] halt \c true if the current play type is halt, or \c false if not.
 					 */
-					void tick(bool scram);
+					void tick(bool halt);
 
 					Visualizable::Colour visualizer_colour() const;
 					Glib::ustring visualizer_label() const;
@@ -62,9 +62,10 @@ namespace AI {
 					unsigned int pattern() const { return Robot::pattern(); }
 					ObjectStore &object_store() const { return Robot::object_store(); }
 					bool has_ball() const;
-					unsigned int chicker_ready_time() const;
+					bool chicker_ready() const;
 					void move_impl(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
 					void kick_impl(double speed);
+					void autokick_impl(double speed);
 					bool has_destination() const { return true; }
 					const std::pair<Point, double> &destination() const;
 					Point target_velocity() const;
@@ -99,7 +100,6 @@ namespace AI {
 					std::pair<Point, double> destination_;
 					Point target_velocity_;
 					bool moved, controlled;
-					timespec chicker_last_fire_time;
 					double dribble_distance_;
 					Point last_dribble_position;
 					Annunciator::Message chick_when_not_ready_message;
@@ -108,6 +108,7 @@ namespace AI {
 					AI::Flags::MoveType move_type_;
 					AI::Flags::MovePrio move_prio_;
 					std::vector<std::pair<std::pair<Point, double>, timespec> > path_;
+					bool autokick_invoked;
 
 					/**
 					 * Constructs a new Player object.

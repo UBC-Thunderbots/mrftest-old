@@ -19,11 +19,11 @@ namespace AI {
 				virtual bool has_ball() const = 0;
 
 				/**
-				 * Gets the delay until the chicker is ready.
+				 * Checks if this robot's chicker is ready to use.
 				 *
-				 * \return the number of milliseconds until the chicker is ready to use.
+				 * \return \c true if ready, or \c false if not.
 				 */
-				virtual unsigned int chicker_ready_time() const = 0;
+				virtual bool chicker_ready() const = 0;
 		};
 	}
 }

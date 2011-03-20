@@ -61,7 +61,7 @@ void AI::HL::Tactics::shoot(const World &world, Player::Ptr player, const unsign
 	// }
 
 	// shoot!
-	if (player->chicker_ready_time() == 0) {
+	if (player->chicker_ready()) {
 		player->kick(kick_power);
 	}
 }
@@ -75,7 +75,7 @@ void AI::HL::Tactics::repel(const World &world, Player::Ptr player, const unsign
 
 	// just shoot as long as it's not in backwards direction
 	if (player->orientation() < M_PI / 2 && player->orientation() > -M_PI / 2) {
-		if (player->chicker_ready_time() == 0) {
+		if (player->chicker_ready()) {
 			player->kick(1.0);
 		}
 	}

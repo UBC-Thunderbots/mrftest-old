@@ -135,8 +135,8 @@ bool AI::BE::Simulator::Player::has_ball() const {
 	return has_ball_;
 }
 
-unsigned int AI::BE::Simulator::Player::chicker_ready_time() const {
-	return 0;
+bool AI::BE::Simulator::Player::chicker_ready() const {
+	return true;
 }
 
 void AI::BE::Simulator::Player::move_impl(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
@@ -147,9 +147,14 @@ void AI::BE::Simulator::Player::move_impl(Point dest, double ori, Point vel, uns
 	move_type_ = type;
 	move_prio_ = prio;
 }
+
 void AI::BE::Simulator::Player::kick_impl(double power) {
 	kick_ = true;
 	chick_power_ = power;
+}
+
+void AI::BE::Simulator::Player::autokick_impl(double power) {
+	kick_impl(power);
 }
 
 bool AI::BE::Simulator::Player::has_destination() const {

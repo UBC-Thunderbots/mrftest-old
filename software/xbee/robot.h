@@ -2,6 +2,7 @@
 #define XBEE_ROBOT_H
 
 #include "util/async_operation.h"
+#include "util/bit_array.h"
 #include "util/byref.h"
 #include "util/property.h"
 #include <cstddef>
@@ -83,6 +84,8 @@ class XBeeRobot : public ByRef {
 
 		void kick(unsigned int pulse_width1, unsigned int pulse_width2, int offset);
 
+		void autokick(unsigned int pulse_width1, unsigned int pulse_width2, int offset);
+
 		void test_mode(unsigned int mode);
 
 	private:
@@ -90,7 +93,7 @@ class XBeeRobot : public ByRef {
 
 		XBeeDongle &dongle;
 		const unsigned int index;
-		uint8_t drive_block[10];
+		BitArray<80> drive_block;
 		sigc::connection flush_drive_connection;
 
 		static Ptr create(XBeeDongle &dongle, unsigned int index);

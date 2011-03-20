@@ -566,19 +566,18 @@ AsyncOperation<XBeeRobot::BuildSignatures>::Ptr XBeeRobot::firmware_read_build_s
 }
 
 void XBeeRobot::drive(const int(&wheels)[4]) {
-	uint8_t buffer[sizeof(drive_block)];
-	std::memcpy(buffer, drive_block, sizeof(buffer));
-	buffer[0] |= 0x01;
+	BitArray<80> buffer = drive_block;
+	buffer.set(0, true);
 	for (std::size_t i = 0; i < 4; ++i) {
-		assert(-32767 <= wheels[i] && wheels[i] <= 32767);
-		int16_t i16 = static_cast<int16_t>(wheels[i]);
-		uint16_t u16 = i16;
-		buffer[1 + i * 2] = static_cast<uint8_t>(u16);
-		buffer[1 + i * 2 + 1] = static_cast<uint8_t>(u16 >> 8);
+		assert(-1023 <= wheels[i] && wheels[i] <= 1023);
+		uint16_t u16 = static_cast<int16_t>(wheels[i]);
+		for (std::size_t j = 0; j < 11; ++j) {
+			buffer.set(8 + i * 11 + j, !!(u16 & (1 << j)));
+		}
 	}
 
-	if (std::memcmp(buffer, drive_block, sizeof(buffer)) != 0) {
-		std::memcpy(drive_block, buffer, sizeof(buffer));
+	if (buffer != drive_block) {
+		drive_block = buffer;
 		if (!flush_drive_connection) {
 			flush_drive_connection = Glib::signal_idle().connect(sigc::bind_return(sigc::mem_fun(this, &XBeeRobot::flush_drive), false));
 		}
@@ -591,38 +590,30 @@ void XBeeRobot::drive(int w1, int w2, int w3, int w4) {
 }
 
 void XBeeRobot::drive_scram() {
-	if (drive_block[0] & 0x01) {
-		drive_block[0] &= static_cast<uint8_t>(~0x01);
+	if (drive_block.get(0)) {
+		drive_block.set(0, false);
 		flush_drive();
 	}
 }
 
 void XBeeRobot::dribble(bool active) {
-	if (!!(drive_block[0] & 0x04) != active) {
-		if (active) {
-			drive_block[0] |= 0x04;
-		} else {
-			drive_block[0] &= static_cast<uint8_t>(~0x04);
-		}
+	if (drive_block.get(2) != active) {
+		drive_block.set(2, active);
 		flush_drive();
 	}
 }
 
 void XBeeRobot::enable_chicker(bool active) {
-	if (!!(drive_block[0] & 0x02) != active) {
-		if (active) {
-			drive_block[0] |= 0x02;
-		} else {
-			drive_block[0] &= static_cast<uint8_t>(~0x02);
-		}
+	if (drive_block.get(1) != active) {
+		drive_block.set(1, active);
 		flush_drive();
 	}
 }
 
-void XBeeRobot::kick(unsigned int pulse_width1, unsigned int pulse_width2, int offset) {
-	assert(pulse_width1 < 16384);
-	assert(pulse_width2 < 16384);
-	assert(-16384 < offset && offset < 16384);
+void XBeeRobot::autokick(unsigned int pulse_width1, unsigned int pulse_width2, int offset) {
+	assert(pulse_width1 <= 4064);
+	assert(pulse_width2 <= 4064);
+	assert(-4094 <= offset && offset <= 4094);
 
 	/* Translate from actual widths and offset to "total-widths" and "slice width" as used by firmware/VHDL. */
 	unsigned int slice_width;
@@ -631,13 +622,13 @@ void XBeeRobot::kick(unsigned int pulse_width1, unsigned int pulse_width2, int o
 	if (offset < 0) {
 		slice_width = -offset;
 		pulse_width2 += slice_width;
-		assert(pulse_width2 < 16384);
+		assert(pulse_width2 <= 4064);
 		ignore_slice1 = true;
 		ignore_slice2 = false;
 	} else if (offset > 0) {
 		slice_width = offset;
 		pulse_width1 += slice_width;
-		assert(pulse_width1 < 16384);
+		assert(pulse_width1 <= 4064);
 		ignore_slice1 = false;
 		ignore_slice2 = true;
 	} else {
@@ -646,15 +637,61 @@ void XBeeRobot::kick(unsigned int pulse_width1, unsigned int pulse_width2, int o
 		ignore_slice2 = true;
 	}
 
-	uint8_t buffer[8];
+	BitArray<80> buffer = drive_block;
+	buffer.set(5, pulse_width1 || pulse_width2);
+	for (std::size_t i = 0; i < 7; ++i) {
+		buffer.set(58 + i, !!(pulse_width1 & (1 << i)));
+	}
+	for (std::size_t i = 0; i < 7; ++i) {
+		buffer.set(65 + i, !!(pulse_width2 & (1 << i)));
+	}
+	for (std::size_t i = 0; i < 7; ++i) {
+		buffer.set(72 + i, !!(slice_width & (1 << i)));
+	}
+	buffer.set(3, ignore_slice1);
+	buffer.set(4, ignore_slice2);
+
+	if (buffer != drive_block) {
+		drive_block = buffer;
+		if (!flush_drive_connection) {
+			flush_drive_connection = Glib::signal_idle().connect(sigc::bind_return(sigc::mem_fun(this, &XBeeRobot::flush_drive), false));
+		}
+	}
+}
+
+void XBeeRobot::kick(unsigned int pulse_width1, unsigned int pulse_width2, int offset) {
+	assert(pulse_width1 <= 4064);
+	assert(pulse_width2 <= 4064);
+	assert(-4094 <= offset && offset <= 4094);
+
+	/* Translate from actual widths and offset to "total-widths" and "slice width" as used by firmware/VHDL. */
+	unsigned int slice_width;
+	bool ignore_slice1, ignore_slice2;
+#warning comment is shit at explaining what actually happens here
+	if (offset < 0) {
+		slice_width = -offset;
+		pulse_width2 += slice_width;
+		assert(pulse_width2 <= 4064);
+		ignore_slice1 = true;
+		ignore_slice2 = false;
+	} else if (offset > 0) {
+		slice_width = offset;
+		pulse_width1 += slice_width;
+		assert(pulse_width1 <= 4064);
+		ignore_slice1 = false;
+		ignore_slice2 = true;
+	} else {
+		slice_width = 0;
+		ignore_slice1 = true;
+		ignore_slice2 = true;
+	}
+
+	uint8_t buffer[5];
 	buffer[0] = static_cast<uint8_t>(index << 4) | XBeeDongle::PIPE_KICK;
 	buffer[1] = 0x00;
-	buffer[2] = static_cast<uint8_t>(pulse_width1);
-	buffer[3] = static_cast<uint8_t>(pulse_width1 >> 8);
-	buffer[4] = static_cast<uint8_t>(pulse_width2);
-	buffer[5] = static_cast<uint8_t>(pulse_width2 >> 8);
-	buffer[6] = static_cast<uint8_t>(slice_width);
-	buffer[7] = static_cast<uint8_t>((ignore_slice1 ? 0x80 : 0x00) | (ignore_slice2 ? 0x40 : 0x00) | (slice_width >> 8));
+	buffer[2] = static_cast<uint8_t>((ignore_slice1 ? 0x80 : 0x00) | (pulse_width1 / 32));
+	buffer[3] = static_cast<uint8_t>((ignore_slice2 ? 0x80 : 0x00) | (pulse_width2 / 32));
+	buffer[4] = static_cast<uint8_t>(slice_width / 32);
 
 	LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(dongle.device, XBeeDongle::EP_INTERRUPT, buffer, sizeof(buffer), 0, 5);
 	transfer->signal_done.connect(&discard_result);
@@ -662,9 +699,16 @@ void XBeeRobot::kick(unsigned int pulse_width1, unsigned int pulse_width2, int o
 }
 
 void XBeeRobot::test_mode(unsigned int mode) {
-	assert(mode < 256);
-	if (drive_block[9] != mode) {
-		drive_block[9] = static_cast<uint8_t>(mode);
+	assert((mode & 0x77) == mode);
+	BitArray<80> buffer = drive_block;
+	buffer.set(52, !!(mode & 0x10));
+	buffer.set(53, !!(mode & 0x20));
+	buffer.set(54, !!(mode & 0x40));
+	buffer.set(55, !!(mode & 0x01));
+	buffer.set(56, !!(mode & 0x02));
+	buffer.set(57, !!(mode & 0x04));
+	if (buffer != drive_block) {
+		drive_block = buffer;
 		flush_drive();
 	}
 }

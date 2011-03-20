@@ -17,7 +17,7 @@
  */
 #define SCRAM_TIMEOUT_LIMIT 23
 
-__data drive_block_t state_transport_out_drive[16];
+__data uint8_t state_transport_out_drive[16][DRIVE_SIZE];
 
 /**
  * \brief A buffer into which packets are received.
@@ -45,9 +45,9 @@ static void on_transaction(void) {
 			switch (ptr[1] & 0x0F) {
 				case PIPE_DRIVE:
 					/* Drive pipe. */
-					if (ptr[0] == sizeof(drive_block_t) + 2) {
+					if (ptr[0] == DRIVE_SIZE + 2) {
 						recipient = ptr[1] >> 4;
-						memcpyram2ram(&state_transport_out_drive[recipient], ptr + 2, sizeof(drive_block_t));
+						memcpyram2ram(state_transport_out_drive[recipient], ptr + 2, DRIVE_SIZE);
 					} else {
 						error_reporting_add(FAULT_OUT_MICROPACKET_BAD_LENGTH);
 					}
@@ -101,7 +101,7 @@ SIGHANDLER(state_transport_out_tmr1if) {
 	} else {
 		uint8_t i;
 		for (i = 0; i != 16; ++i) {
-			state_transport_out_drive[i].flags.enable_robot = 0;
+			state_transport_out_drive[i][0] = 0;
 		}
 	}
 	PIR1bits.TMR1IF = 0;

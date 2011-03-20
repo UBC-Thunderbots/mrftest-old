@@ -38,11 +38,11 @@ firmware/dongle/estop.c -text
 firmware/dongle/estop.h -text
 firmware/dongle/global.c -text
 firmware/dongle/global.h -text
-firmware/dongle/interrupt_in.c -text
-firmware/dongle/interrupt_in.h -text
-firmware/dongle/interrupt_out.c -text
-firmware/dongle/interrupt_out.h -text
 firmware/dongle/main.c -text
+firmware/dongle/message_in.c -text
+firmware/dongle/message_in.h -text
+firmware/dongle/message_out.c -text
+firmware/dongle/message_out.h -text
 firmware/dongle/pins.txt -text
 firmware/dongle/queue.h -text
 firmware/dongle/run.c -text
@@ -103,7 +103,6 @@ firmware/pingen/pingen.c -text
 firmware/shared/crc.c -text
 firmware/shared/crc.h -text
 firmware/shared/critsec.h -text
-firmware/shared/drive.h -text
 firmware/shared/error_reporting.h -text
 firmware/shared/faults.h -text
 firmware/shared/feedback.h -text
@@ -387,6 +386,7 @@ software/util/algorithm.h -text
 software/util/annunciator.cpp -text
 software/util/annunciator.h -text
 software/util/async_operation.h -text
+software/util/bit_array.h -text
 software/util/byref.h -text
 software/util/cacheable.cpp -text
 software/util/cacheable.h -text

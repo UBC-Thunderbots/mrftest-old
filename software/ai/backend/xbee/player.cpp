@@ -62,6 +62,32 @@ namespace {
 		}
 		return new_dribble_power;
 	}
+
+	unsigned int calc_kick(double speed) {
+		static const double SPEEDS[] = { 7.14, 8.89, 10.3 };
+		static const unsigned int POWERS[] = { 2016, 3024, 4032 };
+
+		double speed_below = 0.0, speed_above = 0.0;
+		unsigned int power_below = 0.0, power_above = 0.0;
+		if (speed <= SPEEDS[0] + 1e-9) {
+			speed_below = SPEEDS[0];
+			speed_above = SPEEDS[1];
+			power_below = POWERS[0];
+			power_above = POWERS[1];
+		} else {
+			for (std::size_t i = 0; i < G_N_ELEMENTS(SPEEDS) - 1 && SPEEDS[i] < speed; ++i) {
+				speed_below = SPEEDS[i];
+				speed_above = SPEEDS[i + 1];
+				power_below = POWERS[i];
+				power_above = POWERS[i + 1];
+			}
+		}
+		double diff_speed = speed_above - speed_below;
+		double diff_power = power_above - power_below;
+		double slope = diff_power / diff_speed;
+		double power = (speed - speed_below) * slope + power_below;
+		return static_cast<unsigned int>(clamp(power, 0.0, 4094.0));
+	}
 }
 
 void Player::move_impl(Point dest, double target_ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
@@ -87,54 +113,23 @@ bool Player::has_ball() const {
 	return bot->ball_in_beam;
 }
 
-unsigned int Player::chicker_ready_time() const {
-	timespec now;
-	timespec_now(now);
-	timespec diff;
-	timespec_sub(now, chicker_last_fire_time, diff);
-	unsigned int millis = timespec_to_millis(diff);
-	if (millis < CHICKER_MIN_INTERVAL) {
-		return CHICKER_MIN_INTERVAL - millis;
-	} else if (!bot->alive) {
-		return 10000;
-	} else if (!bot->capacitor_charged) {
-		return 1;
-	} else {
-		return 0;
-	}
+bool Player::chicker_ready() const {
+	return bot->alive && bot->capacitor_charged;
 }
 
 void Player::kick_impl(double speed) {
-	static const double SPEEDS[] = { 7.14, 8.89, 10.3 };
-	static const unsigned int POWERS[] = { 2016, 3024, 4032 };
-
 	if (bot->alive) {
 		if (bot->capacitor_charged) {
-			double speed_below = 0.0, speed_above = 0.0;
-			unsigned int power_below = 0.0, power_above = 0.0;
-			if (speed <= SPEEDS[0] + 1e-9) {
-				speed_below = SPEEDS[0];
-				speed_above = SPEEDS[1];
-				power_below = POWERS[0];
-				power_above = POWERS[1];
-			} else {
-				for (std::size_t i = 0; i < G_N_ELEMENTS(SPEEDS) - 1 && SPEEDS[i] < speed; ++i) {
-					speed_below = SPEEDS[i];
-					speed_above = SPEEDS[i + 1];
-					power_below = POWERS[i];
-					power_above = POWERS[i + 1];
-				}
-			}
-			double diff_speed = speed_above - speed_below;
-			double diff_power = power_above - power_below;
-			double slope = diff_power / diff_speed;
-			double power = (speed - speed_below) * slope + power_below;
-			LOG_INFO(Glib::ustring::compose("kick_impl kicking %1 us", power));
-			bot->kick(static_cast<unsigned int>(clamp(power, 0.0, 16383.0)), 0, 0);
-			timespec_now(chicker_last_fire_time);
+			bot->kick(calc_kick(speed), 0, 0);
 		} else {
 			chick_when_not_ready_message.fire();
 		}
+	}
+}
+
+void Player::autokick_impl(double speed) {
+	if (bot->alive) {
+		bot->autokick(calc_kick(speed), 0, 0);
 	}
 }
 
@@ -143,11 +138,9 @@ Player::Ptr Player::create(AI::BE::Backend &backend, unsigned int pattern, XBeeR
 	return p;
 }
 
-Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), destination_(Point(), 0.0), moved(false), controlled(false), dribble_distance_(0.0), chick_when_not_ready_message(Glib::ustring::compose("Bot %1 chick when not ready", pattern), Annunciator::Message::TRIGGER_EDGE), flags_(0), move_type_(AI::Flags::MOVE_NORMAL), move_prio_(AI::Flags::PRIO_LOW) {
+Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), destination_(Point(), 0.0), moved(false), controlled(false), dribble_distance_(0.0), chick_when_not_ready_message(Glib::ustring::compose("Bot %1 chick when not ready", pattern), Annunciator::Message::TRIGGER_EDGE), flags_(0), move_type_(AI::Flags::MOVE_NORMAL), move_prio_(AI::Flags::PRIO_LOW), autokick_invoked(false) {
 	timespec now;
 	timespec_now(now);
-	chicker_last_fire_time.tv_sec = 0;
-	chicker_last_fire_time.tv_nsec = 0;
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
 }
 
@@ -158,34 +151,32 @@ void Player::drive(const int(&w)[4]) {
 	controlled = true;
 }
 
-void Player::tick(bool scram) {
-	// Note that we weren't moved if we have a Strategy but it never set a destination.
-	if (bot->alive && !scram && !moved) {
-		LOG_DEBUG(Glib::ustring::compose("Bot %1 not moved", pattern()));
+void Player::tick(bool halt) {
+	// Check for emergency conditions.
+	if (!bot->alive || bot->battery_voltage < BATTERY_CRITICAL_THRESHOLD) {
+		halt = true;
 	}
 
-	// Emergency conditions that cause scram of all systems.
-	if (!bot->alive || scram || bot->battery_voltage < BATTERY_CRITICAL_THRESHOLD) {
-		moved = false;
+	// Inhibit auto-kick if halted or if the AI didn't renew its interest.
+	if (halt || !autokick_invoked) {
+		bot->autokick(0, 0, 0);
 	}
+	autokick_invoked = false;
 
-	// Drivetrain and chicker control path.
-	if (moved && controlled) {
+	// Drivetrain control path.
+	if (!halt && moved && controlled) {
 		bot->drive(wheel_speeds_[0], wheel_speeds_[1], wheel_speeds_[2], wheel_speeds_[3]);
-		bot->enable_chicker();
 	} else {
-		if (bot->alive) {
-			bot->drive_scram();
-			bot->enable_chicker(false);
-		}
+		bot->drive_scram();
 	}
 	moved = false;
 	controlled = false;
 
-	// Dribbler control path.
-	if (bot->alive) {
-		bot->dribble();
-	}
+	// Dribbler should always run except in halt.
+	bot->dribble(!halt);
+
+	// Chicker should always charge except in halt.
+	bot->enable_chicker(!halt);
 
 	// Calculations.
 	if (bot->ball_on_dribbler) {

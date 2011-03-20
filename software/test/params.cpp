@@ -156,6 +156,12 @@ void TesterParamsPanel::on_reboot_done(AsyncOperation<void>::Ptr op) {
 }
 
 void TesterParamsPanel::on_set_test_mode() {
+	const Glib::ustring &text = test_mode.get_text();
+	if (!(text.size() == 2 && text[0] >= '0' && text[0] <= '7' && text[1] >= '0' && text[1] <= '7')) {
+		Gtk::MessageDialog md(*dynamic_cast<Gtk::Window *>(get_toplevel()), "Invalid test mode", false, Gtk::MESSAGE_ERROR);
+		md.run();
+		return;
+	}
 	std::istringstream iss(test_mode.get_text());
 	unsigned int mode;
 	iss >> std::hex >> mode;

@@ -237,7 +237,7 @@ namespace {
 				// Run the AI.
 				signal_tick().emit();
 
-				// Do post-AI stuff (pushing data to the dæmon).
+				// Do post-AI stuff (pushing data to the radios).
 				for (std::size_t i = 0; i < friendly.size(); ++i) {
 					friendly.get_xbee_player(i)->tick(playtype() == AI::Common::PlayType::HALT);
 				}

@@ -54,7 +54,9 @@ class TesterWindow : public Gtk::Window {
 		Gtk::HScale chicker_pulse_width2;
 		Gtk::Label chicker_pulse_offset_label;
 		Gtk::HScale chicker_pulse_offset;
+		Gtk::HBox chicker_fire_hbox;
 		Gtk::Button chicker_kick;
+		Gtk::ToggleButton chicker_autokick;
 
 		Gtk::Frame params_frame;
 		TesterParamsPanel params_panel;
@@ -75,6 +77,7 @@ class TesterWindow : public Gtk::Window {
 		void on_chicker_pulse_width_changed();
 		void on_chicker_pulse_offset_changed();
 		void on_chicker_kick();
+		void on_chicker_autokick();
 };
 
 #endif
