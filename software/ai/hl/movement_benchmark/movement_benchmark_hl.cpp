@@ -45,7 +45,7 @@ namespace {
 
 	class MBHL : public HighLevel {
 		public:
-			MBHL(World &world) : world(world), tasks(default_tasks, default_tasks + default_tasks_n) {
+			MBHL(World &world) : world(world), tasks(default_tasks, default_tasks + default_tasks_n), time_steps(0), done(0) {
 			}
 
 			MBHLFactory &factory() const {
