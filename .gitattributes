@@ -285,6 +285,8 @@ software/ai/navigator/pivot_navigator.cpp -text
 software/ai/navigator/pivot_navigator2.cpp -text
 software/ai/navigator/pivot_navigator_aram.cpp -text
 software/ai/navigator/reactive.cpp -text
+software/ai/navigator/rrt_base.cpp -text
+software/ai/navigator/rrt_base.h -text
 software/ai/navigator/rrt_navigator.cpp -text
 software/ai/navigator/rrtphysics_navigator.cpp -text
 software/ai/navigator/simple_navigator.cpp -text
