@@ -78,16 +78,18 @@ namespace AI {
 					/**
 					 * Causes the player to kick the ball.
 					 *
-					 * \param[in] power the power of the kick, from 0 to 1.
+					 * \param[in] speed the speed of the kick, in m/s.
 					 */
-					virtual void kick(double power) = 0;
+					virtual void kick(double speed) = 0;
 					
 					/**
-					 * Causes the player to autokick the ball.
+					 * Causes the player to automatically kick the ball as soon as it is picked up by the sensor.
 					 *
-					 * \param[in] power the power of the kick, from 0 to 1.
+					 * This function must be called on every tick in order to remain armed; failing to invoke the function will disarm the mechanism.
+					 *
+					 * \param[in] speed the speed of the kick, in m/s.
 					 */
-					virtual void autokick(double power) = 0;
+					virtual void autokick(double speed) = 0;
 			};
 
 			/**
