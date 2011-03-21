@@ -20,6 +20,8 @@ void AI::HL::STP::Action::repel(const World &world, Player::Ptr player, const un
 
 	// just shoot as long as it's not in backwards direction
 	if (player->orientation() < M_PI / 2 && player->orientation() > -M_PI / 2) {
+		// should autokick??
+		// player->autokick(10.0); 
 		if (player->chicker_ready()) {
 			player->kick(10.0);
 		}

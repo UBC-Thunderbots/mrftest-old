@@ -45,7 +45,7 @@ void AI::HL::STP::Action::goalie_move(const World &world, Player::Ptr player, Po
 		goalpos = line_intersect(ballpos, ballpos + ballvel, 
 				Point(world.field().length()/2.0, 1.0),
 				Point(world.field().length()/2.0, -1.0));
-		LOG_INFO(Glib::ustring::compose("ball heading towards our side of the field: rushpos.y = %1, goalpos.y = %2", rushpos.y, goalpos.y));
+		// LOG_INFO(Glib::ustring::compose("ball heading towards our side of the field: rushpos.y = %1, goalpos.y = %2", rushpos.y, goalpos.y));
 
 		if (std::min(std::fabs(goalpos.y),std::fabs(rushpos.y)) < world.field().goal_width()/2.0) {
 			rushpos.y = std::min(rushpos.y, world.field().goal_width()/2.0);

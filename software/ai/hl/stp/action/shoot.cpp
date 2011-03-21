@@ -38,6 +38,7 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const un
 	return AI::HL::STP::Action::shoot(world, player, target.first, flags);
 }
 
+// TODO: removed unused parameters
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Point target, const unsigned int flags, const bool force) {
 	const double ori_target = (target - player->position()).orientation();
 
@@ -58,9 +59,9 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Po
 	// }
 
 	// shoot!
-	double kick_power = 10.0;
-	#warning autokick needs to be called at every tick
-	player->autokick(kick_power);
+	double speed = 10.0;
+	// autokick needs to be called at every tick
+	player->autokick(speed);
 	/*
 	if (player->chicker_ready()) {
 		player->kick(kick_power);
