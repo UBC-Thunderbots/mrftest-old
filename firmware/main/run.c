@@ -579,6 +579,7 @@ void run(void) {
 						parbus_write(6, 0);
 						delay1mtcy(1);
 						LAT_MOTOR_ENABLE = 0;
+						LAT_DRIB_BEAM_OUT = 0;
 						LAT_XBEE0_SLEEP = 1;
 						LAT_XBEE1_SLEEP = 1;
 						LAT_LED1 = 0;
