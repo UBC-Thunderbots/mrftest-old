@@ -15,9 +15,9 @@
  */
 typedef struct {
 	/**
-	 * \brief Zero to brake motors and safe capacitors, or one to run normally.
+	 * \brief Zero to brake the wheels, or one to run the wheels normally.
 	 */
-	unsigned enable_robot : 1;
+	unsigned enable_wheels : 1;
 
 	/**
 	 * \brief Zero to disable the capacitor charger, or one to enable it.
@@ -25,7 +25,7 @@ typedef struct {
 	unsigned charge : 1;
 
 	/**
-	 * \brief Zero to disable the dribbler, or one to enable it.
+	 * \brief Zero to brake the dribbler, or one to spin it.
 	 */
 	unsigned dribble : 1;
 

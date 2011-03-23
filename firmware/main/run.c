@@ -650,7 +650,8 @@ void run(void) {
 				error_reporting_add(FAULT_CHICKER_NOT_PRESENT);
 			}
 
-			if (drive_timeout && drive_block.flags.enable_robot) {
+			/* Control the wheels if and only if so ordered. */
+			if (drive_timeout && drive_block.flags.enable_wheels) {
 				uint8_t i;
 
 				/* Count this iteration against the timeout. */
@@ -681,7 +682,8 @@ void run(void) {
 			}
 
 			/* Enable the dribbler if and only if so ordered. */
-			if (drive_block.flags.dribble && feedback_block.dribbler_temperature_raw >= 200 && feedback_block.dribbler_temperature_raw <= 499) {
+			if (drive_timeout && drive_block.flags.dribble && feedback_block.dribbler_temperature_raw >= 200 && feedback_block.dribbler_temperature_raw <= 499) {
+				flags_out |= 0x04;
 				parbus_write(5, params.dribble_power);
 			} else {
 				parbus_write(5, 0);
