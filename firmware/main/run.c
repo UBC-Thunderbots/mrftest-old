@@ -634,7 +634,7 @@ void run(void) {
 		}
 
 		if (PIR1bits.CCP1IF && fpga_ok) {
-			uint16_t flags_out = 0;
+			uint8_t flags_out = 0;
 
 			/* Auto-kick timeout should expire eventually. */
 			if (autokick_lockout_time && !feedback_block.flags.ball_in_beam) {
