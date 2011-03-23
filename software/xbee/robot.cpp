@@ -578,9 +578,7 @@ void XBeeRobot::drive(const int(&wheels)[4]) {
 
 	if (buffer != drive_block) {
 		drive_block = buffer;
-		if (!flush_drive_connection) {
-			flush_drive_connection = Glib::signal_idle().connect(sigc::bind_return(sigc::mem_fun(this, &XBeeRobot::flush_drive), false));
-		}
+		flush_drive();
 	}
 }
 
@@ -653,9 +651,7 @@ void XBeeRobot::autokick(unsigned int pulse_width1, unsigned int pulse_width2, i
 
 	if (buffer != drive_block) {
 		drive_block = buffer;
-		if (!flush_drive_connection) {
-			flush_drive_connection = Glib::signal_idle().connect(sigc::bind_return(sigc::mem_fun(this, &XBeeRobot::flush_drive), false));
-		}
+		flush_drive();
 	}
 }
 

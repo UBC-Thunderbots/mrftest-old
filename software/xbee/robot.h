@@ -94,7 +94,6 @@ class XBeeRobot : public ByRef {
 		XBeeDongle &dongle;
 		const unsigned int index;
 		BitArray<80> drive_block;
-		sigc::connection flush_drive_connection;
 
 		static Ptr create(XBeeDongle &dongle, unsigned int index);
 		XBeeRobot(XBeeDongle &dongle, unsigned int index);
