@@ -48,12 +48,12 @@ namespace {
 	const int P = sizeof(ARR_DEF) / sizeof(ARR_DEF[0]);
 	const std::vector<double> param_default(ARR_DEF, ARR_DEF + P);
 
-	class TunableAdHocController : public OldRobotController, public TunableController {
+	class TunablePID2Controller : public OldRobotController, public TunableController {
 		public:
 			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 			void clear();
 			RobotControllerFactory &get_factory() const;
-			TunableAdHocController(World &world, Player::Ptr plr);
+			TunablePID2Controller(World &world, Player::Ptr plr);
 			void set_params(const std::vector<double> &params) {
 				this->param = params;
 			}
@@ -77,15 +77,15 @@ namespace {
 			double prev_angular_velocity;
 	};
 
-	TunableAdHocController::TunableAdHocController(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), error_pos(10.0), error_ori(10.0), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
+	TunablePID2Controller::TunablePID2Controller(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), error_pos(10.0), error_ori(10.0), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
 		param = param_default;
 	}
 
-	const std::vector<std::string> TunableAdHocController::get_params_name() const {
+	const std::vector<std::string> TunablePID2Controller::get_params_name() const {
 		return std::vector<std::string>(PARAM_NAMES, PARAM_NAMES + P);
 	}
 
-	void TunableAdHocController::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
+	void TunablePID2Controller::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
 		const Point &current_position = player->position();
 		const double current_orientation = player->orientation();
 
@@ -196,24 +196,24 @@ namespace {
 		prev_angular_velocity = angular_velocity;
 	}
 
-	void TunableAdHocController::clear() {
+	void TunablePID2Controller::clear() {
 #warning WRITE CODE HERE
 	}
 
-	class TunableAdHocControllerFactory : public RobotControllerFactory {
+	class TunablePID2ControllerFactory : public RobotControllerFactory {
 		public:
-			TunableAdHocControllerFactory() : RobotControllerFactory("Ad Hoc =D") {
+			TunablePID2ControllerFactory() : RobotControllerFactory("PID 2 Tunable") {
 			}
 
 			RobotController::Ptr create_controller(World &world, Player::Ptr plr) const {
-				RobotController::Ptr p(new TunableAdHocController(world, plr));
+				RobotController::Ptr p(new TunablePID2Controller(world, plr));
 				return p;
 			}
 	};
 
-	TunableAdHocControllerFactory factory;
+	TunablePID2ControllerFactory factory;
 
-	RobotControllerFactory &TunableAdHocController::get_factory() const {
+	RobotControllerFactory &TunablePID2Controller::get_factory() const {
 		return factory;
 	}
 }

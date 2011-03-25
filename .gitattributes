@@ -302,13 +302,13 @@ software/ai/robot_controller/fuzzy_controller.cpp -text
 software/ai/robot_controller/fuzzy_controller.h -text
 software/ai/robot_controller/max_controller.cpp -text
 software/ai/robot_controller/path_controller.cpp -text
-software/ai/robot_controller/pid2_controller.cpp -text
+software/ai/robot_controller/pid3_controller.cpp -text
 software/ai/robot_controller/point_velocity_controller.cpp -text
 software/ai/robot_controller/robot_controller.cpp -text
 software/ai/robot_controller/robot_controller.h -text
-software/ai/robot_controller/tunable_adhoc_controller.cpp -text
 software/ai/robot_controller/tunable_controller.cpp -text
 software/ai/robot_controller/tunable_controller.h -text
+software/ai/robot_controller/tunable_pid2_controller.cpp -text
 software/ai/robot_controller/tunable_pid_controller.cpp -text
 software/ai/robot_controller/tunable_pid_controller.h -text
 software/ai/robot_controller/world.h -text

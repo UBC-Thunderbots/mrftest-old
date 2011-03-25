@@ -17,26 +17,26 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
-	BoolParam PID_SLOW_ANGULAR("PID2: Slow if translating", true);
-	BoolParam PID_FLIP_SLOWDOWN("PID2: flip trans/ang slowdown", false);
-	DoubleParam PID_SLOWDOWN("PID2: slowdown (CARE)", 1.5, 0.1, 8.0);
-	DoubleParam PID_PROP("PID2: prop", 8, 0.0, 20.0);
-	DoubleParam PID_DIFF("PID2: diff", 0, 0.0, 20.0);
-	DoubleParam PID_MAX_VEL("PID2: max vel", 6, 0.0, 20.0);
-	DoubleParam PID_MAX_ACC("PID2: max acc", 3, 0.0, 20.0);
-	DoubleParam PID_A_PROP("PID2: angle prop", 12, 0.0, 50.0);
-	DoubleParam PID_A_DIFF("PID2: angle diff", 0, 0.0, 20.0);
-	DoubleParam PID_A_THRESH("PID2: angle thresh", 12, 0.0, 50.0);
-	DoubleParam PID_XY_RATIO("PID2: xy ratio", 0.81, 0.0, 2.0);
+	BoolParam PID_SLOW_ANGULAR("PID3: Slow if translating", true);
+	BoolParam PID_FLIP_SLOWDOWN("PID3: flip trans/ang slowdown", false);
+	DoubleParam PID_SLOWDOWN("PID3: slowdown (CARE)", 1.5, 0.1, 8.0);
+	DoubleParam PID_PROP("PID3: prop", 20, 0.0, 20.0);
+	DoubleParam PID_DIFF("PID3: diff", 4, 0.0, 20.0);
+	DoubleParam PID_MAX_VEL("PID3: max vel", 6, 0.0, 20.0);
+	DoubleParam PID_MAX_ACC("PID3: max acc", 3, 0.0, 20.0);
+	DoubleParam PID_A_PROP("PID3: angle prop", 18, 0.0, 50.0);
+	DoubleParam PID_A_DIFF("PID3: angle diff", 2, 0.0, 20.0);
+	DoubleParam PID_A_THRESH("PID3: angle thresh", 12, 0.0, 50.0);
+	DoubleParam PID_XY_RATIO("PID3: xy ratio", 0.81, 0.0, 2.0);
 
 	const double PID_YA_RATIO = 0.0; // 0 - 5 to face forwards
 
-	class PID2Controller : public OldRobotController {
+	class PID3Controller : public OldRobotController {
 		public:
 			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 			void clear();
 			RobotControllerFactory &get_factory() const;
-			PID2Controller(World &world, Player::Ptr plr);
+			PID3Controller(World &world, Player::Ptr plr);
 
 		protected:
 			bool initialized;
@@ -47,10 +47,10 @@ namespace {
 			double prev_angular_velocity;
 	};
 
-	PID2Controller::PID2Controller(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
+	PID3Controller::PID3Controller(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
 	}
 
-	void PID2Controller::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
+	void PID3Controller::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
 		const Point &current_position = player->position();
 		const double current_orientation = player->orientation();
 
@@ -108,14 +108,14 @@ namespace {
 			if (PID_FLIP_SLOWDOWN) {
 				double slowdown = (PID_SLOWDOWN * PID_A_THRESH - std::fabs(angular_velocity)) / (PID_SLOWDOWN * PID_A_THRESH);
 				if (std::fabs(slowdown) > 1.1) {
-					std::cerr << "PID2: spin up" << std::endl;
+					std::cerr << "PID3: spin up" << std::endl;
 					slowdown = 1;
 				}
 				linear_velocity *= slowdown;
 			} else {
 				double slowdown = (PID_SLOWDOWN * PID_MAX_VEL - linear_velocity.len()) / (PID_SLOWDOWN * PID_MAX_VEL);
 				if (std::fabs(slowdown) > 1.1) {
-					std::cerr << "PID2: spin up" << std::endl;
+					std::cerr << "PID3: spin up" << std::endl;
 					slowdown = 1;
 				}
 				angular_velocity *= slowdown;
@@ -126,23 +126,23 @@ namespace {
 		prev_angular_velocity = angular_velocity;
 	}
 
-	void PID2Controller::clear() {
+	void PID3Controller::clear() {
 	}
 
-	class PID2ControllerFactory : public RobotControllerFactory {
+	class PID3ControllerFactory : public RobotControllerFactory {
 		public:
-			PID2ControllerFactory() : RobotControllerFactory("PID2") {
+			PID3ControllerFactory() : RobotControllerFactory("PID 3") {
 			}
 
 			RobotController::Ptr create_controller(World &world, Player::Ptr plr) const {
-				RobotController::Ptr p(new PID2Controller(world, plr));
+				RobotController::Ptr p(new PID3Controller(world, plr));
 				return p;
 			}
 	};
 
-	PID2ControllerFactory factory;
+	PID3ControllerFactory factory;
 
-	RobotControllerFactory &PID2Controller::get_factory() const {
+	RobotControllerFactory &PID3Controller::get_factory() const {
 		return factory;
 	}
 }

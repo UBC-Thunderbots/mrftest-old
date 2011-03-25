@@ -28,7 +28,7 @@ namespace {
 
 	class TunablePIDControllerFactory : public RobotControllerFactory {
 		public:
-			TunablePIDControllerFactory() : RobotControllerFactory("Tunable PID") {
+			TunablePIDControllerFactory() : RobotControllerFactory("PID 1 Tunable") {
 			}
 
 			RobotController::Ptr create_controller(World &world, Player::Ptr plr) const {
