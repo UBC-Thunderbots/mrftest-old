@@ -17,26 +17,26 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
-	BoolParam ADHOC_SLOW_ANGULAR("AdHoc2: Slow if translating", true);
-	BoolParam ADHOC_FLIP_SLOWDOWN("AdHoc2: flip trans/ang slowdown", false);
-	DoubleParam ADHOC_SLOWDOWN("AdHoc2: slowdown (CARE)", 1.5, 0.1, 8.0);
-	DoubleParam ADHOC_PROP("AdHoc2: prop", 8, 0.0, 20.0);
-	DoubleParam ADHOC_MAX_VEL("AdHoc2: max vel", 6, 0.0, 20.0);
-	DoubleParam ADHOC_MAX_ACC("AdHoc2: max acc", 3, 0.0, 20.0);
-	DoubleParam ADHOC_A_PROP("AdHoc2: angle prop", 12, 0.0, 50.0);
-	DoubleParam ADHOC_A_THRESH("AdHoc2: angle thresh", 12, 0.0, 50.0);
+	BoolParam PID_SLOW_ANGULAR("PID2: Slow if translating", true);
+	BoolParam PID_FLIP_SLOWDOWN("PID2: flip trans/ang slowdown", false);
+	DoubleParam PID_SLOWDOWN("PID2: slowdown (CARE)", 1.5, 0.1, 8.0);
+	DoubleParam PID_PROP("PID2: prop", 8, 0.0, 20.0);
+	DoubleParam PID_DIFF("PID2: diff", 0, 0.0, 20.0);
+	DoubleParam PID_MAX_VEL("PID2: max vel", 6, 0.0, 20.0);
+	DoubleParam PID_MAX_ACC("PID2: max acc", 3, 0.0, 20.0);
+	DoubleParam PID_A_PROP("PID2: angle prop", 12, 0.0, 50.0);
+	DoubleParam PID_A_DIFF("PID2: angle diff", 0, 0.0, 20.0);
+	DoubleParam PID_A_THRESH("PID2: angle thresh", 12, 0.0, 50.0);
+	DoubleParam PID_XY_RATIO("PID2: xy ratio", 0.81, 0.0, 2.0);
 
-	const double ADHOC_XY_RATIO = 0.81;
-	const double ADHOC_DIFF = 0.0;
-	const double ADHOC_A_DIFF = 0.0;
-	const double ADHOC_YA_RATIO = 0.0; // 0 - 5 to face forwards
+	const double PID_YA_RATIO = 0.0; // 0 - 5 to face forwards
 
-	class AdHoc2Controller : public OldRobotController {
+	class PID2Controller : public OldRobotController {
 		public:
 			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
 			void clear();
 			RobotControllerFactory &get_factory() const;
-			AdHoc2Controller(World &world, Player::Ptr plr);
+			PID2Controller(World &world, Player::Ptr plr);
 
 		protected:
 			bool initialized;
@@ -47,10 +47,10 @@ namespace {
 			double prev_angular_velocity;
 	};
 
-	AdHoc2Controller::AdHoc2Controller(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
+	PID2Controller::PID2Controller(World &world, Player::Ptr plr) : OldRobotController(world, plr), initialized(false), prev_linear_velocity(0.0, 0.0), prev_angular_velocity(0.0) {
 	}
 
-	void AdHoc2Controller::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
+	void PID2Controller::move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity) {
 		const Point &current_position = player->position();
 		const double current_orientation = player->orientation();
 
@@ -85,37 +85,37 @@ namespace {
 			prev_new_ori = new_orientation;
 		}
 
-		linear_velocity.x = px * ADHOC_PROP + vx * ADHOC_DIFF;
-		linear_velocity.y = (py * ADHOC_PROP + vy * ADHOC_DIFF) * ADHOC_XY_RATIO;
+		linear_velocity.x = px * PID_PROP + vx * PID_DIFF;
+		linear_velocity.y = (py * PID_PROP + vy * PID_DIFF) * PID_XY_RATIO;
 
 		// threshold the linear velocity
-		if (linear_velocity.len() > ADHOC_MAX_VEL) {
-			linear_velocity *= ADHOC_MAX_VEL / linear_velocity.len();
+		if (linear_velocity.len() > PID_MAX_VEL) {
+			linear_velocity *= PID_MAX_VEL / linear_velocity.len();
 		}
 
 		// threshold the linear acceleration
 		Point accel = linear_velocity - prev_linear_velocity;
-		if (accel.len() > ADHOC_MAX_ACC) {
-			accel *= ADHOC_MAX_ACC / accel.len();
+		if (accel.len() > PID_MAX_ACC) {
+			accel *= PID_MAX_ACC / accel.len();
 			linear_velocity = prev_linear_velocity + accel;
 		}
 
-		angular_velocity = pa * ADHOC_A_PROP + va * ADHOC_A_DIFF + linear_velocity.y * ADHOC_YA_RATIO;
-		angular_velocity = clamp<double>(angular_velocity, -ADHOC_A_THRESH, ADHOC_A_THRESH);
+		angular_velocity = pa * PID_A_PROP + va * PID_A_DIFF + linear_velocity.y * PID_YA_RATIO;
+		angular_velocity = clamp<double>(angular_velocity, -PID_A_THRESH, PID_A_THRESH);
 
 		// threshold even more
-		if (ADHOC_SLOW_ANGULAR) {
-			if (ADHOC_FLIP_SLOWDOWN) {
-				double slowdown = (ADHOC_SLOWDOWN * ADHOC_A_THRESH - std::fabs(angular_velocity)) / (ADHOC_SLOWDOWN * ADHOC_A_THRESH);
+		if (PID_SLOW_ANGULAR) {
+			if (PID_FLIP_SLOWDOWN) {
+				double slowdown = (PID_SLOWDOWN * PID_A_THRESH - std::fabs(angular_velocity)) / (PID_SLOWDOWN * PID_A_THRESH);
 				if (std::fabs(slowdown) > 1.1) {
-					std::cerr << "adhoc2: spin up" << std::endl;
+					std::cerr << "PID2: spin up" << std::endl;
 					slowdown = 1;
 				}
 				linear_velocity *= slowdown;
 			} else {
-				double slowdown = (ADHOC_SLOWDOWN * ADHOC_MAX_VEL - linear_velocity.len()) / (ADHOC_SLOWDOWN * ADHOC_MAX_VEL);
+				double slowdown = (PID_SLOWDOWN * PID_MAX_VEL - linear_velocity.len()) / (PID_SLOWDOWN * PID_MAX_VEL);
 				if (std::fabs(slowdown) > 1.1) {
-					std::cerr << "adhoc2: spin up" << std::endl;
+					std::cerr << "PID2: spin up" << std::endl;
 					slowdown = 1;
 				}
 				angular_velocity *= slowdown;
@@ -126,23 +126,23 @@ namespace {
 		prev_angular_velocity = angular_velocity;
 	}
 
-	void AdHoc2Controller::clear() {
+	void PID2Controller::clear() {
 	}
 
-	class AdHoc2ControllerFactory : public RobotControllerFactory {
+	class PID2ControllerFactory : public RobotControllerFactory {
 		public:
-			AdHoc2ControllerFactory() : RobotControllerFactory("adhoc2") {
+			PID2ControllerFactory() : RobotControllerFactory("PID2") {
 			}
 
 			RobotController::Ptr create_controller(World &world, Player::Ptr plr) const {
-				RobotController::Ptr p(new AdHoc2Controller(world, plr));
+				RobotController::Ptr p(new PID2Controller(world, plr));
 				return p;
 			}
 	};
 
-	AdHoc2ControllerFactory factory;
+	PID2ControllerFactory factory;
 
-	RobotControllerFactory &AdHoc2Controller::get_factory() const {
+	RobotControllerFactory &PID2Controller::get_factory() const {
 		return factory;
 	}
 }
