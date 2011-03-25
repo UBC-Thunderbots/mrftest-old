@@ -245,6 +245,8 @@ software/ai/hl/stp/tactic/move.cpp -text
 software/ai/hl/stp/tactic/move.h -text
 software/ai/hl/stp/tactic/move_stop.cpp -text
 software/ai/hl/stp/tactic/move_stop.h -text
+software/ai/hl/stp/tactic/move_wait_playtype.cpp -text
+software/ai/hl/stp/tactic/move_wait_playtype.h -text
 software/ai/hl/stp/tactic/movement_benchmark.cpp -text
 software/ai/hl/stp/tactic/movement_benchmark.h -text
 software/ai/hl/stp/tactic/offend.cpp -text
