@@ -17,8 +17,6 @@ using namespace AI::RC::W;
 
 namespace {
 	const int P = 5;
-	
-	DoubleParam FUZZY2_MAX_ACC("Fuzzy2: max acc", 3, 0.0, 20.0);
 
 	const double arr_min[P] = { 3.0, 0.0, 0.0, 3.0, 3.0 };
 	const double arr_max[P] = { 8.0, 2.0, 2.0, 8.0, 8.0 };
@@ -84,14 +82,6 @@ namespace {
 				if (linear_velocity.len() > desired_velocity && desired_velocity > 0) {
 					LOG_INFO("Warning: Fuzzy controller is being told to travel slow.");
 					linear_velocity = desired_velocity * (linear_velocity / linear_velocity.len());
-				}
-
-
-				// threshold the linear acceleration
-				Point accel = linear_velocity - prev_linear_velocity;
-				if (accel.len() > FUZZY2_MAX_ACC) {
-					accel *= FUZZY2_MAX_ACC / accel.len();
-					linear_velocity = prev_linear_velocity + accel;
 				}
 		
 				int wheel_speeds[4] = { 0, 0, 0, 0 };
