@@ -62,12 +62,12 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Po
 	double speed = 10.0;
 	// autokick needs to be called at every tick
 	player->autokick(speed);
-	/*
+	
 	if (player->chicker_ready()) {
-		player->kick(kick_power);
+		//player->kick(kick_power);
 		return true;
 	}
-	*/
+	
 	return false;
 }
 
