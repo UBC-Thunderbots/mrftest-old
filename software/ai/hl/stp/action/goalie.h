@@ -19,6 +19,11 @@ namespace AI {
 				 * then rush to defend it.
 				 */
 				void goalie_move(const World &world, Player::Ptr player, Point dest);
+				
+				/**
+				 * Penalty Goalie
+				 */
+				void penalty_goalie(const World &world, Player::Ptr player);
 			}
 		}
 	}
