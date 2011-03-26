@@ -293,7 +293,7 @@ namespace {
 			std::cout << "Build signature is 0x" << tohex(crc, 4) << '\n';
 		}
 
-		if (1 <= robot && robot <= 15) {
+		if (0 <= robot && robot <= 15) {
 			Config config;
 
 			std::cout << "Finding dongle... " << std::flush;
