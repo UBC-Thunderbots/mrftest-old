@@ -13,6 +13,7 @@ namespace AI {
 				typedef ::RefPtr<Waypoints> Ptr;
 				static const std::size_t NUM_WAYPOINTS = 50;
 				Point points[NUM_WAYPOINTS];
+				unsigned int addedFlags;
 			};
 
 			class RRTBase : public Navigator {
@@ -23,7 +24,7 @@ namespace AI {
 				~RRTBase();
 
 				Waypoints::Ptr currPlayerWaypoints;
-				unsigned int addedFlags;
+				//				unsigned int addedFlags;
 				Point random_point();
 				Point choose_target(Point goal);
 				Glib::NodeTree<Point> *nearest(Glib::NodeTree<Point> *tree, Point target);

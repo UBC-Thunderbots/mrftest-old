@@ -10,7 +10,6 @@ using namespace AI::Nav::RRT;
 using namespace AI::Nav::W;
 using namespace AI::Nav::Util;
 using namespace AI::Flags;
-using namespace Glib;
 
 namespace {
 	// fraction of the maximum speed that the robot will try to dribble at
@@ -65,11 +64,11 @@ namespace {
 	}
 
 	// finds the point in the tree that is nearest to the target point
-	NodeTree<Point> *RRTBase::nearest(NodeTree<Point> *rrtTree, Point target) {
-		NodeTree<Point> *nearest = rrtTree;
-		NodeTree<Point> *currNode;
+Glib::NodeTree<Point> *RRTBase::nearest(Glib::NodeTree<Point> *rrtTree, Point target) {
+		Glib::NodeTree<Point> *nearest = rrtTree;
+		Glib::NodeTree<Point> *currNode;
 
-		std::vector<NodeTree<Point> *> nodeQueue;
+		std::vector<Glib::NodeTree<Point> *> nodeQueue;
 		nodeQueue.push_back(rrtTree);
 
 		// iterate through all the nodes in the tree, finding which is closest to the target
@@ -93,9 +92,11 @@ namespace {
 	Point RRTBase::extend(Player::Ptr player, Point start, Point target) {
 		Point extendPoint = start + ((target - start).norm() * STEP_DISTANCE);
 
+		//	currPlayerWaypoints = Waypoints::Ptr::cast_dynamic;
+
 		// check if the point is invalid (collision, out of bounds, etc...)
 		// if it is then return EmptyState()
-		if (!valid_path(start, extendPoint, world, player, addedFlags)) {
+		if (!valid_path(start, extendPoint, world, player, Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->addedFlags)) {
 			return empty_state();
 		}
 
@@ -103,11 +104,13 @@ namespace {
 	}
 
 	std::vector<Point> RRTBase::rrt_plan(Player::Ptr player, Point initial, Point goal) {
-		Point nearestPoint, extended, target;
 
-		NodeTree<Point> *nearestNode;
-		NodeTree<Point> *lastAdded;
-		NodeTree<Point> rrtTree(initial);
+			currPlayerWaypoints = Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)]);
+
+		Point nearestPoint, extended, target;
+		Glib::NodeTree<Point> *nearestNode;
+		Glib::NodeTree<Point> *lastAdded;
+		Glib::NodeTree<Point> rrtTree(initial);
 
 		lastAdded = &rrtTree;
 
@@ -138,7 +141,7 @@ namespace {
 		}
 
 		// the final closest point to the goal is where we will trace backwards from
-		const NodeTree<Point> *iterator = lastAdded;
+		const Glib::NodeTree<Point> *iterator = lastAdded;
 
 		// stores the final path of points
 		std::deque<Point> pathPoints;
@@ -163,7 +166,7 @@ namespace {
 		std::vector<Point> finalPoints;
 
 		for (std::size_t i = 0; i < pathPoints.size(); ++i) {
-			if (!valid_path(pathPoints[subPathIndex], pathPoints[i], world, player, addedFlags)) {
+			if (!valid_path(pathPoints[subPathIndex], pathPoints[i], world, player,  Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->addedFlags)) {
 				subPathIndex = i - 1;
 				finalPoints.push_back(pathPoints[i - 1]);
 			} else if (i == pathPoints.size() - 1) {
