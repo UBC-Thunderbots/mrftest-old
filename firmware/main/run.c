@@ -569,7 +569,7 @@ void run(void) {
 					 * Record result. */
 					feedback_block.battery_voltage_raw = (ADRESH << 8) | ADRESL;
 					/* Check for cutoff level. */
-					if (feedback_block.battery_voltage_raw < (uint16_t) (BATTERY_VOLTAGE_MIN / (BATTERY_VOLTAGE_R_TOP + BATTERY_VOLTAGE_R_BOTTOM) * BATTERY_VOLTAGE_R_BOTTOM / 3.3 * 1023.0)) {
+					if (feedback_block.battery_voltage_raw < (uint16_t) (BATTERY_VOLTAGE_MIN / (BATTERY_VOLTAGE_R_TOP + BATTERY_VOLTAGE_R_BOTTOM) * BATTERY_VOLTAGE_R_BOTTOM / 3.3 * 1024.0)) {
 						parbus_write(0, 0);
 						parbus_write(1, 0);
 						parbus_write(2, 0);
