@@ -1,4 +1,5 @@
 #include "ai/backend/xbee/ball.h"
+#include "ai/backend/xbee/xbee_backend.h"
 
 using namespace AI::BE::XBee;
 
@@ -11,8 +12,8 @@ Ball::~Ball() {
 
 void Ball::update(const Point &pos, const timespec &ts) {
 	bool neg = backend.defending_end() == AI::BE::Backend::EAST;
-	xpred.add_datum(neg ? -pos.x : pos.x, ts);
-	ypred.add_datum(neg ? -pos.y : pos.y, ts);
+	xpred.add_datum(neg ? -pos.x : pos.x, timespec_sub(ts,double_to_timespec(LOOP_DELAY)));
+	ypred.add_datum(neg ? -pos.y : pos.y, timespec_sub(ts,double_to_timespec(LOOP_DELAY)));
 }
 
 void Ball::lock_time(const timespec &now) {

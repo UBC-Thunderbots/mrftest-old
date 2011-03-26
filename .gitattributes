@@ -142,6 +142,7 @@ software/ai/backend/xbee/refbox.h -text
 software/ai/backend/xbee/robot.cpp -text
 software/ai/backend/xbee/robot.h -text
 software/ai/backend/xbee/xbee_backend.cpp -text
+software/ai/backend/xbee/xbee_backend.h -text
 software/ai/ball_filter/ball_filter.h -text
 software/ai/ball_filter/chris_filter.cpp -text
 software/ai/ball_filter/world.h -text
