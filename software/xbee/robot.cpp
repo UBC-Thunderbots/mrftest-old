@@ -731,7 +731,7 @@ void XBeeRobot::on_feedback(const uint8_t *data, std::size_t length) {
 	ball_on_dribbler = !!(data[0] & 0x04);
 	capacitor_charged = !!(data[0] & 0x08);
 	uint16_t ui16 = static_cast<uint16_t>(data[1] | (data[2] << 8));
-	battery_voltage = (ui16 / 1024.0 + 0.5) * 3.3 / 330.0 * (1500.0 + 330.0);
+	battery_voltage = (ui16 + 0.5) / 1024.0 * 3.3 / 330.0 * (1500.0 + 330.0);
 	ui16 = static_cast<uint16_t>(data[3] | (data[4] << 8));
 	capacitor_voltage = ui16 / 4096.0 * 3.3 / 2200.0 * (220000.0 + 2200.0);
 	ui16 = static_cast<uint16_t>(data[5] | (data[6] << 8));
