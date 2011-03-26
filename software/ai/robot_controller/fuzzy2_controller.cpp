@@ -130,7 +130,7 @@ namespace {
 
 	class Fuzzy2ControllerFactory : public RobotControllerFactory {
 		public:
-			Fuzzy2ControllerFactory() : RobotControllerFactory("Simulator Fuzzy") {
+			Fuzzy2ControllerFactory() : RobotControllerFactory("Fuzzy Version 2") {
 			}
 
 			RobotController::Ptr create_controller(World &world, Player::Ptr player) const {

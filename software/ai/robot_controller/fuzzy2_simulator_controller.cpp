@@ -22,7 +22,7 @@ namespace {
 	const double arr_max[P] = { 8.0, 2.0, 2.0, 8.0, 8.0 };
 
 	// default parameters:
-	const double arr_def[P] = {7.72052, 0.261496, 0.385, 7.8411, 7.28714};
+	const double arr_def[P] = {7.72052, 0.825997, 1.96849, 3.13055, 6.36714};
 
 	const std::vector<double> param_min(arr_min, arr_min + P);
 	const std::vector<double> param_max(arr_max, arr_max + P);
@@ -120,7 +120,7 @@ namespace {
 
 	class Fuzzy2ControllerFactory : public RobotControllerFactory {
 		public:
-			Fuzzy2ControllerFactory() : RobotControllerFactory("Fuzzy Version 2") {
+			Fuzzy2ControllerFactory() : RobotControllerFactory("Simulator Fuzzy") {
 			}
 
 			RobotController::Ptr create_controller(World &world, Player::Ptr player) const {
