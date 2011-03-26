@@ -27,15 +27,15 @@ namespace {
 	
 	/**
 	 * Condition:
-	 * - Playtype Free Kick Enemy
+	 * - Playtype Kickoff Enemy
 	 *
 	 * Objective:
-	 * - Handle Enemy Free Kick
+	 * - Handle Enemy Kickoff
 	 */
-	class FreeKickEnemy : public Play {
+	class KickoffEnemy : public Play {
 		public:
-			FreeKickEnemy(const World &world);
-			~FreeKickEnemy();
+			KickoffEnemy(const World &world);
+			~KickoffEnemy();
 
 		private:
 			bool invariant() const;
@@ -46,35 +46,35 @@ namespace {
 			const PlayFactory &factory() const;
 	};
 
-	PlayFactoryImpl<FreeKickEnemy> factory_instance("Kickoff Enemy");
+	PlayFactoryImpl<KickoffEnemy> factory_instance("Kickoff Enemy");
 
-	const PlayFactory &FreeKickEnemy::factory() const {
+	const PlayFactory &KickoffEnemy::factory() const {
 		return factory_instance;
 	}
 
-	FreeKickEnemy::FreeKickEnemy(const World &world) : Play(world) {
+	KickoffEnemy::KickoffEnemy(const World &world) : Play(world) {
 	}
 
-	FreeKickEnemy::~FreeKickEnemy() {
+	KickoffEnemy::~KickoffEnemy() {
 	}
 
-	bool FreeKickEnemy::invariant() const {
+	bool KickoffEnemy::invariant() const {
 		return (Predicates::playtype(world, PlayType::PREPARE_KICKOFF_ENEMY) || Predicates::playtype(world, PlayType::EXECUTE_KICKOFF_ENEMY)) && Predicates::our_team_size_at_least(world, 1);
 	}
 
-	bool FreeKickEnemy::applicable() const {
+	bool KickoffEnemy::applicable() const {
 		return true;
 	}
 
-	bool FreeKickEnemy::done() const {
+	bool KickoffEnemy::done() const {
 		return false;
 	}
 
-	bool FreeKickEnemy::fail() const {
+	bool KickoffEnemy::fail() const {
 		return false;
 	}
 
-	void FreeKickEnemy::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
+	void KickoffEnemy::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
 		// std::Player::Ptr goalie = world.Enemy_team().get(0);
 		// GOALIE
 		goalie_role.push_back(wait_playtype(world, defend_duo_goalie(world), PlayType::PLAY));
@@ -92,34 +92,17 @@ namespace {
 		// a ray that shoots from the center to friendly goal.
 		const Point shoot = Point(-1, 0) * AVOIDANCE_DIST;
 
-		// do matching
-		std::vector<Point> positions;
-
-		switch (world.friendly_team().size()-2) {
-			case 3:
-				positions.push_back(shoot);
-
-			case 2:
-				positions.push_back(shoot.rotate(delta_angle));
-
-			case 1:
-				positions.push_back(shoot.rotate(-delta_angle));
-
-			default:
-				break;
-		}
-
 		// ROLE 2
 		// move to offender position 1
-		roles[1].push_back(move(world, positions[0]));
+		roles[1].push_back(move(world, shoot));
 
 		// ROLE 3
 		// move to offender position 2
-		roles[2].push_back(move(world, positions[1]));
+		roles[2].push_back(move(world, shoot.rotate(delta_angle)));
 
 		// ROLE 4
 		// move to offender position 3
-		roles[3].push_back(move(world, positions[2]));
+		roles[3].push_back(move(world, shoot.rotate(-delta_angle)));
 	}
 }
 
