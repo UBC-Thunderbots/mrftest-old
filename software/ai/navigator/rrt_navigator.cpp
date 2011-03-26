@@ -49,8 +49,8 @@ namespace {
 			RRTNavigator(World &world);
 			~RRTNavigator();
 
-			Waypoints::Ptr currPlayerWaypoints;
-			unsigned int addedFlags;
+			Waypoints::Ptr curr_player_waypoints;
+			unsigned int added_flags;
 
 			double distance(Point nearest, Point goal);
 			Point random_point();
@@ -101,9 +101,9 @@ namespace {
 				player->object_store()[typeid(*this)] = newWaypoints;
 			}
 
-			currPlayerWaypoints = Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)]);
+			curr_player_waypoints = Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)]);
 
-			addedFlags = 0;
+			added_flags = 0;
 			Point dest;
 			double destOrientation;
 			if (player->type() == MOVE_CATCH) {
@@ -217,7 +217,7 @@ namespace {
 		int i = std::rand() % NUM_WAYPOINTS;
 
 		if (p > 0 && p <= WAYPOINT_PROB) {
-			return currPlayerWaypoints->points[i];
+			return curr_player_waypoints->points[i];
 		} else if (p > WAYPOINT_PROB && p < (WAYPOINT_PROB + RAND_PROB)) {
 			return random_point();
 		} else {
@@ -256,7 +256,7 @@ namespace {
 
 		// check if the point is invalid (collision, out of bounds, etc...)
 		// if it is then return EmptyState()
-		if (!valid_path(start, extendPoint, world, player, addedFlags)) {
+		if (!valid_path(start, extendPoint, world, player, added_flags)) {
 			return empty_state();
 		}
 
@@ -312,7 +312,7 @@ namespace {
 			// if we found a plan then add the path's points to the waypoint cache
 			// with random replacement
 			if (foundPath) {
-				currPlayerWaypoints->points[std::rand() % NUM_WAYPOINTS] = iterator->data();
+				curr_player_waypoints->points[std::rand() % NUM_WAYPOINTS] = iterator->data();
 			}
 		}
 
@@ -324,7 +324,7 @@ namespace {
 		std::vector<Point> finalPoints;
 
 		for (std::size_t i = 0; i < pathPoints.size(); ++i) {
-			if (!valid_path(pathPoints[subPathIndex], pathPoints[i], world, player, addedFlags)) {
+			if (!valid_path(pathPoints[subPathIndex], pathPoints[i], world, player, added_flags)) {
 				subPathIndex = i - 1;
 				finalPoints.push_back(pathPoints[i - 1]);
 			} else if (i == pathPoints.size() - 1) {
