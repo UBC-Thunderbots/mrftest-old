@@ -36,7 +36,7 @@ static volatile BOOL transaction_running;
 
 static void submit_sie_packet(void) {
 	/* If there are no free BDs, do nothing. */
-	if (!USB_BD_OUT_HAS_FREE(EP_INTERRUPT)) {
+	if (!USB_BD_OUT_HAS_FREE(EP_MESSAGE)) {
 		return;
 	}
 
@@ -48,7 +48,7 @@ static void submit_sie_packet(void) {
 
 	/* Submit a packet if we have one. */
 	if (sie_packet) {
-		USB_BD_OUT_SUBMIT(EP_INTERRUPT, sie_packet->buffer, sizeof(sie_packet->buffer));
+		USB_BD_OUT_SUBMIT(EP_MESSAGE, sie_packet->buffer, sizeof(sie_packet->buffer));
 		transaction_running = true;
 	}
 }
@@ -59,7 +59,7 @@ static void on_transaction(void) {
 	/* Remember that no transaction is running right now. */
 	transaction_running = false;
 
-	if (USB_BD_OUT_RECEIVED(EP_INTERRUPT)) {
+	if (USB_BD_OUT_RECEIVED(EP_MESSAGE)) {
 		/* Extract the header. */
 		robot = sie_packet->buffer[0] >> 4;
 		pipe = sie_packet->buffer[0] & 0x0F;
@@ -70,7 +70,7 @@ static void on_transaction(void) {
 		} else {
 			/* Send the current packet to the ready queue. */
 			sie_packet->cookie = 0xFF;
-			sie_packet->length = USB_BD_OUT_RECEIVED(EP_INTERRUPT);
+			sie_packet->length = USB_BD_OUT_RECEIVED(EP_MESSAGE);
 			QUEUE_PUSH(ready_packets, sie_packet);
 			sie_packet = 0;
 		}
@@ -96,16 +96,16 @@ void message_out_init(void) {
 	QUEUE_INIT(ready_packets);
 
 	/* Start the endpoint. */
-	usb_ep_callbacks[EP_INTERRUPT].out.transaction = &on_transaction;
-	USB_BD_OUT_INIT(EP_INTERRUPT);
-	UEPBITS(EP_INTERRUPT).EPHSHK = 1;
-	UEPBITS(EP_INTERRUPT).EPOUTEN = 1;
+	usb_ep_callbacks[EP_MESSAGE].out.transaction = &on_transaction;
+	USB_BD_OUT_INIT(EP_MESSAGE);
+	UEPBITS(EP_MESSAGE).EPHSHK = 1;
+	UEPBITS(EP_MESSAGE).EPOUTEN = 1;
 	transaction_running = false;
 	submit_sie_packet();
 }
 
 void message_out_deinit(void) {
-	UEPBITS(EP_INTERRUPT).EPOUTEN = 0;
+	UEPBITS(EP_MESSAGE).EPOUTEN = 0;
 }
 
 __data message_out_packet_t *message_out_get(void) {

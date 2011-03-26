@@ -135,8 +135,8 @@ static void on_exit_config1(void) {
 __code static const usb_confinfo_t config1 = {
 	&CONFIGURATION_DESCRIPTOR,
 	2,
-	(1 << EP_DONGLE_STATUS) | (1 << EP_LOCAL_ERROR_QUEUE) | (1 << EP_STATISTICS) | (1 << EP_STATE_TRANSPORT) | (1 << EP_INTERRUPT) | (1 << EP_DEBUG),
-	(1 << EP_STATE_TRANSPORT) | (1 << EP_INTERRUPT),
+	(1 << EP_DONGLE_STATUS) | (1 << EP_LOCAL_ERROR_QUEUE) | (1 << EP_STATISTICS) | (1 << EP_DEBUG) | (1 << EP_STATE_TRANSPORT) | (1 << EP_MESSAGE),
+	(1 << EP_STATE_TRANSPORT) | (1 << EP_MESSAGE),
 	&on_enter_config1,
 	&on_exit_config1,
 };

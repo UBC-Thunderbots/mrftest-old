@@ -689,7 +689,7 @@ void XBeeRobot::kick(unsigned int pulse_width1, unsigned int pulse_width2, int o
 	buffer[3] = static_cast<uint8_t>((ignore_slice2 ? 0x80 : 0x00) | (pulse_width2 / 32));
 	buffer[4] = static_cast<uint8_t>(slice_width / 32);
 
-	LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(dongle.device, XBeeDongle::EP_INTERRUPT, buffer, sizeof(buffer), 0, 5);
+	LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(dongle.device, XBeeDongle::EP_MESSAGE, buffer, sizeof(buffer), 0, 5);
 	transfer->signal_done.connect(&discard_result);
 	transfer->submit();
 }

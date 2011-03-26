@@ -30,7 +30,7 @@ __code const uint8_t CONFIGURATION_DESCRIPTOR_TAIL[] = {
 	/* bDescriptorType */ USB_DESCRIPTOR_INTERFACE,
 	/* bInterfaceNumber */ 0,
 	/* bAlternateSetting */ 0,
-	/* bNumEndpoints */ 3,
+	/* bNumEndpoints */ 4,
 	/* bInterfaceClass */ 0xFF,
 	/* bInterfaceSubclass */ 0,
 	/* bInterfaceProtocol */ 0,
@@ -59,6 +59,14 @@ __code const uint8_t CONFIGURATION_DESCRIPTOR_TAIL[] = {
 		/* bmAttributes */ 0x02,
 		/* wMaxPacketSize */ 8, 0,
 		/* bInterval */ 100,
+
+		/* Endpoint Descriptor */
+		/* bLength */ sizeof(usb_endpoint_descriptor_t),
+		/* bDescriptorType */ USB_DESCRIPTOR_ENDPOINT,
+		/* bEndpointAddress */ 0x84,
+		/* bmAttributes */ 0x03,
+		/* wMaxPacketSize */ 64, 0,
+		/* bInterval */ 25,
 	
 	/* Interface Descriptor */
 	/* bLength */ sizeof(usb_interface_descriptor_t),
@@ -70,22 +78,6 @@ __code const uint8_t CONFIGURATION_DESCRIPTOR_TAIL[] = {
 	/* bInterfaceSubclass */ 0,
 	/* bInterfaceProtocol */ 0,
 	/* iInterface */ 4,
-
-		/* Endpoint Descriptor */
-		/* bLength */ sizeof(usb_endpoint_descriptor_t),
-		/* bDescriptorType */ USB_DESCRIPTOR_ENDPOINT,
-		/* bEndpointAddress */ 0x04,
-		/* bmAttributes */ 0x03,
-		/* wMaxPacketSize */ 64, 0,
-		/* bInterval */ 1,
-
-		/* Endpoint Descriptor */
-		/* bLength */ sizeof(usb_endpoint_descriptor_t),
-		/* bDescriptorType */ USB_DESCRIPTOR_ENDPOINT,
-		/* bEndpointAddress */ 0x84,
-		/* bmAttributes */ 0x03,
-		/* wMaxPacketSize */ 64, 0,
-		/* bInterval */ 1,
 
 		/* Endpoint Descriptor */
 		/* bLength */ sizeof(usb_endpoint_descriptor_t),
@@ -103,16 +95,13 @@ __code const uint8_t CONFIGURATION_DESCRIPTOR_TAIL[] = {
 		/* wMaxPacketSize */ 64, 0,
 		/* bInterval */ 1,
 
-	/* Interface Descriptor */
-	/* bLength */ sizeof(usb_interface_descriptor_t),
-	/* bDescriptorType */ USB_DESCRIPTOR_INTERFACE,
-	/* bInterfaceNumber */ 2,
-	/* bAlternateSetting */ 0,
-	/* bNumEndpoints */ 1,
-	/* bInterfaceClass */ 0xFF,
-	/* bInterfaceSubclass */ 0,
-	/* bInterfaceProtocol */ 0,
-	/* iInterface */ 5,
+		/* Endpoint Descriptor */
+		/* bLength */ sizeof(usb_endpoint_descriptor_t),
+		/* bDescriptorType */ USB_DESCRIPTOR_ENDPOINT,
+		/* bEndpointAddress */ 0x06,
+		/* bmAttributes */ 0x03,
+		/* wMaxPacketSize */ 64, 0,
+		/* bInterval */ 1,
 
 		/* Endpoint Descriptor */
 		/* bLength */ sizeof(usb_endpoint_descriptor_t),
@@ -127,7 +116,7 @@ __code const usb_configuration_descriptor_t CONFIGURATION_DESCRIPTOR = {
 	/* .length = */ sizeof(usb_configuration_descriptor_t) - sizeof(__code const void *),
 	/* .type = */ USB_DESCRIPTOR_CONFIGURATION,
 	/* .total_length = */ (uint16_t) sizeof(usb_configuration_descriptor_t) - sizeof(__code const void *) + sizeof(CONFIGURATION_DESCRIPTOR_TAIL),
-	/* .num_interfaces = */ 3,
+	/* .num_interfaces = */ 2,
 	/* .id = */ 1,
 	/* .description_index = */ 0,
 	/* .attributes = */ { 0x80 },
@@ -159,10 +148,6 @@ static __code const uint16_t STRING_ENUS_INTERFACE1[] = {
 	'M', 'a', 'i', 'n', ' ', 'T', 'r', 'a', 'n', 's', 'p', 'o', 'r', 't', 0
 };
 
-static __code const uint16_t STRING_ENUS_INTERFACE2[] = {
-	'D', 'e', 'b', 'u', 'g', 0
-};
-
 static __code const usb_string_table_t STRING_TABLE_ENUS = {
 	0x1009, /* English (Canadian) */
 	{
@@ -170,13 +155,12 @@ static __code const usb_string_table_t STRING_TABLE_ENUS = {
 		STRING_ENUS_PRODUCT,
 		STRING_ENUS_INTERFACE0,
 		STRING_ENUS_INTERFACE1,
-		STRING_ENUS_INTERFACE2,
 	},
 };
 
 __code const usb_string_metatable_t STRING_METATABLE = {
 	1, /* # of tables */
-	5, /* # of strings in each table */
+	4, /* # of strings in each table */
 	{ &STRING_TABLE_ENUS, },
 };
 

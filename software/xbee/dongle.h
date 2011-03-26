@@ -298,9 +298,9 @@ class XBeeDongle : public NonCopyable {
 			EP_DONGLE_STATUS = 1,
 			EP_LOCAL_ERROR_QUEUE = 2,
 			EP_STATISTICS = 3,
-			EP_STATE_TRANSPORT = 4,
-			EP_INTERRUPT = 5,
-			EP_DEBUG = 6,
+			EP_DEBUG = 4,
+			EP_STATE_TRANSPORT = 5,
+			EP_MESSAGE = 6,
 		};
 
 		/**

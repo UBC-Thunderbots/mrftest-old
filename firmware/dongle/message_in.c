@@ -19,15 +19,15 @@ static void on_transaction(void) {
 }
 
 void message_in_init(void) {
-	usb_ep_callbacks[EP_INTERRUPT].in.transaction = &on_transaction;
-	USB_BD_IN_INIT(EP_INTERRUPT);
+	usb_ep_callbacks[EP_MESSAGE].in.transaction = &on_transaction;
+	USB_BD_IN_INIT(EP_MESSAGE);
 	busy = false;
-	UEPBITS(EP_INTERRUPT).EPHSHK = 1;
-	UEPBITS(EP_INTERRUPT).EPINEN = 1;
+	UEPBITS(EP_MESSAGE).EPHSHK = 1;
+	UEPBITS(EP_MESSAGE).EPINEN = 1;
 }
 
 void message_in_deinit(void) {
-	UEPBITS(EP_INTERRUPT).EPINEN = 0;
+	UEPBITS(EP_MESSAGE).EPINEN = 0;
 }
 
 void message_in_send(__data const uint8_t *message, uint8_t len) {
@@ -40,7 +40,7 @@ void message_in_send(__data const uint8_t *message, uint8_t len) {
 
 	/* Begin the transaction. */
 	busy = true;
-	USB_BD_IN_SUBMIT(EP_INTERRUPT, message, len);
+	USB_BD_IN_SUBMIT(EP_MESSAGE, message, len);
 
 	/* Wait until transmission is complete. */
 	while (busy) {

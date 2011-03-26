@@ -384,7 +384,6 @@ XBeeDongle::XBeeDongle(unsigned int out_channel, unsigned int in_channel) : esto
 	device.set_configuration(1)->result();
 	device.claim_interface(0)->result();
 	device.claim_interface(1)->result();
-	device.claim_interface(2)->result();
 
 	LibUSBInterruptInTransfer::Ptr dongle_status_transfer = LibUSBInterruptInTransfer::create(device, EP_DONGLE_STATUS | 0x80, 4, true, 0, STALL_LIMIT);
 	dongle_status_transfer->signal_done.connect(sigc::bind(sigc::mem_fun(this, &XBeeDongle::on_dongle_status), dongle_status_transfer));
@@ -413,7 +412,7 @@ AsyncOperation<void>::Ptr XBeeDongle::enable() {
 
 #warning function is badly named
 AsyncOperation<void>::Ptr XBeeDongle::send_bulk(const void *data, std::size_t length) {
-	LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_INTERRUPT, data, length, 0, STALL_LIMIT);
+	LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_MESSAGE, data, length, 0, STALL_LIMIT);
 	transfer->submit();
 	return transfer;
 }
@@ -425,7 +424,7 @@ void XBeeDongle::on_enable_done(AsyncOperation<void>::Ptr op) {
 		transfer->repeat(true);
 		transfer->submit();
 
-		transfer = LibUSBInterruptInTransfer::create(device, EP_INTERRUPT | 0x80, 64, false, 0, STALL_LIMIT);
+		transfer = LibUSBInterruptInTransfer::create(device, EP_MESSAGE | 0x80, 64, false, 0, STALL_LIMIT);
 		transfer->signal_done.connect(sigc::bind(sigc::mem_fun(this, &XBeeDongle::on_interrupt_in), transfer));
 		transfer->repeat(true);
 		transfer->submit();
