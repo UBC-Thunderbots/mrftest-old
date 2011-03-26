@@ -49,6 +49,9 @@ namespace {
 			const World &world;
 			unsigned int index;
 			Robot::Ptr evaluate() const {
+			
+				// TODO: try to use Evaluation::eval_enemy
+				
 				if (world.enemy_team().size() <= index) {
 					return Robot::Ptr();
 				}

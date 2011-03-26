@@ -78,6 +78,9 @@ void AI::HL::STP::Action::penalty_goalie(const World &world, Player::Ptr player)
 	}
 
 	// just orient towards the "front"
-	player->move(target, 0, 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+	// player->move(target, 0, 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+	
+	// should probably use goalie_move with repeling
+	goalie_move(world, player, target);
 }
 
