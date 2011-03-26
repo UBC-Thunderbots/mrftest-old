@@ -120,6 +120,7 @@ void run(void) {
 	uint16_t crc;
 	BOOL fpga_ok;
 	uint8_t autokick_lockout_time = 0;
+	uint8_t battery_fail_count = 0;
 
 	/* Clear state. */
 	memset(sequence, 0, sizeof(sequence));
@@ -570,26 +571,30 @@ void run(void) {
 					feedback_block.battery_voltage_raw = (ADRESH << 8) | ADRESL;
 					/* Check for cutoff level. */
 					if (feedback_block.battery_voltage_raw < (uint16_t) (BATTERY_VOLTAGE_MIN / (BATTERY_VOLTAGE_R_TOP + BATTERY_VOLTAGE_R_BOTTOM) * BATTERY_VOLTAGE_R_BOTTOM / 3.3 * 1024.0)) {
-						parbus_write(0, 0);
-						parbus_write(1, 0);
-						parbus_write(2, 0);
-						parbus_write(3, 0);
-						parbus_write(4, 0);
-						parbus_write(5, 0);
-						parbus_write(6, 0);
-						delay1mtcy(1);
-						LAT_MOTOR_ENABLE = 0;
-						LAT_DRIB_BEAM_OUT = 0;
-						LAT_XBEE0_SLEEP = 1;
-						LAT_XBEE1_SLEEP = 1;
-						LAT_LED1 = 0;
-						LAT_LED2 = 0;
-						LAT_LED3 = 0;
-						LAT_LED4 = 0;
-						INTCONbits.GIEH = 0;
-						for (;;) {
-							Sleep();
+						if (!++battery_fail_count) {
+							parbus_write(0, 0);
+							parbus_write(1, 0);
+							parbus_write(2, 0);
+							parbus_write(3, 0);
+							parbus_write(4, 0);
+							parbus_write(5, 0);
+							parbus_write(6, 0);
+							delay1mtcy(1);
+							LAT_MOTOR_ENABLE = 0;
+							LAT_DRIB_BEAM_OUT = 0;
+							LAT_XBEE0_SLEEP = 1;
+							LAT_XBEE1_SLEEP = 1;
+							LAT_LED1 = 0;
+							LAT_LED2 = 0;
+							LAT_LED3 = 0;
+							LAT_LED4 = 0;
+							INTCONbits.GIEH = 0;
+							for (;;) {
+								Sleep();
+							}
 						}
+					} else {
+						battery_fail_count = 0;
 					}
 					/* Send data to FPGA so it can scale boost converter timings. */
 					parbus_write(8, feedback_block.battery_voltage_raw);
