@@ -4,6 +4,7 @@
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/tactic/pass.h"
+#include "ai/hl/stp/tactic/chase.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
 #include <glibmm.h>
@@ -88,6 +89,7 @@ namespace {
 		
 		// ROLE 1
 		// passer
+		roles[0].push_back(chase(world));
 		roles[0].push_back(passer_ready(world, pp.first, pp.second));
 		roles[0].push_back(passer_shoot(world, pp.second));
 		roles[0].push_back(offend(world));
