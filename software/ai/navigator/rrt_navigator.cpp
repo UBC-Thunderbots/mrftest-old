@@ -58,7 +58,7 @@ namespace {
 			NodeTree<Point> *nearest(NodeTree<Point> *tree, Point target);
 			Point empty_state();
 			Point extend(Player::Ptr player, Point start, Point target);
-			bool is_empty_state(Point toCheck);
+			bool is_empty_state(Point to_check);
 			std::vector<Point> rrt_plan(Player::Ptr player, Point initial, Point goal);
 	};
 
@@ -76,9 +76,9 @@ namespace {
 	}
 
 	void RRTNavigator::tick() {
-		timespec workingTime;
+		timespec working_time;
 		Player::Path path;
-		std::vector<Point> pathPoints;
+		std::vector<Point> path_points;
 
 		for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 			path.clear();
@@ -97,49 +97,49 @@ namespace {
 
 			// create new waypoints for the player if they have not been created yet
 			if (!player->object_store()[typeid(*this)].is()) {
-				Waypoints::Ptr newWaypoints(new Waypoints);
-				player->object_store()[typeid(*this)] = newWaypoints;
+				Waypoints::Ptr new_waypoints(new Waypoints);
+				player->object_store()[typeid(*this)] = new_waypoints;
 			}
 
 			curr_player_waypoints = Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)]);
 
 			added_flags = 0;
 			Point dest;
-			double destOrientation;
+			double dest_orientation;
 			if (player->type() == MOVE_CATCH) {
 
 				// try to pivot around the ball to catch it
-				Point currentPosition = player->position();
-				double toBallOrientation = (world.ball().position() - currentPosition).orientation();
-				double orientationTemp = degrees2radians(orientation_offset);
+				Point current_position = player->position();
+				double to_ball_orientation = (world.ball().position() - current_position).orientation();
+				double orientation_temp = degrees2radians(orientation_offset);
 
 				double angle = offset_angle;
-				if (angle_mod(toBallOrientation - player->destination().second) > 0) {
+				if (angle_mod(to_ball_orientation - player->destination().second) > 0) {
 					angle = -angle;
-					orientationTemp = -orientationTemp;
+					orientation_temp = -orientation_temp;
 				}
 
 				angle = degrees2radians(angle);
-				if (fabs(angle_diff(toBallOrientation, player->destination().second)) < fabs(angle)) {
-					if (fabs(angle_diff(toBallOrientation, player->destination().second)) < fabs(angle)/4) {
-						timespec timeToBall;
-						timespec_add(double_to_timespec(0.0), world.monotonic_time(), timeToBall);
-						path.push_back(std::make_pair(std::make_pair(world.ball().position(), player->destination().second), timeToBall));
+				if (fabs(angle_diff(to_ball_orientation, player->destination().second)) < fabs(angle)) {
+					if (fabs(angle_diff(to_ball_orientation, player->destination().second)) < fabs(angle)/4) {
+						timespec time_to_ball;
+						timespec_add(double_to_timespec(0.0), world.monotonic_time(), time_to_ball);
+						path.push_back(std::make_pair(std::make_pair(world.ball().position(), player->destination().second), time_to_ball));
 						player->path(path);
 						continue;
 					}
-					orientationTemp = 0;
+					orientation_temp = 0;
 					if (angle < 0) {
-						angle = -fabs(angle_diff(toBallOrientation, player->destination().second));
+						angle = -fabs(angle_diff(to_ball_orientation, player->destination().second));
 					} else {
-						angle = fabs(angle_diff(toBallOrientation, player->destination().second));
+						angle = fabs(angle_diff(to_ball_orientation, player->destination().second));
 					}
 				}
-				Point diff = (world.ball().position() - currentPosition).rotate(angle);
+				Point diff = (world.ball().position() - current_position).rotate(angle);
 
 				dest = world.ball().position() - offset_distance * (diff / diff.len());
-				if (dest.len() > 0.5) orientationTemp = 0;
-				destOrientation = (world.ball().position() - currentPosition).orientation() + orientationTemp;
+				if (dest.len() > 0.5) orientation_temp = 0;
+				dest_orientation = (world.ball().position() - current_position).orientation() + orientation_temp;
 
 			} else if (valid_path(player->position(), player->destination().first, world, player)) {
 				// if we're not trying to catch the ball and there are no obstacles in our way then go
@@ -152,39 +152,39 @@ namespace {
 			}
 
 			// calculate a path
-			pathPoints.clear();
-			pathPoints = rrt_plan(player, player->position(), dest);
+			path_points.clear();
+			path_points = rrt_plan(player, player->position(), dest);
 
 			double dist = 0.0;
-			workingTime = world.monotonic_time();
+			working_time = world.monotonic_time();
 
-			destOrientation = player->destination().second;
-			for (std::size_t j = 0; j < pathPoints.size(); ++j) {
+			dest_orientation = player->destination().second;
+			for (std::size_t j = 0; j < path_points.size(); ++j) {
 				// the last point will just use whatever the last orientation was
-				if (j + 1 != pathPoints.size()) {
-					destOrientation = (pathPoints[j + 1] - pathPoints[j]).orientation();
+				if (j + 1 != path_points.size()) {
+					dest_orientation = (path_points[j + 1] - path_points[j]).orientation();
 				}
 
 				// get distance between last two points
 				if (j == 0) {
-					dist = (player->position() - pathPoints[0]).len();
+					dist = (player->position() - path_points[0]).len();
 				} else {
-					dist = (pathPoints[j] - pathPoints[j - 1]).len();
+					dist = (path_points[j] - path_points[j - 1]).len();
 				}
 
 				// dribble at a different speed
 				if (player->type() == MOVE_DRIBBLE) {
-					timespec timeToAdd = double_to_timespec(dist / player->MAX_LINEAR_VELOCITY / DRIBBLE_SPEED);
-					timespec_add(workingTime, timeToAdd, workingTime);
+					timespec time_to_add = double_to_timespec(dist / player->MAX_LINEAR_VELOCITY / DRIBBLE_SPEED);
+					timespec_add(working_time, time_to_add, working_time);
 				}
 
-				path.push_back(std::make_pair(std::make_pair(pathPoints[j], destOrientation), workingTime));
+				path.push_back(std::make_pair(std::make_pair(path_points[j], dest_orientation), working_time));
 			}
 
 			// just use the current player position as the destination if we are within the
 			// threshold already
-			if (pathPoints.size() == 0) {
-				path.push_back(std::make_pair(std::make_pair(player->position(), destOrientation), workingTime));
+			if (path_points.size() == 0) {
+				path.push_back(std::make_pair(std::make_pair(player->position(), dest_orientation), working_time));
 			}
 
 			player->path(path);
@@ -199,16 +199,16 @@ namespace {
 		return Point(-10000, -10000);
 	}
 
-	bool RRTNavigator::is_empty_state(Point toCheck) {
-		return toCheck.x == empty_state().x && toCheck.y && empty_state().y;
+	bool RRTNavigator::is_empty_state(Point to_check) {
+		return to_check.x == empty_state().x && to_check.y && empty_state().y;
 	}
 
 	// generate a random point from the field
 	Point RRTNavigator::random_point() {
-		double randomX = ((std::rand() % static_cast<int>(world.field().length() * 100)) - (world.field().length() * 50)) / 100;
-		double randomY = ((std::rand() % static_cast<int>(world.field().width() * 100)) - (world.field().width() * 50)) / 100;
+		double random_x = ((std::rand() % static_cast<int>(world.field().length() * 100)) - (world.field().length() * 50)) / 100;
+		double random_y = ((std::rand() % static_cast<int>(world.field().width() * 100)) - (world.field().width() * 50)) / 100;
 
-		return Point(randomX, randomY);
+		return Point(random_x, random_y);
 	}
 
 	// choose a target to extend toward, the goal, a waypoint or a random point
@@ -226,24 +226,24 @@ namespace {
 	}
 
 	// finds the point in the tree that is nearest to the target point
-	NodeTree<Point> *RRTNavigator::nearest(NodeTree<Point> *rrtTree, Point target) {
-		NodeTree<Point> *nearest = rrtTree;
-		NodeTree<Point> *currNode;
+	NodeTree<Point> *RRTNavigator::nearest(NodeTree<Point> *rrt_tree, Point target) {
+		NodeTree<Point> *nearest = rrt_tree;
+		NodeTree<Point> *curr_node;
 
-		std::vector<NodeTree<Point> *> nodeQueue;
-		nodeQueue.push_back(rrtTree);
+		std::vector<NodeTree<Point> *> node_queue;
+		node_queue.push_back(rrt_tree);
 
 		// iterate through all the nodes in the tree, finding which is closest to the target
-		while (nodeQueue.size() > 0) {
-			currNode = nodeQueue.back();
-			nodeQueue.pop_back();
+		while (node_queue.size() > 0) {
+			curr_node = node_queue.back();
+			node_queue.pop_back();
 
-			if (distance(currNode->data(), target) < distance(nearest->data(), target)) {
-				nearest = currNode;
+			if (distance(curr_node->data(), target) < distance(nearest->data(), target)) {
+				nearest = curr_node;
 			}
 
-			for (unsigned int i = 0; i < currNode->child_count(); ++i) {
-				nodeQueue.push_back(currNode->nth_child(i));
+			for (unsigned int i = 0; i < curr_node->child_count(); ++i) {
+				node_queue.push_back(curr_node->nth_child(i));
 			}
 		}
 
@@ -252,87 +252,87 @@ namespace {
 
 	// extend by STEP_DISTANCE towards the target from the start
 	Point RRTNavigator::extend(Player::Ptr player, Point start, Point target) {
-		Point extendPoint = start + ((target - start).norm() * STEP_DISTANCE);
+		Point extend_point = start + ((target - start).norm() * STEP_DISTANCE);
 
 		// check if the point is invalid (collision, out of bounds, etc...)
 		// if it is then return EmptyState()
-		if (!valid_path(start, extendPoint, world, player, added_flags)) {
+		if (!valid_path(start, extend_point, world, player, added_flags)) {
 			return empty_state();
 		}
 
-		return extendPoint;
+		return extend_point;
 	}
 
 	std::vector<Point> RRTNavigator::rrt_plan(Player::Ptr player, Point initial, Point goal) {
-		Point nearestPoint, extended, target;
+		Point nearest_point, extended, target;
 
-		NodeTree<Point> *nearestNode;
-		NodeTree<Point> *lastAdded;
-		NodeTree<Point> rrtTree(initial);
+		NodeTree<Point> *nearest_node;
+		NodeTree<Point> *last_added;
+		NodeTree<Point> rrt_tree(initial);
 
-		lastAdded = &rrtTree;
+		last_added = &rrt_tree;
 
-		int iterationCounter = 0;
+		int iteration_counter = 0;
 
 		// should loop until distance between lastAdded and goal is less than threshold
-		while (distance(lastAdded->data(), goal) > THRESHOLD && iterationCounter < ITERATION_LIMIT) {
+		while (distance(last_added->data(), goal) > THRESHOLD && iteration_counter < ITERATION_LIMIT) {
 			target = choose_target(goal);
-			nearestNode = nearest(&rrtTree, target);
-			nearestPoint = nearestNode->data();
-			extended = extend(player, nearestPoint, target);
+			nearest_node = nearest(&rrt_tree, target);
+			nearest_point = nearest_node->data();
+			extended = extend(player, nearest_point, target);
 
 			if (!is_empty_state(extended)) {
-				lastAdded = nearestNode->append_data(extended);
+				last_added = nearest_node->append_data(extended);
 			}
 
-			iterationCounter++;
+			iteration_counter++;
 		}
 
-		bool foundPath = (iterationCounter != ITERATION_LIMIT);
+		bool found_path = (iteration_counter != ITERATION_LIMIT);
 
-		if (!foundPath) {
+		if (!found_path) {
 			// LOG_WARN("Reached limit, path not found");
 
 			// set the last added as the node closest to the goal if we reach the iteration limit
 			// because the last added could be anything and we use it for tracing back the path
-			lastAdded = nearest(&rrtTree, goal);
+			last_added = nearest(&rrt_tree, goal);
 		}
 
 		// the final closest point to the goal is where we will trace backwards from
-		const NodeTree<Point> *iterator = lastAdded;
+		const NodeTree<Point> *iterator = last_added;
 
 		// stores the final path of points
-		std::deque<Point> pathPoints;
-		pathPoints.push_front(lastAdded->data());
+		std::deque<Point> path_points;
+		path_points.push_front(last_added->data());
 
-		while (iterator != &rrtTree) {
+		while (iterator != &rrt_tree) {
 			iterator = iterator->parent();
-			pathPoints.push_front(iterator->data());
+			path_points.push_front(iterator->data());
 
 			// if we found a plan then add the path's points to the waypoint cache
 			// with random replacement
-			if (foundPath) {
+			if (found_path) {
 				curr_player_waypoints->points[std::rand() % NUM_WAYPOINTS] = iterator->data();
 			}
 		}
 
 		// remove the front of the list, this is the starting point
-		pathPoints.pop_front();
+		path_points.pop_front();
 
 		// path post processing, try to go in a straight line until we hit an obstacle
-		std::size_t subPathIndex = 0;
-		std::vector<Point> finalPoints;
+		std::size_t sub_path_index = 0;
+		std::vector<Point> final_points;
 
-		for (std::size_t i = 0; i < pathPoints.size(); ++i) {
-			if (!valid_path(pathPoints[subPathIndex], pathPoints[i], world, player, added_flags)) {
-				subPathIndex = i - 1;
-				finalPoints.push_back(pathPoints[i - 1]);
-			} else if (i == pathPoints.size() - 1) {
-				finalPoints.push_back(pathPoints[i]);
+		for (std::size_t i = 0; i < path_points.size(); ++i) {
+			if (!valid_path(path_points[sub_path_index], path_points[i], world, player, added_flags)) {
+				sub_path_index = i - 1;
+				final_points.push_back(path_points[i - 1]);
+			} else if (i == path_points.size() - 1) {
+				final_points.push_back(path_points[i]);
 			}
 		}
 
-		return finalPoints;
+		return final_points;
 	}
 
 	Navigator::Ptr RRTNavigator::create(World &world) {
