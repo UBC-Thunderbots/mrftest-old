@@ -21,7 +21,7 @@ namespace {
 				assert(0);
 			}
 			std::string description() const {
-				return "lone-goalie";
+				return "goalie (all alone)";
 			}
 	};
 

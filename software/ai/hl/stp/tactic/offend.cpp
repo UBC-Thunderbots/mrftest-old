@@ -12,7 +12,7 @@ namespace {
 			}
 
 		private:
-#warning mutable... maybe i should fix api
+#warning TODO: fix this
 			mutable Point dest;
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
@@ -23,7 +23,7 @@ namespace {
 	};
 
 	Player::Ptr Offend::select(const std::set<Player::Ptr> &players) const {
-#warning a tactic can make decision based on available players
+#warning TODO: choose by the player with best access to ball and enemy goal
 		dest = AI::HL::STP::Evaluation::evaluate_offense(world, players);
 		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
 	}

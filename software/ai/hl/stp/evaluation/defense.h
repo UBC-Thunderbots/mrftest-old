@@ -1,7 +1,7 @@
 #ifndef AI_HL_STP_EVALUATION_DEFENSE_H
 #define AI_HL_STP_EVALUATION_DEFENSE_H
 
-#include "ai/hl/world.h"
+#include "ai/hl/stp/world.h"
 
 #include <array>
 
@@ -10,10 +10,9 @@ namespace AI {
 		namespace STP {
 			namespace Evaluation {
 				/**
-				 * Computes ideal locations to place goalie and defenders.
-				 * N is the number of goalie + defenders.
+				 * Computes locations to place 1 goalie and EXACTLY 1 OR 2 defenders.
 				 */
-				template<int N> const std::array<Point, N> evaluate_defense(const AI::HL::W::World& world);
+				const std::array<Point, 3> evaluate_defense(const World& world);
 			}
 		}
 	}

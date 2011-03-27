@@ -15,6 +15,14 @@ namespace {
 
 	DoubleParam robot_shrink("(defense) shrink robot radius", 1.1, 0.1, 2.0);
 
+	const int MAX_DEFENDERS = 2;
+
+	/**
+	 * ssshh... global state
+	 * DO NOT TOUCH THIS unless you know what you are doing.
+	 */
+	bool goalie_top = true;
+
 	/*
 	   template<int N>
 	   class EvaluateDefense : public Cacheable<Point, CacheableNonKeyArgs<AI::HL::W::World &> > {
@@ -24,7 +32,7 @@ namespace {
 	   };
 	 */
 
-	std::pair<Point, std::vector<Point> > compute(const World& world, const unsigned int N, const bool goalie_top) {
+	std::array<Point, MAX_DEFENDERS + 1> compute(const World& world) {
 		const Field &field = world.field();
 
 		std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
@@ -78,7 +86,7 @@ namespace {
 
 		// next two defenders block nearest enemy sights to goal if needed
 		// enemies with ball possession are ignored (they should be handled above)
-		for (size_t i = 0; i < enemies.size() && waypoint_defenders.size() < N; ++i) {
+		for (size_t i = 0; i < enemies.size() && waypoint_defenders.size() < MAX_DEFENDERS; ++i) {
 			if (!AI::HL::Util::ball_close(world, enemies[i])) {
 				bool blowup = false;
 				Point D = calc_block_cone(goal_side, goal_opp, enemies[i]->position(), radius);
@@ -96,44 +104,20 @@ namespace {
 		}
 
 		// there are too few enemies, this is strange
-		while (waypoint_defenders.size() < N) {
+		while (waypoint_defenders.size() < MAX_DEFENDERS) {
 			waypoint_defenders.push_back((field.friendly_goal() + ball_pos) / 2);
 		}
 
-		return std::make_pair(waypoint_goalie, waypoint_defenders);
+		std::array<Point, 3> waypoints;
+		waypoints[0] = waypoint_goalie;
+		for (std::size_t i = 0; i < MAX_DEFENDERS; ++i) {
+			waypoints[i + 1] = waypoint_defenders[i];
+		}
+		return waypoints;
 	}
-
-	/**
-	 * ssshh... global state
-	 * Let me know if you know how to get rid of this.
-	 */
-	bool goalie_top = true;
 }
 
-namespace AI {
-	namespace HL {
-		namespace STP {
-			namespace Evaluation {
-				template<>
-					const std::array<Point, 2> evaluate_defense<2>(const AI::HL::W::World& world) {
-						std::pair<Point, std::vector<Point> > waypoints = compute(world, 1, goalie_top);
-						std::array<Point, 2> ret;
-						ret[0] = waypoints.first;
-						ret[1] = waypoints.second[0];
-						return ret;
-					}
-
-				template<>
-					const std::array<Point, 3> evaluate_defense<3>(const AI::HL::W::World& world) {
-						std::pair<Point, std::vector<Point> > waypoints = compute(world, 2, goalie_top);
-						std::array<Point, 3> ret;
-						ret[0] = waypoints.first;
-						ret[1] = waypoints.second[0];
-						ret[2] = waypoints.second[1];
-						return ret;
-					}
-			}
-		}
-	}
+const std::array<Point, 3> AI::HL::STP::Evaluation::evaluate_defense(const World& world) {
+	return compute(world);
 }
 
