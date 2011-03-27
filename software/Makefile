@@ -1,45 +1,33 @@
+# ========== STOP ========== STOP ========== STOP ==========
 #
-# Here, write a list of all the executable binaries the Makefile might generate.
+# The contents of this file should not generally be modified.
+# The rules in this file are generic and compatible with building multiple executables.
+# To change the set of executables compiled, the set sources for each executable, or the compilation or linking flags, edit project.mk instead.
 #
-PROJECTS := ai config fw log simulator test
+# ========== STOP ========== STOP ========== STOP ==========
 
 #
-# Here, write a list of the source files and directories for each executable.
-# Directories will be searched for source files recursively.
+# Some rules will need second expansions as they are static pattern rules which do variable dereferences based on target name.
 #
-SOURCES_ai := ai geom log/shared proto uicomponents util xbee
-SOURCES_config := config geom uicomponents util
-SOURCES_fw := fw geom util xbee
-SOURCES_log := ai/common log geom proto uicomponents util
-SOURCES_simulator := ai/common/playtype.cpp geom simulator util
-SOURCES_test := geom test uicomponents util xbee
+.SECONDEXPANSION :
 
 #
-# Here, write a list of all the pkg-config packages used.
+# Pull in the project rules.
 #
-PACKAGES := glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf libxml++-2.6 gsl libusb-1.0
+include project.mk
 
 #
-# Here, write the linker flags to be used for each project.
+# Build a full CXXFLAGS, LDFLAGS, and LIBS.
 #
-override LDFLAGS := -Wl,--as-needed -Wl,-O1 -g -pthread $(LDFLAGS)
-override LIBS := $(shell pkg-config --libs $(PACKAGES)) -lrt $(LIBS)
-
-#
-# Here, write the compiler flags to be used.
-#
-override CXXFLAGS := -std=gnu++0x -Wall -Wextra -Wold-style-cast -Wconversion -Wundef -O2 -fomit-frame-pointer -g -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -DHAVE_INLINE -pthread $(shell pkg-config --cflags $(PACKAGES) | sed 's/-I/-isystem /g') $(CXXFLAGS) -I.
-
-#
-# DO NOT MODIFY STUFF BELOW HERE WITHOUT A GOOD REASON.
-# It should all be automated.
-#
+override CXXFLAGS := $(PROJECT_CXXFLAGS) $(shell pkg-config --cflags $(PACKAGES) | sed 's/-I/-isystem /g') $(CXXFLAGS)
+override LDFLAGS := $(PROJECT_LDFLAGS) $(shell pkg-config --libs-only-other --libs-only-L $(PACKAGES)) $(LDFLAGS)
+override LIBS := $(PROJECT_LIBS) $(shell pkg-config --libs-only-l $(PACKAGES)) $(LIBS)
 
 #
 # The target to build everything.
 #
 .PHONY : world
-world : $(addprefix bin/,$(PROJECTS))
+world : $(addprefix bin/,$(EXECUTABLES))
 
 #
 # Prevent echoing of compilation commands.
@@ -47,14 +35,14 @@ world : $(addprefix bin/,$(PROJECTS))
 .SILENT :
 
 #
-# Build the documentation.
+# Rule to build the documentation.
 #
 .PHONY : doc
 doc :
 	doxygen
 
 #
-# Build a cross-reference database.
+# Rule to build a cross-reference database.
 #
 .PHONY : tags
 tags :
@@ -68,32 +56,12 @@ PROTOBUF_CCS := $(PROTOBUF_INPUTS:.proto=.pb.cc)
 PROTOBUF_HS := $(PROTOBUF_INPUTS:.proto=.pb.h)
 
 #
-# Template of code to generate for each project.
+# Rule to link a final executable.
 #
-define project_template
-#
-# Find all the cpp sources for the project.
-#
-CPP_SOURCES_EXPANDED_$(1) := $$(shell find $$(SOURCES_$(1)) -name .svn -prune -o -name '*.cpp' -print)
-ALL_CPP_FILES += $$(CPP_SOURCES_EXPANDED_$(1))
-ifneq (,$$(filter proto,$$(SOURCES_$(1))))
-CC_SOURCES_EXPANDED_$(1) := $(PROTOBUF_CCS)
-else
-CC_SOURCES_EXPANDED_$(1) :=
-endif
-
-OBJS_$(1) := $$(addprefix obj/,$$(CPP_SOURCES_EXPANDED_$(1):.cpp=.o) $$(CC_SOURCES_EXPANDED_$(1):.cc=.o))
-
-bin/$(1) : $$(OBJS_$(1))
-	echo "  LD	$$@"
+$(addprefix bin/,$(EXECUTABLES)) : bin/% : $$(addprefix obj/,$$(subst .cc,.o,$$(subst .cpp,.o,$$(shell find $$(SOURCES_%) -name .svn -prune -o -name '*.cpp' -print) $$(if $$(filter proto,$$(SOURCES_%)),$(PROTOBUF_CCS)))))
+	echo "  LD	$@"
 	mkdir -p bin
-	$$(CXX) $(LDFLAGS) -o$$@ $$+ $(LIBS)
-endef
-
-#
-# Generate the code for the projects.
-#
-$(eval $(foreach proj,$(PROJECTS),$(call project_template,$(proj))))
+	$(CXX) $(LDFLAGS) -o$@ $+ $(LIBS)
 
 #
 # Rule to make a .d file from a .cpp file.
@@ -138,7 +106,7 @@ obj/proto/%.pb.o : proto/%.pb.cc $(PROTOBUF_HS)
 #
 # Include all the dependency files.
 #
-ALL_D_FILES=$(addprefix obj/,$(ALL_CPP_FILES:.cpp=.d))
+ALL_D_FILES=$(addprefix obj/,$(subst ./,,$(subst .cpp,.d,$(shell find . -name .svn -prune -o -name '*.cpp' -print))))
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),cleanbin)
 ifneq ($(MAKECMDGOALS),cleandep)

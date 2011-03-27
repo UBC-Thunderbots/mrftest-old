@@ -337,6 +337,7 @@ software/log/launcher.cpp -text
 software/log/launcher.h -text
 software/log/main.cpp -text
 software/log/shared/tags.h -text
+software/project.mk -text
 software/proto/messages_robocup_ssl_detection.proto -text
 software/proto/messages_robocup_ssl_geometry.proto -text
 software/proto/messages_robocup_ssl_wrapper.proto -text
