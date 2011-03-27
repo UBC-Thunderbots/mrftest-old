@@ -104,6 +104,9 @@ namespace {
 			Point prev_pos;
 			double prev_ori;
 			std::time_t start_tasks, curr_tasks, end_tasks;
+			std::string description() const {
+				return "movement-benchmark";
+			}
 	};
 	
 	bool MovementBenchmark::done() const{

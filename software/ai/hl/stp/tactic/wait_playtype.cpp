@@ -1,6 +1,7 @@
 #include "ai/hl/stp/tactic/wait_playtype.h"
 #include "ai/hl/util.h"
 
+#include <sstream>
 #include <cassert>
 
 using namespace AI::HL::STP::Tactic;
@@ -20,6 +21,11 @@ namespace {
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void player_changed();
 			void execute();
+			std::string description() const {
+				std::ostringstream text;
+				text << "wait-playtype, " << tactic->description();
+				return text.str();
+			}
 	};
 
 	bool WaitPlaytype::done() const {

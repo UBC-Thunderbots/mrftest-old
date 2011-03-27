@@ -1,9 +1,8 @@
 #ifndef AI_HL_STP_PLAYEXECUTOR_H
 #define AI_HL_STP_PLAYEXECUTOR_H
 
-#include "ai/hl/world.h"
+#include "ai/hl/stp/world.h"
 #include "ai/hl/stp/play/play.h"
-#include "ai/hl/stp/tactic/tactic.h"
 
 namespace AI {
 	namespace HL {
@@ -14,7 +13,7 @@ namespace AI {
 			 */
 			class PlayExecutor {
 				public:
-					PlayExecutor(AI::HL::W::World &w);
+					PlayExecutor(World &w);
 
 					/**
 					 * Runs every time step.
@@ -22,7 +21,7 @@ namespace AI {
 					void tick();
 
 				protected:
-					AI::HL::W::World &world;
+					World &world;
 
 					/**
 					 * The play in use currently.

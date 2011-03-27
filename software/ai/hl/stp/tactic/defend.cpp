@@ -25,6 +25,9 @@ namespace {
 				Player::Ptr select(const std::set<Player::Ptr> &) const {
 					assert(0);
 				}
+				std::string description() const {
+					return "defend-goalie";
+				}
 		};
 
 	/**
@@ -39,6 +42,9 @@ namespace {
 			private:
 				Player::Ptr select(const std::set<Player::Ptr> &players) const;
 				void execute();
+				std::string description() const {
+					return "defend-defender";
+				}
 		};
 
 	template<int N>

@@ -25,7 +25,7 @@ void Tactic::set_player(Player::Ptr p) {
 }
 
 std::string Tactic::description() const {
-	return "";
+	return "no description";
 }
 
 void Tactic::player_changed() {

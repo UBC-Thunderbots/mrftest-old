@@ -1,9 +1,12 @@
 #include "ai/hl/hl.h"
 #include "ai/hl/stp/play_executor.h"
 
-using namespace AI::HL;
+#include <sstream>
+#include <gtkmm.h>
+
+using AI::HL::HighLevelFactory;
+using AI::HL::HighLevel;
 using namespace AI::HL::STP;
-using namespace AI::HL::W;
 
 namespace {
 	class STPHLFactory : public HighLevelFactory {
@@ -16,9 +19,10 @@ namespace {
 
 	STPHLFactory factory_instance;
 
-	class STPHL : public HighLevel {
+	class STPHL : public PlayExecutor, public HighLevel {
 		public:
-			STPHL(World &world) : executor(world) {
+			STPHL(World &world) : PlayExecutor(world) {
+				text_view.set_editable(false);
 			}
 
 			STPHLFactory &factory() const {
@@ -26,15 +30,35 @@ namespace {
 			}
 
 			void tick() {
-				executor.tick();
+				PlayExecutor::tick();
+				std::ostringstream text;
+				if (curr_play.is()) {
+					text << "play: " << curr_play->factory().name();
+					text << "\n";
+					text << "step: " << curr_role_step;
+					text << "\n";
+					for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
+						text << world.friendly_team().get(i)->pattern() << ": ";
+						if (curr_tactic[i]->active()) {
+							text << "*";
+						} else {
+							text << " ";
+						}
+						text << curr_tactic[i]->description();
+						text << "\n";
+					}
+				} else {
+					text << "No Play";
+				}
+				text_view.get_buffer()->set_text(text.str());
 			}
 
 			Gtk::Widget *ui_controls() {
-				return 0;
+				return &text_view;
 			}
 
-		private:
-			PlayExecutor executor;
+		protected:
+			Gtk::TextView text_view;
 	};
 
 	HighLevel::Ptr STPHLFactory::create_high_level(World &world) const {

@@ -17,6 +17,9 @@ namespace {
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
+			std::string description() const {
+				return "offender";
+			}
 	};
 
 	Player::Ptr Offend::select(const std::set<Player::Ptr> &players) const {

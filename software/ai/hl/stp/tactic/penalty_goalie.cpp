@@ -18,6 +18,9 @@ namespace {
 			Player::Ptr select(const std::set<Player::Ptr> &) const {
 				assert(0);
 			}
+			std::string description() const {
+				return "penalty-goalie";
+			}
 	};
 
 	PenaltyGoalie::PenaltyGoalie(const World& world) : Tactic(world, true) {

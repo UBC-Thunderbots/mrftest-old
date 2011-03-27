@@ -17,6 +17,9 @@ namespace {
 			bool done() const;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
+			std::string description() const {
+				return "move-wait-playtype";
+			}
 	};
 
 	bool MoveWaitPlaytype::done() const {

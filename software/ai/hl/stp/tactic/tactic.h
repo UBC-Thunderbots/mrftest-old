@@ -6,6 +6,7 @@
 #include "util/registerable.h"
 
 #include <set>
+#include <string>
 
 namespace AI {
 	namespace HL {

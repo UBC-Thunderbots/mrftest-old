@@ -5,10 +5,6 @@
 #include <cassert>
 
 using AI::HL::STP::PlayExecutor;
-using AI::HL::STP::Play::Play;
-using AI::HL::STP::Play::PlayFactory;
-using AI::HL::STP::Tactic::Tactic;
-using namespace AI::HL::W;
 using namespace AI::HL::STP;
 
 namespace {
@@ -16,11 +12,11 @@ namespace {
 	const double PLAY_TIMEOUT = 30.0;
 }
 
-PlayExecutor::PlayExecutor(AI::HL::W::World &w) : world(w) {
+PlayExecutor::PlayExecutor(World &w) : world(w) {
 	// initialize all plays
-	const PlayFactory::Map &m = PlayFactory::all();
+	const Play::PlayFactory::Map &m = Play::PlayFactory::all();
 	assert(m.size() != 0);
-	for (PlayFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
+	for (Play::PlayFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 		plays.push_back(i->second->create(world));
 	}
 }
@@ -76,7 +72,7 @@ void PlayExecutor::role_assignment() {
 	// we cannot have less than 1 active tactic.
 	assert(curr_active.is());
 
-	std::fill(curr_assignment, curr_assignment + 5, AI::HL::W::Player::Ptr());
+	std::fill(curr_assignment, curr_assignment + 5, Player::Ptr());
 
 	assert(curr_tactic[0].is());
 	curr_tactic[0]->set_player(world.friendly_team().get(0));

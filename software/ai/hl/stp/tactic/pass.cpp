@@ -20,6 +20,9 @@ namespace {
 				// orient towards target
 				player->move(dest(), (target() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);				
 			}
+			std::string description() const {
+				return "passer-ready";
+			}
 	};
 
 	class PasseeReady : public Tactic {
@@ -38,6 +41,9 @@ namespace {
 			}
 			void execute() {
 				player->move(dest(), (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+			}
+			std::string description() const {
+				return "passee-ready";
 			}
 	};
 
@@ -61,6 +67,9 @@ namespace {
 				player->kick(7.5);
 				kicked = true;
 			}
+			std::string description() const {
+				return "passer-shoot";
+			}
 	};
 
 	class PasseeReceive : public Tactic {
@@ -79,6 +88,9 @@ namespace {
 			}
 			void execute() {
 				player->move(dest(), (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+			}
+			std::string description() const {
+				return "passee-receive";
 			}
 	};
 }

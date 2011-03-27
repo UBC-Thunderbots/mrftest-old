@@ -16,6 +16,9 @@ namespace {
 			const Coordinate dest;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
+			std::string description() const {
+				return "move";
+			}
 	};
 
 	Player::Ptr Move::select(const std::set<Player::Ptr> &players) const {
