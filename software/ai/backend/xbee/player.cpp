@@ -11,57 +11,7 @@
 using namespace AI::BE::XBee;
 
 namespace {
-	const unsigned int MAX_DRIBBLER_SPEED = 40000;
 	const double BATTERY_CRITICAL_THRESHOLD = 13.5;
-	const unsigned int MAX_DRIBBLE_STALL_MILLISECONDS = 2000;
-	const unsigned int DRIBBLE_RECOVER_TIME = 1000;
-	const unsigned int CHICKER_MIN_INTERVAL = 2000;
-
-	DoubleParam DRIBBLER_HAS_BALL_LOAD_FACTOR("Has Ball Load Factor", 0.8, 0.1, 3.0);
-
-	// const double HAS_BALL_TIME = 2.0 / 15.0;
-	const int HAS_BALL_TIME = 2;
-
-	unsigned int kicker_power_to_pulse_width(double power) {
-		static const unsigned int MAX_PULSE_WIDTH = 511;
-		static const double MICROS_PER_TICK = 32;
-		double millis = (std::log(1.0 - clamp(power, 0.0, 0.999)) - 0.8849) / -0.9197;
-		return clamp(static_cast<unsigned int>(millis * 1000.0 / MICROS_PER_TICK + 0.5), 0U, MAX_PULSE_WIDTH);
-	}
-
-	unsigned int chipper_power_to_pulse_width(double power) {
-		const unsigned int MAX_PULSE_WIDTH = 300;
-		return clamp(static_cast<unsigned int>(MAX_PULSE_WIDTH * power), 0U, MAX_PULSE_WIDTH);
-	}
-
-	// determines how much dribbling to do based off the inputs to the 4 motors
-	int calc_dribble(const int(&wheel_speeds)[4], int new_dribble_power) {
-		// Angles in radians that the wheels are located off the forward direction
-		static const double ANGLES[4] = { 0.959931, 2.35619, 3.9269908, 5.32325 };
-		static const double BACKWARDS_SCALING_FACTOR = 4.0;
-		// if we are moving with this little force forwards exempt the reduction of dribble speed
-		static const double FORWARD_EXEMPTION_AMOUNT = 7.0;
-		// we are expecting to idle the motor so just set the dribble motor to a low set-point
-		static const int CONTINUOUS_IDLE_AMOUNT = 130;
-		int theta;
-		Point x_y;
-
-		for (unsigned int i = 0; i < 4; ++i) {
-			theta += wheel_speeds[i];
-			Point speed(0.0, wheel_speeds[i]);
-			speed = speed.rotate(ANGLES[i]);
-			x_y.x += speed.x;
-			x_y.y += speed.y;
-		}
-
-		if (x_y.x < 0) {
-			int x = static_cast<int>(BACKWARDS_SCALING_FACTOR * x_y.x);
-			return clamp(std::max(new_dribble_power, -x), 0, 1023);
-		} else if (x_y.x > FORWARD_EXEMPTION_AMOUNT) {
-			return CONTINUOUS_IDLE_AMOUNT;
-		}
-		return new_dribble_power;
-	}
 
 	unsigned int calc_kick(double speed) {
 		static const double SPEEDS[] = { 7.14, 8.89, 10.3 };
