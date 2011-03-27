@@ -130,6 +130,7 @@ void Player::kick_impl(double speed) {
 void Player::autokick_impl(double speed) {
 	if (bot->alive) {
 		bot->autokick(calc_kick(speed), 0, 0);
+		autokick_invoked = true;
 	}
 }
 
