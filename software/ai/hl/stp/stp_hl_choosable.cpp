@@ -219,6 +219,9 @@ namespace {
 			Gtk::Widget *ui_controls() {
 				return &vbox;
 			}
+
+			void draw_overlay(Cairo::RefPtr<Cairo::Context>) {
+			}
 	};
 
 	HighLevel::Ptr STPHLChoosableFactory::create_high_level(World &world) const {

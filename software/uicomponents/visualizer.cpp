@@ -192,6 +192,9 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 		ctx->stroke();
 	}
 
+	// Draw the overlay.
+	data.draw_overlay(ctx);
+
 	// Done.
 	return true;
 }

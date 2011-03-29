@@ -85,6 +85,9 @@ namespace {
 			Gtk::Widget *ui_controls() {
 				return 0;
 			}
+
+			void draw_overlay(Cairo::RefPtr<Cairo::Context>) {
+			}
 			
 		private:
 			World &world;

@@ -300,6 +300,13 @@ namespace Visualizable {
 			 * \param[in] p the new position of the mouse pointer, in world coordinates.
 			 */
 			virtual void mouse_moved(Point p) = 0;
+
+			/**
+			 * Permits the visualizable object to draw an overlay on top of the field.
+			 *
+			 * \param[in] ctx the Cairo context to draw into.
+			 */
+			virtual void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const = 0;
 	};
 }
 

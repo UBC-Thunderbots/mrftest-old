@@ -449,6 +449,15 @@ namespace AI {
 					return signal_score_changed_;
 				}
 
+				/**
+				 * Returns a signal that fires when the visualizer needs an overlay to be drawn.
+				 *
+				 * \return the signal.
+				 */
+				sigc::signal<void, Cairo::RefPtr<Cairo::Context> > &signal_draw_overlay() const {
+					return signal_draw_overlay_;
+				}
+
 			protected:
 				/**
 				 * Constructs a new Backend.
@@ -479,6 +488,9 @@ namespace AI {
 				mutable sigc::signal<void, const void *, std::size_t> signal_vision_;
 				mutable sigc::signal<void, const void *, std::size_t> signal_refbox_;
 				mutable sigc::signal<void> signal_score_changed_;
+				mutable sigc::signal<void, Cairo::RefPtr<Cairo::Context> > signal_draw_overlay_;
+
+				void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;
 		};
 
 		/**

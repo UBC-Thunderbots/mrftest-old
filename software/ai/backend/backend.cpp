@@ -78,6 +78,10 @@ Backend::Backend() : defending_end_(WEST), friendly_colour_(YELLOW), playtype_(A
 Backend::~Backend() {
 }
 
+void Backend::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
+	signal_draw_overlay_.emit(ctx);
+}
+
 BackendFactory::BackendFactory(const char *name) : Registerable<BackendFactory>(name) {
 }
 

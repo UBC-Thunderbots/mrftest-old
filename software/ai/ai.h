@@ -50,6 +50,7 @@ namespace AI {
 			void tick();
 			void player_added(std::size_t idx);
 			void robot_controller_factory_changed();
+			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;
 	};
 }
 

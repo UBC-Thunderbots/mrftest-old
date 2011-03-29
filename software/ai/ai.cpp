@@ -25,6 +25,7 @@ namespace {
 
 AIPackage::AIPackage(Backend &backend) : backend(backend), high_level(AI::HL::HighLevel::Ptr()), navigator(AI::Nav::Navigator::Ptr()), robot_controller_factory(0) {
 	backend.signal_tick().connect(sigc::mem_fun(this, &AIPackage::tick));
+	backend.signal_draw_overlay().connect(sigc::mem_fun(this, &AIPackage::draw_overlay));
 	backend.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &AIPackage::player_added));
 	robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &AIPackage::robot_controller_factory_changed));
 }
@@ -81,6 +82,13 @@ void AIPackage::robot_controller_factory_changed() {
 		if (robot_controller_factory) {
 			state->robot_controller = robot_controller_factory->create_controller(backend, plr);
 		}
+	}
+}
+
+void AIPackage::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
+	AI::HL::HighLevel::Ptr hl = high_level;
+	if (hl.is()) {
+		hl->draw_overlay(ctx);
 	}
 }
 

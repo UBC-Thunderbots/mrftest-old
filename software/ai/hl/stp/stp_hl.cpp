@@ -57,6 +57,9 @@ namespace {
 				return &text_view;
 			}
 
+			void draw_overlay(Cairo::RefPtr<Cairo::Context>) {
+			}
+
 		protected:
 			Gtk::TextView text_view;
 	};
