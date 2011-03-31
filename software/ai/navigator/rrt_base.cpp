@@ -26,21 +26,19 @@ namespace {
 	// just return the best partial path we've found
 	const int ITERATION_LIMIT = 200;
 
-
-	double distance(Point nearest, Point goal) {
-		return (goal - nearest).len();
-	}
-
-	Point empty_state() {
-		return Point(-10000, -10000);
-	}
-
 	bool is_empty_state(Point toCheck) {
-		return toCheck.x == empty_state().x && toCheck.y && empty_state().y;
+		return toCheck.x == RRTBase::empty_state().x && toCheck.y && RRTBase::empty_state().y;
 	}
 
 }
 
+Point AI::Nav::RRT::RRTBase::empty_state(){
+	return Point(-10000, -10000);
+} 
+
+double AI::Nav::RRT::RRTBase::distance(Glib::NodeTree<Point> * nearest, Point goal){
+	return (nearest->data() - goal).len();
+}
 
 	// generate a random point from the field
 	Point AI::Nav::RRT::RRTBase::random_point() {
@@ -77,7 +75,7 @@ Glib::NodeTree<Point> *RRTBase::nearest(Glib::NodeTree<Point> *rrtTree, Point ta
 			currNode = nodeQueue.back();
 			nodeQueue.pop_back();
 
-			if (distance(currNode->data(), target) < distance(nearest->data(), target)) {
+			if (distance(currNode, target) < distance(nearest, target)) {
 				nearest = currNode;
 			}
 
@@ -100,7 +98,9 @@ Glib::NodeTree<Point> *RRTBase::nearest(Glib::NodeTree<Point> *rrtTree, Point ta
 		return extendPoint;
 	}
 
-	std::vector<Point> RRTBase::rrt_plan(Player::Ptr player, Point initial, Point goal) {
+std::vector<Point> RRTBase::rrt_plan(Player::Ptr player, Point goal, bool post_process) {
+
+		Point initial = player->position();
 
 		if( !Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)]).is()){
 			player->object_store()[typeid(*this)] = Waypoints::Ptr(new Waypoints);
@@ -116,7 +116,7 @@ Glib::NodeTree<Point> *RRTBase::nearest(Glib::NodeTree<Point> *rrtTree, Point ta
 		int iterationCounter = 0;
 
 		// should loop until distance between lastAdded and goal is less than threshold
-		while (distance(lastAdded->data(), goal) > THRESHOLD && iterationCounter < ITERATION_LIMIT) {
+		while (distance(lastAdded, goal) > THRESHOLD && iterationCounter < ITERATION_LIMIT) {
 			target = choose_target(goal, player);
 			nearestNode = nearest(&rrtTree, target);
 			nearestPoint = nearestNode->data();
@@ -160,9 +160,16 @@ Glib::NodeTree<Point> *RRTBase::nearest(Glib::NodeTree<Point> *rrtTree, Point ta
 		// remove the front of the list, this is the starting point
 		pathPoints.pop_front();
 
+		if(!post_process){
+			std::vector<Point> ans(pathPoints.begin(), pathPoints.end());
+			return ans;
+		}
+
 		// path post processing, try to go in a straight line until we hit an obstacle
 		std::size_t subPathIndex = 0;
 		std::vector<Point> finalPoints;
+
+
 
 		for (std::size_t i = 0; i < pathPoints.size(); ++i) {
 			if (!valid_path(pathPoints[subPathIndex], pathPoints[i], world, player,  Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->addedFlags)) {

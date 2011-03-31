@@ -124,7 +124,7 @@ namespace AI {
 
 					// calculate a path
 					path_points.clear();
-					path_points = rrt_plan(player, player->position(), dest);
+					path_points = rrt_plan(player, dest);
 
 					double dist = 0.0;
 					working_time = world.monotonic_time();
