@@ -58,7 +58,7 @@ namespace {
 
 				std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
 
-				// sort enemies by distance to own goal
+				// sort enemies by distance to ball
 				// TODO: cache this
 				std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.ball().position()));
 

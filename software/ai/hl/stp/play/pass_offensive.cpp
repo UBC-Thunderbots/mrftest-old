@@ -4,6 +4,7 @@
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/shoot.h"
 #include "ai/hl/stp/tactic/pass.h"
+#include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
 #include <glibmm.h>
@@ -55,7 +56,7 @@ namespace {
 	}
 
 	bool PassOffensive::invariant() const {
-		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3);
+		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && Predicates::their_team_size_at_least(world, 1);
 	}
 
 	bool PassOffensive::applicable() const {
@@ -103,9 +104,8 @@ namespace {
 		roles[2].push_back(defend_duo_defender(world));
 
 		// ROLE 4
-		// offensive support
-		// perhaps use block to provide support by blocking enemy
-		roles[3].push_back(offend(world));
+		// offensive support through blocking closest enemy to ball
+		roles[3].push_back(block(world, Enemy::closest_ball(world, 0)));
 	}
 }
 
