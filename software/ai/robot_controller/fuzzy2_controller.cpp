@@ -20,11 +20,11 @@ namespace {
 	
 	DoubleParam FUZZY2_MAX_ACC("Fuzzy2: max acc", 3, 0.0, 20.0);
 
-	const double arr_min[P] = { 3.0, 0.0, 0.0, 3.0, 3.0 };
-	const double arr_max[P] = { 15.0, 2.0, 2.0, 15.0, 15.0 };
+	const double arr_min[P] = { 6.0, 0.0, 0.0, 6.0, 6.0 };
+	const double arr_max[P] = { 13.0, 2.0, 2.0, 13.0, 13.0 };
 
 	// default parameters:
-	const double arr_def[P] = { 7.72052, 0.261496, 0.385, 7.8411, 7.31537};
+	const double arr_def[P] = {9.18749, 0.575552, 0.695691, 9.50912, 7.91213};
  
 	const std::vector<double> param_min(arr_min, arr_min + P);
 	const std::vector<double> param_max(arr_max, arr_max + P);

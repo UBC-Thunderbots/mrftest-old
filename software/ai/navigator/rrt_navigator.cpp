@@ -92,7 +92,8 @@ namespace AI {
 
 						angle = degrees2radians(angle);
 						if (fabs(angle_diff(to_ball_orientation, player->destination().second)) < fabs(angle)) {
-							if (fabs(angle_diff(to_ball_orientation, player->destination().second)) < fabs(angle)/4) {
+							if (fabs(angle_diff(to_ball_orientation, player->destination().second)) < fabs(angle)/2) {
+								// robot is in correct position, move towards the ball now.
 								timespec time_to_ball;
 								timespec_add(double_to_timespec(0.0), world.monotonic_time(), time_to_ball);
 								path.push_back(std::make_pair(std::make_pair(world.ball().position(), player->destination().second), time_to_ball));
@@ -111,6 +112,10 @@ namespace AI {
 						dest = world.ball().position() - offset_distance * (diff / diff.len());
 						if (dest.len() > 0.5) orientation_temp = 0;
 						dest_orientation = (world.ball().position() - current_position).orientation() + orientation_temp;
+
+						path.push_back(std::make_pair(std::make_pair(dest, dest_orientation), world.monotonic_time()));
+						player->path(path);
+						continue;
 
 					} else if (valid_path(player->position(), player->destination().first, world, player)) {
 						// if we're not trying to catch the ball and there are no obstacles in our way then go
