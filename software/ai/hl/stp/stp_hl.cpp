@@ -57,7 +57,16 @@ namespace {
 				return &text_view;
 			}
 
-			void draw_overlay(Cairo::RefPtr<Cairo::Context>) {
+			void draw_overlay(Cairo::RefPtr<Cairo::Context> context) {
+				if (!curr_play.is()) {
+					return;
+				}
+				for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
+					const auto& role = curr_roles[i];
+					for (std::size_t t = 0; t < role.size(); ++t) {
+						role[t]->draw_overlay(context);
+					}
+				}
 			}
 
 		protected:

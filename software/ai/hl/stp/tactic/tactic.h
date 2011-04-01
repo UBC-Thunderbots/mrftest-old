@@ -7,6 +7,7 @@
 
 #include <set>
 #include <string>
+#include <gtkmm.h>
 
 namespace AI {
 	namespace HL {
@@ -66,9 +67,14 @@ namespace AI {
 						virtual void execute() = 0;
 
 						/**
-						 * A string description of this tactic.
+						 * An optional string description of this tactic.
 						 */
 						virtual std::string description() const;
+
+						/**
+						 * An optional function to draw extra stuff on the overlay.
+						 */
+						virtual void draw_overlay(Cairo::RefPtr<Cairo::Context> context) const;
 
 					protected:
 						const World &world;

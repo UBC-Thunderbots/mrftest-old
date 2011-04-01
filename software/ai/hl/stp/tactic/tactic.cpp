@@ -28,6 +28,10 @@ std::string Tactic::description() const {
 	return "no description";
 }
 
+void Tactic::draw_overlay(Cairo::RefPtr<Cairo::Context>) const {
+	// do nothing..
+}
+
 void Tactic::player_changed() {
 }
 

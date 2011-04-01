@@ -18,6 +18,7 @@ namespace {
 			std::string description() const {
 				return "chase";
 			}
+			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;
 	};
 
 	bool Chase::done() const {
@@ -37,6 +38,14 @@ namespace {
 
 		// TODO: flags
 		AI::HL::STP::Action::chase(world, player, 0);
+	}
+
+	void Chase::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
+		ctx->set_source_rgb(1.0, 1.0, 1.0);
+		ctx->move_to(player->position().x, player->position().y);
+		ctx->line_to(world.ball().position().x, world.ball().position().y);
+		ctx->set_line_width(0.01);
+		ctx->stroke();
 	}
 }
 
