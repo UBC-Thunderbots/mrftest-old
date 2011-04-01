@@ -1,3 +1,4 @@
+#include "ai/backend/xbee/xbee_backend.h"
 #include "ai/backend/backend.h"
 #include "ai/backend/xbee/ball.h"
 #include "ai/backend/xbee/field.h"
@@ -19,6 +20,8 @@
 #include <netinet/ip.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+
+DoubleParam LOOP_DELAY("Loop Delay",0.0,-1.0,1.0);
 
 using namespace AI::BE;
 
