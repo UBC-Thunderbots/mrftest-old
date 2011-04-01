@@ -1,6 +1,8 @@
 #include "ai/hl/stp/predicates.h"
 #include "ai/hl/util.h"
 
+#include <set>
+
 using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
@@ -74,5 +76,17 @@ bool AI::HL::STP::Predicates::ball_in_their_corner(const World &world) {
 
 bool AI::HL::STP::Predicates::ball_midfield(const World &world){
 	return std::fabs(world.ball().position().x) < world.field().length()/4;
+}
+
+bool AI::HL::STP::Predicates::baller_can_shoot(const World &world){
+	const FriendlyTeam &friendly = world.friendly_team();
+	std::set<Player::CPtr> players;
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		players.insert(friendly.get(i));
+	}
+	const Player::CPtr baller = *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::CPtr>(world.ball().position()));
+	const double ori_target = (world.field().enemy_goal() - baller->position()).orientation();
+	const double ori_diff = std::fabs(baller->orientation() - ori_target);
+	return ori_diff > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
 }
 

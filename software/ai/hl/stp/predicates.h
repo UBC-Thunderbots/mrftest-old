@@ -42,6 +42,8 @@ namespace AI {
 				bool ball_in_their_corner(const World &world);
 				
 				bool ball_midfield(const World &world);
+				
+				bool baller_can_shoot(const World &world);
 			}
 		}
 	}
