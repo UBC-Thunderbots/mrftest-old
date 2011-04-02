@@ -37,7 +37,10 @@ namespace {
 		}
 
 		// TODO: flags
-		AI::HL::STP::Action::chase(world, player, 0);
+		//AI::HL::STP::Action::chase(world, player, 0);
+		
+		// orient towards the enemy goal?
+		AI::HL::STP::Action::chase(world, player, world.field().enemy_goal(), 0);
 	}
 
 	void Chase::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {

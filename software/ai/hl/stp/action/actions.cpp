@@ -7,8 +7,12 @@
 
 using namespace AI::HL::STP;
 
-void AI::HL::STP::Action::chase(const World &world, Player::Ptr player, const unsigned int flags) {
-	player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
+void AI::HL::STP::Action::chase(const World &world, Player::Ptr player,  const unsigned int flags) {
+	chase(world, player, world.ball().position(),flags);
+}
+
+void AI::HL::STP::Action::chase(const World &world, Player::Ptr player, Point target, const unsigned int flags) {
+	player->move(world.ball().position(), (target - player->position()).orientation(), flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
 }
 
 void AI::HL::STP::Action::repel(const World &world, Player::Ptr player, const unsigned int flags) {

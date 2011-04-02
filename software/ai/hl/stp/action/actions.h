@@ -8,9 +8,14 @@ namespace AI {
 		namespace STP {
 			namespace Action {
 				/**
-				 * Chases after the ball as fast as possible.
+				 * Chases after the ball as fast as possible. Orient towards the ball.
 				 */
 				void chase(const World &world, Player::Ptr player, const unsigned int flags = 0);
+				
+				/**
+				 * Chases after the ball as fast as possible. Orient towards Point target.
+				 */
+				void chase(const World &world, Player::Ptr player, Point target, const unsigned int flags = 0);
 
 				/**
 				 * I can't think of a good name for this function.
