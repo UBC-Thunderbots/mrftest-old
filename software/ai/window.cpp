@@ -91,12 +91,12 @@ namespace {
 			}
 
 			void on_flip_friendly_colour_clicked() {
-				ai.backend.friendly_colour() = static_cast<AI::BE::Backend::Colour>((ai.backend.friendly_colour() + 1) % 2);
+				ai.backend.friendly_colour() = static_cast<AI::Common::Team::Colour>((ai.backend.friendly_colour() + 1) % 2);
 			}
 
 			void on_friendly_colour_changed() {
-				assert(ai.backend.friendly_colour() == AI::BE::Backend::YELLOW || ai.backend.friendly_colour() == AI::BE::Backend::BLUE);
-				friendly_colour_entry.set_text(ai.backend.friendly_colour() == AI::BE::Backend::YELLOW ? "Yellow" : "Blue");
+				assert(ai.backend.friendly_colour() == AI::Common::Team::YELLOW || ai.backend.friendly_colour() == AI::Common::Team::BLUE);
+				friendly_colour_entry.set_text(ai.backend.friendly_colour() == AI::Common::Team::YELLOW ? "Yellow" : "Blue");
 			}
 	};
 

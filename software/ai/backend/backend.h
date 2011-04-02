@@ -278,14 +278,6 @@ namespace AI {
 				};
 
 				/**
-				 * The possible values indicating which colour the friendly team is.
-				 */
-				enum Colour {
-					YELLOW,
-					BLUE,
-				};
-
-				/**
 				 * Returns the factory that created this Backend.
 				 *
 				 * \return the factory.
@@ -373,7 +365,7 @@ namespace AI {
 				 *
 				 * \return the colour.
 				 */
-				Property<Colour> &friendly_colour() {
+				Property<AI::Common::Team::Colour> &friendly_colour() {
 					return friendly_colour_;
 				}
 
@@ -480,7 +472,7 @@ namespace AI {
 
 			private:
 				Property<FieldEnd> defending_end_;
-				Property<Colour> friendly_colour_;
+				Property<AI::Common::Team::Colour> friendly_colour_;
 				Property<AI::Common::PlayType::PlayType> playtype_, playtype_override_;
 				Property<AI::BF::BallFilter *> ball_filter_;
 				mutable sigc::signal<void> signal_tick_;

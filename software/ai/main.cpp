@@ -24,9 +24,9 @@ namespace {
 		const Glib::ustring &ball_filter_name;
 		bool minimize;
 		AI::BE::Backend::FieldEnd defending_end;
-		AI::BE::Backend::Colour friendly_colour;
+		AI::Common::Team::Colour friendly_colour;
 
-		WithBackendClosure(const Glib::ustring &high_level_name, const Glib::ustring &robot_controller_name, const Glib::ustring &ball_filter_name, bool minimize, AI::BE::Backend::FieldEnd defending_end, AI::BE::Backend::Colour friendly_colour) : high_level_name(high_level_name), robot_controller_name(robot_controller_name), ball_filter_name(ball_filter_name), minimize(minimize), defending_end(defending_end), friendly_colour(friendly_colour) {
+		WithBackendClosure(const Glib::ustring &high_level_name, const Glib::ustring &robot_controller_name, const Glib::ustring &ball_filter_name, bool minimize, AI::BE::Backend::FieldEnd defending_end, AI::Common::Team::Colour friendly_colour) : high_level_name(high_level_name), robot_controller_name(robot_controller_name), ball_filter_name(ball_filter_name), minimize(minimize), defending_end(defending_end), friendly_colour(friendly_colour) {
 		}
 	};
 
@@ -237,7 +237,7 @@ namespace {
 		Annunciator::activate_siren();
 
 		// Create the backend.
-		WithBackendClosure wbc(high_level_name, robot_controller_name, ball_filter_name, minimize, east ? AI::BE::Backend::EAST : AI::BE::Backend::WEST, blue ? AI::BE::Backend::BLUE : AI::BE::Backend::YELLOW);
+		WithBackendClosure wbc(high_level_name, robot_controller_name, ball_filter_name, minimize, east ? AI::BE::Backend::EAST : AI::BE::Backend::WEST, blue ? AI::Common::Team::BLUE : AI::Common::Team::YELLOW);
 		if (!backend_name_and_params.size()) {
 			backend_name_and_params = choose_backend();
 			if (!backend_name_and_params.size()) {

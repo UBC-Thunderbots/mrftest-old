@@ -318,7 +318,7 @@ namespace {
 					// Update the robots.
 					const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *yellow_packets[2] = { &detections[0].robots_yellow(), &detections[1].robots_yellow() };
 					const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *blue_packets[2] = { &detections[0].robots_blue(), &detections[1].robots_blue() };
-					if (friendly_colour() == YELLOW) {
+					if (friendly_colour() == AI::Common::Team::YELLOW) {
 						friendly.update(yellow_packets, now);
 						enemy.update(blue_packets, now);
 					} else {
@@ -339,11 +339,11 @@ namespace {
 				if (playtype_override() != AI::Common::PlayType::COUNT) {
 					new_pt = playtype_override();
 				} else {
-					if (friendly_colour() == YELLOW) {
+					if (friendly_colour() == AI::Common::Team::YELLOW) {
 						old_pt = AI::Common::PlayType::INVERT[old_pt];
 					}
 					new_pt = compute_playtype(old_pt);
-					if (friendly_colour() == YELLOW) {
+					if (friendly_colour() == AI::Common::Team::YELLOW) {
 						new_pt = AI::Common::PlayType::INVERT[new_pt];
 					}
 				}
@@ -582,7 +582,7 @@ namespace {
 	}
 
 	unsigned int XBeeFriendlyTeam::score() const {
-		return backend.friendly_colour() == Backend::YELLOW ? backend.refbox.goals_yellow : backend.refbox.goals_blue;
+		return backend.friendly_colour() == AI::Common::Team::YELLOW ? backend.refbox.goals_yellow : backend.refbox.goals_blue;
 	}
 
 	std::size_t XBeeFriendlyTeam::size() const {
@@ -600,7 +600,7 @@ namespace {
 	}
 
 	unsigned int XBeeEnemyTeam::score() const {
-		return backend.friendly_colour() == Backend::YELLOW ? backend.refbox.goals_blue : backend.refbox.goals_yellow;
+		return backend.friendly_colour() == AI::Common::Team::YELLOW ? backend.refbox.goals_blue : backend.refbox.goals_yellow;
 	}
 
 	std::size_t XBeeEnemyTeam::size() const {

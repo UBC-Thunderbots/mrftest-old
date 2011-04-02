@@ -12,6 +12,14 @@ namespace AI {
 		class Team {
 			public:
 				/**
+				 * The possible values indicating which colour a team is.
+				 */
+				enum Colour {
+					YELLOW,
+					BLUE,
+				};
+
+				/**
 				 * Returns the number of points scored by the team.
 				 *
 				 * \return the team's score.

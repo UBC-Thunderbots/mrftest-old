@@ -72,7 +72,7 @@ void AI::BE::Player::path(const std::vector<std::pair<std::pair<Point, double>, 
 	path_impl(p);
 }
 
-Backend::Backend() : defending_end_(WEST), friendly_colour_(YELLOW), playtype_(AI::Common::PlayType::HALT), playtype_override_(AI::Common::PlayType::COUNT), ball_filter_(0) {
+Backend::Backend() : defending_end_(WEST), friendly_colour_(AI::Common::Team::YELLOW), playtype_(AI::Common::PlayType::HALT), playtype_override_(AI::Common::PlayType::COUNT), ball_filter_(0) {
 }
 
 Backend::~Backend() {
