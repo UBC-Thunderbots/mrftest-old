@@ -23,13 +23,7 @@ namespace {
 			std::string description() const {
 				return "passer-ready";
 			}
-			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
-				ctx->set_source_rgb(1.0, 1.0, 1.0);
-				ctx->move_to(player->position().x, player->position().y);
-				ctx->line_to(target().x, target().y);
-				ctx->set_line_width(0.01);
-				ctx->stroke();
-			}
+			
 	};
 
 	class PasseeReady : public Tactic {
@@ -52,13 +46,7 @@ namespace {
 			std::string description() const {
 				return "passee-ready";
 			}
-			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
-				ctx->set_source_rgb(0.0, 0.0, 0.0);
-				ctx->move_to(player->position().x, player->position().y);
-				ctx->line_to(dest().x, dest().y);
-				ctx->set_line_width(0.01);
-				ctx->stroke();
-			}
+			
 	};
 
 	class PasserShoot : public Tactic {
@@ -84,13 +72,7 @@ namespace {
 			std::string description() const {
 				return "passer-shoot";
 			}
-			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
-				ctx->set_source_rgb(1.0, 1.0, 1.0);
-				ctx->move_to(player->position().x, player->position().y);
-				ctx->line_to(target().x, target().y);
-				ctx->set_line_width(0.01);
-				ctx->stroke();
-			}
+			
 	};
 
 	class PasseeReceive : public Tactic {
@@ -113,13 +95,7 @@ namespace {
 			std::string description() const {
 				return "passee-receive";
 			}
-			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
-				ctx->set_source_rgb(0.0, 0.0, 0.0);
-				ctx->move_to(player->position().x, player->position().y);
-				ctx->line_to(dest().x, dest().y);
-				ctx->set_line_width(0.01);
-				ctx->stroke();
-			}
+			
 	};
 }
 
