@@ -11,7 +11,6 @@ using namespace AI::Nav::W;
 using namespace AI::Nav::Util;
 using namespace AI::Flags;
 
-#include <iostream>
 namespace {
 	// fraction of the maximum speed that the robot will try to dribble at
 	const double DRIBBLE_SPEED = 1.0;
@@ -27,7 +26,7 @@ namespace {
 	const int ITERATION_LIMIT = 200;
 
 	bool is_empty_state(Point toCheck) {
-		return toCheck.x == RRTBase::empty_state().x && toCheck.y && RRTBase::empty_state().y;
+		return toCheck.x == RRTBase::empty_state().x && toCheck.y == RRTBase::empty_state().y;
 	}
 
 }
