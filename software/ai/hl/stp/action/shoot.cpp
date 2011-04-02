@@ -16,10 +16,10 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const un
 		if (target.second == 0) {
 			// just grab the ball, don't care about orientation
 			chase(world, player, flags);
-			LOG_INFO("chase");
+			//LOG_INFO("chase");
 		} else {
 			// orient towards the enemy goal area
-			LOG_INFO("move catch");
+			//LOG_INFO("move catch");
 			player->move(target.first, (world.field().enemy_goal() - player->position()).orientation(), flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
 		}
 		return false;
@@ -37,7 +37,7 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const un
 	}
 
 	// call the other shoot function with the specified target
-	LOG_INFO("shoot");
+	//LOG_INFO("shoot");
 	return AI::HL::STP::Action::shoot(world, player, target.first, flags);
 }
 
