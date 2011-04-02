@@ -1,17 +1,14 @@
 #include "ai/navigator/util.h"
+#include "ai/navigator/rrt_planner.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
 
-#include <uicomponents/param.h>
-#include "ai/navigator/rrt_base.h"
-
-using AI::Nav::Navigator;
-using namespace AI::Nav::RRT;
+using namespace AI::Nav;
 using namespace AI::Nav::W;
 using namespace AI::Nav::Util;
 using namespace AI::Flags;
 
-#include <iostream>
+
 namespace {
 	// fraction of the maximum speed that the robot will try to dribble at
 	const double DRIBBLE_SPEED = 1.0;
@@ -21,27 +18,28 @@ namespace {
 	const double GOAL_PROB = 0.2;
 	const double WAYPOINT_PROB = 0.5;
 	const double RAND_PROB = 1.0 - GOAL_PROB - WAYPOINT_PROB;
-	DoubleParam ANGLE_DIFF("Pivot the amount of erroneous angle acceptable for pivoting", 4.0, 0.00, 10.0);
+	const bool POST_PROCESS = true;
+
 	// number of iterations to go through for each robot until we give up and
 	// just return the best partial path we've found
 	const int ITERATION_LIMIT = 200;
 
 	bool is_empty_state(Point toCheck) {
-		return toCheck.x == RRTBase::empty_state().x && toCheck.y && RRTBase::empty_state().y;
+		return toCheck.x == RRTPlanner::empty_state().x && toCheck.y && RRTPlanner::empty_state().y;
 	}
 
 }
 
-Point AI::Nav::RRT::RRTBase::empty_state(){
+Point RRTPlanner::empty_state(){
 	return Point(-10000, -10000);
 } 
 
-double AI::Nav::RRT::RRTBase::distance(Glib::NodeTree<Point> * nearest, Point goal){
+double RRTPlanner::distance(Glib::NodeTree<Point> * nearest, Point goal){
 	return (nearest->data() - goal).len();
 }
 
 	// generate a random point from the field
-	Point AI::Nav::RRT::RRTBase::random_point() {
+	Point RRTPlanner::random_point() {
 		double randomX = ((std::rand() % static_cast<int>(world.field().length() * 100)) - (world.field().length() * 50)) / 100;
 		double randomY = ((std::rand() % static_cast<int>(world.field().width() * 100)) - (world.field().width() * 50)) / 100;
 
@@ -49,7 +47,7 @@ double AI::Nav::RRT::RRTBase::distance(Glib::NodeTree<Point> * nearest, Point go
 	}
 
 	// choose a target to extend toward, the goal, a waypoint or a random point
-Point RRTBase::choose_target(Point goal, Player::Ptr player) {
+Point RRTPlanner::choose_target(Point goal, Player::Ptr player) {
 		double p = std::rand() / static_cast<double>(RAND_MAX);
 		size_t i = std::rand() % Waypoints::NUM_WAYPOINTS;
 
@@ -63,7 +61,7 @@ Point RRTBase::choose_target(Point goal, Player::Ptr player) {
 	}
 
 	// finds the point in the tree that is nearest to the target point
-Glib::NodeTree<Point> *RRTBase::nearest(Glib::NodeTree<Point> *rrtTree, Point target) {
+Glib::NodeTree<Point> *RRTPlanner::nearest(Glib::NodeTree<Point> *rrtTree, Point target) {
 		Glib::NodeTree<Point> *nearest = rrtTree;
 		Glib::NodeTree<Point> *currNode;
 
@@ -88,23 +86,29 @@ Glib::NodeTree<Point> *RRTBase::nearest(Glib::NodeTree<Point> *rrtTree, Point ta
 	}
 
 	// extend by STEP_DISTANCE towards the target from the start
-Point RRTBase::extend(Player::Ptr player, Point start, Point target) {
-		Point extendPoint = start + ((target - start).norm() * STEP_DISTANCE);
+Point RRTPlanner::extend(Player::Ptr player, Glib::NodeTree<Point> *start, Point target) {
+	Point extendPoint = start->data() + ((target - start->data()).norm() * STEP_DISTANCE);
 
-		if (!valid_path(start, extendPoint, world, player, Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->addedFlags)) {
+	if (!valid_path(start->data(), extendPoint, world, player, Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->addedFlags)) {
 			return empty_state();
 		}
 
 		return extendPoint;
 	}
 
-std::vector<Point> RRTBase::rrt_plan(Player::Ptr player, Point goal, bool post_process) {
+std::vector<Point> RRTPlanner::plan(Player::Ptr player, Point goal, unsigned int added_flags){
+	return rrt_plan(player, goal, POST_PROCESS, added_flags);
+}
+
+std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool post_process, unsigned int added_flags) {
 
 		Point initial = player->position();
 
 		if( !Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)]).is()){
 			player->object_store()[typeid(*this)] = Waypoints::Ptr(new Waypoints);
 		}
+
+		Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->addedFlags= added_flags;
 
 		Point nearestPoint, extended, target;
 		Glib::NodeTree<Point> *nearestNode;
@@ -119,8 +123,8 @@ std::vector<Point> RRTBase::rrt_plan(Player::Ptr player, Point goal, bool post_p
 		while (distance(lastAdded, goal) > THRESHOLD && iterationCounter < ITERATION_LIMIT) {
 			target = choose_target(goal, player);
 			nearestNode = nearest(&rrtTree, target);
-			nearestPoint = nearestNode->data();
-			extended = extend(player, nearestPoint, target);
+			//nearestPoint = nearestNode->data();
+			extended = extend(player, nearestNode, target);
 
 			if (!is_empty_state(extended)) {
 				lastAdded = nearestNode->append_data(extended);
@@ -183,10 +187,10 @@ std::vector<Point> RRTBase::rrt_plan(Player::Ptr player, Point goal, bool post_p
 		return finalPoints;
 	}
 
-	RRTBase::RRTBase(World &world) : Navigator(world) {
+	RRTPlanner::RRTPlanner(World &world) : Plan(world) {
 	}
 
-	RRTBase::~RRTBase() {
+	RRTPlanner::~RRTPlanner() {
 	}
 
 
