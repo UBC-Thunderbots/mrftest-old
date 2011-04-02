@@ -19,13 +19,14 @@ namespace {
 	const double WAYPOINT_PROB = 0.5;
 	const double RAND_PROB = 1.0 - GOAL_PROB - WAYPOINT_PROB;
 	const bool POST_PROCESS = true;
+	const double EPS = 1e-9;
 
 	// number of iterations to go through for each robot until we give up and
 	// just return the best partial path we've found
 	const int ITERATION_LIMIT = 200;
 
 	bool is_empty_state(Point toCheck) {
-		return toCheck.x == RRTPlanner::empty_state().x && toCheck.y && RRTPlanner::empty_state().y;
+		return (toCheck- RRTPlanner::empty_state()).lensq()<EPS;
 	}
 
 }

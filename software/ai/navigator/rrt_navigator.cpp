@@ -2,7 +2,8 @@
 #include "geom/angle.h"
 #include "util/dprint.h"
 #include <uicomponents/param.h>
-#include "ai/navigator/rrt_base.h"
+#include "ai/navigator/navigator.h"
+#include "ai/navigator/rrt_planner.h"
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
@@ -35,7 +36,7 @@ namespace AI {
 			DoubleParam orientation_offset("RRT Pivot: orientation offset (degrees)", 30.0, -1000.0, 1000.0);
 
 
-			class RRTNavigator : public RRTBase {
+			class RRTNavigator : public Navigator {
 			public:
 				NavigatorFactory &factory() const;
 				void tick();
@@ -44,10 +45,7 @@ namespace AI {
 			private:
 				RRTNavigator(World &world);
 				~RRTNavigator();
-
-				Waypoints::Ptr curr_player_waypoints;
-				unsigned int added_flags;
-
+				RRTPlanner planner;
 			};
 
 			class RRTNavigatorFactory : public NavigatorFactory {
@@ -71,10 +69,6 @@ namespace AI {
 				for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 					path.clear();
 					Player::Ptr player = world.friendly_team().get(i);
-
-					curr_player_waypoints = Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)]);
-
-					added_flags = 0;
 					Point dest;
 					double dest_orientation;
 					if (player->type() == MOVE_CATCH) {
@@ -129,7 +123,7 @@ namespace AI {
 
 					// calculate a path
 					path_points.clear();
-					path_points = rrt_plan(player, dest);
+					path_points = planner.plan(player, dest);
 
 					double dist = 0.0;
 					working_time = world.monotonic_time();
@@ -172,7 +166,7 @@ namespace AI {
 				return p;
 			}
 
-			RRTNavigator::RRTNavigator(World &world) : RRTBase(world) {
+			RRTNavigator::RRTNavigator(AI::Nav::W::World &world) : Navigator(world), planner(world) {
 			}
 
 			RRTNavigator::~RRTNavigator() {
