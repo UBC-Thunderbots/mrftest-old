@@ -56,8 +56,9 @@ namespace {
 			Gtk::Widget *ui_controls() {
 				return &text_view;
 			}
-			/*
+			
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
+				return;
 				if (world.playtype() == PlayType::STOP) {
 					ctx->set_source_rgb(1.0, 0.5, 0.5);
 					ctx->arc(world.ball().position().x, world.ball().position().y, 0.5, 0.0, 2 * M_PI);
@@ -73,7 +74,7 @@ namespace {
 					}
 				}
 			}
-			*/
+			
 		protected:
 			Gtk::TextView text_view;
 	};

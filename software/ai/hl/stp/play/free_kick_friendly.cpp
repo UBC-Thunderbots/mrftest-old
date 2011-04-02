@@ -50,7 +50,7 @@ namespace {
 	}
 
 	bool FreeKickFriendly::invariant() const {
-		return (Predicates::playtype(world, PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 1);
+		return (Predicates::playtype(world, PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 3);
 	}
 
 	bool FreeKickFriendly::applicable() const {
