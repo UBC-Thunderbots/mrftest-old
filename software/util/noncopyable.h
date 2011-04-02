@@ -9,19 +9,17 @@ class NonCopyable {
 		/**
 		 * Noncopyable objects can still be constructed.
 		 */
-		NonCopyable() {
-		}
+		NonCopyable() = default;
 
-	private:
 		/**
 		 * Prevents objects from being copied.
 		 */
-		NonCopyable(const NonCopyable &);
+		NonCopyable(const NonCopyable &) = delete;
 
 		/**
 		 * Prevents objects from being assigned to one another.
 		 */
-		NonCopyable &operator=(const NonCopyable &);
+		NonCopyable &operator=(const NonCopyable &) = delete;
 };
 
 #endif
