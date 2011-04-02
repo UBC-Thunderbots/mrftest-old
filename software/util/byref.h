@@ -150,6 +150,15 @@ template<typename T> class RefPtr {
 		}
 
 		/**
+		 * Moves a RefPtr.
+		 *
+		 * \param[in] moveref the RefPtr to move.
+		 */
+		RefPtr(RefPtr<T> &&moveref) : obj(moveref.obj) {
+			moveref.obj = 0;
+		}
+
+		/**
 		 * Converts a RefPtr pointing to a derived type into a RefPtr pointing to a base type.
 		 *
 		 * \tparam U the derived type.
