@@ -183,9 +183,11 @@ class LibUSBTransfer : public AsyncOperation<void> {
 		bool submitted_, done_, repeats_;
 		Ptr submitted_self_ref;
 		unsigned int stall_count, stall_max;
+		bool needs_zlp, zlp_submitted;
+		int orig_length;
 
 		static void trampoline(libusb_transfer *transfer);
-		LibUSBTransfer(unsigned int stall_max);
+		LibUSBTransfer(unsigned int stall_max, bool needs_zlp);
 		~LibUSBTransfer();
 		void callback();
 };
@@ -241,13 +243,13 @@ class LibUSBInterruptOutTransfer : public LibUSBTransfer {
 	public:
 		typedef RefPtr<LibUSBInterruptOutTransfer> Ptr;
 
-		static Ptr create(LibUSBDeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout, unsigned int stall_max);
+		static Ptr create(LibUSBDeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout, unsigned int stall_max, unsigned int ep_max_packet);
 
 	protected:
 		~LibUSBInterruptOutTransfer();
 
 	private:
-		LibUSBInterruptOutTransfer(LibUSBDeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout, unsigned int stall_max);
+		LibUSBInterruptOutTransfer(LibUSBDeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout, unsigned int stall_max, unsigned int ep_max_packet);
 };
 
 #endif

@@ -35,6 +35,8 @@ static QUEUE_TYPE(message_out_packet_t) ready_packets;
 static volatile BOOL transaction_running;
 
 static void submit_sie_packet(void) {
+	uint8_t sz;
+
 	/* If there are no free BDs, do nothing. */
 	if (!USB_BD_OUT_HAS_FREE(EP_MESSAGE)) {
 		return;
@@ -44,39 +46,49 @@ static void submit_sie_packet(void) {
 	if (!sie_packet) {
 		sie_packet = STACK_TOP(free_packets);
 		STACK_POP(free_packets);
+		sie_packet->length = 0;
 	}
 
 	/* Submit a packet if we have one. */
 	if (sie_packet) {
-		USB_BD_OUT_SUBMIT(EP_MESSAGE, sie_packet->buffer, sizeof(sie_packet->buffer));
+		sz = sizeof(sie_packet->buffer) - sie_packet->length;
+		if (sz > 64) {
+			sz = 64;
+		}
+		USB_BD_OUT_SUBMIT(EP_MESSAGE, sie_packet->buffer + sie_packet->length, sz);
 		transaction_running = true;
 	}
 }
 
+#include "pins.h"
 static void on_transaction(void) {
 	uint8_t robot, pipe;
 
 	/* Remember that no transaction is running right now. */
 	transaction_running = false;
 
-	if (USB_BD_OUT_RECEIVED(EP_MESSAGE)) {
-		/* Extract the header. */
-		robot = sie_packet->buffer[0] >> 4;
-		pipe = sie_packet->buffer[0] & 0x0F;
-		if (pipe > PIPE_MAX || !((1 << pipe) & PIPE_OUT_MASK & PIPE_MESSAGE_MASK)) {
-			/* Pipe is not an outbound message pipe.
-			 * Report an error and leave the packet in sie_packet to resubmit. */
-			error_reporting_add(FAULT_OUT_MICROPACKET_NOPIPE);
-		} else {
-			/* Send the current packet to the ready queue. */
-			sie_packet->cookie = 0xFF;
-			sie_packet->length = USB_BD_OUT_RECEIVED(EP_MESSAGE);
-			QUEUE_PUSH(ready_packets, sie_packet);
-			sie_packet = 0;
-		}
+	/* Record the number of bytes received. */
+	sie_packet->length += USB_BD_OUT_RECEIVED(EP_MESSAGE);
+
+	if (USB_BD_OUT_RECEIVED(EP_MESSAGE) == 64) {
+		/* Full-length transaction means more transactions are needed. */
+		submit_sie_packet();
+		return;
+	}
+
+	/* Extract the header. */
+	robot = sie_packet->buffer[0] >> 4;
+	pipe = sie_packet->buffer[0] & 0x0F;
+	if (pipe > PIPE_MAX || !((1 << pipe) & PIPE_OUT_MASK & PIPE_MESSAGE_MASK)) {
+		/* Pipe is not an outbound message pipe.
+		 * Report an error and leave the packet in sie_packet to resubmit. */
+		error_reporting_add(FAULT_OUT_MICROPACKET_NOPIPE);
+		sie_packet->length = 0;
 	} else {
-		/* Zero-length packets are meaningless.
-		 * Leave the packet in sie_packet to resubmit. */
+		/* Send the current packet to the ready queue. */
+		sie_packet->cookie = 0xFF;
+		QUEUE_PUSH(ready_packets, sie_packet);
+		sie_packet = 0;
 	}
 
 	/* Submit another packet to the SIE. */

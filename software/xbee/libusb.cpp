@@ -290,7 +290,7 @@ void LibUSBTransfer::trampoline(libusb_transfer *transfer) {
 	Glib::signal_idle().connect_once(sigc::mem_fun(ptr, &LibUSBTransfer::callback));
 }
 
-LibUSBTransfer::LibUSBTransfer(unsigned int stall_max) : transfer(libusb_alloc_transfer(0)), submitted_(false), done_(false), repeats_(false), stall_count(0), stall_max(stall_max) {
+LibUSBTransfer::LibUSBTransfer(unsigned int stall_max, bool needs_zlp) : transfer(libusb_alloc_transfer(0)), submitted_(false), done_(false), repeats_(false), stall_count(0), stall_max(stall_max), needs_zlp(needs_zlp), zlp_submitted(false) {
 }
 
 LibUSBTransfer::~LibUSBTransfer() {
@@ -305,6 +305,16 @@ void LibUSBTransfer::callback() {
 		return;
 	} else if (transfer->status != LIBUSB_TRANSFER_STALL) {
 		stall_count = 0;
+	}
+	if (zlp_submitted) {
+		transfer->length = orig_length;
+		zlp_submitted = false;
+	} else if (needs_zlp) {
+		orig_length = transfer->length;
+		transfer->length = 0;
+		check_fn("libusb_submit_transfer", libusb_submit_transfer(transfer));
+		zlp_submitted = true;
+		return;
 	}
 	done_ = true;
 	submitted_ = false;
@@ -324,7 +334,7 @@ LibUSBControlNoDataTransfer::Ptr LibUSBControlNoDataTransfer::create(LibUSBDevic
 LibUSBControlNoDataTransfer::~LibUSBControlNoDataTransfer() {
 }
 
-LibUSBControlNoDataTransfer::LibUSBControlNoDataTransfer(LibUSBDeviceHandle &dev, uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout, unsigned int stall_max) : LibUSBTransfer(stall_max) {
+LibUSBControlNoDataTransfer::LibUSBControlNoDataTransfer(LibUSBDeviceHandle &dev, uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout, unsigned int stall_max) : LibUSBTransfer(stall_max, false) {
 	libusb_fill_control_setup(buffer, request_type, request, value, index, 0);
 	libusb_fill_control_transfer(transfer, dev.handle, buffer, &LibUSBTransfer::trampoline, this, timeout);
 }
@@ -337,7 +347,7 @@ LibUSBInterruptInTransfer::Ptr LibUSBInterruptInTransfer::create(LibUSBDeviceHan
 LibUSBInterruptInTransfer::~LibUSBInterruptInTransfer() {
 }
 
-LibUSBInterruptInTransfer::LibUSBInterruptInTransfer(LibUSBDeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout, unsigned int stall_max) : LibUSBTransfer(stall_max) {
+LibUSBInterruptInTransfer::LibUSBInterruptInTransfer(LibUSBDeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout, unsigned int stall_max) : LibUSBTransfer(stall_max, false) {
 	libusb_fill_interrupt_transfer(transfer, dev.handle, endpoint | 0x80, static_cast<unsigned char *>(std::malloc(len)), static_cast<int>(len), &LibUSBTransfer::trampoline, this, timeout);
 	transfer->flags |= LIBUSB_TRANSFER_FREE_BUFFER;
 	if (exact_len) {
@@ -345,15 +355,16 @@ LibUSBInterruptInTransfer::LibUSBInterruptInTransfer(LibUSBDeviceHandle &dev, un
 	}
 }
 
-LibUSBInterruptOutTransfer::Ptr LibUSBInterruptOutTransfer::create(LibUSBDeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout, unsigned int stall_max) {
-	Ptr p(new LibUSBInterruptOutTransfer(dev, endpoint, data, len, timeout, stall_max));
+LibUSBInterruptOutTransfer::Ptr LibUSBInterruptOutTransfer::create(LibUSBDeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout, unsigned int stall_max, unsigned int ep_max_packet) {
+	Ptr p(new LibUSBInterruptOutTransfer(dev, endpoint, data, len, timeout, stall_max, ep_max_packet));
 	return p;
 }
 
 LibUSBInterruptOutTransfer::~LibUSBInterruptOutTransfer() {
 }
 
-LibUSBInterruptOutTransfer::LibUSBInterruptOutTransfer(LibUSBDeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout, unsigned int stall_max) : LibUSBTransfer(stall_max) {
+#warning the max packet size BS should go away when libusb.org/ticket/6 gets fixed, just use the flag instead
+LibUSBInterruptOutTransfer::LibUSBInterruptOutTransfer(LibUSBDeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout, unsigned int stall_max, unsigned int ep_max_packet) : LibUSBTransfer(stall_max, ep_max_packet && !(len % ep_max_packet)) {
 	libusb_fill_interrupt_transfer(transfer, dev.handle, endpoint & 0x7F, static_cast<unsigned char *>(std::malloc(len)), static_cast<int>(len), &LibUSBTransfer::trampoline, this, timeout);
 	std::memcpy(transfer->buffer, data, len);
 	transfer->flags |= LIBUSB_TRANSFER_FREE_BUFFER;

@@ -6,6 +6,8 @@
 #warning Doxygen
 
 namespace {
+	const unsigned MESSAGE_EP_MAX_PACKET = 64;
+
 	enum TBotsFirmwareRequest {
 		FIRMWARE_REQUEST_CHIP_ERASE,
 		FIRMWARE_REQUEST_FILL_PAGE_BUFFER,
@@ -41,11 +43,11 @@ namespace {
 
 			FirmwareSPIChipEraseOperation(XBeeDongle &dongle, unsigned int robot) : dongle(dongle), robot(robot), self_ref(this) {
 				const uint8_t data[] = { static_cast<uint8_t>((robot << 4) | XBeeDongle::PIPE_FIRMWARE_OUT), FIRMWARE_REQUEST_CHIP_ERASE };
-				send_connection = dongle.send_bulk(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareSPIChipEraseOperation::on_send_bulk_done));
+				send_connection = dongle.send_message(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareSPIChipEraseOperation::on_send_message_done));
 				receive_connection = dongle.signal_interrupt_message_received.connect(sigc::mem_fun(this, &FirmwareSPIChipEraseOperation::on_interrupt_message_received));
 			}
 
-			void on_send_bulk_done(AsyncOperation<void>::Ptr op) {
+			void on_send_message_done(AsyncOperation<void>::Ptr op) {
 				if (!op->succeeded()) {
 					receive_connection.disconnect();
 					failed_operation = op;
@@ -97,10 +99,10 @@ namespace {
 				buffer[1] = FIRMWARE_REQUEST_FILL_PAGE_BUFFER;
 				buffer[2] = static_cast<uint8_t>(offset);
 				std::memcpy(buffer + 3, data, length);
-				dongle.send_bulk(buffer, sizeof(buffer))->signal_done.connect(sigc::mem_fun(this, &FirmwareSPIFillPageBufferOperation::on_send_bulk_done));
+				dongle.send_message(buffer, sizeof(buffer))->signal_done.connect(sigc::mem_fun(this, &FirmwareSPIFillPageBufferOperation::on_send_message_done));
 			}
 
-			void on_send_bulk_done(AsyncOperation<void>::Ptr op) {
+			void on_send_message_done(AsyncOperation<void>::Ptr op) {
 				if (!op->succeeded()) {
 					failed_operation = op;
 				}
@@ -137,11 +139,11 @@ namespace {
 				buffer[3] = static_cast<uint8_t>(page >> 8);
 				buffer[4] = static_cast<uint8_t>(crc);
 				buffer[5] = static_cast<uint8_t>(crc >> 8);
-				send_connection = dongle.send_bulk(buffer, sizeof(buffer))->signal_done.connect(sigc::mem_fun(this, &FirmwareSPIPageProgramOperation::on_send_bulk_done));
+				send_connection = dongle.send_message(buffer, sizeof(buffer))->signal_done.connect(sigc::mem_fun(this, &FirmwareSPIPageProgramOperation::on_send_message_done));
 				receive_connection = dongle.signal_interrupt_message_received.connect(sigc::mem_fun(this, &FirmwareSPIPageProgramOperation::on_interrupt_message_received));
 			}
 
-			void on_send_bulk_done(AsyncOperation<void>::Ptr op) {
+			void on_send_message_done(AsyncOperation<void>::Ptr op) {
 				if (!op->succeeded()) {
 					receive_connection.disconnect();
 					failed_operation = op;
@@ -200,11 +202,11 @@ namespace {
 				data[4] = static_cast<uint8_t>(address >> 16);
 				data[5] = static_cast<uint8_t>(length);
 				data[6] = static_cast<uint8_t>(length >> 8);
-				send_connection = dongle.send_bulk(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareSPIBlockCRCOperation::on_send_bulk_done));
+				send_connection = dongle.send_message(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareSPIBlockCRCOperation::on_send_message_done));
 				receive_connection = dongle.signal_interrupt_message_received.connect(sigc::mem_fun(this, &FirmwareSPIBlockCRCOperation::on_interrupt_message_received));
 			}
 
-			void on_send_bulk_done(AsyncOperation<void>::Ptr op) {
+			void on_send_message_done(AsyncOperation<void>::Ptr op) {
 				if (!op->succeeded()) {
 					receive_connection.disconnect();
 					failed_operation = op;
@@ -257,11 +259,11 @@ namespace {
 				uint8_t data[2];
 				data[0] = static_cast<uint8_t>((robot << 4) | XBeeDongle::PIPE_FIRMWARE_OUT);
 				data[1] = FIRMWARE_REQUEST_READ_PARAMS;
-				send_connection = dongle.send_bulk(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareReadOperationalParametersOperation::on_send_bulk_done));
+				send_connection = dongle.send_message(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareReadOperationalParametersOperation::on_send_message_done));
 				receive_connection = dongle.signal_interrupt_message_received.connect(sigc::mem_fun(this, &FirmwareReadOperationalParametersOperation::on_interrupt_message_received));
 			}
 
-			void on_send_bulk_done(AsyncOperation<void>::Ptr op) {
+			void on_send_message_done(AsyncOperation<void>::Ptr op) {
 				if (!op->succeeded()) {
 					receive_connection.disconnect();
 					failed_operation = op;
@@ -325,11 +327,11 @@ namespace {
 				data[5] = params.robot_number;
 				data[6] = params.dribble_power;
 				data[7] = 0;
-				send_connection = dongle.send_bulk(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareSetOperationalParametersOperation::on_send_bulk_done));
+				send_connection = dongle.send_message(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareSetOperationalParametersOperation::on_send_message_done));
 				receive_connection = dongle.signal_interrupt_message_received.connect(sigc::mem_fun(this, &FirmwareSetOperationalParametersOperation::on_interrupt_message_received));
 			}
 
-			void on_send_bulk_done(AsyncOperation<void>::Ptr op) {
+			void on_send_message_done(AsyncOperation<void>::Ptr op) {
 				if (!op->succeeded()) {
 					receive_connection.disconnect();
 					failed_operation = op;
@@ -380,11 +382,11 @@ namespace {
 				uint8_t data[2];
 				data[0] = static_cast<uint8_t>((robot << 4) | XBeeDongle::PIPE_FIRMWARE_OUT);
 				data[1] = FIRMWARE_REQUEST_COMMIT_PARAMS;
-				send_connection = dongle.send_bulk(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareCommitOperationalParametersOperation::on_send_bulk_done));
+				send_connection = dongle.send_message(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareCommitOperationalParametersOperation::on_send_message_done));
 				receive_connection = dongle.signal_interrupt_message_received.connect(sigc::mem_fun(this, &FirmwareCommitOperationalParametersOperation::on_interrupt_message_received));
 			}
 
-			void on_send_bulk_done(AsyncOperation<void>::Ptr op) {
+			void on_send_message_done(AsyncOperation<void>::Ptr op) {
 				if (!op->succeeded()) {
 					receive_connection.disconnect();
 					failed_operation = op;
@@ -435,11 +437,11 @@ namespace {
 				uint8_t data[2];
 				data[0] = static_cast<uint8_t>((robot << 4) | XBeeDongle::PIPE_FIRMWARE_OUT);
 				data[1] = FIRMWARE_REQUEST_REBOOT;
-				send_connection = dongle.send_bulk(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareRebootOperation::on_send_bulk_done));
+				send_connection = dongle.send_message(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareRebootOperation::on_send_message_done));
 				receive_connection = dongle.signal_interrupt_message_received.connect(sigc::mem_fun(this, &FirmwareRebootOperation::on_interrupt_message_received));
 			}
 
-			void on_send_bulk_done(AsyncOperation<void>::Ptr op) {
+			void on_send_message_done(AsyncOperation<void>::Ptr op) {
 				if (!op->succeeded()) {
 					receive_connection.disconnect();
 					failed_operation = op;
@@ -491,11 +493,11 @@ namespace {
 				uint8_t data[2];
 				data[0] = static_cast<uint8_t>((robot << 4) | XBeeDongle::PIPE_FIRMWARE_OUT);
 				data[1] = FIRMWARE_REQUEST_READ_BUILD_SIGNATURES;
-				send_connection = dongle.send_bulk(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareReadBuildSignaturesOperation::on_send_bulk_done));
+				send_connection = dongle.send_message(data, sizeof(data))->signal_done.connect(sigc::mem_fun(this, &FirmwareReadBuildSignaturesOperation::on_send_message_done));
 				receive_connection = dongle.signal_interrupt_message_received.connect(sigc::mem_fun(this, &FirmwareReadBuildSignaturesOperation::on_interrupt_message_received));
 			}
 
-			void on_send_bulk_done(AsyncOperation<void>::Ptr op) {
+			void on_send_message_done(AsyncOperation<void>::Ptr op) {
 				if (!op->succeeded()) {
 					receive_connection.disconnect();
 					failed_operation = op;
@@ -689,7 +691,7 @@ void XBeeRobot::kick(unsigned int pulse_width1, unsigned int pulse_width2, int o
 	buffer[3] = static_cast<uint8_t>((ignore_slice2 ? 0x80 : 0x00) | (pulse_width2 / 32));
 	buffer[4] = static_cast<uint8_t>(slice_width / 32);
 
-	LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(dongle.device, XBeeDongle::EP_MESSAGE, buffer, sizeof(buffer), 0, 5);
+	LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(dongle.device, XBeeDongle::EP_MESSAGE, buffer, sizeof(buffer), 0, 5, MESSAGE_EP_MAX_PACKET);
 	transfer->signal_done.connect(&discard_result);
 	transfer->submit();
 }

@@ -46,6 +46,8 @@ namespace {
 namespace {
 	const unsigned int STALL_LIMIT = 100;
 
+	const unsigned MESSAGE_EP_MAX_PACKET = 64;
+
 	template<typename T> struct FaultMessageInfo {
 		T code;
 		const char *message;
@@ -410,9 +412,8 @@ AsyncOperation<void>::Ptr XBeeDongle::enable() {
 	return p;
 }
 
-#warning function is badly named
-AsyncOperation<void>::Ptr XBeeDongle::send_bulk(const void *data, std::size_t length) {
-	LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_MESSAGE, data, length, 0, STALL_LIMIT);
+AsyncOperation<void>::Ptr XBeeDongle::send_message(const void *data, std::size_t length) {
+	LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_MESSAGE, data, length, 0, STALL_LIMIT, MESSAGE_EP_MAX_PACKET);
 	transfer->submit();
 	return transfer;
 }
@@ -494,7 +495,7 @@ void XBeeDongle::on_debug(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::
 }
 
 void XBeeDongle::on_stamp() {
-	LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_STATE_TRANSPORT, 0, 0, 0, STALL_LIMIT);
+	LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_STATE_TRANSPORT, 0, 0, 0, STALL_LIMIT, 0);
 	transfer->signal_done.connect(&discard_result);
 	transfer->submit();
 }
@@ -521,7 +522,7 @@ void XBeeDongle::flush_drive() {
 			++wptr;
 
 			if (wptr == sizeof(buffer) / sizeof(*buffer)) {
-				LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_STATE_TRANSPORT, buffer, wptr * packet_size, 0, STALL_LIMIT);
+				LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_STATE_TRANSPORT, buffer, wptr * packet_size, 0, STALL_LIMIT, 0);
 				transfer->signal_done.connect(&discard_result);
 				transfer->submit();
 				wptr = 0;
@@ -530,7 +531,7 @@ void XBeeDongle::flush_drive() {
 	}
 
 	if (wptr) {
-		LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_STATE_TRANSPORT, buffer, wptr * packet_size, 0, STALL_LIMIT);
+		LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_STATE_TRANSPORT, buffer, wptr * packet_size, 0, STALL_LIMIT, 0);
 		transfer->signal_done.connect(&discard_result);
 		transfer->submit();
 	}

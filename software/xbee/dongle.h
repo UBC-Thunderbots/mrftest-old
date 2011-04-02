@@ -348,13 +348,13 @@ class XBeeDongle : public NonCopyable {
 		AsyncOperation<void>::Ptr enable();
 
 		/**
-		 * \brief Queues a bulk message for transmission.
+		 * \brief Queues a message for transmission.
 		 *
 		 * \param[in] data the data to send, which must include the header.
 		 *
 		 * \param[in] len the length of the data, including the header.
 		 */
-		AsyncOperation<void>::Ptr send_bulk(const void *data, std::size_t len);
+		AsyncOperation<void>::Ptr send_message(const void *data, std::size_t len);
 
 		/**
 		 * \brief Fetches an individual robot proxy.

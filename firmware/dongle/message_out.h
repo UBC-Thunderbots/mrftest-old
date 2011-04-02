@@ -38,7 +38,7 @@ typedef struct message_out_packet {
 	/**
 	 * \brief The packet data.
 	 */
-	uint8_t buffer[64];
+	uint8_t buffer[99];
 } message_out_packet_t;
 
 QUEUE_DEFINE_TYPE(message_out_packet_t);
