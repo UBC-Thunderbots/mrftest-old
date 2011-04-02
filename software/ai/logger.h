@@ -80,6 +80,7 @@ namespace AI {
 			void on_vision_packet(const void *vision_packet, std::size_t vision_length);
 			void on_refbox_packet(const void *refbox_packet, std::size_t refbox_length);
 			void on_field_changed();
+			void on_friendly_colour_changed();
 			void on_ball_filter_changed();
 			void on_robot_controller_factory_changed();
 			void on_playtype_changed();

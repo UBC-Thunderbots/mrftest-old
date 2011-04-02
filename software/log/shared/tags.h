@@ -256,6 +256,14 @@ namespace Log {
 		 * \li n bytes string name of high level implementation.
 		 */
 		T_HIGH_LEVEL,
+
+		/**
+		 * Tags a change of friendly team colour.
+		 *
+		 * Payload:
+		 * \li 1 byte 0 = yellow, 1 = blue
+		 */
+		T_FRIENDLY_COLOUR,
 	};
 
 	/**

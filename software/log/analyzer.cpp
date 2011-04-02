@@ -1,6 +1,7 @@
 #include "log/analyzer.h"
 #include "ai/flags.h"
 #include "ai/common/playtype.h"
+#include "ai/common/team.h"
 #include "log/shared/tags.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "uicomponents/abstract_list_model.h"
@@ -187,12 +188,17 @@ namespace {
 		 * The packet uses the old ASCII encoding of floating-point values.
 		 */
 		PF_OLD_DOUBLE = 0x10000,
+
+		/**
+		 * The packet contains an illegal colour value.
+		 */
+		PF_BAD_COLOUR = 0x20000,
 	};
 
 	/**
 	 * The set of packet flags that constitute errors.
 	 */
-	const unsigned int ERROR_FLAGS = PF_TRUNCATED | PF_BAD_CRC | PF_BAD_UTF8 | PF_BAD_DOUBLE | PF_BAD_NETWORK_PACKET | PF_BAD_PLAYTYPE | PF_BAD_PATTERN | PF_BAD_TIMESPEC;
+	const unsigned int ERROR_FLAGS = PF_TRUNCATED | PF_BAD_CRC | PF_BAD_UTF8 | PF_BAD_DOUBLE | PF_BAD_NETWORK_PACKET | PF_BAD_PLAYTYPE | PF_BAD_PATTERN | PF_BAD_TIMESPEC | PF_BAD_COLOUR;
 
 	/**
 	 * Converts a timespec to its string representation in either the local time zone or UTC.
@@ -1298,6 +1304,110 @@ namespace {
 				uint64_t seconds = decode_u64(&data[0]);
 				uint32_t nanos = decode_u32(&data[8]);
 				stream << seconds << '.' << todec(nanos, 9) << " (monotonic)";
+			} else {
+				stream << "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
+	 * Computes flags for a colour.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 *
+	 * \return the packet flags.
+	 */
+	unsigned int packet_generic_colour_compute_flags(const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		unsigned int flags = 0;
+
+		if (declared_length < 1) {
+			flags |= PF_SHORT;
+		} else if (declared_length > 1) {
+			flags |= PF_LONG;
+		}
+
+		if (length >= 1) {
+			if (data[0] >= 2) {
+				flags |= PF_BAD_COLOUR;
+			}
+		}
+
+		return flags;
+	}
+
+	/**
+	 * Parses a colour and produces a human-readable tree of its contents.
+	 *
+	 * \param[in] columns the column record containing the columns of the store.
+	 *
+	 * \param[in] root the tree row under which to build the element's row.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_generic_colour_build_tree(Glib::RefPtr<Gtk::TreeStore>, const PacketDecodedTreeColumns &columns, const Gtk::TreeRow &root, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 1) {
+			root[columns.value] = "<OMITTED>";
+		} else {
+			if (length >= 1) {
+				uint8_t value = decode_u8(data);
+				AI::Common::Team::Colour clr = static_cast<AI::Common::Team::Colour>(value);
+				switch (clr) {
+					case AI::Common::Team::YELLOW:
+						root[columns.value] = "Yellow";
+						break;
+
+					case AI::Common::Team::BLUE:
+						root[columns.value] = "Blue";
+						break;
+
+					default:
+						root[columns.value] = "<INVALID VALUE>";
+						break;
+				}
+			} else {
+				root[columns.value] = "<PACKET TRUNCATED>";
+			}
+		}
+	}
+
+	/**
+	 * Parses a colour and produces a TSV column of its value.
+	 *
+	 * \param[in] stream the stream to write to.
+	 *
+	 * \param[in] data this element's part of the packet payload.
+	 *
+	 * \param[in] length the length of the payload data.
+	 *
+	 * \param[in] declared_length the part of the length declared in the header that would belong to this element
+	 * (which will be greater than \p length for some suffix of the elements of a truncated packet).
+	 */
+	void packet_generic_colour_write_to_tsv(std::ostream &stream, const uint8_t *data, std::size_t length, std::size_t declared_length) {
+		if (declared_length < 1) {
+			stream << "<OMITTED>";
+		} else {
+			if (length >= 1) {
+				uint8_t value = decode_u8(data);
+				AI::Common::Team::Colour clr = static_cast<AI::Common::Team::Colour>(value);
+				switch (clr) {
+					case AI::Common::Team::YELLOW:
+						stream << "Yellow";
+						break;
+
+					case AI::Common::Team::BLUE:
+						stream << "Blue";
+						break;
+
+					default:
+						stream << "<INVALID VALUE>";
+						break;
+				}
 			} else {
 				stream << "<PACKET TRUNCATED>";
 			}
@@ -2669,6 +2779,7 @@ namespace {
 	DEFINE_ELTYPE(packet_generic_utf8, 0);
 	DEFINE_ELTYPE(packet_generic_timespec_monotonic, 12);
 	DEFINE_ELTYPE(packet_generic_timespec_rt, 12);
+	DEFINE_ELTYPE(packet_generic_colour, 1);
 	DEFINE_ELTYPE(packet_debug_log_level, 1);
 	DEFINE_ELTYPE(packet_refbox_command, 1);
 	DEFINE_ELTYPE(packet_playtype, 1);
@@ -2800,7 +2911,7 @@ namespace {
 	const SequencePacketParser packet_field_parser(Log::T_FIELD, "Field Geometry", packet_field_elements, G_N_ELEMENTS(packet_field_elements));
 
 	/**
-	 * The sequence of elements in a Log::T_BALL_FILTER, Log::T_COACH, Log::T_STRATEGY, or Log::T_ROBOT_CONTROLLER.
+	 * The sequence of elements in a Log::T_BALL_FILTER, Log::T_COACH, Log::T_STRATEGY, Log::T_ROBOT_CONTROLLER, Log::T_BACKEND, or Log::T_HIGH_LEVEL.
 	 */
 	const SequencePacketParser::Element packet_bfcsrc_elements[] = {
 		{ "Name", &packet_generic_utf8 },
@@ -2950,16 +3061,9 @@ namespace {
 	const SequencePacketParser packet_ai_tick_parser(Log::T_AI_TICK, "End of Tick", packet_ai_tick_elements, G_N_ELEMENTS(packet_ai_tick_elements));
 
 	/**
-	 * The sequence of elements in a Log::T_BACKEND.
-	 */
-	const SequencePacketParser::Element packet_backend_elements[] = {
-		{ "Name", &packet_generic_utf8 },
-	};
-
-	/**
 	 * A parser for a Log::T_BACKEND.
 	 */
-	const SequencePacketParser packet_backend_parser(Log::T_BACKEND, "Backend", packet_backend_elements, G_N_ELEMENTS(packet_backend_elements));
+	const SequencePacketParser packet_backend_parser(Log::T_BACKEND, "Backend", packet_bfcsrc_elements, G_N_ELEMENTS(packet_bfcsrc_elements));
 
 	/**
 	 * The sequence of elements in a Log::T_DOUBLE_PARAM.
@@ -2978,6 +3082,18 @@ namespace {
 	 * A parser for a Log::T_HIGH_LEVEL.
 	 */
 	const SequencePacketParser packet_high_level_parser(Log::T_HIGH_LEVEL, "High Level Changed", packet_bfcsrc_elements, G_N_ELEMENTS(packet_bfcsrc_elements));
+
+	/**
+	 * The sequence of elements in a Log::T_FRIENDLY_COLOUR.
+	 */
+	const SequencePacketParser::Element packet_friendly_colour_elements[] = {
+		{ "Colour", &packet_generic_colour },
+	};
+
+	/**
+	 * A parser for a Log::T_FRIENDLY_COLOUR.
+	 */
+	const SequencePacketParser packet_friendly_colour_parser(Log::T_FRIENDLY_COLOUR, "Friendly Colour Changed", packet_friendly_colour_elements, G_N_ELEMENTS(packet_friendly_colour_elements));
 
 	/**
 	 * The set of all packet parsers.
@@ -3007,6 +3123,7 @@ namespace {
 		&packet_backend_parser,
 		&packet_double_param_parser,
 		&packet_high_level_parser,
+		&packet_friendly_colour_parser,
 	};
 
 	class PacketInfo {

@@ -146,6 +146,8 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), ended(f
 	ai.backend.signal_vision().connect(sigc::mem_fun(this, &AI::Logger::on_vision_packet));
 	ai.backend.signal_refbox().connect(sigc::mem_fun(this, &AI::Logger::on_refbox_packet));
 	ai.backend.field().signal_changed.connect(sigc::mem_fun(this, &AI::Logger::on_field_changed));
+	ai.backend.friendly_colour().signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_friendly_colour_changed));
+	on_friendly_colour_changed();
 	ai.backend.ball_filter().signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_ball_filter_changed));
 	on_ball_filter_changed();
 	ai.robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &AI::Logger::on_robot_controller_factory_changed));
@@ -307,6 +309,11 @@ void AI::Logger::on_field_changed() {
 	encode_u32(&packet[24], encode_micros(field.defense_area_radius()));
 	encode_u32(&packet[28], encode_micros(field.defense_area_stretch()));
 	write_packet(fd, Log::T_FIELD, packet, sizeof(packet));
+}
+
+void AI::Logger::on_friendly_colour_changed() {
+	uint8_t colour = ai.backend.friendly_colour();
+	write_packet(fd, Log::T_FRIENDLY_COLOUR, &colour, sizeof(colour));
 }
 
 void AI::Logger::on_ball_filter_changed() {
