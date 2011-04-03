@@ -47,19 +47,6 @@ template<typename T> class AsyncOperation : public ByRef {
 				return false;
 			}
 		}
-
-	protected:
-		/**
-		 * \brief Constructs a new AsyncOperation.
-		 */
-		AsyncOperation() {
-		}
-
-		/**
-		 * \brief Destroys an AsyncOperation.
-		 */
-		~AsyncOperation() {
-		}
 };
 
 #endif
