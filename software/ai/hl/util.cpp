@@ -13,7 +13,7 @@ namespace {
 }
 
 #warning hardware depending parameters should move somewhere else
-DoubleParam AI::HL::Util::shoot_accuracy("Shooting Accuracy General (degrees)", 5.0, 0.1, 10.0);
+DoubleParam AI::HL::Util::shoot_accuracy("Shooting Accuracy General (degrees)", 5.0, 0.1, 180.0);
 
 DoubleParam AI::HL::Util::dribble_timeout("if dribble > this time, force shoot (sec)", 2.0, 0.0, 20.0);
 

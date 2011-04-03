@@ -11,6 +11,8 @@
 <bool-param name="navigator: avoid Friendly Near Ball">true</bool-param>
 <bool-param name="PID2: flip trans/ang slowdown">false</bool-param>
 <bool-param name="PID2: Slow if translating">true</bool-param>
+<bool-param name="PID3: flip trans/ang slowdown">false</bool-param>
+<bool-param name="PID3: Slow if translating">true</bool-param>
 <bool-param name="posses ball is has ball">true</bool-param>
 <bool-param name="posses_ball: is has ball">false</bool-param>
 <bool-param name="Test strategy catch ball">true</bool-param>
@@ -53,6 +55,7 @@
 <double-param name="kickoff: angle to separate players (degrees)">40</double-param>
 <double-param name="Lone Goalie: distance to goal post (m)">0.3</double-param>
 <double-param name="Lone goalie distance to goal post (m)">0.2</double-param>
+<double-param name="Loop Delay">0</double-param>
 <double-param name="max goalie dist from goal (robot radius)">3</double-param>
 <double-param name="navigator: avoid factor const">1.1</double-param>
 <double-param name="navigator: avoid factor mult">0.01</double-param>
@@ -67,6 +70,15 @@
 <double-param name="PID2: prop">20</double-param>
 <double-param name="PID2: slowdown (CARE)">1.5</double-param>
 <double-param name="PID2: xy ratio">0.81</double-param>
+<double-param name="PID3: angle diff">2</double-param>
+<double-param name="PID3: angle prop">18</double-param>
+<double-param name="PID3: angle thresh">12</double-param>
+<double-param name="PID3: diff">4</double-param>
+<double-param name="PID3: max acc">3</double-param>
+<double-param name="PID3: max vel">6</double-param>
+<double-param name="PID3: prop">20</double-param>
+<double-param name="PID3: slowdown (CARE)">1.5</double-param>
+<double-param name="PID3: xy ratio">0.81</double-param>
 <double-param name="Pivot  amount of ball overshoot for a pivot">0</double-param>
 <double-param name="Pivot how far behind the ball to go for a pivot">0.08</double-param>
 <double-param name="Pivot how far behing the ball to go for a pivot">0.08</double-param>
@@ -81,9 +93,9 @@
 <double-param name="Pivot the amount of erroneous angle acceptable for pivoting">4</double-param>
 <double-param name="Pivot the amount of erronous angle acceptable for pivoting ">8</double-param>
 <double-param name="play: time we can get ready (sec)">3</double-param>
-<double-param name="RRT Pivot: offset angle (degrees)">30</double-param>
-<double-param name="RRT Pivot: offset distance">0.25</double-param>
-<double-param name="RRT Pivot: orientation offset (degrees)">30</double-param>
+<double-param name="RRT Pivot: offset angle (degrees)">40</double-param>
+<double-param name="RRT Pivot: offset distance">0</double-param>
+<double-param name="RRT Pivot: orientation offset (degrees)">0</double-param>
 <double-param name="Shooting Accuracy General (degrees)">10</double-param>
 <double-param name="shrink robot radius">1.1</double-param>
 <double-param name="stop: angle to separate players (degrees)">20</double-param>
