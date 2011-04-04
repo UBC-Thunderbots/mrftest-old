@@ -276,8 +276,7 @@ class ByRef : public NonCopyable {
 		 * which ensures that when a reference-counted object loses its last pointer,
 		 * the <code>delete this</code> in unreference() invokes the correct destructor.
 		 */
-		virtual ~ByRef() {
-		}
+		virtual ~ByRef();
 
 	private:
 		/**
@@ -303,6 +302,8 @@ class ByRef : public NonCopyable {
 
 		template<typename T> friend class RefPtr;
 };
+
+inline ByRef::~ByRef() = default;
 
 #endif
 
