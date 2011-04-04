@@ -181,13 +181,12 @@ template<typename T> class RefPtr {
 		/**
 		 * Assigns a new RefPtr to this RefPtr.
 		 *
-		 * \param[in] assgref the RefPtr to assign.
+		 * \param[in] assg the RefPtr to assign.
 		 *
 		 * \return this RefPtr.
 		 */
-		RefPtr &operator=(const RefPtr<T> &assgref) {
-			RefPtr<T> temp(assgref);
-			swap(temp);
+		RefPtr &operator=(RefPtr<T> assg) {
+			swap(assg);
 			return *this;
 		}
 
