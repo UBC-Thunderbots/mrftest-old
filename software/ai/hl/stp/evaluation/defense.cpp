@@ -15,7 +15,7 @@ namespace {
 
 	DoubleParam robot_shrink("(defense) shrink robot radius", 1.1, 0.1, 2.0);
 
-	const int MAX_DEFENDERS = 2;
+	const unsigned int MAX_DEFENDERS = 2;
 
 	/**
 	 * ssshh... global state

@@ -41,8 +41,7 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const un
 	return AI::HL::STP::Action::shoot(world, player, target.first, flags);
 }
 
-// TODO: removed unused parameters
-bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Point target, const unsigned int flags, const bool force) {
+bool AI::HL::STP::Action::shoot(const World &, Player::Ptr player, const Point target, const unsigned int flags, const bool) {
 	const double ori_target = (target - player->position()).orientation();
 
 	if (!player->has_ball()) {
