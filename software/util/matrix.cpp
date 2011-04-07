@@ -1,12 +1,10 @@
+#include "util/matrix.h"
 #include <cassert>
 #include <sstream>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_linalg.h>
+#include <gsl/gsl_matrix.h>
 #include <gsl/gsl_permutation.h>
-#include "util/matrix.h"
-
-Matrix::Matrix() : m(0) {
-}
 
 Matrix::Matrix(std::size_t num_rows, std::size_t num_cols, const double *data) {
 	if (num_rows && num_cols) {
@@ -92,92 +90,50 @@ void Matrix::invert() {
 	}
 }
 
-void Matrix::swap(Matrix &b) {
-	std::swap(m, b.m);
-}
-
 std::string Matrix::str() const {
 	std::ostringstream oss;
 	oss << *this;
 	return oss.str();
 }
 
-Matrix &Matrix::operator+=(const Matrix &b) {
-	assert(rows() == b.rows() && cols() == b.cols());
-	if (m) {
-		gsl_matrix_add(m, b.m);
+Matrix &operator+=(Matrix &a, const Matrix &b) {
+	assert(a.rows() == b.rows() && a.cols() == b.cols());
+	if (a.m) {
+		gsl_matrix_add(a.m, b.m);
 	}
-	return *this;
+	return a;
 }
 
-Matrix Matrix::operator+(const Matrix &b) const {
-	assert(rows() == b.rows() && cols() == b.cols());
-	Matrix sum(*this);
-	sum += b;
-	return sum;
-}
-
-Matrix &Matrix::operator-=(const Matrix &b) {
-	assert(rows() == b.rows() && cols() == b.cols());
-	if (m) {
-		gsl_matrix_sub(m, b.m);
+Matrix &operator-=(Matrix &a, const Matrix &b) {
+	assert(a.rows() == b.rows() && a.cols() == b.cols());
+	if (a.m) {
+		gsl_matrix_sub(a.m, b.m);
 	}
-	return *this;
+	return a;
 }
 
-Matrix Matrix::operator-(const Matrix &b) const {
-	assert(rows() == b.rows() && cols() == b.cols());
-	Matrix diff(*this);
-	diff -= b;
-	return diff;
-}
-
-Matrix &Matrix::operator*=(double scale) {
-	if (m) {
-		gsl_matrix_scale(m, scale);
+Matrix &operator*=(Matrix &m, double scale) {
+	if (m.m) {
+		gsl_matrix_scale(m.m, scale);
 	}
-	return *this;
+	return m;
 }
 
-Matrix Matrix::operator*(double scale) const {
-	Matrix prod(*this);
-	prod *= scale;
-	return prod;
-}
-
-Matrix &Matrix::operator*=(const Matrix &b) {
-	Matrix prod = *this * b;
-	swap(prod);
-	return *this;
-}
-
-Matrix Matrix::operator*(const Matrix &b) const {
-	assert(cols() == b.rows());
-	Matrix prod(rows(), b.cols(), ZEROES); // Even if beta = 0, uninitialized memory could contain NaN which will propagate.
-	if (m) {
-		gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, m, b.m, 0.0, prod.m);
+Matrix operator*(const Matrix &a, const Matrix &b) {
+	assert(a.cols() == b.rows());
+	Matrix prod(a.rows(), b.cols(), Matrix::ZEROES); // Even if beta = 0, uninitialized memory could contain NaN which will propagate.
+	if (a.m) {
+		gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, a.m, b.m, 0.0, prod.m);
 	}
 	return prod;
 }
 
-Matrix &Matrix::operator=(const Matrix &b) {
-	Matrix temp(b);
-	swap(temp);
-	return *this;
-}
-
-Matrix Matrix::operator~() const {
-	Matrix trans(cols(), rows());
-	if (m) {
-		gsl_matrix_transpose_memcpy(trans.m, m);
+Matrix operator~(const Matrix &m) {
+	Matrix trans(m.cols(), m.rows());
+	if (m.m) {
+		gsl_matrix_transpose_memcpy(trans.m, m.m);
 	}
 	return trans;
-}
-
-Matrix Matrix::operator!() const {
-	Matrix temp(*this);
-	temp.invert();
-	return temp;
 }
 
 std::ostream &operator<<(std::ostream &stream, const Matrix &m) {
