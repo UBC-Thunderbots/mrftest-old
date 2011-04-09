@@ -2,8 +2,20 @@
 #define FW_IHEX_H
 
 #include <glibmm.h>
+#include <stdexcept>
 #include <string>
 #include <vector>
+
+/**
+ * Thrown if a HEX file is corrupt or improperly formatted in some way.
+ */
+class MalformedHexFileError : public std::runtime_error {
+	public:
+		/**
+		 * Constructs a new \c MalformedHexFileError.
+		 */
+		MalformedHexFileError();
+};
 
 /**
  * An Intel HEX file. A HEX file can contain memory for many different addresses with many different layouts.

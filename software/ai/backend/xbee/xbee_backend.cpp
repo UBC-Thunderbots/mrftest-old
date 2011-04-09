@@ -9,6 +9,7 @@
 #include "util/clocksource_timerfd.h"
 #include "util/codec.h"
 #include "util/dprint.h"
+#include "util/exception.h"
 #include "util/sockaddrs.h"
 #include "util/timestep.h"
 #include "xbee/dongle.h"
@@ -127,7 +128,7 @@ namespace {
 				vision_socket->set_blocking(false);
 				const int one = 1;
 				if (setsockopt(vision_socket->fd(), SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
-					throw std::runtime_error("Cannot set SO_REUSEADDR.");
+					throw SystemError("setsockopt(SO_REUSEADDR)", errno);
 				}
 				SockAddrs sa;
 				sa.in.sin_family = AF_INET;
@@ -135,7 +136,7 @@ namespace {
 				encode_u16(&sa.in.sin_port, 10002);
 				std::memset(sa.in.sin_zero, 0, sizeof(sa.in.sin_zero));
 				if (bind(vision_socket->fd(), &sa.sa, sizeof(sa.in)) < 0) {
-					throw std::runtime_error("Cannot bind to port 10002 for vision data.");
+					throw SystemError("bind(:10002)", errno);
 				}
 				ip_mreqn mcreq;
 				mcreq.imr_multiaddr.s_addr = inet_addr("224.5.23.2");

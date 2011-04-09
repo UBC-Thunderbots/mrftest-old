@@ -2,23 +2,17 @@
 #define UTIL_TIME_H
 
 #include <ctime>
-#include <stdexcept>
-#include <sigc++/sigc++.h>
+
+/**
+ * Gets the current time into a timespec.
+ *
+ * \param[out] result the location at which to store the current time.
+ *
+ * \param[in] clk which clock to query.
+ */
+void timespec_now(timespec *result, clockid_t clk = CLOCK_MONOTONIC);
 
 namespace {
-	/**
-	 * Gets the current time into a timespec.
-	 *
-	 * \param[out] result the location at which to store the current time.
-	 *
-	 * \param[in] clk which clock to query.
-	 */
-	void timespec_now(timespec *result, clockid_t clk = CLOCK_MONOTONIC) {
-		if (clock_gettime(clk, result) < 0) {
-			throw std::runtime_error("Cannot get monotonic time.");
-		}
-	}
-
 	/**
 	 * Gets the current time into a timespec.
 	 *

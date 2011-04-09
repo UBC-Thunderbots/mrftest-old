@@ -7,8 +7,6 @@
 #include <stdint.h>
 #include <string>
 
-
-
 namespace {
 	void stripws(std::string &s) {
 		// Find the first non-whitespace character.
@@ -31,7 +29,7 @@ namespace {
 		} else if (ch >= 'a' && ch <= 'f') {
 			return static_cast<uint8_t>(ch - 'a' + 0xA);
 		} else {
-			throw std::runtime_error("Malformed hex file!");
+			throw MalformedHexFileError();
 		}
 	}
 
@@ -47,28 +45,26 @@ namespace {
 			checksum = static_cast<uint8_t>(checksum + *i);
 		}
 		if (checksum != 0) {
-			throw std::runtime_error("Malformed hex file!");
+			throw MalformedHexFileError();
 		}
 	}
 }
 
-
+MalformedHexFileError::MalformedHexFileError() : std::runtime_error("Malformed hex file") {
+}
 
 void IntelHex::add_section(unsigned int start, unsigned int length) {
 	sections.push_back(Section(start, length));
 }
-
-
 
 void IntelHex::load(const std::string &filename) {
 	// Allocate space to hold the new data.
 	std::vector<std::vector<uint8_t> > new_data(sections.size());
 
 	// Open the file.
-	std::ifstream ifs(filename.c_str());
-	if (!ifs.good()) {
-		throw std::runtime_error("Cannot open hex file!");
-	}
+	std::ifstream ifs;
+	ifs.exceptions(std::ios_base::failbit | std::ios_base::badbit);
+	ifs.open(filename.c_str());
 
 	// Remember the current "base address".
 	uint32_t address_base = 0;
@@ -76,16 +72,15 @@ void IntelHex::load(const std::string &filename) {
 	while (!eof) {
 		// Read a line from the hex file.
 		std::string line;
-		std::getline(ifs, line);
-
-		// Check for EOF (we should have seen an EOF record in the file).
-		if (ifs.eof()) {
-			throw std::runtime_error("Malformed hex file!");
-		}
-
-		// Check for other I/O errors.
-		if (!ifs.good()) {
-			throw std::runtime_error("I/O error reading hex file!");
+		try {
+			std::getline(ifs, line);
+		} catch (...) {
+			// Check for EOF (we should have seen an EOF record in the file).
+			if (ifs.eof()) {
+				throw MalformedHexFileError();
+			} else {
+				throw;
+			}
 		}
 
 		// Strip any whitespace.
@@ -93,13 +88,13 @@ void IntelHex::load(const std::string &filename) {
 
 		// Check that the line starts with a colon, and remove it.
 		if (line[0] != ':') {
-			throw std::runtime_error("Malformed hex file!");
+			throw MalformedHexFileError();
 		}
 		line.erase(0, 1);
 
 		// Check that the line is an even length (whole count of bytes).
 		if (line.size() % 2 != 0) {
-			throw std::runtime_error("Malformed hex file!");
+			throw MalformedHexFileError();
 		}
 
 		// Decode the line into bytes.
@@ -108,10 +103,10 @@ void IntelHex::load(const std::string &filename) {
 
 		// Check size.
 		if (line_data.size() < 5) {
-			throw std::runtime_error("Malformed hex file!");
+			throw MalformedHexFileError();
 		}
 		if (line_data.size() != 1U + 2U + 1U + line_data[0] + 1U) {
-			throw std::runtime_error("Malformed hex file!");
+			throw MalformedHexFileError();
 		}
 
 		// Check the checksum.
@@ -141,19 +136,19 @@ void IntelHex::load(const std::string &filename) {
 					}
 				}
 				if (!found) {
-					throw std::runtime_error("Data outside of section!");
+					throw MalformedHexFileError();
 				}
 			}
 		} else if (record_type == 0x01) {
 			// EOF record.
 			if (data_length != 0) {
-				throw std::runtime_error("Malformed hex file!");
+				throw MalformedHexFileError();
 			}
 			eof = true;
 		} else if (record_type == 0x02) {
 			// Extended Segment Address record.
 			if (data_length != 2 || record_address != 0) {
-				throw std::runtime_error("Malformed hex file!");
+				throw MalformedHexFileError();
 			}
 			address_base = (record_data[1] * 256 + record_data[0]) * 16;
 		} else if (record_type == 0x03) {
@@ -161,13 +156,13 @@ void IntelHex::load(const std::string &filename) {
 		} else if (record_type == 0x04) {
 			// Extended Linear Address record.
 			if (data_length != 2 || record_address != 0) {
-				throw std::runtime_error("Malformed hex file!");
+				throw MalformedHexFileError();
 			}
 			address_base = (record_data[1] * 256 + record_data[0]) * 256;
 		} else if (record_type == 0x05) {
 			// Start Linear Address record. Ignored.
 		} else {
-			throw std::runtime_error("Malformed hex file!");
+			throw MalformedHexFileError();
 		}
 	}
 

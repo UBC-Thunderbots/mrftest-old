@@ -31,12 +31,12 @@ template<typename T> class Registerable : public NonCopyable {
 				obj->name_ = Glib::locale_to_utf8(obj->name_raw);
 				for (Glib::ustring::const_iterator i = obj->name_.begin(), iend = obj->name_.end(); i != iend; ++i) {
 					if (*i == '/') {
-						throw std::runtime_error("Invalid name: " + obj->name() + " (must not contain a slash)");
+						throw std::invalid_argument("Invalid name: " + obj->name() + " (must not contain a slash)");
 					}
 				}
 				const std::string &key = obj->name().collate_key();
 				if (objects().count(key)) {
-					throw std::runtime_error("Duplicate name: " + obj->name());
+					throw std::invalid_argument("Duplicate name: " + obj->name());
 				}
 				objects()[key] = obj;
 			}

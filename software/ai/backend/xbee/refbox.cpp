@@ -1,10 +1,9 @@
 #include "ai/backend/xbee/refbox.h"
 #include "util/codec.h"
 #include "util/dprint.h"
+#include "util/exception.h"
 #include "util/sockaddrs.h"
-#include <cerrno>
 #include <cstring>
-#include <stdexcept>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -20,7 +19,7 @@ namespace {
 
 		const int one = 1;
 		if (setsockopt(fd->fd(), SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0) {
-			throw std::runtime_error("Cannot set SO_REUSEADDR.");
+			throw SystemError("setsockopt(SO_REUSEADDR)", errno);
 		}
 
 		SockAddrs sa;
@@ -29,7 +28,7 @@ namespace {
 		encode_u16(&sa.in.sin_port, 10001);
 		std::memset(sa.in.sin_zero, 0, sizeof(sa.in.sin_zero));
 		if (bind(fd->fd(), &sa.sa, sizeof(sa.in)) < 0) {
-			throw std::runtime_error("Cannot bind to port 10001 for refbox data.");
+			throw SystemError("bind(:10001)", errno);
 		}
 
 		ip_mreqn mcreq;

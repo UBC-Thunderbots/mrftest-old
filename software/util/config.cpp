@@ -1,6 +1,7 @@
 #include "util/config.h"
 #include "util/algorithm.h"
 #include "util/dprint.h"
+#include "util/exception.h"
 #include <algorithm>
 #include <cassert>
 #include <fstream>
@@ -9,7 +10,6 @@
 #include <iomanip>
 #include <libgen.h>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 #include <unistd.h>
 #include <ext/functional>
@@ -28,7 +28,7 @@ namespace {
 			buffer.resize(buffer.size() * 2);
 		}
 		if (retval < 0) {
-			throw std::runtime_error("Cannot get path to binary!");
+			throw SystemError("readlink(/proc/self/exe)", errno);
 		}
 		if (retval < static_cast<ssize_t>(buffer.size())) {
 			buffer[retval] = '\0';

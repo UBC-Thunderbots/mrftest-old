@@ -1,6 +1,7 @@
 #ifndef UTIL_EXCEPTION_H
 #define UTIL_EXCEPTION_H
 
+#include <cerrno>
 #include <exception>
 #include <stdexcept>
 
