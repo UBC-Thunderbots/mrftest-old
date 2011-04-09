@@ -4,6 +4,7 @@
 #include <uicomponents/param.h>
 #include "ai/navigator/navigator.h"
 #include "ai/navigator/rrt_planner.h"
+#include <iostream>
 
 using AI::Nav::Navigator;
 using AI::Nav::NavigatorFactory;
@@ -73,6 +74,18 @@ namespace AI {
 				double h = (world.ball().position() - player->position()).len();
 				double x = h * std::cos(alpha);
 				double y = h * std::sin(alpha);
+				
+				double a = 1 + (y*y) / (x*x);
+				double b = (2*y*y*ux)/(x*x);
+				double c = (y*y*ux*ux)/(x*x) - v;
+				
+				double vx1 = (-b + std::sqrt(b*b - (4*a*c))) / (2*a);
+				double vx2 = (-b - std::sqrt(b*b - (4*a*c))) / (2*a);
+				
+				double t1 = x / (vx1 + ux);
+				double t2 = x / (vx2 + ux);
+				
+				std::cout << t1 << " " << t2 << std::endl;
 			}
 
 			void RRTNavigator::grab_ball_matt(Player::Ptr player) {
@@ -134,7 +147,7 @@ namespace AI {
 					double dest_orientation;
 					if (player->type() == MOVE_CATCH) {
 
-						grab_ball_pivot(player);
+						grab_ball_byron(player);
 						continue;
 
 					} else if (valid_path(player->position(), player->destination().first, world, player)) {
