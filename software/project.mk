@@ -1,14 +1,13 @@
 #
 # The executables to compile.
 #
-EXECUTABLES := ai config fw log simulator test
+EXECUTABLES := ai fw log simulator test
 
 #
 # The source files for each executable.
 # Directories will be searched recursively for source files.
 #
 SOURCES_ai := ai geom log/shared proto uicomponents util xbee
-SOURCES_config := config geom uicomponents util
 SOURCES_fw := fw geom util xbee
 SOURCES_log := ai/common log geom proto uicomponents util
 SOURCES_simulator := ai/common/playtype.cpp geom simulator util

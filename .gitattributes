@@ -324,9 +324,6 @@ software/ai/robot_controller/world.h -text
 software/ai/window.cpp -text
 software/ai/window.h -text
 software/config.xml -text
-software/config/main.cpp -text
-software/config/window.cpp -text
-software/config/window.h -text
 software/fw/ihex.cpp -text
 software/fw/ihex.h -text
 software/fw/main.cpp -text
