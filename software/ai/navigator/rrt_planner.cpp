@@ -105,7 +105,7 @@ std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool pos
 
 	Point initial = player->position();
 
-	if( !Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)]).is()){
+	if (!Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)]).is()){
 		player->object_store()[typeid(*this)] = Waypoints::Ptr(new Waypoints);
 	}
 
@@ -124,7 +124,6 @@ std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool pos
 	while (distance(last_added, goal) > THRESHOLD && iteration_counter < ITERATION_LIMIT) {
 		target = choose_target(goal, player);
 		nearest_node = nearest(&rrt_tree, target);
-		//nearestPoint = nearestNode->data();
 		extended = extend(player, nearest_node, target);
 
 		if (!is_empty_state(extended)) {
@@ -165,7 +164,7 @@ std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool pos
 	// remove the front of the list, this is the starting point
 	path_points.pop_front();
 
-	if(!post_process){
+	if (!post_process) {
 		std::vector<Point> ans(path_points.begin(), path_points.end());
 		return ans;
 	}

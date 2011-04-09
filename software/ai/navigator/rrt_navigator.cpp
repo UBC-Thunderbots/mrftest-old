@@ -39,6 +39,9 @@ namespace AI {
 			class RRTNavigator : public Navigator {
 			public:
 				NavigatorFactory &factory() const;
+				void grab_ball_pivot(Player::Ptr player);
+				void grab_ball_byron(Player::Ptr player);
+				void grab_ball_matt(Player::Ptr player);
 				void tick();
 				static Navigator::Ptr create(World &world);
 
@@ -61,6 +64,57 @@ namespace AI {
 				return factory_instance;
 			}
 
+			void RRTNavigator::grab_ball_byron(Player::Ptr player) {
+
+			}
+
+			void RRTNavigator::grab_ball_matt(Player::Ptr player) {
+
+			}
+
+			void RRTNavigator::grab_ball_pivot(Player::Ptr player) {
+				Player::Path path;
+				Point dest;
+				double dest_orientation;
+
+				// try to pivot around the ball to catch it
+				Point current_position = player->position();
+				double to_ball_orientation = (world.ball().position() - current_position).orientation();
+				double orientation_temp = degrees2radians(orientation_offset);
+
+				double angle = offset_angle;
+				if (angle_mod(to_ball_orientation - player->destination().second) > 0) {
+					angle = -angle;
+					orientation_temp = -orientation_temp;
+				}
+
+				angle = degrees2radians(angle);
+				if (fabs(angle_diff(to_ball_orientation, player->destination().second)) < fabs(angle)) {
+					if (fabs(angle_diff(to_ball_orientation, player->destination().second)) < fabs(angle)/2) {
+						// robot is in correct position, move towards the ball now.
+						timespec time_to_ball;
+						timespec_add(double_to_timespec(0.0), world.monotonic_time(), time_to_ball);
+						path.push_back(std::make_pair(std::make_pair(world.ball().position(), player->destination().second), time_to_ball));
+						player->path(path);
+						return;
+					}
+					orientation_temp = 0;
+					if (angle < 0) {
+						angle = -fabs(angle_diff(to_ball_orientation, player->destination().second));
+					} else {
+						angle = fabs(angle_diff(to_ball_orientation, player->destination().second));
+					}
+				}
+				Point diff = (world.ball().position() - current_position).rotate(angle);
+
+				dest = world.ball().position() - offset_distance * (diff / diff.len());
+				if (dest.len() > 0.5) orientation_temp = 0;
+				dest_orientation = (world.ball().position() - current_position).orientation() + orientation_temp;
+
+				path.push_back(std::make_pair(std::make_pair(dest, dest_orientation), world.monotonic_time()));
+				player->path(path);
+			}
+
 			void RRTNavigator::tick() {
 				timespec working_time;
 				Player::Path path;
@@ -73,42 +127,7 @@ namespace AI {
 					double dest_orientation;
 					if (player->type() == MOVE_CATCH) {
 
-						// try to pivot around the ball to catch it
-						Point current_position = player->position();
-						double to_ball_orientation = (world.ball().position() - current_position).orientation();
-						double orientation_temp = degrees2radians(orientation_offset);
-
-						double angle = offset_angle;
-						if (angle_mod(to_ball_orientation - player->destination().second) > 0) {
-							angle = -angle;
-							orientation_temp = -orientation_temp;
-						}
-
-						angle = degrees2radians(angle);
-						if (fabs(angle_diff(to_ball_orientation, player->destination().second)) < fabs(angle)) {
-							if (fabs(angle_diff(to_ball_orientation, player->destination().second)) < fabs(angle)/2) {
-								// robot is in correct position, move towards the ball now.
-								timespec time_to_ball;
-								timespec_add(double_to_timespec(0.0), world.monotonic_time(), time_to_ball);
-								path.push_back(std::make_pair(std::make_pair(world.ball().position(), player->destination().second), time_to_ball));
-								player->path(path);
-								continue;
-							}
-							orientation_temp = 0;
-							if (angle < 0) {
-								angle = -fabs(angle_diff(to_ball_orientation, player->destination().second));
-							} else {
-								angle = fabs(angle_diff(to_ball_orientation, player->destination().second));
-							}
-						}
-						Point diff = (world.ball().position() - current_position).rotate(angle);
-
-						dest = world.ball().position() - offset_distance * (diff / diff.len());
-						if (dest.len() > 0.5) orientation_temp = 0;
-						dest_orientation = (world.ball().position() - current_position).orientation() + orientation_temp;
-
-						path.push_back(std::make_pair(std::make_pair(dest, dest_orientation), world.monotonic_time()));
-						player->path(path);
+						grab_ball_pivot(player);
 						continue;
 
 					} else if (valid_path(player->position(), player->destination().first, world, player)) {
