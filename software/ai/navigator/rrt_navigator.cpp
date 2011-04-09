@@ -65,7 +65,14 @@ namespace AI {
 			}
 
 			void RRTNavigator::grab_ball_byron(Player::Ptr player) {
-
+				double ux = std::sqrt(world.ball().position().x * world.ball().position().x +
+										world.ball().position().y * world.ball().position().y);
+				// estimated average velocity
+				double v = 1.5;
+				double alpha = std::atan2(world.ball().velocity().x, world.ball().velocity().y);
+				double h = (world.ball().position() - player->position()).len();
+				double x = h * std::cos(alpha);
+				double y = h * std::sin(alpha);
 			}
 
 			void RRTNavigator::grab_ball_matt(Player::Ptr player) {
