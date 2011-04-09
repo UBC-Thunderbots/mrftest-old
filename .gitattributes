@@ -438,7 +438,6 @@ software/util/property.h -text
 software/util/registerable.h -text
 software/util/rle.cpp -text
 software/util/rle.h -text
-software/util/rwlock.h -text
 software/util/scoped_ptr.h -text
 software/util/signal.cpp -text
 software/util/signal.h -text
