@@ -89,7 +89,7 @@ namespace {
 
 					const double radius = score * 1.0;
 
-					ctx->set_source_rgba(1.0, 1.0, 0.5, 0.4);
+					ctx->set_source_rgba(1.0, 1.0, 0.5, 0.2);
 					ctx->arc(player->position().x, player->position().y, radius, 0.0, 2 * M_PI);
 					ctx->fill();
 					ctx->stroke();
@@ -131,7 +131,7 @@ namespace {
 
 						const double radius = score * 0.01;
 
-						ctx->set_source_rgba(0.5, 0.5, 1.0, 0.4);
+						ctx->set_source_rgba(0.5, 0.5, 1.0, 0.2);
 						ctx->arc(x, y, radius, 0.0, 2 * M_PI);
 						ctx->fill();
 						ctx->stroke();
