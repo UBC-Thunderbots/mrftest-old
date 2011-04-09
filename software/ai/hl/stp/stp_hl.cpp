@@ -1,5 +1,7 @@
 #include "ai/hl/hl.h"
 #include "ai/hl/stp/play_executor.h"
+#include "ai/hl/stp/evaluation/offense.h"
+#include "util/dprint.h"
 
 #include <sstream>
 #include <gtkmm.h>
@@ -58,6 +60,7 @@ namespace {
 			}
 			
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
+				draw_offense(ctx);
 				return;
 				if (world.playtype() == PlayType::STOP) {
 					ctx->set_source_rgb(1.0, 0.5, 0.5);
@@ -74,7 +77,50 @@ namespace {
 					}
 				}
 			}
-			
+
+			void draw_offense(Cairo::RefPtr<Cairo::Context> ctx) {
+				const int GRID_X = 20;
+				const int GRID_Y = 20;
+
+				// divide up into grids
+				const double x1 = -world.field().length() / 2;
+				const double x2 = world.field().length() / 2;
+				const double y1 = -world.field().width() / 2;
+				const double y2 = world.field().width() / 2;
+
+				const double dx = (x2 - x1) / (GRID_X + 1);
+				const double dy = (y2 - y1) / (GRID_Y + 1);
+
+				for (int i = 0; i < GRID_X; ++i) {
+					for (int j = 0; j < GRID_Y; ++j) {
+						const double x = x1 + dx * (i + 1);
+						const double y = y1 + dy * (j + 1);
+						const Point pos = Point(x, y);
+
+						const double score = Evaluation::offense_score(world, pos);
+
+						/*
+						{
+							std::ostringstream text;
+							text << score << std::endl;
+							LOG_INFO(text.str());
+						}
+						*/
+
+						if (score < 0) {
+							return;
+						}
+
+						const double radius = score * 0.01;
+
+						ctx->set_source_rgba(0.5, 0.5, 1.0, 0.4);
+						ctx->arc(x, y, radius, 0.0, 2 * M_PI);
+						ctx->fill();
+						ctx->stroke();
+					}
+				}
+			}
+
 		protected:
 			Gtk::TextView text_view;
 	};

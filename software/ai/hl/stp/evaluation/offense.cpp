@@ -1,4 +1,6 @@
+#include "ai/hl/stp/evaluation/shoot.h"
 #include "ai/hl/stp/evaluation/offense.h"
+#include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/util.h"
 #include "geom/angle.h"
 #include "geom/util.h"
@@ -73,14 +75,17 @@ namespace {
 		score *= 10.0 / (10.0 * DEG_2_RAD);
 
 		// want to be as near to enemy goal or ball as possible
-		const double balldist = (dest - world.ball().position()).len();
-		const double goal_dist = (dest - bestshot.first).len();
+		const double balldist = (dest - world.ball().position()).len() + 1.0;
+		// const double goal_dist = (dest - bestshot.first).len();
 
 		// divide by largest distance?
-		const double bigdist = std::max(balldist, goal_dist);
-		score /= bigdist;
+		//const double bigdist = std::max(balldist, goal_dist);
+		//score /= bigdist;
+		
+		score /= balldist;
 
 		// divide by distance to nearest player
+		/*
 		double mindist = 1e99;
 		for (auto it = players.begin(); it != players.end(); ++it) {
 			double dist = ((*it)->position() - dest).len();
@@ -90,6 +95,7 @@ namespace {
 		}
 
 		score /= mindist;
+		*/
 
 		return score;
 	}
@@ -135,6 +141,18 @@ namespace {
 	}
 
 	
+}
+
+double AI::HL::STP::Evaluation::offense_score(const World &world, const Point dest) {
+
+	const EnemyTeam& enemy = world.enemy_team();
+
+	std::vector<Point> enemy_pos;
+	for (std::size_t i = 0; i < enemy.size(); ++i) {
+		enemy_pos.push_back(enemy.get(i)->position());
+	}
+
+	return scoring_function(world, std::set<Player::CPtr>(), enemy_pos, dest, std::vector<Point>());
 }
 
 Point AI::HL::STP::Evaluation::calc_positions(const World &world, const std::set<Player::CPtr> &players) {

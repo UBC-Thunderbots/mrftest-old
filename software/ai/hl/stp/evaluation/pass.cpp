@@ -223,6 +223,10 @@ namespace {
 	
 }
 
+bool AI::HL::STP::Evaluation::can_pass(const World& world, const Point pos) {
+	return AI::HL::Util::path_check(world.ball().position(), pos, AI::HL::Util::get_robots(world.enemy_team()), Robot::MAX_RADIUS + Ball::RADIUS + AI::HL::Util::shoot_accuracy);
+}
+
 std::pair <Point,Point> AI::HL::STP::Evaluation::calc_pass_positions(const World &world, const std::set<Player::CPtr> &players) {
 
 	std::pair <Point,Point> pp;

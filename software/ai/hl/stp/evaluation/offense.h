@@ -11,7 +11,18 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
+				/**
+				 * General purpose scoring function for offensive positions.
+				 *
+				 * \param[in] pos the position to calculate the score for.
+				 *
+				 * \return a score for the location. This score has no range limit.
+				 */
+				double offense_score(const World &world, const Point pos);
 			
+				/**
+				 * TODO: fix this
+				 */
 				Point calc_positions(const World &world, const std::set<Player::CPtr> &players);
 			
 				/**

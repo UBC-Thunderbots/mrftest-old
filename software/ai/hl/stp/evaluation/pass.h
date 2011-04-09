@@ -12,8 +12,14 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
-				
 				/**
+				 * Checks if this location can be passed to.
+				 */
+				bool can_pass(const World& world, const Point dest);
+
+				/**
+				 * TODO: This duplicates the functionality in offense. need to fix.
+				 *
 				 * Calculates passing positions for a pair of passer and passee.
 				 * - Finds weak points on the enemy goal area,
 				 *   where the enemy net is open and the ball is visible.
@@ -25,9 +31,9 @@ namespace AI {
 				 * 
 				 * \return a pair of passer_pos (first) and passee_pos (second)
 				 */
-				
+
 				std::pair <Point, Point> calc_pass_positions(const World &world, const std::set<Player::CPtr> &players);
-				
+
 			}
 		}
 	}

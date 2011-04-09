@@ -160,10 +160,11 @@ std::pair<Point, double> AI::HL::Util::calc_best_shot(const Field &f, const std:
 std::pair<Point, double> AI::HL::Util::calc_best_shot(const World &world, const Player::CPtr player, const double radius) {
 	std::vector<Point> obstacles;
 	const EnemyTeam &enemy = world.enemy_team();
+	const FriendlyTeam &friendly = world.friendly_team();
+	obstacles.reserve(enemy.size() + friendly.size());
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		obstacles.push_back(enemy.get(i)->position());
 	}
-	const FriendlyTeam &friendly = world.friendly_team();
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		const Player::CPtr fpl = friendly.get(i);
 		if (fpl == player) {
