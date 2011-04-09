@@ -1,4 +1,5 @@
 #include "ai/hl/hl.h"
+#include "ai/hl/util.h"
 #include "ai/hl/stp/play_executor.h"
 #include "ai/hl/stp/evaluation/offense.h"
 #include "util/dprint.h"
@@ -79,6 +80,23 @@ namespace {
 			}
 
 			void draw_offense(Cairo::RefPtr<Cairo::Context> ctx) {
+
+				// draw yellow circles for shooting
+				const FriendlyTeam& friendly = world.friendly_team();
+				for (std::size_t i = 0; i < friendly.size(); ++i) {
+					const Player::CPtr player = friendly.get(i);
+					const double score = AI::HL::Util::calc_best_shot(world, player).second;
+
+					const double radius = score * 1.0;
+
+					ctx->set_source_rgba(1.0, 1.0, 0.5, 0.4);
+					ctx->arc(player->position().x, player->position().y, radius, 0.0, 2 * M_PI);
+					ctx->fill();
+					ctx->stroke();
+				}
+
+				// draw blue circles for offense
+				
 				const int GRID_X = 20;
 				const int GRID_Y = 20;
 
