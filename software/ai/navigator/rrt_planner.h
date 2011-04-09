@@ -2,13 +2,13 @@
 #include <glibmm.h>
 #include "util/objectstore.h"
 
-namespace AI{
-	namespace Nav{
+namespace AI {
+	namespace Nav {
 
 		//Blank struct that 
 		//can be subclasses to store information 
 		//in Waypoints
-		struct PlayerData{
+		struct PlayerData {
 		};
 
 		class Waypoints : public ObjectStore::Element {
@@ -16,7 +16,7 @@ namespace AI{
 			typedef ::RefPtr<Waypoints> Ptr;
 			static const std::size_t NUM_WAYPOINTS = 50;
 			Point points[NUM_WAYPOINTS];
-			unsigned int addedFlags;
+			unsigned int added_flags;
 			PlayerData data;
 		};
 
@@ -24,7 +24,7 @@ namespace AI{
 		public:
 			RRTPlanner(AI::Nav::W::World &world);
 			~RRTPlanner();
-			virtual std::vector<Point> plan(AI::Nav::W::Player::Ptr player, Point goal, unsigned int added_flags=0);
+			virtual std::vector<Point> plan(AI::Nav::W::Player::Ptr player, Point goal, unsigned int added_flags = 0);
 
 			static Point empty_state();
 
@@ -43,8 +43,8 @@ namespace AI{
 
 			/**
 			 * This function decides how to move toward the target
-			 * the gtarget is one of a random point, a waypoint, or the goal locatio
-			 *a subclass may override this
+			 * the target is one of a random point, a waypoint, or the goal location
+			 * a subclass may override this
 			 */
 			virtual Point extend(AI::Nav::W::Player::Ptr player, Glib::NodeTree<Point> *start, Point target);
 
@@ -54,7 +54,7 @@ namespace AI{
 			 * optional parameter post_process sets whether to try and smooth out
 			 * the final path
 			 */
-			std::vector<Point> rrt_plan(AI::Nav::W::Player::Ptr player, Point goal, bool post_process=true, unsigned int added_flags=0);
+			std::vector<Point> rrt_plan(AI::Nav::W::Player::Ptr player, Point goal, bool post_process = true, unsigned int added_flags = 0);
 
 		};
 	}

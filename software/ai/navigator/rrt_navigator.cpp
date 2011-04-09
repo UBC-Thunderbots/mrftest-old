@@ -15,7 +15,7 @@ using namespace Glib;
 
 namespace AI {
 	namespace Nav {
-		namespace RRT{
+		namespace RRT {
 
 			// fraction of the maximum speed that the robot will try to dribble at
 			const double DRIBBLE_SPEED = 1.0;
