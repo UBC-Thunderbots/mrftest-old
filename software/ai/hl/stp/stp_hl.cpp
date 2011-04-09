@@ -85,18 +85,26 @@ namespace {
 				const FriendlyTeam& friendly = world.friendly_team();
 				for (std::size_t i = 0; i < friendly.size(); ++i) {
 					const Player::CPtr player = friendly.get(i);
-					const double score = AI::HL::Util::calc_best_shot(world, player).second;
+					std::pair<Point, double> best_shot = AI::HL::Util::calc_best_shot(world, player);
 
-					const double radius = score * 1.0;
+					const double radius = best_shot.second * 1.0;
 
+					// draw yellow circle
 					ctx->set_source_rgba(1.0, 1.0, 0.5, 0.2);
 					ctx->arc(player->position().x, player->position().y, radius, 0.0, 2 * M_PI);
 					ctx->fill();
 					ctx->stroke();
+
+					// draw line
+					ctx->set_source_rgba(1.0, 1.0, 0.5, 0.2);
+					ctx->set_line_width(0.01);
+					ctx->move_to(player->position().x, player->position().y);
+					ctx->line_to(best_shot.first.x, best_shot.first.y);
+					ctx->stroke();
 				}
 
 				// draw blue circles for offense
-				
+
 				const int GRID_X = 20;
 				const int GRID_Y = 20;
 
@@ -118,15 +126,15 @@ namespace {
 						const double score = Evaluation::offense_score(world, pos);
 
 						/*
-						{
-							std::ostringstream text;
-							text << score << std::endl;
-							LOG_INFO(text.str());
-						}
-						*/
+						   {
+						   std::ostringstream text;
+						   text << score << std::endl;
+						   LOG_INFO(text.str());
+						   }
+						   */
 
 						if (score < 0) {
-							return;
+							continue;
 						}
 
 						const double radius = score * 0.01;

@@ -152,7 +152,10 @@ double AI::HL::STP::Evaluation::offense_score(const World &world, const Point de
 		enemy_pos.push_back(enemy.get(i)->position());
 	}
 
-	return scoring_function(world, std::set<Player::CPtr>(), enemy_pos, dest, std::vector<Point>());
+	std::vector<Point> dont_block;
+	dont_block.push_back(world.ball().position());
+
+	return scoring_function(world, std::set<Player::CPtr>(), enemy_pos, dest, dont_block);
 }
 
 Point AI::HL::STP::Evaluation::calc_positions(const World &world, const std::set<Player::CPtr> &players) {
