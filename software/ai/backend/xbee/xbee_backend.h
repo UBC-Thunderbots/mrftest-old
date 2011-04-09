@@ -3,7 +3,6 @@
 
 #include "uicomponents/param.h"
 
-#warning This constant needs to be set when appropriate
 extern DoubleParam LOOP_DELAY; 
 
 #endif

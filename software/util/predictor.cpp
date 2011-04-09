@@ -1,9 +1,7 @@
 #include "util/predictor.h"
 #include "util/time.h"
 
-#warning TODO 1. compensate for delay in real mode, and not to in simulator mode
-#warning TODO 2. access to control noise: as if our robot command and relative robot positions
-#warning TODO 3. compensate for glitches when "clipping" angles
+#warning TODO: access to control noise: as if our robot command and relative robot positions
 
 namespace {
 	const int MAX_DEGREE = 3;
