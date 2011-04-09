@@ -508,7 +508,7 @@ void XBeeDongle::dirty_drive(unsigned int index) {
 }
 
 void XBeeDongle::flush_drive() {
-	static const std::size_t packet_size = robot(0)->drive_block.byte_count + 2;
+	static const std::size_t packet_size = sizeof(robot(0)->drive_block.bytes) + 2;
 	uint8_t buffer[64 / packet_size][packet_size];
 	std::size_t wptr = 0;
 

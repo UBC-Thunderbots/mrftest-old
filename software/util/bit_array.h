@@ -14,19 +14,9 @@ template<std::size_t N>
 class BitArray {
 	public:
 		/**
-		 * The number of bits in the array.
-		 */
-		static const std::size_t bit_count = N;
-
-		/**
-		 * The number of bytes in the array.
-		 */
-		static const std::size_t byte_count = (N + 7) / 8;
-
-		/**
 		 * The data.
 		 */
-		uint8_t bytes[byte_count];
+		uint8_t bytes[(N + 7) / 8];
 
 		/**
 		 * Constructs a new BitArray.
@@ -41,7 +31,7 @@ class BitArray {
 		 * \param[in] i the index of the bit.
 		 */
 		bool get(std::size_t i) const {
-			assert(i < bit_count);
+			assert(i < N);
 			return !!(bytes[i / 8] & (1 << (i % 8)));
 		}
 
@@ -53,7 +43,7 @@ class BitArray {
 		 * \param[in] v the value to set the bit to.
 		 */
 		void set(std::size_t i, bool v) {
-			assert(i < bit_count);
+			assert(i < N);
 			if (v) {
 				bytes[i / 8] |= static_cast<uint8_t>(1 << (i % 8));
 			} else {
@@ -65,7 +55,7 @@ class BitArray {
 		 * Sets all the bits to zero.
 		 */
 		void zero() {
-			for (std::size_t i = 0; i < byte_count; ++i) {
+			for (std::size_t i = 0; i < sizeof(bytes); ++i) {
 				bytes[i] = 0;
 			}
 		}
@@ -78,7 +68,7 @@ class BitArray {
 		 * \return \c true if the contents of the arrays are the same, or \c false if not.
 		 */
 		bool operator==(const BitArray<N> &other) const {
-			for (std::size_t i = 0; i < byte_count; ++i) {
+			for (std::size_t i = 0; i < sizeof(bytes); ++i) {
 				if (bytes[i] != other.bytes[i]) {
 					return false;
 				}
@@ -94,7 +84,7 @@ class BitArray {
 		 * \return \c false if the contents of the arrays are the same, or \c true if not.
 		 */
 		bool operator!=(const BitArray<N> &other) const {
-			for (std::size_t i = 0; i < byte_count; ++i) {
+			for (std::size_t i = 0; i < sizeof(bytes); ++i) {
 				if (bytes[i] != other.bytes[i]) {
 					return true;
 				}
