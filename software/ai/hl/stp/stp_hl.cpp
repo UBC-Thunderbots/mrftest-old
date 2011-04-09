@@ -87,6 +87,10 @@ namespace {
 					const Player::CPtr player = friendly.get(i);
 					std::pair<Point, double> best_shot = AI::HL::Util::calc_best_shot(world, player);
 
+					if (best_shot.second < AI::HL::Util::shoot_accuracy * M_PI / 180) {
+						continue;
+					}
+
 					const double radius = best_shot.second * 1.0;
 
 					// draw yellow circle
