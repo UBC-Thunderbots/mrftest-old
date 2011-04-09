@@ -269,6 +269,7 @@ software/ai/hl/stp/tactic/util.cpp -text
 software/ai/hl/stp/tactic/util.h -text
 software/ai/hl/stp/tactic/wait_playtype.cpp -text
 software/ai/hl/stp/tactic/wait_playtype.h -text
+software/ai/hl/stp/test_chase.cpp -text
 software/ai/hl/stp/world.h -text
 software/ai/hl/util.cpp -text
 software/ai/hl/util.h -text
