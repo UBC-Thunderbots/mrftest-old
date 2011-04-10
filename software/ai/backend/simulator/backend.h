@@ -27,9 +27,9 @@ namespace AI {
 	namespace BE {
 		namespace Simulator {
 			/**
-			 * Packages up the GUI controls that are embedded into the window when the simulator backend is used.
+			 * Packages up the GUI controls that are embedded into the window on the main tab when the simulator backend is used.
 			 */
-			class UIControls {
+			class MainUIControls {
 				public:
 					/**
 					 * A label for playtype_combo.
@@ -41,6 +41,34 @@ namespace AI {
 					 */
 					Gtk::ComboBoxText playtype_combo;
 
+					/**
+					 * Constructs a new MainUIControls.
+					 * The controls are not added to a window yet.
+					 */
+					MainUIControls();
+
+					/**
+					 * Returns the number of rows of controls.
+					 *
+					 * \return the row count.
+					 */
+					unsigned int rows() const;
+
+					/**
+					 * Attaches the controls into a table.
+					 *
+					 * \param[in] t the table into which to place the controls.
+					 *
+					 * \param[in] row the Y coordinate at which the top edge of the first row of components should be placed in the table.
+					 */
+					void attach(Gtk::Table &t, unsigned int row);
+			};
+
+			/**
+			 * Packages up the GUI controls that are embedded into the window on the secondary tab when the simulator backend is used.
+			 */
+			class SecondaryUIControls {
+				public:
 					/**
 					 * A label for speed_hbox.
 					 */
@@ -127,17 +155,12 @@ namespace AI {
 					Gtk::Button state_file_save_button;
 
 					/**
-					 * Constructs a new UIControls.
+					 * Constructs a new SecondaryUIControls.
 					 * The controls are not added to a window yet.
 					 *
 					 * \param[in] load_filename the initial state file name.
 					 */
-					UIControls(const std::string &load_filename);
-
-					/**
-					 * Destroys a UIControls.
-					 */
-					~UIControls();
+					SecondaryUIControls(const std::string &load_filename);
 
 					/**
 					 * Returns the number of rows of controls.
@@ -228,8 +251,10 @@ namespace AI {
 					void mouse_released(Point p, unsigned int btn);
 					void mouse_exited();
 					void mouse_moved(Point p);
-					unsigned int ui_controls_table_rows() const;
-					void ui_controls_attach(Gtk::Table &t, unsigned int row);
+					unsigned int main_ui_controls_table_rows() const;
+					void main_ui_controls_attach(Gtk::Table &t, unsigned int row);
+					unsigned int secondary_ui_controls_table_rows() const;
+					void secondary_ui_controls_attach(Gtk::Table &t, unsigned int row);
 
 				private:
 					/**
@@ -268,9 +293,14 @@ namespace AI {
 					AI::Common::PlayType::PlayType simulator_playtype;
 
 					/**
-					 * The UI controls.
+					 * The main tab UI controls.
 					 */
-					UIControls controls;
+					MainUIControls main_controls;
+
+					/**
+					 * The secondary tab UI controls.
+					 */
+					SecondaryUIControls secondary_controls;
 
 					/**
 					 * Invoked when a packet is ready to receive from the simulator over the socket.

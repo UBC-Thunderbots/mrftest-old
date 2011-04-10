@@ -179,11 +179,18 @@ namespace {
 				return enemy;
 			}
 
-			unsigned int ui_controls_table_rows() const {
+			unsigned int main_ui_controls_table_rows() const {
 				return 0;
 			}
 
-			void ui_controls_attach(Gtk::Table &, unsigned int) {
+			void main_ui_controls_attach(Gtk::Table &, unsigned int) {
+			}
+
+			unsigned int secondary_ui_controls_table_rows() const {
+				return 0;
+			}
+
+			void secondary_ui_controls_attach(Gtk::Table &, unsigned int) {
 			}
 
 			std::size_t visualizable_num_robots() const {

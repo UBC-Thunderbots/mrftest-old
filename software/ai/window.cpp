@@ -11,92 +11,25 @@ namespace {
 	class BasicControls : public Gtk::Frame {
 		public:
 			BasicControls(AI::AIPackage &ai) : Gtk::Frame("Basics"), ai(ai) {
-				Gtk::Table *table = Gtk::manage(new Gtk::Table(4 + ai.backend.ui_controls_table_rows(), 3));
+				Gtk::Table *table = Gtk::manage(new Gtk::Table(1 + ai.backend.main_ui_controls_table_rows(), 3));
 
-				table->attach(*Gtk::manage(new Gtk::Label("Play type override:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				playtype_override_chooser.append_text("<None>");
-				for (unsigned int i = 0; i < AI::Common::PlayType::COUNT; ++i) {
-					playtype_override_chooser.append_text(AI::Common::PlayType::DESCRIPTIONS_GENERIC[i]);
-				}
-				table->attach(playtype_override_chooser, 1, 3, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				playtype_override_chooser.signal_changed().connect(sigc::mem_fun(this, &BasicControls::on_playtype_override_chooser_changed));
-				ai.backend.playtype_override().signal_changed().connect(sigc::mem_fun(this, &BasicControls::on_playtype_override_changed));
-				on_playtype_override_changed();
-
-				table->attach(*Gtk::manage(new Gtk::Label("Play type:")), 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				table->attach(*Gtk::manage(new Gtk::Label("Play type:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				playtype_entry.set_editable(false);
-				table->attach(playtype_entry, 1, 3, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				table->attach(playtype_entry, 1, 3, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				ai.backend.playtype().signal_changed().connect(sigc::mem_fun(this, &BasicControls::on_playtype_changed));
 				on_playtype_changed();
 
-				table->attach(*Gtk::manage(new Gtk::Label("Defending:")), 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				defending_end_entry.set_editable(false);
-				table->attach(defending_end_entry, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				Gtk::Button *flip_end_button = Gtk::manage(new Gtk::Button("X"));
-				table->attach(*flip_end_button, 2, 3, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				flip_end_button->signal_clicked().connect(sigc::mem_fun(this, &BasicControls::on_flip_end_clicked));
-				ai.backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &BasicControls::on_defending_end_changed));
-				on_defending_end_changed();
-
-				table->attach(*Gtk::manage(new Gtk::Label("Colour:")), 0, 1, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				friendly_colour_entry.set_editable(false);
-				table->attach(friendly_colour_entry, 1, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				Gtk::Button *flip_friendly_colour_button = Gtk::manage(new Gtk::Button("X"));
-				table->attach(*flip_friendly_colour_button, 2, 3, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				flip_friendly_colour_button->signal_clicked().connect(sigc::mem_fun(this, &BasicControls::on_flip_friendly_colour_clicked));
-				ai.backend.friendly_colour().signal_changed().connect(sigc::mem_fun(this, &BasicControls::on_friendly_colour_changed));
-				on_friendly_colour_changed();
-
-				ai.backend.ui_controls_attach(*table, 4);
+				ai.backend.main_ui_controls_attach(*table, 1);
 
 				add(*table);
 			}
 
 		private:
 			AI::AIPackage &ai;
-			Gtk::ComboBoxText playtype_override_chooser;
-			Gtk::Entry playtype_entry, defending_end_entry, friendly_colour_entry;
-
-			void on_playtype_override_chooser_changed() {
-				const Glib::ustring &selected = playtype_override_chooser.get_active_text();
-				for (unsigned int i = 0; i < AI::Common::PlayType::COUNT; ++i) {
-					if (selected == AI::Common::PlayType::DESCRIPTIONS_GENERIC[i]) {
-						ai.backend.playtype_override() = static_cast<AI::Common::PlayType::PlayType>(i);
-						return;
-					}
-				}
-				ai.backend.playtype_override() = AI::Common::PlayType::COUNT;
-			}
-
-			void on_playtype_override_changed() {
-				AI::Common::PlayType::PlayType pt = ai.backend.playtype_override();
-				if (pt < AI::Common::PlayType::COUNT) {
-					playtype_override_chooser.set_active_text(AI::Common::PlayType::DESCRIPTIONS_GENERIC[pt]);
-				} else {
-					playtype_override_chooser.set_active_text("<None>");
-				}
-			}
+			Gtk::Entry playtype_entry;
 
 			void on_playtype_changed() {
 				playtype_entry.set_text(AI::Common::PlayType::DESCRIPTIONS_GENERIC[ai.backend.playtype()]);
-			}
-
-			void on_flip_end_clicked() {
-				ai.backend.defending_end() = static_cast<AI::BE::Backend::FieldEnd>((ai.backend.defending_end() + 1) % 2);
-			}
-
-			void on_defending_end_changed() {
-				assert(ai.backend.defending_end() == AI::BE::Backend::WEST || ai.backend.defending_end() == AI::BE::Backend::EAST);
-				defending_end_entry.set_text(ai.backend.defending_end() == AI::BE::Backend::WEST ? "West" : "East");
-			}
-
-			void on_flip_friendly_colour_clicked() {
-				ai.backend.friendly_colour() = static_cast<AI::Common::Team::Colour>((ai.backend.friendly_colour() + 1) % 2);
-			}
-
-			void on_friendly_colour_changed() {
-				assert(ai.backend.friendly_colour() == AI::Common::Team::YELLOW || ai.backend.friendly_colour() == AI::Common::Team::BLUE);
-				friendly_colour_entry.set_text(ai.backend.friendly_colour() == AI::Common::Team::YELLOW ? "Yellow" : "Blue");
 			}
 	};
 
@@ -144,14 +77,13 @@ namespace {
 	class HighLevelControls : public Gtk::Frame {
 		public:
 			HighLevelControls(AI::AIPackage &ai) : Gtk::Frame("High Level"), ai(ai), table(2, 2), custom_controls(0) {
-				table.attach(*Gtk::manage(new Gtk::Label("High Level:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				high_level_chooser.append_text("<Choose High Level>");
 				typedef AI::HL::HighLevelFactory::Map Map;
 				const Map &m = AI::HL::HighLevelFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 					high_level_chooser.append_text(i->second->name());
 				}
-				table.attach(high_level_chooser, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				table.attach(high_level_chooser, 0, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				high_level_chooser.signal_changed().connect(sigc::mem_fun(this, &HighLevelControls::on_high_level_chooser_changed));
 				ai.high_level.signal_changing().connect(sigc::mem_fun(this, &HighLevelControls::on_high_level_changing));
 				ai.high_level.signal_changed().connect(sigc::mem_fun(this, &HighLevelControls::on_high_level_changed));
@@ -204,7 +136,6 @@ namespace {
 	class NavigatorControls : public Gtk::Frame {
 		public:
 			NavigatorControls(AI::AIPackage &ai) : Gtk::Frame("Navigator"), ai(ai), table(3, 2), custom_controls(0) {
-				table.attach(*Gtk::manage(new Gtk::Label("Navigator:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				navigator_chooser.append_text("<Choose Navigator>");
 				typedef AI::Nav::NavigatorFactory::Map Map;
 				const Map &m = AI::Nav::NavigatorFactory::all();
@@ -212,7 +143,7 @@ namespace {
 					navigator_chooser.append_text(i->second->name());
 				}
 
-				table.attach(navigator_chooser, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				table.attach(navigator_chooser, 0, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				navigator_chooser.signal_changed().connect(sigc::mem_fun(this, &NavigatorControls::on_navigator_chooser_changed));
 				ai.navigator.signal_changing().connect(sigc::mem_fun(this, &NavigatorControls::on_navigator_changing));
 				ai.navigator.signal_changed().connect(sigc::mem_fun(this, &NavigatorControls::on_navigator_changed));
@@ -265,14 +196,13 @@ namespace {
 	class RobotControllerControls : public Gtk::Frame {
 		public:
 			RobotControllerControls(AI::AIPackage &ai) : Gtk::Frame("Robot Controller"), ai(ai), table(3, 2), custom_controls(0) {
-				table.attach(*Gtk::manage(new Gtk::Label("Robot Controller:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				rc_chooser.append_text("<Choose Robot Controller>");
 				typedef AI::RC::RobotControllerFactory::Map Map;
 				const Map &m = AI::RC::RobotControllerFactory::all();
 				for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
 					rc_chooser.append_text(i->second->name());
 				}
-				table.attach(rc_chooser, 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				table.attach(rc_chooser, 0, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				rc_chooser.signal_changed().connect(sigc::mem_fun(this, &RobotControllerControls::on_rc_chooser_changed));
 				ai.robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &RobotControllerControls::on_rc_changing));
 				ai.robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &RobotControllerControls::on_rc_changed));
@@ -322,6 +252,84 @@ namespace {
 			}
 	};
 
+	class SecondaryControls : public Gtk::Table {
+		public:
+			SecondaryControls(AI::AIPackage &ai) : Gtk::Table(3 + ai.backend.secondary_ui_controls_table_rows(), 3), ai(ai) {
+				attach(*Gtk::manage(new Gtk::Label("Play type override:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				playtype_override_chooser.append_text("<None>");
+				for (unsigned int i = 0; i < AI::Common::PlayType::COUNT; ++i) {
+					playtype_override_chooser.append_text(AI::Common::PlayType::DESCRIPTIONS_GENERIC[i]);
+				}
+				attach(playtype_override_chooser, 1, 3, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				playtype_override_chooser.signal_changed().connect(sigc::mem_fun(this, &SecondaryControls::on_playtype_override_chooser_changed));
+				ai.backend.playtype_override().signal_changed().connect(sigc::mem_fun(this, &SecondaryControls::on_playtype_override_changed));
+				on_playtype_override_changed();
+
+				attach(*Gtk::manage(new Gtk::Label("Defending:")), 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				defending_end_entry.set_editable(false);
+				attach(defending_end_entry, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				Gtk::Button *flip_end_button = Gtk::manage(new Gtk::Button("X"));
+				attach(*flip_end_button, 2, 3, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				flip_end_button->signal_clicked().connect(sigc::mem_fun(this, &SecondaryControls::on_flip_end_clicked));
+				ai.backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &SecondaryControls::on_defending_end_changed));
+				on_defending_end_changed();
+
+				attach(*Gtk::manage(new Gtk::Label("Colour:")), 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				friendly_colour_entry.set_editable(false);
+				attach(friendly_colour_entry, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				Gtk::Button *flip_friendly_colour_button = Gtk::manage(new Gtk::Button("X"));
+				attach(*flip_friendly_colour_button, 2, 3, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+				flip_friendly_colour_button->signal_clicked().connect(sigc::mem_fun(this, &SecondaryControls::on_flip_friendly_colour_clicked));
+				ai.backend.friendly_colour().signal_changed().connect(sigc::mem_fun(this, &SecondaryControls::on_friendly_colour_changed));
+				on_friendly_colour_changed();
+
+				ai.backend.secondary_ui_controls_attach(*this, 3);
+			}
+
+		private:
+			AI::AIPackage &ai;
+			Gtk::ComboBoxText playtype_override_chooser;
+			Gtk::Entry defending_end_entry, friendly_colour_entry;
+
+			void on_playtype_override_chooser_changed() {
+				const Glib::ustring &selected = playtype_override_chooser.get_active_text();
+				for (unsigned int i = 0; i < AI::Common::PlayType::COUNT; ++i) {
+					if (selected == AI::Common::PlayType::DESCRIPTIONS_GENERIC[i]) {
+						ai.backend.playtype_override() = static_cast<AI::Common::PlayType::PlayType>(i);
+						return;
+					}
+				}
+				ai.backend.playtype_override() = AI::Common::PlayType::COUNT;
+			}
+
+			void on_playtype_override_changed() {
+				AI::Common::PlayType::PlayType pt = ai.backend.playtype_override();
+				if (pt < AI::Common::PlayType::COUNT) {
+					playtype_override_chooser.set_active_text(AI::Common::PlayType::DESCRIPTIONS_GENERIC[pt]);
+				} else {
+					playtype_override_chooser.set_active_text("<None>");
+				}
+			}
+
+			void on_flip_end_clicked() {
+				ai.backend.defending_end() = static_cast<AI::BE::Backend::FieldEnd>((ai.backend.defending_end() + 1) % 2);
+			}
+
+			void on_defending_end_changed() {
+				assert(ai.backend.defending_end() == AI::BE::Backend::WEST || ai.backend.defending_end() == AI::BE::Backend::EAST);
+				defending_end_entry.set_text(ai.backend.defending_end() == AI::BE::Backend::WEST ? "West" : "East");
+			}
+
+			void on_flip_friendly_colour_clicked() {
+				ai.backend.friendly_colour() = static_cast<AI::Common::Team::Colour>((ai.backend.friendly_colour() + 1) % 2);
+			}
+
+			void on_friendly_colour_changed() {
+				assert(ai.backend.friendly_colour() == AI::Common::Team::YELLOW || ai.backend.friendly_colour() == AI::Common::Team::BLUE);
+				friendly_colour_entry.set_text(ai.backend.friendly_colour() == AI::Common::Team::YELLOW ? "Yellow" : "Blue");
+			}
+	};
+
 	class VisualizerCoordinatesBar : public Gtk::Statusbar {
 		public:
 			VisualizerCoordinatesBar(Visualizer &vis) {
@@ -346,9 +354,6 @@ Window::Window(AIPackage &ai) {
 
 	Gtk::HPaned *hpaned = Gtk::manage(new Gtk::HPaned);
 
-	Gtk::Frame *frame = Gtk::manage(new Gtk::Frame);
-	frame->set_shadow_type(Gtk::SHADOW_IN);
-
 	Gtk::Notebook *notebook = Gtk::manage(new Gtk::Notebook);
 
 	Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox);
@@ -357,22 +362,23 @@ Window::Window(AIPackage &ai) {
 	vbox->pack_start(*Gtk::manage(new HighLevelControls(ai)), Gtk::PACK_EXPAND_WIDGET);
 	vbox->pack_start(*Gtk::manage(new NavigatorControls(ai)), Gtk::PACK_EXPAND_WIDGET);
 	vbox->pack_start(*Gtk::manage(new RobotControllerControls(ai)), Gtk::PACK_EXPAND_WIDGET);
-	vbox->pack_start(*Gtk::manage(new GUIAnnunciator), Gtk::PACK_EXPAND_WIDGET);
-
 	notebook->append_page(*vbox, "Main");
+
+	notebook->append_page(*Gtk::manage(new SecondaryControls(ai)), "Secondary");
 
 	notebook->append_page(*Gtk::manage(new ParamPanel), "Params");
 
-	frame->add(*notebook);
-
-	hpaned->pack1(*frame, Gtk::FILL);
-
-	frame = Gtk::manage(new Gtk::Frame);
+	Gtk::Frame *frame = Gtk::manage(new Gtk::Frame);
 	frame->set_shadow_type(Gtk::SHADOW_IN);
-	Visualizer *visualizer = Gtk::manage(new Visualizer(ai.backend));
-	frame->add(*visualizer);
+	frame->add(*notebook);
+	hpaned->pack1(*frame, false, false);
 
-	hpaned->pack2(*frame, Gtk::EXPAND | Gtk::FILL);
+	Gtk::VPaned *vpaned = Gtk::manage(new Gtk::VPaned);
+	Visualizer *visualizer = Gtk::manage(new Visualizer(ai.backend));
+	vpaned->pack1(*visualizer, true, true);
+	vpaned->pack2(*Gtk::manage(new GUIAnnunciator), false, true);
+
+	hpaned->pack2(*vpaned, true, true);
 
 	outer_vbox->pack_start(*hpaned, Gtk::PACK_EXPAND_WIDGET);
 
