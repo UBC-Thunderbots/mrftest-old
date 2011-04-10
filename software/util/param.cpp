@@ -297,7 +297,8 @@ ParamTreeNode *ParamTreeNode::parent() {
 }
 
 Glib::ustring ParamTreeNode::path() const {
-	if (parent_) {
+	// Avoid writing out <<<ROOT>>> in the path.
+	if (parent_ && parent_->parent_) {
 		return parent_->path() + '/' + name();
 	} else {
 		return name();
