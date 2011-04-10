@@ -1,6 +1,5 @@
 #include "fw/ihex.h"
 #include "util/annunciator.h"
-#include "util/config.h"
 #include "util/crc16.h"
 #include "util/dprint.h"
 #include "util/noncopyable.h"
@@ -15,7 +14,7 @@ namespace {
 
 	class FirmwareUploadOperation : public NonCopyable, public sigc::trackable {
 		public:
-			FirmwareUploadOperation(const Config &config, const IntelHex &hex, bool fpga, int robot, XBeeDongle &dongle, Glib::RefPtr<Glib::MainLoop> main_loop) : config(config), hex(hex), fpga(fpga), robot(robot), dongle(dongle), main_loop(main_loop) {
+			FirmwareUploadOperation(const IntelHex &hex, bool fpga, int robot, XBeeDongle &dongle, Glib::RefPtr<Glib::MainLoop> main_loop) : hex(hex), fpga(fpga), robot(robot), dongle(dongle), main_loop(main_loop) {
 				Glib::signal_idle().connect_once(sigc::mem_fun(this, &FirmwareUploadOperation::start_operation));
 			}
 
@@ -23,7 +22,6 @@ namespace {
 			}
 
 		private:
-			const Config &config;
 			const IntelHex &hex;
 			const bool fpga;
 			const int robot;
@@ -294,14 +292,12 @@ namespace {
 		}
 
 		if (0 <= robot && robot <= 15) {
-			Config config;
-
 			std::cout << "Finding dongle... " << std::flush;
-			XBeeDongle dongle(config.out_channel(), config.in_channel());
+			XBeeDongle dongle;
 			std::cout << "OK\n";
 
 			Glib::RefPtr<Glib::MainLoop> main_loop = Glib::MainLoop::create();
-			FirmwareUploadOperation op(config, hex, fpga, robot, dongle, main_loop);
+			FirmwareUploadOperation op(hex, fpga, robot, dongle, main_loop);
 			main_loop->run();
 		}
 

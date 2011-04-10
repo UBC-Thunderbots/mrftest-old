@@ -1,6 +1,5 @@
 #include "test/window.h"
 #include "util/annunciator.h"
-#include "util/config.h"
 #include "xbee/dongle.h"
 #include <gtkmm.h>
 #include <iostream>
@@ -69,12 +68,9 @@ namespace {
 			return 1;
 		}
 
-		// Load the configuration file.
-		Config config;
-
 		// Find and enable the dongle.
 		std::cout << "Finding dongle... " << std::flush;
-		XBeeDongle dongle(config.out_channel(), config.in_channel());
+		XBeeDongle dongle;
 		std::cout << "OK\n";
 		dongle.xbees_state.signal_changed().connect(sigc::bind(&on_xbees_state_changed, sigc::ref(dongle)));
 		on_xbees_state_changed(dongle);

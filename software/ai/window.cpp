@@ -1,7 +1,7 @@
 #include "ai/window.h"
+#include "ai/param_panel.h"
 #include "uicomponents/abstract_list_model.h"
 #include "uicomponents/annunciator.h"
-#include "uicomponents/param.h"
 #include "util/algorithm.h"
 #include <cassert>
 

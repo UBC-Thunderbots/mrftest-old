@@ -3,11 +3,10 @@
 #include "ai/hl/stp/play_executor.h"
 #include "ai/hl/stp/evaluation/offense.h"
 #include "util/dprint.h"
-
-#include <iostream>
-#include <math.h>
-#include <sstream>
+#include <cmath>
 #include <gtkmm.h>
+#include <iostream>
+#include <sstream>
 
 using AI::HL::HighLevelFactory;
 using AI::HL::HighLevel;

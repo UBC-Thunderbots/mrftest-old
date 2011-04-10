@@ -1,10 +1,10 @@
 #include "ai/hl/stp/action/shoot.h"
-#include "ai/hl/stp/action/actions.h"
 #include "ai/flags.h"
 #include "ai/hl/util.h"
+#include "ai/hl/stp/action/actions.h"
 #include "geom/util.h"
-#include "uicomponents/param.h"
 #include "util/dprint.h"
+#include "util/param.h"
 #include <cmath>
 
 DoubleParam alpha("Decay constant for the ball velocity", 0.1, 0.0, 1.0);

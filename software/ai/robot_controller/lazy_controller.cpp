@@ -4,10 +4,10 @@
 #include "util/byref.h"
 #include "util/noncopyable.h"
 #include "util/dprint.h"
+#include "util/param.h"
 #include <cmath>
 #include <glibmm.h>
 #include <map>
-#include "uicomponents/param.h"
 
 using AI::RC::RobotController;
 using AI::RC::RobotControllerFactory;

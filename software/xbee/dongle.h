@@ -328,12 +328,8 @@ class XBeeDongle : public NonCopyable {
 
 		/**
 		 * \brief Constructs a new XBeeDongle.
-		 *
-		 * \param[in] out_channel the radio channel to use for sending messages to robots.
-		 *
-		 * \param[in] in_channel the radio channel to use for receiving messages from robots.
 		 */
-		XBeeDongle(unsigned int out_channel, unsigned int in_channel);
+		XBeeDongle();
 
 		/**
 		 * \brief Destroys an XBeeDongle.
@@ -371,8 +367,6 @@ class XBeeDongle : public NonCopyable {
 	private:
 		friend class XBeeRobot;
 
-		const unsigned int out_channel;
-		const unsigned int in_channel;
 		LibUSBContext context;
 		LibUSBDeviceHandle device;
 		sigc::connection dongle_status_connection;

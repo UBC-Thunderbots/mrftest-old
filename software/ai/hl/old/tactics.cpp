@@ -1,9 +1,9 @@
 #include "ai/flags.h"
-#include "ai/hl/old/tactics.h"
 #include "ai/hl/util.h"
+#include "ai/hl/old/tactics.h"
 #include "geom/util.h"
-#include "uicomponents/param.h"
 #include "util/dprint.h"
+#include "util/param.h"
 
 using namespace AI::HL::W;
 

@@ -304,6 +304,8 @@ software/ai/navigator/util.cpp -text
 software/ai/navigator/util.h -text
 software/ai/navigator/world.cpp -text
 software/ai/navigator/world.h -text
+software/ai/param_panel.cpp -text
+software/ai/param_panel.h -text
 software/ai/robot_controller/circle_controller.cpp -text
 software/ai/robot_controller/fuzzy2_controller.cpp -text
 software/ai/robot_controller/fuzzy2_simulator_controller.cpp -text
@@ -387,8 +389,6 @@ software/uicomponents/annunciator.cpp -text
 software/uicomponents/annunciator.h -text
 software/uicomponents/light.cpp -text
 software/uicomponents/light.h -text
-software/uicomponents/param.cpp -text
-software/uicomponents/param.h -text
 software/uicomponents/visualizer.cpp -text
 software/uicomponents/visualizer.h -text
 software/uncrustify.cfg -text
@@ -407,8 +407,6 @@ software/util/clocksource_timerfd.cpp -text
 software/util/clocksource_timerfd.h -text
 software/util/codec.cpp -text
 software/util/codec.h -text
-software/util/config.cpp -text
-software/util/config.h -text
 software/util/crc16.cpp -text
 software/util/crc16.h -text
 software/util/dprint.cpp -text
@@ -432,6 +430,8 @@ software/util/mutex.h -text
 software/util/noncopyable.h -text
 software/util/objectstore.cpp -text
 software/util/objectstore.h -text
+software/util/param.cpp -text
+software/util/param.h -text
 software/util/predictor.cpp -text
 software/util/predictor.h -text
 software/util/property.h -text

@@ -1,8 +1,8 @@
 #include "ai/hl/old/strategy.h"
 #include "geom/angle.h"
 #include "geom/util.h"
-#include "uicomponents/param.h"
 #include "util/dprint.h"
+#include "util/param.h"
 #include <ctime>
 #include <glibmm.h>
 #include <vector>

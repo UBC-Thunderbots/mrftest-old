@@ -2,8 +2,8 @@
 #include "ai/hl/util.h"
 #include "geom/angle.h"
 #include "geom/util.h"
-#include "uicomponents/param.h"
 #include "util/dprint.h"
+#include "util/param.h"
 
 using namespace AI::HL::W;
 

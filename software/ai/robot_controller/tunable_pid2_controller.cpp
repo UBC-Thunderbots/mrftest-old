@@ -2,9 +2,9 @@
 #include "ai/robot_controller/tunable_controller.h"
 #include "geom/angle.h"
 #include "geom/point.h"
-#include "uicomponents/param.h"
 #include "util/byref.h"
 #include "util/noncopyable.h"
+#include "util/param.h"
 #include <cassert>
 #include <cmath>
 #include <glibmm.h>

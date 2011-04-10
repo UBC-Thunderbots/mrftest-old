@@ -2,10 +2,10 @@
 #include "ai/robot_controller/tunable_controller.h"
 #include "geom/angle.h"
 #include "geom/point.h"
-#include "uicomponents/param.h"
 #include "util/algorithm.h"
 #include "util/byref.h"
 #include "util/noncopyable.h"
+#include "util/param.h"
 #include <cmath>
 #include <glibmm.h>
 #include <iostream>
@@ -18,7 +18,7 @@ using namespace AI::RC::W;
 
 namespace {
 	BoolParam PID_SLOW_ANGULAR("PID3: Slow if translating", true);
-	BoolParam PID_FLIP_SLOWDOWN("PID3: flip trans/ang slowdown", false);
+	BoolParam PID_FLIP_SLOWDOWN("PID3: flip trans&ang slowdown", false);
 	DoubleParam PID_SLOWDOWN("PID3: slowdown (CARE)", 1.5, 0.1, 8.0);
 	DoubleParam PID_PROP("PID3: prop", 20, 0.0, 20.0);
 	DoubleParam PID_DIFF("PID3: diff", 4, 0.0, 20.0);

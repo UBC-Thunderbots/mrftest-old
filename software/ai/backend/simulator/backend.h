@@ -348,7 +348,7 @@ namespace AI {
 					 */
 					~BackendFactory();
 
-					void create_backend(const Config &, const std::multimap<Glib::ustring, Glib::ustring> &params, sigc::slot<void, AI::BE::Backend &> cb) const;
+					void create_backend(const std::multimap<Glib::ustring, Glib::ustring> &params, sigc::slot<void, AI::BE::Backend &> cb) const;
 			};
 		}
 	}

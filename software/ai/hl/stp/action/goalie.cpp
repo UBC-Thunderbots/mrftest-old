@@ -1,10 +1,10 @@
-#include "ai/flags.h"
 #include "ai/hl/stp/action/goalie.h"
-#include "ai/hl/stp/action/actions.h"
+#include "ai/flags.h"
 #include "ai/hl/util.h"
+#include "ai/hl/stp/action/actions.h"
 #include "geom/util.h"
-#include "uicomponents/param.h"
 #include "util/dprint.h"
+#include "util/param.h"
 
 using namespace AI::HL::STP;
 

@@ -1,11 +1,10 @@
 #include "ai/hl/stp/tactic/movement_benchmark.h"
 #include "ai/hl/util.h"
-#include <algorithm>
-
 #include "geom/angle.h"
 #include "geom/util.h"
-#include "uicomponents/param.h"
 #include "util/dprint.h"
+#include "util/param.h"
+#include <algorithm>
 #include <ctime>
 #include <glibmm.h>
 #include <vector>

@@ -1,6 +1,5 @@
 #include "ai/backend/xbee/player.h"
 #include "geom/angle.h"
-#include "uicomponents/param.h"
 #include "util/algorithm.h"
 #include "util/dprint.h"
 #include "util/time.h"

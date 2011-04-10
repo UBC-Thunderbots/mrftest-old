@@ -5,12 +5,12 @@
 #include "util/byref.h"
 #include "util/noncopyable.h"
 #include "util/dprint.h"
+#include "util/param.h"
+#include <algorithm>
 #include <cmath>
 #include <glibmm.h>
-#include <map>
-#include <algorithm>
 #include <iostream>
-#include "uicomponents/param.h"
+#include <map>
 
 using AI::RC::RobotController;
 using AI::RC::TunableController;

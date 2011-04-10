@@ -2,9 +2,9 @@
 #define AI_LOGGER_H
 
 #include "ai/ai.h"
-#include "uicomponents/param.h"
 #include "util/fd.h"
 #include "util/noncopyable.h"
+#include "util/param.h"
 #include "util/signal.h"
 #include <cstddef>
 #include <fstream>

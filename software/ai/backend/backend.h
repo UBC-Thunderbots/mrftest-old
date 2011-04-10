@@ -8,7 +8,6 @@
 #include "ai/robot_controller/world.h"
 #include "proto/messages_robocup_ssl_wrapper.pb.h"
 #include "uicomponents/visualizer.h"
-#include "util/config.h"
 #include "util/noncopyable.h"
 #include "util/property.h"
 #include "util/registerable.h"
@@ -493,13 +492,11 @@ namespace AI {
 				/**
 				 * Creates a new instance of the corresponding Backend and invokes a function with it.
 				 *
-				 * \param[in] conf the configuration file to use to configure the backend.
-				 *
 				 * \param[in] params the command-line parameter values to initialize the backend with.
 				 *
 				 * \param[in] cb a function to invoke passing the constructed Backend.
 				 */
-				virtual void create_backend(const Config &conf, const std::multimap<Glib::ustring, Glib::ustring> &params, sigc::slot<void, Backend &> cb) const = 0;
+				virtual void create_backend(const std::multimap<Glib::ustring, Glib::ustring> &params, sigc::slot<void, Backend &> cb) const = 0;
 
 			protected:
 				/**

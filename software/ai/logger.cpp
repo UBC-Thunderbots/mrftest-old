@@ -1,6 +1,5 @@
 #include "ai/logger.h"
 #include "log/shared/tags.h"
-#include "uicomponents/param.h"
 #include "util/algorithm.h"
 #include "util/annunciator.h"
 #include "util/codec.h"
@@ -125,6 +124,7 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), ended(f
 	Annunciator::signal_message_deactivated.connect(sigc::mem_fun(this, &AI::Logger::on_annunciator_message_deactivated));
 	Annunciator::signal_message_reactivated.connect(sigc::mem_fun(this, &AI::Logger::on_annunciator_message_reactivated));
 
+#if 0
 	for (std::vector<Param *>::const_iterator i = Param::all().begin(), iend = Param::all().end(); i != iend; ++i) {
 		BoolParam *bp = dynamic_cast<BoolParam *>(*i);
 		if (bp) {
@@ -142,6 +142,8 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), ended(f
 			on_double_param_changed(dp);
 		}
 	}
+#endif
+#warning fix param logging
 
 	ai.backend.signal_vision().connect(sigc::mem_fun(this, &AI::Logger::on_vision_packet));
 	ai.backend.signal_refbox().connect(sigc::mem_fun(this, &AI::Logger::on_refbox_packet));
@@ -244,11 +246,11 @@ void AI::Logger::on_annunciator_message_deactivated(std::size_t i) {
 void AI::Logger::on_annunciator_message_reactivated(std::size_t i) {
 	log_annunciator(i, true);
 }
-
+#if 0
 void AI::Logger::on_bool_param_changed(BoolParam *p) {
 	uint8_t value = (*p) ? UINT8_C(0xFF) : 0;
 
-	const std::string &utf8name = p->name;
+	const std::string &utf8name = p->path();
 
 	iovec iov[2];
 	iov[0].iov_base = &value;
@@ -263,7 +265,7 @@ void AI::Logger::on_int_param_changed(IntParam *p) {
 	uint8_t value[8];
 	encode_u64(value, static_cast<uint64_t>(static_cast<int64_t>(*p)));
 
-	const std::string &utf8name = p->name;
+	const std::string &utf8name = p->path();
 
 	iovec iov[2];
 	iov[0].iov_base = &value;
@@ -278,7 +280,7 @@ void AI::Logger::on_double_param_changed(DoubleParam *p) {
 	uint8_t value[8];
 	encode_double(value, *p);
 
-	const std::string &utf8name = p->name;
+	const std::string &utf8name = p->path();
 
 	iovec iov[2];
 	iov[0].iov_base = &value;
@@ -288,7 +290,8 @@ void AI::Logger::on_double_param_changed(DoubleParam *p) {
 
 	writev_packet(fd, Log::T_DOUBLE_PARAM, iov, sizeof(iov) / sizeof(*iov));
 }
-
+#endif
+#warning fix param logging
 void AI::Logger::on_vision_packet(const void *vision_packet, std::size_t vision_length) {
 	write_packet(fd, Log::T_VISION, vision_packet, vision_length);
 }

@@ -5,7 +5,6 @@
 #include "test/params.h"
 #include "test/zeroable.h"
 #include "uicomponents/annunciator.h"
-#include "util/config.h"
 #include "xbee/dongle.h"
 #include "xbee/robot.h"
 #include <gtkmm.h>

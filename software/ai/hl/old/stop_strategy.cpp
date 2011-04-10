@@ -1,8 +1,8 @@
 #include "ai/flags.h"
+#include "ai/hl/util.h"
 #include "ai/hl/old/strategy.h"
 #include "ai/hl/old/tactics.h"
-#include "ai/hl/util.h"
-#include "uicomponents/param.h"
+#include "util/param.h"
 #include <vector>
 
 using AI::HL::Strategy;

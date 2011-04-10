@@ -3,9 +3,8 @@
 #include "ai/window.h"
 #include "ai/backend/backend.h"
 #include "uicomponents/abstract_list_model.h"
-#include "uicomponents/param.h"
 #include "util/clocksource_timerfd.h"
-#include "util/config.h"
+#include "util/param.h"
 #include "util/timestep.h"
 #include <algorithm>
 #include <cstdlib>
@@ -227,11 +226,9 @@ namespace {
 			return 1;
 		}
 
-		// Load the configuration file.
-		Config conf;
-
-		// Initialize the parameters from the configuration file.
-		Param::initialized(&conf);
+		// Initialize the parameters.
+		ParamTreeNode::root()->initialize();
+		ParamTreeNode::load_all();
 
 		// Enable the use of the siren for annunciator messages.
 		Annunciator::activate_siren();
@@ -275,7 +272,7 @@ namespace {
 		if (be == bem.end()) {
 			throw std::runtime_error(Glib::ustring::compose("There is no backend '%1'.", backend_name));
 		}
-		be->second->create_backend(conf, backend_params, sigc::bind(sigc::ptr_fun(&main_impl_with_backend), wbc));
+		be->second->create_backend(backend_params, sigc::bind(sigc::ptr_fun(&main_impl_with_backend), wbc));
 
 		return 0;
 	}

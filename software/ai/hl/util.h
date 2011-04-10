@@ -2,7 +2,7 @@
 #define AI_HL_UTIL_H
 
 #include "ai/hl/world.h"
-#include "uicomponents/param.h"
+#include "util/param.h"
 #include <vector>
 
 namespace AI {

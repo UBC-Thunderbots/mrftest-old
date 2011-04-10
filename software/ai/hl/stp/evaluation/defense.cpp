@@ -1,9 +1,9 @@
 #include "ai/hl/stp/evaluation/defense.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
-#include "uicomponents/param.h"
 #include "util/algorithm.h"
 #include "util/dprint.h"
+#include "util/param.h"
 
 #include <vector>
 

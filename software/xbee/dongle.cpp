@@ -377,7 +377,7 @@ namespace {
 	};
 }
 
-XBeeDongle::XBeeDongle(unsigned int out_channel, unsigned int in_channel) : estop_state(ESTOP_STATE_UNINITIALIZED), xbees_state(XBEES_STATE_PREINIT), out_channel(out_channel), in_channel(in_channel), context(), device(context, 0x04D8, 0x7839), dirty_drive_mask(0) {
+XBeeDongle::XBeeDongle() : estop_state(ESTOP_STATE_UNINITIALIZED), xbees_state(XBEES_STATE_PREINIT), context(), device(context, 0x04D8, 0x7839), dirty_drive_mask(0) {
 	for (unsigned int i = 0; i < G_N_ELEMENTS(robots); ++i) {
 		robots[i] = XBeeRobot::create(*this, i);
 	}
@@ -405,7 +405,8 @@ XBeeDongle::~XBeeDongle() {
 }
 
 AsyncOperation<void>::Ptr XBeeDongle::enable() {
-	EnableOperation::Ptr p = EnableOperation::create(*this, device, out_channel, in_channel);
+#warning channel numbers should be stored in the dongle
+	EnableOperation::Ptr p = EnableOperation::create(*this, device, 0x0E, 0x0F);
 	p->signal_done.connect(sigc::mem_fun(this, &XBeeDongle::on_enable_done));
 	return p;
 }

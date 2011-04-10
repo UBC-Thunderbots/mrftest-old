@@ -1,7 +1,7 @@
 #include "ai/navigator/navigator.h"
-#include "util/time.h"
 #include "geom/angle.h"
-#include "uicomponents/param.h"
+#include "util/time.h"
+#include "util/param.h"
 #include <cmath>
 
 using AI::Nav::Navigator;

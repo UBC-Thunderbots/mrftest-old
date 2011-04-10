@@ -1,9 +1,9 @@
+#include "ai/navigator/navigator.h"
+#include "ai/navigator/rrt_planner.h"
 #include "ai/navigator/util.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
-#include <uicomponents/param.h>
-#include "ai/navigator/navigator.h"
-#include "ai/navigator/rrt_planner.h"
+#include "util/param.h"
 #include <iostream>
 
 using AI::Nav::Navigator;
@@ -12,7 +12,6 @@ using namespace AI::Nav::W;
 using namespace AI::Nav::Util;
 using namespace AI::Flags;
 using namespace Glib;
-
 
 namespace AI {
 	namespace Nav {

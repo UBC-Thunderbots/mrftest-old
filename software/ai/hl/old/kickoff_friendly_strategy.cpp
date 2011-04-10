@@ -1,11 +1,11 @@
 #include "ai/flags.h"
+#include "ai/hl/util.h"
 #include "ai/hl/old/defender.h"
 #include "ai/hl/old/offender.h"
 #include "ai/hl/old/strategy.h"
 #include "ai/hl/old/tactics.h"
-#include "ai/hl/util.h"
-#include "uicomponents/param.h"
 #include "util/dprint.h"
+#include "util/param.h"
 #include <algorithm>
 #include <vector>
 
