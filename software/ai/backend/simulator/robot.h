@@ -61,6 +61,7 @@ namespace AI {
 					double orientation() const { return tpred.value(); }
 					double orientation(double delta) const { return tpred.value(delta); }
 					double orientation(const timespec &ts) const { return tpred.value(ts); }
+					Point velocity() const { return velocity(0.0); }
 					Point velocity(double delta) const { return Point(xpred.value(delta, 1), ypred.value(delta, 1)); }
 					Point velocity(const timespec &ts) const { return Point(xpred.value(ts, 1), ypred.value(ts, 1)); }
 					double avelocity(double delta) const { return tpred.value(delta, 1); }

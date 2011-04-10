@@ -1,7 +1,7 @@
 #include "uicomponents/visualizer.h"
 #include <cmath>
 
-Visualizer::Visualizer(Visualizable::World &data) : data(data) {
+Visualizer::Visualizer(Visualizable::World &data) : show_field(true), show_ball(true), show_ball_v(true), show_robots(true), show_robots_v(false), show_robots_dest(true), show_robots_path(true), show_overlay(true), data(data) {
 	set_size_request(600, 600);
 	add_events(Gdk::POINTER_MOTION_MASK);
 	add_events(Gdk::BUTTON_PRESS_MASK);
@@ -65,135 +65,153 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 	ctx->scale(scale, -scale);
 	ctx->set_line_width(0.01);
 
-	// Draw the outline of the referee area.
-	ctx->set_source_rgb(0.0, 0.0, 0.0);
-	ctx->move_to(-data.field().total_length() / 2.0, -data.field().total_width() / 2.0);
-	ctx->line_to(data.field().total_length() / 2.0, -data.field().total_width() / 2.0);
-	ctx->line_to(data.field().total_length() / 2.0, data.field().total_width() / 2.0);
-	ctx->line_to(-data.field().total_length() / 2.0, data.field().total_width() / 2.0);
-	ctx->line_to(-data.field().total_length() / 2.0, -data.field().total_width() / 2.0);
-	ctx->stroke();
+	if (show_field) {
+		// Draw the outline of the referee area.
+		ctx->set_source_rgb(0.0, 0.0, 0.0);
+		ctx->move_to(-data.field().total_length() / 2.0, -data.field().total_width() / 2.0);
+		ctx->line_to(data.field().total_length() / 2.0, -data.field().total_width() / 2.0);
+		ctx->line_to(data.field().total_length() / 2.0, data.field().total_width() / 2.0);
+		ctx->line_to(-data.field().total_length() / 2.0, data.field().total_width() / 2.0);
+		ctx->line_to(-data.field().total_length() / 2.0, -data.field().total_width() / 2.0);
+		ctx->stroke();
 
-	// Draw the rectangular outline.
-	ctx->set_source_rgb(1.0, 1.0, 1.0);
-	ctx->move_to(-data.field().length() / 2.0, -data.field().width() / 2.0);
-	ctx->line_to(data.field().length() / 2.0, -data.field().width() / 2.0);
-	ctx->line_to(data.field().length() / 2.0, data.field().width() / 2.0);
-	ctx->line_to(-data.field().length() / 2.0, data.field().width() / 2.0);
-	ctx->line_to(-data.field().length() / 2.0, -data.field().width() / 2.0);
-	ctx->stroke();
+		// Draw the rectangular outline.
+		ctx->set_source_rgb(1.0, 1.0, 1.0);
+		ctx->move_to(-data.field().length() / 2.0, -data.field().width() / 2.0);
+		ctx->line_to(data.field().length() / 2.0, -data.field().width() / 2.0);
+		ctx->line_to(data.field().length() / 2.0, data.field().width() / 2.0);
+		ctx->line_to(-data.field().length() / 2.0, data.field().width() / 2.0);
+		ctx->line_to(-data.field().length() / 2.0, -data.field().width() / 2.0);
+		ctx->stroke();
 
-	// Draw the centre line.
-	ctx->move_to(0.0, -data.field().width() / 2.0);
-	ctx->line_to(0.0, data.field().width() / 2.0);
-	ctx->stroke();
+		// Draw the centre line.
+		ctx->move_to(0.0, -data.field().width() / 2.0);
+		ctx->line_to(0.0, data.field().width() / 2.0);
+		ctx->stroke();
 
-	// Draw the centre circle.
-	ctx->arc(0.0, 0.0, data.field().centre_circle_radius(), 0.0, 2 * M_PI);
-	ctx->stroke();
+		// Draw the centre circle.
+		ctx->arc(0.0, 0.0, data.field().centre_circle_radius(), 0.0, 2 * M_PI);
+		ctx->stroke();
 
-	// Draw the west defense area.
-	ctx->arc(-data.field().length() / 2.0, -data.field().defense_area_stretch() / 2.0, data.field().defense_area_radius(), -M_PI_2, 0);
-	ctx->line_to(-data.field().length() / 2.0 + data.field().defense_area_radius(), data.field().defense_area_stretch() / 2.0);
-	ctx->arc(-data.field().length() / 2.0, data.field().defense_area_stretch() / 2.0, data.field().defense_area_radius(), 0, M_PI_2);
-	ctx->stroke();
+		// Draw the west defense area.
+		ctx->arc(-data.field().length() / 2.0, -data.field().defense_area_stretch() / 2.0, data.field().defense_area_radius(), -M_PI_2, 0);
+		ctx->line_to(-data.field().length() / 2.0 + data.field().defense_area_radius(), data.field().defense_area_stretch() / 2.0);
+		ctx->arc(-data.field().length() / 2.0, data.field().defense_area_stretch() / 2.0, data.field().defense_area_radius(), 0, M_PI_2);
+		ctx->stroke();
 
-	// Draw the east defense area.
-	ctx->arc(data.field().length() / 2.0, data.field().defense_area_stretch() / 2.0, data.field().defense_area_radius(), M_PI_2, M_PI);
-	ctx->line_to(data.field().length() / 2.0 - data.field().defense_area_radius(), -data.field().defense_area_stretch() / 2.0);
-	ctx->arc(data.field().length() / 2.0, -data.field().defense_area_stretch() / 2.0, data.field().defense_area_radius(), M_PI, 3 * M_PI_2);
-	ctx->stroke();
+		// Draw the east defense area.
+		ctx->arc(data.field().length() / 2.0, data.field().defense_area_stretch() / 2.0, data.field().defense_area_radius(), M_PI_2, M_PI);
+		ctx->line_to(data.field().length() / 2.0 - data.field().defense_area_radius(), -data.field().defense_area_stretch() / 2.0);
+		ctx->arc(data.field().length() / 2.0, -data.field().defense_area_stretch() / 2.0, data.field().defense_area_radius(), M_PI, 3 * M_PI_2);
+		ctx->stroke();
+	}
 
-	// Set font size for displaying robot pattern indices.
-	ctx->set_font_size(0.09);
+	if (show_robots) {
+		// Set font size for displaying robot pattern indices.
+		ctx->set_font_size(0.09);
 
-	// Draw the players including text, and their destinations.
-	for (unsigned int i = 0; i < data.visualizable_num_robots(); ++i) {
-		Visualizable::Robot::Ptr bot = data.visualizable_robot(i);
-		const Visualizable::Colour &clr = bot->visualizer_colour();
-		const std::string &str = bot->visualizer_label();
-		Cairo::TextExtents extents;
-		ctx->get_text_extents(str, extents);
+		// Draw the players including text, and their velocities, destinations, and paths.
+		for (unsigned int i = 0; i < data.visualizable_num_robots(); ++i) {
+			Visualizable::Robot::Ptr bot = data.visualizable_robot(i);
+			const Visualizable::Colour &clr = bot->visualizer_colour();
+			const std::string &str = bot->visualizer_label();
+			Cairo::TextExtents extents;
+			ctx->get_text_extents(str, extents);
 
-		ctx->set_source_rgb(clr.red, clr.green, clr.blue);
-		ctx->begin_new_path();
-		ctx->arc(bot->position().x, bot->position().y, 0.09, bot->orientation() + M_PI_4, bot->orientation() - M_PI_4);
-		ctx->fill();
-
-		if (bot->has_destination()) {
 			ctx->set_source_rgb(clr.red, clr.green, clr.blue);
 			ctx->begin_new_path();
-			ctx->arc(bot->destination().first.x, bot->destination().first.y, 0.09, bot->destination().second + M_PI_4, bot->destination().second - M_PI_4);
-			ctx->stroke();
+			ctx->arc(bot->position().x, bot->position().y, 0.09, bot->orientation() + M_PI_4, bot->orientation() - M_PI_4);
+			ctx->fill();
+
+			if (show_robots_v) {
+				ctx->begin_new_path();
+				ctx->move_to(bot->position().x, bot->position().y);
+				const Point &tgt(bot->position() + bot->velocity());
+				ctx->line_to(tgt.x, tgt.y);
+				ctx->stroke();
+			}
+
+			if (show_robots_dest && bot->has_destination()) {
+				ctx->set_source_rgb(clr.red, clr.green, clr.blue);
+				ctx->begin_new_path();
+				ctx->arc(bot->destination().first.x, bot->destination().first.y, 0.09, bot->destination().second + M_PI_4, bot->destination().second - M_PI_4);
+				ctx->stroke();
+
+				ctx->set_source_rgb(0.0, 0.0, 0.0);
+				const double x = bot->destination().first.x - extents.x_bearing - extents.width / 2.0;
+				const double y = bot->destination().first.y + extents.y_bearing + extents.height / 2.0;
+				ctx->move_to(x, y);
+				ctx->save();
+				ctx->scale(1, -1);
+				ctx->show_text(str);
+				ctx->restore();
+			}
+
+			if (show_robots_path && bot->has_path()) {
+				ctx->set_source_rgb(1.0, 0.0, 1.0);
+				ctx->begin_new_path();
+				ctx->move_to(bot->position().x, bot->position().y);
+				const std::vector<std::pair<std::pair<Point, double>, timespec> > &path = bot->path();
+				for (std::vector<std::pair<std::pair<Point, double>, timespec> >::const_iterator j = path.begin(), jend = path.end(); j != jend; ++j) {
+					ctx->line_to(j->first.first.x, j->first.first.y);
+				}
+				ctx->stroke();
+
+				ctx->set_source_rgb(0, 0, 0);
+				for (std::vector<std::pair<std::pair<Point, double>, timespec> >::const_iterator j = path.begin(), jend = path.end(); j != jend; ++j) {
+					ctx->arc(j->first.first.x, j->first.first.y, 0.01, 0, 2 * M_PI);
+					ctx->fill();
+				}
+			}
 
 			ctx->set_source_rgb(0.0, 0.0, 0.0);
-			const double x = bot->destination().first.x - extents.x_bearing - extents.width / 2.0;
-			const double y = bot->destination().first.y + extents.y_bearing + extents.height / 2.0;
+			const double x = bot->position().x - extents.x_bearing - extents.width / 2.0;
+			const double y = bot->position().y + extents.y_bearing + extents.height / 2.0;
 			ctx->move_to(x, y);
 			ctx->save();
 			ctx->scale(1, -1);
 			ctx->show_text(str);
 			ctx->restore();
-		}
 
-		if (bot->has_path()) {
-			ctx->set_source_rgb(1.0, 0.0, 1.0);
-			ctx->begin_new_path();
-			ctx->move_to(bot->position().x, bot->position().y);
-			const std::vector<std::pair<std::pair<Point, double>, timespec> > &path = bot->path();
-			for (std::vector<std::pair<std::pair<Point, double>, timespec> >::const_iterator j = path.begin(), jend = path.end(); j != jend; ++j) {
-				ctx->line_to(j->first.first.x, j->first.first.y);
+			if (bot->highlight()) {
+				const Visualizable::Colour &hlclr = bot->highlight_colour();
+				ctx->set_source_rgb(hlclr.red, hlclr.green, hlclr.blue);
+				ctx->begin_new_path();
+				ctx->arc(bot->position().x, bot->position().y, 0.09, bot->orientation() + M_PI_4, bot->orientation() - M_PI_4);
+				ctx->stroke();
 			}
-			ctx->stroke();
-
-			ctx->set_source_rgb(0, 0, 0);
-			for (std::vector<std::pair<std::pair<Point, double>, timespec> >::const_iterator j = path.begin(), jend = path.end(); j != jend; ++j) {
-				ctx->arc(j->first.first.x, j->first.first.y, 0.01, 0, 2 * M_PI);
-				ctx->fill();
-			}
-		}
-
-		ctx->set_source_rgb(0.0, 0.0, 0.0);
-		const double x = bot->position().x - extents.x_bearing - extents.width / 2.0;
-		const double y = bot->position().y + extents.y_bearing + extents.height / 2.0;
-		ctx->move_to(x, y);
-		ctx->save();
-		ctx->scale(1, -1);
-		ctx->show_text(str);
-		ctx->restore();
-
-		if (bot->highlight()) {
-			const Visualizable::Colour &hlclr = bot->highlight_colour();
-			ctx->set_source_rgb(hlclr.red, hlclr.green, hlclr.blue);
-			ctx->begin_new_path();
-			ctx->arc(bot->position().x, bot->position().y, 0.09, bot->orientation() + M_PI_4, bot->orientation() - M_PI_4);
-			ctx->stroke();
 		}
 	}
 
-	// Draw the ball.
-	const Visualizable::Ball &ball(data.ball());
-	ctx->set_source_rgb(1.0, 0.5, 0.0);
-	ctx->begin_new_path();
-	ctx->arc(ball.position().x, ball.position().y, 0.03, 0, 2 * M_PI);
-	ctx->fill();
-	ctx->begin_new_path();
-	ctx->move_to(ball.position().x, ball.position().y);
-	{
-		const Point &tgt(ball.position() + ball.velocity());
-		ctx->line_to(tgt.x, tgt.y);
-	}
-	ctx->stroke();
-	if (ball.highlight()) {
-		const Visualizable::Colour &clr = ball.highlight_colour();
-		ctx->set_source_rgb(clr.red, clr.green, clr.blue);
+	if (show_ball) {
+		// Draw the ball.
+		const Visualizable::Ball &ball(data.ball());
+		ctx->set_source_rgb(1.0, 0.5, 0.0);
 		ctx->begin_new_path();
 		ctx->arc(ball.position().x, ball.position().y, 0.03, 0, 2 * M_PI);
-		ctx->stroke();
+		ctx->fill();
+
+		if (show_ball_v) {
+			ctx->begin_new_path();
+			ctx->move_to(ball.position().x, ball.position().y);
+			const Point &tgt(ball.position() + ball.velocity());
+			ctx->line_to(tgt.x, tgt.y);
+			ctx->stroke();
+		}
+
+		if (ball.highlight()) {
+			const Visualizable::Colour &clr = ball.highlight_colour();
+			ctx->set_source_rgb(clr.red, clr.green, clr.blue);
+			ctx->begin_new_path();
+			ctx->arc(ball.position().x, ball.position().y, 0.03, 0, 2 * M_PI);
+			ctx->stroke();
+		}
 	}
 
-	// Draw the overlay.
-	data.draw_overlay(ctx);
+	if (show_overlay) {
+		// Draw the overlay.
+		data.draw_overlay(ctx);
+	}
 
 	// Done.
 	return true;

@@ -173,6 +173,13 @@ namespace Visualizable {
 			virtual double orientation() const = 0;
 
 			/**
+			 * Returns the velocity of the robot.
+			 *
+			 * \return the velocity of the robot.
+			 */
+			virtual Point velocity() const = 0;
+
+			/**
 			 * Returns the colour of the robot.
 			 *
 			 * \return the colour of the Robot.
@@ -315,6 +322,46 @@ namespace Visualizable {
  */
 class Visualizer : public Gtk::DrawingArea {
 	public:
+		/**
+		 * Whether or not to draw the field lines
+		 */
+		bool show_field;
+
+		/**
+		 * Whether or not to draw the ball.
+		 */
+		bool show_ball;
+
+		/**
+		 * Whether or not to draw the ball's estimated velocity.
+		 */
+		bool show_ball_v;
+
+		/**
+		 * Whether or not to draw the robots.
+		 */
+		bool show_robots;
+
+		/**
+		 * Whether or not to draw the robots' estimated velocities.
+		 */
+		bool show_robots_v;
+
+		/**
+		 * Whether or not to draw the robots' AI-assigned destinations.
+		 */
+		bool show_robots_dest;
+
+		/**
+		 * Whether or not to draw the robots' navigator-assigned paths.
+		 */
+		bool show_robots_path;
+
+		/**
+		 * Whether or not to draw the AI overlay.
+		 */
+		bool show_overlay;
+
 		/**
 		 * Constructs a new Visualizer.
 		 *

@@ -4,6 +4,7 @@
 #include "uicomponents/annunciator.h"
 #include "util/algorithm.h"
 #include <cassert>
+#include <vector>
 
 using AI::Window;
 
@@ -252,17 +253,17 @@ namespace {
 			}
 	};
 
-	class SecondaryControls : public Gtk::Table {
+	class SecondaryBasicControls : public Gtk::Table {
 		public:
-			SecondaryControls(AI::AIPackage &ai) : Gtk::Table(3 + ai.backend.secondary_ui_controls_table_rows(), 3), ai(ai) {
+			SecondaryBasicControls(AI::AIPackage &ai) : Gtk::Table(3 + ai.backend.secondary_ui_controls_table_rows(), 3), ai(ai) {
 				attach(*Gtk::manage(new Gtk::Label("Play type override:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				playtype_override_chooser.append_text("<None>");
 				for (unsigned int i = 0; i < AI::Common::PlayType::COUNT; ++i) {
 					playtype_override_chooser.append_text(AI::Common::PlayType::DESCRIPTIONS_GENERIC[i]);
 				}
 				attach(playtype_override_chooser, 1, 3, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				playtype_override_chooser.signal_changed().connect(sigc::mem_fun(this, &SecondaryControls::on_playtype_override_chooser_changed));
-				ai.backend.playtype_override().signal_changed().connect(sigc::mem_fun(this, &SecondaryControls::on_playtype_override_changed));
+				playtype_override_chooser.signal_changed().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_playtype_override_chooser_changed));
+				ai.backend.playtype_override().signal_changed().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_playtype_override_changed));
 				on_playtype_override_changed();
 
 				attach(*Gtk::manage(new Gtk::Label("Defending:")), 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -270,8 +271,8 @@ namespace {
 				attach(defending_end_entry, 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				Gtk::Button *flip_end_button = Gtk::manage(new Gtk::Button("X"));
 				attach(*flip_end_button, 2, 3, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				flip_end_button->signal_clicked().connect(sigc::mem_fun(this, &SecondaryControls::on_flip_end_clicked));
-				ai.backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &SecondaryControls::on_defending_end_changed));
+				flip_end_button->signal_clicked().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_flip_end_clicked));
+				ai.backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_defending_end_changed));
 				on_defending_end_changed();
 
 				attach(*Gtk::manage(new Gtk::Label("Colour:")), 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -279,8 +280,8 @@ namespace {
 				attach(friendly_colour_entry, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				Gtk::Button *flip_friendly_colour_button = Gtk::manage(new Gtk::Button("X"));
 				attach(*flip_friendly_colour_button, 2, 3, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				flip_friendly_colour_button->signal_clicked().connect(sigc::mem_fun(this, &SecondaryControls::on_flip_friendly_colour_clicked));
-				ai.backend.friendly_colour().signal_changed().connect(sigc::mem_fun(this, &SecondaryControls::on_friendly_colour_changed));
+				flip_friendly_colour_button->signal_clicked().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_flip_friendly_colour_clicked));
+				ai.backend.friendly_colour().signal_changed().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_friendly_colour_changed));
 				on_friendly_colour_changed();
 
 				ai.backend.secondary_ui_controls_attach(*this, 3);
@@ -330,13 +331,75 @@ namespace {
 			}
 	};
 
+	class VisualizerControls : public Gtk::Table {
+		public:
+			VisualizerControls(Visualizer &vis) : Gtk::Table(G_N_ELEMENTS(CONTROLS), 2), vis(vis), buttons(G_N_ELEMENTS(CONTROLS), 0) {
+				unsigned int children_left = 0;
+				for (unsigned int i = 0; i < G_N_ELEMENTS(CONTROLS); ++i) {
+					buttons[i] = Gtk::manage(new Gtk::CheckButton(CONTROLS[i].title));
+					buttons[i]->set_active(vis.*(CONTROLS[i].flag));
+					buttons[i]->signal_toggled().connect(sigc::mem_fun(this, &VisualizerControls::on_toggled));
+					if (children_left) {
+						attach(*Gtk::manage(new Gtk::Label("    ")), 0, 1, i, i + 1, Gtk::FILL | Gtk::SHRINK, Gtk::FILL | Gtk::SHRINK);
+						attach(*buttons[i], 1, 2, i, i + 1, Gtk::FILL | Gtk::EXPAND, Gtk::FILL | Gtk::SHRINK);
+						--children_left;
+					} else {
+						attach(*buttons[i], 0, 2, i, i + 1, Gtk::FILL | Gtk::EXPAND, Gtk::FILL | Gtk::SHRINK);
+						children_left = CONTROLS[i].num_children;
+					}
+				}
+
+				on_toggled();
+			}
+
+		private:
+			struct ControlInfo {
+				const char *title;
+				bool Visualizer::*flag;
+				unsigned int num_children;
+			};
+
+			static const ControlInfo CONTROLS[8];
+
+			Visualizer &vis;
+			std::vector<Gtk::CheckButton *> buttons;
+
+			void on_toggled() {
+				// Update enables.
+				unsigned int num_children = 0;
+				bool enable = false;
+				for (unsigned int i = 0; i < G_N_ELEMENTS(CONTROLS); ++i) {
+					if (num_children) {
+						buttons[i]->set_sensitive(enable);
+						--num_children;
+					} else {
+						num_children = CONTROLS[i].num_children;
+						enable = buttons[i]->get_active();
+					}
+				}
+
+				// Update visualizer flags.
+				for (unsigned int i = 0; i < G_N_ELEMENTS(CONTROLS); ++i) {
+					vis.*(CONTROLS[i].flag) = buttons[i]->get_active();
+				}
+			}
+	};
+
+	const VisualizerControls::ControlInfo VisualizerControls::CONTROLS[8] = {
+		{ "Field", &Visualizer::show_field, 0 },
+		{ "Ball", &Visualizer::show_ball, 1 },
+		{ "Velocity", &Visualizer::show_ball_v, 0 },
+		{ "Robots", &Visualizer::show_robots, 3 },
+		{ "Velocity", &Visualizer::show_robots_v, 0 },
+		{ "Destination", &Visualizer::show_robots_dest, 0 },
+		{ "Path", &Visualizer::show_robots_path, 0 },
+		{ "AI Overlay", &Visualizer::show_overlay, 0 },
+	};
+
 	class VisualizerCoordinatesBar : public Gtk::Statusbar {
 		public:
 			VisualizerCoordinatesBar(Visualizer &vis) {
 				vis.signal_mouse_moved().connect(sigc::mem_fun(this, &VisualizerCoordinatesBar::on_move));
-			}
-
-			~VisualizerCoordinatesBar() {
 			}
 
 		private:
@@ -348,6 +411,8 @@ namespace {
 }
 
 Window::Window(AIPackage &ai) {
+	Visualizer *visualizer = Gtk::manage(new Visualizer(ai.backend));
+
 	set_title("AI");
 
 	Gtk::VBox *outer_vbox = Gtk::manage(new Gtk::VBox);
@@ -364,17 +429,23 @@ Window::Window(AIPackage &ai) {
 	vbox->pack_start(*Gtk::manage(new RobotControllerControls(ai)), Gtk::PACK_EXPAND_WIDGET);
 	notebook->append_page(*vbox, "Main");
 
-	notebook->append_page(*Gtk::manage(new SecondaryControls(ai)), "Secondary");
+	vbox = Gtk::manage(new Gtk::VBox);
+	Gtk::Frame *frame = Gtk::manage(new Gtk::Frame("Basics"));
+	frame->add(*Gtk::manage(new SecondaryBasicControls(ai)));
+	vbox->pack_start(*frame, Gtk::PACK_SHRINK);
+	frame = Gtk::manage(new Gtk::Frame("Visualizer"));
+	frame->add(*Gtk::manage(new VisualizerControls(*visualizer)));
+	vbox->pack_start(*frame, Gtk::PACK_SHRINK);
+	notebook->append_page(*vbox, "Secondary");
 
 	notebook->append_page(*Gtk::manage(new ParamPanel), "Params");
 
-	Gtk::Frame *frame = Gtk::manage(new Gtk::Frame);
+	frame = Gtk::manage(new Gtk::Frame);
 	frame->set_shadow_type(Gtk::SHADOW_IN);
 	frame->add(*notebook);
 	hpaned->pack1(*frame, false, false);
 
 	Gtk::VPaned *vpaned = Gtk::manage(new Gtk::VPaned);
-	Visualizer *visualizer = Gtk::manage(new Visualizer(ai.backend));
 	vpaned->pack1(*visualizer, true, true);
 	vpaned->pack2(*Gtk::manage(new GUIAnnunciator), false, true);
 

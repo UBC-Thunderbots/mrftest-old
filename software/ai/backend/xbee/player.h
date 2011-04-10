@@ -48,6 +48,7 @@ namespace AI {
 					Point position() const { return Robot::position(); }
 					Point position(double delta) const { return Robot::position(delta); }
 					Point position(const timespec &ts) const { return Robot::position(ts); }
+					Point velocity() const { return velocity(0.0); }
 					Point velocity(double delta = 0.0) const { return Robot::velocity(delta); }
 					Point velocity(const timespec &ts) const { return Robot::velocity(ts); }
 					Point acceleration(double delta = 0.0) const { return Robot::acceleration(delta); }
