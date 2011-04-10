@@ -4,6 +4,8 @@
 #include "ai/hl/stp/evaluation/offense.h"
 #include "util/dprint.h"
 
+#include <iostream>
+#include <math.h>
 #include <sstream>
 #include <gtkmm.h>
 
@@ -62,6 +64,7 @@ namespace {
 			
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 				draw_offense(ctx);
+				//draw_velocity(ctx); // uncommand to display velocity
 				return;
 				if (world.playtype() == PlayType::STOP) {
 					ctx->set_source_rgb(1.0, 0.5, 0.5);
@@ -78,6 +81,20 @@ namespace {
 					}
 				}
 			}
+			
+			void draw_velocity(Cairo::RefPtr<Cairo::Context> ctx) {
+				const FriendlyTeam& friendly = world.friendly_team();
+				ctx->set_line_width(1.0);
+				for (std::size_t i = 0; i < friendly.size(); ++i ) {
+					const Player::CPtr player = friendly.get(i);
+					double vel_direction = atan( player->velocity().y / player->velocity().x );
+					double vel_mag = sqrt( player->velocity().y * player->velocity().y + player->velocity().x * player->velocity().x );
+					std::cout << vel_direction << "  " << vel_mag <<std::endl;
+					ctx->set_source_rgba(0.0, 0.0, 0.0, 0.2);
+					ctx->arc( player->position().x, player->position().y, vel_mag, vel_direction, vel_direction+1.0 );
+					ctx->stroke();
+				}
+			}
 
 			void draw_offense(Cairo::RefPtr<Cairo::Context> ctx) {
 
@@ -86,7 +103,6 @@ namespace {
 				for (std::size_t i = 0; i < friendly.size(); ++i) {
 					const Player::CPtr player = friendly.get(i);
 					std::pair<Point, double> best_shot = AI::HL::Util::calc_best_shot(world, player);
-
 					if (best_shot.second < AI::HL::Util::shoot_accuracy * M_PI / 180) {
 						continue;
 					}
