@@ -74,7 +74,7 @@ void AI::BE::Simulator::SecondaryUIControls::attach(Gtk::Table &t, unsigned int 
 	t.attach(state_file_label, 0, 1, row + 2, row + 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	t.attach(state_file_entry, 1, 2, row + 2, row + 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	t.attach(state_file_button, 2, 3, row + 2, row + 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	t.attach(state_file_hbox, 1, 3, row + 3, row + 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	t.attach(state_file_hbox, 1, 3, row + 3, row + 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 }
 
 FileDescriptor::Ptr AI::BE::Simulator::connect_to_simulator() {
