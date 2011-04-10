@@ -45,6 +45,14 @@ namespace AI {
 				 * \return true if the robot shoots.
 				 */
 				bool shoot(const World &world, Player::Ptr player, const Rect region, const unsigned int flags = 0, const bool force = false);
+				
+				/**
+				 * Arm the kicker so that it kicks ball exact speed to stop at target (i.e. t= inf)
+				 * or alternatively reach target at time delta from the current time ( may be moving )
+				 *\return true if the constraints are achievable
+				 */
+				bool arm(const World &world, Player::Ptr player, const Point target, double delta=1e10);
+
 			}
 		}
 	}

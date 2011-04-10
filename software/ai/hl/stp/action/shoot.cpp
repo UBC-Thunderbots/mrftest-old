@@ -5,6 +5,9 @@
 #include "geom/util.h"
 #include "uicomponents/param.h"
 #include "util/dprint.h"
+#include <cmath>
+
+DoubleParam alpha("Decay constant for the ball velocity", 0.1, 0.0, 1.0);
 
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const unsigned int flags, const bool force) {
 
@@ -41,7 +44,7 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const un
 	return AI::HL::STP::Action::shoot(world, player, target.first, flags);
 }
 
-bool AI::HL::STP::Action::shoot(const World &, Player::Ptr player, const Point target, const unsigned int flags, const bool) {
+bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Point target, const unsigned int flags, const bool) {
 	const double ori_target = (target - player->position()).orientation();
 
 	if (!player->has_ball()) {
@@ -61,16 +64,32 @@ bool AI::HL::STP::Action::shoot(const World &, Player::Ptr player, const Point t
 	}
 
 	// shoot:!
-	double speed = 10.0;
-	// autokick needs to be called at every tick
-	LOG_INFO("trying to kick");
-	player->autokick(speed);
+	arm(world, player, target);
 	
 	if (player->chicker_ready()) {
-		//player->kick(kick_power);
 		return true;
 	}
 	
 	return false;
 }
 
+
+bool AI::HL::STP::Action::arm(const World &world, Player::Ptr player, const Point target, double delta) {
+
+	double dist_max = 10.0*(1-std::exp(-alpha*delta))/alpha;
+
+	//make the robot kick as close to the target as possible
+	Point robot_dir(1,0);
+	robot_dir = robot_dir.rotate(player->orientation());
+	double distance = (target - world.ball().position()).dot(robot_dir);
+
+	if(distance > dist_max){
+		player->autokick(10.0);
+		return false;
+	}
+
+	double speed = alpha*distance/(1-exp(-alpha*delta));
+	player->autokick(speed);
+	return true;
+
+}

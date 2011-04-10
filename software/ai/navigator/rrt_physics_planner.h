@@ -2,7 +2,6 @@
 
 namespace AI{
 	namespace Nav{
-		//		namespace Planner{
 
 		class PhysicsPlanner : public RRTPlanner {
 		public:
@@ -25,6 +24,5 @@ namespace AI{
 		private:
 			AI::Nav::W::Player::Ptr curr_player;
 		};
-}
-	//	}
+	}
 }
