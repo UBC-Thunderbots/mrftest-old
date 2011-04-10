@@ -17,6 +17,8 @@ extern "C" {
 	void ai_logger_signal_handler_thunk(int sig);
 }
 
+class ParamTreeNode;
+
 namespace AI {
 	/**
 	 * Records a log of a game for later playback.
@@ -68,6 +70,7 @@ namespace AI {
 			SignalHandlerScopedRegistration SIGTERM_registration;
 			SignalHandlerScopedRegistration SIGSTKFLT_registration;
 
+			void attach_param_change_handler(ParamTreeNode *node);
 			void signal_handler(int sig);
 			void on_message_logged(unsigned int level, const Glib::ustring &msg);
 			void log_annunciator(std::size_t i, bool activated);

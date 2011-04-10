@@ -6,6 +6,7 @@
 #include "util/crc16.h"
 #include "util/dprint.h"
 #include "util/exception.h"
+#include "util/param.h"
 #include "util/time.h"
 #include <cerrno>
 #include <csignal>
@@ -124,26 +125,7 @@ AI::Logger::Logger(const AI::AIPackage &ai) : ai(ai), fd(create_file()), ended(f
 	Annunciator::signal_message_deactivated.connect(sigc::mem_fun(this, &AI::Logger::on_annunciator_message_deactivated));
 	Annunciator::signal_message_reactivated.connect(sigc::mem_fun(this, &AI::Logger::on_annunciator_message_reactivated));
 
-#if 0
-	for (std::vector<Param *>::const_iterator i = Param::all().begin(), iend = Param::all().end(); i != iend; ++i) {
-		BoolParam *bp = dynamic_cast<BoolParam *>(*i);
-		if (bp) {
-			bp->prop().signal_changed().connect(sigc::bind(sigc::mem_fun(this, &AI::Logger::on_bool_param_changed), bp));
-			on_bool_param_changed(bp);
-		}
-		IntParam *ip = dynamic_cast<IntParam *>(*i);
-		if (ip) {
-			ip->prop().signal_changed().connect(sigc::bind(sigc::mem_fun(this, &AI::Logger::on_int_param_changed), ip));
-			on_int_param_changed(ip);
-		}
-		DoubleParam *dp = dynamic_cast<DoubleParam *>(*i);
-		if (dp) {
-			dp->prop().signal_changed().connect(sigc::bind(sigc::mem_fun(this, &AI::Logger::on_double_param_changed), dp));
-			on_double_param_changed(dp);
-		}
-	}
-#endif
-#warning fix param logging
+	attach_param_change_handler(ParamTreeNode::root());
 
 	ai.backend.signal_vision().connect(sigc::mem_fun(this, &AI::Logger::on_vision_packet));
 	ai.backend.signal_refbox().connect(sigc::mem_fun(this, &AI::Logger::on_refbox_packet));
@@ -197,6 +179,27 @@ void AI::Logger::end_with_exception(const char *msg) {
 	end_with_exception(Glib::locale_to_utf8(msg));
 }
 
+void AI::Logger::attach_param_change_handler(ParamTreeNode *node) {
+	BoolParam *bp = dynamic_cast<BoolParam *>(node);
+	IntParam *ip = dynamic_cast<IntParam *>(node);
+	DoubleParam *dp = dynamic_cast<DoubleParam *>(node);
+
+	if (bp) {
+		bp->signal_changed().connect(sigc::bind(sigc::mem_fun(this, &AI::Logger::on_bool_param_changed), bp));
+		on_bool_param_changed(bp);
+	} else if (ip) {
+		ip->signal_changed().connect(sigc::bind(sigc::mem_fun(this, &AI::Logger::on_int_param_changed), ip));
+		on_int_param_changed(ip);
+	} else if (dp) {
+		dp->signal_changed().connect(sigc::bind(sigc::mem_fun(this, &AI::Logger::on_double_param_changed), dp));
+		on_double_param_changed(dp);
+	}
+
+	for (std::size_t i = 0; i < node->num_children(); ++i) {
+		attach_param_change_handler(node->child(i));
+	}
+}
+
 void AI::Logger::signal_handler(int sig) {
 	uint8_t payload[2];
 	payload[0] = Log::ER_SIGNAL;
@@ -246,7 +249,7 @@ void AI::Logger::on_annunciator_message_deactivated(std::size_t i) {
 void AI::Logger::on_annunciator_message_reactivated(std::size_t i) {
 	log_annunciator(i, true);
 }
-#if 0
+
 void AI::Logger::on_bool_param_changed(BoolParam *p) {
 	uint8_t value = (*p) ? UINT8_C(0xFF) : 0;
 
@@ -290,8 +293,7 @@ void AI::Logger::on_double_param_changed(DoubleParam *p) {
 
 	writev_packet(fd, Log::T_DOUBLE_PARAM, iov, sizeof(iov) / sizeof(*iov));
 }
-#endif
-#warning fix param logging
+
 void AI::Logger::on_vision_packet(const void *vision_packet, std::size_t vision_length) {
 	write_packet(fd, Log::T_VISION, vision_packet, vision_length);
 }
