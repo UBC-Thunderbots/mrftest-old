@@ -85,7 +85,9 @@ namespace AI {
 				double t1 = x / (vx1 + ux);
 				double t2 = x / (vx2 + ux);
 				
-				std::cout << t1 << " " << t2 << std::endl;
+				Point p = world.ball().velocity().norm() * x + world.ball().position();
+				
+				std::cout << p << std::endl;
 			}
 
 			void RRTNavigator::grab_ball_matt(Player::Ptr player) {
