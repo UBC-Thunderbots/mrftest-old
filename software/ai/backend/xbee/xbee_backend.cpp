@@ -22,7 +22,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-DoubleParam LOOP_DELAY("Loop Delay",0.0,-1.0,1.0);
+DoubleParam LOOP_DELAY("Loop Delay","Backend/XBee",0.0,-1.0,1.0);
 
 using namespace AI::BE;
 
