@@ -21,7 +21,7 @@ PACKAGES := glibmm-2.4 gtkmm-2.4 cairomm-1.0 ode protobuf libxml++-2.6 gsl libus
 #
 # The flags to pass to the linker ahead of any object files.
 #
-PROJECT_LDFLAGS := -Wl,--as-needed -Wl,-O1 -g -pthread
+PROJECT_LDFLAGS := -Wl,--as-needed -Wl,-O1 -g
 
 #
 # The library flags to pass to the linker after all object files.
@@ -31,4 +31,4 @@ PROJECT_LIBS := -lrt
 #
 # The flags to pass to the C++ compiler.
 #
-PROJECT_CXXFLAGS := -std=gnu++0x -Wall -Wextra -Wold-style-cast -Wconversion -Wundef -march=native -O2 -fomit-frame-pointer -g -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -DHAVE_INLINE -pthread -I.
+PROJECT_CXXFLAGS := -std=gnu++0x -Wall -Wextra -Wold-style-cast -Wconversion -Wundef -march=native -O2 -fomit-frame-pointer -g -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -DHAVE_INLINE -I.
