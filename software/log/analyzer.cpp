@@ -10,6 +10,7 @@
 #include "util/crc16.h"
 #include "util/dprint.h"
 #include "util/exception.h"
+#include "util/mapped_file.h"
 #include "util/time.h"
 #include <cstring>
 #include <cwchar>

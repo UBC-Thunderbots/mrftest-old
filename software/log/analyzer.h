@@ -1,7 +1,6 @@
 #ifndef LOG_ANALYZER_H
 #define LOG_ANALYZER_H
 
-#include "util/mapped_file.h"
 #include "util/scoped_ptr.h"
 #include <gtkmm.h>
 #include <string>
