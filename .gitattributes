@@ -387,8 +387,6 @@ software/uicomponents/abstract_list_model.cpp -text
 software/uicomponents/abstract_list_model.h -text
 software/uicomponents/annunciator.cpp -text
 software/uicomponents/annunciator.h -text
-software/uicomponents/light.cpp -text
-software/uicomponents/light.h -text
 software/uicomponents/visualizer.cpp -text
 software/uicomponents/visualizer.h -text
 software/uncrustify.cfg -text
@@ -425,8 +423,6 @@ software/util/matrix.cpp -text
 software/util/matrix.h -text
 software/util/misc.cpp -text
 software/util/misc.h -text
-software/util/mutex.cpp -text
-software/util/mutex.h -text
 software/util/noncopyable.h -text
 software/util/objectstore.cpp -text
 software/util/objectstore.h -text
@@ -436,8 +432,6 @@ software/util/predictor.cpp -text
 software/util/predictor.h -text
 software/util/property.h -text
 software/util/registerable.h -text
-software/util/rle.cpp -text
-software/util/rle.h -text
 software/util/scoped_ptr.h -text
 software/util/signal.cpp -text
 software/util/signal.h -text
@@ -448,11 +442,6 @@ software/util/stochastic_local_search.h -text
 software/util/time.cpp -text
 software/util/time.h -text
 software/util/timestep.h -text
-software/util/trackable_vector.h -text
-software/util/umask.cpp -text
-software/util/umask.h -text
-software/util/xbee.cpp -text
-software/util/xbee.h -text
 software/xbee/dongle.cpp -text
 software/xbee/dongle.h -text
 software/xbee/libusb.cpp -text
