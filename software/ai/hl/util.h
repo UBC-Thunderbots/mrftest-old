@@ -55,7 +55,7 @@ namespace AI {
 			};
 
 			/**
-			 * General shooting accuracy in degrees.
+			 * General shooting accuracy in meters away from target
 			 */
 			extern DoubleParam shoot_accuracy;
 

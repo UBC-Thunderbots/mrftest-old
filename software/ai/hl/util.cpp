@@ -8,16 +8,16 @@
 using namespace AI::HL::W;
 
 namespace {
-	BoolParam posses_ball_is_has_ball("posses ball is has ball", true);
-	DoubleParam ball_close_factor("distance for ball possesion (x ball radius)", 2.0, 1.0, 3.0);
+	BoolParam posses_ball_is_has_ball("posses ball is has ball","STP/util", true);
+	DoubleParam ball_close_factor("distance for ball possesion (x ball radius)","STP/util", 2.0, 1.0, 3.0);
 }
 
 #warning hardware depending parameters should move somewhere else
-DoubleParam AI::HL::Util::shoot_accuracy("Shooting Accuracy General (degrees)", 5.0, 0.1, 180.0);
+DoubleParam AI::HL::Util::shoot_accuracy("Shooting Accuracy General (meters from target)","STP/util", 0.5, 0.1, 10.0);
 
-DoubleParam AI::HL::Util::dribble_timeout("if dribble > this time, force shoot (sec)", 2.0, 0.0, 20.0);
+DoubleParam AI::HL::Util::dribble_timeout("if dribble > this time, force shoot (sec)","STP/util", 2.0, 0.0, 20.0);
 
-DoubleParam AI::HL::Util::get_ready_time("time we can prepare during special plays (sec)", 3.0, -1e99, 10.0);
+DoubleParam AI::HL::Util::get_ready_time("time we can prepare during special plays (sec)","STP/util", 3.0, -1e99, 10.0);
 
 const double AI::HL::Util::POS_CLOSE = AI::HL::W::Robot::MAX_RADIUS / 4.0;
 

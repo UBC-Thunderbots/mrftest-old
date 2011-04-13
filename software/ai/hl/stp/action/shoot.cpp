@@ -4,10 +4,10 @@
 #include "ai/hl/stp/action/actions.h"
 #include "geom/util.h"
 #include "util/dprint.h"
-#include "util/param.h"
 #include <cmath>
+#include <algorithm>
 
-DoubleParam alpha("Decay constant for the ball velocity", 0.1, 0.0, 1.0);
+DoubleParam alpha("Decay constant for the ball velocity", "STP/Action/shoot", 0.1, 0.0, 1.0);
 
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const unsigned int flags, const bool force) {
 
@@ -38,46 +38,26 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const un
 		}
 		return false;
 	}
-
-	// call the other shoot function with the specified target
-	//LOG_INFO("shoot");
-	return AI::HL::STP::Action::shoot(world, player, target.first, flags);
+#warning TODO make the shoot accuracy a function of the amount of open net
+	return AI::HL::STP::Action::shoot(world, player, target.first, AI::HL::Util::shoot_accuracy, 0.0,  flags);
 }
 
-bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Point target, const unsigned int flags, const bool) {
-	const double ori_target = (target - player->position()).orientation();
-
-	if (!player->has_ball()) {
-		// chase(world, player, flags);
-		player->move(target, ori_target, flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
+bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Point target, double tol, double delta, const unsigned int flags, const bool) {
+	player->move(target, (target - player->position()).orientation(), flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
+	Point segA = player->position();
+	Point segB((world.field().total_length()+world.field().total_width()),0);
+	segB = segB.rotate(player->orientation());
+	double error = lineseg_point_dist(target, segA, segB);
+	if(error > tol){
 		return false;
 	}
-
-	const double ori_diff = std::fabs(player->orientation() - ori_target);
-
-	// aim
-	player->move(player->position(), ori_target, flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
-
-	// ignoring accuracy, comment this out for now so that we'll shoot more
-	if (ori_diff > AI::HL::Util::shoot_accuracy * M_PI / 180.0) { // aim
-		return false;
-	}
-
-	// shoot:!
-	arm(world, player, target);
-	
-	if (player->chicker_ready()) {
-		return true;
-	}
-	
-	return false;
+	arm(world, player, target, delta);
+	return player->has_ball() && player->chicker_ready();
 }
-
 
 bool AI::HL::STP::Action::arm(const World &world, Player::Ptr player, const Point target, double delta) {
 
 	double dist_max = 10.0*(1-std::exp(-alpha*delta))/alpha;
-
 	//make the robot kick as close to the target as possible
 	Point robot_dir(1,0);
 	robot_dir = robot_dir.rotate(player->orientation());
@@ -87,9 +67,7 @@ bool AI::HL::STP::Action::arm(const World &world, Player::Ptr player, const Poin
 		player->autokick(10.0);
 		return false;
 	}
-
 	double speed = alpha*distance/(1-exp(-alpha*delta));
 	player->autokick(speed);
 	return true;
-
 }
