@@ -24,6 +24,8 @@ firmware/SuperSimpleBoostConverter/config.h -text
 firmware/dongle/18f65j50.lkr -text
 firmware/dongle/Doxyfile -text
 firmware/dongle/Makefile -text
+firmware/dongle/channels.c -text
+firmware/dongle/channels.h -text
 firmware/dongle/config.c -text
 firmware/dongle/debug.c -text
 firmware/dongle/debug.h -text
@@ -96,7 +98,6 @@ firmware/main/wheel_controller.c -text
 firmware/main/wheel_controller.h -text
 firmware/main/xbee_rxpacket.c -text
 firmware/main/xbee_txpacket.c -text
-firmware/messages.txt -text
 firmware/pingen/Makefile -text
 firmware/pingen/pingen.c -text
 firmware/shared/crc.c -text

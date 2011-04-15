@@ -10,11 +10,8 @@ namespace {
 	void on_xbees_state_changed(XBeeDongle &dongle) {
 		switch (dongle.xbees_state) {
 			case XBeeDongle::XBEES_STATE_PREINIT:
-			case XBeeDongle::XBEES_STATE_INIT1_0:
-			case XBeeDongle::XBEES_STATE_INIT1_1:
-			case XBeeDongle::XBEES_STATE_INIT1_DONE:
-			case XBeeDongle::XBEES_STATE_INIT2_0:
-			case XBeeDongle::XBEES_STATE_INIT2_1:
+			case XBeeDongle::XBEES_STATE_INIT0:
+			case XBeeDongle::XBEES_STATE_INIT1:
 			case XBeeDongle::XBEES_STATE_RUNNING:
 				return;
 

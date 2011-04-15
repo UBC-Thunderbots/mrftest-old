@@ -11,19 +11,9 @@
 #include <stdint.h>
 
 /**
- * \brief Whether the USB layer has entered the main configuration and the main loop should start configuring XBees and processing packets.
+ * \brief Whether the main loop should be running or stopped.
  */
-extern volatile BOOL should_start_up;
-
-/**
- * \brief Whether the USB layer has exited the main configuration and the main loop should stop processing packets and shut down the XBees.
- */
-extern volatile BOOL should_shut_down;
-
-/**
- * \brief The channels the host asked the XBees to be configured on.
- */
-extern volatile uint8_t requested_channels[2];
+extern volatile BOOL should_run;
 
 /**
  * \brief The firmware versions of the XBees.

@@ -55,29 +55,14 @@ class XBeeDongle : public NonCopyable {
 			XBEES_STATE_PREINIT,
 
 			/**
-			 * \brief XBee 0 is in stage 1 initialization.
+			 * \brief XBee 0 is initialized.
 			 */
-			XBEES_STATE_INIT1_0,
+			XBEES_STATE_INIT0,
 
 			/**
-			 * \brief XBee 1 is in stage 1 initialization.
+			 * \brief XBee 1 is initialized.
 			 */
-			XBEES_STATE_INIT1_1,
-
-			/**
-			 * \brief The XBees have completed stage 1 initialization and are awaiting channel assignments.
-			 */
-			XBEES_STATE_INIT1_DONE,
-
-			/**
-			 * \brief XBee 0 is in stage 2 initialization.
-			 */
-			XBEES_STATE_INIT2_0,
-
-			/**
-			 * \brief XBee 1 is in stage 2 initialization.
-			 */
-			XBEES_STATE_INIT2_1,
+			XBEES_STATE_INIT1,
 
 			/**
 			 * \brief The XBees have completed all initialization and are communicating normally.
@@ -302,6 +287,11 @@ class XBeeDongle : public NonCopyable {
 			EP_STATE_TRANSPORT = 5,
 			EP_MESSAGE = 6,
 		};
+
+		/**
+		 * \brief Emitted when a dongle status update is received.
+		 */
+		sigc::signal<void> signal_dongle_status_updated;
 
 		/**
 		 * \brief The current state of the emergency stop switch.

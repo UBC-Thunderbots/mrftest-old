@@ -109,7 +109,7 @@ void run(void) {
 	discovery_header.flag = 0xFF;
 	memset(comm_failures, 0, sizeof(comm_failures));
 
-	while (!should_shut_down) {
+	while (should_run) {
 		/* Initialize per-cycle state. */
 		num_drive_sent = 0;
 		num_message_out_sent = 0;

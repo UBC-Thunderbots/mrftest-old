@@ -33,34 +33,19 @@ typedef enum {
  */
 typedef enum {
 	/**
-	 * \brief Stage 1 initialization has not yet started.
+	 * \brief Initialization has not yet started.
 	 */
 	XBEES_STATE_PREINIT,
 
 	/**
-	 * \brief XBee 0 is in stage 1 initialization.
+	 * \brief XBee 0 is initializing.
 	 */
-	XBEES_STATE_INIT1_0,
+	XBEES_STATE_INIT0,
 
 	/**
-	 * \brief XBee 1 is in stage 1 initialization.
+	 * \brief XBee 1 is initializing.
 	 */
-	XBEES_STATE_INIT1_1,
-
-	/**
-	 * \brief The XBees have completed stage 1 initialization and are awaiting channel assignments.
-	 */
-	XBEES_STATE_INIT1_DONE,
-
-	/**
-	 * \brief XBee 0 is in stage 2 initialization.
-	 */
-	XBEES_STATE_INIT2_0,
-
-	/**
-	 * \brief XBee 1 is in stage 2 initialization.
-	 */
-	XBEES_STATE_INIT2_1,
+	XBEES_STATE_INIT1,
 
 	/**
 	 * \brief The XBees have completed all initialization and are communicating normally.
@@ -117,6 +102,11 @@ void dongle_status_stop(void);
  * \brief This function must be called after the application writes to dongle_status.
  */
 void dongle_status_dirty(void);
+
+/**
+ * \brief Forces a resend of the dongle status.
+ */
+void dongle_status_force(void);
 
 #endif
 

@@ -6,7 +6,8 @@
 
 LIBPATH .
 
-CODEPAGE   NAME=page       START=0x0               END=0x7FF7
+CODEPAGE   NAME=page       START=0x0               END=0x77FF
+CODEPAGE   NAME=channels   START=0x7800            END=0x7BFF         PROTECTED
 CODEPAGE   NAME=config     START=0x7FF8            END=0x7FFD         PROTECTED
 CODEPAGE   NAME=devid      START=0x3FFFFE          END=0x3FFFFF       PROTECTED
 

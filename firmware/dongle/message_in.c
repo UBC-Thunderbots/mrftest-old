@@ -33,7 +33,7 @@ void message_in_deinit(void) {
 void message_in_send(__data const uint8_t *message, uint8_t len) {
 	/* Wait until the endpoint is not busy. */
 	while (busy) {
-		if (should_shut_down) {
+		if (!should_run) {
 			return;
 		}
 	}
@@ -44,7 +44,7 @@ void message_in_send(__data const uint8_t *message, uint8_t len) {
 
 	/* Wait until transmission is complete. */
 	while (busy) {
-		if (should_shut_down) {
+		if (!should_run) {
 			return;
 		}
 	}

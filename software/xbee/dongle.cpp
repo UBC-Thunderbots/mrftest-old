@@ -38,13 +38,11 @@ namespace std {
 }
 
 namespace {
+	const unsigned int STALL_LIMIT = 100;
+
 	void discard_result(AsyncOperation<void>::Ptr op) {
 		op->result();
 	}
-}
-
-namespace {
-	const unsigned int STALL_LIMIT = 100;
 
 	template<typename T> struct FaultMessageInfo {
 		T code;
@@ -284,11 +282,8 @@ namespace {
 		XBeeDongle::XBeesState est = static_cast<XBeeDongle::XBeesState>(st);
 		switch (est) {
 			case XBeeDongle::XBEES_STATE_PREINIT:
-			case XBeeDongle::XBEES_STATE_INIT1_0:
-			case XBeeDongle::XBEES_STATE_INIT1_1:
-			case XBeeDongle::XBEES_STATE_INIT1_DONE:
-			case XBeeDongle::XBEES_STATE_INIT2_0:
-			case XBeeDongle::XBEES_STATE_INIT2_1:
+			case XBeeDongle::XBEES_STATE_INIT0:
+			case XBeeDongle::XBEES_STATE_INIT1:
 			case XBeeDongle::XBEES_STATE_RUNNING:
 			case XBeeDongle::XBEES_STATE_FAIL_0:
 			case XBeeDongle::XBEES_STATE_FAIL_1:
@@ -299,8 +294,8 @@ namespace {
 
 	class EnableOperation : public AsyncOperation<void>, public sigc::trackable {
 		public:
-			static Ptr create(XBeeDongle &dongle, LibUSBDeviceHandle &device, unsigned int out_channel, unsigned int in_channel) {
-				Ptr p(new EnableOperation(dongle, device, out_channel, in_channel));
+			static Ptr create(XBeeDongle &dongle, LibUSBDeviceHandle &device) {
+				Ptr p(new EnableOperation(dongle, device));
 				return p;
 			}
 
@@ -317,33 +312,45 @@ namespace {
 		private:
 			XBeeDongle &dongle;
 			LibUSBDeviceHandle &device;
-			unsigned int out_channel, in_channel;
 			sigc::connection xbees_state_connection;
 			AsyncOperation<void>::Ptr failed_op;
 			int libusb_error;
 			Ptr self_ref;
+			bool submitted;
 
-			EnableOperation(XBeeDongle &dongle, LibUSBDeviceHandle &device, unsigned int out_channel, unsigned int in_channel) : dongle(dongle), device(device), out_channel(out_channel), in_channel(in_channel), libusb_error(LIBUSB_SUCCESS), self_ref(this) {
-				xbees_state_connection = dongle.xbees_state.signal_changed().connect(sigc::mem_fun(this, &EnableOperation::on_xbees_state_changed));
-				on_xbees_state_changed();
+			EnableOperation(XBeeDongle &dongle, LibUSBDeviceHandle &device) : dongle(dongle), device(device), libusb_error(LIBUSB_SUCCESS), self_ref(this), submitted(false) {
+				LibUSBControlNoDataTransfer::Ptr transfer = LibUSBControlNoDataTransfer::create(device, 0x40, 0x04, 0x0000, 0x0000, 0, 0);
+				transfer->signal_done.connect(sigc::mem_fun(this, &EnableOperation::on_resend_dongle_status_done));
+				transfer->submit();
+				xbees_state_connection = dongle.signal_dongle_status_updated.connect(sigc::mem_fun(this, &EnableOperation::on_xbees_state_changed));
 			}
 
 			~EnableOperation() {
 			}
 
+			void on_resend_dongle_status_done(AsyncOperation<void>::Ptr op) {
+				if (!op->succeeded()) {
+					xbees_state_connection.disconnect();
+					failed_op = op;
+					Ptr pthis(this);
+					self_ref.reset();
+					signal_done.emit(pthis);
+				}
+			}
+
 			void on_xbees_state_changed() {
 				switch (dongle.xbees_state) {
 					case XBeeDongle::XBEES_STATE_PREINIT:
-					case XBeeDongle::XBEES_STATE_INIT1_0:
-					case XBeeDongle::XBEES_STATE_INIT1_1:
+						if (!submitted) {
+							LibUSBControlNoDataTransfer::Ptr transfer = LibUSBControlNoDataTransfer::create(device, 0x40, 0x03, 0x0000, 0x0000, 0, 0);
+							transfer->signal_done.connect(sigc::mem_fun(this, &EnableOperation::on_enable_radios_done));
+							transfer->submit();
+							submitted = true;
+						}
 						return;
 
-					case XBeeDongle::XBEES_STATE_INIT1_DONE:
-						send_enable_radios_message();
-						return;
-
-					case XBeeDongle::XBEES_STATE_INIT2_0:
-					case XBeeDongle::XBEES_STATE_INIT2_1:
+					case XBeeDongle::XBEES_STATE_INIT0:
+					case XBeeDongle::XBEES_STATE_INIT1:
 						return;
 
 					case XBeeDongle::XBEES_STATE_RUNNING:
@@ -357,12 +364,6 @@ namespace {
 						return;
 					}
 				}
-			}
-
-			void send_enable_radios_message() {
-				LibUSBControlNoDataTransfer::Ptr transfer = LibUSBControlNoDataTransfer::create(device, 0x40, 0x02, static_cast<uint16_t>((in_channel << 8) | out_channel), 0x0000, 0, 0);
-				transfer->signal_done.connect(sigc::mem_fun(this, &EnableOperation::on_enable_radios_done));
-				transfer->submit();
 			}
 
 			void on_enable_radios_done(AsyncOperation<void>::Ptr op) {
@@ -381,7 +382,6 @@ XBeeDongle::XBeeDongle() : estop_state(ESTOP_STATE_UNINITIALIZED), xbees_state(X
 	for (unsigned int i = 0; i < G_N_ELEMENTS(robots); ++i) {
 		robots[i] = XBeeRobot::create(*this, i);
 	}
-	device.set_configuration(1)->result();
 	device.claim_interface(0)->result();
 	device.claim_interface(1)->result();
 
@@ -405,8 +405,7 @@ XBeeDongle::~XBeeDongle() {
 }
 
 AsyncOperation<void>::Ptr XBeeDongle::enable() {
-#warning channel numbers should be stored in the dongle
-	EnableOperation::Ptr p = EnableOperation::create(*this, device, 0x0E, 0x0F);
+	EnableOperation::Ptr p = EnableOperation::create(*this, device);
 	p->signal_done.connect(sigc::mem_fun(this, &XBeeDongle::on_enable_done));
 	return p;
 }
@@ -443,6 +442,7 @@ void XBeeDongle::on_dongle_status(AsyncOperation<void>::Ptr, LibUSBInterruptInTr
 		XBeeRobot::Ptr bot = robot(i);
 		bot->alive = !!(mask & (1 << i));
 	}
+	signal_dongle_status_updated.emit();
 }
 
 void XBeeDongle::on_local_error_queue(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer) {

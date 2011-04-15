@@ -1,3 +1,4 @@
+#include "channels.h"
 #include "critsec.h"
 #include "debug.h"
 #include "descriptors.h"
@@ -35,7 +36,9 @@
 typedef enum {
 	TBOTS_CONTROL_REQUEST_GET_XBEE_FW_VERSION = 0x00,
 	TBOTS_CONTROL_REQUEST_GET_XBEE_CHANNELS = 0x01,
-	TBOTS_CONTROL_REQUEST_ENABLE_RADIOS = 0x02,
+	TBOTS_CONTROL_REQUEST_SET_XBEE_CHANNELS = 0x02,
+	TBOTS_CONTROL_REQUEST_ENABLE_RADIOS = 0x03,
+	TBOTS_CONTROL_REQUEST_RESEND_DONGLE_STATUS = 0x04,
 } tbots_control_request_t;
 
 DEF_INTHIGH(high_handler)
@@ -63,43 +66,40 @@ END_DEF
 #define IS_VALID_CHANNEL(ch) ((ch) >= 0x08 && (ch) <= 0x1A)
 
 static BOOL custom_setup_handler(void) {
-	static union {
-		uint8_t debug_interface_alt_setting;
-	} buffer;
+	uint8_t ch0, ch1;
 
 	if (usb_ep0_setup_buffer.request_type.bits.type == USB_SETUP_PACKET_REQUEST_VENDOR) {
 		if (usb_ep0_setup_buffer.request_type.bits.recipient == USB_SETUP_PACKET_RECIPIENT_DEVICE) {
 			switch (usb_ep0_setup_buffer.request) {
 				case TBOTS_CONTROL_REQUEST_GET_XBEE_FW_VERSION:
-					if (dongle_status.xbees >= XBEES_STATE_INIT1_DONE && xbee_versions[0] && xbee_versions[1]) {
-						usb_ep0_data[0].ptr = xbee_versions;
-						usb_ep0_data[0].length = sizeof(xbee_versions);
-						usb_ep0_data_length = 1;
+					usb_ep0_data[0].ptr = xbee_versions;
+					usb_ep0_data[0].length = sizeof(xbee_versions);
+					usb_ep0_data_length = 1;
+					return true;
+
+				case TBOTS_CONTROL_REQUEST_GET_XBEE_CHANNELS:
+					usb_ep0_data[0].ptr = channels;
+					usb_ep0_data[0].length = sizeof(channels);
+					usb_ep0_data_length = 1;
+					return true;
+
+				case TBOTS_CONTROL_REQUEST_SET_XBEE_CHANNELS:
+					ch0 = usb_ep0_setup_buffer.value & 0xFF;
+					ch1 = usb_ep0_setup_buffer.value >> 8;
+					if (ch0 >= 0x0B && ch0 <= 0x1A && ch1 >= 0x0B && ch1 <= 0x1A && !should_run && dongle_status.xbees == XBEES_STATE_PREINIT) {
+						channels_change(ch0, ch1);
 						return true;
 					} else {
 						return false;
 					}
 
-				case TBOTS_CONTROL_REQUEST_GET_XBEE_CHANNELS:
-					usb_ep0_data[0].ptr = requested_channels;
-					usb_ep0_data[0].length = sizeof(requested_channels);
-					usb_ep0_data_length = 1;
+				case TBOTS_CONTROL_REQUEST_ENABLE_RADIOS:
+					should_run = true;
 					return true;
 
-				case TBOTS_CONTROL_REQUEST_ENABLE_RADIOS:
-					if (dongle_status.xbees == XBEES_STATE_INIT1_DONE && !requested_channels[0]) {
-						requested_channels[0] = usb_ep0_setup_buffer.value & 0xFF;
-						requested_channels[1] = usb_ep0_setup_buffer.value >> 8;
-						if (IS_VALID_CHANNEL(requested_channels[0]) && IS_VALID_CHANNEL(requested_channels[1])) {
-							return true;
-						} else {
-							requested_channels[0] = requested_channels[1] = 0;
-						}
-					} else if (requested_channels[0] == (usb_ep0_setup_buffer.value & 0xFF) && requested_channels[1] == (usb_ep0_setup_buffer.value >> 8)) {
-						return true;
-					}
-					return false;
-
+				case TBOTS_CONTROL_REQUEST_RESEND_DONGLE_STATUS:
+					dongle_status_force();
+					return true;
 			}
 		}
 	}
@@ -115,10 +115,10 @@ static void on_enter_config1(void) {
 	message_out_init();
 	message_in_init();
 	debug_enable();
-	should_start_up = true;
 }
 
 static void on_exit_config1(void) {
+	should_run = false;
 	debug_disable();
 	message_in_deinit();
 	message_out_deinit();
@@ -127,9 +127,6 @@ static void on_exit_config1(void) {
 	error_reporting_deinit();
 	estop_deinit();
 	dongle_status_stop();
-	should_start_up = false;
-	should_shut_down = true;
-	requested_channels[0] = requested_channels[1] = 0;
 }
 
 __code static const usb_confinfo_t config1 = {
@@ -183,7 +180,7 @@ static void at_send(uint8_t xbee, uint8_t frame, __code const char *command, __d
 	xbee_txpacket_queue(&txpkt, xbee);
 
 	while (xbee_txpacket_dequeue() != &txpkt) {
-		if (should_shut_down) {
+		if (!should_run) {
 			return;
 		}
 	}
@@ -208,18 +205,18 @@ static void at_send(uint8_t xbee, uint8_t frame, __code const char *command, __d
  *
  * \return \c true on success, or \c false on failure.
  */
-static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, const void *value, uint8_t val_length, __data void *resp, uint8_t resp_length) {
+static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, __data const void *value, uint8_t val_length, __data void *resp, uint8_t resp_length) {
 	uint8_t retries, start_time;
 	__data xbee_rxpacket_t *rxpkt;
 	BOOL success;
 
-	for (retries = 0; retries != 6 && !should_shut_down; ++retries) {
+	for (retries = 0; retries != 6 && should_run; ++retries) {
 		/* Send the command. */
 		at_send(xbee, frame, command, value, val_length);
 
 		/* Wait for a response for up to half a second. */
 		start_time = UFRMH;
-		while (((UFRMH - start_time) & 7) < 2 && !should_shut_down) {
+		while (((UFRMH - start_time) & 7) < 2 && should_run) {
 			if ((rxpkt = xbee_rxpacket_get())) {
 				/* See which XBee this packet came from. */
 				if (rxpkt->xbee == xbee) {
@@ -265,31 +262,31 @@ static BOOL at_command(uint8_t xbee, uint8_t frame, __code const char *command, 
 	}
 
 	/* Out of retries. Give up. */
-	if (!should_shut_down) {
+	if (should_run) {
 		error_reporting_add(FAULT_XBEE0_TIMEOUT + xbee); /* XBee {0,1} timeout waiting for local modem response */
 	}
 	return false;
 }
 
 /**
- * \brief Stage-1 configures an XBee.
+ * \brief Configures an XBee.
  *
  * \param[in] xbee the index of the XBee to configure.
  *
  * \return \c true on success, or \c false on failure.
  */
-static BOOL configure_xbee_stage1(uint8_t xbee) {
-	uint8_t buffer[2];
+static BOOL configure_xbee(uint8_t xbee) {
+	uint8_t buffer[7];
 	uint8_t err = 0;
 	CRITSEC_DECLARE(cs);
 
 	/* Mark status. */
 	CRITSEC_ENTER_LOW(cs);
-	if (should_shut_down) {
+	if (!should_run) {
 		CRITSEC_LEAVE(cs);
 		goto out;
 	}
-	dongle_status.xbees = XBEES_STATE_INIT1_0 + xbee;
+	dongle_status.xbees = XBEES_STATE_INIT0 + xbee;
 	CRITSEC_LEAVE(cs);
 	dongle_status_dirty();
 
@@ -314,53 +311,16 @@ static BOOL configure_xbee_stage1(uint8_t xbee) {
 	xbee_versions[xbee] = (buffer[0] << 8) | buffer[1];
 
 	/* Set up the text node ID. */
-	if (!at_command(xbee, 0x85, "NI", (xbee == 0) ? "TBOTSD0" : "TBOTSD1", 7, 0, 0)) {
+	memcpypgm2ram(buffer, "TBOTSD", 6);
+	buffer[6] = '0' + xbee;
+	if (!at_command(xbee, 0x85, "NI", buffer, 7, 0, 0)) {
 		err = FAULT_XBEE0_SET_NODE_ID_FAILED + xbee;
 		goto out;
 	}
 
-out:
-	/* Mark final status. */
-	CRITSEC_ENTER_LOW(cs);
-	if (!should_shut_down) {
-		if (!err) {
-			if (xbee == 1) {
-				dongle_status.xbees = XBEES_STATE_INIT1_DONE;
-			}
-		} else {
-			error_reporting_add(err);
-			dongle_status.xbees = XBEES_STATE_FAIL_0 + xbee;
-		}
-	}
-	CRITSEC_LEAVE(cs);
-	dongle_status_dirty();
-	return !err;
-}
-
-/**
- * \brief Stage-2 configures an XBee.
- *
- * \param[in] xbee the index of the XBee to configure.
- *
- * \return \c true on success, or \c false on failure.
- */
-static BOOL configure_xbee_stage2(uint8_t xbee) {
-	uint8_t buffer[2];
-	uint8_t err = 0;
-	CRITSEC_DECLARE(cs);
-
-	/* Mark status. */
-	CRITSEC_ENTER_LOW(cs);
-	if (should_shut_down) {
-		CRITSEC_LEAVE(cs);
-		goto out;
-	}
-	dongle_status.xbees = XBEES_STATE_INIT2_0 + xbee;
-	CRITSEC_LEAVE(cs);
-	dongle_status_dirty();
-
 	/* Set the radio channel. */
-	if (!at_command(xbee, 0x90, "CH", &requested_channels[xbee], 1, 0, 0)) {
+	buffer[0] = channels[xbee];
+	if (!at_command(xbee, 0x90, "CH", buffer, 1, 0, 0)) {
 		err = FAULT_XBEE0_SET_CHANNEL_FAILED + xbee;
 		goto out;
 	}
@@ -384,7 +344,7 @@ static BOOL configure_xbee_stage2(uint8_t xbee) {
 out:
 	/* Mark final status. */
 	CRITSEC_ENTER_LOW(cs);
-	if (!should_shut_down) {
+	if (should_run) {
 		if (!err) {
 			if (xbee == 1) {
 				dongle_status.xbees = XBEES_STATE_RUNNING;
@@ -432,6 +392,11 @@ void main(void) {
 	INTCONbits.GIEH = 1;
 	INTCONbits.GIEL = 1;
 
+	/* Check if either of the radio channel numbers are invalid; if so, rewrite them. */
+	if (channels[0] < 0x0B || channels[1] < 0x0B || channels[0] > 0x1A || channels[1] > 0x1A) {
+		channels_change(0x0E, 0x0F);
+	}
+
 	/* Initialize USB. */
 	usb_init(&devinfo);
 
@@ -443,9 +408,7 @@ void main(void) {
 	 * 3. Performing main communication. */
 	for (;;) {
 		/* We're waiting for the host to perform USB configuration. */
-		do {
-			should_shut_down = false;
-		} while (!should_start_up);
+		while (!should_run);
 
 		/* Bring up the hardware. */
 		LAT_XBEE0_SLEEP = 0;
@@ -458,8 +421,8 @@ void main(void) {
 		memset(state_transport_out_drive, 0, sizeof(state_transport_out_drive));
 		memset(state_transport_in_feedback, 0, sizeof(state_transport_in_feedback));
 
-		/* Stage-1 configure the XBees. */
-		if (!configure_xbee_stage1(0) || !configure_xbee_stage1(1)) {
+		/* Configure the XBees. */
+		if (!configure_xbee(0) || !configure_xbee(1)) {
 			/* Configuration failed.
 			 * Put the XBees back to sleep. */
 			LAT_XBEE0_SLEEP = 1;
@@ -472,32 +435,11 @@ void main(void) {
 				LAT_LED3 = 1;
 			}
 			/* Stay here until the host signals us to shut down. */
-			while (!should_shut_down);
+			while (should_run);
 		} else {
-			/* Configuration succeeded.
-			 * Wait for the host to give us radio channels. */
-			while (!requested_channels[0] && !should_shut_down);
-			if (requested_channels[0]) {
-				/* Stage-2 configure the XBees. */
-				if (!configure_xbee_stage2(0) || !configure_xbee_stage2(1)) {
-					/* Configuration failed.
-					 * Put the XBees back to sleep. */
-					LAT_XBEE0_SLEEP = 1;
-					LAT_XBEE1_SLEEP = 1;
-					/* Represent this by turning the green LED off and the red LED for the failed XBee on. */
-					LAT_LED1 = 0;
-					if (dongle_status.xbees == XBEES_STATE_FAIL_0) {
-						LAT_LED2 = 1;
-					} else {
-						LAT_LED3 = 1;
-					}
-					/* Stay here until the host signals us to shut down. */
-					while (!should_shut_down);
-				} else {
-					LAT_LED1 = 1;
-					run();
-				}
-			}
+			/* Configuration succeeded. */
+			LAT_LED1 = 1;
+			run();
 		}
 
 		/* Bring down the hardware. */

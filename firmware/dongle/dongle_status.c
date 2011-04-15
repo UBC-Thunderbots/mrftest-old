@@ -69,3 +69,8 @@ void dongle_status_dirty(void) {
 	CRITSEC_LEAVE(cs);
 }
 
+void dongle_status_force(void) {
+	force = true;
+	dongle_status_dirty();
+}
+
