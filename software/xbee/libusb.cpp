@@ -43,29 +43,6 @@ namespace {
 		oss << msg << " on " << ((endpoint & 0x80) ? "IN" : "OUT") << " endpoint " << (endpoint & 0x7F);
 		return oss.str();
 	}
-
-	class SyncResultAsyncOperation : public AsyncOperation<void> {
-		public:
-			static Ptr create(const char *call, int err) {
-				Ptr p(new SyncResultAsyncOperation(call, err));
-				return p;
-			}
-
-			void result() const {
-				check_fn(call, err);
-			}
-
-		private:
-			const char *const call;
-			const int err;
-
-			SyncResultAsyncOperation(const char *call, int err) : call(call), err(err) {
-				Glib::signal_idle().connect_once(sigc::bind(signal_done.make_slot(), Ptr(this)));
-			}
-
-			~SyncResultAsyncOperation() {
-			}
-	};
 }
 
 LibUSBError::LibUSBError(const std::string &msg) : std::runtime_error(msg) {
@@ -255,12 +232,18 @@ LibUSBDeviceHandle::~LibUSBDeviceHandle() {
 	libusb_close(handle);
 }
 
-AsyncOperation<void>::Ptr LibUSBDeviceHandle::set_configuration(int config) {
-	return SyncResultAsyncOperation::create("libusb_set_configuration", libusb_set_configuration(handle, config));
+int LibUSBDeviceHandle::get_configuration() const {
+	int conf;
+	check_fn("libusb_get_configuration", libusb_get_configuration(handle, &conf));
+	return conf;
 }
 
-AsyncOperation<void>::Ptr LibUSBDeviceHandle::claim_interface(int interface) {
-	return SyncResultAsyncOperation::create("libusb_claim_interface", libusb_claim_interface(handle, interface));
+void LibUSBDeviceHandle::set_configuration(int config) {
+	check_fn("libusb_set_configuration", libusb_set_configuration(handle, config));
+}
+
+void LibUSBDeviceHandle::claim_interface(int interface) {
+	check_fn("libusb_claim_interface", libusb_claim_interface(handle, interface));
 }
 
 void LibUSBTransfer::result() const {

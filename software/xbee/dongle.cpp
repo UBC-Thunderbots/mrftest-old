@@ -382,8 +382,11 @@ XBeeDongle::XBeeDongle() : estop_state(ESTOP_STATE_UNINITIALIZED), xbees_state(X
 	for (unsigned int i = 0; i < G_N_ELEMENTS(robots); ++i) {
 		robots[i] = XBeeRobot::create(*this, i);
 	}
-	device.claim_interface(0)->result();
-	device.claim_interface(1)->result();
+	if (device.get_configuration() != 1) {
+		device.set_configuration(1);
+	}
+	device.claim_interface(0);
+	device.claim_interface(1);
 
 	LibUSBInterruptInTransfer::Ptr dongle_status_transfer = LibUSBInterruptInTransfer::create(device, EP_DONGLE_STATUS | 0x80, 4, true, 0, STALL_LIMIT);
 	dongle_status_transfer->signal_done.connect(sigc::bind(sigc::mem_fun(this, &XBeeDongle::on_dongle_status), dongle_status_transfer));

@@ -146,9 +146,11 @@ class LibUSBDeviceHandle : public NonCopyable {
 
 		~LibUSBDeviceHandle();
 
-		AsyncOperation<void>::Ptr set_configuration(int config);
+		int get_configuration() const;
 
-		AsyncOperation<void>::Ptr claim_interface(int interface);
+		void set_configuration(int config);
+
+		void claim_interface(int interface);
 
 	private:
 		friend class LibUSBTransfer;
