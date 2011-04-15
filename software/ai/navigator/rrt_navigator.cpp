@@ -97,15 +97,24 @@ namespace AI {
 			void RRTNavigator::grab_ball_simon(Player::Ptr player) {
 				const double ux = world.ball().velocity().len(); // velocity of ball
 
+#warning MAGIC NUMBER
+				const double v = 1.5;
+
+				if (v < ux) {
+					Player::Path path;
+					Point dest_pos = world.ball().position() + world.ball().velocity();
+					double dest_ori = (world.ball().position() - player->position()).orientation();
+					path.push_back(std::make_pair(std::make_pair(dest_pos, dest_ori), world.monotonic_time()));
+					player->path(path);
+					return;
+				}
+
 				const Point p1 = world.ball().position();
 				const Point p2 = player->position();
 				const Point u = world.ball().velocity().norm();
 
 				const double x = (p2 - p1).dot(u);
 				const double y = std::fabs((p2 - p1).cross(u));
-
-#warning MAGIC NUMBER
-				double v = 1.5;
 
 				const Point p = p1 + u * x;
 
@@ -119,9 +128,9 @@ namespace AI {
 				double t1 = x / (vx1 + ux);
 				double t2 = x / (vx2 + ux);
 
-				double t = t1;
+				double t = std::min(t1, t2);
 				if (t < 0) {
-					t = t2;
+					t = std::max(t1, t2);
 				}
 
 				if (std::isnan(t) || std::isinf(t)) {
