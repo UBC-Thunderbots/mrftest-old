@@ -26,7 +26,7 @@ namespace {
 	const double ANGLE_TOL = 0.05;
 	const double DIST_TOL = 0.05;
 
-	DoubleParam proportion(" amount to scale controller velocities by ", 2.0, 0.1, 10.0);
+	DoubleParam proportion("amount to scale controller velocities by", "RC/Circle", 2.0, 0.1, 10.0);
 
 	const double arr_min[P] = { 3.0, 0.5 };
 	const double arr_max[P] = { 8.0, 10.0 };

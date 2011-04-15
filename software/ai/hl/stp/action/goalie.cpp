@@ -9,8 +9,8 @@
 using namespace AI::HL::STP;
 
 namespace {
-	DoubleParam lone_goalie_dist("Lone Goalie: distance to goal post (m)", 0.30, 0.05, 1.0);
-	DoubleParam ball_dangerous_speed("Goalie Action: threatening ball speed", 0.1, 0.1, 10.0); 
+	DoubleParam lone_goalie_dist("Lone Goalie: distance to goal post (m)", "STP/Action/Goalie" , 0.30, 0.05, 1.0);
+	DoubleParam ball_dangerous_speed("Goalie Action: threatening ball speed", "STP/Action/Goalie", 0.1, 0.1, 10.0); 
 }
 
 void AI::HL::STP::Action::lone_goalie(const World &world, Player::Ptr player) {

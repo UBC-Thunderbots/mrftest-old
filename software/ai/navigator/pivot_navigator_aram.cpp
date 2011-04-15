@@ -58,8 +58,8 @@ namespace {
 		return PivotNavigator2::create(world);
 	}
 	
-	DoubleParam pivot_radius("Pivot Navigator A: pivot radius", 1.0, 0.0, 10.0);
-	DoubleParam acceleration("Pivot Navigator A: max acceleration", 10.0, 0.0, 1000.0);
+	DoubleParam pivot_radius("pivot radius", "Nav/PivotAram", 1.0, 0.0, 10.0);
+	DoubleParam acceleration("max acceleration", "Nav/PivotAram", 10.0, 0.0, 1000.0);
 
 	void PivotNavigator2::tick() {
 		FriendlyTeam &fteam = world.friendly_team();

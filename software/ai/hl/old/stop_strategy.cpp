@@ -19,7 +19,7 @@ namespace {
 	// in ball avoidance, angle between center of 2 robots, as seen from the ball
 	const double AVOIDANCE_ANGLE = 2.0 * asin(Robot::MAX_RADIUS / AVOIDANCE_DIST);
 
-	DoubleParam separation_angle("stop: angle to separate players (degrees)", 20, 0, 90);
+	DoubleParam separation_angle("stop: angle to separate players (degrees)", "oldAI", 20, 0, 90);
 
 	/**
 	 * Manages the robots during a stoppage in place (that is, when the game is in PlayType::STOP).

@@ -25,15 +25,14 @@ namespace AI {
 			const double GOAL_PROB = 0.2;
 			const double WAYPOINT_PROB = 0.5;
 			const double RAND_PROB = 1.0 - GOAL_PROB - WAYPOINT_PROB;
-			DoubleParam ANGLE_DIFF("Pivot the amount of erroneous angle acceptable for pivoting", 4.0, 0.00, 10.0);
 			// number of iterations to go through for each robot until we give up and
 			// just return the best partial path we've found
 			const int ITERATION_LIMIT = 200;
 			const int NUM_WAYPOINTS = 50;
 
-			DoubleParam offset_angle("RRT Pivot: offset angle (degrees)", 30.0, -1000.0, 1000.0);
-			DoubleParam offset_distance("RRT Pivot: offset distance", 0.15, -10.0, 10.0);
-			DoubleParam orientation_offset("RRT Pivot: orientation offset (degrees)", 30.0, -1000.0, 1000.0);
+			DoubleParam offset_angle("Pivot: offset angle (degrees)", "Nav/RRT", 30.0, -1000.0, 1000.0);
+			DoubleParam offset_distance("Pivot: offset distance", "Nav/RRT", 0.15, -10.0, 10.0);
+			DoubleParam orientation_offset("Pivot: orientation offset (degrees)", "Nav/RRT", 30.0, -1000.0, 1000.0);
 
 
 			class RRTNavigator : public Navigator {

@@ -58,9 +58,9 @@ namespace {
 		return PivotNavigator2::create(world);
 	}
 	
-	DoubleParam offset_angle("Pivot Navigator 2: offset angle (degrees)", 30.0, -1000.0, 1000.0);
-	DoubleParam offset_distance("Pivot Navigator 2: offset distance", 0.15, -10.0, 10.0);
-	DoubleParam orientation_offset("Pivot Navigator 2: orientation offset (degrees)", 30.0, -1000.0, 1000.0);
+	DoubleParam offset_angle("offset angle (degrees)", "Nav/Pivot2", 30.0, -1000.0, 1000.0);
+	DoubleParam offset_distance("offset distance", "Nav/Pivot2", 0.15, -10.0, 10.0);
+	DoubleParam orientation_offset("orientation offset (degrees)", "Nav/Pivot2", 30.0, -1000.0, 1000.0);
 
 	void PivotNavigator2::tick() {
 		FriendlyTeam &fteam = world.friendly_team();

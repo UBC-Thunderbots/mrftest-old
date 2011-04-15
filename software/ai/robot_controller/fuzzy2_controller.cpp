@@ -18,7 +18,7 @@ using namespace AI::RC::W;
 namespace {
 	const int P = 5;
 	
-	DoubleParam FUZZY2_MAX_ACC("Fuzzy2: max acc", 3, 0.0, 20.0);
+	DoubleParam FUZZY2_MAX_ACC("max acc", "RC/fuzzy2", 3, 0.0, 20.0);
 
 	const double arr_min[P] = { 6.0, 0.0, 0.0, 6.0, 6.0 };
 	const double arr_max[P] = { 13.0, 2.0, 2.0, 13.0, 13.0 };

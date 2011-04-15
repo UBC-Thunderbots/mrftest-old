@@ -11,9 +11,9 @@ using namespace AI::HL::W;
 using namespace AI::HL::STP::Evaluation;
 
 namespace {
-	DoubleParam max_goalie_dist("(defense) max goalie dist from goal (robot radius)", 3.0, 0.0, 10.0);
+	DoubleParam max_goalie_dist("(defense) max goalie dist from goal (robot radius)", "STP/evaluation", 3.0, 0.0, 10.0);
 
-	DoubleParam robot_shrink("(defense) shrink robot radius", 1.1, 0.1, 2.0);
+	DoubleParam robot_shrink("(defense) shrink robot radius", "STP/evaluation", 1.1, 0.1, 2.0);
 
 	const unsigned int MAX_DEFENDERS = 2;
 

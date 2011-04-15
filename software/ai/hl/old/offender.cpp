@@ -9,8 +9,8 @@
 using namespace AI::HL::W;
 
 namespace {
-	IntParam grid_x_size("Grid X size", 25, 1, 100);
-	IntParam grid_y_size("Grid Y size", 25, 1, 100);
+	IntParam grid_x_size("Grid X size", "oldAI", 25, 1, 100);
+	IntParam grid_y_size("Grid Y size", "oldAI", 25, 1, 100);
 
 	const double DEG_2_RAD = 1.0 / 180.0 * M_PI;
 

@@ -8,7 +8,7 @@
 using namespace AI::HL::W;
 
 namespace {
-	DoubleParam lone_goalie_dist("Lone goalie distance to goal post (m)", 0.30, 0.05, 1.0);
+	DoubleParam lone_goalie_dist("Lone goalie distance to goal post (m)", "oldAI", 0.30, 0.05, 1.0);
 }
 
 void AI::HL::Tactics::chase(const World &world, Player::Ptr player, const unsigned int flags) {

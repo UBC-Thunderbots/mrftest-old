@@ -9,9 +9,9 @@ using namespace AI::HL::STP;
 using AI::HL::STP::Evaluation::BallThreat;
 
 namespace {
-	DoubleParam steal_threshold("Distance of ball from enemy robot to activate steal mechanism (robot radius)", 1.1, 0.8, 5.0);
+	DoubleParam steal_threshold("Steal threshold: distance of ball from enemy (robot radius)", "STP/evaluation", 1.1, 0.8, 5.0);
 
-	DoubleParam negligible_velocity("decides at which speed goalie should ignore direction of ball ", 0.05, 1e-4, 1.0);
+	DoubleParam negligible_velocity("speed goalie should ignore direction of ball", "STP/evaluation", 0.05, 1e-4, 1.0);
 
 }
 

@@ -26,7 +26,7 @@ namespace {
 	// power to kick the ball with on the kickoff
 	const double KICKOFF_POWER = 5.0;
 
-	DoubleParam separation_angle("kickoff: angle to separate players (degrees)", 40, 0, 80);
+	DoubleParam separation_angle("kickoff: angle to separate players (degrees)", "oldAI", 40, 0, 80);
 
 	// hard coded positions for the kicker, and 2 offenders
 	Point kicker_position = Point(-0.5 - Ball::RADIUS - Robot::MAX_RADIUS, 0);

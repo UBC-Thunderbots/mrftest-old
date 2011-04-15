@@ -12,17 +12,17 @@ using AI::HL::Defender;
 using namespace AI::HL::W;
 
 namespace {
-	DoubleParam lone_goalie_dist("Lone goalie distance to goal post (m)", 0.20, 0.05, 1.0);
+	DoubleParam lone_goalie_dist("Lone goalie distance to goal post (m)", "oldAI", 0.20, 0.05, 1.0);
 
-	DoubleParam max_goalie_dist("max goalie dist from goal (robot radius)", 3.0, 0.0, 10.0);
+	DoubleParam max_goalie_dist("max goalie dist from goal (robot radius)", "oldAI", 3.0, 0.0, 10.0);
 
-	DoubleParam robot_shrink("shrink robot radius", 1.1, 0.1, 2.0);
+	DoubleParam robot_shrink("shrink robot radius", "oldAI", 1.1, 0.1, 2.0);
 
 	// DoubleParam goalie_chase_thresh("max distance from goal for goalie to chase ball (field width)", 0.25, 0.0, 0.5);
 
-	BoolParam Goalie_dives("decides whether the goalie should dive for the ball ", true);
+	BoolParam Goalie_dives("goalie dive for the ball", "oldAI", true);
 
-	DoubleParam negligible_velocity("decides at which speed goalie should ignore direction of ball ", 0.05, 1e-4, 1.0);
+	DoubleParam negligible_velocity("goalie should ignore direction of ball", "oldAI", 0.05, 1e-4, 1.0);
 
 	std::pair<Point, bool> get_ramball_location(Point dst, AI::HL::W::World &world, AI::HL::W::Player::Ptr player) {
 		Point ball_dir = world.ball().velocity();

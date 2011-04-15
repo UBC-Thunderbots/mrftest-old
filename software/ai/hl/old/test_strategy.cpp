@@ -10,10 +10,10 @@ using AI::HL::StrategyFactory;
 using namespace AI::HL::W;
 
 namespace {
-	BoolParam STAY_OWN_HALF("Test strategy stay own half", true);
-	BoolParam CATCH_BALL("Test strategy catch ball", true);
-	BoolParam RAM_BALL("Test strategy Ram ball", true);
-	BoolParam RECIEVE_BALL("Test strategy recieve ball", true);
+	BoolParam STAY_OWN_HALF("Test strategy stay own half", "oldAI", true);
+	BoolParam CATCH_BALL("Test strategy catch ball", "oldAI", true);
+	BoolParam RAM_BALL("Test strategy Ram ball", "oldAI", true);
+	BoolParam RECIEVE_BALL("Test strategy recieve ball", "oldAI", true);
 	/**
 	 * Manages the robots for testing purposes
 	 */

@@ -17,17 +17,17 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
-	BoolParam PID_SLOW_ANGULAR("PID3: Slow if translating", true);
-	BoolParam PID_FLIP_SLOWDOWN("PID3: flip trans&ang slowdown", false);
-	DoubleParam PID_SLOWDOWN("PID3: slowdown (CARE)", 1.5, 0.1, 8.0);
-	DoubleParam PID_PROP("PID3: prop", 20, 0.0, 20.0);
-	DoubleParam PID_DIFF("PID3: diff", 4, 0.0, 20.0);
-	DoubleParam PID_MAX_VEL("PID3: max vel", 6, 0.0, 20.0);
-	DoubleParam PID_MAX_ACC("PID3: max acc", 3, 0.0, 20.0);
-	DoubleParam PID_A_PROP("PID3: angle prop", 18, 0.0, 50.0);
-	DoubleParam PID_A_DIFF("PID3: angle diff", 2, 0.0, 20.0);
-	DoubleParam PID_A_THRESH("PID3: angle thresh", 12, 0.0, 50.0);
-	DoubleParam PID_XY_RATIO("PID3: xy ratio", 0.81, 0.0, 2.0);
+	BoolParam PID_SLOW_ANGULAR("Slow if translating", "RC/PID3", true);
+	BoolParam PID_FLIP_SLOWDOWN("flip trans&ang slowdown", "RC/PID3", false);
+	DoubleParam PID_SLOWDOWN("slowdown (CARE)", "RC/PID3", 1.5, 0.1, 8.0);
+	DoubleParam PID_PROP("prop", "RC/PID3", 20, 0.0, 20.0);
+	DoubleParam PID_DIFF("diff", "RC/PID3", 4, 0.0, 20.0);
+	DoubleParam PID_MAX_VEL("max vel", "RC/PID3", 6, 0.0, 20.0);
+	DoubleParam PID_MAX_ACC("max acc", "RC/PID3", 3, 0.0, 20.0);
+	DoubleParam PID_A_PROP("angle prop", "RC/PID3", 18, 0.0, 50.0);
+	DoubleParam PID_A_DIFF("angle diff", "RC/PID3", 2, 0.0, 20.0);
+	DoubleParam PID_A_THRESH("angle thresh", "RC/PID3", 12, 0.0, 50.0);
+	DoubleParam PID_XY_RATIO("xy ratio", "RC/PID3", 0.81, 0.0, 2.0);
 
 	const double PID_YA_RATIO = 0.0; // 0 - 5 to face forwards
 
