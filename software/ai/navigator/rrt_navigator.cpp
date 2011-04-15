@@ -104,6 +104,7 @@ namespace AI {
 					double dest_ori = (world.ball().position() - player->position()).orientation();
 					path.push_back(std::make_pair(std::make_pair(world.ball().position(), dest_ori), world.monotonic_time()));
 					player->path(path);
+					return;
 				}
 
 				const Point p1 = world.ball().position();
