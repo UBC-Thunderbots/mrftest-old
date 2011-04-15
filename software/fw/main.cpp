@@ -32,27 +32,8 @@ namespace {
 
 			void start_operation() {
 				std::cout << "Enabling radios... " << std::flush;
-				dongle.xbees_state.signal_changed().connect(sigc::mem_fun(this, &FirmwareUploadOperation::on_xbees_state_changed));
 				AsyncOperation<void>::Ptr op = dongle.enable();
 				op->signal_done.connect(sigc::mem_fun(this, &FirmwareUploadOperation::on_radios_enabled));
-			}
-
-			void on_xbees_state_changed() {
-				switch (dongle.xbees_state) {
-					case XBeeDongle::XBEES_STATE_PREINIT:
-					case XBeeDongle::XBEES_STATE_INIT0:
-					case XBeeDongle::XBEES_STATE_INIT1:
-					case XBeeDongle::XBEES_STATE_RUNNING:
-						return;
-
-					case XBeeDongle::XBEES_STATE_FAIL_0:
-						throw std::runtime_error("XBee 0 initialization failed");
-
-					case XBeeDongle::XBEES_STATE_FAIL_1:
-						throw std::runtime_error("XBee 1 initialization failed");
-				}
-
-				throw std::runtime_error("XBees in unknown state");
 			}
 
 			void on_radios_enabled(AsyncOperation<void>::Ptr op) {

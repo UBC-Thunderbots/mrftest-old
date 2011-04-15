@@ -7,24 +7,6 @@
 #include <stdexcept>
 
 namespace {
-	void on_xbees_state_changed(XBeeDongle &dongle) {
-		switch (dongle.xbees_state) {
-			case XBeeDongle::XBEES_STATE_PREINIT:
-			case XBeeDongle::XBEES_STATE_INIT0:
-			case XBeeDongle::XBEES_STATE_INIT1:
-			case XBeeDongle::XBEES_STATE_RUNNING:
-				return;
-
-			case XBeeDongle::XBEES_STATE_FAIL_0:
-				throw std::runtime_error("XBee 0 initialization failed");
-
-			case XBeeDongle::XBEES_STATE_FAIL_1:
-				throw std::runtime_error("XBee 1 initialization failed");
-		}
-
-		throw std::runtime_error("XBees in unknown state");
-	}
-
 	class EnableRadiosOperation : public sigc::trackable {
 		public:
 			EnableRadiosOperation(XBeeDongle &dongle) : dongle(dongle), main_loop(Glib::MainLoop::create()) {
@@ -69,8 +51,6 @@ namespace {
 		std::cout << "Finding dongle... " << std::flush;
 		XBeeDongle dongle;
 		std::cout << "OK\n";
-		dongle.xbees_state.signal_changed().connect(sigc::bind(&on_xbees_state_changed, sigc::ref(dongle)));
-		on_xbees_state_changed(dongle);
 		{
 			EnableRadiosOperation op(dongle);
 			op.run();
