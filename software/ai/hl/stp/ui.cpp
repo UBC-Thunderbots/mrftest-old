@@ -110,3 +110,17 @@ void AI::HL::STP::draw_defense(const World& world, Cairo::RefPtr<Cairo::Context>
 	ctx->stroke();
 }
 
+void AI::HL::STP::draw_velocity(const World& world, Cairo::RefPtr<Cairo::Context> ctx) {
+	const FriendlyTeam& friendly = world.friendly_team();
+	ctx->set_line_width(1.0);
+	for (std::size_t i = 0; i < friendly.size(); ++i ) {
+		const Player::CPtr player = friendly.get(i);
+		double vel_direction = atan( player->velocity().y / player->velocity().x );
+		double vel_mag = sqrt( player->velocity().y * player->velocity().y + player->velocity().x * player->velocity().x );
+		// std::cout << vel_direction << "  " << vel_mag <<std::endl;
+		ctx->set_source_rgba(0.0, 0.0, 0.0, 0.2);
+		ctx->arc( player->position().x, player->position().y, vel_mag, vel_direction, vel_direction+1.0 );
+		ctx->stroke();
+	}
+}
+

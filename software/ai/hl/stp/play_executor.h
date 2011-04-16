@@ -4,6 +4,8 @@
 #include "ai/hl/stp/world.h"
 #include "ai/hl/stp/play/play.h"
 
+#include <gtkmm.h>
+
 namespace AI {
 	namespace HL {
 		namespace STP {
@@ -60,7 +62,7 @@ namespace AI {
 					/**
 					 * Calculates a NEW play to be used.
 					 */
-					void calc_play();
+					virtual void calc_play();
 
 					/**
 					 * Condition: a play is in use.
@@ -73,6 +75,8 @@ namespace AI {
 					 * Dynamically run tactic to play assignment.
 					 */
 					void role_assignment();
+
+					void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx);
 			};
 		};
 	}

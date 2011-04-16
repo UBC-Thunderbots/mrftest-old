@@ -1,5 +1,4 @@
 #include "ai/hl/hl.h"
-#include "ai/hl/stp/ui.h"
 #include "ai/hl/stp/play_executor.h"
 #include "ai/hl/stp/tactic/idle.h"
 #include "util/dprint.h"
@@ -24,9 +23,9 @@ namespace {
 
 	const Glib::ustring CHOOSE_PLAY_TEXT = "<Choose Play>";
 
-	class STPHLChoosable : public HighLevel {
+	class STPHLChoosable : public PlayExecutor, public HighLevel {
 		public:
-			STPHLChoosable(World &world) : world(world) {
+			STPHLChoosable(World &world) : PlayExecutor(world) {
 				combo.append_text(CHOOSE_PLAY_TEXT);
 				const Play::PlayFactory::Map &m = Play::PlayFactory::all();
 				for (Play::PlayFactory::Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
@@ -42,20 +41,6 @@ namespace {
 			STPHLChoosableFactory &factory() const {
 				return factory_instance;
 			}
-
-		private:
-			World& world;
-			Gtk::VBox vbox;
-			Gtk::Button reset_button;
-			Gtk::ComboBoxText combo;
-
-			Play::Play::Ptr curr_play;
-			unsigned int curr_role_step;
-			std::vector<Tactic::Tactic::Ptr> curr_roles[5];
-			Tactic::Tactic::Ptr curr_tactic[5];
-			Tactic::Tactic::Ptr curr_active;
-			AI::HL::W::Player::Ptr curr_assignment[5];
-			std::vector<Play::Play::Ptr> plays;
 
 			void calc_play() {
 				curr_play.reset();
@@ -87,100 +72,6 @@ namespace {
 					}
 				}
 				LOG_INFO("reassigned");
-			}
-
-			void role_assignment() {
-				// this must be reset every tick
-				curr_active.reset();
-
-				for (std::size_t i = 0; i < 5; ++i) {
-					if (curr_role_step < curr_roles[i].size()) {
-						curr_tactic[i] = curr_roles[i][curr_role_step];
-					} else {
-						// if there are no more tactics, use the previous one
-						// BUT active tactic cannot be reused!
-						assert(!curr_tactic[i]->active());
-					}
-
-					if (curr_tactic[i]->active()) {
-						// we cannot have more than 1 active tactic.
-						assert(!curr_active.is());
-						curr_active = curr_tactic[i];
-					}
-				}
-
-				// we cannot have less than 1 active tactic.
-				assert(curr_active.is());
-
-				std::fill(curr_assignment, curr_assignment + 5, AI::HL::W::Player::Ptr());
-
-				assert(curr_tactic[0].is());
-				curr_tactic[0]->set_player(world.friendly_team().get(0));
-				curr_assignment[0] = world.friendly_team().get(0);
-
-				// pool of available people
-				std::set<Player::Ptr> players;
-				for (std::size_t i = 1; i < world.friendly_team().size(); ++i) {
-					players.insert(world.friendly_team().get(i));
-				}
-
-				bool active_assigned = (curr_tactic[0]->active());
-				for (std::size_t i = 1; i < 5 && players.size() > 0; ++i) {
-					curr_assignment[i] = curr_tactic[i]->select(players);
-					// assignment cannot be empty
-					assert(curr_assignment[i].is());
-					assert(players.find(curr_assignment[i]) != players.end());
-					players.erase(curr_assignment[i]);
-					curr_tactic[i]->set_player(curr_assignment[i]);
-					active_assigned = active_assigned || curr_tactic[i]->active();
-				}
-
-				// can't assign active tactic to anyone
-				if (!active_assigned) {
-					LOG_ERROR("Active tactic not assigned");
-					curr_play.reset();
-					return;
-				}
-			}
-
-			void execute_tactics() {
-				std::size_t max_role_step = 0;
-				for (std::size_t i = 0; i < 5; ++i) {
-					max_role_step = std::max(max_role_step, curr_roles[i].size());
-				}
-
-				while (true) {
-					role_assignment();
-
-					// if role assignment failed
-					if (!curr_play.is()) {
-						return;
-					}
-
-					// it is possible to skip steps
-					if (curr_active->done()) {
-						++curr_role_step;
-
-						// when the play runs out of tactics, they are done!
-						if (curr_role_step >= max_role_step) {
-							LOG_INFO("Play done");
-							curr_play.reset();
-							return;
-						}
-
-						continue;
-					}
-
-					break;
-				}
-
-				// execute!
-				for (std::size_t i = 0; i < 5; ++i) {
-					if (!curr_assignment[i].is()) {
-						continue;
-					}
-					curr_tactic[i]->execute();
-				}
 			}
 
 			void tick() {
@@ -222,24 +113,13 @@ namespace {
 			}
 
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
-				draw_offense(world, ctx);
-				draw_defense(world, ctx);
-
-				if (world.playtype() == PlayType::STOP) {
-					ctx->set_source_rgb(1.0, 0.5, 0.5);
-					ctx->arc(world.ball().position().x, world.ball().position().y, 0.5, 0.0, 2 * M_PI);
-					ctx->stroke();
-				}
-				if (!curr_play.is()) {
-					return;
-				}
-				for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-					const auto& role = curr_roles[i];
-					for (std::size_t t = 0; t < role.size(); ++t) {
-						role[t]->draw_overlay(ctx);
-					}
-				}
+				PlayExecutor::draw_overlay(ctx);
 			}
+
+		protected:
+			Gtk::VBox vbox;
+			Gtk::Button reset_button;
+			Gtk::ComboBoxText combo;
 	};
 
 	HighLevel::Ptr STPHLChoosableFactory::create_high_level(World &world) const {

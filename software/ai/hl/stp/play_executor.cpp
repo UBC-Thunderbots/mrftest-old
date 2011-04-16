@@ -2,6 +2,7 @@
 #include "ai/hl/stp/tactic/idle.h"
 #include "ai/hl/util.h"
 #include "util/dprint.h"
+#include "ai/hl/stp/ui.h"
 #include <cassert>
 
 using AI::HL::STP::PlayExecutor;
@@ -165,5 +166,25 @@ void PlayExecutor::tick() {
 	}
 
 	execute_tactics();
+}
+
+void PlayExecutor::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
+	draw_offense(world, ctx);
+	draw_defense(world, ctx);
+	//draw_velocity(ctx); // uncommand to display velocity
+	if (world.playtype() == PlayType::STOP) {
+		ctx->set_source_rgb(1.0, 0.5, 0.5);
+		ctx->arc(world.ball().position().x, world.ball().position().y, 0.5, 0.0, 2 * M_PI);
+		ctx->stroke();
+	}
+	if (!curr_play.is()) {
+		return;
+	}
+	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
+		const auto& role = curr_roles[i];
+		for (std::size_t t = 0; t < role.size(); ++t) {
+			role[t]->draw_overlay(ctx);
+		}
+	}
 }
 

@@ -18,6 +18,8 @@ namespace AI {
 			 * TODO: draw lines from the enemy
 			 */
 			void draw_defense(const World& world, Cairo::RefPtr<Cairo::Context> ctx);
+
+			void draw_velocity(const World& world, Cairo::RefPtr<Cairo::Context> ctx);
 		}
 	}
 }
