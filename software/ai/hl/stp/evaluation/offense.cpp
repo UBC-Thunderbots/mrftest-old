@@ -5,31 +5,25 @@
 #include "geom/angle.h"
 #include "geom/util.h"
 #include "util/dprint.h"
-#include "util/param.h"
 
 using namespace AI::HL::W;
 // using AI::HL::STP::Evaluation::OffenseData;
 // using AI::HL::STP::Evaluation::EvaluateOffense;
 
+IntParam AI::HL::STP::Evaluation::grid_x("grid x size", "STP/offense", 25, 1, 100);
+IntParam AI::HL::STP::Evaluation::grid_y("grid y size", "STP/offense", 25, 1, 100);
+
+using AI::HL::STP::Evaluation::grid_x;
+using AI::HL::STP::Evaluation::grid_y;
+
 namespace {
-	const int GRID_X = 25;
-	const int GRID_Y = 25;
 
 	const double DEG_2_RAD = 1.0 / 180.0 * M_PI;
 
 	// avoid enemy robots by at least this distance
 	const double NEAR = Robot::MAX_RADIUS * 3;
 
-	/*
-	   class EvaluateOffense : public Cacheable<Point, CacheableNonKeyArgs<AI::HL::W::World &>, CacheableKeyArgs<const std::set<AI::HL::W::Player::Ptr> &> > {
-	   protected:
-	   Point compute(AI::HL::W::World &world, const std::set<AI::HL::W::Player::Ptr> & players);
-	   };
-
-	   extern EvaluateOffense evaluate_offense2;
-	 */
-
-	double scoring_function(const World &world, const std::set<Player::CPtr> &players, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
+	double scoring_function(const World &world, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
 		// can't be too close to enemy
 		for (std::size_t i = 0; i < enemy_pos.size(); ++i) {
 			if ((enemy_pos[i] - dest).len() < NEAR) {
@@ -81,40 +75,27 @@ namespace {
 		// divide by largest distance?
 		//const double bigdist = std::max(balldist, goal_dist);
 		//score /= bigdist;
-		
+
 		score /= balldist;
-
-		// divide by distance to nearest player
-		/*
-		double mindist = 1e99;
-		for (auto it = players.begin(); it != players.end(); ++it) {
-			double dist = ((*it)->position() - dest).len();
-			if (dist < mindist) {
-				mindist = dist;
-			}
-		}
-
-		score /= mindist;
-		*/
 
 		return score;
 	}
 
-	bool calc_position_best(const World &world, const std::set<Player::CPtr> &players, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos) {
+	bool calc_position_best(const World &world, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos) {
 		// divide up into grids
 		const double x1 = -world.field().length() / 2;
 		const double x2 = world.field().length() / 2;
 		const double y1 = -world.field().width() / 2;
 		const double y2 = world.field().width() / 2;
 
-		const double dx = (x2 - x1) / (GRID_X + 1);
-		const double dy = (y2 - y1) / (GRID_Y + 1);
+		const double dx = (x2 - x1) / (grid_x + 1);
+		const double dy = (y2 - y1) / (grid_y + 1);
 		double best_score = -1e50;
 
 		best_pos = Point();
 
-		for (int i = 0; i < GRID_X; ++i) {
-			for (int j = 0; j < GRID_Y; ++j) {
+		for (int i = 0; i < grid_x; ++i) {
+			for (int j = 0; j < grid_y; ++j) {
 				const double x = x1 + dx * (i + 1);
 				const double y = y1 + dy * (j + 1);
 				const Point pos = Point(x, y);
@@ -126,7 +107,7 @@ namespace {
 					continue;
 				}
 
-				const double score = scoring_function(world, players, enemy_pos, pos, dont_block);
+				const double score = scoring_function(world, enemy_pos, pos, dont_block);
 				if (score < -1e50) {
 					continue;
 				}
@@ -140,7 +121,6 @@ namespace {
 		return best_score > -1e40;
 	}
 
-	
 }
 
 double AI::HL::STP::Evaluation::offense_score(const World &world, const Point dest) {
@@ -155,10 +135,10 @@ double AI::HL::STP::Evaluation::offense_score(const World &world, const Point de
 	std::vector<Point> dont_block;
 	dont_block.push_back(world.ball().position());
 
-	return scoring_function(world, std::set<Player::CPtr>(), enemy_pos, dest, dont_block);
+	return scoring_function(world, enemy_pos, dest, dont_block);
 }
 
-Point AI::HL::STP::Evaluation::calc_positions(const World &world, const std::set<Player::CPtr> &players) {
+std::array<Point, 2> AI::HL::STP::Evaluation::offense_positions(const World& world) {
 	// just for caching..
 	const EnemyTeam &enemy = world.enemy_team();
 	std::vector<Point> enemy_pos;
@@ -172,23 +152,22 @@ Point AI::HL::STP::Evaluation::calc_positions(const World &world, const std::set
 	// don't block ball, and the others
 	std::vector<Point> dont_block;
 	dont_block.push_back(world.ball().position());
-	const FriendlyTeam &friendly = world.friendly_team();
-	for (size_t i = 0; i < friendly.size(); ++i) {
-		if (players.find(friendly.get(i)) == players.end()) {
-			dont_block.push_back(friendly.get(i)->position());
-		}
-	}
+	/*
+	   const FriendlyTeam &friendly = world.friendly_team();
+	   for (size_t i = 0; i < friendly.size(); ++i) {
+	   if (players.find(friendly.get(i)) == players.end()) {
+	   dont_block.push_back(friendly.get(i)->position());
+	   }
+	   }
+	   */
 
-	Point best;
-	if (!calc_position_best(world, players, enemy_pos, dont_block, best)) {
-		LOG_WARN("could not find a good plac3");
-		return Point();
-	}
+	std::array<Point, 2> best;
+
+	calc_position_best(world, enemy_pos, dont_block, best[0]);
+
+	dont_block.push_back(best[0]);
+	calc_position_best(world, enemy_pos, dont_block, best[1]);
+
 	return best;
-}
-
-Point AI::HL::STP::Evaluation::evaluate_offense(const AI::HL::W::World &world, const std::set<Player::Ptr> &players) {
-	std::set<Player::CPtr> cplayers(players.begin(), players.end());
-	return calc_positions(world, cplayers);
 }
 

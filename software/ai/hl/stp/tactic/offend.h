@@ -11,6 +11,11 @@ namespace AI {
 				 * Go to good offensive position to park robots.
 				 */
 				Tactic::Ptr offend(const World &world);
+
+				/**
+				 * Go to good offensive position to park robots.
+				 */
+				Tactic::Ptr offend_secondary(const World &world);
 			}
 		}
 	}

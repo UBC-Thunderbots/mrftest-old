@@ -6,15 +6,12 @@ using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
 namespace {
-	class Offend : public Tactic {
+	class Primary : public Tactic {
 		public:
-			Offend(const World &world) : Tactic(world) {
+			Primary(const World &world) : Tactic(world) {
 			}
 
 		private:
-#warning TODO: fix this
-			mutable Point dest;
-
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
 			std::string description() const {
@@ -22,19 +19,47 @@ namespace {
 			}
 	};
 
-	Player::Ptr Offend::select(const std::set<Player::Ptr> &players) const {
-#warning TODO: choose by the player with best access to ball and enemy goal
-		dest = AI::HL::STP::Evaluation::evaluate_offense(world, players);
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
+	class Secondary : public Tactic {
+		public:
+			Secondary(const World &world) : Tactic(world) {
+			}
+
+		private:
+			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			void execute();
+			std::string description() const {
+				return "offender (secondary)";
+			}
+	};
+
+	Player::Ptr Primary::select(const std::set<Player::Ptr> &players) const {
+		auto dest = AI::HL::STP::Evaluation::offense_positions(world);
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest[0]));
 	}
 
-	void Offend::execute() {
-		player->move(dest, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+	void Primary::execute() {
+		auto dest = AI::HL::STP::Evaluation::offense_positions(world);
+		player->move(dest[0], (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+	}
+
+	Player::Ptr Secondary::select(const std::set<Player::Ptr> &players) const {
+		auto dest = AI::HL::STP::Evaluation::offense_positions(world);
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest[1]));
+	}
+
+	void Secondary::execute() {
+		auto dest = AI::HL::STP::Evaluation::offense_positions(world);
+		player->move(dest[1], (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
 	}
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::offend(const World &world) {
-	const Tactic::Ptr p(new Offend(world));
+	const Tactic::Ptr p(new Primary(world));
+	return p;
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::offend_secondary(const World &world) {
+	const Tactic::Ptr p(new Secondary(world));
 	return p;
 }
 

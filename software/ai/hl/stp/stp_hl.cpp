@@ -43,7 +43,7 @@ namespace {
 					text << "step: " << curr_role_step;
 					text << "\n";
 					for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
-						text << world.friendly_team().get(i)->pattern() << ": ";
+						text << curr_assignment[i]->pattern() << ": ";
 						if (curr_tactic[i]->active()) {
 							text << "*";
 						} else {

@@ -4,7 +4,9 @@
 #include "ai/hl/world.h"
 #include "ai/hl/stp/play/play.h"
 #include "util/cacheable.h"
+#include "util/param.h"
 
+#include <array>
 #include <set>
 
 namespace AI {
@@ -19,12 +21,7 @@ namespace AI {
 				 * \return a score for the location. This score has no range limit.
 				 */
 				double offense_score(const World &world, const Point pos);
-			
-				/**
-				 * TODO: fix this
-				 */
-				Point calc_positions(const World &world, const std::set<Player::CPtr> &players);
-			
+
 				/**
 				 * Calculates strategic positions to place offensive players.
 				 * - Finds weak points on the enemy goal area,
@@ -33,9 +30,24 @@ namespace AI {
 				 * - Additionally, if some other player is visible to the goal area,
 				 *   will avoid blocking view of it.
 				 *
-				 * \param[in] players the set of players that influence the output.
+				 * About offense evaluation:
+				 * - there can only be up to 2 players doing offense: primary and secondary
+				 * - the secondary offender must not block the primary offender
+				 * - ideally, the secondary offender is as far away from the primary offender as possible
+				 *   note that the calculation of the secondary offender depends on the primary offender
+				 * - if no valid position is found for a particular
 				 */
-				Point evaluate_offense(const AI::HL::W::World &world, const std::set<AI::HL::W::Player::Ptr> &players);
+				std::array<Point, 2> offense_positions(const World& world);
+
+				/**
+				 * Grid size in x-direction.
+				 */
+				extern IntParam grid_x;
+
+				/**
+				 * Grid size in y-direction.
+				 */
+				extern IntParam grid_y;
 			}
 		}
 	}

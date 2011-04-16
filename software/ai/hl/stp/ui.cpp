@@ -3,6 +3,8 @@
 #include "ai/hl/stp/evaluation/offense.h"
 
 using namespace AI::HL::STP;
+using AI::HL::STP::Evaluation::grid_x;
+using AI::HL::STP::Evaluation::grid_y;
 
 void AI::HL::STP::draw_offense(const World& world, Cairo::RefPtr<Cairo::Context> ctx) {
 
@@ -33,20 +35,17 @@ void AI::HL::STP::draw_offense(const World& world, Cairo::RefPtr<Cairo::Context>
 
 	// draw blue circles for offense
 
-	const int GRID_X = 20;
-	const int GRID_Y = 20;
-
 	// divide up into grids
 	const double x1 = -world.field().length() / 2;
 	const double x2 = world.field().length() / 2;
 	const double y1 = -world.field().width() / 2;
 	const double y2 = world.field().width() / 2;
 
-	const double dx = (x2 - x1) / (GRID_X + 1);
-	const double dy = (y2 - y1) / (GRID_Y + 1);
+	const double dx = (x2 - x1) / (grid_x + 1);
+	const double dy = (y2 - y1) / (grid_y + 1);
 
-	for (int i = 0; i < GRID_X; ++i) {
-		for (int j = 0; j < GRID_Y; ++j) {
+	for (int i = 0; i < grid_x; ++i) {
+		for (int j = 0; j < grid_y; ++j) {
 			const double x = x1 + dx * (i + 1);
 			const double y = y1 + dy * (j + 1);
 			const Point pos = Point(x, y);
