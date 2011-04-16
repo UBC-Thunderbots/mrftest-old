@@ -9,6 +9,7 @@ AI::BE::Simulator::Player::Ptr AI::BE::Simulator::Player::create(Backend &be, un
 }
 
 void AI::BE::Simulator::Player::pre_tick(const ::Simulator::Proto::S2APlayerInfo &state, const timespec &ts) {
+	AI::BE::Player::pre_tick();
 	AI::BE::Simulator::Robot::pre_tick(state.robot_info, ts);
 	has_ball_ = state.has_ball;
 	kick_ = false;
@@ -139,15 +140,6 @@ bool AI::BE::Simulator::Player::chicker_ready() const {
 	return true;
 }
 
-void AI::BE::Simulator::Player::move_impl(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
-	destination_.first = dest;
-	destination_.second = ori;
-	target_velocity_ = vel;
-	flags_ = flags;
-	move_type_ = type;
-	move_prio_ = prio;
-}
-
 void AI::BE::Simulator::Player::kick_impl(double power) {
 	kick_ = true;
 	chick_power_ = power;
@@ -167,18 +159,6 @@ const std::pair<Point, double> &AI::BE::Simulator::Player::destination() const {
 
 Point AI::BE::Simulator::Player::target_velocity() const {
 	return target_velocity_;
-}
-
-unsigned int AI::BE::Simulator::Player::flags() const {
-	return flags_;
-}
-
-AI::Flags::MoveType AI::BE::Simulator::Player::type() const {
-	return move_type_;
-}
-
-AI::Flags::MovePrio AI::BE::Simulator::Player::prio() const {
-	return move_prio_;
 }
 
 void AI::BE::Simulator::Player::path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) {

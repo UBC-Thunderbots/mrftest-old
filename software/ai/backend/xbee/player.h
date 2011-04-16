@@ -64,15 +64,11 @@ namespace AI {
 					ObjectStore &object_store() const { return Robot::object_store(); }
 					bool has_ball() const;
 					bool chicker_ready() const;
-					void move_impl(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
 					void kick_impl(double speed);
 					void autokick_impl(double speed);
 					bool has_destination() const { return true; }
 					const std::pair<Point, double> &destination() const;
 					Point target_velocity() const;
-					unsigned int flags() const { return flags_; }
-					AI::Flags::MoveType type() const { return move_type_; }
-					AI::Flags::MovePrio prio() const { return move_prio_; }
 					void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) { path_ = p; }
 					bool has_path() const { return true; }
 					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const { return path_; }
@@ -98,16 +94,11 @@ namespace AI {
 
 				private:
 					XBeeRobot::Ptr bot;
-					std::pair<Point, double> destination_;
-					Point target_velocity_;
-					bool moved, controlled;
+					bool controlled;
 					double dribble_distance_;
 					Point last_dribble_position;
 					Annunciator::Message chick_when_not_ready_message;
 					int wheel_speeds_[4];
-					unsigned int flags_;
-					AI::Flags::MoveType move_type_;
-					AI::Flags::MovePrio move_prio_;
 					std::vector<std::pair<std::pair<Point, double>, timespec> > path_;
 					bool autokick_invoked;
 

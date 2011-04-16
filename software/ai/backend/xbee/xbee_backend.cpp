@@ -244,6 +244,9 @@ namespace {
 				ball_.lock_time(now);
 				friendly.lock_time(now);
 				enemy.lock_time(now);
+				for (std::size_t i = 0; i < friendly.size(); ++i) {
+					friendly.get_xbee_player(i)->pre_tick();
+				}
 
 				// Run the AI.
 				signal_tick().emit();

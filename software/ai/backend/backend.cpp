@@ -6,7 +6,17 @@
 using AI::BE::Backend;
 using AI::BE::BackendFactory;
 
+AI::BE::Player::Player() : moved(false), destination_(Point(), 0.0), flags_(0), move_type_(AI::Flags::MOVE_NORMAL), move_prio_(AI::Flags::PRIO_MEDIUM) {
+}
+
 void AI::BE::Player::move(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
+	move(dest, ori, vel);
+	this->flags(flags);
+	this->type(type);
+	this->prio(prio);
+}
+
+void AI::BE::Player::move(Point dest, double ori, Point vel) {
 	if (!std::isfinite(dest.x) || !std::isfinite(dest.y)) {
 		LOG_ERROR("NaN or ±inf destination");
 		dest = position(0);
@@ -19,19 +29,26 @@ void AI::BE::Player::move(Point dest, double ori, Point vel, unsigned int flags,
 		LOG_ERROR("NaN or ±inf velocity");
 		vel.x = vel.y = 0;
 	}
+	moved = true;
+	destination_.first = dest;
+	destination_.second = ori;
+	target_velocity_ = vel;
+}
+
+void AI::BE::Player::flags(unsigned int flags) {
 	if (flags & ~AI::Flags::FLAGS_VALID) {
 		LOG_ERROR(Glib::ustring::compose("Invalid flag(s) 0x%08X", flags & ~AI::Flags::FLAGS_VALID));
 		flags &= AI::Flags::FLAGS_VALID;
 	}
-	if (type >= AI::Flags::MOVE_COUNT) {
-		LOG_ERROR(Glib::ustring::compose("Invalid move type %d", type));
-		type = AI::Flags::MOVE_NORMAL;
-	}
-	if (prio >= AI::Flags::PRIO_COUNT) {
-		LOG_ERROR(Glib::ustring::compose("Invalid move priority %d", prio));
-		prio = AI::Flags::PRIO_LOW;
-	}
-	move_impl(dest, ori, vel, flags, type, prio);
+	flags_ = flags;
+}
+
+void AI::BE::Player::type(AI::Flags::MoveType type) {
+	move_type_ = type;
+}
+
+void AI::BE::Player::prio(AI::Flags::MovePrio prio) {
+	move_prio_ = prio;
 }
 
 void AI::BE::Player::kick(double power) {
@@ -70,6 +87,13 @@ void AI::BE::Player::path(const std::vector<std::pair<std::pair<Point, double>, 
 		}
 	}
 	path_impl(p);
+}
+
+void AI::BE::Player::pre_tick() {
+	moved = false;
+	flags_ = 0;
+	move_type_ = AI::Flags::MOVE_NORMAL;
+	move_prio_ = AI::Flags::PRIO_MEDIUM;
 }
 
 Backend::Backend() : defending_end_(WEST), friendly_colour_(AI::Common::Team::YELLOW), playtype_(AI::Common::PlayType::HALT), playtype_override_(AI::Common::PlayType::COUNT), ball_filter_(0) {

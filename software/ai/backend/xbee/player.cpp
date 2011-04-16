@@ -39,17 +39,6 @@ namespace {
 	}
 }
 
-void Player::move_impl(Point dest, double target_ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
-	destination_.first = dest;
-	destination_.second = target_ori;
-	target_velocity_ = vel;
-	flags_ = flags;
-	move_type_ = type;
-	move_prio_ = prio;
-
-	moved = true;
-}
-
 const std::pair<Point, double> &Player::destination() const {
 	return destination_;
 }
@@ -88,7 +77,7 @@ Player::Ptr Player::create(AI::BE::Backend &backend, unsigned int pattern, XBeeR
 	return p;
 }
 
-Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), destination_(Point(), 0.0), moved(false), controlled(false), dribble_distance_(0.0), chick_when_not_ready_message(Glib::ustring::compose("Bot %1 chick when not ready", pattern), Annunciator::Message::TRIGGER_EDGE), flags_(0), move_type_(AI::Flags::MOVE_NORMAL), move_prio_(AI::Flags::PRIO_LOW), autokick_invoked(false) {
+Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), controlled(false), dribble_distance_(0.0), chick_when_not_ready_message(Glib::ustring::compose("Bot %1 chick when not ready", pattern), Annunciator::Message::TRIGGER_EDGE), autokick_invoked(false) {
 	timespec now;
 	timespec_now(now);
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
@@ -119,7 +108,6 @@ void Player::tick(bool halt) {
 	} else {
 		bot->drive_scram();
 	}
-	moved = false;
 	controlled = false;
 
 	// Dribbler should always run except in halt.

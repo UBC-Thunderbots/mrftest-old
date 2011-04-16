@@ -105,15 +105,11 @@ namespace AI {
 					ObjectStore &object_store() const;
 					bool has_ball() const;
 					bool chicker_ready() const;
-					void move_impl(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
 					void kick_impl(double power);
 					void autokick_impl(double power);
 					bool has_destination() const;
 					const std::pair<Point, double> &destination() const;
 					Point target_velocity() const;
-					unsigned int flags() const;
-					AI::Flags::MoveType type() const;
-					AI::Flags::MovePrio prio() const;
 					void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p);
 					bool has_path() const;
 					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const;

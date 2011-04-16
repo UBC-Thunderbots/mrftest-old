@@ -44,6 +44,59 @@ namespace AI {
 					typedef RefPtr<const Player> CPtr;
 
 					/**
+					 * Sets the destination for this player.
+					 *
+					 * \param[in] dest the destination position to move to.
+					 *
+					 * \param[in] ori the target orientation to assume.
+					 *
+					 * \param[in] vel the velocity the robot should be moving when it arrives at the target point.
+					 */
+					virtual void move(Point dest, double ori, Point vel) = 0;
+
+					/**
+					 * Returns the movement flags for this player.
+					 *
+					 * \return the flags governing the movement.
+					 */
+					virtual unsigned int flags() const = 0;
+
+					/**
+					 * Sets the movement flags for this player.
+					 *
+					 * \param[in] flags the flags governing the movement.
+					 */
+					virtual void flags(unsigned int flags) = 0;
+
+					/**
+					 * Returns the movement type for this player.
+					 *
+					 * \return the type of movement to perform.
+					 */
+					virtual AI::Flags::MoveType type() const = 0;
+
+					/**
+					 * Sets the movement type for this player.
+					 *
+					 * \param[in] type the type of movement to perform.
+					 */
+					virtual void type(AI::Flags::MoveType type) = 0;
+
+					/**
+					 * Returns the movement priority for this player.
+					 *
+					 * \return the priority of the movement.
+					 */
+					virtual AI::Flags::MovePrio prio() const = 0;
+
+					/**
+					 * Sets the movement priority for this player.
+					 *
+					 * \param[in] prio the priority of the movement.
+					 */
+					virtual void prio(AI::Flags::MovePrio prio) = 0;
+
+					/**
 					 * Sets the current destination and movement type for this player.
 					 *
 					 * \param[in] dest the destination position to move to.
@@ -55,8 +108,10 @@ namespace AI {
 					 * \param[in] type the type of movement to perform.
 					 *
 					 * \param[in] prio the priority of the movement.
+					 *
+					 * \deprecated in favour of the individual functions for setting different values.
 					 */
-					void move(Point dest, double ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
+					void move(Point dest, double ori, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) __attribute__((deprecated));
 
 					/**
 					 * Sets the current destination and movement type for this player.
@@ -72,8 +127,10 @@ namespace AI {
 					 * \param[in] type the type of movement to perform.
 					 *
 					 * \param[in] prio the priority of the movement.
+					 *
+					 * \deprecated in favour of the individual functions for setting different values.
 					 */
-					virtual void move(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) = 0;
+					virtual void move(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) __attribute__((deprecated)) = 0;
 
 					/**
 					 * Causes the player to kick the ball.

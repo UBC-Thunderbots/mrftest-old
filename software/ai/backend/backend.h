@@ -79,6 +79,8 @@ namespace AI {
 				 */
 				typedef RefPtr<const Player> CPtr;
 
+				Player();
+
 				/**
 				 * Returns the speeds of the four wheels as requested by the RobotController.
 				 *
@@ -94,14 +96,28 @@ namespace AI {
 				double aacceleration(double delta) const = 0;
 				unsigned int pattern() const = 0;
 				ObjectStore &object_store() const = 0;
-				void move(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio);
+				void move(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) __attribute__((deprecated));
+				void move(Point dest, double ori, Point vel);
+				unsigned int flags() const { return flags_; }
+				void flags(unsigned int flags);
+				AI::Flags::MoveType type() const { return move_type_; }
+				void type(AI::Flags::MoveType type);
+				AI::Flags::MovePrio prio() const { return move_prio_; }
+				void prio(AI::Flags::MovePrio prio);
 				void kick(double power);
 				void autokick(double power);
 				const std::pair<Point, double> &destination() const = 0;
 				void path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p);
+				void pre_tick();
 
 			protected:
-				virtual void move_impl(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) = 0;
+				bool moved;
+				std::pair<Point, double> destination_;
+				Point target_velocity_;
+				unsigned int flags_;
+				AI::Flags::MoveType move_type_;
+				AI::Flags::MovePrio move_prio_;
+
 				virtual void kick_impl(double power) = 0;
 				virtual void autokick_impl(double power) = 0;
 				virtual void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) = 0;
