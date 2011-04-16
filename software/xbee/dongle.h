@@ -322,25 +322,18 @@ class XBeeDongle : public NonCopyable {
 		XBeeDongle();
 
 		/**
-		 * \brief Destroys an XBeeDongle.
+		 * \brief Enables the radios.
 		 */
-		~XBeeDongle();
+		void enable();
 
 		/**
-		 * \brief Starts enabling the radios.
-		 *
-		 * \return an AsyncOperation that tracks the progress of enabling the radios.
-		 */
-		AsyncOperation<void>::Ptr enable();
-
-		/**
-		 * \brief Queues a bulk message for transmission.
+		 * \brief Queues a message for transmission.
 		 *
 		 * \param[in] data the data to send, which must include the header.
 		 *
 		 * \param[in] len the length of the data, including the header.
 		 */
-		AsyncOperation<void>::Ptr send_bulk(const void *data, std::size_t len);
+		AsyncOperation<void>::Ptr send_message(const void *data, std::size_t len);
 
 		/**
 		 * \brief Fetches an individual robot proxy.
@@ -364,9 +357,10 @@ class XBeeDongle : public NonCopyable {
 		unsigned int dirty_drive_mask;
 		sigc::connection flush_drive_connection;
 		sigc::connection stamp_connection;
+		bool enabled;
 
-		void on_enable_done(AsyncOperation<void>::Ptr op);
 		void on_dongle_status(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer);
+		void parse_dongle_status(const uint8_t *data);
 		void on_local_error_queue(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer);
 		void on_state_transport_in(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer);
 		void on_interrupt_in(AsyncOperation<void>::Ptr, LibUSBInterruptInTransfer::Ptr transfer);

@@ -21,8 +21,6 @@ class LibUSBError : public std::runtime_error {
 	public:
 		LibUSBError(const std::string &msg);
 
-		~LibUSBError() throw ();
-
 		int error_code() const;
 };
 
@@ -32,8 +30,6 @@ class LibUSBError : public std::runtime_error {
 class LibUSBTransferError : public LibUSBError {
 	public:
 		LibUSBTransferError(unsigned int endpoint, const std::string &msg);
-
-		~LibUSBTransferError() throw ();
 };
 
 /**
@@ -42,8 +38,6 @@ class LibUSBTransferError : public LibUSBError {
 class LibUSBTransferTimeoutError : public LibUSBTransferError {
 	public:
 		LibUSBTransferTimeoutError(unsigned int endpoint);
-
-		~LibUSBTransferTimeoutError() throw ();
 };
 
 /**
@@ -52,8 +46,6 @@ class LibUSBTransferTimeoutError : public LibUSBTransferError {
 class LibUSBTransferStallError : public LibUSBTransferError {
 	public:
 		LibUSBTransferStallError(unsigned int endpoint);
-
-		~LibUSBTransferStallError() throw ();
 };
 
 /**
@@ -62,8 +54,6 @@ class LibUSBTransferStallError : public LibUSBTransferError {
 class LibUSBTransferCancelledError : public LibUSBTransferError {
 	public:
 		LibUSBTransferCancelledError(unsigned int endpoint);
-
-		~LibUSBTransferCancelledError() throw ();
 };
 
 /**
@@ -152,9 +142,12 @@ class LibUSBDeviceHandle : public NonCopyable {
 
 		void claim_interface(int interface);
 
+		void control_no_data(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout);
+
+		std::size_t interrupt_in(unsigned char endpoint, void *data, std::size_t length, unsigned int timeout, unsigned int stall_max);
+
 	private:
 		friend class LibUSBTransfer;
-		friend class LibUSBControlNoDataTransfer;
 		friend class LibUSBInterruptOutTransfer;
 		friend class LibUSBInterruptInTransfer;
 
@@ -190,24 +183,6 @@ class LibUSBTransfer : public AsyncOperation<void> {
 		LibUSBTransfer(unsigned int stall_max);
 		~LibUSBTransfer();
 		void callback();
-};
-
-/**
- * \brief A LibUSB control transfer with no data stage.
- */
-class LibUSBControlNoDataTransfer : public LibUSBTransfer {
-	public:
-		typedef RefPtr<LibUSBControlNoDataTransfer> Ptr;
-
-		static Ptr create(LibUSBDeviceHandle &dev, uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout, unsigned int stall_max);
-
-	protected:
-		~LibUSBControlNoDataTransfer();
-
-	private:
-		unsigned char buffer[LIBUSB_CONTROL_SETUP_SIZE];
-
-		LibUSBControlNoDataTransfer(LibUSBDeviceHandle &dev, uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout, unsigned int stall_max);
 };
 
 /**

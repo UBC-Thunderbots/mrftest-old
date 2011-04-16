@@ -632,17 +632,9 @@ namespace {
 					throw std::runtime_error("The XBee backend does not accept any parameters.");
 				}
 				XBeeDongle dongle;
-				Glib::RefPtr<Glib::MainLoop> main_loop = Glib::MainLoop::create();
-				dongle.enable()->signal_done.connect(sigc::bind(&XBeeBackendFactory::on_dongle_enabled, main_loop));
-				main_loop->run();
+				dongle.enable();
 				XBeeBackend be(dongle);
 				cb(be);
-			}
-
-		private:
-			static void on_dongle_enabled(AsyncOperation<void>::Ptr op, Glib::RefPtr<Glib::MainLoop> main_loop) {
-				op->result();
-				main_loop->quit();
 			}
 	};
 

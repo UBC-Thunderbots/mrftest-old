@@ -31,14 +31,6 @@ namespace {
 			unsigned int byte, page, block;
 
 			void start_operation() {
-				std::cout << "Enabling radios... " << std::flush;
-				AsyncOperation<void>::Ptr op = dongle.enable();
-				op->signal_done.connect(sigc::mem_fun(this, &FirmwareUploadOperation::on_radios_enabled));
-			}
-
-			void on_radios_enabled(AsyncOperation<void>::Ptr op) {
-				op->result();
-				std::cout << "OK\n";
 				std::cout << "Waiting for robot to appear... " << std::flush;
 				alive_changed_connection = dongle.robot(robot)->alive.signal_changed().connect(sigc::mem_fun(this, &FirmwareUploadOperation::on_alive_changed));
 				on_alive_changed();
@@ -272,6 +264,10 @@ namespace {
 		if (0 <= robot && robot <= 15) {
 			std::cout << "Finding dongle... " << std::flush;
 			XBeeDongle dongle;
+			std::cout << "OK\n";
+
+			std::cout << "Enabling radios... " << std::flush;
+			dongle.enable();
 			std::cout << "OK\n";
 
 			Glib::RefPtr<Glib::MainLoop> main_loop = Glib::MainLoop::create();
