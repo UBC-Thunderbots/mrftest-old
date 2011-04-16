@@ -30,9 +30,9 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 
 	if (target.second == 0) { // bad news, we are blocked
 		Point new_target = world.field().enemy_goal();
-		if (force) {
+		if (false) {
 			// TODO: perhaps do a reduced radius calculation
-			return shoot(world, player, new_target, flags);
+			return shoot(world, player, new_target, 0);
 		} else { // just aim at the enemy goal
 			player->move(new_target, (world.field().enemy_goal() - player->position()).orientation(), 0, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
 		}
