@@ -41,7 +41,6 @@ namespace AI {
 				void grab_ball_pivot(Player::Ptr player);
 				void grab_ball_byron(Player::Ptr player);
 				void grab_ball_matt(Player::Ptr player);
-				void grab_ball_simon(Player::Ptr player);
 				void tick();
 				static Navigator::Ptr create(World &world);
 
@@ -65,49 +64,10 @@ namespace AI {
 			}
 			
 			void RRTNavigator::grab_ball_byron(Player::Ptr player) {
-				double ux = std::sqrt(world.ball().position().x * world.ball().position().x +
-										world.ball().position().y * world.ball().position().y);
-#warning MAGIC NUMBER
-				// estimated average velocity
-				double v = 1.5;
-				double alpha = std::atan2(world.ball().velocity().x, world.ball().velocity().y);
-				double h = (world.ball().position() - player->position()).len();
-				double x = h * std::cos(alpha);
-				double y = h * std::sin(alpha);
-				
-				double a = 1 + (y*y) / (x*x);
-				double b = (2*y*y*ux)/(x*x);
-				double c = (y*y*ux*ux)/(x*x) - v;
-				
-				double vx1 = (-b + std::sqrt(b*b - (4*a*c))) / (2*a);
-				double vx2 = (-b - std::sqrt(b*b - (4*a*c))) / (2*a);
-				
-				double t1 = x / (vx1 + ux);
-				double t2 = x / (vx2 + ux);
-				
-				Point p = world.ball().velocity().norm() * x + world.ball().position();
-				
-				std::cout << p << std::endl;
-			}
-
-			void RRTNavigator::grab_ball_matt(Player::Ptr player) {
-
-			}
-
-			void RRTNavigator::grab_ball_simon(Player::Ptr player) {
 				const double ux = world.ball().velocity().len(); // velocity of ball
 
 #warning MAGIC NUMBER
 				const double v = 1.5;
-
-				if (v < ux) {
-					Player::Path path;
-					Point dest_pos = world.ball().position() + world.ball().velocity();
-					double dest_ori = (world.ball().position() - player->position()).orientation();
-					path.push_back(std::make_pair(std::make_pair(dest_pos, dest_ori), world.monotonic_time()));
-					player->path(path);
-					return;
-				}
 
 				const Point p1 = world.ball().position();
 				const Point p2 = player->position();
@@ -133,7 +93,7 @@ namespace AI {
 					t = std::max(t1, t2);
 				}
 
-				if (std::isnan(t) || std::isinf(t)) {
+				if (std::isnan(t) || std::isinf(t) || t < 0) {
 					Player::Path path;
 					double dest_ori = (world.ball().position() - player->position()).orientation();
 					path.push_back(std::make_pair(std::make_pair(world.ball().position(), dest_ori), world.monotonic_time()));
@@ -149,6 +109,9 @@ namespace AI {
 				player->path(path);
 			}
 
+			void RRTNavigator::grab_ball_matt(Player::Ptr player) {
+
+			}
 
 			void RRTNavigator::grab_ball_pivot(Player::Ptr player) {
 				Player::Path path;
@@ -204,8 +167,7 @@ namespace AI {
 					Point dest;
 					double dest_orientation;
 					if (player->type() == MOVE_CATCH) {
-						grab_ball_simon(player);
-						//grab_ball_byron(player);
+						grab_ball_byron(player);
 						//grab_ball_matt(player);
 						//grab_ball_pivot(player);
 						continue;
