@@ -205,7 +205,6 @@ software/ai/hl/stp/evaluation/pass.cpp -text
 software/ai/hl/stp/evaluation/pass.h -text
 software/ai/hl/stp/evaluation/shoot.cpp -text
 software/ai/hl/stp/evaluation/shoot.h -text
-software/ai/hl/stp/play/better_just_shoot.cpp -text
 software/ai/hl/stp/play/defensive_block.cpp -text
 software/ai/hl/stp/play/frantic_defense.cpp -text
 software/ai/hl/stp/play/free_kick_enemy.cpp -text

@@ -20,8 +20,9 @@ namespace {
 
 	const double DEG_2_RAD = 1.0 / 180.0 * M_PI;
 
-	// avoid enemy robots by at least this distance
-	const double NEAR = Robot::MAX_RADIUS * 3;
+	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/offense", 4.0, 1.0, 10.0);
+
+	DoubleParam ball_dist_weight("ball distance weight", "STP/offense", 1.0, 0.0, 2.0);
 
 	double scoring_function(const World &world, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
 
@@ -29,7 +30,7 @@ namespace {
 		double closest_enemy = world.field().width();
 		for (std::size_t i = 0; i < enemy_pos.size(); ++i) {
 			double dist = (enemy_pos[i] - dest).len();
-			if (dist < NEAR) {
+			if (dist < near_thresh * Robot::MAX_RADIUS) {
 				return -1e99;
 			}
 			closest_enemy = std::min(closest_enemy, dist);
@@ -51,7 +52,7 @@ namespace {
 
 		for (size_t i = 0; i < dont_block.size(); ++i) {
 			const Point diff2 = (dest - dont_block[i]);
-			if (diff2.len() < NEAR) {
+			if (diff2.len() < near_thresh * Robot::MAX_RADIUS) {
 				return -1e99;
 			}
 		}
@@ -73,14 +74,14 @@ namespace {
 		score *= 10.0 / (10.0 * DEG_2_RAD);
 
 		// want to be as near to enemy goal or ball as possible
-		const double balldist = (dest - world.ball().position()).len() + 1.0;
+		const double ball_dist = (dest - world.ball().position()).len() + ball_dist_weight;
 		// const double goal_dist = (dest - bestshot.first).len();
 
 		// divide by largest distance?
-		//const double bigdist = std::max(balldist, goal_dist);
+		//const double bigdist = std::max(ball_dist, goal_dist);
 		//score /= bigdist;
 
-		score /= balldist;
+		score /= ball_dist;
 
 		// score *= closest_enemy;
 
