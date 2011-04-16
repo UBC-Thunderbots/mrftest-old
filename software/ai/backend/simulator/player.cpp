@@ -181,7 +181,7 @@ const int(&AI::BE::Simulator::Player::wheel_speeds() const)[4] {
 	return wheel_speeds_;
 }
 
-AI::BE::Simulator::Player::Player(Backend &be, unsigned int pattern) : AI::BE::Simulator::Robot(pattern), be(be), has_ball_(false), flags_(0), move_type_(AI::Flags::MOVE_NORMAL), move_prio_(AI::Flags::PRIO_LOW), kick_(false), chick_power_(0.0) {
+AI::BE::Simulator::Player::Player(Backend &be, unsigned int pattern) : AI::BE::Simulator::Robot(pattern), be(be), has_ball_(false), kick_(false), chick_power_(0.0) {
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
 	be.signal_mouse_pressed.connect(sigc::mem_fun(this, &Player::mouse_pressed));
 }

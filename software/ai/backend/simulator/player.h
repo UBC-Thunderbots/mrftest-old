@@ -143,31 +143,6 @@ namespace AI {
 					bool has_ball_;
 
 					/**
-					 * The target position and orientation most recently selected by the high-level AI.
-					 */
-					std::pair<Point, double> destination_;
-
-					/**
-					 * The target velocity most recently selected by the high-level AI.
-					 */
-					Point target_velocity_;
-
-					/**
-					 * The movement flags most recently specified by the high-level AI.
-					 */
-					unsigned int flags_;
-
-					/**
-					 * The movement type most recently specified by the high-level AI.
-					 */
-					AI::Flags::MoveType move_type_;
-
-					/**
-					 * The movement priority most recently specified by the high-level AI.
-					 */
-					AI::Flags::MovePrio move_prio_;
-
-					/**
 					 * The path of positions, orientations, and deadline timestamps most recently specified by the navigator.
 					 */
 					std::vector<std::pair<std::pair<Point, double>, timespec> > path_;
