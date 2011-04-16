@@ -27,7 +27,6 @@ namespace {
 			std::string description() const {
 				return "goalie (helped by defender)";
 			}
-			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;
 	};
 
 	/**
@@ -64,24 +63,6 @@ namespace {
 		auto waypoints = Evaluation::evaluate_defense(world);
 		//player->move(waypoints[0], (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
 		Action::goalie_move(world, player,  waypoints[0]);
-	}
-
-	void Goalie::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
-		const Field& field = world.field();
-
-		const Point goal1 = Point(-field.length() / 2, field.goal_width() / 2);
-		const Point goal2 = Point(-field.length() / 2, -field.goal_width() / 2);
-
-		ctx->set_line_width(0.01);
-		ctx->set_source_rgba(0.5, 1.0, 0.5, 0.5);
-
-		ctx->move_to(world.ball().position().x, world.ball().position().y);
-		ctx->line_to(goal1.x, goal1.y);
-		ctx->stroke();
-
-		ctx->move_to(world.ball().position().x, world.ball().position().y);
-		ctx->line_to(goal2.x, goal2.y);
-		ctx->stroke();
 	}
 
 	Player::Ptr Primary::select(const std::set<Player::Ptr> &players) const {

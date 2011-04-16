@@ -1,4 +1,5 @@
 #include "ai/hl/hl.h"
+#include "ai/hl/stp/ui.h"
 #include "ai/hl/stp/play_executor.h"
 #include "ai/hl/stp/tactic/idle.h"
 #include "util/dprint.h"
@@ -221,6 +222,9 @@ namespace {
 			}
 
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
+				draw_offense(world, ctx);
+				draw_defense(world, ctx);
+
 				if (world.playtype() == PlayType::STOP) {
 					ctx->set_source_rgb(1.0, 0.5, 0.5);
 					ctx->arc(world.ball().position().x, world.ball().position().y, 0.5, 0.0, 2 * M_PI);
