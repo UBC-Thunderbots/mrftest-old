@@ -24,11 +24,15 @@ namespace {
 	const double NEAR = Robot::MAX_RADIUS * 3;
 
 	double scoring_function(const World &world, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
+
 		// can't be too close to enemy
+		double closest_enemy = world.field().width();
 		for (std::size_t i = 0; i < enemy_pos.size(); ++i) {
-			if ((enemy_pos[i] - dest).len() < NEAR) {
+			double dist = (enemy_pos[i] - dest).len();
+			if (dist < NEAR) {
 				return -1e99;
 			}
+			closest_enemy = std::min(closest_enemy, dist);
 		}
 
 		// Hmm.. not sure if having negative number is a good idea.
@@ -77,6 +81,8 @@ namespace {
 		//score /= bigdist;
 
 		score /= balldist;
+
+		// score *= closest_enemy;
 
 		return score;
 	}

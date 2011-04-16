@@ -1,5 +1,5 @@
 #include "ai/hl/hl.h"
-#include "ai/hl/stp/action/shoot.h"
+#include "ai/hl/stp/action/goalie.h"
 #include "util/dprint.h"
 
 #include <cassert>
@@ -10,25 +10,25 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-	class TestShootFactory : public HighLevelFactory {
+	class TestLoneGoalieFactory : public HighLevelFactory {
 		public:
-			TestShootFactory() : HighLevelFactory("Test STP Shoot") {
+			TestLoneGoalieFactory() : HighLevelFactory("Test STP Lone Goalie") {
 			}
 
 			HighLevel::Ptr create_high_level(World &world) const;
 	};
 
-	TestShootFactory factory_instance;
+	TestLoneGoalieFactory factory_instance;
 
-	class TestShoot : public HighLevel {
+	class TestLoneGoalie : public HighLevel {
 		public:
-			TestShoot(World& world) : world(world) {
+			TestLoneGoalie(World& world) : world(world) {
 			}
 
 		private:
 			World& world;
 
-			TestShootFactory &factory() const {
+			TestLoneGoalieFactory &factory() const {
 				return factory_instance;
 			}
 
@@ -43,12 +43,12 @@ namespace {
 				FriendlyTeam& friendly = world.friendly_team();
 				if (friendly.size() == 0) return;
 
-				Action::shoot(world, friendly.get(0), 0);
+				Action::lone_goalie(world, friendly.get(0));
 			}
 	};
 
-	HighLevel::Ptr TestShootFactory::create_high_level(World &world) const {
-		HighLevel::Ptr p(new TestShoot(world));
+	HighLevel::Ptr TestLoneGoalieFactory::create_high_level(World &world) const {
+		HighLevel::Ptr p(new TestLoneGoalie(world));
 		return p;
 	}
 }

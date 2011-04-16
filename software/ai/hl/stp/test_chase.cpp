@@ -1,6 +1,5 @@
 #include "ai/hl/hl.h"
 #include "ai/hl/stp/action/actions.h"
-#include "ai/hl/stp/tactic/idle.h"
 #include "util/dprint.h"
 
 #include <cassert>
@@ -37,7 +36,7 @@ namespace {
 				return NULL;
 			}
 
-			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
+			void draw_overlay(Cairo::RefPtr<Cairo::Context>) {
 			}
 
 			void tick() {
