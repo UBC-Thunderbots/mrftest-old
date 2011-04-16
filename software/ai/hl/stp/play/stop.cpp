@@ -45,7 +45,7 @@ namespace {
 	}
 
 	bool Stop::invariant() const {
-		return Predicates::playtype(world, PlayType::STOP);
+		return Predicates::playtype(world, AI::Common::PlayType::STOP);
 	}
 
 	bool Stop::applicable() const {
@@ -64,7 +64,7 @@ namespace {
 		goalie_role.push_back(defend_duo_goalie(world));
 
 		// doesn't matter what the playtype we are waiting for is here, we just need an active tactic
-		roles[0].push_back(wait_playtype(world, move_stop(world, 0), PlayType::PLAY));
+		roles[0].push_back(wait_playtype(world, move_stop(world, 0), AI::Common::PlayType::PLAY));
 
 		roles[1].push_back(move_stop(world, 1));
 

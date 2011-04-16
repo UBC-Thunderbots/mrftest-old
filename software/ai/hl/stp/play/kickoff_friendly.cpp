@@ -59,7 +59,7 @@ namespace {
 	}
 
 	bool KickoffFriendly::invariant() const {
-		return Predicates::our_team_size_at_least(world, 2) && (Predicates::playtype(world, PlayType::PREPARE_KICKOFF_FRIENDLY) || Predicates::playtype(world, PlayType::EXECUTE_KICKOFF_FRIENDLY));
+		return Predicates::our_team_size_at_least(world, 2) && (Predicates::playtype(world, AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY));
 	}
 
 	bool KickoffFriendly::applicable() const {
@@ -77,7 +77,7 @@ namespace {
 	void KickoffFriendly::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
 		goalie_role.push_back(defend_duo_goalie(world));
 
-		roles[0].push_back(wait_playtype(world, move(world, kicker_position), PlayType::EXECUTE_KICKOFF_FRIENDLY));
+		roles[0].push_back(wait_playtype(world, move(world, kicker_position), AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY));
 		roles[0].push_back(shoot(world));
 
 		roles[1].push_back(move(world, ready_positions[0]));

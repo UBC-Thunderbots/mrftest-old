@@ -99,9 +99,9 @@ namespace {
 	/**
 	 * The play types handled by this strategy.
 	 */
-	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
-		PlayType::PREPARE_KICKOFF_FRIENDLY,
-		PlayType::EXECUTE_KICKOFF_FRIENDLY,
+	const AI::Common::PlayType HANDLED_PLAY_TYPES[] = {
+		AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY,
+		AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY,
 	};
 
 	StrategyFactory &KickoffFriendlyStrategy::factory() const {

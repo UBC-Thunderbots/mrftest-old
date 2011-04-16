@@ -66,7 +66,7 @@ namespace {
 	/**
 	 * The play types handled by this strategy.
 	 */
-	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
+	const AI::Common::PlayType HANDLED_PLAY_TYPES[] = {
 		// PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY,
 		// PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY,
 	};
@@ -94,7 +94,7 @@ namespace {
 			return;
 		}
 
-		if (world.playtype() == PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY || world.playtype() == PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) {
+		if (world.playtype() == AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY || world.playtype() == AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY) {
 			defender.set_chase(false);
 			defender.tick();
 			offender.set_chase(false);

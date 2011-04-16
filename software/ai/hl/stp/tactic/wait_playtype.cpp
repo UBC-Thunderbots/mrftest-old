@@ -10,13 +10,13 @@ using namespace AI::HL::W;
 namespace {
 	class WaitPlaytype : public Tactic {
 		public:
-			WaitPlaytype(const World &world, const Tactic::Ptr tactic, const PlayType::PlayType playtype) : Tactic(world, true), tactic(tactic), playtype(playtype) {
+			WaitPlaytype(const World &world, const Tactic::Ptr tactic, const AI::Common::PlayType playtype) : Tactic(world, true), tactic(tactic), playtype(playtype) {
 				assert(tactic.is());
 			}
 
 		private:
 			Tactic::Ptr tactic;
-			const PlayType::PlayType playtype;
+			const AI::Common::PlayType playtype;
 			bool done() const;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void player_changed();
@@ -45,7 +45,7 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::wait_playtype(const World &world, const Tactic::Ptr tactic, const PlayType::PlayType playtype) {
+Tactic::Ptr AI::HL::STP::Tactic::wait_playtype(const World &world, const Tactic::Ptr tactic, const AI::Common::PlayType playtype) {
 	const Tactic::Ptr p(new WaitPlaytype(world, tactic, playtype));
 	return p;
 }

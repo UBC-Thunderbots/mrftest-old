@@ -77,7 +77,7 @@ namespace {
 			void tick() {
 
 				// override halt completely
-				if (world.friendly_team().size() == 0 || world.playtype() == PlayType::HALT) {
+				if (world.friendly_team().size() == 0 || world.playtype() == AI::Common::PlayType::HALT) {
 					curr_play.reset();
 					return;
 				}

@@ -70,9 +70,9 @@ namespace {
 	/**
 	 * The play types handled by this strategy.
 	 */
-	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
-		PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY,
-		PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY,
+	const AI::Common::PlayType HANDLED_PLAY_TYPES[] = {
+		AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY,
+		AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY,
 	};
 
 	StrategyFactory &FreeKickFriendlyStrategy::factory() const {

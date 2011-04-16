@@ -15,7 +15,7 @@ namespace AI {
 				 *
 				 * \param[in] playtype the playtype to wait for.
 				 */
-				Tactic::Ptr wait_playtype(const World &world, Tactic::Ptr tactic, const PlayType::PlayType playtype);
+				Tactic::Ptr wait_playtype(const World &world, Tactic::Ptr tactic, const AI::Common::PlayType playtype);
 			}
 		}
 	}

@@ -341,7 +341,7 @@ void AI::Logger::on_robot_controller_factory_changed() {
 }
 
 void AI::Logger::on_playtype_changed() {
-	AI::Common::PlayType::PlayType pt = ai.backend.playtype();
+	AI::Common::PlayType pt = ai.backend.playtype();
 	uint8_t pt8 = static_cast<uint8_t>(pt);
 	write_packet(fd, Log::T_PLAYTYPE, &pt8, sizeof(pt8));
 }

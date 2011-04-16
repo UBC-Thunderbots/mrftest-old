@@ -14,7 +14,7 @@ namespace AI {
 				 *
 				 * \param[in] playtype the playtype to wait for.
 				 */
-				Tactic::Ptr move_wait_playtype(const AI::HL::W::World &world, const Coordinate dest, const AI::HL::W::PlayType::PlayType playtype);
+				Tactic::Ptr move_wait_playtype(const AI::HL::W::World &world, Coordinate dest, AI::Common::PlayType playtype);
 			}
 		}
 	}

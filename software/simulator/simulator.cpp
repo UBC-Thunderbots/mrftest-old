@@ -81,11 +81,11 @@ void Simulator::Simulator::speed_mode(::Simulator::Proto::SpeedMode mode) {
 	}
 }
 
-AI::Common::PlayType::PlayType Simulator::Simulator::play_type() const {
+AI::Common::PlayType Simulator::Simulator::play_type() const {
 	return playtype;
 }
 
-void Simulator::Simulator::set_play_type(AI::Common::PlayType::PlayType pt) {
+void Simulator::Simulator::set_play_type(AI::Common::PlayType pt) {
 	if (pt != playtype) {
 		playtype = pt;
 		team1.send_play_type();

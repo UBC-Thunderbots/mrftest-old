@@ -48,14 +48,14 @@ namespace Simulator {
 			 *
 			 * \return the current play type.
 			 */
-			AI::Common::PlayType::PlayType play_type() const;
+			AI::Common::PlayType play_type() const;
 
 			/**
 			 * Sets the play type.
 			 *
 			 * \param[in] pt the play type to select.
 			 */
-			void set_play_type(AI::Common::PlayType::PlayType pt);
+			void set_play_type(AI::Common::PlayType pt);
 
 			/**
 			 * Stores the current state of the ball into a state block.
@@ -124,7 +124,7 @@ namespace Simulator {
 			/**
 			 * The current play type.
 			 */
-			AI::Common::PlayType::PlayType playtype;
+			AI::Common::PlayType playtype;
 
 			/**
 			 * The number of ticks since the last update of the status line.

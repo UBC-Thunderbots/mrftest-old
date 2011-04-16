@@ -9,8 +9,6 @@
 namespace AI {
 	namespace HL {
 		namespace W {
-			namespace PlayType = AI::Common::PlayType;
-
 			/**
 			 * The field, as seen by a Strategy.
 			 */
@@ -268,7 +266,7 @@ namespace AI {
 					 *
 					 * \return the current play type.
 					 */
-					virtual const Property<PlayType::PlayType> &playtype() const = 0;
+					virtual const Property<AI::Common::PlayType> &playtype() const = 0;
 
 				protected:
 					/**

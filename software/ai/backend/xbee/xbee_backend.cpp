@@ -345,17 +345,17 @@ namespace {
 			}
 
 			void update_playtype() {
-				AI::Common::PlayType::PlayType new_pt;
-				AI::Common::PlayType::PlayType old_pt = playtype();
-				if (playtype_override() != AI::Common::PlayType::COUNT) {
+				AI::Common::PlayType new_pt;
+				AI::Common::PlayType old_pt = playtype();
+				if (playtype_override() != AI::Common::PlayType::NONE) {
 					new_pt = playtype_override();
 				} else {
 					if (friendly_colour() == AI::Common::Team::YELLOW) {
-						old_pt = AI::Common::PlayType::INVERT[old_pt];
+						old_pt = AI::Common::PlayTypeInfo::invert(old_pt);
 					}
 					new_pt = compute_playtype(old_pt);
 					if (friendly_colour() == AI::Common::Team::YELLOW) {
-						new_pt = AI::Common::PlayType::INVERT[new_pt];
+						new_pt = AI::Common::PlayTypeInfo::invert(new_pt);
 					}
 				}
 				if (new_pt != playtype()) {
@@ -370,7 +370,7 @@ namespace {
 				enemy.clear();
 			}
 
-			AI::Common::PlayType::PlayType compute_playtype(AI::Common::PlayType::PlayType old_pt) {
+			AI::Common::PlayType compute_playtype(AI::Common::PlayType old_pt) {
 				switch (refbox.command) {
 					case 'H': // HALT
 					case 'h': // HALF TIME

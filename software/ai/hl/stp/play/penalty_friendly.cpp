@@ -51,7 +51,7 @@ namespace {
 	}
 
 	bool PenaltyFriendly::invariant() const {
-		return (Predicates::playtype(world, PlayType::PREPARE_PENALTY_FRIENDLY) || Predicates::playtype(world, PlayType::EXECUTE_PENALTY_FRIENDLY)) && Predicates::our_team_size_at_least(world, 2);
+		return (Predicates::playtype(world, AI::Common::PlayType::PREPARE_PENALTY_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_PENALTY_FRIENDLY)) && Predicates::our_team_size_at_least(world, 2);
 	}
 
 	bool PenaltyFriendly::applicable() const {
@@ -74,7 +74,7 @@ namespace {
 
 		// ROLE 1
 		// move to shooting position and shoot
-		roles[0].push_back(wait_playtype(world, move(world, Point(0.5 * world.field().length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0)), PlayType::EXECUTE_PENALTY_FRIENDLY));
+		roles[0].push_back(wait_playtype(world, move(world, Point(0.5 * world.field().length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0)), AI::Common::PlayType::EXECUTE_PENALTY_FRIENDLY));
 		roles[0].push_back(penalty_shoot(world));
 		
 		// ROLE 2

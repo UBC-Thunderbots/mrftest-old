@@ -202,7 +202,7 @@ namespace AI {
 				/**
 				 * A pointer to the first play type in an array of play types the corresponding Strategy is willing to handle.
 				 */
-				const AI::HL::W::PlayType::PlayType *const handled_play_types;
+				const AI::Common::PlayType *const handled_play_types;
 
 				/**
 				 * The number of elements in the \ref handled_play_types array.
@@ -230,7 +230,7 @@ namespace AI {
 				 *
 				 * \param[in] handled_play_types_size the number of elements in the \p handled_play_types array.
 				 */
-				StrategyFactory(const char *name, const AI::HL::W::PlayType::PlayType *handled_play_types, std::size_t handled_play_types_size);
+				StrategyFactory(const char *name, const AI::Common::PlayType *handled_play_types, std::size_t handled_play_types_size);
 
 				/**
 				 * Destroys a StrategyFactory.

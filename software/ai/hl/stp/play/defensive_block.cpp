@@ -49,7 +49,7 @@ namespace {
 	}
 
 	bool DefensiveBlock::invariant() const {
-		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3);
+		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3);
 	}
 
 	bool DefensiveBlock::applicable() const {

@@ -75,9 +75,9 @@ namespace {
 	/**
 	 * The play types handled by this strategy.
 	 */
-	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
-		PlayType::PREPARE_PENALTY_FRIENDLY,
-		PlayType::EXECUTE_PENALTY_FRIENDLY,
+	const AI::Common::PlayType HANDLED_PLAY_TYPES[] = {
+		AI::Common::PlayType::PREPARE_PENALTY_FRIENDLY,
+		AI::Common::PlayType::EXECUTE_PENALTY_FRIENDLY,
 	};
 
 	StrategyFactory &PenaltyFriendlyStrategy::factory() const {

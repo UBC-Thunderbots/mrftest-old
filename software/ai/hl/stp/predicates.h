@@ -15,7 +15,7 @@ namespace AI {
 			namespace Predicates {
 				bool goal(const World &);
 
-				bool playtype(const World &world, const PlayType::PlayType playtype);
+				bool playtype(const World &world, AI::Common::PlayType playtype);
 
 				bool our_ball(const World &world);
 

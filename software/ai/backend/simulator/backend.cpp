@@ -7,10 +7,10 @@
 #include <sys/types.h>
 
 AI::BE::Simulator::MainUIControls::MainUIControls() : playtype_label("Play type (sim):") {
-	for (unsigned int pt = 0; pt < AI::Common::PlayType::COUNT; ++pt) {
-		playtype_combo.append_text(AI::Common::PlayType::DESCRIPTIONS_GENERIC[pt]);
+	for (unsigned int i = 0; i < static_cast<unsigned int>(AI::Common::PlayType::NONE); ++i) {
+		playtype_combo.append_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayTypeInfo::of_int(i)));
 	}
-	playtype_combo.set_active_text(AI::Common::PlayType::DESCRIPTIONS_GENERIC[AI::Common::PlayType::HALT]);
+	playtype_combo.set_active_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayType::HALT));
 	playtype_combo.set_sensitive(false);
 }
 
@@ -284,12 +284,12 @@ bool AI::BE::Simulator::Backend::on_packet(Glib::IOCondition) {
 			return true;
 
 		case ::Simulator::Proto::S2A_PACKET_PLAY_TYPE:
-			if (packet.playtype < AI::Common::PlayType::COUNT) {
+			if (packet.playtype != AI::Common::PlayType::NONE) {
 				// Record the master play type.
 				simulator_playtype = packet.playtype;
 
 				// Update and make sensitive the master play type combo box.
-				main_controls.playtype_combo.set_active_text(AI::Common::PlayType::DESCRIPTIONS_GENERIC[simulator_playtype]);
+				main_controls.playtype_combo.set_active_text(AI::Common::PlayTypeInfo::to_string(simulator_playtype));
 				main_controls.playtype_combo.set_sensitive();
 
 				// Update the current play type, which is a function of the master and override types.
@@ -312,7 +312,7 @@ void AI::BE::Simulator::Backend::send_orders() {
 }
 
 void AI::BE::Simulator::Backend::update_playtype() {
-	if (playtype_override() != AI::Common::PlayType::COUNT) {
+	if (playtype_override() != AI::Common::PlayType::NONE) {
 		playtype_rw() = playtype_override();
 	} else {
 		playtype_rw() = simulator_playtype;
@@ -320,16 +320,13 @@ void AI::BE::Simulator::Backend::update_playtype() {
 }
 
 void AI::BE::Simulator::Backend::on_sim_playtype_changed() {
-	::Simulator::Proto::A2SPacket packet;
-	std::memset(&packet, 0, sizeof(packet));
-	packet.type = ::Simulator::Proto::A2S_PACKET_PLAY_TYPE;
-	packet.playtype = AI::Common::PlayType::COUNT;
-	for (unsigned int i = 0; i < AI::Common::PlayType::COUNT; ++i) {
-		if (main_controls.playtype_combo.get_active_text() == AI::Common::PlayType::DESCRIPTIONS_GENERIC[i]) {
-			packet.playtype = static_cast<AI::Common::PlayType::PlayType>(i);
-		}
+	if (main_controls.playtype_combo.get_active_row_number() != -1) {
+		::Simulator::Proto::A2SPacket packet;
+		std::memset(&packet, 0, sizeof(packet));
+		packet.type = ::Simulator::Proto::A2S_PACKET_PLAY_TYPE;
+		packet.playtype = AI::Common::PlayTypeInfo::of_int(main_controls.playtype_combo.get_active_row_number());
+		send_packet(packet);
 	}
-	send_packet(packet);
 }
 
 void AI::BE::Simulator::Backend::on_speed_toggled() {

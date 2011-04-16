@@ -290,7 +290,7 @@ namespace AI {
 					/**
 					 * The current master play type.
 					 */
-					AI::Common::PlayType::PlayType simulator_playtype;
+					AI::Common::PlayType simulator_playtype;
 
 					/**
 					 * The main tab UI controls.

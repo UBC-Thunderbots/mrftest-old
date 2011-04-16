@@ -64,9 +64,9 @@ namespace {
 	/**
 	 * The play types handled by this strategy.
 	 */
-	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
-		PlayType::PREPARE_PENALTY_ENEMY,
-		PlayType::EXECUTE_PENALTY_ENEMY,
+	const AI::Common::PlayType HANDLED_PLAY_TYPES[] = {
+		AI::Common::PlayType::PREPARE_PENALTY_ENEMY,
+		AI::Common::PlayType::EXECUTE_PENALTY_ENEMY,
 	};
 
 	StrategyFactory &PenaltyEnemyStrategy::factory() const {

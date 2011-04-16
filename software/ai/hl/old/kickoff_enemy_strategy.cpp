@@ -63,9 +63,9 @@ namespace {
 	/**
 	 * The play types handled by this strategy.
 	 */
-	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
-		PlayType::PREPARE_KICKOFF_ENEMY,
-		PlayType::EXECUTE_KICKOFF_ENEMY,
+	const AI::Common::PlayType HANDLED_PLAY_TYPES[] = {
+		AI::Common::PlayType::PREPARE_KICKOFF_ENEMY,
+		AI::Common::PlayType::EXECUTE_KICKOFF_ENEMY,
 	};
 
 	StrategyFactory &KickoffEnemyStrategy::factory() const {

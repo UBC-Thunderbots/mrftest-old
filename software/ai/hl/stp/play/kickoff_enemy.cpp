@@ -59,7 +59,7 @@ namespace {
 	}
 
 	bool KickoffEnemy::invariant() const {
-		return (Predicates::playtype(world, PlayType::PREPARE_KICKOFF_ENEMY) || Predicates::playtype(world, PlayType::EXECUTE_KICKOFF_ENEMY)) && Predicates::our_team_size_at_least(world, 1);
+		return (Predicates::playtype(world, AI::Common::PlayType::PREPARE_KICKOFF_ENEMY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_KICKOFF_ENEMY)) && Predicates::our_team_size_at_least(world, 1);
 	}
 
 	bool KickoffEnemy::applicable() const {
@@ -77,7 +77,7 @@ namespace {
 	void KickoffEnemy::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
 		// std::Player::Ptr goalie = world.Enemy_team().get(0);
 		// GOALIE
-		goalie_role.push_back(wait_playtype(world, defend_duo_goalie(world), PlayType::PLAY));
+		goalie_role.push_back(wait_playtype(world, defend_duo_goalie(world), AI::Common::PlayType::PLAY));
 
 		// ROLE 1
 		// defend

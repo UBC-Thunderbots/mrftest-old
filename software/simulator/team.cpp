@@ -128,7 +128,7 @@ void Simulator::Team::send_play_type() {
 		Proto::S2APacket packet;
 		std::memset(&packet, 0, sizeof(packet));
 		packet.type = Proto::S2A_PACKET_PLAY_TYPE;
-		packet.playtype = invert ? AI::Common::PlayType::INVERT[sim.play_type()] : sim.play_type();
+		packet.playtype = invert ? AI::Common::PlayTypeInfo::invert(sim.play_type()) : sim.play_type();
 		connection->send(packet);
 	}
 }
@@ -272,8 +272,8 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet, FileDescriptor::
 			return;
 
 		case Proto::A2S_PACKET_PLAY_TYPE:
-			if (packet.playtype < AI::Common::PlayType::COUNT) {
-				sim.set_play_type(invert ? AI::Common::PlayType::INVERT[packet.playtype] : packet.playtype);
+			if (packet.playtype != AI::Common::PlayType::NONE) {
+				sim.set_play_type(invert ? AI::Common::PlayTypeInfo::invert(packet.playtype) : packet.playtype);
 			} else {
 				std::cout << "AI asked to set invalid play type\n";
 				close_connection();

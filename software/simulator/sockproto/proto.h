@@ -182,7 +182,7 @@ namespace Simulator {
 				/**
 				 * The play type, in the case of A2S_PACKET_PLAY_TYPE.
 				 */
-				AI::Common::PlayType::PlayType playtype;
+				AI::Common::PlayType playtype;
 
 				/**
 				 * Information about dragging an object, in the case of A2S_PACKET_DRAG_BALL or A2S_PACKET_DRAG_PLAYER.
@@ -322,7 +322,7 @@ namespace Simulator {
 				/**
 				 * The current play type, in the case of S2A_PACKET_PLAY_TYPE.
 				 */
-				AI::Common::PlayType::PlayType playtype;
+				AI::Common::PlayType playtype;
 			};
 		};
 	}

@@ -1712,7 +1712,7 @@ namespace {
 
 		if (length >= 1) {
 			uint8_t code = decode_u8(data);
-			if (code >= AI::Common::PlayType::COUNT) {
+			if (code >= static_cast<uint8_t>(AI::Common::PlayType::NONE)) {
 				flags |= PF_BAD_PLAYTYPE;
 			}
 		}
@@ -1740,8 +1740,8 @@ namespace {
 		} else {
 			if (length >= 1) {
 				uint8_t code = decode_u8(data);
-				if (code < AI::Common::PlayType::COUNT) {
-					root[columns.value] = AI::Common::PlayType::DESCRIPTIONS_GENERIC[code];
+				if (code <= static_cast<uint8_t>(AI::Common::PlayType::NONE)) {
+					root[columns.value] = AI::Common::PlayTypeInfo::to_string(AI::Common::PlayTypeInfo::of_int(code));
 				} else {
 					root[columns.value] = Glib::ustring::compose("<UNKNOWN CODE 0x%1>", tohex(code, 2));
 				}
@@ -1769,8 +1769,8 @@ namespace {
 		} else {
 			if (length >= 1) {
 				uint8_t code = decode_u8(data);
-				if (code < AI::Common::PlayType::COUNT) {
-					stream << AI::Common::PlayType::DESCRIPTIONS_GENERIC[code];
+				if (code <= static_cast<uint8_t>(AI::Common::PlayType::NONE)) {
+					stream << AI::Common::PlayTypeInfo::to_string(AI::Common::PlayTypeInfo::of_int(code));
 				} else {
 					stream << "<UNKNOWN CODE 0x" << tohex(code, 2) << '>';
 				}

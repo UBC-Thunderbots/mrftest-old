@@ -79,7 +79,7 @@ namespace AI {
 		 *
 		 * \return the appropriate flags.
 		 */
-		unsigned int calc_flags(AI::Common::PlayType::PlayType pt);
+		unsigned int calc_flags(AI::Common::PlayType pt);
 
 		/**
 		 * Movement types indicating styles of movement for robots to take.

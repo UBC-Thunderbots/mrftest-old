@@ -49,7 +49,7 @@ namespace {
 	}
 
 	bool PenaltyEnemy::invariant() const {
-		return (Predicates::playtype(world, PlayType::PREPARE_PENALTY_ENEMY) || Predicates::playtype(world, PlayType::EXECUTE_PENALTY_ENEMY)) && Predicates::our_team_size_at_least(world, 1);
+		return (Predicates::playtype(world, AI::Common::PlayType::PREPARE_PENALTY_ENEMY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_PENALTY_ENEMY)) && Predicates::our_team_size_at_least(world, 1);
 	}
 
 	bool PenaltyEnemy::applicable() const {

@@ -49,7 +49,7 @@ namespace {
 	}
 
 	bool MovementBenchmark::invariant() const {
-		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 1);
+		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 1);
 	}
 
 	bool MovementBenchmark::applicable() const {
@@ -58,7 +58,7 @@ namespace {
 	}
 
 	bool MovementBenchmark::done() const {
-		return Predicates::playtype(world, PlayType::STOP);
+		return Predicates::playtype(world, AI::Common::PlayType::STOP);
 	}
 
 	bool MovementBenchmark::fail() const {

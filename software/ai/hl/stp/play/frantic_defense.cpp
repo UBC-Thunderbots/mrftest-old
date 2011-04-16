@@ -51,7 +51,7 @@ namespace {
 	}
 	
 	bool FranticDefense::invariant() const {
-		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 2);
+		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 2);
 	}
 
 	bool FranticDefense::applicable() const {

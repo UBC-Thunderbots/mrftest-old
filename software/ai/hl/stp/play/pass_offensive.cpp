@@ -56,7 +56,7 @@ namespace {
 	}
 
 	bool PassOffensive::invariant() const {
-		return Predicates::playtype(world, PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && Predicates::their_team_size_at_least(world, 1) && !Predicates::baller_can_shoot(world);
+		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && Predicates::their_team_size_at_least(world, 1) && !Predicates::baller_can_shoot(world);
 	}
 
 	bool PassOffensive::applicable() const {

@@ -63,10 +63,10 @@ namespace {
 	/**
 	 * The play types handled by this strategy.
 	 */
-	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
-		PlayType::STOP,
-		PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY,
-		PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY,
+	const AI::Common::PlayType HANDLED_PLAY_TYPES[] = {
+		AI::Common::PlayType::STOP,
+		AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_ENEMY,
+		AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_ENEMY,
 	};
 
 	StrategyFactory &StopStrategy::factory() const {

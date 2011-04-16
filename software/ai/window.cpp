@@ -30,7 +30,7 @@ namespace {
 			Gtk::Entry playtype_entry;
 
 			void on_playtype_changed() {
-				playtype_entry.set_text(AI::Common::PlayType::DESCRIPTIONS_GENERIC[ai.backend.playtype()]);
+				playtype_entry.set_text(AI::Common::PlayTypeInfo::to_string(ai.backend.playtype()));
 			}
 	};
 
@@ -257,10 +257,10 @@ namespace {
 		public:
 			SecondaryBasicControls(AI::AIPackage &ai) : Gtk::Table(3 + ai.backend.secondary_ui_controls_table_rows(), 3), ai(ai) {
 				attach(*Gtk::manage(new Gtk::Label("Play type override:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				playtype_override_chooser.append_text("<None>");
-				for (unsigned int i = 0; i < AI::Common::PlayType::COUNT; ++i) {
-					playtype_override_chooser.append_text(AI::Common::PlayType::DESCRIPTIONS_GENERIC[i]);
+				for (unsigned int i = 0; i <= static_cast<unsigned int>(AI::Common::PlayType::NONE); ++i) {
+					playtype_override_chooser.append_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayTypeInfo::of_int(i)));
 				}
+				playtype_override_chooser.set_active_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayType::NONE));
 				attach(playtype_override_chooser, 1, 3, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 				playtype_override_chooser.signal_changed().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_playtype_override_chooser_changed));
 				ai.backend.playtype_override().signal_changed().connect(sigc::mem_fun(this, &SecondaryBasicControls::on_playtype_override_changed));
@@ -293,23 +293,14 @@ namespace {
 			Gtk::Entry defending_end_entry, friendly_colour_entry;
 
 			void on_playtype_override_chooser_changed() {
-				const Glib::ustring &selected = playtype_override_chooser.get_active_text();
-				for (unsigned int i = 0; i < AI::Common::PlayType::COUNT; ++i) {
-					if (selected == AI::Common::PlayType::DESCRIPTIONS_GENERIC[i]) {
-						ai.backend.playtype_override() = static_cast<AI::Common::PlayType::PlayType>(i);
-						return;
-					}
+				if (playtype_override_chooser.get_active_row_number() != -1) {
+					ai.backend.playtype_override() = AI::Common::PlayTypeInfo::of_int(playtype_override_chooser.get_active_row_number());
 				}
-				ai.backend.playtype_override() = AI::Common::PlayType::COUNT;
 			}
 
 			void on_playtype_override_changed() {
-				AI::Common::PlayType::PlayType pt = ai.backend.playtype_override();
-				if (pt < AI::Common::PlayType::COUNT) {
-					playtype_override_chooser.set_active_text(AI::Common::PlayType::DESCRIPTIONS_GENERIC[pt]);
-				} else {
-					playtype_override_chooser.set_active_text("<None>");
-				}
+				AI::Common::PlayType pt = ai.backend.playtype_override();
+				playtype_override_chooser.set_active_text(AI::Common::PlayTypeInfo::to_string(pt));
 			}
 
 			void on_flip_end_clicked() {

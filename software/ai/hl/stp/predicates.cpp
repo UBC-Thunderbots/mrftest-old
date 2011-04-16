@@ -10,7 +10,7 @@ bool AI::HL::STP::Predicates::goal(const World &) {
 	return false;
 }
 
-bool AI::HL::STP::Predicates::playtype(const World &world, const PlayType::PlayType playtype) {
+bool AI::HL::STP::Predicates::playtype(const World &world, AI::Common::PlayType playtype) {
 	return world.playtype() == playtype;
 }
 

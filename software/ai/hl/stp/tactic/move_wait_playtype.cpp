@@ -8,12 +8,12 @@ using AI::HL::STP::Coordinate;
 namespace {
 	class MoveWaitPlaytype : public Tactic {
 		public:
-			MoveWaitPlaytype(const World &world, const Coordinate dest, const PlayType::PlayType playtype) : Tactic(world, true), dest(dest), playtype(playtype) {
+			MoveWaitPlaytype(const World &world, Coordinate dest, AI::Common::PlayType playtype) : Tactic(world, true), dest(dest), playtype(playtype) {
 			}
 
 		private:
 			const Coordinate dest;
-			const PlayType::PlayType playtype;
+			const AI::Common::PlayType playtype;
 			bool done() const;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
@@ -35,7 +35,7 @@ namespace {
 	}
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::move_wait_playtype(const World &world, const Coordinate dest, const PlayType::PlayType playtype) {
+Tactic::Ptr AI::HL::STP::Tactic::move_wait_playtype(const World &world, Coordinate dest, AI::Common::PlayType playtype) {
 	const Tactic::Ptr p(new MoveWaitPlaytype(world, dest, playtype));
 	return p;
 }

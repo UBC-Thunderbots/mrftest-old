@@ -70,7 +70,7 @@ namespace {
 	/**
 	 * The play types handled by this strategy.
 	 */
-	const PlayType::PlayType HANDLED_PLAY_TYPES[] = {
+	const AI::Common::PlayType HANDLED_PLAY_TYPES[] = {
 		// PlayType::PLAY,
 	};
 

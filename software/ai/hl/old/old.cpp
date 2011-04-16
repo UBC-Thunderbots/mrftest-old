@@ -5,30 +5,23 @@
 #include <cassert>
 #include <cstdlib>
 #include <gtkmm.h>
+#include <unordered_map>
 
 using namespace AI::HL;
 using namespace AI::HL::W;
 
 namespace {
-	const std::vector<StrategyFactory *> &get_strategies_by_play_type(AI::Common::PlayType::PlayType pt) {
-		static bool initialized = false;
-		static std::vector<StrategyFactory *> vectors[PlayType::COUNT];
+	const std::vector<StrategyFactory *> &get_strategies_by_play_type(AI::Common::PlayType pt) {
+		static std::unordered_map<AI::Common::PlayType, std::vector<StrategyFactory *> > vectors;
 
-		assert(pt >= 0);
-		assert(pt < PlayType::COUNT);
-
-		if (!initialized) {
-			typedef StrategyFactory::Map Map;
-			const Map &m = StrategyFactory::all();
-			for (Map::const_iterator i = m.begin(), iend = m.end(); i != iend; ++i) {
+		if (vectors.empty()) {
+			const StrategyFactory::Map &m = StrategyFactory::all();
+			for (auto i = m.begin(), iend = m.end(); i != iend; ++i) {
 				StrategyFactory *factory = i->second;
 				for (std::size_t j = 0; j < factory->handled_play_types_size; ++j) {
-					assert(factory->handled_play_types[j] >= 0);
-					assert(factory->handled_play_types[j] < AI::Common::PlayType::COUNT);
 					vectors[factory->handled_play_types[j]].push_back(factory);
 				}
 			}
-			initialized = true;
 		}
 
 		return vectors[pt];

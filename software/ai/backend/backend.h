@@ -410,7 +410,7 @@ namespace AI {
 				 *
 				 * \return the current play type.
 				 */
-				const Property<AI::Common::PlayType::PlayType> &playtype() const {
+				const Property<AI::Common::PlayType> &playtype() const {
 					return playtype_;
 				}
 
@@ -419,7 +419,7 @@ namespace AI {
 				 *
 				 * \return the play type override.
 				 */
-				Property<AI::Common::PlayType::PlayType> &playtype_override() {
+				Property<AI::Common::PlayType> &playtype_override() {
 					return playtype_override_;
 				}
 
@@ -502,14 +502,14 @@ namespace AI {
 				 *
 				 * \return the current play type.
 				 */
-				Property<AI::Common::PlayType::PlayType> &playtype_rw() {
+				Property<AI::Common::PlayType> &playtype_rw() {
 					return playtype_;
 				}
 
 			private:
 				Property<FieldEnd> defending_end_;
 				Property<AI::Common::Team::Colour> friendly_colour_;
-				Property<AI::Common::PlayType::PlayType> playtype_, playtype_override_;
+				Property<AI::Common::PlayType> playtype_, playtype_override_;
 				Property<AI::BF::BallFilter *> ball_filter_;
 				mutable sigc::signal<void> signal_tick_;
 				mutable sigc::signal<void> signal_post_tick_;
