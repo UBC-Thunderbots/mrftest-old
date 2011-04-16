@@ -23,7 +23,7 @@ namespace AI {
 				 *
 				 * \return true if the robot shoots.
 				 */
-				bool shoot(const World &world, Player::Ptr player, const unsigned int flags = 0, const bool force = false);
+				bool shoot(const World &world, Player::Ptr player);
 
 				/**
 				 * If the player posses the ball,
@@ -35,7 +35,7 @@ namespace AI {
 				 *
 				 * \return true if the robot shoots.
 				 */
-				bool shoot(const World &world, Player::Ptr player, const Point target, double tol = AI::HL::Util::shoot_accuracy, double delta = 1e9, const unsigned int flags = 0, const bool force = false);
+				bool shoot(const World &world, Player::Ptr player, const Point target, double tol = AI::HL::Util::shoot_accuracy, double delta = 1e9);
 				
 				/**
 				 * Arm the kicker so that it kicks ball exact speed to stop at target (i.e. t= inf)

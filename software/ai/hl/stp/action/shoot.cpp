@@ -9,7 +9,7 @@
 
 DoubleParam alpha("Decay constant for the ball velocity", "STP/Action/shoot", 0.1, 0.0, 1.0);
 
-bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const unsigned int flags, const bool force) {
+bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 
 	// TODO:
 	// take into account that the optimal solution may not always be the largest opening
@@ -18,12 +18,12 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const un
 	if (!player->has_ball()) {
 		if (target.second == 0) {
 			// just grab the ball, don't care about orientation
-			chase(world, player, flags);
+			chase(world, player, 0);
 			//LOG_INFO("chase");
 		} else {
 			// orient towards the enemy goal area
 			//LOG_INFO("move catch");
-			player->move(target.first, (world.field().enemy_goal() - player->position()).orientation(), flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
+			player->move(target.first, (world.field().enemy_goal() - player->position()).orientation(), 0, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
 		}
 		return false;
 	}
@@ -34,16 +34,16 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const un
 			// TODO: perhaps do a reduced radius calculation
 			return shoot(world, player, new_target, flags);
 		} else { // just aim at the enemy goal
-			player->move(new_target, (world.field().enemy_goal() - player->position()).orientation(), flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
+			player->move(new_target, (world.field().enemy_goal() - player->position()).orientation(), 0, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
 		}
 		return false;
 	}
 #warning TODO make the shoot accuracy a function of the amount of open net
-	return AI::HL::STP::Action::shoot(world, player, target.first, AI::HL::Util::shoot_accuracy, 0.0,  flags);
+	return AI::HL::STP::Action::shoot(world, player, target.first, AI::HL::Util::shoot_accuracy, 0.0);
 }
 
-bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Point target, double tol, double delta, const unsigned int flags, const bool) {
-	player->move(target, (target - player->position()).orientation(), flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
+bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Point target, double tol, double delta) {
+	player->move(target, (target - player->position()).orientation(), 0, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
 	Point segA = player->position();
 	Point segB((world.field().total_length()+world.field().total_width()),0);
 	segB = segB.rotate(player->orientation());
