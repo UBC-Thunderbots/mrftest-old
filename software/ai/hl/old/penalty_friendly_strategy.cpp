@@ -122,7 +122,7 @@ namespace {
 
 		for (size_t i = 0; i < offenders.size(); ++i) {
 			// move the robots to position
-			offenders[i]->move(waypoints[i], (world.ball().position() - offenders[i]->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+			offenders[i]->move(waypoints[i], (world.ball().position() - offenders[i]->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::LOW);
 		}
 
 		const Point shoot_position = Point(0.5 * world.field().length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0);

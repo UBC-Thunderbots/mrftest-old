@@ -23,7 +23,7 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 		} else {
 			// orient towards the enemy goal area
 			//LOG_INFO("move catch");
-			player->move(target.first, (world.field().enemy_goal() - player->position()).orientation(), 0, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
+			player->move(target.first, (world.field().enemy_goal() - player->position()).orientation(), 0, AI::Flags::MoveType::CATCH, AI::Flags::MovePrio::HIGH);
 		}
 		return false;
 	}
@@ -34,7 +34,7 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 			// TODO: perhaps do a reduced radius calculation
 			return shoot(world, player, new_target, 0);
 		} else { // just aim at the enemy goal
-			player->move(new_target, (world.field().enemy_goal() - player->position()).orientation(), 0, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
+			player->move(new_target, (world.field().enemy_goal() - player->position()).orientation(), 0, AI::Flags::MoveType::DRIBBLE, AI::Flags::MovePrio::HIGH);
 		}
 		return false;
 	}
@@ -43,7 +43,7 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 }
 
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Point target, double tol, double delta) {
-	player->move(target, (target - player->position()).orientation(), 0, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
+	player->move(target, (target - player->position()).orientation(), 0, AI::Flags::MoveType::CATCH, AI::Flags::MovePrio::HIGH);
 	Point segA = player->position();
 	Point segB((world.field().total_length()+world.field().total_width()),0);
 	segB = segB.rotate(player->orientation());

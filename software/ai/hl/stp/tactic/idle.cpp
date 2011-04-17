@@ -22,7 +22,7 @@ namespace {
 	}
 
 	void Idle::execute() {
-		player->move(player->position(), player->orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+		player->move(player->position(), player->orientation(), 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::LOW);
 	}
 }
 

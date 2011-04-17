@@ -45,7 +45,7 @@ void AI::BE::Simulator::Player::mouse_exited() {
 void AI::BE::Simulator::Player::mouse_moved(Point p) {
 	::Simulator::Proto::A2SPacket packet;
 	std::memset(&packet, 0, sizeof(packet));
-	packet.type = ::Simulator::Proto::A2S_PACKET_DRAG_PLAYER;
+	packet.type = ::Simulator::Proto::A2SPacketType::DRAG_PLAYER;
 	packet.drag.pattern = pattern();
 	packet.drag.x = p.x;
 	packet.drag.y = p.y;

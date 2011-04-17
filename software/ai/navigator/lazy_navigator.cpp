@@ -79,7 +79,7 @@ namespace {
 			destinationPosition = player->destination().first;
 			destinationOrientation = player->destination().second;
 
-			if ((player->type() == AI::Flags::MOVE_CATCH)) {
+			if ((player->type() == AI::Flags::MoveType::CATCH)) {
 				destinationPosition = world.ball().position();
 			}
 

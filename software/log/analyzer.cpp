@@ -1357,19 +1357,12 @@ namespace {
 		} else {
 			if (length >= 1) {
 				uint8_t value = decode_u8(data);
-				AI::Common::Team::Colour clr = static_cast<AI::Common::Team::Colour>(value);
-				switch (clr) {
-					case AI::Common::Team::YELLOW:
-						root[columns.value] = "Yellow";
-						break;
-
-					case AI::Common::Team::BLUE:
-						root[columns.value] = "Blue";
-						break;
-
-					default:
-						root[columns.value] = "<INVALID VALUE>";
-						break;
+				if (value == static_cast<uint8_t>(AI::Common::Team::Colour::YELLOW)) {
+					root[columns.value] = "Yellow";
+				} else if (value == static_cast<uint8_t>(AI::Common::Team::Colour::BLUE)) {
+					root[columns.value] = "Blue";
+				} else {
+					root[columns.value] = "<INVALID VALUE>";
 				}
 			} else {
 				root[columns.value] = "<PACKET TRUNCATED>";
@@ -1395,19 +1388,12 @@ namespace {
 		} else {
 			if (length >= 1) {
 				uint8_t value = decode_u8(data);
-				AI::Common::Team::Colour clr = static_cast<AI::Common::Team::Colour>(value);
-				switch (clr) {
-					case AI::Common::Team::YELLOW:
-						stream << "Yellow";
-						break;
-
-					case AI::Common::Team::BLUE:
-						stream << "Blue";
-						break;
-
-					default:
-						stream << "<INVALID VALUE>";
-						break;
+				if (value == static_cast<uint8_t>(AI::Common::Team::Colour::YELLOW)) {
+					stream << "Yellow";
+				} else if (value == static_cast<uint8_t>(AI::Common::Team::Colour::BLUE)) {
+					stream << "Blue";
+				} else {
+					stream << "<INVALID VALUE>";
 				}
 			} else {
 				stream << "<PACKET TRUNCATED>";
@@ -1901,11 +1887,11 @@ namespace {
 		AI::Flags::MoveType type;
 		const char *description;
 	} MOVE_TYPE_MAPPING[] = {
-		{ AI::Flags::MOVE_NORMAL, "Normal" },
-		{ AI::Flags::MOVE_DRIBBLE, "Dribble" },
-		{ AI::Flags::MOVE_CATCH, "Catch ball" },
-		{ AI::Flags::MOVE_RAM_BALL, "Ram ball" },
-		{ AI::Flags::MOVE_HALT, "Halt" },
+		{ AI::Flags::MoveType::NORMAL, "Normal" },
+		{ AI::Flags::MoveType::DRIBBLE, "Dribble" },
+		{ AI::Flags::MoveType::CATCH, "Catch ball" },
+		{ AI::Flags::MoveType::RAM_BALL, "Ram ball" },
+		{ AI::Flags::MoveType::HALT, "Halt" },
 	};
 
 	/**
@@ -1933,7 +1919,7 @@ namespace {
 			uint8_t type = decode_u8(data);
 			flags |= PF_UNKNOWN_MOVE_TYPE;
 			for (std::size_t i = 0; i < G_N_ELEMENTS(MOVE_TYPE_MAPPING); ++i) {
-				if (type == MOVE_TYPE_MAPPING[i].type) {
+				if (type == static_cast<uint8_t>(MOVE_TYPE_MAPPING[i].type)) {
 					flags &= ~PF_UNKNOWN_MOVE_TYPE;
 				}
 			}
@@ -1964,7 +1950,7 @@ namespace {
 				uint8_t type = decode_u8(data);
 				bool found = false;
 				for (std::size_t i = 0; i < G_N_ELEMENTS(MOVE_TYPE_MAPPING); ++i) {
-					if (type == MOVE_TYPE_MAPPING[i].type) {
+					if (type == static_cast<uint8_t>(MOVE_TYPE_MAPPING[i].type)) {
 						found = true;
 						root[columns.value] = MOVE_TYPE_MAPPING[i].description;
 					}
@@ -1998,7 +1984,7 @@ namespace {
 				uint8_t type = decode_u8(data);
 				bool found = false;
 				for (std::size_t i = 0; i < G_N_ELEMENTS(MOVE_TYPE_MAPPING); ++i) {
-					if (type == MOVE_TYPE_MAPPING[i].type) {
+					if (type == static_cast<uint8_t>(MOVE_TYPE_MAPPING[i].type)) {
 						found = true;
 						stream << MOVE_TYPE_MAPPING[i].description;
 					}
@@ -2019,9 +2005,9 @@ namespace {
 		AI::Flags::MovePrio prio;
 		const char *description;
 	} MOVE_PRIO_MAPPING[] = {
-		{ AI::Flags::PRIO_HIGH, "High" },
-		{ AI::Flags::PRIO_MEDIUM, "Medium" },
-		{ AI::Flags::PRIO_LOW, "Low" },
+		{ AI::Flags::MovePrio::HIGH, "High" },
+		{ AI::Flags::MovePrio::MEDIUM, "Medium" },
+		{ AI::Flags::MovePrio::LOW, "Low" },
 	};
 
 	/**
@@ -2049,7 +2035,7 @@ namespace {
 			uint8_t prio = decode_u8(data);
 			flags |= PF_UNKNOWN_MOVE_PRIO;
 			for (std::size_t i = 0; i < G_N_ELEMENTS(MOVE_PRIO_MAPPING); ++i) {
-				if (prio == MOVE_PRIO_MAPPING[i].prio) {
+				if (prio == static_cast<uint8_t>(MOVE_PRIO_MAPPING[i].prio)) {
 					flags &= ~PF_UNKNOWN_MOVE_PRIO;
 				}
 			}
@@ -2080,7 +2066,7 @@ namespace {
 				uint8_t prio = decode_u8(data);
 				bool found = false;
 				for (std::size_t i = 0; i < G_N_ELEMENTS(MOVE_PRIO_MAPPING); ++i) {
-					if (prio == MOVE_PRIO_MAPPING[i].prio) {
+					if (prio == static_cast<uint8_t>(MOVE_PRIO_MAPPING[i].prio)) {
 						found = true;
 						root[columns.value] = MOVE_PRIO_MAPPING[i].description;
 					}
@@ -2114,7 +2100,7 @@ namespace {
 				uint8_t prio = decode_u8(data);
 				bool found = false;
 				for (std::size_t i = 0; i < G_N_ELEMENTS(MOVE_PRIO_MAPPING); ++i) {
-					if (prio == MOVE_PRIO_MAPPING[i].prio) {
+					if (prio == static_cast<uint8_t>(MOVE_PRIO_MAPPING[i].prio)) {
 						found = true;
 						stream << MOVE_PRIO_MAPPING[i].description;
 					}

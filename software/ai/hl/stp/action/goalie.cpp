@@ -21,7 +21,7 @@ void AI::HL::STP::Action::lone_goalie(const World &world, Player::Ptr player) {
 	Point target = world.ball().position() - centre_of_goal;
 	target = target * (lone_goalie_dist / target.len());
 	target += centre_of_goal;
-	player->move(target, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+	player->move(target, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
 
 	goalie_move(world, player, target);
 }
@@ -51,12 +51,12 @@ void AI::HL::STP::Action::goalie_move(const World &world, Player::Ptr player, Po
 			rushpos.y = std::min(rushpos.y, world.field().goal_width()/2.0);
 			rushpos.y = std::max(rushpos.y, world.field().goal_width()/2.0);
 
-			player->move(rushpos, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_RAM_BALL, AI::Flags::PRIO_HIGH);
+			player->move(rushpos, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MoveType::RAM_BALL, AI::Flags::MovePrio::HIGH);
 			return;
 		}
 	}
 
-	player->move(dest, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+	player->move(dest, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
 }
 
 void AI::HL::STP::Action::penalty_goalie(const World &world, Player::Ptr player) {
@@ -78,7 +78,7 @@ void AI::HL::STP::Action::penalty_goalie(const World &world, Player::Ptr player)
 	}
 
 	// just orient towards the "front"
-	player->move(target, 0, 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+	player->move(target, 0, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
 	
 }
 

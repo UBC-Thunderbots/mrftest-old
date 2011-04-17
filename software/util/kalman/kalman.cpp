@@ -1,7 +1,7 @@
 #include "util/kalman/kalman.h"
 #include <cmath>
 
-Kalman::Kalman(bool angle, double measure_std, double accel_std) : last_measurement_time(0.0), last_control(0.0), sigma_m(measure_std), sigma_a(accel_std), h(1, 2), p(2, 2, Matrix::IDENTITY), state_estimate(2, 1, Matrix::ZEROES), is_angle(angle) {
+Kalman::Kalman(bool angle, double measure_std, double accel_std) : last_measurement_time(0.0), last_control(0.0), sigma_m(measure_std), sigma_a(accel_std), h(1, 2), p(2, 2, Matrix::InitFlag::IDENTITY), state_estimate(2, 1, Matrix::InitFlag::ZEROES), is_angle(angle) {
 	// %the state measurement operator
 	// H=[1 0];(;
 	h(0, 0) = 1.0;
@@ -89,7 +89,7 @@ void Kalman::update(double measurement, double measurement_time) {
 	if (is_angle) {
 		state_estimate(0, 0) -= 2 * M_PI * std::round(state_estimate(0, 0) / 2 / M_PI);
 	}
-	p = (Matrix(2, 2, Matrix::IDENTITY) - kalman_gain * h) * p_priori;
+	p = (Matrix(2, 2, Matrix::InitFlag::IDENTITY) - kalman_gain * h) * p_priori;
 
 	last_measurement_time = measurement_time;
 

@@ -23,61 +23,61 @@ class XBeeDongle : public NonCopyable {
 		/**
 		 * \brief The possible states the emergency stop switch can be in.
 		 */
-		enum EStopState {
+		enum class EStopState {
 			/**
 			 * \brief The switch has not been sampled yet.
 			 */
-			ESTOP_STATE_UNINITIALIZED,
+			UNINITIALIZED,
 
 			/**
 			 * \brief The switch is not plugged in or is not working properly.
 			 */
-			ESTOP_STATE_DISCONNECTED,
+			DISCONNECTED,
 
 			/**
 			 * \brief The switch is in the stop position.
 			 */
-			ESTOP_STATE_STOP,
+			STOP,
 
 			/**
 			 * \brief The switch is in the run position.
 			 */
-			ESTOP_STATE_RUN,
+			RUN,
 		};
 
 		/**
 		 * \brief The possible states the XBees can be in.
 		 */
-		enum XBeesState {
+		enum class XBeesState {
 			/**
 			 * \brief Stage 1 initialization has not yet started.
 			 */
-			XBEES_STATE_PREINIT,
+			PREINIT,
 
 			/**
 			 * \brief XBee 0 is initialized.
 			 */
-			XBEES_STATE_INIT0,
+			INIT0,
 
 			/**
 			 * \brief XBee 1 is initialized.
 			 */
-			XBEES_STATE_INIT1,
+			INIT1,
 
 			/**
 			 * \brief The XBees have completed all initialization and are communicating normally.
 			 */
-			XBEES_STATE_RUNNING,
+			RUNNING,
 
 			/**
 			 * \brief XBee 0 has failed.
 			 */
-			XBEES_STATE_FAIL_0,
+			FAIL0,
 
 			/**
 			 * \brief XBee 1 has failed.
 			 */
-			XBEES_STATE_FAIL_1,
+			FAIL1,
 		};
 
 		/**

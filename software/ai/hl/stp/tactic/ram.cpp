@@ -21,7 +21,7 @@ namespace {
 
 			void execute() {
 				// TODO: flags
-				player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_RAM_BALL, AI::Flags::PRIO_HIGH);
+				player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MoveType::RAM_BALL, AI::Flags::MovePrio::HIGH);
 			}
 	};
 }

@@ -71,71 +71,71 @@ namespace Simulator {
 		/**
 		 * The possible speed modes.
 		 */
-		enum SpeedMode {
+		enum class SpeedMode {
 			/**
 			 * The simulator is running at real-time speed.
 			 */
-			SPEED_MODE_NORMAL,
+			NORMAL,
 
 			/**
 			 * The simulator is running as quickly as possible.
 			 */
-			SPEED_MODE_FAST,
+			FAST,
 
 			/**
 			 * The simulator is running more slowly than real time.
 			 */
-			SPEED_MODE_SLOW,
+			SLOW,
 		};
 
 		/**
 		 * The possible packet types that can be sent from the AI to the simulator.
 		 */
-		enum A2SPacketType {
+		enum class A2SPacketType {
 			/**
 			 * Carries orders issued by the AI to the players.
 			 * There must be a one-to-one correspondence between packets of this type and packets of type S2A_PACKET_TICK.
 			 * The AI must always wait until it receivse an S2A_PACKET_TICK, then reply with exactly one A2S_PACKET_PLAYERS.
 			 */
-			A2S_PACKET_PLAYERS,
+			PLAYERS,
 
 			/**
 			 * Requests that the simulator create and place a new player for the team.
 			 * The pattern must not already exist on the team.
 			 * Packets of this type, A2S_PACKET_REMOVE_PLAYER, and A2S_SET_STATE should be limited to one per S2A_PACKET_TICK.
 			 */
-			A2S_PACKET_ADD_PLAYER,
+			ADD_PLAYER,
 
 			/**
 			 * Requests that the simulator remove a player from the team.
 			 * The pattern must exist on the team.
 			 * Packets of this type, A2S_PACKET_ADD_PLAYER, and A2S_SET_STATE should be limited to one per S2A_PACKET_TICK.
 			 */
-			A2S_PACKET_REMOVE_PLAYER,
+			REMOVE_PLAYER,
 
 			/**
 			 * Requests that the simulator switch to a new speed mode.
 			 * This may be sent at any time.
 			 */
-			A2S_PACKET_SET_SPEED,
+			SET_SPEED,
 
 			/**
 			 * Requests that the simulator change play types.
 			 * This may be sent at any time.
 			 */
-			A2S_PACKET_PLAY_TYPE,
+			PLAY_TYPE,
 
 			/**
 			 * Requests that the simulator drag the ball to a new position.
 			 * This may be sent at any time.
 			 */
-			A2S_PACKET_DRAG_BALL,
+			DRAG_BALL,
 
 			/**
 			 * Requests that the simulator drag a friendly player to a new position.
 			 * This may be sent at any time.
 			 */
-			A2S_PACKET_DRAG_PLAYER,
+			DRAG_PLAYER,
 
 			/**
 			 * Requests that the simulator load the current state of the world from an opaque block of bytes in a file.
@@ -143,14 +143,14 @@ namespace Simulator {
 			 * Packets of this type, A2S_PACKET_ADD_PLAYER, and A2S_REMOVE_PLAYER should be limited to one per S2A_PACKET_TICK.
 			 * This packet must be associated with an ancillary file descriptor for the file.
 			 */
-			A2S_PACKET_LOAD_STATE,
+			LOAD_STATE,
 
 			/**
 			 * Requests that the simulator send the current state of the world as an opaque block of bytes in a file.
 			 * This may be sent at any time.
 			 * This packet must be associated with an ancillary file descriptor for the file.
 			 */
-			A2S_PACKET_SAVE_STATE,
+			SAVE_STATE,
 		};
 
 		/**
@@ -250,23 +250,23 @@ namespace Simulator {
 		/**
 		 * The possible packet types that can be sent from the simulator to an AI.
 		 */
-		enum S2APacketType {
+		enum class S2APacketType {
 			/**
 			 * Carries the state of the world and orders the AI to begin a time tick.
 			 */
-			S2A_PACKET_TICK,
+			TICK,
 
 			/**
 			 * Indicates which speed mode is currently active.
 			 * This packet is sent when the client connects and whenever the speed mode changes.
 			 */
-			S2A_PACKET_SPEED_MODE,
+			SPEED_MODE,
 
 			/**
 			 * Indicates the current play type.
 			 * This packet is sent when the client connects and whenever the play type changes.
 			 */
-			S2A_PACKET_PLAY_TYPE,
+			PLAY_TYPE,
 		};
 
 		/**

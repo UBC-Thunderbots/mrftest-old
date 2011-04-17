@@ -11,7 +11,7 @@ Ball::~Ball() {
 }
 
 void Ball::update(const Point &pos, const timespec &ts) {
-	bool neg = backend.defending_end() == AI::BE::Backend::EAST;
+	bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
 	xpred.add_datum(neg ? -pos.x : pos.x, timespec_sub(ts,double_to_timespec(LOOP_DELAY)));
 	ypred.add_datum(neg ? -pos.y : pos.y, timespec_sub(ts,double_to_timespec(LOOP_DELAY)));
 }

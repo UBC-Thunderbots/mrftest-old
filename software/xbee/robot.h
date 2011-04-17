@@ -18,10 +18,10 @@ class XBeeRobot : public ByRef {
 		typedef RefPtr<XBeeRobot> Ptr;
 
 		struct OperationalParameters {
-			enum FlashContents {
-				FLASH_CONTENTS_FPGA,
-				FLASH_CONTENTS_PIC,
-				FLASH_CONTENTS_NONE,
+			enum class FlashContents {
+				FPGA,
+				PIC,
+				NONE,
 			} flash_contents;
 
 			uint8_t xbee_channels[2];

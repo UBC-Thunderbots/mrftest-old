@@ -103,7 +103,7 @@ namespace {
 
 		for (size_t i = 1; i < players.size(); ++i) {
 			// move the robots to position
-			players[i]->move(waypoints[i], (world.ball().position() - players[i]->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+			players[i]->move(waypoints[i], (world.ball().position() - players[i]->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::LOW);
 		}
 
 		// let goalie patrol the goal

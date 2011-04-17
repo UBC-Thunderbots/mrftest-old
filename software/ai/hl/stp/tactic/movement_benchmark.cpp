@@ -149,7 +149,7 @@ namespace {
 		
 		prev_ori = player->orientation();
 		prev_pos = player->position();
-		player->move(tasks[finished].first, tasks[finished].second, 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+		player->move(tasks[finished].first, tasks[finished].second, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
 	}
 }
 

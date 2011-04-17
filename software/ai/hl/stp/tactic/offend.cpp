@@ -39,7 +39,7 @@ namespace {
 
 	void Primary::execute() {
 		auto dest = AI::HL::STP::Evaluation::offense_positions(world);
-		player->move(dest[0], (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+		player->move(dest[0], (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::LOW);
 	}
 
 	Player::Ptr Secondary::select(const std::set<Player::Ptr> &players) const {
@@ -49,7 +49,7 @@ namespace {
 
 	void Secondary::execute() {
 		auto dest = AI::HL::STP::Evaluation::offense_positions(world);
-		player->move(dest[1], (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+		player->move(dest[1], (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::LOW);
 	}
 }
 

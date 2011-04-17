@@ -166,7 +166,7 @@ namespace AI {
 					Player::Ptr player = world.friendly_team().get(i);
 					Point dest;
 					double dest_orientation;
-					if (player->type() == MOVE_CATCH) {
+					if (player->type() == AI::Flags::MoveType::CATCH) {
 						grab_ball_byron(player);
 						//grab_ball_matt(player);
 						//grab_ball_pivot(player);
@@ -203,7 +203,7 @@ namespace AI {
 						}
 
 						// dribble at a different speed
-						if (player->type() == MOVE_DRIBBLE) {
+						if (player->type() == AI::Flags::MoveType::DRIBBLE) {
 							timespec time_to_add = double_to_timespec(dist / player->MAX_LINEAR_VELOCITY / DRIBBLE_SPEED);
 							timespec_add(working_time, time_to_add, working_time);
 						}

@@ -317,7 +317,8 @@ void AI::Logger::on_field_changed() {
 }
 
 void AI::Logger::on_friendly_colour_changed() {
-	uint8_t colour = ai.backend.friendly_colour();
+	AI::Common::Team::Colour clr = ai.backend.friendly_colour();
+	uint8_t colour = static_cast<uint8_t>(clr);
 	write_packet(fd, Log::T_FRIENDLY_COLOUR, &colour, sizeof(colour));
 }
 
@@ -372,8 +373,8 @@ void AI::Logger::on_tick() {
 			encode_u32(&payload[41], encode_micros(p->destination().first.y));
 			encode_u32(&payload[45], encode_micros(p->destination().second));
 			encode_u64(&payload[49], p->flags());
-			encode_u8(&payload[57], p->type());
-			encode_u8(&payload[58], p->prio());
+			encode_u8(&payload[57], static_cast<uint8_t>(p->type()));
+			encode_u8(&payload[58], static_cast<uint8_t>(p->prio()));
 			const int(&wheel_speeds)[4] = p->wheel_speeds();
 			encode_u16(&payload[59], static_cast<int16_t>(wheel_speeds[0]));
 			encode_u16(&payload[61], static_cast<int16_t>(wheel_speeds[1]));

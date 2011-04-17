@@ -15,7 +15,7 @@ class Matrix {
 		/**
 		 * Flags for how to initialize new matrices.
 		 */
-		enum InitFlag {
+		enum class InitFlag {
 			/**
 			 * Indicates that a newly-allocated matrix should be zeroed.
 			 */

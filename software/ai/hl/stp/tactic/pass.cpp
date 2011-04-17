@@ -18,7 +18,7 @@ namespace {
 			}
 			void execute() {
 				// orient towards target
-				player->move(dest(), (target() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);				
+				player->move(dest(), (target() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::DRIBBLE, AI::Flags::MovePrio::HIGH);				
 			}
 			std::string description() const {
 				return "passer-ready";
@@ -41,7 +41,7 @@ namespace {
 				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest()));
 			}
 			void execute() {
-				player->move(dest(), (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+				player->move(dest(), (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
 			}
 			std::string description() const {
 				return "passee-ready";
@@ -65,7 +65,7 @@ namespace {
 			}
 			void execute() {
 				// orient towards target
-				player->move(target(), (target() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
+				player->move(target(), (target() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::DRIBBLE, AI::Flags::MovePrio::HIGH);
 				player->kick(7.5);
 				kicked = true;
 			}
@@ -90,7 +90,7 @@ namespace {
 				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest()));
 			}
 			void execute() {
-				player->move(dest(), (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+				player->move(dest(), (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
 			}
 			std::string description() const {
 				return "passee-receive";

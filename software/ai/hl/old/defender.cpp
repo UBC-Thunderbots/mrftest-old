@@ -282,7 +282,7 @@ void Defender::tick() {
 				}
 			} else {
 				// move to defense position
-				players[i]->move(waypoints[order[w]], (world.ball().position() - players[i]->position()).orientation(), defender_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+				players[i]->move(waypoints[order[w]], (world.ball().position() - players[i]->position()).orientation(), defender_flags, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
 			}
 			++w;
 		}
@@ -292,7 +292,7 @@ void Defender::tick() {
 	if (chaser == goalie) {
 		AI::HL::Tactics::repel(world, goalie, goalie_flags);
 	} else {
-		goalie->move(positions.first, (world.ball().position() - goalie->position()).orientation(), goalie_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+		goalie->move(positions.first, (world.ball().position() - goalie->position()).orientation(), goalie_flags, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
 	}
 }
 

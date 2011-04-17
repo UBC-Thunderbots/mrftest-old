@@ -14,7 +14,7 @@ namespace AI {
 				/**
 				 * The possible values indicating which colour a team is.
 				 */
-				enum Colour {
+				enum class Colour {
 					YELLOW,
 					BLUE,
 				};

@@ -234,7 +234,7 @@ namespace {
 		Annunciator::activate_siren();
 
 		// Create the backend.
-		WithBackendClosure wbc(high_level_name, robot_controller_name, ball_filter_name, minimize, east ? AI::BE::Backend::EAST : AI::BE::Backend::WEST, blue ? AI::Common::Team::BLUE : AI::Common::Team::YELLOW);
+		WithBackendClosure wbc(high_level_name, robot_controller_name, ball_filter_name, minimize, east ? AI::BE::Backend::FieldEnd::EAST : AI::BE::Backend::FieldEnd::WEST, blue ? AI::Common::Team::Colour::BLUE : AI::Common::Team::Colour::YELLOW);
 		if (!backend_name_and_params.size()) {
 			backend_name_and_params = choose_backend();
 			if (!backend_name_and_params.size()) {

@@ -77,7 +77,7 @@ Player::Ptr Player::create(AI::BE::Backend &backend, unsigned int pattern, XBeeR
 	return p;
 }
 
-Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), controlled(false), dribble_distance_(0.0), chick_when_not_ready_message(Glib::ustring::compose("Bot %1 chick when not ready", pattern), Annunciator::Message::TRIGGER_EDGE), autokick_invoked(false) {
+Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), controlled(false), dribble_distance_(0.0), chick_when_not_ready_message(Glib::ustring::compose("Bot %1 chick when not ready", pattern), Annunciator::Message::TriggerMode::EDGE), autokick_invoked(false) {
 	timespec now;
 	timespec_now(now);
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);

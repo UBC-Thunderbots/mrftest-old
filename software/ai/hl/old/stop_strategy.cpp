@@ -177,19 +177,19 @@ namespace {
 
 		AI::HL::Util::waypoints_matching(offenders, positions);
 		for (std::size_t i = 0; i < offenders.size(); ++i) {
-			offenders[i]->move(positions[i], (world.ball().position() - offenders[i]->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+			offenders[i]->move(positions[i], (world.ball().position() - offenders[i]->position()).orientation(), flags, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::LOW);
 		}
 
 		// player 1 is defender
 		if (n_defenders) {
-			players[1]->move(defender_pos, (world.ball().position() - players[1]->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+			players[1]->move(defender_pos, (world.ball().position() - players[1]->position()).orientation(), flags, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::LOW);
 		}
 
 		// TODO: looks fine but should check again
 		// maybe: goalie always touching the goal line, and at a point closest to the ball.
 		unsigned int goalie_flags = 0;
 		Point goalie_pos = world.field().friendly_goal();
-		players[0]->move(goalie_pos, (world.ball().position() - players[0]->position()).orientation(), goalie_flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+		players[0]->move(goalie_pos, (world.ball().position() - players[0]->position()).orientation(), goalie_flags, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
 	}
 
 	Strategy::Ptr StopStrategy::create(World &world) {

@@ -41,7 +41,7 @@ void TesterFeedbackPanel::set_robot(XBeeRobot::Ptr bot) {
 }
 
 void TesterFeedbackPanel::on_estop_changed() {
-	estop.set_active(dongle.estop_state == XBeeDongle::ESTOP_STATE_RUN);
+	estop.set_active(dongle.estop_state == XBeeDongle::EStopState::RUN);
 }
 
 void TesterFeedbackPanel::on_alive_changed() {

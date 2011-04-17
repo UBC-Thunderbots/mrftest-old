@@ -141,7 +141,7 @@ namespace {
 			start = player_start;
 			end = player_end;
 
-			if (player->type() == AI::Flags::MOVE_CATCH) {
+			if (player->type() == AI::Flags::MoveType::CATCH) {
 				added_flags = AI::Flags::FLAG_AVOID_BALL_TINY;
 				double target_minus = player->MAX_RADIUS + Ball::RADIUS + 0.07;
 				Point p(target_minus, 0);
@@ -153,7 +153,7 @@ namespace {
 				add_on.push_back(p_add);
 			}
 
-			if (player->type() == AI::Flags::MOVE_RAM_BALL) {
+			if (player->type() == AI::Flags::MoveType::RAM_BALL) {
 				Point start = player->position();
 				Point end = player->destination().first;
 			}
@@ -162,7 +162,7 @@ namespace {
 			start->g = 0.0;
 
 			if (valid_path(player->position(), end->xy, world, player, added_flags)) {
-				if (player->type() == AI::Flags::MOVE_CATCH) {
+				if (player->type() == AI::Flags::MoveType::CATCH) {
 					Point diff = world.ball().position() - player->position();
 					diff = diff.rotate(-player->orientation());
 					double ang = std::max(radians2degrees(diff.orientation()), radians2degrees(angle_diff(player->orientation(), player->destination().second)));

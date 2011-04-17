@@ -56,7 +56,7 @@ namespace {
 	}
 }
 
-Simulator::Simulator::Simulator(SimulatorEngine::Ptr engine) : engine(engine), listen_socket(create_listen_socket()), team1(*this, &team2, false), team2(*this, &team1, true), speed_mode_(::Simulator::Proto::SPEED_MODE_NORMAL), tick_scheduled(false), playtype(AI::Common::PlayType::HALT), frame_count(0), spinner_index(0) {
+Simulator::Simulator::Simulator(SimulatorEngine::Ptr engine) : engine(engine), listen_socket(create_listen_socket()), team1(*this, &team2, false), team2(*this, &team1, true), speed_mode_(::Simulator::Proto::SpeedMode::NORMAL), tick_scheduled(false), playtype(AI::Common::PlayType::HALT), frame_count(0), spinner_index(0) {
 	next_tick_game_monotonic_time.tv_sec = 0;
 	next_tick_game_monotonic_time.tv_nsec = 0;
 	next_tick_phys_monotonic_time.tv_sec = 0;
@@ -174,8 +174,8 @@ void Simulator::Simulator::check_tick() {
 	}
 
 	switch (speed_mode_) {
-		case ::Simulator::Proto::SPEED_MODE_NORMAL:
-		case ::Simulator::Proto::SPEED_MODE_SLOW:
+		case ::Simulator::Proto::SpeedMode::NORMAL:
+		case ::Simulator::Proto::SpeedMode::SLOW:
 			// In normal-speed mode and slow mode, we first determine whether we've passed the deadline.
 			timespec now;
 			timespec_now(now);
@@ -191,7 +191,7 @@ void Simulator::Simulator::check_tick() {
 			}
 			break;
 
-		case ::Simulator::Proto::SPEED_MODE_FAST:
+		case ::Simulator::Proto::SpeedMode::FAST:
 			// In fast mode, we tick immediately.
 			tick();
 			break;
@@ -226,7 +226,7 @@ void Simulator::Simulator::tick() {
 	// Update the game monotonic time by exactly the size of a timestep.
 	const timespec step_normal = { tv_sec: 1 / TIMESTEPS_PER_SECOND, tv_nsec: 1000000000L / TIMESTEPS_PER_SECOND - 1 / TIMESTEPS_PER_SECOND * 1000000000L, };
 	const timespec step_slow = { tv_sec: 1 / SLOW_TIMESTEPS_PER_SECOND, tv_nsec: 1000000000L / SLOW_TIMESTEPS_PER_SECOND - 1 / SLOW_TIMESTEPS_PER_SECOND * 1000000000L, };
-	const timespec step = speed_mode_ == ::Simulator::Proto::SPEED_MODE_SLOW ? step_slow : step_normal;
+	const timespec step = speed_mode_ == ::Simulator::Proto::SpeedMode::SLOW ? step_slow : step_normal;
 	timespec_add(next_tick_game_monotonic_time, step_normal, next_tick_game_monotonic_time);
 
 	// Update the physical monotonic tick deadline to be as close as possible to one timestep forward from the previous tick.

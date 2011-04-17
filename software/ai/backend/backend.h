@@ -287,7 +287,7 @@ namespace AI {
 				/**
 				 * The possible values indicating which end of the field the team is defending.
 				 */
-				enum FieldEnd {
+				enum class FieldEnd {
 					WEST,
 					EAST,
 				};

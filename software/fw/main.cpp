@@ -143,7 +143,7 @@ namespace {
 			void on_read_operational_parameters_done(AsyncOperation<XBeeRobot::OperationalParameters>::Ptr op) {
 				XBeeRobot::OperationalParameters params = op->result();
 				std::cout << "OK\n";
-				params.flash_contents = fpga ? XBeeRobot::OperationalParameters::FlashContents::FLASH_CONTENTS_FPGA : XBeeRobot::OperationalParameters::FlashContents::FLASH_CONTENTS_PIC;
+				params.flash_contents = fpga ? XBeeRobot::OperationalParameters::FlashContents::FPGA : XBeeRobot::OperationalParameters::FlashContents::PIC;
 				std::cout << "Setting operational parameters block... " << std::flush;
 				dongle.robot(robot)->firmware_set_operational_parameters(params)->signal_done.connect(sigc::mem_fun(this, &FirmwareUploadOperation::on_set_operational_parameters_done));
 			}

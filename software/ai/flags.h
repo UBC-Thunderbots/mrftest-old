@@ -84,68 +84,71 @@ namespace AI {
 		/**
 		 * Movement types indicating styles of movement for robots to take.
 		 */
-		enum MoveType {
+		enum class MoveType {
 			/**
 			 * Move to the target location and orientation as quickly as possible.
 			 */
-			MOVE_NORMAL,
+			NORMAL,
 
 			/**
 			 * Move to the target location and orientation slowly so as not to drop the ball.
 			 */
-			MOVE_DRIBBLE,
+			DRIBBLE,
 
 			/**
 			 * Move to intercept the ball as soon as possible, ignoring target location but intercepting with the requested orientation.
 			 * Ignores the target velocity.
 			 */
-			MOVE_CATCH,
+			CATCH,
 
 			/**
 			 * Move to the target location and orientation at the same time the ball will get there, but don't worry about stopping at the target after.
 			 * Ignores the target velocity.
 			 */
-			MOVE_RAM_BALL,
+			RAM_BALL,
 
 			/**
 			 * Stop moving (not intended for use by high-levels, only for things like emergency stop).
 			 * Ignores the target velocity.
 			 */
-			MOVE_HALT,
-
-			/**
-			 * The number of legal movement types.
-			 * Not itself an actual movement type.
-			 */
-			MOVE_COUNT
+			HALT,
 		};
 
 		/**
 		 * Movement priorities indicating which robots should give way so other robots can drive in a straight line.
 		 */
-		enum MovePrio {
+		enum class MovePrio {
 			/**
 			 * An important movement which should not be diverted, such as handling the ball.
 			 */
-			PRIO_HIGH,
+			HIGH,
 
 			/**
 			 * An ordinary everyday movement, such as getting into the open to receive a pass.
 			 */
-			PRIO_MEDIUM,
+			MEDIUM,
 
 			/**
 			 * An unimportant movement, such as moving to the other side of the field for a long-term strategic purpose.
 			 */
-			PRIO_LOW,
-
-			/**
-			 * The number of legal priorities.
-			 * Not itself an actual priority.
-			 */
-			PRIO_COUNT
+			LOW,
 		};
 	}
+}
+
+/**
+ * \brief Compares two movement priorities.
+ *
+ * A priority precedes another priority if it is more important.
+ *
+ * \param[in] a the first priority.
+ *
+ * \param[in] b the second priority.
+ *
+ * \return \c true if \p a is more important than \p b.
+ */
+inline bool operator<(AI::Flags::MovePrio a, AI::Flags::MovePrio b) {
+	return static_cast<unsigned int>(a) < static_cast<unsigned int>(b);
 }
 
 #endif

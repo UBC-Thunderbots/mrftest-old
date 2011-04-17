@@ -19,6 +19,17 @@ namespace {
 		FIRMWARE_REQUEST_READ_BUILD_SIGNATURES,
 	};
 
+	XBeeRobot::OperationalParameters::FlashContents flash_contents_of_int(uint8_t u8) {
+		XBeeRobot::OperationalParameters::FlashContents fc = static_cast<XBeeRobot::OperationalParameters::FlashContents>(u8);
+		switch (fc) {
+			case XBeeRobot::OperationalParameters::FlashContents::FPGA:
+			case XBeeRobot::OperationalParameters::FlashContents::PIC:
+			case XBeeRobot::OperationalParameters::FlashContents::NONE:
+				return fc;
+		}
+		throw std::runtime_error("Invalid flash contents byte");
+	}
+
 	class FirmwareSPIChipEraseOperation : public AsyncOperation<void>, public sigc::trackable {
 		public:
 			static Ptr create(XBeeDongle &dongle, unsigned int robot) {
@@ -276,7 +287,7 @@ namespace {
 					const uint8_t *pch = static_cast<const uint8_t *>(data);
 					if (len == 7 && pch[0] == FIRMWARE_REQUEST_READ_PARAMS) {
 #warning sanity checks
-						params.flash_contents = static_cast<XBeeRobot::OperationalParameters::FlashContents>(pch[1]);
+						params.flash_contents = flash_contents_of_int(pch[1]);
 						params.xbee_channels[0] = pch[2];
 						params.xbee_channels[1] = pch[3];
 						params.robot_number = pch[4];
@@ -319,7 +330,7 @@ namespace {
 #warning sanity checks
 				data[0] = static_cast<uint8_t>((robot << 4) | XBeeDongle::PIPE_FIRMWARE_OUT);
 				data[1] = FIRMWARE_REQUEST_SET_PARAMS;
-				data[2] = params.flash_contents;
+				data[2] = static_cast<uint8_t>(params.flash_contents);
 				data[3] = params.xbee_channels[0];
 				data[4] = params.xbee_channels[1];
 				data[5] = params.robot_number;

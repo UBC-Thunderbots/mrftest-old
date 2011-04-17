@@ -12,13 +12,13 @@ void AI::HL::STP::Action::chase(const World &world, Player::Ptr player,  const u
 }
 
 void AI::HL::STP::Action::chase(const World &world, Player::Ptr player, Point target, const unsigned int flags) {
-	player->move(world.ball().position(), (target - player->position()).orientation(), flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
+	player->move(world.ball().position(), (target - player->position()).orientation(), flags, AI::Flags::MoveType::CATCH, AI::Flags::MovePrio::HIGH);
 }
 
 void AI::HL::STP::Action::repel(const World &world, Player::Ptr player, const unsigned int flags) {
 	// set to RAM_BALL instead of using chase
 	if (!player->has_ball()) {
-		player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_RAM_BALL, AI::Flags::PRIO_HIGH);
+		player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MoveType::RAM_BALL, AI::Flags::MovePrio::HIGH);
 		return;
 	}
 
@@ -31,7 +31,7 @@ void AI::HL::STP::Action::repel(const World &world, Player::Ptr player, const un
 		}
 	}
 
-	player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_RAM_BALL, AI::Flags::PRIO_HIGH);
+	player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MoveType::RAM_BALL, AI::Flags::MovePrio::HIGH);
 
 	// all enemies are obstacles
 	/*
@@ -54,7 +54,7 @@ void AI::HL::STP::Action::repel(const World &world, Player::Ptr player, const un
 }
 
 void AI::HL::STP::Action::free_move(const World &world, Player::Ptr player, const Point p) {
-	player->move(p, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+	player->move(p, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::LOW);
 }
 
 void AI::HL::STP::Action::block(const World &world, Player::Ptr player, const unsigned int flags, Robot::Ptr robot) {
@@ -62,10 +62,10 @@ void AI::HL::STP::Action::block(const World &world, Player::Ptr player, const un
 	// should have threshold distance, half a robot radius?
 	
 	//Point near_enemy(enemy->evaluate()->position().x - Robot::MAX_RADIUS * 3, enemy->evaluate()->position().y);
-	//player->move(near_enemy, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+	//player->move(near_enemy, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
 
 	Point dirToGoal = (world.field().friendly_goal() - robot->position()).norm();
-	player->move(robot->position() + (0.5*Robot::MAX_RADIUS*dirToGoal), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+	player->move(robot->position() + (0.5*Robot::MAX_RADIUS*dirToGoal), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
 }
 
 void AI::HL::STP::Action::block_pass(const World &world, Player::Ptr player, const unsigned int flags, Robot::Ptr robot) {
@@ -73,6 +73,6 @@ void AI::HL::STP::Action::block_pass(const World &world, Player::Ptr player, con
 	// should have threshold distance, half a robot radius?
 	// TODO: Use this somehow
 	Point dirToBall = (world.ball().position() - robot->position()).norm();
-	player->move(robot->position() + (0.5*Robot::MAX_RADIUS*dirToBall), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+	player->move(robot->position() + (0.5*Robot::MAX_RADIUS*dirToBall), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
 }
 

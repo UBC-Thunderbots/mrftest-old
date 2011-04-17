@@ -28,7 +28,7 @@ namespace {
 	void Block::execute() {
 		if (!enemy->evaluate().is()) {
 			// do nothing??
-			player->move(player->position(), player->orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+			player->move(player->position(), player->orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
 			return;
 		}
 		

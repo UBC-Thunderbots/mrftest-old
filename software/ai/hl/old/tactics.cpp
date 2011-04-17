@@ -12,7 +12,7 @@ namespace {
 }
 
 void AI::HL::Tactics::chase(const World &world, Player::Ptr player, const unsigned int flags) {
-	player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
+	player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MoveType::CATCH, AI::Flags::MovePrio::HIGH);
 }
 
 void AI::HL::Tactics::shoot(const World &world, Player::Ptr player, const unsigned int flags, const bool force) {
@@ -22,7 +22,7 @@ void AI::HL::Tactics::shoot(const World &world, Player::Ptr player, const unsign
 		if (target.second == 0) {
 			chase(world, player, flags);
 		} else {
-			player->move(world.ball().position(), (world.field().enemy_goal() - player->position()).orientation(), flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
+			player->move(world.ball().position(), (world.field().enemy_goal() - player->position()).orientation(), flags, AI::Flags::MoveType::CATCH, AI::Flags::MovePrio::HIGH);
 		}
 		return;
 	}
@@ -33,7 +33,7 @@ void AI::HL::Tactics::shoot(const World &world, Player::Ptr player, const unsign
 			target.first = world.field().enemy_goal();
 			shoot(world, player, flags, target.first);
 		} else { // just aim at the enemy goal
-			player->move(player->position(), (world.field().enemy_goal() - player->position()).orientation(), flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
+			player->move(player->position(), (world.field().enemy_goal() - player->position()).orientation(), flags, AI::Flags::MoveType::DRIBBLE, AI::Flags::MovePrio::HIGH);
 		}
 	} else {
 		// call the other shoot function with the specified target
@@ -46,14 +46,14 @@ void AI::HL::Tactics::shoot(const World &world, Player::Ptr player, const unsign
 
 	if (!player->has_ball()) {
 		// chase(world, player, flags);
-		player->move(world.ball().position(), ori_target, flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_HIGH);
+		player->move(world.ball().position(), ori_target, flags, AI::Flags::MoveType::CATCH, AI::Flags::MovePrio::HIGH);
 		return;
 	}
 
 	// const double ori_diff = std::fabs(player->orientation() - ori_target);
 
 	// aim
-	player->move(player->position(), ori_target, flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
+	player->move(player->position(), ori_target, flags, AI::Flags::MoveType::DRIBBLE, AI::Flags::MovePrio::HIGH);
 
 	// ignoring accuracy, comment this out for now so that we'll shoot more
 	// if (ori_diff > AI::HL::Util::shoot_accuracy * M_PI / 180.0) { // aim
@@ -69,7 +69,7 @@ void AI::HL::Tactics::shoot(const World &world, Player::Ptr player, const unsign
 void AI::HL::Tactics::repel(const World &world, Player::Ptr player, const unsigned int flags) {
 	// set to RAM_BALL instead of using chase
 	if (!player->has_ball()) {
-		player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_RAM_BALL, AI::Flags::PRIO_HIGH);
+		player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MoveType::RAM_BALL, AI::Flags::MovePrio::HIGH);
 		return;
 	}
 
@@ -80,7 +80,7 @@ void AI::HL::Tactics::repel(const World &world, Player::Ptr player, const unsign
 		}
 	}
 
-	player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_RAM_BALL, AI::Flags::PRIO_HIGH);
+	player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MoveType::RAM_BALL, AI::Flags::MovePrio::HIGH);
 
 	// all enemies are obstacles
 	/*
@@ -104,7 +104,7 @@ void AI::HL::Tactics::repel(const World &world, Player::Ptr player, const unsign
 
 void AI::HL::Tactics::free_move(World &world, Player::Ptr player, const Point p) {
 	// no flags
-	player->move(p, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+	player->move(p, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::LOW);
 }
 
 void AI::HL::Tactics::lone_goalie(const AI::HL::W::World &world, AI::HL::W::Player::Ptr player) {
@@ -119,12 +119,12 @@ void AI::HL::Tactics::lone_goalie(const AI::HL::W::World &world, AI::HL::W::Play
 	Point target = world.ball().position() - centre_of_goal;
 	target = target * (lone_goalie_dist / target.len());
 	target += centre_of_goal;
-	player->move(target, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+	player->move(target, (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
 }
 
 void AI::HL::Tactics::block(AI::HL::W::World &world, AI::HL::W::Player::Ptr player, const unsigned int flags, AI::HL::W::Robot::Ptr robot) {
 #warning can be better
-	player->move(robot->position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+	player->move(robot->position(), (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
 }
 
 void AI::HL::Tactics::pass(World &world, Player::Ptr passer, Player::Ptr passee, const unsigned int flags) {
@@ -142,7 +142,7 @@ void AI::HL::Tactics::pass(World &world, Player::Ptr passer, Player::Ptr passee,
 	// TODO: if the target is blocked, aim towards the target
 	if (!AI::HL::Util::can_receive(world, passee)) {
 		const double ori_target = (passee->position() - passer->position()).orientation();
-		passer->move(passer->position(), ori_target, flags, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
+		passer->move(passer->position(), ori_target, flags, AI::Flags::MoveType::DRIBBLE, AI::Flags::MovePrio::HIGH);
 		return;
 	}
 
@@ -166,9 +166,9 @@ void AI::HL::Tactics::Patrol::tick() {
 		goto_target1 = true;
 	}
 	if (goto_target1) {
-		player->move(target1, (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+		player->move(target1, (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
 	} else {
-		player->move(target2, (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+		player->move(target2, (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
 	}
 }
 

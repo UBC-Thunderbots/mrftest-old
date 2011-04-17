@@ -79,7 +79,7 @@ void Simulator::Team::send_tick(const timespec &ts) {
 		// Send the state of the world over the socket.
 		Proto::S2APacket packet;
 		std::memset(&packet, 0, sizeof(packet));
-		packet.type = Proto::S2A_PACKET_TICK;
+		packet.type = Proto::S2APacketType::TICK;
 		sim.encode_ball_state(packet.world_state.ball, invert);
 		for (std::size_t i = 0; i < G_N_ELEMENTS(packet.world_state.friendly); ++i) {
 			if (i < players.size()) {
@@ -117,7 +117,7 @@ void Simulator::Team::send_speed_mode() {
 	if (connection.is()) {
 		Proto::S2APacket packet;
 		std::memset(&packet, 0, sizeof(packet));
-		packet.type = Proto::S2A_PACKET_SPEED_MODE;
+		packet.type = Proto::S2APacketType::SPEED_MODE;
 		packet.speed_mode = sim.speed_mode();
 		connection->send(packet);
 	}
@@ -127,7 +127,7 @@ void Simulator::Team::send_play_type() {
 	if (connection.is()) {
 		Proto::S2APacket packet;
 		std::memset(&packet, 0, sizeof(packet));
-		packet.type = Proto::S2A_PACKET_PLAY_TYPE;
+		packet.type = Proto::S2APacketType::PLAY_TYPE;
 		packet.playtype = invert ? AI::Common::PlayTypeInfo::invert(sim.play_type()) : sim.play_type();
 		connection->send(packet);
 	}
@@ -223,7 +223,7 @@ void Simulator::Team::close_connection() {
 
 void Simulator::Team::on_packet(const Proto::A2SPacket &packet, FileDescriptor::Ptr ancillary_fd) {
 	switch (packet.type) {
-		case Proto::A2S_PACKET_PLAYERS:
+		case Proto::A2SPacketType::PLAYERS:
 			// This should only be received if we're waiting for it after an S2A_PACKET_TICK.
 			if (ready_) {
 				std::cout << "AI out of phase, sent orders twice\n";
@@ -249,7 +249,7 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet, FileDescriptor::
 			signal_ready().emit();
 			return;
 
-		case Proto::A2S_PACKET_ADD_PLAYER:
+		case Proto::A2SPacketType::ADD_PLAYER:
 			if (packet.pattern >= Proto::MAX_PLAYERS_PER_TEAM) {
 				std::cout << "AI asked to add invalid robot pattern " << packet.pattern << '\n';
 				close_connection();
@@ -258,7 +258,7 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet, FileDescriptor::
 			to_add.push_back(packet.pattern);
 			return;
 
-		case Proto::A2S_PACKET_REMOVE_PLAYER:
+		case Proto::A2SPacketType::REMOVE_PLAYER:
 			if (packet.pattern >= Proto::MAX_PLAYERS_PER_TEAM) {
 				std::cout << "AI asked to remove invalid robot pattern " << packet.pattern << '\n';
 				close_connection();
@@ -267,11 +267,11 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet, FileDescriptor::
 			to_remove.push_back(packet.pattern);
 			return;
 
-		case Proto::A2S_PACKET_SET_SPEED:
+		case Proto::A2SPacketType::SET_SPEED:
 			sim.speed_mode(packet.speed_mode);
 			return;
 
-		case Proto::A2S_PACKET_PLAY_TYPE:
+		case Proto::A2SPacketType::PLAY_TYPE:
 			if (packet.playtype != AI::Common::PlayType::NONE) {
 				sim.set_play_type(invert ? AI::Common::PlayTypeInfo::invert(packet.playtype) : packet.playtype);
 			} else {
@@ -280,14 +280,14 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet, FileDescriptor::
 			}
 			return;
 
-		case Proto::A2S_PACKET_DRAG_BALL:
+		case Proto::A2SPacketType::DRAG_BALL:
 		{
 			Point p(packet.drag.x, packet.drag.y);
 			sim.engine->get_ball()->position(invert ? -p : p);
 		}
 			return;
 
-		case Proto::A2S_PACKET_DRAG_PLAYER:
+		case Proto::A2SPacketType::DRAG_PLAYER:
 		{
 			std::vector<PlayerInfo>::iterator i = std::find_if(players.begin(), players.end(), std::bind(&pattern_equals, _1, packet.drag.pattern));
 			if (i == players.end()) {
@@ -300,7 +300,7 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet, FileDescriptor::
 			return;
 		}
 
-		case Proto::A2S_PACKET_LOAD_STATE:
+		case Proto::A2SPacketType::LOAD_STATE:
 		{
 			if (!ancillary_fd.is()) {
 				std::cout << "AI sent A2S_PACKET_LOAD_STATE without ancillary file descriptor.\n";
@@ -311,7 +311,7 @@ void Simulator::Team::on_packet(const Proto::A2SPacket &packet, FileDescriptor::
 			return;
 		}
 
-		case Proto::A2S_PACKET_SAVE_STATE:
+		case Proto::A2SPacketType::SAVE_STATE:
 		{
 			if (!ancillary_fd.is()) {
 				std::cout << "AI sent A2S_PACKET_SAVE_STATE without ancillary file descriptor.\n";

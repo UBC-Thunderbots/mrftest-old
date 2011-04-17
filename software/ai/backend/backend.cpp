@@ -6,7 +6,7 @@
 using AI::BE::Backend;
 using AI::BE::BackendFactory;
 
-AI::BE::Player::Player() : moved(false), destination_(Point(), 0.0), flags_(0), move_type_(AI::Flags::MOVE_NORMAL), move_prio_(AI::Flags::PRIO_MEDIUM) {
+AI::BE::Player::Player() : moved(false), destination_(Point(), 0.0), flags_(0), move_type_(AI::Flags::MoveType::NORMAL), move_prio_(AI::Flags::MovePrio::MEDIUM) {
 }
 
 void AI::BE::Player::move(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) {
@@ -89,14 +89,14 @@ void AI::BE::Player::path(const std::vector<std::pair<std::pair<Point, double>, 
 	path_impl(p);
 }
 
-Backend::Backend() : defending_end_(WEST), friendly_colour_(AI::Common::Team::YELLOW), playtype_(AI::Common::PlayType::HALT), playtype_override_(AI::Common::PlayType::NONE), ball_filter_(0) {
+Backend::Backend() : defending_end_(FieldEnd::WEST), friendly_colour_(AI::Common::Team::Colour::YELLOW), playtype_(AI::Common::PlayType::HALT), playtype_override_(AI::Common::PlayType::NONE), ball_filter_(0) {
 }
 
 void AI::BE::Player::pre_tick() {
 	moved = false;
 	flags_ = 0;
-	move_type_ = AI::Flags::MOVE_NORMAL;
-	move_prio_ = AI::Flags::PRIO_MEDIUM;
+	move_type_ = AI::Flags::MoveType::NORMAL;
+	move_prio_ = AI::Flags::MovePrio::MEDIUM;
 }
 
 Backend::~Backend() {

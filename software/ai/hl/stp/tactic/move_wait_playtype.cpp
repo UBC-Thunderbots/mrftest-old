@@ -31,7 +31,7 @@ namespace {
 	}
 
 	void MoveWaitPlaytype::execute() {
-		player->move(dest(), (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+		player->move(dest(), (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
 	}
 }
 

@@ -304,21 +304,35 @@ namespace {
 			}
 
 			void on_flip_end_clicked() {
-				ai.backend.defending_end() = static_cast<AI::BE::Backend::FieldEnd>((ai.backend.defending_end() + 1) % 2);
+				switch (ai.backend.defending_end()) {
+					case AI::BE::Backend::FieldEnd::EAST:
+						ai.backend.defending_end() = AI::BE::Backend::FieldEnd::WEST;
+						break;
+
+					case AI::BE::Backend::FieldEnd::WEST:
+						ai.backend.defending_end() = AI::BE::Backend::FieldEnd::EAST;
+						break;
+				}
 			}
 
 			void on_defending_end_changed() {
-				assert(ai.backend.defending_end() == AI::BE::Backend::WEST || ai.backend.defending_end() == AI::BE::Backend::EAST);
-				defending_end_entry.set_text(ai.backend.defending_end() == AI::BE::Backend::WEST ? "West" : "East");
+				defending_end_entry.set_text(ai.backend.defending_end() == AI::BE::Backend::FieldEnd::WEST ? "West" : "East");
 			}
 
 			void on_flip_friendly_colour_clicked() {
-				ai.backend.friendly_colour() = static_cast<AI::Common::Team::Colour>((ai.backend.friendly_colour() + 1) % 2);
+				switch (ai.backend.friendly_colour()) {
+					case AI::Common::Team::Colour::YELLOW:
+						ai.backend.friendly_colour() = AI::Common::Team::Colour::BLUE;
+						break;
+
+					case AI::Common::Team::Colour::BLUE:
+						ai.backend.friendly_colour() = AI::Common::Team::Colour::YELLOW;
+						break;
+				}
 			}
 
 			void on_friendly_colour_changed() {
-				assert(ai.backend.friendly_colour() == AI::Common::Team::YELLOW || ai.backend.friendly_colour() == AI::Common::Team::BLUE);
-				friendly_colour_entry.set_text(ai.backend.friendly_colour() == AI::Common::Team::YELLOW ? "Yellow" : "Blue");
+				friendly_colour_entry.set_text(ai.backend.friendly_colour() == AI::Common::Team::Colour::YELLOW ? "Yellow" : "Blue");
 			}
 	};
 

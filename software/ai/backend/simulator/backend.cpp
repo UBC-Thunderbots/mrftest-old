@@ -237,7 +237,7 @@ bool AI::BE::Simulator::Backend::on_packet(Glib::IOCondition) {
 
 	// Decide what to do based on the type code.
 	switch (packet.type) {
-		case ::Simulator::Proto::S2A_PACKET_TICK:
+		case ::Simulator::Proto::S2APacketType::TICK:
 			// Record the current monotonic time.
 			monotonic_time_ = packet.world_state.stamp;
 
@@ -261,18 +261,18 @@ bool AI::BE::Simulator::Backend::on_packet(Glib::IOCondition) {
 			secondary_controls.state_file_load_button.set_sensitive(!secondary_controls.state_file_name.empty());
 			return true;
 
-		case ::Simulator::Proto::S2A_PACKET_SPEED_MODE:
+		case ::Simulator::Proto::S2APacketType::SPEED_MODE:
 			// Update the UI controls.
 			switch (packet.speed_mode) {
-				case ::Simulator::Proto::SPEED_MODE_NORMAL:
+				case ::Simulator::Proto::SpeedMode::NORMAL:
 					secondary_controls.speed_normal.set_active();
 					break;
 
-				case ::Simulator::Proto::SPEED_MODE_FAST:
+				case ::Simulator::Proto::SpeedMode::FAST:
 					secondary_controls.speed_fast.set_active();
 					break;
 
-				case ::Simulator::Proto::SPEED_MODE_SLOW:
+				case ::Simulator::Proto::SpeedMode::SLOW:
 					secondary_controls.speed_slow.set_active();
 					break;
 			}
@@ -283,7 +283,7 @@ bool AI::BE::Simulator::Backend::on_packet(Glib::IOCondition) {
 			secondary_controls.speed_slow.set_sensitive();
 			return true;
 
-		case ::Simulator::Proto::S2A_PACKET_PLAY_TYPE:
+		case ::Simulator::Proto::S2APacketType::PLAY_TYPE:
 			if (packet.playtype != AI::Common::PlayType::NONE) {
 				// Record the master play type.
 				simulator_playtype = packet.playtype;
@@ -306,7 +306,7 @@ bool AI::BE::Simulator::Backend::on_packet(Glib::IOCondition) {
 void AI::BE::Simulator::Backend::send_orders() {
 	::Simulator::Proto::A2SPacket packet;
 	std::memset(&packet, 0, sizeof(packet));
-	packet.type = ::Simulator::Proto::A2S_PACKET_PLAYERS;
+	packet.type = ::Simulator::Proto::A2SPacketType::PLAYERS;
 	friendly_.encode_orders(packet.players);
 	send_packet(packet);
 }
@@ -323,7 +323,7 @@ void AI::BE::Simulator::Backend::on_sim_playtype_changed() {
 	if (main_controls.playtype_combo.get_active_row_number() != -1) {
 		::Simulator::Proto::A2SPacket packet;
 		std::memset(&packet, 0, sizeof(packet));
-		packet.type = ::Simulator::Proto::A2S_PACKET_PLAY_TYPE;
+		packet.type = ::Simulator::Proto::A2SPacketType::PLAY_TYPE;
 		packet.playtype = AI::Common::PlayTypeInfo::of_int(main_controls.playtype_combo.get_active_row_number());
 		send_packet(packet);
 	}
@@ -332,13 +332,13 @@ void AI::BE::Simulator::Backend::on_sim_playtype_changed() {
 void AI::BE::Simulator::Backend::on_speed_toggled() {
 	::Simulator::Proto::A2SPacket packet;
 	std::memset(&packet, 0, sizeof(packet));
-	packet.type = ::Simulator::Proto::A2S_PACKET_SET_SPEED;
+	packet.type = ::Simulator::Proto::A2SPacketType::SET_SPEED;
 	if (secondary_controls.speed_fast.get_active()) {
-		packet.speed_mode = ::Simulator::Proto::SPEED_MODE_FAST;
+		packet.speed_mode = ::Simulator::Proto::SpeedMode::FAST;
 	} else if (secondary_controls.speed_slow.get_active()) {
-		packet.speed_mode = ::Simulator::Proto::SPEED_MODE_SLOW;
+		packet.speed_mode = ::Simulator::Proto::SpeedMode::SLOW;
 	} else {
-		packet.speed_mode = ::Simulator::Proto::SPEED_MODE_NORMAL;
+		packet.speed_mode = ::Simulator::Proto::SpeedMode::NORMAL;
 	}
 	send_packet(packet);
 }
@@ -346,7 +346,7 @@ void AI::BE::Simulator::Backend::on_speed_toggled() {
 void AI::BE::Simulator::Backend::on_players_add_clicked() {
 	::Simulator::Proto::A2SPacket packet;
 	std::memset(&packet, 0, sizeof(packet));
-	packet.type = ::Simulator::Proto::A2S_PACKET_ADD_PLAYER;
+	packet.type = ::Simulator::Proto::A2SPacketType::ADD_PLAYER;
 	for (packet.pattern = 0; pattern_exists(packet.pattern); ++packet.pattern) {
 	}
 	send_packet(packet);
@@ -358,7 +358,7 @@ void AI::BE::Simulator::Backend::on_players_add_clicked() {
 void AI::BE::Simulator::Backend::on_players_remove_clicked() {
 	::Simulator::Proto::A2SPacket packet;
 	std::memset(&packet, 0, sizeof(packet));
-	packet.type = ::Simulator::Proto::A2S_PACKET_REMOVE_PLAYER;
+	packet.type = ::Simulator::Proto::A2SPacketType::REMOVE_PLAYER;
 	for (packet.pattern = 0; !pattern_exists(packet.pattern); ++packet.pattern) {
 	}
 	send_packet(packet);
@@ -380,7 +380,7 @@ void AI::BE::Simulator::Backend::on_state_file_load_clicked() {
 	FileDescriptor::Ptr fd = FileDescriptor::create_open(secondary_controls.state_file_name.c_str(), O_RDONLY, 0);
 	::Simulator::Proto::A2SPacket packet;
 	std::memset(&packet, 0, sizeof(packet));
-	packet.type = ::Simulator::Proto::A2S_PACKET_LOAD_STATE;
+	packet.type = ::Simulator::Proto::A2SPacketType::LOAD_STATE;
 	send_packet(packet, fd);
 }
 
@@ -388,7 +388,7 @@ void AI::BE::Simulator::Backend::on_state_file_save_clicked() {
 	FileDescriptor::Ptr fd = FileDescriptor::create_open(secondary_controls.state_file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	::Simulator::Proto::A2SPacket packet;
 	std::memset(&packet, 0, sizeof(packet));
-	packet.type = ::Simulator::Proto::A2S_PACKET_SAVE_STATE;
+	packet.type = ::Simulator::Proto::A2SPacketType::SAVE_STATE;
 	send_packet(packet, fd);
 }
 

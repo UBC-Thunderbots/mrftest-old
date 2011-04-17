@@ -74,11 +74,11 @@ namespace {
 
 		for (std::vector<Player::Ptr>::iterator it = players.begin(); it != players.end(); it++) {
 			if (CATCH_BALL) {
-				(*it)->move(world.ball().position(), (*it)->orientation(), flags, AI::Flags::MOVE_CATCH, AI::Flags::PRIO_MEDIUM);
+				(*it)->move(world.ball().position(), (*it)->orientation(), flags, AI::Flags::MoveType::CATCH, AI::Flags::MovePrio::MEDIUM);
 			} else if (RAM_BALL) {
 				Point enemy(world.field().length() / 2.0, 0.0);
 				// move towards enemy net
-				(*it)->move(enemy, enemy.orientation(), flags, AI::Flags::MOVE_RAM_BALL, AI::Flags::PRIO_MEDIUM);
+				(*it)->move(enemy, enemy.orientation(), flags, AI::Flags::MoveType::RAM_BALL, AI::Flags::MovePrio::MEDIUM);
 			} else if (RECIEVE_BALL) {
 				// Point dir1(world.field().length()/2.0, 0.0);
 				Point enemy(world.field().length() / 2.0, 0.0);
@@ -86,9 +86,9 @@ namespace {
 
 
 				// move towards enemy net
-				(*it)->move(enemy, enemy.orientation() + M_PI / 2.0, flags, AI::Flags::MOVE_RAM_BALL, AI::Flags::PRIO_MEDIUM);
+				(*it)->move(enemy, enemy.orientation() + M_PI / 2.0, flags, AI::Flags::MoveType::RAM_BALL, AI::Flags::MovePrio::MEDIUM);
 			} else {
-				(*it)->move(world.ball().position(), (*it)->orientation(), flags, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+				(*it)->move(world.ball().position(), (*it)->orientation(), flags, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
 			}
 		}
 	}

@@ -24,11 +24,11 @@ Matrix::Matrix(std::size_t num_rows, std::size_t num_cols, const double *data) {
 Matrix::Matrix(std::size_t num_rows, std::size_t num_cols, InitFlag flag) {
 	if (num_rows && num_cols) {
 		switch (flag) {
-			case ZEROES:
+			case InitFlag::ZEROES:
 				m = gsl_matrix_calloc(num_rows, num_cols);
 				break;
 
-			case IDENTITY:
+			case InitFlag::IDENTITY:
 				m = gsl_matrix_alloc(num_rows, num_cols);
 				identity();
 				break;
@@ -121,7 +121,7 @@ Matrix &operator*=(Matrix &m, double scale) {
 
 Matrix operator*(const Matrix &a, const Matrix &b) {
 	assert(a.cols() == b.rows());
-	Matrix prod(a.rows(), b.cols(), Matrix::ZEROES); // Even if beta = 0, uninitialized memory could contain NaN which will propagate.
+	Matrix prod(a.rows(), b.cols(), Matrix::InitFlag::ZEROES); // Even if beta = 0, uninitialized memory could contain NaN which will propagate.
 	if (a.m) {
 		gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, a.m, b.m, 0.0, prod.m);
 	}

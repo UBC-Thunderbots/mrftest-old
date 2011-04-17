@@ -18,7 +18,7 @@ namespace {
 }
 
 Annunciator::Message::Message(const Glib::ustring &text, TriggerMode mode) : text(text), mode(mode), id(next_id++), active_(false), age_(0), displayed_(false) {
-	assert(mode == TRIGGER_LEVEL || mode == TRIGGER_EDGE);
+	assert(mode == TriggerMode::LEVEL || mode == TriggerMode::EDGE);
 	registered()[id] = this;
 }
 
@@ -28,7 +28,7 @@ Annunciator::Message::~Message() {
 }
 
 void Annunciator::Message::active(bool actv) {
-	assert(mode == TRIGGER_LEVEL);
+	assert(mode == TriggerMode::LEVEL);
 
 	if (actv != active_) {
 		active_ = actv;
@@ -57,7 +57,7 @@ void Annunciator::Message::active(bool actv) {
 }
 
 void Annunciator::Message::fire() {
-	assert(mode == TRIGGER_EDGE);
+	assert(mode == TriggerMode::EDGE);
 
 	age_ = 0;
 	if (!one_second_connection.connected()) {
@@ -176,7 +176,7 @@ namespace {
 		private:
 			Annunciator::Message msg;
 
-			SirenAvailabilityWarner() : msg("\"beep\" executable unavailable, no annunciator sirens", Annunciator::Message::TRIGGER_LEVEL) {
+			SirenAvailabilityWarner() : msg("\"beep\" executable unavailable, no annunciator sirens", Annunciator::Message::TriggerMode::LEVEL) {
 				if (!can_siren()) {
 					msg.active(true);
 				}

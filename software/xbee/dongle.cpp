@@ -60,158 +60,158 @@ namespace {
 	};
 
 	const FaultMessageInfo<XBeeDongle::CommonFault> COMMON_FAULT_MESSAGE_INFOS[] = {
-		{ XBeeDongle::FAULT_XBEE0_FERR, "XBee 0 framing error", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE1_FERR, "XBee 1 framing error", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE0_OERR_HW, "XBee 0 hardware overrun error", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE1_OERR_HW, "XBee 1 hardware overrun error", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE0_OERR_SW, "XBee 0 software overrun error", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE1_OERR_SW, "XBee 1 software overrun error", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE0_CHECKSUM_FAILED, "XBee 0 checksum failed", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE1_CHECKSUM_FAILED, "XBee 1 checksum failed", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE0_NONZERO_LENGTH_MSB, "XBee 0 nonzero length MSB", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE1_NONZERO_LENGTH_MSB, "XBee 1 nonzero length MSB", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE0_INVALID_LENGTH_LSB, "XBee 0 invalid length LSB", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE1_INVALID_LENGTH_LSB, "XBee 1 invalid length LSB", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE0_TIMEOUT, "XBee 0 timeout", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE1_TIMEOUT, "XBee 1 timeout", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE0_AT_RESPONSE_WRONG_COMMAND, "XBee 0 AT response wrong command", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE1_AT_RESPONSE_WRONG_COMMAND, "XBee 1 AT response wrong command", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE0_AT_RESPONSE_FAILED_UNKNOWN_REASON, "XBee 0 AT response failed: unknown reason", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE1_AT_RESPONSE_FAILED_UNKNOWN_REASON, "XBee 1 AT response failed: unknown reason", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE0_AT_RESPONSE_FAILED_INVALID_COMMAND, "XBee 0 AT response failed: invalid command", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE1_AT_RESPONSE_FAILED_INVALID_COMMAND, "XBee 1 AT response failed: invalid command", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE0_AT_RESPONSE_FAILED_INVALID_PARAMETER, "XBee 0 AT response failed: invalid parameter", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE1_AT_RESPONSE_FAILED_INVALID_PARAMETER, "XBee 1 AT response failed: invalid parameter", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_XBEE0_RESET_FAILED, "XBee 0 failed to reset", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_XBEE1_RESET_FAILED, "XBee 1 failed to reset", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_XBEE0_ENABLE_RTS_FAILED, "XBee 0 failed to enable RTS", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_XBEE1_ENABLE_RTS_FAILED, "XBee 1 failed to enable RTS", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_XBEE0_GET_FW_VERSION_FAILED, "XBee 0 failed to get firmware version", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_XBEE1_GET_FW_VERSION_FAILED, "XBee 1 failed to get firmware version", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_XBEE0_SET_NODE_ID_FAILED, "XBee 0 failed to set text node ID", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_XBEE1_SET_NODE_ID_FAILED, "XBee 1 failed to set text node ID", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_XBEE0_SET_CHANNEL_FAILED, "XBee 0 failed to set radio channel", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_XBEE1_SET_CHANNEL_FAILED, "XBee 1 failed to set radio channel", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_XBEE0_SET_PAN_ID_FAILED, "XBee 0 failed to set PAN ID", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_XBEE1_SET_PAN_ID_FAILED, "XBee 1 failed to set PAN ID", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_XBEE0_SET_ADDRESS_FAILED, "XBee 0 failed to set 16-bit address", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_XBEE1_SET_ADDRESS_FAILED, "XBee 1 failed to set 16-bit address", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_OUT_MICROPACKET_OVERFLOW, "Outbound micropacket overflow", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_OUT_MICROPACKET_NOPIPE, "Outbound micropacket to invalid pipe", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_OUT_MICROPACKET_BAD_LENGTH, "Outbound micropacket invalid length", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_DEBUG_OVERFLOW, "Debug endpoint overflow", Annunciator::Message::TRIGGER_EDGE },
+		{ XBeeDongle::FAULT_XBEE0_FERR, "XBee 0 framing error", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE1_FERR, "XBee 1 framing error", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE0_OERR_HW, "XBee 0 hardware overrun error", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE1_OERR_HW, "XBee 1 hardware overrun error", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE0_OERR_SW, "XBee 0 software overrun error", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE1_OERR_SW, "XBee 1 software overrun error", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE0_CHECKSUM_FAILED, "XBee 0 checksum failed", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE1_CHECKSUM_FAILED, "XBee 1 checksum failed", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE0_NONZERO_LENGTH_MSB, "XBee 0 nonzero length MSB", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE1_NONZERO_LENGTH_MSB, "XBee 1 nonzero length MSB", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE0_INVALID_LENGTH_LSB, "XBee 0 invalid length LSB", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE1_INVALID_LENGTH_LSB, "XBee 1 invalid length LSB", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE0_TIMEOUT, "XBee 0 timeout", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE1_TIMEOUT, "XBee 1 timeout", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE0_AT_RESPONSE_WRONG_COMMAND, "XBee 0 AT response wrong command", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE1_AT_RESPONSE_WRONG_COMMAND, "XBee 1 AT response wrong command", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE0_AT_RESPONSE_FAILED_UNKNOWN_REASON, "XBee 0 AT response failed: unknown reason", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE1_AT_RESPONSE_FAILED_UNKNOWN_REASON, "XBee 1 AT response failed: unknown reason", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE0_AT_RESPONSE_FAILED_INVALID_COMMAND, "XBee 0 AT response failed: invalid command", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE1_AT_RESPONSE_FAILED_INVALID_COMMAND, "XBee 1 AT response failed: invalid command", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE0_AT_RESPONSE_FAILED_INVALID_PARAMETER, "XBee 0 AT response failed: invalid parameter", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE1_AT_RESPONSE_FAILED_INVALID_PARAMETER, "XBee 1 AT response failed: invalid parameter", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_XBEE0_RESET_FAILED, "XBee 0 failed to reset", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_XBEE1_RESET_FAILED, "XBee 1 failed to reset", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_XBEE0_ENABLE_RTS_FAILED, "XBee 0 failed to enable RTS", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_XBEE1_ENABLE_RTS_FAILED, "XBee 1 failed to enable RTS", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_XBEE0_GET_FW_VERSION_FAILED, "XBee 0 failed to get firmware version", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_XBEE1_GET_FW_VERSION_FAILED, "XBee 1 failed to get firmware version", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_XBEE0_SET_NODE_ID_FAILED, "XBee 0 failed to set text node ID", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_XBEE1_SET_NODE_ID_FAILED, "XBee 1 failed to set text node ID", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_XBEE0_SET_CHANNEL_FAILED, "XBee 0 failed to set radio channel", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_XBEE1_SET_CHANNEL_FAILED, "XBee 1 failed to set radio channel", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_XBEE0_SET_PAN_ID_FAILED, "XBee 0 failed to set PAN ID", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_XBEE1_SET_PAN_ID_FAILED, "XBee 1 failed to set PAN ID", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_XBEE0_SET_ADDRESS_FAILED, "XBee 0 failed to set 16-bit address", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_XBEE1_SET_ADDRESS_FAILED, "XBee 1 failed to set 16-bit address", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_OUT_MICROPACKET_OVERFLOW, "Outbound micropacket overflow", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_OUT_MICROPACKET_NOPIPE, "Outbound micropacket to invalid pipe", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_OUT_MICROPACKET_BAD_LENGTH, "Outbound micropacket invalid length", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_DEBUG_OVERFLOW, "Debug endpoint overflow", Annunciator::Message::TriggerMode::EDGE },
 	};
 
 	const FaultMessageInfo<XBeeDongle::DongleFault> DONGLE_FAULT_MESSAGE_INFOS[] = {
-		{ XBeeDongle::FAULT_ERROR_QUEUE_OVERFLOW, "Local error queue overflow", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT0, "Failed to send to robot 0", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT1, "Failed to send to robot 1", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT2, "Failed to send to robot 2", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT3, "Failed to send to robot 3", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT4, "Failed to send to robot 4", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT5, "Failed to send to robot 5", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT6, "Failed to send to robot 6", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT7, "Failed to send to robot 7", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT8, "Failed to send to robot 8", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT9, "Failed to send to robot 9", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT10, "Failed to send to robot 10", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT11, "Failed to send to robot 11", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT12, "Failed to send to robot 12", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT13, "Failed to send to robot 13", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT14, "Failed to send to robot 14", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT15, "Failed to send to robot 15", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT0, "Inbound micropacket overflow from robot 0", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT1, "Inbound micropacket overflow from robot 1", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT2, "Inbound micropacket overflow from robot 2", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT3, "Inbound micropacket overflow from robot 3", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT4, "Inbound micropacket overflow from robot 4", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT5, "Inbound micropacket overflow from robot 5", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT6, "Inbound micropacket overflow from robot 6", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT7, "Inbound micropacket overflow from robot 7", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT8, "Inbound micropacket overflow from robot 8", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT9, "Inbound micropacket overflow from robot 9", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT10, "Inbound micropacket overflow from robot 10", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT11, "Inbound micropacket overflow from robot 11", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT12, "Inbound micropacket overflow from robot 12", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT13, "Inbound micropacket overflow from robot 13", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT14, "Inbound micropacket overflow from robot 14", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT15, "Inbound micropacket overflow from robot 15", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT0, "Inbound micropacket to invalid pipe from robot 0", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT1, "Inbound micropacket to invalid pipe from robot 1", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT2, "Inbound micropacket to invalid pipe from robot 2", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT3, "Inbound micropacket to invalid pipe from robot 3", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT4, "Inbound micropacket to invalid pipe from robot 4", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT5, "Inbound micropacket to invalid pipe from robot 5", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT6, "Inbound micropacket to invalid pipe from robot 6", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT7, "Inbound micropacket to invalid pipe from robot 7", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT8, "Inbound micropacket to invalid pipe from robot 8", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT9, "Inbound micropacket to invalid pipe from robot 9", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT10, "Inbound micropacket to invalid pipe from robot 10", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT11, "Inbound micropacket to invalid pipe from robot 11", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT12, "Inbound micropacket to invalid pipe from robot 12", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT13, "Inbound micropacket to invalid pipe from robot 13", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT14, "Inbound micropacket to invalid pipe from robot 14", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT15, "Inbound micropacket to invalid pipe from robot 15", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT0, "Inbound micropacket invalid length from robot 0", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT1, "Inbound micropacket invalid length from robot 1", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT2, "Inbound micropacket invalid length from robot 2", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT3, "Inbound micropacket invalid length from robot 3", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT4, "Inbound micropacket invalid length from robot 4", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT5, "Inbound micropacket invalid length from robot 5", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT6, "Inbound micropacket invalid length from robot 6", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT7, "Inbound micropacket invalid length from robot 7", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT8, "Inbound micropacket invalid length from robot 8", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT9, "Inbound micropacket invalid length from robot 9", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT10, "Inbound micropacket invalid length from robot 10", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT11, "Inbound micropacket invalid length from robot 11", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT12, "Inbound micropacket invalid length from robot 12", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT13, "Inbound micropacket invalid length from robot 13", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT14, "Inbound micropacket invalid length from robot 14", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT15, "Inbound micropacket invalid length from robot 15", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_BTSEF, "Bit stuff error", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_BTOEF, "Bus turnaround timeout", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_DFN8EF, "Non-integral data field byte count", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_CRC16EF, "CRC16 error", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_CRC5EF, "CRC5 error", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_PIDEF, "PID check error", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_STALL, "Stall handshake returned", Annunciator::Message::TRIGGER_EDGE },
+		{ XBeeDongle::FAULT_ERROR_QUEUE_OVERFLOW, "Local error queue overflow", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT0, "Failed to send to robot 0", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT1, "Failed to send to robot 1", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT2, "Failed to send to robot 2", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT3, "Failed to send to robot 3", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT4, "Failed to send to robot 4", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT5, "Failed to send to robot 5", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT6, "Failed to send to robot 6", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT7, "Failed to send to robot 7", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT8, "Failed to send to robot 8", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT9, "Failed to send to robot 9", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT10, "Failed to send to robot 10", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT11, "Failed to send to robot 11", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT12, "Failed to send to robot 12", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT13, "Failed to send to robot 13", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT14, "Failed to send to robot 14", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_SEND_FAILED_ROBOT15, "Failed to send to robot 15", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT0, "Inbound micropacket overflow from robot 0", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT1, "Inbound micropacket overflow from robot 1", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT2, "Inbound micropacket overflow from robot 2", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT3, "Inbound micropacket overflow from robot 3", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT4, "Inbound micropacket overflow from robot 4", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT5, "Inbound micropacket overflow from robot 5", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT6, "Inbound micropacket overflow from robot 6", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT7, "Inbound micropacket overflow from robot 7", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT8, "Inbound micropacket overflow from robot 8", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT9, "Inbound micropacket overflow from robot 9", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT10, "Inbound micropacket overflow from robot 10", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT11, "Inbound micropacket overflow from robot 11", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT12, "Inbound micropacket overflow from robot 12", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT13, "Inbound micropacket overflow from robot 13", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT14, "Inbound micropacket overflow from robot 14", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_OVERFLOW_ROBOT15, "Inbound micropacket overflow from robot 15", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT0, "Inbound micropacket to invalid pipe from robot 0", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT1, "Inbound micropacket to invalid pipe from robot 1", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT2, "Inbound micropacket to invalid pipe from robot 2", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT3, "Inbound micropacket to invalid pipe from robot 3", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT4, "Inbound micropacket to invalid pipe from robot 4", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT5, "Inbound micropacket to invalid pipe from robot 5", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT6, "Inbound micropacket to invalid pipe from robot 6", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT7, "Inbound micropacket to invalid pipe from robot 7", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT8, "Inbound micropacket to invalid pipe from robot 8", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT9, "Inbound micropacket to invalid pipe from robot 9", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT10, "Inbound micropacket to invalid pipe from robot 10", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT11, "Inbound micropacket to invalid pipe from robot 11", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT12, "Inbound micropacket to invalid pipe from robot 12", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT13, "Inbound micropacket to invalid pipe from robot 13", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT14, "Inbound micropacket to invalid pipe from robot 14", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_NOPIPE_ROBOT15, "Inbound micropacket to invalid pipe from robot 15", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT0, "Inbound micropacket invalid length from robot 0", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT1, "Inbound micropacket invalid length from robot 1", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT2, "Inbound micropacket invalid length from robot 2", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT3, "Inbound micropacket invalid length from robot 3", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT4, "Inbound micropacket invalid length from robot 4", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT5, "Inbound micropacket invalid length from robot 5", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT6, "Inbound micropacket invalid length from robot 6", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT7, "Inbound micropacket invalid length from robot 7", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT8, "Inbound micropacket invalid length from robot 8", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT9, "Inbound micropacket invalid length from robot 9", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT10, "Inbound micropacket invalid length from robot 10", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT11, "Inbound micropacket invalid length from robot 11", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT12, "Inbound micropacket invalid length from robot 12", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT13, "Inbound micropacket invalid length from robot 13", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT14, "Inbound micropacket invalid length from robot 14", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_IN_MICROPACKET_BAD_LENGTH_ROBOT15, "Inbound micropacket invalid length from robot 15", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_BTSEF, "Bit stuff error", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_BTOEF, "Bus turnaround timeout", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_DFN8EF, "Non-integral data field byte count", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_CRC16EF, "CRC16 error", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_CRC5EF, "CRC5 error", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_PIDEF, "PID check error", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_STALL, "Stall handshake returned", Annunciator::Message::TriggerMode::EDGE },
 	};
 
 	const FaultMessageInfo<XBeeDongle::RobotFault> ROBOT_FAULT_MESSAGE_INFOS[] = {
-		{ XBeeDongle::FAULT_CAPACITOR_CHARGE_TIMEOUT, "Capacitor charge timeout", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_CHICKER_COMM_ERROR, "Chicker communication error", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_CHICKER_NOT_PRESENT, "Chicker not present", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_FPGA_NO_BITSTREAM, "FPGA no bitstream", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_FPGA_INVALID_BITSTREAM, "FPGA invalid bitstream", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_FPGA_DCM_LOCK_FAILED, "FPGA DCM lock failed", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_FPGA_ONLINE_CRC_FAILED, "FPGA online fabric CRC failed", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_FPGA_COMM_ERROR, "FPGA communication error", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_OSCILLATOR_FAILED, "Oscillator failed", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_MOTOR1_HALL_000, "Motor 1 Hall sensor invalid code 000", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_MOTOR2_HALL_000, "Motor 2 Hall sensor invalid code 000", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_MOTOR3_HALL_000, "Motor 3 Hall sensor invalid code 000", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_MOTOR4_HALL_000, "Motor 4 Hall sensor invalid code 000", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_MOTORD_HALL_000, "Motor D Hall sensor invalid code 000", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_MOTOR1_HALL_111, "Motor 1 Hall sensor invalid code 111", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_MOTOR2_HALL_111, "Motor 2 Hall sensor invalid code 111", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_MOTOR3_HALL_111, "Motor 3 Hall sensor invalid code 111", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_MOTOR4_HALL_111, "Motor 4 Hall sensor invalid code 111", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_MOTORD_HALL_111, "Motor D Hall sensor invalid code 111", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_MOTOR1_HALL_STUCK, "Motor 1 Hall sensor stuck w.r.t. optical encoder", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_MOTOR2_HALL_STUCK, "Motor 2 Hall sensor stuck w.r.t. optical encoder", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_MOTOR3_HALL_STUCK, "Motor 3 Hall sensor stuck w.r.t. optical encoder", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_MOTOR4_HALL_STUCK, "Motor 4 Hall sensor stuck w.r.t. optical encoder", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_MOTOR1_ENCODER_STUCK, "Motor 1 optical encoder stuck w.r.t. Hall sensor", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_MOTOR2_ENCODER_STUCK, "Motor 2 optical encoder stuck w.r.t. Hall sensor", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_MOTOR3_ENCODER_STUCK, "Motor 3 optical encoder stuck w.r.t. Hall sensor", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_MOTOR4_ENCODER_STUCK, "Motor 4 optical encoder stuck w.r.t. Hall sensor", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_DRIBBLER_OVERHEAT, "Dribbler overheating", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_DRIBBLER_THERMISTOR_FAILED, "Dribbler thermistor communication error", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_FLASH_COMM_ERROR, "Flash communication error", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_FLASH_PARAMS_CORRUPT, "Flash operational parameters block corrupt", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_NO_PARAMS, "Flash operational parameters block absent", Annunciator::Message::TRIGGER_LEVEL },
-		{ XBeeDongle::FAULT_IN_PACKET_OVERFLOW, "Inbound packet overflow", Annunciator::Message::TRIGGER_EDGE },
-		{ XBeeDongle::FAULT_FIRMWARE_BAD_REQUEST, "Bad firmware request", Annunciator::Message::TRIGGER_EDGE },
+		{ XBeeDongle::FAULT_CAPACITOR_CHARGE_TIMEOUT, "Capacitor charge timeout", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_CHICKER_COMM_ERROR, "Chicker communication error", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_CHICKER_NOT_PRESENT, "Chicker not present", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_FPGA_NO_BITSTREAM, "FPGA no bitstream", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_FPGA_INVALID_BITSTREAM, "FPGA invalid bitstream", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_FPGA_DCM_LOCK_FAILED, "FPGA DCM lock failed", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_FPGA_ONLINE_CRC_FAILED, "FPGA online fabric CRC failed", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_FPGA_COMM_ERROR, "FPGA communication error", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_OSCILLATOR_FAILED, "Oscillator failed", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_MOTOR1_HALL_000, "Motor 1 Hall sensor invalid code 000", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_MOTOR2_HALL_000, "Motor 2 Hall sensor invalid code 000", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_MOTOR3_HALL_000, "Motor 3 Hall sensor invalid code 000", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_MOTOR4_HALL_000, "Motor 4 Hall sensor invalid code 000", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_MOTORD_HALL_000, "Motor D Hall sensor invalid code 000", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_MOTOR1_HALL_111, "Motor 1 Hall sensor invalid code 111", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_MOTOR2_HALL_111, "Motor 2 Hall sensor invalid code 111", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_MOTOR3_HALL_111, "Motor 3 Hall sensor invalid code 111", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_MOTOR4_HALL_111, "Motor 4 Hall sensor invalid code 111", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_MOTORD_HALL_111, "Motor D Hall sensor invalid code 111", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_MOTOR1_HALL_STUCK, "Motor 1 Hall sensor stuck w.r.t. optical encoder", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_MOTOR2_HALL_STUCK, "Motor 2 Hall sensor stuck w.r.t. optical encoder", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_MOTOR3_HALL_STUCK, "Motor 3 Hall sensor stuck w.r.t. optical encoder", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_MOTOR4_HALL_STUCK, "Motor 4 Hall sensor stuck w.r.t. optical encoder", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_MOTOR1_ENCODER_STUCK, "Motor 1 optical encoder stuck w.r.t. Hall sensor", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_MOTOR2_ENCODER_STUCK, "Motor 2 optical encoder stuck w.r.t. Hall sensor", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_MOTOR3_ENCODER_STUCK, "Motor 3 optical encoder stuck w.r.t. Hall sensor", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_MOTOR4_ENCODER_STUCK, "Motor 4 optical encoder stuck w.r.t. Hall sensor", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_DRIBBLER_OVERHEAT, "Dribbler overheating", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_DRIBBLER_THERMISTOR_FAILED, "Dribbler thermistor communication error", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_FLASH_COMM_ERROR, "Flash communication error", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_FLASH_PARAMS_CORRUPT, "Flash operational parameters block corrupt", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_NO_PARAMS, "Flash operational parameters block absent", Annunciator::Message::TriggerMode::LEVEL },
+		{ XBeeDongle::FAULT_IN_PACKET_OVERFLOW, "Inbound packet overflow", Annunciator::Message::TriggerMode::EDGE },
+		{ XBeeDongle::FAULT_FIRMWARE_BAD_REQUEST, "Bad firmware request", Annunciator::Message::TriggerMode::EDGE },
 	};
 
 	template<typename T> class FaultMessage : public Annunciator::Message {
@@ -266,16 +266,16 @@ namespace {
 
 	RobotFaultMessage RobotFaultMessage::INSTANCE_ARRAY[G_N_ELEMENTS(ROBOT_FAULT_MESSAGE_INFOS)];
 
-	Annunciator::Message unknown_local_error_message("Dongle local error queue contained unknown error code", Annunciator::Message::TRIGGER_EDGE);
-	Annunciator::Message in_micropacket_overflow_message("Inbound micropacket overflow from dongle", Annunciator::Message::TRIGGER_EDGE);
+	Annunciator::Message unknown_local_error_message("Dongle local error queue contained unknown error code", Annunciator::Message::TriggerMode::EDGE);
+	Annunciator::Message in_micropacket_overflow_message("Inbound micropacket overflow from dongle", Annunciator::Message::TriggerMode::EDGE);
 
 	XBeeDongle::EStopState decode_estop_state(uint8_t st) {
 		XBeeDongle::EStopState est = static_cast<XBeeDongle::EStopState>(st);
 		switch (est) {
-			case XBeeDongle::ESTOP_STATE_UNINITIALIZED:
-			case XBeeDongle::ESTOP_STATE_DISCONNECTED:
-			case XBeeDongle::ESTOP_STATE_STOP:
-			case XBeeDongle::ESTOP_STATE_RUN:
+			case XBeeDongle::EStopState::UNINITIALIZED:
+			case XBeeDongle::EStopState::DISCONNECTED:
+			case XBeeDongle::EStopState::STOP:
+			case XBeeDongle::EStopState::RUN:
 				return est;
 		}
 		throw std::runtime_error("Dongle status illegal emergency stop state");
@@ -284,19 +284,19 @@ namespace {
 	XBeeDongle::XBeesState decode_xbees_state(uint8_t st) {
 		XBeeDongle::XBeesState est = static_cast<XBeeDongle::XBeesState>(st);
 		switch (est) {
-			case XBeeDongle::XBEES_STATE_PREINIT:
-			case XBeeDongle::XBEES_STATE_INIT0:
-			case XBeeDongle::XBEES_STATE_INIT1:
-			case XBeeDongle::XBEES_STATE_RUNNING:
-			case XBeeDongle::XBEES_STATE_FAIL_0:
-			case XBeeDongle::XBEES_STATE_FAIL_1:
+			case XBeeDongle::XBeesState::PREINIT:
+			case XBeeDongle::XBeesState::INIT0:
+			case XBeeDongle::XBeesState::INIT1:
+			case XBeeDongle::XBeesState::RUNNING:
+			case XBeeDongle::XBeesState::FAIL0:
+			case XBeeDongle::XBeesState::FAIL1:
 				return est;
 		}
 		throw std::runtime_error("Dongle status illegal XBees state");
 	}
 }
 
-XBeeDongle::XBeeDongle() : estop_state(ESTOP_STATE_UNINITIALIZED), xbees_state(XBEES_STATE_PREINIT), context(), device(context, 0x04D8, 0x7839), dirty_drive_mask(0), enabled(false) {
+XBeeDongle::XBeeDongle() : estop_state(EStopState::UNINITIALIZED), xbees_state(XBeesState::PREINIT), context(), device(context, 0x04D8, 0x7839), dirty_drive_mask(0), enabled(false) {
 	for (unsigned int i = 0; i < G_N_ELEMENTS(robots); ++i) {
 		robots[i] = XBeeRobot::create(*this, i);
 	}
@@ -327,7 +327,7 @@ void XBeeDongle::enable() {
 			throw std::runtime_error("Dongle status block of wrong length received");
 		}
 		parse_dongle_status(status);
-	} while (xbees_state != XBEES_STATE_RUNNING);
+	} while (xbees_state != XBeesState::RUNNING);
 	enabled = true;
 
 	LibUSBInterruptInTransfer::Ptr dongle_status_transfer = LibUSBInterruptInTransfer::create(device, EP_DONGLE_STATUS, 4, true, 0, STALL_LIMIT);
@@ -362,9 +362,9 @@ void XBeeDongle::on_dongle_status(AsyncOperation<void>::Ptr, LibUSBInterruptInTr
 void XBeeDongle::parse_dongle_status(const uint8_t *data) {
 	estop_state = decode_estop_state(data[0]);
 	xbees_state = decode_xbees_state(data[1]);
-	if (xbees_state == XBEES_STATE_FAIL_0) {
+	if (xbees_state == XBeesState::FAIL0) {
 		throw std::runtime_error("XBee 0 failed");
-	} else if (xbees_state == XBEES_STATE_FAIL_1) {
+	} else if (xbees_state == XBeesState::FAIL1) {
 		throw std::runtime_error("XBee 1 failed");
 	}
 	uint16_t mask = static_cast<uint16_t>(data[2] | (data[3] << 8));

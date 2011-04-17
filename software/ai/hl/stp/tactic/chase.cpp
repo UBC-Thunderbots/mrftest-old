@@ -32,7 +32,7 @@ namespace {
 	void Chase::execute() {
 		// if it has the ball, stay there
 		if (player->has_ball()) {
-			player->move(player->position(), player->orientation(), 0, AI::Flags::MOVE_DRIBBLE, AI::Flags::PRIO_HIGH);
+			player->move(player->position(), player->orientation(), 0, AI::Flags::MoveType::DRIBBLE, AI::Flags::MovePrio::HIGH);
 			return;
 		}
 

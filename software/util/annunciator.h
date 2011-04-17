@@ -17,17 +17,17 @@ namespace Annunciator {
 			/**
 			 * The possible triggering modes for a message.
 			 */
-			enum TriggerMode {
+			enum class TriggerMode {
 				/**
 				 * Indicates that the message is either asserted or deasserted at any given time,
 				 * and is put into those states by the caller.
 				 */
-				TRIGGER_LEVEL,
+				LEVEL,
 
 				/**
 				 * Indicates that the message reflects an event which can occur at some instant in time.
 				 */
-				TRIGGER_EDGE,
+				EDGE,
 			};
 
 			/**

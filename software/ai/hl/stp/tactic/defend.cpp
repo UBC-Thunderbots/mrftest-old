@@ -61,7 +61,7 @@ namespace {
 
 	void Goalie::execute() {
 		auto waypoints = Evaluation::evaluate_defense(world);
-		//player->move(waypoints[0], (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_HIGH);
+		//player->move(waypoints[0], (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
 		Action::goalie_move(world, player,  waypoints[0]);
 	}
 
@@ -75,7 +75,7 @@ namespace {
 		auto waypoints = Evaluation::evaluate_defense(world);
 		Point dest = waypoints[1];
 		// TODO: medium priority for D = 1, low for D = 2
-		player->move(dest, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_MEDIUM);
+		player->move(dest, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
 	}
 
 	Player::Ptr Secondary::select(const std::set<Player::Ptr> &players) const {
@@ -87,7 +87,7 @@ namespace {
 	void Secondary::execute() {
 		auto waypoints = Evaluation::evaluate_defense(world);
 		Point dest = waypoints[2];
-		player->move(dest, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MOVE_NORMAL, AI::Flags::PRIO_LOW);
+		player->move(dest, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::LOW);
 	}
 }
 

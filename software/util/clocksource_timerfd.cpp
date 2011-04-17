@@ -13,7 +13,7 @@ namespace {
 	}
 }
 
-TimerFDClockSource::TimerFDClockSource(uint64_t interval) : tfd(create_timerfd(CLOCK_MONOTONIC)), nanoseconds(interval), overflow_message("Timer overflow!", Annunciator::Message::TRIGGER_EDGE) {
+TimerFDClockSource::TimerFDClockSource(uint64_t interval) : tfd(create_timerfd(CLOCK_MONOTONIC)), nanoseconds(interval), overflow_message("Timer overflow!", Annunciator::Message::TriggerMode::EDGE) {
 	tfd->set_blocking(false);
 	itimerspec tspec;
 	tspec.it_interval.tv_sec = nanoseconds / UINT64_C(1000000000);
