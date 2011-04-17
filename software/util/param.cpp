@@ -357,9 +357,6 @@ ParamTreeNode *Param::child(std::size_t) {
 	return 0;
 }
 
-BoolParam::BoolParam(const char *name, bool def) : Param(name, "Uncategorized"), value_(def), default_(def) {
-}
-
 BoolParam::BoolParam(const char *name, const char *location, bool def) : Param(name, location), value_(def), default_(def) {
 }
 
@@ -416,9 +413,6 @@ void NumericParam::initialize() {
 	adjustment_->signal_value_changed().connect(signal_changed_reflector.make_slot());
 }
 
-IntParam::IntParam(const char *name, int def, int min, int max) : NumericParam(name, "Uncategorized", def, min, max, true) {
-}
-
 IntParam::IntParam(const char *name, const char *location, int def, int min, int max) : NumericParam(name, location, def, min, max, true) {
 }
 
@@ -442,9 +436,6 @@ void IntParam::save(xmlpp::Element *elt, unsigned int) const {
 	oss.imbue(std::locale("C"));
 	oss << static_cast<int>(adjustment()->get_value());
 	elt->set_child_text(Glib::ustring::format(oss.str()));
-}
-
-DoubleParam::DoubleParam(const char *name, double def, double min, double max) : NumericParam(name, "Uncategorized", def, min, max, false) {
 }
 
 DoubleParam::DoubleParam(const char *name, const char *location, double def, double min, double max) : NumericParam(name, location, def, min, max, false) {

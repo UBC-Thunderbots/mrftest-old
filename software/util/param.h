@@ -324,18 +324,6 @@ class BoolParam : public Param {
 		 *
 		 * \param[in] name the name of the parameter.
 		 *
-		 * \param[in] def the default value of the parameter.
-		 *
-		 * \deprecated in favour of BoolParam(const Glib::ustring &, const Glib::ustring &, bool).
-		 */
-		BoolParam(const char *name, bool def) __attribute__((deprecated));
-
-		/**
-		 * Constructs a new boolean parameter.
-		 * Should only happen at startup time.
-		 *
-		 * \param[in] name the name of the parameter.
-		 *
 		 * \param[in] location the location in the parameter tree of the parameter.
 		 *
 		 * \param[in] def the default value of the parameter.
@@ -483,22 +471,6 @@ class IntParam : public NumericParam {
 		 *
 		 * \param[in] name the name of the parameter.
 		 *
-		 * \param[in] def the default value of the parameter.
-		 *
-		 * \param[in] min the minimum value of the parameter.
-		 *
-		 * \param[in] max the maximum value of the parameter.
-		 *
-		 * \deprecated in favour of IntParam(const Glib::ustring &, const Glib::ustring &, int, int, int).
-		 */
-		IntParam(const char *name, int def, int min, int max) __attribute__((deprecated));
-
-		/**
-		 * Constructs a new integer parameter.
-		 * Should only happen at startup time.
-		 *
-		 * \param[in] name the name of the parameter.
-		 *
 		 * \param[in] location the location in the parameter tree of the parameter.
 		 *
 		 * \param[in] def the default value of the parameter.
@@ -539,22 +511,6 @@ class IntParam : public NumericParam {
  */
 class DoubleParam : public NumericParam {
 	public:
-		/**
-		 * Constructs a new double parameter.
-		 * Should only happen at startup time.
-		 *
-		 * \param[in] name the name of the parameter.
-		 *
-		 * \param[in] def the default value of the parameter.
-		 *
-		 * \param[in] min the minimum value of the parameter.
-		 *
-		 * \param[in] max the maximum value of the parameter.
-		 *
-		 * \deprecated in favour of DoubleParam(const Glib::ustring &, const Glib::ustring &, double, double, double).
-		 */
-		DoubleParam(const char *name, double def, double min, double max) __attribute__((deprecated));
-
 		/**
 		 * Constructs a new double parameter.
 		 * Should only happen at startup time.
