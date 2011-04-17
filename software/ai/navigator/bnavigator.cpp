@@ -22,14 +22,12 @@ namespace {
 
 		private:
 			BNavigator(World &world);
-			~BNavigator();
 	};
 
 	class BNavigatorFactory : public NavigatorFactory {
 		public:
 			Navigator::Ptr create_navigator(World &world) const;
 			BNavigatorFactory();
-			~BNavigatorFactory();
 	};
 
 	BNavigatorFactory simple_nav_factory;
@@ -46,13 +44,7 @@ namespace {
 	BNavigator::BNavigator(World &world) : Navigator(world) {
 	}
 
-	BNavigator::~BNavigator() {
-	}
-
 	BNavigatorFactory::BNavigatorFactory() : NavigatorFactory("BNavigator") {
-	}
-
-	BNavigatorFactory::~BNavigatorFactory() {
 	}
 
 	Navigator::Ptr BNavigatorFactory::create_navigator(World &world) const {

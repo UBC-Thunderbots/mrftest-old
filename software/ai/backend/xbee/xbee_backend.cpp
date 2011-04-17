@@ -49,7 +49,6 @@ namespace {
 	template<typename T> class GenericTeam {
 		public:
 			GenericTeam(XBeeBackend &backend);
-			~GenericTeam();
 			void clear();
 			void update(const google::protobuf::RepeatedPtrField<SSL_DetectionRobot> *packets[2], const timespec &ts);
 			void lock_time(const timespec &now);
@@ -68,16 +67,12 @@ namespace {
 	template<typename T> GenericTeam<T>::GenericTeam(XBeeBackend &backend) : backend(backend) {
 	}
 
-	template<typename T> GenericTeam<T>::~GenericTeam() {
-	}
-
 	/**
 	 * The friendly team.
 	 */
 	class XBeeFriendlyTeam : public FriendlyTeam, public GenericTeam<AI::BE::XBee::Player> {
 		public:
 			XBeeFriendlyTeam(XBeeBackend &backend, XBeeDongle &dongle);
-			~XBeeFriendlyTeam();
 			unsigned int score() const;
 			std::size_t size() const;
 			Player::Ptr get(std::size_t i) { return members[i]; }
@@ -99,7 +94,6 @@ namespace {
 	class XBeeEnemyTeam : public EnemyTeam, public GenericTeam<AI::BE::XBee::Robot> {
 		public:
 			XBeeEnemyTeam(XBeeBackend &backend);
-			~XBeeEnemyTeam();
 			unsigned int score() const;
 			std::size_t size() const;
 			Robot::Ptr get(std::size_t i) const { return members[i]; }
@@ -152,9 +146,6 @@ namespace {
 				refbox.goals_blue.signal_changed().connect(signal_score_changed().make_slot());
 
 				timespec_now(playtype_time);
-			}
-
-			~XBeeBackend() {
 			}
 
 			BackendFactory &factory() const;
@@ -589,9 +580,6 @@ namespace {
 	XBeeFriendlyTeam::XBeeFriendlyTeam(XBeeBackend &backend, XBeeDongle &dongle) : GenericTeam<AI::BE::XBee::Player>(backend), dongle(dongle) {
 	}
 
-	XBeeFriendlyTeam::~XBeeFriendlyTeam() {
-	}
-
 	unsigned int XBeeFriendlyTeam::score() const {
 		return backend.friendly_colour() == AI::Common::Team::Colour::YELLOW ? backend.refbox.goals_yellow : backend.refbox.goals_blue;
 	}
@@ -605,9 +593,6 @@ namespace {
 	}
 
 	XBeeEnemyTeam::XBeeEnemyTeam(XBeeBackend &backend) : GenericTeam<AI::BE::XBee::Robot>(backend) {
-	}
-
-	XBeeEnemyTeam::~XBeeEnemyTeam() {
 	}
 
 	unsigned int XBeeEnemyTeam::score() const {
@@ -625,9 +610,6 @@ namespace {
 	class XBeeBackendFactory : public BackendFactory {
 		public:
 			XBeeBackendFactory() : BackendFactory("xbee") {
-			}
-
-			~XBeeBackendFactory() {
 			}
 
 			void create_backend(const std::multimap<Glib::ustring, Glib::ustring> &params, sigc::slot<void, Backend &> cb) const {

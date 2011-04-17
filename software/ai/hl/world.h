@@ -273,11 +273,6 @@ namespace AI {
 					 * Constructs a new World.
 					 */
 					World();
-
-					/**
-					 * Destroys a World.
-					 */
-					~World();
 			};
 		}
 	}

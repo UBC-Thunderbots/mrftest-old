@@ -21,14 +21,12 @@ namespace {
 
 		private:
 			PivotNavigator(World &world);
-			~PivotNavigator();
 	};
 
 	class PivotNavigatorFactory : public NavigatorFactory {
 		public:
 			Navigator::Ptr create_navigator(World &world) const;
 			PivotNavigatorFactory();
-			~PivotNavigatorFactory();
 	};
 
 	PivotNavigatorFactory pivot_nav_factory;
@@ -45,13 +43,7 @@ namespace {
 	PivotNavigator::PivotNavigator(World &world) : Navigator(world) {
 	}
 
-	PivotNavigator::~PivotNavigator() {
-	}
-
 	PivotNavigatorFactory::PivotNavigatorFactory() : NavigatorFactory("TEST: Pivot Navigator") {
-	}
-
-	PivotNavigatorFactory::~PivotNavigatorFactory() {
 	}
 
 	Navigator::Ptr PivotNavigatorFactory::create_navigator(World &world) const {

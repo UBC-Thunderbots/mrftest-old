@@ -15,8 +15,7 @@ namespace {
 AbstractListModel::AbstractListModel() : stamp(1) {
 }
 
-AbstractListModel::~AbstractListModel() {
-}
+AbstractListModel::~AbstractListModel() = default;
 
 void AbstractListModel::alm_row_changed(std::size_t index) {
 	Gtk::TreePath path;

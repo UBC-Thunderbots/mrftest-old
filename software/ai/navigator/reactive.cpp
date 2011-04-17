@@ -27,14 +27,12 @@ namespace {
 
 		private:
 			ReactiveNavigator(World &world);
-			~ReactiveNavigator();
 	};
 
 	class ReactiveNavigatorFactory : public NavigatorFactory {
 		public:
 			Navigator::Ptr create_navigator(World &world) const;
 			ReactiveNavigatorFactory();
-			~ReactiveNavigatorFactory();
 	};
 
 	ReactiveNavigatorFactory nav_factory;
@@ -51,13 +49,7 @@ namespace {
 	ReactiveNavigator::ReactiveNavigator(World &world) : Navigator(world) {
 	}
 
-	ReactiveNavigator::~ReactiveNavigator() {
-	}
-
 	ReactiveNavigatorFactory::ReactiveNavigatorFactory() : NavigatorFactory("Reactive Navigator") {
-	}
-
-	ReactiveNavigatorFactory::~ReactiveNavigatorFactory() {
 	}
 
 	Navigator::Ptr ReactiveNavigatorFactory::create_navigator(World &world) const {

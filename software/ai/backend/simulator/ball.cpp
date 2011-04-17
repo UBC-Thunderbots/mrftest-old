@@ -7,9 +7,6 @@ AI::BE::Simulator::Ball::Ball(Backend &be) : be(be), xpred(false), ypred(false) 
 	be.signal_mouse_pressed.connect(sigc::mem_fun(this, &Ball::mouse_pressed));
 }
 
-AI::BE::Simulator::Ball::~Ball() {
-}
-
 void AI::BE::Simulator::Ball::pre_tick(const ::Simulator::Proto::S2ABallInfo &state, const timespec &ts) {
 	xpred.add_datum(state.x, ts);
 	xpred.lock_time(ts);

@@ -8,9 +8,6 @@ using namespace AI::HL::W;
 Tactic::Tactic(const World &world, bool active) : world(world), active_(active) {
 }
 
-Tactic::~Tactic() {
-}
-
 bool Tactic::done() const {
 	// if this fails, then you probably have an active tactic that you forgot to implement done()
 	// check to make sure that the signature of done() is correct, with the const at the back.

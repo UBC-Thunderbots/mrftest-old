@@ -9,9 +9,5 @@ void AI::HL::W::Player::move(Point dest, double ori, unsigned int flags, AI::Fla
 	this->prio(prio);
 }
 
-World::World() {
-}
-
-World::~World() {
-}
+AI::HL::W::World::World() = default;
 

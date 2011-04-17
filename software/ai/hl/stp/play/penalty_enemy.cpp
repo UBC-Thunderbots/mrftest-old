@@ -25,7 +25,6 @@ namespace {
 	class PenaltyEnemy : public Play {
 		public:
 			PenaltyEnemy(const World &world);
-			~PenaltyEnemy();
 
 		private:
 			bool invariant() const;
@@ -43,9 +42,6 @@ namespace {
 	}
 
 	PenaltyEnemy::PenaltyEnemy(const World &world) : Play(world) {
-	}
-
-	PenaltyEnemy::~PenaltyEnemy() {
 	}
 
 	bool PenaltyEnemy::invariant() const {

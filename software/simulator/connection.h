@@ -73,12 +73,6 @@ namespace Simulator {
 			Connection(FileDescriptor::Ptr sock);
 
 			/**
-			 * Destroys a Connection.
-			 * The underlying socket will be closed.
-			 */
-			~Connection();
-
-			/**
 			 * Invoked when the socket has data waiting.
 			 *
 			 * \return \c true to keep reading more data.

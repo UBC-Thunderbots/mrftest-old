@@ -22,9 +22,5 @@ Role::Ptr AI::HL::STP::Role::player(Player::Ptr p) {
 	return r;
 }
 
-Role::Role() {
-}
-
-Role::~Role() {
-}
+Role::Role() = default;
 

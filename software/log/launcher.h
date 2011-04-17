@@ -13,11 +13,6 @@ class LogLauncher : public Gtk::Window {
 		 */
 		LogLauncher();
 
-		/**
-		 * Destroys a LogLauncher.
-		 */
-		~LogLauncher();
-
 	private:
 		Gtk::ListViewText log_list;
 		Gtk::Button analyzer_button;

@@ -18,9 +18,6 @@ namespace {
 				Glib::signal_idle().connect_once(sigc::mem_fun(this, &FirmwareUploadOperation::start_operation));
 			}
 
-			~FirmwareUploadOperation() {
-			}
-
 		private:
 			const IntelHex &hex;
 			const bool fpga;

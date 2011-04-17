@@ -27,7 +27,6 @@ namespace {
 	class PenaltyFriendly : public Play {
 		public:
 			PenaltyFriendly(const World &world);
-			~PenaltyFriendly();
 
 		private:
 			bool invariant() const;
@@ -45,9 +44,6 @@ namespace {
 	}
 
 	PenaltyFriendly::PenaltyFriendly(const World &world) : Play(world) {
-	}
-
-	PenaltyFriendly::~PenaltyFriendly() {
 	}
 
 	bool PenaltyFriendly::invariant() const {

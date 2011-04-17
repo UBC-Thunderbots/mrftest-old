@@ -97,7 +97,6 @@ class XBeeRobot : public ByRef {
 
 		static Ptr create(XBeeDongle &dongle, unsigned int index);
 		XBeeRobot(XBeeDongle &dongle, unsigned int index);
-		~XBeeRobot();
 		void flush_drive();
 		void on_feedback(const uint8_t *data, std::size_t length);
 };

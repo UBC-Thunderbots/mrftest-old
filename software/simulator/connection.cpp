@@ -36,9 +36,6 @@ Simulator::Connection::Connection(FileDescriptor::Ptr sock) : sock(sock) {
 	Glib::signal_io().connect(sigc::mem_fun(this, &Connection::on_readable), sock->fd(), Glib::IO_IN);
 }
 
-Simulator::Connection::~Connection() {
-}
-
 bool Simulator::Connection::on_readable(Glib::IOCondition) {
 	Proto::A2SPacket packet;
 	iovec iov = { iov_base: &packet, iov_len: sizeof(packet), };

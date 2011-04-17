@@ -18,14 +18,12 @@ namespace {
 
 		private:
 			FollowBallNavigator(World &world);
-			~FollowBallNavigator();
 	};
 
 	class FollowBallNavigatorFactory : public NavigatorFactory {
 		public:
 			Navigator::Ptr create_navigator(World &world) const;
 			FollowBallNavigatorFactory();
-			~FollowBallNavigatorFactory();
 	};
 
 	FollowBallNavigatorFactory simple_nav_factory;
@@ -42,13 +40,7 @@ namespace {
 	FollowBallNavigator::FollowBallNavigator(World &world) : Navigator(world) {
 	}
 
-	FollowBallNavigator::~FollowBallNavigator() {
-	}
-
 	FollowBallNavigatorFactory::FollowBallNavigatorFactory() : NavigatorFactory("TEST: Follow Ball") {
-	}
-
-	FollowBallNavigatorFactory::~FollowBallNavigatorFactory() {
 	}
 
 	Navigator::Ptr FollowBallNavigatorFactory::create_navigator(World &world) const {

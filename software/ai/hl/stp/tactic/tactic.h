@@ -88,11 +88,6 @@ namespace AI {
 						Tactic(const World &world, bool active = false);
 
 						/**
-						 * Destructor.
-						 */
-						~Tactic();
-
-						/**
 						 * Triggerred when the player associated changes.
 						 */
 						virtual void player_changed();

@@ -204,9 +204,6 @@ class LibUSBInterruptInTransfer : public LibUSBTransfer {
 			return transfer->actual_length;
 		}
 
-	protected:
-		~LibUSBInterruptInTransfer();
-
 	private:
 		LibUSBInterruptInTransfer(LibUSBDeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout, unsigned int stall_max);
 };
@@ -219,9 +216,6 @@ class LibUSBInterruptOutTransfer : public LibUSBTransfer {
 		typedef RefPtr<LibUSBInterruptOutTransfer> Ptr;
 
 		static Ptr create(LibUSBDeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout, unsigned int stall_max);
-
-	protected:
-		~LibUSBInterruptOutTransfer();
 
 	private:
 		LibUSBInterruptOutTransfer(LibUSBDeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout, unsigned int stall_max);

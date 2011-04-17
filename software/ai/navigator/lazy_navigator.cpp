@@ -25,14 +25,12 @@ namespace {
 
 		private:
 			LazyNavigator(World &world);
-			~LazyNavigator();
 	};
 
 	class LazyNavigatorFactory : public NavigatorFactory {
 		public:
 			Navigator::Ptr create_navigator(World &world) const;
 			LazyNavigatorFactory();
-			~LazyNavigatorFactory();
 	};
 
 	LazyNavigatorFactory nav_factory;
@@ -49,13 +47,7 @@ namespace {
 	LazyNavigator::LazyNavigator(World &world) : Navigator(world) {
 	}
 
-	LazyNavigator::~LazyNavigator() {
-	}
-
 	LazyNavigatorFactory::LazyNavigatorFactory() : NavigatorFactory("Lazy Navigator") {
-	}
-
-	LazyNavigatorFactory::~LazyNavigatorFactory() {
 	}
 
 	Navigator::Ptr LazyNavigatorFactory::create_navigator(World &world) const {

@@ -72,11 +72,6 @@ namespace AI {
 				 * \param[in] world the World in which to navigate.
 				 */
 				Navigator(AI::Nav::W::World &world);
-
-				/**
-				 * Destroys a navigator.
-				 */
-				~Navigator();
 		};
 
 		/**
@@ -102,11 +97,6 @@ namespace AI {
 				 * \param[in] name a human-readable name for this Navigator.
 				 */
 				NavigatorFactory(const char *name);
-
-				/**
-				 * Destroys a NavigatorFactory.
-				 */
-				~NavigatorFactory();
 		};
 	}
 }

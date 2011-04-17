@@ -21,7 +21,6 @@ namespace {
 	class Stop : public Play {
 		public:
 			Stop(const World &world);
-			~Stop();
 
 		private:
 			bool invariant() const;
@@ -39,9 +38,6 @@ namespace {
 	}
 
 	Stop::Stop(const World &world) : Play(world) {
-	}
-
-	Stop::~Stop() {
 	}
 
 	bool Stop::invariant() const {

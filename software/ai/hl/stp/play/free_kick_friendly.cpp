@@ -26,7 +26,6 @@ namespace {
 	class FreeKickFriendly : public Play {
 		public:
 			FreeKickFriendly(const World &world);
-			~FreeKickFriendly();
 
 		private:
 			bool invariant() const;
@@ -44,9 +43,6 @@ namespace {
 	}
 
 	FreeKickFriendly::FreeKickFriendly(const World &world) : Play(world) {
-	}
-
-	FreeKickFriendly::~FreeKickFriendly() {
 	}
 
 	bool FreeKickFriendly::invariant() const {

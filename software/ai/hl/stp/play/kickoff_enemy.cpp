@@ -35,7 +35,6 @@ namespace {
 	class KickoffEnemy : public Play {
 		public:
 			KickoffEnemy(const World &world);
-			~KickoffEnemy();
 
 		private:
 			bool invariant() const;
@@ -53,9 +52,6 @@ namespace {
 	}
 
 	KickoffEnemy::KickoffEnemy(const World &world) : Play(world) {
-	}
-
-	KickoffEnemy::~KickoffEnemy() {
 	}
 
 	bool KickoffEnemy::invariant() const {

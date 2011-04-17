@@ -35,7 +35,6 @@ namespace {
 	class KickoffFriendly : public Play {
 		public:
 			KickoffFriendly(const World &world);
-			~KickoffFriendly();
 
 		private:
 			bool invariant() const;
@@ -53,9 +52,6 @@ namespace {
 	}
 
 	KickoffFriendly::KickoffFriendly(const World &world) : Play(world) {
-	}
-
-	KickoffFriendly::~KickoffFriendly() {
 	}
 
 	bool KickoffFriendly::invariant() const {

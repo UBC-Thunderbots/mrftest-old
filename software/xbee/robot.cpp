@@ -728,8 +728,6 @@ XBeeRobot::Ptr XBeeRobot::create(XBeeDongle &dongle, unsigned int index) {
 XBeeRobot::XBeeRobot(XBeeDongle &dongle, unsigned int index) : alive(false), has_feedback(false), ball_in_beam(false), ball_on_dribbler(false), capacitor_charged(false), battery_voltage(0), capacitor_voltage(0), dribbler_temperature(0), break_beam_reading(0), dongle(dongle), index(index) {
 }
 
-XBeeRobot::~XBeeRobot() = default;
-
 void XBeeRobot::flush_drive() {
 	dongle.dirty_drive(index);
 }

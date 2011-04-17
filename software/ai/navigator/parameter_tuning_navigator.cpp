@@ -30,14 +30,12 @@ namespace {
 		private:
 			ParameterTuningNavigator(World &world);
 			StochasticLocalSearch *sls;
-			~ParameterTuningNavigator();
 	};
 
 	class ParameterTuningNavigatorFactory : public NavigatorFactory {
 		public:
 			Navigator::Ptr create_navigator(World &world) const;
 			ParameterTuningNavigatorFactory();
-			~ParameterTuningNavigatorFactory();
 	};
 
 	ParameterTuningNavigatorFactory simple_nav_factory;
@@ -56,13 +54,7 @@ namespace {
 		sls = new StochasticLocalSearch(tc->get_params_default(), tc->get_params_min(), tc->get_params_max());
 	}
 
-	ParameterTuningNavigator::~ParameterTuningNavigator() {
-	}
-
 	ParameterTuningNavigatorFactory::ParameterTuningNavigatorFactory() : NavigatorFactory("TEST: Parameter Tuning") {
-	}
-
-	ParameterTuningNavigatorFactory::~ParameterTuningNavigatorFactory() {
 	}
 
 	Navigator::Ptr ParameterTuningNavigatorFactory::create_navigator(World &world) const {

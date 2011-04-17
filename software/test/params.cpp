@@ -60,9 +60,6 @@ TesterParamsPanel::TesterParamsPanel() : Gtk::Table(6, 2), commit("Commit"), rol
 	set_robot(XBeeRobot::Ptr());
 }
 
-TesterParamsPanel::~TesterParamsPanel() {
-}
-
 void TesterParamsPanel::set_robot(XBeeRobot::Ptr bot) {
 	alive_connection.disconnect();
 	robot = bot;

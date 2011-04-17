@@ -41,11 +41,6 @@ namespace AI {
 			 */
 			AIPackage(AI::BE::Backend &backend);
 
-			/**
-			 * Destroys the AIPackage.
-			 */
-			~AIPackage();
-
 		private:
 			void tick();
 			void player_added(std::size_t idx);

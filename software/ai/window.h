@@ -17,11 +17,6 @@ namespace AI {
 			 * \param[in] ai the AI to observe and control.
 			 */
 			Window(AIPackage &ai);
-
-			/**
-			 * Destroys the window.
-			 */
-			~Window();
 	};
 }
 

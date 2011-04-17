@@ -7,9 +7,6 @@ Ball::Ball(AI::BE::Backend &backend) : backend(backend), xpred(false), ypred(fal
 	backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &Ball::on_defending_end_changed));
 }
 
-Ball::~Ball() {
-}
-
 void Ball::update(const Point &pos, const timespec &ts) {
 	bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
 	xpred.add_datum(neg ? -pos.x : pos.x, timespec_sub(ts,double_to_timespec(LOOP_DELAY)));

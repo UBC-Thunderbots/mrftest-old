@@ -23,8 +23,6 @@ class BallODE : public Simulator::Ball {
 
 		   BallODE(dWorldID dworld, dSpaceID dspace);
 		 */
-		~BallODE();
-
 		Point position() const;
 
 		Point velocity() const;

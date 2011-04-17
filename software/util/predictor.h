@@ -18,11 +18,6 @@ class Predictor {
 		Predictor(bool angle);
 
 		/**
-		 * Destroys a Predictor.
-		 */
-		~Predictor();
-
-		/**
 		 * Gets the predicted value some length of time into the future (or past).
 		 *
 		 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.

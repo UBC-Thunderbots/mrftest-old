@@ -27,7 +27,6 @@ namespace {
 	class FranticDefense : public Play {
 		public:
 			FranticDefense(const AI::HL::W::World &world);
-			~FranticDefense();
 
 		private:
 			bool invariant() const; 
@@ -47,9 +46,6 @@ namespace {
 	FranticDefense::FranticDefense(const World &world) : Play(world) {
 	}
 
-	FranticDefense::~FranticDefense() {
-	}
-	
 	bool FranticDefense::invariant() const {
 		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 2);
 	}

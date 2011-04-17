@@ -465,6 +465,3 @@ Window::Window(AIPackage &ai) {
 	show_all();
 }
 
-Window::~Window() {
-}
-

@@ -308,8 +308,6 @@ LibUSBInterruptInTransfer::Ptr LibUSBInterruptInTransfer::create(LibUSBDeviceHan
 	return p;
 }
 
-LibUSBInterruptInTransfer::~LibUSBInterruptInTransfer() = default;
-
 LibUSBInterruptInTransfer::LibUSBInterruptInTransfer(LibUSBDeviceHandle &dev, unsigned char endpoint, std::size_t len, bool exact_len, unsigned int timeout, unsigned int stall_max) : LibUSBTransfer(stall_max) {
 	assert((endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK) == endpoint);
 	libusb_fill_interrupt_transfer(transfer, dev.handle, endpoint | LIBUSB_ENDPOINT_IN, static_cast<unsigned char *>(std::malloc(len)), static_cast<int>(len), &LibUSBTransfer::trampoline, this, timeout);
@@ -323,8 +321,6 @@ LibUSBInterruptOutTransfer::Ptr LibUSBInterruptOutTransfer::create(LibUSBDeviceH
 	Ptr p(new LibUSBInterruptOutTransfer(dev, endpoint, data, len, timeout, stall_max));
 	return p;
 }
-
-LibUSBInterruptOutTransfer::~LibUSBInterruptOutTransfer() = default;
 
 LibUSBInterruptOutTransfer::LibUSBInterruptOutTransfer(LibUSBDeviceHandle &dev, unsigned char endpoint, const void *data, std::size_t len, unsigned int timeout, unsigned int stall_max) : LibUSBTransfer(stall_max) {
 	assert((endpoint & LIBUSB_ENDPOINT_ADDRESS_MASK) == endpoint);

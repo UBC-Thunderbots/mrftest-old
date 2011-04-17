@@ -24,7 +24,6 @@ namespace {
 	class JustShoot : public Play {
 		public:
 			JustShoot(const AI::HL::W::World &world);
-			~JustShoot();
 
 		private:
 			bool invariant() const;
@@ -42,9 +41,6 @@ namespace {
 	}
 
 	JustShoot::JustShoot(const World &world) : Play(world) {
-	}
-
-	JustShoot::~JustShoot() {
 	}
 
 	bool JustShoot::invariant() const {

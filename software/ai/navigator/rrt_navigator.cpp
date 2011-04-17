@@ -46,14 +46,12 @@ namespace AI {
 
 			private:
 				RRTNavigator(World &world);
-				~RRTNavigator();
 				RRTPlanner planner;
 			};
 
 			class RRTNavigatorFactory : public NavigatorFactory {
 			public:
 				RRTNavigatorFactory();
-				~RRTNavigatorFactory();
 				Navigator::Ptr create_navigator(World &world) const;
 			};
 
@@ -229,13 +227,7 @@ namespace AI {
 			RRTNavigator::RRTNavigator(AI::Nav::W::World &world) : Navigator(world), planner(world) {
 			}
 
-			RRTNavigator::~RRTNavigator() {
-			}
-
 			RRTNavigatorFactory::RRTNavigatorFactory() : NavigatorFactory("RRT Navigator") {
-			}
-
-			RRTNavigatorFactory::~RRTNavigatorFactory() {
 			}
 
 			Navigator::Ptr RRTNavigatorFactory::create_navigator(World &world) const {

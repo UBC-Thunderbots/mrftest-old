@@ -87,6 +87,3 @@ Enemy::Ptr AI::HL::STP::Enemy::closest_ball(const World &world, unsigned int i) 
 Enemy::Enemy() {
 }
 
-Enemy::~Enemy() {
-}
-

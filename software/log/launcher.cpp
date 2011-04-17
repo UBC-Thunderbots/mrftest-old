@@ -50,9 +50,6 @@ LogLauncher::LogLauncher() : log_list(1, false, Gtk::SELECTION_EXTENDED), analyz
 	show_all();
 }
 
-LogLauncher::~LogLauncher() {
-}
-
 void LogLauncher::on_log_list_selection_changed() {
 	int num = log_list.get_selection()->count_selected_rows();
 	analyzer_button.set_sensitive(num == 1);

@@ -122,8 +122,7 @@ Robot::Robot(AI::BE::Backend &backend, unsigned int pattern) : seen_this_frame(f
 	backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &Robot::on_defending_end_changed));
 }
 
-Robot::~Robot() {
-}
+Robot::~Robot() = default;
 
 void Robot::on_defending_end_changed() {
 	xpred.clear();

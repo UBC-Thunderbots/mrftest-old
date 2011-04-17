@@ -25,11 +25,6 @@ namespace AI {
 					Ball(AI::BE::Backend &backend);
 
 					/**
-					 * Destroys a Ball.
-					 */
-					~Ball();
-
-					/**
 					 * Updates the position of the ball using new data.
 					 *
 					 * \param[in] pos the new position of the ball, in unswapped field coordinates.

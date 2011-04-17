@@ -99,16 +99,10 @@ void AI::BE::Player::pre_tick() {
 	move_prio_ = AI::Flags::MovePrio::MEDIUM;
 }
 
-Backend::~Backend() {
-}
-
 void Backend::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
 	signal_draw_overlay_.emit(ctx);
 }
 
 BackendFactory::BackendFactory(const char *name) : Registerable<BackendFactory>(name) {
-}
-
-BackendFactory::~BackendFactory() {
 }
 

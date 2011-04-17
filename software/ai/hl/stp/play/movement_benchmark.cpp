@@ -25,7 +25,6 @@ namespace {
 	class MovementBenchmark : public Play {
 		public:
 			MovementBenchmark(const World &world);
-			~MovementBenchmark();
 
 		private:
 			bool invariant() const;
@@ -43,9 +42,6 @@ namespace {
 	}
 
 	MovementBenchmark::MovementBenchmark(const World &world) : Play(world) {
-	}
-
-	MovementBenchmark::~MovementBenchmark() {
 	}
 
 	bool MovementBenchmark::invariant() const {

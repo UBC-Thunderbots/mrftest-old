@@ -20,11 +20,6 @@ namespace AI {
 					Field();
 
 					/**
-					 * Destroys a Field.
-					 */
-					~Field();
-
-					/**
 					 * Updates the Field object with new geometry data from SSL-Vision or the simulator.
 					 *
 					 * \param packet packet the new data.

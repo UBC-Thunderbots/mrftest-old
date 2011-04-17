@@ -39,11 +39,6 @@ namespace AI {
 					 */
 					RefBox();
 
-					/**
-					 * Destroys a RefBox.
-					 */
-					~RefBox();
-
 				private:
 					const FileDescriptor::Ptr fd;
 

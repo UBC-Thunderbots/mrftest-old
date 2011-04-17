@@ -24,7 +24,6 @@ namespace {
 	class GrabBall : public Play {
 		public:
 			GrabBall(const World &world);
-			~GrabBall();
 
 		private:
 			bool invariant() const;
@@ -42,9 +41,6 @@ namespace {
 	}
 
 	GrabBall::GrabBall(const World &world) : Play(world) {
-	}
-
-	GrabBall::~GrabBall() {
 	}
 
 	bool GrabBall::invariant() const {

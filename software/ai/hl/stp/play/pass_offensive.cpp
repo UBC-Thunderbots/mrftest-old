@@ -32,7 +32,6 @@ namespace {
 	class PassOffensive : public Play {
 		public:
 			PassOffensive(const AI::HL::W::World &world);
-			~PassOffensive();
 
 		private:
 			bool invariant() const;
@@ -50,9 +49,6 @@ namespace {
 	}
 
 	PassOffensive::PassOffensive(const World &world) : Play(world) {
-	}
-
-	PassOffensive::~PassOffensive() {
 	}
 
 	bool PassOffensive::invariant() const {

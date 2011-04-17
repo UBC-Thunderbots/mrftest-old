@@ -42,11 +42,6 @@ namespace Simulator {
 			Team(Simulator &sim, const Team *other, bool invert);
 
 			/**
-			 * Destroys a Team.
-			 */
-			~Team();
-
-			/**
 			 * Checks whether the team has an AI connected.
 			 *
 			 * \return \c true if there is an AI connected, or \c false if not.

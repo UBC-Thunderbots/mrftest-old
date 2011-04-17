@@ -186,8 +186,7 @@ AI::BE::Simulator::Player::Player(Backend &be, unsigned int pattern) : AI::BE::S
 	be.signal_mouse_pressed.connect(sigc::mem_fun(this, &Player::mouse_pressed));
 }
 
-AI::BE::Simulator::Player::~Player() {
-}
+AI::BE::Simulator::Player::~Player() = default;
 
 void AI::BE::Simulator::Player::disconnect_mouse() {
 	for (std::size_t i = 0; i < G_N_ELEMENTS(mouse_connections); ++i) {

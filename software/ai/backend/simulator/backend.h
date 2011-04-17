@@ -225,11 +225,6 @@ namespace AI {
 					Backend(const std::string &load_filename);
 
 					/**
-					 * Destroys a Backend.
-					 */
-					~Backend();
-
-					/**
 					 * Sends a packet to the simulator.
 					 *
 					 * \param[in] packet the packet to send.
@@ -372,11 +367,6 @@ namespace AI {
 					 * Constructs a new BackendFactory.
 					 */
 					BackendFactory();
-
-					/**
-					 * Destroys a BackendFactory.
-					 */
-					~BackendFactory();
 
 					void create_backend(const std::multimap<Glib::ustring, Glib::ustring> &params, sigc::slot<void, AI::BE::Backend &> cb) const;
 			};

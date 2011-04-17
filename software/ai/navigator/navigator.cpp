@@ -11,12 +11,6 @@ Gtk::Widget *Navigator::ui_controls() {
 Navigator::Navigator(World &world) : world(world) {
 }
 
-Navigator::~Navigator() {
-}
-
 NavigatorFactory::NavigatorFactory(const char *name) : Registerable<NavigatorFactory>(name) {
-}
-
-NavigatorFactory::~NavigatorFactory() {
 }
 

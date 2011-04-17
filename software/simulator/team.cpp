@@ -21,9 +21,6 @@ namespace {
 Simulator::Team::Team(Simulator &sim, const Team *other, bool invert) : sim(sim), other(other), invert(invert), ready_(true) {
 }
 
-Simulator::Team::~Team() {
-}
-
 bool Simulator::Team::has_connection() const {
 	return connection.is();
 }

@@ -30,9 +30,6 @@ AIPackage::AIPackage(Backend &backend) : backend(backend), high_level(AI::HL::Hi
 	robot_controller_factory.signal_changed().connect(sigc::mem_fun(this, &AIPackage::robot_controller_factory_changed));
 }
 
-AIPackage::~AIPackage() {
-}
-
 void AIPackage::tick() {
 	// Clear all cached data.
 	CacheableBase::flush_all();

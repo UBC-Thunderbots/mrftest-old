@@ -19,14 +19,12 @@ namespace {
 
 		private:
 			SimpleNavigator(World &world);
-			~SimpleNavigator();
 	};
 
 	class SimpleNavigatorFactory : public NavigatorFactory {
 		public:
 			Navigator::Ptr create_navigator(World &world) const;
 			SimpleNavigatorFactory();
-			~SimpleNavigatorFactory();
 	};
 
 	SimpleNavigatorFactory simple_nav_factory;
@@ -43,13 +41,7 @@ namespace {
 	SimpleNavigator::SimpleNavigator(World &world) : Navigator(world) {
 	}
 
-	SimpleNavigator::~SimpleNavigator() {
-	}
-
 	SimpleNavigatorFactory::SimpleNavigatorFactory() : NavigatorFactory("Simple Navigator") {
-	}
-
-	SimpleNavigatorFactory::~SimpleNavigatorFactory() {
 	}
 
 	Navigator::Ptr SimpleNavigatorFactory::create_navigator(World &world) const {

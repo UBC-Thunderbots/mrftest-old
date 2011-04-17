@@ -34,8 +34,6 @@ namespace AI {
 
 				protected:
 					Enemy();
-
-					~Enemy();
 			};
 		}
 	}

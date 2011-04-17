@@ -28,9 +28,6 @@ TesterFeedbackPanel::TesterFeedbackPanel(XBeeDongle &dongle) : Gtk::Table(5, 2),
 	set_robot(XBeeRobot::Ptr());
 }
 
-TesterFeedbackPanel::~TesterFeedbackPanel() {
-}
-
 void TesterFeedbackPanel::set_robot(XBeeRobot::Ptr bot) {
 	alive_connection.disconnect();
 	robot = bot;

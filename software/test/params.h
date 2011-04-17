@@ -7,7 +7,6 @@
 class TesterParamsPanel : public Gtk::Table {
 	public:
 		TesterParamsPanel();
-		~TesterParamsPanel();
 		void set_robot(XBeeRobot::Ptr bot);
 
 	private:

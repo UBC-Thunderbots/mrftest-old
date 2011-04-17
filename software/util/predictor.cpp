@@ -14,9 +14,6 @@ Predictor::Predictor(bool angle) : initialized(false), filter(angle) {
 	filter.set_availability(true);
 }
 
-Predictor::~Predictor() {
-}
-
 double Predictor::value(double delta, unsigned int deriv) const {
 	timespec total;
 	timespec_add(double_to_timespec(delta), lock_timestamp, total);

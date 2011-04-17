@@ -27,7 +27,6 @@ namespace {
 	class OurCornerPlay : public Play {
 		public:
 			OurCornerPlay(const AI::HL::W::World &world);
-			~OurCornerPlay();
 
 		private:
 			bool invariant() const; 
@@ -45,9 +44,6 @@ namespace {
 	}
 
 	OurCornerPlay::OurCornerPlay(const World &world) : Play(world) {
-	}
-
-	OurCornerPlay::~OurCornerPlay() {
 	}
 	
 	bool OurCornerPlay::invariant() const {

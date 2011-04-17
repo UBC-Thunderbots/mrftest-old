@@ -23,11 +23,6 @@ namespace AI {
 					Ball(Backend &be);
 
 					/**
-					 * Destroys a Ball.
-					 */
-					~Ball();
-
-					/**
 					 * Pushes a new position datum into the ball and locks the predictors.
 					 *
 					 * \param[in] state the state block sent by the simulator.

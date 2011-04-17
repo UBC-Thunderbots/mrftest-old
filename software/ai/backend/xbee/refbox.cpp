@@ -47,9 +47,6 @@ RefBox::RefBox() : command('H'), goals_blue(0), goals_yellow(0), fd(create_socke
 	Glib::signal_io().connect(sigc::mem_fun(this, &RefBox::on_readable), fd->fd(), Glib::IO_IN);
 }
 
-RefBox::~RefBox() {
-}
-
 bool RefBox::on_readable(Glib::IOCondition) {
 	unsigned char packet[65536];
 	ssize_t len = recv(fd->fd(), &packet, sizeof(packet), 0);

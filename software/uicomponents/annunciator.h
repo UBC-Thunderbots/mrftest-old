@@ -12,11 +12,6 @@ class GUIAnnunciator : public Gtk::ScrolledWindow {
 		 * Constructs a new annunciator panel ready to add to a window.
 		 */
 		GUIAnnunciator();
-
-		/**
-		 * Destroys an annunciator panel.
-		 */
-		~GUIAnnunciator();
 };
 
 #endif

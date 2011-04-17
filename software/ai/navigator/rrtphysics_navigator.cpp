@@ -34,14 +34,12 @@ namespace{
 
 		private:
 			RRTPhysicsNavigator(World &world);
-			~RRTPhysicsNavigator();
 			PhysicsPlanner planner;
 	};
 
 	class RRTPhysicsNavigatorFactory : public NavigatorFactory {
 		public:
 			RRTPhysicsNavigatorFactory();
-			~RRTPhysicsNavigatorFactory();
 			Navigator::Ptr create_navigator(World &world) const;
 	};
 
@@ -96,13 +94,7 @@ namespace{
 	RRTPhysicsNavigator::RRTPhysicsNavigator(World &world) : Navigator(world), planner(world) {
 	}
 
-	RRTPhysicsNavigator::~RRTPhysicsNavigator() {
-	}
-
 	RRTPhysicsNavigatorFactory::RRTPhysicsNavigatorFactory() : NavigatorFactory("RRT Physics Navigator") {
-	}
-
-	RRTPhysicsNavigatorFactory::~RRTPhysicsNavigatorFactory() {
 	}
 
 	Navigator::Ptr RRTPhysicsNavigatorFactory::create_navigator(World &world) const {

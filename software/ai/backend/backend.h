@@ -493,11 +493,6 @@ namespace AI {
 				Backend();
 
 				/**
-				 * Destroys a Backend.
-				 */
-				~Backend();
-
-				/**
 				 * Allows setting the current play type.
 				 *
 				 * \return the current play type.
@@ -542,11 +537,6 @@ namespace AI {
 				 * \param[in] name a human-readable name for this Backend.
 				 */
 				BackendFactory(const char *name);
-
-				/**
-				 * Destroys a BackendFactory.
-				 */
-				~BackendFactory();
 		};
 	}
 }

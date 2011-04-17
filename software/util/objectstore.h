@@ -28,22 +28,12 @@ class ObjectStore : public NonCopyable {
 				 * Constructs a new Element.
 				 */
 				Element();
-
-				/**
-				 * Destroys the Element.
-				 */
-				~Element();
 		};
 
 		/**
 		 * Constructs a new ObjectStore containing no objects.
 		 */
 		ObjectStore();
-
-		/**
-		 * Destroys the ObjectStore and the objects it contains.
-		 */
-		~ObjectStore();
 
 		/**
 		 * Fetches an object from the ObjectStore, creating it if it does not yet exist.

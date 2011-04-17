@@ -42,11 +42,6 @@ namespace {
 			PacketDecodedTreeColumns();
 
 			/**
-			 * Destroys a PacketTreeDecodedColumns.
-			 */
-			~PacketDecodedTreeColumns();
-
-			/**
 			 * Adds a key-value pair to a tree.
 			 *
 			 * \param[in] store the tree to add the row to.
@@ -78,9 +73,6 @@ namespace {
 	PacketDecodedTreeColumns::PacketDecodedTreeColumns() {
 		add(key);
 		add(value);
-	}
-
-	PacketDecodedTreeColumns::~PacketDecodedTreeColumns() {
 	}
 
 	Gtk::TreeRow PacketDecodedTreeColumns::append_kv(Glib::RefPtr<Gtk::TreeStore> store, const Glib::ustring &k, const Glib::ustring &v) const {
@@ -2139,11 +2131,6 @@ namespace {
 			PacketParser(Log::Tag tag, const Glib::ustring &name);
 
 			/**
-			 * Destroys a PacketParser.
-			 */
-			~PacketParser();
-
-			/**
 			 * Parses a packet and computes its corresponding flags.
 			 *
 			 * \param[in] data the payload of the packet.
@@ -2191,9 +2178,6 @@ namespace {
 	};
 
 	PacketParser::PacketParser(Log::Tag tag, const Glib::ustring &name) : tag(tag), name(name) {
-	}
-
-	PacketParser::~PacketParser() {
 	}
 
 	/**
@@ -2295,11 +2279,6 @@ namespace {
 			 */
 			SequencePacketParser(Log::Tag tag, const Glib::ustring &name, const Element *elements, std::size_t num_elements);
 
-			/**
-			 * Destroys a SequencePacketParser.
-			 */
-			~SequencePacketParser();
-
 			unsigned int compute_flags(const uint8_t *data, std::size_t length, std::size_t declared_length) const;
 
 			void build_tree(Glib::RefPtr<Gtk::TreeStore> store, const PacketDecodedTreeColumns &columns, const Gtk::TreeRow &root, const uint8_t *data, std::size_t length, std::size_t declared_length) const;
@@ -2308,9 +2287,6 @@ namespace {
 	};
 
 	SequencePacketParser::SequencePacketParser(Log::Tag tag, const Glib::ustring &name, const Element *elements, std::size_t num_elements) : PacketParser(tag, name), elements(elements), num_elements(num_elements) {
-	}
-
-	SequencePacketParser::~SequencePacketParser() {
 	}
 
 	unsigned int SequencePacketParser::compute_flags(const uint8_t *data, std::size_t length, std::size_t declared_length) const {
@@ -2400,11 +2376,6 @@ namespace {
 			 */
 			EndOfLogPacketParser();
 
-			/**
-			 * Destroys an EndOfLogPacketParser.
-			 */
-			~EndOfLogPacketParser();
-
 			unsigned int compute_flags(const uint8_t *data, std::size_t length, std::size_t declared_length) const;
 
 			void build_tree(Glib::RefPtr<Gtk::TreeStore> store, const PacketDecodedTreeColumns &columns, const Gtk::TreeRow &root, const uint8_t *data, std::size_t length, std::size_t declared_length) const;
@@ -2413,9 +2384,6 @@ namespace {
 	};
 
 	EndOfLogPacketParser::EndOfLogPacketParser() : PacketParser(Log::T_END, "End of Log") {
-	}
-
-	EndOfLogPacketParser::~EndOfLogPacketParser() {
 	}
 
 	unsigned int EndOfLogPacketParser::compute_flags(const uint8_t *data, std::size_t length, std::size_t declared_length) const {
@@ -2548,11 +2516,6 @@ namespace {
 			 */
 			SSLVisionPacketParser();
 
-			/**
-			 * Destroys an SSLVisionPacketParser.
-			 */
-			~SSLVisionPacketParser();
-
 			unsigned int compute_flags(const uint8_t *data, std::size_t length, std::size_t declared_length) const;
 
 			void build_tree(Glib::RefPtr<Gtk::TreeStore> store, const PacketDecodedTreeColumns &columns, const Gtk::TreeRow &root, const uint8_t *data, std::size_t length, std::size_t declared_length) const;
@@ -2561,9 +2524,6 @@ namespace {
 	};
 
 	SSLVisionPacketParser::SSLVisionPacketParser() : PacketParser(Log::T_VISION, "SSL-Vision Packet") {
-	}
-
-	SSLVisionPacketParser::~SSLVisionPacketParser() {
 	}
 
 	unsigned int SSLVisionPacketParser::compute_flags(const uint8_t *data, std::size_t length, std::size_t) const {
@@ -3333,9 +3293,6 @@ namespace {
 				alm_column_record.add(type_column);
 			}
 
-			~PacketsALM() {
-			}
-
 			std::size_t alm_rows() const {
 				return packets.size();
 			}
@@ -3386,9 +3343,6 @@ class LogAnalyzer::Impl : public NonCopyable {
 			}
 
 			alm = PacketsALM::create(packets);
-		}
-
-		~Impl() {
 		}
 };
 
@@ -3441,9 +3395,6 @@ LogAnalyzer::LogAnalyzer(Gtk::Window &parent, const std::string &filename) : imp
 	add(vbox);
 
 	show_all();
-}
-
-LogAnalyzer::~LogAnalyzer() {
 }
 
 void LogAnalyzer::on_size_allocate(Gtk::Allocation &alloc) {

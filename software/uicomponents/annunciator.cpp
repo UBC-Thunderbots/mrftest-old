@@ -30,9 +30,6 @@ namespace {
 				Annunciator::signal_message_hidden.connect(sigc::mem_fun(this, &MessagesALM::on_message_hidden));
 			}
 
-			~MessagesALM() {
-			}
-
 			std::size_t alm_rows() const {
 				return Annunciator::visible().size();
 			}
@@ -105,8 +102,5 @@ GUIAnnunciator::GUIAnnunciator() {
 	add(*view);
 	set_shadow_type(Gtk::SHADOW_IN);
 	set_size_request(-1, 100);
-}
-
-GUIAnnunciator::~GUIAnnunciator() {
 }
 

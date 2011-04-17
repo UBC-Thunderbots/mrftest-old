@@ -8,9 +8,6 @@ using namespace AI::HL::W;
 Play::Play(const World &world) : world(world) {
 }
 
-Play::~Play() {
-}
-
 PlayFactory::PlayFactory(const char *name) : Registerable<PlayFactory>(name) {
 }
 

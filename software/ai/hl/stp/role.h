@@ -42,8 +42,6 @@ namespace AI {
 
 				protected:
 					Role();
-
-					~Role();
 			};
 		}
 	}

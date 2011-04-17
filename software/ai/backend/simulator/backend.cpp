@@ -129,9 +129,6 @@ AI::BE::Simulator::Backend::Backend(const std::string &load_filename) : sock(con
 	}
 }
 
-AI::BE::Simulator::Backend::~Backend() {
-}
-
 void AI::BE::Simulator::Backend::send_packet(const ::Simulator::Proto::A2SPacket &packet, FileDescriptor::Ptr ancillary_fd) {
 	iovec iov = { iov_base: const_cast< ::Simulator::Proto::A2SPacket *>(&packet), iov_len: sizeof(packet), };
 	msghdr msgh = { msg_name: 0, msg_namelen: 0, msg_iov: &iov, msg_iovlen: 1, msg_control: 0, msg_controllen: 0, msg_flags: 0, };
@@ -393,9 +390,6 @@ void AI::BE::Simulator::Backend::on_state_file_save_clicked() {
 }
 
 AI::BE::Simulator::BackendFactory::BackendFactory() : AI::BE::BackendFactory("Simulator") {
-}
-
-AI::BE::Simulator::BackendFactory::~BackendFactory() {
 }
 
 void AI::BE::Simulator::BackendFactory::create_backend(const std::multimap<Glib::ustring, Glib::ustring> &params, sigc::slot<void, AI::BE::Backend &> cb) const {

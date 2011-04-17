@@ -95,9 +95,6 @@ double BallODE::get_height() const {
 
     }
  */
-BallODE::~BallODE() {
-}
-
 double BallODE::getRadius() {
 	return dradius;
 }

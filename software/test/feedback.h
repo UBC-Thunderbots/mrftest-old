@@ -8,7 +8,6 @@
 class TesterFeedbackPanel : public Gtk::Table {
 	public:
 		TesterFeedbackPanel(XBeeDongle &dongle);
-		~TesterFeedbackPanel();
 		void set_robot(XBeeRobot::Ptr bot);
 
 	private:

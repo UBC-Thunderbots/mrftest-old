@@ -37,9 +37,6 @@ namespace {
 			PathPoint(Point x_y) : xy(x_y), g(INF), closed(false) {
 			}
 
-			~PathPoint() {
-			}
-
 			std::vector<PathPoint::Ptr> getParents() {
 				std::vector<PathPoint::Ptr> p;
 				PathPoint::Ptr cur = parent;
@@ -90,7 +87,6 @@ namespace {
 	class AstarNavigatorFactory : public NavigatorFactory {
 		public:
 			AstarNavigatorFactory();
-			~AstarNavigatorFactory();
 			Navigator::Ptr create_navigator(AI::Nav::W::World &world) const;
 	};
 
@@ -102,10 +98,6 @@ namespace {
 
 	AstarNavigatorFactory::AstarNavigatorFactory() : NavigatorFactory("A* Navigator") {
 	}
-
-	AstarNavigatorFactory::~AstarNavigatorFactory() {
-	}
-
 
 	Navigator::Ptr AstarNavigator::create(World &world) {
 		const Navigator::Ptr p(new AstarNavigator(world));

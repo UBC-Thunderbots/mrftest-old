@@ -90,11 +90,6 @@ namespace AI {
 						 * The constructor.
 						 */
 						Play(const World &world);
-
-						/**
-						 * Destructor
-						 */
-						~Play();
 				};
 
 				/**

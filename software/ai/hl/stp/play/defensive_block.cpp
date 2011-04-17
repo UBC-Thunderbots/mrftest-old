@@ -25,7 +25,6 @@ namespace {
 	class DefensiveBlock : public Play {
 		public:
 			DefensiveBlock(const World &world);
-			~DefensiveBlock();
 
 		private:
 			bool invariant() const;
@@ -43,9 +42,6 @@ namespace {
 	}
 
 	DefensiveBlock::DefensiveBlock(const World &world) : Play(world) {
-	}
-
-	DefensiveBlock::~DefensiveBlock() {
 	}
 
 	bool DefensiveBlock::invariant() const {
