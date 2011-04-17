@@ -3,10 +3,20 @@
 
 #include "ai/hl/stp/world.h"
 
+/**
+ * a couples of function to be implemented for stp to use
+ * chase ( World, Player )
+ * steal ( World, Player )
+ * bump_ball ( World, Player )
+ * drive_ball_to_target( World, Player )
+ * spin_at_ball( World, Player, Orientation )
+*/
+
 namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Action {
+
 				/**
 				 * Chases after the ball as fast as possible. Orient towards the ball.
 				 */
