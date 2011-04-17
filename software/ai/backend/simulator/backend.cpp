@@ -392,7 +392,7 @@ void AI::BE::Simulator::Backend::on_state_file_save_clicked() {
 AI::BE::Simulator::BackendFactory::BackendFactory() : AI::BE::BackendFactory("Simulator") {
 }
 
-void AI::BE::Simulator::BackendFactory::create_backend(const std::multimap<Glib::ustring, Glib::ustring> &params, sigc::slot<void, AI::BE::Backend &> cb) const {
+void AI::BE::Simulator::BackendFactory::create_backend(const std::multimap<Glib::ustring, Glib::ustring> &params, std::function<void(AI::BE::Backend &)> cb) const {
 	std::string load_filename;
 	for (std::multimap<Glib::ustring, Glib::ustring>::const_iterator i = params.begin(), iend = params.end(); i != iend; ++i) {
 		if (i->first == "load") {

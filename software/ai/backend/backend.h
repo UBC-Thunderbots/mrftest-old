@@ -11,6 +11,7 @@
 #include "util/noncopyable.h"
 #include "util/property.h"
 #include "util/registerable.h"
+#include <functional>
 #include <glibmm.h>
 #include <map>
 #include <sigc++/sigc++.h>
@@ -528,7 +529,7 @@ namespace AI {
 				 *
 				 * \param[in] cb a function to invoke passing the constructed Backend.
 				 */
-				virtual void create_backend(const std::multimap<Glib::ustring, Glib::ustring> &params, sigc::slot<void, Backend &> cb) const = 0;
+				virtual void create_backend(const std::multimap<Glib::ustring, Glib::ustring> &params, std::function<void(Backend &)> cb) const = 0;
 
 			protected:
 				/**

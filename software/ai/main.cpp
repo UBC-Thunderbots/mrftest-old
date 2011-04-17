@@ -9,12 +9,15 @@
 #include <algorithm>
 #include <cstdlib>
 #include <ctime>
+#include <functional>
 #include <gtkmm.h>
 #include <iostream>
 #include <locale>
 #include <stdexcept>
 #include <stdint.h>
 #include <vector>
+
+using namespace std::placeholders;
 
 namespace {
 	struct WithBackendClosure {
@@ -272,7 +275,7 @@ namespace {
 		if (be == bem.end()) {
 			throw std::runtime_error(Glib::ustring::compose("There is no backend '%1'.", backend_name));
 		}
-		be->second->create_backend(backend_params, sigc::bind(sigc::ptr_fun(&main_impl_with_backend), wbc));
+		be->second->create_backend(backend_params, std::bind(&main_impl_with_backend, _1, wbc));
 
 		return 0;
 	}

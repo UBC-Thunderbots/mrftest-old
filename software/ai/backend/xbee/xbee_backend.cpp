@@ -612,7 +612,7 @@ namespace {
 			XBeeBackendFactory() : BackendFactory("xbee") {
 			}
 
-			void create_backend(const std::multimap<Glib::ustring, Glib::ustring> &params, sigc::slot<void, Backend &> cb) const {
+			void create_backend(const std::multimap<Glib::ustring, Glib::ustring> &params, std::function<void(Backend &)> cb) const {
 				if (!params.empty()) {
 					throw std::runtime_error("The XBee backend does not accept any parameters.");
 				}
