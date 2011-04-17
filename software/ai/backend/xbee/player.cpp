@@ -12,6 +12,8 @@ using namespace AI::BE::XBee;
 namespace {
 	const double BATTERY_CRITICAL_THRESHOLD = 13.5;
 
+	const int BATTERY_HYSTERESIS_MAGNITUDE = 15;
+
 	unsigned int calc_kick(double speed) {
 		static const double SPEEDS[] = { 7.14, 8.89, 10.3 };
 		static const unsigned int POWERS[] = { 2016, 3024, 4032 };
@@ -60,7 +62,7 @@ void Player::kick_impl(double speed) {
 		if (bot->capacitor_charged) {
 			bot->kick(calc_kick(speed), 0, 0);
 		} else {
-			chick_when_not_ready_message.fire();
+			LOG_ERROR(Glib::ustring::compose("Bot %1 chick when not ready", pattern()));
 		}
 	}
 }
@@ -77,7 +79,7 @@ Player::Ptr Player::create(AI::BE::Backend &backend, unsigned int pattern, XBeeR
 	return p;
 }
 
-Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), controlled(false), dribble_distance_(0.0), chick_when_not_ready_message(Glib::ustring::compose("Bot %1 chick when not ready", pattern), Annunciator::Message::TriggerMode::EDGE), autokick_invoked(false) {
+Player::Player(AI::BE::Backend &backend, unsigned int pattern, XBeeRobot::Ptr bot) : AI::BE::XBee::Robot(backend, pattern), bot(bot), controlled(false), dribble_distance_(0.0), battery_warning_hysteresis(-BATTERY_HYSTERESIS_MAGNITUDE), battery_warning_message(Glib::ustring::compose("Bot %1 low battery", pattern), Annunciator::Message::TriggerMode::LEVEL), autokick_invoked(false) {
 	timespec now;
 	timespec_now(now);
 	std::fill(&wheel_speeds_[0], &wheel_speeds_[4], 0);
@@ -92,8 +94,24 @@ void Player::drive(const int(&w)[4]) {
 
 void Player::tick(bool halt) {
 	// Check for emergency conditions.
-	if (!bot->alive || bot->battery_voltage < BATTERY_CRITICAL_THRESHOLD) {
+	if (!bot->alive) {
 		halt = true;
+	}
+
+	// Check for low battery condition.
+	// Apply some hysteresis.
+	if (bot->battery_voltage < BATTERY_CRITICAL_THRESHOLD) {
+		if (battery_warning_hysteresis == BATTERY_HYSTERESIS_MAGNITUDE) {
+			battery_warning_message.active(true);
+		} else {
+			++battery_warning_hysteresis;
+		}
+	} else {
+		if (battery_warning_hysteresis == -BATTERY_HYSTERESIS_MAGNITUDE) {
+			battery_warning_message.active(false);
+		} else {
+			--battery_warning_hysteresis;
+		}
 	}
 
 	// Inhibit auto-kick if halted or if the AI didn't renew its interest.

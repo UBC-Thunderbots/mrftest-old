@@ -97,7 +97,8 @@ namespace AI {
 					bool controlled;
 					double dribble_distance_;
 					Point last_dribble_position;
-					Annunciator::Message chick_when_not_ready_message;
+					int battery_warning_hysteresis;
+					Annunciator::Message battery_warning_message;
 					int wheel_speeds_[4];
 					std::vector<std::pair<std::pair<Point, double>, timespec> > path_;
 					bool autokick_invoked;
