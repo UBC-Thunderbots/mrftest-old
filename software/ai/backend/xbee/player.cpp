@@ -122,7 +122,7 @@ void Player::tick(bool halt) {
 
 	// Drivetrain control path.
 	if (!halt && moved && controlled) {
-		bot->drive(wheel_speeds_[0], wheel_speeds_[1], wheel_speeds_[2], wheel_speeds_[3]);
+		bot->drive(wheel_speeds_);
 	} else {
 		bot->drive_scram();
 	}

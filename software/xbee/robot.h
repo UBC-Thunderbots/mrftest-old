@@ -74,8 +74,6 @@ class XBeeRobot : public ByRef {
 
 		void drive(const int(&wheels)[4]);
 
-		void drive(int w1, int w2, int w3, int w4);
-
 		void drive_scram();
 
 		void dribble(bool active = true);

@@ -26,11 +26,13 @@ TesterControlPerMotorDrive::TesterControlPerMotorDrive(XBeeRobot::Ptr bot) : Gtk
 }
 
 void TesterControlPerMotorDrive::on_change() {
-	int m1 = static_cast<int16_t>(drive1_scale.get_value());
-	int m2 = static_cast<int16_t>(drive2_scale.get_value());
-	int m3 = static_cast<int16_t>(drive3_scale.get_value());
-	int m4 = static_cast<int16_t>(drive4_scale.get_value());
-	robot->drive(m1, m2, m3, m4);
+	int m[4] = {
+		static_cast<int16_t>(drive1_scale.get_value()),
+		static_cast<int16_t>(drive2_scale.get_value()),
+		static_cast<int16_t>(drive3_scale.get_value()),
+		static_cast<int16_t>(drive4_scale.get_value())
+	};
+	robot->drive(m);
 }
 
 void TesterControlPerMotorDrive::zero() {

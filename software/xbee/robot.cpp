@@ -634,11 +634,6 @@ void XBeeRobot::drive(const int(&wheels)[4]) {
 	}
 }
 
-void XBeeRobot::drive(int w1, int w2, int w3, int w4) {
-	const int wheels[] = { w1, w2, w3, w4 };
-	drive(wheels);
-}
-
 void XBeeRobot::drive_scram() {
 	if (drive_block.get(0)) {
 		drive_block.set(0, false);
