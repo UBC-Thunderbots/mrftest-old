@@ -5,26 +5,35 @@
 #include "xbee/robot.h"
 #include <gtkmm.h>
 
+/**
+ * \brief A panel that lets the user view various pieces of information about a robot.
+ */
 class TesterFeedbackPanel : public Gtk::Table {
 	public:
-		TesterFeedbackPanel(XBeeDongle &dongle);
-		void set_robot(XBeeRobot::Ptr bot);
+		/**
+		 * \brief Constructs a new TesterFeedbackPanel.
+		 *
+		 * \param[in] dongle the radio dongle over which to communicate.
+		 *
+		 * \param[in] robot the robot whose information should be displayed.
+		 */
+		TesterFeedbackPanel(XBeeDongle &dongle, XBeeRobot::Ptr robot);
 
 	private:
 		XBeeDongle &dongle;
 		XBeeRobot::Ptr robot;
-		sigc::connection alive_connection;
+		Gtk::Label battery_voltage_label, capacitor_voltage_label, dribbler_temperature_label, break_beam_reading_label;
 		Gtk::ProgressBar battery_voltage, capacitor_voltage, dribbler_temperature, break_beam_reading;
-		sigc::connection battery_voltage_connection, capacitor_voltage_connection, dribbler_temperature_connection, break_beam_reading_connection;
-		Gtk::CheckButton estop, ball_in_beam, ball_on_dribbler, capacitor_charged;
-		sigc::connection ball_in_beam_connection, ball_on_dribbler_connection, capacitor_charged_connection;
+		Gtk::HBox cb_hbox1, cb_hbox2;
+		Gtk::CheckButton alive, estop, ball_in_beam, ball_on_dribbler, capacitor_charged;
 
-		void on_estop_changed();
-		void on_alive_changed();
+		void on_has_feedback_changed();
 		void on_battery_voltage_changed();
 		void on_capacitor_voltage_changed();
 		void on_dribbler_temperature_changed();
 		void on_break_beam_reading_changed();
+		void on_alive_changed();
+		void on_estop_changed();
 		void on_ball_in_beam_changed();
 		void on_ball_on_dribbler_changed();
 		void on_capacitor_charged_changed();

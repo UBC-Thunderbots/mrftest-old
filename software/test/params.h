@@ -4,22 +4,36 @@
 #include "xbee/robot.h"
 #include <gtkmm.h>
 
+/**
+ * \brief A panel that allows the user to edit the operational parameters of a robot.
+ */
 class TesterParamsPanel : public Gtk::Table {
 	public:
-		TesterParamsPanel();
-		void set_robot(XBeeRobot::Ptr bot);
+		/**
+		 * \brief Constructs a new TesterParamsPanel.
+		 *
+		 * \param[in] robot the robot whose parameters should be edited.
+		 */
+		TesterParamsPanel(XBeeRobot::Ptr robot);
 
 	private:
 		XBeeRobot::Ptr robot;
 		XBeeRobot::OperationalParameters::FlashContents flash_contents;
+		Gtk::Label channel0label, channel1label;
 		Gtk::ComboBoxText channels[2];
+		Gtk::Label index_label;
 		Gtk::ComboBoxText index;
+		Gtk::Label dribble_power_label;
 		Gtk::HScale dribble_power;
+		Gtk::VBox vbox;
+		Gtk::HButtonBox hbb;
 		Gtk::Button commit, rollback, reboot;
-		sigc::connection alive_connection;
+		Gtk::HBox test_mode_hbox;
+		Gtk::Label test_mode_label;
 		Gtk::Entry test_mode;
 		Gtk::Button set_test_mode;
-		Gtk::Label firmware_signature_label, flash_signature_label;
+		Gtk::HBox build_signatures_hbox;
+		Gtk::Label build_signatures_label, firmware_signature_label, flash_signature_label;
 		bool freeze;
 
 		void activate_controls(bool act = true);

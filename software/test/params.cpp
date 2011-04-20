@@ -10,7 +10,7 @@ namespace {
 	}
 }
 
-TesterParamsPanel::TesterParamsPanel() : Gtk::Table(6, 2), commit("Commit"), rollback("Rollback"), reboot("Reboot"), set_test_mode("Set Test Mode"), freeze(false) {
+TesterParamsPanel::TesterParamsPanel(XBeeRobot::Ptr robot) : Gtk::Table(6, 2), robot(robot), channel0label("Out Channel:"), channel1label("In Channel:"), index_label("Index:"), dribble_power_label("Dribble Power:"), commit("Commit"), rollback("Rollback"), reboot("Reboot"), test_mode_label("Test mode (hex):"), set_test_mode("Set Test Mode"), build_signatures_label("Build Sigs:"), freeze(false) {
 	for (std::size_t i = 0; i < 2; ++i) {
 		for (unsigned int ch = 0x0B; ch <= 0x1A; ++ch) {
 			channels[i].append_text(format_channel(ch));
@@ -29,43 +29,31 @@ TesterParamsPanel::TesterParamsPanel() : Gtk::Table(6, 2), commit("Commit"), rol
 	reboot.signal_clicked().connect(sigc::mem_fun(this, &TesterParamsPanel::on_reboot));
 	set_test_mode.signal_clicked().connect(sigc::mem_fun(this, &TesterParamsPanel::on_set_test_mode));
 
-	attach(*Gtk::manage(new Gtk::Label("Out Channel:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(channel0label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(channels[0], 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(*Gtk::manage(new Gtk::Label("In Channel:")), 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(channel1label, 0, 1, 1, 2, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(channels[1], 1, 2, 1, 2, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(*Gtk::manage(new Gtk::Label("Index:")), 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(index_label, 0, 1, 2, 3, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(index, 1, 2, 2, 3, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(*Gtk::manage(new Gtk::Label("Dribble Power:")), 0, 1, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(dribble_power_label, 0, 1, 3, 4, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(dribble_power, 1, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
-	Gtk::VBox *vbox = Gtk::manage(new Gtk::VBox);
-	Gtk::HButtonBox *hbb = Gtk::manage(new Gtk::HButtonBox);
-	hbb->pack_start(commit);
-	hbb->pack_start(rollback);
-	hbb->pack_start(reboot);
-	vbox->pack_start(*hbb, Gtk::PACK_SHRINK);
-	Gtk::HBox *hbox = Gtk::manage(new Gtk::HBox);
-	hbox->pack_start(*Gtk::manage(new Gtk::Label("Test mode (hex):")), Gtk::PACK_SHRINK);
-	hbox->pack_start(test_mode, Gtk::PACK_EXPAND_WIDGET);
-	hbox->pack_start(set_test_mode);
-	vbox->pack_start(*hbox, Gtk::PACK_SHRINK);
-	attach(*vbox, 0, 2, 4, 5, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	hbb.pack_start(commit);
+	hbb.pack_start(rollback);
+	hbb.pack_start(reboot);
+	vbox.pack_start(hbb, Gtk::PACK_SHRINK);
+	test_mode_hbox.pack_start(test_mode_label, Gtk::PACK_SHRINK);
+	test_mode_hbox.pack_start(test_mode, Gtk::PACK_EXPAND_WIDGET);
+	test_mode_hbox.pack_start(set_test_mode);
+	vbox.pack_start(test_mode_hbox, Gtk::PACK_SHRINK);
+	attach(vbox, 0, 2, 4, 5, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
-	hbox = Gtk::manage(new Gtk::HBox);
-	hbox->pack_start(firmware_signature_label, Gtk::PACK_EXPAND_WIDGET);
-	hbox->pack_start(flash_signature_label, Gtk::PACK_EXPAND_WIDGET);
-	attach(*Gtk::manage(new Gtk::Label("Build Sigs:")), 0, 1, 5, 6, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-	attach(*hbox, 1, 2, 5, 6, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	build_signatures_hbox.pack_start(firmware_signature_label, Gtk::PACK_EXPAND_WIDGET);
+	build_signatures_hbox.pack_start(flash_signature_label, Gtk::PACK_EXPAND_WIDGET);
+	attach(build_signatures_label, 0, 1, 5, 6, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
+	attach(build_signatures_hbox, 1, 2, 5, 6, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
-	set_robot(XBeeRobot::Ptr());
-}
-
-void TesterParamsPanel::set_robot(XBeeRobot::Ptr bot) {
-	alive_connection.disconnect();
-	robot = bot;
-	if (robot.is()) {
-		alive_connection = robot->alive.signal_changed().connect(sigc::mem_fun(this, &TesterParamsPanel::on_alive_changed));
-	}
+	robot->alive.signal_changed().connect(sigc::mem_fun(this, &TesterParamsPanel::on_alive_changed));
 	on_alive_changed();
 }
 
@@ -80,7 +68,7 @@ void TesterParamsPanel::activate_controls(bool act) {
 
 void TesterParamsPanel::on_alive_changed() {
 	activate_controls(false);
-	if (robot.is() && robot->alive) {
+	if (robot->alive) {
 		robot->firmware_read_build_signatures()->signal_done.connect(sigc::mem_fun(this, &TesterParamsPanel::on_read_build_signatures_done));
 	}
 }
@@ -89,7 +77,7 @@ void TesterParamsPanel::on_read_build_signatures_done(AsyncOperation<XBeeRobot::
 	const XBeeRobot::BuildSignatures &sigs = op->result();
 	firmware_signature_label.set_text(Glib::ustring::compose("PIC Firmware: 0x%1", tohex(sigs.firmware_signature, 4)));
 	flash_signature_label.set_text(Glib::ustring::compose("SPI Flash: 0x%1", tohex(sigs.flash_signature, 4)));
-	if (robot.is() && robot->alive) {
+	if (robot->alive) {
 		robot->firmware_read_operational_parameters()->signal_done.connect(sigc::mem_fun(this, &TesterParamsPanel::on_read_done));
 	}
 }

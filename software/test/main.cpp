@@ -1,4 +1,4 @@
-#include "test/window.h"
+#include "test/launcher.h"
 #include "util/annunciator.h"
 #include "xbee/dongle.h"
 #include <gtkmm.h>
@@ -30,7 +30,7 @@ namespace {
 		std::cout << "OK\n";
 
 		// Create the window.
-		TesterWindow win(dongle);
+		TesterLauncher win(dongle);
 		Gtk::Main::run(win);
 
 		return 0;
