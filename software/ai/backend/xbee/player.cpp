@@ -37,7 +37,7 @@ namespace {
 		double diff_power = power_above - power_below;
 		double slope = diff_power / diff_speed;
 		double power = (speed - speed_below) * slope + power_below;
-		return static_cast<unsigned int>(clamp(power, 0.0, 4094.0));
+		return static_cast<unsigned int>(clamp(power, 0.0, 4064.0));
 	}
 }
 
