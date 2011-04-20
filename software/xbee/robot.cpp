@@ -538,6 +538,47 @@ namespace {
 	void discard_result(AsyncOperation<void>::Ptr op) {
 		op->result();
 	}
+
+	void encode_kick_parameters(unsigned int &pulse_width1, unsigned int &pulse_width2, unsigned int &slice_width, bool &ignore_slice1, bool &ignore_slice2, int offset) {
+		assert(pulse_width1 <= 4064);
+		assert(pulse_width2 <= 4064);
+		assert(-4064 <= offset && offset <= 4064);
+
+		/* The parameters pulse_width1, pulse_width2, and offset come as input.
+		 * These are numbers in microseconds; the pulse_widths are the actual widths and offset is the time difference between their leading edges.
+		 *
+		 * For transmission to the robot, however, a number of changes need to be made.
+		 *
+		 * First, the FPGA bitstream doesn't use pulse widths and a leading edge offset.
+		 * For each solenoid, it accepts the time from the start of the kick operation to the falling edge of the pulse.
+		 * It also accepts a “slice width”, which is the time from the start of the kick operation to the rising edge of some of the pulses.
+		 * Finally, it accepts two flags indicating whether each pulse's rising edge is at the start of the operation or after the slice width.
+		 *
+		 * Second, times sent to the robot over the radio are represented in 32µs units rather than in individual microseconds. */
+		if (offset < 0) {
+			slice_width = -offset;
+			pulse_width2 += slice_width;
+			assert(pulse_width2 <= 4064);
+			ignore_slice1 = true;
+			ignore_slice2 = false;
+		} else if (offset > 0) {
+			slice_width = offset;
+			pulse_width1 += slice_width;
+			assert(pulse_width1 <= 4064);
+			ignore_slice1 = false;
+			ignore_slice2 = true;
+		} else {
+			slice_width = 0;
+			ignore_slice1 = true;
+			ignore_slice2 = true;
+		}
+		pulse_width1 /= 32;
+		pulse_width2 /= 32;
+		slice_width /= 32;
+		assert(pulse_width1 <= 127);
+		assert(pulse_width2 <= 127);
+		assert(slice_width <= 127);
+	}
 }
 
 AsyncOperation<void>::Ptr XBeeRobot::firmware_spi_chip_erase() {
@@ -620,31 +661,9 @@ void XBeeRobot::enable_chicker(bool active) {
 }
 
 void XBeeRobot::autokick(unsigned int pulse_width1, unsigned int pulse_width2, int offset) {
-	assert(pulse_width1 <= 4064);
-	assert(pulse_width2 <= 4064);
-	assert(-4094 <= offset && offset <= 4094);
-
-	/* Translate from actual widths and offset to "total-widths" and "slice width" as used by firmware/VHDL. */
 	unsigned int slice_width;
 	bool ignore_slice1, ignore_slice2;
-#warning comment is shit at explaining what actually happens here
-	if (offset < 0) {
-		slice_width = -offset;
-		pulse_width2 += slice_width;
-		assert(pulse_width2 <= 4064);
-		ignore_slice1 = true;
-		ignore_slice2 = false;
-	} else if (offset > 0) {
-		slice_width = offset;
-		pulse_width1 += slice_width;
-		assert(pulse_width1 <= 4064);
-		ignore_slice1 = false;
-		ignore_slice2 = true;
-	} else {
-		slice_width = 0;
-		ignore_slice1 = true;
-		ignore_slice2 = true;
-	}
+	encode_kick_parameters(pulse_width1, pulse_width2, slice_width, ignore_slice1, ignore_slice2, offset);
 
 	BitArray<80> buffer = drive_block;
 	buffer.set(5, pulse_width1 || pulse_width2);
@@ -667,38 +686,16 @@ void XBeeRobot::autokick(unsigned int pulse_width1, unsigned int pulse_width2, i
 }
 
 void XBeeRobot::kick(unsigned int pulse_width1, unsigned int pulse_width2, int offset) {
-	assert(pulse_width1 <= 4064);
-	assert(pulse_width2 <= 4064);
-	assert(-4094 <= offset && offset <= 4094);
-
-	/* Translate from actual widths and offset to "total-widths" and "slice width" as used by firmware/VHDL. */
 	unsigned int slice_width;
 	bool ignore_slice1, ignore_slice2;
-#warning comment is shit at explaining what actually happens here
-	if (offset < 0) {
-		slice_width = -offset;
-		pulse_width2 += slice_width;
-		assert(pulse_width2 <= 4064);
-		ignore_slice1 = true;
-		ignore_slice2 = false;
-	} else if (offset > 0) {
-		slice_width = offset;
-		pulse_width1 += slice_width;
-		assert(pulse_width1 <= 4064);
-		ignore_slice1 = false;
-		ignore_slice2 = true;
-	} else {
-		slice_width = 0;
-		ignore_slice1 = true;
-		ignore_slice2 = true;
-	}
+	encode_kick_parameters(pulse_width1, pulse_width2, slice_width, ignore_slice1, ignore_slice2, offset);
 
 	uint8_t buffer[5];
 	buffer[0] = static_cast<uint8_t>(index << 4) | XBeeDongle::PIPE_KICK;
 	buffer[1] = 0x00;
-	buffer[2] = static_cast<uint8_t>((ignore_slice1 ? 0x80 : 0x00) | (pulse_width1 / 32));
-	buffer[3] = static_cast<uint8_t>((ignore_slice2 ? 0x80 : 0x00) | (pulse_width2 / 32));
-	buffer[4] = static_cast<uint8_t>(slice_width / 32);
+	buffer[2] = static_cast<uint8_t>((ignore_slice1 ? 0x80 : 0x00) | pulse_width1);
+	buffer[3] = static_cast<uint8_t>((ignore_slice2 ? 0x80 : 0x00) | pulse_width2);
+	buffer[4] = static_cast<uint8_t>(slice_width);
 
 	LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(dongle.device, XBeeDongle::EP_MESSAGE, buffer, sizeof(buffer), 0, 5);
 	transfer->signal_done.connect(&discard_result);
