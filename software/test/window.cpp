@@ -33,7 +33,7 @@ TesterWindow::TesterWindow(XBeeDongle &dongle, XBeeRobot::Ptr robot) : robot(rob
 		joystick_chooser.append_text(Glib::ustring::compose("%1 (%2)", (*i)->name, Glib::filename_to_utf8((*i)->node)));
 	}
 	joystick_chooser.signal_changed().connect(sigc::mem_fun(this, &TesterWindow::on_joystick_chooser_changed));
-	outer_vbox.pack_start(joystick_chooser);
+	outer_vbox.pack_start(joystick_chooser, Gtk::PACK_SHRINK);
 
 	add(outer_vbox);
 
