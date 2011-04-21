@@ -14,14 +14,20 @@ namespace {
 	const double DEG_2_RAD = 1.0 / 180.0 * M_PI;
 
 	// avoid enemy robots by at least this distance
-	const double NEAR = Robot::MAX_RADIUS * 3;
+	
+	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/offense", 4.0, 1.0, 10.0);
+
+	DoubleParam ball_dist_weight("ball distance weight", "STP/offense", 1.0, 0.0, 2.0);
 
 	double passer_scoring_function(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
 		// can't be too close to enemy
+		double closest_enemy = world.field().width();
 		for (std::size_t i = 0; i < enemy_pos.size(); ++i) {
-			if ((enemy_pos[i] - dest).len() < NEAR) {
+			double dist = (enemy_pos[i] - dest).len();
+			if (dist < near_thresh * Robot::MAX_RADIUS) {
 				return -1e99;
 			}
+			closest_enemy = std::min(closest_enemy, dist);
 		}
 
 		// Hmm.. not sure if having negative number is a good idea.
@@ -40,7 +46,7 @@ namespace {
 
 		for (size_t i = 0; i < dont_block.size(); ++i) {
 			const Point diff2 = (dest - dont_block[i]);
-			if (diff2.len() < NEAR) {
+			if (diff2.len() < near_thresh * Robot::MAX_RADIUS) {
 				return -1e99;
 			}
 		}
@@ -61,14 +67,17 @@ namespace {
 		// 10 degrees of shooting is 10 Points
 		score *= 10.0 / (10.0 * DEG_2_RAD);
 
-		// want to be as near to passee or ball as possible
+		/*
+
+		// want to be as near to passee or ball as possible?
 		const double ball_dist = (dest - world.ball().position()).len();
 		const double passee_dist = (passee_pos - dest).len();
 		
 		// divide by largest distance?
-		const double bigdist = std::max(ball_dist, passee_dist);
-		score /= bigdist;
-
+		const double big_dist = std::max(ball_dist, passee_dist);
+		score /= big_dist;
+		*/
+		//score *= closest_enemy;
 		return score;
 		
 	}
@@ -115,10 +124,13 @@ namespace {
 	
 	double passee_scoring_function(const World &world, const std::set<Player::CPtr> &players, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
 		// can't be too close to enemy
+		double closest_enemy = world.field().width();
 		for (std::size_t i = 0; i < enemy_pos.size(); ++i) {
-			if ((enemy_pos[i] - dest).len() < NEAR) {
+			double dist = (enemy_pos[i] - dest).len();
+			if (dist < near_thresh * Robot::MAX_RADIUS) {
 				return -1e99;
 			}
+			closest_enemy = std::min(closest_enemy, dist);
 		}
 
 		// Hmm.. not sure if having negative number is a good idea.
@@ -137,7 +149,7 @@ namespace {
 
 		for (size_t i = 0; i < dont_block.size(); ++i) {
 			const Point diff2 = (dest - dont_block[i]);
-			if (diff2.len() < NEAR) {
+			if (diff2.len() < near_thresh * Robot::MAX_RADIUS) {
 				return -1e99;
 			}
 		}
@@ -159,23 +171,24 @@ namespace {
 		score *= 10.0 / (10.0 * DEG_2_RAD);
 
 		// want to be as near to enemy goal as possible, can be close to ball too but that should be left for the passer in most cases
-		const double balldist = (dest - world.ball().position()).len();
+		const double ball_dist = (dest - world.ball().position()).len();
 		const double goal_dist = (dest - bestshot.first).len();
 
 		// weighted
-		const double bigdist = balldist * 0.25 + goal_dist * 0.75;
-		score /= bigdist;
+		const double big_dist = ball_dist * 0.25 + goal_dist * 0.75;
+		score /= big_dist;
 
 		// divide by distance to nearest player
-		double mindist = 1e99;
+		double min_dist = 1e99;
 		for (auto it = players.begin(); it != players.end(); ++it) {
 			double dist = ((*it)->position() - dest).len();
-			if (dist < mindist) {
-				mindist = dist;
+			if (dist < min_dist) {
+				min_dist = dist;
 			}
 		}
 
-		score /= mindist;
+		score /= min_dist;
+		//score *= closest_enemy;
 
 		return score;
 	}
