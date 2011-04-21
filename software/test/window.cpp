@@ -85,8 +85,8 @@ void TesterWindow::on_joystick_drive_axis_changed() {
 	Joystick::Ptr stick = Joystick::all()[joystick_chooser.get_active_row_number() - 1];
 	double drive_axes[4];
 	drive_axes[0] = -stick->axes()[4];
-	drive_axes[1] = stick->axes()[3];
-	drive_axes[2] = stick->axes()[0];
+	drive_axes[1] = -stick->axes()[3];
+	drive_axes[2] = -stick->axes()[0];
 	drive_axes[3] = -stick->axes()[1];
 	for (unsigned int i = 0; i < G_N_ELEMENTS(drive_axes); ++i) {
 		drive_axes[i] = std::pow(drive_axes[i], 3);
