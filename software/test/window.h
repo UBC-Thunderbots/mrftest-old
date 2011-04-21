@@ -53,6 +53,7 @@ class TesterWindow : public Gtk::Window {
 
 		std::vector<sigc::connection> joystick_signal_connections;
 
+		void scram();
 		int key_snoop(Widget *, GdkEventKey *event);
 		void on_dribble_toggled();
 		void on_joystick_chooser_changed();
@@ -60,6 +61,7 @@ class TesterWindow : public Gtk::Window {
 		void on_joystick_dribble_changed();
 		void on_joystick_kick_changed();
 		void on_joystick_scram_changed();
+		bool on_delete_event(GdkEventAny *);
 };
 
 #endif

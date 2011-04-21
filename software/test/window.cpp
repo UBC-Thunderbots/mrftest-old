@@ -42,12 +42,16 @@ TesterWindow::TesterWindow(XBeeDongle &dongle, XBeeRobot::Ptr robot) : robot(rob
 	show_all();
 }
 
+void TesterWindow::scram() {
+	drive_panel.scram();
+	dribble_button.set_active(false);
+	chicker_panel.scram();
+}
+
 int TesterWindow::key_snoop(Widget *, GdkEventKey *event) {
 	if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_Z || event->keyval == GDK_z)) {
 		// Z letter scrams the system.
-		drive_panel.scram();
-		dribble_button.set_active(false);
-		chicker_panel.scram();
+		scram();
 	} else if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_0)) {
 		// Zero digit sets all controls to zero but does not scram things.
 		drive_panel.zero();
@@ -107,9 +111,12 @@ void TesterWindow::on_joystick_kick_changed() {
 void TesterWindow::on_joystick_scram_changed() {
 	Joystick::Ptr stick = Joystick::all()[joystick_chooser.get_active_row_number() - 1];
 	if (stick->buttons()[1]) {
-		drive_panel.scram();
-		dribble_button.set_active(false);
-		chicker_panel.scram();
+		scram();
 	}
+}
+
+bool TesterWindow::on_delete_event(GdkEventAny *) {
+	scram();
+	return false;
 }
 
