@@ -21,6 +21,11 @@ class ChickerPanel : public Gtk::Table {
 		 */
 		void scram();
 
+		/**
+		 * \brief Fires the solenoids.
+		 */
+		void fire();
+
 	private:
 		XBeeRobot::Ptr robot;
 		Gtk::CheckButton charge;

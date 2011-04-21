@@ -420,6 +420,8 @@ software/util/fd.cpp -text
 software/util/fd.h -text
 software/util/hungarian.cpp -text
 software/util/hungarian.h -text
+software/util/joystick.cpp -text
+software/util/joystick.h -text
 software/util/kalman/kalman.cpp -text
 software/util/kalman/kalman.h -text
 software/util/mapped_file.cpp -text

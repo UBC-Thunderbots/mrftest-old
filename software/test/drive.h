@@ -26,6 +26,13 @@ class DrivePanel : public Gtk::VBox {
 		 */
 		void scram();
 
+		/**
+		 * \brief Sets all four sliders to specified values.
+		 *
+		 * \param[in] values the values to set, in the range ±1.
+		 */
+		void set_values(const double (&values)[4]);
+
 	private:
 		XBeeRobot::Ptr robot;
 		Gtk::ComboBoxText mode_chooser;

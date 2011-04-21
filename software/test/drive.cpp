@@ -41,16 +41,15 @@ namespace {
 	const struct {
 		const char *name;
 		unsigned int sensitive_mask;
-		double min;
-		double max;
+		double limit;
 		double step;
 		double page;
 		int digits;
 		void (*on_update)(Gtk::HScale (&)[4], XBeeRobot::Ptr);
 	} MODES[] = {
-		{ "Scram", 0x0, -1, 1, 0.1, 0.5, 0, &on_update_scram },
-		{ "Per-motor Controlled", 0xF, -1023, 1023, 1, 25, 0, &on_update_permotor_controlled },
-		{ "Matrix Controlled", 0x7, -20, 20, 0.1, 3, 1, &on_update_matrix },
+		{ "Scram", 0x0, 1, 0.1, 0.5, 0, &on_update_scram },
+		{ "Per-motor Controlled", 0xF, 1023, 1, 25, 0, &on_update_permotor_controlled },
+		{ "Matrix Controlled", 0x7, 20, 0.1, 3, 1, &on_update_matrix },
 	};
 }
 
@@ -78,12 +77,20 @@ void DrivePanel::scram() {
 	mode_chooser.set_active(0);
 }
 
+void DrivePanel::set_values(const double (&values)[4]) {
+	for (unsigned int i = 0; i < G_N_ELEMENTS(controls); ++i) {
+		if (controls[i].get_sensitive()) {
+			controls[i].get_adjustment()->set_value(values[i] * controls[i].get_adjustment()->get_upper());
+		}
+	}
+}
+
 void DrivePanel::on_mode_changed() {
 	int row = mode_chooser.get_active_row_number();
 	if (row >= 0) {
 		for (unsigned int i = 0; i < G_N_ELEMENTS(controls); ++i) {
 			controls[i].set_sensitive(!!(MODES[row].sensitive_mask & (1 << i)));
-			controls[i].get_adjustment()->configure(0, MODES[row].min, MODES[row].max, MODES[row].step, MODES[row].page, 0);
+			controls[i].get_adjustment()->configure(0, -MODES[row].limit, MODES[row].limit, MODES[row].step, MODES[row].page, 0);
 			controls[i].set_digits(MODES[row].digits);
 		}
 		on_update();

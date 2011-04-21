@@ -47,6 +47,13 @@ void ChickerPanel::scram() {
 	autokick.set_active(false);
 }
 
+void ChickerPanel::fire() {
+	unsigned int pw1 = static_cast<unsigned int>(pulse_width1.get_value());
+	unsigned int pw2 = static_cast<unsigned int>(pulse_width2.get_value());
+	int offset = static_cast<int>(pulse_offset.get_value());
+	robot->kick(pw1, pw2, offset);
+}
+
 void ChickerPanel::on_alive_changed() {
 	kick.set_sensitive(robot->alive);
 }
@@ -78,10 +85,7 @@ void ChickerPanel::on_pulse_offset_changed() {
 }
 
 void ChickerPanel::on_kick() {
-	unsigned int pw1 = static_cast<unsigned int>(pulse_width1.get_value());
-	unsigned int pw2 = static_cast<unsigned int>(pulse_width2.get_value());
-	int offset = static_cast<int>(pulse_offset.get_value());
-	robot->kick(pw1, pw2, offset);
+	fire();
 }
 
 void ChickerPanel::on_autokick_changed() {

@@ -8,6 +8,7 @@
 #include "xbee/dongle.h"
 #include "xbee/robot.h"
 #include <gtkmm.h>
+#include <vector>
 
 /**
  * \brief A window that allows the user to control one robot for testing.
@@ -25,6 +26,8 @@ class TesterWindow : public Gtk::Window {
 
 	private:
 		XBeeRobot::Ptr robot;
+
+		Gtk::VBox outer_vbox;
 
 		Gtk::HBox hbox;
 
@@ -46,8 +49,17 @@ class TesterWindow : public Gtk::Window {
 		Gtk::Frame params_frame;
 		TesterParamsPanel params_panel;
 
+		Gtk::ComboBoxText joystick_chooser;
+
+		std::vector<sigc::connection> joystick_signal_connections;
+
 		int key_snoop(Widget *, GdkEventKey *event);
 		void on_dribble_toggled();
+		void on_joystick_chooser_changed();
+		void on_joystick_drive_axis_changed();
+		void on_joystick_dribble_changed();
+		void on_joystick_kick_changed();
+		void on_joystick_scram_changed();
 };
 
 #endif

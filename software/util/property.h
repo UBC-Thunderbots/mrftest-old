@@ -5,14 +5,14 @@
 #include <sigc++/sigc++.h>
 
 /**
- * A variable holding a value of some type, with the ability to notify listeners when the value changes.
+ * \brief A variable holding a value of some type, with the ability to notify listeners when the value changes.
  *
  * \tparam T the type of value to hold.
  */
 template<typename T> class Property : public NonCopyable {
 	public:
 		/**
-		 * Constructs a new Property.
+		 * \brief Constructs a new Property.
 		 *
 		 * \param[in] value the value with which to initialize the Property.
 		 */
@@ -20,13 +20,17 @@ template<typename T> class Property : public NonCopyable {
 		}
 
 		/**
-		 * Destroys the Property.
+		 * \brief Move-constructs a Property.
+		 *
+		 * Properties are not copyable, but they are movable.
+		 *
+		 * \param[in] moveref the original Property to destroy while initializing this Property.
 		 */
-		~Property() {
+		Property(Property<T> &&moveref) : value(value), signal_changing_(moveref.signal_changing_), signal_changed_(moveref.signal_changed_) {
 		}
 
 		/**
-		 * Returns the signal fired when the value of the Property is about to change.
+		 * \brief Returns the signal fired when the value of the Property is about to change.
 		 *
 		 * \return the signal.
 		 */
@@ -35,7 +39,7 @@ template<typename T> class Property : public NonCopyable {
 		}
 
 		/**
-		 * Returns the signal fired when the value of the Property changes.
+		 * \brief Returns the signal fired when the value of the Property changes.
 		 *
 		 * \return the signal.
 		 */
@@ -44,7 +48,21 @@ template<typename T> class Property : public NonCopyable {
 		}
 
 		/**
-		 * Assigns a new value to the Property.
+		 * \brief Move-assigns a Property.
+		 *
+		 * Properties are not copyable, but they are movable.
+		 *
+		 * \param[in] moveref the original Property to destroy while initializing this Property.
+		 */
+		Property<T> &operator=(Property<T> &&moveref) {
+			value = moveref.value;
+			signal_changing_ = moveref.signal_changing_;
+			signal_changed_ = moveref.signal_changed_;
+			return *this;
+		}
+
+		/**
+		 * \brief Assigns a new value to the Property.
 		 *
 		 * \param[in] val the new value to assign.
 		 */
@@ -58,7 +76,7 @@ template<typename T> class Property : public NonCopyable {
 		}
 
 		/**
-		 * Returns the value of the Property.
+		 * \brief Returns the value of the Property.
 		 *
 		 * \return the value.
 		 */
@@ -67,7 +85,7 @@ template<typename T> class Property : public NonCopyable {
 		}
 
 		/**
-		 * Returns the value of the Property.
+		 * \brief Returns the value of the Property.
 		 *
 		 * \return the value.
 		 */
