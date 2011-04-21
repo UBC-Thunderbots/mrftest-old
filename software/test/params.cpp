@@ -10,7 +10,7 @@ namespace {
 	}
 }
 
-TesterParamsPanel::TesterParamsPanel(XBeeRobot::Ptr robot) : Gtk::Table(6, 2), robot(robot), channel0label("Out Channel:"), channel1label("In Channel:"), index_label("Index:"), dribble_power_label("Dribble Power:"), commit("Commit"), rollback("Rollback"), reboot("Reboot"), test_mode_label("Test mode (hex):"), set_test_mode("Set Test Mode"), build_signatures_label("Build Sigs:"), freeze(false) {
+TesterParamsPanel::TesterParamsPanel(XBeeRobot::Ptr robot) : Gtk::Table(6, 2), robot(robot), channel0label("Out Channel:"), channel1label("In Channel:"), index_label("Index:"), dribble_power_label("Dribble Power:"), commit("Commit"), reboot("Reboot"), test_mode_label("Test mode (hex):"), set_test_mode("Set Test Mode"), build_signatures_label("Build Sigs:"), freeze(false) {
 	for (std::size_t i = 0; i < 2; ++i) {
 		for (unsigned int ch = 0x0B; ch <= 0x1A; ++ch) {
 			channels[i].append_text(format_channel(ch));
@@ -25,8 +25,9 @@ TesterParamsPanel::TesterParamsPanel(XBeeRobot::Ptr robot) : Gtk::Table(6, 2), r
 	index.signal_changed().connect(sigc::mem_fun(this, &TesterParamsPanel::on_change));
 	dribble_power.signal_value_changed().connect(sigc::mem_fun(this, &TesterParamsPanel::on_change));
 	commit.signal_clicked().connect(sigc::mem_fun(this, &TesterParamsPanel::on_commit));
-	rollback.signal_clicked().connect(sigc::mem_fun(this, &TesterParamsPanel::on_rollback));
 	reboot.signal_clicked().connect(sigc::mem_fun(this, &TesterParamsPanel::on_reboot));
+	test_mode.set_max_length(2);
+	test_mode.set_width_chars(2);
 	set_test_mode.signal_clicked().connect(sigc::mem_fun(this, &TesterParamsPanel::on_set_test_mode));
 
 	attach(channel0label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -39,7 +40,6 @@ TesterParamsPanel::TesterParamsPanel(XBeeRobot::Ptr robot) : Gtk::Table(6, 2), r
 	attach(dribble_power, 1, 2, 3, 4, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 
 	hbb.pack_start(commit);
-	hbb.pack_start(rollback);
 	hbb.pack_start(reboot);
 	vbox.pack_start(hbb, Gtk::PACK_SHRINK);
 	test_mode_hbox.pack_start(test_mode_label, Gtk::PACK_SHRINK);
@@ -62,7 +62,6 @@ void TesterParamsPanel::activate_controls(bool act) {
 	channels[1].set_sensitive(act);
 	index.set_sensitive(act);
 	commit.set_sensitive(act);
-	rollback.set_sensitive(act);
 	reboot.set_sensitive(act);
 }
 
@@ -122,12 +121,6 @@ void TesterParamsPanel::on_commit() {
 void TesterParamsPanel::on_commit_done(AsyncOperation<void>::Ptr op) {
 	op->result();
 	activate_controls();
-}
-
-void TesterParamsPanel::on_rollback() {
-#warning implement
-	Gtk::MessageDialog md(*dynamic_cast<Gtk::Window *>(get_toplevel()), "Not implemented", false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
-	md.run();
 }
 
 void TesterParamsPanel::on_reboot() {

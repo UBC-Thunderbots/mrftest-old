@@ -460,10 +460,6 @@ void run(void) {
 										}
 										break;
 
-									case FIRMWARE_REQUEST_ROLLBACK_PARAMS:
-#warning implement
-										break;
-
 									case FIRMWARE_REQUEST_COMMIT_PARAMS:
 										params_commit();
 										firmware_response.micropacket_length = sizeof(firmware_response) - sizeof(firmware_response.params);

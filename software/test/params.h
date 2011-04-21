@@ -27,7 +27,7 @@ class TesterParamsPanel : public Gtk::Table {
 		Gtk::HScale dribble_power;
 		Gtk::VBox vbox;
 		Gtk::HButtonBox hbb;
-		Gtk::Button commit, rollback, reboot;
+		Gtk::Button commit, reboot;
 		Gtk::HBox test_mode_hbox;
 		Gtk::Label test_mode_label;
 		Gtk::Entry test_mode;
@@ -44,7 +44,6 @@ class TesterParamsPanel : public Gtk::Table {
 		void on_change_done(AsyncOperation<void>::Ptr op);
 		void on_commit();
 		void on_commit_done(AsyncOperation<void>::Ptr op);
-		void on_rollback();
 		void on_reboot();
 		void on_reboot_done(AsyncOperation<void>::Ptr op);
 		void on_set_test_mode();

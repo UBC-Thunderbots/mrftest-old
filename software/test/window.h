@@ -26,7 +26,9 @@ class TesterWindow : public Gtk::Window {
 	private:
 		XBeeRobot::Ptr robot;
 
-		Gtk::VBox vbox;
+		Gtk::HBox hbox;
+
+		Gtk::VBox vbox1;
 
 		Gtk::Frame feedback_frame;
 		TesterFeedbackPanel feedback_panel;
@@ -35,6 +37,8 @@ class TesterWindow : public Gtk::Window {
 		DrivePanel drive_panel;
 
 		Gtk::ToggleButton dribble_button;
+
+		Gtk::VBox vbox2;
 
 		Gtk::Frame chicker_frame;
 		ChickerPanel chicker_panel;
