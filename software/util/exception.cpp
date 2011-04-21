@@ -1,5 +1,7 @@
 #include "util/exception.h"
 #include "util/misc.h"
+#include <cerrno>
+#include <string>
 #include <string.h>
 #include <vector>
 
