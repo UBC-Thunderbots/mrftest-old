@@ -310,7 +310,7 @@ void AI::BE::Simulator::Backend::send_orders() {
 
 void AI::BE::Simulator::Backend::update_playtype() {
 	if (playtype_override() != AI::Common::PlayType::NONE) {
-		playtype_rw() = playtype_override();
+		playtype_rw() = static_cast<AI::Common::PlayType>(playtype_override());
 	} else {
 		playtype_rw() = simulator_playtype;
 	}
