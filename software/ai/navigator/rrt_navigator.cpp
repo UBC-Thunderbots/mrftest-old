@@ -165,9 +165,11 @@ namespace AI {
 					Point dest;
 					double dest_orientation;
 					if (player->type() == AI::Flags::MoveType::CATCH) {
+						if (player->has_ball()) {
+							grab_ball_pivot(player);
+						}
 						grab_ball_byron(player);
 						//grab_ball_matt(player);
-						//grab_ball_pivot(player);
 						continue;
 					} else if (valid_path(player->position(), player->destination().first, world, player)) {
 						// if we're not trying to catch the ball and there are no obstacles in our way then go
