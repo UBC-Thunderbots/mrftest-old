@@ -4,6 +4,7 @@
 #include "ai/hl/world.h"
 #include "ai/hl/stp/play/play.h"
 #include "util/cacheable.h"
+#include "util/param.h"
 
 #include <set>
 #include <utility>
@@ -33,7 +34,8 @@ namespace AI {
 				 */
 
 				std::pair <Point, Point> calc_pass_positions(const World &world, const std::set<Player::CPtr> &players);
-
+				
+				
 			}
 		}
 	}

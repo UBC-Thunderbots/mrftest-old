@@ -1,3 +1,5 @@
+#include "ai/hl/stp/evaluation/shoot.h"
+#include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/util.h"
 #include "geom/angle.h"
@@ -7,9 +9,10 @@
 
 using namespace AI::HL::W;
 
+using AI::HL::STP::Evaluation::grid_x;
+using AI::HL::STP::Evaluation::grid_y;
+
 namespace {
-	const int GRID_X = 25;
-	const int GRID_Y = 25;
 
 	const double DEG_2_RAD = 1.0 / 180.0 * M_PI;
 
@@ -89,14 +92,14 @@ namespace {
 		const double y1 = -world.field().width() / 2;
 		const double y2 = world.field().width() / 2;
 
-		const double dx = (x2 - x1) / (GRID_X + 1);
-		const double dy = (y2 - y1) / (GRID_Y + 1);
+		const double dx = (x2 - x1) / (grid_x + 1);
+		const double dy = (y2 - y1) / (grid_y + 1);
 		double best_score = -1e50;
 
 		best_pos = Point();
 
-		for (int i = 0; i < GRID_X; ++i) {
-			for (int j = 0; j < GRID_Y; ++j) {
+		for (int i = 0; i < grid_x; ++i) {
+			for (int j = 0; j < grid_y; ++j) {
 				const double x = x1 + dx * (i + 1);
 				const double y = y1 + dy * (j + 1);
 				const Point pos = Point(x, y);
@@ -200,14 +203,14 @@ namespace {
 		const double y1 = -world.field().width() / 2;
 		const double y2 = world.field().width() / 2;
 
-		const double dx = (x2 - x1) / (GRID_X + 1);
-		const double dy = (y2 - y1) / (GRID_Y + 1);
+		const double dx = (x2 - x1) / (grid_x + 1);
+		const double dy = (y2 - y1) / (grid_y + 1);
 		double best_score = -1e50;
 
 		best_pos = Point();
 
-		for (int i = 0; i < GRID_X; ++i) {
-			for (int j = 0; j < GRID_Y; ++j) {
+		for (int i = 0; i < grid_x; ++i) {
+			for (int j = 0; j < grid_y; ++j) {
 				const double x = x1 + dx * (i + 1);
 				const double y = y1 + dy * (j + 1);
 				const Point pos = Point(x, y);
@@ -254,7 +257,7 @@ std::pair <Point,Point> AI::HL::STP::Evaluation::calc_pass_positions(const World
 	}
 
 	// TODO: optimize using the matrix below
-	// std::vector<std::vector<bool> > grid(GRID_X, std::vector<bool>(GRID_Y, true));
+	// std::vector<std::vector<bool> > grid(grid_x, std::vector<bool>(grid_y, true));
 
 	// don't block ball, and the others
 	std::vector<Point> dont_block;
