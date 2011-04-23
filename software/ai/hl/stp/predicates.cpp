@@ -85,8 +85,6 @@ bool AI::HL::STP::Predicates::baller_can_shoot(const World &world){
 		players.insert(friendly.get(i));
 	}
 	const Player::CPtr baller = *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::CPtr>(world.ball().position()));
-	const double ori_target = (world.field().enemy_goal() - baller->position()).orientation();
-	const double ori_diff = std::fabs(baller->orientation() - ori_target);
-	return ori_diff > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
+	return AI::HL::Util::calc_best_shot(world, baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
 }
 

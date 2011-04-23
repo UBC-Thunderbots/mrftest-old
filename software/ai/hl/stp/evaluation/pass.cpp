@@ -18,9 +18,9 @@ namespace {
 
 	// avoid enemy robots by at least this distance
 	
-	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/offense", 4.0, 1.0, 10.0);
+	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/pass", 4.0, 1.0, 10.0);
 
-	DoubleParam ball_dist_weight("ball distance weight", "STP/offense", 1.0, 0.0, 2.0);
+	DoubleParam ball_dist_weight("ball distance weight", "STP/pass", 1.0, 0.0, 2.0);
 
 	double passer_scoring_function(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
 		// can't be too close to enemy
@@ -70,16 +70,12 @@ namespace {
 		// 10 degrees of shooting is 10 Points
 		score *= 10.0 / (10.0 * DEG_2_RAD);
 
-		/*
-
-		// want to be as near to passee or ball as possible?
-		const double ball_dist = (dest - world.ball().position()).len();
+		// want to be as near to passee as possible to gurantee success of pass
 		const double passee_dist = (passee_pos - dest).len();
 		
 		// divide by largest distance?
-		const double big_dist = std::max(ball_dist, passee_dist);
-		score /= big_dist;
-		*/
+		score /= passee_dist;
+
 		//score *= closest_enemy;
 		return score;
 		
@@ -87,10 +83,8 @@ namespace {
 	
 	bool calc_passer_position_best(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos) {
 		// divide up into grids
-		const double x1 = -world.field().length() / 2;
-		const double x2 = world.field().length() / 2;
-		const double y1 = -world.field().width() / 2;
-		const double y2 = world.field().width() / 2;
+		const double x1 = -world.field().length() / 2, x2 = -x1;
+		const double y1 = -world.field().width() / 2, y2 = -y1;
 
 		const double dx = (x2 - x1) / (grid_x + 1);
 		const double dy = (y2 - y1) / (grid_y + 1);
@@ -198,10 +192,8 @@ namespace {
 
 	bool calc_passee_position_best(const World &world, const std::set<Player::CPtr> &players, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos) {
 		// divide up into grids
-		const double x1 = -world.field().length() / 2;
-		const double x2 = world.field().length() / 2;
-		const double y1 = -world.field().width() / 2;
-		const double y2 = world.field().width() / 2;
+		const double x1 = -world.field().length() / 2, x2 = -x1;
+		const double y1 = -world.field().width() / 2, y2 = -y1;
 
 		const double dx = (x2 - x1) / (grid_x + 1);
 		const double dy = (y2 - y1) / (grid_y + 1);
