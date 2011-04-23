@@ -80,6 +80,11 @@ namespace AI {
 						 */
 						virtual const PlayFactory &factory() const = 0;
 
+						/**
+						 * A play can stuff on the screen if it wants to.
+						 */
+						virtual void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;
+
 					protected:
 						/**
 						 * The World in which the Play lives.

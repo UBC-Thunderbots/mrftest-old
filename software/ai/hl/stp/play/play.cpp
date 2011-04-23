@@ -8,6 +8,9 @@ using namespace AI::HL::W;
 Play::Play(const World &world) : world(world) {
 }
 
+void Play::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
+}
+
 PlayFactory::PlayFactory(const char *name) : Registerable<PlayFactory>(name) {
 }
 

@@ -27,6 +27,7 @@ void PlayExecutor::calc_play() {
 	std::random_shuffle(plays.begin(), plays.end());
 	for (std::size_t i = 0; i < plays.size(); ++i) {
 		if (plays[i]->invariant() && plays[i]->applicable()) {
+			assert(!plays[i]->done());
 			curr_play = plays[i];
 			curr_role_step = 0;
 			for (std::size_t j = 0; j < 5; ++j) {
@@ -180,6 +181,7 @@ void PlayExecutor::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 	if (!curr_play.is()) {
 		return;
 	}
+	curr_play->draw_overlay(ctx);
 	for (std::size_t i = 0; i < world.friendly_team().size(); ++i) {
 		const auto& role = curr_roles[i];
 		for (std::size_t t = 0; t < role.size(); ++t) {
