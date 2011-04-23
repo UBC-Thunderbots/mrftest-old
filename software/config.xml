@@ -1,60 +1,107 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <thunderbots>
-	<category name="Uncategorized">
-		<double name=" amount to scale controller velocities by ">2.00</double>
-		<double name="Decay constant for the ball velocity">0.100</double>
-		<double name="decides at which speed goalie should ignore direction of ball ">0.050</double>
-		<double name="decides at which speed goalie should ignore direction of ball ">0.050</double>
-		<boolean name="decides whether the goalie should dive for the ball ">true</boolean>
-		<double name="(defense) max goalie dist from goal (robot radius)">3.00</double>
-		<double name="(defense) shrink robot radius">1.100</double>
-		<double name="distance for ball possesion (x ball radius)">2.000</double>
-		<double name="Distance of ball from enemy robot to activate steal mechanism (robot radius)">1.100</double>
-		<double name="Fuzzy2: max acc">3.00</double>
-		<double name="Goalie Action: threatening ball speed">0.10</double>
+	<category name="Backend">
+		<category name="XBee">
+			<double name="Loop Delay">0.000</double>
+		</category>
+	</category>
+	<category name="Nav">
+		<category name="Pivot">
+			<double name="offset angle">80</double>
+			<double name="offset distance">0</double>
+			<double name="orientation offset">30</double>
+		</category>
+		<category name="Pivot2">
+			<double name="offset angle (degrees)">30</double>
+			<double name="offset distance">0.15</double>
+			<double name="orientation offset (degrees)">30</double>
+		</category>
+		<category name="PivotAram">
+			<double name="max acceleration">10</double>
+			<double name="pivot radius">1.00</double>
+		</category>
+		<category name="RRT">
+			<double name="Pivot: offset angle (degrees)">30</double>
+			<double name="Pivot: offset distance">0.15</double>
+			<double name="Pivot: orientation offset (degrees)">30</double>
+		</category>
+	</category>
+	<category name="oldAI">
+		<boolean name="goalie dive for the ball">true</boolean>
+		<double name="goalie should ignore direction of ball">0.050</double>
 		<integer name="Grid X size">25</integer>
 		<integer name="Grid Y size">25</integer>
-		<double name="if dribble &gt; this time, force shoot (sec)">2.00</double>
-		<double name="kickoff: angle to separate players (degrees)">40.0</double>
 		<double name="kickoff: angle to separate players (degrees)">40.0</double>
 		<double name="kickoff: angle to separate players (degrees)">40.0</double>
 		<double name="Lone goalie distance to goal post (m)">0.200</double>
-		<double name="Lone goalie distance to goal post (m)">0.200</double>
-		<double name="Lone Goalie: distance to goal post (m)">0.300</double>
-		<double name="Loop Delay">0.000</double>
+		<double name="Lone goalie distance to goal post (m)">0.300</double>
 		<double name="max goalie dist from goal (robot radius)">3.00</double>
-		<double name="PID3: angle diff">2.00</double>
-		<double name="PID3: angle prop">18.00</double>
-		<double name="PID3: angle thresh">12.00</double>
-		<double name="PID3: diff">4.00</double>
-		<boolean name="PID3: flip trans&amp;ang slowdown">false</boolean>
-		<double name="PID3: max acc">3.00</double>
-		<double name="PID3: max vel">6.00</double>
-		<double name="PID3: prop">20.00</double>
-		<double name="PID3: slowdown (CARE)">1.500</double>
-		<boolean name="PID3: Slow if translating">true</boolean>
-		<double name="PID3: xy ratio">0.810</double>
-		<double name="Pivot Navigator 2: offset angle (degrees)">40</double>
-		<double name="Pivot Navigator 2: offset distance">0.25</double>
-		<double name="Pivot Navigator 2: orientation offset (degrees)">30</double>
-		<double name="Pivot Navigator A: max acceleration">10</double>
-		<double name="Pivot Navigator A: pivot radius">1.00</double>
-		<double name="Pivot Navigator: offset angle">80</double>
-		<double name="Pivot Navigator: offset distance">0</double>
-		<double name="Pivot Navigator: orientation offset">30</double>
-		<double name="Pivot the amount of erroneous angle acceptable for pivoting">4.00</double>
-		<boolean name="posses ball is has ball">true</boolean>
-		<double name="RRT Pivot: offset angle (degrees)">40</double>
-		<double name="RRT Pivot: offset distance">0.00</double>
-		<double name="RRT Pivot: orientation offset (degrees)">0</double>
-		<double name="Shooting Accuracy General (degrees)">10.0</double>
 		<double name="shrink robot radius">1.100</double>
-		<double name="stop: angle to separate players (degrees)">20.0</double>
 		<double name="stop: angle to separate players (degrees)">20.0</double>
 		<boolean name="Test strategy catch ball">true</boolean>
 		<boolean name="Test strategy Ram ball">true</boolean>
 		<boolean name="Test strategy recieve ball">true</boolean>
 		<boolean name="Test strategy stay own half">true</boolean>
-		<double name="time we can prepare during special plays (sec)">3</double>
+	</category>
+	<category name="RC">
+		<category name="Circle">
+			<double name="amount to scale controller velocities by">2.00</double>
+		</category>
+		<category name="fuzzy2">
+			<double name="max acc">3.00</double>
+		</category>
+		<category name="PID3">
+			<double name="angle diff">1.00</double>
+			<double name="angle prop">30.00</double>
+			<double name="angle thresh">30.00</double>
+			<double name="diff">1.00</double>
+			<boolean name="flip trans&amp;ang slowdown">false</boolean>
+			<double name="max acc">5.00</double>
+			<double name="max vel">9.00</double>
+			<double name="prop">20.00</double>
+			<double name="slowdown (CARE)">1.010</double>
+			<boolean name="Slow if translating">true</boolean>
+			<double name="xy ratio">0.810</double>
+		</category>
+	</category>
+	<category name="STP">
+		<category name="Action">
+			<category name="Goalie">
+				<double name="Goalie Action: threatening ball speed">0.10</double>
+				<double name="Lone Goalie: distance to goal post (m)">0.300</double>
+			</category>
+			<category name="shoot">
+				<double name="Decay constant for the ball velocity">0.100</double>
+			</category>
+		</category>
+		<category name="defense">
+			<double name="max goalie dist from goal (robot radius)">3.00</double>
+			<double name="shrink robot radius">1.100</double>
+		</category>
+		<category name="evaluation">
+			<double name="speed goalie should ignore direction of ball">0.050</double>
+			<double name="Steal threshold: distance of ball from enemy (robot radius)">1.100</double>
+		</category>
+		<category name="offense">
+			<double name="ball distance weight">1.000</double>
+			<double name="ball distance weight">1.000</double>
+			<double name="enemy avoidance distance (robot radius)">4.00</double>
+			<double name="enemy avoidance distance (robot radius)">4.00</double>
+			<integer name="grid x size">25</integer>
+			<integer name="grid y size">25</integer>
+		</category>
+		<category name="play">
+			<double name="kickoff: angle to separate players (degrees)">40.0</double>
+		</category>
+		<category name="Tactic">
+			<double name="stop: angle to separate players (degrees)">20.0</double>
+		</category>
+		<category name="util">
+			<double name="distance for ball possesion (x ball radius)">2.000</double>
+			<double name="if dribble &gt; this time, force shoot (sec)">2.00</double>
+			<boolean name="posses ball is has ball">true</boolean>
+			<double name="Shooting Accuracy General (meters from target)">0.50</double>
+			<double name="time we can prepare during special plays (sec)">3</double>
+		</category>
 	</category>
 </thunderbots>
