@@ -85,6 +85,8 @@ namespace {
 
 		// score *= closest_enemy;
 
+		// TODO: take into account of the angle needed to rotate and shoot
+
 		return score;
 	}
 
