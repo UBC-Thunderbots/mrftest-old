@@ -274,6 +274,7 @@ namespace {
 		if (dlg.run() == Gtk::RESPONSE_YES) {
 			emit_numeric_row_changed = true;
 			Config::load();
+			ParamTreeNode::load_all();
 			emit_numeric_row_changed = false;
 		}
 	}
@@ -288,6 +289,7 @@ namespace {
 	}
 
 	void on_save_params_clicked() {
+		ParamTreeNode::save_all();
 		Config::save();
 	}
 }

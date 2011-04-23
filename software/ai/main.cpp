@@ -235,6 +235,7 @@ namespace {
 
 		// Load the configuration file.
 		Config::load();
+		ParamTreeNode::load_all();
 
 		// Enable the use of the siren for annunciator messages.
 		Annunciator::activate_siren();

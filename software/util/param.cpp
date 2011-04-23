@@ -1,5 +1,6 @@
 #include "util/param.h"
 #include "util/algorithm.h"
+#include "util/config.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -182,11 +183,16 @@ void ParamTreeNode::default_all() {
 	root()->set_default();
 }
 
-void ParamTreeNode::load_all(const xmlpp::Element *params_elt) {
+void ParamTreeNode::load_all() {
+	const xmlpp::Element *params_elt = Config::params();
 	root()->load(params_elt);
 }
 
-void ParamTreeNode::save_all(xmlpp::Element *params_elt) {
+void ParamTreeNode::save_all() {
+	xmlpp::Element *params_elt = Config::params();
+	while (!params_elt->get_children().empty()) {
+		params_elt->remove_child(params_elt->get_children().front());
+	}
 	root()->save(params_elt);
 }
 

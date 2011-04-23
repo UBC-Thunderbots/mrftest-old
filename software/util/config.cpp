@@ -1,6 +1,5 @@
 #include "util/config.h"
 #include "util/exception.h"
-#include "util/param.h"
 #include <fstream>
 #include <functional>
 #include <glibmm.h>
@@ -74,13 +73,6 @@ namespace {
 	}
 }
 
-xmlpp::Document *Config::get() {
-	if (!parser()) {
-		load();
-	}
-	return parser().get_document();
-}
-
 void Config::load() {
 	std::ifstream ifs;
 	ifs.exceptions(std::ifstream::eofbit | std::ifstream::failbit | std::ifstream::badbit);
@@ -91,33 +83,27 @@ void Config::load() {
 	parser().parse_stream(ifs);
 	const xmlpp::Document *document = parser().get_document();
 	xmlpp::Element *root_elt = document->get_root_node();
-	clean_whitespace(root_elt);
 	if (root_elt->get_name() != "thunderbots") {
 		throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose("Malformed config.xml (expected root element of type thunderbots, found %1)", root_elt->get_name())));
 	}
-	const xmlpp::Node::NodeList &params_elts = root_elt->get_children("params");
-	if (!params_elts.empty()) {
-		const xmlpp::Element *params_elt = dynamic_cast<xmlpp::Element *>(*params_elts.begin());
-		if (params_elt) {
-			ParamTreeNode::load_all(params_elt);
-		} else {
-			ParamTreeNode::default_all();
-		}
-	} else {
-		ParamTreeNode::default_all();
-	}
+	clean_whitespace(root_elt);
 }
 
 void Config::save() {
 	xmlpp::Document *doc = parser().get_document();
-	xmlpp::Element *root_elt = doc->get_root_node();
-	const xmlpp::Node::NodeList &params_elts = root_elt->get_children("params");
-	std::for_each(params_elts.begin(), params_elts.end(), std::bind(std::mem_fn(&xmlpp::Element::remove_child), root_elt, _1));
-	xmlpp::Element *params_elt = root_elt->add_child("params");
-	ParamTreeNode::save_all(params_elt);
 	std::ofstream ofs;
 	ofs.exceptions(std::ofstream::failbit | std::ofstream::badbit);
 	ofs.open(get_config_filename().c_str(), std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
 	doc->write_to_stream_formatted(ofs);
+}
+
+xmlpp::Element *Config::params() {
+	xmlpp::Document *doc = parser().get_document();
+	xmlpp::Element *root_elt = doc->get_root_node();
+	const xmlpp::Node::NodeList &params_elts = root_elt->get_children("params");
+	if (params_elts.size() != 1) {
+		throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose("Malformed config.xml (expected exactly one params element, found %1)", params_elts.size())));
+	}
+	return dynamic_cast<xmlpp::Element *>(*params_elts.begin());
 }
 

@@ -4,9 +4,9 @@
 #include <libxml++/libxml++.h>
 
 namespace Config {
-	xmlpp::Document *get();
 	void load();
 	void save();
+	xmlpp::Element *params();
 }
 
 #endif

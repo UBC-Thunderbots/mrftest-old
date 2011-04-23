@@ -33,18 +33,14 @@ class ParamTreeNode : public NonCopyable {
 		static void default_all();
 
 		/**
-		 * Loads all parameters from the configuration file.
-		 *
-		 * \param[in] params_elt the \c params element in the DOM tree.
+		 * Loads all parameters from the configuration file's DOM tree.
 		 */
-		static void load_all(const xmlpp::Element *params_elt);
+		static void load_all();
 
 		/**
-		 * Saves all parameters to the configuration file.
-		 *
-		 * \param[in, out] params_elt the \c params element in the DOM tree to populate.
+		 * Saves all parameters to the configuration file's DOM tree.
 		 */
-		static void save_all(xmlpp::Element *params_elt);
+		static void save_all();
 
 		/**
 		 * Constructs a new \c ParamTreeNode that is not yet linked into the tree.
