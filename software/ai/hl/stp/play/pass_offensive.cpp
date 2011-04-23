@@ -80,7 +80,7 @@ namespace {
 		// GOALIE
 		goalie_role.push_back(defend_duo_goalie(world));
 
-		// need to test pass evaluation
+		// TODO: fix, this is static and not good 
 		std::pair <Point, Point> pp = calc_pass_positions(world, players);		
 		
 		// ROLE 1

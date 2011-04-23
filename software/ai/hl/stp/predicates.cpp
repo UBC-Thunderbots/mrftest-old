@@ -88,3 +88,14 @@ bool AI::HL::STP::Predicates::baller_can_shoot(const World &world){
 	return AI::HL::Util::calc_best_shot(world, baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
 }
 
+bool AI::HL::STP::Predicates::baller_can_shoot_target(const World &world, const Point &target){
+	const FriendlyTeam &friendly = world.friendly_team();
+	std::set<Player::CPtr> players;
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		players.insert(friendly.get(i));
+	}
+	const Player::CPtr baller = *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::CPtr>(world.ball().position()));
+	return AI::HL::Util::calc_best_shot_target(world, target, baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
+}
+
+
