@@ -31,7 +31,7 @@ namespace {
 	}
 
 	void Repel::execute() {
-		AI::HL::STP::Action::repel(world, player, 0);
+		AI::HL::STP::Action::repel(world, player);
 	}
 }
 

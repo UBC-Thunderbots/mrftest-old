@@ -43,7 +43,7 @@ namespace {
 				FriendlyTeam& friendly = world.friendly_team();
 				if (friendly.size() == 0) return;
 
-				Action::chase(world, friendly.get(0), 0);
+				Action::chase(world, friendly.get(0));
 			}
 	};
 

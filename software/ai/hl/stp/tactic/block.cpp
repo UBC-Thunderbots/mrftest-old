@@ -32,7 +32,7 @@ namespace {
 			return;
 		}
 		
-		AI::HL::STP::Action::block(world, player, AI::Flags::calc_flags(world.playtype()), enemy->evaluate());
+		AI::HL::STP::Action::block(world, player, enemy->evaluate());
 		
 		// TODO: think of when and how player should block enemy robot from passing
 	}

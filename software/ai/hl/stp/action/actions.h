@@ -16,28 +16,26 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Action {
-
 				/**
-				 * Chases after the ball as fast as possible. Orient towards the ball.
+				 * TODO: implement steal ball
+				 *
+				 * Chases after the ball as fast as possible.
+				 * Orient towards the ball.
 				 */
-				void chase(const World &world, Player::Ptr player, const unsigned int flags = 0);
+				void chase(const World &world, Player::Ptr player);
 				
 				/**
 				 * Chases after the ball as fast as possible. Orient towards Point target.
 				 */
-				void chase(const World &world, Player::Ptr player, Point target, const unsigned int flags = 0);
+				void chase(const World &world, Player::Ptr player, Point target);
 
 				/**
-				 * I can't think of a good name for this function.
-				 *
-				 * Anyways, tries to move the ball as far away from friendly goal.
-				 * If ball is not in possesion, chase after the ball.
-				 * Otherwise, shoot the ball in the furthest possible direction.
-				 * Useful for defenders.
-				 *
-				 * \param[in] flags movement flags for the robot (most likely you want to disable AI::Flags::FLAG_AVOID_FRIENDLY_DEFENSE).
+				 * Move the ball as far away as possible from friendly goal.
+				 * Useful scenarios:
+				 * - ball rolling towards the friendly goal
+				 * - ball inside the defense area
 				 */
-				void repel(const World &world, Player::Ptr player, const unsigned int flags);
+				void repel(const World &world, Player::Ptr player);
 
 				/**
 				 * Convenient function.
@@ -49,12 +47,12 @@ namespace AI {
 				/**
 				 * Blocks against a single enemy from shooting to our goal.
 				 */
-				void block(const World &world, Player::Ptr player, const unsigned int flags, Robot::Ptr robot);
+				void block(const World &world, Player::Ptr player, Robot::Ptr robot);
 				
 				/**
 				 * Blocks against a single enemy from passing.
 				 */
-				void block_pass(const World &world, Player::Ptr player, const unsigned int flags, Robot::Ptr robot);
+				void block_pass(const World &world, Player::Ptr player, Robot::Ptr robot);
 			}
 		}
 	}
