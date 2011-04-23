@@ -99,19 +99,23 @@ void Player::tick(bool halt) {
 	}
 
 	// Check for low battery condition.
-	// Apply some hysteresis.
-	if (bot->battery_voltage < BATTERY_CRITICAL_THRESHOLD) {
-		if (battery_warning_hysteresis == BATTERY_HYSTERESIS_MAGNITUDE) {
-			battery_warning_message.active(true);
+	if (bot->alive && bot->has_feedback) {
+		// Apply some hysteresis.
+		if (bot->battery_voltage < BATTERY_CRITICAL_THRESHOLD) {
+			if (battery_warning_hysteresis == BATTERY_HYSTERESIS_MAGNITUDE) {
+				battery_warning_message.active(true);
+			} else {
+				++battery_warning_hysteresis;
+			}
 		} else {
-			++battery_warning_hysteresis;
+			if (battery_warning_hysteresis == -BATTERY_HYSTERESIS_MAGNITUDE) {
+				battery_warning_message.active(false);
+			} else {
+				--battery_warning_hysteresis;
+			}
 		}
 	} else {
-		if (battery_warning_hysteresis == -BATTERY_HYSTERESIS_MAGNITUDE) {
-			battery_warning_message.active(false);
-		} else {
-			--battery_warning_hysteresis;
-		}
+		battery_warning_message.active(false);
 	}
 
 	// Inhibit auto-kick if halted or if the AI didn't renew its interest.
