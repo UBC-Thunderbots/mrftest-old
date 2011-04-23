@@ -411,6 +411,8 @@ software/util/clocksource_timerfd.cpp -text
 software/util/clocksource_timerfd.h -text
 software/util/codec.cpp -text
 software/util/codec.h -text
+software/util/config.cpp -text
+software/util/config.h -text
 software/util/crc16.cpp -text
 software/util/crc16.h -text
 software/util/dprint.cpp -text

@@ -4,6 +4,7 @@
 #include "ai/backend/backend.h"
 #include "uicomponents/abstract_list_model.h"
 #include "util/clocksource_timerfd.h"
+#include "util/config.h"
 #include "util/param.h"
 #include "util/timestep.h"
 #include <algorithm>
@@ -231,7 +232,9 @@ namespace {
 
 		// Initialize the parameters.
 		ParamTreeNode::root()->initialize();
-		ParamTreeNode::load_all();
+
+		// Load the configuration file.
+		Config::load();
 
 		// Enable the use of the siren for annunciator messages.
 		Annunciator::activate_siren();

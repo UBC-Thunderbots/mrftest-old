@@ -1,4 +1,5 @@
 #include "ai/param_panel.h"
+#include "util/config.h"
 #include "util/exception.h"
 #include "util/param.h"
 #include <cassert>
@@ -272,7 +273,7 @@ namespace {
 		Gtk::MessageDialog dlg("Loading parameter values from file will discard any unsaved changes. Continue?", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO);
 		if (dlg.run() == Gtk::RESPONSE_YES) {
 			emit_numeric_row_changed = true;
-			ParamTreeNode::load_all();
+			Config::load();
 			emit_numeric_row_changed = false;
 		}
 	}
@@ -287,7 +288,7 @@ namespace {
 	}
 
 	void on_save_params_clicked() {
-		ParamTreeNode::save_all();
+		Config::save();
 	}
 }
 

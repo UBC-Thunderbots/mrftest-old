@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <gtkmm.h>
 #include <string>
+#include <libxml++/libxml++.h>
 
 class ParamTreeInternalNode;
 
@@ -33,13 +34,17 @@ class ParamTreeNode : public NonCopyable {
 
 		/**
 		 * Loads all parameters from the configuration file.
+		 *
+		 * \param[in] params_elt the \c params element in the DOM tree.
 		 */
-		static void load_all();
+		static void load_all(const xmlpp::Element *params_elt);
 
 		/**
 		 * Saves all parameters to the configuration file.
+		 *
+		 * \param[in, out] params_elt the \c params element in the DOM tree to populate.
 		 */
-		static void save_all();
+		static void save_all(xmlpp::Element *params_elt);
 
 		/**
 		 * Constructs a new \c ParamTreeNode that is not yet linked into the tree.
@@ -171,10 +176,8 @@ class ParamTreeNode : public NonCopyable {
 		 * Stores the values of parameters into an XML tree.
 		 *
 		 * \param[in] elt the element representing this tree node.
-		 *
-		 * \param[in] indent the number of tabs to indent the current element.
 		 */
-		virtual void save(xmlpp::Element *elt, unsigned int indent) const = 0;
+		virtual void save(xmlpp::Element *elt) const = 0;
 
 		/**
 		 * Compares two nodes using a case-insensitive comparison of their names.
@@ -387,7 +390,7 @@ class BoolParam : public Param {
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
-		void save(xmlpp::Element *elt, unsigned int) const;
+		void save(xmlpp::Element *elt) const;
 };
 
 /**
@@ -503,7 +506,7 @@ class IntParam : public NumericParam {
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
-		void save(xmlpp::Element *elt, unsigned int) const;
+		void save(xmlpp::Element *elt) const;
 };
 
 /**
@@ -549,7 +552,7 @@ class DoubleParam : public NumericParam {
 		 *
 		 * \param[in] elt the element representing this tree node.
 		 */
-		void save(xmlpp::Element *elt, unsigned int) const;
+		void save(xmlpp::Element *elt) const;
 };
 
 #endif

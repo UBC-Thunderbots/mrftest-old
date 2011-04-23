@@ -1,48 +1,17 @@
 #include "util/param.h"
 #include "util/algorithm.h"
-#include "util/exception.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstring>
-#include <fstream>
 #include <functional>
 #include <iomanip>
-#include <libgen.h>
 #include <stdexcept>
-#include <unistd.h>
 #include <unordered_map>
 #include <vector>
 #include <libxml++/libxml++.h>
 
 namespace {
-	/**
-	 * \return the directory in which the running executable is stored.
-	 */
-	std::string get_bin_directory() {
-		std::vector<char> buffer(64);
-		ssize_t retval;
-		while ((retval = readlink("/proc/self/exe", &buffer[0], buffer.size())) == static_cast<ssize_t>(buffer.size())) {
-			buffer.resize(buffer.size() * 2);
-		}
-		if (retval < 0) {
-			throw SystemError("readlink(/proc/self/exe)", errno);
-		}
-		if (retval < static_cast<ssize_t>(buffer.size())) {
-			buffer[retval] = '\0';
-		} else {
-			buffer.push_back('\0');
-		}
-		return dirname(&buffer[0]);
-	}
-
-	/**
-	 * \return the filename of the config file.
-	 */
-	std::string get_config_filename() {
-		return get_bin_directory() + "/../config.xml";
-	}
-
 	class ParamTreeNodeNameComparator {
 		public:
 			bool operator()(const ParamTreeNode *const p1, const ParamTreeNode *const p2) {
@@ -114,13 +83,10 @@ class ParamTreeInternalNode : public ParamTreeNode {
 		void load(const xmlpp::Element *elt) {
 			// Check whether the XML element is appropriate.
 			if (name() == "<<<ROOT>>>") {
-				if (elt->get_name() != "thunderbots") {
-					return;
-				}
+				assert(elt->get_name() == "params");
 			} else {
-				if (elt->get_name() != "category" || elt->get_attribute_value("name") != name()) {
-					return;
-				}
+				assert(elt->get_name() == "category");
+				assert(elt->get_attribute_value("name") == name());
 			}
 
 			// Make a mapping from an XML child element's name's case-folded collation key to the node.
@@ -146,19 +112,17 @@ class ParamTreeInternalNode : public ParamTreeNode {
 			}
 		}
 
-		void save(xmlpp::Element *elt, unsigned int indent) const {
-			elt->add_child_text(Glib::ustring(1, '\n'));
+		void save(xmlpp::Element *elt) const {
 			if (name() != "<<<ROOT>>>") {
 				elt->set_name("category");
 				elt->set_attribute("name", name());
+			} else {
+				assert(elt->get_name() == "params");
 			}
 			for (auto i = children.begin(), iend = children.end(); i != iend; ++i) {
-				elt->add_child_text(Glib::ustring(indent + 1, '\t'));
 				xmlpp::Element *child_elt = elt->add_child("x");
-				(*i)->save(child_elt, indent + 1);
-				elt->add_child_text(Glib::ustring(1, '\n'));
+				(*i)->save(child_elt);
 			}
-			elt->add_child_text(Glib::ustring(indent, '\t'));
 		}
 
 		std::size_t num_children() const {
@@ -218,39 +182,12 @@ void ParamTreeNode::default_all() {
 	root()->set_default();
 }
 
-void ParamTreeNode::load_all() {
-	std::ifstream ifs;
-	try {
-		ifs.exceptions(std::ios_base::eofbit | std::ios_base::failbit | std::ios_base::badbit);
-		const std::string &filename = get_config_filename();
-		ifs.open(filename.c_str(), std::ios::in);
-	} catch (const std::ifstream::failure &exp) {
-		// Swallow.
-		return;
-	}
-
-	ifs.exceptions(std::ios_base::goodbit);
-	xmlpp::DomParser parser;
-	parser.set_substitute_entities(true);
-	parser.parse_stream(ifs);
-	if (parser) {
-		const xmlpp::Document *document = parser.get_document();
-		const xmlpp::Element *root_elt = document->get_root_node();
-		if (root_elt) {
-			root()->load(root_elt);
-		}
-	}
+void ParamTreeNode::load_all(const xmlpp::Element *params_elt) {
+	root()->load(params_elt);
 }
 
-void ParamTreeNode::save_all() {
-	std::ofstream ofs;
-	ofs.exceptions(std::ios_base::failbit | std::ios_base::badbit);
-	const std::string &filename = get_config_filename();
-	ofs.open(filename.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
-	xmlpp::Document document;
-	xmlpp::Element *root_elt = document.create_root_node("thunderbots");
-	root()->save(root_elt, 0);
-	document.write_to_stream(ofs, "UTF-8");
+void ParamTreeNode::save_all(xmlpp::Element *params_elt) {
+	root()->save(params_elt);
 }
 
 ParamTreeNode::ParamTreeNode(const Glib::ustring &name) : name_(name), index_(static_cast<std::size_t>(-1)), next(0), prev(0), parent_(0) {
@@ -373,7 +310,7 @@ void BoolParam::load(const xmlpp::Element *elt) {
 	}
 }
 
-void BoolParam::save(xmlpp::Element *elt, unsigned int) const {
+void BoolParam::save(xmlpp::Element *elt) const {
 	elt->set_name("boolean");
 	elt->set_attribute("name", name());
 	elt->set_child_text(value_ ? "true" : "false");
@@ -429,7 +366,7 @@ void IntParam::load(const xmlpp::Element *elt) {
 	}
 }
 
-void IntParam::save(xmlpp::Element *elt, unsigned int) const {
+void IntParam::save(xmlpp::Element *elt) const {
 	elt->set_name("integer");
 	elt->set_attribute("name", name());
 	std::wostringstream oss;
@@ -454,7 +391,7 @@ void DoubleParam::load(const xmlpp::Element *elt) {
 	}
 }
 
-void DoubleParam::save(xmlpp::Element *elt, unsigned int) const {
+void DoubleParam::save(xmlpp::Element *elt) const {
 	elt->set_name("double");
 	elt->set_attribute("name", name());
 	std::wostringstream oss;
