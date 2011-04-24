@@ -43,36 +43,16 @@ void AI::BE::Simulator::Ball::mouse_moved(Point p) {
 	be.send_packet(packet);
 }
 
-Point AI::BE::Simulator::Ball::position() const {
-	return Point(xpred.value(), ypred.value());
-}
-
 Point AI::BE::Simulator::Ball::position(double delta) const {
 	return Point(xpred.value(delta), ypred.value(delta));
-}
-
-Point AI::BE::Simulator::Ball::position(const timespec &ts) const {
-	return Point(xpred.value(ts), ypred.value(ts));
-}
-
-Point AI::BE::Simulator::Ball::velocity() const {
-	return Point(xpred.value(0.0, 1), ypred.value(0.0, 1));
 }
 
 Point AI::BE::Simulator::Ball::velocity(double delta) const {
 	return Point(xpred.value(delta, 1), ypred.value(delta, 1));
 }
 
-Point AI::BE::Simulator::Ball::velocity(const timespec &ts) const {
-	return Point(xpred.value(ts, 1), ypred.value(ts, 1));
-}
-
 Point AI::BE::Simulator::Ball::acceleration(double delta) const {
 	return Point(xpred.value(delta, 2), ypred.value(delta, 2));
-}
-
-Point AI::BE::Simulator::Ball::acceleration(const timespec &ts) const {
-	return Point(xpred.value(ts, 2), ypred.value(ts, 2));
 }
 
 bool AI::BE::Simulator::Ball::highlight() const {

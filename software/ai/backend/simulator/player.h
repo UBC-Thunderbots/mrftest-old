@@ -83,26 +83,17 @@ namespace AI {
 					void mouse_moved(Point p);
 
 					Visualizable::Colour visualizer_colour() const;
-					Glib::ustring visualizer_label() const;
+					Glib::ustring visualizer_label() const { return Robot::visualizer_label(); }
 					bool highlight() const;
-					Visualizable::Colour highlight_colour() const;
-					Point position() const;
-					Point position(double delta) const;
-					Point position(const timespec &ts) const;
-					Point velocity() const { return velocity(0.0); }
-					Point velocity(double delta = 0.0) const;
-					Point velocity(const timespec &ts) const;
-					Point acceleration(double delta = 0.0) const;
-					Point acceleration(const timespec &ts) const;
-					double orientation() const;
-					double orientation(double delta) const;
-					double orientation(const timespec &ts) const;
-					double avelocity(double delta = 0.0) const;
-					double avelocity(const timespec &ts) const;
-					double aacceleration(double delta = 0.0) const;
-					double aacceleration(const timespec &ts) const;
-					unsigned int pattern() const;
-					ObjectStore &object_store() const;
+					Visualizable::Colour highlight_colour() const { return Robot::highlight_colour(); }
+					Point position(double delta = 0.0) const { return Robot::position(delta); }
+					Point velocity(double delta = 0.0) const { return Robot::velocity(delta); }
+					Point acceleration(double delta = 0.0) const { return Robot::acceleration(delta); }
+					double orientation(double delta = 0.0) const { return Robot::orientation(delta); }
+					double avelocity(double delta = 0.0) const { return Robot::avelocity(delta); }
+					double aacceleration(double delta = 0.0) const { return Robot::aacceleration(delta); }
+					unsigned int pattern() const { return Robot::pattern(); }
+					ObjectStore &object_store() const { return Robot::object_store(); }
 					bool has_ball() const;
 					bool chicker_ready() const;
 					void kick_impl(double power);

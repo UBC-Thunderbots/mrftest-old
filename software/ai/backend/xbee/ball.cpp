@@ -22,24 +22,12 @@ Point Ball::position(double delta) const {
 	return Point(xpred.value(delta), ypred.value(delta));
 }
 
-Point Ball::position(const timespec &ts) const {
-	return Point(xpred.value(ts), ypred.value(ts));
-}
-
 Point Ball::velocity(double delta) const {
 	return Point(xpred.value(delta, 1), ypred.value(delta, 1));
 }
 
-Point Ball::velocity(const timespec &ts) const {
-	return Point(xpred.value(ts, 1), ypred.value(ts, 1));
-}
-
 Point Ball::acceleration(double delta) const {
 	return Point(xpred.value(delta, 2), ypred.value(delta, 2));
-}
-
-Point Ball::acceleration(const timespec &ts) const {
-	return Point(xpred.value(ts, 2), ypred.value(ts, 2));
 }
 
 bool Ball::highlight() const {

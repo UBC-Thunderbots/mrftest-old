@@ -40,14 +40,9 @@ namespace AI {
 					 */
 					void lock_time(const timespec &now);
 
-					Point position() const { return position(0.0); }
-					Point position(double delta) const;
-					Point position(const timespec &ts) const;
-					Point velocity() const { return velocity(0.0); }
-					Point velocity(double delta) const;
-					Point velocity(const timespec &ts) const;
+					Point position(double delta = 0.0) const;
+					Point velocity(double delta = 0.0) const;
 					Point acceleration(double delta = 0.0) const;
-					Point acceleration(const timespec &ts) const;
 					bool highlight() const;
 					Visualizable::Colour highlight_colour() const;
 

@@ -55,21 +55,12 @@ namespace AI {
 
 					ObjectStore &object_store() const { return object_store_; }
 					unsigned int pattern() const { return pattern_; }
-					Point position() const { return Point(xpred.value(), ypred.value()); }
-					Point position(double delta) const { return Point(xpred.value(delta), ypred.value(delta)); }
-					Point position(const timespec &ts) const { return Point(xpred.value(ts), ypred.value(ts)); }
-					double orientation() const { return tpred.value(); }
-					double orientation(double delta) const { return tpred.value(delta); }
-					double orientation(const timespec &ts) const { return tpred.value(ts); }
-					Point velocity() const { return velocity(0.0); }
-					Point velocity(double delta) const { return Point(xpred.value(delta, 1), ypred.value(delta, 1)); }
-					Point velocity(const timespec &ts) const { return Point(xpred.value(ts, 1), ypred.value(ts, 1)); }
-					double avelocity(double delta) const { return tpred.value(delta, 1); }
-					double avelocity(const timespec &ts) const { return tpred.value(ts, 1); }
-					Point acceleration(double delta) const { return Point(xpred.value(delta, 2), ypred.value(delta, 2)); }
-					Point acceleration(const timespec &ts) const { return Point(xpred.value(ts, 2), ypred.value(ts, 2)); }
-					double aacceleration(double delta) const { return tpred.value(delta, 2); }
-					double aacceleration(const timespec &ts) const { return tpred.value(ts, 2); }
+					Point position(double delta = 0.0) const { return Point(xpred.value(delta), ypred.value(delta)); }
+					double orientation(double delta = 0.0) const { return tpred.value(delta); }
+					Point velocity(double delta = 0.0) const { return Point(xpred.value(delta, 1), ypred.value(delta, 1)); }
+					double avelocity(double delta = 0.0) const { return tpred.value(delta, 1); }
+					Point acceleration(double delta = 0.0) const { return Point(xpred.value(delta, 2), ypred.value(delta, 2)); }
+					double aacceleration(double delta = 0.0) const { return tpred.value(delta, 2); }
 					Visualizable::Colour visualizer_colour() const { return Visualizable::Colour(1.0, 0.0, 0.0); }
 					Glib::ustring visualizer_label() const { return Glib::ustring::format(pattern_); }
 					bool highlight() const { return false; }

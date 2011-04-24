@@ -61,14 +61,9 @@ namespace AI {
 					 */
 					void mouse_moved(Point p);
 
-					Point position() const;
-					Point position(double delta) const;
-					Point position(const timespec &ts) const;
-					Point velocity() const;
-					Point velocity(double delta) const;
-					Point velocity(const timespec &ts) const;
-					Point acceleration(double delta) const;
-					Point acceleration(const timespec &ts) const;
+					Point position(double delta = 0.0) const;
+					Point velocity(double delta = 0.0) const;
+					Point acceleration(double delta = 0.0) const;
 					bool highlight() const;
 					Visualizable::Colour highlight_colour() const;
 

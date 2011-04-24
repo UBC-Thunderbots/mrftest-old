@@ -70,21 +70,12 @@ namespace AI {
 					Glib::ustring visualizer_label() const;
 					bool highlight() const;
 					Visualizable::Colour highlight_colour() const;
-					Point position() const { return position(0.0); }
-					Point position(double delta) const;
-					Point position(const timespec &ts) const;
-					Point velocity() const { return velocity(0.0); }
+					Point position(double delta = 0.0) const;
 					Point velocity(double delta = 0.0) const;
-					Point velocity(const timespec &ts) const;
 					Point acceleration(double delta = 0.0) const;
-					Point acceleration(const timespec &ts) const;
-					double orientation() const { return orientation(0.0); }
-					double orientation(double delta) const;
-					double orientation(const timespec &ts) const;
+					double orientation(double delta = 0.0) const;
 					double avelocity(double delta = 0.0) const;
-					double avelocity(const timespec &ts) const;
 					double aacceleration(double delta = 0.0) const;
-					double aacceleration(const timespec &ts) const;
 					unsigned int pattern() const;
 					ObjectStore &object_store() const;
 					bool has_destination() const;

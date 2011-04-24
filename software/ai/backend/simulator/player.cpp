@@ -56,80 +56,8 @@ Visualizable::Colour AI::BE::Simulator::Player::visualizer_colour() const {
 	return Visualizable::Colour(0.0, 1.0, 0.0);
 }
 
-Glib::ustring AI::BE::Simulator::Player::visualizer_label() const {
-	return Robot::visualizer_label();
-}
-
 bool AI::BE::Simulator::Player::highlight() const {
 	return mouse_connections[0].connected();
-}
-
-Visualizable::Colour AI::BE::Simulator::Player::highlight_colour() const {
-	return Robot::highlight_colour();
-}
-
-Point AI::BE::Simulator::Player::position() const {
-	return Robot::position();
-}
-
-Point AI::BE::Simulator::Player::position(double delta) const {
-	return Robot::position(delta);
-}
-
-Point AI::BE::Simulator::Player::position(const timespec &ts) const {
-	return Robot::position(ts);
-}
-
-Point AI::BE::Simulator::Player::velocity(double delta) const {
-	return Robot::velocity(delta);
-}
-
-Point AI::BE::Simulator::Player::velocity(const timespec &ts) const {
-	return Robot::velocity(ts);
-}
-
-Point AI::BE::Simulator::Player::acceleration(double delta) const {
-	return Robot::acceleration(delta);
-}
-
-Point AI::BE::Simulator::Player::acceleration(const timespec &ts) const {
-	return Robot::acceleration(ts);
-}
-
-double AI::BE::Simulator::Player::orientation() const {
-	return Robot::orientation();
-}
-
-double AI::BE::Simulator::Player::orientation(double delta) const {
-	return Robot::orientation(delta);
-}
-
-double AI::BE::Simulator::Player::orientation(const timespec &ts) const {
-	return Robot::orientation(ts);
-}
-
-double AI::BE::Simulator::Player::avelocity(double delta) const {
-	return Robot::avelocity(delta);
-}
-
-double AI::BE::Simulator::Player::avelocity(const timespec &ts) const {
-	return Robot::avelocity(ts);
-}
-
-double AI::BE::Simulator::Player::aacceleration(double delta) const {
-	return Robot::aacceleration(delta);
-}
-
-double AI::BE::Simulator::Player::aacceleration(const timespec &ts) const {
-	return Robot::aacceleration(ts);
-}
-
-unsigned int AI::BE::Simulator::Player::pattern() const {
-	return Robot::pattern();
-}
-
-ObjectStore &AI::BE::Simulator::Player::object_store() const {
-	return Robot::object_store();
 }
 
 bool AI::BE::Simulator::Player::has_ball() const {

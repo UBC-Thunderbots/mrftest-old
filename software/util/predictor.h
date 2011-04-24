@@ -26,7 +26,7 @@ class Predictor {
 		 *
 		 * \return the value.
 		 */
-		double value(double delta = 0.0, unsigned int deriv = 0) const __attribute__((warn_unused_result));
+		double value(double delta, unsigned int deriv = 0) const __attribute__((warn_unused_result));
 
 		/**
 		 * Gets the predicted value at some fixed point in time.

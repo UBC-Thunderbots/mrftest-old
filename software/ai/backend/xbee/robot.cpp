@@ -50,48 +50,24 @@ Point Robot::position(double delta) const {
 	return Point(xpred.value(delta), ypred.value(delta));
 }
 
-Point Robot::position(const timespec &ts) const {
-	return Point(xpred.value(ts), ypred.value(ts));
-}
-
 Point Robot::velocity(double delta) const {
 	return Point(xpred.value(delta, 1), ypred.value(delta, 1));
-}
-
-Point Robot::velocity(const timespec &ts) const {
-	return Point(xpred.value(ts, 1), ypred.value(ts, 1));
 }
 
 Point Robot::acceleration(double delta) const {
 	return Point(xpred.value(delta, 2), ypred.value(delta, 2));
 }
 
-Point Robot::acceleration(const timespec &ts) const {
-	return Point(xpred.value(ts, 2), ypred.value(ts, 2));
-}
-
 double Robot::orientation(double delta) const {
 	return tpred.value(delta);
-}
-
-double Robot::orientation(const timespec &ts) const {
-	return tpred.value(ts);
 }
 
 double Robot::avelocity(double delta) const {
 	return tpred.value(delta, 1);
 }
 
-double Robot::avelocity(const timespec &ts) const {
-	return tpred.value(ts, 1);
-}
-
 double Robot::aacceleration(double delta) const {
 	return tpred.value(delta, 2);
-}
-
-double Robot::aacceleration(const timespec &ts) const {
-	return tpred.value(ts, 2);
 }
 
 unsigned int Robot::pattern() const {
