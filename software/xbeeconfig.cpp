@@ -61,7 +61,7 @@ namespace {
 
 		// Find the dongle.
 		std::cout << "Finding dongle... " << std::flush;
-		XBeeDongle dongle;
+		XBeeDongle dongle(true);
 		std::cout << "OK\n";
 
 		// Set channel, if ordered to do so.

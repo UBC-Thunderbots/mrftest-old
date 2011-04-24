@@ -319,8 +319,10 @@ class XBeeDongle : public NonCopyable {
 
 		/**
 		 * \brief Constructs a new XBeeDongle.
+		 *
+		 * \param[in] force_reinit \c true to ensure the dongle is disabled, or \c false to allow reuse of an already-enabled dongle.
 		 */
-		XBeeDongle();
+		XBeeDongle(bool force_reinit = false);
 
 		/**
 		 * \brief Enables the radios.

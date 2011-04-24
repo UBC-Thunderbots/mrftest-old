@@ -296,9 +296,12 @@ namespace {
 	}
 }
 
-XBeeDongle::XBeeDongle() : estop_state(EStopState::UNINITIALIZED), xbees_state(XBeesState::PREINIT), context(), device(context, 0x04D8, 0x7839), dirty_drive_mask(0), enabled(false) {
+XBeeDongle::XBeeDongle(bool force_reinit) : estop_state(EStopState::UNINITIALIZED), xbees_state(XBeesState::PREINIT), context(), device(context, 0x04D8, 0x7839), dirty_drive_mask(0), enabled(false) {
 	for (unsigned int i = 0; i < G_N_ELEMENTS(robots); ++i) {
 		robots[i] = XBeeRobot::create(*this, i);
+	}
+	if (force_reinit) {
+		device.set_configuration(0);
 	}
 	if (device.get_configuration() != 1) {
 		device.set_configuration(1);
@@ -358,6 +361,7 @@ std::pair<unsigned int, unsigned int> XBeeDongle::get_channels() {
 }
 
 void XBeeDongle::set_channels(unsigned int channel0, unsigned int channel1) {
+	assert(!enabled);
 	assert(0x0B <= channel0 && channel0 <= 0x1A);
 	assert(0x0B <= channel1 && channel1 <= 0x1A);
 	device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE, TBOTS_CONTROL_REQUEST_SET_XBEE_CHANNELS, static_cast<uint16_t>(channel0 | (channel1 << 8)), 0x0000, 0);
