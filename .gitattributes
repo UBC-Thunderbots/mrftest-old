@@ -9,7 +9,6 @@ firmware/ChickerTest/chickertest.c -text
 firmware/ChickerTest/config.c -text
 firmware/ChickerTest/pwm.c -text
 firmware/ChickerTest/pwm.h -text
-firmware/DriveMosfetControl/drive_mosfet_control.odt -text
 firmware/HWRunSwitch/Makefile -text
 firmware/HWRunSwitch/hwrunswitch.c -text
 firmware/MotorControl2/Makefile -text
