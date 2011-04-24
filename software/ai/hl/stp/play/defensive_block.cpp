@@ -49,7 +49,7 @@ namespace {
 	}
 
 	bool DefensiveBlock::applicable() const {
-		return Predicates::their_ball(world) && Predicates::ball_midfield(world);
+		return Predicates::their_ball(world) && Predicates::ball_midfield(world) && Predicates::ball_on_our_side(world);
 	}
 
 	bool DefensiveBlock::done() const {

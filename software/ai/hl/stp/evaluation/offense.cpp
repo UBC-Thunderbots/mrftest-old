@@ -92,10 +92,8 @@ namespace {
 
 	bool calc_position_best(const World &world, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos) {
 		// divide up into grids
-		const double x1 = -world.field().length() / 2;
-		const double x2 = world.field().length() / 2;
-		const double y1 = -world.field().width() / 2;
-		const double y2 = world.field().width() / 2;
+		const double x1 = -world.field().length() / 2, x2 = -x1;
+		const double y1 = -world.field().width() / 2, y2 = -y1;
 
 		const double dx = (x2 - x1) / (grid_x + 1);
 		const double dy = (y2 - y1) / (grid_y + 1);
