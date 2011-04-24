@@ -1,7 +1,7 @@
 #
 # The executables to compile.
 #
-EXECUTABLES := ai fw log simulator test
+EXECUTABLES := ai fw log simulator test xbeeconfig
 
 #
 # The source files for each executable.
@@ -12,6 +12,7 @@ SOURCES_fw := fw geom util xbee
 SOURCES_log := ai/common log geom proto uicomponents util
 SOURCES_simulator := ai/common/playtype.cpp geom simulator util
 SOURCES_test := geom test uicomponents util xbee
+SOURCES_xbeeconfig := util xbee xbeeconfig.cpp
 
 #
 # All the pkg-config packages used.

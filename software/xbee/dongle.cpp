@@ -348,6 +348,21 @@ void XBeeDongle::enable() {
 	stamp_connection = Glib::signal_timeout().connect(sigc::bind_return(sigc::mem_fun(this, &XBeeDongle::on_stamp), true), 300);
 }
 
+std::pair<unsigned int, unsigned int> XBeeDongle::get_channels() {
+	uint8_t buffer[2];
+	std::size_t sz;
+	if ((sz = device.control_in(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE, TBOTS_CONTROL_REQUEST_GET_XBEE_CHANNELS, 0x0000, 0x0000, buffer, sizeof(buffer), 0)) != sizeof(buffer)) {
+		throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose("GET_XBEE_CHANNELS returned %1 bytes, expected %2", sz, sizeof(buffer))));
+	}
+	return std::make_pair(buffer[0], buffer[1]);
+}
+
+void XBeeDongle::set_channels(unsigned int channel0, unsigned int channel1) {
+	assert(0x0B <= channel0 && channel0 <= 0x1A);
+	assert(0x0B <= channel1 && channel1 <= 0x1A);
+	device.control_no_data(LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE, TBOTS_CONTROL_REQUEST_SET_XBEE_CHANNELS, static_cast<uint16_t>(channel0 | (channel1 << 8)), 0x0000, 0);
+}
+
 AsyncOperation<void>::Ptr XBeeDongle::send_message(const void *data, std::size_t length) {
 	LibUSBInterruptOutTransfer::Ptr transfer = LibUSBInterruptOutTransfer::create(device, EP_MESSAGE, data, length, 0, STALL_LIMIT);
 	transfer->submit();

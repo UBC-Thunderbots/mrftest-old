@@ -230,9 +230,16 @@ void LibUSBDeviceHandle::set_configuration(int config) {
 void LibUSBDeviceHandle::claim_interface(int interface) {
 	check_fn("libusb_claim_interface", libusb_claim_interface(handle, interface));
 }
+
 void LibUSBDeviceHandle::control_no_data(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout) {
 	assert((request_type & LIBUSB_ENDPOINT_DIR_MASK) == 0);
 	check_fn("libusb_control_transfer", libusb_control_transfer(handle, request_type | LIBUSB_ENDPOINT_OUT, request, value, index, 0, 0, timeout));
+}
+
+std::size_t LibUSBDeviceHandle::control_in(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, void *buffer, std::size_t len, unsigned int timeout) {
+	assert((request_type & LIBUSB_ENDPOINT_DIR_MASK) == 0);
+	assert(len < 65536);
+	return check_fn("libusb_control_transfer", libusb_control_transfer(handle, request_type | LIBUSB_ENDPOINT_IN, request, value, index, static_cast<unsigned char *>(buffer), static_cast<uint16_t>(len), timeout));
 }
 
 std::size_t LibUSBDeviceHandle::interrupt_in(unsigned char endpoint, void *data, std::size_t length, unsigned int timeout, unsigned int stall_max) {

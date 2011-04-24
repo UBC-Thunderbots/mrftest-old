@@ -14,6 +14,7 @@
 #include "xbee/robot.h"
 #include <cassert>
 #include <cstddef>
+#include <utility>
 
 /**
  * \brief The dongle.
@@ -325,6 +326,24 @@ class XBeeDongle : public NonCopyable {
 		 * \brief Enables the radios.
 		 */
 		void enable();
+
+		/**
+		 * \brief Gets the radio channels.
+		 *
+		 * \return the radio channels.
+		 */
+		std::pair<unsigned int, unsigned int> get_channels();
+
+		/**
+		 * \brief Sets the radio channels.
+		 *
+		 * Completing this request also disables the radios as a side-effect.
+		 *
+		 * \param[in] channel0 the channel to use on radio #0.
+		 *
+		 * \param[in] channel1 the channel to use on radio #1.
+		 */
+		void set_channels(unsigned int channel0, unsigned int channel1);
 
 		/**
 		 * \brief Queues a message for transmission.

@@ -458,3 +458,4 @@ software/xbee/libusb.cpp -text
 software/xbee/libusb.h -text
 software/xbee/robot.cpp -text
 software/xbee/robot.h -text
+software/xbeeconfig.cpp -text

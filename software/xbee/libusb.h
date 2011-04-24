@@ -144,6 +144,8 @@ class LibUSBDeviceHandle : public NonCopyable {
 
 		void control_no_data(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, unsigned int timeout);
 
+		std::size_t control_in(uint8_t request_type, uint8_t request, uint16_t value, uint16_t index, void *buffer, std::size_t len, unsigned int timeout);
+
 		std::size_t interrupt_in(unsigned char endpoint, void *data, std::size_t length, unsigned int timeout, unsigned int stall_max);
 
 	private:
