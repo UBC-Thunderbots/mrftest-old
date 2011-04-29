@@ -21,6 +21,9 @@ void AI::HL::STP::Action::lone_goalie(const World &world, Player::Ptr player) {
 	Point target = world.ball().position() - centre_of_goal;
 	target = target * (lone_goalie_dist / target.len());
 	target += centre_of_goal;
+	if (target.x < -world.field().length()/2+0.2) { // avoid going inside the goal
+		target.x = -world.field().length()/2+0.2;
+	}
 	player->move(target, (world.ball().position() - player->position()).orientation(), Point());
 	player->type(AI::Flags::MoveType::NORMAL);
 	player->prio(AI::Flags::MovePrio::MEDIUM);

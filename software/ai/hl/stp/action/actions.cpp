@@ -26,7 +26,11 @@ void AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
 
 	// set to RAM_BALL instead of using chase
 	if (!player->has_ball()) {
-		player->move(world.ball().position(), diff.orientation(), diff.norm() * FAST);
+		Point des = world.ball().position();
+		if (des.x < -world.field().length()/2+0.2) { // avoid going inside the goal
+			des.x = -world.field().length()/2+0.2;
+		}
+		player->move(des, diff.orientation(), diff.norm() * FAST);
 		player->type(AI::Flags::MoveType::RAM_BALL);
 		player->prio(AI::Flags::MovePrio::HIGH);
 		return;
@@ -34,11 +38,7 @@ void AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
 
 	// just shoot as long as it's not in backwards direction
 	if (player->orientation() < M_PI / 2 && player->orientation() > -M_PI / 2) {
-		// should autokick??
-		// player->autokick(10.0); 
-		if (player->chicker_ready()) {
-			player->kick(10.0);
-		}
+		 player->autokick(10.0);
 	}
 
 	player->move(world.ball().position(), diff.orientation(), diff.norm() * FAST);
