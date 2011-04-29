@@ -98,4 +98,8 @@ bool AI::HL::STP::Predicates::baller_can_shoot_target(const World &world, const 
 	return AI::HL::Util::calc_best_shot_target(world, target, baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
 }
 
+bool AI::HL::STP::Predicates::our_team_size_exactly(const World &world, const unsigned int n) {
+	return world.friendly_team().size() == n;
+}
+
 
