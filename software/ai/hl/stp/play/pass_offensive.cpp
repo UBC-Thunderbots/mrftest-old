@@ -10,7 +10,6 @@
 #include <glibmm.h>
 
 #include "ai/hl/stp/evaluation/offense.h"
-#include "ai/hl/stp/evaluation/pass.h"
 
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::STP::Tactic;
@@ -68,31 +67,18 @@ namespace {
 	}
 
 	void PassOffensive::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
-		// std::Player::Ptr goalie = world.friendly_team().get(0);
-
-		const FriendlyTeam &friendly = world.friendly_team();
-		
-		std::set<Player::CPtr> players;
-		for (std::size_t i = 0; i < friendly.size(); ++i) {
-			players.insert(friendly.get(i));
-		}
 		
 		// GOALIE
-		goalie_role.push_back(defend_duo_goalie(world));
-
-		// TODO: fix, this is static and not good 
-		std::pair <Point, Point> pp = calc_pass_positions(world, players);		
+		goalie_role.push_back(defend_duo_goalie(world));	
 		
 		// ROLE 1
 		// passer
-		roles[0].push_back(passer_ready(world, pp.first, pp.second));
-		roles[0].push_back(passer_shoot(world, pp.second));
+		roles[0].push_back(passer_shoot(world));
 		roles[0].push_back(offend(world));
 
 		// ROLE 2
 		// passee
-		roles[1].push_back(passee_ready(world, pp.second));
-		roles[1].push_back(passee_receive(world, pp.second));
+		roles[1].push_back(passee_receive(world));
 		roles[1].push_back(shoot(world));
 
 		// ROLE 3
