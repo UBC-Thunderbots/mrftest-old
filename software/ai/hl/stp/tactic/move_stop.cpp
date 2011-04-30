@@ -1,10 +1,12 @@
 #include "ai/hl/stp/tactic/move_stop.h"
+#include "ai/hl/stp/action/move.h"
 #include "ai/hl/util.h"
 #include <algorithm>
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 using AI::HL::STP::Coordinate;
+namespace Action = AI::HL::STP::Action;
 
 StopLocations AI::HL::STP::Tactic::stop_locations;
 
@@ -45,7 +47,8 @@ namespace {
 		std::vector<Point> positions = stop_locations(world);
 
 		unsigned int flags = AI::Flags::FLAG_AVOID_BALL_STOP | AI::Flags::calc_flags(world.playtype());
-		player->move(positions[player_index], (world.ball().position() - player->position()).orientation(), flags, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
+		Action::move(world, player, positions[player_index]);
+		player->flags(flags);
 	}
 }
 

@@ -1,7 +1,9 @@
 #include "ai/hl/stp/tactic/idle.h"
+#include "ai/hl/stp/action/stop.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
+namespace Action = AI::HL::STP::Action;
 
 namespace {
 	class Idle : public Tactic {
@@ -22,7 +24,7 @@ namespace {
 	}
 
 	void Idle::execute() {
-		player->move(player->position(), player->orientation(), 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::LOW);
+		Action::stop(world, player);
 	}
 }
 
