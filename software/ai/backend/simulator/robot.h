@@ -76,7 +76,7 @@ namespace AI {
 					 *
 					 * \param[in] pattern the pattern index of the robot.
 					 */
-					Robot(unsigned int pattern) : pattern_(pattern), xpred(false), ypred(false), tpred(true) {
+					Robot(unsigned int pattern) : pattern_(pattern), xpred(false, 1.3e-3, 2), ypred(false, 1.3e-3, 2), tpred(true, 1.3e-3, 2) {
 					}
 
 					/**

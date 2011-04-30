@@ -94,7 +94,7 @@ const std::vector<std::pair<std::pair<Point, double>, timespec> > &Robot::path()
 	throw std::logic_error("This robot has no path");
 }
 
-Robot::Robot(AI::BE::Backend &backend, unsigned int pattern) : seen_this_frame(false), vision_failures(0), backend(backend), pattern_(pattern), xpred(false), ypred(false), tpred(true) {
+Robot::Robot(AI::BE::Backend &backend, unsigned int pattern) : seen_this_frame(false), vision_failures(0), backend(backend), pattern_(pattern), xpred(false, 1.3e-3, 2), ypred(false, 1.3e-3, 2), tpred(true, 1.3e-3, 2) {
 	backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &Robot::on_defending_end_changed));
 }
 

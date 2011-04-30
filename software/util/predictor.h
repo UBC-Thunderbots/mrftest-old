@@ -14,8 +14,12 @@ class Predictor {
 		 *
 		 * \param[in] angle \c true to construct a Predictor suitable for operating on angles
 		 * (for example, including anti-windup code), or \c false to construct a Predictor suitable for operating on linear quantities.
+		 *
+		 * \param[in] measure_std the expected standard deviation of the measurement noise.
+		 *
+		 * \param[in] accel_std the standard deviation of noise equivalent to unknown object acceleration.
 		 */
-		Predictor(bool angle);
+		Predictor(bool angle, double measure_std, double accel_std);
 
 		/**
 		 * Gets the predicted value some length of time into the future (or past).

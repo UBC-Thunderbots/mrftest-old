@@ -12,7 +12,7 @@ struct ControlInput {
 
 class Kalman {
 	public:
-		Kalman(bool angle = false, double measure_std = 1.3e-3, double accel_std = 2.0);
+		Kalman(bool angle, double measure_std, double accel_std);
 		void predict(timespec prediction_time, Matrix &state_predict, Matrix &p_predict) const;
 		Matrix predict(timespec prediction_time) const;
 		void update(double measurement, timespec measurement_time);

@@ -3,7 +3,7 @@
 #include <cmath>
 #include <cstring>
 
-AI::BE::Simulator::Ball::Ball(Backend &be) : be(be), xpred(false), ypred(false) {
+AI::BE::Simulator::Ball::Ball(Backend &be) : be(be), xpred(false, 1.3e-3, 2), ypred(false, 1.3e-3, 2) {
 	be.signal_mouse_pressed.connect(sigc::mem_fun(this, &Ball::mouse_pressed));
 }
 

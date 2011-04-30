@@ -3,7 +3,7 @@
 
 using namespace AI::BE::XBee;
 
-Ball::Ball(AI::BE::Backend &backend) : backend(backend), xpred(false), ypred(false) {
+Ball::Ball(AI::BE::Backend &backend) : backend(backend), xpred(false, 1.3e-3, 2), ypred(false, 1.3e-3, 2) {
 	backend.defending_end().signal_changed().connect(sigc::mem_fun(this, &Ball::on_defending_end_changed));
 }
 

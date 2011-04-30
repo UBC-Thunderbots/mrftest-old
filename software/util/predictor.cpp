@@ -1,9 +1,7 @@
 #include "util/predictor.h"
 #include "util/time.h"
 
-#warning TODO: access to control noise: as if our robot command and relative robot positions
-
-Predictor::Predictor(bool angle) : filter(angle), zero_value(0) {
+Predictor::Predictor(bool angle, double measure_std, double accel_std) : filter(angle, measure_std, accel_std), zero_value(0) {
 	// Record current time.
 	timespec_now(lock_timestamp);
 }
