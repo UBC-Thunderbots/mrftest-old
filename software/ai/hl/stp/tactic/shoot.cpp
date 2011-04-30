@@ -45,7 +45,7 @@ namespace {
 	}
 
 	void Shoot::execute() {
-		//set_ssm(AI::HL::STP::SSM::move_ball());
+		
 		if (AI::HL::STP::Action::shoot(world, player)) {
 			has_shot = true;
 		}
@@ -61,7 +61,7 @@ namespace {
 	}
 
 	void ShootTarget::execute() {
-		//set_ssm(AI::HL::STP::SSM::move_ball());
+		
 		if (AI::HL::STP::Action::shoot(world, player, target())) {
 			has_shot = true;
 		}

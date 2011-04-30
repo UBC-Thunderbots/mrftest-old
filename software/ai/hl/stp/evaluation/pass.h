@@ -35,6 +35,7 @@ namespace AI {
 
 				std::pair <Point, Point> calc_pass_positions(const World &world);
 				
+				std::pair <Point, Point> calc_def_pass_positions(const World &world);
 				
 			}
 		}

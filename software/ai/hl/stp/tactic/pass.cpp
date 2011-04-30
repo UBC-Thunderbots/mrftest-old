@@ -1,6 +1,7 @@
 #include "ai/hl/stp/tactic/pass.h"
 #include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/stp/tactic/util.h"
+#include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
@@ -11,7 +12,7 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace {
 	class PasserShoot : public Tactic {
 		public:
-			PasserShoot(const World &world) : Tactic(world), kicked(false) {
+			PasserShoot(const World &world) : Tactic(world, true), kicked(false) {
 			}
 
 		private:
@@ -24,13 +25,13 @@ namespace {
 				return select_baller(world, players);
 			}
 			void execute() {
-			
+				kicked = false;
 				std::pair <Point, Point> pp = Evaluation::calc_pass_positions(world);
-			
+				
 				// orient towards target
 				player->move(pp.first, (pp.second - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::DRIBBLE, AI::Flags::MovePrio::HIGH);
-				player->kick(7.5);
-				kicked = true;
+				kicked = AI::HL::STP::Action::shoot(world,player,pp.second);
+
 			}
 			std::string description() const {
 				return "passer-shoot";
