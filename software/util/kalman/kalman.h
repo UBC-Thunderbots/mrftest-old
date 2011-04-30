@@ -18,8 +18,6 @@ class Kalman {
 		void update(double measurement, double measurement_time);
 		void add_control(double input, double input_time);
 		double get_control(double control_time) const;
-		void set_availability(bool bit) { available = bit; }
-		bool is_available() const { return available; }
 
 	private:
 		void predict_step(double timestep, double control, Matrix &state_predict, Matrix &p_predict) const;
@@ -34,7 +32,6 @@ class Kalman {
 		Matrix h;
 		Matrix p;
 		Matrix state_estimate;
-		bool available;
 		bool is_angle;
 };
 

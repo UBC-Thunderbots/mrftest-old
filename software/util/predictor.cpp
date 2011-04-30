@@ -11,7 +11,6 @@ namespace {
 Predictor::Predictor(bool angle) : initialized(false), filter(angle) {
 	// Record current time.
 	timespec_now(lock_timestamp);
-	filter.set_availability(true);
 }
 
 double Predictor::value(double delta, unsigned int deriv) const {
