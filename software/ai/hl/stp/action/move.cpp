@@ -8,3 +8,8 @@ void AI::HL::STP::Action::move(const World &world, Player::Ptr player, const Poi
 	player->type(AI::Flags::MoveType::NORMAL);
 }
 
+void AI::HL::STP::Action::move(Player::Ptr player, const double orientation, const Point dest) {
+	player->move(dest, orientation, Point());
+	player->type(AI::Flags::MoveType::NORMAL);
+}
+
