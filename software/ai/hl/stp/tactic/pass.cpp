@@ -25,14 +25,7 @@ namespace {
 			}
 			void execute() {
 			
-				const FriendlyTeam &friendly = world.friendly_team();
-		
-				std::set<Player::CPtr> players;
-				for (std::size_t i = 0; i < friendly.size(); ++i) {
-					players.insert(friendly.get(i));
-				}
-		
-				std::pair <Point, Point> pp = Evaluation::calc_pass_positions(world, players);
+				std::pair <Point, Point> pp = Evaluation::calc_pass_positions(world);
 			
 				// orient towards target
 				player->move(pp.first, (pp.second - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::DRIBBLE, AI::Flags::MovePrio::HIGH);
@@ -57,27 +50,13 @@ namespace {
 				return player->has_ball();
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				const FriendlyTeam &friendly = world.friendly_team();
-		
-				std::set<Player::CPtr> p;
-				for (std::size_t i = 0; i < friendly.size(); ++i) {
-					p.insert(friendly.get(i));
-				}
-		
-				std::pair <Point, Point> pp = Evaluation::calc_pass_positions(world, p);
-				Point dest = pp.second;
+	
+				Point dest = Evaluation::calc_pass_positions(world).second;
+
 				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
 			}
 			void execute() {
-				const FriendlyTeam &friendly = world.friendly_team();
-		
-				std::set<Player::CPtr> players;
-				for (std::size_t i = 0; i < friendly.size(); ++i) {
-					players.insert(friendly.get(i));
-				}
-		
-				std::pair <Point, Point> pp = Evaluation::calc_pass_positions(world, players);
-				Point dest = pp.second;
+				Point dest = Evaluation::calc_pass_positions(world).second;
 				player->move(dest, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
 			}
 			std::string description() const {

@@ -33,7 +33,7 @@ namespace AI {
 				 * \return a pair of passer_pos (first) and passee_pos (second)
 				 */
 
-				std::pair <Point, Point> calc_pass_positions(const World &world, const std::set<Player::CPtr> &players);
+				std::pair <Point, Point> calc_pass_positions(const World &world);
 				
 				
 			}

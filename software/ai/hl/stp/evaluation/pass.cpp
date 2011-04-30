@@ -119,7 +119,7 @@ namespace {
 	}
 
 	
-	double passee_scoring_function(const World &world, const std::set<Player::CPtr> &players, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
+	double passee_scoring_function(const World &world, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
 		// can't be too close to enemy
 		double closest_enemy = world.field().width();
 		for (std::size_t i = 0; i < enemy_pos.size(); ++i) {
@@ -177,8 +177,10 @@ namespace {
 
 		// divide by distance to nearest player
 		double min_dist = 1e99;
-		for (auto it = players.begin(); it != players.end(); ++it) {
-			double dist = ((*it)->position() - dest).len();
+		const FriendlyTeam& friendly = world.friendly_team();
+		std::vector<Point> players;
+		for (std::size_t i = 0; i < friendly.size(); ++i) {
+			double dist = (friendly.get(i)->position() - dest).len();
 			if (dist < min_dist) {
 				min_dist = dist;
 			}
@@ -190,7 +192,7 @@ namespace {
 		return score;
 	}
 
-	bool calc_passee_position_best(const World &world, const std::set<Player::CPtr> &players, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos) {
+	bool calc_passee_position_best(const World &world, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos) {
 		// divide up into grids
 		const double x1 = -world.field().length() / 2, x2 = -x1;
 		const double y1 = -world.field().width() / 2, y2 = -y1;
@@ -214,7 +216,7 @@ namespace {
 					continue;
 				}
 
-				const double score = passee_scoring_function(world, players, enemy_pos, pos, dont_block);
+				const double score = passee_scoring_function(world, enemy_pos, pos, dont_block);
 				if (score < -1e50) {
 					continue;
 				}
@@ -235,7 +237,7 @@ bool AI::HL::STP::Evaluation::can_pass(const World& world, const Point pos) {
 	return AI::HL::Util::path_check(world.ball().position(), pos, AI::HL::Util::get_robots(world.enemy_team()), Robot::MAX_RADIUS + Ball::RADIUS + AI::HL::Util::shoot_accuracy);
 }
 
-std::pair <Point,Point> AI::HL::STP::Evaluation::calc_pass_positions(const World &world, const std::set<Player::CPtr> &players) {
+std::pair <Point,Point> AI::HL::STP::Evaluation::calc_pass_positions(const World &world) {
 
 	std::pair <Point,Point> pp;
 	pp.first = Point();
@@ -254,17 +256,18 @@ std::pair <Point,Point> AI::HL::STP::Evaluation::calc_pass_positions(const World
 	// don't block ball, and the others
 	std::vector<Point> dont_block;
 	dont_block.push_back(world.ball().position());
+	/*
 	const FriendlyTeam &friendly = world.friendly_team();
 	for (size_t i = 0; i < friendly.size(); ++i) {
 		if (players.find(friendly.get(i)) == players.end()) {
 			dont_block.push_back(friendly.get(i)->position());
 		}
 	}
-
+	*/
 	// Maybe we should find the best combo of passee best and passer best, 
 	// instead of just finding the best passee position and find the best passer best position relative to that passee position
 	Point passee_best;
-	if (!calc_passee_position_best(world, players, enemy_pos, dont_block, passee_best)) {
+	if (!calc_passee_position_best(world, enemy_pos, dont_block, passee_best)) {
 		LOG_WARN("could not find a good passee pos");
 		return pp;
 	} 
