@@ -55,6 +55,7 @@ class Predictor {
 	private:
 		timespec lock_timestamp;
 		Kalman filter;
+		double zero_value;
 };
 
 #endif
