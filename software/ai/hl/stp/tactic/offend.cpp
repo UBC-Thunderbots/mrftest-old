@@ -1,9 +1,11 @@
 #include "ai/hl/stp/tactic/offend.h"
 #include "ai/hl/stp/evaluation/offense.h"
+#include "ai/hl/stp/action/move.h"
 #include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
+namespace Action = AI::HL::STP::Action;
 
 namespace {
 	class Primary : public Tactic {
@@ -39,7 +41,8 @@ namespace {
 
 	void Primary::execute() {
 		auto dest = AI::HL::STP::Evaluation::offense_positions(world);
-		player->move(dest[0], (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::LOW);
+		Action::move(world, player, dest[0]);
+		player->prio(AI::Flags::MovePrio::LOW);
 	}
 
 	Player::Ptr Secondary::select(const std::set<Player::Ptr> &players) const {
@@ -49,7 +52,8 @@ namespace {
 
 	void Secondary::execute() {
 		auto dest = AI::HL::STP::Evaluation::offense_positions(world);
-		player->move(dest[1], (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::LOW);
+		Action::move(world, player, dest[1]);
+		player->prio(AI::Flags::MovePrio::LOW);
 	}
 }
 

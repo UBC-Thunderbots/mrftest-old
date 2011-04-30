@@ -1,9 +1,11 @@
 #include "ai/hl/stp/tactic/chase.h"
 #include "ai/hl/stp/action/chase.h"
+#include "ai/hl/stp/action/dribble.h"
 #include "ai/hl/stp/tactic/util.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
+namespace Action = AI::HL::STP::Action;
 
 namespace {
 	class Chase : public Tactic {
@@ -32,15 +34,15 @@ namespace {
 	void Chase::execute() {
 		// if it has the ball, stay there
 		if (player->has_ball()) {
-			player->move(player->position(), player->orientation(), 0, AI::Flags::MoveType::DRIBBLE, AI::Flags::MovePrio::HIGH);
+			Action::dribble(world, player);
 			return;
 		}
 
 		// TODO: flags
-		//AI::HL::STP::Action::chase(world, player, 0);
+		//Action::chase(world, player, 0);
 		
 		// orient towards the enemy goal?
-		AI::HL::STP::Action::chase(world, player, world.field().enemy_goal());
+		Action::chase(world, player, world.field().enemy_goal());
 	}
 
 	void Chase::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {

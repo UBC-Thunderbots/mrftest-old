@@ -1,10 +1,12 @@
 #include "ai/hl/stp/tactic/block.h"
 #include "ai/hl/stp/action/block.h"
+#include "ai/hl/stp/action/stop.h"
 #include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 using AI::HL::STP::Enemy;
+namespace Action = AI::HL::STP::Action;
 
 namespace {
 	class Block : public Tactic {
@@ -28,7 +30,7 @@ namespace {
 	void Block::execute() {
 		if (!enemy->evaluate().is()) {
 #warning take into account of enemy velocity etc
-			player->move(player->position(), player->orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
+			Action::stop(world, player);
 			return;
 		}
 		

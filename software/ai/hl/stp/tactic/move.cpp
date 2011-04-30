@@ -1,10 +1,12 @@
 #include "ai/hl/stp/tactic/move.h"
+#include "ai/hl/stp/action/move.h"
 #include "ai/hl/util.h"
 #include <algorithm>
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 using AI::HL::STP::Coordinate;
+namespace Action = AI::HL::STP::Action;
 
 namespace {
 	class Move : public Tactic {
@@ -26,7 +28,7 @@ namespace {
 	}
 
 	void Move::execute() {
-		player->move(dest(), (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
+		Action::move(world, player, dest());
 	}
 }
 
