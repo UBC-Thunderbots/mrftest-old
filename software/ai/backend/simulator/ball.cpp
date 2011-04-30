@@ -51,10 +51,6 @@ Point AI::BE::Simulator::Ball::velocity(double delta) const {
 	return Point(xpred.value(delta, 1), ypred.value(delta, 1));
 }
 
-Point AI::BE::Simulator::Ball::acceleration(double delta) const {
-	return Point(xpred.value(delta, 2), ypred.value(delta, 2));
-}
-
 bool AI::BE::Simulator::Ball::highlight() const {
 	return mouse_connections[0].connected();
 }

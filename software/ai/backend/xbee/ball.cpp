@@ -26,10 +26,6 @@ Point Ball::velocity(double delta) const {
 	return Point(xpred.value(delta, 1), ypred.value(delta, 1));
 }
 
-Point Ball::acceleration(double delta) const {
-	return Point(xpred.value(delta, 2), ypred.value(delta, 2));
-}
-
 bool Ball::highlight() const {
 	return false;
 }

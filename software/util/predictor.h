@@ -26,7 +26,7 @@ class Predictor {
 		 *
 		 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
 		 *
-		 * \param[in] deriv the derivative level to take (\c 0 for position, \c 1 for velocity, \c 2 for acceleration, etc.).
+		 * \param[in] deriv the derivative level to take (\c 0 for position or \c 1 for velocity).
 		 *
 		 * \return the value.
 		 */

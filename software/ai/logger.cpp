@@ -366,9 +366,9 @@ void AI::Logger::on_tick() {
 			encode_u32(&payload[13], encode_micros(p->velocity(0.0).x));
 			encode_u32(&payload[17], encode_micros(p->velocity(0.0).y));
 			encode_u32(&payload[21], encode_micros(p->avelocity(0.0)));
-			encode_u32(&payload[25], encode_micros(p->acceleration(0.0).x));
-			encode_u32(&payload[29], encode_micros(p->acceleration(0.0).y));
-			encode_u32(&payload[33], encode_micros(p->aacceleration(0.0)));
+			encode_u32(&payload[25], encode_micros(0.0));
+			encode_u32(&payload[29], encode_micros(0.0));
+			encode_u32(&payload[33], encode_micros(0.0));
 			encode_u32(&payload[37], encode_micros(p->destination().first.x));
 			encode_u32(&payload[41], encode_micros(p->destination().first.y));
 			encode_u32(&payload[45], encode_micros(p->destination().second));
@@ -404,9 +404,9 @@ void AI::Logger::on_tick() {
 		encode_u32(&payload[13], encode_micros(p->velocity(0.0).x));
 		encode_u32(&payload[17], encode_micros(p->velocity(0.0).y));
 		encode_u32(&payload[21], encode_micros(p->avelocity(0.0)));
-		encode_u32(&payload[25], encode_micros(p->acceleration(0.0).x));
-		encode_u32(&payload[29], encode_micros(p->acceleration(0.0).y));
-		encode_u32(&payload[33], encode_micros(p->aacceleration(0.0)));
+		encode_u32(&payload[25], encode_micros(0.0));
+		encode_u32(&payload[29], encode_micros(0.0));
+		encode_u32(&payload[33], encode_micros(0.0));
 		write_packet(fd, Log::T_ENEMY_ROBOT, payload, sizeof(payload));
 	}
 	{
@@ -416,8 +416,8 @@ void AI::Logger::on_tick() {
 		encode_u32(&payload[4], encode_micros(ball.position(0.0).y));
 		encode_u32(&payload[8], encode_micros(ball.velocity(0.0).x));
 		encode_u32(&payload[12], encode_micros(ball.velocity(0.0).y));
-		encode_u32(&payload[16], encode_micros(ball.acceleration(0.0).x));
-		encode_u32(&payload[20], encode_micros(ball.acceleration(0.0).y));
+		encode_u32(&payload[16], encode_micros(0.0));
+		encode_u32(&payload[20], encode_micros(0.0));
 		write_packet(fd, Log::T_BALL, payload, sizeof(payload));
 	}
 	{

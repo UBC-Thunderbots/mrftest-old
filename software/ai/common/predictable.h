@@ -6,7 +6,7 @@
 
 namespace AI {
 	/**
-	 * An object whose velocity, acceleration, and future position can be predicted based on a collection of prior positions.
+	 * An object whose velocity and future position can be predicted based on a collection of prior positions.
 	 */
 	class Predictable {
 		public:
@@ -27,19 +27,10 @@ namespace AI {
 			 * \return the predicted velocity.
 			 */
 			virtual Point velocity(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
-
-			/**
-			 * Gets the predicted acceleration of the object.
-			 *
-			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
-			 *
-			 * \return the predicted acceleration.
-			 */
-			virtual Point acceleration(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 	};
 
 	/**
-	 * An object whose angular velocity, angular acceleration, and future orientation can be predicted in addition to position.
+	 * An object whose angular velocity and future orientation can be predicted in addition to position.
 	 */
 	class OrientationPredictable : public Predictable {
 		public:
@@ -60,15 +51,6 @@ namespace AI {
 			 * \return the predicted angular velocity.
 			 */
 			virtual double avelocity(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
-
-			/**
-			 * Gets the predicted angular acceleration of the object.
-			 *
-			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
-			 *
-			 * \return the predicted angular acceleration.
-			 */
-			virtual double aacceleration(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 	};
 }
 

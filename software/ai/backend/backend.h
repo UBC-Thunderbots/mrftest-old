@@ -42,7 +42,6 @@ namespace AI {
 			public:
 				Point position(double delta) const = 0;
 				Point velocity(double delta) const = 0;
-				Point acceleration(double delta) const = 0;
 		};
 
 		/**
@@ -61,8 +60,6 @@ namespace AI {
 				double orientation(double delta) const = 0;
 				Point velocity(double delta) const = 0;
 				double avelocity(double delta) const = 0;
-				Point acceleration(double delta) const = 0;
-				double aacceleration(double delta) const = 0;
 		};
 
 		/**
@@ -91,10 +88,8 @@ namespace AI {
 
 				Point position(double delta) const = 0;
 				Point velocity(double delta) const = 0;
-				Point acceleration(double delta) const = 0;
 				double orientation(double delta) const = 0;
 				double avelocity(double delta) const = 0;
-				double aacceleration(double delta) const = 0;
 				unsigned int pattern() const = 0;
 				ObjectStore &object_store() const = 0;
 				void move(Point dest, double ori, Point vel, unsigned int flags, AI::Flags::MoveType type, AI::Flags::MovePrio prio) __attribute__((deprecated));

@@ -88,10 +88,8 @@ namespace AI {
 					Visualizable::Colour highlight_colour() const { return Robot::highlight_colour(); }
 					Point position(double delta = 0.0) const { return Robot::position(delta); }
 					Point velocity(double delta = 0.0) const { return Robot::velocity(delta); }
-					Point acceleration(double delta = 0.0) const { return Robot::acceleration(delta); }
 					double orientation(double delta = 0.0) const { return Robot::orientation(delta); }
 					double avelocity(double delta = 0.0) const { return Robot::avelocity(delta); }
-					double aacceleration(double delta = 0.0) const { return Robot::aacceleration(delta); }
 					unsigned int pattern() const { return Robot::pattern(); }
 					ObjectStore &object_store() const { return Robot::object_store(); }
 					bool has_ball() const;

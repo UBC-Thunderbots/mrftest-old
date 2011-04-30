@@ -1,5 +1,6 @@
 #include "util/predictor.h"
 #include "util/time.h"
+#include <cstdlib>
 
 Predictor::Predictor(bool angle, double measure_std, double accel_std) : filter(angle, measure_std, accel_std), zero_value(0) {
 	// Record current time.
@@ -16,10 +17,8 @@ double Predictor::value(double delta, unsigned int deriv) const {
 			v = guess(0, 0);
 		} else if (deriv == 1) {
 			v = guess(1, 0);
-		} else if (deriv == 2) {
-			v = filter.get_control(timespec_add(double_to_timespec(delta), lock_timestamp));
 		} else {
-			v = 0.0;
+			std::abort();
 		}
 
 		return v;

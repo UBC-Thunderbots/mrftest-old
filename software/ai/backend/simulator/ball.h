@@ -63,7 +63,6 @@ namespace AI {
 
 					Point position(double delta = 0.0) const;
 					Point velocity(double delta = 0.0) const;
-					Point acceleration(double delta = 0.0) const;
 					bool highlight() const;
 					Visualizable::Colour highlight_colour() const;
 
