@@ -6,6 +6,11 @@
 using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
+namespace{
+	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/predicates", 3.0, 1.0, 10.0);
+
+}
+
 bool AI::HL::STP::Predicates::goal(const World &) {
 	return false;
 }
@@ -102,4 +107,21 @@ bool AI::HL::STP::Predicates::our_team_size_exactly(const World &world, const un
 	return world.friendly_team().size() == n;
 }
 
+bool AI::HL::STP::Predicates::baller_under_threat(const World &world){
+	const FriendlyTeam &friendly = world.friendly_team();
+	std::set<Player::CPtr> players;
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
+		players.insert(friendly.get(i));
+	}
+	const Player::CPtr baller = *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::CPtr>(world.ball().position()));
+	
+	int enemy_cnt = 0;
+	const EnemyTeam &enemies = world.enemy_team();
+	for (std::size_t i = 0; i < enemies.size(); ++i) {	
+		if ((baller->position() - enemies.get(i)->position()).len() <= near_thresh * AI::HL::W::Robot::MAX_RADIUS)
+			enemy_cnt++;
+	}
+	
+	return enemy_cnt >= 2;
+}
 

@@ -216,6 +216,7 @@ software/ai/hl/stp/play/kickoff_friendly.cpp -text
 software/ai/hl/stp/play/lone_2_player.cpp -text
 software/ai/hl/stp/play/movement_benchmark.cpp -text
 software/ai/hl/stp/play/our_corner_play.cpp -text
+software/ai/hl/stp/play/pass_defensive.cpp -text
 software/ai/hl/stp/play/pass_offensive.cpp -text
 software/ai/hl/stp/play/penalty_enemy.cpp -text
 software/ai/hl/stp/play/penalty_friendly.cpp -text

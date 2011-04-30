@@ -264,6 +264,7 @@ std::pair <Point,Point> AI::HL::STP::Evaluation::calc_pass_positions(const World
 		}
 	}
 	*/
+	
 	// Maybe we should find the best combo of passee best and passer best, 
 	// instead of just finding the best passee position and find the best passer best position relative to that passee position
 	Point passee_best;
