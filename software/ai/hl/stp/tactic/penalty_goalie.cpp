@@ -32,7 +32,23 @@ namespace {
 	}
 
 	void PenaltyGoalie::execute() {
-		AI::HL::STP::Action::penalty_goalie(world, player);
+		const Point p1(-0.5 * world.field().length(), -0.8 * Robot::MAX_RADIUS);
+		const Point p2(-0.5 * world.field().length(), 0.8 * Robot::MAX_RADIUS);
+		if ((player->position() - p1).len() < AI::HL::Util::POS_CLOSE) {
+			goto_target1 = false;
+		} else if ((player->position() - p2).len() < AI::HL::Util::POS_CLOSE) {
+			goto_target1 = true;
+		}
+
+		Point target;
+		if (goto_target1) {
+			target = p1;
+		} else {
+			target = p2;
+		}
+
+		// just orient towards the "front"
+		player->move(target, 0, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
 	}
 }
 
