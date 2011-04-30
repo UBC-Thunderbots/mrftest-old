@@ -1,7 +1,7 @@
 #include "ai/hl/stp/action/shoot.h"
+#include "ai/hl/stp/action/chase.h"
 #include "ai/flags.h"
 #include "ai/hl/util.h"
-#include "ai/hl/stp/action/actions.h"
 #include "geom/util.h"
 #include "util/dprint.h"
 #include <cmath>

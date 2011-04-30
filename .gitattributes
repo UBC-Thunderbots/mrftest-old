@@ -183,10 +183,14 @@ software/ai/hl/old/strategy.h -text
 software/ai/hl/old/tactics.cpp -text
 software/ai/hl/old/tactics.h -text
 software/ai/hl/old/test_strategy.cpp -text
-software/ai/hl/stp/action/actions.cpp -text
-software/ai/hl/stp/action/actions.h -text
+software/ai/hl/stp/action/block.cpp -text
+software/ai/hl/stp/action/block.h -text
+software/ai/hl/stp/action/chase.cpp -text
+software/ai/hl/stp/action/chase.h -text
 software/ai/hl/stp/action/goalie.cpp -text
 software/ai/hl/stp/action/goalie.h -text
+software/ai/hl/stp/action/repel.cpp -text
+software/ai/hl/stp/action/repel.h -text
 software/ai/hl/stp/action/shoot.cpp -text
 software/ai/hl/stp/action/shoot.h -text
 software/ai/hl/stp/coordinate.cpp -text

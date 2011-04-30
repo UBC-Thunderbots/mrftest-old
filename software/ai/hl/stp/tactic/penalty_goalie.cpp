@@ -48,7 +48,9 @@ namespace {
 		}
 
 		// just orient towards the "front"
-		player->move(target, 0, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
+		player->move(target, 0, Point());
+		player->type(AI::Flags::MoveType::NORMAL);
+		player->prio(AI::Flags::MovePrio::HIGH);
 	}
 }
 

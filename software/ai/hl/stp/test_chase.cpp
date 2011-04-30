@@ -1,5 +1,5 @@
 #include "ai/hl/hl.h"
-#include "ai/hl/stp/action/actions.h"
+#include "ai/hl/stp/action/chase.h"
 #include "util/dprint.h"
 
 #include <cassert>

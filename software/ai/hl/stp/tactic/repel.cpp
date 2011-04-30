@@ -1,5 +1,5 @@
 #include "ai/hl/stp/tactic/repel.h"
-#include "ai/hl/stp/action/actions.h"
+#include "ai/hl/stp/action/repel.h"
 #include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;

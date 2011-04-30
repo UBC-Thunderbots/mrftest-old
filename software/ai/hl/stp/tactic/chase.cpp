@@ -1,5 +1,5 @@
 #include "ai/hl/stp/tactic/chase.h"
-#include "ai/hl/stp/action/actions.h"
+#include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/tactic/util.h"
 
 using namespace AI::HL::STP::Tactic;

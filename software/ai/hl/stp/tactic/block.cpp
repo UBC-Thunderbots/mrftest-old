@@ -1,5 +1,5 @@
 #include "ai/hl/stp/tactic/block.h"
-#include "ai/hl/stp/action/actions.h"
+#include "ai/hl/stp/action/block.h"
 #include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
@@ -27,7 +27,7 @@ namespace {
 
 	void Block::execute() {
 		if (!enemy->evaluate().is()) {
-			// do nothing??
+#warning take into account of enemy velocity etc
 			player->move(player->position(), player->orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::MEDIUM);
 			return;
 		}
