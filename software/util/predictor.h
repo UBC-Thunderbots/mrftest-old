@@ -29,17 +29,6 @@ class Predictor {
 		double value(double delta, unsigned int deriv = 0) const __attribute__((warn_unused_result));
 
 		/**
-		 * Gets the predicted value at some fixed point in time.
-		 *
-		 * \param[in] ts the time at which to predict the value.
-		 *
-		 * \param[in] deriv the derivative level to take (\c 0 for position, \c 1 for velocity, \c 2 for acceleration, etc.).
-		 *
-		 * \return the value.
-		 */
-		double value(const timespec &ts, unsigned int deriv = 0) const __attribute__((warn_unused_result));
-
-		/**
 		 * Locks in a timestamp to consider as the current time.
 		 *
 		 * \param[in] ts the timestamp.
@@ -64,11 +53,8 @@ class Predictor {
 		void clear();
 
 	private:
-		bool initialized;
 		timespec lock_timestamp;
 		Kalman filter;
-
-		void update();
 };
 
 #endif

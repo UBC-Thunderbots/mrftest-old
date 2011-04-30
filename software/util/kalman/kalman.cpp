@@ -1,7 +1,10 @@
 #include "util/kalman/kalman.h"
+#include "util/time.h"
 #include <cmath>
 
-Kalman::Kalman(bool angle, double measure_std, double accel_std) : last_measurement_time(0.0), last_control(0.0), sigma_m(measure_std), sigma_a(accel_std), h(1, 2), p(2, 2, Matrix::InitFlag::IDENTITY), state_estimate(2, 1, Matrix::InitFlag::ZEROES), is_angle(angle) {
+Kalman::Kalman(bool angle, double measure_std, double accel_std) : last_control(0.0), sigma_m(measure_std), sigma_a(accel_std), h(1, 2), p(2, 2, Matrix::InitFlag::IDENTITY), state_estimate(2, 1, Matrix::InitFlag::ZEROES), is_angle(angle) {
+	last_measurement_time.tv_sec = 0;
+	last_measurement_time.tv_nsec = 0;
 	// %the state measurement operator
 	// H=[1 0];(;
 	h(0, 0) = 1.0;
@@ -46,23 +49,23 @@ void Kalman::predict_step(double timestep, double control, Matrix &state_predict
 }
 
 // get an estimate of the state and covariance at prediction_time, outputs passed by reference
-void Kalman::predict(double prediction_time, Matrix &state_predict, Matrix &p_predict) const {
-	double current_time = last_measurement_time;
+void Kalman::predict(timespec prediction_time, Matrix &state_predict, Matrix &p_predict) const {
+	timespec current_time = last_measurement_time;
 	double current_control = last_control;
 
-	for (std::deque<ControlInput>::const_iterator inputs_itr = inputs.begin(); inputs_itr != inputs.end() && inputs_itr->time < prediction_time; ++inputs_itr) {
-		predict_step(inputs_itr->time - current_time, current_control, state_predict, p_predict);
+	for (std::deque<ControlInput>::const_iterator inputs_itr = inputs.begin(); inputs_itr != inputs.end() && timespec_cmp(inputs_itr->time, prediction_time) < 0; ++inputs_itr) {
+		predict_step(timespec_to_double(timespec_sub(inputs_itr->time, current_time)), current_control, state_predict, p_predict);
 		current_time = inputs_itr->time;
 		current_control = inputs_itr->value;
 	}
-	predict_step(prediction_time - current_time, current_control, state_predict, p_predict);
+	predict_step(timespec_to_double(timespec_sub(prediction_time, current_time)), current_control, state_predict, p_predict);
 	if (is_angle) {
 		state_predict(0, 0) -= 2 * M_PI * std::round(state_predict(0, 0) / 2 / M_PI);
 	}
 }
 
 // get an estimate of the state at prediction_time
-Matrix Kalman::predict(double prediction_time) const {
+Matrix Kalman::predict(timespec prediction_time) const {
 	Matrix state_predict(state_estimate);
 	Matrix p_predict(p);
 	predict(prediction_time, state_predict, p_predict);
@@ -71,7 +74,7 @@ Matrix Kalman::predict(double prediction_time) const {
 
 // this should generate an updated state, as well as clean up all the inputs since the last measurement
 // until this current one
-void Kalman::update(double measurement, double measurement_time) {
+void Kalman::update(double measurement, timespec measurement_time) {
 	Matrix state_priori(state_estimate);
 	Matrix p_priori(p);
 	predict(measurement_time, state_priori, p_priori);
@@ -95,28 +98,28 @@ void Kalman::update(double measurement, double measurement_time) {
 
 	// we should clear the control inputs for times before last_measurement_time because they are unneeded
 	// and we don't want memory to explode
-	while (!inputs.empty() && inputs.front().time <= last_measurement_time) {
+	while (!inputs.empty() && timespec_cmp(inputs.front().time, last_measurement_time) <= 0) {
 		last_control = inputs.front().value;
 		inputs.pop_front();
 	}
 }
 
-double Kalman::get_control(double control_time) const {
+double Kalman::get_control(timespec control_time) const {
 	double current_control = last_control;
 
-	for (std::deque<ControlInput>::const_iterator inputs_itr = inputs.begin(); inputs_itr != inputs.end() && inputs_itr->time <= control_time; ++inputs_itr) {
+	for (std::deque<ControlInput>::const_iterator inputs_itr = inputs.begin(); inputs_itr != inputs.end() && timespec_cmp(inputs_itr->time, control_time) <= 0; ++inputs_itr) {
 		current_control = inputs_itr->value;
 	}
 	return current_control;
 }
 
-void Kalman::add_control(double input, double input_time) {
+void Kalman::add_control(double input, timespec input_time) {
 	// the new control input overwrites all actions that were scheduled for later times
 	// this allows us, for instance, to change our mind about future control sequences
-	while (!inputs.empty() && inputs.back().time >= input_time) {
+	while (!inputs.empty() && timespec_cmp(inputs.back().time, input_time) >= 0) {
 		inputs.pop_back();
 	}
-	if (input_time <= last_measurement_time) {
+	if (timespec_cmp(input_time, last_measurement_time) <= 0) {
 		last_control = input;
 	} else {
 		inputs.push_back(ControlInput(input_time, input));
