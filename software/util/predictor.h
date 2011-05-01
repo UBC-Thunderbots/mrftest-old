@@ -3,6 +3,7 @@
 
 #include "util/time.h"
 #include "util/kalman/kalman.h"
+#include <utility>
 
 /**
  * Accumulates data points over time and predicts past, current, and future values and derivatives.
@@ -28,9 +29,11 @@ class Predictor {
 		 *
 		 * \param[in] deriv the derivative level to take (\c 0 for position or \c 1 for velocity).
 		 *
-		 * \return the value.
+		 * \param[in] ignore_cache \c true to ignore the lookaside, or \c false to use it.
+		 *
+		 * \return the value and its variance.
 		 */
-		double value(double delta, unsigned int deriv = 0) const __attribute__((warn_unused_result));
+		std::pair<double, double> value(double delta, unsigned int deriv = 0, bool ignore_cache = false) const __attribute__((warn_unused_result));
 
 		/**
 		 * Locks in a timestamp to consider as the current time.
@@ -59,7 +62,7 @@ class Predictor {
 	private:
 		timespec lock_timestamp;
 		Kalman filter;
-		double zero_value;
+		std::pair<double, double> zero_value;
 };
 
 #endif

@@ -50,6 +50,8 @@ void Kalman::predict_step(double timestep, double control, Matrix &state_predict
 
 // get an estimate of the state and covariance at prediction_time, outputs passed by reference
 void Kalman::predict(timespec prediction_time, Matrix &state_predict, Matrix &p_predict) const {
+	state_predict = state_estimate;
+	p_predict = p;
 	timespec current_time = last_measurement_time;
 	double current_control = last_control;
 
@@ -66,8 +68,8 @@ void Kalman::predict(timespec prediction_time, Matrix &state_predict, Matrix &p_
 
 // get an estimate of the state at prediction_time
 Matrix Kalman::predict(timespec prediction_time) const {
-	Matrix state_predict(state_estimate);
-	Matrix p_predict(p);
+	Matrix state_predict;
+	Matrix p_predict;
 	predict(prediction_time, state_predict, p_predict);
 	return state_predict;
 }
@@ -75,8 +77,8 @@ Matrix Kalman::predict(timespec prediction_time) const {
 // this should generate an updated state, as well as clean up all the inputs since the last measurement
 // until this current one
 void Kalman::update(double measurement, timespec measurement_time) {
-	Matrix state_priori(state_estimate);
-	Matrix p_priori(p);
+	Matrix state_priori;
+	Matrix p_priori;
 	predict(measurement_time, state_priori, p_priori);
 
 	// %how much does the guess differ from the measurement

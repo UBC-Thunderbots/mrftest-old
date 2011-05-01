@@ -55,10 +55,10 @@ namespace AI {
 
 					ObjectStore &object_store() const { return object_store_; }
 					unsigned int pattern() const { return pattern_; }
-					Point position(double delta = 0.0) const { return Point(xpred.value(delta), ypred.value(delta)); }
-					double orientation(double delta = 0.0) const { return tpred.value(delta); }
-					Point velocity(double delta = 0.0) const { return Point(xpred.value(delta, 1), ypred.value(delta, 1)); }
-					double avelocity(double delta = 0.0) const { return tpred.value(delta, 1); }
+					Point position(double delta = 0.0) const { return Point(xpred.value(delta).first, ypred.value(delta).first); }
+					double orientation(double delta = 0.0) const { return tpred.value(delta).first; }
+					Point velocity(double delta = 0.0) const { return Point(xpred.value(delta, 1).first, ypred.value(delta, 1).first); }
+					double avelocity(double delta = 0.0) const { return tpred.value(delta, 1).first; }
 					Visualizable::Colour visualizer_colour() const { return Visualizable::Colour(1.0, 0.0, 0.0); }
 					Glib::ustring visualizer_label() const { return Glib::ustring::format(pattern_); }
 					bool highlight() const { return false; }

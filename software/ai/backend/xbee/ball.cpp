@@ -19,11 +19,11 @@ void Ball::lock_time(const timespec &now) {
 }
 
 Point Ball::position(double delta) const {
-	return Point(xpred.value(delta), ypred.value(delta));
+	return Point(xpred.value(delta).first, ypred.value(delta).first);
 }
 
 Point Ball::velocity(double delta) const {
-	return Point(xpred.value(delta, 1), ypred.value(delta, 1));
+	return Point(xpred.value(delta, 1).first, ypred.value(delta, 1).first);
 }
 
 bool Ball::highlight() const {
