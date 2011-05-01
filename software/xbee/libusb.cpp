@@ -2,6 +2,7 @@
 #include "util/dprint.h"
 #include "util/exception.h"
 #include <cassert>
+#include <cerrno>
 #include <cstdlib>
 #include <cstring>
 #include <limits>
@@ -130,8 +131,12 @@ int LibUSBContext::poll_func(GPollFD *ufds, unsigned int nfds, int timeout) {
 		}
 	}
 
-	if (poll(pfds, G_N_ELEMENTS(pfds), timeout) < 0) {
-		throw SystemError("poll", errno);
+	{
+		int rc;
+		while ((rc = poll(pfds, G_N_ELEMENTS(pfds), timeout)) < 0 && errno == EINTR);
+		if (rc < 0) {
+			throw SystemError("poll", errno);
+		}
 	}
 
 	for (std::size_t i = 0; i < G_N_ELEMENTS(context_infos); ++i) {
