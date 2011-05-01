@@ -24,6 +24,8 @@ namespace AI {
 				 * \param [in] pos where the passee should be.
 				 */
 				Tactic::Ptr passee_receive(const World &world);
+				
+				Tactic::Ptr def_passee_receive(const World &world);
 			}
 		}
 	}

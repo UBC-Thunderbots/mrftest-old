@@ -20,7 +20,7 @@ namespace {
 	
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/pass", 4.0, 1.0, 10.0);
 
-	DoubleParam ball_dist_weight("ball distance weight", "STP/pass", 1.0, 0.0, 2.0);
+	DoubleParam ball_goal_dist_weight("ball goal distance weight", "STP/pass", 1.0, 0.0, 2.0);
 
 	double passer_scoring_function(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
 		// can't be too close to enemy
@@ -171,7 +171,7 @@ namespace {
 		const double ball_dist = (dest - world.ball().position()).len();
 		const double goal_dist = (dest - bestshot.first).len();
 
-		// weighted
+		// weighted, favour to be close to goal
 		const double big_dist = ball_dist * 0.25 + goal_dist * 0.75;
 		score /= big_dist;
 
@@ -304,6 +304,7 @@ namespace {
 
 		score /= min_dist;
 		score *= closest_enemy;
+		score *= enemy_total_dist;
 
 		return score;
 	}
@@ -432,13 +433,13 @@ std::pair <Point,Point> AI::HL::STP::Evaluation::calc_def_pass_positions(const W
 	// instead of just finding the best passee position and find the best passer best position relative to that passee position
 	Point passee_best;
 	if (!calc_def_passee_position_best(world, enemy_pos, dont_block, passee_best)) {
-		LOG_WARN("could not find a good passee pos");
+		LOG_WARN("could not find a good def passee pos");
 		return pp;
 	} 
 	pp.second = passee_best;
 	Point passer_best;
 	if (!calc_passer_position_best(world, passee_best, enemy_pos, dont_block, passer_best)){
-		LOG_WARN("could not find a good passer pos");
+		LOG_WARN("could not find a good def passer pos");
 		return pp;
 	}
 	pp.first = passer_best;

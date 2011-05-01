@@ -79,7 +79,6 @@ namespace {
 		// ROLE 2
 		// passee
 		roles[1].push_back(passee_receive(world));
-		roles[1].push_back(shoot(world));
 
 		// ROLE 3
 		// defend

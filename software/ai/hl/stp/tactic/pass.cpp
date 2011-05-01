@@ -65,6 +65,32 @@ namespace {
 			}
 			
 	};
+	class DefPasseeReceive : public Tactic {
+		public:
+			// ACTIVE tactic!
+			DefPasseeReceive(const World &world) : Tactic(world, true) {
+			}
+
+		private:
+
+			bool done() const {
+				return player->has_ball();
+			}
+			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+	
+				Point dest = Evaluation::calc_def_pass_positions(world).second;
+
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
+			}
+			void execute() {
+				Point dest = Evaluation::calc_def_pass_positions(world).second;
+				player->move(dest, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
+			}
+			std::string description() const {
+				return "def-passee-receive";
+			}
+			
+	};
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::passer_shoot(const World &world) {
@@ -74,6 +100,11 @@ Tactic::Ptr AI::HL::STP::Tactic::passer_shoot(const World &world) {
 
 Tactic::Ptr AI::HL::STP::Tactic::passee_receive(const World &world) {
 	const Tactic::Ptr p(new PasseeReceive(world));
+	return p;
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::def_passee_receive(const World &world) {
+	const Tactic::Ptr p(new DefPasseeReceive(world));
 	return p;
 }
 
