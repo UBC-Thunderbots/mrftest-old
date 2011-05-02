@@ -10,21 +10,25 @@ namespace AI {
 			namespace Tactic {
 				
 				/**
-				 * The STP suggested method for passing.
-				 * See instructions in passer_ready_position.
-				 *
-				 * \param [in] target where the passee should be.
+				 * Passer positioning and shoot for offensive purposes
+				 * (objective is pass to passee and have it shoot at enemy goal).
 				 */
 				Tactic::Ptr passer_shoot(const World &world);
 
 				/**
-				 * The STP suggested method for passing.
-				 * See instructions in passer_ready_position.
-				 *
-				 * \param [in] pos where the passee should be.
+				 * Passee positioning for offensive.
 				 */
 				Tactic::Ptr passee_receive(const World &world);
 				
+				/**
+				 * Passer positioning and shoot for defensive purposes
+				 * (objective is to keep ball in team possesion).
+				 */
+				Tactic::Ptr def_passer_shoot(const World &world);
+				
+				/**
+				 * Passee positioning for defensive.
+				 */
 				Tactic::Ptr def_passee_receive(const World &world);
 			}
 		}

@@ -65,6 +65,36 @@ namespace {
 			}
 			
 	};
+	
+	class DefPasserShoot : public Tactic {
+		public:
+			DefPasserShoot(const World &world) : Tactic(world, true), kicked(false) {
+			}
+
+		private:
+
+			bool kicked;
+			bool done() const {
+				return kicked;
+			}
+			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+				return select_baller(world, players);
+			}
+			void execute() {
+				kicked = false;
+				std::pair <Point, Point> pp = Evaluation::calc_def_pass_positions(world);
+				
+				// orient towards target
+				player->move(pp.first, (pp.second - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::DRIBBLE, AI::Flags::MovePrio::HIGH);
+				kicked = AI::HL::STP::Action::shoot(world,player,pp.second);
+
+			}
+			std::string description() const {
+				return "def-passer-shoot";
+			}
+			
+	};
+	
 	class DefPasseeReceive : public Tactic {
 		public:
 			// ACTIVE tactic!
@@ -100,6 +130,11 @@ Tactic::Ptr AI::HL::STP::Tactic::passer_shoot(const World &world) {
 
 Tactic::Ptr AI::HL::STP::Tactic::passee_receive(const World &world) {
 	const Tactic::Ptr p(new PasseeReceive(world));
+	return p;
+}
+
+Tactic::Ptr AI::HL::STP::Tactic::def_passer_shoot(const World &world) {
+	const Tactic::Ptr p(new DefPasserShoot(world));
 	return p;
 }
 

@@ -15,8 +15,8 @@ namespace Predicates = AI::HL::STP::Predicates;
 namespace {
 	/**
 	 * Condition:
-	 * - ball in own end enemy has ball control
-	 * - at least 2 players
+	 * - ball in own end and enemy has ball control
+	 * - at least 3 players
 	 *
 	 * Objective:
 	 * - defend the net

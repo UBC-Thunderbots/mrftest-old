@@ -1,8 +1,11 @@
 #include "ai/hl/stp/enemy.h"
 #include "ai/hl/util.h"
+#include "ai/hl/stp/evaluation/offense.h"
 
 using namespace AI::HL::W;
 using AI::HL::STP::Enemy;
+
+using namespace AI::HL::STP::Evaluation;
 
 namespace {
 	class Fixed : public Enemy {

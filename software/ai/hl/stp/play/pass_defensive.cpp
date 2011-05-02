@@ -73,7 +73,7 @@ namespace {
 		
 		// ROLE 1
 		// passer
-		roles[0].push_back(passer_shoot(world));
+		roles[0].push_back(def_passer_shoot(world));
 		roles[0].push_back(offend(world));
 
 		// ROLE 2

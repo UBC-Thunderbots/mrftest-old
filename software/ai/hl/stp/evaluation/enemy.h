@@ -18,15 +18,15 @@ namespace AI {
 					double threat_dist;
 
 					/**
-					 * blocked by our players or other enemies or not
+					 * blocked by our players or other enemies or not to our goal
 					 */
 					bool blocked;
-
+					
 					/**
 					 * Other enemies that the enemy can pass to sorted by distance.
 					 */
 					std::vector<AI::HL::W::Robot::Ptr> pass_enemies;
-					
+									
 					/**
 					 * # of passes it takes to shoot to our goal
 					 * ignore (set to 5 if # of passes > 2)
@@ -39,9 +39,7 @@ namespace AI {
 				 */
 				
 				EnemyThreat eval_enemy(const AI::HL::W::World &world);
-				
-				
-				
+								
 			}
 		}
 	}
