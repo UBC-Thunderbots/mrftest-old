@@ -125,3 +125,13 @@ bool AI::HL::STP::Predicates::baller_under_threat(const World &world){
 	return enemy_cnt >= 2;
 }
 
+bool AI::HL::STP::Predicates::enemy_baller_can_shoot(const World &world){
+	const EnemyTeam &enemy = world.enemy_team();
+	std::set<Robot::Ptr> enemies;
+	for (std::size_t i = 0; i < enemy.size(); ++i) {
+		enemies.insert(enemy.get(i));
+	}
+	const Robot::Ptr baller = *std::min_element(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.ball().position()));
+	return AI::HL::Util::calc_enemy_best_shot(world, baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
+}
+

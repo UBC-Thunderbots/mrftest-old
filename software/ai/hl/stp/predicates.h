@@ -50,6 +50,8 @@ namespace AI {
 				bool our_team_size_exactly(const World &world, const unsigned int n);
 				
 				bool baller_under_threat(const World &world);
+				
+				bool enemy_baller_can_shoot(const World &world);
 			}
 		}
 	}
