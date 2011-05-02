@@ -78,7 +78,7 @@ namespace {
 
 		// ROLE 2
 		// passee
-		roles[1].push_back(passee_receive(world));
+		roles[1].push_back(def_passee_receive(world));
 
 		// ROLE 3
 		// defend
