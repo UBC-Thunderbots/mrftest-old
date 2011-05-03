@@ -19,7 +19,7 @@ namespace {
 	 * - at least 2 players
 	 *
 	 * Objective:
-	 * - grab the ball
+	 * - grab the ball (should use ball prediction)
 	 */
 	class GrabBall : public Play {
 		public:

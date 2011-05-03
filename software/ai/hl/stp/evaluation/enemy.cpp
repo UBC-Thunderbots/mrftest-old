@@ -110,7 +110,7 @@ namespace {
 		const double dist = (passee->position() - world.ball().position()).len();
 		const double angle = calc_enemy_best_shot_target(world, passee->position(), passer).second;
 		
-		return  angle >= minangle && dist < maxdist;
+		return angle >= minangle && dist < maxdist;
 	}
 
 }

@@ -17,11 +17,12 @@ namespace {
 	/**
 	 * Condition:
 	 * - at least 3 players
-	 * - ball under team possesion
+	 * - ball under enemy possesion
+	 * - ball on our side of the field
 	 * - enemy baller has clear shot to our goal!
 	 *
 	 * Objective:
-	 * - Defend and ram the ball away
+	 * - Defend and ram the ball away (grab if possible)
 	 */
 	class JustRam : public Play {
 		public:
@@ -50,7 +51,7 @@ namespace {
 	}
 
 	bool JustRam::applicable() const {
-		return Predicates::their_ball(world) && Predicates::enemy_baller_can_shoot(world);
+		return Predicates::their_ball(world) && Predicates::enemy_baller_can_shoot(world) && Predicates::ball_on_our_side(world);;
 	}
 
 	bool JustRam::done() const {
