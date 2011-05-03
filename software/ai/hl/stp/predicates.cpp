@@ -14,6 +14,25 @@ using AI::HL::STP::Evaluation::EnemyThreat;
 namespace{
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/predicates", 3.0, 1.0, 10.0);
 
+	Player::CPtr calc_baller(const World &world){
+		const FriendlyTeam &friendly = world.friendly_team();
+		std::set<Player::CPtr> players;
+		for (std::size_t i = 0; i < friendly.size(); ++i) {
+			players.insert(friendly.get(i));
+		}
+		const Player::CPtr baller = *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::CPtr>(world.ball().position()));
+		return baller;
+	}
+	
+	const Robot::Ptr calc_enemy_baller(const World &world){
+		const EnemyTeam &enemy = world.enemy_team();
+		std::set<Robot::Ptr> enemies;
+		for (std::size_t i = 0; i < enemy.size(); ++i) {
+			enemies.insert(enemy.get(i));
+		}
+		const Robot::Ptr baller = *std::min_element(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.ball().position()));
+		return baller;
+	}
 }
 
 bool AI::HL::STP::Predicates::goal(const World &) {
@@ -50,6 +69,10 @@ bool AI::HL::STP::Predicates::none_ball(const World &world) {
 
 bool AI::HL::STP::Predicates::our_team_size_at_least(const World &world, const unsigned int n) {
 	return world.friendly_team().size() >= n;
+}
+
+bool AI::HL::STP::Predicates::our_team_size_exactly(const World &world, const unsigned int n) {
+	return world.friendly_team().size() == n;
 }
 
 bool AI::HL::STP::Predicates::their_team_size_at_least(const World &world, const unsigned int n) {
@@ -89,36 +112,20 @@ bool AI::HL::STP::Predicates::ball_midfield(const World &world){
 }
 
 bool AI::HL::STP::Predicates::baller_can_shoot(const World &world){
-	const FriendlyTeam &friendly = world.friendly_team();
-	std::set<Player::CPtr> players;
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		players.insert(friendly.get(i));
-	}
-	const Player::CPtr baller = *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::CPtr>(world.ball().position()));
+	const Player::CPtr baller = calc_baller(world);
+	
 	return AI::HL::Util::calc_best_shot(world, baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
 }
 
 bool AI::HL::STP::Predicates::baller_can_shoot_target(const World &world, const Point &target){
-	const FriendlyTeam &friendly = world.friendly_team();
-	std::set<Player::CPtr> players;
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		players.insert(friendly.get(i));
-	}
-	const Player::CPtr baller = *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::CPtr>(world.ball().position()));
+	const Player::CPtr baller = calc_baller(world);
+	
 	return AI::HL::Util::calc_best_shot_target(world, target, baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
 }
 
-bool AI::HL::STP::Predicates::our_team_size_exactly(const World &world, const unsigned int n) {
-	return world.friendly_team().size() == n;
-}
-
 bool AI::HL::STP::Predicates::baller_under_threat(const World &world){
-	const FriendlyTeam &friendly = world.friendly_team();
-	std::set<Player::CPtr> players;
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		players.insert(friendly.get(i));
-	}
-	const Player::CPtr baller = *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::CPtr>(world.ball().position()));
+
+	const Player::CPtr baller = calc_baller(world);
 	
 	int enemy_cnt = 0;
 	const EnemyTeam &enemies = world.enemy_team();
@@ -131,13 +138,20 @@ bool AI::HL::STP::Predicates::baller_under_threat(const World &world){
 }
 
 bool AI::HL::STP::Predicates::enemy_baller_can_shoot(const World &world){
-	const EnemyTeam &enemy = world.enemy_team();
-	std::set<Robot::Ptr> enemies;
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		enemies.insert(enemy.get(i));
-	}
-	Robot::Ptr baller = *std::min_element(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.ball().position()));
+	const Robot::Ptr baller = calc_enemy_baller(world);
 	
-	return Evaluation::eval_enemy(world, baller).passes == 0;
+	return !Evaluation::eval_enemy(world, baller).blocked;
+}
+
+bool AI::HL::STP::Predicates::enemy_baller_can_pass(const World &world){
+	const Robot::Ptr baller = calc_enemy_baller(world);
+	
+	return Evaluation::eval_enemy(world, baller).pass_enemies.size() > 0;
+}
+
+bool AI::HL::STP::Predicates::enemy_baller_can_pass_shoot(const World &world){
+	const Robot::Ptr baller = calc_enemy_baller(world);
+	
+	return Evaluation::eval_enemy(world, baller).passes > 0 && Evaluation::eval_enemy(world, baller).passes < 3;
 }
 

@@ -24,6 +24,8 @@ namespace AI {
 				bool none_ball(const World &world);
 
 				bool our_team_size_at_least(const World &world, const unsigned int n);
+				
+				bool our_team_size_exactly(const World &world, const unsigned int n);
 
 				bool their_team_size_at_least(const World &world, const unsigned int n);
 
@@ -45,13 +47,15 @@ namespace AI {
 				
 				bool baller_can_shoot(const World &world);
 				
-				bool baller_can_shoot_target(const World &world, const Point &target);
-
-				bool our_team_size_exactly(const World &world, const unsigned int n);
+				bool baller_can_shoot_target(const World &world, const Point &target);		
 				
 				bool baller_under_threat(const World &world);
 				
 				bool enemy_baller_can_shoot(const World &world);
+				
+				bool enemy_baller_can_pass(const World &world);
+				
+				bool enemy_baller_can_pass_shoot(const World &world);
 			}
 		}
 	}

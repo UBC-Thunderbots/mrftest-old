@@ -115,7 +115,7 @@ namespace {
 
 }
 
-EnemyThreat AI::HL::STP::Evaluation::eval_enemy(const World &world, Robot::Ptr robot) {
+EnemyThreat AI::HL::STP::Evaluation::eval_enemy(const World &world, const Robot::Ptr robot) {
 
 	// TODO: Check for Errors
 	EnemyThreat enemy_threat;
