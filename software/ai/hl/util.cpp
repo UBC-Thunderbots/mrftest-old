@@ -199,31 +199,6 @@ std::pair<Point, double> AI::HL::Util::calc_best_shot_target(const World &world,
 	return calc_best_shot_target(target_pos, obstacles, player->position(), radius);
 }
 
-std::pair<Point, double> AI::HL::Util::calc_enemy_best_shot(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius) {
-	// our own goal
-	const Point p1 = Point(-f.length() / 2.0, -f.goal_width() / 2.0);
-	const Point p2 = Point(-f.length() / 2.0, f.goal_width() / 2.0);
-	return angle_sweep_circles(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
-}
-
-std::pair<Point, double> AI::HL::Util::calc_enemy_best_shot(const World &world, const Robot::Ptr robot, const double radius) {
-	std::vector<Point> obstacles;
-	const EnemyTeam &enemy = world.enemy_team();
-	const FriendlyTeam &friendly = world.friendly_team();
-	obstacles.reserve(enemy.size() + friendly.size());
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		const Robot::Ptr erob = enemy.get(i);
-		if (erob == robot) {
-			continue;
-		}
-		obstacles.push_back(erob->position());
-	}
-	for (std::size_t i = 0; i < friendly.size(); ++i) {
-		obstacles.push_back(friendly.get(i)->position());
-	}
-	return calc_best_shot(world.field(), obstacles, robot->position(), radius);
-}
-
 bool AI::HL::Util::ball_close(const World &world, Robot::Ptr robot) {
 	const Point dist = world.ball().position() - robot->position();
 	return dist.len() < (Robot::MAX_RADIUS + Ball::RADIUS * ball_close_factor);

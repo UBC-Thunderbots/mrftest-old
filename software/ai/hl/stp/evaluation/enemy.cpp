@@ -12,6 +12,29 @@ using AI::HL::STP::Evaluation::EnemyThreat;
 
 namespace {
 
+	std::pair<Point, double> calc_enemy_best_shot(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius) {
+		const Point p1 = Point(-f.length() / 2.0, -f.goal_width() / 2.0);
+		const Point p2 = Point(-f.length() / 2.0, f.goal_width() / 2.0);
+		return angle_sweep_circles(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
+	}
+
+	std::pair<Point, double> calc_enemy_best_shot(const World &world, const Robot::Ptr enemy, const double radius = 1.0) {
+		std::vector<Point> obstacles;
+		const FriendlyTeam &friendly = world.friendly_team();
+		for (std::size_t i = 0; i < friendly.size(); ++i) {
+			obstacles.push_back(friendly.get(i)->position());
+		}
+		const EnemyTeam &enemies = world.enemy_team();
+		for (std::size_t i = 0; i < enemies.size(); ++i) {
+			const Robot::Ptr erob = enemies.get(i);
+			if (erob == enemy) {
+				continue;
+			}
+			obstacles.push_back(erob->position());
+		}
+		return calc_enemy_best_shot(world.field(), obstacles, enemy->position(), radius);
+	}
+
 	std::pair<Point, double> calc_enemy_best_shot_target(const World &world, const Point &target_pos, const Robot::Ptr enemy, const double radius = 1.0) {
 		std::vector<Point> obstacles;
 		const FriendlyTeam &friendly = world.friendly_team();
@@ -26,6 +49,7 @@ namespace {
 			}
 			obstacles.push_back(erob->position());
 		}
+		 
 		return AI::HL::Util::calc_best_shot_target(target_pos, obstacles, enemy->position(), radius);
 	}
 	
@@ -91,7 +115,7 @@ namespace {
 
 }
 
-EnemyThreat eval_enemy(const World &world, Robot::Ptr robot) {
+EnemyThreat AI::HL::STP::Evaluation::eval_enemy(const World &world, Robot::Ptr robot) {
 
 	// TODO: Check for Errors
 	EnemyThreat enemy_threat;

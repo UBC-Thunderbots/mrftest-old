@@ -1,10 +1,15 @@
 #include "ai/hl/stp/predicates.h"
 #include "ai/hl/util.h"
 
+#include "ai/hl/stp/evaluation/enemy.h"
+
 #include <set>
 
 using namespace AI::HL::STP;
 using namespace AI::HL::W;
+
+namespace Evaluation = AI::HL::STP::Evaluation;
+using AI::HL::STP::Evaluation::EnemyThreat;
 
 namespace{
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/predicates", 3.0, 1.0, 10.0);
@@ -131,7 +136,8 @@ bool AI::HL::STP::Predicates::enemy_baller_can_shoot(const World &world){
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		enemies.insert(enemy.get(i));
 	}
-	const Robot::Ptr baller = *std::min_element(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.ball().position()));
-	return AI::HL::Util::calc_enemy_best_shot(world, baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
+	Robot::Ptr baller = *std::min_element(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.ball().position()));
+	
+	return Evaluation::eval_enemy(world, baller).passes == 0;
 }
 
