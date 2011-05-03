@@ -22,7 +22,6 @@ void AI::HL::STP::Action::block(const World &world, Player::Ptr player, Robot::P
 void AI::HL::STP::Action::block_pass(const World &world, Player::Ptr player, Robot::Ptr robot) {
 
 	// should have threshold distance, half a robot radius?
-	// TODO: Use this somehow
 	Point dirToBall = (world.ball().position() - robot->position()).norm();
 	player->move(robot->position() + (0.5*Robot::MAX_RADIUS*dirToBall), (world.ball().position() - player->position()).orientation(), Point());
 	
