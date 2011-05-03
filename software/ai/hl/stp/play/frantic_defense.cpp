@@ -51,11 +51,11 @@ namespace {
 	}
 
 	bool FranticDefense::applicable() const {
-		return !Predicates::our_ball(world) && !Predicates::ball_in_our_corner(world) && !Predicates::ball_in_their_corner(world) && !Predicates::ball_midfield(world);
+		return !Predicates::our_ball(world) && !Predicates::ball_in_our_corner(world) && !Predicates::ball_in_their_corner(world) && !Predicates::ball_midfield(world) && Predicates::ball_on_our_side(world);
 	}
 
 	bool FranticDefense::done() const {
-		return Predicates::our_ball(world) || Predicates::ball_in_our_corner(world) || Predicates::ball_in_their_corner(world) || Predicates::ball_midfield(world);
+		return Predicates::our_ball(world) || Predicates::ball_in_our_corner(world) || Predicates::ball_in_their_corner(world) || Predicates::ball_midfield(world) || Predicates::ball_on_their_side(world);
 	}
 
 	bool FranticDefense::fail() const {

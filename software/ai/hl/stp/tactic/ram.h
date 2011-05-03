@@ -10,7 +10,7 @@ namespace AI {
 				/**
 				 * Ram to ball.
 				 */
-				Tactic::Ptr ram(AI::HL::W::World &world);
+				Tactic::Ptr ram(const AI::HL::W::World &world);
 			}
 		}
 	}

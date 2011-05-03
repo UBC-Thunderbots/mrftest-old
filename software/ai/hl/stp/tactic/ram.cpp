@@ -7,7 +7,7 @@ using namespace AI::HL::W;
 namespace {
 	class Ram : public Tactic {
 		public:
-			Ram(World &world) : Tactic(world) {
+			Ram(const World &world) : Tactic(world) {
 			}
 
 		private:
@@ -26,7 +26,7 @@ namespace {
 	};
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::ram(World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::ram(const World &world) {
 	const Tactic::Ptr p(new Ram(world));
 	return p;
 }

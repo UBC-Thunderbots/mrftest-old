@@ -18,7 +18,7 @@ namespace AI {
 					double threat_dist;
 
 					/**
-					 * blocked by our players or other enemies or not to our goal
+					 * blocked by our players or other enemies for passing
 					 */
 					bool blocked;
 					
@@ -28,7 +28,8 @@ namespace AI {
 					std::vector<AI::HL::W::Robot::Ptr> pass_enemies;
 									
 					/**
-					 * # of passes it takes to shoot to our goal
+					 * # of passes it takes for the enemy to shoot to our goal
+					 * 0 means the enemy has a clear shot to our goal!
 					 * ignore (set to 5 if # of passes > 2)
 					 */
 					int passes;
