@@ -131,24 +131,24 @@ EnemyThreat AI::HL::STP::Evaluation::eval_enemy(const World &world, const Robot:
 	// don't count this robot
 	for (std::size_t i = 1; i < enemies.size(); ++i) {
 		if (available_enemy_pass(world, robot, enemies[i])){
-			enemy_threat.pass_enemies.push_back(enemies[i]);
+			enemy_threat.passees.push_back(enemies[i]);
 		} 
 	}	
 
 	enemy_threat.passes = 5;
-	if (enemy_threat.blocked || enemy_threat.pass_enemies.size() == 0) {
+	if (enemy_threat.blocked || enemy_threat.passees.size() == 0) {
 		enemy_threat.passes = 5;
 	} else if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), robot, Robot::MAX_RADIUS).second > shoot_accuracy){
 		enemy_threat.passes = 0;
 	}
-	for (std::size_t i = 0; i < enemy_threat.pass_enemies.size(); ++i) {
-		if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), enemy_threat.pass_enemies[i], Robot::MAX_RADIUS).second > shoot_accuracy) {
+	for (std::size_t i = 0; i < enemy_threat.passees.size(); ++i) {
+		if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), enemy_threat.passees[i], Robot::MAX_RADIUS).second > shoot_accuracy) {
 			enemy_threat.passes = 1;
 		}
 		else {
-			EnemyThreat next = eval_enemy(world, enemy_threat.pass_enemies[i]);
-			for (std::size_t j = 0; j < next.pass_enemies.size(); ++j){
-				if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), next.pass_enemies[j], Robot::MAX_RADIUS).second > shoot_accuracy) {
+			EnemyThreat next = eval_enemy(world, enemy_threat.passees[i]);
+			for (std::size_t j = 0; j < next.passees.size(); ++j){
+				if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), next.passees[j], Robot::MAX_RADIUS).second > shoot_accuracy) {
 				enemy_threat.passes = 2;
 				}
 			}	

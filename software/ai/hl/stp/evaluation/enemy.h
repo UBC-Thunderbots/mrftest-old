@@ -25,7 +25,7 @@ namespace AI {
 					/**
 					 * Other enemies that the enemy can pass to sorted by distance.
 					 */
-					std::vector<AI::HL::W::Robot::Ptr> pass_enemies;
+					std::vector<AI::HL::W::Robot::Ptr> passees;
 									
 					/**
 					 * # of passes it takes for the enemy to shoot to our goal

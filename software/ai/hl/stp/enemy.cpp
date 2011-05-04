@@ -1,11 +1,13 @@
 #include "ai/hl/stp/enemy.h"
 #include "ai/hl/util.h"
 #include "ai/hl/stp/evaluation/offense.h"
+#include "ai/hl/stp/evaluation/enemy.h"
 
 using namespace AI::HL::W;
 using AI::HL::STP::Enemy;
 
-using namespace AI::HL::STP::Evaluation;
+namespace Evaluation = AI::HL::STP::Evaluation;
+using AI::HL::STP::Evaluation::EnemyThreat;
 
 namespace {
 	class Fixed : public Enemy {
@@ -53,8 +55,6 @@ namespace {
 			unsigned int index;
 			Robot::Ptr evaluate() const {
 			
-				// TODO: try to use Evaluation::eval_enemy
-				
 				if (world.enemy_team().size() <= index) {
 					return Robot::Ptr();
 				}
@@ -68,6 +68,26 @@ namespace {
 				return enemies[index];
 			}
 	};
+	
+	class ClosestPass : public Enemy {
+		public:
+			ClosestPass(const World &w, const Robot::Ptr r, unsigned int i) : world(w), robot(r), index(i) {
+			}
+
+		private:
+			const World &world;
+			const Robot::Ptr robot;
+			unsigned int index;
+			Robot::Ptr evaluate() const {
+			
+				std::vector<Robot::Ptr> enemies = Evaluation::eval_enemy(world, robot).passees;
+				if (world.enemy_team().size() <= index) {
+					return Robot::Ptr();
+				}
+				
+				return enemies[index];
+			}
+	};
 };
 
 Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_goal(const World &world, unsigned int i) {
@@ -76,14 +96,19 @@ Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_goal(const World &world, unsigne
 }
 
 /*
-   Enemy::Ptr AI::HL::STP::Enemy::robot(Robot::Ptr r) {
+Enemy::Ptr AI::HL::STP::Enemy::robot(Robot::Ptr r) {
     Enemy::Ptr p(new Fixed(r));
     return p;
-   }
- */
+}
+*/ 
 
 Enemy::Ptr AI::HL::STP::Enemy::closest_ball(const World &world, unsigned int i) {
 	Enemy::Ptr p(new ClosestBall(world, i));
+	return p;
+}
+
+Enemy::Ptr AI::HL::STP::Enemy::closest_pass(const World &world, const Robot::Ptr r, unsigned int i) {
+	Enemy::Ptr p(new ClosestPass(world, r, i));
 	return p;
 }
 

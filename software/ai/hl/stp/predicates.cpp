@@ -146,7 +146,7 @@ bool AI::HL::STP::Predicates::enemy_baller_can_shoot(const World &world){
 bool AI::HL::STP::Predicates::enemy_baller_can_pass(const World &world){
 	const Robot::Ptr baller = calc_enemy_baller(world);
 	
-	return Evaluation::eval_enemy(world, baller).pass_enemies.size() > 0;
+	return Evaluation::eval_enemy(world, baller).passees.size() > 0;
 }
 
 bool AI::HL::STP::Predicates::enemy_baller_can_pass_shoot(const World &world){
