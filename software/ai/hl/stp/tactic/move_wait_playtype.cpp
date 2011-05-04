@@ -1,9 +1,12 @@
 #include "ai/hl/stp/tactic/move_wait_playtype.h"
+#include "ai/hl/stp/action/move.h"
 #include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 using AI::HL::STP::Coordinate;
+
+namespace Action = AI::HL::STP::Action;
 
 namespace {
 	class MoveWaitPlaytype : public Tactic {
@@ -31,7 +34,7 @@ namespace {
 	}
 
 	void MoveWaitPlaytype::execute() {
-		player->move(dest(), (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
+		Action::move(world, player, dest());
 	}
 }
 

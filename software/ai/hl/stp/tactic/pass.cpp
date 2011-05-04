@@ -2,12 +2,14 @@
 #include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/stp/tactic/util.h"
 #include "ai/hl/stp/action/shoot.h"
+#include "ai/hl/stp/action/move.h"
 #include "ai/hl/util.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 using AI::HL::STP::Coordinate;
 namespace Evaluation = AI::HL::STP::Evaluation;
+namespace Action = AI::HL::STP::Action;
 
 namespace {
 	class PasserShoot : public Tactic {
@@ -29,8 +31,8 @@ namespace {
 				std::pair <Point, Point> pp = Evaluation::calc_pass_positions(world);
 				
 				// orient towards target
-				player->move(pp.first, (pp.second - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::DRIBBLE, AI::Flags::MovePrio::HIGH);
-				kicked = AI::HL::STP::Action::shoot(world,player,pp.second);
+				Action::move(player, (pp.second - player->position()).orientation(), pp.first);
+				kicked = Action::shoot(world,player,pp.second);
 
 			}
 			std::string description() const {
@@ -58,7 +60,7 @@ namespace {
 			}
 			void execute() {
 				Point dest = Evaluation::calc_pass_positions(world).second;
-				player->move(dest, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
+				Action::move(player, (world.ball().position() - player->position()).orientation(), dest);
 			}
 			std::string description() const {
 				return "passee-receive";
@@ -85,8 +87,8 @@ namespace {
 				std::pair <Point, Point> pp = Evaluation::calc_def_pass_positions(world);
 				
 				// orient towards target
-				player->move(pp.first, (pp.second - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::DRIBBLE, AI::Flags::MovePrio::HIGH);
-				kicked = AI::HL::STP::Action::shoot(world,player,pp.second);
+				Action::move(player, (pp.second - player->position()).orientation(), pp.first);
+				kicked = Action::shoot(world,player,pp.second);
 
 			}
 			std::string description() const {
@@ -114,7 +116,7 @@ namespace {
 			}
 			void execute() {
 				Point dest = Evaluation::calc_def_pass_positions(world).second;
-				player->move(dest, (world.ball().position() - player->position()).orientation(), AI::Flags::calc_flags(world.playtype()), AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
+				Action::move(player, (world.ball().position() - player->position()).orientation(), dest);
 			}
 			std::string description() const {
 				return "def-passee-receive";

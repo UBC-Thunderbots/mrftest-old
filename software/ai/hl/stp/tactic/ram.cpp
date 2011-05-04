@@ -20,8 +20,10 @@ namespace {
 			}
 
 			void execute() {
-				// TODO: flags
-				player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MoveType::RAM_BALL, AI::Flags::MovePrio::HIGH);
+				
+				player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), Point());
+				player->type(AI::Flags::MoveType::RAM_BALL);
+				player->prio(AI::Flags::MovePrio::HIGH);
 			}
 	};
 }
