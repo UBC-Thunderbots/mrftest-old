@@ -81,8 +81,14 @@ namespace {
 			Robot::Ptr evaluate() const {
 			
 				std::vector<Robot::Ptr> enemies = Evaluation::eval_enemy(world, robot).passees;
-				if (world.enemy_team().size() <= index) {
-					return Robot::Ptr();
+				if (enemies.size() <= index) {
+					if (world.enemy_team().size() > index){
+						enemies = AI::HL::Util::get_robots(world.enemy_team());
+						std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.ball().position()));
+						return enemies[index];
+					} else {
+						return Robot::Ptr();
+					}	
 				}
 				
 				return enemies[index];

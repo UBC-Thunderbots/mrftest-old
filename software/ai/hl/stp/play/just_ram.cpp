@@ -47,15 +47,15 @@ namespace {
 	}
 
 	bool JustRam::invariant() const {
-		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3);
+		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && Predicates::enemy_baller_can_shoot(world);
 	}
 
 	bool JustRam::applicable() const {
-		return Predicates::their_ball(world) && Predicates::enemy_baller_can_shoot(world) && Predicates::ball_on_our_side(world);;
+		return Predicates::their_ball(world) && Predicates::ball_on_our_side(world);
 	}
 
 	bool JustRam::done() const {
-		return !Predicates::their_ball(world);
+		return !Predicates::their_ball(world) || Predicates::ball_on_their_side(world);
 	}
 
 	bool JustRam::fail() const {

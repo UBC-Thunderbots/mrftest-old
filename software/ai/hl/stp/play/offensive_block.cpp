@@ -47,7 +47,7 @@ namespace {
 	}
 
 	bool OffensiveBlock::invariant() const {
-		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3);
+		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && !Predicates::enemy_baller_can_shoot(world) && Predicates::enemy_baller_can_pass(world);
 	}
 
 	bool OffensiveBlock::applicable() const {
@@ -55,7 +55,7 @@ namespace {
 	}
 
 	bool OffensiveBlock::done() const {
-		return Predicates::our_ball(world);
+		return !Predicates::their_ball(world);
 	}
 
 	bool OffensiveBlock::fail() const {
@@ -77,12 +77,12 @@ namespace {
 		roles[1].push_back(chase(world));
 
 		// ROLE 3 (optional)
-		// offensive support through blocking closest enemy to ball (other than enemy baller)
-		roles[3].push_back(block(world, Enemy::closest_ball(world, 1)));
+		// offensive support through blocking possible passees of enemy baller
+		roles[3].push_back(block_pass(world, Enemy::closest_pass(world, Enemy::closest_ball(world, 0)->evaluate(), 1)));
 
 		// ROLE 4 (optional)
-		// offensive support through blocking closest enemy to ball (other than enemy baller)
-		roles[3].push_back(block(world, Enemy::closest_ball(world, 2)));
+		// offensive support through blocking possible passees of enemy baller
+		roles[3].push_back(block_pass(world, Enemy::closest_pass(world, Enemy::closest_ball(world, 0)->evaluate(), 2)));
 	}
 }
 
