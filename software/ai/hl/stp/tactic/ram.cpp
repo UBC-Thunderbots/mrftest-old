@@ -25,6 +25,9 @@ namespace {
 				player->type(AI::Flags::MoveType::RAM_BALL);
 				player->prio(AI::Flags::MovePrio::HIGH);
 			}
+			std::string description() const {
+				return "ram";
+			}
 	};
 }
 

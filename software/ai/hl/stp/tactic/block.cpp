@@ -18,6 +18,9 @@ namespace {
 			Enemy::Ptr enemy;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
+			std::string description() const {
+				return "block";
+			}
 	};
 
 	Player::Ptr Block::select(const std::set<Player::Ptr> &players) const {
@@ -47,6 +50,9 @@ namespace {
 			Enemy::Ptr enemy;
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
+			std::string description() const {
+				return "block-pass";
+			}
 	};
 
 	Player::Ptr BlockPass::select(const std::set<Player::Ptr> &players) const {

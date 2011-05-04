@@ -18,7 +18,7 @@ namespace AI {
 				/**
 				 * Passee positioning for offensive.
 				 */
-				Tactic::Ptr passee_receive(const World &world);
+				Tactic::Ptr passee_move(const World &world);
 				
 				/**
 				 * Passer positioning and shoot for defensive purposes
@@ -29,7 +29,7 @@ namespace AI {
 				/**
 				 * Passee positioning for defensive.
 				 */
-				Tactic::Ptr def_passee_receive(const World &world);
+				Tactic::Ptr def_passee_move(const World &world);
 			}
 		}
 	}

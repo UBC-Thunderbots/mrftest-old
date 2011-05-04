@@ -41,10 +41,10 @@ namespace {
 			
 	};
 
-	class PasseeReceive : public Tactic {
+	class PasseeMove : public Tactic {
 		public:
 			// ACTIVE tactic!
-			PasseeReceive(const World &world) : Tactic(world, true) {
+			PasseeMove(const World &world) : Tactic(world, true) {
 			}
 
 		private:
@@ -63,7 +63,7 @@ namespace {
 				Action::move(player, (world.ball().position() - player->position()).orientation(), dest);
 			}
 			std::string description() const {
-				return "passee-receive";
+				return "passee-move";
 			}
 			
 	};
@@ -97,10 +97,10 @@ namespace {
 			
 	};
 	
-	class DefPasseeReceive : public Tactic {
+	class DefPasseeMove : public Tactic {
 		public:
 			// ACTIVE tactic!
-			DefPasseeReceive(const World &world) : Tactic(world, true) {
+			DefPasseeMove(const World &world) : Tactic(world, true) {
 			}
 
 		private:
@@ -119,7 +119,7 @@ namespace {
 				Action::move(player, (world.ball().position() - player->position()).orientation(), dest);
 			}
 			std::string description() const {
-				return "def-passee-receive";
+				return "def-passee-move";
 			}
 			
 	};
@@ -130,8 +130,8 @@ Tactic::Ptr AI::HL::STP::Tactic::passer_shoot(const World &world) {
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::passee_receive(const World &world) {
-	const Tactic::Ptr p(new PasseeReceive(world));
+Tactic::Ptr AI::HL::STP::Tactic::passee_move(const World &world) {
+	const Tactic::Ptr p(new PasseeMove(world));
 	return p;
 }
 
@@ -140,8 +140,8 @@ Tactic::Ptr AI::HL::STP::Tactic::def_passer_shoot(const World &world) {
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::def_passee_receive(const World &world) {
-	const Tactic::Ptr p(new DefPasseeReceive(world));
+Tactic::Ptr AI::HL::STP::Tactic::def_passee_move(const World &world) {
+	const Tactic::Ptr p(new DefPasseeMove(world));
 	return p;
 }
 
