@@ -78,11 +78,11 @@ namespace {
 
 		// ROLE 3 (optional)
 		// offensive support through blocking possible passees of enemy baller
-		roles[3].push_back(block_pass(world, Enemy::closest_pass(world, Enemy::closest_ball(world, 0)->evaluate(), 1)));
+		roles[3].push_back(block_pass(world, Enemy::closest_pass(world, Enemy::closest_ball(world, 0)->evaluate(), 0)));
 
 		// ROLE 4 (optional)
 		// offensive support through blocking possible passees of enemy baller
-		roles[3].push_back(block_pass(world, Enemy::closest_pass(world, Enemy::closest_ball(world, 0)->evaluate(), 2)));
+		roles[3].push_back(block_pass(world, Enemy::closest_pass(world, Enemy::closest_ball(world, 0)->evaluate(), 1)));
 	}
 }
 

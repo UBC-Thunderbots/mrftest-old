@@ -75,6 +75,7 @@ bool AI::HL::STP::Action::arm(const World &world, Player::Ptr player, const Poin
 		return false;
 	}
 	double speed = alpha*distance/(1-exp(-alpha*delta));
+	if (speed > 10.0) speed = 10.0; // can't kick faster than this
 	player->autokick(speed);
 	return true;
 }
