@@ -60,6 +60,7 @@ namespace {
 	}
 
 	void GrabBall::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
+	
 		// GOALIE
 		// defend the goal
 		goalie_role.push_back(defend_duo_goalie(world));

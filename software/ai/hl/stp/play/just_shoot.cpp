@@ -60,7 +60,6 @@ namespace {
 	}
 
 	void JustShoot::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
-		// std::Player::Ptr goalie = world.friendly_team().get(0);
 
 		// GOALIE
 		goalie_role.push_back(defend_duo_goalie(world));

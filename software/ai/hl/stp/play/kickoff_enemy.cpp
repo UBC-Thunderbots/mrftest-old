@@ -71,7 +71,7 @@ namespace {
 	}
 
 	void KickoffEnemy::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
-		// std::Player::Ptr goalie = world.Enemy_team().get(0);
+		
 		// GOALIE
 		goalie_role.push_back(wait_playtype(world, defend_duo_goalie(world), AI::Common::PlayType::PLAY));
 

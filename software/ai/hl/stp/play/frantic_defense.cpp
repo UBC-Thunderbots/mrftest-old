@@ -48,15 +48,15 @@ namespace {
 	}
 
 	bool FranticDefense::invariant() const {
-		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 2);
+		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 2) && Predicates::their_ball(world);
 	}
 
 	bool FranticDefense::applicable() const {
-		return !Predicates::our_ball(world) && !Predicates::ball_in_our_corner(world) && !Predicates::ball_in_their_corner(world) && !Predicates::ball_midfield(world) && Predicates::ball_on_our_side(world);
+		return !Predicates::ball_in_our_corner(world) && !Predicates::ball_in_their_corner(world) && !Predicates::ball_midfield(world) && Predicates::ball_on_our_side(world);
 	}
 
 	bool FranticDefense::done() const {
-		return Predicates::our_ball(world) || Predicates::ball_in_our_corner(world) || Predicates::ball_in_their_corner(world) || Predicates::ball_midfield(world) || Predicates::ball_on_their_side(world);
+		return !Predicates::their_ball(world) || Predicates::ball_in_our_corner(world) || Predicates::ball_in_their_corner(world) || Predicates::ball_midfield(world) || Predicates::ball_on_their_side(world);
 	}
 
 	bool FranticDefense::fail() const {
@@ -70,20 +70,20 @@ namespace {
 		goalie_role.push_back(defend_solo_goalie(world));
 		
 		// ROLE 1
-		// try to grab ball
+		// try to repel ball away
 		roles[0].push_back(repel(world));
 
 		// ROLE 2
-		// defend extra
-		roles[1].push_back(block(world, Enemy::closest_friendly_goal(world, 0)));
+		// block the enemy baller
+		roles[1].push_back(block(world, Enemy::closest_ball(world, 0)));
 
 		// ROLE 3 (optional)
-		// block 3st enemy
-		roles[2].push_back(block(world, Enemy::closest_friendly_goal(world, 1)));
+		// block enemy closest to our goal
+		roles[2].push_back(block(world, Enemy::closest_friendly_goal(world, 0)));
 
 		// ROLE 4 (optional)
-		// block 4nd enemy
-		roles[3].push_back(block(world, Enemy::closest_friendly_goal(world, 2)));
+		// block enemy closest to our goal
+		roles[3].push_back(block(world, Enemy::closest_friendly_goal(world, 1)));
 	}
 }
 
