@@ -48,7 +48,6 @@ namespace {
 	}
 
 	bool GrabBall::applicable() const {
-		//return false;
 		return Predicates::none_ball(world);
 	}
 

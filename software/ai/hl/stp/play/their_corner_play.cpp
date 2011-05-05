@@ -22,7 +22,7 @@ namespace {
 	 * - have at least 3 players (one goalie, one defender, one shooter)
 	 *
 	 * Objective:
-	 * - shoot the ball to enemy goal while passing the ball between the passer and passee
+	 * - get the ball to a better shooting position (in the mid field)
 	 */
 	class TheirCornerPlay : public Play {
 		public:
@@ -70,7 +70,7 @@ namespace {
 		goalie_role.push_back(defend_duo_goalie(world));
 		
 		// ROLE 1
-		// shoot towards the midfield
+		// shoot towards the midfield (diagonally to their corner)
 		roles[0].push_back(shoot(world, Point(-world.ball().position().x, -world.ball().position().y)));
 
 		// ROLE 2

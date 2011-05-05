@@ -19,10 +19,11 @@ namespace {
 	 * Condition:
 	 * - ball not under team possesion
 	 * - ball not in corner or midfield
+	 * - ball on our side (hence very very close to our goal!)
 	 * - have at least 2 players (one goalie, one defender)
 	 *
 	 * Objective:
-	 * - shoot the ball to enemy goal while passing the ball between the passer and passee
+	 * - get the ball away from our goal at all cost!
 	 */
 	class FranticDefense : public Play {
 		public:

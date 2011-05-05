@@ -44,11 +44,11 @@ namespace {
 	}
 
 	bool JustShoot::invariant() const {
-		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3);
+		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && Predicates::baller_can_shoot(world);
 	}
 
 	bool JustShoot::applicable() const {
-		return Predicates::our_ball(world) && Predicates::baller_can_shoot(world);
+		return Predicates::our_ball(world);
 	}
 
 	bool JustShoot::done() const {
