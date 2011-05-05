@@ -73,7 +73,6 @@ namespace {
 				std::vector<AI::HL::W::Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
 				if (players.size() != 2) return;
 				
-				
 				std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 				
 				// passer grabs ball

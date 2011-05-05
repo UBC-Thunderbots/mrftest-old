@@ -46,7 +46,7 @@ namespace {
 	}
 
 	bool FreeKickFriendly::invariant() const {
-		return (Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 3);
+		return (Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 3) && Predicates::baller_can_shoot(world);
 	}
 
 	bool FreeKickFriendly::applicable() const {
@@ -64,7 +64,7 @@ namespace {
 	}
 
 	void FreeKickFriendly::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
-		// std::Player::Ptr goalie = world.Friendly_team().get(0);
+		
 		// GOALIE
 		goalie_role.push_back(defend_duo_goalie(world));
 
