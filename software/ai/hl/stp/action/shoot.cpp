@@ -7,7 +7,15 @@
 #include <cmath>
 #include <algorithm>
 
-DoubleParam alpha("Decay constant for the ball velocity", "STP/Action/shoot", 0.1, 0.0, 1.0);
+namespace {
+
+	DoubleParam alpha("Decay constant for the ball velocity", "STP/Action/shoot", 0.1, 0.0, 1.0);
+	
+	DoubleParam reduced_radius("reduced radius for calculating best shot", "STP/Action/shoot", 0.8, 0.0, 1.0);
+
+}
+
+
 
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 
@@ -31,16 +39,24 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 	}
 
 	if (target.second == 0) { // bad news, we are blocked
-		Point new_target = world.field().enemy_goal();
-		if (false) {
-			// TODO: perhaps do a reduced radius calculation
-			return shoot(world, player, new_target);
-		} else { // just aim at the enemy goal
-			player->move(new_target, (world.field().enemy_goal() - player->position()).orientation(), Point());
-			player->type(AI::Flags::MoveType::DRIBBLE);
-			player->prio(AI::Flags::MovePrio::HIGH);
+	
+		target = AI::HL::Util::calc_best_shot(world, player, reduced_radius);
+
+		// still blocked with reduced radius
+		if (target.second == 0){
+			Point new_target = world.field().enemy_goal();
+			if (false) {
+				return shoot(world, player, new_target);
+			} else { 
+				// just aim at the enemy goal
+				// perhaps aim at the largest gap in the enemy side of the field?
+				player->move(new_target, (world.field().enemy_goal() - player->position()).orientation(), Point());
+				player->type(AI::Flags::MoveType::DRIBBLE);
+				player->prio(AI::Flags::MovePrio::HIGH);
+			}
+			return false;
 		}
-		return false;
+			
 	}
 #warning TODO make the shoot accuracy a function of the amount of open net
 	return AI::HL::STP::Action::shoot(world, player, target.first, AI::HL::Util::shoot_accuracy, 0.0);
