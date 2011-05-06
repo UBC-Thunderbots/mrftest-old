@@ -74,7 +74,8 @@ namespace {
 		// ROLE 1
 		// passer
 		roles[0].push_back(def_passer_shoot(world));
-		roles[0].push_back(offend(world));
+		// after passing help block closest enemy to ball
+		roles[0].push_back(block(world, Enemy::closest_ball(world, 0)));
 
 		// ROLE 2
 		// passee
@@ -85,8 +86,8 @@ namespace {
 		roles[2].push_back(defend_duo_defender(world));
 
 		// ROLE 4
-		// offensive support through blocking closest enemy to ball
-		roles[3].push_back(block(world, Enemy::closest_ball(world, 0)));
+		// offensive support through blocking enemy from the ball
+		roles[3].push_back(block(world, Enemy::closest_ball(world, 1)));
 	}
 }
 

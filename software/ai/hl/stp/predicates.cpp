@@ -117,6 +117,24 @@ bool AI::HL::STP::Predicates::baller_can_shoot(const World &world){
 	return AI::HL::Util::calc_best_shot(world, baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
 }
 
+bool AI::HL::STP::Predicates::baller_can_pass(const World &world){
+	
+	// should write a player evaluation layer to handle this
+	
+	const std::vector<Player::CPtr> players = AI::HL::Util::get_players(world.friendly_team());
+	/*
+	const std::vector<Player::CPtr> supporters;
+	// don't count in the goalie
+	for (size_t i = 1; i < players.size(); ++i) {
+		if (world.friendly_team().get(i)->has_ball()) continue;
+		supporters.push_back(players[i]);
+	}
+	
+	Player::CPtr passee = AI::HL::Util::choose_best_pass(world, supporters);
+	*/
+	return false;
+}
+
 bool AI::HL::STP::Predicates::baller_can_shoot_target(const World &world, const Point &target){
 	const Player::CPtr baller = calc_baller(world);
 	

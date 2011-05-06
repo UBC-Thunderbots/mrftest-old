@@ -55,6 +55,13 @@ namespace AI {
 				/*
 				 * use with our_ball(world)
 				 *
+				 * player with the ball can pass
+				 */
+				bool baller_can_pass(const World &world);
+				
+				/*
+				 * use with our_ball(world)
+				 *
 				 * player with the ball can shoot at a target point
 				 */
 				bool baller_can_shoot_target(const World &world, const Point &target);		
