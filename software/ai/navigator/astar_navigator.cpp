@@ -49,8 +49,8 @@ namespace {
 			}
 	};
 
-	PathPoint::Ptr start;
-	PathPoint::Ptr end;
+	// bad to be here
+	PathPoint::Ptr start, end;
 
 	bool cmp_f(PathPoint::Ptr a, PathPoint::Ptr b) {
 		return a->g + (a->xy - end->xy).len() < b->g + (b->xy - end->xy).len();
@@ -63,9 +63,7 @@ namespace {
 	bool cmp_p(Player::Ptr a, Player::Ptr b) {
 		return a->prio() < b->prio();
 	}
-
-	std::set<PathPoint::Ptr, bool (*)(PathPoint::Ptr, PathPoint::Ptr)> open_set(&cmp_f);
-
+	
 	/**
 	 * Basic navigator just to play around with
 	 */
@@ -111,6 +109,9 @@ namespace {
 	}
 
 	void AstarNavigator::tick() {
+	
+		std::set<PathPoint::Ptr, bool (*)(PathPoint::Ptr, PathPoint::Ptr)> open_set(&cmp_f);
+		
 		FriendlyTeam &fteam = world.friendly_team();
 		Player::Ptr player;
 		std::vector<PathPoint::Ptr> search_space;

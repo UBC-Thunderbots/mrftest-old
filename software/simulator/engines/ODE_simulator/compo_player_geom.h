@@ -32,16 +32,6 @@ class Compo_player_geom : public Player_geom {
 		 */
 		dGeomID robotGeomTopCyl;
 
-		/**
-		 * This is not used.
-		 */
-		dGeomID dribbleArmL;
-
-		/**
-		 * This is not used.
-		 */
-		dGeomID dribbleArmR;
-
 		dGeomID dribblerBar;
 
 		// dBodyID dribbler;

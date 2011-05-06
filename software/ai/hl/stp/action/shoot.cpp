@@ -42,7 +42,7 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 	
 		target = AI::HL::Util::calc_best_shot(world, player, reduced_radius);
 
-		// still blocked with reduced radius
+		// still blocked even with reduced radius
 		if (target.second == 0){
 			Point new_target = world.field().enemy_goal();
 			if (false) {

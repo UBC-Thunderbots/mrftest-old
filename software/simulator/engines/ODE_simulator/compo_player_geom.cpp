@@ -62,7 +62,7 @@ namespace {
 	const double DRIBBLER_RADIUS = 0.01468;
 
 	/**
-	 * Radius of the dribbler
+	 * Height of the dribbler
 	 */
 	const double DRIBBLER_HEIGHT = 0.03783;
 
