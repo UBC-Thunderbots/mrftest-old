@@ -171,7 +171,7 @@ class ParamTreeNode : public NonCopyable {
 		/**
 		 * Stores the values of parameters into an XML tree.
 		 *
-		 * \param[in] elt the element representing this tree node.
+		 * \param[out] elt the element to save to.
 		 */
 		virtual void save(xmlpp::Element *elt) const = 0;
 
