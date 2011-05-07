@@ -256,7 +256,7 @@ void MapperWindow::on_add_clicked() {
 			names_used.insert(ck);
 		}
 	}
-	md.get_message_area()->pack_start(cbet, Gtk::PACK_SHRINK);
+	md.get_vbox()->pack_start(cbet, Gtk::PACK_SHRINK);
 	cbet.show();
 	int rc = md.run();
 	if (rc == Gtk::RESPONSE_OK) {
