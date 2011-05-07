@@ -1,12 +1,12 @@
 #include "test/params.h"
-#include "util/dprint.h"
+#include "util/string.h"
 #include <cstddef>
 #include <iomanip>
 #include <sstream>
 
 namespace {
 	Glib::ustring format_channel(unsigned int ch) {
-		return Glib::ustring::format(std::setfill(L'0'), std::setw(2), std::hex, std::uppercase, ch);
+		return tohex(ch, 2);
 	}
 }
 
@@ -140,7 +140,7 @@ void TesterParamsPanel::on_set_test_mode() {
 		md.run();
 		return;
 	}
-	std::istringstream iss(test_mode.get_text());
+	std::wistringstream iss(ustring2wstring(test_mode.get_text()));
 	unsigned int mode;
 	iss >> std::hex >> mode;
 	if (mode < 255) {

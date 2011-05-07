@@ -1,4 +1,4 @@
-#include "util/dprint.h"
+#include "util/string.h"
 #include "xbee/dongle.h"
 #include <cctype>
 #include <exception>
@@ -11,16 +11,12 @@ namespace {
 		// 0B - 1A
 		if (str.size() == 5 && std::isxdigit(str[0]) && std::isxdigit(str[1]) && str[2] == ':' && std::isxdigit(str[3]) && std::isxdigit(str[4])) {
 			{
-				std::wostringstream oss;
-				oss << str.substr(0, 2);
-				std::wistringstream iss(oss.str());
+				std::wistringstream iss(ustring2wstring(str.substr(0, 2)));
 				iss.flags(std::wistringstream::hex);
 				iss >> channel0;
 			}
 			{
-				std::wostringstream oss;
-				oss << str.substr(3);
-				std::wistringstream iss(oss.str());
+				std::wistringstream iss(ustring2wstring(str.substr(3)));
 				iss.flags(std::wistringstream::hex);
 				iss >> channel1;
 			}

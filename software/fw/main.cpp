@@ -1,8 +1,8 @@
 #include "fw/ihex.h"
 #include "util/annunciator.h"
 #include "util/crc16.h"
-#include "util/dprint.h"
 #include "util/noncopyable.h"
+#include "util/string.h"
 #include "xbee/dongle.h"
 #include <glibmm.h>
 #include <iostream>

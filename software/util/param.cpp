@@ -1,6 +1,7 @@
 #include "util/param.h"
 #include "util/algorithm.h"
 #include "util/config.h"
+#include "util/string.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -362,9 +363,7 @@ IntParam::IntParam(const char *name, const char *location, int def, int min, int
 void IntParam::load(const xmlpp::Element *elt) {
 	if (elt->get_name() == "integer") {
 		const xmlpp::TextNode *text_node = elt->get_child_text();
-		std::wostringstream oss;
-		oss << text_node->get_content();
-		std::wistringstream iss(oss.str());
+		std::wistringstream iss(ustring2wstring(text_node->get_content()));
 		iss.imbue(std::locale("C"));
 		int v;
 		iss >> v;
@@ -375,10 +374,7 @@ void IntParam::load(const xmlpp::Element *elt) {
 void IntParam::save(xmlpp::Element *elt) const {
 	elt->set_name("integer");
 	elt->set_attribute("name", name());
-	std::wostringstream oss;
-	oss.imbue(std::locale("C"));
-	oss << static_cast<int>(adjustment()->get_value());
-	elt->set_child_text(Glib::ustring::format(oss.str()));
+	elt->set_child_text(todecs(static_cast<int>(adjustment()->get_value())));
 }
 
 DoubleParam::DoubleParam(const char *name, const char *location, double def, double min, double max) : NumericParam(name, location, def, min, max, false) {
@@ -387,9 +383,7 @@ DoubleParam::DoubleParam(const char *name, const char *location, double def, dou
 void DoubleParam::load(const xmlpp::Element *elt) {
 	if (elt->get_name() == "double") {
 		const xmlpp::TextNode *text_node = elt->get_child_text();
-		std::wostringstream oss;
-		oss << text_node->get_content();
-		std::wistringstream iss(oss.str());
+		std::wistringstream iss(ustring2wstring(text_node->get_content()));
 		iss.imbue(std::locale("C"));
 		double v;
 		iss >> v;
@@ -403,6 +397,6 @@ void DoubleParam::save(xmlpp::Element *elt) const {
 	std::wostringstream oss;
 	oss.imbue(std::locale("C"));
 	oss << std::fixed << std::setprecision(fractional_digits()) << adjustment()->get_value();
-	elt->set_child_text(Glib::ustring::format(oss.str()));
+	elt->set_child_text(wstring2ustring(oss.str()));
 }
 

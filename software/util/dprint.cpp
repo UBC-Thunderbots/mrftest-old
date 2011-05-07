@@ -9,26 +9,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 
-Glib::ustring todec(uintmax_t value, unsigned int width) {
-	std::wostringstream oss;
-	oss.imbue(std::locale("C"));
-	oss.flags(std::ios::uppercase | std::ios::dec | std::ios::right);
-	oss.width(width);
-	oss.fill(L'0');
-	oss << value;
-	return Glib::ustring::format(oss.str());
-}
-
-Glib::ustring tohex(uintmax_t value, unsigned int width) {
-	std::wostringstream oss;
-	oss.imbue(std::locale("C"));
-	oss.flags(std::ios::uppercase | std::ios::hex | std::ios::right);
-	oss.width(width);
-	oss.fill(L'0');
-	oss << value;
-	return Glib::ustring::format(oss.str());
-}
-
 sigc::signal<void, unsigned int, const Glib::ustring &> signal_message_logged;
 
 void log_impl(const char *file, unsigned int line, const char *function, const Glib::ustring &msg, unsigned int level) {

@@ -11,6 +11,7 @@
 #include "util/dprint.h"
 #include "util/exception.h"
 #include "util/mapped_file.h"
+#include "util/string.h"
 #include "util/time.h"
 #include <cstring>
 #include <cwchar>
@@ -214,7 +215,7 @@ namespace {
 
 		std::use_facet<std::time_put<wchar_t> >(std::locale()).put(timebuf, timebuf, L' ', &tm, TIME_PATTERN, TIME_PATTERN + std::wcslen(TIME_PATTERN));
 		std::use_facet<std::time_put<wchar_t> >(std::locale()).put(tzbuf, tzbuf, L' ', &tm, TZ_PATTERN, TZ_PATTERN + std::wcslen(TZ_PATTERN));
-		return Glib::ustring::compose("%1.%2 %3", timebuf.str(), todec(ts.tv_nsec, 9), tzbuf.str());
+		return Glib::ustring::compose("%1.%2 %3", timebuf.str(), todecu(ts.tv_nsec, 9), tzbuf.str());
 	}
 
 	/**
@@ -225,7 +226,7 @@ namespace {
 	 * \return the string representation.
 	 */
 	Glib::ustring timespec_to_time_string(const timespec &ts) {
-		return Glib::ustring::compose("%1.%2 (%3 / %4)", ts.tv_sec, todec(ts.tv_nsec, 9), timespec_to_time_string_part(ts, true), timespec_to_time_string_part(ts, false));
+		return Glib::ustring::compose("%1.%2 (%3 / %4)", ts.tv_sec, todecu(ts.tv_nsec, 9), timespec_to_time_string_part(ts, true), timespec_to_time_string_part(ts, false));
 	}
 
 	/**
@@ -1270,7 +1271,7 @@ namespace {
 			if (length >= 12) {
 				uint64_t seconds = decode_u64(&data[0]);
 				uint32_t nanos = decode_u32(&data[8]);
-				root[columns.value] = Glib::ustring::compose("%1.%2 (monotonic)", seconds, todec(nanos, 9));
+				root[columns.value] = Glib::ustring::compose("%1.%2 (monotonic)", seconds, todecu(nanos, 9));
 			} else {
 				root[columns.value] = "<PACKET TRUNCATED>";
 			}
@@ -1296,7 +1297,7 @@ namespace {
 			if (length >= 12) {
 				uint64_t seconds = decode_u64(&data[0]);
 				uint32_t nanos = decode_u32(&data[8]);
-				stream << seconds << '.' << todec(nanos, 9) << " (monotonic)";
+				stream << seconds << '.' << todecu(nanos, 9) << " (monotonic)";
 			} else {
 				stream << "<PACKET TRUNCATED>";
 			}
@@ -3145,7 +3146,7 @@ namespace {
 					}
 					oss << tohex(data[i], 2);
 				}
-				return Glib::ustring::format(oss.str());
+				return wstring2ustring(oss.str());
 			}
 
 			Glib::RefPtr<Gtk::TreeModel> decode(const PacketDecodedTreeColumns &columns) const {
