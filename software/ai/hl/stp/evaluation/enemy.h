@@ -13,9 +13,19 @@ namespace AI {
 				struct EnemyThreat {
 
 					/**
-					 * min of dist of enemy robot to ball and our goal.
+					 * dist of enemy robot to ball.
 					 */
-					double threat_dist;
+					double ball_dist;
+
+					/**
+					 * dist of enemy robot to our goal.
+					 */
+					double our_goal_dist;
+
+					/**
+					 * dist of enemy robot to our baller.
+					 */
+					double our_baller_dist;
 
 					/**
 					 * blocked by our players or other enemies for passing
