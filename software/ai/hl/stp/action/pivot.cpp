@@ -15,7 +15,7 @@ void AI::HL::STP::Action::pivot(const World &world, Player::Ptr player, const Po
 
 	const double ori = (target - player->position()).orientation();
 
-	player->move(player->position(), ori, Point());
+	player->move(player->position(), ori, target);
 	player->type(AI::Flags::MoveType::PIVOT);
 	player->prio(AI::Flags::MovePrio::HIGH);
 }
