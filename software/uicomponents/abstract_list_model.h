@@ -17,6 +17,8 @@
  * and hence responsibility for invoking the \c Glib::ObjectBase constructor is given to the type of the object being constructed,
  * not the immediate subclass of \c Glib::ObjectBase.
  *
+ * Note that your class must inherit from \c Glib::Object \em before it inherits from \c AbstractListModel.
+ *
  * You must override all pure-virtual functions as described below.
  *
  * You must arrange to invoke alm_row_changed(), alm_row_inserted(), and alm_row_deleted() at the appropriate times.
