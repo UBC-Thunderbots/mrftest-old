@@ -146,11 +146,6 @@ namespace {
 				add_on.push_back(p_add);
 			}
 
-			if (player->type() == AI::Flags::MoveType::RAM_BALL) {
-				Point start = player->position();
-				Point end = player->destination().first;
-			}
-
 			path.clear();
 			start->g = 0.0;
 
