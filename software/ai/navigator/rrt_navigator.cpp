@@ -107,8 +107,7 @@ namespace AI {
 				player->path(path);
 			}
 
-			void RRTNavigator::grab_ball_matt(Player::Ptr player) {
-
+			void RRTNavigator::grab_ball_matt(Player::Ptr) {
 			}
 
 			void RRTNavigator::grab_ball_pivot(Player::Ptr player) {
