@@ -38,9 +38,8 @@ namespace AI {
 			class RRTNavigator : public Navigator {
 			public:
 				NavigatorFactory &factory() const;
-				void grab_ball_pivot(Player::Ptr player);
-				void grab_ball_byron(Player::Ptr player);
-				void grab_ball_matt(Player::Ptr player);
+				void pivot(Player::Ptr player);
+				void grab_ball(Player::Ptr player);
 				void tick();
 				static Navigator::Ptr create(World &world);
 
@@ -61,7 +60,7 @@ namespace AI {
 				return factory_instance;
 			}
 			
-			void RRTNavigator::grab_ball_byron(Player::Ptr player) {
+			void RRTNavigator::grab_ball(Player::Ptr player) {
 				const double ux = world.ball().velocity().len(); // velocity of ball
 
 #warning MAGIC NUMBER
@@ -107,10 +106,7 @@ namespace AI {
 				player->path(path);
 			}
 
-			void RRTNavigator::grab_ball_matt(Player::Ptr) {
-			}
-
-			void RRTNavigator::grab_ball_pivot(Player::Ptr player) {
+			void RRTNavigator::pivot(Player::Ptr player) {
 				Player::Path path;
 				Point dest;
 				double dest_orientation;
@@ -164,11 +160,10 @@ namespace AI {
 					Point dest;
 					double dest_orientation;
 					if (player->type() == AI::Flags::MoveType::CATCH) {
-						if (player->has_ball()) {
-							grab_ball_pivot(player);
-						}
-						grab_ball_byron(player);
-						//grab_ball_matt(player);
+						grab_ball(player);
+						continue;
+					} else if (player->type() == AI::Flags::MoveType::PIVOT) {
+						pivot(player);
 						continue;
 					} else if (valid_path(player->position(), player->destination().first, world, player)) {
 						// if we're not trying to catch the ball and there are no obstacles in our way then go
