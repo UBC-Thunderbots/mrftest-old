@@ -30,7 +30,19 @@ static const char __code __at(__CONFIG7H) c7h = _EBTRB_OFF_7H;
 
 #define BASE (TOGGLE_3P | TOGGLE_2P | TOGGLE_1P)
 
-char drive_table_forward[8] = 
+#define SPEED_SCALE 4
+
+//128 high
+//96 high
+//88 high
+//84 high
+//82 high
+//80 low
+//64 low
+
+#define SPEED_WINDOW_PRESCALAR 81
+
+char drive_table[8] = 
 {
 	// RD7 = 3P, RD6 = 3N, RD5 = 2P, RD4 = 2N, RD3 = 1P, RD2 = 1N
 	
@@ -59,6 +71,30 @@ char drive_table_forward[8] =
 	BASE
 };
 
+unsigned char forward_hall_state[8] =
+{
+	0, //000
+	3, //001
+	6, //010
+	2, //011
+	5, //100
+	1, //101
+	4, //110
+	0, //111	
+};
+
+unsigned char backward_hall_state[8] =
+{
+	0, //000
+	5, //001
+	3, //010
+	1, //011
+	6, //100
+	4, //101
+	2, //110
+	0, //111	
+};
+
 unsigned char read_adc()
 {
 	ADCON0bits.GO = 1;
@@ -69,13 +105,41 @@ unsigned char read_adc()
 
 }
 
+int int_abs(int a)
+{
+	return a > 0 ? a : -a;
+}
+
 void main(void)
 {
 	unsigned char hall_state;
 		
-	unsigned char duty_cycle = read_adc();
+	signed int duty_cycle = 0;
 	
 	unsigned char run;
+	
+	unsigned int speed_window_divider_counter = 0;
+	
+	signed char speed = 0;
+	
+	signed char speed_counter = 0;
+	
+	unsigned char adc_read;
+	
+	int speed_setpoint = 0;
+	
+	unsigned char old_hall_state;
+	
+	int speed_scaled = 0;
+	
+	int i;
+	volatile long int j, k;
+	
+	/* startup delay */
+	for (j = 0; j < 1000; ++j)
+	{
+		for (k = 0; k < 1000; ++k);
+	}
 
 	TRISB = 0xff;
 	
@@ -123,12 +187,33 @@ void main(void)
 	
 	run = 0;
 	
+	old_hall_state = 0;
+	
+	/*
+	i = 0;
+	while(1)
+	{
+		//LATD = drive_table[i];
+		LATD = BASE ^ TOGGLE_1P ^ TOGGLE_2P ^ TOGGLE_3P;
+		for (j = 0; j < 500000; ++j); 
+		
+		
+		LATD = BASE;
+		for (j = 0; j < 500000; ++j);
+
+	}
+	*/
+	
+	
 	while (1)
 	{
 		if (!ADCON0bits.GO)
 		{
-			duty_cycle = run ? ADRESH : 0;
+			adc_read = run ? ADRESH : 128;
 			ADCON0bits.GO = 1;
+			
+			speed_setpoint = adc_read; // 0 extension
+			speed_setpoint -= 128;
 		}
 		
 		if (!(PORTA & MASK_ON))
@@ -151,18 +236,73 @@ void main(void)
 	
 		hall_state = (PORTB >> 2) & 0x07; // LSB = 3, MSB = 1
 		
-		if (TMR0L >= duty_cycle)
+		if (hall_state != old_hall_state)
+		{
+			if (hall_state == forward_hall_state[old_hall_state])
+			{
+				++speed_counter;
+			}
+			else if (hall_state == backward_hall_state[old_hall_state])
+			{
+				--speed_counter;
+			}			
+			
+			old_hall_state = hall_state;
+		}
+		
+		if (TMR0L >= int_abs(duty_cycle))
 		{
 			LATD = BASE;
 		}
 		else
-		{		
-			LATD = drive_table_forward[hall_state];		
+		{	
+			if (duty_cycle > 0)
+			{
+				LATD = drive_table[hall_state];		
+			}
+			else
+			{
+				LATD = drive_table[hall_state ^ 0x07];		
+			}
 		}
 		
 		if (INTCONbits.TMR0IF)
 		{
 			INTCONbits.TMR0IF = 0;
+						
+			++speed_window_divider_counter;
+			
+			if (speed_window_divider_counter > SPEED_WINDOW_PRESCALAR)
+			{
+				speed_window_divider_counter = 0;
+				
+				speed = speed_counter;
+				
+				speed_counter = 0;
+				
+				if (speed > 32)
+				{
+					LATC |= MASK_UNUSED_LED;
+				}
+				else
+				{
+					LATC &= ~MASK_UNUSED_LED;
+				}
+				
+				/* speed is -32 to 32 */	
+				speed_scaled = speed * SPEED_SCALE; // -127 to 127
+							
+				if (speed_scaled < (speed_setpoint - 10) || speed_scaled > (speed_setpoint + 10))
+				{
+					duty_cycle = speed_setpoint - speed_scaled;
+				}
+				else
+				{	
+					duty_cycle = 0;
+				}
+			}
+			
+			
 		}
 		
 	}

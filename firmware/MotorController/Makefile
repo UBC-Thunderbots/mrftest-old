@@ -2,7 +2,7 @@ HEX := test.hex
 PROC := PIC18F4550
 CS := $(wildcard *.c)
 OBJS := $(CS:.c=.o)
-SDCCFLAGS := --std-sdcc99 -mpic16 -p18f4550 --fommit-frame-pointer
+SDCCFLAGS := --std-sdcc99 --use-non-free -mpic16 -p18f4550 --fommit-frame-pointer
 
 $(HEX) : $(OBJS)
 	sdcc $(SDCCFLAGS) -o $@ $(OBJS)
