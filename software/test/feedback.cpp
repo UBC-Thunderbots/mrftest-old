@@ -74,7 +74,7 @@ void TesterFeedbackPanel::on_capacitor_voltage_changed() {
 }
 
 void TesterFeedbackPanel::on_dribbler_temperature_changed() {
-	if (robot->alive && robot->has_feedback) {
+	if (robot->alive && robot->has_feedback && robot->dribbler_temperature < 200) {
 		dribbler_temperature.set_fraction(robot->dribbler_temperature / 125.0);
 		dribbler_temperature.set_text(Glib::ustring::compose("%1°C", Glib::ustring::format(std::fixed, std::setprecision(1), robot->dribbler_temperature)));
 	} else {
