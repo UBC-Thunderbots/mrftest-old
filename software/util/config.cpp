@@ -107,3 +107,13 @@ xmlpp::Element *Config::params() {
 	return dynamic_cast<xmlpp::Element *>(*params_elts.begin());
 }
 
+xmlpp::Element *Config::joysticks() {
+	xmlpp::Document *doc = parser().get_document();
+	xmlpp::Element *root_elt = doc->get_root_node();
+	const xmlpp::Node::NodeList &joysticks_elts = root_elt->get_children("joysticks");
+	if (joysticks_elts.size() != 1) {
+		throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose("Malformed config.xml (expected exactly one joysticks element, found %1)", joysticks_elts.size())));
+	}
+	return dynamic_cast<xmlpp::Element *>(*joysticks_elts.begin());
+}
+

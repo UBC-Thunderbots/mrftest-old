@@ -1,15 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE thunderbots [
-<!ELEMENT thunderbots (params)>
+<!ELEMENT thunderbots (params , joysticks)>
 <!ELEMENT params (category)*>
 <!ELEMENT category (category | boolean | integer | double)*>
 <!ELEMENT boolean (#PCDATA)>
 <!ELEMENT integer (#PCDATA)>
 <!ELEMENT double (#PCDATA)>
+<!ELEMENT joysticks (joystick)*>
+<!ELEMENT joystick (axes , buttons)>
+<!ELEMENT axes (mapping)*>
+<!ELEMENT buttons (mapping)*>
+<!ELEMENT mapping EMPTY>
 <!ATTLIST category name CDATA #REQUIRED>
 <!ATTLIST boolean name CDATA #REQUIRED>
 <!ATTLIST integer name CDATA #REQUIRED>
 <!ATTLIST double name CDATA #REQUIRED>
+<!ATTLIST joystick name CDATA #REQUIRED>
+<!ATTLIST mapping logical CDATA #REQUIRED>
+<!ATTLIST mapping physical CDATA #REQUIRED>
 ]>
 <thunderbots>
   <params>
@@ -120,4 +128,32 @@
       </category>
     </category>
   </params>
+  <joysticks>
+    <joystick name="Logitech Logitech Dual Action">
+      <axes>
+        <mapping logical="0" physical="3"/>
+        <mapping logical="1" physical="2"/>
+        <mapping logical="2" physical="0"/>
+        <mapping logical="3" physical="1"/>
+      </axes>
+      <buttons>
+        <mapping logical="dribble" physical="1"/>
+        <mapping logical="kick" physical="3"/>
+        <mapping logical="scram" physical="2"/>
+      </buttons>
+    </joystick>
+    <joystick name="Xbox 360 Wireless Receiver">
+      <axes>
+        <mapping logical="0" physical="4"/>
+        <mapping logical="1" physical="3"/>
+        <mapping logical="2" physical="0"/>
+        <mapping logical="3" physical="1"/>
+      </axes>
+      <buttons>
+        <mapping logical="dribble" physical="0"/>
+        <mapping logical="kick" physical="3"/>
+        <mapping logical="scram" physical="1"/>
+      </buttons>
+    </joystick>
+  </joysticks>
 </thunderbots>

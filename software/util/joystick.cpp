@@ -100,6 +100,7 @@ void Joystick::on_readable() {
 		ssize_t rc = read(fd->fd(), buffer, sizeof(buffer));
 		if (rc < 0) {
 			if (errno == EAGAIN || errno == EWOULDBLOCK) {
+				signal_changed.emit();
 				return;
 			} else {
 				throw SystemError("read(joystick)", errno);

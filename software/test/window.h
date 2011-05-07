@@ -24,7 +24,16 @@ class TesterWindow : public Gtk::Window {
 		 */
 		TesterWindow(XBeeDongle &dongle, XBeeRobot::Ptr robot);
 
+		/**
+		 * \brief Destroys a TesterWindow.
+		 */
+		~TesterWindow();
+
 	private:
+		class MappedJoysticksModel;
+
+		Glib::RefPtr<MappedJoysticksModel> mapped_joysticks;
+
 		XBeeRobot::Ptr robot;
 
 		Gtk::VBox outer_vbox;
@@ -49,7 +58,7 @@ class TesterWindow : public Gtk::Window {
 		Gtk::Frame params_frame;
 		TesterParamsPanel params_panel;
 
-		Gtk::ComboBoxText joystick_chooser;
+		Gtk::ComboBox joystick_chooser;
 
 		std::vector<sigc::connection> joystick_signal_connections;
 

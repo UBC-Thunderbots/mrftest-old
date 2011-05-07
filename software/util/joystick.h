@@ -33,6 +33,11 @@ class Joystick : public ByRef, public sigc::trackable {
 		const Glib::ustring name;
 
 		/**
+		 * \brief Emitted whenever any axis or button changes value.
+		 */
+		sigc::signal<void> signal_changed;
+
+		/**
 		 * \brief Returns a vector of all the joysticks attached to the computer.
 		 *
 		 * On first invocation, this will scan for joysticks.

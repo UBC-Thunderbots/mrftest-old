@@ -1,5 +1,6 @@
 #include "test/launcher.h"
 #include "util/annunciator.h"
+#include "util/config.h"
 #include "xbee/dongle.h"
 #include <gtkmm.h>
 #include <iostream>
@@ -14,6 +15,9 @@ namespace {
 		// Parse the command-line arguments.
 		Glib::OptionContext option_context;
 		option_context.set_summary("Allows testing robot subsystems.");
+
+		// Load the configuration file.
+		Config::load();
 
 		// Initialize GTK.
 		Gtk::Main m(argc, argv, option_context);

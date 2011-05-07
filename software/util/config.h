@@ -7,6 +7,7 @@ namespace Config {
 	void load();
 	void save();
 	xmlpp::Element *params();
+	xmlpp::Element *joysticks();
 }
 
 #endif
