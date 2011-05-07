@@ -42,9 +42,9 @@
         <double name="pivot radius">1.00</double>
       </category>
       <category name="RRT">
-        <double name="Pivot: offset angle (degrees)">30</double>
-        <double name="Pivot: offset distance">0.15</double>
-        <double name="Pivot: orientation offset (degrees)">30</double>
+        <double name="Pivot: offset angle (degrees)">78</double>
+        <double name="Pivot: offset distance">0.11</double>
+        <double name="Pivot: orientation offset (degrees)">0</double>
       </category>
     </category>
     <category name="oldAI">
@@ -93,6 +93,7 @@
         </category>
         <category name="shoot">
           <double name="Decay constant for the ball velocity">0.100</double>
+          <double name="reduced radius for calculating best shot">0.800</double>
         </category>
       </category>
       <category name="defense">
@@ -110,20 +111,26 @@
         <integer name="grid y size">25</integer>
       </category>
       <category name="pass">
-        <double name="ball distance weight">1.000</double>
+        <double name="ball goal distance weight">1.000</double>
         <double name="enemy avoidance distance (robot radius)">4.00</double>
       </category>
       <category name="play">
         <double name="kickoff: angle to separate players (degrees)">40.0</double>
       </category>
+      <category name="predicates">
+        <double name="enemy avoidance distance (robot radius)">3.00</double>
+      </category>
       <category name="Tactic">
         <double name="stop: angle to separate players (degrees)">20.0</double>
+      </category>
+      <category name="test_pass">
+        <integer name="passing target points">0</integer>
       </category>
       <category name="util">
         <double name="distance for ball possesion (x ball radius)">2.000</double>
         <double name="if dribble &gt; this time, force shoot (sec)">2.00</double>
         <boolean name="posses ball is has ball">true</boolean>
-        <double name="Shooting Accuracy General (meters from target)">0.50</double>
+        <double name="Shooting Accuracy General (degrees)">10.0</double>
         <double name="time we can prepare during special plays (sec)">3</double>
       </category>
     </category>

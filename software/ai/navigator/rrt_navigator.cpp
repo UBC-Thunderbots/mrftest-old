@@ -123,22 +123,7 @@ namespace AI {
 				}
 
 				angle = degrees2radians(angle);
-				if (fabs(angle_diff(to_ball_orientation, player->destination().second)) < fabs(angle)) {
-					if (fabs(angle_diff(to_ball_orientation, player->destination().second)) < fabs(angle)/2) {
-						// robot is in correct position, move towards the ball now.
-						timespec time_to_ball;
-						timespec_add(double_to_timespec(0.0), world.monotonic_time(), time_to_ball);
-						path.push_back(std::make_pair(std::make_pair(world.ball().position(), player->destination().second), time_to_ball));
-						player->path(path);
-						return;
-					}
-					orientation_temp = 0;
-					if (angle < 0) {
-						angle = -fabs(angle_diff(to_ball_orientation, player->destination().second));
-					} else {
-						angle = fabs(angle_diff(to_ball_orientation, player->destination().second));
-					}
-				}
+				
 				Point diff = (world.ball().position() - current_position).rotate(angle);
 
 				dest = world.ball().position() - offset_distance * (diff / diff.len());

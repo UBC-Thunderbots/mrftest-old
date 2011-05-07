@@ -1,6 +1,7 @@
 #include "ai/hl/hl.h"
 #include "ai/hl/stp/action/pivot.h"
 #include "util/dprint.h"
+#include "geom/angle.h"
 
 #include <cassert>
 #include <gtkmm.h>
@@ -19,6 +20,8 @@ namespace {
 	};
 
 	TestPivotFactory factory_instance;
+	
+	bool target_enemy = false;
 
 	class TestPivot : public HighLevel {
 		public:
@@ -46,19 +49,18 @@ namespace {
 
 				Player::Ptr player = friendly.get(0);
 
-				if (fabs(player->orientation()) < 1e-3) {
-					target_enemy = true;
-				} else if (fabs(player->orientation() - M_PI) < 1e-3
-					|| fabs(player->orientation() + M_PI) < 1e-3) {
-					target_enemy = false;
-				}
-
 				Point target;
 
 				if (target_enemy) {
 					target = world.field().enemy_goal();
 				} else {
 					target = world.field().friendly_goal();
+				}
+				
+				const double diff_ori = angle_diff(player->orientation(), (target - player->position()).orientation());
+				if (diff_ori < 0.1) {
+					// angle completed, switch goals.
+					target_enemy = !target_enemy;
 				}
 
 				Action::pivot(world, player, target);
