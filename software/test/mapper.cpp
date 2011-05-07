@@ -186,7 +186,7 @@ MapperWindow::MapperWindow() : mappings(new MappingsListModel), preview_devices(
 
 	name_chooser.append_column("Model", mappings->name_column);
 	name_chooser.get_selection()->set_mode(Gtk::SELECTION_SINGLE);
-	name_chooser.get_selection()->signal_changed().connect(sigc::mem_fun(this, &MapperWindow::on_name_chooser_sel_changed));
+	conns.push_back(name_chooser.get_selection()->signal_changed().connect(sigc::mem_fun(this, &MapperWindow::on_name_chooser_sel_changed)));
 	name_chooser_scroll.add(name_chooser);
 	left_vbox.pack_start(name_chooser_scroll, Gtk::PACK_EXPAND_WIDGET);
 	add_button.signal_clicked().connect(sigc::mem_fun(this, &MapperWindow::on_add_clicked));
@@ -203,7 +203,7 @@ MapperWindow::MapperWindow() : mappings(new MappingsListModel), preview_devices(
 		axis_spinners[i].set_sensitive(false);
 		axis_spinners[i].signal_output().connect(sigc::bind(&format_spin_output, sigc::ref(axis_spinners[i])));
 		axis_spinners[i].get_adjustment()->configure(-1, -1, 255, 1, 10, 0);
-		axis_spinners[i].get_adjustment()->signal_value_changed().connect(sigc::bind(sigc::mem_fun(this, &MapperWindow::on_axis_changed), i));
+		conns.push_back(axis_spinners[i].get_adjustment()->signal_value_changed().connect(sigc::bind(sigc::mem_fun(this, &MapperWindow::on_axis_changed), i)));
 		axis_spinners[i].set_update_policy(Gtk::UPDATE_IF_VALID);
 		axis_spinners[i].set_width_chars(10);
 		axes_table.attach(axis_spinners[i], 1, 2, i, i + 1, Gtk::FILL | Gtk::SHRINK, Gtk::FILL | Gtk::SHRINK);
@@ -217,7 +217,7 @@ MapperWindow::MapperWindow() : mappings(new MappingsListModel), preview_devices(
 		button_spinners[i].set_sensitive(false);
 		button_spinners[i].signal_output().connect(sigc::bind(&format_spin_output, sigc::ref(button_spinners[i])));
 		button_spinners[i].get_adjustment()->configure(-1, -1, 255, 1, 10, 0);
-		button_spinners[i].get_adjustment()->signal_value_changed().connect(sigc::bind(sigc::mem_fun(this, &MapperWindow::on_button_changed), i));
+		conns.push_back(button_spinners[i].get_adjustment()->signal_value_changed().connect(sigc::bind(sigc::mem_fun(this, &MapperWindow::on_button_changed), i)));
 		button_spinners[i].set_update_policy(Gtk::UPDATE_IF_VALID);
 		button_spinners[i].set_width_chars(10);
 		buttons_table.attach(button_spinners[i], 1, 2, i, i + 1, Gtk::FILL | Gtk::EXPAND, Gtk::FILL | Gtk::SHRINK);
@@ -229,7 +229,7 @@ MapperWindow::MapperWindow() : mappings(new MappingsListModel), preview_devices(
 	preview_device_chooser.set_active(0);
 	preview_device_chooser.set_sensitive(false);
 	preview_device_chooser.pack_start(preview_devices->name_column);
-	preview_device_chooser.signal_changed().connect(sigc::mem_fun(this, &MapperWindow::on_preview_device_changed));
+	conns.push_back(preview_device_chooser.signal_changed().connect(sigc::mem_fun(this, &MapperWindow::on_preview_device_changed)));
 	right_vbox.pack_start(preview_device_chooser, Gtk::PACK_SHRINK);
 	hpaned.pack2(right_vbox, true, true);
 
@@ -238,7 +238,10 @@ MapperWindow::MapperWindow() : mappings(new MappingsListModel), preview_devices(
 	show_all();
 }
 
-MapperWindow::~MapperWindow() = default;
+MapperWindow::~MapperWindow() {
+	preview_device_connection.disconnect();
+	std::for_each(conns.begin(), conns.end(), std::mem_fn(&sigc::connection::disconnect));
+}
 
 void MapperWindow::on_add_clicked() {
 	Gtk::MessageDialog md(*this, "Which joystick do you want to map?", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_OK_CANCEL);

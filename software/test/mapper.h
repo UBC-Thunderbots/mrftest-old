@@ -50,6 +50,8 @@ class MapperWindow : public Gtk::Window {
 		Gtk::ComboBox preview_device_chooser;
 		sigc::connection preview_device_connection;
 
+		std::vector<sigc::connection> conns;
+
 		void on_add_clicked();
 		void on_del_clicked();
 		void on_name_chooser_sel_changed();
