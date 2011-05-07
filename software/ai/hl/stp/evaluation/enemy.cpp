@@ -120,38 +120,40 @@ EnemyThreat AI::HL::STP::Evaluation::eval_enemy(const World &world, const Robot:
 	// TODO: Check for Errors
 	EnemyThreat enemy_threat;
 
-	enemy_threat.threat_dist = std::min((robot->position() - world.ball().position()).len() , (robot->position() - world.field().friendly_goal()).len());
-	
-	enemy_threat.blocked = enemy_can_receive(world, robot);
-	
-	std::vector<AI::HL::W::Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
-	
-	std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(robot->position()));
-	
-	// don't count this robot
-	for (std::size_t i = 1; i < enemies.size(); ++i) {
-		if (available_enemy_pass(world, robot, enemies[i])){
-			enemy_threat.passees.push_back(enemies[i]);
-		} 
-	}	
+	if (robot.is()) {
+		enemy_threat.threat_dist = std::min((robot->position() - world.ball().position()).len() , (robot->position() - world.field().friendly_goal()).len());
 
-	enemy_threat.passes = 5;
-	if (enemy_threat.blocked || enemy_threat.passees.size() == 0) {
-		enemy_threat.passes = 5;
-	} else if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), robot, Robot::MAX_RADIUS).second > shoot_accuracy){
-		enemy_threat.passes = 0;
-	}
-	for (std::size_t i = 0; i < enemy_threat.passees.size(); ++i) {
-		if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), enemy_threat.passees[i], Robot::MAX_RADIUS).second > shoot_accuracy) {
-			enemy_threat.passes = 1;
+		enemy_threat.blocked = enemy_can_receive(world, robot);
+
+		std::vector<AI::HL::W::Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
+
+		std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(robot->position()));
+
+		// don't count this robot
+		for (std::size_t i = 1; i < enemies.size(); ++i) {
+			if (available_enemy_pass(world, robot, enemies[i])){
+				enemy_threat.passees.push_back(enemies[i]);
+			}
 		}
-		else {
-			EnemyThreat next = eval_enemy(world, enemy_threat.passees[i]);
-			for (std::size_t j = 0; j < next.passees.size(); ++j){
-				if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), next.passees[j], Robot::MAX_RADIUS).second > shoot_accuracy) {
-				enemy_threat.passes = 2;
+	
+		enemy_threat.passes = 5;
+		if (enemy_threat.blocked || enemy_threat.passees.size() == 0) {
+			enemy_threat.passes = 5;
+		} else if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), robot, Robot::MAX_RADIUS).second > shoot_accuracy){
+			enemy_threat.passes = 0;
+		}
+		for (std::size_t i = 0; i < enemy_threat.passees.size(); ++i) {
+			if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), enemy_threat.passees[i], Robot::MAX_RADIUS).second > shoot_accuracy) {
+				enemy_threat.passes = 1;
+			}
+			else {
+				EnemyThreat next = eval_enemy(world, enemy_threat.passees[i]);
+				for (std::size_t j = 0; j < next.passees.size(); ++j){
+					if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), next.passees[j], Robot::MAX_RADIUS).second > shoot_accuracy) {
+					enemy_threat.passes = 2;
+					}
 				}
-			}	
+			}
 		}
 	}
 
