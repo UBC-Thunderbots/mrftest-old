@@ -10,7 +10,7 @@ namespace {
 	}
 }
 
-TesterParamsPanel::TesterParamsPanel(XBeeRobot::Ptr robot) : Gtk::Table(6, 2), robot(robot), channel0label("Out Channel:"), channel1label("In Channel:"), index_label("Index:"), dribble_power_label("Dribble Power:"), commit("Commit"), reboot("Reboot"), test_mode_label("Test mode (hex):"), set_test_mode("Set Test Mode"), build_signatures_label("Build Sigs:"), freeze(false) {
+TesterParamsPanel::TesterParamsPanel(XBeeRobot::Ptr robot) : Gtk::Table(6, 2), robot(robot), channel0label("Out Channel:"), channel1label("In Channel:"), index_label("Index:"), dribble_power_label("Dribble Power:"), commit("Commit"), reboot("Reboot"), test_mode_label("Test mode (hex):"), set_test_mode("Set Test Mode"), build_signatures_hbox(false, 10), build_signatures_label("Build Sigs:"), freeze(false) {
 	for (std::size_t i = 0; i < 2; ++i) {
 		for (unsigned int ch = 0x0B; ch <= 0x1A; ++ch) {
 			channels[i].append_text(format_channel(ch));
