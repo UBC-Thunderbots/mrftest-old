@@ -55,7 +55,7 @@ namespace AI {
 			};
 
 			/**
-			 * General shooting accuracy in meters away from target
+			 * The shooting accuracy of the robot, in terms of angle.
 			 */
 			extern DoubleParam shoot_accuracy;
 

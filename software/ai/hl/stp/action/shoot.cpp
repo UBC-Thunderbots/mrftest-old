@@ -1,5 +1,6 @@
 #include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/action/chase.h"
+#include "ai/hl/stp/action/pivot.h"
 #include "ai/flags.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
@@ -8,14 +9,10 @@
 #include <algorithm>
 
 namespace {
-
 	DoubleParam alpha("Decay constant for the ball velocity", "STP/Action/shoot", 0.1, 0.0, 1.0);
 	
 	DoubleParam reduced_radius("reduced radius for calculating best shot", "STP/Action/shoot", 0.8, 0.0, 1.0);
-
 }
-
-
 
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 
@@ -58,8 +55,20 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 		}
 			
 	}
-#warning TODO make the shoot accuracy a function of the amount of open net
-	return AI::HL::STP::Action::shoot(world, player, target.first, AI::HL::Util::shoot_accuracy, 0.0);
+
+	pivot(world, player, target.first);
+
+	double ori = (target.first - player->position()).orientation();
+	double ori_diff = fabs(ori - player->orientation());
+
+	if (ori_diff > AI::HL::Util::shoot_accuracy) {
+		if (player->chicker_ready()) {
+			player->kick(10.0);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Point target, double tol, double delta) {
@@ -93,7 +102,7 @@ bool AI::HL::STP::Action::arm(const World &world, Player::Ptr player, const Poin
 	double speed = alpha*distance/(1-exp(-alpha*delta));
 	if (speed > 10.0) speed = 10.0; // can't kick faster than this
 	if (speed < 0) speed = 0; // can't kick slower than this
-	
+
 	player->autokick(speed);
 	return true;
 }

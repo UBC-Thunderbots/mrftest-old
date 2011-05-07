@@ -18,9 +18,6 @@ namespace AI {
 				 *
 				 * If the player does not have the ball, chases after it.
 				 *
-				 * \param[in] force forces the player to shoot,
-				 * even if the goal is completely blocked.
-				 *
 				 * \return true if the robot shoots.
 				 */
 				bool shoot(const World &world, Player::Ptr player);
