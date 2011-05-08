@@ -5,13 +5,13 @@
 #include <ode/ode.h>
 #include "util/noncopyable.h"
 
-class Player_geom : public NonCopyable {
+class PlayerGeom : public NonCopyable {
 	public:
-		Player_geom(dWorldID eworld, dSpaceID dspace) : world(eworld), space(dspace) {
+		PlayerGeom(dWorldID eworld, dSpaceID dspace) : world(eworld), space(dspace) {
 			body = dBodyCreate(world);
 		}
 
-		~Player_geom() {
+		~PlayerGeom() {
 			dBodyDestroy(body);
 		}
 

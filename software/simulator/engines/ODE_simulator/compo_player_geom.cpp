@@ -19,15 +19,8 @@ namespace {
 		ans[2] = ans[2];
 	}
 
-
-//
-//
-//
 	const double CFM = 1e-5;
 
-//
-//
-//
 	const double ERP = 0.9;
 
 
@@ -71,7 +64,7 @@ namespace {
 	const double RPM_PER_VOLT = 2900;
 }
 
-Compo_player_geom::Compo_player_geom(dWorldID eworld, dSpaceID dspace) : Player_geom(eworld, dspace) {
+CompoPlayerGeom::CompoPlayerGeom(dWorldID eworld, dSpaceID dspace) : PlayerGeom(eworld, dspace) {
 	double x_pos = 0.0;
 	double y_pos = 0.0;
 	double y_len = 0.1;
@@ -103,19 +96,19 @@ Compo_player_geom::Compo_player_geom(dWorldID eworld, dSpaceID dspace) : Player_
 	dSpaceAdd(dspace, dribblerBar);
 }
 
-Compo_player_geom::~Compo_player_geom() {
+CompoPlayerGeom::~CompoPlayerGeom() {
 	dGeomDestroy(robotGeomTop);
 	dGeomDestroy(robotGeomTopCyl);
 	dGeomDestroy(dribblerBar);
 }
 
-bool Compo_player_geom::has_geom(dGeomID geom) {
+bool CompoPlayerGeom::has_geom(dGeomID geom) {
 	dBodyID b = dGeomGetBody(geom);
 	return b == body;
 }
 
 
-void Compo_player_geom::handle_collision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup) {
+void CompoPlayerGeom::handle_collision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup) {
 	if (has_geom(o1) && has_geom(o2)) {
 		return;
 	}
@@ -186,7 +179,7 @@ bool hasContactWithFace(dVector3 pos, dGeomID geom) {
 //
 //
 //
-void Compo_player_geom::handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup) {
+void CompoPlayerGeom::handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup) {
 	int i = 0;
 	dBodyID b1 = dGeomGetBody(o1);
 	dBodyID b2 = dGeomGetBody(o2);
@@ -250,7 +243,7 @@ void Compo_player_geom::handleRobotBallCollision(dGeomID o1, dGeomID o2, dJointG
 // dribbler == dGeomGetBody(o1) ||  dribbler == dGeomGetBody(o2)
 // if a shape interescts with the ground set the contact parameters
 //
-void Compo_player_geom::handleCollisionWithGround(dGeomID o1, dGeomID o2, dJointGroupID contactgroup) {
+void CompoPlayerGeom::handleCollisionWithGround(dGeomID o1, dGeomID o2, dJointGroupID contactgroup) {
 	if (dGeomGetClass(o1) != dCCylinderClass && dGeomGetClass(o2) != dCCylinderClass) {
 		dBodyID b1 = dGeomGetBody(o1);
 		dBodyID b2 = dGeomGetBody(o2);
@@ -277,7 +270,7 @@ double orientationFromMatrix(const dReal *t) {
 //
 // if ground or ball or wall isn't invloved, we assume a robot robot collision
 //
-void Compo_player_geom::handleRobotRobotCollision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup) {
+void CompoPlayerGeom::handleRobotRobotCollision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup) {
 	const int num_contact = 4;
 	if (dGeomGetBody(o1) != dGeomGetBody(o2)) {
 		dBodyID b1 = dGeomGetBody(o1);
@@ -301,7 +294,7 @@ void Compo_player_geom::handleRobotRobotCollision(dGeomID o1, dGeomID o2, dJoint
 	}
 }
 
-void Compo_player_geom::dribble(double) {
+void CompoPlayerGeom::dribble(double) {
 	// double voltage = set_point * MAX_VOLTAGE;
 	// double rpm = RPM_PER_VOLT * voltage;
 	// double rads_per_sec = (2*3.14/60)*rpm;
@@ -318,7 +311,7 @@ void Compo_player_geom::dribble(double) {
 
 // if a shape interescts with the wall set the contact parameters
 //
-void Compo_player_geom::handleWallCollision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup) {
+void CompoPlayerGeom::handleWallCollision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup) {
 	int i = 0;
 	dBodyID b1 = dGeomGetBody(o1);
 	dBodyID b2 = dGeomGetBody(o2);
@@ -338,11 +331,11 @@ void Compo_player_geom::handleWallCollision(dGeomID o1, dGeomID o2, dJointGroupI
 	}
 }
 
-void Compo_player_geom::reset_frame() {
+void CompoPlayerGeom::reset_frame() {
 	has_ball_now = false;
 }
 
-bool Compo_player_geom::has_ball() const {
+bool CompoPlayerGeom::has_ball() const {
 	return has_ball_now;
 }
 

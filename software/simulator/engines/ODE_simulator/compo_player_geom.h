@@ -5,10 +5,10 @@
 #include "player_geom.h"
 #include <ode/ode.h>
 
-class Compo_player_geom : public Player_geom {
+class CompoPlayerGeom : public PlayerGeom {
 	public:
-		Compo_player_geom(dWorldID eworld, dSpaceID dspace);
-		~Compo_player_geom();
+		CompoPlayerGeom(dWorldID eworld, dSpaceID dspace);
+		~CompoPlayerGeom();
 		void handle_collision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup);
 		void reset_frame();
 		bool has_ball() const;

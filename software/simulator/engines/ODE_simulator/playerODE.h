@@ -19,7 +19,7 @@ class PlayerODE : public Simulator::Player {
 		dReal momentInertia;
 
 		typedef RefPtr<PlayerODE> Ptr;
-		Compo_player_geom p_geom;
+		CompoPlayerGeom p_geom;
 
 	private:
 		/**
