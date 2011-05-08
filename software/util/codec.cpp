@@ -9,13 +9,15 @@ namespace {
 	 * \param[in] exponent the biased exponent, between 0 and 0x7FF.
 	 *
 	 * \param[in] significand the significand.
+	 *
+	 * \return the packed 64-bit integer.
 	 */
 	uint64_t pack_ses(bool sign, uint16_t exponent, uint64_t significand) {
 		return (sign ? UINT64_C(0x8000000000000000) : 0) | (static_cast<uint64_t>(exponent) << 52) | significand;
 	}
 }
 
-uint64_t Codec::double_to_u64(double x) {
+uint64_t encode_double_to_u64(double x) {
 	// Break down the number based on its coarse classification.
 	int classify = std::fpclassify(x);
 	if (classify == FP_NAN) {
@@ -70,7 +72,7 @@ uint64_t Codec::double_to_u64(double x) {
 	}
 }
 
-double Codec::u64_to_double(uint64_t x) {
+double decode_u64_to_double(uint64_t x) {
 	// Extract the sign bit, biased exponent, and significand.
 	bool sign = !!(x & UINT64_C(0x8000000000000000));
 	int16_t exponent = (x >> 52) & 0x7FF;
