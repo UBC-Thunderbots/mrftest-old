@@ -1,6 +1,6 @@
 #include "ai/hl/stp/predicates.h"
 #include "ai/hl/util.h"
-
+#include "geom/angle.h"
 #include "ai/hl/stp/evaluation/enemy.h"
 
 #include <set>
@@ -118,20 +118,23 @@ bool AI::HL::STP::Predicates::baller_can_shoot(const World &world){
 }
 
 bool AI::HL::STP::Predicates::baller_can_pass(const World &world){
-	
-	// should write a player evaluation layer to handle this
-	
-	const std::vector<Player::CPtr> players = AI::HL::Util::get_players(world.friendly_team());
-	/*
-	const std::vector<Player::CPtr> supporters;
+		
+	const FriendlyTeam &friends = world.friendly_team();
+	const Player::CPtr baller = calc_baller(world);
+
 	// don't count in the goalie
-	for (size_t i = 1; i < players.size(); ++i) {
-		if (world.friendly_team().get(i)->has_ball()) continue;
-		supporters.push_back(players[i]);
+	for (size_t i = 1; i < friends.size(); ++i) {
+		if (friends.get(i)->has_ball()) continue;
+		if (AI::HL::Util::calc_best_shot_target(world, friends.get(i)->position(), baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0){
+			const Point ray = world.ball().position() - friends.get(i)->position();
+			// if the passee is not facing the ball, forget it?
+			if (angle_diff(ray.orientation(), friends.get(i)->orientation()) > AI::HL::Util::ORI_PASS_CLOSE) 
+				return false;
+			else 
+				return true;
+		} 
 	}
-	
-	Player::CPtr passee = AI::HL::Util::choose_best_pass(world, supporters);
-	*/
+		
 	return false;
 }
 
