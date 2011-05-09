@@ -113,7 +113,7 @@ bool AI::HL::STP::Predicates::ball_midfield(const World &world){
 
 bool AI::HL::STP::Predicates::baller_can_shoot(const World &world){
 	const Player::CPtr baller = calc_baller(world);
-	
+	if (!baller->has_ball()) return false;
 	return AI::HL::Util::calc_best_shot(world, baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
 }
 
@@ -121,7 +121,7 @@ bool AI::HL::STP::Predicates::baller_can_pass(const World &world){
 		
 	const FriendlyTeam &friends = world.friendly_team();
 	const Player::CPtr baller = calc_baller(world);
-
+	if (!baller->has_ball()) return false;
 	// don't count in the goalie
 	for (size_t i = 1; i < friends.size(); ++i) {
 		if (friends.get(i)->has_ball()) continue;
@@ -140,14 +140,14 @@ bool AI::HL::STP::Predicates::baller_can_pass(const World &world){
 
 bool AI::HL::STP::Predicates::baller_can_shoot_target(const World &world, const Point &target){
 	const Player::CPtr baller = calc_baller(world);
-	
+	if (!baller->has_ball()) return false;
 	return AI::HL::Util::calc_best_shot_target(world, target, baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
 }
 
 bool AI::HL::STP::Predicates::baller_under_threat(const World &world){
 
 	const Player::CPtr baller = calc_baller(world);
-	
+	if (!baller->has_ball()) return false;
 	int enemy_cnt = 0;
 	const EnemyTeam &enemies = world.enemy_team();
 	for (std::size_t i = 0; i < enemies.size(); ++i) {	
@@ -160,19 +160,19 @@ bool AI::HL::STP::Predicates::baller_under_threat(const World &world){
 
 bool AI::HL::STP::Predicates::enemy_baller_can_shoot(const World &world){
 	const Robot::Ptr baller = calc_enemy_baller(world);
-	
+	if (AI::HL::Util::posses_ball(world, baller)) return false;
 	return Evaluation::eval_enemy(world, baller).passes == 0;
 }
 
 bool AI::HL::STP::Predicates::enemy_baller_can_pass(const World &world){
 	const Robot::Ptr baller = calc_enemy_baller(world);
-	
+	if (AI::HL::Util::posses_ball(world, baller)) return false;
 	return Evaluation::eval_enemy(world, baller).passees.size() > 0;
 }
 
 bool AI::HL::STP::Predicates::enemy_baller_can_pass_shoot(const World &world){
 	const Robot::Ptr baller = calc_enemy_baller(world);
-	
+	if (AI::HL::Util::posses_ball(world, baller)) return false;
 	return Evaluation::eval_enemy(world, baller).passes > 0 && Evaluation::eval_enemy(world, baller).passes < 3;
 }
 
