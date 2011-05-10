@@ -51,7 +51,7 @@ namespace {
 	}
 
 	bool OurCornerPlay::applicable() const {
-		return Predicates::our_ball(world) && Predicates::ball_in_our_corner(world) && !Predicates::baller_can_shoot(world);
+		return Predicates::our_ball(world) && Predicates::ball_in_our_corner(world) && !Predicates::baller_can_shoot(world) && !Predicates::baller_can_pass(world);
 	}
 
 	bool OurCornerPlay::done() const {

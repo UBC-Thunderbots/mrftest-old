@@ -51,11 +51,11 @@ namespace {
 	}
 
 	bool PassOffensive::invariant() const {
-		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && Predicates::their_team_size_at_least(world, 1) && !Predicates::baller_can_shoot(world);
+		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && Predicates::their_team_size_at_least(world, 1) && !Predicates::baller_can_shoot(world) && Predicates::baller_can_pass(world);
 	}
 
 	bool PassOffensive::applicable() const {
-		return Predicates::our_ball(world) && Predicates::ball_midfield(world);
+		return Predicates::our_ball(world) && (Predicates::ball_midfield(world) || Predicates::ball_in_their_corner(world) || Predicates::ball_in_our_corner(world));
 	}
 
 	bool PassOffensive::done() const {

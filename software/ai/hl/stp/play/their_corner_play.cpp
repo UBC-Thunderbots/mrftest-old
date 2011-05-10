@@ -51,7 +51,7 @@ namespace {
 	}
 
 	bool TheirCornerPlay::applicable() const {
-		return Predicates::our_ball(world) && Predicates::ball_in_their_corner(world) && !Predicates::baller_can_shoot(world);
+		return Predicates::our_ball(world) && Predicates::ball_in_their_corner(world) && !Predicates::baller_can_shoot(world) && !Predicates::baller_can_pass(world);
 	}
 
 	bool TheirCornerPlay::done() const {
@@ -68,7 +68,7 @@ namespace {
 		goalie_role.push_back(defend_duo_goalie(world));
 		
 		// ROLE 1
-		// shoot towards the midfield (diagonally to their corner)
+		// shoot towards the midfield (diagonally to our corner)
 		roles[0].push_back(shoot(world, Point(-world.ball().position().x, -world.ball().position().y)));
 
 		// ROLE 2
