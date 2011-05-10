@@ -46,7 +46,7 @@ namespace {
 	}
 
 	bool FreeKickFriendly::invariant() const {
-		return (Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 3) && Predicates::baller_can_shoot(world);
+		return (Predicates::playtype(world, AI::Common::PlayType::EXECUTE_DIRECT_FREE_KICK_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_INDIRECT_FREE_KICK_FRIENDLY)) && Predicates::our_team_size_at_least(world, 3);
 	}
 
 	bool FreeKickFriendly::applicable() const {
@@ -54,12 +54,10 @@ namespace {
 	}
 
 	bool FreeKickFriendly::done() const {
-#warning TODO
 		return false;
 	}
 
 	bool FreeKickFriendly::fail() const {
-#warning TODO
 		return false;
 	}
 
