@@ -63,9 +63,7 @@ namespace {
 	}
 
 	void TheirCornerPlay::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
-		// std::Player::Ptr goalie = world.friendly_team().get(0);
-		// const FriendlyTeam &friendly = world.friendly_team();
-
+		
 		// GOALIE
 		goalie_role.push_back(defend_duo_goalie(world));
 		
@@ -78,8 +76,8 @@ namespace {
 		roles[1].push_back(defend_duo_defender(world));
 
 		// ROLE 3 (optional)
-		// defend 
-		roles[2].push_back(defend_duo_extra(world));
+		// offend 
+		roles[2].push_back(offend(world));
 
 		// ROLE 4 (optional)
 		// offensive support
