@@ -15,11 +15,12 @@ namespace Predicates = AI::HL::STP::Predicates;
 namespace {
 	/**
 	 * Condition:
-	 * - 2 players left
+	 * - 1-2 players left
 	 * 
+	 * (USE TEST STP HLs if you just want to test something with one player (i.e. a particular skill))
 	 *
 	 * Objective:
-	 * - do something, shoot
+	 * - lone goalie, shoot
 	 */
 	class Lone2Player : public Play {
 		public:
@@ -44,7 +45,7 @@ namespace {
 	}
 
 	bool Lone2Player::invariant() const {
-		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_exactly(world, 2);
+		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_most(world, 2);
 	}
 
 	bool Lone2Player::applicable() const {
@@ -60,7 +61,6 @@ namespace {
 	}
 
 	void Lone2Player::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
-		// std::Player::Ptr goalie = world.friendly_team().get(0);
 
 		// GOALIE
 		goalie_role.push_back(defend_solo_goalie(world));
@@ -68,7 +68,6 @@ namespace {
 		// ROLE 1
 		// shoot
 		roles[0].push_back(shoot(world));
-
 	}
 }
 

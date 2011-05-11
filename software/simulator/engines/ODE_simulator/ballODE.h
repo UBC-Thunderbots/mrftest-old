@@ -16,7 +16,6 @@ class BallODE : public Simulator::Ball {
 		dGeomID ballGeom;
 		dMass m;
 
-
 		BallODE(dWorldID dworld, dSpaceID dspace, dReal radius = static_cast<dReal>(0.042672) / 2, dReal mass = static_cast<dReal>(0.046));
 
 		//BallODE(dWorldID dworld, dSpaceID dspace, double radius);
