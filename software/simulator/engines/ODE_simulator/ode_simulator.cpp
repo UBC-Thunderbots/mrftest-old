@@ -13,33 +13,25 @@
 namespace {
 	const dReal MU = static_cast<dReal>(0.02);     // the global mu to use
 
-	//
-	// The limit of floating-point precision.
-	//
+	/**
+	 * The limit of floating-point precision.
+	 */
 	const dReal EPS = static_cast<dReal>(1.0e-9);
 
-	//
-	// The force of gravity N/kg
-	//
+	/**
+	 * The force of gravity N/kg
+	 */
 	const dReal GRAVITY = static_cast<dReal>(-9.81);
 
-
 	const unsigned int UPDATES_PER_TICK = 20;
-
-	//
-	//
-	//
+	
 	const dReal CFM = static_cast<dReal>(1.0e-5);
 
-	//
-	//
-	//
 	const dReal ERP = 1.0;
 
-
-	//
-	// A SimulatorEngine.
-	//
+	/**
+	 * The SimulatorEngine.
+	 */
 	class SimEngine : public SimulatorEngine {
 		private:
 			BallODE::Ptr the_ball;
@@ -70,8 +62,6 @@ namespace {
 				space = dSimpleSpaceCreate(0);
 
 				ground = dCreatePlane(space, 0, 0, 1, 0);
-
-
 
 				dReal wall_height = static_cast<dReal>(20.5); // 1/2 meter
 				dReal wall_thickness = static_cast<dReal>(0.1127); //
@@ -104,7 +94,6 @@ namespace {
 				dJointGroupDestroy(contactgroup);
 				dCloseODE();
 			}
-
 
 			void tick() {
 				for (unsigned int i = 0; i < UPDATES_PER_TICK; i++) {
@@ -156,7 +145,6 @@ namespace {
 				return p;
 			}
 
-
 			PlayerODE::Ptr get_player_from_shape(dGeomID shape) {
 				for (std::size_t i = 0; i < the_players.size(); i++) {
 					if (the_players[i]->robot_contains_shape(shape)) {
@@ -199,9 +187,8 @@ namespace {
 				return 0;
 			}
 
-			//
 			// if a shape interescts with the ground set the contact parameters
-			//
+
 			void handleBallCollisionWithGround(dGeomID o1, dGeomID o2) {
 				dReal frict = MU * 12;
 				int i = 0;
@@ -232,9 +219,9 @@ namespace {
 				}
 			}
 
-			//
+			
 			// if a shape interescts with the ball set the contact parameters
-			//
+			
 			void handleBallCollision(dGeomID o1, dGeomID o2) {
 				unsigned int i = 0;
 				dBodyID b1 = dGeomGetBody(o1);
@@ -264,11 +251,10 @@ namespace {
 					}
 				}
 			}
-
-			//
+			
 			// if a shape interescts with the wall set the contact parameters
 			// robot collisions with the wall are disabled for stability
-			//
+			
 			void handleWallCollision(dGeomID o1, dGeomID o2) {
 				int i = 0;
 				dBodyID b1 = dGeomGetBody(o1);
@@ -289,10 +275,9 @@ namespace {
 				}
 			}
 
-			//
 			// This gets called every time we have two shpaes in the World that intersect
 			// for every pair of intersecting shapes we need to decide what to do with them
-			//
+			
 			void nearCallback(dGeomID o1, dGeomID o2) {
 				int groundCollision;
 				int notGroundCollision;
@@ -343,9 +328,9 @@ namespace {
 			SimulatorEngineFactory &get_factory();
 	};
 
-	//
-	// A factory for creating sim_engines.
-	//
+	/**
+	 * A factory for creating sim_engines.
+	 */
 	class SimEngineFactory : public SimulatorEngineFactory {
 		public:
 			SimEngineFactory() : SimulatorEngineFactory("Open Dynamics Engine Simulator") {
@@ -357,9 +342,9 @@ namespace {
 			}
 	};
 
-	//
-	// The global instance of SimEngineFactory.
-	//
+	/**
+	 * The global instance of SimEngineFactory.
+	 */
 	SimEngineFactory fact;
 
 	SimulatorEngineFactory &SimEngine::get_factory() {

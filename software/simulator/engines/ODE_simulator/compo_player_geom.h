@@ -1,7 +1,6 @@
 #ifndef SIMULATOR_ENGINES_ODE_SIMULATOR_COMPO_PLAYER_GEOM_H
 #define SIMULATOR_ENGINES_ODE_SIMULATOR_COMPO_PLAYER_GEOM_H
 
-
 #include "player_geom.h"
 #include <ode/ode.h>
 
@@ -22,6 +21,7 @@ class CompoPlayerGeom : public PlayerGeom {
 		void handleWallCollision(dGeomID o1, dGeomID o2, dJointGroupID contactgroup);
 		// bool hasContactPenetration(dVector3 pos, dGeomID geom);
 		void dribble(double set_point);
+
 		/**
 		 * The rectangular geometry for the front collision.
 		 */

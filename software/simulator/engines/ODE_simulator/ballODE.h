@@ -19,10 +19,10 @@ class BallODE : public Simulator::Ball {
 
 		BallODE(dWorldID dworld, dSpaceID dspace, dReal radius = static_cast<dReal>(0.042672) / 2, dReal mass = static_cast<dReal>(0.046));
 
-		/*BallODE(dWorldID dworld, dSpaceID dspace, double radius);
+		//BallODE(dWorldID dworld, dSpaceID dspace, double radius);
 
-		   BallODE(dWorldID dworld, dSpaceID dspace);
-		 */
+		//BallODE(dWorldID dworld, dSpaceID dspace);
+		 
 		Point position() const;
 
 		Point velocity() const;

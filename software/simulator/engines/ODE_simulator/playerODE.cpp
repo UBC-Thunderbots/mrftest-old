@@ -39,12 +39,10 @@ namespace {
 	 */
 	const dReal PACKET_TO_VOLTAGE = static_cast<dReal>(0.022281639);
 
-
 	/**
 	 * Maximum voltage available to the robot.
 	 */
 	const dReal VOLTAGE_LIMIT = 15.0;
-
 
 	/**
 	 * Resistance of the stator
@@ -86,7 +84,6 @@ namespace {
 	 */
 	const dReal FRONT_FACE_WIDTH = static_cast<dReal>(0.16);
 
-
 	/**
 	 * Angles in radians that the wheels are located off the forward direction
 	 */
@@ -95,8 +92,8 @@ namespace {
 	int click = 0;
 }
 
-/*
-    Constructor method for the robot model contained in the simulator
+/**
+ * Constructor method for the robot model contained in the simulator
  */
 PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, dReal ups_per_tick) : p_geom(eworld, dspace) {
 	orders.kick = false;
@@ -117,6 +114,14 @@ PlayerODE::PlayerODE(dWorldID eworld, dSpaceID dspace, dGeomID ballGeomi, dReal 
 		wheel_position[index] = Point(1, 0).rotate(ANGLES[index]) * ROBOT_RADIUS;
 		force_direction[index] = Point(wheel_position[index].rotate(M_PI / 2).norm());
 	}
+}
+
+/**
+ * Accessor to get the height of the middle of the robot (should be ROBOT_HEIGHT/2)
+ */
+dReal PlayerODE::get_height() const {
+	const dReal *t = dBodyGetPosition(body);
+	return t[2];
 }
 
 // Accessor method to get the robots position
@@ -160,8 +165,8 @@ void PlayerODE::dribble(dReal) {
 }
 
 /*
-   Returns whether or not a given robot has the ball.
-   Has ball is determined from the collision detection from the previous timestep
+ * Returns whether or not a given robot has the ball.
+ * Has ball is determined from the collision detection from the previous timestep
  */
 bool PlayerODE::has_ball() const {
 	return p_geom.has_ball();
@@ -171,20 +176,13 @@ unsigned int PlayerODE::dribbler_speed() const {
 	return has_ball() ? 30 : 50;
 }
 
-// Accessor to get the height of the middle of the robot (should be ROBOT_HEIGHT/2)
-dReal PlayerODE::get_height() const {
-	const dReal *t = dBodyGetPosition(body);
-	return t[2];
-}
-
-
 bool PlayerODE::robot_contains_shape(dGeomID geom) {
 	return p_geom.has_geom(geom);
 }
 
-/*
-   computes the forces for the differential equation and adds them to the robot body
-   \param[in] timestep the time between calculations
+/**
+ * computes the forces for the differential equation and adds them to the robot body
+ * \param[in] timestep the time between calculations
  */
 void PlayerODE::pre_tic(dReal) {
 	// limit max motor "voltage" to VOLTAGE_LIMIT by scaling the largest component to VOLTAGE_LIMIT if greater but preserve its orientation

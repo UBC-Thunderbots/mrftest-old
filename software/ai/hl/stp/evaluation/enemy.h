@@ -47,8 +47,7 @@ namespace AI {
 				
 				/**
 				 * Evaluate how dangerous an enemy is
-				 */
-				
+				 */	
 				EnemyThreat eval_enemy(const AI::HL::W::World &world, const AI::HL::W::Robot::Ptr robot);
 								
 			}

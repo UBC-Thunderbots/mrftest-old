@@ -45,37 +45,37 @@ namespace AI {
 				
 				bool ball_midfield(const World &world);
 				
-				/*
+				/**
 				 * player with the ball can shoot at their goal
 				 */
 				bool baller_can_shoot(const World &world);
 				
-				/*
+				/**
 				 * player with the ball can pass
 				 */
 				bool baller_can_pass(const World &world);
 				
-				/*
+				/**
 				 * player with the ball can shoot at a target point
 				 */
 				bool baller_can_shoot_target(const World &world, const Point &target);		
 				
-				/*
+				/**
 				 * player with the ball is under threat (surrounded by enemies)
 				 */
 				bool baller_under_threat(const World &world);
 				
-				/*
+				/**
 				 * enemy with the ball can shoot at our goal
 				 */
 				bool enemy_baller_can_shoot(const World &world);
 				
-				/*
+				/**
 				 * enemy with the ball can pass to another enemy
 				 */
 				bool enemy_baller_can_pass(const World &world);
 				
-				/*
+				/**
 				 * # of passes from the enemy with ball is > 0 (no clear shot)
 				 * and < 3 (irrelevant to be any higher)
 				 * to be able to get a clear shoot at our goal
