@@ -27,12 +27,10 @@
 BallODE::BallODE(dWorldID dworld, dSpaceID dspace, dReal radius, dReal mass) : the_position(0.0, 0.0), the_velocity(0.0, 0.0) {
 	world = dworld;
 
-
 	body = dBodyCreate(world);
 	ballGeom = dCreateSphere(dspace, radius); // golf ball radius 4.2672cm
 	dGeomSetBody(ballGeom, body);
 	dBodySetPosition(body, 0.0, 0.0, radius + static_cast<dReal>(0.001));
-
 
 	dMassSetSphereTotal(&m, mass, radius);
 	dBodySetMass(body, &m);
@@ -42,6 +40,7 @@ BallODE::BallODE(dWorldID dworld, dSpaceID dspace, dReal radius, dReal mass) : t
 
 	// dBodySetMaxAngularSpeed (body, 5.0);
 }
+
 double BallODE::get_height() const {
 	const dReal *t = dBodyGetPosition(body);
 	return t[2];
@@ -95,6 +94,7 @@ double BallODE::get_height() const {
 
     }
  */
+
 double BallODE::getRadius() {
 	return dradius;
 }
@@ -142,7 +142,6 @@ bool BallODE::in_goal() {
 			return true;
 		}
 	}
-
 
 	return false;
 }

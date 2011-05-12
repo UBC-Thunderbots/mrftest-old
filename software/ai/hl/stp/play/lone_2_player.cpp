@@ -15,10 +15,8 @@ namespace Predicates = AI::HL::STP::Predicates;
 namespace {
 	/**
 	 * Condition:
-	 * - 1-2 players left
+	 * - 2 players left
 	 * 
-	 * (USE TEST STP HLs if you just want to test something with one player (i.e. a particular skill))
-	 *
 	 * Objective:
 	 * - lone goalie, shoot
 	 */
@@ -45,7 +43,7 @@ namespace {
 	}
 
 	bool Lone2Player::invariant() const {
-		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_most(world, 2);
+		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_exactly(world, 2);
 	}
 
 	bool Lone2Player::applicable() const {

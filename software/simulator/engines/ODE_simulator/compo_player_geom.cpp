@@ -80,12 +80,12 @@ CompoPlayerGeom::CompoPlayerGeom(dWorldID eworld, dSpaceID dspace) : PlayerGeom(
 	// dGeomSetPosition (dribblerBar, x_len, 0.0, DRIBBLER_HEIGHT);
 	// we need to rotate the
 	// dribbler bar -90 degrees about the x-axis
-	const dMatrix3 rotat = {
+	const dMatrix3 rotate = {
 		1, 0, 0, 0,
 		0, 0, 1, 1,
 		0, 1, 0, 0
 	};
-	dGeomSetRotation(dribblerBar, rotat);
+	dGeomSetRotation(dribblerBar, rotate);
 	dGeomSetBody(dribblerBar, body);
 	dGeomSetOffsetPosition(dribblerBar, x_len / 2.0 + 0.01, 0.0, DRIBBLER_HEIGHT - ROBOT_HEIGHT / 2.0);
 	dBodySetPosition(body, x_pos, y_pos, ROBOT_HEIGHT / 2 + 0.001);
