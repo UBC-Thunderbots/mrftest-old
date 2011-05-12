@@ -37,7 +37,7 @@ BallThreat AI::HL::STP::Evaluation::evaluate_ball_threat(const World &world) {
 	return ball_threat;
 }
 
-bool ball_on_net(const AI::HL::W::World &world) {
+bool AI::HL::STP::Evaluation::ball_on_net(const AI::HL::W::World &world) {
 
 	if (world.ball().velocity().lensq() < negligible_velocity || world.ball().velocity().x > 0 ) {
 		return false;
@@ -56,7 +56,7 @@ bool ball_on_net(const AI::HL::W::World &world) {
 }
 
 
-Point goalie_shot_block(const AI::HL::W::World &world) {
+Point AI::HL::STP::Evaluation::goalie_shot_block(const AI::HL::W::World &world) {
 	if(world.friendly_team().size()<=0 || ! ball_on_net(world)) {
 		return Point(0,0);
 	}

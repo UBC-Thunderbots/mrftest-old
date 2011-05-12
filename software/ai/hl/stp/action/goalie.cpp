@@ -1,5 +1,6 @@
 #include "ai/hl/stp/action/goalie.h"
 #include "ai/hl/stp/action/repel.h"
+#include "ai/hl/stp/evaluation/ball_threat.h"
 #include "ai/flags.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
@@ -8,9 +9,12 @@
 
 using namespace AI::HL::STP;
 
+namespace Evaluation = AI::HL::STP::Evaluation;
+using AI::HL::STP::Evaluation::BallThreat;
+
 namespace {
 	DoubleParam lone_goalie_dist("Lone Goalie: distance to goal post (m)", "STP/Action/Goalie" , 0.30, 0.05, 1.0);
-	DoubleParam ball_dangerous_speed("Goalie Action: threatening ball speed", "STP/Action/Goalie", 0.1, 0.1, 10.0); 
+	// DoubleParam ball_dangerous_speed("Goalie Action: threatening ball speed", "STP/Action/Goalie", 0.1, 0.1, 10.0); 
 }
 
 void AI::HL::STP::Action::lone_goalie(const World &world, Player::Ptr player) {
@@ -38,6 +42,23 @@ void AI::HL::STP::Action::goalie_move(const World &world, Player::Ptr player, Po
 		return;
 	}
 
+	// use ball threat evaluation instead?
+	
+	// check if ball is heading towards our goal
+	if (Evaluation::ball_on_net(world)){
+		// goalie block position
+		Point goal_pos = Evaluation::goalie_shot_block(world);
+
+		player->move(goal_pos, (world.ball().position() - player->position()).orientation(), Point());
+		player->type(AI::Flags::MoveType::RAM_BALL);
+		player->prio(AI::Flags::MovePrio::HIGH);		
+	} else {
+		player->move(dest, (world.ball().position() - player->position()).orientation(), Point());
+		player->type(AI::Flags::MoveType::NORMAL);
+		player->prio(AI::Flags::MovePrio::MEDIUM);
+	}
+
+	/*
 	// Check if ball is threatening to our goal
 	Point ballvel = world.ball().velocity();
 	Point ballpos = world.ball().position();
@@ -59,5 +80,6 @@ void AI::HL::STP::Action::goalie_move(const World &world, Player::Ptr player, Po
 	player->move(dest, (world.ball().position() - player->position()).orientation(), Point());
 	player->type(AI::Flags::MoveType::NORMAL);
 	player->prio(AI::Flags::MovePrio::MEDIUM);
+	*/
 }
 
