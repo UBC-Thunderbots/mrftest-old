@@ -3,7 +3,6 @@
 
 #include "util/noncopyable.h"
 #include "util/property.h"
-#include "util/scoped_ptr.h"
 #include <cstddef>
 #include <gtkmm.h>
 #include <string>

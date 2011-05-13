@@ -1,8 +1,8 @@
 #ifndef LOG_ANALYZER_H
 #define LOG_ANALYZER_H
 
-#include "util/scoped_ptr.h"
 #include <gtkmm.h>
+#include <memory>
 #include <string>
 
 class LogAnalyzer : public Gtk::Window {
@@ -19,7 +19,7 @@ class LogAnalyzer : public Gtk::Window {
 	private:
 		class Impl;
 
-		ScopedPtr<Impl> impl;
+		std::unique_ptr<Impl> impl;
 		Gtk::VBox vbox;
 		Gtk::HPaned hpaned;
 		Gtk::VPaned vpaned;

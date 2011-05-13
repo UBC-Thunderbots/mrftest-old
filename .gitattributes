@@ -464,7 +464,6 @@ software/util/predictor.cpp -text
 software/util/predictor.h -text
 software/util/property.h -text
 software/util/registerable.h -text
-software/util/scoped_ptr.h -text
 software/util/signal.cpp -text
 software/util/signal.h -text
 software/util/sockaddrs.cpp -text

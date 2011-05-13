@@ -2,8 +2,8 @@
 #define UTIL_CACHEABLE_H
 
 #include "util/noncopyable.h"
-#include "util/scoped_ptr.h"
 #include <map>
+#include <memory>
 #include <tuple>
 
 /**
@@ -61,21 +61,21 @@ template<typename R, typename NK, typename K, typename ... Args> class Cacheable
 template<typename R, typename ... NK, typename ... Args> class CacheableImpl<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<>, Args ...> {
 	public:
 		const R &operator()(const Args & ... args) {
-			if (!cache.is()) {
+			if (!cache) {
 				cache.reset(new R(compute(args ...)));
 			}
-			return cache.ref();
+			return *cache.get();
 		}
 
 		void flush() {
-			cache.reset(0);
+			cache.reset();
 		}
 
 	protected:
 		virtual R compute(Args ... args) = 0;
 
 	private:
-		ScopedPtr<R> cache;
+		std::unique_ptr<R> cache;
 };
 
 template<typename R, typename ... NK, typename ... K, typename ... Args> class CacheableImpl<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...>, Args ...> {
