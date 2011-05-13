@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <vector>
+#include "util/param.h"
 
 using namespace AI::Flags;
 using namespace AI::Nav::W;
@@ -18,12 +19,14 @@ namespace {
 	// zero lets them brush
 	// positive enforces amount meters away
 	// negative lets them bump
-	const double ENEMY_BUFFER = 0.1;
-
+	//const double ENEMY_BUFFER = 0.1;
+	DoubleParam ENEMY_BUFFER("The amount of distance to maintain from enemy robots", "Nav/Util", 0.1, -1.0, 1.0);
 	// zero lets them brush
 	// positive enforces amount meters away
 	// negative lets them bump
-	const double FRIENDLY_BUFFER = 0.1;
+	DoubleParam FRIENDLY_BUFFER("Buffer for equal priority friendly robot (meters)", "Nav/Util", 0.1, -1.0, 1.0);
+	DoubleParam FRIENDLY_BUFFER_HIGH("Buffer for higher priority friendly robot (meters)", "Nav/Util", 0.2, -1.0, 1.0);
+	DoubleParam FRIENDLY_BUFFER_LOW("Buffer for lower priority friendly robot (meters)", "Nav/Util", 0.1, -1.0, 1.0);
 
 	// This buffer is in addition to the robot radius
 	const double BALL_STOP_BUFFER = 0.5;
@@ -58,8 +61,15 @@ namespace {
 			}
 			return player->MAX_RADIUS + world.enemy_team().get(0)->MAX_RADIUS + ENEMY_BUFFER;
 		}
-		static double friendly(AI::Nav::W::Player::Ptr player) {
-			return 2.0 * (player->MAX_RADIUS) + FRIENDLY_BUFFER;
+		static double friendly(AI::Nav::W::Player::Ptr player, MovePrio obs_prio = MovePrio::MEDIUM) {
+			MovePrio player_prio = player->prio();
+			double buffer = FRIENDLY_BUFFER;
+			if(obs_prio < player_prio){
+				buffer = FRIENDLY_BUFFER_LOW;
+			}else if(player_prio < obs_prio){
+				buffer = FRIENDLY_BUFFER_HIGH;
+			}
+			return 2.0 * (player->MAX_RADIUS) + buffer;
 		}
 		static double ball_stop(AI::Nav::W::Player::Ptr player) {
 			return Ball::RADIUS + player->MAX_RADIUS + BALL_STOP_BUFFER;
@@ -116,7 +126,7 @@ namespace {
 	}
 
 	double get_friendly_trespass(Point cur, Point dst, AI::Nav::W::World &world, AI::Nav::W::Player::Ptr player) {
-		double player_rad = player->MAX_RADIUS;
+		//double player_rad = player->MAX_RADIUS;
 		double violate = 0.0;
 		// avoid enemy robots
 		for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
@@ -124,8 +134,10 @@ namespace {
 			if (rob == player) {
 				continue;
 			}
-			double friendly_rad = rob->MAX_RADIUS;
-			double circle_radius = player_rad + friendly_rad + FRIENDLY_BUFFER;
+			//	double friendly_rad = rob->MAX_RADIUS;
+			// double circle_radius = player_rad + friendly_rad + FRIENDLY_BUFFER;
+
+			double circle_radius = distance_keepout::friendly(player, rob->prio());
 			double dist = lineseg_point_dist(rob->position(), cur, dst);
 			violate = std::max(violate, circle_radius - dist);
 		}
