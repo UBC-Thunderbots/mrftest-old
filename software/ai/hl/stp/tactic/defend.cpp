@@ -59,6 +59,90 @@ namespace {
 				return "extra defender";
 			}
 	};
+	
+	/**
+	 * STP Tactic DefendLine 
+ 	 */
+	class TDefendLine : public Tactic {
+		
+		private:
+	  		// TCoordinate p[2];
+			Point p[2];
+			double distmin, distmax;
+			  
+			bool intercepting;
+
+		public:
+	  		// TDefendLine(TCoordinate p1, TCoordinate p2, double _distmin, double _distmax);
+			TDefendLine(Point p1, Point p2, double _distmin, double _distmax);			
+
+	  		// static Tactic *parser(const char *param_string);
+	  		// virtual Tactic *clone() const { return new TDefendLine(*this); }
+
+	  		// virtual void command(World &world, int me, Robot::RobotCommand &command, bool debug);
+
+	  		// virtual Status isDone(World &world, int me) { return intercepting ? Busy : the_status; }
+			
+			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			void execute();
+			std::string description() const {
+				return "defend_line";
+			}
+	};
+
+	class TDefendPoint : public Tactic {
+		
+		private:
+	  		// TCoordinate center;
+			Point center;
+	  		double distmin, distmax;
+
+	  		bool intercepting;
+
+		public:
+	  		// TDefendPoint(TCoordinate _center, double _distmin, double _distmax);
+			TDefendPoint(Point _center, double _distmin, double _distmax);			
+
+	  		// static Tactic *parser(const char *param_string);
+	  		// virtual Tactic *clone() const { return new TDefendPoint(*this); }
+	
+	  		// virtual void command(World &world, int me, Robot::RobotCommand &command, bool debug);
+
+	  		// virtual Status isDone(World &world, int me) { return intercepting ? Busy : the_status; }
+
+			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			void execute();
+			std::string description() const {
+				return "defend_point";
+			}
+	};
+
+	class TDefendLane : public Tactic {
+		
+		private:
+	  		// TCoordinate p[2];
+			Point p[2];
+	  		bool intercepting;
+
+		public:
+	  		// TDefendLane(TCoordinate _p1, TCoordinate _p2);
+			TDefendLane(Point _p1, Point _p2);
+
+	  		// static Tactic *parser(const char *param_string);
+	  		// virtual Tactic *clone() const { return new TDefendLane(*this); }
+
+	  		// virtual void command(World &world, int me, Robot::RobotCommand &command, bool debug);
+
+	  		// virtual Status isDone(World &world, int me) { return intercepting ? Busy : the_status; }
+			
+			Player::Ptr select(const std::set<Player::Ptr> &players) const;
+			void execute();
+			std::string description() const {
+				return "defend_lane";
+			}
+	};
+
+
 
 	void Goalie::execute() {
 		auto waypoints = Evaluation::evaluate_defense(world);
