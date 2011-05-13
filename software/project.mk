@@ -1,13 +1,19 @@
 #
 # The executables to compile.
 #
-EXECUTABLES := ai fw log simulator test xbeeconfig
+EXECUTABLES := ai cppunit fw log simulator test xbeeconfig
+
+#
+# The subset of the above that should not be built by the world target.
+#
+EXECUTABLES_EXCLUDE_WORLD := cppunit
 
 #
 # The source files for each executable.
 # Directories will be searched recursively for source files.
 #
 SOURCES_ai := ai geom log/shared proto uicomponents util xbee
+SOURCES_cppunit := cppunit
 SOURCES_fw := fw geom util xbee
 SOURCES_log := ai/common log geom proto uicomponents util
 SOURCES_simulator := ai/common/playtype.cpp geom simulator util
@@ -33,3 +39,16 @@ PROJECT_LIBS := -lrt
 # The flags to pass to the C++ compiler.
 #
 PROJECT_CXXFLAGS := -std=gnu++0x -Wall -Wextra -Wold-style-cast -Wconversion -Wundef -march=native -O2 -fomit-frame-pointer -g -D_FILE_OFFSET_BITS=64 -D__STDC_CONSTANT_MACROS=1 -DHAVE_INLINE -I.
+
+#
+# Custom pkg-config packages to use only for the cppunit target.
+# This will only apply during linking, because a single compilation step can be shared between multiple executable targets.
+#
+PACKAGES_cppunit := cppunit
+
+#
+# Runs the unit tests.
+#
+.PHONY : check
+check : bin/cppunit
+	bin/cppunit

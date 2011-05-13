@@ -27,7 +27,8 @@ override LIBS := $(PROJECT_LIBS) $(shell pkg-config --libs-only-l $(PACKAGES)) $
 # The target to build everything.
 #
 .PHONY : world
-world : $(addprefix bin/,$(EXECUTABLES))
+.DEFAULT_GOAL := world
+world : $(addprefix bin/,$(filter-out $(EXECUTABLES_EXCLUDE_WORLD),$(EXECUTABLES)))
 
 #
 # Prevent echoing of compilation commands.
@@ -61,7 +62,7 @@ PROTOBUF_HS := $(PROTOBUF_INPUTS:.proto=.pb.h)
 $(addprefix bin/,$(EXECUTABLES)) : bin/% : $$(addprefix obj/,$$(subst .cc,.o,$$(subst .cpp,.o,$$(shell find $$(SOURCES_%) -name .svn -prune -o -name '*.cpp' -print) $$(if $$(filter proto,$$(SOURCES_%)),$(PROTOBUF_CCS)))))
 	echo "  LD	$@"
 	mkdir -p bin
-	$(CXX) $(LDFLAGS) -o$@ $+ $(LIBS)
+	$(CXX) $(LDFLAGS) $(if $(PACKAGES_$(notdir $@)),$(shell pkg-config --libs-only-other --libs-only-L $(PACKAGES_$(notdir $@)))) -o$@ $+ $(LIBS) $(if $(PACKAGES_$(notdir $@)),$(shell pkg-config --libs-only-l $(PACKAGES_$(notdir $@))))
 
 #
 # Rule to make a .d file from a .cpp file.
