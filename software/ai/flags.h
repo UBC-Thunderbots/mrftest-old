@@ -157,5 +157,50 @@ inline bool operator<(AI::Flags::MovePrio a, AI::Flags::MovePrio b) {
 	return static_cast<unsigned int>(a) < static_cast<unsigned int>(b);
 }
 
+/**
+ * \brief Compares two movement priorities.
+ *
+ * A priority succedes another priority if it is less important.
+ *
+ * \param[in] a the first priority.
+ *
+ * \param[in] b the second priority.
+ *
+ * \return \c true if \p a is less important than \p b.
+ */
+inline bool operator>(AI::Flags::MovePrio a, AI::Flags::MovePrio b) {
+	return static_cast<unsigned int>(a) > static_cast<unsigned int>(b);
+}
+
+/**
+ * \brief Compares two movement priorities.
+ *
+ * A priority precedes another priority if it is more important.
+ *
+ * \param[in] a the first priority.
+ *
+ * \param[in] b the second priority.
+ *
+ * \return \c true if \p a is more important than or equal to \p b.
+ */
+inline bool operator<=(AI::Flags::MovePrio a, AI::Flags::MovePrio b) {
+	return a < b || a == b;
+}
+
+/**
+ * \brief Compares two movement priorities.
+ *
+ * A priority succedes another priority if it is less important.
+ *
+ * \param[in] a the first priority.
+ *
+ * \param[in] b the second priority.
+ *
+ * \return \c true if \p a is less important than or equal to \p b.
+ */
+inline bool operator>=(AI::Flags::MovePrio a, AI::Flags::MovePrio b) {
+	return a > b || a == b;
+}
+
 #endif
 
