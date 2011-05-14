@@ -11,6 +11,8 @@ using namespace AI::HL::W;
 using namespace AI::HL::STP::Evaluation;
 
 namespace {
+	BoolParam goalie_hug_switch("goalie hug switch", "STP/defense", true);
+
 	DoubleParam max_goalie_dist("max goalie dist from goal (robot radius)", "STP/defense", 3.0, 0.0, 10.0);
 
 	DoubleParam robot_shrink("shrink robot radius", "STP/defense", 1.1, 0.1, 2.0);
@@ -39,6 +41,12 @@ namespace {
 
 		// sort enemies by distance to own goal
 		std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(field.friendly_goal()));
+
+		if (world.ball().position().y > field.goal_width() / 2) {
+			goalie_top = !goalie_hug_switch;
+		} else if (world.ball().position().y < -field.goal_width() / 2) {
+			goalie_top = goalie_hug_switch;
+		}
 
 		// list of points to defend, by order of importance
 		std::vector<Point> waypoint_defenders;
