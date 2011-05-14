@@ -104,6 +104,20 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 		ctx->line_to(data.field().length() / 2.0 - data.field().defense_area_radius(), -data.field().defense_area_stretch() / 2.0);
 		ctx->arc(data.field().length() / 2.0, -data.field().defense_area_stretch() / 2.0, data.field().defense_area_radius(), M_PI, 3 * M_PI_2);
 		ctx->stroke();
+
+		// Draw the east goal.
+		ctx->move_to(-data.field().length() / 2.0, data.field().goal_width() / 2.0);
+		ctx->line_to(-data.field().length() / 2.0 - data.field().goal_width() / 3.0, data.field().goal_width() / 2.0);
+		ctx->line_to(-data.field().length() / 2.0 - data.field().goal_width() / 3.0, -data.field().goal_width() / 2.0);
+		ctx->line_to(-data.field().length() / 2.0, -data.field().goal_width() / 2.0);
+		ctx->stroke();
+
+		// Draw the west goal.
+		ctx->move_to(data.field().length() / 2.0, data.field().goal_width() / 2.0);
+		ctx->line_to(data.field().length() / 2.0 + data.field().goal_width() / 3.0, data.field().goal_width() / 2.0);
+		ctx->line_to(data.field().length() / 2.0 + data.field().goal_width() / 3.0, -data.field().goal_width() / 2.0);
+		ctx->line_to(data.field().length() / 2.0, -data.field().goal_width() / 2.0);
+		ctx->stroke();
 	}
 
 	if (show_robots) {
