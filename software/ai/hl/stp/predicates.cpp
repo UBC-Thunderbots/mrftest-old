@@ -160,19 +160,19 @@ bool AI::HL::STP::Predicates::baller_under_threat(const World &world){
 
 bool AI::HL::STP::Predicates::enemy_baller_can_shoot(const World &world){
 	const Robot::Ptr baller = calc_enemy_baller(world);
-	if (!baller.is() || AI::HL::Util::posses_ball(world, baller)) return false;
+	if (!baller.is() || !AI::HL::Util::posses_ball(world, baller)) return false;
 	return Evaluation::eval_enemy(world, baller).passes == 0;
 }
 
 bool AI::HL::STP::Predicates::enemy_baller_can_pass(const World &world){
 	const Robot::Ptr baller = calc_enemy_baller(world);
-	if (!baller.is() || AI::HL::Util::posses_ball(world, baller)) return false;
+	if (!baller.is() || !AI::HL::Util::posses_ball(world, baller)) return false;
 	return Evaluation::eval_enemy(world, baller).passees.size() > 0;
 }
 
 bool AI::HL::STP::Predicates::enemy_baller_can_pass_shoot(const World &world){
 	const Robot::Ptr baller = calc_enemy_baller(world);
-	if (!baller.is() || AI::HL::Util::posses_ball(world, baller)) return false;
+	if (!baller.is() || !AI::HL::Util::posses_ball(world, baller)) return false;
 	return Evaluation::eval_enemy(world, baller).passes > 0 && Evaluation::eval_enemy(world, baller).passes < 3;
 }
 
