@@ -8,40 +8,76 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			/**
-			 * Describes a rectangular region.
+			 * Describes a region, either a circle or a rectangle.
+			 * The region can make use of dynamic coordinates.
 			 * See STP paper section 5.2.3 (b)
 			 */
 			class Region {
 				public:
+					enum Type {
+						RECTANGLE,
+						CIRCLE,
+					};
+
 					/**
-					 * Creates a rectangle from the two,
-					 * possibly moving independently, regions.
+					 * RTTI
+					 * i.e. returns the type of this region.
 					 */
-					Region(Coordinate a, Coordinate b) : r1(a), r2(b) {
+					Type type() const {
+						return type_;
 					}
 
 					/**
-					 * Creates a rectangular region of zero width and height.
+					 * Obtain the (calculated) center of this region.
 					 */
-					Region(Coordinate a) : r1(a), r2(a) {
-					}
-
-					~Region() {
-					}
+					virtual Point center() const = 0;
 
 					/**
-					 * Computes and returns a rectangle.
+					 * Checks if a point in inside this region.
 					 */
-					Rect operator()() const {
-						return Rect(r1(), r2());
-					}
+					virtual bool inside(Point p) const = 0;
 
 				protected:
-					/**
-					 * The two points representing this rectangle.
-					 * Does not have to be in any particular orientation.
-					 */
-					Coordinate r1, r2;
+					Region(Type t) : type_(t) {
+					}
+
+				private:
+					Type type_;
+			};
+
+			/**
+			 * Describes a rectangular region.
+			 */
+			class Rectangle : public Region {
+				public:
+					Rectangle(Coordinate p1, Coordinate p2) : Region(RECTANGLE), p1(p1), p2(p2) {
+					}
+
+					Point center() const;
+
+				private:
+					Coordinate p1, p2;
+			};
+
+			/**
+			 * Describes a circular region.
+			 */
+			class Circle : public Region {
+				public:
+					Circle(Coordinate c, double r) : Region(CIRCLE), center_(c), radius_(r) {
+					}
+
+					Point center() const {
+						return center_();
+					}
+
+					double radius() const {
+						return radius_;
+					}
+
+				private:
+					Coordinate center_;
+					double radius_;
 			};
 		}
 	}
