@@ -237,6 +237,7 @@ software/ai/hl/stp/play/penalty_enemy.cpp -text
 software/ai/hl/stp/play/penalty_friendly.cpp -text
 software/ai/hl/stp/play/play.cpp -text
 software/ai/hl/stp/play/play.h -text
+software/ai/hl/stp/play/simple_play.h -text
 software/ai/hl/stp/play/stop.cpp -text
 software/ai/hl/stp/play/their_corner_play.cpp -text
 software/ai/hl/stp/play_executor.cpp -text
