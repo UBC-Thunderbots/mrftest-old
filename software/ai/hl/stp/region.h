@@ -55,6 +55,13 @@ namespace AI {
 
 					Point center() const;
 
+					/**
+					 * Evaluate the rectangle associated.
+					 */
+					Rect evaluate() const;
+
+					bool inside(Point p) const;
+
 				private:
 					Coordinate p1, p2;
 			};
@@ -67,6 +74,9 @@ namespace AI {
 					Circle(Coordinate c, double r) : Region(CIRCLE), center_(c), radius_(r) {
 					}
 
+					/**
+					 * Evaluates the center of this circle.
+					 */
 					Point center() const {
 						return center_();
 					}
@@ -74,6 +84,8 @@ namespace AI {
 					double radius() const {
 						return radius_;
 					}
+
+					bool inside(Point p) const;
 
 				private:
 					Coordinate center_;
