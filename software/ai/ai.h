@@ -35,6 +35,21 @@ namespace AI {
 			Property<AI::RC::RobotControllerFactory *> robot_controller_factory;
 
 			/**
+			 * \brief Whether or not the overlay mechanism should render the high-level overlay.
+			 */
+			bool show_hl_overlay;
+
+			/**
+			 * \brief Whether or not the overlay mechanism should render the navigator overlay.
+			 */
+			bool show_nav_overlay;
+
+			/**
+			 * \brief Whether or not the overlay mechanism should render the robot controller overlay.
+			 */
+			bool show_rc_overlay;
+
+			/**
 			 * Constructs a new AIPackage.
 			 *
 			 * \param[in] backend the Backend against which to run.

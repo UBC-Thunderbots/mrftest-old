@@ -23,7 +23,7 @@ namespace {
 	};
 }
 
-AIPackage::AIPackage(Backend &backend) : backend(backend), high_level(AI::HL::HighLevel::Ptr()), navigator(AI::Nav::Navigator::Ptr()), robot_controller_factory(0) {
+AIPackage::AIPackage(Backend &backend) : backend(backend), high_level(AI::HL::HighLevel::Ptr()), navigator(AI::Nav::Navigator::Ptr()), robot_controller_factory(0), show_hl_overlay(true), show_nav_overlay(true), show_rc_overlay(true) {
 	backend.signal_tick().connect(sigc::mem_fun(this, &AIPackage::tick));
 	backend.signal_draw_overlay().connect(sigc::mem_fun(this, &AIPackage::draw_overlay));
 	backend.friendly_team().signal_robot_added().connect(sigc::mem_fun(this, &AIPackage::player_added));
@@ -83,9 +83,27 @@ void AIPackage::robot_controller_factory_changed() {
 }
 
 void AIPackage::draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const {
-	AI::HL::HighLevel::Ptr hl = high_level;
-	if (hl.is()) {
-		hl->draw_overlay(ctx);
+	if (show_hl_overlay) {
+		AI::HL::HighLevel::Ptr hl = high_level;
+		if (hl.is()) {
+			hl->draw_overlay(ctx);
+		}
+	}
+	if (show_nav_overlay) {
+		AI::Nav::Navigator::Ptr nav = navigator;
+		if (nav.is()) {
+			nav->draw_overlay(ctx);
+		}
+	}
+	if (show_rc_overlay) {
+		for (std::size_t i = 0; i < backend.friendly_team().size(); ++i) {
+			AI::BE::Player::Ptr plr = backend.friendly_team().get(i);
+			PrivateState::Ptr state = PrivateState::Ptr::cast_dynamic(plr->object_store()[typeid(*this)]);
+			AI::RC::RobotController::Ptr rc = state->robot_controller;
+			if (rc.is()) {
+				rc->draw_overlay(ctx);
+			}
+		}
 	}
 }
 

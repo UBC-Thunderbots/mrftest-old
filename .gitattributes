@@ -161,6 +161,7 @@ software/ai/common/team.h -text
 software/ai/common/world.h -text
 software/ai/flags.cpp -text
 software/ai/flags.h -text
+software/ai/hl/hl.cpp -text
 software/ai/hl/hl.h -text
 software/ai/hl/movement_benchmark/movement_benchmark_hl.cpp -text
 software/ai/hl/old/basic_play_strategy.cpp -text

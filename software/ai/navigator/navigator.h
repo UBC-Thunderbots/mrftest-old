@@ -5,9 +5,9 @@
 #include "geom/point.h"
 #include "util/byref.h"
 #include "util/registerable.h"
-#include <glibmm.h>
 #include <map>
 #include <utility>
+#include <cairomm/cairomm.h>
 
 namespace Gtk {
 	class Widget;
@@ -59,6 +59,16 @@ namespace AI {
 				 * \note The default implementation returns a null pointer.
 				 */
 				virtual Gtk::Widget *ui_controls();
+
+				/**
+				 * \brief Provides an opportunity for the navigator to draw an overlay on the visualizer.
+				 *
+				 * The default implementation does nothing.
+				 * A subclass should override this function if it wishes to draw an overlay.
+				 *
+				 * \param[in] ctx the Cairo context onto which to draw.
+				 */
+				virtual void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx);
 
 			protected:
 				/**

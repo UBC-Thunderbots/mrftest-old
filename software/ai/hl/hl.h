@@ -41,11 +41,14 @@ namespace AI {
 				virtual Gtk::Widget *ui_controls() = 0;
 
 				/**
-				 * Provides an opportunity for the AI to draw an overlay on the visualizer.
+				 * \brief Provides an opportunity for the high level to draw an overlay on the visualizer.
+				 *
+				 * The default implementation does nothing.
+				 * A subclass should override this function if it wishes to draw an overlay.
 				 *
 				 * \param[in] ctx the Cairo context onto which to draw.
 				 */
-				virtual void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) = 0;
+				virtual void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx);
 		};
 
 		/**

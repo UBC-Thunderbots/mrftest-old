@@ -69,9 +69,6 @@ namespace {
 				return &box;
 			}
 
-			void draw_overlay(Cairo::RefPtr<Cairo::Context>) {
-			}
-
 		private:
 			World &world;
 			Property<Strategy::Ptr> strategy;

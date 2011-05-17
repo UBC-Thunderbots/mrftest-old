@@ -5,6 +5,7 @@
 #include "geom/point.h"
 #include "util/byref.h"
 #include "util/registerable.h"
+#include <cairomm/cairomm.h>
 
 namespace Gtk {
 	class Widget;
@@ -27,12 +28,6 @@ namespace AI {
 				typedef RefPtr<RobotController> Ptr;
 
 				/**
-				 * Reads the requested path from the Player using W::Player::path,
-				 * then orders new wheel speeds using W::Player::drive.
-				 */
-				virtual void tick() = 0;
-
-				/**
 				 * Multiplies a robot-relative velocity tuple by the wheel matrix,
 				 * producing a set of wheel rotation speeds.
 				 * A robot controller implementation may call this function.
@@ -46,6 +41,22 @@ namespace AI {
 				 * in quarters of a degree of motor shaft rotation per five milliseconds.
 				 */
 				static void convert_to_wheels(const Point &vel, double avel, int(&wheel_speeds)[4]);
+
+				/**
+				 * Reads the requested path from the Player using W::Player::path,
+				 * then orders new wheel speeds using W::Player::drive.
+				 */
+				virtual void tick() = 0;
+
+				/**
+				 * \brief Provides an opportunity for the controller to draw an overlay on the visualizer.
+				 *
+				 * The default implementation does nothing.
+				 * A subclass should override this function if it wishes to draw an overlay.
+				 *
+				 * \param[in] ctx the Cairo context onto which to draw.
+				 */
+				virtual void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx);
 
 			protected:
 				/**

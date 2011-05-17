@@ -40,9 +40,6 @@ namespace {
 				return NULL;
 			}
 
-			void draw_overlay(Cairo::RefPtr<Cairo::Context>) {
-			}
-
 			void tick() {
 				FriendlyTeam& friendly = world.friendly_team();
 				if (friendly.size() == 0) return;

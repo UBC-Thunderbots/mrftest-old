@@ -8,6 +8,9 @@ Gtk::Widget *Navigator::ui_controls() {
 	return 0;
 }
 
+void Navigator::draw_overlay(Cairo::RefPtr<Cairo::Context>) {
+}
+
 Navigator::Navigator(World &world) : world(world) {
 }
 

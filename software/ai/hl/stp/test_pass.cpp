@@ -65,9 +65,6 @@ namespace {
 				return NULL;
 			}
 
-			void draw_overlay(Cairo::RefPtr<Cairo::Context>) {
-			}
-
 			void tick() {
 				
 				std::vector<AI::HL::W::Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());

@@ -4,6 +4,7 @@
 #include "uicomponents/annunciator.h"
 #include "util/algorithm.h"
 #include <cassert>
+#include <cstdlib>
 #include <vector>
 
 using AI::Window;
@@ -338,11 +339,17 @@ namespace {
 
 	class VisualizerControls : public Gtk::Table {
 		public:
-			VisualizerControls(Visualizer &vis) : Gtk::Table(G_N_ELEMENTS(CONTROLS), 2), vis(vis), buttons(G_N_ELEMENTS(CONTROLS), 0) {
+			VisualizerControls(AI::AIPackage &ai, Visualizer &vis) : Gtk::Table(G_N_ELEMENTS(CONTROLS), 2), ai(ai), vis(vis), buttons(G_N_ELEMENTS(CONTROLS), 0) {
 				unsigned int children_left = 0;
 				for (unsigned int i = 0; i < G_N_ELEMENTS(CONTROLS); ++i) {
 					buttons[i] = Gtk::manage(new Gtk::CheckButton(CONTROLS[i].title));
-					buttons[i]->set_active(vis.*(CONTROLS[i].flag));
+					if (CONTROLS[i].vis_flag) {
+						buttons[i]->set_active(vis.*(CONTROLS[i].vis_flag));
+					} else if (CONTROLS[i].ai_flag) {
+						buttons[i]->set_active(ai.*(CONTROLS[i].ai_flag));
+					} else {
+						std::abort();
+					}
 					buttons[i]->signal_toggled().connect(sigc::mem_fun(this, &VisualizerControls::on_toggled));
 					if (children_left) {
 						attach(*Gtk::manage(new Gtk::Label("    ")), 0, 1, i, i + 1, Gtk::FILL | Gtk::SHRINK, Gtk::FILL | Gtk::SHRINK);
@@ -360,12 +367,14 @@ namespace {
 		private:
 			struct ControlInfo {
 				const char *title;
-				bool Visualizer::*flag;
+				bool Visualizer::*vis_flag;
+				bool AI::AIPackage::*ai_flag;
 				unsigned int num_children;
 			};
 
-			static const ControlInfo CONTROLS[8];
+			static const ControlInfo CONTROLS[11];
 
+			AI::AIPackage &ai;
 			Visualizer &vis;
 			std::vector<Gtk::CheckButton *> buttons;
 
@@ -385,20 +394,28 @@ namespace {
 
 				// Update visualizer flags.
 				for (unsigned int i = 0; i < G_N_ELEMENTS(CONTROLS); ++i) {
-					vis.*(CONTROLS[i].flag) = buttons[i]->get_active();
+					if (CONTROLS[i].vis_flag) {
+						vis.*(CONTROLS[i].vis_flag) = buttons[i]->get_active();
+					}
+					if (CONTROLS[i].ai_flag) {
+						ai.*(CONTROLS[i].ai_flag) = buttons[i]->get_active();
+					}
 				}
 			}
 	};
 
-	const VisualizerControls::ControlInfo VisualizerControls::CONTROLS[8] = {
-		{ "Field", &Visualizer::show_field, 0 },
-		{ "Ball", &Visualizer::show_ball, 1 },
-		{ "Velocity", &Visualizer::show_ball_v, 0 },
-		{ "Robots", &Visualizer::show_robots, 3 },
-		{ "Velocity", &Visualizer::show_robots_v, 0 },
-		{ "Destination", &Visualizer::show_robots_dest, 0 },
-		{ "Path", &Visualizer::show_robots_path, 0 },
-		{ "AI Overlay", &Visualizer::show_overlay, 0 },
+	const VisualizerControls::ControlInfo VisualizerControls::CONTROLS[11] = {
+		{ "Field", &Visualizer::show_field, 0, 0 },
+		{ "Ball", &Visualizer::show_ball, 0, 1 },
+		{ "Velocity", &Visualizer::show_ball_v, 0, 0 },
+		{ "Robots", &Visualizer::show_robots, 0, 3 },
+		{ "Velocity", &Visualizer::show_robots_v, 0, 0 },
+		{ "Destination", &Visualizer::show_robots_dest, 0, 0 },
+		{ "Path", &Visualizer::show_robots_path, 0, 0 },
+		{ "AI Overlays", &Visualizer::show_overlay, 0, 3 },
+		{ "High-Level", 0, &AI::AIPackage::show_hl_overlay, 0 },
+		{ "Navigator", 0, &AI::AIPackage::show_nav_overlay, 0 },
+		{ "Robot Controller", 0, &AI::AIPackage::show_rc_overlay, 0 },
 	};
 
 	class VisualizerCoordinatesBar : public Gtk::Statusbar {
@@ -439,7 +456,7 @@ Window::Window(AIPackage &ai) {
 	frame->add(*Gtk::manage(new SecondaryBasicControls(ai)));
 	vbox->pack_start(*frame, Gtk::PACK_SHRINK);
 	frame = Gtk::manage(new Gtk::Frame("Visualizer"));
-	frame->add(*Gtk::manage(new VisualizerControls(*visualizer)));
+	frame->add(*Gtk::manage(new VisualizerControls(ai, *visualizer)));
 	vbox->pack_start(*frame, Gtk::PACK_SHRINK);
 	notebook->append_page(*vbox, "Secondary");
 

@@ -25,6 +25,9 @@ void RobotController::convert_to_wheels(const Point &vel, double avel, int(&whee
 	}
 }
 
+void RobotController::draw_overlay(Cairo::RefPtr<Cairo::Context>) {
+}
+
 RobotController::RobotController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player) : world(world), player(player) {
 }
 
