@@ -76,6 +76,31 @@ class Point {
 		}
 
 		/**
+		 * Returns a normalized vector in the same direction as this Point.
+		 *
+		 * \param[in] nl to be divided by len() and used as the new length for normalizing the vector.
+		 *
+		 * \return a normalized vector in the same direction as this Point, or a zero-length Point if this Point is zero.
+		 */
+		Point norm(const double nl) const __attribute__((warn_unused_result)) {
+			const double l = nl / len();
+			if (len() < 1.0e-9) {
+				return Point();
+			} else {
+				return Point(x / l, y / l);
+			}
+		}
+
+		/**
+		 * Returns the vector perpendicular to this Point.
+		 *
+		 * \return a vector perpendicular to this Point.
+		 */
+		Point perp() const __attribute__((warn_unused_result)) {
+			return Point(-y, x);
+		}
+
+		/**
 		 * Rotates this Point by an angle.
 		 *
 		 * \param[in] rot the angle in radians to rotate the vector.

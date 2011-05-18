@@ -60,90 +60,6 @@ namespace {
 			}
 	};
 	
-	/**
-	 * STP Tactic DefendLine 
- 	 */
-	class TDefendLine : public Tactic {
-		
-		private:
-	  		// TCoordinate p[2];
-			Point p[2];
-			double distmin, distmax;
-			  
-			bool intercepting;
-
-		public:
-	  		// TDefendLine(TCoordinate p1, TCoordinate p2, double _distmin, double _distmax);
-			TDefendLine(Point p1, Point p2, double _distmin, double _distmax);			
-
-	  		// static Tactic *parser(const char *param_string);
-	  		// virtual Tactic *clone() const { return new TDefendLine(*this); }
-
-	  		// virtual void command(World &world, int me, Robot::RobotCommand &command, bool debug);
-
-	  		// virtual Status isDone(World &world, int me) { return intercepting ? Busy : the_status; }
-			
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
-			void execute();
-			std::string description() const {
-				return "defend_line";
-			}
-	};
-
-	class TDefendPoint : public Tactic {
-		
-		private:
-	  		// TCoordinate center;
-			Point center;
-	  		double distmin, distmax;
-
-	  		bool intercepting;
-
-		public:
-	  		// TDefendPoint(TCoordinate _center, double _distmin, double _distmax);
-			TDefendPoint(Point _center, double _distmin, double _distmax);			
-
-	  		// static Tactic *parser(const char *param_string);
-	  		// virtual Tactic *clone() const { return new TDefendPoint(*this); }
-	
-	  		// virtual void command(World &world, int me, Robot::RobotCommand &command, bool debug);
-
-	  		// virtual Status isDone(World &world, int me) { return intercepting ? Busy : the_status; }
-
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
-			void execute();
-			std::string description() const {
-				return "defend_point";
-			}
-	};
-
-	class TDefendLane : public Tactic {
-		
-		private:
-	  		// TCoordinate p[2];
-			Point p[2];
-	  		bool intercepting;
-
-		public:
-	  		// TDefendLane(TCoordinate _p1, TCoordinate _p2);
-			TDefendLane(Point _p1, Point _p2);
-
-	  		// static Tactic *parser(const char *param_string);
-	  		// virtual Tactic *clone() const { return new TDefendLane(*this); }
-
-	  		// virtual void command(World &world, int me, Robot::RobotCommand &command, bool debug);
-
-	  		// virtual Status isDone(World &world, int me) { return intercepting ? Busy : the_status; }
-			
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;
-			void execute();
-			std::string description() const {
-				return "defend_lane";
-			}
-	};
-
-
-
 	void Goalie::execute() {
 		auto waypoints = Evaluation::evaluate_defense(world);
 		//player->move(waypoints[0], (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
@@ -173,6 +89,119 @@ namespace {
 		auto waypoints = Evaluation::evaluate_defense(world);
 		Point dest = waypoints[2];
 		Action::move(world, player, dest);
+	}
+
+	/**
+	 * STP Tactic DefendLine 
+ 	 */
+	class TDefendLine : public Tactic {
+		
+		public:
+	  		// TCoordinate p[2];
+			
+
+			TDefendLine(const World &world, Point _p1, Point _p2, double _distmin, double _distmax) : Tactic(world), p1(_p1), p2(_p2), distmin(_distmin), distmax(_distmax) {}			
+
+		private:
+			Point p1, p2;
+			double distmin, distmax;
+			  
+			bool intercepting;
+
+	  		// TDefendLine(TCoordinate p1, TCoordinate p2, double _distmin, double _distmax);
+			
+	  		// static Tactic *parser(const char *param_string);
+	  		// virtual Tactic *clone() const { return new TDefendLine(*this); }
+
+	  		// virtual void command(World &world, int me, Robot::RobotCommand &command, bool debug);
+
+	  		// virtual Status isDone(World &world, int me) { return intercepting ? Busy : the_status; }
+			
+			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+				Point dest = (p1+p2)/2;
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
+			}
+			void execute();
+			std::string description() const {
+				return "defend_line";
+			}
+	};
+
+	/**
+	 * STP Tactic DefendPoint 
+ 	 */
+	class TDefendPoint : public Tactic {
+		
+		public:
+			TDefendPoint(const World &world, Point _center, double _distmin, double _distmax) : Tactic(world), center(_center), distmin(_distmin), distmax(_distmax) {}
+
+		private:
+			// TCoordinate center;
+			Point center;
+	  		double distmin, distmax;
+
+	  		bool intercepting;
+
+	  		// TDefendPoint(TCoordinate _center, double _distmin, double _distmax);
+			
+	  		// static Tactic *parser(const char *param_string);
+	  		// virtual Tactic *clone() const { return new TDefendPoint(*this); }
+	
+	  		// virtual void command(World &world, int me, Robot::RobotCommand &command, bool debug);
+
+	  		// virtual Status isDone(World &world, int me) { return intercepting ? Busy : the_status; }
+
+			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(center));
+			}
+			void execute();
+			std::string description() const {
+				return "defend_point";
+			}
+	};
+
+	/**
+	 * STP Tactic DefendLane 
+ 	 */
+	class TDefendLane : public Tactic {
+		
+		public:			
+			TDefendLane(const World &world, Point _p1, Point _p2) : Tactic(world), p1(_p1), p2(_p2) {}
+		
+		private:
+			// TCoordinate p[2];
+			Point p1, p2;
+	  		bool intercepting;
+
+	  		// TDefendLane(TCoordinate _p1, TCoordinate _p2);
+			
+	  		// static Tactic *parser(const char *param_string);
+	  		// virtual Tactic *clone() const { return new TDefendLane(*this); }
+
+	  		// virtual void command(World &world, int me, Robot::RobotCommand &command, bool debug);
+
+	  		// virtual Status isDone(World &world, int me) { return intercepting ? Busy : the_status; }
+			
+			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+				Point dest = (p1+p2)/2;
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
+			}
+			void execute();
+			std::string description() const {
+				return "defend_lane";
+			}
+	};
+
+	void TDefendLine::execute() {
+		Action::move(world, player, (p1+p2)/2);
+	}
+
+	void TDefendPoint::execute() {
+		Action::move(world, player, center);
+	}
+
+	void TDefendLane::execute() {
+		Action::move(world, player, (p1+p2)/2);
 	}
 }
 

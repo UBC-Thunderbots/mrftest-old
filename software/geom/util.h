@@ -258,6 +258,7 @@ bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Po
  *
  * \return the reflected ray.
  */
+
 Point reflect(const Point &v, const Point &n);
 
 /**
