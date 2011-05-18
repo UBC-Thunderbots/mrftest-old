@@ -9,7 +9,9 @@
 #include <functional>
 #include <iomanip>
 #include <stdexcept>
+#include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <libxml++/libxml++.h>
 
@@ -65,7 +67,11 @@ class ParamTreeInternalNode : public ParamTreeNode {
 		}
 
 		void add_child(ParamTreeNode *child) {
-#warning check duplicates
+			const std::string &ck = child->name().collate_key();
+			if (children_name_ck.count(ck)) {
+				throw std::invalid_argument(Glib::ustring::compose("Duplicate name \"%1\" in parameter tree path \"%2\"", child->name(), this->path()));
+			}
+			children_name_ck.insert(ck);
 			children.push_back(child);
 		}
 
@@ -168,6 +174,7 @@ class ParamTreeInternalNode : public ParamTreeNode {
 		};
 
 		std::vector<ParamTreeNode *> children;
+		std::unordered_set<std::string> children_name_ck;
 
 		ParamTreeInternalNode(const Glib::ustring &name) : ParamTreeNode(name) {
 		}

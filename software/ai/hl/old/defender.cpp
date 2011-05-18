@@ -12,8 +12,6 @@ using AI::HL::Defender;
 using namespace AI::HL::W;
 
 namespace {
-	DoubleParam lone_goalie_dist("Lone goalie distance to goal post (m)", "oldAI", 0.20, 0.05, 1.0);
-
 	DoubleParam max_goalie_dist("max goalie dist from goal (robot radius)", "oldAI", 3.0, 0.0, 10.0);
 
 	DoubleParam robot_shrink("shrink robot radius", "oldAI", 1.1, 0.1, 2.0);
