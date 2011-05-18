@@ -13,313 +13,311 @@
 #include <algorithm>
 
 using namespace AI::HL::W;
-using namespace AI::HL::STP::Evaluation::CMEval;
 
-namespace CMEval{
 
-	int sideBall(World &world){
-	  	return (std::fabs(world.ball().position().y) > world.field().centre_circle_radius() ? 1 : -1);
-	}
-
-	int sideStrong(World &world){
-	  	double center = 0.0;
-	  	for(int i=0; i <static_cast<int>(world.enemy_team().size()) ; i++)
-	    		center += world.enemy_team().get(i)->position().y;
-	  	return (center > 0.0 ? 1 : -1);
-	}
-
-	int sideBallOrStrong(World &world){
-	  	if (std::fabs(world.ball().position().y) > world.field().goal_width()/2) return sideBall(world);
-	  	else return sideStrong(world);
-	}
-
-	int nearest_teammate(World &world, Point p, double time){
-		int dist_i = -1;
-	  	double dist = 0;
-
-	  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) {
-	    		double d = (p - world.friendly_team().get(i)->position(time)).len();
-	    		if (dist_i < 0 || d < dist) {
-	      			dist_i = i; dist = d;
-	    		}
-	  	}
-
-	  	return dist_i;
-	}
-
-	int nearest_opponent(World &world, Point p, double time){
-		int dist_i = -1;
-	  	double dist = 0;
-
-	  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
-	    		double d = (p - world.enemy_team().get(i)->position(time)).len();
-	    		if (dist_i < 0 || d < dist) {
-	      			dist_i = i; dist = d;
-	    		}
-	  	}
-
-	  	return dist_i;
-	}
-
-	/**
-  	 * CMDragons Obstacle Computations
-	 */
-
-	int obsPosition(World &world, Point p, int obs_flags, double pradius, double time = -1){
-	  	int rv = 0;
-
-	  	// Teammates
-	  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) { 
-	    		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
-
-	    		double radius = Robot::MAX_RADIUS + pradius; 
-
-	    		if ((p - world.friendly_team().get(i)->position(time)).len() <= radius) 
-	      			rv |= OBS_TEAMMATE(i);
-	  	}
-
-	  	// Opponents
-	  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
-	    		if (!(obs_flags & OBS_OPPONENT(i))) continue;
-
-	    		double radius = Robot::MAX_RADIUS + pradius;
-
-	    		if ((p - world.enemy_team().get(i)->position(time)).len() <= radius) 
-	      			rv |= OBS_OPPONENT(i);
-	  	}
-
-	  	// Ball
-	  	if (obs_flags & OBS_BALL) {
-	    		double radius = Ball::RADIUS + pradius;
-	    		if ((p - world.ball().position(time)).len() <= radius) 
-	      			rv |= OBS_BALL;
-	  	}
-
-	  	// Walls
-	  	if (obs_flags & OBS_WALLS) {
-	    		double radius = pradius;
-	    		if (std::fabs(p.x) + radius > world.field().length()/2 || std::fabs(p.y) + radius > world.field().width()/2)
-	      			rv |= OBS_BALL;
-	  	}
-	  
-	  	// Defense Zones
-	  	if (obs_flags & OBS_OUR_DZONE) {
-	    		double radius = pradius;
-	    		if (p.x <= -world.field().length()/2 + world.field().defense_area_radius() + radius && std::fabs(p.y) <= world.field().defense_area_stretch()/2 + radius) 
-	      			rv |= OBS_OUR_DZONE; 
-	  	}
-
-	  	if (obs_flags & OBS_THEIR_DZONE) {
-	    		double radius = pradius;
-	    		if (p.x >= world.field().length()/2 - world.field().defense_area_radius() - radius && std::fabs(p.y) <= world.field().defense_area_stretch()/2 + radius) 
-	      			rv |= OBS_THEIR_DZONE; 
-	  	}
-
-	  	// Nothing Left
-	  	return rv;
-	}
-
-	int obsLine(World &world, Point p1, Point p2, int obs_flags, double pradius, double time){
-	  	// Teammates
-	  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) { 
-	    		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
-
-	    		double radius = Robot::MAX_RADIUS + pradius; 
-
-	    		Point p = world.friendly_team().get(i)->position(time);
-	    		if ((closest_lineseg_point(p1, p2, p) - p).len() > radius)
-	      			obs_flags &= ~OBS_TEAMMATE(i);
-	  	}
-
-	  	// Opponents
-	  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
-	    		if (!(obs_flags & OBS_OPPONENT(i))) continue;
-
-	    		double radius = Robot::MAX_RADIUS + pradius;
-
-	    		Point p = world.enemy_team().get(i)->position(time);
-	    		if ((closest_lineseg_point(p1, p2, p) - p).len() > radius)
-	      		obs_flags &= ~OBS_OPPONENT(i);
-	  	}
-
-	  	// Ball
-	  	if (obs_flags & OBS_BALL) {
-	    		double radius = Ball::RADIUS + pradius;
-
-	    		Point p = world.ball().position(time);
-	    		if ((closest_lineseg_point(p1, p2, p) - p).len() > radius)
-	      			obs_flags &= ~OBS_BALL;
-	  	}
-
-	  	// Walls
-	  
-	  	// Defense Zones
-
-	  	// Nothing Left
-	  	return obs_flags;
-	}
-
-	int obsLineFirst(World &world, Point p1, Point p2, int obs_flags, Point &first, double pradius, double time = -1){
-	  	int rv = 0;
-
-	  	first = p2;
-
-	  	// Teammates
-	  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) { 
-	    		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
-
-	    		double radius = Robot::MAX_RADIUS + pradius; 
-
-	    		Point p = world.friendly_team().get(i)->position(time);
-	    		Point pp = closest_lineseg_point(p1, first, p);
-	    		double d = (pp - p).len();
-
-	    		if (d < radius) {
-		      		double dx = sqrt(radius * radius - d * d);
-		      
-		      		if ((p1 - pp).len() < dx) { 
-					first = p1; return OBS_TEAMMATE(i); 
-				} else {
-					first = pp + (p1 - pp).norm(dx);
-					rv = OBS_TEAMMATE(i);
-		      		}
-	    		}
-	  	}
-
-	  	// Opponents
-	  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
-	    		if (!(obs_flags & OBS_OPPONENT(i))) continue;
-
-	    		double radius = Robot::MAX_RADIUS + pradius; 
-
-	    		Point p = world.enemy_team().get(i)->position(time);
-	    		Point pp = closest_lineseg_point(p1, first, p);
-	    		double d = (pp - p).len();
-
-	    		if (d < radius) {
-	      			double dx = sqrt(radius * radius - d * d);
-	      
-	      			if ((p1 - pp).len() < dx) { 
-					first = p1; 
-					return OBS_OPPONENT(i); 
-				} else {
-					first = pp + (p1 - pp).norm(dx);
-					rv = OBS_OPPONENT(i);
-	      			}
-	    		}
-	  	}
-
-	  	// Ball
-	  	if (obs_flags & OBS_BALL) {
-	    		double radius = Ball::RADIUS + pradius;
-
-	    		Point p = world.ball().position(time);;
-	    		Point pp = closest_lineseg_point(p1, first, p);
-	    		double d = (pp - p).len();
-
-	    		if (d < radius) {
-	      			double dx = sqrt(radius * radius - d * d);
-	      
-	      			if ((p1 - pp).len() < dx) { 
-					first = p1; 
-					return OBS_BALL; 
-				} else {
-					first = pp + (p1 - pp).norm(dx);
-					rv = OBS_BALL;
-	      			}
-	    		}
-	  	}
-
-	  	// Walls
-	  
-	  	// Defense Zones
-	  	if (obs_flags & OBS_THEIR_DZONE) {
-	    		if (obsPosition(world, p1, OBS_THEIR_DZONE, pradius, time)) {
-	      			first = p1; 
-				return OBS_THEIR_DZONE;
-	    		}
-
-	    		Point i;
-
-	    		i = intersection(p1, p2, Point(world.field().length()/2-world.field().defense_area_radius()-pradius, world.field().defense_area_stretch()/2+pradius),
-			     Point(world.field().length()/2-world.field().defense_area_radius()-pradius, -world.field().defense_area_stretch()/2-pradius));
-	    		if ((i - p1).dot(first - p1) > 0 && (i - first).dot(p1 - first) > 0) {
-	      			first = i; 
-				rv = OBS_THEIR_DZONE;
-	    		}
-
-	    		i = intersection(p1, p2, Point(world.field().length()/2-world.field().defense_area_radius()-pradius, world.field().defense_area_stretch()/2+pradius),
-			     Point(world.field().length()/2, world.field().defense_area_stretch()/2+pradius));
-	    		if ((i - p1).dot(first - p1) > 0 && (i - first).dot(p1 - first) > 0) {
-	      			first = i; 
-				rv = OBS_THEIR_DZONE;
-	    		}
-
-	    		i = intersection(p1, p2, Point(world.field().length()/2-world.field().defense_area_radius()-pradius, -world.field().defense_area_stretch()/2-pradius),
-			     Point(world.field().length()/2, -world.field().defense_area_stretch()/2-pradius));
-	    		if ((i - p1).dot(first - p1) > 0 && (i - first).dot(p1 - first) > 0) {
-	      			first = i; 
-				rv = OBS_THEIR_DZONE;
-	    		}
-	  	}
-
-
-	  	// Nothing Left
-	  	return obs_flags;
-	}
-
-	int obsLineNum(World &world, Point p1, Point p2, int obs_flags, double pradius, double time = -1){
-	  	int count = 0;
-
-	  	// Teammates
-	  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) { 
-	    		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
-
-	    		double radius = Robot::MAX_RADIUS + pradius; 
-
-	    		Point p = world.friendly_team().get(i)->position(time);
-	    		if ((closest_lineseg_point(p1, p2, p) - p).len() <= radius)
-	      			count++;
-	  	}
-
-	  	// Opponents
-	  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
-	    		if (!(obs_flags & OBS_OPPONENT(i))) continue;
-
-	    		double radius = Robot::MAX_RADIUS + pradius;
-
-	    		Point p = world.enemy_team().get(i)->position(time);
-	    		if ((closest_lineseg_point(p1, p2, p) - p).len() <= radius)
-	      			count++;
-	  	}
-
-	  	// Ball
-	  	if (obs_flags & OBS_BALL) {
-	    		double radius = Ball::RADIUS + pradius;
-
-	    		Point p = world.ball().position(time);
-	    		if ((closest_lineseg_point(p1, p2, p) - p).len() <= radius)
-	      			count++;
-	  	}
-
-	  	// Walls
-	  
-	  	// Defense Zones
-
-	  	// Nothing Left
-	  	return count;
-	}
-
-	bool obsBlocksShot(World &world, Point p, double time){
-	  	Point ball = world.ball().position(time);
-		
-	  	double a = (Point(world.field().length()/2, -world.field().goal_width()/2) - ball).perp().dot(p - ball);
-	  	double b = (Point(world.field().length()/2, world.field().goal_width()/2) - ball).perp().dot(p - ball);
-
-	  	return (a * b) < 0;
-	}
-
+int AI::HL::STP::Evaluation::side_ball(World &world){
+  	return (std::fabs(world.ball().position().y) > world.field().centre_circle_radius() ? 1 : -1);
 }
+
+int AI::HL::STP::Evaluation::side_strong(World &world){
+  	double center = 0.0;
+  	for(int i=0; i <static_cast<int>(world.enemy_team().size()) ; i++)
+    		center += world.enemy_team().get(i)->position().y;
+  	return (center > 0.0 ? 1 : -1);
+}
+
+int AI::HL::STP::Evaluation::side_ball_or_strong(World &world){
+  	if (std::fabs(world.ball().position().y) > world.field().goal_width()/2) return side_ball(world);
+  	else return side_strong(world);
+}
+
+int AI::HL::STP::Evaluation::nearest_teammate(World &world, Point p, double time){
+	int dist_i = -1;
+  	double dist = 0;
+
+  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) {
+    		double d = (p - world.friendly_team().get(i)->position(time)).len();
+    		if (dist_i < 0 || d < dist) {
+      			dist_i = i; dist = d;
+    		}
+  	}
+
+  	return dist_i;
+}
+
+int AI::HL::STP::Evaluation::nearest_opponent(World &world, Point p, double time){
+	int dist_i = -1;
+  	double dist = 0;
+
+  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
+    		double d = (p - world.enemy_team().get(i)->position(time)).len();
+    		if (dist_i < 0 || d < dist) {
+      			dist_i = i; dist = d;
+    		}
+  	}
+
+  	return dist_i;
+}
+
+/**
+ * CMDragons Obstacle Computations
+ */
+
+int AI::HL::STP::Evaluation::obs_position(World &world, Point p, int obs_flags, double pradius, double time){
+  	int rv = 0;
+
+  	// Teammates
+  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) { 
+    		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
+
+    		double radius = Robot::MAX_RADIUS + pradius; 
+
+    		if ((p - world.friendly_team().get(i)->position(time)).len() <= radius) 
+      			rv |= OBS_TEAMMATE(i);
+  	}
+
+  	// Opponents
+  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
+    		if (!(obs_flags & OBS_OPPONENT(i))) continue;
+
+    		double radius = Robot::MAX_RADIUS + pradius;
+
+    		if ((p - world.enemy_team().get(i)->position(time)).len() <= radius) 
+      			rv |= OBS_OPPONENT(i);
+  	}
+
+  	// Ball
+  	if (obs_flags & OBS_BALL) {
+    		double radius = Ball::RADIUS + pradius;
+    		if ((p - world.ball().position(time)).len() <= radius) 
+      			rv |= OBS_BALL;
+  	}
+
+  	// Walls
+  	if (obs_flags & OBS_WALLS) {
+    		double radius = pradius;
+    		if (std::fabs(p.x) + radius > world.field().length()/2 || std::fabs(p.y) + radius > world.field().width()/2)
+      			rv |= OBS_BALL;
+  	}
+  
+  	// Defense Zones
+  	if (obs_flags & OBS_OUR_DZONE) {
+    		double radius = pradius;
+    		if (p.x <= -world.field().length()/2 + world.field().defense_area_radius() + radius && std::fabs(p.y) <= world.field().defense_area_stretch()/2 + radius) 
+      			rv |= OBS_OUR_DZONE; 
+  	}
+
+  	if (obs_flags & OBS_THEIR_DZONE) {
+    		double radius = pradius;
+    		if (p.x >= world.field().length()/2 - world.field().defense_area_radius() - radius && std::fabs(p.y) <= world.field().defense_area_stretch()/2 + radius) 
+      			rv |= OBS_THEIR_DZONE; 
+  	}
+
+  	// Nothing Left
+  	return rv;
+}
+
+int AI::HL::STP::Evaluation::obs_line(World &world, Point p1, Point p2, int obs_flags, double pradius, double time){
+  	// Teammates
+  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) { 
+    		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
+
+    		double radius = Robot::MAX_RADIUS + pradius; 
+
+    		Point p = world.friendly_team().get(i)->position(time);
+    		if ((closest_lineseg_point(p1, p2, p) - p).len() > radius)
+      			obs_flags &= ~OBS_TEAMMATE(i);
+  	}
+
+  	// Opponents
+  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
+    		if (!(obs_flags & OBS_OPPONENT(i))) continue;
+
+    		double radius = Robot::MAX_RADIUS + pradius;
+
+    		Point p = world.enemy_team().get(i)->position(time);
+    		if ((closest_lineseg_point(p1, p2, p) - p).len() > radius)
+      		obs_flags &= ~OBS_OPPONENT(i);
+  	}
+
+  	// Ball
+  	if (obs_flags & OBS_BALL) {
+    		double radius = Ball::RADIUS + pradius;
+
+    		Point p = world.ball().position(time);
+    		if ((closest_lineseg_point(p1, p2, p) - p).len() > radius)
+      			obs_flags &= ~OBS_BALL;
+  	}
+
+  	// Walls
+  
+  	// Defense Zones
+
+  	// Nothing Left
+  	return obs_flags;
+}
+
+int AI::HL::STP::Evaluation::obs_line_first(World &world, Point p1, Point p2, int obs_flags, Point &first, double pradius, double time){
+  	int rv = 0;
+
+  	first = p2;
+
+  	// Teammates
+  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) { 
+    		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
+
+    		double radius = Robot::MAX_RADIUS + pradius; 
+
+    		Point p = world.friendly_team().get(i)->position(time);
+    		Point pp = closest_lineseg_point(p1, first, p);
+    		double d = (pp - p).len();
+
+    		if (d < radius) {
+	      		double dx = sqrt(radius * radius - d * d);
+	      
+	      		if ((p1 - pp).len() < dx) { 
+				first = p1; return OBS_TEAMMATE(i); 
+			} else {
+				first = pp + (p1 - pp).norm(dx);
+				rv = OBS_TEAMMATE(i);
+	      		}
+    		}
+  	}
+
+  	// Opponents
+  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
+    		if (!(obs_flags & OBS_OPPONENT(i))) continue;
+
+    		double radius = Robot::MAX_RADIUS + pradius; 
+
+    		Point p = world.enemy_team().get(i)->position(time);
+    		Point pp = closest_lineseg_point(p1, first, p);
+    		double d = (pp - p).len();
+
+    		if (d < radius) {
+      			double dx = sqrt(radius * radius - d * d);
+      
+      			if ((p1 - pp).len() < dx) { 
+				first = p1; 
+				return OBS_OPPONENT(i); 
+			} else {
+				first = pp + (p1 - pp).norm(dx);
+				rv = OBS_OPPONENT(i);
+      			}
+    		}
+  	}
+
+  	// Ball
+  	if (obs_flags & OBS_BALL) {
+    		double radius = Ball::RADIUS + pradius;
+
+    		Point p = world.ball().position(time);;
+    		Point pp = closest_lineseg_point(p1, first, p);
+    		double d = (pp - p).len();
+
+    		if (d < radius) {
+      			double dx = sqrt(radius * radius - d * d);
+      
+      			if ((p1 - pp).len() < dx) { 
+				first = p1; 
+				return OBS_BALL; 
+			} else {
+				first = pp + (p1 - pp).norm(dx);
+				rv = OBS_BALL;
+      			}
+    		}
+  	}
+
+  	// Walls
+  
+  	// Defense Zones
+  	if (obs_flags & OBS_THEIR_DZONE) {
+    		if (obs_position(world, p1, OBS_THEIR_DZONE, pradius, time)) {
+      			first = p1; 
+			return OBS_THEIR_DZONE;
+    		}
+
+    		Point i;
+
+    		i = intersection(p1, p2, Point(world.field().length()/2-world.field().defense_area_radius()-pradius, world.field().defense_area_stretch()/2+pradius),
+		     Point(world.field().length()/2-world.field().defense_area_radius()-pradius, -world.field().defense_area_stretch()/2-pradius));
+    		if ((i - p1).dot(first - p1) > 0 && (i - first).dot(p1 - first) > 0) {
+      			first = i; 
+			rv = OBS_THEIR_DZONE;
+    		}
+
+    		i = intersection(p1, p2, Point(world.field().length()/2-world.field().defense_area_radius()-pradius, world.field().defense_area_stretch()/2+pradius),
+		     Point(world.field().length()/2, world.field().defense_area_stretch()/2+pradius));
+    		if ((i - p1).dot(first - p1) > 0 && (i - first).dot(p1 - first) > 0) {
+      			first = i; 
+			rv = OBS_THEIR_DZONE;
+    		}
+
+    		i = intersection(p1, p2, Point(world.field().length()/2-world.field().defense_area_radius()-pradius, -world.field().defense_area_stretch()/2-pradius),
+		     Point(world.field().length()/2, -world.field().defense_area_stretch()/2-pradius));
+    		if ((i - p1).dot(first - p1) > 0 && (i - first).dot(p1 - first) > 0) {
+      			first = i; 
+			rv = OBS_THEIR_DZONE;
+    		}
+  	}
+
+
+  	// Nothing Left
+  	return obs_flags;
+}
+
+int AI::HL::STP::Evaluation::obs_line_num(World &world, Point p1, Point p2, int obs_flags, double pradius, double time){
+  	int count = 0;
+
+  	// Teammates
+  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) { 
+    		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
+
+    		double radius = Robot::MAX_RADIUS + pradius; 
+
+    		Point p = world.friendly_team().get(i)->position(time);
+    		if ((closest_lineseg_point(p1, p2, p) - p).len() <= radius)
+      			count++;
+  	}
+
+  	// Opponents
+  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
+    		if (!(obs_flags & OBS_OPPONENT(i))) continue;
+
+    		double radius = Robot::MAX_RADIUS + pradius;
+
+    		Point p = world.enemy_team().get(i)->position(time);
+    		if ((closest_lineseg_point(p1, p2, p) - p).len() <= radius)
+      			count++;
+  	}
+
+  	// Ball
+  	if (obs_flags & OBS_BALL) {
+    		double radius = Ball::RADIUS + pradius;
+
+    		Point p = world.ball().position(time);
+    		if ((closest_lineseg_point(p1, p2, p) - p).len() <= radius)
+      			count++;
+  	}
+
+  	// Walls
+  
+  	// Defense Zones
+
+  	// Nothing Left
+  	return count;
+}
+
+bool AI::HL::STP::Evaluation::obs_blocks_shot(World &world, Point p, double time){
+  	Point ball = world.ball().position(time);
+	
+  	double a = (Point(world.field().length()/2, -world.field().goal_width()/2) - ball).perp().dot(p - ball);
+  	double b = (Point(world.field().length()/2, world.field().goal_width()/2) - ball).perp().dot(p - ball);
+
+  	return (a * b) < 0;
+}
+
+
 
 inline bool inside_bbox(Point bbox_min, Point bbox_max, Point p, double radius){
   	return((p.x+radius > bbox_min.x) && (p.y+radius > bbox_min.y) && (p.x-radius < bbox_max.x) && (p.y-radius < bbox_max.y));
@@ -871,13 +869,13 @@ Point AI::HL::STP::Evaluation::CMEvaluation::farthest(World &world, double time,
   	return(max_obs);
 }
 
-Point AI::HL::STP::Evaluation::CMEvaluation::findOpenPosition(World &world, Point p, Point toward, int obs_flags, double pradius){
-  	obs_flags = AI::HL::STP::Evaluation::CMEval::obsLine(world, p, toward, obs_flags, Robot::MAX_RADIUS, -1);
+Point AI::HL::STP::Evaluation::CMEvaluation::find_open_position(World &world, Point p, Point toward, int obs_flags, double pradius){
+  	obs_flags = obs_line(world, p, toward, obs_flags, Robot::MAX_RADIUS, -1);
 	
   	Point x = p;
 	
   	while(1) {
-    		if (!AI::HL::STP::Evaluation::CMEval::obsPosition(world, x, obs_flags, pradius)) break;
+    		if (!obs_position(world, x, obs_flags, pradius)) break;
     
     		if ((toward - x).len() < Robot::MAX_RADIUS) {
       			x = p; break; }
@@ -888,11 +886,11 @@ Point AI::HL::STP::Evaluation::CMEvaluation::findOpenPosition(World &world, Poin
   	return x;
 }
 
-Point AI::HL::STP::Evaluation::CMEvaluation::findOpenPositionAndYield(World &world, Point p, Point toward, int obs_flags){
-  	p = findOpenPosition(world, p, toward, obs_flags, Robot::MAX_RADIUS);
+Point AI::HL::STP::Evaluation::CMEvaluation::find_open_position_and_yield(World &world, Point p, Point toward, int obs_flags){
+  	p = find_open_position(world, p, toward, obs_flags, Robot::MAX_RADIUS);
 	
 	// cm player type are either goalie or active
-  	if (world.friendly_team().size() >= 1) p = findOpenPosition(world, p, toward, (obs_flags & OBS_TEAMMATE(world.friendly_team().size()-1)), 2 * Robot::MAX_RADIUS);
+  	if (world.friendly_team().size() >= 1) p = find_open_position(world, p, toward, (obs_flags & OBS_TEAMMATE(world.friendly_team().size()-1)), 2 * Robot::MAX_RADIUS);
 
   	return p;
 }

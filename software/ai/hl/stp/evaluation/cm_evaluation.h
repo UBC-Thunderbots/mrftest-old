@@ -45,44 +45,52 @@ namespace AI {
 				/**
 				 * HL World evaluation ported from CMDragon world.cc
 				 */
-				namespace CMEval{
+				
+				/**
+				 * Checks if ball is on the sides.
+				 */
+				int side_ball(World &world);
+				
+				/**
+				 * Checks if the opponents are generally positioned on the sides.
+				 */
+				int side_strong(World &world);
 
-					int sideBall(World &world);
+				/**
+				 * Checks if the ball or the opponents are generally positioned on the sides.
+				 */
+				int side_ball_or_strong(World &world);
 
-					int sideStrong(World &world);
+				/**
+				 * Finds the nearest teammate to a point on the field.
+				 */
+				int nearest_teammate(World &world, Point p, double time);
 
-					int sideBallOrStrong(World &world);
+				/**
+				 * Finds the nearest opponent to a point on the field.
+				 */
+				int nearest_opponent(World &world, Point p, double time);
 
-					/**
-					 * Finds the nearest teammate to a point on the field.
-					 */
-					int nearest_teammate(World &world, Point p, double time);
+				/**
+				 * Obs methods return an obs_flag set to why a position or other
+				 * shape is not open.  Or zero if the position or shape is open
+				 */
+				int obs_position(World &world, Point p, int obs_flags, double pradius, double time = -1);
 
-					/**
-					 * Finds the nearest opponent to a point on the field.
-					 */
-					int nearest_opponent(World &world, Point p, double time);
+				int obs_line(World &world, Point p1, Point p2, int obs_flags, double pradius, double time);
 
-					/**
-					 * Obs methods return an obs_flag set to why a position or other
-  					 * shape is not open.  Or zero if the position or shape is open
-					 */
-					int obsPosition(World &world, Point p, int obs_flags, double pradius, double time = -1);
+				int obs_line_first(World &world, Point p1, Point p2, int obs_flags, Point &first, double pradius, double time = -1);
 
-					int obsLine(World &world, Point p1, Point p2, int obs_flags, double pradius, double time);
+				/**
+				 * returns number of obstacles on the line
+				 */
+				int obs_line_num(World &world, Point p1, Point p2, int obs_flags, double pradius, double time = -1);
 
-					int obsLineFirst(World &world, Point p1, Point p2, int obs_flags, Point &first, double pradius, double time = -1);
-
-					/**
-					 * returns number of obstacles on the line
-					 */
-					int obsLineNum(World &world, Point p1, Point p2, int obs_flags, double pradius, double time = -1);
-
-					/**
-					 * returns true if point p will block a shot at time 
-					 */
-					bool obsBlocksShot(World &world, Point p, double time);
-				}
+				/**
+				 * returns true if point p will block a shot at time 
+				 */
+				bool obs_blocks_shot(World &world, Point p, double time);
+				
 				
 				/**
 				 * Evaluation functions ported from CMDragon evaluation.cc
@@ -194,11 +202,11 @@ namespace AI {
 						/**
 						 * finds an open position
 						 */
-					  	Point findOpenPosition(World &world, Point p, Point toward, int obs_flags, double pradius = Robot::MAX_RADIUS);
+					  	Point find_open_position(World &world, Point p, Point toward, int obs_flags, double pradius = Robot::MAX_RADIUS);
 						/**
 						 * finds an open position and yield
 						 */
-					  	Point findOpenPositionAndYield(World &world, Point p, Point toward, int obs_flags);
+					  	Point find_open_position_and_yield(World &world, Point p, Point toward, int obs_flags);
 				};
 
 				class CMEvaluationPosition {
@@ -261,7 +269,7 @@ namespace AI {
 					    		// Check the new points to make sure their within the region.
 						    	// Passed here by addPoint().
 						    	for(unsigned int i = 0; i<new_points.size(); i++)
-						      		if (!region.inRegion(world, new_points[i])) {
+						      		if (!region.in_region(world, new_points[i])) {
 									new_points.erase(new_points.begin() + i);
 									i--;
 						      		}

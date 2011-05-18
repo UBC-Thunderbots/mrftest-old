@@ -35,18 +35,21 @@ using AI::HL::STP::TCoordinate;
 using AI::HL::STP::TRegion;
 using namespace AI::HL::W;
 
-namespace CMEval = AI::HL::STP::Evaluation::CMEval;
+namespace Evaluation = AI::HL::STP::Evaluation;
 
-Point TCoordinate::asVectorNotAbsolute(World &w){
+Point TCoordinate::as_vector_not_absolute(World &w){
   	Point v = c;
 	
   	switch(side) {
   		case SBall:
-    			v.y *= CMEval::sideBall(w); break;
+    			v.y *= Evaluation::side_ball(w); 
+			break;
 	  	case SStrong:
-	    		v.y *= CMEval::sideStrong(w); break;
+	    		v.y *= Evaluation::side_strong(w); 
+			break;
 	  	case SBallOrStrong:
-	    		v.y *= CMEval::sideBallOrStrong(w); break;
+	    		v.y *= Evaluation::side_ball_or_strong(w); 
+			break;
 	  	case SAbsolute:
 	    	break;
   	}
@@ -72,19 +75,19 @@ Point TCoordinate::asVectorNotAbsolute(World &w){
 Point TRegion::center(World &w){
   	switch(type) {
   		case Rectangle: 
-    			return (p[0].asVector(w) + p[1].asVector(w)) / 2.0;
+    			return (p[0].as_vector(w) + p[1].as_vector(w)) / 2.0;
 
   		case Circle: 
   		default:
-    			return p[0].asVector(w);
+    			return p[0].as_vector(w);
   	}
 }
 
 Point TRegion::sample(World &w){
   	switch(type) {
   		case Rectangle: {
-    			Point v0 = p[0].asVector(w);
-    			Point v1 = p[1].asVector(w);
+    			Point v0 = p[0].as_vector(w);
+    			Point v1 = p[1].as_vector(w);
     			double w = (std::rand() / RAND_MAX * 2 * radius) - radius;
     			double l = std::rand() / RAND_MAX * (v0 - v1).len();
 
@@ -96,28 +99,28 @@ Point TRegion::sample(World &w){
     			double r = sqrt(std::rand() / RAND_MAX) * radius;
     			double a = std::rand() / RAND_MAX * 2 * M_PI;
 
-    			return p[0].asVector(w) + Point(r, 0).rotate(a);
+    			return p[0].as_vector(w) + Point(r, 0).rotate(a);
   		}
 
 	}
 }
 
-Point TRegion::centerVelocity(World &w){
+Point TRegion::center_velocity(World &w){
   	switch(type) {
   		case Rectangle:
-    			return (p[0].getVelocity(w) + p[1].getVelocity(w)) / 2.0;
+    			return (p[0].get_velocity(w) + p[1].get_velocity(w)) / 2.0;
 
   		case Circle: 
   		default:
-    			return p[0].getVelocity(w);
+    			return p[0].get_velocity(w);
   	}
 }
 
 void TRegion::diagonal(World &w, Point x, Point &d1, Point &d2){
   	switch(type) {
   		case Rectangle: {
-    			Point v0 = p[0].asVector(w);
-    			Point v1 = p[1].asVector(w);
+    			Point v0 = p[0].as_vector(w);
+    			Point v1 = p[1].as_vector(w);
     			Point c = center(w);
     			Point r[4] = {
       				v0 - (v0 - v1).perp().norm(radius),
@@ -140,7 +143,7 @@ void TRegion::diagonal(World &w, Point x, Point &d1, Point &d2){
 
   		case Circle:
   		default: {
-    			Point center = p[0].asVector(w);
+    			Point center = p[0].as_vector(w);
     			d1 = center + (x - center).perp().norm(radius);
     			d2 = center - (x - center).perp().norm(radius);
     			break;
@@ -149,11 +152,11 @@ void TRegion::diagonal(World &w, Point x, Point &d1, Point &d2){
 
 }
 
-bool TRegion::inRegion(World &w, Point x){
+bool TRegion::in_region(World &w, Point x){
   	switch(type) {
   		case Rectangle: {
-    			Point v0 = p[0].asVector(w);
-    			Point v1 = p[1].asVector(w);
+    			Point v0 = p[0].as_vector(w);
+    			Point v1 = p[1].as_vector(w);
 
     			return ((v0 - v1).dot(x - v1) > 0 && (v1 - v0).dot(x - v0) > 0 && std::fabs(distance_to_line(v0, v1, x)) < radius);
 

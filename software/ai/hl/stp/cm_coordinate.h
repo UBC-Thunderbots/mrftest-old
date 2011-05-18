@@ -48,7 +48,7 @@ namespace AI {
 
 			  		Point c;
 
-			  		Point asVectorNotAbsolute(AI::HL::W::World &w);
+			  		Point as_vector_not_absolute(AI::HL::W::World &w);
 			  
 				public:
 			  		TCoordinate(double x, double y, stype _side = SAbsolute, otype _origin = OAbsolute, bool _dynamic = false) {
@@ -63,16 +63,16 @@ namespace AI {
 			    			absolute = (origin == OAbsolute && side == SAbsolute); 
 					}
 
-			  		Point asVector(AI::HL::W::World &w) {
+			  		Point as_vector(AI::HL::W::World &w) {
 			    			if (absolute) return c;
-			    			else return asVectorNotAbsolute(w);
+			    			else return as_vector_not_absolute(w);
 			  		}
 
-			  		double asDirection(AI::HL::W::World &w) {
-			    			return asVector(w).orientation(); 
+			  		double as_direction(AI::HL::W::World &w) {
+			    			return as_vector(w).orientation(); 
 					}
 
-			  		Point getVelocity(AI::HL::W::World &w) {
+			  		Point get_velocity(AI::HL::W::World &w) {
 			    			if (dynamic && origin == OBall) return w.ball().velocity();
 			    			else return Point(0, 0); 
 					}
@@ -91,12 +91,20 @@ namespace AI {
 			  		double radius;
 			  
 				public:
-			  		TRegion() { type = Circle; radius = 0; } // point
+			  		TRegion() { 
+						type = Circle; 
+						radius = 0; // point
+					} 
 			  		TRegion(TCoordinate p1, TCoordinate p2, double _radius) {
-			    			type = Rectangle; p[0] = p1; p[1] = p2; radius = _radius; 
+			    			type = Rectangle; 
+						p[0] = p1; 
+						p[1] = p2; 
+						radius = _radius; 
 					}
 			  		TRegion(TCoordinate p1, double _radius) {
-			    			type = Circle; p[0] = p1; radius = _radius; 
+			    			type = Circle; 
+						p[0] = p1; 
+						radius = _radius; 
 					}
 					
 					/**
@@ -109,11 +117,14 @@ namespace AI {
 			 		 */
 			  		Point sample(AI::HL::W::World &w); 
 
-			  		Point centerVelocity(AI::HL::W::World &w);
+			  		Point center_velocity(AI::HL::W::World &w);
 
 			  		void diagonal(AI::HL::W::World &w, Point p, Point &d1, Point &d2);
 
-			  		bool inRegion(AI::HL::W::World &w, Point p);
+					/**
+			 		 * checks if Point p is in region
+			 		 */
+			  		bool in_region(AI::HL::W::World &w, Point p);
 
 			};		
 		}
