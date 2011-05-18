@@ -1,17 +1,50 @@
-#include "ai/robot_controller/fuzzy_controller.h"
+#include "ai/robot_controller/robot_controller.h"
+#include "ai/robot_controller/tunable_controller.h"
 #include "geom/angle.h"
 #include "geom/point.h"
-#include <cmath>
 
-using AI::RC::FuzzyController;
 using AI::RC::RobotController;
 using AI::RC::OldRobotController;
 using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
-#warning this class needs Doxygen comments in its header
-
 namespace {
+	class FuzzyController : public OldRobotController, public AI::RC::TunableController {
+		public:
+			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
+
+			void clear();
+
+			RobotControllerFactory &get_factory() const;
+
+			FuzzyController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player);
+
+			void set_params(const std::vector<double> &params) {
+				this->param = params;
+			}
+
+			const std::vector<double> get_params() const {
+				return param;
+			}
+
+			const std::vector<double> get_params_default() const;
+
+			const std::vector<double> get_params_min() const {
+				return param_min;
+			}
+
+			const std::vector<double> get_params_max() const {
+				return param_max;
+			}
+
+		protected:
+			static const std::vector<double> param_min;
+			static const std::vector<double> param_max;
+			static const std::vector<double> param_default;
+
+			std::vector<double> param;
+	};
+
 	class FuzzyControllerFactory : public RobotControllerFactory {
 		public:
 			FuzzyControllerFactory() : RobotControllerFactory("Fuzzy RC") {
@@ -79,7 +112,6 @@ void FuzzyController::move(const Point &new_position, double new_orientation, Po
 }
 
 void FuzzyController::clear() {
-#warning WRITE CODE HERE
 }
 
 RobotControllerFactory &FuzzyController::get_factory() const {

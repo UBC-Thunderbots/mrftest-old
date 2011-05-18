@@ -21,11 +21,9 @@ namespace {
 
 	TestPivotFactory factory_instance;
 	
-	bool target_enemy = false;
-
 	class TestPivot : public HighLevel {
 		public:
-			TestPivot(World& world) : world(world) {
+			TestPivot(World& world) : world(world), target_enemy(false) {
 			}
 
 		private:

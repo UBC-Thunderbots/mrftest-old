@@ -1,18 +1,65 @@
-#include "ai/robot_controller/tunable_pid_controller.h"
+#include "ai/robot_controller/robot_controller.h"
+#include "ai/robot_controller/tunable_controller.h"
 #include "geom/angle.h"
 #include "geom/point.h"
 #include <cmath>
 
-using AI::RC::TunablePIDController;
 using AI::RC::RobotController;
 using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 #define LINEAR_XY
 
-#warning this class needs Doxygen comments in its header
-
 namespace {
+	class TunablePIDController : public AI::RC::OldRobotController, public AI::RC::TunableController {
+		public:
+			void move(const Point &new_position, double new_orientation, Point &linear_velocity, double &angular_velocity);
+
+			void clear();
+
+			RobotControllerFactory &get_factory() const;
+
+			TunablePIDController(AI::RC::W::World &world, AI::RC::W::Player::Ptr plr);
+
+			void set_params(const std::vector<double> &params) {
+				this->param = params;
+			}
+
+			const std::vector<std::string> get_params_name() const;
+
+			const std::vector<double> get_params() const {
+				return param;
+			}
+
+			const std::vector<double> get_params_default() const {
+				return param_default;
+			}
+
+			const std::vector<double> get_params_min() const {
+				return param_min;
+			}
+
+			const std::vector<double> get_params_max() const {
+				return param_max;
+			}
+
+		protected:
+			static const std::vector<double> param_min;
+			static const std::vector<double> param_max;
+			static const std::vector<double> param_default;
+
+			bool initialized;
+
+			std::vector<double> param;
+
+			// errors in x, y, d
+			std::vector<Point> error_pos;
+			std::vector<double> error_ori;
+
+			Point prev_new_pos;
+			double prev_new_ori;
+	};
+
 	// std::ofstream dout("pid.csv");
 	// int dnt = 1;
 

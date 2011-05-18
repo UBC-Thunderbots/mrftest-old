@@ -339,7 +339,6 @@ software/ai/robot_controller/circle_controller.cpp -text
 software/ai/robot_controller/fuzzy2_controller.cpp -text
 software/ai/robot_controller/fuzzy2_simulator_controller.cpp -text
 software/ai/robot_controller/fuzzy_controller.cpp -text
-software/ai/robot_controller/fuzzy_controller.h -text
 software/ai/robot_controller/lazy_controller.cpp -text
 software/ai/robot_controller/max_controller.cpp -text
 software/ai/robot_controller/path_controller.cpp -text
@@ -351,7 +350,6 @@ software/ai/robot_controller/tunable_controller.cpp -text
 software/ai/robot_controller/tunable_controller.h -text
 software/ai/robot_controller/tunable_pid2_controller.cpp -text
 software/ai/robot_controller/tunable_pid_controller.cpp -text
-software/ai/robot_controller/tunable_pid_controller.h -text
 software/ai/robot_controller/world.h -text
 software/ai/window.cpp -text
 software/ai/window.h -text
