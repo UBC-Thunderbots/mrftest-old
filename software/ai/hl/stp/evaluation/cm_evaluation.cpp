@@ -3,7 +3,6 @@
 #include "ai/hl/stp/evaluation/pass.h"
 #include "ai/hl/util.h"
 #include "geom/angle.h"
-//#include "util/cm_matrix.h"
 #include "util/kalman/kalman.h"
 #include "geom/util.h"
 #include "geom/cm_util.h"
@@ -11,30 +10,22 @@
 #include "util/param.h"
 #include "util/time.h"
 
+#include <algorithm>
+
 using namespace AI::HL::W;
 
 namespace {
-
-	Kalman ball_kalman = Kalman(4, 2, FRAME_PERIOD); // Kalman for the ball
 
 	/**
   	 * CMDragons Obstacle Computations
 	 */
 
-	Point our_goal = Point(-FIELD_LENGTH_H, 0.0);
-	Point our_goal_l = Point(-FIELD_LENGTH_H, GOAL_WIDTH_H);
-	Point our_goal_r = Point(-FIELD_LENGTH_H, -GOAL_WIDTH_H);
-	Point their_goal = -our_goal;
-	Point their_goal_l = -our_goal_r;
-	Point their_goal_r = -our_goal_l;
-
 	// Finds the nearest teammate/opponent to a point on the field.
-
 	int nearest_teammate(World &world, Point p, double time){
 		int dist_i = -1;
 	  	double dist = 0;
 
-	  	for(int i=0; i<world.friendly_team().size(); i++) {
+	  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) {
 	    		double d = (p - world.friendly_team().get(i)->position(time)).len();
 	    		if (dist_i < 0 || d < dist) {
 	      			dist_i = i; dist = d;
@@ -48,7 +39,7 @@ namespace {
 		int dist_i = -1;
 	  	double dist = 0;
 
-	  	for(int i=0; i<world.enemy_team().size(); i++) {
+	  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
 	    		double d = (p - world.enemy_team().get(i)->position(time)).len();
 	    		if (dist_i < 0 || d < dist) {
 	      			dist_i = i; dist = d;
@@ -70,20 +61,20 @@ namespace {
 	  	int rv = 0;
 
 	  	// Teammates
-	  	for(int i=0; i<world.friendly_team().size(); i++) { 
+	  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) { 
 	    		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
 
-	    		double radius = TEAMMATE_EFFECTIVE_RADIUS + pradius; 
+	    		double radius = Robot::MAX_RADIUS + pradius; 
 
 	    		if ((p - world.friendly_team().get(i)->position(time)).len() <= radius) 
 	      			rv |= OBS_TEAMMATE(i);
 	  	}
 
 	  	// Opponents
-	  	for(int i=0; i<world.enemy_team().size(); i++) {
+	  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
 	    		if (!(obs_flags & OBS_OPPONENT(i))) continue;
 
-	    		double radius = OPPONENT_EFFECTIVE_RADIUS + pradius;
+	    		double radius = Robot::MAX_RADIUS + pradius;
 
 	    		if ((p - world.enemy_team().get(i)->position(time)).len() <= radius) 
 	      			rv |= OBS_OPPONENT(i);
@@ -91,7 +82,7 @@ namespace {
 
 	  	// Ball
 	  	if (obs_flags & OBS_BALL) {
-	    		double radius = BALL_RADIUS + pradius;
+	    		double radius = Ball::RADIUS + pradius;
 	    		if ((p - world.ball().position(time)).len() <= radius) 
 	      			rv |= OBS_BALL;
 	  	}
@@ -99,20 +90,20 @@ namespace {
 	  	// Walls
 	  	if (obs_flags & OBS_WALLS) {
 	    		double radius = pradius;
-	    		if (fabs(p.x) + radius > FIELD_LENGTH_H || fabs(p.y) + radius > FIELD_WIDTH_H)
+	    		if (std::fabs(p.x) + radius > world.field().length()/2 || std::fabs(p.y) + radius > world.field().width()/2)
 	      			rv |= OBS_BALL;
 	  	}
 	  
 	  	// Defense Zones
 	  	if (obs_flags & OBS_OUR_DZONE) {
 	    		double radius = pradius;
-	    		if (p.x <= -FIELD_LENGTH_H + DEFENSE_DEPTH + radius && fabs(p.y) <= DEFENSE_WIDTH_H + radius) 
+	    		if (p.x <= -world.field().length()/2 + world.field().defense_area_radius() + radius && std::fabs(p.y) <= world.field().defense_area_stretch()/2 + radius) 
 	      			rv |= OBS_OUR_DZONE; 
 	  	}
 
 	  	if (obs_flags & OBS_THEIR_DZONE) {
 	    		double radius = pradius;
-	    		if (p.x >= FIELD_LENGTH_H - DEFENSE_DEPTH - radius && fabs(p.y) <= DEFENSE_WIDTH_H + radius) 
+	    		if (p.x >= world.field().length()/2 - world.field().defense_area_radius() - radius && std::fabs(p.y) <= world.field().defense_area_stretch()/2 + radius) 
 	      			rv |= OBS_THEIR_DZONE; 
 	  	}
 
@@ -122,10 +113,10 @@ namespace {
 
 	int obsLine(World &world, Point p1, Point p2, int obs_flags, double pradius, double time){
 	  	// Teammates
-	  	for(int i=0; i<world.friendly_team().size(); i++) { 
+	  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) { 
 	    		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
 
-	    		double radius = TEAMMATE_EFFECTIVE_RADIUS + pradius; 
+	    		double radius = Robot::MAX_RADIUS + pradius; 
 
 	    		Point p = world.friendly_team().get(i)->position(time);
 	    		if ((closest_lineseg_point(p1, p2, p) - p).len() > radius)
@@ -133,10 +124,10 @@ namespace {
 	  	}
 
 	  	// Opponents
-	  	for(int i=0; i<world.enemy_team().size(); i++) {
+	  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
 	    		if (!(obs_flags & OBS_OPPONENT(i))) continue;
 
-	    		double radius = OPPONENT_EFFECTIVE_RADIUS + pradius;
+	    		double radius = Robot::MAX_RADIUS + pradius;
 
 	    		Point p = world.enemy_team().get(i)->position(time);
 	    		if ((closest_lineseg_point(p1, p2, p) - p).len() > radius)
@@ -145,7 +136,7 @@ namespace {
 
 	  	// Ball
 	  	if (obs_flags & OBS_BALL) {
-	    		double radius = BALL_RADIUS + pradius;
+	    		double radius = Ball::RADIUS + pradius;
 
 	    		Point p = world.ball().position(time);
 	    		if ((closest_lineseg_point(p1, p2, p) - p).len() > radius)
@@ -166,10 +157,10 @@ namespace {
 	  	first = p2;
 
 	  	// Teammates
-	  	for(int i=0; i<world.friendly_team().size(); i++) { 
+	  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) { 
 	    		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
 
-	    		double radius = TEAMMATE_EFFECTIVE_RADIUS + pradius; 
+	    		double radius = Robot::MAX_RADIUS + pradius; 
 
 	    		Point p = world.friendly_team().get(i)->position(time);
 	    		Point pp = closest_lineseg_point(p1, first, p);
@@ -188,10 +179,10 @@ namespace {
 	  	}
 
 	  	// Opponents
-	  	for(int i=0; i<world.enemy_team().size(); i++) {
+	  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
 	    		if (!(obs_flags & OBS_OPPONENT(i))) continue;
 
-	    		double radius = OPPONENT_EFFECTIVE_RADIUS + pradius; 
+	    		double radius = Robot::MAX_RADIUS + pradius; 
 
 	    		Point p = world.enemy_team().get(i)->position(time);
 	    		Point pp = closest_lineseg_point(p1, first, p);
@@ -211,7 +202,7 @@ namespace {
 
 	  	// Ball
 	  	if (obs_flags & OBS_BALL) {
-	    		double radius = BALL_RADIUS + pradius;
+	    		double radius = Ball::RADIUS + pradius;
 
 	    		Point p = world.ball().position(time);;
 	    		Point pp = closest_lineseg_point(p1, first, p);
@@ -239,20 +230,20 @@ namespace {
 
 	    		Point i;
 
-	    		i = intersection(p1, p2, Point(FIELD_LENGTH_H-DEFENSE_DEPTH-pradius, DEFENSE_WIDTH_H+pradius),
-			     Point(FIELD_LENGTH_H-DEFENSE_DEPTH-pradius, -DEFENSE_WIDTH_H-pradius));
+	    		i = intersection(p1, p2, Point(world.field().length()/2-world.field().defense_area_radius()-pradius, world.field().defense_area_stretch()/2+pradius),
+			     Point(world.field().length()/2-world.field().defense_area_radius()-pradius, -world.field().defense_area_stretch()/2-pradius));
 	    		if ((i - p1).dot(first - p1) > 0 && (i - first).dot(p1 - first) > 0) {
 	      			first = i; rv = OBS_THEIR_DZONE;
 	    		}
 
-	    		i = intersection(p1, p2, Point(FIELD_LENGTH_H-DEFENSE_DEPTH-pradius, DEFENSE_WIDTH_H+pradius),
-			     Point(FIELD_LENGTH_H, DEFENSE_WIDTH_H+pradius));
+	    		i = intersection(p1, p2, Point(world.field().length()/2-world.field().defense_area_radius()-pradius, world.field().defense_area_stretch()/2+pradius),
+			     Point(world.field().length()/2, world.field().defense_area_stretch()/2+pradius));
 	    		if ((i - p1).dot(first - p1) > 0 && (i - first).dot(p1 - first) > 0) {
 	      			first = i; rv = OBS_THEIR_DZONE;
 	    		}
 
-	    		i = intersection(p1, p2, Point(FIELD_LENGTH_H-DEFENSE_DEPTH-pradius, -DEFENSE_WIDTH_H-pradius),
-			     Point(FIELD_LENGTH_H, -DEFENSE_WIDTH_H-pradius));
+	    		i = intersection(p1, p2, Point(world.field().length()/2-world.field().defense_area_radius()-pradius, -world.field().defense_area_stretch()/2-pradius),
+			     Point(world.field().length()/2, -world.field().defense_area_stretch()/2-pradius));
 	    		if ((i - p1).dot(first - p1) > 0 && (i - first).dot(p1 - first) > 0) {
 	      			first = i; rv = OBS_THEIR_DZONE;
 	    		}
@@ -267,10 +258,10 @@ namespace {
 	  	int count = 0;
 
 	  	// Teammates
-	  	for(int i=0; i<world.friendly_team().size(); i++) { 
+	  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) { 
 	    		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
 
-	    		double radius = TEAMMATE_EFFECTIVE_RADIUS + pradius; 
+	    		double radius = Robot::MAX_RADIUS + pradius; 
 
 	    		Point p = world.friendly_team().get(i)->position(time);
 	    		if ((closest_lineseg_point(p1, p2, p) - p).len() <= radius)
@@ -278,10 +269,10 @@ namespace {
 	  	}
 
 	  	// Opponents
-	  	for(int i=0; i<world.enemy_team().size(); i++) {
+	  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
 	    		if (!(obs_flags & OBS_OPPONENT(i))) continue;
 
-	    		double radius = OPPONENT_EFFECTIVE_RADIUS + pradius;
+	    		double radius = Robot::MAX_RADIUS + pradius;
 
 	    		Point p = world.enemy_team().get(i)->position(time);
 	    		if ((closest_lineseg_point(p1, p2, p) - p).len() <= radius)
@@ -290,7 +281,7 @@ namespace {
 
 	  	// Ball
 	  	if (obs_flags & OBS_BALL) {
-	    		double radius = BALL_RADIUS + pradius;
+	    		double radius = Ball::RADIUS + pradius;
 
 	    		Point p = world.ball().position(time);
 	    		if ((closest_lineseg_point(p1, p2, p) - p).len() <= radius)
@@ -305,20 +296,18 @@ namespace {
 	  	return count;
 	}
 
-	bool obsBlocksShot(World &world, Point p, double pradius, double time){
+	bool obsBlocksShot(World &world, Point p, double time){
 	  	Point ball = world.ball().position(time);
 		
-	  	double a = (their_goal_r - ball).perp().dot(p - ball);
-	  	double b = (their_goal_l - ball).perp().dot(p - ball);
+	  	double a = (Point(world.field().length()/2, -world.field().goal_width()/2) - ball).perp().dot(p - ball);
+	  	double b = (Point(world.field().length()/2, world.field().goal_width()/2) - ball).perp().dot(p - ball);
 
 	  	return (a * b) < 0;
 	}
 
 }
 
-//CMEvaluation evaluation;
-
-inline bool inside_bbox(Point bbox_min,Point bbox_max, Point p,double radius){
+inline bool inside_bbox(Point bbox_min, Point bbox_max, Point p, double radius){
   	return((p.x+radius > bbox_min.x) && (p.y+radius > bbox_min.y) && (p.x-radius < bbox_max.x) && (p.y-radius < bbox_max.y));
 }
 
@@ -329,7 +318,7 @@ static double diffangle_pos(double a1, double a2) {
 }
 
 static int double_compare(const void *a, const void *b) {
-  	return (*((double *) a) > *((double *) b));
+  	return (*((double *) a) > *((double *) b));	
 }
 
 bool AI::HL::STP::Evaluation::CMEvaluation::aim(World &world, double time, Point target, Point p2, Point p1, int obs_flags, Point pref_target_point, double pref_amount, Point &target_point, double &target_tolerance) {
@@ -358,7 +347,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(World &world, double time, Point
   	a[n].d = 0.0; a[n++].i = 0; 
   	a[n].d = a_end; a[n++].i = 0;
 
-  	for(int i=0; i<world.friendly_team().size(); i++) {
+  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) {
     		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
 
     		double width = Robot::MAX_RADIUS;
@@ -387,9 +376,9 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(World &world, double time, Point
     		if (a1 >= a_end && a2 >= a_end && a1 > a2) { count++; }
   	}
 
-  	double width = ROBOT_DEF_WIDTH_H;
+  	double width = Robot::MAX_RADIUS;
 
-  	for(int i=0; i<world.enemy_team().size(); i++) {
+  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
     		if (!(obs_flags & OBS_OPPONENT(i))) continue;
 
     		Point obs = world.enemy_team().get(i)->position(time) - target;
@@ -420,7 +409,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(World &world, double time, Point
   	qsort(a, n, sizeof(a[0]), &double_compare);
 
   	// Walk through the angle array finding the largest clear cone, and
-  	//  the closest clear cone to the preferred angle.
+  	// the closest clear cone to the preferred angle.
   	double best_ang = 0.0, best_tol = 0.0;
   	double closest_ang = M_2_PI, closest_tol = 0.0, closest_ang_diff = M_2_PI;
   	bool found_one = false;
@@ -429,7 +418,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(World &world, double time, Point
     		if (!count) {
       			double tol = (a[i].d - a[i-1].d) / 2.0;
       			double ang = (a[i].d + a[i-1].d) / 2.0;
-      			double ang_diff = std::max(0.0, fabs(angle_mod(ang - pref_target_angle))-tol);
+      			double ang_diff = std::max(0.0, std::fabs(angle_mod(ang - pref_target_angle))-tol);
 
       			if (!found_one || tol > best_tol) {
 				best_tol = tol; best_ang = ang;
@@ -488,8 +477,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_point(World &world, double ti
   	double variance[3];
   	int rv[3]; 
 
-  	rv[0] = intercept && defend_point_intercept(world, time, point, radius,
-					      targets[0], variance[0]);
+  	rv[0] = intercept && defend_point_intercept(world, time, point, radius, targets[0], variance[0]);
   	intercept = rv[0];
 
   	rv[1] = defend_point_static(world, time, point, radius, targets[1], variance[1]);
@@ -520,7 +508,6 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_point(World &world, double ti
 	    	return true;
   	}
 
-
   	return true;
 }
 
@@ -540,9 +527,9 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line(World &world, double tim
   	// the center point and a perpendicular to the line.
   	// 
   	double ang = angle_mod((ball - g + gperp.norm(distmin)).orientation() - gperp.orientation());
-  	double balldist = fabs(offset_to_line(g1, g2, ball));
+  	double balldist = std::fabs(offset_to_line(g1, g2, ball));
 
-  	double dist = distmin + fabs(cos(ang)) * (distmax - distmin);
+  	double dist = distmin + std::fabs(cos(ang)) * (distmax - distmin);
 
   	if (dist > balldist - dist_off_ball) 
     		dist = balldist - dist_off_ball;
@@ -630,24 +617,10 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_on_line(World &world, double 
   	return true;
 }
 
-// defend_line_static()
-//
-// (g1, g2) defines a line segment to be defended.
-//
-// p1 is the point where the ball shot at g1 crosses the desired line.
-// p2 is the point where the ball shot at g2 crosses the desired line.
-//
-// d1 is the distance from the ball to p1.
-// d2 is the distance from the ball to p2.
-//
-// y is the distance between p1 and p2.
-// x is the distance from p1 to the target point.
-//
-
 bool AI::HL::STP::Evaluation::CMEvaluation::defend_line_static(World &world, double time, Point g1, Point g2, double dist, Point &target, double &variance){
   	Point g = (g1 + g2) / 2.0;
   	Point ball = world.ball().position(time);
-  	double balldist = fabs(offset_to_line(g1, g2, ball));
+  	double balldist = std::fabs(offset_to_line(g1, g2, ball));
   	double radius = 90.0; // should eventually be a parameter
 
   	double c1,c2;
@@ -658,9 +631,9 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line_static(World &world, dou
   	Point gperp = (g2 - g1).perp().norm();
   	if (gperp.dot(ball - g) < 0) gperp *= -1;
 
-  	if (balldist < dist + BALL_RADIUS) {
-    		ball += gperp.norm(dist - balldist + BALL_RADIUS);
-    		balldist = dist + BALL_RADIUS;
+  	if (balldist < dist + Ball::RADIUS) {
+    		ball += gperp.norm(dist - balldist + Ball::RADIUS);
+    		balldist = dist + Ball::RADIUS;
   	}
 
   	double ratio = dist / balldist;
@@ -670,10 +643,10 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line_static(World &world, dou
 
   	// calculate inward offsets to take account of our radius
   	y = (p1-p2).len();
-  	// c1 = fabs(cosine(ball-p1,p2-p1));
-  	// c2 = fabs(cosine(ball-p2,p1-p2));
-  	c1 = fabs(sin(vertex_angle(ball,p1,p2)));
-  	c2 = fabs(sin(vertex_angle(ball,p2,p1)));
+  	// c1 = std::fabs(cosine(ball-p1,p2-p1));
+  	// c2 = std::fabs(cosine(ball-p2,p1-p2));
+  	c1 = std::fabs(sin(vertex_angle(ball,p1,p2)));
+  	c2 = std::fabs(sin(vertex_angle(ball,p2,p1)));
   	o1 = bound(radius / c1, 0.0, y/2);
   	o2 = bound(radius / c2, 0.0, y/2);
 
@@ -681,10 +654,6 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line_static(World &world, dou
   	p1 += (p2 - p1).norm(o1);
   	p2 += (p1 - p2).norm(o2);
   	y = (p1-p2).len();
-
-  	/*
-  	printf("%f %f : %f %f <%f,%f> <%f,%f> y=%f\n", c1, c2, o1, o2, V2COMP(p1), V2COMP(p2),y);
-  	*/
 
   	// figure out where we want to be
   	if(y > 0.0){
@@ -701,47 +670,6 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line_static(World &world, dou
 
   	return true;
 }
-
-/*
-bool AI::HL::STP::Evaluation::CMEvaluation::defend_line_static(World &world, double time,
-				    Point g1, Point g2, double dist,
-				    Point &target, double &variance)
-{
-  Point ball = world.ball().position(time);
-  double balldist = fabs(offset_to_line(g1, g2, ball));
-
-  if (balldist < dist) return false;
-
-  double ratio = dist / balldist;
-
-  Point p1 = ball * ratio + g1 * (1 - ratio);
-  Point p2 = ball * ratio + g2 * (1 - ratio);
-
-  double y = (p1 - p2).len();
-
-  double d1 = (ball - p1).len();
-  double d2 = (ball - p2).len();
-
-  double x = y * d2 / (d1 + d2);
-
-  target = p1 * (x / y) + p2 * (1 - x / y);
-  variance = y * y / 16; // (y/4)^2
-  
-  return true;
-}
-*/
-
-// defend_line_intercept()
-//
-// (g1, g2) defines a line segment to be defended.
-//
-// We lookahead through the ball's trajectory to find where, if it at
-// all the ball crosses the goalie's line.  The covariance matrix is then
-// used to set the variance for this position.
-//
-
-#define P_DefendLookahead 1.0
-#define P_DefendLookstep  FRAME_PERIOD
 
 bool AI::HL::STP::Evaluation::CMEvaluation::defend_line_intercept(World &world, double time, Point g1, Point g2, double dist, Point &target, double &variance){
   	static double lookahead = P_DefendLookahead;
@@ -774,8 +702,8 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line_intercept(World &world, 
 
     		if (v.dot(gperp) * side >= 0.0) return false;
 
-    		double d_to_line = fabs((b - g1).dot(gperp));
-    		double t_to_line = d_to_line / fabs(v.dot(gperp));
+    		double d_to_line = std::fabs((b - g1).dot(gperp));
+    		double t_to_line = d_to_line / std::fabs(v.dot(gperp));
 
     		if (t_to_line > lookstep) continue;
 
@@ -783,7 +711,8 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line_intercept(World &world, 
 
     		double x = offset_along_line(g1, g2, b);
 
-    		Matrix c = ball_kalman.predict_cov(double_to_timespec(time + t));
+		/*
+    		//Matrix c = ball_kalman.predict_cov(double_to_timespec(time + t));
     		Matrix m = Matrix(4,1); 
     		m(0,0) = gline_1.x;
 	    	m(1,0) = gline_1.y;
@@ -792,8 +721,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line_intercept(World &world, 
 		m.transpose();
 		temp *= m;
 		variance = temp(0,0);
-    		//variance = (m.transpose() * c * m)(0,0);
-
+    		*/
     		if (x < 0.0) {
       			x = 0;
       			variance = variance * exp(pow(x, 2.0) / variance);
@@ -801,7 +729,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line_intercept(World &world, 
       			x = gline.len();
       			variance = variance * exp(pow(gline.len() - x, 2.0) / variance);
     		}
-
+		
     		target = g1 + gline_1 * x;
     		return true;
   	}
@@ -847,10 +775,12 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_point_intercept(World &world,
     		}
   	}
 
+	
   	// Compute variance
-  	Matrix c = ball_kalman.predict_cov(double_to_timespec(time + closest_time));
-      
+  	//Matrix c = ball_kalman.predict_cov(double_to_timespec(time + closest_time));
+        
   	if (closest_dist > radius) {
+		/*
     		Point perp = (target - point).norm();
     		Matrix m = Matrix(4,1); 
     		m(0,0) = perp.x;
@@ -860,10 +790,10 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_point_intercept(World &world,
 		m.transpose();
 		temp *= m;
 		variance = temp(0,0);
-    		//variance = (m.transpose() * c * m)(0,0);
-
+    		*/
     		variance = variance * exp(pow(closest_dist - radius, 2.0) / variance);
   	} else {
+		/*
     		Point perp = (target - point).perp().norm();
     		Matrix m = Matrix(4,1); 
     		m(0,0) = perp.x;
@@ -873,14 +803,15 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_point_intercept(World &world,
 		m.transpose();
 		temp *= m;
 		variance = temp(0,0);
-    		//variance = (m.transpose() * c * m)(0,0);
+    		*/
   	}
   
   	if (isinf(variance)) return false;
   	else return true;
+	
+	return true;
 }
 
-// find the furthest point of a robot in a direction
 Point AI::HL::STP::Evaluation::CMEvaluation::farthest(World &world, double time, int obs_flags, Point bbox_min,Point bbox_max, Point dir){
   	double x,max_x;
   	Point obs,max_obs;
@@ -890,7 +821,7 @@ Point AI::HL::STP::Evaluation::CMEvaluation::farthest(World &world, double time,
   	max_x = 0;
   	max_obs = Point(0,0);
 
-  	for(i=0; i<world.friendly_team().size(); i++){
+  	for(i=0; i<static_cast<int>(world.friendly_team().size()); i++){
     		if(obs_flags & OBS_TEAMMATE(i)){
       			width = Robot::MAX_RADIUS;
       			obs = world.friendly_team().get(i)->position(time);
@@ -905,9 +836,9 @@ Point AI::HL::STP::Evaluation::CMEvaluation::farthest(World &world, double time,
     		}
   	}
 
-  	width = OPPONENT_EFFECTIVE_RADIUS;
+  	width = Robot::MAX_RADIUS;
 
-  	for(i=0; i<world.enemy_team().size(); i++){
+  	for(i=0; i<static_cast<int>(world.enemy_team().size()); i++){
     		if(obs_flags & OBS_OPPONENT(i)){
       			obs = world.enemy_team().get(i)->position(time);
 
@@ -927,27 +858,27 @@ Point AI::HL::STP::Evaluation::CMEvaluation::farthest(World &world, double time,
 }
 
 Point AI::HL::STP::Evaluation::CMEvaluation::findOpenPosition(World &world, Point p, Point toward, int obs_flags, double pradius){
-  	obs_flags = obsLine(world, p, toward, obs_flags, TEAMMATE_EFFECTIVE_RADIUS, -1);
+  	obs_flags = obsLine(world, p, toward, obs_flags, Robot::MAX_RADIUS, -1);
 	
   	Point x = p;
 
   	while(1) {
     		if (!obsPosition(world, x, obs_flags, pradius)) break;
     
-    		if ((toward - x).len() < TEAMMATE_EFFECTIVE_RADIUS) {
+    		if ((toward - x).len() < Robot::MAX_RADIUS) {
       			x = p; break; }
 
-    		x += (toward - p).norm(TEAMMATE_EFFECTIVE_RADIUS);
+    		x += (toward - p).norm(Robot::MAX_RADIUS);
   	}
 
   	return x;
 }
 
 Point AI::HL::STP::Evaluation::CMEvaluation::findOpenPositionAndYield(World &world, Point p, Point toward, int obs_flags){
-  	p = findOpenPosition(world, p, toward, obs_flags, TEAMMATE_EFFECTIVE_RADIUS);
+  	p = findOpenPosition(world, p, toward, obs_flags, Robot::MAX_RADIUS);
 	
 	// cm player type are either goalie or active
-  	if (world.friendly_team().size() >= 1) p = findOpenPosition(world, p, toward, (obs_flags & OBS_TEAMMATE(world.friendly_team().size()-1)), 2 * TEAMMATE_EFFECTIVE_RADIUS);
+  	if (world.friendly_team().size() >= 1) p = findOpenPosition(world, p, toward, (obs_flags & OBS_TEAMMATE(world.friendly_team().size()-1)), 2 * Robot::MAX_RADIUS);
 
   	return p;
 }

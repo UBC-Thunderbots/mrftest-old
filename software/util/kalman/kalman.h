@@ -15,7 +15,6 @@ class Kalman {
 		Kalman(bool angle, double measure_std, double accel_std);
 		void predict(timespec prediction_time, Matrix &state_predict, Matrix &p_predict) const;
 		Matrix predict(timespec prediction_time) const;
-		Matrix predict_cov(timespec prediction_time) const;
 		void update(double measurement, timespec measurement_time);
 		void add_control(double input, timespec input_time);
 		double get_control(timespec control_time) const;

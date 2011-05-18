@@ -74,14 +74,6 @@ Matrix Kalman::predict(timespec prediction_time) const {
 	return state_predict;
 }
 
-// get an estimate of the covariance at prediction_time
-Matrix Kalman::predict_cov(timespec prediction_time) const {
-	Matrix state_predict;
-	Matrix p_predict;
-	predict(prediction_time, state_predict, p_predict);
-	return p_predict;
-}
-
 // this should generate an updated state, as well as clean up all the inputs since the last measurement
 // until this current one
 void Kalman::update(double measurement, timespec measurement_time) {

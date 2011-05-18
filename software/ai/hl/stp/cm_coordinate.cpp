@@ -21,20 +21,12 @@
   ------------------------------------------------------------------------- */
 
 #include <stdio.h>
-#include <math.h>
-/*
-#include "util.h"
-#include "soccer.h"
-#include "tactic.h"
-#include "configreader.h"
-*/
+#include <cmath>
 
 #include "ai/hl/world.h"
 #include "ai/hl/util.h"
 #include "ai/hl/stp/cm_coordinate.h"
 #include "geom/angle.h"
-//#include "util/cm_matrix.h"
-//#include "util/kalman/cm_kalman.h"
 #include "geom/util.h"
 #include "geom/cm_util.h"
 
@@ -91,16 +83,16 @@ Point TRegion::sample(World &w){
   		case Rectangle: {
     			Point v0 = p[0].asVector(w);
     			Point v1 = p[1].asVector(w);
-    			double w = (std::rand() / (double) RAND_MAX * 2 * radius) - radius;
-    			double l = std::rand() / (double) RAND_MAX * (v0 - v1).len();
+    			double w = (std::rand() / RAND_MAX * 2 * radius) - radius;
+    			double l = std::rand() / RAND_MAX * (v0 - v1).len();
 
     			return v0 + (v1 - v0).norm(l) + (v1 - v0).perp().norm(w);
   		}
 
   		case Circle: 
   		default: {
-    			double r = sqrt(std::rand() / (double) RAND_MAX) * radius;
-    			double a = std::rand() / (double) RAND_MAX * 2 * M_PI;
+    			double r = sqrt(std::rand() / RAND_MAX) * radius;
+    			double a = std::rand() / RAND_MAX * 2 * M_PI;
 
     			return p[0].asVector(w) + Point(r, 0).rotate(a);
   		}
@@ -161,7 +153,7 @@ bool TRegion::inRegion(World &w, Point x){
     			Point v0 = p[0].asVector(w);
     			Point v1 = p[1].asVector(w);
 
-    			return ((v0 - v1).dot(x - v1) > 0 && (v1 - v0).dot(x - v0) > 0 && fabs(distance_to_line(v0, v1, x)) < radius);
+    			return ((v0 - v1).dot(x - v1) > 0 && (v1 - v0).dot(x - v0) > 0 && std::fabs(distance_to_line(v0, v1, x)) < radius);
 
   		}
   		case Circle: 

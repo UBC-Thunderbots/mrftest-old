@@ -23,19 +23,9 @@
 #ifndef AI_HL_STP_CM_COORDINATE_H
 #define AI_HL_STP_CM_COORDINATE_H
 
-#include <deque>
-#include <vector>
-/*
-#include "soccer.h"
-#include "world.h"
-#include "robot.h"
-*/
-
 #include "ai/hl/world.h"
 #include "ai/hl/util.h"
 #include "geom/angle.h"
-//#include "util/cm_matrix.h"
-//#include "util/kalman/cm_kalman.h"
 #include "geom/util.h"
 #include "geom/cm_util.h"
 

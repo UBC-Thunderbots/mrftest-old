@@ -24,7 +24,6 @@ double bound(double x, double low, double high) {
 	return x;
 }
 
-// returns distance from point p to line x0-x1
 double distance_to_line(Point x0, Point x1, Point p) {
 	Point x;
 	double t;
@@ -35,7 +34,6 @@ double distance_to_line(Point x0, Point x1, Point p) {
 	return std::sqrt((x.x - p.x) * (x.x - p.x) + (x.y - p.y) * (x.y - p.y));
 }
 
-// returns perpendicular offset from line x0-x1 to point p
 double offset_to_line(Point x0, Point x1, Point p) {
 	Point n;
 
@@ -45,7 +43,6 @@ double offset_to_line(Point x0, Point x1, Point p) {
 	return n.dot(p - x0);
 }
 
-// returns perpendicular offset from line x0-x1 to point p
 double offset_along_line(Point x0, Point x1, Point p) {
 	Point n, v;
 
@@ -58,7 +55,6 @@ double offset_along_line(Point x0, Point x1, Point p) {
 	return n.dot(v);
 }
 
-// returns nearest point on segment a0-a1 to line b0-b1
 Point segment_near_line(Point a0, Point a1, Point b0, Point b1) {
 	Point v, n, p;
 	double dn, t;
@@ -85,7 +81,6 @@ Point segment_near_line(Point a0, Point a1, Point b0, Point b1) {
 	return p;
 }
 
-//
 Point intersection(Point a1, Point a2, Point b1, Point b2) {
 	Point a = a2 - a1;
 
@@ -96,15 +91,10 @@ Point intersection(Point a1, Point a2, Point b1, Point b2) {
 	return Point(b2r.x - b2r.y * (br.x / br.y), 0.0).rotate(a.orientation()) + a1;
 }
 
-// gives counterclockwise angle from <a-b> to <c-b>
 double vertex_angle(Point a, Point b, Point c) {
 	return angle_mod((a - b).orientation() - (c - b).orientation());
 }
 
-// ==== Generic functions =============================================//
-// (work on 2d or 3d vectors)
-
-// returns nearest point on line segment x0-x1 to point p
 Point point_on_segment(Point x0, Point x1, Point p) {
 	Point sx, sp, r;
 	double f, l;
@@ -126,8 +116,6 @@ Point point_on_segment(Point x0, Point x1, Point p) {
 	return r;
 }
 
-// returns time of closest point of approach of two points
-// moving along constant velocity vectors.
 double closest_point_time(Point x1, Point v1, Point x2, Point v2) {
 	Point v = v1 - v2;
 	double sl = v.lensq();
