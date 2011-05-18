@@ -87,9 +87,9 @@ bool line_seg_intersect_rectangle(const Point seg[2], const Point recA[4]);
  * \return \c true if \p pointA lies inside the rectangle, or \c false if it lies outside.
  */
 bool point_in_rectangle(const Point &pointA, const Point recA[4]);
+
 /**
  * returns a list of points that lie exactle "buffer" distance awaw from the line seg
- *
  */
 std::vector<Point> seg_buffer_boundaries(const Point &a, const Point &b, double buffer, int num_points);
 
@@ -258,7 +258,6 @@ bool seg_crosses_seg(const Point &a1, const Point &a2, const Point &b1, const Po
  *
  * \return the reflected ray.
  */
-
 Point reflect(const Point &v, const Point &n);
 
 /**
