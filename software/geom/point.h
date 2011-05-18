@@ -82,8 +82,8 @@ class Point {
 		 *
 		 * \return a normalized vector in the same direction as this Point, or a zero-length Point if this Point is zero.
 		 */
-		Point norm(const double nl) const __attribute__((warn_unused_result)) {
-			const double l = nl / len();
+		Point norm(double nl) const __attribute__((warn_unused_result)) {
+			double l = nl / len();
 			if (len() < 1.0e-9) {
 				return Point();
 			} else {
@@ -107,9 +107,9 @@ class Point {
 		 *
 		 * \return the Point rotated by rot.
 		 */
-		Point rotate(const double rot) const __attribute__((warn_unused_result)) {
-			const double s = std::sin(rot);
-			const double c = std::cos(rot);
+		Point rotate(double rot) const __attribute__((warn_unused_result)) {
+			double s = std::sin(rot);
+			double c = std::cos(rot);
 			return Point(x * c - y * s, x * s + y * c);
 		}
 

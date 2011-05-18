@@ -324,7 +324,7 @@ inline bool inside_bbox(Point bbox_min,Point bbox_max, Point p,double radius){
 
 static double diffangle_pos(double a1, double a2) {
   	double d = angle_mod(a1 - a2);
-  	if (d < 0.0) d += M_2PI;
+  	if (d < 0.0) d += 2 * M_PI;
   	return d;
 }
 
@@ -352,8 +352,8 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(World &world, double time, Point
   	a_end = diffangle_pos(r2.orientation(), a_zero);
 
   	double pref_target_angle = diffangle_pos((pref_target_point - target).orientation(), a_zero);
-  	if (pref_target_angle - a_end > M_2PI - pref_target_angle)
-    		pref_target_angle -= M_2PI;
+  	if (pref_target_angle - a_end > 2 * M_PI - pref_target_angle)
+    		pref_target_angle -= 2 * M_PI;
 
   	a[n].d = 0.0; a[n++].i = 0; 
   	a[n].d = a_end; a[n++].i = 0;
@@ -375,7 +375,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(World &world, double time, Point
     		if (a0 < a_end)
       			maxdist = (a0 / a_end) * (r2.len() - r1.len()) + r1.len();
     		else {
-      			if (a0 < (a_end + M_2PI) / 2.0) maxdist = r2.len();
+      			if (a0 < (a_end + 2 * M_PI) / 2.0) maxdist = r2.len();
       			else maxdist = r1.len();
     		}
     
@@ -404,7 +404,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(World &world, double time, Point
     		if (a0 < a_end)
       			maxdist = (a0 / a_end) * (r2.len() - r1.len()) + r1.len();
     		else {
-      			if (a0 < (a_end + M_2PI) / 2.0) maxdist = r2.len();
+      			if (a0 < (a_end + 2 * M_PI) / 2.0) maxdist = r2.len();
       			else maxdist = r1.len();
     		}
     

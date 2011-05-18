@@ -100,7 +100,7 @@ Point TRegion::sample(World &w){
   		case Circle: 
   		default: {
     			double r = sqrt(std::rand() / (double) RAND_MAX) * radius;
-    			double a = std::rand() / (double) RAND_MAX * M_2PI;
+    			double a = std::rand() / (double) RAND_MAX * 2 * M_PI;
 
     			return p[0].asVector(w) + Point(r, 0).rotate(a);
   		}
