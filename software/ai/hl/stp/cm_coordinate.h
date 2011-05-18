@@ -32,11 +32,13 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
-
+			/**
+			 * Coordinate
+			 */
 			class TCoordinate {
 				public:
 			  		enum otype { OAbsolute, OBall };
-			  		enum stype { SAbsolute, SBall, SStrong, SBallOrStrong, SGui };
+			  		enum stype { SAbsolute, SBall, SStrong, SBallOrStrong};
 
 				private:
 			  		otype origin;
@@ -76,6 +78,10 @@ namespace AI {
 					}
 			};
 
+
+			/**
+			 * A Region can be either a circle (can also be a point, which is a circle with 0 radius) or a rectangle
+			 */
 			class TRegion {
 				private:
 			  		enum { Circle,  Rectangle } type;
@@ -85,15 +91,22 @@ namespace AI {
 			  		double radius;
 			  
 				public:
-			  		TRegion() { type = Circle; radius = 0; }
+			  		TRegion() { type = Circle; radius = 0; } // point
 			  		TRegion(TCoordinate p1, TCoordinate p2, double _radius) {
 			    			type = Rectangle; p[0] = p1; p[1] = p2; radius = _radius; 
 					}
 			  		TRegion(TCoordinate p1, double _radius) {
 			    			type = Circle; p[0] = p1; radius = _radius; 
 					}
-
+					
+					/**
+			 		 * returns the center of the region
+			 		 */
 			  		Point center(AI::HL::W::World &w);
+
+					/**
+			 		 * returns a random sample point in the region
+			 		 */
 			  		Point sample(AI::HL::W::World &w); 
 
 			  		Point centerVelocity(AI::HL::W::World &w);

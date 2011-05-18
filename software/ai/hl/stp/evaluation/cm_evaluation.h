@@ -41,6 +41,52 @@ namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
+				
+				/**
+				 * HL World evaluation ported from CMDragon world.cc
+				 */
+				namespace CMEval{
+
+					int sideBall(World &world);
+
+					int sideStrong(World &world);
+
+					int sideBallOrStrong(World &world);
+
+					/**
+					 * Finds the nearest teammate to a point on the field.
+					 */
+					int nearest_teammate(World &world, Point p, double time);
+
+					/**
+					 * Finds the nearest opponent to a point on the field.
+					 */
+					int nearest_opponent(World &world, Point p, double time);
+
+					/**
+					 * Obs methods return an obs_flag set to why a position or other
+  					 * shape is not open.  Or zero if the position or shape is open
+					 */
+					int obsPosition(World &world, Point p, int obs_flags, double pradius, double time = -1);
+
+					int obsLine(World &world, Point p1, Point p2, int obs_flags, double pradius, double time);
+
+					int obsLineFirst(World &world, Point p1, Point p2, int obs_flags, Point &first, double pradius, double time = -1);
+
+					/**
+					 * returns number of obstacles on the line
+					 */
+					int obsLineNum(World &world, Point p1, Point p2, int obs_flags, double pradius, double time = -1);
+
+					/**
+					 * returns true if point p will block a shot at time 
+					 */
+					bool obsBlocksShot(World &world, Point p, double time);
+				}
+				
+				/**
+				 * Evaluation functions ported from CMDragon evaluation.cc
+				 */
 				class CMEvaluation {
 					public:
 						/**
@@ -141,12 +187,17 @@ namespace AI {
 
 					public:
 						/**
-						 * find the furthest point of a robot in a direction
+						 * finds the furthest point of a robot in a direction
 						 */
 					  	Point farthest(World &world, double time, int obs_flags, Point bbox_min, Point bbox_max, Point dir);
-
+						
+						/**
+						 * finds an open position
+						 */
 					  	Point findOpenPosition(World &world, Point p, Point toward, int obs_flags, double pradius = Robot::MAX_RADIUS);
-
+						/**
+						 * finds an open position and yield
+						 */
 					  	Point findOpenPositionAndYield(World &world, Point p, Point toward, int obs_flags);
 				};
 
@@ -217,9 +268,11 @@ namespace AI {
 
 					    		// Add previous best point (or center).
 					    		if (!points.empty()) {
-					      			new_points.push_back(points[best]); best = static_cast<int> (new_points.size()) - 1; 
+					      			new_points.push_back(points[best]); 
+								best = static_cast<int> (new_points.size()) - 1; 
 					    		} else {
-					      			new_points.push_back(region.center(world)); best = -1;
+					      			new_points.push_back(region.center(world)); 
+								best = -1;
 					    		}
 
 					    		// Pick new points.

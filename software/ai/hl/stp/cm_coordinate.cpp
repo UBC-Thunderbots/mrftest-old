@@ -26,6 +26,7 @@
 #include "ai/hl/world.h"
 #include "ai/hl/util.h"
 #include "ai/hl/stp/cm_coordinate.h"
+#include "ai/hl/stp/evaluation/cm_evaluation.h"
 #include "geom/angle.h"
 #include "geom/util.h"
 #include "geom/cm_util.h"
@@ -34,25 +35,26 @@ using AI::HL::STP::TCoordinate;
 using AI::HL::STP::TRegion;
 using namespace AI::HL::W;
 
+namespace CMEval = AI::HL::STP::Evaluation::CMEval;
+
 Point TCoordinate::asVectorNotAbsolute(World &w){
   	Point v = c;
-	/*
+	
   	switch(side) {
   		case SBall:
-    			v.y *= w.sideBall(); break;
+    			v.y *= CMEval::sideBall(w); break;
 	  	case SStrong:
-	    		v.y *= w.sideStrong(); break;
+	    		v.y *= CMEval::sideStrong(w); break;
 	  	case SBallOrStrong:
-	    		v.y *= w.sideBallOrStrong(); break;
-	  	case SGui:
-	    		v *= w.side; break;
+	    		v.y *= CMEval::sideBallOrStrong(w); break;
 	  	case SAbsolute:
 	    	break;
   	}
-        */
+        
   	switch(origin) {
   		case OBall:
-    			v += w.ball().position(); break;
+    			v += w.ball().position(); 
+			break;
   		case OAbsolute:
     			break;
   	}

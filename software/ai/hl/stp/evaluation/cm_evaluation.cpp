@@ -13,14 +13,26 @@
 #include <algorithm>
 
 using namespace AI::HL::W;
+using namespace AI::HL::STP::Evaluation::CMEval;
 
-namespace {
+namespace CMEval{
 
-	/**
-  	 * CMDragons Obstacle Computations
-	 */
+	int sideBall(World &world){
+	  	return (std::fabs(world.ball().position().y) > world.field().centre_circle_radius() ? 1 : -1);
+	}
 
-	// Finds the nearest teammate/opponent to a point on the field.
+	int sideStrong(World &world){
+	  	double center = 0.0;
+	  	for(int i=0; i <static_cast<int>(world.enemy_team().size()) ; i++)
+	    		center += world.enemy_team().get(i)->position().y;
+	  	return (center > 0.0 ? 1 : -1);
+	}
+
+	int sideBallOrStrong(World &world){
+	  	if (std::fabs(world.ball().position().y) > world.field().goal_width()/2) return sideBall(world);
+	  	else return sideStrong(world);
+	}
+
 	int nearest_teammate(World &world, Point p, double time){
 		int dist_i = -1;
 	  	double dist = 0;
@@ -49,13 +61,9 @@ namespace {
 	  	return dist_i;
 	}
 
-	// Obs methods return an obs_flag set to why a position or other
-  	// shape is not open.  Or zero if the position or shape is open
-  	//
-  	// obsLineNum() returns the number of obstacles on the line.
-  	//
-  	// obsBlocksShot() returns wether a point would block a shot right
-  	// now.
+	/**
+  	 * CMDragons Obstacle Computations
+	 */
 
 	int obsPosition(World &world, Point p, int obs_flags, double pradius, double time = -1){
 	  	int rv = 0;
@@ -192,7 +200,8 @@ namespace {
 	      			double dx = sqrt(radius * radius - d * d);
 	      
 	      			if ((p1 - pp).len() < dx) { 
-					first = p1; return OBS_OPPONENT(i); 
+					first = p1; 
+					return OBS_OPPONENT(i); 
 				} else {
 					first = pp + (p1 - pp).norm(dx);
 					rv = OBS_OPPONENT(i);
@@ -212,7 +221,8 @@ namespace {
 	      			double dx = sqrt(radius * radius - d * d);
 	      
 	      			if ((p1 - pp).len() < dx) { 
-					first = p1; return OBS_BALL; 
+					first = p1; 
+					return OBS_BALL; 
 				} else {
 					first = pp + (p1 - pp).norm(dx);
 					rv = OBS_BALL;
@@ -225,7 +235,8 @@ namespace {
 	  	// Defense Zones
 	  	if (obs_flags & OBS_THEIR_DZONE) {
 	    		if (obsPosition(world, p1, OBS_THEIR_DZONE, pradius, time)) {
-	      			first = p1; return OBS_THEIR_DZONE;
+	      			first = p1; 
+				return OBS_THEIR_DZONE;
 	    		}
 
 	    		Point i;
@@ -233,19 +244,22 @@ namespace {
 	    		i = intersection(p1, p2, Point(world.field().length()/2-world.field().defense_area_radius()-pradius, world.field().defense_area_stretch()/2+pradius),
 			     Point(world.field().length()/2-world.field().defense_area_radius()-pradius, -world.field().defense_area_stretch()/2-pradius));
 	    		if ((i - p1).dot(first - p1) > 0 && (i - first).dot(p1 - first) > 0) {
-	      			first = i; rv = OBS_THEIR_DZONE;
+	      			first = i; 
+				rv = OBS_THEIR_DZONE;
 	    		}
 
 	    		i = intersection(p1, p2, Point(world.field().length()/2-world.field().defense_area_radius()-pradius, world.field().defense_area_stretch()/2+pradius),
 			     Point(world.field().length()/2, world.field().defense_area_stretch()/2+pradius));
 	    		if ((i - p1).dot(first - p1) > 0 && (i - first).dot(p1 - first) > 0) {
-	      			first = i; rv = OBS_THEIR_DZONE;
+	      			first = i; 
+				rv = OBS_THEIR_DZONE;
 	    		}
 
 	    		i = intersection(p1, p2, Point(world.field().length()/2-world.field().defense_area_radius()-pradius, -world.field().defense_area_stretch()/2-pradius),
 			     Point(world.field().length()/2, -world.field().defense_area_stretch()/2-pradius));
 	    		if ((i - p1).dot(first - p1) > 0 && (i - first).dot(p1 - first) > 0) {
-	      			first = i; rv = OBS_THEIR_DZONE;
+	      			first = i; 
+				rv = OBS_THEIR_DZONE;
 	    		}
 	  	}
 
@@ -645,8 +659,8 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line_static(World &world, dou
   	y = (p1-p2).len();
   	// c1 = std::fabs(cosine(ball-p1,p2-p1));
   	// c2 = std::fabs(cosine(ball-p2,p1-p2));
-  	c1 = std::fabs(sin(vertex_angle(ball,p1,p2)));
-  	c2 = std::fabs(sin(vertex_angle(ball,p2,p1)));
+  	c1 = std::fabs(sin(vertex_angle(ball, p1, p2)));
+  	c2 = std::fabs(sin(vertex_angle(ball, p2, p1)));
   	o1 = bound(radius / c1, 0.0, y/2);
   	o2 = bound(radius / c2, 0.0, y/2);
 
@@ -858,12 +872,12 @@ Point AI::HL::STP::Evaluation::CMEvaluation::farthest(World &world, double time,
 }
 
 Point AI::HL::STP::Evaluation::CMEvaluation::findOpenPosition(World &world, Point p, Point toward, int obs_flags, double pradius){
-  	obs_flags = obsLine(world, p, toward, obs_flags, Robot::MAX_RADIUS, -1);
+  	obs_flags = AI::HL::STP::Evaluation::CMEval::obsLine(world, p, toward, obs_flags, Robot::MAX_RADIUS, -1);
 	
   	Point x = p;
-
+	
   	while(1) {
-    		if (!obsPosition(world, x, obs_flags, pradius)) break;
+    		if (!AI::HL::STP::Evaluation::CMEval::obsPosition(world, x, obs_flags, pradius)) break;
     
     		if ((toward - x).len() < Robot::MAX_RADIUS) {
       			x = p; break; }
