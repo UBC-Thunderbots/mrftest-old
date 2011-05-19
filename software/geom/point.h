@@ -78,9 +78,9 @@ class Point {
 		/**
 		 * Returns a scaled normalized vector in the same direction as this Point.
 		 *
-		 * \param[in] l to be divided by len() for scaling the normalized vector.
+		 * \param[in] l the desired length of the resultant vector.
 		 *
-		 * \return a scaled normalized vector in the same direction as this Point, or a zero-length Point if this Point is zero.
+		 * \return a vector in the same direction as this Point and with length \p l, or a zero-length Point if this Point is zero.
 		 */
 		Point norm(double l) const __attribute__((warn_unused_result)) {
 			double nl = l / len();

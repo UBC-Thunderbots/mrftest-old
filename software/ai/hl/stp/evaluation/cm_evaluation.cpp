@@ -1,19 +1,22 @@
 #include "ai/hl/stp/evaluation/cm_evaluation.h"
+#include "ai/hl/util.h"
 #include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/evaluation/pass.h"
-#include "ai/hl/util.h"
 #include "geom/angle.h"
-#include "util/kalman/kalman.h"
-#include "geom/util.h"
 #include "geom/cm_util.h"
-#include "util/dprint.h"
-#include "util/param.h"
-#include "util/time.h"
-
+#include "geom/util.h"
+#include "util/algorithm.h"
 #include <algorithm>
+#include <cstddef>
+#include <utility>
 
 using namespace AI::HL::W;
 
+namespace {
+	const double DEFEND_LOOKAHEAD = 1.0;
+	const double DEFEND_LOOK_STEP = 1.0 / TIMESTEPS_PER_SECOND;
+	const double FRAME_PERIOD = 1.0 / TIMESTEPS_PER_SECOND;
+}
 
 int AI::HL::STP::Evaluation::side_ball(World &world){
   	return (std::fabs(world.ball().position().y) > world.field().centre_circle_radius() ? 1 : -1);
@@ -21,7 +24,7 @@ int AI::HL::STP::Evaluation::side_ball(World &world){
 
 int AI::HL::STP::Evaluation::side_strong(World &world){
   	double center = 0.0;
-  	for(int i=0; i <static_cast<int>(world.enemy_team().size()) ; i++)
+  	for(std::size_t i=0; i <world.enemy_team().size() ; i++)
     		center += world.enemy_team().get(i)->position().y;
   	return (center > 0.0 ? 1 : -1);
 }
@@ -35,10 +38,10 @@ int AI::HL::STP::Evaluation::nearest_teammate(World &world, Point p, double time
 	int dist_i = -1;
   	double dist = 0;
 
-  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) {
+  	for(std::size_t i=0; i<world.friendly_team().size(); i++) {
     		double d = (p - world.friendly_team().get(i)->position(time)).len();
     		if (dist_i < 0 || d < dist) {
-      			dist_i = i; dist = d;
+      			dist_i = static_cast<int>(i); dist = d;
     		}
   	}
 
@@ -49,10 +52,10 @@ int AI::HL::STP::Evaluation::nearest_opponent(World &world, Point p, double time
 	int dist_i = -1;
   	double dist = 0;
 
-  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
+  	for(std::size_t i=0; i<world.enemy_team().size(); i++) {
     		double d = (p - world.enemy_team().get(i)->position(time)).len();
     		if (dist_i < 0 || d < dist) {
-      			dist_i = i; dist = d;
+      			dist_i = static_cast<int>(i); dist = d;
     		}
   	}
 
@@ -63,11 +66,11 @@ int AI::HL::STP::Evaluation::nearest_opponent(World &world, Point p, double time
  * CMDragons Obstacle Computations
  */
 
-int AI::HL::STP::Evaluation::obs_position(World &world, Point p, int obs_flags, double pradius, double time){
+int AI::HL::STP::Evaluation::obs_position(World &world, Point p, unsigned int obs_flags, double pradius, double time){
   	int rv = 0;
 
   	// Teammates
-  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) { 
+  	for(std::size_t i=0; i<world.friendly_team().size(); i++) { 
     		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
 
     		double radius = Robot::MAX_RADIUS + pradius; 
@@ -77,7 +80,7 @@ int AI::HL::STP::Evaluation::obs_position(World &world, Point p, int obs_flags, 
   	}
 
   	// Opponents
-  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
+  	for(std::size_t i=0; i<world.enemy_team().size(); i++) {
     		if (!(obs_flags & OBS_OPPONENT(i))) continue;
 
     		double radius = Robot::MAX_RADIUS + pradius;
@@ -117,9 +120,9 @@ int AI::HL::STP::Evaluation::obs_position(World &world, Point p, int obs_flags, 
   	return rv;
 }
 
-int AI::HL::STP::Evaluation::obs_line(World &world, Point p1, Point p2, int obs_flags, double pradius, double time){
+int AI::HL::STP::Evaluation::obs_line(World &world, Point p1, Point p2, unsigned int obs_flags, double pradius, double time){
   	// Teammates
-  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) { 
+  	for(std::size_t i=0; i<world.friendly_team().size(); i++) { 
     		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
 
     		double radius = Robot::MAX_RADIUS + pradius; 
@@ -130,7 +133,7 @@ int AI::HL::STP::Evaluation::obs_line(World &world, Point p1, Point p2, int obs_
   	}
 
   	// Opponents
-  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
+  	for(std::size_t i=0; i<world.enemy_team().size(); i++) {
     		if (!(obs_flags & OBS_OPPONENT(i))) continue;
 
     		double radius = Robot::MAX_RADIUS + pradius;
@@ -157,13 +160,13 @@ int AI::HL::STP::Evaluation::obs_line(World &world, Point p1, Point p2, int obs_
   	return obs_flags;
 }
 
-int AI::HL::STP::Evaluation::obs_line_first(World &world, Point p1, Point p2, int obs_flags, Point &first, double pradius, double time){
+int AI::HL::STP::Evaluation::obs_line_first(World &world, Point p1, Point p2, unsigned int obs_flags, Point &first, double pradius, double time){
   	int rv = 0;
 
   	first = p2;
 
   	// Teammates
-  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) { 
+  	for(std::size_t i=0; i<world.friendly_team().size(); i++) { 
     		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
 
     		double radius = Robot::MAX_RADIUS + pradius; 
@@ -185,7 +188,7 @@ int AI::HL::STP::Evaluation::obs_line_first(World &world, Point p1, Point p2, in
   	}
 
   	// Opponents
-  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
+  	for(std::size_t i=0; i<world.enemy_team().size(); i++) {
     		if (!(obs_flags & OBS_OPPONENT(i))) continue;
 
     		double radius = Robot::MAX_RADIUS + pradius; 
@@ -266,11 +269,11 @@ int AI::HL::STP::Evaluation::obs_line_first(World &world, Point p1, Point p2, in
   	return obs_flags;
 }
 
-int AI::HL::STP::Evaluation::obs_line_num(World &world, Point p1, Point p2, int obs_flags, double pradius, double time){
+int AI::HL::STP::Evaluation::obs_line_num(World &world, Point p1, Point p2, unsigned int obs_flags, double pradius, double time){
   	int count = 0;
 
   	// Teammates
-  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) { 
+  	for(std::size_t i=0; i<world.friendly_team().size(); i++) { 
     		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
 
     		double radius = Robot::MAX_RADIUS + pradius; 
@@ -281,7 +284,7 @@ int AI::HL::STP::Evaluation::obs_line_num(World &world, Point p1, Point p2, int 
   	}
 
   	// Opponents
-  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
+  	for(std::size_t i=0; i<world.enemy_team().size(); i++) {
     		if (!(obs_flags & OBS_OPPONENT(i))) continue;
 
     		double radius = Robot::MAX_RADIUS + pradius;
@@ -317,24 +320,20 @@ bool AI::HL::STP::Evaluation::obs_blocks_shot(World &world, Point p, double time
   	return (a * b) < 0;
 }
 
+namespace {
+	bool inside_bbox(Point bbox_min, Point bbox_max, Point p, double radius){
+		return((p.x+radius > bbox_min.x) && (p.y+radius > bbox_min.y) && (p.x-radius < bbox_max.x) && (p.y-radius < bbox_max.y));
+	}
 
-
-inline bool inside_bbox(Point bbox_min, Point bbox_max, Point p, double radius){
-  	return((p.x+radius > bbox_min.x) && (p.y+radius > bbox_min.y) && (p.x-radius < bbox_max.x) && (p.y-radius < bbox_max.y));
+	double diffangle_pos(double a1, double a2) {
+		double d = angle_mod(a1 - a2);
+		if (d < 0.0) d += 2 * M_PI;
+		return d;
+	}
 }
 
-static double diffangle_pos(double a1, double a2) {
-  	double d = angle_mod(a1 - a2);
-  	if (d < 0.0) d += 2 * M_PI;
-  	return d;
-}
-
-static int double_compare(const void *a, const void *b) {
-  	return (*((double *) a) > *((double *) b));	
-}
-
-bool AI::HL::STP::Evaluation::CMEvaluation::aim(World &world, double time, Point target, Point p2, Point p1, int obs_flags, Point pref_target_point, double pref_amount, Point &target_point, double &target_tolerance) {
-  	static struct _double_int { double d; int i; } a[MAX_TEAM_ROBOTS * 4];
+bool AI::HL::STP::Evaluation::CMEvaluation::aim(World &world, double time, Point target, Point p2, Point p1, unsigned int obs_flags, Point pref_target_point, double pref_amount, Point &target_point, double &target_tolerance) {
+  	static std::pair<double, int> a[MAX_TEAM_ROBOTS * 4];
   	int n = 0, count = 0;
   	double a_zero;
   	double a_end;
@@ -356,10 +355,10 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(World &world, double time, Point
   	if (pref_target_angle - a_end > 2 * M_PI - pref_target_angle)
     		pref_target_angle -= 2 * M_PI;
 
-  	a[n].d = 0.0; a[n++].i = 0; 
-  	a[n].d = a_end; a[n++].i = 0;
+  	a[n].first = 0.0; a[n++].second = 0; 
+  	a[n].first = a_end; a[n++].second = 0;
 
-  	for(int i=0; i<static_cast<int>(world.friendly_team().size()); i++) {
+  	for(std::size_t i=0; i<world.friendly_team().size(); i++) {
     		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
 
     		double width = Robot::MAX_RADIUS;
@@ -382,15 +381,15 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(World &world, double time, Point
     
     		if (obs.len() - width > maxdist) continue;
     
-    		if (a1 < a_end) { a[n].d = a1; a[n++].i = 1; } 
-    		if (a2 < a_end) { a[n].d = a2; a[n++].i = -1; }
+    		if (a1 < a_end) { a[n].first = a1; a[n++].second = 1; } 
+    		if (a2 < a_end) { a[n].first = a2; a[n++].second = -1; }
     		if (a1 >= a_end && a2 < a_end) { count++; }
     		if (a1 >= a_end && a2 >= a_end && a1 > a2) { count++; }
   	}
 
   	double width = Robot::MAX_RADIUS;
 
-  	for(int i=0; i<static_cast<int>(world.enemy_team().size()); i++) {
+  	for(std::size_t i=0; i<world.enemy_team().size(); i++) {
     		if (!(obs_flags & OBS_OPPONENT(i))) continue;
 
     		Point obs = world.enemy_team().get(i)->position(time) - target;
@@ -411,14 +410,14 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(World &world, double time, Point
     
    		if (obs.len() - width > maxdist) continue;
     
-    		if (a1 < a_end) { a[n].d = a1; a[n++].i = 1; } 
-    		if (a2 < a_end) { a[n].d = a2; a[n++].i = -1; }
+    		if (a1 < a_end) { a[n].first = a1; a[n++].second = 1; } 
+    		if (a2 < a_end) { a[n].first = a2; a[n++].second = -1; }
     		if (a1 >= a_end && a2 < a_end) { count++; }
     		if (a1 >= a_end && a2 >= a_end && a1 > a2) { count++; }
   	}
 
   	// Sort the angle array.
-  	qsort(a, n, sizeof(a[0]), &double_compare);
+	std::sort(a, a + n);
 
   	// Walk through the angle array finding the largest clear cone, and
   	// the closest clear cone to the preferred angle.
@@ -428,8 +427,8 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(World &world, double time, Point
   
   	for(int i=1; i<n; i++) {
     		if (!count) {
-      			double tol = (a[i].d - a[i-1].d) / 2.0;
-      			double ang = (a[i].d + a[i-1].d) / 2.0;
+      			double tol = (a[i].first - a[i-1].first) / 2.0;
+      			double ang = (a[i].first + a[i-1].first) / 2.0;
       			double ang_diff = std::max(0.0, std::fabs(angle_mod(ang - pref_target_angle))-tol);
 
       			if (!found_one || tol > best_tol) {
@@ -443,7 +442,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(World &world, double time, Point
       			found_one = true;
     		}
     
-    		count += a[i].i;
+    		count += a[i].second;
   	}
 
   	// If there wasn't a clear angle we use the preferred angle and
@@ -523,7 +522,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_point(World &world, double ti
   	return true;
 }
 
-bool AI::HL::STP::Evaluation::CMEvaluation::defend_line(World &world, double time, Point g1, Point g2, double distmin, double distmax, double dist_off_ball, bool &intercept, int obs_flags, Point pref_point, double pref_amount, Point &target, Point &velocity){
+bool AI::HL::STP::Evaluation::CMEvaluation::defend_line(World &world, double time, Point g1, Point g2, double distmin, double distmax, double dist_off_ball, bool &intercept, unsigned int obs_flags, Point pref_point, double pref_amount, Point &target, Point &velocity){
   	Point ball = world.ball().position(time);
   	Point g = (g1 + g2) / 2.0;
 
@@ -541,7 +540,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line(World &world, double tim
   	double ang = angle_mod((ball - g + gperp.norm(distmin)).orientation() - gperp.orientation());
   	double balldist = std::fabs(offset_to_line(g1, g2, ball));
 
-  	double dist = distmin + std::fabs(cos(ang)) * (distmax - distmin);
+  	double dist = distmin + std::fabs(std::cos(ang)) * (distmax - distmin);
 
   	if (dist > balldist - dist_off_ball) 
     		dist = balldist - dist_off_ball;
@@ -657,10 +656,10 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line_static(World &world, dou
   	y = (p1-p2).len();
   	// c1 = std::fabs(cosine(ball-p1,p2-p1));
   	// c2 = std::fabs(cosine(ball-p2,p1-p2));
-  	c1 = std::fabs(sin(vertex_angle(ball, p1, p2)));
-  	c2 = std::fabs(sin(vertex_angle(ball, p2, p1)));
-  	o1 = bound(radius / c1, 0.0, y/2);
-  	o2 = bound(radius / c2, 0.0, y/2);
+  	c1 = std::fabs(std::sin(vertex_angle(ball, p1, p2)));
+  	c2 = std::fabs(std::sin(vertex_angle(ball, p2, p1)));
+  	o1 = clamp(radius / c1, 0.0, y/2);
+  	o2 = clamp(radius / c2, 0.0, y/2);
 
   	// correct the endpoint positions
   	p1 += (p2 - p1).norm(o1);
@@ -684,8 +683,8 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line_static(World &world, dou
 }
 
 bool AI::HL::STP::Evaluation::CMEvaluation::defend_line_intercept(World &world, double time, Point g1, Point g2, double dist, Point &target, double &variance){
-  	static double lookahead = P_DefendLookahead;
-  	static double lookstep = P_DefendLookstep;
+  	static double lookahead = DEFEND_LOOKAHEAD;
+  	static double lookstep = DEFEND_LOOK_STEP;
   	static double radius = 90.0; // Should be a parameter
 
   	Point gline = (g2 - g1);
@@ -763,8 +762,8 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_point_static(World &world, do
 }
 
 bool AI::HL::STP::Evaluation::CMEvaluation::defend_point_intercept(World &world, double time, Point point, double radius, Point &target, double &variance){
-  	static double lookahead = P_DefendLookahead;
-  	static double lookstep = P_DefendLookstep;
+  	static double lookahead = DEFEND_LOOKAHEAD;
+  	static double lookstep = DEFEND_LOOK_STEP;
 
   	Point ball = world.ball().position(time);
   	Point ball_vel = world.ball().velocity(time);
@@ -818,22 +817,18 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_point_intercept(World &world,
     		*/
   	}
   
-  	if (isinf(variance)) return false;
-  	else return true;
-	
-	return true;
+	return !isinf(variance);
 }
 
-Point AI::HL::STP::Evaluation::CMEvaluation::farthest(World &world, double time, int obs_flags, Point bbox_min,Point bbox_max, Point dir){
+Point AI::HL::STP::Evaluation::CMEvaluation::farthest(World &world, double time, unsigned int obs_flags, Point bbox_min,Point bbox_max, Point dir){
   	double x,max_x;
   	Point obs,max_obs;
   	double width;
-  	int i;
 
   	max_x = 0;
   	max_obs = Point(0,0);
 
-  	for(i=0; i<static_cast<int>(world.friendly_team().size()); i++){
+  	for(std::size_t i=0; i<world.friendly_team().size(); i++){
     		if(obs_flags & OBS_TEAMMATE(i)){
       			width = Robot::MAX_RADIUS;
       			obs = world.friendly_team().get(i)->position(time);
@@ -850,7 +845,7 @@ Point AI::HL::STP::Evaluation::CMEvaluation::farthest(World &world, double time,
 
   	width = Robot::MAX_RADIUS;
 
-  	for(i=0; i<static_cast<int>(world.enemy_team().size()); i++){
+  	for(std::size_t i=0; i<world.enemy_team().size(); i++){
     		if(obs_flags & OBS_OPPONENT(i)){
       			obs = world.enemy_team().get(i)->position(time);
 
@@ -869,7 +864,7 @@ Point AI::HL::STP::Evaluation::CMEvaluation::farthest(World &world, double time,
   	return(max_obs);
 }
 
-Point AI::HL::STP::Evaluation::CMEvaluation::find_open_position(World &world, Point p, Point toward, int obs_flags, double pradius){
+Point AI::HL::STP::Evaluation::CMEvaluation::find_open_position(World &world, Point p, Point toward, unsigned int obs_flags, double pradius){
   	obs_flags = obs_line(world, p, toward, obs_flags, Robot::MAX_RADIUS, -1);
 	
   	Point x = p;
@@ -886,7 +881,7 @@ Point AI::HL::STP::Evaluation::CMEvaluation::find_open_position(World &world, Po
   	return x;
 }
 
-Point AI::HL::STP::Evaluation::CMEvaluation::find_open_position_and_yield(World &world, Point p, Point toward, int obs_flags){
+Point AI::HL::STP::Evaluation::CMEvaluation::find_open_position_and_yield(World &world, Point p, Point toward, unsigned int obs_flags){
   	p = find_open_position(world, p, toward, obs_flags, Robot::MAX_RADIUS);
 	
 	// cm player type are either goalie or active

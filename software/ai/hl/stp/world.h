@@ -3,8 +3,6 @@
 
 #include "ai/hl/world.h"
 
-#include <vector>
-
 namespace AI {
 	namespace HL {
 		namespace STP {

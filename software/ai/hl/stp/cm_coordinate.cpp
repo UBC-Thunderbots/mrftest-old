@@ -20,16 +20,15 @@
     including MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   ------------------------------------------------------------------------- */
 
-#include <stdio.h>
-#include <cmath>
-
-#include "ai/hl/world.h"
-#include "ai/hl/util.h"
 #include "ai/hl/stp/cm_coordinate.h"
+#include "ai/hl/util.h"
+#include "ai/hl/world.h"
 #include "ai/hl/stp/evaluation/cm_evaluation.h"
 #include "geom/angle.h"
-#include "geom/util.h"
 #include "geom/cm_util.h"
+#include "geom/util.h"
+#include <cmath>
+#include <cstdio>
 
 using AI::HL::STP::TCoordinate;
 using AI::HL::STP::TRegion;
@@ -41,31 +40,31 @@ Point TCoordinate::as_vector_not_absolute(World &w){
   	Point v = c;
 	
   	switch(side) {
-  		case SBall:
+  		case SType::BALL:
     			v.y *= Evaluation::side_ball(w); 
 			break;
-	  	case SStrong:
+	  	case SType::STRONG:
 	    		v.y *= Evaluation::side_strong(w); 
 			break;
-	  	case SBallOrStrong:
+	  	case SType::BALL_OR_STRONG:
 	    		v.y *= Evaluation::side_ball_or_strong(w); 
 			break;
-	  	case SAbsolute:
+	  	case SType::ABSOLUTE:
 	    	break;
   	}
         
   	switch(origin) {
-  		case OBall:
+		case OType::BALL:
     			v += w.ball().position(); 
 			break;
-  		case OAbsolute:
+		case OType::ABSOLUTE:
     			break;
   	}
   
   	if (!dynamic) {
     		c = v;
-    		origin = OAbsolute;
-    		side = SAbsolute;
+    		origin = OType::ABSOLUTE;
+    		side = SType::ABSOLUTE;
     		absolute = true;
   	}
   
@@ -74,30 +73,28 @@ Point TCoordinate::as_vector_not_absolute(World &w){
 
 Point TRegion::center(World &w){
   	switch(type) {
-  		case Rectangle: 
+  		case Type::RECTANGLE: 
     			return (p[0].as_vector(w) + p[1].as_vector(w)) / 2.0;
 
-  		case Circle: 
-  		default:
+  		case Type::CIRCLE: 
     			return p[0].as_vector(w);
   	}
 }
 
 Point TRegion::sample(World &w){
   	switch(type) {
-  		case Rectangle: {
+  		case Type::RECTANGLE: {
     			Point v0 = p[0].as_vector(w);
     			Point v1 = p[1].as_vector(w);
-    			double w = (std::rand() / RAND_MAX * 2 * radius) - radius;
-    			double l = std::rand() / RAND_MAX * (v0 - v1).len();
+    			double w = (std::rand() / static_cast<double>(RAND_MAX) * 2 * radius) - radius;
+    			double l = std::rand() / static_cast<double>(RAND_MAX) * (v0 - v1).len();
 
     			return v0 + (v1 - v0).norm(l) + (v1 - v0).perp().norm(w);
   		}
 
-  		case Circle: 
-  		default: {
-    			double r = sqrt(std::rand() / RAND_MAX) * radius;
-    			double a = std::rand() / RAND_MAX * 2 * M_PI;
+  		case Type::CIRCLE: {
+    			double r = std::sqrt(std::rand() / static_cast<double>(RAND_MAX)) * radius;
+    			double a = std::rand() / static_cast<double>(RAND_MAX) * 2 * M_PI;
 
     			return p[0].as_vector(w) + Point(r, 0).rotate(a);
   		}
@@ -107,18 +104,17 @@ Point TRegion::sample(World &w){
 
 Point TRegion::center_velocity(World &w){
   	switch(type) {
-  		case Rectangle:
+  		case Type::RECTANGLE:
     			return (p[0].get_velocity(w) + p[1].get_velocity(w)) / 2.0;
 
-  		case Circle: 
-  		default:
+  		case Type::CIRCLE: 
     			return p[0].get_velocity(w);
   	}
 }
 
 void TRegion::diagonal(World &w, Point x, Point &d1, Point &d2){
   	switch(type) {
-  		case Rectangle: {
+  		case Type::RECTANGLE: {
     			Point v0 = p[0].as_vector(w);
     			Point v1 = p[1].as_vector(w);
     			Point c = center(w);
@@ -141,8 +137,8 @@ void TRegion::diagonal(World &w, Point x, Point &d1, Point &d2){
     			break;
   		}
 
-  		case Circle:
-  		default: {
+  		case Type::CIRCLE:
+  		{
     			Point center = p[0].as_vector(w);
     			d1 = center + (x - center).perp().norm(radius);
     			d2 = center - (x - center).perp().norm(radius);
@@ -154,17 +150,15 @@ void TRegion::diagonal(World &w, Point x, Point &d1, Point &d2){
 
 bool TRegion::in_region(World &w, Point x){
   	switch(type) {
-  		case Rectangle: {
+  		case Type::RECTANGLE: {
     			Point v0 = p[0].as_vector(w);
     			Point v1 = p[1].as_vector(w);
 
     			return ((v0 - v1).dot(x - v1) > 0 && (v1 - v0).dot(x - v0) > 0 && std::fabs(distance_to_line(v0, v1, x)) < radius);
 
   		}
-  		case Circle: 
-  		default:
+  		case Type::CIRCLE: 
     		return (x - center(w)).len() < radius;
   	}
 }
-
 

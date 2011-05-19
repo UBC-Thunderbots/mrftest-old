@@ -14,16 +14,6 @@ namespace {
 	}
 }
 
-double bound(double x, double low, double high) {
-	if (x < low) {
-		x = low;
-	}
-	if (x > high) {
-		x = high;
-	}
-	return x;
-}
-
 double distance_to_line(Point x0, Point x1, Point p) {
 	Point x;
 	double t;

@@ -1,12 +1,9 @@
 #ifndef AI_HL_STP_EVALUATION_CM_EVALUATION_H
 #define AI_HL_STP_EVALUATION_CM_EVALUATION_H
 
-#include "ai/hl/world.h"
-#include "ai/hl/stp/play/play.h"
-#include "util/cacheable.h"
-#include "util/param.h"
 #include "ai/hl/stp/cm_coordinate.h"
-
+#include "ai/hl/stp/world.h"
+#include "util/timestep.h"
 #include <vector>
 
 #define MAX_TEAM_ROBOTS 5
@@ -14,34 +11,24 @@
 //==== Obstacle Flags ================================================//
 
 // Standard Obstacles
-#define OBS_BALL         (1 << 0)
-#define OBS_WALLS        (1 << 1)
-#define OBS_THEIR_DZONE  (1 << 2)
-#define OBS_OUR_DZONE    (1 << 3)
-#define OBS_TEAMMATE(id) (1 << (4 + id))
-#define OBS_OPPONENT(id) (1 << (4 + MAX_TEAM_ROBOTS + id))
-#define OBS_TEAMMATES    ( ((1 << MAX_TEAM_ROBOTS) - 1) << 4)
-#define OBS_OPPONENTS    ( ((1 << MAX_TEAM_ROBOTS) - 1) << 4 + MAX_TEAM_ROBOTS)
+#define OBS_BALL         (1U << 0)
+#define OBS_WALLS        (1U << 1)
+#define OBS_THEIR_DZONE  (1U << 2)
+#define OBS_OUR_DZONE    (1U << 3)
+#define OBS_TEAMMATE(id) (1U << (4 + (id)))
+#define OBS_OPPONENT(id) (1U << (4 + MAX_TEAM_ROBOTS + (id)))
+#define OBS_TEAMMATES    (((1U << MAX_TEAM_ROBOTS) - 1) << 4)
+#define OBS_OPPONENTS    (((1U << MAX_TEAM_ROBOTS) - 1) << 4 + MAX_TEAM_ROBOTS)
 
-#define OBS_EVERYTHING (~ ((int) 0))
+#define OBS_EVERYTHING (~0U)
 #define OBS_EVERYTHING_BUT_ME(id) (OBS_EVERYTHING & (~(OBS_TEAMMATE(id))))
 #define OBS_EVERYTHING_BUT_US (OBS_EVERYTHING & (~(OBS_TEAMMATES)))
 #define OBS_EVERYTHING_BUT_BALL (OBS_EVERYTHING & (~(OBS_BALL)))
-
-//==== Miscellaneous =================================================//
-
-/* Frame time and latencies */
-#define FRAME_RATE    15.0
-#define FRAME_PERIOD  (1.0 / FRAME_RATE)
-
-#define P_DefendLookahead 1.0
-#define P_DefendLookstep  FRAME_PERIOD
 
 namespace AI {
 	namespace HL {
 		namespace STP {
 			namespace Evaluation {
-				
 				/**
 				 * HL World evaluation ported from CMDragon world.cc
 				 */
@@ -75,22 +62,21 @@ namespace AI {
 				 * Obs methods return an obs_flag set to why a position or other
 				 * shape is not open.  Or zero if the position or shape is open
 				 */
-				int obs_position(World &world, Point p, int obs_flags, double pradius, double time = -1);
+				int obs_position(World &world, Point p, unsigned int obs_flags, double pradius, double time = -1);
 
-				int obs_line(World &world, Point p1, Point p2, int obs_flags, double pradius, double time);
+				int obs_line(World &world, Point p1, Point p2, unsigned int obs_flags, double pradius, double time);
 
-				int obs_line_first(World &world, Point p1, Point p2, int obs_flags, Point &first, double pradius, double time = -1);
+				int obs_line_first(World &world, Point p1, Point p2, unsigned int obs_flags, Point &first, double pradius, double time = -1);
 
 				/**
 				 * returns number of obstacles on the line
 				 */
-				int obs_line_num(World &world, Point p1, Point p2, int obs_flags, double pradius, double time = -1);
+				int obs_line_num(World &world, Point p1, Point p2, unsigned int obs_flags, double pradius, double time = -1);
 
 				/**
 				 * returns true if point p will block a shot at time 
 				 */
 				bool obs_blocks_shot(World &world, Point p, double time);
-				
 				
 				/**
 				 * Evaluation functions ported from CMDragon evaluation.cc
@@ -113,12 +99,12 @@ namespace AI {
 						 * aim() should be guaranteed not to return false if obs_flags is 0.
 						 *
 						 */
-					  	bool aim(World &world, double time, Point target, Point r2, Point r1, int obs_flags, Point pref_target_point, double pref_amount, Point &target_point, double &target_tolerance);
+					  	bool aim(World &world, double time, Point target, Point r2, Point r1, unsigned int obs_flags, Point pref_target_point, double pref_amount, Point &target_point, double &target_tolerance);
 
 						/**
 						 * aim() but with pref_target_point set to center of the two aiming vectors and obs_flags set to 0
 						 */
-					  	bool aim(World &world, double time, Point target, Point r2, Point r1, int obs_flags, Point &target_point, double &target_tolerance) {
+					  	bool aim(World &world, double time, Point target, Point r2, Point r1, unsigned int obs_flags, Point &target_point, double &target_tolerance) {
 					    		return aim(world, time, target, r2, r1, obs_flags, ((r2 + r1) / 2.0), 0.0, target_point, target_tolerance);
 					  	}
 						/**
@@ -150,7 +136,7 @@ namespace AI {
 						 * trying to intercept the ball.
 						 *
 						 */
-					  	bool defend_line(World &world, double time, Point g1, Point g2, double distmin, double distmax, double dist_off_ball, bool &intercept, int obs_flags, Point pref_point, double pref_amount, Point &target, Point &velocity);
+					  	bool defend_line(World &world, double time, Point g1, Point g2, double distmin, double distmax, double dist_off_ball, bool &intercept, unsigned int obs_flags, Point pref_point, double pref_amount, Point &target, Point &velocity);
 
 					  	bool defend_line(World &world, double time, Point g1, Point g2, double distmin, double distmax, double dist_off_ball, bool &intercept, Point &target, Point &velocity) {
 					    		return defend_line(world, time, g1, g2, distmin, distmax, dist_off_ball, intercept, 0, Point(), 0.0, target, velocity);
@@ -197,21 +183,21 @@ namespace AI {
 						/**
 						 * finds the furthest point of a robot in a direction
 						 */
-					  	Point farthest(World &world, double time, int obs_flags, Point bbox_min, Point bbox_max, Point dir);
+					  	Point farthest(World &world, double time, unsigned int obs_flags, Point bbox_min, Point bbox_max, Point dir);
 						
 						/**
 						 * finds an open position
 						 */
-					  	Point find_open_position(World &world, Point p, Point toward, int obs_flags, double pradius = Robot::MAX_RADIUS);
+					  	Point find_open_position(World &world, Point p, Point toward, unsigned int obs_flags, double pradius = Robot::MAX_RADIUS);
 						/**
 						 * finds an open position and yield
 						 */
-					  	Point find_open_position_and_yield(World &world, Point p, Point toward, int obs_flags);
+					  	Point find_open_position_and_yield(World &world, Point p, Point toward, unsigned int obs_flags);
 				};
 
 				class CMEvaluationPosition {
 					public:
-					  	typedef double (*EvalFn)(World &world, const Point p, int obs_flags, double &a);
+					  	typedef double (*EvalFn)(World &world, const Point p, unsigned int obs_flags, double &a);
 
 					  	TRegion region;
 
@@ -219,7 +205,7 @@ namespace AI {
 					  	// Function
 					  	EvalFn eval;
 
-					  	int obs_flags;
+					  	unsigned int obs_flags;
 
 					  	double last_updated;
 

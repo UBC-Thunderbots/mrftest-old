@@ -4,11 +4,6 @@
 #include "geom/point.h"
 
 /*
- * bound x to low and high 
- */
-double bound(double x, double low, double high);
-
-/*
  * returns distance from point p to line x0-x1
  */
 double distance_to_line(Point x0, Point x1, Point p);

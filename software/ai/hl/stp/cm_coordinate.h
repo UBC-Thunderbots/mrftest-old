@@ -23,11 +23,11 @@
 #ifndef AI_HL_STP_CM_COORDINATE_H
 #define AI_HL_STP_CM_COORDINATE_H
 
-#include "ai/hl/world.h"
 #include "ai/hl/util.h"
+#include "ai/hl/world.h"
 #include "geom/angle.h"
-#include "geom/util.h"
 #include "geom/cm_util.h"
+#include "geom/util.h"
 
 namespace AI {
 	namespace HL {
@@ -37,45 +37,36 @@ namespace AI {
 			 */
 			class TCoordinate {
 				public:
-			  		enum otype { OAbsolute, OBall };
-			  		enum stype { SAbsolute, SBall, SStrong, SBallOrStrong};
+			  		enum class OType {
+						ABSOLUTE,
+						BALL,
+					};
+
+			  		enum class SType {
+						ABSOLUTE,
+						BALL,
+						STRONG,
+						BALL_OR_STRONG,
+					};
+			  
+			  		TCoordinate(double x, double y, SType side_ = SType::ABSOLUTE, OType origin_ = OType::ABSOLUTE, bool dynamic_ = false);
+
+			  		TCoordinate(Point p = Point(), SType side_ = SType::ABSOLUTE, OType origin_ = OType::ABSOLUTE, bool dynamic_ = false);
+
+			  		Point as_vector(AI::HL::W::World &w);
+
+			  		double as_direction(AI::HL::W::World &w);
+
+			  		Point get_velocity(AI::HL::W::World &w);
 
 				private:
-			  		otype origin;
-			  		stype side;
+			  		Point c;
+			  		SType side;
+			  		OType origin;
 			  		bool dynamic;
 			  		bool absolute;
 
-			  		Point c;
-
 			  		Point as_vector_not_absolute(AI::HL::W::World &w);
-			  
-				public:
-			  		TCoordinate(double x, double y, stype _side = SAbsolute, otype _origin = OAbsolute, bool _dynamic = false) {
-						c = Point(x, y);
-			    			side = _side; origin = _origin; dynamic = _dynamic; 
-			    			absolute = (origin == OAbsolute && side == SAbsolute); 
-					}
-
-			  		TCoordinate(Point _p = Point(0, 0), stype _side = SAbsolute, otype _origin = OAbsolute, bool _dynamic = false) {
-			    			c = _p;
-			    			side = _side; origin = _origin; dynamic = _dynamic; 
-			    			absolute = (origin == OAbsolute && side == SAbsolute); 
-					}
-
-			  		Point as_vector(AI::HL::W::World &w) {
-			    			if (absolute) return c;
-			    			else return as_vector_not_absolute(w);
-			  		}
-
-			  		double as_direction(AI::HL::W::World &w) {
-			    			return as_vector(w).orientation(); 
-					}
-
-			  		Point get_velocity(AI::HL::W::World &w) {
-			    			if (dynamic && origin == OBall) return w.ball().velocity();
-			    			else return Point(0, 0); 
-					}
 			};
 
 
@@ -83,29 +74,12 @@ namespace AI {
 			 * A Region can be either a circle (can also be a point, which is a circle with 0 radius) or a rectangle
 			 */
 			class TRegion {
-				private:
-			  		enum { Circle,  Rectangle } type;
-			  
-			  		TCoordinate p[2];
-			  
-			  		double radius;
-			  
 				public:
-			  		TRegion() { 
-						type = Circle; 
-						radius = 0; // point
-					} 
-			  		TRegion(TCoordinate p1, TCoordinate p2, double _radius) {
-			    			type = Rectangle; 
-						p[0] = p1; 
-						p[1] = p2; 
-						radius = _radius; 
-					}
-			  		TRegion(TCoordinate p1, double _radius) {
-			    			type = Circle; 
-						p[0] = p1; 
-						radius = _radius; 
-					}
+			  		TRegion();
+
+			  		TRegion(TCoordinate p1, TCoordinate p2, double radius);
+
+			  		TRegion(TCoordinate p1, double radius);
 					
 					/**
 			 		 * returns the center of the region
@@ -126,8 +100,60 @@ namespace AI {
 			 		 */
 			  		bool in_region(AI::HL::W::World &w, Point p);
 
-			};		
+				private:
+			  		enum class Type {
+						CIRCLE,
+						RECTANGLE,
+					};
+					
+					Type type;
+			  
+			  		TCoordinate p[2];
+			  
+			  		double radius;
+			};
 		}
 	}
 }
+
+inline AI::HL::STP::TCoordinate::TCoordinate(double x, double y, SType side_, OType origin_, bool dynamic_) : c(x, y), side(side_), origin(origin_), dynamic(dynamic_), absolute(origin == OType::ABSOLUTE && side == SType::ABSOLUTE) {
+}
+
+inline AI::HL::STP::TCoordinate::TCoordinate(Point p, SType side_, OType origin_, bool dynamic_) : c(p), side(side_), origin(origin_), dynamic(dynamic_), absolute(origin == OType::ABSOLUTE && side == SType::ABSOLUTE) {
+}
+
+inline Point AI::HL::STP::TCoordinate::as_vector(AI::HL::W::World &w) {
+	if (absolute) {
+		return c;
+	} else {
+		return as_vector_not_absolute(w);
+	}
+}
+
+inline double AI::HL::STP::TCoordinate::as_direction(AI::HL::W::World &w) {
+	return as_vector(w).orientation(); 
+}
+
+inline Point AI::HL::STP::TCoordinate::get_velocity(AI::HL::W::World &w) {
+	if (dynamic && origin == OType::BALL) {
+		return w.ball().velocity();
+	} else {
+		return Point();
+	}
+}
+
+inline AI::HL::STP::TRegion::TRegion() : type(Type::CIRCLE), radius(0) {
+	// This is actually a point.
+}
+
+inline AI::HL::STP::TRegion::TRegion(TCoordinate p1, TCoordinate p2, double radius) : type(Type::RECTANGLE), radius(radius) {
+	p[0] = p1;
+	p[1] = p2;
+}
+
+inline AI::HL::STP::TRegion::TRegion(TCoordinate p1, double radius) : type(Type::CIRCLE), radius(radius) {
+	p[0] = p1;
+}
+
 #endif
+
