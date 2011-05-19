@@ -360,8 +360,6 @@ software/fw/ihex.h -text
 software/fw/main.cpp -text
 software/geom/angle.cpp -text
 software/geom/angle.h -text
-software/geom/cm_util.cpp -text
-software/geom/cm_util.h -text
 software/geom/point.cpp -text
 software/geom/point.h -text
 software/geom/rect.cpp -text

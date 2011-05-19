@@ -25,7 +25,6 @@
 #include "ai/hl/world.h"
 #include "ai/hl/stp/evaluation/cm_evaluation.h"
 #include "geom/angle.h"
-#include "geom/cm_util.h"
 #include "geom/util.h"
 #include <cmath>
 #include <cstdio>
@@ -154,7 +153,7 @@ bool TRegion::in_region(World &w, Point x){
     			Point v0 = p[0].as_vector(w);
     			Point v1 = p[1].as_vector(w);
 
-    			return ((v0 - v1).dot(x - v1) > 0 && (v1 - v0).dot(x - v0) > 0 && std::fabs(distance_to_line(v0, v1, x)) < radius);
+    			return ((v0 - v1).dot(x - v1) > 0 && (v1 - v0).dot(x - v0) > 0 && std::fabs(line_point_dist(x, v0, v1)) < radius);
 
   		}
   		case Type::CIRCLE: 

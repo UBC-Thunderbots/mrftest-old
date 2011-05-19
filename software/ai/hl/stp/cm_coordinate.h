@@ -26,7 +26,6 @@
 #include "ai/hl/util.h"
 #include "ai/hl/world.h"
 #include "geom/angle.h"
-#include "geom/cm_util.h"
 #include "geom/util.h"
 
 namespace AI {

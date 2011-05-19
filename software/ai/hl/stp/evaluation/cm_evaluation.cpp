@@ -3,7 +3,6 @@
 #include "ai/hl/stp/evaluation/offense.h"
 #include "ai/hl/stp/evaluation/pass.h"
 #include "geom/angle.h"
-#include "geom/cm_util.h"
 #include "geom/util.h"
 #include "util/algorithm.h"
 #include <algorithm>
@@ -128,7 +127,7 @@ int AI::HL::STP::Evaluation::obs_line(World &world, Point p1, Point p2, unsigned
     		double radius = Robot::MAX_RADIUS + pradius; 
 
     		Point p = world.friendly_team().get(i)->position(time);
-    		if ((closest_lineseg_point(p1, p2, p) - p).len() > radius)
+    		if ((closest_lineseg_point(p, p1, p2) - p).len() > radius)
       			obs_flags &= ~OBS_TEAMMATE(i);
   	}
 
@@ -139,7 +138,7 @@ int AI::HL::STP::Evaluation::obs_line(World &world, Point p1, Point p2, unsigned
     		double radius = Robot::MAX_RADIUS + pradius;
 
     		Point p = world.enemy_team().get(i)->position(time);
-    		if ((closest_lineseg_point(p1, p2, p) - p).len() > radius)
+    		if ((closest_lineseg_point(p, p1, p2) - p).len() > radius)
       		obs_flags &= ~OBS_OPPONENT(i);
   	}
 
@@ -148,7 +147,7 @@ int AI::HL::STP::Evaluation::obs_line(World &world, Point p1, Point p2, unsigned
     		double radius = Ball::RADIUS + pradius;
 
     		Point p = world.ball().position(time);
-    		if ((closest_lineseg_point(p1, p2, p) - p).len() > radius)
+    		if ((closest_lineseg_point(p, p1, p2) - p).len() > radius)
       			obs_flags &= ~OBS_BALL;
   	}
 
@@ -172,7 +171,7 @@ int AI::HL::STP::Evaluation::obs_line_first(World &world, Point p1, Point p2, un
     		double radius = Robot::MAX_RADIUS + pradius; 
 
     		Point p = world.friendly_team().get(i)->position(time);
-    		Point pp = closest_lineseg_point(p1, first, p);
+    		Point pp = closest_lineseg_point(p, p1, first);
     		double d = (pp - p).len();
 
     		if (d < radius) {
@@ -194,7 +193,7 @@ int AI::HL::STP::Evaluation::obs_line_first(World &world, Point p1, Point p2, un
     		double radius = Robot::MAX_RADIUS + pradius; 
 
     		Point p = world.enemy_team().get(i)->position(time);
-    		Point pp = closest_lineseg_point(p1, first, p);
+    		Point pp = closest_lineseg_point(p, p1, first);
     		double d = (pp - p).len();
 
     		if (d < radius) {
@@ -215,7 +214,7 @@ int AI::HL::STP::Evaluation::obs_line_first(World &world, Point p1, Point p2, un
     		double radius = Ball::RADIUS + pradius;
 
     		Point p = world.ball().position(time);;
-    		Point pp = closest_lineseg_point(p1, first, p);
+    		Point pp = closest_lineseg_point(p, p1, first);
     		double d = (pp - p).len();
 
     		if (d < radius) {
@@ -279,7 +278,7 @@ int AI::HL::STP::Evaluation::obs_line_num(World &world, Point p1, Point p2, unsi
     		double radius = Robot::MAX_RADIUS + pradius; 
 
     		Point p = world.friendly_team().get(i)->position(time);
-    		if ((closest_lineseg_point(p1, p2, p) - p).len() <= radius)
+    		if ((closest_lineseg_point(p, p1, p2) - p).len() <= radius)
       			count++;
   	}
 
@@ -290,7 +289,7 @@ int AI::HL::STP::Evaluation::obs_line_num(World &world, Point p1, Point p2, unsi
     		double radius = Robot::MAX_RADIUS + pradius;
 
     		Point p = world.enemy_team().get(i)->position(time);
-    		if ((closest_lineseg_point(p1, p2, p) - p).len() <= radius)
+    		if ((closest_lineseg_point(p, p1, p2) - p).len() <= radius)
       			count++;
   	}
 
@@ -299,7 +298,7 @@ int AI::HL::STP::Evaluation::obs_line_num(World &world, Point p1, Point p2, unsi
     		double radius = Ball::RADIUS + pradius;
 
     		Point p = world.ball().position(time);
-    		if ((closest_lineseg_point(p1, p2, p) - p).len() <= radius)
+    		if ((closest_lineseg_point(p, p1, p2) - p).len() <= radius)
       			count++;
   	}
 
@@ -612,9 +611,9 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_on_line(World &world, double 
   	Point targets[3];
   	double variance[2];
 
-  	targets[1] = closest_lineseg_point(p1, p2, ball);
+  	targets[1] = closest_lineseg_point(ball, p1, p2);
   	variance[1] = pow((p1 - p2).len(), 2.0) / 16;
-  	targets[2] = closest_lineseg_point(p1, p2, ball_dt);
+  	targets[2] = closest_lineseg_point(ball_dt, p1, p2);
 
   	if (intercept && defend_line_intercept(world, time, p1, p2, 0.0, targets[0], variance[0])) {
     		target = (targets[0] * variance[1] + targets[1] * variance[0]) / (variance[0] + variance[1]);
