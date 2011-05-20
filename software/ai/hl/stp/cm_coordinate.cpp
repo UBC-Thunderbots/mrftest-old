@@ -35,7 +35,7 @@ using namespace AI::HL::W;
 
 namespace Evaluation = AI::HL::STP::Evaluation;
 
-Point TCoordinate::as_vector_not_absolute(World &w){
+Point TCoordinate::as_vector_not_absolute(const World &w){
   	Point v = c;
 	
   	switch(side) {
@@ -70,7 +70,7 @@ Point TCoordinate::as_vector_not_absolute(World &w){
   	return v;
 }
 
-Point TRegion::center(World &w){
+Point TRegion::center(const World &w){
   	switch(type) {
   		case Type::RECTANGLE: 
     			return (p[0].as_vector(w) + p[1].as_vector(w)) / 2.0;
@@ -80,7 +80,7 @@ Point TRegion::center(World &w){
   	}
 }
 
-Point TRegion::sample(World &w){
+Point TRegion::sample(const World &w){
   	switch(type) {
   		case Type::RECTANGLE: {
     			Point v0 = p[0].as_vector(w);
@@ -101,7 +101,7 @@ Point TRegion::sample(World &w){
 	}
 }
 
-Point TRegion::center_velocity(World &w){
+Point TRegion::center_velocity(const World &w){
   	switch(type) {
   		case Type::RECTANGLE:
     			return (p[0].get_velocity(w) + p[1].get_velocity(w)) / 2.0;
@@ -111,7 +111,7 @@ Point TRegion::center_velocity(World &w){
   	}
 }
 
-void TRegion::diagonal(World &w, Point x, Point &d1, Point &d2){
+void TRegion::diagonal(const World &w, Point x, Point &d1, Point &d2){
   	switch(type) {
   		case Type::RECTANGLE: {
     			Point v0 = p[0].as_vector(w);
@@ -147,7 +147,7 @@ void TRegion::diagonal(World &w, Point x, Point &d1, Point &d2){
 
 }
 
-bool TRegion::in_region(World &w, Point x){
+bool TRegion::in_region(const World &w, Point x){
   	switch(type) {
   		case Type::RECTANGLE: {
     			Point v0 = p[0].as_vector(w);
