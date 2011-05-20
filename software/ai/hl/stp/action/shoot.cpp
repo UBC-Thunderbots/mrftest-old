@@ -4,6 +4,7 @@
 #include "ai/flags.h"
 #include "ai/hl/util.h"
 #include "geom/util.h"
+#include "geom/angle.h"
 #include "util/dprint.h"
 #include <cmath>
 #include <algorithm>
@@ -12,6 +13,11 @@ namespace {
 	DoubleParam alpha("Decay constant for the ball velocity", "STP/Action/shoot", 0.1, 0.0, 1.0);
 	
 	DoubleParam reduced_radius("reduced radius for calculating best shot", "STP/Action/shoot", 0.8, 0.0, 1.0);
+
+	DoubleParam shoot_threshold("Angle threshold (in degrees) that defines shoot accuracy, smaller is less accurate", "STP/Action/shoot", 20.0, -360.0, 360.0);
+
+	// previous value of the angle returned by calc_best_shot
+	double prev_best_angle = 0.0;
 }
 
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
@@ -56,19 +62,21 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 			
 	}
 
-	pivot(world, player, target.first);
 
 	double ori = (target.first - player->position()).orientation();
-	double ori_diff = fabs(ori - player->orientation());
+	double ori_diff = angle_diff(ori, player->orientation());
+	double accuracy_diff = ori_diff - (target.second / 2);
 
-	if (ori_diff > AI::HL::Util::shoot_accuracy) {
-		if (player->chicker_ready()) {
-			player->kick(10.0);
-			return true;
-		}
+
+	if (radians2degrees(accuracy_diff) < -shoot_threshold && accuracy_diff < prev_best_angle) {
+		player->autokick(10.0);
+		prev_best_angle = accuracy_diff;
+		return true;
+	} else {
+		pivot(world, player, target.first);
+		prev_best_angle = accuracy_diff;
+		return false;
 	}
-
-	return false;
 }
 
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Point target, double tol, double delta) {
