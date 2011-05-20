@@ -59,6 +59,10 @@ namespace AI {
 					double orientation(double delta = 0.0) const { return tpred.value(delta).first; }
 					Point velocity(double delta = 0.0) const { return Point(xpred.value(delta, 1).first, ypred.value(delta, 1).first); }
 					double avelocity(double delta = 0.0) const { return tpred.value(delta, 1).first; }
+					Point position_covariance(double delta = 0.0) const { return Point(xpred.value(delta).second, ypred.value(delta).second); }
+					double orientation_covariance(double delta = 0.0) const { return tpred.value(delta).second; }
+					Point velocity_covariance(double delta = 0.0) const { return Point(xpred.value(delta, 1).second, ypred.value(delta, 1).second); }
+					double avelocity_covariance(double delta = 0.0) const { return tpred.value(delta, 1).second; }
 					Visualizable::Colour visualizer_colour() const { return Visualizable::Colour(1.0, 0.0, 0.0); }
 					Glib::ustring visualizer_label() const { return Glib::ustring::format(pattern_); }
 					bool highlight() const { return false; }

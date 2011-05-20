@@ -54,12 +54,28 @@ Point Robot::velocity(double delta) const {
 	return Point(xpred.value(delta, 1).first, ypred.value(delta, 1).first);
 }
 
+Point Robot::position_covariance(double delta) const {
+	return Point(xpred.value(delta).second, ypred.value(delta).second);
+}
+
+Point Robot::velocity_covariance(double delta) const {
+	return Point(xpred.value(delta, 1).second, ypred.value(delta, 1).second);
+}
+
 double Robot::orientation(double delta) const {
 	return tpred.value(delta).first;
 }
 
 double Robot::avelocity(double delta) const {
 	return tpred.value(delta, 1).first;
+}
+
+double Robot::orientation_covariance(double delta) const {
+	return tpred.value(delta).second;
+}
+
+double Robot::avelocity_covariance(double delta) const {
+	return tpred.value(delta, 1).second;
 }
 
 unsigned int Robot::pattern() const {

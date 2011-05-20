@@ -11,7 +11,7 @@ namespace AI {
 	class Predictable {
 		public:
 			/**
-			 * Gets the predicted position of the object.
+			 * \brief Gets the predicted position of the object.
 			 *
 			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
 			 *
@@ -20,13 +20,31 @@ namespace AI {
 			virtual Point position(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 
 			/**
-			 * Gets the predicted velocity of the object.
+			 * \brief Gets the predicted velocity of the object.
 			 *
 			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
 			 *
 			 * \return the predicted velocity.
 			 */
 			virtual Point velocity(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
+
+			/**
+			 * \brief Gets the covariance of the predicted position of the object.
+			 *
+			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
+			 *
+			 * \return the covariance of the predicted position.
+			 */
+			virtual Point position_covariance(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
+
+			/**
+			 * \brief Gets the covariance of the predicted velocity of the object.
+			 *
+			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
+			 *
+			 * \return the covariance of the predicted velocity.
+			 */
+			virtual Point velocity_covariance(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 	};
 
 	/**
@@ -35,7 +53,7 @@ namespace AI {
 	class OrientationPredictable : public Predictable {
 		public:
 			/**
-			 * Gets the predicted orientation of the object.
+			 * \brief Gets the predicted orientation of the object.
 			 *
 			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
 			 *
@@ -44,13 +62,31 @@ namespace AI {
 			virtual double orientation(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 
 			/**
-			 * Gets the predicted angular velocity of the object.
+			 * \brief Gets the predicted angular velocity of the object.
 			 *
 			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
 			 *
 			 * \return the predicted angular velocity.
 			 */
 			virtual double avelocity(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
+
+			/**
+			 * \brief Gets the covariance of the predicted orientation of the object.
+			 *
+			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
+			 *
+			 * \return the covariance of the predicted orientation.
+			 */
+			virtual double orientation_covariance(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
+
+			/**
+			 * \brief Gets the covariance of the predicted angular velocity of the object.
+			 *
+			 * \param[in] delta the number of seconds forward or backward to predict, relative to the current time.
+			 *
+			 * \return the covariance of the predicted angular velocity.
+			 */
+			virtual double avelocity_covariance(double delta = 0.0) const __attribute__((warn_unused_result)) = 0;
 	};
 }
 

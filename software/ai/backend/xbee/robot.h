@@ -72,8 +72,12 @@ namespace AI {
 					Visualizable::Colour highlight_colour() const;
 					Point position(double delta = 0.0) const;
 					Point velocity(double delta = 0.0) const;
+					Point position_covariance(double delta = 0.0) const;
+					Point velocity_covariance(double delta = 0.0) const;
 					double orientation(double delta = 0.0) const;
 					double avelocity(double delta = 0.0) const;
+					double orientation_covariance(double delta = 0.0) const;
+					double avelocity_covariance(double delta = 0.0) const;
 					unsigned int pattern() const;
 					ObjectStore &object_store() const;
 					bool has_destination() const;
