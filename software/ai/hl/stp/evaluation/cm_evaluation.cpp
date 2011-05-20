@@ -1,7 +1,5 @@
 #include "ai/hl/stp/evaluation/cm_evaluation.h"
 #include "ai/hl/util.h"
-#include "ai/hl/stp/evaluation/offense.h"
-#include "ai/hl/stp/evaluation/pass.h"
 #include "geom/angle.h"
 #include "geom/util.h"
 #include "util/algorithm.h"
@@ -550,7 +548,7 @@ namespace {
 }
 
 bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time, Point target, Point p2, Point p1, unsigned int obs_flags, Point pref_target_point, double pref_amount, Point &target_point, double &target_tolerance) {
-  	std::pair<double, int> a[MAX_TEAM_ROBOTS * 4];
+  	std::vector< std::pair<double, int> > a (MAX_TEAM_ROBOTS * 4);
   	int n = 0, count = 0;
   	double a_zero;
   	double a_end;
@@ -634,7 +632,8 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
   	}
 
   	// Sort the angle array.
-	std::sort(a, a + n);
+	std::sort(a.begin(),a.end());
+	//std::sort(a, a + n);
 
   	// Walk through the angle array finding the largest clear cone, and
   	// the closest clear cone to the preferred angle.

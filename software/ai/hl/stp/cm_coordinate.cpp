@@ -157,7 +157,7 @@ bool TRegion::in_region(const World &w, Point x){
 
   		}
   		case Type::CIRCLE: 
-    		return (x - center(w)).len() < radius;
+    			return (x - center(w)).len() < radius;
   	}
 }
 

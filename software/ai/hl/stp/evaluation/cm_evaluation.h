@@ -2,12 +2,17 @@
 #define AI_HL_STP_EVALUATION_CM_EVALUATION_H
 
 #include "ai/hl/stp/cm_coordinate.h"
+#include "ai/hl/stp/coordinate.h"
+#include "ai/hl/stp/region.h"
 #include "ai/hl/stp/world.h"
 #include "util/timestep.h"
 #include <functional>
 #include <vector>
 
 #define MAX_TEAM_ROBOTS 5
+
+// this needs to be remeasured
+#define LATENCY_DELAY 0.100
 
 //==== Obstacle Flags ================================================//
 
