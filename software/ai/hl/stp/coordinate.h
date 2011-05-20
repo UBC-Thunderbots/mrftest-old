@@ -1,9 +1,8 @@
 #ifndef AI_HL_STP_COORDINATE_H
 #define AI_HL_STP_COORDINATE_H
 
+#include "geom/point.h"
 #include "ai/hl/stp/world.h"
-#include "ai/hl/stp/enemy.h"
-#include "ai/hl/stp/role.h"
 
 namespace AI {
 	namespace HL {
@@ -14,75 +13,57 @@ namespace AI {
 			 * For example, a location relative to a moving object.
 			 *
 			 * To evaluate the value of a coordinate, use the operator().
-			 * Coordinate A = Coordinate::relative(some_robot);
 			 * Point p = A(); // gives the point.
 			 *
 			 * Essentially this class is just a wrapper around a function object that returns a point.
 			 */
 			class Coordinate {
 				public:
+
 					/**
-					 * A function object returning a point.
-					 *
-					 * TODO: use proper tools like tr1::function
+					 * Determines the y-coordinate.
 					 */
-					class CoordinateData : public ByRef {
-						public:
-							CoordinateData() {}
-							~CoordinateData() {}
-							virtual Point evaluate() const = 0;
+					enum class YType {
+						/**
+						 * Use the normal coordinate system.
+						 */
+						ABSOLUTE,
+
+						/**
+						 * Ball is always up-direction
+						 */
+						BALL,
+
+						/**
+						 * Side with more of our players.
+						 */
+						MAJORITY,
 					};
 
 					/**
-					 * Default constructor, gives the origin.
+					 * Determines the origin.
 					 */
-					Coordinate();
+					enum class OriginType {
+						/**
+						 * Center of field.
+						 */
+						ABSOLUTE,
+
+						/**
+						 * Ball is origin.
+						 */
+						BALL,
+					};
 
 					/**
-					 * Copy constructor.
+					 * Implicit conversion.
 					 */
-					Coordinate(const Coordinate &coordinate) : data(coordinate.data) {
-					}
+					Coordinate(const Point& pos);
 
 					/**
-					 * Implicit convertion from a point to a coordinate.
+					 * Main constructor
 					 */
-					Coordinate(const Point &pos);
-
-					/**
-					 * Fixed coordinate;
-					 */
-					static Coordinate fixed(const Point &pos);
-
-					/**
-					 * Flips the y coordinate so that the ball y-coordinate is positive.
-					 */
-					static Coordinate ball_up(const Ball &ball, const Point &pos);
-
-					/**
-					 * Translate and rotate to enemy coordinate.
-					 */
-					static Coordinate relative(const Enemy::Ptr enemy, const Point &off);
-
-					/**
-					 * Translate and rotate to player coordinate.
-					 */
-					static Coordinate relative(const Role::Ptr role, const Point &off);
-
-					/**
-					 * Just an offset to a ball (Do not rotate coordinate).
-					 */
-					static Coordinate offset(const Ball &ball, const Point &off);
-
-					/**
-					 * Just an offset to an enemy (Do not rotate coordinate).
-					 */
-					static Coordinate offset(const Enemy::Ptr enemy, const Point &off);
-
-					/**
-					 * Just an offset to a player (Do not rotate coordinate).
-					 */
-					static Coordinate offset(const Role::Ptr role, const Point &off);
+					Coordinate(const World& world, const Point& pos, const YType y_type, const OriginType o_type);
 
 					/**
 					 * Evaluates and returns the required coordinate.
@@ -90,9 +71,10 @@ namespace AI {
 					Point operator()() const;
 
 				protected:
-					RefPtr<const CoordinateData> data;
-
-					Coordinate(const RefPtr<const CoordinateData> data);
+					const World* world;
+					const YType y_type;
+					const OriginType o_type;
+					const Point& pos;
 			};
 		}
 	}
