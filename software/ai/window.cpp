@@ -258,7 +258,8 @@ namespace {
 		public:
 			SecondaryBasicControls(AI::AIPackage &ai) : Gtk::Table(3 + ai.backend.secondary_ui_controls_table_rows(), 3), ai(ai) {
 				attach(*Gtk::manage(new Gtk::Label("Play type override:")), 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
-				for (unsigned int i = 0; i <= static_cast<unsigned int>(AI::Common::PlayType::NONE); ++i) {
+				playtype_override_chooser.append_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayType::NONE));
+				for (unsigned int i = 0; i < static_cast<unsigned int>(AI::Common::PlayType::NONE); ++i) {
 					playtype_override_chooser.append_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayTypeInfo::of_int(i)));
 				}
 				playtype_override_chooser.set_active_text(AI::Common::PlayTypeInfo::to_string(AI::Common::PlayType::NONE));
@@ -294,8 +295,11 @@ namespace {
 			Gtk::Entry defending_end_entry, friendly_colour_entry;
 
 			void on_playtype_override_chooser_changed() {
-				if (playtype_override_chooser.get_active_row_number() != -1) {
-					ai.backend.playtype_override() = AI::Common::PlayTypeInfo::of_int(playtype_override_chooser.get_active_row_number());
+				int row = playtype_override_chooser.get_active_row_number();
+				if (row == 0) {
+					ai.backend.playtype_override() = AI::Common::PlayType::NONE;
+				} else if (row > 0) {
+					ai.backend.playtype_override() = AI::Common::PlayTypeInfo::of_int(row - 1);
 				}
 			}
 
