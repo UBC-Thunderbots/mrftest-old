@@ -23,7 +23,7 @@ namespace AI {
 				 *
 				 * \return the correct position of the ball.
 				 */
-				virtual Point filter(const std::vector<std::pair<double, Point> > &balls, AI::BF::W::World &world) = 0;
+				virtual Point filter(const std::vector<std::pair<double, Point>> &balls, AI::BF::W::World &world) = 0;
 
 			protected:
 				/**

@@ -154,7 +154,7 @@ std::array<Point, 2> AI::HL::STP::Evaluation::offense_positions(const World& wor
 	}
 
 	// TODO: optimize using the matrix below
-	// std::vector<std::vector<bool> > grid(GRID_X, std::vector<bool>(GRID_Y, true));
+	// std::vector<std::vector<bool>> grid(GRID_X, std::vector<bool>(GRID_Y, true));
 
 	// don't block ball, and the others
 	std::vector<Point> dont_block;

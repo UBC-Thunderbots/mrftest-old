@@ -103,9 +103,9 @@ namespace AI {
 					bool has_destination() const;
 					const std::pair<Point, double> &destination() const;
 					Point target_velocity() const;
-					void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p);
+					void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec>> &p);
 					bool has_path() const;
-					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const;
+					const std::vector<std::pair<std::pair<Point, double>, timespec>> &path() const;
 					void drive(const int(&w)[4]);
 					const int(&wheel_speeds() const)[4];
 
@@ -138,7 +138,7 @@ namespace AI {
 					/**
 					 * The path of positions, orientations, and deadline timestamps most recently specified by the navigator.
 					 */
-					std::vector<std::pair<std::pair<Point, double>, timespec> > path_;
+					std::vector<std::pair<std::pair<Point, double>, timespec>> path_;
 
 					/**
 					 * Whether the AI elected to kick in the current time tick.

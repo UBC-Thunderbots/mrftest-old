@@ -96,7 +96,7 @@ namespace AI {
 				/**
 				 * Stores which grids are possible to place players on.
 				 */
-				std::vector<std::vector<bool> > grid;
+				std::vector<std::vector<bool>> grid;
 		};
 	}
 }

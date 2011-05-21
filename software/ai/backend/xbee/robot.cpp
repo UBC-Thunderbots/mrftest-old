@@ -98,7 +98,7 @@ bool Robot::has_path() const {
 	return false;
 }
 
-const std::vector<std::pair<std::pair<Point, double>, timespec> > &Robot::path() const {
+const std::vector<std::pair<std::pair<Point, double>, timespec>> &Robot::path() const {
 	throw std::logic_error("This robot has no path");
 }
 

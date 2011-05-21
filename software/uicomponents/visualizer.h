@@ -243,7 +243,7 @@ namespace Visualizable {
 			 *
 			 * \return the path the robot should follow.
 			 */
-			virtual const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const = 0;
+			virtual const std::vector<std::pair<std::pair<Point, double>, timespec>> &path() const = 0;
 	};
 
 	/**

@@ -104,7 +104,7 @@ class Hungarian {
 		}
 
 	private:
-		std::vector<std::vector<double> > weights;
+		std::vector<std::vector<double>> weights;
 		std::vector<std::size_t> mx, my;
 };
 

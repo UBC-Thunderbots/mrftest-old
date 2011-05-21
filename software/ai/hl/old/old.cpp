@@ -12,7 +12,7 @@ using namespace AI::HL::W;
 
 namespace {
 	const std::vector<StrategyFactory *> &get_strategies_by_play_type(AI::Common::PlayType pt) {
-		static std::unordered_map<AI::Common::PlayType, std::vector<StrategyFactory *> > vectors;
+		static std::unordered_map<AI::Common::PlayType, std::vector<StrategyFactory *>> vectors;
 
 		if (vectors.empty()) {
 			const StrategyFactory::Map &m = StrategyFactory::all();

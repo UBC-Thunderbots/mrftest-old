@@ -83,7 +83,7 @@ namespace AI {
 					bool has_destination() const;
 					const std::pair<Point, double> &destination() const;
 					bool has_path() const;
-					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const;
+					const std::vector<std::pair<std::pair<Point, double>, timespec>> &path() const;
 
 				protected:
 					AI::BE::Backend &backend;

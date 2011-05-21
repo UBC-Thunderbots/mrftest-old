@@ -213,8 +213,8 @@ namespace {
 			throw SystemError(local ? "localtime_r" : "gmtime_r", errno);
 		}
 
-		std::use_facet<std::time_put<wchar_t> >(std::locale()).put(timebuf, timebuf, L' ', &tm, TIME_PATTERN, TIME_PATTERN + std::wcslen(TIME_PATTERN));
-		std::use_facet<std::time_put<wchar_t> >(std::locale()).put(tzbuf, tzbuf, L' ', &tm, TZ_PATTERN, TZ_PATTERN + std::wcslen(TZ_PATTERN));
+		std::use_facet<std::time_put<wchar_t>>(std::locale()).put(timebuf, timebuf, L' ', &tm, TIME_PATTERN, TIME_PATTERN + std::wcslen(TIME_PATTERN));
+		std::use_facet<std::time_put<wchar_t>>(std::locale()).put(tzbuf, tzbuf, L' ', &tm, TZ_PATTERN, TZ_PATTERN + std::wcslen(TZ_PATTERN));
 		return Glib::ustring::compose("%1.%2 %3", timebuf.str(), todecu(ts.tv_nsec, 9), tzbuf.str());
 	}
 

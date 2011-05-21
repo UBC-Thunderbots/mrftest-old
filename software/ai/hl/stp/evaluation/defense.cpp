@@ -27,7 +27,7 @@ namespace {
 
 	/*
 	   template<int N>
-	   class EvaluateDefense : public Cacheable<Point, CacheableNonKeyArgs<AI::HL::W::World &> > {
+	   class EvaluateDefense : public Cacheable<Point, CacheableNonKeyArgs<AI::HL::W::World &>> {
 	   protected:
 	   std::array<Point, N> compute(AI::HL::W::World &world);
 	   bool goalie_top;

@@ -117,7 +117,7 @@ template<typename R, typename NK, typename K> class Cacheable;
  * // First parameter type (not saved or compared in cache) -------\\\\\\\\\\\\\\\\\\                    ||||||  ||||||
  * //                                                              ||||||||||||||||||                    ||||||  ||||||
  * //          Function return type ---\\\\\\                      ||||||||||||||||||                    ||||||  ||||||
- * class MyFunction : public Cacheable<double, CacheableNonKeyArgs<AI::HL::W::World &>, CacheableKeyArgs<double, double> > {
+ * class MyFunction : public Cacheable<double, CacheableNonKeyArgs<AI::HL::W::World &>, CacheableKeyArgs<double, double>> {
  *     protected:
  *         double compute(AI::HL::W::World &w, double x, double y) const;
  * };
@@ -153,7 +153,7 @@ template<typename R, typename NK, typename K> class Cacheable;
  *
  * \tparam K the key parameters to the function.
  */
-template<typename R, typename ... NK, typename ... K> class Cacheable<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...> > : public CacheableImpl<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...>, NK ..., K ...>, public CacheableBase {
+template<typename R, typename ... NK, typename ... K> class Cacheable<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...>> : public CacheableImpl<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...>, NK ..., K ...>, public CacheableBase {
 	public:
 		void flush() {
 			CacheableImpl<R, CacheableNonKeyArgs<NK ...>, CacheableKeyArgs<K ...>, NK ..., K ...>::flush();

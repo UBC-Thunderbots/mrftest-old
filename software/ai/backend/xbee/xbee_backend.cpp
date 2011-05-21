@@ -299,7 +299,7 @@ namespace {
 					// Update the ball.
 					{
 						// Build a vector of all detections so far.
-						std::vector<std::pair<double, Point> > balls;
+						std::vector<std::pair<double, Point>> balls;
 						for (unsigned int i = 0; i < 2; ++i) {
 							for (int j = 0; j < detections[i].balls_size(); ++j) {
 								const SSL_DetectionBall &b(detections[i].balls(j));

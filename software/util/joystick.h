@@ -52,28 +52,28 @@ class Joystick : public ByRef, public sigc::trackable {
 		 *
 		 * \return the axes.
 		 */
-		const std::vector<Property<double> > &axes() const;
+		const std::vector<Property<double>> &axes() const;
 
 		/**
 		 * \brief Returns the joystick's buttons.
 		 *
 		 * \return the buttons.
 		 */
-		const std::vector<Property<bool> > &buttons() const;
+		const std::vector<Property<bool>> &buttons() const;
 
 	private:
-		std::vector<Property<double> > axes_;
-		std::vector<Property<bool> > buttons_;
+		std::vector<Property<double>> axes_;
+		std::vector<Property<bool>> buttons_;
 
 		Joystick(const std::string &node);
 		void on_readable();
 };
 
-inline const std::vector<Property<double> > &Joystick::axes() const {
+inline const std::vector<Property<double>> &Joystick::axes() const {
 	return axes_;
 }
 
-inline const std::vector<Property<bool> > &Joystick::buttons() const {
+inline const std::vector<Property<bool>> &Joystick::buttons() const {
 	return buttons_;
 }
 

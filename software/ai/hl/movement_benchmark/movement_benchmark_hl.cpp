@@ -88,7 +88,7 @@ namespace {
 
 		private:
 			World &world;
-			std::vector<std::pair<Point, double> > tasks;
+			std::vector<std::pair<Point, double>> tasks;
 			int time_steps;
 			std::size_t done;
 	};

@@ -165,14 +165,14 @@ bool Visualizer::on_expose_event(GdkEventExpose *evt) {
 				ctx->set_source_rgb(1.0, 0.0, 1.0);
 				ctx->begin_new_path();
 				ctx->move_to(bot->position().x, bot->position().y);
-				const std::vector<std::pair<std::pair<Point, double>, timespec> > &path = bot->path();
-				for (std::vector<std::pair<std::pair<Point, double>, timespec> >::const_iterator j = path.begin(), jend = path.end(); j != jend; ++j) {
+				const std::vector<std::pair<std::pair<Point, double>, timespec>> &path = bot->path();
+				for (std::vector<std::pair<std::pair<Point, double>, timespec>>::const_iterator j = path.begin(), jend = path.end(); j != jend; ++j) {
 					ctx->line_to(j->first.first.x, j->first.first.y);
 				}
 				ctx->stroke();
 
 				ctx->set_source_rgb(0, 0, 0);
-				for (std::vector<std::pair<std::pair<Point, double>, timespec> >::const_iterator j = path.begin(), jend = path.end(); j != jend; ++j) {
+				for (std::vector<std::pair<std::pair<Point, double>, timespec>>::const_iterator j = path.begin(), jend = path.end(); j != jend; ++j) {
 					ctx->arc(j->first.first.x, j->first.first.y, 0.01, 0, 2 * M_PI);
 					ctx->fill();
 				}

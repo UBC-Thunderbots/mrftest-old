@@ -46,7 +46,7 @@ class IntelHex {
 		 *
 		 * \return an array of section data blocks.
 		 */
-		const std::vector<std::vector<unsigned char> > &data() const {
+		const std::vector<std::vector<unsigned char>> &data() const {
 			return the_data;
 		}
 
@@ -69,7 +69,7 @@ class IntelHex {
 		};
 
 		std::vector<Section> sections;
-		std::vector<std::vector<unsigned char> > the_data;
+		std::vector<std::vector<unsigned char>> the_data;
 };
 
 #endif

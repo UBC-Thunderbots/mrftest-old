@@ -74,7 +74,7 @@ namespace AI {
 				 *
 				 * \return a pair of goalie position and other robot's position.
 				 */
-				std::pair<Point, std::vector<Point> > calc_block_positions() const;
+				std::pair<Point, std::vector<Point>> calc_block_positions() const;
 
 				AI::HL::W::World &world;
 

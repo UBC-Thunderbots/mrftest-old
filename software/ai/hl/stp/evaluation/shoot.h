@@ -17,7 +17,7 @@ namespace AI {
 				};
 
 				/*
-				   class EvaluateShoot : public Cacheable<ShootData, CacheableNonKeyArgs<AI::HL::W::World &>, CacheableKeyArgs<AI::HL::W::Player::Ptr> > {
+				   class EvaluateShoot : public Cacheable<ShootData, CacheableNonKeyArgs<AI::HL::W::World &>, CacheableKeyArgs<AI::HL::W::Player::Ptr>> {
 				    protected:
 				        ShootData compute(AI::HL::W::World &world, AI::HL::W::Player::Ptr player) const;
 				   };

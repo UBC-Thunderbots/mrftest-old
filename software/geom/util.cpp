@@ -52,7 +52,7 @@ std::pair<Point, double> angle_sweep_circles(const Point &src, const Point &p1, 
 		// std::cerr << (p1 - src).cross(p2 - src) << std::endl;
 		return std::make_pair(bestshot, 0);
 	}
-	std::vector<std::pair<double, int> > events;
+	std::vector<std::pair<double, int>> events;
 	events.push_back(std::make_pair(0, 1)); // p1 becomes angle 0
 	events.push_back(std::make_pair(angle_mod((p2 - src).orientation() - offangle), -1));
 	for (std::size_t i = 0; i < obstacles.size(); ++i) {

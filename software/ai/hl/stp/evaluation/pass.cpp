@@ -370,7 +370,7 @@ std::pair <Point,Point> AI::HL::STP::Evaluation::calc_pass_positions(const World
 	}
 
 	// TODO: optimize using the matrix below
-	// std::vector<std::vector<bool> > grid(grid_x, std::vector<bool>(grid_y, true));
+	// std::vector<std::vector<bool>> grid(grid_x, std::vector<bool>(grid_y, true));
 
 	// don't block ball, and the others
 	std::vector<Point> dont_block;
@@ -415,7 +415,7 @@ std::pair <Point,Point> AI::HL::STP::Evaluation::calc_def_pass_positions(const W
 	}
 
 	// TODO: optimize using the matrix below
-	// std::vector<std::vector<bool> > grid(grid_x, std::vector<bool>(grid_y, true));
+	// std::vector<std::vector<bool>> grid(grid_x, std::vector<bool>(grid_y, true));
 
 	// don't block ball, and the others
 	std::vector<Point> dont_block;

@@ -25,7 +25,7 @@ namespace {
 	const double PI = M_PI;
 	
 #ifdef TUNE_HALF
-	const std::vector< std::pair<Point, double> > tasks = {
+	const std::vector< std::pair<Point, double>> tasks = {
 		std::make_pair(Point(1.2, 0), 0),
 		std::make_pair(Point(0.5, 0), PI),
 		std::make_pair(Point(2.5, 0), 0),
@@ -40,7 +40,7 @@ namespace {
 #endif
 	
 #ifdef TUNE_FULL
-	const std::vector< std::pair<Point, double> > tasks = {
+	const std::vector< std::pair<Point, double>> tasks = {
 		std::make_pair(Point(0, 0), 0),
 		std::make_pair(Point(1, 0), PI),
 		std::make_pair(Point(-2.5, 0), 0),
@@ -64,7 +64,7 @@ namespace {
 #endif
 	
 #ifdef NO_TUNE_ROTATION
-	const std::vector< std::pair<Point, double> > tasks = {
+	const std::vector< std::pair<Point, double>> tasks = {
 		std::make_pair(Point(0, 0), 0),
 		std::make_pair(Point(1, 0), 0),
 		std::make_pair(Point(0, 0), 0),

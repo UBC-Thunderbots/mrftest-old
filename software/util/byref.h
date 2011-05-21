@@ -14,7 +14,7 @@ namespace std {
 	 *
 	 * \tparam T the type of object pointed to.
 	 */
-	template<typename T> class less<RefPtr<T> > {
+	template<typename T> class less<RefPtr<T>> {
 		public:
 			/**
 			 * Compares two pointers.
@@ -241,7 +241,7 @@ template<typename T> class RefPtr {
 	private:
 		T *obj;
 
-		friend class std::less<RefPtr<T> >;
+		friend class std::less<RefPtr<T>>;
 		friend bool operator==<>(const RefPtr<T> &, const RefPtr<T> &);
 		friend bool operator!=<>(const RefPtr<T> &, const RefPtr<T> &);
 };
