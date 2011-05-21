@@ -20,6 +20,13 @@ namespace {
 	Point ready_positions[2] = { Point(-AVOIDANCE_DIST, -SEPARATION_DIST), Point(-AVOIDANCE_DIST, SEPARATION_DIST) };
 }
 
+/**
+ * Condition:
+ * - It is the execute friendly kickoff play
+ *
+ * Objective:
+ * - Pass the ball to a friendly player without double touching the ball
+ */
 BEGIN_PLAY(KickoffFriendly)
 INVARIANT(Predicates::our_team_size_at_least(world, 2) && (Predicates::playtype(world, AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY)))
 APPLICABLE(true)
