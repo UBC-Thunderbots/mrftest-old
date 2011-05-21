@@ -63,7 +63,7 @@ namespace {
 		Point waypoint_goalie;
 
 		const double radius = Robot::MAX_RADIUS * robot_shrink;
-
+		bool second_needed = true;
 		{
 			// distance on the goalside - ball line that the robot touches
 			const Point ball2side = goal_side - ball_pos;
@@ -74,6 +74,9 @@ namespace {
 
 			// prevent the goalie from entering the goal area
 			waypoint_goalie.x = std::max(waypoint_goalie.x, -field.length() / 2 + radius);
+
+			second_needed	= (	lineseg_point_dist(waypoint_goalie, ball_pos, goal_opp) > radius );
+
 		}
 
 		// first defender will block the remaining cone from the ball
@@ -89,7 +92,10 @@ namespace {
 			if (blowup) {
 				D1 = (field.friendly_goal() + ball_pos) / 2;
 			}
-			waypoint_defenders.push_back(D1);
+			if(second_needed){
+				waypoint_defenders.push_back(D1);
+			}
+
 		}
 
 		// next two defenders block nearest enemy sights to goal if needed
@@ -124,6 +130,7 @@ namespace {
 		return waypoints;
 	}
 }
+
 
 const std::array<Point, 3> AI::HL::STP::Evaluation::evaluate_defense(const World& world) {
 	return compute(world);
