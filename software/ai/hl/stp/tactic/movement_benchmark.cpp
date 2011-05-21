@@ -112,8 +112,9 @@ namespace {
 	}
 
 	Player::Ptr MovementBenchmark::select(const std::set<Player::Ptr> &players) const {
-		#warning THIS CODE IS BROKEN
-		//return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest()));
+		// #warning THIS CODE IS BROKEN
+		// return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest()));
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(Point(0,0)));
 	}
 
 	void MovementBenchmark::execute() {

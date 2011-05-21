@@ -68,14 +68,14 @@ namespace {
 
 		// figure out where we want to be
 		if(y > 0.0){
-				d1 = (ball - p1).len();
-				d2 = (ball - p2).len();
+			d1 = (ball - p1).len();
+			d2 = (ball - p2).len();
 
-				double x = y * d2 / (d1 + d2);
+			double x = y * d2 / (d1 + d2);
 
-				target = p1 * (x / y) + p2 * (1 - x / y);
-		}else{
-				target = p1;
+			target = p1 * (x / y) + p2 * (1 - x / y);
+		} else{
+			target = p1;
 		}
 		variance = y * y / 16; // (y/4)^2
 
@@ -104,7 +104,7 @@ namespace {
 		int side = (ball - g1).dot(gperp) >= 0.0 ? 1 : -1;
 	  
 		if (world.ball().velocity(time).dot(gperp) * side >= 0.0)
-				return false;
+			return false;
 
 		Point orig_g1 = g1, orig_g2 = g2;
 	  
@@ -117,41 +117,41 @@ namespace {
 		// Lookahead from now to lookahead.
 		for(double t = 0.0; t < lookahead; t += lookstep) {
 
-				Point b = world.ball().position(time + t);
-				Point v = world.ball().velocity(time + t); 
+			Point b = world.ball().position(time + t);
+			Point v = world.ball().velocity(time + t); 
 
-				if (v.dot(gperp) * side >= 0.0) return false;
+			if (v.dot(gperp) * side >= 0.0) return false;
 
-				double d_to_line = std::fabs((b - g1).dot(gperp));
-				double t_to_line = d_to_line / std::fabs(v.dot(gperp));
+			double d_to_line = std::fabs((b - g1).dot(gperp));
+			double t_to_line = d_to_line / std::fabs(v.dot(gperp));
 
-				if (t_to_line > lookstep) continue;
+			if (t_to_line > lookstep) continue;
 
-				b += v * t_to_line;
+			b += v * t_to_line;
 
-				double x = offset_along_line(g1, g2, b);
+			double x = offset_along_line(g1, g2, b);
 
 			/*
-				//Matrix c = ball_kalman.predict_cov(double_to_timespec(time + t));
-				Matrix m = Matrix(4,1); 
-				m(0,0) = gline_1.x;
-				m(1,0) = gline_1.y;
-				m(2,0) = m(3,0) = 0.0;
-				Matrix temp = c * m;
+			//Matrix c = ball_kalman.predict_cov(double_to_timespec(time + t));
+			Matrix m = Matrix(4,1); 
+			m(0,0) = gline_1.x;
+			m(1,0) = gline_1.y;
+			m(2,0) = m(3,0) = 0.0;
+			Matrix temp = c * m;
 			m.transpose();
 			temp *= m;
 			variance = temp(0,0);
-				*/
-				if (x < 0.0) {
-					x = 0;
-					variance = variance * exp(pow(x, 2.0) / variance);
-				} else if (x > gline.len()) {
-					x = gline.len();
-					variance = variance * exp(pow(gline.len() - x, 2.0) / variance);
-				}
-			
-				target = g1 + gline_1 * x;
-				return true;
+			*/
+			if (x < 0.0) {
+				x = 0;
+				variance = variance * exp(pow(x, 2.0) / variance);
+			} else if (x > gline.len()) {
+				x = gline.len();
+				variance = variance * exp(pow(gline.len() - x, 2.0) / variance);
+			}
+		
+			target = g1 + gline_1 * x;
+			return true;
 		}
 
 		return false;
@@ -187,15 +187,15 @@ namespace {
 		double closest_time = 0.0;
 
 		for(double t = 0.0; t < lookahead; t += lookstep) {
-				Point b = world.ball().position(time + t);
+			Point b = world.ball().position(time + t);
 
-				if ((b - point).len() < closest_dist) {
-					closest_dist = (b - point).len();
-					closest_time = t;
-					target = point + (b - point).norm(radius);
+			if ((b - point).len() < closest_dist) {
+				closest_dist = (b - point).len();
+				closest_time = t;
+				target = point + (b - point).norm(radius);
 
-					if (closest_dist < radius) break;
-				}
+				if (closest_dist < radius) break;
+			}
 		}
 
 		
@@ -204,29 +204,29 @@ namespace {
 			
 		if (closest_dist > radius) {
 			/*
-				Point perp = (target - point).norm();
-				Matrix m = Matrix(4,1); 
-				m(0,0) = perp.x;
-				m(1,0) = perp.y;
-				m(2,0) = m(3,0) = 0.0;
-				Matrix temp = c * m;
-			m.transpose();
-			temp *= m;
-			variance = temp(0,0);
-				*/
-				variance = variance * exp(pow(closest_dist - radius, 2.0) / variance);
-		} else {
-			/*
-				Point perp = (target - point).perp().norm();
-				Matrix m = Matrix(4,1); 
-				m(0,0) = perp.x;
-				m(1,0) = perp.y;
-				m(2,0) = m(3,0) = 0.0;
+			Point perp = (target - point).norm();
+			Matrix m = Matrix(4,1); 
+			m(0,0) = perp.x;
+			m(1,0) = perp.y;
+			m(2,0) = m(3,0) = 0.0;
 			Matrix temp = c * m;
 			m.transpose();
 			temp *= m;
 			variance = temp(0,0);
-				*/
+			*/
+			variance = variance * exp(pow(closest_dist - radius, 2.0) / variance);
+		} else {
+			/*
+			Point perp = (target - point).perp().norm();
+			Matrix m = Matrix(4,1); 
+			m(0,0) = perp.x;
+			m(1,0) = perp.y;
+			m(2,0) = m(3,0) = 0.0;
+			Matrix temp = c * m;
+			m.transpose();
+			temp *= m;
+			variance = temp(0,0);
+			*/
 		}
 	  
 		return !isinf(variance);
@@ -633,8 +633,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 
   	// Sort the angle array.
 	std::sort(a.begin(),a.end());
-	//std::sort(a, a + n);
-
+	
   	// Walk through the angle array finding the largest clear cone, and
   	// the closest clear cone to the preferred angle.
   	double best_ang = 0.0, best_tol = 0.0;
@@ -950,7 +949,7 @@ void AI::HL::STP::Evaluation::CMEvaluationPosition::update(const World &world, u
 		int best_i = -1;
 
 		weights.clear(); 
-	angles.clear();
+		angles.clear();
 		for(std::size_t i=0; i<points.size(); i++) {
 			double a;
 
