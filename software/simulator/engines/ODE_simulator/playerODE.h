@@ -60,7 +60,7 @@ class PlayerODE : public Simulator::Player {
 		 * Constructor method for the robot model contained in the simulator
 		 */
 		PlayerODE(dWorldID dworld, dSpaceID dspace, dGeomID ballGeom, dReal ups_per_tick);
-		
+
 		/**
 		 * Accessor to get the height of the middle of the robot (should be ROBOT_HEIGHT/2)
 		 */

@@ -59,7 +59,7 @@ void IntelHex::add_section(unsigned int start, unsigned int length) {
 
 void IntelHex::load(const std::string &filename) {
 	// Allocate space to hold the new data.
-	std::vector<std::vector<uint8_t>> new_data(sections.size());
+	std::vector<std::vector<uint8_t> > new_data(sections.size());
 
 	// Open the file.
 	std::ifstream ifs;

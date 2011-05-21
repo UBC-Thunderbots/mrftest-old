@@ -11,7 +11,6 @@ namespace AI {
 		namespace STP {
 			namespace Evaluation {
 				struct EnemyThreat {
-
 					/**
 					 * dist of enemy robot to ball.
 					 */
@@ -31,12 +30,12 @@ namespace AI {
 					 * blocked by our players or other enemies for passing
 					 */
 					bool blocked;
-					
+
 					/**
 					 * Other enemies that the enemy can pass to sorted by distance.
 					 */
 					std::vector<AI::HL::W::Robot::Ptr> passees;
-									
+
 					/**
 					 * # of passes it takes for the enemy to shoot to our goal
 					 * 0 means the enemy has a clear shot to our goal!
@@ -44,12 +43,11 @@ namespace AI {
 					 */
 					int passes;
 				};
-				
+
 				/**
 				 * Evaluate how dangerous an enemy is
-				 */	
+				 */
 				EnemyThreat eval_enemy(const AI::HL::W::World &world, const AI::HL::W::Robot::Ptr robot);
-								
 			}
 		}
 	}

@@ -13,11 +13,10 @@ using AI::HL::STP::Evaluation::grid_x;
 using AI::HL::STP::Evaluation::grid_y;
 
 namespace {
-
 	const double DEG_2_RAD = 1.0 / 180.0 * M_PI;
 
 	// avoid enemy robots by at least this distance
-	
+
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/pass", 4.0, 1.0, 10.0);
 
 	DoubleParam ball_goal_dist_weight("ball goal distance weight", "STP/pass", 1.0, 0.0, 2.0);
@@ -72,15 +71,14 @@ namespace {
 
 		// want to be as near to passee as possible to gurantee success of pass
 		const double passee_dist = (passee_pos - dest).len();
-		
+
 		// divide by largest distance?
 		score /= passee_dist;
 
-		//score *= closest_enemy;
+		// score *= closest_enemy;
 		return score;
-		
 	}
-	
+
 	bool calc_passer_position_best(const World &world, const Point &passee_pos, const std::vector<Point> &enemy_pos, const std::vector<Point> &dont_block, Point &best_pos) {
 		// divide up into grids
 		const double x1 = -world.field().length() / 2, x2 = -x1;
@@ -118,7 +116,7 @@ namespace {
 		return best_score > -1e40;
 	}
 
-	
+
 	double passee_scoring_function(const World &world, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
 		// can't be too close to enemy
 		double closest_enemy = world.field().width();
@@ -177,7 +175,7 @@ namespace {
 
 		// divide by distance to nearest player
 		double min_dist = 1e99;
-		const FriendlyTeam& friendly = world.friendly_team();
+		const FriendlyTeam &friendly = world.friendly_team();
 		std::vector<Point> players;
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
 			double dist = (friendly.get(i)->position() - dest).len();
@@ -187,7 +185,7 @@ namespace {
 		}
 
 		score /= min_dist;
-		//score *= closest_enemy;
+		// score *= closest_enemy;
 
 		return score;
 	}
@@ -240,7 +238,7 @@ namespace {
 			}
 			closest_enemy = std::min(closest_enemy, dist);
 		}
-		
+
 		double enemy_total_dist = 0;
 		for (std::size_t i = 0; i < enemy_pos.size(); ++i) {
 			enemy_total_dist += (enemy_pos[i] - dest).len();
@@ -293,7 +291,7 @@ namespace {
 
 		// divide by distance to nearest player
 		double min_dist = 1e99;
-		const FriendlyTeam& friendly = world.friendly_team();
+		const FriendlyTeam &friendly = world.friendly_team();
 		std::vector<Point> players;
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
 			double dist = (friendly.get(i)->position() - dest).len();
@@ -348,17 +346,14 @@ namespace {
 
 		return best_score > -1e40;
 	}
-
-	
 }
 
-bool AI::HL::STP::Evaluation::can_pass(const World& world, const Point pos) {
+bool AI::HL::STP::Evaluation::can_pass(const World &world, Point pos) {
 	return AI::HL::Util::path_check(world.ball().position(), pos, AI::HL::Util::get_robots(world.enemy_team()), Robot::MAX_RADIUS + Ball::RADIUS + AI::HL::Util::shoot_accuracy);
 }
 
-std::pair <Point,Point> AI::HL::STP::Evaluation::calc_pass_positions(const World &world) {
-
-	std::pair <Point,Point> pp;
+std::pair<Point, Point> AI::HL::STP::Evaluation::calc_pass_positions(const World &world) {
+	std::pair<Point, Point> pp;
 	pp.first = Point();
 	pp.second = Point();
 
@@ -376,24 +371,24 @@ std::pair <Point,Point> AI::HL::STP::Evaluation::calc_pass_positions(const World
 	std::vector<Point> dont_block;
 	dont_block.push_back(world.ball().position());
 	/*
-	const FriendlyTeam &friendly = world.friendly_team();
-	for (size_t i = 0; i < friendly.size(); ++i) {
-		if (players.find(friendly.get(i)) == players.end()) {
-			dont_block.push_back(friendly.get(i)->position());
-		}
-	}
-	*/
-	
-	// Maybe we should find the best combo of passee best and passer best, 
+	   const FriendlyTeam &friendly = world.friendly_team();
+	   for (size_t i = 0; i < friendly.size(); ++i) {
+	    if (players.find(friendly.get(i)) == players.end()) {
+	        dont_block.push_back(friendly.get(i)->position());
+	    }
+	   }
+	 */
+
+	// Maybe we should find the best combo of passee best and passer best,
 	// instead of just finding the best passee position and find the best passer best position relative to that passee position
 	Point passee_best;
 	if (!calc_passee_position_best(world, enemy_pos, dont_block, passee_best)) {
 		LOG_WARN("could not find a good passee pos");
 		return pp;
-	} 
+	}
 	pp.second = passee_best;
 	Point passer_best;
-	if (!calc_passer_position_best(world, passee_best, enemy_pos, dont_block, passer_best)){
+	if (!calc_passer_position_best(world, passee_best, enemy_pos, dont_block, passer_best)) {
 		LOG_WARN("could not find a good passer pos");
 		return pp;
 	}
@@ -401,9 +396,8 @@ std::pair <Point,Point> AI::HL::STP::Evaluation::calc_pass_positions(const World
 	return pp;
 }
 
-std::pair <Point,Point> AI::HL::STP::Evaluation::calc_def_pass_positions(const World &world) {
-
-	std::pair <Point,Point> pp;
+std::pair<Point, Point> AI::HL::STP::Evaluation::calc_def_pass_positions(const World &world) {
+	std::pair<Point, Point> pp;
 	pp.first = Point();
 	pp.second = Point();
 
@@ -421,28 +415,28 @@ std::pair <Point,Point> AI::HL::STP::Evaluation::calc_def_pass_positions(const W
 	std::vector<Point> dont_block;
 	dont_block.push_back(world.ball().position());
 	/*
-	const FriendlyTeam &friendly = world.friendly_team();
-	for (size_t i = 0; i < friendly.size(); ++i) {
-		if (players.find(friendly.get(i)) == players.end()) {
-			dont_block.push_back(friendly.get(i)->position());
-		}
-	}
-	*/
-	
-	// Maybe we should find the best combo of passee best and passer best, 
+	   const FriendlyTeam &friendly = world.friendly_team();
+	   for (size_t i = 0; i < friendly.size(); ++i) {
+	    if (players.find(friendly.get(i)) == players.end()) {
+	        dont_block.push_back(friendly.get(i)->position());
+	    }
+	   }
+	 */
+
+	// Maybe we should find the best combo of passee best and passer best,
 	// instead of just finding the best passee position and find the best passer best position relative to that passee position
 	Point passee_best;
 	if (!calc_def_passee_position_best(world, enemy_pos, dont_block, passee_best)) {
 		LOG_WARN("could not find a good def passee pos");
 		return pp;
-	} 
+	}
 	pp.second = passee_best;
 	Point passer_best;
-	if (!calc_passer_position_best(world, passee_best, enemy_pos, dont_block, passer_best)){
+	if (!calc_passer_position_best(world, passee_best, enemy_pos, dont_block, passer_best)) {
 		LOG_WARN("could not find a good def passer pos");
 		return pp;
 	}
 	pp.first = passer_best;
 	return pp;
-
 }
+

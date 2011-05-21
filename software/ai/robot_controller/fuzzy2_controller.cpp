@@ -17,15 +17,15 @@ using namespace AI::RC::W;
 
 namespace {
 	const int P = 5;
-	
+
 	DoubleParam FUZZY2_MAX_ACC("max acc", "RC/fuzzy2", 3, 0.0, 20.0);
 
 	const double arr_min[P] = { 6.0, 0.0, 0.0, 6.0, 6.0 };
 	const double arr_max[P] = { 13.0, 2.0, 2.0, 13.0, 13.0 };
 
 	// default parameters:
-	const double arr_def[P] = {9.18749, 0.575552, 0.695691, 9.50912, 7.91213};
- 
+	const double arr_def[P] = { 9.18749, 0.575552, 0.695691, 9.50912, 7.91213 };
+
 	const std::vector<double> param_min(arr_min, arr_min + P);
 	const std::vector<double> param_max(arr_max, arr_max + P);
 	const std::vector<double> param_default(arr_def, arr_def + P);
@@ -93,7 +93,7 @@ namespace {
 					accel *= FUZZY2_MAX_ACC / accel.len();
 					linear_velocity = prev_linear_velocity + accel;
 				}
-		
+
 				int wheel_speeds[4] = { 0, 0, 0, 0 };
 
 				convert_to_wheels(linear_velocity, angular_velocity, wheel_speeds);

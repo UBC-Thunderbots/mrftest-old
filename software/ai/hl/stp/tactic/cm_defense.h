@@ -24,11 +24,11 @@ namespace AI {
 				Tactic::Ptr tdefend_lane(const World &world, TCoordinate _p1, TCoordinate _p2);
 
 				/*
-				
-				Tactic::Ptr block(const World &world);
 
-				Tactic::Ptr mark(const World &world);
-				*/
+				   Tactic::Ptr block(const World &world);
+
+				   Tactic::Ptr mark(const World &world);
+				 */
 			}
 		}
 	}

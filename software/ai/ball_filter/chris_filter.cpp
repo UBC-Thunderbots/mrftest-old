@@ -36,9 +36,9 @@ namespace {
 				circles.push_back(Circle(Point(), DELETE_THRESHOLD));
 			}
 
-			Point filter(const std::vector<std::pair<double, Point>> &obs, World &) {
+			Point filter(const std::vector<std::pair<double, Point> > &obs, World &) {
 				// Just use the maximum-confidence ball.
-				const std::vector<std::pair<double, Point>>::const_iterator &best_obs(std::max_element(obs.begin(), obs.end()));
+				const std::vector<std::pair<double, Point> >::const_iterator &best_obs(std::max_element(obs.begin(), obs.end()));
 
 				if (best_obs != obs.end()) {
 					// All the circles that contain the ball should be combined into one single circle.

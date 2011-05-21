@@ -20,14 +20,14 @@ namespace {
 	};
 
 	TestPivotFactory factory_instance;
-	
+
 	class TestPivot : public HighLevel {
 		public:
-			TestPivot(World& world) : world(world), target_enemy(false) {
+			TestPivot(World &world) : world(world), target_enemy(false) {
 			}
 
 		private:
-			World& world;
+			World &world;
 			bool target_enemy;
 
 			TestPivotFactory &factory() const {
@@ -39,8 +39,10 @@ namespace {
 			}
 
 			void tick() {
-				FriendlyTeam& friendly = world.friendly_team();
-				if (friendly.size() == 0) return;
+				FriendlyTeam &friendly = world.friendly_team();
+				if (friendly.size() == 0) {
+					return;
+				}
 
 				Player::Ptr player = friendly.get(0);
 
@@ -51,7 +53,7 @@ namespace {
 				} else {
 					target = world.field().friendly_goal();
 				}
-				
+
 				const double diff_ori = angle_diff(player->orientation(), (target - player->position()).orientation());
 				if (diff_ori < 0.1) {
 					// angle completed, switch goals.

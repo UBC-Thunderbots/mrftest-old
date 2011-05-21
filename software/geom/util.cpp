@@ -52,7 +52,7 @@ std::pair<Point, double> angle_sweep_circles(const Point &src, const Point &p1, 
 		// std::cerr << (p1 - src).cross(p2 - src) << std::endl;
 		return std::make_pair(bestshot, 0);
 	}
-	std::vector<std::pair<double, int>> events;
+	std::vector<std::pair<double, int> > events;
 	events.push_back(std::make_pair(0, 1)); // p1 becomes angle 0
 	events.push_back(std::make_pair(angle_mod((p2 - src).orientation() - offangle), -1));
 	for (std::size_t i = 0; i < obstacles.size(); ++i) {
@@ -254,7 +254,6 @@ std::vector<Point> line_rect_intersect(const Rect &r, const Point &segA, const P
 
 
 double lineseg_point_dist(const Point &centre, const Point &segA, const Point &segB) {
-
 	// if one of the end-points is extremely close to the centre point
 	// then return 0.0
 	if ((segB - centre).lensq() < EPS2 || (segA - centre).lensq() < EPS2) {
@@ -291,7 +290,7 @@ double lineseg_point_dist(const Point &centre, const Point &segA, const Point &s
 Point closest_lineseg_point(const Point &centre, const Point &segA, const Point &segB) {
 	// if one of the end-points is extremely close to the centre point
 	// then return 0.0
-	if ((segB - centre).lensq() < EPS2 ) {
+	if ((segB - centre).lensq() < EPS2) {
 		return segB;
 	}
 
@@ -323,9 +322,9 @@ Point closest_lineseg_point(const Point &centre, const Point &segA, const Point 
 	double lenB = (centre - segB).len();
 
 	// otherwise return closest end of line-seg
-	if(lenA < lenB){
-	return segA;
- 	}
+	if (lenA < lenB) {
+		return segA;
+	}
 	return segB;
 }
 
@@ -513,7 +512,7 @@ Point segment_near_line(Point a0, Point a1, Point b0, Point b1) {
 	}
 
 	t = -(a0 - b0).dot(n) / dn;
-	
+
 	if (t < 0) {
 		t = 0;
 	}

@@ -36,11 +36,10 @@ namespace {
 			Action::stop(world, player);
 			return;
 		}
-		
+
 		AI::HL::STP::Action::block(world, player, enemy->evaluate());
-		
 	}
-	
+
 	class BlockPass : public Tactic {
 		public:
 			BlockPass(const World &world, Enemy::Ptr enemy) : Tactic(world), enemy(enemy) {
@@ -68,10 +67,9 @@ namespace {
 			Action::stop(world, player);
 			return;
 		}
-		
+
 		// TODO: check if blocking enemy robot from passing works or not
 		AI::HL::STP::Action::block_pass(world, player, enemy->evaluate());
-		
 	}
 }
 

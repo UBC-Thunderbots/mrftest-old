@@ -31,7 +31,7 @@ class DrivePanel : public Gtk::VBox {
 		 *
 		 * \param[in] values the values to set, in the range ±1.
 		 */
-		void set_values(const double (&values)[4]);
+		void set_values(const double(&values)[4]);
 
 	private:
 		XBeeRobot::Ptr robot;

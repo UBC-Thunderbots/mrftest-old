@@ -16,7 +16,6 @@ using namespace Glib;
 namespace AI {
 	namespace Nav {
 		namespace RRT {
-
 			// fraction of the maximum speed that the robot will try to dribble at
 			const double DRIBBLE_SPEED = 1.0;
 			const double THRESHOLD = 0.08;
@@ -36,22 +35,22 @@ namespace AI {
 
 
 			class RRTNavigator : public Navigator {
-			public:
-				NavigatorFactory &factory() const;
-				void pivot(Player::Ptr player);
-				void grab_ball(Player::Ptr player);
-				void tick();
-				static Navigator::Ptr create(World &world);
+				public:
+					NavigatorFactory &factory() const;
+					void pivot(Player::Ptr player);
+					void grab_ball(Player::Ptr player);
+					void tick();
+					static Navigator::Ptr create(World &world);
 
-			private:
-				RRTNavigator(World &world);
-				RRTPlanner planner;
+				private:
+					RRTNavigator(World &world);
+					RRTPlanner planner;
 			};
 
 			class RRTNavigatorFactory : public NavigatorFactory {
-			public:
-				RRTNavigatorFactory();
-				Navigator::Ptr create_navigator(World &world) const;
+				public:
+					RRTNavigatorFactory();
+					Navigator::Ptr create_navigator(World &world) const;
 			};
 
 			RRTNavigatorFactory factory_instance;
@@ -59,7 +58,7 @@ namespace AI {
 			NavigatorFactory &RRTNavigator::factory() const {
 				return factory_instance;
 			}
-			
+
 			void RRTNavigator::grab_ball(Player::Ptr player) {
 				const double ux = world.ball().velocity().len(); // velocity of ball
 
@@ -75,13 +74,13 @@ namespace AI {
 
 				const Point p = p1 + u * x;
 
-				double a = 1 + (y*y) / (x*x);
-				double b = (2*y*y*ux)/(x*x);
-				double c = (y*y*ux*ux)/(x*x) - v;
-				
-				double vx1 = (-b + std::sqrt(b*b - (4*a*c))) / (2*a);
-				double vx2 = (-b - std::sqrt(b*b - (4*a*c))) / (2*a);
-				
+				double a = 1 + (y * y) / (x * x);
+				double b = (2 * y * y * ux) / (x * x);
+				double c = (y * y * ux * ux) / (x * x) - v;
+
+				double vx1 = (-b + std::sqrt(b * b - (4 * a * c))) / (2 * a);
+				double vx2 = (-b - std::sqrt(b * b - (4 * a * c))) / (2 * a);
+
 				double t1 = x / (vx1 + ux);
 				double t2 = x / (vx2 + ux);
 
@@ -123,11 +122,13 @@ namespace AI {
 				}
 
 				angle = degrees2radians(angle);
-				
+
 				Point diff = (world.ball().position() - current_position).rotate(angle);
 
 				dest = world.ball().position() - offset_distance * (diff / diff.len());
-				if (dest.len() > 0.5) orientation_temp = 0;
+				if (dest.len() > 0.5) {
+					orientation_temp = 0;
+				}
 				dest_orientation = (world.ball().position() - current_position).orientation() + orientation_temp;
 
 				path.push_back(std::make_pair(std::make_pair(dest, dest_orientation), world.monotonic_time()));
@@ -214,7 +215,6 @@ namespace AI {
 			Navigator::Ptr RRTNavigatorFactory::create_navigator(World &world) const {
 				return RRTNavigator::create(world);
 			}
-
 		}
 	}
 }

@@ -113,4 +113,3 @@ AI::Common::PlayType AI::Common::PlayTypeInfo::invert(PlayType pt) {
 	std::abort();
 }
 
-

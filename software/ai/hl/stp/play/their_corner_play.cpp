@@ -30,7 +30,7 @@ namespace {
 			TheirCornerPlay(const AI::HL::W::World &world);
 
 		private:
-			bool invariant() const; 
+			bool invariant() const;
 			bool applicable() const;
 			bool done() const;
 			bool fail() const;
@@ -46,7 +46,7 @@ namespace {
 
 	TheirCornerPlay::TheirCornerPlay(const World &world) : Play(world) {
 	}
-	
+
 	bool TheirCornerPlay::invariant() const {
 		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3);
 	}
@@ -64,10 +64,9 @@ namespace {
 	}
 
 	void TheirCornerPlay::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
-		
 		// GOALIE
 		goalie_role.push_back(defend_duo_goalie(world));
-		
+
 		// ROLE 1
 		// shoot towards the midfield (diagonally to our corner)
 		roles[0].push_back(shoot(world, Point(-world.ball().position().x, -world.ball().position().y)));
@@ -77,7 +76,7 @@ namespace {
 		roles[1].push_back(defend_duo_defender(world));
 
 		// ROLE 3 (optional)
-		// offend 
+		// offend
 		roles[2].push_back(offend(world));
 
 		// ROLE 4 (optional)

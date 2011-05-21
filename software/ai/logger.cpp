@@ -39,7 +39,7 @@ namespace {
 		}
 		std::ostringstream buffer;
 		static const char PATTERN[] = "%Y-%m-%d %H:%M:%S";
-		std::use_facet<std::time_put<char>>(std::locale()).put(buffer, buffer, L' ', &tm, PATTERN, PATTERN + std::strlen(PATTERN));
+		std::use_facet<std::time_put<char> >(std::locale()).put(buffer, buffer, L' ', &tm, PATTERN, PATTERN + std::strlen(PATTERN));
 		const std::string &filename = Glib::build_filename(logs_dir, buffer.str());
 		return FileDescriptor::create_open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	}
@@ -382,8 +382,8 @@ void AI::Logger::on_tick() {
 			encode_u16(&payload[65], static_cast<int16_t>(wheel_speeds[3]));
 			write_packet(fd, Log::T_FRIENDLY_ROBOT, payload, sizeof(payload));
 		}
-		const std::vector<std::pair<std::pair<Point, double>, timespec>> &path = AI::RC::W::Player::Ptr::cast_static(p)->path();
-		for (std::vector<std::pair<std::pair<Point, double>, timespec>>::const_iterator i = path.begin(), iend = path.end(); i != iend; ++i) {
+		const std::vector<std::pair<std::pair<Point, double>, timespec> > &path = AI::RC::W::Player::Ptr::cast_static(p)->path();
+		for (std::vector<std::pair<std::pair<Point, double>, timespec> >::const_iterator i = path.begin(), iend = path.end(); i != iend; ++i) {
 			uint8_t payload[25];
 			encode_u8(&payload[0], static_cast<uint8_t>(p->pattern()));
 			encode_u32(&payload[1], encode_micros(i->first.first.x));

@@ -12,7 +12,6 @@ namespace {
 	DoubleParam steal_threshold("Steal threshold: distance of ball from enemy (robot radius)", "STP/evaluation", 1.1, 0.8, 5.0);
 
 	DoubleParam negligible_velocity("speed goalie should ignore direction of ball", "STP/evaluation", 0.05, 1e-4, 1.0);
-
 }
 
 BallThreat AI::HL::STP::Evaluation::evaluate_ball_threat(const World &world) {
@@ -38,17 +37,16 @@ BallThreat AI::HL::STP::Evaluation::evaluate_ball_threat(const World &world) {
 }
 
 bool AI::HL::STP::Evaluation::ball_on_net(const AI::HL::W::World &world) {
-
-	if (world.ball().velocity().lensq() < negligible_velocity || world.ball().velocity().x > 0 ) {
+	if (world.ball().velocity().lensq() < negligible_velocity || world.ball().velocity().x > 0) {
 		return false;
 	}
 
-	Point a =  world.field().friendly_goal_boundary().first;
+	Point a = world.field().friendly_goal_boundary().first;
 	Point b = world.field().friendly_goal_boundary().second;
 	Point c = world.ball().position();
-	Point d =  world.ball().position() +  world.ball().velocity();
+	Point d = world.ball().position() + world.ball().velocity();
 
-	if( unique_line_intersect( a, b, c, d ) ){
+	if (unique_line_intersect(a, b, c, d)) {
 		Point inter = line_intersect(a, b, c, d);
 		return inter.y <= std::max(a.y, b.y) && inter.y >= std::min(a.y, b.y);
 	}
@@ -57,19 +55,19 @@ bool AI::HL::STP::Evaluation::ball_on_net(const AI::HL::W::World &world) {
 
 
 Point AI::HL::STP::Evaluation::goalie_shot_block(const AI::HL::W::World &world) {
-	if(world.friendly_team().size()<=0 || ! ball_on_net(world)) {
-		return Point(0,0);
+	if (world.friendly_team().size() <= 0 || !ball_on_net(world)) {
+		return Point(0, 0);
 	}
 
 	Point goalie_pos = world.friendly_team().get(0)->position();
 
-	Point a =  world.field().friendly_goal_boundary().first;
+	Point a = world.field().friendly_goal_boundary().first;
 	Point b = world.field().friendly_goal_boundary().second;
 
 	Point c = world.ball().position();
-	Point d =  world.ball().position() +  world.ball().velocity();
+	Point d = world.ball().position() + world.ball().velocity();
 	Point inter = line_intersect(a, b, c, d);
 
-	return closest_lineseg_point( goalie_pos, c, inter) ;
+	return closest_lineseg_point(goalie_pos, c, inter);
 }
 

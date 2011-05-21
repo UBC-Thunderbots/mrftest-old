@@ -12,7 +12,6 @@ using namespace AI::HL::STP;
 using namespace AI::HL::W;
 
 namespace {
-
 	IntParam pass_target("passing target points", "STP/test_pass", 0, 0, 14);
 
 	// make better targets
@@ -49,12 +48,12 @@ namespace {
 
 	class TestPass : public HighLevel {
 		public:
-			TestPass(World& world) : world(world), targets(default_targets, default_targets + default_targets_n) {
+			TestPass(World &world) : world(world), targets(default_targets, default_targets + default_targets_n) {
 			}
 
 		private:
-			World& world;
-			
+			World &world;
+
 			std::vector<Point> targets;
 
 			TestPassFactory &factory() const {
@@ -66,22 +65,25 @@ namespace {
 			}
 
 			void tick() {
-				
 				std::vector<AI::HL::W::Player::Ptr> players = AI::HL::Util::get_players(world.friendly_team());
-				if (players.size() != 2) return;
-				
+				if (players.size() != 2) {
+					return;
+				}
+
 				std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
-				
+
 				// passer grabs ball
 				Action::chase(world, players[0]);
-				
+
 				// passee move to target
 				Action::move(players[1], (world.ball().position() - players[1]->position()).orientation(), targets[pass_target]);
 				// passer shoots
-				bool kicked = Action::shoot(world,players[0],targets[pass_target]);
-					
-				// passee grabs ball 		
-				if (kicked) Action::chase(world, players[1]);
+				bool kicked = Action::shoot(world, players[0], targets[pass_target]);
+
+				// passee grabs ball
+				if (kicked) {
+					Action::chase(world, players[1]);
+				}
 			}
 	};
 

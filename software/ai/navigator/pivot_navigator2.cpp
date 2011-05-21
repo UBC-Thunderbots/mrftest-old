@@ -49,7 +49,7 @@ namespace {
 	Navigator::Ptr PivotNavigator2Factory::create_navigator(World &world) const {
 		return PivotNavigator2::create(world);
 	}
-	
+
 	DoubleParam offset_angle("offset angle (degrees)", "Nav/Pivot2", 30.0, -1000.0, 1000.0);
 	DoubleParam offset_distance("offset distance", "Nav/Pivot2", 0.15, -10.0, 10.0);
 	DoubleParam orientation_offset("orientation offset (degrees)", "Nav/Pivot2", 30.0, -1000.0, 1000.0);

@@ -9,8 +9,8 @@ Ball::Ball(AI::BE::Backend &backend) : backend(backend), xpred(false, 1.3e-3, 2)
 
 void Ball::update(const Point &pos, const timespec &ts) {
 	bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
-	xpred.add_datum(neg ? -pos.x : pos.x, timespec_sub(ts,double_to_timespec(LOOP_DELAY)));
-	ypred.add_datum(neg ? -pos.y : pos.y, timespec_sub(ts,double_to_timespec(LOOP_DELAY)));
+	xpred.add_datum(neg ? -pos.x : pos.x, timespec_sub(ts, double_to_timespec(LOOP_DELAY)));
+	ypred.add_datum(neg ? -pos.y : pos.y, timespec_sub(ts, double_to_timespec(LOOP_DELAY)));
 }
 
 void Ball::lock_time(const timespec &now) {

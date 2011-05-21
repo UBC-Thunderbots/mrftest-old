@@ -72,7 +72,7 @@ namespace {
 		// move to shooting position and shoot
 		roles[0].push_back(wait_playtype(world, move(world, Point(0.5 * world.field().length() - PENALTY_MARK_LENGTH - Robot::MAX_RADIUS, 0)), AI::Common::PlayType::EXECUTE_PENALTY_FRIENDLY));
 		roles[0].push_back(penalty_shoot(world));
-		
+
 		// ROLE 2
 		// move to penalty position 1
 		roles[1].push_back(move(world, Point(0.5 * world.field().length() - RESTRICTED_ZONE_LENGTH - Robot::MAX_RADIUS, -5 * Robot::MAX_RADIUS)));

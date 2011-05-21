@@ -11,10 +11,10 @@ using namespace AI::HL::W;
 namespace Evaluation = AI::HL::STP::Evaluation;
 using AI::HL::STP::Evaluation::EnemyThreat;
 
-namespace{
+namespace {
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/predicates", 3.0, 1.0, 10.0);
 
-	Player::CPtr calc_baller(const World &world){
+	Player::CPtr calc_baller(const World &world) {
 		const FriendlyTeam &friendly = world.friendly_team();
 		std::set<Player::CPtr> players;
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
@@ -23,8 +23,8 @@ namespace{
 		const Player::CPtr baller = *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::CPtr>(world.ball().position()));
 		return baller;
 	}
-	
-	const Robot::Ptr calc_enemy_baller(const World &world){
+
+	const Robot::Ptr calc_enemy_baller(const World &world) {
 		const EnemyTeam &enemy = world.enemy_team();
 		std::set<Robot::Ptr> enemies;
 		for (std::size_t i = 0; i < enemy.size(); ++i) {
@@ -100,79 +100,95 @@ bool AI::HL::STP::Predicates::ball_on_their_side(const World &world) {
 }
 
 bool AI::HL::STP::Predicates::ball_in_our_corner(const World &world) {
-	return world.ball().position().x <= -world.field().length()/4 && std::fabs(world.ball().position().y) > world.field().goal_width();
+	return world.ball().position().x <= -world.field().length() / 4 && std::fabs(world.ball().position().y) > world.field().goal_width();
 }
 
 bool AI::HL::STP::Predicates::ball_in_their_corner(const World &world) {
-	return world.ball().position().x >= world.field().length()/4 && std::fabs(world.ball().position().y) > world.field().goal_width();
+	return world.ball().position().x >= world.field().length() / 4 && std::fabs(world.ball().position().y) > world.field().goal_width();
 }
 
-bool AI::HL::STP::Predicates::ball_midfield(const World &world){
-	return std::fabs(world.ball().position().x) < world.field().length()/4;
+bool AI::HL::STP::Predicates::ball_midfield(const World &world) {
+	return std::fabs(world.ball().position().x) < world.field().length() / 4;
 }
 
-bool AI::HL::STP::Predicates::baller_can_shoot(const World &world){
+bool AI::HL::STP::Predicates::baller_can_shoot(const World &world) {
 	const Player::CPtr baller = calc_baller(world);
-	if (!baller.is() || !baller->has_ball()) return false;
+	if (!baller.is() || !baller->has_ball()) {
+		return false;
+	}
 	return AI::HL::Util::calc_best_shot(world, baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
 }
 
-bool AI::HL::STP::Predicates::baller_can_pass(const World &world){
-		
+bool AI::HL::STP::Predicates::baller_can_pass(const World &world) {
 	const FriendlyTeam &friends = world.friendly_team();
 	const Player::CPtr baller = calc_baller(world);
-	if (!baller.is() || !baller->has_ball()) return false;
+	if (!baller.is() || !baller->has_ball()) {
+		return false;
+	}
 	// don't count in the goalie
 	for (size_t i = 1; i < friends.size(); ++i) {
-		if (friends.get(i)->has_ball()) continue;
-		if (AI::HL::Util::calc_best_shot_target(world, friends.get(i)->position(), baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0){
+		if (friends.get(i)->has_ball()) {
+			continue;
+		}
+		if (AI::HL::Util::calc_best_shot_target(world, friends.get(i)->position(), baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0) {
 			const Point ray = world.ball().position() - friends.get(i)->position();
 			// if the passee is not facing the ball, forget it?
-			if (angle_diff(ray.orientation(), friends.get(i)->orientation()) > AI::HL::Util::ORI_PASS_CLOSE) 
+			if (angle_diff(ray.orientation(), friends.get(i)->orientation()) > AI::HL::Util::ORI_PASS_CLOSE) {
 				return false;
-			else 
+			} else {
 				return true;
-		} 
+			}
+		}
 	}
-		
+
 	return false;
 }
 
-bool AI::HL::STP::Predicates::baller_can_shoot_target(const World &world, const Point &target){
+bool AI::HL::STP::Predicates::baller_can_shoot_target(const World &world, const Point &target) {
 	const Player::CPtr baller = calc_baller(world);
-	if (!baller.is() || !baller->has_ball()) return false;
+	if (!baller.is() || !baller->has_ball()) {
+		return false;
+	}
 	return AI::HL::Util::calc_best_shot_target(world, target, baller).second > AI::HL::Util::shoot_accuracy * M_PI / 180.0;
 }
 
-bool AI::HL::STP::Predicates::baller_under_threat(const World &world){
-
+bool AI::HL::STP::Predicates::baller_under_threat(const World &world) {
 	const Player::CPtr baller = calc_baller(world);
-	if (!baller.is() || !baller->has_ball()) return false;
+	if (!baller.is() || !baller->has_ball()) {
+		return false;
+	}
 	int enemy_cnt = 0;
 	const EnemyTeam &enemies = world.enemy_team();
-	for (std::size_t i = 0; i < enemies.size(); ++i) {	
-		if ((baller->position() - enemies.get(i)->position()).len() <= near_thresh * AI::HL::W::Robot::MAX_RADIUS)
+	for (std::size_t i = 0; i < enemies.size(); ++i) {
+		if ((baller->position() - enemies.get(i)->position()).len() <= near_thresh * AI::HL::W::Robot::MAX_RADIUS) {
 			enemy_cnt++;
+		}
 	}
-	
+
 	return enemy_cnt >= 2;
 }
 
-bool AI::HL::STP::Predicates::enemy_baller_can_shoot(const World &world){
+bool AI::HL::STP::Predicates::enemy_baller_can_shoot(const World &world) {
 	const Robot::Ptr baller = calc_enemy_baller(world);
-	if (!baller.is() || !AI::HL::Util::posses_ball(world, baller)) return false;
+	if (!baller.is() || !AI::HL::Util::posses_ball(world, baller)) {
+		return false;
+	}
 	return Evaluation::eval_enemy(world, baller).passes == 0;
 }
 
-bool AI::HL::STP::Predicates::enemy_baller_can_pass(const World &world){
+bool AI::HL::STP::Predicates::enemy_baller_can_pass(const World &world) {
 	const Robot::Ptr baller = calc_enemy_baller(world);
-	if (!baller.is() || !AI::HL::Util::posses_ball(world, baller)) return false;
+	if (!baller.is() || !AI::HL::Util::posses_ball(world, baller)) {
+		return false;
+	}
 	return Evaluation::eval_enemy(world, baller).passees.size() > 0;
 }
 
-bool AI::HL::STP::Predicates::enemy_baller_can_pass_shoot(const World &world){
+bool AI::HL::STP::Predicates::enemy_baller_can_pass_shoot(const World &world) {
 	const Robot::Ptr baller = calc_enemy_baller(world);
-	if (!baller.is() || !AI::HL::Util::posses_ball(world, baller)) return false;
+	if (!baller.is() || !AI::HL::Util::posses_ball(world, baller)) {
+		return false;
+	}
 	return Evaluation::eval_enemy(world, baller).passes > 0 && Evaluation::eval_enemy(world, baller).passes < 3;
 }
 

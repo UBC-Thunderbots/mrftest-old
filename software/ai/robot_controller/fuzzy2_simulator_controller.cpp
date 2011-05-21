@@ -22,7 +22,7 @@ namespace {
 	const double arr_max[P] = { 8.0, 2.0, 2.0, 8.0, 8.0 };
 
 	// default parameters:
-	const double arr_def[P] = {7.72052, 0.825997, 1.96849, 3.13055, 6.36714};
+	const double arr_def[P] = { 7.72052, 0.825997, 1.96849, 3.13055, 6.36714 };
 
 	const std::vector<double> param_min(arr_min, arr_min + P);
 	const std::vector<double> param_max(arr_max, arr_max + P);
@@ -83,7 +83,7 @@ namespace {
 					LOG_INFO("Warning: Fuzzy controller is being told to travel slow.");
 					linear_velocity = desired_velocity * (linear_velocity / linear_velocity.len());
 				}
-		
+
 				int wheel_speeds[4] = { 0, 0, 0, 0 };
 
 				convert_to_wheels(linear_velocity, angular_velocity, wheel_speeds);

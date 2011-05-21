@@ -8,7 +8,7 @@
 #include <sstream>
 
 namespace {
-	const char * const BUTTON_XML_NAMES[] = {
+	const char *const BUTTON_XML_NAMES[] = {
 		"dribble",
 		"kick",
 		"scram",
@@ -24,7 +24,7 @@ namespace {
 	}
 }
 
-const char * const JoystickMapping::BUTTON_LABELS[] = {
+const char *const JoystickMapping::BUTTON_LABELS[] = {
 	"Dribble",
 	"Kick",
 	"Scram",
@@ -47,7 +47,7 @@ JoystickMapping::JoystickMapping(const xmlpp::Element *elt) : name_(elt->get_att
 		if (group_elt) {
 			int *mappings;
 			unsigned int n_mappings;
-			const char * const *xml_names;
+			const char *const *xml_names;
 			if (group_elt->get_name() == "axes") {
 				mappings = axes;
 				n_mappings = N_AXES;
@@ -70,7 +70,8 @@ JoystickMapping::JoystickMapping(const xmlpp::Element *elt) : name_(elt->get_att
 					assert(!physs.empty());
 					int log;
 					if (xml_names) {
-						for (log = 0; static_cast<unsigned int>(log) < n_mappings && logs != xml_names[log]; ++log);
+						for (log = 0; static_cast<unsigned int>(log) < n_mappings && logs != xml_names[log]; ++log) {
+						}
 					} else {
 						log = to_int(logs);
 					}
@@ -133,7 +134,7 @@ void JoystickMapping::save(xmlpp::Element *elt) const {
 		const char *elt_name;
 		unsigned int n_mappings;
 		const int *mappings;
-		const char * const *xml_names;
+		const char *const *xml_names;
 	} groups[] = {
 		{ "axes", N_AXES, axes, 0 },
 		{ "buttons", N_BUTTONS, buttons, BUTTON_XML_NAMES },

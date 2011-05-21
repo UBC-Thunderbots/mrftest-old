@@ -22,11 +22,11 @@ namespace {
 
 	class TestLoneGoalie : public HighLevel {
 		public:
-			TestLoneGoalie(World& world) : world(world) {
+			TestLoneGoalie(World &world) : world(world) {
 			}
 
 		private:
-			World& world;
+			World &world;
 
 			TestLoneGoalieFactory &factory() const {
 				return factory_instance;
@@ -37,8 +37,10 @@ namespace {
 			}
 
 			void tick() {
-				FriendlyTeam& friendly = world.friendly_team();
-				if (friendly.size() == 0) return;
+				FriendlyTeam &friendly = world.friendly_team();
+				if (friendly.size() == 0) {
+					return;
+				}
 
 				Action::lone_goalie(world, friendly.get(0));
 			}

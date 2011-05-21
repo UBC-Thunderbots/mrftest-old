@@ -122,7 +122,7 @@ double lineseg_point_dist(const Point &centre, const Point &segA, const Point &s
  *
  * \return the distance between line seg and point.
  */
-Point closest_lineseg_point(const Point &p, const Point &segA, const Point &segB); 
+Point closest_lineseg_point(const Point &p, const Point &segA, const Point &segB);
 
 /**
  * Finds the points of intersection between a circle and a line.

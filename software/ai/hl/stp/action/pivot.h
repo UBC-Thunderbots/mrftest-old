@@ -13,7 +13,7 @@ namespace AI {
 				 * If the player does not have the ball, chase it.
 				 * Rotates the player toward the target while holding the ball.
 				 */
-				void pivot(const World& world, Player::Ptr player, const Point target);
+				void pivot(const World &world, Player::Ptr player, const Point target);
 			}
 		}
 	}

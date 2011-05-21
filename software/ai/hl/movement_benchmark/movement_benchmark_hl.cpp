@@ -12,7 +12,7 @@ namespace {
 	const double ori_vel_threshold = 0.05;
 
 	const double PI = M_PI;
-	
+
 	const std::pair<Point, double> default_tasks[] = {
 		std::make_pair(Point(1.2, 0), 0),
 		std::make_pair(Point(1.5, 0), -PI / 2),
@@ -30,9 +30,9 @@ namespace {
 		std::make_pair(Point(0.5, 0), 0),
 		std::make_pair(Point(2.5, 0.6), -PI / 2)
 	};
-	
+
 	const int default_tasks_n = G_N_ELEMENTS(default_tasks);
-	
+
 	class MBHLFactory : public HighLevelFactory {
 		public:
 			MBHLFactory() : HighLevelFactory("Movement Benchmark") {
@@ -88,7 +88,7 @@ namespace {
 
 		private:
 			World &world;
-			std::vector<std::pair<Point, double>> tasks;
+			std::vector<std::pair<Point, double> > tasks;
 			int time_steps;
 			std::size_t done;
 	};

@@ -22,11 +22,11 @@ namespace {
 
 	class TestChase : public HighLevel {
 		public:
-			TestChase(World& world) : world(world) {
+			TestChase(World &world) : world(world) {
 			}
 
 		private:
-			World& world;
+			World &world;
 
 			TestChaseFactory &factory() const {
 				return factory_instance;
@@ -37,8 +37,10 @@ namespace {
 			}
 
 			void tick() {
-				FriendlyTeam& friendly = world.friendly_team();
-				if (friendly.size() == 0) return;
+				FriendlyTeam &friendly = world.friendly_team();
+				if (friendly.size() == 0) {
+					return;
+				}
 
 				Action::chase(world, friendly.get(0));
 			}

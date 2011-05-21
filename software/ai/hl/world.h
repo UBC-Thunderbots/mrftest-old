@@ -136,7 +136,7 @@ namespace AI {
 					 * \param[in] speed the speed of the kick, in m/s.
 					 */
 					virtual void kick(double speed) = 0;
-					
+
 					/**
 					 * Causes the player to automatically kick the ball as soon as it is picked up by the sensor.
 					 *

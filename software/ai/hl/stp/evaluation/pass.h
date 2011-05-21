@@ -16,7 +16,7 @@ namespace AI {
 				/**
 				 * Checks if this location can be passed to.
 				 */
-				bool can_pass(const World& world, const Point dest);
+				bool can_pass(const World &world, Point dest);
 
 				/**
 				 * TODO: This duplicates the functionality in offense. need to fix.
@@ -29,14 +29,13 @@ namespace AI {
 				 *   will avoid blocking view of it.
 				 *
 				 * \param[in] players the set of players that influence the output.
-				 * 
+				 *
 				 * \return a pair of passer_pos (first) and passee_pos (second)
 				 */
 
-				std::pair <Point, Point> calc_pass_positions(const World &world);
-				
-				std::pair <Point, Point> calc_def_pass_positions(const World &world);
-				
+				std::pair<Point, Point> calc_pass_positions(const World &world);
+
+				std::pair<Point, Point> calc_def_pass_positions(const World &world);
 			}
 		}
 	}

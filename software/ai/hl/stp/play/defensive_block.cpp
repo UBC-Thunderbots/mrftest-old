@@ -22,26 +22,27 @@ APPLICABLE(Predicates::their_ball(world) && Predicates::ball_midfield(world) && 
 DONE(Predicates::our_ball(world) || Predicates::ball_on_their_side(world))
 FAIL(false)
 BEGIN_ASSIGN()
-	// GOALIE
-	// defend the goal
-	goalie_role.push_back(defend_duo_goalie(world));
+// GOALIE
+// defend the goal
+goalie_role.push_back(defend_duo_goalie(world));
 
-	// ROLE 1
-	// defend
-	roles[0].push_back(defend_duo_defender(world));
+// ROLE 1
+// defend
+roles[0].push_back(defend_duo_defender(world));
 
-	// ROLE 2
-	// chase the ball!
-	roles[1].push_back(chase(world));
+// ROLE 2
+// chase the ball!
+roles[1].push_back(chase(world));
 
-	// ROLE 3 (optional)
-	// defend
-	roles[2].push_back(defend_duo_extra(world));
+// ROLE 3 (optional)
+// defend
+roles[2].push_back(defend_duo_extra(world));
 
-	// ROLE 4 (optional)
-	// offend
-	//roles[3].push_back(offend(world));
-	// block instead of offend (hence the name of the play?)
-	roles[3].push_back(block_pass(world, Enemy::closest_pass(world, Enemy::closest_ball(world, 0)->evaluate(), 0)));
+// ROLE 4 (optional)
+// offend
+// roles[3].push_back(offend(world));
+// block instead of offend (hence the name of the play?)
+roles[3].push_back(block_pass(world, Enemy::closest_pass(world, Enemy::closest_ball(world, 0)->evaluate(), 0)));
 END_ASSIGN()
 END_PLAY()
+

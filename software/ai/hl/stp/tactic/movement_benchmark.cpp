@@ -16,16 +16,15 @@ using AI::HL::STP::Coordinate;
 #define TUNE_FULL
 
 namespace {
-	
 	const double pos_dis_threshold = 0.2;
 	const double pos_vel_threshold = 0.2;
 	const double ori_dis_threshold = 0.2;
 	const double ori_vel_threshold = 0.2;
 
 	const double PI = M_PI;
-	
+
 #ifdef TUNE_HALF
-	const std::vector< std::pair<Point, double>> tasks = {
+	const std::vector<std::pair<Point, double> > tasks = {
 		std::make_pair(Point(1.2, 0), 0),
 		std::make_pair(Point(0.5, 0), PI),
 		std::make_pair(Point(2.5, 0), 0),
@@ -38,9 +37,9 @@ namespace {
 		   std::make_pair(Point(1.2, 0), 0),*/
 	};
 #endif
-	
+
 #ifdef TUNE_FULL
-	const std::vector< std::pair<Point, double>> tasks = {
+	const std::vector<std::pair<Point, double> > tasks = {
 		std::make_pair(Point(0, 0), 0),
 		std::make_pair(Point(1, 0), PI),
 		std::make_pair(Point(-2.5, 0), 0),
@@ -62,9 +61,9 @@ namespace {
 		std::make_pair(Point(0, 0), 0),
 	};
 #endif
-	
+
 #ifdef NO_TUNE_ROTATION
-	const std::vector< std::pair<Point, double>> tasks = {
+	const std::vector<std::pair<Point, double> > tasks = {
 		std::make_pair(Point(0, 0), 0),
 		std::make_pair(Point(1, 0), 0),
 		std::make_pair(Point(0, 0), 0),
@@ -84,19 +83,19 @@ namespace {
 		std::make_pair(Point(0, 0), 0),
 	};
 #endif
-	
+
 	class MovementBenchmark : public Tactic {
 		public:
-			MovementBenchmark(const World &world) : Tactic(world,true) {
+			MovementBenchmark(const World &world) : Tactic(world, true) {
 				finished = 0;
 			}
 
 		private:
 			bool done() const;
-			Player::Ptr select(const std::set<Player::Ptr> &players) const;			
+			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
-			
-			
+
+
 			int time_steps;
 			std::size_t finished;
 			Point prev_pos;
@@ -106,26 +105,25 @@ namespace {
 				return "movement-benchmark";
 			}
 	};
-	
-	bool MovementBenchmark::done() const{
+
+	bool MovementBenchmark::done() const {
 		return finished >= tasks.size();
 	}
 
 	Player::Ptr MovementBenchmark::select(const std::set<Player::Ptr> &players) const {
 		// #warning THIS CODE IS BROKEN
 		// return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest()));
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(Point(0,0)));
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(Point(0, 0)));
 	}
 
 	void MovementBenchmark::execute() {
-		
 		if (finished == 0) {
 			time_steps = 0;
 			std::time(&start_tasks);
 		} else if (finished > 0) {
 			time_steps++;
 		}
-	
+
 		const Point diff_pos = player->position() - tasks[finished].first;
 		const Point vel_pos = player->position() - prev_pos;
 		const double diff_ori = angle_mod(player->orientation() - tasks[finished].second);
@@ -147,7 +145,7 @@ namespace {
 
 			return;
 		}
-		
+
 		prev_ori = player->orientation();
 		prev_pos = player->position();
 		player->move(tasks[finished].first, tasks[finished].second, 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);

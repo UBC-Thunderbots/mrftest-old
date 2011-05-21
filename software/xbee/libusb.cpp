@@ -19,20 +19,60 @@ namespace {
 
 		const char *msg;
 		switch (err) {
-			case LIBUSB_ERROR_IO: msg = "Input/output error"; break;
-			case LIBUSB_ERROR_INVALID_PARAM: msg = "Invalid parameter"; break;
-			case LIBUSB_ERROR_ACCESS: msg = "Access denied (insufficient permissions)"; break;
-			case LIBUSB_ERROR_NO_DEVICE: msg = "No such device (it may have been disconnected)"; break;
-			case LIBUSB_ERROR_NOT_FOUND: msg = "Entity not found"; break;
-			case LIBUSB_ERROR_BUSY: msg = "Resource busy"; break;
-			case LIBUSB_ERROR_TIMEOUT: msg = "Operation timed out"; break;
-			case LIBUSB_ERROR_OVERFLOW: msg = "Overflow"; break;
-			case LIBUSB_ERROR_PIPE: msg = "Pipe error"; break;
-			case LIBUSB_ERROR_INTERRUPTED: msg = "System call interrupted (perhaps due to signal)"; break;
-			case LIBUSB_ERROR_NO_MEM: throw std::bad_alloc(); break;
-			case LIBUSB_ERROR_NOT_SUPPORTED: msg = "Operation not supported or unimplemented on this platform"; break;
-			case LIBUSB_ERROR_OTHER: msg = "Other error"; break;
-			default: throw ErrorMessageError();
+			case LIBUSB_ERROR_IO:
+				msg = "Input/output error";
+				break;
+
+			case LIBUSB_ERROR_INVALID_PARAM:
+				msg = "Invalid parameter";
+				break;
+
+			case LIBUSB_ERROR_ACCESS:
+				msg = "Access denied (insufficient permissions)";
+				break;
+
+			case LIBUSB_ERROR_NO_DEVICE:
+				msg = "No such device (it may have been disconnected)";
+				break;
+
+			case LIBUSB_ERROR_NOT_FOUND:
+				msg = "Entity not found";
+				break;
+
+			case LIBUSB_ERROR_BUSY:
+				msg = "Resource busy";
+				break;
+
+			case LIBUSB_ERROR_TIMEOUT:
+				msg = "Operation timed out";
+				break;
+
+			case LIBUSB_ERROR_OVERFLOW:
+				msg = "Overflow";
+				break;
+
+			case LIBUSB_ERROR_PIPE:
+				msg = "Pipe error";
+				break;
+
+			case LIBUSB_ERROR_INTERRUPTED:
+				msg = "System call interrupted (perhaps due to signal)";
+				break;
+
+			case LIBUSB_ERROR_NO_MEM:
+				throw std::bad_alloc();
+				break;
+
+			case LIBUSB_ERROR_NOT_SUPPORTED:
+				msg = "Operation not supported or unimplemented on this platform";
+				break;
+
+			case LIBUSB_ERROR_OTHER:
+				msg = "Other error";
+				break;
+
+			default:
+				throw ErrorMessageError();
 		}
 		std::ostringstream oss;
 		oss << call << ": " << msg;
@@ -133,7 +173,8 @@ int LibUSBContext::poll_func(GPollFD *ufds, unsigned int nfds, int timeout) {
 
 	{
 		int rc;
-		while ((rc = poll(pfds, G_N_ELEMENTS(pfds), timeout)) < 0 && errno == EINTR);
+		while ((rc = poll(pfds, G_N_ELEMENTS(pfds), timeout)) < 0 && errno == EINTR) {
+		}
 		if (rc < 0) {
 			throw SystemError("poll", errno);
 		}
@@ -265,14 +306,29 @@ std::size_t LibUSBDeviceHandle::interrupt_in(unsigned char endpoint, void *data,
 void LibUSBTransfer::result() const {
 	assert(done_);
 	switch (transfer->status) {
-		case LIBUSB_TRANSFER_COMPLETED: return;
-		case LIBUSB_TRANSFER_ERROR: throw LibUSBTransferError(transfer->endpoint, "Transfer error");
-		case LIBUSB_TRANSFER_TIMED_OUT: throw LibUSBTransferTimeoutError(transfer->endpoint);
-		case LIBUSB_TRANSFER_CANCELLED: throw LibUSBTransferCancelledError(transfer->endpoint);
-		case LIBUSB_TRANSFER_STALL: throw LibUSBTransferStallError(transfer->endpoint);
-		case LIBUSB_TRANSFER_NO_DEVICE: throw LibUSBTransferError(transfer->endpoint, "Device was disconnected");
-		case LIBUSB_TRANSFER_OVERFLOW: throw LibUSBTransferError(transfer->endpoint, "Device sent more data than requested");
-		default: throw ErrorMessageError();
+		case LIBUSB_TRANSFER_COMPLETED:
+			return;
+
+		case LIBUSB_TRANSFER_ERROR:
+			throw LibUSBTransferError(transfer->endpoint, "Transfer error");
+
+		case LIBUSB_TRANSFER_TIMED_OUT:
+			throw LibUSBTransferTimeoutError(transfer->endpoint);
+
+		case LIBUSB_TRANSFER_CANCELLED:
+			throw LibUSBTransferCancelledError(transfer->endpoint);
+
+		case LIBUSB_TRANSFER_STALL:
+			throw LibUSBTransferStallError(transfer->endpoint);
+
+		case LIBUSB_TRANSFER_NO_DEVICE:
+			throw LibUSBTransferError(transfer->endpoint, "Device was disconnected");
+
+		case LIBUSB_TRANSFER_OVERFLOW:
+			throw LibUSBTransferError(transfer->endpoint, "Device sent more data than requested");
+
+		default:
+			throw ErrorMessageError();
 	}
 }
 

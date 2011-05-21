@@ -12,7 +12,7 @@ namespace AI {
 				 * Blocks against an enemy from view of our goal.
 				 */
 				Tactic::Ptr block(const World &world, Enemy::Ptr enemy);
-				
+
 				/**
 				 * Blocks against an enemy from passing.
 				 */

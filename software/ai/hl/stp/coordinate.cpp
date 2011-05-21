@@ -4,10 +4,10 @@
 using AI::HL::STP::Coordinate;
 using namespace AI::HL::STP;
 
-Coordinate::Coordinate(const Point& pos) : world(NULL), y_type(YType::ABSOLUTE), o_type(OriginType::ABSOLUTE), pos(pos) {
+Coordinate::Coordinate(const Point &pos) : world(NULL), y_type(YType::ABSOLUTE), o_type(OriginType::ABSOLUTE), pos(pos) {
 }
 
-Coordinate::Coordinate(const World& world, const Point& pos, const YType y_type, const OriginType o_type) : world(&world), y_type(y_type), o_type(o_type), pos(pos) {
+Coordinate::Coordinate(const World &world, const Point &pos, YType y_type, OriginType o_type) : world(&world), y_type(y_type), o_type(o_type), pos(pos) {
 }
 
 Point Coordinate::operator()() const {
@@ -17,6 +17,7 @@ Point Coordinate::operator()() const {
 		case OriginType::BALL:
 			p += world->ball().position();
 			break;
+
 		case OriginType::ABSOLUTE:
 		default:
 			break;
@@ -28,9 +29,11 @@ Point Coordinate::operator()() const {
 				p.y *= -1;
 			}
 			break;
+
 		case YType::MAJORITY:
 			LOG_ERROR("NOT IMPLEMENTED YET");
 			break;
+
 		case YType::ABSOLUTE:
 		default:
 			break;

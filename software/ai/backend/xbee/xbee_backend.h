@@ -3,7 +3,7 @@
 
 #include "util/param.h"
 
-extern DoubleParam LOOP_DELAY; 
+extern DoubleParam LOOP_DELAY;
 
 #endif
 

@@ -14,7 +14,6 @@ using AI::RC::RobotControllerFactory;
 using namespace AI::RC::W;
 
 namespace {
-
 	class LazyController : public RobotController {
 		public:
 			LazyController(World &world, Player::Ptr player) : RobotController(world, player) {

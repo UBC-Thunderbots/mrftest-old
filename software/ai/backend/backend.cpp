@@ -75,8 +75,8 @@ void AI::BE::Player::autokick(double power) {
 	autokick_impl(power);
 }
 
-void AI::BE::Player::path(const std::vector<std::pair<std::pair<Point, double>, timespec>> &p) {
-	for (std::vector<std::pair<std::pair<Point, double>, timespec>>::const_iterator i = p.begin(), iend = p.end(); i != iend; ++i) {
+void AI::BE::Player::path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) {
+	for (std::vector<std::pair<std::pair<Point, double>, timespec> >::const_iterator i = p.begin(), iend = p.end(); i != iend; ++i) {
 		if (!std::isfinite(i->first.first.x) || !std::isfinite(i->first.first.y)) {
 			LOG_ERROR("NaN or ±inf position in path element");
 			return;

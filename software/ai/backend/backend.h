@@ -103,7 +103,7 @@ namespace AI {
 				void kick(double power);
 				void autokick(double power);
 				const std::pair<Point, double> &destination() const = 0;
-				void path(const std::vector<std::pair<std::pair<Point, double>, timespec>> &p);
+				void path(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p);
 				void pre_tick();
 
 			protected:
@@ -116,7 +116,7 @@ namespace AI {
 
 				virtual void kick_impl(double power) = 0;
 				virtual void autokick_impl(double power) = 0;
-				virtual void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec>> &p) = 0;
+				virtual void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) = 0;
 		};
 
 		/**
@@ -478,7 +478,7 @@ namespace AI {
 				 *
 				 * \return the signal.
 				 */
-				sigc::signal<void, Cairo::RefPtr<Cairo::Context>> &signal_draw_overlay() const {
+				sigc::signal<void, Cairo::RefPtr<Cairo::Context> > &signal_draw_overlay() const {
 					return signal_draw_overlay_;
 				}
 
@@ -507,7 +507,7 @@ namespace AI {
 				mutable sigc::signal<void, const void *, std::size_t> signal_vision_;
 				mutable sigc::signal<void, const void *, std::size_t> signal_refbox_;
 				mutable sigc::signal<void> signal_score_changed_;
-				mutable sigc::signal<void, Cairo::RefPtr<Cairo::Context>> signal_draw_overlay_;
+				mutable sigc::signal<void, Cairo::RefPtr<Cairo::Context> > signal_draw_overlay_;
 
 				void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) const;
 		};

@@ -37,6 +37,7 @@ namespace {
 		public:
 			Primary(const World &world) : Tactic(world) {
 			}
+
 		private:
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
@@ -52,6 +53,7 @@ namespace {
 		public:
 			Secondary(const World &world) : Tactic(world) {
 			}
+
 		private:
 			Player::Ptr select(const std::set<Player::Ptr> &players) const;
 			void execute();
@@ -59,11 +61,11 @@ namespace {
 				return "extra defender";
 			}
 	};
-	
+
 	void Goalie::execute() {
 		auto waypoints = Evaluation::evaluate_defense(world);
-		//player->move(waypoints[0], (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
-		Action::goalie_move(world, player,  waypoints[0]);
+		// player->move(waypoints[0], (world.ball().position() - player->position()).orientation(), 0, AI::Flags::MoveType::NORMAL, AI::Flags::MovePrio::HIGH);
+		Action::goalie_move(world, player, waypoints[0]);
 	}
 
 	Player::Ptr Primary::select(const std::set<Player::Ptr> &players) const {
@@ -90,7 +92,6 @@ namespace {
 		Point dest = waypoints[2];
 		Action::move(world, player, dest);
 	}
-
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::defend_duo_goalie(const AI::HL::W::World &world) {

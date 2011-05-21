@@ -10,7 +10,6 @@ using namespace AI::HL::W;
 namespace Predicates = AI::HL::STP::Predicates;
 
 namespace {
-
 	/**
 	 * Condition:
 	 * - It is the stop play

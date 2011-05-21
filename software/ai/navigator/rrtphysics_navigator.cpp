@@ -12,9 +12,7 @@ using namespace AI::Nav::Util;
 using namespace AI::Flags;
 using namespace Glib;
 
-
-namespace{
-
+namespace {
 	const double MAX_SPEED = 2.0;
 	const double THRESHOLD = 0.07;
 // const double STEP_DISTANCE = 0.3;
@@ -100,6 +98,5 @@ namespace{
 	Navigator::Ptr RRTPhysicsNavigatorFactory::create_navigator(World &world) const {
 		return RRTPhysicsNavigator::create(world);
 	}
-
 }
 

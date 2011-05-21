@@ -13,20 +13,18 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 using AI::HL::STP::Evaluation::BallThreat;
 
 namespace {
-	DoubleParam lone_goalie_dist("Lone Goalie: distance to goal post (m)", "STP/Action/Goalie" , 0.30, 0.05, 1.0);
-	
+	DoubleParam lone_goalie_dist("Lone Goalie: distance to goal post (m)", "STP/Action/Goalie", 0.30, 0.05, 1.0);
 }
 
 void AI::HL::STP::Action::lone_goalie(const World &world, Player::Ptr player) {
-
 	// Patrol
 	const Point default_pos = Point(-0.45 * world.field().length(), 0);
 	const Point centre_of_goal = world.field().friendly_goal();
 	Point target = world.ball().position() - centre_of_goal;
 	target = target * (lone_goalie_dist / target.len());
 	target += centre_of_goal;
-	if (target.x < -world.field().length()/2+0.2) { // avoid going inside the goal
-		target.x = -world.field().length()/2+0.2;
+	if (target.x < -world.field().length() / 2 + 0.2) { // avoid going inside the goal
+		target.x = -world.field().length() / 2 + 0.2;
 	}
 	player->move(target, (world.ball().position() - player->position()).orientation(), Point());
 	player->type(AI::Flags::MoveType::NORMAL);
@@ -41,20 +39,19 @@ void AI::HL::STP::Action::goalie_move(const World &world, Player::Ptr player, Po
 		repel(world, player);
 		return;
 	}
-	
+
 	// check if ball is heading towards our goal
-	if (Evaluation::ball_on_net(world)){
+	if (Evaluation::ball_on_net(world)) {
 		// goalie block position
 		Point goal_pos = Evaluation::goalie_shot_block(world);
 
 		player->move(goal_pos, (world.ball().position() - player->position()).orientation(), Point());
 		player->type(AI::Flags::MoveType::RAM_BALL);
-		player->prio(AI::Flags::MovePrio::HIGH);		
+		player->prio(AI::Flags::MovePrio::HIGH);
 	} else {
 		player->move(dest, (world.ball().position() - player->position()).orientation(), Point());
 		player->type(AI::Flags::MoveType::NORMAL);
 		player->prio(AI::Flags::MovePrio::MEDIUM);
 	}
-
 }
 

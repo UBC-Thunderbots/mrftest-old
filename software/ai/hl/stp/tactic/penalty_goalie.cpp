@@ -11,6 +11,7 @@ namespace {
 	class PenaltyGoalie : public Tactic {
 		public:
 			PenaltyGoalie(const World &world);
+
 		private:
 			bool goto_target1;
 			bool done() const;
@@ -23,7 +24,7 @@ namespace {
 			}
 	};
 
-	PenaltyGoalie::PenaltyGoalie(const World& world) : Tactic(world, true) {
+	PenaltyGoalie::PenaltyGoalie(const World &world) : Tactic(world, true) {
 	}
 
 	bool PenaltyGoalie::done() const {

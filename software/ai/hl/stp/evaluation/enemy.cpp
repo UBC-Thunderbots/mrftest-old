@@ -11,7 +11,6 @@ using namespace AI::HL::STP;
 using AI::HL::STP::Evaluation::EnemyThreat;
 
 namespace {
-
 	std::pair<Point, double> calc_enemy_best_shot(const Field &f, const std::vector<Point> &obstacles, const Point &p, const double radius) {
 		const Point p1 = Point(-f.length() / 2.0, -f.goal_width() / 2.0);
 		const Point p2 = Point(-f.length() / 2.0, f.goal_width() / 2.0);
@@ -49,10 +48,10 @@ namespace {
 			}
 			obstacles.push_back(erob->position());
 		}
-		 
+
 		return AI::HL::Util::calc_best_shot_target(target_pos, obstacles, enemy->position(), radius);
 	}
-	
+
 	bool enemy_can_receive(const World &world, const Robot::Ptr enemy) {
 		const Ball &ball = world.ball();
 		if ((ball.position() - enemy->position()).lensq() < POS_CLOSE) {
@@ -101,27 +100,27 @@ namespace {
 	bool available_enemy_pass(const World &world, const Robot::Ptr passer, const Robot::Ptr passee) {
 		// assuming a good enemy team
 		double minangle = 5;
-		double maxdist = world.field().length()/2;
-		
+		double maxdist = world.field().length() / 2;
+
 		if (!enemy_can_receive(world, passee)) {
 			return false;
 		}
-		
+
 		const double dist = (passee->position() - world.ball().position()).len();
 		const double angle = calc_enemy_best_shot_target(world, passee->position(), passer).second;
-		
+
 		return angle >= minangle && dist < maxdist;
 	}
-
 }
 
 EnemyThreat AI::HL::STP::Evaluation::eval_enemy(const World &world, const Robot::Ptr robot) {
-
 	// TODO: Check for Errors
 	EnemyThreat enemy_threat;
 
-	if (!robot.is()) return enemy_threat;
-	
+	if (!robot.is()) {
+		return enemy_threat;
+	}
+
 	// use these somehow
 	enemy_threat.ball_dist = (robot->position() - world.ball().position()).len();
 	enemy_threat.our_goal_dist = (robot->position() - world.field().friendly_goal()).len();
@@ -141,7 +140,7 @@ EnemyThreat AI::HL::STP::Evaluation::eval_enemy(const World &world, const Robot:
 
 	// don't count this robot
 	for (std::size_t i = 1; i < enemies.size(); ++i) {
-		if (available_enemy_pass(world, robot, enemies[i])){
+		if (available_enemy_pass(world, robot, enemies[i])) {
 			enemy_threat.passees.push_back(enemies[i]);
 		}
 	}
@@ -149,18 +148,17 @@ EnemyThreat AI::HL::STP::Evaluation::eval_enemy(const World &world, const Robot:
 	enemy_threat.passes = -1;
 	if (enemy_threat.blocked || enemy_threat.passees.size() == 0) {
 		enemy_threat.passes = 5;
-	} else if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), robot, Robot::MAX_RADIUS).second > shoot_accuracy){
+	} else if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), robot, Robot::MAX_RADIUS).second > shoot_accuracy) {
 		enemy_threat.passes = 0;
 	}
 	for (std::size_t i = 0; i < enemy_threat.passees.size(); ++i) {
 		if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), enemy_threat.passees[i], Robot::MAX_RADIUS).second > shoot_accuracy) {
 			enemy_threat.passes = 1;
-		}
-		else {
+		} else {
 			EnemyThreat next = eval_enemy(world, enemy_threat.passees[i]);
-			for (std::size_t j = 0; j < next.passees.size(); ++j){
+			for (std::size_t j = 0; j < next.passees.size(); ++j) {
 				if (calc_enemy_best_shot_target(world, world.field().friendly_goal(), next.passees[j], Robot::MAX_RADIUS).second > shoot_accuracy) {
-				enemy_threat.passes = 2;
+					enemy_threat.passes = 2;
 				}
 			}
 		}
@@ -168,6 +166,4 @@ EnemyThreat AI::HL::STP::Evaluation::eval_enemy(const World &world, const Robot:
 
 	return enemy_threat;
 }
-
-
 

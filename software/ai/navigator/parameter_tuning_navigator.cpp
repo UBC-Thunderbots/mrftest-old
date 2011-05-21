@@ -11,7 +11,6 @@ using AI::RC::TunableController;
 using namespace AI::Nav::W;
 
 namespace {
-
 	const double pos_dis_threshold = 0.1;
 	const double pos_vel_threshold = 0.05;
 	const double ori_dis_threshold = 0.175;
@@ -105,10 +104,10 @@ namespace {
 		path.clear();
 		player = fteam.get(0);
 		Point currentPosition = player->position();
-		if ((currentPosition - tasks[taskIndex].first).len() < pos_dis_threshold 
-				&& player->velocity().len() < pos_vel_threshold
-				&& angle_diff(tasks[taskIndex].second, player->orientation()) < ori_dis_threshold
-				&& player->avelocity() < ori_vel_threshold) {
+		if ((currentPosition - tasks[taskIndex].first).len() < pos_dis_threshold
+		    && player->velocity().len() < pos_vel_threshold
+		    && angle_diff(tasks[taskIndex].second, player->orientation()) < ori_dis_threshold
+		    && player->avelocity() < ori_vel_threshold) {
 			taskIndex++;
 			if (taskIndex == 1) {
 				time = 0;

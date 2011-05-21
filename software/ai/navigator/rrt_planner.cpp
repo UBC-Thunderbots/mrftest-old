@@ -26,16 +26,15 @@ namespace {
 	const int ITERATION_LIMIT = 200;
 
 	bool is_empty_state(Point to_check) {
-		return (to_check- RRTPlanner::empty_state()).lensq() < EPS;
+		return (to_check - RRTPlanner::empty_state()).lensq() < EPS;
 	}
-
 }
 
-Point RRTPlanner::empty_state(){
+Point RRTPlanner::empty_state() {
 	return Point(-10000, -10000);
-} 
+}
 
-double RRTPlanner::distance(Glib::NodeTree<Point> * nearest, Point goal){
+double RRTPlanner::distance(Glib::NodeTree<Point> *nearest, Point goal) {
 	return (nearest->data() - goal).len();
 }
 
@@ -102,10 +101,9 @@ std::vector<Point> RRTPlanner::plan(Player::Ptr player, Point goal, unsigned int
 }
 
 std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool post_process, unsigned int added_flags) {
-
 	Point initial = player->position();
 
-	if (!Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)]).is()){
+	if (!Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)]).is()) {
 		player->object_store()[typeid(*this)] = Waypoints::Ptr(new Waypoints);
 	}
 
@@ -174,7 +172,7 @@ std::vector<Point> RRTPlanner::rrt_plan(Player::Ptr player, Point goal, bool pos
 	std::vector<Point> final_points;
 
 	for (std::size_t i = 0; i < path_points.size(); ++i) {
-		if (!valid_path(path_points[sub_path_index], path_points[i], world, player,  Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags)) {
+		if (!valid_path(path_points[sub_path_index], path_points[i], world, player, Waypoints::Ptr::cast_dynamic(player->object_store()[typeid(*this)])->added_flags)) {
 			sub_path_index = i - 1;
 			final_points.push_back(path_points[i - 1]);
 		} else if (i == path_points.size() - 1) {

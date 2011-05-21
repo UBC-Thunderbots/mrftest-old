@@ -11,7 +11,7 @@ namespace AI {
 				 * Selects a player that has the ball if possible.
 				 * Otherwise, picks a player closest to the ball.
 				 */
-				Player::Ptr select_baller(const World& world, const std::set<Player::Ptr> &players);
+				Player::Ptr select_baller(const World &world, const std::set<Player::Ptr> &players);
 			}
 		}
 	}

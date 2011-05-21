@@ -6,24 +6,24 @@ APPLICABLE(our_ball(world))
 DONE(goal(world))
 FAIL(their_ball(world))
 BEGIN_ASSIGN()
-	// GOALIE
-	goalie_role.push_back(defend_duo_goalie(world));
+// GOALIE
+goalie_role.push_back(defend_duo_goalie(world));
 
-	// ROLE 1
-	// shoot
-	roles[0].push_back(shoot(world));
+// ROLE 1
+// shoot
+roles[0].push_back(shoot(world));
 
-	// ROLE 2
-	// defend
-	roles[1].push_back(defend_duo_defender(world));
+// ROLE 2
+// defend
+roles[1].push_back(defend_duo_defender(world));
 
-	// ROLE 3 (optional)
-	// offensive support
-	roles[2].push_back(offend(world));
+// ROLE 3 (optional)
+// offensive support
+roles[2].push_back(offend(world));
 
-	// ROLE 4 (optional)
-	// offensive support
-	roles[3].push_back(offend(world));
+// ROLE 4 (optional)
+// offensive support
+roles[3].push_back(offend(world));
 END_ASSIGN()
 END_PLAY()
 

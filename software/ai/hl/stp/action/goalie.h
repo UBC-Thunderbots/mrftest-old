@@ -12,7 +12,7 @@ namespace AI {
 				 * A single goalie and NO ONE ELSE defending the field.
 				 */
 				void lone_goalie(const World &world, Player::Ptr player);
-				
+
 				/**
 				 * Move the goalie to this location.
 				 * If the ball is dangerously moving towards the net,

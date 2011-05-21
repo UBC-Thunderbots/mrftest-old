@@ -72,7 +72,7 @@ void Defender::set_players(const std::vector<Player::Ptr> &p, Player::Ptr g) {
 	goalie = g;
 }
 
-std::pair<Point, std::vector<Point>> Defender::calc_block_positions() const {
+std::pair<Point, std::vector<Point> > Defender::calc_block_positions() const {
 	const Field &f = world.field();
 
 	std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
@@ -195,7 +195,7 @@ void Defender::tick() {
 		goalie_top = false;
 	}
 
-	std::pair<Point, std::vector<Point>> positions = calc_block_positions();
+	std::pair<Point, std::vector<Point> > positions = calc_block_positions();
 	std::vector<Point> &waypoints = positions.second;
 
 	// just ignore unnecessary waypoints for now

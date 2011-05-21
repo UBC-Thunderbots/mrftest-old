@@ -9,24 +9,25 @@ APPLICABLE(true)
 DONE(false)
 FAIL(false)
 BEGIN_ASSIGN()
-	// GOALIE
-	goalie_role.push_back(defend_duo_goalie(world));
+// GOALIE
+goalie_role.push_back(defend_duo_goalie(world));
 
-	// ROLE 1
-	// passer
-	roles[0].push_back(passer_shoot(world));
-	roles[0].push_back(offend(world));
+// ROLE 1
+// passer
+roles[0].push_back(passer_shoot(world));
+roles[0].push_back(offend(world));
 
-	// ROLE 2
-	// passee
-	roles[1].push_back(passee_move(world));
+// ROLE 2
+// passee
+roles[1].push_back(passee_move(world));
 
-	// ROLE 3
-	// defend
-	roles[2].push_back(defend_duo_defender(world));
+// ROLE 3
+// defend
+roles[2].push_back(defend_duo_defender(world));
 
-	// ROLE 4
-	// offend
-	roles[3].push_back(offend(world));
+// ROLE 4
+// offend
+roles[3].push_back(offend(world));
 END_ASSIGN()
 END_PLAY()
+

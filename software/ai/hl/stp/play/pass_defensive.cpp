@@ -67,10 +67,9 @@ namespace {
 	}
 
 	void PassDefensive::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
-		
 		// GOALIE
-		goalie_role.push_back(defend_duo_goalie(world));	
-		
+		goalie_role.push_back(defend_duo_goalie(world));
+
 		// ROLE 1
 		// passer
 		roles[0].push_back(def_passer_shoot(world));

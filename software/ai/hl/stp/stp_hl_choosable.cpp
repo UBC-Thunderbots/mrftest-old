@@ -34,7 +34,7 @@ namespace {
 				combo.set_active_text(CHOOSE_PLAY_TEXT);
 				vbox.add(combo);
 				// TODO: add reset
-				//vbox.add(reset_button);
+				// vbox.add(reset_button);
 				reset_button.set_label("reset");
 			}
 
@@ -52,9 +52,9 @@ namespace {
 					curr_play = i->second->create(world);
 				}
 				assert(curr_play.is());
-				//auto itr = m.find(combo.get_active_text().c_str());
-				//assert(itr != m.end());
-				//curr_play = m[combo.get_active_text()]->create(world);
+				// auto itr = m.find(combo.get_active_text().c_str());
+				// assert(itr != m.end());
+				// curr_play = m[combo.get_active_text()]->create(world);
 				// assign the players
 				curr_role_step = 0;
 				for (std::size_t j = 0; j < 5; ++j) {
@@ -75,13 +75,12 @@ namespace {
 			}
 
 			void tick() {
-
 				// override halt completely
 				if (world.friendly_team().size() == 0 || world.playtype() == AI::Common::PlayType::HALT) {
 					curr_play.reset();
 					return;
 				}
-	
+
 				// check what play is in use
 				if (combo.get_active_text() == CHOOSE_PLAY_TEXT) {
 					curr_play.reset();

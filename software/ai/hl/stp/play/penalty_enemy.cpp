@@ -69,7 +69,7 @@ namespace {
 		// ROLE 1
 		// move to penalty position 1
 		roles[0].push_back(move(world, Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 5 * Robot::MAX_RADIUS)));
-		
+
 		// ROLE 2
 		// move to penalty position 2
 		roles[1].push_back(move(world, Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, 2 * Robot::MAX_RADIUS)));

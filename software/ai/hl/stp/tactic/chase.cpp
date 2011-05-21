@@ -39,8 +39,8 @@ namespace {
 		}
 
 		// TODO: flags
-		//Action::chase(world, player, 0);
-		
+		// Action::chase(world, player, 0);
+
 		// orient towards the enemy goal?
 		Action::chase(world, player, world.field().enemy_goal());
 	}

@@ -2,11 +2,11 @@
 #include "util/algorithm.h"
 
 namespace {
-	void on_update_scram(Gtk::HScale (&)[4], XBeeRobot::Ptr robot) {
+	void on_update_scram(Gtk::HScale(&)[4], XBeeRobot::Ptr robot) {
 		robot->drive_scram();
 	}
 
-	void on_update_permotor_controlled(Gtk::HScale (&controls)[4], XBeeRobot::Ptr robot) {
+	void on_update_permotor_controlled(Gtk::HScale(&controls)[4], XBeeRobot::Ptr robot) {
 		int wheels[G_N_ELEMENTS(controls)];
 		for (unsigned int i = 0; i < G_N_ELEMENTS(controls); ++i) {
 			wheels[i] = clamp(static_cast<int>(controls[i].get_value()), -1023, 1023);
@@ -14,7 +14,7 @@ namespace {
 		robot->drive(wheels);
 	}
 
-	void on_update_matrix(Gtk::HScale (&controls)[4], XBeeRobot::Ptr robot) {
+	void on_update_matrix(Gtk::HScale(&controls)[4], XBeeRobot::Ptr robot) {
 		static const double matrix[4][3] = {
 			{ -42.5995, 27.6645, 4.3175 },
 			{ -35.9169, -35.9169, 4.3175 },
@@ -45,7 +45,7 @@ namespace {
 		double step;
 		double page;
 		int digits;
-		void (*on_update)(Gtk::HScale (&)[4], XBeeRobot::Ptr);
+		void (*on_update)(Gtk::HScale(&)[4], XBeeRobot::Ptr);
 	} MODES[] = {
 		{ "Scram", 0x0, 1, 0.1, 0.5, 0, &on_update_scram },
 		{ "Per-motor Controlled", 0xF, 1023, 1, 25, 0, &on_update_permotor_controlled },
@@ -77,7 +77,7 @@ void DrivePanel::scram() {
 	mode_chooser.set_active(0);
 }
 
-void DrivePanel::set_values(const double (&values)[4]) {
+void DrivePanel::set_values(const double(&values)[4]) {
 	for (unsigned int i = 0; i < G_N_ELEMENTS(controls); ++i) {
 		if (controls[i].get_sensitive()) {
 			controls[i].get_adjustment()->set_value(values[i] * controls[i].get_adjustment()->get_upper());

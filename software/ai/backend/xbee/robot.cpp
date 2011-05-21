@@ -16,9 +16,9 @@ Robot::Ptr Robot::create(AI::BE::Backend &backend, unsigned int pattern) {
 void Robot::update(const SSL_DetectionRobot &packet, const timespec &ts) {
 	if (packet.has_orientation()) {
 		bool neg = backend.defending_end() == AI::BE::Backend::FieldEnd::EAST;
-		xpred.add_datum(neg ? -packet.x() / 1000.0 : packet.x() / 1000.0, timespec_sub(ts,double_to_timespec(LOOP_DELAY)));
-		ypred.add_datum(neg ? -packet.y() / 1000.0 : packet.y() / 1000.0, timespec_sub(ts,double_to_timespec(LOOP_DELAY)));
-		tpred.add_datum(angle_mod(packet.orientation() + (neg ? M_PI : 0.0)), timespec_sub(ts,double_to_timespec(LOOP_DELAY)));
+		xpred.add_datum(neg ? -packet.x() / 1000.0 : packet.x() / 1000.0, timespec_sub(ts, double_to_timespec(LOOP_DELAY)));
+		ypred.add_datum(neg ? -packet.y() / 1000.0 : packet.y() / 1000.0, timespec_sub(ts, double_to_timespec(LOOP_DELAY)));
+		tpred.add_datum(angle_mod(packet.orientation() + (neg ? M_PI : 0.0)), timespec_sub(ts, double_to_timespec(LOOP_DELAY)));
 	} else {
 		LOG_WARN("Vision packet has robot with no orientation.");
 	}
@@ -98,7 +98,7 @@ bool Robot::has_path() const {
 	return false;
 }
 
-const std::vector<std::pair<std::pair<Point, double>, timespec>> &Robot::path() const {
+const std::vector<std::pair<std::pair<Point, double>, timespec> > &Robot::path() const {
 	throw std::logic_error("This robot has no path");
 }
 

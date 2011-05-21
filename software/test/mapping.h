@@ -38,7 +38,7 @@ class JoystickMapping {
 		/**
 		 * \brief Descriptive human-readable labels for the buttons.
 		 */
-		static const char * const BUTTON_LABELS[];
+		static const char *const BUTTON_LABELS[];
 
 		/**
 		 * \brief The number of axes to map.

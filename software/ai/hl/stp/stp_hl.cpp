@@ -60,11 +60,11 @@ namespace {
 			Gtk::Widget *ui_controls() {
 				return &text_view;
 			}
-			
+
 			void draw_overlay(Cairo::RefPtr<Cairo::Context> ctx) {
 				PlayExecutor::draw_overlay(ctx);
 			}
-		
+
 		protected:
 			Gtk::TextView text_view;
 	};

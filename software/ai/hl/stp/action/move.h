@@ -11,7 +11,7 @@ namespace AI {
 				 * Move to a particular location and stop.
 				 * Orient the player towards the ball.
 				 */
-				void move(const World& world, Player::Ptr player, const Point dest);
+				void move(const World &world, Player::Ptr player, const Point dest);
 
 				/**
 				 * Move to a particular location and stop.

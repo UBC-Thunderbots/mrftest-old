@@ -22,11 +22,11 @@ namespace {
 
 	class TestShoot : public HighLevel {
 		public:
-			TestShoot(World& world) : world(world) {
+			TestShoot(World &world) : world(world) {
 			}
 
 		private:
-			World& world;
+			World &world;
 
 			TestShootFactory &factory() const {
 				return factory_instance;
@@ -37,8 +37,10 @@ namespace {
 			}
 
 			void tick() {
-				FriendlyTeam& friendly = world.friendly_team();
-				if (friendly.size() == 0) return;
+				FriendlyTeam &friendly = world.friendly_team();
+				if (friendly.size() == 0) {
+					return;
+				}
 
 				Action::shoot(world, friendly.get(0));
 			}

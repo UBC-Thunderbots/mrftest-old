@@ -54,7 +54,6 @@ namespace {
 			const World &world;
 			unsigned int index;
 			Robot::Ptr evaluate() const {
-			
 				if (world.enemy_team().size() <= index) {
 					return Robot::Ptr();
 				}
@@ -68,7 +67,7 @@ namespace {
 				return enemies[index];
 			}
 	};
-	
+
 	class ClosestPass : public Enemy {
 		public:
 			ClosestPass(const World &w, const Robot::Ptr r, unsigned int i) : world(w), robot(r), index(i) {
@@ -79,18 +78,17 @@ namespace {
 			const Robot::Ptr robot;
 			unsigned int index;
 			Robot::Ptr evaluate() const {
-			
 				std::vector<Robot::Ptr> enemies = Evaluation::eval_enemy(world, robot).passees;
 				if (enemies.size() <= index) {
-					if (world.enemy_team().size() > index){
+					if (world.enemy_team().size() > index) {
 						enemies = AI::HL::Util::get_robots(world.enemy_team());
 						std::sort(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.ball().position()));
 						return enemies[index];
 					} else {
 						return Robot::Ptr();
-					}	
+					}
 				}
-				
+
 				return enemies[index];
 			}
 	};
@@ -102,11 +100,11 @@ Enemy::Ptr AI::HL::STP::Enemy::closest_friendly_goal(const World &world, unsigne
 }
 
 /*
-Enemy::Ptr AI::HL::STP::Enemy::robot(Robot::Ptr r) {
+   Enemy::Ptr AI::HL::STP::Enemy::robot(Robot::Ptr r) {
     Enemy::Ptr p(new Fixed(r));
     return p;
-}
-*/ 
+   }
+ */
 
 Enemy::Ptr AI::HL::STP::Enemy::closest_ball(const World &world, unsigned int i) {
 	Enemy::Ptr p(new ClosestBall(world, i));

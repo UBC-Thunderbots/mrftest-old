@@ -213,8 +213,8 @@ namespace {
 			throw SystemError(local ? "localtime_r" : "gmtime_r", errno);
 		}
 
-		std::use_facet<std::time_put<wchar_t>>(std::locale()).put(timebuf, timebuf, L' ', &tm, TIME_PATTERN, TIME_PATTERN + std::wcslen(TIME_PATTERN));
-		std::use_facet<std::time_put<wchar_t>>(std::locale()).put(tzbuf, tzbuf, L' ', &tm, TZ_PATTERN, TZ_PATTERN + std::wcslen(TZ_PATTERN));
+		std::use_facet<std::time_put<wchar_t> >(std::locale()).put(timebuf, timebuf, L' ', &tm, TIME_PATTERN, TIME_PATTERN + std::wcslen(TIME_PATTERN));
+		std::use_facet<std::time_put<wchar_t> >(std::locale()).put(tzbuf, tzbuf, L' ', &tm, TZ_PATTERN, TZ_PATTERN + std::wcslen(TZ_PATTERN));
 		return Glib::ustring::compose("%1.%2 %3", timebuf.str(), todecu(ts.tv_nsec, 9), tzbuf.str());
 	}
 
@@ -2561,7 +2561,7 @@ namespace {
 						columns.append_kv(store, ball_row, "Pixel position", Glib::ustring::compose("(%1, %2)", ball.pixel_x(), ball.pixel_y()));
 					}
 					static const char *const team_colours[2] = { "Yellow Robots", "Blue Robots" };
-					static const SSL_DetectionRobot &(SSL_DetectionFrame::*const team_members[2])(int) const = { &SSL_DetectionFrame::robots_yellow, &SSL_DetectionFrame::robots_blue };
+					static const SSL_DetectionRobot & (SSL_DetectionFrame::*const team_members[2])(int) const = { &SSL_DetectionFrame::robots_yellow, &SSL_DetectionFrame::robots_blue };
 					static int(SSL_DetectionFrame::*const team_sizes[2]) () const = { &SSL_DetectionFrame::robots_yellow_size, &SSL_DetectionFrame::robots_blue_size };
 					for (unsigned int i = 0; i < 2; ++i) {
 						Gtk::TreeRow team_row = columns.append_kv(store, detection_row, team_colours[i]);
@@ -2644,7 +2644,7 @@ namespace {
 						stream << '\n';
 					}
 					static const char team_colours[2] = { 'Y', 'B' };
-					static const SSL_DetectionRobot &(SSL_DetectionFrame::*const team_members[2])(int) const = { &SSL_DetectionFrame::robots_yellow, &SSL_DetectionFrame::robots_blue };
+					static const SSL_DetectionRobot & (SSL_DetectionFrame::*const team_members[2])(int) const = { &SSL_DetectionFrame::robots_yellow, &SSL_DetectionFrame::robots_blue };
 					static int(SSL_DetectionFrame::*const team_sizes[2]) () const = { &SSL_DetectionFrame::robots_yellow_size, &SSL_DetectionFrame::robots_blue_size };
 					for (unsigned int i = 0; i < 2; ++i) {
 						for (int j = 0; j < (det.*team_sizes[i])(); ++j) {

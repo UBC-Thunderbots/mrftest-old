@@ -14,17 +14,17 @@
 // this needs to be remeasured
 #define LATENCY_DELAY 0.100
 
-//==== Obstacle Flags ================================================//
+// ==== Obstacle Flags ================================================//
 
 // Standard Obstacles
-#define OBS_BALL         (1U << 0)
-#define OBS_WALLS        (1U << 1)
-#define OBS_THEIR_DZONE  (1U << 2)
-#define OBS_OUR_DZONE    (1U << 3)
+#define OBS_BALL (1U << 0)
+#define OBS_WALLS (1U << 1)
+#define OBS_THEIR_DZONE (1U << 2)
+#define OBS_OUR_DZONE (1U << 3)
 #define OBS_TEAMMATE(id) (1U << (4 + (id)))
 #define OBS_OPPONENT(id) (1U << (4 + MAX_TEAM_ROBOTS + (id)))
-#define OBS_TEAMMATES    (((1U << MAX_TEAM_ROBOTS) - 1) << 4)
-#define OBS_OPPONENTS    (((1U << MAX_TEAM_ROBOTS) - 1) << 4 + MAX_TEAM_ROBOTS)
+#define OBS_TEAMMATES (((1U << MAX_TEAM_ROBOTS) - 1) << 4)
+#define OBS_OPPONENTS (((1U << MAX_TEAM_ROBOTS) - 1) << 4 + MAX_TEAM_ROBOTS)
 
 #define OBS_EVERYTHING (~0U)
 #define OBS_EVERYTHING_BUT_ME(id) (OBS_EVERYTHING & (~(OBS_TEAMMATE(id))))
@@ -38,12 +38,12 @@ namespace AI {
 				/**
 				 * HL World evaluation ported from CMDragon world.cc
 				 */
-				
+
 				/**
 				 * Checks if ball is on the sides.
 				 */
 				int side_ball(const World &world);
-				
+
 				/**
 				 * Checks if the opponents are generally positioned on the sides.
 				 */
@@ -66,7 +66,7 @@ namespace AI {
 
 				/**
 				 * Obs methods return an obs_flag set to why a position or other
-				 * shape is not open.  Or zero if the position or shape is open
+				 * shape is not open. Or zero if the position or shape is open
 				 */
 				unsigned int obs_position(const World &world, Point p, unsigned int obs_flags, double pradius, double time = -1);
 
@@ -80,10 +80,10 @@ namespace AI {
 				unsigned int obs_line_num(const World &world, Point p1, Point p2, unsigned int obs_flags, double pradius, double time = -1);
 
 				/**
-				 * returns true if point p will block a shot at time 
+				 * returns true if point p will block a shot at time
 				 */
 				bool obs_blocks_shot(const World &world, Point p, double time);
-				
+
 				/**
 				 * Evaluation functions ported from CMDragon evaluation.cc
 				 */
@@ -92,14 +92,14 @@ namespace AI {
 					 * aim()
 					 *
 					 * These functions take a target point and two relative vectors
-					 * denoting the range to aim along.  They take an obs_flags of
+					 * denoting the range to aim along. They take an obs_flags of
 					 * obstacles to avoid in aiming and then return the the point along
 					 * the vectors with the largest clear angle.
 					 *
 					 * The pref_target_point provides a preferred direction along with a
-					 * bias.  If no other direction is clear by more than the bias it
+					 * bias. If no other direction is clear by more than the bias it
 					 * will simply return the point along the largest open angle near
-					 * the preference.  Used for hysteresis.
+					 * the preference. Used for hysteresis.
 					 *
 					 * aim() should be guaranteed not to return false if obs_flags is 0.
 					 *
@@ -117,13 +117,13 @@ namespace AI {
 					 * defend_on_line()
 					 *
 					 * This returns the position and velocity to use to defend a
-					 * particular line (or point) on the field.  It combines the
+					 * particular line (or point) on the field. It combines the
 					 * positions of the best static defense with the interception point
 					 * using the variance on the interception point from the Kalman
-					 * filter.  It also computes the velocity to hit that point with.
+					 * filter. It also computes the velocity to hit that point with.
 					 *
 					 * Setting obs_flags and optionally pref_point and pref_amount can
-					 * be used to take account for other robots also defending.  When
+					 * be used to take account for other robots also defending. When
 					 * computing a static position it will use aim() with the provided
 					 * paramters to find the largest remaining open angle and statically
 					 * defend this range.
@@ -132,27 +132,27 @@ namespace AI {
 					 * helper functions that defend_*() uses.
 					 *
 					 * defend_on_line() positions itself along a line segment nearest to
-					 * the ball.  The intercept flag here still works as biasing the 
+					 * the ball. The intercept flag here still works as biasing the
 					 * position towards where the ball will cross the segment.
 					 *
 					 * The intercept field specifies whether a moving ball should be
-					 * intercepted.  If true after the call it means the robot is actively
+					 * intercepted. If true after the call it means the robot is actively
 					 * trying to intercept the ball.
 					 *
 					 */
 					bool defend_line(const World &world, double time, Point g1, Point g2, double distmin, double distmax, double dist_off_ball, bool &intercept, unsigned int obs_flags, Point pref_point, double pref_amount, Point &target, Point &velocity);
 
 					bool defend_line(const World &world, double time, Point g1, Point g2, double distmin, double distmax, double dist_off_ball, bool &intercept, Point &target, Point &velocity);
-					
+
 					bool defend_point(const World &world, double time, Point point, double distmin, double distmax, double dist_off_ball, bool &intercept, Point &target, Point &velocity);
 
 					bool defend_on_line(const World &world, double time, Point p1, Point p2, bool &intercept, Point &target, Point &velocity);
-				  
+
 					/**
 					 * finds the furthest point of a robot in a direction
 					 */
 					Point farthest(const World &world, double time, unsigned int obs_flags, Point bbox_min, Point bbox_max, Point dir);
-					
+
 					/**
 					 * finds an open position
 					 */
@@ -166,44 +166,44 @@ namespace AI {
 
 				class CMEvaluationPosition {
 					public:
-						typedef std::function<double(const World &, Point, unsigned int, double &)> EvalFn;
+						typedef std::function<double (const World &, Point, unsigned int, double &)> EvalFn;
 
-					  	TRegion region;
+						TRegion region;
 
-					  	CMEvaluationPosition();
+						CMEvaluationPosition();
 
-					  	CMEvaluationPosition(const TRegion &region, const EvalFn &eval, double pref_amount = 0, unsigned int n_points = 10);
+						CMEvaluationPosition(const TRegion &region, const EvalFn &eval, double pref_amount = 0, unsigned int n_points = 10);
 
-					  	void set(const TRegion &region_, const EvalFn &eval_, double pref_amount_ = 0, unsigned int n_points_ = 10);
-						
-					  	void update(const World &world, unsigned int obs_flags_);
-						
-					  	void addPoint(Point p);
+						void set(const TRegion &region_, const EvalFn &eval_, double pref_amount_ = 0, unsigned int n_points_ = 10);
 
-					  	Point point() const;
+						void update(const World &world, unsigned int obs_flags_);
 
-					  	double angle() const;
+						void addPoint(Point p);
+
+						Point point() const;
+
+						double angle() const;
 
 					private:
-					  	// Function
-					  	EvalFn eval;
+						// Function
+						EvalFn eval;
 
-					  	unsigned int obs_flags;
+						unsigned int obs_flags;
 
-					  	double last_updated;
+						double last_updated;
 
-					  	// Evaluated Points
-					  	unsigned int n_points;
-					  	std::vector<Point> points;
-					  	std::vector<double> angles;
-					  	std::vector<double> weights;
+						// Evaluated Points
+						unsigned int n_points;
+						std::vector<Point> points;
+						std::vector<double> angles;
+						std::vector<double> weights;
 
-					  	std::vector<Point> new_points;
+						std::vector<Point> new_points;
 
-					  	int best;
-					  	double pref_amount;
+						int best;
+						double pref_amount;
 
-					  	Point pointFromDistribution(const World &w);
+						Point pointFromDistribution(const World &w);
 				};
 			}
 		}
@@ -244,15 +244,15 @@ inline void AI::HL::STP::Evaluation::CMEvaluationPosition::addPoint(Point p) {
 			return;
 		}
 	}
-	new_points.push_back(p); 
+	new_points.push_back(p);
 }
 
 inline Point AI::HL::STP::Evaluation::CMEvaluationPosition::point() const {
-	return points[best]; 
+	return points[best];
 }
 
 inline double AI::HL::STP::Evaluation::CMEvaluationPosition::angle() const {
-	return angles[best]; 
+	return angles[best];
 }
 
 inline Point AI::HL::STP::Evaluation::CMEvaluationPosition::pointFromDistribution(const World &w) {

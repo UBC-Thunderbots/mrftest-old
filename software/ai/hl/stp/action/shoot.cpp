@@ -6,12 +6,12 @@
 #include "geom/util.h"
 #include "geom/angle.h"
 #include "util/dprint.h"
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 
 namespace {
 	DoubleParam alpha("Decay constant for the ball velocity", "STP/Action/shoot", 0.1, 0.0, 1.0);
-	
+
 	DoubleParam reduced_radius("reduced radius for calculating best shot", "STP/Action/shoot", 0.8, 0.0, 1.0);
 
 	DoubleParam shoot_threshold("Angle threshold (in degrees) that defines shoot accuracy, smaller is less accurate", "STP/Action/shoot", 20.0, -360.0, 360.0);
@@ -21,7 +21,6 @@ namespace {
 }
 
 bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
-
 	// TODO:
 	// take into account that the optimal solution may not always be the largest opening
 	std::pair<Point, double> target = AI::HL::Util::calc_best_shot(world, player);
@@ -30,10 +29,10 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 		if (target.second == 0) {
 			// just grab the ball, don't care about orientation
 			chase(world, player);
-			//LOG_INFO("chase");
+			// LOG_INFO("chase");
 		} else {
 			// orient towards the enemy goal area
-			//LOG_INFO("move catch");
+			// LOG_INFO("move catch");
 			player->move(target.first, (world.field().enemy_goal() - player->position()).orientation(), Point());
 			player->type(AI::Flags::MoveType::CATCH);
 			player->prio(AI::Flags::MovePrio::HIGH);
@@ -42,15 +41,14 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 	}
 
 	if (target.second == 0) { // bad news, we are blocked
-	
 		target = AI::HL::Util::calc_best_shot(world, player, reduced_radius);
 
 		// still blocked even with reduced radius
-		if (target.second == 0){
+		if (target.second == 0) {
 			Point new_target = world.field().enemy_goal();
 			if (false) {
 				return shoot(world, player, new_target);
-			} else { 
+			} else {
 				// just aim at the enemy goal
 				// perhaps aim at the largest gap in the enemy side of the field?
 				player->move(new_target, (world.field().enemy_goal() - player->position()).orientation(), Point());
@@ -59,7 +57,6 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 			}
 			return false;
 		}
-			
 	}
 
 	double ori = (target.first - player->position()).orientation();
@@ -83,10 +80,10 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Po
 	player->prio(AI::Flags::MovePrio::HIGH);
 
 	Point segA = player->position();
-	Point segB((world.field().total_length()+world.field().total_width()),0);
+	Point segB((world.field().total_length() + world.field().total_width()), 0);
 	segB = segB.rotate(player->orientation());
 	double error = lineseg_point_dist(target, segA, segB);
-	if(error > tol){
+	if (error > tol) {
 		return false;
 	}
 	arm(world, player, target, delta);
@@ -94,21 +91,24 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player, const Po
 }
 
 bool AI::HL::STP::Action::arm(const World &world, Player::Ptr player, const Point target, double delta) {
-
-	double dist_max = 10.0*(1-std::exp(-alpha*delta))/alpha;
-	//make the robot kick as close to the target as possible
-	Point robot_dir(1,0);
+	double dist_max = 10.0 * (1 - std::exp(-alpha * delta)) / alpha;
+	// make the robot kick as close to the target as possible
+	Point robot_dir(1, 0);
 	robot_dir = robot_dir.rotate(player->orientation());
 	double distance = (target - world.ball().position()).dot(robot_dir);
 
-	if(distance > dist_max){
+	if (distance > dist_max) {
 		player->autokick(10.0);
 		return false;
 	}
-	double speed = alpha*distance/(1-exp(-alpha*delta));
-	if (speed > 10.0) speed = 10.0; // can't kick faster than this
-	if (speed < 0) speed = 0; // can't kick slower than this
-
+	double speed = alpha * distance / (1 - std::exp(-alpha * delta));
+	if (speed > 10.0) {
+		speed = 10.0; // can't kick faster than this
+	}
+	if (speed < 0) {
+		speed = 0; // can't kick slower than this
+	}
 	player->autokick(speed);
 	return true;
 }
+

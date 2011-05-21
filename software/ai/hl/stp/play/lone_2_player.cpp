@@ -16,7 +16,7 @@ namespace {
 	/**
 	 * Condition:
 	 * - 2 players left
-	 * 
+	 *
 	 * Objective:
 	 * - lone goalie, shoot
 	 */
@@ -59,7 +59,6 @@ namespace {
 	}
 
 	void Lone2Player::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
-
 		// GOALIE
 		goalie_role.push_back(defend_solo_goalie(world));
 

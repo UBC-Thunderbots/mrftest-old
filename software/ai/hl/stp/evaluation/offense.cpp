@@ -17,7 +17,6 @@ using AI::HL::STP::Evaluation::grid_x;
 using AI::HL::STP::Evaluation::grid_y;
 
 namespace {
-
 	const double DEG_2_RAD = 1.0 / 180.0 * M_PI;
 
 	DoubleParam near_thresh("enemy avoidance distance (robot radius)", "STP/offense", 4.0, 1.0, 10.0);
@@ -25,7 +24,6 @@ namespace {
 	DoubleParam ball_dist_weight("ball distance weight", "STP/offense", 1.0, 0.0, 2.0);
 
 	double scoring_function(const World &world, const std::vector<Point> &enemy_pos, const Point &dest, const std::vector<Point> &dont_block) {
-
 		// can't be too close to enemy
 		double closest_enemy = world.field().width();
 		for (std::size_t i = 0; i < enemy_pos.size(); ++i) {
@@ -78,8 +76,8 @@ namespace {
 		// const double goal_dist = (dest - bestshot.first).len();
 
 		// divide by largest distance?
-		//const double bigdist = std::max(ball_dist, goal_dist);
-		//score /= bigdist;
+		// const double bigdist = std::max(ball_dist, goal_dist);
+		// score /= bigdist;
 
 		score /= ball_dist;
 
@@ -127,12 +125,10 @@ namespace {
 
 		return best_score > -1e40;
 	}
-
 }
 
 double AI::HL::STP::Evaluation::offense_score(const World &world, const Point dest) {
-
-	const EnemyTeam& enemy = world.enemy_team();
+	const EnemyTeam &enemy = world.enemy_team();
 
 	std::vector<Point> enemy_pos;
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
@@ -145,7 +141,7 @@ double AI::HL::STP::Evaluation::offense_score(const World &world, const Point de
 	return scoring_function(world, enemy_pos, dest, dont_block);
 }
 
-std::array<Point, 2> AI::HL::STP::Evaluation::offense_positions(const World& world) {
+std::array<Point, 2> AI::HL::STP::Evaluation::offense_positions(const World &world) {
 	// just for caching..
 	const EnemyTeam &enemy = world.enemy_team();
 	std::vector<Point> enemy_pos;
@@ -166,7 +162,7 @@ std::array<Point, 2> AI::HL::STP::Evaluation::offense_positions(const World& wor
 	   dont_block.push_back(friendly.get(i)->position());
 	   }
 	   }
-	   */
+	 */
 
 	std::array<Point, 2> best;
 

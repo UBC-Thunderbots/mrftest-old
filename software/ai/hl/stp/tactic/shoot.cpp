@@ -48,7 +48,6 @@ namespace {
 	}
 
 	void Shoot::execute() {
-		
 		if (AI::HL::STP::Action::shoot(world, player)) {
 			has_shot = true;
 		}
@@ -64,12 +63,10 @@ namespace {
 	}
 
 	void ShootTarget::execute() {
-		
 		if (AI::HL::STP::Action::shoot(world, player, target())) {
 			has_shot = true;
 		}
 	}
-
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::shoot(const World &world) {

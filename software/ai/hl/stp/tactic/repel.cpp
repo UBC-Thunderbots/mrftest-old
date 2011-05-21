@@ -25,7 +25,9 @@ namespace {
 		// the ball is in some safe state:
 		// far away from goalie
 		// not rolling towards the defense area at all
-		if (world.ball().position().x > 0) return true;
+		if (world.ball().position().x > 0) {
+			return true;
+		}
 		return false;
 	}
 

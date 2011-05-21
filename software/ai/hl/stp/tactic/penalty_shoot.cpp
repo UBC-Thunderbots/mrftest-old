@@ -6,7 +6,6 @@ using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 
 namespace {
-
 	class PenaltyShoot : public Tactic {
 		public:
 			PenaltyShoot(const World &world) : Tactic(world, true), shoot_up(true), has_shot(false) {
@@ -37,7 +36,6 @@ namespace {
 
 		// otherwise, find a side to shoot
 		if (world.enemy_team().size() > 0) {
-
 			// since all other robots not participating in penalty shoot must be far away from the goal post
 			// hence the enemy goalie is the robot closest to enemy goal post
 			std::vector<Robot::Ptr> enemies = AI::HL::Util::get_robots(world.enemy_team());
@@ -58,7 +56,6 @@ namespace {
 			} else {
 				target = Point(world.field().length() / 2, -target_y);
 			}
-
 		}
 
 		if (AI::HL::STP::Action::shoot(world, player, target)) {

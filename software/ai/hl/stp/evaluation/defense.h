@@ -12,7 +12,7 @@ namespace AI {
 				/**
 				 * Computes locations to place 1 goalie and EXACTLY 1 OR 2 defenders.
 				 */
-				const std::array<Point, 3> evaluate_defense(const World& world);
+				const std::array<Point, 3> evaluate_defense(const World &world);
 			}
 		}
 	}

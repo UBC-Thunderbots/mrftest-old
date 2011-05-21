@@ -8,16 +8,16 @@
 using namespace AI::HL::W;
 
 namespace {
-	BoolParam posses_ball_is_has_ball("posses ball is has ball","STP/util", true);
-	DoubleParam ball_close_factor("distance for ball possesion (x ball radius)","STP/util", 2.0, 1.0, 3.0);
+	BoolParam posses_ball_is_has_ball("posses ball is has ball", "STP/util", true);
+	DoubleParam ball_close_factor("distance for ball possesion (x ball radius)", "STP/util", 2.0, 1.0, 3.0);
 }
 
 #warning hardware depending parameters should move somewhere else
-DoubleParam AI::HL::Util::shoot_accuracy("Shooting Accuracy General (degrees)","STP/util", 10.0, 0.0, 80.0);
+DoubleParam AI::HL::Util::shoot_accuracy("Shooting Accuracy General (degrees)", "STP/util", 10.0, 0.0, 80.0);
 
-DoubleParam AI::HL::Util::dribble_timeout("if dribble > this time, force shoot (sec)","STP/util", 2.0, 0.0, 20.0);
+DoubleParam AI::HL::Util::dribble_timeout("if dribble > this time, force shoot (sec)", "STP/util", 2.0, 0.0, 20.0);
 
-DoubleParam AI::HL::Util::get_ready_time("time we can prepare during special plays (sec)","STP/util", 3.0, -1e99, 10.0);
+DoubleParam AI::HL::Util::get_ready_time("time we can prepare during special plays (sec)", "STP/util", 3.0, -1e99, 10.0);
 
 const double AI::HL::Util::POS_CLOSE = AI::HL::W::Robot::MAX_RADIUS / 4.0;
 
@@ -34,14 +34,14 @@ const double AI::HL::Util::HAS_BALL_ALLOWANCE = 3.0;
 const double AI::HL::Util::HAS_BALL_TIME = 2.0 / 15.0;
 
 // TODO: make the shoot accuracy a function of the amount of open net (and distance?)
-// should this be in stp Evaluation? 
+// should this be in stp Evaluation?
 /*
-double AI::HL::Util::shoot_accuracy(const World &world, const std::vector<Point> &obstacles, const Point &p){
+   double AI::HL::Util::shoot_accuracy(const World &world, const std::vector<Point> &obstacles, const Point &p){
 
-	
 
-}
-*/
+
+   }
+ */
 
 
 bool AI::HL::Util::point_in_friendly_defense(const Field &field, const Point p) {
@@ -73,11 +73,11 @@ Point AI::HL::Util::crop_point_to_field(const Field &field, const Point p) {
 	if (p.y > field.width() / 2) {
 		y = field.width() / 2;
 	}
-	if(p.y < -(field.width() / 2)) {
+	if (p.y < -(field.width() / 2)) {
 		y = -(field.width() / 2);
 	}
 
-	return Point(x , y);
+	return Point(x, y);
 }
 
 bool AI::HL::Util::path_check(const Point &begin, const Point &end, const std::vector<Point> &obstacles, const double thresh) {
@@ -187,9 +187,9 @@ std::pair<Point, double> AI::HL::Util::calc_best_shot(const World &world, const 
 }
 
 std::pair<Point, double> AI::HL::Util::calc_best_shot_target(const Point &target_pos, const std::vector<Point> &obstacles, const Point &p, const double radius) {
-	Point dirToBall = (p-target_pos).norm();
-	const Point p1 = target_pos + (Robot::MAX_RADIUS*dirToBall).rotate(M_PI/2);
-	const Point p2 = target_pos - (Robot::MAX_RADIUS*dirToBall).rotate(M_PI/2);
+	Point dirToBall = (p - target_pos).norm();
+	const Point p1 = target_pos + (Robot::MAX_RADIUS * dirToBall).rotate(M_PI / 2);
+	const Point p2 = target_pos - (Robot::MAX_RADIUS * dirToBall).rotate(M_PI / 2);
 	return angle_sweep_circles(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
 }
 

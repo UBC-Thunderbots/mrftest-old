@@ -21,23 +21,24 @@ APPLICABLE(!Predicates::ball_in_our_corner(world) && !Predicates::ball_in_their_
 DONE(!Predicates::their_ball(world) || Predicates::ball_in_our_corner(world) || Predicates::ball_in_their_corner(world) || Predicates::ball_midfield(world) || Predicates::ball_on_their_side(world))
 FAIL(false)
 BEGIN_ASSIGN()
-	// GOALIE
-	goalie_role.push_back(defend_solo_goalie(world));
+// GOALIE
+goalie_role.push_back(defend_solo_goalie(world));
 
-	// ROLE 1
-	// try to repel ball away
-	roles[0].push_back(repel(world));
+// ROLE 1
+// try to repel ball away
+roles[0].push_back(repel(world));
 
-	// ROLE 2
-	// block the enemy baller
-	roles[1].push_back(block(world, Enemy::closest_ball(world, 0)));
+// ROLE 2
+// block the enemy baller
+roles[1].push_back(block(world, Enemy::closest_ball(world, 0)));
 
-	// ROLE 3 (optional)
-	// block enemy closest to our goal
-	roles[2].push_back(block(world, Enemy::closest_friendly_goal(world, 0)));
+// ROLE 3 (optional)
+// block enemy closest to our goal
+roles[2].push_back(block(world, Enemy::closest_friendly_goal(world, 0)));
 
-	// ROLE 4 (optional)
-	// block enemy closest to our goal
-	roles[3].push_back(block(world, Enemy::closest_friendly_goal(world, 1)));
+// ROLE 4 (optional)
+// block enemy closest to our goal
+roles[3].push_back(block(world, Enemy::closest_friendly_goal(world, 1)));
 END_ASSIGN()
 END_PLAY()
+

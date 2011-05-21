@@ -50,7 +50,7 @@ namespace {
 
 	bool MovementBenchmark::applicable() const {
 		return false;
-		//return Predicates::none_ball(world);
+		// return Predicates::none_ball(world);
 	}
 
 	bool MovementBenchmark::done() const {
@@ -68,19 +68,19 @@ namespace {
 
 		// ROLE 1
 		// obstacle
-		roles[0].push_back(move(world,Point(0.5, 0)));
-		
+		roles[0].push_back(move(world, Point(0.5, 0)));
+
 		// ROLE 2
 		// obstacle
-		roles[1].push_back(move(world,Point(-0.5, 0)));
+		roles[1].push_back(move(world, Point(-0.5, 0)));
 
 		// ROLE 3 (optional)
 		// obstacle
-		roles[2].push_back(move(world,Point(0, 0.6)));
+		roles[2].push_back(move(world, Point(0, 0.6)));
 
 		// ROLE 4 (optional)
 		// obstacle
-		roles[3].push_back(move(world,Point(0, -0.6)));
+		roles[3].push_back(move(world, Point(0, -0.6)));
 	}
 }
 

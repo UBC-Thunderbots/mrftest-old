@@ -24,7 +24,7 @@ namespace {
 	const dReal GRAVITY = static_cast<dReal>(-9.81);
 
 	const unsigned int UPDATES_PER_TICK = 20;
-	
+
 	const dReal CFM = static_cast<dReal>(1.0e-5);
 
 	const dReal ERP = 1.0;
@@ -219,9 +219,8 @@ namespace {
 				}
 			}
 
-			
 			// if a shape interescts with the ball set the contact parameters
-			
+
 			void handleBallCollision(dGeomID o1, dGeomID o2) {
 				unsigned int i = 0;
 				dBodyID b1 = dGeomGetBody(o1);
@@ -251,10 +250,10 @@ namespace {
 					}
 				}
 			}
-			
+
 			// if a shape interescts with the wall set the contact parameters
 			// robot collisions with the wall are disabled for stability
-			
+
 			void handleWallCollision(dGeomID o1, dGeomID o2) {
 				int i = 0;
 				dBodyID b1 = dGeomGetBody(o1);
@@ -277,7 +276,7 @@ namespace {
 
 			// This gets called every time we have two shpaes in the World that intersect
 			// for every pair of intersecting shapes we need to decide what to do with them
-			
+
 			void nearCallback(dGeomID o1, dGeomID o2) {
 				int groundCollision;
 				int notGroundCollision;

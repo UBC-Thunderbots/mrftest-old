@@ -18,7 +18,6 @@ namespace {
 			}
 
 		private:
-
 			bool kicked;
 			bool done() const {
 				return kicked;
@@ -28,17 +27,15 @@ namespace {
 			}
 			void execute() {
 				kicked = false;
-				std::pair <Point, Point> pp = Evaluation::calc_pass_positions(world);
-				
+				std::pair<Point, Point> pp = Evaluation::calc_pass_positions(world);
+
 				// orient towards target
 				Action::move(player, (pp.second - player->position()).orientation(), pp.first);
-				kicked = Action::shoot(world,player,pp.second);
-
+				kicked = Action::shoot(world, player, pp.second);
 			}
 			std::string description() const {
 				return "passer-shoot";
 			}
-			
 	};
 
 	class PasseeMove : public Tactic {
@@ -48,12 +45,10 @@ namespace {
 			}
 
 		private:
-
 			bool done() const {
 				return player->has_ball();
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-	
 				Point dest = Evaluation::calc_pass_positions(world).second;
 
 				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
@@ -65,16 +60,14 @@ namespace {
 			std::string description() const {
 				return "passee-move";
 			}
-			
 	};
-	
+
 	class DefPasserShoot : public Tactic {
 		public:
 			DefPasserShoot(const World &world) : Tactic(world, true), kicked(false) {
 			}
 
 		private:
-
 			bool kicked;
 			bool done() const {
 				return kicked;
@@ -84,19 +77,17 @@ namespace {
 			}
 			void execute() {
 				kicked = false;
-				std::pair <Point, Point> pp = Evaluation::calc_def_pass_positions(world);
-				
+				std::pair<Point, Point> pp = Evaluation::calc_def_pass_positions(world);
+
 				// orient towards target
 				Action::move(player, (pp.second - player->position()).orientation(), pp.first);
-				kicked = Action::shoot(world,player,pp.second);
-
+				kicked = Action::shoot(world, player, pp.second);
 			}
 			std::string description() const {
 				return "def-passer-shoot";
 			}
-			
 	};
-	
+
 	class DefPasseeMove : public Tactic {
 		public:
 			// ACTIVE tactic!
@@ -104,12 +95,10 @@ namespace {
 			}
 
 		private:
-
 			bool done() const {
 				return player->has_ball();
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-	
 				Point dest = Evaluation::calc_def_pass_positions(world).second;
 
 				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest));
@@ -121,7 +110,6 @@ namespace {
 			std::string description() const {
 				return "def-passee-move";
 			}
-			
 	};
 }
 

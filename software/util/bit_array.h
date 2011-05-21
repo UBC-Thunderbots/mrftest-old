@@ -10,8 +10,7 @@
  *
  * \tparam N the number of bits.
  */
-template<std::size_t N>
-class BitArray {
+template<std::size_t N> class BitArray {
 	public:
 		/**
 		 * The data.

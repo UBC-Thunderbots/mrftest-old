@@ -62,9 +62,9 @@ namespace AI {
 					bool has_destination() const { return true; }
 					const std::pair<Point, double> &destination() const;
 					Point target_velocity() const;
-					void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec>> &p) { path_ = p; }
+					void path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) { path_ = p; }
 					bool has_path() const { return true; }
-					const std::vector<std::pair<std::pair<Point, double>, timespec>> &path() const { return path_; }
+					const std::vector<std::pair<std::pair<Point, double>, timespec> > &path() const { return path_; }
 					void drive(const int(&w)[4]);
 					const int(&wheel_speeds() const)[4] {
 						return wheel_speeds_;
@@ -93,7 +93,7 @@ namespace AI {
 					int battery_warning_hysteresis;
 					Annunciator::Message battery_warning_message;
 					int wheel_speeds_[4];
-					std::vector<std::pair<std::pair<Point, double>, timespec>> path_;
+					std::vector<std::pair<std::pair<Point, double>, timespec> > path_;
 					bool autokick_invoked;
 
 					/**

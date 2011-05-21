@@ -19,7 +19,6 @@ namespace AI {
 			 */
 			class Coordinate {
 				public:
-
 					/**
 					 * Determines the y-coordinate.
 					 */
@@ -58,12 +57,12 @@ namespace AI {
 					/**
 					 * Implicit conversion.
 					 */
-					Coordinate(const Point& pos);
+					Coordinate(const Point &pos);
 
 					/**
 					 * Main constructor
 					 */
-					Coordinate(const World& world, const Point& pos, const YType y_type, const OriginType o_type);
+					Coordinate(const World &world, const Point &pos, YType y_type, OriginType o_type);
 
 					/**
 					 * Evaluates and returns the required coordinate.
@@ -71,10 +70,10 @@ namespace AI {
 					Point operator()() const;
 
 				protected:
-					const World* world;
+					const World *const world;
 					const YType y_type;
 					const OriginType o_type;
-					const Point& pos;
+					const Point &pos;
 			};
 		}
 	}

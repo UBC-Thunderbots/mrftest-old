@@ -1,15 +1,15 @@
 #include "ai/hl/stp/ui.h"
 #include "ai/hl/util.h"
 #include "ai/hl/stp/evaluation/offense.h"
+#include <cmath>
 
 using namespace AI::HL::STP;
 using AI::HL::STP::Evaluation::grid_x;
 using AI::HL::STP::Evaluation::grid_y;
 
-void AI::HL::STP::draw_offense(const World& world, Cairo::RefPtr<Cairo::Context> ctx) {
-
+void AI::HL::STP::draw_offense(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
 	// draw yellow circles for shooting
-	const FriendlyTeam& friendly = world.friendly_team();
+	const FriendlyTeam &friendly = world.friendly_team();
 	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		const Player::CPtr player = friendly.get(i);
 		std::pair<Point, double> best_shot = AI::HL::Util::calc_best_shot(world, player);
@@ -58,7 +58,7 @@ void AI::HL::STP::draw_offense(const World& world, Cairo::RefPtr<Cairo::Context>
 			   text << score << std::endl;
 			   LOG_INFO(text.str());
 			   }
-			   */
+			 */
 
 			if (score < 0) {
 				continue;
@@ -73,7 +73,7 @@ void AI::HL::STP::draw_offense(const World& world, Cairo::RefPtr<Cairo::Context>
 		}
 	}
 
-	const Field& field = world.field();
+	const Field &field = world.field();
 	const Point goal1 = Point(field.length() / 2, field.goal_width() / 2);
 	const Point goal2 = Point(field.length() / 2, -field.goal_width() / 2);
 
@@ -85,8 +85,8 @@ void AI::HL::STP::draw_offense(const World& world, Cairo::RefPtr<Cairo::Context>
 	ctx->stroke();
 }
 
-void AI::HL::STP::draw_defense(const World& world, Cairo::RefPtr<Cairo::Context> ctx) {
-	const Field& field = world.field();
+void AI::HL::STP::draw_defense(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
+	const Field &field = world.field();
 
 	const Point goal1 = Point(-field.length() / 2, field.goal_width() / 2);
 	const Point goal2 = Point(-field.length() / 2, -field.goal_width() / 2);
@@ -110,16 +110,16 @@ void AI::HL::STP::draw_defense(const World& world, Cairo::RefPtr<Cairo::Context>
 	ctx->stroke();
 }
 
-void AI::HL::STP::draw_velocity(const World& world, Cairo::RefPtr<Cairo::Context> ctx) {
-	const FriendlyTeam& friendly = world.friendly_team();
+void AI::HL::STP::draw_velocity(const World &world, Cairo::RefPtr<Cairo::Context> ctx) {
+	const FriendlyTeam &friendly = world.friendly_team();
 	ctx->set_line_width(1.0);
-	for (std::size_t i = 0; i < friendly.size(); ++i ) {
+	for (std::size_t i = 0; i < friendly.size(); ++i) {
 		const Player::CPtr player = friendly.get(i);
-		double vel_direction = atan( player->velocity().y / player->velocity().x );
-		double vel_mag = sqrt( player->velocity().y * player->velocity().y + player->velocity().x * player->velocity().x );
+		double vel_direction = atan(player->velocity().y / player->velocity().x);
+		double vel_mag = std::sqrt(player->velocity().y * player->velocity().y + player->velocity().x * player->velocity().x);
 		// std::cout << vel_direction << "  " << vel_mag <<std::endl;
 		ctx->set_source_rgba(0.0, 0.0, 0.0, 0.2);
-		ctx->arc( player->position().x, player->position().y, vel_mag, vel_direction, vel_direction+1.0 );
+		ctx->arc(player->position().x, player->position().y, vel_mag, vel_direction, vel_direction + 1.0);
 		ctx->stroke();
 	}
 }

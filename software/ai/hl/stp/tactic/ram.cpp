@@ -20,7 +20,6 @@ namespace {
 			}
 
 			void execute() {
-				
 				player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), Point());
 				player->type(AI::Flags::MoveType::RAM_BALL);
 				player->prio(AI::Flags::MovePrio::HIGH);
