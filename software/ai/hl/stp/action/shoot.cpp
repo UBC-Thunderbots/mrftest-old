@@ -62,7 +62,6 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 			
 	}
 
-
 	double ori = (target.first - player->position()).orientation();
 	double ori_diff = angle_diff(ori, player->orientation());
 	double accuracy_diff = ori_diff - (target.second / 2);
