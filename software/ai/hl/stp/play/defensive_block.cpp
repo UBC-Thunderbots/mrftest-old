@@ -1,90 +1,47 @@
-#include "ai/hl/stp/play/play.h"
-#include "ai/hl/stp/predicates.h"
 #include "ai/hl/stp/tactic/chase.h"
 #include "ai/hl/stp/tactic/offend.h"
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/block.h"
-#include "ai/hl/util.h"
-#include "util/dprint.h"
-#include <glibmm.h>
+#include "ai/hl/stp/play/simple_play.h"
 
-using namespace AI::HL::STP::Play;
-using namespace AI::HL::STP::Tactic;
-using namespace AI::HL::W;
 using AI::HL::STP::Enemy;
 namespace Predicates = AI::HL::STP::Predicates;
 
-namespace {
-	/**
-	 * Condition:
-	 * - ball in own end and enemy has ball control
-	 * - at least 3 players
-	 *
-	 * Objective:
-	 * - defend the net
-	 * - try to grab the ball
-	 */
-	class DefensiveBlock : public Play {
-		public:
-			DefensiveBlock(const World &world);
+/**
+ * Condition:
+ * - ball in own end and enemy has ball control
+ * - at least 3 players
+ *
+ * Objective:
+ * - defend the net
+ * - try to grab the ball
+ */
+BEGIN_PLAY(DefensiveBlock)
+INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && !Predicates::enemy_baller_can_shoot(world) && Predicates::enemy_baller_can_pass(world))
+APPLICABLE(Predicates::their_ball(world) && Predicates::ball_midfield(world) && Predicates::ball_on_our_side(world))
+DONE(Predicates::our_ball(world) || Predicates::ball_on_their_side(world))
+FAIL(false)
+BEGIN_ASSIGN()
+	// GOALIE
+	// defend the goal
+	goalie_role.push_back(defend_duo_goalie(world));
 
-		private:
-			bool invariant() const;
-			bool applicable() const;
-			bool done() const;
-			bool fail() const;
-			void assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]);
-			const PlayFactory &factory() const;
-	};
+	// ROLE 1
+	// defend
+	roles[0].push_back(defend_duo_defender(world));
 
-	PlayFactoryImpl<DefensiveBlock> factory_instance("Defensive Block");
+	// ROLE 2
+	// chase the ball!
+	roles[1].push_back(chase(world));
 
-	const PlayFactory &DefensiveBlock::factory() const {
-		return factory_instance;
-	}
+	// ROLE 3 (optional)
+	// defend
+	roles[2].push_back(defend_duo_extra(world));
 
-	DefensiveBlock::DefensiveBlock(const World &world) : Play(world) {
-	}
-
-	bool DefensiveBlock::invariant() const {
-		return Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && !Predicates::enemy_baller_can_shoot(world) && Predicates::enemy_baller_can_pass(world);
-	}
-
-	bool DefensiveBlock::applicable() const {
-		return Predicates::their_ball(world) && Predicates::ball_midfield(world) && Predicates::ball_on_our_side(world);
-	}
-
-	bool DefensiveBlock::done() const {
-		return Predicates::our_ball(world) || Predicates::ball_on_their_side(world);
-	}
-
-	bool DefensiveBlock::fail() const {
-		return false;
-	}
-
-	void DefensiveBlock::assign(std::vector<Tactic::Ptr> &goalie_role, std::vector<Tactic::Ptr>(&roles)[4]) {
-
-		// GOALIE
-		// defend the goal
-		goalie_role.push_back(defend_duo_goalie(world));
-
-		// ROLE 1
-		// defend
-		roles[0].push_back(defend_duo_defender(world));
-
-		// ROLE 2
-		// chase the ball!
-		roles[1].push_back(chase(world));
-
-		// ROLE 3 (optional)
-		// defend
-		roles[2].push_back(defend_duo_extra(world));
-
-		// ROLE 4 (optional)
-		// offend 
-		//roles[3].push_back(offend(world));
-		// block instead of offend (hence the name of the play?)
-		roles[3].push_back(block_pass(world, Enemy::closest_pass(world, Enemy::closest_ball(world, 0)->evaluate(), 0)));
-	}
-}
-
+	// ROLE 4 (optional)
+	// offend
+	//roles[3].push_back(offend(world));
+	// block instead of offend (hence the name of the play?)
+	roles[3].push_back(block_pass(world, Enemy::closest_pass(world, Enemy::closest_ball(world, 0)->evaluate(), 0)));
+END_ASSIGN()
+END_PLAY()

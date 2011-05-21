@@ -66,7 +66,6 @@ bool AI::HL::STP::Action::shoot(const World &world, Player::Ptr player) {
 	double ori_diff = angle_diff(ori, player->orientation());
 	double accuracy_diff = ori_diff - (target.second / 2);
 
-
 	if (radians2degrees(accuracy_diff) < -shoot_threshold && accuracy_diff < prev_best_angle) {
 		player->autokick(10.0);
 		prev_best_angle = accuracy_diff;
