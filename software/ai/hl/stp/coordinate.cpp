@@ -4,7 +4,7 @@
 using AI::HL::STP::Coordinate;
 using namespace AI::HL::STP;
 
-Coordinate::Coordinate(const Point &pos) : world(NULL), y_type(YType::ABSOLUTE), o_type(OriginType::ABSOLUTE), pos(pos) {
+Coordinate::Coordinate(const Point &pos) : world(0), y_type(YType::ABSOLUTE), o_type(OriginType::ABSOLUTE), pos(pos) {
 }
 
 Coordinate::Coordinate(const World &world, const Point &pos, YType y_type, OriginType o_type) : world(&world), y_type(y_type), o_type(o_type), pos(pos) {

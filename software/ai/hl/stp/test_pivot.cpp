@@ -35,7 +35,7 @@ namespace {
 			}
 
 			Gtk::Widget *ui_controls() {
-				return NULL;
+				return 0;
 			}
 
 			void tick() {
