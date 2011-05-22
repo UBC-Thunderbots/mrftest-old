@@ -65,7 +65,7 @@ $(addprefix bin/,$(EXECUTABLES)) : bin/% : $$(addprefix obj/,$$(subst .cc,.o,$$(
 	$(CXX) $(LDFLAGS) $(if $(PACKAGES_$(notdir $@)),$(shell pkg-config --libs-only-other --libs-only-L $(PACKAGES_$(notdir $@)))) -o$@ $+ $(LIBS) $(if $(PACKAGES_$(notdir $@)),$(shell pkg-config --libs-only-l $(PACKAGES_$(notdir $@))))
 
 #
-# Rule to make a .d file from a .cpp file.
+# Rule to make a .d file and a .o file from a .cpp file.
 #
 # Protobuf interferes with normal automatic dependency calculation, because the
 # C++ header files corresponding to protobuf files do not exist when the
@@ -74,18 +74,10 @@ $(addprefix bin/,$(EXECUTABLES)) : bin/% : $$(addprefix obj/,$$(subst .cc,.o,$$(
 # solve this, just make all ".d" files depend on the protobuf ".h" files, to
 # force protoc to be run before dependency calculation begins.
 #
-obj/%.d : %.cpp $(PROTOBUF_HS)
-	echo "  DEP	$@"
-	mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) -MT '$(@:.d=.o) $@' -MM -MF $@ $< || { $(RM) $@; false; }
-
-#
-# Rule to make a .o file from a .cpp file.
-#
-obj/%.o : %.cpp
-	echo "  CXX	$@"
-	mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) -o$@ -c $<
+obj/%.d obj/%.o : %.cpp $(PROTOBUF_HS)
+	echo "  CXX   obj/$(<:.cpp=.o)"
+	mkdir -p $(dir obj/$(<:.cpp=.o))
+	$(CXX) $(CXXFLAGS) -o obj/$(<:.cpp=.o) -c -MT '$(@:.d=.o) $@' -MMD $< || { $(RM) obj/$(<:.cpp=.d); false; }
 
 #
 # Rule to make a .pb.cc and a .pb.h file from a .proto file.
