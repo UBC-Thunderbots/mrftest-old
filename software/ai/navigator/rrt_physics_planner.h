@@ -15,8 +15,8 @@ namespace AI {
 
 				/**
 				 * This function decides how to move toward the target
-				 * the gtarget is one of a random point, a waypoint, or the goal locatio
-				 **a subclass may override this
+				 * the gtarget is one of a random point, a waypoint, or the goal location
+				 * a subclass may override this
 				 */
 				Point extend(AI::Nav::W::Player::Ptr player, Glib::NodeTree<Point> *start, Point target);
 

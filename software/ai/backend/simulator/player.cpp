@@ -89,7 +89,7 @@ Point AI::BE::Simulator::Player::target_velocity() const {
 	return target_velocity_;
 }
 
-void AI::BE::Simulator::Player::path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec>> &p) {
+void AI::BE::Simulator::Player::path_impl(const std::vector<std::pair<std::pair<Point, double>, timespec> > &p) {
 	path_ = p;
 }
 
@@ -97,7 +97,7 @@ bool AI::BE::Simulator::Player::has_path() const {
 	return true;
 }
 
-const std::vector<std::pair<std::pair<Point, double>, timespec>> &AI::BE::Simulator::Player::path() const {
+const std::vector<std::pair<std::pair<Point, double>, timespec> > &AI::BE::Simulator::Player::path() const {
 	return path_;
 }
 

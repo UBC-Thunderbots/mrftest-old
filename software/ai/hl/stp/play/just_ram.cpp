@@ -20,23 +20,24 @@ APPLICABLE(Predicates::their_ball(world) && Predicates::ball_on_our_side(world))
 DONE(!Predicates::their_ball(world) || Predicates::ball_on_their_side(world))
 FAIL(false)
 BEGIN_ASSIGN()
-	// GOALIE
-	goalie_role.push_back(defend_duo_goalie(world));
+// GOALIE
+goalie_role.push_back(defend_duo_goalie(world));
 
-	// ROLE 1
-	// grab the ball if possible
-	roles[0].push_back(chase(world));
+// ROLE 1
+// grab the ball if possible
+roles[0].push_back(chase(world));
 
-	// ROLE 2
-	// defend
-	roles[1].push_back(defend_duo_defender(world));
+// ROLE 2
+// defend
+roles[1].push_back(defend_duo_defender(world));
 
-	// ROLE 3 (optional)
-	// ram ball
-	roles[2].push_back(ram(world));
+// ROLE 3 (optional)
+// ram ball
+roles[2].push_back(ram(world));
 
-	// ROLE 4 (optional)
-	// ram ball
-	roles[3].push_back(ram(world));
+// ROLE 4 (optional)
+// ram ball
+roles[3].push_back(ram(world));
 END_ASSIGN()
 END_PLAY()
+

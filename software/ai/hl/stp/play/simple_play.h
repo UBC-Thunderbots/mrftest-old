@@ -17,7 +17,7 @@ using namespace AI::HL::STP::Tactic;
 #define BEGIN_PLAY(cls) \
     namespace { \
 		class cls; \
-		AI::HL::STP::Play::PlayFactoryImpl<cls> factory_instance(#cls); \
+		AI::HL::STP::Play::PlayFactoryImpl<cls> factory_instance(# cls); \
 		class cls : public AI::HL::STP::Play::Play { \
 			public: \
 				cls(const AI::HL::W::World & world) : AI::HL::STP::Play::Play(world) { \
