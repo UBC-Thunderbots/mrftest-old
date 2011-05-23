@@ -424,6 +424,7 @@ software/uicomponents/annunciator.cpp -text
 software/uicomponents/annunciator.h -text
 software/uicomponents/visualizer.cpp -text
 software/uicomponents/visualizer.h -text
+software/uncrustify-exceptions.patch -text
 software/uncrustify.cfg -text
 software/util/algorithm.h -text
 software/util/annunciator.cpp -text

@@ -1,0 +1,632 @@
+Index: simulator/simulator.cpp
+===================================================================
+--- simulator/simulator.cpp	(revision 5737)
++++ simulator/simulator.cpp	(working copy)
+@@ -174,8 +174,8 @@
+ 	}
+ 
+ 	switch (speed_mode_) {
+-		case ::Simulator::Proto::SpeedMode::NORMAL:
+-		case ::Simulator::Proto::SpeedMode::SLOW:
++		case::Simulator::Proto::SpeedMode::NORMAL:
++		case::Simulator::Proto::SpeedMode::SLOW:
+ 			// In normal-speed mode and slow mode, we first determine whether we've passed the deadline.
+ 			timespec now;
+ 			timespec_now(now);
+@@ -191,7 +191,7 @@
+ 			}
+ 			break;
+ 
+-		case ::Simulator::Proto::SpeedMode::FAST:
++		case::Simulator::Proto::SpeedMode::FAST:
+ 			// In fast mode, we tick immediately.
+ 			tick();
+ 			break;
+Index: geom/point.h
+===================================================================
+--- geom/point.h	(revision 5737)
++++ geom/point.h	(working copy)
+@@ -239,7 +239,7 @@
+ 	 *
+ 	 * \return the scaled vector.
+ 	 */
+-	Point operator*(double s, const Point &p) __attribute__((warn_unused_result));
++	Point operator *(double s, const Point &p) __attribute__((warn_unused_result));
+ 	Point operator*(double s, const Point &p) {
+ 		return Point(p.x * s, p.y * s);
+ 	}
+@@ -253,7 +253,7 @@
+ 	 *
+ 	 * \return the scaled vector.
+ 	 */
+-	Point operator*(const Point &p, double s) __attribute__((warn_unused_result));
++	Point operator *(const Point &p, double s) __attribute__((warn_unused_result));
+ 	Point operator*(const Point &p, double s) {
+ 		return Point(p.x * s, p.y * s);
+ 	}
+Index: ai/backend/simulator/ball.h
+===================================================================
+--- ai/backend/simulator/ball.h	(revision 5737)
++++ ai/backend/simulator/ball.h	(working copy)
+@@ -29,7 +29,7 @@
+ 					 *
+ 					 * \param[in] ts the timestamp at which the ball was in this position.
+ 					 */
+-					void pre_tick(const ::Simulator::Proto::S2ABallInfo &state, const timespec &ts);
++					void pre_tick(const::Simulator::Proto::S2ABallInfo &state, const timespec &ts);
+ 
+ 					/**
+ 					 * Indicates that the mouse was pressed over the visualizer.
+Index: ai/backend/simulator/player.h
+===================================================================
+--- ai/backend/simulator/player.h	(revision 5737)
++++ ai/backend/simulator/player.h	(working copy)
+@@ -43,14 +43,14 @@
+ 					 *
+ 					 * \param[in] ts the timestamp at which the robot was in this position.
+ 					 */
+-					void pre_tick(const ::Simulator::Proto::S2APlayerInfo &state, const timespec &ts);
++					void pre_tick(const::Simulator::Proto::S2APlayerInfo &state, const timespec &ts);
+ 
+ 					/**
+ 					 * Encodes the robot's current orders into a packet for transmission to the simulator.
+ 					 *
+ 					 * \param[out] orders the packet to encode into.
+ 					 */
+-					void encode_orders(::Simulator::Proto::A2SPlayerInfo &orders);
++					void encode_orders(::Simulator::Proto::A2SPlayerInfo & orders);
+ 
+ 					/**
+ 					 * Indicates that the mouse was pressed over the visualizer.
+Index: ai/backend/simulator/backend.cpp
+===================================================================
+--- ai/backend/simulator/backend.cpp	(revision 5737)
++++ ai/backend/simulator/backend.cpp	(working copy)
+@@ -129,8 +129,8 @@
+ 	}
+ }
+ 
+-void AI::BE::Simulator::Backend::send_packet(const ::Simulator::Proto::A2SPacket &packet, FileDescriptor::Ptr ancillary_fd) {
+-	iovec iov = { iov_base: const_cast< ::Simulator::Proto::A2SPacket *>(&packet), iov_len: sizeof(packet), };
++void AI::BE::Simulator::Backend::send_packet(const::Simulator::Proto::A2SPacket &packet, FileDescriptor::Ptr ancillary_fd) {
++	iovec iov = { iov_base: const_cast<::Simulator::Proto::A2SPacket *>(&packet), iov_len: sizeof(packet), };
+ 	msghdr msgh = { msg_name: 0, msg_namelen: 0, msg_iov: &iov, msg_iovlen: 1, msg_control: 0, msg_controllen: 0, msg_flags: 0, };
+ 	char cmsgbuf[cmsg_space(sizeof(int))];
+ 	if (ancillary_fd.is()) {
+@@ -234,7 +234,7 @@
+ 
+ 	// Decide what to do based on the type code.
+ 	switch (packet.type) {
+-		case ::Simulator::Proto::S2APacketType::TICK:
++		case::Simulator::Proto::S2APacketType::TICK:
+ 			// Record the current monotonic time.
+ 			monotonic_time_ = packet.world_state.stamp;
+ 
+@@ -258,18 +258,18 @@
+ 			secondary_controls.state_file_load_button.set_sensitive(!secondary_controls.state_file_name.empty());
+ 			return true;
+ 
+-		case ::Simulator::Proto::S2APacketType::SPEED_MODE:
++		case::Simulator::Proto::S2APacketType::SPEED_MODE:
+ 			// Update the UI controls.
+ 			switch (packet.speed_mode) {
+-				case ::Simulator::Proto::SpeedMode::NORMAL:
++				case::Simulator::Proto::SpeedMode::NORMAL:
+ 					secondary_controls.speed_normal.set_active();
+ 					break;
+ 
+-				case ::Simulator::Proto::SpeedMode::FAST:
++				case::Simulator::Proto::SpeedMode::FAST:
+ 					secondary_controls.speed_fast.set_active();
+ 					break;
+ 
+-				case ::Simulator::Proto::SpeedMode::SLOW:
++				case::Simulator::Proto::SpeedMode::SLOW:
+ 					secondary_controls.speed_slow.set_active();
+ 					break;
+ 			}
+@@ -280,7 +280,7 @@
+ 			secondary_controls.speed_slow.set_sensitive();
+ 			return true;
+ 
+-		case ::Simulator::Proto::S2APacketType::PLAY_TYPE:
++		case::Simulator::Proto::S2APacketType::PLAY_TYPE:
+ 			if (packet.playtype != AI::Common::PlayType::NONE) {
+ 				// Record the master play type.
+ 				simulator_playtype = packet.playtype;
+Index: ai/backend/simulator/ball.cpp
+===================================================================
+--- ai/backend/simulator/ball.cpp	(revision 5737)
++++ ai/backend/simulator/ball.cpp	(working copy)
+@@ -7,7 +7,7 @@
+ 	be.signal_mouse_pressed.connect(sigc::mem_fun(this, &Ball::mouse_pressed));
+ }
+ 
+-void AI::BE::Simulator::Ball::pre_tick(const ::Simulator::Proto::S2ABallInfo &state, const timespec &ts) {
++void AI::BE::Simulator::Ball::pre_tick(const::Simulator::Proto::S2ABallInfo &state, const timespec &ts) {
+ 	xpred.add_datum(state.x, ts);
+ 	xpred.lock_time(ts);
+ 	ypred.add_datum(state.y, ts);
+Index: ai/backend/simulator/robot.h
+===================================================================
+--- ai/backend/simulator/robot.h	(revision 5737)
++++ ai/backend/simulator/robot.h	(working copy)
+@@ -44,7 +44,7 @@
+ 					 *
+ 					 * \param[in] ts the timestamp at which the robot was in this position.
+ 					 */
+-					void pre_tick(const ::Simulator::Proto::S2ARobotInfo &state, const timespec &ts) {
++					void pre_tick(const::Simulator::Proto::S2ARobotInfo &state, const timespec &ts) {
+ 						xpred.add_datum(state.x, ts);
+ 						xpred.lock_time(ts);
+ 						ypred.add_datum(state.y, ts);
+Index: ai/backend/simulator/team.h
+===================================================================
+--- ai/backend/simulator/team.h	(revision 5737)
++++ ai/backend/simulator/team.h	(working copy)
+@@ -137,7 +137,7 @@
+ 					 *
+ 					 * \param[in] ts the timestamp at which the ball was in this position.
+ 					 */
+-					void pre_tick(const ::Simulator::Proto::S2APlayerInfo(&state)[::Simulator::Proto::MAX_PLAYERS_PER_TEAM], unsigned int score, const timespec &ts) {
++					void pre_tick(const::Simulator::Proto::S2APlayerInfo(&state)[::Simulator::Proto::MAX_PLAYERS_PER_TEAM], unsigned int score, const timespec &ts) {
+ 						// Record new score.
+ 						score_prop = score;
+ 
+@@ -256,7 +256,7 @@
+ 					 *
+ 					 * \param[in] ts the timestamp at which the ball was in this position.
+ 					 */
+-					void pre_tick(const ::Simulator::Proto::S2ARobotInfo(&state)[::Simulator::Proto::MAX_PLAYERS_PER_TEAM], unsigned int score, const timespec &ts) {
++					void pre_tick(const::Simulator::Proto::S2ARobotInfo(&state)[::Simulator::Proto::MAX_PLAYERS_PER_TEAM], unsigned int score, const timespec &ts) {
+ 						// Record new score.
+ 						score_prop = score;
+ 
+Index: ai/backend/simulator/backend.h
+===================================================================
+--- ai/backend/simulator/backend.h	(revision 5737)
++++ ai/backend/simulator/backend.h	(working copy)
+@@ -231,7 +231,7 @@
+ 					 *
+ 					 * \param[in] ancillary_fd the ancillary file descriptor to send with the message.
+ 					 */
+-					void send_packet(const ::Simulator::Proto::A2SPacket &packet, FileDescriptor::Ptr ancillary_fd = FileDescriptor::Ptr());
++					void send_packet(const::Simulator::Proto::A2SPacket &packet, FileDescriptor::Ptr ancillary_fd = FileDescriptor::Ptr());
+ 
+ 					AI::BE::BackendFactory &factory() const;
+ 					const AI::BE::Simulator::Field &field() const;
+Index: ai/backend/simulator/player.cpp
+===================================================================
+--- ai/backend/simulator/player.cpp	(revision 5739)
++++ ai/backend/simulator/player.cpp	(working copy)
+@@ -8,7 +8,7 @@
+ 	return p;
+ }
+ 
+-void AI::BE::Simulator::Player::pre_tick(const ::Simulator::Proto::S2APlayerInfo &state, const timespec &ts) {
++void AI::BE::Simulator::Player::pre_tick(const::Simulator::Proto::S2APlayerInfo &state, const timespec &ts) {
+ 	AI::BE::Player::pre_tick();
+ 	AI::BE::Simulator::Robot::pre_tick(state.robot_info, ts);
+ 	has_ball_ = state.has_ball;
+Index: ai/robot_controller/robot_controller.cpp
+===================================================================
+--- ai/robot_controller/robot_controller.cpp	(revision 5737)
++++ ai/robot_controller/robot_controller.cpp	(working copy)
+@@ -25,7 +25,7 @@
+ 	}
+ }
+ 
+-void RobotController::draw_overlay(Cairo::RefPtr<Cairo::Context>) {
++void RobotController::draw_overlay(Cairo::RefPtr<Cairo::Context> ) {
+ }
+ 
+ RobotController::RobotController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player) : world(world), player(player) {
+Index: ai/navigator/pivot_navigator_aram.cpp
+===================================================================
+--- ai/navigator/pivot_navigator_aram.cpp	(revision 5737)
++++ ai/navigator/pivot_navigator_aram.cpp	(working copy)
+@@ -80,15 +80,15 @@
+ 			// targetPosition = Point(0, 0); // try to reach centre of field
+ 
+ 			if (diff.cross(currentVelocity) > 0) {
+-				turnCentre = currentPosition + turnRadius * currentVelocity.rotate(M_PI / 2.0);
++				turnCentre = currentPosition + turnRadius *currentVelocity.rotate(M_PI / 2.0);
+ 			} else {
+-				turnCentre = currentPosition + turnRadius * currentVelocity.rotate(-M_PI / 2.0);
++				turnCentre = currentPosition + turnRadius *currentVelocity.rotate(-M_PI / 2.0);
+ 			}
+ 
+ 			if ((world.ball().position() - turnCentre).len() > turnRadius + pivot_radius) {
+ 				destinationPosition = targetPosition;
+ 			} else if (diff.len() > pivot_radius) {
+-				destinationPosition = turnCentre + turnRadius * currentVelocity.norm();
++				destinationPosition = turnCentre + turnRadius *currentVelocity.norm();
+ 			} else {
+ 				destinationPosition = 2 * turnCentre - currentPosition;
+ 			}
+Index: ai/navigator/util.cpp
+===================================================================
+--- ai/navigator/util.cpp	(revision 5737)
++++ ai/navigator/util.cpp	(working copy)
+@@ -311,7 +311,7 @@
+ 		// circle radius then becomes the radius of the smallest circle that will contain the polygon
+ 		// plus a small buffer
+ 		double radius = dist / std::cos(M_PI / static_cast<double>(num_points)) + SMALL_BUFFER;
+-		double TS = 2 * num_points * dist * std::tan(M_PI / num_points);
++		double TS = 2 *num_points *dist *std::tan(M_PI / num_points);
+ 		double TS2 = TS + 2 * (segA - segB).len();
+ 		int n_tot = num_points * static_cast<int>(std::ceil(TS2 / TS));
+ 		std::vector<Point> temp = seg_buffer_boundaries(segA, segB, radius, n_tot);
+Index: ai/navigator/astar_navigator.cpp
+===================================================================
+--- ai/navigator/astar_navigator.cpp	(revision 5737)
++++ ai/navigator/astar_navigator.cpp	(working copy)
+@@ -23,7 +23,7 @@
+ 
+ 	class PathPoint : public ByRef {
+ 		public:
+-			typedef ::RefPtr<PathPoint> Ptr;
++			typedef::RefPtr<PathPoint> Ptr;
+ 			Point xy;
+ 			// double orientation;
+ 			PathPoint::Ptr parent;
+Index: ai/navigator/navigator.cpp
+===================================================================
+--- ai/navigator/navigator.cpp	(revision 5737)
++++ ai/navigator/navigator.cpp	(working copy)
+@@ -8,7 +8,7 @@
+ 	return 0;
+ }
+ 
+-void Navigator::draw_overlay(Cairo::RefPtr<Cairo::Context>) {
++void Navigator::draw_overlay(Cairo::RefPtr<Cairo::Context> ) {
+ }
+ 
+ Navigator::Navigator(World &world) : world(world) {
+Index: ai/navigator/rrt_planner.h
+===================================================================
+--- ai/navigator/rrt_planner.h	(revision 5737)
++++ ai/navigator/rrt_planner.h	(working copy)
+@@ -12,7 +12,7 @@
+ 
+ 		class Waypoints : public ObjectStore::Element {
+ 			public:
+-				typedef ::RefPtr<Waypoints> Ptr;
++				typedef::RefPtr<Waypoints> Ptr;
+ 				static const std::size_t NUM_WAYPOINTS = 50;
+ 				Point points[NUM_WAYPOINTS];
+ 				unsigned int added_flags;
+Index: ai/navigator/pivot_navigator2.cpp
+===================================================================
+--- ai/navigator/pivot_navigator2.cpp	(revision 5737)
++++ ai/navigator/pivot_navigator2.cpp	(working copy)
+@@ -71,7 +71,7 @@
+ 
+ 			Point diff = (world.ball().position() - currentPosition).rotate(offset_angle * M_PI / 180.0);
+ 
+-			destinationPosition = world.ball().position() - offset_distance * diff.norm();
++			destinationPosition = world.ball().position() - offset_distance *diff.norm();
+ 			destinationOrientation = (world.ball().position() - currentPosition).orientation() + orientation_offset * M_PI / 180.0;
+ 
+ 			path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
+Index: ai/hl/hl.cpp
+===================================================================
+--- ai/hl/hl.cpp	(revision 5737)
++++ ai/hl/hl.cpp	(working copy)
+@@ -1,5 +1,5 @@
+ #include "ai/hl/hl.h"
+ 
+-void AI::HL::HighLevel::draw_overlay(Cairo::RefPtr<Cairo::Context>) {
++void AI::HL::HighLevel::draw_overlay(Cairo::RefPtr<Cairo::Context> ) {
+ }
+ 
+Index: ai/hl/stp/play/play.cpp
+===================================================================
+--- ai/hl/stp/play/play.cpp	(revision 5737)
++++ ai/hl/stp/play/play.cpp	(working copy)
+@@ -8,7 +8,7 @@
+ Play::Play(const World &world) : world(world) {
+ }
+ 
+-void Play::draw_overlay(Cairo::RefPtr<Cairo::Context>) const {
++void Play::draw_overlay(Cairo::RefPtr<Cairo::Context> ) const {
+ }
+ 
+ PlayFactory::PlayFactory(const char *name) : Registerable<PlayFactory>(name) {
+Index: ai/hl/stp/play/simple_play.h
+===================================================================
+--- ai/hl/stp/play/simple_play.h	(revision 5739)
++++ ai/hl/stp/play/simple_play.h	(working copy)
+@@ -54,7 +54,7 @@
+ 	}
+ 
+ #define END_PLAY() \
+-	}; \
++	} \
+ 	}
+ 
+ #endif
+Index: ai/hl/stp/tactic/tactic.cpp
+===================================================================
+--- ai/hl/stp/tactic/tactic.cpp	(revision 5737)
++++ ai/hl/stp/tactic/tactic.cpp	(working copy)
+@@ -25,7 +25,7 @@
+ 	return "no description";
+ }
+ 
+-void Tactic::draw_overlay(Cairo::RefPtr<Cairo::Context>) const {
++void Tactic::draw_overlay(Cairo::RefPtr<Cairo::Context> ) const {
+ 	// do nothing..
+ }
+ 
+Index: ai/hl/util.cpp
+===================================================================
+--- ai/hl/util.cpp	(revision 5737)
++++ ai/hl/util.cpp	(working copy)
+@@ -188,8 +188,8 @@
+ 
+ std::pair<Point, double> AI::HL::Util::calc_best_shot_target(const Point &target_pos, const std::vector<Point> &obstacles, const Point &p, const double radius) {
+ 	Point dirToBall = (p - target_pos).norm();
+-	const Point p1 = target_pos + (Robot::MAX_RADIUS * dirToBall).rotate(M_PI / 2);
+-	const Point p2 = target_pos - (Robot::MAX_RADIUS * dirToBall).rotate(M_PI / 2);
++	const Point p1 = target_pos + (Robot::MAX_RADIUS *dirToBall).rotate(M_PI / 2);
++	const Point p2 = target_pos - (Robot::MAX_RADIUS *dirToBall).rotate(M_PI / 2);
+ 	return angle_sweep_circles(p, p1, p2, obstacles, radius * Robot::MAX_RADIUS);
+ }
+ 
+Index: ai/logger.h
+===================================================================
+--- ai/logger.h	(revision 5737)
++++ ai/logger.h	(working copy)
+@@ -91,7 +91,7 @@
+ 			void on_tick();
+ 			void on_high_level_changed();
+ 
+-			friend void ::ai_logger_signal_handler_thunk(int sig);
++			friend void::ai_logger_signal_handler_thunk(int sig);
+ 	};
+ }
+ 
+Index: util/param.cpp
+===================================================================
+--- util/param.cpp	(revision 5737)
++++ util/param.cpp	(working copy)
+@@ -151,12 +151,11 @@
+ 
+ 	private:
+ 		class Allocator : public NonCopyable {
+-			public:
+-				~Allocator() {
++			public: ~Allocator() {
+ 					for (auto i = nodes.begin(), iend = nodes.end(); i != iend; ++i) {
+ 						delete *i;
+ 					}
+-				}
++			}
+ 
+ 				static Allocator &instance() {
+ 					static Allocator obj;
+Index: util/hungarian.cpp
+===================================================================
+--- util/hungarian.cpp	(revision 5737)
++++ util/hungarian.cpp	(working copy)
+@@ -47,7 +47,7 @@
+ 		for (std::size_t y = 0; y < N; y++) {
+ 			sy[y] = ly[y] + lx[u] - weights[u][y];
+ 		}
+-		for (;;) {
++		for (;; ) {
+ 			std::size_t y = 0;
+ 			while (y < N && !(equal(sy[y], 0.0) && py[y] == std::numeric_limits<std::size_t>::max())) {
+ 				y++;
+Index: util/property.h
+===================================================================
+--- util/property.h	(revision 5737)
++++ util/property.h	(working copy)
+@@ -26,7 +26,7 @@
+ 		 *
+ 		 * \param[in] moveref the original Property to destroy while initializing this Property.
+ 		 */
+-		Property(Property<T> &&moveref) : value(value), signal_changing_(moveref.signal_changing_), signal_changed_(moveref.signal_changed_) {
++		Property(Property<T> && moveref) : value(value), signal_changing_(moveref.signal_changing_), signal_changed_(moveref.signal_changed_) {
+ 		}
+ 
+ 		/**
+@@ -54,7 +54,7 @@
+ 		 *
+ 		 * \param[in] moveref the original Property to destroy while initializing this Property.
+ 		 */
+-		Property<T> &operator=(Property<T> &&moveref) {
++		Property<T> &operator=(Property<T> && moveref) {
+ 			value = moveref.value;
+ 			signal_changing_ = moveref.signal_changing_;
+ 			signal_changed_ = moveref.signal_changed_;
+Index: util/joystick.cpp
+===================================================================
+--- util/joystick.cpp	(revision 5737)
++++ util/joystick.cpp	(working copy)
+@@ -85,17 +85,17 @@
+ Joystick::Joystick(const std::string &node) : fd(open_joystick(node)), node(node), name(get_name(fd)) {
+ 	// This slightly odd construction is due to the fact that Property objects are movable but not copyable.
+ 	// Thus, one cannot just use resize(N, X) because vector can't make N copies of X.
+-	for (unsigned int i = get_num_axes(fd); i--;) {
++	for (unsigned int i = get_num_axes(fd); i--; ) {
+ 		axes_.push_back(Property<double>(0));
+ 	}
+-	for (unsigned int i = get_num_buttons(fd); i--;) {
++	for (unsigned int i = get_num_buttons(fd); i--; ) {
+ 		buttons_.push_back(Property<bool>(false));
+ 	}
+ 	Glib::signal_io().connect(sigc::bind_return(sigc::hide(sigc::mem_fun(this, &Joystick::on_readable)), true), fd->fd(), Glib::IO_IN);
+ }
+ 
+ void Joystick::on_readable() {
+-	for (;;) {
++	for (;; ) {
+ 		js_event buffer[8];
+ 		ssize_t rc = read(fd->fd(), buffer, sizeof(buffer));
+ 		if (rc < 0) {
+@@ -108,7 +108,7 @@
+ 		} else if (!rc) {
+ 			throw std::runtime_error("Unexpected EOF reading joystick");
+ 		}
+-		for (std::size_t i = 0; i * sizeof(js_event) < static_cast<std::size_t>(rc); ++i) {
++		for (std::size_t i = 0; i *sizeof(js_event) < static_cast<std::size_t>(rc); ++i) {
+ 			if ((buffer[i].type & ~JS_EVENT_INIT) == JS_EVENT_AXIS) {
+ 				assert(buffer[i].number < axes_.size());
+ 				axes_[buffer[i].number] = buffer[i].value / 32767.0;
+Index: util/matrix.h
+===================================================================
+--- util/matrix.h	(revision 5737)
++++ util/matrix.h	(working copy)
+@@ -66,7 +66,7 @@
+ 		 *
+ 		 * \param[in] moveref the matrix to move.
+ 		 */
+-		Matrix(Matrix &&moveref);
++		Matrix(Matrix && moveref);
+ 
+ 		/**
+ 		 * Destroys a matrix.
+@@ -166,14 +166,14 @@
+ 		friend Matrix &operator+=(Matrix &, const Matrix &);
+ 		friend Matrix &operator-=(Matrix &, const Matrix &);
+ 		friend Matrix &operator*=(Matrix &, double);
+-		friend Matrix operator*(const Matrix &a, const Matrix &b);
++		friend Matrix operator *(const Matrix &a, const Matrix &b);
+ 		friend Matrix operator~(const Matrix &m);
+ };
+ 
+ inline Matrix::Matrix() : m(0) {
+ }
+ 
+-inline Matrix::Matrix(Matrix &&moveref) : m(moveref.m) {
++inline Matrix::Matrix(Matrix && moveref) : m(moveref.m) {
+ 	moveref.m = 0;
+ }
+ 
+@@ -230,7 +230,7 @@
+  *
+  * \pre <code>a.cols() == b.rows()</code>
+  */
+-Matrix operator*(const Matrix &a, const Matrix &b);
++Matrix operator *(const Matrix &a, const Matrix &b);
+ 
+ /**
+  * Computes the transpose of this matrix.
+@@ -265,7 +265,7 @@
+  *
+  * \return the sum of \p a and \p b.
+  */
+-inline Matrix operator+(Matrix &&a, const Matrix &b) {
++inline Matrix operator+(Matrix && a, const Matrix &b) {
+ 	return std::move(a += b);
+ }
+ 
+@@ -278,7 +278,7 @@
+  *
+  * \return the sum of \p a and \p b.
+  */
+-inline Matrix operator+(const Matrix &a, Matrix &&b) {
++inline Matrix operator+(const Matrix &a, Matrix && b) {
+ 	return std::move(b += a);
+ }
+ 
+@@ -291,7 +291,7 @@
+  *
+  * \return the sum of \p a and \p b.
+  */
+-inline Matrix operator+(Matrix &&a, Matrix &&b) {
++inline Matrix operator+(Matrix && a, Matrix && b) {
+ 	return std::move(a += b);
+ }
+ 
+@@ -319,7 +319,7 @@
+  *
+  * \return the difference between \p a and \p b.
+  */
+-inline Matrix operator-(Matrix &&a, const Matrix &b) {
++inline Matrix operator-(Matrix && a, const Matrix &b) {
+ 	return std::move(a -= b);
+ }
+ 
+@@ -347,7 +347,7 @@
+  *
+  * \return the product of \p m and \p scale.
+  */
+-inline Matrix operator*(Matrix &&m, double scale) {
++inline Matrix operator*(Matrix && m, double scale) {
+ 	return std::move(m *= scale);
+ }
+ 
+@@ -375,7 +375,7 @@
+  *
+  * \return the product of \p m and \p scale.
+  */
+-inline Matrix operator*(double scale, Matrix &&m) {
++inline Matrix operator*(double scale, Matrix && m) {
+ 	return std::move(m *= scale);
+ }
+ 
+@@ -431,7 +431,7 @@
+  *
+  * \return the quotient of \p m and \p scale.
+  */
+-inline Matrix operator/(Matrix &&m, double scale) {
++inline Matrix operator/(Matrix && m, double scale) {
+ 	return std::forward<Matrix>(m) * (1.0 / scale);
+ }
+ 
+@@ -455,7 +455,7 @@
+  *
+  * \return the inverse.
+  */
+-inline Matrix operator!(Matrix &&m) {
++inline Matrix operator!(Matrix && m) {
+ 	m.invert();
+ 	return std::move(m);
+ }
+Index: util/byref.h
+===================================================================
+--- util/byref.h	(revision 5737)
++++ util/byref.h	(working copy)
+@@ -154,7 +154,7 @@
+ 		 *
+ 		 * \param[in] moveref the RefPtr to move.
+ 		 */
+-		RefPtr(RefPtr<T> &&moveref) : obj(moveref.obj) {
++		RefPtr(RefPtr<T> && moveref) : obj(moveref.obj) {
+ 			moveref.obj = 0;
+ 		}
+ 
+Index: util/kalman/kalman.cpp
+===================================================================
+--- util/kalman/kalman.cpp	(revision 5737)
++++ util/kalman/kalman.cpp	(working copy)
+@@ -62,7 +62,7 @@
+ 	}
+ 	predict_step(timespec_to_double(timespec_sub(prediction_time, current_time)), current_control, state_predict, p_predict);
+ 	if (is_angle) {
+-		state_predict(0, 0) -= 2 * M_PI * std::round(state_predict(0, 0) / 2 / M_PI);
++		state_predict(0, 0) -= 2 *M_PI *std::round(state_predict(0, 0) / 2 / M_PI);
+ 	}
+ }
+ 
+@@ -84,7 +84,7 @@
+ 	// %how much does the guess differ from the measurement
+ 	double residual = measurement - (h * state_priori)(0, 0);
+ 	if (is_angle) {
+-		residual -= 2 * M_PI * std::round(residual / 2 / M_PI);
++		residual -= 2 *M_PI *std::round(residual / 2 / M_PI);
+ 	}
+ 
+ 	// %The kalman update calculations
+@@ -92,7 +92,7 @@
+ 	state_estimate = state_priori + kalman_gain * residual;
+ 
+ 	if (is_angle) {
+-		state_estimate(0, 0) -= 2 * M_PI * std::round(state_estimate(0, 0) / 2 / M_PI);
++		state_estimate(0, 0) -= 2 *M_PI *std::round(state_estimate(0, 0) / 2 / M_PI);
+ 	}
+ 	p = (Matrix(2, 2, Matrix::InitFlag::IDENTITY) - kalman_gain * h) * p_priori;
+ 

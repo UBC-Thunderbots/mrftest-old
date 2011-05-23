@@ -134,6 +134,7 @@ dep : $(ALL_D_FILES)
 .PHONY : uncrustify
 uncrustify :
 	find . \( -name .svn -prune \) -o \( -path ./proto -prune \) -o \( \( -name '*.cpp' -o -name '*.h' \) -exec uncrustify -c uncrustify.cfg --no-backup \{\} \+ \)
+	patch --no-backup-if-mismatch -i uncrustify-exceptions.patch -p0 -R -u
 
 #
 # Rules to clean.
