@@ -96,7 +96,7 @@ namespace {
 	bool defend_line_intercept(const World &world, double time, Point g1, Point g2, double dist, Point &target, double &variance) {
 		static const double lookahead = DEFEND_LOOKAHEAD;
 		static const double lookstep = DEFEND_LOOK_STEP;
-		static const double radius = 90.0; // Should be a parameter
+		static const double radius = 0.09; // Should be a parameter
 
 		Point gline = (g2 - g1);
 		Point gline_1 = gline.norm();
@@ -134,19 +134,23 @@ namespace {
 			}
 
 			b += v * t_to_line;
-
+			
+			
 			double x = offset_along_line(g1, g2, b);
-
+			
+			variance =  world.ball().position_covariance(time+t).len();
+			
 			/*
-			   //Matrix c = ball_kalman.predict_cov(double_to_timespec(time + t));
-			   Matrix m = Matrix(4,1);
-			   m(0,0) = gline_1.x;
-			   m(1,0) = gline_1.y;
-			   m(2,0) = m(3,0) = 0.0;
-			   Matrix temp = c * m;
-			   m.transpose();
-			   temp *= m;
-			   variance = temp(0,0);
+			//Matrix c = ball_kalman.predict_cov(double_to_timespec(time + t));
+			Matrix m = Matrix(4,1);
+			m(0,0) = gline_1.x;
+			m(1,0) = gline_1.y;
+			m(2,0) = m(3,0) = 0.0;
+			Matrix temp = c * m;
+			m.transpose();
+			temp *= m;
+			variance = temp(0,0);
+			//variance = (transpose(m) * c * m).e(0,0);
 			 */
 			if (x < 0.0) {
 				x = 0;
@@ -208,36 +212,25 @@ namespace {
 			}
 		}
 
-
 		// Compute variance
 		// Matrix c = ball_kalman.predict_cov(double_to_timespec(time + closest_time));
-
-		if (closest_dist > radius) {
-			/*
-			   Point perp = (target - point).norm();
-			   Matrix m = Matrix(4,1);
-			   m(0,0) = perp.x;
-			   m(1,0) = perp.y;
-			   m(2,0) = m(3,0) = 0.0;
-			   Matrix temp = c * m;
-			   m.transpose();
-			   temp *= m;
-			   variance = temp(0,0);
-			 */
+		
+		variance =  world.ball().position_covariance(time+closest_time).len();
+				
+		/*
+		Point perp = (target - point).norm();
+		Matrix m = Matrix(4,1);
+		m(0,0) = perp.x;
+		m(1,0) = perp.y;
+		m(2,0) = m(3,0) = 0.0;
+		Matrix temp = c * m;
+		m.transpose();
+		temp *= m;
+		variance = temp(0,0);
+		*/
+		if (closest_dist > radius) {			
 			variance = variance * exp(pow(closest_dist - radius, 2.0) / variance);
-		} else {
-			/*
-			   Point perp = (target - point).perp().norm();
-			   Matrix m = Matrix(4,1);
-			   m(0,0) = perp.x;
-			   m(1,0) = perp.y;
-			   m(2,0) = m(3,0) = 0.0;
-			   Matrix temp = c * m;
-			   m.transpose();
-			   temp *= m;
-			   variance = temp(0,0);
-			 */
-		}
+		} 
 
 		return !isinf(variance);
 	}
@@ -592,7 +585,7 @@ namespace {
 }
 
 bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time, Point target, Point p2, Point p1, unsigned int obs_flags, Point pref_target_point, double pref_amount, Point &target_point, double &target_tolerance) {
-	std::vector<std::pair<double, int> > a(MAX_TEAM_ROBOTS * 4);
+	std::vector<std::pair<double, int> > a;
 	int count = 0;
 
 	Point r1 = p1 - target;
