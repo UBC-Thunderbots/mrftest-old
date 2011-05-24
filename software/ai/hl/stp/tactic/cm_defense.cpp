@@ -139,20 +139,21 @@ void TDefendLine::execute() {
 		velocity = Point(0, 0);
 	}
 
+	// we don't seem to have an equivalent of obstacle avoidance flag to set for player->move in our ai
+
 	// Obstacles... don't avoid the ball if away from the line.
 	// int obs_flags = OBS_EVERYTHING_BUT_ME(me);
 
 	Point mypos = player->position();
 
-	// if (distance_to_line(v[0], v[1], mypos) < distance_to_line(v[0], v[1], ball))
-	// obs_flags &= ~OBS_BALL;
+	//if (line_point_dist(mypos, v[0], v[1]) < line_point_dist(ball, v[0], v[1]))
+	//	obs_flags &= ~OBS_BALL;
 
-	// target = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, (v[0] + v[1]) / 2.0, /*getObsFlags() |*/ OBS_OPPONENTS);
+	// cm getObsFlags seems to check for priority, so should be handled by setting priority in our code
+	target = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, (v[0] + v[1]) / 2.0, OBS_OPPONENTS);
+	// target = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, (v[0] + v[1]) / 2.0, getObsFlags() | OBS_OPPONENTS);
 
 	// Angle
-	// if (world.teammate_type(me) == ROBOT_TYPE_DIFF)
-	// angle = world.teammate_nearest_direction(me, (v[0] - v[1]).orientation());
-	// else
 	angle = (ball - target).orientation();
 
 	player->move(target, angle, velocity);
@@ -177,18 +178,18 @@ void TDefendPoint::execute() {
 	// Angle
 	angle = (target - centerv).orientation();
 
-	// if (world.teammate_type(me) == ROBOT_TYPE_DIFF)
-	// angle = world.teammate_nearest_direction(me, angle_mod(angle + M_2_PI));
+	// we don't seem to have an equivalent of obstacle avoidance flag to set in hl in our ai
 
 	// Obstacles... don't avoid the ball if away from the point.
 	// int obs_flags = OBS_EVERYTHING_BUT_ME(me);
 
 	Point mypos = player->position();
 
-	// if ((mypos - centerv).dot(ball - mypos) > 0)
-	// obs_flags &= ~OBS_BALL;
+	//if ((mypos - centerv).dot(ball - mypos) > 0)
+	//	obs_flags &= ~OBS_BALL;
 
-	// target = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, centerv, /*getObsFlags() |*/ OBS_OPPONENTS);
+	target = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, centerv, OBS_OPPONENTS);
+	// target = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, centerv, getObsFlags() | OBS_OPPONENTS);
 
 	player->move(target, angle, velocity);
 	// Action::move(world, player, center);
@@ -205,14 +206,14 @@ void TDefendLane::execute() {
 
 	Evaluation::CMEvaluation::defend_on_line(world, LATENCY_DELAY, v0, v1, intercepting, target, velocity);
 
-	/*if (world.teammate_type(me) == ROBOT_TYPE_DIFF) {
-	        angle = (v0 - v1).orientation();
-	        angle = world.teammate_nearest_direction(me, angle);
-	   } else*/angle = (world.ball().position() - target).orientation();
+	angle = (world.ball().position() - target).orientation();
 
-	Point opt0, opt1;
-	// opt0 = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, v0, /*getObsFlags() |*/ OBS_OPPONENTS);
-	// opt1 = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, v1, /*getObsFlags() |*/ OBS_OPPONENTS);
+	Point opt0 = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, v0, OBS_OPPONENTS);
+	Point opt1 = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, v1, OBS_OPPONENTS);
+
+	// Point opt0, opt1;
+	// opt0 = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, v0, getObsFlags() | OBS_OPPONENTS);
+	// opt1 = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, v1, getObsFlags() | OBS_OPPONENTS);
 	target = ((target - opt0).len() < (target - opt1).len()) ? opt0 : opt1;
 
 	player->move(target, angle, velocity);

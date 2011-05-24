@@ -32,7 +32,7 @@ namespace {
 		Point g = (g1 + g2) / 2.0;
 		Point ball = world.ball().position(time);
 		double balldist = std::fabs(offset_to_line(g1, g2, ball));
-		double radius = 90.0; // should eventually be a parameter
+		double radius = Robot::MAX_RADIUS; // should eventually be a parameter
 
 		double c1, c2;
 		double o1, o2;
@@ -96,7 +96,7 @@ namespace {
 	bool defend_line_intercept(const World &world, double time, Point g1, Point g2, double dist, Point &target, double &variance) {
 		static const double lookahead = DEFEND_LOOKAHEAD;
 		static const double lookstep = DEFEND_LOOK_STEP;
-		static const double radius = 0.09; // Should be a parameter
+		static const double radius = Robot::MAX_RADIUS; // Should be a parameter
 
 		Point gline = (g2 - g1);
 		Point gline_1 = gline.norm();

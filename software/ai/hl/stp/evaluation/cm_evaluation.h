@@ -24,7 +24,7 @@
 #define OBS_TEAMMATE(id) (1U << (4 + (id)))
 #define OBS_OPPONENT(id) (1U << (4 + MAX_TEAM_ROBOTS + (id)))
 #define OBS_TEAMMATES (((1U << MAX_TEAM_ROBOTS) - 1) << 4)
-#define OBS_OPPONENTS (((1U << MAX_TEAM_ROBOTS) - 1) << 4 + MAX_TEAM_ROBOTS)
+#define OBS_OPPONENTS (((1U << MAX_TEAM_ROBOTS) - 1) << (4 + MAX_TEAM_ROBOTS))
 
 #define OBS_EVERYTHING (~0U)
 #define OBS_EVERYTHING_BUT_ME(id) (OBS_EVERYTHING & (~(OBS_TEAMMATE(id))))
