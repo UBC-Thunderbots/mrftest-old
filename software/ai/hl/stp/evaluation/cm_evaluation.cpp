@@ -593,9 +593,7 @@ namespace {
 
 bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time, Point target, Point p2, Point p1, unsigned int obs_flags, Point pref_target_point, double pref_amount, Point &target_point, double &target_tolerance) {
 	std::vector<std::pair<double, int> > a(MAX_TEAM_ROBOTS * 4);
-	int n = 0, count = 0;
-	double a_zero;
-	double a_end;
+	int count = 0;
 
 	Point r1 = p1 - target;
 	Point r2 = p2 - target;
@@ -607,17 +605,17 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 		r2 = t;
 	}
 
-	a_zero = r1.orientation();
-	a_end = diffangle_pos(r2.orientation(), a_zero);
+	double a_zero = r1.orientation();
+	double a_end = diffangle_pos(r2.orientation(), a_zero);
 
 	double pref_target_angle = diffangle_pos((pref_target_point - target).orientation(), a_zero);
 	if (pref_target_angle - a_end > 2 * M_PI - pref_target_angle) {
 		pref_target_angle -= 2 * M_PI;
 	}
-
-	a[n].first = 0.0; a[n++].second = 0;
-	a[n].first = a_end; a[n++].second = 0;
-
+	
+	a.push_back(std::make_pair(0.0, 0));
+	a.push_back(std::make_pair(a_end, 0));
+	
 	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
 		if (!(obs_flags & OBS_TEAMMATE(i))) {
 			continue;
@@ -649,10 +647,10 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 		}
 
 		if (a1 < a_end) {
-			a[n].first = a1; a[n++].second = 1;
+			a.push_back(std::make_pair(a1, 1));
 		}
 		if (a2 < a_end) {
-			a[n].first = a2; a[n++].second = -1;
+			a.push_back(std::make_pair(a2, -1));
 		}
 		if (a1 >= a_end && a2 < a_end) {
 			count++;
@@ -693,10 +691,10 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 		}
 
 		if (a1 < a_end) {
-			a[n].first = a1; a[n++].second = 1;
+			a.push_back(std::make_pair(a1, 1));
 		}
 		if (a2 < a_end) {
-			a[n].first = a2; a[n++].second = -1;
+			a.push_back(std::make_pair(a2, -1));
 		}
 		if (a1 >= a_end && a2 < a_end) {
 			count++;
@@ -715,7 +713,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 	double closest_ang = M_2_PI, closest_tol = 0.0, closest_ang_diff = M_2_PI;
 	bool found_one = false;
 
-	for (int i = 1; i < n; i++) {
+	for (int i = 1; i < static_cast<int>(a.size()); i++) {
 		if (!count) {
 			double tol = (a[i].first - a[i - 1].first) / 2.0;
 			double ang = (a[i].first + a[i - 1].first) / 2.0;
