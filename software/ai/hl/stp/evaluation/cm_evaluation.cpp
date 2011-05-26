@@ -706,7 +706,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 	double closest_ang = M_2_PI, closest_tol = 0.0, closest_ang_diff = M_2_PI;
 	bool found_one = false;
 
-	for (int i = 1; i < static_cast<int>(a.size()); i++) {
+	for (std::size_t i = 1; i < a.size(); i++) {
 		if (!count) {
 			double tol = (a[i].first - a[i - 1].first) / 2.0;
 			double ang = (a[i].first + a[i - 1].first) / 2.0;
