@@ -178,7 +178,7 @@ namespace AI {
 
 						void update(const World &world, unsigned int obs_flags_);
 
-						void addPoint(Point p);
+						void add_point(Point p);
 
 						Point point() const;
 
@@ -203,7 +203,7 @@ namespace AI {
 						int best;
 						double pref_amount;
 
-						Point pointFromDistribution(const World &w);
+						Point point_from_distribution(const World &w);
 				};
 			}
 		}
@@ -238,7 +238,7 @@ inline void AI::HL::STP::Evaluation::CMEvaluationPosition::set(const TRegion &re
 	last_updated = 0;
 }
 
-inline void AI::HL::STP::Evaluation::CMEvaluationPosition::addPoint(Point p) {
+inline void AI::HL::STP::Evaluation::CMEvaluationPosition::add_point(Point p) {
 	for (unsigned int i = 0; i < new_points.size(); ++i) {
 		if (new_points[i].x == p.x && new_points[i].y == p.y) {
 			return;
@@ -255,7 +255,7 @@ inline double AI::HL::STP::Evaluation::CMEvaluationPosition::angle() const {
 	return angles[best];
 }
 
-inline Point AI::HL::STP::Evaluation::CMEvaluationPosition::pointFromDistribution(const World &w) {
+inline Point AI::HL::STP::Evaluation::CMEvaluationPosition::point_from_distribution(const World &w) {
 	return region.sample(w);
 }
 

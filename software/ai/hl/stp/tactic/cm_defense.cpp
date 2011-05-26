@@ -29,14 +29,13 @@ namespace {
 			bool intercepting;
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				// return players
 				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(Point(0, 0)));
 			}
 
 			void execute();
 
 			std::string description() const {
-				return "defend_line";
+				return "tdefend_line";
 			}
 	};
 
@@ -58,7 +57,7 @@ namespace {
 			void execute();
 
 			std::string description() const {
-				return "defend_point";
+				return "tdefend_point";
 			}
 	};
 
@@ -77,7 +76,7 @@ namespace {
 			void execute();
 
 			std::string description() const {
-				return "defend_lane";
+				return "tdefend_lane";
 			}
 	};
 	/*
@@ -141,17 +140,11 @@ void TDefendLine::execute() {
 
 	// we don't seem to have an equivalent of obstacle avoidance flag to set for player->move in our ai
 
-	// Obstacles... don't avoid the ball if away from the line.
-	// int obs_flags = OBS_EVERYTHING_BUT_ME(me);
-
 	Point mypos = player->position();
 
-	//if (line_point_dist(mypos, v[0], v[1]) < line_point_dist(ball, v[0], v[1]))
-	//	obs_flags &= ~OBS_BALL;
-
 	// cm getObsFlags seems to check for priority, so should be handled by setting priority in our code
-	target = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, (v[0] + v[1]) / 2.0, OBS_OPPONENTS);
-	// target = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, (v[0] + v[1]) / 2.0, getObsFlags() | OBS_OPPONENTS);
+	target = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, (v[0] + v[1]) / 2.0, 0 | OBS_OPPONENTS);
+
 
 	// Angle
 	angle = (ball - target).orientation();
@@ -178,21 +171,11 @@ void TDefendPoint::execute() {
 	// Angle
 	angle = (target - centerv).orientation();
 
-	// we don't seem to have an equivalent of obstacle avoidance flag to set in hl in our ai
-
-	// Obstacles... don't avoid the ball if away from the point.
-	// int obs_flags = OBS_EVERYTHING_BUT_ME(me);
-
 	Point mypos = player->position();
 
-	//if ((mypos - centerv).dot(ball - mypos) > 0)
-	//	obs_flags &= ~OBS_BALL;
-
-	target = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, centerv, OBS_OPPONENTS);
-	// target = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, centerv, getObsFlags() | OBS_OPPONENTS);
+	target = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, centerv, 0 | OBS_OPPONENTS);
 
 	player->move(target, angle, velocity);
-	// Action::move(world, player, center);
 }
 
 void TDefendLane::execute() {
@@ -208,27 +191,23 @@ void TDefendLane::execute() {
 
 	angle = (world.ball().position() - target).orientation();
 
-	Point opt0 = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, v0, OBS_OPPONENTS);
-	Point opt1 = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, v1, OBS_OPPONENTS);
+	Point opt0 = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, v0, 0 | OBS_OPPONENTS);
+	Point opt1 = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, v1, 0 | OBS_OPPONENTS);
 
-	// Point opt0, opt1;
-	// opt0 = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, v0, getObsFlags() | OBS_OPPONENTS);
-	// opt1 = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, v1, getObsFlags() | OBS_OPPONENTS);
 	target = ((target - opt0).len() < (target - opt1).len()) ? opt0 : opt1;
 
 	player->move(target, angle, velocity);
-	// Action::move(world, player, (p1+p2)/2);
 }
 
 /*
-   void TBlock::execute() {
+void TBlock::execute() {
     //Action::move(world, player, (p1+p2)/2);
-   }
+}
 
-   void TMark::execute() {
+void TMark::execute() {
     //Action::move(world, player, (p1+p2)/2);
-   }
- */
+}
+*/
 
 Tactic::Ptr AI::HL::STP::Tactic::tdefend_line(const World &world, TCoordinate _p1, TCoordinate _p2, double _distmin, double _distmax) {
 	Tactic::Ptr p(new TDefendLine(world, _p1, _p2, _distmin, _distmax));
@@ -245,14 +224,14 @@ Tactic::Ptr AI::HL::STP::Tactic::tdefend_lane(const World &world, TCoordinate _p
 	return p;
 }
 /*
-   Tactic::Ptr AI::HL::STP::Tactic::tblock(const AI::HL::W::World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::tblock(const AI::HL::W::World &world) {
     Tactic::Ptr p(new TBlock(world));
     return p;
-   }
+}
 
-   Tactic::Ptr AI::HL::STP::Tactic::tmark(const AI::HL::W::World &world) {
+Tactic::Ptr AI::HL::STP::Tactic::tmark(const AI::HL::W::World &world) {
     Tactic::Ptr p(new TMark(world));
     return p;
-   }
- */
+}
+*/
 

@@ -9,6 +9,8 @@
 #include <algorithm>
 #include <cmath>
 
+using namespace AI::HL::STP;
+
 namespace {
 	DoubleParam alpha("Decay constant for the ball velocity", "STP/Action/shoot", 0.1, 0.0, 1.0);
 

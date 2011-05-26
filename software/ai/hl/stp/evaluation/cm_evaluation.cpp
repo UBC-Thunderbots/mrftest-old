@@ -485,22 +485,19 @@ unsigned int AI::HL::STP::Evaluation::obs_line_first(const World &world, Point p
 
 		Point i;
 
-		i = intersection(p1, p2, Point(world.field().length() / 2 - world.field().defense_area_radius() - pradius, world.field().defense_area_stretch() / 2 + pradius),
-		                 Point(world.field().length() / 2 - world.field().defense_area_radius() - pradius, -world.field().defense_area_stretch() / 2 - pradius));
+		i = intersection(p1, p2, Point(world.field().length() / 2 - world.field().defense_area_radius() - pradius, world.field().defense_area_stretch() / 2 + pradius), Point(world.field().length() / 2 - world.field().defense_area_radius() - pradius, -world.field().defense_area_stretch() / 2 - pradius));
 		if ((i - p1).dot(first - p1) > 0 && (i - first).dot(p1 - first) > 0) {
 			first = i;
 			rv = OBS_THEIR_DZONE;
 		}
 
-		i = intersection(p1, p2, Point(world.field().length() / 2 - world.field().defense_area_radius() - pradius, world.field().defense_area_stretch() / 2 + pradius),
-		                 Point(world.field().length() / 2, world.field().defense_area_stretch() / 2 + pradius));
+		i = intersection(p1, p2, Point(world.field().length() / 2 - world.field().defense_area_radius() - pradius, world.field().defense_area_stretch() / 2 + pradius), Point(world.field().length() / 2, world.field().defense_area_stretch() / 2 + pradius));
 		if ((i - p1).dot(first - p1) > 0 && (i - first).dot(p1 - first) > 0) {
 			first = i;
 			rv = OBS_THEIR_DZONE;
 		}
 
-		i = intersection(p1, p2, Point(world.field().length() / 2 - world.field().defense_area_radius() - pradius, -world.field().defense_area_stretch() / 2 - pradius),
-		                 Point(world.field().length() / 2, -world.field().defense_area_stretch() / 2 - pradius));
+		i = intersection(p1, p2, Point(world.field().length() / 2 - world.field().defense_area_radius() - pradius, -world.field().defense_area_stretch() / 2 - pradius), Point(world.field().length() / 2, -world.field().defense_area_stretch() / 2 - pradius));
 		if ((i - p1).dot(first - p1) > 0 && (i - first).dot(p1 - first) > 0) {
 			first = i;
 			rv = OBS_THEIR_DZONE;
@@ -1015,7 +1012,7 @@ void AI::HL::STP::Evaluation::CMEvaluationPosition::update(const World &world, u
 	obs_flags = obs_flags_;
 
 	// Check the new points to make sure they're within the region.
-	// Passed here by addPoint().
+	// Passed here by add_point().
 	for (std::size_t i = 0; i < new_points.size(); i++) {
 		if (!region.in_region(world, new_points[i])) {
 			new_points.erase(new_points.begin() + i);
@@ -1034,7 +1031,7 @@ void AI::HL::STP::Evaluation::CMEvaluationPosition::update(const World &world, u
 
 	// Pick new points.
 	while (new_points.size() < n_points) {
-		new_points.push_back(pointFromDistribution(world));
+		new_points.push_back(point_from_distribution(world));
 	}
 
 	points = new_points;

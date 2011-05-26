@@ -259,6 +259,8 @@ software/ai/hl/stp/tactic/block.cpp -text
 software/ai/hl/stp/tactic/block.h -text
 software/ai/hl/stp/tactic/chase.cpp -text
 software/ai/hl/stp/tactic/chase.h -text
+software/ai/hl/stp/tactic/cm_ball.cpp -text
+software/ai/hl/stp/tactic/cm_ball.h -text
 software/ai/hl/stp/tactic/cm_defense.cpp -text
 software/ai/hl/stp/tactic/cm_defense.h -text
 software/ai/hl/stp/tactic/defend.cpp -text
