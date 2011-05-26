@@ -79,7 +79,11 @@ namespace {
 				// passee move to target
 				Action::move(players[1], (world.ball().position() - players[1]->position()).orientation(), targets[pass_target]);
 				// passer shoots
-				bool kicked = Action::shoot(world, players[0], targets[pass_target]);
+				bool kicked = false;
+				
+				if(players[0]->has_ball()){
+				 	if(Action::shoot(world, players[0], targets[pass_target])) kicked = true;
+				}
 
 				// passee grabs ball
 				if (kicked) {
