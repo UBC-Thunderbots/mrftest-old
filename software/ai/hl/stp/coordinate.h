@@ -78,7 +78,7 @@ namespace AI {
 					const World *const world;
 					const YType y_type;
 					const OriginType o_type;
-					const Point &pos;
+					const Point pos;
 			};
 		}
 	}

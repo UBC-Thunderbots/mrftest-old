@@ -25,7 +25,7 @@ namespace {
  * - Handle Enemy Kickoff
  */
 BEGIN_PLAY(KickoffEnemy)
-INVARIANT((Predicates::playtype(world, AI::Common::PlayType::PREPARE_KICKOFF_ENEMY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_KICKOFF_ENEMY)) && Predicates::our_team_size_at_least(world, 1))
+INVARIANT((Predicates::playtype(world, AI::Common::PlayType::PREPARE_KICKOFF_ENEMY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_KICKOFF_ENEMY)) && Predicates::our_team_size_at_least(world, 2))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)
