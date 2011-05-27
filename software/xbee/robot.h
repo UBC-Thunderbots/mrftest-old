@@ -5,6 +5,7 @@
 #include "util/bit_array.h"
 #include "util/byref.h"
 #include "util/property.h"
+#include "xbee/drivepacket.h"
 #include <cstddef>
 #include <stdint.h>
 
@@ -237,7 +238,7 @@ class XBeeRobot : public ByRef {
 		friend class XBeeDongle;
 
 		XBeeDongle &dongle;
-		BitArray<80> drive_block;
+		XBeePackets::Drive drive_block;
 
 		static Ptr create(XBeeDongle &dongle, unsigned int index);
 		XBeeRobot(XBeeDongle &dongle, unsigned int index);

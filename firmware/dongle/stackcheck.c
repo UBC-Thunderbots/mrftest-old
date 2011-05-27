@@ -1,1 +1,0 @@
-../shared/stackcheck.c

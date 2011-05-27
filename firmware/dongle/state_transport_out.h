@@ -7,13 +7,13 @@
  * \brief Implements the dongle protocol (USB) side of outbound state transport packet reception.
  */
 
-#include "drive.h"
+#include "drive_packet.h"
 #include <stdint.h>
 
 /**
  * \brief The current drive pipe state blocks for the robots.
  */
-__data extern uint8_t state_transport_out_drive[16][DRIVE_SIZE];
+__data extern uint8_t state_transport_out_drive[16][DRIVE_PACKET_BYTES];
 
 /**
  * \brief Initializes the subsystem.

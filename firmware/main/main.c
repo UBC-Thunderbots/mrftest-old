@@ -289,7 +289,7 @@ void main(void) {
 	memset(&feedback_block, 0, sizeof(feedback_block));
 
 	/* Clear the drive block. */
-	memset(&drive_block, 0, sizeof(drive_block));
+	drive_packet_init(&drive_block);
 
 	/* Configure timer 0 to a period of 1 / 12000000 × 65536 × 256 =~ 1.4s to be used as a serial line timeout for XBees.
 	 *        /-------- Timer on

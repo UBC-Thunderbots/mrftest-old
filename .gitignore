@@ -12,6 +12,9 @@ firmware/SuperSimpleBoostConverter/*.asm
 firmware/SuperSimpleBoostConverter/*.cod
 firmware/SuperSimpleBoostConverter/*.hex
 firmware/SuperSimpleBoostConverter/*.lst
+firmware/bitcodec/__pycache__
+firmware/bitcodec/bitcodec.pyc
+firmware/bitcodec/bitcodec.pyo
 firmware/dongle/*.asm
 firmware/dongle/*.cod
 firmware/dongle/*.cof
@@ -37,6 +40,8 @@ firmware/main/html
 firmware/main/pins.h
 firmware/main/pins.inc
 firmware/pingen/pingen
+firmware/shared/drive_packet.c
+firmware/shared/drive_packet.h
 software/.cproject
 software/.project
 software/bin

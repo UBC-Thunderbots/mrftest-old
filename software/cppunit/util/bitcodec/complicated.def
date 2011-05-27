@@ -1,0 +1,8 @@
+BITCODEC_DATA_BOOL(flag1, 0, false)
+BITCODEC_DATA_BOOL(flag2, 1, true)
+BITCODEC_DATA_BOOL(flag3, 3, false)
+BITCODEC_DATA_S(int16_t, uint16_t, tenbits1, 8, 10, -2)
+BITCODEC_DATA_S(int16_t, uint16_t, tenbits2, 18, 10, -1)
+BITCODEC_DATA_S(int16_t, uint16_t, tenbits3, 28, 10, 0)
+BITCODEC_DATA_S(int16_t, uint16_t, tenbits4, 38, 10, 507)
+BITCODEC_DATA_U(uint8_t, little, 48, 4, 12)

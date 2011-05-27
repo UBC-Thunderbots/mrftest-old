@@ -617,15 +617,17 @@ AsyncOperation<XBeeRobot::BuildSignatures>::Ptr XBeeRobot::firmware_read_build_s
 }
 
 void XBeeRobot::drive(const int(&wheels)[4]) {
-	BitArray<80> buffer = drive_block;
-	buffer.set(0, true);
-	for (std::size_t i = 0; i < 4; ++i) {
-		assert(-1023 <= wheels[i] && wheels[i] <= 1023);
-		uint16_t u16 = static_cast<int16_t>(wheels[i]);
-		for (std::size_t j = 0; j < 11; ++j) {
-			buffer.set(8 + i * 11 + j, !!(u16 & (1 << j)));
-		}
-	}
+	assert(-1023 <= wheels[0] && wheels[0] <= 1023);
+	assert(-1023 <= wheels[1] && wheels[1] <= 1023);
+	assert(-1023 <= wheels[2] && wheels[2] <= 1023);
+	assert(-1023 <= wheels[3] && wheels[3] <= 1023);
+
+	XBeePackets::Drive buffer = drive_block;
+	buffer.enable_wheels = true;
+	buffer.wheel1 = static_cast<int16_t>(wheels[0]);
+	buffer.wheel2 = static_cast<int16_t>(wheels[1]);
+	buffer.wheel3 = static_cast<int16_t>(wheels[2]);
+	buffer.wheel4 = static_cast<int16_t>(wheels[3]);
 
 	if (buffer != drive_block) {
 		drive_block = buffer;
@@ -634,22 +636,22 @@ void XBeeRobot::drive(const int(&wheels)[4]) {
 }
 
 void XBeeRobot::drive_scram() {
-	if (drive_block.get(0)) {
-		drive_block.set(0, false);
+	if (drive_block.enable_wheels) {
+		drive_block.enable_wheels = false;
 		flush_drive();
 	}
 }
 
 void XBeeRobot::dribble(bool active) {
-	if (drive_block.get(2) != active) {
-		drive_block.set(2, active);
+	if (drive_block.enable_dribbler != active) {
+		drive_block.enable_dribbler = active;
 		flush_drive();
 	}
 }
 
 void XBeeRobot::enable_chicker(bool active) {
-	if (drive_block.get(1) != active) {
-		drive_block.set(1, active);
+	if (drive_block.enable_charger != active) {
+		drive_block.enable_charger = active;
 		flush_drive();
 	}
 }
@@ -659,19 +661,13 @@ void XBeeRobot::autokick(unsigned int pulse_width1, unsigned int pulse_width2, i
 	bool ignore_slice1, ignore_slice2;
 	encode_kick_parameters(pulse_width1, pulse_width2, slice_width, ignore_slice1, ignore_slice2, offset);
 
-	BitArray<80> buffer = drive_block;
-	buffer.set(5, pulse_width1 || pulse_width2);
-	for (std::size_t i = 0; i < 7; ++i) {
-		buffer.set(58 + i, !!(pulse_width1 & (1 << i)));
-	}
-	for (std::size_t i = 0; i < 7; ++i) {
-		buffer.set(65 + i, !!(pulse_width2 & (1 << i)));
-	}
-	for (std::size_t i = 0; i < 7; ++i) {
-		buffer.set(72 + i, !!(slice_width & (1 << i)));
-	}
-	buffer.set(3, ignore_slice1);
-	buffer.set(4, ignore_slice2);
+	XBeePackets::Drive buffer = drive_block;
+	buffer.enable_autokick = pulse_width1 || pulse_width2;
+	buffer.autokick_t1 = static_cast<uint8_t>(pulse_width1);
+	buffer.autokick_t2 = static_cast<uint8_t>(pulse_width2);
+	buffer.autokick_delta = static_cast<uint8_t>(slice_width);
+	buffer.autokick_mask1 = ignore_slice1;
+	buffer.autokick_mask2 = ignore_slice2;
 
 	if (buffer != drive_block) {
 		drive_block = buffer;
@@ -698,13 +694,10 @@ void XBeeRobot::kick(unsigned int pulse_width1, unsigned int pulse_width2, int o
 
 void XBeeRobot::test_mode(unsigned int mode) {
 	assert((mode & 0x77) == mode);
-	BitArray<80> buffer = drive_block;
-	buffer.set(52, !!(mode & 0x10));
-	buffer.set(53, !!(mode & 0x20));
-	buffer.set(54, !!(mode & 0x40));
-	buffer.set(55, !!(mode & 0x01));
-	buffer.set(56, !!(mode & 0x02));
-	buffer.set(57, !!(mode & 0x04));
+
+	XBeePackets::Drive buffer = drive_block;
+	buffer.test_class = static_cast<uint8_t>(mode >> 4);
+	buffer.test_target = mode & 0x0F;
 	if (buffer != drive_block) {
 		drive_block = buffer;
 		flush_drive();

@@ -94,6 +94,28 @@ typedef enum {
 	INBOUND_STATE_AWAITING_POLL,
 } inbound_state_t;
 
+static void run_wheel(uint8_t index, int16_t setpoint) {
+	int16_t power;
+	uint16_t encoded;
+
+	/* Read the feedback value and run the control loop. */
+	power = wheel_controller_iter(setpoint, parbus_read(2 + index));
+
+	/* Encode the power level into 9-bit sign-magnitude form. */
+	encoded = 0;
+	if (power < 0) {
+		power = -power;
+		encoded = 0x100;
+	}
+	if (power > 255) {
+		power = 255;
+	}
+	encoded |= power;
+
+	/* Send the new power level. */
+	parbus_write(1 + index, encoded);
+}
+
 void run(void) {
 	__data xbee_rxpacket_t *rxpacket;
 	__data const uint8_t *rxptr;
@@ -215,20 +237,9 @@ void run(void) {
 								if (robot == robot_number) {
 									/* It's addressed to us. */
 									if (pipe == PIPE_DRIVE) {
-										if (rxptr[0] == 2 + DRIVE_SIZE) {
+										if (rxptr[0] == 2 + DRIVE_PACKET_BYTES) {
 											/* It's new drive data. */
-#if DRIVE_SIZE != 10
-#error DRIVE_SIZE does not match value for which packet decoder was built (update packet decoder).
-#endif
-											memcpyram2ram(&drive_block.flags, rxptr + 2, 1);
-											drive_block.wheels[0] = ((rxptr[3] | (rxptr[4] << 8)) & 0x7FF) | ((rxptr[4] & 0x04) ? 0xF800 : 0);
-											drive_block.wheels[1] = (((rxptr[4] >> 3) | (rxptr[5] << 5)) & 0x7FF) | ((rxptr[5] & 0x20) ? 0xF800 : 0);
-											drive_block.wheels[2] = (((rxptr[5] >> 6) | (rxptr[6] << 2) | (rxptr[7] << 10)) & 0x7FF) | ((rxptr[7] & 0x01) ? 0xF800 : 0);
-											drive_block.wheels[3] = (((rxptr[7] >> 1) | (rxptr[8] << 7)) & 0x7FF) | ((rxptr[8] & 0x08) ? 0xF800 : 0);
-											drive_block.test_mode = (rxptr[8] & 0x70) | (rxptr[8] >> 7) | ((rxptr[9] & 0x03) << 1);
-											drive_block.autokick_pulse1 = (rxptr[9] >> 2) | ((rxptr[10] & 0x01) << 6);
-											drive_block.autokick_pulse2 = rxptr[10] >> 1;
-											drive_block.autokick_offset = rxptr[11] & 0x7F;
+											drive_packet_decode(&drive_block, rxptr + 2);
 											drive_timeout = DRIVE_TIMEOUT_LIMIT;
 										} else {
 											/* It's the wrong length. */
@@ -616,10 +627,10 @@ void run(void) {
 					ADCON0bits.CHS0 = 1;
 					ADCON0bits.GO = 1;
 					/* Fire autokick if ready. */
-					if (drive_timeout && drive_block.flags.autokick_armed && feedback_block.flags.ball_in_beam && !autokick_lockout_time && (drive_block.autokick_pulse1 || drive_block.autokick_pulse2)) {
-						parbus_write(10, drive_block.autokick_pulse1 * 32);
-						parbus_write(11, drive_block.autokick_pulse2 * 32);
-						parbus_write(12, (drive_block.autokick_offset * 32) | (drive_block.flags.autokick_mask1 ? 0x8000 : 0x0000) | (drive_block.flags.autokick_mask2 ? 0x4000 : 0x0000));
+					if (drive_timeout && drive_block.enable_autokick && feedback_block.flags.ball_in_beam && !autokick_lockout_time && (drive_block.autokick_t1 || drive_block.autokick_t2)) {
+						parbus_write(10, drive_block.autokick_t1 * 32);
+						parbus_write(11, drive_block.autokick_t2 * 32);
+						parbus_write(12, (drive_block.autokick_delta * 32) | (drive_block.autokick_mask1 ? 0x8000 : 0x0000) | (drive_block.autokick_mask2 ? 0x4000 : 0x0000));
 						autokick_lockout_time = AUTOKICK_LOCKOUT_TIME;
 					}
 				} else {
@@ -653,38 +664,30 @@ void run(void) {
 			}
 
 			/* Control the wheels if and only if so ordered. */
-			if (drive_timeout && drive_block.flags.enable_wheels) {
-				uint8_t i;
+			if (drive_timeout && drive_block.enable_wheels) {
+				int16_t power;
+				uint16_t encoded;
 
 				/* Count this iteration against the timeout. */
 				--drive_timeout;
 
 				/* Run the control loops. */
-				for (i = 0; i != 4; ++i) {
-					int16_t power = wheel_controller_iter(drive_block.wheels[i], parbus_read(2 + i));
-					uint16_t encoded = 0;
-					if (power < 0) {
-						power = -power;
-						encoded = 0x100;
-					}
-					if (power > 255) {
-						power = 255;
-					}
-					encoded |= power;
-					parbus_write(1 + i, encoded);
-				}
+				run_wheel(0, drive_block.wheel1);
+				run_wheel(1, drive_block.wheel2);
+				run_wheel(2, drive_block.wheel3);
+				run_wheel(3, drive_block.wheel4);
 
 				/* Order the motors enabled. */
 				flags_out |= 0x01;
 			}
 
 			/* Enable the charger if and only if so ordered. */
-			if (drive_timeout && drive_block.flags.charge) {
+			if (drive_timeout && drive_block.enable_charger) {
 				flags_out |= 0x02;
 			}
 
 			/* Enable the dribbler if and only if so ordered. */
-			if (drive_timeout && drive_block.flags.dribble && feedback_block.dribbler_temperature_raw >= 200 && feedback_block.dribbler_temperature_raw <= 499) {
+			if (drive_timeout && drive_block.enable_dribbler && feedback_block.dribbler_temperature_raw >= 200 && feedback_block.dribbler_temperature_raw <= 499) {
 				flags_out |= 0x04;
 				parbus_write(5, params.dribble_power);
 			} else {
@@ -692,7 +695,7 @@ void run(void) {
 			}
 
 			/* Enable whatever test mode was requested. */
-			parbus_write(6, drive_block.test_mode);
+			parbus_write(6, (drive_block.test_class << 4) | drive_block.test_target);
 
 			/* Send the general operational flags. */
 			parbus_write(0, flags_out);

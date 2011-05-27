@@ -47,7 +47,7 @@ typedef struct {
 typedef struct {
 	uint8_t micropacket_length;
 	drive_micropacket_pipe_robot_t pipe_robot;
-	uint8_t payload[DRIVE_SIZE];
+	uint8_t payload[DRIVE_PACKET_BYTES];
 } drive_micropacket_t;
 
 typedef struct {
@@ -140,7 +140,7 @@ void run(void) {
 				if (dongle_status.robots & mask) {
 					drive_micropackets[j].pipe_robot.pipe = PIPE_DRIVE;
 					drive_micropackets[j].pipe_robot.robot = i;
-					memcpyram2ram(drive_micropackets[j].payload, &state_transport_out_drive[i], DRIVE_SIZE);
+					memcpyram2ram(drive_micropackets[j].payload, &state_transport_out_drive[i], DRIVE_PACKET_BYTES);
 					if (dongle_status.estop != ESTOP_STATE_RUN) {
 						drive_micropackets[j].payload[0] = 0;
 					}
@@ -169,7 +169,7 @@ void run(void) {
 				} else {
 					drive_iovecs[0][1].ptr = &FE;
 				}
-				drive_iovecs[0][2].len = i * (DRIVE_SIZE + 2);
+				drive_iovecs[0][2].len = i * (DRIVE_PACKET_BYTES + 2);
 				drive_iovecs[0][2].ptr = drive_micropackets;
 				drive_packets[0].num_iovs = 3;
 				drive_packets[0].iovs = drive_iovecs[0];
@@ -181,7 +181,7 @@ void run(void) {
 					drive_iovecs[1][0].ptr = &DRIVE_XBEE_HEADER;
 					drive_iovecs[1][1].len = 1;
 					drive_iovecs[1][1].ptr = &FE;
-					drive_iovecs[1][2].len = i * (DRIVE_SIZE + 2);
+					drive_iovecs[1][2].len = i * (DRIVE_PACKET_BYTES + 2);
 					drive_iovecs[1][2].ptr = drive_micropackets + 8;
 					drive_packets[1].num_iovs = 3;
 					drive_packets[1].iovs = drive_iovecs[1];
