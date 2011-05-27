@@ -186,7 +186,7 @@ class MapperWindow::PreviewDevicesModel : public Glib::Object, public AbstractLi
 		std::vector<Joystick::Ptr> devices;
 };
 
-MapperWindow::MapperWindow() : mappings(new MappingsListModel), preview_devices(PreviewDevicesModel::create()), name_chooser(mappings), add_button(Gtk::Stock::ADD), del_button(Gtk::Stock::REMOVE), axes_frame("Axes"), axes_table(JoystickMapping::N_AXES, 3), buttons_frame("Buttons"), buttons_table(JoystickMapping::N_BUTTONS, 3), preview_device_chooser(preview_devices) {
+MapperWindow::MapperWindow() : mappings(new MappingsListModel), preview_devices(PreviewDevicesModel::create()), name_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mappings)), add_button(Gtk::Stock::ADD), del_button(Gtk::Stock::REMOVE), axes_frame("Axes"), axes_table(JoystickMapping::N_AXES, 3), buttons_frame("Buttons"), buttons_table(JoystickMapping::N_BUTTONS, 3), preview_device_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(preview_devices)) {
 	set_title("Joystick Mapper");
 
 	name_chooser.append_column("Model", mappings->name_column);
