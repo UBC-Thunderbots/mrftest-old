@@ -1,6 +1,7 @@
 #include "ai/hl/stp/tactic/cm_ball.h"
 #include "ai/hl/util.h"
 #include "ai/hl/stp/action/move.h"
+#include "ai/hl/stp/action/dribble.h"
 #include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/evaluation/cm_evaluation.h"
@@ -93,13 +94,15 @@ namespace {
 
 	class TClear : public Tactic {
 		public:
-			TClear(const World &world) : Tactic(world) {}
+			TClear(const World &world) : Tactic(world, true) {}
 
 		private:
 			Point prev_target;
   			bool prev_target_set;
-
-			//bool done() const;
+			bool kicked;
+			bool done() const{
+				return kicked;
+			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(Point(0, 0)));
 			}
@@ -134,7 +137,7 @@ namespace {
 	*/
 	class TPass : public Tactic {
 		public:
-			TPass(const World &world, const Coordinate _target) : Tactic(world, true) , target(_target){}
+			TPass(const World &world, const Coordinate _target) : Tactic(world, true), target(_target){}
 
 		private:
 			Coordinate target;
@@ -155,15 +158,15 @@ namespace {
 
 	class TReceivePass : public Tactic {
 		public:
-			TReceivePass(const World &world) : Tactic(world, true) {}
+			TReceivePass(const World &world, const Coordinate _target) : Tactic(world, true), target(_target) {}
 
 		private:
-			
+			Coordinate target;
 			bool done() const{ 
 				return player->has_ball(); 
 			}			
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(Point(0, 0)));
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(target()));
 			}
 
 			void execute();
@@ -184,7 +187,7 @@ namespace {
 				return kicked; 
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(Point(0, 0)));
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 			}
 
 			void execute();
@@ -202,7 +205,7 @@ namespace {
 			TRegion region;
 			
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(Point(0, 0)));
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 			}
 
 			void execute();
@@ -222,7 +225,7 @@ namespace {
 			TRegion region;
 			
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(Point(0, 0)));
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 			}
 
 			void execute();
@@ -257,6 +260,7 @@ namespace {
 
 // not too sure how good is their shoot =/
 void TShoot::execute() {
+	kicked = false;
 	Point ball = world.ball().position();
 
   	Point target;
@@ -330,8 +334,11 @@ void TShoot::execute() {
   	} else {
     		eval.update(world, 0);
 
-		Action::move(player, (target - player->position()).orientation(), target);
-		kicked = Action::shoot(world, player, target);
+		//Action::move(player, (target - player->position()).orientation(), target);
+		//kicked = Action::shoot(world, player, target);
+
+		kicked = Action::shoot(world, player, eval.point());
+		Action::move(player, eval.angle(), eval.point());		
 
 		/*
     		command.cmd = Robot::CmdDribble;
@@ -347,6 +354,7 @@ void TSteal::execute() {
 }
 */
 void TClear::execute() {
+	kicked = false;
 	Point ball = world.ball().position();
 
   	Point target;
@@ -399,7 +407,7 @@ void TClear::execute() {
   	prev_target = target;
   	prev_target_set = true;
 
-	//player->move(target, angle, Point());		
+	kicked = Action::shoot(world, player, target);		
 	Action::move(world, player, target);
 
 	/*
@@ -420,7 +428,7 @@ void TActiveDef::execute(){
 // these two tactics are implemented but not used in cm '02 =/
 
 void TPass::execute(){
-
+	kicked = false;
 	Point p[2], targetp = target(), ball;
   	double angle_tolerance;
 
@@ -461,6 +469,7 @@ void TPass::execute(){
 // (I assume this is used after the position_for_pass tactic is used)
 
 void TReceivePass::execute(){
+	Action::move(world, player, target());
 	Action::chase(world, player, world.ball().position());
 	//command.cmd = Robot::CmdRecieveBall;
 }
@@ -471,13 +480,13 @@ void TDribbleToShoot::execute(){
 
 
 }
-
+*/
 // just use move dribble?
 void TDribbleToRegion::execute(){
-
+	Action::dribble(world, player, region.center(world));
 
 }
-
+/*
 void TSpinToRegion::execute(){
 
 
@@ -528,13 +537,13 @@ Tactic::Ptr AI::HL::STP::Tactic::tactive_def(const World &world) {
 }
 */
 
-Tactic::Ptr AI::HL::STP::Tactic::tpass(const World &world, const Coordinate target) {
-    	Tactic::Ptr p(new TPass(world, target));
+Tactic::Ptr AI::HL::STP::Tactic::tpass(const World &world, const Coordinate _target) {
+    	Tactic::Ptr p(new TPass(world, _target));
     	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::treceive_pass(const World &world) {
-    	Tactic::Ptr p(new TReceivePass(world));
+Tactic::Ptr AI::HL::STP::Tactic::treceive_pass(const World &world, const Coordinate _target) {
+    	Tactic::Ptr p(new TReceivePass(world, _target));
     	return p;
 }
 /*
@@ -542,14 +551,14 @@ Tactic::Ptr AI::HL::STP::Tactic::tdribble_to_shoot(const World &world) {
     	Tactic::Ptr p(new TDribbleToShoot(world));
     	return p;
 }
-
+*/
 Tactic::Ptr AI::HL::STP::Tactic::tdribble_to_region(const World &world, TRegion _region) {
-    	Tactic::Ptr p(new TDribbleToRegion(world));
+    	Tactic::Ptr p(new TDribbleToRegion(world, _region));
     	return p;
 }
-
+/*
 Tactic::Ptr AI::HL::STP::Tactic::tspin_to_region(const World &world, TRegion _region) {
-    	Tactic::Ptr p(new TSpinToRegion(world));
+    	Tactic::Ptr p(new TSpinToRegion(world, _region));
     	return p;
 }
 

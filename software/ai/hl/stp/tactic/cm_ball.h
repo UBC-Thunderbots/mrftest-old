@@ -32,12 +32,12 @@ namespace AI {
 				/**
 				 * Pass
 				 */
-				Tactic::Ptr tpass(const World &world, const Coordinate target);
+				Tactic::Ptr tpass(const World &world, const Coordinate _target);
 
 				/**
 				 * Receive Pass
 				 */
-				Tactic::Ptr treceive_pass(const World &world);
+				Tactic::Ptr treceive_pass(const World &world, const Coordinate _target);
 
 				/**
 				 * Dribble to Shoot
