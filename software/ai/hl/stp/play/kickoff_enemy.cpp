@@ -37,9 +37,6 @@ goalie_role.push_back(wait_playtype(world, defend_duo_goalie(world), AI::Common:
 // defend
 roles[0].push_back(defend_duo_defender(world));
 
-// draw a circle of radius 50cm from the ball
-Point ball_pos = world.ball().position();
-
 // calculate angle between robots
 const double delta_angle = AVOIDANCE_ANGLE + separation_angle * M_PI / 180.0;
 

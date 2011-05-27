@@ -60,7 +60,12 @@ namespace AI {
 					Coordinate(const Point &pos);
 
 					/**
-					 * Main constructor
+					 * Copy constructor.
+					 */
+					Coordinate(const Coordinate &coord);
+
+					/**
+					 * Main constructor.
 					 */
 					Coordinate(const World &world, const Point &pos, YType y_type, OriginType o_type);
 
