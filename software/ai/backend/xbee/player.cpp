@@ -60,7 +60,7 @@ bool Player::chicker_ready() const {
 void Player::kick_impl(double speed) {
 	if (bot->alive) {
 		if (bot->capacitor_charged) {
-			bot->kick(calc_kick(speed), 0, 0);
+			bot->kick(calc_kick(speed), calc_kick(speed), 0);
 		} else {
 			LOG_ERROR(Glib::ustring::compose("Bot %1 chick when not ready", pattern()));
 		}
@@ -69,7 +69,7 @@ void Player::kick_impl(double speed) {
 
 void Player::autokick_impl(double speed) {
 	if (bot->alive) {
-		bot->autokick(calc_kick(speed), 0, 0);
+		bot->autokick(calc_kick(speed), calc_kick(speed), 0);
 		autokick_invoked = true;
 	}
 }
