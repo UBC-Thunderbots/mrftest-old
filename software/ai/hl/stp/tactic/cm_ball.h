@@ -3,6 +3,7 @@
 
 #include "ai/hl/stp/tactic/tactic.h"
 #include "ai/hl/stp/cm_coordinate.h"
+#include "ai/hl/stp/coordinate.h"
 
 namespace AI {
 	namespace HL {
@@ -31,7 +32,7 @@ namespace AI {
 				/**
 				 * Pass
 				 */
-				Tactic::Ptr tpass(const World &world);
+				Tactic::Ptr tpass(const World &world, const Coordinate target);
 
 				/**
 				 * Receive Pass

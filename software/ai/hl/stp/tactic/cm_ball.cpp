@@ -2,6 +2,7 @@
 #include "ai/hl/util.h"
 #include "ai/hl/stp/action/move.h"
 #include "ai/hl/stp/action/shoot.h"
+#include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/evaluation/cm_evaluation.h"
 #include "geom/angle.h"
 #include "geom/util.h"
@@ -12,6 +13,7 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace Action = AI::HL::STP::Action;
 using AI::HL::STP::TCoordinate;
 using AI::HL::STP::TRegion;
+using AI::HL::STP::Coordinate;
 using Evaluation::CMEvaluationPosition;
 
 namespace {
@@ -132,10 +134,10 @@ namespace {
 	*/
 	class TPass : public Tactic {
 		public:
-			TPass(const World &world) : Tactic(world, true) {}
+			TPass(const World &world, const Coordinate _target) : Tactic(world, true) , target(_target){}
 
 		private:
-			int target;
+			Coordinate target;
 			bool kicked;
 			bool done() const{ 
 				return kicked; 
@@ -177,7 +179,10 @@ namespace {
 
 		private:
 
-			bool done() const;
+			bool kicked;
+			bool done() const{ 
+				return kicked; 
+			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(Point(0, 0)));
 			}
@@ -413,13 +418,12 @@ void TActiveDef::execute(){
 */
 // might be better to just use our pass and receive pass
 // these two tactics are implemented but not used in cm '02 =/
-/*
+
 void TPass::execute(){
 
-	Point p[2], targetp, ball;
+	Point p[2], targetp = target(), ball;
   	double angle_tolerance;
 
-  	targetp = world.teammate_position(getTeammateId(target));
   	ball = world.ball().position();
 
   	targetp += (ball - targetp).norm(0.070);
@@ -427,7 +431,7 @@ void TPass::execute(){
   	p[0] = targetp + (targetp - ball).perp().norm(PASS_TARGET_WIDTH);
   	p[1] = targetp + (targetp - ball).perp().norm(PASS_TARGET_WIDTH);
 
-  	Evaluation::CMEvaluation::aim(world, world.now, world.ball().position(), p[0], p[1], OBS_EVERYTHING_BUT_US, targetp, angle_tolerance);
+  	Evaluation::CMEvaluation::aim(world, LATENCY_DELAY, world.ball().position(), p[0], p[1], OBS_EVERYTHING_BUT_US, targetp, angle_tolerance);
 
   	// Set the drive target as 1m from the target, with some exceptions
   	// when close.
@@ -440,27 +444,28 @@ void TPass::execute(){
   	else
     		mytarget = targetp + (ball - targetp).norm(0.100);
 
-	Action::move(player, (target - player->position().orientation(), target);
+	Action::move(player, (targetp - player->position()).orientation(), targetp);
 	kicked = Action::shoot(world, player, targetp);
 
-	
+	/*
   	command.cmd = Robot::CmdMoveBall;
   	command.target = targetp; // mytarget;
   	command.ball_target = targetp;
   	command.angle_tolerance = angle_tolerance;
   	command.ball_shot_type = Robot::BallShotPass;
-	
+	*/	
 }
-*/
+
 // should just use chase in our code?
 // the passee seems to just orient towards the ball and don't move from its current position
 // (I assume this is used after the position_for_pass tactic is used)
-/*
+
 void TReceivePass::execute(){
+	Action::chase(world, player, world.ball().position());
 	//command.cmd = Robot::CmdRecieveBall;
 }
 
-
+/*
 // just use shoot action?
 void TDribbleToShoot::execute(){
 
@@ -521,9 +526,10 @@ Tactic::Ptr AI::HL::STP::Tactic::tactive_def(const World &world) {
 
 	return Tactic::Ptr p(new TClear());
 }
+*/
 
-Tactic::Ptr AI::HL::STP::Tactic::tpass(const World &world) {
-    	Tactic::Ptr p(new TPass(world));
+Tactic::Ptr AI::HL::STP::Tactic::tpass(const World &world, const Coordinate target) {
+    	Tactic::Ptr p(new TPass(world, target));
     	return p;
 }
 
@@ -531,7 +537,7 @@ Tactic::Ptr AI::HL::STP::Tactic::treceive_pass(const World &world) {
     	Tactic::Ptr p(new TReceivePass(world));
     	return p;
 }
-
+/*
 Tactic::Ptr AI::HL::STP::Tactic::tdribble_to_shoot(const World &world) {
     	Tactic::Ptr p(new TDribbleToShoot(world));
     	return p;
