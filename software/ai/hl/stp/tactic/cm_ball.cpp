@@ -104,7 +104,7 @@ namespace {
 				return kicked;
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(Point(0, 0)));
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 			}
 
 			void execute();

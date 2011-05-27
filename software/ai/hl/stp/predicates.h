@@ -81,6 +81,17 @@ namespace AI {
 				 * to be able to get a clear shoot at our goal
 				 */
 				bool enemy_baller_can_pass_shoot(const World &world);
+
+				/**
+				 * borrowed from cm, true if our ball or ball on their side
+				 */
+				bool offensive(const World &world);
+				
+				/**
+				 * borrowed from cm, true if their ball or ball on our side
+				 */	
+				bool defensive(const World &world); 
+	
 			}
 		}
 	}
