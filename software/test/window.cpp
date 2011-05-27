@@ -14,6 +14,11 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 	public:
 		Gtk::TreeModelColumn<Glib::ustring> node_column, name_column;
 
+		static Glib::RefPtr<MappedJoysticksModel> create() {
+			Glib::RefPtr<MappedJoysticksModel> p(new MappedJoysticksModel);
+			return p;
+		}
+
 		MappedJoysticksModel() : Glib::ObjectBase(typeid(MappedJoysticksModel)) {
 			alm_column_record.add(node_column);
 			alm_column_record.add(name_column);
@@ -82,7 +87,7 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 		std::unordered_map<std::string, JoystickMapping> mappings;
 };
 
-TesterWindow::TesterWindow(XBeeDongle &dongle, XBeeRobot::Ptr robot) : mapped_joysticks(new MappedJoysticksModel), robot(robot), feedback_frame("Feedback"), feedback_panel(dongle, robot), drive_frame("Drive"), drive_panel(robot), dribble_button("Dribble"), chicker_frame("Chicker"), chicker_panel(robot), params_frame("Parameters"), params_panel(robot), joystick_chooser(mapped_joysticks) {
+TesterWindow::TesterWindow(XBeeDongle &dongle, XBeeRobot::Ptr robot) : mapped_joysticks(MappedJoysticksModel::create()), robot(robot), feedback_frame("Feedback"), feedback_panel(dongle, robot), drive_frame("Drive"), drive_panel(robot), dribble_button("Dribble"), chicker_frame("Chicker"), chicker_panel(robot), params_frame("Parameters"), params_panel(robot), joystick_chooser(mapped_joysticks) {
 	set_title(Glib::ustring::compose("Tester (%1)", robot->index));
 
 	feedback_frame.add(feedback_panel);
