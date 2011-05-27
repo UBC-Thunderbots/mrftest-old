@@ -8,6 +8,8 @@
 #include "ai/hl/stp/tactic/defend.h"
 #include "ai/hl/stp/tactic/offend.h"
 #include "ai/hl/stp/tactic/shoot.h"
+#include "ai/hl/stp/coordinate.h"
+#include "ai/hl/stp/region.h"
 #include <glibmm.h>
 
 using AI::Common::PlayType;
