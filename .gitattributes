@@ -187,6 +187,8 @@ software/ai/hl/stp/action/goalie.cpp -text
 software/ai/hl/stp/action/goalie.h -text
 software/ai/hl/stp/action/move.cpp -text
 software/ai/hl/stp/action/move.h -text
+software/ai/hl/stp/action/move_spin.cpp -text
+software/ai/hl/stp/action/move_spin.h -text
 software/ai/hl/stp/action/pivot.cpp -text
 software/ai/hl/stp/action/pivot.h -text
 software/ai/hl/stp/action/repel.cpp -text
