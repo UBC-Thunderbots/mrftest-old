@@ -20,11 +20,12 @@ void main(void) {
 	unsigned char adresL;
 	
 	float fMsb  = EIGHT_BIT;
-	float Vout;
 	float Vcap;	
 	float Vtest;
 	
 	unsigned char charging = 0; // program state, bool
+	
+	int i = 0;
 	
 	/* PIN Setup */
 	ADCON1 = 0x0F;//Setting all pins as digital
@@ -65,31 +66,50 @@ void main(void) {
 		while( ADCON0bits.GO == 1 ){}
 		adresH = ADRESH;
 		adresL = ADRESL;
-
+		
 		// Producing capacitor voltage
 		Vtest = (adresH*fMsb + adresL)*V_REF/TEN_BIT;
 		Vcap = Vtest*ADC_RATIO;
 		
-		if (charging)
-		{
-			if (Vcap < V_CAP_HIGH_THRES && Vcap > V_CAP_LOW_SAFETY_THRES && PORTDbits.RD2 == 0)
+		LATDbits.LATD4 = !PORTDbits.RD2;
+		
+		for (i = 0; i < 100; ++i)
+		{		
+			if (charging)
 			{
-				// keep charging
-				LATCbits.LATC2 = 0;
-				delay10tcy(2); // 1.67us on time (20 instructions)
-				LATCbits.LATC2 = 1;
-				delay100tcy(10); // 83us (1000 instructions) + ADC delay off time
+				if (Vcap < V_CAP_HIGH_THRES && Vcap > V_CAP_LOW_SAFETY_THRES && PORTDbits.RD2 == 0)
+				{
+					// keep charging
+					LATCbits.LATC2 = 0;
+					delay10tcy(2); // 1.67us on time (20 instructions)
+					LATCbits.LATC2 = 1;
+				
+					if (Vcap < 30.0f)
+					{
+						delay100tcy(1); // 8.3us (100 instructions)
+					}
+					else if (Vcap < 80.0f)
+					{
+						delay10tcy(3);
+					}
+					else
+					{
+						delay10tcy(1);
+					}
+				}
+				else
+				{
+					charging = 0;
+				}
 			}
 			else
 			{
-				charging = 0;
-			}
-		}
-		else
-		{
-			if (PORTDbits.RD2 == 0 && Vcap < V_CAP_LOW_THRES)
-			{
-				charging = 1;
+				if (PORTDbits.RD2 == 0 && Vcap < V_CAP_LOW_THRES)
+				{
+					charging = 1;
+				}
+			
+				LATCbits.LATC2 = 1;
 			}
 		}
 	}
