@@ -13,10 +13,6 @@ Coordinate::Coordinate(const Coordinate &coord) : world(coord.world), y_type(coo
 Coordinate::Coordinate(const World &world, const Point &pos, YType y_type, OriginType o_type) : world(&world), y_type(y_type), o_type(o_type), pos(pos) {
 }
 
-Point Coordinate::operator()() const {
-	return position();
-}
-
 Point Coordinate::position() const {
 	Point p = pos;
 	bool flip_y = false;

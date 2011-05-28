@@ -78,11 +78,6 @@ namespace AI {
 					/**
 					 * Evaluates the absolute position.
 					 */
-					Point operator()() const;
-
-					/**
-					 * Evaluates the absolute position.
-					 */
 					Point position() const;
 
 					/**

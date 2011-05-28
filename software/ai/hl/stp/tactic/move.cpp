@@ -24,11 +24,11 @@ namespace {
 	};
 
 	Player::Ptr Move::select(const std::set<Player::Ptr> &players) const {
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest()));
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest.position()));
 	}
 
 	void Move::execute() {
-		Action::move(world, player, dest());
+		Action::move(world, player, dest.position(), dest.velocity());
 	}
 }
 
