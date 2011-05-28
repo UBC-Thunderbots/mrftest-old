@@ -40,11 +40,6 @@ namespace AI {
 				Tactic::Ptr treceive_pass(const World &world, const Coordinate _target);
 
 				/**
-				 * Dribble to Shoot
-				 */
-				Tactic::Ptr tdribble_to_shoot(const World &world);
-
-				/**
 				 * Dribble to Region
 				 */
 				Tactic::Ptr tdribble_to_region(const World &world, TRegion _region);
@@ -53,11 +48,6 @@ namespace AI {
 				 * Spin to Region
 				 */
 				Tactic::Ptr tspin_to_region(const World &world, TRegion _region);
-
-				/**
-				 * Receive ball deflection
-				 */
-				Tactic::Ptr treceive_deflection(const World &world);
 
 			}
 		}

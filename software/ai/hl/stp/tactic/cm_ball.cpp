@@ -1,12 +1,14 @@
 #include "ai/hl/stp/tactic/cm_ball.h"
 #include "ai/hl/util.h"
 #include "ai/hl/stp/action/move.h"
+#include "ai/hl/stp/action/move_spin.h"
 #include "ai/hl/stp/action/dribble.h"
 #include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/action/chase.h"
 #include "ai/hl/stp/evaluation/cm_evaluation.h"
 #include "geom/angle.h"
 #include "geom/util.h"
+#include "ai/hl/stp/tactic/util.h"
 
 using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
@@ -38,14 +40,9 @@ namespace {
 
 	class TShoot : public Tactic {
 		public:
-			enum Type { Aim, NoAim, Deflect};
-
 			TShoot(const World &world) : Tactic(world, true) {}
 
 		private:
-			//Type type = Aim;
-  			//int deflect_target = -1;
-
   			Point prev_target;
   			bool prev_target_set;
 
@@ -66,9 +63,6 @@ namespace {
 			}
 	};
 
-	// this will require a steal move type in navigator (or steal skill/action) to work
-	// probably just go to the ball to within a threshold distance, then start spinning to get the ball out of the enemy's dribbler
-	/*
 	class TSteal : public Tactic {
 		public:
 			TSteal(const World &world) : Tactic(world, true){}
@@ -81,7 +75,7 @@ namespace {
 			TCoordinate target;		
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+				return select_baller(world, players);
 			}
 
 			void execute();
@@ -90,7 +84,6 @@ namespace {
 				return "tsteal";
 			}
 	};
-	*/
 
 	class TClear : public Tactic {
 		public:
@@ -114,27 +107,6 @@ namespace {
 			}
 	};
 
-	// No TSteal available yet
-	/*
-	class TActiveDef : public Tactic {
-		public:
-			TActiveDef(const World &world, TCoordinate _p1, TCoordinate _p2) : Tactic(world, true), p1(_p1), p2(_p2) {}
-
-		private:
-			TCoordinate p1, p2;
-			bool intercepting;
-
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(Point(0, 0)));
-			}
-
-			void execute();
-
-			std::string description() const {
-				return "tactive_def";
-			}
-	};
-	*/
 	class TPass : public Tactic {
 		public:
 			TPass(const World &world, const Coordinate _target) : Tactic(world, true), target(_target){}
@@ -175,27 +147,6 @@ namespace {
 				return "treceive_pass";
 			}
 	};
-
-	class TDribbleToShoot : public Tactic {
-		public:
-			TDribbleToShoot(const World &world) : Tactic(world, true) {}
-
-		private:
-
-			bool kicked;
-			bool done() const{ 
-				return kicked; 
-			}
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
-			}
-
-			void execute();
-
-			std::string description() const {
-				return "tdribble_to_shoot";
-			}
-	};
 	
 	class TDribbleToRegion : public Tactic {
 		public:
@@ -205,7 +156,7 @@ namespace {
 			TRegion region;
 			
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+				return select_baller(world,players);
 			}
 
 			void execute();
@@ -215,8 +166,6 @@ namespace {
 			}
 	};
 	
-	// uses steal, which is not implemented yet
-	/*
 	class TSpinToRegion : public Tactic {
 		public:
 			TSpinToRegion(const World &world, TRegion _region) : Tactic(world), region(_region){}
@@ -225,7 +174,7 @@ namespace {
 			TRegion region;
 			
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+				return select_baller(world,players);
 			}
 
 			void execute();
@@ -234,31 +183,10 @@ namespace {
 				return "tspin_to_region";
 			}
 	};
-	// this seems useless =[
-	class TReceiveDeflection : public Tactic {
-		public:
-			TReceiveDeflection(const World &world) : Tactic(world, true) {}
-
-		private:
-			bool got_to_spin;
-			bool done() const{
-				player->has_ball();
-			}
-			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(Point(0, 0)));
-			}
-
-			void execute();
-
-			std::string description() const {
-				return "treceive_deflection";
-			}
-	};
-	*/
 }
 
-
 // not too sure how good is their shoot =/
+// always aim before shooting now
 void TShoot::execute() {
 	kicked = false;
 	Point ball = world.ball().position();
@@ -271,40 +199,10 @@ void TShoot::execute() {
     		prev_target_set = true; 
   	}
 
-  	//Type the_type = type;
-
-  	// if (world.twoDefendersInTheirDZone())
-    	//	the_type = NoAim;
-
   	bool got_target = false;
 
-  	//if (the_type == Aim) {
-    		got_target = Evaluation::CMEvaluation::aim(world, LATENCY_DELAY, world.ball().position(), Point(world.field().length() / 2, -world.field().goal_width() / 2), Point(world.field().length() / 2, world.field().goal_width() / 2), OBS_EVERYTHING_BUT_US, prev_target, SHOOT_AIM_PREF_AMOUNT, target, angle_tolerance);
-  	//}
-	/*
-  	if (the_type == Deflect) {
-    		Point t = world.teammate_position(getTeammateId(deflect_target));
-    		Point toward = t - ball;
-    		Point toward_perp = toward.perp();
-
-    		if (toward_perp.x < 0) towardperp *= -1;
-
-    		got_target = Evaluation::CMEvaluation::aim(world, LATENCY_DELAY, world.ball().position(), t + toward_perp.norm(0.080), t - toward_perp.norm(0.040), OBS_EVERYTHING_BUT_US, prev_target, SHOOT_AIM_PREF_AMOUNT, target, angle_tolerance);
-    		got_target = true;
-
-    		if ((target - ball).len() < 0.400)
-      			target = (ball + target) / 2.0;
-    		else 
-      			target = target + (ball - target).norm(0.200);
-  	}
-	
-  	if (the_type == NoAim || (!got_target && !SHOOT_DRIBBLE_IF_NO_SHOT)) {
-    		// Guaranteed to return true and fill in the parameters when
-    		// obs_flags is empty.
-    		Evaluation::CMEvaluation::aim(world, LATENCY_DELAY, world.ball().position(), world.their_goal_r, world.their_goal_l, 0, target, angle_tolerance);
-    		got_target = true;
-  	}
-	*/
+  	
+    	got_target = Evaluation::CMEvaluation::aim(world, LATENCY_DELAY, world.ball().position(), Point(world.field().length() / 2, -world.field().goal_width() / 2), Point(world.field().length() / 2, world.field().goal_width() / 2), OBS_EVERYTHING_BUT_US, prev_target, SHOOT_AIM_PREF_AMOUNT, target, angle_tolerance);
   	if (got_target) {
     
     		if (angle_tolerance < SHOOT_MIN_ANGLE_TOLERANCE) {
@@ -324,13 +222,6 @@ void TShoot::execute() {
 		Action::move(player, (rtarget - player->position()).orientation(), rtarget);
 		kicked = Action::shoot(world, player, target);		
 		
-		/*
-    		command.cmd = Robot::CmdMoveBall;
-    		command.ball_target = target;
-    		command.target = rtarget;
-    		command.angle_tolerance = angle_tolerance;
-    		command.ball_shot_type = Robot::BallShotOnGoal;
-		*/
   	} else {
     		eval.update(world, 0);
 
@@ -340,19 +231,13 @@ void TShoot::execute() {
 		kicked = Action::shoot(world, player, eval.point());
 		Action::move(player, eval.angle(), eval.point());		
 
-		/*
-    		command.cmd = Robot::CmdDribble;
-    		command.target = eval.point();
-    		command.ball_target = eval.point();
-    		command.angle = eval.angle();
-		*/
   	}
 }
-/*
+
 void TSteal::execute() {
-	
+	Action::move_spin(player, world.ball().position());	
 }
-*/
+
 void TClear::execute() {
 	kicked = false;
 	Point ball = world.ball().position();
@@ -363,8 +248,6 @@ void TClear::execute() {
   	bool aimed = false;
 
   	Point downfield[2];
-
-  	//Robot::BallShotType shot_type= Robot::BallShotClear;
 
   	downfield[0] = Point(ball.x + 0.180, -world.field().width()/2);
   	downfield[1] = Point(ball.x + 0.180, world.field().width()/2);
@@ -385,8 +268,6 @@ void TClear::execute() {
   	// If the target tolerances include the goal then just aim there.
   	double a = (target - ball).orientation();
   	double a_to_goal = (world.field().enemy_goal() - ball).orientation();
-  	//double a_to_goal_l = (world.their_goal_l - ball).orientation();
-  	//double a_to_goal_r = (world.their_goal_r - ball).orientation();
 
   	if (std::fabs(angle_mod(a - a_to_goal)) < 0.8 * angle_tolerance) {
     		if (a > a_to_goal) {
@@ -410,20 +291,8 @@ void TClear::execute() {
 	kicked = Action::shoot(world, player, target);		
 	Action::move(world, player, target);
 
-	/*
-  	command.cmd = Robot::CmdMoveBall;
-  	command.target = target;
-  	command.ball_target = target;
-  	command.angle_tolerance = angle_tolerance;
-  	command.ball_shot_type = shot_type;
-	*/
 }
-/*
-void TActiveDef::execute(){
 
-
-}
-*/
 // might be better to just use our pass and receive pass
 // these two tactics are implemented but not used in cm '02 =/
 
@@ -455,87 +324,49 @@ void TPass::execute(){
 	Action::move(player, (targetp - player->position()).orientation(), targetp);
 	kicked = Action::shoot(world, player, targetp);
 
-	/*
-  	command.cmd = Robot::CmdMoveBall;
-  	command.target = targetp; // mytarget;
-  	command.ball_target = targetp;
-  	command.angle_tolerance = angle_tolerance;
-  	command.ball_shot_type = Robot::BallShotPass;
-	*/	
+	
 }
-
-// should just use chase in our code?
-// the passee seems to just orient towards the ball and don't move from its current position
-// (I assume this is used after the position_for_pass tactic is used)
 
 void TReceivePass::execute(){
 	Action::move(world, player, target.position());
 	Action::chase(world, player, world.ball().position());
-	//command.cmd = Robot::CmdRecieveBall;
 }
 
-/*
-// just use shoot action?
-void TDribbleToShoot::execute(){
-
-
-}
-*/
-// just use move dribble?
 void TDribbleToRegion::execute(){
 	Action::dribble(world, player, region.center(world));
-
 }
-/*
+
 void TSpinToRegion::execute(){
-
-
+	Action::move_spin(player, region.center(world));
 }
-*/
 
-// this seems useless =[
-// our chase action might be better
-/*
-void TReceiveDeflection::execute(){
 
-	Point mypos = player->position();
-	Point target = mypos;
-
-  	command.cmd = Robot::CmdPosition;
-  	command.target = target;
-  	command.velocity = Point(0, 0);
-  	command.angle = (target - mypos).orientation();
-  	command.obs = OBS_EVERYTHING_BUT_ME(me) & ~OBS_BALL;
-
-}
-*/
 Tactic::Ptr AI::HL::STP::Tactic::tshoot(const World &world) {
 	Tactic::Ptr p(new TShoot(world));
 	return p;
 }
-/*
+
 Tactic::Ptr AI::HL::STP::Tactic::tsteal(const World &world) {
 	Tactic::Ptr p(new TSteal(world));
 	return p;
 }
-*/
+
 Tactic::Ptr AI::HL::STP::Tactic::tclear(const World &world) {
 	Tactic::Ptr p(new TClear(world));
 	return p;
 }
-/*
+
 Tactic::Ptr AI::HL::STP::Tactic::tactive_def(const World &world) {
-    	// Tactic::Ptr p(new TActiveDef(world));
 	const EnemyTeam &enemy = world.enemy_team();
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		if (AI::HL::Util::posses_ball(world, enemy.get(i))) {
-			return Tactic::Ptr p(new TSteal());
+			Tactic::Ptr p(new TSteal(world));
 		}
 	}
-
-	return Tactic::Ptr p(new TClear());
+	
+	Tactic::Ptr p(new TClear(world));
+	return p;
 }
-*/
 
 Tactic::Ptr AI::HL::STP::Tactic::tpass(const World &world, const Coordinate _target) {
     	Tactic::Ptr p(new TPass(world, _target));
@@ -546,24 +377,14 @@ Tactic::Ptr AI::HL::STP::Tactic::treceive_pass(const World &world, const Coordin
     	Tactic::Ptr p(new TReceivePass(world, _target));
     	return p;
 }
-/*
-Tactic::Ptr AI::HL::STP::Tactic::tdribble_to_shoot(const World &world) {
-    	Tactic::Ptr p(new TDribbleToShoot(world));
-    	return p;
-}
-*/
+
 Tactic::Ptr AI::HL::STP::Tactic::tdribble_to_region(const World &world, TRegion _region) {
     	Tactic::Ptr p(new TDribbleToRegion(world, _region));
     	return p;
 }
-/*
+
 Tactic::Ptr AI::HL::STP::Tactic::tspin_to_region(const World &world, TRegion _region) {
     	Tactic::Ptr p(new TSpinToRegion(world, _region));
     	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::treceive_deflection(const World &world) {
-    	Tactic::Ptr p(new TReceiveDeflection(world));
-    	return p;
-}
-*/
