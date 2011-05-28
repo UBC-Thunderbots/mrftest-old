@@ -11,11 +11,6 @@ namespace AI {
 			 * See STP paper section 5.2.3 (b)
 			 * Describes dynamically changing coordinate system.
 			 * For example, a location relative to a moving object.
-			 *
-			 * To evaluate the value of a coordinate, use the operator().
-			 * Point p = A(); // gives the point.
-			 *
-			 * Essentially this class is just a wrapper around a function object that returns a point.
 			 */
 			class Coordinate {
 				public:
@@ -34,9 +29,14 @@ namespace AI {
 						BALL,
 
 						/**
-						 * Side with more of our players.
+						 * Side with more of OUR players.
 						 */
-						MAJORITY,
+						OUR_MAJORITY,
+
+						/**
+						 * Side with more of THEIR players.
+						 */
+						THEIR_MAJORITY,
 					};
 
 					/**
@@ -66,13 +66,29 @@ namespace AI {
 
 					/**
 					 * Main constructor.
+					 *
+					 * \param [in] pos the offset from the origin
+					 *
+					 * \param [in] y_type determines the direction y-axis is pointing.
+					 *
+					 * \param [in] o_type determines the origin.
 					 */
 					Coordinate(const World &world, const Point &pos, YType y_type, OriginType o_type);
 
 					/**
-					 * Evaluates and returns the required coordinate.
+					 * Evaluates the absolute position.
 					 */
 					Point operator()() const;
+
+					/**
+					 * Evaluates the absolute position.
+					 */
+					Point position() const;
+
+					/**
+					 * Evaluates the absolute velocity.
+					 */
+					Point velocity() const;
 
 				protected:
 					const World *const world;

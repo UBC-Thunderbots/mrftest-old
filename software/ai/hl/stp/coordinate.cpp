@@ -14,16 +14,26 @@ Coordinate::Coordinate(const World &world, const Point &pos, YType y_type, Origi
 }
 
 Point Coordinate::operator()() const {
+	return position();
+}
+
+Point Coordinate::position() const {
 	Point p = pos;
+	bool flip_y = false;
 
 	switch (y_type) {
 		case YType::BALL:
 			if (world->ball().position().y < 0) {
 				p.y *= -1;
+				flip_y = true;
 			}
 			break;
 
-		case YType::MAJORITY:
+		case YType::OUR_MAJORITY:
+			LOG_ERROR("NOT IMPLEMENTED YET");
+			break;
+
+		case YType::THEIR_MAJORITY:
 			LOG_ERROR("NOT IMPLEMENTED YET");
 			break;
 
@@ -34,11 +44,11 @@ Point Coordinate::operator()() const {
 
 	switch (o_type) {
 		case OriginType::BALL:
-			if (y_type == YType::BALL && world->ball().position().y < 0) {
-				p.x += world->ball().position().x;
+			p.x += world->ball().position().x;
+			if (flip_y) {
 				p.y -= world->ball().position().y;
 			} else {
-				p += world->ball().position();
+				p.y += world->ball().position().y;
 			}
 			break;
 
@@ -48,5 +58,12 @@ Point Coordinate::operator()() const {
 	}
 
 	return p;
+}
+
+Point Coordinate::velocity() const {
+	if (o_type == OriginType::BALL) {
+		return world->ball().velocity();
+	}
+	return Point();
 }
 
