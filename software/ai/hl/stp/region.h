@@ -11,6 +11,9 @@ namespace AI {
 			 * Describes a region, either a circle or a rectangle.
 			 * The region can make use of dynamic coordinates.
 			 * See STP paper section 5.2.3 (b)
+			 *
+			 * NOTE: class needs to be copyable,
+			 * hence it is not subclassed.
 			 */
 			class Region {
 				public:
@@ -31,87 +34,43 @@ namespace AI {
 					/**
 					 * Evaluates the position of the center of this region.
 					 */
-					virtual Point center_position() const = 0;
+					Point center_position() const;
 
 					/**
 					 * Evaluates the velocity of the center of this region.
 					 */
-					virtual Point center_velocity() const = 0;
-
-					/**
-					 * Checks if a point in inside this region.
-					 */
-					virtual bool inside(Point p) const = 0;
-
-				protected:
-					Region(Type t) : type_(t) {
-					}
-
-				private:
-					Type type_;
-			};
-
-			/**
-			 * Describes a rectangular region.
-			 */
-			class Rectangle : public Region {
-				public:
-					Rectangle(Coordinate p1, Coordinate p2) : Region(RECTANGLE), p1(p1), p2(p2) {
-					}
-
-					Point center_position() const {
-						return (p1.position() + p2.position()) / 2;
-					}
-
-					Point center_velocity() const {
-						return (p1.velocity() + p2.velocity()) / 2;
-					}
-
-					/**
-					 * Evaluate the rectangle associated.
-					 */
-					Rect evaluate() const {
-						return Rect(p1.position(), p2.position());
-					}
-
-					bool inside(Point p) const {
-						return Rect(p1.position(), p2.position()).point_inside(p);
-					}
-
-				private:
-					Coordinate p1, p2;
-			};
-
-			/**
-			 * Describes a circular region.
-			 */
-			class Circle : public Region {
-				public:
-					Circle(Coordinate c, double r) : Region(CIRCLE), center(c), radius_(r) {
-					}
-
-					/**
-					 * Evaluates the center of this circle.
-					 */
-					Point center_position() const {
-						return center.position();
-					}
-
-					Point center_velocity() const {
-						return center.velocity();
-					}
+					Point center_velocity() const;
 
 					double radius() const {
 						return radius_;
 					}
 
-					bool inside(Point p) const {
-						return (p - center.position()).len() <= radius_;
-					}
+					/**
+					 * Checks if a point in inside this region.
+					 */
+					bool inside(Point p) const;
 
-				private:
-					Coordinate center;
+					/**
+					 * Create a circle region.
+					 */
+					static Region circle(Coordinate center, double radius);
+
+					/**
+					 * Create a rectangle region.
+					 */
+					static Region rectangle(Coordinate p1, Coordinate p2);
+
+					/**
+					 * Copy constructor.
+					 */
+					Region(const Region &region);
+
+				protected:
+					Type type_;
+					Coordinate p1, p2;
 					double radius_;
+
+					Region(Type type, Coordinate p1, Coordinate p2, double radius);
 			};
 		}
 	}
