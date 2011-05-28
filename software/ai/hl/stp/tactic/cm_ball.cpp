@@ -166,7 +166,7 @@ namespace {
 				return player->has_ball(); 
 			}			
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(target()));
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(target.position()));
 			}
 
 			void execute();
@@ -429,7 +429,7 @@ void TActiveDef::execute(){
 
 void TPass::execute(){
 	kicked = false;
-	Point p[2], targetp = target(), ball;
+	Point p[2], targetp = target.position(), ball;
   	double angle_tolerance;
 
   	ball = world.ball().position();
@@ -469,7 +469,7 @@ void TPass::execute(){
 // (I assume this is used after the position_for_pass tactic is used)
 
 void TReceivePass::execute(){
-	Action::move(world, player, target());
+	Action::move(world, player, target.position());
 	Action::chase(world, player, world.ball().position());
 	//command.cmd = Robot::CmdRecieveBall;
 }

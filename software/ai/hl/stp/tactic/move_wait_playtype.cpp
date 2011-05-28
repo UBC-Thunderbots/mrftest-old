@@ -26,15 +26,15 @@ namespace {
 	};
 
 	bool MoveWaitPlaytype::done() const {
-		return world.playtype() == playtype && (player->position() - dest()).len() < AI::HL::Util::POS_CLOSE;
+		return world.playtype() == playtype && (player->position() - dest.position()).len() < AI::HL::Util::POS_CLOSE;
 	}
 
 	Player::Ptr MoveWaitPlaytype::select(const std::set<Player::Ptr> &players) const {
-		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest()));
+		return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(dest.position()));
 	}
 
 	void MoveWaitPlaytype::execute() {
-		Action::move(world, player, dest());
+		Action::move(world, player, dest.position());
 	}
 }
 

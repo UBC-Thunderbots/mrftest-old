@@ -6,7 +6,7 @@
 using AI::HL::STP::TCoordinate;
 
 BEGIN_PLAY(CMDBasicCorner)
-INVARIANT(false) //INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3))
+INVARIANT(false)//INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3))
 APPLICABLE(defensive(world) && ball_in_our_corner(world))
 DONE(offensive(world) || !ball_in_our_corner(world))
 FAIL(false)
