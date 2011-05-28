@@ -31,12 +31,12 @@ namespace AI {
 						/**
 						 * Side with more of OUR players.
 						 */
-						OUR_MAJORITY,
+						OUR_SIDE_STRONG,
 
 						/**
 						 * Side with more of THEIR players.
 						 */
-						THEIR_MAJORITY,
+						THEIR_SIDE_STRONG,
 					};
 
 					/**

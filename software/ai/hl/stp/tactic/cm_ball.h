@@ -2,8 +2,8 @@
 #define AI_HL_STP_TACTIC_CM_BALL_H
 
 #include "ai/hl/stp/tactic/tactic.h"
-#include "ai/hl/stp/cm_coordinate.h"
 #include "ai/hl/stp/coordinate.h"
+#include "ai/hl/stp/region.h"
 
 namespace AI {
 	namespace HL {
@@ -42,12 +42,12 @@ namespace AI {
 				/**
 				 * Dribble to Region
 				 */
-				Tactic::Ptr tdribble_to_region(const World &world, TRegion _region);
+				Tactic::Ptr tdribble_to_region(const World &world, Region _region);
 
 				/**
 				 * Spin to Region
 				 */
-				Tactic::Ptr tspin_to_region(const World &world, TRegion _region);
+				Tactic::Ptr tspin_to_region(const World &world, Region _region);
 
 			}
 		}

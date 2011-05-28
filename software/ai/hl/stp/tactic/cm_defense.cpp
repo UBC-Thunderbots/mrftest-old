@@ -12,6 +12,7 @@ using namespace AI::HL::W;
 namespace Evaluation = AI::HL::STP::Evaluation;
 namespace Action = AI::HL::STP::Action;
 using AI::HL::STP::TCoordinate;
+using AI::HL::STP::Coordinate;
 
 namespace {
 	const double DEFENSE_OFF_BALL = 0.09;
@@ -19,11 +20,11 @@ namespace {
 
 	class TDefendLine : public Tactic {
 		public:
-			TDefendLine(const World &world, TCoordinate _p1, TCoordinate _p2, double _distmin, double _distmax) : Tactic(world), p1(_p1), p2(_p2), distmin(_distmin), distmax(_distmax) {
+			TDefendLine(const World &world, Coordinate _p1, Coordinate _p2, double _distmin, double _distmax) : Tactic(world), p1(_p1), p2(_p2), distmin(_distmin), distmax(_distmax) {
 			}
 
 		private:
-			TCoordinate p1, p2;
+			Coordinate p1, p2;
 			double distmin, distmax;
 
 			bool intercepting;
@@ -41,10 +42,10 @@ namespace {
 
 	class TDefendPoint : public Tactic {
 		public:
-			TDefendPoint(const World &world, TCoordinate _center, double _distmin, double _distmax) : Tactic(world), center(_center), distmin(_distmin), distmax(_distmax) {}
+			TDefendPoint(const World &world, Coordinate _center, double _distmin, double _distmax) : Tactic(world), center(_center), distmin(_distmin), distmax(_distmax) {}
 
 		private:
-			TCoordinate center;
+			Coordinate center;
 
 			double distmin, distmax;
 
@@ -63,10 +64,10 @@ namespace {
 
 	class TDefendLane : public Tactic {
 		public:
-			TDefendLane(const World &world, TCoordinate _p1, TCoordinate _p2) : Tactic(world), p1(_p1), p2(_p2) {}
+			TDefendLane(const World &world, Coordinate _p1, Coordinate _p2) : Tactic(world), p1(_p1), p2(_p2) {}
 
 		private:
-			TCoordinate p1, p2;
+			Coordinate p1, p2;
 			bool intercepting;
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
@@ -130,7 +131,7 @@ void TDefendLine::execute() {
 	Point target, velocity;
 	double angle;
 
-	Point v[2] = { p1.as_vector(world), p2.as_vector(world) };
+	Point v[2] = { p1.position(), p2.position() };
 
 	// Position
 	if (!Evaluation::CMEvaluation::defend_line(world, LATENCY_DELAY, v[0], v[1], distmin, distmax, DEFENSE_OFF_BALL, intercepting, target, velocity)) {
@@ -157,7 +158,7 @@ void TDefendPoint::execute() {
 	intercepting = true;
 
 	Point ball = world.ball().position();
-	Point centerv = center.as_vector(world);
+	Point centerv = center.position();
 
 	Point target, velocity;
 	double angle;
@@ -184,8 +185,8 @@ void TDefendLane::execute() {
 	Point target, velocity;
 	double angle;
 
-	Point v0 = p1.as_vector(world);
-	Point v1 = p2.as_vector(world);
+	Point v0 = p1.position();
+	Point v1 = p2.position();
 
 	Evaluation::CMEvaluation::defend_on_line(world, LATENCY_DELAY, v0, v1, intercepting, target, velocity);
 
@@ -209,17 +210,17 @@ void TMark::execute() {
 }
 */
 
-Tactic::Ptr AI::HL::STP::Tactic::tdefend_line(const World &world, TCoordinate _p1, TCoordinate _p2, double _distmin, double _distmax) {
+Tactic::Ptr AI::HL::STP::Tactic::tdefend_line(const World &world, Coordinate _p1, Coordinate _p2, double _distmin, double _distmax) {
 	Tactic::Ptr p(new TDefendLine(world, _p1, _p2, _distmin, _distmax));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::tdefend_point(const World &world, TCoordinate _center, double _distmin, double _distmax) {
+Tactic::Ptr AI::HL::STP::Tactic::tdefend_point(const World &world, Coordinate _center, double _distmin, double _distmax) {
 	Tactic::Ptr p(new TDefendPoint(world, _center, _distmin, _distmax));
 	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::tdefend_lane(const World &world, TCoordinate _p1, TCoordinate _p2) {
+Tactic::Ptr AI::HL::STP::Tactic::tdefend_lane(const World &world, Coordinate _p1, Coordinate _p2) {
 	Tactic::Ptr p(new TDefendLane(world, _p1, _p2));
 	return p;
 }

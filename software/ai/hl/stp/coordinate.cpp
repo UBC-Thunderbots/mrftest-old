@@ -25,11 +25,11 @@ Point Coordinate::position() const {
 			}
 			break;
 
-		case YType::OUR_MAJORITY:
+		case YType::OUR_SIDE_STRONG:
 			LOG_ERROR("NOT IMPLEMENTED YET");
 			break;
 
-		case YType::THEIR_MAJORITY:
+		case YType::THEIR_SIDE_STRONG:
 			LOG_ERROR("NOT IMPLEMENTED YET");
 			break;
 

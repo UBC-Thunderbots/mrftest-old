@@ -14,9 +14,8 @@ using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 namespace Evaluation = AI::HL::STP::Evaluation;
 namespace Action = AI::HL::STP::Action;
-using AI::HL::STP::TCoordinate;
-using AI::HL::STP::TRegion;
 using AI::HL::STP::Coordinate;
+using AI::HL::STP::Region;
 using Evaluation::CMEvaluationPosition;
 
 namespace {
@@ -66,14 +65,11 @@ namespace {
 	class TSteal : public Tactic {
 		public:
 			TSteal(const World &world) : Tactic(world, true){}
-			TSteal(const World &world, TCoordinate _target) : Tactic(world, true), target(_target) {}
-
+			
 		private:
 
 			bool target_set;
   			
-			TCoordinate target;		
-
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				return select_baller(world, players);
 			}
@@ -150,10 +146,10 @@ namespace {
 	
 	class TDribbleToRegion : public Tactic {
 		public:
-			TDribbleToRegion(const World &world, TRegion _region) : Tactic(world), region(_region){}
+			TDribbleToRegion(const World &world, Region _region) : Tactic(world), region(_region){}
 
 		private:
-			TRegion region;
+			Region region;
 			
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				return select_baller(world,players);
@@ -168,10 +164,10 @@ namespace {
 	
 	class TSpinToRegion : public Tactic {
 		public:
-			TSpinToRegion(const World &world, TRegion _region) : Tactic(world), region(_region){}
+			TSpinToRegion(const World &world, Region _region) : Tactic(world), region(_region){}
 
 		private:
-			TRegion region;
+			Region region;
 			
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				return select_baller(world,players);
@@ -273,11 +269,9 @@ void TClear::execute() {
     		if (a > a_to_goal) {
       			target = world.field().enemy_goal();
       			angle_tolerance -= std::fabs(angle_mod(a - a_to_goal));
-      			//shot_type = Robot::BallShotOnGoal;
     		} else if (a < a_to_goal) {
       			target = world.field().enemy_goal();
       			angle_tolerance -= std::fabs(angle_mod(a - a_to_goal));
-      			//shot_type = Robot::BallShotOnGoal;
     		}
   	}
 
@@ -333,11 +327,11 @@ void TReceivePass::execute(){
 }
 
 void TDribbleToRegion::execute(){
-	Action::dribble(world, player, region.center(world));
+	Action::dribble(world, player, region.center_position());
 }
 
 void TSpinToRegion::execute(){
-	Action::move_spin(player, region.center(world));
+	Action::move_spin(player, region.center_position());
 }
 
 
@@ -378,12 +372,12 @@ Tactic::Ptr AI::HL::STP::Tactic::treceive_pass(const World &world, const Coordin
     	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::tdribble_to_region(const World &world, TRegion _region) {
+Tactic::Ptr AI::HL::STP::Tactic::tdribble_to_region(const World &world, Region _region) {
     	Tactic::Ptr p(new TDribbleToRegion(world, _region));
     	return p;
 }
 
-Tactic::Ptr AI::HL::STP::Tactic::tspin_to_region(const World &world, TRegion _region) {
+Tactic::Ptr AI::HL::STP::Tactic::tspin_to_region(const World &world, Region _region) {
     	Tactic::Ptr p(new TSpinToRegion(world, _region));
     	return p;
 }
