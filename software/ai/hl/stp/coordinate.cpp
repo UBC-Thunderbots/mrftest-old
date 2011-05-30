@@ -16,6 +16,7 @@ Coordinate::Coordinate(const World &world, const Point &pos, YType y_type, Origi
 Point Coordinate::position() const {
 	Point p = pos;
 	bool flip_y = false;
+	double center = 0.0;
 
 	switch (y_type) {
 		case YType::BALL:
@@ -26,11 +27,23 @@ Point Coordinate::position() const {
 			break;
 
 		case YType::OUR_SIDE_STRONG:
-			LOG_ERROR("NOT IMPLEMENTED YET");
+			for (std::size_t i = 0; i < world->friendly_team().size(); i++) {
+				center += world->friendly_team().get(i)->position().y;
+			}
+			if (center < 0.0){
+				p.y *= -1;
+				flip_y = true;
+			}
 			break;
 
 		case YType::THEIR_SIDE_STRONG:
-			LOG_ERROR("NOT IMPLEMENTED YET");
+			for (std::size_t i = 0; i < world->enemy_team().size(); i++) {
+				center += world->enemy_team().get(i)->position().y;
+			}
+			if (center < 0.0){
+				p.y *= -1;
+				flip_y = true;
+			}
 			break;
 
 		case YType::ABSOLUTE:

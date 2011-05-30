@@ -42,6 +42,11 @@ namespace AI {
 					Point center_velocity() const;
 
 					/**
+					 * Returns a random sample point in this region.
+					 */
+					Point random_sample() const;
+
+					/**
 					 * Valid only if this region type is a circle.
 					 * Returns the associated radius.
 					 */

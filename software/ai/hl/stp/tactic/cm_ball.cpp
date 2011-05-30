@@ -16,7 +16,6 @@ namespace Evaluation = AI::HL::STP::Evaluation;
 namespace Action = AI::HL::STP::Action;
 using AI::HL::STP::Coordinate;
 using AI::HL::STP::Region;
-using Evaluation::CMEvaluationPosition;
 
 namespace {
 

@@ -1,4 +1,5 @@
 #include "ai/hl/stp/region.h"
+#include <cmath>
 
 using AI::HL::STP::Region;
 
@@ -31,6 +32,22 @@ Point Region::center_velocity() const {
 		return p1.velocity();
 	}
 }
+
+Point Region::random_sample() const {
+	if (type_ ==  Type::RECTANGLE) {
+		Point v0 = p1.position(), v1 = p2.position();
+		double w = (std::rand() / static_cast<double>(RAND_MAX) * 2 * radius_) - radius_;
+		double l = std::rand() / static_cast<double>(RAND_MAX) * (v0 - v1).len();
+
+		return v0 + (v1 - v0).norm(l) + (v1 - v0).perp().norm(w);
+	} else {
+		double r = std::sqrt(std::rand() / static_cast<double>(RAND_MAX)) * radius_;
+		double a = std::rand() / static_cast<double>(RAND_MAX) * 2 * M_PI;
+
+		return p1.position() + Point(r, 0).rotate(a);
+	}
+}
+
 
 bool Region::inside(Point p) const {
 	if (type_ == Type::RECTANGLE) {

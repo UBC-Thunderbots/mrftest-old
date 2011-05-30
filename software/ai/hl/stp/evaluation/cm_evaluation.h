@@ -164,47 +164,6 @@ namespace AI {
 					Point find_open_position_and_yield(const World &world, Point p, Point toward, unsigned int obs_flags);
 				};
 
-				class CMEvaluationPosition {
-					public:
-						typedef std::function<double (const World &, Point, unsigned int, double &)> EvalFn;
-
-						Region region;
-
-						CMEvaluationPosition();
-
-						CMEvaluationPosition(const Region &region, const EvalFn &eval, double pref_amount = 0, unsigned int n_points = 10);
-
-						void set(const Region &region_, const EvalFn &eval_, double pref_amount_ = 0, unsigned int n_points_ = 10);
-
-						void update(const World &world, unsigned int obs_flags_);
-
-						void add_point(Point p);
-
-						Point point() const;
-
-						double angle() const;
-
-					private:
-						// Function
-						EvalFn eval;
-
-						unsigned int obs_flags;
-
-						double last_updated;
-
-						// Evaluated Points
-						unsigned int n_points;
-						std::vector<Point> points;
-						std::vector<double> angles;
-						std::vector<double> weights;
-
-						std::vector<Point> new_points;
-
-						int best;
-						double pref_amount;
-
-						Point point_from_distribution(const World &w);
-				};
 			}
 		}
 	}
@@ -218,45 +177,5 @@ inline bool AI::HL::STP::Evaluation::CMEvaluation::defend_line(const World &worl
 	return defend_line(world, time, g1, g2, distmin, distmax, dist_off_ball, intercept, 0, Point(), 0.0, target, velocity);
 }
 
-//inline AI::HL::STP::Evaluation::CMEvaluationPosition::CMEvaluationPosition() : obs_flags(0), last_updated(0), n_points(0), best(-1), pref_amount(0) {}
-
-inline AI::HL::STP::Evaluation::CMEvaluationPosition::CMEvaluationPosition(const Region &region, const EvalFn &eval, double pref_amount, unsigned int n_points) : region(region), eval(eval), obs_flags(0), last_updated(0), n_points(n_points), best(-1), pref_amount(pref_amount) {
-}
-
-inline void AI::HL::STP::Evaluation::CMEvaluationPosition::set(const Region &region_, const EvalFn &eval_, double pref_amount_, unsigned int n_points_) {
-	region = region_;
-	eval = eval_;
-	n_points = n_points_;
-	pref_amount = pref_amount_;
-
-	obs_flags = 0;
-
-	points.clear();
-	weights.clear();
-	best = -1;
-	last_updated = 0;
-}
-
-inline void AI::HL::STP::Evaluation::CMEvaluationPosition::add_point(Point p) {
-	for (unsigned int i = 0; i < new_points.size(); ++i) {
-		if (new_points[i].x == p.x && new_points[i].y == p.y) {
-			return;
-		}
-	}
-	new_points.push_back(p);
-}
-
-inline Point AI::HL::STP::Evaluation::CMEvaluationPosition::point() const {
-	return points[best];
-}
-
-inline double AI::HL::STP::Evaluation::CMEvaluationPosition::angle() const {
-	return angles[best];
-}
-/*
-inline Point AI::HL::STP::Evaluation::CMEvaluationPosition::point_from_distribution(const World &w) {
-	return region.sample(w);
-}
-*/
 #endif
 
