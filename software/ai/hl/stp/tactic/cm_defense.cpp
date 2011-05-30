@@ -79,47 +79,6 @@ namespace {
 				return "tdefend_lane";
 			}
 	};
-	/*
-	   class TBlock : public Tactic {
-	    public:
-	        bool intercepting;
-
-	        TBlock(const World &world, double _distmin, double _distmax, int _prefside) : Tactic(world), distmin(_distmin), distmax(_distmax), prefside(_prefside) {}
-
-	    private:
-	        double distmin, distmax;
-	        int prefside;
-
-	        Point pref_point;
-	        bool pref_point_set;
-
-	        Player::Ptr select(const std::set<Player::Ptr> &players) const;
-
-	        void execute();
-
-	        std::string description() const {
-	            return "block";
-	        }
-	   };
-
-	   class TMark : public Tactic {
-	    public:
-	        enum Type { FromBall, FromOurGoal, FromTheirGoal, FromShot };
-	        TMark(const World &world, int _target, Type _type) : Tactic(world), target(_target), type(_type) {}
-
-	    private:
-	        int target;
-	        Type type;
-
-	        Player::Ptr select(const std::set<Player::Ptr> &players) const;
-
-	        void execute();
-
-	        std::string description() const {
-	            return "mark";
-	        }
-	   };
-	 */
 }
 
 void TDefendLine::execute() {
@@ -199,16 +158,6 @@ void TDefendLane::execute() {
 	player->move(target, angle, velocity);
 }
 
-/*
-void TBlock::execute() {
-    //Action::move(world, player, (p1+p2)/2);
-}
-
-void TMark::execute() {
-    //Action::move(world, player, (p1+p2)/2);
-}
-*/
-
 Tactic::Ptr AI::HL::STP::Tactic::tdefend_line(const World &world, Coordinate _p1, Coordinate _p2, double _distmin, double _distmax) {
 	Tactic::Ptr p(new TDefendLine(world, _p1, _p2, _distmin, _distmax));
 	return p;
@@ -223,15 +172,4 @@ Tactic::Ptr AI::HL::STP::Tactic::tdefend_lane(const World &world, Coordinate _p1
 	Tactic::Ptr p(new TDefendLane(world, _p1, _p2));
 	return p;
 }
-/*
-Tactic::Ptr AI::HL::STP::Tactic::tblock(const AI::HL::W::World &world) {
-    Tactic::Ptr p(new TBlock(world));
-    return p;
-}
-
-Tactic::Ptr AI::HL::STP::Tactic::tmark(const AI::HL::W::World &world) {
-    Tactic::Ptr p(new TMark(world));
-    return p;
-}
-*/
 

@@ -1,11 +1,12 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/cm_defense.h"
 #include "ai/hl/stp/tactic/chase.h"
+#include "ai/hl/stp/tactic/cm_ball.h"
 
 using AI::HL::STP::Coordinate;
 
 BEGIN_PLAY(CMDBasicCorner)
-INVARIANT(false)//INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3))
+INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3))
 APPLICABLE(defensive(world) && ball_in_our_corner(world))
 DONE(offensive(world) || !ball_in_our_corner(world))
 FAIL(false)
@@ -14,8 +15,9 @@ BEGIN_ASSIGN()
 goalie_role.push_back(defend_duo_goalie(world));
 
 // ROLE 1
-// shoot
-roles[0].push_back(chase(world)); // should use cm active def when it's done
+// cm active def
+//roles[0].push_back(chase(world)); 
+roles[0].push_back(tactive_def(world));
 
 // ROLE 2
 // cm defend lane
