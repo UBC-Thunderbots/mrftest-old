@@ -11,7 +11,6 @@ using namespace AI::HL::STP::Tactic;
 using namespace AI::HL::W;
 namespace Evaluation = AI::HL::STP::Evaluation;
 namespace Action = AI::HL::STP::Action;
-using AI::HL::STP::TCoordinate;
 using AI::HL::STP::Coordinate;
 
 namespace {

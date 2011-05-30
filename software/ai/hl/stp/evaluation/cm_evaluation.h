@@ -1,7 +1,6 @@
 #ifndef AI_HL_STP_EVALUATION_CM_EVALUATION_H
 #define AI_HL_STP_EVALUATION_CM_EVALUATION_H
 
-#include "ai/hl/stp/cm_coordinate.h"
 #include "ai/hl/stp/coordinate.h"
 #include "ai/hl/stp/region.h"
 #include "ai/hl/stp/world.h"

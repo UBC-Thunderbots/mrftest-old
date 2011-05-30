@@ -1,7 +1,6 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/cm_defense.h"
 #include "ai/hl/stp/tactic/chase.h"
-#include "ai/hl/stp/cm_coordinate.h"
 
 using AI::HL::STP::Coordinate;
 

@@ -62,4 +62,5 @@ Region &Region::operator=(const Region &r) {
 	p1 = r.p1; 
 	p2 = r.p2;
 	radius_ = r.radius_;
+	return *this;
 }

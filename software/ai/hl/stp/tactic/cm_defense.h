@@ -2,7 +2,6 @@
 #define AI_HL_STP_TACTIC_CM_DEFENSE_H
 
 #include "ai/hl/stp/tactic/tactic.h"
-#include "ai/hl/stp/cm_coordinate.h"
 #include "ai/hl/stp/coordinate.h"
 
 namespace AI {
