@@ -5,6 +5,6 @@
 using namespace AI::HL::STP;
 
 void AI::HL::STP::Action::move_spin(Player::Ptr player, const Point dest) {
-	player->move(dest, angle_mod(player->orientation() + 0.1), Point());
+	player->move(dest, angle_mod(player->orientation() + 0.2), Point());
 	player->type(AI::Flags::MoveType::NORMAL);
 }
