@@ -77,6 +77,8 @@ namespace AI {
 					 */
 					Region(const Region &region);
 
+					Region &operator=(const Region &r);
+
 				protected:
 					Type type_;
 					Coordinate p1, p2;

@@ -168,13 +168,13 @@ namespace AI {
 					public:
 						typedef std::function<double (const World &, Point, unsigned int, double &)> EvalFn;
 
-						TRegion region;
+						Region region;
 
 						CMEvaluationPosition();
 
-						CMEvaluationPosition(const TRegion &region, const EvalFn &eval, double pref_amount = 0, unsigned int n_points = 10);
+						CMEvaluationPosition(const Region &region, const EvalFn &eval, double pref_amount = 0, unsigned int n_points = 10);
 
-						void set(const TRegion &region_, const EvalFn &eval_, double pref_amount_ = 0, unsigned int n_points_ = 10);
+						void set(const Region &region_, const EvalFn &eval_, double pref_amount_ = 0, unsigned int n_points_ = 10);
 
 						void update(const World &world, unsigned int obs_flags_);
 
@@ -218,13 +218,12 @@ inline bool AI::HL::STP::Evaluation::CMEvaluation::defend_line(const World &worl
 	return defend_line(world, time, g1, g2, distmin, distmax, dist_off_ball, intercept, 0, Point(), 0.0, target, velocity);
 }
 
-inline AI::HL::STP::Evaluation::CMEvaluationPosition::CMEvaluationPosition() : obs_flags(0), last_updated(0), n_points(0), best(-1), pref_amount(0) {
+//inline AI::HL::STP::Evaluation::CMEvaluationPosition::CMEvaluationPosition() : obs_flags(0), last_updated(0), n_points(0), best(-1), pref_amount(0) {}
+
+inline AI::HL::STP::Evaluation::CMEvaluationPosition::CMEvaluationPosition(const Region &region, const EvalFn &eval, double pref_amount, unsigned int n_points) : region(region), eval(eval), obs_flags(0), last_updated(0), n_points(n_points), best(-1), pref_amount(pref_amount) {
 }
 
-inline AI::HL::STP::Evaluation::CMEvaluationPosition::CMEvaluationPosition(const TRegion &region, const EvalFn &eval, double pref_amount, unsigned int n_points) : region(region), eval(eval), obs_flags(0), last_updated(0), n_points(n_points), best(-1), pref_amount(pref_amount) {
-}
-
-inline void AI::HL::STP::Evaluation::CMEvaluationPosition::set(const TRegion &region_, const EvalFn &eval_, double pref_amount_, unsigned int n_points_) {
+inline void AI::HL::STP::Evaluation::CMEvaluationPosition::set(const Region &region_, const EvalFn &eval_, double pref_amount_, unsigned int n_points_) {
 	region = region_;
 	eval = eval_;
 	n_points = n_points_;
@@ -254,10 +253,10 @@ inline Point AI::HL::STP::Evaluation::CMEvaluationPosition::point() const {
 inline double AI::HL::STP::Evaluation::CMEvaluationPosition::angle() const {
 	return angles[best];
 }
-
+/*
 inline Point AI::HL::STP::Evaluation::CMEvaluationPosition::point_from_distribution(const World &w) {
 	return region.sample(w);
 }
-
+*/
 #endif
 

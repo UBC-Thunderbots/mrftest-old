@@ -45,7 +45,7 @@ namespace {
   			Point prev_target;
   			bool prev_target_set;
 
-  			CMEvaluationPosition eval;
+  			//CMEvaluationPosition eval;
 
 			bool kicked;
 			bool done() const{
@@ -219,14 +219,15 @@ void TShoot::execute() {
 		kicked = Action::shoot(world, player, target);		
 		
   	} else {
-    		eval.update(world, 0);
+    		//eval.update(world, 0);
 
 		//Action::move(player, (target - player->position()).orientation(), target);
 		//kicked = Action::shoot(world, player, target);
 
-		kicked = Action::shoot(world, player, eval.point());
-		Action::move(player, eval.angle(), eval.point());		
+		//kicked = Action::shoot(world, player, eval.point());
+		//Action::move(player, eval.angle(), eval.point());		
 
+		kicked = Action::shoot(world, player, world.field().enemy_goal());
   	}
 }
 

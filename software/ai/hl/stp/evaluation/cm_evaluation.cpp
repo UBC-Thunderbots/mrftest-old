@@ -1014,7 +1014,7 @@ void AI::HL::STP::Evaluation::CMEvaluationPosition::update(const World &world, u
 	// Check the new points to make sure they're within the region.
 	// Passed here by add_point().
 	for (std::size_t i = 0; i < new_points.size(); i++) {
-		if (!region.in_region(world, new_points[i])) {
+		if (!region.inside(new_points[i])) {
 			new_points.erase(new_points.begin() + i);
 			i--;
 		}
@@ -1025,15 +1025,15 @@ void AI::HL::STP::Evaluation::CMEvaluationPosition::update(const World &world, u
 		new_points.push_back(points[best]);
 		best = static_cast<int>(new_points.size()) - 1;
 	} else {
-		new_points.push_back(region.center(world));
+		new_points.push_back(region.center_position());
 		best = -1;
 	}
-
+	/*
 	// Pick new points.
 	while (new_points.size() < n_points) {
 		new_points.push_back(point_from_distribution(world));
 	}
-
+	*/
 	points = new_points;
 	new_points.clear();
 

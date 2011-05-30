@@ -63,3 +63,9 @@ Point Coordinate::velocity() const {
 	return Point();
 }
 
+Coordinate &Coordinate::operator=(const Coordinate &c) {
+	y_type = c.y_type;
+	o_type = c.o_type;
+	pos = c.pos;
+}
+

@@ -85,11 +85,13 @@ namespace AI {
 					 */
 					Point velocity() const;
 
+					Coordinate &operator=(const Coordinate &c);
+
 				protected:
-					const World *const world;
-					const YType y_type;
-					const OriginType o_type;
-					const Point pos;
+					const World *world;
+					YType y_type;
+					OriginType o_type;
+					Point pos;
 			};
 		}
 	}

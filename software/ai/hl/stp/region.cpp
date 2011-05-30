@@ -40,3 +40,9 @@ bool Region::inside(Point p) const {
 	}
 }
 
+Region &Region::operator=(const Region &r) {
+	type_ = r.type_;
+	p1 = r.p1; 
+	p2 = r.p2;
+	radius_ = r.radius_;
+}
