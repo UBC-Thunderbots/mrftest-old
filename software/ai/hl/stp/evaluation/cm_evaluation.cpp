@@ -236,26 +236,6 @@ namespace {
 	}
 }
 
-int AI::HL::STP::Evaluation::side_ball(const World &world) {
-	return std::fabs(world.ball().position().y) > world.field().centre_circle_radius() ? 1 : -1;
-}
-
-int AI::HL::STP::Evaluation::side_strong(const World &world) {
-	double center = 0.0;
-	for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
-		center += world.enemy_team().get(i)->position().y;
-	}
-	return center > 0.0 ? 1 : -1;
-}
-
-int AI::HL::STP::Evaluation::side_ball_or_strong(const World &world) {
-	if (std::fabs(world.ball().position().y) > world.field().goal_width() / 2) {
-		return side_ball(world);
-	} else {
-		return side_strong(world);
-	}
-}
-
 int AI::HL::STP::Evaluation::nearest_teammate(const World &world, Point p, double time) {
 	int dist_i = -1;
 	double dist = 0;

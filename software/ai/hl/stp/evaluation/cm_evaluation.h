@@ -39,21 +39,6 @@ namespace AI {
 				 */
 
 				/**
-				 * Checks if ball is on the sides.
-				 */
-				int side_ball(const World &world);
-
-				/**
-				 * Checks if the opponents are generally positioned on the sides.
-				 */
-				int side_strong(const World &world);
-
-				/**
-				 * Checks if the ball or the opponents are generally positioned on the sides.
-				 */
-				int side_ball_or_strong(const World &world);
-
-				/**
 				 * Finds the nearest teammate to a point on the field.
 				 */
 				int nearest_teammate(const World &world, Point p, double time);

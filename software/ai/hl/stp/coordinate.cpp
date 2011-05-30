@@ -20,7 +20,7 @@ Point Coordinate::position() const {
 
 	switch (y_type) {
 		case YType::BALL:
-			if (world->ball().position().y < 0) {
+			if (std::fabs(world->ball().position().y) < world->field().centre_circle_radius()) {
 				p.y *= -1;
 				flip_y = true;
 			}
