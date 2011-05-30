@@ -51,27 +51,9 @@ class MapperWindow::MappingsListModel : public Glib::Object, public AbstractList
 
 		Gtk::TreeModelColumn<Glib::ustring> name_column;
 
-		MappingsListModel() : Glib::ObjectBase(typeid(MappingsListModel)) {
-			alm_column_record.add(name_column);
-
-			const xmlpp::Element *joysticks_elt = Config::joysticks();
-			const xmlpp::Node::NodeList &joystick_elts = joysticks_elt->get_children();
-			for (auto i = joystick_elts.begin(), iend = joystick_elts.end(); i != iend; ++i) {
-				const xmlpp::Node *n = *i;
-				const xmlpp::Element *e = dynamic_cast<const xmlpp::Element *>(n);
-				if (e) {
-					if (e->get_name() != "joystick") {
-						throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose("Malformed config.xml (expected element of type joystick, found %1)", e->get_name())));
-					}
-					mappings.push_back(JoystickMapping(e));
-				}
-			}
-			std::sort(mappings.begin(), mappings.end());
-			for (auto i = mappings.begin(), iend = mappings.end(); i != iend; ++i) {
-				if (i + 1 != iend && i->name() == (i + 1)->name()) {
-					throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose("Malformed config.xml (duplicate joystick type %1)", i->name())));
-				}
-			}
+		static Glib::RefPtr<MappingsListModel> create() {
+			Glib::RefPtr<MappingsListModel> p(new MappingsListModel);
+			return p;
 		}
 
 		void save() {
@@ -124,6 +106,30 @@ class MapperWindow::MappingsListModel : public Glib::Object, public AbstractList
 			mappings.erase(mappings.begin() + index);
 			alm_row_deleted(index);
 		}
+
+	private:
+		MappingsListModel() : Glib::ObjectBase(typeid(MappingsListModel)) {
+			alm_column_record.add(name_column);
+
+			const xmlpp::Element *joysticks_elt = Config::joysticks();
+			const xmlpp::Node::NodeList &joystick_elts = joysticks_elt->get_children();
+			for (auto i = joystick_elts.begin(), iend = joystick_elts.end(); i != iend; ++i) {
+				const xmlpp::Node *n = *i;
+				const xmlpp::Element *e = dynamic_cast<const xmlpp::Element *>(n);
+				if (e) {
+					if (e->get_name() != "joystick") {
+						throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose("Malformed config.xml (expected element of type joystick, found %1)", e->get_name())));
+					}
+					mappings.push_back(JoystickMapping(e));
+				}
+			}
+			std::sort(mappings.begin(), mappings.end());
+			for (auto i = mappings.begin(), iend = mappings.end(); i != iend; ++i) {
+				if (i + 1 != iend && i->name() == (i + 1)->name()) {
+					throw std::runtime_error(Glib::locale_from_utf8(Glib::ustring::compose("Malformed config.xml (duplicate joystick type %1)", i->name())));
+				}
+			}
+		}
 };
 
 class MapperWindow::PreviewDevicesModel : public Glib::Object, public AbstractListModel {
@@ -133,10 +139,6 @@ class MapperWindow::PreviewDevicesModel : public Glib::Object, public AbstractLi
 		static Glib::RefPtr<PreviewDevicesModel> create() {
 			Glib::RefPtr<PreviewDevicesModel> p(new PreviewDevicesModel);
 			return p;
-		}
-
-		PreviewDevicesModel() : Glib::ObjectBase(typeid(PreviewDevicesModel)) {
-			alm_column_record.add(name_column);
 		}
 
 		void present(const Glib::ustring &model = Glib::ustring()) {
@@ -184,9 +186,13 @@ class MapperWindow::PreviewDevicesModel : public Glib::Object, public AbstractLi
 
 	private:
 		std::vector<Joystick::Ptr> devices;
+
+		PreviewDevicesModel() : Glib::ObjectBase(typeid(PreviewDevicesModel)) {
+			alm_column_record.add(name_column);
+		}
 };
 
-MapperWindow::MapperWindow() : mappings(new MappingsListModel), preview_devices(PreviewDevicesModel::create()), name_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mappings)), add_button(Gtk::Stock::ADD), del_button(Gtk::Stock::REMOVE), axes_frame("Axes"), axes_table(JoystickMapping::N_AXES, 3), buttons_frame("Buttons"), buttons_table(JoystickMapping::N_BUTTONS, 3), preview_device_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(preview_devices)) {
+MapperWindow::MapperWindow() : mappings(MappingsListModel::create()), preview_devices(PreviewDevicesModel::create()), name_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mappings)), add_button(Gtk::Stock::ADD), del_button(Gtk::Stock::REMOVE), axes_frame("Axes"), axes_table(JoystickMapping::N_AXES, 3), buttons_frame("Buttons"), buttons_table(JoystickMapping::N_BUTTONS, 3), preview_device_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(preview_devices)) {
 	set_title("Joystick Mapper");
 
 	name_chooser.append_column("Model", mappings->name_column);
