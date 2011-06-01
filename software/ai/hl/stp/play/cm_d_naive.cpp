@@ -7,9 +7,9 @@ using AI::HL::STP::Coordinate;
 
 BEGIN_PLAY(CMDNaive)
 INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2))
-APPLICABLE(defensive(world))
+APPLICABLE(defensive(world) && !ball_in_our_corner(world))
 DONE(offensive(world))
-FAIL(false)
+FAIL(ball_in_our_corner(world))
 BEGIN_ASSIGN()
 // GOALIE
 goalie_role.push_back(defend_solo_goalie(world));
