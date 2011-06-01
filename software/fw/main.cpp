@@ -195,7 +195,7 @@ namespace {
 		robot_option.set_short_name('r');
 		robot_option.set_description("Selects the robot to update");
 		robot_option.set_arg_description("ROBOT");
-		int robot = 0;
+		int robot = -1;
 		option_group.add_entry(robot_option, robot);
 
 		Glib::OptionEntry signature_option;
@@ -224,8 +224,8 @@ namespace {
 			std::cerr << "Exactly one of --fpga and --pic must be specified.\n";
 			return 1;
 		}
-		if (!(1 <= robot && robot <= 15) && !signature) {
-			std::cerr << "--robot must be between 1 and 15 or --signature must be specified.\n";
+		if (!(0 <= robot && robot <= 15) && !signature) {
+			std::cerr << "--robot must be between 0 and 15 or --signature must be specified.\n";
 			return 1;
 		}
 		if (!hex_filename.size()) {
