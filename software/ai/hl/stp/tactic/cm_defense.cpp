@@ -29,7 +29,7 @@ namespace {
 			bool intercepting;
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(Point(0, 0)));
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>((p1.position()+p2.position())/2));
 			}
 
 			void execute();
@@ -51,7 +51,7 @@ namespace {
 			bool intercepting;
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(Point(0, 0)));
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(center.position()));
 			}
 
 			void execute();
@@ -70,7 +70,7 @@ namespace {
 			bool intercepting;
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(Point(0, 0)));
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>((p1.position()+p2.position())/2));
 			}
 
 			void execute();
@@ -104,7 +104,6 @@ void TDefendLine::execute() {
 	// cm getObsFlags seems to check for priority, so should be handled by setting priority in our code
 	target = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, (v[0] + v[1]) / 2.0, 0 | OBS_OPPONENTS);
 
-
 	// Angle
 	angle = (ball - target).orientation();
 
@@ -126,13 +125,13 @@ void TDefendPoint::execute() {
 		target = ball;
 		velocity = Point(0, 0);
 	}
-
-	// Angle
-	angle = (target - centerv).orientation();
-
+	
 	Point mypos = player->position();
 
 	target = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, centerv, 0 | OBS_OPPONENTS);
+
+	// Angle
+	angle = (target - centerv).orientation();
 
 	player->move(target, angle, velocity);
 }
@@ -148,12 +147,12 @@ void TDefendLane::execute() {
 
 	Evaluation::CMEvaluation::defend_on_line(world, LATENCY_DELAY, v0, v1, intercepting, target, velocity);
 
-	angle = (world.ball().position() - target).orientation();
-
 	Point opt0 = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, v0, 0 | OBS_OPPONENTS);
 	Point opt1 = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, v1, 0 | OBS_OPPONENTS);
 
 	target = ((target - opt0).len() < (target - opt1).len()) ? opt0 : opt1;
+
+	angle = (world.ball().position() - target).orientation();
 
 	player->move(target, angle, velocity);
 }

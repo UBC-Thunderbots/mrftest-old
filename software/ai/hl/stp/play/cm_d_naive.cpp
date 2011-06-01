@@ -21,11 +21,11 @@ roles[0].push_back(tactive_def(world));
 
 // ROLE 2 (optional)
 // cm defend point 1
-roles[2].push_back(tdefend_point(world, Coordinate(world, Point(-1.4, 0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.5));
+roles[1].push_back(tdefend_point(world, Coordinate(world, Point(-1.4, 0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 0.5));
 
 // ROLE 3 (optional)
 // cm defend point 2
-roles[3].push_back(tdefend_point(world, Coordinate(world, Point(-1.4, -0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 1.0));
+roles[2].push_back(tdefend_point(world, Coordinate(world, Point(-1.4, -0.25), Coordinate::YType::BALL, Coordinate::OriginType::BALL), 0, 1.0));
 
 // ROLE 4 (optional)
 // cm defend lane
