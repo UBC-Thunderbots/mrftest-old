@@ -41,3 +41,4 @@ roles[3].push_back(block_pass(world, Enemy::closest_pass(world, Enemy::closest_b
 roles[3].push_back(block_pass(world, Enemy::closest_pass(world, Enemy::closest_ball(world, 0)->evaluate(), 1)));
 END_ASSIGN()
 END_PLAY()
+

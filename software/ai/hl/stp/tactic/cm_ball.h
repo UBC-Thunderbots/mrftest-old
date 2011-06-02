@@ -8,14 +8,14 @@
 namespace AI {
 	namespace HL {
 		namespace STP {
-			namespace Tactic {				
+			namespace Tactic {
 				/**
 				 * Shoot
 				 */
 				Tactic::Ptr tshoot(const World &world);
 
 				/**
-				 * Steal 
+				 * Steal
 				 */
 				Tactic::Ptr tsteal(const World &world);
 
@@ -48,7 +48,6 @@ namespace AI {
 				 * Spin to Region
 				 */
 				Tactic::Ptr tspin_to_region(const World &world, Region _region);
-
 			}
 		}
 	}

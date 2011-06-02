@@ -73,16 +73,17 @@ namespace {
 				std::sort(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
 
 				// passer grabs ball
-				if (!players[0]->has_ball())
+				if (!players[0]->has_ball()) {
 					Action::chase(world, players[0]);
+				}
 
 				// passee move to target
 				Action::move(players[1], (world.ball().position() - players[1]->position()).orientation(), targets[pass_target]);
 				// passer shoots
 				bool kicked = false;
-				
-				if(players[0]->has_ball()){
-				 	if(Action::shoot(world, players[0], targets[pass_target])) kicked = true;
+
+				if (players[0]->has_ball()) {
+					if (Action::shoot(world, players[0], targets[pass_target])) { kicked = true; }
 				}
 
 				// passee grabs ball

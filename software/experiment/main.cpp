@@ -61,7 +61,7 @@ namespace {
 		std::cout << "OK\n";
 
 		Glib::RefPtr<Glib::MainLoop> main_loop = Glib::MainLoop::create();
-		std::vector<std::unique_ptr<RobotExperimentReceiver>> v;
+		std::vector<std::unique_ptr<RobotExperimentReceiver> > v;
 		for (unsigned int i = 0; i < 16; ++i) {
 			v.push_back(std::unique_ptr<RobotExperimentReceiver>(new RobotExperimentReceiver(dongle, i, main_loop)));
 		}

@@ -27,7 +27,7 @@ namespace BitcodecPrimitives {
 			void operator()(void *buffer, T value) const {
 				uint8_t *p = static_cast<uint8_t *>(buffer) + (Offset / 8);
 				*p = static_cast<uint8_t>(*p | (((value >> VALUE_SHIFT) & MASK) << (8 - (BITS_THIS + (Offset % 8)))));
-				Encoder<T, 0, Length - BITS_THIS>()(p + 1, value);
+				Encoder<T, 0, Length - BITS_THIS>() (p + 1, value);
 			}
 
 		private:
@@ -69,7 +69,7 @@ namespace BitcodecPrimitives {
 			T operator()(const void *buffer) const {
 				const uint8_t *p = static_cast<const uint8_t *>(buffer) + (Offset / 8);
 				T tmp = static_cast<T>(((static_cast<T>(*p) >> (8 - (BITS_THIS + (Offset % 8)))) & MASK) << (Length - BITS_THIS));
-				return tmp | Decoder<T, 0, Length - BITS_THIS>()(p + 1);
+				return tmp | Decoder<T, 0, Length - BITS_THIS>() (p + 1);
 			}
 
 		private:
@@ -105,11 +105,11 @@ namespace BitcodecPrimitives {
 	 *
 	 * \tparam Tail the third and subsequent intervals, each consisting of a position followed by a length.
 	 */
-	template<std::size_t Offset1, std::size_t Length1, std::size_t Offset2, std::size_t Length2, std::size_t ... Tail> struct OverlapChecker<Offset1, Length1, Offset2, Length2, Tail...> {
+	template<std::size_t Offset1, std::size_t Length1, std::size_t Offset2, std::size_t Length2, std::size_t ... Tail> struct OverlapChecker<Offset1, Length1, Offset2, Length2, Tail ...> {
 		/**
 		 * \brief \c true if none of the intervals overlap, or \c false if some intervals do overlap.
 		 */
-		static const bool OK = (Offset2 >= Offset1 + Length1) && OverlapChecker<Offset2, Length2, Tail...>::OK;
+		static const bool OK = (Offset2 >= Offset1 + Length1) && OverlapChecker<Offset2, Length2, Tail ...>::OK;
 	};
 
 	/**
@@ -147,11 +147,11 @@ namespace BitcodecPrimitives {
 	 *
 	 * \tparam Tail the remaining elements, each consiting of a starting offset followed by a length.
 	 */
-	template<std::size_t Offset, std::size_t Length, std::size_t ... Tail> struct LengthCalculator<Offset, Length, Tail...> {
+	template<std::size_t Offset, std::size_t Length, std::size_t ... Tail> struct LengthCalculator<Offset, Length, Tail ...> {
 		/**
 		 * \brief The number of bytes needed to hold all the elements.
 		 */
-		static const std::size_t BYTES = LengthCalculator<Tail...>::BYTES;
+		static const std::size_t BYTES = LengthCalculator<Tail ...>::BYTES;
 	};
 
 	/**

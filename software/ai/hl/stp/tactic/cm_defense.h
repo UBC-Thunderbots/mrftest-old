@@ -22,7 +22,6 @@ namespace AI {
 				 * Defend a lane
 				 */
 				Tactic::Ptr tdefend_lane(const World &world, Coordinate _p1, Coordinate _p2);
-
 			}
 		}
 	}

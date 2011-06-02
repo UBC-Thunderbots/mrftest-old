@@ -40,3 +40,4 @@ roles[2].push_back(defend_duo_defender(world));
 roles[3].push_back(block(world, Enemy::closest_ball(world, 0)));
 END_ASSIGN()
 END_PLAY()
+

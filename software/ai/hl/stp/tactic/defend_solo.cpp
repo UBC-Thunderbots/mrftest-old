@@ -44,3 +44,4 @@ Tactic::Ptr AI::HL::STP::Tactic::active_solo_goalie(const World &world) {
 	const Tactic::Ptr p(new SoloGoalie(world, true));
 	return p;
 }
+

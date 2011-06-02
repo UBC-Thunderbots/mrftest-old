@@ -43,3 +43,4 @@ roles[2].push_back(move(world, Point(-0.5 * world.field().length() + RESTRICTED_
 roles[3].push_back(move(world, Point(-0.5 * world.field().length() + RESTRICTED_ZONE_LENGTH + Robot::MAX_RADIUS, -5 * Robot::MAX_RADIUS)));
 END_ASSIGN()
 END_PLAY()
+

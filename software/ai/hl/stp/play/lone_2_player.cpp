@@ -23,3 +23,4 @@ goalie_role.push_back(defend_solo_goalie(world));
 roles[0].push_back(shoot(world));
 END_ASSIGN()
 END_PLAY()
+

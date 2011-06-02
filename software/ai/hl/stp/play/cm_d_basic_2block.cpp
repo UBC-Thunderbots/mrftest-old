@@ -8,16 +8,16 @@ using AI::HL::STP::Enemy;
 
 BEGIN_PLAY(CMDBasic2Block)
 INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2))
-APPLICABLE(defensive(world) && ball_x_less_than(world,-0.7))
+APPLICABLE(defensive(world) && ball_x_less_than(world, -0.7))
 DONE(offensive(world))
-FAIL(!ball_x_less_than(world,-0.7))
+FAIL(!ball_x_less_than(world, -0.7))
 BEGIN_ASSIGN()
 // GOALIE
 goalie_role.push_back(defend_duo_goalie(world));
 
 // ROLE 1
 // cm active def
-//roles[0].push_back(chase(world)); 
+// roles[0].push_back(chase(world));
 roles[0].push_back(tactive_def(world));
 
 // ROLE 2

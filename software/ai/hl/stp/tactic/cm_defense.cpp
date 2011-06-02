@@ -29,7 +29,7 @@ namespace {
 			bool intercepting;
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>((p1.position()+p2.position())/2));
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>((p1.position() + p2.position()) / 2));
 			}
 
 			void execute();
@@ -70,7 +70,7 @@ namespace {
 			bool intercepting;
 
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>((p1.position()+p2.position())/2));
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>((p1.position() + p2.position()) / 2));
 			}
 
 			void execute();
@@ -125,7 +125,7 @@ void TDefendPoint::execute() {
 		target = ball;
 		velocity = Point(0, 0);
 	}
-	
+
 	Point mypos = player->position();
 
 	target = Evaluation::CMEvaluation::find_open_position_and_yield(world, target, centerv, 0 | OBS_OPPONENTS);

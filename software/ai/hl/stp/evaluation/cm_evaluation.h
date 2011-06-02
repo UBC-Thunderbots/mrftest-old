@@ -147,7 +147,6 @@ namespace AI {
 					 */
 					Point find_open_position_and_yield(const World &world, Point p, Point toward, unsigned int obs_flags);
 				};
-
 			}
 		}
 	}

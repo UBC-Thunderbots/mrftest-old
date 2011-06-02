@@ -193,11 +193,10 @@ bool AI::HL::STP::Predicates::enemy_baller_can_pass_shoot(const World &world) {
 }
 
 bool AI::HL::STP::Predicates::offensive(const World &world) {
-	
 	return our_ball(world) || ball_on_their_side(world);
 }
 
 bool AI::HL::STP::Predicates::defensive(const World &world) {
-	
 	return their_ball(world) || ball_on_our_side(world);
 }
+

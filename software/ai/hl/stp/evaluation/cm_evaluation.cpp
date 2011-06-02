@@ -134,23 +134,23 @@ namespace {
 			}
 
 			b += v * t_to_line;
-			
-			
+
+
 			double x = offset_along_line(g1, g2, b);
-			
-			variance =  world.ball().position_covariance(time+t).len();
-			
+
+			variance = world.ball().position_covariance(time + t).len();
+
 			/*
-			//Matrix c = ball_kalman.predict_cov(double_to_timespec(time + t));
-			Matrix m = Matrix(4,1);
-			m(0,0) = gline_1.x;
-			m(1,0) = gline_1.y;
-			m(2,0) = m(3,0) = 0.0;
-			Matrix temp = c * m;
-			m.transpose();
-			temp *= m;
-			variance = temp(0,0);
-			//variance = (transpose(m) * c * m).e(0,0);
+			   //Matrix c = ball_kalman.predict_cov(double_to_timespec(time + t));
+			   Matrix m = Matrix(4,1);
+			   m(0,0) = gline_1.x;
+			   m(1,0) = gline_1.y;
+			   m(2,0) = m(3,0) = 0.0;
+			   Matrix temp = c * m;
+			   m.transpose();
+			   temp *= m;
+			   variance = temp(0,0);
+			   //variance = (transpose(m) * c * m).e(0,0);
 			 */
 			if (x < 0.0) {
 				x = 0;
@@ -214,23 +214,23 @@ namespace {
 
 		// Compute variance
 		// Matrix c = ball_kalman.predict_cov(double_to_timespec(time + closest_time));
-		
-		variance =  world.ball().position_covariance(time+closest_time).len();
-				
+
+		variance = world.ball().position_covariance(time + closest_time).len();
+
 		/*
-		Point perp = (target - point).norm();
-		Matrix m = Matrix(4,1);
-		m(0,0) = perp.x;
-		m(1,0) = perp.y;
-		m(2,0) = m(3,0) = 0.0;
-		Matrix temp = c * m;
-		m.transpose();
-		temp *= m;
-		variance = temp(0,0);
-		*/
-		if (closest_dist > radius) {			
+		   Point perp = (target - point).norm();
+		   Matrix m = Matrix(4,1);
+		   m(0,0) = perp.x;
+		   m(1,0) = perp.y;
+		   m(2,0) = m(3,0) = 0.0;
+		   Matrix temp = c * m;
+		   m.transpose();
+		   temp *= m;
+		   variance = temp(0,0);
+		 */
+		if (closest_dist > radius) {
 			variance = variance * exp(pow(closest_dist - radius, 2.0) / variance);
-		} 
+		}
 
 		return !isinf(variance);
 	}
@@ -582,10 +582,10 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 	if (pref_target_angle - a_end > 2 * M_PI - pref_target_angle) {
 		pref_target_angle -= 2 * M_PI;
 	}
-	
+
 	a.push_back(std::make_pair(0.0, 0));
 	a.push_back(std::make_pair(a_end, 0));
-	
+
 	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
 		if (!(obs_flags & OBS_TEAMMATE(i))) {
 			continue;
@@ -982,5 +982,4 @@ Point AI::HL::STP::Evaluation::CMEvaluation::find_open_position_and_yield(const 
 
 	return p;
 }
-
 

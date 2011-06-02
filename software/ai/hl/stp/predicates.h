@@ -86,12 +86,11 @@ namespace AI {
 				 * borrowed from cm, true if our ball or ball on their side
 				 */
 				bool offensive(const World &world);
-				
+
 				/**
 				 * borrowed from cm, true if their ball or ball on our side
-				 */	
-				bool defensive(const World &world); 
-	
+				 */
+				bool defensive(const World &world);
 			}
 		}
 	}

@@ -619,7 +619,7 @@ AsyncOperation<XBeeRobot::BuildSignatures>::Ptr XBeeRobot::firmware_read_build_s
 }
 
 void XBeeRobot::drive(const int(&wheels)[4]) {
-	static int16_t (XBeePackets::Drive::* const ELTS[4]) = {
+	static int16_t(XBeePackets::Drive::*const ELTS[4]) = {
 		&XBeePackets::Drive::wheel1,
 		&XBeePackets::Drive::wheel2,
 		&XBeePackets::Drive::wheel3,

@@ -39,3 +39,4 @@ roles[2].push_back(move(world, Point(0, 0.6)));
 roles[3].push_back(move(world, Point(0, -0.6)));
 END_ASSIGN()
 END_PLAY()
+

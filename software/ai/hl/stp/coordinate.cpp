@@ -30,7 +30,7 @@ Point Coordinate::position() const {
 			for (std::size_t i = 0; i < world->friendly_team().size(); i++) {
 				center += world->friendly_team().get(i)->position().y;
 			}
-			if (center < 0.0){
+			if (center < 0.0) {
 				p.y *= -1;
 				flip_y = true;
 			}
@@ -40,7 +40,7 @@ Point Coordinate::position() const {
 			for (std::size_t i = 0; i < world->enemy_team().size(); i++) {
 				center += world->enemy_team().get(i)->position().y;
 			}
-			if (center < 0.0){
+			if (center < 0.0) {
 				p.y *= -1;
 				flip_y = true;
 			}

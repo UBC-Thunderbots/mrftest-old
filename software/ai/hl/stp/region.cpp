@@ -34,7 +34,7 @@ Point Region::center_velocity() const {
 }
 
 Point Region::random_sample() const {
-	if (type_ ==  Type::RECTANGLE) {
+	if (type_ == Type::RECTANGLE) {
 		Point v0 = p1.position(), v1 = p2.position();
 		double w = (std::rand() / static_cast<double>(RAND_MAX) * 2 * radius_) - radius_;
 		double l = std::rand() / static_cast<double>(RAND_MAX) * (v0 - v1).len();
@@ -59,8 +59,9 @@ bool Region::inside(Point p) const {
 
 Region &Region::operator=(const Region &r) {
 	type_ = r.type_;
-	p1 = r.p1; 
+	p1 = r.p1;
 	p2 = r.p2;
 	radius_ = r.radius_;
 	return *this;
 }
+

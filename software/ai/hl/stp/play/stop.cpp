@@ -6,13 +6,13 @@
 using namespace AI::HL::STP::Play;
 using namespace AI::HL::W;
 namespace Predicates = AI::HL::STP::Predicates;
-	/**
-	 * Condition:
-	 * - It is the stop play
-	 *
-	 * Objective:
-	 * - Handle the stop play
-	 */
+/**
+ * Condition:
+ * - It is the stop play
+ *
+ * Objective:
+ * - Handle the stop play
+ */
 BEGIN_PLAY(Stop)
 INVARIANT(Predicates::playtype(world, AI::Common::PlayType::STOP))
 APPLICABLE(true)
@@ -31,7 +31,4 @@ roles[2].push_back(move_stop(world, 2));
 roles[3].push_back(move_stop(world, 3));
 END_ASSIGN()
 END_PLAY()
-
-
-
 

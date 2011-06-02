@@ -37,3 +37,4 @@ roles[2].push_back(defend_duo_extra(world));
 roles[3].push_back(offend(world));
 END_ASSIGN()
 END_PLAY()
+
