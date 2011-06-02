@@ -1,5 +1,4 @@
 #include "fw/ihex.h"
-#include "util/annunciator.h"
 #include "util/crc16.h"
 #include "util/noncopyable.h"
 #include "util/string.h"
