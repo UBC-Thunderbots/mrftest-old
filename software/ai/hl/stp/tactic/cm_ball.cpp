@@ -63,8 +63,10 @@ namespace {
 			TSteal(const World &world) : Tactic(world, true) {}
 
 		private:
-			bool target_set;
-
+			bool none;
+			bool done() const {
+				return none;
+			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				return select_baller(world, players);
 			}
@@ -219,6 +221,14 @@ void TShoot::execute() {
 }
 
 void TSteal::execute() {
+	none = false;
+	const EnemyTeam &enemy = world.enemy_team();
+	for (std::size_t i = 0; i < enemy.size(); ++i) {
+		if (AI::HL::Util::posses_ball(world, enemy.get(i))) {
+			none = true;
+			return;
+		}
+	}
 	Action::move_spin(player, world.ball().position());
 }
 
