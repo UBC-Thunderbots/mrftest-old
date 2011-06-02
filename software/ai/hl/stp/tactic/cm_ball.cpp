@@ -221,15 +221,14 @@ void TShoot::execute() {
 }
 
 void TSteal::execute() {
-	none = false;
+	none = true;
 	const EnemyTeam &enemy = world.enemy_team();
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		if (AI::HL::Util::posses_ball(world, enemy.get(i))) {
-			none = true;
-			return;
+			none = false;
 		}
 	}
-	Action::move_spin(player, world.ball().position());
+	if (!none) Action::move_spin(player, world.ball().position());
 }
 
 void TClear::execute() {
@@ -283,7 +282,6 @@ void TClear::execute() {
 	prev_target_set = true;
 
 	kicked = Action::shoot(world, player, target);
-	Action::move(world, player, target);
 }
 
 // might be better to just use our pass and receive pass
