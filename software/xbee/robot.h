@@ -97,6 +97,11 @@ class XBeeRobot : public ByRef {
 		Property<unsigned int> break_beam_reading;
 
 		/**
+		 * \brief Emitted when the robot sends a block of experiment data.
+		 */
+		sigc::signal<void, const void *, std::size_t> signal_experiment_data;
+
+		/**
 		 * \brief Erases the SPI flash chip on the robot.
 		 *
 		 * \return an asynchronous operation whose progress can be monitored.
@@ -201,7 +206,7 @@ class XBeeRobot : public ByRef {
 		 *
 		 * \param[in] active \c true to turn the charger on, or \c false to turn it off.
 		 */
-		void enable_chicker(bool active = true);
+		void enable_charger(bool active = true);
 
 		/**
 		 * \brief Executes a kick.
@@ -238,11 +243,11 @@ class XBeeRobot : public ByRef {
 		friend class XBeeDongle;
 
 		XBeeDongle &dongle;
-		XBeePackets::Drive drive_block;
+		XBeePackets::Drive drive_block, last_drive_block;
 
 		static Ptr create(XBeeDongle &dongle, unsigned int index);
 		XBeeRobot(XBeeDongle &dongle, unsigned int index);
-		void flush_drive();
+		void flush_drive(bool force = false);
 		void on_feedback(const uint8_t *data, std::size_t length);
 };
 

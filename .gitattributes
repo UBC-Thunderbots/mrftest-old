@@ -75,6 +75,7 @@ firmware/main/drive.h -text
 firmware/main/error_reporting.c -text
 firmware/main/feedback.c -text
 firmware/main/feedback.h -text
+firmware/main/kick_packet.def -text
 firmware/main/main.c -text
 firmware/main/params.c -text
 firmware/main/params.h -text
@@ -87,6 +88,7 @@ firmware/main/signal.h -text
 firmware/main/spi.c -text
 firmware/main/spi.h -text
 firmware/main/stack.h -text
+firmware/main/test_mode_packet.def -text
 firmware/main/wheel_controller.c -text
 firmware/main/wheel_controller.h -text
 firmware/pingen/Makefile -text
@@ -364,6 +366,7 @@ software/cppunit/util/bitcodec/simple.cpp -text
 software/cppunit/util/bitcodec/simple.def -text
 software/cppunit/util/bitcodec_primitives/decode.cpp -text
 software/cppunit/util/bitcodec_primitives/encode.cpp -text
+software/experiment/main.cpp -text
 software/fw/ihex.cpp -text
 software/fw/ihex.h -text
 software/fw/main.cpp -text
@@ -408,12 +411,12 @@ software/simulator/sockproto/proto.h -text
 software/simulator/team.cpp -text
 software/simulator/team.h -text
 software/style.txt -text
-software/test/chicker.cpp -text
-software/test/chicker.h -text
 software/test/drive.cpp -text
 software/test/drive.h -text
 software/test/feedback.cpp -text
 software/test/feedback.h -text
+software/test/kicker.cpp -text
+software/test/kicker.h -text
 software/test/launcher.cpp -text
 software/test/launcher.h -text
 software/test/main.cpp -text
@@ -496,8 +499,12 @@ software/xbee/dongle.cpp -text
 software/xbee/dongle.h -text
 software/xbee/drivepacket.def -text
 software/xbee/drivepacket.h -text
+software/xbee/kickpacket.def -text
+software/xbee/kickpacket.h -text
 software/xbee/libusb.cpp -text
 software/xbee/libusb.h -text
 software/xbee/robot.cpp -text
 software/xbee/robot.h -text
+software/xbee/testmodepacket.def -text
+software/xbee/testmodepacket.h -text
 software/xbeeconfig.cpp -text

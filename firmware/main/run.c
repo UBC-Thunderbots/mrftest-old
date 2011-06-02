@@ -4,11 +4,13 @@
 #include "error_reporting.h"
 #include "feedback.h"
 #include "fw.h"
+#include "kick_packet.h"
 #include "params.h"
 #include "parbus.h"
 #include "pins.h"
 #include "pipes.h"
 #include "spi.h"
+#include "test_mode_packet.h"
 #include "wheel_controller.h"
 #include "xbee_rxpacket.h"
 #include "xbee_txpacket.h"
@@ -17,6 +19,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+
+/**
+ * \brief Whether to run a scripted experiment.
+ */
+#define EXPERIMENT_MODE 0
 
 /**
  * \brief The XBee API ID for a transmit data packet.
@@ -120,12 +127,21 @@ void run(void) {
 	__data xbee_rxpacket_t *rxpacket;
 	__data const uint8_t *rxptr;
 	static xbee_tx16_header_t txheader = { XBEE_API_ID_TX_16, 0x00, 0x7B, 0x41, 0x00 };
-	static xbee_txpacket_iovec_t txiovs[4];
+	static xbee_txpacket_iovec_t txiovs[5];
 	static xbee_txpacket_t txpkt;
 	inbound_state_t inbound_state = INBOUND_STATE_IDLE;
 	static const uint8_t FEEDBACK_MICROPACKET_HEADER[2] = { 2 + sizeof(feedback_block_t), PIPE_FEEDBACK };
 	static feedback_block_t txpkt_feedback_shadow;
 	static uint8_t sequence[PIPE_MAX + 1];
+#if EXPERIMENT_MODE
+	static uint8_t experiment_data[256];
+	uint8_t index = 0, index_shadow;
+	enum {
+		EXPERIMENT_STATE_PRE,
+		EXPERIMENT_STATE_RUNNING,
+		EXPERIMENT_STATE_DONE,
+	} experiment_state = EXPERIMENT_STATE_PRE;
+#else
 	static firmware_response_t firmware_response;
 	BOOL firmware_response_pending = false;
 	enum {
@@ -136,10 +152,11 @@ void run(void) {
 	BOOL flash_erase_active = false;
 	static params_t flash_temp_params;
 	static uint8_t page_buffer[256];
-	uint8_t drive_timeout = 0;
-	const uint8_t robot_number = params.robot_number;
 	uint8_t status, i;
 	uint16_t crc;
+#endif
+	uint8_t drive_timeout = 0;
+	const uint8_t robot_number = params.robot_number;
 	BOOL fpga_ok;
 	uint8_t autokick_lockout_time = 0;
 	uint8_t battery_fail_count = 0;
@@ -274,6 +291,21 @@ void run(void) {
 							/* Shadow the feedback block to avoid byte tearing if it's updated shortly. */
 							memcpyram2ram(&txpkt_feedback_shadow, &feedback_block, sizeof(txpkt_feedback_shadow));
 							txpkt.num_iovs = 3;
+#if EXPERIMENT_MODE
+							if (experiment_state == EXPERIMENT_STATE_DONE) {
+								/* Send some of the experiment data. */
+								index_shadow = index;
+								txiovs[txpkt.num_iovs].len = 1;
+								txiovs[txpkt.num_iovs].ptr = &index_shadow;
+								++txpkt.num_iovs;
+								txiovs[txpkt.num_iovs].len = 32;
+								txiovs[txpkt.num_iovs].ptr = experiment_data + index;
+								++txpkt.num_iovs;
+
+								/* Advance the counter. */
+								index += 32;
+							}
+#else
 							if (firmware_response_pending) {
 								/* A firmware response is pending.
 								 * Add it to the packet. */
@@ -282,6 +314,7 @@ void run(void) {
 								++txpkt.num_iovs;
 								firmware_response_pending = false;
 							}
+#endif
 							/* Assign a frame number. */
 							if (!++txheader.frame_id) {
 								txheader.frame_id = 1;
@@ -306,14 +339,27 @@ void run(void) {
 							sequence[rxpacket->buf[5]] = (sequence[rxpacket->buf[5]] + 1) & 63;
 							if (rxpacket->buf[5] == PIPE_KICK) {
 								/* The packet contains a kick request. */
-								if (rxpacket->len == 11) {
-									parbus_write(10, (rxpacket->buf[8] & 0x7F) * 32);
-									parbus_write(11, (rxpacket->buf[9] & 0x7F) * 32);
-									parbus_write(12, ((rxpacket->buf[8] & 0x80) << 8) | ((rxpacket->buf[9] & 0x80) << 7) | (rxpacket->buf[10] * 32));
+								if (rxpacket->len == 7 + KICK_PACKET_BYTES) {
+									kick_packet_t kick_pkt;
+									kick_packet_decode(&kick_pkt, rxpacket->buf + 7);
+									parbus_write(10, kick_pkt.width1 * 32);
+									parbus_write(11, kick_pkt.width2 * 32);
+									parbus_write(12, (kick_pkt.offset * 32) | (kick_pkt.offset_sign ? 0x8000 : 0x0000));
 									autokick_lockout_time = AUTOKICK_LOCKOUT_TIME;
 								} else {
 									error_reporting_add(FAULT_OUT_MICROPACKET_BAD_LENGTH);
 								}
+							} else if (rxpacket->buf[5] == PIPE_TEST_MODE) {
+								/* The packet contains a test mode. */
+								if (rxpacket->len == 7 + TEST_MODE_PACKET_BYTES) {
+									/* Enable whatever test mode was requested. */
+									test_mode_packet_t test_mode_pkt;
+									test_mode_packet_decode(&test_mode_pkt, rxpacket->buf + 7);
+									parbus_write(6, (test_mode_pkt.test_class << 8) | test_mode_pkt.test_index);
+								} else {
+									error_reporting_add(FAULT_OUT_MICROPACKET_BAD_LENGTH);
+								}
+#if !EXPERIMENT_MODE
 							} else if (rxpacket->buf[5] == PIPE_FIRMWARE_OUT) {
 								/* The packet contains a firmware request. */
 								firmware_response_pending = false;
@@ -508,6 +554,7 @@ void run(void) {
 										error_reporting_add(FAULT_FIRMWARE_BAD_REQUEST);
 										break;
 								}
+#endif
 							}
 						}
 					} else {
@@ -521,6 +568,7 @@ void run(void) {
 					/* Transmission was successful.
 					 * Clean up the IOVs and mark state. */
 					inbound_state = INBOUND_STATE_IDLE;
+#if !EXPERIMENT_MODE
 					if (reboot_pending == REBOOT_PENDING_NEXT_PACKET) {
 						/* If a reboot is scheduled for the next packet, advance the counter. */
 						reboot_pending = REBOOT_PENDING_THIS_PACKET;
@@ -529,6 +577,7 @@ void run(void) {
 						INTCON = 0;
 						Reset();
 					}
+#endif
 				} else {
 					/* Tranmission failed.
 					 * Leave the packet in place and wait for the next polling time. */
@@ -545,6 +594,7 @@ void run(void) {
 			inbound_state = INBOUND_STATE_AWAITING_POLL;
 		}
 
+#if !EXPERIMENT_MODE
 		if (flash_erase_active) {
 			/* A flash erase operation was executing.
 			 * Check if it's finished yet. */
@@ -567,6 +617,7 @@ void run(void) {
 				params_commit();
 			}
 		}
+#endif
 
 		if (!ADCON0bits.GO) {
 			/* An analogue conversion has finished.
@@ -627,10 +678,10 @@ void run(void) {
 					ADCON0bits.CHS0 = 1;
 					ADCON0bits.GO = 1;
 					/* Fire autokick if ready. */
-					if (drive_timeout && drive_block.enable_autokick && feedback_block.flags.ball_in_beam && !autokick_lockout_time && (drive_block.autokick_t1 || drive_block.autokick_t2)) {
-						parbus_write(10, drive_block.autokick_t1 * 32);
-						parbus_write(11, drive_block.autokick_t2 * 32);
-						parbus_write(12, (drive_block.autokick_delta * 32) | (drive_block.autokick_mask1 ? 0x8000 : 0x0000) | (drive_block.autokick_mask2 ? 0x4000 : 0x0000));
+					if (drive_timeout && drive_block.enable_autokick && feedback_block.flags.ball_in_beam && !autokick_lockout_time) {
+						parbus_write(10, drive_block.autokick_width1 * 32);
+						parbus_write(11, drive_block.autokick_width2 * 32);
+						parbus_write(12, (drive_block.autokick_offset * 32) | (drive_block.autokick_offset_sign ? 0x8000 : 0x0000));
 						autokick_lockout_time = AUTOKICK_LOCKOUT_TIME;
 					}
 				} else {
@@ -663,11 +714,41 @@ void run(void) {
 				error_reporting_add(FAULT_CHICKER_NOT_PRESENT);
 			}
 
+#if EXPERIMENT_MODE
+			switch (experiment_state) {
+				case EXPERIMENT_STATE_PRE:
+					/* Run motor 0 at power 25. */
+					parbus_write(0, 0x01);
+					parbus_write(1, 25);
+
+					/* Tick. */
+					if (!++index) {
+						experiment_state = EXPERIMENT_STATE_RUNNING;
+					}
+					break;
+
+				case EXPERIMENT_STATE_RUNNING:
+					/* Run motor 0 at power 75. */
+					parbus_write(0, 0x01);
+					parbus_write(1, 75);
+
+					/* Record data. */
+					experiment_data[index] = (uint8_t) parbus_read(2);
+
+					/* Tick. */
+					if (!++index) {
+						experiment_state = EXPERIMENT_STATE_DONE;
+					}
+					break;
+
+				case EXPERIMENT_STATE_DONE:
+					/* Turn off the motors. */
+					parbus_write(0, 0);
+					break;
+			}
+#else
 			/* Control the wheels if and only if so ordered. */
 			if (drive_timeout && drive_block.enable_wheels) {
-				int16_t power;
-				uint16_t encoded;
-
 				/* Count this iteration against the timeout. */
 				--drive_timeout;
 
@@ -694,15 +775,13 @@ void run(void) {
 				parbus_write(5, 0);
 			}
 
-			/* Enable whatever test mode was requested. */
-			parbus_write(6, (drive_block.test_class << 4) | drive_block.test_target);
-
 			/* Send the general operational flags. */
 			parbus_write(0, flags_out);
 
 			/* Fill the radio feedback block. */
 			feedback_block.capacitor_voltage_raw = parbus_read(6);
 			feedback_block.flags.capacitor_charged = feedback_block.capacitor_voltage_raw > ((uint16_t) (215.0 / (220000.0 + 2200.0) * 2200.0 / 3.3 * 4095.0));
+#endif
 
 			/* Clear interrupt flag. */
 			PIR1bits.CCP1IF = 0;

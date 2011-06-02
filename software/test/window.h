@@ -1,7 +1,7 @@
 #ifndef TESTER_WINDOW_H
 #define TESTER_WINDOW_H
 
-#include "test/chicker.h"
+#include "test/kicker.h"
 #include "test/drive.h"
 #include "test/feedback.h"
 #include "test/params.h"
@@ -52,8 +52,8 @@ class TesterWindow : public Gtk::Window {
 
 		Gtk::VBox vbox2;
 
-		Gtk::Frame chicker_frame;
-		ChickerPanel chicker_panel;
+		Gtk::Frame kicker_frame;
+		KickerPanel kicker_panel;
 
 		Gtk::Frame params_frame;
 		TesterParamsPanel params_panel;

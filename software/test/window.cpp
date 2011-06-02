@@ -87,7 +87,7 @@ class TesterWindow::MappedJoysticksModel : public Glib::Object, public AbstractL
 		}
 };
 
-TesterWindow::TesterWindow(XBeeDongle &dongle, XBeeRobot::Ptr robot) : mapped_joysticks(MappedJoysticksModel::create()), robot(robot), feedback_frame("Feedback"), feedback_panel(dongle, robot), drive_frame("Drive"), drive_panel(robot), dribble_button("Dribble"), chicker_frame("Chicker"), chicker_panel(robot), params_frame("Parameters"), params_panel(robot), joystick_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mapped_joysticks)) {
+TesterWindow::TesterWindow(XBeeDongle &dongle, XBeeRobot::Ptr robot) : mapped_joysticks(MappedJoysticksModel::create()), robot(robot), feedback_frame("Feedback"), feedback_panel(dongle, robot), drive_frame("Drive"), drive_panel(robot), dribble_button("Dribble"), kicker_frame("Kicker"), kicker_panel(robot), params_frame("Parameters"), params_panel(robot), joystick_chooser(Glib::RefPtr<Gtk::TreeModel>::cast_static(mapped_joysticks)) {
 	set_title(Glib::ustring::compose("Tester (%1)", robot->index));
 
 	feedback_frame.add(feedback_panel);
@@ -101,8 +101,8 @@ TesterWindow::TesterWindow(XBeeDongle &dongle, XBeeRobot::Ptr robot) : mapped_jo
 
 	hbox.pack_start(vbox1, Gtk::PACK_EXPAND_WIDGET);
 
-	chicker_frame.add(chicker_panel);
-	vbox2.pack_start(chicker_frame, Gtk::PACK_SHRINK);
+	kicker_frame.add(kicker_panel);
+	vbox2.pack_start(kicker_frame, Gtk::PACK_SHRINK);
 
 	params_frame.add(params_panel);
 	vbox2.pack_start(params_frame, Gtk::PACK_SHRINK);
@@ -129,15 +129,12 @@ TesterWindow::~TesterWindow() = default;
 void TesterWindow::scram() {
 	drive_panel.scram();
 	dribble_button.set_active(false);
-	chicker_panel.scram();
+	kicker_panel.scram();
 }
 
 int TesterWindow::key_snoop(Widget *, GdkEventKey *event) {
 	if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_Z || event->keyval == GDK_z)) {
-		// Z letter scrams the system.
-		scram();
-	} else if (event->type == GDK_KEY_PRESS && (event->keyval == GDK_0)) {
-		// Zero digit sets all controls to zero but does not scram things.
+		// Z letter sets all controls to zero.
 		drive_panel.zero();
 		dribble_button.set_active(false);
 	}
@@ -199,7 +196,7 @@ void TesterWindow::on_joystick_kick_changed() {
 	Joystick::Ptr stick = mapped_joysticks->get_device(joystick_chooser.get_active_row_number());
 	const JoystickMapping &m = mapped_joysticks->get_mapping(stick);
 	if (m.has_button(JoystickMapping::BUTTON_KICK) && stick->buttons()[m.button(JoystickMapping::BUTTON_KICK)]) {
-		chicker_panel.fire();
+		kicker_panel.fire();
 	}
 }
 

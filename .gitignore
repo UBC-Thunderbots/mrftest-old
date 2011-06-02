@@ -37,8 +37,12 @@ firmware/main/*.hex
 firmware/main/*.lst
 firmware/main/*.map
 firmware/main/html
+firmware/main/kick_packet.c
+firmware/main/kick_packet.h
 firmware/main/pins.h
 firmware/main/pins.inc
+firmware/main/test_mode_packet.c
+firmware/main/test_mode_packet.h
 firmware/pingen/pingen
 firmware/shared/drive_packet.c
 firmware/shared/drive_packet.h

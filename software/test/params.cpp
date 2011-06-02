@@ -1,8 +1,13 @@
 #include "test/params.h"
+#include "util/algorithm.h"
 #include "util/string.h"
 #include <cstddef>
+#include <functional>
 #include <iomanip>
+#include <locale>
 #include <sstream>
+
+using namespace std::placeholders;
 
 namespace {
 	Glib::ustring format_channel(unsigned int ch) {
@@ -26,9 +31,11 @@ TesterParamsPanel::TesterParamsPanel(XBeeRobot::Ptr robot) : Gtk::Table(6, 2), r
 	dribble_power.signal_value_changed().connect(sigc::mem_fun(this, &TesterParamsPanel::on_change));
 	commit.signal_clicked().connect(sigc::mem_fun(this, &TesterParamsPanel::on_commit));
 	reboot.signal_clicked().connect(sigc::mem_fun(this, &TesterParamsPanel::on_reboot));
-	test_mode.set_max_length(2);
-	test_mode.set_width_chars(2);
+	test_mode.set_max_length(4);
+	test_mode.set_width_chars(4);
+	test_mode.signal_changed().connect(sigc::mem_fun(this, &TesterParamsPanel::on_test_mode_edited));
 	set_test_mode.signal_clicked().connect(sigc::mem_fun(this, &TesterParamsPanel::on_set_test_mode));
+	set_test_mode.set_sensitive(false);
 
 	attach(channel0label, 0, 1, 0, 1, Gtk::SHRINK | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
 	attach(channels[0], 1, 2, 0, 1, Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK | Gtk::FILL);
@@ -133,18 +140,19 @@ void TesterParamsPanel::on_reboot_done(AsyncOperation<void>::Ptr op) {
 	activate_controls();
 }
 
-void TesterParamsPanel::on_set_test_mode() {
+void TesterParamsPanel::on_test_mode_edited() {
 	const Glib::ustring &text = test_mode.get_text();
-	if (!(text.size() == 2 && text[0] >= '0' && text[0] <= '7' && text[1] >= '0' && text[1] <= '7')) {
-		Gtk::MessageDialog md(*dynamic_cast<Gtk::Window *>(get_toplevel()), "Invalid test mode", false, Gtk::MESSAGE_ERROR);
-		md.run();
-		return;
+	bool ok = text.size() == 4;
+	for (auto i = text.begin(), iend = text.end(); i != iend; ++i) {
+		ok = ok && std::isxdigit(*i);
 	}
+	set_test_mode.set_sensitive(ok);
+}
+
+void TesterParamsPanel::on_set_test_mode() {
 	std::wistringstream iss(ustring2wstring(test_mode.get_text()));
 	unsigned int mode;
 	iss >> std::hex >> mode;
-	if (mode < 255) {
-		robot->test_mode(mode);
-	}
+	robot->test_mode(mode);
 }
 

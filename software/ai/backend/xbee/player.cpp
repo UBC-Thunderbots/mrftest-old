@@ -135,8 +135,8 @@ void Player::tick(bool halt) {
 	// Dribbler should always run except in halt.
 	bot->dribble(!halt);
 
-	// Chicker should always charge except in halt.
-	bot->enable_chicker(!halt);
+	// Kicker should always charge except in halt.
+	bot->enable_charger(!halt);
 
 	// Calculations.
 	if (bot->ball_on_dribbler) {

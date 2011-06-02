@@ -1,5 +1,5 @@
-#ifndef TEST_CHICKER_H
-#define TEST_CHICKER_H
+#ifndef TEST_KICKER_H
+#define TEST_KICKER_H
 
 #include "xbee/robot.h"
 #include <gtkmm.h>
@@ -7,14 +7,14 @@
 /**
  * \brief A panel that lets the user manually control the kicking subsystem.
  */
-class ChickerPanel : public Gtk::Table {
+class KickerPanel : public Gtk::Table {
 	public:
 		/**
-		 * \brief Constructs a new ChickerPanel.
+		 * \brief Constructs a new KickerPanel.
 		 *
 		 * \param[in] robot the robot to control.
 		 */
-		ChickerPanel(XBeeRobot::Ptr robot);
+		KickerPanel(XBeeRobot::Ptr robot);
 
 		/**
 		 * \brief Shuts down the charger.
@@ -41,8 +41,6 @@ class ChickerPanel : public Gtk::Table {
 
 		void on_alive_changed();
 		void on_charge_changed();
-		void on_pulse_width_changed();
-		void on_pulse_offset_changed();
 		void on_kick();
 		void on_autokick_changed();
 };

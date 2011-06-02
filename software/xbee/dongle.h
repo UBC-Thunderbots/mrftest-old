@@ -96,7 +96,7 @@ class XBeeDongle : public NonCopyable {
 			PIPE_FEEDBACK,
 
 			/**
-			 * \brief An interrupt pipe that allows the robot to be ordered to kick or chip.
+			 * \brief A message pipe that allows the robot to be ordered to kick or chip.
 			 */
 			PIPE_KICK,
 
@@ -106,9 +106,19 @@ class XBeeDongle : public NonCopyable {
 			PIPE_FIRMWARE_OUT,
 
 			/**
-			 * \brief An interrupt pipe that carries responses to firmware upgrade operation requests
+			 * \brief A message pipe that carries responses to firmware upgrade operation requests.
 			 */
 			PIPE_FIRMWARE_IN,
+
+			/**
+			 * \brief A message pipe that carries test mode settings.
+			 */
+			PIPE_TEST_MODE,
+
+			/**
+			 * \brief A message pipe that carries data from a scripted experiment.
+			 */
+			PIPE_EXPERIMENT_DATA,
 		};
 
 		/**
@@ -305,7 +315,7 @@ class XBeeDongle : public NonCopyable {
 		Property<XBeesState> xbees_state;
 
 		/**
-		 * \brief Emitted when a message is received on an interrupt pipe.
+		 * \brief Emitted when a message is received on a message pipe.
 		 *
 		 * \param[in] robot the robot number.
 		 *
@@ -315,7 +325,7 @@ class XBeeDongle : public NonCopyable {
 		 *
 		 * \param[in] length the length of the message.
 		 */
-		sigc::signal<void, unsigned int, Pipe, const void *, std::size_t> signal_interrupt_message_received;
+		sigc::signal<void, unsigned int, Pipe, const void *, std::size_t> signal_message_received;
 
 		/**
 		 * \brief Constructs a new XBeeDongle.

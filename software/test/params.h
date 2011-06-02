@@ -46,6 +46,7 @@ class TesterParamsPanel : public Gtk::Table {
 		void on_commit_done(AsyncOperation<void>::Ptr op);
 		void on_reboot();
 		void on_reboot_done(AsyncOperation<void>::Ptr op);
+		void on_test_mode_edited();
 		void on_set_test_mode();
 };
 
