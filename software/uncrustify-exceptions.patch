@@ -1,6 +1,6 @@
 Index: simulator/simulator.cpp
 ===================================================================
---- simulator/simulator.cpp	(revision 5737)
+--- simulator/simulator.cpp	(revision 5868)
 +++ simulator/simulator.cpp	(working copy)
 @@ -174,8 +174,8 @@
  	}
@@ -24,7 +24,7 @@ Index: simulator/simulator.cpp
  			break;
 Index: geom/point.h
 ===================================================================
---- geom/point.h	(revision 5737)
+--- geom/point.h	(revision 5868)
 +++ geom/point.h	(working copy)
 @@ -239,7 +239,7 @@
  	 *
@@ -46,7 +46,7 @@ Index: geom/point.h
  	}
 Index: ai/backend/simulator/ball.h
 ===================================================================
---- ai/backend/simulator/ball.h	(revision 5737)
+--- ai/backend/simulator/ball.h	(revision 5868)
 +++ ai/backend/simulator/ball.h	(working copy)
 @@ -29,7 +29,7 @@
  					 *
@@ -59,7 +59,7 @@ Index: ai/backend/simulator/ball.h
  					 * Indicates that the mouse was pressed over the visualizer.
 Index: ai/backend/simulator/player.h
 ===================================================================
---- ai/backend/simulator/player.h	(revision 5737)
+--- ai/backend/simulator/player.h	(revision 5868)
 +++ ai/backend/simulator/player.h	(working copy)
 @@ -43,14 +43,14 @@
  					 *
@@ -80,7 +80,7 @@ Index: ai/backend/simulator/player.h
  					 * Indicates that the mouse was pressed over the visualizer.
 Index: ai/backend/simulator/backend.cpp
 ===================================================================
---- ai/backend/simulator/backend.cpp	(revision 5737)
+--- ai/backend/simulator/backend.cpp	(revision 5868)
 +++ ai/backend/simulator/backend.cpp	(working copy)
 @@ -129,8 +129,8 @@
  	}
@@ -136,7 +136,7 @@ Index: ai/backend/simulator/backend.cpp
  				simulator_playtype = packet.playtype;
 Index: ai/backend/simulator/ball.cpp
 ===================================================================
---- ai/backend/simulator/ball.cpp	(revision 5737)
+--- ai/backend/simulator/ball.cpp	(revision 5868)
 +++ ai/backend/simulator/ball.cpp	(working copy)
 @@ -7,7 +7,7 @@
  	be.signal_mouse_pressed.connect(sigc::mem_fun(this, &Ball::mouse_pressed));
@@ -149,7 +149,7 @@ Index: ai/backend/simulator/ball.cpp
  	ypred.add_datum(state.y, ts);
 Index: ai/backend/simulator/robot.h
 ===================================================================
---- ai/backend/simulator/robot.h	(revision 5737)
+--- ai/backend/simulator/robot.h	(revision 5868)
 +++ ai/backend/simulator/robot.h	(working copy)
 @@ -44,7 +44,7 @@
  					 *
@@ -162,7 +162,7 @@ Index: ai/backend/simulator/robot.h
  						ypred.add_datum(state.y, ts);
 Index: ai/backend/simulator/team.h
 ===================================================================
---- ai/backend/simulator/team.h	(revision 5737)
+--- ai/backend/simulator/team.h	(revision 5868)
 +++ ai/backend/simulator/team.h	(working copy)
 @@ -137,7 +137,7 @@
  					 *
@@ -184,7 +184,7 @@ Index: ai/backend/simulator/team.h
  
 Index: ai/backend/simulator/backend.h
 ===================================================================
---- ai/backend/simulator/backend.h	(revision 5737)
+--- ai/backend/simulator/backend.h	(revision 5868)
 +++ ai/backend/simulator/backend.h	(working copy)
 @@ -231,7 +231,7 @@
  					 *
@@ -197,7 +197,7 @@ Index: ai/backend/simulator/backend.h
  					const AI::BE::Simulator::Field &field() const;
 Index: ai/backend/simulator/player.cpp
 ===================================================================
---- ai/backend/simulator/player.cpp	(revision 5739)
+--- ai/backend/simulator/player.cpp	(revision 5868)
 +++ ai/backend/simulator/player.cpp	(working copy)
 @@ -8,7 +8,7 @@
  	return p;
@@ -210,7 +210,7 @@ Index: ai/backend/simulator/player.cpp
  	has_ball_ = state.has_ball;
 Index: ai/robot_controller/robot_controller.cpp
 ===================================================================
---- ai/robot_controller/robot_controller.cpp	(revision 5737)
+--- ai/robot_controller/robot_controller.cpp	(revision 5868)
 +++ ai/robot_controller/robot_controller.cpp	(working copy)
 @@ -25,7 +25,7 @@
  	}
@@ -223,7 +223,7 @@ Index: ai/robot_controller/robot_controller.cpp
  RobotController::RobotController(AI::RC::W::World &world, AI::RC::W::Player::Ptr player) : world(world), player(player) {
 Index: ai/navigator/pivot_navigator_aram.cpp
 ===================================================================
---- ai/navigator/pivot_navigator_aram.cpp	(revision 5737)
+--- ai/navigator/pivot_navigator_aram.cpp	(revision 5868)
 +++ ai/navigator/pivot_navigator_aram.cpp	(working copy)
 @@ -80,15 +80,15 @@
  			// targetPosition = Point(0, 0); // try to reach centre of field
@@ -246,7 +246,7 @@ Index: ai/navigator/pivot_navigator_aram.cpp
  			}
 Index: ai/navigator/util.cpp
 ===================================================================
---- ai/navigator/util.cpp	(revision 5737)
+--- ai/navigator/util.cpp	(revision 5868)
 +++ ai/navigator/util.cpp	(working copy)
 @@ -311,7 +311,7 @@
  		// circle radius then becomes the radius of the smallest circle that will contain the polygon
@@ -259,7 +259,7 @@ Index: ai/navigator/util.cpp
  		std::vector<Point> temp = seg_buffer_boundaries(segA, segB, radius, n_tot);
 Index: ai/navigator/astar_navigator.cpp
 ===================================================================
---- ai/navigator/astar_navigator.cpp	(revision 5737)
+--- ai/navigator/astar_navigator.cpp	(revision 5868)
 +++ ai/navigator/astar_navigator.cpp	(working copy)
 @@ -23,7 +23,7 @@
  
@@ -272,7 +272,7 @@ Index: ai/navigator/astar_navigator.cpp
  			PathPoint::Ptr parent;
 Index: ai/navigator/navigator.cpp
 ===================================================================
---- ai/navigator/navigator.cpp	(revision 5737)
+--- ai/navigator/navigator.cpp	(revision 5868)
 +++ ai/navigator/navigator.cpp	(working copy)
 @@ -8,7 +8,7 @@
  	return 0;
@@ -285,7 +285,7 @@ Index: ai/navigator/navigator.cpp
  Navigator::Navigator(World &world) : world(world) {
 Index: ai/navigator/rrt_planner.h
 ===================================================================
---- ai/navigator/rrt_planner.h	(revision 5737)
+--- ai/navigator/rrt_planner.h	(revision 5868)
 +++ ai/navigator/rrt_planner.h	(working copy)
 @@ -12,7 +12,7 @@
  
@@ -298,7 +298,7 @@ Index: ai/navigator/rrt_planner.h
  				unsigned int added_flags;
 Index: ai/navigator/pivot_navigator2.cpp
 ===================================================================
---- ai/navigator/pivot_navigator2.cpp	(revision 5737)
+--- ai/navigator/pivot_navigator2.cpp	(revision 5868)
 +++ ai/navigator/pivot_navigator2.cpp	(working copy)
 @@ -71,7 +71,7 @@
  
@@ -311,7 +311,7 @@ Index: ai/navigator/pivot_navigator2.cpp
  			path.push_back(std::make_pair(std::make_pair(destinationPosition, destinationOrientation), world.monotonic_time()));
 Index: ai/hl/hl.cpp
 ===================================================================
---- ai/hl/hl.cpp	(revision 5737)
+--- ai/hl/hl.cpp	(revision 5868)
 +++ ai/hl/hl.cpp	(working copy)
 @@ -1,5 +1,5 @@
  #include "ai/hl/hl.h"
@@ -322,7 +322,7 @@ Index: ai/hl/hl.cpp
  
 Index: ai/hl/stp/play/play.cpp
 ===================================================================
---- ai/hl/stp/play/play.cpp	(revision 5737)
+--- ai/hl/stp/play/play.cpp	(revision 5868)
 +++ ai/hl/stp/play/play.cpp	(working copy)
 @@ -8,7 +8,7 @@
  Play::Play(const World &world) : world(world) {
@@ -335,9 +335,9 @@ Index: ai/hl/stp/play/play.cpp
  PlayFactory::PlayFactory(const char *name) : Registerable<PlayFactory>(name) {
 Index: ai/hl/stp/play/simple_play.h
 ===================================================================
---- ai/hl/stp/play/simple_play.h	(revision 5739)
+--- ai/hl/stp/play/simple_play.h	(revision 5868)
 +++ ai/hl/stp/play/simple_play.h	(working copy)
-@@ -54,7 +54,7 @@
+@@ -56,7 +56,7 @@
  	}
  
  #define END_PLAY() \
@@ -348,7 +348,7 @@ Index: ai/hl/stp/play/simple_play.h
  #endif
 Index: ai/hl/stp/tactic/tactic.cpp
 ===================================================================
---- ai/hl/stp/tactic/tactic.cpp	(revision 5737)
+--- ai/hl/stp/tactic/tactic.cpp	(revision 5868)
 +++ ai/hl/stp/tactic/tactic.cpp	(working copy)
 @@ -25,7 +25,7 @@
  	return "no description";
@@ -361,7 +361,7 @@ Index: ai/hl/stp/tactic/tactic.cpp
  
 Index: ai/hl/util.cpp
 ===================================================================
---- ai/hl/util.cpp	(revision 5737)
+--- ai/hl/util.cpp	(revision 5868)
 +++ ai/hl/util.cpp	(working copy)
 @@ -188,8 +188,8 @@
  
@@ -376,7 +376,7 @@ Index: ai/hl/util.cpp
  
 Index: ai/logger.h
 ===================================================================
---- ai/logger.h	(revision 5737)
+--- ai/logger.h	(revision 5868)
 +++ ai/logger.h	(working copy)
 @@ -91,7 +91,7 @@
  			void on_tick();
@@ -389,7 +389,7 @@ Index: ai/logger.h
  
 Index: util/param.cpp
 ===================================================================
---- util/param.cpp	(revision 5737)
+--- util/param.cpp	(revision 5868)
 +++ util/param.cpp	(working copy)
 @@ -151,12 +151,11 @@
  
@@ -408,7 +408,7 @@ Index: util/param.cpp
  					static Allocator obj;
 Index: util/hungarian.cpp
 ===================================================================
---- util/hungarian.cpp	(revision 5737)
+--- util/hungarian.cpp	(revision 5868)
 +++ util/hungarian.cpp	(working copy)
 @@ -47,7 +47,7 @@
  		for (std::size_t y = 0; y < N; y++) {
@@ -419,9 +419,139 @@ Index: util/hungarian.cpp
  			std::size_t y = 0;
  			while (y < N && !(equal(sy[y], 0.0) && py[y] == std::numeric_limits<std::size_t>::max())) {
  				y++;
+Index: util/bitcodec.h
+===================================================================
+--- util/bitcodec.h	(revision 5868)
++++ util/bitcodec.h	(working copy)
+@@ -78,44 +78,44 @@
+ 
+ #if defined BITCODEC_GEN_HEADER
+ BITCODEC_NS_BEGIN
+-	struct BITCODEC_STRUCT_NAME {
+-		static const std::size_t BUFFER_SIZE = BitcodecPrimitives::LengthCalculator<0, 0
++struct BITCODEC_STRUCT_NAME {
++	static const std::size_t BUFFER_SIZE = BitcodecPrimitives::LengthCalculator<0, 0
+ #define BITCODEC_DATA_U(type, name, offset, length, def) \
+-			, offset, length
++	, offset, length
+ #define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
+-			, offset, length
++	, offset, length
+ #define BITCODEC_DATA_BOOL(name, offset, def) \
+-			, offset, 1
++	, offset, 1
+ #include BITCODEC_DEF_FILE
+ #undef BITCODEC_DATA_U
+ #undef BITCODEC_DATA_S
+ #undef BITCODEC_DATA_BOOL
+-			>::BYTES;
++	                                                                            >::BYTES;
+ 
+-		BITCODEC_STRUCT_NAME();
+-		BITCODEC_STRUCT_NAME(const void *buffer);
+-		void encode(void *buffer) const;
++	BITCODEC_STRUCT_NAME();
++	BITCODEC_STRUCT_NAME(const void *buffer);
++	void encode(void *buffer) const;
+ 
+ #define BITCODEC_DATA_U(type, name, offset, length, def) \
+-		static_assert(sizeof(type) >= (length + 7) / 8, "Element type must be large enough to contain bit count."); \
+-		type name;
++	static_assert(sizeof(type) >= (length + 7) / 8, "Element type must be large enough to contain bit count."); \
++	type name;
+ #define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
+-		static_assert(sizeof(type) >= (length + 7) / 8, "Element type must be large enough to contain bit count."); \
+-		static_assert(sizeof(type) == sizeof(utype), "Element target type and unsigned type must be equal sizes."); \
+-		type name;
++	static_assert(sizeof(type) >= (length + 7) / 8, "Element type must be large enough to contain bit count."); \
++	static_assert(sizeof(type) == sizeof(utype), "Element target type and unsigned type must be equal sizes."); \
++	type name;
+ #define BITCODEC_DATA_BOOL(name, offset, def) \
+-		bool name;
++	bool name;
+ #include BITCODEC_DEF_FILE
+ #undef BITCODEC_DATA_U
+ #undef BITCODEC_DATA_S
+ #undef BITCODEC_DATA_BOOL
+-	};
++};
+ 
+-	bool operator==(const BITCODEC_STRUCT_NAME &x, const BITCODEC_STRUCT_NAME &y);
++bool operator==(const BITCODEC_STRUCT_NAME &x, const BITCODEC_STRUCT_NAME &y);
+ 
+-	inline bool operator!=(const BITCODEC_STRUCT_NAME &x, const BITCODEC_STRUCT_NAME &y) {
+-		return !(x == y);
+-	}
++inline bool operator!=(const BITCODEC_STRUCT_NAME &x, const BITCODEC_STRUCT_NAME &y) {
++	return !(x == y);
++}
+ BITCODEC_NS_END
+ 
+ namespace {
+@@ -130,7 +130,7 @@
+ #undef BITCODEC_DATA_U
+ #undef BITCODEC_DATA_S
+ #undef BITCODEC_DATA_BOOL
+-		>::OK, "Packet fields overlap!");
++	                                                 >::OK, "Packet fields overlap!");
+ }
+ #endif
+ 
+@@ -152,11 +152,11 @@
+ 
+ BITCODEC_NS_PREFIX BITCODEC_STRUCT_NAME::BITCODEC_STRUCT_NAME(const void *buffer) {
+ #define BITCODEC_DATA_U(type, name, offset, length, def) \
+-	this->name = BitcodecPrimitives::Decoder<type, offset, length>()(buffer);
++	this->name = BitcodecPrimitives::Decoder<type, offset, length>() (buffer);
+ #define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
+-	this->name = BitcodecPrimitives::SignExtender<type, utype, length>()(BitcodecPrimitives::Decoder<utype, offset, length>()(buffer));
++	this->name = BitcodecPrimitives::SignExtender<type, utype, length>() (BitcodecPrimitives::Decoder<utype, offset, length>() (buffer));
+ #define BITCODEC_DATA_BOOL(name, offset, def) \
+-	this->name = !!BitcodecPrimitives::Decoder<uint8_t, offset, 1>()(buffer);
++	this->name = !!BitcodecPrimitives::Decoder<uint8_t, offset, 1>() (buffer);
+ #include BITCODEC_DEF_FILE
+ #undef BITCODEC_DATA_U
+ #undef BITCODEC_DATA_S
+@@ -166,11 +166,11 @@
+ void BITCODEC_NS_PREFIX BITCODEC_STRUCT_NAME::encode(void *buffer) const {
+ 	std::fill(static_cast<uint8_t *>(buffer), static_cast<uint8_t *>(buffer) + BUFFER_SIZE, 0);
+ #define BITCODEC_DATA_U(type, name, offset, length, def) \
+-	BitcodecPrimitives::Encoder<type, offset, length>()(buffer, this->name);
++	BitcodecPrimitives::Encoder<type, offset, length>() (buffer, this->name);
+ #define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
+-	BitcodecPrimitives::Encoder<utype, offset, length>()(buffer, static_cast<utype>(this->name));
++	BitcodecPrimitives::Encoder<utype, offset, length>() (buffer, static_cast<utype>(this->name));
+ #define BITCODEC_DATA_BOOL(name, offset, def) \
+-	BitcodecPrimitives::Encoder<uint8_t, offset, 1>()(buffer, this->name ? 1 : 0);
++	BitcodecPrimitives::Encoder<uint8_t, offset, 1>() (buffer, this->name ? 1 : 0);
+ #include BITCODEC_DEF_FILE
+ #undef BITCODEC_DATA_U
+ #undef BITCODEC_DATA_S
+@@ -178,8 +178,8 @@
+ }
+ 
+ BITCODEC_NS_BEGIN
+-	bool operator==(const BITCODEC_NS_PREFIX BITCODEC_STRUCT_NAME &x, const BITCODEC_NS_PREFIX BITCODEC_STRUCT_NAME &y) {
+-		return true
++bool operator==(const BITCODEC_NS_PREFIX BITCODEC_STRUCT_NAME &x, const BITCODEC_NS_PREFIX BITCODEC_STRUCT_NAME &y) {
++	return true
+ #define BITCODEC_DATA_U(type, name, offset, length, def) && x.name == y.name
+ #define BITCODEC_DATA_S(type, utype, name, offset, length, def) && x.name == y.name
+ #define BITCODEC_DATA_BOOL(name, offset, def) && x.name == y.name
+@@ -187,8 +187,8 @@
+ #undef BITCODEC_DATA_U
+ #undef BITCODEC_DATA_S
+ #undef BITCODEC_DATA_BOOL
+-			;
+-	}
++	;
++}
+ BITCODEC_NS_END
+ #endif
+ 
 Index: util/property.h
 ===================================================================
---- util/property.h	(revision 5737)
+--- util/property.h	(revision 5868)
 +++ util/property.h	(working copy)
 @@ -26,7 +26,7 @@
  		 *
@@ -443,7 +573,7 @@ Index: util/property.h
  			signal_changed_ = moveref.signal_changed_;
 Index: util/joystick.cpp
 ===================================================================
---- util/joystick.cpp	(revision 5737)
+--- util/joystick.cpp	(revision 5868)
 +++ util/joystick.cpp	(working copy)
 @@ -85,17 +85,17 @@
  Joystick::Joystick(const std::string &node) : fd(open_joystick(node)), node(node), name(get_name(fd)) {
@@ -477,7 +607,7 @@ Index: util/joystick.cpp
  				axes_[buffer[i].number] = buffer[i].value / 32767.0;
 Index: util/matrix.h
 ===================================================================
---- util/matrix.h	(revision 5737)
+--- util/matrix.h	(revision 5868)
 +++ util/matrix.h	(working copy)
 @@ -66,7 +66,7 @@
  		 *
@@ -588,7 +718,7 @@ Index: util/matrix.h
  }
 Index: util/byref.h
 ===================================================================
---- util/byref.h	(revision 5737)
+--- util/byref.h	(revision 5868)
 +++ util/byref.h	(working copy)
 @@ -154,7 +154,7 @@
  		 *
@@ -601,7 +731,7 @@ Index: util/byref.h
  
 Index: util/kalman/kalman.cpp
 ===================================================================
---- util/kalman/kalman.cpp	(revision 5737)
+--- util/kalman/kalman.cpp	(revision 5868)
 +++ util/kalman/kalman.cpp	(working copy)
 @@ -62,7 +62,7 @@
  	}
@@ -630,129 +760,3 @@ Index: util/kalman/kalman.cpp
  	}
  	p = (Matrix(2, 2, Matrix::InitFlag::IDENTITY) - kalman_gain * h) * p_priori;
  
-Index: util/bitcodec.h
-===================================================================
---- util/bitcodec.h	(revision 5865)
-+++ util/bitcodec.h	(working copy)
-@@ -65,23 +65,23 @@
- namespace {
- #endif
- 
--struct BITCODEC_STRUCT_NAME {
--	static const std::size_t BUFFER_SIZE = BitcodecPrimitives::LengthCalculator<0, 0
-+	struct BITCODEC_STRUCT_NAME {
-+		static const std::size_t BUFFER_SIZE = BitcodecPrimitives::LengthCalculator<0, 0
- #define BITCODEC_DATA_U(type, name, offset, length, def) \
--		, offset, length
-+	, offset, length
- #define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
--		, offset, length
-+	, offset, length
- #define BITCODEC_DATA_BOOL(name, offset, def) \
--		, offset, 1
-+	, offset, 1
- #include BITCODEC_DEF_FILE
- #undef BITCODEC_DATA_U
- #undef BITCODEC_DATA_S
- #undef BITCODEC_DATA_BOOL
--		>::BYTES;
-+		                                                                            >::BYTES;
- 
--	BITCODEC_STRUCT_NAME();
--	BITCODEC_STRUCT_NAME(const void *buffer);
--	void encode(void *buffer) const;
-+		BITCODEC_STRUCT_NAME();
-+		BITCODEC_STRUCT_NAME(const void *buffer);
-+		void encode(void *buffer) const;
- 
- #define BITCODEC_DATA_U(type, name, offset, length, def) \
- 	static_assert(sizeof(type) >= (length + 7) / 8, "Element type must be large enough to contain bit count."); \
-@@ -96,9 +96,9 @@
- #undef BITCODEC_DATA_U
- #undef BITCODEC_DATA_S
- #undef BITCODEC_DATA_BOOL
--};
-+	};
- 
--inline BITCODEC_STRUCT_NAME::BITCODEC_STRUCT_NAME() {
-+	inline BITCODEC_STRUCT_NAME::BITCODEC_STRUCT_NAME() {
- #define BITCODEC_DATA_U(type, name, offset, length, def) \
- 	this->name = def;
- #define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
-@@ -109,37 +109,37 @@
- #undef BITCODEC_DATA_U
- #undef BITCODEC_DATA_S
- #undef BITCODEC_DATA_BOOL
--}
-+	}
- 
--inline BITCODEC_STRUCT_NAME::BITCODEC_STRUCT_NAME(const void *buffer) {
-+	inline BITCODEC_STRUCT_NAME::BITCODEC_STRUCT_NAME(const void *buffer) {
- #define BITCODEC_DATA_U(type, name, offset, length, def) \
--	this->name = BitcodecPrimitives::Decoder<type, offset, length>()(buffer);
-+	this->name = BitcodecPrimitives::Decoder<type, offset, length>() (buffer);
- #define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
--	this->name = BitcodecPrimitives::SignExtender<type, utype, length>()(BitcodecPrimitives::Decoder<utype, offset, length>()(buffer));
-+	this->name = BitcodecPrimitives::SignExtender<type, utype, length>() (BitcodecPrimitives::Decoder<utype, offset, length>() (buffer));
- #define BITCODEC_DATA_BOOL(name, offset, def) \
--	this->name = !!BitcodecPrimitives::Decoder<uint8_t, offset, 1>()(buffer);
-+	this->name = !!BitcodecPrimitives::Decoder<uint8_t, offset, 1>() (buffer);
- #include BITCODEC_DEF_FILE
- #undef BITCODEC_DATA_U
- #undef BITCODEC_DATA_S
- #undef BITCODEC_DATA_BOOL
--}
-+	}
- 
--inline void BITCODEC_STRUCT_NAME::encode(void *buffer) const {
--	std::fill(static_cast<uint8_t *>(buffer), static_cast<uint8_t *>(buffer) + BUFFER_SIZE, 0);
-+	inline void BITCODEC_STRUCT_NAME::encode(void *buffer) const {
-+		std::fill(static_cast<uint8_t *>(buffer), static_cast<uint8_t *>(buffer) + BUFFER_SIZE, 0);
- #define BITCODEC_DATA_U(type, name, offset, length, def) \
--	BitcodecPrimitives::Encoder<type, offset, length>()(buffer, this->name);
-+	BitcodecPrimitives::Encoder<type, offset, length>() (buffer, this->name);
- #define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
--	BitcodecPrimitives::Encoder<utype, offset, length>()(buffer, static_cast<utype>(this->name));
-+	BitcodecPrimitives::Encoder<utype, offset, length>() (buffer, static_cast<utype>(this->name));
- #define BITCODEC_DATA_BOOL(name, offset, def) \
--	BitcodecPrimitives::Encoder<uint8_t, offset, 1>()(buffer, this->name ? 1 : 0);
-+	BitcodecPrimitives::Encoder<uint8_t, offset, 1>() (buffer, this->name ? 1 : 0);
- #include BITCODEC_DEF_FILE
- #undef BITCODEC_DATA_U
- #undef BITCODEC_DATA_S
- #undef BITCODEC_DATA_BOOL
--}
-+	}
- 
--inline bool operator==(const BITCODEC_STRUCT_NAME &x, const BITCODEC_STRUCT_NAME &y) {
--	return true
-+	inline bool operator==(const BITCODEC_STRUCT_NAME &x, const BITCODEC_STRUCT_NAME &y) {
-+		return true
- #define BITCODEC_DATA_U(type, name, offset, length, def) && x.name == y.name
- #define BITCODEC_DATA_S(type, utype, name, offset, length, def) && x.name == y.name
- #define BITCODEC_DATA_BOOL(name, offset, def) && x.name == y.name
-@@ -148,11 +148,11 @@
- #undef BITCODEC_DATA_S
- #undef BITCODEC_DATA_BOOL
- 		;
--}
-+	}
- 
--inline bool operator!=(const BITCODEC_STRUCT_NAME &x, const BITCODEC_STRUCT_NAME &y) {
--	return !(x == y);
--}
-+	inline bool operator!=(const BITCODEC_STRUCT_NAME &x, const BITCODEC_STRUCT_NAME &y) {
-+		return !(x == y);
-+	}
- 
- #if defined BITCODEC_NAMESPACE
- }
-@@ -172,7 +172,7 @@
- #undef BITCODEC_DATA_U
- #undef BITCODEC_DATA_S
- #undef BITCODEC_DATA_BOOL
--		>::OK, "Packet fields overlap!");
-+	                                                 >::OK, "Packet fields overlap!");
- }
- 
- /** \endcond */
