@@ -497,14 +497,17 @@ software/util/time.h -text
 software/util/timestep.h -text
 software/xbee/dongle.cpp -text
 software/xbee/dongle.h -text
+software/xbee/drivepacket.cpp -text
 software/xbee/drivepacket.def -text
 software/xbee/drivepacket.h -text
+software/xbee/kickpacket.cpp -text
 software/xbee/kickpacket.def -text
 software/xbee/kickpacket.h -text
 software/xbee/libusb.cpp -text
 software/xbee/libusb.h -text
 software/xbee/robot.cpp -text
 software/xbee/robot.h -text
+software/xbee/testmodepacket.cpp -text
 software/xbee/testmodepacket.def -text
 software/xbee/testmodepacket.h -text
 software/xbeeconfig.cpp -text

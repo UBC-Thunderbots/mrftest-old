@@ -6,7 +6,11 @@
 #define BITCODEC_DEF_FILE "cppunit/util/bitcodec/complicated.def"
 #define BITCODEC_STRUCT_NAME ComplicatedPacket
 #define BITCODEC_ANON_NAMESPACE
+#define BITCODEC_GEN_HEADER
+#define BITCODEC_GEN_SOURCE
 #include "util/bitcodec.h"
+#undef BITCODEC_GEN_SOURCE
+#undef BITCODEC_GEN_HEADER
 #undef BITCODEC_DEF_FILE
 #undef BITCODEC_STRUCT_NAME
 #undef BITCODEC_ANON_NAMESPACE

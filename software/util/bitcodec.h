@@ -58,107 +58,65 @@
 #if !defined BITCODEC_STRUCT_NAME
 #error Must define BITCODEC_STRUCT_NAME before including bitcodec.h!
 #endif
-
-#if defined BITCODEC_NAMESPACE
-namespace BITCODEC_NAMESPACE {
-#elif defined BITCODEC_ANON_NAMESPACE
-namespace {
+#if !defined BITCODEC_GEN_HEADER && !defined BITCODEC_GEN_SOURCE
+#error Must define at least one of BITCODEC_GEN_HEADER or BITCODEC_GEN_SOURCE before including bitcodec.h!
 #endif
 
-struct BITCODEC_STRUCT_NAME {
-	static const std::size_t BUFFER_SIZE = BitcodecPrimitives::LengthCalculator<0, 0
-#define BITCODEC_DATA_U(type, name, offset, length, def) \
-		, offset, length
-#define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
-		, offset, length
-#define BITCODEC_DATA_BOOL(name, offset, def) \
-		, offset, 1
-#include BITCODEC_DEF_FILE
-#undef BITCODEC_DATA_U
-#undef BITCODEC_DATA_S
-#undef BITCODEC_DATA_BOOL
-		>::BYTES;
-
-	BITCODEC_STRUCT_NAME();
-	BITCODEC_STRUCT_NAME(const void *buffer);
-	void encode(void *buffer) const;
-
-#define BITCODEC_DATA_U(type, name, offset, length, def) \
-	static_assert(sizeof(type) >= (length + 7) / 8, "Element type must be large enough to contain bit count."); \
-	type name;
-#define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
-	static_assert(sizeof(type) >= (length + 7) / 8, "Element type must be large enough to contain bit count."); \
-	static_assert(sizeof(type) == sizeof(utype), "Element target type and unsigned type must be equal sizes."); \
-	type name;
-#define BITCODEC_DATA_BOOL(name, offset, def) \
-	bool name;
-#include BITCODEC_DEF_FILE
-#undef BITCODEC_DATA_U
-#undef BITCODEC_DATA_S
-#undef BITCODEC_DATA_BOOL
-};
-
-inline BITCODEC_STRUCT_NAME::BITCODEC_STRUCT_NAME() {
-#define BITCODEC_DATA_U(type, name, offset, length, def) \
-	this->name = def;
-#define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
-	this->name = def;
-#define BITCODEC_DATA_BOOL(name, offset, def) \
-	this->name = def;
-#include BITCODEC_DEF_FILE
-#undef BITCODEC_DATA_U
-#undef BITCODEC_DATA_S
-#undef BITCODEC_DATA_BOOL
-}
-
-inline BITCODEC_STRUCT_NAME::BITCODEC_STRUCT_NAME(const void *buffer) {
-#define BITCODEC_DATA_U(type, name, offset, length, def) \
-	this->name = BitcodecPrimitives::Decoder<type, offset, length>()(buffer);
-#define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
-	this->name = BitcodecPrimitives::SignExtender<type, utype, length>()(BitcodecPrimitives::Decoder<utype, offset, length>()(buffer));
-#define BITCODEC_DATA_BOOL(name, offset, def) \
-	this->name = !!BitcodecPrimitives::Decoder<uint8_t, offset, 1>()(buffer);
-#include BITCODEC_DEF_FILE
-#undef BITCODEC_DATA_U
-#undef BITCODEC_DATA_S
-#undef BITCODEC_DATA_BOOL
-}
-
-inline void BITCODEC_STRUCT_NAME::encode(void *buffer) const {
-	std::fill(static_cast<uint8_t *>(buffer), static_cast<uint8_t *>(buffer) + BUFFER_SIZE, 0);
-#define BITCODEC_DATA_U(type, name, offset, length, def) \
-	BitcodecPrimitives::Encoder<type, offset, length>()(buffer, this->name);
-#define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
-	BitcodecPrimitives::Encoder<utype, offset, length>()(buffer, static_cast<utype>(this->name));
-#define BITCODEC_DATA_BOOL(name, offset, def) \
-	BitcodecPrimitives::Encoder<uint8_t, offset, 1>()(buffer, this->name ? 1 : 0);
-#include BITCODEC_DEF_FILE
-#undef BITCODEC_DATA_U
-#undef BITCODEC_DATA_S
-#undef BITCODEC_DATA_BOOL
-}
-
-inline bool operator==(const BITCODEC_STRUCT_NAME &x, const BITCODEC_STRUCT_NAME &y) {
-	return true
-#define BITCODEC_DATA_U(type, name, offset, length, def) && x.name == y.name
-#define BITCODEC_DATA_S(type, utype, name, offset, length, def) && x.name == y.name
-#define BITCODEC_DATA_BOOL(name, offset, def) && x.name == y.name
-#include BITCODEC_DEF_FILE
-#undef BITCODEC_DATA_U
-#undef BITCODEC_DATA_S
-#undef BITCODEC_DATA_BOOL
-		;
-}
-
-inline bool operator!=(const BITCODEC_STRUCT_NAME &x, const BITCODEC_STRUCT_NAME &y) {
-	return !(x == y);
-}
-
 #if defined BITCODEC_NAMESPACE
-}
+#define BITCODEC_NS_BEGIN namespace BITCODEC_NAMESPACE {
+#define BITCODEC_NS_END }
+#define BITCODEC_NS_PREFIX BITCODEC_NAMESPACE::
 #elif defined BITCODEC_ANON_NAMESPACE
-}
+#define BITCODEC_NS_BEGIN namespace {
+#define BITCODEC_NS_END }
+#define BITCODEC_NS_PREFIX
+#else
+#define BITCODEC_NS_BEGIN
+#define BITCODEC_NS_END
+#define BITCODEC_NS_PREFIX
 #endif
+
+#if defined BITCODEC_GEN_HEADER
+BITCODEC_NS_BEGIN
+	struct BITCODEC_STRUCT_NAME {
+		static const std::size_t BUFFER_SIZE = BitcodecPrimitives::LengthCalculator<0, 0
+#define BITCODEC_DATA_U(type, name, offset, length, def) \
+			, offset, length
+#define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
+			, offset, length
+#define BITCODEC_DATA_BOOL(name, offset, def) \
+			, offset, 1
+#include BITCODEC_DEF_FILE
+#undef BITCODEC_DATA_U
+#undef BITCODEC_DATA_S
+#undef BITCODEC_DATA_BOOL
+			>::BYTES;
+
+		BITCODEC_STRUCT_NAME();
+		BITCODEC_STRUCT_NAME(const void *buffer);
+		void encode(void *buffer) const;
+
+#define BITCODEC_DATA_U(type, name, offset, length, def) \
+		static_assert(sizeof(type) >= (length + 7) / 8, "Element type must be large enough to contain bit count."); \
+		type name;
+#define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
+		static_assert(sizeof(type) >= (length + 7) / 8, "Element type must be large enough to contain bit count."); \
+		static_assert(sizeof(type) == sizeof(utype), "Element target type and unsigned type must be equal sizes."); \
+		type name;
+#define BITCODEC_DATA_BOOL(name, offset, def) \
+		bool name;
+#include BITCODEC_DEF_FILE
+#undef BITCODEC_DATA_U
+#undef BITCODEC_DATA_S
+#undef BITCODEC_DATA_BOOL
+	};
+
+	bool operator==(const BITCODEC_STRUCT_NAME &x, const BITCODEC_STRUCT_NAME &y);
+
+	inline bool operator!=(const BITCODEC_STRUCT_NAME &x, const BITCODEC_STRUCT_NAME &y) {
+		return !(x == y);
+	}
+BITCODEC_NS_END
 
 namespace {
 	static_assert(BitcodecPrimitives::OverlapChecker<0, 0
@@ -174,6 +132,69 @@ namespace {
 #undef BITCODEC_DATA_BOOL
 		>::OK, "Packet fields overlap!");
 }
+#endif
+
+#if defined BITCODEC_GEN_SOURCE || defined BITCODEC_ANON_NAMESPACE
+const std::size_t BITCODEC_NS_PREFIX BITCODEC_STRUCT_NAME::BUFFER_SIZE;
+
+BITCODEC_NS_PREFIX BITCODEC_STRUCT_NAME::BITCODEC_STRUCT_NAME() {
+#define BITCODEC_DATA_U(type, name, offset, length, def) \
+	this->name = def;
+#define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
+	this->name = def;
+#define BITCODEC_DATA_BOOL(name, offset, def) \
+	this->name = def;
+#include BITCODEC_DEF_FILE
+#undef BITCODEC_DATA_U
+#undef BITCODEC_DATA_S
+#undef BITCODEC_DATA_BOOL
+}
+
+BITCODEC_NS_PREFIX BITCODEC_STRUCT_NAME::BITCODEC_STRUCT_NAME(const void *buffer) {
+#define BITCODEC_DATA_U(type, name, offset, length, def) \
+	this->name = BitcodecPrimitives::Decoder<type, offset, length>()(buffer);
+#define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
+	this->name = BitcodecPrimitives::SignExtender<type, utype, length>()(BitcodecPrimitives::Decoder<utype, offset, length>()(buffer));
+#define BITCODEC_DATA_BOOL(name, offset, def) \
+	this->name = !!BitcodecPrimitives::Decoder<uint8_t, offset, 1>()(buffer);
+#include BITCODEC_DEF_FILE
+#undef BITCODEC_DATA_U
+#undef BITCODEC_DATA_S
+#undef BITCODEC_DATA_BOOL
+}
+
+void BITCODEC_NS_PREFIX BITCODEC_STRUCT_NAME::encode(void *buffer) const {
+	std::fill(static_cast<uint8_t *>(buffer), static_cast<uint8_t *>(buffer) + BUFFER_SIZE, 0);
+#define BITCODEC_DATA_U(type, name, offset, length, def) \
+	BitcodecPrimitives::Encoder<type, offset, length>()(buffer, this->name);
+#define BITCODEC_DATA_S(type, utype, name, offset, length, def) \
+	BitcodecPrimitives::Encoder<utype, offset, length>()(buffer, static_cast<utype>(this->name));
+#define BITCODEC_DATA_BOOL(name, offset, def) \
+	BitcodecPrimitives::Encoder<uint8_t, offset, 1>()(buffer, this->name ? 1 : 0);
+#include BITCODEC_DEF_FILE
+#undef BITCODEC_DATA_U
+#undef BITCODEC_DATA_S
+#undef BITCODEC_DATA_BOOL
+}
+
+BITCODEC_NS_BEGIN
+	bool operator==(const BITCODEC_NS_PREFIX BITCODEC_STRUCT_NAME &x, const BITCODEC_NS_PREFIX BITCODEC_STRUCT_NAME &y) {
+		return true
+#define BITCODEC_DATA_U(type, name, offset, length, def) && x.name == y.name
+#define BITCODEC_DATA_S(type, utype, name, offset, length, def) && x.name == y.name
+#define BITCODEC_DATA_BOOL(name, offset, def) && x.name == y.name
+#include BITCODEC_DEF_FILE
+#undef BITCODEC_DATA_U
+#undef BITCODEC_DATA_S
+#undef BITCODEC_DATA_BOOL
+			;
+	}
+BITCODEC_NS_END
+#endif
+
+#undef BITCODEC_NS_BEGIN
+#undef BITCODEC_NS_END
+#undef BITCODEC_NS_PREFIX
 
 /** \endcond */
 
