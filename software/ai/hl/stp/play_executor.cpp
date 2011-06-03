@@ -27,8 +27,9 @@ void PlayExecutor::calc_play() {
 	std::random_shuffle(plays.begin(), plays.end());
 	for (std::size_t i = 0; i < plays.size(); ++i) {
 		if (plays[i]->invariant() && plays[i]->applicable()) {
-			assert(!plays[i]->done());
 			curr_play = plays[i];
+			LOG_INFO(curr_play->factory().name());
+			assert(!curr_play->done());
 			curr_role_step = 0;
 			for (std::size_t j = 0; j < 5; ++j) {
 				curr_roles[j].clear();
@@ -45,7 +46,6 @@ void PlayExecutor::calc_play() {
 					swap(normal_roles[j - 1], curr_roles[j]);
 				}
 			}
-			LOG_INFO(curr_play->factory().name());
 			return;
 		}
 	}
