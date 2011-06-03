@@ -91,6 +91,11 @@ namespace AI {
 				 * borrowed from cm, true if their ball or ball on our side
 				 */
 				bool defensive(const World &world);
+
+				/**
+				 * borrowed from cm, true if number of enemies on our side is greater than n
+				 */
+				bool num_of_enemies_on_our_side_at_least(const World &world, const unsigned int n);
 			}
 		}
 	}

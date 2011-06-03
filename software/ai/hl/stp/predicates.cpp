@@ -200,3 +200,15 @@ bool AI::HL::STP::Predicates::defensive(const World &world) {
 	return (their_ball(world) || ball_on_our_side(world)) && !offensive(world);
 }
 
+bool AI::HL::STP::Predicates::num_of_enemies_on_our_side_at_least(const World &world, const unsigned int n) {
+	unsigned int cnt = 0;
+	const EnemyTeam &enemies = world.enemy_team();
+	for (std::size_t i = 0; i < enemies.size(); ++i) {
+		if (enemies.get(i)->position().x < 0) {
+			cnt++;
+		}
+	}
+	if (cnt <= n) return true;
+	return false;
+}
+

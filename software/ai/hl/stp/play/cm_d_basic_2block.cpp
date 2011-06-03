@@ -20,7 +20,7 @@ goalie_role.push_back(defend_duo_goalie(world));
 // roles[0].push_back(chase(world));
 roles[0].push_back(tactive_def(world));
 
-// ROLE 2
+// ROLE 2 (optional)
 // block 1
 roles[1].push_back(block(world, Enemy::closest_ball(world, 0)));
 
