@@ -36,12 +36,12 @@ namespace AI {
 				 */
 
 				/**
-				 * Finds the nearest teammate to a point on the field.
+				 * Finds the nearest teammate to a point on the field at the given time.
 				 */
 				int nearest_teammate(const World &world, Point p, double time);
 
 				/**
-				 * Finds the nearest opponent to a point on the field.
+				 * Finds the nearest opponent to a point on the field at the given time.
 				 */
 				int nearest_opponent(const World &world, Point p, double time);
 
