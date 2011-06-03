@@ -10,12 +10,10 @@
 
 #define MAX_TEAM_ROBOTS 5
 
-// this needs to be remeasured
-#define LATENCY_DELAY 0.100
+#define LATENCY_DELAY 0.100 // guess
 
-// ==== Obstacle Flags ================================================//
+// Obstacle Flags
 
-// Standard Obstacles
 #define OBS_BALL (1U << 0)
 #define OBS_WALLS (1U << 1)
 #define OBS_THEIR_DZONE (1U << 2)
@@ -26,7 +24,6 @@
 #define OBS_OPPONENTS (((1U << MAX_TEAM_ROBOTS) - 1) << (4 + MAX_TEAM_ROBOTS))
 
 #define OBS_EVERYTHING (~0U)
-#define OBS_EVERYTHING_BUT_ME(id) (OBS_EVERYTHING & (~(OBS_TEAMMATE(id))))
 #define OBS_EVERYTHING_BUT_US (OBS_EVERYTHING & (~(OBS_TEAMMATES)))
 #define OBS_EVERYTHING_BUT_BALL (OBS_EVERYTHING & (~(OBS_BALL)))
 

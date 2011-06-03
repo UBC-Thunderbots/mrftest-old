@@ -1,6 +1,9 @@
 #include "ai/hl/stp/play/simple_play.h"
+#include "ai/hl/stp/tactic/move.h"
+#include "ai/hl/stp/tactic/chase.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
+using AI::HL::STP::Coordinate;
 
 /**
  * Condition:
@@ -20,6 +23,7 @@ goalie_role.push_back(defend_duo_goalie(world));
 
 // ROLE 1
 // kicker
+roles[0].push_back(chase(world));
 roles[0].push_back(shoot(world));
 
 // ROLE 2

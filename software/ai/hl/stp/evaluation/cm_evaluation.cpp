@@ -552,7 +552,7 @@ namespace {
 		return (p.x + radius > bbox_min.x) && (p.y + radius > bbox_min.y) && (p.x - radius < bbox_max.x) && (p.y - radius < bbox_max.y);
 	}
 
-	double diffangle_pos(double a1, double a2) {
+	double diff_angle_pos(double a1, double a2) {
 		double d = angle_mod(a1 - a2);
 		if (d < 0.0) {
 			d += 2 * M_PI;
@@ -569,16 +569,16 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 	Point r2 = p2 - target;
 
 	// Swap sides of endpoints if the target cone is oblique.
-	if (diffangle_pos(r2.orientation(), r1.orientation()) > M_PI) {
+	if (diff_angle_pos(r2.orientation(), r1.orientation()) > M_PI) {
 		Point t = r1;
 		r1 = r2;
 		r2 = t;
 	}
 
 	double a_zero = r1.orientation();
-	double a_end = diffangle_pos(r2.orientation(), a_zero);
+	double a_end = diff_angle_pos(r2.orientation(), a_zero);
 
-	double pref_target_angle = diffangle_pos((pref_target_point - target).orientation(), a_zero);
+	double pref_target_angle = diff_angle_pos((pref_target_point - target).orientation(), a_zero);
 	if (pref_target_angle - a_end > 2 * M_PI - pref_target_angle) {
 		pref_target_angle -= 2 * M_PI;
 	}
@@ -596,9 +596,9 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 
 		Point obs_perp = obs.rotate(M_PI_2).norm() * width;
 
-		double a0 = diffangle_pos(obs.orientation(), a_zero);
-		double a1 = diffangle_pos((obs - obs_perp).orientation(), a_zero);
-		double a2 = diffangle_pos((obs + obs_perp).orientation(), a_zero);
+		double a0 = diff_angle_pos(obs.orientation(), a_zero);
+		double a1 = diff_angle_pos((obs - obs_perp).orientation(), a_zero);
+		double a2 = diff_angle_pos((obs + obs_perp).orientation(), a_zero);
 
 		double maxdist;
 
@@ -640,9 +640,9 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 		Point obs = world.enemy_team().get(i)->position(time) - target;
 		Point obs_perp = obs.rotate(M_PI_2).norm() * width;
 
-		double a0 = diffangle_pos(obs.orientation(), a_zero);
-		double a1 = diffangle_pos((obs - obs_perp).orientation(), a_zero);
-		double a2 = diffangle_pos((obs + obs_perp).orientation(), a_zero);
+		double a0 = diff_angle_pos(obs.orientation(), a_zero);
+		double a1 = diff_angle_pos((obs - obs_perp).orientation(), a_zero);
+		double a2 = diff_angle_pos((obs + obs_perp).orientation(), a_zero);
 
 		double maxdist;
 
@@ -975,7 +975,6 @@ Point AI::HL::STP::Evaluation::CMEvaluation::find_open_position(const World &wor
 Point AI::HL::STP::Evaluation::CMEvaluation::find_open_position_and_yield(const World &world, Point p, Point toward, unsigned int obs_flags) {
 	p = find_open_position(world, p, toward, obs_flags, Robot::MAX_RADIUS);
 
-	// cm player type are either goalie or active
 	if (world.friendly_team().size() >= 1) {
 		p = find_open_position(world, p, toward, (obs_flags & OBS_TEAMMATE(world.friendly_team().size() - 1)), 2 * Robot::MAX_RADIUS);
 	}
