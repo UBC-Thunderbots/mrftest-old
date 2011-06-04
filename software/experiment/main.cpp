@@ -52,13 +52,13 @@ namespace {
 		// Set the current locale from environment variables.
 		std::locale::global(std::locale(""));
 
-		std::cout << "Finding dongle... " << std::flush;
+		std::cerr << "Finding dongle... " << std::flush;
 		XBeeDongle dongle;
-		std::cout << "OK\n";
+		std::cerr << "OK\n";
 
-		std::cout << "Enabling radios... " << std::flush;
+		std::cerr << "Enabling radios... " << std::flush;
 		dongle.enable();
-		std::cout << "OK\n";
+		std::cerr << "OK\n";
 
 		Glib::RefPtr<Glib::MainLoop> main_loop = Glib::MainLoop::create();
 		std::vector<std::unique_ptr<RobotExperimentReceiver> > v;
