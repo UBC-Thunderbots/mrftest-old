@@ -7,7 +7,7 @@
 using AI::HL::STP::Enemy;
 
 BEGIN_PLAY(CMDBasic2Block)
-INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2))
+INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 3))
 APPLICABLE(defensive(world) && ball_x_less_than(world, -0.7))
 DONE(offensive(world))
 FAIL(!ball_x_less_than(world, -0.7))
@@ -20,17 +20,18 @@ goalie_role.push_back(defend_duo_goalie(world));
 // roles[0].push_back(chase(world));
 roles[0].push_back(tactive_def(world));
 
-// ROLE 2 (optional)
-// block 1
-roles[1].push_back(block(world, Enemy::closest_ball(world, 0)));
+// ROLE 2
+// duo defender
+roles[1].push_back(defend_duo_defender(world));
 
 // ROLE 3 (optional)
-// block 2
-roles[2].push_back(block(world, Enemy::closest_ball(world, 1)));
+// block 1
+roles[2].push_back(block(world, Enemy::closest_ball(world, 0)));
 
 // ROLE 4 (optional)
-// duo defender
-roles[3].push_back(defend_duo_defender(world));
+// block 2
+roles[3].push_back(block(world, Enemy::closest_ball(world, 1)));
+
 END_ASSIGN()
 END_PLAY()
 

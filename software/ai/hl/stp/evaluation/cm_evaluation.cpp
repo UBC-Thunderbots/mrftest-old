@@ -109,13 +109,10 @@ namespace {
 
 		Point orig_g1 = g1, orig_g2 = g2;
 
-		// g1 += gperp * (side * (dist + radius));
-		// g2 += gperp * (side * (dist + radius));
-
 		g1 = intersection(ball, orig_g1, orig_g1 + gperp * (side * (dist + radius)), orig_g2 + gperp * (side * (dist + radius)));
 		g2 = intersection(ball, orig_g2, orig_g1 + gperp * (side * (dist + radius)), orig_g2 + gperp * (side * (dist + radius)));
 
-		// Lookahead from now to lookahead.
+		// Look ahead from now
 		for (double t = 0.0; t < lookahead; t += lookstep) {
 			Point b = world.ball().position(time + t);
 			Point v = world.ball().velocity(time + t);
@@ -128,7 +125,6 @@ namespace {
 			if (t_to_line > lookstep) continue;
 
 			b += v * t_to_line;
-
 
 			double x = offset_along_line(g1, g2, b);
 
@@ -220,9 +216,8 @@ namespace {
 		   temp *= m;
 		   variance = temp(0,0);
 		 */
-		if (closest_dist > radius) {
+		if (closest_dist > radius) 
 			variance = variance * exp(pow(closest_dist - radius, 2.0) / variance);
-		}
 
 		return !isinf(variance);
 	}
@@ -464,7 +459,6 @@ unsigned int AI::HL::STP::Evaluation::obs_line_first(const World &world, Point p
 		}
 	}
 
-
 	// Nothing Left
 	return obs_flags;
 }
@@ -555,17 +549,14 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 	double a_end = diff_angle_pos(r2.orientation(), a_zero);
 
 	double pref_target_angle = diff_angle_pos((pref_target_point - target).orientation(), a_zero);
-	if (pref_target_angle - a_end > 2 * M_PI - pref_target_angle) {
+	if (pref_target_angle - a_end > 2 * M_PI - pref_target_angle) 
 		pref_target_angle -= 2 * M_PI;
-	}
 
 	a.push_back(std::make_pair(0.0, 0));
 	a.push_back(std::make_pair(a_end, 0));
 
 	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
-		if (!(obs_flags & OBS_TEAMMATE(i))) {
-			continue;
-		}
+		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
 
 		double width = Robot::MAX_RADIUS;
 		Point obs = world.friendly_team().get(i)->position(time) - target;
@@ -581,16 +572,13 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 		if (a0 < a_end) {
 			maxdist = (a0 / a_end) * (r2.len() - r1.len()) + r1.len();
 		} else {
-			if (a0 < (a_end + 2 * M_PI) / 2.0) {
+			if (a0 < (a_end + 2 * M_PI) / 2.0) 
 				maxdist = r2.len();
-			} else {
+			else 
 				maxdist = r1.len();
-			}
 		}
 
-		if (obs.len() - width > maxdist) {
-			continue;
-		}
+		if (obs.len() - width > maxdist) continue;
 
 		if (a1 < a_end) {
 			a.push_back(std::make_pair(a1, 1));
@@ -609,9 +597,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 	double width = Robot::MAX_RADIUS;
 
 	for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
-		if (!(obs_flags & OBS_OPPONENT(i))) {
-			continue;
-		}
+		if (!(obs_flags & OBS_OPPONENT(i))) continue;
 
 		Point obs = world.enemy_team().get(i)->position(time) - target;
 		Point obs_perp = obs.rotate(M_PI_2).norm() * width;
@@ -625,16 +611,13 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 		if (a0 < a_end) {
 			maxdist = (a0 / a_end) * (r2.len() - r1.len()) + r1.len();
 		} else {
-			if (a0 < (a_end + 2 * M_PI) / 2.0) {
+			if (a0 < (a_end + 2 * M_PI) / 2.0) 
 				maxdist = r2.len();
-			} else {
+			else 
 				maxdist = r1.len();
-			}
 		}
 
-		if (obs.len() - width > maxdist) {
-			continue;
-		}
+		if (obs.len() - width > maxdist) continue;
 
 		if (a1 < a_end) {
 			a.push_back(std::make_pair(a1, 1));
@@ -666,11 +649,14 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 			double ang_diff = std::max(0.0, std::fabs(angle_mod(ang - pref_target_angle)) - tol);
 
 			if (!found_one || tol > best_tol) {
-				best_tol = tol; best_ang = ang;
+				best_tol = tol; 
+				best_ang = ang;
 			}
 
 			if (!found_one || ang_diff < closest_ang_diff) {
-				closest_tol = tol; closest_ang = ang; closest_ang_diff = ang_diff;
+				closest_tol = tol; 
+				closest_ang = ang; 
+				closest_ang_diff = ang_diff;
 			}
 
 			found_one = true;
@@ -704,7 +690,6 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 	}
 
 	target_point = intersection(p1, p2, target, target + Point(1, 0).rotate(target_angle));
-	// target_point += (target_point - target).norm(GOAL_DEPTH);
 
 	return rv;
 }

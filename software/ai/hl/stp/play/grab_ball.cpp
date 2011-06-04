@@ -1,7 +1,9 @@
 #include "ai/hl/stp/tactic/chase.h"
 #include "ai/hl/stp/play/simple_play.h"
+#include "ai/hl/stp/tactic/block.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
+using AI::HL::STP::Enemy;
 
 BEGIN_PLAY(GrabBall)
 INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3))
@@ -27,7 +29,7 @@ roles[2].push_back(offend(world));
 
 // ROLE 4 (optional)
 // extra defense
-roles[3].push_back(defend_duo_extra(world));
+roles[3].push_back(block(world, Enemy::closest_ball(world, 0)));
 END_ASSIGN()
 END_PLAY()
 
