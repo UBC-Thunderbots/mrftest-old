@@ -38,7 +38,7 @@ namespace AI {
 				public:
 					NavigatorFactory &factory() const;
 					void pivot(Player::Ptr player);
-					void grab_ball(Player::Ptr player);
+					std::pair<Point, double> grab_ball(Player::Ptr player);
 					void tick();
 					static Navigator::Ptr create(World &world);
 
@@ -59,7 +59,7 @@ namespace AI {
 				return factory_instance;
 			}
 
-			void RRTNavigator::grab_ball(Player::Ptr player) {
+			std::pair<Point, double> RRTNavigator::grab_ball(Player::Ptr player) {
 				const double ux = world.ball().velocity().len(); // velocity of ball
 
 #warning MAGIC NUMBER
@@ -92,17 +92,15 @@ namespace AI {
 				if (std::isnan(t) || std::isinf(t) || t < 0) {
 					Player::Path path;
 					double dest_ori = (world.ball().position() - player->position()).orientation();
-					path.push_back(std::make_pair(std::make_pair(world.ball().position(), dest_ori), world.monotonic_time()));
-					player->path(path);
-					return;
+					return std::make_pair(world.ball().position(), dest_ori);
 				}
 
 				Point dest_pos = p1 + world.ball().velocity() * t;
 
 				Player::Path path;
 				double dest_ori = (world.ball().position() - player->position()).orientation();
-				path.push_back(std::make_pair(std::make_pair(dest_pos, dest_ori), world.monotonic_time()));
-				player->path(path);
+
+				return std::make_pair(dest_pos, dest_ori);
 			}
 
 			void RRTNavigator::pivot(Player::Ptr player) {
@@ -144,10 +142,11 @@ namespace AI {
 					path.clear();
 					Player::Ptr player = world.friendly_team().get(i);
 					Point dest;
-					double dest_orientation;
+					double dest_orientation = player->destination().second;
 					if (player->type() == AI::Flags::MoveType::CATCH) {
-						grab_ball(player);
-						continue;
+						std::pair<Point, double> grab_ball_dest = grab_ball(player);
+						dest = grab_ball_dest.first;
+						dest_orientation = grab_ball_dest.second;
 					} else if (player->type() == AI::Flags::MoveType::PIVOT) {
 						pivot(player);
 						continue;
@@ -168,7 +167,6 @@ namespace AI {
 					double dist = 0.0;
 					working_time = world.monotonic_time();
 
-					dest_orientation = player->destination().second;
 					for (std::size_t j = 0; j < path_points.size(); ++j) {
 						// the last point will just use whatever the last orientation was
 						if (j + 1 != path_points.size()) {
