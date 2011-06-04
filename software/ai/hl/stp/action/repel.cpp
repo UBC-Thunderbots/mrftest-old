@@ -11,7 +11,8 @@ namespace {
 	const double FAST = 100.0;
 }
 
-void AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
+bool AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
+	bool kicked = false;
 	const Point diff = world.ball().position() - player->position();
 
 	// set to RAM_BALL instead of using chase
@@ -23,16 +24,19 @@ void AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
 		player->move(des, diff.orientation(), diff.norm() * FAST);
 		player->type(AI::Flags::MoveType::RAM_BALL);
 		player->prio(AI::Flags::MovePrio::HIGH);
-		return;
+		return true;
 	}
 
 	// just shoot as long as it's not in backwards direction
 	if (player->orientation() < M_PI / 2 && player->orientation() > -M_PI / 2) {
 		player->autokick(10.0);
+		kicked = true;
 	}
 
 	player->move(world.ball().position(), diff.orientation(), diff.norm() * FAST);
 	player->prio(AI::Flags::MovePrio::HIGH);
+		
+	return kicked;	
 
 	// all enemies are obstacles
 	/*

@@ -12,8 +12,9 @@ namespace AI {
 				 * Useful scenarios:
 				 * - ball rolling towards the friendly goal
 				 * - ball inside the defense area
+				 * \return true if kicked
 				 */
-				void repel(const World &world, Player::Ptr player);
+				bool repel(const World &world, Player::Ptr player);
 			}
 		}
 	}

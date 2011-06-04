@@ -5,6 +5,7 @@
 #include "ai/hl/stp/action/dribble.h"
 #include "ai/hl/stp/action/shoot.h"
 #include "ai/hl/stp/action/chase.h"
+#include "ai/hl/stp/action/repel.h"
 #include "ai/hl/stp/evaluation/cm_evaluation.h"
 #include "geom/angle.h"
 #include "geom/util.h"
@@ -97,6 +98,26 @@ namespace {
 
 			std::string description() const {
 				return "tclear";
+			}
+	};
+
+	class TActiveDef : public Tactic {
+		public:
+			TActiveDef(const World &world) : Tactic(world, true) {}
+
+		private:
+			bool finished;
+			bool done() const {
+				return finished;
+			}
+			Player::Ptr select(const std::set<Player::Ptr> &players) const {
+				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+			}
+
+			void execute();
+
+			std::string description() const {
+				return "tactive_def";
 			}
 	};
 
@@ -245,7 +266,6 @@ void TClear::execute() {
 	downfield[0] = Point(ball.x + 0.180, -world.field().width() / 2);
 	downfield[1] = Point(ball.x + 0.180, world.field().width() / 2);
 
-
 	if (!prev_target_set) {
 		prev_target = world.field().enemy_goal();
 	}
@@ -282,6 +302,20 @@ void TClear::execute() {
 	prev_target_set = true;
 
 	kicked = Action::shoot(world, player, target);
+}
+
+void TActiveDef::execute() {
+	finished = false;
+	const EnemyTeam &enemy = world.enemy_team();
+	for (std::size_t i = 0; i < enemy.size(); ++i) {
+		if (AI::HL::Util::posses_ball(world, enemy.get(i))) {
+			Action::move_spin(player, world.ball().position());
+			finished = true;
+			return;
+		}
+	}
+
+	finished = Action::repel(world, player);
 }
 
 // might be better to just use our pass and receive pass
@@ -347,14 +381,7 @@ Tactic::Ptr AI::HL::STP::Tactic::tclear(const World &world) {
 }
 
 Tactic::Ptr AI::HL::STP::Tactic::tactive_def(const World &world) {
-	const EnemyTeam &enemy = world.enemy_team();
-	for (std::size_t i = 0; i < enemy.size(); ++i) {
-		if (AI::HL::Util::posses_ball(world, enemy.get(i))) {
-			Tactic::Ptr p(new TSteal(world));
-		}
-	}
-
-	Tactic::Ptr p(new TClear(world));
+	Tactic::Ptr p(new TActiveDef(world));
 	return p;
 }
 
