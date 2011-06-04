@@ -377,7 +377,8 @@ unsigned int AI::HL::STP::Evaluation::obs_line_first(const World &world, Point p
 			double dx = sqrt(radius * radius - d * d);
 
 			if ((p1 - pp).len() < dx) {
-				first = p1; return OBS_TEAMMATE(i);
+				first = p1; 
+				return OBS_TEAMMATE(i);
 			} else {
 				first = pp + (p1 - pp).norm(dx);
 				rv = OBS_TEAMMATE(i);
@@ -697,9 +698,8 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 bool AI::HL::STP::Evaluation::CMEvaluation::defend_point(const World &world, double time, Point point, double distmin, double distmax, double dist_off_ball, bool &intercept, Point &target, Point &velocity) {
 	double radius = (world.ball().position(time) - point).len() - dist_off_ball;
 
-	if (radius < distmin) {
-		return false;
-	}
+	if (radius < distmin) return false;
+	
 	if (radius > distmax) {
 		radius = distmax;
 	}
