@@ -1,4 +1,5 @@
 #include "ai/hl/stp/region.h"
+#include <cassert>
 #include <cmath>
 
 using AI::HL::STP::Region;
@@ -48,6 +49,15 @@ Point Region::random_sample() const {
 	}
 }
 
+double Region::radius() const {
+	assert(type_ == Type::CIRCLE);
+	return radius_;
+}
+
+Rect Region::rectangle() const {
+	assert(type_ == Type::RECTANGLE);
+	return Rect(p1.position(), p2.position());
+}
 
 bool Region::inside(Point p) const {
 	if (type_ == Type::RECTANGLE) {

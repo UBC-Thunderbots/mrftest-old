@@ -23,9 +23,7 @@ namespace AI {
 					};
 
 					/**
-					 * RTTI
-					 * i.e. returns the type of this region.
-					 * You can use this information to downcast to subclass.
+					 * Returns the type of this region.
 					 */
 					Type type() const {
 						return type_;
@@ -50,17 +48,13 @@ namespace AI {
 					 * Valid only if this region type is a circle.
 					 * Returns the associated radius.
 					 */
-					double radius() const {
-						return radius_;
-					}
+					double radius() const;
 
 					/**
 					 * Valid only if this region type is a rectangle.
 					 * Evaluates the associated rectangle.
 					 */
-					Rect rectangle() const {
-						return Rect(p1.position(), p2.position());
-					}
+					Rect rectangle() const;
 
 					/**
 					 * Checks if a point in inside this region.
