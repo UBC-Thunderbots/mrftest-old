@@ -135,7 +135,13 @@ void run(void) {
 	static uint8_t sequence[PIPE_MAX + 1];
 #if EXPERIMENT_MODE
 	static uint8_t experiment_data[256];
-	uint8_t index = 0, index_shadow;
+	static struct {
+		uint8_t micropacket_length;
+		uint8_t pipe;
+		uint8_t sequence;
+		uint8_t block_index;
+	} experiment_header = { sizeof(experiment_header) + 32, PIPE_EXPERIMENT_DATA, 0, 0 };
+	uint8_t index = 0;
 	enum {
 		EXPERIMENT_STATE_PRE,
 		EXPERIMENT_STATE_RUNNING,
@@ -294,9 +300,11 @@ void run(void) {
 #if EXPERIMENT_MODE
 							if (experiment_state == EXPERIMENT_STATE_DONE) {
 								/* Send some of the experiment data. */
-								index_shadow = index;
-								txiovs[txpkt.num_iovs].len = 1;
-								txiovs[txpkt.num_iovs].ptr = &index_shadow;
+								experiment_header.sequence = sequence[PIPE_EXPERIMENT_DATA];
+								sequence[PIPE_EXPERIMENT_DATA] = (sequence[PIPE_EXPERIMENT_DATA] + 1) & 63;
+								experiment_header.block_index = index;
+								txiovs[txpkt.num_iovs].len = sizeof(experiment_header);
+								txiovs[txpkt.num_iovs].ptr = &experiment_header;
 								++txpkt.num_iovs;
 								txiovs[txpkt.num_iovs].len = 32;
 								txiovs[txpkt.num_iovs].ptr = experiment_data + index;
