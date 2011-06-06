@@ -1,5 +1,6 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/block.h"
+#include "ai/hl/stp/tactic/chase.h"
 
 using AI::HL::STP::Enemy;
 /**
@@ -22,6 +23,7 @@ goalie_role.push_back(defend_solo_goalie(world));
 
 // ROLE 1
 // shoot
+roles[0].push_back(chase(world));
 roles[0].push_back(shoot(world));
 
 // ROLE 2 (optional)

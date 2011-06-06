@@ -16,7 +16,7 @@ namespace Predicates = AI::HL::STP::Predicates;
 BEGIN_PLAY(PassOffensive)
 INVARIANT(Predicates::playtype(world, AI::Common::PlayType::PLAY) && Predicates::our_team_size_at_least(world, 3) && Predicates::their_team_size_at_least(world, 1) && !Predicates::baller_can_shoot(world) && Predicates::baller_can_pass(world))
 APPLICABLE(Predicates::our_ball(world) && (Predicates::ball_midfield(world) || Predicates::ball_in_their_corner(world) || Predicates::ball_in_our_corner(world)))
-DONE(Predicates::goal(world))
+DONE(Predicates::baller_can_shoot(world))
 FAIL(Predicates::their_ball(world))
 BEGIN_ASSIGN()
 // GOALIE
