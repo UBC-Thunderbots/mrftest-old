@@ -38,24 +38,35 @@ namespace AI {
 				/**
 				 * Finds the nearest teammate to a point on the field at the given time.
 				 */
-				int nearest_teammate(const World &world, Point p, double time);
+				Player::CPtr nearest_teammate(const World &world, Point p, double time);
 
 				/**
 				 * Finds the nearest opponent to a point on the field at the given time.
 				 */
-				int nearest_opponent(const World &world, Point p, double time);
+				const Robot::Ptr nearest_opponent(const World &world, Point p, double time);
 
 				/**
 				 * Obs methods return an obs_flag set to why a position or other
 				 * shape is not open. Or zero if the position or shape is open
 				 */
+
+				/**
+				 * Checks for teammates, opponents, ball, walls, and defense zones
+				 */
 				unsigned int obs_position(const World &world, Point p, unsigned int obs_flags, double pradius, double time = -1);
 
+				/**
+				 * Checks for teammates, opponents, and ball
+				 */
 				unsigned int obs_line(const World &world, Point p1, Point p2, unsigned int obs_flags, double pradius, double time);
 
+				/**
+				 * Checks for teammates, opponents, ball, and defense zones
+				 */
 				unsigned int obs_line_first(const World &world, Point p1, Point p2, unsigned int obs_flags, Point &first, double pradius, double time = -1);
 
 				/**
+				 * Checks for teammates, opponents, and ball
 				 * returns number of obstacles on the line
 				 */
 				unsigned int obs_line_num(const World &world, Point p1, Point p2, unsigned int obs_flags, double pradius, double time = -1);

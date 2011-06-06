@@ -223,32 +223,34 @@ namespace {
 	}
 }
 
-int AI::HL::STP::Evaluation::nearest_teammate(const World &world, Point p, double time) {
+Player::CPtr AI::HL::STP::Evaluation::nearest_teammate(const World &world, Point p, double time) {
 	int dist_i = -1;
 	double dist = 0;
 
 	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
 		double d = (p - world.friendly_team().get(i)->position(time)).len();
 		if (dist_i < 0 || d < dist) {
-			dist_i = static_cast<int>(i); dist = d;
+			dist_i = static_cast<int>(i); 
+			dist = d;
 		}
 	}
 
-	return dist_i;
+	return world.friendly_team().get(dist_i);
 }
 
-int AI::HL::STP::Evaluation::nearest_opponent(const World &world, Point p, double time) {
+const Robot::Ptr AI::HL::STP::Evaluation::nearest_opponent(const World &world, Point p, double time) {
 	int dist_i = -1;
 	double dist = 0;
 
 	for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
 		double d = (p - world.enemy_team().get(i)->position(time)).len();
 		if (dist_i < 0 || d < dist) {
-			dist_i = static_cast<int>(i); dist = d;
+			dist_i = static_cast<int>(i); 
+			dist = d;
 		}
 	}
 
-	return dist_i;
+	return world.enemy_team().get(dist_i);
 }
 
 /**
@@ -430,8 +432,6 @@ unsigned int AI::HL::STP::Evaluation::obs_line_first(const World &world, Point p
 		}
 	}
 
-	// Walls
-
 	// Defense Zones
 	if (obs_flags & OBS_THEIR_DZONE) {
 		if (obs_position(world, p1, OBS_THEIR_DZONE, pradius, time)) {
@@ -501,11 +501,6 @@ unsigned int AI::HL::STP::Evaluation::obs_line_num(const World &world, Point p1,
 		}
 	}
 
-	// Walls
-
-	// Defense Zones
-
-	// Nothing Left
 	return cnt;
 }
 
@@ -525,9 +520,7 @@ namespace {
 
 	double diff_angle_pos(double a1, double a2) {
 		double d = angle_mod(a1 - a2);
-		if (d < 0.0) {
-			d += 2 * M_PI;
-		}
+		if (d < 0.0) d += 2 * M_PI;
 		return d;
 	}
 }
