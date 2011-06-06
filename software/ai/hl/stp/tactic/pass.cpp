@@ -30,7 +30,10 @@ namespace {
 				std::pair<Point, Point> pp = Evaluation::calc_pass_positions(world);
 
 				// orient towards target
-				Action::move(player, (pp.second - player->position()).orientation(), pp.first);
+				// Action::move(player, (pp.second - player->position()).orientation(), pp.first);
+				player->move(pp.first, (pp.second - player->position()).orientation(), Point());
+				player->type(AI::Flags::MoveType::DRIBBLE);
+				player->prio(AI::Flags::MovePrio::HIGH);
 				kicked = Action::shoot(world, player, pp.second);
 			}
 			std::string description() const {
@@ -80,7 +83,10 @@ namespace {
 				std::pair<Point, Point> pp = Evaluation::calc_def_pass_positions(world);
 
 				// orient towards target
-				Action::move(player, (pp.second - player->position()).orientation(), pp.first);
+				// Action::move(player, (pp.second - player->position()).orientation(), pp.first);
+				player->move(pp.first, (pp.second - player->position()).orientation(), Point());
+				player->type(AI::Flags::MoveType::DRIBBLE);
+				player->prio(AI::Flags::MovePrio::HIGH);
 				kicked = Action::shoot(world, player, pp.second);
 			}
 			std::string description() const {

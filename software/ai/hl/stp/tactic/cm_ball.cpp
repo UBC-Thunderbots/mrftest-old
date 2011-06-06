@@ -215,7 +215,6 @@ void TShoot::execute() {
 
 	bool got_target = false;
 
-
 	got_target = Evaluation::CMEvaluation::aim(world, LATENCY_DELAY, world.ball().position(), Point(world.field().length() / 2, -world.field().goal_width() / 2), Point(world.field().length() / 2, world.field().goal_width() / 2), OBS_EVERYTHING_BUT_US, prev_target, SHOOT_AIM_PREF_AMOUNT, target, angle_tolerance);
 	if (got_target) {
 		if (angle_tolerance < SHOOT_MIN_ANGLE_TOLERANCE) {
@@ -234,8 +233,10 @@ void TShoot::execute() {
 		}
 		Evaluation::obs_line_first(world, target - targ_ball * 0.75, target, OBS_OPPONENTS, rtarget, Robot::MAX_RADIUS);
 
-		Action::move(player, (rtarget - player->position()).orientation(), rtarget);
+		//Action::move(player, (rtarget - player->position()).orientation(), rtarget);
+		Action::dribble(world, player, rtarget);
 		kicked = Action::shoot(world, player, target);
+
 	} else {
 		kicked = Action::shoot(world, player, world.field().enemy_goal());
 	}
@@ -347,7 +348,8 @@ void TPass::execute() {
 		mytarget = targetp + (ball - targetp).norm(0.100);
 	}
 
-	Action::move(player, (targetp - player->position()).orientation(), targetp);
+	//Action::move(player, (targetp - player->position()).orientation(), targetp);
+	Action::dribble(world, player, targetp);
 	kicked = Action::shoot(world, player, targetp);
 }
 

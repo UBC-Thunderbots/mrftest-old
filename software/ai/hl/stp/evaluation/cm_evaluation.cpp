@@ -310,7 +310,6 @@ unsigned int AI::HL::STP::Evaluation::obs_position(const World &world, Point p, 
 		}
 	}
 
-	// Nothing Left
 	return rv;
 }
 
@@ -554,10 +553,8 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 		if (a0 < a_end) {
 			maxdist = (a0 / a_end) * (r2.len() - r1.len()) + r1.len();
 		} else {
-			if (a0 < (a_end + 2 * M_PI) / 2.0) 
-				maxdist = r2.len();
-			else 
-				maxdist = r1.len();
+			if (a0 < (a_end + 2 * M_PI) / 2.0) maxdist = r2.len();
+			else maxdist = r1.len();
 		}
 
 		if (obs.len() - width > maxdist) continue;
@@ -587,6 +584,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 
 		if (a0 < a_end) {
 			maxdist = (a0 / a_end) * (r2.len() - r1.len()) + r1.len();
+
 		} else {
 			if (a0 < (a_end + 2 * M_PI) / 2.0) maxdist = r2.len();
 			else maxdist = r1.len();
