@@ -49,7 +49,7 @@ namespace {
 				return kicked;
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+				return select_baller(world, players);
 			}
 
 			void execute();
@@ -91,7 +91,7 @@ namespace {
 				return kicked;
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+				return select_baller(world, players);
 			}
 
 			void execute();
@@ -111,7 +111,7 @@ namespace {
 				return finished;
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+				return select_baller(world, players);
 			}
 
 			void execute();
@@ -132,7 +132,7 @@ namespace {
 				return kicked;
 			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
-				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(world.ball().position()));
+				return select_baller(world, players);
 			}
 
 			void execute();
@@ -243,14 +243,15 @@ void TShoot::execute() {
 }
 
 void TSteal::execute() {
-	none = true;
+	none = false;
 	const EnemyTeam &enemy = world.enemy_team();
 	for (std::size_t i = 0; i < enemy.size(); ++i) {
 		if (AI::HL::Util::posses_ball(world, enemy.get(i))) {
-			none = false;
+			Action::move_spin(player, world.ball().position());
+			return;
 		}
 	}
-	if (!none) Action::move_spin(player, world.ball().position());
+	none = true;
 }
 
 void TClear::execute() {
@@ -365,7 +366,6 @@ void TDribbleToRegion::execute() {
 void TSpinToRegion::execute() {
 	Action::move_spin(player, region.center_position());
 }
-
 
 Tactic::Ptr AI::HL::STP::Tactic::tshoot(const World &world) {
 	Tactic::Ptr p(new TShoot(world));
