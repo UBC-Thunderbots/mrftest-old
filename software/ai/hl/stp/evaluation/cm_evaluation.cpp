@@ -10,7 +10,7 @@
 using namespace AI::HL::W;
 
 namespace {
-	const double DEFEND_LOOKAHEAD = 1.0;
+	const double DEFEND_LOOK_AHEAD = 1.0;
 	const double DEFEND_LOOK_STEP = 1.0 / TIMESTEPS_PER_SECOND;
 	const double FRAME_PERIOD = 1.0 / TIMESTEPS_PER_SECOND;
 
@@ -89,13 +89,13 @@ namespace {
 	 *
 	 * (g1, g2) defines a line segment to be defended.
 	 *
-	 * We lookahead through the ball's trajectory to find where, if it at
+	 * We look ahead through the ball's trajectory to find where, if it at
 	 * all the ball crosses the goalie's line.  The covariance matrix is then
 	 * used to set the variance for this position.
 	 */
 	bool defend_line_intercept(const World &world, double time, Point g1, Point g2, double dist, Point &target, double &variance) {
-		static const double lookahead = DEFEND_LOOKAHEAD;
-		static const double lookstep = DEFEND_LOOK_STEP;
+		static const double look_ahead = DEFEND_LOOK_AHEAD;
+		static const double look_step = DEFEND_LOOK_STEP;
 		static const double radius = Robot::MAX_RADIUS; // Should be a parameter
 
 		Point gline = (g2 - g1);
@@ -113,7 +113,7 @@ namespace {
 		g2 = intersection(ball, orig_g2, orig_g1 + gperp * (side * (dist + radius)), orig_g2 + gperp * (side * (dist + radius)));
 
 		// Look ahead from now
-		for (double t = 0.0; t < lookahead; t += lookstep) {
+		for (double t = 0.0; t < look_ahead; t += look_step) {
 			Point b = world.ball().position(time + t);
 			Point v = world.ball().velocity(time + t);
 
@@ -122,7 +122,7 @@ namespace {
 			double d_to_line = std::fabs((b - g1).dot(gperp));
 			double t_to_line = d_to_line / std::fabs(v.dot(gperp));
 
-			if (t_to_line > lookstep) continue;
+			if (t_to_line > look_step) continue;
 
 			b += v * t_to_line;
 
@@ -131,7 +131,6 @@ namespace {
 			variance = world.ball().position_covariance(time + t).len();
 
 			/*
-			   //Matrix c = ball_kalman.predict_cov(double_to_timespec(time + t));
 			   Matrix m = Matrix(4,1);
 			   m(0,0) = gline_1.x;
 			   m(1,0) = gline_1.y;
@@ -166,16 +165,16 @@ namespace {
 
 		target = point + (ball - point).norm(radius);
 
-		double chordlength = (radius / ball_dist) * sqrt(ball_dist * ball_dist - radius * radius);
+		double chord_length = (radius / ball_dist) * sqrt(ball_dist * ball_dist - radius * radius);
 
-		variance = chordlength * chordlength / 4.0;
+		variance = chord_length * chord_length / 4.0;
 
 		return true;
 	}
 
 	bool defend_point_intercept(const World &world, double time, Point point, double radius, Point &target, double &variance) {
-		static const double lookahead = DEFEND_LOOKAHEAD;
-		static const double lookstep = DEFEND_LOOK_STEP;
+		static const double look_ahead = DEFEND_LOOK_AHEAD;
+		static const double look_step = DEFEND_LOOK_STEP;
 
 		Point ball = world.ball().position(time);
 		Point ball_vel = world.ball().velocity(time);
@@ -184,11 +183,11 @@ namespace {
 			return false;
 		}
 
-		// Lookahead from now to lookahead.
+		// look ahead from now
 		double closest_dist = (ball - point).len();
 		double closest_time = 0.0;
 
-		for (double t = 0.0; t < lookahead; t += lookstep) {
+		for (double t = 0.0; t < look_ahead; t += look_step) {
 			Point b = world.ball().position(time + t);
 
 			if ((b - point).len() < closest_dist) {
@@ -201,12 +200,11 @@ namespace {
 		}
 
 		// Compute variance
-		// Matrix c = ball_kalman.predict_cov(double_to_timespec(time + closest_time));
-
+		
 		variance = world.ball().position_covariance(time + closest_time).len();
-
+		Point perp = (target - point).norm();
 		/*
-		   Point perp = (target - point).norm();
+		   
 		   Matrix m = Matrix(4,1);
 		   m(0,0) = perp.x;
 		   m(1,0) = perp.y;
@@ -256,7 +254,6 @@ const Robot::Ptr AI::HL::STP::Evaluation::nearest_opponent(const World &world, P
 /**
  * CMDragons Obstacle Computations
  */
-
 unsigned int AI::HL::STP::Evaluation::obs_position(const World &world, Point p, unsigned int obs_flags, double pradius, double time) {
 	unsigned int rv = 0;
 
@@ -352,11 +349,6 @@ unsigned int AI::HL::STP::Evaluation::obs_line(const World &world, Point p1, Poi
 		}
 	}
 
-	// Walls
-
-	// Defense Zones
-
-	// Nothing Left
 	return obs_flags;
 }
 
@@ -460,7 +452,6 @@ unsigned int AI::HL::STP::Evaluation::obs_line_first(const World &world, Point p
 		}
 	}
 
-	// Nothing Left
 	return obs_flags;
 }
 
@@ -474,9 +465,8 @@ unsigned int AI::HL::STP::Evaluation::obs_line_num(const World &world, Point p1,
 		double radius = Robot::MAX_RADIUS + pradius;
 
 		Point p = world.friendly_team().get(i)->position(time);
-		if ((closest_lineseg_point(p, p1, p2) - p).len() <= radius) {
-			cnt++;
-		}
+		if ((closest_lineseg_point(p, p1, p2) - p).len() <= radius) cnt++;
+		
 	}
 
 	// Opponents
@@ -486,9 +476,8 @@ unsigned int AI::HL::STP::Evaluation::obs_line_num(const World &world, Point p1,
 		double radius = Robot::MAX_RADIUS + pradius;
 
 		Point p = world.enemy_team().get(i)->position(time);
-		if ((closest_lineseg_point(p, p1, p2) - p).len() <= radius) {
-			cnt++;
-		}
+		if ((closest_lineseg_point(p, p1, p2) - p).len() <= radius) cnt++;
+
 	}
 
 	// Ball
@@ -496,9 +485,8 @@ unsigned int AI::HL::STP::Evaluation::obs_line_num(const World &world, Point p1,
 		double radius = Ball::RADIUS + pradius;
 
 		Point p = world.ball().position(time);
-		if ((closest_lineseg_point(p, p1, p2) - p).len() <= radius) {
-			cnt++;
-		}
+		if ((closest_lineseg_point(p, p1, p2) - p).len() <= radius) cnt++;
+
 	}
 
 	return cnt;
@@ -574,18 +562,13 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 
 		if (obs.len() - width > maxdist) continue;
 
-		if (a1 < a_end) {
-			a.push_back(std::make_pair(a1, 1));
-		}
-		if (a2 < a_end) {
-			a.push_back(std::make_pair(a2, -1));
-		}
-		if (a1 >= a_end && a2 < a_end) {
-			count++;
-		}
-		if (a1 >= a_end && a2 >= a_end && a1 > a2) {
-			count++;
-		}
+		if (a1 < a_end) a.push_back(std::make_pair(a1, 1));
+		
+		if (a2 < a_end) a.push_back(std::make_pair(a2, -1));
+
+		if (a1 >= a_end && a2 < a_end) count++;
+
+		if (a1 >= a_end && a2 >= a_end && a1 > a2) count++;
 	}
 
 	double width = Robot::MAX_RADIUS;
@@ -605,26 +588,20 @@ bool AI::HL::STP::Evaluation::CMEvaluation::aim(const World &world, double time,
 		if (a0 < a_end) {
 			maxdist = (a0 / a_end) * (r2.len() - r1.len()) + r1.len();
 		} else {
-			if (a0 < (a_end + 2 * M_PI) / 2.0) 
-				maxdist = r2.len();
-			else 
-				maxdist = r1.len();
+			if (a0 < (a_end + 2 * M_PI) / 2.0) maxdist = r2.len();
+			else maxdist = r1.len();
 		}
 
 		if (obs.len() - width > maxdist) continue;
 
-		if (a1 < a_end) {
-			a.push_back(std::make_pair(a1, 1));
-		}
-		if (a2 < a_end) {
-			a.push_back(std::make_pair(a2, -1));
-		}
-		if (a1 >= a_end && a2 < a_end) {
-			count++;
-		}
-		if (a1 >= a_end && a2 >= a_end && a1 > a2) {
-			count++;
-		}
+		if (a1 < a_end) a.push_back(std::make_pair(a1, 1));
+		
+		if (a2 < a_end) a.push_back(std::make_pair(a2, -1));
+		
+		if (a1 >= a_end && a2 < a_end) count++;
+		
+		if (a1 >= a_end && a2 >= a_end && a1 > a2) count++;
+
 	}
 
 	// Sort the angle array.
@@ -748,7 +725,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line(const World &world, doub
 		gperp *= -1;
 	}
 
-	// Special case of defending a single point.
+	// defending a single point.
 	if (g1.x == g2.x && g1.y == g2.y) {
 		return defend_point(world, time, g1, distmin, distmax, dist_off_ball, intercept, target, velocity);
 	}
@@ -763,13 +740,10 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line(const World &world, doub
 
 	double dist = distmin + std::fabs(std::cos(ang)) * (distmax - distmin);
 
-	if (dist > balldist - dist_off_ball) {
-		dist = balldist - dist_off_ball;
-	}
+	if (dist > balldist - dist_off_ball) dist = balldist - dist_off_ball;
 
-	if (dist > distmax) {
-		dist = distmax;
-	}
+	if (dist > distmax) dist = distmax;
+	
 	if (dist < distmin) {
 		dist = distmin;
 		intercept = false;
