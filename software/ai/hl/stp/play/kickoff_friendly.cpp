@@ -28,7 +28,7 @@ namespace {
  * - Pass the ball to a friendly player without double touching the ball
  */
 BEGIN_PLAY(KickoffFriendly)
-INVARIANT(Predicates::our_team_size_at_least(world, 2) && (Predicates::playtype(world, AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY)))
+INVARIANT(Predicates::our_team_size_at_least(world, 3) && (Predicates::playtype(world, AI::Common::PlayType::PREPARE_KICKOFF_FRIENDLY) || Predicates::playtype(world, AI::Common::PlayType::EXECUTE_KICKOFF_FRIENDLY)))
 APPLICABLE(true)
 DONE(false)
 FAIL(false)

@@ -20,6 +20,7 @@ namespace {
 			}
 
 			void execute() {
+				// use move spin action instead (or tsteal tactic in cm_ball which uses it)
 				player->move(world.ball().position(), (world.ball().position() - player->position()).orientation(), Point());
 				player->type(AI::Flags::MoveType::RAM_BALL);
 				player->prio(AI::Flags::MovePrio::HIGH);

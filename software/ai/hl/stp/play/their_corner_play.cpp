@@ -1,6 +1,8 @@
 #include "ai/hl/stp/play/simple_play.h"
+#include "ai/hl/stp/tactic/block.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
+using AI::HL::STP::Enemy;
 
 /**
  * Condition:
@@ -29,8 +31,8 @@ roles[0].push_back(shoot(world, Point(-world.ball().position().x, -world.ball().
 roles[1].push_back(defend_duo_defender(world));
 
 // ROLE 3 (optional)
-// offend
-roles[2].push_back(offend(world));
+// block
+roles[2].push_back(block_pass(world, Enemy::closest_ball(world, 0)));
 
 // ROLE 4 (optional)
 // offensive support
