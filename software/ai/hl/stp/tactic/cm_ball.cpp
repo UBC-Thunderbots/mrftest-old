@@ -275,8 +275,7 @@ void TClear::execute() {
 	aimed = Evaluation::CMEvaluation::aim(world, LATENCY_DELAY, world.ball().position(), downfield[0], downfield[1], OBS_EVERYTHING_BUT_US, prev_target, SHOOT_AIM_PREF_AMOUNT, target, angle_tolerance);
 
 	if (!aimed) {
-		// Guaranteed to return true and fill in the parameters when
-		// obs_flags is empty.
+		// Guaranteed to return true and fill in the parameters when obs_flags is empty.
 		Evaluation::CMEvaluation::aim(world, LATENCY_DELAY, world.ball().position(), downfield[0], downfield[1], 0, target, angle_tolerance);
 	}
 
@@ -337,8 +336,7 @@ void TPass::execute() {
 
 	Evaluation::CMEvaluation::aim(world, LATENCY_DELAY, world.ball().position(), p[0], p[1], OBS_EVERYTHING_BUT_US, targetp, angle_tolerance);
 
-	// Set the drive target as 1m from the target, with some exceptions
-	// when close.
+	// Set the drive target as 1m from the target, with some exceptions when close.
 	Point mytarget;
 
 	if ((targetp - ball).len() > 1.100) {
