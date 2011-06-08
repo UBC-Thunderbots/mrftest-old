@@ -208,7 +208,7 @@ bool AI::HL::STP::Predicates::num_of_enemies_on_our_side_at_least(const World &w
 			cnt++;
 		}
 	}
-	if (cnt <= n) return true;
+	if (cnt >= n) return true;
 	return false;
 }
 

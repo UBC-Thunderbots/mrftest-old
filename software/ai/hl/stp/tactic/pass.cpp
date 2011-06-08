@@ -29,8 +29,7 @@ namespace {
 				kicked = false;
 				std::pair<Point, Point> pp = Evaluation::calc_pass_positions(world);
 
-				// orient towards target
-				// Action::move(player, (pp.second - player->position()).orientation(), pp.first);
+				// dribble
 				player->move(pp.first, (pp.second - player->position()).orientation(), Point());
 				player->type(AI::Flags::MoveType::DRIBBLE);
 				player->prio(AI::Flags::MovePrio::HIGH);
@@ -43,14 +42,10 @@ namespace {
 
 	class PasseeMove : public Tactic {
 		public:
-			// ACTIVE tactic!
-			PasseeMove(const World &world) : Tactic(world, true) {
+			PasseeMove(const World &world) : Tactic(world) {
 			}
 
 		private:
-			bool done() const {
-				return player->has_ball();
-			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				Point dest = Evaluation::calc_pass_positions(world).second;
 
@@ -82,8 +77,7 @@ namespace {
 				kicked = false;
 				std::pair<Point, Point> pp = Evaluation::calc_def_pass_positions(world);
 
-				// orient towards target
-				// Action::move(player, (pp.second - player->position()).orientation(), pp.first);
+				// dribble
 				player->move(pp.first, (pp.second - player->position()).orientation(), Point());
 				player->type(AI::Flags::MoveType::DRIBBLE);
 				player->prio(AI::Flags::MovePrio::HIGH);
@@ -96,14 +90,10 @@ namespace {
 
 	class DefPasseeMove : public Tactic {
 		public:
-			// ACTIVE tactic!
-			DefPasseeMove(const World &world) : Tactic(world, true) {
+			DefPasseeMove(const World &world) : Tactic(world) {
 			}
 
 		private:
-			bool done() const {
-				return player->has_ball();
-			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				Point dest = Evaluation::calc_def_pass_positions(world).second;
 
