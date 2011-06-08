@@ -203,8 +203,7 @@ namespace {
 		
 		variance = world.ball().position_covariance(time + closest_time).len();
 		Point perp = (target - point).norm();
-		/*
-		   
+		/*	   
 		   Matrix m = Matrix(4,1);
 		   m(0,0) = perp.x;
 		   m(1,0) = perp.y;
@@ -454,42 +453,6 @@ unsigned int AI::HL::STP::Evaluation::obs_line_first(const World &world, Point p
 	return obs_flags;
 }
 
-unsigned int AI::HL::STP::Evaluation::obs_line_num(const World &world, Point p1, Point p2, unsigned int obs_flags, double pradius, double time) {
-	unsigned int cnt = 0;
-
-	// Teammates
-	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
-		if (!(obs_flags & OBS_TEAMMATE(i))) continue;
-
-		double radius = Robot::MAX_RADIUS + pradius;
-
-		Point p = world.friendly_team().get(i)->position(time);
-		if ((closest_lineseg_point(p, p1, p2) - p).len() <= radius) cnt++;
-		
-	}
-
-	// Opponents
-	for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
-		if (!(obs_flags & OBS_OPPONENT(i))) continue;
-
-		double radius = Robot::MAX_RADIUS + pradius;
-
-		Point p = world.enemy_team().get(i)->position(time);
-		if ((closest_lineseg_point(p, p1, p2) - p).len() <= radius) cnt++;
-
-	}
-
-	// Ball
-	if (obs_flags & OBS_BALL) {
-		double radius = Ball::RADIUS + pradius;
-
-		Point p = world.ball().position(time);
-		if ((closest_lineseg_point(p, p1, p2) - p).len() <= radius) cnt++;
-
-	}
-
-	return cnt;
-}
 
 bool AI::HL::STP::Evaluation::obs_blocks_shot(const World &world, Point p, double time) {
 	Point ball = world.ball().position(time);
@@ -776,7 +739,6 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line(const World &world, doub
 		}
 	}
 
-
 	if (rv[0] && rv[1]) {
 		target = (targets[0] * variance[1] + targets[1] * variance[0]) / (variance[0] + variance[1]);
 
@@ -826,50 +788,6 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_on_line(const World &world, d
 	}
 
 	return true;
-}
-
-Point AI::HL::STP::Evaluation::CMEvaluation::farthest(const World &world, double time, unsigned int obs_flags, Point bbox_min, Point bbox_max, Point dir) {
-	double x, max_x;
-	Point obs, max_obs;
-	double width;
-
-	max_x = 0;
-	max_obs = Point(0, 0);
-
-	for (std::size_t i = 0; i < world.friendly_team().size(); i++) {
-		if (obs_flags & OBS_TEAMMATE(i)) {
-			width = Robot::MAX_RADIUS;
-			obs = world.friendly_team().get(i)->position(time);
-			if (inside_bbox(bbox_min, bbox_max, obs, width)) {
-				x = obs.dot(dir) + width;
-
-				if (x > max_x) {
-					max_x = x;
-					max_obs = obs;
-				}
-			}
-		}
-	}
-
-	width = Robot::MAX_RADIUS;
-
-	for (std::size_t i = 0; i < world.enemy_team().size(); i++) {
-		if (obs_flags & OBS_OPPONENT(i)) {
-			obs = world.enemy_team().get(i)->position(time);
-
-			if (inside_bbox(bbox_min, bbox_max, obs, width)) {
-				x = obs.dot(dir) + width;
-
-				if (x > max_x) {
-					max_x = x;
-					max_obs = obs;
-				}
-			}
-		}
-	}
-
-	max_obs = dir * max_x;
-	return max_obs;
 }
 
 Point AI::HL::STP::Evaluation::CMEvaluation::find_open_position(const World &world, Point p, Point toward, unsigned int obs_flags, double pradius) {

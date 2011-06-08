@@ -66,12 +66,6 @@ namespace AI {
 				unsigned int obs_line_first(const World &world, Point p1, Point p2, unsigned int obs_flags, Point &first, double pradius, double time = -1);
 
 				/**
-				 * Checks for teammates, opponents, and ball
-				 * returns number of obstacles on the line
-				 */
-				unsigned int obs_line_num(const World &world, Point p1, Point p2, unsigned int obs_flags, double pradius, double time = -1);
-
-				/**
 				 * returns true if point p will block a shot at time
 				 */
 				bool obs_blocks_shot(const World &world, Point p, double time);
@@ -139,11 +133,6 @@ namespace AI {
 					bool defend_point(const World &world, double time, Point point, double distmin, double distmax, double dist_off_ball, bool &intercept, Point &target, Point &velocity);
 
 					bool defend_on_line(const World &world, double time, Point p1, Point p2, bool &intercept, Point &target, Point &velocity);
-
-					/**
-					 * finds the furthest point of a robot in a direction
-					 */
-					Point farthest(const World &world, double time, unsigned int obs_flags, Point bbox_min, Point bbox_max, Point dir);
 
 					/**
 					 * finds an open position
