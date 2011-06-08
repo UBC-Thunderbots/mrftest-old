@@ -25,8 +25,6 @@ goalie_role.push_back(defend_duo_goalie(world));
 // ROLE 1
 // passer
 roles[0].push_back(def_passer_shoot(world));
-// after passing help block closest enemy to ball
-roles[0].push_back(block(world, Enemy::closest_ball(world, 0)));
 
 // ROLE 2
 // passee
@@ -38,7 +36,7 @@ roles[2].push_back(defend_duo_defender(world));
 
 // ROLE 4
 // offensive support through blocking enemy from the ball
-roles[3].push_back(block(world, Enemy::closest_ball(world, 1)));
+roles[3].push_back(block(world, Enemy::closest_ball(world, 0)));
 END_ASSIGN()
 END_PLAY()
 
