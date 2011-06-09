@@ -18,20 +18,22 @@ namespace {
 		const FriendlyTeam &friendly = world.friendly_team();
 		std::set<Player::CPtr> players;
 		for (std::size_t i = 0; i < friendly.size(); ++i) {
-			players.insert(friendly.get(i));
+			if (friendly.get(i)->has_ball()) {
+				return friendly.get(i);
+			}
 		}
-		const Player::CPtr baller = *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::CPtr>(world.ball().position()));
-		return baller;
+		return Player::CPtr();
 	}
 
 	const Robot::Ptr calc_enemy_baller(const World &world) {
 		const EnemyTeam &enemy = world.enemy_team();
 		std::set<Robot::Ptr> enemies;
 		for (std::size_t i = 0; i < enemy.size(); ++i) {
-			enemies.insert(enemy.get(i));
+			if (AI::HL::Util::posses_ball(world, enemy.get(i))) {
+				return enemy.get(i);
+			}
 		}
-		const Robot::Ptr baller = *std::min_element(enemies.begin(), enemies.end(), AI::HL::Util::CmpDist<Robot::Ptr>(world.ball().position()));
-		return baller;
+		return Robot::Ptr();
 	}
 }
 
