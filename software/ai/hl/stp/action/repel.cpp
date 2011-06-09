@@ -22,7 +22,7 @@ bool AI::HL::STP::Action::repel(const World &world, Player::Ptr player) {
 			des.x = -world.field().length() / 2 + 0.2;
 		}
 		player->move(des, diff.orientation(), diff.norm() * FAST);
-		player->type(AI::Flags::MoveType::RAM_BALL);
+		player->type(AI::Flags::MoveType::RAM_BALL); // RAM_BALL not implemented =/
 		player->prio(AI::Flags::MovePrio::HIGH);
 		return true;
 	}
