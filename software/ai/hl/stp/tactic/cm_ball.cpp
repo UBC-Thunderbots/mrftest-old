@@ -354,7 +354,6 @@ void TPass::execute() {
 
 void TReceivePass::execute() {
 	Action::move(world, player, target.position());
-	Action::chase(world, player, world.ball().position());
 }
 
 void TDribbleToRegion::execute() {

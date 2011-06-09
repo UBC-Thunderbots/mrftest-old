@@ -8,7 +8,7 @@
 using namespace AI::HL::STP;
 
 namespace {
-	DoubleParam block_threshold("block threshold distance in terms of robot radius", "STP/Action/block", 0.75, 0.5, 2.0);
+	DoubleParam block_threshold("block threshold distance in terms of robot radius", "STP/Action/block", 1.5, 1.0, 4.0);
 
 }
 
