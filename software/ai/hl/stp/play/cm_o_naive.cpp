@@ -17,7 +17,7 @@ goalie_role.push_back(defend_solo_goalie(world));
 // ROLE 1
 // shoot
 roles[0].push_back(chase(world));
-roles[0].push_back(shoot(world));
+roles[0].push_back(tshoot(world));
 
 // ROLE 2 (optional)
 // cm defend point 1

@@ -722,6 +722,7 @@ bool AI::HL::STP::Evaluation::CMEvaluation::defend_line(const World &world, doub
 	if (!obs_flags) {
 		rv[1] = defend_line_static(world, time, g1, g2, dist, targets[1], variance[1]);
 		rv[2] = defend_line_static(world, time + FRAME_PERIOD, g1, g2, dist, targets[2], variance[2]);
+
 	} else {
 		Point p;
 		double tol;

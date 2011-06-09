@@ -13,7 +13,7 @@ using AI::HL::STP::Enemy;
  * - one baller shoots, the other 3 players blocks the enemies
  */
 BEGIN_PLAY(JustBlockShoot)
-INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2))
+INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2) && their_team_size_at_least(world,1))
 APPLICABLE(our_ball(world) && !num_of_enemies_on_our_side_at_least(world, 1))
 DONE(goal(world))
 FAIL(their_ball(world))

@@ -144,13 +144,11 @@ namespace {
 
 	class TReceivePass : public Tactic {
 		public:
-			TReceivePass(const World &world, const Coordinate _target) : Tactic(world, true), target(_target) {}
+			TReceivePass(const World &world, const Coordinate _target) : Tactic(world), target(_target) {}
 
 		private:
 			Coordinate target;
-			bool done() const {
-				return player->has_ball();
-			}
+			
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				return *std::min_element(players.begin(), players.end(), AI::HL::Util::CmpDist<Player::Ptr>(target.position()));
 			}
@@ -164,11 +162,13 @@ namespace {
 
 	class TDribbleToRegion : public Tactic {
 		public:
-			TDribbleToRegion(const World &world, Region _region) : Tactic(world), region(_region) {}
+			TDribbleToRegion(const World &world, Region _region) : Tactic(world, true), region(_region) {}
 
 		private:
-			Region region;
-
+			Region region;	
+			bool done() const {
+				return (player->position() - region.center_position()).len() < AI::HL::Util::POS_CLOSE;
+			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				return select_baller(world, players);
 			}
@@ -182,11 +182,13 @@ namespace {
 
 	class TSpinToRegion : public Tactic {
 		public:
-			TSpinToRegion(const World &world, Region _region) : Tactic(world), region(_region) {}
+			TSpinToRegion(const World &world, Region _region) : Tactic(world, true), region(_region) {}
 
 		private:
 			Region region;
-
+			bool done() const {
+				return (player->position() - region.center_position()).len() < AI::HL::Util::POS_CLOSE;
+			}
 			Player::Ptr select(const std::set<Player::Ptr> &players) const {
 				return select_baller(world, players);
 			}
@@ -233,7 +235,6 @@ void TShoot::execute() {
 		}
 		Evaluation::obs_line_first(world, target - targ_ball * 0.75, target, OBS_OPPONENTS, rtarget, Robot::MAX_RADIUS);
 
-		//Action::move(player, (rtarget - player->position()).orientation(), rtarget);
 		Action::dribble(world, player, rtarget);
 		kicked = Action::shoot(world, player, target);
 
@@ -347,7 +348,6 @@ void TPass::execute() {
 		mytarget = targetp + (ball - targetp).norm(0.100);
 	}
 
-	//Action::move(player, (targetp - player->position()).orientation(), targetp);
 	Action::dribble(world, player, targetp);
 	kicked = Action::shoot(world, player, targetp);
 }
