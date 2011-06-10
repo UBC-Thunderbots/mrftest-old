@@ -453,7 +453,6 @@ unsigned int AI::HL::STP::Evaluation::obs_line_first(const World &world, Point p
 	return obs_flags;
 }
 
-
 bool AI::HL::STP::Evaluation::obs_blocks_shot(const World &world, Point p, double time) {
 	Point ball = world.ball().position(time);
 

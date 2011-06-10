@@ -8,10 +8,10 @@
 using namespace AI::HL::STP;
 
 namespace {
-	DoubleParam block_threshold("block threshold distance in terms of robot radius", "STP/Action/block", 3.0, 2.0, 4.0);
+	DoubleParam block_threshold("block threshold distance in terms of robot radius", "STP/Action/block", 3.0, 2.0, 8.0);
 
 }
-
+// TODO: Think of how to block/defend against chipping (if possible)
 void AI::HL::STP::Action::block(const World &world, Player::Ptr player, Robot::Ptr robot) {
 	Point dirToGoal = (world.field().friendly_goal() - robot->position()).norm();
 	player->move(robot->position() + (block_threshold * Robot::MAX_RADIUS * dirToGoal), (world.ball().position() - player->position()).orientation(), Point());

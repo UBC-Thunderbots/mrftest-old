@@ -1,8 +1,10 @@
 #include "ai/hl/stp/play/simple_play.h"
 #include "ai/hl/stp/tactic/block.h"
+#include "ai/hl/stp/tactic/move.h"
 
 namespace Predicates = AI::HL::STP::Predicates;
 using AI::HL::STP::Enemy;
+using AI::HL::STP::Coordinate;
 
 /**
  * Condition:
@@ -35,8 +37,8 @@ roles[1].push_back(defend_duo_defender(world));
 roles[2].push_back(block_pass(world, Enemy::closest_ball(world, 0)));
 
 // ROLE 4 (optional)
-// offensive support
-roles[3].push_back(offend(world));
+// move to where the ball will be shot to
+roles[3].push_back(move(world, Coordinate(world, Point(-world.ball().position().x, -world.ball().position().y), Coordinate::YType::ABSOLUTE, Coordinate::OriginType::ABSOLUTE)));
 END_ASSIGN()
 END_PLAY()
 

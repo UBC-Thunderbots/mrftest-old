@@ -348,7 +348,7 @@ void TPass::execute() {
 		mytarget = targetp + (ball - targetp).norm(0.100);
 	}
 
-	Action::dribble(world, player, targetp);
+	Action::dribble(world, player, mytarget);
 	kicked = Action::shoot(world, player, targetp);
 }
 
