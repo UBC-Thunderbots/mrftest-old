@@ -1,5 +1,6 @@
 #include "ai/hl/stp/tactic/repel.h"
 #include "ai/hl/stp/tactic/block.h"
+#include "ai/hl/stp/tactic/cm_ball.h"
 #include "ai/hl/stp/play/simple_play.h"
 
 using AI::HL::STP::Enemy;
@@ -26,7 +27,8 @@ goalie_role.push_back(defend_solo_goalie(world));
 
 // ROLE 1
 // try to repel ball away
-roles[0].push_back(repel(world));
+//roles[0].push_back(repel(world));
+roles[0].push_back(tactive_def(world));
 
 // ROLE 2
 // block the enemy baller

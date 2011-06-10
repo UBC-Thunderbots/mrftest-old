@@ -14,7 +14,7 @@ using AI::HL::STP::Enemy;
  */
 BEGIN_PLAY(JustBlockShoot)
 INVARIANT(playtype(world, PlayType::PLAY) && our_team_size_at_least(world, 2) && their_team_size_at_least(world,1))
-APPLICABLE(our_ball(world) && !num_of_enemies_on_our_side_at_least(world, 1))
+APPLICABLE(!num_of_enemies_on_our_side_at_least(world, 1))
 DONE(goal(world))
 FAIL(their_ball(world))
 BEGIN_ASSIGN()
